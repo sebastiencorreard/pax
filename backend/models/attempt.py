@@ -13,7 +13,7 @@ class Attempt(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     student_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+    exercise_id: Mapped[str] = mapped_column(String(600), ForeignKey("exercises.id"))
     sheet_id: Mapped[int | None] = mapped_column(ForeignKey("sheets.id"), nullable=True)
     hw_assignment_id: Mapped[int | None] = mapped_column(
         ForeignKey("homework_assignments.id"), nullable=True

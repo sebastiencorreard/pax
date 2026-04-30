@@ -183,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ exerciseId: number }>()
+const props = defineProps<{ exerciseId: string }>()
 
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
@@ -198,7 +198,7 @@ interface AnswerDef {
 }
 
 interface Rendered {
-  exercise_id: number
+  exercise_id: string
   title: string
   lang: string
   statement_html: string

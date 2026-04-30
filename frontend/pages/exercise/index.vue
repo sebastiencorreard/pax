@@ -71,11 +71,11 @@ function decodeHtmlEntities(s: string): string {
           .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
 }
 
-const titlesHtml = ref<Record<number, string>>({})
+const titlesHtml = ref<Record<string, string>>({})
 
 async function buildTitles(exList: Exercise[]) {
   const katex = await loadKatex()
-  const result: Record<number, string> = {}
+  const result: Record<string, string> = {}
   for (const ex of exList) {
     const raw = ex.title || ex.oef_path
     const decoded = decodeHtmlEntities(raw)
@@ -91,7 +91,7 @@ async function buildTitles(exList: Exercise[]) {
 }
 
 interface Exercise {
-  id: number
+  id: string
   oef_path: string
   title: string | null
   level: string | null

@@ -54,7 +54,7 @@ class AnswerResult(BaseModel):
 
 
 class CheckResponse(BaseModel):
-    exercise_id: int
+    exercise_id: str
     global_score: float           # moyenne pondérée
     results: list[AnswerResult]
     attempt_id: str
@@ -149,7 +149,7 @@ def _check_condition(
 
 @router.post("/{exercise_id}", response_model=CheckResponse)
 async def check_exercise(
-    exercise_id: int,
+    exercise_id: str,
     body: CheckRequest,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),

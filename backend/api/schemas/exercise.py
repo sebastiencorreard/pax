@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class ExerciseResponse(BaseModel):
-    id: int
+    id: str
     oef_path: str
     title: str | None
     module: str | None
@@ -17,7 +17,7 @@ class ExerciseResponse(BaseModel):
 
 class ExerciseRendered(BaseModel):
     """Exercice prêt à être affiché : métadonnées + HTML de l'énoncé."""
-    id: int
+    id: str
     title: str | None
     html: str        # énoncé rendu
     seed: int        # graine utilisée (pour reproductibilité)

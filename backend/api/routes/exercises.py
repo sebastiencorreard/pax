@@ -34,7 +34,7 @@ async def list_exercises(
 
 @router.get("/{exercise_id}", response_model=ExerciseResponse)
 async def get_exercise(
-    exercise_id: int,
+    exercise_id: str,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
