@@ -1,0 +1,145 @@
+!set title=Tableau périodique (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Markey Benoît
+email=benoit.markey@nomade.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=8
+prevarcnt=5
+postvarcnt=2
+replycnt=6
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 2 of tableau
+
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+val8=$(val7[2])
+tmp0=!lower $val8
+
+!readproc slib/lang/frapostrophe de $(tmp0) 
+tmp1=$slib_out
+val8=$(tmp1)
+val9=$[rint($(val7[3])-$(val7[4]))]
+replytype1=numeric
+replyname1=K
+replygood1=$[$(val7[5])]
+replytype2=numeric
+replyname2=L
+replygood2=$[$(val7[6])]
+replytype3=numeric
+replyname3=M
+replygood3=$[$(val7[7])]
+replytype4=numeric
+replyname4=Z
+replygood4=$[$(val7[4])]
+replytype5=case
+replyname5=X
+replygood5=$(val7[1])
+replytype6=raw
+replyname6=charge
+replygood6=?analyze 10
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Répondez aux questions en vous aidant du tableau périodique <b>qui se trouve dans 	l'aide:</b> 	<p>	<ol><li>Donner la structure électronique de l'atome $val8.<br>		L'atome <i>$val8</i> a pour configuration électronique :	(K)<sup> 
+!read oef/embed.phtml reply 1,2 
+$()</sup>(L)<sup> 
+!read oef/embed.phtml reply 2,2 
+$()</sup>(M)<sup> 
+!read oef/embed.phtml reply 3,2 
+$()</sup><br><br>	<p><i>Les champs doivent être complétés, avec la valeur 0 au besoin </i>	</li><li>	Quel est le numéro atomique de cet élément ? 	<center>
+!insmath Z = 
+$()  
+!read oef/embed.phtml reply 4,2 
+$()</center>		</li><li>	Indiquer la formule chimique de l'ion envisageable:	 
+!read oef/embed.phtml reply 5,2 
+$()<sup> 
+!read oef/embed.phtml reply 6,2 
+$()</sup>	</li></ol>	<p><font size=-1><i>L'aide s'ouvre dans une fenêtre séparée si vous cliquez sur Aide dans la barre de menu en haut.</i></font>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<center> <img src="$val1/tableau.gif"></center>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:postdef
+tmp0=!text select +012345678- in $val10
+
+val10=$(tmp0)
+
+!ifval $val10  issametext $(val7[9]) 
+val11= 1
+!else
+val11=0
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val11=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La charge est bonne
+
+!exit
+
+:stat
+vsavelist=1,7,8,10
+embedcnt=6

@@ -1,0 +1,137 @@
+!set anstype=yes
+!set ans_require=
+!set anstyle=dprompt
+
+!if $wims_read_parm=def
+ !exit
+!endif
+
+!set nbrcolonne=$inputsize
+!default nbrcolonne=5
+!set nbrtest=$(replygood$i[2;1])
+!default nbrtest=7
+!set delaiavantdepart=$(replygood$i[2;2])
+!default delaiavantdepart=1000
+!set attentemaxapresdepart=$(replygood$i[2;3])
+!default attentemaxapresdepart=6
+!set tempsreactionmax=$(replygood$i[2;4])
+!default tempsreactionmax=1000
+
+!set oef_applet_option=$nbrcolonne
+
+
+<script>
+/*<![CDATA[*/
+var nbrtest=$nbrtest; 
+var nbrcolonne=$nbrcolonne;
+var delaiavantdepart=$delaiavantdepart;
+var attentemaxapresdepart=$attentemaxapresdepart;
+
+function stort() {
+var rnd=Math.floor(Math.random()*attentemaxapresdepart); 
+c=0;
+ad=0;
+document.getElementById("st").style.display='inline';
+document.getElementById("go").style.display='none';
+document.getElementById("affichage").innerHTML = "Pr&eacute;parez-vous &agrave; appuyer sur STOP...";
+myvar=setTimeout("spel()",delaiavantdepart+1000*rnd);
+}
+
+function stop() {
+if(c==0){fusk();}
+rak();
+}
+
+function rak() {
+if(ad==1){return;}
+slutTime=new Date();
+sltid=slutTime.getTime();
+tidpo=(sltid-stid);
+if (tidpo<=1000){
+tab.push(tidpo);
+k=k+1;
+/*(k+';'+tab);*/
+if (k%3==1){document.getElementById("text11").innerHTML = tidpo+" millisecondes";}
+if (k%3==2){document.getElementById("text22").innerHTML = tidpo+" millisecondes";}
+if (k%3==0){document.getElementById("text33").innerHTML = tidpo+" millisecondes";}
+document.getElementById("affichage").innerHTML = "Appuyez sur GO !";
+document.getElementById("st").style.display='none';
+document.getElementById("go").style.display='inline';
+tabl();
+/*alert(nbrcolonne + "," + nbrtest);*/
+if(k>=nbrtest){
+q=1;
+document.getElementById("affichage").innerHTML = "Vous avez fini les "+nbrtest+" tests.";
+document.getElementById("st").style.display='none';
+document.getElementById("go").style.display='none';}
+}
+else {document.getElementById("affichage").innerHTML = "Votre temps de r&eacute;action est sup&eacute;rieur &agrave; $tempsreactionmax ms. R&eacute;veillez vous ! Appuyez sur GO !";
+document.getElementById("st").style.display='none';
+document.getElementById("go").style.display='inline';
+}
+}
+
+function spel() {
+c=1;
+startTime=new Date();
+stid=startTime.getTime();
+document.getElementById("affichage").innerHTML ="Appuyez sur STOP !";}
+
+function fusk() {
+document.getElementById("affichage").innerHTML = "Trop t&ocirc;t. Votre essai n'est pas valide."
+document.getElementById("st").style.display='none';
+document.getElementById("go").style.display='inline';
+clearTimeout(myvar);
+ad=1;
+}
+
+function tabl() {
+var l=k-1;
+if((k-1)%nbrcolonne==0){
+j=j+1;
+var lign=document.getElementById("monTableau").insertRow(-1);
+var colo = lign.insertCell(-1);
+colo.innerHTML +=tab[l];
+}
+else{
+var tableau = document.getElementById("monTableau").rows;
+var colonnel = tableau[j-1].insertCell(-1);
+colonnel.innerHTML +=tab[l];
+}
+/*alert('j='+j+'k='+k);*/
+}
+
+var myvar;
+stid=0;
+tidtot=0;
+var j=0;
+k=0;
+q=0;
+ad=0;
+var tab=[];
+
+function sendanswer$i() {if(k==$nbrtest){document.getElementById('oefvar$i').value=tab; }}
+/*]]>*/
+</script>
+
+<div class="wimscenter">
+<div class="texte">R&eacute;sultats des 3 derniers tests</div>
+<div class="texte" id="text11"></div>
+<div class="texte" id="text22"></div>
+<div class="texte" id="text33"></div>
+</div>
+<br />
+<div class="instruction"><div id="affichage" style="font-weight:bold">Appuyez sur GO !</div></div>
+<br />
+<div class="wimscenter">
+<span class="bouton" onclick="stort()" id="go" style="display:inline">GO</span>
+<span class="bouton" onclick="stop()" id="st" style="display:none">STOP</span>
+</div>
+<br />
+<table class="wimscenter wimsborder" id="monTableau">
+    <caption style="font-weight:bold">Temps de r&eacute;action r&eacute;alis&eacute;s</caption>
+</table>
+</div>
+
+<input type="hidden" name="reply$i" id="oefvar$i" value="" />
+!set oef_js_submit=$oef_js_submit; sendanswer$i()

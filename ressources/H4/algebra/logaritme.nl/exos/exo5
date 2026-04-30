@@ -1,0 +1,101 @@
+#Parameters
+n=$counter
+rounding=0
+!readproc $remarkdir/rounding.$taal
+mathview=1
+image=0
+inputs=-1
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=0
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/new_number.proc
+varlist=$empty
+arglist=p,q
+sometext=!record 2 of lang/remarks.$taal
+helptext=$empty
+!if $lang=fr or $taal=fr
+ g=!randitem 2,10
+ !if $g=10
+  gg=$empty
+  LOG=\log
+ !else
+  gg=$g
+  LOG=\log_{$gg}
+ !endif
+!else
+ g=!randint 2,10
+ !if $g=10
+  gg=$empty
+  LOG=\log
+ !else
+  gg=$g
+  LOG=^{$gg}\log
+ !endif
+!endif
+#
+tussen=!record 38 of lang/remarks.$taal
+asymptoot=!item 1 of $tussen
+punt=!item 2 of $tussen
+
+p=!randint 1,10
+pm=!randitem 1,-1
+p=$[$pm*$p]
+q=!randint 1,10
+m_longrightarrow=$empty
+in1=\input{10}{0}{background-color:lightblue;color:red;font-size:1.2em;text-align:center}{?}{0}
+in2=\input{10}{1}{background-color:lightblue;color:red;font-size:1.2em;text-align:center}{?}{0}
+!if $R=1
+ a=!randint 1,4
+ y=$[$p+$a]
+ x=$[$g^$a - $q]
+ x_tex=$x
+ asym=$[-1*$q]
+ asymp=$asym
+ answer$n=$p\
+ $q
+
+ embed=1
+ formula$n=\left[ \begin{array}{l} f(x)=p+$LOG(x+q) \\ \\ \textrm{P=} \displaystyle \left( $x_tex;$y \right) \\ \\ x=\displaystyle $asymp \end{array} \right.  \rightarrow \left\{ \begin{array}{l} p = $in1\\ q = $in2 \end{array}\right.
+ applettext=!nospace f(x)=p+log(x+q)/log($g) ->
+ var1=
+ texanswer$n=\left[ \begin{array}{l} \textrm{$asymptoot:} \\ x+q=0 \rightarrow x = -q \rightarrow q=$q \\ \textrm{$punt: } \\ $y \,=\,p+$LOG($x + $q) \\ $y \,=\,p+^{$g}\log($[$x + $q]) \rightarrow $y \, =\, p+$a \\ p=$p \end{array} \right.
+ ss=!record 37 of lang/remarks.$taal
+ #@Gegeven is de onderstaande functie.<br>De lijn x=$asymp is de asymptoot van de grafiek van <em>f</em>.<br>Het punt ($x;$y) ligt op de grafiek van <em>f</em>.<br>Bereken de waarden van <em>p</em> en <em>q</em>.
+ question$n=$ss
+ !exit
+!endif
+
+!if $R>1
+ a=!randint 1,5
+ y=$[$p+$a]
+ b=!randint 2,9
+ tot=!exec pari A=($g^($a) - $q)/$b\
+ printtex(A)\
+ B=-1*($q)/($b)\
+ printtex(B)
+ 
+ x=!line 1 of $tot
+ x_tex=!line 2 of $tot
+ asym=!line 3 of $tot
+ asymp=!line 4 of $tot
+ inputs=-1
+ embed=1
+ formula$n=\left[ \begin{array}{l} f(x)=p+$LOG($b x+q)\\ \\ \textrm{P=} \displaystyle \left( $x_tex;$y \right)\\ \\ x=\displaystyle $asymp \end{array}\right.   \rightarrow \left\{ \begin{array}{l} p = $in1 \\ q = $in2 \end{array}\right.
+ applettext=!nospace f(x)=p+log($b*x+q)/log($g) ->
+ var1=
+ answer$n=$p\
+ $q
+ texanswer$n=\left[ \begin{array}{l}\textrm{$asymptoot:} \\ $b \cdot x+q=0 \rightarrow $b \cdot x=-q \rightarrow x=-\frac{q}{$b} \\-\frac{q}{$b}=$asymp \rightarrow q=$q \\ \textrm{$punt: } \\$y \,=\,p+^{$g}\log($b \cdot $x_tex + $q) \rightarrow \\ $y \,=\,p+^{$g}\log($[$b*$x + $q]) \rightarrow \\ $y \, =\, p+$a \rightarrow \\ p=$p \end{array} \right.
+ ss=!record 37 of lang/remarks.$taal
+ #@Gegeven is de onderstaande functie.<br>De lijn x=$asymp is de asymptoot van de grafiek van <em>f</em>.<br>Het punt ($x;$y) ligt op de grafiek van <em>f</em>.<br>Bereken de waarden van <em>p</em> en <em>q</em>.
+ question$n=$ss
+!exit
+!endif
+

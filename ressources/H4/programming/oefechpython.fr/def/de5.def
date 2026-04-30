@@ -1,0 +1,289 @@
+!set title=Dé 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+keywords=python,probability
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=60
+prevarcnt=41
+postvarcnt=18
+replycnt=11
+choicecnt=0
+conditioncnt=6
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val3==)
+val6=ambiance
+!else
+val6=$val3
+!endif
+val7=Étude d'un dé avec Python
+val8=int
+val9=random
+val10=Jouer le code et envoyer la réponse.
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val12=$[rint($(tmp0))]
+val13=3,4,6,8,10,12,16,20,24,30
+val14=$[rint($(val13[$val11]))]
+val15=$[rint($(val13[$val12]))]
+val14=$[rint(6)]
+tmp0=!randint 1, $val14
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 5, 30
+
+val17=$[rint($(tmp0))]
+tmp0=!makelist x for x=1 to $val14
+
+val18=$(tmp0)
+tmp0=!makelist x for x=1 to $val15
+
+val19=$(tmp0)
+val20=\#Importation des méthodes\#	from random import rand$val8
+tmp0=!randint 0, 20
+
+val21=$[rint($(tmp0))]
+val17=$[rint(1500+100*$val21)]
+val14=$[rint(6)]
+val10=Jouer le code plusieurs fois et envoyer la réponse.
+tmp0=!randint 1, $val14
+
+val22=$[rint($(tmp0))]
+tmp0=!makelist r x for x = 3 to 11
+
+val23=$(tmp0)
+tmp0=!makelist x for x=1 to 6
+
+val24=$(tmp0)
+tmp=!trim r1,r2
+val25=!translate internal $	\
+$ to ;; in $tmp
+val26=
+val27=
+val28=$[rint()]
+val29=
+val30=
+val31=<li>Déterminer les formules permettant de calculer la fréquence	 pour l'ensemble des faces. La formule qui calcule la fréquence pour la face 1	 est donnée dans le code.</li>
+val32=La simulation donne les résultats en fréquence d'apparition d'une face.	 Serait-il plus pertinent de déterminer le nombre d'apparitions d'une face ?
+val33=jsxbox,600 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.withLabel=true;	color_liste=['red','yellow','blue','green','orange','purple'];	JXG.Options.point.size =2;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [-1,0.5,7,-0.1],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,showFullscreen: true});	xaxis = brd.create('axis', [[0,0], [1,0]],	      {name:'Issues possibles',	      withLabel: true,	      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/	      offset: [-60, 30] /*(in pixels)*/},Color:'red'});	      yaxis = brd.create('axis', [[0, 0], [0,1]],	      {name:'Fréquence d\'apparition d\'une face',withLabel: true,	      label: {position: 'rt', /*possible values are 'lft', 'rt', 'top', 'bot'*/	      offset: [10, 0] /*(in pixels)*/},Color:'red'});
+!readproc slib/geo2D/jsxgraph $val33 
+tmp0=$slib_out
+val34=$(tmp0)
+val20=$val20	vi=??	vf=??	nt=??	f1=f2=f3=f4=f5=f6=0	\#################	for i in range(nt):	  issue = rand$val8(vi,vf)	  if issue==1:	    f1=f1+1/nt	  if issue==??:	    f2=??	  if issue==??:	    f3=??	  if issue==??:	    f4=??	  if issue==??:	    f5=??	  if issue==??:	    f6=??	print(f1,f2,f3,f4,f5,f6)	
+val35=[vi,1],[vf,$val14],[nt,$val17]
+val36=<li>Déterminer les conditions à remplir pour compter le nombre	d'apparitions de chacune des faces.</li>
+val37=<script>	var tp=[];	var ch;	function graph(){if (ch) { brd.removeObject(ch); ch = null; };	if (liii) { brd.removeObject(liii); liii = null; };	if (tp.length) {for (var i = 0; i < tp.length; i++) {brd.removeObject(tp[i]);}tp = [];};	f1=Sk.ffi.remapToJs(Sk.globals["f1"]);	f2=Sk.ffi.remapToJs(Sk.globals["f2"]);	f3=Sk.ffi.remapToJs(Sk.globals["f3"]);	f4=Sk.ffi.remapToJs(Sk.globals["f4"]);	f5=Sk.ffi.remapToJs(Sk.globals["f5"]);	f6=Sk.ffi.remapToJs(Sk.globals["f6"]);	nn=[f1,f2,f3,f4,f5,f6];	const xlen=nn.length;	var liii=brd.create('line',[[0,1/6],[1,1/6]],{Color:'red'});	brd.suspendUpdate();	ch = brd.create('chart', [nn], {	         chartStyle:'bar',	         width:0.5,	         /*labels:nn,*/	         colors: color_liste,	         shadow:true	});	for(var jj = 0; jj < xlen; jj=jj+1) {	var tt=nn[jj].toFixed(3);	tp[jj]=brd.create('point', [jj+1,nn[jj]],{name:tt,label:{offset:[-10, 10]},color:color_liste[jj]});}	brd.unsuspendUpdate();	}	execidtest2.addEventListener('click',graph);	</script>
+val38=3
+val39=<ul><li>Initialiser les variables \(\text{vi}\)	  et \(\text{vf}\) afin que le programme simule un dé équilibré dont les issues sont \( \{ $val18 \}\).</li>
+val40=<li>Compléter la boucle for pour simuler $val17 tirages en initialisant	 la valeur \(\text{nt}\).</li>
+val41=Pour étudier un dé, on lance ce dé un grand nombre de fois	et on étudie les données. Ce travail étant fastidieux et répétitif, on utilise	 la programmation pour arriver aux résultats. La simulation est réalisée	 en Python et la méthode <code>$val9.rand$val8(3,9)</code> permet de tirer	 un entier compris entre 3 et 9 inclus.
+dynsteps=yes
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=runcode
+
+replyoption1=precision=100 
+replyname1=
+replygood1=$val35
+replytype2=js2wims1
+
+replyoption2=noanalyzeprint 
+replyweight2=0 
+replyname2=
+replygood2=nn
+replytype3=numeric
+replyoption3=comma 
+replyname3=
+replygood3=$[0.167]
+replytype4=numeric
+replyname4=
+replygood4=?analyze 42
+replytype5=numeric
+replyname5=
+replygood5=?analyze 43
+replytype6=numeric
+replyname6=
+replygood6=?analyze 44
+replytype7=numeric
+replyname7=
+replygood7=?analyze 45
+replytype8=numeric
+replyname8=
+replygood8=?analyze 46
+replytype9=numeric
+replyname9=
+replygood9=?analyze 47
+replytype10=radio
+replyoption10=shuffle 
+replyname10=
+replygood10=1;oui,non
+replytype11=radio
+replyoption11=shuffle 
+replyname11=
+replygood11=1;non,oui
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<p class="problematique">$val7</p>	<div id="boiteg">	<img src="$val1/des.jpg" alt="Dés">	</div>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val41	<div class="question">	
+!if $m_step==1 
+$()	$val39	$val40	$val36	$val31	<li>$val10</li>	</ul>	<div>	 
+!read oef/embed.phtml reply 1,[python,[$val20]];[idtest2,theme=$val6 canvas init \instruction_code,Jouer le code !] 
+$()	</div>	<div class="wimscenter wimsborder box">	$val34	</div>	 
+!read oef/embed.phtml reply2 
+$() 
+!endif
+$()	
+!if ($m_step==2 or $m_step==3) and $m_sc_reply1==1 
+$()	<p>La simulation de $val17 lancers d'un dé à six faces est représentée ci-dessous :</p>	<div class="wimscenter box">	$val29	</div>	<ul><li>Quelle est la probabilité théorique d'apparition d'une des faces ? Arrondir au millième.	<div class="unbreakable">
+!insmath P_t=
+$() 
+!read oef/embed.phtml reply3,4 
+$()</div></li>	 
+!for m_jj=4 to 9 
+$()	<li> Quelle est la fréquence expérimentale d'apparition de la face $(val24[$m_jj-3]) ? Arrondir au millième.	<div class="unbreakable">
+!insmath F_{\text{exp}}($(val24[$m_jj-3]))=
+$() 
+!read oef/embed.phtml reply\jj,4 
+$()</div></li> 
+!next
+$()	<li>En comparant les fréquences expérimentales à la probabilité théorique,	 la simulation semble-t-elle satisfaisante ? 
+!read oef/embed.phtml reply10 
+$()</li>	<li>$val32 
+!read oef/embed.phtml reply11 
+$()</li>	</ul>	 
+!endif
+$()	</div>	$val37	</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val26=$m_reply2
+tmp0=!declosing $val26
+
+val27=$(tmp0)
+val30=$val33	var nA=$val26;	const xlen=nA.length;	var liii=brd.create('line',[[0,$val17/6],[1,$val17/6]],{Color:'red'});	brd.suspendUpdate();	var chart = brd.create('chart', [$val26], {	         chartStyle:'bar',	         width:0.5,	         /*labels:$val26,*/	         colors: color_liste,	         shadow:true	});	for(var jj = 0; jj < xlen; jj=jj+1) {	var tt=nA[jj].toFixed($val38);	brd.create('point', [jj+1,nA[jj]],{name:tt,label:{offset:[-10, 10]},color:color_liste[jj]});}	brd.unsuspendUpdate();
+!readproc slib/geo2D/jsxgraph $val30 
+tmp0=$slib_out
+val29=$(tmp0)
+val48=$[rint($(val27[1])*1000)]
+val49=$[$val48/1000]
+val50=$[rint($(val27[2])*1000)]
+val51=$[$val50/1000]
+val52=$[rint($(val27[3])*1000)]
+val53=$[$val52/1000]
+val54=$[rint($(val27[4])*1000)]
+val55=$[$val54/1000]
+val56=$[rint($(val27[5])*1000)]
+val57=$[$val56/1000]
+val58=$[rint($(val27[6])*1000)]
+val59=$[$val58/1000]
+val25=
+
+!ifval ($m_step==2 and $m_sc_reply1==1)
+val25=$val23
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val42=$val49
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=la fréquence expérimentale d'apparition de la face 1 est de $val49
+
+!ifval $val43=$val51
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=la fréquence expérimentale d'apparition de la face 2 est de $val51
+
+!ifval $val44=$val53
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=la fréquence expérimentale d'apparition de la face 3 est de $val53
+
+!ifval $val45=$val55
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=la fréquence expérimentale d'apparition de la face 4 est de $val55
+
+!ifval $val46=$val57
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=la fréquence expérimentale d'apparition de la face 5 est de $val57
+
+!ifval $val47=$val59
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=la fréquence expérimentale d'apparition de la face 6 est de $val59
+
+!exit
+
+:stat
+vsavelist=1,6,7,10,17,20,23,24,26,27,29,30,31,32,33,34,36,37,38,39,40,41,42,43,44,45,46,47
+embedcnt=6

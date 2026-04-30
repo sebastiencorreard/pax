@@ -1,0 +1,174 @@
+n=$counter
+embed=1
+inputs=-1
+mathview=0
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=1
+!readproc $remarkdir/rounding.$taal
+applet=1
+checkfile=$checkdir/new_number.proc
+!if exam isin $session
+ helptext=<img src=\'$gifdir/nohelp.jpg\' alt=\'noalt\' />
+!else
+ !if $subject < 5
+  htxt=!record 10 of lang/remarks.$taal
+  helptext=<img src=\'$module_dir/gifs/exo3.png\' alt=\'noalt\' /><br />$htxt
+ !endif
+!endif
+
+hoekA=!randint 20,70
+hoekB=!randint 20,70
+hoekC=$[180-($hoekA+$hoekB)]
+BC=!randint 50,150
+BC=$[0.1*$BC]
+# 1 decimaal
+AC=$[0.1*(round(10*$BC*(sin($hoekB*pi/180))/(sin($hoekA*pi/180))))]
+AB=$[0.1*(round(10*$BC*(sin($hoekC*pi/180))/(sin($hoekA*pi/180))))]
+#tot=!exec moneyprint $BC,$AC,$AB
+#BC=$(tot[1])
+#AC=$(tot[2])
+#AB=$(tot[3])
+
+xa=0
+ya=0
+xb=$AB
+yb=0
+xc=$[$AC*cos($hoekA*pi/180)]
+yc=$[$AC*sin($hoekA*pi/180)]
+
+keuze=!randint 0,2
+txt=!record 11 of lang/remarks.$taal
+#@We gebruiken de cosinusregel
+!if $keuze=0
+ hoek=&angle;A
+ boog=angle $xa,$ya,$[0.2*($xb-$xa)],0,$hoekA,red\
+ string black,$[$xa+0.2*($xb-$xa)],$[$ya+0.14*($yc-$ya)],\u03B1
+ tussen=$[($AC*$AC+$AB*$AB - $BC*$BC)/(2*$AC*$AB)]
+ hoek_rad=$[acos($tussen)]
+ answer$n=$[$hoek_rad*180/pi]
+ rans= $[round($(answer$n))]
+ 
+ t0=$[2*$AC*$AB]
+ t4=$[$BC*$BC]
+ t1=$[$AC*$AC + $AB*$AB]
+ t2= $[$t4 - $t1]
+ t3=$[-1*($t2)/($t0)]
+ texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} a^{2} =  b^{2} +  c^{2}  - 2bc\cdot \cos(\alpha) \\ BC^{2} = AC^{2} + AB^{2} - 2\cdot AC \cdot  AB \cdot \cos(\alpha) \\ $BC^{2} = $AC^{2} + $AB^{2} - 2\cdot $AC \cdot $AB \cdot \cos\left( \angle A^{o} \right) \\ $t4 = $[$AC*$AC] + $[$AB*$AB] - $t0 \cdot \cos\left( \angle A^{o} \right) \\ $t4 = $t1 - $t0 \cdot \cos\left( \angle A^{o} \right) \\ $t4 - $t1 = - $t0 \cdot \cos\left( \angle A^{o} \right) \\ $t2 = - $t0 \cdot \cos\left( \angle A^{o} \right) \\ \cos\left( \angle A^{o} \right) = \frac{$t2}{- $t0} \approx $t3 \\ cos^{-1}\left( $t3 \right) \approx $(answer$n) \\ \angle A  \approx $rans \end{array} 
+ 
+ exotext=!mathmlmath \left\{ \begin{array}{lcl} BC & = & $BC \\ AC & = & $AC \\ AB & = & $AB \\ \angle A & = &  \input{3}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o}  \end{array}\right.
+
+!else
+ !if $keuze=1
+  hoek=&angle;B
+  boog=angle $xb,$yb,$[0.2*($xb-$xa)],$[180 - $hoekB],180,red\
+  string black,$[$xb-0.2*($xb-$xa)],$[$yb+0.14*($yc-$yb)],\u03B2
+  tussen=$[($BC*$BC+$AB*$AB - $AC*$AC)/(2*$BC*$AB)]
+  hoek_rad=$[acos($tussen)]
+  answer$n=$[$hoek_rad*180/pi]
+  rans= $[round($(answer$n))]
+ 
+  t0=$[2*$BC*$AB]
+  t1=$[$BC*$BC + $AB*$AB]
+  t4=$[$AC*$AC]
+  t2= $[$t4 - $t1]
+  t3=$[-1*($t2)/($t0)]
+  texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} b^{2} =  a^{2} +  c^{2}  - 2ac\cdot \cos(\beta) \\ AC^{2} = BC^{2} + AB^{2} - 2\cdot BC \cdot  AB \cdot \cos(\beta) \\ $AC^{2} = $BC^{2} + $AB^{2} - 2\cdot $BC \cdot $AB \cdot \cos\left( \angle B^{o} \right) \\ $t4 = $[$BC*$BC] + $[$AB*$AB] - $t0 \cdot \cos\left( \angle B^{o} \right) \\ $t4 = $t1 - $t0 \cdot \cos\left( \angle B^{o} \right) \\ $t4 - $t1 = - $t0 \cdot \cos\left( \angle B^{o} \right) \\ $t2 = - $t0 \cdot \cos\left( \angle B^{o} \right) \\ \cos\left( \angle B^{o} \right) = \frac{$t2}{- $t0} \approx $t3 \\ cos^{-1}\left( $t3 \right) \approx $(answer$n) \\ \angle B \approx $rans^{o} \end{array} 
+ 
+  exotext=!mathmlmath \left\{ \begin{array}{lcl} BC & = & $BC \\ AC & = & $AC \\ AB & = & $AB \\ \angle B & = &  \input{3}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o}  \end{array}\right.
+
+
+ !else
+  hoek=&angle;C
+  boog=angle $xc,$yc,$[0.2*($yc-$ya)],$[180+$hoekA],$[180+$hoekA+$hoekC],red\
+  string black,$xc,$[$yc- 0.4*($yc-$ya)],\u03B3
+  tussen=$[($BC*$BC+$AC*$AC - $AB*$AB)/(2*$BC*$AC)]
+  hoek_rad=$[acos($tussen)]
+  answer$n=$[$hoek_rad*180/pi]
+  rans= $[round($(answer$n))]
+ 
+  t0=$[2*$BC*$AC]
+  t1=$[$BC*$BC + $AC*$AC]
+  t4=$[$AB*$AB]
+  t2= $[$t4 - $t1]
+  t3=$[-1*($t2)/($t0)]
+  texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} c^{2} =  a^{2} +  b^{2}  - 2ab\cdot \cos(\gamma ) \\ AB^{2} = BC^{2} + AC^{2} - 2\cdot BC \cdot AC \cdot \cos(\gamma) \\  $AB^{2} = $BC^{2} + $AC^{2} - 2\cdot $BC \cdot $AC \cdot \cos\left( \angle C^{o} \right) \\ $t4 = $[$BC*$BC] + $[$AC*$AC] - $t0 \cdot \cos\left( \angle C^{o} \right) \\ $t4 = $t1 - $t0 \cdot \cos\left( \angle C^{o} \right) \\ $t4 - $t1 = - $t0 \cdot \cos\left( \angle C^{o} \right) \\ $t2 = - $t0 \cdot \cos\left( \angle C^{o} \right) \\ \cos\left( \angle C^{o} \right) = \frac{$t2}{- $t0} \approx $t3 \\ cos^{-1}\left( $t3 \right) \approx $(answer$n) \\ \angle C \approx $rans \end{array} 
+ 
+  exotext=!mathmlmath \left\{ \begin{array}{lcl} BC & = & $BC \\ AC & = & $AC \\ AB & = & $AB \\ \angle C & = &  \input{3}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o}  \end{array}\right.
+ !endif
+!endif
+
+max=$[max($xc,$xb)]
+max=$[max($max,$yc)]
+# gebruik gelijke xrange==yrange ivm plaatje
+xsize=220
+ysize=220
+k=!randitem green,blue,orange,red
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -4,$[$max+1]\
+yrange -4,$[$max+1]\
+opacity 200,30\
+linewidth 1\
+fillcolor orange\
+ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+filled\
+$boog\
+opacity 255,255\
+fontfamily 14px Ariel\
+linewidth 2\
+points green,$xa,$ya,$xb,$yb,$xc,$yc\
+string black,$[$xa+0.3],$[$ya+0.3],A\
+string black,$[$xb+0.15],$[$yb+0.3],B\
+string black,$[$xc+0.3],$[$yc+0.3],C\
+string black,$[0.5*$xc-0.3],$[0.5*$yc],$AC\
+string black,$[0.5*$xb],-1,$AB\
+string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],$BC\
+linewidth 1\
+replyformat -1\
+userdraw circle,$k\
+precision 10\
+display radius,$k,16
+
+
+ss=!record 12 of lang/remarks.$taal
+#@Gegeven is de &Delta;ABC met zijde BC = $BC <br/ >zijde AC = $AC en zijde AB = $AB <br />Bereken $hoek in graden.
+question$n=<a onmouseover="return escape('$helptext')">$ss</a> 
+
+
+!exit
+
+
+# plaatje voor help
+#make_tr=1
+#m=!mathmlmath \color{red}\begin{array}{llllll} a^{2} & = & b^{2} & + & c^{2} & - 2bc\cdot \cos(\alpha) \\ b^{2} & = & a^{2} & + & c^{2} & - 2ac\cdot \cos(\beta) \\ c^{2} & = & a^{2} & + & b^{2} & - 2\cdot a \cdot b\cdot \cos(\gamma) \end{array}
+#
+#object$n=!exec canvasdraw\
+#size 300,300\
+#xrange -4,$[$max+1]\
+#yrange -4,$[$max+1]\
+#opacity 200,30\
+#linewidth 1\
+#fillcolor orange\
+#ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+#opacity 255,255\
+#fontfamily 14px Ariel\
+#linewidth 2\
+#points green,$xa,$ya,$xb,$yb,$xc,$yc\
+#string black,$[$xa+0.3],$[$ya+0.3],A\
+#string black,$[$xb+0.15],$[$yb+0.3],B\
+#string black,$[$xc+0.3],$[$yc+0.3],C\
+#string black,$[0.5*$xc-0.3],$[0.5*$yc],b\
+#string black,$[0.5*$xb],-1,c\
+#string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],a\
+#string black,$[$xa+1.8],$[$ya+0.6],\u03B1\
+#string black,$[$xb-1.8],$[$yb+0.3],\u03B2\
+#string black,$xc,$[$yc-1.5],\u03B3\
+#mathml -4,$max,$max,-4,$m
+#
+#exotext=$empty
+

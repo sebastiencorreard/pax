@@ -1,0 +1,419 @@
+%%Le source de cet exercice a été créé à l'aide de Quicktool
+%%Le type de l'exercice est GAP.
+%% Vous pouvez le modifier si vous désirez l'adapter.
+%% Fri Feb 17 12:36:27 2017
+
+###################
+\title{Déclinaisons des articles et adjectifs au masculin}
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+\css{<style>
+   .question {background-color: #FFFFCC;margin: 2% 2%;padding: 1%;}
+   .reponse {background-color: #FFCC99;color: black;margin: 2% 2%;padding: 0%;}
+   .oefstatement{}
+   ol li {list-style: upper-alpha; }
+ </style>}
+\language{fr}
+\computeanswer{no}
+\format{html}
+\text{file=Declinaisons}
+\text{notepad=slib(utilities/notepad Notepad,small)}
+\text{instruction=asis(Compléter les terminaisons manquantes (cases blanches) des articles et adjectifs du texte ci-dessous.)}
+\text{instruction2=asis()}
+\text{choice=}
+\text{common=}
+\text{audio_file=no}
+\text{reading_file=no}
+\text{image_file=no}
+\text{video_file=no}
+\text{alea=yes}
+\text{size=2}
+\text{partialscore=split}
+\text{percent=1}
+\text{aucune=aucune de ces possibilités}
+\text{format=case}
+\text{format0=mark}
+\text{specialhelp1=0}
+\text{specialhelp2=0}
+\text{specialhelp3=}
+\text{specialhelp4=}
+\text{helpprompt=}
+\text{reaccent=}
+\text{paste=yes}
+\text{pos_rep=inside}
+\text{second_step=yes}
+\text{first_step=1}
+\text{answer_given=yes}
+\text{try=2}
+\text{packs=}
+\text{player=---}
+\text{player_option= autostart="false" loop="false"}
+#####################
+
+\text{file0=randitem(\file)}
+\integer{cnt_question= wims(recordcnt \file0)}
+
+################
+\text{MAX=1}
+\text{N=1}
+\text{M=3}
+################
+\text{option=\format0 iswordof flashcard?show}
+\text{ff=\format0 iswordof flashcard ?s;&nbsp;}
+\text{autocompletion=\format iswordof case ? autocomplete="off"}
+\text{player=wims(replace internal - by in \player)}
+\text{specialhelp=\specialhelp1,\specialhelp2,\specialhelp3,\specialhelp4}
+\text{helpprompt=\helpprompt = ?++>}
+\integer{first_step=\first_step notwordof 0 ? 1}
+\text{option_reaccent=\reaccent!=yes ? noreaccent:}
+\text{nopaste=\paste issametext no ? slib(utilities/nopaste )}
+
+\text{instruction=\instruction issametext ? wims(getdef instruction in \file0)}
+\text{instruction=wims(\instruction)}
+\text{instruction2=\instruction2 issametext ? wims(getdef instruction2 in \file0)}
+\text{instruction2=wims(\instruction2)}
+\text{size=\size issametext ? wims(getdef size in \file0)}
+\text{reading_file=\reading_file issametext ? wims(getdef reading_file in \file0)}
+\text{reading = wims(record 0 of \reading_file)}
+\text{reading=wims(\reading)}
+\text{audio_file = \audio_file issametext ? wims(getdef audio_file in \file0)}
+\text{audio=\audio_file notsametext  and  \audio_file notsametext no?
+<div class="wimscenter">slib(media/audio \imagedir/\audio_file,\player_option,player=\player)</div>}
+
+\text{image_file=\image_file issametext ? wims(getdef image_file in \file0)}
+\text{image=\image_file notsametext  and  \image_file notsametext no?
+wims(makelist <img src="\imagedir/x " alt=""> for x in \image_file)}
+
+\text{video_file=\video_file issametext ? wims(getdef video_file in \file0)}
+\if{\video_file notsametext  and  \video_file notsametext no}{
+  \text{video_file=http notin \video_file ? \imagedir/\video_file}
+\text{video=\video_file notsametext ? <div><a target="wims_external" href="\video_file">[video]</a></div>}
+}
+\text{choix=\choice issametext ? wims(getdef choice in \file0):\choice}
+
+\text{try =\try notwordof 1 2 3 4 5 6 7 8 9 10 ? 1}
+\text{size=\format iswordof dragfill clickfill ? \size x 1}
+\integer{N = min(\cnt_question,\N)}
+\integer{MAX=min(\N*\MAX,\cnt_question)}
+\text{battage=\alea issametext yes ? shuffle(\cnt_question) :
+wims(makelist x for x = 1 to \cnt_question)}
+     \text{cnt_file=items(\file)}
+\text{texte=}
+\for{i = 2 to \cnt_file}{
+   \integer{cnt= wims(recordcnt \file[\i])}
+   \text{ v= shuffle(\cnt)}
+   \matrix{battage=\battage
+   \v[1..\N]}
+}
+ \for{i = 1 to \N}{
+   \if{\alea=no}{\text{image_test=wims(record \i of \file0)}}{
+    \text{image_test=wims(record \battage[\i] of \file0)}}
+   \text{preliminaire_test=wims(\image_test)}
+   \text{preliminaire_test=row(1,\preliminaire_test)}
+   \text{inst_audio=wims(getopt audio in \preliminaire_test)}
+   \text{inst_image=wims(getopt image in \preliminaire_test)}
+   \text{inst_title=wims(getopt title in \preliminaire_test)}
+   \text{inst_intro=wims(getopt intro in \preliminaire_test)}
+   \integer{test_inst=\inst_audio\inst_image\inst_title\inst_intro notsametext ? 1 : 0}
+   \text{rab_inst=}
+   \text{rab_inst=\inst_title notsametext ?\rab_inst<div class="wimscenter">\inst_title</div>}
+   \text{rab_inst=\inst_intro notsametext ?\rab_inst \inst_intro}
+   \text{rab_inst=\inst_image notsametext ? \rab_inst <div class="wimscenter"><img src="\imagedir/\inst_image" alt=""></div>}
+   \if{\inst_audio notsametext }{
+     \text{rab_inst1= . isin \inst_audio or \packs= ?
+       slib(media/audio \imagedir/\inst_audio,\player_option,player=\player):slib(lang/swac \inst_audio,\packs,player=\player,\player_option)}
+     \text{rab_inst=\rab_inst <div class="wimscenter">\rab_inst1[1;1]</div>}
+   }
+   \if{\test_inst=1}{
+     \text{texte= \texte \rab_inst}
+     \text{image_test=wims(line 2 to -1 of \image_test)}
+   }
+   \text{texte=\texte <div> \image_test </div>}
+   \text{texte=\texte <br class="spacer">}
+}
+
+\text{texte=wims(embraced randitem \texte)}
+\text{texte = slib(text/cutchoice2 \texte)}
+\text{texte = wims(replace internal || by | in \texte)}
+\text{cntrow=rows(\texte)}
+\integer{cntQ=(\cntrow-\cntrow%2)/2}
+\matrix{trou=}
+\matrix{trouV=}
+\text{listeCNT=}
+\matrix{rep=}
+\matrix{specialhelp1=}
+\matrix{specialhelp2=}
+\matrix{specialhelp3=}
+\matrix{specialhelp4=}
+\for{i = 1 to \cntQ}{
+  \text{trou0=\texte[2*\i;]}
+  \text{trou0=wims(replace internal // by ; in \trou0)}
+  \text{sp_help= wims(embraced randitem wims(getopt help in \trou0[2;]))}
+  \text{trou0=\trou0[1;]}
+  \integer{cnt = items(\trou0)}
+  \matrix{trou=\trou
+  \trou0[1]}
+  \text{trou1=\trou0[1]}
+%%%%%%%%%% ce qui suit sert pour l'aide
+  \text{trouitem=wims(replace internal | by , in \trou1)}
+  \text{trouitem_audio=\trouitem[1]}
+  \text{trouitem=wims(words2items \trouitem[1])} on aide avec la première possibilité
+  \text{cnt_word=items(\trouitem)}
+  \text{spec1=}
+  \text{spec2=}
+  \text{spec3=}
+  \if{1 isitemof \specialhelp or 2 isitemof \specialhelp}{
+    \for{w = 1 to \cnt_word}{
+    \text{mot=\trouitem[\w]}
+    \text{specnt=wims(charcnt \mot)}
+    \text{spe=wims(makelist - for x = 1 to \specnt)}
+    \text{spe1=wims(nospace wims(items2words \spe))}
+    \integer{cnt_rand=min(\specnt/2,3)}
+    \text{rand=shuffle(\specnt)}
+    \text{spe2=\spe}
+    \for{ra =1 to \cnt_rand}{
+      \integer{v=\rand[\ra]}
+      \text{spe2=wims(replace item number \v by wims(char \v of \mot) in \spe2)}
+    }
+    \text{spe2=wims(nospace wims(items2words \spe2))}
+    \text{spec1=\spec1 \spe1}
+    \text{spec2=\spec2 \spe2}
+    }
+  }
+  \if{3 isitemof \specialhelp}{
+      \text{spe3=slib(lang/swac \trouitem_audio,\packs,player=\player)}
+      \text{spec3=\spec3 \spe3[1;1]}}
+  \matrix{specialhelp1=\specialhelp1,\spec1}
+  \matrix{specialhelp2=\specialhelp2,\spec2}
+  \matrix{specialhelp3=\specialhelp3,\spec3}
+  \if{4 isitemof \specialhelp}{
+    \text{sp_help=\sp_help= ? no help}
+    \text{sp_help=wims(replace internal , by &#44; in \sp_help)}
+    \text{specialhelp4=wims(append item \sp_help to \specialhelp4)}
+  }
+%%%%%%%%% fin pour l'aide
+
+  \text{trou0= wims(listuniq wims(singlespace \trou0,\choix))}
+  \if{\format notwordof mark menu}{
+    \matrix{trouV=\trouV
+  \trou0}
+    \matrix{rep =\rep
+  \trou1}
+ }
+ {\text{trou2=wims(replace internal | by , in \trou1)}
+  \text{trou3=\format iswordof menu ? \trou2[1],\trou0[2..-1] : wims(listuniq wims(replace internal | by , in \trou0))}
+   \integer{cnt=items(\trou3)}
+   \matrix{trouV=\trouV
+ \trou3}
+   \text{t=}
+   \integer{tc=items(\trou2)}
+   \for{v=1 to \tc}{\text{t=\t, position(\trou2[\v],\trou3)}}
+   \matrix{rep =\rep
+  wims(nonempty items \t)}
+ }
+   \text{listeCNT = \listeCNT,\cnt}
+}
+\if{\format iswordof menu mark }{
+   \text{choix = \common issametext yes ? \choix,wims(lines2items wims(rows2lines \trouV))}
+   \text{choix=wims(listuniq \choix)}
+   \text{listeCNT =}
+   \matrix{trouV1=}
+   \matrix{rep1=} il faut aussi refaire la matrice de réponse
+   \for{ f = 1 to \cntQ}{
+     \text{tmp=wims(listuniq \trouV[\f;],\choix)}
+     \text{tmp=shuffle(\tmp)}
+     \matrix{trouV1 = \trouV1
+      \tmp}
+     \text{t=}
+     \integer{tc=items(\trouV[\f;])}
+     \for{h=1 to \tc}{\text{t=\t,position(\trouV[\f;\rep[\f;\h]],\tmp)}}
+     \matrix{rep1 =\rep1
+     wims(nonempty items \t)}
+     \text{cnt = items(\trouV1[\f;])}
+     \text{listeCNT = \listeCNT,\cnt}
+   }
+    \matrix{trouV = \trouV1}
+    \matrix{rep=\rep1}
+}
+\text{listeCNT=wims(nonempty items \listeCNT)}
+\text{specialhelp1=wims(nonempty items \specialhelp1)&nbsp;}
+\text{specialhelp2=wims(nonempty items \specialhelp2)&nbsp;}
+\text{specialhelp3=wims(nonempty items \specialhelp3)&nbsp;}
+\text{specialhelp4=wims(nonempty items \specialhelp4)&nbsp;}
+
+\matrix{Specialhelp=\specialhelp1
+\specialhelp2
+\specialhelp3
+\specialhelp4}
+
+\matrix{rep=\format iswordof clickfill dragfill raw case ? \trou}
+\matrix{rep=\format iswordof case raw? wims(replace internal &#44; by , in \rep)}
+
+\if{\format=menu}{
+  \text{trouV=slib(oef/blank _, ,\trouV)}
+  \text{rep=slib(oef/blank _, ,\rep)}
+}
+
+\text{choix=\choix notsametext ? wims(append item wims(replace internal ; by , in \trou) to \choix)}
+\text{choix= wims(replace internal | by , in \choix)}
+\text{choix=wims(listuniq \choix)}
+\integer{cntQ=rows(\rep)}
+\text{STEP=wims(makelist r x for x=1 to \cntQ)}
+\text{nstep=\STEP}
+\nextstep{\nstep}
+\text{screply=}
+\text{repl=}
+\matrix{rep1=wims(replace internal | by , in \rep)}
+\text{trouV=\format iswordof case raw? } mettre une option
+\statement{\nopaste <div class="instruction">\instruction</div>
+  \if{\reading notsametext }{\special{help reading,[à lire]}}
+  \if{\image notsametext }{\special{help image,[à regarder]}}
+  \audio\video
+  <div class="question">
+\if{\format iswordof case raw dragfill clickfill}
+   {
+   \for{k = 1 to \cntQ}{
+    \texte[2*\k-1;]  \if{r \k isitemof \nstep}{
+    \embed{\STEP[\k],\size
+    \autocompletion}
+    \if{\specialhelp[\step] iswordof 5}{
+    \special{tooltip <font color=brown>[\helpprompt]</font>,[CLICKCLOSE,true,DURATION,2000,DELAY,2000],\rep1[\k;1]}}
+     \if{\specialhelp[\step] iswordof 1 2 4}{
+       \special{tooltip <font color=brown>[\helpprompt]</font>,,\Specialhelp[\specialhelp[\step];\k]}}
+     \if{\specialhelp[\step]=3}{
+       \Specialhelp[3;\k]}
+       }{
+       \if{\screply[\k]=1}{<span class="oef_indgood">\repl[\k;]</span>}
+          { \if{\answer_given=yes}{<span class="oef_indgood">\rep1[\k;1]</span>}
+             <span class="oef_indbad"><del>\repl[\k;]</del></span>
+          }
+      }
+   }
+  \texte[2*\cntQ+1;]
+  }
+  \if{\format iswordof menu}{
+    \for{k = 1 to \cntQ}{
+      \texte[2*\k-1;]
+      \if{r \k isitemof \nstep}{\embed{\STEP[\k]}}{
+       \if{\screply[\k]=1}{<span class="oef_indgood">\repl[\k;]</span>}
+         { \if{\answer_given=yes}{<span class="oef_indgood">\trouV[\k;\rep[\k;1]]</span>}
+                <span class="oef_indbad"><del>\repl[\k;]</del></span>
+         }
+      }
+    }
+  \texte[2*\cntQ+1;]
+ }
+\if{\format iswordof mark}{
+  \for{k = 1 to \cntQ}{
+    \texte[2*\k-1;] \if{r \k isitemof \nstep}{/
+      \for{K = 1 to \listeCNT[\k]}{ \embed{\STEP[\k],\K}/}
+   }{
+       \if{\screply[\k]=1}{<span class="oef_indgood">\repl[\k;]</span>}
+   {
+   \if{\answer_given=yes}{<span class="oef_indgood">\trouV[\k;\rep[\k;1]]</span>}
+   <span class="oef_indbad"><del>\repl[\k;]</del></span>}
+   }
+  }
+  \texte[2*\cntQ+1;]
+}
+  </div>
+
+\if{\choix notsametext and \format=case}{
+<div class="reponse">\choix</div>
+}
+}
+
+\answer{}{\rep[1;];\trouV[1;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[2;];\trouV[2;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[3;];\trouV[3;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[4;];\trouV[4;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[5;];\trouV[5;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[6;];\trouV[6;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[7;];\trouV[7;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[8;];\trouV[8;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[9;];\trouV[9;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[10;];\trouV[10;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[11;];\trouV[11;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[12;];\trouV[12;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[13;];\trouV[13;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[14;];\trouV[14;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[15;];\trouV[15;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[16;];\trouV[16;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[17;];\trouV[17;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[18;];\trouV[18;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[19;];\trouV[19;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[20;];\trouV[20;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[21;];\trouV[21;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[22;];\trouV[22;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[23;];\trouV[23;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[24;];\trouV[24;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[25;];\trouV[25;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[26;];\trouV[26;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[27;];\trouV[27;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[28;];\trouV[28;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[29;];\trouV[29;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[30;];\trouV[30;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[31;];\trouV[31;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[32;];\trouV[32;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[33;];\trouV[33;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[34;];\trouV[34;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[35;];\trouV[35;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[36;];\trouV[36;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[37;];\trouV[37;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[38;];\trouV[38;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[39;];\trouV[39;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\answer{}{\rep[40;];\trouV[40;]}{type=\format}{option=shuffle \option_reaccent nonstop}
+\text{screply=\sc_reply1,\sc_reply2,\sc_reply3,\sc_reply4,\sc_reply5,\sc_reply6,\sc_reply7,\sc_reply8,\sc_reply9,
+\sc_reply10,\sc_reply11,\sc_reply12,\sc_reply13,\sc_reply14,\sc_reply15,\sc_reply16,\sc_reply17,\sc_reply18,\sc_reply19,
+\sc_reply20,\sc_reply21,\sc_reply22,\sc_reply23,\sc_reply24,\sc_reply25,\sc_reply26,\sc_reply27,\sc_reply28,\sc_reply29,
+\sc_reply30,\sc_reply31,\sc_reply32,\sc_reply33,\sc_reply34,\sc_reply35,\sc_reply36,\sc_reply37,\sc_reply38,\sc_reply39,
+\sc_reply40}
+\matrix{repl=\reply1
+\reply2
+\reply3
+\reply4
+\reply5
+\reply6
+\reply7
+\reply8
+\reply9
+\reply10
+\reply11
+\reply12
+\reply13
+\reply14
+\reply15
+\reply16
+\reply17
+\reply18
+\reply19
+\reply20
+\reply21
+\reply22
+\reply23
+\reply24
+\reply25
+\reply26
+\reply27
+\reply28
+\reply29
+\reply30
+\reply31
+\reply32
+\reply33
+\reply34
+\reply35
+\reply36
+\reply37
+\reply38
+\reply39
+\reply40
+}
+\text{nstep=}
+\if{\step<=\try}{
+  \for{i=1 to \cntQ}{\text{nstep= \screply[\i]!=1 ? wims(append item r \i to \nstep)}}
+}
+\integer{step1=\step-1}
+\feedback{1=1}{\if{\try > 1}{Vous avez eu besoin de \step1
+  \if{\step1=1}{essai.}{essais.}}
+}

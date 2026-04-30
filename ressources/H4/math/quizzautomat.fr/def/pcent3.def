@@ -1,0 +1,167 @@
+!set title=Pourcentages : évolution inverse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=percents
+precision=1000
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 40
+
+val7=$[rint($(tmp0))]
+
+!ifval ($val6=1)
+val8=$[ 10000/(100-$val7)-100]
+!else
+val8=$[100-10000/(100+$val7)]
+!endif
+val9=$[round(10*$val8)/10]
+
+!ifval ($val6=1)
+val10=$[ 1-$val7/100]
+!else
+val10=$[1+$val7/100]
+!endif
+val11=$[1/$val10]
+val12=$[floor($val11*1000)/1000]
+val13=$[$val9/100]
+replytype1=menu
+replyname1=
+replygood1=$val6;hausse,baisse
+replytype2=numeric
+replyoption2=comma absolute 
+replyname2=
+replygood2=$[$val9]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Le prix d'un objet subit une 
+!if $val6=1 
+$()baisse 
+!else
+$() hausse 
+!endif
+$() de $val7&#8239;%.	Quelle évolution doit suivre le prix pour revenir au niveau initial ? </p>	<p>Il faut une  
+!read oef/embed.phtml r1,4 
+$() de  
+!read oef/embed.phtml r2,2 
+$()&#8239;% (arrondir à 0.1&#8239;%).</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La 
+!if $val6=1 
+$()baisse 
+!else
+$() hausse 
+!endif
+$() de 
+!insmath $val7 \%
+$() équivaut à une multiplication par 
+!if $val6=1 
+$()
+!insmath 1-\frac{$val7}{100}=$val10
+$() 
+!else
+$() 
+!insmath 1+\frac{$val7}{100}=$val10
+$() 
+!endif
+$().	On cherche 
+!insmath x
+$() tel que 
+!insmath x \times $val10=1
+$(). 
+!insmath x=\frac{1}{$val10}
+$()
+!if $val11=$val12 
+$()
+!insmath =$val11
+$() 
+!else
+$() 
+!insmath \simeq $val12
+$() 
+!endif
+$()
+!if $val6=1 
+$()
+!insmath =1+$val13
+$() 
+!else
+$() 
+!insmath =1-$val13
+$() 
+!endif
+$().	Il faut donc une 
+!if $val6=1 
+$()hausse 
+!else
+$() baisse 
+!endif
+$() de 
+!insmath $val9 \%
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,13
+embedcnt=2

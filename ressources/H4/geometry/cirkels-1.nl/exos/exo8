@@ -1,0 +1,149 @@
+#:5 afstand punt en cirkel
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+!if $counter=1
+ var9=!shuffle 1,2,3,4,5
+!endif
+!if $total_exos>5
+    total_exos=5
+!endif
+keuze=!item $counter of $var9
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+checkfile=$checkdir/new_number.proc
+calculator=2
+helptext=$empty
+make_tr=1
+ss=!record 12 of lang/remarks.$taal
+#@Bereken de afstand van punt P tot de cirkel <em>c</em>
+mtext=!record 13 of lang/remarks.$taal
+#@middelpunt M , het punt P ligt op de cirkel , het punt P ligt binnen de cirkel , het punt P ligt buiten de cirkel
+
+mx=!randint 1,6
+my=!randint 1,6
+r=!randint 3,10
+rr=$[$r*$r]
+!if $keuze=1
+ xp=!randint $[$mx - 3*$r],$[$mx - $r - 1]
+ yp=!randint -10,10
+ cirkel=(x - $mx)^{2} + (y - $my)^{2} = $rr
+ m=($mx;$my)
+ mp2=$[($xp-$mx)*($xp-$mx)+($yp-$my)*($yp-$my)]
+ mp=sqrt(($xp-$mx)*($xp-$mx)+($yp-$my)*($yp-$my))
+ mp_tex=\sqrt{($xp-$mx)^{2}+($yp-$my)^{2}}
+ ans_tex=\sqrt{$mp2} - $r
+ answer$n=($mp)-$r
+!else
+ !if $keuze=2
+  xp=!randint $[-1*$mx + $r+1],$[-1*$mx + 3*$r]
+  yp=!randint -10,10
+  cirkel=(x + $mx)^{2} + (y - $my)^{2} = $rr
+  m=(-$mx;$my)
+  mp2=$[($xp+$mx)*($xp+$mx)+($yp-$my)*($yp-$my)]
+  mp=sqrt(($xp+$mx)*($xp+$mx)+($yp-$my)*($yp-$my))
+  mp_tex=\sqrt{($xp- - $mx)^{2}+($yp-$my)^{2}}
+  ans_tex=\sqrt{$mp2} - $r
+  answer$n=($mp)-$r
+ !else
+  !if $keuze=3
+   xp=!randint -10,10
+   yp=!randint $[-1*$my + $r+1],$[-1*$my + 3*$r]
+   cirkel=(x + $mx)^{2} + (y + $my)^{2} = $rr
+   m=(-$mx;-$my)
+   mp2=$[($xp+$mx)*($xp+$mx)+($yp+$my)*($yp+$my)]
+   mp=sqrt(($xp+$mx)*($xp+$mx)+($yp+$my)*($yp+$my))
+   mp_tex=\sqrt{($xp- -$mx)^{2}+($yp- - $my)^{2}}
+   ans_tex=\sqrt{$mp2} - $r
+   answer$n=($mp)-$r
+  !else
+   !if $keuze=4
+    d=$[$r-1]
+    xp=!randint $[$mx - $d],$[$mx + $d]
+    yp=!randint $[$my - $d],$[$my + $d]
+    cirkel=(x - $mx)^{2} + (y - $my)^{2} = $rr
+    m=($mx;$my)
+    mp2=$[($xp-$mx)*($xp-$mx)+($yp-$my)*($yp-$my)]
+    mp=sqrt(($xp-$mx)*($xp-$mx)+($yp-$my)*($yp-$my))
+    mp_tex=\sqrt{($xp-$mx)^{2}+($yp-$my)^{2}}
+    ans_tex=$r-\sqrt{$mp2}
+    answer$n=$r - ($mp)
+   !else
+   # keuze=5
+    d=$[$r-1]
+    xp=!randint $[-1*$mx - $d],$[-1*$mx + $d]
+    yp=!randint $[$my - $d],$[$my + $d]
+    cirkel=(x + $mx)^{2} + (y - $my)^{2} = $rr
+    m=(-$mx;$my)
+    mp2=$[($xp+$mx)*($xp+$mx)+($yp-$my)*($yp-$my)]
+    mp=sqrt(($xp+$mx)*($xp+$mx)+($yp-$my)*($yp-$my))
+    mp_tex=\sqrt{($xp- - $mx)^{2}+($yp-$my)^{2}}
+    ans_tex=$r-\sqrt{$mp2}
+    answer$n=$r - ($mp)
+   !endif
+  !endif
+ !endif
+!endif 
+
+tot=!exec maxima sqrtdispflag:true;\
+$(answer$n);\
+tex1($(answer$n));
+
+# maxima tex1 produceerd "1 - \\frac{1}{2}" --> wims mathml wordt niks
+# maxima tex produceerd $$1 - \frac{1}{2}$$ --> wims: -\frac{1}{2}
+sum=$empty
+tot=!singlespace $tot
+answer$n=!word 2 of $tot
+tex_ans=!word 3 of $tot
+tex_ans=!replace internal " by $empty in $tex_ans
+tex_ans=!replace internal \\ by \ in $tex_ans
+!if $rounding=0
+ rans=$empty
+!else
+ rans=$[(round($rounding*($(answer$n))))/$rounding]
+ rans=\approx $rans
+!endif
+
+chk=$[$(answer$n)]
+!if . notin $chk
+ tex_ans=$tex_ans = $chk
+!endif
+chk2=$[sqrt($mp2)]
+!if . isin $chk2
+ mp_t = \sqrt{$mp2}
+!else
+ mp_t = $chk
+!endif
+diff=$[(round(100*($r - $chk)))/100]
+!if $chk = $r
+  txt1= R_{c} - d(MP) = $r - $mp_t = 0
+  txt2=$(mtext[2])
+  txt3= d(Pc) = R_{c} = $r
+!else
+ !if $chk < $r
+  txt1= R_{c} - d(MP) = $r - $mp_t \approx $diff \gt 0
+  txt2=$(mtext[3])
+  txt3= d(Pc) = R_{c} - d(MP) = $r - d(MP)
+ !else
+  txt1= R_{c} - d(MP) = $r - $mp_t \approx $diff \le 0
+  txt2=$(mtext[4])
+  txt3= d(Pc) = d(MP) - R_{c} = d(MP) - $r
+ !endif
+!endif
+formula$n=\left[ \begin{array}{ll} c: & $cirkel \\ P:  & ($xp : $yp) \\ d(P,c) &  =   \input{12}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0} \end{array}\right.
+texanswer$n=\left[ \begin{array}{l} \textrm{ $(mtext[1]) = } \; \; $m \\ d( MP )  = $mp_tex = \sqrt{$mp2} \\  R_{c} = \sqrt{$rr} = $r \\ \textrm{ $(mtext[5])  ? }  \\$txt1  \\ \textrm{$txt2} \\ $txt3 \\  d(P,c) = $tex_ans $rans \end{array} \right.
+
+
+helptext=$roundingtext
+question$n=<a onmouseover="return escape('$roundingtext')">$ss</a><br />
+
+!exit

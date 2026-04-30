@@ -1,0 +1,136 @@
+!! produces a DHTML page of the  exercise for printing
+
+!if $questiontype !=0 or $applet=1
+    <font color=red>
+	My guess : this page not very usefull in a printed paperversion<br>
+	It's most likely a multiplechoice exercise<br>
+	or it makes use of some java applets ?
+	<br>
+	You can always try your browser "print functionality" on the interactive version, and see what happens.
+	<br>
+    !href module=home Back
+    </a>
+    </font>
+!else
+    <script type="text/javascript" src="$jsdir/wz_dragdrop.js">
+    </script>
+    !set DHTML=$empty
+    <table>
+	!set cnt=0
+	!if $total_exos >4
+	    !set limited=I've limited your request for $total_exos exercises to a modest 4 piece papertest
+	    !set total_exos=4
+	!endif
+	!for n=1 to $total_exos
+	    !set counter=$n
+    	    !set question$n=$empty
+	    !set exotext=$empty
+	    !set formula$n=$empty
+	    !set answer$n=$empty
+	    !set options=0
+	    !readproc exos/exo$subject
+	    <td>
+		<div id="d$n" name="d$n" style="position:relative;font-size:70%">
+		    $questionnumber $n)<br>
+		    !if $(question$n) != $empty
+			$(question$n)
+	    		<br>
+		    !endif
+		</div>
+		<div id="dd$n" name="dd$n" style="position:relative;font-size:70%">
+		    !if $exotext != $empty
+			<br>
+			$exotext
+		    !endif
+		</div>
+		!if $(formula$n) != $empty
+		    <br>
+		    !set formula$n=$(formula$n) \,\,
+		    !increase cnt
+		    !set ins_attr=name="insert$cnt"
+		    !insmath $(formula$n)
+		    !! this will be an image, I hope...if not we are in deep DHTML trouble
+		!endif
+	    </td>
+	    !set DHTML=!append item "d$n","dd$n","insert$cnt" to $DHTML
+    	    <tr>
+        !next n
+    </table>
+    !if $image=1
+	!if $XSIZE=$empty
+	    !set XSIZE=100
+	    !set YSIZE=100
+	!endif
+	!if $XSIZE>400 and $XSIZE<625
+	!! als XSIZE echt 650 hebben we een speciale bedoeling met dat plaatje, hoop ik...
+	    !set XSIZE=220
+	!endif
+	!set insdraw_size=$XSIZE,$YSIZE
+	!for n=1 to $total_exos   
+	    !increase cnt
+	    !set ins_attr=name="insert$cnt"
+	    <div id="ddd$n" name="ddd$n" style="position:relative;width:$XSIZE;height:$YSIZE">
+		!if $plot=1
+		    !set insplot_set=$(image_settings$n)
+		    !insplot $(image$n)
+		!else
+		    !for p in red,green,blue
+			!set image$n=!replace internal $p by black in $(image$n)
+		    !next p
+		    !for p in yellow,orange,lightgreen,lightblue
+			!set image$n=!replace internal $p by grey in $(image$n)
+		    !next p
+		    !insdraw $(image$n)
+		!endif
+	    </div>
+	    !set DHTML=!append item "insert$cnt","ddd$n" to $DHTML
+    	    <p>
+        !next n
+    !endif
+    <p style="page-break-after:always">
+	<ol>
+	!for n=1 to $total_exos
+	    <li>
+	    !if $(textanswer$n)!=$empty
+		<div id="dddd$n" name="dddd$n" style="position:relative;font-size:70%">
+		$(textanswer$n)
+		</div>
+		<br>
+	    !endif
+	    !if $(texanswer$n)!=$empty
+		!increase cnt
+		!set ins_attr=name="insert2$cnt"
+		!insmath $(texanswer$n)
+		!set DHTML=!append item "insert2$cnt" to $DHTML
+	    !else
+		$(answer$n)
+	    !endif
+	    !set DHTML=!append item "insert2$cnt","dddd$n" to $DHTML
+	!next n    
+	</ol>
+	$limited
+    </p>
+
+<p style="page-break-after:always">
+<table>
+    <td>
+	<input type="button" style="$mybuttonstyle" value="Reload Page" onClick="window.location.reload()">
+    </td>
+    <td>
+	<input type="button" style="$mybuttonstyle" value="Print" onClick="javascript:window.print();">
+    </td>
+</table>
+    <font size="-1">
+	!record 69 of $remarkdir/commonremarks.$taal
+	<br>
+	!href module=$module&+session=$session&+cmd=intro
+	!record 70 of $remarkdir/commonremarks.$taal
+	</a>
+    </font>
+<p style="page-break-after:always">
+
+<script type="text/javascript">
+    SET_DHTML( CURSOR_MOVE, RESIZABLE , NO_ALT , SCROLL , $DHTML );
+</script>
+
+!endif

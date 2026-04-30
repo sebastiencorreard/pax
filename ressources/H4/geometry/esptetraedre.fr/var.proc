@@ -1,0 +1,94 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid calls to the module.
+!read language lang/names
+
+!if $cmd=reply and $status!=waiting
+  error=double_reply
+  !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+  !if $mode=1
+    !read section
+  !endif
+  !if $mode=2
+    !if $user=Valider et fin
+      status=done
+    !endif
+    !if $step=1
+      marep1=$choix1
+      !if $choix1 != $goodrep1
+        status=done
+        error = bad
+        colorrep1=myred
+        module_score=0
+      !else
+        !if $goodrep1=1
+          !advance step
+        !else
+          module_score=10
+          status=done
+        !endif
+      !endif
+   !else
+      marep2=$choix2
+      !if $choix2 != $goodrep2
+        error = bad
+        colorrep2=myred
+        module_score=3
+      !else
+        module_score=10
+      !endif
+    !endif
+  !endif
+  !! fin mode=2
+  !if $mode=3
+    !if $user=Valider
+      status=done
+    !endif
+    marep1=$choix1
+    !if $choix1 != $goodrep1
+      error = bad
+      colorrep1=myred
+      module_score=0
+    !else
+      colorrep1=mygreen
+      module_score=10
+    !endif
+    status=done
+  !endif
+  !! fin mode=3
+  !if $mode=4
+   !if $user=Valider
+     status=done
+   !endif
+   marep1=$choix1
+   !if $choix1 != $goodrep1
+     error = bad
+     colorrep1=myred
+     module_score=0
+   !else
+     colorrep1=mygreen
+     module_score=10
+    !endif
+    status=done
+  !endif
+  !! fin mode=4
+  !if $mode=5
+    !if $user=Valider
+      status=done
+    !endif
+    marep1=$choix1
+    !if $choix1 != $goodrep1
+      error = bad
+      colorrep1=myred
+      module_score=0
+    !else
+      colorrep1=mygreen
+      module_score=10
+    !endif
+    status=done
+  !endif
+  !! fin mode=5
+  !endif
+!endif

@@ -1,0 +1,168 @@
+\title{Avec l'ordonnée , trouver l'abscisse}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Joachim Yaméogo}
+\email{yameogo@unice.fr}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.3,0.7,medium,j
+text black,-0.3,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.3,-0.2,large,x
+text black,-0.3,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication de la droite et choix d'une ordonnée ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+
+\integer{a=\y2-(\y1)}
+\integer{b=\x1-(\x2)}
+\integer{c=(\x1)*(\y2-(\y1))-(\y1)*(\x2-(\x1))}
+\function{hf=(\a)*x+(\b)*y}
+\text{eqD1=maxima(\hf-(\c);)}
+\text{f=maxima(((-\a)*x+(\c))/(\b);)}
+\text{eqD1=texmath(\eqD1=0)}
+\text{eqD2=texmath(\hf=\c)}
+\text{eqList=\eqD1,\eqD2}
+\integer{ch=random(1,2)}
+\text{eqDroite=\eqList[\ch]}
+\text{y0=random(-1,1)*random(1/2,1,3/2,2,5/2,3,7/2)}
+\text{absEqD=texmath(maxima((\a)*x+(\b)*(\y0)-(\c);)=0),texmath((\a)*x+(\b)*(\y0)=\c)}
+
+\integer{u1=-\b}
+\integer{u2=\a}
+
+## la bonne solution ##
+\text{brep=maxima((1/(\a))*((-\b)*(\y0)+(\c));)}
+
+## pour affichage ##
+\text{affichex0=texmath(\brep)}
+\text{affichey0=texmath(\y0)}
+
+## le dessin de la droite pour la correction ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\text{graph=
+\cadre
+linewidth 2
+plot \couleurs[1],\f
+linewidth 8
+point \brep,\y0,\couleurs[2]
+text \couleurs[2],\brep-0.3,\y0-0.3,giant,M
+linewidth 2
+dline \xmin,\y0,\xmax,\y0,\couleurs[2]
+}
+
+####### enoncé de l'exo #######
+\statement{
+<div class="affiche_pres">
+  Le plan \(\RR^2) est muni d'un rep&egrave;re \((O,i,j)).
+  On consid&egrave;re la droite <b>D</b> dont une &eacute;quation est donn&eacute;e par
+  &nbsp; \(\eqDroite) .
+  <br>
+  Calculer l'abscisse \(x_{M}) du point \(M) de la droite <b>D</b>, dont l'ordonnée est
+  \(y_{M}=\affichey0).
+  <hr>
+  Votre r&eacute;ponse&nbsp;:
+      <span style="background-color:antiquewhite;padding:4px">
+        l'abscisse de \(M) est \embed{reply 1,10}
+      </span>
+</div>
+}
+##### collecte de la réponse de l'utilisateur #####
+\reply{}{\brep}
+
+## Aide ou rappel ##
+\hint{
+  <ul>
+    <li>
+      Noter pour commencer, que la droite <b>D</b> n'est pas parallèle à la droite
+      d'équation \(y=\affichey0), car le coefficient de \(x) dans l'équation de
+      <b>D</b> n'est pas nul.
+    </li>
+    <li>
+      Remplacer \(y) par \(\affichey0) dans l'équation de la droite et résoudre
+      l'équation correspondante en \(x).
+    </li>
+  </ul>
+}
+
+## Solution rédigée ##
+\solution{
+  Voici un
+  <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution&nbsp;:
+  <br>
+  Pour trouver l'abscisse du point \(M\in D) dont l'ordonnée est \(\affichey0), nous
+  remplaçons \(y) par \(\affichey0) dans l'équation &nbsp; \(\eqDroite).
+  On est donc amené
+  à résoudre l'équation suivante \(\absEqD[\ch]) où l'inconnue est \(x).
+  On trouve alors la solution \(x=\affichex0). La droite <b>D</b> rencontre donc
+  la droite d'équation \(y=\affichey0) en \(M(\affichex0,\affichey0)).
+  <div class="affiche_pres" style="text-align:center;">
+    Voici une représentation graphique de la droite <b>D</b>:
+      <p>
+        \draw{\dimh,\dimv}{
+	  \graph
+	  }
+      </p>
+  </div>
+}

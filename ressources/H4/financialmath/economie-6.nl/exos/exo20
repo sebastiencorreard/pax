@@ -1,0 +1,77 @@
+n=$counter
+# verkeersvergelijking Fisher I
+!if $counter=1
+    var9=!shuffle 1,2,3,4
+    mathview=0
+    !if $total_exos > 4
+	total_exos=4
+    !endif
+    checkfile=$checkdir/new_number.proc
+    make_tr=1
+    cols=8
+    inputs=1.1
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+!endif
+R=!item $n of $var9
+m=!randint 50,99
+v=!randint 20,100
+v=$[$v/10]
+p=!randint 50,150
+p=!exec moneyprint $[$p/10]
+y=$[round($m*$v/$p)]
+
+
+m_rightarrow=&nbsp;=&nbsp;
+!if $R=1
+    ss=In een land worden $y miljard producten verhandeld (Y) , tegen een gemiddelde prijs van &euro; $p (P).<br />\
+    De maatschappelijke geldhoeveelheid (M) bedraagt &euro; $m miljard.<br /><br />\
+    Bereken de omloopsnelheid (V) van het geld.
+    
+    description=Omloopsnelheid V
+    ex1=$empty
+    answer$n=$[$y*$p/$m]
+    rans=$[(round($rounding*$(answer$n)))/$rounding]
+    textanswer$n=<ul><li>M &sdot; V = P &sdot; Y</li><li>V = P &sdot; Y / M</li><li>V = $p &sdot; $y / $m = $(answer$n)</li><li>V = $rans $ex1</li></ul>
+!else
+    !if $R=2
+	ss=In een land worden $y miljard producten verhandeld (Y) , tegen een gemiddelde prijs van &euro; $p (P).<br />\
+	De omloopsnelheid (V) van het geld is $v <br />\
+	Bereken de maatschappelijke geldhoeveelheid (M) in miljarden &euro;.
+	
+	description=Maatschappelijke Geldhoeveelheid M
+	answer$n=$[$y*$p/$v]
+	ex1=&nbsp;miljarden &euro;&rsquo;s
+
+	rans=$[(round($rounding*$(answer$n)))/$rounding]
+	textanswer$n=<ul><li>M &sdot; V = P &sdot; Y</li><li>M = P &sdot; Y / V</li><li>M = $p &sdot; $y / $v = $(answer$n)</li><li>M = $rans $ex1</li></ul>
+	
+    !else
+	!if $R=3
+	    ss=In een land worden $y miljard producten verhandeld (Y)<br />\
+	    De maatschappelijke geldhoeveelheid (M) bedraagt &euro; $m miljard.<br />\
+	    De omloopsnelheid (V) van het geld is $v <br /><br />\
+	    Bereken de gemiddelde prijs in &euro;
+
+	    answer$n=$[$m*$v/$y]
+	    description=Gemiddelde prijs (P)
+	    ex1=&nbsp;&euro;
+	    rans=$[(round($rounding*$(answer$n)))/$rounding]
+	    textanswer$n=<ul><li>M &sdot; V = P &sdot; Y</li><li>P = M &sdot; V / Y</li><li>P = $m &sdot; $v / $y = $(answer$n)</li><li>P = $rans $ex1 </li></ul>
+	!else
+	    ss=In een land worden Y miljard producten verhandeld tegen een gemiddelde prijs van &euro; $p<br />\
+	    De maatschappelijke geldhoeveelheid (M) bedraagt &euro; $m miljard.<br />\
+	    De omloopsnelheid (V) van het geld is $v <br /><br />\
+	    Bereken de hoeveelheid producten (in miljarden)
+	    
+	    description=De hoeveelheid producten
+	    ex1=&nbsp;In miljarden stuks
+	    answer$n=$[$m*$v/$p]
+	    rans=$[(round($rounding*$(answer$n)))/$rounding]
+	    textanswer$n=<ul><li>M &sdot; V = P &sdot; Y</li><li>Y = M &sdot; V / P</li><li>Y = $m &sdot; $v / $p = $(answer$n)</li><li>Y = $rans $ex1</li></ul>
+	!endif
+    !endif
+!endif
+
+#question$n=<a onmouseover="return escape('')">$ss</a>
+question$n=$ss

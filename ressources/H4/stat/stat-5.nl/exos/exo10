@@ -1,0 +1,123 @@
+n=$counter
+mathview=0
+make_tr=1
+embed=0
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+total_exos=2
+questiontype=0
+checkfile=$checkdir/new_number.proc
+!if $rounding<10 
+ rounding=100
+ !readproc $remarkdir/rounding.$taal
+!endif
+!if $counter=1
+ disclaim=!record 64 of lang/remarks.$taal
+ #@alles is uit mijn duim gezogen...
+ inputs=1.1
+ description=phi
+ m_rightarrow= &nbsp;=&nbsp;
+ phi=!mathmlmath \phi
+ k=!randint 1,8
+ A_=!record 58 of lang/remarks.$taal
+ #@Wiskunde groep,Sport,Moderne media,Media,Recreatie,Studie,Stemgedrag,Vakantie
+ B_=!record 59 of lang/remarks.$taal
+ #@Jongens,Jongens,Jongeren,Vaders,Jongeren,Jongens,Hoog opgeleid,Jongeren
+ C_=!record 60 of lang/remarks.$taal
+ #@Meisjes,Meisjes,Ouderen,Moeders,Ouderen,Meisjes,Laag opgeleid,Ouderen
+ D=!record 61 of lang/remarks.$taal
+ #@Totaal
+ E_=!record 62 of lang/remarks.$taal
+ #@Wiskunde A,Volleybal,Smartphone,TV kijken,Kamperen,Hogeschool,SP,vliegtuig
+ F_=!record 63 of lang/remarks.$taal
+ #@Wiskunde B,Handbal,Tablet,Internet,Hotel,Universiteit,VVD,trein
+ A=!item $k of $A_
+ B=!item $k of $B_
+ C=!item $k of $C_
+ E=!item $k of $E_
+ F=!item $k of $F_
+
+ keuze=!randitem 0,1,2
+ kans=!randitem 0,1
+ !if $keuze=0
+  !if $kans=0
+   g1=!randint 10,20
+   g2=!randint 15,30
+   h1=!randint 40,70
+   h2=!randint 40,70
+  !else
+   h1=!randint 10,20
+   h2=!randint 15,30
+   g1=!randint 40,70
+   g2=!randint 40,70  
+  !endif
+ !else
+  !if $keuze=1
+    !if $kans=0
+     g1=!randint 5,15
+     g2=!randint 30,70
+     h1=!randint 30,70
+     h2=!randint 4,12
+   !else
+    g1=!randint 30,70
+    g2=!randint 5,15
+    h1=!randint 4,16
+    h2=!randint 30,70
+   !endif
+  !else
+   g1=!randint 30,70
+   g2=!randint 10,25
+   h1=!randint 7,16
+   h2=!randint 20,50
+  !endif
+ !endif
+ g3=$[$g2+$g1]
+ h3=$[$h2+$h1]
+ 
+ answer1=$[(($g1*$h2)-($g2*$h1))/(sqrt( ($g1+$g2)*($g1+$h1)*($g2+$h2)*($h1+$h2) ))]
+ rans=!exec moneyprint $answer1
+ tabel=!subst <table class="demospecial"><tr><th>$A</th><th>$B</th><th>$C</th><th>$D</th></tr><tr><td>$E</td><td>$g1</td><td>$g2</td><td>$g3</td></tr><tr><td>$F</td><td>$h1</td><td>$h2</td><td>$h3</td></tr><tr><td>$D</td><td>$[$g1+$h1]</td><td>$[$g2+$h2]</td><td>$[$g3+$h3]</td></tr></table>
+
+ ss=!record 65 of lang/remarks.$taal
+ #@Bepaal met behulp van de tabel de <em>phi</em>-waarde ($phi)<br/><small>(<em>$disclaim</em>)</small><br/>$tabel
+ sometext=!record 66 of lang/remarks.$taal
+ #@De 2x2 kruistabel, met phi is,de waarden uit de tabel invullen...
+ texanswer$n=\left[  \begin{array}{l} \textrm{ $(sometext[1]) : }\; \begin{pmatrix} a & b \\ c & d \end{pmatrix}  \\ \textrm{$(sometext[2]) : } \; \frac{a \cdot d - b \cdot c}{ \sqrt{ (a+b) \cdot (a+c) \cdot (b+d) \cdot (c+d) } } \\ \textrm{$(sometext[3])}\\ \begin{pmatrix} $g1 & $g2 \\ $h1 & $h2 \end{pmatrix} \\  \textrm{phi} = \frac{$g1 \cdot $h2 - $g2 \cdot $h1}{ \sqrt{ ($g1+$g2) \cdot ($g1+$h1) \cdot ($g2+$h2) \cdot ($h1+$h2) } } \asymp $answer1 \asymp $rans  \end{array} \right.
+
+!else
+
+ dingen=!record 67 of lang/remarks.$taal
+ #@groot verschil,middelmatig verschil,gering verschil
+ rans=!exec moneyprint $answer1
+ ss=!record 68 of lang/remarks.$taal
+ #@Het goede antwoord was phi &approx; $rans<br/>Er is hier dus sprake van een...
+ inputs=-1
+ exotext=<select size="1" id="myselect0" name="myselect0" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select>
+ ans=$[abs($rans)]
+ !if $ans > 0.4
+  answer2=1
+ !else
+  !if $ans < 0.2
+   answer2=3
+  !else
+   answer2=2
+  !endif
+ !endif
+ 
+ textans2=$(dingen[$answer2])
+ 
+ rr=!record 69 of lang/remarks.$taal
+ #@phi &asymp; $rans ... er is dus sprake van een $textans2
+ textanswer2=$rr
+
+!endif 
+
+question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/phi.jpg alt=phi />')">$ss</a>
+helptext=<img src=$module_dir/gifs/stat.gif alt=stat width=80% />
+
+
+
+!exit

@@ -1,0 +1,243 @@
+math=0
+questiontype=7
+javascript=js/boxplot.js
+applet=0
+mathview=0
+
+# spreadsheet en standaard afwijking
+n=$counter
+tsv_file=som_$counter.$wims_nowseconds.tsv
+!if $rounding < 1
+ rounding=10
+ !readproc $remarkdir/rounding.$taal
+!endif
+
+# Eieren worden onder meer in categorieën verdeeld op basis van hun gewichtsklasse:
+# small (S), medium (M), large (L) en extra large (XL)
+# Small staat voor een gewicht tussen 43 en 53 g
+# Medium betekent dat het ei van 53 tot 63 g weegt
+# Voor large gelden de grenswaarden 63 en 73 g
+# Extra large eieren tot slot wegen meer dan 73 g.
+
+#numbers=!exec octave format bank;A=reshape(unifrnd (43,73, $[round(sqrt($max))]),1,[]);\
+#disp(A)\
+#sum(A)\
+#min(A)\
+#max(A)\
+#std(A)\
+#iqr(A)\
+#mean(A)
+
+#data=!line 1 of $numbers
+#sum=!line -6 of $numbers
+#min=!line -5 of $numbers
+#max=!line -4 of $numbers
+#std=!line -3 of $numbers
+#iqr=!line -2 of $numbers
+#mean=!line -1 of $numbers
+#
+#len=!linecnt $numbers
+#data=!words2items $data
+#tot=!itemcnt $data
+#question$n=$numbers<hr />$data<hr/>\
+#sum=$sum<br/>\
+#min=$min<br/>\
+#max=$max<br/>\
+#mean=$mean<br/>\
+#std=$std<br/>\
+#iqr=$iqr<br />\
+#nums=$len<br />\
+#tot=$tot
+#exotext=!exec canvasdraw\
+#size 400,400\
+#xrange $[$min-20],$[$max+20]\
+#yrange -4,10\
+#precision 10\
+#axis\
+#axisnumbering\
+#grid 5,10,grey,1,1,4,grey\
+#filled\
+#linewidth 3\
+#strokecolor blue\
+#fillcolor orange\
+#opacity 200,50\
+#boxplotdata $data\
+#boxplot x,2,5\
+#precision 10\
+#mousex red,22\
+#zoom blue
+#!exit
+
+max=!randint 25,150
+max=$[$max*10]
+
+datum=!date +%d-%m-%Y
+data=$datum \
+student: $wims_firstname $wims_lastname\
+gewichten batch van $max vrije uitloop eieren\
+\
+"ei nummer"	"gewicht in gram"
+sum=0
+calc_data=$empty
+kleinste=100
+grootste=0
+eimin1=!randint 39,44
+eimax1=!randint 69,75
+keuze=!randint 0,2
+!if $keuze=0
+ eimin2=!randint 32,36
+ eimax2=!randint 49,54
+!else
+ !if $keuze=1
+  eimin2=!randint 47,51
+  eimax2=!randint 88,95
+ !else
+  eimin2=!randint 70,75
+  eimax2=!randint 90,95
+ !endif
+!endif
+k=!randint 2,5
+halfweg=$[round($max/$k)]
+!for p=1 to $max
+ !if $p < $halfweg
+  d=!randint $eimin1,$eimax1
+ !else
+  d=!randint $eimin2,$eimax2 
+ !endif
+ !if $d > $grootste
+  grootste=$d
+ !endif
+ !if $d < $kleinste
+  kleinste=$d
+ !endif
+ data=!append line ei_$p	$d to $data
+ calc_data=!append item $d to $calc_data
+!next p
+
+sort_data=!sort numeric list $calc_data
+half=$[0.5*$max]
+q1=$[0.25*$max]
+q3=$[0.75*$max]
+
+!if $[$half%1] = 0
+ median = $[0.5*($(sort_data[$half])+$(sort_data[$half+1]))]
+!else
+ m1=$[ceil($half)]
+ median = $(sort_data[$m1])
+!endif
+
+!if $[$q1%1 ] = 0 
+#geheel getal
+ Q1= $(sort_data[$q1])
+!else
+ m1=$[floor($q1)]
+ m2=$[ceil($q1)]
+ Q1 = $[0.5*($(sort_data[$m1])+$(sort_data[$m2]))]
+!endif
+
+!if $[$q3%1 ] = 0 
+#geheel getal
+ Q3= $(sort_data[$q3])
+!else
+ m1=$[floor($q3)]
+ m2=$[ceil($q3)]
+ Q3 = $[0.5*($(sort_data[$m1])+$(sort_data[$m2]))]
+!endif
+
+answer$n=$kleinste\
+$Q1\
+$median\
+$Q3\
+$grootste
+
+!filewrite getfile/$tsv_file $data
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+helptext=<ul>Doorloop de volgende route nadat je Excel geopend hebt<li>Bestand</li><li>Externe gegevens uit tekst ophalen</li><li>wims.tsv importeren</li><li>Bestandstype: gescheiden</li><li>Scheidingsteken: tab</li><li>Tekstindicator: &quot;</li><li>Voltooien</li><li>Ok</li></ul>
+#<ul>En dan moet je de punt vervangen door een komma.<li>Start</li><li>Zoeken en selecteren</li><li>Vervangen</li><li>Zoeken naar . (punt)</li><li>Vervangen door , (komma) </li></ul>
+
+ss=Bij een vrije uitloop kippenboer wordt onderzoek gedaan naar de gewichtsverdeling van eieren.<br />\
+Er worden $max eieren gewogen.<br />\
+Bereken met behulp van een spreadsheet de quartiel gegevens en maak de bijhorende boxplot.<br />\
+De data in 'tsv' formaat : <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file">$tsv_file</a>
+
+description=kleinste,Q<sub>1</sub>,mediaan,Q<sub>3</sub>,grootste
+
+
+rr=Nederlands:<ul>\
+<li>open het bestand </li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo13/kwartiel0.png />')">gebruik de functie "Kwartiel"</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo13/kwartiel1.png />')">kleinste getal : Kwartiel(B5 : B$[$max+4] , 0) = $kleinste gr</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo13/kwartiel2.png />')">Q1 : Kwartiel(B5 : B$[$max+4] , 1) = $Q1 gr</a></li>\
+<li>Mediaan : Kwartiel(B5 : B$[$max+4] , 2) = $median gr</li>\
+<li>Q3 : Kwartiel(B5 : B$[$max+4] , 3) = $Q3 gr</li>\
+<li>grootste getal : Kwartiel(B5 : B$[$max+4] , 4) = $grootste gr</li>\
+</ul>
+
+textanswer$n=$rr Gebruik in Engelse versoes of OpenOffice de functie "Quartile"
+
+checkfile=$checkdir/new_number.proc
+var1=0,1,0,1,0
+
+inputs=-1
+make_tr=1
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+
+exotext=<table><tr><th><table class="zebra_table_h2">
+!if $wims_user=supervisor
+ !for p=1 to 5
+  ans=!line $p of $(answer$n)
+  exotext=!append line <tr><td>$(description[$p])</td><td>&nbsp;=&nbsp;</td><td><input type="text" id="myinput$[$p-1]" class="schaersvoorde_input" size="4" value="$ans" /> gram</td></tr> to $exotext
+ !next p
+!else
+ !for p=1 to 5
+  exotext=!append line <tr><td>$(description[$p])</td><td>&nbsp;=&nbsp;</td><td><input type="text" id="myinput$[$p-1]" class="schaersvoorde_input" size="4" value="" /> gram</td></tr> to $exotext
+ !next p
+!endif
+exotext=!append line </table></td><td> to $exotext
+
+var9=!exec canvasdraw\
+size 400,200\
+xrange $[$kleinste-20],$[$grootste+20]\
+yrange -4,10\
+precision 1\
+xunit gr\
+fontfamily italic 12px Ariel\
+centerstring black,9,$max vrije uitloop eieren\
+xlabel gewicht in grammen\
+axis\
+axisnumbering\
+grid 5,10,grey,1,1,10,grey\
+filled\
+linewidth 2\
+strokecolor blue\
+fillcolor orange\
+opacity 150,50\
+userboxplot\
+boxplot x,5,5\
+mousex red,22\
+zoom blue
+
+exotext=!append line <th id="boxplot" style="display:none">$var9</th></tr></table> to $exotext
+
+object$n=!exec canvasdraw\
+size 400,200\
+xrange $[$kleinste-20],$[$grootste+20]\
+yrange -4,10\
+precision 1\
+xunit gr\
+xlabel gewicht in grammen\
+axis\
+axisnumbering\
+grid 5,10,grey,1,1,10,grey\
+filled\
+linewidth 2\
+strokecolor blue\
+fillcolor orange\
+opacity 150,50\
+boxplotdata $calc_data\
+boxplot x,5,5\
+mousex red,22\
+zoom blue
+

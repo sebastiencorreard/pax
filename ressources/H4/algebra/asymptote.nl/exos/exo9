@@ -1,0 +1,88 @@
+# functies met horizontale  asymptoot
+# vertikal \lim_{x \uparrow a} f(x)=\pm\infty \,\mbox{ en/of } \lim_{x \downarrow a} f(x)=\pm\infty
+# horizontal \lim_{x \to + \infty} f(x) = p \,\mbox{ of }  \lim_{x \to -\infty} f(x) = q
+
+n=$counter
+mathviewpanel=$module_title :x=:y=:and:or:sqrt()
+checkfile=exos/checkfile1.proc
+questiontype=0
+embed=1
+cols=20
+rows=2
+plot=1
+draw=0
+math=0
+ss=!record 41 of lang/remarks.$taal
+#@ Bepaal van onderstaande functie voor x &ge;0 de <b>horizontale</b> asymptoot.
+rem1=!record 3 of lang/remarks.$taal
+#@ Zie </a> voor de schrijfwijze de help pagina's
+rem2=!record 24 of lang/remarks.$taal
+helptext=$rem1<br />$rem2
+vertikaal=!record 4 of lang/remarks.$taal
+#@ De vertikale asymptoot is: de lijn
+vertikalen=!record 5 of lang/remarks.$taal
+#@ De vertikale asymptoten zijn de lijnen
+h=!record 43 of lang/remarks.$taal
+#@ horizontale asymptoot
+v=!record 44 of lang/remarks.$taal
+#@verticale asymptoot
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $teaching=1 and $image=0
+    etext=!record 6 of lang/remarks.$taal
+    #@ Hier</a> staat een klein grafiekje van de functie
+    #exotext=<a href="javascript:showimage();">$exotext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+
+!else
+    exotext=$empty
+!endif
+
+texanswer$n=$empty
+n=$counter
+# dit voor onmouseover
+prefix1=size 0.4,0.4;notics;autoscale y;
+# dit voor answer.phtml
+prefix2=size 0.4,0.4;grid ;axis;autoscale y; xlabel "<x-axis>";ylabel"<y-axis>" ;border
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+alsdan=!record 42 of lang/remarks.$taal
+als=!item 1 of $alsdan
+dan=!item 2 of $alsdan
+
+R=1
+!if $R=1
+    a=!randint 1,100
+    b=!randint 1,15
+    g=!randint 10,99
+    g=$[$g/100]
+    c=!randint 2,20
+    keuze=!randint 1,2
+    pm=!randitem +,-
+    !if $keuze=1
+	plotfunction=$a $pm $b*$g^x
+        formula$n=\left[ \begin{array}{l} f(x)\,=\, $a $pm $b \cdot $g^{x} \\ x \ge 0 \end{array} \right.
+        as2=$a
+        answer$n=$as2@horizontaal
+	texanswer$n= \left[ \begin{array}{l} \textrm{$als } \, x  \rightarrow \infty \\ \textrm{ $dan }  \, $g^{x}  \rightarrow 0 \\ \textrm{ $dan }  \, $b \cdot $g^{x}  \rightarrow 0 \\ \textrm{ $v  : } \, y = $as2 \end{array} \right.
+    !else
+	plotfunction=$a*($b $pm $c*$g^x)
+    	formula$n=\left[ \begin{array}{l} f(x)\,=\, $a \cdot \left( $b $pm $c \cdot $g^{x} \right) \\ x \ge 0  \end{array} \right.
+    	as2=$[$a*$b]
+    	answer$n=$as2@horizontaal
+	texanswer$n= \left[ \begin{array}{l} \textrm{$als } \, x  \rightarrow \infty \\ \textrm{ $dan }  \, $g^{x}  \rightarrow 0 \\ \textrm{ $dan }  \, $c \cdot $g^{x}  \rightarrow 0 \\ \textrm{ $v  : } \, y = $as2 \end{array} \right.
+    !endif
+    applettext=!nospace f(x) = $plotfunction ->
+    
+    !if $teaching=1
+	image=0
+	xrange=-10:100
+	image_settings$n=$prefix2 ;
+	image$n=[$xrange] $plotfunction notitle lt 1 , $as2 notitle lt 4
+	insplot_set=$prefix1;
+	!insplot [$xrange]  $plotfunction notitle lt 1 , $as2 notitle lt 4
+    !endif
+ !exit
+!endif

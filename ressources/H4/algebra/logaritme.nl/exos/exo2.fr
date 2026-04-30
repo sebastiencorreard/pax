@@ -1,0 +1,204 @@
+#Rekenregels 2   [ log(a) + c*log(b) ]
+mathviewpanel=$module_title:log():log[2]()
+rounding=0
+mathview=5
+display=1
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=exos/checkfile1.proc
+varlist=$empty
+arglist=$empty
+question$n=!record 1 of lang/remarks.$taal
+#@ Schrijf als &eacute;&eacute;n logaritme:
+helptext=<img src=\'$module_dir/gifs/exo2.jpg\' alt=\'noalt\' />
+
+g=!randitem 2,10
+keuze=!randitem 1,0
+
+!if $R=1
+ a=!randitem 2,3,4,5,6,7
+ !if $a=$g
+  a=$[$a+1]
+ !endif
+ b=!randitem 2,3,4,5,6,7
+ !if $[$a^$b]=$g
+  a=$[$a+1]
+ !endif
+ !if $g=2
+  formula$n=$b \cdot \log_{$g}($a)=[?]     
+  applettext=!nospace $b*log[$g]($a)=
+  test=$[log($[$a^$b])/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($[$a^$b])/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=$b*(log($a)/log($g))
+  var3=2
+  texanswer$n=$b\cdot \log_{$g}($a)= \log_{$g}($a^{$b}) = \log_{$g}($[$a^$b]) $test
+ 
+ !else
+  formula$n=$b \cdot \log($a)=[?]     
+  applettext=!nospace $b*log($a)=
+  test=$[log($[$a^$b])/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($[$a^$b])
+   var2=1
+   test=$empty
+  !endif
+  var1=$b*(log($a))
+  var3=1
+  texanswer$n=$b\cdot \log($a)= \log($a^{$b}) = \log($[$a^$b]) $test
+ !endif
+ !exit
+!endif
+
+!if $R=2
+ a=!randitem 1,2,3,4,5,6,7,8,9,10
+ !if $a=$g
+  a=$[$a+1]
+ !endif
+ b=!randitem 2,3,4,5,6,7
+ c=!randitem 2,3,4,5
+ !if $g=2
+  formula$n=\log_{$g}($a)+ $c \cdot \log_{$g}($b)=[?]
+  applettext=!nospace log[$g]($a)+$c*log[$g]($b)=
+  test=$[log($a*$b^$c)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($a*$b^$c)/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=(log($a)/log($g))+$c*(log($b)/log($g))
+  var3=4
+  texanswer$n=\log_{$g}($a)+ $c \cdot \log_{$g}($b)=\log_{$g}($a \cdot $b^{$c})=\log_{$g}($[$a*$b^$c]) $test
+ !else
+  formula$n=\log($a)+ $c \cdot \log($b)=[?]
+  applettext=!nospace log($a)+$c*log($b)=
+  test=$[log($a*$b^$c)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($a*$b^$c)
+   var2=1
+   test=$empty
+  !endif
+  var1=log($a)+$c*(log($b))
+  var3=2
+  texanswer$n=\log($a)+ $c \cdot \log($b)= \log($a \cdot $b^{$c})= \log($[$a*$b^$c]) $test
+ !endif
+ !exit
+!endif
+
+!if $R=3
+ a=!randitem 2,3,4,5
+ !if $a=$g
+  a=$[$a+1]
+ !endif
+ d=!randitem 2,3
+ p=$[$a^$d]
+ b=!randitem 2,3,4,5
+ c=!randitem 2,4,6
+ e=$[$c/2]
+ !if $g=2
+  formula$n=$c \cdot \log_{$g}(\sqrt{$b})+\frac{1}{$d} \cdot \log_{$g}($p) =[?]
+  applettext=!nospace $c*log[$g](sqrt($b))+1/$d*log[$g]($p)=
+  test=$[log($[$a*$b^$e])/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($[$a*$b^$e])/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=$c*(log(sqrt($b))/log($g))+1/($d*log($p)/log($g))
+  var3=4
+  texanswer$n=\left[ \begin{array}{l} $c \cdot \log_{$g}(\sqrt{$b})+\frac{1}{$d} \cdot \log_{$g}($p) = \\ \\  \log_{$g} \left((\sqrt{$b})^{$c}\right)+\log_{$g}\left( $p^{\textstyle \frac{1}{$d}} \right) = \\ \\ \log_{$g}($[$b^$e])+\log_{$g}($a) = \\ \\ \log_{$g}($[$a*$b^$e]) $test \end{array}\right.
+ !else
+  formula$n=$c \cdot \log(\sqrt{$b})+\frac{1}{$d} \cdot \log($p) =[?]
+  applettext=!nospace $c*log(sqrt($b))+1/$d*log($p)=
+  test=$[log($[$a*$b^$e])/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($[$a*$b^$e])
+   var2=1
+   test=$empty
+  !endif
+  var1=$c*(log(sqrt($b)))+1/($d*log($p))
+  var3=2
+  texanswer$n=\left[ \begin{array}{l} $c \cdot \log(\sqrt{$b})+\frac{1}{$d} \cdot \log($p) = \\ \\ \log \left((\sqrt{$b})^{$c}\right)+\log\left( $p^{\textstyle \frac{1}{$d}} \right) = \\ \\ \log($[$b^$e])+\log($a) = \\ \\ \log($[$a*$b^$e]) $test \end{array}\right.
+ !endif
+!exit
+!endif
+
+!if $R>3
+ a=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15
+ b=!randitem 2,3,4,5
+ !if $g=2
+  formula$n=\log_{$g}($a)+$b =[?]     
+  applettext=!nospace log[$g]($a)+$b=
+  test=log($[$a*$g^$b])/log($g)
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else	
+   answer$n=log($[$a*$g^$b])/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=log($a)/log($g)+$b
+  var3=2
+  texanswer$n=\left[ \begin{array}{l} \log_{$g}($a)+$b = \\ \\ \log_{$g}($a) + \log_{$g}\left($g^$b\right) = \\ \\ \log_{$g}\left($a \cdot $g^$\rightb) = \\ \\ \log_{$g}($[$a*$g^$b]) \end{array} \right.
+ 
+ !else
+  formula$n=\log($a)+$b =[?]     
+  applettext=!nospace log($a)+$b=
+  test=log($[$a*$g^$b])
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else	
+   answer$n=log($[$a*$g^$b])
+   var2=1
+   test=$empty
+  !endif
+  var1=log($a)+$b
+  var3=1
+  texanswer$n=\left[ \begin{array}{l} \log($a)+$b = \\ \\ \log($a) + \log\left($g^{$b}\right) = \\ \\ \log($a \cdot $g^{$b}) = \\ \\ \log($[$a*$g^$b]) \end{array} \right.
+ !endif
+ !exit
+!endif
+

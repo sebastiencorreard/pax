@@ -1,0 +1,286 @@
+!set title=Sélectionner une équation I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David;Joachim, Yaméogo
+email=Marie-Claude.David@math.u-psud.fr,yameogo@unice.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=60
+prevarcnt=59
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=300
+val8=300
+val9=-4
+val10=4
+val11=-4
+val12=4
+val13=linewidth 1	parallel 0,$val11,0,$val12,0.2,0,floor(5*($val10))+1,$val6	parallel 0,$val11,0,$val12,-0.2,0,floor(5*abs($val9))+1,$val6	parallel $val9,0,$val10,0,0,0.2,floor(5*($val12))+1,$val6	parallel $val9,0,$val10,0,0,-0.2,floor(5*abs($val11))+1,$val6	
+val14=linewidth 3	parallel 0,$val11,0,$val12,1,0,floor($val10+1),$val6	parallel 0,$val11,0,$val12,-1,0,floor(abs($val9)+1),$val6	parallel $val9,0,$val10,0,0,1,floor($val12+1),$val6	parallel $val9,0,$val10,0,0,-1,floor(abs($val11)+1),$val6	
+val15=linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.3,0.7,medium,j	text black,-0.3,-0.1,medium,O	arrow $val10-1,0,$val10,0,10,black	arrow 0,$val12-1,0,$val12,10,black	text black,$val10-0.3,-0.2,large,x	text black,-0.3,$val12-0.2,large,y	
+val16=xrange $val9,$val10	yrange $val11,$val12	$val13	$val14	$val15	
+t_=!replace internal \( by ( in ordergreat(x,y,z,t)
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, ($val10-1)
+
+val18=$[rint($(tmp0)*$(tmp1))]
+!if $val18>0 
+tmp0=!randint ($val9+1), ($val18-1)
+
+val19=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val18+1), ($val10-1)
+
+val19=$[rint($(tmp0))]
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, ($val12-1)
+
+val20=$[rint($(tmp0)*$(tmp1))]
+!if $val20>0 
+tmp0=!randint ($val11+1), ($val20-1)
+
+val21=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val20+1), ($val12-1)
+
+val21=$[rint($(tmp0))]
+!endif
+val22=$[rint($val21-($val20))]
+val23=$[rint($val18-($val19))]
+val24=$[rint(($val18)*($val21-($val20))-($val20)*($val19-($val18)))]
+val25=!rawmath ($val22)*x+($val23)*y
+t_=!replace internal \( by ( in $val25-($val24);
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+t_=!replace internal \( by ( in ((-$val22)*x+($val24))/($val23);
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+tmp0=!texmath $val26=0
+
+val26=$(tmp0)
+tmp0=!texmath $val25=$val24
+
+val28=$(tmp0)
+val29=$val26
+val30=$[rint(-$val23)]
+val31=$[rint($val22)]
+tmp0=!shuffle -5,-4,-3,3,4,5
+
+val32=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2,3
+
+val33=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim 
+val34=!translate internal $	\
+$ to ;; in $tmp
+!for val35 =1 to 3 
+val36=$[rint($(val32[$val35])+($val33)*($val31))]
+tmp=!trim $val34	              ($val30)*($val33),$val36	       
+val34=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!trim $val34	            $val30,$val31	     
+val34=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val37=!translate internal $	\
+$ to ;; in $tmp
+!for val35 =1 to 4 
+tmp0=!randitem -3,-2,-1,2,3
+
+val38=$[rint($(tmp0))]
+val39=$[rint(($val38)*($(val34[$val35;1])))]
+val40=$[rint(($val38)*($(val34[$val35;2])))]
+!if $val35=4 
+val41=$[rint($val39)]
+val42=$[rint($val40)]
+
+!ifval $val38=-1
+val43= - 
+!else
+val43= $val38
+!endif
+!endif
+tmp=!trim $val37	    $val39,$val40	    
+val37=!translate internal $	\
+$ to ;; in $tmp
+!next
+val44=
+val45=(x-($val18))*($(val37[4;2]))-(y-($val20))*($(val37[4;1]))
+t_=!replace internal \( by ( in expand($val45);
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)=0
+
+val46=$(tmp1)
+!for val35 =1 to 3 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 3
+
+val47=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 3
+
+val48=$[rint($(tmp0)*$(tmp1))]
+val49=(x-($val47))*($(val37[$val35;2]))-(y-($val48))*($(val37[$val35;1]))
+t_=!replace internal \( by ( in expand($val49);
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)=0
+
+val50=$(tmp1)
+tmp0=!append item $val50 to $val44
+
+val44=$(tmp0)
+!next
+tmp0=!append item $val46 to $val44
+
+val44=$(tmp0)
+tmp0=!shuffle 4
+
+val51=$(tmp0)
+tmp0=!positionof item 4 in $val51
+
+val52=$(tmp0)
+tmp0=!shuffle red,blueviolet,green,brown
+
+val53=$(tmp0)
+val54=$val16	linewidth 2	plot $(val53[1]),$val27	
+replytype1=radio
+replyname1=
+replygood1=$val52;1,2,3,4
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Dans le plan 
+!insmath \RR^2
+$() muni d'un repère  
+!insmath (O,i,j)
+$(), on considère la droite 
+!insmath \mathcal{D}
+$() passant par les deux points 
+!insmath A\ ($val18,$val20)
+$() et 
+!insmath B\ ($val19,$val21)
+$().	<br>	Dans la liste suivante, trouvez une équation de la droite 
+!insmath \mathcal{D}
+$().	</p>	<ul><li> 
+!read oef/embed.phtml reply1,1 
+$() : 
+!insmath $(val44[$(val51[1])])
+$()</li>	    <li> 
+!read oef/embed.phtml reply1,2 
+$() : 
+!insmath $(val44[$(val51[2])])
+$()</li>	    <li> 
+!read oef/embed.phtml reply1,3 
+$() : 
+!insmath $(val44[$(val51[3])])
+$()</li>	    <li> 
+!read oef/embed.phtml reply1,4 
+$() : 
+!insmath $(val44[$(val51[4])])
+$()</li>	</ul>	 
+$()
+!exit
+
+:hint
+$()	  Au choix:	  <ul>	  <li style="background-color:bisque;">	  Trouver dans la liste, une équation satisfaite à la fois par 
+!insmath A
+$() et 
+!insmath B
+$().	  </li>	  <li style="background-color:bisque;">	  Pour un point 
+!insmath M(x,y)\in \RR^2
+$(), écrire une relation de colinéarité entre	  le vecteur 
+!insmath \vec{AM}(x-x_A,y-y_A)
+$() et le vecteur 
+!insmath \vec{AB}
+$().	  </li>	  </ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p> Voici un	  <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution:	 </p>	 <p>	   Un vecteur directeur de la droite 
+!insmath \mathcal{D}
+$() est	  donné par 
+!insmath \overrightarrow{AB}\ ($val30,$val31)
+$(), qui est colinéaire au vecteur directeur	  
+!insmath \vec{w}\ ($val41,$val42)
+$() de la	  $val52<sup><small>&egrave;me</small></sup> équation de la liste propos&eacute;e.	  On remarquera que 
+!insmath \vec{w}\ ($val41,$val42)=$val43 \overrightarrow{AB}\ ($val30,$val31)
+$(). Il ne reste plus qu'à	  s'assurer que l'un au moins des points 
+!insmath A
+$() ou 
+!insmath B
+$() vérifie cette équation.</p>	  <div class="wimscenter">	    <p>Voici une représentation graphique de la droite 
+!insmath \mathcal{D}
+$().</p>	         
+!read oef/draw.phtml $val7,$val8 \
+	   $val54	    
+$()	  </div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,18,19,20,21,30,31,41,42,43,44,51,52,54
+embedcnt=4

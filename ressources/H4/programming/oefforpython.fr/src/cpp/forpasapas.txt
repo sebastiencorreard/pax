@@ -1,0 +1,200 @@
+target=forpasapas
+
+\title{Boucle For mode pas à pas}
+
+\text{theme=(\confparm1==)?[ambiance,neat]:\confparm1}
+
+\css{<style>
+.tabb {visibility:hidden;display:inline-block;min-width:70px;}
+.jxgbox {display:inline-block;}
+</style>}
+
+\integer{nsup=randint(1..2)}
+\text{ing=(\nsup==1)?<=:<}
+
+\integer{ninit=randint(5..20)}
+\integer{lninit=wims(charcnt \ninit)+3}
+\integer{nmax=\ninit+randint(10..100)}
+\integer{lnmax=wims(charcnt \ing\nmax)+8}
+
+\integer{a=randint(1..1)}
+\integer{b=randint(1..10)}
+\text{nexp=pari(\a*n+\b)}
+\integer{lnexp=wims(charcnt \nexp)+5}
+
+\integer{nn=randint(4..7)}
+\text{nmaxcal=(\a==1)?pari(\ninit+(\nn-1)*\b):pari((\ninit-\b/(1-\a))*(\a)^(\nn)+\b/(1-\a))}
+\integer{nmax=\nmaxcal+randint(-1..1)}
+\integer{lnmax=wims(charcnt \ing\nmax)+8}
+
+\integer{nalgo=randint(1..2)}
+\text{textalgo=print(n)\n}
+\text{lalgo=(\nalgo==1)?3,3,3,11,4,3,4,\lnexp:3,3,3,\lnexp,4,3,4,11}
+
+\text{code=for compteur in range(\ninit):
+  \textalgo}
+
+\text{DD=pari(n=\ninit;
+binit=[1,0,1,\lninit];
+bc=[2,7,2,\lnmax];
+bp=[2,7,2,\lnmax,\lalgo];
+bpc=concat(bc,bp);
+bb=[];
+ll=1;
+coord=[\ninit];
+if(n\ing\nmax,boo=true,boo=false);
+ltab=[n,boo];
+while(n\ing\nmax,
+ll=ll+1;
+bb=concat(bb,bp);
+n=\a*n+\b;
+coord=concat(coord,n);
+if(n\ing\nmax,boo=true,boo=false);
+ltab=concat(ltab,concat(n,boo));)
+)}
+\text{coo=pari(print(coord);)}
+\text{llpasapas=pari(print(concat(binit,concat(bb,concat(bpc,bpc))));)}
+
+\text{AA=slib(coding/editor [python,[\code]],id,theme=\theme fulscreen readonly bystep=[\llpasapas])}
+
+\matrix{DD=pari(print(ltab);)}
+\text{ll=pari(print(ll);)}
+
+\integer{dtab=randint(1..2)}
+
+\text{Drep=}
+\for{kj=1 to \ll+\dtab}{
+\if{\kj<=\ll}{
+\integer{s=\DD[2*\kj-1]}
+\text{u=\DD[2*\kj]}
+\text{d=(\kj==\ll and \nalgo==1)?x:\DD[2*\kj-1]}
+\text{Drep=wims(append item \s,\u,\d to \Drep)}
+}{\text{Drep=wims(append item x,x,x to \Drep)}
+}}
+
+\matrix{DDrep=\Drep}
+
+\integer{aalgo=(\nalgo==2)?22:21}
+\text{lr=wims(makelist r x for x = 1 to \ll+\dtab)}
+\text{lr1=wims(makelist r x for x = 11 to \ll+\dtab+10)}
+\text{lr2=wims(makelist r x for x = \aalgo to \ll+\dtab+20)}
+
+\matrix{nstep=\lr,\lr1,\lr2}
+\nextstep{\nstep}
+
+\text{graph=var brd = JXG.JSXGraph.initBoard('jsxbox', {
+  boundingbox: [-11+\ninit,1,2*(\b+\dtab)+\nmax,-1],
+  axis:true,
+  grid:false,
+  showCopyright : false,
+  showNavigation:false,
+  showZoom : false,
+  keepaspectratio : false
+ });
+
+var aa=brd.create('point',[\ninit,0],{name:'',size:'8',strokeColor:'black',visible: false});
+var taa=brd.create('text',[function(){ return aa.X();},0, function(){return 'n =' + aa.X() + ' ';}], {anchorX:'right',anchorY:'bottom',visible: false});
+var resize = function () {
+  brd.resizeContainer(brd.containerObj.clientWidth, brd.containerObj.clientHeight, true);
+  brd.fullUpdate();
+  };
+  window.onresize = resize;
+}
+
+\text{BB=slib(geo2D/jsxgraph jsxbox,600 x 100,\graph)}
+
+ninit=\ninit||\nmax||\nexp||\DD||\llpasapas
+\ninit||\a||\b||\nmaxcal||\nn
+nn=\nn||signe=\ing||ll=\ll||nmax=\nmax||nmaxcal=\nmaxcal
+<br/>\nstep||\listereponse
+<br/>scs==\DDrep
+\statement{
+<div class="encadre">
+<p class="problematique">Structure de contrôle : Boucle "While" francisée en Boucle "Tant que"</p>
+<div class="enonce">
+  Exécuter l'algorithme en cliquant sur le bouton intitulé
+  "Mode pas à pas" puis compléter le tableau. La condition prend la valeur "true" ou "false".
+  Lorsque l'algorithme est terminé, les cellules du tableau peuvent être laissées vide.
+  Il faut alors envoyer la réponse et la valider.
+  <p>En appuyant sur le bouton intitulé "Afficher les cellules", l'ensemble du tableau est visible.
+  Ce mode permet de gagner du temps mais il est plus difficile de comprendre cet algorithme.</p></div>
+<div>
+<div style="display:inline;">\AA</div>
+<div style="display:inline;">\BB</div>
+</div>
+<div>
+<div class="question" style="overflow-x:auto;">
+<span onclick="aff();" class="wims_button wims_warning" style="cursor:pointer;">Afficher les cellules</span>
+<table class="wimsborder">
+<tr><th>Valeur de n</th>\for{k=1 to \ll+\dtab}{<td><span id="td1\k" class="tabb">\embed{reply\k,3}</span></td>}</tr>
+<tr><th>Condition</th>\for{kk=1 to \ll+\dtab}{<td><span id="td2\kk" class="tabb">\embed{reply\kk+10,3}</span></td>}</tr>
+<tr><th>Affichage de n</th>\for{jj=1 to \ll+\dtab}{<td><span id="td3\jj" class="tabb">\embed{reply\jj+20,3}</span></td>}</tr>
+</table>
+</div>
+</div>
+
+<script>
+  var mode_pasapas = document.getElementById('bystepid');
+  var i_modepasapas=1;
+  var j_modepasapas=1;
+  var nalg=\nalgo;
+  if(nalg==2){var lalgo=["1","3","2"];}else{var lalgo=["1","2","3"];}
+  var str_modepasapas=""+lalgo[i_modepasapas-1]+""+j_modepasapas;
+  var coord=[\coo];
+  function aff() {var atab=document.getElementsByClassName('tabb');
+  for (var i = 0; i < atab.length; i++) {atab[i].style.visibility='visible';}}
+  function test() {
+    var ele=document.getElementById('td'+str_modepasapas+'');
+    ele.style.visibility='visible';
+    ele.style.backgroundColor='white';
+    ele.style.padding='0 0.2em 0 0.2em';
+    document.querySelector('#td'+str_modepasapas+' input').focus();
+    if(i_modepasapas==1 & j_modepasapas==1){aa.setAttribute({fixed: true,visible: true});taa.setAttribute({fixed: true,visible: true});}
+    if(i_modepasapas%3==0){j_modepasapas=j_modepasapas+1;i_modepasapas=0;}
+    if(i_modepasapas==1 && j_modepasapas>1){aa.moveTo([coord[j_modepasapas-1],0],100);}
+    i_modepasapas=i_modepasapas+1;
+    if(i_modepasapas==2 && j_modepasapas==1 && nalg==2){i_modepasapas=3;}
+    str_modepasapas=""+lalgo[i_modepasapas-1]+""+j_modepasapas;
+    if(j_modepasapas==\ll+\dtab+1){mode_pasapas.style.visibility='hidden';}
+    }
+    mode_pasapas.addEventListener('click',test);
+  </script>
+</div>}
+
+\answer{}{\DDrep[1]}{type=case}{option= default="x"}
+\answer{}{\DDrep[4]}{type=case}{option= default="x"}
+\answer{}{\DDrep[7]}{type=case}{option= default="x"}
+\answer{}{\DDrep[10]}{type=case}{option= default="x"}
+\answer{}{\DDrep[13]}{type=case}{option= default="x"}
+\answer{}{\DDrep[16]}{type=case}{option= default="x"}
+\answer{}{\DDrep[19]}{type=case}{option= default="x"}
+\answer{}{\DDrep[22]}{type=case}{option= default="x"}
+\answer{}{\DDrep[25]}{type=case}{option= default="x"}
+\answer{}{\DDrep[28]}{type=case}{option= default="x"}
+
+\answer{}{\DDrep[2]}{type=nocase}{option= default="x"}
+\answer{}{\DDrep[5]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[8]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[11]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[14]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[17]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[20]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[23]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[26]}{type=nocase}{option= default="x" }
+\answer{}{\DDrep[29]}{type=nocase}{option= default="x" }
+
+\answer{}{\DDrep[3]}{type=case}{option= default="x" }
+\answer{}{\DDrep[6]}{type=case}{option= default="x" }
+\answer{}{\DDrep[9]}{type=case}{option= default="x" }
+\answer{}{\DDrep[12]}{type=case}{option= default="x" }
+\answer{}{\DDrep[15]}{type=case}{option= default="x" }
+\answer{}{\DDrep[18]}{type=case}{option= default="x" }
+\answer{}{\DDrep[21]}{type=case}{option= default="x" }
+\answer{}{\DDrep[24]}{type=case}{option= default="x" }
+\answer{}{\DDrep[27]}{type=case}{option= default="x" }
+\answer{}{\DDrep[30]}{type=case}{option= default="x" }
+
+\feedback{1==1}{<script>window.onload = aff;
+</script>}
+
+\text{nstep=(\step=2)?}

@@ -1,0 +1,141 @@
+!set title=Longueur d'un segment 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=length
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G,H,K,L,M,N,P
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+tmp=!nonempty items 2,3,5
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp0=!values v,-v for v=2 to 9
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+val11=$(val10[1])*sqrt($val9)
+val12=$(val10[2])*sqrt($val9)
+val13=$(val10[3])*sqrt($val9)
+val14=$(val10[4])*sqrt($val9)
+tmp=!translate ";': to $     $ in (($val13)-($val11))^2+(($val14)-($val12))^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=sqrt($(tmp0))
+val16=$[$val15]
+
+!ifval . notin $val16
+val17= $val16
+!else
+val17= $val15
+!endif
+replytype1=algexp
+replyname1=$val7 $val8
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soient 
+!insmath $val7
+$() et 
+!insmath $val8
+$() deux points du plan muni d'un repère orthonormé 
+!insmath (O,I,J)
+$() ;	
+!insmath $val7
+$() a pour coordonnées 
+!insmath ( $val11 ; $val12 )
+$() et 
+!insmath $val8
+$() a pour coordonnées 
+!insmath ( $val13 ; $val14 )
+$().	<p>	  Quelle est la mesure de la longueur du segment 
+!insmath [$val7\,$val8]
+$() ?	</p>	<div class="spacer">	<b>Votre réponse</b> :	<label for="reply1">
+!insmath $val7 $val8 =
+$()</label> 
+!read oef/embed.phtml r1,9 
+$() unités.	<div class="wims_instruction">Tapez sqrt(2) pour 
+!insmath \sqrt{2}
+$().</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On sait que, dans le plan muni d'un repère orthonormé,	pour deux points 
+!insmath A (x_A;y_A)
+$() et 
+!insmath B(x_B;y_B)
+$() la longueur 
+!insmath A B
+$() se calcule	avec la formule suivante :	<div class="wimscenter">	
+!insmath A B = sqrt((x_A-(x_B))^2+(y_A-(y_B))^2)
+$().	</div>	On obtient ici :	<div class="wimscenter">	  
+!insmath $val7 $val8 = sqrt(($val13-($val11))^2+($val14-($val12))^2)=$val17
+$().	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13,14,17
+embedcnt=1

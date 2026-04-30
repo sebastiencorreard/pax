@@ -1,0 +1,30 @@
+num=!eval ($(pt$cept1[1]))-($(pt$cept2[1]))
+den=!eval ($(pt$cept1[2]))-($(pt$cept2[2]))
+fpt1=!text copy $cept1 mask 10
+fpt2=!text copy $cept2 mask 10
+faceseg=!listintersect $(face$fpt1) and $(face$fpt2)
+trouvept=0
+!for ii=1 to 4
+  pt3=$(milieu$faceseg[$ii])
+  !if ($pt3<>$fpt1) and ($pt3<>$fpt2)
+    num2=!eval ($(pt$cept1[1]))-($(pt$pt3[1]))
+    den2=!eval ($(pt$cept1[2]))-($(pt$pt3[2]))
+    colin=!eval ($num)*($den2)-($num2)*($den)
+    !if $colin<0.001 and $colin>-0.001
+      trouvept=1
+      !break
+    !endif
+  !endif
+!next
+!if $cept1 isitemof $auxpt
+  ptsplan=!replace item $cept1 by $pt3 in $ptsplan
+  color$pt3=red
+  ceseg=$cept2,$pt3
+  cept1=$pt3
+!else
+  ptsplan=!replace item $cept2 by $pt3 in $ptsplan
+  ceseg=$cept1,$pt3
+  cept2=$pt3
+!endif
+
+subst=1

@@ -1,0 +1,163 @@
+!set title=8 - Presse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=eguillet@cfai.org
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_en=8 - Presse
+
+ansorder=r,r,r,c,r,c,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=5
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=La pression exercée sur le petit piston se retransmet intégralement sur le grand piston.
+tmp=!trim aire petit piston en	aire petit piston en	pression	unité	diamètre grand piston	soit en cm à 1 cm près
+val8=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val7=La pression exercée sur le petit piston se retransmet intégralement sur le grand piston.
+tmp=!trim aire petit piston en	aire petit piston en	pression	unité	diamètre grand piston	soit en cm à 1 cm près
+val8=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 100, 200
+
+val9=$[$(tmp0)/100]
+tmp0=!randint 5, 20
+
+val10=$[$(tmp0)]
+tmp0=!randint 600, 1000
+
+val11=$[$(tmp0)]
+val12=$val1/serie_700_principe_presse_hydraulique.jpg
+val13=$[pi*($val9/2)^2]
+val14=$[$val13*10^(-4)]
+val15=$[$val10/$val14]
+val16=$[sqrt($val11*10/$val15/pi)]
+val17=$[rint($val16*100)]
+replytype1=sigunits
+replyname1=$(val8[1;]) cm<sup>2</sup>
+replygood1=$val13 #4
+replytype2=sigunits
+replyname2=$(val8[2;]) m<sup>2</sup>
+replygood2=$val14 #4
+replytype3=sigunits
+replyname3=$(val8[3;])
+replygood3=$val15 #4
+replytype4=sigunits
+replyname4=$(val8[5;])
+replygood4=$val16 #4
+replytype5=real
+
+replyname5=$(val8[6;])
+replygood5=$val17
+choicename1=$(val8[4;])
+choicegood1=pascal
+choicebad1=joule,watt,calorie
+choicename2=$(val8[4;])
+choicegood2=m
+choicebad2=mm,cm,dm
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <p> $val7 </p>
+
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer"><img src="$val12" alt=""></div>		
+!if $val6!=en 
+$()	Une presse hydraulique est constituée de deux cylindres de diamètres différents, reliés par une conduite.	Ils contiennent un liquide, en contact avec les deux pistons. En agissant sur le petit piston, on exerce	une pression qui se transmet sur le grand piston. Le petit piston a un diamètre de $val9 cm et est	soumis à une force de $val10 N.		<ol>	<li>Quelle est la pression exercée en un point de la surface de ce piston ?	<div class="wims_instruction">On rappelle : 1 Pa = 1 N/m<sup>2</sup></div>	</li>	<li>Quel doit être le diamètre du grand piston pour que la force qu'il exerce	ait une intensité de $val11 daN ?</li>	</ol>	 
+!endif
+$()	
+!if $val6=en 
+$()	Une presse hydraulique est constituée de deux cylindres de diamètres différents, reliés par une conduite.	Ils contiennent un liquide, en contact avec les deux pistons. En agissant sur le petit piston, on exerce	une pression qui se transmet sur le grand piston. Le petit piston a un diamètre de $val9 cm et est	soumis à une force de $val10 N.		<ol>	<li>Quelle est la pression exercée en un point de la surface de ce piston ?	<div class="wims_instruction">On rappelle : 1 Pa = 1 N/m<sup>2</sup>.</div>	</li>	<li>Quel doit être le diamètre du grand piston pour que la force qu'il exerce	ait une intensité de $val11 daN ?</li>	</ol>	 
+!endif
+$()		<div class="wims_instruction">		
+!if $val6!=en 
+$()	<p>Les résultats doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>		 
+!endif
+$()		
+!if $val6=en 
+$()	<p>The results doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>	 
+!endif
+$()		</div>	
+$()
+!exit
+
+:hint
+$()<p> $val7 </p>
+$()
+!exit
+
+:help
+$()	
+!if $m_help_subject issametext fscient or $m_help_subject issametext  
+$()		
+!if $val6!=en 
+$()	<h3>Notation scientifique :</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()	
+!if $val6=en 
+$()	<h3>Scientific notation:</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()		 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12
+embedcnt=2

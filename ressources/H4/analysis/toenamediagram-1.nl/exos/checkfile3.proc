@@ -1,0 +1,74 @@
+n=$counter
+goback=0
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+reply$n=!nospace $(reply$n)
+reply$n=!lower $(reply$n)
+
+!! some allowed syntax
+reply$n=!replace internal dy/dx= by $empty in $(reply$n)
+reply$n=!replace internal df/dx= by $empty in $(reply$n)
+reply$n=!replace internal d[f(x)]/dx= by $empty in $(reply$n)
+reply$n=!replace internal df(x)/dx= by $empty in $(reply$n)
+reply$n=!replace internal d/dxf(x)= by $empty in $(reply$n)
+reply$n=!replace internal == by = in $(reply$n)
+!!!
+test=!replace internal = by , in $(reply$n)
+t=!itemcnt $test
+!if $t>2
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P2*$maxscore]
+    goback=1
+    @exit
+!endif
+!if $t=2
+    t1=!item 1 of $test
+    !if $t1=$empty
+	# reply$n= =1.23
+	reply$n=!item 2 of $test
+    !else
+	t2=!item 2 of $test
+        tt1=$[1*($t1)]
+	tt2=$[1*($t2)]
+	!if NaN isin $tt1 and NaN notin $tt2
+	    errortext=!record 29 of lang/remarks.$taal
+	    #@$t2 dat snap ik...<br />Maar wat is in dit verband hemelsnaam <b>$t1<b> ??
+	    goback=1
+	    maxscore=$[$P3*$maxscore]
+	    !exit
+	!else
+	    !if NaN isin $tt2 and NaN notin $tt1
+		errortext=!record 29 of lang/remarks.$taal
+	        #@$t1 dat snap ik...<br />Maar wat moet ik met <b>$t2<b> ??
+	        goback=1
+	        maxscore=$[$P3*$maxscore]
+		!exit
+	    !else
+		!if NaN isin $tt2 and NaN isin $tt1
+		    errortext=!record 36 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    maxscore=$[$P2*$maxscore]
+		    !exit
+		!else
+		    reply$n=!item -1 of $test
+		    # hmmm  reply$n= dy/sx=(10-8)/4 = 1/2
+		!endif
+	    !endif
+	!endif
+    !endif
+!else
+    !if NaN isin $[1*($(reply$n))]
+	errortext=!record 36 of $remarkdir/commonremarks.$taal
+        goback=1
+        maxscore=$[$P2*$maxscore]
+        !exit
+    !endif
+!endif
+!changeto $checkdir/number.proc
+
+!exit

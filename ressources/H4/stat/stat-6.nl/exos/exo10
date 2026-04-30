@@ -1,0 +1,115 @@
+#:10 Spreadsheet &amp; frequentietabel [getallen]
+# var6 = max1,max2,max3... (aantal cellen in een kolom)
+# var5 = A1,B1 A2,B2 ... Amax,Bmax
+# var7 = head Kolom A,Kolom B ,Kolom C
+# var8 = aantal invoer kolommen.
+var1=yes
+questiontype=7
+javascript=js/spreadsheet.phtml
+inputs=yes
+cols=5
+math=0
+mathview=0
+
+# Spreadsheet &amp; berekenen van de standaardafwijking
+n=$counter
+
+tsv_file=som_$counter.$wims_nowseconds.tsv
+datum=!date +%d-%m-%Y
+
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en frequentietabel\
+\
+"cijfers"	"   cijfer    "	"frequentie"\
+
+rounding=0
+freq=$empty
+var5=$empty
+showans=<table class="demospecial"><tr><th>cijfer</th><th>freq</th></tr>
+lijst=$empty
+num=0
+!for cijfer=1 to 10
+ aantal=!randint 1,10
+ freq=!append item $aantal to $freq
+ showans=!append word $ <tr><th>$cijfer</th><th>$aantal</th></tr> $ to $showans
+ var5=!append word $ $cijfer $ to $var5
+ !for i=1 to $aantal
+  lijst=!append item $cijfer to $lijst 
+  !increase num
+ !next i
+!next p
+showans=!append word $ </table> $ to $showans
+lijst=!shuffle $lijst
+#!if $wims_user=supervisor
+# !for p=1 to $num
+#  !if $p<=10
+#   data=!append line $(lijst[$p])	$p	$(freq[$p]) to $data
+#  !else
+#   data=!append line $(lijst[$p]) to $data
+#  !endif
+# !next p
+#!else
+ !for p=1 to $num
+   data=!append line $(lijst[$p]) to $data
+ !next p
+#!endif
+answer$n=$freq
+var7=cijfer,frequentie
+var6=10
+var8=1
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\'<hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br />\
+<em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />\
+In de spreadsheet staan de cijfers vermeld van leerlingen.<br />\
+Maak een frequentie tabel bij deze proefwerkcijfers...<br />
+
+ss2=Kopieer dmv cut&amp; paste deze kolom in WIMS en stuur op.<br />\
+Bij Excel zul je eerst de kolom met cijfers moeten sorteren op grootte...
+
+question$n=$ss<a onmouseover="return escape('$mousetxt')">$ss2</a>
+
+#formula$n= \textrm{Standaardafwijking } = \sigma = \sqrt{ \frac{ \left( X - \overline{X} \right)^{2}}{ \textrm{aantal waarnemingen}}}
+
+textanswer$n=$showans \
+De onderstaande uitleg is exclusief voor Windows Excel...\
+<ul>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal0.png />' )">Open de tsv file met je spreadsheet programma<br />en sorteer de kolom A op grootte</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal0.png />' )">Maak in kolom B een een lijst met cijfers 1 t/m 10...dit zijn dus de cijfers die voor kunnen komen in kolom A</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal0.png />' )">ga in C7 staan<br />open in de formulebalk de formule: <b>AANTALLEN.ALS</b></a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal0.png />' )">In <b>Criteriumbereik</b> komt kolom A<br />en in <b>criteria</b> komt kolom B</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal1.png />' )">ga met je muis rechtsonderin C7...je muis wordt een kruis...en scroll naar beneden</a> </li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo10/aantal2.png />' )">klaar...</a> </li>\
+</ul>\
+Voor OpenOffice: gebruik rechtstreeks de functie FREQUENCY en hoef je niet te sorteren...
+
+checkfile=$checkdir/number.proc
+make_tr=1
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

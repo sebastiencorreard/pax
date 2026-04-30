@@ -1,0 +1,211 @@
+\title{Sélectionner une équation III}
+\author{Marie-Claude, David;Joachim, Yaméogo}
+\email{Marie-Claude.David@math.u-psud.fr,yameogo@unice.fr}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\format{html}
+
+configuration de maxima
+\text{vide=maxima(ordergreat(x,y,z,t))}
+Pour la figure du feedback
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.3,0.7,medium,j
+text black,-0.3,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.3,-0.2,large,x
+text black,-0.3,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication de la droite ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+
+\integer{a=\y2-(\y1)}
+\integer{b=\x1-(\x2)}
+\integer{c=(\x1)*(\y2-(\y1))-(\y1)*(\x2-(\x1))}
+\function{hf=(\a)*x+(\b)*y}
+\text{eqD1=maxima(\hf-(\c);)}
+\text{f=maxima(((-\a)*x+(\c))/(\b);)}
+\text{eqD1=texmath(\eqD1=0)}
+\text{eqD2=texmath(\hf=\c)}
+\text{eqDroite=\eqD1}
+
+\integer{u1=-\b}
+\integer{u2=\a}
+
+## on construit des vecteurs directeurs ##
+\text{kList=shuffle(-5,-4,-3,3,4,5)}
+\integer{v1=random(-1,1)*random(1,2,3)}
+\matrix{vList=}
+\for{k=1 to 2}{
+  \integer{v2=\kList[\k]+(\v1)*(\u2)}
+  \matrix{vList=\vList
+              (\u1)*(\v1),\v2
+       }
+  }
+\matrix{vList=\vList
+            \u1,\u2
+	    \u1,\u2
+     }
+
+\matrix{vectList=}
+\for{k=1 to 4}{
+  \integer{dil=random(-3,-2,-1,2,3)}
+  \integer{vx=(\dil)*(\vList[\k;1])}
+  \integer{vy=(\dil)*(\vList[\k;2])}
+  \if{\k=3}{
+    \integer{w1=\vx}
+    \integer{w2=\vy}
+    \text{rapp=\dil=-1? - : \dil}
+   }
+  \matrix{vectList=\vectList
+    \vx,\vy
+    }
+}
+## on fabrique quatre équations avec les quatre vecteurs précédents ##
+\text{d4=(x-(\x1))*(\vectList[4;2])-(y-(\y1))*(\vectList[4;1])}
+\text{eq4=texmath(maxima(expand(\d4);)=0)}
+\text{chv=random(hor,ver)}
+\if{\chv=hor}{
+  \integer{x3=\x1+random(-1,1)}
+  \integer{y3=\y1}
+  }{
+  \integer{x3=\x1}
+  \integer{y3=\y1+random(-1,1)}
+  }
+\text{d3=(x-(\x3))*(\vectList[3;2])-(y-(\y3))*(\vectList[3;1])}
+\text{eq3=texmath(maxima(expand(\d3);)=0)}
+\text{g=maxima(((x-(\x3))*(\vectList[3;2])/(\vectList[3;1]))+\y3;)}
+
+\integer{x2=\x1}
+\integer{y2=\y1}
+\text{d2=(x-(\x2))*(\vectList[2;2])-(y-(\y2))*(\vectList[2;1])}
+\text{eq2=texmath(maxima(expand(\d2);)=0)}
+
+\integer{oxD=random(-1,1)*random(1..3)}
+\integer{oyD=random(-1,1)*random(1..3)}
+\text{d1=(x-(\oxD))*(\vectList[1;2])-(y-(\oyD))*(\vectList[1;1])}
+\text{eq1=texmath(maxima(expand(\d1);) = 0)}
+
+\text{eqList=\(\eq1),\(\eq2),\(\eq3),\(\eq4)}
+
+## on permute les équations de sorte que la bonne réponse puisse changer de place ##
+\text{permut=shuffle(4)}
+\text{brep=position(\eq3,\eqList)}
+
+
+## le dessin de la droite pour la correction ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\text{graph=
+\cadre
+linewidth 2
+plot \couleurs[1],\f
+plot \couleurs[2],\g
+text black,\x1-0.3,\y1-0.2,large,A
+text black,\x3-0.3,\y3-0.2,large,P
+linewidth 8
+point \x1,\y1,\couleurs[1]
+point \x3,\y3,\couleurs[2]
+}
+
+####### enoncé de l'exo #######
+\statement{
+<p>
+  Dans le plan \(\RR^2) muni d'un repère  \((O,\vec i,\vec j)), on considère
+  la droite \(\mathcal{D}\) passant par le point \(A(\x1,\y1)) et de vecteur directeur
+  \(\vec{v}(\u1,\u2)\).
+  <br>
+   Dans la liste suivante, trouver une équation de la parallèle à \(\mathcal{D}\) passant
+   par le point \(P(\x3,\y3)\).
+</p>
+<ul>
+  <li>\embed{reply1,1}</li>
+  <li>\embed{reply1,2}</li>
+  <li>\embed{reply1,3}</li>
+  <li>\embed{reply1,4}</li>
+</ul>
+}
+##### collecte de la réponse de l'utilisateur #####
+\answer{}{3;\eqList}{type=radio}{option=shuffle}
+
+## Aide ou rappel ##
+\hint{Dans la liste, trouver  une équation dont le vecteur directeur associé est colinéaire au vecteur \(\vec{v}(\u1,\u2)) et qui soit satisfaite  par
+  \(P\).}
+
+## Solution rédigée ##
+\solution{
+<p>Voici un
+  <b><b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution.
+</p>
+  <p> Un vecteur directeur de la droite \(\mathcal{D}\) est
+  \(\vec{v}\ (\u1,\u2)\), qui est colinéaire à un vecteur directeur
+  \(\vec{w}\ (\w1,\w2)\) de la droite d'équation \(\eq3\).
+  On vérifie l'égalité : \(\vec{w}=\rapp \vec{v}). Les coordonnées du point \(P) satisfont
+  cette équation.
+</p>
+    <p class="wimscenter">
+     Voici une représentation
+	graphique de la droite  \(\mathcal{D}\).<br>
+             \draw{\dimh,\dimv}{
+	  \graph
+	  }
+      </p>
+}

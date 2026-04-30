@@ -1,0 +1,71 @@
+# ballenbak
+n=$counter
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+
+#/* P = var4  ; balls = var2 ; bins = var1 */#
+!if $rounding <1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+viewlogo=1
+p=!randint 1,7
+logotext=<img src=$module_dir/gifs/galton$p.gif alt=niks />
+
+logo=<span style="font-size:1.5em;color:red"><ul>Galtonbord</ul></span>
+var3=1
+var4=0.5
+!if $R=1
+ options=3
+ # var2=balls
+ var2=!randint 20,50
+ var1=!randitem 6,7,8,9,10
+ lijst=1,2,3
+ # javascript vertraging/delay in ms
+ var9=300
+!else
+ lijst=1,2,3,4
+ options=4
+ var2=!randint 300,800
+ var1=!randitem 6,7,8,9,10,11,12
+ telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+# in checkfile is dit de rounding
+ var5=10
+ var6=!randitem 1,2
+ var7=!item $var6 of $telwoorden
+ # javascript vertraging/delay in ms
+ var9=50
+!endif
+
+vragen=!record 13 of lang/remarks.$taal
+#@de modus, de mediaan, het gemiddelde , Bepaal hoeveel procent van het oppervlak<br />in het ontstane histogram minder dan <b>$var7 keer</b><br />de standaard-afwijking van het gemiddelde af ligt.<br /><small>Reken met de gegeven standaardafwijking (&sigma;) en een op &eacute;&eacute;n decimaal afgerond gemiddelde.<br />Geef het oppervlak ook op 1 decimaal nauwkeurig.</small>
+
+# bins / bakjes
+xsize=$[$var1*25]
+ysize=200
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/galton.css.phtml
+checkfile=exos/checkfile1.proc
+math=0
+image=0
+inputs=yes
+datatable=$empty
+description=$empty
+!for p in $lijst
+    desc=!item $p of $vragen
+    description=!append item $desc to $description
+    datatable=!append line $ <tr><td>$desc</td><td>=</td><td><input id="myinput$[$p-1]" size="5" value="" class="schaersvoorde_input" /></td></tr> $ to $datatable
+!next p
+ss1=!record 14 of lang/remarks.$taal
+#@In een <em>bord van Galton</wm> laat je tenminste $var2 knikkers vallen...<br />De kans voor een bal om naar links of rechts te gaan is $var4 <br />Voer het experiment in de <span style="color:blue">applet</span> uit.<br />Bepaal aan de hand van je resultaten :
+
+htxt=!record 15 of lang/remarks.$taal
+#@de griekse letter sigma (<span style=\'font-size:1.6em;\'>&sigma;</span>) is het symbool voor de standaardafwijking
+question$n=<a onmouseover="return escape('$htxt')">$ss1</a>
+exotext=<table class="zebra_table_h2">$datatable</table>

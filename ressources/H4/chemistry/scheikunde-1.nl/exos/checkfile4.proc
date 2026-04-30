@@ -1,0 +1,79 @@
+# checkfile for new checking with matchmol
+# var1 is written correct molfile
+
+!if $(reply$n)=?
+ reply$n=$dontknow
+ rem=!record 74 of lang/remarks.$taal
+ remark$n=$NOK <br />$rem
+ maxscore=0
+ goback=1
+ !exit
+!endif
+n=$counter
+my_svg=!line 1 of $(reply$n)
+your_svg=!line 2 of $(reply$n)
+your_MDLmol=!line 3 to -1 of $(reply$n)
+
+!if $your_MDLmol=? or $your_svg=?
+    reply$n=$dontknow
+    textanswer$n=$my_svg
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+rep=reply.$counter.mol
+!filewrite getfile/$rep $your_MDLmol
+test1=!exec matchmol -v $wims_home/$wims_sesdir/getfile/$var1 $wims_home/$wims_sesdir/getfile/$rep
+test2=!exec matchmol -v $wims_home/$wims_sesdir/getfile/$rep $wims_home/$wims_sesdir/getfile/$var1
+#exotext=$test1 <br />$test2
+#goback=1
+#!exit
+test1=!replace internal : by , in $test1
+test2=!replace internal : by , in $test2
+t1=!item 2 of $test1
+t2=!item 2 of $test2
+chk=!nospace $t1 $t2
+!if $chk=TT
+    maxscore=1
+    remark$n=$OK 
+!else
+    score2=0
+    correct=!exec checkmol -X $wims_home/$wims_sesdir/getfile/$var1
+    wrong=!exec checkmol -X $wims_home/$wims_sesdir/getfile/$rep
+    t1=!itemcnt $correct
+    extra=<ul>
+    cnt=0
+    # var8 is lijst met de te checken items...zie voor nummers & betekenis:  scripts/anstype/chemdraw.$taal
+    !for p in $var8
+	G=!item $p of $correct
+	A=!item $p of $wrong
+	!if $[$A+$G]>0
+	    !increase cnt
+	    !if $A != $G
+		rem_g=!record $p of anstype/chemdraw.$taal
+		extra=!append line $ <li><span style="color:red">$A</span> i.p.v. <span style="color:green">$G</span> $rem_g</li> $ to $extra
+	    !else
+		!increase score2
+	    !endif
+	!endif
+    !next p
+    extra=!append line $ </ul> $ to $extra
+    maxscore=$[$score2/$cnt]
+    !if $maxscore>0.9
+	remark$n=$OK $extra
+    !else
+	!if $maxscore>0.5
+	    remark$n=$BOK $extra
+	!else
+	    remark$n=$NOK $extra
+	!endif
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+reply$n=$your_svg
+textanswer$n=$my_svg
+goback=0
+!exit

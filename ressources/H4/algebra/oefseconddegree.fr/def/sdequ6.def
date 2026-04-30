@@ -1,0 +1,182 @@
+!set title=Equation 6 : avec factorisation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 7
+
+val9=$[rint(abs($val8)+$(tmp0))]
+
+!ifval ($val7*$val8-$val6*$val9=0)
+val9=$[rint( $val9+1)]
+!else
+val9=$[rint($val9)]
+!endif
+t_=!replace internal \( by ( in ($val6*x+$val7)*($val8*x+$val9)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val6*x+$val7
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val8*x+$val9
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+t_=!replace internal \( by ( in ($val6*x+$val7)*($val8*x-$val9)
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+t_=!replace internal \( by ( in ($val6*x-$val7)*($val8*x+$val9)
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+t_=!replace internal \( by ( in ($val6*x-$val7)*($val8*x-$val9)
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+t_=!rawmath -$val7/$val6
+val17=!exec pari print($t_)
+t_=!rawmath -$val9/$val8
+val18=!exec pari print($t_)
+val19=$val17,$val18
+val20=$[rint(-$val7)]
+val21=$[rint(-$val9)]
+val22=r1	r2
+dynsteps=yes
+oefsteps=$val22 
+nextstep=!nosubst $val22 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=shuffle  nonstop 
+replyname1=
+replygood1=1;$val10,$val14,$val15,$val16
+replytype2=fset
+replyname2=Solutions
+replygood2=$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On souhaite résoudre dans 
+!insmath \ \RR
+$() l'équation :	<div class="wimscenter wims_emph">	
+!insmath $val11=0
+$()</div>	
+!if $m_step=1 
+$()<div class="wims_question">Quelle est la forme factorisée de 
+!insmath f(x
+$())?  
+!read oef/embed.phtml r1,8 
+$()</div> 
+!endif
+$()	
+!if $m_step=2 
+$()<div class="wimscenter"><i>
+!insmath f(x)=0
+$() &hArr; 
+!insmath $val10=0
+$().</i></div>	<div class="wims_question">Résoudre 
+!insmath f(x)=0
+$(): S= 
+!read oef/embed.phtml r2,8 
+$()</div>	<div class="wims_instruction">Séparer les solutions éventuelles par une virgule. 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On obtient	la bonne forme factorisée en développant les différentes expressions proposées.	<div class="spacer">	
+!insmath $val11=0
+$() &hArr; 
+!insmath $val10=0
+$() &hArr; 
+!insmath $val12=0
+$() ou 
+!insmath $val13=0
+$() &hArr; 
+!insmath x=\frac{$val20}{$val6}
+$() ou 
+!insmath x=\frac{$val21}{$val8}
+$().	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,10,11,12,13,20,21
+embedcnt=2

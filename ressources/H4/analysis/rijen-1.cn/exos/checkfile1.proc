@@ -1,0 +1,239 @@
+!set n=$counter
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !increase try
+    !exit
+!endif
+wims_exec_error=$empty
+extra=$empty
+AAA=!lower $(reply$n)
+# wetenschappelijke notatie; maar niet op syntax 4e10 ipv 5e+10 reken ik niet fout...!
+test=!nospace $AAA
+!if x10 isin $test
+    !record 68 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+    #AAA=!replace internal x10 by *10 in $AAA
+!endif 
+t=!positionof char e in $test
+!if $t !=$empty
+    check=0
+    cijfers1=* 1 2 3 4 5 6 7 8 9 0
+    cijfers2=1 2 3 4 5 6 7 8 9 0
+    !for p in $t
+	t1=!char $[$t-1] of $test
+	t2=!char $[$t+1] of $test
+	!if $t1 != $empty and $t2 != $empty
+	    !if $t1 isin $cijfers1 and $t2 isin $cijfers2
+		AAA=!replace internal e by e+ in $AAA
+		check=1
+	    !endif
+	!endif
+    !next p
+    !if $check=1
+	extra=!record 65 of lang/remarks.$taal
+	# <br><small>Let op de wetenschappelijke schrijfwijze van machten<br>\
+	# Gebruik 5e+10 of 5*10^10 en <b>g&eacute;&eacute;n</b> 5e10<br>\
+	# Ik ga er nu even vanuit dat je een <b>plus(+) teken</b> bent vergeten...</small>
+    !endif
+!endif
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+AAA=!replace internal ** by * in $AAA
+
+test=!replace internal 10^ by @ in $AAA
+!if @ notin $test
+# maar 4*5^3 moesten ze zelf uitrekenen
+    t=!replace internal * by @ in $(reply$n)
+    t=!replace internal ^ by @ in $t
+    !if @ isin $t
+	maxscore=$[$P3*$maxscore]
+	ex=!record 96 of lang/remarks.$taal
+	# Je moet het natuurlijk wel zelfuitrekenen...<br>'k ben je rekenmachientje niet ;)
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+	    !increase try
+	    !exit
+	!else
+	    !if $extra!=$empty
+		extra=$extra<br>$ex
+	    !else
+		extra=$ex
+	    !endif
+	!endif
+    !endif
+!endif
+
+AAA=!words2items $AAA
+test=!replace internal = by , in $AAA
+AAA=!nospace $AAA
+
+AAA=!replace [a-z][\0-9]*= by , in $AAA 
+# U1=333 en U2=343,U3=54656 echter als de leerling
+# de volgorde verwisseld.... U3=222 U2=111 U1=000 ?
+AAA=!replace [a-z\~\!\@\#\:\;\"\'\_] by $empty in $AAA
+
+!for p=1 to 6
+    AAA=!replace internal ,, by , in $AAA
+!next p
+test=!char 1 of $AAA
+!if $test=,
+    AAA=!char 2 to -1 of $AAA
+!endif    
+test=!char -1 of $AAA
+!if $test=,
+    AAA=!char 1 to -2 of $AAA
+!endif    
+
+corr=!itemcnt $(answer$n)
+test=!itemcnt $AAA
+!if $test!=$corr
+    testvar1=$corr
+    testvar2=$test
+    ex=!record 66 of lang/remarks.$taal
+    !if $teaching=1
+	maxscore=$[$P4*$maxscore]
+	errortext=$ex
+	# je moest toch $options termen uitrekenen?
+	goback=1
+	!increase try
+	!exit
+    !else
+	!if $test>$options
+	    maxscore=$[$maxscore*$corr/$test]
+	!else
+	    maxscore=$[$maxscore*$test/$corr]	
+	!endif
+	!if $extra != $empty
+	    extra=$extra<br>$ex
+	!else
+	    extra=$ex
+	!endif
+    !endif
+!endif
+
+test=0
+ant=$empty
+ta=0
+tg=0
+c=0
+!for p=1 to $corr
+    A=!item $p of $AAA
+    G=!item $p of $(answer$n)
+    !if NaN isin $[1*($A)]
+	maxscore=$[$P3*$maxscore]
+        errortext=!record 26 of $remarkdir/commonremarks.$taal
+        !increase try
+        goback=1
+	!exit
+    !endif
+    !if $var2=$empty
+	t=&nbsp;
+    !else
+	t=!item $p of $var2
+    !endif
+    !increase c
+    !ifval $[round(100*$A)]=$[round(100*$G)]
+	!increase test
+	ant=!append line <td><font color=green>$var1<sub>$t</sub> = $A</font></td> to $ant
+    !else
+	ant=!append line <td><font color=red>$var1<sub>$t</sub> = $A</font></td> to $ant    	
+    !endif
+    !if $c=2
+	ant=!append line <tr> to $ant
+	c=0
+    !endif
+    ta=$[$ta + $A]
+    tg=$[$tg + $G]
+!next p
+
+score=$[(round(10*$test/$corr))/10]
+
+!if NaN isin $score or NaN isin $ta
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 23 of $commondir/commonremarks.$taal
+    !increase try
+    goback=1
+    !exit
+!endif
+
+!if $score=0
+    # checken op andere volgorde van de getallen...maar nog steeds niet op een verkeerde U1= U2= U3=
+    !if $ta=$tg
+	ant=$empty
+	test=0
+	AA=!sort numeric item $AAA
+	GG=!sort numeric item $(answer$n)
+	c=0
+	!for p=1 to $options
+	    !increase c
+	    A=!item $p of $AA
+	    G=!item $p of $GG
+	    !if $var2=$empty
+		# var2= terms
+		t=&nbsp;
+	    !else
+		t=!item $p of $var2
+	    !endif
+	    !if $A !=$empty
+		!ifval $[round(100*$A)]=$[round(100*$G)]
+		    !increase test
+		    ant=!append line <td><font color=green>$var1<sub>$t</sub> = $A</font></td> to $ant
+		!else
+    		    ant=!append line <td><font color=red>$var1<sub>$t</sub> = $A</font></td> to $ant    	
+		!endif
+		!if $c=2
+		    c=o
+		    ant=!append line <tr> to $ant
+		!endif
+	    !endif
+	!next p
+	!if $test >0
+	    ex=!record 67 of lang/remarks.$taal
+	    # Het is voor mij echt gemakkelijker nakijken<br>als je rij gewoon begint bij de eerste term<br>\
+	    # U<sub>1</sub>=...<br>U<sub>1</sub>=...<br>U<sub>$options</sub>=...
+	    !if $extra =$empty
+		extra=$ex
+	    !else
+		extra=$extra <br>$ex 
+	    !endif
+	    score=$[(round(10*$test/$options))/10]
+	!endif
+    !endif
+!endif	
+
+maxscore=$[$score*$maxscore]
+
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore > 0.5
+	remark$n=$BOK	
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br>$extra
+!endif
+goback=0
+reply$n=<table cellpadding="5">$ant</table>
+!exit
+	

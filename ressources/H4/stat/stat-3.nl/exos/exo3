@@ -1,0 +1,228 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+mathview=0
+# kans
+!if $rounding<100
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cards=$empty
+questiontype=0
+checkfile=exos/checkfile1.proc
+image=0
+math=0
+cols=10
+rows=1
+questiontype=0
+formula$n=$empty
+exotext=$empty
+#!record 21 of lang/remarks.$taal
+#@ Bereken de Kans op ?
+helptext=!record 14 of lang/remarks.$taal
+kaarten=!record 22 of lang/remarks.$taal
+#@ harten,ruiten,klaver,schoppen
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+
+!if $R=1
+    rr=!randitem 1,2,3,4,5,6,7,8,9,10,11
+    zz=!randitem 1,2,3,4,5,6,7,8,9,10,11
+    tot=$[$rr+$zz]
+    F=!item $tot of $telwoorden
+    t=0
+    !for p=1 to $tot
+	!if $t>7
+	    t=0
+	    cards=!append line <br /> to $cards
+	!endif
+	!increase t
+	cards=!append line <img src="$module_dir/cards/0.gif" alt="????" /> to $cards
+    !next p
+    G=1
+    !for p=1 to $rr
+	G=$[$G*(27-$p)/(53-$p)]
+    !next p
+    !for p=1 to $zz
+	G=$[$G*(27-$p)/(53-$rr-$p)]
+    !next p
+    answer$n=$[$G*((factorial($tot))/((factorial($rr))*(factorial($zz))))]
+    
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    
+    texanswer$n=\frac{\left(\begin{array}{c}26\\$rr\end{array}\right)\cdot\left(\begin{array}{c}26\\$zz\end{array}\right)}{\left(\begin{array}{c}52\\$tot\end{array}\right)}=$(answer$n) \simeq $GG
+
+    ss=!record 23 of lang/remarks.$taal
+    #@ Hoe groot is de kans dat de volgende $F kaarten bestaan uit <b>$rr rooie en $zz zwarte</b> kaarten  ?<br />
+
+    aa=!record 24 of lang/remarks.$taal
+    textanswer$n=$aa
+    #@ De kans is op $rr rooie en $zz zwarte kaarten is $(answer$n) , afgerond ongeveer $GG <br />Deze kun je als volgt uitrekenen:<p>
+    question$n=$ss <hr class="schaersvoorde_hr" /> $cards
+ !exit
+!endif
+!if $R=2
+    keuze=!randitem 1,2
+    !if $keuze=1
+	kaart1=!item 1 of $kaarten
+	kaart2=!item 2 of $kaarten
+    !else
+	kaart1=!item 3 of $kaarten
+	kaart2=!item 4 of $kaarten
+    !endif
+	
+    rr=!randitem 1,2,3,4,5,6,7,8,9,10,11
+    zz=!randitem 1,2,3,4,5,6,7,8,9,10,11
+    tot=$[$rr+$zz]
+    F=!item $tot of $telwoorden
+    t=0
+    !for p=1 to $tot
+	!if $t>7
+	    t=0
+	    cards=!append line <br /> to $cards
+	!endif
+	!increase t
+	cards=!append line <img src="$module_dir/cards/0.gif" alt="????" /> to $cards
+    !next p
+    G=1
+    !for p=1 to $rr
+	G=$[$G*(14-$p)/(53-$p)]
+    !next p
+    !for p=1 to $zz
+	G=$[$G*(14-$p)/(53-$rr-$p)]
+    !next p
+    answer$n=$[$G*((factorial($tot))/((factorial($rr))*(factorial($zz))))]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\left(\begin{array}{c}13\\$rr\end{array}\right)\cdot\left(\begin{array}{c}13\\$zz\end{array}\right)}{\left(\begin{array}{c}52\\$tot\end{array}\right)}=$(answer$n) \simeq $GG   
+
+    aa=!record 26 of lang/remarks.$taal
+    textanswer$n=$aa
+
+    #@ De kans is $(answer$n) , afgerond ongeveer $GG <br />Deze kun je als volgt uitrekenen:<p>
+    ss=!record 25 of lang/remarks.$taal
+
+    #@ Hoe groot is de kans dat de volgende $F kaarten bestaan uit <b>$rr $kaart1 en $zz $kaart2</b> kaarten  ?<br />
+    question$n=$ss <hr class="schaersvoorde_hr" /> $cards
+
+ !exit
+!endif
+
+!if $R=3
+    kaarten=!shuffle $kaarten
+    !for p=1 to 3
+	kaart$p=!item $p of $kaarten
+    !next p
+    hh=!randitem 1,2,3,4,5
+    rr=!randitem 1,2,3,4,5
+    kk=!randitem 1,2,3,4,5
+    tot=$[$hh+$rr+$kk]
+    !for p=1 to $tot
+	!if $t>7
+	    t=0
+	    cards=!append line <br /> to $cards
+	!endif
+	!increase t
+	cards=!append line <img src="$module_dir/cards/0.gif" alt="????" /> to $cards
+    !next p
+    F=!item $tot of $telwoorden
+    HH=!item $hh of $telwoorden
+    RR=!item $rr of $telwoorden
+    KK=!item $kk of $telwoorden
+    G=1
+    !for p=1 to $hh
+	G=$[$G*(14-$p)/(53-$p)]
+    !next p
+    !for p=1 to $rr
+	G=$[$G*(14-$p)/(53-$p-$hh)]
+    !next p
+    !for p=1 to $kk
+	G=$[$G*(14-$p)/(53-$p-$hh-$rr)]
+    !next p
+    t1=$[$tot-$hh]
+    
+    answer$n=$[$G*((factorial($tot)*(factorial($t1)))/((factorial($hh))*(factorial($t1))*(factorial($rr))*(factorial($t1-$rr))))]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\left(\begin{array}{c}13\\$hh\end{array}\right) \cdot \left(\begin{array}{c}13\\$rr\end{array}\right) \cdot \left(\begin{array}{c}13\\$kk\end{array}\right)}{\left(\begin{array}{c}52\\$tot\end{array}\right)}\simeq $(answer$n) \simeq $GG   
+
+    aa=!record 26 of lang/remarks.$taal
+    textanswer$n=$aa
+    #@ De kans is $(answer$n) , afgerond ongeveer $GG <br />Deze kun je als volgt uitrekenen:<p>
+    ss=!record 27 of lang/remarks.$taal
+    #@ Ik heb een goed geschud eerlijk setje kaarten.<br />\
+    #@ Ik pak $tot kaarten van het stapeltje en leg ze op tafel.<br />\
+    #@ Hoe groot is de kans dat deze $F kaarten bestaan uit:<br />\
+    #@ <ul><li>$HH $kaart1</li><li>$RR $kaart2</li><li>$KK $kaart3</li></ul><br />
+    question$n=$ss <hr class="schaersvoorde_hr" /> $cards
+ !exit
+!endif
+
+!if $R>3
+    kaarten=!shuffle $kaarten
+    #harten,klaver,ruiten,schoppen 
+    !for p=1 to 4
+	kaart$p=!item $p of $kaarten
+    !next p
+    hh=!randitem 2,3,4,5,6,7,8,9,10,11,12,13
+    rr=!randitem 2,3,4,5,6,7,8,9,10,11,12,13
+    kk=!randitem 2,3,4,5,6,7,8,9,10,11,12,13
+    ss=!randitem 2,3,4,5,6,7,8,9,10,11,12,13
+    tot=$[$hh+$rr+$kk+$ss]
+    !if $teaching=1
+	!for p=1 to $tot
+	    !if $p isitemof 8,16,32,40,48
+		BR=<br />
+	    !else
+		BR=$empty
+	    !endif
+	    cards=!append line <img src="$module_dir/cards/0.gif" alt="????" />$BR to $cards
+	!next p
+    !endif
+    F=!item $tot of $telwoorden
+    HH=!item $hh of $telwoorden
+    RR=!item $rr of $telwoorden
+    KK=!item $kk of $telwoorden
+    SS=!item $ss of $telwoorden
+    G=1
+    !for p=1 to $hh
+	G=$[$G*(14-$p)/(53-$p)]
+    !next p
+    !for p=1 to $rr
+	G=$[$G*(14-$p)/(53-$p-$hh)]
+    !next p
+    !for p=1 to $kk
+	G=$[$G*(14-$p)/(53-$p-$hh-$rr)]
+    !next p
+    !for p=1 to $ss
+	G=$[$G*(14-$p)/(53-$p-$hh-$rr-$kk)]
+    !next p
+    t1=$[$tot-$hh]
+    t2=$[$t1-$rr]
+    
+    answer$n=$[$G*((factorial($tot))*(factorial($t1))*(factorial($t2)))/((factorial($hh))*(factorial($t1))*(factorial($rr))*(factorial($t2))*(factorial($kk))*(factorial($t2-$kk)))]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\left(\begin{array}{c}13\\$hh\end{array}\right) \cdot \left(\begin{array}{c}13\\$rr\end{array}\right) \cdot \left(\begin{array}{c}13\\$kk\end{array}\right)}{\left(\begin{array}{c}52\\$tot\end{array}\right)}\simeq $(answer$n) \simeq $GG   
+
+    aa=!record 26 of lang/remarks.$taal
+    textanswer$n=$aa
+    #@ De kans is $(answer$n) , afgerond ongeveer $GG <br />Deze kun je als volgt uitrekenen:<p>
+    ss=!record 28 of lang/remarks.$taal
+    #@ Ik heb een goed geschud eerlijk setje kaarten.<br />\
+    #@ Ik pak $tot kaarten van het stapeltje en leg ze op tafel.<br />\
+    #@ Hoe groot is de kans dat deze $F kaarten bestaan uit:<br />\
+    #@  <ul><li>$HH $kaart1</li><li>$RR $kaart2</li><li>$KK $kaart3</li><li>$SS $kaart4</li></ul><br />
+    !if $teaching=1
+        question$n=$ss <hr class="schaersvoorde_hr" /> $cards
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+

@@ -1,0 +1,292 @@
+!set title=Wortels&Tekenverloop&Drieterm III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+computeanswer=yes
+precision=1000
+author=YAMEOGO Joachim
+email=yameogo@math.unice.fr
+
+ansorder=r,r,r,r,r
+varcnt=35
+prevarcnt=26
+postvarcnt=8
+replycnt=5
+choicecnt=0
+conditioncnt=2
+feedbackcnt=5
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<font color=red size=+3><b>+</b></font>
+val7=<font color=red size=+3><b>-</b></font>
+tmp=!nonempty items -2,-1,1,2
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+tmp=!nonempty items 1,2,3,4,5,6
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0))]
+tmp=!nonempty items -4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10,11,12
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+val11=$[rint(($val9)*($val9) - 4*($val8)*($val10))]
+val12=geen,nan,nvt,nul,zero
+!if $val11>0 
+val13=$[((-1*($val9) + sqrt($val11))/(2*($val8)))]
+val14=$[((-1*($val9) - sqrt($val11))/(2*($val8)))]
+!if $val13<$val14 
+val15=$[$val13]
+val16=$[$val14]
+!else
+val15=$[$val14]
+val16=$[$val13]
+!endif
+!if $val8>0 
+val17=$val6,$val7,$val6
+!else
+val17=$val7,$val6,$val7
+!endif
+!endif
+!if $val11=0 
+val15=$[(-1*($val9))/(2*($val8))]
+val16=$[$val15]
+!if $val8>0 
+val17=$val6,$val6,$val6
+!endif
+!if $val8<0 
+val17=$val7,$val7,$val7
+!endif
+!endif
+!if $val11<0 
+val15=nvt
+val16=nvt
+!if $val8>0 
+val17=$val6,$val6,$val6
+!endif
+!if $val8<0 
+val17=$val7,$val7,$val7
+!endif
+!endif
+t_=!replace internal \( by ( in printtex(($val8)*x^2 + ($val9)*x + ($val10))
+tmp0=!exec pari $t_
+
+val18=$(tmp0) 
+val19=$val6,$val7
+val20=60x40x1
+replytype1=clickfill
+replyweight1=1 
+replyname1=
+replygood1=$(val17[1]);$val19
+replytype2=clickfill
+replyweight2=2 
+replyname2=
+replygood2=$(val17[2]);$val19
+replytype3=clickfill
+replyweight3=1 
+replyname3=
+replygood3=$(val17[3]);$val19
+replytype4=raw
+replyname4=Het nulpunt x<sub>1</sub>
+replygood4=?analyze 21
+replytype5=raw
+replyname5=Het nulpunt x<sub>2</sub>
+replygood5=?analyze 22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<center>	<table width=75%>	  <tr>	    <td>	      <p>	      We nemen de drieterm 
+!insmath f(x)=$val18
+$() 	      <ul>	        <li>	            Bereken de nulpunten 
+!insmath x_1
+$() en 
+!insmath x_2
+$() <br>	        </li>	        <li>	         Maak het tekenverloop schema af	        </li>	     <li>	         <a onmouseover="return escape('<font  size=-1><ul><li>Als er slechts &eacute;&eacute;n nulpunt is, noteer dan voor x<sub>1</sub> en x<sub>2</sub> de zelfde waarde...<br><li>Als er g&eacute;&eacute;n nulpunten zijn, noteer dan voor x<sub>1</sub> en x<sub>2</sub> het woordje <em>nvt</em> of <em>geen</em> <li>Je mag <em>exacte</em> antwoorden geven...schrijf dan: sqrt(2) voor <font size=+2>&radic;</font>2<li>Je mag ook de wortels afronden op <em>precies</em> <b>3</b> decimalen nauwkeurig.<li>Gebruik in alle gevallen de tekens <font color=red size=+1><b>+</b></font> &nbsp; en &nbsp; <font color=red size=+2><b> - </b></font>&nbsp;om het tekenverloop schema af te maken.</ul></font>')"><font color=blue><b>Hoe</b></font> vul ik een antwoord in?</a>	        </li>	      </ul>	      </p>	    </td>	  </tr>	</table>	</center>		<br>		<center>	<table border=2 bgcolor=mistyrose>	  <tr>	    <th align=center bgcolor=white>	      
+!insmath x
+$()	    </th>	    <td colspan=3 bgcolor=white >	    <table><tr>	    <td align=left>	      <table>	        <tr>	   <td align=left>	     
+!insmath -\infty
+$()	   </td>	   <td width=80>	     &nbsp;	   </td>	 </tr>	      </table>   	    </td>	    <td align=left>	      <table>	        <tr>	   <td nowrap align=left>	   
+!insmath x_1
+$() =  
+!read oef/embed.phtml reply 4,6 
+$()	   </td>	   <td width=110>	     &nbsp;  	   </td>	 </tr>	      </table>	    </td>	    <td>	      <table>	        <tr>	   <td nowrap>	     
+!insmath x_2
+$() =  
+!read oef/embed.phtml reply 5,6 
+$()	   </td>	   <td width=90>	     &nbsp; 	   </td>	   <td align=right>	     
+!insmath +\infty
+$()	   </td>	 </tr>	      </table>	    </td>	    </td></tr>	    </table>	    </td>	  </tr>	  <tr>	    <td align=center bgcolor=lightblue>	      &nbsp; Het teken van 
+!insmath f
+$() &nbsp; 	    </td>	    <td align=center width=120>	       
+!read oef/embed.phtml reply1,$val20 
+$()	    </td>	    <td align=center width=120>	       
+!read oef/embed.phtml reply2,$val20 
+$()	    </td>	    <td align=center width=120>	       
+!read oef/embed.phtml reply3,$val20 
+$()	    </td>	  </tr>	</table>	</center>	<script type="text/javascript" src="$val1/wz_tooltip.js"></script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!lower $val21
+
+val21=$(tmp0)
+tmp0=!lower $val22
+
+val22=$(tmp0)
+!if $val21 isitemof $val12 and $val15=nvt 
+val23=$[rint(1)]
+val24=$[rint(1)]
+!else
+!if $val21 isitemof $val12 and $val15!=nvt 
+val23=$[rint(0)]
+val24=$[rint(0)]
+!else
+t_=!replace internal \( by ( in  if(((round(1000*($val15)))/1000) == ((round(1000*($val21)))/1000) ,1,0)
+tmp0=!exec pari $t_
+
+val23=$[rint($(tmp0))]
+t_=!replace internal \( by ( in  if(((round(1000*($val16)))/1000) == ((round(1000*($val22)))/1000) ,1,0)
+tmp0=!exec pari $t_
+
+val24=$[rint($(tmp0))]
+!endif
+!endif
+
+!exit
+
+:feedback
+!ifval ($val23=0) and ($val21 isin $val12)
+ <p><font size=-1>Nee, er zijn wel degelijk wortels want de discriminant D=$val11</font>
+$()
+!endif
+!ifval ($val23=0) and ($val21 notin $val12)
+ <p><font size=-1>Nee, er zijn geen wortels want de discriminant D=$val11</font>
+$()
+!endif
+!ifval $val11<0 and $val23=0
+ <p><br><font size=-1>Algemeen: de discriminant van 
+!insmath f(x)=ax^2 + bx + c
+$() is 
+!insmath D=b^2 -4ac
+$()<br>	Voor 
+!insmath f(x)=$val18
+$() is dit dus D=$val11 <br>en is kleiner dan 0 : de vergelijking 
+!insmath f(x)=0
+$() heeft dan g&eacute;&eacute;n wortels	<br>	De co&euml;fficient a = $val8 	 
+!if $val8 >0 
+$() en dat is dus een dalparabool: het tekenverloop is dan $val6 $val6 $val6 
+!endif
+$()	 
+!if $val8 <0 
+$() en dat is dus een bergparabool: het tekenverloop is dan $val7 $val7 $val7 
+!endif
+$()	</font>	
+$()
+!endif
+!ifval $val11=0 and $val23=0
+ <p><br><font size=-1>Algemeen: de discriminant van 
+!insmath f(x)=ax^2 + bx + c
+$() is 
+!insmath D=b^2 -4ac
+$()<br>	Voor 
+!insmath f(x)=$val18
+$() is dit dus D=$val11 <br>en heeft de vergelijking 
+!insmath f(x)=0
+$() slechts  &eacute;&eacute;n wortel x &sim; $val15	<br>	De co&euml;fficient a = $val8 	 
+!if $val8 >0 
+$() en dat is dus een dalparabool: het tekenverloop is dan $val6 $val6 $val6 
+!endif
+$()	 
+!if $val8 <0 
+$() en dat is dus een bergparabool: het tekenverloop is dan $val7 $val7 $val7 
+!endif
+$()	</font>	
+$()
+!endif
+!ifval $val11>0 and $val23=0
+ <p><br><font size=-1>Algemeen: de discriminant van 
+!insmath f(x)=ax^2 + bx + c
+$() is 
+!insmath D=b^2 -4ac
+$()<br>	Voor 
+!insmath f(x)=$val18
+$() is dit dus D=$val11 <br> De vergelijking 
+!insmath f(x)=0
+$() heeft dan twee wortels x<sub>1</sub> &sim; $val15 en x<sub>2</sub> &sim; $val16 	<br>	De co&euml;fficient a = $val8 	 
+!if $val8 >0 
+$()...dus a>0 en dat is een dalparabool: het tekenverloop is dan $val6 $val7 $val6 
+!endif
+$()	 
+!if $val8 <0 
+$()...dus a<0 en dat is een bergparabool: het tekenverloop is dan $val7 $val6 $val7 
+!endif
+$()	</font>	
+$()
+!endif
+
+!exit
+
+:test
+condweight1=3 
+
+!ifval $val23=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Je antwoord voor x<sub>1</sub> = $val21
+condweight2=3 
+
+!ifval $val24=1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Je antwoord voor x<sub>2</sub> = $val22
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,11,12,15,16,18,20,21,22
+embedcnt=5

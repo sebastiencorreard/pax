@@ -1,0 +1,188 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if $(reply$n)=?
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif 
+errortext=$empty
+tussenscore=0
+cijfers=0123456789
+!if $rounding<1 or $rounding=$empty
+    rounding=100
+    rnd=10
+!else
+    rnd=$[$rounding/10]
+!endif
+ans=$empty
+wims_exec_error=$empty
+test=!itemcnt $(reply$n)
+!if $test > $options
+    errortext=!record 64 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+!for p=1 to $options
+    A=!item $p of $(reply$n)
+    !if $A=$empty
+	errortext=!record 21 of lang/remarks.$taal
+	#@ Je bent bij vraagje $p vergeten een antwoord in te vullen...<br />Als je het niet weet kun je altijd een vraagteken gebruiken?
+	#@ You've forgotten to fill in subquestion $p<br />A questionmark is always accepted as an escape 
+	goback=1
+	maxscore=$[$maxscore*$P2]
+	!exit
+    !endif
+!next p
+
+!for p=1 to $options
+    extra=$empty
+    rem=$empty
+    AAA=!item $p of $(reply$n)
+    org=$AAA
+    !if ? isin $AAA
+	tussenscore=$[$tussenscore + 0.1]
+	rem=$NOK
+	org=$dontknow
+	!goto SHORTCUT
+    !endif
+    !if $subject isin 1,2
+	!if gr isin $AAA or o isin $AAA
+	    errortext=!record 19 of lang/remarks.$taal
+	    #@ nee nee nee , $voornaam je moest omrekenen naar <em>radialen</em>
+	    #@ no $voornaam , you should convert degrees to radians...
+	    goback=1
+	    reply$n=$empty
+	    maxscore=$[$P2*$maxscore]
+	    !exit
+	!endif
+    !else
+    # radialen rad graden
+	!if radi isin $AAA
+	    errortext=!record 20 of lang/remarks.$taal
+	    #@ nee nee nee , $voornaam je moest omrekenen naar <em>graden</em>
+	    #@ no $voornaam , you should convert radians to degrees
+	    goback=1
+	    maxscore=$[$P2*$maxscore]
+	    !exit
+	!endif
+    !endif
+    AAA=!nospace $AAA
+    !if , isin $AAA
+	t=!positionof char , in $AAA
+	tot=!itemcnt $t
+	!if $tot>1
+	    maxscore=$[$P1*$maxscore]
+	    errortext=!record 64 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	!endif
+	t1=!char $[$t-1] of $AAA
+	t2=!char $[$t+1] of $AAA
+	!if ($t1 isin $cijfers) and ($t2 isin $cijfers)
+	    AAA=!replace internal , by . in $AAA
+	    extra=!record 24 of $remarkdir/commonremarks.$taal
+	!else
+	    maxscore=$[$P1*$maxscore]
+	    errortext=!record 64 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	!endif
+    !endif
+    !if s isin $AAA and sqrt notin $AAA
+	errortext=!record 22 of lang/remarks.$taal
+	#@ een wortel schrijf je als <b>sqrt(2)</b>
+	goback=1
+	maxscore=$[$P2*$maxscore]
+	!exit
+    !else
+	!if sqrt isin $AAA
+	    test=!replace internal ( by @ in $AAA
+	    !if @ notin $test
+		errortext=!record 23 of lang/remarks.$taal
+		#@ je bent de haakjes vergeten: <span style="color:green">sqrt(2)</span> in plaats van sqrt2
+		goback=1
+		maxscore=$[$P2*$maxscore]
+		!exit
+	    !endif
+	!endif
+    !endif
+    !for i in sin,cos,sqrt,tan,log,ln,pi
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !next i
+    AAA=!replace [a-z\~\#\@\?\&\:\$\;\|\=\_\%\'\"\`\>\<\+] by   in $AAA
+    AAA=!tolower $AAA
+    B=!wordcnt $AAA
+    !if $B=0
+	testvar=$(reply$n)
+	errortext=!record 39 of $remarkdir/commonremarks.$taal
+	goback=1
+	maxscore=$[$P4*$maxscore]
+	!exit
+    !endif
+    AAA=!rawmath $AAA
+    !if NaN isin $[1*$AAA]
+	testvar=$(reply$n)
+	errortext=!record 26 of $remarkdir/commonremarks.$taal
+	goback=1
+	maxscore=$[$P4*$maxscore]
+	!exit
+    !endif
+    G=!item $p of $(answer$n)
+    G=!rawmath $G
+    test1=!exec pari if((1.0*($AAA) == 1.0*($G)),1,0)
+    !ifval $[1*($AAA)]=$[1*($G)]
+	test2=1
+    !else
+	A=$[(round($rounding*$AAA))/$rounding]
+	G=$[(round($rounding*$G))/$rounding]
+	!ifval $A=$G
+	    test2=1
+	    extra=!record 24 of lang/remarks.$taal
+	    #@ goed afgerond
+	!else
+	    A=$[(round($rnd*$AAA))/$rnd]
+	    G=$[(round($rnd*$G))/$rnd]
+	    !ifval $A=$G
+		extra=!record 30 of $remarkdir/commonremarks.$taal
+	    !endif
+	    test2=0
+	!endif
+    !endif
+    !if NaN isin $test2 or $wims_exec_error != $empty
+	testvar=$(reply$n)
+	maxscore=$[$P4*$maxscore]
+	errortext=!record 26 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    !if $test1=1 or $test2=1
+	!increase tussenscore
+	clr=green
+    !else
+	clr=red
+    !endif
+    :SHORTCUT
+    ans=!append line <li><span style="color:$clr">$org&nbsp;$rem</span></li> to $ans
+!next p
+math=0
+reply$n=<ol>$ans</ol>
+
+maxscore=$[$maxscore*$tussenscore/$options]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+modulescore=$[$modulescore+$maxscore]
+!exit

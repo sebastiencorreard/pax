@@ -1,0 +1,159 @@
+# kwadratische functies
+questiontype=0
+embed=1
+mathview=0
+n=$counter
+helptext=$empty
+#inputs=1
+cols=20
+rows=2
+checkfile=exos/checkfile2.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+
+ss=!record 47 of lang/remarks.$taal
+#@Welke verschuiving moet je op de grafiek van <b>f</b> toepassen,<br />om de grafiek van <b>g</b> te krijgen
+etext=!record 48 of lang/remarks.$taal
+#@<span style="color:blue">Hoe</span></a> vul ik het antwoord in?
+stext=!record 49 of lang/remarks.$taal
+#@geef je antwoord in de vorm:<br /><textarea cols=20 rows=2>1 naar rechts </textarea><br /><textarea cols=20 rows=2>6 naar boven </textarea><br />textarea cols=20 rows=2>3 naar rechts en 2 naar boven</textarea><br /><textarea cols=20 rows=2>5 naar links en 4 naar beneden</textarea><br />
+exotext=<a onmouseover="return escape('$stext')"><span class="schaersvoorde_link">$etext</span></a>
+f=x^2
+# answer$n:
+# -1 : to the left
+# 1 : to the right
+# -2 : down
+# 3 :  up
+# answer$n=-1,3,+2,7 meaning 3 to the left and 7 up
+!if $R=1
+    a=!randint 1,9
+    keuze=!randitem 3,2,1,0
+    !if $keuze=0
+	g=(x-$a)^2
+	G=\left( x - $a \right)^{2}
+	answer$n=+1,$a
+	texanswer$n= g(x) \, = \, f(x - $a)
+	rr=!record 51 of lang/remarks.$taal
+	#@De grafiek van f moeten we $a naar rechts verschuiven om de grafiek van g te krijgen
+    !else
+	!if $keuze=1
+	    g=(x+$a)^2
+	    G=\left( x + $a \right)^{2}
+	    answer$n=-1,$a
+	    texanswer$n= g(x) \, = \, f(x + $a)
+	    rr=!record 52 of lang/remarks.$taal
+	    #@De grafiek van f moeten we $a naar links verschuiven om de grafiek van g te krijgen
+	!else
+	    !if $keuze=2
+		g=x^2 + $a
+	    	G= x^{2} + $a
+		answer$n=+2,$a
+		texanswer$n= g(x) \, = \, f(x) + $a
+		rr=!record 53 of lang/remarks.$taal
+		#@De grafiek van f moeten we $a omhoog verschuiven om de grafiek van g te krijgen
+	    !else
+		g=x^2 - $a
+		G=x^{2} - $a
+		answer$n=-2,$a
+		texanswer$n= g(x) \, = \, f(x) - $a
+		rr=!record 54 of lang/remarks.$taal
+		#@De grafiek van f moeten we $a omlaag verschuiven om de grafiek van g te krijgen
+	    !endif
+	!endif
+    !endif
+    textanswer$n=$rr
+    formula$n=\left[ \begin{array}{l} f(x)=x^{2} \\ \\ g(x)= $G \end{array} \right.
+    !if $teaching=1
+	!goto IMAGE
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    a=!randint 1,9
+    keuze=!randitem 1,0
+    !if $keuze=0
+	g=x^2 -  $[2*$a]*x + $[$a*$a]
+	G=x^{2}- $[2*$a] \cdot x + $[$a*$a]
+	answer$n=+1,$a
+	texanswer$n= $G=(x-$a)^{2}
+	rr=!record 51 of lang/remarks.$taal
+    !else
+	g=x^2 +  $[2*$a]*x + $[$a*$a]
+	G=x^{2} + $[2*$a] \cdot x + $[$a*$a]
+	answer$n=-1,$a
+	texanswer$n= $G=(x+$a)^{2}
+	rr=!record 52 of lang/remarks.$taal
+    !endif
+    formula$n=\left[ \begin{array}{l} f(x)=x^{2} \\ \\ g(x)= $G \end{array} \right.
+    textanswer$n=$rr
+    !if $teaching=1
+	!goto IMAGE
+    !endif
+ !exit
+!endif
+
+
+!if $R>2
+    keuze=!randitem 0,1,2,3
+    !if $keuze=0
+	a=!randint 1,9
+	b=!randint 1,9
+	g=x^2 - $[2*$b]*x + $[$b*$b +$a]
+	G=x^{2} - $[2*$b] \cdot x + $[$b*$b +$a]
+	answer$n=+2,$a,+1,$b
+	texanswer$n= x_{top} = \frac{-b}{2a} \rightarrow x_{top}= \frac{$[2*$b]}{2} = $b
+	rr=!record 55 of lang/remarks.$taal
+	#@De top van g(x) ligt op ($b;$a).<br />Dus $b naar rechts en $a omhoog.
+    !else
+	!if $keuze=1
+	a=!randint 1,9
+	b=!randint 1,9
+	    g=x^2 + $[2*$b]*x + $[$b*$b +$a]
+	    G=x^{2} + $[2*$b] \cdot x + $[$b*$b +$a]
+	    answer$n=+2,$a,-1,$b
+	    texanswer$n= x_{top} = \frac{-b}{2a} \rightarrow x_{top}= \frac{$[-2*($b)]}{2} = -$b
+	    rr=!record 56 of lang/remarks.$taal
+	    #@De top van g(x) ligt op ($[-1*$b];$a).<br />Dus $b naar links en $a omhoog.
+	!else
+	    a=!randint 1,8
+	    b=!randint 3,9
+	    !if $keuze=2
+		g=x^2 - $[2*$b]*x + $[$b*$b - $a]
+		G=x^{2} - $[2*$b] \cdot x + $[$b*$b  - $a]
+		answer$n=-2,$a,+1,$b
+		texanswer$n= x_{top} = \frac{-b}{2a} \rightarrow x_{top}= \frac{$[2*($b)]}{2} = $b
+		rr=!record 57 of lang/remarks.$taal
+		#@De top van g(x) ligt op ($b;$[-1*$a]).<br />Dus $b naar rechts en $a omlaag.
+	    !else
+		g=x^2 + $[2*$b]*x + $[$b*$b - $a]
+		G=x^{2} + $[2*$b] \cdot x + $[$b*$b  - $a]
+		answer$n=-2,$a,-1,$b
+		texanswer$n= x_{top} = \frac{-b}{2a} \rightarrow x_{top}= \frac{$[-2*($b)]}{2} = -$b
+		rr=!record 58 of lang/remarks.$taal
+		#@De top van g(x) ligt op ($[-1*$b];$[-1*$a])<br />Dus $b naar links en $a omlaag.
+	    !endif
+	!endif
+    !endif
+    textanswer$n=$rr
+    formula$n=\left[ \begin{array}{l} f(x)=x^{2} \\ \\ g(x)= $G \end{array} \right.
+    !if $teaching=1
+	!goto IMAGE
+    !endif
+ !exit
+!endif
+
+
+:IMAGE
+insplot_set=terminal gif transparent;size 0.6,0.6 ;grid;xzeroaxis lt -1;yzeroaxis lt -1;autoscale ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+!insplot  [-10:10] [-20:20] $f notitle, $g notitle 
+
+helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\'  />
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit

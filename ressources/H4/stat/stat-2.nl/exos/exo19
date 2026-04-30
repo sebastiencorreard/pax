@@ -1,0 +1,97 @@
+# wortel n wet II
+!if $counter=1
+    !if exam isin $session
+	viewlogo=0
+    !else
+	viewlogo=1
+    !endif
+    #!readproc $remarkdir/rounding.$taal
+    make_tr=1
+    inputs=1.1
+    cols=8
+    helptext=$empty
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    formula$n=$empty
+    helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+# rounding=-1 en range=0.01 (var1) : dus 5 = goed 5.00001 is fout : want antwoord moet heel getal zijn
+# en met rounding=1 bereiken we dat nooit...
+    rounding=-1
+    var1=0.000000001
+    checkfile=$checkdir/new_number.proc
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!set n=$counter
+
+verpakking=!record 95 of lang/remarks.$taal
+#@dozen,doos,zakken,zak,stuks,stuk
+# scheme:
+# ding,min gewicht,max gewicht,min sigma,max sigma,verpakking
+k=!randint 96,99
+dingen=!record $k of lang/remarks.$taal
+#@:bonbons,bonbon,100,200,10,20,1
+#@:minimarsjes,minimarsje,170,210,30,50,3
+#@:knikkers,knikker,100,200,10,30,3
+#@:bouten,bout,200,400,5,15,1
+bonbons=!item 1 of $dingen
+bonbon=!item 2 of $dingen
+g1=!item 3 of $dingen 
+g2=!item 4 of $dingen 
+s1=!item 5 of $dingen 
+s2=!item 6 of $dingen
+vp=!item 7 of $dingen
+!if $viewlogo=1
+    logo=<img src="$module_dir/gifs/bonbons$k.jpg" alt="$bonbons"/>
+    logotext=$bonbons
+!endif
+bags=!item $vp of $verpakking
+bag=!item $[$vp+1] of $verpakking
+#stuks
+ex1=!item 5 of $verpakking
+mu=!randint $g1,$g2
+mu=$[$mu/10]
+sigma=!randint $s1,$s2
+sigma=$[$sigma/10]
+perc1=!randint 800,900
+perc1=$[$perc1/10]
+perc=$[(100-$perc1)/100]
+# G is de eis: instens $G gram
+perc3=!randint 30,70
+
+G=$[(round(10*($mu - $sigma*($perc3/100))))/10]
+
+ans=0
+X=1
+S=-1000
+
+!for p=1 to 1000
+    sig=$[$sigma/sqrt($X)]
+    Z=$[($G-$mu)/$sig]
+    ans=$[0.5*(erf($Z/sqrt(2)) - erf($S/sqrt(2)))]
+    !if $ans > $perc
+	answer$n=$[$X+1]
+    !else
+	!goto KLAAR
+    !endif
+    X=$[$X+1]
+!next p
+
+:KLAAR
+
+ss=!record 100 of lang/remarks.$taal
+#@Het gewicht X van een $bonbon uit een grote partij $bonbons is normaal verdeeld met<br />$m_mu = $mu gram en $m_sigma = $sigma gram.<p>De $bonbons worden verpakt in $bags.<br />Volgens de leverancier is bij minstens $perc1 % van alle $bags <br />het gemiddelde gewicht van de $bonbons in <b>&eacute;&eacute;n</b> $bag minstens $G gram.<br />Hoeveel $bonbons moet de leverancier in ieder geval in een $bag stoppen wil hij gelijk hebben.
+question$n=$ss
+description=!record 101 of lang/remarks.$taal
+#@$bonbons in een $bag
+rr=!record 102 of lang/remarks.$taal
+#@Met behulp van de GRM:<ul><li>y1 = normalcdf($G,100000,$mu,$sigma/&radic;x)</li><li>y2 = $[$perc1/100]</li><li>Geschikt window</li><li>Intersect</li><li>$bonbons = $(answer$n) (naar boven afgerond !)</li></ul>
+textanswer$n=$rr
+

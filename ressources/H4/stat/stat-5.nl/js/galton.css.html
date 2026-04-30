@@ -1,0 +1,301 @@
+<html>
+<HEAD>
+<meta name="Author" content="Elise Janvresse, Thierry de la Rue en Joke Evers (use strict en wims interface">
+<meta name="Description" content="Plinko">
+<meta name="Keywords" content="Plinko  Galton">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="galton.css">
+</head>
+<script type="text/javascript">
+ var lang = parent.lang; /* var lang = make_description("bakje,ballen,start,stop,snel,langzaam,herstart,1 bal",8); */
+ var NMax = 20; // Nombre maximum de lignes
+ var N = parseInt(parent.bins - 1) ;// Nombre de lignes
+ var P = parseFloat(parent.P - 0.5);
+ var maxballs = parent.maxballs;
+ var bin_height = parent.bin_height; // er kinnen 40:75 ballen 80:145 dus bin_height 55% van max aantal ballen in een bin 
+ var timer; // nombre d'unités de temps écoulées depuis le début
+ var pos = new Array(NMax+1); // tableau indiquant la position de la bille dans la ligne j+1 (entre 0 et j s'il y a une bille, -1 si c'est vide). La (NMax+1)e ligne peut servir comme haut des colonnes.
+ var empty=-1;
+ var alea = new Array(NMax); // tableau indiquant de quel côté partent les billes, en fonction du tirage au sort. 
+ var columns =  new Array((NMax+1)*bin_height); // tableau indiquant le nombre de billes à chaque niveau de chaque colonne.
+ var n_images_before = 2; // indique le nombre d'images avant le tableau 
+ var max_height; // hauteur de la colonne la plus chargée
+ var isrunning = false; // le booléen isrunning contrôle l'arrêt du processus 
+ var newBalls = false; // indique s'il faut continuer à envoyer des billes
+ var columnsAreFull = false; // indique si les colonnes sont remplies
+ var isEmpty = true; // indique si la planche est vide
+ var arrivalRate = 1; // taux d'arrivée des billes en zéro
+ var delay = 50; // temps en millisecondes entre deux étapes
+ var prec = new Array(bin_height); // tableau pour gérer l'accélération des billes en chute libre dans les colonnes d'arrivée.
+ var G=0.5; // accélération
+ //Initialisation des images
+ var empty= new Image(); empty.src="../gifs/empty.png";
+ var ball_middle= new Image(); ball_middle.src="../gifs/ball_middle.png";
+ var ball_left1= new Image(); ball_left1.src="../gifs/ball_left1.png";
+ var ball_left2= new Image(); ball_left2.src="../gifs/ball_left2.png";
+ var ball_right2= new Image(); ball_right2.src="../gifs/ball_right2.png";
+ var ball_right1= new Image(); ball_right1.src="../gifs/ball_right1.png";
+ var column0= new Image(); column0.src="../gifs/column0.png";
+ var column1= new Image(); column1.src="../gifs/column1.png";
+ var column2= new Image(); column2.src="../gifs/column2.png";
+ var left_side= new Image(); left_side.src="../gifs/left_side.png";
+ var right_side= new Image(); right_side.src="../gifs/right_side.png";
+ var counter;var sum=0;
+/* document.getElementById(restartButton).value=lang[6];*/
+/* document.getElementById(enkele_balButton).value=lang[7];*/
+
+function snelheid(){ delay = 55-delay; if (delay<20){ document.getElementById("speedButton").value=lang[5];}else{  document.getElementById("speedButton").value=lang[4];};};
+function plinko_restart(){if(!isrunning){ document.getElementById("startButton").style.display="block";init();};};
+function init() {
+ var j;var y_min;var y_max=0;var t=0;
+ for( j = 0; j < NMax;j++ ){ pos[j] = empty; };
+ for( j = 0; j < (NMax+1)*bin_height;j++ ){ columns[j] = 0;};
+ max_height=0;
+ columnsAreFull = false;
+ timer=0;
+ empty.src="../gifs/empty.png";
+ ball_middle.src="../gifs/ball_middle.png";
+ ball_left1.src="../gifs/ball_left1.png";
+ ball_left2.src="../gifs/ball_left2.png";
+ ball_right2.src="../gifs/ball_right2.png";
+ ball_right1.src="../gifs/ball_right1.png";
+ column0.src="../gifs/column0.png";
+ column1.src="../gifs/column1.png";
+ column2.src="../gifs/column2.png";
+ left_side.src="../gifs/left_side.png";
+ right_side.src="../gifs/right_side.png";
+ make_board();
+ delay=50;
+ document.getElementById("speedButton").value=lang[4];
+ for( j = 0; j <bin_height;t++ ){
+  y_min=(t+1)+G*(t+1)*(t+1);
+  while( (j <= y_min) && (j < bin_height) ){
+   prec[j]=parseInt(y_max);
+   j++;
+  };
+   y_max = y_min;
+   t++;
+ };
+ document.getElementById("startButton").value=lang[2];    
+};
+
+function make_board() {
+ var i; var j;
+ document.images[n_images_before].className="img_bord";
+ document.images[n_images_before+1].className="img_bord";
+ document.images[n_images_before].src=left_side.src;
+ document.images[n_images_before+1].src=right_side.src;
+ for( j = 0; j < N; j++ ){ make_line(j); make_column(j);};
+ make_column(N);
+ for( j = NMax-1; j > N-1; j-- ){ cache_line(j); cache_column(j);};
+ for( i = 0; i <= N; i++ ){ for( j = 0; j < bin_height;j++ ){remove_ball_from_column(i,j);};};
+};
+
+function cache_line(j){ var before = n_images_before + (j+2)*(j+3)/2 - 1;for(var c = 0; c < j+3; c++){ document.images[before+c].className="hidden_image";};};
+function cache_column(j) { var before = n_images_before + (NMax+2)*(NMax+3)/2 - 1; for(var c = 0; c < bin_height; c++ ){ document.images[before+(j+1)+c*(NMax+1)].className="hidden_image";};};
+
+function make_line(j){
+ var before = n_images_before + (j+2)*(j+3)/2 - 1;
+ document.images[before].className="img_bord";document.images[before].src=left_side.src;
+ for(var c = 1; c < (j+2); c++){
+  document.images[before+c].className="img_clou";
+  document.images[before+c].src=empty.src;
+ };
+ document.images[before+j+2].className="img_bord";document.images[before+j+2].src=right_side.src;
+};
+
+function make_column(j){
+ var before = n_images_before + (NMax+2)*(NMax+3)/2 - 1;
+ for( var c = 0; c < bin_height;c++){ document.images[before+j+c*(NMax+1)].className="img_col";};
+};
+
+function stop(){
+ document.getElementById("startButton").style.display="none";
+ isrunning = true;
+ columnsAreFull = true;	
+ newBalls = false;
+ one_step();
+};
+
+function pllnko_start() {
+ if (!isrunning) {
+  document.getElementById("startButton").value=lang[3];
+  isrunning = true;
+  newBalls = true;
+  one_step();
+ }
+ else 
+ {
+  document.getElementById("startButton").value=lang[2];
+  isrunning = false;
+  enkele_bal();
+  columnsAreFull = true;	
+  newBalls = false;
+ }; 
+};
+
+function enkele_bal(){
+ isrunning = true;
+ timer=1;
+ pos[0] = 0; 
+ drawBall(0,0,0,0);
+ newBalls = false;
+ window.setTimeout("one_step()",delay);
+};
+
+function one_step() {
+ var i;var j;
+ var level=(timer%3);
+ isEmpty = true;
+ timer++;
+ if( sum > maxballs && !columnsAreFull){ stop(); };
+ //if( max_height > 0.9*bin_height && !columnsAreFull ){alert(max_height+"> 0.9*"+bin_height);stop();}; 
+ switch( level ){
+  case 1: // c'est le début d'une étape : on doit choisir de quel côté vont aller les billes
+   for(j = 0;j < N; j++ ){
+    if( pos[j] != empty ){
+     isEmpty = false;
+     alea[j] = Math.round(Math.random()+P); // 0 ou 1 avec proba 1/2.
+     drawBall(j,pos[j],alea[j],1);
+     j++;
+    };
+   };
+  break;
+  case 2: // il faut continuer à décaler les billes
+   for( j = 0; j < N; j++){
+    if( pos[j] != empty ){
+     isEmpty = false;
+     drawBall(j,pos[j],alea[j],2);
+     j++;
+    };
+   };
+  break;
+  case 0: // les billes descendent sur la ligne du dessous
+   for( j = 0; j < N; j++){
+    if( pos[j] != empty ){
+     isEmpty = false;
+     pos[j+1] = pos[j]+alea[j];
+     removeBall( j , pos[j] );
+     pos[j] = empty; 
+     if(j+1 < N){ drawBall(j+1,pos[j+1],0,0);};
+     j++;
+    };
+   };
+   // Arrivée éventuelle d'une nouvelle bille en 0.
+   if( pos[1] == empty && newBalls ){ // on ne veut pas que des billes se trouvent sur deux lignes successives,
+    var rnd = Math.random();
+    if( rnd < arrivalRate ){
+     pos[0] = 0;
+     drawBall(0,0,0,0);
+    };
+   };
+   break;	    	
+  default: break;
+  } // fin de l'exécution d'une étape
+  sum=0;
+  // gestion des positions des billes dans les colonnes d'arrivée
+  for( i = 0; i <= N; i++ ){// gestion de la i-ème colonne
+   for( j = bin_height-1; j > 0; j-- ){ 
+    sum = sum + columns[j*(NMax+1)+i];
+    if( (columns[j*(NMax+1)+i]<2) && (columns[(prec[j])*(NMax+1)+i] == 1) ){
+     isEmpty=false;
+     columns[j*(NMax+1)+i]++;
+     drawBallColumn(i,j);
+     columns[(prec[j])*(NMax+1)+i] = 0;
+     remove_ball_from_column(i,prec[j]);
+     if( (columns[j*(NMax+1)+i] == 2) && (bin_height-j > max_height) ){ max_height=bin_height-j; };
+     j = prec[j]+1; // pas besoin d'examiner la colonne en-dessous de prec[j]
+    };
+   };
+  };
+  counter.value = sum; // display sum
+  if( pos[N] != empty ){ // il y a une nouvelle bille qui arrive en haut d'une colonne
+   columns[pos[N]]++;
+   drawBallColumn(pos[N],0);
+   pos[N] = empty;
+  };  
+  if( isEmpty && !newBalls ){
+    isrunning = false; // Il n'y a plus de bille à faire descendre : on arrête tout.
+  };	
+  if( isrunning ){ window.setTimeout("one_step()",delay);}; // attendre un peu avant la prochaine étape
+};
+
+function drawBall(j,p,side,level){
+ var before = n_images_before + (j+2)*(j+3)/2; // il faut inclure le bord gauche de la ligne j
+ switch( level ){
+  case 1: if( side == 0){ document.images[before+p].src=ball_left1.src; }else{ document.images[before+p].src=ball_right1.src;};break;
+  case 2: if( side == 0){ document.images[before+p].src=ball_left2.src;}else{ document.images[before+p].src=ball_right2.src;}; break;
+  case 0: document.images[before+p].src=ball_middle.src;break;
+  default:break;
+ };
+};
+function removeBall(j,p){
+ var before = n_images_before + (j+2)*(j+3)/2; // il faut inclure le bord gauche de la ligne 
+ document.images[before+p].src = empty.src;
+};
+
+function drawBallColumn(i,j) {
+ var before = n_images_before + (NMax+2)*(NMax+3)/2 - 1 + j*(NMax+1) + i;
+ switch (columns[j*(NMax+1) + i]){
+  case 1: document.images[before].src=column1.src;break;
+  case 2: document.images[before].src=column2.src;break;
+  default:break;
+ };
+};
+
+function remove_ball_from_column(i,j) {
+ var before = n_images_before + (NMax+2)*(NMax+3)/2 - 1 + j*(NMax+1) + i;
+ document.images[before].src = column0.src;
+};
+
+function read_galton(){
+ var reply=new Array();var j;var i;
+ for( i = 0;i <= N; i++ ){
+  reply[i] = 0;
+  for ( j = bin_height-1; j > 0; j-- ){
+   reply[i] = reply[i] + columns[j*(NMax+1)+i];
+  };
+ };
+ return reply;
+};
+</script>
+
+<body onload="init()"><!-- deze bogus img's laten staan !! -->
+<img src="../gifs/none.gif" alt=" " id="none" width="0px" height="0px" />
+<img src="../gifs/none.gif" alt=" " id="none" width="0px" height="0px" />
+<div id="main">
+ <div id="commandes">
+  <input type="text" size="4" id="counter"  value="0" title="counter" /> 
+  <input type="button" id="startButton" class="standardButtons" value="start" title="start / stop" onClick="plinko_start()" /> 
+  <input type="button" id="speedButton" class="standardButtons" value="versnellen" title="snelheid" onClick="snelheid()" /> 
+<!--  <input type="button" id="restartButton" class="standardButtons" value="restart" title="opnieuw" onClick="plinko_restart()" /> -->
+  <input type="button" id="enkele_balButton" class="standardButtons" value="1 bal" title="enkele bal" onClick="enkele_bal()" /> 
+ </div>
+ <div id="game">
+  <div class="ligne-image"><img class="img_bord" src="../gifs/left_side.png"><img class="../gifs/img_bord" src="right_side.png"></div>
+  <script type="text/javascript">
+   counter = document.getElementById('counter');
+   var l;var l;
+   for( j = 0; j < NMax; j++ ){
+    document.write("<div class='ligne-image'><img class='img_bord' src='../gifs/left_side.png'>");
+    for( l = 0; l < j+1; l++ ){
+     document.write("<img class='img_clou' src='../gifs/empty.png'>");
+    };
+    document.write("<img class='img_bord' src='../gifs/right_side.png'></div>");
+   };
+   for( j = 0; j < bin_height; j++ ){
+    document.write("<div class='ligne-image'>");
+    for( l = 0; l < NMax+1; l++ ){
+     document.write("<img class='img_col' src='../gifs/column0.png'>");
+    };
+    document.write("</div>");
+   };
+  </script>
+ </div>
+</div>
+</body>
+</html>
+
+
+
+

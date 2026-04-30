@@ -1,0 +1,146 @@
+!set title=Retta passante per due punti
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+author=Frédéric, PITOUN
+email=lva.pitoun@free.fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val6+$val9*(-1)^($val10))]
+tmp=!translate ";': to $     $ in ($val8-$val7)/($val11-$val6)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val7-$val12*$val6
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val13=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in $val12*x+$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!replace internal \( by ( in expand($(tmp0))
+tmp1=!exec maxima $t_
+
+val14=!rawmath $(tmp1)
+tmp0=!texmath $val14
+
+val15=$(tmp0)
+replytype1=default
+replyname1=Coefficiente angolare
+replygood1=$val12
+replytype2=default
+replyname2=Ordinata dell'origine
+replygood2=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Si consideri la retta 
+!insmath d
+$() passante per i punti:	
+!insmath A
+$() di coordinate 
+!insmath \left( \begin{array}{c} $val6 \\ $val7 \end{array} \right) 
+$() e 
+!insmath B
+$() di coordinate 
+!insmath \left( \begin{array}{c} $val11 \\ $val8 \end{array} \right) 
+$().<br/>	L'equazione in forma esplicita di 
+!insmath d
+$() è:	<div class="wimscenter">	
+!insmath y  = 
+$() 
+!read oef/embed.phtml reply 1,6 
+$() 
+!insmath x + 
+$() 
+!read oef/embed.phtml reply 2,6 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'equazione in forma esplicita della retta 
+!insmath d
+$() è 
+!insmath y = $val15
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,15
+embedcnt=2

@@ -1,0 +1,92 @@
+math=0
+# spreadsheet en standaard afwijking
+n=$counter
+tsv_file=som_$counter.$wims_nowseconds.tsv
+!if $rounding < 1
+ rounding=10
+ !readproc $remarkdir/rounding.$taal
+!endif
+#my_temp_css=<meta name="content-disposition" content="attachment; filename='$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file'"/>
+my_temp_css=<meta name="content-disposition" content="attachement; filename=$tsv_file" />
+
+plaats=!randitem Leuven, Amsterdam, Nijmegen, Utrecht, Maastricht, Groningen
+max=!randint 250,1500
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+toets statistiek wis-A\
+cijfers $max studenten aan de universiteit van $plaats\
+\
+"student nummer"	"behaalde cijfer"\
+
+
+sum=0
+calc_data=$empty
+!for p=1 to $max
+ d=!randint 30,99
+ d=$[0.1*$d]
+ D=!replace internal . by , in $d
+ sum=$[$sum + $d]
+ data=!append line "student_$p"	$D to $data
+ calc_data=!append item $d to $calc_data
+!next p
+
+ans1=$[$sum/$max]
+vari=!sum (x-($ans1))^2 for x in $calc_data
+variantie=$[$vari/$max]
+ans2=$[sqrt($variantie)]
+answer$n=$ans1\
+$ans2
+rans1=$[(round($rounding*$ans1))/$rounding]
+rans2=$[(round($rounding*$ans2))/$rounding]
+
+!filewrite getfile/$tsv_file $data
+
+helptext=<ul>Doorloop de volgende route nadat je Excel geopend hebt<li>Bestand</li><li>Externe gegevens uit tekst ophalen</li><li>wims.tsv importeren</li><li>Bestandstype: gescheiden</li><li>Scheidingsteken: tab</li><li>Tekstindicator: &quot;</li><li>Voltooien</li><li>Ok</li></ul>
+
+#<ul>En dan moet je de punt vervangen door een komma.<li>Start</li><li>Zoeken en selecteren</li><li>Vervangen</li><li>Zoeken naar . (punt)</li><li>Vervangen door , (komma) </li></ul>
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=$max studenten aan de universiteit van $plaats hebben de volgende cijfers behaald voor een tentamen 'statistiek wis-A"...<br />\
+Bepaal het gemiddelde cijfer en de hierbij horende standaardafwijking mbv een spreadsheet programma.<br />\
+De data in 'tsv' formaat : <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file">$tsv_file</a>
+
+textanswer$n=<ul>\
+<li>open het bestand </li>\
+<li>gebruik de functie "gemiddelde / average"</li>\
+<li>selecteer veld <b>B6</b> t/m <b>B$[$max+5]</b></li>\
+<li>het gemiddeld is dan : $ans1 &asymp; $rans1</li>\
+<li>gebruik de functie "STDEV.P"<br />dit is de standaard deviatie voor een populatie<br />deze som gaat over een populatie en niet over een steekproef</li>\
+<li>selecteer veld <b>B6</b> t/m <b>B$[$max+5]</b></li>\
+<li>de standaardafwijking is dan : $ans2 &asymp; $rans2</li>\
+</ul>
+
+checkfile=$checkdir/new_number.proc
+inputs=2
+make_tr=1
+description=Gemiddelde cijfer,Standaardafwijking 
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

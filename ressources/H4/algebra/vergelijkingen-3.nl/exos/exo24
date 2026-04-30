@@ -1,0 +1,90 @@
+checkfile=exos/checkfile8.proc
+image=0
+math=0
+questiontype=0
+mathview=2
+cols=20
+rows=1
+embed=1
+!set n=$counter
+
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $variabelen=1
+    letters=a,b,c,d,f,x,y,z,p,g,k,t,r,n,m
+    letters=!shuffle $letters 
+    var1=!item 1 of $letters
+    var2=!item 2 of $letters
+    var3=!item 3 of $letters
+!else
+    var1=x
+    var2=y
+    var3=u
+!endif
+var4=# 
+getallen=!shuffle 2,3,4,5,6,7,8,9,10
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+c=!item 3 of $getallen
+d=!item 4 of $getallen
+e=!item 5 of $getallen
+f=!item 6 of $getallen
+g=!item 7 of $getallen
+h=!item 8 of $getallen
+
+pm=!randitem +,-
+mp=!randitem +,-
+mathviewpanel=$module_title:$var1=:$var2=:$var3=:$var4=
+stext=<textarea cols=\'20\' rows=\'1\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' >$var2 = 4*$var1 - 23</textarea>
+ss=!record 66 of lang/remarks.$taal
+#@ Schrijf de drie vergelijkingen als &eacute;&eacute;n formule <br /><em>Dus geef <kbd>$var2</kbd> als functie van <kbd>$var1</kbd></em> 
+question$n=<a onmouseover="return escape('$stext')">$ss</a>
+!if $R=1
+    # x=z pm b => z=(x - (pm b))
+    # y=(z mp c)^2
+    # texanswer$n= y=((x - (pm b)) mp c)^2
+    g=!exec pari A=(($var1 - ($pm $b)) $mp ($c))^2\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var1 = $var3 $pm $b  \\ \\ $var2 = \left($var3 $mp $c\right)^{2} \end{array}\right.
+    applettext=!nospace { vlist( $var1 = $var3 $pm $b  ,., $var2 = ($var3 $mp $c )^2 )}->
+ !exit
+!endif
+!if $R=2
+    !set mytexsize=+2
+    # x=z/a=> z= xa
+    # y=dz^2 mp  c
+    # texanswer$n= y=d*(xa)^2 pm c
+    g=!exec pari A=$d*($var1*$a)^2 $pm ($c)\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var1 =\frac{1}{$a} \cdot $var3 \\ \\ $var2 = $d \cdot $var3^{2} $mp $c \end{array}\right.
+    applettext=!nospace { vlist( $var1 = 1/($a) * $var3  ,., $var2 = $d * $var3^2 $mp $c)}-> 
+  !exit
+!endif
+	
+!if $R>2
+    #  x=z pm b => z=(x - (pm b))
+    # y=cz^2 pm dz mp e
+    # texanswer$n= y=c*(x - (pm b))*(x - (pm b)) pm d*(x - (pm b)) mp e
+    g=!exec pari A=$c*($var1 - ($pm $b))*($var1 - ($pm $b)) $pm $d*($var1 - ($pm $b)) $mp ($e)\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var1 = $var3 $pm $b\\ \\ $var2 = $c \cdot $var3^{2} $mp $d\cdot $var3 $mp $e \end{array}\right.
+    applettext=!nospace { vlist( $var1 = $var3 $pm $b ,., $var2 = $c * $var3^2 $mp $d * $var3 $mp $e )}->
+ !exit
+!endif
+	

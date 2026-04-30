@@ -1,0 +1,116 @@
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+checkfile=$checkdir/variable.proc
+#exos/checkfile1.proc
+var1=0
+arglist=x
+math=0
+questiontype=0
+embed=1
+cols=15
+rows=1
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=2
+mathviewpanel=$module_title:x=
+#exotitle=!record 59 of lang/remarks.$taal
+#@ Vergelijkingen met wortels & breuken.
+question$n=!record 60 of lang/remarks.$taal
+#@ Los op:<br /><em><small>bereken dus de waarde van x</small></em>
+!if $R=1
+    # a/(sqrt(x)+b) = a/c => sqrt(x)+b=c => sqrt(x)=c-b => x=(c-b)^2
+    a=!randitem 1,3,5,7,9,11,13,15,17,19,21
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    c=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    e=!randitem 1,2,3,4,5,6
+    !if $a=$c
+	a=$[$a+2]
+    !endif
+    !if $c<=$b
+	c=$[$b+$e]
+    !endif
+    formula$n=\frac{$a}{$b + \sqrt{x}} = \frac{$a}{$c} 
+    applettext=!nospace $a/($b+sqrt(x))=$a/($c) ->
+    answer$n=$[($c-$b)^2]   
+    texanswer$n=\sqrt{x} + $b =$c \rightarrow \sqrt{x} = $c -$b \rightarrow x = \left( $[$c-$b] \right)^{2} = $(answer$n)
+ !exit
+!endif 
+
+!if $R=2
+    # a/(sqrt(d*x)+b)=a/c => sqrt(d*x)+b=c => sqrt(d*x)=c-b => d*x =(c-b)^2 =>x=(c-b)^2/d  
+    a=!randitem 1,3,5,7,9,11,13,15,17,19,21
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    c=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    d=!randitem 2,3,4,5,6,7,8
+    !if $a=$c
+	a=$[$a+2]
+    !endif
+    !if $c<=$b
+	c=$[$b+1]
+    !endif
+    formula$n=\frac{$a}{\sqrt{ \left( $d \cdot x \right) } + $b} = \frac{$a}{$c} 
+    applettext=!nospace $a/(sqrt($d*x)+$b)=$a/($c) ->
+    tot=!exec pari A=(($c-$b)^2)/$d\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    ggg=!line 2 of $tot
+    texanswer$n=\sqrt{$d \cdot x} + $b = $c \rightarrow $d \cdot x = \left( $c - $b \right)^{2} \rightarrow x = $ggg
+ !exit
+!endif 
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	# a/(sqrt(dx+b)) =a/c => dx+b=c^2 => dx=c^2-b => x=(c^2-b)/d 
+        a=!randitem 1,3,5,7,9,11,13,15,17,19,21
+	b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        c=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        d=!randitem 2,3,4,5,6,7,8
+	!if $a=$c
+	    a=$[$a+2]
+	!endif
+	!if ($c^2)<= $b
+	    c=$[$c+1]
+	!endif
+        formula$n=\frac{$a}{\sqrt{ \left( $d \cdot x + $b \right) }} = \frac{$a}{$c} 
+	applettext=!nospace $a/(sqrt($d*x+$b))=$a/($c) ->
+        tot=!exec pari A=($c^2-$b)/$d\
+        printtex(A)
+	
+	answer$n=!line 1 of $tot
+	ggg=!line 2 of $tot
+	texanswer$n=\sqrt{ $d \cdot x + $b} =$c \rightarrow $d \cdot x = $c^{2} - $b \rightarrow x=$ggg
+    !else
+	# a/(sqrt(dx+b)) =(e*a/e*c) => dx+b=c^2 => dx=c^2-b => x=(c^2-b)/d 
+        e=!randitem 2,4,6,8,10
+	a=!randitem 1,3,5,7,9
+	b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+	c=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        d=!randitem 2,3,4,5,6,7,8
+	e=!randitem 2,3,4,5,6,7,8
+        a=!randitem 1,2,3,4,5,6,7
+	!if $[$c^2] <= $b
+	    c=$[$c+1]
+	!endif
+	!if $a=$c
+	    a=$[$a+1]
+	!endif
+	formula$n=\frac{$a}{\sqrt{ \left( $d \cdot x + $b \right) }} = \frac{$[$e*$a]}{$[$e*$c]} 
+	applettext=$a/(sqrt($d*x+$b)) = $[e*$a]/($[$e*$c]) ->
+	tot=!exec pari A=($c^2-$b)/$d\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	ggg=!line 2 of $tot
+	texanswer$n=\frac{$a}{\sqrt{$d \cdot x + $b}}=\frac{$e \cdot $a}{$e \cdot $c} \rightarrow  \sqrt{ $d \cdot x + $b} = $c \rightarrow x=$ggg
+!endif
+
+!exit
+
+

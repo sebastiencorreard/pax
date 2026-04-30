@@ -1,0 +1,57 @@
+mathviewpanel=$module_title:/:+:-:*:^
+rounding=0
+mathview=5
+# mathview=5 : only input-applet
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+display=1
+embed=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=1
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+formula$n=$empty
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+helptext=<img src=\'$module_dir/gifs/exo5.jpg\' alt=\'noalt\' />
+# var1 is used for checking  "literal typing" of question
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+c=!item 2 of $getallen
+d=!item 3 of $getallen
+e=!item 4 of $getallen
+pm=!randitem +,-
+
+!if $R=1
+    var1=(x^a/(x^($b*a)))*(x/(x^($b*a)))
+    formula$n=\frac{x^{  a}}{x^{  $b\cdot a}}  \times  \frac{x}{x^{  $b\cdot a}} = [?]
+    answer$n=!rawmath x^($[-2*$b+1]*a+1)
+    tex=!texmath $(answer$n)
+    texanswer$n=\frac{x^{  a}}{x^{  $b\cdot a}}  \times  \frac{x}{x^{  $b\cdot a}} = $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    applettext=!nospace (x^a/(x^($b*a))) times (x/(x^($b*a)))=
+!else
+    var1=($c*x^(a)/(x^($b)))*($d*x^(a)/(x^($b)))
+    formula$n=\frac{$c \cdot x^{  a}}{x^{  $b}}  \times  \frac{$d \cdot x^{  a}}{x^{  $b}} = [?]
+    answer$n=!rawmath $[$c*$d]*x^(2*a - $[2*$b])
+    tex=!texmath $(answer$n)
+    texanswer$n=\frac{$c \cdot x^{  a}}{x^{  $b}}  \times  \frac{$d \cdot x^{  a}}{x^{  $b}} =  $tex
+    varlist=!varlist $(answer$n)
+    applettext=!nospace (($c*x^(a))/(x^($b))) times (($d*x^(a))/(x^($b)))
+    wims_rawmath_variables=$varlist
+!endif
+
+!exit

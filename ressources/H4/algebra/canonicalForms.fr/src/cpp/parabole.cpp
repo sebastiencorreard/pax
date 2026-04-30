@@ -1,0 +1,139 @@
+target=parabole
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{100}
+\integer{sign=random(-1,1)}
+\integer{oppsign=\sign=-1?1:-1}
+
+\integer{xsize=random(8,10)}
+\integer{x0=random(-1,1)*random(1..\xsize-4)}
+\integer{ext=random(-1,1)*random(5..25)}
+
+\text{dot=.}
+
+\function{f=\sign((x-\x0)^2+\ext)}
+
+\rational{rep1=\sign=1?2:1}
+\rational{rep2=\ext}
+\rational{rep3=\x0}
+
+\function{f=\sign(x-\x0)^2+\ext}
+
+\function{f2=\oppsign(x-\x0)^2+\ext}
+\function{f3=\sign(x-\x0)^2-\ext}
+\function{f4=\oppsign(x-\x0)^2-\ext}
+
+\function{f5=\sign(x+\x0)^2-\ext}
+\function{f6=\oppsign(x+\x0)^2-\ext}
+\function{f7=\sign(x+\x0)^2+\ext}
+\function{f8=\oppsign(x+\x0)^2+\ext}
+
+\text{choix=\(\f),\(\f2),\(\f3),\(\f4),\(\f5),\(\f6),\(\f7),\(\f8)}
+/** préparation du graphique **/
+\if{\sign=1}{
+  \integer{ymin=pari(floor(\ext-2))}
+  \integer{ymax=\ymin + 20}}{
+  \integer{ymax=pari(floor(\ext+2))}
+  \integer{ymin=\ymax - 20}
+}
+
+\integer{y0=(\ymin+\ymax)/2}
+\integer{y0=pari(10*floor(\y0/10))}
+
+\text{ticks=text black , -1, -50, small , -50
+text black , -1, -40, small , -40
+text black , -1, -45, small , -45
+text black , -1, -30, small , -30
+text black , -1, -35, small , -35
+text black , -1, -20, small , -20
+text black , -1, -25, small , -25
+text black , -1,-10,small , -10
+text black , -1,-15,small , -15
+text black , -1,-5,small , -5
+text black , -1, 0,small , 0
+text black , -1, 5,small , 5
+text black , -1, 10, small , 10
+text black , -1,15,small , 15
+text black , -1, 30, small , 30
+text black , -1, 35, small , 35
+text black , -1, 20, small , 20
+text black , -1, 25, small , 25
+text black , -1, 40, small , 40
+text black , -1, 45, small , 45
+text black , -1, 50, small , 50
+text black, -10, \y0-0.2, small , -10
+text black, -5, \y0-0.2, small , -5
+text black, 5, \y0-0.2,small , 5
+text black, 10, \y0-0.2,small , 10
+arrow 0,\y0,1,\y0,3,black
+arrow 0,\y0,0,\y0+1,3,black
+text black,0,\y0+1,small,j
+text black,1,\y0,small,i
+text red,0,\y0,medium,A
+linewidth 3
+point -10 ,\y0, black
+point -5 ,\y0, black
+point 5 , \y0, black
+point 10 , \y0, black
+point 0, \y0-5 , black
+point 0, \y0-15 , black
+point 0, \y0-10 , black
+point 0, \y0 , black
+point 0, \y0+5 , black
+point 0, \y0+10 , black
+point 0, \y0+15 , black}
+\statement{
+<div class="wims_columns">
+  <div class="medium_size img_col">
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange \ymin,\ymax
+parallel -\xsize,\ymin,-\xsize,\ymax,1,0, 2*\xsize+1, grey
+parallel -\xsize,\ymin,\xsize,\ymin,0,1, (\ymax-\ymin)+1, grey
+hline 0,\y0,black
+vline 0,\y0,black
+arrow 0,\y0,1,\y0,8, black
+arrow 0,\y0,0,\y0+1,8, black
+text red, \x0, \ext-0.2, medium , S
+\ticks
+linewidth 1.5
+plot blue, \f
+linewidth 3
+point \x0, \ext, red}
+</div>
+<div class="medium_size text_col">
+Soit \(f\) une fonction du second degré définie sur \(\,\RR\).
+On a représenté sa courbe \(\mathcal{P}\) dans un repère \((O,\vec{i},\vec{j})\).
+<p>
+Les axes représentés
+<span class="bold" style="color:red">se croisent au point A(0 ; \y0)</span>.
+</p>
+<ol><li> Déterminer graphiquement les coordonnées du sommet \(S\) de la parabole
+\(\mathcal{P}\) (on suppose qu'elles sont entières).
+<br>
+On en déduit que :
+<div class="wimscenter">\(f\) admet un \embed{reply1}
+<label for="reply2">égal à</label> \embed{reply2,5},
+ <label for="reply3">atteint en \(x = \)</label> \embed{reply3,5}.</div>
+</li><li>
+En déduire, parmi les formes canoniques suivantes, celle
+qui donne \(f(x)\) en fonction de \(x\) :
+<div class="wimscenter"> \embed{reply4}</div>
+</li></ol></div>
+</div>
+}
+
+\answer{}{\rep1;maximum,minimum}{type=menu}
+\answer{}{\rep2}{type=integer}
+\answer{}{\rep3}{type=integer}
+\answer{Formule pour \(f\): }{1 ; \choix}{type=radio}{option=shuffle}
+
+\hint{Lorsque \(x\) varie, le signe de \((x - \x0)^2\) reste positif ou nul, alors :
+  <ul>
+    <li>\((x - \x0)^2+ C\) est toujours supérieur ou égal à \(C\).</li>
+    <li>\(-(x - \x0)^2 + C\) est toujours inférieur ou égal à \(C\).</li>
+  </ul>
+}

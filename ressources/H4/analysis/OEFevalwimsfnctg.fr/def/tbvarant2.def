@@ -1,0 +1,230 @@
+!set title=Nombre d'antécédents 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style>
+
+ansorder=r,r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=3
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<,>,on ne peut pas savoir
+tmp0=!makelist x for x=-10 to 10
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!item 1 to 12 of $val7
+
+val7=$(tmp0)
+tmp0=!sort numeric list $val7
+
+val7=$(tmp0)
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=1
+val9=\(\nearrow),\(\searrow)
+!else
+val9=\(\searrow),\(\nearrow)
+!endif
+!if $val8=2 
+val10=top,bottom,top,bottom,top
+!else
+val10=bottom,top,bottom,top,bottom
+!endif
+tmp0=!randint -20, 20
+
+val11=$[rint($(tmp0))]
+
+!ifval $val8=1
+tmp0=!randint 5, 10
+
+val12=$[rint($val11+$(tmp0))]
+!else
+tmp1=!randint 5, 10
+
+val12=$[rint($val11-$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 5
+
+val13=$[rint($val11-$(tmp0))]
+!else
+tmp1=!randint 2, 5
+
+val13=$[rint($val11+$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 5
+
+val14=$[rint($val13-$(tmp0))]
+!else
+tmp1=!randint 2, 5
+
+val14=$[rint($val13+$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 10
+
+val15=$[rint($val13-$(tmp0))]
+!else
+tmp1=!randint 2, 10
+
+val15=$[rint($val13+$(tmp1))]
+!endif
+
+!ifval $val14=$val15
+val15=$[rint($val15+1)]
+!endif
+!if $val8=1 
+
+!ifval $val14>$val15
+val16=$[rint($val14)]
+!else
+val16=$[rint($val15)]
+!endif
+
+!ifval $val14>$val15
+val17=$[rint($val15)]
+!else
+val17=$[rint($val14)]
+!endif
+!else
+
+!ifval $val14>$val15
+val16=$[rint($val15)]
+!else
+val16=$[rint($val14)]
+!endif
+
+!ifval $val14>$val15
+val17=$[rint($val14)]
+!else
+val17=$[rint($val15)]
+!endif
+!endif
+val18=$val11
+val19=$val12
+val20=$val16
+val21=$val13
+val22=$val17
+val23=<table class="tab_var">	<tr>	  <th style="width:15%">\(x)</th>	      <td style="width:16%;text-align:left">$(val7[1])</td>	      <td style="width:26%"></td>	      <td style="width:16%">$(val7[4])</td>	      <td style="width:26%"></td>	      <td style="width:16%;text-align:right">$(val7[7])</td>	</tr><tr>	  <th style="width:15%;vertical-align:middle">\(f(x))</th>	     <td style="width:16%;text-align:left; vertical-align:$(val10[1])">$val18 </td>	     <td style="width:26%">$(val9[1]) </td>	     <td style="width:16%;vertical-align:$(val10[2])">$val19 </td>	     <td style="width:26%">$(val9[2])  </td>	     <td style="width:16%;vertical-align:$(val10[3])">$val20 </td>	      </tr>	</table>	
+val24=$[rint($(val7[7]))]
+replytype1=numeric
+replyname1=\(i)
+replygood1=?analyze 25
+replytype2=numeric
+replyname2=\(j)
+replygood2=?analyze 26
+replytype3=numeric
+replyname3=\(k)
+replygood3=?analyze 27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction 
+!insmath f
+$() définie sur &#91; $(val7[1]);$val24 &#93; et donnée par	  le tableau de variations suivant:	<div class="wimscenter">$val23</div>		  Déterminer des réels 
+!insmath i,j
+$() et 
+!insmath k
+$() tels que	<ul>	<li><label for="reply1">
+!insmath i
+$() n'a pas d'antécédents :</label> 
+!read oef/embed.phtml reply1,3 
+$()</li>	<li><label for="reply2">
+!insmath j
+$() possède un unique antécédent:</label> 
+!read oef/embed.phtml reply2,3 
+$()</li>	<li><label for="reply3">
+!insmath k
+$() possède exactement 2 antécédents:</label> 
+!read oef/embed.phtml reply3,3 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val8=1 and ($val25>$val12 or $val25<$val16)) or ($val8=2 and ($val25>$val16 or $val25<$val12))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(i)
+
+!ifval ($val8=1 and ($val26>=$val16 and $val26<$val11)) or ($val8=2 and ($val26>$val11 and $val26<=$val16)) or ($val26=$val12)
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(j)
+
+!ifval ($val8=1 and $val27>=$val11 and $val27<$val12) or ($val8=2 and $val27>$val12 and $val27<=$val11)
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=\(k)
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,16,23,24,25,26,27
+embedcnt=3

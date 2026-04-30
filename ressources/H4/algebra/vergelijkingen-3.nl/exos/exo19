@@ -1,0 +1,144 @@
+!set n=$counter
+rounding=0
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/sinus.kpi.proc
+math=0
+cols=30
+rows=3
+embed=1
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+woordmax=150
+charmax=300
+helptext=!record 46 of lang/remarks.$taal
+ss=!record 63 of lang/remarks.$taal
+#@ Los exact op:
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+keuze=!randitem 1,0
+!if $R=1
+    domein=-6:6
+    !if $keuze=1
+	a=!randitem 3,4,5,6,7,8,9
+	functie2=sin($a*x)
+	functie1=2*sin(x)*cos(x)
+	answer$n=k*2*pi/$[($a-2)],pi/$[($a+2)]+k*2*pi/$[($a+2)]
+	var4=2
+	texanswer$n= \left[ \begin{array}{l}x_{1}= \frac{2k\cdot \pi}{$[($a-2)]} \\ x_{2}=\frac{\pi}{$[($a+2)]} + \frac{2k\cdot \pi}{$[($a+2)]} \end{array} \right.
+	# var4= is  aantal goede unieke antwoorden
+    !else
+#	a=!randitem 1,sqrt(3),sqrt(2)
+	a=!randitem sqrt(3),sqrt(2)
+	functie1=sin(2*x)
+	functie2=$a*cos(x)
+	!if $a=1
+	    answer$n=1/2*pi+2*k*pi,1/6*pi+2/3*k*pi
+	    G1=\frac{\pi}{2} + 2k \cdot \pi
+	    G2=\frac{\pi}{6} + \frac{2}{3}k\cdot \pi
+	    texanswer$n=\left [ \begin{array}{l} x_{1}=$G1 \\ x_{2}=$G2 \end{array} \right.
+	    var4=2
+	!else
+	    !if $a=sqrt(3)
+		answer$n=1/2*pi+k*pi,1/3*pi+k*2*pi,2/3*pi+k*2*pi
+		G1=\frac{\pi}{2} + k\cdot \pi
+		G2=\frac{\pi}{3} + 2k\cdot \pi
+		G3=\frac{2\cdot \pi}{3} + 2k\cdot \pi
+		texanswer$n=\left [ \begin{array}{l} x_{1}=$G1 \\ x_{2}=$G2 \\ x_3=$G3 \end{array} \right.
+		var4=3
+	    !else
+		answer$n=1/2*pi+k*pi,1/4*pi+k*2*pi,3/4*pi+k*2*pi
+		G1=\frac{\pi}{2} + k\cdot \pi
+		G2=\frac{\pi}{4} + 2k\cdot \pi
+		G3=\frac{3\cdot \pi}{4} + 2k\cdot \pi
+		texanswer$n=\left [ \begin{array}{l} x_{1}=$G1 \\ x_{2}=$G2 \\ x_3=$G3 \end{array} \right.
+		var4=3
+	    !endif
+	!endif
+    !endif
+    formula$n=!texmath $functie2 = $functie1
+!endif
+!if $R>1
+    domein=-6:6
+    !if $keuze=1
+	ch=!randitem 1,2,3,4
+	k1=1,1/2,1/2*sqrt(2),1/2*sqrt(3)
+	k2=1,\frac{1}{2},\frac{1}{2} \cdot \sqrt{2},\frac{1}{2} \cdot \sqrt{3}
+	a=!item $ch of $k1
+	atex=!item $ch of $k2
+	functie1=(cos(x))^2 - (sin(x))^2
+	functie2=$a
+	formula$n=\cos^{2}\left( x \right) - \sin^{2}\left( x \right) = $atex
+	!if $a=1
+	    answer$n=k*pi
+	    var4=1
+	    texanswer$n= k\cdot \pi
+	!else
+	    !if $a=1/2
+		answer$n=1/6*pi+k*pi,-1/6*pi+k*pi
+		#answer$n=1/6*pi+k*pi,-1/6*pi+k*pi,5/6*pi+k*pi
+		# let op cos geeft 2 setjes
+		G1=\frac{\pi}{6} + k\cdot \pi
+		G2=\frac{-\pi}{6} + k\cdot \pi
+		#G3=\frac{5\cdot \pi}{6} + k\cdot \pi
+		var4=2
+	    !else
+		!if $a=1/2*sqrt(2)
+		    answer$n=1/8*pi+k*pi,-1/8*pi+k*pi,7/8*pi
+		    #answer$n=1/8*pi+k*pi,-1/8*pi+k*pi,7/8*pi+k*pi
+		    var4=2
+		    G1=\frac{\pi}{8}+k\cdot \pi
+		    G2=\frac{-\pi}{8}+k\cdot \pi
+		    #G3=\frac{7 \cdot \pi}{8}+k\cdot \pi
+	    	!else
+		    answer$n=1/12*pi+k*pi,-1/12*pi+k*pi
+		    #answer$n=1/12*pi+k*pi,-1/12*pi+k*pi,11/12*pi+k*pi
+		    var4=2
+		    G1=\frac{\pi}{12} + k\cdot \pi
+		    G2=\frac{-\pi}{12} + k\cdot \pi
+		    #G3=\frac{11\cdot \pi}{12} + k\cdot \pi
+		!endif
+	    !endif
+	texanswer$n=\left[ \begin{array}{l} x_{1}=$G1 \\ x_{2}=$G2 \end{array}\right.
+	!endif
+    !else
+	a=!randitem 3,4,5,6,7,8,9
+	functie1=cos($a*x)
+	functie2=(cos(x))^2 - (sin(x))^2
+	formula$n=\cos\left( $a \cdot x \right)  = \cos^{2}\left( x \right) - \sin^{2}\left( x \right)
+	!if $a=4 or $a=6
+	    answer$n=k*2*pi/$[($a+2)]
+	    #answer$n=k*2*pi/$[($a+2)],2*pi/$[($a+2)]+k*2*pi/$[($a+2)]
+	    var4=1
+	    G1=2k \cdot \frac{\pi}{$[($a+2)]}
+	    texanswer$n= x_{1}=$G1
+	!else
+	    answer$n=k*2*pi/$[($a-2)],k*2*pi/$[($a+2)]
+	    #answer$n=k*2*pi/$[($a-2)],k*2*pi/$[($a+2)],2*pi/$[($a+2)]+k*2*pi/$[($a+2)]
+	    var4=2
+	    G1=2k \cdot \frac{\pi}{$[($a-2)]}
+	    G2=2k \cdot \frac{\pi}{$[($a+2)]}
+	    texanswer$n=\left[ \begin{array}{l} x_{1}=$G1 \\ x_{2}=$G2 \end{array}\right.
+	!endif
+    !endif
+!endif 
+
+applettext=!nospace $functie2 = $functie1 ->
+mathview=2
+mathviewpanel=$module_title:x=:and:k:pi:*:+:-:/
+
+!if $teaching=1
+    image=0
+    plot=1
+    draw=0
+    image_settings$n=size 0.7,0.4; noborder ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid xtics ytics mxtics
+    image$n=[$domein] [$bereik] $functie1 notitle ,$functie2 notitle
+    insplot_set=size 1,0.5; noborder ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid xtics ytics mxtics
+    !insplot [$domein] [$bereik] $functie1,$functie2 notitle
+    sometext=!record 63 of $remarkdir/commonremarks.$taal
+    #helptext=<a href="javascript:showimage();">$helptext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'nooalt\' />')"><span class="schaersvoorde_link">$sometext</span></a>
+
+!endif

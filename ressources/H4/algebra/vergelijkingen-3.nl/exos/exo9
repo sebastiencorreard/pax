@@ -1,0 +1,40 @@
+# enkel logpapier: y-as logarithmisch
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+questiontype=1
+make_tr=1
+n=$counter
+checkfile=$checkdir/multiplechoice.proc
+
+!if $options > 7 or $options<3
+    options=4
+!endif
+image=0
+plot=1
+draw=0
+multiimage=1
+answer$n=!randint 1,$options
+#ss=!record 1 of lang/remarks.$taal
+#$ss
+logscales=!shuffle 4,5,6,7,8,9,10,11,12,12,13,14,15,16,17
+!if $R>0
+    !for p=1 to $options
+	logscale=!item $p of $logscales
+	!if $p=$(answer$n)
+	    paper=$logscale
+	!endif
+	a1=!randitem 3,4,6
+	a2=$[$logscale^($a1+1)]
+	a2=$[1000*(ceil($a2/1000))]
+	a3=1
+	a4=0
+	ex$p=[$a4 : $a1] [$a3 : $a2] 0 notitle
+	image_settings$p=size 0.5,0.5;logscale y $logscale ; border ; tmargin 1 ; rmargin 1 ; xtics 0,0.5,$a1 ;  ytics 1,$logscale,$a2 ; mytics $logscale  ; mxtics 2 ;grid xtics ytics mxtics mytics linetype 2 , linetype 2 ; xlabel "x-axis" ; ylabel "y-axis" ;  zeroaxis linetype 1 
+    !next p
+    question$n=Welke van de volgende $options log-papiertjes is log<sub>$paper</sub> papier?
+!endif

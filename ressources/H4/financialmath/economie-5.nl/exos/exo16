@@ -1,0 +1,25 @@
+#kosten leveranciers krediet
+n=$counter
+rounding=100
+mathview=0
+helptext=$empty
+checkfile=$checkdir/new_number.proc
+var1=0.01
+# afronding per invulveld in new_number.proc
+var2=100
+!readproc $remarkdir/rounding.$taal
+make_tr=1
+bedrijf=!randitem Vertigo Chemical Specialities,Hadjema Manufacturing BV,Vriesekamp Textile Services NV,Agio Coatings BV,Ritsma Agri Chemicals NV,Berg Chemicals NV,HaGeBo BV,Zeepfabriek Wienke BV...
+inputs=1.1
+description=kortingspercentage op jaarbasis
+m_rightarrow=&nbsp;=&nbsp;
+ex1=%
+dagen=!randint 7,8,14
+bedrag=!randint 3,33
+bedrag=$[$bedrag*1000]
+perc=!randint 10,30
+perc=!exec moneyprint $[0.1*$perc] 1
+question$n=!subst Onlangs heeft $bedrijf bij een fabrikant een partij goederen gekocht, waarvan het factuurbedrag &euro; $bedrag is.<br />In de betalingsvoorwaarden van de fabrikant staat vermeld :<br /><ul><li>bij betaling binnen $dagen dagen, gerekend vanaf de factuurdatum, is de korting voor contante betaling $perc % van het factuurbedrag.</li><li>uiterste betaaldag is 30 dagen na de factuurdatum.</li></ul>Reken het kortingspercentage voor contante betaling om in een percentage op jaarbasis.
+answer$n=!exec moneyprint $[$perc*365/(30 - $dagen)] 2
+kdagen=$[30-$dagen]
+textanswer$n=!subst <ul><li>Met de kosten van het leverancierskrediet wordt de gemiste korting bedoeld.</li><li>Dus het gebruik maken van de 30 &minus; $dagen  = $kdagen kredietdagen.</li><li>$kdagen dagen is $perc %</li><li>365 dagen is dan 365 / $kdagen &times; $perc % = $(answer$n) %</li></ul>

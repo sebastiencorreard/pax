@@ -1,0 +1,78 @@
+#Annu&iuml;teiten hypotheek II
+n=$counter
+
+!if $counter=1
+    viewlogo=1
+    total_exos=2
+    mathview=0
+    make_tr=1
+    inputs=-1
+    checkfile=exos/precheck2.proc
+    telwoorden=!record 60 of $remarkdir/commonremarks.$taal
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    looptijd=!randitem 15,20,25,30
+    naam=!randitem $namen
+    perc=!randint 4,13
+    schuld=!randint 95,290
+    schuld=$[$schuld*1000]
+    factor=$[$perc/100]
+    interest=$[$schuld*$factor]
+    t1=$[$interest/10]
+    t2=$[round($schuld/(10*$looptijd))]
+    tussen=$[max($t1,$t2)]
+    annu=!randint $[$tussen+50],$[$tussen+250]
+    annuiteit=$[$annu*10]
+    aflossing=$[$annuiteit - $interest]
+    schuld2=$[$schuld - $aflossing]
+    interest2=$[$factor*$schuld2]
+    aflossing2=$[$annuiteit - $interest2]
+    annuiteit2=$annuiteit
+    betaald=$[$looptijd*$annuiteit]
+    interest_totaal=$[$betaald - $schuld]
+    
+    exotext=!subst <table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Aflossing</th><th>Interest $perc %</th><th>Annu&iuml;teit</th></tr><tr><th>1</th><th>$schuld</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value=""/></th><th>$annuiteit</th></tr><tr><th>2</th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput4" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput5" size="6" class="schaersvoorde_input" value=""/></th></tr></table>
+
+    var3=Interest gedurende de gehele looptijd : <input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/> &euro;
+    
+    description=Aflossing jaar 1,Interest jaar 1,Schuld jaar 2,Aflossing jaar 2,Interest jaar 2,annuiteit
+    # grote bedragen +/- 5 euro... (12/2012)
+    var1=5,5,5,5,5,5
+    var2=1,1,1,1,1,1
+    answer1=$aflossing\
+    $interest\
+    $schuld2\
+    $aflossing2\
+    $interest2\
+    $annuiteit2
+    
+    answer2=$interest_totaal
+
+    textanswer1=<table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Aflossing</th><th>Interest $perc %</th><th>Annu&iuml;teit</th></tr><tr><th>1</th><th>$schuld</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value="$aflossing" readonly="readonly"/></th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value="$interest" readonly="readonly"/></th><th>$annuiteit</th></tr><tr><th>2</th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value="$schuld2" readonly="readonly"/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value="$aflossing2" readonly="readonly"/></th><th><input type="text" id="myinput4" size="6" class="schaersvoorde_input" value="$interest2" readonly="readonly"/></th><th><input type="text" id="myinput5" size="6" class="schaersvoorde_input" value="$annuiteit2" readonly="readonly"/></th></tr></table><ul><li><kbd>Annu&iuml;teit</kbd> : elke periode een vast bedrag dat bestaat uit <kbd>aflossing en interest</kbd></li><li>Interest = $factor &times; $schuld = &euro; $interest</li><li>Aflossing = $annuiteit &minus $interest = &euro; $aflossing</li><li>De schuld aan het begin van het tweede jaar: $schuld &minus $aflossing = &euro; $schuld2</li><li>Interest in het tweede jaar : $factor &times; $schuld2 = &euro; $interest2</li><li>Aflossing in het tweede jaar : $annuiteit &minus; $interest2 = &euro; $aflossing2</li></ul>
+    
+    textanswer2=<ul><li>Het totaal betaalde bedrag in $looptijd jaar :$looptijd &times; $annuiteit = &euro $betaald</li><li>Het totaal aan interest betaalde bedrag is dus : $betaald &minus; $schuld = &euro; $interest_totaal</li></ul>
+    
+    rounding=10
+    
+    roundingtext=Rond je eindantwoord af op &eacute;&eacute;n decimaal
+    
+    ss1=$naam sluit een hypotheek af op basis van annu&iuml;teiten.<br />De lening bedraagt &euro; $schuld , de looptijd is $looptijd jaar en de interest is vastgesteld op $perc %.
+    
+    question1=$ss1 <br />Bereken de ontbrekende waarden (in &euro;) en vul de tabel in.<br />
+    
+    question2=$ss1 <br />De annuiteit is &euro; $annuiteit per jaar.<br />Bereken hoeveel interest er wordt betaald gedurende de hele looptijd.
+    
+    
+    helptext=$roundingtext
+!endif
+
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/annuiteitenhypotheek$g.jpg" alt="annuiteitenhypotheek" />
+logotext=<img src=\'$module_dir/gifs/annuiteitenhypotheek$g.jpg\' alt=\'annuiteitenhypotheek\' />
+
+!if $n>1
+    # grote bedragen +/- 5 euro... (12/2012)
+    var1=5
+    var2=1
+    exotext=$var3
+!endif
+

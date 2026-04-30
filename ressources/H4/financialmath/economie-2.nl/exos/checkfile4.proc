@@ -1,0 +1,110 @@
+n=$counter
+errortext=$(reply$n)
+goback=1
+!exit
+math=0
+extra=$empty
+lg=!linecnt $(answer$n)
+lr=!linecnt $(reply$n)
+org=$(reply$n)
+leeg_g=0
+hit=0
+leeg_a=0
+seen=$empty
+score=0
+line_g=!line 1 of $(answer$n)
+colls_g=!itemcnt $line_g
+line_r=!line 1 of $(reply$n)
+colls_r=!itemcnt $line_r
+
+!for p=1 to $lg
+    line_g=!line $p of $(answer$n)
+    G1=!item 1 of $line_g
+    g1=!nospace $G1
+    g1=!lower $g1
+    !increase hit
+    !if $G1 != null
+	your_reply=!append line <li> to $your_reply
+	lgg=!itemcnt $line_g
+	!for r=1 to $lr
+	    !if $r notitemof $seen
+		line_r=!line $r of $(reply$n)
+		A1=!item 1 of $line_r
+		a1=!nospace $A1
+		a1=!lower $a1
+		!if $a1 != null	
+		    !if $a1 = $g1 
+			your_reply=!append line <span style="color:blue">$A1</span>&nbsp; to $your_reply
+		        # eerste woord is match nu de rest nakijken
+			seen=!append item $r to $seen
+			# deze rij niet nog een keer doorlopen
+			!for q=2 to $lgg
+			    # loop door correcte antwoord rij; vergelijk 1:1
+			    G2=!item $q of $line_g
+			    A2=!item $q of $line_r
+			    !if $G2 != null and $A2 != null
+				!increase hit
+				a2=!nospace $A2
+				a2=!lower $a2
+				g2=!nospace $G2
+				g2=!lower $g2
+				g=$[1*$g2]
+				a=$[1*$a2]
+				!if NaN isin $a$g
+				    k=blue
+				    # text
+				!else
+				    !ifval $g2 = $a2
+					#  getallen ...
+					!if $hit isitemof $var1
+					    !increase score
+					    k=green
+					!else 
+					    k=blue
+					!endif
+				    !else
+					k=red
+				    !endif
+				!endif
+				your_reply=!append line <span style="color:$k">$A2</span>&nbsp; to $your_reply
+			    !endif
+			!next q
+		    !endif
+		!else
+		    !increase leeg_a
+		!endif
+	    !endif
+	!next r
+	your_reply=!append line </li> to $your_reply
+    !else
+	!increase leeg_g
+    !endif
+!next p
+
+!if $colls_r != $colls_g
+    !if $colls_r > $colls_g
+	extra=Je hebt te veel kolommen : $colls_r ipv $colls_g 
+    !else
+	extra=Je hebt te weinig kolommen : $colls_r ipv $colls_g 
+    !endif
+!endif
+reply$n=<ul>$your_reply</ul>
+maxscore=$[$maxscore*$score/$hit]
+#r=!line 1 of $(reply$n)
+#i=!line 1 of $(reply$n)
+#reply = !exec pari c = 0; f = 0; n = $r; m = $i ; for(i = 1 , length(n[,1]) , for( p = 1, length(n) ,if(n[i,p] != "null",if( n[i,p] == m[i,p] ,c=c+1,f=f+1),)));print(f);print(c) 
+modulescore=$[$modulescore+$maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

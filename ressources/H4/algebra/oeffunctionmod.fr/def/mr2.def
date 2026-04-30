@@ -1,0 +1,316 @@
+!set title=3.2 Montagnes Russes (équation du 2° degré)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Laurent,Gallien;Julien,Lyotard;Moïse,Muller;Jean-Luc,Pernette;Irem de Dijon
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+oefcss=<style type="text/css"> .jxgbox {margin-left:auto;margin-right:auto;} .jsxgraph_button {text-align:center;} </style>
+
+ansorder=r,r,r
+varcnt=49
+prevarcnt=35
+postvarcnt=13
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 4
+
+val6=$[$(tmp0)/100]
+tmp0=!randint 35, 55
+
+val7=$[$(tmp0)/100]
+val8=!rawmath -$val6*x*x*x+$val7*x*x
+tmp=!translate ;";': to $     $ in $val8,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val9=!rawmath $(tmp0)
+val10=$[3*$val6]
+val11=$[2*$val7]
+t_=!replace internal \( by ( in $val8
+tmp0=!exec pari $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val12
+
+val13=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val9
+tmp0=!exec pari $t_
+
+val14=!rawmath $(tmp0)
+tmp0=!texmath $val14
+
+val15=!rawmath $(tmp0)
+tmp=!replace internal .. by , in $val9,x=0..100 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!replace internal .. by , in $val8,x=$(val16[2])..100 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val17=$[$(tmp0)]
+!readproc slib/function/bounds $val8,x,0,$val17 
+tmp0=$slib_out
+val18=$(tmp0)
+val19=$[rint($(val18[2])+3)]
+tmp0=!randint 3, 6
+
+val20=$[rint($(tmp0)*10)]
+val21=$[$val20*pi/180]
+val22=$[rint(tan($val21)*1000000)]
+val23=$[rint(tan($val21)*100)]
+val24=$[$val23/100]
+val25=$[$val22/1000000]
+val26=!rawmath $val9+$val24
+tmp=!replace internal .. by , in $val26,x=$(val16[2])..100 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val27=$[rint($(tmp0)*100)]
+val28=$[$val27/100]
+tmp=!replace internal .. by , in $val26,x=$(val16[2])..100 
+
+!distribute items $tmp into tmp1,tmp2,tmp3
+tmp2=!replace internal = by , in $tmp2
+!distribute items $tmp2 into tmp4,tmp5
+tmp0=!solve $tmp1 for $tmp4 = $tmp5 to $tmp3 
+val29=$[rint($(tmp0)*1000)]
+val30=$[$val29/1000]
+val31=$[rint(($val11^2-4*-$val10*$val24)*10000)]
+val32=$[$val31/10000]
+val33=$[rint(($val11^2-4*-$val10*$val24)*1000000)]
+val34=$[$val33/1000000]
+val35=Comment raccorder des voies de montagnes russes ?
+val36=Les montagnes russes sont nées vers la fin des années 1700\(,) de l’idée de recréer les courses	 de luges qui avaient lieu dans les environs de Saint Petersburg. Un chariot à roues attaché à des rails\(,)	 se substituait à la luge. Aujourd’hui encore\(,) ce type d’attraction tient une place particulière	 dans les fêtes foraines et autres parcs d’attractions. Les tracés sont de plus en plus audacieux.	<br />	Un nouveau tracé est en étude pour un parc d’attraction. La première partie du tracé prévoit deux formes.	 La première est modélisée par la fonction \(f) sur l’intervalle [0 ; 12] par : \(f(x)=$val13)	 ( \(x) représente la distance horizontale parcourue en m). La deuxième est une portion rectiligne mais	 orientée à $val20° par rapport à l’horizontale. Le but de l'activité est de modifier la fin du tracé	 pour le rendre moins abrute et donc finir par une droite. Par conséquent le chariot commence son parcours	 sur la fonction \(f) et il le termine sur la droite en vert à <b>placer correctement</b>.
+tmp0=!record 0 of help/derive.txt
+
+val37=$(tmp0)
+tmp0=!record 0 of help/tableau.txt
+
+val38=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox,1000 x 500,var brd = JXG.JSXGraph.initBoard('jsxbox',	 {axis:false, boundingbox: [-10,$val19,30,-1]});	 xaxis = brd.create('axis', [[0, 0], [1, 0]], {	 ticks: { ticksDistance: 1, insertTicks: false}});	yaxis = brd.create('axis', [[0, 0], [0, 1]],{	 ticks: { ticksDistance: 1, insertTicks: false}});	/*definition du repere au dessus*/	/*definition de la fonction et la derive*/	var ff = function(x) { return $val8; };	var ffp=function(x) { return -$val10*x*x+$val11*x;};	var g = function(x) { return -0.03*x*x*x+0.36*x*x+1; };	/*trace de la fonction*/	var fct= brd.create('functiongraph', [function(x){return ff(x);},0,$val17],{strokeColor:'red'});	/*trace de la tangente*/	var gtan=brd.create('glider',[7,12,fct],{name:'Bouge moi', strokeColor:'black',highlightFillOpacity:0});	var ptan=brd.create('point',[function(){ return gtan.X()+1;},function(){ return gtan.Y()+-$val10*gtan.X()*gtan.X()+$val11*gtan.X();}],{visible:false});	var tan=brd.create('line',[gtan,ptan]);	/*rapporteur*/	var gequerre=brd.create('glider',[18,0,xaxis],{name:'Déplace moi', strokeColor:'black'});	var pequerre=brd.create('point',[0,6],{name:'Tourne moi', strokeColor:'black',showInfobox:true});	var ppequerre=brd.create('point',[-20,0],{visible:false});	var sequerre = brd.createElement('line',[pequerre,gequerre],	 {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'green', dash:0});	var ssequerre = brd.createElement('line',[ppequerre,gequerre],	 {straightFirst:true, straightLast:false, strokeWidth:2, strokeColor:'green', dash:0});	var pangle=brd.create('point',[function(){return gequerre.X()-2;},0],{visible:false});	brd.create('angle',[pequerre,gequerre,pangle],{orthoSensitivity:2,orthoType:'square', radius:2, name:function() {	   return JXG.Math.Geometry.trueAngle(pequerre,gequerre,pangle).toFixed(1) + "&deg;";}});	/*permet de lier gequerre à pequerre et donc de garder un angle constant*/	/*permet de lier gequerre à pequerre et donc de garder un angle constant*/	 var tOff = brd.create('transform', [function(){return gequerre.X()},function(){return gequerre.Y()}], {type:'translate'});	 tOff.bindTo(pequerre);	/*Affichage*/	var n=0;	var txt = brd.create('text', [28,$val19,function(){	    return '<b>Angle : </b> &#194;='+JXG.Math.Geometry.trueAngle(pequerre,gequerre,pangle).toFixed(1) + "&deg;"	    +'<br /><b>Abscisse du point "Bouge moi" =</b>'+ gtan.X().toFixed(2)	    +'<br /><b>Nombre dérivé =</b>'+((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X())).toFixed(2)	    +'<br /><b>Équation de la tangente :</b><br /> y='+ ((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X())).toFixed(2)+'x	    +'+(-((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X()))*ptan.X()+ptan.Y()).toFixed(2);	  }],{anchorX:'right', anchorY:'top',cssClass:'jsx',fontSize:12});	var urlchenille = "$val1/chenille2.png";	brd.create('image',[urlchenille,[-1,0], [2,2] ]);	var start = 0,	      end = $val17,	      x = start,	      step = 0.2;	      turtle = brd.create('turtle', [x, ff(x)]);	           var moveForward = function() {	           if (n>0) {brd.removeObject(imm);}	           /*chronophotographique*/	           if(n%4==0){	           immm=brd.create('image',[urlchenille,[x-1,ff(x)], [2,2] ]);	           var tt=brd.create('transform',[Math.atan(ffp(x)), x,ff(x)],{type:'rotate'});	           tt.bindTo(immm);}	           /*trajectoire de l'image*/	           imm= brd.create('image',[urlchenille,[x-1,ff(x)], [2,2] ]);	           trot=brd.create('transform',[Math.atan(ffp(x)), x,ff(x)],{type:'rotate'});	           trot.bindTo(imm);	             x=x+step;	             n=n+1;	             if (x>end) {/*brd.removeObject(imm);*/n=0;x=start;return;}	             turtle.setPos([x,ff(x)]);	           setTimeout(moveForward, 100);	           };	           turtle.hideTurtle();	            
+tmp0=$slib_out
+val39=$(tmp0)
+tmp=!trim reply1,reply2,reply3
+val40=!translate internal $	\
+$ to ;; in $tmp
+dynsteps=yes
+oefsteps=$val40 
+nextstep=!nosubst $val40 
+!readproc oef/steps.proc
+replytype1=range
+replyoption1=nonstop 
+replyname1=
+replygood1=!rawmath $val28-0.1,$val28+0.1,$val28
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=
+replygood2=$[$val28]
+replytype3=radio
+replyoption3=nonstop 
+replyname3=
+replygood3=1;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div id="boiteg">	<img src="$val1/montagnesrusses.jpg" alt="Pub pour les montagnes russes" />	</div>	<div id="boited">	<img src="$val1/montagnesrusses3.jpg" alt="Manège" />	</div>	<p class="problematique"> $val35</p>	<div class="enonce">$val36 </div>	<p class="problematique"> À quel endroit peut-on raccorder les deux portions de voie sans point	 anguleux sans briser la courbure ?</p>	<br />	<div class="center">	<a class="bouton" onclick="moveForward()"> Animation</a>	</div>	<br />	$val39	<div class="question">	<div class="etape">Essai $m_step</div>	Effectuer une méthode permettant de déterminer l'abscisse du point de raccordement des deux parties de voies.	<ul>	
+!if $m_step>=2 and $m_sc_reply1=0 
+$()<li>En bougeant le point "Tourne moi", réaliser un angle de $val20 °.</li> 
+!endif
+$()	
+!if $m_step>=3 and $m_sc_reply1=0 
+$()<li>En bougeant le point "Déplace moi", placer la droite verte	 pour que la courbe et la droite soient raccord sans point anguleux.</li> 
+!endif
+$()	
+!if $m_step>=4 and $m_sc_reply1=0 
+$()<li>En déplaçant le point "Bouge moi", placer la droite bleu	 sur la droite verte.</li> 
+!endif
+$()	
+!if $m_step>=5 and $m_sc_reply1=0 
+$()<li>Lire l'abscisse du point "Bouge moi".</li> 
+!endif
+$()	
+!if $m_sc_reply1=1 
+$()Graphiquement, la valeur de l'abscisse est : 
+!insmath x
+$()=$m_reply1 
+!endif
+$()	</ul>	<div class="wimscenter"> 
+!insmath x=
+$() 
+!read oef/embed.phtml reply1,4 
+$() à 0,1</div>	Une manière plus formelle de résoudre la problèmatique est d'utiliser la fonction dérivée <span class="unbreakable">
+!insmath f'(x) = $val15
+$().</span>	 Puis chercher les valeurs de 
+!insmath x
+$() pour lesquels 
+!insmath f'(x)
+$() est égal au nombre dérivé.	<ul>	
+!if $m_step>=2 and $m_sc_reply2=0 
+$()<li>Résoudre l'équation : 
+!insmath $val15
+$()=-$val24</li> 
+!endif
+$()	
+!if $m_step>=3 and $m_sc_reply2=0 
+$()<li>Résoudre l'équation : 
+!insmath $val15
+$()+$val24=0</li> 
+!endif
+$()	
+!if $m_step>=4 and $m_sc_reply2=0 
+$()<li>Déterminer les valeurs de a, b et c en identifiant avec l'équation 
+!insmath ax^2+bx+c=0
+$().</li> 
+!endif
+$()	
+!if $m_step>=5 and $m_sc_reply2=0 
+$()<li>Après identification, on détermine : a=-$val10, b=$val11 et c=$val24</li> 
+!endif
+$()	
+!if $m_step>=6 and $m_sc_reply2=0 
+$()<li>La valeur de 
+!insmath Delta
+$() est donc de : 
+!insmath Delta=$val32
+$()</li> 
+!endif
+$()	
+!if $m_step>=7 and $m_sc_reply2=0 
+$()<li>Utiliser les formules suivantes : 
+!insmath x_1 = \frac{-b-\sqrt{\Delta}}{2a} \quad et \quad x_2 = \frac{-b+\sqrt{\Delta}}{2a}
+$()</li> 
+!endif
+$()	</ul>	<div class="wimscenter"> 
+!insmath x=
+$() 
+!read oef/embed.phtml reply2,4 
+$() à 0,01</div>	 Le résultat trouvé précédemment est-il pertinent :  
+!read oef/embed.phtml reply3 
+$()	</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step=2 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=3 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=4 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=5 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=6 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=7 and $m_sc_reply1=0)
+val40= reply1,reply2
+!endif
+
+!ifval ($m_step=2 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_step=3 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_step=4 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_step=5 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_step=6 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_step=7 and $m_sc_reply1=1)
+val40= reply2
+!endif
+
+!ifval ($m_sc_reply1=1 and $m_sc_reply2=1)
+val40=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,11,15,20,24,32,35,36,39
+embedcnt=3

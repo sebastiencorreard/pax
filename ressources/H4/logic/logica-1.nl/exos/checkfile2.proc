@@ -1,0 +1,104 @@
+goback=0
+score=0
+extra=$empty
+n=$counter
+GGG=$(answer$n)
+AAA=$(reply$n)
+
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+AAA=!lower $(reply$n)
+GGG=!lower $(answer$n)
+AAA=!nospace $AAA
+GGG=!nospace $GGG
+
+chkA=!replace internal <=> by @ in $AAA
+!if @ isin $chkA
+ chkG=!replace internal <=> by @ in $GGG
+ !if @ isin $chkG
+  maxscore=1
+ !else
+  maxscore=0
+  ex1=blahblah dan-en-alleen-dan
+ !endif
+ !goto KLAAR
+!endif
+
+chkA=!replace internal => by @ in $AAA
+!if @ isin $chkA
+ chkG=!replace internal => by @ in $GGG
+ !if @ isin $chkG
+  maxscore=1
+ !else
+  maxscore=0
+  ex1=blahblah als dan
+ !endif
+ !goto KLAAR
+!endif
+
+chkA=!replace internal or by @ in $AAA
+!if @ isin $AAA
+ chkG=!replace internal or by @ in $GGG
+ !if Q isin $GGG
+  chkA=!replace internal or by , in $AAA
+  chkG=!replace internal or by , in $GGG
+  !if $(chkA[1])$(chkA[2]) issametext $(chkG[1])$(chkG[2]) or $(chkA[1])$(chkA[2]) issametext $(chkG[2])$(chkG[1])   
+   maxscore=1
+  !else
+   ex1=blahblah or
+  !endif
+ !else
+  maxscore=0
+  ex1=blahblah or niet in antwoord
+ !endif
+  !goto KLAAR
+!endif 
+
+chkA=!replace internal and by @ in $AAA
+!if @ isin $AAA
+ chkG=!replace internal and by @ in $GGG
+ !if Q isin $GGG
+  chkA=!replace internal and by , in $AAA
+  chkG=!replace internal and by , in $GGG
+  !if $(chkA[1])$(chkA[2]) issametext $(chkG[1])$(chkG[2]) or $(chkA[1])$(chkA[2]) issametext $(chkG[2])$(chkG[1])   
+   maxscore=1
+  !else
+   ex1=blahblah and
+  !endif
+ !else
+  maxscore=0
+  ex1=blahblah and niet in antwoord
+ !endif
+  !goto KLAAR
+!endif 
+
+ca=!exec toascii $AAA
+cg=!exec toascii $GGG
+!if $AAA issametext $GGG or $ca=$cg
+ maxscore=1
+!else
+ maxscore=0
+ ex1=blah
+!endif
+
+:KLAAR
+
+
+
+!if $maxscore>0.9
+ remark$n=$OK
+!else
+ !if $maxscore>0.5
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+remark$n=$(remark$n)<br />$ex1<br />$ex2
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

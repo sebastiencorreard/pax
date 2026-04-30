@@ -1,0 +1,124 @@
+n=$counter
+!if $counter=1
+    mathview=0
+    image=0
+    !if $total_exos > 3
+	total_exos=3
+    !endif
+    checkfile=$checkdir/new_number.proc
+    make_tr=1
+    rounding=1
+    cols=6
+    a=!randint 2,20
+    p1=!randint 2,20
+    p=$[10*$p1]
+    g1=$[round($a*$p/50)]
+    g2=$[round($a*$p/30)]
+    c=!randint $g1,$g2
+    c=$[10*$c]
+    b=$[2*$a*$p - $c]
+
+    prijs_max=$[round($b/(10*$a))]
+    garantie_prijs=!randint $[$p1+1],$[$prijs_max - 1]
+    garantie_prijs=$[10*$garantie_prijs]
+    k=!randint 1,6
+    ff=!mathmlmath \left\{\begin{array}{lll} Q_{v} & = & $a \cdot \bf{P} + $b \\ Q_{a} & = & $a \cdot \bf{P} - $c \end{array}\right.
+    markt=!item $k of aardappelmarkt,suikerbietenmarkt,voedermaismarkt,voederbietenmarkt,graanmarkt,koolzaadmarkt
+    produkt=!item $k of aardappels,suikerbieten,mais,voederbieten,graan,koolzaad
+    ss=De Europese $markt kent de volgende vraag- en aanbodfuncties:<br /> $ff <br />P is de prijs in &euro;'s per ton, Q is in tonnen $produkt.
+    
+    question1=$ss <br />Bereken de evenwichtsprijs en de daarbij horende hoeveelheid en marktomzet $produkt. 
+    question2=$ss <br />De Europese Commissie garandeert een prijs van $garantie_prijs &euro; per ton $produkt.<br /><br />Bereken bij deze prijs de hoeveelheden (in tonnen) die worden aangeboden en verkocht. 
+    question3=$ss <br />De Europese Commissie garandeert een prijs van $garantie_prijs &euro; per ton $produkt.<br />Bereken de kosten voor de Europese Commissie (afgezien van de opslagkosten). 
+    
+    q=$[$a*$p - $c]
+    o=$[$p*$q]
+    answer1=$p\
+    $q\
+    $o
+    var1=1,1,1
+    var2=1,1,1
+    textanswer1=<ul><li>Bij de evenwichtsprijs geldt: Q<sub>a</sub> = Q<sub>v</sub>.<br />Dus $a&times;P &minus; $c = &minus;$a &times;P + $b <br />$[2*$a]&times;P = $[$b+$c]<br />P = &euro; $p</li><li>Deze evenwichtsprijs P invullen in de formules voor Q<sub>a</sub> of Q<sub>v</sub><br />Q = $a &times; $p &minus; $c = $q ton</li><li>De marktomzet is prijs&times;hoeveelheid.<br />P &times; Q = $p &times; $q = &euro; $o </li></ul>
+        
+    aanbod=$[$a*$garantie_prijs - $c]
+    vraag=$[-1*$a*$garantie_prijs + $b]
+    answer2=$aanbod\
+    $vraag
+    textanswer2=<ul><li>De garantieprijs &euro; $garantie_prijs invullen in de formules.<br />Het bijhorende aanbod is dus:<br />Q<sub>a</sub> = $a &times; $garantie_prijs &minus; $c = &euro; $aanbod</li><li>De bijhorende vraag :<br />Q<sub>v</sub> = &minus;$a &times; $garantie_prijs + $b = &euro; $vraag</li></ul>
+    
+    
+    overschot=$[$aanbod - $vraag]
+    kosten=$[$overschot*$garantie_prijs]
+    answer3=$kosten
+    textanswer3=Het overschot (surplus) is:  aanbod &minus; vraag.<br />Surplus = $aanbod &minus; $vraag = $overschot tonnen $produkt.<br />Dit overschot moet worden opgekocht voor &euro; $garantie_prijs per ton.<br />Dus de kosten voor de Europese Commissie zijn: $garantie_prijs &times; $overschot = &euro; $kosten
+    !if $teaching =1
+     f1=($b/$a)-x/$a
+     f2=(1/$a)*x+$c/$a
+     xmax=$[$b+100]
+     xmin=$[-1*$xmax/20]
+     y1=!evalsubst x=0 in $f1
+     y2=!evalsubst x=0 in $f2
+     y3=!evalsubst x=$xmax in $f1
+     y4=!evalsubst x=$xmax in $f2
+     ymin1=$[min($y1,$y2)]
+     ymax1=$[max($y1,$y2)]
+     ymin2=$[min($y3,$y4)]
+     ymax2=$[max($y3,$y4)]
+     ymin=$[min($ymin1,$ymin2)]
+     ymax=$[min($ymax1,$ymax2)]
+     ymax=!evalsubst x=$xmax in $f2
+     canvasimage=!exec canvasdraw\
+     size 300,300\
+     bgcolor $wims_bgcolor\
+     xrange $xmin,$xmax\
+     yrange $ymin,$ymax\
+     opacity 255,255\
+     legend De europese $markt\
+     legendcolors blue\
+     fontfamily italic 16px Ariel\
+     xlabel hoeveelheid\
+     ylabel prijs\
+     axis\
+     axisnumbering\
+     grid $xmax,$ymax,black,10,10,6,black\
+     arrow 0,0,$xmax,0,8,blue\
+     arrow 0,0,0,$ymax,8,blue\
+     segment 0,$y1,$b,0,green\
+     segment 0,$y2,$xmax,$ymax,red\
+     intooltip <img src='$gifdir/canvas.png' alt='TIP' />\
+     precision 1\
+     mouse red,18
+
+exotext=$ca
+    !endif
+!endif
+
+!if $counter=1
+    inputs=3
+    ex1=&euro;
+    ex2=ton
+    ex3=ton
+    description=De evenwichtsprijs,De hoeveelheid,De omzet
+!else
+    !if $counter=2
+	inputs=2
+	ex1=ton
+	ex2=ton
+	description=Hoeveelheid aanbod,De gevraagde hoeveelheid
+	var1=1,1
+	var2=1,1
+    !else
+	inputs=1.1
+	make_tr=1
+	ex1=&euro;
+	description=De kosten voor de Europese Commissie
+	A1=!item 1 of $reply2
+	A2=!item 1 of $reply2
+	exotext=<em>Je antwoord voor vraag 2 (aanbod &amp; vraag ) was:</em>aanbod $A1 ton ; vraag $A2 ton
+	var1=1
+	var2=1
+    !endif
+!endif
+
+
+

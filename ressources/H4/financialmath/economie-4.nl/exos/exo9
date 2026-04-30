@@ -1,0 +1,93 @@
+# Budgetresultaten1 II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+inputs=3
+cols=10
+rounding=100
+roundingtext=Geef je antwoorden in twee decimalen nauwkeurig op.<br />Let op: als er sprake is van verlies, noteer dit dan als een negatieve winst !
+var1=yes
+checkfile=$checkdir/number.proc
+nu=!date +%Y
+jaar=$[$nu-1]
+
+totaal=0.4,5,10,15,20\
+0.5,2,4,6,8,10,12,14,16,18\
+0.6,5,10,15,20\
+0.8,5,10,15,20\
+0.2,5,10,15,20,25,30,35\
+0.3,10,20,30,40
+
+tot=!randline $totaal
+
+okv=!item 1 of $tot
+rest=!item 2 to -1 of $tot
+perc1=!randitem $rest
+okn=$[$okv*($perc1 + 100)/100]
+fac1=!randint 8,12
+ip=$[$fac1*$okv]
+fac2=!randint 12,16
+vp=!exec moneyprint $[$ip*$fac2/10]
+#
+afzetb=!randint 40,80
+afzetw=!randint 40,80
+!if $afzetb = $afzetw
+    afzetb=$[$afzetb+10]
+!endif
+afzetb=$[1000*$afzetb]
+afzetw=$[1000*$afzetw]
+verkoopresultaat=$[$afzetw*($vp - ($ip + $okv))]
+verwacht=$[$ip*$afzetw]
+perc4=!randint 4,12
+plus=$[$verwacht*$perc4/100]
+pm=!randitem +,-
+inkoopwaarde=$[100*(round(($verwacht $pm $plus)/100))]
+!if $verwacht < $inkoopwaarde
+    nadeel1=nadeel
+!else
+    nadeel1=voordeel
+!endif
+
+deel1=$[$verwacht - $inkoopwaarde]
+verwacht2=$[$okv*$afzetw]
+werkelijk=$[$okn*$afzetw] 
+deel2=$[$verwacht2 - $werkelijk]
+!if $deel2<0
+    nadeel2=nadeel
+!else
+    nadeel2=voordeel
+!endif
+
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+tabel=!subst <table class=\'balans_2\'><caption>$bedrijf</caption><tr><th>Voorcalculatie</th><th>&nbsp;</th><th>Nacalculatie</th><th>&nbsp;</th></tr><tr><td>inkoopprijs</td><td>&euro; $ip / kg</td><td>totale inkoopwaarde</td><td> &euro; $inkoopwaarde</td></tr><tr><td>overheadkosten</td><td>&euro;&nbsp;<b>?</b> / kg </td><td>overheadkosten</td><td>&euro; $okn / kg<br />(dit is $perc1 % meer dan begroot)</td></tr><tr><td>begrote afzet</td><td>$afzetb kg</td><td>werkelijke afzet </td><td>$afzetw kg</td></tr></table>
+dingen=likeuren:grondstoffen,shampoos:terugvettende surfactants,wasmiddelen:zeolieten,was en reingingsmiddelen:surfactants,verven:pigmenten,verven:bindmiddelen,parfums:citrusoli&euml;n
+ding=!randitem $dingen
+ding=!replace internal : by , in $ding
+produkt=!item 1 of $ding
+grondstoffen=!item 2 of $ding
+
+ss=Groothandelaar $bedrijf heeft zich gespecialiseerd in de verkoop<br /> van $grondstoffen voor $produkt.<br />Van deze groothandel is over $jaar het <span class="schaersvoorde_link">volgende bekend</span>.<br />Verder is gegeven dat het gerealiseerde verkoopresultaat &euro; $verkoopresultaat bedroeg.<br />Bereken aan de hand hiervan:<ol><li>Bereken de gemiddelde verkoopprijs per kg<br />die de groothandelaar in $jaar in rekening gebracht heeft</li><li>Bereken het in $jaar gerealiseerde budgetresultaat</li><li>Bereken de nettowinst mbv verkoopresultaat en het budgetresultaat</li></ol>
+
+description=Gemiddelde verkoopprijs,Budgetresultaat,Nettowinst
+ex1=&euro; / kg
+ex2=&euro;
+ex3=&euro;
+kp=$[$ip+$okv]
+tussen=$[$afzetw*($vp - ($ip + $okv))]
+ans1=$vp
+ans2=$[$deel1+$deel2]
+ans3=$[$tussen+$ans2]
+nettowinst=!rawmath $tussen + $ans2
+answer$n=$ans1,$ans2,$ans3
+question$n =<a onmouseover="return escape('$tabel')">$ss </a>
+helptext=$tabel<hr />$roundingtext
+spreek_deel1=$[abs($deel1)]
+spreek_deel2=$[abs($deel2)]
+
+textanswer$n=<ol><li><ul><li>Overheadkosten per kg : &euro;$okn / $[100+$perc1] &times; 100 = &euro; $okv </li><li>Dus de kostprijs is dan : &euro;$ip + &euro; $okv = &euro; $kp </li><li> De verkoopprijs : (<b>vp</b> &minus; $kp) &times; $afzetw = &euro;$verkoopresultaat $m_rightarrow <br /><b>vp</b> &minus; $kp = $[$verkoopresultaat/$afzetw] <br /> <b>vp</b> =$[$verkoopresultaat/$afzetw] + $kp = $vp</li><li>Dus de verkoopprijs per kg is : &euro; $vp</li></ul></li><li>Budgetresultaat inkoopprijs<ul><li>verwacht : $ip &times; $afzetw = &euro; $verwacht</li><li>werkelijk :&euro; $inkoopwaarde</li><li>Dus $nadeel1 van $spreek_deel1 &euro;</li></ul>Budgetresultaat overheadkosten<ul><li>verwacht : $okv &times; $afzetw = &euro; $verwacht2</li><li>werkelijk :$okn &times; $afzetw = &euro; $werkelijk</li><li>Dus $nadeel2 van $spreek_deel2 &euro;</li></ul>Budgetresultaat totaal : $deel1 + $deel2 = &euro; $ans2</li><li>Nettowinst : $nettowinst = &euro; $ans3</li></ol>

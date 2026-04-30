@@ -1,0 +1,115 @@
+!! no need for translation
+#equilateral triangle
+
+
+
+check=0
+type=!lower $type
+tot=0
+
+!!! Extract values of all user points
+
+ptcnt=0
+!for t in $type
+ !if point isin $t
+    !advance ptcnt
+    !advance tot
+    t=!replace internal @ by , in $t
+      x$ptcnt=!item 3 of $t
+    y$ptcnt=!item 4 of $t
+ !endif
+!next
+
+!!! check number of required points
+
+nb=!itemcnt $ptnames
+!if $tot < $nb
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+!if $tot > $nb
+REMARK=!record 3 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+
+!! distance from A to B
+dAB=$[sqrt(($x1-$x2)^2+($y1-$y2)^2)]
+!! distance from A to C
+dAC=$[sqrt(($x1-$x3)^2+($y1-$y3)^2)]
+!! distance from B to C
+dBC=$[sqrt(($x2-$x3)^2+($y2-$y3)^2)]
+
+
+dist1=$[abs($dAB-$dAC)]
+dist2=$[abs($dAB-$dBC)]
+
+!!! check number of circles
+circ=0
+!for t in $type
+  !if circle isin $t
+     !advance circ
+  !endif
+!next t
+
+!if $debug=1
+debug_data=!append line <li>circ=$circ</li><li>AB=$dAB</li><li>AC=$dAC</li><li>BC=$dBC</li><li>dist1=$dist1 dist2=$dist2</li> to $debug_data
+!endif
+
+!ifval ($dist1<$precision and $dist2<$precision) 
+!increase check 
+!endif
+
+!ifval ($dist1<0.01 and $dist2<0.01) 
+#the precision is very good : the student must used circles and his construction is what I want to have.
+!increase check 
+!endif
+
+!if $check >= 2
+#All is right !
+  !if $circ < 2
+#but the student didn't build two  circles
+     HINT=!record 72 of remarks.$taal
+     goback=1
+  !else
+     score=$[$score + 1]
+     REMARK=!record 23 of remarks.$taal
+     HINT=$OK
+  !endif
+!else
+  !if $check = 1
+      score=$[$score+0.3]
+      REMARK=!record 24 of remarks.$taal
+
+      !if $circ< 2
+#the student didn't build twocircle
+            HINT=!record 72 of remarks.$taal
+            goback=1
+     !else
+#there are circles, but maybe points which are not "on the circles"
+          HINT=!record 22 of remarks.$taal
+     !endif
+      HINT=$HINT $BOK
+  !else
+     REMARK=!record 25 of remarks.$taal
+    !if $circ <2
+#the student didn't build two circles
+        HINT=!record 72 of remarks.$taal
+         goback=1
+      !else
+#there are circles, but maybe aren't the points right-named
+         HINT=!record 21 of remarks.$taal
+       !endif
+      HINT=$HINT $NOK
+    !endif
+!endif	
+
+!if $debug=1
+debug_data=!append line <li>circlecount circ=$circ</li><li>the HINT=$HINT</li> to $debug_data
+!endif
+    

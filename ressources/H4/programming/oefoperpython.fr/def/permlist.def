@@ -1,0 +1,170 @@
+!set title=Permuter une liste
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=print(a)	print(b)
+val7=
+val6=print(liste)
+val7=Le dernier bouton permet l'indentation du texte si nécessaire.
+val8=\#Initialisation des variables#	\###	\###	\###	\###	\#Permutation des variables#	\###	\###	\###	\###	\###	\#Fin de la permutation des variables#	\#Affichage du résultat#	$val6	\#Fin Affichage#
+tmp=!trim ambiance,neat;3024-night,3024-day
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=À l'aide des différentes instructions, construire le programme suivant écrit en langage Python.
+val11=Sélectionner les 3 symboles dièses (#) et cliquer sur les	 différentes instructions sous forme de boutons. $val7	<br>N'oublier pas de cliquer sur "jouer le code" avant de valider.
+tmp0=!randint 1, 2
+
+val12=$[rint($(tmp0))]
+val13=2,3,5
+tmp=!nonempty items $val13
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+
+!ifval ($val12==1)
+tmp0=!randint 100, 200
+
+val15=$[rint($val14*$(tmp0))]
+!else
+tmp1=!randint 100, 200
+
+val15=$[rint($val14*$(tmp1)+1)]
+!endif
+
+!ifval ($val12==1)
+tmp0=!randint 100, 200
+
+val16=$[rint($val14*$(tmp0)+1)]
+!else
+tmp1=!randint 100, 200
+
+val16=$[rint($val14*$(tmp1))]
+!endif
+tmp0=!randint 20, 30
+
+val17=$[rint($(tmp0))]
+tmp0=!shuffle $val17
+
+val18=$(tmp0)
+
+!ifval ($val12==1)
+val19=tmp=liste[1]
+!else
+val19=tmp=liste[nn[2]]
+!endif
+
+!ifval ($val12==1)
+val20=for(x=1,nn[2]-1,liste[x]=liste[x+1])
+!else
+val20=forstep(x=nn[2],2,-1,liste[x]=liste[x-1])
+!endif
+
+!ifval ($val12==1)
+val21=liste[nn[2]]=tmp
+!else
+val21=liste[1]=tmp
+!endif
+t_=!replace internal \( by ( in liste=[$val18];	nn=matsize(liste);	$val19;	$val20;	$val21;
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+t_=!replace internal \( by ( in print(liste);
+tmp0=!exec pari $t_
+
+val23=[$(tmp0)]
+val8=\#Initialisation des variables#	liste=[$val18]	\###	\#Permutation des variables#	\###	\###	\###	\###	\#Fin de la permutation des variables#	\#Affichage du résultat#	$val6	\#Fin Affichage#
+val24=Permutation circulaire d'une liste
+
+!ifval ($val12==1)
+val25=\longleftarrow
+!else
+val25=\longrightarrow
+!endif
+val26=\(\left \|	\begin{array}{c c c}	 tmp & $val25 & list[0] \\ list[0] & $val25 & list[1] \\ list[1] & $val25 & list[2] \\ \vdots & $val25 & \vdots \\ list[i-1] & $val25 & list[i] \\ \vdots & $val25 & \vdots \\ list[n] & $val25 & tmp	\end{array}	\right.	\)
+
+!ifval ($val12==1)
+val27=a->i->b->e->h->f->g->c->d->a
+!else
+val27=a->d->c->g->f->h->e->b->i->a
+!endif
+val28=layout="circo";	bgcolor= grey90	  a [color=black,shape=box,style=rounded,label="list[0]"];	  b [color=black,shape=box,style=rounded,label="list[n]"];	  c [color=black,shape=box,style=rounded,label="list[2]"];	  d [color=black,shape=box,style=rounded,label="list[1]"];	  e [color=black,shape=box,style=rounded,label="..."];	  f [color=black,shape=box,style=rounded,label="list[i-1]"];	  g [color=black,shape=box,style=rounded,label="..."];	  h [color=black,shape=box,style=rounded,label="list[i]"];	  i [color=black,shape=box,style=rounded,label="tmp"];	  $val27 [color=black, arrowsize=2];
+val29=$val28
+!readproc slib/draw/graphviz digraph { $val29	},png dot url 
+tmp0=$slib_out
+val30=$(tmp0)
+val31=Écrire un script qui permet de réaliser une permutation circulaire des éléments	 d'une liste en utilisant une variable tampon.	<br> La liste suivante est donnée : \(list=\left [ $val18 \right] \)	<br> On souhaite permuter les éléments de la liste	 \(list[i]\) de cette liste \(list\). En langage naturel, on écrit :	 $val26	 <br>Cette permutation circulaire est représentée par le schéma suivant :	 $val30
+val32=instruction=[n=len(liste),n=len(liste)-1,tmp=liste[0],liste[0]=tmp,tmp=liste[1],liste[1]=tmp,for i in range(n-1):,for i in range(n-1,0,-1):,for i in range(n-1,1,-1):,for i in range(n):,for i in range(n,0,-1):,for i in range(n,1,-1):,liste[i]=liste[i+1],liste[i+1]=liste[i],liste[i]=liste[i-1],liste[i-1]=liste[i],liste[n-1]=tmp,tmp=liste[n-1],liste[n]=tmp,tmp=liste[n],&#32;&#32;]
+replytype1=runcode
+
+replyoption1=precision=1000 $val32 
+replyname1=
+replygood1=[print,[$val23:]]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">$val24</p>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val10	<div class="question">	$val31	</div>	<div class="wims_instruction">$val11</div>	</div>	<div>	 
+!read oef/embed.phtml reply1,[python,[$val8]];[id1,canvas init readonly fullscreen theme=[$(val9[$m_nbtheme;])] $val32,Jouer le code !] 
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,10,11,24,31,32
+embedcnt=1

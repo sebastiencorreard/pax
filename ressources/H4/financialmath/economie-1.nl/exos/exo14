@@ -1,0 +1,97 @@
+# Macro-economie I
+n=$counter
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding <1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=1
+questiontype=0
+embed=1
+cols=20
+rows=1
+
+mtext=Keynesiaanse basismodel:<ul><li>C = particuliere consumptie</li><li>Y = nationaal inkomen</li><li>S = spaargeld</li><li>I = inversteringsvraag van bedrijven </li><li>W = nationaal product</li><li>EV = effectieve vraag</li><li>We veronderstellen dat I onafhankelijk is van het nationaal inkomen Y</li></ul>
+
+c=!randint 10,18
+c=$[$c/20]
+b=!randint 2,18
+b=$[5*$b]
+i=!randint 4,18
+i=$[5*$i]
+bi=$[$b+$i]
+cc=$[1-$c]
+plaatje=$empty
+!if $R=1
+    extex=$empty
+    mathview=0
+    checkfile=exos/precheck1.proc
+    ss=Gegeven is het onderstaande model van een <kbd>gesloten economie</kbd> zonder collectieve sector.<br />Bereken hiervan het <kbd>evenwichtsinkomen</kbd>.
+    answer$n=$[($bi)/($cc)]
+    ans=$[(round(100*$(answer$n)))/100]
+    !if $ans != $(answer$n)
+	tex=\simeq $ans
+    !else
+	tex= \,=\,$ans
+    !endif
+    formula$n=\left[ \begin{array}{l} \textrm{Y} = \textrm{C} + \textrm{I}  \\ \textrm{C} = $c \cdot \textrm{Y} + $b \\ \textrm{I} = $i \end{array} \right.
+
+    texanswer$n=\left[ \begin{array}{l} \textrm{Y} = \textrm{C} + \textrm{I} \\ \textrm{Y} = $c \cdot \textrm{Y} + $b + $i \\ \left(1 - $c\right) \textrm{Y} = $bi \\ $cc \textrm{Y} = $bi \\ \overline{\textrm{Y}} = \frac{$bi}{$cc} $tex \end{array} \right.
+
+!else
+    !if $R=2
+	extex=$empty
+        mathview=0
+	checkfile=exos/precheck1.proc
+	ss=Gegeven is het onderstaande model van een <kbd>gesloten economie</kbd> zonder overheid.<br />Bereken de <kbd>evenwichtshoogte</kbd> van het nationaal inkomen.   
+	answer$n=$[($bi)/$cc]
+        ans=$[(round(100*$(answer$n)))/100]
+	!if $ans != $(answer$n)
+	    tex=\simeq $ans
+	!else
+	    tex= \,=\,$ans
+	!endif
+
+	formula$n=\left[ \begin{array}{l} \textrm{S} = $cc \textrm{Y} - $b  \\ \textrm{I} = $i \\ \textrm{S} = \textrm{I} \end{array} \right.
+
+	texanswer$n=\left[ \begin{array}{l} \textrm{S} = \textrm{I} \\ $cc \textrm{Y} - $b = $i \\  $cc \textrm{Y} = $i + $b \\ \overline{\textrm{Y}} = \frac{$bi}{$cc} $tex \end{array} \right.
+
+    !else
+	plaatje=<img src=\'$module_dir/gifs/exo14.jpg\' alt=\'plaatje\' />
+	keuze=!randint 0,1
+	mathviewpanel=$module_title:C:S:Y:I:EV:W:
+	mathview=4
+	checkfile=$checkdir/equation.proc
+	keuze=0
+	!if $keuze=1
+	    ss=Gegeven is het onderstaande model van een <kbd>gesloten economie</kbd> zonder collectieve sector.<br />Geef de bijhordende <kbd>spaarvergelijking</kbd>.
+	    arglist=S
+	    varlist=Y
+	    answer$n=$cc*Y-$b
+	    formula$n=\left[ \begin{array}{l} \textrm{Y} = \textrm{C} + \textrm{I}  \\ \textrm{C} = $c \cdot \textrm{Y} + $b \\ \textrm{I} = $i \end{array} \right.
+	    
+	    texanswer$n=\left[ \begin{array}{l} \textrm{Y} = \textrm{C} + \textrm{I} \rightarrow \textrm{Y} - \textrm{C} = \textrm{I} \\ \textrm{I} = \textrm{S}  \rightarrow \textrm{S} = \textrm{Y} - \textrm{C} \\ \textrm{S} =  \textrm{Y} - ($c \cdot \textrm{Y} + $b) \\ \textrm{S} =  $cc \textrm{Y} - $b \end{array} \right.
+	    
+	    extext=Geef je antwoord als een vergelijking, zoals bijvoorbeeld :<kbd><b>S = 0.125*Y + 432</b></kbd>
+	!else
+	    ss=Gegeven is het onderstaande model van een <kbd>gesloten economie</kbd> zonder collectieve sector.<br />Bepaal de <kbd>consumptie vergelijking</kbd>.
+	    arglist=C
+	    varlist=Y
+	    answer$n=$c*Y+$b
+	    formula$n=\left[ \begin{array}{l} \textrm{S} = $cc \textrm{Y} - $b  \\ \textrm{I} = $i \\ \textrm{S} = \textrm{I} \end{array} \right.
+	    
+	    texanswer$n=\left[ \begin{array}{l} \textrm{Y} = \textrm{C} + \textrm{I} \rightarrow \textrm{C} = \textrm{Y} - \textrm{I} \\ \textrm{C} = \textrm{Y} - \textrm{S}  \:\:\textrm{want I = S} \\ \textrm{C} = \textrm{Y} - \left($cc\textrm{Y} - $b\right) \\ \textrm{C} = $c \textrm{Y} + $b \end{array} \right.
+	    
+	    extext=Geef je antwoord als een vergelijking, zoals bijvoorbeeld :<kbd><b>C = 0.125*Y + 432</b></kbd>
+	!endif
+    !endif
+!endif
+
+helptext=$etext $mtext $plaatje
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+

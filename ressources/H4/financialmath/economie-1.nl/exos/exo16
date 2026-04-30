@@ -1,0 +1,92 @@
+# Macro-economie III
+# steps
+mathview=0
+math=0
+n=$counter
+checkfile=exos/precheck1.proc
+
+!if $rounding <1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $total_exos>3
+    total_exos=3
+!endif
+
+questiontype=0
+embed=0
+rows=1
+make_tr=1
+helptext=Keynesiaanse basismodel:<ul><li>C = particuliere consumptie</li><li>Y = nationaal inkomen</li><li>I = investeringsvraag van bedrijven </li><li>W = nationaal product</li><li>EV = effectieve vraag</li><li>A<sub>a</sub> = beroepsbevolking</li><li>K = kapitaalgoederen voorraad</li><li>a = gemiddelde arbeidsproductiviteit</li><li>k = gemiddelde kapitaal productiviteit</li><li>We veronderstellen dat I onafhankelijk is van het nationaal inkomen Y</li></ul>
+
+!if $counter=1
+    c=!randint 11,19
+    c=$[$c/20]
+    auto=!randint 10,140
+    invest=!randint 30,60
+    answer1=$[($auto + $invest)/(1 - $c)]
+    ans1=$[round($answer1)]
+
+    k=!randint 5,9
+    tot=!exec pari K=1/($k/2)\
+    printtex(K)
+    
+    kp=!line 1 of $tot
+    kp_tex=!line 2 of $tot
+
+    kmin=$[ceil(($ans1+10)/($kp))]
+    kmax=$[$kmin+1500]
+
+    kapitaal=!randint $kmin,$kmax
+    kapitaal=$[10*(round($kapitaal/10))]
+    
+    a=!randint 30,80
+    ap=$[$a*1000]
+    am=$[ceil(($kapitaal*$kp)/$a)]
+    amin=$[$am+1]
+    amax=$[$am+10]
+    arbeid=!randint $amin,$amax
+    
+    var5=Van een gesloten economie zonder collectieve sector is het volgende model gegeven:<br /><br /><table class="zebra_table_h2"><tr><th>Vraagblok</th><th>Aanbodblok</th></tr><tr><td><ul><li>C = $c Y + &euro;$auto miljard </li><li>I = &euro;$invest miljard</li><li>EV = C + I</li><li>Y = EV </li><li>W = Y</li></ul></td><td><ul><li>A<sub><small>a</small></sub> = $arbeid miljoen arbeidsjaren</li><li>K = &euro;$kapitaal miljard</li><li>a = &euro;$ap</li><li>k = $kp</li></ul></td></tr></table>
+    
+    texanswer1=\left[ \begin{array}{l} \\ \begin{array}{l} \textrm{EV = C + I} \\ \textrm{Y = EV}\end{array} \rightarrow \textrm{Y = C + I} \\ \\ \textrm{Y = $c Y + $auto + $invest} \\ \textrm{$[1-$c] Y = $[$auto + $invest]} \\ \\ \overline{\textrm{Y}} = \frac{$[$auto + $invest]}{$[1-$c]} = $answer1 \simeq $ans1 \: \textrm{miljard }\;\euro \end{array} \right.
+    
+    max_arbeid=$[$arbeid*$a]
+    max_kapitaal=$[$kapitaal*($kp)]
+    
+    answer2=$[min($max_arbeid,$max_kapitaal)]
+    texanswer2=\left[ \begin{array}{l} \textrm{Maximale productie volgens arbeid :} \\ $arbeid \times 10^{6} \times $ap =  $arbeid \times 10^{6} \times $a \times 10^{3} =  $max_arbeid \times 10^{9} = $max_arbeid  \: \textrm{miljard euro} \\ \\ \textrm{Maximale productie volgens kapitaal :} $kapitaal \: \textrm{ miljard} \times $kp_tex  = $max_kapitaal \: \textrm{ miljard euro} \\ \\ \textrm{De productiecapaciteit } = $answer2 \: \textrm{ miljard euro} \end{array} \right.
+    
+    werk_p=$[$max_kapitaal/$a]
+    WP=$[(round(100*$werk_p))/100]
+    werk_r=$[$ans1/$a]
+    WR=$[(round(100*$werk_r))/100]
+    Uc=$[$werk_p - $werk_r]
+    Us=$[$arbeid - $werk_p]    
+    answer3=$Uc,$Us
+    texanswer3=\left[ \begin{array}{l} \textrm{De werkgelegenheid bij de productiecapaciteit : } \\ \frac{$max_kapitaal \times 10^{9}}{$a \times 10^{3}} \times \: 1 \:\textrm{ arbeidsjaar} = \\ $werk_p \times 10^{6} \simeq $WP \: \textrm{ miloen arbeidsjaren} \\ \textrm{De feitelijke werkgelegenheid : } \frac{$ans1 \times 10^{9}}{$a \times 10^{3}} \times \: 1 \:\textrm{ arbeidsjaar} =\\ $werk_r \times 10^{6} \simeq $WR \: \textrm{ miloen arbeidsjaren} \\ \textrm{De conjuncturele werkloosheid :}  $WP - $WR = $[$WP - $WR] \: \textrm{ miljoen arbeidsjaren} \\ \textrm{De structurele werkloosheid : } $arbeid - $WP = $[$arbeid - $WP] \: \textrm{ miljoen arbeidsjaren}  \end{array} \right.
+    
+!endif
+
+!if $counter=1
+    ss=Bereken het evenwichtsinkomen.(<small>Geef je antwoord in miljarden &euro;'s</small>)
+    ex1=&times;10<sup>9</sup>&nbsp;&euro;
+    description=Evenwichtsinkomen
+    inputs=1.1
+    cols=10
+!else
+    !if $counter=2
+	ss=Bereken de productiecapaciteit.(<small>Geef je antwoord in miljarden &euro;'s</small>)
+	ex1=&times;10<sup>9</sup>&nbsp;&euro;
+	
+	description=Productiecapaciteit
+    !else
+	ss=Bereken de totale werkloosheid en splits deze in een conjuncturele en een structureel gedeelte.<br />Geef je antwoord In miljoenen arbeidsjaren, afgerond op twee decimalen.
+	ex1=&times;10<sup>6</sup>&nbsp;arbeidsjaren
+	ex2=&times;10<sup>6</sup>&nbsp;arbeidsjaren
+	description=Conjuncturele werkloosheid,Structurele werkloosheid
+	inputs=2
+    !endif
+!endif
+
+question$n=$var5 <hr /> $ss <br /><a onmouseover="return escape('$helptext')"><u>Keynesiaanse basismodel</u></a>

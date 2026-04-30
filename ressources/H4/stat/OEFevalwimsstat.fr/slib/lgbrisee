@@ -1,0 +1,43 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=graphe d'une serie statistique
+slib_parms=liste\
+,liste des coordonnees des points a tracer
+
+slib_author=Fabrice Guerimand
+slib_out=Les données pour insdraw
+!exit
+
+
+:proc
+slib_input=!item 3 to -1 of $wims_read_parm
+s_nb=!itemcnt $slib_input
+s_nb=$[$s_nb/2]
+s_xmax=0
+s_ymax=0
+!for s_k=1 to $s_nb
+ s_tmp=!item $s_k*2-1 of $slib_input
+ s_xmax=$[max($s_xmax,$(s_tmp))]
+ s_tmp=!item $s_k*2 of $slib_input
+ s_ymax=$[max($s_ymax,$(s_tmp))]
+!next k
+s_xmax=$[$s_xmax+1]
+s_ymax=$[$s_ymax+1]
+s_t1=!item 1 of $wims_read_parm
+s_t2=!item 2 of $wims_read_parm
+s_posx=1
+slib_out=range -1,$s_xmax,-3,$s_ymax\
+parallel 0,0,$s_xmax,0,0,1,$s_ymax,grey\
+parallel 0,0,0,$s_ymax,1,0,$s_xmax,grey\
+linewidth 2\
+parallel 0,-0.1,0,0.1,1,0,$s_xmax,black\
+parallel -0.1,0,0.1,0,0,1,$s_ymax,black\
+arrow -1,0,$s_xmax,0,15,black\
+arrow 0,-1,0,$s_ymax,15,black\
+text black,-0.5,-0.1,medium,O\
+text black,0.8,-0.1,medium,1\
+text black,-0.3,1.2,medium,1\
+polyline red,$slib_input\
+text black,$s_posx,-0.6,medium,$s_t1\
+text black,0.6,$s_ymax-0.5,medium,$s_t2

@@ -1,0 +1,158 @@
+checkfile=$checkdir/number.proc
+arglist=x
+# answer must be 'x=123'
+mathview=2
+cols=20
+rows=2
+image=0
+math=0
+embed=1
+questiontype=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+keuze=!randitem 1,0
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+ss=!record 62 of lang/remarks.$taal
+#@ Los op:<br><small><em>bereken dus de waarden van x</em><br>noteer bij meerdere oplossingen iets als:<br><em>x</em>=1 en <em>x</em>=2/3 of zo...<br>en bij breuken graag het antwoord vereenvoudigen.</small>
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+#    a^(x+b)+a^(c-x) = d
+#    a^x*a^b + a^c*a^-x = d
+#    a^(2x)*a^b + a^c = d*a^x
+#    a^b*a^(2x) - d*a^x + a^c = 0
+#    p=a^x
+#    
+#    (a^b)*p^2 - d*p + a^c = 0
+#    
+#    (mp-q)(rp-s)=0
+#    mr*p^2+(-qr-sm)*p+qs=0
+#    
+#    a^b=mr
+#    a^c=qs
+#    d=qr+sm
+#
+#    m=a^(b-f) r=a^f
+#    s=a^(c-g) q=a^g
+#    d=a^g*a^f+a^(c-g)*a^(b-f)
+
+    a=!randitem 2,3,4
+    b=!randitem 1,2,3,4,5
+    c=!randitem 1,2,3,4,5
+    f=!randitem 1,2,3
+    g=!randitem 1,2,3
+    h=$[$c+$b-$g-$f]
+    !if $h<0
+	c=$[$f+$g]
+    !endif
+    h=$[$c+$b-$g-$f]
+    j=$[$b+$c]
+    d=$[($a^($g+$f) + $a^($h))]
+    dis=(sqrt(($d)^2-4*$a^($j)))
+    formula$n= $a^{(x+$b)}+$a^{($c-x)}=$d
+    applettext=!nospace $a^(x+$b) + $a^($c-x)= $d ->
+    x1=$[log((($d) + $dis)/(2*$a^$b))/(log($a))]
+    x2=$[log((($d) - $dis)/(2*$a^$b))/(log($a))]
+    !ifval $x2=$x1
+	answer$n=$x1
+	texanswer$n=!texmath x = $x1
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=!texmath x_1 = $x1 \wedge x_2 = $x2
+    !endif
+ !exit
+!endif 
+
+!if $R=2
+    a=!randitem 2,3,4
+    b=!randitem 1,2,3,4,5
+    c=!randitem 1,2,3,4,5
+    f=!randitem 1,2,3
+    g=!randitem 1,2,3
+    h=$[$c+$b-($g+$f)]
+    d=$[($a^($g+$f) + $a^($h))]
+    !if $h<0
+	tt=!exec pari A = $a^($g+$f) + $a^($h)\
+	printtex(A)
+	
+	DA=!line 1 of $tt
+	D=!line 2 of $tt
+    !else
+	DA=$d
+	D=$d
+    !endif
+    j=$[$b+$c]
+    dis=(sqrt(($d)^2-4*$a^($j)))
+    formula$n= $a^{(x+$b)}+$a^{($c-x)}=$D
+    applettext=!nospace $a^(x+$b)+$a^($c-x) = $DA ->
+    x1=$[log((($d) + $dis)/(2*$a^$b))/(log($a))]
+    x2=$[log((($d) - $dis)/(2*$a^$b))/(log($a))]
+    !ifval $x2=$x1
+	answer$n=$x1
+	texanswer$n=!texmath x = $x1
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=!texmath x_1 = $x1 \wedge x_2 = $x2
+    !endif
+ !exit
+!endif
+!if $R>2
+    a=!randitem 2,3,4
+    b=!randitem 1,2,3,4,5
+    c=!randitem 1,2,3,4,5
+    f=!randitem 2,3,4,5
+    g=!randitem 2,3,4,5
+    d=($g)/($f)*($a)^($b)+($f)/($g)*($a)^($c)
+    tt=!exec pari A= ($g)/($f)*($a)^($b)+($f)/($g)*($a)^($c)\
+    printtex(A)
+    DA=!line 1 of $tt
+    D=!line 2 of $tt
+    j=$[$b+$c]
+    dis=(sqrt(($d)^2-4*($a)^($j)))
+    formula$n= $a^{(x+$b)}+$a^{($c-x)}=$D
+    applettext=!nospace  $a^(x+$b)+$a^($c-x) = $DA ->
+    x1=(log((($d) + $dis)/(2*$a^$b)))/(log($a))
+    x2=(log((($d) - $dis)/(2*$a^$b)))/(log($a))
+    tot=!exec maxima $x1;$x2;
+    
+    tot=!words2items $tot
+    c=1
+    !for p in $tot
+	!if NaN notin $[1*($p)]
+	    x$c=$p
+	    !increase c
+	!endif
+    !next p
+    t1=$[$x1]
+    t2=$[$x2]
+    !if . notin $t1
+	x1=$t1
+    !else
+	x1=!replace internal log by ln in $x1
+    !endif
+    !if . notin $t2
+	x2=$t2
+    !else
+	x2=!replace internal log by ln in $x2
+    !endif
+    
+    !ifval $x2=$x1
+	answer$n=$x1
+	texanswer$n=!texmath x = $x1
+    !else
+	answer$n=$x1,$x2
+	x1=!texmath $x1
+	x2=!texmath $x2
+	texanswer$n= x_{1} = $x1 \wedge x_{2} = $x2
+    !endif
+ !exit
+!endif

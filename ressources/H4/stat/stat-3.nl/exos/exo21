@@ -1,0 +1,120 @@
+# ballenbak
+#<object id="ballenbak" code="Plinko.class" codebase="$appletdir" archive="Plinko.jar" width="220" height="100" MAYSCRIPT>
+#    <param name="wims_exercise" value="1"/> 
+#    <param name="xsize" value="400"/>
+#    <param name="ysize" value="400"/>
+#    <param name="fontsize" value="12"/>
+#    <param name="bins" value="$var1"/>
+#    <param name="chance" value="$var4"/>
+#    <param name="speed" value="$var3"/>
+#    <param name="title" value="Applet by Prof. P. Little"/>
+#    <param name="language" value="$taal"/>
+#    <param name="balls" value="$var2"/> 
+#</object> 
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/plinko2.js
+checkfile=exos/checkfile2.proc
+math=0
+image=0
+make_tr=1
+xsize=480
+ysize=480
+!if $rounding<10
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+size=!charcnt $[$rounding/10]
+tekst=!record 157 of lang/remarks.$taal
+#@ nummer bakje,aantal ballen,empirische kans P,theoretische kans P,verschil theoretische en empirische kans
+hint=!record 166 of lang/remarks.$taal
+!if $subject=21
+    var4=0.5
+!endif
+!for p=1 to 5
+    t$p=!item $p of $tekst
+!next p
+
+body=$empty
+!if $R=1
+    S=3
+    var5=1
+    # var5 is aantal in te vullen rijen
+    var2=!randint 20,80
+    var3=1
+    var1=!randitem 6,7,8
+    the_question=!item 3 of $tekst
+    the_question=<b>$the_question</b>
+    ss1=!record 159 of lang/remarks.$taal
+    #@In een <em>bord van Galton</wm> laat je tenminste $var2 knikkers in $var1 bakjes vallen...<br /><small><em>de applet stopt vanzelf -hopelijk- na $var2 balletjes</em></small><br />De kans voor een bal om naar links of rechts te gaan is $var4 <br />Voer het experiment in de <span style="color:blue">applet</span> uit.<br />Bepaal aan de hand van je resultaten: $the_question
+!else
+    !if $R=2
+	var5=2
+	S=4
+        var2=!randint 50,150
+	var3=1
+	var1=!randitem 5,6,7
+	q1=!item 3 of $tekst
+	q2=!item 4 of $tekst
+	the_question=<ul><li>$q1</li><li>$q2</li></ul>
+	ss1=!record 159 of lang/remarks.$taal
+    !else
+	S=5
+	var5=3
+	var2=!randint 100,300
+	var3=2
+	var1=!randitem 5,6,7
+	q1=!item 3 of $tekst
+	q2=!item 4 of $tekst
+	q3=!item 5 of $tekst
+	the_question=<ul><li>$q1</li><li>$q2</li><li>$q3</li></ul>
+	ss1=!record 159 of lang/remarks.$taal
+    !endif
+!endif
+
+!for p=1 to $[$var1+1]
+    !if $p=1
+	body=!append line <th>$t1</th> to $body
+    !else
+	body=!append line <th>$[$p-1]</th> to $body
+    !endif
+!next p
+body=!append word $ </tr> $ to $body
+c=0
+!for s=2 to $S
+    body=!append word $ <tr> $  to $body
+    !for p=1 to $[$var1+1]
+	!if $p=1
+	    body=!append word  $ <th>$(t$s)</th> $ to $body
+	!else
+	    !if $s=2
+		body=!append word $ <td><input class="schaersvoorde_input" id="myinput$c" size="3" value="" readonly="readonly"/></td> $ to $body
+	    !else
+		body=!append word $ <td><input class="schaersvoorde_input" id="myinput$c" size="3" value="" /></td> $ to $body
+	    !endif
+	    !increase c
+	!endif
+    !next p
+    body=!append word $ </tr> $  to $body
+!next s
+
+ss2=!record 158 of lang/remarks.$taal
+#@Deze Plinko Applet is gemaakt door Dr. P. Little<br />Zie voor meer statistische applets <a target=new href=http://www.math.psu.edu/dlittle/applets.html> zijn website</a><p>Let op: de applet stopt vanzelf met het werpen van de balletjes<br />als het aantal van $var2 balletjes is bereikt.<br />Meer balletjes laten vallen mag wel, minder mag niet...
+
+question$n=<a onmouseover="return escape('$ss2 <hr />$hint')">$ss1</a>
+exotext=<table class="zebra_table_h2"><tr>$body</tr></table>
+!if $taal notin en nl
+    PDF=galton.en.pdf
+!else
+    PDF=galton.$taal.pdf
+!endif
+helptext=$ss2 <hr /> $hint <hr /><a href=\'$module_dir/docs/$PDF\' >$PDF</a>

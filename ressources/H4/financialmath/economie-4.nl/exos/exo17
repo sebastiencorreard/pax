@@ -1,0 +1,86 @@
+# Contante waarde
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+g=!randint 1,6
+logo=<img src="$module_dir/gifs/sparen.$g.jpg" alt="money" />
+logotext=<img src=\'$module_dir/gifs/sparen.$g.jpg\' alt=\'money\' />
+mathview=0
+make_tr=1
+questiontype=0
+checkfile=exos/precheck1.proc
+inputs=1.1
+ex1=&euro;
+cols=6
+!if $R=1
+    roundingtext=Geef je eindantwoord op in hele &euro; &rsquo;s
+    num=!randitem 78,79
+    !if $num=78
+	hij=hij
+    !else
+	hij=zij
+    !endif
+    namen=!record $num of $remarkdir/commonremarks.$taal
+    naam=!randitem $namen
+    rounding=1
+    factor=$[$jaar2 - $jaar1 + 1]
+    perc=!randint 20,120
+    perc=$[$perc/10]
+    jaar1=!date +%Y
+    jaar1=$[$jaar1+1]
+    periode=!randint 5,30
+    factor=$[(100+$perc)/100]
+    jaar2=$[$jaar1+$periode-1]
+    beginkapitaal=!randint 100,400
+    beginkapitaal=$[$beginkapitaal*100]
+    kapitaal=!exec pari 1000*(round(($beginkapitaal*$factor^($periode))/1000))
+    answer$n=$[$kapitaal*$factor^(-1*$periode)]
+    ss=$naam wil weten hoeveel $hij op 1 januari $jaar1 moet storten , om op 31 december $jaar2<br />over &euro; $kapitaal te kunnen beschikken.<br />De samengestelde interest bedraagt $perc % per jaar.<br />Bereken hoeveel $hij op 1 januari $jaar1 moet storten.<br />$roundingtext
+    
+    description=Te storten kapitaal op 1 jan $jaar1
+    
+    rans=$[round($(answer$n))]
+    textanswer$n=<ul><li>Er is over $jaar2 - $[$jaar1 - 1] = $periode jaren gespaard</li><li>De (groei) factor is : ($perc+100)/100 = $factor</li><li>Dus op 1 januari $jaar1 moet worden gestort: $kapitaal &times; $factor<sup>&minus; $periode</sup></li><li>Dit is $(answer$n) &asymp; &euro; $rans </li></ul>
+!else
+    roundingtext=Geef je eindantwoord op in hele &euro; &rsquo;s
+    num=!randitem 78,79
+    !if $num=78
+	hij=hij
+    !else
+	hij=zij
+    !endif
+    namen=!record $num of $remarkdir/commonremarks.$taal
+    naam=!randitem $namen
+    rounding=1
+    factor=$[$jaar2 - $jaar1 + 1]
+    perc=!randint 20,150
+    perc=$[$perc/100]
+    jaar1=!date +%Y
+    jaar1=$[$jaar1+1]
+    periode=!randint 2,10
+    k=!randint 1,10
+    maanden=februari,maart,april,mei,juni,juli,augustus,september,oktober,november
+    maand=!item $k of $maanden
+    aantal=$[$periode*12 + (12-$k)]
+    factor=$[(100+$perc)/100]
+    jaar2=$[$jaar1+$periode]
+    beginkapitaal=!randint 100,400
+    beginkapitaal=$[$beginkapitaal*100]
+    kapitaal=!exec pari 1000*(round(($beginkapitaal*$factor^($aantal))/1000))
+    answer$n=$[$kapitaal*$factor^(-1*$aantal)]
+    
+    ss=$naam wil weten hoeveel $hij op 1 $maand $jaar1 moet storten , om op 31 december $jaar2<br />over &euro; $kapitaal te kunnen beschikken.<br />De samengestelde interest bedraagt $perc % per maand.<br />Bereken hoeveel $hij op 1 $maand $jaar1 moet storten.<br />$roundingtext
+    description=Te storten kapitaal op 1 jan $jaar1 
+    rans=$[round($(answer$n))]
+    textanswer$n=<ul><li>Er is over ($jaar2 - $jaar1)&times; 12 +  (12 - $k) maanden = $aantal maanden gespaard</li><li>De (groei) factor is : ($perc+100)/100 = $factor</li><li>Dus op 1 $maand $jaar1 moet worden gestort: $kapitaal &times; $factor<sup>&minus; $aantal</sup></li><li>Dit is $(answer$n) &asymp; &euro; $rans </li></ul>
+
+!endif
+
+helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'\' /><hr />$roundingtext
+question$n =<a onmouseover="return escape('$helptext')">$ss</a>
+
+

@@ -1,0 +1,116 @@
+!set title=Calcul fractionnaire 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+precision=100
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse&nbsp;
+val8=Calculer et simplifier l'expression, suivante
+tmp0=!values v for v=2 to 9
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+val11=($(val9[1])/$(val9[2]) $val10 $(val9[3])/$(val9[4])) * $(val9[5])/$(val9[6])
+tmp=!nonempty items (\frac{$(val9[1])}{$(val9[2])} $val10 \frac{$(val9[3])}{$(val9[4])}) \times \frac{ $(val9[5])}{$(val9[6])}, \frac{ $(val9[5])}{$(val9[6])}\times(\frac{$(val9[1])}{$(val9[2])} $val10 \frac{$(val9[3])}{$(val9[4])}) 
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp=!translate ";': to $     $ in $val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+replytype1=numexp
+replyname1=$val13
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $(val8[1]) $val13 $(val8[2]):	<div class="wimscenter">
+!insmath $val13 = $val12
+$()</div>	<div class="spacer">	<b>$val7:</b>	<label for="reply1">
+!insmath $val13 = 
+$()</label> 
+!read oef/embed.phtml r1,6 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,12,13
+embedcnt=1

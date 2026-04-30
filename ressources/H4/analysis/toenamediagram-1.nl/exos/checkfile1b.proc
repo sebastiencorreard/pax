@@ -1,0 +1,209 @@
+# replyformat 2 = 
+# x1,x2,x3,x4....x_n \n
+# y1,y2,y3,y4....y_n
+x/y in xrange / yrange coordinate system
+goback=0
+errortext=$empty
+ 
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+Ax=!line 1 of $(reply$n)
+Ay=!line 2 of $(reply$n)
+extra=$empty
+tx=!itemcnt $Ax
+ty=!itemcnt $Ay
+ta=!itemcnt $(answer$n)
+!ifval $[$tx+$ty]=0
+    errortext=!record 10 of lang/remarks.$taal
+    #@ Je hebt geen tekening gemaakt, $voornaam<br />Als je't niet weet kun je ook gewoon op de knop "ik weet het niet" ofzo klikken...
+    maxscore=$[$maxscore*$P2]
+    goback=1
+    !exit
+!endif
+!ifval $[$tx+$ty] > $[$ta+15]
+    errortext=!record 11 of lang/remarks.$taal
+    #@ Deze "tekening" ga ik echt niet nakijken...<br />Klik jij maar op de "ik zou het niet weten" knop
+    maxscore=$[$maxscore*$P5]
+    goback=1
+    !exit
+!endif
+
+point_count=$tx
+segment_count=$[0.5*$tx]
+# correct aantal segmenten
+segments=$[0.25*$ta]
+#exotext=tt=$tt gg=$ta <br />answer$n=$(answer$n) <br /> segment_count=$segment_count =?=$segments
+#goback=1
+#!exit
+test=$[gcd($point_count,2)]
+!if $test=1
+    # oneven: nodig voor een segment met nul-lengte en dus maar 1 punt ipv 2
+    point_count=$[$point_count+1]
+    segment_count=$[$segment_count+1]
+!endif
+
+!if $segment_count != $segments
+    !if $segment_count>$segments
+	extra=!record 12 of lang/remarks.$taal
+	#@ Je het $segment_count lijnstukken getekend in de applet<br />Dat is dus $[$segment_count-$segments] te veel.
+	maxscore=$[$maxscore*$segments/$segment_count]
+    !else
+	extra=!record 13 of lang/remarks.$taal
+	#@ Je het $segment_count lijnstukken getekend in de applet<br />Dat is dus $[$segments - $segment_count] te weinig.
+	maxscore=$[$maxscore*$segment_count/$segments]
+    !endif
+!endif
+
+!if NaN isin $maxscore
+    errortext==!record 14 of lang/remarks.$taal
+    #@ Je hebt een ongeldige tekening ingeleverd, met $points_count punten en $segment_count segments...
+    maxscore=$[$maxscore*$P3]
+    goback=1
+    !exit
+!endif
+# convert the correct answer is list x,y,x,y,x,y
+X=$empty
+Y=$empty
+max1=0
+min1=0
+!for p=1 to $[$ta-1] step 2
+    q=$[$p+1]
+    x=!item $p of $(answer$n)
+    y=!item $q of $(answer$n)
+    !if $y>$max1
+	max1=$y
+    !endif
+    !if $y<$min1
+	min1=$y
+    !endif
+    X=!append item $x to $X
+    Y=!append item $y to $Y
+#   frect 0.9,0,1.1,-3,green\
+#   frect 0.9,0,1.1,0,green\ 
+    goedrect=!append line $ frect $[$x - 0.1],0,$[$x + 0.1],$y,green $ to $goedrect
+!next p
+
+#trick ...for nonexisting "zero length segment"
+score=1
+
+reply=$empty
+max2=0
+min2=0
+AAy=$empty
+y0_waarden=$empty
+nul_cnt=0
+!for p=1 to $tx
+    y=!item $p of $Ay
+    y=$[(round(10*($y)))/10]
+    !if $y>$max2
+	max2=$y
+    !endif
+    !if $y<$min2
+	min2=$y
+    !endif
+    !if $y=0
+	y0_waarden=!append item $p to $y0_waarden
+	!increase nul_cnt
+    !endif
+    AAy=!append item $y to $AAy
+!next p
+!if $nul_cnt < $[0.5*($tx-1)]
+ extra=!record 32 of lang/remarks.$taal
+ #@Nee, je moet de y-waarde van het toenamediagram segment wel op nul (y = 0) laten beginnen !!
+ maxscore=0.4
+!endif
+Ay=$AAy
+found=$empty
+!for p=1 to $tx
+    hit=0
+    extra_=$empty
+    x=!item $p of $Ax
+    y=!item $p of $Ay
+    x=$[(round(10*($x)))/10]
+    !for s=1 to $ta
+	!if $s notin $found
+	    !if $hit=0
+		xg=!item $s of $X
+	        yg=!item $s of $Y
+		!ifval $x=$xg and $y=$yg
+		    hit=1
+		    found=!append item $s to $found
+		    xl=!append item $x to $xl
+		    yl=!append item $y to $yl
+		    kl=!append item green to $kl
+		    !increase score
+		    reply=!append word $ <li><span style="color:green">($x:$y)</span> $ to $reply
+		!endif
+	    !endif
+	!endif
+    !next s
+    !if $hit=0
+	reply=!append word $ <li><span style="color:red;text-decoration:line-through">($x:$y)</span>$extra_ </li> $ to $reply
+	xl=!append item $x to $xl
+	yl=!append item $y to $yl
+	kl=!append item red to $kl
+    !endif
+!next p
+reply$n=<ul>$reply</ul>
+
+tx=!itemcnt $xl
+!for s=1 to $tx step 2
+    r=$[$s+1]
+    x1=!item $s of $xl
+    x2=!item $r of $xl
+    y1=!item $s of $yl
+    y2=!item $r of $yl
+    k1=!item $s of $kl
+    k2=!item $r of $kl
+    !if red isin $k1,$k2
+	leerlingrect=!append line $ frect $[$x1 - 0.1],$y1,$[$x2 + 0.1],$y2,red $ to $leerlingrect
+    !endif
+!next s
+score=$[$maxscore*$score*2/$ta]
+
+# eigenlijk moet alles goed zijn....alleen "consideratie" voor leerlingen die de som hebben teruggekregen
+!if $score >= 1
+    maxscore=1
+    remark$n=$OK
+!else
+    #fffff moet beter
+    !if $score>0.8
+	!if $maxscore=1
+	    # dus de som nooit geretourneerd en dus niet alles goed !
+	    maxscore=0.4
+	    remark$n=$BOK
+	!else
+    	    remark$n=$OK
+	!endif
+    !else
+	remark$n=$NOK
+	maxscore=0
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+
+math=0
+:PLAATJE
+!if $showanswer=1
+ # ivm gezeur van de fijne collega's...
+ # 
+ object$n=!exec canvasdraw \
+ $var9\
+ opacity 150,150\
+ linewidth 3\
+ $leerlingrect\
+ $goedrect
+ 
+!endif
+!exit

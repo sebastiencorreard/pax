@@ -1,0 +1,95 @@
+n=$counter
+image=0
+cols=15
+rows=1
+embed=1
+mathview=0
+# geen applet: te lastig ivm x^-3 --> x^(-3)
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+question$n=Vereenvoudig en schrijf als 1 macht:<br />
+helptext=<img src=\'$module_dir/gifs/exo7.jpg\' alt=\'noalt\' />
+a=!randitem 2,3,4,5,6,-2,-3,-4,-5
+b=!randitem -4,-3,-2,-1,2,3,4
+c=!randitem -4,-3,-2,-1,2,3,4
+d=!randitem -4,-3,-2,-1,2,3,4
+e=!randitem 2,3,4,5
+
+keuze=!randitem 1,2
+!if $R=1
+    !if $keuze=1 
+	!if  $[$b+$c-$d]=0
+	    d=$[$d -1]
+	!endif  
+	var1=$[$e*$a]*x^$b*x^$c/($a*x^$d)
+	formula$n=\frac{$[$e*$a] \cdot x^{  $b} \cdot x^{  $c}}{$a \cdot x^{  $d}}
+	answer$n=$e*x^$[$b+$c-$d]
+	texanswer$n=\frac{$[$e*$a] \cdot x^{  $b} \cdot x^{  $c}}{$a \cdot x^{  $d}}=$e \cdot x^{  $b+$c-$d}=$e \cdot x^{  $[$b+$c-$d]}
+    !else
+        !if $[$b-$c-$d]=0
+	    d=$[$d -1]
+	!endif
+	var1=$a*x^$b/($[$e*$a]*x^$c*x^$d)
+	formula$n=\frac{$a \cdot x^{  $b}}{$[$e*$a] \cdot x^{  $c} \cdot x^{  $d}}
+	answer$n=x^$[$b-$c-$d]/$e
+	texanswer$n=\frac{$a \cdot x^{  $b}}{$[$e*$a] \cdot x^{  $c} \cdot x^{  $d}}= \frac{x^{  $b-$c-$d}}{$e}=\frac{x^{  $[$b-$c-$d]}}{$e}
+    !endif
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    !if $keuze=1
+	var1=$a*sqrt(x)*x^$e/($[$e*$a]x^$c)
+	formula$n=\frac{$a \cdot \sqrt{x} \cdot x^{  $e}}{$[$e*$a] \cdot x^{  $c}}
+	answer$n=x^$[0.5+$e-$c]/$e
+	texanswer$n=\frac{$a \cdot \sqrt{x} \cdot x^{  $e}}{$[$e*$a] \cdot x^{  $c}}=\frac{x^{  0.5+$e-$c}}{$e}=\frac{x^{  $[0.5+$e-$c]}}{$e}
+    !else
+	var1=$[$e*$a]*x^$b * x^$c/($a * x^$e * sqrt(x))
+        formula$n=\frac{$[$e*$a] \cdot x^{  $b} \cdot x^{  $c}}{$a \cdot x^$e \cdot \sqrt{x}}
+	answer$n=$e*x^$[$b+$c-$e-0.5]
+	texanswer$n=\frac{$[$e*$a] \cdot x^{  $b} \cdot x^{  $c}}{$a \cdot x^$e \cdot \sqrt{x}}= $e \cdot x^{  \left($b+$c-$e-1/2\right)}=$e \cdot x^{$[$b+$c-$e-0.5]}
+    !endif
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+!if $R>2
+    mytexsize=+5
+    q=!randitem 3,4,5,6
+    r=!randint 2,$[$q -1]
+    f=!randitem -1,-2,-3,-4
+    !if $r=$[-1*$f]
+	f=$[$f-1]
+    !endif
+    !if $keuze=1
+	tot=!exec pari A=(($r)-1+($c)*($q))/$q\
+	printtex(A)
+	exp=!line 1 of $tot
+	lexp=!line 2 of $tot
+        var1=x^($r/$q)*x^$c/x^(1/$q)
+        formula$n=\frac{\root $q \of{x^{  $r}}\cdot x^{  $c}}{\root $q \of {x}}
+	texanswer$n=\frac{\root $q \of{x^{  $r}}\cdot x^{  $c}}{\root $q \of {x}}= \frac{x^{  \frac{$r}{$q}} \cdot x^{  $c}}{x^{\left(  \frac{1}{$q}\right) }}=x^{  $lexp}
+	answer$n=x^($exp)
+    !else
+        var1=x^($r/$q)*x^$c*x^($f/$q)
+        formula$n=\root $q \of{x^{  $r}} \cdot x^{  $c} \cdot \root $q \of {x^{  $f}}
+	tot=!exec pari A=(($r)+($c)*($q)+($f))/$q\
+	printtex(A)
+	exp=!line 1 of $tot
+	lexp=!line 2 of $tot
+	answer$n=x^($exp)
+	texanswer$n=\root $q \of{x^{  $r}} \cdot x^{  $c} \cdot \root $q \of {x^{  $f}} = x^{  \frac{$r}{$q}} \cdot x^{  $c} \cdot \frac{1}{\root $q \of {x^{  $[-1*$f]}}}=\frac{x^{  \left(\frac{$r}{$q}+$c\right) }}{x^{\left(  \frac{$[-1*$f]}{$q}\right) }}=x^{  $lexp}
+    !endif
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+

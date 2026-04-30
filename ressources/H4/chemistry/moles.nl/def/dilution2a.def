@@ -1,0 +1,110 @@
+!set title=Bereken de verdunning (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=georgesk@ofset.org
+precision=100
+
+ansorder=c,c
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=0
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem zout, natriumchloride , zilvernitraat,natriumthiosulfaat, ijzer(III)chloride, citroenzuur, suiker, kopersulfaat, kaliumpermanganaat, zwavelzuur, glucose, natriumhydroxide
+
+val6=$(tmp0)
+tmp0=!randitem 0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1
+
+val7=$[$(tmp0)]
+val8=5,10
+tmp0=!shuffle $val8
+
+val9=$(tmp0)
+tmp0=!item 1 of $val9
+
+val10=$[$(tmp0)]
+val11=50,200,500
+tmp0=!shuffle $val11
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$[$(tmp0)]
+val14=$[$val10*$val7/$val13]
+!if $val14 < 10^-4 
+tmp0=!replace internal e-0 by &times;10<sup>- in $val14
+
+val14=$(tmp0)
+val14=$val14</sup>
+!endif
+tmp0=!randitem mol,mmol
+
+val15=$(tmp0)
+choicename1=1
+choicegood1=$val10
+choicebad1=$val8
+choicename2=2
+choicegood2=$val13
+choicebad2=$val11
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Bereken eerst de vereiste verdunningsfactor...
+
+
+!goto stat
+
+!exit
+
+:question
+$()<br>	<img src=$val1/../verrerie.jpg align=left>	We hebben een stamoplossing van $val6 met een concentratie van <b>$val7&nbsp;$val15/l</b>. 	<p>	We willen uit deze stamoplossing een verdunning maken met een concentratie van <b>$val14&nbsp;$val15/l</b>. 	<p>	Bepaal de beste keuze voor het te gebruiken maatglaswerk:	<table border=1><tr>	<td>Welke pipet : <br>$val8 ml ?</td><td> 
+!read oef/embed.phtml choice 1 
+$() ml.</td>	</tr><tr>	<td>Welke maatkolf :   <br>$val11 ml ?</td><td> 
+!read oef/embed.phtml choice2 
+$() ml.</td>	</tr></table>	
+$()
+!exit
+
+:hint
+$()Bereken eerst de vereiste verdunningsfactor...
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,11,14,15
+embedcnt=2

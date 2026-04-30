@@ -1,0 +1,217 @@
+!set title=Droites parallèles ? (eq réduite)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez;Bruno,Mifsud
+email=cyrille.douriez@ac-amiens.fr;communaute.mutuwims@laposte.net
+keywords=line,equations,parallel
+computeanswer=yes
+precision=100000000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 7
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val9=$[rint($(tmp0))]
+
+!ifval ($val7=1)
+val10=$[rint( -$val8)]
+!else
+tmp0=!randint 1, 6
+
+val10=$[rint($val8+$(tmp0))]
+!endif
+tmp0=!randint 1, 4
+
+tmp1=!randitem -1,1
+
+val11=$[rint($val9+$(tmp0)*$(tmp1))]
+
+!ifval ($val7=1)
+val12=$[rint( 1)]
+!else
+val12=$[rint(2)]
+!endif
+
+!ifval ($val6<3)
+val12=$[rint( $val6)]
+!else
+val12=$[rint( $val12)]
+!endif
+
+!ifval ($val7=1)
+t_=!replace internal \( by ( in -$val8*x+$val9
+tmp0=!exec maxima $t_
+
+val13=!rawmath  $(tmp0)
+!else
+t_=!replace internal \( by ( in $val8*x+$val9
+tmp1=!exec maxima $t_
+
+val13=!rawmath $(tmp1)
+!endif
+
+!ifval ($val6<3)
+val13=!rawmath  $val8
+!else
+val13=!rawmath $val13
+!endif
+t_=!replace internal \( by ( in $val10*x+$val11
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+
+!ifval ($val6=1)
+val14=!rawmath $val10
+!else
+val14=!rawmath $val14
+!endif
+
+!ifval $val6<3
+val15=x=$val13
+!else
+val15=y=$val13
+!endif
+
+!ifval $val6=1
+val16=x=$val14
+!else
+val16=y=$val14
+!endif
+replytype1=radio
+replyname1=Droites parallèles?
+replygood1=$val12;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()La droite 
+!insmath (d_1)
+$() d'équation 
+!insmath $val15
+$() est-elle parallèle à la droite 
+!insmath (d_2)
+$() d'équation 
+!insmath $val16
+$() ?	<div class=wims_question>Les droites sont-elles parallèles ? 
+!read oef/embed.phtml r1 
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!if $val6=1 
+$()
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$() sont verticales donc parallèles. 
+!endif
+$()	
+!if $val6=2 
+$()
+!insmath (d_1)
+$() est verticale mais pas 
+!insmath (d_2)
+$() donc elles ne sont pas parallèles. 
+!endif
+$()	
+!if $val6>2 
+$()<ul><li>
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$() ne sont pas verticales.</li>	<li>le coefficient directeur de 
+!insmath (d_1)
+$() est 
+!if $val7=1 
+$()$val10 
+!else
+$() $val8 
+!endif
+$()</li>	<li>le coefficient directeur de  
+!insmath (d_2)
+$() est $val10.</li>	<li>les coefficients directeurs sont 
+!if $val7=1 
+$()égaux 
+!else
+$() différents 
+!endif
+$()  </li>	<li>donc les droites 
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$()   
+!if $val7=1 
+$()sont 
+!else
+$() ne sont pas 
+!endif
+$() parallèles.</li></ul> 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,15,16
+embedcnt=1

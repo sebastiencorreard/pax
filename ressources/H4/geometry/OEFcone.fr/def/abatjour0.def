@@ -1,0 +1,175 @@
+!set title=Abat-jour*
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse 
+email=Chantal.Causse@noos.fr 
+precision=100
+
+ansorder=r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val7=$[rint($val6 + $(tmp0))]
+val8=$[rint($val7*$val6)]
+val9=$[rint($val7^2-$val6^2)]
+val10=$[($val7^2 + $val6^2)/2]
+tmp0=!randint 6, 10
+
+val11=$[$(tmp0)*0.2]
+val12=$[($val11 - 1)*$val8]
+val13=$[$val11 * $val9]
+val14=$[$val11 * $val10]
+val15=$[180*($val9)/($val10)]
+val15=$[round(10*$val15)/10]
+val16=ellipse 100,160,120,30,black	disk 100,160,6,blue	ellipse 100,50,60,15,black	disk 100,50,6,blue	segment 40,160,70,50,black	segment 160,160,130,50,black	dsegment 100,50,100,160,blue	text blue,105,100,large,h	text black,30,155,large,A	text black,165,155,large,B	text black,55,45,large,C	text black,140,45,large,D	dsegment 40,160,160,160,green	dsegment 70,50,130,50,green	
+val17=xrange -2.1,2.1	yrange -2.1,2.1	linewidth 2	arc 0,0,4,4,210,360,blue	arc 0,0,2,2,210,360,blue	segment 1,0,2,0,blue	segment -0.866,-0.5,-1.73,-1,blue	linewidth 1	dsegment 0,0,1,0,gray	dsegment 0,0,-0.866,-0.5,gray	 
+!readproc oef/draw.phtml 200,200 \
+4.2,4.2	$val17 
+tmp0=$ins_url
+val18=$(tmp0)
+val19=xrange -2.1,2.1	yrange -2.1,2.1	linewidth 2	arc 0,0,4,4,230,340,blue	arc 0,0,2,2,210,360,blue	segment 1,0,1.88,-0.684,blue	segment -0.866,-0.5,-1.285,-1.532,blue	linewidth 1	dsegment 0,0,1,0,gray	dsegment 0,0,-0.866,-0.5,gray	dsegment -0.264,0.98,1,0,gray	dsegment -0.264,0.98,-0.866,-0.5,gray	 
+!readproc oef/draw.phtml 200,200 \
+4.2,4.2	$val19 
+tmp0=$ins_url
+val20=$(tmp0)
+val21=xrange -2.1,2.1	yrange -2.1,2.1	linewidth 2	arc 0,0,4,4,230,340,blue	segment 1,0,-0.866,-0.5,blue	segment 1,0,1.88,-0.684,blue	segment -0.866,-0.5,-1.285,-1.532,blue	linewidth 1	dsegment -0.264,0.98,1,0,gray	dsegment -0.264,0.98,-0.866,-0.5,gray	 
+!readproc oef/draw.phtml 200,200 \
+4.2,4.2	$val21 
+tmp0=$ins_url
+val22=$(tmp0)
+val23=xrange -2.1,2.1	yrange -2.1,2.1	linewidth 2	segment 1.88,-0.684,-1.285,-1.532,blue	segment 1,0,-0.866,-0.5,blue	segment 1,0,1.88,-0.684,blue	segment -0.866,-0.5,-1.285,-1.532,blue	 
+!readproc oef/draw.phtml 200,200 \
+4.2,4.2	$val23 
+tmp0=$ins_url
+val24=$(tmp0)
+val25=<img src="$val18" alt="">,<img src="$val20" alt="">,<img src="$val22" alt="">,<img src="$val24" alt="">
+val26=xrange -2.1,2.1	yrange -2.1,2.1	linewidth 2	arc 0,0,4,4,210,360,blue	arc 0,0,2,2,210,360,blue	arc 0,0,0.3,0.3,210,360,green	text green,0.1,-0.2,medium,S	segment 1,0,2,0,blue	segment -0.866,-0.5,-1.73,-1,blue	linewidth 1	dsegment 0,0,1,0,gray	darrow2 0,0.1,2,0.1,10,green	text green,1,0.3,medium,R	dsegment 0,0,-0.866,-0.5,gray	darrow2 -0.12,0.1,-0.9,-0.4,10,green	text green,-0.6,0,medium,r	 
+tmp0=!shuffle 4
+
+val27=$(tmp0)
+oefsteps=reply1	reply2,reply3,reply4 
+nextstep=!nosubst reply1	reply2,reply3,reply4 
+!readproc oef/steps.proc
+replytype1=click
+replyname1=
+replygood1=1;$val25
+replytype2=units
+replyname2=
+replygood2=$val10 cm
+replytype3=units
+replyname3=
+replygood3=$val14 cm
+replytype4=units
+replyname4=
+replygood4=$val15 °
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 
+!read oef/draw.phtml 200,200 \
+$val16 
+$() Cet abat-jour a comme dimensions AB = $val13 cm, CD = $val9 cm et h = $val12 cm.<p>	Le but est de dessiner le patron de cet abat-jour.	
+!if $m_step = 1 
+$()	Quel type de patron conviendra pour cet abat-jour ? (cliquer sur la figure choisie)<p>	 
+!read oef/embed.phtml reply1,$(val27[1]) 
+$() 
+!read oef/embed.phtml reply1,$(val27[2]) 
+$() 
+!read oef/embed.phtml reply1,$(val27[3]) 
+$() 
+!read oef/embed.phtml reply1,$(val27[4]) 
+$()	 
+!else
+$()	 Il faudra un patron de ce type :	 
+!read oef/draw.phtml 300,300 \
+$val26 
+$()<br>Calculer les dimensions utiles pour tracer ce patron (ne pas oublier l'unité, en particulier pour l'angle):<br>	 
+!insmath r = 
+$()  
+!read oef/embed.phtml reply2,10 
+$() ; 
+!insmath R = 
+$()  
+!read oef/embed.phtml reply3,10 
+$() ; 
+!insmath \widehat{S}=
+$()  
+!read oef/embed.phtml reply4,10 
+$()  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+!if $m_step = 1 
+$()L'abat-jour est un tronc de cône, c'est-à-dire un cône auquel on a "retiré" un cône. 
+!else
+$() Formules pouvant éventuellement être utiles (en plus du théorème de Pythagore et de la trigonométrie dans les triangles rectangles) :<ul>	<li>Périmètre du cercle de rayon R : 
+!insmath 2 \pi R
+$()</li>	<li>Aire du disque de rayon R :
+!insmath  \pi R^2
+$()</li>	<li>Volume des solides "pointus" (cônes et pyramides) : Aire de base $m_times Hauteur $m_div 3</li>	</ul> 
+!endif
+$()		
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,12,13,16,26,27
+embedcnt=7

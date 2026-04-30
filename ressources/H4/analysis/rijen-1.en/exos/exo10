@@ -1,0 +1,128 @@
+!changeto exos/exo7
+!exit
+# no need for translation
+
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+exotext=!record 56 of lang/remarks.$taal
+#@ De Rekenkundige Rij<br>Bereken enkele termen.
+image=0
+som=$empty
+
+!if $R=1
+    checkfile=$checkdir/multiplechoice.proc
+    questiontype=1
+    multiimage=0
+    options=!randitem 3,4,5,6
+    answer$n=!randint 1,$options
+    !for p=1 to $options
+	r=!randitem 2,3,4
+	a=!randitem 2,3,4,5,6,-2,-3,-4,-5,-6
+	termen=!randitem 5,6,7,8
+	!if $p=$(answer$n)
+	    !for t=1 to $termen
+		U=$[$a+$r^($t)]
+		rij$p=!append item $U to $(rij$p)
+	    !next t
+	    ss=!record 57 of lang/remarks.$taal
+	    #@ <td><font color=green>$(rij$p)</font> <b>is de rekenkundige rij</b> (dus nummertje $p)</td><tr>
+	    som=!append line $ss to $som
+	!else
+	    !for t=1 to $termen
+		U=$[$a*$r^($t)]
+		rij$p=!append item $U to $(rij$p)
+	    !next t
+	    ss=!record 58 of lang/remarks.$taal
+	    #@ <td><font color=red>$(rij$p)</font> is een meetkundige rij</td><tr>
+	    som=!append line $ss to $som
+	!endif
+    !next p
+    ss=!record 59 of lang/remarks.$taal
+    #@ Welke van de onderstaande rijen is een <b>Rekenkundige Rij</b>?<br><small>multiplechoice</small><p>
+    question$n=$ss
+    textanswer$n=<table>$som</table>
+ !exit
+!endif
+
+!if $R=2
+    questiontype=0
+    checkfile=exos/checkfile1.proc
+    r=!randitem 2,3,4,5,6,7,8,9,10
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    options=$[$counter+2]
+    !if $r=$a
+	r=$[$a+1]
+    !endif	
+    termen=$empty
+    # formule a*r^n-1
+    !for p=1 to $options
+	termen=!append item U<sub>$p</sub> to $termen
+	t=$[$p-1]
+	U=$[$a*$r^($t)]
+	answer$n=!append item $U to $(answer$n)
+	textanswer$n=!append line <li>U<sub>$p</sub>=$U</li> to $(textanswer$n)
+    !next p
+    ss=!record 60 of lang/remarks.$taal
+    #@ Gegeven de <em>meetkundige rij</em> met <b>rangnummerformule</b>:<p align="center"> U<sub>n</sub>=$a&times;$r<sup>n-1</sup></p>\
+    #@ Bereken de termen $termen van deze rij.
+    question$n=$ss
+    textanswer$n=<ul>$(textanswer$n)</ul>
+ !exit
+!endif
+
+!if $R=3
+    var2=$empty
+    #var2=termen U_1 U_2... dus var2=1,2
+    checkfile=exos/checkfile1.proc
+    r=!randitem 2,3,4,5,6,7,8,9,10
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    options=$[$counter+2]
+    !if $r=$a
+	a=$[$r+1]
+    !endif	
+    termen=$empty
+    # formule a*r^n-1
+    !for p=1 to $options
+	termen=!append item U<sub>$p</sub> to $termen
+	t=$[$p-1]
+	U=$[$a*$r^($t)]
+	var2=!append item $p to $var2
+	answer$n=!append item $U to $(answer$n)
+	textanswer$n=!append line <li>U<sub>$p</sub>=$U</li> to $(textanswer$n)
+    !next p
+    ss=!record 61 of lang/remarks.$taal
+    question$n=$ss
+    #@ Gegeven de <em>rekenkundige rij</em> met <b>recursieformule</b>:<p align="center"> U<sub>n</sub>=$r&times;U<sub>n-1</sub> met U<sub>1</sub>=$a</p>\
+    #@ Bereken de termen $termen van deze rij.
+ !exit
+!endif
+
+!if $R>3
+    checkfile=exos/checkfile1.proc
+    options=2
+    r=!randitem 2,3,4
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    # formule a*r^n-1
+    termen=!shuffle 3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+    !for p in 1,2
+	t=!item $p of $termen
+	t=$[$t-1]
+	U=$[$a*$r^($t)]
+	T$p=U<sub>$t</sub>=$U
+    !next p
+    
+    d=!item 3 of $termen
+    b=$[$a*$r^($d-1)]
+    answer$n=$a,$b
+    ss=!record 62 of lang/remarks.$taal
+    #@ Gegeven de <em>rekenkundige rij</em> met<p align="center"> $T1 <br> en <br>$T2</p>\
+    #@ Bereken de termen U<sub>1</sub> en U<sub>$d</sub> deze rij.
+    question$n=$ss
+    textanswer$n=<ul><li>U<sub>1</sub>=$a</li><li>U<sub>$d</sub>=$b</li></ul>
+    var2=1,$d
+ !exit
+!endif    

@@ -1,0 +1,336 @@
+!set title=Construction de la courbe par la méthode de balayage en utilisant une boucle for
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r
+varcnt=54
+prevarcnt=53
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val2==)
+val6=ambiance
+!else
+val6=$val2
+!endif
+tmp0=!randint 10, 50
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val8=$[rint($(tmp0)$(tmp1))]
+tmp0=!randint -4, 4
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val8*x^2+$val9*x+$val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val12=!rawmath $(tmp0)
+tmp0=!replace x by x_i in $val12
+
+val13=$(tmp0)
+tmp0=!replace x by t in $val11
+
+val14=$(tmp0)
+tmp0=!replace x by t in $val12
+
+val15=$(tmp0)
+tmp0=!replace \^ by ** in $val11
+
+val16=$(tmp0)
+tmp0=!replace \^ by ** in $val12
+
+val17=$(tmp0)
+tmp0=!replace \^2 by *x in $val11
+
+val18=$(tmp0)
+tmp0=!replace \^3 by *x*x in $val18
+
+val19=$(tmp0)
+tmp0=!texmath $val11
+
+val20=$(tmp0)
+val21=$[-$val9/2/$val8]
+tmp0=!randint 2, 5
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val23=$[rint($(tmp0))]
+val24=$[rint(floor($val21)-$val22)]
+val25=$[rint(floor($val21)+$val23)]
+
+!ifval ($val8>0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)-10
+val26=!exec pari print($t_)
+!endif
+
+!ifval ($val8>0 and abs($val22)>=abs($val23))
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)+10
+val27=!exec pari print($t_)
+!else
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)+10
+val27=!exec pari print($t_)
+!endif
+
+!ifval ($val8<0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)+10
+val27=!exec pari print($t_)
+!endif
+
+!ifval ($val8<0 and abs($val22)>=abs($val23))
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)-10
+val26=!exec pari print($t_)
+!else
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)-10
+val26=!exec pari print($t_)
+!endif
+tmp0=!texmath $val26
+
+val28=$(tmp0)
+tmp0=!texmath $val27
+
+val29=$(tmp0)
+
+!ifval ($val24>0)
+val30=$[rint(-1)]
+!else
+val30=$[rint($val24-1)]
+!endif
+
+!ifval ($val25<0)
+val31=$[rint(1)]
+!else
+val31=$[rint($val25+1)]
+!endif
+
+!ifval ($val27<0 and $val26<0 )
+val32=$[rint(10)]
+!else
+val32=$[rint($val27)]
+!endif
+
+!ifval ($val27>0 and $val26>0)
+val33=$[rint(-10)]
+!else
+val33=$[rint($val26)]
+!endif
+tmp=!trim $val30,$val32,$val31,$val33
+val34=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in f(t)=$val14;
+tmp0=!exec pari $t_
+
+val35=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox1,600 x 200,JXG.Options.point.fixed = false;	JXG.Options.point.showInfobox=true;	JXG.Options.point.highlight=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.size = 5;	JXG.Options.point.withLabel=true;	const board = JXG.JSXGraph.initBoard('jsxbox1', {axis:false, boundingbox: [-10,2,10,-2],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	const xxaxis = board.create('axis', [[0, 0], [1,0]]);	var p1=board.create('point',[-8,0],{name:'a', fixed: true, strokeColor:'black',label: {Color:'blue',offset:[-15,10]}});	var p2=board.create('point',[8,0],{name:'b', fixed: true, strokeColor:'black',label: {Color:'blue'}});	board.create('line',[p1,p2],{straightFirst:false, straightLast:false});	var nn = board.create('slider',[[-8,1.5],[-4,1.5],[1,1,10]],{name:'nombre de sous-intervalles',snapWidth:1});	var dynamicObjects = [];	var glider_xi = null;	var lastN = -1;	function clearDynamic() {	  if (glider_xi !== null) {	    board.removeObject(glider_xi);	    glider_xi = null;	  }	  for (var i = 0; i < dynamicObjects.length; i++) {	    board.removeObject(dynamicObjects[i]);	  }	  dynamicObjects = [];	}	function rebuild() {	  var n = Math.round(nn.Value());	  if (n === lastN) return;	  lastN = n;	  var a = p1.X();	  var b = p2.X();	  var h = (b - a) / n;	  board.suspendUpdate();	  clearDynamic();	  var subdivPoints = [];	  for (var i = 0; i <= n; i++) {	      var xi = a + h * i;	      var pt = board.create('point', [xi, 0], {name: 'x_{' + i + '}', strokeColor: 'green', fillColor: 'green', face: '+', size: 11, fixed: true,showInfobox: false, label: { offset: [0, -18], fontSize: 10 }});	      dynamicObjects.push(pt);	      subdivPoints.push(pt);	      if (i < n) {var txt = board.create('text', [xi + h / 2, 0.5, 'h'], {anchorX: 'middle', fontSize: 12, fixed: true});	        dynamicObjects.push(txt);	      }	  }	var topSeg = board.create('segment', [[a, 0.25], [b, 0.25]], { strokeColor: 'green', strokeWidth: 2, fixed: true});	dynamicObjects.push(topSeg);	glider_xi = board.create('glider', [a, 0, xxaxis], { name: 'x_i',	  showInfobox: false,	  fillColor: 'white', strokeColor: 'red',	  face: 'o', size: 12,	  attractors: subdivPoints,	  attractorDistance: h / 2,	  snatchDistance: h / 2,	  label: { color: 'red', offset: [0, 25], fontSize: 12 }	});	var label_xi = board.create('text', [0, -1, function() {	      var k = Math.round((glider_xi.X() - p1.X()) / h);	      if (k === 0) return 'x_i = a';	      if (k === 1) return 'x_i = a+h';	      return 'x_i = a+' + k + 'h';	    }], { anchorX: 'middle', fontSize: 14, color: 'red', fixed: true });	dynamicObjects.push(label_xi);	board.unsuspendUpdate();	}	rebuild();	nn.on('drag', function() {rebuild();});	 
+tmp0=$slib_out
+val36=$(tmp0)
+val37=Construction d'une courbe \(f\) par la méthode de balayage en utilisant une boucle for
+val38=<p>Soit \(f\) une fonction définie par \(f(x)=$val20\) sur l'intervalle \(\lbracket$val24;$val25\rbracket\).</p>	<p>On souhaite construire la représentation graphique de la fonction \(f\).</p>
+t_=!replace internal \( by ( in default(format, "f.8");	vd=$val24;	va=$val25;	pn=$val7;	ph=(va-vd)/pn;	xxli=[];	yyli=[];	forstep(x=vd,va,ph,xxli=concat(xxli,x*1.00);	yyli=concat(yyli,f(x)*1.0););	
+tmp0=!exec pari $t_
+
+val39=$(tmp0)
+val40=\#Initialisation des variables\#	a=??	b=??	n=??	h=??	\#Initialisation des listes\#	x_list=[]	y_list=[]	\#Définition d'une fonction\#	def f(x):	  return $val16	\#Coeur du programme\#	for i in range(n+1):	  x=??	  y=f(x)	  x_list.append(x)	  y_list.append(y)	\#Affichage des listes\#	print(x_list)	print(y_list)
+val41=Représentation graphique de la courbe \(C_f\) avec les points créés
+val42=var c1=brd.create('functiongraph', [function(x){ return $val19;}, $val24, $val25], {strokeWidth: 2});	for(var jj = 0; jj < xlen; jj=jj+1) {	var t=brd.create('point', [x_liste[jj],y_liste[jj]],{color:'red',fixed:true,name:""});}
+val43=$[rint(3)]
+val44=Compléter l'algorithme en découpant l'intervalle \(\lbracket $val24;$val25 \rbracket \)	 en $val7 sous-intervalles de même longueur.
+val45=var c1=brd.create('functiongraph', [function(x){return $val19;}, $val24, $val25], {strokeWidth: 2});
+val46=Pour construire une approximation de la représentation graphique de la fonction \(f\)	 sur l'intervalle \(\lbracket a;b \rbracket \), on découpe l'intervalle \(\lbracket a;b \rbracket \)	 en un nombre fini \(n\) de sous-intervalles de même longueur.
+val47=JXG.Options.point.showInfobox = true;	JXG.Options.point.infoboxDigits = 5;	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =4;	JXG.Options.text.useMathJax = true;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val34],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	$val45	
+!readproc slib/geo2D/jsxgraph jsxbox,500 x 500,$val47 
+tmp0=$slib_out
+val48=$(tmp0)
+t_=!replace internal \( by ( in print(xxli);
+tmp0=!exec pari $t_
+
+val49=$(tmp0)
+t_=!replace internal \( by ( in print(yyli);
+tmp0=!exec pari $t_
+
+val50=$(tmp0)
+tmp0=!declosing $val49
+
+tmp=!trim $(tmp0)
+val51=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val50
+
+tmp=!trim $(tmp0)
+val52=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print(mmli);
+tmp0=!exec pari $t_
+
+val53=$(tmp0)
+t_=!replace internal \( by ( in print(ppli);
+tmp0=!exec pari $t_
+
+val54=$(tmp0)
+tmp0=!declosing $val53
+
+tmp=!trim $(tmp0)
+val55=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val54
+
+tmp=!trim $(tmp0)
+val56=!translate internal $	\
+$ to ;; in $tmp
+replytype1=formal
+replyoption1=nonstop 
+replyname1=
+replygood1=(b-a)/n
+replytype2=formal
+replyoption2=nonstop 
+replyname2=
+replygood2=a+h*i
+replytype3=runcode
+
+replyoption3=precision=10000 \instruction_code 
+replyweight3=10 
+replyname3=
+replygood3=[a,[$val24]],[b,[$val25]],[n,[$val7]],[x_list,[$val51]],[y_list,[$val52]]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<p class="problematique">$val37</p>	<div class="enonce">	$val38	<div class="question">	<div class="bold">Soit 
+!insmath n
+$() un entier naturel non nul. Découpage de l'intervalle 
+!insmath \lbracket a;b \rbracket 
+$() en 
+!insmath n
+$()	 sous-intervalles :</div>	<ul><li>Soit 
+!insmath a
+$() et 
+!insmath b
+$() deux nombres réels définis tels que 
+!insmath a<b
+$().	<br>$val46</li></ul>	<div class="wimscenter">$val36</div>	<ul>	<li>Modifier le nombre de sous-intervalles de la figure proposée puis déterminer la longueur d'un intervalle 
+!insmath h
+$()	 en fonction de 
+!insmath a
+$(), 
+!insmath b
+$() et 
+!insmath n
+$().	 En survolant les points à l'aide de la souris, on peut lire leurs coordonnées.	<div class="wimscenter"> 
+!insmath h=
+$() 
+!read oef/embed.phtml reply1,10 
+$()</div></li>	<li>Modifier le nombre de sous-intervalles de la figure proposée et déplacer le point 
+!insmath x_i
+$(). Exprimer	 la valeur de 
+!insmath x_{i}
+$() en fonction de 
+!insmath a
+$(), 
+!insmath h
+$() et de l'index 
+!insmath i
+$() :	<div class="wimscenter">
+!insmath x_{i}=
+$() 
+!read oef/embed.phtml reply2,10 
+$()</div></li>	</ul>	</div>	<div class="question">	<div class="bold">$val44</div>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply$val43,[python,[$val40]];[idtest2,theme=$val6 canvas init \instruction_code,Jouer le code !] 
+$()	</div>	<div class="wimscenter wimsborder box">	<b>$val41</b>	$val48	</div>	</div></div></div>	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	$m_coefi	const xlen=x_liste.length;	const brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val34],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	brd.suspendUpdate();	$val42	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,34,36,37,38,40,41,42,43,44,46,48
+embedcnt=3

@@ -1,0 +1,135 @@
+target=branchement1 branchement1bis
+
+\title{Branchement conditionnel : exemples numériques }
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+\language{fr}
+\format{html}
+\computeanswer{no}
+
+\text{monaide=wims(record 1,6 of langage)}
+\help{\monaide}
+
+\text{goodrep=randitem(Bonne réponse,Exact,C'est juste)}
+\text{badrep=randitem(Mauvaise réponse,Inexact,C'est faux)}
+\text{name_feed1=L'algorithme retourne la valeur }
+\text{name_answer=Valeur retournée,Propriété de la valeur}
+\text{name_question1=Quand cet algorithme a terminé, il affiche la valeur}
+#if defined TARGET_branchement1
+\text{name_question2= Quelles que soient les données initiales, la variable ZZZZ calculée par l'algorithme correspond à :}
+#endif
+#if defined TARGET_branchement1bis
+\text{name_question2=La variable ZZZZ calculée par la partie sur fond vert de l'algorithme correspond à :}
+#endif
+#if defined TARGET_branchement1
+\text{IF=SI}
+\text{THEN=ALORS}
+\text{ELSE=SINON}
+\text{DISPLAY=AFFICHER}
+\text{ENDIF=FIN_\IF}
+#endif
+#if defined TARGET_branchement1bis
+/** choix syntaxe variable du langage programmation **/
+\integer{ii=random(2,3,4)}
+\matrix{syntax=wims(record \ii of langage)}
+\text{IF=item(1,\syntax)}
+\text{THEN=item(2,\syntax)}
+\text{ELSE=item(3,\syntax)}
+\text{ENDIF=item(4,\syntax)}
+\text{DISPLAY=item(5,\syntax)}
+#endif
+\text{aff=&larr;}
+\text{sto=&rarr;}
+\text{le=&le;}
+\integer{\tmp=random(1..4)}
+\text{X=item(\tmp,X,A,U,P)}
+\text{Y=item(\tmp,Y,B,V,Q)}
+\text{Z=item(\tmp,Z,C,W,R)}
+\text{N=randitem(N,I,J)}
+\integer{x0=random(-10..10)}
+\integer{n=randint(2..8)}
+\integer{n0=randint(0,1)}
+\integer{y0=randitem(-1,1)*random(1..8)}
+
+\integer{rep1=\x0<\y0?\x0:\y0}
+\integer{rep2=\x0<\y0?\y0:\x0}
+\integer{rep3=\x0<0?-\x0:\x0}
+\integer{rep4=\rep3}
+\integer{rep5=\x0>0?\x0:0}
+\integer{rep6=\x0<\y0?\y0-\x0:\x0-\y0}
+\integer{rep7=\rep6}
+\integer{rep8=(\y0)^2<(\x0)^2?\x0:\y0}
+\integer{rep9=(\x0)^2<(\y0)^2?\x0:\y0}
+
+
+\matrix{algos = \x0 \sto \X, \y0 \sto \Y,, \IF \X \le \Y , \THEN \X \sto \Z, \ELSE \Y \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, \y0 \sto \Y,, \IF \X \le \Y , \THEN \Y \sto \Z, \ELSE \X \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X,, \IF \X < 0 , \THEN -\X \sto \X, FIN _\IF, \DISPLAY \X
+\x0 \sto \X, \X \sto \Z,, \IF \Z < 0 , \THEN -\Z \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, 0 \sto \Z ,, \IF \X > 0 , \THEN \X \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, \y0 \sto \Y,, \IF \X < \Y , \THEN \Y - \X \sto \Z, \ELSE \X - \Y \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, \y0 \sto \Y,, \Y - \X \sto \Z , \IF \Z < 0 , \THEN -\Z \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, \y0 \sto \Y ,, \IF \X^2 > \Y^2 , \THEN \X \sto \Z, \ELSE \Y \sto \Z, \ENDIF, \DISPLAY \Z
+\x0 \sto \X, \y0 \sto \Y,, \IF |\X| < |\Y| , \THEN \X \sto \Z, \ELSE \Y \sto \Z, \ENDIF, \DISPLAY \Z
+}
+
+\integer{\size=rows(\algos)}
+\integer{\cas=randint(\size)}
+\text{algo=row(\cas,\algos)}
+#if defined TARGET_branchement1
+\text{algopp=wims(replace internal ,, by , in \algo)}
+\text{algopp=wims(replace internal , by </td></tr><tr><td> in \algopp)}
+#endif
+#if defined TARGET_branchement1bis
+\text{algopp=wims(replace internal ,, by </td></tr></table><table width=200 bgcolor=xxxcolor cellpadding="5"><tr><td> in \algo)}
+\text{algopp=wims(replace internal , by </td></tr><tr><td> in \algopp)}
+\text{algopp1=wims(replace internal xxxcolor by lightblue in \algopp)}
+\text{algopp2=wims(replace internal xxxcolor by lightgreen in \algopp)}
+#endif
+
+\text{rep1=item(\cas,\rep1,\rep2,\rep3,\rep4,\rep5,\rep6,\rep7,\rep8,\rep9)}
+
+\text{actions= celle des variables \X et \Y qui est la plus petite,
+celle des variables \X et \Y qui est la plus grande,
+la valeur absolue de la variable \X,
+la plus grande valeur entre 0 et \X,
+la valeur absolue de la différence \Y - \X,
+celle des variables \X et \Y qui a le plus grand carré,
+celle des variables \X et \Y qui est la plus proche de 0
+}
+
+\text{rep2=item(\cas,1,2,3,3,4,5,5,6,7)}
+\text{question2=wims(replace internal ZZZZ by \Z in \name_question2)}
+
+\steps{reply1
+reply2}
+
+\statement{
+<p>On exécute l'algorithme suivant :</p>
+
+<div class="wimscenter"><table bgcolor=lightblue cellpadding="5"><tr><td>
+#if defined TARGET_branchement1
+\algopp
+#endif
+#if defined TARGET_branchement1bis
+\if{\step=1}{\algopp1}{\algopp2}
+#endif
+</td></tr></table></div>
+\if{\step=1}{
+<div><b>1. \name_question1</b> : \embed{reply1,8}</div>}
+\if{\step>1}{
+<p>
+\if{\reply1=\rep1}
+{1. <span class="oefindgood">\goodrep. \name_feed1 \rep1.</span>}
+{1. <span clas=="oefindbad">\badrep.</span>
+  <font color="blue">\name_feed1 \rep1.</font>}
+}
+</p>
+\if{\step>1}
+{<p><b>2.\question2 : </b></p>
+<div class="wimscenter">\embed{reply2}</div>
+}
+
+}
+\answer{\name_answer[1]}{\rep1}{type=numeric}{option=nonstop}
+\answer{\name_answer[2]}{\rep2;\actions}{type=menu}

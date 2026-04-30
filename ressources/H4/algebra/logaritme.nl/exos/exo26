@@ -1,0 +1,92 @@
+# een ander grondtal ...
+mathviewpanel=$module_title:a = :b = : and : en : = :
+mathview=5
+!readproc $remarkdir/rounding.$taal
+helptext=<img src=\'$module_dir/gifs/exo26.jpg\' alt=\'noalt\' />
+questiontype=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+math=0
+rounding=0
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/checkfile5.proc
+arglist=a,b
+keuze=!randitem 0,1
+formula$n=$empty
+
+
+!if $R=1
+ a=!randint 2,7
+ g=!randint 2,9
+ F1=f(t) = $g^{a\cdot t + b}
+ !if $keuze=0
+  F2=y = \left( \frac{1}{$g} \right) ^{t} 
+  f2=!mathmlmath $F2
+  texanswer$n=\left\{ \begin{array}{l} y = \left( \frac{1}{$g} \right) ^{t} \\  y = \left( $g^{-1}\right)^{t} \\ y = $g^{-t} \\  a = -1 \wedge b = 0  \\ f(t) = $g^{-t} \end{array} \right.
+  answer$n=-1\
+  0
+ !else 
+  F2=y = \left( \frac{1}{$g} \right) ^{$a t}
+  f2=!mathmlmath $F2
+  answer$n=$[-1*$a]\
+  0
+  texanswer$n=\left\{ \begin{array}{l} y = \left( \frac{1}{$g} \right) ^{$a t} \\ y = \left( $g^{-1}\right)^{$a t} \\ y = $g^{-$a t} \\  a = $[-1*$a] \wedge b = 0 \\ f(t) = $g^{$[-1*$a] t } \end{array} \right.
+ !endif
+!else
+ !if $R=2
+  !if $keuze=0
+   g=!randint 2,5
+   b=!randint 2,5
+   d=$[$g^$b]
+   c=!randint 2,9
+   !if $c=$g
+    c=$[$c+1]
+   !endif
+   answer$n=log($c)/log($g)\
+   $b
+   texanswer$n=\left\{ \begin{array}{l} y = $d \cdot \left( $c \right) ^{t} \\   y = $g^{$b} \cdot $c^{t} \\  y = $g^{$b} \cdot \left( $g^{ ^{$g}\log($c) } \right)^{t} \\ y = $g^{$b} \cdot $g^{^$g\log($c) \cdot t } \\ y = $g^{^$g \log($c) \cdot t + $b } \\  a = ^{$g}\log{$c} \wedge b = $b  \\ f(t) = $g^{^{$g}\log{$c} \cdot t + $b } \end{array} \right.
+  !else
+    g=!randint 2,9
+    c=!randint 1,9
+    d=!randint 11,99
+    d=$[0.1*$d]
+    c=$[0.1*$c]
+    answer$n=log($c)/log($g)\
+    log($d)/log($g)
+    texanswer$n=\left\{ \begin{array}{l} y = $d \cdot \left( $c\right) ^{t} \\  y = $g^{^{$g}\log($d)} \cdot \left( $g^{ ^{$g}\log($c) } \right)^{t} \\ y = $g^{^{$g}\log($d)} \cdot $g^{^{$g}\log($c) \cdot t } \\ y = $g^{^$g \log($c) \cdot t + ^{$g}\log($d) } \\ a = ^{$g}\log{$c} \wedge b = ^{$g}\log($d)  \\ f(t) = $g^{^{$g}\log{$c} \cdot t + ^{$g}\log($d) }  \end{array} \right.
+  !endif
+  F2=y = $d \cdot \left( $c\right) ^{t}
+  f2=!mathmlmath $F2
+ !else
+  g=!randint 2,9
+  a=!randint 1,9
+  b=!randint 2,9
+  c=!randint 2,5
+  !if $c=$g
+   c=$[$c+1]
+  !endif
+  F2=y = $c^{$a - $b \cdot t} 
+  f2=!mathmlmath $F2
+  answer$n=-1*$b*log($c)/log($g)\
+  log($c^$a)/log($g)
+  ca=$[$c^$a]
+  texanswer$n=\left\{ \begin{array}{l} y = $c^{$a - $b \cdot t} \\ y = $c^{$a}  \cdot $c^{-$b t} \\ y = $g^{^{$g}\log\left( $c^{$a} \right)} \cdot \left( $g^{ ^{$g}\log($c) } \right)^{-$b t} \\ y = $g^{^{$g}\log\left( $ca \right)} \cdot \left( $g^{ ^{$g}\log($c) } \right)^{-$b t} \\ y = $g^{^{$g}\log\left( $ca \right)} \cdot $g^{ ^{$g}\log($c) \cdot -$b t } \\  y = $g^{-$b \cdot ^{$g} \log($c) \cdot t + ^{$g}\log\left( $ca \right) } \\  a = -$b \cdot ^{$g}\log{$c} \wedge b = ^{$g}\log\left( $ca \right)  \\ f(t) = $g^{-$b \cdot ^{$g}\log{$c} \cdot t + ^{$g}\log\left( $ca \right) } \end{array} \right.
+ !endif
+ F1=f(t) = $g^{a\cdot t + b}
+!endif
+
+f1=!mathmlmath $F1
+formula$n=\left[ \begin{array}{l}$F1 \\ $F2\\ a = ? \wedge b = ? \end{array}\right. \rightarrow
+m_rightarrow=$empty
+ss=!record 46 of lang/remarks.$taal
+#@Gegeven is de familie van functies: $f1 <br />Bereken voor welke waarden van <i>a</i> en <i>b</i> de grafiek<br />van <i>f</i> samenvalt met de grafiek van $f2
+question$n=$ss
+helptext=<img src=\'$module_dir/gifs/exo26.jpg\' alt=\'noalt\' />
+!exit
+

@@ -1,0 +1,187 @@
+!set title=Couleur secondaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=[ambiance,neat]
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+val8=rouge,vert,bleu
+val9=$(val8[$val7])
+
+!ifval ($val7==1)
+tmp0=!randint 1, 2
+
+val10=$(tmp0)
+!endif
+
+!ifval ($val7==2)
+tmp=!nonempty items 1,3
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+!endif
+
+!ifval ($val7==3)
+tmp0=!randint 2, 3
+
+val10=$(tmp0)
+!endif
+val11=255,255,0;255,0,255;0,255,255
+val12=$(val11[$val10;])
+
+!ifval ($val7==1 && $val10==1)
+val13=$[rint(2)]
+!endif
+
+!ifval ($val7==1 && $val10==2)
+val13=$[rint(3)]
+!endif
+
+!ifval ($val7==2 && $val10==1)
+val13=$[rint(1)]
+!endif
+
+!ifval ($val7==2 && $val10==3)
+val13=$[rint(3)]
+!endif
+
+!ifval ($val7==3 && $val10==2)
+val13=$[rint(1)]
+!endif
+
+!ifval ($val7==3 && $val10==3)
+val13=$[rint(2)]
+!endif
+
+!ifval ($val7==1)
+val14=255,0,0
+!endif
+
+!ifval ($val7==2)
+val14=0,255,0
+!endif
+
+!ifval ($val7==3)
+val14=0,0,255
+!endif
+val15=secondaires
+val16=le jaune, le majenta et le cyan.<div class="wimscenter">	<img src="$val1/synthese_additive.png" alt="Synthèse additive"/></div>
+val17=(p.getRed()==?? and p.getGreen()==?? and p.getBlue()==??) or (p.getRed()==?? and p.getGreen()==?? and p.getBlue()==??)
+val18=,p.getRed(),p.getGreen(),p.getBlue()
+val19=import image	trouve=False	img = image.Image('dalle')	for ligne in range(img.getHeight()):	    for colonne in range(img.getWidth()):	        p = img.getPixel( colonne, ligne)	        if $val17:	            print(colonne,ligne$val18)	            trouve=True	if not trouve:	  print('Modifier les valeurs car l\\'algorithme n\\'a pas pu trouver le pixel défectueux.')	
+!readproc slib/runcode [python,[$val19]],id1,init theme=$val6 fullscreen,Jouer le code ! 
+tmp0=$slib_out
+val20=$(tmp0)
+tmp0=!randint 1, 599
+
+val21=$[rint($(tmp0))]
+tmp0=!randint 1, 399
+
+val22=$[rint($(tmp0))]
+!readproc oef/draw.phtml 600,400 \
+frect 0,0,600,400,$val12	frect $val21,$val22,$val21,$val22,$val14 
+tmp0=$ins_url
+val23=$(tmp0)
+tmp0=!randint 0, 255
+
+val24=$[rint($(tmp0))]
+tmp0=!randint 0, 255
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 0, 255
+
+val26=$[rint($(tmp0))]
+replytype1=numeric
+replyoption1=absolute 
+replyname1=
+replygood1=$[$val21]
+replytype2=numeric
+replyoption2=absolute 
+replyname2=
+replygood2=$[$val22]
+replytype3=menu
+replyoption3= 
+replyname3=
+replygood3=$val13;$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">Chercher le pixel défectueux</p>	<div id="boited">	<img src="$val1/pixel.png" alt="Pixels" id="test"/>	</div>	<div class="enonce">	Un écran de téléphone en couleur est un tableau composé de lignes et de colonnes dans	 lequelle chaque pixel comporte 3 informations rouge, vert et bleu. L'image ci-contre	 illustre cette représentation. Chaque couleur est codée sur 8 bits donc il est possible	 d'avoir 
+!insmath 2^8=256
+$() nuances. Par conséquent les valeurs des 3 différentes couleurs	 varient entre 0 et 255.	<div class="wims_instruction">	Modifier la position des 3 curseurs afin d'obtenir des couleurs différentes. Par exemple	 essayer d'obtenir $val16	</div>	<table class="wimscenter wimsborder">	  <tr><td>Red</td>	      <td><input type="range" min="0" max="255" value="$val24" id="rouge"></td>	      <td id="rv">$val24</td>	  </tr>	  <tr>	      <td>Green</td>	      <td><input type="range" min="0" max="255" value="$val26" id="vert"></td>	      <td id="gv">$val25</td>	  </tr>	  <tr>	      <td>Blue</td>	      <td><input type="range" min="0" max="255" value="$val25" id="bleu"></td>	      <td id="bv">$val26</td>	   </tr>	</table>	<div id="boule"></div>	<p>Un pixel sur une dalle est constitué de trois lampes: une rouge, une verte et une bleue.	<br/>Afin de tester l'ensemble des pixels d'une dalle,	 on met la dalle dans une des 3 couleurs $val15 et on vérifie que tous les pixels s'allument.	La dalle suivante possède un pixel défectueux. Essayer de trouver le pixel.</p>	<div class="wims_instruction">	Utiliser la fonction zoom de votre navigateur en appuyant sur les touches 
+!insmath \text{Ctrl}
+$() et 
+!insmath  \text{+} 
+$() pour zoomer.	Appuyer sur les touches 
+!insmath \text{Ctrl}
+$() et 
+!insmath  - 
+$() pour dézoomer.	</div>	<div class="wimscenter wimsborder">	<img src="$val23" alt="Dalle" id="dalle"/>	</div>	Modifier cet algorithme afin qu'il recherche le pixel défectueux sur la dalle de smartphone	 ci-dessus.	<div>	$val20	</div>	<img src="$val1/attention.png" alt="Attention" /> : L'algorithme proposé est lent et il	 met plusieurs secondes à s'exécuter. Si votre navigateur vous propose d'arrêter le	 script, suivre son conseil et recommencer l'exercice.	 <br/>	Le pixel défectueux a donc pour coordonnées :  
+!read oef/special.phtml mathmlinput [\left( reply1 ;reply2 \right)],3 answer	reply1,,color:blue;text-align:center;	reply2,,color:blue;text-align:center; 
+$()	et la couleur de la lampe défectueuse est :  
+!read oef/embed.phtml reply3 
+$()	</div>	</div>	<script>	var bouboule=document.getElementById("boule");	var sliderRed=document.getElementById("rouge");	sliderRed.oninput=function(){document.getElementById("rv").innerHTML=this.value;coul();};	var sliderGreen = document.getElementById("vert");	sliderGreen.oninput = function (){document.getElementById("gv").innerHTML = this.value;coul();};	var sliderBlue = document.getElementById("bleu");	sliderBlue.oninput = function (){document.getElementById("bv").innerHTML = this.value;coul();};	function coul(){	  var r = document.getElementById("rv").innerHTML;	  var g = document.getElementById("gv").innerHTML;	  var b = document.getElementById("bv").innerHTML;	  bouboule.style.backgroundColor = "rgb("+r+","+g+","+b+")";	}	coul();	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,15,16,20,23,24,25,26
+embedcnt=2

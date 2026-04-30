@@ -1,0 +1,177 @@
+!set title=Vecteurs directeurs et équations
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joachim Yaméogo
+email=yameogo@unice.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=200
+val8=200
+val9=-4
+val10=4
+val11=-4
+val12=4
+val13=linewidth 1	parallel 0,$val11,0,$val12,0.2,0,floor(5*($val10))+1,$val6	parallel 0,$val11,0,$val12,-0.2,0,floor(5*abs($val9))+1,$val6	parallel $val9,0,$val10,0,0,0.2,floor(5*($val12))+1,$val6	parallel $val9,0,$val10,0,0,-0.2,floor(5*abs($val11))+1,$val6	
+val14=linewidth 1	parallel 0,$val11,0,$val12,1,0,floor($val10+1),$val6	parallel 0,$val11,0,$val12,-1,0,floor(abs($val9)+1),$val6	parallel $val9,0,$val10,0,0,1,floor($val12+1),$val6	parallel $val9,0,$val10,0,0,-1,floor(abs($val11)+1),$val6	
+val15=linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.2,medium,i	text red,-0.5,0.7,medium,j	text black,-0.5,-0.1,medium,O	arrow $val10-1,0,$val10,0,10,black	arrow 0,$val12-1,0,$val12,10,black	text black,$val10-0.5,-0.2,large,x	text black,-0.5,$val12-0.4,large,y	
+val16=xrange $val9,$val10	yrange $val11,$val12	$val14	$val15	
+tmp0=!shuffle red,blueviolet,green,brown
+
+val17=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2,3
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 1,2,3
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -3,-2,-1,1,2,3
+
+val20=$(tmp0)
+tmp0=!shuffle -13,-8,-5,3,9,13
+
+val21=$(tmp0)
+val22=
+!for val23 =1 to 3 
+val24=($val19)/($val18)+(($(val21[$val23]))/(($val20)*($val18)))
+tmp0=!append item $val24 to $val22
+
+val22=$(tmp0)
+!next
+val24=($val19)/($val18)
+tmp0=!append item $val24 to $val22
+
+val22=$(tmp0)
+tmp=!trim 
+val25=!translate internal $	\
+$ to ;; in $tmp
+!for val23 =1 to 4 
+tmp0=!randitem -1,1
+
+tmp1=!randitem 11/4,3,13/4,7/2,15/4,4
+
+val26=$[$(tmp0)*$(tmp1)]
+val27=$[sqrt(1+($(val22[$val23]))^2)]
+val28=$[0]
+val29=$[0]
+val30=$[($val28)+($val26)/($val27)]
+val31=$[($val29)+(($val26)*($(val22[$val23])))/($val27)]
+val32=arrow $val28,$val29,$val30,$val31,10,$(val17[$val23])
+tmp=!trim $val25	          $val32	    
+val25=!translate internal $	\
+$ to ;; in $tmp
+!next
+val33=
+val34=
+!for val23 =1 to 4 
+tmp0=!randint ($val9+2), ($val10-2)
+
+val35=$[rint($(tmp0))]
+tmp0=!randint ($val11+2), ($val12-2)
+
+val36=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand(($(val22[$val23]))*(x-($val35))+($val36));
+tmp0=!exec maxima $t_
+
+val37=$(tmp0)
+tmp0=!texmath y=$val37
+
+val38=\($(tmp0))
+tmp0=!append item $val38 to $val33
+
+val33=$(tmp0)
+!readproc oef/draw.phtml $val7,$val8 \
+          $val16	          $(val25[$val23;])	           
+tmp0=$ins_url
+val39=<img src="	          $(tmp0)"	          width="$val7"	          height="$val8"	    alt=""	         >	  
+tmp0=!append item $val39 to $val34
+
+val34=$(tmp0)
+!next
+val40=$val7
+val41=$val40 x$val40 x150
+replytype1=correspond
+replyname1=Correspondance droite/equation
+replygood1=$val34;$val33
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="affiche_pres">	      Dans le plan muni d'un repère 
+!insmath (O,i,j)
+$(), associez à chacun	      des vecteur ci-dessous, l'équation d'une droite dont il est le vecteur	      directeur.	</div>	<br>	<div class="affiche_pres" style="text-align:center;">	   
+!read oef/embed.phtml reply 1,$val41 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()	  <br>	  <p style="background-color:bisque;">	    Les vecteurs directeurs de la droite d'équation 
+!insmath y = a x + b
+$() sont tous les vecteurs	    du plan qui sont colinéaires au vecteur 
+!insmath \vec{v}(1,a)
+$().	  </p>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=41
+embedcnt=1

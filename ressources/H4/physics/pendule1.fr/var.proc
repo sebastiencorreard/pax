@@ -1,0 +1,20 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid calls to the module.
+
+!if $cmd=reply and $status!=waiting
+  error=double_reply
+  !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+  !! the procedure is driven by the value $step
+  !readproc var.proc$step
+  !!!!!!!!!!!!!!!!!!!!!! everytime !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  phrase_result=résultat intermédiaire :
+  !for i from 1 to $[$step+$fin_travail-1]
+    phrase_result = $phrase_result $(result$i) / $(bareme$i),
+  !next i
+
+  phrase_result=!item 1 to -2 of $phrase_result
+  phrase_result=$phrase_result.
+!endif

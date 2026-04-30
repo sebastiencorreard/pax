@@ -1,0 +1,82 @@
+#:25 Herleid de functie tot een machtsfunctie
+display=1
+checkfile=$checkdir/new_number.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+
+mathview=0
+inputs=-1
+helptext=
+keuze=!randint 1,2
+!if $mathml=2
+ m=!mathmlmath y=c*x^a
+!else
+ m=!htmlmath y=c*x^a
+!endif
+ss=!record 30 of lang/remarks.$taal
+#@Herleid de onderstaande formule tot de vorm: $m<br />en vul de waarden voor <b>c</b> en <b>a</b> in.
+
+question$n=$ss
+
+!if $R=1
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	ans1=(1/$a)^(1/$b)
+	ans2=1/$b
+	ans1_tex=\left(\frac{1}{$a}\right)^{\frac{1}{$b}}
+	ans2_tex=\frac{1}{$b}
+	exotext=!mathmlmath \left\{ \begin{array}{ll} x = $a \cdot y^{$b}  \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+answer$n=$ans1\
+$ans2
+	texanswer$n= \left[ \begin{array}{lll}x = $a \cdot y^{$b}  \\ \frac{1}{$a} x=y^{$b} \\ y=\left(\frac{1}{$a}x\right)^{\frac{1}{$b}} \\ y=\left(\frac{1}{$a}\right)^{\frac{1}{$b}} \cdot x^{\frac{1}{$b}} \rightarrow  c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+	
+    !else
+	a=!randint 2,9
+	b=!randint 2,9
+	ans1=($a)^(1/$b)
+	ans2=-1/$b
+	ans1_tex=$a^\left( \frac{1}{$b}\right)
+	ans2_tex=-\frac{1}{$b}
+   	exotext=!mathmlmath \left\{ \begin{array}{ll} x = $a \cdot y^{-$b}  \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+answer$n=$ans1\
+$ans2
+	texanswer$n= \left[ \begin{array}{lll} x = $a \cdot y^{-$b} \Rightarrow x=$a \cdot \frac{1}{y^{$b}} \\ x \cdot y^{$b}=$a \\ y^{$b}=\frac{$a}{x}=$a \cdot x^{-1}\\ y= \left($a \cdot x^{-1} \right)^{\frac{1}{$b}}\\ y= \left($a \right)^{\frac{1}{$b}} \cdot \left( x^{-1}\right)^{\frac{1}{$b}}\\ y= \left($a \right)^{\frac{1}{$b}} \cdot x^{-\frac{1}{$b}}  \rightarrow  c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+    !endif
+    !exit
+!endif
+
+!if $R>1
+    a=!randint 2,9
+    b=!randint 2,9
+    d=!randint 3,9
+    e=$[$d-1]
+
+    tussen=!exec pari A=$a/$b\
+    printtex(A)
+    
+    t=!line 1 of $tussen
+    t_tex=!line 2 of $tussen
+    
+    ans1=($t)^(1/$e)
+    ans2=-1/$e
+    ans1_tex=\left( $t_tex \right)^{ \frac{1}{$e}}
+    ans2_tex=-\frac{1}{$e}
+    exotext=!mathmlmath \left\{ \begin{array}{ll}  \frac{$a y}{x}=$b y ^{$d} \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+
+answer$n=$ans1\
+$ans2
+    texanswer$n= \left[ \begin{array}{lll}\frac{$a y}{x}=$b y ^{$d}\\  \frac{1}{x}=\frac{$b y ^{$d}}{$a y}\\ \frac{1}{x}=\frac{$b}{$a} \cdot y^{$e}\\ y^{$e}=\frac{$a}{$b} \cdot \frac{1}{x}\\ y^{$e}=\frac{$a}{$b} \cdot x^{-1}\\ y= \left(\frac{$a}{$b} \cdot x^{-1} \right)^{\frac{1}{$e}}=\left(\frac{$a}{$b} \right)^{\frac{1}{$e}} \cdot x^{-\frac{1}{$e}} \rightarrow c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+	
+    !exit
+!endif
+
+

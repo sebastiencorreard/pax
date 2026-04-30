@@ -1,0 +1,139 @@
+#list_of_things=['point','line','segment','circle','function','polygon','cone','ellipse','polynomial']
+#customToolBar=0 , 1 , 10 , 16 , 6
+# alleen integers in ggb file !! decimalen=0
+mathview=0
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+inputs=yes
+xmin=0
+xmax=6
+make_tr=1
+checkfile=exos/checkfile1b.proc
+math=0
+plot=0
+draw=0
+image=0
+applet=1
+#image$n=$empty
+helptext=!record 31 of lang/remarks.$taal
+ss=!record 1 of lang/remarks.$taal
+#@ Teken in de java-applet een toenamendiagram met een stapgrootte "1"<br />vanaf x=$xmin tot en met x=$xmax bij de grafiek. 
+question$n=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    
+etext=!record 2 of lang/remarks.$taal
+exotext=<a href="javascript:showimage();">$etext</a>
+
+#; ytics 1
+textanswer$n=<ul>
+!if $R=1
+    a=!randitem -3,-2,-1,1,2,3
+    b=!randitem -5,-4,-3,-2,-1,0,1,2,3,4,5
+    functie=$a*x+$b
+    !for p=$[$xmin+1] to $xmax
+	answer$n=!append item $p,0 to $(answer$n)
+	answer$n=!append item $p,$a to $(answer$n)
+	# $p,0,$p,$a
+	textanswer$n=!append word $ <li>Segment ($p:0) -- ($p:$a) $m_rightarrow  <span style="color:red">&Delta; y = $a</span></li> $ to $(textanswer$n)
+    !next p
+    maxstep=$[abs($a)]
+    textanswer$n=!append word $ </ul> $ to $(textanswer$n)
+    ymin=$[$a*($xmin - 2) + $b]
+    ymax=$[$a*($xmax + 2) + $b]
+    !if $ymin > $ymax
+	tmp=$ymax
+	ymax=$ymin
+	ymin=$tmp
+    !endif
+    
+    ymin=$[20*(round($ymin/20))]
+    ymax=$[20*(round($ymax/20))]
+    !if $ymin > -1
+	ymin=-4
+    !endif
+    !if $ymax < 1
+	ymax=4
+    !endif
+    !if $xmin > -1
+	xmin=-1
+    !endif
+
+    var9=size 640,420\
+    xrange $[$xmin-2],$[$xmax+2]\
+    yrange $[-1*($maxstep) - 2],$[$maxstep+2]\
+    xlabel x-as     \
+    ylabel y-as        \
+    axisnumbering\
+    axis\
+    snaptogrid\
+    precision 10\
+    grid 1,2,grey,4,4,6,black\
+    replyformat 2\
+    userinput_xy\
+    linewidth 3\
+    precision 100\
+    userdraw segments,red\
+    mouse green,22
+    
+    object$n=!exec canvasdraw $var9
+
+    insplot_set=size 1.0,1.0; title ; border 3; zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ;ytics 1; mytics 2
+    !insplot [$xmin:$xmax] [$ymin:$ymax] $functie notitle lt 1
+
+ !exit
+!endif
+
+!if $R>1
+    a=!randitem 0,1,2
+    b=!randitem 3,4,5
+    c=!randitem 1,-1
+    
+    C=$[-1*($a)*($c) - ($b)*($c) + ($c)]
+    tt=2*($c)*x + ($C)
+    
+    maxstep=0
+
+    !for p=$xmin to $[$xmax-1]
+	y=!replace internal x by $p in $tt
+	y=$[$y]
+	!if $[abs($y)] > $maxstep
+	    maxstep = $[abs($y)]
+	!endif
+	q=$[1+$p]
+	answer$n=!append item $q,0 to $(answer$n)
+	answer$n=!append item $q,$y to $(answer$n)
+	textanswer$n=!append word $ <li>Segment ($q:0) -- ($q:$y) $m_rightarrow  <span style="color:red">&Delta; y = $y</span></li> $ to $(textanswer$n)
+    !next p
+    textanswer$n=!append word $ </ul> $ to $(textanswer$n)
+    insplot_set=size 1.0,1.0; title ;autoscale y ; border 3; zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ;ytics 1
+    functie=$c*(x-$a)*(x-$b)
+    !insplot [$xmin:$xmax] $functie notitle lt 1
+
+    var9=size 640,420\
+    xrange $[$xmin-2],$[$xmax+2]\
+    yrange $[-1*($maxstep) - 2],$[$maxstep+2]\
+    xlabel x-as     \
+    ylabel y-as        \
+    axisnumbering\
+    axis\
+    snaptogrid\
+    precision 10\
+    grid 1,2,grey,4,4,6,black\
+    precision 100\
+    userinput_xy\
+    replyformat 2\
+    linewidth 3\
+    userdraw segments,red\
+    mouse green,22
+    
+    object$n=!exec canvasdraw $var9
+
+
+
+ !exit
+!endif
+
+
+

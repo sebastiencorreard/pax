@@ -1,0 +1,65 @@
+\title{Calcul de force de gravitation}
+\keywords{gravitation}
+\author{Benoit, Markey ; Georges, Khaznadar}
+\precision{100}
+\real{G=6.67e-11}
+\real{MT=5.97e24}
+\real{RT=6380}
+\integer{h=randint(200..36000)}
+\integer{m=randint(100..1000)}
+
+\integer{taille_cadre=500}
+\real{echelle=\taille_cadre / (\RT+\h)/ 2.2}
+
+\real{F=\G*\MT*\m/((\RT+\h)*1e3)^2}
+\text{A=slib(geo2D/jsxgraph jsxbox,\taille_cadre x \taille_cadre,
+  var brd = JXG.JSXGraph.initBoard(
+    'jsxbox',
+    {
+      axis:true,
+      originX: \taille_cadre / 2,
+      originY: \taille_cadre/ 2,
+      unitX: \echelle,
+      unitY: \echelle,
+    }
+   );
+   p1 = brd.create('point', [0,0]).hideElement();
+   p2 = brd.create('point', [0, \RT]).hideElement();
+   p3 = brd.create('turtle', [(\RT + \h)*Math.cos(0), (\RT + \h)*Math.sin(0)], {strokeOpacity:0.5, label: "satellite",});
+   p3.setPenSize(3);
+   p3.setAttribute({dotted: 3,});
+   planete = brd.create('circle', [p1, p2], {strokeWidth: 1, strokeColor: 'blue', fillColor: '#00ffff50'});
+   pl1 = brd.create('text',[100,200,"Planète"]);
+
+   )
+}
+\text{anim=<script>
+   var temps=0;
+   var animation= function() {
+     temps+=0.01;
+     p3.moveTo([(\RT+\h)*Math.cos(temps), (\RT+\h)*Math.sin(temps)]);
+
+     p3.lookTo([(\RT+\h)*Math.cos(temps)-Math.sin(temps), (\RT+\h)*Math.sin(temps)+Math.cos(temps)]);
+
+     setTimeout(animation, 40);
+   };
+   animation();
+</script>
+}
+
+\statement{
+\A \anim
+<div class="wims_question">Quelle est est la force d'interaction gravitationnelle exercée entre la Terre
+et un satellite S de masse m=\m kg et situé à une altitude h=\h km de la <i><strong>surface</strong></i>
+de la terre.
+<div> On donne :<ol><li>Masse de la Terre: M<sub>T</sub>=\MT kg</li>
+<li>Rayon de la Terre: R<sub>T</sub>=\RT km</li>
+<li>Constante de gravitation universelle: \(G=6.67\times10^{-11})
+  (unité du système international)</li></ol></div>
+<div class="wimscenter"><label for="reply1">F=</label>\embed{reply1,10}</div></div>
+<div class="wims_instruction">
+<ul class="wims_nopuce">
+<li>Le séparateur de décimales est le point (.).</li>
+<li>On écrira les puissances de \(10^x) sous la forme e+x. Par exemple \(10^{3}) s'écrira e+3</li>
+<li>Ne pas oublier l'unité</li></ul></div>}
+\answer{réponse}{\F N }{type=units}

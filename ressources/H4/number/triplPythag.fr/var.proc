@@ -1,0 +1,60 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid calls to the module.
+
+
+# how to detect the need to compute?
+!if $cmd=reply
+ !if $menu=1
+
+  !if $method=1
+   !if $[$nombre1^2+$nombre2^2]<>$[$nombre3^2]
+    res1=!htmlmath a^2+b^2
+    res2=!htmlmath c^2
+    error=<font color=red>Attention : (a,b,c) doit être un triplet pythagoricien, c'est à dire que $res1 doit être égal à $res2</font>
+   !endif
+
+   !if ( $[floor($k)]<>$k ) or ( $[floor($nombre1)]<>$nombre1 ) or ( $[floor($nombre2)]<>$nombre2 ) or ( $[floor($nombre3)]<>$nombre3 )
+    error=<font color=red>Attention : k, a, b et c doivent être des nombres entiers positifs</font>
+   !endif
+
+   !if $k<=0 or $nombre1<=0 or $nombre2<=0 or $nombre3<=0
+    error=<font color=red>Attention : k, a, b et c doivent être des nombres entiers positifs</font>
+   !endif
+
+   compute=yes
+   nombre4 = !exec pari $k * $nombre1
+   nombre5 = !exec pari $k * $nombre2
+   nombre6 = !exec pari $k * $nombre3
+   nombre7 = !exec pari $nombre4 * $nombre4
+   nombre8 = !exec pari $nombre5 * $nombre5
+   nombre9 = !exec pari $nombre6 * $nombre6
+
+  !endif $method=1
+
+
+  !if $method=2
+   !if $nombre1>$nombre2
+    error=<font color=red>Attention, vous devez vérifier a < b</font>
+   !endif
+
+   !if ( $[floor($nombre1)]<>$nombre1 ) or ( $[floor($nombre2)]<>$nombre2 )
+    error=<font color=red>Attention : a et b doivent être des nombres entiers positifs</font>
+   !endif
+
+   !if $nombre1<=0 or $nombre2<=0
+    error=<font color=red>Attention : a et b doivent être des nombres entiers positifs</font>
+   !endif
+
+   compute=yes
+   nombre3 = !exec pari $nombre1 * $nombre1
+   nombre4 = !exec pari $nombre2 * $nombre2
+   nombre5 = !exec pari $nombre4 + $nombre3
+   nombre6 = !exec pari $nombre4 - $nombre3
+   nombre7 = !exec pari 2 * $nombre2 * $nombre1
+
+  !endif $method=2
+
+ !else
+   menu=1
+ !endif $menu=1
+!endif $cmd=reply

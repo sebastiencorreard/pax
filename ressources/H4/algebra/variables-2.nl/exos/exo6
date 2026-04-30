@@ -1,0 +1,81 @@
+mathviewpanel=$module_title:/:+:-:*:^
+rounding=0
+display=1
+mathview=5
+# mathview=5 : only input-applet
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=1
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+formula$n=$empty
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+d=!item 3 of $getallen
+keuze=!randitem 1,0
+!if $keuze=1
+    helptext=<img src=\'$module_dir/gifs/exo6a.jpg\' alt=\'noalt\' />
+!else
+    helptext=<img src=\'$module_dir/gifs/exo6b.jpg\' alt=\'noalt\' />
+!endif
+
+!if $R=1
+    !if $keuze=0
+	var1=sqrt(x)*x^($b*a)
+	applettext=root(x)*x^($b*a)=
+	formula$n=\sqrt{x}\cdot x^{  $b \cdot a} = [?]
+	answer$n=!rawmath x^($b*a+1/2)
+	tex=!texmath $(answer$n)
+	texanswer$n=\sqrt{x}\cdot x^{  $b \cdot a} = $tex
+    !else
+	var1=(sqrt(x))/(x^($b*a))
+	applettext=root(x)/x^($b*a)=
+	formula$n=\frac{\sqrt{x}}{x^{  $b \cdot a}} = [?]
+	answer$n=!rawmath x^(1/2 - $b*a)
+	tex=!texmath $(answer$n)
+	texanswer$n= \frac{\sqrt{x}}{x^{  $b \cdot a}} =$tex
+    !endif
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+
+!else
+    !if $keuze=0
+	var1=$d*sqrt(x)*x^($b*a)
+	applettext=$d*root(x)*x^($b*a)=
+	answer$n=!rawmath $d*x^($b*a+1/2)
+	formula$n=$d \cdot \sqrt{x} \cdot x^{  $b \cdot a} = [?]
+	tex=!texmath $(answer$n)
+	texanswer$n=$d \cdot \sqrt{x} \cdot x^{  $b \cdot a} = $tex
+    !else
+	var1=$d*(sqrt(x))/(x^($b*a))
+	applettext=$d*root(x)/x^($b*a)=
+	answer$n=!rawmath $d*x^(1/2 - $b*a)
+	formula$n=$d \cdot \frac{\sqrt{x}}{x^{  $b \cdot a}} = [?]
+	tex=!texmath $(answer$n)
+	texanswer$n= $d \cdot \frac{\sqrt{x}}{x^{  $b \cdot a}}  = $tex
+    !endif
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+!endif
+
+!exit
+
+
+

@@ -1,0 +1,155 @@
+#:13 afstand tussen lijn en cirkel vectorvoorstelling
+
+n=$counter
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+mathview=0
+math=0
+force_mathml=yes
+checkfile=$checkdir/new_number.proc
+calculator=2
+helptext=$empty
+make_tr=0
+
+
+a=!randint -3,1
+b=!randint -3,1
+!if $a=0 and $b=0
+ a=1
+!endif
+
+c=2,3,4,5,6,7,3,5,7,9,4
+d=-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-3
+p=!randint 1,11
+c=!item $p of $c
+d=!item $p of $d
+
+
+lijn_vec=\pmatrix{x \\ y} = \pmatrix{$a \\ $b} + \lambda \pmatrix{ $c \\ $d }
+
+const=$[-1*$d*$a+$c*$b]
+
+helling=$d/$c
+
+lijn=$helling*x+$const
+
+y1l=!evalsubst x=-500 in $lijn
+y2l=!evalsubst x=500 in $lijn
+
+lijn=!rawmath $lijn
+lijn=!texmath $lijn
+
+f=$[ceil($helling*1 + $const)]
+radius=!randint 2,7
+mx=!randint 1,9
+my=!randint $[$f+$radius+5],$[$f+$radius+15]
+cc=$[$radius*$radius]
+
+ymy=!rawmath y-$my
+cirkel=(x - $mx)^{2} + ($ymy)^{2} = $cc
+
+teller=$[abs(-$d*$mx+$c*$my-1*$const)]
+noemer=$[$d*$d+$c*$c]
+
+answer$n=$teller/sqrt($noemer) - $radius
+ans=$teller/sqrt($noemer) - $radius
+ans_tex=\frac{$teller}{\sqrt($noemer)} - $radius
+
+tot=!exec maxima sqrtdispflag:true;\
+$ans;\
+tex1($ans);
+# maxima tex1 produceerd "1 - \\frac{1}{2}" --> wims mathml wordt niks
+# maxima tex produceerd $$1 - \frac{1}{2}$$ --> wims: -\frac{1}{2}
+
+
+ss=!record 16 of lang/remarks.$taal
+#@Bereken de afstand tussen de cirkel <em>c</em> en de lijn <em>l</em>
+sometext=!record 17 of lang/remarks.$taal
+
+lijn2=-$d*x+$c*y-$const
+lijn2=!rawmath $lijn2
+lijn2=!texmath $lijn2
+
+aaa=$[-1*$d]
+bbb=$c
+!if $const < 0
+ ccc=$[-1*$const]
+ ccc=+ $ccc
+!else
+ ccc=- $ccc
+!endif
+#\color{red} d(P,l) = \frac{| ap + bq +c |}{ \sqrt{ a^{2} + b^{2}}} \; \textrm{ met }\; P(p,q) \;\textrm{ en } \; l: ax+by+c = 0
+
+formula$n=\left[ \begin{array}{ll} c_{1}: & $cirkel  \\ l: & $lijn_vec   \\ d(l,c) &  =   \input{20}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0} \end{array}\right.
+sometxt=!record 18 of lang/remarks.$taal
+dd=$[-1*$d]
+rr=\left[ \begin{array}{l}  c_{1} $cirkel  \\ l: $lijn_vec \\ \; \\  \textrm{$(sometxt[1])} \\ \color{red} d(P,l) = \frac{| ap + bq +c |}{ \sqrt{ a^{2} + b^{2}}} \; \textrm{ $(sometxt[2])}\; P(p,q) \;\textrm{ $(sometxt[3]) } \; l: ax+by+c = 0 \\ \; \\ x=$a + \lambda \cdot $c \rightarrow $dd x = $[$dd*$a] + $[$c*$dd] \lambda \\ y=$b + \lambda \cdot $d \rightarrow $c y= $[$c*$b]  $[$c*$d] \cdot \lambda \\ $dd x + $c y = $[-$a*$d+$c*$b] \\ \; \\ \left[ \begin{array}{ll} c_{1} & $cirkel \longrightarrow  M($mx ; $my) \; \textrm{$(sometxt[3])} \; r=$radius \\ l: & $lijn2=0 \end{array} \right. \\ \; \\  d(M,l) = \frac{| $aaa \cdot $mx + $c \cdot $my  $ccc |}{ \sqrt{ ($d)^{2} + ($c)^{2}}} =\frac{$teller}{\sqrt{$noemer}}  \\ d(c,l) =$ans_tex  \end{array} \right.
+texanswer$n=$rr
+
+
+klik=!record 63 of $remarkdir/commonremarks.$taal
+
+xmin=-20
+xmax=$[$mx + $radius +2]
+ymin=$[round($helling*10+$const)-2]
+ymax=$[$my+$radius+4]
+
+plaatje=!exec canvasdraw \
+size 300,300\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 200,200\
+frect -300,300,300,-300,white\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$mx,$my\
+fontfamily 18px Ariel\
+circles green,$mx,$my,$radius\
+string blue,$[$mx+0.5],$[$my+0.5],M\
+line -500,$y1l,500,$y2l,red\
+intooltip <span style="color:blue;font-style:italic">$klik</span>\
+zoom blue\
+mouse red,22
+
+
+#object$n=!exec canvasdraw\
+size 300,300\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$mx,$my\
+fontfamily 18px Ariel\
+circles green,$mx,$my,$radius\
+string blue,$[$mx+0.5],$[$my+0.5],M\
+line -500,$y1l,500,$y2l,red\
+#string blue,$x+1,$y+1,S\
+#point $x,$y,blue\
+dashed \
+#curve blue,$loodlijn\
+zoom blue\
+mouse red,22
+
+
+question$n=$ss<br />$plaatje<br />
+
+!exit
+
+

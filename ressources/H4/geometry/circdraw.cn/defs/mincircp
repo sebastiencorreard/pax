@@ -1,0 +1,60 @@
+title=$name_mincircp_title
+add=!item $level of 0, 1, 1, 2, 2,  3, 3, 4, 5, 6
+given=$[$add+3] $name_mincircp_given
+goal=$name_mincircp_goal
+
+gtype=circle
+
+a=!random 0,2*pi
+angle1=0
+angle2=!random pi/5,2*pi/3
+angle3=!random 2*$angle2,(2*pi+$angle2)/2
+
+!distribute items 1,1,-1,-1 into minx,miny,maxx,maxy
+!for aa=1 to 3
+ x=$[cos($(angle$aa)+$a)]
+ y=$[sin($(angle$aa)+$a)]
+ !distribute item $[min($minx,$x)],$[max($maxx,$x)],\
+		$[min($miny,$y)],$[max($maxy,$y)],$x,$y\
+		into minx,maxx,miny,maxy,x$aa,y$aa
+!next aa
+
+!if $angle3>pi
+ !distribute item 0,0,1 into cx,cy,r
+!else
+ !distribute item $[($x1+$x3)/2],$[($y1+$y3)/2],\
+	$[sqrt(($x1-$x3)^2+($y1-$y3)^2)/2] into cx,cy,r
+!endif
+
+!for pp=1 to $add
+ at=!random 0,2*pi
+ rt=!random 0.7, 0.99
+ x=$[$rt*$r*cos($at)+$cx]
+ y=$[$rt*$r*sin($at)+$cy]
+ !distribute item $[min($minx,$x)],$[max($maxx,$x)],\
+		$[min($miny,$y)],$[max($maxy,$y)],$x,$y\
+		into minx,maxx,miny,maxy,x$[$pp+3],y$[$pp+3]
+!next pp
+
+rand=0.2
+x0=$[($maxx+$minx)/2+random(2*$rand)-$rand]
+y0=$[($maxy+$miny)/2+random(2*$rand)-$rand]
+xmax=$[max(abs($maxx-$x0),abs($minx-$x0))]
+ymax=$[max(abs($maxy-$y0),abs($miny-$y0))]
+max=$[max($xmax,$ymax)*(random(0.2)+1.1)]
+!distribute items $[$x0-$max],$[$x0+$max],$[$y0-$max],$[$y0+$max]\
+	into xrange1,xrange2,yrange1,yrange2
+
+!if $angle3>pi
+ radius=$[$size/(2*$max)]
+!else
+ radius=$[$size*sqrt(($x1-$x3)^2+($y1-$y3)^2)/(4*$max)]
+!endif
+
+picture=
+crsize=4
+!for i=1 to $add+3
+ picture=$picture\
+disk $(x$i),$(y$i),$crsize,$color1
+!next i
+

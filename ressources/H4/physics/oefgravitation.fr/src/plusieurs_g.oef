@@ -1,0 +1,87 @@
+\format{html}
+\author{Georges Khaznadar}
+\title{Poids d'un cosmonaute}
+\precision{100}
+
+\comment{nom,diamètre(m),densité,gravité,position}
+\text{donnees=
+la terre,12756e3,5.5,9.81,la troisième planète à partir du soleil;
+Mercure,4878e3,5.44,3.72,la première planète à partir du soleil;
+Vénus,12104e3,5.24,8.85,la deuxième planète à partir du soleil;
+la lune,3476e3,3.36,1.57,un satellite de la troisième planète à partir du soleil;
+Mars,6794e3,3.94,3.72,la quatrième planète à partir du soleil;
+Io,3640e3,3.55,1.8,un satellite de la cinquième planète à partir du soleil;
+Europe,3130e3,3.04,1.4,un satellite de la cinquième planète à partir du soleil
+}
+
+\text{positions=\donnees[;5]}
+\integer{n=wims(itemcnt \positions)}
+\text{index=shuffle(\n)}
+\integer{i1=item(1,\index)}
+\integer{i2=item(2,\index)}
+
+\text{planete1=\donnees[\i1;]}
+\text{nom1=item(1,\planete1)}
+\real{r1=item(2,\planete1)/2}
+\real{d1=item(3,\planete1)}
+\real{g1=item(4,\planete1)}
+\text{position1=item(5,\planete1)}
+\real{M1=4/3*3.14159*\r1*\r1*\r1*\d1*1000}
+\text{rayon1=slib(text/sigunits \r1 m,3)}  
+\text{Mplanete1=slib(text/sigunits \M1 kg,3)}
+
+\text{planete2=\donnees[\i2;]}
+\text{nom2=item(1,\planete2)}
+\real{r2=item(2,\planete2)/2}
+\real{d2=item(3,\planete2)}
+\real{g2=item(4,\planete2)}
+\text{position2=item(5,\planete2)}
+\real{M2=4/3*3.14159*\r2*\r2*\r2*\d2*1000}
+\text{rayon2=slib(text/sigunits \r2 m,3)}  
+\text{Mplanete2=slib(text/sigunits \M2 kg,3)}
+
+\real{m=randint(60..80)}
+\real{p1=\m*\g1}
+\real{p2=\m*\g2}
+\text{poids1=slib(text/sigunits \p1 N,3)}
+\text{poids2=slib(text/sigunits \p2 N,3)}
+
+
+\steps{c1,c2
+r1,r2
+c3
+}
+
+\statement{
+<table background="\imagedir/579px-Moon-apollo17-schmitt_boulder.jpg"><tr><td>
+\if{\step>=1}{
+La mission d'un cosmonaute l'amène à visiter \nom1, puis \nom2. <br>
+\nom1 est : \embed{c 1}<br>
+\nom2 est : \embed{c 2}
+}
+\if{\step>=2}{
+<hr>
+Les gravités sur ces astres sont les suivantes :
+<table border=1><tr><th>Nom</th><th>g (N/kg)</th></tr>
+<tr><td>\nom1</td><td>\g1</td></tr>
+<tr><td>\nom2</td><td>\g2</td></tr>
+</table>
+Le poids du cosmonaute sur \nom1 est \poids1.
+<br>Quelle est la masse de ce cosmonaute ? \embed{r1} ;
+<br>Quel sera le poids du cosmonaute sur \nom2 ? \embed{r2}.
+}
+\if{\step>=3}{
+<hr>
+Le cosmonaute a un poids différent sur \nom1 et \nom2, parce que
+\embed{c 3}
+}
+</td></tr></table>
+<a href="http://fr.wikipedia.org/wiki/Lune#L.27exploration" target="_new">
+<font size="2">Voir l'image originale</font></a>
+}
+
+\choice{position de la planète \nom1}{\position1}{\positions}
+\choice{position de la planète \nom2}{\position2}{\positions}
+\reply{masse du cosmonaute}{\m kg}{type=units}
+\reply{poids du cosmonaute sur \nom2}{\poids2}{type=units}
+\choice{raison de la variation de poids}{la masse et le rayon de \nom1 et \nom2 sont différents}{Il est très loin de la terre, il est très loin de \nom1, il est très loin de \nom2,il a changé de masse d'une planète à l'autre,\nom1 exerce une attraction sur \nom2}

@@ -1,0 +1,208 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var5=1
+var6=1000
+sometext=q,TK_TO_TW,q,Euro (x $var6),Vergelijkingen,Break-evenpunt,Maximale winst,Kosten,Opbrengst,Winst
+var7=!item 1 of $sometext
+var8=!item 2 of $sometext
+var8=!replace internal _ by , in $var8
+# record 20 tot 30
+# product,min_gs,max_gs,min_al,max_al,factor
+# :tuinstoelen,15,55,15,25,20
+# :ligstoelen,15,85,20,40,25
+# :tafels,30,110,25,65,30
+# :tafelkleden,10,40,15,25,20
+# :tennisrackets,5,30,10,25,20
+# :zwempakken,5,25,15,25,20
+# :zonnebrillen,10,20,20,35,30
+# :vloerkleden,50,100,20,30,40
+# :linnenkasten,50,100,20,30,20
+# :klapschaatsen,30,60,10,20,15
+# :skeelers,25,45,10,20,15
+# :
+ding=!randint 20,30
+ding=!record $ding of lang/remarks.$taal
+artikel=!item 1 of $ding
+min_gs=!item 2 of $ding
+max_gs=!item 3 of $ding
+min_al=!item 4 of $ding
+max_al=!item 5 of $ding
+factor1=!item 6 of $ding
+factor2=!randitem 7000,9000,11000,13000
+factor3=!randitem 6000,8000,10000,12000
+factor4=!randitem 6000,7000,8000,9000,10000,11000,12000
+factor5=!randitem 1000,2000,3000,4000
+
+grondstof=!randint $min_gs,$max_gs
+arbeid=!randint $min_al,$max_al
+variabele_kosten=$[$grondstof + $arbeid]
+prijs=!randint $[$variabele_kosten+$factor1],$[$variabele_kosten+2*$factor1]
+
+tot=!exec moneyprint $grondstof,$arbeid,$variabele_kosten,$prijs 2
+grondstof=$(tot[1])
+arbeid=$(tot[2])
+variabele_kosten=$(tot[3])
+prijs=$(tot[4])
+# personeelskosten van vast personeelslid
+per=!randint 8,14
+pers=$[$per/2]
+personeelslid=$[$pers*$factor2]
+verkoper=$[$factor2*(round($per/4))]
+
+# afschrijvingen en interest
+af=!randint 6,10
+af=$[$af/2]
+afschrijving=$[$factor3*$af]
+
+# de huur
+hr=!randint 1,6
+hr=$[$hr/2]
+huur=$[$factor4*$hr]
+
+# reclame kosten
+re=!randint 5,12
+re=$[$re/2]
+reclame=$[$factor5*$re]
+
+constante_kosten=$[$personeelslid + $afschrijving + $huur + $reclame + $verkoper]
+
+winst=$[$prijs - $variabele_kosten]
+sometext=de totale kosten,de totale opbrengst,de totale winst,maximaal haalbare winst,omzet bij kostendekking,de prijs
+
+break_even=$[$constante_kosten/$winst]
+factor6=1000
+f=!randint 15,20
+factor7=$[$f*$factor6/10]
+q_max=$[$factor7*(ceil($break_even/$factor6))]
+
+
+
+!if $R=1
+    inputs=3
+    mathview=0
+    embed=0
+    questiontype=0
+    math=0
+    make_tr=1
+    image=0
+    cols=35
+    LL=Stel voor dit bedrijf de vergelijkingen op van de totale kosten (TK) , de totale opbrengst (TO) <br />en de totale winst (TW). Gebruik voor "hoeveelheid" de variabele naam <b>q</b><br/><small>Zoals bijvoorbeeld: <kbd>TK = 120*q + 9000</kbd></small>
+    # we verwachten 3 lijnen.
+    var9=3
+    checkfile=exos/checkfile2.proc
+    TK=$constante_kosten + $variabele_kosten*q
+    TO=$prijs*q
+    TW=$winst*q - $constante_kosten
+    answer$n=$constante_kosten + $variabele_kosten*q,$prijs*q,$winst*q - $constante_kosten
+    
+    textanswer$n=<ul><li>TK&nbsp;=$constante_kosten&nbsp;+&nbsp;$variabele_kosten&times;q</li><li>TO&nbsp;=&nbsp;$prijs&times;q</li><li>TW&nbsp;=&nbsp;$winst&times;q &minus; $constante_kosten</li></ul>
+
+    K_tekst=!item 1 of $sometext
+    O_tekst=!item 2 of $sometext
+    W_tekst=!item 3 of $sometext
+    description=$empty
+    !for p=1 to 3
+	description=!append item $(sometext[$p]) to $description
+    !next p
+!else
+    !if $rounding<1
+	rounding=100
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    !if $R=2
+	exotext=$empty
+	embed=0
+	make_tr=1
+	ex1=&euro;
+	questiontype=0
+	inputs=1.1
+	cols=10
+	rows=1
+	# haalbare winst
+	description=!item 4 of $sometext
+	LL=Hoe hoog is de voor dit bedrijf maximaal haalbare winst ?
+	# getal 
+	checkfile=exos/precheck1.proc
+	#checkfile=$checkdir/number.proc
+        answer$n=$[$winst*$q_max - $constante_kosten]
+
+	textanswer$n=$description : TW&nbsp;=&nbsp;$winst&times;q<sub><em>max</em></sub> &minus; $constante_kosten<br />q<sub><em>max</em></sub> = $q_max <br />TW&nbsp;=&nbsp;$winst&times;$q_max &minus; $constante_kosten = &euro;$(answer$n)
+
+    !else
+	!if $R=3
+	    make_tr=1
+	    questiontype=0
+	    inputs=1.1
+	    cols=20
+	    rows=1
+	    # haalbare winst
+	    haalbare_winst=!item 4 of $sometext
+	    description=!item 5 of $sometext
+	    # getal met range
+	    #checkfile=exos/precheck1.proc
+	    # var1=2,-1,0,5 : significant digits in reply. empty or -1 to indicate no significant digits                                               
+	    # var2=min1:max1,min2:max2,min3:max3,min4:max4.var2 is the range for the correct answer.                                                   
+	    # var2 may be assymetrical , or empty                                                                                                      
+	    # optional a unit. if pupil ignores this ,the unit of correct answer is assumed                                                            
+	    # var3 -1,kg,-1,m,-1,mol : optional unit of the correct answer : -1 for nonexisting or leave empty 
+	    checkfile=$checkdir/range.proc
+	    answer$n=$[$break_even*$prijs]
+	    real_ans1=$[(floor($break_even))*$prijs]
+	    diff2=$[$break_even - (floor($break_even))]
+	    !if $diff2 <0.5
+		real_ans2=$[round($break_even*$prijs)]
+	    !else
+		real_ans2=$[(round($break_even))*$prijs]
+	    !endif
+	    min=$[abs($(answer$n) - $real_ans1)]
+	    max=$[abs($(answer$n) - $real_ans2)]
+	    afzet=$[floor($break_even)]
+	    LL=Hoe hoog is de omzet van dit bedrijf bij kostendekking?
+	    var1=-1
+	    var2=$min:$max
+	    var3=-1
+	    diff=$[abs($break_even - $afzet)]
+	    !if $diff=0
+		expl=$empty
+	    !else
+		expl=Dus $afzet $artikel , want je kunt geen $diff $artikel verkopen... :)<br />Maar ik keur een omzet tussen &euro; $real_ans1 ... &euro; $real_ans2 niet af.<br />
+	    !endif
+	    rounding=-1
+	    roundingtext=$empty
+	    textanswer$n=$description : $haalbare_winst &nbsp;=&nbsp;0<br />$winst&times;q &minus; $constante_kosten &nbsp;=&nbsp;0<br />$winst&times;q &nbsp;=&nbsp; $constante_kosten <br />De afzet q &nbsp;=&nbsp; $constante_kosten<b><font size=+1>/</font></b>$winst = $break_even $artikel<br />$expl <br/>De omzet is dus : &euro; $prijs &times; $afzet $artikel = &euro; $real_ans1
+	
+	!else
+	    !if $rounding<1
+		rounding=100
+		!readproc $remarkdir/rounding.$taal
+	    !endif
+	    make_tr=1
+	    questiontype=0
+	    inputs=1.1
+	    cols=20
+	    rows=1
+	    inputtext1=!item 6 of $sometext
+	    LL=Stel dat door verhoogde concurrentie de prijs van $artikel steeds verder daalt.<br />Tot hoever moet de prijs zakken opdat break-evenafzet en productiecapaciteit samenvallen?
+	    # getal 
+	    checkfile=exos/precheck1.proc
+	    #checkfile=$checkdir/number.proc
+	    answer$n=$[($variabele_kosten*$q_max + $constante_kosten)/$q_max]
+	    ans=!exec moneyprint $(answer$n)
+	    textanswer$n=TW<sub><em>$q_max</em></sub>&nbsp;=&nbsp;0<br />TW=<em>$inputtext1</em>&times;$q_max&minus;$variabele_kosten&times;$q_max&minus;$constante_kosten&nbsp;=&nbsp;0<br />TW=<em>$inputtext1</em>&times;$q_max&minus;$[$variabele_kosten*$q_max+$constante_kosten]&nbsp;=&nbsp;0<br /><em>$inputtext1</em>=$[$variabele_kosten*$q_max+$constante_kosten]<b><font size=+1>/</font></b>$q_max = $(answer$n) &asymp; &euro; $ans
+	    
+	!endif
+    !endif
+!endif
+
+ss=Een bedrijf produceert $artikel ,die verkocht worden voor &euro; $prijs per stuk.<br />De jaarlijkse constante <span class="schaersvoorde_link">kosten</span> bestaan uit productie en verkoopkosten.<br /><br />Het bedrijf kan per jaar maximaal $q_max $artikel produceren.<br />$LL
+
+
+mousetxt=De constante productie kosten bestaan uit:<ul><li>het salaris van een vast personeelslid: &euro;$personeelslid </li><li>interest en afschrijvingen: &euro; $afschrijving </li><li>de huur : &euro; $huur </li></ul>De constante verkoopkosten vallen uiteen in:<ul><li>de reclamekosten : &euro; $reclame</li><li>het loon van een verkoper: &euro; $verkoper</li></ul>De variabele kosten per $artikel bestaan uit:<ul><li>de grondstoffen : &euro; $grondstof</li><li>arbeidsloon van uitzendkrachten: &euro; $arbeid</li></ul>
+
+helptext=$mousetxt<hr /><img src=\'$module_dir/gifs/exo3.$R.jpg\' alt=\'plaatje\' />
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+

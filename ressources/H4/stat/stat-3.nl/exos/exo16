@@ -1,0 +1,115 @@
+# permutaties & combinaties II
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+logo=<img src=$module_dir/gifs/prijsvraag.jpg alt=noalt />
+logotext=<img src=$module_dir/gifs/prijsvraag.jpg alt=noalt />
+formula$n=$empty
+var1=0
+math=0
+mathview=0
+description=$youranswer
+make_tr=1
+inputs=1.1
+cols=10
+
+helptext=$empty
+# dus aantallen en geen kans 0<P<1
+image=0
+questiontype=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+
+gender=!randitem 1,2
+!if $gender=1
+    namen=!record 78 of $remarkdir/commonremarks.$taal
+    #:Hij,hij,hem,zijn
+    rec=107
+!else
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    rec=108
+    #:Zij,zij,haar,haar
+!endif
+
+namen=!shuffle $namen
+naam=!item 1 of $namen
+voor=!record $rec of lang/remarks.$taal
+Hij=!item 1 of $voor
+hij=!item 2 of $voor
+hem=!item 3 of $voor
+zijn=!item 4 of $voor
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+super=!record 115 of lang/remarks.$taal
+#@Lidl,AH,Aldi,Super de Boer ,EDAH,COOP,Karstadt,V&D,HEMA
+super=!randitem $super
+
+!if $R=1
+    a=!randint 7,10
+    b=!randint 2,$[$a-1]
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    ss=!record 117 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam heeft een prijsvraag gewonnen bij de <em>$super</em>.<br />Uit $A producten mag $hij er $B gratis uitzoeken.<br />$Hij mag elk product maar &eacute;&eacute;n keer kiezen...<br /><br />Hoeveel keuze mogelijkheden heeft $naam ?
+    
+    answer$n=!exec pari round((factorial($a))/((factorial($[$a-$b]))*(factorial($b))))
+    rr=!record 171 of lang/remarks.$taal
+    #@Met de grafische rekenmachine:<br /> $a ncr $b<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg</a> (PDF)
+    textanswer$n=$rr
+    texanswer$n=\left( \begin{array}{c} $a \\ $b \end{array} \right) = \frac{ $a !}{$b ! \cdot $[$a - $b] ! } = $(answer$n)
+ !exit
+!endif
+
+!if $R=2
+    a=!randint 11,30
+    b=!randint 2,10
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    ss=!record 117 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam heeft een prijsvraag gewonnen bij de <em>$super</em>.<br />Uit $A producten mag $hij er $B gratis uitzoeken.<br />$Hij mag elk product maar &eacute;&eacute;n keer kiezen...<br /><br />Hoeveel keuze mogelijkheden heeft $naam ?
+    
+    answer$n=!exec pari round((factorial($a))/((factorial($[$a-$b]))*(factorial($b))))
+    rr=!record 112 of lang/remarks.$taal
+    #@Met de grafische rekenmachine:<br /> $a ncr $b<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg</a> (PDF)
+    textanswer$n=$rr
+    texanswer$n=\left( \begin{array}{c} $a \\ $b \end{array} \right) = \frac{ $a !}{$b ! \cdot $[$a - $b] ! } = $(answer$n)
+ !exit
+!endif
+
+!if $R>2
+    a=!randint 15,30
+    b=!randint 4,10
+    c=$[$a+$b-1]
+    d=$[$a-1]
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    ss=!record 116 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam heeft een prijsvraag gewonnen bij de <em>$super</em>.<br />\Uit $A producten mag $hij er $B gratis uitzoeken.<br />$Hij mag ook $B dezelfde producten kiezen...<br /><br />Hoeveel keuze mogelijkheden heeft $naam ?
+    
+    tot=!exec pari A=round((factorial($c))/((factorial($[$c-$d]))*(factorial($d))))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    
+    textanswer$n=$empty
+    texanswer$n=\left( \begin{array}{c} $a + $b -1 \\ $a -1  \end{array} \right) = \frac{ $c !}{$d ! \cdot $[$c - $d] ! } = $tex
+ !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+

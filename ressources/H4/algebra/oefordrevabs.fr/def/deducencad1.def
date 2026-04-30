@@ -1,0 +1,392 @@
+!set title=Déduction d'encadrement 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+precision=1000
+oefcss=<style> .rm { font-size:large} .hint { padding:20px;} .solution { padding:20px;} .flex_box{ justify-content:flex-start; } </style>
+
+ansorder=r,r,r,r
+varcnt=60
+prevarcnt=59
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=Si \(x\) vérifie l'inégalité ,	  que pouvez-vous dire précisément de l'expression
+val8=On peut multiplier par un même réel strictement positif,	  On peut multiplier par un même réel strictement négatif
+val9=les trois membres d'un encadrement,	  les trois membres d'un encadrement <span style="color:red"> en	    changeant les symboles de l'encadrement</span>
+val10=40x40
+val11=>
+val12=\(\ge )
+val13=<
+val14=\(\le )
+val15=$val13,$val14
+val16=2,1
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val18=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val17=$val18
+val18=$[rint($val18+10)]
+!else
+val18=$[rint($val18)]
+!endif
+
+!ifval $val17>$val18
+val19=$[rint($val18)]
+!else
+val19=$[rint($val17)]
+!endif
+
+!ifval $val17>$val18
+val20=$[rint($val17)]
+!else
+val20=$[rint($val18)]
+!endif
+tmp0=!randint 1, 2
+
+val21=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val22=$[rint($(tmp0))]
+val23=$val19 $(val15[$val21]) \(x) $(val15[$val22]) $val20
+tmp0=!randitem 1,2
+
+val24=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val25=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val26=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+val27=$[rint($(tmp0))]
+val28=$[rint($val19-$val27)]
+
+!ifval $val24=1
+t_=!replace internal \( by ( in ($val26)*(x -($val19))^2 +($val25);
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val29=$(tmp1)
+!else
+t_=!replace internal \( by ( in ($val26)/(x -($val28));
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2) +($val25)
+
+val29=$(tmp3)
+!endif
+!if $val24=1 
+val30=$[rint($val20 -($val19))]
+tmp0=!texmath x-($val19)
+
+val31=0 $(val15[$val21]) $(tmp0) $(val15[$val22]) $val30
+val32=$[rint(($val30)^2)]
+t_=!replace internal \( by ( in (x-($val19))^2;
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=0 $(val15[$val21]) \($(tmp1)) $(val15[$val22]) $val32
+val34=$[rint($val26*($val32))]
+
+!ifval $val26>0
+t_=!replace internal \( by ( in $val26*(x-($val19))^2;
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val35=0 $(val15[$val21]) \($(tmp1)) $(val15[$val22]) $val34
+!else
+t_=!replace internal \( by ( in $val26*(x-($val19))^2;
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)
+
+val35=$val34 $(val15[$val22]) \($(tmp3)) $(val15[$val21]) 0
+!endif
+val36=$[rint($val34+($val25))]
+
+!ifval $val26>0
+t_=!replace internal \( by ( in $val26*(x-($val19))^2;
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)+($val25)
+
+val37=$val25 $(val15[$val21]) \($(tmp1)) $(val15[$val22]) $val36
+!else
+t_=!replace internal \( by ( in $val26*(x-($val19))^2;
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)+($val25)
+
+val37=$val36 $(val15[$val22]) \($(tmp3)) $(val15[$val21]) $val25
+!endif
+
+!ifval $val26>0
+val38=$[rint($val25)]
+!else
+val38=$[rint($val36)]
+!endif
+
+!ifval $val26>0
+val39=$(val15[$val21])
+!else
+val39=$(val15[$val22])
+!endif
+
+!ifval $val26>0
+val40=$(val15[$val22])
+!else
+val40=$(val15[$val21])
+!endif
+
+!ifval $val26>0
+val41=$[rint($val36)]
+!else
+val41=$[rint($val25)]
+!endif
+val42=les nombres positifs sont rangés dans le même ordre que leurs carrés 
+!else
+val30=$[rint($val20-($val28))]
+tmp0=!texmath x-($val28)
+
+val31=$val27 $(val15[$val21]) $(tmp0) $(val15[$val22]) $val30
+t_=!rawmath 1/($val27)
+val32=!exec pari print($t_)
+t_=!rawmath 1/($val30)
+val43=!exec pari print($t_)
+t_=!replace internal \( by ( in 1/(x-($val28));
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val33=$val43 $(val15[$val22]) \($(tmp1)) $(val15[$val21]) $val32
+t_=!rawmath $val26*($val32)
+val34=!exec pari print($t_)
+t_=!rawmath $val26*($val43)
+val44=!exec pari print($t_)
+
+!ifval $val26>0
+t_=!replace internal \( by ( in $val26/(x-($val28));
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val35=$val44 $(val15[$val22]) \($(tmp1)) $(val15[$val21]) $val34
+!else
+t_=!replace internal \( by ( in $val26/(x-($val28));
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)
+
+val35=$val34 $(val15[$val21]) \($(tmp3)) $(val15[$val22]) $val44
+!endif
+t_=!rawmath $val34+($val25)
+val36=!exec pari print($t_)
+t_=!rawmath $val44+($val25)
+val45=!exec pari print($t_)
+
+!ifval $val26>0
+t_=!replace internal \( by ( in $val26/(x-($val28));
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)+($val25)
+
+val37=$val45 $(val15[$val22]) \($(tmp1)) $(val15[$val21]) $val36
+!else
+t_=!replace internal \( by ( in $val26/(x-($val28));
+tmp2=!exec maxima $t_
+
+tmp3=!texmath $(tmp2)+($val25)
+
+val37=$val36 $(val15[$val21]) \($(tmp3)) $(val15[$val22]) $val45
+!endif
+
+!ifval $val26>0
+t_=!rawmath $val45
+val38=!exec pari print($t_)
+!else
+t_=!rawmath $val36
+val38=!exec pari print($t_)
+!endif
+
+!ifval $val26>0
+val39=$(val15[$val22])
+!else
+val39=$(val15[$val21])
+!endif
+
+!ifval $val26>0
+val40=$(val15[$val21])
+!else
+val40=$(val15[$val22])
+!endif
+
+!ifval $val26>0
+t_=!rawmath $val36
+val41=!exec pari print($t_)
+!else
+t_=!rawmath $val45
+val41=!exec pari print($t_)
+!endif
+val42=les nombres positifs sont rangés dans <span style="color:red">l'ordre inverse</span> de leurs inverses
+!endif
+val46=$val13,$val14	
+val47=$(val15[$m_symbfx])
+
+!ifval $val26>0
+val48=$(val8[1])
+!else
+val48=$(val8[2])
+!endif
+
+!ifval $val26>0
+val49=$(val9[1])
+!else
+val49=$(val9[2])
+!endif
+
+!ifval $val2=1 
+val50= 
+!else
+val50=x-large
+!endif
+replytype1=numeric
+replyname1=
+replygood1=$[$val38]
+replytype2=clickfill
+replyname2=
+replygood2=$val39;$val46
+replytype3=clickfill
+replyname3=
+replygood3=$val40;$val46
+replytype4=numeric
+replyname4=
+replygood4=$[$val41]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="rm spacer">	  $(val7[1]) $val23, $(val7[2]) 
+!insmath $val29
+$() ?	  <p>$val6:</p>	  <div class="wimscenter">	       
+!read oef/embed.phtml reply1,5 
+$()  
+!read oef/embed.phtml reply2,$val10 
+$() 
+!insmath $val29
+$()  
+!read oef/embed.phtml reply3,$val10 
+$()  
+!read oef/embed.phtml reply4,5 
+$()	  </div>	 </div>	
+$()
+!exit
+
+:hint
+$()	<div class="hint">	  Servez-vous de théorèmes sur les inégalités	<ul>	<li> On peut ajouter un même nombre aux deux membres d'une inégalité:<br>	 a < b 
+!insmath \Leftrightarrow
+$() a+c < b+c pour tout réel c	</li><li> On peut multiplier par un même réel strictement positif les deux membres d'une inégalité:<br>	 a < b 
+!insmath \Leftrightarrow
+$() a 
+!insmath \times
+$() c < b 
+!insmath \times
+$() c pour tout c > 0	</li><li> On peut multiplier par un même réel strictement négatif les deux membres	 d'une inégalité <span style="color:red"> en changeant le symbole de l'inégalité:</span><br>	 a < b 
+!insmath \Leftrightarrow
+$() a 
+!insmath \times
+$() c > b 
+!insmath \times
+$() c pour tout c < 0	</li><li> les nombres positifs sont rangés dans le même ordre que leurs carrés:<br>	 0 < a < b 
+!insmath \Leftrightarrow
+$() 
+!insmath a^2
+$() < 
+!insmath b^2
+$()	</li><li> les nombres positifs sont rangés dans <span style="color:red">l'ordre inverse</span> de leurs inverses: <br>	 0 < a < b 
+!insmath \Leftrightarrow
+$() 
+!insmath \frac{1}{a}
+$() > 
+!insmath \frac{1}{b}
+$()	</li></ul>	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  <div class="rm solution">	  Voici un <span style="color:darkcyan">exemple de rédaction</span>	  de la solution:	<table><tr><td>	  $val23 </td>	<td>
+!insmath \Leftrightarrow 
+$() $val31 </td><td> On peut ajouter un même nombre aux trois membres d'un encadrement</td></tr>	<tr><td>&nbsp;</td><td> 
+!insmath \Leftrightarrow
+$() $val33 </td><td>$val42 </td></tr>	<tr><td>&nbsp;</td><td> 
+!insmath \Leftrightarrow
+$() $val35 </td><td> $val48 </td></tr>	<tr><td>&nbsp;</td><td> &nbsp; </td><td> $val49 </td></tr>	<tr><td>&nbsp;</td><td> 
+!insmath \Leftrightarrow
+$() $val37 </td><td> On peut ajouter un même nombre aux trois membres d'un encadrement</td></tr>	</table>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,23,29,31,33,35,37,42,48,49
+embedcnt=4

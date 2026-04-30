@@ -1,0 +1,95 @@
+# this file is called from "coord.proc" if there are no real coordinates/intersection points.
+# declare answer$n=nil
+# ER ZIJN GEEN SNIJPUNTEN dus $(answer$n)=nil
+# als de leerling een paar coordinaten inlevert is dat dus fout...
+
+n=$counter
+errortext=$empty
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    !exit
+!endif
+
+!if $(reply$n)=$empty
+    # forgotten to answer?
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !increase try
+    !exit
+!endif
+
+test=!nospace $(reply$n)
+test=!replace internal ( by @ in $test
+test=!replace internal : by # in $test
+test=!replace internal ; by # in $test
+test=!replace internal , by # in $test
+!if (# isin $test) or (@ isin $test)
+    # the student tries to give me a pair of coordinates
+    # this is wrong: there are no roots/intersectionpoints
+    # ergo : no good
+    ex=!record 72 of $remarkdir/commonremarks.$taal
+    remark$n=$NOK<br>$ex
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+AAA=!singlespace $(reply$n)
+AAA=$ $ $AAA
+AAA=!lower $AAA
+nothing=!record 71 of $remarkdir/commonremarks.$taal
+#@ 0,nul,zero,zip,nop,niks,nada,geen,niente
+A=1
+!for p in $nothing
+    !if $A !=0
+	!if $p isin $AAA
+	    A=0
+	!endif
+    !endif
+!next p
+
+!if $A!=0
+    AAA=!replace [a-z\~\!\@\#\$\%\_\=\+\-\(\)] by $empty in $AAA
+    AAA=!replace internal : by , in $AAA
+    AAA=!replace internal ; by , in $AAA
+    !for p=1 to 4
+	AAA=!replace internal ,, by , in $AAA
+    !next p
+    t=!itemcnt $AAA
+    !if $t=0
+	maxscore=$[$P1*$maxscore]
+	# the answer is empty: give back for correction with small penalty
+	# geen antwoord of niks vlgs de syntax:terug geven
+	errortext=!record 62 of $remarkdir/commonremarks.$taal
+	!increase try
+	goback=1
+	!exit
+	# ok?
+    !endif
+    !for p=1 to $t
+	# check ik he/she tried to fill in anything non-math
+	# to tell us that there are no real roots present...
+	# if so: return for correction with fairly large penalty
+	AA=!item $p of $AAA
+	!if NaN isin $[$1*$AA]
+	    errortext=!record 39 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$maxscore*$P4]
+	    !increase try
+	    goback=1
+	    !exit
+	!endif
+    !next p
+    remark$n=$NOK
+    maxscore=0
+!else
+    remark$n=$OK
+!endif
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

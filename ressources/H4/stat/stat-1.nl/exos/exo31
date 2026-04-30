@@ -1,0 +1,92 @@
+!set n=$counter
+cols=25
+total_exos=1
+# var5 is table with inputfields
+# var4 is the appletparam "max" : the number of correct clicks on the images
+# the applet returns: totaltime \n time1:freq1 \n  time2:freq3 \n ...  time$max:freq$max
+# the reply$n= student_reply+"@"+applet_return
+# <object id="" code="VreemdeEend1.class" codebase="$appletdir" archive="VreemdeEend.jar" width="640" height="210" MAYSCRIPT>
+#     <param name="max" value="$var4"/>
+#     <param name="renew" value="$var3"/>
+#     <param name="language" value="$taal"/>
+#     <param name="show_result" value="yes"/>
+# </object>
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/vreemde_eend.js
+checkfile=exos/checkfile2.proc
+math=0
+image=0
+!if $rounding<100 or $rounding=$empty
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+    # increasing
+    !if $counter=1
+	options=2
+	var4=!randint 6,10
+    !else
+	!if $counter=2
+	    options=3
+	    var4=!randint 8,12
+	!else
+	    options=5
+	    var4=!randint 8,12
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=2
+	var4=!randint 6,10
+    !else
+	!if $level=2
+	    options=3
+	    var4=!randint 8,12
+	!else
+	    options=5
+	    var4=!randint 8,12
+	!endif
+    !endif
+!endif
+
+!if $subject=31
+    # geen freq
+    var5=0
+!else
+    var5=1
+!endif
+helptext=!record 41 of lang/remarks.$taal
+
+inputs=$options
+make_tr=1
+ss1=!record 56 of lang/remarks.$taal
+#@ Bepaal aan de hand van je eigen verzamelde meetgegevens:<p>
+description=!record 2 of lang/remarks.$taal
+#@ Het gemiddelde,de standaardafwijking ($m_sigma ),de mediaan ( $m_mu ),het eerste kwartiel (Q1),standaardafwijking ($m_sigma )
+meting=!record 10 of lang/remarks.$taal
+#@ meting,seconden
+
+met1=!item 1 of $meting
+met2=!item 2 of $meting
+datatable=$empty
+!for p=1 to $options
+    datatable=!append line $ <tr><td>$(description[$p])</td><td>=</td><td><input id="myinput$[$p-1]" size="10" value="" class="schaersvoorde_input" /></td></tr> $ to $datatable
+!next p
+question$n=<a onmouseover="return escape('$helptext')">$ss1</a>
+exotext=<table class="zebra_table_h2">$datatable</table>
+t=!recordcnt lang/questions.$taal
+lst=$empty
+var4=$t
+!for p=1 to $t
+    lst=!append item $p to $lst
+!next p
+lst=!shuffle $lst
+var6=$empty
+!for p=1 to $t
+    s=!item $p of $lst
+    P=!record $s of lang/questions.$taal
+    var6=!append line $ : $P $ to $var6
+!next p

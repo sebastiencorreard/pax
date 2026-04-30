@@ -1,0 +1,127 @@
+# Kruislingse elasticiteit I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+#viewlogo=0
+#logo=<img src=$module_dir/gifs/aandeel_klein.jpg alt=noalt />
+mathview=0
+make_tr=1
+cols=10
+rows=1
+
+#fffff0=#e2ffc8
+inputs=1.1
+
+!if $R=1
+    checkfile=exos/precheck1.proc
+    rounding=10000
+    roundingtext=Rond je eindantwoord af op <b>vier decimalen</b>
+    helptext=$roundingtext
+    producten=aardappelen,rijst,9,20\
+    tarwe,rogge,9,20\
+    mais,tarwe,5,15\
+    suikerbieten,suikerriet,2,6\
+    voederbieten,mais,2,6\
+    soya schroot,koolzaad schroot,1,4\
+    bierbostel,erwtenvezel,1,4
+    
+    product=!randline $producten
+    k=!shuffle 1,2
+    k1=!item 1 of $k
+    k2=!item 2 of $k
+    product1=!item $k1 of $product
+    product2=!item $k2 of $product
+    pmin=!item 3 of $product
+    pmax=!item 4 of $product
+    
+    prijs1=!randint $pmin,$pmax
+    plus=!randint 1,9
+    prijs2=$[$prijs1 + $plus]
+    tot=!exec moneyprint $[$prijs1/10],$[$prijs2/10] 2
+    prijs1=$(tot[1])
+    prijs2=$(tot[2])
+    aantal1=!randint 10,50
+    plus=!randint 1,15
+    aantal2=$[$aantal1+$plus]
+    aantal1=$[$aantal1/10]
+    aantal2=$[$aantal2/10]
+    
+    deltaq=$[100*($aantal2 - $aantal1)/$aantal1]
+    deltap=$[100*($prijs2 - $prijs1)/$prijs1]
+    ek=$[$deltaq/$deltap]
+    answer$n=$ek
+    ans=$[(round(10000*$ek))/10000]
+
+    texanswer$n=\left[ \begin{array}{l} E_{k} = \frac{\Delta Q}{\Delta P} \\ \\ \Delta Q = \frac{$aantal2 - $aantal1}{$aantal1} \times 100 \simeq $deltaq \% \\ \\  \Delta P = \frac{$prijs2 - $prijs1}{$prijs1} \times 100 \simeq $deltap \% \\ \\  E_{k} \simeq \frac{$deltaq}{$deltap} \simeq $ek \simeq $ans \end{array} \right.
+
+    ss=De prijs van $product1 stijgt van &euro; $prijs1 per kg tot &euro; $prijs2 per kg.<br />Als gevolg hiervan neemt de gevraagde hoeveelheid $product2<br />van $aantal1 miljoen kg tot $aantal2 miljoen kg toe.<br />Bereken de kruiselingse prijselasticiteit tussen $product1 en $product2 .
+    
+    question$n=<a onmouseover="return escape('$roundingtext')">$ss </a>
+    description=De kruislingse prijseleasticiteit E<sub>k</sub>
+!else
+
+    producten=roomboter,margarine,35,65,100,2,8,pakje,pakjes\
+    olijfolie,maiskiemolie,10,20,10,5,20,fles,flessen\
+    rundvlees,varkensvlees,50,110,10,10,30,kilo,kilogrammen
+    
+    product=!randline $producten
+    product1=!item 1 of $product
+    product2=!item 2 of $product
+    pmin=!item 3 of $product
+    pmax=!item 4 of $product
+    factor=!item 5 of $product
+    plusmin=!item 6 of $product
+    plusmax=!item 7 of $product
+    eenheid=!item 8 of $product
+    eenheden=!item 9 of $product
+    prijs1=!randint $pmin,$pmax
+    plus=!randint $plusmin,$plusmax
+    prijs2=$[$prijs1 + $plus]
+    tot=!exec moneyprint $[$prijs1/$factor],$[$prijs2/$factor] 2
+    prijs1=$(tot[1])
+    prijs2=$(tot[2])
+        
+    aantal1=!randint 30,120
+    aantal2=!randint 6,$[$aantal1-1]
+    aantal1=$[$aantal1*100]
+    aantal2=$[$aantal2*100]
+    
+    epk=!randitem 1/4,1/3,2/3,1/5,2/5,3/5,4/5,3/4,1/6,5/6
+    ep=!randitem -1/4,-1/3,-2/3,-1/5,-2/5,-3/5,-4/5,-3/4,-1/6,-5/6
+    deltap=$[100*($prijs2 - $prijs1)/$prijs1]
+    deltaq=$[$deltap*$ep]
+
+    ss=De kruiselingse prijselasticiteit van de gevraagde hoeveelheid $product1<br />tengevolge van een prijswijziging van $product2 is $epk .<p>Stel dat de prijs van $product2 stijgt van &euro; $prijs1 tot &euro; $prijs2 per $eenheid.<br />V&oacute;&oacute;r deze prijsverandering werden $aantal1 $eenheden $product2 en $aantal2 $eenheden $product1 verkocht.<br />De prijselasticiteit van de vraag naar $product2 is $ep .
+    rounding=1
+    roundingtext=Rond je eindantwoord af op hele $eenheden $product2
+    checkfile=$checkdir/new_number.proc
+    # answer +/- var1
+    var1=1
+    var2=1
+    helptext=$roundingtext
+    !if $R=2
+	perc=$[100+$deltaq]
+	answer$n=$[$perc*$aantal1/100]
+	ans=$[round($(answer$n))]
+
+	ss2=Bereken hoeveel $eenheden $product2 in de nieuwe situatie zal worden verkocht. 
+	description=$eenheden $product2 
+	texanswer$n=\left[ \begin{array}{l} E_{p} = \frac{\Delta Q}{\Delta P} \\ \\ \Delta Q = \Delta P \times E_{p} \\ \\ \Delta P = \frac{$prijs2 - $prijs1}{$prijs1} \times 100 \simeq $deltap \% \\ \\ \Delta Q \simeq $deltap \times $ep \simeq $deltaq \% \\ \\ \textrm{aantal $eenheden $product2 na de prijsverhoging : } $aantal1 \times \frac{$perc}{100}  \simeq $(answer$n) \simeq $ans  \end{array} \right.
+	
+    !else
+	ss2=Bereken hoeveel $eenheden $product1 in de nieuwe situatie zal worden verkocht.
+	description=$eenheden $product1 
+	perc=$[$deltap*$epk]
+	answer$n=$[$aantal2*(100 + $perc)/100]
+	ans=$[round($(answer$n))]
+
+	texanswer$n=\left[ \begin{array}{l} \Delta P = \frac{$prijs2 - $prijs1}{$prijs1} \times 100 \simeq $deltap \% \\ \\ \textrm{De prijsverandering van $product1 wordt : } $epk \times $deltap \simeq $perc  \\ \\ \textrm{aantal $eenheden $product1 na de prijsverhoging : } $aantal2 + $perc \% \textrm{ van } $aantal2 \simeq $(answer$n) \simeq $ans  \end{array} \right.
+    !endif
+    question$n=<a onmouseover="return escape('$roundingtext')">$ss <p> $ss2</a>
+
+!endif
+
+!exit

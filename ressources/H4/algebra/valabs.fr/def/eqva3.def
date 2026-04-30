@@ -1,0 +1,124 @@
+!set title=Equations du type \({|a x+b|}  &#61; {|c x+d|}\)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle -9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+tmp0=!shuffle 1,2,3,4,5,6,7,8,9
+
+val6=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0)*$(val6[1]))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0)*$(val6[2]))]
+tmp=!translate ";': to $     $ in ($val8-$val7)/($val9-$val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+tmp=!translate ";': to $     $ in ($val8+$val7)/(-$val9-$val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val12=$(tmp0)
+val13=$val11,$val12
+val14=|$val9*x+$val7|=|$val10*x+$val8|
+tmp0=!texmath $val9*x+$val7=$val10*x+$val8
+
+val15=$(tmp0)
+tmp0=!texmath $val9*x+$val7=-$val10*x-$val8
+
+val16=$(tmp0)
+replytype1=fset
+replyname1=
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Résoudre dans 
+!insmath \mathbb{R}
+$() l'équation 
+!insmath  $val14 
+$().<br class="spacer">		L'ensemble des solutions est  
+!read oef/embed.phtml reply1,10 
+$().<br class="spacer">		<div class=wims_instruction> Si l'équation n'a pas de solution, écrire le mot <span class="tt">vide</span> dans le champ de réponse.</div>	
+$()
+!exit
+
+:hint
+$()Quand on a affaire à une valeur absolue, le plus simple est souvent de s'en débarrasser en distinguant plusieurs cas. Ici, par exemple, on peut écrire :		<p class=wimscenter>	
+!insmath $val14
+$()
+!insmath {\Longleftrightarrow}
+$()
+!insmath \left($val15 \quad ou \quad $val16\right)
+$()	</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,16
+embedcnt=1

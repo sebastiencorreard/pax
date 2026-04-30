@@ -1,0 +1,50 @@
+# 8/5/2009
+# ook een exact-antwoord met breukstreep goedkeuren 
+# door een antwoord als (19*(1-10^33))/(1-10)  met pari uit te rekenen
+# var2 is verschil $wimsanswer en pari-berekende antwoord
+
+n=$counter
+
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+org=!lower $(reply$n)
+org=!replace [a-z\~!@#$%&_=:;] by $empty in $org
+
+score=!exec pari if( abs($(answer$n) - $org)<($var2+1),1,0)
+
+#errortext= if( abs($(answer$n) - $org)<=$var2,1,0) = $score <br />var2=$var2
+#goback=1
+#!exit
+
+!if $wims_exec_error != $empty
+    testvar=$(reply$n)
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+maxscore=$[$score*$maxscore]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore > 0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+goback=0
+!exit

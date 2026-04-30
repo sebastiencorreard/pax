@@ -1,0 +1,109 @@
+# Schrijf als 1 breuk (* /)
+n=$counter
+cols=25
+rows=1
+math=0
+embed=1
+image=0
+helptext=$empty
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+x=!randitem x,y,z
+varlist=$x
+wims_rawmath_variables=$varlist
+
+#@ Schrijf als 1 breuk
+# var1 is used for checking  "literal typing" of question
+!if $mytexsize=0
+    mytexsize=+2
+!endif
+!if $R=1
+    helptext=<img src=\'$module_dir/gifs/exo10a.jpg\' alt=\'noalt\' />
+    keuze=!randitem 1,2
+    question$n=!record 25 of lang/remarks.$taal
+    a=!randitem 1,2,3,4,5,6
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem 1,2,3,4,5,6
+    d=!randitem 1,2,3,4,5,6
+    !if $keuze=1
+        var1=(($x + $a)/($x - $b))*(($x + $c)/($x - $d))
+	applettext=!nospace (($x + $a)/($x - $b)) times (($x + $c)/($x - $d)) =
+        formula$n=\frac{ $x + $a }{$x - $b} \times \frac{ $x + $c }{$x - $d} \,=\,[?]
+        answer$n=($x^2+$[$a+$c]*$x+$[$a*$c])/($x^2-$[$b+$d]*$x+$[$b*$d])
+        tussen=\frac{ ($x + $a) \times ($x+$c) }{($x - $b) \times ($x - $d)} 
+        texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow  \\ $tussen = \\ \frac{$x^2+$[$a+$c] $x + $[$a*$c]}{$x^2-$[$b+$d] $x + $[$b*$d]} \end{array} \right.
+    !else
+        var1=(($x - $a)/($x + $b))*(($x - $c)/($x + $d))
+	applettext=!nospace (($x - $a)/($x + $b)) times (($x - $c)/($x + $d)) =
+        formula$n=\frac{ $x - $a }{$x + $b} \times \frac{ $x - $c }{$x + $d} \,=\,[?]
+        answer$n=($x^2-$[$a+$c]*$x+$[$a*$c])/($x^2+$[$b+$d]*$x+$[$b*$d])
+        tussen=\frac{ ($x - $a) \times ($x-$c) }{($x + $b) \times ($x + $d)} 
+        texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen  = \\ \frac{$x^2 - $[$a+$c] $x + $[$a*$c]}{$x^2+$[$b+$d] $x + $[$b*$d]} \end{array} \right.
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    helptext=<img src=\'$module_dir/gifs/exo10b.jpg\' alt=\'noalt\' />
+    question$n=!record 24 of lang/remarks.$taal
+    a=!randitem 1,2,3,4
+    b=1
+    var1=($x-$a)/($b/($x-$a))
+    applettext=!nospace ($x-$a) div ($b/($x-$a)) =
+    formula$n=\left( $x - $a \right)  \div  \frac{$b}{$x - $a}  \,=\,[?]
+    tussen=\left( $x - $a \right) \cdot \left( $x -$a \right) 
+    answer$n=$x^2 - $[2*$a]*$x + $[$a*$a]
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen = \\ $x^{2} - $[2*$a] \cdot $x + $[$a*$a] \end{array} \right.
+ !exit
+!endif
+
+!if $R=3
+    helptext=<img src=\'$module_dir/gifs/exo10c.jpg\' alt=\'noalt\' />
+    question$n=!record 25 of lang/remarks.$taal
+    a=!randitem 1,2,3,4
+    b=!randitem 1,2,3,4
+    c=!randitem 1,2,3,4
+    var1=($a*$x + $b/$x)/($c*$x - $b/$x)
+    !if $a != 1 and $c!= 1
+	formula$n=\left( $a \cdot $x + \frac{$b}{$x} \right)  \div \left( $c \cdot $x - \frac{$b}{$x} \right)  \,=\,[?]
+	applettext=!nospace ($a*$x + $b/$x) div ($c*$x - $b/$x) =
+    !else
+	!if $a=1 and $c=1
+	    formula$n=\left( $x + \frac{$b}{$x} \right)  \div \left( $x - \frac{$b}{$x} \right)   \,=\,[?]
+	    applettext=!nospace ($a*$x + $b/$x) div ($x - $b/$x) =
+	!else
+	    !if $a=1
+	        formula$n=\left( $x + \frac{$b}{$x} \right)  \div \left( $c \cdot  $x - \frac{$b}{$x} \right)  \,=\,[?]
+		applettext=!nospace ($x + $b/$x) div ($c*$x - $b/$x) =
+	    !else
+	        formula$n=\left( $a \cdot $x + \frac{$b}{$x} \right)  \div \left( $x - \frac{$b}{$x} \right)  \,=\,[?]
+		applettext=!nospace ($a*$x + $b/$x) div ($x - $b/$x) =
+	    !endif
+	!endif
+    !endif    
+    tussen=\frac{$a \cdot $x + \frac{$b}{$x} }{$x \cdot $x - \frac{$b}{$x}} \cdot \frac{$x}{$x}
+    answer$n=($a*$x^2 + $b)/($c*$x^2 - $b)
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen = \\ \frac{$a \cdot $x^{2} + $b}{$c \cdot $x^{2} - $b} \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    helptext=<img src=\'$module_dir/gifs/exo10c.jpg\' alt=\'noalt\' />
+    question$n=!record 25 of lang/remarks.$taal
+    a=!randitem 1,2,3,4,5,6,7,8,9
+    b=!randitem 1,2,3,4,5
+    var1=(($x - $a)/($x + $b))/(($a -$x)/(($x+$b)^2))
+    applettext=!nospace (($x - $a)/($x + $b)) div (($a -$x)/(($x+$b)^2))=
+    formula$n=\frac{ $x - $a }{ $x + $b } \div \frac{ $a - $x}{\left( $x + $b \right)^{2}}  \,=\,[?]
+    answer$n=-1*$x - $b
+    tussen=\frac{ $x - $a }{ $x + $b } \times \frac{\left( $x + $b \right)^{2}}{ $a - $x}
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen = \\ -$x - $b \end{array} \right.
+ !exit
+!endif
+

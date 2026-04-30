@@ -1,0 +1,84 @@
+# winst en btw [steps]
+# 25-10-2009 afgerond op helen.
+
+n=$counter
+viewlogo=1
+mathview=0
+!if $total_exos >3
+    total_exos=3
+!endif
+checkfile=exos/precheck1.proc
+make_tr=1
+cols=10
+rows=1
+#fffff0=#e2ffc6
+inputs=1.1
+!if $counter=1
+    k=!randint 1,4
+    dingen=20@60@20@60@70000@95000@platenmaatschappij@platenwinkels@CD@CD's@de CD,16@40@35@80@15000@50000@uitgeverij@boekwinkels@boek@boeken@het boek,40@100@80@160@100000@200000@parfumfabrikant@drogisterijen@parfum@parfums@de parfum,20@60@25@65@50000@120000@game-producent@computerwinkels@game@games@de game
+    
+    ding=!item $k of $dingen
+    ding=!replace internal @ by , in $ding
+    termijn=1
+    minwinst=!item 1 of $ding
+    maxwinst=!item 2 of $ding
+    mininkoop=!item 3 of $ding
+    maxinkoop=!item 4 of $ding
+    minomzet=!item 5 of $ding
+    maxomzet=!item 6 of $ding
+    producent=!item 7 of $ding
+    winkels=!item 8 of $ding
+    product=!item 9 of $ding
+    producten=!item 10 of $ding
+    het_product=!item 11 of $ding
+    inkoop=!randint $mininkoop,$maxinkoop
+    inkoop=$[$inkoop/4]
+    btw=21
+    t=$[ceil($inkoop*((100+$btw)/100)*4)]
+    winst=!randint $minwinst,$maxwinst
+    verkoop=$[$t+$winst]
+    verkoop=$[$verkoop/4]
+    verkoop_ex=$[round($verkoop/1.19)]
+    verkoop=$[1.19*$verkoop_ex]
+    tot=!exec moneyprint $inkoop,$winst,$verkoop,$verkoop_ex
+    inkoop=$(tot[1])
+    winst=$(tot[2])
+    verkoop=$(tot[3])
+    verkoop_ex=$(tot[4])
+    omzet=!randint $minomzet,$maxomzet
+    netto_opbrengst=$[round($omzet*$inkoop)]
+    bruto_opbrengst=$[round($verkoop*$omzet*100/(100+$btw))]
+    
+    
+    var6=De afzet van de $producent,De brutowinst van de gezamelijke $winkels ,Af te dragen BTW [per saldo] van de $winkels aan de belastingdienst.</li>
+    answer1=$omzet
+    answer2=$[$bruto_opbrengst - $netto_opbrengst]
+    answer3=$[round($answer2*($btw/100))]
+    
+    textanswer1=De afzet van de $producent is gelijk aan : <kbd>$netto_opbrengst &divide; $inkoop &times; 1 $product</kbd><br />is gelijk aan $answer1 $producten
+
+    textanswer2=De omzet exclusief BTW bedraagt voor de $winkels : $omzet &times; &euro; $verkoop &times; 100 &divide; $[100+$btw] = $bruto_opbrengst <br />De brutowinst van de gezamenlijke $winkels is dan &euro; $bruto_opbrengst &minus; &euro; $netto_opbrengst = &euro; $answer2
+    
+    textanswer3=De inkomsten voor de belastingdienst aan omzetbelasting bedragen:<br /> $btw % van &euro; $answer2 = &euro; $answer2 &times; ($btw &divide; 100) = &euro; $answer3
+    helptext=Rond af en reken door met gehele getallen
+    som=Een $producent brengt een $product op de markt.<br />De $producent distribueert $het_product aan de $winkels voor &euro; $inkoop per stuk [exclusief BTW]<br />In $termijn maand ontvangt de $producent daaruit een opbrengst van precies &euro; $netto_opbrengst [exclusief BTW]<br />De $winkels verkopen de $producten voor &euro; $verkoop per stuk [inclusief BTW].<br />Alle ingekocht $producten worden ook daadwerkelijk verkocht.<br />Het omzetbelastingtarief voor $producten is $btw %<br />Bereken aan de hand van de gegevens voor deze periode :<br />
+    
+    question1=<a onmouseover="return escape('$helptext')">$som</a>
+    question2=<a onmouseover="return escape('$helptext')">$som</a>
+    question3=<a onmouseover="return escape('$helptext')">$som</a>
+    
+    ex1=&euro;
+!endif
+
+#!if $rounding<1
+rounding=1
+roundingtext=Rond af en reken door met gehele getallen
+#    !readproc $remarkdir/rounding.$taal
+#!endif
+
+description=$(var6[$counter])
+
+!if $n>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif
+

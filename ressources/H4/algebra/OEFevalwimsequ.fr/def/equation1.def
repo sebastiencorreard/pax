@@ -1,0 +1,98 @@
+!set title=Résoudre une équation 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=6
+prevarcnt=5
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items x,y,z,a,b,u,v
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v,-v for v=2 to 9
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!texmath $val6+$(val7[1])=$(val7[2])
+
+val8=$(tmp0)
+tmp=!translate ";': to $     $ in $(val7[2])-($(val7[1]))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+replytype1=numexp
+replyname1=solution
+replygood1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Résoudre l'équation suivante :	<div class="wimscenter">
+!insmath $val8
+$().</div>	<b>Votre réponse :</b><br>	  <label for="reply1">La solution est</label>
+!read oef/embed.phtml r1,5
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8
+embedcnt=1

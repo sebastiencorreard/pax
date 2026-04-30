@@ -1,0 +1,123 @@
+type=classify
+textarea="data explain"
+iEdit="explain"
+<p class="wims_credits">Auteur du modèle : Gang Xiao <qualite@wimsedu.info></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Listes : suppression d'éléments}
+:\author{Yves, Moncheaux}
+:\email{yves.moncheaux@ac-lille.fr}
+:\credits{}
+:Nombre de (paires) d'objets à faire correspondre
+
+\integer{tot=9}
+
+:La taille verticale des cases en pixels
+Pensez aux gens qui augmentent la taille de polices de leur navigateur !
+Ne mettez pas les cases trop petites.
+\integer{sizev=50}
+
+:La taille horizontale des cases à gauche en pixels
+
+\integer{sizel=250}
+
+:La taille horizontale des cases à droite en pixels
+
+\integer{sizer=250}
+
+\text{l=shuffle(10,11,12,13,14,15,16,17,18,19,20)}
+\matrix{listeinitiale = \l[1..4]}
+
+\integer{i=random(0..3)}
+\text{val=\l[\i+1]}
+
+: le saut à la ligne est important dans steps
+\steps{reply1
+reply2, reply3}
+
+:Consigne pour les apprenants
+help
+\text{explain0=
+<p>Une liste est créée en Python :</p>
+<pre>
+maliste = [\listeinitiale]
+</pre>
+}
+
+\text{explain1=
+<p>Associez à chaque commande le résultat de son exécution. 
+<BR />Certaines commandes ne sont pas conformes au langage Python, associez-les alors à la réponse "Erreur de syntaxe Python".
+<BR />Certaines commandes sont correctes d'un point de vue du langage Python mais non adaptées à la situation, 
+associez-les alors à la réponse "Commande inadaptée ici".
+</p>}
+
+:Données principales
+Définir une paire d'objets correspondants par ligne, séparés par une virgule.
+help
+
+
+\matrix{data=
+maliste.remove(\val), Supprime la valeur \val de la liste
+maliste.remove(\i), Commande inadaptée ici
+maliste.del(\val),  Erreur de syntaxe
+maliste.del(\i),  Erreur de syntaxe
+del(maliste[\val]), Commande inadaptée ici
+del(maliste[\i]), Supprime la valeur d'indice \i de la liste
+remove.maliste[\val], Erreur de syntaxe
+remove.maliste[\i], Erreur de syntaxe
+remove(maliste[\val]),  Erreur de syntaxe
+remove(maliste[\i]),  Erreur de syntaxe
+}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\integer{datacnt=rows(\data)}
+\integer{tot=\tot>\datacnt?\datacnt}
+
+\text{shuf=item(1..\tot,shuffle(\datacnt))}
+\text{data=row(\shuf,\data)}
+\text{data=\accolade=1? wims(embraced randitem \data)}
+
+\text{datal=column(1,\data)}
+\text{datar=column(2,\data)}
+\text{size=\sizev[]x\sizel[]x\sizer}
+\text{explain=\accolade=1? wims(embraced randitem \explain)}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+La commande pour afficher le tableau de correspondance,
+c'est \embed{reply 1,\size}
+\statement{
+\explain0
+\if{\step=1}{\explain1
+<div class="wimscenter">
+\embed{reply 1,\size}
+</div>
+}
+\if{\step=2}{
+<p>Complétez les commandes suivantes, pour supprimer la valeur \val de la liste (si \val apparaît plusieurs fois, 
+ne prenez en compte que sa valeur la plus à gauche dans la liste) :</p>
+<ul>
+<li>maliste.remove(\embed{reply 2,4})</li>
+<li>del(maliste[\embed{reply 3,4}])</li>
+</ul>
+}
+}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{}{\datal;\datar}{type=correspond}
+\answer{}{\val}{type=default}
+\answer{}{\i}{type=default}

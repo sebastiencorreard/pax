@@ -1,0 +1,94 @@
+#checkfile=exos/checkfile3.proc
+checkfile=$checkdir/ineq.proc
+use_ineq=1
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+use_ineq=1
+math=0
+questiontype=0
+embed=1
+cols=20
+rows=1
+var1=0
+var2=0
+#var3=1
+varlist=x
+mathviewpanel=$module_title:x:>:>=:<:<=
+keuze=!randitem 0,1
+kans=!randitem 0,1
+helptext=<img src=\'$module_dir/gifs/exo6.help.jpg\' alt=\'noalt\' />
+!if $R>0
+    wims_rawmath_variables=x
+    g=!randitem 2,3,4,5,6,7,8,9
+    a=!randitem 1,2,3,4,5
+    b=!randint 1,20
+    tot=!exec pari A=$b/(1+$g^$a)\
+    printtex(A)
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    !if $keuze=1
+	!if $kans=1
+	    teken= &lt;
+	    at=f(x) < g(x)
+	    att=f(x) < g(x)
+	    answer$n=!nospace 0 < x && x < $t1
+	    tex=0  <  x  <  $t2
+	!else
+	    teken= &le;
+	    at=f(x) <= g(x)
+	    att=f(x) \le g(x)
+	    answer$n=!nospace 0 < x && x <= $t1
+	    tex=0  <  x \le $t2
+	!endif
+    !else
+	!if $kans=1
+	    teken= &gt;
+	    at=f(x) > g(x)
+	    att=f(x) > g(x)
+	    answer$n=!nospace $t1 < x && x < $b
+	    tex=  $t2  <  x  <  $b
+	!else
+	    teken= &ge;
+	    at=f(x) >= g(x)
+	    att=f(x) \ge g(x)
+	    answer$n=!nospace $t1 <= x && x < $b
+	    tex=$t2 \le x  <  $b
+	!endif
+    !endif
+    s1=!record 39 of lang/remarks.$taal
+	#@ Los op:
+    s2=!record 40 of lang/remarks.$taal
+    #@  <ul><li>let op het Domein</li><li>let op de schrijfwijze: <br />schrijf >= voor &ge; <br />schrijf <= voor &le;</li></ul>
+    s3=!record 142 of lang/remarks.$taal
+    #@ Gegeven zijn de twee onderstaande logaritmische functies
+    question$n=$s3 <br />$s1 &nbsp;&nbsp;f(x) $teken g(x) $s2 
+    ff=^{\textstyle $g}\log \left( x \right) + $a
+    gg=^{\textstyle $g}\log \left( $b - x \right)
+    applettext=!nospace {vlist(f(x)= log[$g](x)+$a,.,g(x)=log[$g]($b-x),.,$at)}   ->
+    formula$n= \left[ \begin{array}{ll} f\left( x \right) = $ff  \\ \\  g\left( x \right) = $gg  \\ $att \end{array}\right.
+    texanswer$n=\left[ \begin{array}{l} f(x) = g(x) \\ $ff = $gg \rightarrow \\ ^{\textstyle $g}\log \left( x \right) + ^{\textstyle $g}\log \left( $g^{$a} \right)  = $gg \\ ^{\textstyle $g}\log \left( x \cdot  $g^{$a} \right)  = $gg \\ \left( $g^{$a} \cdot x \right)  = \left( $b - x  \right) \\ \left( ($g^{$a} + 1) \cdot x \right)  = $b \\ x = \frac{$b}{1 + $g^$a} = $t2 \\ $att \\  $tex \end{array}\right.
+    F=$a + log10(x)/(log10($g))
+    G=log10($b -x)/(log10($g))
+
+    !if $teaching=1
+	image=0
+	plot=1
+	draw=0
+	insplot_set=size 0.6,0.6;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+        image_settings$n=$insplot_set
+	image$n= $F notitle , $G notitle
+	!insplot $(image$n)
+	etext=!record 63 of $remarkdir/commonremarks.$taal
+
+	exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\'alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+
+	!insplot  $F notitle , $G  notitle
+
+    !endif
+
+ !exit
+!endif

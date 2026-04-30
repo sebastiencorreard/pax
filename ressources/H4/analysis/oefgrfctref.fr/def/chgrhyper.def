@@ -1,0 +1,206 @@
+!set title=Choix d'une hyperbole
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+
+ansorder=r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Dans le plan muni d'un repère orthonormé \((O,I,J)\), on considère la fonction	  réelle \(f) définie sur l'intervalle \(\ [-2,2]\) par	  XXXX. Indiquez dans la liste ci-dessous la courbe représentative de \(f).
+val8=Graphe
+val9=lightblue
+val10=xrange -3,3	yrange -3.5,3.5	gridfill 0,0,5,5,$val9	linewidth 3	vline 1,0,$val9	vline 2,0,$val9	vline 3,0,$val9	vline -1,0,$val9	vline -2,0,$val9	vline -3,0,$val9	hline 0,1,$val9	hline 0,2,$val9	hline 0,3,$val9	hline 0,-1,$val9	hline 0,-2,$val9	hline 0,-3,$val9	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+tmp0=!randitem -2,-3/2,-1,-1/2,1/2,1,3/2,2
+
+val11=$(tmp0)
+val12=-4,-3,-2,-1,1,2,3,4
+val13=-3/2,-5/4,-1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1,5/4,3/2
+tmp0=!randitem -1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1
+
+val14=$(tmp0)
+val15=
+!for val16  in $val12 
+!for val17  in $val13 
+val18=(($val11)/(($val16)*x+(-($val16)*($val17))))+($val14)
+tmp0=!append item $val18 to $val15
+
+val15=$(tmp0)
+!next
+!next
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+tmp0=!shuffle 4
+
+val19=$(tmp0)
+tmp0=!item 1 of $val19
+
+val20=$[rint($(tmp0))]
+tmp0=!item 2 of $val19
+
+val21=$[rint($(tmp0))]
+tmp0=!item 3 of $val19
+
+val22=$[rint($(tmp0))]
+tmp0=!item 4 of $val19
+
+val23=$[rint($(tmp0))]
+val24=$(val15[$val20])
+t_=!replace internal \( by ( in expand($val24);
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+tmp0=!texmath $val24
+
+val24=$(tmp0)
+val25=$(val15[$val21])
+t_=!replace internal \( by ( in expand($val25);
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+tmp0=!texmath $val25
+
+val25=$(tmp0)
+val26=$(val15[$val22])
+t_=!replace internal \( by ( in expand($val26);
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+tmp0=!texmath $val26
+
+val26=$(tmp0)
+val27=$(val15[$val23])
+t_=!replace internal \( by ( in expand($val27);
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+tmp0=!texmath $val27
+
+val27=$(tmp0)
+tmp0=!item 1 of $val15
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in expand($val28);
+tmp0=!exec maxima $t_
+
+val28=$(tmp0)
+tmp0=!texmath $val28
+
+val28=$(tmp0)
+tmp0=!positionof item 1 in $val19
+
+val29=$[rint($(tmp0))]
+tmp0=!shuffle red,blue,orange,green
+
+val30=$(tmp0)
+val31=$val10	linewidth 2	plot $(val30[1]),$(val15[$val20])	
+val32=$val10	linewidth 2	plot $(val30[2]),$(val15[$val21])	
+val33=$val10	linewidth 2	plot $(val30[3]),$(val15[$val22])	
+val34=$val10	linewidth 2	plot $(val30[4]),$(val15[$val23])	
+tmp0=!replace internal XXXX by \(f(x)=$val28\) in $val7
+
+val35=$(tmp0)
+replytype1=radio
+replyname1=\rep
+replygood1=$val29;1,2,3,4
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	      $val35	  <table class="wimscenter wimsborder">	    <tr>	      <td>	         
+!read oef/embed.phtml reply 1,1 
+$()	      </td><td>	         
+!read oef/draw.phtml 200,200 \
+$val31 
+$()	      </td><td>	         
+!read oef/embed.phtml reply 1,2 
+$()	      </td><td>	         
+!read oef/draw.phtml 200,200 \
+$val32 
+$()	      </td>	    </tr><tr>	      <td>	         
+!read oef/embed.phtml reply 1,3 
+$()	      </td><td>	         
+!read oef/draw.phtml 200,200 \
+$val33 
+$()	      </td><td>	         
+!read oef/embed.phtml reply 1,4 
+$()	      </td><td>	         
+!read oef/draw.phtml 200,200 \
+$val34 
+$()	      </td>	    </tr>	  </table>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val8 1: 
+!insmath $val24
+$()<br>	$val8 2: 
+!insmath $val25
+$()<br>	$val8 3: 
+!insmath $val26
+$()<br>	$val8 4: 
+!insmath $val27
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,24,25,26,27,31,32,33,34,35
+embedcnt=4

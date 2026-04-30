@@ -1,0 +1,250 @@
+#kwantitatieve variabele met effectgrootte
+n=$counter
+mathview=0
+make_tr=0
+embed=0
+htext=<img src=$module_dir/gifs/boxplot.jpg alt=boxplot width=80% /><br/><img src=$module_dir/gifs/effectgrootte.jpg alt=effectgrootte width=80% />
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontype=0
+checkfile=$checkdir/new_number.proc
+rounding=100
+!readproc $remarkdir/rounding.$taal
+inputs=-1
+description=!record 106 of lang/remarks.$taal
+#@effectgrootte is , verschil mbv boxplots , verschil mbv effectgrootte , eindconclusie
+m_rightarrow= &nbsp;=&nbsp;
+dingen=!record 67 of lang/remarks.$taal
+#@groot verschil,middelmatig verschil,gering verschil
+
+ss=!record 107 of lang/remarks.$taal
+#@De toetsscores van een aantal leerlingen zijn onderzocht,<br />om na te gaan of er een verschil is tussen jongens en meisjes.<br />In de tabel zijn de statistische data vermeld van het onderzoek.<br />De data zijn verwerkt in de getoonde  boxplots.<br /><ol><li>Geef het verschil tussen jongens&amp;meisjes mbv boxplots</li><li>Bereken de effectgrootte aan de hand van de tabel</li><li>Geef het verschil tussen jongens&amp;meisjes mbv effectgrootte</li><li>Geef aan wat de eindconclusie is van het onderzoek</li></ol>
+
+ans_box=!randitem 1,2,2,3,3,3
+
+exo_text=!record 108 of lang/remarks.$taal
+#@<ol class="vlist"><li>1. Verschil mbv boxplot&nbsp;:&nbsp;<select size="1" id="myselect0" name="myselect0" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select><br /></li><li>2. Effectgrootte = <input id="myinput0" size="10" class="schaersvoorde_input" /><br /></li><li>3. Verschil mbv effectgrootte&nbsp;:&nbsp;<select size="1" id="myselect1" name="myselect1" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select></li><li>4. Eindconclusie...het verschil is&nbsp;:&nbsp;<select size="1" id="myselect2" name="myselect2" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select></li></ol>
+exotext=!subst $exo_text
+
+f1=!randint 100,200
+!if $ans_box=1
+ # groot verschil
+ A_min=!randint 25,35
+ A_Q1=!randint 41,55
+ A_median=!randint 56,70
+ A_Q3=!randint 71,85
+ A_max=!randint 86,100
+
+ B_min=!randint 2,6
+ B_Q1=!randint 8,15
+ B_median=!randint 16,30
+ B_Q3=!randint 32,40
+ B_max=!randint 45,75
+ 
+!else
+ !if $ans_box=2
+  # middelmatig verschil
+  # MedianB < Q1A < Q3B
+  # MedianA > Q3B
+  kans =!randitem 1,2
+  B_min=!randint 2,8
+  B_Q1=!randint 10,15
+  B_median=!randint 16,26
+  B_Q3=!randint 27,36
+  B_max=!randint 40,55
+  !if $kans=1
+   # allebeide medianen liggen buiten de boxen
+   A_Q1=!randint $[$B_median+2],$[$B_Q3-2]
+   A_min=!randint 2,$[$B_Q1-1]
+   A_median=!randint $[$B_Q3+2],$[$B_Q3+10]
+   A_Q3=!randint $[$B_Q3+12],$[$B_Q3+20]
+   A_max=!randint $[$B_Q3+22],99
+  !else
+   # 1 mediaan ligt buiten de box
+   A_Q1=!randint $[$B_Q1+2],$[$B_median]
+   A_min=!randint 2,$[$B_Q1-1]
+   A_median=!randint $[$B_Q3+2],$[$B_Q3+10]
+   A_Q3=!randint $[$B_Q3+12],$[$B_Q3+20]
+   A_max=!randint $[$B_Q3+22],99
+  !endif
+
+ !else
+ #gering verschil
+  B_min=!randint 2,8
+  B_Q1=!randint 10,15
+  B_median=!randint 16,26
+  B_Q3=!randint 27,36
+  B_max=!randint 40,99
+
+  A_Q1=!randint $[$B_Q1-2],$[$B_median-2]
+  A_min=!randint 0,$[$A_Q1-2]
+  A_median=!randint $[$B_median+2],$[$B_Q3-2]
+  A_Q3=!randint $[$A_median+4],$[$A_median+10]
+  A_max=!randint $[$A_Q3+5],99
+
+ !endif
+!endif
+
+
+#A_gem=!randint $[100*$A_median - $f1],$[100*$A_median + $f1]
+A_gem=!randint $[100*$A_median - $f1],$[100*$A_median]
+A_gem=!exec moneyprint $[0.01*$A_gem]
+A_std=!randint 10,40
+A_std=$[0.1*$A_std]
+A_aantal=!randint 1000,2000
+A_kwart=$[$A_Q3 - $A_Q1]
+
+#B_gem=!randint $[100*$B_median - $f1],$[100*$B_median + $f1]
+B_gem=!randint $[100*$B_median],$[100*$B_median + $f1]
+B_gem=!exec moneyprint $[0.01*$B_gem]
+B_std=!randint 10,40
+B_std=$[0.1*$B_std]
+B_aantal=!randint $[$A_aantal-30],$[$A_aantal+90]
+B_kwart=$[$B_Q3 - $B_Q1]
+
+E=!exec moneyprint $[(abs($A_gem - $B_gem))/(0.5*($A_std + $B_std ))]
+
+
+!if $ans_box=1
+# groot verschil in boxplot
+ !if $E > 0.8
+  ans_e=1
+  # beide groot verschil
+  ans_c=1
+  textanswer$n=!record 109 of lang/remarks.$taal
+  #@<ul><li>De boxen van de boxplots overlappen elkaar niet: dus een groot verschil</li><li>De effectgrootte &approx; $E <br />dit is groter dan grenswaarde 0.8<br />dus een groot verschil</li><li>Dus het verschil in toetsscores tussen jongen en meisjes is groot</li></ul>
+ !else
+  !if $E<=0.4
+   ans_e=3
+  # boxplot groot verschil & effectgrootte gering verschil
+   ans_c=3
+   # effectgrootte heeft voorrang
+   textanswer$n=!record 110 of lang/remarks.$taal
+   #@<ul><li>De boxen van de boxplots overlappen elkaar niet: dus een groot verschil</li><li>De effectgrootte &approx; $E <br />dit is kleiner dan grenswaarde 0.4<br />dus een gering verschil</li><li>Dus het verschil in toetsscores tussen jongen en meisjes is gering</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+  !else
+   ans_e=2
+   # boxplot groot verschil & effectgrootte middelmatig verschil
+   ans_c=2
+   # effectgrootte heeft voorrang  
+   textanswer$n=!record 111 of lang/remarks.$taal
+   #@<ul><li>De boxen van de boxplots overlappen elkaar niet: een groot verschil</li><li>De effectgrootte &approx; $E <br />dit ligt tussen grenswaarden 0.4 en 0.8 <br />dus een middelmatig verschil</li><li>Dus het verschil in toetsscores tussen jongen en meisjes is middelmatig</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+  !endif
+ !endif
+!else
+ !if $ans_box=2
+  # middelmatig versschil on boxplots
+  !if $E > 0.8
+   # box middelmatig ; effectgrootte groot
+   ans_e=1
+   ans_c=1
+   textanswer$n=!record 112 of lang/remarks.$taal
+   #@<ul><li>Er ligt in ieder geval een mediaan in de box van de andere boxplot: een middelmatig verschil</li><li>De effectgrootte &approx; $E <br />dit is groter dan grenswaarde 0.8<br />dus een groot verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is groot</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+  !else
+   !if $E<=0.4
+    ans_e=3
+    # boxplot middelmatig verschil & effectgrootte gering verschil
+    ans_c=3
+    # effectgrootte heeft voorrang
+    textanswer$n=!record 113 of lang/remarks.$taal
+    #@<ul><li>Er ligt in ieder geval een mediaan in de box van de andere boxplot: een middelmatig verschil</li><li>De effectgrootte &approx; $E <br />dit is kleiner dan grenswaarde 0.4<br />dus een gering verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is gering</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+   !else
+    ans_e=2
+    # boxplot middelmatig verschil & effectgrootte middelmatig verschil
+    ans_c=2
+    # effectgrootte heeft voorrang  
+    textanswer$n=!record 114 of lang/remarks.$taal
+    #@<ul><li>Er ligt in ieder geval een mediaan in de box van de andere boxplot: een middelmatig verschil</li><li>De effectgrootte &approx; $E <br />dit ligt tussen grenswaarden 0.4 en 0.8 <br />dus een middelmatig verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is middelmatig</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+   !endif
+  !endif
+ !else
+  # gering verschil in boxplots
+  !if $E > 0.8
+   ans_e=1
+   # gering verschil in boxplots; effectgroote groot verschil
+   ans_c=1
+   textanswer$n=!record 115 of lang/remarks.$taal
+   #@<ul><li>De medianen liggen in elkaars boxen: een gering verschil</li><li>De effectgrootte &approx; $E <br />dit is groter dan grenswaarde 0.8<br />dus een groot verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is groot</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+  !else
+   !if $E<=0.4
+    ans_e=3
+    # boxplot gering verschil & effectgrootte gering verschil
+    ans_c=3
+    # effectgrootte heeft voorrang
+    textanswer$n=!record 116 of lang/remarks.$taal
+    #@<ul><li>De medianen liggen in elkaars boxen: een gering verschil</li><li>De effectgrootte &approx; $E <br />dit is kleiner dan grenswaarde 0.4<br />dus een gering verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is gering</li></ul>
+   !else
+    ans_e=2
+    # boxplot gering verschil & effectgrootte middelmatig verschil
+    ans_c=2
+    # effectgrootte heeft voorrang  
+    textanswer$n=!record 117 of lang/remarks.$taal
+    #@<ul><li>De medianen liggen in elkaars boxen: een gering verschil</li><li>De effectgrootte &approx; $E <br />dit ligt tussen grenswaarden 0.4 en 0.8 <br />dus een middelmatig verschil</li><li>Het verschil in toetsscores tussen jongen en meisjes is middelmatig</li><li><b>De eindconclusie baseren we op de effectgrootte</b><br />want de effectgrootte gebruikt meer informatie uit de gegeven data.</li></ul>
+   !endif
+  !endif 
+ !endif
+!endif
+
+answer$n=$E\
+$ans_box\
+$ans_e\
+$ans_c
+
+
+
+
+keuze=!randitem 1,2
+mens=!record 118 of lang/remarks.$taal
+!if $keuze=1
+    jongens=$(mens[1])
+    meisjes=$(mens[2])
+!else
+    jongens=$(mens[2])
+    meisjes=$(mens[1])
+!endif
+titels=$(mens[3]),$jongens,$meisjes
+td=!record 119 of lang/remarks.$taal
+#@aantal waarnemingen,gemiddelde,standaardafwijking,mediaan,minimum,maximum,eerste kwartiel,derde kwartiel,kwartieafstand 
+tabel=<table width="100%"  class="grid_table"><tr><th>$(titels[1])</th><th>$(titels[2])</th><th>$(titels[3])</th></tr><tr><td>$(td[1])</td><td>$A_aantal</td><td>$B_aantal</td></tr><tr><td>$(td[2])</td><td>$A_gem</td><td>$B_gem</td></tr><tr><td>$(td[3])</td><td>$A_std</td><td>$B_std</td></tr><tr><td>$(td[4])</td><td>$A_median</td><td>$B_median</td></tr><tr><td>$(td[5])</td><td>$A_min</td><td>$B_min</td></tr><tr><td>$(td[6])</td><td>$A_max</td><td>$B_max</td></tr><tr><td>$(td[7])</td><td>$A_Q1</td><td>$B_Q1</td></tr><tr><td>$(td[8])</td><td>$A_Q3</td><td>$B_Q3</td></tr><tr><td>$(td[9])</td><td>$A_kwart</td><td>$B_kwart</td></tr></table>
+
+question$n=<a onmouseover="return escape('$htext')">$ss</a>
+helptext=<img src=$module_dir/gifs/stat.gif alt=stat width=80% /> 
+
+#boxplot x_or_y,box-height_or_box-width,position,min,Q1,median,Q3,max
+kleuren=!shuffle red,green,blue,#e8bd13,#5dacda,#9e7fdf,orange,black
+applet=1
+
+object=!exec canvasdraw \
+size 600,140\
+xrange 0,100\
+yrange -20,100\
+precision 1\
+opacity 80,105\
+#fontfamily 24px Ariel\
+axisnumbering\
+axis\
+noyaxis\
+#yaxis 30:A:60:B\
+grid 10,10,grey,1,1,8,green\
+opacity 200,50\
+linewidth 2\
+fillcolor $(kleuren[1])\
+strokecolor $(kleuren[2])\
+filled\
+boxplot x,25,30,$A_min,$A_Q1,$A_median,$A_Q3,$A_max\
+fillcolor $(kleuren[3])\
+strokecolor $(kleuren[4])\
+filled\
+boxplot x,25,60,$B_min,$B_Q1,$B_median,$B_Q3,$B_max\
+linewidth 1\
+userdraw vline,red\
+replyformat -1\
+display x,red,24
+
+
+object$n=$tabel<hr/>$object
+
+!exit
+

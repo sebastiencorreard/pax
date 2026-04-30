@@ -1,0 +1,107 @@
+type=image
+textarea="data"
+:Cliquer sur une image.
+<p>
+Pour construire un exercice avec ce modèle, il suffit de taper la liste des images et
+de leur caractérisation. Cette caractérisation peut être mise dans l'instruction
+sous la forme <span class="tt wims_code_variable">\name</span>
+Si l'on désire mettre une image apparaissant comme perturbateur sans définition,
+ne mettez pas de caractérisation. Plusieurs images peuvent avoir la même caractérisation.
+</p>
+<p>
+Auteur du modèle : Bernadette Perrin-Riou <bpr@math.u-psud.fr>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{B- La diversité des mammifères en Europe}
+:\author{Jonathan, Faivre}
+:\email{prof.svt.lc@gmail.com}
+:\credits{https://commons.wikimedia.org/wiki/Accueil}
+:Données
+Les images peuvent soit être dans l'exercice (mettre alors simplement le nom de
+l'image, ne pas oublier de les charger dans l'exercice),
+soit dans un module de données d'images
+(voir l'exemple).
+\text{data=1280px-AlbinosTaupedEurope.jpg,Taupe
+1280px-Artiszoo_blaireau.jpg,Blaireau
+1280px-Silz_sanglier6.jpg,Sanglier
+Chauve-souris.jpg,Chauve-souris
+Chevreuil.jpg,Chevreuil
+J.Paquet_Cerf_a_Bramafan.jpg,Cerf
+Sciurus_vulgaris_01.jpg,Écureuil
+ile-dArz-Lapin_de_garenne.jpg,Lapin
+Renardroux.jpg,Renard roux}
+
+:Nombre d'images présentées.
+
+\integer{cnt=4}
+
+:La taille verticale des images en pixels
+
+\text{sizev=200}
+
+:%%%%%%%%%%%%%%
+ne pas mettre de ; dans sizev
+\if{\sizev notsametext }{
+  \text{sizev= style="height:wims(nospace \sizev px)"}
+}
+\text{data=wims(embraced randitem \data)}
+\text{tot=rows(\data)}
+\text{name=}
+\while{\name issametext }{
+ \text{mot = randrow(\data)}
+ \text{name=\mot[2]}
+ }
+\text{image=\mot[1]}
+\text{ext=item(2,wims(replace internal . by , in wims(lowercase \image)))}
+
+:Consigne
+Ici \name représente le deuxième item de l'image qui sera à cliquer.
+\text{instruction=Clique sur \name.}
+
+:%%%%%%%%%%%%%%
+\css{<style type="text/css">
+table.ans_multipleclick1 {margin-left:auto;margin-right:auto}
+</style>
+}
+\integer{cnt2=ceil(\cnt/2)}
+\text{liste=column(1,\data)}
+\text{listename=column(2,\data)}
+\text{rep=position(\name,\listename)}
+\text{perturb=wims(makelist x for x=1 to \tot)}
+\text{perturb=shuffle(\perturb)}
+\text{perturb=\perturb[1..\cnt]}
+\text{inter=wims(listintersection \rep and \perturb)}
+\if{\inter=}{
+  \integer{repcnt=items(\rep)}
+  \text{rep= \repcnt >1 ? randitem(\rep)}
+  \text{perturb=\rep,\perturb[1..\cnt-1]}
+  \text{perturb=shuffle(\perturb)}
+}
+\matrix{data=\data}
+\text{liste=\data[\perturb;1]}
+\text{listename=\data[\perturb;2]}
+\text{cnt=items(\liste)}
+\text{Image=}
+\for{j=1 to \cnt}{
+  \text{Image=/ isin \liste[\j] ? wims(append item \liste[\j] to \Image):
+  wims(append item \imagedir/\liste[\j] to \Image)}
+}
+\text{liste=wims(makelist imgrename(x \sizev) for x in \Image)}
+\text{rep=position(\name,\listename)}
+\statement{
+<div class="instruction">
+ \instruction
+</div>
+<br class="spacer">
+ \embed{r1,x
+ 2 x \cnt2}
+}
+\answer{}{\rep;\liste}{type=multipleclick}{option=shuffle}

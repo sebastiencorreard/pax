@@ -1,0 +1,85 @@
+# Overheid 
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+head=<th>&nbsp;</th>
+lijn1=<th>&euro; in <em>$munt</em></th>
+lijn2=<th><em>$munt</em> in &euro;</th>
+antwoord2=<th><em>$munt</em> in &euro;</th>
+antwoord1=<th>&euro; in <em>$munt</em></th>
+land=!randitem Waterland,Engerland,Duizelland,Fransland,Spaanderland,Welgi&euml;,Noorderrijk,Zweijtserland,Waldolahland
+
+nu=!date +%Y
+jaar1=$[$nu - 1]
+jaar2=$[$nu - 2]
+staatsschuld=!randint 15,25
+staatsschuld=$[10*$staatsschuld]
+uitgaven=!randint 12,25
+uitgaven=$[10*$uitgaven]
+pm=!randitem +,-
+d=!randint 1,8
+d=$[$d*5]
+inkomsten=$[$uitgaven $pm $d]
+aflossing=!randint 1,5
+aflossing=$[$aflossing*5]
+begrotingssaldo=$[$inkomsten-$uitgaven]
+financieringssaldo=$[$begrotingssaldo+$aflossing]
+staatsschuld2=$[$staatsschuld - $financieringssaldo]
+
+ss=In land $land bedroeg de staatsschuld in $jaar2 &euro; $staatsschuld miljard.<br />Voor $jaar1 zijn de onderstaande gegevens bekend.<br />Vul de ontbrekende getallen in de tabel in en beantwoord de vraag.
+
+lijst=Overheidsuitgaven,Overheidsinkomsten,Aflossing van de staatsschuld,Begrotingssaldo,Financieringssaldo
+antwoorden=$uitgaven,$inkomsten,$aflossing,$begrotingssaldo,$financieringssaldo
+#keuze=!randitem 1:4,2:4,4:5,2:3,2:5,3:5,1:5,3:5
+keuze=!randitem 1:4,2:4,4:5,2:3,2:5,1:5
+keuze=!replace internal : by , in $keuze
+description=$empty
+in1=!item 1 of $keuze
+in2=!item 2 of $keuze
+tabel=<tr><th>$land $jaar2</th><th>mijarden &euro;'s</th></tr>
+anstabel=<tr><th>$land $jaar2</th><th>&times;10<sup>9</sup>&nbsp; &euro;</th></tr>
+cnt=0
+!for p=1 to 5
+    a=!item $p of $lijst
+    getal=!item $p of $antwoorden
+    !if $in1=$p
+	inp=<input type="text" id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+	!increase cnt
+	answer$n=!append item $getal to $(answer$n)
+	description=!append item $a to $description
+	k=red
+    !else
+	!if $in2=$p
+	    inp=<input type="text" id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+	    !increase cnt
+	    answer$n=!append item $getal to $(answer$n)
+	    description=!append item $a to $description
+	    k=red
+	!else
+	    inp=$getal
+	    k=black
+	!endif
+    !endif
+    tabel=!append word $ <tr><td>$a</td><td>$inp</td></tr> $ to $tabel
+    anstabel=!append word $ <tr><td><span style="color:$k">$a</span></td><td><span style="color:$k">$getal</span></td></tr> $ to $anstabel
+!next p
+
+answer$n=!append item $staatsschuld2 to $(answer$n)
+description=!append item Staatsschuld in $jaar1 to $description
+exotext=<table class="grid_table">$tabel</table><br />De staatsschuld in $jaar1 bedroeg : &euro; <input type="text" id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/> miljard.
+
+textanswer$n=<table class="grid_table">$anstabel</table><br />De staatsschuld in $jaar1 bedroeg : &euro; $staatsschuld2 miljard.<br />De verbanden hierbij zijn:<ul><li><kbd>Begrotingssaldo = Overheidsinkomsten &minus; Overheidsuitgaven</kbd></li><li><kbd>Financieringssaldo = Begrotingssaldo + Aflossing van de staatsschuld</kbd></li><li><kbd>De toename van de staatschuld = financieringstekort</li></ul>
+
+helptext=Alle bedragen zijn in miljarden euro&rsquo;s<br /><b>Geef je antwoorden ook in miljarden eur&rsquo;s</b>
+
+rounding=1
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><br />
+
+

@@ -1,0 +1,139 @@
+!set title=Équation perpendiculaire 2B
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r,r
+varcnt=18
+prevarcnt=14
+postvarcnt=3
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items d,p,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=Soit \(($val6)\) la droite d'équation&nbsp;
+val8=Réponse&nbsp;
+val9=Écrire une équation de la droite perpendiculaire à la droite \(($val6))	  et passant par le point de coordonnées
+val10=Oui,Non
+val11=L'équation est correcte
+val12=Vous devez écrire votre équation sous la forme
+val13=Une équation est
+tmp0=!values v,-v for v=1 to 10
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!texmath $(val14[1])*x + $(val14[2])*y
+
+tmp1=!texmath $(val14[2])*y + $(val14[1])*x 
+
+tmp=!nonempty items $(tmp0)=$(val14[3]),$(tmp1)=$(val14[3])
+
+tmp2=!randitem $tmp
+val15=$(tmp2) 
+val16=$[rint($(val14[4]))]
+val17=$[rint(0)]
+val18=$[rint($(val14[4]))]
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 19
+replytype2=auto
+
+replyname2=
+replygood2=?analyze 20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<div class="wimscenter"> 
+!insmath $val15
+$().</div>	$val9 ($val17,$val18).	<p><b>$val8:</b></p>	  <label for="reply1">$val13</label> :  
+!read oef/embed.phtml r1,7 
+$()	  <label for="reply2">=</label>  
+!read oef/embed.phtml r2,4 
+$().	<div class="wims_instruction">	  $val12 
+!insmath a x+b y=c
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!rawmath $val19
+
+val21=$(tmp0)
+tmp0=!rawmath $val20
+
+val22=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val21)/(-1*($(val14[2]))*x + $(val14[1])*y)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$[$(tmp0)]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval NaN notin $val23$val22 and $val23*$(val14[1])*$(val14[4])=$val22
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val11
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,13,14,15,17,18,19,20
+embedcnt=2

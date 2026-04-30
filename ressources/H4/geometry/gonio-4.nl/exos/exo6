@@ -1,0 +1,153 @@
+# exo6 plaatsbepaing steps
+
+n=$counter
+!if $counter=1
+ !if $rounding<100
+  rounding=1000
+  !readproc $remarkdir/rounding.$taal
+ !endif
+ total_exos=2
+ applet=1
+ checkfile=$checkdir/new_number.proc
+ embed=1
+ inputs=-1
+ mathview=0
+ make_tr=0
+ math=0
+ 
+ x1=!randint 0,3
+ y1=!randint 0,3
+ dx=!randint 4,7
+ dy=!randint 1,3
+ x2=$[$x1+$dx]
+ y2=$[$y1+$dy]
+ # hoek in graden
+ a=!randint 30,60
+ b=!randint 30,59
+ c=$[180 - $a - $b]
+ ab=$[sqrt($dx*$dx+$dy*$dy)]
+ ac=$[$ab*(sin($b*pi/180)/(sin($c*pi/180)))]
+ bc=$[$ab*(sin($a*pi/180)/(sin($c*pi/180)))]
+ 
+ rab=$[0.001*round(1000*$ab)]
+ rbc=$[0.001*round(1000*$bc)]
+ rac=$[0.001*round(1000*$ac)]
+ d=$[atan(($dy)/($dx))]
+ gd=$[$d*180/pi]
+ x3=$[$x1+$ac*cos($a*pi/180+$d)]
+ y3=$[$y1+$ac*sin($a*pi/180+$d)]
+ x_max=$[max($x1,$x2)]
+ x_max=$[max($x_max,$x3)]
+ y_max=$[max($y1,$y2)]
+ y_max=$[max($y_max,$y3)]
+ max=$[ceil(max($x_max,$y_max))]
+ # gebruik gelijke xrange==yrange ivm plaatje
+ xsize=400
+ ysize=400
+ k=!randitem green,blue,orange,red
+ 
+ linktxt=!record 63 of $remarkdir/commonremarks.$taal
+ 
+ plaatje=size $xsize,$ysize\
+ xrange -1,$[$max+1]\
+ yrange -1,$[$max+1]\
+ opacity 180,30\
+ axis\
+ axisnumbering\
+ precision 1\
+ grid 2,2,grey,1,1,5,grey\
+ linewidth 1\
+ fillcolor orange\
+ ftriangle $x1,$y1,$x2,$y2,$x3,$y3,$k\
+ opacity 200,130\
+ filled\
+ angle $x1,$y1,$[0.2*($y3-$y1)],$gd,$[$a+$gd],red\
+ filled\
+ angle $x2,$y2,$[0.2*($y3-$y1)],$[$gd+$a+$c],$[$gd+$a+$b+$c],red\
+ fontfamily 24px Ariel\
+ linewidth 2\
+ points green,$x1,$y1,$x2,$y2,$x3,$y3\
+ string black,$[$x1-0.3],$[$y1+0.3],A\
+ string black,$[$x2+0.15],$[$y2+0.3],B\
+ string black,$[$x3+0.3],$[$y3+0.3],C\
+ fontfamily 14px Ariel\
+ string black,$[$x1+0.3],$[$y1+0.3],$a\u00B0\
+ string black,$[$x2-0.8],$[$y2-0.1],$b\u00B0\
+ mouse red,22
+ 
+ object1=!exec canvasdraw $plaatje
+ object2=!exec canvasdraw $plaatje
+ 
+ answer1=$ab\
+ $ac\
+ $bc
+ answer2=$x3,$y3
+ formula1=\left\{ \begin{array}{lll} A & & \left( $x1 : $y1 \right) \\ B &  & \left( $x2 : $y2 \right) \\ \angle A & = & $a ^{o} \\ \angle B & = & $b ^{o} \\ d(AB) & \approx  & \input{10}{0}{background-color:lightgreen;color:red;text-align:center}{?}{0} \\ d(AC) & \approx & \input{10}{1}{background-color:lightgreen;color:red;text-align:center}{?}{0} \\ d(BC) & \approx & \input{10}{2}{background-color:lightgreen;color:red;text-align:center}{?}{0}  \end{array} \right. 
+ formula2=\left\{ \begin{array}{ll} A \left( $x1 : $y1 \right) &  B  \left( $x2 : $y2 \right) \\ \angle A  =  $a ^{o} & \angle B  =  $b ^{o} \\ d(AB) \approx &  $ab \\ d(AC) \approx  & $ac \\ d(BC) \approx & $bc \\ C & \input{14}{0}{background-color:lightgreen;color:red;text-align:center}{( : )}{0} \end{array} \right. 
+
+
+ ss0=!record 16 of lang/remarks.$taal
+ #@Gegeven is de &Delta;ABC <br />met de punten A($x1:$y1) en B($x2:$y2).<br />Verder is gegeven dat &angle;A = $a&deg; en &angle;B = $b&deg;
+ ss1=!record 17 of lang/remarks.$taal
+ ss2=!record 18 of lang/remarks.$taal
+ 
+ question1=$ss0<br />$ss1
+ question2=$ss0<br />$ss2
+ 
+ object3=!exec canvasdraw\
+ size $xsize,$ysize\
+ xrange -1,$[$max+1]\
+ yrange -1,$[$max+1]\
+ opacity 100,30\
+ axis\
+ axisnumbering\
+ precision 1\
+ grid 1,1,grey,2,2,5,grey\
+ opacity 200,30\
+ linewidth 1\
+ fillcolor orange\
+ ftriangle $x1,$y1,$x2,$y2,$x3,$y3,$k\
+ opacity 200,130\
+ filled\
+ angle $x1,$y1,$[0.2*($y3-$y1)],$gd,$[$a+$gd],red\
+ filled\
+ angle $x2,$y2,$[0.2*($y3-$y1)],$[$gd+$a+$c],$[$gd+$a+$b+$c],red\
+ fontfamily 24px Ariel\
+ linewidth 2\
+ points green,$x1,$y1,$x2,$y2,$x3,$y3,$x2,$y1,$x3,$y1\
+ string black,$[$x1-0.3],$[$y1+0.3],A\
+ string black,$[$x2+0.15],$[$y2+0.3],B\
+ string black,$[$x3+0.3],$[$y3+0.3],C\
+ string black,$x2,$y1,D\
+ string black,$x3,$y1-0.4,E\
+ fontfamily Bold 14px Ariel\
+ string black,$[$x1+0.3],$[$y1+0.3],$a\u00B0\
+ string black,$[$x2-0.8],$[$y2-0.1],$b\u00B0\
+ segments green,$x2,$y1,$x2,$y2,$x1,$y1,$x2,$y1\
+ string blue,$[$x2+0.1],$[0.5*($y2+$y1)],$dy\
+ string blue,$[0.5*($x2+$x1)],$[$y1-0.3],$dx\
+ filled\
+ angle $x1,$y1,$[0.2*($y3-$y1)],0,$gd,blue\
+ string blue,$[$x1+1],$y1,$gd\u00B0\
+ opacity 200,30\
+ ftriangle $x1,$y1,$x2,$y1,$x2,$y2,lightgreen\
+ dhline 0,$y1,green\
+ dline $x3,$y1,$x3,$y3,red\
+ mouse red,22
+ 
+ 
+ texanswer1= \left\{ \begin{array}{l} d(AB) = \sqrt{\left($x2 - $x1\right)^{2} + \left($y2 - $y1\right)^{2}} = \sqrt{$dx^{2}+$dy^{2}} \approx $ab \approx $rab \\ \textrm{gebruik de sinusregel} \\ \frac{d(AC)}{\sin($b^{o})} = \frac{d(AB)}{\sin($c^{o})} \\ d(AC) \approx \sin($b^{o}) \cdot \frac{$ab}{\sin($c^{o})} \approx $ac \approx $rac \\ \textrm{gebruik de sinusregel} \\ \frac{d(BC)}{\sin($a^{o})} =  \frac{d(AB)}{\sin($c^{o})} \\ d(BC) \approx  \sin($a^{o}) \cdot \frac{$ab}{\sin($c^{o})} \approx $bc \approx $rbc \end{array} \right.
+  
+ cad=$[$a+$gd]
+ rx3=$[0.1*(round(10*$x3))]
+ ry3=$[0.1*(round(10*$y3))]
+ texanswer2=\left\{ \begin{array}{l} \tan(\angle BAD ) = \frac{$dy}{$dx} \\ \angle BAD \approx $gd^{o} \\ \angle CAE \approx $a^{o} + $gd^{o} \approx $cad^{o} \\  x_{C} = x_{A} + AE \\ y_{C}  = y_{A} + CE \\ \sin(\angle CAE ) = \frac{CE}{AC} \\ \cos(\angle CAE ) = \frac{AE}{AC} \\ CE = AC \cdot \sin(\angle CAE) \approx $ac \cdot \sin($cad) \\  AE = AC \cdot \cos(\angle CAE) \approx $ac \cdot \cos($cad) \\  x_{C} = $x1 + AE \approx $x3 \approx $rx3 \\  y_{C} = $y1 + CE \approx $y3 \approx $ry3 \\ C \left($rx3 : $ry3 \right) \end{array} \right.
+
+!else
+ rounding=10
+ !readproc $remarkdir/rounding.$taal
+ #checkfile=$checkdir/coord.proc
+ checkfile=exos/precheck1.proc
+!endif
+
+!exit

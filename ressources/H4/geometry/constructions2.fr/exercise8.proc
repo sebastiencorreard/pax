@@ -1,0 +1,130 @@
+!! no need for translation
+#parallelogram (tool "circle" 2)
+
+
+
+
+check=0
+type=!lower $type
+tot=0
+
+!!! Extract values of all user points
+!!! point coded by point@A@x@y
+!!! listed in $type by alphabetical order, so names are OK
+!!! x1=x(A), x2=x(B)  etc...
+
+ptcnt=0
+!for t in $type
+ !if point isin $t
+    !advance ptcnt
+    !advance tot
+    t=!replace internal @ by , in $t
+    x$ptcnt=!item 3 of $t
+    y$ptcnt=!item 4 of $t
+ !endif
+!next
+
+!!! check number of required points
+
+nb=!itemcnt $ptnames
+
+!if $tot < $nb
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+
+!if $tot > $nb
+REMARK=!record 3 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+!!! VRoyer: distance criteria AD=BC and AB=BC is not enough because 
+!!! it allows crossed parallelogram -> check vectors equality
+
+!! Vector AB
+xAB=$[$x2-$x1]
+yAB=$[$y2-$y1]
+!! !! Vector DC
+xDC=$[$x3-$x4]
+yDC=$[$y3-$y4]
+
+dist1=$[abs($xDC-$xAB)]
+dist2=$[abs($yDC-$yAB)]
+
+!!! check number of circles
+circ=0
+!for t in $type
+  !if circle isin $t
+     !advance circ
+  !endif
+!next t
+
+
+!!! check number of lines
+line=0
+!for t in $type
+  !if line isin $t
+     !advance line
+  !endif
+!next t
+
+!ifval ($dist1<$precision and $dist2<$precision) 
+    !increase check 
+!endif
+
+!!! precision very difficult to attain without tool intersection
+!ifval ($dist1<0.01 and $dist2<0.01) 
+    #the precision is very good : the student must used circles and his construction is what I want to have.
+    !increase check 
+!endif
+
+
+!if $check >= 2
+    #All is right !
+    score=$[$score + 1]
+    REMARK=!record 23 of remarks.$taal
+    HINT=$OK
+##il serait interessant de tester le nombre de cercles et de droites pour indiquer le cas échéant qu'il existe une construction "plus économe" qui utilise moins de lignes
+!else
+    !if $check = 1
+	score=$[$score+0.3]
+	REMARK=!record 24 of remarks.$taal
+	!if $circ < 2 or $line < 2
+	    #the student didn't build any circle
+	    HINT=!record 50 of remarks.$taal
+            HINT= $HINT $BOK
+            goback=1
+	!else
+	    #there are circles, but maybe points which are not "on the circles" or a bad using of the numbers indicated in the figure
+###faire un test pour voir si les cercles sont les bons ! (si oui record 49 et score 6)
+###sinon : un autre record et score 0.3
+    	    HINT1=!record 21 of remarks.$taal
+            HINT2=!record 22 of remarks.$taal
+    	    HINT3=!record 48 of remarks.$taal
+	HINT=$HINT1<br>$HINT2<br>$HINT3 $BOK
+        !endif
+    !else
+	REMARK=!record 25 of remarks.$taal
+	!if $circ < 2 or $line < 2
+	    #the student didn't build any circle
+	    HINT=!record 50 of remarks.$taal
+            HINT= $HINT $NOK
+            goback=1
+	!else
+	    #there are circles, but maybe aren't the points right-named
+    	    HINT1=!record 21 of remarks.$taal
+            HINT2=!record 22 of remarks.$taal
+    	    HINT3=!record 48 of remarks.$taal
+	HINT=$HINT1<br>$HINT2<br>$HINT3 $NOK
+        !endif
+    !endif
+!endif	
+
+!if $debug=1
+    debug_data=!append line <li>circlecount circ=$circ</li><li>the HINT=$HINT</li><li>dist1=$dist1 dist2=$dist2</li> to $debug_data
+!endif

@@ -1,0 +1,107 @@
+# regel 1 tekst
+# regel 2 afkoringen voor in't venndiagram
+# regel 3 nakijk voorwaarden
+# regel 4 plaatje
+# regel 5 vereiste aantal cirkels
+n=$counter
+!if $counter=1
+ # geen lijst met coordinaten in 'zal ik dit opsturen?'
+ wordmin=noshow
+ s=!recordcnt lang/verzameling
+ !if $total_exos > $s
+  total_exos=$s
+ !endif
+ tot=$empty
+ !for p=1 to $s
+  tot=!append item $p to $tot
+ !next p
+ var9=!shuffle $tot
+!endif
+k=!item $counter of $var9
+
+zinnen=!record $k of lang/verzameling
+text=!line 1 of $zinnen
+dingen=!line 2 of $zinnen
+answer$n=!line 3 of $zinnen
+# aantal te tekenen cirkels
+var3=!line 4 of $zinnen
+my_circles=!line 5 of $zinnen
+
+# formaat Letter,x,y,Letter,x,y...
+my_text=!line 6 of $zinnen
+t=!itemcnt $my_text
+my_string=$empty
+!for p=1 to $t step 3
+ A1=!item $p of $my_text
+ X1=!item $[$p+1] of $my_text
+ Y1=!item $[$p+2] of $my_text
+ my_string=!append line string black,$X1,$Y1,$A1 to $my_string
+!next p
+
+t=!itemcnt $dingen
+sometext=<ul>
+!for p=1 to $t
+ T=!item $p of $text
+ A=!item $p of $dingen
+ sometext=!append word $ <li>$T (venndiagram afkorting $A)</li> $ to $sometext
+!next t
+sometext=!append word $ </ul> $ to $sometext
+
+mathview=0
+applet=1
+checkfile=exos/checkfile6.proc
+inputs=-1
+make_tr=1
+kleuren=!shuffle red,green,blue,orange,purple,crimson,cyan,lightgreen
+
+# xrange
+var2=0,10
+var4=!tolower $dingen
+var5=xrange $var2\
+yrange $var2\
+linewidth 8\
+snaptogrid\
+opacity 255,255\
+rect 0,10,10,0,black\
+fontfamily Italic 22px Ariel\
+centerstring blue,9.5,universum (U)\
+linewidth 2\
+inputstyle fontcolor:red;text-align:center;\
+precision 100\
+multilinewidth 1,2\
+multistrokecolors red,green\
+multifill 1,1\
+multifullcolors red,green\
+multifillopacity 255,30\
+multistrokeopacity 255,255\
+multilabel tekst,cirkels,stop met tekenen\
+multidraw text,circles
+
+#mouse red,22
+
+xsize=400
+ysize=400
+object$n=!exec canvasdraw \
+size $xsize,$ysize\
+$var5
+
+ss=Teken het venndiagram van de verzamelingen <tt><b> $text </b></tt> ...<br />\
+$sometext \
+geef ook aan hoe de gebieden heten ... <b>in</b> de gebieden)
+
+question$n=$ss
+
+textanswer$n=!exec canvasdraw \
+size 240,240\
+xrange $var2\
+yrange $var2\
+linewidth 6\
+opacity 255,255\
+rect 0,10,10,0,black\
+fontfamily Italic 22px Ariel\
+centerstring red,9,universum (U)\
+filled \
+opacity 255,50\
+linewidth 2\
+circles blue,$my_circles\
+$my_string

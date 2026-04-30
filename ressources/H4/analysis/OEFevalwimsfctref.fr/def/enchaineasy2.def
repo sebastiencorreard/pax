@@ -1,0 +1,131 @@
+!set title=Enchainement simple de fonctions 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!texmath x^2
+
+val8=!rawmath $(tmp0)
+val9=$val6 x
+tmp0=!texmath x+$val7
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val6*x^2+$val7
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val11=!rawmath $(tmp1)
+t_=!replace internal \( by ( in ($val6*x)^2+$val7
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val12=!rawmath $(tmp1)
+t_=!replace internal \( by ( in ($val6*x+$val7)^2
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val13=!rawmath $(tmp1)
+val14=\(\begin{array}{ccccccc}& $val8&&$val9&&$val10&\\ x & \longmapsto &\cdots &\longmapsto & \cdots & \longmapsto & \cdots\end{array})
+val15=\(\begin{array}{ccccccc}& $val9&&$val8&&$val10&\\ x & \longmapsto &\cdots &\longmapsto & \cdots & \longmapsto & \cdots\end{array})
+val16=\(\begin{array}{ccccccc}& $val9&&$val10&&$val8&\\ x & \longmapsto &\cdots &\longmapsto & \cdots & \longmapsto & \cdots\end{array})
+tmp0=!randint 1, 3
+
+val17=$[rint($(tmp0))]
+val18=\($val11),\($val12),\($val13)
+val19=$val14,$val15,$val16
+val20=$(val19[$val17])
+replytype1=radio
+replyname1=Expression algébrique ?
+replygood1=$val17;$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère l'enchainement de fonctions ci-dessous&nbsp;:	<div class="wimscenter">$val20.</div>	  Cocher l'expression algébrique correspondant à cet enchainement.	<ol>	<li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply1,3 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20
+embedcnt=3

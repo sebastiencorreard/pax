@@ -1,0 +1,75 @@
+#14 vectorvoorstelling
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=1
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+rounding=10
+#checkfile=$checkdir/coord.proc
+checkfile=exos/checkfile3.proc
+helptext=!record 7 of lang/remarks.$taal
+make_tr=1
+!if $R>0
+pvx=!randint 1,5
+pm=!randitem -1,1
+pvx=$[$pvx*$pm]
+pvy=!randint 1,5
+mp=!randitem -1,1
+pvy=$[$pvy*$mp]
+
+rvx=!randint 1,5
+rvy=!randint 1,3
+pp=!randitem -1,1
+rvy=$[$rvy*$pp]
+answer$n=$[$rvy/$rvx]*x + $[$pvy - ($pvx*$rvy)/$rvx]
+
+vv=!mathmlmath $$$$ \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $pvx \\ $pvy \end{pmatrix} + \lambda \begin{pmatrix} $rvx \\ $rvy \end{pmatrix} $$$$
+ss=!record 32 of lang/remarks.$taal
+
+#@Teken in het assenstelsel de lijn met vectorvoorstelling <br />$vv
+
+
+question$n=$ss
+
+x1=$[$pvx + $rvx]
+y1=$[$pvy + $rvy]
+
+rr=!record 36 of lang/remarks.$taal
+#@We berekenen twee punten op de lijn.<br /><ul><li>als &lambda; = 0 , geldt x = $pvx en y = $pvy .Dus punt ($pvx:$pvy) invoeren in de applet</li><li>als &lambda; = 1 , geldt x = $pvx + $rvx = $x1 en y = $pvy + $rvy = $y1  . Dus punt ($x1:$y1) invoeren in de applet</li><li>op OK drukken en opsturen...klaar</li></ul>
+textanswer$n=$rr
+
+var5=size 400,400\
+xrange -10,10\
+yrange -10,10\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 90,110\
+grid 2,2,grey,4,4,6,grey\
+opacity 255,255\
+linewidth 2\
+userinput_xy\
+userdraw line,blue\
+precision 100\
+mouse red,22
+
+object$n=!exec canvasdraw\
+$var5
+
+# dit is voor in het eindantwoord plaatje..zie precheck.proc
+y1=!evalsubst x=-10 in $(answer$n)
+y2=!evalsubst x=10 in $(answer$n)
+var5=!append line line -10,$y1,10,$y2,green to $var5
+
+
+
+!exit

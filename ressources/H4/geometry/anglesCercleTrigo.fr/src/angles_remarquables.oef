@@ -1,0 +1,87 @@
+\title{Placer un angle remarquable sur le cercle}
+\language{fr}
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\integer{num=random(1..16)}
+
+\text{lesalphas =  0, {\pi}/6 , {\pi}/4,{\pi}/3,{\pi}/2, {2\pi}/3,{3\pi}/4, {5\pi}/6, pi, -{5\pi}/6, -{3\pi}/4, -{2\pi}/3, -{\pi}/2 , -{\pi}/3, -{\pi}/4, -{\pi}/6}
+\text{alpha=item(\num,\lesalphas)}
+
+\real{nbpi = 3.14}
+\text{lesangles=0, \nbpi/6 , \nbpi/4,\nbpi/3,\nbpi/2, 2*\nbpi/3,3*\nbpi/4, 5*\nbpi/6, \nbpi, -5*\nbpi/6, -3*\nbpi/4, -2*\nbpi/3, -\nbpi/2 , -\nbpi/3, -\nbpi/4, -\nbpi/6}
+\real{angle = item(\num, \lesangles)}
+
+\real{cos = cos(\angle)}
+\real{sin =sin(\angle)}
+\text{a=\cos,\sin}
+\real{a0=cos(0.2)}
+\real{b0=sin(0.2)}
+
+\text{jscript =
+var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});
+var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});
+var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});
+var c = brd.create('circle', [pO,pI], {strokeWidth:2, strokeColor:'blue'}) ;
+brd.create('line', [ [0,0], [1,1] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+brd.create('line', [ [0,0], [1,-1] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+brd.create('line', [ [0.5,0], [0.5,1] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+brd.create('line', [ [-0.5,0], [-0.5,1] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+brd.create('line', [ [0,0.5], [1,0.5] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+brd.create('line', [ [0,-0.5], [1,-0.5] ] ,{strokeWidth:1 , strokeColor:'black', fixed:true});
+
+
+
+  //// modif oct 2016 (màj jsxgraph ;  Julien Lyotard )
+jxgbox_rep1=brd.create('glider',[jxgbox_var1[0], jxgbox_var1[1],c],{name:'A',color:'red'});
+
+
+
+brd.create('arrow',[pO,jxgbox_rep1], { strokeWidth:2, strokeColor:'red'});
+brd.create('angle', [pI,pO,jxgbox_rep1], {name:'a',  type:'sector', orthoType:'sectordot', orthoSensitivity:2, radius:1});
+brd.create('arrow',[pO,pI], {strokeWidth:2,strokeColor:'red'});
+var aa = brd.create('arc',[pO,pI,jxgbox_rep1], { strokeWidth:3 , strokeColor:'red'});
+brd.create('text',[-1,1,function(){return 'x(A) = '  + jxgbox_rep1.X().toFixed(3);}], {color:'red', fixed:true});
+brd.create('text',[0.5,1,function(){return 'y(A) = '  + jxgbox_rep1.Y().toFixed(3);}], {color:'red', fixed:true});
+brd.update() ;
+}
+
+\for{i =1 to 16}{
+\text{jscript=\jscript
+brd.create('point',[function(){return Math.cos( \lesangles[\i]);}, function(){return Math.sin(\lesangles[\i] );}],{name:'A\i', size: 2,  face: 'o', fixed:true, color:'blue'});
+}
+}
+
+
+
+\statement{
+
+
+<p>Avec la précision permise par le graphique, placer  sur le cercle trigonométrique le point rouge A
+tel que l'angle orienté \(\left( \vec{OI} , \vec{OA} \right) ) mesure \(\alpha) radians. </p>
+
+
+<br>
+\embed{reply1, 400x400
+jxgbox brd
+\jscript
+jxgbox_var1=[\a0,\b0,c];
+}
+
+
+}
+
+
+\answer{ }{\a}{type=jsxgraph}{option=precision=20}
+/// \reply1 est de la forme x,y  (une string)
+/// à transformer en matrice si on veut récupérer les éléments par leur rang
+\matrix{rep=\reply1}
+\matrix{sol=\a}
+\real{dist =  abs(sqrt(\rep[1]^2 + \rep[2]^2) -1) }
+
+
+\feedback{ abs(\rep[1] - \sol[1]) > 0.05 or   abs(\rep[2] - \sol[2]) > 0.05}
+{ Le point A  du cercle trigonométrique qui représente l'angle \(\alpha) radians est le point A\num.  }

@@ -1,0 +1,65 @@
+n=$counter
+cols=25
+mathview=0
+answer$n=1
+rows=1
+inputs=yes
+questiontype=7
+javascript=js/vreemde_eend.nieuw.1.phtml
+checkfile=exos/checkfile2.proc
+math=0
+image=0
+!if $rounding<100
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $level=0
+    # increasing
+    !if $counter=1
+	options=2
+    !else
+	!if $counter=2
+	    options=3
+	!else
+	    options=5
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=2
+    !else
+	!if $level=2
+	    options=3
+	!else
+	    options=5
+	!endif
+    !endif
+!endif
+
+!if $subject=10
+    var5=0
+!else
+    var5=1
+!endif
+make_tr=1
+var3=0
+var4=!randint 3,5
+var4=$[4*$var4]
+var4=8
+ss1=!record 42 of lang/remarks.$taal
+ss2=!record 39 of lang/remarks.$taal
+description=!record 2 of lang/remarks.$taal
+#@ Het gemiddelde,de standaardafwijking ($m_sigma ),de mediaan ( $m_mu ),het eerste kwartiel (Q1),standaardafwijking ($m_sigma )
+meting=!record 10 of lang/remarks.$taal
+#@ meting,seconden
+
+met1=!item 1 of $meting
+met2=!item 2 of $meting
+datatable=$empty
+!for p=1 to $options
+    datatable=!append word $ <tr><td>$(description[$p])</td><td>=</td><td><input id="myinput$[$p-1]" size="10" value="" class="schaersvoorde_input" /></td></tr> $ to $datatable
+!next p
+question$n=<a onmouseover="return escape('$ss2')">$ss1</a>
+exotext=<table class="zebra_table_h2"><tr>$datatable</tr></table>
+helptext=$ss2

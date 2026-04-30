@@ -1,0 +1,125 @@
+checkfile=exos/checkfile8.proc
+mathview=2
+questiontype=0
+embed=1
+cols=20
+rows=1
+!set n=$counter
+image=0
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $variabelen=1
+    letters=a,b,c,d,f,x,y,z,p,g,k,t,r,n,m
+    letters=!shuffle $letters 
+    var1=!item 1 of $letters
+    var2=!item 2 of $letters
+    var3=!item 3 of $letters
+    var4=!item 4 of $letters
+!else
+    var1=x
+    var2=y
+    var3=u
+    var4=v
+!endif
+getallen=!shuffle 2,3,4,5,6,7,8,9,10
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+c=!item 3 of $getallen
+d=!item 4 of $getallen
+e=!item 5 of $getallen
+f=!item 6 of $getallen
+g=!item 7 of $getallen
+h=!item 8 of $getallen
+pm=!randitem +,-
+mp=!randitem +,-
+mm=!randitem +,-
+
+mathviewpanel=$module_title:$var1=:$var2=:$var3=:$var4=    
+stext=<textarea cols=\'20\' rows=\'1\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' >$var2 = 4*$var1 - 23</textarea>
+ss=!record 67 of lang/remarks.$taal
+#@ Schrijf de drie vergelijkingen als &eacute;&eacute;n formule <br /><em>Dus geef <kbd>$var2</kbd> als functie van <kbd>$var1</kbd></em> 
+question$n=<a onmouseover="return escape('$stext')">$ss</a>
+!if $R=1
+    # k=x mm d
+    # z=k pm b
+    # y=z mp  c
+    # texanswer$n= y= ((x mm d) pm b) mp c 
+    g=!exec pari A=(($var1 $mm $d) $pm $b) $mp $c
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g1
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l}$var4=$var1 $mm $d \\ $var3 = $var4 $pm $b \\ $var2 = $var3 $mp $c \end{array}\right.
+    applettext=!nospace {vlist($var4=$var1 $mm $d ,., $var3 = $var4 $pm $b ,., $var2 = $var3 $mp $c )} ->
+ !exit
+!endif
+	
+!if $R=2
+    # k=x mm d
+    # z=ak
+    # y=dz mp  c
+    # texanswer$n= y= d( a*(x mm d)) pm c 
+    g=!exec pari A=$d*($a*($var1 $mm $d)) $mp $c\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l}$var4=$var1 $mm $d \\  $var3 = $a \cdot $var4 \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    applettext=!nospace { vlist( $var4=$var1 $mm $d ,., $var3 = $a * $var4 ,., $var2 = $d * $var3 $mp $c )}->
+ !exit
+!endif
+
+!if $R>2
+    kans=!randint 0,2
+    !if $kans=0
+	# k=x mm e
+        # z=ak pm b
+	# y=dz mp  c
+        # texanswer$n= y= d*(a*(x mm e) pm b ) mp c 
+	g=!exec pari A=$d*($a*($var1 $mm $e) $pm $b) $mp $c\
+        printtex(A)
+	g1=!line 1 of $g
+        g2=!line 2 of $g
+	texanswer$n=$var2 = $g2
+	answer$n=$g1
+	formula$n=\left\{ \begin{array}{l} $var4 = $var1 $mm $e \\ $var3 = $a \cdot $var4 $pm $b \\  $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+	applettext=!nospace { vlist( $var4 = $var1 $mm $e ,., $var3 = $a * $var4 $pm $b ,.,  $var2 = $d * $var3 $mp $c )}->
+     !exit
+    !else
+	!if $kans=1
+	    # k=x mm e	
+	    # z=k/a pm b
+	    # y=dz mp  c
+    	    # texanswer$n= y=d((x mm e)/a $pm b) mp c 
+    	    g=!exec pari A=$d*(($var1 $mm $e)/$a $pm $b) $mp $c\
+    	    printtex(A)
+    	    g1=!line 1 of $g
+    	    g2=!line 2 of $g
+    	    texanswer$n=$var2 = $g2
+    	    answer$n=$g1
+    	    formula$n=\left\{ \begin{array}{l}$var4 = $var1 $mm $e \\  $var3 = \frac{1}{$a} \cdot $var4 $pm $b \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    	    applettext=!nospace { vlist( $var4 = $var1 $mm $e ,., $var3 = 1/($a) * $var4 $pm $b ,., $var2 = $d * $var3 $mp $c )}->
+    	    !exit
+	!else
+	    # k=x mm f
+	    # z=e*k/a pm b
+	    # y=dz mp  c
+	    # texanswer$n= y= d(e*(x mm f)/a pm b) mp c
+	    g=!exec pari A=$d*($e*($var1 $mm $f)/$a $pm $b) $mp $c\
+	    printtex(A)
+	    g1=!line 1 of $g
+	    g2=!line 2 of $g
+	    texanswer$n=$var2 = $g2
+	    answer$n=$g1
+	    formula$n=\left\{ \begin{array}{l}$var4= $var1 $mm $f \\  $var3 = \frac{$e}{$a} \cdot $var4 $pm $b  \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+	    applettext=!nospace {vlist( $var4= $var1 $mm $f ,., $var3 = $e/($a) * $var4 $pm $b  ,., $var2 = $d * $var3 $mp $c )}->
+	    !exit
+	!endif
+    !endif
+!endif

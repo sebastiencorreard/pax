@@ -1,0 +1,317 @@
+# checkt x1=sqrt(123) and x2=sqrt[5](1/3) and x3=4^(1/5) and x4=2*sqrt[7](4)/5
+# checkt x1=1/2+sqrt(123)/2 and x2=3-5sqrt[5](1/3)-4 
+# sin,cos,tan...
+# niet voor complex?
+# powersyntax 3e+3 => 3*10^3 
+# 3*10**3 => 3*10^3
+# error bij "x=sqrt(4)+sqrt(5](5)"  dus bij meerdere wortels/sqrt
+# checkt op doublures x1=sqrt(2) x2=(2)^(1/2)
+# mag afronden via $rounding
+# arglist=x ofiets anders als goede antwoord is x=123 checkt dus op "x="
+# goede antwoord is komma lijst met goede oplossingen answer$n
+# exact met maxima
+# afgerond met pari
+###############################
+# levert een modulescore !!!! #
+##############################
+
+n=$counter
+errortext=$empty
+!if $AAA=$empty
+    !if ? isin $(reply$n)
+	remark$n=$NOK
+	goback=0
+	maxscore=0.1
+	modulescore=$[$modulescore + 0.1]
+	!exit
+    !endif
+    AAA=!lower $(reply$n)
+!endif
+
+!if $arglist != $empty
+    !for p in $arglist
+	AAA=!replace $p[_0-9]*= by @ in $AAA
+    !next p
+    !if @ notin $AAA
+	testvar=<b>$arglist= ?</b>
+	errortext=!record 53 of $remarkdir/commonremarks.$taal
+	#@Je moet het antwoord wel netjes opschrijven...<br>Wat dacht je van <b>x=</b> je antwoord ?
+	maxscore=$[$P1*$maxscore]
+	goback=1
+	!increase try
+	!exit
+    !endif
+    AAA=!replace internal @ by , in $AAA
+!else
+    !if $AAA=$empty
+	errortext=!record 37 of $remarkdir/commonremarks.$taal
+	goback=1
+	maxscore=$[$P4*$maxscore]
+	!increase try
+	!exit
+    !endif
+!endif
+
+AAA=!words2items $AAA
+AAA=!nospace $AAA
+
+!for p=1 to 5
+    AAA=!replace internal ,, by , in $AAA
+!next p
+
+t=!char 1 of $AAA
+!if t=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+
+t=!char -1 of $AAA
+!if t=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+
+!if $AAA=,
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    !increase try
+ !exit
+!endif
+
+### power syntax
+!if x10 isin $AAA
+    ex=!record 68 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !if $teaching=1
+	goback=1
+	!increase try
+	errortext=$ex
+	!exit
+    !else
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+	AAA=!replace internal x10 by *10 in $AAA
+    !endif
+!else
+    test=!replace [0-9]e[0-9] by @ in $AAA
+    !if @ isin $test
+	maxscore=$[$P1*$maxscore]
+	testvar1=!replace internal e by e+ in $AAA
+	testvar1=<font color=green>$testvar1</font>
+	testvar2=<br><font color=red>$AAA</font>
+	errortext=!record 16 of $remarkdir/commonremarks.$taal
+	goback=1
+	!increase try
+	!exit
+    !endif
+    AAA=!replace internal ** by ^ in $AAA
+    AAA=!replace internal e+ by *10^ in $AAA
+    AAA=!replace internal e- by *10^- in $AAA
+    !for p=1 to 3
+	AAA=!replace internal ** by * in $AAA
+    !next p
+    t=!char 1 of $AAA
+    !if $t=*
+	AAA=!char 2 to -1 of $AAA
+    !endif
+!endif
+
+# rest
+!if $varlist = $empty
+    vars=x
+    # hmmm
+!else
+    vars=!words2items $varlist
+!endif
+
+!for p in sin,tan,cos,abs,sqrt,pi,i,e,$vars
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+
+AAA=!replace [a-z\@\#\!\%\&\:\;\"\'\_\#\=] by $empty in $AAA
+AAA=!lower $AAA
+
+# nu zou AAA een getal moeten zijn?
+!if $AAA=$empty
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    !increase try
+ !exit
+!endif
+
+ta=!itemcnt $AAA
+aaa=$empty
+!for p=1 to $ta
+    A=!item $p of $AAA
+    !if $A != $empty
+	!if sqrt isin $A
+	    ### try to convert AAA= x*sqrt[p](y) => aaa= x*(y)^(1/p)
+	    chk=!positionof sqrt[ in $A
+	    chk=!itemcnt $chk
+	    !if $chk>1
+		errortext=!record 74 of $remarkdir/commonremarks.$taal
+		#@Dit programma kan geen antwoorden met meerdere wortels erin nakijken<br>Je kunt $A toch echt wel wat wiskundiger/korter schrijven ?<br>Zo niet dan is dit een "fout in de opdracht" en moet je me maar even mailen...
+	        goback=1
+	        !increase try
+		!exit
+	    !else
+		# special syntax sqrt[]()
+		!if $chk=1
+		    test=!replace internal sqrt[ by @ in $A
+		    !if @ isin $test
+			# ook 
+		        test=!replace internal ] by @ in $test
+			t=!positionof char @ in $test
+			t1=!item 1 of $t
+			t2=!item 2 of $t
+			power=!char $[$t1+1] to $[$t2-1] of $test
+			tt=!nospace  sqrt [ $power ]
+			A=!replace internal $tt by sqrt in $A
+		    !else
+			# this is nonsens here
+			power=2
+			# dus 2 == 1/2 (ofwel gewone wortel)
+		    !endif
+		    test=!replace internal sqrt( by @# in $A
+		    test=!replace internal ( by # in $test
+		    test=!replace internal ) by % in $test
+		    begin=!positionof char @ in $test
+		    tot=!charcnt $test
+		    wait=0
+		    got=0
+		    end=0
+		    !for s=$begin to $tot
+			!if $end=0
+			    ch=!char $s of $test
+			    !if $ch=#
+				!increase wait
+			    !endif
+			    !if $ch=%
+				!increase got
+			    !endif
+			    !if $got !=0
+				!if $wait=$got
+				    end=$s
+				!endif
+			    !endif
+			!endif
+		    !next s
+		    sqrt=!char $[$begin+2] to $[$end-1] of $test
+		    sqrt=!replace internal # by ( in $sqrt
+		    sqrt=!replace internal % by ) in $sqrt
+		    A=!replace internal sqrt($sqrt) by ($sqrt)^(1/$power) in $A
+		!endif
+	    !endif
+	!endif
+	A=!rawmath $A
+	aaa=!append item $A to $aaa
+    !endif
+!next p
+
+
+g=!itemcnt $(answer$n)
+a=!itemcnt $aaa
+
+# corrigeren de score voor vergeten of teveel gevonden antwoorden...
+!if $g != $a
+    !if $a>$g
+	maxscore=$[$maxscore*$g/$a]
+    !else
+	maxscore=$[$maxscore*$a/$g]
+    !endif
+!endif
+
+klaar=0
+!if $rounding<1
+    # exact (0) of nvt (-1)
+    maximastring=$empty
+    !for i=1 to $g
+	G=!item $i of $(answer$n)
+	!for s=1 to $a
+	    A=!item $s of $aaa
+	    maximastring=!append line if rationalize(expand($A)) = rationalize(expand($G)) then 1 else 0; to $maximastring
+	!next s
+    !next i
+    test=!exec maxima $maximastring
+!else
+    paristring=$empty
+    !for i=1 to $g
+	G=!item $i of $(answer$n)
+	G=$[(round($rounding*($G)))/$rounding]
+	!for s=1 to $a
+	    A=!item $s of $aaa
+	    A=$[(round($rounding*($A)))/$rounding]
+	    paristring=!append line if($A==$G,1,0) to $paristring
+	!next s
+    !next i
+    test=!exec pari $paristring
+!endif
+
+#errortext=aaa=$aaa ? sqrt=$sqrt maximasrtin=$maximastring TEST=$test
+#goback=1
+#!exit
+
+!if $wims_exec_error != $empty
+    !increase try
+    goback=1
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 39 of $remarkdir/commonremarks.$taal
+    #@ je antwoord $(reply$n) is in deze vorm niet na te kijken 
+ !exit
+!endif
+
+duplicate=0
+cnt=$[$g*$a]
+tot=0
+
+# test=1 0 0 0 1 0 0 0 1
+# g=3 a=3
+!for i=1 to $cnt step $g
+    t=0
+    !for s=$i to $[$i+$a-1]
+	p=!line $s of $test
+	!ifval $p=1
+	    !increase t
+	!endif
+    !next s
+    !ifval $t=1
+	tot=$[$tot+$t]
+    !else
+	!if $t>1
+	    duplicate=$[$duplicate+1]
+	!endif
+    !endif
+!next i
+!if $duplicate !=0
+    testvar=$[2*$duplicate]
+    ex=!record 51 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra <br>$ex
+    !endif
+!endif
+
+
+maxscore=$[$maxscore*($tot)/($g)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br>$extra
+!endif
+
+!exit

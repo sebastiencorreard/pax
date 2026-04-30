@@ -1,0 +1,134 @@
+!set title=Reconnaître une fonction linéaire 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v for v=2 to 20
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+!if $val8=1 
+tmp=!nonempty items $(val7[1])x,\frac{$(val7[1])}{$(val7[2])}x,\sqrt{2}x,\pi x
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+!else
+tmp=!nonempty items $(val7[1])x+$(val7[2]),$(val7[1])x+\pi,\cos(x),\sqrt{x},\x^2,$(val7[1])x^2
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+!endif
+val10=Soit \($val6\) une fonction dont la formule est donnée par \($val6(x)=$val9). Cette fonction est-elle linéaire
+val11=Oui,Non
+val12=A,B,C,D,E,F,G,H
+tmp0=!item $val8 of $val11
+
+val8=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!positionof item $val8 in $val11
+
+val13=$(tmp0)
+val14=<ul>
+tmp0=!itemcnt $val11
+
+val15=$[rint($(tmp0))]
+!for val16 =1 to $val15 
+val14=$val14<li><b>$(val12[$val16])</b> : $(val11[$val16])</li>
+!next
+val14=$val14</ul>
+tmp0=!item $val13 of $val12
+
+val17=$(tmp0)
+tmp0=!item 1 to $val15 of $val12
+
+val18=$(tmp0)
+replytype1=menu
+replyname1=réponse
+replygood1=$val13;$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10 ? <br>	$val14	<p><b>Votre réponse :</b></p>	  <label for="reply1">Ma réponse est</label> :  
+!read oef/embed.phtml r1 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,14
+embedcnt=1

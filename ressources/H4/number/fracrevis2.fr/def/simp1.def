@@ -1,0 +1,107 @@
+!set title=Simplification d'une fraction 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+computeanswer=no
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,3,4,5,6,7,8,9,3/2,4/3,5/4,5/3,5/2,6/5,7/6,7/5,7/4,7/3,7/2,8/7,8/5,8/3
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp=!nonempty items $val6,1/($val6)
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val6=!exec pari print($t_)
+t_=!replace internal \( by ( in numerator($val6)
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in denominator($val6)
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+tmp=!nonempty items 5,6,7,8,9,11,12,14,15
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+val10=$[rint($val9*$val7)]
+val11=$[rint($val9*$val8)]
+replytype1=nocase
+replyname1=
+replygood1=$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fraction 
+!insmath \displaystyle A= \frac{$val10}{$val11}.
+$()<br class="spacer">	Simplifier cette fraction en la mettant sous la forme d'un entier ou d'une fraction irréductible.<br class="spacer">	
+!insmath A=
+$() 
+!read oef/embed.phtml reply1,8 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11
+embedcnt=1

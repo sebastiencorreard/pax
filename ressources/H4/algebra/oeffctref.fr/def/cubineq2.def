@@ -1,0 +1,142 @@
+!set title=Fct Cube inéquation 2: a x^3+b>c
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6^3)]
+val8=$[rint(-$val6)]
+tmp0=!randint 2, 5
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 15
+
+tmp1=!randitem -1,1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=$[rint($val7*$val9+$val10)]
+tmp0=!randint 1, 4
+
+val12=$[rint($(tmp0))]
+val13=&lt;,&le;,&ge;,&gt;
+
+!ifval ($val9>0)
+val14= $val13
+!else
+val14=&gt;,&ge;,&le;,&lt
+!endif
+val15=&#123;,&#125;,$val7,$val8,&#93;,&#91;,U,&empty;,0,+&infin;,-&infin;
+tmp=!trim &#93;,-&infin;,&#59;,$val6,&#91;	&#93;,-&infin;,&#59;,$val6,&#93;	&#91;,$val6,&#59;,+&infin;,&#91;	&#93;,$val6,&#59;,+&infin;,&#91;	
+val16=!translate internal $	\
+$ to ;; in $tmp
+!if $val12<3 
+val17=-6,0,$val6,0
+!else
+val17=$val6,0,6,0
+!endif
+t_=!replace internal \( by ( in $val9*x^3+$val10
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+replytype1=dragfill
+replyname1=Solutions
+replygood1=$(val16[$val12;]);$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Résoudre dans 
+!insmath \,\RR
+$() l'inéquation :	<div class="wimscenter wims_emph">	$val9 x<sup>3</sup>
+!if $val10>0 
+$()+ 
+!endif
+$()$val10 
+!insmath 
+$()$(val14[$val12]) 
+!insmath 
+$() $val11</div>	S= 
+!read oef/embed.phtml r1,45x30 
+$()	<div class="wims_instruction">	Faire glisser les élements afin de former l'ensemble des solutions.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>L'équation 
+!insmath $val18=$val11
+$() est équivalente à 
+!insmath x^3=$val7
+$().</p>	 <p>La solution est 
+!insmath $val6
+$().	 <br>D'après les variations de la fonction cube (elle est <b>strictement croissante</b> sur 
+!insmath \RR\ 
+$()),	 on obtient (en orange) l'ensemble des solutions.</p>	<center>	 
+!read oef/draw.phtml 300,300 \
+	xrange -6,6	yrange -abs($val7)-5,abs($val7)+5	linewidth 2	segment -6,0,6,0, black	segment 0,-abs($val7)-5,0,abs($val7)+5, black	text black,-0.5,0,medium,O	segment -6,$val7,6,$val7,green	segment $val6,0,$val6,$val7,green	segment $(val17[1]),$(val17[2]),$(val17[3]),$(val17[4]),orange	text green,0.3,$val7,medium,$val7	text orange,$val6,1,medium,$val6	plot blue,x^3 
+$()<br>	En bleu, la courbe de la fonction cube.</center>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,14,17,18
+embedcnt=1

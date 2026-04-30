@@ -1,0 +1,91 @@
+#2 Loodrechte lijnen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=0
+!readproc $remarkdir/rounding.$taal
+embed=1
+math=0
+n=$counter
+mathview=5
+mathviewpanel=$module_title:m(x)=:y=:y=:+:-:/:*
+math=0
+force_mathml=yes
+calculator=2
+checkfile=$checkdir/equation.proc
+varlist=x
+arglist=m:y,y,m(x)
+varcnt=1
+helptext=$empty
+make_tr=1
+
+x1=!randint -9,9
+y1=!randint -9,9
+a1=!randint 2,6
+pm=!randitem 1,-1
+mp=!randitem 1,-1
+a1=$[$pm*$a1]
+b1=!randint 1,6
+b1=$[$mp*$b1]
+y=$[$a1*$x1+$b1]
+!if $y = $y1
+ p=!randint 1,5
+ y1=$[$y1+$p]
+!endif
+
+tot=!exec pari A=(-1)/($a1)\
+printtex(A)\
+B=$y1-(A)*($x1)\
+printtex(B)
+
+a2=!line 1 of $tot
+a2_tex=!line 2 of $tot
+b2=!line 3 of $tot
+b2_tex=!line 4 of $tot
+
+answer$n=!rawmath $a2*x + $b2
+!if $rounding !=0
+ r_ans= \approx $[round($rounding*($(answer$n)))/$rounding]
+!else
+ r_ans=$empty
+!endif
+b_tex=!rawmath x+$b1
+!if $R=1
+ formula$n=\left\{ \begin{array}{l} l:\,y = $a1  $b_tex \\ P($x1 : $y1)\\  m: \, y = ax + b \end{array} \right.
+!else
+ d=!randint 2,4
+ f=$[$a1*$d]
+ g=$[-1*$b1*$d]
+ formula$n=\left\{ \begin{array}{l} l:\,$f x - $d y = $g  \\ \\  m: \, y = ax + b  \end{array} \right.
+ 
+
+!endif
+
+ss=!record 47 of lang/remarks.$taal
+
+#@Bepaal de vergelijking van de lijn <em>m</em> loodrecht op <em>l</em> door punt P($x1:$y1)
+sometext=!record 2 of lang/remarks.$taal
+
+#@De vergelijking van de lijn l ,
+#De helling van een lijn m loodrecht op l is  ,
+#De vergelijking van de lijn m ,
+#Bereken b door P in te vullen in m ,
+#Bereken het snijpunt S tussen de lijnen m en l ,
+#De y-waarde van het snijpunt S ,
+#Het snijpunt S heeft coordinaten ,
+#De afstand tussen punten P en S is 
+
+question$n=$ss
+
+!if $b2>0
+    c_tex=x+$b2_tex
+!else
+    c_tex=x $b2_tex
+!endif
+#\cdot x + $b2_tex
+texanswer$n=\left[ \begin{array}{l} \textrm{$(sometext[1]) : } y = $a1  $b_tex \\ \textrm{$(sometext[2]) : }  $a2_tex \\ \textrm{$(sometext[3])  : } y = $a2_tex \cdot x + b \\ \textrm{$(sometext[4])  : } $y1 = $a2_tex \cdot $x1 + b \Longrightarrow b = $y1 - $a2_tex \cdot $x1 = $b2_tex \\ \textrm{$(sometext[3])  : } \, y = $a2_tex $c_tex  \end{array} \right.
+
+
+!exit 

@@ -1,0 +1,111 @@
+# Belasting IV (box1)
+n=$counter
+mathview=0
+checkfile=exos/precheck1.proc
+inputs=-1
+cols=10
+#volgorde belangrijk
+var1=yes
+rounding=1
+tarief11=!randint 500,680
+tarief11=$[$tarief11/20]
+tarief12=!randint 200,300
+tarief12=$[$tarief12/20]
+tarief3=42
+tarief4=52
+
+tar1=!randint 50,75
+tar1=$[$tar1/20]
+tar2=!randint 80,125
+tar2=$[$tar2/20]
+tar2=$[$tar2+$tar1]
+    
+premie11=$[$tarief11 - $tar1]
+premie12=$[$tarief12 - $tar1]
+tarief21=$[$tar2 + $premie11]
+tarief22=$[$premie12 + $tar2]
+    
+    
+leeftijd=!randint 28,75
+!if $leeftijd>64
+    premie=$premie12
+!else
+    premie=$premie11
+!endif
+    
+
+schijf1=!randint 13000,16000
+d1=!randint 10000,15000
+schijf2=$[$schijf1 + $d1]
+d1=!randint 15000,23000
+schijf3=$[$schijf2 + $d1]
+d2=!randint 8000,12000 
+belastbaarinkomen=$[100*round(($schijf3+$d2)/100)]    
+d3=!randint 5000,8000
+brutoinkomen=$[100*round(($belastbaarinkomen+$d3)/100)]
+heffingskorting=!randint 300,400
+heffingskorting=$[$heffingskorting*5]
+
+sex=!randint 0,1
+!if $sex=1
+    Heer=De heer
+    heer=de heer
+    hij=hij
+    zijn=zijn
+    Zijn=Zijn
+!else
+    Heer=Mevrouw
+    heer=mevrouw
+    hij=zij
+    zijn=haar
+    Zijn=Haar
+!endif
+  
+ant1=$[floor($premie*$schijf1/100)]  
+ant2=$[floor($tar1*$schijf1/100)]  
+ant3=$[$schijf2-$schijf1]  
+ant4=$[floor($premie*$ant3/100)]  
+ant5=$[floor($tar2*$ant3/100)]  
+ant6=$[$schijf3-$schijf2]
+ant7=$[floor($tarief3*$ant6/100)]
+ant8=$schijf3
+ant9=$[$belastbaarinkomen-$schijf3]
+ant10=$[floor($tarief4*$ant9/100)]
+ant11=$[$ant1+$ant4]
+ant12=$[$ant2+$ant5+$ant7+$ant10]
+ant13=$ant11
+ant14=$[$ant12+$ant13]
+ant15=$heffingskorting
+ant16=$[$ant14-$ant15]
+achternamen=!record 63 of lang/remarks.$taal
+achternaam=!randitem $achternamen
+tabel1=<table><tr><th wrap=\'nowrap\'>Belastbaar inkomen uit werk en eigen woning</th></tr><tr><th><table class=\'grid_table\'><tr><th>Schijf</th><th>vanaf</th><th>t/m</th></tr><tr><td>1</td><td>&minus;</td><td>&euro;&nbsp;$schijf1</td></tr><tr><td>2</td><td>&euro;&nbsp;$schijf1</td><td>&euro;&nbsp;$schijf2</td></tr><tr><td>3</td><td>&euro;&nbsp;$schijf2</td><td>&euro;&nbsp;$schijf3</td></tr><tr><td>4</td><td>&euro;&nbsp;$schijf3</td><td>&minus;</td></tr></table></th></tr></table>
+tabel2=<table><tr><th wrap=\'nowrap\'>Inkomstenbelasting en premie volksverzekeringen</th></tr><tr><th><table class=\'grid_table\'><tr><th>Schijf</th><th>tot 65 jaar</th><th>65 jaar en ouder</th></tr><tr><td>1</td><td>$tar1 % belasting <hr />$premie11 % premies (totaal $tarief11 %)</td><td>$tar1 % belasting <hr /> $premie12 % premies (totaal $tarief12 %)</td></tr><tr><td>2</td><td>$tar2 % belasting <hr /> $premie11 % premies (totaal $tarief21 %)</td><td>$tar2 % belasting <hr /> $premie12 % premies (totaal $tarief22 %)</td></tr><tr><td>3</td><td>$tarief3 %</td><td>$tarief3 %</td></tr><tr><td>4</td><td>$tarief4 %</td><td>$tarief4 %</td></tr></table></th></tr></table>
+helptext=<table style=\'background-color:#ffffff\'><tr><th style=\'vertical-align:top\'>$tabel1</th><th style=\'vertical-align:top\'>$tabel2</th></tr></table>
+    
+ss=$Heer $achternaam ($leeftijd jaar) heeft in een bepaald jaar een bruto-inkomen van &euro; $brutoinkomen .<br />$Zijn belastbaar inkomen bedraagt in dat jaar &euro;$belastbaarinkomen.<br />Voor $heer $achternaam geldt een heffingskorting van &euro; $heffingskorting.<br />De tarieven van de loon en inkomstenbelasting van dat betreffende jaar staan in <span style="color:blue">deze tabel</span> vermeld.<br />Vul met deze gegevens de onderstaande tabel in: 
+
+opm=<small><em>Reken in gehele euro's en rond steeds naar beneden af.</em></small>
+answer$n=$ant1,$ant2,$ant3,$ant4,$ant5,$ant6,$ant7,$ant8,$ant9,$ant10,$ant11,$ant12,$ant13,$ant14,$ant15,$ant16
+
+make_tr=1
+questiontype=0
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+#!if $wims_user=supervisor
+#    !for p=0 to 15
+#	inputfield$p=&euro;&nbsp;<input type="text" id="myinput$p" size="7" value="$(ant$[$p+1])" class="schaersvoorde_input"/>
+#	answerfield$p=&euro;&nbsp;<input type="text" id="myinput$p" size="7" value="$(ant$[$p+1])" class="schaersvoorde_input" readonly="readonly"/>
+#    !next p
+#!else
+    !for p=0 to 15
+	inputfield$p=&euro;&nbsp;<input type="text" id="myinput$p" size="7" value="" class="schaersvoorde_input"/>
+	answerfield$p=&euro;&nbsp;<input type="text" id="myinput$p" size="7" value="$(ant$[$p+1])" class="schaersvoorde_input" readonly="readonly"/>
+    !next p
+#!endif
+
+exotext=<table class="zebra_table_h2"><tr><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th>premie</th><th>belasting</th></tr><tr><td>Belastbaarinkomen</td><td>&nbsp;</td><td>&euro;&nbsp;<input type="text" id="noinput" value="$belastbaarinkomen" size="7" class="schaersvoorde_input" readonly="readonly" /></td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>1<sup>e</sup> schijf</td><td>&euro;&nbsp;<input type="text" id="noinput" value="$schijf1" size="7" class="schaersvoorde_input" readonly="readonly" /></td><td>&nbsp;</td><td>$inputfield0</td><td>$inputfield1</td></tr><tr><td>2<sup>e</sup> schijf</td><td>$inputfield2</td><td>&nbsp;</td><td>$inputfield3</td><td>$inputfield4</td></tr><tr><td>3<sup>e</sup> schijf</td><td>$inputfield5</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield6</td></tr><tr><td>totaal opvolgende schijven</td><td>&nbsp;</td><td>$inputfield7</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>4<sup>e</sup> schijf</td><td>&nbsp;</td><td>$inputfield8</td><td>&nbsp;</td><td>$inputfield9</td></tr><tr><td>Totaal</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield10</td><td>$inputfield11</td></tr><tr><td>Plus premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield12</td></tr><tr><td>Totaal belasting &amp; premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield13</td></tr><tr><td>Heffingskorting</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield14</td></tr><tr><td>Te betalen belasting &amp; premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$inputfield15</td></tr></table>$opm
+
+textanswer$n=<table class="zebra_table_h2"><tr><th>&nbsp;</th><th>&nbsp;</th><th>&nbsp;</th><th>premie</th><th>belasting</th></tr><tr><td>Belastbaarinkomen</td><td>&nbsp;</td><td>&euro;$belastbaarinkomen</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>1<sup>e</sup> schijf</td><td>&euro;$schijf1</td><td>&nbsp;</td><td>$answerfield0</td><td>$answerfield1</td></tr><tr><td>2<sup>e</sup> schijf</td><td>$answerfield2</td><td>&nbsp;</td><td>$answerfield3</td><td>$answerfield4</td></tr><tr><td>3<sup>e</sup> schijf</td><td>$answerfield5</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield6</td></tr><tr><td>totaal opvolgende schijven</td><td>&nbsp;</td><td>$answerfield7</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>4<sup>e</sup> schijf</td><td>&nbsp;</td><td>$answerfield8</td><td>&nbsp;</td><td>$answerfield9</td></tr><tr><td>Totaal</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield10</td><td>$answerfield11</td></tr><tr><td>Plus premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield12</td></tr><tr><td>Totaal belasting &amp; premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield13</td></tr><tr><td>Heffingskorting</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield14</td></tr><tr><td>Te betalen belasting &amp; premie</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>$answerfield15</td></tr></table>
+
+wordmax=160

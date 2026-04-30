@@ -1,0 +1,73 @@
+# alleen letters in 't antwoord
+goback=0
+errortext=$empty
+n=$counter
+#errortext=$(reply$n)
+#goback=1
+#!exit
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+AAA=!toupper $(reply$n)
+t2=!itemcnt $(reply$n)
+GGG=!words2items $(answer$n)
+t1=!itemcnt $GGG
+!if $t1 != $t2
+    !if $t1>$t2
+	factor=$[$t2/(5*$t1)]
+    !else
+	factor=$[$t1/(5*$t2)]
+    !endif
+!else
+    factor=1
+!endif
+
+found=$empty
+extra=$empty
+score=0
+!for p=1 to $t2
+    A=!item $p of $(reply$n)
+    k=red
+    checked=0
+    !for s=1 to $t1
+	G=!item $s of $GGG
+	!if $G notin $found
+	    !if $G=$A
+		found=!append item $G to $found
+		score=$[$score+1]
+	        k=green
+	    !endif
+	!endif
+    !next s
+    rep=!append word <li><span style="color:$k">$A</span></li> to $rep
+!next p
+
+reply$n=$rep
+!if $score>0 and $score<$t1
+    nonsense=!listcomplement $GGG in $AAA
+    vergeten=!listcomplement $AAA in $GGG
+    !if $nonsense != $empty 
+	reply$n=!append line $ <br />Overbodige antwoorden: $nonsense ... $ to $(reply$n)
+    !endif
+    !if $vergeten != $empty 
+	reply$n=!append line $ <br />Vergeten antwoorden: $vergeten ... $ to $(reply$n)
+    !endif
+!endif
+maxscore=$[$maxscore*$factor*$score/$t1]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

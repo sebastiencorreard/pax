@@ -1,0 +1,661 @@
+# this file expect the answer to be reply$n and returns a modulescore
+# it just checks a number answer
+# examples
+# sqrt(2) 1123 
+# 234242.234242 2.3e+23 
+# 2*10^2323
+# x1=23432 x2=34353653 x3=345353543535
+# if you expect  "x=" or "z=" or "y=" in the reply$n , declare arglist=x
+# if the answer is 5*x use variable.proc
+# complex numbers... (well, we replace i=10) 
+# declare: complex=1
+# in no real answers/solutions: answer$n=nil
+# set var1=yes if the sequence of answers matters
+goback=0
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    !exit
+!endif
+
+test=!lower $(reply$n)
+# there is no real solution
+nothing=!record 71 of $remarkdir/commonremarks.$taal
+#@ nul,zero,zip,nop,niks,nada,geen,niente
+A=0
+test=!singlespace $test
+!for check in $nothing
+    !if $A=0
+	!if $check iswordof $test
+	    A=1
+	!endif
+    !endif
+!next p
+
+!if $(answer$n)=nil
+    !if $A=1
+	remark$n=$OK
+	maxscore=1
+	!increase modulescore
+    !else
+	remark$n=$NOK
+	maxscore=0
+    !endif
+    goback=0
+    !exit
+!else
+    !if $A=1
+	ex=!record 83 of $remarkdir/commonremarks.$taal
+	#@  Er zijn wel degelijk oplossingen...
+	remark$n=$NOK <br>$ex
+	maxscore=0
+	goback=0
+	!exit
+    !endif
+!endif
+
+errortext=$empty
+!if $wordmax=$empty
+    wordmax=10
+!endif
+AAA=!lower $(reply$n)
+
+# first check for the 'decimal' comma
+
+tot=!singlespace  $AAA
+
+!if $questiontype != 0
+    # questiontyp=0 uses precheck.js as default answer-filter
+    # checking on decimal comma is already done
+    c=!positionof char , in $tot
+    !if $c != $empty
+	ta=!itemcnt $(answer$n)
+	!if $ta>1
+	    check=1
+	!else
+	    check=0
+	!endif
+	nummers=0123456789
+	!for i in $c
+	    c1=!char $[$i-1] of $tot
+	    c2=!char $[$i+1] of $tot
+	    !if $c1 isin $nummers and $c2 isin $nummers
+		!increase check
+		maxscore=$[$maxscore*$P1]
+		!if $check >1
+		    errortext=!record 28 of $remarkdir/commonremarks.$taal
+		    !increase try
+		    goback=1
+		    !exit					
+		!else
+		    # we replace only 1 decimal comma by a point...
+		    tot=!replace internal char number $i by . in $tot
+		    ex=!record 24 of $remarkdir/commonremarks.$taal
+		    !if $extra != $empty
+			extra=$extra<br>$ex
+		    !else
+			extra=$ex
+		    !endif
+		!endif
+	    !endif
+	!next i
+	AAA=$tot
+    !endif
+!endif
+AAA=!replace internal word is by = in $AAA
+AAA=!words2items $AAA
+test=!itemcnt $AAA
+
+!if $test > $wordmax
+    maxscore=$[$maxscore*$P3]
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    !increase try
+    goback=1
+    !exit                                                                                       
+!endif 
+
+AAA=!nospace $AAA
+# pfff
+!for p=1 to 3
+    AAA=!replace internal ,, by , in $AAA
+!next p    
+c1=!char 1 of $AAA
+c2=!char -1 of $AAA
+!if $c1=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+!if $c2=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+
+          
+# check on scientific notation 3e+12 3*10^12
+AAA=!nospace $AAA
+
+AAA=!replace internal ** by ^ in $AAA
+!if $questiontype != 0
+    # questiontyp=0 uses precheck.js as default answer-filter !
+    # checking on scientific notation and letter "o" as number "0" is already done
+    !if x10 isin $AAA
+	ex=!record 68 of $remarkdir/commonremarks.$taal
+	maxscore=$[$P1*$maxscore]
+        !if $teaching=1
+	    goback=1
+	    !increase try
+	    errortext=$ex
+	  !exit
+	!else
+	    AAA=!replace internal x10 by *10 in $AAA
+	    !if $extra=$empty
+		extra=$ex
+	    !else
+		extra=$extra<br>$ex
+	    !endif
+	!endif
+    !endif
+    test=!replace [0-9]e[0-9] by @ in $AAA
+    !if @ isin $test
+	maxscore=$[$P1*$maxscore]
+	testvar1=!replace internal e by e+ in $AAA
+	testvar1=<font color=green>$testvar1</font>
+	testvar2=<br><font color=red>$AAA</font>
+	errortext=!record 16 of $remarkdir/commonremarks.$taal
+	goback=1
+	!increase try
+	!exit
+    !endif
+    AAA=!replace internal e+ by *10^ in $AAA
+    AAA=!replace internal e- by *10^- in $AAA
+    !for p=1 to 3
+	AAA=!replace internal ** by * in $AAA
+    !next p
+    t=!char 1 of $AAA
+    !if $t=*
+	AAA=!char 2 to -1 of $AAA
+    !endif	
+    # check on the letter 'o' as number "0"
+    aaa=!nospace $AAA
+    aaa=!replace internal = by @ in $aaa
+    t=!positionof char o in $aaa
+    !if $t != $empty
+	nummers=0.123456789
+	!for p in $t
+	    check=0
+	    t1=!char $[$p-1] of $aaa
+	    !if $t1=@
+		# dus  x=o
+		check=1
+	    !endif
+    	    t2=!char $[$p+1] of $aaa
+	    !if $t1 isin $nummers and $t2 isin $nummers
+		check=1
+	    !endif    
+	    # dus 123o 123.o
+	    !if $check=1
+		maxscore=$[$P2*$maxscore]
+		!if $teaching=1	
+		    errortext=!record 13 of $remarkdir/commonremarks.$taal
+		    !increase try
+		    goback=1
+		    !exit
+    		!else
+		    ex=!record 48 of $remarkdir/commonremarks.$taal
+		    # we corrigeren o -> 0 ! 
+		    aaa=!replace internal char number $p by 0 in $aaa
+		    extra=!append line <br>$ex to $extra
+		!endif
+	    !endif
+	!next p
+	AAA=$aaa
+    !endif    
+!endif
+# checkfor a stray '+' or '-' sign as operator.
+# do your own calculations !
+# but an answer like 1+3*sqrt(2) should ofcourse be Ok
+# and if $varlist is not empty, we should skip this test anyway
+# (3+4x) is a sound answer
+!if $varlist = $empty
+    !if (+ isin $AAA) or (- isin $AAA)
+	dingen=i,sqrt,cos,tan,abs,log,ln
+	# 'sin' is covered by 'i'
+	!for r in $dingen
+	    !if $r isin $AAA
+		# no need to go on
+		!goto READY1
+	    !endif    
+	!next r
+	nummers=0,1,2,3,4,5,6,7,8,9
+ 	!for s in +,-
+	    t=!positionof char $s in $AAA
+	    !if $t != $empty
+		!for p in $t
+		    t1=!char $[$p-1] of $AAA
+    		    t2=!char $[$p+1] of $AAA
+		    !if ($t1 isitemof $nummers) and ($t2 isitemof $nummers)
+			maxscore=$[$P3*$maxscore]
+			errortext=!record 14 of $remarkdir/commonremarks.$taal
+		    	!increase try
+		    	goback=1
+		    	!exit
+		    !endif
+		!next p
+	    !endif
+	!next s
+    !endif     
+!endif
+
+:READY1
+
+!for p in +,-,*,^,/,|
+    stupid=!nospace , $p , 
+    !if $stupid isin $AAA
+	AAA=!replace internal $stupid by $p in $AAA
+    !endif
+!next p
+!for p in sqrt,sin,cos,tan,abs,log,ln,+,-,*,^,/,(,|
+    stupid=!nospace $p ,
+    !if $stupid isin $AAA
+	AAA=!replace internal $stupid by $p in $AAA
+    !endif
+!next p
+!for p in +,*,),^,/
+    stupid=!nospace , $p 
+    !if $stupid isin $AAA
+	AAA=!replace internal $stupid by $p in $AAA
+    !endif
+!next p
+
+#check for sin etc
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs
+    !if $i isin $AAA
+	# test on balanced |x|
+	test1=!replace internal $i| by # in $AAA
+	!if # isin $test1
+	    # so  ln|x| ===> ln(|x|) 
+	    # rawmath deals elegantly with |x| => abs(x)    
+	    pos=!positionof char | in $AAA
+	    tot=!itemcnt $pos
+	    !if $[gcd($tot,2)] != 2
+		maxscore=$[$P1*$maxscore]
+		# uneven number of  |-bars 
+		errortext=!record 15 of $remarkdir/commonremarks.$taal
+		!increase try
+		goback=1
+		!exit
+	    !endif
+	    !for r=1 to $[$tot-1]
+		p1=!item $r of $pos
+		p2=!item $[$r+1] of $pos
+		AAA=!replace internal char number $p1 by ~ in $AAA
+		AAA=!replace internal char number $p2 by # in $AAA
+	    	AAA=!replace internal ~ by (| in $AAA
+	    	AAA=!replace internal # by |) in $AAA
+	    !next r
+	!endif	
+	test2=!replace internal $i( by # in $AAA
+	!if # notin $test2
+	    testvar1=!nospace $i ( x )
+	    testvar2=!nospace $i x
+	    maxscore=$[$maxscore*$P2]
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    !increase try
+	    goback=1
+	    !exit
+	!endif
+	!if $i=ln
+	    !if LOG isin $AAA
+		errortext=Het lijkt me sterk dat dit sommetjes zowel een <br><b>log()</b><br>als een<br><b>ln()</b><br>in het antwoord moet hebben
+		maxscore=$[$P4*$maxscore]
+		goback=1
+		!increase try
+		!exit
+	    !endif
+	    AAA=!replace internal ln by LOG in $AAA
+	!endif
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+
+AAA=!nospace $AAA
+org=$AAA    
+#check on "=" sign or "is"
+#after that remove  x1= x_1= x_23= or a1= a2= a3=  b9= ... z2= etc etc from tha studentanswer
+test=!replace internal = by @ in $AAA
+!if @ isin $test
+    !if $arglist != $empty
+	!for p in $arglist
+	    AAA=!replace $p[_0-9]* by @ in $AAA
+	!next p
+	!if @ notin $AAA
+	    maxscore=$[$P1*$maxscore]
+	    testvar= <b>&nbsp;$arglist =...&nbsp;</b> 
+	    errortext=!record 53 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !increase try
+	    !exit
+	!else
+	    AAA=!replace internal @ by $empty in $AAA
+	    AAA=!replace internal = by $empty in $AAA
+	    # now: ,,en,,3,,en,ook,4
+	!endif
+    !else
+	AAA=!replace [a-z][_0-9]* by $empty in $AAA
+	AAA=!replace = by $empty in $AAA
+    !endif
+!else
+    !if $arglist != $empty
+	maxscore=$[$P1*$maxscore]
+	testvar= <b>&nbsp;$arglist =...&nbsp;</b>
+	errortext=!record 53 of $remarkdir/commonremarks.$taal
+	goback=1
+	!increase try
+	!exit
+    !endif
+!endif	
+AAA=!nospace $AAA
+    
+# the position of "!rawmath" is critical...	
+# ATTENTION: rawmath ln(|x|) => ln(abs(x))
+# ATTENTION: rawmath ln|x| => ln(abs)*(x)
+AAA=!replace internal pi by PI in $AAA
+# i -> 10
+!if $complex=1
+    # complex numbers gewoon vervangen door een getal
+    !if i isin $AAA
+	AAA=!rawmath $AAA
+	# we consider both "5i" and "i5" ok-> 5*10* ,*10*5
+	AAA=!replace internal i by *10* in $AAA
+	AAA=!replace internal ** by * in $AAA
+	AAA=!replace internal (* by ( in $AAA
+	AAA=!replace internal *) by ) in $AAA
+	AAA=!replace internal /* by / in $AAA
+	AAA=!replace internal */ by / in $AAA
+	AAA=!replace internal -* by - in $AAA
+	AAA=!replace internal *- by - in $AAA
+	AAA=!replace internal +* by + in $AAA
+	AAA=!replace internal *+ by + in $AAA
+    !endif 
+    GGG=!replace internal pi by PI in $(answer$n)
+    GGG=!replace internal sin by SIN in $GGG
+    GGG=!replace internal i by 10 in $GGG
+    GGG=!lower $GGG
+!else
+    GGG=$(answer$n)
+!endif
+
+AAA=!replace internal abs by ABS in $AAA
+AAA=!replace [a-z\~\!\@\#\$\=\%\&\_\;] by $empty in $AAA
+AAA=!tolower $AAA
+AAA=!rawmath $AAA     
+AAA=!nospace $AAA    
+
+!for p=1 to 6
+    AAA=!replace internal ,, by , in $AAA
+!next p
+
+c1=!char 1 of $AAA
+!if $c1=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+c1=!char -1 of $AAA
+!if $c1=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+
+t2=!itemcnt $AAA
+t1=!itemcnt $GGG
+!if $t2=0
+    maxscore=$[$P5*$maxscore]
+    !increase try
+    goback=1
+    errortext=!record 36 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+tot=$empty
+AAA=!nospace $AAA
+!for p=1 to $t2 	
+    A=!item $p of $AAA
+    a=!char -1 of $A
+    !if $a=*
+	A=!char 1 to -2 of $A
+    !endif	
+    a=!char 1 of $A
+    !if $a=*
+	A=!char 2 to -1 of $A
+    !endif	
+    !if NaN isin $[1*($A)] and $complex!=1
+	# test op sqrt(-4)
+	!if (sqrt isin $A) or (log isin $A) or (ln isin $A)
+	    test=!replace internal sqrt( by @ in $A
+	    test=!replace internal log( by @ in $test
+	    test=!replace internal ln( by @ in $test
+	    p1=!positionof char @ in $test
+	    p2=!positionof char ) in $test
+	    h=!itemcnt $p2
+	    k=!itemcnt $p1
+	    chars=$empty
+	    !if $h=1 and $k=1
+		!for s=$[$p1+1] to $[$p2-1]
+		    ch=!char $s of $test
+		    chars=!append word $ch to $chars
+		!next s
+	    !else
+		klaar=0
+		!if $k=1
+		    !for w in $p2
+			kkk=!append line w=$w<br> to $kkk
+			!if $w>$p1 and $klaar=0
+			    !for s=$[$p1+1] to $[$w-1]
+				ch=!char $s of $test
+				chars=!append word $ch to $chars
+			    !next s
+			    klaar=1
+			!endif
+		    !next w
+		!else
+		    # meerdere sqrt's in 1 antwoord... wordt erg onwaarschijnlijk en niet echt interessant
+		    chars=1
+		!endif
+	    !endif
+	    chars=!nospace $chars
+	    testvar=$[1*$chars]
+
+	    !ifval $testvar<0
+		# hehe negatieve wortel
+		errortext=!record 88 of $remarkdir/commonremarks.$taal
+	    !else	
+		errortext=!record 26 of $remarkdir/commonremarks.$taal
+	    !endif
+	!else
+	    errortext=!record 26 of $remarkdir/commonremarks.$taal
+	!endif
+	maxscore=$[$P5*$maxscore]
+	!increase try
+	goback=1
+	!exit
+    !endif
+    tot=!append item $A to $tot
+!next p
+
+
+AAA=$tot
+
+!if $t2 != $t1
+    !if $t2>$t1
+	maxscore=$[$P7*$maxscore*$t1/$t2]
+    !else
+	maxscore=$[$P5*$maxscore*$t2/$t1]
+    !endif    
+    testvar2=$t2
+    testvar1=$t1
+    ex=!record 50 of $remarkdir/commonremarks.$taal
+    extra=!append line <br>$ex to $extra
+!endif
+
+!if $rounding < 1
+    afr1=1000
+    afr2=100
+!else
+    afr1=$rounding
+    afr2=$[($rounding)/10]
+!endif
+
+G0=$empty
+G1=$empty
+G2=$empty
+A0=$empty
+A1=$empty
+A2=$empty
+
+!for p=1 to $t1
+    g=!item $p of $GGG
+    g1=$[(round($afr1*($g)))/$afr1]
+    g2=$[(round($afr2*($g)))/$afr1]
+    G0=!append item 1.0*($g) to $G0
+    G1=!append item 1.0*($g1) to $G1
+    G2=!append item 1.0*($g2) to $G2
+!next p
+
+!for p=1 to $t2
+    a=!item $p of $AAA
+    a1=$[(round($afr1*($a)))/$afr1]
+    a2=$[(round($afr2*($a)))/$afr1]
+    A0=!append item 1.0*($a) to $A0
+    A1=!append item 1.0*($a1) to $A1
+    A2=!append item 1.0*($a2) to $A2
+!next p
+
+!if NaN isin $A0,$A1,$A2
+    maxscore=$[$P3*$maxscore]
+    !increase try
+    goback=1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+!endif
+
+parivraag0=$empty
+parivraag1=$empty
+parivraag2=$empty
+omgedraaid=0
+!if $var1=yes
+    # sequence matters  : item 1 of $GGG == item 1 of $AAA
+    !for p=1 to $t1
+	a0=!item $p of $A0
+	!if $a0 != $empty
+	    a1=!item $p of $A1
+	    a2=!item $p of $A2
+	    g0=!item $p of $G0
+	    g1=!item $p of $G1
+	    g2=!item $p of $G2
+	    !ifval ( $[-1*$a1] = $g1 ) and ( $[-1*$g1] notitemof $G1 )
+		!increase omgedraaid
+	    !endif
+	    parivraag0=!append line if( abs(($g0) - ($a0))<10^-15  ,1,0) to $parivraag0
+	    parivraag1=!append line if( abs(($g1) - ($a1))<1/(10*$afr1) ,1,0) to $parivraag1
+	    parivraag2=!append line if( abs(($g2) - ($a2))<1/(10*$afr2) ,1,0) to $parivraag2
+	!else
+	    parivraag0=!append line if(1==0,1,0) to $parivraag0
+	    parivraag1=!append line if(1==0,1,0) to $parivraag1
+	    parivraag2=!append line if(1==0,1,0) to $parivraag2	
+	!endif
+    !next p
+    mx=$t1
+!else    
+    !for p=1 to $t1
+	g0=!item $p of $G0
+	g1=!item $p of $G1
+	g2=!item $p of $G2
+	!for s=1 to $t2
+	    a0=!item $s of $A0
+	    a1=!item $s of $A1
+	    a2=!item $s of $A2
+	    !ifval ( $[-1*$a1] = $g1 ) and ( $[-1*$g1] notitemof $G1 )
+		!increase omgedraaid
+	    !endif
+    	    parivraag0=!append line if( abs(($g0) - ($a0))<10^-15 ,1,0) to $parivraag0
+	    parivraag1=!append line if( abs(($g1) - ($a1))<1/(10*$afr1) ,1,0) to $parivraag1
+	    parivraag2=!append line if( abs(($g2) - ($a2))<1/(10*$afr2) ,1,0) to $parivraag2
+	!next s
+    !next p
+    mx=$[$t1*$t2]
+!endif    
+
+dryrun=!exec pari if(log(5)/log(2)==log(5)/log(2),1,0)
+# i.v.m. pari precision "bug"
+tot0=!exec pari $parivraag0
+tot1=!exec pari $parivraag1
+tot2=!exec pari $parivraag2
+
+#errortext=  rounding=$rounding   p0=1.0*($p) p1=(round($afr1*(n$p)))/$afr1 p2=(round($afr2*($p)))/$afr2<br> $parivraag0 <br>$parivraag1 <br>$parivraag2<br> $tot0<br>$tot1<br>$tot2
+#goback=1
+#!exit    
+
+!if $wims_exec_error != $empty
+    maxscore=$[$P4*$maxscore]
+    !increase try
+    goback=1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+ !exit
+!endif
+    
+tussenscore=0
+tussenscore0=0
+tussenscore1=0
+tussenscore2=0
+    
+!for p=1 to $mx
+    t=!line $p of $tot0
+    tussenscore0=$[$t+$tussenscore0]
+    t=!line $p of $tot1
+    tussenscore1=$[$t+$tussenscore1]
+    t=!line $p of $tot2
+    tussenscore2=$[$t+$tussenscore2]
+!next  p
+    
+!if $rounding < 1
+    tussenscore=$tussenscore0
+!else	
+    !if $tussenscore2>$tussenscore1
+	ex=!record 29 of $remarkdir/commonremarks.$taal
+	extra=!append line <br>$ex to $extra
+    !endif
+    tussenscore=$[(2*$tussenscore1+$tussenscore2)/3]
+!endif
+
+aantalgoed=$tussenscore
+!if $aantalgoed>$t1
+    testvar=$[$aantalgoed-$t1]
+    ex=!record 51 of $remarkdir/commonremarks.$taal
+    extra=!append line <br>$ex to $extra
+!endif
+
+
+maxscore=$[($maxscore*$tussenscore)/$t1]
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $omgedraaid>0
+	ex=!record 27 of $remarkdir/commonremarks.$taal
+	extra=!append line <br>$ex to $extra
+	!if $maxscore<0.6
+	    maxscore=$[$maxscore+0.2]
+	!endif
+    !endif
+    !if $maxscore >0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif	        		    
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br>$extra
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+goback=0    
+!exit

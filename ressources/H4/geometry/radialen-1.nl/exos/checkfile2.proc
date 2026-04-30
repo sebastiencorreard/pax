@@ -1,0 +1,121 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif 
+# xrange=var1
+# yrange=var2
+
+!if $no_name=$empty
+    errortext=!record 25 of lag/remarks.$taal
+    #@ Je moet gewoon op de cirkel klikken...<br />is goed te doen, dacht ik.
+    goback=1
+    reply$n=$empty
+    maxscore=$[$maxscore*$P3]
+    !exit
+!endif
+X=!item 1 of $no_name
+Y=!item 2 of $no_name
+!reset no_name
+Xm1=$[$xsize/2 - 50]
+Xm2=$[$xsize/2 + 50]
+Ym1=$[$ysize/2 - 50]
+Ym2=$[$ysize/2 + 50]
+!if $X<$Xm2 and $X>$Xm1 and $Y<$Ym2 and $Y>$Ym1
+    remark$n=!record 26 of lang/remarks.$taal
+    #@ Ja Ja, je kunt natuurlijk in buurt van de oorsprong gaan staan klikken,<br />en dan hopen dat "de nakijk-marge" in je voordeel werkt...<br />Dat gaat dus gewoon niet door.<br />Opzich listig bedacht, dat wel<br />Je <b>mag</b> het nog een keer proberen
+    maxscore=0
+    goback=0
+ !exit
+!endif
+    
+accuracy=100
+dx=$[$var1/$accuracy]
+xclick=$[($X-($xsize/2))/($xsize/$var1)]
+yclick=$[(($ysize/2)-$Y)/($ysize/$var2)]
+hypo=$[sqrt(($xclick)^2 + ($yclick)^2)]
+hypo1=$[sqrt(($xclick-$dx)^2 + ($yclick-$dx)^2)]
+hypo2=$[sqrt(($xclick+$dx)^2 + ($yclick+$dx)^2)]
+!if $yclick>0
+    reply$n=$[round(360*acos($xclick/$hypo)/(2*pi))]<sup>o</sup>
+!endif
+!if $yclick<0
+    tussen=$[round(360*acos($xclick/$hypo)/(2*pi))]
+    reply$n=$[180 + (180-$tussen)]<sup>o</sup>
+!endif    
+sin_a=$[($xclick-$dx)/$hypo2]
+sin_b=$[($xclick+$dx)/$hypo1]
+sin_g=$[cos($(answer$n))]
+
+!ifval $sin_a < $sin_g and $sin_g < $sin_b
+    score=1
+    remark$n=$OK
+!else
+    score=0
+    remark$n=$NOK
+!endif
+
+
+!for q=0 to 360 step 15
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.9*$x],$[0.9*$y],blue to $SCALE
+!next q
+!for q=0 to 360 step 45
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.7*$x],$[0.7*$y],red to $SCALE
+!next q
+
+Xmin=-1.4
+Xmax=1.4
+Ymax=$Xmax
+Ymin=$Xmin
+var1=$[$Xmax+$Ymax]
+var2=$var1
+aantal_beeldjes=10
+Xgoed=$[cos($(answer$n))]
+Ygoed=$[sin($(answer$n))]
+    
+image$n=$xsize,$ysize\
+xrange $Xmin,$Xmax\
+yrange $Ymin,$Ymax\
+transparent white\
+linewidth 2\
+vline 0,0,blue\
+hline 0,0,blue\
+linewidth 1\
+vline -1,0,blue\
+vline 1,0,blue\
+hline 0,-1,blue\
+hline 0,1,blue\
+fellipse 0,0,2,2,white\
+linewidth 2\
+$SCALE \
+arrow 0,0,$Xgoed,$Ygoed,10,red\
+text  black,$[$Xgoed+0.1],$[$Ygoed+0.1],normal,$goede_antwoord\
+arrow 0,0,$xclick,$yclick,10,blue\
+text  black,$xclick,$yclick,normal,$voornaam\
+arc 0,0,2.1,2.1,0,(s+(s/$aantal_beeldjes))*$GRADEN,green\
+segment 0,0,1,0,black\
+linewidth 10\
+point 1.05,0,red\
+point 1.05*cos((s+(s/$aantal_beeldjes))*($(answer$n))),1.05*sin((s+(s/$aantal_beeldjes))*($(answer$n))),red\
+text black,-0.05,-0.03,huge,O
+
+
+!reset xclick
+!reset yclick
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+

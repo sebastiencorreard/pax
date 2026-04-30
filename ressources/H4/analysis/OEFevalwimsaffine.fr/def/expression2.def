@@ -1,0 +1,126 @@
+!set title=Retrouver la formule 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=$[rint(0)]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 9
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!values v for v=2 to 9
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp=!translate ";': to $     $ in $val7*$(val9[1])+$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+tmp=!translate ";': to $     $ in $val7*$(val9[2])+$val8
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp3=!texmath $(tmp2)
+
+val10=$(tmp1),$(tmp3)
+tmp=!translate ";': to $     $ in $val7*x+$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+replytype1=auto
+
+replyname1=Réponse
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit 
+!insmath $val6
+$() une fonction affine. Retrouver la formule de la fonction 
+!insmath $val6
+$() sachant que :	<div class="wimscenter"> 
+!insmath $val6($(val9[1])) = $(val10[1]) \quad\quad\quad $val6($(val9[2])) = $(val10[2])
+$()</div>	<b>Votre réponse :</b>	<div class="wimscenter">	<label for="reply1">
+!insmath $val6 : x \mapsto 
+$()</label>  
+!read oef/embed.phtml r1,9 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10
+embedcnt=1

@@ -1,0 +1,303 @@
+n=$counter
+!if $counter=1
+    !if $total_exos>8
+	total_exos=8
+    !endif
+    var1=!shuffle 1,2,3,4,5,6,7,8
+    questiontype=7
+    javascript=js/kansverdeling.js
+    checkfile=exos/checkfile1.proc
+    xsize=600
+    ysize=600
+    mathview=0
+    math=0
+    cols=6
+    make_tr=1
+    !if $rounding<1
+	rounding=10000
+        !readproc $remarkdir/rounding.$taal
+    !endif
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+
+keuze=!item $n of $var1
+
+!if $R=1
+    num=!randint 3,4
+    p=!randint 5,10
+    q=!randint 5,10
+!else
+    !if $R=2
+	num=!randint 5,6
+	p=!randint 9,15
+	q=!randint 9,15
+    !else
+	num=!randint 7,8
+	p=!randint 9,15
+	q=!randint 9,15
+    !endif
+!endif
+
+
+!if $keuze=1
+    type=1
+    # binomiaal
+    perc=!randint 10,15
+    kans=$[$perc/100]
+    niet_kans=$[1-$kans]
+    ss=!record 2 of lang/remarks.$taal
+    #@De kans op linkshandigheid is $perc %.<br>Er worden willekeurig $num mensen op straat ondervraagd naar hun "handvoorkeur".<br>Maak de bijbehorende kansverdeling voor linkshandigheid.
+    
+!goto KLAAR
+!endif
+
+!if $keuze=2
+    # binomiaal
+    type=1
+    t=!randitem 78,79
+    namen=!record $t of $remarkdir/commonremarks.$taal
+    name=!randitem $namen
+    choice=!randint 3,6
+    kans=(1/$choice)
+    niet_kans=($[$choice - 1]/$choice)
+    ss=!record 3 of lang/remarks.$taal
+    #@Bij een multiplechoice toets kun je per vraag kiezen uit $choice mogelijkheden.<br><tt>$name</tt> vult $num vragen willekeurig in...<br>Maak een kansverdeling voor het aantal goed gegokte antwoorden.
+    
+!goto KLAAR
+!endif
+
+!if $keuze=3
+    # binomiaal
+    type=1
+    k=!randint 1,6
+    age=5,10\
+    10,20\
+    20,35\
+    30,45\
+    45,65\
+    65,75
+    
+    real=1,8\
+    5,15\
+    15,25\
+    30,50\
+    60,90\
+    80,95
+
+    age_group=!line $k of $age
+    perc_range=!line $k of $real
+    k1=!item 1 of $perc_range
+    k2=!item 2 of $perc_range
+    perc=!randint $k1,$k2
+    kans=$[$perc/100]
+    niet_kans=$[1-$kans]
+    ss=!record 4 of lang/remarks.$taal
+    In de leeftijdsgroep [$age_group&nbsp;] zijn $perc % mensen brildragend.<br>Er worden willekeurig $num mensen uit deze leeftijdsgroep geselecteerd en gekeken of ze brildragend zijn.<br>Maak de bijbehorende kansverdeling voor brildragendheid in deze leeftijdsgroep.
+
+!goto KLAAR
+!endif
+
+!if $keuze=4
+    type=1
+    # binomiaal
+
+    #32% blue/grey irises
+    #15% blue/grey/green
+    #12% green/light 
+    #16% brown
+    #25% dark brown
+    #American Academy of Opthamology American Academy of Opthamology
+    k=!randitem 1,2
+    colors=!record 5 of lang/remarks.$taal
+    #@blauw,bruin
+    color_perc=47,41
+    eye_color=!item $k of $colors
+    cp=!item $k of $color_perc
+    perc=!randint $[$cp-3],$[$cp+3]
+    kans=$[$perc/100]
+    niet_kans=$[1-$kans]
+    people=!randint $[2*$num],$[3*$num]
+    
+    ss=!record 6 of lang/remarks.$taal
+    #@$perc % van de mensen hebben $eye_color ogen.<br>In een bus met $people personen worden $num mensen gevraagd naar hun oogkleur.<br>Maak de bijbehorende kansverdeling voor het aantal mensen met $eye_color ogen in deze ondervraagde groep.
+
+!goto KLAAR
+!endif
+
+!if $keuze=5
+    type=2
+    #niet binomiaal
+    t=!randitem 78,79
+    namen=!record $t of $remarkdir/commonremarks.$taal
+    name=!randitem $namen
+    things_1=!record 7 of lang/remarks.$taal
+    #@appels,sinaasappels,aubergines,kwasten,pennen,bouten,messen,lepels,chocolaatjes
+    things_2=!record 8 of lang/remarks.$taal
+    #@peren,manderijntjes,courgettes,verfrollers,potloden,moeren,vorken,messen,dropjes
+    r1=!itemcnt $things_1
+    r2=!itemcnt $things_2
+    r3=$[min($r1,$r2)]
+    r4=!randint 1,$r3
+    thing1=!item $r4 of $things_1
+    thing2=!item $r4 of $things_2
+    k=!randint 1,2
+    # k=1 --> $p k=2 --> $q
+    thing_type=!item $k of $thing1,$thing2
+    ss=!record 9 of lang/remarks.$taal
+    #@In een mand liggen $p $thing1 en $q $thing2.<br><tt>$name</tt> pakt willekeurig $num dingen uit de mand.<br>Maak een bijbehorende kansverdeling voor het aantal $thing_type
+
+!goto KLAAR
+!endif
+
+!if $keuze=6
+    type=2
+    #niet binomiaal
+    k=!randint 1,2
+    # k=1 --> $p k=2 --> $q
+    kinderen=!record 10 of lang/remarks.$taal
+    #@jongens,meisjes
+    boy_or_girl=!item $k of $kinderen
+    ss=!record 11 of lang/remarks.$taal
+    #@In een klas zitten $p jongens en $q meisjes.<br>Uit deze klas worden willekeurig $num personen gekozen.<br>Maak een bijbehorende kansverdeling voor het aantal $boy_or_girl.
+
+!goto KLAAR
+!endif
+
+!if $keuze=7
+    type=2
+    #niet binomiaal
+    k=!randint 1,2
+    # k=1 --> $p k=2 --> $q
+    wiskunde_onderwijs=!record 12 of lang/remarks.$taal
+    #@wiskunde A,wiskunde B
+    math_type=!item $k of $wiskunde_onderwijs
+    ss=!record 13 of lang/remarks.$taal
+    #@In een klas zitten $p leerlingen met wiskunde B en $q leerlingen met wiskunde A.<br>Uit deze klas worden willekeurig $num personen gekozen.<br>Maak een bijbehorende kansverdeling voor het aantal $math_type leerlingen.
+
+!goto KLAAR
+!endif
+
+!if $keuze=8
+    type=2
+    #niet binomiaal
+    t=!randitem 78,79
+    namen=!record $t of $remarkdir/commonremarks.$taal
+    name=!randitem $namen
+    things_1=!record 14 of lang/remarks.$taal
+    #@CD's,T-shirts,sjaaltjes,steeksleutels
+    things_2=!record 15 of lang/remarks.$taal
+    #@DVD's,blouses,mutsen,ringsleutels
+    r1=!itemcnt $things_1
+    r2=!itemcnt $things_2
+    r3=$[min($r1,$r2)]
+    r4=!randint 1,$r3
+    thing1=!item $r4 of $things_1
+    thing2=!item $r4 of $things_2
+    k=!randint 1,2
+    # k=1 --> $p k=2 --> $q
+    thing_type=!item $k of $thing1,$thing2
+    ss=!record 16 of lang/remarks.$taal
+    #@Een winkelier heeft nog $p $thing1 en $q $thing2 in de uitverkoopbak liggen...<br><tt>$name</tt> pakt willekeurig $num artikelen uit deze bak.<br>Maak een bijbehorende kansverdeling voor het aantal $thing_type.
+
+!endif
+
+
+:KLAAR
+
+sometxt=!record 17 of lang/remarks.$taal
+#@aantal,berekening,kans
+r1=!item 1 of $sometxt
+r2=!item 2 of $sometxt
+r3=!item 3 of $sometxt
+texanswer$n=$ \begin{array}{c|c|c} \textrm{$r1} &  \textrm{$r2} & \textrm{$r3}  \\ \hline  $
+
+!if $type=1
+    #binomiaal
+    !for t=0 to $num
+	P=$[($kans^($t))*(($niet_kans)^($num - $t))*(factorial($num)/(factorial($t) * factorial($num - $t)))]
+	PP=$[(round(10000*$P))/10000]
+	answer$n=!append item $t,$P to $(answer$n)
+	texanswer$n=!append word $ $t & \left( \begin{array}{c} $num \\ $t  \end{array}\right) \cdot $kans^{$t} \cdot $niet_kans^{$[$num - $t]} &  \approx $PP  \\ &  &  \\  $ to $(texanswer$n)
+    !next t
+    texanswer$n=!append word $ \end{array} $ to $(texanswer$n)
+
+    rr=!record 18 of lang/remarks.$taal
+    #@De <font color="blue">verdeling</font> is  <b>binomiaal</b>, omdat er twee kansen zijn: <b>$kans en 1 &minus; $kans</b> .<br>Deze kansen veranderen niet.
+    !if $R>1
+	# voor HAVO/VWO5/6
+	rr=!append line $ <br><font color="red"><b><tt>GRM : y1 = binompdf($num,$kans,X)</tt></b></font> $ to $rr
+    !endif
+!else
+    #niet binomiaal
+    rr=!record 19 of lang/remarks.$taal
+    #@De <font color="blue">verdeling</font> is  <b>niet-binomiaal</b>, omdat het hier om een "trekking zonder teruglegging" gaat .<br>Deze kansen veranderen door de trekking en zijn dus niet constant.
+    !if $k=1
+	!for t=0 to $num
+	    #A=$[(factorial($p)/(factorial($t)*factorial($p - $t)))]
+	    #B=$[(factorial($q)/(factorial($num - $t)*factorial($q + $t - $num)))]
+	    #C=$[(factorial($p+$q)/(factorial($num)*factorial($p + $q - $num)))]
+	    #P=$[($A)*($B)/($C)]
+	    P=$[(factorial($p)/(factorial($t)*factorial($p - $t)))*(factorial($q)/(factorial($num - $t)*factorial($q + $t - $num)))/((factorial($p+$q)/(factorial($num)*factorial($p + $q - $num))))]
+	    PP=$[(round(10000*$P))/10000]
+	    answer$n=!append item $t,$P to $(answer$n)
+	    texanswer$n=!append word $ $t & \frac{ \left( \begin{array}{c} $p \\ $t  \end{array} \right) \cdot \left( \begin{array}{c} $q \\ $[$num - $t]  \end{array} \right) }{ \left( \begin{array}{c} $[$p + $q] \\ $num  \end{array} \right) } &  \approx $PP  \\  &  &  \\ $ to $(texanswer$n)
+	!next t
+	texanswer$n=!append word $ \end{array} $ to $(texanswer$n)
+    !else
+	!for t=0 to $num
+	    #A=$[(factorial($q)/(factorial($t)*factorial($q - $t)))]
+	    #B=$[(factorial($q)/(factorial($num - $t)*factorial($q + $t - $num)))]
+	    #C=$[(factorial($p+$q)/(factorial($num)*factorial($p + $q - $num)))]
+	    #P=$[($A)*($B)/($C)]
+	    P=$[(factorial($q)/(factorial($t)*factorial($q - $t)))*(factorial($p)/(factorial($num - $t)*factorial($p + $t - $num)))/((factorial($p+$q)/(factorial($num)*factorial($p + $q - $num))))]
+	    PP=$[(round(10000*$P))/10000]
+	    answer$n=!append item $t,$P to $(answer$n)
+	    texanswer$n=!append word $ $t & \frac{ \left( \begin{array}{c} $q \\ $t  \end{array} \right) \cdot \left( \begin{array}{c} $p \\ $[$num - $t]  \end{array} \right) }{ \left( \begin{array}{c} $[$p + $q] \\ $num  \end{array} \right) } &  \approx $PP  \\  &  &  \\ $ to $(texanswer$n)
+	!next t
+	texanswer$n=!append word $ \end{array} $ to $(texanswer$n)
+    !endif
+!endif
+
+textanswer$n=$rr
+#question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/exo1.png alt=plaatje>')">$ss</a>
+question$n=$ss
+helptext=<img src=\'$module_dir/gifs/exo1.png\' alt=\'noalt\'>
+
+!if exam notin $session
+    txt=!record 17 of lang/remarks.$taal
+    #@:aantal,berekening,kans 
+    aantallen=$(txt[1])
+    kansen=$(txt[3])
+    
+    data=mouse yes\
+    userdraw lines\
+    clickcolor green\
+    xrange -1,$[$num+1]\
+    yrange -0.1,1\
+    linewidth 2\
+    hline 0,0,black\
+    vline 0,0,black\
+    grid 1,1,1,0.1,blue,blue,1,1,120,120\
+    xlabel $aantallen,14,helvetic,blue,200\
+    ylabel $kansen,14,helvetic,blue,200\
+    xscale 0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,12,fontname,black,1\
+    yscale 0,0,0.1,0.1,0.2,0.2,0.3,0.3,0.4,0.4,0.5,0.5,0.6,0.6,0.7,0.7,0.8,0.8,0.9,0.9,1,1.0,12,Helvetica,black,1\
+    linewidth 12\
+    points $(answer$n),red\
+    linewidth 4
+    
+    xsize=300
+    ysize=300
+    
+    myname=$counter.data
+    !filewrite getfile/$myname $data
+    textanswer$n=<a onmouseover="return escape('<object id=\'FlyApplet\' width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name = \'java_codebase\' value = \'$appletdir\' /><param name = \'java_archive\' value = \'FlyApplet.jar\' /><param name = \'java_code\' value = \'FlyApplet.class\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\'/>$nojava</object>')">$(textanswer$n)</a>
+!endif
+
+answer$n=!append item $type to $(answer$n)

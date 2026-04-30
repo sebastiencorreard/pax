@@ -1,0 +1,56 @@
+!! Analyse de réponse dans ce fichier.
+
+!if $asktype!=2
+<p>
+ ($name_answer1)
+</p>
+!endif
+
+!if $good!=0
+  !if $test=yes
+    $name_answer2
+  !else
+    !if $asktype isin 1,2
+      $name_answer3
+    !else
+      $name_answer4:
+      !for t in ba,ca
+        !set t$t=!item $good of $($(t)_list)
+      !next t
+      <p class="wimscenter">
+      !set ins_attr=alt="$name_attribut2"
+      !set wims_ins_alt=empty
+      !insplot [-$range:$range] [-$range:$range] ($tba)*x-($tca) notitle
+      </p>
+    !endif
+  !endif
+!else
+  !if $real>0
+    $name_answer5
+  !else
+    $name_answer6
+  !endif
+!endif
+
+!if $test=yes
+  <span style="color:green;">$name_goodanswer.</span>
+!else
+  <span style="color:green;">$name_badanswer.</span>
+!endif
+
+!if $status=next
+  ($name_questionon)
+  <p>
+  !href cmd=next $name_continue.
+  $name_mustfinish
+  </p>
+!else
+  <p>
+  !if $repeat>1
+    $name_theend
+    $module_score/10.
+  !else
+    $name_score: $module_score/10.
+  !endif
+  </p>
+!endif

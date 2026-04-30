@@ -1,0 +1,309 @@
+!set title=Points alignés ? (par étapes)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=parallel,vectors,line
+oefdescription=Déterminer si des points sont alignés en utilisant les vecteurs
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -7, 7
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -12, 12
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7*$val9+$val8)]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+
+!ifval ($val6=1)
+val12=$[rint( $val9)]
+!else
+tmp0=!randint 1, 5
+
+val12=$[rint($val9+$val11*$(tmp0))]
+!endif
+
+!ifval ($val6=1)
+tmp0=!randint 1, 5
+
+val13=$[rint( $val10+$val11*$(tmp0))]
+!else
+val13=$[rint($val7*$val12+$val8)]
+!endif
+
+!ifval ($val6=1)
+val14=$[rint( $val9)]
+!else
+tmp0=!randint 1, 5
+
+val14=$[rint($val9-$val11*$(tmp0))]
+!endif
+
+!ifval ($val6=1)
+tmp0=!randint 1, 5
+
+val15=$[rint( $val10-$val11*$(tmp0))]
+!else
+tmp1=!randint 1, 3
+
+tmp2=!randitem -1,1
+
+tmp=!nonempty items 0,$(tmp1)*$(tmp2)
+
+tmp3=!randitem $tmp
+val15=$[rint(($val7*$val14+$val8)+$(tmp3))]
+!endif
+val16=$[rint($val12-$val9)]
+val17=$[rint($val13-$val10)]
+val18=$[rint($val14-$val9)]
+val19=$[rint($val15-$val10)]
+val20=$[rint(($val16*$val19)-($val18*$val17))]
+
+!ifval ($val20=0)
+val21=$[rint( 1)]
+!else
+val21=$[rint(2)]
+!endif
+val22=A,B,C,D,E,F,H,K
+tmp0=!shuffle $val22
+
+val22=$(tmp0)
+tmp0=!sort item $(val22[1..3])
+
+val22=$(tmp0)
+val23=$(val22[1])
+val24=$(val22[2])
+val25=$(val22[3])
+val26=r1,r2	r3,r4	r5,r6,r7
+oefsteps=$val26 
+nextstep=!nosubst $val26 
+!readproc oef/steps.proc
+replytype1=formal
+replyoption1=nonstop 
+replyweight1=12 
+replyname1=
+replygood1=$val16
+replytype2=formal
+replyoption2=nonstop 
+replyname2=
+replygood2=$val17
+replytype3=formal
+replyoption3=nonstop 
+replyname3=
+replygood3=$val18
+replytype4=formal
+replyoption4=nonstop 
+replyname4=
+replygood4=$val19
+replytype5=formal
+replyname5=
+replygood5=$val20
+replytype6=menu
+replyname6=
+replygood6=$val21;sont,ne sont pas
+replytype7=menu
+replyname7=
+replygood7=$val21;sont,ne sont pas
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<b>Cet exercice comporte plusieurs étapes.</b>	<p>Dans le plan muni d'un repère, on donne 
+!insmath $val23($val9 ; $val10)
+$(), 
+!insmath $val24($val12 ; $val13)
+$() et 
+!insmath $val25($val14 ; $val15)
+$().</p>	Les points 
+!insmath $val23
+$(), 
+!insmath $val24
+$() et 
+!insmath $val25
+$() sont-ils alignés ?<br />	Il suffit de vérifier si les vecteurs 
+!insmath \overrightarrow{$val23 $val24}
+$() et 
+!insmath \overrightarrow{$val23 $val25}
+$() sont colinéaires.<br />	
+!if $m_step=1 
+$()
+!insmath \overrightarrow{$val23 $val24}
+$() a pour coordonnées:	 
+!read oef/special.phtml mathmlinput [\left ( \begin{array}{c}reply1\\reply2\end{array} \right )],2##	reply1, 12	reply2, 12 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()
+!if $m_sc_reply1=1 and $m_sc_reply2=1 
+$()<span class = "oef_indgood">Correct :</span> 
+!else
+$()	 <span class = "oef_indbad">Erreur : vous avez répondu que les coordonnées de 
+!insmath \overrightarrow{$val23 $val24}
+$() sont ($m_reply1 ; $m_reply2).<br />			</span>  
+!endif
+$()	<span class = "oef_indgood"> Les coordonnées exactes de 
+!insmath \overrightarrow{$val23 $val24}
+$()	sont : 
+!insmath [$val16 ; $val17]
+$() </span>		<div>	
+!insmath \overrightarrow{$val23 $val25}
+$() a pour coordonnées:	 
+!read oef/special.phtml mathmlinput [\left ( \begin{array}{c}reply3\\reply4\end{array} \right )],2	reply3, 12	reply4, 12 
+$()	</div>	 
+!endif
+$()	
+!if $m_step=3 
+$()Les coordonnées exactes de 
+!insmath \overrightarrow{$val23 $val24}
+$()	  sont : 
+!insmath [$val16 ; $val17]
+$() .<br />		
+!if $m_sc_reply3=1 and $m_sc_reply4=1 
+$()<span class = "oef_indgood">Correct :</span> 
+!else
+$()	 <span class = "oef_indbad">Erreur : vous avez répondu que les coordonnées de 
+!insmath \overrightarrow{$val23 $val25}
+$() sont ($m_reply3 ; $m_reply4).<br />	  
+!endif
+$()</span>	<span class = "oef_indgood"> Les coordonnées exactes de 
+!insmath \overrightarrow{$val23 $val25}
+$()	  sont : 
+!insmath [$val18 ; $val19]
+$() </span>		<p>	
+!insmath \overrightarrow{$val23$val24}
+$() a pour coordonnées 
+!insmath \left ( \begin{array}{c}$val16\\$val17\end{array} \right )
+$() et	 
+!insmath \overrightarrow{$val23$val25}
+$() a pour coordonnées 
+!insmath \left ( \begin{array}{c}$val18\\$val19\end{array} \right )
+$().	 </p>	 Le déterminant de 
+!insmath \overrightarrow{$val23$val24}
+$() et 
+!insmath \overrightarrow{$val23$val25}
+$() est égal à  
+!read oef/embed.phtml r5,3 
+$(),	 <br />	donc ces vecteurs  
+!read oef/embed.phtml r6,4 
+$() colinéaires et les points 
+!insmath $val23
+$(), 
+!insmath $val24
+$() et 
+!insmath $val25
+$()  
+!read oef/embed.phtml r7,4 
+$() alignés. 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath \overrightarrow{$val23 $val24}
+$() a pour coordonnées	
+!insmath \left ( \begin{array}{c}$val12-($val9)\\$val13-($val10)\end{array} \right )=\left ( \begin{array}{c}$val16\\$val17\end{array} \right )
+$() et le vecteur	
+!insmath \overrightarrow{$val23 $val25}
+$() a pour coordonnées	
+!insmath \left ( \begin{array}{c}$val18\\$val19\end{array} \right )
+$() .	Le déterminant de 
+!insmath \overrightarrow{$val23 $val24}
+$() et 
+!insmath \overrightarrow{$val23 $val25}
+$() est 
+!insmath $val16 \times ($val19)-($val18)\times ($val17)=$val20
+$() 
+!if $val20!=0 
+$()
+!insmath &ne;0
+$() 
+!endif
+$()	donc ces vecteurs 
+!if $val20=0 
+$()sont 
+!else
+$() ne sont pas 
+!endif
+$() colinéaires et les points 
+!insmath $val23
+$(), 
+!insmath $val24
+$() et 
+!insmath $val25
+$() 
+!if $val20=0 
+$()sont 
+!else
+$() ne sont pas 
+!endif
+$() alignés.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,12,13,14,15,16,17,18,19,20,23,24,25
+embedcnt=5

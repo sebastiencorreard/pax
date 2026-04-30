@@ -1,0 +1,64 @@
+# ChemInputApplet: 3 replys ascii,latex
+# var9 is correct chemical formula for chemcheck.proc
+n=$counter
+goback=0
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+# units.proc
+# correct antwoordformat: number1 unit1,number2 unit2... number_n unit_n                                                                   
+# var1=1,1,1...1 : we must have a unit in all answers                                                                                      
+# var1=0,1,1,0 : number1,number2 unit2,number3 unit3,number4                                                                               
+# var2=min1:max1,min2:max2,min3:max3,min4:max4  var2 is the range for the correct answer.                                                  
+# var2 may be assymetrical , or empty eg correct answer=2 min=1.9,max=3.5        
+ta=!itemcnt $(answer$n)
+# reply formula
+Af=!item -2 of $(reply$n)
+# html version of $Af
+Ah=!item -1 of $(reply$n)
+# latex version of $Af
+#Al=!item -3 of $(reply$n)
+
+reply$n=!item 1 to -3 of $(reply$n)
+
+modulescore_org=$modulescore
+maxscore_org=$maxscore
+maxscore=1
+!readproc $checkdir/units.proc
+!if $goback=1
+ !exit
+!endif
+rep=$(reply$n)
+# deze maxscore is dus het eindresultaat van units.proc
+score1=$maxscore
+
+maxscore=1
+!readproc exos/chemcheck.proc
+score2=$maxscore
+# geeft ook maxscore
+maxscore=$maxscore_org
+!if $goback=1
+ !exit
+!endif
+    
+maxscore=$[$maxscore_org*($ta*$score1 + $score2)/($ta+1)]
+modulescore=$[$modulescore_org+$maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+remark$n=$(remark$n) $extra1 $extra2
+math=0
+reply$n=$rep <br />$Ah 
+!exit
+

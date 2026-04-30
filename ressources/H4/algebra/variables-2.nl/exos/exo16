@@ -1,0 +1,131 @@
+# Schrijf als 1 breuk (+ -)
+n=$counter
+cols=25
+rows=1
+math=0
+image=0
+embed=1
+mathview=5
+helptext=$empty
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# hmmm checkfile=$checkdir/simplify.proc
+arglist=$empty
+question$n=!record 23 of lang/remarks.$taal
+helptext=<img src=\'$module_dir/gifs/exo9.jpg\' alt=\'noalt\' />
+#@ Schrijf als 1 breuk
+# var1 is used for checking  "literal typing" of question
+!if $mytexsize=0
+    mytexsize=+2
+!endif
+varlist=x
+!if $R=1
+    checkfile=$checkdir/simplify.proc
+    getallen=!shuffle 1,2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    keuze=!randitem 1,2,3,4
+    !if $keuze=1
+	var1=$a/x + 1/(sqrt(x))
+	applettext=!nospace $var1 =
+	formula$n=\frac{$a}{x} +  \frac{1}{\sqrt{x}} =[?]
+	tussen=\frac{$a}{x} + \frac{\sqrt{x}}{\sqrt{x} \cdot \sqrt{x}}=\frac{$a}{x} + \frac{\sqrt{x}}{x}
+	answer$n=!rawmath ($a + sqrt(x))/x 
+	tex=\frac{$a + \sqrt{x} }{x}
+    !else
+	!if $keuze=2
+	    var1=$a/x + $b/(sqrt(x))
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{$a}{x} +  \frac{$b}{\sqrt{x}} =[?]
+	    tussen=\frac{$a}{x} + \frac{$b \cdot \sqrt{x}}{\sqrt{x} \cdot \sqrt{x}}=\frac{$a}{x} + \frac{$b \sqrt{x}}{x}
+	    answer$n=!rawmath ($a + $b*sqrt(x))/x 
+	    tex=\frac{$a + $b \sqrt{x} }{x}
+	!else
+	    !if $keuze=3
+		!if $b=1
+		    b=$[$b+1]
+		!endif
+		f=$[$a*$b]
+		var1=$a/x + 1/($b*sqrt(x))
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{x} +  \frac{1}{$b \sqrt{x}} =[?]
+		tussen=\frac{$a \cdot $b}{x \cdot $b} + \frac{1 \cdot \sqrt{x}}{$b \sqrt{x} \cdot \sqrt{x}}=\frac{$f}{$b x} + \frac{\sqrt{x}}{$b x}
+		answer$n=!rawmath ($f + sqrt(x))/($b*x) 
+		tex=\frac{$f + \sqrt{x} }{$b x}
+	    !else
+		!if $b=1
+		    b=$[$b+1]
+		!endif
+		f=$[$a*$b]
+		var1=$a/x - 1/($b*sqrt(x))
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{x} -  \frac{1}{$b \sqrt{x}} =[?]
+		tussen=\frac{$a \cdot $b}{x \cdot $b} - \frac{1 \cdot \sqrt{x}}{$b \sqrt{x} \cdot \sqrt{x}}=\frac{$f}{$b x} - \frac{\sqrt{x}}{$b x}
+		answer$n=!rawmath ($f - sqrt(x))/($b*x) 
+		tex=\frac{$f - \sqrt{x} }{$b x}
+	    !endif
+	!endif
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $(formula$n)  \rightarrow \\ $tussen = \\  $tex  \end{array} \right.
+ !exit
+!endif
+
+!if $R>1
+    checkfile=exos/checkfile4.proc
+    cols=30
+    getallen=!shuffle 1,2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!randint 3,9
+    d=$[$c-1]
+    keuze=!randitem 1,2,3,4
+    keuze=4
+    !if $keuze=1
+	var1=$a/x^$c + 1/(sqrt(x))
+	applettext=!nospace $var1 =
+	formula$n=\frac{$a}{x^{$c}} +  \frac{1}{\sqrt{x}} =[?]
+	tussen=\frac{$a}{x^{$c}} + \frac{x^{$d} \cdot \sqrt{x}}{x^{$d} \sqrt{x} \cdot \sqrt{x}}=\frac{$a}{x^{$c}} + \frac{x^{$d}\sqrt{x}}{x^{$c}}
+	answer$n=!rawmath ($a + x^$d * sqrt(x))/(x^$c) 
+	tex=\frac{$a + x^{$d} \sqrt{x} }{x^{$c}}
+    !else
+	!if $keuze=2
+	    var1=$a/x^$c + $b/(sqrt(x))
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{$a}{x^{$c}} +  \frac{$b}{\sqrt{x}} =[?]
+	    tussen=\frac{$a}{x^{$c}} + \frac{$b \cdot x^{$d} \sqrt{x}}{x^{$d} \sqrt{x} \cdot \sqrt{x}}=\frac{$a}{x^{$c}} + \frac{$b x^{$d} \sqrt{x}}{x^{$c}}
+	    answer$n=!rawmath ($a + $b*x^$d*sqrt(x))/x^$c 
+	    tex=\frac{$a + $b x^{$d} \sqrt{x} }{x^{$c}}
+	!else
+	    !if $keuze=3
+		!if $b=1
+		    b=$[$b+1]
+		!endif
+		f=$[$a*$b]
+		var1=$a/x^$c + 1/($b*sqrt(x))
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{x^{$c}} +  \frac{1}{$b \sqrt{x}} =[?]
+		tussen=\frac{$a \cdot $b}{x^{$c} \cdot $b} + \frac{1 \cdot x^{$d} \sqrt{x}}{$b \sqrt{x} \cdot x^{$d} \sqrt{x}}=\frac{$f}{$b x^{$c}} + \frac{x^{$d} \sqrt{x}}{$b x^{$c}}
+		answer$n=!rawmath ($f + x^$d * sqrt(x))/($b*x^$c) 
+		tex=\frac{$f + x^{$d} \sqrt{x} }{$b x^{$c}}
+	    !else
+		!if $b=1
+		    b=$[$b+1]
+		!endif
+		f=$[$a*$b]
+		var1=$a/x^$c - 1/($b*sqrt(x))
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{x^{$c}} -  \frac{1}{$b \sqrt{x}} =[?]
+		tussen=\frac{$a \cdot $b}{x^{$c} \cdot $b} - \frac{1 \cdot x^{$d} \sqrt{x}}{$b \sqrt{x} \cdot x^{$d} \sqrt{x}}=\frac{$f}{$b x^{$c}} - \frac{x^{$d} \sqrt{x}}{$b x^{$c}}
+		answer$n=!rawmath ($f - x^$d * sqrt(x))/($b*x^$c) 
+		tex=\frac{$f - x^{$d} \sqrt{x} }{$b x^{$c}}
+	    !endif
+	!endif
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $(formula$n)  \rightarrow \\ $tussen = \\  $tex  \end{array} \right.
+ !exit
+!endif
+

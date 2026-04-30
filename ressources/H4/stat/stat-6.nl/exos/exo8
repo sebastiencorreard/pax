@@ -1,0 +1,114 @@
+# CHECKFILE AANPASSEN : DECIMALE GETALLEN MET EEN KOMMA CORRIGEREN !!!
+math=0
+mathview=0
+# Spreadsheet &amp; berekenen van de standaardafwijking (drote bestanden)
+n=$counter
+tsv_file=som_$counter.tsv
+datum=!date +%d-%m-%Y
+data=$empty
+#$datum\
+#$wims_firstname $wims_lastname\
+#$module_title\
+#\
+#"cijfer"\
+#
+
+sum=0
+max=!randint 500,1000
+rnd=!randitem 1,2,3
+rounding=$[10^$rnd]
+datalist=$empty
+!for p=1 to $max
+ d1=!randint 19,99
+ d1=$[0.1*$d1]
+ sum=$[$sum + $d1]
+ datalist=!append item $d1 to $datalist
+!next p
+
+mean=$[$sum/$max]
+#datalist=!sort numeric item of $datalist
+variantie=0
+
+!for p=1 to $max
+ a=!item $p of $datalist
+ aa=!replace internal . by , in $a
+ data=!append line $aa to $data
+ variantie=$[$variantie + ( $a - $mean)*($a - $mean)]
+!next p
+
+variantie=$[$variantie/$max]
+std=$[sqrt($variantie)]
+answer$n=$[(round($rounding*$std))/$rounding]
+
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\'<hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br />\
+<em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />\
+Bereken mbv een spreadsheet de standaardafwijking van de cijfers in kolom A<br />\
+De standaardafijking is een spreidingsmaat die iets zegt over de spreiding van getallen rondom het gemiddelde...<br />\
+We volgen het volgende stappen plan:\
+<ol>\
+<li>bepaal het gemiddelde van kolom A (de cijfers)</li>\
+<li>bepaal van elk cijfer hoeveel deze afwijkt van het gemiddelde: zet deze getallen in kolom B</li>\
+<li>kwadrateer de afwijkingen van kolom B en zet deze getallen in een kolom C</li>\
+<li>bereken het gemiddelde van kolom C (dit heet de variantie)</li>\
+<li>neem de wortel uit het gemiddelde van kolom C (dit is de standaardafwijking)</li>\
+</ol>
+
+
+ss2=Stuur de standaardafwijking afgerond op $rnd decimalen op naar WIMS.
+
+#formula$n= \textrm{Standaardafwijking } = \sigma = \sqrt{ \frac{ \left( X - \overline{X} \right)^{2}}{ \textrm{aantal waarnemingen}}}
+
+textanswer$n=De standaardafwijking is : $(answer$n)<ul>\
+<li>open het bestand </li>\
+<li>tel het aantal gevulde cellen in kolom A...je kunt dit ook doen door commando <b>= AANTAL(A:A)<b/> ... $max </li>\
+<li>bepaal het gemiddelde van kolom A (de cijfers):<br />zet je muis (bijv.) in D1...in de formulebalk: SOM(A7:A$max)/$max [ENTER] </li>\
+<li>bepaal van elk cijfer hoeveel deze afwijkt van het gemiddelde: zet deze getallen in kolom B :<br />zet je muis in B1...in formulebalk : A1 - &#36;D&#36;1 [ENTER]<br />\
+ga met je muis rechts onderin B1...je muis wordt een kruis...scroll naar B$max...</li>\
+<li>kwadrateer de afwijkingen van kolom B en zet deze getallen in een kolom C :<br />zet je muis in C1...in formulebalk : B1 * B1 [ENTER]<br />ga met je muis rechts onderin C1...je muis wordt een kruis...scroll naar C$max</li>\
+<li>bereken het gemiddelde van kolom C (dit heet de variantie):<br />zet je muis (bijv.) in E1...in de formulebalk: SOM(C1:C$max)/$max [ENTER] </li>\
+<li>neem de wortel uit het gemiddelde van kolom C (dit is de standaardafwijking) en rond dit af : <br />in een lege cel ... in formulebalk : <b>= AFRONDEN( WORTEL(E1) ;$rnd)</b></li>\
+<li>gebruik je een engelse spreadsheet versie SOM==SUM ... WORTEL==SQRT ... AFRONDEN==ROUND ... ENZ==ETC ...</li>\
+</ul>\
+TIP: je vindt het aantal niet-lege-cellen-met-getallen in kolom A door <b>= AANTAL(A:A)<b/> of in een engelse versie COUNT(A:A)
+
+#<br />TIP: je vindt het aantal niet-lege-cellen in kolom A door <b>= AANTALARG(A:A)<b/> of in een engelse versie COUNTARG(A:A)<br />
+
+
+checkfile=$checkdir/number.proc
+var1=yes
+inputs=1.1
+cols=5
+rows=10
+make_tr=1
+description=de standaardafwijking
+ex1=(op $rnd decimalen)
+question$n=$ss<a onmouseover="return escape('$mousetxt <hr /><img src=$module_dir/gifs/std.png />')">$ss2</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

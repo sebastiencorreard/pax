@@ -1,0 +1,99 @@
+<p align="center">
+    <table bgcolor=$bgcolor1 cellpadding=$cellpadding cellspacing=$cellspacing>
+	<td valign="top" align="left" padding="10">
+	    !if $(question$n) != $empty
+		$(question$n)
+		<br>
+	    !endif
+	    !if $(formula$n) != $empty
+		!insmath $(formula$n)
+		<br>
+	    !endif
+	    !if $exotext != $empty
+		<br>
+		$exotext
+	    !endif
+	    <p align="left">
+	    !href target=wims_mhelp module=$module&+session=$session&+cmd=help
+	    $helptext
+	    </p>
+	</td>
+	!if $XSIZE > 450
+	!! arbitrary value to produce a better layout ...
+	    <tr>
+	!endif
+	    !if $image=1
+		<td  valign="top" align="center">
+		    !if $draw=1
+			!! for fly
+			!set insdraw_size=$XSIZE,$YSIZE
+			!insdraw $(image$n)
+		    !endif
+		    !if $plot=1
+			!! for GNUplot
+			!set insplot_set=$(image_settings$n)
+			!insplot $(image$n)
+		    !endif
+		</td>
+	    !endif
+	    !if $applet=1
+		<td  valign="top" align="center">
+		    $(object$n)
+		</td>
+	    !endif
+	
+	!if $XSIZE > 450
+	    <tr>
+	!endif
+
+	<td valign="top" align="center">
+	!if $inputs=1
+	    !if $inputtext1!=$empty
+		$inputtext1:<br>
+	    !endif
+	    !if $wims_user=supervisor
+                <textarea style=$textareastyle wrap=off cols=$cols rows=$rows name="reply$n">$(answer$n)</textarea>
+            !else
+                <textarea style=$textareastyle wrap=off cols=$cols rows=$rows name="reply$n">$(reply$n)</textarea>
+            !endif
+	!else
+	    !if $inputs>1
+		<table cellpadding="1">
+		    !for p=1 to $inputs
+			<td>
+			    <small>
+				$(inputtext$p)
+			    </small>
+			</td>
+			<td>
+			    $m_rightarrow
+			</td>
+			<td>
+!if $wims_user=supervisor
+<input style=$textareastyle  size="$cols" name="reply$n" value="
+!item $p of $(answer$n)
+">
+!else
+<input style=$textareastyle  size="$cols" name="reply$n" value="
+!item $p of $(reply$n)
+">
+!endif
+			</td>
+			<tr>
+		    !next p
+		</table>
+	    !endif
+	!endif
+	</td>
+    </table>
+    <table>
+    !if $inputs !=0
+	<th>
+    	    <input type="submit" style="$mybuttonstyle" value="$send">
+    	</th>
+    !endif
+	<th>
+	    <input type=button style=$mybuttonstyle onclick="dontknow();" name="but2" value="$dontknow">
+	</th>
+    </table>
+</p>

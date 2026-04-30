@@ -1,0 +1,122 @@
+n=$counter
+embed=1
+inputs=-1
+mathview=0
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+!readproc $remarkdir/rounding.$taal
+applet=1
+checkfile=$checkdir/new_number.proc
+!if exam isin $session
+ helptext=<img src=\'$gifdir/nohelp.jpg\' alt=\'noalt\' />
+!else
+ !if $subject < 5
+  htxt=!record 10 of lang/remarks.$taal
+  helptext=<img src=\'$module_dir/gifs/exo1.png\' alt=\'noalt\' /><br />$htxt
+ !endif
+!endif
+
+hoekA=!randint 20,70
+hoekB=!randint 20,70
+hoekC=$[180-($hoekA+$hoekB)]
+BC=!randint 5,15
+AC=$[$BC*(sin($hoekB*pi/180))/(sin($hoekA*pi/180))]
+AB=$[$BC*(sin($hoekC*pi/180))/(sin($hoekA*pi/180))]
+
+xa=0
+ya=0
+xb=$AB
+yb=0
+xc=$[$AC*cos($hoekA*pi/180)]
+yc=$[$AC*sin($hoekA*pi/180)]
+
+keuze=!randint 0,1
+txt=!record 2 of lang/remarks.$taal
+#@We berekenen de lengte van $Zijde mbv de sinusregel
+!if $keuze=0
+ Zijde=AC
+ stippel=$xa,$ya,$xc,$yc
+ answer$n=$AC
+ rans=$[0.01*(round(100*$AC))]
+ texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} \frac{a}{\sin\left(\alpha \right)} =  \frac{b}{\sin\left(\beta \right)} \\  \frac{BC}{\sin\left(\angle A\right)} =  \frac{AC}{\sin\left(\angle B\right)} \\  \frac{$BC}{\sin\left( $hoekA^{o} \right)} =  \frac{AC}{\sin\left( $hoekB \right)} \\  $BC \cdot \sin($hoekB) = AC \cdot \sin($hoekA) \\  AC = \frac{$BC \cdot \sin($hoekB)}{ \sin($hoekA)} \approx $AC  \approx $rans\end{array} 
+
+!else
+ Zijde=AB
+ answer$n=$AB
+ rans=$[0.01*(round(100*$AB))]
+ stippel=$xa,$ya,$xb,$yb
+ texanswer$n=\begin{array}{l}\textrm{$txt} \\  \color{red} \frac{a}{\sin\left(\alpha\right)} =  \frac{c}{\sin\left(\gamma\right)} \\  \frac{BC}{\sin\left(\angle A\right)} =  \frac{AB}{\sin\left(\angle C\right)} \\  \angle C = 180 - ($hoekA + $hoekB) = $hoekC \\ \frac{$BC}{\sin\left( $hoekA^{o} \right)} =  \frac{AB}{\sin\left( $hoekC^{o} \right)} \\  $BC \cdot \sin($hoekC) = AB \cdot \sin($hoekA) \\  AB = \frac{$BC \cdot \sin($hoekC)}{ \sin($hoekA)} \approx $AB \approx $rans \end{array}
+
+!endif
+
+max=$[max($xc,$xb)]
+max=$[max($max,$yc)]
+# gebruik gelijke xrange==yrange ivm plaatje
+xsize=220
+ysize=220
+k=!randitem red,green,blue,orange
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -4,$[$max+1]\
+yrange -4,$[$max+1]\
+opacity 200,30\
+linewidth 1\
+fillcolor orange\
+ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+dashtype 2,2\
+dsegment $stippel,black\
+opacity 255,255\
+fontfamily 14px Ariel\
+linewidth 2\
+points green,$xa,$ya,$xb,$yb,$xc,$yc\
+string black,$[$xa+0.3],$[$ya+0.3],A\
+string black,$[$xb+0.15],$[$yb+0.3],B\
+string black,$[$xc+0.3],$[$yc+0.3],C\
+zoom $k\
+linewidth 1\
+replyformat -1\
+userdraw circles,$k\
+precision 10\
+display radius,$k,16
+
+
+ss=!record 1 of lang/remarks.$taal
+#@Gegeven is de &Delta;ABC met &angle;A=$hoekA&deg; en &angle;B=$hoekB&deg;<br />Zijde BC heeft lengte $BC<br />Bereken de lengte van de zijde $Zijde in de driehoek &Delta; ABC
+question$n=<a onmouseover="return escape('$helptext')">$ss</a> 
+exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle A & = & $hoekA^{o} \\ \angle B & = & $hoekB^{o} \\ BC & = & $BC \\ $Zijde & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0}  \end{array}\right.
+
+
+!exit
+
+
+# plaatje voor help
+# make_tr=1
+#m=!mathmlmath \color{red}\begin{array}{lll} \frac{a}{\sin\left(\angle A\right)} & = & \frac{b}{\sin\left(\angle B\right)} & = & \frac{c}{\sin\left(\angle C\right)} \end{array}
+#
+#object$n=!exec canvasdraw\
+#size $xsize,$ysize\
+#xrange -4,$[$max+1]\
+#yrange -4,$[$max+1]\
+#opacity 200,30\
+#linewidth 1\
+#fillcolor orange\
+#ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+#opacity 255,255\
+#fontfamily 14px Ariel\
+#linewidth 2\
+#points green,$xa,$ya,$xb,$yb,$xc,$yc\
+#string black,$[$xa+0.3],$[$ya+0.3],A\
+#string black,$[$xb+0.15],$[$yb+0.3],B\
+#string black,$[$xc+0.3],$[$yc+0.3],C\
+#string black,$[0.5*$xc-0.3],$[0.5*$yc],b\
+#string black,$[0.5*$xb],-1,c\
+#string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],a\
+#mathml -4,$max,$max,-4,$m
+#
+#exotext=$empty
+

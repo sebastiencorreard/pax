@@ -1,0 +1,205 @@
+!set title=Trinôme du second degré 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r,r,r,r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$val8*(x-$val6)^2+$val7
+t_=!replace internal \( by ( in $val9
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val10=$(tmp1)
+t_=!rawmath $val6
+val11=!exec pari print($t_)
+t_=!rawmath $val7
+val12=!exec pari print($t_)
+val13=\(\searrow),\(\nearrow)
+
+!ifval $val8>0
+val14=1,2
+!else
+val14=2,1
+!endif
+val15=$(val13[$val14])
+
+!ifval $val8>0
+val16=$[rint(1)]
+!else
+val16=$[rint(2)]
+!endif
+val17=x=$val6
+tmp0=!randint 1, 5
+
+val18=$[rint($(tmp0))]
+t_=!rawmath $val11-$val18
+val19=!exec pari print($t_)
+t_=!rawmath $val11+$val18
+val20=!exec pari print($t_)
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val21=!exec pari print($t_)
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val20) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val22=!exec pari print($t_)
+
+!ifval $val8>0
+tmp0=!randint $val12+0.5, $val21-0.5
+
+val23=$[rint($(tmp0))]
+!else
+tmp1=!randint $val21+0.5, $val12-0.5
+
+val23=$[rint($(tmp1))]
+!endif
+
+!ifval ($val8>0 and $val12<0) or ($val8<0 and $val12>0)
+val24=$[rint(3)]
+!else
+val24=$[rint(1)]
+!endif
+
+!ifval $val12=0
+val24=$[rint(2)]
+!endif
+val25=Aucune solution, une solution unique, deux solutions distinctes
+replytype1=numexp
+replyname1=abscisse du sommet
+replygood1=$val11
+replytype2=numexp
+replyname2=ordonnée gauche
+replygood2=$val21
+replytype3=numexp
+replyname3=ordonnée du sommet
+replygood3=$val12
+replytype4=numexp
+replyname4=ordonnée droite
+replygood4=$val22
+replytype5=radio
+replyname5=f(x) = 0
+replygood5=$val24;$val25
+replytype6=radio
+replyname6=f(x) = $val12
+replygood6=2;$val25
+replytype7=radio
+replyname7=f(x) = $val23
+replygood7=3;$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<ol>	<li>	  Compléter, par les valeurs exactes, le tableau des variations de	  la fonction 
+!insmath f
+$() définie sur [$val19;$val20] par 
+!insmath f(x) = $val10
+$().	<table class="tab_var">	<tr>	<th style="width:10%"> 
+!insmath x
+$()</th>	<td style="width:40%;text-align:left" colspan="2">
+!insmath $val19
+$()</td>	<td style="width:10%">  
+!read oef/embed.phtml reply1,5 
+$() </td>	<td style="width:40%;text-align:right" colspan="2">
+!insmath $val20
+$()</td>	</tr><tr>	<th style="width:10%">
+!insmath var  f
+$()</th>	<td style="width:10%;text-align:left">  
+!read oef/embed.phtml reply2,5 
+$()</td>	<td style="width:30%">$(val15[1]) </td>	<td style="width:10%">  
+!read oef/embed.phtml reply3,5 
+$() </td>	<td style="width:30%"> $(val15[2])</td>	<td style="width:10%;text-align:right"> 
+!read oef/embed.phtml reply4,5 
+$() </td>	</tr>	</table>	</li>	<li> Par lecture du tableau, donner le nombre de solutions sur [$val19;$val20] des équations suivantes:	 <ol>	<li>
+!insmath f(x) = 0
+$():  
+!read oef/embed.phtml reply5 
+$() </li>	<li>
+!insmath f(x) = $val12
+$():  
+!read oef/embed.phtml reply6 
+$() </li>	<li>
+!insmath f(x) = $val23
+$():  
+!read oef/embed.phtml reply7 
+$() </li>	</ol>	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,12,15,19,20,23
+embedcnt=7

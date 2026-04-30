@@ -1,0 +1,131 @@
+!set title=Vecteurs colinéaires ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+computeanswer=no
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 60
+
+tmp1=!randitem -1,1
+
+t_=!rawmath $(tmp0)/10*$(tmp1)
+val8=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+val10=$[rint($(tmp0))]
+
+!ifval ($val9=1)
+val11=$[$val8*$val6 ]
+!else
+val11=$[ (2-$val10)*($val8*$val6)]
+!endif
+
+!ifval ($val9=1)
+val12=$[ $val8*$val7 ]
+!else
+val12=$[ ($val10+1)*($val8*$val7)]
+!endif
+val13=$[$val6*$val12-$val11*$val7]
+replytype1=radio
+replyname1=
+replygood1=$val9;oui,non
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Deux vecteurs sont colinéaires si leur déterminant est nul.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Les vecteurs	
+!insmath \overrightarrow{u} \left ( \begin{array}{c}$val6\\ $val7 \end{array}\right ) 
+$()	et 
+!insmath \overrightarrow{v} \left ( \begin{array}{c}$val11\\ $val12 \end{array}\right ) 
+$()	sont-ils colinéaires?  
+!read oef/embed.phtml r1 
+$()
+$()
+!exit
+
+:hint
+$()Deux vecteurs sont colinéaires si leur déterminant est nul.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!if $val9=1 
+$()Le déterminant des deux vecteurs est	
+!insmath $val6 \times($val12)-($val11)\times($val7)=$val13 
+$() donc les vecteurs sont colinéaires. 
+!else
+$()	 Le déterminant des deux vecteurs est 
+!insmath  $val6 \times ($val12)-($val11) \times($val7)=$val13 \ne 0 
+$()	donc les vecteurs ne sont pas colinéaires. 
+!endif
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,12,13
+embedcnt=1

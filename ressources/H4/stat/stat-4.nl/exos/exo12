@@ -1,0 +1,375 @@
+# normaal waarschijnlijkheidspapier
+
+n=$counter
+
+total_exos=2
+
+!if $counter=1
+    math=0
+    rounding=100
+    mathview=0
+    # JAVA
+    var8=0
+    questiontype=7
+    javascript=js/normaal_waarschijnlijkheids_papier3.js
+    inputs=yes
+    applet=0
+    image=0
+    plot=0
+    make_tr=1
+    checkfile=exos/checkfile4.proc
+    xsize=480
+    ysize=480
+    gem=!randint 14,24
+    gem=$[$gem*10]
+    sigma=!randint 10,25
+    #stapgrootte in de grafiek
+    var1=$[10*(round($sigma/10))]
+    # plaatje
+    k1=!randint 3,6
+    k2=$[10-$k1]
+    xmin=$[$gem - $k1*$var1]
+    xmax=$[$gem + $k2*$var1]
+    var2=$xmin
+    # z-waarde
+    factor1=!randint 5,20
+    factor1=$[$factor1/10]
+    factor2=!randint 5,20
+    factor2=$[$factor2/10]
+    weight1=$[$gem - $factor1*$sigma]
+    weight2=$[$gem + $factor2*$sigma]
+    kans1=$[0.5*(erf(-1*$factor1/sqrt(2)) - erf(-100000/sqrt(2)))]
+    kans2=$[0.5*(erf(100000/sqrt(2)) - erf($factor2/sqrt(2)))]
+    perc1=$[100*$kans1]
+    perc2=$[100*$kans2]
+    total=!randint 11,99
+    total=$[$total*100]
+    amount1=$[round($kans1*$total)]
+    amount2=$[round($kans2*$total)]
+    # answer1 is de lijn door ($[$gem - 3*$sigma],-3) en ($[$gem + 3*$sigma],3)
+    # y=rc*x+q
+    
+    rc=$[6/(6*$sigma)]
+    q=$[3 - ($rc)*($gem+3*$sigma)]
+    answer1=($rc)*x+($q)
+    answer2=$sigma,$gem
+    # 
+    textanswer1=
+    sometext=!record 24 of lang/remarks.$taal
+    txt1=!item 1 of $sometext
+    txt2=!item 2 of $sometext
+    #@gemiddelde,gewicht in grammen
+    textanswer2=<ul><li>$txt1 : $gem</li><li>$m_sigma : $sigma</li></ul>
+    #
+    #
+    fruits=!record 25 of lang/remarks.$taal
+    #@sinaasappels,peren,appels,grapefruits,avocado's,aubergines
+    fruits=!randitem $fruits
+    ss=!record 26 of lang/remarks.$taal
+    #@Het gewicht van een partij $fruits is normaal verdeeld.<br />De totale partij bestaat uit $total stuks $fruits .<br />$amount1 $fruits van deze partij heeft een gewicht minder dan $weight1 gram.<br />$amount2 $fruits van deze partij heeft een gewicht meer dan $weight2 gram.
+    addtext=!record 61 of lang/remarks.$taal
+    
+    ss1=!record 27 of lang/remarks.$taal
+    #@Teken de lijn die hoort bij deze normale verdeling op het onderstaand normaal waarschijnlijkheidspapier<br /><small>Let op: de applet geeft de coordinaten (x:y) van de muispositie aan.<br />De x-waarde is het gewicht; de y-waarde is niet het percentage, maar de <em>z-waarde</em> !<br />Het percentage moet je dus aflezen van de y-as</small>
+    
+    ss2=!record 28 of lang/remarks.$taal
+    #@De correcte normale verdeling is getekend als groene lijn...<br />Bepaal nu met behulp van onderstaand normaal waarschijnlijkheidspapier<br />het gemiddelde en de standaardafwijking. <br />Laat de benodigde hulplijnstukken in de applet staan: deze worden ook nagekeken !
+    question1=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo3.png\' alt=\'plaatje\' />')">$ss<br /><br /><em>$ss1</em></a>
+    question2=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo3.png\' alt=\' plaatje\' /><br />$addtext')">$ss<br /><br /><em>$ss2</em></a>
+    
+    vline=$empty
+    xscale=$empty
+    gridcolor1=blue
+    gridcolor2=green
+    color=!randitem green,blue,orange,black
+    !for p=$xmin to $xmax step $var1
+	vline=!append line line $p,-3.719,$p,3.09,$gridcolor1,255,1 to $vline
+	xtext=!append line text $[$p-$var1/3],-3.96,helvetica,12,$p,black to $xtext
+	vtic=!append line line $p,-3.75,$p,-3.6,black,255,2 to $vtic
+    !next p
+    xtext=!append line $ text $[$xmin+3*$var1],-3.5,helvetica,16, $fruits ($txt2) ,black $ to $xtext
+    # tic
+    dx=$[round($var1/5+$xmin)]
+    
+    # de correcte lijn voor opgave 2
+    var4=line $[$gem - 3*$sigma],-3,$[$gem + 3*$sigma],3,green
+    
+    data=mouse yes\
+    coordinates yes\
+    precision 100\
+    userdraw line\
+    clickcolor red,200\
+    xrange $[$xmin-$var1],$xmax\
+    yrange -4,4\
+    $vline\
+    line $xmin,-3.7190,$xmax,-3.7190,$gridcolor1\
+    line $xmin,-3.2905,$xmax,-3.2905,$gridcolor1\
+    line $xmin,-3.0902,$xmax,-3.0902,$gridcolor1\
+    line $xmin,-2.8782,$xmax,-2.8782,$gridcolor1\
+    line $xmin,-2.5758,$xmax,-2.5758,$gridcolor1\
+    line $xmin,-2.3263,$xmax,-2.3263,$gridcolor1\
+    line $xmin,-2.0537,$xmax,-2.0537,$gridcolor1\
+    line $xmin,-1.6449,$xmax,-1.6449,$gridcolor1\
+    line $xmin,-1.2816,$xmax,-1.2816,$gridcolor1\
+    line $xmin,-0.84162,$xmax,-0.84162,$gridcolor1\
+    line $xmin,-0.52440,$xmax,-0.52440,$gridcolor1\
+    line $xmin,-0.25335,$xmax,-0.25335,$gridcolor1\
+    line $xmin,0,$xmax,0,$gridcolor1\
+    line $xmin,0.25335,$xmax,0.25335,$gridcolor1\
+    line $xmin,0.52440,$xmax,0.52440,$gridcolor1\
+    line $xmin,0.84162,$xmax,0.84162,$gridcolor1\
+    line $xmin,1.2816,$xmax,1.2816,$gridcolor1\
+    line $xmin,1.3408,$xmax,1.3408,$gridcolor2,160,1\
+    line $xmin,1.6449,$xmax,1.6449,$gridcolor1\
+    line $xmin,2.0537,$xmax,2.0537,$gridcolor1\
+    line $xmin,2.3263,$xmax,2.3263,$gridcolor1\
+    line $xmin,2.5758,$xmax,2.5758,$gridcolor1\
+    line $xmin,2.8782,$xmax,2.8782,$gridcolor1\
+    line $xmin,3.0902,$xmax,3.0902,$gridcolor1\
+    line $xmin,-3.4316,$xmax,-3.4316,$gridcolor2,160,1\
+    line $xmin,-3.5401,$xmax,-3.5401,$gridcolor2,160,1\
+    line $xmin,-3.3528,$xmax,-3.3528,$gridcolor2,160,1\
+    line $xmin,-3.2389,$xmax,-3.2389,$gridcolor2,160,1\
+    line $xmin,-3.1947,$xmax,-3.1947,$gridcolor2,160,1\
+    line $xmin,-3.1559,$xmax,-3.1559,$gridcolor2,160,1\
+    line $xmin,-3.1214,$xmax,-3.1214,$gridcolor2,160,1\
+    line $xmin,-2.9677,$xmax,-2.9677,$gridcolor2,160,1\
+    line $xmin,-2.7478,$xmax,-2.7478,$gridcolor2,160,1\
+    line $xmin,-2.6521,$xmax,-2.6521,$gridcolor2,160,1\
+    line $xmin,-2.5121,$xmax,-2.5121,$gridcolor2,160,1\
+    line $xmin,-2.4573,$xmax,-2.4573,$gridcolor2,160,1\
+    line $xmin,-2.4089,$xmax,-2.4089,$gridcolor2,160,1\
+    line $xmin,-3.5401,$xmax,-3.5401,$gridcolor2,100,1\
+    line $xmin,-2.3656,$xmax,-2.3656,$gridcolor2,100,1\
+    line $xmin,-2.1973,$xmax,-2.1973,$gridcolor2,100,1\
+    line $xmin,-2.1444,$xmax,-2.1444,$gridcolor2,100,1\
+    line $xmin,-2.2571,$xmax,-2.2571,$gridcolor2,100,1\
+    line $xmin,-2.0969,$xmax,-2.0969,$gridcolor2,100,1\
+    line $xmin,-1.8808,$xmax,-1.8808,$gridcolor2,100,1\
+    line $xmin,-1.7507,$xmax,-1.7507,$gridcolor2,100,1\
+    line $xmin,-1.5548,$xmax,-1.5548,$gridcolor2,100,1\
+    line $xmin,-1.4758,$xmax,-1.4758,$gridcolor2,100,1\
+    line $xmin,-1.4051,$xmax,-1.4051,$gridcolor2,100,1\
+    line $xmin,-1.3408,$xmax,-1.3408,$gridcolor2,100,1\
+    line $xmin,-1.1750,$xmax,-1.1750,$gridcolor2,100,1\
+    line $xmin,-1.1264,$xmax,-1.1264,$gridcolor2,100,1\
+    line $xmin,-1.0803,$xmax,-1.0803,$gridcolor2,100,1\
+    line $xmin,-1.0364,$xmax,-1.0364,$gridcolor2,100,1\
+    line $xmin,-0.99446,$xmax,-0.99446,$gridcolor2,100,1\
+    line $xmin,-0.95417,$xmax,-0.95417,$gridcolor2,100,1\
+    line $xmin,-0.91537,$xmax,-0.91537,$gridcolor2,100,1\
+    line $xmin,-0.87790,$xmax,-0.87790,$gridcolor2,100,1\
+    line $xmin,-0.77219,$xmax,-0.77219,$gridcolor2,100,1\
+    line $xmin,-0.70630,$xmax,-0.70630,$gridcolor2,100,1\
+    line $xmin,-0.64335,$xmax,-0.64335,$gridcolor2,100,1\
+    line $xmin,-0.58284,$xmax,-0.58284,$gridcolor2,100,1\
+    line $xmin,-0.46770,$xmax,-0.46770,$gridcolor2,100,1\
+    line $xmin,-0.41246,$xmax,-0.41246,$gridcolor2,100,1\
+    line $xmin,-0.35846,$xmax,-0.35846,$gridcolor2,100,1\
+    line $xmin,-0.30548,$xmax,-0.30548,$gridcolor2,100,1\
+    line $xmin,-1.2265,$xmax,-1.2265,$gridcolor2,100,1\
+    line $xmin,-0.20189,$xmax,-0.20189,$gridcolor2,100,1\
+    line $xmin,-0.15097,$xmax,-0.15097,$gridcolor2,100,1\
+    line $xmin,-0.10043,$xmax,-0.10043,$gridcolor2,100,1\
+    line $xmin,-0.050154,$xmax,-0.050154,$gridcolor2,100,1\
+    line $xmin,0.050154,$xmax,0.050154,$gridcolor2,100,1\
+    line $xmin,0.10043,$xmax,0.10043,$gridcolor2,100,1\
+    line $xmin,0.15097,$xmax,0.15097,$gridcolor2,100,1\
+    line $xmin,0.20189,$xmax,0.20189,$gridcolor2,100,1\
+    line $xmin,0.30548,$xmax,0.30548,$gridcolor2,100,1\
+    line $xmin,0.35846,$xmax,0.35846,$gridcolor2,100,1\
+    line $xmin,0.41246,$xmax,0.41246,$gridcolor2,100,1\
+    line $xmin,0.46770,$xmax,0.46770,$gridcolor2,100,1\
+    line $xmin,0.55338,$xmax,0.55338,$gridcolor2,100,1\
+    line $xmin,0.58284,$xmax,0.58284,$gridcolor2,100,1\
+    line $xmin,0.64335,$xmax,0.64335,$gridcolor2,100,1\
+    line $xmin,0.70630,$xmax,0.70630,$gridcolor2,100,1\
+    line $xmin,0.77219,$xmax,0.77219,$gridcolor2,100,1\
+    line $xmin,0.91537,$xmax,0.91537,$gridcolor2,100,1\
+    line $xmin,0.95417,$xmax,0.95417,$gridcolor2,100,1\
+    line $xmin,0.99446,$xmax,0.99446,$gridcolor2,100,1\
+    line $xmin,1.0364,$xmax,1.0364,$gridcolor2,100,1\
+    line $xmin,1.0803,$xmax,1.0803,$gridcolor2,100,1\
+    line $xmin,1.1264,$xmax,1.1264,$gridcolor2,100,1\
+    line $xmin,1.1750,$xmax,1.1750,$gridcolor2,100,1\
+    line $xmin,1.2265,$xmax,1.2265,$gridcolor2,100,1\
+    line $xmin,1.4051,$xmax,1.4051,$gridcolor2,100,1\
+    line $xmin,1.4758,$xmax,1.4758,$gridcolor2,100,1\
+    line $xmin,1.5548,$xmax,1.5548,$gridcolor2,100,1\
+    line $xmin,1.7507,$xmax,1.7507,$gridcolor2,100,1\
+    line $xmin,1.8808,$xmax,1.8808,$gridcolor2,100,1\
+    line $xmin,2.0969,$xmax,2.0969,$gridcolor2,100,1\
+    line $xmin,2.1444,$xmax,2.1444,$gridcolor2,100,1\
+    line $xmin,2.1973,$xmax,2.1973,$gridcolor2,100,1\
+    line $xmin,2.2571,$xmax,2.2571,$gridcolor2,100,1\
+    line $xmin,2.4089,$xmax,2.4089,$gridcolor2,100,1\
+    line $xmin,2.4573,$xmax,2.4573,$gridcolor2,100,1\
+    line $xmin,2.5121,$xmax,2.5121,$gridcolor2,100,1\
+    line $xmin,2.6521,$xmax,2.6521,$gridcolor2,100,1\
+    line $xmin,2.7478,$xmax,2.7478,$gridcolor2,100,1\
+    line $xmin,2.9677,$xmax,2.9677,$gridcolor2,100,1\
+    $vtic\
+    $xtext\
+    line $xmin,-3.7190,$dx,-3.7190,black\
+    line $xmin,-3.2905,$dx,-3.2905,black\
+    line $xmin,-3.0902,$dx,-3.0902,black\
+    line $xmin,-2.8782,$dx,-2.8782,black\
+    line $xmin,-2.5758,$dx,-2.5758,black\
+    line $xmin,-2.3263,$dx,-2.3263,black\
+    line $xmin,-2.0537,$dx,-2.0537,black\
+    line $xmin,-1.6449,$dx,-1.6449,black\
+    line $xmin,-1.2816,$dx,-1.2816,black\
+    line $xmin,-0.84162,$dx,-0.84162,black\
+    line $xmin,-0.52440,$dx,-0.52440,black\
+    line $xmin,-0.25335,$dx,-0.25335,black\
+    line $xmin,0,$dx,0,black\
+    line $xmin,0.25335,$dx,0.25335,black\
+    line $xmin,0.52440,$dx,0.52440,black\
+    line $xmin,0.84162,$dx,0.84162,black\
+    line $xmin,1.2816,$dx,1.2816,black\
+    line $xmin,1.6449,$dx,1.6449,black\
+    line $xmin,2.0537,$dx,2.0537,black\
+    line $xmin,2.3263,$dx,2.3263,black\
+    line $xmin,2.5758,$dx,2.5758,black\
+    line $xmin,2.8782,$dx,2.8782,black\
+    line $xmin,3.0902,$dx,3.0902,black\
+    line $xmin,-3.4316,$dx,-3.4316,black,160,1\
+    line $xmin,-3.5401,$dx,-3.5401,black,160,1\
+    line $xmin,-3.3528,$dx,-3.3528,black,160,1\
+    line $xmin,-3.2389,$dx,-3.2389,black,160,1\
+    line $xmin,-3.1947,$dx,-3.1947,black,160,1\
+    line $xmin,-3.1559,$dx,-3.1559,black,160,1\
+    line $xmin,-3.1214,$dx,-3.1214,black,160,1\
+    line $xmin,-2.9677,$dx,-2.9677,black,160,1\
+    line $xmin,-2.7478,$dx,-2.7478,black,160,1\
+    line $xmin,-2.6521,$dx,-2.6521,black,160,1\
+    line $xmin,-2.5121,$dx,-2.5121,black,160,1\
+    line $xmin,-2.4573,$dx,-2.4573,black,160,1\
+    line $xmin,-2.4089,$dx,-2.4089,black,160,1\
+    line $xmin,-2.3656,$dx,-2.3656,black,100,1\
+    line $xmin,-2.1973,$dx,-2.1973,black,100,1\
+    line $xmin,-2.1444,$dx,-2.1444,black,100,1\
+    line $xmin,-2.2571,$dx,-2.2571,black,100,1\
+    line $xmin,-2.0969,$dx,-2.0969,black,100,1\
+    line $xmin,-1.8808,$dx,-1.8808,black,100,1\
+    line $xmin,-1.7507,$dx,-1.7507,black,100,1\
+    line $xmin,-1.5548,$dx,-1.5548,black,100,1\
+    line $xmin,-1.4758,$dx,-1.4758,black,100,1\
+    line $xmin,-1.4051,$dx,-1.4051,black,100,1\
+    line $xmin,-1.3408,$dx,-1.3408,black,100,1\
+    line $xmin,-1.1750,$dx,-1.1750,black,100,1\
+    line $xmin,-1.1264,$dx,-1.1264,black,100,1\
+    line $xmin,-1.0803,$dx,-1.0803,black,100,1\
+    line $xmin,-1.0364,$dx,-1.0364,black,100,1\
+    line $xmin,-0.99446,$dx,-0.99446,black,100,1\
+    line $xmin,-0.95417,$dx,-0.95417,black,100,1\
+    line $xmin,-0.91537,$dx,-0.91537,black,100,1\
+    line $xmin,-0.87790,$dx,-0.87790,black,100,1\
+    line $xmin,-0.77219,$dx,-0.77219,black,100,1\
+    line $xmin,-0.70630,$dx,-0.70630,black,100,1\
+    line $xmin,-0.64335,$dx,-0.64335,black,100,1\
+    line $xmin,-0.58284,$dx,-0.58284,black,100,1\
+    line $xmin,-0.46770,$dx,-0.46770,black,100,1\
+    line $xmin,-0.41246,$dx,-0.41246,black,100,1\
+    line $xmin,-0.35846,$dx,-0.35846,black,100,1\
+    line $xmin,-0.30548,$dx,-0.30548,black,100,1\
+    line $xmin,-1.2265,$dx,-1.2265,black,100,1\
+    line $xmin,-0.20189,$dx,-0.20189,black,100,1\
+    line $xmin,-0.15097,$dx,-0.15097,black,100,1\
+    line $xmin,-0.10043,$dx,-0.10043,black,100,1\
+    line $xmin,-0.050154,$dx,-0.050154,black,100,1\
+    line $xmin,0.050154,$dx,0.050154,black,100,1\
+    line $xmin,0.10043,$dx,0.10043,black,100,1\
+    line $xmin,0.15097,$dx,0.15097,black,100,1\
+    line $xmin,0.20189,$dx,0.20189,black,100,1\
+    line $xmin,0.30548,$dx,0.30548,black,100,1\
+    line $xmin,0.35846,$dx,0.35846,black,100,1\
+    line $xmin,0.41246,$dx,0.41246,black,100,1\
+    line $xmin,0.46770,$dx,0.46770,black,100,1\
+    line $xmin,0.55338,$dx,0.55338,black,100,1\
+    line $xmin,0.58284,$dx,0.58284,black,100,1\
+    line $xmin,0.64335,$dx,0.64335,black,100,1\
+    line $xmin,0.70630,$dx,0.70630,black,100,1\
+    line $xmin,0.77219,$dx,0.77219,black,100,1\
+    line $xmin,0.91537,$dx,0.91537,black,100,1\
+    line $xmin,0.95417,$dx,0.95417,black,100,1\
+    line $xmin,0.99446,$dx,0.99446,black,100,1\
+    line $xmin,1.0364,$dx,1.0364,black,100,1\
+    line $xmin,1.0803,$dx,1.0803,black,100,1\
+    line $xmin,1.1264,$dx,1.1264,black,100,1\
+    line $xmin,1.1750,$dx,1.1750,black,100,1\
+    line $xmin,1.2265,$dx,1.2265,black,100,1\
+    line $xmin,1.4051,$dx,1.4051,black,100,1\
+    line $xmin,1.4758,$dx,1.4758,black,100,1\
+    line $xmin,1.5548,$dx,1.5548,black,100,1\
+    line $xmin,1.7507,$dx,1.7507,black,100,1\
+    line $xmin,1.8808,$dx,1.8808,black,100,1\
+    line $xmin,2.0969,$dx,2.0969,black,100,1\
+    line $xmin,2.1444,$dx,2.1444,black,100,1\
+    line $xmin,2.1973,$dx,2.1973,black,100,1\
+    line $xmin,2.2571,$dx,2.2571,black,100,1\
+    line $xmin,2.4089,$dx,2.4089,black,100,1\
+    line $xmin,2.4573,$dx,2.4573,black,100,1\
+    line $xmin,2.5121,$dx,2.5121,black,100,1\
+    line $xmin,2.6521,$dx,2.6521,black,100,1\
+    line $xmin,2.7478,$dx,2.7478,black,100,1\
+    line $xmin,2.9677,$dx,2.9677,black,100,1\
+    text $[$xmin-$var1],-3.7190,helvetica,12,0.01 %,black\
+    text $[$xmin-$var1],-3.2905,helvetica,12,0.05 %,black\
+    text $[$xmin-$var1],-3.0902,helvetica,12,0.1 %,black\
+    text $[$xmin-$var1],-2.8782,helvetica,12,0.2 %,black\
+    text $[$xmin-$var1],-2.5758,helvetica,12,0.5 %,black\
+    text $[$xmin-$var1],-2.3263,helvetica,12,1 %,black\
+    text $[$xmin-$var1],-2.0537,helvetica,12,2 %,black\
+    text $[$xmin-$var1],-1.6449,helvetica,12,5 %,black\
+    text $[$xmin-$var1],-1.2816,helvetica,12,10 %,black\
+    text $[$xmin-$var1],-0.84162,helvetica,12,20 %,black\
+    text $[$xmin-$var1],-0.52440,helvetica,12,30 %,black\
+    text $[$xmin-$var1],-0.25335,helvetica,12,40 %,black\
+    text $[$xmin-$var1],0,helvetica,12,50 %,black\
+    text $[$xmin-$var1],0.25335,helvetica,12,60 %,black\
+    text $[$xmin-$var1],0.52440,helvetica,12,70 %,black\
+    text $[$xmin-$var1],0.84162,helvetica,12,80 %,black\
+    text $[$xmin-$var1],1.2816,helvetica,12,90 %,black\
+    text $[$xmin-$var1],1.6449,helvetica,12,95 %,black\
+    text $[$xmin-$var1],2.0537,helvetica,12,98 %,black\
+    text $[$xmin-$var1],2.3263,helvetica,12,99 %,black\
+    text $[$xmin-$var1],2.5758,helvetica,12,99.5 %,black\
+    text $[$xmin-$var1],2.8782,helvetica,12,99.8 %,black\
+    text $[$xmin-$var1],3.0902,helvetica,12,99.9 %,black\
+    linewidth 2
+
+    myname=1.data
+    !filewrite getfile/$myname $data
+
+    #prob_paper=<applet id="FlyApplet" codebase="$appletdir" archive="FlyApplet.jar" code="FlyApplet.class" width="540" height="540"><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname">$nojava</applet>
+    prob_paper=<object id="FlyApplet" width="$xsize" height="$ysize" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname"/>$nojava</object>
+
+    checkfile=exos/checkfile4.proc
+
+!else
+    myname=1.data
+    
+    !fileappend getfile/$myname $var4\
+    userdraw mlines
+    
+    #prob_paper=<applet id="FlyApplet" codebase="$appletdir" archive="FlyApplet.jar" code="FlyApplet.class" width="540" height="540"><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname">$nojava</applet>
+    prob_paper=<object id="FlyApplet" width="$xsize" height="$ysize" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname"/>$nojava</object>
+	
+    #@Het gewicht van een partij $fruits is normaal verdeeld.<br />De totale partij bestaat uit $total stuks $fruits .<br />$amount1 $fruits van deze partij heeft een gewicht minder dan $weight1 gram.<br />$amount2 $fruits van deze partij heeft een gewicht meer dan $weight2 gram.
+    addtext=!record 61 of lang/remarks.$taal
+    
+    helptext=<img src=\'$module_dir/gifs/exo3.png\' alt=\'noalt\' />
+
+!endif
+
+textanswer$n=!append line $prob_paper to $(textanswer$n)
+
+!exit
+
+
+
+
+#data ; gestripte kopie van exo2
+# gewicht appels 150 gr
+

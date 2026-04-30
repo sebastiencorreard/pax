@@ -1,0 +1,200 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+#slechts 1 vraag 
+#kijkt groeiformule na...
+# het leerling antwoord moet zijn: y=12*3^x of zo
+math=1
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+AAA=!lower $(reply$n)
+AAA=!nospace $AAA
+
+# mogelijke andere correcte schijfwijzen f(t) f:x-> 
+AAA=!replace internal --> by -> in $AAA
+AAA=!replace internal => by -> in $AAA
+AAA=!replace internal ==> by -> in $AAA
+AAA=!replace internal f:x-> by y= in $AAA
+AAA=!replace internal f(x)= by y= in $AAA
+
+t1=!replace internal = by @ in $AAA
+!if @ notin $t1
+    maxscore=$[$P1*$maxscore]
+    !increase try
+    errortext=!record 26 of lang/remarks.$taal
+    #@ Je met natuurlijk wel een <em>nette formule</em> maken<br />In elk geval iets met een "=" teken...
+    goback=1
+    !exit
+!endif
+
+t1=!replace internal x= by @ in $AAA
+!if @ isin $t1
+    ex=!record 27 of lang/remarks.$taal
+    #@Je hebt de <em>x</em> en de <em>y</em> verwisseld...
+    !if $teaching=1
+	!increase try
+	maxscore=$[$P6*$maxscore]
+	goback=1
+	errortext=$ex
+    !else
+	remark$n=$NOK<br />$ex
+	goback=0
+	maxscore=0
+    !endif
+ !exit
+!endif
+
+t1=!replace internal ^y by @ in $AAA
+!if @ isin $t1
+    ex=!record 27 of lang/remarks.$taal
+    #@Je hebt de <em>y</em> en de <em>x</em> verwisseld...
+    !if $teaching=1
+	!increase try
+	maxscore=$[$P6*$maxscore]
+	goback=1
+	errortext=$ex
+    !else
+	remark$n=$NOK<br />$ex
+	goback=0
+	maxscore=0
+    !endif
+ !exit
+!endif
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!nospace $AAA
+!if $teaching=1
+    test=!replace internal ^ by @ in $AAA
+    !if @ notin $test
+	errortext=!record 28 of lang/remarks.$taal
+	#@Ik verwacht een exponenti&euml;le functie<br />dus iets met een ^-symbool <br />een andere schrijfwijze voor machten is:<br /><span style="color:blue>" 4<sup>5</sup> = 4^5 = 4**5 </span>
+	goback=1
+	!increase try
+	maxscore=$[$P4*$maxscore]
+     !exit
+    !endif
+!endif
+
+
+
+t1=!replace internal =y by @ in $AAA
+!if @ isin $t1
+    extra=!record 29 of lang/remarks.$taal
+    #@Het is echt handiger als je schrijft: y=10^x in plaats van 10^x=y
+    maxscore=$[$P2*$maxscore]
+    !if $teaching=1
+	!increase try
+	errortext=$extra
+	goback=1
+	!exit
+    !else
+	t1=!replace internal @ by $empty in $t1
+	AAA=!nospace y = $t1
+    !endif
+!endif
+
+
+
+t1=!replace internal y= by @ in $AAA
+
+!if @ notin $t1
+    maxscore=$[$P2*$maxscore]
+    !increase try
+    errortext=!record 30 of lang/remarks.$taal
+    #@je moet natuurlijk wel een nette formule geven...<br />wat te denken van beginnen met<br /><span style="color:blue>" y = ....... </span>
+    goback=1
+    !exit
+!endif
+
+!if x notin $AAA
+    !if $teaching=1
+	maxscore=$[$P6*$maxscore]
+	!increase try
+	errortext=!record 83 of lang/remarks.$taal
+	#$voornaam , je moet natuurlijk wel een nette formule geven..<br />wat te denken van beginnen met<br />
+	<span style="color:blue>" y = iets*(nogiets)^x ? </span>
+	goback=1
+	!exit
+    !else
+	maxscore=0
+	remark$n=$NOK
+	goback=0
+	!exit
+    !endif
+!endif
+
+
+AAA=!replace internal y= by $empty in $AAA
+AAA=!replace internal x by X in $AAA
+!for i in sqrt,abs,sin,cos,tan,log,ln
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+
+AAA=!replace [a-z\~\`\!\@\#\%\_\:\;\'\"] by $empty in $AAA
+AAA=!lower $AAA
+AAA=!rawmath $AAA
+
+!if $rounding<1
+    rounding=10000
+!endif
+
+A1=!replace internal x by 1 in $AAA
+!if NaN isin $A1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P4*$maxscore]
+    !increase try
+    goback=1
+    !exit
+!endif
+G1=!replace internal x by 1 in $(answer$n)
+A0=!replace internal x by 0 in $AAA
+G0=!replace internal x by 0 in $(answer$n)
+!if $rounding<1
+    rounding=1000000
+!endif
+A2=$[(round($rounding*(($A1)/($A0))))/$rounding]
+G2=$[(round($rounding*(($G1)/($G0))))/$rounding]
+G0=$[(round($rounding*($G0)))/$rounding]
+A0=$[(round($rounding*($A0)))/$rounding]
+score=0
+
+!ifval $A0=$G0 and $A2=$G2
+    score=1
+    remark$n=$OK
+!else
+    !ifval $A2=$G2
+	score=$P3
+	ex=!record 32 of lang/remarks.$taal
+	#@<br />Je hebt de groeifactor wel redelijk goed
+	remark$n=$OK
+	extra=!append line $ex to $extra
+    !else
+	!ifval $A0=$G0
+	    score=$P3
+	    remark$n=$BOK
+	    ex=!record 33 of lang/remarks.$taal
+	    #@<br />De waarde van <em>exponent</em> was niet inorde...<br />maar de factor was prima...
+	    extra=!append line $ex to $extra
+	!else
+	    remark$n=$NOK
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+!if $extra!=$empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+modulescore=$[$modulescore+$maxscore]
+goback=0
+!exit

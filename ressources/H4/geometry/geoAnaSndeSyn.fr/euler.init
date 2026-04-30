@@ -1,0 +1,255 @@
+!!!! EXO 3 ou 4 sur DROITE d'EULER / PROJETE ORTHO
+!!!! FICHIER COMUN d'INITIALISATION DES VARIABLES
+
+!if $mode1=exo3
+  nbstep=4
+  matrep=rep1,rep2,rep3,rep4,rep5,rep6\
+rep1,rep2,rep4,rep5,rep6\
+rep1,rep2,rep4,rep5,rep6\
+rep1,rep2,rep3,rep4,rep5,rep6
+!else
+  nbstep=5
+  matrep=rep1,rep2,rep4,rep5,rep6\
+\
+rep1,rep2,rep3\
+rep1,rep2\
+rep1,rep2
+!endif
+
+etape=1
+next=0
+
+!!! EXO 3 : points A et B tels que (AB) soit parallèle à un axe
+!!!! avec (BC) oblique et ABC non rectangle en A
+!if $mode1=exo3
+  listrep=rep1,rep2,rep4,rep5,rep6,rep7
+  xA=!randint -6,6
+  yA=!randint -6,6
+  cas=!randitem 0,1
+  !!!! cas=0 (AB) horizontale
+  !if $cas=0
+    yB=$yA
+    !if $xA>0
+      sA=1
+    !else
+      sA=-1
+    !endif
+    tmp=!randint 2,6
+    xB=$[-$sA*$tmp]
+  !else
+    !!!! cas=1 (AB) verticale
+    xB=$xA
+    !if $yA>0
+      sA=1
+    !else
+      sA=-1
+    !endif
+    tmp=!randint 2,6
+    yB=$[-$sA*$tmp]
+  !endif
+  !!! cas=0 : xC différent de xA et xB sinon angle droit
+  !!! cas=1 : yC différent de yA et yB sinon angle droit
+  !if $cas=0
+    !if $yA>0
+      sA=1
+    !else
+      sA=-1
+    !endif
+    tmp=!randint 1,6
+    yC=$[-$sA*$tmp]
+    xC=!randint -6,6
+    !if $xC=$xA or $xC=$xB
+      tmp=!randitem -1,1
+      xC=$[$xC+$tmp]
+    !endif
+  !else
+!!!! cas=1 (AB) verticale
+    !if $xA>0
+      sA=1
+    !else
+      sA=-1
+    !endif
+    tmp=!randint 2,6
+    xC=$[-$sA*$tmp]
+    yC=!randint -6,6
+    !if $yC=$yA or $yC=$yB
+      tmp=!randitem -1,1
+      yC=$[$yC+$tmp]
+    !endif
+  !endif
+!endif
+!!! END A,B,C dans exo3
+
+!!! DEF PTS EXO4 : droite oblique (BC) et point A non sur (BC)
+!!! pente de (BC) correspondant à un angle remarquable
+
+!if $mode1=exo4
+  xC=0
+  s=!randitem -1,1
+  yC=!randint 2,6
+  yC=$[$s*$yC]
+  i=!randint 1,8
+  mbc=-1,1,2,-2,1/2,-1/2,3,-3
+  nbc=1,-1,-1/2,1/2,-2,2,-1/3,1/3
+  xD=1,1,2,2,1,1,3,3
+  m=!item $i of $mbc
+  n=!item $i of $nbc
+  p=$yC
+  yB=0
+  xB=!exec pari ($yC*($n))
+  xA=!randint -5,5
+  yA=!randint -5,5
+  !if $yA=$[$m*$xA+$yC]
+    s=!randitem -2,2,3,-3
+    yA=$[$yA+$s]
+  !endif
+!!! POINT P projete de A sur (BC)
+  q=!exec pari ($yA-$n*($xA))
+  xP=!exec pari (($q-($p))/($m-($n)))
+  yP=!exec pari ($m*($xP)+($p))
+  !!q=!exec maxiam $yA-($n)*($xA)
+  !!xP=!exec maxima ($q-$p)/($m-$n)
+  !!yP=!exec maxima $m*($xP)+($p)
+!!! POINT par défaut D
+  repxD=!item $i of $xD
+  !!repyD=!exec maxima expand ($n*$repxD+$p)
+  repyD=!exec pari $n*($repxD)+($p)
+!endif
+!!! END DEF PTS EXO4
+!!!! SPECIAL EXO3
+!if $mode1=exo3
+  !!!! EXO3 , ETAPE 1 ,  I milieu de [AB]
+  repxI=!exec pari ($xA+($xB))/2
+  repyI=!exec pari ($yA+($yB))/2
+  !!! vecteur AI
+  repxCI=!exec pari $repxI-($xC)
+  repyCI=!exec pari $repyI-($yC)
+  !!! coordonnées de G
+  repxG=!exec pari $xC+2/3*($repxCI)
+  repyG=!exec pari $yC+2/3*($repyCI)
+!!!! ETAPE 2 , pied P de la hauteur issue de A, hauteurs issues de C et de A
+!!! equation de (BC) et pied P de la hauteur issue de A
+  m=!exec pari ($yC-($yB))/($xC-($xB))
+  n=!exec pari (-1)/($m)
+  p=!exec pari $yB - ($m)*($xB)
+  q=!exec pari $yA-($n)*($xA)
+  xP=!exec pari ($q-($p))/($m-($n))
+  yP=!exec pari $m*($xP)+($p)
+
+!!! equation de la hauteur issue de C (soit x=xC soit y =yC)
+!!! coordonnées de l'orthocentre H (intersection des hteurs)
+  !if $cas=0
+    rephC=x,$xC
+    repxH=$xC
+    repyH=!exec pari $n*($xC)+($q)
+  !else
+    rephC=y,$yC
+    repyH=$yC
+    repxH=!exec pari ($yC - ($q))/($n)
+  !endif
+!!!! EXO3 ETAPE 3
+!!! médiatrice de [BC] (n et r) puis mediatrice repmC de [AB]
+
+!!! J milieu de [BC]
+  xJ=!exec pari ($xB+($xC))/2
+  yJ=!exec pari ($yB+($yC))/2
+!!! ordonnée à l'origine med[BC]
+  r=!exec pari $yJ-($n)*($xJ)
+  !if $cas=0
+    repmC=x,$repxI
+    repxM=$repxI
+    repyM=!exec pari ($n)*($repxI) + ($r)
+  !else
+    repmC=y,$repyI
+    repyM=$repyI
+    repxM=!exec pari ($repyI - ($r))/($n)
+  !endif
+!!!! EXO3 ETAPE 4 : alignement sur la droite d'Euler
+  xgh=!exec pari $repxH-($repxG)
+  ygh=!exec pari $repyH-($repyG)
+  xgm=!exec pari $repxM-($repxG)
+  ygm=!exec pari $repyM-($repyG)
+  co1=!exec pari $xgh*($ygm)
+  co2=!exec pari $ygh*($xgm)
+  repco=$xgh,$ygh,$xgm,$ygm,$co1,$co2
+!endif
+!!! END SPECIAL EXO 3
+!!!!!!!!!!!! DESSIN
+
+!!!! Calcul du Range
+!if $mode1=exo3
+  listx=0,$xA,$xB,$xC,$xP,$repxH,$repxM
+  listy=0,$yA,$yB,$yC,$yP,$repyH,$repyM
+  d=1
+!else
+  listx=0,$xA,$xB,$xC,$xP,$repxD
+  listy=0,$yA,$yB,$yC,$yP,$repyD
+  d=2
+!endif
+xmax=!exec pari ceil(vecmax([$listx]))+($d)
+ymax=!exec pari ceil(vecmax([$listy]))+ ($d)
+xmin=!exec pari floor(vecmin([$listx]))- ($d)
+ymin=!exec pari floor(vecmin([$listy]))- ($d)
+dx=$[$xmax-($xmin)]
+dy=$[$ymax-($ymin)]
+!!!! Cadre du dessin (repere orthonorme, ajustement)
+unit=!exec pari ceil(vecmin([300/$dy, 300/$dx]))
+insdraw_size=$[$dx*$unit],$[$dy*$unit]
+
+!if $mode1=exo3
+  lines=segments blue,$xA,$yA,$xB,$yB\
+    segments blue,$xB,$yB,$xC,$yC\
+    segments blue,$xC,$yC,$xA,$yA
+!else
+  lines=segments blue,$xmin,$[$m*$xmin+$p],$xmax,$[$m*$xmax+$p]
+!endif
+
+dessin1=xrange $xmin, $xmax\
+yrange $ymin, $ymax\
+parallel $xmin, $ymin, $xmin, $ymax,1,0, $[$dx+ 1], grey\
+parallel $xmin, $ymin, $xmax, $ymin,0,1, $[$dy + 1], grey\
+hline 0,0,black\
+vline 0,0,black\
+arrow 0,0,0,1,8,black\
+arrow 0,0,1,0,8,black\
+text blue,$[$xA+0.3],$[$yA+0.3],medium,A\
+text blue,$[$xB+0.3],$[$yB+0.3],medium,B\
+text blue,$[$xC+0.3],$[$yC+0.3],medium,C\
+$lines\
+fcircle $xA,$yA,5,blue\
+fcircle $xB,$yB,5,blue\
+fcircle $xC,$yC,5,blue
+
+!if $mode1=exo3
+  dessin2=$dessin1\
+  segments green,$xP,$yP,$xA,$yA\
+  segments green,$xP,$yP,$xC,$yC\
+  segments green,$xP,$yP,$xB,$yB\
+  segments blue,$xC,$yC,$xB,$yB\
+  fcircle $xP,$yP,5,green\
+  text green,$[$xP+0.3],$[$yP+0.3],,P\
+  fcircle $repxI,$repyI,5,violet\
+  text violet,$[$repxI+0.3],$[$repyI+0.3],,I\
+  segments violet,$xC,$yC,$repxI,$repyI\
+  fcircle $repxG,$repyG,8,violet\
+  text violet,$[$repxG+0.3],$[$repyG+0.3],medium,G
+!!! hteur issue de C (parallèle à un axe)
+  !if $cas=0
+    tmp=segments green,$xC,$yC,$xC,$yA
+  !else
+    tmp=segments green,$xC,$yC,$xA,$yC
+  !endif
+  dessin3=$dessin2\
+$tmp\
+fcircle $repxH,$repyH,8,green\
+text green,$[$repxH+0.3],$[$repyH+0.3],medium,H\
+segments green,$xC,$yC,$repxH,$repyH\
+segments green,$xA,$yA,$repxH,$repyH
+  dessin4=$dessin3\
+segments brown,$repxI,$repyI,$repxM,$repyM\
+segments brown,$xJ,$yJ,$repxM,$repyM\
+fcircle $repxM,$repyM,8,brown\
+fcircle $xJ,$yJ,5,brown\
+text brown,$[$xJ+0.3],$[$yJ+0.3],,J\
+text brown,$[$repxM+0.3],$[$repyM+0.3],medium,M\
+!endif

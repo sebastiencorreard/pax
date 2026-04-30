@@ -1,0 +1,120 @@
+n=$counter
+mathview=5
+questiontype=10
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+arglist=g(x),y
+var1=1
+# maxima checkt antwoord
+helptext=$empty
+checkfile=exos/checkfile1.proc
+xsize=360
+ysize=360
+image=0
+draw=0
+plot=0
+applet=1
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+pm=!randitem +,-
+mp=!randitem +,-
+keuze=!randitem sin sinus,cos cosinus
+SIN=!word 1 of $keuze
+SINUS=!word 2 of $keuze
+b=!randitem -3,-2,-1,1,2,3
+bb=$[abs($b)]
+c=!randitem -3,-2,-1,1,2,3
+d=!randitem 0.5,1.5,2,3
+helptext=$empty
+!if $R=1
+    c=0
+    answer$n=$b*$SIN($d*x)
+    !if $b=1
+	texanswer$n=g(x) \, = \, \$SIN \left( $d \cdot x \right)
+	bewerken=!record 100 of lang/remarks.$taal
+    !else
+	texanswer$n=g(x) \, = \, $b \cdot \$SIN \left( $d \cdot x \right)
+	bewerken=!record 101 of lang/remarks.$taal
+    !endif
+!else
+    answer$n=$b*$SIN($d*x)+$c
+    !if $b=1
+	texanswer$n=g(x) \, = \, \$SIN \left( $d \cdot x \right) + $c
+	bewerken=!record 102 of lang/remarks.$taal
+    !else
+	texanswer$n=g(x) \, = \, $b \cdot \$SIN \left( $d \cdot x \right) + $c
+	bewerken=!record 103 of lang/remarks.$taal
+    !endif
+!endif
+
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+ss=!record 39 of lang/remarks.$taal
+etext=!record 97 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$etext')">$ss</a>
+#@Gegeven is de functie en grafiek van <em>f(x)</em><br />Bepaal het functie voorschrift van de <font color=$c2>$k2 grafiek <em>g(x)</em></font><br />welke ontstaat door de <font color=$c1> $k1 grafiek van <em>f(x)</em></font> te $bewerken<br /><font size=-1><em>Het functievoorschrift moet een ook $SINUS zijn.<br />Kies bij deze periodieke functies altijd voor de <kbd>simpelste oplossing</kbd> , dus:<br />$SIN(x) in plaats van $SIN(x + 2*pi)<br />$SIN(x+1) in plaats van $SIN(x+1 + 2*pi)<br />tip: de oplossing heeft de generieke vorm :<em>g(x)=a&bull;</em>$SIN<em>(b&bull;x)+c</em><br />,waarbij <em>a</em> en <em>c</em> gehele getallen zijn. <em>b</em> kan bestaan uit gehele en halve getallen.</font>
+
+f=$SIN(x)
+var2=$f
+g=$(answer$n)
+formula$n=\left[ \begin{array}{ccc} f(x) & = & $f \\  g(x) & = & [?] \end{array} \right. 
+
+ymin=$[$c-$bb-3]
+ymax=$[$c+$bb+3]
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -3,10\
+yrange $ymin,$ymax\
+bgcolor white\
+fontfamily 12pt Ariel\
+precision 1\
+opacity 125,255\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+opacity 255,255\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue

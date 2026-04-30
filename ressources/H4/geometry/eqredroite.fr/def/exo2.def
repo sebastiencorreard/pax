@@ -1,0 +1,238 @@
+!set title=Tracer d'une droite à partir de son équation réduite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=25
+prevarcnt=21
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=3
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2,3,3,3
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+val7=$[rint(0)]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+!while  $val10=$val9   
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+!endwhile
+val11=$[rint($val9)]
+t_=!rawmath ($val10-$val9)/($val8-$val7)
+val12=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val12=!exec pari print($t_)
+!if $val6=1 
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7)]
+val13=$val7
+val14=0*y+x-$val7	        
+!endif
+!if $val6=2 
+val9=$[rint($val10)]
+val13=$val9
+val14=y+0*x-$val9
+!endif
+!if $val6=3 
+
+!ifval $val11=0
+val13=$val12*x
+!else
+val13=$val12*x+$val11
+!endif
+val14=y-($val13)
+!endif
+val15=var brd = JXG.JSXGraph.initBoard('jxgbox', {	 axis:true,boundingbox: [-6, 6, 6, -6], grid:true});	jxgbox_rep1 = brd.create('point',jxgbox_var1 , {snapToGrid:true});	jxgbox_rep2 = brd.create('point',jxgbox_var2, {snapToGrid:true} );	d = brd.create('line',[jxgbox_rep1,jxgbox_rep2] );	
+val16=var brd = JXG.JSXGraph.initBoard('jxgbox', {	 axis:true,boundingbox: [-6, 6, 6, -6], grid:true});	jxgbox_rep1 = brd.create('point',[$val7,$val9], {fixed:true});	jxgbox_rep2 = brd.create('point',[xb,yb], {fixed:true} );	d = brd.create('line',[[$val7,$val9],[xb,yb]] );	
+
+!ifval $val6=3
+val17=1 2 3
+!else
+val17=1 2
+!endif
+replytype1=jsxgraph
+
+replyoption1=precision=10 
+replyname1=
+replygood1=?analyze 18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p class="enonce">On veut tracer la droite 
+!insmath (d)
+$() d'équation  réduite 
+!if $val6=1 
+$()
+!insmath x=
+$() 
+!else
+$() 
+!insmath y=
+$() 
+!endif
+$() 
+!insmath $val13
+$().		Pour cela, vous pouvez déplacer les points 
+!insmath A
+$() et 
+!insmath B
+$() 	pour qu'ils appartiennent à la droite 
+!insmath (d)
+$().</p>	<p class="question">Déplacer les points A et B pour que la droite 
+!insmath (AB)
+$() ait pour équation réduite 	
+!if $val6=1 
+$()
+!insmath x=
+$() 
+!else
+$() 
+!insmath y=
+$() 
+!endif
+$() 
+!insmath $val13
+$().</p>	<p class="enonce"><span style="text-decoration:underline;">Attention :</span> dans le cas d'une droite "oblique", placez ces points de manière suffisamment éloignés 	(au moins 4 carreaux) comme vous devriez le faire si vous traciez la droite sur une feuille.</p>	  
+!read oef/embed.phtml r1,400x400	jxgbox	$val15	jxgbox_var1=[0,1] ; jxgbox_var2=[1,0]	   
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($(val18[1;1])) in $evaltmp
+evaltmp=!mathsubst y=($(val18[1;2])) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val19=!exec pari print($t_)
+evaltmp=$val14
+
+evaltmp=!mathsubst x=($(val18[2;1])) in $evaltmp
+evaltmp=!mathsubst y=($(val18[2;2])) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+val21=$[rint(($(val18[1;1])-$(val18[2;1]))^2+($(val18[1;2])-$(val18[2;2]))^2)]
+
+!exit
+
+:feedback
+!ifval $val19!=1 or $val20!=0
+ <div class='oef_feedbacks'><script>	rep=brd.create('line',[[$val7,$val9],[$val8,$val10]],{name:'Correction',Color:'green',fixed:'true'});	</script>	<p> La bonne réponse est représentée en vert.</p>
+$()</div>
+!endif
+!ifval $val21<=9 and   $val19=0 and $val20=0 and $val6=3
+ <div class='oef_feedbacks'>Sur votre copie, vous auriez dû placer les points 	
+!insmath A
+$() et 
+!insmath B
+$() plus éloignés l'un de l'autre, afin d'avoir une précision satisfaisante sur votre graphique. 	Essayez d'en tenir compte la prochaine fois.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+condlist= 1 2
+
+condlist=$val17
+condweight1=5 
+
+!ifval $val19=0 
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(A \in (d)) ?
+condweight2=5 
+
+!ifval $val20=0 and $val21>0 
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(B \in (d)) et \(B\neq A) ?
+condweight3=1 
+
+!ifval $val21 >= 16
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=\(A) et \(B) suffisamment éloignés ?
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,13,14,15,17,18
+embedcnt=1

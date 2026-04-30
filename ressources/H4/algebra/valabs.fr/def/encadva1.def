@@ -1,0 +1,145 @@
+!set title=Encadrement de \({|x|}\)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle -8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8
+
+val6=$(tmp0)
+t_=!replace internal \( by ( in min($(val6[1]),$(val6[2]))
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in max($(val6[1]),$(val6[2]))
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+tmp=!nonempty items {<},{\leq}
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items {<},{\leq}
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+val11=\({<}\),\({\leq}\)
+!if ($val7>0) and ($val8>0) 
+val12=\($val9\)
+val13=\($val10\)
+val14=$[rint($val7)]
+val15=$[rint($val8)]
+!endif
+!if ($val7<0) and ($val8<0) 
+val12=\($val10\)
+val13=\($val9\)
+val14=$[rint(abs($val8))]
+val15=$[rint(abs($val7))]
+!endif
+!if ($val7<0) and ($val8>0) 
+val12=\({\leq}\)
+val14=$[rint(0)]
+!if abs($val7)>abs($val8) 
+val15=$[rint(abs($val7))]
+val13=\($val9\)
+!else
+val15=$[rint(abs($val8))]
+val13=\($val10\)
+!endif
+!endif
+replytype1=numexp
+replyname1=
+replygood1=$val14
+replytype2=clickfill
+replyname2=
+replygood2=$val12;$val11
+replytype3=clickfill
+replyname3=
+replygood3=$val13;$val11
+replytype4=numexp
+replyname4=
+replygood4=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div>Soit un réel 
+!insmath x
+$() tel que 
+!insmath $val7 $val9 x $val10 $val8
+$(). Déterminer l'encadrement le plus précis possible de 
+!insmath |x|
+$().</div>	<div> 
+!read oef/embed.phtml reply1,3 
+$()  
+!read oef/embed.phtml reply2,22x22 
+$() 
+!insmath |x|
+$() 
+!read oef/embed.phtml reply3,22x22 
+$()  
+!read oef/embed.phtml reply4,3 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10
+embedcnt=4

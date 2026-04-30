@@ -1,0 +1,162 @@
+# 1/8/2008 checked :OK
+n=$counter
+checkfile=exos/checkfile1.proc
+!if $rounding<100
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+image=0
+math=0
+m_rightarrow=&nbsp;=&nbsp;
+helptext=$empty
+!if $level=0
+    !if $counter=1
+	options=2
+	maxteller=!randitem 6,8
+	frequentie=1,2,3,4,5,6
+    !else
+	!if $counter=2
+	    options=3
+	    maxteller=!randitem 6,8,10
+	    frequentie=3,4,5,6,7,8,9,10
+	!else
+	    options=5
+	    maxteller=!randitem 8,10,12
+	    frequentie=5,6,7,8,9,10,11,12,13,14,15
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=2
+	maxteller=!randitem 6,8
+	frequentie=1,2,3,4,5,6
+    !else
+	!if $level=2
+	    options=3
+	    maxteller=!randitem 6,8,10
+	    frequentie=3,4,5,6,7,8,9,10
+	!else
+	    options=5
+	    maxteller=!randitem 8,10,12
+	    frequentie=5,6,7,8,9,10,11,12,13,14,15
+	!endif
+    !endif
+!endif
+inputs=$options
+som=0
+deler=0
+!if $rounding<100
+    rounding=1000
+!endif
+meting=!record 10 of lang/remarks.$taal
+#@ meting,seconden,frequentie
+#met1=!item 1 of $meting
+met2=!item 2 of $meting
+met3=!item 3 of $meting
+# eerst getallen maken
+begin=!randint 10,40
+end=$[($counter+1)*($begin+2*$maxteller)]
+!for p=1 to $[2*$maxteller]
+    m=!randint $begin,$end
+    getallen=!append item $m to $getallen
+!next p
+getallen=!listuniq $getallen
+getallen=!sort numeric list $getallen
+data1=$empty
+data2=$empty
+!for p=1 to $maxteller
+    !increase c
+    mm=!item $p of $getallen
+    f=!randitem $frequentie
+    !for s=1 to $f
+	totaal=!append item $mm to $totaal
+    !next s
+    !if $p <= $[$maxteller/2]
+	data1=!append word $ <tr><td>$mm</td><td>$f</td></tr> $ to $data1
+    !else
+	data2=!append word $ <tr><td>$mm</td><td>$f</td></tr> $ to $data2
+    !endif
+    som=$[$som + $mm*$f]
+    deler=$[$deler + $f]
+!next p
+
+# gemiddelde
+ans1=$[$som/$deler]
+NW=0
+!for p=1 to $deler
+    w=!item $p of $totaal
+    W=$[($w-$(ans1))^2]
+    NW=$[$W + $NW]
+!next p
+ans2=$[sqrt($NW/$deler)]
+
+# eerste + derde kwartiel
+totaal=!sort numeric list of $totaal
+!if $[gcd($deler,2)]=2
+    even=1
+    m1=!item $[0.5*$deler] of $totaal
+    m2=!item $[0.5*$deler+1] of $totaal
+    ans3=$[($m2+$m1)/2]
+    !if $[gcd((0.5*$deler),2)]=2
+        w1=$[0.25*$deler]
+	w11=$[0.25*$deler+1]
+	w3=$[0.75*$deler]
+	w33=$[0.75*$deler+1]
+	q1=!item $w1 of $totaal
+	q11=!item $w11 of $totaal
+	q3=!item $w3 of $totaal
+	q33=!item $w33 of $totaal
+    !else
+	w1=$[0.25*$deler+0.5]
+	w3=$[0.75*$deler+0.5]
+	w33=$w3
+	q1=!item $w1 of $totaal
+	q11=$q1
+    	q3=!item $w3 of $totaal
+	q33=$q3    
+    !endif
+!else
+    even=0
+    # mediaan
+    ans3=!item $[($deler+1)/2] of $totaal
+    $[gcd((0.5*($deler-1)),2)]
+    !if $[gcd((0.5*($deler-1)),2)]=2
+	w1=$[0.25*$deler - 0.25]
+	w11=$[0.25*$deler + 0.75]
+	w3=$[0.75*$deler + 0.25]
+	w33=$[0.75*$deler + 1.25]
+	q1=!item $w1 of $totaal
+	q11=!item $w11 of $totaal
+	q3=!item $w3 of $totaal
+	q33=!item $w33 of $totaal
+    !else
+	w1=$[0.25*$deler+0.25]
+	w3=$[0.75*$deler+0.75]
+	w33=$w3
+	q1=!item $w1 of $totaal
+	q11=$q1
+	q3=!item $w3 of $totaal	
+	q33=$q3
+    !endif
+!endif
+ans4=$[($q1+$q11)/2]
+ans5=$[($q3+$q33)/2]
+
+data=<table><tr><th><table class=\'zebra_table_h2\'><tr><th>$met2</th><th>$met3</th></tr>$data1</table></th><th><table class=\'zebra_table_h2\'><tr><th>$met2</th><th>$met3</th></tr>$data2</table></th></tr></table>
+ss=!record 1 of lang/remarks.$taal
+#@ Bepaal aan de hand van de onderstaande meetgegevens:<p>
+description=!record 2 of lang/remarks.$taal
+#@ Het gemiddelde,de standaardafwijking ($m_sigma ),de mediaan ( $m_mu ),het eerste kwartiel (Q1),het derde kwartiel (Q3)
+texanswer=$empty
+sss=<ol>
+!for p=1 to $options
+    textanswer=!append word $ <li>$(description[$p]) = $(ans$p)</li> $ to $textanswer
+    sss=!append word $ <li>$(description[$p])</li> $ to $sss
+    answer$n=!append item $(ans$p) to $(answer$n)
+!next p
+sss=!append word $ </ol> $ to $sss
+helptext=$data
+textanswer$n=<ol>$textanswer</ol>
+question$n= <a onmouseover="return escape('$data')">$ss</a>$sss
+ 

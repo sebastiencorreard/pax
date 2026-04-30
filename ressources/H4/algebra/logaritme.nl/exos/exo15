@@ -1,0 +1,93 @@
+
+# html5 enkel logpapier: y-as logarithmisch
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+mathview=0
+questiontype=0
+applet=1
+image=0
+plot=0
+make_tr=1
+inputs=yes
+display=1
+checkfile=exos/checkfile2b.proc
+logscale=10
+!if $R=1
+    a=!randitem 1,2,3,4,5
+    aa=!exec pari A=$a/$logscale\
+    printtex(A)
+    a1=!line 1 of $aa
+    a2=!line 2 of $aa
+    exp=x
+    exp_tex=x
+!else
+    !if $R=2
+	a1=!randitem 2,3,4,5,6,7,8,9
+        a2=$a1
+	a=!randitem 2,3,4
+        exp=$a*x
+	exp_tex=$a x
+    !else
+	a1=!randitem 2,3,4,5,6,7,8
+	a2=$a1
+	a=!randitem 2,3
+	pm=!randitem +,-
+	exp=$a*x $pm 1
+	exp_tex=$a x $pm 1
+    !endif
+!endif
+
+# pas op dat de lijn wel binnen beeld blijft
+pm=!randitem +,-
+
+### $pm $b
+
+answer$n=$a1*$logscale^($exp)
+
+textanswer$n=$empty
+question$n=!record 19 of lang/remarks.$taal
+formula$n= f(x)\,=\,$a2 \cdot $logscale^{\textstyle $exp_tex}
+xmin=-2
+xmax=10
+xsize=640
+ysize=480
+ymin=!evalsubst x=$xmin in $(answer$n)
+ymax=$[1000*(ceil($ymin/1000))]
+ymin=10^-3
+ymax=10^3
+# xmarge: +/- 5px --> 600 px = (xmax-xmin) = 12 -> 1 px = 12/600
+# xmarge = 5px*12/600 = 0.1
+# dx = xmarge ; rand = onbruikbare gedeelte van grafiek... geschat...
+dx=5
+rand=40
+xmarge=$[$dx*($xmax-$xmin)/($xsize - $rand)]
+var1=$xmarge
+
+var2=size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+xlabel x-as         \
+ylabel y-as              \
+userinput_xy\
+axisnumbering\
+axis\
+ylogbase $logscale\
+precision 10\
+ylogscale 0.5,4,grey,black\
+precision 1000\
+linewidth 1\
+userdraw line,red\
+mouse green,42
+
+var3=$xmin,$xmax,$ymin,$ymax
+object$n=!exec canvasdraw \
+$var2
+
+
+
+!exit

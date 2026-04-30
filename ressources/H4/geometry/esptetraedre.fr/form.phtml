@@ -1,0 +1,105 @@
+!form reply
+
+!! tétraèdre intersection
+!if $mode=1
+  !let typestep=!eval floor($step/2)
+  !let typestep=!eval $step - 2 * $typestep
+  !if $typestep=1
+    $(name_formchoice[1]):
+    !let choixbtn=$(name_user1[2])
+    <ul class="wims_nopuce"><li>
+    !set tmp=1,2,3
+    !set wims_html_mode=li
+    <ul>
+    !formradio ract list $tmp prompt $name_prompt1
+    </ul>
+
+  !else
+    !if $ract=1
+      $(name_formchoice[2]):
+      <ul class="wims_nopuce"><li>
+      $(name_formchoice[3]):
+      !formradio rpt1 list $ptsplan prompt $ptsplan
+      </li><li>
+      $(name_formchoice[4]):
+      !formradio rpt2 list $ptsplan prompt $ptsplan
+      </li></ul>
+      !let choixbtn=$(name_user1[3])
+    !endif
+
+    !if $ract=2
+      <ul class="wims_nopuce"><li>
+      $(name_formchoice[5]):
+      !formradio rseg1 list $segsplan prompt $segsplan
+      </li><li>
+      $(name_formchoice[6]):
+      !let segsprol= !listcomplement $segsplan in $segscube
+      !formradio rseg2 list $segsprol prompt $segsprol
+      </li></ul>
+      !let choixbtn=$(name_user2[2])
+    !endif
+    !if $ract=3
+      <ul class="wims_nopuce"><li>
+      $(name_formchoice[7]):
+      !formradio rseg list $segsplan prompt $segsplan
+      </li><li>
+      $(name_formchoice[8]):
+      !formradio rptp list $ptsplan prompt $ptsplan
+      </li></ul>
+      !let choixbtn=$(name_user1[4])
+    !endif
+  !endif
+
+  !if $typestep!=1
+    <input type="submit" name="user" value="$(name_user1[5])" />
+  !endif
+  <div class="wimscenter">
+  !set wims_ref_class=wims_button
+  <input type="submit" name="user" value="$choixbtn" />
+  !set wims_ref_class=wims_button
+  <input type="submit" name="user" value="$(name_user2[1])" />
+  !set wims_ref_class=wims_button
+  <input type="submit" name="user" value="$(name_user2[4])" />
+  </div>
+  !goto end
+!endif
+!! fin mode=1
+
+!if $mode=2
+  !if $step=1
+    $(name_formchoice2[1;1]) <span class="myred">($pt1$pt2)</span>
+    $(name_formchoice2[1;2]) <span class="myblue">($pt3$pt4)</span> $(name_formchoice2[1;3])
+    !formradio choix1 list 1,2 prompt $(name_formchoice2[2;])
+    .<div class="wimscenter">
+    !set wims_ref_class=wims_button
+    <input type="submit" name="user" value="$name_valid" />
+    </div>
+  !else
+    !if $choix1=1
+      $(name_formchoice2[1;1]) <span class="myred">($pt1$pt2)</span>
+      $(name_formchoice2[1;2]) <span class="myblue">($pt3$pt4)</span> $(name_formchoice2[1;3])
+      !formradio choix2 list 1,2 prompt $(name_formchoice2[3;])
+      .
+      <div class="wimscenter">
+      !set wims_ref_class=wims_button
+      <input type="submit" name="user" value="$name_validend" />
+      </div>
+    !endif
+  !endif
+  !goto end
+!endif
+!!fin mode=2
+!if $mode=3
+  $(name_formchoice3[1;1]) <span class="myblue">($tplan)</span>,
+  $(name_formchoice3[1;2])
+  <span class="myred">($pt1$pt2)</span> $(name_formchoice3[1;3])
+  !formradio choix1 list 1,2,3 prompt $(name_formchoice3[2;])
+  .
+  <div class="wimscenter">
+  !set wims_ref_class=wims_button
+  <input type="submit" name="user" value="$name_valid" />
+  </div>
+!endif
+!!fin mode=3
+:end
+!formend

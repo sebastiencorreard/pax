@@ -1,0 +1,180 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cols=15
+rounding=10000
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+checkfile=exos/checkfile1.proc
+var1=1
+math=0
+formula$n=$empty
+texanswer$n=$empty
+
+kleuren=!record 60 of lang/remarks.$taal
+#@ red@rooie,blue@blauwe,green@groene,yellow@gele
+exotext=$empty
+#!record 61 of lang/remarks.$taal
+#@ Trekken zonder terugleggen
+vaas=!record 62 of lang/remarks.$taal
+#@ vaas,bak,aquarium,bakje,schaal,doos,kistje,zak
+ballen=!record 63 of lang/remarks.$taal
+#@ ballen,knikkers,kogels,kogeltjes,stuiters,kauwgomballen
+#!record 69 of lang/remarks.$taal
+#@ Trekken met terugleggen
+
+
+
+kleuren=!shuffle $kleuren
+vaas=!randitem $vaas
+ballen=!randitem $ballen
+formula$n=$empty
+
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1
+k2=!replace internal @ by , in $k2
+kleur1=!item 2 of $k1
+color1=!item 1 of $k1
+kleur2=!item 2 of $k2
+color2=!item 1 of $k2
+keuze=!randitem 0,1
+
+!if $R=1
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    !if $keuze=1
+	aantal=!randint 2,$a
+	kleur=$kleur1
+	c=$a
+    !else
+	aantal=!randint 2,$b
+	kleur=$kleur2
+	c=$b
+    !endif
+    som=1
+    !for p=1 to $aantal
+	som=($som)*(($c)/($tot))
+    !next p
+    answer$n=!exec pari $som
+    rans=$[(round($rounding*($(answer$n))))/$rounding]
+    textanswer$n=($c/$tot)<sup>$aantal</sup> = $(answer$n) &#8776; $rans
+    ss=!record 70 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $aantal $ballen uit <em>met terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op $aantal $kleur $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 6 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R=2
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    aantal=!randint 3,10
+    som=(($aantal+1)*$a/$tot*($b/$tot)^$aantal)
+    answer$n=!exec pari $som
+    rans=$[(round($rounding*($(answer$n))))/$rounding]
+    textanswer$n=$[$aantal+1] &times; $a/$tot &times; $b/$tot<sup>$aantal</sup> = $(answer$n) &#8776; $rans
+    ss=!record 71 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $[$aantal+1] $ballen uit <em>met terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op &eacute;&eacute;n  $kleur1 en $aantal $kleur2 $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 6 decimalen</em></small>
+    question$n=$ss
+    
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R=3
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    a1=!randint 2,$a
+    b1=!randint 2,$b
+    aantal=$[$a1+$b1]
+    # havo methode
+    factor=$[factorial($aantal)/(factorial($a1)*factorial($aantal-$a1))]
+    som=$factor*($a/$tot)^$a1*($b/$tot)^$b1
+    answer$n=!exec pari $som
+    rans=$[(round($rounding*($(answer$n))))/$rounding]
+    textanswer$n=$factor &times; $a/$tot<sup>$a1</sup> &times; $b/$tot<sup>$b1</sup> = $(answer$n) &asymp; $rans
+    ss=!record 72 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $[$a1+$b1] $ballen uit <em>met terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op $a1 $kleur1 en $b1 $kleur2 $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 6 decimalen</em></small>
+    question$n=$ss
+    
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R>3
+    choice=!record 67 of lang/remarks.$taal
+    #@ hoogstens,ten minste
+    hoogstens=!item 1 of $choice
+    tenminste=!item 2 of $choice
+    a=!randitem 6,7,8,9,10,11,12,13,14,15
+    b=!randitem 10,11,12,13,14,15
+    tot=$[$a+$b]
+    a1=!randitem 3,4,5
+    b1=!randint 2,3,4,5
+    aantal=$[$a1+$b1]
+    g1=($b/$tot)^$aantal
+    g2=$[$g1 + $aantal*$a/$tot*($b/$tot)^($aantal-1)]
+    g3=$[$g2 + ($aantal*($aantal-1)/2*($a/$tot)^2*($b/$tot)^($aantal-2))]
+    !if $keuze=1
+        a11=!randitem 1,2
+	hoogstens=$hoogstens
+	!if $a11=1
+	    answer$n=$g2
+	    textanswer$n=P(0 $kleur1) + P(1 $kleur1)  &asymp; $(answer$n)
+	!else
+	    answer$n=$g3
+	    textanswer$n=P(0 $kleur1) + P(1 $kleur1) + P(2 $kleur1) &asymp; $(answer$n)
+	!endif    
+    !else
+        a11=!randitem 1,2,3                 
+	hoogstens=$tenminste
+	!if $a11=1
+	    answer$n=$[1-$g1]
+	    textanswer$n=1-P(0 $kleur1) &asymp; $(answer$n)
+	!else
+	    !if $a11=2
+		answer$n=$[1-$g2]
+	        textanswer$n=1 - P(0 $kleur1) - P(1 $kleur1) &asymp; $(answer$n)
+	    !else
+		answer$n=$[1-$g3]
+	        textanswer$n=1 - P(0 $kleur1) - P(1 $kleur1) - P(2 $kleur1)  &asymp; $(answer$n)
+	    !endif	    
+	!endif
+    !endif
+    # havo methode
+    ss=!record 73 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $aantal $ballen uit <em>met terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op <b><kbd>$hoogstens</kbd></b> $a11 $kleur1 ?\
+    #@ <br /><small><em>Rond af op tenminste 6 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif

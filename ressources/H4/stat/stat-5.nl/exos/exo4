@@ -1,0 +1,196 @@
+# normale verdeling (de vuistregels II)
+# altijd een ander sommetje : maximaal 9 stuks
+!if $counter=1
+ var9=!shuffle 1,2,3,4,5,6,7,8,9,10
+!endif
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+n=$counter
+viewlogo=1
+logotext=
+mathview=0
+make_tr=1
+embed=0
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontyp=0
+checkfile=$checkdir/new_number.proc
+rounding=1
+!readproc $remarkdir/rounding.$taal
+
+k=!randint 0,1
+namen=!record 81 of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+Mrs=!record 28 of lang/remarks.$taal
+#@Meneer,hij,zijn,Mevrouw,zij,haar
+!if $k=1
+ #man
+ meneer=!item 1 of $Mrs
+ hij=!item 2 of $Mrs
+ zijn=!item 3 of $Mrs
+ logo=<img src="$module_dir/gifs/hem.gif" alt="$meneer"  />
+!else
+ meneer=!item 4 of $Mrs
+ hij=!item 5 of $Mrs
+ zijn=!item 6 of $Mrs
+ logo=<img src="$module_dir/gifs/haar.gif" alt="$meneer"  />
+!endif
+
+aantal=!randint 100,330
+v=!randint 15,35
+sigma1=$[floor($v/12)]
+sigma2=$[ceil($v/6)]
+sigma=!randint $sigma1,$sigma2
+unit1=km/h
+
+keuze=!item $counter of $var9
+!if $keuze=1
+ grens1=$[$v-2*$sigma]
+ grens2=$[$v-$sigma]
+ perc=13.5
+ k1=red
+ k2=blue
+ k3=blue
+ k4=blue
+!else
+ !if $keuze=2
+  grens1=$[$v-2*$sigma]
+  grens2=$v
+  perc=13.5 + 34
+  k1=red
+  k2=red
+  k3=blue
+  k4=blue
+ !else
+  !if $keuze=3
+   grens1=$[$v-2*$sigma]
+   grens2=$[$v+$sigma]
+   perc=13.5 + 34 + 34
+   k1=red
+   k2=red
+   k3=red
+   k4=blue
+  !else
+   !if $keuze=4
+    grens1=$[$v-2*$sigma]
+    grens2=$[$v+2*$sigma]
+    perc=13.5 + 34 + 34 + 13.5
+    k1=red
+    k2=red
+    k3=red
+    k4=red
+   !else
+    !if $keuze=5
+     grens1=$[$v-$sigma]
+     grens2=$v
+     perc=34
+     k1=blue
+     k2=red
+     k3=blue
+     k4=blue
+    !else
+     !if $keuze=6
+      grens1=$[$v-$sigma]
+      grens2=$[$v+$sigma]
+      perc=34 + 34
+      k1=blue
+      k2=red
+      k3=red
+      k4=blue
+     !else
+      !if $keuze=7
+       grens1=$[$v-$sigma]
+       grens2=$[$v+2*$sigma]
+       perc=34 + 34 + 13.5
+       k1=blue
+       k2=red
+       k3=red
+       k4=red
+      !else
+       !if $keuze=8
+        grens1=$v
+        grens2=$[$v+$sigma]
+        perc=34
+        k1=blue
+        k2=blue
+        k3=red
+        k4=blue
+       !else
+        !if $keuze=9
+         grens1=$v
+         grens2=$[$v+2*$sigma]
+         perc=34 + 13.5
+         k1=blue
+         k2=blue
+         k3=red
+         k4=red
+        !else
+         grens1=$[$v+$sigma]
+         grens2=$[$v+2*$sigma]
+         perc=13.5
+         k1=blue
+         k2=blue
+         k3=blue
+         k4=red
+        !endif
+       !endif
+      !endif
+     !endif
+    !endif
+   !endif
+  !endif
+ !endif
+!endif
+
+answer$n=$[round($aantal*($perc)/100)]
+
+ss=!record 29 of lang/remarks.$taal
+#@$meneer $naam heeft $aantal keer de tijd bijgehouden waarin $hij naar $zijn werk fietst.<br />De fietssnelheid blijkt normaal verdeeld te zijn met een gemiddelde van $v $unit1 en een standaardafwijking van $sigma $unit1<br /> Bereken hoeveel keer $meneer $naam een gemiddelde snelheid had die lag tussen $grens1 $unit1 en $grens2 $unit1
+
+logotext=$ss
+
+inputs=1.1
+description=!record 30 of lang/remarks.$taal
+#@Het aantal keer dat de snelheid lag tussen $grens1 $unit1 en $grens2 $unit1 :&nbsp;
+ex1=&nbsp;keer
+htxt=!record 31 of lang/remarks.$taal
+#@je antwoord is natuurlijk een afgerond geheel getal...
+question$n= <a onmouseover="return escape('$htxt')">$ss</a><br />
+helptext=$htxt
+rr=!record 32 of lang/remarks.$taal
+#@Het percentage van het aantal keer dat de snelheid lag tussen $grens1 $unit1 en $grens2 $unit1 was: $perc %<br />(zie plaatje van de Gauss curve)<br />$[$perc] %  van $aantal is :  $[$perc] / 100 &times; $aantal = $[($perc) / 100 * $aantal ] == $(answer$n) keer.
+textanswer$n=$rr
+
+applet=0
+
+object$n=!exec canvasdraw \
+size 400,300\
+xrange -3,3\
+yrange -0.5,3\
+plot red,1/(1/(sqrt(2*pi)))*e^(-0.5*x^2)\
+fontfamily 16px Ariel \
+axisnumbering\
+grid 1,100,grey,0,0,5,grey\
+xaxis -2:$[$v-2*$sigma]:-1:$[$v-$sigma]:0:$v:1:$[$v+$sigma]:2:$[$v+2*$sigma]\
+yaxis 1: :2: :3: :4:\
+xlabel km/h\
+string $k1,-1.7,0.5,13.5%\
+string $k4,1.2,0.5,13.5%\
+string $k2,-0.7,0.5,34%\
+string $k3,0.3,0.5,34%\
+dashtype 8,8\
+dashed\
+linewidth 2\
+halfline 0,0,0,5,green
+
+!exit
+
+
+

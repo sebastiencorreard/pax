@@ -1,0 +1,155 @@
+# Belasting II (steps)
+n=$counter
+mathview=0
+# beperk aantal mogelijke vragen tot het reeele aantal subvraagjes.
+!if $total_exos>2
+    total_exos=2
+!endif
+#7/6/2013
+#checkfile=exos/precheck1.proc
+checkfile=exos/precheck3.proc
+inputs=1.1
+cols=10
+# leg alles vast tijdens de eerste vraag
+# bewaar de gegevens die later nodig zijn in var1...var9
+!if $counter=1
+    tarief1=!randint 500,680
+    tarief2=!randint $tarief1,820
+    tarief1=$[5*$tarief1/100]
+    tarief2=$[5*$tarief2/100]
+    tarief3=42
+    tarief4=52
+    schijf1=!randint 13000,16000
+    d1=!randint 10000,15000
+    schijf2=$[$schijf1 + $d1]
+    d1=!randint 15000,23000
+    schijf3=$[$schijf2 + $d1]
+    vrijstelling=!randint 3000,4000
+    vrijstelling=$[$vrijstelling*5]
+    heffingskorting=!randint 300,400
+    heffingskorting=$[$heffingskorting*5]
+    arbeidskorting=!randint 170,200
+    arbeidskorting=$[$arbeidskorting*5]
+    brutoinkomen=!randint 35,140
+    brutoinkomen=$[$brutoinkomen*1000]
+    !if $brutoinkomen > 80000
+	woningforfait=!randint 120,300
+        hypotheek=!randint 200,450
+    !else
+	woningforfait=!randint 50,100
+	hypotheek=!randint 60,150
+    !endif
+    tebetalen1=$[floor($schijf1*$tarief1/100)]
+    tebetalen2=$[floor(($schijf2-$schijf1)*($tarief2/100))]
+    tebetalen12=$[$tebetalen1+$tebetalen2]
+    tebetalen3=$[floor(($schijf3-$schijf2)*($tarief3/100))]
+    tebetalen13=$[$tebetalen12 + $tebetalen3]
+    woningforfait=$[$woningforfait*10]
+    hypotheek=$[$hypotheek*1000]
+    rente1=!randint 20,30
+    rente1=$[$rente1/5]
+    d1=!randint 2,5
+    rente2=$[$rente1 + $d1/5]
+    belegging1=!randint 190,450
+    belegging1=$[$belegging1*100]
+    d1=!randint 1,70
+    pm=!randitem -1,1
+    belegging2=$[$belegging1 + ($pm*$d1*100)]
+    beleggingsrekening=$[($belegging1+$belegging2)/2]
+    fictiefrendement=4
+    fictiefrendementbelasting=30
+    sex=!randint 0,1
+    !if $sex=1
+	Heer=De heer
+	heer=de heer
+	hij=hij
+	zijn=zijn
+	Zijn=Zijn
+    !else
+	Heer=Mevrouw
+	heer=mevrouw
+	hij=zij
+	zijn=haar
+	Zijn=Haar
+    !endif
+    achternamen=!record 63 of lang/remarks.$taal
+    achternaam=!randitem $achternamen
+    
+    helptext=<ul><li>Tarieven box 3 <table class=\'zebra_table_h2\'><tr><th>Meer dan</th><th>Maar niet meer dan</th><th>Te betalen</th><th>Plus van het meerdere</th></tr><tr><td>&minus;</td><td>&euro;&nbsp;$schijf1</td><td>$tarief1 %</td><td>&minus;</td></tr><tr><td>&euro;&nbsp;$schijf1 </td><td>&euro;&nbsp;$schijf2</td><td>&euro;&nbsp;$tebetalen1</td><td>$tarief2 %</td></tr><tr><td>&euro;&nbsp;$schijf2</td><td>&euro;&nbsp;$schijf3</td><td>&euro;&nbsp;$tebetalen12</td><td>$tarief3 %</td></tr><tr><td>&euro;&nbsp;$schijf3</td><td>&minus;</td><td>&euro;&nbsp;$tebetalen13</td><td>$tarief4 %</td></tr></table></li><li>Tarief in box 3<ul><li>Over het gemiddeld vermogen wordt een fictiefrendement van $fictiefrendement % verondersteld</li><li>Hierover $fictiefrendementbelasting % wordt geheven.</li><li>Er is een vermogensvrijstelling van &euro; $vrijstelling .</li></ul><li>Heffingskortingen.<ul><li>Algemene heffingskorting : &euro; $heffingskorting</li><li>Arbeidskorting : &euro; $arbeidskorting </li></ul></li></ul>
+    
+    
+    opm=<small><em>Reken in gehele euro's en rond steeds naar beneden af.</em></small>
+
+    # de eerste vraag...van de 3
+    
+    belastbaarinkomen=$[$brutoinkomen + $woningforfait - floor($rente1/200*$hypotheek) - floor($rente2/200*$hypotheek)]
+    !if $belastbaarinkomen > $schijf3
+	tebetalenbelasting=$[floor($tebetalen13 + ($belastbaarinkomen - $schijf3)*$tarief4/100)]
+	tebetalentext=&euro;$tebetalen13 + $tarief4 % van (&euro;$belastbaarinkomen &minus; &euro;$schijf3)
+	marginalebelastingdruk=$tarief4
+    !else
+	!if $belastbaarinkomen > $schijf2
+	    tebetalenbelasting=$[floor($tebetalen12 + ($belastbaarinkomen - $schijf2)*$tarief3/100)]
+	    tebetalentext=&euro;$tebetalen12 + $tarief3 % van (&euro;$belastbaarinkomen &minus; &euro;$schijf2)
+	    marginalebelastingdruk=$tarief3
+	!else
+	    !if $belastbaarinkomen > $schijf1
+		tebetalenbelasting=$[floor($tebetalen1 + ($belastbaarinkomen - $schijf1)*$tarief2/100)]
+		tebetalentext=&euro;$tebetalen1 + $tarief2 % van (&euro;$belastbaarinkomen &minus; &euro;$schijf1)
+		marginalebelastingdruk=$tarief2
+	    !else
+		tebetalenbelasting=$[floor(($belastbaarinkomen)*$tarief1/100)]
+		tebetalentext=$tarief1 % van &euro;$belastbaarinkomen
+		marginalebelastingdruk=$tarief1
+	    !endif
+	!endif
+    !endif
+    box3belasting=$[floor(($beleggingsrekening - $vrijstelling)*($fictiefrendement/100)*($fictiefrendementbelasting/100))]
+    !if $box3belasting<0
+	box3belasting=0
+	box3=&euro;$beleggingsrekening - &euro;$vrijstelling < 0 <br /> Geen belasting in box 3.
+    !else
+	box3=&euro;$beleggingsrekening - &euro;$vrijstelling = &euro; $[ $beleggingsrekening - $vrijstelling]<br />$fictiefrendement % van $fictiefrendementbelasting %  over &euro; $[ $beleggingsrekening - $vrijstelling] = &euro; $box3belasting
+    !endif
+    belastingbox13=$[$tebetalenbelasting+$box3belasting]
+    answer1=$[$belastingbox13 - $heffingskorting - $arbeidskorting]
+    gemiddeldebelastingdruk=$[(round(10*$answer1/$brutoinkomen*100))/10]
+    answer2=$gemiddeldebelastingdruk\
+    $marginalebelastingdruk
+    hypo=$[floor(0.5*($rente1/100)*$hypotheek) + floor(0.5*($rente2/100)*$hypotheek)]  
+    
+    textanswer1=<ul><u>Box 1</u>:<li>De hypotheekrente is : 0.5&times;$[$rente1/100]&times;$hypotheek + 0.5&times;$[$rente2/100]&times;$hypotheek = &euro; $hypo</li><li>Belastbaar inkomen is : bruto-inkomen + eigenwoningforfait &minus; hypotheekrente = &euro; $brutoinkomen + &euro;$woningforfait &minus; &euro;$hypo = &euro; $belastbaarinkomen</li><li>Te betalen belasting is : $tebetalentext = &euro;$tebetalenbelasting</li></ul><ul><u>Box 3 </u><li>Het gemiddeld vermogen was : (&euro;$belegging1 + &euro;$belegging2) &divide; 2  = &euro;$beleggingsrekening</li><li>Het gemiddeld vermogen &minus; vrijstelling : $box3 </li></ul><ul><u>Box 1 en Box 3</u><li>Totale belasting in box 1 en box 3 : &euro; $tebetalenbelasting + &euro;$box3belasting = &euro; $belastingbox13</li><li> Heffingskortingen : &euro;$heffingskorting + &euro;$arbeidskorting = &euro;$[$heffingskorting + $arbeidskorting] </li></ul>Te betalen: &euro; $belastingbox13 &minus; &euro; $[$heffingskorting + $arbeidskorting]  = &euro; $answer1
+	
+    textanswer2=De gemiddelde belastingdruk voor $achternaam is: $answer1 / $brutoinkomen &times; 100 % = $gemiddeldebelastingdruk %<br />De marginale belastingdruk is $marginalebelastingdruk %
+    
+    txt1=De tarieven voor de inkomstenbelasting en sociale premies over een zeker jaar zijn in <span class="schaersvoorde_link">deze tabel</span> weergegeven <br />(het betreft de tabel voor personen jonger dan 65 jaar)
+    
+    txt2=$Heer $achternaam (jonger dan 65 jaar) had over het betreffende jaar een bruto arbeidsinkomen van &euro; $brutoinkomen.<br />$zijn eigenwoningforfait bedroeg &euro; $woningforfait.<br />In dat jaar had $heer $achternaam een hypothecaire lening van &euro; $hypotheek.<br />Het eerste half jaar was de rente daarover $rente1 %, het tweede half jaar $rente2 %.<br />Tevens had $hij een beleggingsrekening waarop aan het begin van het jaar een bedrag van &euro; $belegging1 stond<br />en aan het einde van het jaar &euro; $belegging2
+    
+    question1=<a onmouseover="return escape('$helptext')">$txt1 <br /> $txt2<hr class="schaersvoorde_hr" />a) Bereken het bedrag dat $heer $achternaam over het betreffende jaar aan inkomstenbelasting diende te betalen.<br />$opm</a>
+
+    question2=<a onmouseover="return escape('$helptext')">$txt1 <br /> $txt2<hr class="schaersvoorde_hr" />b) Bereken de gemiddelde en marginale belastingdruk voor $achternaam [op 1 decimaal nauwkeurig]</a>
+    description=Inkomstenbelasting
+    ex1=&euro;
+    # 7/6/2013 : 2 euro tollerantie
+    var1=2
+    var2=100
+!endif
+
+make_tr=1
+questiontype=0
+
+!if $counter>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif
+
+!if $n=2
+    inputs=2
+#    exotext=!append line <br />$var2 to $exotext
+    description=Bereken de gemiddelde belasting druk,Bereken de marginale belasting druk
+    ex1=%
+    ex2=%
+    # 7/6/2013 : 0.1 %  tollerantie
+    var1=0.1,0.1
+    var2=10,10
+!endif

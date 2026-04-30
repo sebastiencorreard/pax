@@ -1,0 +1,129 @@
+# break-even [GeoGebra]
+# reply$n is een GeoGebra antwoord met als laatste $var9 items de leerling-formule van de leerling-getekende lijn                          
+# var5=X schaal factor (bijv x1000)                                                                                                        
+# var6=Y schaal factor (bijv x1000)                                                                                                        
+# var7= naam voor x-variabele                                                                                                              
+# var8= naam voor y-variabele                                                                                                              
+# var9 = aantal RECHTE lijnen
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# schaalfactoren
+var5=1000
+var6=1000
+ff=40
+sometext=q,TK_TO_TW,q (x $var5),Euro (x $var5),Vergelijkingen,Break-evenpunt,Maximale winst,Kosten,Opbrengst,Winst
+var7=!item 1 of $sometext
+var8=!item 2 of $sometext
+var8=!replace internal _ by , in $var8
+# x/y-as label voor GeoGebra
+var1=!item 3 of $sometext
+var2=!item 4 of $sometext
+
+
+loon=!randint 40,80
+loon=$[2*$loon]
+loonkosten=!exec moneyprint $[$loon/$ff]
+grondstof=!randint 10,25
+grondstof=$[2*$grondstof]
+grondstoffen=!exec moneyprint $[$grondstof/$ff]
+verpak=!randint 10,25
+verpak=$[2*$verpak]
+verpakking=!exec moneyprint $[$verpak/$ff]
+varkosten=!exec moneyprint $[$loonkosten + $grondstoffen  + $verpakking]
+a=$[$loon+$grondstof+$verpak]
+r=!randint 30,90
+r=$[2*$r]
+verkoop=$[$a+$r]
+verkoopprijs=!exec moneyprint $[$verkoop/$ff]
+break=!randint 35,75
+breakeven=$[$break*$var5]
+vastekosten=$[($verkoopprijs - $varkosten)* $breakeven]
+winst=$[$verkoopprijs - $varkosten]
+productie=!randint $[$break+5],$[$break+20]
+productiecapaciteit=$[$productie*$var5]
+description=$empty
+mousetext=De variabele kosten per eenheid Q bestaan uit:<ul><li>arbeidsloon: &euro; $loonkosten</li><li>grondstoffen&materialen:&euro; $grondstoffen</li><li>verpakkingskosten:&euro; $verpakking</li></ul>De vaste kosten per maand bedragen &euro; $vastekosten<br />De verkoopprijs van Q bedraagt &euro; $verkoopprijs .<br />De maandelijkse productiecapaciteit is $productiecapaciteit stuks Q.
+
+!if $R=1
+    questiontype=4
+    inputs=3
+    mathview=0
+    embed=1
+    math=0
+    cols=35
+    make_tr=1
+    showToolBar=true
+    showMenuBar=false
+    framePossible=false
+    list_of_things=['line']; 
+    ggb=ggb/exo1.ggb
+    height=480
+    width=600
+    customToolBar=" 1 | 2 | 6 | 40 | 41 | 42 "
+    image=0
+    
+    
+    # we verwachten 3 lijne.
+    var9=3
+    checkfile=exos/checkfile1.proc
+    answer$n=$vastekosten+$varkosten*x,$verkoopprijs*x,$winst*x-$vastekosten
+    
+    textanswer$n=De variabele kosten zijn  = $loonkosten + $grondstoffen  + $verpakking = &euro; $varkosten<br />De kostenvergelijking wordt: TK = $varkosten&times;q + $vastekosten<br />De opbrengstvergelijking wordt: TO=$verkoopprijs&times;q<br />De winstvergelijking wordt: TW = TO &minus;TK = $verkoopprijs q &minus; ($varkosten &times;q + $vastekosten) = $winst &times;q &minus; $vastekosten
+    
+    !for p=8 to 10
+	description=!append item $(sometext[$p]) to $description
+	#kosten,opbrengst,Winst
+    !next p
+    LL=Stel voor dit bedrijf de vergelijkingen op van de kosten, de opbrengst en de winst <br />En teken deze vergelijkingen in de GeoGebra applet.<br /><small><em>gebruik in de formules TK, TO en TW voor $description.<br/>Gebruik variabelen naam "q" voor hoeveelheid.</em></small>
+    helptext=<img src=\'$module_dir/gifs/help1.jpg\' alt=\'noalt\' />
+!else
+    !if $R=2
+	exotext=$empty
+	embed=0
+	make_tr=1
+	questiontype=0
+	inputs=1.1
+	cols=10
+	rows=1
+	description=!item 6 of $sometext
+	LL=Bereken het break-evenpunt.
+	# getal 
+	checkfile=exos/precheck1.proc
+	#checkfile=$checkdir/number.proc
+        answer$n=$breakeven
+	het_breakeven_point=!item 6 of $sometext
+	textanswer$n=De variabele kosten zijn : $loonkosten + $grondstoffen  + $verpakking = &euro; $varkosten<br />De kostenvergelijking wordt: TK = $varkosten&times;q + $vastekosten<br />De opbrengstvergelijking wordt: TO=$verkoopprijs&times;q<br />De winstvergelijking wordt: TW&nbsp;=&nbsp;TO&nbsp;&minus;&nbsp;TK&nbsp;=&nbsp;$verkoopprijs  &times;q &minus; ($varkosten  &times;q + $vastekosten)= $winst  &times;q &minus; $vastekosten<br />$winst &times; q &minus; $vastekosten = 0 <br />$het_breakeven_point q &nbsp;=&nbsp; $vastekosten<b> / </b>$winst&nbsp;=&nbsp;$breakeven eenheden Q
+	cols=10
+	ex1=eenheden Q
+    !else
+	make_tr=1
+	questiontype=0
+	inputs=1.1
+	cols=10
+	rows=1
+	description=!item 7 of $sometext
+	LL=Bereken de maximale maandelijkse winst.
+	# getal 
+	checkfile=exos/precheck1.proc
+	#checkfile=$checkdir/number.proc
+	answer$n=$[$winst*$productiecapaciteit - $vastekosten]
+	de_maximale_winst=!item 7 of $sometext
+	ex1=&euro;
+	
+	textanswer$n=De variabele kosten zijn : $loonkosten + $grondstoffen  + $verpakking = &euro; $varkosten<br />De kostenvergelijking wordt: TK = $varkosten&times;q + $vastekosten<br />De opbrengstvergelijking wordt: TO=$verkoopprijs&times;q<br />De winstvergelijking wordt: TW&nbsp;=&nbsp;TO&nbsp;&minus;&nbsp;TK&nbsp;=&nbsp;$verkoopprijs  &times;q &minus; ($varkosten  &times;q + $vastekosten)= $winst  &times;q &minus; $vastekosten<br />$de_maximale_winst : $winst&times;$productiecapaciteit &minus; $vastekosten=&euro; $(answer$n)
+    
+    !endif
+    helptext=$mousetext
+
+!endif
+
+ss=Een bedrijf produceert het product Q...de <span class="schaersvoorde_link">volgende gegevens</a> zijn bekend.
+
+
+question$n=<a onmouseover="return escape('$mousetext')">$ss</a><hr class="schaersvoorde_hr"/>$LL
+

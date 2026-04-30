@@ -1,0 +1,108 @@
+# let op : twee plaatjes bij deze som
+# genaamd: var1 en var2
+# zie $phtmldir/hotspot1.phtml
+helptext=$empty
+n=$counter
+questiontype=3
+checkfile=exos/checkfile3.proc
+image=2
+draw=1
+plot=0
+math=0
+mathview=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!set n=$counter
+bereik=$[$counter*36]
+A=!randint 1,$bereik
+# var3=MAX_GRADEN
+var3=$[$bereik*15]
+graden=$[$A*15]
+max_sin=$[pi*$bereik*15/180]
+answer$n=$graden,$[sin(pi*$graden/180)]
+radialen=$[pi*$graden/180]
+weg=!record 14 of lang/remarks.$taal
+#@ afgelegde weg in graden
+
+!if $R=1
+    ss=!record 15 of lang/remarks.$taal
+    #@ Gegeven de (eenheids) cirkel.<br />Een punt P loopt vanaf het startpunt, tegen de wijzers van de klok in, over de rand van de eenheidscirkel.<br />Rechts is het verloop van de hoogte-positie van dit punt uitgezet tegen de afgelegde hoek.<br />Na $graden <sup>o</sup> stopt ons punt P.<br /> Klik op het punt van de <em>sinus-vormige</em> grafiek dat overeenkomt met stop-positie van punt P op de cirkel.<br />
+    question$n=$ss
+    rr=!record 16 of lang/remarks.$taal	
+    #@ Het goede antwoord is dus:<ul><li>de x-waarde is $graden<sup>o</sup></li><li>de y-waarde is <em>sin</em>($graden<sup>o</sup>) = $[sin(pi*$graden/180)]</li></ul>
+    textanswer$n=$rr
+!endif
+!if $R>1
+    rad=!exec pari $graden/180
+    rad=$rad $m_pi
+    ss=!record 17 of lang/remarks.$taal
+    #@ Gegeven de (eenheids) cirkel<br />Een punt P loopt vanaf het startpunt, tegen de wijzers van de klok in, over de rand van de eenheidscirkel.<br /> Rechts is het verloop van de hoogte-positie van dit punt uitgezet tegen de afgelegde hoek.<br />Na $rad radialen stopt ons punt P.<br />Klik op het punt van de <em>sinus-vormige</em> grafiek dat overeenkomt met stop-positie van punt P op de cirkel.<br />
+    question$n=$ss
+    rr=!record 18 of lang/remarks.$taal
+    #@ Het goede antwoord is dus:<ul><li>de x-waarde is $graden<sup>o</sup></li><li>de y-waarde is <em>sin</em>($graden<sup>o</sup>) = $[sin(pi*$graden/180)]</li></ul>
+    textanswer$n=$rr
+!endif
+
+
+SCALE=$empty
+!for q=0 to 360 step 15
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.9*$x],$[0.9*$y],blue to $SCALE
+!next q
+!for q=0 to 360 step 45
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.7*$x],$[0.7*$y],red to $SCALE
+!next q
+
+var1=xrange -1,1\
+yrange -1,1\
+transparent white\
+linewidth 1\
+fellipse 0,0,1,1,white\
+linewidth 3\
+$SCALE \
+linewidth 10\
+point cos($radialen),sin($radialen),red\
+text black,0.8*cos($radialen),0.8*sin($radialen),huge,P\
+linewidth 3\
+arrow 0,0,1,0,15,black\
+text black,0.7,0,normal,Start\
+text black,-0.05,-0.03,normal,O\
+arrow 0,0,cos($radialen),sin($radialen),15,green
+
+
+
+xsize=300
+ysize=300
+make_tr=1
+YSIZE=300
+XSIZE=600
+var2=xrange 0,$max_sin\
+yrange -1,1\
+transparent white\
+linewidth 2\
+vline 0,0,black\
+hline 0,0,black\
+curve red,sin(x)\
+linewidth 1\
+dhline 0,1,red\
+dhline 0,-1,red\
+dhline 0,0.707,red\
+dhline 0,-0.707,red\
+dhline 0,0.5,blue\
+dhline 0,-0.5,blue\
+dhline 0,0.259,blue\
+dhline 0,-0.259,blue\
+dhline 0,0.866,blue\
+dhline 0,-0.866,blue\
+dhline 0,0.966,blue\
+dhline 0,-0.966,blue\
+text black,$[0.4*$max_sin],0,huge,$weg\
+arrow $[0.4*$max_sin],-0.1,$[0.8*$max_sin],-0.1,15,black
+
+!exit

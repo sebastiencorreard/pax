@@ -1,0 +1,151 @@
+# empirische kans en tabellen I
+!set n=$counter
+m=!randint 1,10
+helptext=$empty
+logo=<img src=$module_dir/gifs/money$m.jpg alt="Mooi veel">
+viewlogo=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<10
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+formula$n=$empty
+var1=0
+math=0
+cols=10
+rows=3
+image=0
+inputs=1.1
+questiontype=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+kol=!randint 5,10
+prijzen=0,10,20,25,35,50,75,100,250,1000
+aantallen=100,400 60,90 30,50 11,20 5,10 5,10 3,5 1,3 1,2 1,1
+factor=!randint 1,10
+pp=!record 141 of lang/remarks.$taal
+price=!item 1 of $pp
+amount=!item 2 of $pp
+chance=!item 3 of $pp
+prijzengeld=!item 4 of $pp
+deelnemerstotaal=0
+prijstotaal=0
+!if $R=1
+    head=<th>$price</th>
+    body=<th>$amount</th>
+    !for p=1 to $kol
+        prijs=!item $p of $prijzen
+        prijs=$[$factor*$prijs]
+        num=!word $p of $aantallen
+        aantal=!randint $num
+        head=!append word <td>$prijs &euro;</td> to $head
+        body=!append word <td>$aantal</td> to $body
+        deelnemerstotaal=$[$deelnemerstotaal+$aantal]
+        prijstotaal=$[$prijs*$aantal + $prijstotaal]
+        answer$n=$prijstotaal/$deelnemerstotaal
+    !next p
+    ss=!record 142 of lang/remarks.$taal
+    #@Tijdens een loterij zijn de <font color=blue><u>volgende prijzen </u></font>gevallen.<br>Bereken het gemiddelde prijzengeld per lot.
+    tabel=<table class=\'grid_table\'><tr>$head</tr><tr>$body</tr></table>
+    question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+    textanswer$n=$prijstotaal/$deelnemerstotaal &asymp; $[(round(100*$prijstotaal/$deelnemerstotaal))/100] &euro;
+ !exit
+!endif
+
+!if $R=2
+    prijs_tex=$empty
+    head=<th>$price</th>
+    body=<th>$chance</th>
+    noem=!randitem 100,200,250,300,400,500,600,700,750,800,900,1000
+    num=$noem
+    !for p=1 to $[$kol-2]
+	k=$[$kol-$p]
+	tel$k=!randint $[round(0.004*$p*$num)],$[round(0.01*$p*$num)]
+	num=$[$num-$(tel$k)]
+	kans$k=$(tel$k)/$noem
+	mooi$k=$(tel$k)<hr class=\'schaersvoorde_hr\' />$noem
+    !next p
+    kans$kol=1/$noem
+    mooi$kol=1<hr class=\'schaersvoorde_hr\' />$noem
+    kans1=$[$num-1]/$noem
+    mooi1=$[$num-1]<hr class=\'schaersvoorde_hr\'>$noem
+    !for p=1 to $kol
+        prijs=!item $p of $prijzen
+        prijs=$[$factor*$prijs]
+        aantal=$(kans$p)
+        head=!append word <td>$prijs &euro;</td> to $head
+        #body=!append word <td>$(kans$p)</td> to $body
+        body=!append word <td>$(mooi$p)</td> to $body
+        prijstotaal=$[$prijs*$(kans$p) + $prijstotaal]
+	!if $p=1
+	    prijs_tex=!append word $prijs&times;$(kans$p) to $prijs_tex
+	!else
+	    prijs_tex=!append word +$prijs&times;$(kans$p) to $prijs_tex
+	!endif
+    !next p
+    answer$n=$prijstotaal
+    ans=$[round(100*$prijstotaal)/100]
+    textanswer$n=<b>E</b>($prijzengeld)=$prijs_tex &asymp; $ans &euro;
+    ss=!record 143 of lang/remarks.$taal
+    #@Tijdens een loterij heb je kans op verschillende prijzen.<br>In de <font color=blue><u>tabel</u></font> staan de verschillende prijzen en bijbehorende kansen.<br>Bereken het verwachte prijzengeld per lot. 
+    tabel=<table class=\'grid_table\'><tr>$head</tr><tr>$body</tr></table>
+    question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+ !exit
+!endif
+
+!if $R>2
+    head=<th>$price</th>
+    body=<th>$chance</th>
+    prijs_tex=$empty
+    noem=!randitem 100,200,250,300,400,500,600,700,750,800,900,1000
+    num=$noem
+    !for p=1 to $[$kol-2]
+	k=$[$kol-$p]
+	tel$k=!randint $[round(0.004*$p*$num)],$[round(0.01*$p*$num)]
+	num=$[$num-$(tel$k)]
+	kans$k=$(tel$k)/$noem
+	mooi$k=$(tel$k)<hr class=\'schaersvoorde_hr\' />$noem
+    !next p
+    kans$kol=1/$noem
+    kans1=$[$num-1]/$noem
+    mooi$kol=1<hr class=\'schaersvoorde_hr\' />$noem
+    mooi1=$[$num-1]<hr class=\'schaersvoorde_hr\'>$noem
+    !for p=1 to $kol
+        prijs=!item $p of $prijzen
+        prijs=$[$factor*$prijs]
+        aantal=$(kans$p)
+        head=!append word <td>$prijs &euro;</dh> to $head
+        #body=!append word <td>$(kans$p)</td> to $body
+        body=!append word <td>$(mooi$p)</td> to $body
+        prijstotaal=$[$prijs*$(kans$p) + $prijstotaal]
+	prijstot=$[round(100*$prijstotaal)/100]
+	!if $p=1
+	    prijs_tex=!append word $prijs&times;$(kans$p) to $prijs_tex
+	!else
+	    prijs_tex=!append word +$prijs&times;$(kans$p) to $prijs_tex
+	!endif
+    !next p
+    win=$[100*$prijstot]
+    ww=!randint 1,$win
+    ww=$[$ww/100]
+    lot=$[$ww+$prijstot]
+    ss=!record 144 of lang/remarks.$taal
+    #@Tijdens een loterij heb je kans op verschillende prijzen.<br>In de <font color=blue><u>tabel</u></font> staan de verschillende prijzen en bijbehorende kansen.<br>Een lot kost $lot euro. <br>Hoeveel winst per lot verwacht de organisatie te maken?
+    tabel=<table class=\'grid_table\'><tr>$head</tr><tr>$body</tr></table>
+    question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+#    answer$n=$winst
+    ans=$[round(1000*$prijstotaal)/1000]
+    winst=$[$lot-$prijstotaal]
+    answer$n=$winst
+    round_ans=$[round(100*$winst)/100]
+    rr=!record 145 of lang/remarks.$taal
+    #@<b>E</b>($prijzengeld)=$prijs_tex &asymp; $ans &euro; <br>Dus de winst per lot is: $lot - $ans = $winst &euro; \approx $round_ans
+    textanswer$n=$rr
+ !exit
+!endif
+

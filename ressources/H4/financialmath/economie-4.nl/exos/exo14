@@ -1,0 +1,226 @@
+# kengetallen IV
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+nu=!date +%Y
+jaar1=$[$nu-1]
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+checkfile=exos/precheck1.proc
+make_tr=0
+cols=5
+rows=1
+m_rightarrow=&nbsp;=&nbsp;
+##### PASSIVA #######
+# algemene reserves
+
+# voorziening
+voorziening1=!randint 3,10
+factor=!randint 40,60
+voorziening2=$[round($factor/100*$voorziening1)]
+voorziening1=$[$voorziening1*100]
+voorziening2=$[$voorziening2*100]
+
+# hypotheek
+hypotheek1=!randint 5,10
+hypotheek2=!randint 5,10
+hypotheek1=$[$hypotheek1*50]
+hypotheek2=$[$hypotheek2*50]
+!if $hypotheek2=$hypotheek1
+    hypotheek2=$[$hypotheek2+50]
+!endif
+
+# obligatie
+obligatie1=!randint 10,15
+obligatie2=!randint 10,15
+obligatie1=$[$obligatie1*50]
+obligatie2=$[$obligatie2*50]
+!if $obligatie2=$obligatie1
+    obligatie2=$[$obligatie2+50]
+!endif
+
+# crediteuren
+crediteuren1=!randint 5,10
+crediteuren2=!randint 5,10
+crediteuren1=$[$crediteuren1*50]
+crediteuren2=$[$crediteuren2*50]
+!if $crediteuren2=$crediteuren1
+    crediteuren2=$[$crediteuren2+50]
+!endif
+
+# aandelen
+aandelenvermogen1=!randint 25,50
+aandelenvermogen1=$[100*$aandelenvermogen1]
+prijs_aandeel=!randint 10,30
+aantal=!randint 50,90
+aantal_aandelen=$[$aantal*1000]
+delta=$[$aantal*$prijs_aandeel]
+aandelenvermogen2=$[$aandelenvermogen1 + $delta]
+
+# reserve en agio
+reserve1=!randint 10,20
+reserve1=$[$reserve1*50]
+agio=!randint $[10*(floor($prijs_aandeel/4))],$[10*($prijs_aandeel-7)]
+agio=$[$agio/10]
+reserve2=$[$reserve1 + $agio*$aantal]
+
+# winst
+winst1=0
+winst2=!randint 25,55
+winst2=$[10*$winst2]
+
+Ptotaal1=$[$aandelenvermogen1 + $reserve1 + $voorziening1 + $hypotheek1 + $obligatie1 + $crediteuren1]
+Ptotaal2=$[$aandelenvermogen2 + $reserve2 + $voorziening2 + $hypotheek2 + $obligatie2 + $crediteuren2 + $winst2]
+
+###### ACTIVA #########
+# afschrijving gebouwen
+gebouw2=!randint 25,40
+factor=!randint 95,99
+gebouw1=$[round($factor/100*$gebouw2)]
+gebouw1=$[100*$gebouw1]
+gebouw2=$[100*$gebouw2]
+
+# afschrijving machines
+machine1=!randint 10,30
+factor=!randint 85,95
+machine2=$[round($factor/100*$machine1)]
+machine1=$[100*$machine1]
+machine2=$[100*$machine2]
+
+# voorraad
+voorraad1=!randint 10,20
+voorraad2=!randint 10,20
+voorraad1=$[$voorraad1*50]
+voorraad2=$[$voorraad2*50]
+!if $voorraad2<=$voorraad1
+    voorraad2=$[$voorraad1+50]
+!endif
+
+# debiteuren
+debiteuren1=!randint 6,20
+debiteuren2=!randint 6,20
+debiteuren1=$[$debiteuren1*50]
+debiteuren2=$[$debiteuren2*50]
+!if $debiteuren2=$debiteuren1
+    debiteuren2=$[$debiteuren2+50]
+!endif
+
+# vooruitbetaalde bedragen
+vooruitbetaald1=!randint 5,20
+vooruitbetaald2=!randint 5,20
+vooruitbetaald1=$[$vooruitbetaald1*10]
+vooruitbetaald2=$[$vooruitbetaald2*10]
+!if $vooruitbetaald2=$vooruitbetaald1
+    vooruitbetaald2=$[$vooruitbetaald2+10]
+!endif
+
+# liquide middelen
+liquide1=!randint 10,40
+liquide2=!randint 10,40
+liquide1=$[$liquide1*10]
+liquide2=$[$liquide2*10]
+!if $liquide2=$liquide1
+    liquide2=$[$liquide2+10]
+!endif
+
+Asubtotaal1=$[ $machine1 + $voorraad1 + $debiteuren1 + $vooruitbetaald1 + $liquide1]
+gebouw1=$[$Ptotaal1 - $Asubtotaal1]
+Atotaal1=$[$gebouw1 + $machine1 + $voorraad1 + $debiteuren1 + $vooruitbetaald1 + $liquide1]
+
+Asubtotaal2=$[$machine2 + $voorraad2 + $debiteuren2 + $vooruitbetaald2 + $liquide2]
+gebouw2=$[$Ptotaal2-$Asubtotaal2]
+Atotaal2=$[$gebouw2 + $machine2 + $voorraad2 + $debiteuren2 + $vooruitbetaald2 + $liquide2]
+
+activa1=$gebouw1,$machine1,$voorraad1,$debiteuren1,$vooruitbetaald1,$liquide1,&nbsp;,&nbsp;,&nbsp;,$Atotaal1
+activa2=$gebouw2,$machine2,$voorraad2,$debiteuren2,$vooruitbetaald2,$liquide2,&nbsp;,&nbsp;,&nbsp;,$Atotaal2
+activa=Gebouwen,Machines,Voorraad producten,Debiteuren,Vooruitbetaalde bedragen,Liquide middelen,&nbsp;,&nbsp;,&nbsp;,Totaal
+# minimum activa1=2650
+# maximum activa1=11000
+# minimum activa2=2750
+# maximum activa2=11500
+ 
+
+tot=!exec moneyprint $prijs_aandeel
+prijs_aandeel=$(tot[1])
+
+passiva2=$aandelenvermogen2,$reserve2,$voorziening2,$hypotheek2,$obligatie2,$crediteuren2,$winst2,&nbsp;,&nbsp;,$Ptotaal2
+
+
+passiva1=$aandelenvermogen1,$reserve1,$voorziening1,$hypotheek1,$obligatie1,$crediteuren1,&nbsp;,&nbsp;,&nbsp;,$Ptotaal1
+passiva=Geplaatst aandelenvermogen,Algemene reserves,Voorzieningen,6% Hypothecaire lening,5% Obligatielening,Crediteuren,Nettowinst na belasting,&nbsp;,&nbsp;,Totaal
+
+sometext=Balans per 31 december $jaar1 (bedragen &times; duizend &euro;)
+tabel=<table class=\'balans_3\'><caption>$sometext</caption><tr><th>Activa</th><th>1 jan</th><th>31 dec</th><th>Passiva</th><th>1 jan</th><th>31 dec</th></tr>
+
+!for p=1 to 10
+    ac=!item $p of $activa
+    pc=!item $p of $passiva
+    a1=!item $p of $activa1
+    a2=!item $p of $activa2
+    p1=!item $p of $passiva1
+    p2=!item $p of $passiva2
+    tabel=!append word $ <tr><td> $ac</td><td> $a1</td><td> $a2</td><td> $pc</td><td> $p1</td><td> $p2</td></tr> $ to $tabel 
+!next p
+tabel=!append word </table> to $tabel
+
+k=!randint 1,2
+datums = 1 januari $jaar1,31 december $jaar1
+datum=!item $k of $datums
+
+ss=Aan de jaarrekening van $bedrijf zijn de <span class="schaersvoorde_link">volgende balansen</span> van <br />respectievelijk het begin en het eind van het boekjaar gegeven.
+
+
+!if $R=1
+    inputs=1.1
+    description=Aantal aandelen
+    ex1=&nbsp;stuks
+    answer$n=$aantal_aandelen
+    ss2=Berekenen hoeveel aandelen zijn geplaatst in het boekjaar.
+    rounding=1
+    texanswer$n = \left[ \begin{array}{l} \textrm{Het geplaatst aandelen vermogen is toegenomen met: }\\ \: \\ $aandelenvermogen2 - $aandelenvermogen1 = $delta \; \textrm{in duizenden euro's} \\ \\ \frac{$[$delta*1000]}{$prijs_aandeel} = $(answer$n) \: \textrm{aandelen} \end{array} \right.
+
+    ss1=De aandelen hebben een nominale waarde van &euro; $prijs_aandeel .<br />De toename van de algemene reserve is geheel toe te schrijven<br />aan de agio die op de aandelen is $ontvangen.<br />
+!else
+    !if $R=2
+	inputs=1.1
+	description=De emissie koers
+	ex1=&nbsp;&euro;
+	ss2=Bereken de emissiekoers per aandeel.
+	answer$n=!exec moneyprint $[$prijs_aandeel + $agio]
+	rounding=10
+	roundingtext=Geef je antwoord op 10 eurocent nauwkeurig
+	ss1=De aandelen hebben een nominale waarde van &euro; $prijs_aandeel .<br />De toename van de algemene reserve is geheel toe te schrijven<br />aan de agio die op de aandelen is $ontvangen.<br />
+	dr=$[$reserve2 - $reserve1]
+	texanswer$n= \left[ \begin{array}{l}  \textrm{Emissiekoers} = \textrm{nominale waarde} + \textrm{agio} \\ \textrm{Er zijn} \: \frac{$[$delta*1000]}{$prijs_aandeel} = $aantal_aandelen \: \textrm{aandelen geplaatst }\\ \\ \textrm{De toename van de algemene reserve bedraagt } \: $reserve2 - $reserve1 = $dr \: \textrm{in duizenden euro's} \\ \textrm{De agio per aandeel is dan} \: \frac{$[$dr*1000]}{$aantal_aandelen} = $agio \\ \\ \textrm{Dus } \; $prijs_aandeel + $agio = $(answer$n) \: \textrm{euro} \end{array} \right.
+    !else
+	make_tr=1
+	inputs=2
+	# 20/6/2012 
+	p1=0.2
+	p2=0.8
+	rounding=1
+	tmp=!randint $[round(0.2*$winst2)],$[round(0.8*$winst2)]
+	perc3=$[(round(1000*$tmp/$aandelenvermogen2))/10]
+		
+	ss1=Op 31 december $jaar1 wordt op de Algemene Vergadering <br />van Aandeelhouders vastgesteld dat uit de nettowinst na belasting,<br />het dividend percentage wordt gezet op $perc3 %.<br />Het restant van de winst wordt toegevoegd aan de algemene reserve.<br />De aandelen hebben een nominale waarde van $prijs_aandeel &euro; per stuk.
+	
+	ss2=Bereken hoeveel &euro; dividend aan de aandeelhouders beschikbaar wordt gesteld.<br />en bereken hoeveel &euro; wordt toegevoegd aan de algemene reserve
+	
+	ans1=$[10*$aandelenvermogen2*$perc3]
+	ans2=$[$winst2*1000 -$ans1]
+	answer$n=$ans1,$ans2
+	description=Beschikbaar dividend,Toegevoegd aan algemene reserve
+	ex1=&nbsp;&euro;
+	ex2=&nbsp;&euro;
+	
+	textanswer$n=<ul><li>Dividendpercentage is het dividend in procenten van de nominale waarde !</li><li>Beschikbaar dividend: $[$perc3/100] &times; $[$aandelenvermogen2*1000] = &euro; $ans1 </li><li>Toegevoegd aan de algemene reserve: $[$winst2*1000] &minus; $ans1 = &euro; $ans2</li></ul>
+	
+    !endif
+!endif
+
+question$n=<a onmouseover="return escape('$tabel')">$ss<br />$ss1<br />$ss2</a>
+helptext=$tabel

@@ -1,0 +1,133 @@
+!set title=Graphique 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=$[rint(300)]
+tmp0=!values v for v=4 to 9
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[1]))]
+val10=$val9*x,1/$val9*x,-$val9*x,-1/$val9*x
+tmp0=!texmath $(val10[1])
+
+val11=$(tmp0)
+val12=Soit \($val6\) une fonction linéaire telle que \($val6(1) = $val9\). Quelle est sa représentation graphique
+!readproc slib/draw/repere $val7,$val7,0,-10,10,-10,10,1,1,black,grey 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!line 3 to -1 of $val13
+
+val13=$(tmp0)
+val14=
+!for val15 =1 to 4 
+tmp0=!item $val15 of $val10
+
+val16=\$(tmp0)
+!readproc oef/draw.phtml $val7,$val7 \
+$val13	range -10,10,-10,10	plot blue,$val16	text black,9.5,-0.3,medium,X	text black,-0.6,10,medium,Y	text black,0.9,-0.3,medium,1	text black,-0.6,1.5,medium,1 
+tmp0=$ins_url
+val17=$(tmp0)
+tmp0=!append item $val17 to $val14
+
+val14=$(tmp0)
+!next
+val18=A,B,C,D,E,F,G,H
+tmp0=!item 1 of $val14
+
+val19=$(tmp0)
+tmp0=!shuffle $val14
+
+val20=$(tmp0)
+tmp0=!positionof item $val19 in $val20
+
+val21=$(tmp0)
+tmp0=!item $val21 of $val18
+
+val22=$(tmp0)
+val23=A,B,C,D
+choicename1=réponse
+choicegood1=$val22
+choicebad1=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12 ?	<table class="wimscenter wimsborder">	 <tr>	  <td>Réponse A :<br><img src="$(val20[1])" alt=""></td>	  <td>Réponse B :<br><img src="$(val20[2])" alt=""></td>	 </tr><tr>	   <td>Réponse C :<br><img src="$(val20[3])" alt=""></td>	   <td>Réponse D :<br><img src="$(val20[4])" alt=""></td>	 </tr>	</table>	<b>Votre réponse :</b>	<div class="wimscenter">	  La bonne réponse est :  
+!read oef/embed.phtml c1 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,20
+embedcnt=1

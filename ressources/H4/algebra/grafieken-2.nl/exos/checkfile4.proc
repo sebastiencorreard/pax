@@ -1,0 +1,216 @@
+# kijkt var1-functies na [via geogebra]
+# answer$n=f,g,h...
+# var2=f(x),g(x),h(x)
+# var3=1 : check for a point
+# var4=!word $k of 1,2 2,3
+# als er een punt wordt gevraagd is de eis aan dat punt 
+
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+wims_compare_precision=1000
+#    tot=totalobject_count + ',' + \
+#    point_count + ',' + \
+#    circle_count + ',' + \
+#    line_count + ',' + \
+#    segment_count + ',' + \
+#    polygon_count + ',' + \
+#    conic_count + ',' + \
+#    ellipse_count + ',' + \
+#    hyperbola_count + ',' + \
+#    angle_count + ',' + \
+#    vector_count + ',' + \
+#    function_count + ',' + \
+#    polynomial_count + ',' + \
+#    text_count + ',' + tot;
+
+# 2,0,0,0,0,0,0,0,0,0,0,2,0,0,function@f(x) = 1 / x,function@g(x) = 1 / x^2,
+tot=!itemcnt $(reply$n)
+
+!if $tot>50
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 78 of lang/remarks.$taal
+    #@leuk he, dat GeoGebra...<br />Het heeft een GNU licencie<br />Je kunt het dus gewoon gratis downloaden<br />en <b>thuis</b>installeren (java 1.4) en net zoveel prutsen als je wilt<br />Maar NU weer gewoon serieus aan het werk met de opgave!!
+    goback=1
+    !exit
+!endif
+
+AAA=!item 15 to -1 of $(reply$n)
+functioncnt=!item 12 of $(reply$n)
+pointcnt=!item 2 of $(reply$n)
+
+!if $functioncnt != $var1
+    !if $functioncnt=$empty
+	functioncnt=0
+    !endif
+    ex=!record 79 of lang/remarks.$taal
+    #@Je hebt $functioncnt functies getekend...<br />Dat moesten er $var1 zijn !
+    !if $teaching=1
+	maxscore=$[$P5*$maxscore]
+	errortext=$ex
+	goback=1
+	!exit
+    !else
+	!if $var1>$functioncnt
+	    maxscore=$[$maxscore*$functioncnt/$var1]
+	!else
+	    maxscore=$[$maxscore*$functioncnt/$var1]	
+	!endif
+	extra=$ex
+    !endif
+!endif
+
+!if $var3 !=1
+    var3=0
+!endif
+!if $var3=1
+    !if $pointcnt=0
+	errortext=!record 80 of lang/remarks.$taal
+	#@Je bent vergeten een punt te tekenen in het gevraagde gebied !<br />Lees de vraag nog maar eens even goed door...
+        maxscore=$[$P1*$maxscore]
+	goback=1
+        !exit
+    !else
+	!if $pointcnt > $var3
+	    ex=!record 81 of lang/remarks.$taal
+	    #@<br />Je hebt $pointcnt punten getekend in de GeoGebra Applet<br />Mij best, maar <b>alle</b> punten moeten dan wel in het goede gebied liggen !!
+	    extra=!append line $ $ex $ to $extra
+	!endif
+    !endif
+!endif
+
+AAA=!lower $AAA
+acnt=!itemcnt $AAA
+paristring=$empty
+aaa=$empty
+foundpoint=0
+result=$empty
+!for p=1 to $acnt
+    A=!item $p of $AAA
+    !if $A != $empty
+	!if function isin $A
+	    A=!replace internal = by , in $A
+	    A=!replace internal @ by , in $A
+	    desc_a=!item 2 of $A
+	    Fa=!item -1 of $A
+	    Fa=!nospace $Fa
+	    found=0
+	    !for d=1 to $var1
+		!if $found=0
+		    desc_g=!item $d of $var2
+		    !if $desc_g=$desc_a
+			found=1
+		        Fg=!item $d of $(answer$n)
+			aaa=!append line $ $desc_a = $Fa $ to $aaa
+			Fa=!replace internal x by 5.12345 in $Fa
+			Fg=!replace internal x by 5.12345 in $Fg
+			Fa=$[1*($Fa)] 
+			Fg=$[1*($Fg)] 
+			!if NaN isin $Fa,$Fg
+			    # hmmmm
+			    Fa=!replace internal x by 2 in $Fa
+			    Fg=!replace internal x by 2 in $Fg
+			!endif
+			Fa=$[1*($Fa)] 
+			Fg=$[1*($Fg)] 
+			!ifval $Fa=$Fg
+			    result=!append item 1 to $result
+			!else
+			    result=!append item 0 to $result
+			!endif
+		    !endif
+		!endif
+	    !next d
+	    !if $found=0
+		errortext=!record 82 of lang/remarks.$taal
+		#@Ik kan de functie <b>$desc_g</b> niet vinden in je antwoord...
+		goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit
+	    !endif
+	!else
+	    !if $var3=1
+		!if $foundpoint=0
+		    !if point isin $A
+			foundpoint=1
+		        A=!replace internal @ by , in $A
+			xa=!item -2 of $A
+		        ya=!item -1 of $A
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !endif
+!next p
+
+#test=!exec pari $paristring
+#!if $wims_exec_error != $empty
+#    testvar=$(reply$n)
+#    maxscore=$[$P1*$maxscore]
+#    goback=1
+#    errortext=!record 26 of $remarkdir/commonremarks.$taal
+#    !exit
+#!endif
+  
+score=0
+reply$n=<ul class="zebra_list">
+!for p=1 to $var1
+    s=!item $p of $result
+    S=!line $p of $aaa
+    !if $s=1
+	k=green
+	!increase score
+    !else
+	k=red
+    !endif
+    reply$n=!append word $ <li><span style="color:$k"> $S </span></li> $ to $(reply$n)
+!next p
+
+!if $var3!=0
+    # var4=!word $k of $a1,$a2 $a2,$a3
+    # als er een punt wordt gevraagd is de eis aan dat punt 
+    # !item 1 of $var4 < punt < !item 2 of $var4
+    f1=!item 1 of $var4
+    f2=!item 2 of $var4
+    F1=!item $f1 of $(answer$n)
+    F2=!item $f2 of $(answer$n)
+    y1=!evalsubst x=$xa in $F1
+    y2=!evalsubst x=$xa in $F2
+    !ifval (($y1 < $ya) and ($ya < $y2)) or (($y1 > $ya) and ($ya > $y2))
+	!increase score
+	k=green
+    !else
+	k=red
+    !endif
+    reply$n=!append word $ <li><span style="color:$k"> ($xa : $ya) </span></li> $ to $(reply$n)
+!endif
+
+reply$n=!append word $ </ul> $ to $(reply$n)
+
+maxscore=$[$maxscore*$score/($var1+$var3)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra !=$empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

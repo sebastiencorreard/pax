@@ -1,0 +1,73 @@
+# inverse machtsfuncties
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=1
+arglist=f^-1(x),y
+mathviewpanel=$module_title:y=:x:+:-:*:/
+ss=!record 40 of lang/remarks.$taal
+#@Geef van de onderstaande functie het inverse functievoorschrift.<br />Schrijf de inverse functie f<sup>-1</sup> gewoon op als <em>f^-1</em> of <em>y</em><br />(<small>schrijf dus op als <em>f^-1(x)=je antwoord</em> of <em>y =je antwoord</em></small>)
+
+!if $R=1
+    var1=0
+    #pari checkt
+    a=!randitem 2,3,4,5,6,7,8
+    b=!randitem 1,2,3,4,5,6,7,8,9,10
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    range=[-10:10] [-10:10]
+    formula$n=f(x) \, =  \, \frac{1}{$a} \cdot x $pm $b
+    applettext=!nospace f(x)= 1/($a) cdot x $pm $b ->
+    answer$n=$a*x $mp $[$b*$a]
+    var1=0
+    texanswer$n= y=\frac{1}{$a} \cdot x $pm $b \rightarrow \left[ \begin{array}{l} x_{inv}=\frac{1}{$a} \cdot y_{inv} $pm $b \\ \frac{1}{$a} \cdot y_{inv}= x_{inv} $mp $b \\ f^{-1}(x)=$a\cdot x $mp $[$b*$a]  \end{array}
+    var2=(1/$a)*x $pm ($b)
+    !goto KLAAR
+!endif
+!if $R>1
+    var1=1
+    # maxima moet check overnemen van pari
+    a=!randitem 3,5,7,9
+    b=!randitem 1,2,3,4,5,6,7,8,9,10
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    range=[-50:50] [-50:50]
+    formula$n=f(x) \, =  \, \left( x $pm $b \right)^{$a}
+    applettext=!nospace f(x)=(x $pm $b)^$a ->
+    answer$n=x^(1/$a) $mp $b
+    var1=1
+    #maxima moet check overnemen van pari
+    texanswer$n= y =\left( x $pm $b \right)^{$a} \rightarrow \left[ \begin{array}{l} x_{inv}= \left( y_{inv} $pm $b \right)^{$a} \\ x^{1/$a}_{inv} = y_{inv} $pm $b \\ y_{inv}=x^{1/$a}_{inv} $mp $b \\ f^{-1}(x)=\root $a \of x $mp $b \end{array}
+    var2=(x $pm $b)^$a
+!endif
+
+:KLAAR
+!if $teaching=1
+    insplot_set=terminal gif transparent;size 0.6,0.6 ;autoscale;grid ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image_settings$n=terminal gif transparent;size 0.6,0.6 ;autoscale;grid ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image$n=$range $var2 notitle, $(answer$n) notitle, x 
+    !insplot $range $var2 notitle, $(answer$n) notitle, x 
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\' />
+    draw=0
+    image=0
+    plot=1
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+ question$n=$ss
+!endif

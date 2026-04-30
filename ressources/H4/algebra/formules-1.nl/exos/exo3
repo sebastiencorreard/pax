@@ -1,0 +1,99 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+mathview=5
+# geen check op type functie
+var4=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+#pari kijkt na
+var1=0
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	c=$[$b+1]
+	formula$n=x = \frac{$a y}{$b y + $c}
+	applettext=!nospace  x =  ($a*y)/($b*y+$c)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c*x/($a-$b*x)
+	
+	answer$n=$c*x/($a-$b*x)
+	texanswer$n=\left[ \begin{array}{l}  x \cdot ($b y+ $c)  =  $a y \rightarrow \\ x \cdot $b y+ x \cdot $c  =  $a y \rightarrow \\ x \cdot $c  =  $a y - $b \cdot x \cdot y\rightarrow \\ $a y - $b \cdot x \cdot y = $c x\rightarrow \\ y ($a  - $b x ) = $c x\rightarrow \\  y=\frac{$c x}{$a - $b x} \end{array} \right.
+    !else
+	b=!randint 2,9
+	a=$[$b+1]
+	c=!randitem 1,$[$b+2]
+	formula$n=x = \frac{$b y + $c}{$a y}
+	applettext=!nospace  x = ($b*y+$c)/($a*y)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c/($a*x-$b)
+	!if $c=1
+	    tussen=$a y= \frac{1}{x - \frac{$b}{$a}} \rightarrow \\ 
+	!else
+	    tussen=\frac{$a y}{$c} = \frac{1}{x - \frac{$b}{$a}} \rightarrow \\ \frac{$a}{$c}\cdot y = \frac{1}{x - \frac{$b}{$a}} \rightarrow \\ 
+	!endif
+	answer$n=$c/($a*x-$b)
+	texanswer$n=\left[ \begin{array}{l} x = \frac{$b y}{$a y} + \frac{$c}{$a y} \rightarrow \\ x = \frac{$b}{$a} + \frac{$c}{$a y} \rightarrow \\ \frac{$c}{$a y} = x - \frac{$b}{$a} \rightarrow \\ $tussen y=\frac{$c}{$a x- $b} \end{array} \right.
+    !endif
+    !goto KLAAR
+!endif
+
+!if $R>1
+    mathview=5
+    mathviewpanel=$module_title:y=:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]():
+    var1=1
+    pm=!randitem +,-
+    # maxima
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,15
+	formula$n= x + $a ^{y}=  $b
+	applettext=!nospace x + $a^y = $b->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2= log($b-x)/log($a)
+	
+	answer$n=log($b-x)/log($a)
+	texanswer$n=\left[ \begin{array}{l} $a^{y} = $b - x \rightarrow \\ y = ^{$a} \log ($b-x) \end{array} \right.
+    !else
+	a=!randint 2,9
+	b=!randint 2,15
+	c=!randint 2,9
+	formula$n= $c x - $a ^{y}=  $b
+	applettext=!nospace $c*x - $a^y = $b->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2= log($c*x-$b)/log($a)
+	
+	answer$n=log($c*x-$b)/log($a)
+	texanswer$n=\left[ \begin{array}{l} $a^{y} = $c x - $b \rightarrow \\ y = ^{$a} \log ($c x - $b) \end{array} \right.
+    !endif
+    !goto KLAAR
+!endif
+
+
+:KLAAR
+
+!if $teaching=1
+    image=0
+    insplot_set=size 0.6,0.6 ;grid ;autoscale;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    !insplot [-10:10] [-10:10] $var2 notitle , x notitle
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+
+!endif

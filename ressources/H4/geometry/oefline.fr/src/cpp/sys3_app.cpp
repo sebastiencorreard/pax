@@ -1,0 +1,61 @@
+target=sys3_app
+
+#include "header.inc"
+#include "lang_titles.inc"
+
+\keywords{pbsolving, linear_system}
+
+\text{eee=slib(lang/fname \lang,boy girl,3)}
+
+text{e1=item(\s[1],\liste)}
+text{e2=item(\s[2],\liste)}
+text{e3=item(\s[3],\liste)}
+
+\text{e1=item(1,\eee)}
+\text{e2=item(2,\eee)}
+\text{e3=item(3,\eee)}
+
+#include "lang.inc"
+
+\text{b1=\name_option_list[1]}
+\text{b2=\name_option_list[2]}
+\text{b3=\name_option_list[3]}
+\text{b11=\name_anoption_list[1]}
+\text{b21=\name_anoption_list[2]}
+\text{b31=\name_anoption_list[3]}
+
+\real{p1=randint(5..20)/10}
+\real{p2=randint(5..20)/10}
+\real{p3=randint(5..20)/10}
+
+\matrix{pt=\p1;\p2;\p3}
+
+\matrix{q1=randint(1..5),randint(1..5),randint(1..5)}
+\matrix{q2=0,randint(1..5),randint(1..5)}
+\matrix{q3=0,0,randint(1..5)}
+\text{p=randint(1..5),randint(1..5),randint(1..5)}
+\matrix{l1=\q1}
+\matrix{l2=pari([\q1]*(\p[1])+[\q2])}
+\matrix{l3=pari([\q1]*(\p[2])+[\q2]*(\p[3])+[\q3])}
+
+\real{t1=pari([\l1]*[\pt])}
+\real{t2=pari([\l2]*[\pt])}
+\real{t3=pari([\l3]*[\pt])}
+
+\statement{\name_statement:
+<ul>
+<li> \e1 \name_question[1] \l1[1] \b1, \l1[2] \b2 \name_and \l1[3] \b3 \name_question[2] \t1 \name_question[3].</li>
+<li> \e2 \name_question[1] \l2[1] \b1, \l2[2] \b2 \name_and \l2[3] \b3 \name_question[2] \t2 \name_question[3].</li>
+<li> \e3 \name_question[1] \l3[1] \b1, \l3[2] \b2 \name_and \l3[3] \b3 \name_question[2] \t3 \name_question[3].</li>
+</ul>
+\name_question[4].
+<ul>
+<li> \b11 \name_question[5] \embed{reply 1,10} \name_question[3].</li>
+<li> \b21 \name_question[5] \embed{reply 2,10} \name_question[3].</li>
+<li> \b31 \name_question[5] \embed{reply 3,10} \name_question[3].</li>
+</ul>
+}
+
+\answer{p1}{\p1}{type=default}
+\answer{p2}{\p2}{type=default}
+\answer{p3}{\p3}{type=default}

@@ -1,0 +1,193 @@
+# Prijselasticiteit &amp; grafiek I 
+# steps
+n=$counter
+!if $counter=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    mathview=0
+    checkfile=exos/precheck2.proc
+    make_tr=1
+    cols=5
+    rows=1
+    inputs=1.1
+    embed=1
+    bedrijven=rijwielhandelaar,computerwinkel
+    produkten=fietsen,bromfietsen,fiets,bromfiets\
+    laptops,netbooks,laptop,netbook
+    
+    k=!randint 1,2
+    bedrijf=!item $k of $bedrijven
+    produkt=!line $k of $produkten
+    produkt1=!item 1 of $produkt
+    produkt2=!item 2 of $produkt
+    p1=!item 3 of $produkt
+    p2=!item 4 of $produkt 
+    aantal1=!randint 5,30
+    prijs1=!randint 25,40
+    prijs1=$[20*$prijs1]
+    rc=!randint 5,9
+    rc=$[-1*$rc/100]
+    perc=!randint 8,15
+    begin=$[$aantal1 - ($rc*$prijs1)]
+    func=$[1/($rc)]*(x - $aantal1) + $prijs1
+    prijs2=$[$prijs1*(100-$perc)/100]
+    #aantal2=$[round($rc*$prijs2+$begin)]
+    aantal2=$[$rc*$prijs2+$begin]
+    tot=!exec moneyprint $prijs1,$prijs2
+    prijs1=$(tot[1])
+    prijs2=$(tot[2])
+    deltaq=$[100*($aantal2-$aantal1)/$aantal1]
+    aantal3=!randint 10,30
+    kp=!randint 11,20
+    kp=$[$kp/10]
+    
+    answer1=$prijs1
+    textanswer1=Je kunt in de grafiek aflezen dat bij $aantal1 $produkt1 <br />een verwachte prijs  hoort van &euro; $prijs1
+        
+    answer2=$[$deltaq/(-1*($perc))]
+    ans2=$[(round(100*$answer2))/100]
+    texanswer2=\left[ \begin{array}{l} \textrm{De nieuwe prijs wordt : } \frac{100 - $perc}{100} \times $prijs1 = $[(100-$perc)/100] \times $prijs1 = $prijs2 \textrm{ euro} \\ \textrm{De nieuwe hoeveelheid wordt : } $rc \times $prijs2 + $begin = $[$rc*$prijs2+$begin] = $aantal2 \textrm{ $produkt1} \\ \Delta q = \frac{$aantal2 - $aantal1}{$aantal1} \times 100 \simeq $deltaq \% \\ E_{v} = \frac{\Delta q}{\Delta p} = \frac{$deltaq}{- $perc} \simeq $answer2 \simeq $ans2 \end{array} \right.
+ 
+    perc3=$[$kp*(-1*$perc)]    
+    answer3=$[$aantal3*(100+$perc3)/100]
+    ans3=$[round($answer3)]
+    texanswer3=\left[ \begin{array}{l} \textrm{De prijsafname van de $produkt1 is $perc \% } \\ E_{k} = $kp = \frac{\Delta q}{\Delta p} \rightarrow \Delta q = $kp \times \Delta p  \\ \Delta q = $kp \times - $perc = $perc3  \\ \textrm{De procentuele verandering van het aantal verkocht $produkt2 is :} $perc3 \% \\ \textrm{Er worden dan } \frac{100 $perc3}{100} \times $aantal3 \simeq $answer3 = $ans3 \;\textrm{ $produkt2} \end{array} \right.
+    
+    rounding=1
+    roundingtext=Rond je antwoord af hele &euro;&rsquo;s
+    myname=$wims_nowseconds.data
+    !filewrite getfile/$myname $func
+    myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+    xsize=480
+    ysize=300
+    ymax=$[100*(ceil(($prijs1 - (1/($rc))*$aantal1)/100))]
+    ymin=100
+    xmin=0
+    xmax=$begin
+    
+    y1=!evalsubst x=0 in $func
+    y2=!evalsubst x=$xmax in $func
+    y3=!evalsubst x=$prijs in $func
+
+    canvasimage=!exec canvasdraw\
+    size 400,300\
+    bgcolor $wims_bgcolor\
+    xrange -8,$begin\
+    yrange -80,$ymax\
+    precision 1\
+    axis\
+    axisnumbering\
+    xlabel aantal $produkt1\
+    ylabel prijs in \u20AC\
+    grid $[round($begin/10)],$[round($ymax/10)],grey,1,1,0,blue\
+    linewidth 3\
+    segment 0,$y1,$xmax,$y2,red\
+    intooltip <img src='$gifdir/canvas.png' alt='plaatje' />\
+    mouseprecision 10\
+    mouse blue,32
+    
+    
+    answerplaatje=!exec canvasdraw\
+    size 400,300\
+    bgcolor $wims_bgcolor\
+    xrange -8,$begin\
+    yrange -80,$ymax\
+    precision 1\
+    axis\
+    axisnumbering\
+    xlabel aantal $produkt1\
+    ylabel prijs in \u20AC\
+    grid $[round($begin/10)],$[round($ymax/10)],grey,1,1,0,blue\
+    linewidth 3\
+    segment 0,$y1,$xmax,$y2,red\
+    linewidth 1\
+    dashtype 3,3\
+    dashed\
+    vline $aantal1,0,blue\
+    dashed\
+    hline 0,$prijs1,blue\
+    linewidth 3\
+    point $aantal1,$prijs1,blue\
+    string black,$aantal1,$prijs1,  bij $prijs1 \u20AC : $aantal1 $produkt1
+    
+    textanswer1=!append line $ $answerplaatje <br /> $ to $textanswer1
+
+
+    formula1=\left\{ \begin{array}{l} q_{v} = $rc \times p + $begin \\ \\ \textrm{Gevraagd : De prijs per $p1 } \end{array} \right.
+    formula2=\left\{ \begin{array}{l} q_{v} = $rc \times p + $begin \\ \\ \textrm{Gevraagd : De prijselasticiteit van $p1 } \end{array} \right.
+    formula3=\left\{ \begin{array}{l} q_{v} = $rc \times p + $begin \\ \\ \textrm{Gevraagd : De verwachtte } \\ \textrm{verkochte hoeveelheid $produkt2 } \end{array} \right.
+
+#    question1=<a onmouseover="return escape('<object  width=\'$xsize\' height=\'$ysize\' classid=\'java:SilentSimpleGraph.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'jcm1.0-config.jar\' /><param name=\'java_code\' value=\'SilentSimpleGraph.class\' /><param name=\'File\' value=\'$myfile\'/><param name=\'UseFunctionInput\' value=\'no\'/><param name=\'XLabel\' value=\'aantal $produkt1\'/><param name=\'YLabel\' value=\'prijs in euro\'/><param name=\'UseGrid\' value=\'no\'/><param name=\'GridColor\' value=\'255,255,0\'/><param name=\'UseLimitsPanel\' value=\'no\'/><param name=\'BackgroundColor\' value=\'white\'/><param name=\'Insets\' value=\'1\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'GraphColor\' value=\'blue\'/><param name=\'AxesColor\' value=\'blue\'/><param name=\'PanelBackground\' value=\'white\'/><param name=\'BorderWidth\' value=\'0\'/><param name=\'PanelTitle\' value=\'$module_title\'/><param name=\'TitleBackground\' value=\'white\'/><param name=\'UseMouseZoom\' value=\'no\'/><param name=\'UsePanner\' value=\'yes\'/><param name=\'UseComputeButton\' value=\'no\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'ShowPoint\' value=\'yes\'/><param name=\'Limits\' value=\'$xmin,$xmax,$ymin,$ymax\'/>$nojava</object>')">Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn ( zie <span class="schaersvoorde_link">deze figuur</span> ) als ook worden omschreven<br />door de onderstaande vergelijking.<br /><br />Bepaal met behulp van de grafiek welke prijs de $bedrijf moet<br />vaststellen om $aantal1 $produkt1 te verkopen.</a>
+#    question2=<a onmouseover="return escape('<object  width=\'$xsize\' height=\'$ysize\' classid=\'java:SilentSimpleGraph.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'jcm1.0-config.jar\' /><param name=\'java_code\' value=\'SilentSimpleGraph.class\' /><param name=\'File\' value=\'$myfile\'/><param name=\'UseFunctionInput\' value=\'no\'/><param name=\'XLabel\' value=\'aantal $produkt1\'/><param name=\'YLabel\' value=\'prijs in euro\'/><param name=\'UseGrid\' value=\'no\'/><param name=\'GridColor\' value=\'255,255,0\'/><param name=\'UseLimitsPanel\' value=\'no\'/><param name=\'BackgroundColor\' value=\'white\'/><param name=\'Insets\' value=\'1\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'GraphColor\' value=\'blue\'/><param name=\'AxesColor\' value=\'blue\'/><param name=\'PanelBackground\' value=\'white\'/><param name=\'BorderWidth\' value=\'0\'/><param name=\'PanelTitle\' value=\'$module_title\'/><param name=\'TitleBackground\' value=\'white\'/><param name=\'UseMouseZoom\' value=\'no\'/><param name=\'UsePanner\' value=\'yes\'/><param name=\'UseComputeButton\' value=\'no\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'ShowPoint\' value=\'yes\'/><param name=\'Limits\' value=\'$xmin,$xmax,$ymin,$ymax\'/>$nojava</object>')">Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn ( zie <span class="schaersvoorde_link">deze figuur</span> ) als ook worden omschreven<br />door de onderstaande vergelijking.<br /><br />Leid - voor dit type $p1 - de prijselasticiteit van de gevraagde hoeveelheid af,<br />bij de in de vorige vraag bepaalde prijs, wanneer de prijs met $perc % daalt.</a>
+#    question3=<a onmouseover="return escape('<object  width=\'$xsize\' height=\'$ysize\' classid=\'java:SilentSimpleGraph.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'jcm1.0-config.jar\' /><param name=\'java_code\' value=\'SilentSimpleGraph.class\' /><param name=\'File\' value=\'$myfile\'/><param name=\'UseFunctionInput\' value=\'no\'/><param name=\'XLabel\' value=\'aantal $produkt1\'/><param name=\'YLabel\' value=\'prijs in euro\'/><param name=\'UseGrid\' value=\'no\'/><param name=\'GridColor\' value=\'255,255,0\'/><param name=\'UseLimitsPanel\' value=\'no\'/><param name=\'BackgroundColor\' value=\'white\'/><param name=\'Insets\' value=\'1\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'GraphColor\' value=\'blue\'/><param name=\'AxesColor\' value=\'blue\'/><param name=\'PanelBackground\' value=\'white\'/><param name=\'BorderWidth\' value=\'0\'/><param name=\'PanelTitle\' value=\'$module_title\'/><param name=\'TitleBackground\' value=\'white\'/><param name=\'UseMouseZoom\' value=\'no\'/><param name=\'UsePanner\' value=\'yes\'/><param name=\'UseComputeButton\' value=\'no\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'ShowPoint\' value=\'yes\'/><param name=\'Limits\' value=\'$xmin,$xmax,$ymin,$ymax\'/>$nojava</object>')">Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn ( zie <span class="schaersvoorde_link">deze figuur</span> ) als ook worden omschreven<br />door de onderstaande vergelijking.<br /><br />Tevens is bekend dat de kruiselingse prijselasticiteit van de<br />vraag naar $produkt2 ten gevolge van een prijswijziging van de<br />$produkt1 <b>$kp</b> is. Aanvankelijk worden $aantal1 $produkt1 en $aantal3 $produkt2 verkocht.<br />Vervolgens verlaagt de $bedrijf de prijs van $produkt1 met $perc %.<br />Bereken hoeveel $produkt2 in dit geval zal worden verkocht.</a>
+    question1=Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn als ook worden omschreven door de onderstaande vergelijking.<br /><br />Bepaal met behulp van de formule welke prijs de $bedrijf moet<br />vaststellen om $aantal1 $produkt1 te verkopen.
+    question2=Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn als ook worden omschreven door de onderstaande vergelijking.<br /><br />Leid - voor dit type $p1 - de prijselasticiteit van de gevraagde hoeveelheid af,<br />bij de in de vorige vraag bepaalde prijs, wanneer de prijs met $perc % daalt.
+    question3=Een $bedrijf verkoopt zowel $produkt1 als $produkt2.<br />Het door deze winkelier geschatte verband tussen prijs en <br />het door hem te verkopen aantal $produkt1 kan zowel grafisch met behulp<br />van de vraaglijn als ook worden omschreven door de onderstaande vergelijking.<br /><br />Tevens is bekend dat de kruiselingse prijselasticiteit van de<br />vraag naar $produkt2 ten gevolge van een prijswijziging van de<br />$produkt1 <b>$kp</b> is. Aanvankelijk worden $aantal1 $produkt1 en $aantal3 $produkt2 verkocht.<br />Vervolgens verlaagt de $bedrijf de prijs van $produkt1 met $perc %.<br />Bereken hoeveel $produkt2 in dit geval zal worden verkocht.
+    ex1=&euro;
+!endif
+
+!if $counter>1
+    exotext=!append line <span style="color:blue">$youranswer: $(reply$[$counter-1])</span><br /> to $exotext
+    !if $counter=2
+	ex1=$empty
+	rounding=100
+	roundingtext=Rond de prijselasticiteit af op twee decimalen.<br />Maar reken wel met hele goederen !!
+    !else
+        rounding=1
+        ex1=stuks
+	roundingtext=Rond je antwoord af op hele goederen 
+    !endif
+!endif
+
+helptext=$roundingtext
+
+
+!exit
+
+# FLUAPPLET
+#xscale=$empty
+#!for p=10 to $aantal step 20
+#    xscale=!append item $p,$p to $xscale 
+#!next p
+#
+#!for p=100 to 1000 step 100
+#    yscale=!append item $p,$p to $yscale 
+#!next p
+#
+## xscale x1,x1_name,x2,x2_name....,fontsize,fontname,color,xtic_linewidth                                                             
+## yscale y1,y1_name,y2,y2_name....,fontsize,fontname,color,ytic_linewidth
+#xsize=400
+#ysize=300
+#ymax=1100
+#ymin=-100
+#xmin=-20
+#xmax=$[$aantal+10]
+#
+## flyapplet data
+#data=\
+#debug yes\
+#mouse yes\
+#coordinates yes\
+#precision 1\
+#userdraw line\
+#clickcolor cyan,120\
+#xrange $xmin,$xmax\
+#yrange $ymin,$ymax\
+#latex $xmax/2,$ymax/3,y=\frac{1}{2}\cdot x + \frac{2}{3},blue\
+#linewidth 1\
+#grid 10,100,5,50,blue,red,1,1,80,50\
+#linewidth 2\
+#vline 0,0,blue\
+#hline 0,0,blue\
+#linewidth 2\
+#text 0.5*$xmax,-90,helvetica,10,aantal $produkt1 (stuks),black\
+#textup 3,0.8*$ymax,90,helvetica,10,prijs in  euro ,black\
+#line 0,1000,$aantal,0,red,150\
+#xscale $xscale,helvetica,10,black,1\
+#yscale $yscale,helvetica,10,black,1\
+#
+#myname=$counter.data
+#!filewrite getfile/$myname $data
+#question$n=<a onmouseover="this.T_OPACITY=55;this.T_PADDING=10;this.T_WIDTH=$[$xsize+30];this.T_HEIGHT=$[$ysize+30];return escape('<object id=\'FlyApplet\' name=\'FlyApplet\' code=\'FlyApplet.class\' archive=\'FlyApplet.jar\' codebase=\'$appletdir\' width=\'$xsize\' height=\'$ysize\'><param name=\'transparent\' value=\'white\'/><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\'/></object>')">$ss</a>
+#helptext=<a onmouseover="this.T_OPACITY=85;return escape('<textarea cols=\'20\' rows=\'3\' style=\'font-size:18px;background-color:#e8ffff;border:1px solid #ff0000;white-space: nowrap="nowrap"\' readonly="readonly">(pi/2:-sqrt(2)) \n\n(pi:-sqrt(2))</textarea>')"><img src="$gifdir/tip.jpg" alt="tip"/></a>  

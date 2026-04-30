@@ -1,0 +1,260 @@
+target= sysineqlin1 sysineqlin2 sysineqlin3
+#if defined TARGET_sysineqlin1
+\title{Système d'inéquations linéaires 1}
+#endif
+#if defined TARGET_sysineqlin2
+\title{Système d'inéquations linéaires 2}
+#endif
+#if defined TARGET_sysineqlin3
+\title{Système d'inéquations linéaires 3}
+#endif
+\language{fr}
+\author{David Doyen}
+\email{david.doyen@u-pem.fr}
+
+\text{x=x}
+\text{lsymb={<},\leq,{>},\geq}
+\text{lnsymb={>},\geq,{<},\leq}
+\text{lcr=\(\lbrack\),\(\rbrack\)}
+\text{nbinterv=1}
+
+\text{ok=0}
+\text{lineq=}
+\text{lcorr1=}
+\text{lcorr2=}
+\text{lval=}
+\text{ltype=}
+
+#if defined TARGET_sysineqlin1
+\text{lcas=1,1}
+#endif
+#if defined TARGET_sysineqlin2
+\text{lcas=shuffle(2,3)}
+#endif
+#if defined TARGET_sysineqlin3
+\text{lcas=3,3}
+#endif
+
+
+\while{\ok=0}{
+\for{i=1 to 2}{
+
+\text{cas=\lcas[\i]}
+\text{type=randint(1..4)}
+
+
+\if{\cas=1}{
+\integer{val=randitem(-1,1)*randint(1..6)}
+\text{symb=\lsymb[\type]}
+\text{nsymb=\lnsymb[\type]}
+\text{ineq=randitem(\x\symb \val,\val \nsymb \x)}
+}
+
+\if{\cas=2}{
+\integer{p=randitem(-1,1)*randint(1..6)}
+\integer{r=randitem(-1,1)*randint(1..6)}
+\text{px=texmath(\p*\x)}
+\rational{rp=(\r)/(\p)}
+\text{val=\rp}
+\if{\p>0}{
+\text{symb=\lsymb[\type]}
+\text{nsymb=\lnsymb[\type]}
+\text{ineq=randitem(\px \symb \r,\r \nsymb \px)}
+\text{corr1=\(\x \symb \rp\)}
+\text{corr2=\(\x \symb \rp\)}
+}{
+\text{symb=\lnsymb[\type]}
+\text{nsymb=\lsymb[\type]}
+\text{ineq=randitem(\px \symb \r,\r \nsymb \px)}
+\text{corr1=\(\x \nsymb \rp\)}
+\text{corr2=\(\x \nsymb \rp\)}
+}
+}
+
+\if{\cas=3}{
+\integer{p=randitem(-1,1)*randint(1..6)}
+\integer{q=randitem(-1,1)*randint(1..6)}
+\integer{r=randitem(-1,1)*randint(1..6)}
+\text{pxq=randitem(\p*\x+\q,\q+\p*\x)}
+\text{pxq=texmath(\pxq)}
+\text{px=texmath(\p*\x)}
+\integer{rmq=\r-\q}
+\rational{rmqp=(\r-\q)/(\p)}
+\text{val=\rmqp}
+\if{\p>0}{
+\text{symb=\lsymb[\type]}
+\text{nsymb=\lnsymb[\type]}
+\if{randitem(1,2)=1}{
+\text{ineq=\pxq \symb \r}
+\text{corr1=\(\px \symb \rmq\)}
+\text{corr2=\(\x \symb \rmqp\)}
+}{
+\text{ineq=\r \nsymb \pxq}
+\text{corr1=\(\rmq \nsymb \px\)}
+\text{corr2=\(\rmqp \nsymb \x\)}
+}
+}{
+\text{symb=\lnsymb[\type]}
+\text{nsymb=\lsymb[\type]}
+\if{randitem(1,2)=1}{
+\text{ineq=\pxq \symb \r}
+\text{corr1=\(\px \symb \rmq\)}
+\text{corr2=\(\x \nsymb \rmqp\)}
+}{
+\text{ineq=\r \nsymb \pxq}
+\text{corr1=\(\rmq \nsymb \px\)}
+\text{corr2=\(\rmqp \symb \x\)}
+}
+}
+}
+
+\text{lineq=wims(append item \ineq to \lineq)}
+\text{lcorr1=wims(append item \corr1 to \lcorr1)}
+\text{lcorr2=wims(append item \corr2 to \lcorr2)}
+\text{lval=wims(append item \val to \lval)}
+\text{ltype=wims(append item \type to \ltype)}
+
+}
+
+\if{\lval[1]<>\lval[2]}{\text{ok=1}}
+
+}
+
+\text{corr=\(\lineq[1]\) &nbsp; et &nbsp; \(\lineq[2]\)<br>
+\({\Leftrightarrow}\) \lcorr1[1] &nbsp; et &nbsp; \lcorr1[2]<br>
+\({\Leftrightarrow}\) \lcorr2[1] &nbsp; et &nbsp; \lcorr2[2]<br>}
+
+% Les quatre types de réponses possibles
+% type 1 : \rbrack -inf,f \lbrack
+% type 2 : \rbrack -inf,f \rbrack
+% type 3 : \rbrack e,+inf \lbrack
+% type 4 : \lbrack e,+inf \lbrack
+
+\if{(\ltype[1]<=2) and (\ltype[2]<=2)}{
+\text{ee=\rbrack}
+\text{e=-inf}
+\if{\lval[1]<\lval[2]}{
+\text{f=\lval[1]}
+\if{\ltype[1]=1}{
+\text{ff=\lbrack}
+}{
+\text{ff=\rbrack}
+}
+}{
+\text{f=\lval[2]}
+\if{\ltype[2]=1}{
+\text{ff=\lbrack}
+}{
+\text{ff=\rbrack}
+}
+}
+\text{intsol=l'intervalle \(\rbrack -\infty,\f \ff\)}
+}
+
+\if{(\ltype[1]>=3) and (\ltype[2]>=3)}{
+\if{\lval[1]>\lval[2]}{
+\text{e=\lval[1]}
+\if{\ltype[1]=3}{
+\text{ee=\rbrack}
+}{
+\text{ee=\lbrack}
+}
+}{
+\text{e=\lval[2]}
+\if{\ltype[2]=3}{
+\text{ee=\rbrack}
+}{
+\text{ee=\lbrack}
+}
+}
+\text{f=+inf}
+\text{ff=\lbrack}
+\text{intsol=l'intervalle \(\ee \e,+\infty \lbrack\)}
+}
+
+
+\if{(\ltype[1]<=2) and (\ltype[2]>=3)}{
+\if{\lval[1]<\lval[2]}{
+\text{nbinterv=0}
+\text{intsol=vide}
+}{
+\if{\ltype[2]=3}{
+\text{ee=\rbrack}
+}{
+\text{ee=\lbrack}
+}
+\text{e=\lval[2]}
+\if{\ltype[1]=1}{
+\text{ff=\lbrack}
+}{
+\text{ff=\rbrack}
+}
+\text{f=\lval[1]}
+\text{intsol=l'intervalle \(\ee \e,\f \ff\)}
+}
+}
+
+\if{(\ltype[1]>=3) and (\ltype[2]<=2)}{
+\if{\lval[2]<\lval[1]}{
+\text{nbinterv=0}
+\text{intsol=vide}
+}{
+\if{\ltype[1]=3}{
+\text{ee=\rbrack}
+}{
+\text{ee=\lbrack}
+}
+\text{e=\lval[1]}
+\if{\ltype[2]=1}{
+\text{ff=\lbrack}
+}{
+\text{ff=\rbrack}
+}
+\text{f=\lval[2]}
+\text{intsol=l'intervalle \(\ee \e,\f \ff\)}
+}
+}
+
+\text{eee=\(\ee\)}
+\text{fff=\(\ff\)}
+
+% Enoncé
+
+\statement{Déterminer l'ensemble des réels \(x\) tels que
+<div class="wimscenter"> \(\lineq[1]\) &nbsp; et &nbsp; \(\lineq[2]\).</div>
+Ecrire cet ensemble, s'il n'est pas vide, sous la forme d'un intervalle.<br class="spacer">
+
+<table><tr><td>\embed{reply1,20x30x1}</td><td>\embed{reply2,3}</td><td>,</td><td>\embed{reply3,3}</td><td>\embed{reply4,20x30x1}</td></td></tr></table><br class="spacer">
+
+<div class="wims_instruction"> Pour désigner l'ensemble vide, écrire <span class="tt">vide</span> dans le premier champ de réponse textuel. Pour une borne égale à \(+\infty\), écrire <span class="tt">+inf</span> dans le champ de réponse correspondant. Pour une borne égale à \(-\infty\), écrire <span class="tt">-inf</span>.</div>
+}
+
+% Analyse de la réponse
+
+\answer{}{\eeer;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\er}{type=formal}{option=noanalyzeprint}
+\answer{}{\fr}{type=formal}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\fffr;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+
+\text{ok=0}
+\if{\nbinterv=1}{
+\text{diffe=simplify(\er-\e)}
+\text{difff=simplify(\fr-\f)}
+\if{(\eee issametext \eeer) and (\diffe=0) and (\difff=0) and (\fff issametext \fffr)}{\text{ok=1}}
+}{
+\if{\er issametext vide}{\text{ok=1}}
+}
+
+\condition{Bonne réponse}{\ok=1}
+
+% Corrigé
+
+#if defined TARGET_sysineqlin1
+\feedback{1=1}{<br><div class="bold" style="color:gray">Correction</div>
+L'ensemble des réels \(x\) vérifiant ces inégalités est \intsol.}
+#endif
+#if defined TARGET_sysineqlin2 || TARGET_sysineqlin3
+\feedback{1=1}{<br><div class="bold" style="color:gray">Correction</div>
+\corr
+L'ensemble des réels \(x\) vérifiant ces inégalités est donc \intsol.}
+#endif

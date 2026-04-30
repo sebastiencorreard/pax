@@ -1,0 +1,141 @@
+# empirische kans en tabellen I
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<10
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+decimalen=!item $[log($rounding)/log(10)] of $telwoorden
+mathview=0
+formula$n=$empty
+var1=1
+# dus geen aantallen maar  een kans 0<P<1 
+math=0
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cols=10
+rows=1
+helptext=$empty
+image=0
+
+questiontype=0
+checkfile=exos/checkfile1.proc
+d=!randitem 1,2,3
+logo=<img src=$module_dir/gifs/lijk_kist.jpg alt="Mooi Dom"/>
+viewlogo=1
+txt=!record 135 of lang/remarks.$taal
+#@leeftijd,levenden,overledenen
+leeftijd=!item 1 of $txt
+levenden=!item 2 of $txt
+dooien=!item 3 of $txt
+lookhere=!item 4 of $txt
+leeftijden=30,35,40,45,50,55,60,65,70,75,80,85,90
+rnd=500,700 800,1000 1200,1500 2000,2300 3000,3500 5000,6000 6000,7500 8000,10000 12000,14000 14500,17000 17000,18000 7000,9000 3000,5000  
+max=100000
+LL=!item 1 of $leeftijden
+d=!word 1 of $rnd
+DD=!randint $d
+d1=$DD
+header=<tr><th>$leeftijd</th><th>$levenden</th><th>$dooien</th></tr>
+body1=<tr><th>$LL</th><th>$max</th><th>$DD</th></tr>
+body2=$empty
+dooien=$DD
+leven=$max
+!for p=2 to 13
+    LL=!item $p of $leeftijden
+    interval=!word $p of $rnd
+    f=!randint $interval
+    max=$[$max - $DD]
+    DD=$f
+    !if $p<7
+	body1=!append word $ <tr><th>$LL</th><th>$max</th><th>$DD</th></tr> $ to $body1
+    !else
+	body2=!append word $ <tr><th>$LL</th><th>$max</th><th>$DD</th></tr> $ to $body2
+    !endif
+    dooien=!append item $DD to $dooien
+    leven=!append item $max to $leven
+!next p
+
+
+tabel=<table><tr><th style=\'vertical-align:top\'><table class=\'zebra_table_h2\'><tr>$header $body1</tr></table></th><th style=\'vertical-align:top\'><table class=\'zebra_table_h2\'><tr>$header $body2</tr></table></th></tr></table> 
+logotext=$tabel
+
+s1=!record 136 of lang/remarks.$taal
+#@Gegeven is de <span style="color:blue"><u>volgende sterftetabel</u></span>.<br />In deze sterftetabel kun je zien dat van de 100000 mensen van 30 jaar,<br />er gemiddeld $d1 zullen sterven in de daarop volgende 5 jaar.<br />
+
+s1=<a onmouseover="return escape('$tabel')">$s1</a>
+helptext=$tabel
+k1=!randint 1,7
+p=!randitem 1,2,3,4,5
+l1=!item $k1 of $leeftijden
+L1=!item $k1 of $leven
+!if $R=1
+    k1=1
+    p=11
+    #!randitem 5,6,7,8,9,10,11
+    l1=!item $k1 of $leeftijden
+    L1=!item $k1 of $leven
+    k2=$[$k1+$p]
+    l2=!item $k2 of $leeftijden
+    L2=!item $k2 of $leven
+    answer$n=!exec pari $L2/$L1
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+    s2=!record 137 of lang/remarks.$taal
+    #@Bereken in $decimalen decimalen nauwkeurig de kans dat<br />iemand van $l1 jaar oud de leeftijd van $l2 jaar bereikt.
+    question$n=$s1<br />$s2
+    s3=!record 138 of lang/remarks.$taal
+    #@Volgens de tabel zijn er van de $L1 $l1 jarigen na $[$p*5] jaar nog $L2 in leven.<br />Dus het goede antwoord is $(answer$n) , of afgerond op $decimalen decimalen $ans .
+    textanswer$n=$s3
+ !exit
+!endif
+
+!if $R=2
+    k1=!randint 1,7
+    p=!randitem 1,2,3,4,5
+    l1=!item $k1 of $leeftijden
+    L1=!item $k1 of $leven
+    k2=$[$k1+$p]
+    l2=!item $k2 of $leeftijden
+    L2=!item $k2 of $leven
+    answer$n=!exec pari $L2/$L1
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+    s2=!record 137 of lang/remarks.$taal
+    #@Bereken in $decimalen decimalen nauwkeurig de kans dat<br />iemand van $l1 jaar oud de leeftijd van $l2 jaar bereikt.
+    question$n=$s1<br />$s2
+    s3=!record 138 of lang/remarks.$taal
+    #@Volgens de tabel zijn er van de $L1 $l1 jarigen na $[$p*5] jaar nog $L2 in leven.<br />Dus het goede antwoord is $(answer$n) , of afgerond op $decimalen decimalen $ans .
+    textanswer$n=$s3
+ !exit
+!endif
+
+!if $R>2
+    k1=!randint 1,7
+    p=!randitem 1,2,3,4,5
+    l1=!item $k1 of $leeftijden
+    L1=!item $k1 of $leven
+    s2=!record 139 of lang/remarks.$taal
+    #@Bereken in $decimalen decimalen nauwkeurig de kans<br />dat iemand van $l1 jaar binnen $[$p*5] jaar zal sterven.<br />
+    tot=0
+    show=0
+    !for r=1 to $p
+	d=!item $k1 of $dooien
+	!increase k1
+	tot=$[$tot + $d]
+	show=$show+$d
+    !next r
+    show=!char 3 to -1 of $show
+    answer$n=$tot/$L1
+    ans=$[(round($rounding*($(answer$n))))/$rounding]
+    s3=!record 140 of lang/remarks.$taal
+    #@Volgens de tabel zijn er van de $L1 $l1 jarigen in $[$p*5] jaar $show = $tot mensen overleden.<br />De kans op sterven is dan $(answer$n)
+    question$n=$s1<br />$s2
+    textanswer$n=$s3
+    !exit
+!endif

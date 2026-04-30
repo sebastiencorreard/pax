@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+
+$TABLEAU= 'tableau';
+while ($_ = shift(@ARGV))
+{
+  last if (/^$/);
+  if    (/^--tableau=(.*)$/)  {$TABLEAU   = $1; }
+  else { 
+    print STDERR "unknown option: $_\n" if (!/^--help$/);
+    usage(); # includes --help !
+  }
+}
+
+open (OUT  , '>ind.cles');
+open (OUT1 , '>descriptif') ;
+open (OUT2 , ">listecles") ;
+open (IN, $TABLEAU);
+while(<IN>) {
+   chop @_ ;
+   my ($login,$key,@reste) = split (/ *\; */);
+   print OUT1 $login . ":" ;
+   print OUT1 join (',' , @reste) ;
+   @_ = split (/ *\, */, $key);
+   for $key (@_) {
+   push @{$table{$key}}, $login;
+   }
+  }
+close OUT1 ; 
+
+ foreach $cles (sort keys %table) {
+    print OUT2 "$cles " ;
+    print OUT "$cles: ";
+    my @login = @{$table{$cles}};
+    print OUT join ', ', sort @login;
+    print OUT "\n";
+ }
+close OUT2 ;
+close OUT  ;
+
+
+sub usage {
+  print STDERR << "EOT"
+database --fichier=tableau ]
+  --fichier=tableau : in the file tableau on each line separated by ; 
+  login(name of the directory where the images will be put); 
+  keys;name;names of image (separated by commas, should be .gif, .jpeg,.png ; comments
+The comments/properties are separated by  ; 
+Output : files index.keys (one line by keys) , descriptif
+with a file keys of the list of keys
+Images are put in a directory images/login
+EOT
+;
+  exit 1;
+}
+ 

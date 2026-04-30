@@ -1,0 +1,113 @@
+n=$counter
+mathview=0
+questiontype=1
+multiimage=1
+checkfile=$checkdir/multiplechoice.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+options=3
+image=0
+draw=0
+plot=0
+make_tr=1
+pm=!randitem +,-
+!if $R=1
+    a=!randitem -5,-4,-3,-2,2,3,4,5
+    b=!randitem 2,3,4,5
+    c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+    k=!randitem 1,3/2,2,5/2,3,7/2,4,9/2,7/4,5/4
+    d=!randitem -5/2,-4/5,-3/2,-2,-1,2,3,4,5
+    functies=$a*sin($d*x)@$a*sin($d*x$pm$k)@$a*sin(x),\
+    $a*sin(x)@$a*sin($k+x)@$a*cos(x),\
+    $a*cos($d*x)@$a*cos($d*x$pm$k)@$a*cos(x),\
+    $a*sin(x$pm$b)@$a*sin(x$pm$k)@$a*sin($k*x),\
+    $a*cos(x)@$a*cos(x$pm$k)@$a*cos($a*x)
+!else
+    !if $R=2
+	a=!randitem -5,-4,-3,-2,2,3,4,5
+        b=!randitem 2,3,4,5
+        c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+        k=!randitem 1,3/2,2,5/2,3,7/2,4,9/2,7/4,5/4
+        d=!randitem -5/2,-4/5,-3/2,-2,-1,1,2,3,4,5
+	functies= $a*sin($d*x)@$a*sin($d*x$pm$k)@$a*cos($b*x),\
+	$a*cos($d*x)@$a*cos($d*x$pm$k)@$a*sin(x+$d),\
+	$a*cos(x$pm$b)@$a*sin(x$pm$k)@$a*sin($b*x+$a),\
+	$a*cos(x)@$a*cos(x$pm$k)@$a*sin(x$pm$k)
+    !else
+	!if $R>2
+	    a=!randitem -5,-4,-7/2,-3,-5/2,-2,-3/2,3/2,2,5/2,3,7/2,4,9/2,5
+	    b=!randint 2,3,4,5
+	    c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+	    d=!randitem -3/4,-4/5,-3/5,-2/5,-5/6,-1/5,-5/4,-2/3,-1/2,1/2,2/3,5/4,3/4,4/5,2/5,5/6,6/5
+	    e=!randitem -2,-3/2,-3/4,-3/5,-2/5,-1/5,-5/4,-2/3,-1/2,1/2,2/3,5/4,3/4,4/5,2/5,6/5,3/2,2
+	    functies=($a)*sin(($d)*x)@($a)*sin(($d)*x$pm$b)@($c)*cos(($d)*x),\
+	    ($a)*cos(($d)*x)@($a)*cos(($d)*x$pm$b)@($a)*sin(($a)*x-$b),\
+	    ($b)*cos(($a)*x)@($a)*cos(($a)*x$pm$b)@($b)*sin(($a)*x),\
+	    ($c)*sin(($d)*x)@($a)*cos(($d)*x$pm$b)@($c)*cos(($d)*x),\
+	    $b*sin(($d)*x)@($e)*sin(($a)*x$pm$c)@$b*cos(($d)*x),\
+	    $e*cos(($d)*x)@$e*sin(($d)*x)@($e)*sin(($a)*x$pm$c)
+	!endif
+    !endif
+!endif
+
+functie=!randitem $functies
+functie=!replace internal @ by , in $functie
+
+xsize=200
+ysize=200
+
+letters=!shuffle f,g,h,k,p,s,w
+getallen=$empty
+!for p=1 to $options
+    getallen=!append item $p to $getallen
+!next p
+getallen=!shuffle $getallen
+
+
+klikop=!record 2 of lang/remarks.$taal
+#@Klik op de grafiek van:
+
+kleuren=!record 1 of lang/remarks.$taal
+#@rood,groen,oranje,blauw
+colors=red,green,orange,blue
+xmin=-5
+xmax=5
+ymin=-5
+ymax=5
+!for p=1 to $options
+ t=!item $p of $getallen
+ kleur$p=!item $t of $kleuren
+ color$p=!item $t of $colors
+ functie$p=!item $t of $functie    
+ ex$p=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+bgcolor white\
+axis\
+#axisnumbering\
+xlabel x-as\
+ylabel y-as\
+xaxis -1*pi:-\u03c0:pi:\u03c0\
+opacity 120,120\
+grid pi,1,grey,4,4,6,black\
+linewidth 3\
+opacity 255,255\
+curve $(color$p),$(functie$p)\
+mouse blue,18
+h=!item $p of $letters
+F$p=!texmath $h(x)=$(functie$p)
+!next p    
+
+corr=!randint 1,$options
+answer$n=$corr
+texanswer$n=!texmath $(F$corr)
+object$n=$(ex$corr)
+formula$n=\left[\begin{array}{l} $F1 \\ $F2 \\ $F3 \\ \\ \textrm{$klikop} \: $(F$corr) \end{array}
+
+!if $wims_user=supervisor
+    exotext=Correct : $corr
+!endif

@@ -1,0 +1,201 @@
+!set title=Choisir le bon polyèdre
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette,Perrin-Riou
+email=bernadette.m.riou@orange.fr
+title_it=Scegli il poliedro
+
+ansorder=r
+varcnt=30
+prevarcnt=28
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le nom du polyèdre est
+val8=On voit ici les patrons des polyèdres suivants
+val9=Sélectionner le polyèdre convexe dont le patron est le suivant
+!if $val6=it 
+val7=Il poliedro si chiama
+val8=Vediamo qui gli sviluppi dei poliedri seguenti
+val9=Seleziona il poliedro convesso il cui sviluppo è qui mostrato
+!endif
+val10=3
+
+!ifval $val2=
+val11=1
+!else
+val11=$val2
+!endif
+
+!ifval $val11=1
+tmp=!translate internal $	$ to ; in 4,5	6,7	7,8	8	8,9	8,10
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+!endif
+
+!ifval $val11=2
+tmp=!translate internal $	$ to ; in 11	12	12,13	13,14	15,16	17	18	19
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+!endif
+
+!ifval $val11=3
+tmp=!translate internal $	$ to ; in 20,21	22	24	26	27,30	32
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+!endif
+
+!ifval $val11=4
+tmp=!translate internal $	$ to ; in 34,37	38,42	47,52	60	62
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+!endif
+tmp0=!record 0 of data/polyedre_off/index2
+
+val13=$(tmp0)
+tmp0=!select $val13 where column 3 isitemof $val12
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp0=!rowcnt $tmp
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row $(val16[1 to $val10]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!randint 1, $val10
+
+val17=$(tmp0)
+tmp0=!makelist x for x=1 to $val10
+
+val18=$(tmp0)
+val19=
+!for val20 =1 to $val10 
+
+!ifval $val20=$val17
+!readproc slib/geo2D/polynet $(val14[$val20;1]),size=200 html 
+tmp0=$slib_out
+val21=$(tmp0)
+!endif
+!readproc slib/geo3D/polyhedra $(val14[$val20;1]),300,300,scale=0.8 show=[S,A,F] color=[black,green,yellow,blue] width=[6,2] id=$val20 
+tmp0=$slib_out
+val19=$val19,$(tmp0)
+!next
+tmp0=!nonempty items $val19
+
+val19=$(tmp0)
+!readproc slib/geo3D/polyhedra $(val14[1;1]),300,300,show=[S,A,F] color=[black,green,yellow,blue] width=[6,2] id=11 
+tmp0=$slib_out
+val22=$(tmp0)
+!readproc slib/geo3D/polyhedra $(val14[2;1]),300,300,show=[S,A,F] color=[black,green,yellow,blue] width=[6,2] id=12 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/geo3D/polyhedra $(val14[3;1]),300,300,show=[S,A,F] color=[black,green,yellow,blue] width=[6,2] id=13 
+tmp0=$slib_out
+val24=$(tmp0)
+replytype1=radio
+replyname1=
+replygood1=$val17;$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val9	 <div class="wimscenter">$val21</div>	    <ul class="inline">	 
+!for m_k=1 to $val10 
+$()<li> 
+!read oef/embed.phtml r1,\k 
+$() $(val19[$m_k])</li> 
+!next
+$()	    </ul>	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!lookup $(val14[$val17;1]) in data/polyedre_off/index.$val6
+
+val25=$(tmp0)
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val7 <span class="wims_emph">$val25</span>.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,14,17,19,21
+embedcnt=1

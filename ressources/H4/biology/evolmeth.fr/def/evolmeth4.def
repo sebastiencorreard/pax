@@ -1,0 +1,221 @@
+!set title=F - Choix d'un arbre le plus parcimonieux
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+
+ansorder=r
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Dans le tableau suivant, nommé matrice des caractères, on a noté que	  chaque être vivant possède le caractère sous forme ancestrale (notée 0)	  ou sous sa forme dérivée (notée 1). Vous appuyant sur cette matrice,	  cliquez sur l'arbre de parenté qui correspond.	
+val7=Être vivant
+val8=caract.
+val6=Dans le tableau suivant, nommé matrice des caractères, on a noté que	  chaque être vivant possède le caractère sous forme ancestrale (notée 0)	  ou sous sa forme dérivée (notée 1). Vous appuyant sur cette matrice,	  cliquez sur l'arbre de parenté qui correspond.	
+val7=Être vivant
+val8=caract.
+val9=$[rint(5)]
+val10=$[rint(4)]
+
+!ifval $val2=1 
+tmp0=!randint 3, 4
+
+val9=$[rint( $(tmp0))]
+!endif
+
+!ifval $val2=1 
+tmp0=!randint 3, 4
+
+val10=$[rint( $(tmp0))]
+!endif
+
+!ifval $val2=2 
+val9=$[rint( 4)]
+!endif
+
+!ifval $val2=2 
+tmp0=!randint 4, 5
+
+val10=$[rint( $(tmp0))]
+!endif
+
+!ifval $val2=3 
+tmp0=!randint 5, 6
+
+val9=$[rint( $(tmp0))]
+!endif
+
+!ifval $val2=3 
+tmp0=!randint 5, 5
+
+val10=$[rint( $(tmp0))]
+!endif
+val11=A,B,C,D,E,F,F,G,H,I,J
+val12=$(val11[1..$val9])
+tmp0=!values x for x=1 to $val9
+
+val13=$(tmp0)
+tmp0=!shuffle factorial($val9)
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in bat0=[$val14]; vector($val10,i,numtoperm($val9,bat0[i]))
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+tmp0=!declosing $(val15[1])
+
+val16=$(tmp0)
+val17=200,200
+t_=!replace internal \( by ( in matrix($val9,$val9,i,j,if(i<= j,1))
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+val18=$(val18[$val16;])
+val19=,$val12
+!for val20 =1 to $val9 
+val19=$val19	$val8 $(val13[$val20]),$(val18[$val20;])
+!next
+tmp=!trim $val19
+val19=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/text/matrixhtml [$val19], wimscenter wimsborder, TH=[1;1] 
+tmp0=$slib_out
+val19=$(tmp0)
+val21=
+!for val20 =1 to $val10 
+val22=
+tmp0=!declosing $(val15[$val20])
+
+val23=$(tmp0)
+!for val24 =1 to $val9 
+tmp0=!positionof item $val24 in  $val23
+
+val25=$(tmp0)
+tmp0=!append item $val25 to $val22
+
+val22=$(tmp0)
+!next
+tmp0=!makelist $val7 x for x in $val12
+
+tmp1=!makelist $val8 x for x in $(val13[$val22])
+
+tmp=!trim $(tmp0)	$(tmp1)
+val26=!translate internal $	\
+$ to ;; in $tmp
+val27=1
+val28=0.7
+val29=
+tmp0=!itemcnt $(val26[1;])
+
+val30=$[rint($(tmp0))]
+val31=xrange -$val27*$val30+1,$val30*1.5	yrange -1,$val30*($val27+1)	segment 0,0,$val30,$val30*$val27,black
+!for val20 =1 to $val30 
+val28=$[$val28+1]
+val31=$val31	linewidth 1	segment $val20,$val27*$val20, ($val27+1)*$val20 - $val27*$val30,$val30*$val27,black	textup blue,($val27+1)*$val20-$val27*$val30-0.1,$val30*$val27+0.1,normal,$(val26[1;$val20])
+
+!ifval $(val26[2;$val20])!= 
+val31= $val31	text red,$val20-0.7,$val27*($val20-0.7)-0.3, normal,$(val26[2;$val20])	segment $val20-0.7,$val27*($val20-0.7)+0.2,$val20-0.7,$val27*($val20-0.7)-0.2,black
+!endif
+
+!ifval $val20<$val30 
+val31=$val31	linewidth 2	point $val20,$val27*($val20),black
+!endif
+
+!ifval $val20<$val30
+val29= $val29$val20,$val27*($val20),
+!endif
+!next
+val29=$(val29[1..-2])
+t_=!replace internal \( by ( in [$val29]
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+val31=$val31	snaptopoints $val29	linewidth 3
+!readproc oef/canvasdraw.phtml $val17 \
+$val31 
+tmp0=$canvasdraw_out
+tmp1=!append item $(tmp0) to $val21
+
+val21=$(tmp1)
+!next
+tmp0=!shuffle $val10
+
+val32=$(tmp0)
+tmp0=!positionof item 1 in $val32
+
+val33=$(tmp0)
+tmp0=!makelist x for x=1 to $val10
+
+val34=$(tmp0)
+replytype1=radio
+replyname1=
+replygood1=$val33;$val34
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right">	$val19	</div>	$val6	<div class="wimscenter">	<ul class="inline">	 
+!for m_i=1 to $val10 
+$()<li> 
+!read oef/embed.phtml r1,\i 
+$() $(val21[$(val32[$m_i])])</li> 
+!next
+$()	</ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,19,21,32
+embedcnt=1

@@ -1,0 +1,157 @@
+# formule met absolute waarde
+wims_user=supervisor
+mathview=5
+checkfile=exos/checkfile6.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+mathview=5
+vorm=!mathmlmath y=a \cdot x^{2}+b\cdot x + c
+ss=!record 44 of lang/remarks.$taal
+#@Herschrijf de onderstaande formule zonder absoluut strepen...
+txt=!record 45 of lang/remarks.$taal
+#@let op de juiste manier van invullen ! 
+#mathviewpanel=minimaal:f(x)=:met D_f \u2236 : x :\u2264 : \u2265 : > : < : and 
+mathviewpanel=maal:f(x)=:met D_f \u2236 : x :\u2264 : \u2265 : > : < : and 
+helptext=<textarea cols=\'40\' rows=\'5\' class=\'schaersvoorde_textarea\' readonly=\'readonly\' > f(x) = 25x - 27 met D_f: x < 1/6\n f(x) = -5x + 27 met D_f: 1/4 <= x < 9/5 and x >= 14 </textarea>
+question$n=<a onmouseover="return escape('$txt <img src=$gifdir/tip.png />')">$ss</a>
+!if $R=1
+#pari kijkt na
+ var1=0
+ keuze=!randitem 0,1
+ a=!randint 2,15
+ b=!randint 2,15
+ !if $a=$b
+  a=$[$a+1]
+ !endif
+ c=!randint 1,50
+ e=$[$a-$b]
+ d=$[$a+$b]
+ tot=!exec pari A=$c/$b\
+ printtex(A)
+ f=!line 1 of $tot
+ var9=$f
+ ftex=!line 2 of $tot
+ txt1=!record 46 of lang/remarks.$taal
+ #@het gedeelte tussen de absoluut strepen is nul als...
+ txt2=!record 47 of lang/remarks.$taal
+ #@we splitsen de formule in twee gedeelten...afhankelijk van het domein
+ stxt=!record 48 of lang/remarks.$taal
+ txt3= $(stxt[1])
+ txt4= $(stxt[2])
+ !if $keuze=1
+  formula$n=f(x) = $a x + \left| $b x - $c \right|
+  answer$n=$d*x -$c,x>=$f,$e*x+$c,x<$f
+  texanswer$n=\left[ \begin{array}{l} \textrm{$txt1} \\ $b x - $c = 0 \rightarrow $b x = $c \rightarrow x = $ftex \\ $b x - $c \ge 0 \: \textrm{$txt4} \: x \ge $ftex \\ $b x - $c < 0 \: \textrm{$txt4} \: x < $ftex \\ \textrm{$txt2} \\ f(x) = $a x + | $b x - $c | = $a x + $b x - $c = $d x - $c  \rightarrow \color{red} f(x) = $d x - $c \:  \textrm{ $txt3 }  \: D_{f} : x \ge $ftex  \\ f(x) = $a x + | $b x - $c | = $a x + -1 \cdot ( $b x - $c) = $e x + $c \rightarrow \color{red} f(x) = $e x + $c \: \textrm{ $txt3 }  \: D_{f} : x < $ftex    \end{array} \right.
+ !else
+  formula$n=f(x) = $a x - \left| $b x - $c \right|
+  answer$n=$e*x + $c,x>=$f,$d*x-$c,x<$f
+  texanswer$n=\left[ \begin{array}{l}  \textrm{$txt1} \\  $b x - $c = 0 \rightarrow $b x = $c \rightarrow x = $ftex \\ $b x - $c \ge 0 \: \textrm{$txt4} \: x \ge $ftex \\ $b x - $c < 0 \: \textrm{$txt4} \: x < $ftex \\ \textrm{$txt2} \\ f(x) = $a x - | $b x - $c | = $a x - ($b x - $c) = $e x + $c \rightarrow  \color{red} f(x) = $e x + $c \: \textrm{ $txt3 }  \: D_{f} : x \ge $ftex  \\ f(x) = $a x - | $b x - $c | = $a x - -1 \cdot ( $b x - $c) = $a x + ( $b x - $c) = $d x - $c \rightarrow  \color{red}  f(x) = $d x - $c \: \textrm{ $txt3 }  \: D_{f} :1 x < $ftex   \end{array} \right.
+ !endif
+!endif
+
+!if $R>1
+#pari kijkt na
+ var1=0
+ keuze=!randitem 0,1,2,3
+
+ a=!randint 2,15
+ txt1=!record 46 of lang/remarks.$taal
+ #het gedeelte tussen de absoluut strepen is nul als...
+ txt2=!record 47 of lang/remarks.$taal
+ #we splitsen de formule in twee gedeelten...afhankelijk van het domein
+ stxt=!record 48 of lang/remarks.$taal
+ txt3= $(stxt[1])
+ txt4= $(stxt[2])
+ txt5= $(stxt[3])
+ #is een dalparabool
+ txt6= $(stxt[4])
+ #is een bergparabool
+ !if $keuze=1
+  c=!randint 1,8
+  k=!randint 1,5
+  b=$[$c+$k]
+  m=$[$b*$c]
+  l1=$[$a-$m]
+  l2=$[$a+$m]
+  
+  !if $l1>0
+    l1=+$l1
+  !else
+   l1=$l1
+  !endif
+  formula$n=f(x) = $a + \left|x^{2} + $k x - $m  \right|
+  var9=-$b,$c
+  answer$n=x^2 + $k*x  $l1,x<=-$b and x>=$c,-x^2 - $k*x + $l2,-$b<x and x<$c
+  texanswer$n=\left[ \begin{array}{l} \textrm{$txt1} \\ x^{2} + $k x - $m = 0 \rightarrow (x + $b)(x-$c)  = 0\rightarrow x = -$b \vee x=$c \\ y=x^{2} + $k x - $m \, \textrm{$txt5} \\ x^{2} + $k x - $m  \ge 0 \: \textrm{$txt4} \: x \le -$b \wedge x \ge $c  \\ x^{2} + $k x - $m < 0 \: \textrm{$txt4} \: -$b < x < $c \\ \textrm{$txt2} \\ f(x) = $a + |x^{2} + $k x - $m  | = $a + x^{2} + $k x - $m   \rightarrow \color{red} f(x) = x^{2} + $k x  $l1 \:  \textrm{ $txt3 }  \: D_{f} : x \le -$b \wedge x \ge $c  \\ f(x) = $a + |x^{2} + $k x - $m  | = $a + -1 \cdot(x^{2} + $k x - $m)  \rightarrow \color{red} f(x) = -x^{2} - $k x + $l2  \: \textrm{ $txt3 }  \: D_{f} : -$b < x < $c   \end{array} \right.
+ !else
+  !if $keuze=2
+   c=!randint 1,8
+   k=!randint 1,5
+   b=$[$c+$k]
+   m=$[$b*$c]
+  l1=$[$a-$m]
+  l2=$[$a+$m]
+  
+  !if $l1>0
+    l1=+$l1
+  !else
+   l1=$l1
+  !endif
+  formula$n=f(x) = $a - \left|x^{2} + $k x - $m  \right|
+  answer$n=-x^2 - $k*x  $l2,x<=-$b and x>=$c,-x^2 - $k*x + $l2,-$b<x and x<$c
+  var9=-$b,$c
+  texanswer$n=\left[ \begin{array}{l} \textrm{$txt1} \\ x^{2} + $k x - $m = 0 \rightarrow (x + $b)(x-$c)  = 0\rightarrow x = -$b \vee x=$c \\ y=x^{2} + $k x - $m \, \textrm{$txt5} \\ x^{2} + $k x - $m  \ge 0 \: \textrm{$txt4} \: x \le -$b \wedge x \ge $c  \\ x^{2} + $k x - $m < 0 \: \textrm{$txt4} \: -$b < x < $c \\ \textrm{$txt2} \\ f(x) = $a - |x^{2} + $k x - $m  | = $a - (x^{2} + $k x - $m  ) = $a - x^{2} - $k x + $m   \rightarrow \color{red} f(x) = -x^{2} - $k x +  $l2 \:  \textrm{ $txt3 }  \: D_{f} : x \le -$b \wedge x \ge $c  \\ f(x) = $a - |x^{2} + $k x - $m  | = $a - -1 \cdot(x^{2} + $k x - $m)= $a + (x^{2} + $k x - $m)  \rightarrow \color{red} f(x) = x^{2} + $k x  $l1  \: \textrm{ $txt3 }  \: D_{f} : -$b < x < $c   \end{array} \right.
+  !else
+   !if $keuze=3
+    b=!randint 1,8
+    k=!randint 1,5
+    c=$[$b+$k]
+    m=$[$b*$c]
+    l1=$[$a-$m]
+    l2=$[$a+$m]
+  
+    !if $l1>0
+     l1=+$l1
+    !else
+     l1=$l1
+     !endif
+     formula$n=f(x) = $a + \left|$m + $k x - x^{2} \right|
+     answer$n=-x^2 + $k*x +  $l2,-$b<=x and x<=$c,x^2 - $k*x  $l1,x<-$b and  x>$c
+     var9=-$b,$c
+     texanswer$n=\left[ \begin{array}{l} \textrm{$txt1} \\ -x^{2} + $k x + $m = 0 \rightarrow (x + $b)(-x+$c)  = 0\rightarrow x = -$b \vee x=$c \\ y=-x^{2} + $k x + $m \, \textrm{$txt6} \\ -x^{2} + $k x + $m  \ge 0 \: \textrm{$txt4} \: -$b \le x \le $c  \\ -x^{2} + $k x + $m < 0 \: \textrm{$txt4} \: x < -$b \wedge x > $c \\ \textrm{$txt2} \\ f(x) = $a + |$m + $k x - x^{2}  | = $a + $m + $k x - x^{2}   \rightarrow \color{red} f(x) = -x^{2} + $k x +  $l2 \:  \textrm{ $txt3 }  \: D_{f} : -$b \le x \le $c  \\ f(x) = $a + | $m + $k x - x^{2} | = $a + -1 \cdot ($m + $k x - x^{2})  \rightarrow \color{red} f(x) = x^{2} - $k x  $l1  \: \textrm{ $txt3 }  \: D_{f} : x< -$b \wedge  x > $c   \end{array} \right.
+   !else
+    b=!randint 1,8
+    k=!randint 1,5
+    c=$[$b+$k]
+    m=$[$b*$c]
+    l1=$[$a-$m]
+    l2=$[$a+$m]
+  
+    !if $l1>0
+     l1=+$l1
+    !else
+     l1=$l1
+    !endif
+     formula$n=f(x) = $a - \left|$m + $k x - x^{2} \right|
+     answer$n=x^2 - $k*x  $l1,-$b<=x and x<=$c,-x^2 + $k*x +  $l2,x<-$b and x>$c
+     var9=-$b,$c
+     texanswer$n=\left[ \begin{array}{l} \textrm{$txt1} \\ -x^{2} + $k x + $m = 0 \rightarrow (x + $b)(-x+$c)  = 0\rightarrow x = -$b \vee x=$c \\ y=-x^{2} + $k x + $m \, \textrm{$txt6} \\ -x^{2} + $k x + $m  \ge 0 \: \textrm{$txt4} \: -$b \le x \le $c  \\ -x^{2} + $k x + $m < 0 \: \textrm{$txt4} \: x < -$b \wedge x > $c \\ \textrm{$txt2} \\ f(x) = $a - |$m + $k x - x^{2}  | = $a -( $m + $k x - x^{2}) = $a - $m - $k x +  x^{2}   \rightarrow \color{red} f(x) = x^{2} - $k x  $l1 \:  \textrm{ $txt3 }  \: D_{f} : -$b \le x \le $c  \\ f(x) = $a - | $m + $k x - x^{2} | = $a - -1 \cdot ($m + $k x - x^{2}) = $a + ($m + $k x - x^{2})   \rightarrow \color{red} f(x) = -x^{2} + $k x +  $l2  \: \textrm{ $txt3 }  \: D_{f} : x< -$b \wedge  x > $c   \end{array} \right.
+   !endif
+  !endif
+ !endif
+!endif
+!exit

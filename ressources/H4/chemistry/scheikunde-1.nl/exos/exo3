@@ -1,0 +1,159 @@
+n=$counter
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" alt="periodiek systeem de elemenenten" /></a>  
+math=0
+inputs=yes
+calculator=2
+mathview=0
+questiontype=7
+make_tr=1
+#applet
+width=600
+height=220
+largefont=28
+# var2 is in units.proc een getal met range
+var2=$empty
+
+prec=1000
+!if $rounding < 1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+javascript=js/cheminput.js
+checkfile=exos/checkfile1.proc
+# altijd een andere vraag
+!if $counter=1
+    max=!recordcnt docs/data2.def
+    var5=$empty
+    !for p=1 to $max
+	var5=!append item $p to $var5
+    !next p
+    var5=!shuffle $var5
+!endif
+num=!item $counter of $var5
+data=!record $num of docs/data2.def
+# vraag1
+bruto=!line 4 of $data
+verhouding=!words2items $bruto
+verhouding=!replace [A-za-z] by $empty in  $verhouding
+ans2=!item 1 of $verhouding
+ans3=!item 2 of $verhouding
+mfactor=$[($ans3/$ans2)/2]
+M_metaloxide=!line 5 of $data
+ans1=$M_metaloxide
+Mo2=31.9988
+Av=24.5
+# molmassa metaal uitrekenen
+# M_metaloxide = $ans2*M_metal + $ans3*M_o
+# $ans2*M_metal =  M_metaloxide - $ans3*Mo
+# $ans2*M_metal =  M_metaloxide - ($ans3/2)*Mo2
+# M_metal = ( $M_metaloxide - ($ans3/2)*$Mo2)/$ans2
+M_metal = $[($M_metaloxide - ($ans3/2)*$Mo2)/$ans2]
+
+texanswer$n=!line 9 of $data
+Atom=!line 11 of $data
+!if $taal=en
+    chemical=!line 1 of $data
+!else
+    !if $taal=nl
+	chemical=!line 2 of $data
+	chemical=!item 1 of $chemical
+    !else
+        chemical=!line 1 of $data
+    !endif
+!endif
+
+metal=!word 1 of $chemical
+metaloxide=!nospace $chemical
+w=!randint 100,999
+w=$[$w/100]
+pow=-1
+weight=$[$w*10^($pow)]
+# weight in gr !
+mols_metal=$[($weight)/$M_metal]
+# mols = $weight*10^-3/$M
+k=!randint 0,1
+!if $k=0
+    # metal_weight is html
+    metal_weight=$w&times;10<sup>$pow</sup>
+    weight_unit=g
+!else
+    pow=$[$pow+3]
+    !if $pw=0
+	metal_weight=$w
+    !else
+        metal_weight=$w&times;10<sup>$pow</sup>
+    !endif
+    weight_unit=mg
+!endif
+
+# mol O2 voor $weight $metal
+ans4=$[$mfactor*$mols_metal]
+ans5=$[$ans4*$Mo2]
+ans6=$[$Av*$ans4]
+
+!for p=42 to 51
+    L$p=!record $p of lang/remarks.$taal
+!next p
+text=!nosubst $L42<ol><li>$L43</li><li>$L44</li><li>$L45</li><li>$L46</li><li>$L47<ol><li>$L48<li>$L49<li>$L50</ol></li></ol>$L51
+tot=!exec moneyprint $ans1,$ans2,$ans3,$ans4,$ans5,$ans6 3
+!for p=1 to 6
+    ans_$p=!item $p of $tot
+!next p
+
+!if $wims_user=supervisor
+    vraag1=!subst <input id="myinput0" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_1 gr/mol" />
+    vraag2=!subst <input id="myinput1" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_2" />
+    vraag3=!subst <input id="myinput2" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_3" />
+    vraag4=!subst <input id="myinput3" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_4 mol" />
+    vraag5=!subst <input id="myinput4" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_5 gr" />
+    vraag6=!subst <input id="myinput5" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="$ans_6 l" />
+
+    applettext=!line 9 of $data
+!else
+    vraag1=<input id="myinput0" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag2=<input id="myinput1" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag3=<input id="myinput2" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag4=<input id="myinput3" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag5=<input id="myinput4" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag6=<input id="myinput5" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    
+    applettext=$Atom + O_{2} \rightarrow
+!endif
+
+answer$n=$ans1 gr/mol,$ans2,$ans3,$ans4 mol,$ans5 gr ,$ans6 l
+# eenheid erbij : units.proc
+var1=1,0,0,1,1,1
+var2=0.05,0,0,0.05,0.05,0.05
+var9=!line 7 of $data
+chemhelptxt=Gegeven is:<ul><li>Het molair volume bij 25°C :24,5 dm<sup>3</sup>/mol (L/mol) <br />[ T = 298 K (25 <sup>o</sup>) en p = 1 atm (101325 Pa)].</li><li>Atoomgewicht Zuurstof is  15.9994</li><li>Atoomgewicht $metal is $M_metal</li></ul>
+helptext=$chemhelptxt
+question$n=$empty
+
+exotext=!subst $text
+
+
+# in vraag* zitten nu de antwoorden
+vraag1=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans1 gr/mol" readonly="readonly" /> &asymp; $ans_1 gr/mol
+vraag2=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans2" readonly="readonly" /> 
+vraag3=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans3" readonly="readonly" /> 
+vraag4=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans4 mol" readonly="readonly" /> &asymp; $ans_4 mol
+vraag5=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans5 gr" readonly="readonly" /> &asymp; $ans_5 gr
+vraag6=<input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" name="myinput" value="$ans6 l" readonly="readonly" /> &asymp; $ans_6 l
+
+textanswer$n=!subst $text
+
+
+#@: $metal ($Atom) wordt geoxideerd tot $metaloxide.
+#@: Maak de oxidatie van $metal ($Atom) tot $metaloxide  in de applet kloppend
+#@: Bereken de molmassa van $metaloxide #@: $vraag1
+#@: Hoeveel mol $metal atomen [$Atom] zitten er in 1 mol $metaloxide ? $vraag2 
+#@: Hoeveel mol zuurstof atomen [O] zitten er in 1 mol $metaloxide ? $vraag3 
+#@: We oxideren <b>$metal_weight $weight_unit</b> $metal tot $metaloxide .
+#@: Hoeveel mol zuurstof [O<sub>2</sub>] is hiervoor ? $vraag4
+#@: Hoeveel weegt deze hoeveelheid zuurstof ? $vraag5
+#@: Wat is het volume aan zuurstof ? [ T = 298 K (25 <sup>o</sup>) en p = 1 atm (101325 Pa)] $vraag6
+#@: Geef daar waar van toepassing je antwoord in een geldige S.I. eenheid.

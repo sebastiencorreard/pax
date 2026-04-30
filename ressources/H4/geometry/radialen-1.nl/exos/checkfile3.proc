@@ -1,0 +1,79 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+!set n=$counter
+!if $(reply$n)=?
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif 
+
+!if $no_name=$empty
+    errortext=!record 27 of lang/remarks.$taal
+    #@ $voornaam , Je moet gewoon op de sinuso&iuml;de klikken...<br />is goed te doen, dacht ik.
+    goback=1
+    !exit
+!endif
+sometext=!record 28 of lang/remarks.$taal
+#@ de x-waarde was ,de y-waarde (hoogte) was
+breedte=!item 1 of $sometext
+hoogte=!item 2 of $sometext
+
+X=!item 1 of $no_name
+Y=!item 2 of $no_name
+!reset no_name
+dx=$[10*$var3/600]
+dy=0.1
+xclick=$[$var3*$X/600]
+yclick=$[(150-$Y)/150]
+Xg=!item 1 of $(answer$n)
+Yg=!item 2 of $(answer$n)
+Xa=$[round($xclick)]
+Ya=$[(round(10*$yclick))/10]
+diff1=$[10*(round((abs($xclick - $Xg))/10))]
+diff2=$[(round(10*abs($yclick -$Yg))/10)] 
+
+reply$n=<ul><li>$breedte $Xa <sup>o</sup></li><li>$hoogte $Ya </li></ul>
+math=0
+score=0
+!ifval ($xclick > $[$Xg - $dx]) and ($xclick < $[$Xg + $dx])
+    !ifval ($yclick > $[$Yg - $dy]) and ($yclick < $[$Yg + $dy])
+	score=1
+	remark$n=$OK
+    !else
+	score=$P6
+	remark$n=$BOK
+	extra=!record 29 of lang/remarks.$taal
+	#@ <span style="color:green">Je hebt de x-waarde wel goed.</span><br /><span style="color:red">de hoogte (y-waarde ofwel de sinus...) zit je er $diff2 naast...</span>
+    !endif
+!else
+    !ifval ($yclick > $[$Yg - $dy]) and ($yclick < $[$Yg + $dy]) 
+	score=$P9
+	remark$n=$BOK
+	extra=!record 30 of lang/remarks.$taal
+	#@ <span style="color:green">Je hebt de y-waarde wel goed.</span><br /><span style="color:red">maar met de graden (x-waarde) zit je er zeker $diff1 <sup>o</sup> naast.</span>
+    !else
+	remark$n=$NOK
+	!if $diff1>40 and $diff2>0.3
+	    extra=!record 31 of lang/remarks.$taal
+	    #@ <span style="color:red>"Pfff...Je klikt maar wat<br /> $fout $NOK</span>
+	!else
+	    extra=!record 32 of lang/remarks.$taal
+	    #@ <span style="color:red>"Je x-waarde zit er een slordige $diff1<sup>o</sup> naast<br />en je y-waarde (de hoogte) zit  er $diff2 naast<br />$fout $NOK</span>
+	!endif
+    !endif 
+!endif
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore+$maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+image$n=$var2\
+linewidth 8\
+point $[pi*$Xg/180],$Yg,green\
+point $[pi*$xclick/180],$yclick,red
+
+!exit

@@ -1,0 +1,256 @@
+#:11 Berekenen BBP vanuit finale bestedingen [ domein H ]
+# GEEN STEPS
+var1=$empty
+var2=$empty
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=yes
+cols=10
+checkfile=$checkdir/new_number.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+xsize=860
+ysize=400
+helptext=<ul><li><b>BBP</b> = bruto binnenlands product</li><li><b>C</b> = particuliere consumptie</li> <li><b>B</b> = saldo belastingen</li><li><b>S</b> = besparing van de gezinnen</li><li><b>I</b> = netto investeringen van bedrijven</li><li><b>O</b> = overheidsbestedingen</li><li><b>E</b> = export</li><li><b>M</b> = import</li><li><b>Y</b> = nationaal inkomen</li></ul>
+
+ss=De geldkringloop is een weergave van de <a onmouseover="return escape('$helptext')"><span class="schaersvoorde_link">basiselementen</span></a> uit het systeem van de nationale rekeningen.<br />In het systeem van de nationale rekeningen wordt het onderscheidt gemaakt tussen de sectoren<br /><b>gezinnen, ondernemingen, overheid</b> en <b>buitenland</b>. De genoemde bedragen zijn in <b>miljarden &euro;'s</b>.
+
+p=!randint 20,40
+C=!randint 100,200
+C=$[$C*10]
+B=$[10*(round($p*$C/1000))]
+O=!randint $[$B+5],$[$B+50]
+M=!randint 5,25
+M=$[$M*10]
+E=!randint $[$M+5],$[$M+50]
+I=!randint 20,35
+I=$[$I*10]
+
+S=$[$I+($O - $B) + ( $E - $M)]
+EM=$[$E - $M]
+OB=$[$O - $B]
+Y=$[$C+$S+$B]
+SI=$[$S - $I]
+
+#EM=!randint 6,18
+#EM=$[$EM*2]
+#OB=!randint 6,14
+#OB=$[$OB*5]
+##IS=!randint 8,16
+##IS=$[$IS*2]
+#B=!randint 25,45
+#B=$[$B*5]
+#C=!randint 100,150
+#C=$[$C*10]
+#E=!randint 15,30
+#E=$[$E*10]
+##I=!randint 20,35
+##I=$[$I*10]
+#M=$[$E+$EM]
+#O=$[$B+$OB]
+##S=$[$I+$IS]
+##I + EM + OB = S
+#Y=$[$C+$I+$O+$E-$M]
+#S=$[$Y-$B-$C]
+#I=$[$S - $EM - $OB]
+!if $R=1
+    exotext=$empty
+    ss1=Bereken met behulp van de gegevens van de geldkringloop het BBP vanuit de finale bestedingen.<br />De formule hiervoor is: <b><kbd>Y = C + I + O + ( E &minus; M )</kbd></b><br />Zet de ontbrekende waarden van <b><kbd>Y</kbd></b> en <b><kbd>O</kbd></b> in de geldkringloop applet.
+    !if $wims_user=supervisor
+	intext1=Y = $Y
+        intext2=S = $S
+        intext3=M = $M
+        intext4=O = $O
+    !else
+	intext1=Y = ?
+        intext2=S = $S
+        intext3=M = $M
+        intext4=O = ?
+    !endif
+    answer$n=$Y\
+    $O
+    true1=1
+    true2=0
+    true3=0
+    true4=1
+    k1=orange
+    k2=white
+    k3=white
+    k4=orange
+
+    textanswer$n=<ul><li><b><kbd>Y = C + I + O + ( E &minus; M )</kbd></b></li><li>C = $C</li><li>I = $I</li><li>O &minus; B = $OB &amp; B = $B  $m_rightarrow O = $O</li><li>E &minus; M = $EM</li><li>Y = $C + $I + $O + $EM = &euro; $Y miljard </li></ul>
+
+!else
+
+    ss1=De saldi van <b>de particuliere sector, de collectieve sector</b> en <b>de lopende rekening</b> (=nationaal spaarsaldo) compenseren elkaar.<br />Toon dit aan met behulp van de onderstaande tabel en vul de geldkringloop applet verder in.
+    !if $wims_user=supervisor
+	exotext=<table class="demospecial"><tr><th>saldo particuliere sector</th><th>=</th><th>saldo overheid</th><th>+</th><th>lopende rekening</th></tr><tr><td><input type="text" id="myinput0" class="schaersvoorde_input"" size="8" value="$SI" /></td><td>=</td><td><input type="text" id="myinput1" class="schaersvoorde_input"" size="8" value="$OB" /></td><td>+</td><td><input type="text" id="myinput2" class="schaersvoorde_input"" size="8" value="$EM" /></td></tr></table>
+	intext1=Y = $Y
+        intext2=S = $S
+        intext3=M = $M
+        intext4=O = $O
+    !else
+	exotext=<table class="demospecial"><tr><th>saldo particuliere sector</th><th>=</th><th>saldo overheid</th><th>+</th><th>lopende rekening</th></tr><tr><td><input type="text" id="myinput0" class="schaersvoorde_input"" size="8"/></td><td>=</td><td><input type="text" id="myinput1" class="schaersvoorde_input"" size="8"/></td><td>+</td><td><input type="text" id="myinput2" class="schaersvoorde_input"" size="8"/></td></tr></table>
+	intext1=Y = $Y
+        intext2=S = ?
+        intext3=M = ?
+        intext4=O = ?
+    !endif
+    answer$n=$SI\
+    $OB\
+    $EM\
+    $S\
+    $M\
+    $O
+    true1=0
+    true2=1
+    true3=1
+    true4=1
+    k1=white
+    k2=orange
+    k3=orange
+    k4=orange
+
+    textanswer$n=<ul><li>Y = C + S + B $m_rightarrow S = Y &minus; C &minus; B = $Y &minus; $C &minus; $B = $S</li><li>O = O &minus; B + B $m_rightarrow O = $OB + $B  = $O</li></ul><b><kbd>$S &minus; $I = $OB + $EM</kbd></b><br />Dus de saldi van de particuliere sector, de collectieve sector en de lopende rekening compenseren elkaar.<table class="demospecial"><tr><th>saldo particuliere sector</th><th>=</th><th>saldo overheid</th><th>+</th><th>lopende rekening</th></tr><tr><td>S &minus; I</td><td>=</td><td>O &minus; B</td><td>+</td><td>E &minus; M</td></tr><tr><td>$S &minus; $I</td><td>=</td><td>$O &minus; $B</td><td>+</td><td>$EM</td></tr></table>
+    
+!endif
+
+
+plaatje=size $xsize,$ysize\
+xrange 0,100\
+yrange 0,100\
+opacity 60,60\
+fontfamily bold italic 76px Courier\
+stringup grey,5,0,26,GELDKRINGLOOP\
+linewidth 3\
+fontfamily italic 16px Ariel\
+opacity 255,60\
+frect 1,55,14,47.5,green\
+frect 39.5,80,52.8,73,green\
+frect 73,55,87.5,47.5,green\
+frect 38.8,55,56.8,44.75,green\
+frect 38.5,30.75,55,21,green\
+string red,3,50,bedrijven\
+string red,42,25,buitenland\
+string red,43,51,financiele\
+string red,43,46,instellingen\
+string red,42,76,gezinnen\
+string red,76,50,overheid\
+#gezinnen <-> bedrijven\
+segment 5,55,5,80,blue\
+arrow 5,80,38,80,8,blue\
+inputstyle text-align:centercolor:blue;background-color:$k1;font-size:16px\
+input 10,88,6,$true1,$intext1\
+string blue,10,70,C = $C\
+arrow 7,75,7,55,8,blue\
+segment 7,75,38,75,blue\
+#gezinnen -> financiele instellingen\
+arrow 45,72,45,55,8,blue\
+inputstyle text-align:centercolor:blue;background-color:$k2;font-size:16px\
+input 46,67,6,$true2,$intext2\
+#gezinnen -> overheid\
+segment 53,76,80,76,blue\
+arrow 80,76,80,55,8,blue\
+string blue,60,80,B = $B\
+#financiele instellingen -> overheid\
+arrow 58,50,72,50,8,blue\
+string blue,58,54,O - B = $OB\
+#financiele instellingen -> buitenland\
+arrow 45,44,45,30,8,blue\
+string blue,46,36,E - M = $EM\
+#bedijven -> buitenland\
+arrow 5.5,22,5.5,46,8,blue\
+segment 5.5,22,38,22,blue\
+string blue,16,18,E = $E\
+#buitenland -> bedrijven\
+arrow 10,27,38,27,8,blue\
+segment 10,27,10,47,blue\
+inputstyle text-align:centercolor:blue;background-color:$k3;font-size:16px\
+input 11,38,6,$true3,$intext3\
+#financiele instellingen -> bedrijven\
+arrow 38,49,15,49,8,blue\
+string blue,20,53,I = $I\
+#overheid -> bedrijven\
+segment 80,47,80,15,blue\
+segment 80,15,3,15,blue\
+arrow 3,15,3,46,8,blue\
+inputstyle text-align:centercolor:blue;background-color:$k4;font-size:16px\
+input 30,13,6,$true4,$intext4 
+
+kringloop=!exec canvasdraw $plaatje
+exotext=!append line $kringloop to $exotext
+question$n=$ss<br />$ss1
+math=0
+
+ans_plaatje=!exec canvasdraw\
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,100\
+opacity 60,60\
+frect 0,100,100,0,yellow\
+fontfamily bold italic 76px Courier\
+stringup grey,5,0,26,GELDKRINGLOOP\
+linewidth 3\
+fontfamily italic 16px Ariel\
+opacity 255,60\
+frect 1,55,14,47.5,green\
+frect 39.5,80,52.8,73,green\
+frect 73,55,87.5,47.5,green\
+frect 38.8,55,56.8,44.75,green\
+frect 38.5,30.75,55,21,green\
+string red,3,50,bedrijven\
+string red,42,25,buitenland\
+string red,43,51,financiele\
+string red,43,46,instellingen\
+string red,42,76,gezinnen\
+string red,76,50,overheid\
+#gezinnen <-> bedrijven\
+segment 5,55,5,80,blue\
+arrow 5,80,38,80,8,blue\
+inputstyle text-align:centercolor:blue;background-color:lightgreen;font-size:16px\
+input 10,88,6,0,$intext1\
+string blue,10,70,C = $C\
+arrow 7,75,7,55,8,blue\
+segment 7,75,38,75,blue\
+#gezinnen -> financiele instellingen\
+arrow 45,72,45,55,8,blue\
+input 46,67,6,0,$intext2\
+#gezinnen -> overheid\
+segment 53,76,80,76,blue\
+arrow 80,76,80,55,8,blue\
+string blue,60,80,B = $B\
+#financiele instellingen -> overheid\
+arrow 58,50,72,50,8,blue\
+string blue,58,54,O - B = $OB\
+#financiele instellingen -> buitenland\
+arrow 45,44,45,30,8,blue\
+string blue,46,36,E - M = $EM\
+#bedijven -> buitenland\
+arrow 5.5,22,5.5,46,8,blue\
+segment 5.5,22,38,22,blue\
+string blue,16,18,E = $E\
+#buitenland -> bedrijven\
+arrow 10,27,38,27,8,blue\
+segment 10,27,10,47,blue\
+input 11,38,6,0,$intext3\
+#financiele instellingen -> bedrijven\
+arrow 38,49,15,49,8,blue\
+string blue,20,53,I = $I\
+#overheid -> bedrijven\
+segment 80,47,80,15,blue\
+segment 80,15,3,15,blue\
+arrow 3,15,3,46,8,blue\
+input 30,13,6,0,$intext4 
+
+
+textanswer$n=!append line $ans_plaatje to $(textanswer$n)
+
+
+
+!exit

@@ -1,0 +1,72 @@
+# annuiteiten hypotheek
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+inputs=-1
+questiontype=0
+var1=yes
+checkfile=$checkdir/number.proc
+
+num=!randitem 78,79
+
+jaar=!randint 10,15
+jaar=$[2*$jaar]
+lening=!randint 15,40
+lening=$[10000*$lening]
+perc1=!randint 40,80
+perc1=$[$perc1/10]
+perc2=!randint 1100,2000
+perc2=$[$perc2/100000]
+aflossing=$[$perc2*$lening]
+
+namen=!record $num of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+ss=$naam sluit een hypotheek af op basis van annu&iuml;teiten.<br />De lening bedraagt &euro; $lening .<br />De looptijd is $jaar jaar.<br />De interest is vastgesteld op $perc1 %.<br />Bereken de ontbrekende waarden (op jaarbasis) in de tabel.
+
+interest=$[$lening*$perc1/100]
+belastingvoordeel=$[$interest*$perc2/100]
+nettomaandlast=$[($aflossing + $interest - $belastingvoordeel)/12]
+schuld=$[$lening - $aflossing]
+annuiteit=$[$aflossing+$interest]
+tot=!exec moneyprint $nettomaandlast,$schuld,$annuiteit,$aflossing,$interest
+nettomaandlast=$(tot[1])
+schuld=$(tot[2])
+annuiteit=$(tot[3])
+aflossing=$(tot[4])
+interest=$(tot[5])
+
+answer$n=$aflossing,$interest,$annuiteit
+
+var2=Aflossing,Interest,Annuiteit
+tabel=<table class="default_table"><tr><th>Schuld 1 januari</th><th>Aflossing</th><th>Interest $perc1 %</th><th>Annu&iuml;teit</th><th>Schuld 31 december</th></tr>
+
+tabel=!append word <tr><td >&euro; $lening</td> to $tabel
+ans_tabel=$tabel
+
+c=0
+!for p=1 to 3
+    ans=!item $p of $(answer$n) 
+    input = <input type="text" id="myinput$c" size="6" class="schaersvoorde_input" value=""/> 
+    input_ans = <input type="text" id="myinput$c" size="6" class="schaersvoorde_input" value="&euro; $ans" readonly="readonly"/> 
+    !increase c
+    tabel=!append word <td>&euro; $input</td> to $tabel
+    ans_tabel=!append word <td>$input_ans</td> to $ans_tabel
+!next p
+
+tabel=!append word <td>&euro; $schuld</td></tr></table> to $tabel
+ans_tabel=!append word <td>&euro; $schuld</td></tr></table> to $ans_tabel
+roundingtext=Rond je antwoord af op hele &euro;&rsquo;s
+rounding=1
+question$n =<a onmouseover="return escape('$roundingtext')">$ss </a>
+exotext=$tabel
+helptext=
+
+htext=<ul><li>De aflossing is : $lening &minus; $schuld = &euro; $aflossing</li><li>De interest is : $[$perc1/100] &times; $lening = &euro; $interest</li><li>De annu&iuml;teit wordt : $aflossing + $interest = &euro; $annuiteit</li></ul>
+textanswer$n=$ans_tabel <br /> $htext
+

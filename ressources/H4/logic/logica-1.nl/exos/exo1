@@ -1,0 +1,136 @@
+#:1 )
+n=$counter
+if $counter = 1
+ var9 = !shuffle 1,2,3,4,5,6,7,8
+!endif 
+!if $level = 0
+ R=$counter
+!else
+ R=$level
+!endif
+var1=yes
+mathview=0
+checkfile=$checkdir/number.proc
+rounding=-1
+inputs=-1
+helptext=<img src=\'$module_dir/gifs/formal.jpg\' alt=\'noalt\' />
+f=!shuffle Feyenoord,Ajax,FC Twente,Excelcior,AZSV,Vitesse,ADO,FC Groningen,FC Utrecht,PSV,Volendam,MVV,RodaJC,FC Heereveen,de Graafschap,Sparta,Willem II
+f1=!item 1 of $f
+f2=!item 2 of $f
+f3=!item 3 of $f
+f4=!item 4 of $f
+
+dagen=!record 82 of $remarkdir/commonremarks.$taal
+d=!shuffle $dagen
+d1=!item 1 of $d
+z1=gisteren won $f1 van $f2
+z2=vandaag verloor $f3 van $f4
+P=!mathmlmath \large{P}
+Q=!mathmlmath \large{Q}
+ss=<table class="demospecial"><caption>Gegeven de proposities $P en $Q</caption><tr><th>$P : $z1 </th></tr><tr><th>$Q : $z2 </th></tr></table> 
+ss1=Vul de waarheidstabel in...
+txt=waar,niet waar
+!if $R=1
+ and=!mathmlmath \large {P \wedge Q}
+ or=!mathmlmath \large {P \vee Q}
+ keuze=!randitem 1,2
+ !if $keuze=1
+  con=$and
+  answer=0,0,0,0,1,0,1,0,0,1,1,1
+  answer$n=0,0,0,1
+  text_con_1=spreek uit: P en Q,<br />zowel P als Q zijn waar
+ !else
+  con=$or
+  answer=0,0,0,0,1,1,1,0,1,1,1,1
+  answer$n=0,1,1,1
+  text_con_2=spreek uit: P of Q,<br /> P is waar of Q is ook waar
+ !endif
+!else
+ keuze=!item $counter of $var9
+ con_1=!mathmlmath \large {\not P \wedge \not Q}
+ text_con_1=spreek uit: niet P en niet Q,<br />zowel P is niet waar als ook Q is niet waar
+ con_2=!mathmlmath \large {\not P \wedge  Q}
+ text_con_2=spreek uit: niet P en wel Q,<br />P is niet waar en Q is wel waar
+ con_3=!mathmlmath \large { P \wedge \not Q}
+ text_con_3=spreek uit: wel P en niet Q,<br />P is wel waar en Q is niet waar
+ con_4=!mathmlmath \large {\not\left( P \wedge Q \right)}
+ text_con_4=spreek uit: niet ( P en Q ) ,<br />dit betekent als P en Q beide waar zijn...  dat willen we dan niet
+ con_5=!mathmlmath \large{ \not P \vee \not Q}
+ text_con_5=spreek uit: niet P of niet Q,<br />P is niet waar of Q is ook niet waar
+ con_6=!mathmlmath \large{ \not P \vee  Q}
+ text_con_6=spreek uit: niet P of Q,<br />P is niet waar of Q is wel waar
+ con_7=!mathmlmath \large{  P \vee \not Q}
+ text_con_7=spreek uit: P  of niet Q,<br />P is waar of Q is niet waar
+ con_8=!mathmlmath \large{\not \left(  P \vee  Q \right) }
+ text_con_8=spreek uit: niet ( P of Q ),<br />dat betekent als P waar is of Q ook waar is... dat willen we dan niet
+ con=$(con_$keuze)
+ ans_1=1,0,0,0
+ answer_1=0,0,1,0,1,0,1,0,0,1,1,0
+ ans_2=0,1,0,0
+ answer_2=0,0,0,0,1,1,1,0,0,1,1,0
+ ans_3=0,0,1,0
+ answer_3=0,0,0,0,1,0,1,0,1,1,1,0
+ ans_4=1,1,1,0
+ answer_4=0,0,1,0,1,1,1,0,1,1,1,0
+ ans_5=1,1,1,0
+ answer_5=0,0,1,0,1,1,1,0,1,1,1,0
+ ans_6=1,1,0,1
+ answer_6=0,0,1,0,1,1,1,0,0,1,1,1
+ ans_7=1,0,1,1
+ answer_7=0,0,1,0,1,0,1,0,1,1,1,1
+ ans_8=1,0,0,0
+ answer_8=0,0,1,0,1,0,1,0,0,1,1,0
+ answer$n=$(ans_$keuze)
+ answer=$(answer_$keuze)
+!endif
+htxt=$(text_con_$keuze)
+mousetxt=!item 1 of $htxt
+ansbody=$empty
+body=$empty
+id=0
+a=1
+inv=3,6,9,12
+!for p=1 to 4
+ body=!append word $ <tr> $ to $body
+ ansbody=!append word $ <tr> $ to $ansbody
+ !for s=1 to 3
+  !if $(answer[$a])=0
+   atxt=niet waar
+  !else
+   atxt=waar
+  !endif
+  !if $a isitemof $inv
+   body=!append word $ <td><select class="schaersvoorde_input" id="myinput$id" ><option value="0">$(txt[2])</option><option value="1">$(txt[1])</option></select></td> $ to $body
+   id=$[$id+1]
+  !else
+   body=!append word $ <td>$atxt</td> $ to $body  
+  !endif
+  ansbody=!append line <td>$atxt</td> to $ansbody
+  a=$[$a+1]
+ !next s
+ body=!append word $ </tr> $ to $body
+ ansbody=!append word $ </tr> $ to $ansbody
+!next p
+ 
+exotext=<center><table class="demospecial"><caption>$ss1</caption><tr><th>$P</th><th>$Q</th><th><a onmouseover="return escape('$mousetxt')">$con</a></th></tr>$body</table></center>
+rr=$con : <em>$htxt</em><table class="demospecial"><tr><th>$P</th><th>$Q</th><th>$con</th></tr> $ansbody </table>
+question$n=$ss
+textanswer$n=$rr
+helptext= <em>$mousetxt</em>
+!exit
+#C=!exec m2 1+4;
+#exotext=$C
+#!exit
+C=!exec maxima\
+load("logic.mac");\
+test1:(A and B) or C;\
+test2:(A or C) and (B or C);\
+logic_equiv(test2, test1 );
+
+exotext=C=$C
+
+load("logic.mac");
+test1:x eq y;
+test2: ((not x) or y) and ((not y) or x);
+logic_equiv(test1,test2);
+

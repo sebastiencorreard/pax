@@ -1,0 +1,130 @@
+# no need for translation
+questiontype=0
+image=0
+math=0
+
+formula$n=$empty
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+exotext=$empty
+
+a=!randint 1,20
+a=$[$a*1000]
+b=!randint 5,25
+B=$[$b/100]
+ondergrens=$[floor($B*$a/100)]
+factor=!randitem 2,2
+bovengrens=$[$ondergrens + $factor]
+c=$[1-$B]
+d=!randint $ondergrens,$bovengrens
+d=$[$d*100]
+bosbouwer=!record 46 of lang/remarks.$taal
+bosbouwer=!randitem $bosbouwer
+#@ Staatsbosbeheer,Een bosbouwer,De Heidemij,Het Gelders Landschap,Het Overijsels Landschap
+bomen=!record 47 of lang/remarks.$taal
+bomen=!randitem $bomen
+#@ zeelandia populieren,paardekastanjes,esdoorns,acacias,zwarte populieren,douglas dennen
+question=!record 48 of lang/remarks.$taal
+#@ $bosbouwer exploiteert een perceel waar $a $bomen staan.<br>\
+#@ Elk jaar wordt er $b % van deze bomen gekapt en er $d bij geplant.<br>\
+#@ Het aantal $bomen op het totale perceel vormt een rij <b>B<sub>n</sub></b>.<p>
+
+
+!if $R=1
+    var1=2
+    var2=2,3
+    checkfile=exos/checkfile1.proc
+    ss=!record 49 of lang/remarks.$taal
+    #@ B<sub>1</sub>=$a <br>Bereken <b>B<sub>2</sub></b> en <b>B<sub>3</sub></b>
+    question$n=$question<p>$ss
+    B2=$[$c*$a+$d]
+    B3=$[$c*$B2+$d]
+    answer$n=$B2,$B3
+    texanswer$n=B_{2} = $c \cdot $a + $d \and B_{3} = $c^{2} \cdot $a + $c \cdot $d + $d
+    #@textanswer$n=B<sub>2</sub> = $c &times; $a + $d &amp; B<sub>3</sub> = c<sup>2</sup> &times; $a + $c &times; $d + $d
+ !exit
+!endif
+
+!if $R=2
+    checkfile=exos/checkfile6.proc
+    # letop round/floor in goede antwoord
+    t=!randitem 4,5,6,7
+    ss=!record 50 of lang/remarks.$taal
+    #@ Gegeven B<sub>1</sub> = $a <br>Bereken <b>B<sub>$t</sub></b>
+    question$n=$question<p>$ss
+    G=$[($c^($t-1))*$a+($d*(1-$c^($t-1))/(1-$c))]
+    G1=$[round($G)]
+    G2=$[floor($G)]
+    !if $G1!=$G2
+	answer$n=$G1,$G2
+	GG=$G1 \cdot \cdot \cdot $G2
+	var1=2
+    !else
+	answer$n=$G1
+	GG=$G1
+	var1=1
+    !endif	
+
+    tot=$c^{$[$t-1]} \cdot $a
+    !for p=2 to $t
+	tot=!append line +$c^{$[$t-$p]}\cdot $d to $tot
+    !next p
+    texanswer$n=$tot = $c^{$t}\cdot $a + $d \cdot \frac{1-$c^{$t}}{1-$c} = $GG
+ !exit
+!endif
+
+!if $R=3
+    checkfile=exos/checkfile6.proc
+    # letop round/floor in goede antwoord
+    t=!randint 10,35
+    ss=!record 51 of lang/remarks.$taal
+    #@ Gegeven B<sub>1</sub> = $a <br>Bereken <b>B<sub>$t</sub></b>
+    question$n=$question $ss
+    G=$[($c^$t)*$a+($d*(1-$c^$t)/(1-$c))]
+    G1=$[round($G)]
+    G2=$[floor($G)]
+    !if $G1!=$G2
+	answer$n=$G1,$G2
+	GG=$G1 \cdot \cdot \cdot $G2
+	var1=2
+    !else
+	answer$n=$G1
+	GG=$G1
+	var1=1
+    !endif	
+    texanswer$n=$c^{$[$t-1]} \cdot $a + $d \cdot \frac{1-$c^{$[$t-1]}}{1-$c} = $GG    
+ !exit
+!endif 
+
+!if $R>3
+    checkfile=exos/checkfile6.proc
+    # letop round/floor in goede antwoord
+    var1=2
+    t=!randint 10,35
+    ss=!record 52 of lang/remarks.$taal
+    #@ Het aantal $bomen op het perceel wordt na verloop van tijd stabiel.<br>\
+    #@ Hoeveel $bomen staan er dan op het perceel in deze <b>stabiele</b> situatie ? 
+    question$n=$question<p>$ss
+    G1=$[floor($d/(1-$c))]
+    G2=$[round($d/(1-$c))]
+    !if $G1!=$G2
+	answer$n=$G1,$G2
+	GG=$G1 .... $G2
+	var1=2
+    !else
+	answer$n=$G1
+	GG=$G1
+	var1=1
+    !endif	
+    ss=!record 53 of lang/remarks.$taal
+    #@ Het "dekpunt" vind je met de recursie formule:<p align="center">\
+    #@ B<sub>n</sub>=$c &times; B<sub>n-1</sub> + $d </p>\
+    #@ We lossen op <em>x=$c*x+$d</em> ; dus het "dekpunt" <em>x</em>=$d/(1-$c) <br>\
+    #@ Het aantal gekapte $bomen is dan: $d/(1-$c) = $GG
+    textanswer$n=$ss
+ !exit
+!endif 

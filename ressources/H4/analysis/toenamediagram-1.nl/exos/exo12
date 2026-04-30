@@ -1,0 +1,160 @@
+#list_of_things=['point','line','segment','circle','function','polygon','cone','ellipse','polynomial']
+#customToolBar=0 , 1 , 10 , 16 , 6
+# alleen integers in ggb file !! decimalen=0
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+mathview=0
+
+
+#GeoGebra
+list_of_things=[ 'line','segment','point' ];
+customToolBar=" 0 | 15 || 40 | 41 | 42 | 6 "
+appletcommand=$empty
+ggb=ggb/grid1.ggb
+questiontype=4
+inputs=0
+showToolBar=true
+showMenuBar=false
+framePossible=false
+width=640
+height=480
+insplot_data=$empty
+math=0
+plot=0
+draw=0
+image=0
+
+
+helptext=!record 17 of lang/remarks.$taal
+#@ <em>GeoGebra</a> help pagina's</em>
+checkfile=exos/checkfile2.proc
+# speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+var1=0
+wordmax=300
+
+exotext=$empty
+
+!if $R=1
+    a=!randitem 0,1,2
+    b=!randitem 3,4,5,6
+    c=!randitem -2,-1,-1,2,3
+
+    xmin=0
+    xmax=6
+    segments=$[$xmax-$xmin]
+    points=$[2*$segments]
+        
+    functie=$c*(x-$a)*(x-$b)
+    f_tex=!exec pari printtex($functie)
+    formula$n=\left[ \begin{array}{l} f(x)=$f_tex \\ D_{f}=[$xmin  ,  $xmax ] \end{array} \right.
+    ss=!record 19 of lang/remarks.$taal
+    #@ Gegeven is de functie <em>f</em> met D<sub>f</sub> = [$xmin,$xmax]<br />Teken een toenamendiagram met $m_Delta x=1 van deze functie.
+    question$n=$ss
+    !for x=$xmin to $xmax
+	y=!evalsubst x=$x in $functie
+	y=$[$y]
+	YY=!append item $y to $YY
+    !next x
+    Y=0
+    !for x=$[$xmin+1] to $xmax 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	answer$n=!append item $x,0 to $(answer$n)
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>Segment ($x:0) -- ($x:$y) $m_Delta y=$y</li>  to $(textanswer$n)
+    !next x
+!endif
+
+!if $R=2
+    a=!randitem 0,1,2,3
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem -2,-1,-1,2,3
+    d=!randitem 5,6,7
+
+    xmin=$[-1*$a-2]
+    xmax=$[$xmin + $d]
+    segments=$[$xmax-$xmin]
+    points=$[2*$segments]
+
+    functie=$c*(x+$a)*(x-$b)
+    f_tex=!exec pari printtex($functie)
+    formula$n=\left[ \begin{array}{l} f(x)=$f_tex \\ D_{f}=[$xmin  ,  $xmax ] \end{array} \right.
+
+    !for x=$xmin to $xmax
+	y=!evalsubst x=$x in $functie
+	y=$[$y]
+	YY=!append item $y to $YY
+    !next x
+    Y=0
+    x=$[$xmin+1]
+    !for p=1 to $[$xmax-$xmin] 
+	y1=!item $p of $YY
+	y2=!item $[$p+1] of $YY
+	y=$[$y2-$y1]
+	answer$n=!append item $x,0 to $(answer$n)
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>Segment ($x:0) -- ($x:$y) $m_Delta y=$y to $(textanswer$n)
+	!increase x
+    !next p
+    ss=!record 19 of lang/remarks.$taal
+    #@ Gegeven is de functie <em>f</em> met D<sub>f</sub> = [$xmin,$xmax]<br />Teken een toenamendiagram met $m_Delta x=1 van deze functie.
+    question$n=$ss
+!endif
+
+!if $R>2
+    ggb=ggb/grid2.ggb
+    a=!randitem 0,1,2,3
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem -2,-1,-1,2,3
+    d=!randitem 2,3,4
+    e=!randitem 4,5,6
+    xmin=$[-1*$a-$d]
+    xmax=$[$xmin + $e*$d]
+    segments=$[$xmax-$xmin]
+    points=$[2*$segments]
+
+    keuze=!randitem 1,2
+    !if $keuze=1
+        functie=$c*(x+$a)*(x-$b)
+    !else
+	functie=$c+x*(x+$a)*(x-$b)
+    !endif
+    f_tex=!exec pari printtex($functie)
+    formula$n=\left[ \begin{array}{l} f(x)=$f_tex \\ D_{f}= \left[ $xmin  ,  $xmax \right] \end{array} \right.
+    !for x=$xmin to $xmax step $d
+	y=!evalsubst x=$x in $functie
+	y=$[$y]
+	YY=!append item $y to $YY
+	# insplot_data=!append line $x 0 $y $y $y $YY to $insplot_data
+    !next x
+    Y=0
+    x=$[$xmin+$d]
+    !for p=1 to $e
+	y1=!item $p of $YY
+	y2=!item $[$p+1] of $YY
+	y=$[$y2-$y1]
+	answer$n=!append item $x,0 to $(answer$n)
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append word $ <li>Segment ($x:0) -- ($x:$y) $m_Delta y=$y $ to $(textanswer$n)
+	x=$[$x+$d]
+    !next p
+
+    ss=!record 20 of lang/remarks.$taal
+    #@ Teken een toenamendiagram met stapgrootte $m_Delta x=$d  van de gegeven functie <em>f</em>.
+    question$n=$ss
+
+!endif
+
+    
+#!if $image=1
+# letop slechts 1 plaatje ivm insplot_data
+#image_settings$n=size 0.5,0.5;autoscale y ;border 3;zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 1 ; xtics 1 
+#image$n=[$xmin:$xmax] "insplot_data" using 1:2:3:4:5 with candlesticks  lt 1 lw 2
+#!insplot [$xmin:$xmax] "insplot_data" using 1:2:3:4:5 with candlesticks  lt 1 lw 2
+#!endif
+# toename diagram plaatje voor bij de som
+

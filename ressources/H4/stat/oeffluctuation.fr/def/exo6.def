@@ -1,0 +1,127 @@
+!set title=Intervalle de confiance 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas, Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 25,64,100,400,625,1600,2500
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 26, 1000
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem $val6,$val7
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 200, 800
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/1000]
+val11=$[$val10-1/sqrt($val8)]
+val12=$[$val10+1/sqrt($val8)]
+val13=$[floor(1000*$val11)/1000]
+val14=$[ceil(1000*$val12)/1000]
+replytype1=default
+replyname1=
+replygood1=$val13
+replytype2=default
+replyname2=
+replygood2=$val14
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	<div class="enonce">	Pour un échantillon de taille 
+!insmath n=$val8
+$(), la fréquence du caractère étudié	est 
+!insmath f =$val10
+$(). </div>	<div class="question">	On peut donc affirmer que la proportion 
+!insmath p
+$() du même caractère pour la population	 totale est comprise entre	  
+!read oef/embed.phtml  reply 1,5  
+$() et  
+!read oef/embed.phtml reply 2,5 
+$()	 avec une probabilité supérieure à 0,95.	 <p class="consigne">Mettre la plus petite valeur en premier et arrondir au millième.	 </p>	 </div>
+$()
+!exit
+
+:hint
+$()Si 
+!insmath 0,2 <= f <= 0,8
+$() et 
+!insmath n >= 25
+$(), alors l'intervalle de confiance au seuil de 95 % relatif aux paramètres	 
+!insmath p
+$() et 
+!insmath n
+$() est l'intervalle [
+!insmath f-1/sqrt(n)
+$();
+!insmath f+1/sqrt(n)
+$()]	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Lorsqu'on étudie la fréquence 
+!insmath f
+$() d'apparition d'un caractère dans un échantillon de taille $val8 issu	d'une population où le caractère apparaît avec une fréquence $val10, la probabilité que f $m_in [$val13;$val14]est supérieure à 0,95.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,13,14
+embedcnt=2

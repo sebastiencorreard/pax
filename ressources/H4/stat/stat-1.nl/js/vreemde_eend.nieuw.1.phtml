@@ -1,0 +1,126 @@
+
+<img style="display:none" src="$gifdir/ok.gif" alt="ok" id="OK" /><img style="display:none"  src="$gifdir/nok.gif" alt="nok" id="NOK" />
+<table class="demospecial" id="klik_tabel">
+ <tr>
+ <td style="vertical-align:top;background-color:lightblue;padding:10px;border-spacing:5px" onmouseover="this.style.backgroundColor='yellow';" onmouseout="this.style.backgroundColor='lightblue';" onclick="javascript:vreemde_eend_stop(0);"><canvas width="160" height="160" id="vreemde_eend_0"></canvas></td>
+ <td style="vertical-align:top;background-color:lightblue;padding:10px;border-spacing:5px" onmouseover="this.style.backgroundColor='yellow';" onmouseout="this.style.backgroundColor='lightblue';" onclick="javascript:vreemde_eend_stop(1);"><canvas width="160" height="160" id="vreemde_eend_1"></canvas></td>
+ <td style="vertical-align:top;background-color:lightblue;padding:10px;border-spacing:5px" onmouseover="this.style.backgroundColor='yellow';" onmouseout="this.style.backgroundColor='lightblue';" onclick="javascript:vreemde_eend_stop(2);"><canvas width="160" height="160" id="vreemde_eend_2"></canvas></td>
+ <td style="vertical-align:top;background-color:lightblue;padding:10px;border-spacing:5px" onmouseover="this.style.backgroundColor='yellow';" onmouseout="this.style.backgroundColor='lightblue';" onclick="javascript:vreemde_eend_stop(3);"><canvas width="160" height="160" id="vreemde_eend_3"></canvas></td>
+ </tr>
+</table>
+<div id="data_div" style="display:none" class="embedded_central"></div>
+<script type="text/javascript" src="$module_dir/js/fig.js"></script>
+!set rem2=!record 43 of lang/remarks.$taal
+!set rem1=!record 44 of lang/remarks.$taal
+!set rem3=!item 1 of $rem2
+!set rem4=!item 2 of $rem2
+!set rem5=!item 3 of $rem2
+
+<script type="text/javascript">
+ var exotext=document.getElementById('exotext');
+ exotext.style.display = 'none';
+ var rem1="$rem1";var rem2="$rem2";var rem3="$rem3";var rem4="$rem4";var rem5="$rem5";
+ function sendanswer(){
+  if(correct < $var4 ){alert(rem1);return;}
+  var reply=new Array();
+  var rep;var vraagnummer = 1;
+  var p = 0;
+  var show="<ul>";
+  while( document.getElementById("myinput"+p)){
+   rep = document.getElementById("myinput"+p).value;
+   if(rep.length == 0){ setAlarm(r1+"&nbsp;"+vraagnummer);return 0;}
+   if(rep.indexOf(',') != -1){setAlarm(r25+"&nbsp;"+vraagnummer+"<br />"+r4);return} 
+   rep=rep.toLowerCase();if(check_o(rep)!=1){setAlarm(r25 + "&nbsp;" + vraagnummer +"<br />"+ r5);return;} 
+   rep=prefix(rep);rep=science(rep);rep=rep.replace(/[a-z\~\`\""\''\@\#\%\_\=\:\;\$$\&\!]/g,'');
+   if(rep.length == 0){setAlarm(r2);return;}
+   show=show+"<li>"+description[p]+" "+rep+"</li>";
+   reply[p]=rep;
+   p++;
+  }
+  reply[p]=data_reply;
+  show=show+"</ul>";
+  myConfirm(show,reply,'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+ }
+ var data_reply = "";
+ var answer;
+ var time;
+ var freq_aan = $var5;
+ num = $var4;
+ var result = new Array(num);
+ var correct=1;
+ var decimals=2;
+ var total_time = 0;
+ var click_cnt = 0;
+ var elapse_time;
+ var start_time = 0;
+ var stop_time = 0;
+ var OK = document.getElementById('OK');
+ var NOK = document.getElementById('NOK');
+ function vreemde_eend_stop(id){
+  click_cnt++;
+  if( id == answer){
+   var time = new Date();
+   stop_time = time.getTime();
+   elapse_time =((stop_time - start_time)/1000).toFixed(decimals);
+   total_time = parseFloat(elapse_time + total_time);
+   result[correct] = elapse_time+":"+ click_cnt;
+   correct++;
+   if(correct > num){ 
+    result[0] = (total_time/1000).toFixed(decimals)+":"+num;
+    OK.style.display = 'none';
+    NOK.style.display = 'none';
+    make_table(); 
+   }
+   else
+   {
+     OK.style.display = 'block';
+     NOK.style.display = 'none';
+     vreemde_eend_start();
+   };
+  }
+  else
+  {
+     NOK.style.display = 'block';
+     OK.style.display = 'none';
+     new_vreemde_eend_start();
+  };
+  return;
+ };
+ /* antwoord formaat is erg erg krom ivm compatibiliteit java applet versie , grrrr */
+ function make_table(){
+  exotext.style.display = 'block';
+  var klik_tabel = document.getElementById('klik_tabel');
+  klik_tabel.style.display = 'none';
+  var data_div = document.getElementById('data_div');
+  var row1="<th>nr</th>";
+  var row2="<th>"+rem3+"</th>";
+  var row3="<th>"+rem4+"</th>";
+  var tmp = (result[0]).split(':');
+  data_reply = tmp[0]+":"+tmp[1]+"\n";
+  for(var p = 1 ; p < num+1 ; p++ ){
+   tmp = (result[p]).split(':');
+   row1+="<th>"+p+"</th>";
+   row2+="<th>"+tmp[0]+"</th>"
+   row3+="<th>"+tmp[1]+"</th>"
+   data_reply += tmp[0]+":"+tmp[1]+"\n";
+  };
+  if( freq_aan == 1){
+  /* frequentie in de tabel */
+   data_div.innerHTML="<table class='demospecial'><tr>"+row1+"</tr><tr>"+row2+"</tr><tr>"+row3+"</tr></table>";
+  }
+  else
+  {
+   data_div.innerHTML="<table class='demospecial'><tr>"+row1+"</tr><tr>"+row2+"</tr></table>";
+  }
+  data_div.style.display = 'block';
+ };
+ 
+ function vreemde_eend_start(){
+  var time = new Date();
+  start_time = time.getTime();
+  click_cnt = 0;
+  new_vreemde_eend_start(); 
+ };
+ vreemde_eend_start();
+</script>
+

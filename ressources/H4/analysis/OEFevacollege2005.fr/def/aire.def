@@ -1,0 +1,124 @@
+!set title=Calcul d'aire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rectorat de Nice
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 0,1,2,1,4,4,0,4,9	0,0,3,0,3,2,0,4,9	1,1,4,1,4,4,0,4,10.5	0,2,2,0,4,0,4,4,2,4,12	0,0,2,0,4,2,2,4,0,4,12	0,2,2,0,4,2,4,4,0,4,12	0,2,1,0,4,0,4,4,1,4,14	0,3,0,0,4,0,4,3,2,4,14	0,0,3,0,4,2,3,4,0,4,14	0,1,2,1,4,3,4,4,0,4,10	1,2,3,0,4,0,4,4,1,4,10	0,0,4,0,4,3,2,3,0,1,10
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!item 1 to -2 of $val6
+
+val7=$(tmp0)
+tmp0=!item -1 of $val6
+
+val8=$(tmp0)
+tmp0=!itemcnt $val7
+
+val9=$[rint($(tmp0))]
+val10=!rawmath 20+40*x
+val11=
+!for val12 =1 to $val9 
+evaltmp=$val10
+
+evaltmp=!mathsubst x=($(val7[$val12])) in $evaltmp
+tmp0=($evaltmp)
+val13=$[rint($(tmp0))]
+tmp0=!append item $val13 to $val11
+
+val11=$(tmp0)
+!next
+tmp=!nonempty items blue,red,green,yellow
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+val15=fpoly $val14,$val11	parallel 20,20,20,180,40,0,5,grey	parallel 20,20,180,20,0,40,5,grey
+replytype1=numexp
+replyname1=Aire
+replygood1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Les carreaux du quadrillage font un centimètre de côté. Quelle est l'aire de la surface coloriée ?	<div class="wimscenter">	 
+!read oef/draw.phtml 200,200 \
+$val15 
+$()	</div>	<b>Votre réponse</b> : L'aire est de  
+!read oef/embed.phtml r1,7 
+$() 
+!insmath cm^2
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15
+embedcnt=1

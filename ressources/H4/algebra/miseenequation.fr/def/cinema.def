@@ -1,0 +1,139 @@
+!set title=Cinéma
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 5
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7+1)]
+val9=$[rint($val8*$val6)]
+val10=$[rint($val9 - $val6)]
+tmp0=!randint 2, $val10
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val10-$val11)]
+tmp0=!randint 30, 40
+
+val13=$[$(tmp0)/10]
+tmp0=!randint 40, 60
+
+val14=$[$(tmp0)/10]
+tmp0=!randint 70, 90
+
+val15=$[$(tmp0)/10]
+val16=$[$val13*$val11+$val14*$val12+$val15*$val6]
+
+!ifval $val2=1 
+val17= 
+!else
+val17=xx-large
+!endif
+replytype1=default
+replyname1=Elèves mineurs
+replygood1=$val11
+replytype2=default
+replyname2=Elèves majeurs
+replygood2=$val12
+replytype3=default
+replyname3=Professeurs
+replygood3=$val6
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Un groupe de $val9 personnes vont au cinéma, composé d'élèves mineurs,	d'élèves majeurs et de professeurs.	</p><p>	Le billet coûte $val14 euros pour un étudiant majeur et $val13 euros pour un étudiant mineur,	tandis qu'un professeur doit payer son billet $val15 euros.	Le groupe dépense au total $val16 euros.	</p><p>	Sachant qu'il y a un professeur pour $val7 élèves,	combien y a-t-il d'élèves mineurs, d'élèves majeurs et	de professeurs dans ce groupe&nbsp;?	</p>	<ul>	  <li><label for="reply1">Nombre d'élèves mineurs :</label>  
+!read oef/embed.phtml r1,3 
+$()</li>	  <li><label for="reply2">Nombre d'élèves majeurs :</label>  
+!read oef/embed.phtml r2,3 
+$()</li>	  <li><label for="reply3">Nombre de professeurs :</label>  
+!read oef/embed.phtml r3,3 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Soit 
+!insmath p
+$() le nombre de professeurs.	Puisqu'il y a un professeur pour $val7 élèves, en divisant le nombre total	de personnes dans le groupe par $val8	on obtient le nombre de professseurs : 
+!insmath p=$val9 / $val8 = $val6
+$().	<p>	Le nombre d'élèves est donc 
+!insmath $val9 - $val6 = $val10
+$().	Soit 
+!insmath x
+$() le nombre d'élèves mineurs, 
+!insmath y
+$() le nombre d'élèves majeurs.	Nous avons le système suivant </p><div class="wimscenter">	
+!insmath 	  \begin{cases}	 x + y &= $val10\\	 $val13 x + $val14 y + $val15 \times $val6 &= $val16	 \end{cases}	
+$()	</div>	Et la solution de ce système est 
+!insmath x=$val11
+$(), 
+!insmath y=$val12
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,15,16
+embedcnt=3

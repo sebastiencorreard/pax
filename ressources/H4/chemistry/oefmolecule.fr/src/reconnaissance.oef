@@ -1,0 +1,130 @@
+\title{Reconnaissance de groupes caractéristiques}
+\author{Benoît, Markey}
+\email{benoit.markey@ac-lille.fr}
+
+########################################################################################
+# \groups.txt  Jmol jmol.sourceforge.net script file
+# Bob Hanson hansonr@stolaf.edu 2:29 PM 04/13/2006
+# intended for files that have all H atoms explicit (not typical PDB files)
+# this script must be loaded AFTER each "load" command -- it does not persist.
+
+\text{methylC= carbon and connected(4) and connected(3,hydrogen)}
+\text{methylH= hydrogen and connected(\methylC)}
+\text{CH3= \methylC or (\methylH)}
+
+\text{methyleneC= carbon and connected(4) and connected(2,hydrogen)}
+\text{methyleneH= hydrogen and connected(\methyleneC)}
+\text{CH2= \methyleneC or (\methyleneH)}
+
+\text{methineC= carbon and connected(4) and connected(1,hydrogen)}
+\text{methineH= hydrogen and connected(\methineC)}
+\text{CH= \methineC or (\methineH)}
+
+\text{CR4= carbon and connected(4,carbon)}
+
+\text{sp2C= carbon and connected(3)}
+\text{spC= carbon and connected(2)}
+\text{sp2O= oxygen and connected(1)}
+
+\text{carbonylC= \sp2C and connected(\sp2O)}
+\text{carbonylO= \sp2O and connected(\carbonylC)}
+\text{CO= \carbonylC or (\carbonylO)}
+
+\text{alkyne= \spC and connected(\spC)}
+
+\text{keteneC= \spC and connected(1, \sp2O)}
+\text{keteneO= \sp2O and connected(\keteneC)}
+\text{ketene= \keteneC or (\keteneO)}
+
+\text{hydroxylO= oxygen and connected(hydrogen) and connected(carbon and not (\carbonylC))}
+\text{hydroxylH= hydrogen and connected(\hydroxylO)}
+\text{OH= \hydroxylO or (\hydroxylH)}
+
+\text{exchangableH= hydrogen and connected(oxygen or nitrogen)}
+
+\text{carboxylicacidC= \carbonylC and connected(carbon) and connected(2,oxygen) and connected(1,oxygen and connected(hydrogen))}
+\text{carboxylicacidO= oxygen and connected(\carboxylicacidC)}
+\text{carboxylicacidOH= hydrogen and connected(\carboxylicacidO)}
+\text{carboxylicacidH= hydrogen and connected(\carboxylicacidO)}
+\text{RCO2H= \carboxylicacidC or (\carboxylicacidO) or (\carboxylicacidH)}
+
+\text{esterC= \carbonylC and connected(carbon) and connected(2,oxygen) and not connected(oxygen and connected(hydrogen))}
+\text{esterO= oxygen and connected(\esterC)}
+\text{RCO2R= \esterC or (\esterO)}
+
+\text{aldehydeC= \carbonylC and connected(1,carbon) and connected(1,hydrogen)}
+\text{aldehydeH= hydrogen and connected(\aldehydeC)}
+\text{aldehydeO= \carbonylO and connected(1,\aldehydeC)}
+\text{RCHO= \aldehydeC or \aldehydeH or \aldehydeO}
+
+\text{ketoneC= \carbonylC and connected(2,carbon)}
+\text{ketoneO= \carbonylO and connected(\ketoneC) }
+\text{R2CO= \ketoneC or (\ketoneO)}
+
+\text{etherO= oxygen and connected(2,carbon) and not (\carbonylO)}
+\text{ROR= \etherO}
+
+\text{amineN= nitrogen and connected(3) and connected(2,hydrogen)}
+\text{amineH= hydrogen and connected(\amineN)}
+\text{NH2= \amineN or (\amineH)}
+##########################################################################################
+
+\text{list_alcool1=ethanol,methanol,propan-1-ol,propan-2-ol}
+\text{list_alcool=shuffle(\list_alcool1)}
+\text{file1=alcool,data/\list_alcool[1].cml,\OH,\list_alcool[1]}
+
+\text{list_acid1=propanoic_acid,butanoic_acid,acetic_acid}
+\text{list_acid=shuffle(\list_acid1)}
+\text{file2=acide carboxylique,data/\list_acid[1].cml,\RCO2H,\list_acid[1]}
+
+
+#####bug avec aldéhyde à corriger####
+\text{list_aldehyde1=acetaldehyde}
+\text{list_aldehyde=shuffle(\list_aldehyde1)}
+\text{file3=aldéhyde,data/\list_aldehyde[1].cml,\RCHO,\list_aldehyde[1]}
+
+#\text{list_amine1=ethylamine,methylamine}
+#\text{list_amine=shuffle(\list_amine1)}
+#\text{file4=amine,data/\list_amine[1].cml,\NH2,\list_amine[1]}
+
+#\text{list_ester=butyl_propanoate,ethyl_butanoate}
+#\text{list_ester=shuffle(\list_ester)}
+#\text{file5=ester,data/\list_ester[1].cml,\RCO2R,\list_ester[1]}
+
+#avec les aldéhydes
+\matrix{file_tir2=\file1
+\file2
+\file3
+\file4
+\file5}
+
+##sans les aldéhydes
+#\matrix{file_tir=\file1
+#\file2
+#\file4
+#\file5}
+
+\text{file=randomrow(\file_tir)}
+
+\text{enonce=
+  Voici la molécule dénommée <i>\file[4]</i>. Cliquez sur les
+  atomes formant le groupement \file[1].}
+\text{instruction=À l'aide du bouton gauche de la souris vous pouvez faire pivoter
+la molécule.
+  À l'aide de la molette vous pouvez zoomer (positivement ou négativement.)}
+\text{A=slib(chemistry/jmolbutton select all)}
+\statement{
+\A
+\enonce
+<div class="wimscenter">
+\embed{r1, 400x400
+;
+select all;label %e;select none;
+select all;label %e;select none;}
+</div>
+<div class="wims_instruction">\instruction</div>}
+
+\answer{}{\file[3];\file[2]}{type=jmolclick}
+
+\feedback{1=1}{La bonne réponse s'obtient en cliquant sur les atomes
+apparaissant en jaune. En vert: votre bonne réponse. En rouge: votre réponse fausse}

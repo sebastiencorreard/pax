@@ -1,0 +1,106 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# vraag: teken een hoek tussen 2-178
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+tot=!item 1 of $(reply$n)
+chk=!itemcnt $(answer$n)
+!if $tot !=$chk
+    !if $tot<2
+	ex=!record 46 of lang/remarks.$taal
+	#@ Je zit met de som te prutsen...je moet natuurljk de objecten niet verwijderen...
+    !else
+	ex=!record 47 of lang/remarks.$taal
+	#@ ZoZo,leuk he dat GeoGebra...
+    !endif
+    !if $teaching=1
+	maxscore=$[$P3*$maxscore]
+	errortext=$ex
+	no_button=1
+	goback=1
+    !else
+	remark$n=$NOK<br />$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+
+AAA=!item 15 of $(reply$n)
+# reply$n= 1,0,0,0,0,0,0,0,0,1,0,0,0,0,angle@1 @ 353^0,
+# antwoord is in graden
+
+AAA=!replace internal ^0 by $empty in $AAA 
+!if degree isin $AAA   
+AAA=!replace internal degree by $empty in $AAA 
+!else  
+!if ^0 isin $AAA   
+AAA=!replace internal ^0 by $empty in $AAA 
+!else  
+#radians?  
+AAA=!replace [a-z/~!@#$=_-] by $empty in $AAA  
+AAA=180*($AAA)/pi  
+!endif 
+!endif
+AAA=!replace internal @ by , in $AAA
+AAA=!item 2 of $AAA
+AAA=!nospace $AAA
+#errortext=$(reply$n) AAA=$AAA
+#goback=1
+#!exit
+
+!if NaN isin $[1*$AAA]
+errortext=ex=!record 48 of lang/remarks.$taal
+#@ Dit antwoord kan ik niet nakijken<br />Geen idee wat je hier uitspookt...
+maxscore=$[$P5*$maxscore]
+goback=1
+!exit
+!endif
+!if $(answer$n)>360
+# let op: maximaal 720 graden
+GGG=$[$(answer$n)-360]
+!else
+GGG=$(answer$n)
+!endif
+G1=$[0.96*$GGG]
+G2=$[1.04*$GGG]
+
+!ifval $AAA>$G1 and $AAA<$G2
+    remark$n=$OK
+    score=1
+!else
+    G1=$[0.92*$GGG]
+    G2=$[1.08*$GGG]
+    !ifval $AAA >$G1 and $AAA <$G2
+	remark$n=$BOK
+	score=$P6
+    !else
+	A1=$[$AAA-180]
+	A2=$[$AAA+180]
+	!ifval $GGG=$A1 or $GGG=$A2
+	    extra=!record 49 of lang/remarks.$taal
+	    #@Je zit naar de "verkeerde" hoek te kijken: 180&deg; d'r naast.
+	    score=$P9
+	!else
+	    score=0
+	!endif
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+remark$n=$(remark$n)<br />$extra
+!endif
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+goback=0
+math=0
+reply$n=$AAA &deg; = $[$AAA/180] $m_pi rad
+!exit

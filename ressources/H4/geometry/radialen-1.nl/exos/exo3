@@ -1,0 +1,48 @@
+n=$counter
+mathview=0
+helptext=$empty
+!if $options=$empty or $options >6
+    options=4
+!endif
+inputs=$options
+rows=1
+cols=4
+make_tr=1
+questiontype=0
+checkfile=exos/checkfile1.proc
+plot=0
+draw=0
+image=0
+math=0
+m_rightarrow=&nbsp;=&nbsp;
+!if $subject=3
+    rad=pi,pi/2,2pi/3,pi/4,2pi,3pi,4pi,5pi,6pi,7pi,8pi,9pi,10pi
+    rad=!shuffle $rad
+!else
+    keuze=!randint 1,8
+    rad1=pi/12,pi/6,pi/4,pi/3,5pi/12,pi/2,7pi/12,2pi/3
+    rad2=3pi/4,5pi/6,11pi/12,pi,13pi/12,7pi/6,5pi/4,4pi/3,17pi/12
+    rad3=3pi/2,19pi/12,5pi/3,7pi/4,11pi/6,23pi/12,2pi,25pi/12,13pi/6
+    rad4=9pi/4,7pi/3,29pi/12,5pi/2,31pi/12,8pi/3,11pi/4,17pi/6,35pi/12
+    rad5=3pi,37pi/12,19pi/6,13pi/4,10pi/3,41pi/12,7pi/2,43pi/12,11pi/3
+    rad6=15pi/4,23pi/6,47pi/12,4pi,49pi/12,25pi/6,17pi/4,13pi/3,53pi/12
+    rad7=9pi/2,55pi/12,14pi/3,19pi/4,29pi/6,59pi/12,61pi/12,31pi/6
+    rad8=21pi/4,16pi/3,65pi/12,11pi/2,67pi/12,17pi/3,23pi/4,35pi/6,71pi/12,6pi
+    rad=!shuffle $(rad$keuze)
+!endif
+
+textanswer$n=<table class="zebra_table_h2">
+description=$empty
+!for p=1 to $options
+    radialen=!item $p of $rad
+    r=!rawmath $radialen
+    ex$p=&deg;
+    answer=$[round($r*180/pi)]
+    radialen=!replace internal pi by &pi; in $radialen
+    description=!append item $radialen <em>rad</em> to $description
+    answer$n=!append item $answer to $(answer$n)
+    textanswer$n=!append word $ <tr><td>$radialen <em>rad</em></td><td>&nbsp;=&nbsp;</td><td> $answer&deg;</td></tr> $ to $(textanswer$n)
+!next p
+textanswer$n=!append word $ </table> $ to $(textanswer$n)
+question$n=!record 2 of lang/remarks.$taal
+#@ Zet de volgende hoeken om van radialen naar graden.<br />De hoeken <b>moet</b> je afronden op <b>hele graden</b>.

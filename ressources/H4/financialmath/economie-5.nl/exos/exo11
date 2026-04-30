@@ -1,0 +1,84 @@
+#Consumentenkrediet I
+n=$counter
+# geen steps, wel zelfde verhaaltje & tabel met data
+
+!if $counter=1
+    viewlogo=1
+    mathview=0
+    make_tr=1
+    inputs=2
+    checkfile=exos/precheck2.proc
+    !if $total_exos>2
+	total_exos=2
+    !endif
+    rounding=100
+    roundingtext=Geef je antwoord in twee decimalen nauwkeurig.
+    #tabelheader=<tr><th>Bedrag in handen</th><th>Te betalen per maand</th><th>Effectieve rente op jaarbasis</th><th>Rente per maand</th>
+    tabelheader=<tr><th>Bedrag in handen</th><th>Te betalen per maand</th><th>Effectieve rente op jaarbasis</th><th>Rente per maand</th><th>Theoretische looptijd</th>
+    begin=!randint 15,35
+    stap=!randitem 10,15,20
+    begin=$[$begin*1000]
+    stap=$[$stap*1000]
+    options=4
+    k=!randint 1,$options
+    #looptijd=!randint 16,28
+    #looptijd=$[$looptijd*10]
+    maandrente=!randint 500,1000
+    smokkel=!randint 100,200
+    smokkelfactor=$[$maandrente+$smokkel]
+    smokkelfactor=$[$smokkelfactor/100000]
+    maandrente=$[$maandrente/1000]
+    jaarrente=$[(round(1000*((1+$maandrente/100)^12 - 1)))/10]
+    !for p=1 to $options
+	bedrag$p=$[$begin+$p*$stap]
+	betalen$p=$[round($smokkelfactor*$(bedrag$p))]
+	looptijd$p=$[round(-1*(log(1 -($maandrente/100)*$(bedrag$p)/$(betalen$p) ))/(log(1+($maandrente/100))))]
+	tabelbody=!append word <tr><td style=text-align:center;fontsize:16px>&euro; $(bedrag$p)</td><td style=text-align:center;fontsize:16px>&euro; $(betalen$p)</td><td style=text-align:center;fontsize:16px>$jaarrente %</td><td style=text-align:center;fontsize:16px>$maandrente %</td><td style=text-align:center;fontsize:16px>$(looptijd$p) maand</td></tr> to $tabelbody
+    !next p
+
+    ans1=!exec moneyprint $[$(bedrag$k)*$maandrente/100]
+    ans2=!exec moneyprint $[$(betalen$k) - $ans1]
+    betaald=$[$(betalen$k)*$(looptijd$k)] 
+    ans3=$[$betaald - $(bedrag$k)]
+
+    aanbieder=!randitem DSW krediet,Gelria krediet,SnelGeld BV,ETC bank,CityBank BV,GeldGeenProbleem.nl,DirectGeldLenen.nl,SaldoDipje.be,Voorschotje.be
+
+    tabel=<table class=\'default_table\'>$tabelheader $tabelbody </table>
+
+    ss=<kbd>$aanbieder</kbd> , een aanbieder van consumentenkredieten geeft <span style="color:blue">deze informatie</span> over <br />enkele standaard kredieten.
+    description=Interest,Aflossing
+
+    ss1=Bereken afzonderlijk van elkaar hoeveel aflossing en hoeveel interest betaald moet worden<br />\
+    in de eerste maand als iemand een bedrag van &euro; $(bedrag$k) geleend zou hebben.
+
+    ss2=Bereken hoeveel interest moet worden betaald gedurende de gehele looptijd <br />\
+    als iemand een bedrag van &euro; $(bedrag$k) zou hebben geleend.
+
+    answer1=$ans1\
+    $ans2
+    answer2=$ans3
+    var1=1,1
+    var2=1,1
+    ex1=&euro;
+    ex2=&euro;
+    
+    textanswer1=<ul><li>Interest : $maandrente/100 &times; $(bedrag$k) = $[$maandrente/100] &times; $(bedrag$k) = &euro; $ans1</li><li>Aflossing : &euro; $(betalen$k) &minus; &euro; $ans1 = &euro; $ans2 </ul>
+
+    textanswer2=<ul><li>Totaal betaald = $looptijd maanden &times; &euro; $(betalen$k) = &euro; $betaald</li><li>Geleend : &euro; $(bedrag$k) </li><li>Interest : &euro; $betaald &minus; &euro; $(bedrag$k)  = &euro; $ans3</li></ul>
+
+    question1=<a onmouseover="return escape('$tabel<hr />$roundingtext')">$ss<br />$ss1</a>
+    question2=<a onmouseover="return escape('$tabel<hr />$roundingtext')">$ss<br />$ss2</a>
+    
+    helptext=<b>ter info:</b><br /><img src=$module_dir/gifs/looptijdformule.gif alt=looptijd/><hr />$roundingtext
+!else
+    inputs=1.1
+    var1=1
+    var2=1
+    description=Totaal interest
+!endif
+g=!randint 1,10
+logo=<img src="$module_dir/gifs/krediet$g.jpg" alt="money" />
+logotext=GELD LENEN KOST GELD
+
+!exit
+

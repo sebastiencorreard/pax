@@ -1,0 +1,129 @@
+# kijkt var1-lijnen na [via geogebra]
+# answer$n=x+$b1,x+$b2,x+$b3 
+# reply$n=fun1,fun2,fun3
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+wims_compare_precision=1000
+tot=!itemcnt $(reply$n)
+geen_tekening=0
+!for p=1 to $tot
+    A$p=!item $p of $(reply$n)
+    A$p=!lower $(A$p)
+    !if $(A$p)=$empty
+	geen_tekening=$[$geen_tekening + 1]
+	$(A$p)=NaN
+    !endif
+!next p
+!if $geen_tekening != 0
+    linecnt=$[$tot - $geen_tekening]
+    ex=!record 89 of lang/remarks.$taal
+    #@Je hebt $linecnt lijn(en) getekend...<br />Dat moesten er $var1 zijn !
+    !if $teaching=1
+	maxscore=$[$P5*$maxscore]
+	errortext=$ex
+	goback=1
+	!exit
+    !else
+	!if $var1>$linecnt
+	    maxscore=$[$maxscore*$linecnt/$var1]
+	!else
+	    maxscore=$[$maxscore*$linecnt/$var1]
+	!endif
+	extra=$ex
+    !endif
+!endif
+score=0
+rep=<ul>
+funname=f(x),g(x),h(x)
+!for p=1 to $var1
+ subst1=0
+ subst2=1
+ sum=0
+ fun_g=!item $p of $(answer$n)
+ fun_c=!item $p of $var2
+ g1=!evalsubst x=$subst1 in $fun_g
+ g2=!evalsubst x=$subst2 in $fun_g
+ c1=!evalsubst x=$subst1 in $fun_c
+ c2=!evalsubst x=$subst2 in $fun_c
+ !if NaN isin $g1
+    subst1=10
+    g1=!evalsubst x=$subst1 in $fun_g
+    c1=!evalsubst x=$subst1 in $fun_c
+ !endif    
+ !if NaN isin $g2
+    subst2=100
+    g2=!evalsubst x=$subst2 in $fun_g
+    c2=!evalsubst x=$subst2 in $fun_c
+ !endif
+ d1=$[abs($g1 - $c1)]
+ d2=$[abs($g2 - $c2)]
+
+
+ a1=!evalsubst x=$subst1 in $(A$p)
+ a2=!evalsubst x=$subst2 in $(A$p)
+ chk=!exec pari if($g1==$a1 || ( $a1<=($g1+$d1) && $a1 >= ($g1-$d1)) ,1,0)\
+ if($g2==$a2 || ( $a2<=($g2+$d2) && $a2 >= ($g2-$d2)) ,1,0)
+ sum1=!line 1 of $chk
+ sum2=!line 2 of $chk
+ sum=$[$sum1+$sum2]
+ score=$[$score+$sum]
+ KK=!append line $ if($g1==$a1 || ( $a1<($g1+$d1) && $a1 > ($g1-$d1)) ,1,0)<br />if($g2==$a2 || ( $a2<($g2+$d2) && $a2 > ($g2-$d2)) ,1,0) $ to $KK
+ #!ifval $g1=$a1
+ # score=$[$score+1]
+ # sum=1
+ #!endif
+ #!ifval $g2=$a2
+ # score=$[$score+1]
+ # sum=$[$sum+1]
+ #!endif
+ !if $sum=2
+    k=green
+ !else
+    !if $sum=1
+	k=orange
+    !else
+	k=red
+    !endif
+ !endif
+ rep=!append word $ <li> <span style="color:$k;font-style:italic">$(funname[$p]) = $(A$p)</span></li> $ to $rep
+!next p
+rep=!append word $</ul> $KK $ to $rep
+
+#ex=!record 91 of lang/remarks.$taal
+#@je hebt de richtings co&euml;fficient wel goed
+#ex=!record 92 of lang/remarks.$taal
+#@je hebt de constante wel goed
+#ex=!record 93 of lang/remarks.$taal
+#@Slordig getekend,maar je hebt de richtings co&euml;fficient wel redelijk goed
+#ex=!record 94 of lang/remarks.$taal
+#@Slordig getekend, maar je hebt de constante wel redelijk goed
+
+reply$n=!append word $rep to $(reply$n)
+maxscore=$[$maxscore*$score/(2*$var1)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra !=$empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

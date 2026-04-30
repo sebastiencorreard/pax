@@ -1,0 +1,95 @@
+# answer$n= 1,2,3,4,5\
+# 45,6,7,8,5\
+# 23,4,5\
+# 34,54,433,34
+
+# reply$n=1,2,3,4\n
+# ,5,6,7,8\n
+# ,34,4\n
+# 223,33
+
+# var1 = rounding per invoer 1000,1000,10,100
+# var2 = score factor per antwoord regel 1,1,1,4,6
+
+# alle antwoorden moeten synchroon zijn ! 
+n=$counter
+!if $(reply$n)=?
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+la=!linecnt $(answer$n)
+score=0
+sum_f=0
+your_ans=$empty
+!for p=1 to $la
+ score$p=0
+ factor=!item $p of $var2
+ rnd=!item $p of $var1
+ rnd=$[1/$rnd]
+ 
+ rep=!line $p of $(reply$n)
+ rep=!nospace $rep
+ tp=!itemcnt $rep
+ !for i=1 to $tp
+  I=!item $i of $rep
+  !if $I != $empty
+    rep$p=!append item $I to $(rep$p)
+  !endif
+ !next i
+
+ ans$p=!line $p of $(answer$n)
+ ans$p=!nospace $(ans$p)
+ ta=!itemcnt $(ans$p)
+ tp=!itemcnt $(rep$p)
+ straf=1
+ !if $ta != $tp
+  !if $ta>$tp
+   straf=$[$tp/$ta]
+  !else
+   straf=$[$ta/$tp]
+  !endif
+ !endif
+ your_ans=!append word <ul> to $your_ans 
+ !for a=1 to $ta
+  ans=!item $a of $(ans$p)
+  rep=!item $a of $(rep$p)
+  k=red
+  !if $rep!=$empty
+   !if ? isin $rep or NaN isin $[1*$rep]
+    k=red
+   !else
+    # let op als ans=0.4 en rep=-0.4 rekenen we dit ook goed (a-mean) of (mean-a)
+    !if $[ abs( $ans - $rep ) ] <= $rnd
+     score$p=$[$(score$p) + 1]
+     k=green
+    !else
+     !if $[ abs( $ans + $rep ) ] <= $rnd
+      score$p=$[$(score$p) + 1]
+      k=green
+     !endif
+    !endif
+   !endif
+   your_ans=!append word <li><span style="color:$k;">$rep</span></li> to $your_ans
+  !else
+   your_ans=!append word <li><span style="color:$k;">- xxx -</span></li> to $your_ans  
+  !endif 
+ !next a
+ your_ans=!append word </ul> to $your_ans 
+ sum_f=$[$sum_f + $factor]
+ score=$[$score+$straf*$factor*$(score$p)/($ta)]
+!next p
+reply$n=$(reply$n)<br />$your_ans
+maxscore=$[$score/$sum_f]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+ remark$n=$OK
+!else
+ !if $maxscore >0.45
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+!exit

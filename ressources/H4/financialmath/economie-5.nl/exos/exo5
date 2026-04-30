@@ -1,0 +1,68 @@
+# Lineaire hypotheek II
+# 12/2012 : veranderd van een 2 som opdracht naar 1 som 
+#  om technische redenen !
+
+n=$counter
+
+!if $counter=1
+    g=!randint 1,5
+    logo=<img src="$module_dir/gifs/lineairehypotheek$g.jpg" alt="lineairehypotheek"/>
+    logotext=<img src=\'$module_dir/gifs/lineairehypotheek$g.jpg\' alt=\'lineairehypotheek\' />
+    viewlogo=1
+    total_exos=1
+    mathview=0
+    make_tr=1
+    inputs=-1
+    # new_number.proc
+    var1=1,1,1,1,1,1,1,1,1,1
+    var2=1,1,1,1,1,1,1,1,1,1
+    checkfile=exos/precheck2.proc
+    telwoorden=!record 60 of $remarkdir/commonremarks.$taal
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    naam=!randitem $namen
+    perc=!randint 4,13
+    voordeel=!randint 20,35
+    aflossing=!randint 40,95
+    aflossing=$[$aflossing*100]
+    schuld=$[$aflossing*30]
+    factor=$[$perc/100]
+    jaar=!randint 4,25
+    Jaar=!item $jaar of $telwoorden
+    schuld2=$[$schuld - $aflossing]
+    interest1=$[$schuld*$perc/100]
+    interest2=$[$schuld2*$perc/100]
+    schuld_n=$[$schuld - ($jaar - 1)*$aflossing]
+    interest_n=$[$schuld_n*$perc/100]
+    brutojaarlast=$[$interest_n+$aflossing]
+    brutomaandlast=$[round(($brutojaarlast)/12)]
+    nettojaarlast=$[$brutojaarlast - $interest_n*$voordeel/100]
+    nettomaandlast=$[round($nettojaarlast/12)]
+
+    exotext=<table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Aflossing</th><th>Interest $perc %</th></tr><tr><th>1</th><th>$schuld</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value="$a1"/></th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value="$a2"/></th></tr><tr><th>2</th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value="$a3"/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value="$a4"/></th><th><input type="text" id="myinput4" size="6" class="schaersvoorde_input" value="$a5"/></th></tr><tr><th>$jaar</th><th><input type="text" id="myinput5" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput6" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput7" size="6" class="schaersvoorde_input" value=""/></th></tr></table>Bereken de brutomaandlast voor het $Jaar jaar : <input type="text" id="myinput8" size="6" class="schaersvoorde_input" value=""/>&nbsp;&euro;&nbsp;<br /><br />Bereken de nettomaandlast voor het $Jaar jaar : <input type="text" id="myinput9" size="6" class="schaersvoorde_input" value=""/>&nbsp;&euro;&nbsp;
+    
+    description=Aflossing jaar 1,Interest jaar 1,Schuld jaar 2,Aflossing jaar 2,Interest jaar 2,Schuld jaar $jaar, Aflossing jaar $jaar,Interest jaar $jaar,Brutomaandlast,Nettomaandlast
+
+    answer1=$aflossing\
+    $interest1\
+    $schuld2\
+    $aflossing\
+    $interest2\
+    $schuld_n\
+    $aflossing\
+    $interest_n\
+    $brutomaandlast\
+    $nettomaandlast
+    
+    textanswer1=<table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Aflossing</th><th>Interest $perc %</th></tr><tr><th>1</th><th>$schuld</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value="$aflossing" readonly="readonly"/></th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value="$interest1" readonly="readonly"/></th></tr><tr><th>2</th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value="$schuld2"/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value="$aflossing" readonly="readonly"/></th><th><input type="text" id="myinput4" size="6" class="schaersvoorde_input" value="$interest2"/></th></tr><tr><th>$jaar</th><th><input type="text" id="myinput5" size="6" class="schaersvoorde_input" value="$schuld_n" readonly="readonly"/></th><th><input type="text" id="myinput6" size="6" class="schaersvoorde_input" value="$aflossing" readonly="readonly"/></th><th><input type="text" id="myinput7" size="6" class="schaersvoorde_input" value="$interest_n" readonly="readonly"/></th></tr></table>Bereken de brutomaandlast voor jaar $Jaar : <input type="text" id="myinput8" size="6" class="schaersvoorde_input" value="$brutomaandlast" readonly="readonly"/>&nbsp;&euro;&nbsp;<br />Bereken de nettomaandlast voor jaar $jaar : <input type="text" id="myinput9" size="6" class="schaersvoorde_input" value="$nettomaandlast" readonly="readonly"/>&nbsp;&euro;&nbsp;<hr class="schaersvoorde_hr" /><ul><li>Berekening van de brutomaandlast in het $Jaar jaar:<ul><li>De schuld aan het begin van het $Jaar jaar is : $schuld &minus; ($[$jaar-1] &times; $aflossing) = &nbsp;&euro;&nbsp; $schuld_n</li><li>De brutorentelast in dat jaar is $schuld_n &times; $factor = &nbsp;&euro;&nbsp; $interest_n</li><li>De brutojaarlast in dat jaar is $interest_n + $aflossing = &nbsp;&euro;&nbsp; $brutojaarlast</li><li>De brutomaandlast is dus $brutojaarlast / 12 = &nbsp;&euro;&nbsp; $brutomaandlast</li></ul></li><li>Berekening van de nettomaandlast in het $Jaar jaar:<ul><li>De brutorentelast in dat jaar is $schuld_n &times; $factor = &nbsp;&euro;&nbsp; $interest_n</li><li>De brutojaarlast is $schuld_n &times; $factor + $aflossing =  &nbsp;&euro;&nbsp; $brutojaarlast</li><li>Nettojaarlast is $brutojaarlast &minus; $[$voordeel/100]  &times; $interest_n = &nbsp;&euro;&nbsp; $nettojaarlast</li><li>De nettomaandlast is dus $nettojaarlast / 12 = &nbsp;&euro;&nbsp; $nettomaandlast </li></ul></li></ul>
+    
+    rounding=1
+
+    roundingtext=Rond je eindantwoord af op hele &nbsp;&euro;&nbsp;&rsquo;
+
+    ss1=$naam sluit een lineaire hypotheek af.<br />De lening bedraagt &nbsp;&euro;&nbsp; $schuld , de looptijd is 30 jaar en de interest is vastgesteld op $perc %.<br />Het belastingvoordeel is $voordeel %
+    
+    question1=$ss1<br />Vul in de tabel de ontbrekende waarden (in &euro;) voor het $Jaar jaar in <br />En bereken de bruto- en nettomaandlast voor $Jaar jaar.
+    
+    helptext=$roundingtext
+!endif
+

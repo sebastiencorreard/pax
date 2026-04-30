@@ -1,0 +1,166 @@
+!set title=Pièces défectueuses (Tableau à compléter avec des pourcentages)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=absolute_frequency, relative_frequency, percentage
+author=Paul,Byache
+email=paul@byache.fr
+oefobservation=La machine dont la part de production n'est pas donnée dans l'énoncé n'est pas toujours la même.<br> On peut mettre un calcul à la place de la réponse numérique et Wims accepte la réponse.
+language=fr
+computeanswer=yes
+precision=200
+oefcss=<style type="text/css"> .cadre {border-style:solid;text-align:center; border-width:0px;margin-left:auto; margin-right:auto; border: 1px; } .ctable {text-align:center;padding:4px;} .consigne {color:#000080;margin-bottom:6px;} .bonne {color:#008000;margin-bottom:6px;} .formatrep {font-style:italic;font-size:90%;} table.tableau, table.cadre {margin-left:auto; margin-right:auto; border-collapse: collapse; padding: 6px; margin-top: 10px; margin-bottom: 10px; } table.tableau th, table.cadre th { text-align:center; border: 1px solid #999; padding:6px; background-color:#D6EBEB; } table.tableau td, table.cadre td, table.tableau tr, table.cadre tr{ text-align:center; border: 1px solid #999; padding:6px; } table.tableau tr th:first-child { min-width:100px; } </style>
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=11
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 20
+
+val6=$[rint($(tmp0)*1000)]
+tmp0=!shuffle A,B,C,E,F,G,H
+
+val7=$(tmp0)
+val8=$(val7[1])
+val9=$(val7[2])
+val10=$(val7[3])
+tmp0=!randint 2, 9
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val14=$[rint($(tmp0)*10)]
+tmp0=!randint 1, 4
+
+val15=$[rint($(tmp0)*10)]
+val16=$[rint(100-$val14-$val15)]
+tmp=!translate internal $	$ to ; in La machine $val8 produit $val14 % de la production, la machine $val9 produit $val15 % de la production et la machine $val10 fournit le reste.	La machine $val9 produit $val15 % de la production, la machine $val10 produit $val16 % de la production et la machine $val8 fournit le reste.	La machine $val8 produit $val14 % de la production, la machine $val10 produit $val16 % de la production et la machine $val9 fournit le reste.
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+replytype1=numeric
+replyname1=A avec défaut
+replygood1=$[$val14*$val11/100]
+replytype2=numeric
+replyname2=B avec défaut
+replygood2=$[$val15*$val12/100]
+replytype3=numeric
+replyname3=C avec défaut
+replygood3=$[$val16*$val13/100]
+replytype4=numeric
+replyname4=total avec défaut
+replygood4=$[($val14*$val11+$val15*$val12+$val16*$val13)/100]
+replytype5=numeric
+replyname5=A sans défaut
+replygood5=$[$val14*(100-$val11)/100]
+replytype6=numeric
+replyname6=B sans défaut
+replygood6=$[$val15*(100-$val12)/100]
+replytype7=numeric
+replyname7=C sans défaut
+replygood7=$[$val16*(100-$val13)/100]
+replytype8=numeric
+replyname8=total sans défaut
+replygood8=$[($val14*(100-$val11)+$val15*(100-$val12)+$val16*(100-$val13))/100]
+replytype9=numeric
+replyname9=total A
+replygood9=$[$val14]
+replytype10=numeric
+replyname10=total B
+replygood10=$[$val15]
+replytype11=numeric
+replyname11=total C
+replygood11=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Un fabriquant d'ampoules possède trois machines notées $val8, $val9 et $val10.	$val17	<p>Certaines ampoules présentent un défaut de fabrication :</p>	<ul>	<li>à la sortie de la machine $val8, $val11 % des ampoules présentent un défaut</li>	<li>à la sortie de la machine $val9, $val12 % des ampoules présentent un défaut</li>	<li>à la sortie de la machine $val10, $val13 % des ampoules présentent un défaut</li>	</ul>	La production quotidienne totale du fabriquant est de $val6 ampoules.	Compléter le tableau ci-dessous avec des fréquences en pourcentages :	<table class="cadre">	<tr><td></td><th>Machine $val8</th><th>Machine $val9</th><th>Machine $val10</th><th>Total</th></tr>	<tr><th>Avec défaut</th><td> 
+!read oef/embed.phtml r1,5 
+$() %</td><td> 
+!read oef/embed.phtml r2,5 
+$() %</td><td> 
+!read oef/embed.phtml r3,5 
+$() %</td><td> 
+!read oef/embed.phtml r4,5 
+$() %</td></tr>	<tr><th>Sans défaut</th><td> 
+!read oef/embed.phtml r5,5 
+$() %</td><td> 
+!read oef/embed.phtml r6,5 
+$() %</td><td> 
+!read oef/embed.phtml r7,5 
+$() %</td><td> 
+!read oef/embed.phtml r8,5 
+$() %</td></tr>	<tr><th>Total</th><td> 
+!read oef/embed.phtml r9,5 
+$() %</td><td> 
+!read oef/embed.phtml r10,5 
+$() %</td><td> 
+!read oef/embed.phtml r11,5 
+$() %</td><td>100 %</td></tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12,13,17
+embedcnt=11

@@ -1,0 +1,242 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# sleep sommetje
+# answer$n=x1,x2,+,x,-,x,+ 	-> items=7
+# answer$n=x1,x2,-,x,+,x,- 	-> items=7
+# answer$n=x1,+,x,+		-> items=4
+# answer$n=x1,-,x,+		-> items=4
+# answer$n=+			-> items=1
+# answer$n=-			-> items=1
+
+n=$counter
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+g=!itemcnt $(answer$n)
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+t=!itemcnt $AAA
+tekens=-,x,+
+Ar=$empty
+# Ar = antwoord roots
+# At = antwoord tekens
+At=$empty
+Gr=$empty
+Gt=$empty
+!for p=1 to $t
+ a=!item $p of $AAA
+ duplicate=0
+ !if $p < $t
+  A=!item $[$p+1] of $AAA
+  !if $A = $a
+   duplicate=1
+  !endif
+ !endif
+ !if $duplicate=0
+  !if $a notin $tekens
+   !if NaN isin $[1*($a)]
+    errortext=!record 27 of lang/remarks.$taal
+    #@Je antwoord ($AAA ) is niet goed na te kijken...<br />Probeer het nog eens?
+    goback=1
+    maxscore=$[$maxscore*$P1]
+    !exit
+   !endif
+   Ar=!append item $a to $Ar
+  !else
+   At=!append word $a to $At
+  !endif
+ !endif
+!next p
+!for p=1 to $g
+    a=!item $p of $(answer$n)
+    !if $a notin $tekens
+	Gr=!append item $a to $Gr
+    !else
+	Gt=!append word $a to $Gt
+    !endif
+!next p
+
+score1=0
+score2=0
+Gt=!nospace $Gt
+At=!nospace $At
+
+extra=$empty
+!if $Gt=$At
+    # gelijke tekens
+    !increase score1
+    ex=!record 28 of lang/remarks.$taal
+    #@het tekenverloop is prima<br />
+!else
+    !if +- isin $At or -+ isin $At
+	extra=!record 29 of lang/remarks.$taal
+	#@Een tekenwisseling zonder asymptoot of nulpunt?
+	maxscore=$[$maxscore*$P4]
+	!goto KLAAR 
+    !endif
+    A=!replace internal + by @ in $At
+    A=!replace internal - by + in $A
+    A=!replace internal @ by - in $A
+    !if $Gt=$A
+	extra=!record 30 of lang/remarks.$taal
+	#@je hebt alle tekens omgedraaid...<br />
+    !else
+	a=!charcnt $At
+	b=!charcnt $Gt
+	!if $a=1
+	    !if $At=+
+		extra=!record 31 of lang/remarks.$taal
+		#@alleen een stijgende rechte lijn voldoet aan jou tekensverloop: +<br />
+	    !else
+		!if $At=-
+		    extra=!record 32 of lang/remarks.$taal
+		    #@alleen een dalende rechte lijn voldoet aan jou tekenverloop: -<br />
+		!else
+		    extra=!record 33 of lang/remarks.$taal
+		    #@hmmm, erg fraai<br />
+		!endif
+	    !endif
+	!else
+	    !if $a=2
+		extra=!record 34 of lang/remarks.$taal
+		#@dit is natuurlijk een onzinnig tekenverloop<br />
+	    !endif
+	    # rest is me te lastig, dit systeem bevalt ook niet echt
+	!endif
+    !endif
+!endif
+:KLAAR
+t=!itemcnt $Ar
+g=!itemcnt $Gr
+
+!if $g=0
+    !if $t=0
+	# geen wortels
+	score2=1
+	Ar=<img src="$module_dir/gifs/nexists.gif" alt="&nexists;" />
+    !else
+	score2=0
+	ans=$empty
+	!for p=1 to $t
+	    A=!item $p of $Ar
+	    ans=!append line x<sub>$p</sub>=$A<br /> to $ans
+	!next p
+    !endif
+!else
+    !if $rounding<1
+	rnd=10000
+	corr=1
+	aftrek=0.8
+    !else
+	rnd=$rounding
+	aftrek=1
+	corr=1
+    !endif
+    !if $p != $g
+	!if $g>$p
+	    corr=$[$p/$g]
+	!else
+	    corr=$[$g/$p]
+	!endif
+    !endif
+    !for p=1 to $g
+	G=!item $p of $Gr
+	A=!item $p of $Ar
+	!ifval $A=$G
+	    score2=$[$score2+1]
+	!else
+	    A=$[(round($rnd*$A))/$rnd]
+	    G=$[(round($rnd*$G))/$rnd]
+	    !if $A=$G
+		ex=!record 35 of lang/remarks.$taal
+		#@ niet al te nauwkeurig...<br />
+		extra=$extra $ex
+		score2=$[$score2 + $aftrek]
+	    !endif
+	!endif
+    !next p
+    # omgewisselde wortels ??
+    !if $score2=0
+	!for p=1 to $g
+	    klaar=0
+	    G=!item $p of $Gr
+	    !for s=1 to $t
+		!if $klaar=0
+		    A=!item $s of $Ar
+		    !ifval $A=$G
+		        klaar=1
+			score2=$[$score2 + $corr]
+		    !else
+			A=$[(round($rnd*$A))/$rnd]
+		        G=$[(round($rnd*$G))/$rnd]
+			!if $A=$G
+			    ex=!record 35 of lang/remarks.$taal
+			    extra=$extra $ex
+			    score2=$[$score2 + $aftrek*$corr]
+			    klaar=1
+			!endif
+		    !endif
+		!endif
+	    !next s
+	!next p
+	!if $score2>0
+	    ex=!record 36 of lang/remarks.$taal
+	    #@Je hebt je wortels omgewisseld...<br /> 
+	    extra=$extra $ex
+	!endif
+    !endif
+    score2=$[($score2)/$g]
+    ans=$empty
+    !for p=1 to $t
+	A=!item $p of $Ar
+	ans=!append line x<sub>$p</sub>=$A<br /> to $ans
+    !next p
+    Ar=$ans
+!endif
+
+maxscore=$[$maxscore*($score1 + 2*$score2)/3]
+
+!if $showanswer=1
+    f=!charcnt $At
+    ans=$empty
+    !for p=1 to $f
+	teken=!char $p of $At
+	!if $teken=+
+	    ans=!append line <img src="$module_dir/gifs/plus.gif" alt="+" /> to $ans
+	!else
+	    !if $teken=x
+		ans=!append line <img src="$module_dir/gifs/asymp.gif" alt="&asymp;" /> to $ans
+	    !else
+		ans=!append line <img src="$module_dir/gifs/min.gif" alt="&minus;" /> to $ans
+	    !endif
+	!endif
+    !next p
+    At=<table class="zebra_table_v2"><th>y</th><th>$ans</th></table>
+!endif
+#errortext=score1=$score1 score2=$score2 maxscore=$maxscore
+#goback=1
+#!exit
+reply$n=<ul><li>$Ar</li><li>$At</li></ul>
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+    !if $ex != $empty
+	extra=$extra $ex
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit

@@ -1,0 +1,146 @@
+!set title=Pixel Art 04
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+
+ansorder=r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Les premières consoles de jeux ne disposent pas de beaucoup de mémoire donc les programmeurs	 sont obligés de coder les images en binaire, c'est-à-dire par une suite de 0 et de 1.	 Le zéro correspond à la couleur noire.
+
+!ifval ($val2==)
+val7=ambiance
+!else
+val7=$val2
+!endif
+val8=Pixel Art et Python
+val9=Tennis_for_Two_Machine_at_CAX_2010.jpg
+val10=Jeux de Tennis
+val11=Tennis for Two est un jeu vidéo de tennis conçu en 1958 par William Higinbotham	 et développé par Robert Dvorak, souvent considéré comme le premier jeu vidéo de l'histoire.	 <a href="https://fr.wikipedia.org/wiki/Tennis_for_Two" target="_blank">Source Wikipedia</a>
+tmp0=!randint 10, 20
+
+val12=$[rint($(tmp0))]
+val13=1
+val14=$val12
+val15=[[1] * nombre_colonne for _ in range(nombre_ligne)]
+val16=for&if
+val17=instruction=[if k%2==0 :]
+tmp0=!randint 1, 2
+
+val18=$[rint($(tmp0))]
+
+!ifval ($val18==1)
+val19=j
+!else
+val19=(j+1)
+!endif
+
+!ifval ($val18==1)
+val20=0
+!else
+val20=1
+!endif
+t_=!replace internal \( by ( in m=matrix(1,$val12,i,j,if($val19%2==0,0,1));
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+t_=!replace internal \( by ( in print(m);
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+tmp0=!replace internal ; by , in $val21 
+
+val21=$(tmp0)
+val22=
+!for val23 =1 to $val12 
+val24=$[rint(($val23+$val20)%2)]
+!if $val24==0 
+tmp0=!append line board.create('point', [$val23-0.5,0.5],{color:'black'}); to $val22
+
+val22=$(tmp0)
+!endif
+!next
+val25=Modifier cet algorithme avec l'instruction conditionnelle <code>if k%2==0 :</code>	 pour qu'il effectue <b>sans erreur</b> la représentation donnée à droite ou ci-dessous.
+val26=$[0.1*$val12]
+val27=$[1.1*$val12]
+val28=$[150/$val12]
+val29=#################	##Initialisation#	#################	nombre_ligne=$val13	nombre_colonne=$val14	mat=$val15	########################	##Boucle sur la matrice#	########################	for i in range(nombre_ligne):	  for j in range(nombre_colonne):	      mat[i][j]=??	###########################	##Affichage de la matrice##	###########################	for i in range(nombre_ligne):	  print(mat[i])	
+!readproc slib/geo2D/jsxgraph jsxbox1,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.showInfobox=false;	JXG.Options.point.highlight=true;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.size = $val28;	JXG.Options.point.withLabel=true;	var board = JXG.JSXGraph.initBoard('jsxbox1', {axis:false, boundingbox: [-$val26,-$val26,$val27,$val27],	shownavigation:false,showCopyright:false,showFullscreen: true});	xaxis = board.create('axis', [[0, 0], [1,0]],	      {name:'nombre de colonnes',	      withLabel: true,	      label: {position: 'lrt',offset: [-100, 25]},	      });	xaxis.removeAllTicks();	board.create('ticks', [xaxis, 1],{	  strokeColor:'#ccc',	  majorHeight:-1,	  drawLabels:true,	  label: { offset: [5, 10]},	  minorTicks:0,	  drawZero:true});	yaxis = board.create('axis', [[0, 0], [0,1]],	      {name:'nombre de lignes',	      withLabel: true,	      label: {position: 'lrt',offset: [10, 0]}	      ,ticks:{scale: 1}}	      );	yaxis.removeAllTicks();	board.create('ticks', [yaxis, 1],{	  strokeColor:'#ccc',	  majorHeight:-1,	  drawLabels:true,	  label: { offset: [-15, -10]},	  minorTicks:0,	  drawZero:true});	$val22	 
+tmp0=$slib_out
+val30=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.withLabel=true; 
+tmp0=$slib_out
+val31=$(tmp0)
+replytype1=runcode
+
+replyoption1=keyword_python=$val16 
+replyname1=
+replygood1=[mat,[$val21]]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">$val8</p>	<div id="boited">	<img src="$val1/$val9" alt="$val10" />	</div>	<div class="enonce">	$val11	</div>	$val6	$m_enoncep	<div>	 
+!read oef/embed.phtml reply1,[python,[$val29]];[idtest2,theme=$val7 canvas init $val17,Jouer le code !] 
+$()	</div>	$val25	<br/>	<div class="wimscenter wimsborder box">	$val31	</div>	<div class="wimscenter wimsborder box">	$val30	</div>	</div>	<script>	function graph(){	mat=Sk.ffi.remapToJs(Sk.globals["mat"]);	let matligne=mat.length;	let matcolonne=mat[0].length;	let max=Math.max(matligne,matcolonne);	let gg=1.1*max;	let ggm=0.1*max;	JXG.Options.point.size = 150/max;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [-ggm,-ggm,gg,gg],	shownavigation:false,showCopyright:false,showFullscreen: true});	xxaxis = brd.create('axis', [[0, 0], [1,0]],	      {name:'nombre de colonnes',	      withLabel: true,	      label: {position: 'lrt',offset: [-100, 25]},	      });	xxaxis.removeAllTicks();	brd.create('ticks', [xxaxis, 1],{	  strokeColor:'#ccc',	  majorHeight:-1,	  drawLabels:true,	  label: { offset: [5, 10]},	  minorTicks:0,	  drawZero:true});	yyaxis = brd.create('axis', [[0, 0], [0,1]],	      {name:'nombre de lignes',	      withLabel: true,	      label: {position: 'lrt',offset: [10, 0]}	      ,ticks:{scale: 1}}	      );	yyaxis.removeAllTicks();	brd.create('ticks', [yyaxis, 1],{	  strokeColor:'#ccc',	  majorHeight:-1,	  drawLabels:true,	  label: { offset: [-15, -10]},	  minorTicks:0,	  drawZero:true});	brd.suspendUpdate();	for(var jj = 0; jj < matligne; jj=jj+1) {	for(var ii = 0; ii < matcolonne; ii=ii+1) {	/*name:aaa[ss][jj][ii]*/	if(mat[jj][ii]==0){	brd.create('point', [ii+0.5,jj+0.5],{color:'black'});}}}	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,10,11,17,25,29,30,31
+embedcnt=1

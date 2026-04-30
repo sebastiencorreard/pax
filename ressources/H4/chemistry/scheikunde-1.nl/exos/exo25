@@ -1,0 +1,104 @@
+n=$counter
+questiontype=7
+checkfile=exos/checkfile3.proc
+javascript=js/wimschem2.js
+math=0
+mathview=0
+image=0
+answer1=1
+make_tr=1
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+# let op dit niet veranderen ivm verschillende lengtes datafiles n_alkanes.js.el,m_alkanes.js.el
+!if $level<2
+    R=1
+!else
+    R=2
+!endif
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten"/></a>  
+
+!if $subject=25
+ !if $R=1 
+    file=n_alkanes.js.el
+ !else
+    file=m_alkanes.js.el
+ !endif
+!else
+ !if $subject=26
+  !if $R=1 
+    file=n_alkenes.js.el
+  !else
+    file=m_alkenes.js.el
+  !endif
+ !else
+  !if $subject=27
+   !if $R=1 
+     file=n_alkynes.js.el
+   !else
+     file=m_alkynes.js.el
+   !endif
+  !else
+   !if $subject=28
+    !if $R=1 
+     file=n_alcohols.js.el
+    !else
+     file=m_alcohols.js.el
+    !endif
+   !else
+    !if $subject=29
+     !if $R=1 
+      file=n_acids.js.el
+     !else
+      file=m_acids.js.el
+     !endif
+    !else
+     !if $subject=30
+      file=aromatics.js.el
+     !endif
+    !endif
+   !endif
+  !endif
+ !endif
+!endif
+
+deffile=docs/$file
+# altijf een andere vraag
+!if $counter=1
+    max=!recordcnt $deffile
+    var9=$empty
+    !for p=1 to $max
+	var9=!append item $p to $var9
+    !next p
+    var9=!shuffle $var9
+!endif
+num=!item $counter of $var9
+this=!record $num of $deffile
+
+chemical=!line 2 of $this
+
+!if $taal=nl
+    answer$n=!word 1 of $chemical
+!else
+    !if $taal=fr
+	answer$n=!word 1 of $chemical
+    !else
+	answer$n=!line 1 of $this
+    !endif
+!endif
+
+# WIMSchem file in js-format
+var1=!line 3 of $this
+var5=gr/mol
+question$n=!record 66 of lang/remarks.$taal
+#@ Wat is de chemische naam <a target=new href="http://en.wikipedia.org/wiki/International_Union_of_Pure_and_Applied_Chemistry_nomenclature">[IUPAC]</a> van dit molecuul ?<br />Geef de brutto formule en het molecuul gewicht.
+#@!What is the chemical name of this molecule ?<br />Give the Brutto formula and  determine it's Molecule mass.  
+description=!record 67 of lang/remarks.$taal
+#@ Chemische naam,Brutto Formule,Molecuul gewicht
+#@!Chemical name,Brutto formula,Molecule mass
+inputs=3
+

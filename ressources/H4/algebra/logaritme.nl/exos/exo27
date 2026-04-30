@@ -1,0 +1,90 @@
+# vergelijkingen  log[x](a)=b
+mathviewpanel=$module_title:x=:^: and :e^:(:)
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+display=1
+questiontype=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/new_number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo11.jpg\' alt=\'noalt\' />
+keuze=!randitem 0,1
+
+
+!if $R=1
+    question$n=!record 3 of lang/remarks.$taal
+    d=!randint 1,10
+    c=!randint 1,25
+    b=!randint 2,5
+    p=!randint 2,4
+    a=$[$p*$b+$d]
+    f=$[$p*$b]
+    tot=!exec pari A=$f/$b
+    
+    breuk=!line 1 of $tot
+    
+    formula$n=$a - $b \ln \left( x + $c \right) = $d
+    applettext=!nospace $a - $b * ln(x + $c)=$d ->
+    answer$n=-$c+e^($breuk)
+    texanswer$n=\left[ \begin{array}{l} $b \ln \left( x + $c \right) = $f  \rightarrow \\ \ln \left( x + $c \right) = $breuk \rightarrow \\ x+$c = e^{$breuk} \rightarrow \\ x = e^{$breuk} -$c \end{array} \right.
+ !exit
+!endif
+
+!if $R=2
+    question$n=!record 3 of lang/remarks.$taal
+    a=!randint 2,15
+    b=!randint 1,20
+    c=!randint 2,7
+    formula$n=\ln^{2} \left( $a x - $b \right) = $[$c*$c]
+    applettext=!nospace (ln($a*x - $b))^2=$[$c*$c] -> 
+    
+    tot=!exec pari A=1/$a\
+     printtex(A)\
+     B=$b/$a\
+     printtex(B)
+     
+     f=!line 1 of $tot
+     f_tex=!line 2 of $tot
+     g=!line 3 of $tot
+     g_tex=!line 4 of $tot
+     answer$n=$f*e^$c+$g,$f*e^(-1*$c)+$g
+    texanswer$n=\left[ \begin{array}{l} \ln \left( $a x - $b \right) = $c \vee \ln \left( $a x - $b \right) = -$c\\ $a x - $b = e^{$c} \vee $a x - $b = e^{-$c} \\ $a x = $b + e^{$c} \vee $a x =$b + e^{-$c} \\ x=$g_tex + $f_tex e^{$c} \vee x=$g_tex + $f_tex e^{-$c}  \end{array} \right.
+ !exit
+!endif
+
+!if $R>2
+    question$n=!record 3 of lang/remarks.$taal
+    !if $keuze=0
+	a=!randint 2,9
+        formula$n=\ln^{2}(x) - $a \cdot \ln(x)=0
+	applettext=!nospace ln(x)^2-$a \ln(x)=0 ->
+	answer$n=1,e^$a
+	texanswer$n=\left[\begin{array}{lll} \ln(x) \left( \ln(x) - $a \right) =0  \\ \ln(x)=0 \vee \ln(x) - $a=0  \\ x=e^{0}=1 \vee x=e^{$a} \end{array}
+    !else
+	c=!randint 2,6
+	a=!randint 2,7
+	b=$[$c+$a]
+        formula$n= \ln^{2}(x) + $c \cdot \ln(x) - $[$a*$b] = 0 
+	applettext=!nospace (\ln(x))^2 + $c \ln(x) - $[$a*$b] = 0 ->
+	answer$n=e^$a,e^(-1*$b)
+	texanswer$n=\left[\begin{array}{l} \ln^{2}(x) + $c \cdot \ln(x) - $[$a*$b] = 0 \\ \left( \ln(x) - $a \right) \left( \ln(x) + $b \right) = 0 \\ \ln(x)=$a \vee \ln(x)=-$b \\ x=e^{$a} \vee x=e^{-$b} \end{array} \right.
+    !endif
+ !exit
+!endif
+

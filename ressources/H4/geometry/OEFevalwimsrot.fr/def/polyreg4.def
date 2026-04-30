@@ -1,0 +1,132 @@
+!set title=Polygone régulier 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=range 0,12,0,12	parallel 0,0,0,12,1,0,12,grey	parallel 0,0,12,0,0,1,12,grey
+val7=2,6,6,10,10,6,6,2	2,6,6,9,10,6,6,3	1,6,4,10,9,10,12,6,9,2,4,2	2,6,5,9,8,9,11,6,8,3,5,3
+val8=
+!for val9 =1 to 4 
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!itemcnt $val10
+
+val11=$[rint($(tmp0)/2)]
+val12=
+val13=$val6
+!for val14 =1 to $val11 
+val15=circle $(val10[2*$val14-1]),$(val10[2*$val14]),5,red
+tmp0=!append line $val15 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $(val10[2*$val14-1]),$(val10[2*$val14]) to $val12
+
+val12=$(tmp0)
+!next
+!readproc oef/draw.phtml 120,120 \
+$val13	poly black,$val12 
+tmp0=$ins_url
+val13=$(tmp0)
+val13=<img src='$val13' alt=''>
+tmp0=!append item $val13 to $val8
+
+val8=$(tmp0)
+!next
+tmp0=!item 1 of $val8
+
+val16=$(tmp0)
+tmp0=!item 3 of $val8
+
+val17=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!positionof item $val16 in $val8
+
+val18=$[rint($(tmp0))]
+tmp0=!positionof item $val17 in $val8
+
+val19=$[rint($(tmp0))]
+replytype1=checkbox
+replyname1=
+replygood1=$val18;$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Parmi les polygones suivants, lesquels sont réguliers ?	<table class="wimscenter wimsborder">	   <tr>	    <td> 
+!read oef/embed.phtml r1,1 
+$()</td>	    <td> 
+!read oef/embed.phtml r1,2 
+$()</td>	   </tr><tr>	    <td> 
+!read oef/embed.phtml r1,3 
+$()</td>	    <td> 
+!read oef/embed.phtml r1,4 
+$()</td>	   </tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=
+embedcnt=4

@@ -1,0 +1,125 @@
+# kostenvergelijking opstellen (geen geogebra)
+
+viewlogo=1
+logo=<img src="$module_dir/gifs/dagobert_duck.gif" alt="dagobert duck"/>
+logotext=<span style=\'font-size:400%\'>&euro;</span>
+n=$counter
+inputs=1.1
+mathview=0
+checkfile=$checkdir/equation.proc
+math=0
+make_tr=1
+cols=25
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+!if $R=1
+    k=!randint 1,8
+!else
+    k=!randint 1,16
+!endif
+!if $R=1
+    k=!randint 1,8
+!else
+    k=!randint 1,16
+!endif
+list=!record $k of lang/remarks.$taal
+# variabelen voor vergelijking
+varlist=q
+arglist=TK
+# tekst voor invulveld
+description=De kostenvergelijking
+
+
+# gereserveerd 1...19
+# schema 5 items
+#@: design tuinmeubelen:5:80:180,ontwerp:1000:25:35,materiaal & laswerk (RVS & kunststof):100:5000:15000,montage en afwerking:100:400:1200,vervoer- en verpakkingskosten:100:600:1200,1
+#@: digitale fotocamera's:5:80:180,ontwerp:1000:25:35,materiaal:100:5000:15000,montage en afwerking:100:400:1200,vervoer- en verpakkingskosten:100:600:1200,1
+#@: leren motorjacks:5:80:180,ontwerp:1000:5:15,materiaal [leer &sbquo;ijzergaren &sbquo;ritsen &sbquo;voering]:100:3000:9000,fabricage en afwerking:100:2500:7500,vervoer- en verpakkingskosten:100:150:360,1
+#@: houtkachels:5:40:80,enginering:1000:3:15,metaal & giet- en laswerk:10:3000:7000,afwerking:100:1000:3000,vervoer- en verpakkingskosten:100:130:700,1
+#@: afwasmiddel [500 ml flacon]:100000:4:8,R&D:1000:10:55,grondstoffen [anionics/nonionics/parfum/kleur] :100:20:220,mengen &sbquo; roeren en afvullen:100:20:180,vervoer- en verpakkingskosten:100:10:75,1000
+#@: vloeibaar wasmiddel [1500 ml flacon]:100000:4:8,R&D:1000:10:55,grondstoffen [anionics/nonionics/parfum/kleur] :100:20:220,mengen &sbquo; roeren en afvullen:100:20:180,vervoer- en verpakkingskosten:100:10:75,1000
+#@: roomijs [1.5 liter]:100000:4:8 ,receptontwikkeling:1000:2:6,grondstoffen [melk &sbquo;room&sbquo;suikerstroop etc]:100:120:180,fabricage:100:30:70,vervoer- en verpakkingskosten:100:90:140,1000
+#@: vanille roomijs [1 liter]:100000:4:8 ,receptontwikkeling:1000:2:6,grondstoffen [melk &sbquo;room&sbquo;suikerstroop etc]:100:120:180,fabricage:100:30:70,vervoer- en verpakkingskosten:100:90:140,1000
+#@: boeren roomijs [1 liter]:10:200:500,receptontwikkeling:1000:2:6,grondstoffen [melk &sbquo;room&sbquo;suikerstroop etc]:100:120:180,fabricage:100:30:70,vervoer- en verpakkingskosten:100:90:140,10
+#@: schoolagenda's:10000:1:5,ontwerp:1000:3:8,drukwerk & papier:100:100:225,bindwerk:100:75:150,vervoer- en verpakkingskosten:100:10:35,100
+#@: schooltassen:10000:1:5,design:1000:3:12,leer & leerverf:100:2000:5000,gespen & kleinmetaal:100:150:550,vervoer- en verpakkingskosten:100:30:135,100
+#@: sportschoenen:10000:3:8,ontwerp:1000:15:35,materiaal (leer & kunststof):100:900:2500,montage en afwerking:1000:1550:4000,vervoer- en verpakkingskosten:100:90:125,100
+#@: schoolboeken:10000:1:5,ontwerp:1000:3:8,drukwerk & papier:100:100:225,bindwerk:100:75:150,vervoer- en verpakkingskosten:100:10:35,100
+#@: designer zonnebrillen:10000:1:5,design:1000:3:12,materiaal:100:2000:5000,montage & afwerking:100:150:550,vervoer- en verpakkingskosten:100:30:135,100
+#@: sportschoenen:10000:1:5,ontwerp:1000:15:35,materiaal (leer & kunststof):100:900:2500,montage en afwerking:1000:1550:4000,vervoer- en verpakkingskosten:100:90:125,100
+#@: latex muurverf [10 liter emmer]:10000:1:9,R&D:1000:10:55,grondstoffen [acrylaathars &sbquo; weekmaker en Titaanwit]:100:500:1100,mengen &sbquo; roeren en afvullen:100:220:580,vervoer- en verpakkingskosten:100:150:375,100
+
+L1=!item 1 of $list
+L1=!replace internal : by , in $L1
+product=!item 1 of $L1
+f=!item 2 of $L1
+min=!item 3 of $L1
+max=!item 4 of $L1
+productie_aantal=!randint $min,$max
+productie_aantal=$[$f*$productie_aantal]
+
+L2=!item 2 of $list
+L2=!replace internal : by , in $L2
+ontwerp=!item 1 of $L2
+f=!item 2 of $L2
+min=!item 3 of $L2
+max=!item 4 of $L2
+ontwerpkosten=!randint $min,$max
+# let op wordt later nog veranderd
+ontwerpkosten=$[$f*$ontwerpkosten]
+
+L3=!item 3 of $list
+L3=!replace internal : by , in $L3
+materiaal=!item 1 of $L3
+f=!item 2 of $L3
+min=!item 3 of $L3
+max=!item 4 of $L3
+materiaalkosten=!randint $min,$max
+materiaalkosten=!exec moneyprint $[$materiaalkosten/$f]
+
+L4=!item 4 of $list
+L4=!replace internal : by , in $L4
+afwerking=!item 1 of $L4
+f=!item 2 of $L4
+min=!item 3 of $L4
+max=!item 4 of $L4
+afwerkingskosten=!randint $min,$max
+afwerkingskosten=!exec moneyprint $[$afwerkingskosten/$f]
+
+L5=!item 5 of $list
+L5=!replace internal : by , in $L5
+vervoer=!item 1 of $L5
+f=!item 2 of $L5
+min=!item 3 of $L5
+max=!item 4 of $L5
+vervoerskosten=!randint $min,$max
+vervoerskosten=!exec moneyprint $[$vervoerskosten/$f]
+
+
+productiehal=!randitem productiehal,fabriekshal,productielocatie,productieruimte
+jaarlijksehuur=!randint 15,35
+jaarlijksehuur=$[1000*$jaarlijksehuur]
+aanschafmachines=!randint 3,9
+aanschafmachines=$[10000*$aanschafmachines]
+jaren_afschrijving=!randint 5,10
+aanschafkosten=$[$jaren_afschrijving*$aanschafmachines]
+ontwerpkost=$[$jaren_afschrijving*$ontwerpkosten]
+
+interest=!randint 4,9
+ss=Een bedrijf produceert <em>$product</em> .<br />Van de constante kosten is het volgende gegeven:<ul><li>De jaarlijkse huur van een $productiehal is &euro; $jaarlijksehuur </li><li>Aanschaf machines:<ul><li> &euro; $aanschafkosten</li><li>De afschrijving op de aangeschafte machines bedraagt &euro; $aanschafmachines/jaar </li><li>De interestkosten zijn elk jaar $interest % van de aanschafprijs.</li></ul><li>De kosten voor $ontwerp bedragen  &euro; $ontwerpkost. Dit bedrag wordt over $jaren_afschrijving jaar afgeschreven.</li><li>De maximale jaarproductie is $productie_aantal eenheden $product.</li></ul>De variabele kosten per productie eenheid zijn:<ul><li>$materiaal : &euro; $materiaalkosten</li><li>$afwerking : &euro; $afwerkingskosten</li><li>$vervoer : &euro; $vervoerskosten</li></ul>Stel voor dit bedrijf de vergelijking op van de totalekosten 
+
+varkosten=$[$materiaalkosten + $afwerkingskosten  + $vervoerskosten]
+vastekosten=$[$jaarlijksehuur + $aanschafmachines + $interest/100*$aanschafkosten + $ontwerpkosten]
+answer$n=$varkosten*q + $vastekosten
+
+textanswer$n=De variabele kosten zijn $materiaalkosten + $afwerkingskosten  + $vervoerskosten = &euro; $varkosten<br />De vaste kosten zijn $jaarlijksehuur + $aanschafmachines + $interest/100*$aanschafkosten + $ontwerpkosten = $vastekosten.<br />De kostenvergelijking wordt: <b>TK = $varkosten&times;q + $vastekosten</b> 
+
+exotext=$empty
+
+helptext=Gebruik:<ul><li><b>TK</b> voor de totale kosten</li><li><b>q</b> voor het hoeveelheid</li></ul><br /><img src=\'$module_dir/gifs/exo1.jpg\' alt=\'plaatje\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+

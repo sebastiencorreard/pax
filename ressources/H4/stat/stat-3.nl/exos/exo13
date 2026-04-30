@@ -1,0 +1,208 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+helptext=$empty
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cols=15
+rows=1
+formula$n=$empty
+var1=0
+math=0
+# dus aantallen en geen kans 0<P<1
+image=0
+questiontype=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+#@!record 82 of lang/remarks.$taal
+#@ Permutaties
+
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+!if $R=1
+    alfabet=!shuffle a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+    aantal=!randitem 6,7,8,9,10,11,12
+    AANTAL=!item $aantal of $telwoorden
+    num=!randitem 3,4,5,6
+    NUM=!item $num of $telwoorden
+    g=$empty
+    !for p=1 to $aantal
+	letter=!item $p of $alfabet
+	letters=!append word $letter to $letters
+	!if $p <= $num
+	    bijvoorbeeld=!append word $letter to $bijvoorbeeld
+	!endif
+    !next p
+    !for p=1 to $num
+	g=!append line $aantal @ to $g 
+    !next p
+    g=!char 1 to -2 of $g
+    g=!replace internal @ by $ \cdot $ in $g
+    letters=!sort word $letters
+    bijvoorbeeld=!nospace $bijvoorbeeld
+    answer$n=$[$aantal^$num]
+    texanswer$n=$g \,\,=\,\, $aantal^{$num} \,\,=\,\,$(answer$n)
+
+    ss=!record 83 of lang/remarks.$taal
+    #@ Hoeveel verschillende woorden van $NUM letters kun je uit $AANTAL letters maken?<br />\
+    #@ We maken gebruik van de letters: <p align="center"><table cellpadding="10" bgcolor="f9d0a0"><th>$letters</th></table></p>\
+    #@ Een zelfde letter mag meerdere keren voorkomen in een "woord".<br />\
+    #@ Zo'n woord hoeft geen ree&euml;le betekenis te hebben,<br /><span style="color:red"><b>$bijvoorbeeld</b></span> is bijvoorbeeld ook een "woord" van $NUM letters.
+    question$n=$ss
+ !exit
+!endif
+
+!if $R=2
+    alfabet=!shuffle a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+    aantal=!randitem 6,7,8,9,10,11,12
+    AANTAL=!item $aantal of $telwoorden
+    num=!randitem 3,4,5,6
+    NUM=!item $num of $telwoorden
+    a=$aantal
+    b=$num
+    !for p=1 to $aantal
+	letter=!item $p of $alfabet
+	letters=!append word $letter to $letters
+	!if $p <= $num
+	    bijvoorbeeld=!append word $letter to $bijvoorbeeld
+	!endif
+    !next p
+    G=1
+    g=$empty
+    !for p=1 to $[$num-1]
+	G=($aantal-$p)*$G
+	g=!append line $[$aantal-$p] @ to $g
+    !next p
+    g=!char 1 to -2 of $g
+    g=!replace internal @ by $ \cdot $ in $g
+    letters=!sort word $letters
+    bijvoorbeeld=!nospace $bijvoorbeeld
+    answer$n=$[$aantal*$G]
+    texanswer$n=$aantal \cdot $g \,\,=\,\, $(answer$n)
+
+    ss=!record 84 of lang/remarks.$taal
+    #@ Hoeveel verschillende woorden van $NUM letters kun je uit $AANTAL letters maken?<br />\
+    #@ We maken gebruik van de letters: <p align="center"><table cellpadding="10" bgcolor="f9d0a0"><th>$letters</th></table></p>\
+    #@ Een letter mag maar &eacute;&eacute;n keer in een woord gebruikt worden.<br />\
+    #@ Zo'n woord hoeft geen ree&euml;le betekenis te hebben,<br /><span style="color:red"><b>$bijvoorbeeld</b></span> is bijvoorbeeld ook een "woord" van $NUM letters.
+    question$n=$ss
+ !exit
+!endif
+
+!if $R>2
+    alfabet=!shuffle a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+    aantal=!randitem 7,8,9,10,11,12
+    AANTAL=!item $aantal of $telwoorden
+    num=!randitem 3,4,5,6
+    NUM=!item $num of $telwoorden
+    a=$aantal
+    b=$num
+    !for p=1 to $aantal
+	letter=!item $p of $alfabet
+	letters=!append word $letter to $letters
+    !next p
+    tel=$aantal @
+    noe=$num @
+    !for p=1 to $[$num-1]
+	tel=!append line $[$aantal-$p] @ to $tel
+	noe=!append line $[$num -$p] @ to $noe
+    !next p
+    tel=!char 1 to -2 of $tel
+    noe=!char 1 to -2 of $noe
+    tel=!replace internal @ by $ \cdot $ in $tel
+    noe=!replace internal @ by $ \cdot $ in $noe
+    
+    letters=!toupper $letters
+    answer$n=$[(factorial($aantal))/(factorial($num)*factorial($aantal-$num))]
+    rr=!record 171 of lang/remarks.$taal
+    textanswer$n=$rr
+    texanswer$n=\left(\begin{array}{c} $aantal \\ $num \end{array}\right) = \frac{$tel}{$noe} = $(answer$n)
+    lekkers=!record 85 of lang/remarks.$taal
+    #@ banketstaaf,chocolade,marsepein,witte chocolade,pure chocolade,hazelnoot chocolade
+    chocolade=!randitem $lekkers
+
+    ss=!record 86 of lang/remarks.$taal
+    #@ We hebben $AANTAL $chocolade letters, nl de letters:\
+    #@ <p align="center"><table cellpadding="10" bgcolor="f9d0a0"><th>$letters</th></table></p>\
+    #@ Je mag er $NUM uit kiezen.<p>Hoeveel keuze mogelijkheden heb je?
+    question$n=$ss
+ !exit
+!endif
+
+#
+#!if $R>3
+#    aantal=!randitem 6,7,8,9,10,11,12
+#    AANTAL=!item $aantal of $telwoorden
+#    num=!randitem 3,4,5,6
+#    NUM=!item $num of $telwoorden
+#    klinkers=!shuffle a,i,o,u,e,y
+#    rest=!shuffle b,c,d,f,g,h,j,k,l,m,n,p,r,s,t,v,w,z
+#    G=1
+#    g=$empty
+#    !for p=1 to $[$num-1]
+#	G=($aantal-$p)*$G
+#	g=!append line $[$aantal-$p] @ to $g
+#    !next p
+#    g=!char 1 to -2 of $g
+#    g=!replace internal @ by $ \cdot $ in $g
+#    x=!item 1 of $klinkers
+#    y=!item 2 of $klinkers
+#    keuze=!randitem 1,0,0
+#    count=!randitem 2,3,3
+#    !if $keuze=1
+#	!if $count=2
+#	    letters=$x,$x
+#	    answer$n=$[$aantal*$G/2]
+#	    texanswer$n=\frac{$aantal \cdot $g}{2}
+#	!else
+#	    letters=$x,$x,$x
+#	    answer$n=$[$aantal*$G/6]
+#	    texanswer$n=\frac{$aantal \cdot $g}{3 \cdot 2 \cdot 1}
+#	!endif
+#    !else
+#	!if $count=2
+#	    letters=$x,$x,$y
+#	    count=3
+#	    answer$n=$[$aantal*$G/2]
+#	    texanswer$n=\frac{$aantal \cdot $g}{2}
+#	!else
+#	    letters=$x,$x,$y,$y
+#	    count=4
+#	    answer$n=$[$aantal*$G/4]
+#	    texanswer$n=\frac{$aantal \cdot $g}{2 \cdot 2}
+#	!endif
+#    !endif
+#    texanswer$n=$(texanswer$n)\,\,=\,\,$(answer$n)
+#    !for p=1 to $[$aantal-$count]
+#	letter=!item $p of $rest
+#	letters=!append item $letter to $letters
+#    !next p
+#    letters=!toupper $letters
+#    letters=!shuffle $letters
+#    letters=!items2words $letters
+#    
+#    ss=!record 87 of lang/remarks.$taal
+#    #@ Hoeveel verschillende woorden van $NUM letters kun je uit onderstaande $AANTAL letters maken?<br />\
+#    #@ We maken gebruik van de letters: <p align="center"><table cellpadding="10" bgcolor="f9d0a0"><th>$letters</th></table></p>\
+#    #@ Elke letter van de $AANTAL letters mag maar &eacute;&eacute;n keer in een woord gebruikt worden.<br />\
+#    #@ Zo'n woord hoeft geen ree&euml;le betekenis te hebben.
+#    question$n=$ss
+# !exit
+#!endif
+#
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,76 @@
+# very simple graph paper.
+# variabeles
+# xrange=0,10 of -10,10 of pi,2*pi
+# yrange=0,10 of -10,10 of pi,2*pi
+# scale default 1
+# scale_x of scale_y
+
+minus_x=!item 1 of $xrange
+maxus_x=!item 2 of $xrange
+minus_y=!item 1 of $yrange
+maxus_y=!item 2 of $yrange
+
+!if $scale !=$empty
+    scale_x=!item 1 of $scale
+    scale_y=!item 2 of $scale
+!else
+    scale_x=1
+    scale_y=1
+!endif
+
+vh1=$[0.05*$maxus_y]
+hh1=$[0.01*$maxus_x]
+vh2=$[0.08*$maxus_y]
+hh2=$[0.05*$maxus_x]
+
+!if pi isin $scale_x
+    empty=
+    ccc=!replace internal *pi by $empty in $minus_x
+    stepsize=!replace internal *pi by $empty in $scale_x
+    !for nnn=$minus_x to $maxus_x step $scale_x
+	V=vline $nnn,0,blue
+        T=text red,$nnn,$vh1,normal,$ccc pi
+        VLINE=!append line $V to $VLINE
+        VTEXT=!append line $T to $VTEXT
+	ccc= $[$ccc + $stepsize]
+    !next nnn
+!else
+    !for nnn=$minus_x to $maxus_x step $scale_x
+        V=vline $nnn,0,blue
+        T=text red,$nnn,$vh1,normal,$nnn
+	VLINE=!append line $V to $VLINE
+        VTEXT=!append line $T to $VTEXT
+    !next nnn
+!endif
+
+!for nnn=$minus_y to $maxus_y step $scale_y
+    V=hline 0,$nnn,blue
+    T=text blue,$hh1,$nnn,normal,$nnn
+    HLINE=!append line $V to $HLINE
+    HTEXT=!append line $T to $HTEXT
+!next
+
+!if $transparent=$empty
+    transparent= transparent white
+!else
+    transparent=
+!endif
+
+insdraw_size=$XSIZE,$YSIZE
+graphpaper=$YSIZE,$YSIZE\
+$transparent \
+xrange $xrange \
+yrange $yrange \
+$HTEXT \
+$VTEXT \
+linewidth 1\
+$HLINE \
+$VLINE \
+linewidth 6\
+rect $minus_x,$minus_y,$maxus_x,$maxus_y,black\
+linewidth 3\
+hline 0,0,blue \
+vline 0,0,blue \
+text blue,$maxus_x,$vh2,large,$XTEXT\
+textup red,$vh2,$maxus_y,large,$YTEXT
+

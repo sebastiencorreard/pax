@@ -1,0 +1,116 @@
+# spiegel om de x-as
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=1
+arglist=g(x),y
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+ss=!record 68 of lang/remarks.$taal
+#@De grafiek van <b>f</b> wordt gespiegeld in de <em>x-as</em><br />Geef het functievoorschrift van het spiegelbeeld<br /><small> noem de functie <b>g</b></small>
+etext=!record 48 of lang/remarks.$taal
+#@<span style="color:blue">Hoe</span></a> vul ik het antwoord in?
+sometext=!record 69 of lang/remarks.$taal
+#@geef je antwoord in de vorm:<br /><textarea cols=20 rows=2>g(x)=sqrt(x-7) of y=-x^5+3x</textarea><br />
+
+keuze=!randitem 0,1
+exotext=<a onmouseover="return escape('$sometext')"><span class="schaersvoorde_link">$etext</span></a>
+!if $R=1
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    !if $keuze=1
+	var1=0
+	#pari checkt
+	functies=$a*x^2 $pm $b*x\
+	(x $pm $a)^$c  $mp $b\
+	(x $pm $a)^$c  $mp $b\
+	$a/x\
+	$a/(x $mp $b)\
+	(x + $a)/(x - $b)
+    !else
+	var1=1
+	#maxima checkt
+	functies=sqrt(x $pm $b) \
+	$c*sqrt(x $pm $b) \
+	sqrt(x $pm $b) \
+	sqrt(-x $pm $b) \
+	sqrt($c*x $pm $b) \
+	$c*sqrt($a*x $pm $b) \
+	sqrt(x) 
+    !endif
+            
+    functie=!randline $functies
+    var2=$functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  -1*($functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+!endif
+
+!if $R>1
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    !if $keuze=1
+	var1=0
+	#pari checkt
+	functies=$a*x^2 $pm $b*x $mp $c\
+        (x $pm $a)^$c  $mp $b\
+	(x $pm $a)^$c  $mp $b\
+        x^$c $pm $b*x^$[$c-1]\
+        x^$a $pm $b*x 
+    !else
+	var1=1
+	#maxima checkt
+	functies=sqrt(x $pm $b) $mp $c \
+	log($c*x $pm $b) \
+	$c $mp sqrt($a*x $pm $b) \
+	$a*log(x $pm $b)\
+	$a $mp log(x $pm $b)\
+	$a $mp log(x)\
+        $a^x\
+        $a^x $pm $b
+    !endif
+            
+    functie=!randline $functies
+    var2=$functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  -1*($functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+!endif
+
+applettext=!nospace f(x)=$functie ->
+
+!if $teaching=1
+    insplot_set=terminal gif transparent;size 0.6,0.6 ;nogrid ;autoscale ;xlabel "<x-axis>";ylabel"<y-axis>" ;border
+    !insplot $functie notitle, $(answer$n) notitle
+    image_settings$n=terminal gif transparent;size 0.6,0.6 ;grid ;xzeroaxis lt -1;yzeroaxis lt -1;autoscale ;xlabel "<x-axis>";ylabel"<y-axis>" ;border
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\' />
+    image=0
+    plot=1
+    draw=0
+    image$n=$functie notitle, $(answer$n) notitle
+    
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+    question$n=$ss
+!endif
+

@@ -1,0 +1,114 @@
+# CHECKFILE AANPASSEN : DECIMALE GETALLEN MET EEN KOMMA CORRIGEREN !!!
+math=0
+mathview=0
+# Spreadsheet &amp; berekenen van de standaardafwijking
+n=$counter
+tsv_file=som_$counter.tsv
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en standaardafwijking\
+\
+"cijfer"	"aantal leerlingen"\
+
+
+sum=0
+rnd=1
+rounding=10
+datalist=$empty
+aantal_leerlingen=0
+!for d1=2 to 10
+ d2=!randint 1,4
+ aantal_leerlingen=$[$aantal_leerlingen + $d2]
+ sum=$[$sum + $d1*$d2]
+ datalist=!append item $d2 to $datalist
+!next d1
+
+mean=$[$sum/$aantal_leerlingen]
+variantie=0
+
+!for d1=2 to 10
+ d2=!item $[$d1-1] of $datalist
+ data=!append line $d1	$d2 to $data
+ variantie=$[$variantie + ( $d1 - $mean)*($d1 - $mean)*$d2]
+!next d1
+
+variantie=$[$variantie/$aantal_leerlingen]
+std=$[sqrt($variantie)]
+answer$n=$[(round($rounding*$std))/$rounding]
+
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\'<hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br />\
+<em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />\
+Bereken mbv een spreadsheet de standaardafwijking van de cijfers in kolom A<br />\
+De standaardafijking is een spreidingsmaat die iets zegt over de spreiding van getallen rondom het gemiddelde...<br />\
+We volgen het volgende stappen plan:\
+<ol>\
+<li>bepaal het gemiddelde van kolom A (de cijfers)</li>\
+<li>bepaal van elk cijfer hoeveel deze afwijkt van het gemiddelde: zet deze getallen in kolom C</li>\
+<li>kwadrateer de afwijkingen van kolom C en zet deze getallen in een kolom D</li>\
+<li>vermenigvuldig de gekwadrateerde afwijkingen uit kolom D met de frequentie uit kolom B </li>\
+<li>bereken de gemiddelde kwadratische afwijking (dit heet de variantie)</li>\
+<li>neem hier de wortel van (dit is de standaardafwijking)</li>\
+</ol>
+
+ss2=Stuur de standaardafwijking afgerond op 1 decimaal op naar WIMS.
+
+#formula$n= \textrm{Standaardafwijking } = \sigma = \sqrt{ \frac{ \left( X - \overline{X} \right)^{2}}{ \textrm{aantal waarnemingen}}}
+
+m=15
+mm=16
+textanswer$n=De standaardafwijking is : $(answer$n)<ul>\
+<li>open het bestand </li>\
+<li>bereken het totaal aantal leerlingen ... ga in B$mm staan... in formulebalk : = SOM(B7:B$m) </li>\
+<li>bepaal het gemiddelde cijfer : ( A7*B7 + A8*B8 ... A$m*B$m ) / $aantal_leerlingen en zet dit getal in bijv. cel C$mm <br />\
+ga met je muis in C7 staan ...in formulebalk: = A7*B7 [ENTER]<br />\
+ge met je muis rechts onderin C7 staan ... je muis wordt een kruis ... en scroll naar C$m<br />\
+ga in C$mm staan ... in formulebalk : = SOM(C7 : C$m) / $aantal_leerlingen</li>\
+<li>bepaal van elk cijfer hoeveel deze afwijkt van het gemiddelde: zet deze getallen in kolom D :<br />zet je muis in D7...in formulebalk : D7 - &#36;C&#36;$mm [ENTER]<br />ga met je muis rechts onderin D7...je muis wordt een kruis...scroll naar D$m</li>\
+<li>wadrateer de afwijkingen van kolom D en zet deze getallen in een kolom E :<br />zet je muis in E7...in formulebalk : D7 * D7 [ENTER]<br />ga met je muis rechts onderin E7...je muis wordt een kruis...scroll naar E$m</li>\
+<li>vermenigvuldig de kwadratische afwijking met de frequentie uit kolom B <br />\
+ga met je muis in F7 staan .... in formulebalk : = E7*B7 [ENTER]<br />\
+ga met je muis rechts onderin F7 staan ... je muis wordt een kruis ... en scroll naar F$m<br /></li>\
+<li>bereken het gemiddelde van kolom F (dit heet de variantie):<br />zet je muis in F$mm...in de formulebalk: SOM(F7:F$m)/$aantal_leerlingen [ENTER] </li>\
+<li>neem hier de  wortel van (dit is de standaardafwijking) en rond dit af : <br />in een lege cel ... in formulebalk : <b>= AFRONDEN( WORTEL(F$mm) ;$rnd)</b></li>\
+<li>gebruik je een engelse spreadsheet versie SOM==SUM ... WORTEL==SQRT ... AFRONDEN==ROUND ... ENZ==ETC ...</li>\
+</ul>
+
+checkfile=$checkdir/number.proc
+var1=yes
+inputs=1.1
+cols=5
+rows=10
+make_tr=1
+description=de standaardafwijking
+ex1=(op $rnd decimalen)
+question$n=$ss<a onmouseover="return escape('$mousetxt <hr /><img src=$module_dir/gifs/std.png />')">$ss2</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

@@ -1,0 +1,78 @@
+!exit
+!if $rounding<1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+rows=1
+make_tr=0
+questiontype=7
+javascript=js/kansboom.js
+checkfile=exos/checkfile3.proc
+math=0
+image=0
+var1=540
+var2=440
+var3=540
+var4=440
+var5=220,240,240
+var6=30,30,250
+var7=250,120,0
+!if $rounding<10
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+winst=!randint 1,50
+winst=$[$winst/1000]
+!if $R=1
+    num=2
+    aantal_winst=1
+!else
+    num=3
+    aantal_winst=1
+!endif
+
+var8=$[2*$num + 3]
+var9=vertical
+
+Num=!item $num of $telwoorden
+Aantal_winst=!item $aantal_winst of $telwoorden
+
+helptext=<img src=$module_dir/gifs/exo23.jpg alt=noalt />
+ans1=$[$num*$winst*(1-$winst)]
+ak1=$winst,$[1-$winst]
+aw1=Y,N
+sk1=<small>$winst &nbsp;&nbsp; $[1-$winst]</small> 
+sw1=<span size+1><b>Y</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>N</b></span>
+tot=$empty
+
+show=<table><tr><th>&nbsp;|&nbsp;</th></tr><tr>
+!for s=2 to $[$num+1]
+    tot=!append line $(ak$[$s-1]) to $tot
+    tot=!append line $(aw$[$s-1]) to $tot
+    show=!append line <tr><th>$(sk$[$s-1])</th></tr> to $show
+    show=!append line <tr><th>$(sw$[$s-1])</th></tr> to $show
+    ak$s=!append word ,$(ak$[$s-1]) to $(ak$[$s-1])
+    aw$s=!append word ,$(aw$[$s-1]) to $(aw$[$s-1])
+    sk$s=!append line $ &nbsp;&nbsp;$(sk$[$s-1])&nbsp;&nbsp; $ to $(sk$[$s-1])
+    sw$s=!append line $ &nbsp;&nbsp;&nbsp;&nbsp;$(sw$[$s-1])&nbsp;&nbsp;&nbsp;&nbsp; $ to $(sw$[$s-1])
+!next s
+show=!append line $ </tr></table> $ to $show
+tekstanswer$n=!replace internal , by &nbsp;&nbsp; in $(tekstanswer$n)
+tekstanswer$n=!append line <th>$rr1</th></tr></table> to $(tekstanswer$n)
+answer$n=$ans1,$tot
+ss=!record 147 of lang/remarks.$taal
+#@In een loterij is de kans op winst $winst .<br />We kopen $Num loten.<br />Teken hierbij de kansboom<br />en bereken de kans op $Aantal_winst keer winst.<br /><small>Gebruik in de kansboom voor winst de letter <b>Y</b><br />en voor verlies de letter <b>N</b></small><p>De kans op $Aantal_winst keer winst is:
+rr=!record 148 of lang/remarks.$taal
+#@ De kans op $Aantal_winst keer winst is dus:
+question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/exo23.jpg alt=noalt />')">$ss</a>
+exotext=$rr<textarea cols="5" rows="1" id="myinput0" class="schaersvoorde_textarea"</textarea>

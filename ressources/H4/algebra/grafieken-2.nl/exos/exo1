@@ -1,0 +1,141 @@
+n=$counter
+mathview=5
+questiontype=10
+arglist=g(x),y
+xsize=360
+ysize=360
+var1=0
+# pari checkt antwoord
+helptext=$empty
+checkfile=exos/checkfile1.proc
+image=0
+draw=0
+plot=0
+applet=1
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+pm=!randitem +,-
+mp=!randitem +,-
+
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+!if $R=1
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem -1,1
+    !if $c=-1
+        answer$n=(x$pm$b)^2
+	bewerken=!record 20 of lang/remarks.$taal
+	#@verschuiven in horizontale richting
+    !else
+	answer$n=x^2 $mp $b
+	bewerken=!record 18 of lang/remarks.$taal
+	#@verschuiven in vertikale richting
+    !endif
+ !goto IMAGE
+!endif
+    
+!if $R=2
+    a=!randitem 1,2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5,6,7
+    answer$n=(x $pm $a)^2 $mp $b
+    bewerken=!record 22 of lang/remarks.$taal
+    #@verschuiven in horizontale en vertikale richting
+ !goto IMAGE
+!endif
+    
+!if $R=3
+    a=!randitem 1,7
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem -1,1
+    !if $c=-1
+	answer$n=-1*(x $pm $a)^2 $mp $b
+	bewerken=!record 21 of lang/remarks.$taal
+	#@spiegeling in de <em>x-</em>as en een horizontale en vertikale verschuiving
+    !else
+	answer$n=-1*(x $pm $a)^2
+	bewerken=!record 19 of lang/remarks.$taal
+	#@spiegeling in de <em>x-</em>as en te verschuiving in horizontale richting
+    !endif
+ !goto IMAGE
+!endif
+    
+!if $R>3
+    a=!randitem 1,5
+    b=!randitem 1,2,3,4,5
+    c=!randitem -2,-1/2,2,1/2,3
+    answer$n=$c*(x $pm $a)^2 $mp $b
+    bewerken=!record 24 of lang/remarks.$taal
+    #@te verschuiven in horizontale en vertikale richting.<br />Daarnaast vindt er ook nog een vertikale vermenigvuldiging vanuit de <em>x-</em>as plaats.<br />Let op het punt (1;1) op f(x). Vanuit (0;0)naar (1;1) ga je 1 naar rechts, 1 omhoog.<br />Kijk naar de top van g(x). 1 naar rechts de vermenigvuldigingsfactor omhoog..
+!endif
+    
+:IMAGE
+
+f=x^2
+var2=$f
+g=$(answer$n)
+m_rightarrow=&nbsp;
+display=1
+texanswer$n=!texmath g(x) = $g 
+formula$n= \left[ \begin{array}{lll} f(x) & = & x^{2} \\ g(x) & = & [?] \end{array}\right.   
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+ss=!record 15 of lang/remarks.$taal
+question$n=$ss
+#@Gegeven is de functie en grafiek van <em>f(x)</em><br />Bepaal het functie voorschrift van de <font color=$c2>$k2 grafiek <em>g(x)</em></font><br />welke ontstaat door de <font color=$c1> $k1 grafiek van <em>f(x)</em></font> te<br />$bewerken 
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -10,10\
+yrange -10,10\
+bgcolor white\
+fontfamily 12pt Ariel\
+opacity 150,255\
+precision 1\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+opacity 255,255\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue

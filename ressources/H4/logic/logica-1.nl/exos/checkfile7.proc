@@ -1,0 +1,185 @@
+# voor exo14 : zelf een venndiagram tekenen
+goback=0
+math=0
+errortext=$empty
+score=0
+extra=$empty
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ object$n=$empty
+ !exit
+!endif
+AAA=$(reply$n)
+# text -> line=11
+# --> -3.8,-2.9,-1.9,-0.9;1,1.7,0.4,1.2;a,v,d,w --> x;y;TXT
+text=!line 11 of $AAA
+text=!translate ';' to '\n' in $text
+tx=!line 1 of $text
+ty=!line 2 of $text
+tt=!line 3 of $text
+tt=!tolower $tt
+tt=!singlespace $tt
+tc=!itemcnt $tx
+!if $tc=0
+ goback=1
+ errortext=je hebt helemaal niks getekend...
+ maxscore=$[$P1*$maxscore]
+ goback=1
+ !exit
+!endif
+ntt=$empty
+ntx=$empty
+nty=$empty
+# toestaan tt= a b c, d e f,q r
+!for p=1 to $tc
+ P=!item $p of $tt
+ x=!item $p of $tx
+ y=!item $p of $ty
+ PP=!words2items $P
+ w=!itemcnt $PP
+ !if $w>1
+  dx=0
+  !for s=1 to $w
+   W=!item $s of $PP
+   ntt=!append item $W to $ntt
+   ntx=!append item $x+$dx to $ntx
+   nty=!append item $y to $nty
+   dx=$[$dx+0.3]
+  !next s
+ !else
+  ntt=!append item $P to $ntt
+  ntx=!append item $x to $ntx
+  nty=!append item $y to $nty  
+ !endif
+!next p
+tt=!nospace $ntt
+tx=!nospace $ntx
+ty=!nospace $nty
+tc=!itemcnt $tx
+
+c1=!line 1 of $var9
+c2=!line 2 of $var9
+r1=!item 3 of $c1
+r2=!item 3 of $c2
+x1=!item 1 of $c1
+y1=!item 2 of $c1
+x2=!item 1 of $c2
+y2=!item 2 of $c2
+
+M=!line 1 of $(answer$n)
+K=!line 2 of $(answer$n)
+L=!line 3 of $(answer$n)
+M=!tolower $M
+K=!tolower $K
+L=!tolower $L
+M=!nospace $M
+K=!nospace $K
+L=!nospace $L
+
+tm=!itemcnt $M
+tk=!itemcnt $K
+tl=!itemcnt $L
+ts=$[$tm+$tk+$tl]
+!if $tc > $[$ts+1]
+ goback=1
+ errortext=Je hebt te veel elementen getekend...
+ maxscore=$[$maxscore/$tc]
+ goback=1
+ !exit
+!endif
+!if $tc < $ts
+ forgotten=$empty
+ maxscore=$[$maxscore/($ts - $tc+1)]
+ ttu=!listuniq $tt
+ forgotten=!listcomplement $ttu in $M,$K,$L
+ extra=<br />Je bent elementen vergeten te tekenen...te weten <b>$forgotten</b>
+!endif
+result=$empty
+score=0
+your_string=$empty
+!for c=1 to $tc
+ f=!item $c of $tt
+ fx=!item $c of $tx
+ fy=!item $c of $ty
+ d1=$[sqrt( ($fx-$x1)*($fx-$x1) + ($fy-$y1)*($fy-$y1) )]
+ d2=$[sqrt( ($fx-$x2)*($fx-$x2) + ($fy-$y2)*($fy-$y2) )]
+ found=0
+ # eerst deelverzameling
+ !for g=1 to $tm
+  !if $found=0
+   G=!item $g of $M
+   !if $f=$G
+    !if $d1<$r1 and $d2<$r2
+     found=1
+     !increase score
+    !endif
+   !endif 
+  !endif
+ !next g
+ !if $found=0
+ # eerst de linker cirkel (K) verzameling
+  !for g=1 to $tk
+   !if $found=0
+    G=!item $g of $K
+    !if $f=$G
+     !if $d1<$r1 and $d2>$r2
+      found=1
+      !increase score
+     !endif
+    !endif 
+   !endif
+  !next g
+ !endif
+ !if $found=0
+ # nu de rechter cirkel (L) verzameling
+  !for g=1 to $tl
+   !if $found=0
+    G=!item $g of $L
+    !if $f=$G
+     !if $d1>$r1 and $d2<$r2
+      found=1
+      !increase score
+     !endif
+    !endif 
+   !endif
+  !next g
+ !endif
+ !if $found=1
+  k=green
+  ex=$empty
+ !else
+  !if $f notitemof $M,$L,$K
+   ex=(hmmm, dit element is erbij bedacht...)
+  !endif 
+  k=red
+ !endif
+ result=!append word $ <br /><span style="color:$k">$f $ex</span> $ to $result
+ your_string=!append line string $k,$fx,$fy,$f to $your_string
+!next c
+
+maxscore=$[$maxscore*$score/$ts]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore=1
+ remark$n=$OK
+!else
+ !if $maxscore>0.5
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+
+reply$n=$result $extra
+
+object$n=!exec canvasdraw\
+size 400,400\
+$var5\
+centerstring blue,9,jouw antwoord\
+fontfamily 18pt Courier\
+$your_string
+
+
+

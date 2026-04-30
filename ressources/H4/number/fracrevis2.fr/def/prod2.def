@@ -1,0 +1,110 @@
+!set title=Simplification d'un produit de trois fractions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+computeanswer=no
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=101
+val7=0
+!while ($val6>100) or ($val7>100) 
+tmp0=!shuffle 10,12,14,15,16,18,20,21,24,25,27,28,30,32,33,35,36,40,42,44,45,48,49,50,52,54,55,56,60,63,64,65,70,72,80,81
+
+val8=$(tmp0)
+val9=$(val8[1])
+val10=$(val8[2])
+val11=$(val8[3])
+val12=$(val8[4])
+val13=$(val8[5])
+val14=$(val8[6])
+tmp=!translate ";': to $     $ in ($val9*$val11*$val13)/($val10*$val12*$val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+t_=!replace internal \( by ( in denominator($val15)
+tmp0=!exec pari $t_
+
+val6=$(tmp0)
+t_=!replace internal \( by ( in numerator($val15)
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+!endwhile
+replytype1=nocase
+replyname1=
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère l'expression 
+!insmath \displaystyle A=  \frac{$val9}{$val10} \times \frac{$val11}{$val12} \times \frac{$val13}{$val14}.
+$()<br class="spacer">	Simplifier cette expression en la mettant sous la forme d'un entier ou d'une fraction irréductible.<br class="spacer">	<div> 
+!insmath A=
+$() 
+!read oef/embed.phtml reply1,8 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,12,13,14
+embedcnt=1

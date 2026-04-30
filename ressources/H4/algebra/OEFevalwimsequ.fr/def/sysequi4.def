@@ -1,0 +1,133 @@
+!set title=Systèmes d'équations 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=c
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!values v for v=2 to 9
+
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+val7=Parmi les deux systèmes d'équations ci-dessous,	  lequel a la même solution que le système suivant.
+val8=$[rint($(val6[5])+$(val6[2]))]
+val9=$[rint($(val6[6])+$(val6[3]))]
+val10=$(val6[1]),$(val6[2]),$(val6[3]),$(val6[1]),$(val6[5]),$(val6[6])	$(val6[1]),$(val6[2]),$(val6[3]),-$(val6[1]),$(val6[5]),$(val6[6])	$(val6[1]),$(val6[2]),$(val6[3]),0,$val8,$val9
+val11=
+tmp=!translate internal $	$ to ; in x,y	u,v	a,b
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val13=$(val12[1])
+val14=$(val12[2])
+val15=
+!for val16 =1 to 3 
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $val16 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+
+!ifval $(val17[1])*$(val17[2])=0
+t_=!replace internal \( by ( in $(val17[1])*$val14+$(val17[2])*$val13;
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+!else
+val18=$(val17[1])*$val14+$(val17[2])*$val13
+!endif
+tmp0=!texmath $val18
+
+val18=$(tmp0)
+
+!ifval $(val17[4])*$(val17[5])=0
+t_=!replace internal \( by ( in $(val17[4])*$val14+$(val17[5])*$val13;
+tmp0=!exec maxima $t_
+
+val19=$(tmp0)
+!else
+val19=$(val17[4])*$val14+$(val17[5])*$val13
+!endif
+tmp0=!texmath $val19
+
+val19=$(tmp0)
+val20=\left\lbrace\begin{array}{ccc}$val18&=&$(val17[3])\\ $val19&=&$(val17[6])\end{array}\right.
+tmp0=!append item $val11 \($val20) to $val15
+
+val15=$(tmp0)
+!next
+choicename1=Votre choix
+choicegood1=$(val15[3])
+choicebad1=$(val15[1])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7	  <div class="wimscenter">$(val15[2])</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,15
+embedcnt=0

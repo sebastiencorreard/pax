@@ -1,0 +1,134 @@
+!set title=Calculer un pourcentage 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randint 20, 50
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items 10,15,20,25,30,35,40
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+val10=$[(1$val9$val8/100)*$val7]
+val11=Un article passe de \($val7) euros à \($val10) euros. Parmi les affirmations suivantes laquelle est vraie
+val12=$[abs($val7-$val10)]
+val13=$[rint($val12/$val10*10000)]
+val13=$[$val13/100]
+val14=C'est une augmentation de \($val8 \%),C'est une diminution de \($val8 \%),C'est une augmention de \($val12 \%),C'est une diminution de \($val12 \%),C'est une diminution de \($val13 \%),C'est une augmentation de \($val13 \%)
+
+!ifval $val7-$val10<0
+val15=1
+!else
+val15=2
+!endif
+val16=A,B,C,D,E,F,G,H
+tmp0=!item $val15 of $val14
+
+val15=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!positionof item $val15 in $val14
+
+val17=$(tmp0)
+val18=<ul>
+tmp0=!itemcnt $val14
+
+val19=$[rint($(tmp0))]
+!for val20 =1 to $val19 
+val18=$val18<li><b>$(val16[$val20])</b> : $(val14[$val20])</li>
+!next
+val18=$val18</ul>
+tmp0=!item $val17 of $val16
+
+val21=$(tmp0)
+tmp0=!item 1 to $val19 of $val16
+
+val22=$(tmp0)
+replytype1=menu
+replyname1=réponse
+replygood1=$val17;$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val11 ? <br>	$val18	<p><b>Votre réponse :</b></p>	  <label for="reply1">Ma réponse est</label> :  
+!read oef/embed.phtml r1 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,18
+embedcnt=1

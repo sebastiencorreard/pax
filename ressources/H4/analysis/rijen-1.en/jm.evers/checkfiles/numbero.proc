@@ -1,0 +1,53 @@
+# this file is called by other procfiles
+# it expects AAA to be a prefiltered reply$n
+# it returns AAA of an errortext/extra text
+!if $AAA=$empty
+    !if $wims_user=supervisor or ~ isin $module
+	errortext="this file ($checkfile/numbero.proc) was not used correctly<br>\
+	the default student answer reply$n should have been copied into AAA ($AAA)<br>\
+	simply do: AAA=$(reply$n) <br>\
+	or AAA=!!lower $(reply$n)
+	goback=1
+    !endif
+ !exit
+!endif
+
+tot=!replace internal = by @ in $AAA
+t=!positionof char o in $tot
+!if $t != $empty
+    nummers=0.123456789
+    !for p in $t
+	check=0
+	t1=!char $[$p-1] of $tot
+	!if $t1=@
+	    # dus  x=o
+	    check=1
+	!endif
+    	t2=!char $[$p+1] of $tot
+	!if $t1 isin $nummers and $t2 isin $nummers
+	    check=1
+	!endif    
+	# so 123o 123.o 12o3
+	!if $check=1
+	    maxscore=$[$P2*$maxscore]
+	    !if $teaching=1 
+		errortext=!record 13 of $remarkdir/commonremarks.$taal
+		!increase try
+		goback=1
+		!exit
+    	    !else
+		# we correct 1  o -> 0 ! 
+		ex=!record 49 of $remarkdir/commonremarks.$taal
+		tot=!replace internal char number $p by 0 in $tot
+		!if $extra=$empty
+		    extra=$ex
+		!else
+		    extra=$extra<br>$ex
+		!endif
+	    !endif
+	!endif
+    !next p
+    AAA=!replace internal @ by = in $tot
+!endif    
+
+!exit

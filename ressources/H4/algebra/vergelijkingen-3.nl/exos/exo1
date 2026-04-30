@@ -1,0 +1,186 @@
+rounding=0
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/checkfile1.proc
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+questiontype=0
+image=0
+embed=1
+cols=15
+rows=1
+exotitle=!record 48 of lang/remarks.$taal
+#@ Optellen en aftrekken van logaritmes:
+helptext=!record 145 of lang/remarks.$taal
+ss=!record 49 of lang/remarks.$taal
+#@ Schijf de volgende som als &eacute;&eacute;n logaritme:
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+keuze=!randitem 0,1
+kans=!randitem 0,1
+var1=1
+# var1=1 -> log in antwoord
+var2=0
+# var2=1 -> breuk in antwoord
+var3=0
+# var3 -> varlist
+mathview=2
+mathviewpanel=$module_title:log():log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]():
+!if $R=1
+    !if $keuze=0
+	!if $kans=0
+    	    var3=0
+	    a=!randint 1,30
+	    b=!randint 1,30
+	    formula$n=\log \left( $a \right) + \log \left( $b \right) = [?]
+	    applettext=!nospace log($a) + log(b) =
+	    answer$n=log($[$a*$b])
+	    texanswer$n=\left[ \begin{array}{l} \log \left( $a \right) + \log \left( $b \right) = \\ \log \left( $a \cdot $b \right) = \\ \log \left( $[$a*$b] \right) \end{array} \right.
+	!else
+	    var2=1
+	    c=!randint 2,10
+    	    b=!randint 2,10
+	    a=$[$b*$c]
+	    formula$n=\log \left( $a \right) - \log \left( $b \right) = [?]
+	    applettext=!nospace log($a) - log(b) =
+	    answer$n=log($c) 
+	    texanswer$n=\log \left( $a \right) - \log \left( $b \right) = \\ \log \left( \frac{$a}{$b} \right) = \\ \log \left( $c \right) \end{array} \right.
+	!endif
+      !exit
+    !endif
+    !if $keuze=1
+	var3=1
+	mathview=0
+	wims_rawmath_variables=x,y
+	!if $kans=0
+	    formula$n=\log \left( x \right) + \log \left( y \right)
+	    applettext=!nospace log(x) + log(y) =
+	    answer$n=log(x*y) 
+	    texanswer$n=\left[ \begin{array}{l} \log \left( x \right) + \log \left( y \right) = \\ \log \left( x \cdot y \right) \end{array} \right.
+        !else
+	    formula$n=\log \left( x \right) - \log \left( y \right)
+	    applettext=!nospace log(x) - log(y) =
+	    answer$n=log(x/y) 
+	    texanswer$n=\left[ \begin{array}{l} \log \left( x \right) - \log \left( y \right) = \\ \log \left( \frac{x}{y} \right) \end{array} \right.
+	!endif
+      !exit
+    !endif
+!endif
+
+!if $R=2
+    !if $keuze=0
+	var2=1
+	!if $kans=1
+	    a=!randint 1,10
+	    b=!randint 1,10
+	    c=!randint 15,30
+	    tot=!exec pari $b*($a/$c)\
+	    printtex($a/$c)
+	    ab=!line 1 of $tot
+	    a=!line 2 of $tot 
+	    formula$n=\log \left( $a \right) + \log \left( $b \right)
+	    applettext=!nospace log($a) + log($b) =
+	    answer$n=log($ab)
+	    AB=!texmath $ab
+	    texanswer$n=\left[ \begin{array}{l} \log \left( $a \right) + \log \left( $b \right) = \\ \log \left( $a \cdot $b \right) = \\ \log \left( $AB \right)  \end{array} \right.
+	!else
+	    c=!randitem 1/2,1/3,1/4,1/5,1/6,2/3,3/4,2/5,3/5,3/8,5/8,3/2,4/5,7/8
+	    b=!randint 1,30 
+	    a=!exec pari A= $b*($c)
+	    formula$n=\log \left( $a \right) - \log \left( $b \right)
+	    applettext=!nospace log($a) - log($b) =
+	    answer$n=log($c)
+	    C=!texmath $c
+	    texanswer$n=\left[ \begin{array}{l} \log \left( $a \right) - \log \left( $b \right) = \\ \log \left( \frac{$a}{$b} \right) = \\ \log \left( $C \right ) \end{array} \right.
+	!endif
+     !exit
+    !endif
+    !if $keuze=1
+	var3=1
+	wims_rawmath_variables=x,y
+	!if $kans=1
+	    mathview=0
+	    c=!randint 2,10
+	    b=!randint 2,10
+	    a=$[$b*$c]
+	    formula$n=\log \left( $a \cdot x \right) - \log \left( $b \cdot y \right)
+	    applettext=!nospace log($a*x) - log($b*y) =
+	    answer$n=log($c*x/y)
+	    texanswer$n=\left[ \begin{array}{l} \log \left( $a \cdot x \right) - \log \left( $b \cdot y \right) = \\ \log \left( \frac{$a \cdot x}{$b \cdot y} \right) = \\ \log \left( $c \cdot \frac{x}{y} \right) \end{array} \right.
+	!else
+	    a=!randint 2,10
+	    b=!randint 2,10
+	    formula$n=\log \left( $a \cdot x\right) + \log \left( $b \cdot y \right)
+	    applettext=!nospace log($a*x) + log($b*y) =
+	    answer$n=log($[$a*$b]*x*y)
+	    texanswer$n=\left[ \begin{array}{l}\log \left( $a \cdot x \right) - \log \left( $b \cdot y \right) = \\ \log \left( $a \cdot x \cdot $b \cdot y \right) = \\ \log \left( $[$a*$b] \cdot x \cdot y \right) \end{array} \right.
+	!endif
+      !exit
+    !endif
+!endif
+	
+!if $R>2
+kansen=|randint 0,1
+ !if $kansen=1
+    !if $keuze=1
+	!if $kans=0
+    	    c=!randitem 2,3,4
+	    a=!randitem 1,2,3,4,5,6,7
+	    b=!randitem 1,2,3,4,5,6,7
+	    formula$n=$c \cdot \log \left( $a \right) + \log \left( $b \right)
+	    applettext=!nospace $c*log($a) + log($b) =
+	    answer$n=log($b*$a^$c) 	
+	    texanswer$n=\left[ \begin{array}{l} $c \cdot \log \left( $a \right) + \log \left( $b \right) = \\ \log \left( $a^{\textstyle $c} \right) + \log \left( $b \right) = \\ \log \left( $b \cdot $a^{\textstyle $c} \right) \end{array} \right.
+	!else
+	    mathview=0
+	    var3=1
+    	    wims_rawmath_variables=x,y,z
+	    formula$n=z \cdot \log \left( x \right) + \log \left( y \right)
+	    applettext=!nospace z*log(x) + log(y) =
+	    answer$n=log(y*x^z)
+	    texanswer$n=\left[ \begin{array}{l}z \cdot \log \left( x \right) + \log \left( y \right) = \\ \log \left( x^{\textstyle z} \right) + \log \left( y \right) = \\ \log \left( x^{\textstyle z} \cdot y \right) \end{array} \right.
+	!endif
+      !exit
+    !else
+	c=!randitem 1,2,3,4
+	a=!randitem 2,3,4,5,6,7,8,9,10,11,12,13
+	!if $kans=0
+	    formula$n=$c + \log \left( $a \right)
+	    applettext=!nospace $c + log($a)  =	
+	    answer$n=log($a*10^$c)
+	    texanswer$n=\left[ \begin{array}{l} $c + \log \left( $a \right) = \\ \log \left( 10^{\textstyle $c} \right) + \log \left( $a \right) = \\ \log \left( $a \cdot 10^{\textstyle $c} \right) \end{array} \right.
+	!else
+	    formula$n=$c - \log \left( $a \right)
+	    applettext=!nospace $c - log($a)  =	    
+	    B=!exec pari 10^$c/$a
+	    answer$n=log($B)
+	    texanswer$n=\left[ \begin{array}{l}$c + \log \left( $a \right) = \\ \log \left( 10^{\textstyle $c} \right) - \log \left( $a \right) = \\ \log \left( \frac{10^{\textstyle $c}}{$a} \right) = \\ \log \left( $B \right) \end{array} \right.
+	!endif
+     !exit 
+    !endif
+ !else
+    !if $keuze=0
+	c=!randitem 2,3,4,5,6,7
+	a=!randitem 2,3,4,5,6,7
+	b=!randitem 2,3,4,5,6,7
+	formula$n=\frac{1}{$c} \cdot \log \left( $a^{\textstyle $c} \right) + \log \left( $b \right)
+	applettext=!nospace 1/$c * log($a^$c) + log($b) =
+	answer$n=log($b*$a)
+	texanswer$n=\left[ \begin{array}{l}\frac{1}{$c} \cdot \log \left( $a^{\textstyle $c} \right) + \log \left( $b \right) = \\ \log \left( \left( $a^{\textstyle $c} \right) ^{\textstyle \frac{1}{$c}} \right) +  \log \left( $b \right) = \\ \log \left($a \cdot $b \right) = \\ \log \left( $[$a*$b] \right) \end{array} \right.
+     !exit
+    !endif
+    !if $keuze=1
+	mathview=0
+	var3=1
+	wims_rawmath_variables=x,y,z
+	formula$n=\frac{1}{z} \cdot \log \left(x ^{\textstyle z}\right) + \log \left(y\right)
+	answer$n=log(x*y)
+	texanswer$n=\left[ \begin{array}{l} \frac{1}{z} \cdot \log \left(x ^{\textstyle z}\right) + \log \left(y\right) = \\ \log \left( \left( x^{\textstyle z} \right) ^{\textstyle \frac{1}{z}} \right) +  \log \left( y \right) = \\ \log \left(x \cdot y \right)  \end{array} \right.
+      !exit
+    !endif
+ !endif
+!endif
+

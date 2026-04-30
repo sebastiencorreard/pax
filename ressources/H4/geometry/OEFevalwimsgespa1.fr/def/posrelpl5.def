@@ -1,0 +1,323 @@
+!set title=Positions de droite et de plan V
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+
+ansorder=r
+varcnt=109
+prevarcnt=108
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On considère le tétraèdre <span style="color:blue">ABCD</span>
+val7=Les points <span style="color:green">I,J,K,L,M,N,O,P,Q,R,S,T</span>	  divisent les arêtes auxquelles ils appartiennent en 3 segments égaux
+val8=strictement parallèle, incluse, sécante
+
+!ifval ($val2==)
+val9=$[rint(1)]
+!else
+val9=$[rint($val2)]
+!endif
+val10=A,B,C,D,I,J,K,L,M,N,O,P,Q,R,S,T
+val11=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+val12=
+!for val13 =1 to 16 
+tmp0=!append item green to $val12
+
+val12=$(tmp0)
+!next
+tmp=!trim 0,0	6,18	24,0	18,12	8,0	16,0	6,4	12,8	2,6	4,12	12,12	18,6	10,16	14,14	20,8	22,4
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,3,4	1,2,4	1,2,3	2,3,4	1,3	1,3	4,3	4,3	1,4	1,4	1,2	1,2	2,4	2,4	2,3	2,3
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,5	2,3,6	3,4,5	1,4,6
+val16=!translate internal $	\
+$ to ;; in $tmp
+val17=(AB),(BC),(CD),(AD),(AC),(BD)
+val18=M,O,T,K,I,Q
+val19=N,P,S,L,J,R
+tmp=!trim A,B,A-B,1,4,M,N	B,C,B-C,1,2,O,P	C,D,C-D,2,3,S,T	A,D,A-D,3,4,K,L	A,C,A-C,1,3,I,J	B,D,B-D,2,4,Q,R
+val20=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,4,5	1,2,6	2,3,5	3,4,6	5	5	4	4	1	1	2	2	6	6	3	3
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0	6,18,6	24,0,0	18,12,0	8,0,0	16,0,0	6,4,0	12,8,0	2,6,2	4,12,4	12,12,4	18,6,2	10,16,4	14,14,2	20,8,0	22,4,0	
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,5	2,3,6	5,3,4	1,6,4	
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,4	1,2	2,3	3,4	1,3	2,4	
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0	12,6,18	0,24,0	0,18,12	0,8,0	0,16,0	0,6,4	0,12,8	4,2,6	8,4,12	8,12,12	4,18,6	8,10,16	4,14,14	0,20,8	0,22,4
+val22=!translate internal $	\
+$ to ;; in $tmp
+val24=$[rint(16)]
+val25=$[rint(16)]
+val26=$[rint(4)]
+tmp0=!randint 1, $val26
+
+val27=$[rint($(tmp0))]
+val28=
+!for val29 =1 to $val24 
+!if $val27 isitemof $(val15[$val29;]) 
+tmp0=!append item $(val10[$val29]) to $val28
+
+val28=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val28
+
+val28=$(tmp0)
+val30=$(val28[1]),$(val28[2])
+tmp0=!positionof item $(val28[1]) in $val10
+
+val31=$[rint($(tmp0))]
+tmp0=!positionof item $(val28[2]) in $val10
+
+val32=$[rint($(tmp0))]
+tmp0=!listintersect $(val21[$val31;]) and $(val21[$val32;])
+
+val33=$(tmp0)
+val34=
+val35=$[rint(0)]
+tmp0=!itemcnt $val28
+
+!for val29 =3 to $(tmp0) 
+!if $val35=0 
+tmp0=!positionof item $(val28[$val29]) in $val10
+
+val36=$[rint($(tmp0))]
+tmp0=!listintersect $val33 and $(val21[$val36;])
+
+val34=$(tmp0)
+!if $val34= 
+tmp0=!append item $(val28[$val29]) to $val30
+
+val30=$(tmp0)
+val35=$[rint(1)]
+!endif
+!endif
+!next
+tmp0=!sort item $val30
+
+val30=$(tmp0)
+val37=$(val30[1])$(val30[2])$(val30[3])
+tmp0=!randint 1, $val26
+
+val38=$[rint($(tmp0))]
+val39=
+!for val29  = 1 to $val25 
+!if $val38 isitemof $(val15[$val29;]) 
+tmp0=!append item $(val10[$val29]) to $val39
+
+val39=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val39
+
+val39=$(tmp0)
+val40=$(val39[1])
+val41=$(val39[2])
+tmp0=!positionof item $val40 in $val10
+
+val42=$[rint($(tmp0))]
+tmp0=!positionof item $val41 in $val10
+
+val43=$[rint($(tmp0))]
+tmp0=!positionof item $(val30[1]) in $val10
+
+val31=$[rint($(tmp0))]
+tmp0=!positionof item $(val30[2]) in $val10
+
+val32=$[rint($(tmp0))]
+tmp0=!positionof item $(val30[3]) in $val10
+
+val44=$[rint($(tmp0))]
+val45=poly blue,$(val14[$val31;]),$(val14[$val32;]),$(val14[$val44;])	   segment $(val14[$val42;]),$(val14[$val43;]),red	
+!if $val9==2 
+val46=aa=Segment($val40,$val41)	SetColor[aa,red]	ShowLabel[aa, false]	SetLineThickness[aa,10]	bb=Polygon($(val30[1]),$(val30[2]),$(val30[3]))	SetColor[bb,blue]	ShowLabel[bb, false]
+val47=a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w
+!for val13  in $val47 
+val48=ShowLabel[$val13, false]	ShowLabel[$val13 _1, false]
+tmp0=!append line $val48 to $val46
+
+val46=$(tmp0)
+!next
+!endif
+val49=$[rint(3)]
+tmp0=!listintersect $(val15[$val42;]) and $(val15[$val43;])
+
+val50=$(tmp0)
+!if  $val27 isitemof $val50 
+val49=$[rint(2)]
+!else
+val51=$(val22[$val42;])
+val52=$(val22[$val43;])
+t_=!rawmath $(val51[1]) - ($(val52[1]))
+val53=!exec pari print($t_)
+t_=!rawmath $(val51[2]) - ($(val52[2]))
+val54=!exec pari print($t_)
+t_=!rawmath $(val51[3]) - ($(val52[3]))
+val55=!exec pari print($t_)
+val56=$(val22[$val31;])
+val57=$(val22[$val32;])
+val58=$(val22[$val44;])
+t_=!rawmath $(val56[1]) - ($(val57[1]))
+val59=!exec pari print($t_)
+t_=!rawmath $(val56[2]) - ($(val57[2]))
+val60=!exec pari print($t_)
+t_=!rawmath $(val56[3]) - ($(val57[3]))
+val61=!exec pari print($t_)
+t_=!rawmath $(val56[1]) - ($(val58[1]))
+val62=!exec pari print($t_)
+t_=!rawmath $(val56[2]) - ($(val58[2]))
+val63=!exec pari print($t_)
+t_=!rawmath $(val56[3]) - ($(val58[3]))
+val64=!exec pari print($t_)
+t_=!rawmath $val60*$val64-$val61*$val63
+val65=!exec pari print($t_)
+t_=!rawmath $val61*$val62-$val59*$val64
+val66=!exec pari print($t_)
+t_=!rawmath $val59*$val63-$val60*$val62
+val67=!exec pari print($t_)
+t_=!rawmath $val65*$val53+$val66*$val54+$val67*$val55
+val68=!exec pari print($t_)
+!if  $val68<0.001 and $val68>-0.001 
+val49=$[rint(1)]
+!endif
+!endif
+val69=linewidth 3	polyline black,0,0,24,0,6,18,0,0	polyline black,24,0,18,12,6,18	dsegment 0,0,18,12,black	
+val70=xrange -3,30	yrange -3,20	$val69	text $(val12[1]),-0.4,-0.5,medium,A	text $(val12[3]),24.1,-0.5,medium,C	text $(val12[2]),6,19,medium,B	text $(val12[4]),18.1,12.8,medium,D	text $(val12[9]),1,6.2,medium,M	text $(val12[10]),3,12.2,medium,N	text $(val12[5]),7.8,-0.5,medium,I	text $(val12[6]),15.8,-0.5,medium,J	text $(val12[7]),5.8,5,medium,K	text $(val12[8]),11.8,9,medium,L	text $(val12[11]),12,12.8,medium,O	text $(val12[12]),18.2,6.8,medium,P	text $(val12[13]),10,17,medium,Q	text $(val12[14]),14,15,medium,R	text $(val12[15]),20,9.2,medium,S	text $(val12[16]),22,5.4,medium,T	linewidth 5	points blue,0,0,24,0,6,18,18,12	points green,8,0,16,0,2,6,4,12,6,4,12,8,12,12,18,6,10,16,14,14,20,8,22,4	linewidth 3	$val45	
+val10=A,B,C,D,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W
+val71=
+!for val13  in $val10 
+val48=SetFixed[$val13,true]
+val72=$val48	SetPointSize($val13,3);
+tmp0=!append line $val72 to $val71
+
+val71=$(tmp0)
+!next
+tmp=!trim -3,-3,0	0,0,5	3,-3,0 	0,sqrt(18),0
+val73=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1/3*($(val73[3;1]))+2/3*($(val73[1;1])),1/3*($(val73[3;2]))+2/3*($(val73[1;2])),1/3*($(val73[3;3]))+2/3*($(val73[1;3]))	2/3*($(val73[3;1]))+1/3*($(val73[1;1])),2/3*($(val73[3;2]))+1/3*($(val73[1;2])),2/3*($(val73[3;3]))+1/3*($(val73[1;3]))	1/3*($(val73[4;1]))+2/3*($(val73[1;1])),1/3*($(val73[4;2]))+2/3*($(val73[1;2])),1/3*($(val73[4;3]))+2/3*($(val73[1;3]))	2/3*($(val73[4;1]))+1/3*($(val73[1;1])),2/3*($(val73[4;2]))+1/3*($(val73[1;2])),2/3*($(val73[4;3]))+1/3*($(val73[1;3]))	1/3*($(val73[2;1]))+2/3*($(val73[1;1])),1/3*($(val73[2;2]))+2/3*($(val73[1;2])),1/3*($(val73[2;3]))+2/3*($(val73[1;3]))	2/3*($(val73[2;1]))+1/3*($(val73[1;1])),2/3*($(val73[2;2]))+1/3*($(val73[1;2])),2/3*($(val73[2;3]))+1/3*($(val73[1;3]))	1/3*($(val73[3;1]))+2/3*($(val73[2;1])),1/3*($(val73[3;2]))+2/3*($(val73[2;2])),1/3*($(val73[3;3]))+2/3*($(val73[2;3]))	2/3*($(val73[3;1]))+1/3*($(val73[2;1])),2/3*($(val73[3;2]))+1/3*($(val73[2;2])),2/3*($(val73[3;3]))+1/3*($(val73[2;3]))	1/3*($(val73[4;1]))+2/3*($(val73[2;1])),1/3*($(val73[4;2]))+2/3*($(val73[2;2])),1/3*($(val73[4;3]))+2/3*($(val73[2;3]))	2/3*($(val73[4;1]))+1/3*($(val73[2;1])),2/3*($(val73[4;2]))+1/3*($(val73[2;2])),2/3*($(val73[4;3]))+1/3*($(val73[2;3]))	2/3*($(val73[4;1]))+1/3*($(val73[3;1])),2/3*($(val73[4;2]))+1/3*($(val73[3;2])),2/3*($(val73[4;3]))+1/3*($(val73[3;3]))	1/3*($(val73[4;1]))+2/3*($(val73[3;1])),1/3*($(val73[4;2]))+2/3*($(val73[3;2])),1/3*($(val73[4;3]))+2/3*($(val73[3;3]))
+val74=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val73	$val74
+val75=!translate internal $	\
+$ to ;; in $tmp
+val76=
+!for val13 =1 to 8 
+val77=$(val10[$val13])=($(val75[$val13;]))
+tmp0=!append line $val77 to $val76
+
+val76=$(tmp0)
+!next
+t_=!rawmath 1/3
+val78=!exec pari print($t_)
+t_=!rawmath 2/3
+val79=!exec pari print($t_)
+val80=\vectt	I=Dilate(C,$val78,A)	J=Dilate(C,$val79,A)	K=Dilate(D,$val78,A)	L=Dilate(D,$val79,A)	M=Dilate(B,$val78,A)	N=Dilate(B,$val79,A)	O=Dilate(C,$val78,B)	P=Dilate(C,$val79,B)	Q=Dilate(D,$val78,B)	R=Dilate(D,$val79,B)	S=Dilate(C,$val78,D)	T=Dilate(C,$val79,D)
+val81=I,J,K,L,M,N,O,P,Q,R,S,T
+val82=
+!for val13  in $val81 
+val48=SetColor[$val13,darkgreen]
+tmp0=!append line $val48 to $val82
+
+val82=$(tmp0)
+!next
+val83=enable3d=true	SetVisibleInView(xAxis,-1,false);	SetVisibleInView(yAxis,-1,false);	SetVisibleInView(zAxis,-1,false);	\lp_outil	$val76	\lp_mil	a=Segment(A,B);	b=Segment(A,C);	c=Segment(A,D);	d=Segment(B,C);	e=Segment(B,D);	f=Segment(C,D);	$val80	$val71	\lp_lab	$val82	$val46	SetPerspective("T");	
+!if $val9==2 
+!readproc slib/geo2D/geogebra width=600;	height=600;	$val83 
+tmp0=$slib_out
+val84=$(tmp0)
+!endif
+val8=strictement parallèle, incluse, sécante
+replytype1=radio
+replyname1=position relative
+replygood1=$val49;$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		
+!if $val9==2 
+$()	<div style="display: inline-block;">$val84</div>	<div style="display: inline-block;vertical-align:top;width:550px;">	 
+!else
+$() 	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+$val70 
+$()</div>	 <div class="medium_size text_col">	 
+!endif
+$()			  $val6. $val7.<p>	  On considère la droite <span style="color:red">($val40$val41)</span> et	  le plan <span style="color:blue">($val37)</span> et on s'intéresse à leur	  position relative.</p>	  Par rapport au plan <span style="color:blue">($val37)</span>,	  la droite <span style="color:red">($val40$val41)</span> est	  <ul>	     <li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	     <li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	     <li> 
+!read oef/embed.phtml reply1,3 
+$()</li>	  </ul>	</div>	
+!if $val9==1 
+$()</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,37,40,41,70,84
+embedcnt=3

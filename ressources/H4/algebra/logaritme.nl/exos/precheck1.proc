@@ -1,0 +1,28 @@
+n=$counter
+reply$n=!nospace $(reply$n)
+
+# antwoord bevat een ln() !!!
+
+!if log isin $(reply$n)
+    # misschien ln() geschreven als een log()
+    # x = log(4)/log(e)
+    A=!replace internal = by , in $(reply$n)
+    A1=!item 2 of $A
+    A11=$[1*($A1)]
+    !if NaN isin $A11
+	# log(4)/log(e) = x
+	A1=!item 1 of $A
+	A11=$[1*($A1)]
+	!if NaN isin $A11
+	    errortext=!record 26 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$P7*$maxscore]
+	    goback=1
+	    !exit
+	!endif
+    !endif
+    reply$n=$arglist = $A1
+!endif
+    
+!readproc $checkdir/number.proc
+
+!exit

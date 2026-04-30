@@ -1,0 +1,112 @@
+!if $lang=fr or $taal=fr or $myvar1=1
+ !changeto exos/exo11.fr
+ !exit
+!endif
+# vergelijkingen  log[x](a)=b
+mathviewpanel=$module_title:x=:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+display=1
+questiontype=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo11.jpg\' alt=\'noalt\' />
+keuze=!randitem 0,1
+g=!randitem 2,3,4,5,6,7,8,9
+
+!if $R=1
+    question$n=!record 3 of lang/remarks.$taal
+    b=!randint 2,20
+    a=!randitem 2,3,4
+    pm=!randitem +,-
+    formula$n=^{$g}\log \left( x $pm $b \right) = $a 
+    applettext=!nospace log[$g](x $pm $b)=$a ->
+    answer$n=$[$g^$a $pm (-1*$b)]
+    texanswer$n= x $pm $b = $g^{$a} \rightarrow x = $(answer$n)
+ !exit
+!endif
+
+!if $R=2
+    question$n=!record 3 of lang/remarks.$taal
+    a=!randitem 2,3,4,5
+    b=!randint 1,20
+    c=!randitem 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+    pm=!randitem +,-
+    !if $keuze=0
+	formula$n=^{$g}\log \left( $c \cdot x $pm $b \right) = $a 
+	applettext=!nospace log[$g]($c*x $pm $b)=$a -> 
+	# log[$g]($c*x $pm $b)=$a -> 
+	# $c*x $pm $b=$g^($a) ->
+	# $c*x =$g^($a) - ($pm $b) ->
+	# x= $[$g^($a) - ($pm $b)]/$c
+	tot=!exec pari A=($g^($a) - ($pm $b))/$c\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} ^{$g}\log \left( $c x $pm $b \right) = $a \\ $c x $pm $b  = $g^{$a} \\ $c x $pm $b  = $g^{$a} \\ $c x = $[$g^$a - ($pm $b)] \\ x=$tex \end{array} \right.
+    !else
+	e=!randitem 1,2,3,4,5,6,7,8,9
+	f=$[$a+$e]
+	formula$n=$e + ^{$g}\log \left( $c \cdot x $pm $b \right) = $f 
+	applettext=!nospace  $e + log[$g]( $c*x $pm $b ) = $f->
+	# $e + log[$g]( $c*x $pm $b ) = $f
+	# log[$g]( $c*x $pm $b ) = $f - ($e)
+	# $c*x $pm $b  = $g^($f - ($e))
+	# $c*x   = $g^($f - ($e)) - ($pm $b)
+	tot=!exec pari  A=($g^($f - ($e)) - ($pm $b))/($c)\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	texanswer$n=\left[\begin{array}{l} ^{$g}\log\left( $c x $pm $b \right) = $f - $e \\ $c x $pm $b  = $g^{$f - $e} \\ $c x   = $[$g^($f - $e)] - ($pm $b) \\ x=$tex \end{array} \right.
+    !endif  
+ !exit
+!endif
+
+!if $R>2
+    mathviewpanel=$module_title:x=:sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+    question$n=!record 4 of lang/remarks.$taal
+    #@ Los de onderstaande vergelijking voor alle <em>x</em> &gt; 0 <n>exact</b> op:
+    g=!randitem 2,3,4,5
+    a=!randitem 2,3,4,5
+    b=!randitem 2,3,4,5,6,7,8
+    c=$[$g^$a]
+    answer$n=$c^(1/$b)
+    !if . notin $[$(answer$n)]
+	answer$n=$[$(answer$n)]
+        tex=$(answer$n)
+    !else
+	tex=$c^{\textstyle \frac{1}{$b}}
+    !endif
+    !if $keuze=0
+        formula$n=^{$g}\log \left( x ^{$b} \right) = $a
+	applettext=!nospace log[$g](x^$b)=$a ->
+	texanswer$n=\left[\begin{array}{lll} x^{$b} = $g^{$a} \\ x^{$b} = $[$g^$a] \\ x= \root{\textstyle $b} \of{$[$g^$a]} \\ x=$tex \end{array}
+    !else
+	#a = f-(pm e) -> f=a+(pm e)
+	pm=!randitem +,-
+	e=!randitem 1,2,3,4,5,6,7,8,9
+	f=$[$a + ($pm $e)]
+        formula$n=^{$g}\log \left( x ^{$b} \right) $pm $e = $f
+	applettext=!nospace log[$g](x^$b) $pm $e = $f ->
+	texanswer$n=\left[\begin{array}{l} x^{$b} = $g^{$f - ($pm $e)} \\ x^{$b} = $[$g^$a] \\ x= \root{\textstyle $b} \of{$[$g^$a]} \\ x=$tex \end{array} \right.
+    !endif
+ !exit
+!endif
+

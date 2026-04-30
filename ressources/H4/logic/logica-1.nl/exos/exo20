@@ -1,0 +1,63 @@
+# 1     :We hebben een huisje in Winterberg in het Sauerland. Als we geen verplichtingen hebben, gaan we daar -als er sneeuw ligt of als er mooi weer wordt voorspeld- in het weekend naar toe.
+# 2	We hebben verplichtingen,Er ligt sneeuw in Winterberg,Er wordt voor Winterberg mooi weer voorspeld,We gaan in het weekend naar ons huisje in Winterberg
+# 3	V,W,S,A
+# a	Als we in het weekend niet naar Winderberg gaan, dan hebben we verplichtingen of er ligt geen sneeuw en er wordt geen mooi weer voorspeld 
+#:Je wordt altijd met internet verbonden als je Wifi aan staat en het correcte password wordt ingevoerd of als de netwerkkabel aangesloten is
+#met Internet verbonden,Wifi staat aan,Password is correct,Netwerkkabel is aangesloten 
+#I,W,P,N 
+#Je computer kan internet niet op,not I -> not (P and W) or not N
+#Je computer kan internet op,I -> (P and W) or N
+	 
+n=$counter
+
+!if $counter=1
+ checkfile=exos/logic.proc
+ mathview=5
+ math=0
+# ivm weg strippen => <->
+ convert_root=1
+#mathviewpanel=$module_title:A:B:C:D: not : and : or : => : \u21D4
+mathviewpanel=minimaal: not : and : or : => : \u2205 
+ rounding=-1
+ inputs=-1
+!endif
+
+t=!recordcnt lang/examen
+k=!randint 1,$t
+
+zinnen=!record $k of lang/examen
+tot=!linecnt $zinnen
+vraag=!line 1 of $zinnen
+legenda=!line 2 of $zinnen
+idx=!line 3 of $zinnen
+t1=!randint 4,$tot
+p1=!line $t1 of $zinnen
+prop=!item 1 of $p1
+answer$n=!item 2 of $p1
+wb=!itemcnt $legenda
+tabel=<table class=\'demospecial\'>
+!for p=1 to $wb
+ P1=!item $p of $idx
+ P2=!item $p of $legenda
+ tabel=!append word $ <tr><td>$P1</td><td>$P2</td></tr> $ to $tabel
+!next p
+
+# zet answer$n om naar 'tex'
+tex=\vee,\wedge,\not,\Rightarrow,\leftrightarrow,\Rightarrow,\varnothing
+texans=$(answer$n)
+i=1
+!for p in or,and,not,=>,<=>,->,empty
+ P=!item $i of $tex
+ texans=!replace internal $p by $ $P $ in $texans
+ !increase i
+!next p
+
+texanswer$n=\huge{ $texans }
+
+#wims_user=supervisor
+
+tabel=!append word $ </table> $ to $tabel
+helptext=<table><tr><td>$tabel</td><td>$universum</td></tr></table>
+question$n=<p style="background-color:lightgrey">$vraag</p><a onmouseover="return escape('$helptext')">Vertaal de onderstaande premisse en geef een logische conclusie...<br />Gebruik <b>deze</b> afkortingen...  <p style="background-color:lightgrey">$prop $m_Rightarrow </p></a>
+!exit
+

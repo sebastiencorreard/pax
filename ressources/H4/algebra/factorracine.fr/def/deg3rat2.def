@@ -1,0 +1,391 @@
+!set title=Polynôme de degré 3 (2 racines rationnelles données)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=81
+prevarcnt=14
+postvarcnt=66
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=5
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=x
+tmp0=!shuffle 1/2,3/2,5/2,1/3,2/3,4/3,5/3,1/4,3/4,5/4,1/5,2/5,3/5,4/5
+
+val7=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)*$(val7[1])
+val8=!exec pari print($t_)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)*$(val7[2])
+val9=!exec pari print($t_)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)*$(val7[3])
+val10=!exec pari print($t_)
+t_=!replace internal \( by ( in denominator($val8)
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in denominator($val9)
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in denominator($val10)
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*($val11*$val6-$val11*$val8)*($val12*$val6-$val12*$val9)*($val13*$val6-$val13*$val10)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val14=$(tmp1)
+val15=($val6-$val8)($val6-$val9)
+tmp=!translate ";': to $     $ in $val11*$val6-$val11*$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val12*$val6-$val12*$val9
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val16=($(tmp0))*($(tmp1))
+t_=!replace internal \( by ( in ($val14)/($val16)
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+t_=!replace internal \( by ( in expand($val14)
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in $val14
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+replytype1=raw
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=?analyze 18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		Factoriser le polynôme 
+!insmath P(x)=$val14
+$() en remarquant que 
+!insmath P($val8)=0
+$() et 
+!insmath P($val9)=0
+$().<br class="spacer">		
+!insmath P($val6) =
+$() 
+!read oef/embed.phtml reply 1,30 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!rawmath $val18
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in poldegree($val18,$val6)
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in $val18-($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+!if $val20=0 
+val21=1
+!else
+val21=0
+!endif
+!if $val21=1 
+t_=!replace internal \( by ( in simp:false
+tmp0=!exec maxima $t_
+
+val22=$(tmp0)
+val23=$val18
+!if $val19<> 
+t_=!replace internal \( by ( in op($val23)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if $val24 issametext "-" 
+t_=!replace internal \( by ( in args($val23)
+tmp0=!exec maxima $t_
+
+val23=$(tmp0)
+!endif
+t_=!replace internal \( by ( in op($val23)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if $val24 issametext "/" 
+t_=!replace internal \( by ( in args($val23)
+tmp0=!exec maxima $t_
+
+val23=$(tmp0)
+val23=$(val23[1])
+!endif
+t_=!replace internal \( by ( in op($val23)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if $val24 issametext "*" 
+t_=!replace internal \( by ( in args($val23)
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+tmp0=!itemcnt $val25
+
+val26=$(tmp0)
+val27=1
+val28=1
+!else
+val25=$val23
+val26=1
+val27=1
+val28=1
+!endif
+!endif
+val29=
+val30=
+!for val31 =1 to $val26 
+val32=$(val25[$val31])
+t_=!replace internal \( by ( in op($val32)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if ($val24 issametext "-") 
+t_=!replace internal \( by ( in args($val32)
+tmp0=!exec maxima $t_
+
+val32=$(tmp0)
+!endif
+t_=!replace internal \( by ( in op($val32)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if ($val24 issametext "^") 
+t_=!replace internal \( by ( in args($val32)
+tmp0=!exec maxima $t_
+
+val32=$(tmp0)
+val32=$(val32[1])
+!endif
+t_=!replace internal \( by ( in poldegree($val32,$val6)
+tmp0=!exec pari $t_
+
+val33=$(tmp0)
+t_=!replace internal \( by ( in op($val32)
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+!if ($val24 issametext "+") 
+t_=!replace internal \( by ( in args($val32)
+tmp0=!exec maxima $t_
+
+val34=$(tmp0)
+tmp0=!itemcnt $val34
+
+val35=$(tmp0)
+val36=
+!for val37 =1 to $val35 
+val38=$(val34[$val37])
+t_=!replace internal \( by ( in poldegree($val38,$val6)
+tmp0=!exec pari $t_
+
+val39=$(tmp0)
+tmp0=!append item $val39 to $val36
+
+val36=$(tmp0)
+t_=!replace internal \( by ( in polcoeff($val38,$val39)
+tmp0=!exec pari $t_
+
+val40=$(tmp0)
+tmp=!translate ";': to $     $ in $val40*x^($val39)-($val34)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+!if $val22<>0 
+val41=0
+!endif
+!next
+tmp0=!itemcnt $val36
+
+val42=$(tmp0)
+tmp0=!listuniq $val36
+
+val43=$(tmp0)
+tmp0=!itemcnt $val43
+
+val43=$(tmp0)
+!if ($val41<>0) or ($val42<>$val43) 
+tmp0=!append item $val32 to $val29
+
+val29=$(tmp0)
+val28=0
+!endif
+!endif
+!if $val33>=3 
+val27=0
+tmp0=!append item $val32 to $val30
+
+val30=$(tmp0)
+!endif
+!if $val33=2 
+t_=!replace internal \( by ( in polcoeff($val32,2)
+tmp0=!exec pari $t_
+
+val44=$(tmp0)
+t_=!replace internal \( by ( in polcoeff($val32,1)
+tmp0=!exec pari $t_
+
+val45=$(tmp0)
+t_=!replace internal \( by ( in polcoeff($val32,0)
+tmp0=!exec pari $t_
+
+val46=$(tmp0)
+val47=$[($val45)^2-4*$val44*$val46]
+!if $val47>=0 
+val27=0
+tmp0=!append item $val32 to $val30
+
+val30=$(tmp0)
+!endif
+!endif
+!next
+!endif
+!if ($val21=1) and ($val27=1) and ($val28=1) 
+val48=<div class="oef_indgood">Bonne réponse</div>
+!else
+val48=<div class="oef_indbad">Mauvaise réponse</div>
+!endif
+!if $val19= 
+val49=Votre réponse n'est pas une expression polynômiale.
+!else
+!if $val21=0 
+val49=Votre réponse n'est pas égale à l'expression de départ.
+!endif
+!if ($val21=1) and ($val27=0) 
+tmp0=!itemcnt $val30
+
+val50=$(tmp0)
+!if $val50=1 
+val51=Le terme $val30 n'est pas irréductible dans \({\RR}\) : il peut encore être factorisé.
+!endif
+!if $val50>1 
+val51=Les termes $val30 ne sont pas irréductibles dans \({\RR}\) : ils peuvent encore être factorisés.
+!endif
+!endif
+!if ($val21=1) and ($val28=0) 
+tmp0=!itemcnt $val29
+
+val50=$(tmp0)
+!if $val50=1 
+val52=Le terme $val29 n'est pas simplifié.
+!endif
+!if $val50>1 
+val52=Les termes $val29 ne sont pas simplifiés.
+!endif
+!endif
+!endif
+val53=Puisque \($val8\) et \($val9\) sont racines de \(P\), alors \(P\) peut se factoriser par \($val15\) ou, ce qui est équivalent, par \($val16\). Autrement dit, \(P(x)=$val16*Q(x)\), où \(Q\) est un polynôme à déterminer.<br>	Puisque \(P\) est un poynôme de degré 3, \(Q\) est nécessairement de degré 1 et donc \(P(x)=$val16 (a x + b)\).<br>	Il ne reste plus qu'à identifier \(a\) et \(b\) en développant (partiellement) l'expression \($val16 (a x + b)\) et en la comparant à \($val14.\)<br>	On trouve finalement \(P(x)=$val16 ($val17)\).	
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val48
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>$val49
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>$val51
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>$val52
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'><br><div class="bold" style="color:gray">Correction</div>	$val53
+$()</div>
+!endif
+
+!exit
+
+:test
+condoption1=hide 
+
+!ifval ($val21=1) and ($val27=1) and ($val28=1)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,8,9,14,15,16,17,18
+embedcnt=1

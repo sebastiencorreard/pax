@@ -1,0 +1,90 @@
+# no need for translation
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+extext=!record 97 of lang/remarks.$taal
+#@ Somrij van een Rekenkundige Reeks
+questiontyp=0
+image=0
+math=0
+a=!randint 1,20
+r=!randitem 2,3,4,5,6,7,8,9,10
+var2=$empty
+var1=S
+text=!record 99 of lang/remarks.$taal
+sometext=!record 100 of lang/remarks.$taal
+exotext=<p>$extext<br><a onmouseover="return escape('$sometext')">$text</a>
+helptext=<a onmouseover="return escape('$sometext')">$text</a>
+
+!if $R=1
+    checkfile=exos/checkfile1.proc
+    options=!randitem 4,5,6,7,8
+    ss=!record 36 of lang/remarks.$taal
+    #@ Geef de eerste $options termen van de Somrij van de onderstaande  Rekenkundig reeks.\
+    #@ <p align="center">U<sub>n+1</sub>=$a + $r(n)</p>
+    
+    question$n=$ss    
+    tot=0
+    !for p=1 to $options
+	t=$[$p-1]
+	U=$[$a + $r*$t]
+	var2=!append item $t to $var2
+	tot=$[$U + $tot]
+	answer$n=!append item $tot to $(answer$n)
+	textanswer$n=!append line $U&nbsp;+ to $(textanswer$n)
+    !next p 
+    textanswer$n=!char 1 to -2 of $(textanswer$n)
+    textanswer$n=$(textanswer$n)=$tot
+ !exit
+!endif
+
+!if $R=2
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    options=!randint 3,6
+    ss=!record 37 of lang/remarks.$taal
+    #@ Gegeven is de Rangnummer formule van een Rekenkundige rij\
+    #@ <p align="center">U<sub>n+1</sub>=$a + $r n</p>\
+    #@ Bereken de som van de eerste $options termen.
+
+    question$n=$ss    
+    answer$n=$[0.5*$options*(2*$a+$r*($options-1))]
+    textanswer$n=1/2&times;$options(U<sub>0</sub> + U<sub>$[$options-1]</sub>)=0.5*$options*($a+$a+$r*$[$options-1]) = $(answer$n)
+ !exit
+!endif
+
+!if $R=3
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    options=!randint 15,50
+    ss=!record 38 of lang/remarks.$taal
+    #@ Gegeven is de Rangnummer formule van een Rekenkundige rij\
+    #@ <p align="center">U<sub>n</sub>=$a + $r(n-1)</p>\
+    #@ Bereken de som van de eerste $options termen.
+
+    question$n=$ss    
+    answer$n=$[0.5*$options*(2*$a+$r*($options-1))]
+    textanswer$n=1/2&times;$options(U<sub>0</sub> + U<sub>$[$options-1]</sub>)=0.5*$options*($a+$a+$r*$[$options-1]) = $(answer$n)
+ !exit
+!endif
+
+!if $R>3
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    options=!randint 15,50
+    ss=!record 39 of lang/remarks.$taal
+    #@ Gegeven is de Recursie formule van een Rekenkundige rij\
+    #@ <p align="center">U<sub>n+1</sub>=U<sub>n</sub> $r met U<sub>0</sub>=$a</p>\
+    #@ Bereken de som van de eerste $options termen.
+
+    question$n=$ss    
+    answer$n=$[0.5*$options*(2*$a+$r*($options-1))]
+    rr=!record 40 of lang/remarks.$taal
+    #@ eerst de rangnummer formule bepalen:U<sub>n</sub>=$a + $r(n-1)<br>1/2&times;$options(U<sub>1</sub> + U<sub>$options</sub>)=0.5*$options*($a+$a+$r*($options-1)) = $(answer$n)
+    textanswer$n=$rr
+ !exit
+!endif

@@ -1,0 +1,173 @@
+!set title=Coefficient directeur, deux points
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Joachim Yaméogo
+email=yameogo@unice.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=400
+val8=400
+val9=-4
+val10=4
+val11=-4
+val12=4
+val13=linewidth 1	parallel 0,$val11,0,$val12,0.2,0,floor(5*($val10))+1,$val6	parallel 0,$val11,0,$val12,-0.2,0,floor(5*abs($val9))+1,$val6	parallel $val9,0,$val10,0,0,0.2,floor(5*($val12))+1,$val6	parallel $val9,0,$val10,0,0,-0.2,floor(5*abs($val11))+1,$val6	
+val14=linewidth 3	parallel 0,$val11,0,$val12,1,0,floor($val10+1),$val6	parallel 0,$val11,0,$val12,-1,0,floor(abs($val9)+1),$val6	parallel $val9,0,$val10,0,0,1,floor($val12+1),$val6	parallel $val9,0,$val10,0,0,-1,floor(abs($val11)+1),$val6	
+val15=linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	arrow $val10-1,0,$val10,0,10,black	arrow 0,$val12-1,0,$val12,10,black	text black,$val10-0.2,-0.2,large,x	text black,-0.2,$val12-0.2,large,y	
+val16=xrange $val9,$val10	yrange $val11,$val12	$val13	$val14	$val15	
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, ($val10-1)
+
+val17=$[rint($(tmp0)*$(tmp1))]
+!if $val17>0 
+tmp0=!randint ($val9+1), ($val17-1)
+
+val18=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val17+1), ($val10-1)
+
+val18=$[rint($(tmp0))]
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, ($val12-1)
+
+val19=$[rint($(tmp0)*$(tmp1))]
+!if $val19>0 
+tmp0=!randint ($val11+1), ($val19-1)
+
+val20=$[rint($(tmp0))]
+!else
+tmp0=!randint ($val19+1), ($val12-1)
+
+val20=$[rint($(tmp0))]
+!endif
+t_=!replace internal \( by ( in ($val20-($val19))/($val18-($val17));
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+val22=$val19+($val21)*(x-($val17))
+tmp0=!texmath $val21
+
+val23=$(tmp0)
+val24=$[rint($val18-$val17)]
+val25=$[rint($val20-$val19)]
+tmp0=!shuffle 3
+
+val26=$(tmp0)
+val27=red,orange,green
+val28=$val16	linewidth 10	points $(val27[$(val26[1])]),$val17,$val19,$val18,$val20	text $(val27[$(val26[1])]),$val17,$val19-0.2,giant,A	text $(val27[$(val26[1])]),$val18,$val20-0.2,giant,B	
+replyname1=
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="affiche_pres">	  Le plan 
+!insmath \RR^2
+$() est muni d'un repère 
+!insmath (O,i,j)
+$().	  <br>	  Dans le dessin ci-dessous, quel est le coefficient directeur de la droite	  <b>(AB)</b>?	</div>	<br>	<div class="affiche_pres" style="text-align:center;">	   
+!read oef/draw.phtml $val7,$val8 \
+	 $val28	  
+$()	</div>	<div class="affiche_pres">	  <b>Votre réponse.</b>	  <span style="background-color:bisque;padding:4px;">	    Le coefficient directeur de la droite <b>(AB)</b> ci-dessus est:  
+!read oef/embed.phtml reply 1,10 
+$().	  </span>	</div>	
+$()
+!exit
+
+:hint
+$()	  Vous pouvez utiliser le th&eacute;or&egrave;me suivant:	  <p style="background-color:bisque;">	  <b>Th&eacute;or&egrave;me:</b> Soient 
+!insmath A(x_{A},y_{A})
+$()&nbsp;  et &nbsp;	  
+!insmath B(x_{B},y_{B})
+$() &nbsp; deux points du plan.	  <br>	  Si 
+!insmath x_{A}\neq x_{B}
+$(), alors la droite 
+!insmath (AB)
+$() a pour coefficient directeur	  &nbsp; 
+!insmath m=\frac{y_B-y_A}{x_B-x_A}
+$().	  </p>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	  Voici un	  <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution:	  <br>	  Pour calculer le coefficient directeur de la droite <b>(AB)</b>, nous allons appliquer le	  th&eacute;or&egrave;me suivant avec les points 
+!insmath A($val17,$val19)
+$() et 
+!insmath B($val18,$val20)
+$().	  <p style="background-color:bisque;">	  <b>Th&eacute;or&egrave;me:</b> Soient 
+!insmath A(x_{A},y_{A})
+$()&nbsp;  et &nbsp;	  
+!insmath B(x_{B},y_{B})
+$() &nbsp; deux points du plan.	  <br>	  Si 
+!insmath x_{A}\neq x_{B}
+$(), alors la droite 
+!insmath (AB)
+$() a pour coefficient directeur	  &nbsp; 
+!insmath m=\frac{y_B-y_A}{x_B-x_A}
+$().	  </p>	  On trouve 
+!insmath y_B-y_A=$val25
+$(), 
+!insmath x_B-x_A=$val24
+$(), donc le coefficient directeur de la	  droite en question est 
+!insmath m=$val23
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,17,18,19,20,23,24,25,28
+embedcnt=1

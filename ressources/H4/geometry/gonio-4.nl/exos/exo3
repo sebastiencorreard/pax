@@ -1,0 +1,159 @@
+n=$counter
+embed=1
+inputs=-1
+mathview=0
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+!readproc $remarkdir/rounding.$taal
+applet=1
+checkfile=$checkdir/new_number.proc
+!if exam isin $session
+ helptext=<img src=\'$gifdir/nohelp.jpg\' alt=\'noalt\' />
+!else
+ !if $subject < 5
+  htxt=!record 10 of lang/remarks.$taal
+  helptext=<img src=\'$module_dir/gifs/exo3.png\' alt=\'noalt\' /><br />$htxt
+ !endif
+!endif
+hoekA=!randint 20,70
+hoekB=!randint 20,70
+hoekC=$[180-($hoekA+$hoekB)]
+BC=!randint 5,15
+
+# 1 decimaal
+AC=$[0.1*(round(10*$BC*(sin($hoekB*pi/180))/(sin($hoekA*pi/180))))]
+AB=$[0.1*(round(10*$BC*(sin($hoekC*pi/180))/(sin($hoekA*pi/180))))]
+#tot=!exec moneyprint $BC,$AC,$AB
+#BC=$(tot[1])
+#AC=$(tot[2])
+#AB=$(tot[3])
+
+xa=0
+ya=0
+xb=$AB
+yb=0
+xc=$[$AC*cos($hoekA*pi/180)]
+yc=$[$AC*sin($hoekA*pi/180)]
+
+keuze=!randint 0,2
+txt=!record 9 of lang/remarks.$taal
+#@We berekenen de lengte van $Zijde mbv de sinusregel
+!if $keuze=0
+ stippel=$xb,$yb,$xc,$yc
+ ans=$[$AC*$AC + $AB*$AB - 2*$AC*$AB*cos($hoekA*pi/180)]
+ answer$n=$[sqrt($ans)]
+ rans= $[0.01*(round(100*$(answer$n)))]
+ texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} a^{2} =  b^{2} +  c^{2}  - 2bc\cdot \cos(\alpha) \\ BC^{2} = AC^{2} + AB^{2} - 2\cdot AC \cdot  AB \cdot \cos(\alpha) \\ BC^{2} = $AC^{2} + $AB^{2} - 2\cdot $AC \cdot $AB \cdot \cos\left( $hoekA^{o} \right) \\ BC^{2} = $[$AC*$AC] + $[$AB*$AB] - $[2*$AC*$AB] \cdot \cos\left( $hoekA^{o} \right) \\ BC^{2} \approx $[$AC*$AC + $AB*$AB] - $[2*$AC*$AB] \cdot $[cos($hoekA*pi/180)] \\ BC^{2} \approx $ans \\ BC \approx \sqrt{$ans} \approx $(answer$n) \approx $rans \end{array} 
+ exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle A & = & $hoekA^{o} \\ AB & = & $AB \\ AC & = & $AC \\ BC & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0}  \end{array}\right.
+
+ ptext=string black,$[0.5*$xc-0.3],$[0.5*$yc],$AC\
+ string black,$[0.5*$xb],-1,$AB
+
+ ss=!record 13 of lang/remarks.$taal
+ #@Gegeven is de &Delta;ABC met &angle;A=$hoekA&deg; <br />zijde AB = $AB en zijde AC = $AC<br />Bereken de lengte van de zijde BC in &Delta; ABC
+ 
+
+!else
+ !if $keuze=1
+  stippel=$xa,$ya,$xc,$yc
+  ans=$[$BC*$BC + $AB*$AB - 2*$BC*$AB*cos($hoekB*pi/180)]
+  answer$n=$[sqrt($ans)]
+  rans= $[0.01*(round(100*$(answer$n)))]
+
+  texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} b^{2} =  a^{2} +  c^{2}  - 2ac\cdot \cos(\beta) \\ AC^{2} = BC^{2} + AB^{2} - 2\cdot BC \cdot  AB \cdot \cos(\beta) \\ AC^{2} = $BC^{2} + $AB^{2} - 2\cdot $BC \cdot $AB \cdot \cos\left( $hoekB^{o} \right) \\ AC^{2} = $[$BC*$AC] + $[$AB*$AB] - $[2*$BC*$AB] \cdot \cos\left( $hoekB^{o} \right) \\ AC^{2} \approx $[$BC*$BC + $AB*$AB] - $[2*$BC*$AB] \cdot $[cos($hoekB*pi/180)] \\ BC^{2} \approx $ans \\ BC \approx \sqrt{$ans} \approx $(answer$n) \approx $rans \end{array}
+  exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle B & = & $hoekB^{o} \\ BC & = & $BC \\ AB & = & $AB \\ AC & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0}  \end{array}\right.
+  ptext=string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],$BC\
+  string black,$[0.5*$xb],-1,$AB
+  
+  ss=!record 14 of lang/remarks.$taal
+  #@Gegeven is de &Delta;ABC met &angle;B=$hoekB&deg; <br />zijde BC = $BC en zijde AB = $AB<br />Bereken de lengte van de zijde AC in &Delta; ABC
+ 
+ !else
+  stippel=$xa,$ya,$xb,$yb
+  ans=$[$BC*$BC + $AC*$AC - 2*$BC*$AC*cos($hoekC*pi/180)]
+  answer$n=$[sqrt($ans)]
+  rans= $[0.01*(round(100*$(answer$n)))]
+
+  texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} c^{2} =  a^{2} +  b^{2}  - 2\cdot a \cdot b\cdot \cos(\gamma) \\ AB^{2} = BC^{2} + AC^{2} - 2\cdot BC \cdot AC \cdot \cos(\gamma) \\ AB^{2} = $BC^{2} + $AC{2} - 2\cdot $BC \cdot $AC \cdot \cos\left( $hoekC^{o} \right) \\ AB^{2} = $[$BC*$BC] + $[$AC*$AC] - $[2*$BC*$AC] \cdot \cos\left( $hoekC^{o} \right) \\ AB^{2} \approx $[$BC*$BC + $AC*$AC] - $[2*$BC*$AC] \cdot $[cos($hoekC*pi/180)] \\ AB^{2} \approx $ans \\ BC \approx \sqrt{$ans} \approx $(answer$n) \approx $rans \end{array} 
+  
+  exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle C & = & $hoekC^{o} \\ BC & = & $BC \\ AC & = & $AC \\ AB & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0}  \end{array}\right.
+  ptext=string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],$BC\
+  string black,$[0.5*$xc-0.3],$[0.5*$yc],$AC
+
+  ss=!record 15 of lang/remarks.$taal
+  #@Gegeven is de &Delta;ABC met &angle;C=$hoekC&deg; <br />zijde BC = $BC en zijde AC = $AC<br />Bereken de lengte van de zijde AB in &Delta; ABC
+ !endif
+!endif
+
+max=$[max($xc,$xb)]
+max=$[max($max,$yc)]
+# gebruik gelijke xrange==yrange ivm plaatje
+xsize=220
+ysize=220
+k=!randitem green,blue,orange,red
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -4,$[$max+1]\
+yrange -4,$[$max+1]\
+opacity 200,30\
+linewidth 1\
+fillcolor orange\
+ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+dashtype 2,2\
+dsegment $stippel,black\
+opacity 255,255\
+fontfamily 14px Ariel\
+linewidth 2\
+points green,$xa,$ya,$xb,$yb,$xc,$yc\
+string black,$[$xa+0.3],$[$ya+0.3],A\
+string black,$[$xb+0.15],$[$yb+0.3],B\
+string black,$[$xc+0.3],$[$yc+0.3],C\
+$ptext\
+#zoom $k\
+linewidth 1\
+replyformat -1\
+userdraw circle,$k\
+precision 10\
+display radius,$k,16
+
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a> 
+
+
+!exit
+
+
+# plaatje voor help
+#make_tr=1
+#m=!mathmlmath \color{red}\begin{array}{llllll} a^{2} & = & b^{2} & + & c^{2} & - 2bc\cdot \cos(\alpha) \\ b^{2} & = & a^{2} & + & c^{2} & - 2ac\cdot \cos(\beta) \\ c^{2} & = & a^{2} & + & b^{2} & - 2\cdot a \cdot b\cdot \cos(\gamma) \end{array}
+#
+#object$n=!exec canvasdraw\
+#size 300,300\
+#xrange -4,$[$max+1]\
+#yrange -4,$[$max+1]\
+#opacity 200,30\
+#linewidth 1\
+#fillcolor orange\
+#ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+#opacity 255,255\
+#fontfamily 14px Ariel\
+#linewidth 2\
+#points green,$xa,$ya,$xb,$yb,$xc,$yc\
+#string black,$[$xa+0.3],$[$ya+0.3],A\
+#string black,$[$xb+0.15],$[$yb+0.3],B\
+#string black,$[$xc+0.3],$[$yc+0.3],C\
+#string black,$[0.5*$xc-0.3],$[0.5*$yc],b\
+#string black,$[0.5*$xb],-1,c\
+#string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],a\
+#string black,$[$xa+1.8],$[$ya+0.6],\u03B1\
+#string black,$[$xb-1.8],$[$yb+0.3],\u03B2\
+#string black,$xc,$[$yc-1.5],\u03B3\
+#mathml -4,$max,$max,-4,$m
+#
+#exotext=$empty
+

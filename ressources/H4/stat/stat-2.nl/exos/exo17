@@ -1,0 +1,107 @@
+#sqrt(2)*sqrt( pi)*erf(x/sqrt(2))/2
+# wortel n wet
+
+!if $counter=1
+    viewlogo=0
+    !if $rounding<10
+	rounding=1000
+        !readproc $remarkdir/rounding.$taal
+    !endif
+    var1=1
+    # kans chance...not a number
+    !if $subject=17
+	var2=0
+	helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    !else
+	txt=!record 15 of lang/remarks.$taal
+	helptext=<a href=\'$module_dir/docs/tabel.pdf\' target=\'statistiek tabellen\'>Download PDF<br /><img src=\'$module_dir/gifs/tabellen.jpg\' alt=\'tabellen.pdf\' /><br />$txt</a>
+    !endif
+    make_tr=1
+    cols=8
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    checkfile=exos/checkfile1.proc
+    inputs=1.1
+    description=<b>P</b>
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# 25 onderwerpen
+vakken=!record 91 of lang/remarks.$taal
+#@ biologie,natuurkunde,economie,wiskunde,scheikunde,nederlands,engels,frans,duits,latijn
+df=!record 92 of lang/remarks.$taal
+#@<td>Aantal goed</td>,<td>Frequentie</td>
+
+person=!record 93 of lang/remarks.$taal
+#@Hij,Zij
+
+vak=!randitem $vakken
+H1=!item 1 of $df
+H2=!item 2 of $df
+
+zij=!randitem $person
+totaal=!randint 15,26
+num=!randint 20,50
+min=$[round($totaal*0.5)]
+a=$[$totaal - $min + 1]
+a=$[ceil($num/$a)]
+rest=$num
+som=0
+quality=!randitem 1,2,3,4,5
+b=$[$a+$quality]
+!for p=$min to $totaal
+    f=!randint 0,$b
+    !if $rest<$b and $rest>0
+	f=$rest
+    !else
+	!if $rest=0
+	    f=0
+	!endif
+    !endif
+    !if $p=$totaal
+	f=$rest
+    !endif
+    rest=$[$rest-$f]
+    som=$[$f*$p + $som]
+    H1=!append line <td>$p</td> to $H1
+    H2=!append line <td>$f</td> to $H2
+!next p
+mean=$[$som/$num]
+m=$[round($mean*10)]
+mm=$[$m-20]
+aantal=!randint $mm,$m
+aantal=$[$aantal/10]
+sigma=!randint 20,50
+sigma=$[$sigma/10]
+freqtabel=<table class="grid_table"><tr>$H1</tr><tr>$H2</tr></table>
+!if $var2=0
+    Z=$[($mean-$aantal)/($sigma/sqrt($num))]
+    etext=!record 13 of lang/remarks.$taal
+!else
+    Z=$[round(100*($mean-$aantal)/($sigma/sqrt($num)))/100]
+    etext=!record 15 of lang/remarks.$taal
+!endif
+S=1000000
+P=<span style="font-size:16pt">P</span>
+ss=!record 88 of lang/remarks.$taal
+question$n=$ss<br /><b>$etext</b>
+#Bij het vak $vak moeten leerlingen een oefentoets maken die hen op de offici&euml;le toets voorbereidt.<br />Voor deze offici&euml;le toets scoren de kandidaten gemiddeld $aantal vragen goed van de $totaal. <br />met een standaardafwijking van $m_sigma = $sigma.We gaan er van uit dat het scoreverloop bij benadering normaal verdeeld is. <p>Een leerling is van mening dat de oefentoets eenvoudiger was dan de echte toets.<br />$zij trekt een aselecte steekproef van $num personen uit alle deelnemers aan de offici&euml;le toets.<br />$zij vindt de volgende frequentieverdeling voor het aantal goed beantwoorde vragen op de oefentoets,<br />die eveneens uit $totaal vragen bestond.<p>$freqtabel <p>We nemen aan dat de standaarddeviatie van de populatie bij deze <em>oefentoets</em> eveneens $m_sigma = $sigma zou zijn.<br />Wat is de kans op dit steekproef-resultaat, terwijl het gemiddelde $aantal is.<br /> Bereken dus de <em>overschrijdingskans.</em>
+answer$n=$[0.5*(erf($S/sqrt(2))-erf($Z/sqrt(2)))]
+G=$[round($rounding*$(answer$n))/$rounding] 
+!if $var2=0
+    rr=!record 89 of lang/remarks.$taal
+    textanswer$n=$rr
+    #Het gemiddeld aantal goed beantwoorde vragen is $mean.$P(X&ge;$mean)&asymp;$G<br />intypen in Ti83 <kbd>normalcdf</kbd>($mean,10000000,$aantal,$sigma/&sqrt;$num)
+!else
+    rr=!record 90 of lang/remarks.$taal
+    textanswer$n=$rr
+    #Het gemiddeld aantal goed beantwoorde vragen is $mean.$P(X&ge;$mean)&asymp;$G<br /><ul><li>Bereken de <kbd>z-waarde</kbd> : z=($mean-$aantal)/($sigma/&radic;($num)) &asymp; $Z</li>\<li>Zoek de kans op in je tabellenboekje</li></ul>
+!endif
+!exit

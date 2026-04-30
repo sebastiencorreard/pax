@@ -1,0 +1,277 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+
+!if $wordmax=$empty
+    wordmax=15
+!endif
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+test=!wordcnt $(reply$n)
+!if $test=0 
+    maxscore=$[$P8*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+!if $test > $wordmax
+    maxscore=$[$P7*$maxscore]
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+AAA=!lower $(reply$n)
+extra=$empty
+
+#!readproc $checkdir/decimalpoint.proc
+#!if $goback=1
+#    !exit
+#!endif
+
+#!readproc $checkdir/numbero.proc
+#!if $goback=1
+#    !exit
+#!endif
+    
+!if % isin $AAA
+    maxscore=$[$P9*$maxscore]
+    ex=!record 88 of lang/remarks.$taal
+    #@ Een kans is een getal tussen 0 en 1 en geen percentage,$voornaam\
+    #@ <br /><small>alhoewel we het daar in het dagelijks leven niet zo nauw mee nemen.</small>
+    !if $teaching=1
+	errortext=$ex
+	goback=1
+    !else
+	!if $extra != $empty
+	    extra=$extra<br />$ex
+	!else
+	    extra=$ex
+	!endif
+    !endif
+    !exit
+!endif
+
+AAA=!nospace $AAA
+
+# check for scientific notation
+AAA=!replace internal ** by ^ in $AAA
+#AAA=!replace internal e+ by *10^ in $AAA
+#AAA=!replace internal e- by *10^- in $AAA
+#!for p=1 to 3
+#    AAA=!replace internal ** by * in $AAA
+#!next p
+#t=!char 1 of $AAA
+#!if $t=*
+#    AAA=!char 2 to -1 of $AAA
+#!endif
+    
+!for p in sin,cos,tan,ln,log,sqrt,pi
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+    
+AAA=!replace [a-z\~\`\@\#\$\%\&\+\=\_\;\:\"\?\'] by $empty in $AAA
+test=!wordcnt $AAA
+!if $test=0
+    maxscore=$[$P7*maxscore]
+    errortext=!record 36 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+    
+AAA=!tolower $AAA
+AAA=!rawmath $AAA
+    
+!if NaN isin $[$AAA*1]
+    # $[1*$AAA] = 1*- = 0
+    # $[$AAA*1] = -*1 = NaN
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P6*$maxscore]
+    goback=1
+    !exit
+!endif
+    
+!if $var1=1
+    test=0
+    # var=1 answer is a chance var=0 just a number
+    error=0
+    !if $AAA > 1 and $AAA < 2
+	ex=!record 89 of lang/remarks.$taal
+	#@ Een kans die groter is dan &eacute;&eacte;n is wel een beetje vreemd.<br />\
+	#@De kans is per definitie <b>0 &lt; P &lt; 1</b><br />Reken je zaakjes nog eens even na, $voornaam
+	error=1
+	!goto READY
+    !endif
+    !if $AAA <0 and $AAA >-1
+	ex=!record 90 of lang/remarks.$taal
+	#@ Een kans die groter is dan &eacute;&eacte;n is wel een beetje vreemd.<br />\
+	#@De kans is per definitie <b>0 &lt; P &lt; 1</b><br />Reken je zaakjes nog eens even na, $voornaam
+	error=1
+	!goto READY
+    !endif
+    !if $AAA >= 2
+	ex=!record 91 of lang/remarks.$taal
+	#@ Een kans is geen percentage (je hebt dan ook geen %-teken ingevuld...).<br />\
+	#@ De kans is per definitie <b>0 &lt; P &lt; 1</b><br />Reken je zaakjes nog eens even na, $voornaam
+	error=1
+	!goto READY
+    !endif
+    !if $AAA <= -1
+	ex=!record 92 of lang/remarks.$taal
+	#@ Een kans is geen percentage (je hebt dan ook geen %-teken ingevuld...).<br />\
+	#@ De kans is per definitie <b>0 &lt; P &lt; 1</b><br />Reken je zaakjes nog eens even na, $voornaam
+	error=1
+    !endif
+    :READY
+    !if $error=1
+	!if $teaching=1
+	    maxscore=$[$P3*$maxscore]
+	    errortext=$ex
+	    goback=1
+	!else
+	    !if $extra=$empty
+		remark$n=$NOK<br />$ex
+	    !else
+		remark$n=$NOK<br />$extra<br />$ex
+	    !endif
+	    maxscore=0
+	    goback=0
+	!endif
+     !exit
+    !endif
+    !if $teaching=1
+	test=!replace internal / by @ in $AAA
+	!if @ isin $test
+	    test=1
+	!else
+	    # geen breuk..hoe afgerond?
+	    !if . isin $AAA
+		a1=!charcnt $AAA
+		a1=$[$a1-2]
+		afrond=!charcnt $rounding
+		# 1000000 -> afrond=7
+		!if $a1>$[$afrond-1]
+		    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+		    factor1=!item $a1 of $telwoorden
+		    ex=!record 93 of lang/remarks.$taal
+		    #@<br />sjonge jonge en nog wel $factor1 decimalen naukweurig...
+		    !if $extra != $empty
+			extra=$extra<br />$ex
+		    !else
+			extra=$ex
+		    !endif
+		!endif
+		!ifval $[$rounding*$AAA] != $[$rounding*$(answer$n)]
+		    !if $a1<$[$afrond -1]
+			telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+			errortext=!record 94 of lang/remarks.$taal
+			factor1=!item $a1 of $telwoorden
+			factor2=!item $[$afrond-1] of $telwoorden
+			#@ je mocht hier afronden op <b>minimaal</b> $factor2 decimalen<br />\
+			#@ Ik zie hier dat je hebt afgerond op maar $factor1 decimalen...<br />\
+			#@ Ik zou daar nog maar eens even naar kijken (want $(reply$n) reken ik <em>echt</em> fout)
+			maxscore=$[$P3*$maxscore]
+			goback=1
+			!exit
+		    !endif  
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+ex=$empty
+    
+!ifval $AAA=$[100*$(answer$n)] and $var1=1 and $AAA!=0.0
+    # var=1 kansantwoord
+    extra=!record 95 of lang/remarks.$taal
+    #@ <br /><small>Je hebt -waarschijnlijk-  een percentage opgeschreven i.p.v. een Kans<br />\
+    #@ De kans is namenlijk per definitie <b>0 &lt; P &lt; 1</b><br />\
+    #@ Bij een examen krijg je hiervoor absoluut strafpunten.<br />\
+    #@ (en zeker als je dan ook nog het %-teken vergeet...)</small>
+    maxscore=$[$maxscore*$P7]
+    remark$n=$BOK
+!else
+    !if $var1=1
+	# kans -> var1=1
+	!if $rounding<1
+	    rounding=10000
+	!endif
+	A1=$[(round($rounding*($AAA)))/$rounding]
+	G1=$[(round($rounding*($(answer$n))))/$rounding]
+	!ifval ($A1=$G1) or ($AAA=$(answer$n))
+	    remark$n=$OK
+	    !if $test=1
+		ex=!record 96 of lang/remarks.$taal
+		#@ <br />prima, je hebt de kans als breuk uitgerekend !!<br />
+	    !endif    
+    	!else
+	    A1=$[(round(100*$rounding*($AAA)))/$rounding]
+	    G1=$[(round(100*$rounding*($(answer$n))))/$rounding]
+	    !if $A1=$G1
+		maxscore=$[$P4*$maxscore]
+		ex=!record 29 of $remarkdir/commonremarks.$taal
+		remark$n=$BOK
+	    !else
+		remark$n=$NOK
+		maxscore=0
+	    !endif
+	!endif
+    !else
+	#var1=0  aantallen en geen kans
+	!if $rounding<1
+	    fff=100000
+	!else
+	    fff=$rounding
+	!endif
+	test=!exec pari if( abs(1.0*($AAA) - 1.0*($(answer$n)))<1/(10*$fff),1,0)
+	!if $test=1
+	    remark$n=$OK
+	!else
+	    !if $rounding > 0
+		AAA=$[(round($rounding*($AAA)))/$rounding]
+		GGG=$[(round($rounding*($(answer$n))))/$rounding]
+		!ifval $AAA=$GGG
+		    remark$n=$OK
+		!else
+		    !if $[1*($AAA)] isitemof $[10*$GGG],$[100*$GGG],$[1000*$GGG],$[0.1*$GGG],$[0.01*$GGG],$[0.001*$GGG]
+			maxscore=$[$P6*$maxscore]
+			ex=!record 97 of lang/remarks.$taal
+			remark$n=$NOK
+			#Je hebt een paar rekenfoutjes gemaakt, en zit er een ordegrootte naast...
+		    !else
+			maxscore=0
+			remark$n=$NOK
+		    !endif
+		!endif
+	    !else
+		!if $[1*($AAA)] isitemof $[10*$GGG],$[100*$GGG],$[1000*$GGG],$[0.1*$GGG],$[0.01*$GGG],$[0.001*$GGG]
+		    maxscore=$[$P8*$maxscore]
+		    ex=!record 97 of lang/remarks.$taal
+		    remark$n=$NOK
+		    #Je hebt een paar rekenfoutjes gemaakt, en zit er een ordegrootte naast...
+		!else
+		    maxscore=0
+		    remark$n=$NOK
+		!endif
+	    !endif
+	!endif
+    !endif
+    !if $extra !=$empty
+	extra=$extra $ex
+    !else
+	extra=$ex
+    !endif
+!endif
+goback=0
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+modulescore=$[$modulescore + $maxscore]
+!exit

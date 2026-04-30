@@ -1,0 +1,55 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid calls to the module.
+
+namelist=f(x),f(-x),-f(x),-f(-x)
+!if $status=next
+ !read var.prep
+ !goto end
+!endif
+
+!if $cmd=reply and $status!=waiting
+ error=double_reply
+ !goto end
+!endif
+
+!if $cmd=reply and $status=waiting
+ !bound good between integer 0 and 10 default 10
+ !if $good=0
+  !if $ch notin $asklist
+   test=yes
+   !advance goodcnt
+  !else
+   test=no
+  !endif
+ !else
+  !ifval $good=$real
+   test=yes
+   !advance goodcnt
+  !else
+   test=no
+  !endif
+ !endif
+ !advance replycnt 
+ !if $replycnt>=$repeat
+  !if $miss=yes
+   weight=8
+  !else
+   weight=$askcnt
+  !endif
+  module_score=$[max(0,rint(100*($goodcnt/$replycnt-1/$weight)*$weight/($weight-1))/10)]
+  wims_module_log=Score $module_score
+  status=done
+ !else
+  status=next
+ !endif
+!endif
+
+:end
+size=!item $type of 0.5,0.275
+insplot_set=size $[$size*0.8],$size; noborder; nozeroaxis; noxtics; noytics;\
+	arrow from -$xrange,0 to $xrange,0 lt 0;\
+	arrow from 0,-$yrange to 0,$yrange lt 0;\
+	label "x" at 0.9*$xrange,0.1*$yrange;\
+	label "y" at 0.07*$xrange,0.95*$yrange
+
+

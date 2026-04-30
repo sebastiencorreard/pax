@@ -1,0 +1,104 @@
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+!if $rouding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=0
+checkfile=$checkdir/number.proc
+var1=yes
+helptext=$empty
+make_tr=1
+AA=$empty
+GG=$empty
+nul=$empty
+keuze=$empty
+exotext=$empty
+np=1
+!for p=1 to 5
+  base=!append item 10 to $base
+  nul=!append word 0 to $nul
+  A=!nospace 0.$nul 1
+  G=$[-1-$p]
+  AA=!append item $A to $AA
+  GG=!append item $G to $GG
+  keuze=!append item $np to $keuze
+  !increase np
+!next p
+nul=$empty
+!for p=1 to 5
+  base=!append item 10 to $base
+  nul=!append word 0 to $nul
+  A=!nospace 10 $nul 
+  G=$[1+$p]
+  AA=!append item $A to $AA
+  GG=!append item $G to $GG
+  keuze=!append item $np to $keuze
+  !increase np
+!next p
+!for p=1 to 10
+  base=!append item 2 to $base
+  A=$[2^$p]
+  AA=!append item $A to $AA
+  GG=!append item $p to $GG
+  keuze=!append item $np to $keuze
+  !increase np
+!next p
+keuze=!shuffle $keuze
+ss=Calculez mental
+idx=0
+Q=$empty
+TQ=$empty
+!for p=1 to $options
+ k=!item $p of $keuze
+ g=!item $k of $base
+ !if $[$p%2]=0
+   A=!item $k of $AA
+   G=!item $k of $GG
+   S=!charcnt $G
+   S=$[$S+2]
+  
+   Q=!append word $ \log_{$g}\left( $A \right) & = & \input{$S}{$idx}{color:red;text-align:center;background-color:lightblue;}{}{0} \\ $ to $Q
+  
+   TQ=!append word $ \log_{$g}\left( $A \right) & = & $G \\ $ to $TQ
+ 
+ !else
+   A=!item $k of $GG
+   G=!item $k of $AA
+   S=!charcnt $G
+   S=$[$S+2]
+  
+   Q=!append word $ \log_{$g}\left( \input{$S}{$idx}{color:red;text-align:center;background-color:lightblue;}{}{0} \right) & = & $A \\ $ to $Q
+  
+   TQ=!append word $ \log_{$g}\left( $G \right) & = & $A \\ $ to $TQ
+ !endif
+ !if $g=$empty
+  kut=!append line <b>k=$k base=$base A=$A G=$G to $kut
+ !endif
+ !increase idx
+ answer$n=!append item $G to $(answer$n)
+!next p
+sr=\left\{\begin{array}{lll} $Q \end{array}\right.
+
+rr= \left\{\begin{array}{lll} $TQ \end{array}\right.
+
+texanswer$n=$rr
+exotext=!mathmlmath $sr
+
+ss=!record 54 of lang/remarks.$taal
+question$n=$ss
+
+!exit 

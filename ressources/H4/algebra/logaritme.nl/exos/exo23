@@ -1,0 +1,153 @@
+#checkfile=exos/checkfile3.proc
+checkfile=$checkdir/ineq.proc
+use_ineq=1
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+use_ineq=1
+math=0
+questiontype=0
+embed=1
+cols=20
+rows=1
+var1=0
+var2=0
+#var3=1
+varlist=x
+mathviewpanel=$module_title:x:>:>=:<:<=
+keuze=!randitem 0,1
+kans=!randitem 0,1
+helptext=<img src=\'$module_dir/gifs/exo6.help.jpg\' alt=\'noalt\' />
+!if $R=1
+    wims_rawmath_variables=x
+    g=!randitem 2,3,4,5,6
+    a=!randint 2,10
+    b=!randint 1,20
+    c=!randint 1,5
+    tot=!exec pari A=($g^$c-$b)/$a\
+    printtex(A)\
+    B=-1*$b/$a\
+    printtex(B)
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    dom=!line 3 of $tot
+    dom_tex=!line 4 of $tot
+    xmin=$[round($dom)-3]
+    xmax=$[$t1 + 8]
+    ymin=-1
+    ymax=$[$c + 4]
+    ff=^{\textstyle $g}\log \left( $a x + $b\right)
+    !if $keuze=1
+	!if $kans=1
+	    teken= <
+	    tm= <
+	    att=$ff < $c
+	    answer$n=!nospace $dom < x && x < $t1
+	    tex=$dom_tex  <  x  <  $t2
+	!else
+	    teken= \le
+	    tm= <=
+	    att=$ff \le $c
+	    answer$n=!nospace $dom < x && x <= $t1
+	    tex=$dom_tex  <  x \le $t2
+	!endif
+    !else
+	!if $kans=1
+	    teken= >
+	    tm= >
+	    att=$ff > $c
+	    answer$n=!nospace x > $t1
+	    tex=  x > $t2 
+	!else
+	    teken= \ge
+	    tm= >=
+	    att=$ff \ge $c
+	    answer$n=!nospace x > = $t1 
+	    tex=x \ge $t2 
+	!endif
+    !endif
+    applettext=!nospace {vlist(log[$g]($a*x+$b) $tm $c}   ->
+    texanswer$n=\left[ \begin{array}{l} $ff = $c \\    $a x + $b = $g^{$c} = $[$g^$c] \\ $a x = $[$g^$c - $b ] \\ x = $t2 \\ $att \\  $tex \end{array}\right.
+    F=log($a*x+$b)/log($g)
+    G=$c
+!else
+    wims_rawmath_variables=x
+    g=!randitem 2,3,4,5,6
+    a=!randint 2,10
+    b=!randint 1,20
+    c=!randint 1,5
+    tot=!exec pari A=($b - $g^$c)/$a\
+    printtex(A)\
+    B=$b/$a\
+    printtex(B)
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    dom=!line 3 of $tot
+    dom_tex=!line 4 of $tot
+    ff=^{\textstyle $g}\log \left( $b - $a x \right) 
+    xmin=$[round($t1)-20]
+    xmax=$[round($dom)+3]
+    ymin=-1
+    ymax=$[$c + 4]
+    !if $keuze=1
+	!if $kans=1
+	    teken= <
+	    tm= <
+	    att=$ff < $c
+	    answer$n=!nospace $t1 < x && x < $dom
+	    tex=$t2  <  x  <  $dom_tex
+	!else
+	    teken= \le
+	    tm= <=
+	    att=$ff \le $c
+	    answer$n=!nospace $t1 <= x && x < $dom
+	    tex=$t2  \le  x < $dom_tex
+	!endif
+    !else
+	!if $kans=1
+	    teken= >
+	    tm= >
+	    att=$ff > $c
+	    answer$n=!nospace x < $t1
+	    tex=  x < $t2 
+	!else
+	    teken= \ge
+	    tm= >=
+	    att=$ff \ge $c
+	    answer$n=!nospace x < = $t1 
+	    tex=x \le $t2 
+	!endif
+    !endif
+    applettext=!nospace {log[$g]($b - $a*x) $tm $c}   ->
+    texanswer$n=\left[ \begin{array}{l} $ff = $c \\    $b - $a x = $g^{$c} = $[$g^$c] \\ $a x = $[$b - $g^$c ] \\ x = $t2 \\ $att \\  $tex \end{array}\right.
+    F=log($b - $a*x)/log($g)
+    G=$c
+!endif
+    
+s1=!record 43 of lang/remarks.$taal
+#@ :Los de volgende ongelijkheid op:
+s2=!record 44 of lang/remarks.$taal
+#@  <ul><li>let op het Domein</li><li>let op de schrijfwijze: <br />schrijf >= voor &ge; <br />schrijf <= voor &le;</li></ul>
+question$n=$s1 <br \> $s2
+formula$n= $ff $teken $c
+    
+
+!if $teaching=1
+    image=0
+    plot=1
+    draw=0
+    insplot_set=size 0.6,0.6;border ;  zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    image_settings$n=$insplot_set
+    image$n= [$xmin:$xmax] [$ymin:$ymax] $F notitle , $G notitle
+    !insplot  $(image$n)
+    etext=!record 63 of $remarkdir/commonremarks.$taal
+
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\'alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+
+    !insplot  $F notitle , $G  notitle
+
+!endif
+

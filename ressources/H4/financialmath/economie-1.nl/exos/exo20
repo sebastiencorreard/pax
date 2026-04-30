@@ -1,0 +1,88 @@
+# Nationaal inkomen en index  II
+
+# 12/2011 : new_number.proc met een range (var1)
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding <11
+    rounding=10
+    dec=decimaal
+!else
+    dec=decimalen
+!endif
+roundingtext=Reken door met <b>onafgeronde getallen</b><br />en rond je <b>eindantwoord</b> af op $[log($rounding)/log(10)] $dec. 
+math=0
+mathview=0
+make_tr=1
+questiontype=0
+embed=0
+rows=1
+inputs=1.1
+# laat geen formula$n zien
+var9=0
+#checkfile=exos/precheck1.proc
+checkfile=$checkdir/new_number.proc
+cols=8
+!if $R=1
+    product1=!randitem 12,14,16,18,20
+    product1=$[$product1*100]
+    perc=!randint 9,19
+    perc=$[$perc/2]
+    a=$[floor($perc)]
+    consument=!randint 2,$[$a-1]
+    product2=$[$product1*(100+$perc)/100]
+    extex=$empty
+    mathview=0
+    ans1=$[100+100*($product2-$product1)/$product1]
+    r_ans1=$[(round($rounding*( 100+100*($product2-$product1)/$product1)))/$rounding]
+    ans2=$[100*$ans1/($consument+100)]
+    r_ans2=$[(round($rounding*$ans2))/$rounding]
+    
+    ss=In een bepaald jaar steeg het nationaal product van een land van &euro; $product1 naar &euro; $product2 .<br />In dat zelfde jaar steeg de consumentenprijsindex met $consument % .<br />Bereken de procentuele verandering van het re&euml;el nationaal product.
+    answer$n=$[$ans2-100]
+    r_answer=$[$r_ans2 - 100]
+    var1=$[abs($(answer$n) - $r_answer)]
+    description=Procentuele verandering
+    texanswer$n=\left[ \begin{array}{l} \textrm{Stijging nominaal nationaal product :} \frac{$product2 - $product1}{$product1} \cdot 100 = $[100*($product2-$product1)/$product1] \% \\ \\ \textrm{Indexcijfer reeel nationaal product (vorig jaar = 100) :} \frac{$ans1}{$[$consument+100]} \cdot 100 = $ans2 \%  \\ \\ \textrm{Verandering reeel nationaal product :} \frac{$ans2 - 100}{100} \cdot 100 = $(answer$n) \approx $[round(100*$(answer$n))/100] \% \end{array} \right.
+    ex1=%
+!else
+
+    jaar=!date +%Y
+    jaar2=$[$jaar-1]
+    periode=!randint 4,6
+    jaar1=$[$jaar2 - $periode]
+    land=!randitem Wenderland, Andara, Biloga,Akonderland,Randland,Waterkust,Zuid-Webastoland
+    geld=!randitem &euro;,$$,&pound;,&fnof;
+    
+    geld1=!randint 200,400
+    pp=!randint 5,20
+    delta=$[$pp/100 + 1]
+    geld2=$[$geld1*$delta]
+    index2=!randint 1050,1250
+    index2=$[$index2/10]
+    perc = !randint 10,30
+    perc=$[$perc/10]
+    index1=$[100 + $pp]
+    ans1 =$[100*$index1/$index2]
+    ans2 = $[(round($rounding*$ans1))/$rounding]
+    index3 = $[100*$ans1/(100+$perc)]
+    r_index3=$[100*$ans2/(100+$perc)]
+    answer$n=$[$index3 - 100]
+    r_answer=$[(round($rounding*($r_index3 - 100)))/$rounding]
+    var1=$[2*(abs($(answer$n) - $r_answer))]
+    ans3=$[(round($rounding*$(answer$n)))/$rounding]
+    
+    ss=In de periode $jaar1 &minus; $jaar2 steeg het  nominaal <br />nationaal inkomen van <em>$land</em> van: $geld $geld1 miljard naar $geld $geld2 miljard.<br />De consumentenprijsindex ( $jaar1 = 100 ) stond in $jaar2 op $index2.<br />De bevolking nam in deze periode toe met $perc % .<br />Bepaal de procentuele verandering van het re&euml;el nationaal inkomen<br />per hoofd van de bevolking in de periode $jaar1 &minus; $jaar2
+     
+    texanswer$n=\begin{array}{l}\textrm{De verandering van het nominaal nationaal inkomen is:} \\ \frac{$geld2 - $geld1}{$geld1} \times 100 \%  = $pp \% \\ \\  \textrm{Het indexcijfer van het nominaal nationaal inkomen in $jaar2 : } \\ 100 + $pp = $index1 \\ \\ \textrm{Het indexcijfer van het reeel nationaal inkomen wordt :} \\  \frac{$index1}{$index2} \times 100 = $ans1 \simeq $ans2 \\ \\ \textrm{Het indexcijfer van het reeel nationaal inkomen per hoofd van de bevolking :} \\ \frac{$ans2}{100 + $perc} \times 100 = \frac{$ans2}{$[100+$perc]} \times 100 = $index3 \\ \\ \textrm{De procentuele verandering van het reeel nationaal inkomen per hoofd van de bevolking :} \\ 100 - $index3 = $(answer$n) \simeq $ans3 \end{array} \right.
+    description=Procentuele verandering
+    ex1=%
+!endif
+
+tiptext=let op: bij een afname krijg je een negatief getal...
+helptext=$roundingtext<br />$tiptext
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>

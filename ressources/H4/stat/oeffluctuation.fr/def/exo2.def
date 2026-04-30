@@ -1,0 +1,189 @@
+!set title=Intervalle de fluctuation et prise de décision #
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas, Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2=2 
+tmp0=!randitem 25,64,100,400,625,1600,2500
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 26, 1000
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem $val6,$val7
+
+val8=$[rint($(tmp0))]
+!else
+tmp0=!randint 5, 100
+
+val8=$[rint($(tmp0))]
+!endif
+tmp0=!randint 200, 800
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/1000]
+!if $val2=2 
+val11=$[$val10-1/sqrt($val8)]
+val12=$[$val10+1/sqrt($val8)]
+!else
+!readproc slib/stat/binomialinv [0.025,0.975],$val8,$val10 
+tmp0=$slib_out
+val13=$(tmp0)
+val11=$[$(val13[1])/$val8]
+val12=$[$(val13[2])/$val8]
+!endif
+val14=$[floor(1000*$val11)/1000]
+val15=$[ceil(1000*$val12)/1000]
+tmp0=!randint 1, 3
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=2 
+val17=$[rint( 1)]
+!else
+val17=$[rint(2)]
+!endif
+tmp0=!random 0, rint(999*$val14)
+
+val18=$[$(tmp0)/1000]
+val18=$[rint(1000*$val18)/1000]
+tmp0=!random rint($val14*1000), rint($val15*1000)
+
+val19=$[$(tmp0)/1000]
+val19=$[rint(1000*$val19)/1000]
+tmp0=!random rint($val15*999), 1000
+
+val20=$[$(tmp0)/1000]
+val20=$[rint(1000*$val20)/1000]
+tmp0=!item $val16 of $val18,$val19,$val20
+
+val21=$[$(tmp0)]
+!if $val2=2 
+val22=Si \(0,2 <= p <= 0,8) et \(n <= 25), alors l'intervalle de fluctuation au seuil de 95 % relatif aux paramètres	 \(p) et \(n) est l'intervalle [\(p-1/sqrt(n));\(p+1/sqrt(n))] 
+!else
+val22=On considère que la situation revient à répéter $val8 fois de suite	 un tirage au sort : en cas de succès (probabilité $val10), la personne	 concernée possède le caractère. En cas d'échec, elle ne l'a pas.	 On nomme X la variable aléatoire égale au nombre de succès obtenus.	  <br>Dans la loi de probabilité de X, on repère la plus petite	  valeur \(a) pour laquelle \(P(X <= a) > 0.025).	  <br>On repère également la plus petite valeur \(b) pour laquelle	  \(P(X <= b) <= 0.975)... 
+!endif
+replytype1=default
+replyname1=
+replygood1=$val14
+replytype2=default
+replyname2=
+replygood2=$val15
+replytype3=menu
+replyname3=
+replygood3=$val17;a été choisi,n'a pas été choisi
+replytype4=menu
+replyname4=
+replygood4=$val17;appartient,n'appartient pas
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val22
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p class="consigne">	
+!if $val2=2 
+$()Cet exercice est paramétré pour le <b>niveau seconde</b> 
+!else
+$() Cet exercice est paramétré pour le	<b>niveau première</b> : vous devez utiliser la loi binomiale ! 
+!endif
+$()	</p>	<div class="enonce">	L'intervalle de fluctuation au seuil de 95 % I relatif aux paramètres 
+!insmath p=$val10
+$() (proportion du caractère étudié)	et 
+!insmath n=$val8
+$() (taille de l'échantillon) est :</div>	<div class="question">	<div class="wimscenter">I = [ 
+!read oef/embed.phtml  reply 1,5  
+$(); 
+!read oef/embed.phtml reply 2,5 
+$()] (arrondir les bornes au millième)	</div></div>			<div class="enonce">	Soit 
+!insmath f=$val21
+$() la fréquence du même caractère d'un échantillon de taille 
+!insmath n=$val8
+$().</div>	<div class="question">On peut considérer que l'échantillon  
+!read oef/embed.phtml reply 3 
+$() au hasard dans la population car 
+!insmath f=$val21
+$()  
+!read oef/embed.phtml reply 4 
+$() à l'intervalle	 I (intervalle de fluctuation au seuil de 95 % ) </div>	
+$()
+!exit
+
+:hint
+$()$val22
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Lorsqu'on étudie la fréquence 
+!insmath f
+$() d'apparition d'un caractère dans un échantillon de taille 
+!insmath $val8
+$() issu	d'une population où le caractère apparaît avec une fréquence 
+!insmath $val10
+$(), la probabilité que 
+!insmath f \in
+$() [
+!insmath $val14
+$();
+!insmath $val15
+$()] est supérieure à 0,95.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,8,10,14,15,21,22
+embedcnt=4

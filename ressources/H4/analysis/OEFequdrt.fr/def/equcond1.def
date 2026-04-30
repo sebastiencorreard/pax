@@ -1,0 +1,130 @@
+!set title=Équation parallèle 1A
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=11
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items d,p,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=Soit \(($val6)\) la droite d'équation&nbsp;
+val8=Réponse&nbsp;
+val9=Écrire l'équation d'une droite parallèle à la droite \(($val6))
+val10=Oui,Non
+val11=L'équation de la droite choisie est&nbsp;
+val12=C'est l'équation de la même droite ! Il n'y a pas assez de droites parallèles à 
+val13=L'équation est bien celle d'une droite parallèle
+tmp0=!randint -10, 10
+
+val14=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val15=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val14*x +$val15
+tmp0=!exec pari $t_
+
+val16=y=$(tmp0)
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<div class="wimscenter">
+!insmath $val16
+$().</div>	$val9.	<p><b>$val8:</b></p>	  $val11: <label for="reply1">
+!insmath y
+$() =</label>  
+!read oef/embed.phtml r1,7 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!rawmath $val17
+
+val18=$(tmp0)
+tmp=!translate ";': to $     $ in $val14*x+($val15)-($val18)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$[$(tmp0)]
+
+!exit
+
+:feedback
+!ifval $val19=0
+ <div class='oef_feedbacks'>$val12 ($val6) ???
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval NaN notin $val19 and $val19!=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val13
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,13,14,15,16,17
+embedcnt=1

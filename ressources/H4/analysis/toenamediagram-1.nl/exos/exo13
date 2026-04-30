@@ -1,0 +1,136 @@
+#list_of_things=['point','line','segment','circle','function','polygon','cone','ellipse','polynomial']
+#customToolBar=0 , 1 , 10 , 16 , 6
+# alleen integers in ggb file !! decimalen=0
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+insplot_data=$empty
+
+mathview=0
+#GeoGebra
+list_of_things=[ 'line','segment','point' ];
+customToolBar=" 0 | 15 || 40 | 41 | 42 | 6 "
+appletcommand=$empty
+ggb=ggb/grid1.ggb
+showToolBar=true
+showMenuBar=false
+framePossible=false
+# GnuPlot
+make_tr=1
+wordmax=300
+
+questiontype=4
+inputs=0
+checkfile=exos/checkfile2.proc
+# speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+var1=0
+math=0
+image=0
+
+xmax=6
+xmin=1
+rnd_y=!randitem -5,-4,-3,-2,-1,0,1,2,3,4,5
+helptext=!record 17 of lang/remarks.$taal
+#@ <em>GeoGebra</a> help pagina's</em>
+textanswer$n=<ul>
+!if $R=1
+    var1=1
+    # dus rechte lijn
+    autoscale=noautoscale y
+    a=!randitem 1,2,3,4,5
+    r=!randitem -1,1
+    a=$[$r*$a]
+    functie=$a*x + $rnd_y
+    f'=$a
+    X=0
+    # op x=0 y=rnd_y
+    # op x=1 y=rnd_y + Y
+    # op x=2 y=rnd_y + Y
+    # lijn die door leerlingen getekend moet worden.
+    points=2
+    !for x=0 to $[$xmax-1]
+	y=!evalsubst x=$x in $functie
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    # toename diagram plaatje voor bij de som
+    Y=0
+    !for x=1 to $[$xmax-1]
+	y=$a
+	Y=$[$Y+$a]
+        insplot_data=!append line $x 0 $y $y $y $Y to $insplot_data
+    !next x
+!endif
+
+!if $R=2
+    yy=!shuffle 1,2,3,4,5,6,7,8,9,10
+    # lijn die door leerlingen getekend moet worden.
+    YY=$empty
+    points=0
+    X=0
+    !for x=0 to $[$xmax-1]
+	!increase points
+	r=!randitem -1,1
+	y=!item $[$x+1] of $yy
+	y=$[$r*$y]
+	!if $x=0
+	    y=$rnd_y
+	!endif
+	YY=!append item $y to $YY
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    #YY=1,4,-5,-7,-4,2
+    Y=0
+    !for x=1 to $[$xmax-1] 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	Y=$[$Y+$y]
+        insplot_data=!append line $x 0 $y $y $y  to $insplot_data
+    !next x
+    autoscale=autoscale y
+!endif
+
+!if $R>2
+    yy=!shuffle 1,2,3,4,5,6,7,8,9
+    # lijn die door leerlingen getekend moet worden.
+    YY=$empty
+    points=0
+    X=!randitem 1,2,3,4
+    !for x=0 to $[$xmax-1]
+	!increase points
+	r=!randitem -1,1
+	y=!item $[$x+1] of $yy
+	y=$[$r*$y]
+	!if $x=$X
+	    y=$rnd_y
+	!endif
+	YY=!append item $y to $YY
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    #YY=1,4,-5,-7,-4,2
+    Y=0
+    !for x=1 to $[$xmax-1] 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	Y=$[$Y+$y]
+        insplot_data=!append line $x 0 $y $y $y  to $insplot_data
+    !next x
+    autoscale=autoscale y
+!endif
+
+textanswer$n=!append line </ul> to $(textanswer$n)
+ss=!record 3 of lang/remarks.$taal
+#@ Het toenamendiagram is gegeven (Zie 'klik hier voor de grafiek')<br />Teken in de java-applet de bij deze toenamendiagram horende grafiek, van af x=0.<br /><b>y=$rnd_y</b> in <b>x=$X</b>.
+question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+etext=!record 2 of lang/remarks.$taal
+exotext=<a href="javascript:showimage();">$etext</a>
+
+insplot_set=size 1.0,1.0; $autoscale ; border 3;zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ; ytics 1 
+!insplot [-0.7:$xmax] "insplot_data" using 1:2:3:4:5 notitle with candlesticks lt 1  
+

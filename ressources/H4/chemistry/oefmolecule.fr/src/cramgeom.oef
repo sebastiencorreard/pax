@@ -1,0 +1,54 @@
+\title{Représentation de Cram : convention}
+\author{Benoît, Markey; Bernadette, Perrin-Riou}
+\email{bernadette.m.riou@orange.fr}
+\language{fr}
+
+Mettre l'aide de la molécule dans un confparm1 par la suite
+\text{aide=1}
+===== Choisir les objets dans la catégorie désirée
+On ne prend que les molécules ayant cramimage  dans leurs clés
+
+\text{all=wims(lookup cramimage in ind.cles)}
+\text{obj=item(1,shuffle(\all))}
+\text{molecule=wims(lookup \obj in descriptif)}
+\text{nommol = \molecule[1]}
+\text{denommol=slib(lang/frapostrophe de wims(lower \nommol))}
+\text{formule = \molecule[4]}
+Pour le cas ou il y aurait plusieurs dessins de representations
+avec leur image 3D adaptée
+\text{dessincram =  wims(translate | to , in \molecule[3])}
+\text{dessincram = randitem(\dessincram)}
+\text{dessincram = wims(declosing \dessincram)}
+adresse de cram
+\text{adressecram = \obj/\dessincram[1]}
+\text{cnt = items(\dessincram)}
+
+\text{adresse= wims(translate | to , in \molecule[2])}
+adresse de l'image
+\text{adresse = \cnt = 1 ? \obj/randitem(\adresse):
+\obj/\dessincram[2]}
+
+\text{geometrie = dans le plan de l'écran, en avant du plan de l'écran, en arrière du plan de l'écran}
+\text{atome1 = \molecule[7]}
+\text{atome1=wims(replace internal | by , in \atome1)}
+
+\text{atome2 = \molecule[8]}
+\text{atome2=wims(replace internal | by , in \atome2)}
+\text{atome3 = \molecule[9]}
+\text{atome3=wims(replace internal | by , in \atome3)}
+
+\text{atome= randitem(wims(nonempty items \atome1,\atome2,\atome3))}
+
+\text{bon= \atome isin \atome1 ? 1: 3}
+\text{bon = \atome isin \atome2 ? 2}
+\statement{Voici la représentation de Cram de la molécule
+  \denommol dont la formule chimique est \(\formule) :
+   <div class="wimscenter"><img src="\imagedir/\adressecram" alt=""></div>
+   L'atome \atome est
+<ul>
+ <li>\embed{reply1,1}</li>
+ <li>\embed{reply1,2}</li>
+ <li>\embed{reply1,3}</li>
+</ul>
+}
+\answer{}{\bon;\geometrie}{type=radio}

@@ -1,0 +1,179 @@
+# reply$n is een antwoord met $var9 formules en open antwoorden :getallen
+# var7= naam voor x-variabele
+# var8= naam voor y-variabele
+# var9 = aantal RECHTE lijnen
+math=0
+goback=0
+errortext=$empty
+n=$counter
+
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+tm=!itemcnt $(answer$n)
+aantal_openvragen=$[$tm-$var9]
+!for p=1 to $tm
+    score$p=0
+!next p
+# var9 is aantal lijnen
+checked=0
+# ly kan zijn TK of TK,TW,TO
+varx=!lower $var7
+t=!itemcnt $varx
+!if $t=1
+    varx=$empty
+    !for p=1 to $var9
+	varx=!append item $var7 to $varx
+    !next p
+!endif
+vary=!lower $var8
+your_reply=$empty
+
+!for p=1 to $var9
+    yourformula=!item $p of $(reply$n)
+    extra=$empty
+    !if ? isin $yourformula
+	score$p=0.1
+	extra=volgende keer beter...
+    !else
+	yf=!lower $yourformula
+        mf=!item $p of $(answer$n)
+        mf=!lower $mf
+        lx=!item $p of $varx
+        ly=!item $p of $vary
+	t=!replace internal = by , in $yf
+        t=!lower $t
+	tt=!itemcnt $t
+	!if $tt!=2
+	    errortext=Ik verwacht hier een gewone formule<br />dus iets met een "=" teken...
+	    maxscore=$[$P2*$maxscore]
+	    goback=1
+	    !exit
+	!endif
+	t1=!item 1 of $t
+        t2=!item 2 of $t
+	# lx = !lower $var7
+        !if ($lx isin $t2) and ($t1 isitemof $ly)  
+    	    yf=!lower $t2
+	!else
+	    !if ($lx isin $t1) and ($t2 isitemof $ly)
+		yf=!lower $t1
+	        extra=<br />Ik zie liever dat je de lijn opschrijft als bijv: $ly = 1.234*$lx + 4.321
+	    !else
+		errortext=Ik mis in je antwoord ($yourformula) de vereiste variabelen <b>$lx of $ly</b>
+	        maxscore=$[$P5*$maxscore]
+	        goback=1
+	        !exit
+	    !endif
+	!endif
+	yf=!replace internal $lx by x in $yf
+	mf=!replace internal $lx by x in $mf
+        yf=!rawmath $yf
+        test1=!evalsubst x=100 in $yf
+        test2=!evalsubst x=100 in $mf
+
+        !ifval $test1=$test2
+	    score$p=1
+	    k1=green
+	!else
+	    test3=!evalsubst x=0 in $yf
+	    test4=!evalsubst x=0 in $mf
+	    !ifval $test3=$test4
+		score$p=$P6
+		k1=orange
+		extra=<br />maar je hebt de constante wel goed...
+	    !else
+		test5=$[$test1-$test3]
+		test6=$[$test2-$test4]
+		!ifval $test5=$test6
+		    score$p=$P6
+		    k1=orange
+		    extra=<br />maar je hebt de helling van de lijn wel goed...
+		!else
+		    k1=red
+		    score$p=0
+		!endif
+	    !endif
+        !endif
+    !endif
+    your_reply=!append line $ <li><font color=$k1>$yourformula</font>&nbsp;&nbsp;$extra </li> $ to $your_reply 
+!next p
+
+!if $rounding<1
+    rnd=100
+!else
+    rnd=$rounding
+!endif
+
+# nu getalsmatige antwoorden
+!for p=$[$var9+1] to $tm
+    yourmaximum=!item $p of $(reply$n)
+    !if ? isin $yourmaximum
+	score$[$var9+1]=0.1
+	extra=volgende keer beter...
+    !else
+	mm=!item $p of $(answer$n)
+	ym=!lower $yourmaximum
+        ym=!nospace $ym
+	ym=!replace [a-z\~!@#$%&_=+:;"><] by $empty in $ym
+	ym=$[(round($ym*$rnd))/$rnd]
+	!if NaN isin $ym
+	    errortext=Ik verwacht naast de $var9 formules ook nog een $aantal_open_vragen andere antwoord(en)...
+    	    maxscore=$[$P6*$maxscore]
+    	    goback=1
+    	    !exit
+	!endif
+	mm=$[(round($mm*$rnd))/$rnd]
+	!ifval $ym = $mm
+	    score$p=1
+	    k2=green
+	!else
+	    !ifval $ym=$[-1*($mm)]
+		score$p=$P7
+		k2=orange
+		extra=je antwoord is goed als je het met -1 vermenigvuldigd...
+	    !else
+		rnd=$[$rnd/10]
+		ym=$[(round($ym*$rnd))/$rnd]
+		mm=$[(round($mm*$rnd))/$rnd]
+		!ifval $ym = $mm
+		    score$p=$P5
+		    k2=orange
+		    extra=je het een flinke afrondingsfout gemaakt.
+		!else
+		    score$p=0
+		    k2=red
+		!endif
+	    !endif
+	!endif
+    !endif
+    your_reply=!append line $ <li><span style="color:$k2">$yourmaximum</span>&nbsp;&nbsp;$extra </li> $ to $your_reply 
+!next p
+
+your_reply=<ul>$your_reply</ul>
+score=0
+!for p=1 to $tm
+    score=$[$score + $(score$p)]
+    # alles weegt even zwaar 
+!next p
+maxscore=$[$maxscore*$score/$tm]
+
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+reply$n=$your_reply
+
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit

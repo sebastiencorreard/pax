@@ -1,0 +1,134 @@
+#Liquiditeitsbegroting en staat van baten &amp; lasten
+# twee sommetjes : mist textanswer$n
+n=$counter
+viewlogo=1
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/obligatie$g.jpg" alt="money"/>
+logotext=<img src=\'$module_dir/gifs/obligatie$g.jpg\' alt=\'money\' />
+mathview=0
+make_tr=1
+inputs=-1
+!if $total_exos>2
+    total_exos=2
+!endif
+checkfile=exos/precheck1.proc
+nu=!date +%Y
+nu=$[$nu-1]
+leden=!randint 30,200
+contributie=!randint 2,7
+vijf=!randitem 0,5
+contributie= $[10*$contributie + $vijf]
+huur_m=!randint 5,12
+huur_m=$[$huur_m*10]
+huur=$[12*$huur_m]
+
+# balans in onmouseover
+# links
+materiaal=!randint 15,35
+materiaal=$[$materiaal*10]
+kas=!randint 25,70
+kas=$[$kas*10]
+# nog niet betaalde leden
+leden_debet=!randint 3,10
+leden_vertraagd=!randint 2,5
+leden_betaald=$[$leden - $leden_debet]
+te_ontvangen_contributie=$[$leden_debet*$contributie]
+ontvangen_contributie=$[($leden - $leden_debet)*$contributie]
+# linker gedeelte balans totaal
+links_totaal= $[$materiaal + $te_ontvangen_contributie + $kas]
+
+# rechts
+# percentage van links totaal
+sp=!randint 25,45
+eigen_vermogen=$[round($sp*$links_totaal/100)]
+# maximaal , hoeveel maanden huur zit er in het verschil links/rechts
+maxmaand=$[(floor(((100-$sp)*$links_totaal)/100))/$huur_m]
+!if $maxmaand > 4
+    maxmaand=4
+!endif
+maanden_huur_achterstand=!randint 1,$maxmaand
+huur_schuld=$[$maanden_huur_achterstand*$huur_m]
+# balans kloppend maken : gecontroleerd wordt nooit negatief
+nog_te_betalen_leveranciers=$[$links_totaal - ($eigen_vermogen + $huur_schuld )]
+rechts_totaal=$[$huur_schuld + $eigen_vermogen + $nog_te_betalen_leveranciers]
+# december nog niet betaald
+huur_kas=$[(12 - 1)*$huur_m + $huur_schuld]
+
+tot=!exec moneyprint $materiaal,$kas,$links_totaal,$rechts_totaal,$te_ontvangen_contributie,$nog_te_betalen_leveranciers,$huur_schuld,$eigen_vermogen,$contributie,$huur_m,$huur_kas
+materiaal=$(tot[1])
+kas=$(tot[2])
+links_totaal=$(tot[3])
+rechts_totaal=$(tot[4])
+te_ontvangen_contributie=$(tot[5])
+nog_te_betalen_leveranciers=$(tot[6])
+huur_schuld=$(tot[7])
+eigen_vermogen=$(tot[8])
+contributie=$(tot[9])
+huur_m=$(tot[10])
+huur_kas=$(tot[11])
+vereniging=!randitem A.Z.S.W,AD$nu,Ons Genoegen,De Harmonie,Eigen Haard
+
+
+balans=<table class=\'balans_2\'><caption>Balans  per 1 januari $nu <br /><em>$vereniging</em></caption><tr><td>Materialen</td><td>&nbsp;&euro;&nbsp;&nbsp;$materiaal</td><td>Eigen vermogen</td><td>&nbsp;&euro;&nbsp;&nbsp;$eigen_vermogen</td></tr><tr><td>Nog te ontvangen contributie $nu</td><td>&nbsp;&euro;&nbsp;&nbsp;$te_ontvangen_contributie</td><td>Nog te betalen huur $nu</td><td>&nbsp;&euro;&nbsp;&nbsp;$huur_schuld</td></tr><tr><td>Kas</td><td>&nbsp;&euro;&nbsp;&nbsp;$kas</td><td>Nog te betalen leveranciers</td><td>&nbsp;&euro;&nbsp;&nbsp;$nog_te_betalen_leveranciers</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Totaal</td><td>&nbsp;&euro;&nbsp;&nbsp;$links_totaal</td><td>Totaal</td><td>&nbsp;&euro;&nbsp;&nbsp;$rechts_totaal</td></tr></table>
+
+lijst=<ul><li>$vereniging heeft $leden leden. </li><li>De contributie is &nbsp;&euro;&nbsp;$contributie per lid per jaar.</li><li>De ontvangen contributie is &nbsp;&euro;&nbsp;$ontvangen_contributie</li><li>De maandelijkse huur van een zaaltje bedraagt &nbsp;&euro;&nbsp;$huur_m</li><li>In $nu is aan huur per kas betaald &nbsp;&euro;&nbsp;$huur_kas .<br />Daarin zit ook de achterstallige huur voor $[$nu-1] .<br />Op 31 december $nu moet de huur over december $nu nog worden betaald.</li></ul>
+
+
+# december nog niet betaald
+huur_kas=$[(12 - 1)*$huur_m + $huur_schuld]
+
+
+#10/2011 Voor vereniging <kbd>$vereniging</kbd> zijn over het jaar $nu de <span style="color:blue">volgende gegevens</span> bekend: <ul><li>$vereniging heeft $leden leden. </li><li>De contributie is &nbsp;&euro;&nbsp;$contributie per lid per jaar.</li><li>De ontvangen contributie is &nbsp;&euro;&nbsp;$ontvangen_contributie</li><li>$leden_betaald leden betaalden de contributie voor $nu </li><li>$leden_vertraagd leden betaalden de contributie voor $[$nu-1] </li><li>De maandelijkse huur van een zaaltje bedraagt &nbsp;&euro;&nbsp;$huur_m</li><li>In $nu is aan huur per kas betaald &nbsp;&euro;&nbsp;$huur_kas .<br />Daarin zit ook de achterstallige huur voor $[$nu-1] .<br />Op 31 december $nu moet de huur over december $nu nog worden betaald.</li></ul>
+#6/2011 Vereniging $vereniging maakt op 1 januari $nu <span style="color:blue">deze balans</span> op.<br />De onderstaande gegevens zijn bekend:<ul><li>$vereniging heeft $leden leden. </li><li>De contributie is &nbsp;&euro;&nbsp;$contributie per lid per jaar.</li><li>De ontvangen contributie is &nbsp;&euro;&nbsp;$ontvangen_contributie</li><li>$leden_betaald leden betaalden de contributie voor $nu </li><li>$leden_vertraagd leden betaalden de contributie voor $[$nu-1] </li><li>De maandelijkse huur van een zaaltje bedraagt &nbsp;&euro;&nbsp;$huur_m</li><li>In $nu is aan huur per kas betaald &nbsp;&euro;&nbsp;$huur_kas .<br />Daarin zit ook de achterstallige huur voor $[$nu-1] .<br />Op 31 december $nu moet de huur over december $nu nog worden betaald.</li></ul>
+
+question$n=Voor vereniging <kbd>$vereniging</kbd> zijn over<a onmouseover="return escape('$balans')"> het jaar $nu de <span style="color:blue;font-weight:bold">volgende</span> balans gegevens</a> bekend.<br/>En verder is over <a onmouseover="return escape('$lijst')">vereniging <kbd>$vereniging</kbd> <span style="color:blue;font-weight:bold">gegeven :</span></a>
+
+rounding=10
+roundingtext=Geef je antwoorden op &eacute;&eacute;n deicmaal nauwkeurig.
+
+!if $counter=1
+    # PROBLEEM MET toe /af -name liquide middelen !!!!
+    ans1=$[($leden - $leden_debet)*$contributie]
+    ans2=$huur_kas
+    ans3=$[$ans1-$ans2]
+    ans4=$[$kas+$ans3]
+
+    answer$n=$ans1,$ans2,$ans3,$ans4
+    description=inkomsten contributies,uitgaven huur,toename of afname,eindstand eigenvermogen
+    
+    inputtable=<table class="zebra_table_h2"><caption><kbd>Liquiditeitsbegroting $nu<br /><em>$vereniging</em></kbd></caption><tr><td>Inkomsten (contributie)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Uitgaven (huur)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput1" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Liquide middelen (beginstand)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="none" size="6" value="$kas" class="schaersvoorde_input" readonly="readonly"/></td></tr><tr><td>Liquide middelen (toename of afname)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput2" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Liquide middelen (eindstand)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput3" size="6" class="schaersvoorde_input" value=""/></td></tr></table>
+
+    exotext=<br />Maak de onderstaande <kbd>liquiditeitsbegroting</kbd> compleet<br />door de ontbrekende waarden in de tabel in te vullen.<hr />$inputtable
+
+    textanswer$n=<ul><li>Inkomsten uit contributies = &nbsp;&euro;&nbsp;$ans1</li><li>Uitgaven huur  &nbsp;&euro;&nbsp;$huur_kas</li><li>Toe- of afname liquide middelen : Inkomsten &minus; Uitgaven = $ans1 &minus; $ans2 = &nbsp;&euro;&nbsp;$ans3</li><li>Eindstand liquide middelen : $kas + $ans3 = &nbsp;&euro;&nbsp;$ans4</li></ul>
+    # textanswer$n=<ul><li>Inkomsten uit contributies = ($leden &minus; $leden_debet) &times; $contributie = &nbsp;&euro;&nbsp;$ans1</li><li>Uitgaven huur  &nbsp;&euro;&nbsp;$huur_kas</li><li>Toe- of afname liquide middelen : Inkomsten &minus; Uitgaven = $ans1 &minus; $ans2 = &nbsp;&euro;&nbsp;$ans3</li><li>Eindstand liquide middelen : $kas + $ans3 = &nbsp;&euro;&nbsp;$ans4</li></ul>
+    # origineel 
+    #28 feb Eindstand liquide middelen
+    # 12 april Eindstand eigenvermogen
+    # 18 april Eindstand liquide middelen....
+    
+
+!else
+ 
+   # dit zou goed moeten zijn
+    ans1=$[$leden*$contributie]
+    ans2=$huur
+    #ans3=$[$ans1-$huur_kas]
+    ans3=$[$ans1-$ans2]
+    ans4=$[$eigen_vermogen + $ans3]
+    answer$n=$ans1,$ans2,$ans3,$ans4
+    description=inkomsten contributies,uitgaven huur,Saldo baten en lasten,eindstand liquide middelen
+    
+    inputtable=<table class="zebra_table_h2"><caption>Staat van Baten &amp; Lasten $nu <em>$vereniging</em></caption><tr><td>Baten (contributie)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Lasten (huur)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput1" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Beginstand (eigen vermogen)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="none" size="6" class="schaersvoorde_input" value="$eigen_vermogen" readonly="readonly" /></td></tr><tr><td>Saldo (baten &amp; lasten)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput2" size="6" class="schaersvoorde_input" value=""/></td></tr><tr><td>Eindstand (eigen vermogen)</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput3" size="6" class="schaersvoorde_input" value=""/></td></tr></table>
+
+    exotext=Maak de <kbd>Staat van baten &amp; lasten</kbd> tabel compleet<br />door de ontbrekende waarden in de tabel in te vullen.$inputtable
+
+    textanswer$n=<ul><li>Baten contributies  =  $leden &times; $contributie = &nbsp;&euro;&nbsp;$ans1</li><li>Lasten huur = 12&times; $huur_m = &nbsp;&euro;&nbsp;$huur</li><li>Saldo baten en lasten = $ans1 &minus; $ans2 = &nbsp;&euro;&nbsp;$ans3</li><li>Eindstand eigenvermogen = $eigen_vermogen + $ans3 = &nbsp;&euro;&nbsp;$ans4</li></ul>
+    
+!endif
+
+
+helptext=$roundingtext
+
+!exit
+#<select  size="1" id="myinput2" name="myinput2" style="text-align:center;font-size:18px;border:0px;background-color:orange"  ><option value="-1">afname</option><option value="1">toename</option></select>

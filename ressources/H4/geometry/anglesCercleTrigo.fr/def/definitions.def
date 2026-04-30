@@ -1,0 +1,112 @@
+!set title=Définition : mesure d'angle en radian
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+precision=100
+
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!random -3, 3
+
+t_=!replace internal \( by ( in 0.01*round($(tmp0)*100)
+tmp1=!exec pari $t_
+
+val6=$[$(tmp1)]
+t_=!replace internal \( by ( in 0.01*round(100*cos($val6))
+tmp0=!exec pari $t_
+
+val7=$[$(tmp0)]
+t_=!replace internal \( by ( in 0.01*round(100*sin($val6))
+tmp0=!exec pari $t_
+
+val8=$[$(tmp0)]
+val9=$val7,$val8
+val10=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});	var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});	var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});	var pA = brd.create('point',[$val7,$val8], {name:'A',size: 3, visible:true, face: 'o', fixed:true, color:'red'});	var c = brd.create('circle', [pO,pI], {strokeWidth:2, strokeColor:'blue'}) ;	var pB = brd.create('glider',[1 ,0 ,c],{name:'B',color:'green',size: 4, visible:true});	brd.create('arrow',[pO,pA], {strokeWidth:2, strokeColor:'red'});	brd.create('angle', [pI,pO,pA], {name:'a',  type:'sector', orthoType:'sectordot', orthoSensitivity:2, radius:1});	brd.create('angle', [pI,pO,pB], {name:'b',  type:'sector', orthoType:'sectordot', orthoSensitivity:2, radius:1});	brd.create('arrow',[pO,pI], {strokeWidth:2,strokeColor:'red'});	brd.create('arrow',[pO,pB], {strokeWidth:2,strokeColor:'green'});	var bb = brd.create('arc',[pO,pI,pB], { strokeWidth:3 , strokeColor:'green'});	brd.create('text',[-1,1,function(){return 'cos($val6)  = x(A) = '  + pA.X();}], {color:'red', fixed:true});	brd.create('text',[0.5,1,function(){return 'sin($val6) = y(A) =  '  + pA.Y();}], {color:'red', fixed:true});	brd.create('text',[-1,-1,function(){return 'cos(b) = x(B) =  '  + pB.X().toFixed(5);}], {color:'green', fixed:true});	brd.create('text',[0.5,-1,function(){return 'sin(b) = y(B)   '  + pB.Y().toFixed(5);}], {color:'green', fixed:true});	brd.update() ;	
+!readproc slib/geo2D/jsxgraph  jxgbox, 400 x 400, $val10 
+tmp0=$slib_out
+val11=$(tmp0)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Dans un repère orthonormé du plan (O,I,J), le <font color="red">cercle trigonométrique</font> est le cercle centré en l'origine O(0,0) et de rayon 1. On oriente le cercle :	le <font color="red">sens trigonométrique direct</font> est le sens de I(1,0) vers J(0,1) ; le sens indirect est le sens inverse.	</p>		 Soit 
+!insmath a = $val6
+$() un réel.  On place sur le cercle le point A tel que :	<ol>	<li>  Partant du point I(1,0) on tourne dans le sens trigonométrique direct si 
+!insmath a > 0
+$() et  sinon	dans le sens indirect.</li>	<li> On effectue à partir de I un trajet sur le cercle de longueur égale à valeur absolue de 
+!insmath a
+$().</li>	</ol> Par définition l'<font color="red">angle orienté </font>	 
+!insmath \left( \vec{OI} , \vec{OA} \right) 
+$() a pour <font color="red">mesure 
+!insmath a
+$() radians</font>. </p>	<br>	 Par définition :  
+!insmath  cos \left( \vec{OI} , \vec{OA} \right) =  cos($val6) =  x_A  = $val7 
+$()  &nbsp;  et    &nbsp;   
+!insmath  sin($val6) =   y_A   = $val8
+$()	</p>		$val11	<p> <strong>Modifiez la position du <font color="green">point B</font> sur le cercle. Observez alors les valeurs prises par  
+!insmath  cos \left( \vec{OI} , \vec{OB} \right) 
+$()		et   
+!insmath  sin \left( \vec{OI} , \vec{OB} \right) 
+$().</strong>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11
+embedcnt=0

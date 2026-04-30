@@ -1,0 +1,151 @@
+!set title=Longueur d'un segment 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=length
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G,H,K,L,M,N,P
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+tmp0=!shuffle 2,3,4,5,6,7,8,9,10
+
+val9=$(tmp0)
+val10=$[rint(gcd($(val9[1]),$(val9[2])))]
+val11=$[rint($(val9[1])/$val10)]
+val12=$[rint($(val9[2])/$val10)]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val15=$[rint($val13*$(tmp0))]
+tmp0=!randint 1, 6
+
+val16=$[rint($val14*$(tmp0))]
+val17=$[rint($val15-$val13*$val11)]
+val18=$[rint($val16)]
+val19=$[rint($val15)]
+val20=$[rint($val16-$val14*$val12)]
+tmp=!translate ";': to $     $ in (($val19)-($val17))^2+(($val20)-($val18))^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=sqrt($(tmp0))
+val22=$[$val21]
+
+!ifval . notin $val22
+val11= $val22
+!else
+val11= $val21
+!endif
+replytype1=algexp
+replyname1=$val7 $val8
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soient 
+!insmath $val7
+$() et 
+!insmath $val8
+$() deux points du plan muni d'un repère orthonormé 
+!insmath (O,I,J)
+$() ;	
+!insmath $val7
+$() a pour coordonnées 
+!insmath ( $val17 ; $val18 )
+$() et 
+!insmath $val8
+$() a pour coordonnées 
+!insmath ( $val19 ; $val20 )
+$().	<p>	  Quelle est la mesure de la longueur du segment 
+!insmath [$val7\,$val8]
+$() ?	</p>	<div class="spacer">	<b>Votre réponse</b> :	<label for="reply1">
+!insmath $val7 $val8 =
+$()</label> 
+!read oef/embed.phtml r1,9 
+$() unités.	<div class="wims_instruction">Tapez sqrt(2) pour 
+!insmath \sqrt{2}
+$().</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On sait que, dans le plan muni d'un repère orthonormé,	pour deux points 
+!insmath A (x_A;y_A)
+$() et 
+!insmath B(x_B;y_B)
+$() la longueur 
+!insmath A B
+$() se calcule	avec la formule suivante :	<div class="wimscenter">	
+!insmath A B = sqrt((x_A-(x_B))^2+(y_A-(y_B))^2)
+$().	</div>	On obtient ici :	<div class="wimscenter">	  
+!insmath $val7 $val8 = sqrt(($val19-($val17))^2+($val20-($val18))^2)=$val11
+$().	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,17,18,19,20
+embedcnt=1

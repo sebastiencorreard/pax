@@ -1,0 +1,80 @@
+# liquiditeitsbegroting &amp; resultatenrekening II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+
+bank=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies
+nu=!date +%Y
+jaar1=!randint 1999,$nu
+d=!randint 3,8
+jaar2=$[$jaar1+$d]
+rente=!randint 30,90
+rente=$[$rente/10]
+lening=!randint 2,10
+maanden=januari,februari,maart,april,mei,juni,juli,augustus,september,oktober,november,december
+b=!randint 2,6
+c=!randint 7,12
+maand1=!item $b of $maanden
+maand2=!item $c of $maanden
+rounding=1
+checkfile=exos/precheck1.proc
+roundingtext=geef je antwoorden in hele &euro;
+
+!if $R=1
+    factor=10000
+    lening=$[$lening*$factor]
+    a=!randint 15,25
+    aflossing=$[1000*(floor($lening/($a*1000)))]
+
+    ex=Bereken de interestopbrengst voor $maand2 $jaar2
+    ans=$[$lening - ($jaar2-$jaar1)*$aflossing]
+    answer$n=$[$ans*($rente/1200)]
+    textanswer$n=De schuldrest bedraagt &euro; $lening &minus; $[$jaar2 - $jaar1] &times; $aflossing = &euro; $ans <br />De interestopbrengst voor $maand2 $jaar2 is : $[$rente/100] &times; $ans &divide; 12 = &euro;  $[round($(answer$n))]
+    description=Interestopbrengst
+!else
+    !if $R=2
+	factor=10000
+	lening=$[$lening*$factor]
+	a=!randint 15,25
+	aflossing=$[1000*(floor($lening/($a*1000)))]
+    
+	ex=Bereken het bedrag dat per 31 december $jaar2 nog aan interest moet worden ontvangen.
+	ans=$[$lening - ($jaar2-$jaar1)*$aflossing]
+	answer$n=$[$ans*(13-$b)*$rente/1200]
+	textanswer$n=De schuldrest bedraagt &euro; $lening &minus; $[$jaar2 - $jaar1] &times; $aflossing = &euro; $ans <br />De rente over 1 jaar is $[$rente/100] &times; $ans = &euro; $[$ans*$rente/100].<br />Er moet nog over $[13-$b] maanden rente betaald worden: $[13-$b] &times; $[$ans*$rente/100] &divide; 12 = &euro; $[round($(answer$n))]
+	
+	description=Interest op 31/12/$jaar2
+    !else
+	a=!randint 10,15
+	aflossing=!randint 2,6
+	aflossing=$[1000*$aflossing]
+	lening=$[$a*$aflossing]
+	ex=Als de lening volledig is afgelost, hoeveel interest heeft $bank dan in totaal ontvangen ?
+	description=Totaal ontvangen interest
+	answer$n=$[($a/2)*(2*$lening - ($a-1)*$aflossing)*($rente/100)]
+	sum=$empty
+	rr=$[$rente/100]
+	!for p=1 to $a
+	    !if $p=1
+		sum=$rr&times;$[$lening - ($p-1)*$aflossing]
+	    !else
+		sum=$sum + $rr&times;$[$lening - ($p-1)*$aflossing] 
+	    !endif
+	!next p
+	textanswer$n=De totaal ontvangen interest: <br />$sum = &euro; $(answer$n)<br /><br />\
+	Of wiskundig berekend: $rr &times; $a / 2 &times; ( $lening + $aflossing ) = &euro; $(answer$n)
+	
+    !endif
+!endif
+ss=$bank verstrekt 1 $maand1 $jaar1 een $rente % onderhandse lening ter grootte van &euro; $lening .<br />Elk jaar, te beginnen in $[$jaar1+1] , ontvangt $bank op 1 $maand1 een aflossing van &euro; $aflossing .<br />De interestbetaling van de lening gebeurt achteraf op 1 $maand1 van elk jaar.<br />Maandelijks stelt $bank een balans en een winst- en verliesrekening op.
+
+make_tr=1
+inputs=1.1
+ex1=&euro;
+question$n=<a onmouseover="return escape('$roundingtext')">$ss<br />$ex</a>
+
+helptext=$roundingtext

@@ -1,0 +1,359 @@
+# this file expects reply$n as input and gives modulescore as output
+# general checking file
+# the answer $(reply$n)
+# is a set of coordinates, written
+# by the student like (1,2) (3;4) (5:6)  (7:sin(3/2)) (9:sqrt(3))
+# the var1=1,2,3,4,5,6,7,sin(3/2),9,sqrt(3)
+# this file produces a modulescore
+# and a $var5
+# if there are NO POINTS as correct answer: no intersection points 
+# set var1=nil
+score1=0
+n=$counter
+errortext=$empty
+!if ? isin $var3
+    var5=$NOK
+    score1=0.1
+    goback=0
+    !exit
+!endif
+AAA=!lower $var3
+
+# check if the student thinks there are no real roots/coordinates
+test=!replace internal ( by @ in $AAA
+test=!replace internal : by # in $test
+test=!replace internal ; by # in $test
+test=!replace internal , by # in $test
+!if (# notin $test) or (@ notin $test)
+    nothing=!record 71 of $remarkdir/commonremarks.$taal
+    #@ 0,nul,zero,zip,nop,niks,nada,geen,niente
+    A=1
+    !for p in $nothing
+	!if $A !=0
+	    !if $p isin $AAA
+		A=0
+	    !endif
+	!endif
+    !next p
+    !if $A=0
+	# eg the answer was not a coordinate pair
+	$var5=$NOK
+	score1=0
+	goback=1
+	!exit
+    !endif
+!endif
+
+wordmax=50
+AAA=!nospace $var3
+char=!charcnt $AAA
+!if $char > $wordmax
+    errortext=!record 36 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P8*$maxscore]
+    goback=1
+ !exit
+!endif
+    
+AAA=!lower $AAA
+
+# checking syntax
+test=!replace internal ) by @ in $AAA
+!if @ isin $test
+    test=!replace internal , by # in $test
+    !if # isin $test
+	tt=!positionof char # in $test
+	nummers=0123456789
+	!for p in $tt
+	    tt1=!char $[$p-1] of $test
+	    tt2=!char $[$p+1] of $test
+	    !if $tt1 isin $nummers and $tt1 isin $nummers
+		!if $teaching=1 
+		    errortext=!record 11 of $remarkdir/commonremarks.$taal
+		    maxscore=$[$P1*$maxscore]
+		    goback=1
+		 !exit
+    		!else
+		    # we replace a comma 
+		    AAA=!replace internal char number $p by : in $AAA
+		!endif
+	    !endif
+	!next p
+    !else    
+	test=!replace internal : by @ in $AAA
+	test=!replace internal ; by @ in $test
+	!if @ notin $test
+	    errortext=!record 11 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$P1*$maxscore]	    
+	    goback=1
+	 !exit
+	!endif	
+    !endif
+!else
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 12 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+	
+
+# check for scientific notation
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+!for p=1 to 3
+    AAA=!replace internal ** by * in $AAA
+!next p
+t=!char 1 of $AAA
+!if $t=*
+    AAA=!char 2 to -1 of $AAA
+!endif
+    
+# check for a 'o' as "0"
+t=!positionof char o in $AAA
+!if $t != $empty
+    nummers=0.:;,123456789
+    !for p in $t
+	t1=!char $[$p-1] of $AAA
+    	t2=!char $[$p+1] of $AAA
+	!if $t1 isin $nummers or $t1 isin $nummers
+	    # so 123o 123.o 
+	    !if $teaching=1 
+		errortext=!record 13 of $remarkdir/commonremarks.$taal
+		maxscore=$[$P1*$maxscore]
+		goback=1
+	     !exit
+	    !else
+		# we correct o -> 0 ! 
+		AAA=!replace internal char number $p by 0 in $AAA
+		maxscore=$[$P1*$maxscore]
+		extra=!record 13 of $remarkdir/commonremarks.$taal
+	    !endif
+	!endif
+    !next p
+!endif
+    
+    
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs
+    !if $i isin $AAA
+	# first check on absolute bars |x|
+	test1=!replace internal $i| by # in $AAA
+	!if # isin $test1
+	    # so ln|x| ===> ln(|x|) 
+	    # rawmath gives |x| => abs(x)    
+	    pos=!positionof char | in $AAA
+	    tot=!itemcnt $pos
+	    !if $[gcd($tot,2)] != 2
+		# uneven number of |-strepen 
+		errortext=!record 15 of $remarkdir/commonremarks.$taal
+		maxscore=$[$P1*$maxscore]
+		goback=1
+	     !exit
+	    !endif
+	    !for r=1 to $[$tot-1]
+		p1=!item $r of $pos
+		p2=!item $[$r+1] of $pos
+		AAA=!replace internal char number $p1 by ~ in $AAA
+		AAA=!replace internal char number $p2 by # in $AAA
+		AAA=!replace internal ~ by (| in $AAA
+		AAA=!replace internal # by |) in $AAA
+	    !next r
+	!endif
+	test2=!replace internal $i( by # in $AAA
+	!if # notin $test2
+	    testvar1=!nospace $i ( x )
+	    testvar2=!nospace $i x
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$P1*$maxscore]
+	    goback=1
+	    !exit
+	!endif
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+    
+AAA=!replace internal pi by PI in $AAA
+AAA=!replace [a-z\~\!\@\#\$\=\%\&\_] by $empty in $AAA
+AAA=!tolower $AAA 
+# AAA=(1:5)(sqrt(3);log(4))(3:5)
+    
+AAA=!replace internal );( by , in $AAA
+AAA=!replace internal ):( by , in $AAA
+AAA=!replace internal ),( by , in $AAA
+AAA=!replace internal )( by , in $AAA
+AAA=!nospace $AAA
+    
+AAA=!char 2 to -2 of $AAA
+# AAA=(1:5,sqrt(3);log(4),3:5)
+# AAA=1:5,sqrt(3);log(4),3:5
+AAA=!replace internal : by , in $AAA
+AAA=!replace internal ; by , in $AAA
+    
+!for p=1 to 5
+    AAA=!replace internal ,, by , in $AAA
+!next p	
+    
+t2=!itemcnt $AAA
+!if $t2<2
+    # less than a pair of coordinates. No good
+    ex=!record 12 of $remarkdir/commonremarks.$taal
+    !if $teaching=1
+	errortext=$ex
+	maxscore=$[$P5*$maxscore]
+	goback=1
+    !else
+	# the answer can not be correct.
+	score1=0
+	$var5=$NOK<br />$ex
+    !endif
+ !exit
+!endif
+!if $[gcd($t2,2)] != 2
+    ex=!record 12 of $remarkdir/commonremarks.$taal
+    !if $teaching=1
+	errortext=$ex
+	maxscore=$[$P5*$maxscore]
+	# oneven number of coordinates 
+	goback=1
+     !exit
+    !else
+	# the answer can not be correct.
+	score1=0
+	$var5=$NOK<br />$ex
+    !endif
+ !exit
+!endif    
+    
+aaa=$empty
+!for p in $AAA
+    !if $rounding >0
+	p=$[(round($rounding*($p)))/$rounding]
+    !endif    
+    !if NaN isin $[1*($p)]
+	errortext=!record 18 of $remarkdir/commonremarks.$taal
+	maxscore=$[$P7*$maxscore]
+	goback=1
+	!exit
+    !endif
+    aaa=!append item $p to $aaa
+!next p
+    
+AAA=!nospace $aaa
+# AAA is now a list x1,y1,x2,y2,x3,y3,...,xn,yn
+# the correct answer is also a list x1,y1,x2,y2...
+t1=!itemcnt $var1
+Xa=$empty
+Xg=$empty
+Ya=$empty
+Yg=$empty
+    
+!for p=1 to $t2 step 2
+    x=!item $p of $AAA
+    y=!item $[$p+1] of $AAA
+    Xa=!append item $x to $Xa
+    Ya=!append item $y to $Ya
+!next p	
+    
+paritest1=$empty
+paritest2=$empty
+paritest3=$empty
+
+!for p=1 to $t1 step 2
+    x=!item $p of $var1
+    y=!item $[$p+1] of $var1
+    !if $rounding >0
+	x=$[(round($rounding*($x)))/$rounding]
+	y=$[(round($rounding*($y)))/$rounding]
+    !endif    
+    !for s=1 to $[$t2/2]
+	xa=!item $s of $Xa
+	ya=!item $s of $Ya
+	paritest1=!append line if((1.0*($x)==1.0*($xa))&&(1.0*($y)==1.0*($ya)),1,0) to $paritest1
+	paritest2=!append line if((1.0*($y)==1.0*($ya)),1,0) to $paritest2
+	paritest3=!append line if((1.0*($x)==1.0*($xa)),1,0) to $paritest3
+    !next s
+!next p
+    
+
+tot1=!exec pari $paritest1
+tot1=!words2items $tot1
+coord=$[$t1/2]
+totaal1=0
+tt=!itemcnt $tot1
+c=0
+
+step=$[$t2/2]
+!for p=1 to $tt step $step
+    begin=$p
+    end=$[$p+$step]
+    s=!item $begin to $end of $tot1
+    # 1,0,0,0
+    # 0,1,0,0
+    # 0,0,1,0
+    # 0,0,0,1 -> correct answer for 4 coordinates (x1:y1)...(x4:y4)
+    block=!append line $s<br /> to $block
+    !if 1 isin $s
+	!increase totaal1
+    !endif
+!next p
+factor=1
+!if $t1 != $t2
+    # minder coordinaten/punten ingevuld, of meer?
+    !if $t1 > $t2
+	factor=$t2/$t1
+	testvar1=$[$t1-$t2]
+	ex=!record 21 of $remarkdir/commonremarks.$taal
+    !else
+	testvar1=$[$t2-$t1]
+	ex=!record 20 of $remarkdir/commonremarks.$taal
+	factor=$t1/$t2
+    !endif
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+!if ($totaal1 != $coord) and ($factor=1)
+    totx=0
+    toty=0
+    # dus niet alle coordinaten waren goed
+    tot2=!exec pari $paritest2
+    tot3=!exec pari $paritest3
+    tot2=!words2items $tot2
+    tot3=!words2items $tot3
+    ttt=!itemcnt $tot2
+    !for p=1 to $ttt
+	sx=!item $p of $tot2
+	sy=!item $p of $tot3
+	totx=$[$totx + $sx]
+	toty=$[$toty + $sx]  
+    !next p
+    testvar1=$[(2*$ttt-($totx+$toty))/$t1]
+    testvar2=$t1
+    ex=!record 22 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+score1=$[($totaal1*$factor)/$coord]
+
+!if $score1>0.9
+    var5=$OK
+!else
+    !if $score>0.5
+	var5=$BOK
+    !else
+	var5=$NOK
+    !endif
+!endif 
+
+!if $extra != $empty
+    $var5=$var5<br />$extra
+!endif
+goback=0
+!exit

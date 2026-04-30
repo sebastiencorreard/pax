@@ -1,0 +1,75 @@
+#8 Verzekeren [risico &amp; informatie]
+var1=yes
+make_tr=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+mathview=0
+calculator=1
+inputs=-1
+checkfile=exos/precheck2.proc
+math=0
+#viewlogo=1
+#logotext=<img src=$module_dir/gifs/vergrijzing$pl.jpg alt=vergrijzing />
+#logo=<img src=$module_dir/gifs/vergrijzing.jpg alt=vergrijzing />
+dingen=Electrische fietsen,Luxe fietsen,Mountainbikes,Scooters,Snorfietsen,Bromfietsen,Scootmobielen,Gewone fietsen,Bakfietsen,Tandemfietsen,Racefietsen,ligfietsen,Omafietsen
+prijzen=750:3000,600:1400,700:1800,1500:3300,1500:3000,2000:4000,8000:12000,150:350,1000:2500,1000:2600,1000:5000,800:1800,300:700
+k=!itemcnt $dingen
+list=$empty
+!for p=1 to $k
+    list=!append item $p to $list
+!next p
+description=$empty
+list=!shuffle $list
+max=!randint 3,5
+rij0=<tr><th>Soort</th><th>Aantal</th><th>Gemiddelde waarde</th><th>Kans op diefstal</th><th>Premie per verzekerde</th></tr>
+rij=$empty
+answer_text=<ul>
+R=1
+var1=$empty
+var2=$empty
+!if $R=1
+    i=0
+    !for p=1 to $max
+	# random fiets met "reele"prijs
+	k=!item $p of $list
+	fiets=!item $k of $dingen
+	p_tot=!item $k of $prijzen
+	p_tot=!replace internal : by , in $p_tot
+	p_min=!item 1 of $p_tot
+	p_max=!item 2 of $p_tot
+	prijs=!randint $p_min,$p_max
+	prijs=$[10*(round($prijs/10))]
+	
+	aantal=!randint 5,50
+	aantal=$[$aantal*1000]
+	perc=!randint 20,60
+	perc=$[$perc/10]
+	kans=$[$perc/100]
+	ans=!exec moneyprint $[$kans*$prijs]
+	gestolen=$[$kans*$aantal]
+	bedrag=$[$gestolen*$prijs]
+	answer$n=!append line $ans to $(answer$n)
+	var1=!append item 0.5 to $var1
+	var2=!append item 100 to $var2
+	answer_text=!append word  $ <li>Van $aantal $fiets worden er ieder jaar $perc % gestolen.<br />Dat zijn $kans&times;$aantal=$gestolen stuks.<br />De totale uitkering is dan: $gestolen &times; &euro; $prijs = $bedrag <br />De uitkering wordt betaald uit de premies die betaald worden door $aantal verzekerden.<br />Dat is per verzekerde $bedrag &divide; $aantal = &euro; $ans.<br />Of handiger : $kans &times; &euro; $prijs = &euro; $ans</li> $ to $answer_text
+	rij=!append word $ <tr><td>$fiets</td><td>$aantal</td><td>&euro;&nbsp;$prijs</td><td>$perc %</td><td>&euro;&nbsp;<input type="text" id="myinput$i" class="schaersvoorde_input" size="6"/></td></tr> $ to $rij
+	ansrij=!append word $ <tr><td>$fiets</td><td>$aantal</td><td>&euro;&nbsp;$prijs</td><td>$perc %</td><td>&euro;&nbsp;$ans</td></tr> $ to $ansrij
+	description=!append item $fiets to $description
+	!increase i
+    !next p
+    answer_text=!append word </ul> to $answer_text
+    ss=Een verzekeraar verzekert voertuigen tegen diefstal <br />en wil weten welke premies gevraagd moeten worden aan de klanten.<br />De verzekeringsmaatschappij maakt gebruik van <kbd>premiedifferentiatie</kbd>.<br />Bereken de verzekeringspremie per verzekerde en vul de tabel in.<br />Hierbij mogen winsten en overige kosten voor de verzekeraar buiten beschouwing gelaten worden.
+!endif
+
+roundingtext=Rond je antwoord af op twee decimalen
+textanswer$n=<table class="demospecial">$rij0 $ansrij</table>$answer_text
+exotext=<table class="demospecial">$rij0 $rij</table>
+helptext=$roundingtext
+question$n=<a onmouseover="return escape('$roundingtext')">$ss<br /></a>
+
+

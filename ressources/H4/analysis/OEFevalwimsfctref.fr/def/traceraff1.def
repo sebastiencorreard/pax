@@ -1,0 +1,130 @@
+!set title=Tracer de fonctions affines 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=red,green,blue,orange
+val8=rouge,vert,bleu,orange
+val9=$[rint(4)]
+val10=1,2,3,4,-1,-2,-3,-4,1/2,1/3,3/2,2/3,1/4,3/4,-1/2,-1/3,-3/2,-2/3,-1/4,-3/4
+tmp0=!makelist x/2 for x=-7 to 7
+
+val11=$(tmp0)
+val12=
+!for val13  in $val10 
+!for val14  in $val11 
+tmp=!translate ";': to $     $ in $val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val15=!exec pari print($t_)
+
+!ifval $val15=0
+val16=$val13*x
+!else
+val16=$val13*x+$val15
+!endif
+tmp0=!append item $val16 to $val12
+
+val12=$(tmp0)
+!next
+!next
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+val17=
+!for val18 =1 to $val9 
+tmp0=!texmath $(val12[$val18])
+
+val16=\($(tmp0))
+tmp0=!append item $val16 to $val17
+
+val17=$(tmp0)
+val6=$val6	plot $(val7[$val18]),$(val12[$val18])	  
+!next
+val19=lightblue
+val20=xrange -3,3	yrange -3.5,3.5	gridfill 0,0,5,5,$val19	linewidth 3	vline 1,0,$val19	vline 2,0,$val19	vline 3,0,$val19	vline -1,0,$val19	vline -2,0,$val19	vline -3,0,$val19	hline 0,1,$val19	hline 0,2,$val19	hline 0,3,$val19	hline 0,-1,$val19	hline 0,-2,$val19	hline 0,-3,$val19	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	linewidth 2	$val6	
+val21=80x150x75
+replytype1=correspond
+replyname1=Réponse
+replygood1=$val17;$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="grid-x grid-margin-x">	  <div class="cell small-12 medium-6 large-7">	  On a tracé $val9 représentations graphiques de fonctions affines.	  Associer expression algébrique et couleur de tracé de fonctions affines.	<div class="wimscenter"> 
+!read oef/embed.phtml r1,$val21 
+$()</div>	  </div>	  <div class="cell auto">	     
+!read oef/draw.phtml 400,400 \
+$val20 
+$()	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,20,21
+embedcnt=1

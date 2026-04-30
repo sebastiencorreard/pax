@@ -1,0 +1,51 @@
+goback=0
+math=0
+errortext=$empty
+n=$counter
+
+!if $(reply$n)=?
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+tg=!itemcnt $(answer$n)
+ta=!itemcnt $(reply$n)
+!if $ta != $tg
+    ex=!record 38 of $remarkdir/commenremarks.$taal
+    remark$n=$NOK $ex
+    maxscore=0
+    goback=0
+    !exit
+!endif
+score=0
+yourreply=$empty
+!for p=1 to $tg
+    g=!item $p of $(answer$n)
+    a=!item $p of $(reply$n)
+    !if $g=$a
+	!increase score
+	k=green
+    !else
+	k=red
+    !endif
+    yourreply=!append word <li><font color="$k" size="+1">$a</font></li> to $yourreply
+!next p
+
+reply$n=<ul>$yourreply</ul>
+
+maxscore = $[$maxscore*($score)/$ta]
+modulescore=$[$modulescore+$maxscore]
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore>0.6
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

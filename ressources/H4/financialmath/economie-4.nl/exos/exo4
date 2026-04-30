@@ -1,0 +1,112 @@
+# Eigenvermogen III
+# 
+n=$counter
+!if $counter=1
+    mathview=0
+    !if $total_exos >2
+	total_exos=2
+    !endif
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=10
+    rows=1
+    inputs=1.1
+    viewlogo=1
+    var9=!shuffle 1,2,3,4,5,6,7,8,9
+    bedrijf=!randitem Somsen Export BV,Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading 
+    koers1=!randint 3,9
+    koers1=$[$koers1/2]
+    # wpa = winst per aandeel
+    wpa=!randint 5,50
+    wpa=$[$wpa/10]
+    koers3=$[$koers1 + $wpa]
+    koers2=!randint $[10*($koers1+0.1)],$[10*($koers3-0.1)]
+    koers2=$[$koers2/10]
+    tot=!exec moneyprint $koers1,$koers2,$koers3,$wpa 2
+    koers1=$(tot[1])
+    koers2=$(tot[2])
+    koers3=$(tot[3])
+    wpa=$(tot[4])
+
+    aantal1=!randint 200,600
+    # aantal2 = aandelen in poretfeuille
+    perc=!randint 100,300
+    perc=$[$perc/1000]
+    aantal2=$[round($aantal1*$perc)]
+    aantal1=$[100*$aantal1]
+    aantal2=$[100*$aantal2]
+    aandelen1=$[$koers1*$aantal1]
+    aandelen2=$[$koers1*$aantal2]
+    aandelen=$[$aandelen1+$aandelen2]
+#    agio=$[$koers3 - $koers1]
+    
+    herwaardering=!randint 80,200
+    herwaardering=$[1000*$herwaardering]
+    winstreserve=!randint 50,100
+    winstreserve=$[1000*$winstreserve]
+    agioreserve=$[($koers2 -$koers1)*$aantal1]
+    obligatielening=!randint 100,300
+    obligatielening=$[1000*$obligatielening]
+    crediteuren=!randint 10,60
+    crediteuren=$[1000*$crediteuren]
+    lijst2=$aandelen,$aandelen2,$aandelen1,$herwaardering,$winstreserve,$agioreserve,$obligatielening,$crediteuren
+    lijst1=Maatschappelijk aandelenvermogen,Aandelen in portefeuille,Geplaatst aandelenvermogen,Herwaarderingsreserve,Winstreserve,Agioreserve,Obligatielening,Crediteuren
+    
+    
+    tabel=<table class=\'balans_2\'><caption>Gedeelte van een balans</caption><tr><td><b>Activa</b></td><td>&nbsp;</td><td><b>Passiva</b></td><td>&nbsp;</td></tr>
+    !for p=1 to 8
+	txt=!item $p of $lijst1
+	geld=!item $p of $lijst2
+	tabel=!append word <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td >&nbsp;&nbsp;&nbsp;&nbsp;</td><td>$txt</td><td>&euro; &nbsp; $geld</td></tr> to $tabel    
+    !next p
+    tabel=!append word $ </table> $ to $tabel
+    procent1=!randint 5,10
+    p1=!randint 3,7
+    procent2=$[$procent1+$p1] 
+    procent3=!randitem 15,20,25
+    procent4=$[$procent1+$procent2]
+    
+    beschikbaar_dividend=$[$aandelen1*$procent4/100]
+    winst=!randint $[round(1.5*$beschikbaar_dividend)],$[round(2.5*$beschikbaar_dividend)]
+    winst=$[1000*(round($winst/1000))]
+    jaar=!date +%Y
+    jaar=$[$jaar-1]
+    num=!randint 5,25
+    num=$[$num*200]
+    #agioreserve2=$[$agioreserve + $aandelen2*($koers3 - $koers1)]
+    #eigenvermogen=$[$aandelen + $herwaardering + $winstreserve + $agioreserve2] 
+    cashdividend= $[$procent2*$aandelen1/100]
+    stockdividend= $[$procent1*$aandelen1/100]
+    aantal_stock= $[$stockdividend/$koers1]
+    belasting = $[$beschikbaar_dividend*$procent3/100] 
+    answer1=$[$cashdividend - $belasting]
+    # ppa =prijs per aandeel
+    ppa=$[$stockdividend/$aantal1]
+    num_geld= $[$num*$ppa]
+    answer2=$[$num_geld/$koers1]
+
+    textanswer1=<ul><li>Beschikbaar dividend : $procent4 &divide; 100  &times; $aandelen1 = &euro; $beschikbaar_dividend </li><li>Stockdividend : $procent1 &divide; 100 &times; $aandelen1 = &euro; $stockdividend </li><li>Cashdividend : $procent2 &divide; 100 &times; $aandelen1 = &euro; $cashdividend (belasting gaat ten koste van het cashdividend)</li><li>Belasting : $procent3 &divide; 100 &times; $beschikbaar_dividend = &euro; $belasting </li><li>Het netto cashdividend is dus : cashdividend &minus; belasting = $cashdividend &minus; $belasting = $answer1 </li></ul>
+    
+    textanswer2=<ul><li>Er zijn $aandelen1 &divide; $koers1  = $aantal1 stuks aandelen in omloop.</li><li>&euro; $stockdividend stockdividend betekent dus dat er $stockdividend &divide; $koers1 = $aantal_stock stuks aandelen wordt verdeeld onder alle aandeelhouders</li><li>Dat is dus $stockdividend &divide; $aantal1 = &euro; $ppa per aandeel</li><li>Men $num stuks aandelen is dat dan : $num &times; $ppa = &euro; $num_geld</li><li>Dat betekend $num_geld &divide; $koers1  = $answer2 aandelen stockdividend</li></ul>
+    som=Gegeven in <span class="schaersvoorde_link">dit gedeelte van een balans</span> van de onderneming $bedrijf<br />De nominale waarde van een aandeel bedraagt &euro; $koers1.<br />In $jaar bedroeg de nettowinst &euro; $winst.<br />Hieruit wordt $procent1 % stockdividend uitgekeerd en $procent2 % cashdividend.<br />De dividendbelasting is op dit moment $procent3 %.<br />Het restant van de winst wordt toegevoegd aan de winstreserve. 
+    question1=<a onmouseover="return escape('$tabel')">$som<hr />    Bereken hoeveel &euro; er wordt uitgekeerd aan de aandeelhouders na aftrek van de winstbelasting.</a>
+    question2=<a onmouseover="return escape('$tabel')">$som<hr />Bereken hoeveel aandelen aan stockdividend een belegger ontvangt als hij $num aandelen in bezit heeft.</a>
+    var6=Uigekeerd aan aandeelhouders,Aantal aandelen
+
+!endif
+nm=!item $counter of $var9
+logo=<img src=$module_dir/gifs/aandeel_klein.jpg alt=noalt />
+logotext=<img src=$module_dir/gifs/aandeel$nm.jpg alt=noalt />
+description=$(var6[$counter])
+rounding=1
+
+!if $n=1
+    roundingtext=Rond het eind geldbedrag af op hele &euro;&rsquo;s...<br />Maar rond tussenstappen <b>niet</b> af.
+    ex1=&euro;
+!else
+    roundingtext=Rond je eind antwoord af op hele aandelen...<br />Rond tussenstappen echter <b>niet</b> af.
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+    ex1=stuks
+!endif
+    helptext=$roundingtext
+!exit

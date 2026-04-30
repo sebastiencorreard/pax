@@ -1,0 +1,56 @@
+# Variable initialisation file.
+# This file is read by wims for new sessions.
+
+# content of the file: initialisation of the problem.
+
+debug=0
+
+status=waiting
+step=1
+fin_travail=0
+wims_module_log=$cmd
+result1=0
+result2=0
+result3=0
+result4=0
+
+!if $nm > 9
+  nm=9
+!endif
+
+l0 = !randint 10,30
+l0 = !eval $l0/100
+g = 9.81
+
+correct_points=
+
+!for i from 1 to $nm
+  nosc$i = !randitem 10,20
+  l$i = !eval $i*$l0
+  T$i = !eval 2*3.1415927*sqrt($(l$i)/$g)
+  duree$i = !eval $(nosc$i)*$(T$i)
+  
+  !! on garde 3 chiffres significatifs
+  !readproc slib/text/sigunits $(duree$i),3,0
+  !! on retire la puissance de dix (10^0 = 1)
+  duree$i = !replace  e0 by  $empty in $slib_out
+  !! on recalcule T$i pour que les arrondis soient rigoureux
+  T$i=$[$(duree$i)/$(nosc$i)]  
+  !readproc slib/text/sigunits $(T$i),3,0
+  T$i = !replace  e0 by  $empty in $slib_out
+  !! calcul des carrés des périodes
+  Tc$i = !eval $(T$i)*$(T$i)
+  !readproc slib/text/sigunits $(Tc$i),3,0
+  Tc$i = !replace  e0 by  $empty in $slib_out
+!next i
+
+okpente=$[$(Tc$nm)/$(l$nm)]
+!readproc slib/text/sigunits $okpente,3,0
+okpente = !replace  e0 by  $empty in $slib_out
+
+liste_points=
+bareme1=3
+bareme2=2
+bareme3=2
+bareme4=2
+bareme5=1

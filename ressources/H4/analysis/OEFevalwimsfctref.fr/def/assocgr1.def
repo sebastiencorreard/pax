@@ -1,0 +1,196 @@
+!set title=Association de fonctions 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+val7=xrange -3,3	yrange -3.5,3.5	gridfill 0,0,5,5,$val6	linewidth 3	vline 1,0,$val6	vline 2,0,$val6	vline 3,0,$val6	vline -1,0,$val6	vline -2,0,$val6	vline -3,0,$val6	hline 0,1,$val6	hline 0,2,$val6	hline 0,3,$val6	hline 0,-1,$val6	hline 0,-2,$val6	hline 0,-3,$val6	linewidth 1	vline 0,0,black	hline 0,0,black	linewidth 3	points red,1,0,0,1,0,0	text red,1,-0.1,medium,I	text red,-0.3,1.2,medium,J	text red,-0.2,-0.1,medium,O	linewidth 1	
+tmp0=!randitem -2,-3/2,-1,-1/2,1/2,1,3/2,2
+
+val8=$(tmp0)
+val9=1/2,1,2,3/2
+tmp0=!randitem -3/2,-5/4,-1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1,5/4,3/2
+
+val10=$(tmp0)
+tmp0=!randitem -1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1
+
+val11=$(tmp0)
+val12=cos
+val13=sin
+val14=
+val15=
+!for val16  in $val9 
+val15=\(1/(x+($val16)))
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\(1/x+($val16))
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\(($val16)*x+($val8))
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\(x^2+($val16))
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\((x+($val16))^2)
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\($val12(x)+$val16)
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+val15=\($val13(x)+$val16)
+tmp0=!append item $val15 to $val14
+
+val14=$(tmp0)
+!next
+tmp0=!shuffle $val14
+
+val17=$(tmp0)
+tmp0=!itemcnt $val14
+
+val18=$[rint($(tmp0))]
+tmp0=!shuffle $val18
+
+val19=$(tmp0)
+val20=
+!for val21 =1 to 4 
+val22=$[rint($(val19[$val21]))]
+val23=$(val14[$val22])
+t_=!replace internal \( by ( in $val23
+tmp0=!exec maxima $t_
+
+val23=$(tmp0)
+tmp0=!texmath $val23
+
+val23=\($(tmp0))
+tmp0=!append item $val23 to $val20
+
+val20=$(tmp0)
+!next
+tmp0=!shuffle red,blue,orange,green
+
+val24=$(tmp0)
+val25=180
+val26=
+!for val21 =1 to 4 
+val22=$[rint($(val19[$val21]))]
+!readproc oef/draw.phtml $val25,$val25 \
+    $val7	    linewidth 2	    plot $(val24[$val21]),$(val14[$val22])	     
+tmp0=$ins_url
+val27=<img src="	    $(tmp0)"	    width="$val25"	    height="$val25"	    alt="">	    
+tmp0=!append item $val27 to $val26
+
+val26=$(tmp0)
+!next
+val28=$val25 x$val25 x$val25
+replytype1=correspond
+replyname1=Correspondance graphe/fonction
+replygood1=$val26;$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Dans le plan muni d'un repère orthonormé 
+!insmath (O,I,J)
+$(), associez à chacune	  des fonctions ci-dessous, sa représentation graphique.	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val28 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Chaque expression algébrique est donnée sous forme canonique. <br>	Rappel (propriétés) : Si, pour tout réel 
+!insmath x
+$(), 
+!insmath f(x)=a\left(x-\alpha\right)^2+\beta
+$(), alors	<ul>	<li>La droite d'équation 
+!insmath x=\alpha
+$() est l'axe de symétrie de la parabole qui représente 
+!insmath f
+$();	<li>Si 
+!insmath a>0
+$(), la fonction 
+!insmath f
+$() admet pour minimum 
+!insmath \beta
+$(), et il est atteint en 
+!insmath x=\alpha
+$();	<li>Si 
+!insmath a<0
+$(), la fonction 
+!insmath f
+$() admet pour maximum 
+!insmath \beta
+$(), et il est atteint en 
+!insmath x=\alpha
+$().	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=28
+embedcnt=1

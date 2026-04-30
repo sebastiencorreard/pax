@@ -1,0 +1,250 @@
+# afsplitsing van sinus.kpi.proc
+# var4 is aantal uniek antwoorden
+# var5 is periode "2*k*pi" ofzo
+goback=0
+errortext=$empty
+# antwoorden als x=2k*pi
+n=$counter
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    maxscore=$[$maxscore*$P1]
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+wims_exec_error=$empty
+extra=$empty
+
+AAA=!lower $(reply$n)
+!if x notin $AAA
+    errortext=!record 23 of lang/remarks.$taal
+    #@ Je moet je antwoorden natuurlijk wel wiskundig noteren...<br />Wat dacht je van iets als:\
+    #@ <br />x=k*2*pi<br />en x=4/3*k*pi<br />of zo ?<br />Je kan ook even in de help-pagina kijken, $voornaam
+    maxscore=$[$P2*$maxscore]
+    goback=1
+ !exit 
+!endif
+
+AAA=!replace internal is by = in $AAA
+test=!replace internal = by @ in $AAA
+!if @ notin $test
+    maxscore=$[$maxscore*$P3]
+    errortext=!record 23 of lang/remarks.$taal
+    #@ Je moet je antwoorden natuurlijk wel wiskundig noteren...<br />Wat dacht je van iets als:
+    #@ <br />x=k*2*pi<br />en x=4/3*k*pi<br />of zo ?<br />Je kan ook even in de help-pagina kijken, $voornaam
+    goback=1
+ !exit 
+!endif
+
+checktext=0
+!if k notin $AAA and k isin $(answer$n)
+    !readproc exos/syntax.proc
+    # errortext=!record 122 of lang/remarks.$taal
+    # $voornaam ,er wordt een generieke/algemene oplossing verwacht<br />\
+    # Ik zou maar eens in de help-pagina's kijken :)
+    !if $goback=1
+     !exit
+    !endif
+!else
+    checktext=1
+!endif
+
+!if $taal=nl
+    !if pik isin $AAA
+	extra=!record 25 of lang/remarks.$taal
+	#@ extra=Je bedoelt natuurlijk pi*k <br />of iets normaler k*pi ;)<br />
+    !endif
+!endif
+
+
+AAA=!singlespace $AAA
+test=!replace internal =x by @ in $AAA
+test=!replace internal = x by @ in $test
+!if @ isin $test
+    maxscore=$[$maxscore*$P3]
+    testvar= <br /><span style="color:green">"<b>x</b> = 2*k*pi"<br /><span style="color:red">"2*k*pi = <b>x</b>"</span>
+    errortext=!record 53 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit 
+!endif
+
+AAA=!tolower $AAA
+# syntax: x1= of x_1= of x_10=
+# not very good ...
+AAA=!replace x[0-9] by , in $AAA
+AAA=!replace x_[0-9] by , in $AAA
+AAA=!replace internal = by , in $AAA
+AAA=!words2items $AAA
+AAA=!nospace $AAA
+
+!for i in sqrt,sin,cos,tan,log,ln,k,pi
+    S=!toupper $i
+    AAA=!replace internal $i by $S in $AAA
+!next i
+
+AAA=!replace [a-z~`!@&#%_:;"\'\?\|\=\<\>] by $empty in $AAA
+AAA=!lower $AAA
+AAA=!nospace $AAA
+!for p in +,-,*,/
+    AAA=!replace internal ,$p by $p in $AAA
+    AAA=!replace internal $p, by $p in $AAA
+!next p
+AAA=!replace internal ,) by ) in $AAA
+AAA=!replace internal (, by ( in $AAA
+
+# soms vervelende komma's 
+!for p=1 to 4
+    AAA=!replace internal ,, by , in $AAA
+!next p
+!if $checktext=1
+    # "k element of Z" added ? -> AAA=kpi,k
+    t=!itemcnt $AAA
+    tot=$empty
+    !for p=1 to $t
+	A=!item $p of $AAA
+	!if $A!=k
+	    tot=!append item $A to $tot
+	!endif
+    !next p
+    AAA=$tot
+!endif
+# ,k*pi,1/4*k*pi, -> k*pi,1/4*k*pi 
+test=!char 1 of $AAA
+!if $test=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+test=!char -1 of $AAA
+!if $test=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+AAA=!nospace $AAA
+
+ta=!itemcnt $AAA
+
+!if $ta=0
+    goback=1
+    testvar=$(reply$n)
+    maxscore=$[$P4*$maxscore]
+    errortext=!record 39 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+
+# dit doet ie goed
+#!set wims_rawmath_variables=k
+#!rawmath k*2p  => k*2*pi
+#!rawmath 2kpi  => 2*k*pi                                                                                                           
+
+# # # uitsplitsen op meerdere goede antwoorden
+# # # moet beter kunnen :(
+#!rawmath k2*pi => k2*pi 
+#!rawmath k2pi  => k2pi 
+#!rawmath pi2k  => pi2k
+#!rawmath pik2  => pik2
+
+
+wims_rawmath_variables=k
+AAA=!rawmath $AAA
+!for p in 1,2,3,4,5,1/2,1/3,2/3,4/3,1/4,1/5,2/5,3/5
+    ding=!nospace $p * k * pi
+    # standaard 2kpi
+    ding1=!nospace k * $p * pi
+    ding2=!nospace pi * $p * k
+    ding3=!nospace pi * k * $p 
+    ding4=!nospace k * $p * pi
+    ding5=!nospace k $p  pi
+    ding6=!nospace pi  $p  k
+    ding7=!nospace pi  k  $p 
+    ding8=!nospace k  $p  pi
+    
+    AAA=!replace internal $ding1 by $ding in $AAA
+    AAA=!replace internal $ding2 by $ding in $AAA
+    AAA=!replace internal $ding3 by $ding in $AAA
+    AAA=!replace internal $ding4 by $ding in $AAA
+    AAA=!replace internal $ding5 by $ding in $AAA
+    AAA=!replace internal $ding6 by $ding in $AAA
+    AAA=!replace internal $ding7 by $ding in $AAA
+    AAA=!replace internal $ding8 by $ding in $AAA
+!next p
+# var5 = periode
+
+score=0
+found=0
+ta=!itemcnt $AAA
+tg=!itemcnt $(answer$n)
+rep=<ul>
+#dbg=$empty
+!for a=1 to $ta
+    tmp1=0
+    org=!item $a of $AAA
+    org=!rawmath $org
+    A=!replace internal pi by 3 in $org
+    ex=$empty
+    found=0
+    # max 3 items in $(answer$n) 
+    !for g=1 to $tg
+	G=!item $g of $(answer$n)
+	!if $tmp1=0
+	    # dus niks gevonden
+	    G=!replace internal k by 3 in $G
+	    G=!replace internal pi by 3 in $G
+	    G=$[$G]
+	    test=!exec pari for(x=-10,10,As=subst($A,k,x);if(As == $G,print(1),print(0)));
+	    #dbg=!append line A=$A G=$G test=$test<br /> to $dbg
+	    !if 1 isin $test
+		found=!append item $g to $found
+		tmp1=1
+		!if $var5 notin $org
+		    # var5=2*k*pi  x=1/2+4*kpi  : niet perfect
+		    ex=(de correcte periode is <kbd>$var5</kbd>)
+		    tmp1=0.75
+		!endif
+	    !endif
+	!endif
+    !next g
+    !if $tmp1 = 1
+	k=green
+    !else
+	!if $tmp1 >0.4
+	    k=orange
+	!else
+	    k=red
+	!endif
+    !endif    
+    score=$[$score + $tmp1]
+    rep=!append word $ <li><span style="color:$k">$org</span> $ex</li> $ to $rep
+!next a
+# var4 is het aantal unieke goede antwoorden
+score=$[$score/$var4]
+rep=!append word $ </ul> $ to $rep
+!if $ta > $var4
+    maxscore=$[$maxscore*$P1]
+    testvar=$[$ta - $var4]
+    extra=!record 51 of $remarkdir/commonremarks.$taal
+!endif
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore> 0.9
+    remark$n=$OK
+!else
+    !if $maxscore > 0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+math=0
+reply$n=!append line $rep<br /> to $(reply$n)
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra 
+!endif
+goback=0
+!exit
+

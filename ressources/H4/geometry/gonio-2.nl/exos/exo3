@@ -1,0 +1,60 @@
+n=$counter
+checkfile=exos/checkfile1.proc
+embed=1
+formula$n=f\left(x\right)\:=\:[?]
+cols=20
+rows=1
+mathview=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+make_tr=1
+funtype=!record 1 of lang/remarks.$taal
+#@sin:sinus ,cos:cosinus
+gonio=!randitem $funtype
+gonio=!replace internal : by , in $gonio
+functie=!item 1 of $gonio
+soort=!item 2 of $gonio
+
+ss=!record 4 of lang/remarks.$taal
+#@In de onderstaande applet wordt een bewegende $soort curve getoond.<br />De beweging wordt veroorzaakt door variatie in een hulpvariabele <kbd>s</kbd>.<br />Het is nu de bedoeling dat je het functievoorschrift van deze <kbd>$soort</kbd> probeert te achterhalen<br />waarin een hulpvariabele <kbd>s</kbd> de ligging van de curve bepaald...<br />Druk op <kbd>start</kbd> voor de animatie.
+
+helptext=!record 5 of lang/remarks.$taal
+#@De gezochte goniometrische functie zou<br />van het type <kbd>f(x)= $functie(x)+s</kbd><br />of iets als <br /><kbd>f(x)= $functie(s+x)</kbd> kunnen zijn
+wims_rawmath_variables=s
+
+!if $counter=1
+    !if $subject=4
+	var1=$functie(s*x),s*$functie(s*x),s+$functie(s*x),\
+        $functie(s+x),s+$functie(s*x),\
+	s-$functie(s*x),s-$functie(s*x),s*$functie(x),\
+        s+$functie(x),s-$functie(x)
+    !else
+	var1=$functie(x/s),$functie(x)/s,\
+        $functie(s+x)/s,s+$functie(x)/s,\
+        s+$functie(s*x)/s,s-$functie(s*x),s-$functie(s*x),\
+        s*$functie(x),s+$functie(x),s-$functie(x),\
+        $functie(s*x),s+$functie(s*x),$functie(s+x),s+$functie(s*x),s-$functie(s*x),\
+        s-$functie(s*x),s*$functie(x),s+$functie(x),s-$functie(x)
+    !endif
+    var1=!shuffle $var1
+!endif
+
+answer$n=!item $counter of $var1
+answer$n=!nospace $(answer$n)
+myname=$wims_nowseconds.data
+!filewrite getfile/$myname $(answer$n)
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+applet=1
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+s_min=0
+s_max=5
+object$n=<object width="680" height="400" classid="java:SilentAnimatedGraph.class" type="application/x-java-applet;jpi-version=1.4 "><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="jcm1.0-config.jar" /><param name="java_code" value="SilentAnimatedGraph.class" /><param name="PanelTitle" value="$module_title" /><param name="FrameTitle" value="$module_title" /><param name="Parameter" value="s" /><param name="File" value="$myfile" /><param name="ParameterMin" value="$s_min" /><param name="ParameterMax" value="$s_max" /><param name="Intervals" value="30" /><param name="UseMouseZoom" value="no" /><param name="UsePanner" value="no" /><param name="UseFunctionInput" value="no" /><param name="UseLimitsPanel" value="yes" /><param name="UseNextAndPrev" value="no" /><param name="UseAnimatorInputs" value="yes" /><param name="FrameSize" value="600 400" /><param name="UseRestoreButton" value="no" /><param name="UseEqualizeButton" value="no" /><param name="UseZoomButtons" value="no" /><param name="BackgroundColor" value="0 0 180" /><param name="ForegroundColor" value="150 0 0" /><param name="PanelBackground" value="200 200 255" /><param name="CanvasColor" value="black" /><param name="AxesColor" value="lightGray" /><param name="AxesLightColor" value="gray" /><param name="BorderColor" value="gray" /><param name="GraphColor" value="yellow" /><param name="ParameterColor" value="white" /><param name="LabelColor" value="white" /><param name="XLabel" value="x-axis" /><param name="YLabel" value="y-axis" />$nojava</object>
+
+texanswer$n=!texmath f(x)=$(answer$n)
+
+
+!exit

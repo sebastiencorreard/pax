@@ -1,0 +1,43 @@
+goback=0
+n=$counter
+# check on scientific notation 3e+12 3*10^12
+test=!nospace $AAA
+!if x10 isin $test
+    ex=!record 68 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !if $teaching=1
+	goback=1
+	errortext=$ex
+      !exit
+    !else
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+	AAA=!replace internal x10 by *10 in $AAA
+    !endif
+!else
+    test=!replace [0-9]e[0-9] by @ in $test
+    !if @ isin $test
+	maxscore=$[$P1*$maxscore]
+	testvar1=!replace internal e by e+ in $AAA
+	testvar1=<font color=green>$testvar1</font>
+	testvar2=<br><font color=red>$AAA</font>
+	errortext=!record 16 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    AAA=!replace internal ** by ^ in $AAA
+    AAA=!replace internal e+ by *10^ in $AAA
+    AAA=!replace internal e- by *10^- in $AAA
+    !for p=1 to 3
+	AAA=!replace internal ** by * in $AAA
+    !next p
+    t=!char 1 of $AAA
+    !if $t=*
+	AAA=!char 2 to -1 of $AAA
+    !endif	
+!endif
+    
+!exit

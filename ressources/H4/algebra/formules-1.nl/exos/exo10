@@ -1,0 +1,79 @@
+#:25 Herleid naar ax+by=c
+checkfile=exos/checkfile5.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+mathview=5
+mathviewpanel=$module_title:(:):;:c:+:-:*:^:/
+helptext=(5 + 1/5*c : 2*c + 4)
+keuze=!randitem 0,1
+!if $R>0
+    question$n=!record 17 of lang/remarks.$taal
+    #@Schrijf de volgende functie in de vorm ax+by=c, waarbij a, b en c hele getallen zijn.
+    a=!randitem 2,3,4
+    p=!randitem -2,-1,1,2,3,4,5,6,7
+    f=$[$a+$p]
+    !if $f=0
+	f=3
+    !endif
+    !if $f=$[-1*$a]
+	f=7
+    !endif
+    !if $keuze=0
+	b=!randint 2,9
+	d=!randint 2,9
+	tot=!exec pari A=($b+$d)/$p\
+	    printtex(A)\
+	    B=1/$p\
+	    printtex(B)\
+	    C=$f*A-$d\
+	    printtex(C)\
+	    D=$f*B\
+	    printtex(D)
+	g=!line 1 of $tot
+        g_tex=!line 2 of $tot
+        h=!line 3 of $tot
+        h_tex=!line 4 of $tot
+        k=!line 5 of $tot
+        k_tex=!line 6 of $tot
+        l=!line 7 of $tot
+        l_tex=!line 8 of $tot
+        formula$n=\left[ \begin{array}{l} y -$a x = $b + c \\ $f x - y =$d \end{array} \right.
+        answer$n=$g+$h*c,$k+$l*c
+        texanswer$n=\left[ \begin{array}{l} y -$a x = $b + c \\ -y + $f x =$d \\ ---------+\\(-$a + $f )x= $b+$d + c\\ $[-1*$a+$f] x = $[$b+$d] +c \rightarrow x=$g_tex + $h_tex c \rightarrow y=$k_tex + $l_tex c \\ \left( $g_tex + $h_tex c ; $k_tex + $l_tex c\right)  \end{array}\right.
+    !else
+	b=!randint 2,9
+        d=!randint 2,9
+        !if $b=$d
+	    b=$[$b+2]
+	!endif
+	tot=!exec pari A=($b-$d)/$p\
+	    printtex(A)\
+	    B=1/$p\
+	    printtex(B)\
+	    C=$f*A+$d\
+	    printtex(C)\
+	    D=$f*B\
+	    printtex(D)
+	g=!line 1 of $tot
+	g_tex=!line 2 of $tot
+	h=!line 3 of $tot
+	h_tex=!line 4 of $tot
+	k=!line 5 of $tot
+	k_tex=!line 6 of $tot
+	l=!line 7 of $tot
+	l_tex=!line 8 of $tot
+	formula$n=\left[ \begin{array}{l} y -$a x = $b + c \\ -$f x + y =$d \end{array} \right.
+        answer$n=$g+$h*c,$k+$l*c
+        texanswer$n=\left[ \begin{array}{l} y -$a x = $b + c \\ y - $f x =$d \\ ---------\,\,\, &minus; \\(-$a - - $f )x= $b-$d + c\\ $[-1*$a+$f] x = $[$b-$d] +c \rightarrow x=$g_tex + $h_tex c \rightarrow y=$k_tex + $l_tex c \\ \left( $g_tex + $h_tex c ; $k_tex + $l_tex c\right)  \end{array}\right.
+    !endif
+!exit
+!endif
+

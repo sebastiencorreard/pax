@@ -1,0 +1,156 @@
+!set title=Ensemble de définition d'une fonction quotient (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David
+computeanswer=no
+
+ansorder=r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val9*$val8)]
+
+!ifval $val9=$val7/$val6 
+val7=$[rint( $val7+1)]
+!endif
+tmp=!translate ";': to $     $ in ($val6*x + $val7)/($val8*x+$val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=!rawmath $(tmp0)
+tmp0=!texmath $val11
+
+val12=$(tmp0)
+val13=strictement inférieurs à, inférieurs ou égaux à, différents de, supérieurs ou égaux à, strictement supérieurs à
+val14=$[rint(3)]
+val15=$[rint(-$val9)]
+val16=$[$val15]
+val17=65x40
+val18=\(\cap\)
+tmp=!trim &#93;,-&#8734;,&#44;,$val16, &#91;,\(\cup\),&#93;,$val16,&#44;,+&#8734;,&#91;
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!itemcnt $(val19[1;])
+
+val20=$(tmp0)
+val21=r3
+oefsteps=reply1,reply2	reply3 
+nextstep=!nosubst reply1,reply2	reply3 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val14;$val13
+replytype2=numeric
+replyname2=
+replygood2=$[$val16]
+replytype3=clickfill
+replyname3=
+replygood3=$val19;$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Le quotient d'un nombre par zéro n'est pas défini.
+
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<em>Cet exercice comporte deux étapes.</em><br/>	Soit 
+!insmath f
+$() une fonction de la variable réelle 
+!insmath x
+$() définie par 
+!insmath f(x) = $val11 
+$().<br/>	
+!if $m_step=1 
+$()La fonction est définie pour tous les 
+!insmath x
+$() 
+!read oef/embed.phtml reply1 
+$()  
+!read oef/embed.phtml reply2,5 
+$()	et seulement pour ceux-ci.  
+!endif
+$()	
+!if $m_step=2 
+$()<p>	La fonction est définie pour tous les 
+!insmath x
+$() $(val13[3]) 
+!insmath $val15
+$() et seulement pour ceux-ci.	</p>	<p>L'ensemble de définition de la fonction f est </p>	<div class="wimscenter">  
+!read oef/embed.phtml r3,$val17 x $val20 
+$()</div>	<div class="wims_instruction">Remplir le champ avec ces éléments	en rangeant par ordre croissant	les bornes des intervalles.</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()Le quotient d'un nombre par zéro n'est pas défini.
+$()
+!exit
+
+:help
+$()On appelle <span class="bold">ensemble de définition de la fonction 
+!insmath f
+$()</span> l'ensemble des nombres réels possédant une image par 
+!insmath f
+$().
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,15,17,20
+embedcnt=3

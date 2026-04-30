@@ -1,0 +1,202 @@
+!set title=Forme canonique du second degré (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+
+ansorder=r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 1, 6
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+val9=$[rint(2*$val8*$val7)]
+val10=$[rint(-($val8*$val7))]
+
+!ifval $val8==1
+val11= + $val7 
+!else
+val11= - $val7
+!endif
+
+!ifval $val8==1
+val12= + 2\times$val7\times 
+!else
+val12= - 2\times$val7\times 
+!endif
+val13=$[rint(($val7)^2)]
+val13=-$val13
+t_=!rawmath -($val10)^2
+val14=!exec pari print($t_)
+val15=!rawmath x^2 +$val9 x
+tmp=!nonempty items -1,1,-1
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+
+!ifval $val16==1
+val17=
+!else
+val17=-
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 12
+
+val18=$[rint($(tmp0)*$(tmp1))]
+val15=!rawmath x^2 +$val9*x
+tmp0=!replace internal * by in $val15
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in $val16*($val15) +$val18
+tmp0=!exec maxima $t_
+
+val20=!rawmath $(tmp0)
+t_=!rawmath $val18-$val16*($val10)^2
+val21=!exec pari print($t_)
+oefsteps=reply1, reply2	reply3, reply4 
+nextstep=!nosubst reply1, reply2	reply3, reply4 
+!readproc oef/steps.proc
+replytype1=rational
+
+replyoption1=nonstop 
+replyname1=Coefficient \(\,\alpha\)
+replygood1=$val10
+replytype2=rational
+
+replyoption2=nonstop 
+replyname2=Coefficient \(\,\beta\)
+replygood2=$val14
+replytype3=rational
+
+replyoption3=nonstop 
+replyname3=Coefficient \(\,\alpha\)
+replygood3=$val10
+replytype4=rational
+
+replyoption4=nonstop 
+replyname4=Coefficient \(\,\gamma\)
+replygood4=$val21
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<!--- Première étape -->	Soit 
+!insmath u
+$() la fonction définie sur 
+!insmath \R
+$() par 
+!insmath  u(x) = $val15
+$().	
+!if $m_step==1 
+$()	  <h2 class="small">Question 1.</h2>	  Réécrire 
+!insmath u(x)
+$() sous forme canonique :	  <div class="wimscenter"> 
+!insmath u(x) = (x - \alpha)^2 + \beta 
+$()	  avec <label for="reply1">
+!insmath \,\alpha
+$() =</label>  
+!read oef/embed.phtml reply1,8 
+$()	   <label for="reply2">et 
+!insmath \,\beta
+$() =</label>  
+!read oef/embed.phtml reply2,8 
+$().</div>	 
+!endif
+$()	<!--- Deuxième étape-->	
+!if $m_step==2 
+$()	  <h2 class="small">Analyse de la question 1.</h2>	  
+!if $m_reply1=$val10 and $m_reply2=$val14 
+$()	    <span class="oef_indgood">Vous avez répondu correctement. On a bien&nbsp;:</span> 
+!else
+$()	     <span class="oef_indbad">Vous vous êtes trompé. La bonne réponse est&nbsp;:</span>  
+!endif
+$()	  
+!insmath $val19= [x^2 $val12 x + $val7^2] - $val7^2 = (x $val11)^2 $val13 = (x - ($val10))^2 $val14
+$().	  <h2 class="small">Question 2.</h2>	  En déduire la forme canonique de 
+!insmath f(x) = $val20
+$() :	  <div class="wimscenter"> 
+!insmath f(x) = $val17(x - \alpha)^2 + \gamma 
+$()	  avec <label for="reply3">
+!insmath \,\alpha
+$() =</label>  
+!read oef/embed.phtml reply3,8 
+$()	   <label for="reply4">et 
+!insmath \,\gamma
+$() =</label>  
+!read oef/embed.phtml reply4,8 
+$().	   </div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	Dans l'expression 
+!insmath x^2 + a x
+$() on reconnaît le début du développement	de 
+!insmath \left(x + \frac{a}{2} \right)^2
+$().	<div class="wimscenter">	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,13,14,15,17,19,20
+embedcnt=4

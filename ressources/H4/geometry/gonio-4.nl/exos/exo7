@@ -1,0 +1,111 @@
+# exo7 vergelijking oplossen
+
+n=$counter
+!if $rounding !=0
+  rounding=0
+  !readproc $remarkdir/rounding.$taal
+!endif
+applet=1
+checkfile=exos/sinus.kpi.proc
+embed=1
+inputs=-1
+mathview=5
+make_tr=0
+math=0
+ss=!record 22 of lang/remarks.$taal
+#@Los de onderstaande vergelijking <b>exact</b> op.
+m_rightarrow=$empty
+keuze=!randint 1,18
+a=!item $keuze of 1/6,1/3,1/4,1/6,1/8,1/8,1/8,1/6,1/6,1/3,1/3,1/4,1/4,3/8,3/8,1/3,3/8,1/8
+atex=!item $keuze of \frac{1}{6}\cdot\pi,\frac{1}{3}\cdot\pi,\frac{1}{4}\cdot\pi,\frac{1}{6}\cdot\pi,\frac{1}{8}\cdot\pi,\frac{1}{8}\cdot\pi,\frac{1}{8}\cdot\pi,\frac{1}{6}\cdot\pi,\frac{1}{6}\cdot\pi,\frac{1}{3}\cdot\pi,\frac{1}{3}\cdot\pi,\frac{1}{4}\cdot\pi,\frac{1}{4}\cdot\pi,\frac{3}{8}\cdot\pi,\frac{3}{8}\cdot\pi,\frac{1}{3}\cdot\pi,\frac{3}{8}\cdot\pi,\frac{1}{8}\cdot\pi
+b=!item $keuze of 3,2,3,2,2,3,5,4,5,4,5,4,5,2,3,3,4,4
+
+f1=tan(x+$a*pi)
+f2=tan($b*x)
+formula$n=\tan\left(x+$atex\right) = \tan($b \cdot x) \rightarrow ?
+
+
+tot=!exec pari C=$a/($b - 1)\
+printtex(C)\
+E=1/2 - $a\
+printtex(E)
+
+
+c=!line 1 of $tot
+ctex=!line 2 of $tot
+e=!line 3 of $tot
+etex=!line 4 of $tot
+d=$[$b-1]
+dtex=\frac{1}{$d}
+!if $d=1
+ dtex=$empty
+!endif
+
+!if $keuze=16
+ answer$n=2/3*pi+k*pi
+ var4=1
+!else
+ !if $keuze=17
+  kmax=6
+  answer$n=19/24*pi+k*2*pi,35/24*pi+k*2*pi
+  var4=2
+ !else
+  !if $k=18
+   kmax=6
+   answer$n=1/24*pi+k*pi,7/24*pi+k*pi
+   var4=2
+  !else
+   kmax=7
+   var4=1
+   answer$n=$c*pi+k/$d*pi
+  !endif
+ !endif
+!endif
+
+sometext=!record 24 of lang/remarks.$taal
+#@we moeten de asymptoten uitsluiten,en hier zit geen asymptoot tussen...,voor k=0 tot k=$kmax controleren we of er een asymptoot tussen zit...,dit is een asymptoot,dus de oplossing is...
+
+!if $keuze < 16
+ texanswer$n=\left\{\begin{array}{l}\tan\left(x+$atex\right) = \tan($b \cdot x) \\ \textrm{$(sometext[1])} : \left\{ \begin{array}{lcl} x + $atex \ne \frac{1}{2} \pi + k\pi & \rightarrow & x \ne $etex \pi + k\pi \\ $b x \ne \frac{1}{2}\pi + k\pi & \rightarrow & x \ne \frac{1}{$[2*$b]} \pi + k \cdot\frac{1}{$b} \pi \end{array} \right. \\ $b x = x + $atex + k \pi \rightarrow ( $b - 1) \cdot x = $atex + k \pi \\ x = $ctex \pi + k \cdot $dtex \pi \;\; ( \textrm{ $(sometext[2]) } ) \end{array} \right.
+!else
+ !if $keuze=16
+  texanswer$n=\left\{\begin{array}{l}\tan\left(x+$atex\right) = \tan($b \cdot x) \\ \textrm{$(sometext[1])} : \left\{ \begin{array}{lcl} x + $atex \ne \frac{1}{2} \pi + k\pi & \rightarrow & x \ne $etex \pi + k\pi \\ $b x \ne \frac{1}{2}\pi + k\pi & \rightarrow & x \ne \frac{1}{$[2*$b]} \pi + k \cdot\frac{1}{$b} \pi \end{array} \right. \\ $b x = x + $atex + k \pi \rightarrow ( $b - 1) \cdot x = $atex + k \pi \\ x = $ctex \pi + k \cdot $dtex \pi \\ \textrm{ $(sometext[3]) } \left\{ \begin{array}{llll} k = 0 & \rightarrow & x = \frac{1}{6} \pi & \textrm{ $(sometext[4]) } \\ k = 1 & \rightarrow & x = \frac{2}{3} \pi & \\ k = 2 & \rightarrow & x = 1\frac{1}{6} \pi & \textrm{ $(sometext[4]) } \\ k = 3 & \rightarrow & x = 1\frac{2}{3} \pi & \\ k = 4 & \rightarrow & x = 2\frac{1}{6} \pi & \textrm{ $(sometext[4]) } \\ k = 5 & \rightarrow & x = 2\frac{2}{3} \pi & \end{array} \right. \\ \textrm{$(sometext[5])} \; x = \frac{2}{3}\pi + k\pi \end{array} \right.
+ !else
+  !if $keuze=17
+   texanswer$n=\left\{\begin{array}{l}\tan\left(x+$atex\right) = \tan($b \cdot x) \\ \textrm{$(sometext[1])} : \left\{ \begin{array}{lcl} x + $atex \ne \frac{1}{2} \pi + k\pi & \rightarrow & x \ne $etex \pi + k\pi \\ $b x \ne \frac{1}{2}\pi + k\pi & \rightarrow & x \ne \frac{1}{$[2*$b]} \pi + k \cdot\frac{1}{$b} \pi \end{array} \right. \\ $b x = x + $atex + k \pi \rightarrow ( $b - 1) \cdot x = $atex + k \pi \\ x = $ctex \pi + k \cdot $dtex \pi \\ \textrm{ $(sometext[3]) } \left\{ \begin{array}{llll} k = 0 & \rightarrow & x = \frac{1}{8} \pi & \textrm{ $(sometext[4]) } \\ k = 1 & \rightarrow & x = \frac{19}{24} \pi & \\ k = 2 & \rightarrow & x = \frac{35}{24} \pi & \\ k = 3 & \rightarrow & x = 2\frac{1}{8} \pi & \textrm{ $(sometext[4]) } \\ k = 4 & \rightarrow & x = \frac{67}{24} \pi & \\ k = 5 & \rightarrow & x = \frac{83}{24} \pi & \end{array} \right. \\ \textrm{$(sometext[5])} \; x = \frac{19}{24}\pi + k\cdot 2\pi \wedge x = \frac{35}{24}\pi + k \cdot 2 \pi \end{array} \right.
+  !else
+   !if $keuze=18
+    texanswer$n=\left\{\begin{array}{l}\tan\left(x+$atex\right) = \tan($b \cdot x) \\ \textrm{$(sometext[1])} : \left\{ \begin{array}{lcl} x + $atex \ne \frac{1}{2} \pi + k\pi & \rightarrow & x \ne $etex \pi + k\pi \\ $b x \ne \frac{1}{2}\pi + k\pi & \rightarrow & x \ne \frac{1}{$[2*$b]} \pi + k \cdot\frac{1}{$b} \pi \end{array} \right. \\ $b x = x + $atex + k \pi \rightarrow ( $b - 1) \cdot x = $atex + k \pi \\ x = $ctex \pi + k \cdot $dtex \pi \\ \textrm{ $(sometext[3]) }  \left\{ \begin{array}l{lll} k = 0 & \rightarrow & x = \frac{1}{24} \pi & \\ k = 1 & \rightarrow & x = \frac{3}{8} \pi & \textrm{ $(sometext[4]) } \\ k = 2 & \rightarrow & x = \frac{17}{24} \pi & \\ k = 3 & \rightarrow & x = \frac{25}{24} \pi & \\ k = 4 & \rightarrow & x = \frac{11}{8} \pi & \textrm{ $(sometext[4]) } \\ k = 5 & \rightarrow & x = \frac{41}{24} \pi & \\ k = 6 & \rightarrow & x = \frac{49}{24} \pi & \end{array} \right. \\ \textrm{$(sometext[5])} \; x = \frac{1}{24}\pi + k\pi \wedge x = \frac{17}{24}\pi + k\pi \end{array} \right.
+   !endif
+  !endif
+ !endif
+!endif
+
+mathviewpanel=$module_title:x=: and :k*pi:2*k*pi:sin():cos():tan()
+
+
+
+xsize=300
+ysize=300
+
+object$n=!exec canvasdraw \
+size $xsize,$ysize\
+xrange -3.5,3.5\
+yrange -5,5\
+opacity 255,200\
+#bgcolor white\
+axis\
+# axisnumbering\
+xaxis -2*pi:-2\u03c0:-pi:-\u03c0:-0.5*pi:-\u00bd\u03c0:0:0:0.5*pi:\u00bd\u03c0:pi:\u03c0:2*pi:2\u03c0\
+precision 1\
+grid pi,1,grey,2,2,5,grey\
+linewidth 1\
+precision 100\
+opacity 255,255\
+jscurve red,$f1\
+jscurve blue,$f2\
+mouse red,22
+
+#intooltip <img src=\'scripts/authors/jm.evers/gifs/canvas.png\' alt=\'plaatje\' style=\'width:30px;height:30px\' />
+
+question$n=<a onmouseover="return escape('zie plaatje')">$ss</a>

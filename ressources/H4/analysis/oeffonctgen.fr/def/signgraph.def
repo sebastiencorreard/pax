@@ -1,0 +1,159 @@
+!set title=Signe graphiquement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez;Bruno,Mifsud
+email=Cyrille.douriez@ac-amiens.fr;bmifsud@ac-aix-marseille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 0
+
+val6=$[$(tmp0)]
+tmp0=!randint 3, 6
+
+val7=$[$val6+$(tmp0)]
+val8=$[$val6+$val7]
+val9=$[$val6*$val7]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val10=$[4/($val6-$val7)^2*$(tmp0)*$(tmp1)]
+t_=!replace internal \( by ( in expand($val10*(x-$val6)*(x-$val7))
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+
+!ifval ($val10>0)
+val12= 2,1,2
+!else
+val12=1,2,1
+!endif
+
+!ifval ($val10>0)
+val13= +,-,+
+!else
+val13=-,+,-
+!endif
+val14=$[rint(-5)]
+val15=$[rint(7)]
+val16=xrange $val14,$val15	yrange -6,6	linewidth 1	linewidth 2	  parallel -5,-6,-5,6,1,0,12,grey	  parallel -5,-6,7,-6,0,1,13,grey	linewidth 2	vline 0,0,black	hline 0,0,black	segment-0.2,1,0.2,1,black	segment1,-0.2,1,0.2,black	text black,0.7,-0.1,medium,I	text black,-0.4,1,medium,J	text black,-0.3,-0.1,medium,O	parallel -4,0.2,-4,-0.2,8,0,2,black	text black,-4.1,0.6,medium,-4	text black,3.9,0.6,medium,4	parallel -0.2,-4,0.2,-4,0,8,2,black	text black,0.4,-4,medium,-4	text black,0.4,4,medium,4		  linewidth 1.5	plot blue,$val11	
+val17=$val16	linewidth 2	crosshairsize 5	crosshairs red,$val6,0,$val7,0
+replytype1=numeric
+replyname1=
+replygood1=$[$val6]
+replytype2=numeric
+replyname2=
+replygood2=$[$val7]
+replytype3=menu
+replyname3=
+replygood3=$(val12[1]);-,+
+replytype4=menu
+replyname4=
+replygood4=$(val12[2]);-,+
+replytype5=menu
+replyname5=
+replygood5=$(val12[3]);-,+
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Ci-dessous est tracée la courbe représentative d'une fonction f définie sur 
+!insmath \mathbb{R}
+$().	<div class="wimscenter">	 
+!read oef/draw.phtml 300,300 \
+	$val16 
+$()	</div> 	<p>Lire graphiquement le signe de 
+!insmath f(x)
+$() :</p>	<table cellspacing="0" width="40%">	<tbody>	<tr>	<td	style="border-right: 1px solid; border-bottom: 1px solid;text-align: center;" width="35%">
+!insmath x
+$()	</td>	<td style="border-bottom: 1px solid;text-align: left; width: 5%">
+!insmath -\infty
+$() </td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: center; width: 5%"> 
+!read oef/embed.phtml r1,2 
+$()</td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: center; width: 5%"> 
+!read oef/embed.phtml r2,2 
+$()</td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: right; width: 5%">
+!insmath +\infty
+$()</td>	</tr>	<tr>	<td style="border-right: 1px solid;text-align: center;">
+!insmath f(x)
+$()</td>	<td style="text-align: left; width: 5%"></td>	<td style="text-align: center; width: 10%"> 
+!read oef/embed.phtml r3,2 
+$()</td>	<td style="text-align: center; width: 5%">0</td>	<td style="text-align: center; width: 10%"> 
+!read oef/embed.phtml r4,2 
+$()</td>	<td style="text-align: center; width: 5%">0</td>	<td style="text-align: center; width: 10%"> 
+!read oef/embed.phtml r5,2 
+$()</td>	<td style="text-align: right; width: 5%"></td>	</tr>	</tbody>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<div class="wimscenter">	 
+!read oef/draw.phtml 300,300 \
+	$val17 
+$()	</div> 	<p>Dans le graphique ci dessus, la fonction change de signe lorsque la courbe coupe l'axe des abscisses 	(points rouges de la courbe).</p>	<p>Le tableau de signe est donc le suivant :</p>	<table cellspacing="0" width="40%">	<tbody>	<tr>	<td	style="border-right: 1px solid; border-bottom: 1px solid;text-align: center;" width="35%">
+!insmath x
+$()	</td>	<td style="border-bottom: 1px solid;text-align: left; width: 5%">-&infin; </td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: center; width: 5%">$val6</td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: center; width: 5%">$val7</td>	<td style="border-bottom: 1px solid;text-align: center; width: 10%"></td>	<td style="border-bottom: 1px solid;text-align: right; width: 5%">+&infin;</td>	</tr>	<tr>	<td style="border-right: 1px solid;text-align: center;">
+!insmath f(x)
+$()</td>	<td style="text-align: left; width: 5%"></td>	<td style="text-align: center; width: 10%">$(val13[1])</td>	<td style="text-align: center; width: 5%">0</td>	<td style="text-align: center; width: 10%">$(val13[2])</td>	<td style="text-align: center; width: 5%">0</td>	<td style="text-align: center; width: 10%">$(val13[3])</td>	<td style="text-align: right; width: 5%"></td>	</tr>	</tbody>	</table>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13,16,17
+embedcnt=5

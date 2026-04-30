@@ -1,0 +1,133 @@
+!set title=Racine carrée équation 2: a&radic;(x)+b&#61;c
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=squareroot
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+computeanswer=yes
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 20
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 0, 10
+
+tmp=!nonempty items -1,1,1
+
+tmp1=!randitem $tmp
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$[rint($val8*$val6+$val7)]
+t_=!replace internal \( by ( in $val6*sqrt(x)+$val7
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+val11=$[rint($val8*$val8)]
+
+!ifval ($val8<0)
+val11= aucune
+!else
+val11=$val11
+!endif
+val12=$[rint($val9-$val7)]
+replytype1=fset
+replyname1=Solutions
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Résoudre dans &#91;0;+&infin;&#91; l'équation :	<div class="wimscenter wims_emph">
+!insmath $val10 = $val9
+$()</div>	S= 
+!read oef/embed.phtml r1,8 
+$()	<div class="wims_instruction">	En cas d'absence de solution, écrire : aucune. </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>On a: 
+!insmath $val10=$val9
+$()</p>	<p> $m_Leftrightarrow 
+!insmath $val6 \sqrt{x}=$val12
+$() </p>	<p> $m_Leftrightarrow 
+!insmath \sqrt{x}=$val8
+$()</p>	<p>
+!if $val8<0 
+$()Comme : 
+!insmath \sqrt{x}\geq 0
+$() et 
+!insmath $val8<0
+$() il n'y a pas de solution. 
+!else
+$() $m_Leftrightarrow 
+!insmath x=$val8^2=$val11
+$(). 
+!endif
+$()</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12
+embedcnt=1

@@ -1,0 +1,277 @@
+#<object id="ballenbak" code="Plinko.class" codebase="$appletdir" archive="Plinko.jar" width="220" height="100" MAYSCRIPT>                 
+#    <param name="wims_exercise" value="1"/>                                                                                                
+#    <param name="xsize" value="400"/>                                                                                                      
+#    <param name="ysize" value="400"/>                                                                                                      
+#    <param name="fontsize" value="12"/>                                                                                                    
+#    <param name="bins" value="$var1"/>                                                                                                     
+#    <param name="chance" value="$var4"/>                                                                                                   
+#    <param name="speed" value="$var3"/>                                                                                                    
+#    <param name="title" value="Applet by Prof. P. Little"/>                                                                                
+#    <param name="language" value="$taal"/>                                                                                                 
+#    <param name="balls" value="$var2"/>                                                                                                    
+#</object>   
+#
+# R=1: reply= balls in bin_0 @ Puser_reply ,balls in bin_1 @ Puser_reply , ... balls in bin_$var1 @ Puser_reply   
+# R=2: reply= balls in bin_0 @ Puser_reply @ Puser_theoretic , balls in bin_1 @ Puser_reply @ Puser_theoretic , ... balls in bin_$var1 @ Puser_reply @ Puser_theoretic ,   
+# R>2: reply= balls in bin_0 @ Puser_reply @ Puser_theoretic @ deltaP , balls in bin_1 @ Puser_reply @ Puser_theoretic @ deltaP, ... balls in bin_$var1 @ Puser_reply @ Puser_theoretic ,   
+# R=1: $var5*$var1 inputfields == items in reply$n
+# R=2: $var5*$var1 inputfields == items in reply$n
+# R=3: $var5*$var1 inputfields == items in reply$n
+# var5= aantal in te vullen rijen... 
+n=$counter
+!if $taal notin en nl
+    PDF=galton.en.pdf
+!else
+    PDF=galton.$taal.pdf
+!endif
+
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    rr=!record 167 of lang/remarks.$taal
+    #@En er is ook al geen goed antwoord...<br />je hebt me de statistische gegevens niet gestuurd...
+    textanswer$n=$rr<hr /><a target="new" href="$module_dir/docs/$PDF" >$PDF</a>
+    !exit
+!endif
+
+!if $rounding<1
+    rnd1=1000
+    rnd2=100
+!else
+    rnd1=$rounding
+    rnd2=$[$rounding/10]
+!endif
+t=!itemcnt $(reply$n)
+
+!if $t != $var1
+    errortext=Hmmmm ?
+    goback=1
+    maxscore=$[$P7*$maxscore]
+    # redistribute by javascript the answers in the correct fields
+    reply$n=$empty
+    !exit
+!endif
+
+org=$(reply$n)
+balls=$empty
+PL=$empty
+sum=0
+# Pe empirische kans; Pt is theoretisch
+sum_se=0
+sum_te=0
+sum_st=0
+sum_sd=0
+Pe_student=$empty
+Pt_student=$empty
+Pd_student=$empty
+
+!for p=1 to $var1
+    data=!item $p of $(reply$n)
+    data=!replace internal @ by , in $data
+    bal=!item 1 of $data
+    P=!item 2 of $data  
+    balls=!append item $bal to $balls
+    Pe_student=!append item $P to $Pe_student
+    sum=$[$sum + $bal]
+    sum_se=$[$sum_se+$P]
+    !if $var5>1
+	!if $var5=2
+	    #theoretische kans van leerling
+	    P=!item 3 of $data
+	    sum_st=$[$sum_st+$P]
+	    Pt_student=!append item $P to $Pt_student
+	!else
+	    #$var5=3
+	    #theoretische kans van leerling en verschil tussen empirisch & theoretisch
+	    P=!item 3 of $data
+	    sum_st=$[$sum_st+$P]
+	    Pt_student=!append item $P to $Pt_student
+	    P=!item 4 of $data
+	    sum_sd=$[$sum_sd+$P]
+	    Pd_student=!append item $P to $Pd_student
+	!endif
+    !endif
+!next p
+
+score=0
+procent1=1
+procent2=1
+sign1=$empty
+sing2=$empty
+
+!ifval $[round($sum_se)] = 100 
+    extra=!record 149 of lang/remarks.$taal
+    #@Je hebt procenten uitgerekend...<br />en een kans is een getal tussen 0 en 1
+    maxscore=$[$maxscore*$P2]
+    procent1=100
+    sign1=%
+!else
+    !ifval $[round($sum_st)] = 100 
+	extra=!record 149 of lang/remarks.$taal
+	maxscore=$[$maxscore*$P2]
+	procent2=100
+	sign2=%
+    !else
+	sign=$empty
+	procent1=1
+	procent2=1
+	!ifval $[round($sum_se)]>1
+	    testvar=$sum_se
+	    extra=!record 168 of lang/remarks.$taal
+	    #@De totale kans is natuurlijk gewoon 1 .... en niet $testvar
+	!endif
+	!ifval $[round($sum_st)]>1
+	    testvar=$sum_st
+	    ex=!record 168 of lang/remarks.$taal
+	    extra=!append line <br />$ex to $extra
+	!endif
+    !endif
+!endif
+docent=$empty
+leerling=$empty
+bakje=bakje
+ex=afrondingsfoutje...
+### berekenen de theoretische kans (var4 is ingestelde kans 0.5....
+m=$[$var1-1]
+Pt_docent=$empty
+!for s=0 to $m
+    P=$[((($var4)^$s)*(1 - $var4)^($m -$s))*(factorial($m))/(factorial($s)*factorial($m - $s))]
+    Pt_docent=!append item $P to $Pt_docent
+!next s
+
+cortext=!record 170 of lang/remarks.$taal
+#@ total $sum balls ; $ball in bin $p
+extext=!record 157 of lang/remarks.$taal
+#@nummer bakje,aantal ballen,empirische kans P,theoretische kans P,verschil theoretische en empirische kans,emprisch,theoretisch,rest
+empirisch=!item 6 of $extext
+theoretisch=!item 7 of $xetext
+###
+# PD = kans docent
+# PS = kans student
+!for p=1 to $var1
+    # goede kans
+    # PDe1 is empirische goede kans
+    ball=!item $p of $balls
+    PDe1=$[(round($rnd1*($ball/$sum)))/$rnd1]
+    PDe2=$[(round($rnd2*($ball/$sum)))/$rnd2]
+    # leerling antwoord
+    # PSe1 is empirische kans antwoord van leerling/student
+    PSe=!item $p of $Pe_student
+    PSe1=$[(round($rnd1*($PSe)))/($rnd1*$procent1)]
+    PSe2=$[(round($rnd2*($PSe)))/($rnd2*$procent1)]
+    rem=$empty
+    !ifval $PSe1 = $PDe1
+	!increase score
+	k=green
+    !else
+	!ifval $PSe2 = $PDe2
+	    score=$[$score + $P8]
+	    rem=$ex
+	    k=orange
+	!else
+	    k=red
+	!endif
+    !endif
+    stt=$cortext
+#    docent=!append line $ totaal $sum ballen , waarvan $ball in bakje $p :<br /> P<sub>empirisch</sub> = $PDe1<br /> $ to $docent
+    docent=!append line $ $stt :<br /> P<sub>$empirisch</sub> = $PDe1<br /> $ to $docent
+    leerling=!append line $ <span style="color:$k>"P<sub>$empirisch</sub> = $PSe $sign1 $rem</span><br /> $ to $leerling
+    !if $var5=2
+	PSt=!item $p of $Pt_student
+	PSt1=$[(round($rnd1*($PSt)))/($rnd1*$procent2)]
+	PSt2=$[(round($rnd2*($PSt)))/($rnd2*$procent2)]
+	PDt=!item $p of $Pt_docent
+	PDt1=$[(round($rnd1*($PDt)))/($rnd1)]
+	PDt2=$[(round($rnd2*($PDt)))/($rnd2)]
+	rem=$empty
+	!ifval $PSt1 = $PDt1
+	    !increase score
+	    k=green
+	!else
+	    !ifval $PSt2 = $PDt2
+		score=$[$score + $P8]
+		rem=$ex
+		k=orange
+	    !else
+		k=red
+	    !endif
+	!endif
+	docent=!append line $ P<sub>$theoretisch</sub> = $PDt1 <br /> $ to $docent
+	leerling=!append line $ <span style="color:$k">P<sub>$theoretisch</sub> = $PSt $sign2 $rem</span><br /> $ to $leerling
+    !else
+	!if $var5=3
+	    ### kopie van var5=2
+	    PSt=!item $p of $Pt_student
+	    PSt1=$[(round($rnd1*($PSt)))/($rnd1*$procent2)]
+	    PSt2=$[(round($rnd2*($PSt)))/($rnd2*$procent2)]
+	    PDt=!item $p of $Pt_docent
+	    PDt1=$[(round($rnd1*($PDt)))/($rnd1)]
+	    PDt2=$[(round($rnd2*($PDt)))/($rnd2)]
+	    rem=$empty
+	    !ifval $PSt1 = $PDt1
+		!increase score
+		k=green
+	    !else
+		!ifval $PSt2 = $PDt2
+		    score=$[$score + $P8]
+		    rem=$ex
+		    k=orange
+		!else
+		    k=red
+		!endif
+	    !endif
+	    docent=!append line $ P<sub>$theoretisch</sub> = $PDt1 <br /> $ to $docent
+	    leerling=!append line $ <span style="color:$k">P<sub>$theoretisch</sub> = $PSt $sign2 $rem</span><br /> $ to $leerling
+	    ### einde kopie van var5=2
+	    ### verschil kans tussen theoretisch en empirisch...
+	    Diff=!item $p of $Pd_student
+	    PSd1=$[(round($rnd1*($Diff)))/($rnd1)]
+	    PSd2=$[(round($rnd2*($Diff)))/($rnd2)]
+	    # correct delta P
+	    PDd1=$[abs($PDe1 - $PDt1)]
+	    PDd2=$[abs($PDe2 - $PDt2)]
+	    
+	    rem=$empty
+	    !ifval $PDd1 = $PSd1
+		!increase score
+		k=green
+	    !else
+		!ifval $PDd2 = $PSd2
+		    score=$[$score + $P8]
+		    rem=$ex
+		    k=orange
+		!else
+		    k=red
+		!endif
+	    !endif
+	    docent=!append line $ &Delta;P = $PDd1 $ to $docent
+	    leerling=!append line $ <span style="color:$k">&Delta;P = $Diff $rem</span> $ to $leerling
+	!endif
+    !endif
+    docent=!append line <hr /> to $docent
+    leerling=!append line <hr /> to $leerling
+!next p
+
+textanswer$n=$docent<hr /><a target="new" href="$module_dir/docs/$PDF" >$PDF</a>
+
+reply$n=$leerling
+
+maxscore=$[$maxscore*$score/($var1*$var5)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

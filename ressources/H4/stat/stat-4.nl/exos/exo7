@@ -1,0 +1,81 @@
+#binomiaal en cumulatief II
+n=$counter
+mathview=0
+math=0
+cols=6
+make_tr=1
+!if $rounding<1
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+cols=10
+inputs=1.1
+checkfile=$checkdir/new_number.proc
+var2=$rounding
+var1=$[1/(10*$rounding)]
+kans=!randint 60,80
+kans=$[$kans/100]
+niet_kans=$[1-$kans]
+aantal=!randint 60,100
+a=!randint 1,6
+product=colliers,tiara's,armbanden,halskettingen,trouwringen,horloge's
+product1=collier,tiara,armband,halsketting,trouwring,horloge
+product=!item $a of $product
+product1=!item $a of $product1
+b1=$[round(0.7*$aantal)]
+b2=$[round(0.8*$aantal)]
+aantal1=!randint $b1,$b2
+niet=!randitem 1,2,3
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+num=!item $niet of $telwoorden
+wel=$[$aantal1 - $niet]
+
+ss=Een juwelier wordt jaarlijk door $aantal klanten bezocht die ge&iuml;nteresseerd zijn in zeer exclusieve $product.<br />\
+De juwelier weet dat voor elke ge&iuml;nteresseerde klant in dat product de kans een exclusieve $product1 aan hem/haar <br />\
+te verkopen $kans is. De juwelier koopt &eacute;&eacute;n keer per jaar zijn voorraad in.<br />
+
+ex1=$empty
+octave_precision=6
+!if $counter=1
+    description=<b>P</b>
+    m_rightarrow=&asymp;
+    ss1=Hoe groot is de kans dat de juwelier bij inkoop van $aantal1 producten $num of meerdere <br />\
+    exclusieve $product <b><u>niet</u></b> binnen het daaropvolgende jaar verkoopt ?<br />
+    #binomiaal
+    answer$n=!exec octave binocdf($wel,$aantal,$kans)
+    !if $(answer$n)=NaN
+	answer$n=0
+	!for t=0 to $wel
+	    P=$[($kans^($t))*(($niet_kans)^($aantal - $t))*(factorial($aantal)/(factorial($t) * factorial($aantal - $t)))]
+	    answer$n=$[$(answer$n)+$P]
+	!next t
+    !endif
+    r_ans=$[(round($rounding*$(answer$n)))/$rounding]
+    textanswer$n=<ul><li>$num of meer producten <b>niet</b> verkopen, betekent $wel of minder producten wel verkopen </li><li>P(X &le; $wel | n = $aantal , p = $kans) &asymp; $(answer$n) &asymp; $r_ans </li></ul>Met de GRM:<ul><li>Texas Instruments (Ti84)<ul><li>binomcdf($aantal , $kans , $wel)</li></ul></li><li>Casio (fx-CG)<ul><li>Bcd (Binomial C.D)</li><li>lower=0</li><li>upper=$wel</li><li>numtrial=$aantal</li><li>p=$kans</li></ul></li></ul>
+!else
+tot=$empty
+    description=<b>Aantal</b>
+    m_rightarrow=&nbsp;=&nbsp;
+    ex1=stuks
+    !for p=3 to 10
+	b3=$[round($p*$aantal/10)]
+	perc=!exec octave binocdf($b3,$aantal,$kans)
+	!if $perc>0.01
+	    !goto KLAAR
+	!endif
+    !next p
+    !if $perc=NaN
+    
+    !endif
+    :KLAAR
+    answer$n=$[$b3+$niet]
+    perc=$[(round(10000*$(perc)))/100]
+    ss1=De juwelier wil het risico dat hij met $num of meer exclusieve $product blijft zitten tot $perc % beperken.<br />Hoeveel exclusieve $product  moet hij daarom jaarlijks inkopen?
+    textanswer$n=<ul><li>De juwelier koopt N producten in.</li><li>$niet of meer producten <b>niet</b> verkopen, betekent N-$niet of minder producten wel verkopen </li><li>P(X &le; N-$niet | n = $aantal , p = $kans) &asymp; $[$perc/100] </li></ul>Met de GRM:<ul><li>Texas Instruments (Ti84)<ul><li>y1=binomcdf($aantal , $kans , X)</li><li>Tabel</li><li>In de tabel kun je zien dat N-$niet=$b3</li><li>Hij moet er $(answer$n) inkopen</li></ul></li><li>Casio (fx-CG) <ul><li>Statistic binomial InvB</li><li>Area: $[$perc/100]</li><li>Numtrial: $aantal</li><li>P: $kans</li><li>N - $niet=$b3</li><li>Hij moet er $(answer$n) inkopen</li></ul></li></ul>
+    
+!endif
+question$n=<a onmouseover="return escape('<img src\'=$module_dir/gifs/exo6.png\' alt=\'noalt\'>')">$ss<br />$ss1</a>
+helptext=<img src=\'$module_dir/gifs/exo6.png\' alt=\'noalt\'>
+
+

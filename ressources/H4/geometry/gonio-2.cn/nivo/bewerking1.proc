@@ -1,0 +1,154 @@
+wims_exec_error=$empty
+n=$teller
+    A=!wordcnt $(ANT$n)
+    
+    !if $A=0
+	OPMERKING=!record 21 of woorden.$taal
+	!increase poging
+	TERUG=1
+	!exit
+    !endif
+    
+    AAA=!lower $(ANT$n)
+    
+    !if ? isin $AAA or niet isin $AAA or no isin $AAA
+	OPMERKING=!record 130 of woorden.$taal
+	opmerking$n=$OPMERKING
+	ANT$n=!record 171 of woorden.$taal
+	modulescore=$[$modulescore + 0.1]
+	TERUG=0
+	!exit
+    !endif
+    
+    !if $(SIN$n) notin $AAA
+	OPMERKING=!record 112 of woorden.$taal
+	TERUG=1
+	!increase poging
+	!exit
+    !endif
+    AAA=!replace internal @ by $empty in $AAA
+    AAA=!rawmath $AAA
+    test=!nospace $AAA
+    !for i in sinx,sind,sinb,sinc,sins
+	test=!replace $i by @ in $test
+    !next i
+    !if @ isin isin $test 
+	!if $bijles=1
+	    OPMERKING=!record 112 of woorden.$taal
+	    !if $taal=nl
+		OPMERKING=$OPMERKING <br> De juiste computer-schrijfwijze voor alle functies is:<br>\
+		<font color=$fontcolor2>iets(x)</font> , dus sin(x) of sin(d*x)<br>even verbeteren , $voornaam
+	    !else	
+		OPMERKING=$OPMERKING <br>the correct syntax is: sin(x) or sin(d*x) <br>Ok?
+	    !endif
+	    !increase poging	
+	    TERUG=1
+	    !exit
+	!else
+	    AAA=!replace internal sinx by sin(x) in $AAA
+	    AAA=!replace internal sindx by sin(d*x) in $AAA
+	    AAA=!replace internal sinbx by sin(b*x) in $AAA
+	    AAA=!replace internal sincx by sin(c*x) in $AAA
+	    AAA=!replace internal sinsx by sin(s*x) in $AAA
+	!endif
+    !endif
+
+    test=!nospace $AAA
+    !for i in cosx,cosd,cosb,cosc,coss
+	test=!replace $i by @ in $test
+    !next i    
+    !if @ isin $test
+	!if $bijles=1	
+	    OPMERKING=!record 112 of woorden.$taal
+	    !if $taal=nl
+		OPMERKING=$OPMERKING <br> De juiste computer-schrijfwijze voor alle functies is:<br>\
+		iets(x) , dus cos(x) of cos(d*x)...<br>even verbeteren , $voornaam
+	    !else	
+		OPMERKING=$OPMERKING <br>the correct syntax is: cos(x) or cos(d*x)<br>Ok?
+	    !endif
+	    !increase poging
+	    TERUG=1
+	    !exit	    
+	!else
+	    AAA=!replace internal cosx by cos(x) in $AAA
+	    AAA=!replace internal cosdx by cos(d*x) in $AAA
+	    AAA=!replace internal cosbx by cos(b*x) in $AAA
+	    AAA=!replace internal coscx by cos(c*x) in $AAA
+	    AAA=!replace internal cossx by cos(s*x) in $AAA
+	!endif
+    !endif
+    
+    AAA=!nospace $AAA
+    !if $instinker=1 and $nivo=2
+	!if s notvariableof $AAA
+	    testvar=s
+	    OPMERKING=!record 126 of woorden.$taal
+	    !increase poging
+	    TERUG=1
+	    !exit	    
+	!endif
+    !endif    
+    
+    AAA=!replace internal $(letter$n)(x)= by $empty in $AAA
+    AAA=!replace internal $(letter$n):y= by $empty in $AAA
+    AAA=!replace internal y= by $empty in $AAA
+    
+    !if x notin $AAA
+	OPMERKING=!record 23 of woorden.$taal
+	!increase poging
+	TERUG=1
+	!exit
+    !endif
+
+    AAA=!replace internal sin by SIN* in $AAA
+    AAA=!replace internal cos by COS* in $AAA
+    AAA=!replace internal x by X in $AAA
+    AAA=!replace internal d by D in $AAA
+    AAA=!replace internal b by B in $AAA
+    AAA=!replace internal c by C in $AAA
+    AAA=!replace internal s by S in $AAA
+
+    AAA=!replace [a-z\"\@\#\%\:\;\"\?\'\`\~\=] by  in $AAA
+
+    AAA=!rawmath $AAA
+
+    A=!wordcnt $AAA
+    !if $A!=1
+	testvar=$(ANT$n)
+	OPMERKING=!record 142 of woorden.$taal
+	!increase poging
+	TERUG=1	
+    	!exit
+    !endif
+
+    !if $(SIN$n)=sin
+        ggg=!replace internal sin by SIN* in $(GOED$n)
+    !else
+	ggg=!replace internal cos by COS* in $(GOED$n)
+    !endif
+
+    ggg=!upper $ggg
+
+    test=!exec pari if(($AAA==$ggg),1,0)
+    !if $wims_exec_error != $wmpty
+	testvar=<br>$(ANT$n)
+	OPMERKING=!record 142 of woorden.$taal
+	!increase poging
+	TERUG=1
+	!exit
+    !endif	
+    goed=!randitem $goeden
+    fout=!randitem $fouten
+
+    !if $test=1
+	!increase modulescore
+    	OPMERKING=<font color=$fontcolor4>$goed $OK </font>
+	FOUT=0
+    !else
+	FOUT=1
+	OPMERKING=<font color=$fontcolor3>$fout $NOK </font>
+    !endif
+
+opmerking$n=$OPMERKING
+
+!exit

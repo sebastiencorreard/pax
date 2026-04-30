@@ -1,0 +1,101 @@
+#[ and or not]
+n=$counter
+!if $counter=1
+ var9=!shuffle 1,2,3,4,5,6,7,8
+ wordmin=noshow
+!endif
+helptext=
+checkfile=exos/checkfile4.proc
+mathview=0
+rounding=-1
+inputs=-1
+delete=VERWIJDEREN
+keuze=!item $counter of $var9
+applet=1
+inputs=-1
+make_tr=0
+kleuren=!shuffle red,green,blue,orange,purple,crimson,cyan,lightgreen
+dingen=!shuffle A,B,C,D,E,F,G,H,K,L,P,M,O,X,Z
+array=$empty
+cirkels=$empty
+c=4
+rr=4.5,4,3,3,3.5,5
+xx=0,-1,2,-3,-1,1
+yy=0,1,2,2,-1,0
+
+tot=$counter
+!if $tot > 4
+ tot=4
+!endif
+
+c=$[$tot+1]
+i=!randint 1,$c
+ti=!item $i of $dingen
+rc=!item $i of $rr
+xc=!item $i of $xx
+yc=!item $i of $yy
+!for p=1 to $c
+ k1=!item $p of $kleuren
+ tt=!item $p of $dingen
+ cx=!item $p of $xx
+ cy=!item $p of $yy
+ cr=!item $p of $rr
+ array=!append word $ \color{ $k1 } gebied \color{ black } $tt  \\ $ to $array
+ cirkels=!append line circles $k1,$cx,$cy,$cr to $cirkels
+ string=!append line string $k1,-5.5,$[6-$p],$tt to $string
+ !if $p!=$i
+  x=!item $p of $xx
+  y=!item $p of $yy
+  r=!item $p of $rr
+  math_prop=!append line $  $ti \wedge      $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1<$rc && d2<$r,1,0);print(a); $ to $con
+  math_prop=!append line $  \not    $ti \vee        $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1<$rc && d2<$r,1,0);b=if(d1>$rc && d2<$r,1,0);c=if(d1>$rc && d2>$r,1,0);print(a,b,c); $ to $con
+  math_prop=!append line $      $ti \wedge \not $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1<$rc && d2>$r,1,0);print(a); $ to $con
+  math_prop=!append line $      $ti \vee   \not $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1>$rc && d2>$r,1,0);b=if(d1<$rc && d2>$r,1,0);c=if(d1<$rc && d2<$r,1,0);print(a,b,c); $ to $con
+  math_prop=!append line $ \not $ti \wedge \not $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1>$rc && d2>$r,1,0);b=if(d1<$rc && d2>$r,1,0);print(a,b); $ to $con
+  math_prop=!append line $ \not $ti \vee   \not $tt $ to $math_prop
+  con=!append line $ d1=sqrt((x-($xc))^2+(y-($yc))^2);d2=sqrt((x-($x))^2+(y-($y))^2);a=if(d1>$rc || d2>$r,1,0);print(a); $ to $con
+ !endif
+!next p
+f=!linecnt $con
+keuze=!randint 1,$f
+prop=!line $keuze of $math_prop
+bewering=!mathmlmath \huge{$prop}
+gebieden=!mathmlmath \large \left\{ \begin{array}{l} $array \end{array} \right.
+answer$n=!line $keuze of $con
+
+var5=xrange -6,6\
+yrange -6,6\
+precision 100000\
+fontsize 16\
+linewidth 3\
+rect -6,6,6,-6,black\
+opacity 255,255\
+fontfamily Italic 14px Ariel\
+$string\
+string black,1.8,5.45,universum (U)\
+$cirkels\
+linewidth 2\
+precision 10\
+userdraw crosshairs,blue\
+#mouse red,22\
+clearbutton $delete
+
+object$n=!exec canvasdraw \
+size 300,300\
+$var5
+
+var3=3
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+num=!item $var3 of $telwoorden
+ss=Gegeven de gebieden $gebieden <br />\
+markeer met minstens $num punten het gebied<br />\
+waarvoor de volgende bewering correct is...<br />$bewering
+question$n=$ss
+
+#$plaatje
+

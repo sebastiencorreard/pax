@@ -1,0 +1,95 @@
+#Inflatie II [begrippen kennis]
+#keuzes=0:Stijging koopkracht,
+#1:Daling koopkracht,
+#0:Verbetering internationale concurrentie positie,
+#1:Verslechtering internationale concurrentie positie,
+#0:Meer sparen,
+#1:Minder sparen,
+#1:Renteverhoging ECB,
+#0:Renteverlaging ECB,
+#1:Daling re&euml;le rente,
+#0:Stijging re&euml;le rente,
+#1:Hogere nominale lonen,
+#0:Dalende nominale lonen
+keuzes=0:1:dat de koopkracht stijgt,1:0:dat de koopkracht daalt,0:1:dat de internationale concurrentie positie zal verbeteren,1:0:dat de internationale concurrentiepositie zal verslechten,0:1:dat er meer wordt gespaard,1:0:dat er minder wordt gespaard,1:0:dat de ECB de rente zal gaan verhogen,0:1:dat de ECB de rente zal gaan verlagen,1:0:dat de re&euml;le rente daalt,0:1:dat de re&euml;le rente stijgt,1:0:dat de nominale lonen zullen gaan stijgen,0:1:dat de nominale lonen zullen gaan dalen
+text1=Inflatie heeft als gevolg
+text2=Inflatie heeft <b>niet</b> als gevolg
+max=!itemcnt $keuzes
+getallen=$empty
+!for p=1 to $max
+    getallen=!append item $p to $getallen
+!next p
+getallen=!shuffle $getallen
+helptext=$empty
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+n=$counter
+mathview=0
+math=0
+calculator=0
+checkfile=exos/checkfile2.proc
+javascript=js/meerkeuze.js
+questiontype=7
+embed=0
+vragen=$empty
+make_tr=1
+!if $R=1
+    # javascript timeout : 3 seconden per som...3000 milliseconden
+    timeout=10000
+    p1=1
+    p2=1
+    options=6
+!else
+    options=12
+    !if $R=2
+	# 8 seconden per som
+	timeout=8000
+	p1=1
+	p2=1
+    !else
+	!if $R=3
+	    # 9 seconden per som
+	    timeout=9000
+	    p1=1
+	    p2=2
+	!else
+	    timeout=9000
+	    p1=1
+	    p2=2
+	!endif
+    !endif
+!endif
+
+
+!for t=1 to $options
+    p=!item $t of $getallen
+    posneg=!randitem $p1,$p2
+    L=!item $p of $keuzes
+    L=!replace internal : by , in $L
+    ans=!item $posneg of $L
+    !if $ans=1
+	waar=waar
+	k=green
+    !else
+	waar=onwaar
+	k=red
+    !endif
+    Q=!item 3 of $L
+    vragen=!append item $ $(text$posneg) $Q $ to $vragen
+    answer$n=!append item $ans to $(answer$n)
+    tabel=!append word $ <tr><td>$(text$posneg) $Q  ? <b><span style="color:$k">$waar</span></td></tr> $ to $tabel
+!next t
+
+aantal=!itemcnt $vragen
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+aantal=!item $aantal of $telwoorden
+textanswer$n=<table class="zebra_table_h2">$tabel</table>
+
+helptext=Je hebt $[$timeout/1000] seconden per vraag...en als je alle <b>$options vragen</b> gehad hebt,<br />worden je antwoorden opgestuurd naar WIMS ...<br />Je begint door op <b>Start</b> te drukken
+
+druk_op_start=<a onmouseover="return escape('$helptext')">Druk op <span style="color:blue">Start</span> :</a>
+

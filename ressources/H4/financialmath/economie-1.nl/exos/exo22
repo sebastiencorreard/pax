@@ -1,0 +1,148 @@
+# Consumenten prijsindex cijfer
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+roundingtext=Rond je <b>eindantwoord</b> af op twee decimalen. 
+nu=!date +%Y
+jaar=!randitem $[$nu-1],$[$nu-2],$[$nu-3]
+mathview=0
+make_tr=1
+inputs=-1
+questiontype=0
+# volgorde belangrijk
+var1=yes
+checkfile=$checkdir/number.proc
+tabel=<table class="grid_table"><tr><td>&nbsp;</td><td>Wegingsfactor</td><td>Prijsindex</td></tr>
+ans_tabel=<table class="grid_table"><tr><td>&nbsp;</td><td>Wegingsfactor</td><td>Prijsindex</td></tr>
+input=!nosubst <input type="text" size="4" id="myinput$c" class="schaersvoorde_input" value=""/> 
+input_ans=!nosubst <input type="text" size="4" id="myinput$c" class="schaersvoorde_input" value="$ans1" readonly="readonly" />
+dingen=Energie,Voeding,Overige
+
+!if $R=1
+    # 1 invulveld in tabel en 1 er onder
+    k=!randint 1,3
+    w1=!randint 5,20
+    w2=!randint 10,30
+    w3=$[100-($w1+$w2)]
+    p1=!randint 1010,1150
+    p2=!randint 1010,1150
+    p3=!randint 1001,1100
+    p1=$[$p1/10]
+    p2=$[$p2/10]
+    p3=$[$p3/10]
+    c=0
+    ans1=$(w$k)
+    !for p=1 to 3
+	ding=!item $p of $dingen
+	!if $p=$k
+	    tabel=!append line <tr><td>$ding</td><td>$input %</td><td>$(p$p)</td></tr> to $tabel
+	    ans_tabel=!append line <tr><td>$ding</td><td>$input_ans %</td><td>$(p$p)</td></tr> to $ans_tabel
+	!else
+	    tabel=!append line <tr><td>$ding</td><td>$(w$p) %</td><td>$(p$p)</td></tr> to $tabel
+	    ans_tabel=!append line <tr><td>$ding</td><td>$(w$p) %</td><td>$(p$p)</td></tr> to $ans_tabel
+	!endif
+    !next p
+    c=1
+    ans2=$[$p1*$w1/100+$p2*$w2/100+$p3*$w3/100]
+    r_ans2=$[(round($rounding*$ans2))/$rounding]
+    answer$n=$ans1,$ans2
+    tabel=!append line </table><br />Het consumentenprijsindexcijfer (cpi) = $input  to $tabel 
+    ans_tabel=!append line </table> to $ans_tabel
+
+    ss=Gegeven is de onderstaande tabel over het jaar $jaar.<br />Vul de ontbrekende waarde in de tabel in.<br />En bepaal aan hand hiervan het consumentenprijsindexcijfer (cpi)
+    
+    vraagding=!item $k of $dingen
+    var2=$vraagding,CPI
+    rr=$ans_tabel<ul><li>$vraagding is $(w$k) % <br />want totaal:  $w1% + $w2% + $w3% = 100%</li><li>cpi = $[$w1/100]&times;$p1 + $[$w2/100]&times;$p2 + $[$w3/100]&times;$p3 &asymp; $ans2 &asymp; $r_ans2 </li></ul>
+
+!else
+    perc=!randint 5,70
+    perc=$[$perc/10]
+    keuze=!randint 0,1
+    !if $keuze=1
+	gestegen=gestegen
+	factor=$[100+$perc]
+	pm=+
+	p1=!randint 1010,1150
+        p2=!randint 1010,1150
+        p3=!randint 1001,1100
+    !else
+	pm=&minus;
+	gestegen=gedaald
+	factor=$[100-$perc]
+	p1=!randint 800,990
+        p2=!randint 800,990
+        p3=!randint 800,990
+    !endif
+    
+    ss=Gegeven is de onderstaande tabel over het jaar $jaar.<br />Het consumentenprijsindexcijfer is in $jaar met $perc % $gestegen<br />Vul de ontbrekende waarden in de tabel in.
+    
+    # 1 invulveld in tabel en 1 er onder
+    k1=!randint 1,3
+    k2=!randint 1,3
+    w1=!randint 5,20
+    w2=!randint 10,30
+    w3=$[100-($w1+$w2)]
+    p1=$[$p1/10]
+    p2=$[$p2/10]
+    p3=$[$p3/10]
+    
+    som=$factor&nbsp;=&nbsp; 
+    links=$factor
+    rechts=$empty
+    ans1=$(w$k1)
+    !for p=1 to 3
+	tabel=!append line <tr> to $tabel
+	ding=!item $p of $dingen
+	tabel=!append line <td>$ding</td> to $tabel
+	!if $p=$k1
+	    ding1=$ding
+	    c=0
+	    tabel=!append line <td>$input %</td> to $tabel
+	!else
+	    tabel=!append line <td>$(w$p) %</td> to $tabel
+	!endif
+	!if $p=$k2
+	    f=$ding
+	    ding2=$ding
+	    rechts=$[$(w$p)/100]
+	    c=1
+	    tabel=!append line <td>$input</td> to $tabel
+	!else
+	    f=$(p$p)
+	    links=$links - $[$f*$(w$p)/100]
+	    tabel=!append line <td>$(p$p)</td> to $tabel
+	!endif
+	som=$som $[$(w$p)/100]&times;$f+
+	tabel=!append line </tr> to $tabel
+    !next p
+    
+    x=$[($links)/$rechts]
+    ans2=$[(round($rounding*$x))/$rounding]
+    tabel=!append line </table> to $tabel
+    som=!char 1 to -2 of $som
+    var2=$ding1,$ding2
+    answer$n=$ans1,$x
+    !for p=1 to 3
+	ding=!item $p of $dingen
+	!if $p=$k1
+	    w$p=<input type="text" size="4" id="noid" class="schaersvoorde_input" value="$ans1" readonly="readonly" />
+	!endif
+	!if $p=$k2
+	    #p$p=$ans2
+	    p$p=<input type="text" size="4" id="noid" class="schaersvoorde_input" value="$ans2" readonly="readonly" />
+	!endif
+	ans_tabel=!append line <tr><td>$ding</td><td>$(w$p) %</td><td>$(p$p)</td></tr> to $ans_tabel
+    !next p
+    ans_tabel=!append line </table> to $ans_tabel
+    
+    rr=$ans_tabel<ul><li>$ding1 is $(w$k1) % <br />want totaal:  $w1% + $w2% + $w3% = 100%</li><li>cpi = 100 $pm $perc = $factor</li><li>$som</li><li>$links = $rechts &times; $ding2</li><li>$[$links] = $rechts &times; $ding2</li><li>$ding2 =$[($links)] <b>/</b> $rechts</li><li>$ding2 &asymp; $x &asymp; $ans2</li><li>De prijsindex $ding2 $ans2</li></ul>
+!endif
+
+textanswer$n=$rr
+question$n =<a onmouseover="return escape('$roundingtext')">$ss</a>
+exotext=$tabel

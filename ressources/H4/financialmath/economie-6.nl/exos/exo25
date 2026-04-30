@@ -1,0 +1,73 @@
+# Break-even  [tabel]
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=10
+mathview=0
+make_tr=1
+rounding=100
+checkfile=exos/precheck2.proc
+#$checkdir/new_number.proc
+vk=!randint 10,30
+vk=$[5*$vk]
+fac1=!randint 15,25
+fac1=$[$fac1/10]
+vp=$[ceil($fac1*$vk)]
+vk=$[$vk/100]
+vp=$[$vp/100]
+
+tot=!exec moneyprint $vk,$vp
+vk=$(tot[1])
+vp=$(tot[2])
+tck=!randint 140,200
+tck=$[$tck*1000]
+stap=!randint 50,200
+a1=!randint 50,100
+a2=$[$a1+$stap]
+a3=$[$a2+$stap]
+
+a1=$[1000*$a1]
+a2=$[1000*$a2]
+a3=$[1000*$a3]
+tk1=$[$vk*$a1+$tck]
+tk2=$[$vk*$a2+$tck]
+tk3=$[$vk*$a3+$tck]
+to1=$[$vp*$a1]
+to2=$[$vp*$a2]
+to3=$[$vp*$a3]
+
+#tk=$vk*a+$tck
+#to=$vp*a
+
+produkten=!randitem chemicalspecialities,chemicali&euml;n,chemische produkten,bindmiddelen voor de verfindustrie
+
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+
+tabel=<table class=\'balans_1\'><caption>$bedrijf</caption><tr><th>Afzet</th><th>Totale kosten</th><th>Totale opbrengsten</th></tr><tr><td>$a1 liter</td><td>&euro; $tk1</td><td>&euro; $to1</td></tr><tr><td>$a2 liter</td><td>&euro; $tk2</td><td>&euro; $to2</td></tr><tr><td>$a3 liter</td><td>&euro; $tk3</td><td>&euro; $to3</td></tr></table>
+
+ss=Handelsonderneming $bedrijf handelt in $produkten.<br />De variabele kosten nemen evenredig toe met de afzet.<br />Bereken aan de hand van  <span class="schaersvoorde_link">deze tabel</span>:<br /><ol><li>de variabele kosten per liter in &euro;</li><li>de break-evenafzet van handelsonderneming $bedrijf</li></ol>
+
+description=Variabele kosten,Break-evenafzet
+ex1=&euro; / liter
+#ex2=&euro; / liter
+ex2=liter
+inputs=2
+ans1=$vk
+ans2=$[$vp-$vk]
+ans3=$[ceil($tck/$ans2)]
+answer$n=$ans1\
+$ans3
+
+question$n =<a onmouseover="return escape('$tabel <hr />Rond variabele kosten en dekkingsbijdrage af op twee decimalen nauwkeurig.<br />Rond de break-even afzet naar boven af op hele &euro;&rsquo;s</span>')">$ss </a>
+helptext=Rond variabele kosten af op twee decimalen nauwkeurig.<br />Rond de break-even afzet altijd naar boven af op hele &euro;&rsquo;s
+textanswer$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/help.exo12.gif\' alt=\'noalt\' />')">We gebruiken <span style="color:blue">deze</span> formule</a><ol><li>Als de afzet evenredig toeneemt met $[$stap*1000] liter (van $a1 naar $a2),<br />dan nemen de totale kosten toe met &euro;$tk2 &minus; &euro;$tk1 = &euro;$[$tk2-$tk1]<br />De variabele kosten zijn dan per liter : $[$tk2-$tk1] &divide; $[$stap*1000]  = $ans1 &euro;/liter</li><li>De verkoopprijs kan gevonden worden door de omzet te delen door de afzet:<br />bijvoorbeeld &euro;$to1 &divide; $a1 = $vp<br />De dekkingsbijdrage per liter is dan : $vp &minus; $ans1 = $ans2 &euro;/liter</li><li>De variabele kosten per liter zijn: $ans1 &euro;/l<br />De totale constante kosten zijn dan $tk1 &minus; $a1 &times; $ans1 = &euro; $tck<br />De break-evenafzet wordt dan : $tck &divide; $ans2 = $ans3 liter.</li></ol>
+# range in new_number.proc
+var1=0.01,1
+# afronding per invulveld in new_number.proc
+var2=100,1
+roundingtext=$helptext
+#formula$n=\begin{array}{l}\textrm{\textrm{BEA}} = \displaystyle{\frac{TCK}{p - v}} \\  \\ \textrm{waarin :} \\ \textrm{BEA = break-evenafzet}\\ \textrm{TCK = totale constante kosten}\\ \textrm{p = verkoopprijs} \\ \textrm{v = variabele kosten per stuk}\\ \textrm{v is eventueel inclusief inkoopprijs per stuk}\end{array}
+

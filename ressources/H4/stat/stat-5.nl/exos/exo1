@@ -1,0 +1,96 @@
+n=$counter
+mathview=0
+make_tr=0
+embed=0
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontyp=0
+checkfile=$checkdir/new_number.proc
+!if $rounding<10 
+ rounding=100
+ !readproc $remarkdir/rounding.$taal
+!endif
+meting=!record 43 of lang/remarks.$taal
+#@meting,seconden
+met1=!item 1 of $meting
+met2=!item 2 of $meting
+
+maxteller=10
+half=5
+verdeling=$empty
+leerling_verdeling=$empty
+sum_cijfer=0
+cijfer_rij=<tr><td>cijfer</td>
+leerling_rij=<tr><td>aantal</td>
+modus_leerling=0
+!for cijfer=1 to 10
+ aantal_leerlingen=!randint 1,6
+ !if $aantal_leerlingen >= $modus
+  modus=$aantal_leerlingen
+ !endif
+ sum_leerlingen=$[$sum_leerlingen+$aantal_leerlingen]
+ sum_cijfer=$[$sum_cijfer + $cijfer*$aantal_leerlingen]
+ !if $aantal_leerlingen!=0
+  !for s=1 to $aantal_leerlingen
+   verdeling=!append item $cijfer to $verdeling
+  !next s
+ !endif
+ leerling_verdeling=!append item $aantal_leerlingen to $leerling_verdeling
+ cijfer_rij=!append word <td>$cijfer</td> to $cijfer_rij
+ leerling_rij=!append word <td>$aantal_leerlingen</td> to $leerling_rij
+!next p
+data=<table class=\'demospecial\'>$cijfer_rij</tr>$leerling_rij</tr></table>
+
+!if $[gcd($sum_leerlingen,2)]=2
+ even=1
+ # mediaan
+ # !readproc slib/stat/median $verdeling 
+ # GOED3$n=$slib_out
+ m1=!item $[0.5*$sum_leerlingen] of $verdeling
+ m2=!item $[0.5*$sum_leerlingen+1] of $verdeling
+ ans2=$[($m2+$m1)/2]
+!else
+ even=0
+ # mediaan
+ # !readproc slib/stat/median $verdeling 
+ # GOED3$n=$slib_out
+ ans2=!item $[($sum_leerlingen+1)/2] of $verdeling
+!endif
+
+#gemiddelde cijfer
+ans1=$[(round($rounding*$sum_cijfer/$sum_leerlingen))/$rounding]
+#modus
+ans3=!positionof item $modus in $leerling_verdeling
+inputs=-1
+answer$n=$ans1\
+$ans2\
+$ans3
+
+sometext=!record 10 of lang/remarks.$taal
+#@Noteer bij meerdere modussen iets als <input size=\'6\' value=\' 2 en 7 \' id=\'non\' class=\'schaersvoorde_input\' />
+ss=!record 11 of lang/remarks.$taal
+#@Bepaal aan de hand van <span style="color:blue">deze meetgegevens</span>: het gemiddelde, de modus en de mediaan
+vragen=!record 12 of lang/remarks.$taal
+#@Het gemiddelde,de mediaan,de modus
+
+description=$empty
+textanswer$n=<ol>
+htext=!record 37 of lang/remarks.$taal
+exotext=<table>
+!for p=1 to 3
+ textanswer$n=!append word $ <li>$(vragen[$p]) = $(ans$p)</li> $ to $(textanswer$n)
+ !if $wims_user=supervisor
+  exotext=!append word <tr><td>$(vragen[$p])</td><td> = </td><td><input class="schaersvoorde_input" size="6" id="myinput$[$p-1]" value="$(ans$p)" /></td></tr> to $exotext
+ !else
+  exotext=!append word <tr><td>$(vragen[$p])</td><td> = </td><td><input class="schaersvoorde_input" size="6" id="myinput$[$p-1]" value-"" /></td></tr> to $exotext
+ !endif
+!next p
+exotext=!append word </table> to $exotext
+tekstanswer$n=!append word $ </ol> $ to $(textanswer$n)
+question$n= <a onmouseover="return escape('$data <hr />$sometext')">$ss</a><br />
+helptext=$data<hr />$sometext
+

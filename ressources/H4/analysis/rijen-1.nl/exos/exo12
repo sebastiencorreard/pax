@@ -1,0 +1,50 @@
+# som van meetkundige rij
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+questiontyp=0
+image=0
+math=0
+a=!randint 101,199
+a=!exec moneyprint $[0.01*$a]
+b=!randint 2,50
+x=!randint 1,6
+c=!randint 10,20
+y=$[$x+$c]
+ux=$[$b*$a^$x]
+uy=$[$b*$a^($y+1)]
+answer$n=$[($uy-$ux)/($a-1)]
+rans= $empty
+rounding=100
+!if . isin $(answer$n)
+ chk=!exec sigdigits $(answer$n)
+ !if $(chk[3]) > 2
+  ans=$[0.01*(round(100*$(answer$n)))]
+  rans= \approx $ans
+ !endif
+!endif
+!readproc $remarkdir/rounding.$taal
+inputs=-1
+checkfile=$checkdir/number.proc
+#@Bereken de onderstaande som.
+question$n=!record 113 of lang/remarks.$taal
+txt=!record 114 of lang/remarks.$taal
+
+!if $R=1
+
+ formula$n =\left\{ \begin{array}{l} \\ u_{n} = $b \times $a^{n} \\ \\ \underset{n=$x}{\overset{$y} \Sigma} u(n) = \input{10}{0}{background-color:lightgreen;color:red;font-size:1.2em}{ ? }{0} \end{array} \right.
+
+ texanswer$n=\left\{ \begin{array}{l} \\ u_{n} = $b \times $a^{n} \\ \textrm{ $(txt[8]) : } \\ \textrm{$(txt[6]) } = \frac{ \textrm{ $(txt[9]) } \;-\;\textrm{$(txt[10])}}{\textrm{ $(txt[11]) } - 1} \\ u($x) = $b \cdot $a^{$a} = $ux \\  u($y + 1) = $b \cdot $a^{$y + 1} = $uy \\   \underset{n=$x}{\overset{$y} \Sigma} u(n) = \frac{$uy - $ux}{ $a - 1}= $(answer$n) $rans \end{array} \right.
+ 
+!else
+
+ formula$n =\left\{ \begin{array}{l} \\ u(n+1) = u(n) \cdot $a \;\textrm{ $(txt[7]) }\; u(0) = $b \\ \\ \underset{n=$x}{\overset{$y} \Sigma} u(n) = \input{10}{0}{background-color:lightgreen;color:red;font-size:1.2em}{ ? }{0} \end{array} \right.
+
+ texanswer$n=\left\{ \begin{array}{l} \\ \textrm{$(txt[5]) : } \\ u_{n} = $b \times $a^{n} \\ \textrm{ $(txt[8]) : } \\ \textrm{ $(txt[6]) } = \frac{ \textrm{ $(txt[9]) }\; - \; \textrm{ $(txt[10]) }  }{ \textrm{ $(txt[11])} - 1} \\ u($x) = $b \cdot $a^{$a} = $ux \\  u($y + 1) = $b \cdot $a^{$y + 1} = $uy \\   \underset{n=$x}{\overset{$y} \Sigma} u(n) = \frac{$uy - $ux}{ $a - 1}= $(answer$n) $rans \end{array} \right.
+
+!endif
+

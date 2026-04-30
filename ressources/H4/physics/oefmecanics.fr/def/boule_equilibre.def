@@ -1,0 +1,153 @@
+!set title=Boule en équilibre sur un mur 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoit, Markey
+precision=100
+
+ansorder=r,r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 10
+
+val6=$[rint($(tmp0))]
+val7=$[rint($val6*20)]
+val8=$[rint(2)]
+val9=$[rint($val8*20)]
+val10=$[$val7/3]
+val11=$[$val9+(400-$val9)/3]
+tmp0=!randint 4, 10
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val12*50)]
+val14=$[atan($val10/($val11-$val9))]
+val15=$[rint($val13*tan($val14))]
+val16=linewidth 5 	segment 0,$val9,$val10,$val11, brown 	fcircle $val10,$val11,$val10*2,blue 	point $val10,$val11,pink 	text pink,$val10,$val11,large,G 	linewidth 5 	point 0,$val9,black 	text black,5,$val9-10,large,A 	point 0,$val11,yellow 	text yellow,5,$val11,large,B 	linewidth 1 	parallel 0,0,0,400,20,0,20,grey 	parallel 0,0,400,0,0,20,20,grey 	segment 150,60,150,100,red 	text red,165,75,medium,100 N 	
+!readproc oef/draw.phtml 400,400  \
+$val16 
+tmp0=$ins_url
+val17=$(tmp0)
+!readproc oef/draw.phtml 400,400  \
+$val16 	arrow $val10,$val11,$val10,$val11+2*$val13/5,10,red 	text red, $val10+10,$val11+2*$val13/5-10,large,P 	arrow $val10+5,$val11+2*$val13/5-15,$val10+20,$val11+2*$val13/5-15,8,red 	 
+tmp0=$ins_url
+val18=$(tmp0)
+oefsteps=r1 	r2,r3,r4,r5,r6 
+nextstep=!nosubst r1 	r2,r3,r4,r5,r6 
+!readproc oef/steps.proc
+replytype1=jsxgraphcurve
+
+replyname1=
+replygood1=$val17;vector,$val10,$val11,$val10,$val11+2*$val13/5
+replytype2=jsxgraphcurve
+
+replyname2=
+replygood2=$val18;vector,0,$val11,2*$val15/5,$val11
+replytype3=menu
+replyoption3=shuffle 
+replyname3=
+replygood3=1;se compensent, ne se compensent pas
+replytype4=menu
+replyoption4=shuffle 
+replyname4=
+replygood4=1;non,oui
+replytype5=menu
+replyoption5=shuffle 
+replyname5=
+replygood5=1;une 3ème force, aucune autre force
+replytype6=menu
+replyoption6=shuffle 
+replyname6=
+replygood6=1;la force exercée par le fil sur la boule, la force de l air,aucune autre force
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 	
+!if $m_step=1 
+$()<strong>Cet exercice est en deux étapes.</strong> 	<h2>Étape 1:</h2> 	<div class="wims_question"> 	On considère une boule en appui contre un mur vertical et dont le centre de gravité est 	représenté par le point G.<br> 	Tracer le vecteur poids de la boule, 
+!insmath \vec{P}
+$(), dont la valeur est $val13 N 	  
+!read oef/embed.phtml r1,400x400 
+$()</div> 	 
+!endif
+$() 	
+!if $m_step=2 
+$() <h2>Étape 2:</h2> 	<div class="wims_question"> 	On a représenté le vecteur 
+!insmath \vec{P}
+$(). 	<ol><li> 	Tracer le vecteur réaction du mur, 
+!insmath \vec{R}
+$(), à partir du point B et dont la valeur est $val15 N 	 
+!read oef/embed.phtml r2,400x400 
+$() 	</li><li> 	Compléter le texte suivant:<br> 	Comme la boule est immobile, d'après le principe d'inertie, les forces qui 	s'exercent sur elle  
+!read oef/embed.phtml r3 
+$().<br> 	Peut-on dire que les forces 
+!insmath \vec{P}
+$() et 
+!insmath \vec{R}
+$() se compensent?  
+!read oef/embed.phtml r4 
+$()<br> 	On en déduit qu'il existe donc  
+!read oef/embed.phtml r5 
+$(): il s'agit de  
+!read oef/embed.phtml r6 
+$().</div> 	</li></ol> 	 
+!endif
+$() 	 	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15
+embedcnt=6

@@ -1,0 +1,146 @@
+!set title=Différentes formes d'un trinôme.
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=canonical_form
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val6*(x-$val7)^2-$val6*($val8)^2
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+t_=!replace internal \( by ( in expand($val9)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val6*(x-$val7-$val8)*(x-$val7+$val8)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+oefsteps=reply 1	reply 2 
+nextstep=!nosubst reply 1	reply 2 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Forme canonique
+replygood1=$val9
+replytype2=algexp
+replyname2=Forme factorisée
+replygood2=$val11
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère le trinôme 
+!insmath f(x)=$val10
+$(). Déterminer la forme canonique de 
+!insmath f
+$().	
+!if $m_step=1 
+$()	<div class="spacer">	La forme canonique de 
+!insmath f
+$() est :  
+!read oef/embed.phtml reply 1,20 
+$().	</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()	<p>	Oui, la forme canonique de 
+!insmath f
+$() est bien 
+!insmath f(x)=$val9
+$().	</p>	<div class="spacer">	La forme factorisée de 
+!insmath f
+$() est alors  
+!read oef/embed.phtml reply 2,20 
+$().	</div>	<div class="wims_instruction">	La forme factorisée sera donnée sous la forme 
+!insmath a(x-u)(x-v)
+$().</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()La forme canonique d'un trinôme est 
+!insmath a(x-\alpha)^2+\beta
+$(), où 
+!insmath \alpha
+$() et	
+!insmath \beta
+$() sont les abscisses et ordonnées du sommet de la parabole représentant le trinome.<br>	Pour déterminer la forme factorisée à partir de la forme canonique, on peut	utiliser l'identité remarquable 
+!insmath A^2-B^2=(A-B)(A+B)
+$().	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10
+embedcnt=2

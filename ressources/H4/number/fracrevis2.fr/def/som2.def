@@ -1,0 +1,116 @@
+!set title=Somme de trois fractions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+computeanswer=no
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$(tmp0)
+tmp0=!randint 1, 5
+
+val7=$(tmp0)
+tmp0=!randint 1, 5
+
+val8=$(tmp0)
+tmp=!nonempty items 7,8,9,11,12,13,14,15
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp0=!shuffle 2,3,4,5
+
+val10=$(tmp0)
+val11=$[rint($val9*$(val10[1]))]
+val12=$[rint($val9*$(val10[2]))]
+val13=$[rint($val9*$(val10[3]))]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!translate ";': to $     $ in $val6/$val11 $val14 $val7/$val12 $val15 $val8/$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+replytype1=nocase
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère l'expression 
+!insmath \displaystyle A=  \frac{$val6}{$val11} $val14 \frac{$val7}{$val12} $val15 \frac{$val8}{$val13}.
+$()<br class="spacer">	Simplifier cette expression en la mettant sous la forme d'un entier ou d'une fraction irréductible.<br class="spacer">	
+!insmath A=
+$() 
+!read oef/embed.phtml reply1,8 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,12,13,14,15
+embedcnt=1

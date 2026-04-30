@@ -1,0 +1,65 @@
+!set n=$counter
+multiimage=0
+math=1
+mathview=0
+helptext=$empty
+checkfile=$checkdir/multiplechoice.proc
+questiontype=1
+graph=!record 21 of lang/remarks.$taal
+Domein=!record 14 of lang/remarks.$taal
+Bereik=!record 15 of lang/remarks.$taal
+
+a=!randitem 2,3,4,5,6,7,8,9
+b=!randitem 1,2,3,4,5,6,7,8,9
+c=!randitem 2,3,4,5
+k=!randint 1,10
+lijst=lijst6b.def
+options=4
+answer$n=!randint 1,$options
+vraag=!record $k of  exos/$lijst
+functie=!line 1 of $vraag
+
+formula$n=!texmath f(x) = $functie
+
+keus=1
+soort=!randitem 1,0
+!if $keus=1
+    bereik=$Domein
+    !if $soort=0
+	DB=D_{f} :
+    !else
+	DB=D_{f} =
+    !endif	
+    vraag=!line 2 to 5 of $vraag
+    # eerste item van $vraag is goed
+!else
+    !if $soort=0
+	DB=B_{f} :
+    !else
+	DB=B_{f} =
+    !endif
+    bereik=$Bereik
+    vraag=!line 6 to 9 of $vraag
+    # eerste item van $vraag is goed
+!endif
+keuzes=!shuffle 1,2,3,4
+!for p=1 to 4
+    nummer=!item $p of $keuzes
+    ex$p=!line $nummer of $vraag
+    ex$p=$DB  $(ex$p)
+    !if $nummer=1
+	answer$n=$p
+	texanswer$n=$(ex$p)
+    !endif
+!next p
+
+!if $teaching=1
+    !readproc exos/image.proc
+!endif
+
+txt1=!record 28 of lang/remarks.$taal
+# Domein en Bereik van de 'hyperbolische'-functie.
+
+txt2=!record 29 of lang/remarks.$taal
+question$n=$txt1<br />$txt2
+# Welk <kbd>$bereik</kbd> past bij de $image  van de hyperbolische functie?

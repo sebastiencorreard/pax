@@ -1,0 +1,63 @@
+n=$counter
+mathview=0
+!if $options=$empty or $options >6
+    options=4
+!endif
+helptext=$empty
+inputs=$options
+rows=1
+make_tr=1
+cols=4
+questiontype=0
+checkfile=exos/checkfile1.proc
+plot=0
+draw=0
+image=0
+math=0
+question$n=!record 1 of lang/remarks.$taal
+#@ Zet de volgende hoeken om van graden naar radialen.<br /><em>Veelvouden van 30<sup>o</sup> en van 45<sup>o</sup> moet je <b>exact</b> omrekenen.<br />De andere hoeken <b>moet</b> je afronden op <b>twee</b> decimalen.</em>
+
+degree=$empty
+!for q=1 to 20
+    G=$[30*$q]
+    GR=$[45*$q]
+    degree=!append item $G to $degree
+    degree=!append item $GR to $degree
+!next q
+
+!if $subject=1
+    graden=30,45,60,90,120,135,150,180,210,240,270,300,330,360
+    graden=!shuffle $graden
+!else
+    graden=$empty
+    !for p=1 to $[2*$options]
+	g=!randint 1,660
+	graden=!append item $g to $graden
+    !next p
+    graden=!listuniq $graden
+    graden=!shuffle $graden
+!endif
+
+b=pi/180
+m_rightarrow=&nbsp;=&nbsp;
+textanswer$n=<table class="zebra_table_h2">
+description=$empty
+!for p=1 to $options
+    gr=!item $p of $graden
+    description=!append item $gr&deg; to $description
+    ex$p=rad
+    #<sup>o</sup>&nbsp;
+    !if $gr isitemof $degree
+	sol=!exec pari $gr/180
+	answer=$sol pi
+	t_ans=$sol &pi;
+    !else
+	radialen=$[$gr*$b]
+	answer=$[(round($radialen*100))/100]
+	t_ans=$answer
+    !endif
+    answer$n=!append item $answer to $(answer$n)
+    textanswer$n=!append word $ <tr><td>$gr&deg;</td><td>&nbsp;=&nbsp;</td><td>$t_ans rad</td></tr> $ to $(textanswer$n)
+!next p
+textanswer$n=!append word $ </table> $ to $(textanswer$n)
+

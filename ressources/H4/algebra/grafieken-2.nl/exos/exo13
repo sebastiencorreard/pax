@@ -1,0 +1,88 @@
+n=$counter
+make_tr=1
+helptext=$empty
+formula$n=$empty
+embed=0
+# truuk om verticale layout te forceren
+cols=12
+rows=2
+questiontype=10
+mathview=0
+#!if $rounding<1
+#    rounding=100
+#!endif
+#!read $remarkdir/rounding.$taal
+rounding=-1
+options=!randitem 5,6,7,8
+checkfile=$checkdir/equation.proc
+xy=!randitem x@y,t@h,p@q,a@b
+xy=!replace internal @ by , in $xy
+x=!item 1 of $xy
+y=!item 2 of $xy
+inputs=1.1
+arglist=$y
+varlist=$x
+#we geven 1 tabel met $options kolommen...
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    a=!randint 1,20
+    a=$[2*$a]
+    D=1,2,3,4,5,6,7,8,9,10
+    answer$n=$a/$x
+    texanswer$n= \bf{$y}\,=\,\frac {$a}{$x}
+    !for s=1 to $options
+        d=!item $s of $D
+        lijst1=!append line <td>$d</td> to $lijst1
+        c=!exec pari $a/$d
+        lijst2=!append line <td>$c</td> to $lijst2
+    !next s
+    ss=!record 71 of lang/remarks.$taal
+    #Bepaal de formule, die hoort bij onderstaande tabel.<p>
+!endif
+!if $R=2 
+    a=!randint 1,20
+    a=$[2*$a]
+    D=2,4,6,8,10,12,14,16
+    answer$n=$a/$x
+    texanswer$n= \bf{$y}\,=\,\frac {$a}{$x}
+    !for s=1 to $options
+        d=!item $s of $D
+        lijst1=!append line <td>$d</td> to $lijst1
+        c=!exec pari $a/$d
+        lijst2=!append line <td>$c</td> to $lijst2
+    !next s
+    ss=!record 71 of lang/remarks.$taal
+    #Bepaal de formule, die hoort bij onderstaande tabel.<p>
+!endif
+!if $R>2
+    a=!randint 1,20
+    a=$[2*$a]
+    b=!randitem 1,2,3,4
+    D=1,2,3,4,5,6,7,8,9,10
+    pm=!randitem +,-
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    answer$n=$a/($x $mp $b)
+    texanswer$n= \bf{$y}\,=\,\frac {$a}{$x $mp $b }
+    !for s=1 to $options
+        d=!item $s of $D
+	e=$[$d $pm $b]
+        lijst1=!append line <td>$e</td> to $lijst1
+        c=!exec pari $a/$d
+        lijst2=!append line <td>$c</td> to $lijst2
+    !next s
+    ss=!record 72 of lang/remarks.$taal
+    #Bepaal de formule, die hoort bij onderstaande tabel.<p>
+!endif
+description=$youranswer
+mathviewpanel=$module_title:$arglist($varlist)=:$arglist=:$varlist:+:-:/:*:^
+helptext=!record 73 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><hr class="schaersvoorde_hr" /><table class="demospecial"><tr><th>$x</th>$lijst1</tr><tr><th>$y</th>$lijst2</tr></table>

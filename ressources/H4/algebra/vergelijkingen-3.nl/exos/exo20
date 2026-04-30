@@ -1,0 +1,120 @@
+checkfile=exos/checkfile8.proc
+image=0
+math=0
+mathview=2
+questiontype=0
+embed=1
+cols=20
+rows=1
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $variabelen=1
+    letters=a,b,c,d,f,x,y,z,p,g,k,t,r,n,m
+    letters=!shuffle $letters 
+    var1=!item 1 of $letters
+    var2=!item 2 of $letters
+    var3=!item 3 of $letters
+!else
+    var1=x
+    var2=y
+    var3=u
+    var4=#
+!endif
+getallen=!shuffle 2,3,4,5,6,7,8,9,10
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+c=!item 3 of $getallen
+d=!item 4 of $getallen
+e=!item 5 of $getallen
+f=!item 6 of $getallen
+g=!item 7 of $getallen
+h=!item 8 of $getallen
+pm=!randitem +,-
+mp=!randitem +,-
+stext=<textarea cols=\'20\' rows=\'1\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' >$var2 = 4*$var1 - 23</textarea>
+ss=!record 67 of lang/remarks.$taal
+#@ Schrijf de drie vergelijkingen als &eacute;&eacute;n formule <br /><em>Dus geef <kbd>$var2</kbd> als functie van <kbd>$var1</kbd></em> 
+question$n=<a onmouseover="return escape('$stext')">$ss</a>
+mathviewpanel=$module_title:$var1=:$var2=:$var3=
+!if $R=1
+    # z=x pm b
+    # y=z mp  c
+    # texanswer$n= y=x pm b mp c 
+    g=!exec pari A=($var1 $pm $b) $mp $c\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 \,=\, $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var3 = $var1 $pm $b  \\ \\ $var2 = $var3 $mp $c \end{array}\right.
+    applettext=!nospace { vlist( $var3 = $var1 $pm $b  ,., $var2 = $var3 $mp $c  ) } ->
+ !exit
+!endif
+	
+!if $R=2
+    # z=ax
+    # y=dz mp  c
+    # texanswer$n= y=dax mp c 
+    g=!exec pari A=$d*$a*$var1 $mp $c\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g    
+    texanswer$n=$var2 \,=\, $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var3 = $a \cdot $var1 \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    applettext=!nospace { vlist( $var3 = $a * $var1 , . ,  $var2 = $d * $var3 $mp $c )} ->
+ !exit
+!endif
+	
+!if $R=3
+    # z=ax pm b
+    # y=dz mp  c
+    # texanswer$n= y=d(ax pm b) mp c 
+    g=!exec pari A=$d*($a*$var1 $pm $b)  $mp $c\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 \,=\, $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var3 = $a \cdot $var1 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    applettext=!nospace {vlist( $var3 = $a * $var1 $pm $b , . , $var2 = $d * $var3 $mp $c )} ->
+  !exit
+!endif
+!if $R>3
+    mytexsize=+2
+    keuze=!randitem 1,2
+    !if $keuze=1
+	# z=x/a pm b
+	# y=dz mp  c
+        # texanswer$n= y=d(x/a pm b) mp c 
+        g=!exec pari A=$d*(($var1/$a) $pm $b)  $mp $c\
+        printtex(A)
+        g1=!line 1 of $g
+        g2=!line 2 of $g
+        texanswer$n=$var2 \,=\, $g2
+        answer$n=$g1
+        formula$n=\left\{ \begin{array}{l} $var3 = \frac{1}{$a} \cdot $var1 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+        applettext=!nospace { vlist($var3 = 1/($a) * $var1 $pm $b ,., $var2 = $d * $var3 $mp $c )}->
+     !exit
+    !else
+	e=!randitem 2,3,4,5,6,7,8
+	a=$[$a+$e]
+	# z=e*x/a pm b
+	# y=dz mp  c
+	# texanswer$n= y=d(e*x/a pm b) mp c 
+	g=!exec pari A=$d*($e*($var1/$a) $pm $b)  $mp $c\
+	printtex(A)
+	g1=!line 1 of $g
+	g2=!line 2 of $g
+	texanswer$n=$var2 \,=\, $g2
+	answer$n=$g1
+	formula$n=\left\{ \begin{array}{l} $var3 = \frac{$e}{$a} \cdot $var1 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+        applettext=!nospace { vlist($var3 = $e/($a) * $var1 $pm $b ,., $var2 = $d * $var3 $mp $c )}->
+     !exit
+    !endif
+!endif

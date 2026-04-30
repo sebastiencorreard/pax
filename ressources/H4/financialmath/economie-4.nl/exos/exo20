@@ -1,0 +1,181 @@
+#Prijs &amp; efficiency resultaat
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=-1
+checkfile=exos/precheck1.proc
+jaar=!date +%Y
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+produkt=!randitem Noer,Fantasyl,Chromiux,Lapacyl,Mangon&eacute;,Meramite,Factomycine,Halomide,Pectadine
+kg=!randitem kg,liter,gram,milliliter
+
+jaarafzet=!randint 500,999
+f=!randitem 10,20
+jaarafzet=$[$jaarafzet*$f]
+factor=!randint 100,300
+pm=!randitem -1,1
+uur1=!randint 5,25
+uurloon=!randint 16,80
+uurloon=$[$uurloon/2]
+loon1=$[$uur1*$uurloon]
+kilo1=!randint 5,30
+kilo1=$[$kilo1/2]
+prijs=!randint 30,250
+prijs=$[$prijs/10]
+echte_kosten=$[$loon1 + $grondstof1]
+perc=!randint 2,5
+kosten1=$[round($perc*$echte_kosten/100)]
+grondstof1=$[$kilo1*$prijs]
+stuks1=$[100*(round(($jaarafzet + $pm*$factor)/100))]
+
+maandafzet=$[$jaarafzet/12]
+f2=!randint 3,10
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+stuks2=$[10*(round($maandafzet*$f3/1000))]
+f2=!randint 2,5
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+uur2=$[$stuks2*$uur1]
+uur2=$[10*round($f3/1000*$uur2)]
+f2=!randint 2,15
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+loon2=$[$uur2*$uurloon]
+loon2=$[10*round($f3/1000*$loon2)]
+f2=!randint 1,5
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+kilo2=$[$stuks2*$kilo1]
+kilo2=$[10*round($f3/1000*$kilo2)]
+f2=!randint 1,5
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+kosten2=$[$stuks2*$kosten1]
+kosten2=$[10*round($f3/1000*$kosten2)]
+f2=!randint 1,9
+mp=!randitem +,-
+f3=$[100 $mp $f2]
+grondstof2=$[$grondstof1*$stuks2]
+grondstof2=$[round($f3/100*$grondstof2)]
+
+ss=$bedrijf produceert het product "$produkt&reg;". <br />De normale jaarproductie en normale jaarafzet zijn $jaarafzet producten.<br />Bij $bedrijf zijn in de voorcalculatie van het product "$produkt&reg;"<br /> de <span class="schaersvoorde_link">volgende gegevens</span> voor $jaar opgenomen.
+
+mousetxt=<ul><li>Verwachte productie en afzet: $stuks1 stuks</li><li>Loonkosten per product : $uur1 uur &aacute; &euro; $uurloon = &euro; $loon1</li><li>Grondstof per product : $kilo1 $kg &aacute; &euro; $prijs = &euro; $grondstof1</li><li>De toegestane constante kosten per product bedragen: &euro; $kosten1</li></ul>Aan het het einde van de maand januari zijn er $stuks2<br /> producten geproduceerd en verkocht.<br />Het verbruik is:<ul><li>Lonen : $uur2 uur, hiervoor werd in totaal &euro; $loon2 betaald </li><li>Grondstof : $kilo2 $kg , hiervoor werd in totaal &euro; $grondstof2 betaald </li><li>Constante kosten : &euro; $kosten2</li></ul>
+
+!if $R=1
+    budgetresultaat_verwacht=$[$loon1*$stuks2]
+    budgetresultaat=$[$budgetresultaat_verwacht - $loon2]
+    ans1=$[abs($budgetresultaat)]
+    !if $budgetresultaat < 0
+	nadelig1=nadelig
+	ans2=-1
+    !else
+	ans2=1
+	nadelig1=voordelig
+    !endif
+    
+    #
+    prijsverschil=$[($uurloon - $loon2/$uur2)*$uur2]
+    ans3=$[abs($prijsverschil)]
+    !if $prijsverschil < 0
+	nadelig2=nadelig
+	ans4=-1
+    !else
+	nadelig2=voordelig
+	ans4=1
+    !endif
+    #
+    effverschil=$[($uur1*$stuks2 - $uur2)*$uurloon]
+    ans5=$[abs($effverschil)]
+    !if $effverschil < 0
+	nadelig3=nadelig
+	ans6=-1
+    !else
+	nadelig3=voordelig
+	ans6=1
+    !endif
+    answer$n=$ans1,$ans2,$ans3,$ans4,$ans5,$ans6
+    
+    txt=Bereken het budgetresultaat op lonen voor de maand januari <br />en splits dat uit in een prijs en een efficiencyresultaat.<br />Geef aan of het een voordelig of nadelig resultaat is.
+    exotext=<table class="zebra_table_h2"><tr><td>Budgetresultaat = &euro;&nbsp;<input type="text" id="myinput0" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select  size="1" id="myinput1" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;budgetresultaat ?</td></tr><tr><td >Prijsverschil = &euro;&nbsp;<input type="text" id="myinput2" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select  size="1" id="myinput3" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;prijsverschil ?</td></tr><tr><td >Efficiencyverschil = &euro;&nbsp;<input type="text" id="myinput4" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select  size="1" id="myinput5" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;eficiencyverschil ? </td></tr></table>
+
+    description=Budgetresultaat,voordeel of nadeel,Prijsverschil,voordeel of nadeel,Efficiencyverschil,voordeel of nadeel
+    
+    textanswer$n=<ol><li><ul><li>Budgetresultaat = verwachte kosten <u>op basis van de werkelijke afzet</u> vergelijken met de werkelijke kosten</li><li><b>Verwacht</b> : &euro; $loon1 &times; $stuks2 = &euro; $budgetresultaat_verwacht <br /><b>Werkelijk</b> : &euro; $loon2</li><li>$nadelig1 budgetresultaat : &euro; $ans1</li></ul></li><li><ul><li>Prijsverschil = (standaardprijs - werkelijke prijs) &times; werkelijke hoeveelheid</li><li>Prijsverschil = ( $uurloon - $loon2 / $uur2) &times; $uur2 = &euro; $prijsverschil</li><li>$nadelig2 prijsverschil &euro; $ans3</li></ul></li><li><ul><li>Efficiencyverschil = (standaardhoeveelheid - werkelijke hoeveelheid) &times standaardprijs</li><li>Efficiencyverschil = ($uur1 &times; $stuks2 - $uur2) &times; $uurloon = &euro; $effverschil</li><li>$nadelig3 efficiencyverschil &euro; $ans5</li></ul></li></ol><span style="color:red"><b>N.B. controle</b></span> : $prijsverschil + $effverschil = $budgetresultaat
+
+!else
+    !if $R=2
+	txt=Bereken het budgetresultaat op grondstoffen en splits dat uit in een prijs en een efficiencyresultaat.<br />\
+	Geef aan of het een voordelig of nadelig resultaat is.
+	
+	budgetresultaat_verwacht=$[$kilo1*$prijs*$stuks2]
+	budgetresultaat=$[$budgetresultaat_verwacht - $grondstof2]
+	ans1=$[abs($budgetresultaat)]
+	!if $budgetresultaat < 0
+	    nadelig1=nadelig
+	    ans2=-1
+	!else
+	    ans2=1
+	    nadelig1=voordelig
+	!endif
+	#
+	prijsverschil=$[($prijs - $grondstof2/$kilo2)*$kilo2]
+	ans3=$[abs($prijsverschil)]
+	!if $prijsverschil < 0
+	    nadelig2=nadelig
+	    ans4=-1
+	!else
+	    nadelig2=voordelig
+	    ans4=1
+	!endif
+	#
+	effverschil=$[($kilo1*$stuks2 - $kilo2)*$prijs]
+	ans5=$[abs($effverschil)]
+	!if $effverschil < 0
+	    nadelig3=nadelig
+	    ans6=-1
+	!else
+	    nadelig3=voordelig
+	    ans6=1
+	!endif
+	answer$n=$ans1,$ans2,$ans3,$ans4,$ans5,$ans6
+	
+	exotext=<table class="zebra_table_h2"><tr><td >Budgetresultaat = &euro;&nbsp;<input type="text" id="myinput0" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select  size="1" id="myinput1" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;budgetresultaat ?</td></tr><tr><td >Prijsverschil = &euro;&nbsp;<input type="text" id="myinput2" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select  size="1" id="myinput3" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;prijsverschil ?</td></tr><tr><td >Efficiencyverschil = &euro;&nbsp;<input type="text" id="myinput4" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select id="myinput5" size="1" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;eficiencyverschil ? </td></tr></table>
+    
+	description=Budgetresultaat,voordeel of nadeel,Prijsverschil,voordeel of nadeel,Efficiencyverschil,voordeel of nadeel
+	textanswer$n=<ol><li><ul><li>Budgetresultaat = verwachte kosten <u>op basis van de werkelijke afzet</u> vergelijken met de werkenlijke kosten</li><li><b>Verwacht</b>  $kilo1 $kg &times; &euro; $prijs &times; $stuks2 stuks = &euro; $budgetresultaat_verwacht <br /><b>Werkelijk</b> : &euro; $grondstof2</li><li>$nadelig1 budgetresultaat : &euro; $ans1</li></ul></li><li><ul><li>Prijsverschil = (standaardprijs - werkelijke prijs) &times; werkelijke hoeveelheid</li><li>Prijsverschil = ( $prijs - $grondtof2 / $kilo2) &times; $kilo2 = &euro; $prijsverschil</li><li>$nadelig2 prijsverschil &euro; $ans3</li></ul></li><li><ul><li>Efficiencyverschil = (standaardhoeveelheid - werkelijke hoeveelheid) &times standaardprijs</li><li>Efficiencyverschil = ($kilo1 &times; $stuks2 - $kilo2) &times; $prijs = &euro; $effverschil</li><li>$nadelig3 efficiencyverschil &euro; $ans5</li></ul></li></ol><span style="color:red"><b>N.B. controle</b></span> : $prijsverschil + $effverschil = $budgetresultaat
+
+    !else
+	checkfile=exos/precheck2.proc
+	var1=2,0
+	var2=10,-1
+	txt=Bereken het gerealiseerde bezettingsresultaat voor de maand januari.<br />Geef aan of het een voordelig of nadelig resultaat is.
+	bezettingsresultaat=$[($stuks2 - $jaarafzet/12)*$kosten1]
+	ans1=$[abs(round($bezettingsresultaat))]
+	!if $bezettingsresultaat < 0
+	    nadelig1=nadelig
+	    ans2=-1
+	!else
+	    ans2=1
+	    nadelig1=voordelig
+	!endif
+	answer$n=$ans1\
+	$ans2
+	
+	exotext=<table class="zebra_table_h2"><tr><td >Bezettingsresultaat = &euro;&nbsp;<input type="text" id="myinput0" size="5" class="schaersvoorde_input" value=""/></td><td> ... en dit is een <select size="1" id="myinput1" class="schaersvoorde_input"><option value="-1">nadelig</option><option value="1">voordelig</option></select>&nbsp;bezettingsresultaat ?</td></tr></table>
+	
+	textanswer$n=<ul><li>Bezettingsresultaat is : (werkelijke productie &minus; normale productie) &times; constante kosten per stuk</li><li>Bezettingsresultaat is ($stuks2 &minus; $jaarafzet/12 ) &times; $kosten1 = $bezettingsresultaat &euro;&nbsp;</li><li>Dit is dus een $nadelig1 bezettingsresultaat van &euro; $[round($ans1)].</li></ul>
+    !endif
+!endif
+
+roundingtext=Geef je eindantwoorden in hele &euro;&rsquo;s<br />en als <b>positieve getallen</b> !
+question$n =<a onmouseover="return escape('$mousetxt')">$ss</a><hr class="schaersvoorde_hr" />$txt
+helptext=$roundingtext
+
+

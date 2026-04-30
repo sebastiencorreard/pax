@@ -1,0 +1,166 @@
+type=classify
+textarea="data explain"
+iEdit="explain"
+<p class="wims_credits">Auteur du modèle : Gang Xiao <qualite@wimsedu.info></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Listes en compréhension 1}
+:\author{Yves, Moncheaux}
+:\email{yves.moncheaux@ac-lille.fr}
+:\credits{}
+
+: ceci est un exercice à deux étapes
+: le saut à la ligne est important dans steps
+\steps{reply1
+reply2}
+
+: données pour l'étape 1
+
+:Nombre de (paires) d'objets à faire correspondre
+\integer{tot=7}
+
+:La taille verticale des cases en pixels
+Pensez aux gens qui augmentent la taille de polices de leur navigateur !
+Ne mettez pas les cases trop petites.
+\integer{sizev=50}
+
+:La taille horizontale des cases à gauche en pixels
+
+\integer{sizel=250}
+
+:La taille horizontale des cases à droite en pixels
+
+\integer{sizer=250}
+
+:Consigne pour les apprenants
+help
+\text{explain=<p>Associez à chaque commande la liste qui sera créée. Certaines commandes ne sont pas valides, associez-les alors à la réponse "Erreur de syntaxe".</p>}
+
+:Données principales
+Définir une paire d'objets correspondants par ligne, séparés par une virgule.
+help
+\matrix{data=[i**2 for i in range(3)],  [0, 1, 4]
+[i**2 for i in range(4)], [0, 1, 4, 9]
+[i**2 for i in range(5)], [0, 1, 4, 9, 16]
+[i*2 for i in range(4)],  [0, 2, 4, 6]
+[i*2 for i in range(5)],  [0, 2, 4, 6, 8]
+[i*2 for i in range(3)],  [0, 2, 4]
+[i**2 for i in range(1, 4)], [1, 4, 9]
+[i**2 for i in range(1, 5)], [1, 4, 9, 16]
+[i*2 for i in range(1, 4)],  [2, 4, 6]
+[i*2 for i in range(1, 5)],  [2, 4, 6, 8]
+[i*2 if i in range(3)], Erreur de syntaxe
+[i*2 if i in range(4)], Erreur de syntaxe
+[i*2 if i in range(5)], Erreur de syntaxe
+[i*2 while i<3],  Erreur de syntaxe
+[i*2 for i<4],  Erreur de syntaxe
+[i*2 while i<5],  Erreur de syntaxe
+[i*2 if i<3], Erreur de syntaxe
+[i*2 if i<4], Erreur de syntaxe
+[i*2 for i<5], Erreur de syntaxe
+[i**2 for i<3],  Erreur de syntaxe
+[i**2 while i<4],  Erreur de syntaxe
+[i**2 while i<5],  Erreur de syntaxe
+[i**2 if i<3], Erreur de syntaxe
+[i**2 if i<4], Erreur de syntaxe
+[i**2 for i<5], Erreur de syntaxe
+}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\integer{datacnt=rows(\data)}
+\integer{tot=\tot>\datacnt?\datacnt}
+
+\text{shuf=item(1..\tot,shuffle(\datacnt))}
+\text{data=row(\shuf,\data)}
+\text{data=\accolade=1? wims(embraced randitem \data)}
+
+\text{datal=column(1,\data)}
+\text{datar=column(2,\data)}
+\text{size=\sizev[]x\sizel[]x\sizer}
+\text{explain=\accolade=1? wims(embraced randitem \explain)}
+
+
+: données pour l'étape 2
+\matrix{listes=
+4, 8, 12, 16, 20
+3, 6, 9, 12
+0, 4, 8, 12, 16, 20
+0, 3, 6, 9, 12, 15, 18
+1, 4, 9, 16, 25, 36
+1, 4, 9, 16, 25
+0, 1, 4, 9, 16, 25
+0, 1, 4, 9, 16
+3, 5, 7, 9, 11
+3, 5, 7, 9
+1, 3, 5, 7, 9
+1, 3, 5, 7, 9, 11
+}
+\matrix{reponses=
+4*i for i in range(1,6)
+3*i for i in range(1,5)
+4*i for i in range(6)
+3*i for i in range(7)
+i**2 for i in range(1,7)
+i**2 for i in range(1,6)
+i**2 for i in range(6)
+i**2 for i in range(5)
+2*i+1 for i in range(1,6)
+2*i+1 for i in range(1,5)
+2*i+1 for i in range(5)
+2*i+1 for i in range(6)
+}
+
+\integer{choix = randint(1..12)}
+\text{rep2 = row(\choix, \listes)}
+\text{quest = row(\choix, \reponses)}
+
+
+
+
+
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+La commande pour afficher le tableau de correspondance,
+c'est \embed{reply 1,\size}
+
+
+
+\statement{
+\if{\step=1}{
+<p>Cet exercice comporte deux questions.</p>
+<p> Question 1 sur 2 : </p>
+\explain
+<div class="wimscenter">
+\embed{reply 1,\size}
+</div>
+}
+
+\if{\step=2}{
+<p> Question 2 sur 2 : </p>
+<p>Voici une ligne de code python qui génère une liste : \quest</p>
+<p>Ecrire cette liste :</p>
+<div class="wimscenter">
+[\embed{reply2, 50}]
+</div>
+}
+}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{La réponse}{\datal;\datar}{type=correspond}
+\answer{}{\rep3}{type=raw}
+\condition{La réponse à la question 2 est-elle correcte ?}{\rep3 issametext \rep2}

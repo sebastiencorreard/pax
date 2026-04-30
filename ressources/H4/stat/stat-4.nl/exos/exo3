@@ -1,0 +1,337 @@
+# normaal waarschijnlijkheidspapier
+!if $counter=1
+    math=0
+    rounding=100
+    mathview=0
+    questiontype=7
+    javascript=js/normaal_waarschijnlijkheids_papier2.js
+    inputs=yes
+    applet=0
+    make_tr=1
+    image=0
+    plot=0
+    xsize=480
+    ysize=600
+    checkfile=exos/checkfile3.proc
+    #canvas var8=1
+    var8=1    
+!endif
+n=$counter
+#data ; gestripte kopie van exo2
+gem=!randint 10,300
+gem=$[$gem*10]
+!if $gem<1000
+    f=100
+!else
+    f=500
+!endif
+sig=$[round($gem/$f)]
+sigma=!randint $sig,$[$sig+5]
+sigma=$[10*$sigma]
+range=$[8*$sigma]
+var1=$[10*round($range/100)]
+
+a=!randitem -4.6,-4.4,-4.2,-4,-3.8
+b=!randint 8,13
+!for p=1 to $b
+    g$p=$[$gem + $a*$var1]
+    z$p=$[($(g$p) - $gem)/$sigma]
+    a=$[$a+1]
+    !ifval $(z$p) <3.09
+	max_y=$p
+    !endif
+!next p
+# vragen naar standaardafwijking & gemiddelde 
+answer$n=$sigma,$gem
+# 
+txt1=!record 17 of lang/remarks.$taal
+txt2=!record 24 of lang/remarks.$taal
+textanswer$n=<ul><li>$(txt2[5]) : $gem</li><li>$m_sigma : $sigma</li></ul>
+#
+addtext=!record 61 of lang/remarks.$taal
+#@De lijnstukken kun je tekenen door een tweetal punten te zetten<br><ul><li>Klik op het beginpunt van het lijnstuk</li><li>Klik op het eindpunt van het lijnstuk</li><li>De applet trekt een lijnstuk tussen deze twee punten</li><li>Weghalen kan door te klikken met je rechter muisknop op de twee punten</li><li>Links bovenin de applet zie je -als de muis zich in het appletvenster bevindt-<br>een co&ouml;rdinaten paar... (x : y)</li><li>De x-waarde is de horizontale waarde ($fruits $txt2)</li><li>De y-waarde is de "z-waarde" : let op:dus niet het percentage...</li></ul>
+    
+helptext=<img src=\'$module_dir/gifs/exo3.png\' alt=\'noalt\' /><hr />$addtext
+#
+ss=!record 60 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+#@Gegeven de onderstaande plot van een normale verdeling op <tt>normaal waarschijnlijkheidspapier</tt>...<br>Bepaal in de grafiek het gemiddelde en de standaardafwijking.<br>Laat de benodigde hulplijnstukken in de applet staan: deze worden ook nagekeken !
+
+# plaatje
+xmin=$g1
+xmax=$(g$b)
+var2=$xmin
+vline=$empty
+xscale=$empty
+gridcolor1=blue
+gridcolor2=green
+color=!randitem green,blue,orange,black
+
+!for p=$xmin to $[$xmax+$var1 -1] step $var1
+    vline=!append line segment $p,-3.719,$p,3.09,$gridcolor1 to $vline
+    !if $p < $[$xmax+$var1]
+	xtext=!append line string black,$[$p-$var1/3],-3.96,$p to $xtext
+	vtic=!append line segment $p,-3.75,$p,-3.6,black to $vtic
+    !endif
+!next p
+xtext=!append line string black,$[$xmin+($max_y-3)*$var1],-3.5,$(txt1[1]) to $xtext
+# tic
+dx=$[round($var1/5+$xmin)]
+
+var9=size $xsize,$ysize\
+xrange $[$xmin-$var1] ,$[$xmax+$var1]\
+yrange -4,4\
+bgcolor white\
+opacity 255,255\
+fontfamily 12px Courier\
+replyformat 8\
+precision 100\
+$vline\
+segment $xmin,-3.7190,$xmax,-3.7190,$gridcolor1\
+segment $xmin,-3.2905,$xmax,-3.2905,$gridcolor1\
+segment $xmin,-3.0902,$xmax,-3.0902,$gridcolor1\
+segment $xmin,-2.8782,$xmax,-2.8782,$gridcolor1\
+segment $xmin,-2.5758,$xmax,-2.5758,$gridcolor1\
+segment $xmin,-2.3263,$xmax,-2.3263,$gridcolor1\
+segment $xmin,-2.0537,$xmax,-2.0537,$gridcolor1\
+segment $xmin,-1.6449,$xmax,-1.6449,$gridcolor1\
+segment $xmin,-1.2816,$xmax,-1.2816,$gridcolor1\
+segment $xmin,-0.84162,$xmax,-0.84162,$gridcolor1\
+segment $xmin,-0.52440,$xmax,-0.52440,$gridcolor1\
+segment $xmin,-0.25335,$xmax,-0.25335,$gridcolor1\
+segment $xmin,0,$xmax,0,$gridcolor1\
+segment $xmin,0.25335,$xmax,0.25335,$gridcolor1\
+segment $xmin,0.52440,$xmax,0.52440,$gridcolor1\
+segment $xmin,0.84162,$xmax,0.84162,$gridcolor1\
+segment $xmin,1.2816,$xmax,1.2816,$gridcolor1\
+segment $xmin,1.6449,$xmax,1.6449,$gridcolor1\
+segment $xmin,2.0537,$xmax,2.0537,$gridcolor1\
+segment $xmin,2.3263,$xmax,2.3263,$gridcolor1\
+segment $xmin,2.5758,$xmax,2.5758,$gridcolor1\
+segment $xmin,2.8782,$xmax,2.8782,$gridcolor1\
+segment $xmin,3.0902,$xmax,3.0902,$gridcolor1\
+opacity 150,150\
+segment $xmin,-3.4316,$xmax,-3.4316,$gridcolor2\
+segment $xmin,-3.5401,$xmax,-3.5401,$gridcolor2\
+segment $xmin,-3.3528,$xmax,-3.3528,$gridcolor2\
+segment $xmin,-3.2389,$xmax,-3.2389,$gridcolor2\
+segment $xmin,-3.1947,$xmax,-3.1947,$gridcolor2\
+segment $xmin,-3.1559,$xmax,-3.1559,$gridcolor2\
+segment $xmin,1.3408,$xmax,1.3408,$gridcolor2\
+segment $xmin,-3.1214,$xmax,-3.1214,$gridcolor2\
+segment $xmin,-2.9677,$xmax,-2.9677,$gridcolor2\
+segment $xmin,-2.7478,$xmax,-2.7478,$gridcolor2\
+segment $xmin,-2.6521,$xmax,-2.6521,$gridcolor2\
+segment $xmin,-2.5121,$xmax,-2.5121,$gridcolor2\
+segment $xmin,-2.4573,$xmax,-2.4573,$gridcolor2\
+segment $xmin,-2.4089,$xmax,-2.4089,$gridcolor2\
+segment $xmin,-3.5401,$xmax,-3.5401,$gridcolor2\
+segment $xmin,-2.3656,$xmax,-2.3656,$gridcolor2\
+segment $xmin,-2.1973,$xmax,-2.1973,$gridcolor2\
+segment $xmin,-2.1444,$xmax,-2.1444,$gridcolor2\
+segment $xmin,-2.2571,$xmax,-2.2571,$gridcolor2\
+segment $xmin,-2.0969,$xmax,-2.0969,$gridcolor2\
+segment $xmin,-1.8808,$xmax,-1.8808,$gridcolor2\
+segment $xmin,-1.7507,$xmax,-1.7507,$gridcolor2\
+segment $xmin,-1.5548,$xmax,-1.5548,$gridcolor2\
+segment $xmin,-1.4758,$xmax,-1.4758,$gridcolor2\
+segment $xmin,-1.4051,$xmax,-1.4051,$gridcolor2\
+segment $xmin,-1.3408,$xmax,-1.3408,$gridcolor2\
+segment $xmin,-1.1750,$xmax,-1.1750,$gridcolor2\
+segment $xmin,-1.1264,$xmax,-1.1264,$gridcolor2\
+segment $xmin,-1.0803,$xmax,-1.0803,$gridcolor2\
+segment $xmin,-1.0364,$xmax,-1.0364,$gridcolor2\
+segment $xmin,-0.99446,$xmax,-0.99446,$gridcolor2\
+segment $xmin,-0.95417,$xmax,-0.95417,$gridcolor2\
+segment $xmin,-0.91537,$xmax,-0.91537,$gridcolor2\
+segment $xmin,-0.87790,$xmax,-0.87790,$gridcolor2\
+segment $xmin,-0.77219,$xmax,-0.77219,$gridcolor2\
+segment $xmin,-0.70630,$xmax,-0.70630,$gridcolor2\
+segment $xmin,-0.64335,$xmax,-0.64335,$gridcolor2\
+segment $xmin,-0.58284,$xmax,-0.58284,$gridcolor2\
+segment $xmin,-0.46770,$xmax,-0.46770,$gridcolor2\
+segment $xmin,-0.41246,$xmax,-0.41246,$gridcolor2\
+segment $xmin,-0.35846,$xmax,-0.35846,$gridcolor2\
+segment $xmin,-0.30548,$xmax,-0.30548,$gridcolor2\
+segment $xmin,-1.2265,$xmax,-1.2265,$gridcolor2\
+segment $xmin,-0.20189,$xmax,-0.20189,$gridcolor2\
+segment $xmin,-0.15097,$xmax,-0.15097,$gridcolor2\
+segment $xmin,-0.10043,$xmax,-0.10043,$gridcolor2\
+segment $xmin,-0.050154,$xmax,-0.050154,$gridcolor2\
+segment $xmin,0.050154,$xmax,0.050154,$gridcolor2\
+segment $xmin,0.10043,$xmax,0.10043,$gridcolor2\
+segment $xmin,0.15097,$xmax,0.15097,$gridcolor2\
+segment $xmin,0.20189,$xmax,0.20189,$gridcolor2\
+segment $xmin,0.30548,$xmax,0.30548,$gridcolor2\
+segment $xmin,0.35846,$xmax,0.35846,$gridcolor2\
+segment $xmin,0.41246,$xmax,0.41246,$gridcolor2\
+segment $xmin,0.46770,$xmax,0.46770,$gridcolor2\
+segment $xmin,0.55338,$xmax,0.55338,$gridcolor2\
+segment $xmin,0.58284,$xmax,0.58284,$gridcolor2\
+segment $xmin,0.64335,$xmax,0.64335,$gridcolor2\
+segment $xmin,0.70630,$xmax,0.70630,$gridcolor2\
+segment $xmin,0.77219,$xmax,0.77219,$gridcolor2\
+segment $xmin,0.91537,$xmax,0.91537,$gridcolor2\
+segment $xmin,0.95417,$xmax,0.95417,$gridcolor2\
+segment $xmin,0.99446,$xmax,0.99446,$gridcolor2\
+segment $xmin,1.0364,$xmax,1.0364,$gridcolor2\
+segment $xmin,1.0803,$xmax,1.0803,$gridcolor2\
+segment $xmin,1.1264,$xmax,1.1264,$gridcolor2\
+segment $xmin,1.1750,$xmax,1.1750,$gridcolor2\
+segment $xmin,1.2265,$xmax,1.2265,$gridcolor2\
+segment $xmin,1.4051,$xmax,1.4051,$gridcolor2\
+segment $xmin,1.4758,$xmax,1.4758,$gridcolor2\
+segment $xmin,1.5548,$xmax,1.5548,$gridcolor2\
+segment $xmin,1.7507,$xmax,1.7507,$gridcolor2\
+segment $xmin,1.8808,$xmax,1.8808,$gridcolor2\
+segment $xmin,2.0969,$xmax,2.0969,$gridcolor2\
+segment $xmin,2.1444,$xmax,2.1444,$gridcolor2\
+segment $xmin,2.1973,$xmax,2.1973,$gridcolor2\
+segment $xmin,2.2571,$xmax,2.2571,$gridcolor2\
+segment $xmin,2.4089,$xmax,2.4089,$gridcolor2\
+segment $xmin,2.4573,$xmax,2.4573,$gridcolor2\
+segment $xmin,2.5121,$xmax,2.5121,$gridcolor2\
+segment $xmin,2.6521,$xmax,2.6521,$gridcolor2\
+segment $xmin,2.7478,$xmax,2.7478,$gridcolor2\
+segment $xmin,2.9677,$xmax,2.9677,$gridcolor2\
+linewidth 2\
+segment $xmin,-3.7190,$dx,-3.7190,black\
+segment $xmin,-3.2905,$dx,-3.2905,black\
+segment $xmin,-3.0902,$dx,-3.0902,black\
+segment $xmin,-2.8782,$dx,-2.8782,black\
+segment $xmin,-2.5758,$dx,-2.5758,black\
+segment $xmin,-2.3263,$dx,-2.3263,black\
+segment $xmin,-2.0537,$dx,-2.0537,black\
+segment $xmin,-1.6449,$dx,-1.6449,black\
+segment $xmin,-1.2816,$dx,-1.2816,black\
+segment $xmin,-0.84162,$dx,-0.84162,black\
+segment $xmin,-0.52440,$dx,-0.52440,black\
+segment $xmin,-0.25335,$dx,-0.25335,black\
+segment $xmin,0,$dx,0,black\
+segment $xmin,0.25335,$dx,0.25335,black\
+segment $xmin,0.52440,$dx,0.52440,black\
+segment $xmin,0.84162,$dx,0.84162,black\
+segment $xmin,1.2816,$dx,1.2816,black\
+segment $xmin,1.6449,$dx,1.6449,black\
+segment $xmin,2.0537,$dx,2.0537,black\
+segment $xmin,2.3263,$dx,2.3263,black\
+segment $xmin,2.5758,$dx,2.5758,black\
+segment $xmin,2.8782,$dx,2.8782,black\
+segment $xmin,3.0902,$dx,3.0902,black\
+segment $xmin,-3.4316,$dx,-3.4316,black\
+segment $xmin,-3.5401,$dx,-3.5401,black\
+segment $xmin,-3.3528,$dx,-3.3528,black\
+segment $xmin,-3.2389,$dx,-3.2389,black\
+segment $xmin,-3.1947,$dx,-3.1947,black\
+segment $xmin,-3.1559,$dx,-3.1559,black\
+segment $xmin,-3.1214,$dx,-3.1214,black\
+segment $xmin,-2.9677,$dx,-2.9677,black\
+segment $xmin,-2.7478,$dx,-2.7478,black\
+segment $xmin,-2.6521,$dx,-2.6521,black\
+segment $xmin,-2.5121,$dx,-2.5121,black\
+segment $xmin,-2.4573,$dx,-2.4573,black\
+segment $xmin,-2.4089,$dx,-2.4089,black\
+segment $xmin,-2.3656,$dx,-2.3656,black\
+segment $xmin,-2.1973,$dx,-2.1973,black\
+segment $xmin,-2.1444,$dx,-2.1444,black\
+segment $xmin,-2.2571,$dx,-2.2571,black\
+segment $xmin,-2.0969,$dx,-2.0969,black\
+segment $xmin,-1.8808,$dx,-1.8808,black\
+segment $xmin,-1.7507,$dx,-1.7507,black\
+segment $xmin,-1.5548,$dx,-1.5548,black\
+segment $xmin,-1.4758,$dx,-1.4758,black\
+segment $xmin,-1.4051,$dx,-1.4051,black\
+segment $xmin,-1.3408,$dx,-1.3408,black\
+segment $xmin,-1.1750,$dx,-1.1750,black\
+segment $xmin,-1.1264,$dx,-1.1264,black\
+segment $xmin,-1.0803,$dx,-1.0803,black\
+segment $xmin,-1.0364,$dx,-1.0364,black\
+segment $xmin,-0.99446,$dx,-0.99446,black\
+segment $xmin,-0.95417,$dx,-0.95417,black\
+segment $xmin,-0.91537,$dx,-0.91537,black\
+segment $xmin,-0.87790,$dx,-0.87790,black\
+segment $xmin,-0.77219,$dx,-0.77219,black\
+segment $xmin,-0.70630,$dx,-0.70630,black\
+segment $xmin,-0.64335,$dx,-0.64335,black\
+segment $xmin,-0.58284,$dx,-0.58284,black\
+segment $xmin,-0.46770,$dx,-0.46770,black\
+segment $xmin,-0.41246,$dx,-0.41246,black\
+segment $xmin,-0.35846,$dx,-0.35846,black\
+segment $xmin,-0.30548,$dx,-0.30548,black\
+segment $xmin,-1.2265,$dx,-1.2265,black\
+segment $xmin,-0.20189,$dx,-0.20189,black\
+segment $xmin,-0.15097,$dx,-0.15097,black\
+segment $xmin,-0.10043,$dx,-0.10043,black\
+segment $xmin,-0.050154,$dx,-0.050154,black\
+segment $xmin,0.050154,$dx,0.050154,black\
+segment $xmin,0.10043,$dx,0.10043,black\
+segment $xmin,0.15097,$dx,0.15097,black\
+segment $xmin,0.20189,$dx,0.20189,black\
+segment $xmin,0.30548,$dx,0.30548,black\
+segment $xmin,0.35846,$dx,0.35846,black\
+segment $xmin,0.41246,$dx,0.41246,black\
+segment $xmin,0.46770,$dx,0.46770,black\
+segment $xmin,0.55338,$dx,0.55338,black\
+segment $xmin,0.58284,$dx,0.58284,black\
+segment $xmin,0.64335,$dx,0.64335,black\
+segment $xmin,0.70630,$dx,0.70630,black\
+segment $xmin,0.77219,$dx,0.77219,black\
+segment $xmin,0.91537,$dx,0.91537,black\
+segment $xmin,0.95417,$dx,0.95417,black\
+segment $xmin,0.99446,$dx,0.99446,black\
+segment $xmin,1.0364,$dx,1.0364,black\
+segment $xmin,1.0803,$dx,1.0803,black\
+segment $xmin,1.1264,$dx,1.1264,black\
+segment $xmin,1.1750,$dx,1.1750,black\
+segment $xmin,1.2265,$dx,1.2265,black\
+segment $xmin,1.4051,$dx,1.4051,black\
+segment $xmin,1.4758,$dx,1.4758,black\
+segment $xmin,1.5548,$dx,1.5548,black\
+segment $xmin,1.7507,$dx,1.7507,black\
+segment $xmin,1.8808,$dx,1.8808,black\
+segment $xmin,2.0969,$dx,2.0969,black\
+segment $xmin,2.1444,$dx,2.1444,black\
+segment $xmin,2.1973,$dx,2.1973,black\
+segment $xmin,2.2571,$dx,2.2571,black\
+segment $xmin,2.4089,$dx,2.4089,black\
+segment $xmin,2.4573,$dx,2.4573,black\
+segment $xmin,2.5121,$dx,2.5121,black\
+segment $xmin,2.6521,$dx,2.6521,black\
+segment $xmin,2.7478,$dx,2.7478,black\
+segment $xmin,2.9677,$dx,2.9677,black\
+opacity 255,255\
+$vtic\
+$xtext\
+string black,$[$xmin-$var1],-3.7190,0.01 %\
+string black,$[$xmin-$var1],-3.2905,0.05 %\
+string black,$[$xmin-$var1],-3.0902,0.1 %\
+string black,$[$xmin-$var1],-2.8782,0.2 %\
+string black,$[$xmin-$var1],-2.5758,0.5 %\
+string black,$[$xmin-$var1],-2.3263,1 %\
+string black,$[$xmin-$var1],-2.0537,2 %\
+string black,$[$xmin-$var1],-1.6449,5 %\
+string black,$[$xmin-$var1],-1.2816,10 %\
+string black,$[$xmin-$var1],-0.84162,20 %\
+string black,$[$xmin-$var1],-0.52440,30 %\
+string black,$[$xmin-$var1],-0.25335,40 %\
+string black,$[$xmin-$var1],0,50 %\
+string black,$[$xmin-$var1],0.25335,60 %\
+string black,$[$xmin-$var1],0.52440,70 %\
+string black,$[$xmin-$var1],0.84162,80 %\
+string black,$[$xmin-$var1],1.2816,90 %\
+string black,$[$xmin-$var1],1.6449,95 %\
+string black,$[$xmin-$var1],2.0537,98 %\
+string black,$[$xmin-$var1],2.3263,99 %\
+string black,$[$xmin-$var1],2.5758,99.5 %\
+string black,$[$xmin-$var1],2.8782,99.8 %\
+string black,$[$xmin-$var1],3.0902,99.9 %\
+linewidth 2\
+segment $g2,$z2,$(g$max_y),$(z$max_y),$color\
+linewidth 2\
+dashed\
+dashtype 4,4\
+userdraw segments,red\
+mouse red,28
+
+prob_paper=!exec canvasdraw \
+$var9

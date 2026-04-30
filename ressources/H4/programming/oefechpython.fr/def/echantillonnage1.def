@@ -1,0 +1,311 @@
+!set title=Échantillonnage 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+keywords=python,probability
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=54
+prevarcnt=39
+postvarcnt=14
+replycnt=13
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val3==)
+val6=ambiance
+!else
+val6=$val3
+!endif
+tmp=!trim r1,r2,r3,r4
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=int
+val9=random
+val10=
+val11=
+val12=
+val13=
+val14=
+val15=
+val16=
+val17=$[]
+val18=$[rint()]
+
+!ifval ($val2==)
+val19=1
+!endif
+
+!ifval ($val2==1)
+val20=$[rint(0)]
+!else
+val20=$[rint(1)]
+!endif
+val21=L'échantillonnage au secours de la justice
+val22="$val1/echa1.png" alt="Justice aux USA"
+val23=$[rint(870)]
+tmp0=!randint 0, 5
+
+val24=$[rint($(tmp0))]
+val25=$[rint(100+$val24*25)]
+val26=$[0.791]
+val27=$[0.79]
+val28=$[0.390]
+val29=r5,r6,r7,r8,r9,r10,r11,r12,r13
+val30=En mars 1972, dans un comté du sud du Texas,	 Rodrigo Partida était condamné à huit ans de prison. En novembre 1976,	  il attaqua ce jugement au motif que	 la désignation des jurés de ce comté était discriminante à l'égard des Américains	 d'origine mexicaine. Alors que 79,1% de la population de ce comté était d'origine	 mexicaine, sur les $val23 personnes convoquées pour être jurés lors d'une certaine période	 de référence, il n'y eut que 339 personnes d'origine mexicaine.<br>
+val31=La simulation est réalisée à l'aide de Python. Le prélèvement est réalisé	 sur des échantillons aléatoires de taille \($val23\) dans une population où la fréquence	 des habitants d'origine mexicaine est \($val26\). Initialiser correctement les valeurs	 des variables \(\text{p}\), \(\text{te}\), \(\text{ne}\) et jouer le code. Les fréquences des	 habitants d'origine mexicaine observées sur \($val25\) échantillons simulés sont représentées	 ci-dessous :
+val32=Quelle est la fréquence des jurés d'origine mexicaine observée dans ce comté du Texas&#8239;?
+val33=Déterminer la probabilité théorique de la répartition de la population d'origine	 mexicaine dans ce comté.
+val34=$[($val26-1/sqrt($val23))*1000]
+
+!ifval ($val20==0)
+val35=$[rint($val34)]
+!else
+val35=$[rint(floor($val34))]
+!endif
+val36=$[$val35/1000]
+val37=$[($val26+1/sqrt($val23))*1000]
+
+!ifval ($val20==0)
+val38=$[rint($val37)]
+!else
+val38=$[rint(ceil($val37))]
+!endif
+val39=$[$val38/1000]
+
+!ifval ($val20==1)
+val40=par défaut et par excès
+!endif
+val41=$[0.02]
+val42=\ \'un
+val43=\#Importation des librairies\#	from math import *	from random import random	\#Entrer les variables\#	p= float(input('Entrer la proportion théorique : '))	print(str(p))	te= $val8(input('Entrer la taille d un échantillon : '))	print(str(te))	ne= $val8(input('Entrer le nombre d échantillons : '))	print(str(ne))	\#initialisation de la probabilité des échantillons	pr=0	\#initialisation des listes	x_list = []	y_list = []	color_list =[]	def echantillon(t,ft):	  f=0	  for i in range(t):	    a=$val8($val9()+ft)	    f=f+a/t	  return f	for i in range(ne):	  x_list.append(i)	  y=echantillon(te,p)	  y_list.append(y)	  if (y<=p+1/sqrt(te)) and (y>=p-1/sqrt(te)):	    pr=pr+1/ne	    color_list.append('black')	  else :	    color_list.append('red')	print('Probabilité sur l ensemble des échantillons : '+str(pr))
+!readproc slib/geo2D/jsxgraph jsxbox,800 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.withLabel=true; 
+tmp0=$slib_out
+val44=$(tmp0)
+dynsteps=yes
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=numeric
+replyoption1=comma nonstop 
+replyname1=
+replygood1=$[$val28]
+replytype2=numeric
+replyoption2=comma nonstop 
+replyname2=
+replygood2=$[$val26]
+replytype3=runcode
+
+replyoption3=precision=100 \instruction_code 
+replyweight3=10 
+replyname3=
+replygood3=[p,$val26],[te,$val23],[ne,$val25]
+replytype4=js2wims1
+
+replyoption4=noanalyzeprint 
+replyweight4=0 
+replyname4=
+replygood4=y_liste,xyminmax,pr
+replytype5=jsxgraph
+
+replyoption5=precision=1000 
+replyname5=
+replygood5=0,$val39;0,$val36
+replytype6=numeric
+replyoption6=comma 
+replyname6=
+replygood6=$[$val36]
+replytype7=numeric
+replyoption7=comma 
+replyname7=
+replygood7=$[$val39]
+replytype8=numeric
+replyoption8=comma 
+replyname8=
+replygood8=$[$val36]
+replytype9=numeric
+replyoption9=comma 
+replyname9=
+replygood9=$[$val39]
+replytype10=numeric
+replyname10=
+replygood10=?analyze 45
+replytype11=dragfill
+replyoption11=nonstop 
+replyname11=
+replygood11=\(\notin\);\(\in\),\(\cap\),\(\cup\)
+replytype12=radio
+replyoption12=shuffle nonstop 
+replyname12=
+replygood12=2;oui,non
+replytype13=checkbox
+replyoption13=shuffle nonstop 
+replyname13=
+replygood13=2,4;elle est aléatoire,elle n'est pas aléatoire, elle tient compte de la répartition de la population,elle ne tient pas compte de la répartition de la population
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">$val21</p>	<div id="haut">	<img src=$val22>	</div>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val30	<div class="question">	$val32	 Arrondir au millième.	<div class="wimscenter">	
+!insmath f_ob=
+$() 
+!read oef/embed.phtml reply1,4 
+$()	</div>	</div>	<div class="question">	$val33	 Arrondir au millième.	<div class="wimscenter">	
+!insmath P_t=
+$() 
+!read oef/embed.phtml reply2,4 
+$()	</div>	</div>	<div class="question">	$val31	
+!if $m_step==1 
+$()	<div>	 
+!read oef/embed.phtml reply3,[python,[$val43]];[idtest2,theme=$val6 canvas init \instruction_code,Jouer le code !] 
+$()	</div>	<div class="wimscenter wimsborder box">	$val44	</div>	 
+!read oef/embed.phtml reply4 
+$()	 
+!endif
+$()	
+!if ($m_step==2 or $m_step==3) and $m_sc_reply3==1 
+$()	<div class="wimscenter wimsborder box">	 
+!read oef/embed.phtml r5,800x400	jsxbox brd	$val14	jxgbox_var1=[0,$val26+0.01]; jxgbox_var2=[0,$val26-0.01]	 
+$()	</div>	<div class="question">	<div class="etape">Étape $m_step</div>	<ul><li>Déterminer les bornes de l'intervalle de confiance à 
+!insmath 10^{-3}
+$() $val40 :	<div class="wimscenter">	
+!insmath p-\frac{1}{\sqrt{n}}
+$()=  
+!read oef/embed.phtml reply6,4 
+$()	
+!insmath p+\frac{1}{\sqrt{n}}
+$()=  
+!read oef/embed.phtml reply7,4 
+$()	</div></li>	<li>En déduire l'intervalle de confiance :	 
+!read oef/special.phtml mathmlinput [I_c=\left[reply8;reply9\right]],4	reply 8,,color:blue;font-size:20px	reply 9,,color:blue;font-size:20px 
+$()	</li><li>	Construire sur le graphique ci-dessus l'intervalle de confiance.	</li><li>	En déduire le nombre d'échantillons qui est dans cet intervalle de confiance :  
+!read oef/embed.phtml reply10,3 
+$()	</li><li>	La fréquence observée est-elle dans l'intervalle de confiance ? 
+!insmath f_ob
+$()  
+!read oef/embed.phtml reply11,40x40x1 
+$() 
+!insmath I_c
+$()	</li>	<li>	Sur les simulations, est-il arrivé au hasard de fournir une fréquence	d'habitants d'origine mexicaine comparable à celle des jurés d'origine	mexicaine observée dans ce comté du Texas ?  
+!read oef/embed.phtml reply12 
+$()	</li><li>	Que peut-on en déduire sur la constitution des jurys dans le comté du sud du texas ?	<ul> 
+!for m_h=1 to 4 
+$()<li> 
+!read oef/embed.phtml reply13,\h 
+$()</li> 
+!next
+$()</ul>	</li>	</ul>	 
+!endif
+$()	
+!if $m_step==1 
+$()	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	pr=Sk.ffi.remapToJs(Sk.globals["pr"]);	color_liste=Sk.ffi.remapToJs(Sk.globals["color_list"]);	N=Sk.ffi.remapToJs(Sk.globals["ne"]);	p=Sk.ffi.remapToJs(Sk.globals["p"]);	te=Sk.ffi.remapToJs(Sk.globals["te"]);	pp=p.toFixed(2);	NN=N/5;	$m_javalc	const xlen=x_liste.length;	function findMinMax(arr,ar) {let xmin = arr[0], xmax = arr[0],ymin = ar[0], ymax = ar[0];	  for (let i = 1, len=arr.length; i < len; i++){	    let v = arr[i];	    let vv = ar[i];	    xmin = (v < xmin && Math.abs(v)>0.0001) ? v : xmin;	    xmax = (v > xmax && Math.abs(v)>0.0001) ? v : xmax;	    ymin = (vv < ymin && Math.abs(v)>0.0001) ? vv : ymin;	    ymax = (vv > ymax && Math.abs(v)>0.0001) ? vv : ymax;}	  return [Math.round(xmin)-NN,Math.round(xmax)+NN,ymin-$val41,ymax+$val41];}	xyminmax=findMinMax(x_liste,y_liste);	JXG.Options.point.size =2;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [xyminmax[0],xyminmax[3],xyminmax[1],xyminmax[2]],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,showFullscreen: true});	xaxis = brd.create('axis', [[0,pp ], [1,pp]],	      {name:'Nombre d\'échantillon',	      withLabel: true,	      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/	      offset: [-60, 30] /*(in pixels)*/},Color:'red'});	yaxis = brd.create('axis', [[0, 0], [0,1]],	      {name:'Probabilité d\'un échantillon',withLabel: true,	      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/	      offset: [10, 0] /*(in pixels)*/}}	      );	var liii=brd.create('line',[[0,p],[1,p]],{Color:'red'});	brd.suspendUpdate();	for(var jj = 0; jj < xlen; jj=jj+1) {	brd.create('point', [x_liste[jj],y_liste[jj]],{color:color_liste[jj]});}	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	 
+!endif
+$()	</div></div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val10=$m_reply4
+val46=$m_reply3
+tmp0=!declosing $(val46[2])
+
+val47=$(tmp0)
+tmp0=!declosing $(val10[1])
+
+val12=$(tmp0)
+tmp0=!makelist x for x = 0 to $val25-1
+
+val11=$(tmp0)
+!for val48 =1 to $val25 
+tmp0=!append line brd.create('point', [$(val11[$val48]),$(val12[$val48])],{color:"black"}); to $val13
+
+val13=$(tmp0)
+!next
+tmp0=!declosing $(val10[2])
+
+val15=$(tmp0)
+val14=JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.infoboxDigits = 3;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =2;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [$(val15[1]),$(val15[4]),$(val15[2]),$(val15[3])],	shownavigation:false,showCopyright : false,	showZoom : false,keepaspectratio : false,showFullscreen: true});	xaxis = brd.create('axis', [[0,$val27], [1,$val27]],	      {name:'Nombre d échantillon',	      withLabel: true,label: {position: 'rt',offset: [-60, 30]},Color:'red'});	yaxis = brd.create('axis', [[0, 0], [0,1]],	      {name:"Probabilité  d\'un échantillon",withLabel: true,	      label: {position: 'rt',offset: [10, 0] }}	      );	brd.create('line',[[0,$val26],[1,$val26]],{Color:'red'});	var jxgbox_rep1=brd.create('point',jxgbox_var1,{fixed:false,name:'Borne supérieure',label: {position:'rt',offset: [-100, 10] },size:'4',showInfobox:'true',face:'o', strokeColor:'black'});	var binbh=brd.create('line',[[0,function(){ return jxgbox_rep1.Y();}], [1,function(){ return jxgbox_rep1.Y();}]], {Color:'blue'});	var jxgbox_rep2=brd.create('point',jxgbox_var2,{fixed:false,name:'Borne inférieure',label: {position:'rt',offset: [-100, 10] },size:'4',showInfobox:'true',face:'o', strokeColor:'black'});	brd.on('move', function(){	       jxgbox_rep1.moveTo([0, jxgbox_rep1.Y()]);	       jxgbox_rep2.moveTo([0, jxgbox_rep2.Y()]);	});	var binfh=brd.create('line',[[0,function(){ return jxgbox_rep2.Y();}], [1,function(){ return jxgbox_rep2.Y();}]], {Color:'blue'});	$val13	
+tmp0=!declosing $(val10[3])
+
+val16=$(tmp0)
+val17=$[$val16]
+val18=$[rint($val17*$val25)]
+val7=
+
+!ifval ($m_step==2 and $m_sc_reply2==1)
+val7=$val29
+!endif
+
+!exit
+
+:feedback
+!ifval 1==1
+ <div class='oef_feedbacks'>	
+!if $m_sc_reply5!=1 
+$()<script>	jxgbox_rep1.setAttribute({name:'Erreur', color:'red',fixed:false});	brd.create('point',[0,$val39],{name:'Correction',label: {position:'rt',offset: [-80, -10]},face:'o',size:'4',fixed:true,showinfobox:true,strokeColor:'green',color:'green'});	brd.create('point',[0,$val36],{name:'Correction',label: {position:'rt',offset: [-80, -10]},face:'o',size:'4',fixed:true,showinfobox:true,strokeColor:'green',color:'green'});	brd.create('line',[[0,$val39],[1,$val39]],{color:'green'});	brd.create('line',[[0,$val36],[1,$val36]],{color:'green'});	binbh.setAttribute({strokeColor:'red'});	binfh.setAttribute({strokeColor:'red'});	</script>	 
+!else
+$() <script>	binbh.setAttribute({strokeColor:'green'});	binfh.setAttribute({strokeColor:'green'});	</script> 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val45=$val18
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le nombre de points à l'intérieur de l'intervalle est de $val18 
+
+!exit
+
+:stat
+vsavelist=1,6,10,11,12,13,14,15,16,17,18,21,22,25,26,27,29,30,31,32,33,36,39,40,41,43,44,45
+embedcnt=12

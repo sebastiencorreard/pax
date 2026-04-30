@@ -1,0 +1,351 @@
+# denk aan z=sqrt(x),sin(pi*x)
+# denk aan z=sqrt(i),-sqrt(i),5i
+# z=arglist i=varlist
+# check op meerdere dezelfde antwoorden
+# kijkt numeriek na... vervang variabele door getal...misschien niet altijd verstandig
+
+
+n=$counter
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    !exit
+!endif
+
+!if $wims_user=supervisor or ~ isin $module
+    test=!itemcnt $(answer$n)
+    !if $test=0 
+	errortext=Supervisor, the good answer should be a comma-list like<br>\
+	z=sqrt(x),sin(pi*x)<br>\
+	z=sqrt(i),-sqrt(i),5i\
+	<br>Use: arglist=z <br>varlist=i
+	goback=1
+	!exit
+    !endif
+!endif
+
+factor=1
+check=0
+wims_rawmath_variables=$varlist
+!if $wordmax=$empty
+    wordmax=20
+!endif    
+
+# check on too long answers 
+test1=!wordcnt $(reply$n)
+test2=!itemcnt $(reply$n)
+!if $test1 > $wordmax or $test2>$wordmax
+    maxscore=$[$maxscore*$P3]
+    !increase try
+    goback=1
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+!endif
+
+# caseinsensitive    
+AAA=!lower $(reply$n)
+    
+# antwoord z=123*i en z=-123*i
+test=!replace internal = by @ in $AAA
+!if @ notin $test
+    byv=1
+    !for p in $arglist
+	random=!randint -100,100
+	testvar=!append line <br>$p<sub>$byv</sub>=$random<br> to $testvar
+	!increase byv
+    !next p
+    errortext=!record 53 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$maxscore*$P4]
+    !increase try
+    !exit
+!endif
+    
+testvar=$empty
+varcnt=!itemcnt $varlist
+!for p in $varlist
+    !if $p isin $AAA
+	!increase check
+    !else
+	testvar=!append word $p to $testvar
+    !endif
+!next p
+
+!if $check != $varcnt
+    !if $complex=1
+	ex=!record 86 of $remarkdir/commonremarks.$taal
+    !else
+	ex=!record 54 of $remarkdir/commonremarks.$taal
+    !endif
+    !if $teaching=1
+	maxscore=$[$P4*$maxscore]
+	errortext=$ex
+    	!increase try
+	goback=1
+	!exit
+    !else
+	extra=$ex
+	maxscore=$[$P6*$maxscore]
+    !endif
+!endif
+    
+# dus het antwoord is z=i en x2=-1 enz
+AAA=!nospace $AAA
+!for p in $arglist
+    AAA=!replace $p[_0-9]*= by , in $AAA
+!next p
+AAA=!replace internal ,, by , in $AAA
+t=!char 1 of $AAA
+!if $t=,
+    AAA=!char 2 to -1 of $AAA
+!endif    
+
+t=!char -1 of $AAA
+!if $t=,
+    AAA=!char 1 to -2 of $AAA
+!endif    
+
+
+# wetenschappelijke notatie
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+AAA=!replace internal ** by * in $AAA
+
+# sinx --> sin(x) 
+!for i in sin,cos,tan,log,ln,abs,sqrt,sec
+    !if $i isin $AAA
+	tt=!replace internal $i( by @ in $AAA
+	!if @ notin $tt
+	    maxscore=$[$P1*$maxscore]
+	    getal=!randitem 1,2,3,4
+	    testvar1=!nospace $i ( $getal )
+	    testvar2=!nospace $i $getal
+	    !increase try
+	    goback=1
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    !exit
+	!else
+	    I=!toupper $i
+	    AAA=!replace internal $i by $I in $AAA
+	!endif
+    !endif	
+!next i
+
+!for i in pi,i
+    !if $i isin $AAA
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif	
+!next i
+
+AAA=!replace [a-z\~\!\@\#\$\%\&\_\:\;\"\'\<\>] by $empty in $AAA
+AAA=!lower $AAA
+
+
+# leerling antwoord is nu een lijst met getallen, of een lijst met een variabele
+# de volgorde doet er niet toe
+
+    
+# rawmath op elk item van $AAA
+
+!for p in $AAA
+    p=!rawmath $p
+    tot=!append item $p to $tot
+!next p
+
+AAA=!nospace $tot
+
+testvar1=!itemcnt $(answer$n)    
+testvar2=!itemcnt $AAA
+!if $testvar2 != $testvar1
+    !if $testvar2>$testvar1
+	maxscore=$[$maxscore*$testvar1/($testvar2)]
+    !else
+	maxscore=$[$maxscore*$testvar2/($testvar1)]
+    !endif    
+    ex=!record 50 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra <br>$ex
+    !endif
+!endif
+
+!if $rounding = -1
+    # not applicable
+    afr1=1000
+    afr2=100
+!else
+    !if $rounding = 0
+	afr1=1000
+	afr2=100
+    !else
+	afr1=$rounding
+	afr2=$[$rounding/10]
+    !endif
+!endif
+
+# we vervangen de -eventuele- variabele door een getal...	
+parivraag1=$empty
+parivraag2=$empty
+parivraag3=$empty
+GGG=$(answer$n)
+cnt=0
+omgedraaid=0
+!if $varlist != $empty
+    # twee of meer dezelfde antwoorden?
+    t1=!itemcnt $AAA
+    g=$empty
+    a=$empty
+    num=!randint 10,100
+    !for i in $varlist
+	!for p in $GGG
+	    p=!replace internal $i by $num in $p
+	    p=$[$p]
+	    g=!append item $p to $g
+	!next p
+	!for p in $AAA
+	    p=!replace internal $i by $num in $p
+	    p=$[$p]
+	    a=!append item $p to $a
+	!next p
+    !next i
+    GGG=$g
+    AAA=!listuniq $a
+    t2=!itemcnt $AAA
+    !if $t1 != $t2
+	testvar=$[$t1-$t2+1]
+	ex=!record 51 of $remarkdir/commonremarks.$taal
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra <br>$ex
+	!endif
+    !endif
+    !for p in $GGG
+	p=!replace internal = by , in $p
+	p=!item -1 of $p
+	p2=$[round($afr1*($p))]
+	p3=$[round($afr2*($p))]
+	!for q=1 to $t2
+	    s=!item $q of $AAA
+	    s2=$[round($afr1*($s))]
+	    s3=$[round($afr2*($s))]
+	    parivraag1=!append line if( abs($p - ($s))<10^-15 ,1,0) to $parivraag1
+	    parivraag2=!append line if( abs($p2 - ($s2))<1/(10*$afr1) ,1,0) to $parivraag2
+	    parivraag3=!append line if( abs($p3 - ($s3))<1/(10*$afr2) ,1,0) to $parivraag3
+	    !increase cnt
+	!next s
+    !next p
+!else
+    t1=!itemcnt $AAA
+    # twee of meer dezelfde antwoorden?
+    AAA=!listuniq $AAA
+    t2=!itemcnt $AAA
+    !if $t1 != $t2
+	ex=!record 51 of $remarkdir/commonremarks.$taal
+	testvar=$[$t1-$t2+1]
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra <br>$ex
+	!endif
+    !endif
+    !for p in $(answer$n)
+	p2=$[round($afr1*($p))]
+	p3=$[round($afr2*($p))]
+	!for q=1 to $t2
+	    s=!item $q of $AAA
+	    s2=$[round($afr1*($s))]
+	    s3=$[round($afr2*($s))]
+	    parivraag1=!append line if( abs($p - ($s))<10^-15 ,1,0) to $parivraag1
+	    parivraag2=!append line if( abs($p2 - ($s2))<1/(10*$afr1) ,1,0) to $parivraag2
+	    parivraag3=!append line if( abs($p3 - ($s3))<1/(10*$afr2) ,1,0) to $parivraag3
+	    !increase cnt
+	!next s
+    !next p	    
+!endif
+
+# parivraag1 is altijd exact...
+# parivraag2 is normaal
+# parivraag3 is sloppy
+    
+!if NaN isin $parivraag1,$parivraag2,$parivraag3
+    testvar=$(reply$n)
+    !increase try
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+  !exit                                                                                       
+!endif
+    
+tot1=!exec pari $parivraag1
+tot2=!exec pari $parivraag2
+tot3=!exec pari $parivraag3
+#errortext=$tot1=tot1=$parivraag1 <br>$tot2=tot2= $parivraag2 <br>$tot3=tot3=$parivraag3<br> ccc=$ccc <br>ggg=$GGG<br> AAA=$AAA
+#goback=1
+#!exit
+!if $wims_exec_error != $empty
+    testvar=$(reply$n)
+    !increase try
+    maxscore=$[$P4*$maxscore]
+    goback=1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+ !exit                                                                                       
+!endif
+
+tussenscore1=0
+tussenscore2=0
+tussenscore3=0
+tussenscore=0
+	
+!for p=1 to $cnt
+    tt1=!line $p of $tot1
+    tt2=!line $p of $tot2
+    tt3=!line $p of $tot3
+    tussenscore1=$[$tt1+$tussenscore1]
+    tussenscore2=$[$tt2+$tussenscore2]
+    tussenscore3=$[$tt3+$tussenscore3]
+!next  p
+
+# rounding =0 --> 'exact' dus parivraag1
+!if $rounding > 0
+    tussenscore=$[(2*$tussenscore2+$tussenscore3)/3]
+    !if $tussenscore3>$tussenscore2
+	ex=!record 30 of $remarkdir/commonremarks.$taal
+	extra=$extra<br> $ex
+    !endif
+!else
+    tussenscore=$[(4*$tussenscore1+2*$tussenscore2+$tussenscore3)/7]    
+    !if $tussenscore2>$tussenscore1
+	ex=!record 29 of $remarkdir/commonremarks.$taal
+	extra=$extra<br> $ex
+    !endif
+!endif
+
+maxscore=$[$maxscore*$tussenscore/($testvar1)]
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore >0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif	        		    
+!endif
+    
+!if $extra != $empty
+    remark$n=$(remark$n)<br>$extra
+!endif
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit
+
+
+

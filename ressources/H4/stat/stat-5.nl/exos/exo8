@@ -1,0 +1,58 @@
+# betrouwbaarheidsinterval II
+
+n=$counter
+mathview=0
+make_tr=1
+embed=1
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=15
+rows=1
+questiontype=7
+javascript=js/interval.phtml
+checkfile=$checkdir/number.proc
+rounding=1
+!readproc $remarkdir/rounding.$taal
+
+aantal=!randint 5,15
+aantal=$[$aantal*10]
+gem=!randint 970,1020
+sigma=!randint 5,10
+ss=!record 44 of lang/remarks.$taal
+#@Bij een consumentenorganisatie komen klachten binnen over de inhoud van pakken melk.<br />Volgens de leverancier zit er gemiddeld ruim een liter in een 1L pak melk...<br />De consumentenorganisatie vermoedt dat er minder dan een liter in een pak melk van deze leverancier zit...<br />Om duidelijkheid te krijgen wordt er een steekproef van $aantal pakken melk van 1 liter genomen.<br />Uit deze steekproef kwam een gemiddelde inhoud van $gem ml melk per pak met een standaardafwijking van $sigma ml .<br />Bereken het 95%-betrouwbaarheidsinterval van deze steekproef.<br />Geef je antwoord op in interval notatie en op &eacute;&eacute;n milliliter nauwkeurig <br />
+
+inputs=yes
+
+question$n= <a onmouseover="return escape('<img src=\'$module_dir/gifs/exo8.png\' alt=\'no alt\' />')">$ss</a>
+helptext=<img src=\'$module_dir/gifs/exo8.png\' alt=\'no alt\' />
+
+ans1=$[$gem - 2*($sigma/sqrt($aantal))]
+ans2=$[$gem + 2*($sigma/sqrt($aantal))]
+rans1=$[(round($rounding*$ans1))/$rounding]
+rans2=$[(round($rounding*$ans2))/$rounding]
+answer$n=$ans1,$ans2
+
+!if $ans2 > 999
+ textanswer$n=!record 45 of lang/remarks.$taal
+#@Op basis van deze steekproef opzet kan de klacht van de consumenten -met 95% zekerheid- niet gegrond worden verklaard...
+!else
+ textanswer$n=!record 46 of lang/remarks.$taal
+ #@Op basis van deze steekproef opzet kan de klacht van de consumenten -met 95% zekerheid- gegrond worden verklaard...
+!endif
+
+sometext=!record 47 of lang/remarks.$taal
+#@ Het 95% -betrouwbaarheidsinterval is gelijk aan,Met daarin,steekproefgemiddelde,standaardafwijking van de steekproef,steekproefgrootte,De foutenmarge bedraagt dus,De steekproef standaardeviatie,De linkergrens,De rechtergrens,Het 95% -betrouwbaarheidsinterval uitgedrukt in milliliters is 
+
+rr=\begin{array}{l} \textrm{ $(sometext[1]) : } \\ \; \\ \left[\begin{array}{c} \overline{x} - 2 \cdot \frac{S}{\sqrt{n}}  \;\;\ , \;\;  \overline{x} + 2 \cdot \frac{S}{\sqrt{n}}  \end{array}\right] \\  \textrm{ $(sometext[2]) :} \\ \overline{x} = \textrm{ $(sometext[3]) } \\ S = \textrm{ $(sometext[4]) }  \\ n = \textrm{ $(sometext[5]) } \\ \textrm{ $(sometext[6]) : }\;\;\;  2 \cdot \frac{S}{\sqrt{n}} \\ \\   \overline{x} = $gem \; ml \\ n = $aantal \\ \textrm{ $(sometext[7]) : }  $sigma \; ml \\    \textrm{ $(sometext[8]) :} $gem - 2 \cdot \frac{$sigma}{\sqrt{$aantal}} \approx $ans1  \rightarrow $rans1 \; ml \\     \textrm{ $(sometext[9]):} $gem + 2 \cdot \frac{$sigma}{\sqrt{$aantal}}  \approx $ans2  \rightarrow $rans2 \; ml   \\ \textrm{ $(sometext[10]) : } \left[ $rans1 ; $rans2 \right] \end{array} 
+texanswer$n=$rr
+
+
+formula$n=!record 34 of lang/remarks.$taal
+#@Interval:
+
+
+#formula$n= \begin{array}{l} \textrm{ Het 95% -betrouwbaarheidsinterval is gelijk aan : } \\ \; \\ \left[\begin{array}{c} \overline{x} - 2 \cdot \frac{S}{\sqrt{n}}  \;\;\ , \;\;  \overline{x} + 2 \cdot \frac{S}{\sqrt{n}}  \end{array}\right] \\  \textrm{Met daarin :} \\ \overline{x} = \textrm{steekproefgemiddelde} \\ S = \textrm{standaardafwijking van de steekproef } \\ n = \textrm{steekproefgrootte} \\ \textrm{De foutenmarge bedraagt dus : }\;\;\;  2 \cdot \frac{S}{\sqrt{n}} \end{array} 
+
+!exit

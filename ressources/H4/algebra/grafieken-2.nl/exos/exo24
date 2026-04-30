@@ -1,0 +1,162 @@
+n=$counter
+questiontype=10
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+formula$n=\left[ \begin{array}{ccc} f(x) & = & \frac{1}{x} \\  g(x) & = & [?] \end{array} \right. \rightarrow
+arglist=g(x),y
+var1=1
+#22/8/2012  maxima checkt antwoord...ivm pari bug if(1.0*(sqrt(4*x)-2) == 1.0*(sqrt(4*x)-2),1,0 ) --> break !!
+helptext=$empty
+checkfile=exos/checkfile1.proc
+image=0
+draw=0
+plot=0
+applet=1
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+pm=!randitem +,-
+mp=!randitem +,-
+
+!if $R=1
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem -1,1
+    !if $c=-1
+	!if $pm=+
+	    xrange=-9,5
+	    yrange=-2,7
+	!else
+	    xrange=-2,12
+	    yrange=-2,7
+	!endif
+        answer$n=sqrt(x $pm $b)
+	bewerken=!record 20 of lang/remarks.$taal
+	#@verschuiven in horizontale richting
+    !else
+	!if $mp=+
+	    xrange=-5,5
+	    yrange=-2,12
+	!else
+	    xrange=-5,5
+	    yrange=-10,4
+	!endif
+	answer$n=sqrt(x) $mp $b
+	bewerken=!record 18 of lang/remarks.$taal
+	#@verschuiven in vertikale richting
+    !endif
+ !goto IMAGE
+!endif
+
+!if $R=2
+    a=!randitem 1,2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5,6,7
+    !if $mp=+
+	ymin=-2
+	ymax=$[$b+5]
+    !else
+	ymin=$[-3-$b]
+	ymax=3
+    !endif
+    !if $pm=+
+	xmin=$[-7-$a]
+	xmax=5
+    !else
+	xmin=-5
+	xmax=$[7+$a]
+    !endif
+    xrange=$xmin,$xmax
+    yrange=$ymin,$ymax
+    answer$n=sqrt(x $pm $a) $mp $b
+    bewerken=!record 22 of lang/remarks.$taal
+    #@verschuiven in horizontale en vertikale richting
+ !goto IMAGE
+!endif
+
+!if $R>2
+    keuze=!randitem 0,1
+    c=!randitem -2,-1,2,3
+    !if $keuze=0
+	xrange=-10,10
+	yrange=-10,10
+	a=!randint 1,5
+	b=0
+	answer$n=$c*sqrt(x $pm $a)
+    !else
+	xrange=-10,10
+	yrange=-10,10
+	b=!randitem 1,2,3,4,5
+	a=0
+	answer$n=$c*sqrt(x) $mp $b
+    !endif
+    bewerken=!record 24 of lang/remarks.$taal
+    #@te verschuiven in horizontale en vertikale richting.<br />Daarnaast vindt er ook nog een vertikale vermenigvuldiging vanuit de <em>x-</em>as plaats.<br />Let op het punt (1;1) op f(x). Vanuit (0;0)naar (1;1) ga je 1 naar rechts, 1 omhoog.<br />Kijk naar de top van g(x). 1 naar rechts de vermenigvuldigingsfactor omhoog..
+!endif
+    
+:IMAGE
+var9=$(xrange[1]),$(xrange[2]),$(yrange[1]),$(yrange[2])
+
+f=sqrt(x)
+var2=$f
+g=$(answer$n)
+texanswer$n=!texmath g(x) = $g 
+formula$n= \left[ \begin{array}{lll} f(x) & = & \sqrt{x} \\ g(x) & = & [?] \end{array}\right.
+ss=!record 15 of lang/remarks.$taal
+question$n=$ss
+#@Gegeven is de functie en grafiek van <em>f(x)</em><br />Bepaal het functie voorschrift van de <font color=$c2>$k2 grafiek <em>g(x)</em></font><br />welke ontstaat door de <font color=$c1> $k1 grafiek van <em>f(x)</em></font> te<br />$bewerken 
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xrange\
+yrange $yrange\
+opacity 255,255\
+bgcolor white\
+fontfamily 12pt Ariel\
+precision 1\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue

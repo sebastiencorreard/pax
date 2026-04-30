@@ -1,0 +1,167 @@
+# html5 canvasdraw
+# var1 = $xmarge
+# var2 = canvasdraw code
+# var3 = xmin,xmax,ymin,ymax
+# answer$n is correcte vergelijking $a*10^$b
+n=$counter
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+goback=0
+errortext=$empty
+extra=$empty
+!if ? isin $(reply$n)
+ remark$n=$NOK
+ goback=0
+ maxscore=0
+ !if $showanswer=1
+  object$n=!exec canvasdraw \
+  $var2\
+  linewidth 2\
+  curve green,$(answer$n)
+
+ !endif
+!exit
+!endif
+errortext=$empty
+# reply$n=x1,y1;x2,y2
+test=!itemcnt $(reply$n)
+!if $test > 4
+ errortext=!record 20 of lang/remarks.$taal
+ #@ Hmmmm, Je zit een beetje te knoeien met de adres-balk...
+ goback=1
+ maxscore=$[$P6*$maxscore]
+ !exit
+!endif    
+x1=!item 1 of $(reply$n)
+y1=!item 2 of $(reply$n)
+x2=!item 3 of $(reply$n)
+y2=!item 4 of $(reply$n)
+!if $x1 > $x2
+ # van rechts naar links getekend... 
+ tmp=$x1
+ x1=$x2
+ x2=$tmp
+ tmp=$y1
+ y1=$y2
+ y2=$tmp
+!endif
+!ifval $[abs($x1-$x2)] < 0.01 
+ errortext=!record 21 of lang/remarks.$taal
+ #@ Nee hoor $voornaam ,<br />\
+ #@ je moet natuurlijk wel twee verschillende punten in de applet maken<br />\
+ #@ wel listig bedacht ;)
+ maxscore=$[$P4*$maxscore]
+ goback=1
+ !exit
+!endif
+
+!if $x1<$(var3[1]) or $x2>$(var3[2]) or $y1<$(var3[3]) or $y2>$(var3[4])
+ extra=!record 22 of lang/remarks.$taal
+ #@ Nee hoor $voornaam ,<br />\
+ #@ je moet natuurlijk wel ergens <b>op</b> het logpapier klikken<br />\
+ #@ Even verbeteren, graag :)
+ #maxscore=$[$P3*$maxscore]
+!endif
+# eerste punt
+y1c1=!evalsubst x=$[$x1-$var1] in $(answer$n)
+y1c2=!evalsubst x=$[$x1+$var1] in $(answer$n)
+y1c=!evalsubst x=$x1 in $(answer$n)
+your_reply=$empty
+k1=red
+score1=0
+!ifval $y1>$y1c1 and $y1<$y1c2
+ score1=1
+ k1=green
+ your_reply=!append word $ <li>($x1 : <span style="color:$k1">$y1</span>) </li> $ to $your_reply
+ !else
+  y1c1=!evalsubst x=$[$x1-2*$var1] in $(answer$n)
+  y1c1=!evalsubst x=$[$x2+2*$var1] in $(answer$n)
+  !ifval $y1>$y1c1 and $y1<$yc2
+   score1=0.6
+   k1=lightgreen
+  !else
+   y1c1=!evalsubst x=$[$x1-3*$var1] in $(answer$n)
+   y1c1=!evalsubst x=$[$x2+3*$var1] in $(answer$n)
+   !ifval $y1>$y1c1 and $y1<$y1c2
+    score1=0.4
+    k1=orange
+   !endif
+  !endif
+  your_reply=!append word $ <li>($x1 : <span style="color:$k1">$y1</span>)  <span style="color:green">[($x1:$y1c)]</span></li> $ to $your_reply
+ !endif
+!endif
+# tweede punt
+y2c1=!evalsubst x=$[$x2-$var1] in $(answer$n)
+y2c2=!evalsubst x=$[$x2+$var1] in $(answer$n)
+y2c=!evalsubst x=$x2 in $(answer$n)
+k2=red
+score2=0
+!ifval $y2>$y2c1 and $y2<$y2c2
+ score2=1
+ k2=green
+ your_reply=!append word $ <li>($x2 : <span style="color:$k1">$y2</span>) </li> $ to $your_reply
+!else
+ y2c1=!evalsubst x=$[$x1-2*$var1] in $(answer$n)
+ y2c1=!evalsubst x=$[$x2+2*$var1] in $(answer$n)
+ !ifval $y2>$y2c1 and $y2<$y2c2
+  score2=0.6
+  k2=lightgreen
+ !else
+  y2c1=!evalsubst x=$[$x1-3*$var1] in $(answer$n)
+  y2c1=!evalsubst x=$[$x2+3*$var1] in $(answer$n)
+  !ifval $y2>$y2c1 and $y2<$y2c2
+   score2=0.4
+   k2=orange
+  !endif
+  your_reply=!append word $ <li>($x2 : <span style="color:$k1">$y2</span>)  <span style="color:green">[($x2:$y2c)]</span></li> $ to $your_reply
+ !endif
+!endif
+
+reply$n=!append word <ul>$your_reply</ul> to $(reply$n)
+
+maxscore=$[$maxscore*($score1+$score2)/2]
+
+!if $maxscore=1
+    remark$n=$OK
+    k=lightgreen
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+	k=orange
+    !else
+    	remark$n=$NOK
+    	k=red
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+
+!if $showanswer=1
+
+object$n=!exec canvasdraw \
+$var2 \
+linewidth 2\
+curve green,$(answer$n)\
+crosshairsize 6\
+crosshair $x1,$y1,$k1\
+crosshair $x2,$y2,$k2\
+dashed\
+dashtype 4,4\
+segment $x1,$y1,$x2,$y2,$k
+
+
+!else
+
+ object$n=$empty
+
+!endif
+
+!exit

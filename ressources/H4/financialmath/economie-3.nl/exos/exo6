@@ -1,0 +1,55 @@
+# Inkomens elasticiteit I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+checkfile=exos/precheck1.proc
+make_tr=1
+cols=10
+rows=1
+inputs=1.1
+rounding=100
+roundingtext=Rond je getalsmatige antwoord af op twee decimalen
+
+!if $R=1
+    perc1=!randint 110,130
+    inkomen1=!randint 15,45
+    inkomen2=$[round($perc1*$inkomen1/100)]
+    inkomen1=$[1000*$inkomen1]
+    inkomen2=$[1000*$inkomen2]
+    stuks1=!randint 70,120
+    perc2=!randint 105,120
+    stuks2=$[round($perc2*$stuks1/100)]
+    stuks1=$[$stuks1*5]
+    stuks2=$[$stuks2*5]
+    delta_y=$[100*($inkomen2 - $inkomen1)/$inkomen1]
+    delta_q=$[100*($stuks2 - $stuks1)/$stuks1]
+    
+    ss=Bij een inkomen van &euro; $inkomen1 worden per jaar $stuks1 stuks van een bepaald product gevraagd.<br />Bij een inkomen van &euro; $inkomen2 zijn dat er per jaar $stuks2 stuks.<br />Bereken de inkomenselasticiteit van de gevraagde hoeveelheid.
+    
+    answer$n=$[($delta_q)/($delta_y)]
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\left[ \begin{array}{l} E_{y} = \frac{\Delta q}{\Delta y} \\ \Delta y = \frac{$inkomen2 - $inkomen1}{$inkomen1} \times 100 \simeq $delta_y \% \\ \Delta q = \frac{$stuks2 - $stuks1}{$stuks1} \times 100 \simeq $delta_q \% \\ E_{y} \simeq \frac{$delta_q}{$delta_y} \simeq $ans \end{array} \right.
+
+!else
+    perc1=!randint 10,30
+    perc1=$[$perc1/10]
+    perc2=!randint 10,90
+    perc2=$[$perc2/10]
+    answer$n=$[$perc2/$perc1]
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+        
+
+    ss=Het inkomen in Nederland stijgt $perc1 % .<br />Het gevolg is dat de gevraagde hoeveelheid van goed <b>A</b> met $perc2 % stijgt.<br />Bereken de inkomenselasticiteit van goed <b>A</b>
+    
+    texanswer$n=E_{y} = \frac{$perc2}{$perc1} \simeq $ans 
+    
+!endif
+
+helptext=$roundingtext
+description=Inkomenselasticiteit E<sub>y</sub>
+question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+!exit

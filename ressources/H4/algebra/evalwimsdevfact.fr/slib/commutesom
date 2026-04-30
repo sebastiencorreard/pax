@@ -1,0 +1,65 @@
+!! slib_input doit contenir une liste de deux arguments, le premier est un polynome developpe de variable le deuxieme. 
+!! la librairie renvoit toutes les expressions du polynome en faisant jouer la commutativite de la somme.
+!! le polynome est systematiquement developpe 
+
+slib_input=$wims_read_parm
+!distribute items $slib_input into slib_pol,slib_var
+
+slib_pol=!exec maxima expand($slib_pol);
+slib_p=!exec maxima hipow($slib_pol,$slib_var);
+slib_monome=$empty
+!for slib_i=0 to $slib_p
+ slib_tmp=!exec maxima coeff($slib_pol,$slib_var,$slib_i)*($slib_var^$slib_i);
+ !if $slib_tmp notsametext 0
+  slib_monome=!append item $slib_tmp to $slib_monome
+ !endif
+!next slib_i
+slib_nb=!itemcnt $slib_monome
+
+don_cnt=!recordcnt slib/commutesom.don
+!if $slib_nb>$don_cnt
+ !! generation du groupe de permutation si ce dernier n'existe pas dans le fichier
+ table=!record $don_cnt of slib/commutesom.don
+ !for i=$[$don_cnt+1] to $slib_nb
+  table_nb=!linecnt $table
+  new_table=$empty
+  !for j=1 to $table_nb
+   prec=!line $j of $table
+   tmp=$i,$prec
+   new_table=!append line $tmp to $new_table
+   !for k=1 to $[$i-2]
+    tmp1=!item 1 to $k of $prec
+    tmp2=!item $[$k+1] to -1 of $prec
+    tmp=$tmp1,$i,$tmp2
+    new_table=!append line $tmp to $new_table
+   !next k 
+    tmp=$prec,$i
+    new_table=!append line $tmp to $new_table
+  !next j
+  table=$new_table
+ !next i 
+!else
+ table=!record $slib_nb of slib/commutesom.don
+!endif
+
+!! generation de toute les permutations
+!for i=1 to $slib_nb
+ slib_$i=!item $i of $slib_monome
+!next i
+
+table=!nonempty line $table
+line=!linecnt $table
+slib_out=$empty
+!for i=1 to $line
+ perm=!line $i of $table
+ slib_tmp=$empty
+ !for j=1 to $slib_nb
+  no=!item $j of $perm
+  tmp=!char 1 of $(slib_$no)
+  slib_tmp=$slib_tmp+$(slib_$no)
+ !next j
+ slib_tmp=!rawmath $slib_tmp
+ slib_out=!append item $slib_tmp to $slib_out
+!next i
+
+:exit

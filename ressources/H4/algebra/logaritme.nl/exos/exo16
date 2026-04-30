@@ -1,0 +1,186 @@
+# bepaal de formule bij het plaatje
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif 
+math=0
+mathview=0
+questiontype=0
+inputs=1.1
+cols=14
+make_tr=1
+helptext=<input type=\'text\' size=\'10\' value=\'y = 4*6^(2x) \' readonly=\readonly\ class=\'schaersvoorde_input\' />
+n=$counter
+wordmax=10
+logscale=10
+question$n=!record 45 of lang/remarks.$taal
+description=!record 35 of lang/remarks.$taal
+varlist=x
+arglist=y,f(x),f:x
+rounding=1000
+!if $rounding >0
+    checkfile=exos/checkfile3.proc
+!else
+    !if $rounding<0
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    checkfile=$checkdir/equation.proc
+!endif
+keuze=!randitem 0,0,0,0,1,1,1,1,2,3
+!if $R=1
+    !if $keuze=0
+	grondtal=10
+	a=!randitem 1,2,3,4,5,6,7,8,9
+	aa=!exec pari A=$a/$grondtal\
+	printtex(A)
+	a1=!line 1 of $aa
+	a2=!line 2 of $aa
+	x1=1
+	y1=$a
+	x2=2
+	y2=$[$a*$grondtal]
+    !else
+	!if $keuze=1
+	    grondtal=!randitem 2,3,4,5,6,7,8,9
+	    a1=10
+	    a2=$a1
+	    x1=0
+	    y1=$a1
+	    x2=1
+	    y2=$[$a1*$grondtal]
+	!else
+	    !if $keuze=2
+		grondtal=5
+	        a1=!randitem 2,4,6,8,10
+		a2=$a1
+		x1=0
+		y1=$a1
+		x2=1
+		y2=$[$a1*$grondtal]
+	    !else
+		grondtal=2
+		a1=!randitem 5,10,20,30,40,50
+		a2=$a1
+		x1=0
+		y1=$a1
+		x2=1
+		y2=$[$a1*$grondtal]
+	    !endif
+	!endif
+    !endif
+    answer$n=$a1*$grondtal^x
+    texanswer$n= f(x)=$a2 \cdot $grondtal^{\textstyle x}
+!else
+    !if $keuze=0
+	grondtal=10
+	a=!randitem 1,2,3,4,5,6,7,8,9
+    !else
+	!if $keuze=1
+	    grondtal=!randitem 2,3,5,6,7,8
+	    a=!randitem 10,100
+	!else
+	    !if $keuze=2
+		grondtal=5
+	        a=!randitem 2,4,6,8,10
+	    !else
+		grondtal=2
+		a=!randitem 5,10,20,30,40,50
+	    !endif
+	!endif
+
+    !endif
+    x1=0
+    y1=$a
+    x2=2
+    y2=$[$a*$grondtal]
+    answer$n=$a*(sqrt($grondtal))^x
+    texanswer$n= f(x)=$a \cdot \left( \sqrt{$grondtal}\right )^{\textstyle x}
+!endif
+
+rr=!record 34 of lang/remarks.$taal
+textanswer$n=$rr
+var1=2
+var2=0
+var3=!evalsubst x=$var1 in $(answer$n)
+var3=$[1000*(ceil($var3/1000))]
+var4=1
+xsize=680
+ysize=420
+#setting=logscale y $logscale ; border ; tmargin 1 ; rmargin 1 ; xtics 0,0.5,3 ;  ytics 1,10,$var3 ; mytics 10  ; mxtics 2 ;grid xtics ytics mxtics mytics linetype 2 , linetype 2 ; xlabel "x-axis" ; ylabel "y-axis" ;  zeroaxis linetype 1 ;pointsize 1 
+#insplot_set=size 1.2,1.4;label "" point pointsize 3 pt 3 at first $x1,first $y1;label "" point pointsize 3 pt 3 at first $x2,first $y2;grid ;$setting
+#image_settings$n=size 0.5,0.6;label "" point pointsize 3 pt 3 at first $x1,first $y1;label "" point pointsize 3 pt 3 at first $x2,first $y2;grid ;$setting
+#image$n=[0 : 3] [ 1 : $var3]  $(answer$n) title "$module_title"
+#!insplot [0 : 3] [ 1 : $var3]  $(answer$n) title "$module_title"
+plot=0
+draw=0
+image=0
+applet=1
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -1,4\
+yrange 0.01,$var3\
+bgcolor white\
+ylabel y-as         \
+xlabel x-as         \
+axis\
+axisnumbering\
+precision 10\
+ylogbase $logscale\
+ylogscale 0.5,4,grey,blue\
+#curve green,$(answer$n)\
+jscurve red,$(answer$n)\
+strokecolor blue\
+#trace_jscurve $(answer$n)\
+#jsmath $(answer$n)\
+#crosshairsize 6\
+linewidth 2\
+points blue,$x1,$y1,$x2,$y2\
+precision 10000\
+mouse green,26
+
+!exit
+ 
+
+#### met ptolomy applet :
+#    applet=1
+#    image=0
+#    plot=0
+#    draw=0
+#    !if $keuze=0
+#	grondtal=10
+#	a=!randitem 1,2,3,4,5,6,7,8,9
+#    !else
+#	!if $keuze=1
+#	    grondtal=!randitem 2,3,5,6,7,8
+#	    a=!randitem 10,100
+#	!else
+#	    !if $keuze=2
+#		grondtal=5
+#		a=!randitem 2,4,6,8,10
+#	    !else
+#		grondtal=2
+#		a=!randitem 5,10,20,30,40,50
+#	    !endif
+#	!endif
+#    !endif
+#    answer$n=$a*(sqrt($grondtal))^x
+#    texanswer$n= f(x)=$a \cdot \left( \sqrt{$grondtal}\right )^{\textstyle x}
+#    xmax=2
+#    ymax=3
+#    !for x=0 to $xmax
+#	y=!evalsubst x=$x in $(answer$n)
+#	dt=!nospace ; $x  , $y
+#	data=!append word $dt to $data 
+#    !next x
+#    data=!nospace $data
+#    
+#    # yrange is 0,2 --> 10^0 -- 10^2 omdat Ylog=1
+#    # we nemen <param name = "data" value="..."/> omdat <param name="function" value="log(x)"/> natuurlijk de functie verraad
+#    # we nemen <param name = "normalexponent" value="yes"/> om 1x10^3 af te dwingen ipv 1e03 voor Logmans enz
+#    # werkt alleen bij xlog/ylog ; gewone schaalverdelingen werken al met x10^6 als omschrijving van vermenigvuldigings factor
+#
+#    object$n=<object width="640" height="480" classid="java:ptolemy.plot.PlotApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="Plot.jar" /><param name="java_code" value="ptolemy.plot.PlotApplet.class" /><param name="progressbar" value="false"/><param name="scriptable" value="false"/><param name="background" value="#ffffff"/><param name="normalexponent" value="yes"/><param name="data" value="TitleText: $exotitle ;xrange:0,$xmax;yrange:0,$ymax;Ylog:1;Grid: on   ;XLabel:x-as   ;YLabel:y-as   ;Marks: none   ; NumSets: 1   ;Color: on ;Dataset A $data" />$nojava </object> 
+#
+#
+#

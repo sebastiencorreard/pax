@@ -1,0 +1,124 @@
+!set title=Factorisation d'expression 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine,Mangeard; Vincent, Dageville
+email=regine@mangeard.fr
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Factoriser l'expression&nbsp;
+val7=Expression factorisée&nbsp;
+val8=Peut-on factoriser l'expression&nbsp;
+val9=Oui,Non
+val10=Factorisation possible
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val13=$[rint($(tmp0))]
+val14=-,+
+t_=!replace internal \( by ( in $val11^2*x^2 $(val14[$val13]) $val12^2
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=($val11*x+$val12)*($val11*x-$val12)
+
+!ifval $val13=1
+val17=r1	r2
+!else
+val17=r1
+!endif
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=radio
+replyname1=$val10
+replygood1=$val13;$val9
+replytype2=algexp
+replyname2=$val7
+replygood2=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()	  $val8:	  <div class="wimscenter">
+!insmath $val15
+$()</div>	  <div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	 
+!else
+$() 	  $val6:	  <div class="wimscenter">
+!insmath $val15
+$()</div>	  <div class="wimscenter"><label for="reply2">$val7:</label>  
+!read oef/embed.phtml reply2 
+$()</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,15
+embedcnt=2

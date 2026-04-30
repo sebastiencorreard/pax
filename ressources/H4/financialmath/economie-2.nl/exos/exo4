@@ -1,0 +1,36 @@
+# verkoopprijs
+rounding=100
+n=$counter
+viewlogo=1
+mathview=0
+checkfile=exos/precheck1.proc
+cols=10
+rows=1
+help=$empty
+inputs=1.1
+k=!randint 1,2
+Hij=!item $k of Hij,Zij
+hij=!item $k of hij,zij
+winkelier=!randitem Oldenkamp,Fries,Smits,Wienke,Scharenborg,Roelhof,Berenschot,Van Waaijen
+winkel=!randitem kantoorboekhandel,sigarenwinkel,lingeriezaak,meubelzaak,stoffeerbedrijf,banketbakkerij,electronica winkel
+perc=!randint 5,25
+f=$[(100-$perc)/100]
+verkoopprijs=!randint 2,20
+verkoopprijs=$[100*$verkoopprijs]
+rest=$[$f*$verkoopprijs]
+P=!randint 10,60
+nettowinst=$[round($rest*$P/100)]
+inkoopprijs=$[$rest-$nettowinst]
+tot=!exec moneyprint $perc,$verkoopprijs,$rest,$inkoopprijs
+perc=$(tot[1])
+verkoopprijs=$(tot[2])
+rest=$(tot[3])
+inkoopprijs=$(tot[4])
+ss=Winkelier $winkelier is eigenaar van een $winkel.<br />$Hij behaalt op de verkoop van een product &euro;$nettowinst winst.<br />De kosten bedragen $perc % van de verkoopprijs.<br />De inkoopprijs bedraagt &euro; $inkoopprijs .Bereken de verkoopprijs.<br /><small><em>geef je antwoord in hele euro's</em></small>
+question$n=$ss
+description=Verkoopprijs
+ex1=&euro;
+textanswer$n=Verkoopprijs &minus; Inkoopprijs &minus; Kosten = NettoWinst <br />Verkoopprijs &minus; Inkoopprijs &minus; Verkoopprijs &times; $perc / 100 = NettoWinst <hr />Stel de verkoopprijs is V.<br />Dan kunnen we de volgende formule maken:<br />V &minus; $inkoopprijs  &minus; $[$perc/100]&times;V = $nettowinst<br />V  &minus; $[$perc/100]&times;V &minus; $inkoopprijs  = $nettowinst<br />(1  &minus; $[$perc/100])&times;V &minus; $inkoopprijs  = $nettowinst<br />$[(1  - $perc/100)]&times;V  = $nettowinst +  $inkoopprijs <br />$[(1  - $perc/100)]&times;V  = $[$nettowinst +  $inkoopprijs] <br />V  = $[$nettowinst +  $inkoopprijs] / $[(1  - $perc/100)]  = &euro; $verkoopprijs 
+answer$n=$verkoopprijs
+make_tr=1
+#fffff0=#e2ffc6

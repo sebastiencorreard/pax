@@ -1,0 +1,90 @@
+<script language="javascript" type="text/javascript">
+    var taal="$taal";var URL;
+    if(taal=="nl"){r0="Zal ik dit antwoord opsturen ?\n";}
+    if(taal=="en"){r0="Do You want to send this answer ?\n";}
+    function dontknow(){
+	t=confirm(r0+"\n$dontknow ?");
+	if(t==true){URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n=%3F';
+	document.location.href = URL;
+	}
+    }
+</script>
+!set n=$counter
+!! multiplechoice=1 choose from $options possibilities
+!! each possibility is called ex1,ex2,ex3...ex10 etc
+<p align="center">
+    <table>
+	<td valign="top">
+	    $(question$n)
+	    !if $(formula$n) != $empty
+		<br>
+		!insmath $(formula$n)
+	    !endif    
+	    !if $image=1
+		<br>
+		!if $plot=1
+		    !set insplot_set=$(image_settings$n)		
+		    !insplot $(image$n)
+		!endif
+		!if $draw=1
+		    !set insdraw_size=$XSIZE,$YSIZE
+		    !insdraw $(image$n)
+		!endif
+	    !endif
+	    !if $applet=1
+		<br>
+		$(object$n)
+	    !endif
+	    !if $exotext != $empty
+		<br>
+		$exotext
+	    !endif
+	<td>
+	!if $image=0 or $XSIZE>400
+	    <tr>
+	!endif	
+	<td valign="top" align="center">
+	    <table cellpadding="1" border="0">
+		<td  valign="top" align="center">
+		    <table cellpadding="5" border="1">
+			!set t=0
+			!for p=1 to $options
+			    !increase t
+			    <td  valign="top" style="background-color:lightblue" onMouseover="this.style.backgroundColor='yellow';" onMouseout="this.style.backgroundColor='lightblue';">
+				<a onclick="var t=confirm(r0+'nummer $p');if(t==true){window.location.href = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n=$p'; return false}">
+				    !if $multiimage=1
+					!if $draw=1
+					    !set insdraw_size=$xsize,$ysize
+					    !insdraw $(ex$p)
+					!else
+					    !if $plot=1
+						!set insplot_set=$(image_settings$n)
+						!insplot $(ex$p) 
+					    !endif
+					!endif
+				    !else
+					!if $math=0
+					    <font color=blue>$(ex$p)</font>
+					!else
+					    !insmath $(ex$p)
+					!endif
+				    !endif
+				</a>
+			    </td>
+			    !if $t=2
+			    	<tr>
+				!set t=0
+			    !endif
+			!next p
+		    </table>
+		</td>
+		<tr>
+		<td  valign="top" align="center">
+		    <p>
+			<input type=button style="$mybuttonstyle" onclick="javascrip:dontknow();" name="but2" value="$dontknow">
+		    </p>
+		</td>
+	    </table>	
+	</td>
+    </table>
+</p>

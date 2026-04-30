@@ -1,0 +1,169 @@
+# Overheid III
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+land=!randitem Waterland,Engerland,Duizelland,Fransland,Spaanderland,Welgi&euml;,Noorderrijk,Zweijtserland,Waldolahland
+
+nu=!date +%Y
+
+ant8=!randint 250,500
+ant9=!randint 150,350
+ant7=$[$ant8+$ant9]
+ant6=!randint 200,600
+ant4=$[$ant6+$ant7]
+ant5=!randint 400,600
+ant2=$[$ant4+$ant5]
+ant3=!randint 400,700
+ant1=$[$ant2+$ant3]
+
+!for p=1 to 9
+    ant$p=$[$(ant$p)/10]
+!next p
+factor=!randint 170,220
+factor=$[$factor/100]
+inkomen=$[round($factor*$ant1)]
+
+ss=Van land $land bedroeg het nationaal inkomen in $nu &euro; $inkomen miljard.<br />In onderstaande tabel staan de gegevens van de collectieve uitgaven.<br />Vul de ontbrekende getallen in.
+
+unilijst=Collectieve uitgaven,Overheidsuitgaven,Inkomens overdrachten via sociale zekerheidsfondsen,Overheidsbestedingen,Overdrachtsuitgaven van de overheid,Overheidsinvesteringen,Overheidsconsumptie,Ambtenarensalarissen,Materiële overheidsconsumptie
+lijst=Collectieve uitgaven,Overheidsuitgaven,Inkomens overdrachten via sociale zekerheidsfondsen,Overheidsbestedingen,Overdrachtsuitgaven van de overheid,Overheidsinvesteringen,Overheidsconsumptie,Ambtenarensalarissen,Materi&euml;le overheidsconsumptie
+
+k=!randint 1,24
+keuze=!item $k of 1:4:6:8,1:4:6:9,1:4:7:8,1:4:7:9,\
+1:5:6:8,1:5:6:9,1:5:7:8,1:5:7:9,\
+2:4:6:8,2:4:6:9,2:4:7:8,2:4:7:9,\
+2:5:6:8,2:5:6:9,2:5:7:8,2:5:7:9,\
+3:4:6:8,3:4:6:9,3:4:7:8,3:4:7:9,\
+3:5:6:8,3:5:6:9,3:5:7:8,3:5:7:9
+
+keuze=!replace internal : by , in $keuze
+in1=!item 1 of $keuze
+in2=!item 2 of $keuze
+in3=!item 3 of $keuze
+in4=!item 4 of $keuze
+tabel=<tr><td><b>collectieve uitgaven</b></td><th>miljarden &euro;</th></tr>
+anstabel=<tr><td><b>collectieve uitgaven</b></td><th>&times;10<sup>9</sup>&nbsp; &euro;</th></tr>
+cnt=0
+description=$empty
+!for p=1 to 9
+    a=!item $p of $lijst
+    u=!item $p of $unilijst
+    !if $in1=$p
+	inp=<input type="text" id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+	!increase cnt
+	answer$n=!append item $(ant$p) to $(answer$n)
+	description=!append item $u to $description
+    !else
+	!if $in2=$p
+	    inp=<input id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+	    !increase cnt
+	    answer$n=!append item $(ant$p) to $(answer$n)
+	    description=!append item $u to $description
+	!else
+	    !if $in3=$p
+		inp=<input id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+		!increase cnt
+		answer$n=!append item $(ant$p) to $(answer$n)
+		description=!append item $u to $description
+	    !else
+		!if $in4=$p
+		    inp=<input id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+		    !increase cnt
+		    answer$n=!append item $(ant$p) to $(answer$n)
+		    description=!append item $u to $description
+		!else
+		    inp=$(ant$p)
+		!endif
+	    !endif
+	!endif
+    !endif
+    tabel=!append line <tr><td>$a</td><th>$inp</th></tr> to $tabel
+    anstabel=!append line <tr><td>$a</td><th>$(ant$p)</th></tr> to $anstabel
+!next p
+
+quote=$[(round(1000*$ant1/$inkomen))/10]
+
+answer$n=!append item $quote to $(answer$n)
+
+exotext=<table class="zebra_table_h2">$tabel</table><small><em>alle bedragen zijn in miljarden Euro&rsquo;s</em></small><br />De collectieve uitgavenquote (&eacute;&eacute;n decimaal) voor $land is : <input type="text" id="myinput$cnt" size="5" class="schaersvoorde_input" value=""/>
+
+helptext=Alle bedragen zijn in miljarden euro&rsquo;s<br /><b>Geef je antwoorden ook in miljarden eur&rsquo;s</b>
+
+rounding=1
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+xsize=600
+ysize=300
+
+data=\
+debug 1\
+xrange 0,80\
+yrange 0,80\
+linewidth 16\
+userdraw fcircle\
+clickcolor yellow,60\
+frect 0,0,80,80,black\
+points 0,10,10,1,10,30,30,20,21,55,30,50,50,28,60,60,33,75,yellow,80\
+line 0,10,10,1,yellow,80,3\
+line 0,10,10,30,yellow,80,3\
+line 10,30,30,20,yellow,80,3\
+line 10,30,21,55,yellow,80,3\
+line 21,55,30,50,yellow,80,3\
+line 21,55,33,75,yellow,80,3\
+line 30,50,50,28,yellow,80,3\
+line 30,50,60,60,yellow,80,3\
+text 11,1,times,14,$(unilijst[3])  euro $ant3 miljard,red,255\
+text 4,10,times,14,$(unilijst[1])  euro $ant1 miljard,red,255\
+text 20,18,times,14,$(unilijst[5])  euro $ant5 miljard,red,255\
+text 10,30,times,14,$(unilijst[2])  euro $ant2 miljard,red,255\
+text 38,25,times,14,$(unilijst[9])  euro $ant9 miljard,red,255\
+text 30,45,times,14,$(unilijst[7])  euro $ant7 miljard,red,255\
+text 45,60,times,14,$(unilijst[8])  euro $ant8 miljard,red,255\
+text 10,53,times,14,$(unilijst[4])  euro $ant4 miljard,red,255\
+text 34,74,times,14,$(unilijst[6])  euro $ant6 miljard,red,255
+#
+myname=data.$counter
+!filewrite getfile/$myname $data
+
+textanswer$n=<table class="zebra_table_h2">$anstabel</table><a onmouseover="return escape('<object id=\'FlyApplet\' width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name = \'java_codebase\' value = \'$appletdir\' /><param name = \'java_archive\' value = \'FlyApplet.jar\' /><param name = \'java_code\' value = \'FlyApplet.class\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\' />$nojava</object>')"><em>alle bedragen zijn in miljarden Euro&rsquo;s</em><br />De collectieve uitgavenquote = $ant1 &divide; $inkomen &times; 100 &asymp; <b>$quote</b><br />Kijk <span style="color:blue"><b>hier</b></span> voor het diagram</a>
+
+
+#image=1
+#applet=0
+#draw=1
+#plot=0
+#image$n=\
+#transparent white\
+#xrange 0,80\
+#yrange 0,80\
+#linewidth 4\
+#line 0,10,10,1,yellow\
+#line 0,10,10,30,yellow\
+#line 10,30,30,20,yellow\
+#line 10,30,21,55,yellow\
+#line 21,55,30,50,yellow\
+#line 21,55,33,75,yellow\
+#line 30,50,50,28,yellow\
+#line 30,50,60,60,yellow\
+#linewidth 16\
+#points red,0,10,10,1,10,30,30,20,21,55,30,50,50,28,60,60,33,75\
+#text red,11,1,normal,$(unilijst[3])  euro $ant3 miljard\
+#text red,4,10,normal,$(unilijst[1])  euro $ant1 miljard\
+#text red,20,18,normal,$(unilijst[5])  euro $ant5 miljard\
+#text red,10,30,normal,$(unilijst[2])  euro $ant2 miljard\
+#text red,38,25,normal,$(unilijst[9])  euro $ant9 miljard\
+#text red,30,45,normal,$(unilijst[7])  euro $ant7 miljard\
+#text red,45,60,normal,$(unilijst[8])  euro $ant8 miljard\
+#text red,10,53,normal,$(unilijst[4])  euro $ant4 miljard\
+#text red,34,74,normal,$(unilijst[6])  euro $ant6 miljard
+
+
+
+

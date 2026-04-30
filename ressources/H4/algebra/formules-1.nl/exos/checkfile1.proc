@@ -1,0 +1,237 @@
+n=$counter
+goback=0
+errortext=$empty
+test=!wordcnt $(reply$n)
+!if $test=0
+    goback=1
+    maxscore=$[$P2*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+extra=$empty
+
+AAA=!lower $(reply$n)
+AAA=!nospace $AAA
+
+wims_compare_precision=10000
+
+# check on a unfinished/laizy calculation 4*3*x
+m=!positionof char * in $AAA
+!if $m != $empty
+    # f'(x)=4*3*x^3 --> 12x^3
+    nummers=0123456789
+    !for i in $m
+	m1=!char $[$i-1] of $AAA
+	m2=!char $[$i+1] of $AAA
+	m3=!char $[$i+2] of $AAA
+	!if $m3 != ^
+	    !if $m1 isin $nummers and $m2 isin $nummers and $m2 != 1
+		maxscore=$[$P2*$maxscore]
+		!if $teaching=1
+		    errortext=!record 25 of $remarkdir/commonremarks.$taal
+		    goback=1
+	    	    !exit
+		!else
+		    ex=!record 25 of $remarkdir/commonremarks.$taal
+		    !if $extra=$empty
+		        extra=$ex
+		    !else
+			extra=$extra <br /> $ex
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next i
+!endif
+test=$AAA
+!for p in $arglist
+    arg=!nospace $p =
+    arg=!tolower $arg
+    test=!replace internal $arg by @ in $test
+!next p
+
+!if $var9=$empty
+ !if @ notin $test
+    goback=1
+    errortext=!record 4 of lang/remarks.$taal
+    !exit
+ !else
+    AAA=!replace internal @ by $empty in $test
+ !endif
+!endif
+!if $var4=1
+ !for t in sqrt,sin,cos,tan,log,ln
+    !if $t isin $(answer$n) and $t notin $AAA
+        goback=1
+	errortext=!record 5 of lang/remarks.$taal
+	#@Je moet de vraag beter lezen...ik heb het <em>type functie</em> al in de vraag aangegeven...
+	maxscore=$[$P4*$maxscore]
+	!exit
+    !endif
+    !if $t notin $(answer$n) and $t isin $AAA
+        goback=1
+	errortext=!record 6 of lang/remarks.$taal
+	#@Waarom gebruik je <b>$t</b> in je antwoord ??<br />Lijkt me bij deze vraag volslagen overbodig...
+	maxscore=$[$P5*$maxscore]
+	!exit
+    !endif
+ !next t
+!endif
+# SYNTAX FOR sin(x)...e^
+wims_rawmath_functions=sqrt,log,sin,ln,cos,tan,sec
+GGG=!nospace $(answer$n)
+!for i in $wims_rawmath_functions
+    !if $i isin $AAA
+	test=!replace internal $i( by # in $AAA
+	!if # notin $test
+	    maxscore=$[$maxscore*$P1]
+	    I=!nospace $i x
+	    H=!nospace $i ( x )
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	!endif
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA	
+	# kloten pari kan niet meer (!) met sqrt overweg :dus maxima
+	var1=1
+    !endif
+!next i
+
+AAA=!rawmath $AAA
+AAA=!tolower $AAA
+vars=!tolower $varlist
+# 22/8/2012 aangepast
+!for p in $vars,x,y,pi,*e,e*,^e,e^,sqrt,log,sin,cos,tan,atan,asin,acos,ln
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA 
+!next p
+AAA=!replace [a-z\~\!\@\#\$\=\%\&\_\;] by $empty in $AAA
+AAA=!tolower $AAA
+A1=!replace internal + by @ in $AAA
+A1=!replace internal - by + in $A1
+A1=!replace internal @ by - in $A1
+GGG=!tolower $GGG
+t1=0
+t2=0
+t3=0
+t4=0
+!if $var1=1
+    # dus maxima moet het werk opknappen (ivm negatieve/gebroken exponenten)
+    test=!exec maxima if expand(rationalize($AAA)) = expand(rationalize($GGG)) then 1 else 0 ;\
+    if expand(rationalize(-1*($AAA))) = expand(rationalize($GGG)) then 1 else 0 ;\
+    if expand(rationalize($A1)) = expand(rationalize($GGG)) then 1 else 0 ; \
+    if expand(rationalize($AAA)) = expand(rationalize($var2)) then 1 else 0 ;\
+    trigexpandtimes=true;trigexpandplus=true;\
+    if trigrat((trigreduce($AAA))) = trigrat((trigreduce($GGG))) then 1 else 0;
+    # var2 is original function...
+    test=!words2items $test
+    c=1
+    t5=0
+    !for p in $test
+	!if $p isin 0,1
+	    t$c=$p
+	    !increase c
+	!endif
+    !next p
+    # t5 is trigrat
+    !if $t1=1 or $t5=1
+	t1=1
+    !else
+	t1=0
+    !endif
+    score=$[(10*$t1 + $t2 + $t3 + $t4)/10]
+    !if NaN isin $score 
+	errortext=Something has gone very wrong here...<br />Maxima gives<br />\
+	if expand($AAA) = expand($GGG) then 1 else 0 ; $t1 <br />\
+	if expand(-1*($AAA)) = expand($GGG) then 1 else 0 ; $t2 <br />\
+	if expand(($A1)) = expand($var2) then 1 else 0 $t3<br /> \
+	if expand(($AAA)) = expand($var2) then 1 else 0 $t4 <br />Or: $test
+	goback=1
+	!exit
+    !endif
+!else
+    test=!exec pari if(1.0*($AAA)==1.0*($GGG),1,0) \
+    if(-1.0*($AAA)==1.0*($GGG),1,0) \
+    if(1.0*($A1)==1.0*($GGG),1,0) \
+    if(1.0*($AAA)==1.0*($var2),1,0) 
+    
+    t1=!line 1 of $test
+    t2=!line 2 of $test
+    t3=!line 3 of $test 
+    t4=!line 4 of $test 
+    score=$[(10*$t1 + $t2 + $t3 + $t4)/10]
+!endif
+
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    !exit
+!endif
+!ifval $t1=0
+    ex=$empty
+    !ifval $t2=1
+	h=!htmlmath g(x)=$(answer$n)
+	ex=!record 8 of lang/remarks.$taal
+	#@Je hebt de zaak omgedraaid...<br />en zo te zien is je functie de in de x-as gespiegelde versie van het goede antwoord 
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra <br /> $ex
+	!endif
+    !else
+	!ifval $t3=1
+	    ex=!record 9 of lang/remarks.$taal
+	    #@En je hebt een wat vreemde translatie toegepast... 
+    	    !if $extra=$empty
+		extra=$ex
+	    !else
+		extra=$extra <br /> $ex
+	    !endif
+	!else
+	    !ifval $t4=1
+		ex=!record 10 of lang/remarks.$taal
+		#@Hmmm, zijn we gauw mee klaar...<br />Je antwoord $g is gelijk aan de vraag $f
+		!if $extra=$empty
+		    extra=$ex
+		!else
+		    extra=$extra <br /> $ex
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+#errortext=AAA=$AAA GGG=$GGG
+##goback=1
+#!exit
+maxscore=$[$maxscore*$score]
+!if $maxscore>1
+    maxscore=1
+!endif
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK
+    !else
+        remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n) <br />$extra
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

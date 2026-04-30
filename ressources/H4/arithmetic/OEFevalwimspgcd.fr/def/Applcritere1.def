@@ -1,0 +1,159 @@
+!set title=Appliquer un critère de divisibilité 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=29
+prevarcnt=22
+postvarcnt=6
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Votre réponse&nbsp;
+val8=Parmi ces nombres, lesquels sont divisibles par
+val9=Les nombres divisibles par,sont
+val10=Numérateur
+val11=Liste correcte
+val12=La liste des nombres divisibles par, est
+val13=$[rint(2)]
+val14=3,5,7,9
+tmp0=!values v for v=5 to 35
+
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+val16=
+val17=
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+tmp1=!item 2 of $val14
+
+val18=$val13,$val13,$(tmp0),$(tmp1)
+!for val19 =1 to 4 
+tmp0=!item $val19 of $val15
+
+tmp1=!item $val19 of $val18
+
+val20=$[rint($(tmp0)*$(tmp1))]
+tmp0=!append item $val20 to $val16
+
+val16=$(tmp0)
+val21=$[rint($val20/$val13)]
+val22=$[rint($val21*$val13)]
+!if $val22=$val20 
+tmp0=!append item $val20 to $val17
+
+val17=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+replytype1=clickfill
+replyname1=$val10
+replygood1=?analyze 23;$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $(val12[1]) $val13 $(val12[2]): $val17 .
+
+
+!goto stat
+
+!exit
+
+:question
+$()	   $val8 $val13 ?	<div class="wimscenter"> $(val16[1]) ; $(val16[2]) ; $(val16[3]) ; $(val16[4]) </div>	<br class="spacer">	<b>$val7:</b>	  $(val9[1]) $val13 $(val9[2])  
+!read oef/embed.phtml r1,100x50 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val12[1]) $val13 $(val12[2]): $val17 .
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!itemcnt $val17
+
+val24=$[rint($(tmp0))]
+val25=$val23,$val17
+tmp0=!listuniq $val25
+
+val25=$(tmp0)
+tmp0=!itemcnt $val25
+
+val26=$[rint($(tmp0))]
+tmp0=!listuniq $val23
+
+val27=$(tmp0)
+tmp0=!itemcnt $val27
+
+val28=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val26=$val24 and $val28=$val24
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val11
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,13,16,17,23
+embedcnt=1

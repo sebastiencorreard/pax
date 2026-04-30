@@ -1,0 +1,222 @@
+<script language="javascript" type="text/javascript"  src="$jsdir/../lang/remarks.$taal.js"></script> 
+<script language="javascript" type="text/javascript"  src="$jsdir/precheck.js"></script> 
+<script language="javascript" type="text/javascript">
+    var URL;
+
+    function dontknow(){
+	t=confirm(r0+"\n$dontknow ?");
+	if(t==true){
+	    URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n=%3F' ;
+	    document.location.href = URL;if(document.applets[0]){document.applets[0].destroy();}
+	}
+    }
+
+    function sendanswer(){
+    !! reply is cosmetisch : total is the antwoord...
+	var v;var input;var reply="" ;var total=new Array;
+	var ml;var t1;var t2;var applet=0;
+	if(document.applets[0]){var appletid=document.applets[0].id;if(appletid=="MathView"){applet=1;}}
+	if(applet==1){
+	    !! using the inputapplet
+	    input=document.applets[0].getLinear();input=input+'';if(input.indexOf(',')!=-1){alert(r4);return;}
+	    v=input.length;if(v==0){alert(r1+"\ 1");return;}if(v>100){alert(r2); return;}
+	    if(check_f(input)==0){return;}if(check_o(input)==0){return;}
+	    if(check_log_NaN(input)==0){return;}if(check_sqrt_NaN(input)==0){return;}
+	    input=check_s(input);if(check_x(input)==0){return;}
+	    reply=input+"\n";t1=input.indexOf("[");
+	    if(t1 !=- 1){
+		if(input.indexOf("sqrt[")!=-1){input=specialroot(input);if(input=="error"){return;}}
+		if(input.indexOf("log[")!=-1){input=speciallog(input);if(input=="error"){return;}}
+		t1=input.indexOf("[");
+		if(t1!=-1){alert(r13);return;}
+	    }
+	    input=input.replace(/#/g,' ');
+	    total[0]=input;
+	}
+	
+	if(document.mydefaultform){
+	    ml=document.mydefaultform.elements.length;
+	    var inputfieldnumber=0;
+	    for(z=0;z<ml;z++){
+		if(document.mydefaultform[z].id=="myinput"){
+		    input=document.mydefaultform[z].value;
+		    v=input.length;if (v==0){var qu=z+1; alert(r1+"\ "+qu);return;}
+		    if(input.indexOf(',')!=-1){alert(r4);return;}    if(check_f(input)==0){return;}if(check_o(input)==0){return;}
+		    if(check_log_NaN(input)==0){return;}if(check_sqrt_NaN(input)==0){return;}
+		    input=check_s(input);if(check_x(input)==0){return;}
+		    reply=reply+input+"\n";t1=input.indexOf("[");
+		    if(t1 !=- 1){
+			if(input.indexOf("sqrt[")!=-1){input=specialroot(input);if(input=="error"){return;}}
+			if(input.indexOf("log[")!=-1){input=speciallog(input);if(input=="error"){return;}}
+			t1=input.indexOf("[");if(t1!=-1){alert(r13);return;}
+		    }
+		    input=input.replace(/#/g,' ');
+		    total[inputfieldnumber+applet]=input;
+		    inputfieldnumber=inputfieldnumber+1;
+		}
+	    }
+	}
+	v=total.length;if(v==0){alert(r1);return;}
+	t=confirm(r0+"\n"+reply);
+	if(t==true){total=encodeURIComponent(total);URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n='+total ;document.location.href = URL;if(applet==1){document.applets[0].destroy();}}
+    }
+</script>
+
+
+<p align="center">
+    <table bgcolor=$bgcolor1 cellpadding=$cellpadding cellspacing=$cellspacing>
+	<td valign="top" align="left" padding="10">
+	    !if $(question$n) != $empty
+		$(question$n)
+		<br>
+	    !endif
+	    !if $(formula$n) != $empty
+		!if $embed=1
+		    !if $mathview = 3
+			!!! hmmm
+			<center>
+			    !insmath $(formula$n)
+			</center>
+			<br>
+		    !else
+			<table>
+			    <th>
+				!insmath $(formula$n)
+			    </th>
+			    <th>
+				&nbsp;&nbsp; $m_rightarrow &nbsp;&nbsp;
+			    </th>
+			    <th>
+				!if $wims_user=supervisor
+				    <textarea id="myinput" style=$textareastyle wrap=off cols=$cols rows=$rows name="reply">$(answer$n)</textarea>
+        			!else
+				    <textarea  id="myinput" style=$textareastyle wrap=off cols=$cols rows=$rows name="reply">$(reply$n)</textarea>
+				!endif
+			    </th>
+			</table>
+		    !endif
+		!else
+		    <center>
+			!insmath $(formula$n)
+		    </center>
+		    <br>
+		!endif
+	    !endif
+	    !if $exotext != $empty
+		<br>
+		$exotext
+	    !endif
+	</td>
+    !if $image=1
+	!if $XSIZE > 450 or $mathview=3
+	    !! arbitrary value to produce a better layout ...
+	<tr>
+	!endif
+	<td  valign="top" align="center">
+	    !if $draw=1
+	    !! for fly
+		!set insdraw_size=$XSIZE,$YSIZE
+		!insdraw $(image$n)
+	    !endif
+	    !if $plot=1
+		!! for GNUplot
+		!set insplot_set=$(image_settings$n)
+		!insplot $(image$n)
+	    !endif
+	</td>
+    !endif
+    !if $applet=1
+	!if $XSIZE > 450 or $mathview=3
+	    !! arbitrary value to produce a better layout ...
+	<tr>
+	!endif
+	<td  valign="top" align="center">
+	    $(object$n)
+	</td>
+    !endif
+!if $embed != 1 or $[$embed+$mathview]=4
+    !if $XSIZE > 450 or $mathview=3
+	<tr>
+    !endif
+	<td valign="top" align="center">
+	    !if $mathview=3
+		<table $paperbg width="580">
+		    <th>
+			<applet id="MathView" code="MathView.class" codebase="$appletdir" archive="MathView.jar" width="580" height="280">
+			    <script language="javascript" type="text/javascript">
+				var thisbackground=document.bgColor;
+				if(thisbackground){var obj="\<param name=bgcolor value="+thisbackground+"\>"}else{var obj="\<param name=bgcolor value=#ffffff\>"}
+				document.write(obj.toString());
+			    </script>
+			    <param name="largefont" value="$largefont">
+			!if $wims_user=supervisor
+			    <param name="oldreply" value="
+			    !nospace $(answer$n)
+			    ">
+			!else
+			    <param name="oldreply" value="
+			    !nospace $(reply$n)
+			    ">
+			!endif
+			    <param name="smallfont" value="$smallfont">
+			    <param name="helptext" value="$applettext">
+			    <param name="wimsvars" value="$varlist">
+			    !! declare varlist=x,y,z,s    or varlist=x y z s
+			!if $mathviewpanel=$empty
+			    <param name="my_panel" value="$module_title:and:or:sqrt():+:-:*:/">
+			!else
+			    <param name="my_panel" value="$mathviewpanel">
+			!endif
+			$nojava
+			</applet>
+		    </th>
+		</table>
+	    !else
+		!if $inputs=1
+		    !if $inputtext1!=$empty
+			$inputtext1:<br>
+		    !endif
+		    !if $wims_user=supervisor
+            		<textarea  id="myinput" style=$textareastyle wrap=off cols=$cols rows=$rows name="reply">$(answer$n)</textarea>
+        	    !else
+            		<textarea  id="myinput" style=$textareastyle wrap=off cols=$cols rows=$rows name="reply">$(reply$n)</textarea>
+        	    !endif
+		!else
+		    !if $inputs>1
+			<table cellpadding="1">
+			!for p=1 to $inputs
+			    <td>
+				$(inputtext$p)
+			    </td>
+			    <td>
+				$m_rightarrow
+			    </td>
+			    <td>
+			    !if $wims_user=supervisor
+				!set deelantwoord=!item $p of $(answer$n)
+			    !else
+				!set deelantwoord=!item $p of $(reply$n)
+			    !endif
+				<input id="myinput" style=$textareastyle  size="$cols" name="reply" value="$deelantwoord">
+			    </td>
+			    <tr>
+			!next p
+			</table>
+		    !endif
+		!endif
+	    !endif
+	</td>
+!endif
+    </table>
+    <table>
+    !if $inputs !=0
+	<th>
+    	    <input type=button style="$mybuttonstyle" onclick="sendanswer();" value="$send">
+    	</th>
+    !endif
+	<th>
+	    <input type=button style="$mybuttonstyle" onclick="dontknow();" name="but2" value="$dontknow">
+	</th>
+    </table>
+</p>
+!exit

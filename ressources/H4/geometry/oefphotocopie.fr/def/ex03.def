@@ -1,0 +1,148 @@
+!set title=3-Choix du coefficient 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 6, 20
+
+val6=$[$(tmp0)/2]
+tmp0=!randint 6, 20
+
+val7=$[$val6 + $(tmp0)/2]
+val8=$[floor(100*min(4,min(29.7/$val6,42/$val7)))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!item $val9 of largeur,longueur
+
+val10=$(tmp0)
+tmp0=!item $val9 of longueur,largeur
+
+val11=$(tmp0)
+tmp0=!shuffle $val6,$val7
+
+val12=$(tmp0)
+!if $val9 = 2 
+tmp0=!randint 5, $val7*$val8/100
+
+val13=$[$(tmp0)]
+val14=$[rint(round($val13/$val7*100))]
+val15=$[round($val6*$val14/10)/10 ]
+!else
+tmp0=!randint 5, $val6*$val8/100
+
+val15=$[$(tmp0)]
+val14=$[rint(round($val15/$val6*100))]
+val13=$[round($val7*$val14/10)/10 ]
+!endif
+val16=$[$val14 /100]
+tmp0=!item $val9 of $val15,$val13
+
+val17=$(tmp0)
+tmp0=!item $val9 of $val6,$val7
+
+val18=$(tmp0)
+tmp0=!item $val9 of $val7,$val6
+
+val19=$(tmp0)
+tmp0=!item $val9 of $val13,$val15
+
+val20=$(tmp0)
+
+!ifval $val15 <=21 and $val13 <= 29.7 
+val21=$[rint( 1)]
+!else
+val21=$[rint(2 )]
+!endif
+replytype1=numexp
+replyname1=Coefficient en %
+replygood1=$val14
+replytype2=numexp
+replyname2=$val11 en cm arrondie au mm
+replygood2=$val20
+replytype3=menu
+replyname3=
+replygood3=$val21;A4,A3
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 
+!read oef/special.phtml tooltip <b>Passer la souris ici pour afficher les caractéristiques du photocopieur</b>,[ABOVE,true,STICKY,true,CLOSEBTN,true] ,<ul><li>Formats de papier disponibles : A4 (21*29.7 cm) et A3 (29.7*42 cm)</li>	<li>Dimensions utiles de la vitre : A3</li>	<li>Coefficients disponibles pour les agrandissements et réductions : de 25% à 400% en nombre entier</li></ul>	Dans tous ces exercices, on fait abstraction du problème du positionnement de l'original sur la vitre du photocopieur<br>	(problème pourtant non négligeable dans la pratique !)	 
+$()<p>		Je veux photocopier la reproduction d'un tableau que j'ai trouvée dans un livre.<br>	Celle-ci mesure $(val12[1]) cm sur $(val12[2]) cm.</p>		Je souhaite que la $val10 du tableau sur la photocopie mesure $val17 cm.<br>	Que dois-je choisir comme coefficient sur le photocopieur ? (arrondir celui-ci au plus proche)<br>	Combien mesurera alors la $val11 ?<br>	Pour ne pas gâcher de papier, j'utiliserai une feuille de format  
+!read oef/embed.phtml reply3 
+$()	
+$()
+!exit
+
+:hint
+$()Dimension finale = dimension initiale $m_times coefficient
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La $val10 du tableau mesure $val18 cm. Après photocopie, elle doit mesurer $val17 cm.<br>	Le coefficient à choisir est donc 
+!insmath $val17 / $val18 = $val16 = $val14 %
+$().<p>	La $val11 du tableau sur la photocopie mesure donc 
+!insmath $val19 \times $val16 = $val20 cm
+$()	 </p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,14,16,17,18,19,20
+embedcnt=2

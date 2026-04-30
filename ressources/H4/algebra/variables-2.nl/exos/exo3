@@ -1,0 +1,91 @@
+mathviewpanel=$module_title:/:+:-:*:^
+rounding=0
+mathview=5
+display=1
+# mathview=5 : only input-applet
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=24
+# applettext => letterlijke 
+math=1
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+formula$n=$empty
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+helptext=<img src=\'$module_dir/gifs/exo3.gif\' alt=\'noalt\'/>
+# var1 is used for checking  "literal typing" of question
+letters=a,b,c,d,f,h,k,m
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+a=!item 4 of $letters
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+c=!item 2 of $getallen
+d=!item 3 of $getallen
+e=!item 4 of $getallen
+
+!if $R=1
+    var1=$x^$a/($x^($b*$a)) 
+    answer$n=!exec maxima ratsimp($var1);
+    formula$n=\frac{$x^{ \textstyle \textstyle $a}}{$x^{ \textstyle $b\cdot $a}}=[?]
+    tex=!texmath $(answer$n)
+    texanswer$n=\frac{$x^{ \textstyle \textstyle $a}}{$x^{ \textstyle $b\cdot $a}}= $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    applettext=!nospace $x^$a/($x^($b$a)) =
+ !exit
+!endif
+
+!if $R=2
+    var1=$x^($c*$a)/($x^($b*$a)) 
+    answer$n=!exec maxima ratsimp($var1);
+    formula$n=\frac{$x^{ \textstyle $c \cdot $a}}{$x^{ \textstyle $b\cdot $a}}=[?]
+    tex=!texmath $(answer$n)
+    texanswer$n=\frac{$x^{ \textstyle $c \cdot $a}}{$x^{ \textstyle $b\cdot $a}}= $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    applettext=!nospace $x^($c$a)/($x^($b$a))=
+ !exit
+!endif
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	var1=$c*$x^($b*$a)/($x^($d*$a))
+	answer$n=!exec maxima ratsimp($var1);
+	formula$n=\frac{$c \cdot $x^{ \textstyle $b \cdot $a}}{$x^{ \textstyle $d \cdot $a}}=[?]
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$c \cdot $x^{ \textstyle $b \cdot $a}}{$x^{ \textstyle $d \cdot $a}}= $tex
+	varlist=!varlist $(answer$n)
+	wims_rawmath_variables=$varlist
+	applettext=!nospace ($c*$x^($b$a))/($x^($d$a))=
+    !else
+	var1=$c*$x^($b*$a)/($e*$x^($d*$a))
+	answer$n=!exec maxima ratsimp($var1);
+	formula$n=\frac{$c \cdot $x^{ \textstyle $b \cdot $a}}{$e \cdot $x^{ \textstyle $d \cdot $a}}=[?]
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$c \cdot $x^{ \textstyle $b \cdot $a}}{$e \cdot $x^{ \textstyle $d \cdot $a}}= $tex
+	varlist=!varlist $(answer$n)
+	wims_rawmath_variables=$varlist
+	applettext=!nospace ($c*$x^($b$a))/($e*$x^($d$a))=
+    !endif
+ !exit
+!endif
+
+
+

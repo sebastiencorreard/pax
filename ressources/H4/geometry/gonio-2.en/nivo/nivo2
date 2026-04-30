@@ -1,0 +1,84 @@
+n=$teller
+bewerking=bewerking1.proc
+!if $taal=nl
+    gonio=!randitem sin sinus ,cos cosinus
+    hint=denk eraan dat je de zaak netjes opschrijft<br>\
+    Ik doe mijn best om zoveel mogelijk de typische computersyntax<br>\
+    te vermijden, maar <em>dsin(bx)</em> moet je toch echt  schrijven als <em>d*sin(b*x)</em>
+    nivo_title=<font size="+1">Herleiden van het functievoorschrift door middel van diverse bewerkingen</font><br>De <em> $soort -functie </em>
+    SIN$n=!word 1 of $gonio
+    soort=!word 2 of $gonio
+    somtekst$n=Het is nu de bedoeling dat je het functie voorschrif van deze $soort probeert te achterhalen<br>\
+    waarin een hulpvariabele <b><em>s</em></b> de ligging van de curve bepaald...<br>
+
+!else
+    gonio=!randitem sin sine,cos cosine
+    hint=please remember to write decent math, e.g.write\
+     <em>dsin(bx)</em> as <em>d*sin(b*x)</em>
+    nivo_title=Find the good function<br>The <em> $soort -function </em>
+    SIN$n=!word 1 of $gonio
+    soort=!word 2 of $gonio
+
+    somtekst$n=The intention of this exercise is that you try to find the function and it's arguments,<br>\
+    The shown function is of the type: <font color=$fontcolor3><tt>$soort </tt></font><br>\
+    wherein the variable <tt><b>s</b></tt> determines the position of the graph.<br>\
+    <small>Pushing the start button results in a changing of the <tt><b>s</b></tt> value, shown as animation of the graph.</small> 
+!endif
+    wims_rawmath_variables=s
+    letter$n=!randitem $letters
+ 
+    !if $instinker=0
+	FUNCTIES=$(SIN$n)(s*x),s*$(SIN$n)(s*x),s+$(SIN$n)(s*x),\
+	$(SIN$n)(s+x),s+$(SIN$n)(s*x),\
+	s-$(SIN$n)(s*x),s-$(SIN$n)(s*x),s*$(SIN$n)(x),\
+	s+$(SIN$n)(x),s-$(SIN$n)(x),$(SIN$n)(x)/s
+    !else
+	FUNCTIES=$(SIN$n)(x/s),$(SIN$n)(x)/s,\
+	$(SIN$n)(s+x)/s,s+$(SIN$n)(x)/s,1/(s*$(SIN$n))\
+	s+$(SIN$n)(s*x)/s,s-$(SIN$n)(s*x),s-$(SIN$n)(s*x),\
+	$(SIN$n)(s*x),s+$(SIN$n)(s*x),$(SIN$n)(s+x),s+$(SIN$n)(s*x),s-$(SIN$n)(s*x),\
+	s-$(SIN$n)(s*x),s/$(SIN$n)(x),s+$(SIN$n)(x),1/s+$(SIN$n)(x),$(SIN$n)(x/s)
+    
+    !endif
+    
+    FUNCTIES=!shuffle $FUNCTIES
+
+    GOED$n=!item $n of $FUNCTIES
+    s_min=0
+    s_max=5
+
+    opgave$n=<p align="center">\
+    <applet codebase="$appletdir" archive="jcm1.0-config.jar" code="AnimatedGraph.class" width="600" height="400">\
+    <param name="PanelTitle" value="Som voor $wims_user">\
+    <param name="FrameTitle" value="$voornaam $achternaam">\
+    <param name="Parameter" value="s">\
+    <param name="Function" value="$(GOED$n)">\
+    <param name="ParameterMin" value="$s_min">\
+    <param name="ParameterMax" value="$s_max">\
+    <param name="Intervals" value="30">\
+    <param name="UseMouseZoom" value="no">\
+    <param name="UsePanner" value="no">\
+    <param name="UseFunctionInput" value="no">\
+    <param name="UseLimitsPanel" value="yes">\
+    <param name="UseNextAndPrev" value="no">\
+    <param name="UseAnimatorInputs" value="yes">\
+    <param name="FrameSize" value="600 400">\
+    <param name="UseRestoreButton" value="yes">\
+    <param name="UseEqualizeButton" value="yes">\
+    <param name="UseZoomButtons" value="yes">\
+    <param name="BackgroundColor" value="0 0 180">\
+    <param name="ForegroundColor" value="150 0 0">\
+    <param name="PanelBackground" value="200 200 255">\
+    <param name="CanvasColor" value="black">\
+    <param name="AxesColor" value="lightGray">\
+    <param name="AxesLightColor" value="gray">\
+    <param name="BorderColor" value="gray">\
+    <param name="GraphColor" value="yellow">\
+    <param name="ParameterColor" value="white">\
+    <param name="LabelColor" value="white">\
+    <param name="XLabel" value="x-as">\
+    <param name="YLabel" value="y-as">$geenjava</applet></p>
+
+
+
+

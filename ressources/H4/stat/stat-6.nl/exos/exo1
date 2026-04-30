@@ -1,0 +1,97 @@
+# var6 = max (aantal cellen in een kolom)
+# var5 = A1,B1 A2,B2 ... Amax,Bmax
+# var7 = head Kolom A,Kolom B ,Kolom C
+# var8 = aantal invoer kolommen 
+math=0
+mathview=0
+questiontype=7
+javascript=js/spreadsheet.phtml
+inputs=yes
+cols=5
+rows=10
+
+# spreadsheet en optellen van kolommen
+n=$counter
+tsv_file=som_$counter.tsv
+
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en optellen van kolommen\
+\
+"kolom 1"	"kolom 2"\
+
+
+var8=1
+var7=kolom A,kolom B,kolom C
+var5=$empty
+sum=$empty
+calc_data=$empty
+var6=!randint 8,10
+tabel_ans=<table class="demospecial"><tr><th>kolom A</th><th>kolom B</th><th>kolom C</th></tr>
+!for p=1 to $var6
+ d1=!randint 1,99
+ d2=!randint 1,99
+ d3=$[$d1 + $d2]
+ sum=!append item $d3 to $sum
+ data=!append line $d1	$d2 to $data
+ var5=!append word $d1,$d2 to $var5
+ tabel_ans=!append word <tr><td>$d1</td><td>$d2</td><td>$d3</td></tr> to $tabel_ans
+!next p
+tabel_ans=!append word </table> to $tabel_ans
+answer$n=$sum
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\' <hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br />\
+<em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />\
+Tel kolom A en kolom B op en zet de resultaten in kolom C .<br />\
+Bijvoorbeeld A5+B5=C5.<br />\
+Stuur de inhoud van kolom C als antwoord naar WIMS op. (cut & paste)
+
+
+
+
+textanswer$n=Er waren $var6 cellen met getallen (A1 t/m A6 bevatten tekst) ... de som van deze getallen is $sum\
+$tabel_ans \
+<ul>\
+<li>open het bestand </li>\
+<li>ga met je muis in <b>C7</b> staan</li>\
+<li>zet in de "formulebalk" (input line) : <b>= A7 + B7</b>[ENTER] of<br /> <b>=som(A7:B7)</b></li>\
+<li>ga met je muis rechts onderin <b>C7</b> staan...je muis wordt een kruis...en scroll naar <b>C$[6+$var6]</b><br /></li>\
+<li>copy &amp; paste (CTRL C CTRL V) kolom <b>C</b> in het het antwoordveld van WIMS en stuur op als antwoord</li>\
+</ul>
+
+checkfile=$checkdir/number.proc
+
+#volgorde belangrijk
+var1=yes
+make_tr=1
+description=kolom C = 
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

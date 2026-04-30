@@ -1,0 +1,193 @@
+# balansmutaties
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=-1
+questiontype=0
+checkfile=exos/checkfile3.proc
+
+###### ACTIVA #########
+# afschrijving gebouwen
+gebouw=!randint 300,400
+#gebouw=300
+gebouw=$[1000*$gebouw]
+
+# inventatris
+inventaris=!randint 50,200
+#inventaris=50
+inventaris=$[1000*$inventaris]
+
+# transportmiddelen
+transport=!randint 50,90
+#transport=50
+transport=$[1000*$transport]
+# voorraad
+voorraad=!randint 400,600
+#voorraad=400
+voorraad=$[1000*$voorraad]
+
+# debiteuren
+debiteuren=!randint 100,300
+#debiteuren=100
+debiteuren=$[1000*$debiteuren]
+
+# Kas
+kas=!randint 10,30
+#kas=10
+kas=$[1000*$kas]
+
+# Rabobank
+rabobank=!randint 30,70
+#rabobank=30
+rabobank=$[1000*$rabobank]
+
+Atotaal=$[$gebouw + $inventaris + $transport + $voorraad + $debiteuren + $kas + $rabobank]
+Nactiva=$gebouw,$inventaris,$transport,$voorraad,$debiteuren,$kas,$rabobank,&nbsp;,$Atotaal
+Tactiva=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,&nbsp;,Totaal
+# minimum activa1=2650
+# maximum activa1=1100
+# minimum activa2=2750
+# maximum activa2=11500
+ 
+##### PASSIVA #######
+# eigenvermogen
+vermogen=!randint 350,600
+#vermogen=600
+vermogen=$[1000*$vermogen] 
+
+# hypotheek
+hypotheek=!randint 150,450
+#hypotheek=450
+hypotheek=$[1000*$hypotheek]
+
+# lening
+lening=!randint 75,150
+#lening=150
+lening=$[1000*$lening]
+
+# crediteuren
+crediteuren=!randint 130,250
+#crediteuren=250
+crediteuren=$[1000*$crediteuren]
+
+# belasting
+belasting=!randint 90,150
+#belasting=150
+belasting=$[1000*$belasting]
+
+# ING
+ing=!randint 400,600
+#ing=600
+ing=$[1000*$ing] 
+
+subPtotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting]
+ing=$[$Atotaal - $subPtotaal]
+# corrigeren om balans sluitend te maken
+!if $ing < 10000
+    ing=!randint 60,110
+    ing=$[$ing*100]
+    subPtotaal=$[$hypotheek + $lening + $crediteuren + $belasting + $ing]
+    vermogen=$[$Atotaal - $subPtotaal]
+    !if $vermogen < 30000
+	vermogen=!randint 20,30
+	vermogen=$[$vermogen*1000]
+	subPtotaal=$[ $vermogen + $lening + $crediteuren + $belasting + $ing]
+	hypotheek=$[$Atotaal - $subPtotaal]
+    !endif	
+!endif
+
+Ptotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting + $ing]
+Tpassiva=Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,&nbsp;,&nbsp;,Totaal
+Npassiva=$vermogen,$hypotheek,$lening,$crediteuren,$belasting,$ing,&nbsp;,&nbsp;,$Ptotaal
+
+tabel=<table class="balans_2"><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th></tr>
+static_tabel=<table class=\'balans_2\'><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th></tr>
+# let op: c/d bepalen myinput[] volgorde van het versturen
+c=0
+d=8
+!for p=1 to 9
+    ac=!item $p of $Nactiva
+    pc=!item $p of $Npassiva
+    AC=!item $p of $Tactiva
+    PC=!item $p of $Tpassiva
+    !if $AC!=&nbsp;
+	input_ac = &euro;&nbsp;<input type="text" id="myinput$c" size="7" class="schaersvoorde_input" value="$ac" /> 
+	sac =&euro; $ac
+	!increase c
+    !else
+	sac=&nbsp;
+	input_ac=&nbsp;
+    !endif
+    !if $PC!=&nbsp;
+	input_pc = &euro;&nbsp;<input type="text" id="myinput$d" size="7" class="schaersvoorde_input" value="$pc" /> 
+	spc=&euro; $pc
+	!increase d
+    !else
+	input_pc=&nbsp;
+	spc = &nbsp;
+    !endif
+    tabel=!append word $ <tr><td>$AC</td><td>$input_ac</td><td>$PC</td><td>$input_pc</td></tr> $ to $tabel 
+    static_tabel=!append word $ <tr><td>$AC</td><td>$sac</td><td>$PC</td><td>$spc</td></tr> $ to $static_tabel 
+!next p
+tabel=!append word $ </table> $ to $tabel
+static_tabel=!append word $ </table> $ to $static_tabel
+
+description=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,Activa Totaal,Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,Passiva Totaal
+!if $R=1
+    geld1=!randint 100,200
+    geld1=$[1000*$geld1]
+    
+    ss=Gegeven is de <span class="schaersvoorde_link">volgende</span> balans.<br />Er wordt een bedrag voor &euro; $geld1 aan goederen ingekocht.<br />Alle inkopen zijn op rekening.<hr />Neem deze mutatie in de onderstaande balans op.
+    # veranderd is:
+    var1=4,8,12,15
+    answer$n=$gebouw,$inventaris,$transport,$[$voorraad+$geld1],$debiteuren,$kas,$rabobank,$[$Atotaal+$geld1],$vermogen,$hypotheek,$lening,$[$crediteuren+$geld1],$belasting,$ing,$[$Ptotaal+$geld1]
+    textanswer$n=<ul><li>Voorraad wordt $voorraad + $geld1 = &euro; $[$voorraad+$geld1]</li><li>Crediteuren wordt $crediteuren + $geld1 = &euro; $[$crediteuren+$geld1]</li><li>Totaal wordt $Atotaal + $geld1 = &euro; $[$Atotaal+$geld1]</li></ul>
+!else
+    !if $R=2
+	s2=$[min($vermogen,$inventaris)]
+	s1=10
+	s2=$[round(0.3*$s2/100)]
+	m2=$[max($s1,$s2)]
+	m1=$[min($s1,$s2)]
+	geld2=!randint $m1,$m2
+	geld2=$[100*$geld2]
+	ss=Gegeven is de <span class="schaersvoorde_link">volgende</span> balans.<br />De afschrijving op de inventaris bedraagt &euro; $geld2.<br />Neem deze mutatie op in de onderstaande balans.
+	# veranderd is:
+	var1=2,8,9,15
+	textanswer$n=<ul><li>Inventaris wordt $inventaris &minus; $geld2 = &euro; $[$inventaris - $geld2]</li><li>Eigen vermogen wordt $vermogen &minus; $geld2 = &euro; $[$vermogen - $geld2]</li><li>Totaal wordt $Atotaal &minus; $geld2 = &euro; $[$Atotaal - $geld2]</li></ul>
+	
+	answer$n=$gebouw,$[$inventaris-$geld2],$transport,$voorraad,$debiteuren,$kas,$rabobank,$[$Atotaal-$geld2],$[$vermogen-$geld2],$hypotheek,$lening,$crediteuren,$belasting,$ing,$[$Ptotaal-$geld2]
+    !else
+	voor=!randint 10,20
+	voor=$[$voor*10000]
+	perc=!randint 12,22
+	perc=$[2*$perc]
+	factor=$[(100+$perc)/100]
+	goederen=$[$voor*$factor]
+	a1=$[round(0.5*$goederen/1000)]
+	a2=$[round(0.9*$goederen/1000)]
+	contant=!randint $a1,$a2
+	contant=$[1000*$contant]
+	#winst = $[$goederen - $voor]
+	deb=$[$goederen - $contant]
+	winst = $[$deb - $voor + $contant]
+	ss=Gegeven is de <span class="schaersvoorde_link">volgende</span> balans.<br />Er worden voor &euro; $goederen goederen verkocht, waarvan &euro; $contant contant,<br />de rest op rekening.<br />De brutowinst is $perc % van de inkoopwaarde van de omzet.<br />Verwerk de gegevens in de onderstaande balans. 
+	
+	textanswer$n=<ul><li>Verkochte goederen &minus; contante betaling = $goederen &minus; $contant = &euro; $deb</li><li>Debiteuren wordt $debiteuren + $deb = &euro; $[$debiteuren + $deb]</li><li>Waarde goederen zonder winst : $goederen &divide; $factor = &euro; $voor</li><li>Voorraad wordt $voorraad &minus; $voor = &euro; $[$voorraad - $voor]</li><li>De kas wordt $kas + $contant = &euro; $[$kas + $contant]</li><li>De winst op deze goederen : $goederen &minus; $voor =&euro; $winst</li><li>Het eigen vermogen wordt: $vermogen + $winst = &euro; $[$vermogen + $winst] </li><li>Het totaal wordt : $Atotaal + $winst = &euro; $[$Atotaal + $winst]</li></ul>
+
+	# veranderd is:
+	var1=4,5,6,8,9,15
+	answer$n=$gebouw,$inventaris,$transport,$[$voorraad-$voor],$[$debiteuren+$deb],$[$kas+$contant],$rabobank,$[$Atotaal+$winst],$[$vermogen+$winst],$hypotheek,$lening,$crediteuren,$belasting,$ing,$[$Ptotaal+$winst]
+
+    !endif
+!endif
+
+question$n =<a onmouseover="return escape('$static_tabel')">$ss </a>
+exotext=$tabel
+helptext=$static_tabel
+

@@ -1,0 +1,57 @@
+\title{交换和乘法}
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{cn}
+\options{nofloat fixedgoal askcontext askresult}
+
+\matrix{vars=a,b
+c,d
+p,q
+s,t
+x,y
+}
+\text{vars=randomrow(\vars)}
+\text{x=item(1,\vars)}
+\text{y=item(2,\vars)}
+\matrix{vars=\x+randint(2..10)*\y,randint(2..10)*\x-\y
+\x,randint(1..10)*random(-1,1)*\y
+\x+randint(1..10)*random(-1,1),\y
+\x^2,random(1,-1)*randint(2..10)*\y
+random(sin,cos,log)(\x),\y+randint(0..10)*random(-1,1)
+random(sin,cos,log)(\x+random(-1,1)*\y),randint(0..10)*random(-1,1)
+}
+\text{vars=randomrow(\vars)}
+\text{vars=shuffle(\vars)}
+\function{x=item(1,\vars)}
+\function{y=item(2,\vars)}
+
+\text{eqr=random(,=)}
+\text{moreless=shuffle(<\eqr,>\eqr)}
+\text{more=item(1,\moreless)}
+\text{less=item(2,\moreless)}
+\text{ctx=simplify(\x \more \y)}
+
+\integer{ra=random(1,2)}
+\if{\ra=1}{
+ \methods{ineq/addterm ineq/exsides}
+ \text{prv=-(\x) \less -(\y)}
+ \minsteps{2}
+ \text{phrase=不等式乘以 -1 是不等式两边加上相同的项与交换不等式两边的复合.}
+}{
+ \methods{ineq/addterm ineq/mulnum}
+ \text{prv=\y \less \x}
+ \minsteps{2}
+ \text{phrase=交换不等式两边是不等式两边加上相同的项与不等式乘以一个数的复合.}
+}
+
+\text{prv=simplify(\prv)}
+\equivalence{\ctx}
+\text{gl=wims(nospace \prv)}
+
+\statement{你知道: \phrase
+<p>
+因此请使用上述方法把不等式 \( \ctx ) 化成 \( \prv ).
+}
+
+\text{test=wims(nospace \newobject)}
+\condition{\test issametext \gl}

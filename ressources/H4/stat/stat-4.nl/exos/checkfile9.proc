@@ -1,0 +1,144 @@
+# reply$n=aantal1,kans1,aantal2,kans2,aantal3,kans3....aantal_n,kans_n,verwachtingswaarde,std.dev.
+# answer$n=aantal1,kans1,aantal2,kans2,aantal3,kans3....aantal_n,kans_n,verwachtingswaarde,std.dev.
+# sequence may be random...
+# text is stripped from reply via javascript: reply is a real number
+goback=0
+n=$counter
+errortext=$empty
+reply$n=!nospace $(reply$n)
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+ans=!item 1 to -2 of $(answer$n)
+ans_cnt=!itemcnt $ans
+ans_verwachting=!item -1 of $(answer$n)
+rep=!item 1 to -2 of $(reply$n)
+rep_verwachting=!item -1 of $(reply$n)
+rep_cnt=!itemcnt $rep
+
+#exotext=$(answer$n)<br />$(reply$n)<br />ans=$ans<br />rep=$rep<br />ans_verwachting=$ans_verwachting
+#goback=1
+#!exit
+score1=0
+text=!record 1 of lang/remarks.$taal
+#@AANTAL,KANS,invulveld,Binomiaal,niet-binomiaal,Deze verdeling is :,Alle invulvelden zijn al weg...
+aantallen=!item 1 of $text
+kansen=!item 2 of $text
+binomial=!item 4 of $text
+not_binomial=!item 5 of $text
+type=!item $ans_verwachting of $binomial,$not_binomial
+rep_list=$empty
+
+# LET OP : IK ZET NAKIJKEN verwachtingswaarde op TWEE decimalen
+!if $[abs($ans_verwachting - $rep_verwachting)] <= 0.01
+    extra=De verwachtingswaarde is prima
+    k=green
+    score1=1
+!else
+    !if $[abs($ans_verwachting - $rep_verwachting)] <= $[10/$rounding]
+	score1=0.8
+	extra=Je hebt een afrondingsfoutje bij de verwachtingswaarde gemaakt.
+	k=orange
+    !else
+	score1=0
+	extra=Je verwachtingswaarde is fout.
+	k=red
+    !endif
+!endif
+rep_list=!append line <li>$rep_verwachting<br /><span style="color:$k">$extra</span></li> to $rep_list
+
+
+## nu vergelijken we de aantallen antwoorden...
+!if $ans_cnt != $rep_cnt
+    score2=0
+    extra=!record 36 of lang/remarks.$taal
+    #@Er zijn $[$ans_cnt/2] mogelijke aantallen...en geen $[$rep_cnt/2] !!
+    rep_list=!append line <li><span style="color:red">$extra</span></li> to $rep_list
+!else
+    score2=1
+    extra=!record 37 of lang/remarks.$taal
+    #@Je hebt de aantallen in de kansverdeling goed !
+    rep_list=!append line <li><span style="color:green">$extra</span></li> to $rep_list
+!endif
+
+score3=0
+rep_table_head=<table class="zebra_table_h2"><tr><th>$aantallen</th>
+rep_table_body=<tr><th>$kansen</th>
+rep_table_remark=<tr><td>&nbsp;</td>
+sum_kans=0
+rem=$empty
+!for r=1 to $rep_cnt step 2
+    r1=!item $r of $rep
+    r2=!item $[$r+1] of $rep
+    !if $r2>1
+	# assume perc
+	!if $r2 >100
+	    rem=hmmmm
+	!else
+	    rem=!record 38 of lang/remarks.$taal
+	    #@ik veronderstel dat je percentages<br>hebt ingevuld in plaats van kansen...<br>dus $r2 % ... <b>P</b> = $r2/100 = $[$r2/100]
+	    r2=$[$r2/100]
+	!endif
+    !else
+	rem=$empty
+    !endif
+    sum_kans=$[$sum_kans+$r2]
+    r2=$[(round($rounding*$r2))/$rounding]
+    rep_table_remark=!append word $ <td><span style="color:red">$rem</span></td>$ to $rep_table_remark
+    found=0
+    !for a=1 to $ans_cnt step 2
+	!if $found=0
+	    a1=!item $a of $ans
+	    !ifval $r1=$a1
+		found=1
+		# het juiste aantal
+		a2=!item $[$a+1] of $ans
+	        a2=$[(round($rounding*$a2))/$rounding]
+		!ifval $r2=$a2
+		    !increase score3
+		    rep_table_head=!append word $ <th>$a1</th> $ to $rep_table_head
+		    rep_table_body=!append word $ <th>$a2</th> $ to $rep_table_body
+		!else
+		    rep_table_head=!append word $ <th>$a1</th> $ to $rep_table_head
+		    rep_table_body=!append word $ <th>$r2</th> $ to $rep_table_body
+		!endif
+	    !endif
+	!endif
+    !next a
+    !if $found=0
+	rep_table_head=!append word $ <th>$r1</th> $ to $rep_table_head
+	rep_table_body=!append word $ <th>$r2</th> $ to $rep_table_body
+    !endif
+!next p
+!if $[(round($rounding*$sum_kans))/$rounding]>1 or $sum_kans <0
+    rem=!record 39 of lang/remarks.$taal
+    #@De som van alle kansen moet natuurlijk <b>1</b> zijn...en geen $sum_kans !
+!else
+    rem=$empty
+!endif
+rep_table_head=!append line $ </tr> $rep_table_body </tr> $rep_table_remark </tr></table> $rem $ to $rep_table_head
+
+# score1 : verwachtingswaarde
+# score2 : aantal kansen in de verdeling
+# score3 : juiste kans bij een aantal
+
+score=$[($score1+$score2+3*(2*$score3/$ans_cnt) )/5 ]
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+math=0
+reply$n=<ul>$rep_list <li>$rep_table_head</li></ul>
+
+goback=0
+!exit

@@ -1,0 +1,116 @@
+# familie van grafieken : rechte lijn [HTML5]
+n=$counter
+make_tr=1
+mathview=0
+inputs=-1
+questiontype=0
+math=0
+display=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+checkfile=exos/checkfile3b.proc
+applet=0
+var1=3
+question$n=!record 83 of lang/remarks.$taal
+#@Gegeven de familie van functies met het onderstaande voorschrift.<br />Teken in de <kbd>GeoGebra</kbd> applet de grafieken horend bij  de verschillende "b-waarden"
+!if $R=1
+ c=!randitem 1,2,3
+ b1=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+ b2=$[$b1+$c]
+ b3=$[$b1+2*$c]
+    
+ a=!randitem 5,10,15,20,25
+ pm=!randitem -0.1,0.1
+ a=$[$a*$pm]
+ !if $a=1
+  formula$n= \left[ \begin{array}{l} y = x + b \\ f(x) : b = $b1 \\ g(x) : b = $b2 \\ h(x) : b = $b3 \end{array} \right.
+ !else
+  formula$n= \left[ \begin{array}{l} y = $a \cdot x + b \\ f(x) : b = $b1 \\ g(x) :  b = $b2 \\ h(x) : b = $b3 \end{array}\right.
+ !endif
+ answer$n=$a*x+$b1,$a*x+$b2,$a*x+$b3
+ texanswer$n= \left[ \begin{array}{l} y = $a \cdot x + $b1 \\  y = $a \cdot x + $b2 \\ y = $a \cdot x + $b3 \\  \end{array}\right.
+!else
+ !if $R=2
+  c=!randitem 2,3,4
+  a=!randitem -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+  a1=$[$a/2]
+  a2=$[$a1*$c]
+  a3=$[$a1*2*$c]
+  b=!randitem -4,-3,-2,-1,1,2,3,4
+  functie=!texmath y=bx+$b
+  functie1=!texmath y=$a1*x+$b
+  functie2=!texmath y=$a2*x+$b
+  functie3=!texmath y=$a3*x+$b
+  formula$n= \left[ \begin{array}{l} $functie \\ f(x) : b = $a1 \\ g(x) : b = $a2 \\ h(x) : b = $a3 \end{array} \right.
+  answer$n=$a1*x+$b,$a2*x+$b,$a3*x+$b
+  texanswer$n= \left[ \begin{array}{l} $functie1 \\  $functie2 \\ $functie3 \\  \end{array} \right.
+ !else
+   a=!randitem 1,2,3,4
+   pm=!randitem 1,-1
+   a=$[$pm*$a]
+   c=!randitem 10,15,20
+   b=!randitem 1,2,3,4
+   b1=$[5*$b]
+   b2=$[$b1+$c]
+   b3=$[$b1+2*$c]
+   functie=!texmath b=y-$a*x
+   functie1=!texmath $b1=y-$a*x
+   functie2=!texmath $b2=y-$a*x
+   functie3=!texmath $b3=y-$a*x
+   formula$n= \left[ \begin{array}{l} $functie \\ f(x) :  b = $b1 \\ g(x) : b = $b2 \\ h(x) : b = $b3 \end{array} \right.
+   answer$n=$b1+$a*x,$b2+$a*x,$b3+$a*x
+   texanswer$n= \left[ \begin{array}{l} $functie1 \\  $functie2 \\ $functie3 \end{array}\right.
+ !endif
+!endif
+
+klik=!record 107 of lang/remarks.$taal
+exotext=!exec canvasdraw\
+size 400,400\
+xrange -10,10\
+yrange -10,10\
+bgcolor white\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+axis\
+axisnumbering\
+precision 1\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+inputstyle text-align:center;background-color:#FFFF66;font-size:14pt;font-style:italic;color:blue;\
+strokecolor red\
+functionlabel f(x)=\
+userinput function\
+strokecolor blue\
+functionlabel g(x)=\
+userinput function\
+strokecolor green\
+functionlabel h(x)=\
+userinput function\
+zoom blue\
+intooltip <span style=color:blue;font-size:16px>$klik<br /></span>
+
+object$n=!exec canvasdraw\
+size 300,300\
+xrange -10,10\
+yrange -10,10\
+axis\
+axisnumbering\
+precision 1\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$(answer$n[1])\
+jscurve green,$(answer$n[2])\
+jscurve blue,$(answer$n[3])\
+mouse red,22\
+zoom red
+
+
+!exit

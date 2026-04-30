@@ -1,0 +1,86 @@
+n=$counter
+!if $counter=1
+    mathview=0
+    display=1
+    #questiontype=7
+    #javascript=js/multi.js
+    image=0
+    !if $total_exos > 3
+	total_exos=3
+    !endif
+    checkfile=$checkdir/new_number.proc
+    make_tr=1
+    rounding=100
+    cols=6
+    c=!randint 15,45
+    f=!randint 1,10
+    pm=!randitem +,-
+    a=$[$c $pm $f]
+    c=$[10*$c]
+    a=$[-10*$a]
+    a1=$[-1*$a]
+    ans1=!randint 15,50
+    e=$[$ans1*($c-($a))]
+    d=!randint 75,150
+    d=$[10*$d]
+    b=$[$e-$d]
+    !if $b<0
+        d=$[$e+($b)-10]
+        b=$[$e-$d]
+    !endif
+    ans2=$[$a*$ans1+$b]
+    ss=Gegeven zijn de onderstaande vergelijkingen: 
+    formula1=\left\{ \begin{array}{lcl} Q_{v} & = & $a \cdot p + $b \\ Q_{a} & = & $c \cdot p - $d \\ \textrm{p } & \textrm{is} & \textrm{de prijs in euro} \\ \textrm{Q} & \textrm{is} & \textrm{hoeveelheid in kg}\end{array}\right.
+    formula2=$formula1
+    formula3=$formula1
+    #<a onmouseover="return escape('<img src=$module_dir/gifs/exo19.jpg  alt=formule')"/>Gegeven zijn de onderstaande vergelijkingen: <table summary="formule"><tr><th style="text-align:left">Q<sub>v</sub>&nbsp;=&nbsp;$a p + $b</th></tr><tr><th style="text-align:left">Q<sub>a</sub>&nbsp;=&nbsp;$c p &minus; $d</th></table> P is de prijs in &euro;'s.</a>
+    
+    question1=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo19.jpg\' alt=\'formule\' />')">$ss <br />Bereken de evenwichtsprijs en evenwichtshoeveelheid.</a> <br />
+    question2=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo19.jpg\' alt=\'formule\' />')">$ss <br />Bereken de omvang van het consumentensurplus in de evenwichtssituatie waarbij geldt Q<sub>v</sub>=Q<sub>a</sub>.<br /><small>Rond je eindantwoord af op twee decimalen, reken zover mogelijk door met onafgeronde getallen.</small></a><br />
+    question3=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo19.jpg\' alt=\'formule\' />')">$ss <br />Bereken de omvang van het producentensurplus in de evenwichtssituatie waarbij geldt Q<sub>v</sub>=Q<sub>a</sub>.<br /><small>Rond je eindantwoord af op twee decimalen, reken zover mogelijk door met onafgeronde getallen.</small</a><br />
+    
+    ans1=!exec moneyprint $ans1
+    answer1=$ans1\
+    $ans2
+    
+    tussen1=$[$b/$a1]
+    answer2=$[($tussen1-$ans1)*$ans2/2]
+    ans3=$[round($rounding*$answer2)/$rounding]
+    tussen2=$[$d/$c]
+    answer3=$[($ans1-$tussen2)*$ans2/2]
+    ans4=$[round($rounding*$answer3)/$rounding]
+    
+    textanswer1=<ul><li>In de evenwichtsprijs P geldt: Q<sub>a</sub> = Q<sub>v</sub>.<br />Dus $c&times;P &minus; $d = $a &times;P + $b <br />$[$c-$a]&times;p = $e<br />P = &euro; $ans1 </li><li>Deze evenwichtsprijs p invullen in de formules voor Q<sub>a</sub> of Q<sub>v</sub><br />Q = $a &times; $ans1 + $b = $ans2</li></ul>
+        
+    textanswer2=<ul><li>Q<sub>v</sub> = 0</li><li>$a p + $b = 0</li><li>$a1 p = $b</li><li>p=$tussen1</li><li>Oppervlakte comsumentensurplus: ($tussen1 &minus; $ans1) &times; $ans2 /2 = $answer2 = $ans3</li></ul>
+    
+    textanswer3=<ul><li>Q<sub>a</sub> = 0</li><li>$c p &minus; $d = 0</li><li>$c p = $d</li><li>p=$tussen2</li><li>Oppervlakte producentensurplus: ($ans1 &minus; $tussen2) &times; $ans2 /2 = $answer3 = $ans4</li></ul>
+    
+
+
+    exotext=$empty
+!endif
+
+
+!if $counter=1
+    var2=1,1
+    inputs=2
+    description=De evenwichtsprijs,De evenwichtshoeveelheid
+    ex1=&euro;
+    ex2=kg
+!else
+    !if $counter=2
+	var2=100
+        inputs=1.1
+        description=De omvang van het consumentensurplus
+	exotext=<br />Je antwoord op vraag 1) : $reply1
+    !else
+	var2=100
+        inputs=1.1
+        description=De omvang van het producentensurplus
+	exotext=<br />Je antwoord op vraag 1) : $reply1<br />Je antwoord op vraag 2) : $reply2
+    !endif
+!endif
+
+
+

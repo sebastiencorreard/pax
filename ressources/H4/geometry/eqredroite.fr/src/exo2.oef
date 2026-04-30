@@ -1,0 +1,92 @@
+\title{Tracer d'une droite à partir de son équation réduite}
+\conditions{ 1 2} 
+\language{fr}
+\range{-5..5}
+\author{Thomas Charon}
+\email{thomas.charon@ac-lyon.fr}
+\computeanswer{yes}
+\format{html}
+\precision{1000}
+
+
+
+\integer{cas=randitem(1,2,3,3,3)}
+
+\integer{xa=0}
+\integer{xb=randint(1..5)*random(-1,1)}
+\integer{ya=randint(-5..5)}
+\integer{yb=randint(-5..5)}
+
+\while{ \yb=\ya  }{\integer{\yb = randint(-5..5)}} 
+
+\integer{p=\ya}
+\rational{\m=(\yb-\ya)/(\xb-\xa)}
+\rational{\m=simplify(\m)}
+
+\if{\cas=1}
+	{\integer{xa=randint(-5..5)}
+	\integer{xb=\xa}
+	\text{\equa=\xa}
+        \text{equac=0*y+x-\xa
+        }
+	}
+\if{\cas=2}
+	{\integer{ya=\yb}
+	\text{\equa=\ya}
+        \text{equac=y+0*x-\ya}
+	}
+\if{\cas=3}
+	{\text{\equa=\p=0?\m*x:\m*x+\p}
+        \text{equac=y-(\equa)}}
+
+	
+\text{script= var brd = JXG.JSXGraph.initBoard('jxgbox', {
+ axis:true,boundingbox: [-6, 6, 6, -6], grid:true});
+jxgbox_rep1 = brd.create('point',jxgbox_var1 , {snapToGrid:true});
+jxgbox_rep2 = brd.create('point',jxgbox_var2, {snapToGrid:true} );
+d = brd.create('line',[jxgbox_rep1,jxgbox_rep2] );
+}
+\text{script2= var brd = JXG.JSXGraph.initBoard('jxgbox', {
+ axis:true,boundingbox: [-6, 6, 6, -6], grid:true});
+jxgbox_rep1 = brd.create('point',[\xa,\ya], {fixed:true});
+jxgbox_rep2 = brd.create('point',[xb,yb], {fixed:true} );
+d = brd.create('line',[[\xa,\ya],[xb,yb]] );
+}
+\text{t=\cas=3?1 2 3:1 2}
+\conditions{\t}
+\statement{<p class="enonce">On veut tracer la droite \((d)) d'équation  réduite \if{\cas=1}{\(x=)}{\(y=)} \(\equa).
+
+Pour cela, vous pouvez déplacer les points \(A) et \(B) 
+pour qu'ils appartiennent à la droite \((d)).</p>
+<p class="question">Déplacer les points A et B pour que la droite \((AB)) ait pour équation réduite 
+\if{\cas=1}{\(x=)}{\(y=)} \(\equa).</p>
+<p class="enonce"><span style="text-decoration:underline;">Attention :</span> dans le cas d'une droite "oblique", placez ces points de manière suffisamment éloignés 
+(au moins 4 carreaux) comme vous devriez le faire si vous traciez la droite sur une feuille.</p>
+ \embed{r1,400x400
+jxgbox
+\script
+jxgbox_var1=[0,1] ; jxgbox_var2=[1,0]
+  }
+}
+
+\answer{}{\A}{type=jsxgraph}{option=precision=10 }
+
+
+\rational{t1=evalue(\equac,x=\A[1;1],y=\A[1;2])}
+\rational{t2=evalue(\equac,x=\A[2;1],y=\A[2;2])}
+\integer{dist=(\A[1;1]-\A[2;1])^2+(\A[1;2]-\A[2;2])^2}
+
+\condition{\(A \in (d)) ?}{\t1=0 }{ weight=5 }
+\condition{\(B \in (d)) et \(B\neq A) ?}{\t2=0 and \dist>0 }{ weight=5 }
+\condition{\(A) et \(B) suffisamment éloignés ?}{\dist >= 16}{ weight=1 } 
+
+
+\feedback{\t1!=1 or \t2!=0}
+{<script>
+rep=brd.create('line',[[\xa,\ya],[\xb,\yb]],{name:'Correction',Color:'green',fixed:'true'});
+</script>
+<p> La bonne réponse est représentée en vert.</p>}
+
+\feedback{\dist<=9 and   \t1=0 and \t2=0 and \cas=3}{Sur votre copie, vous auriez dû placer les points 
+\(A) et \(B) plus éloignés l'un de l'autre, afin d'avoir une précision satisfaisante sur votre graphique. 
+Essayez d'en tenir compte la prochaine fois.}

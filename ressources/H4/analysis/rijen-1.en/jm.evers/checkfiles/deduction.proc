@@ -1,0 +1,234 @@
+# check on a "deduction stream"
+# like 2x+3=5 -> 2x=5-3 => 2x=2 -> x=1
+# like f(x)=(x+3)^3 -> f(x)=(x+3)(x+3)(x+3) => f(x)=x^3 +3x+3x+.....->f(x)=x^3+9x^2+ 27x+27
+# separated with arrows...
+# if an argument like f(x)= should be used by the pupil...use:
+# arglist=f(x),y
+# arglist=dy/dx,y',f'(x)
+# varlist=x,r
+# var2=maximum amount of intermediate steps defaults to 5
+# var1=minimum amount of intermediate steps defaults to 2
+# we can only check functions in $var1
+
+!if $var2=$empty
+    var2=10
+!endif
+!if $var1=$empty
+    var1=2
+!endif
+
+!set n=$counter
+!set wims_compare_precision=10000
+
+
+leeg=!wordcnt $(reply$n)
+!if $leeg = 0
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !increase try
+    goback=1
+    !exit
+!endif
+
+!if $leeg >25
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    !increase try
+    goback=1
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    goback=0
+    !exit
+!endif
+
+AAA=!lower $(reply$n)
+wims_rawmath_variables=$varlist
+AAA=!rawmath $AAA
+AAA=!nospace $AAA
+
+!if $arglist != $empty
+    chk=0
+    arg=1
+    !for p in $arglist
+	!if $p isin $AAA
+	    chk=1
+	    AAA=!replace internal $p by F(X) in $AAA
+	    # y=3x-4 => F(X)=3x-4 i.v.m. Maxima's functie def.
+	!endif
+    !next p
+    !if $chk=0
+	errortext=Je bent $arglist vergeten...
+	!increase try
+	maxscore=$[$P1*$maxscore]
+	goback=1
+	!exit
+    !endif
+!endif
+    
+
+test=!replace internal , by @ in $AAA
+!if @ isin $test
+    !readproc $checkdir/decimalpoint.proc
+    #errortext=!record 64 of $remarkdir/commonremarks.$taal
+    #!increase try
+    !if goback=1
+	!exit
+    !endif
+!endif
+
+!for p in $varlist
+    !if $p notin $AAA
+	!increase try
+	testvar=$p 
+	maxscore=$[$P2*$maxscore]
+	errortext=Je bent de variabele $p vergeten...
+	goback=1
+	!exit
+    !endif
+!next p   
+
+pijlen=->,-->,<->,<-->,=>,==>,<=>,<==>,thus,so,dus,ergo,geldt
+aantal_pijlen=!itemcnt $pijlen
+
+# test op pijlen -> => etc etc
+pijlcnt=0
+test=$AAA
+!for p=1 to $aantal_pijlen
+    pijl=!item $p of $pijlen	
+    test=!replace internal $pijl by @ in $test
+!next p
+t=!positionof char @ in $test
+pijlcnt=!itemcnt $t
+!if $pijlcnt <1
+    errortext=te weinig stappen
+    #!record 11 of lang/remarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !increase try
+    goback=1
+    !exit
+!endif
+!if $pijlcnt > $[$var2-1]
+    errortext=het mag wel wat korter/bondiger
+    #!record 12 of lang/remarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !increase try
+    goback=1
+    !exit
+!endif
+
+!for t=1 to $aantal_pijlen
+    pijl=!item $t of $pijlen
+    AAA=!replace internal $pijl by , in $AAA
+!next t
+!for p=1 to 4
+    AAA=!replace internal ,, by , in $AAA
+!next p
+# testen op -> x=5-2-->x=3--> wordt ,x=5-1,x=3,
+test=!char 1 of $AAA
+!if $test=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+test=!char -1 of $AAA
+!if $test=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+!for p in $varlist
+    X=!upper $p
+    AAA=!replace internal $p by $X in $AAA
+!next p
+
+AAA=!replace [a-z\~\!\@\>\<\#\$\%\&\_\;] by $empty in $AAA
+AAA=!lower $AAA
+leeg=!wordcnt $AAA
+!if $leeg=0
+    !increase try
+    testvar=$(reply$n)
+    errortext=!record 8 of lang/remarks.$taal
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    !exit
+!endif
+    
+aantal=!itemcnt $AAA
+# $aantal is een belangrijk gegeven 4x=40 , x=40/10 , x=10  -> aantal=2 is echt minimum...
+
+!if $aantal < $var4
+    !increase try
+    maxscore=$[$P2*$maxscore]
+    errortext=!record 11 of lang/remarks.$taal
+    goback=1
+    !exit	        
+!else
+    !if $aantal > $var2
+	!increase try
+	maxscore=$[$P2*$maxscore]
+	errortext=!record 12 of lang/remarks.$taal
+	goback=1
+	!exit
+    !endif
+!endif
+
+# eerstchecken we of de redenering inzich logisch is...daarna pas het eindantwoord
+maxima_check1=$empty
+maxima_check2=$empty
+end=!item -1 of $AAA
+end=!replace internal = by , in $end
+e1=!item 1 of $end
+e2=!item 2 of $end
+
+!if $e1=f(x)
+    # een functie voorschrift ... f(x)=4x^2 Maxima accepteerd geen y:=4*x+4 Improper function definition
+    endterm= $e1:=$e2;
+!else
+    !if $e1 isitemof $varlist
+	endterm=$e1:$e2 ;
+    !else
+	testvar=!item 1 of $varlist
+	errortext=end=$end  e1=$e1 Nee, het eind antwoord van je redenering moet natuurlijk iets zijn als<br>$testvar=1234 <br>ofzo
+	goback=1
+	!increase try
+	maxscore=$[$P4*$maxscore]
+	!exit
+	# niet ver genoeg versimpeld?
+    !endif
+!endif
+
+!for p=1 to $[$aantal-1]
+    term1=!item $p of $AAA
+    term2=!item $[$p+1] of $AAA
+    !if $term1=$term2
+	!increase try
+	maxscore=$[$P4*$maxscore]
+	errortext=statement $p en $[$p+1] zijn gewoon hetzelfde<br>Dat is natuurlijk geen redenering/berekening...
+	goback=1
+	!exit    
+    !endif
+    maxima_check1=!append line if expand($term1) then 1 else 0; to $maxima_check1
+!next p
+
+test=!exec maxima $endterm $maxima_check1 
+num=!wordcnt $test
+tot=0
+f=0
+!for p=1 to $num
+    t=!word $p of $test
+    t=$[1*$t]
+    !if NaN notin $t
+	!increase f
+	tot=$[$tot+$t]
+    !endif
+!next p
+
+!if $tot !=0
+    maxscore=$[$maxscore*$tot/$f]
+    modulescore=$[$modulescore + $maxscore]
+!else
+    maxscore=0
+!endif
+
+!exit

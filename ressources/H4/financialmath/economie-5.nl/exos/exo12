@@ -1,0 +1,85 @@
+#Fabricage en commerci&euml;le kostprijs I
+n=$counter
+
+!if $counter=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    mathview=0
+    make_tr=1
+    inputs=1.1
+    checkfile=exos/precheck2.proc
+    viewlogo=1
+    nu=!date +%Y
+    nu=$[$nu+1]
+    #Constante fabricagekosten : $fc
+    #Variabele fabricagekosten : $fv
+    #Constante verkoopkosten : $vc
+    #Variabele verkoopkosten : $vv
+    verwacht=!randint 15,50
+    c=!randint 1,4
+    normaal=$[$verwacht - $c] 
+    verwacht=$[$verwacht*1000]
+    normaal=$[$normaal*1000]
+    winst=!randint 12,22
+    roundingtext=Geef je antwoord op &euro; centen nauwkeurig<br />dus twee decimalen.
+    rounding=100
+
+    # 7/6/2013 alleen de derde vraag no +/- 0.02 
+    #var1=0.02
+    #var2=$rounding
+
+    fc=!randint 50,90
+    fv=!randint $[$fc+2],100
+    
+    vc=!randint 20,45
+    vv=!randint $[$vc+1],48
+    fc=$[$fc*1000]
+    fv=$[$fv*1000]
+    vc=$[$vc*1000]
+    vv=$[$vv*1000]
+    ans1=$[$fc/$normaal + $fv/$verwacht]
+    ans2=$[$ans1 + $vc/$normaal + $vv/$verwacht]
+    ans3=$[100*$ans2/(100-$winst)]
+    tot=!exec moneyprint $ans1,$ans2,$ans3
+    answer1=$(tot[1])
+    answer2=$(tot[2])
+    answer3=$(tot[3])
+    texanswer1=\left[ \begin{array}{l} \;\textrm{fabricage kostprijs} = \frac{C_{k}}{N_{p}} + \frac{V_{k}}{B_{p}} \\ \\ \;\textrm{waarin :} \\ C_{k} = \;\textrm{Constante fabricagekosten} \\ N_{p} = \;\textrm{Normale productie aantal} \\ V_{k} = \;\textrm{Variabelekosten} \\ C_{k} = \;\textrm{Begrote productie} \\ \\ \;\textrm{fabricage kostprijs} = \frac{$fc}{$normaal} + \frac{$fv}{$verwacht} = $answer1 \:\;\textrm{Euro}\end{array}\right.
+    
+    texanswer2=\left[ \begin{array}{l} \;\textrm{commerciele kostprijs  = fabricagekosten per product + verkoopkosten per produkt} \\ \;\textrm{commerciele kostprijs} = $answer1 + \frac{$vc}{$normaal} + \frac{$vv}{$verwacht} = $answer2 \:\;\textrm{Euro} \end{array}\right.
+    
+    texanswer3=\left[ \begin{array}{l} \;\textrm{verkoopprijs = commerciele kostprijs + opslag nettowinst} \\ \;\textrm{De winst bedraagt 20\% van de verkoopprijs} \\ \\ \;\textrm{verkoopprijs} = \frac{$answer2}{100 - $winst} \times 100 = \frac{$answer2}{$[100-$winst]} \times 100 = $answer3 \: \;\textrm{Euro} \end{array}\right.
+    
+    mousetable=<table class=\'grid_table\'><caption>Verwachtte kosten $nu</caption><tr><td>Constante fabricagekosten</td><td>&euro;&nbsp;$fc</td></tr><tr><td>Variabele fabricagekosten</td><td>&euro;&nbsp;$fv</td></tr><tr><td>Constante verkoopkosten</td><td>&euro;&nbsp;$vc</td></tr><tr><td>Variabele verkoopkosten</td><td>&euro;&nbsp;$vv</td></tr></table>
+    
+    ss=Een onderneming verwacht voor $nu <b>$verwacht producten</b> te produceren en te verkopen.<br />Normaal worden er <b>$normaal producten</b> geproduceerd en verkocht.<br />Men verwacht de <span style="color:blue">volgende kosten</span>.<br />De winst bedraagt $winst % van de verkoopprijs.
+    
+    question1=<a onmouseover="return escape('$mousetable')">$ss</a>Bereken de fabricage kostprijs.
+    
+    question2=<a onmouseover="return escape('$mousetable')">$ss</a>Bereken de commerci&euml;le kostprijs.
+    
+    question3=<a onmouseover="return escape('$mousetable')">$ss</a>Bereken de verkoopprijsprijs.
+
+    helptext=$mousetable<hr />$roundingtext
+    description=Fabricage kostprijs
+!endif
+
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/productie$g.jpg" alt="produktie" />
+logotext=<img src=\'$module_dir/gifs/productie$g.jpg\' alt=\'produktie\' />
+!if $counter=2
+    exotext=<span style="color:blue">$youranswer 1) fabricage kostprijs = $(reply$[$counter-1])</span>
+    description=Commerci&euml;le kostprijs
+!else
+    !if $counter=3
+    	var1=0.02
+	var2=$rounding
+	exotext=<span style="color:blue">$youranswer 1) fabricage kostprijs = $(reply$[$counter-2])<br />$youranswer 2) commerci&euml;le kostprijs =  $(reply$[$counter-1])</span>
+	description=Verkoopprijs
+    !endif
+!endif
+
+!exit
+#<select  size="1" id="myinput2" name="myinput2" style="text-align:center;font-size:18px;border:0px;background-color:orange"  ><option value="-1">afname</option><option value="1">toename</option></select>
+

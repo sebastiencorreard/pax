@@ -1,0 +1,151 @@
+# Inkomensverdeling II
+#
+var1=yes
+make_tr=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=1
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+pl=!randint 1,7
+#viewlogo=1
+#logotext=<img src=$module_dir/gifs/vergrijzing$pl.jpg alt=vergrijzing />
+#logo=<img src=$module_dir/gifs/vergrijzing.jpg alt=vergrijzing />
+vandaag=!date +%Y
+jaar=!randint 2000,$vandaag
+periode=!randint 5,20
+toen=$[$jaar-$periode]
+options=5
+
+!if $R=2
+    factor=!randint 6,12
+    factor=$[$factor/10]
+!else
+    factor=1.25
+!endif
+head=<tr><th>Inkomensgroepen</th><th>&nbsp;% aandeel in totaal<br />personen</th><th>&nbsp;% aandeel in totaal<br />inkomen</th></tr>
+body=$empty
+perc=$[100/$options]
+getallen=$empty
+min=$[10*(round(100/(2*$options)))]
+max=$[10*(round($factor*$perc))]
+som=0
+getallen=$empty
+!for p=1 to $[$options - 1]
+    g=!randint $min,$max
+    g=$[$g/10]
+    som=$[$som+$g]
+    !if $som>90
+	max=$[10*(100-$som)]
+	min=1
+    !endif
+    getallen=!append line 1.0*$g to $getallen
+!next p
+laatste=$[100 - $som]
+som=$[$som+$laatste]
+getallen=!append line $laatste to $getallen
+getallen=!exec float_calc scale=1\
+$getallen
+
+getallen=!lines2items $getallen
+getallen=!sort numeric item $getallen
+
+head2=<tr><td>Inkomensgroepen</td><td>Cumulatief %<br />personen</td><td>Cumulatief %<br />inkomen</td></tr>
+body2=$empty
+body3=$empty
+c=0
+sp=0
+si=0
+!for p=1 to $options
+    g$p=!item $p of $getallen
+    !if $p=1
+	comment=(laagste)
+    !else
+	!if $p = $options
+	    comment=(hoogste)
+	!else
+	    comment=$empty
+	!endif
+    !endif
+    body=!append word <tr><td>Groep $p $comment</td><td>$perc</td><td>$(g$p)</td></tr> to $body
+    !if $R=1
+	body2=!append word <tr><td>Groep $p $comment</td><td><input id="myinput$c" size="5"  class="schaersvoorde_input"/>&nbsp;%</td><td><input id="myinput$[$c+1]" size="5" class="schaersvoorde_input"/>&nbsp;%</td></tr> to $body2
+        c=$[$c+2]
+	sp=$[$sp+$perc]
+        si=$[$si+$(g$p)]
+	ans1=!append item $sp,$si to $ans1
+        body3=!append word <tr><td>Groep $p $comment</td><td><input id="myinput$c" name="myinput$c" size="5" class="schaersvoorde_input" value="$sp" readonly="readonly"/>&nbsp;%</td><td><input id="myinput$[$c+1]" size="5" class="schaersvoorde_input" value="$si" readonly="readonly"/>&nbsp;%</td></tr> to $body3
+	description=!append item Cum. % in groep $p,Cum. % inkomen groep $p to $description
+    !endif
+!next p
+
+ss=In <span class="schaersvoorde_link">deze tabel</span> zijn voor een land enkele gegevens over de<br />secundaire personele inkomensverdeling van $jaar weergegeven.
+
+aanvullend=Hieronder vind je de volgende aanvullende gegevens:<ul><li>het gemiddelde inkomen in de laagste inkomensgroep bedraagt &euro; $inkomen</li><li>het totaal aantal personen bedraagt $aantal_personen miljoen</li></ul>
+!if $R=1
+    roundingtext=Geef je eindantwoord op &eacute;&eacute;n decimaal nauwkeurig
+    
+    st=De lijn van de inkomensverdeling begint in co&ouml;rdinaat (0:0) en eindigt in (100:100).<br />Bereken met behulp van de gegevens de overige co&ouml;rdinaten en vul deze in...
+    
+    exotext=<table class="zebra_table_h2">$head2 $body2</table>
+    answer$n=$ans1
+    textanswer$n=<table class="zebra_table_h2">$head2 $body3</table>
+    
+!else
+    k=!randint 1,22
+    v1=!item $k of 8,7,6,6,5,5,4,4,4,3,2,3,4,5,5,5,6,7,7,7,7,7
+    v2=!item $k of 1,1,1,1,1,1,1,1,1,1,1,2,3,2,3,4,5,2,3,4,5,6
+    gg=!exec moneyprint $[$v1/$v2]
+    description=Kwintiel verhouding,Inkomens,Belastingen
+    
+    st=In dit land bedroeg in $toen de hoogste/laagste kwintielverhouding $v1 : $v2<br />Dit betekent dat de hoogste inkomensgroep gemiddeld  een $gg keer hoger inkomen had<br />als de laagste inkomensgroep.<hr />Bereken met behulp van de <span class="schaersvoorde_link">tabel</span> voor $jaar de hoogste/laagste kwintielverhouding,<br />geef aan of de inkomens genivelleeerd of gedenivelleerd zijn<br />en geef aan hoe deze verandering tot stand kan zijn gekomen.
+#   genivelleerd = 0
+# gedenivelleerd = 1
+# verhoogd = 0
+# verlaagd =1
+    ans1=$[$(g$options)/$g1]
+    !ifval $ans1 < $[$v1/$v2]
+	answer$n=$ans1,0,0
+	groter=kleiner
+	mooi=genivelleerd 
+	verhoogd=verhoogd
+	kleiner=&lt;
+    !else
+	!ifval $ans1 > $[$v1/$v2]
+	    answer$n=$ans1,1,1
+	    groter=groter
+	    mooi=gedenivelleerd 
+	    verhoogd=verlaagd
+	    kleiner=&gt;
+	!else
+	    answer$n=$ans1,2,2
+	    groter=gelijk
+	    mooi=onveranderd 
+	    verhoogd=gelijk gebleven
+	    kleiner=&nbsp;=&nbsp;
+	!endif
+    !endif
+    
+    rans1=$[(round($ans1*100))/100]
+    rounding=100
+    roundingtext=Geef de kwintielverhouding in twee decimalen.
+    exotext=<table class="zebra_table_h2"><tr><td>Hoogste / Laagste kwintielverhouding $nu : <input id="myinput0" size="5" class="schaersvoorde_input" /></td></tr><tr><td>De inkomens zijn <select size="1" id="myinput1" class="schaersvoorde_input"><option value="0">genivelleerd</option><option value="1">gedenivelleerd</option><option value="2">onveranderd</option></select></td></tr><tr><td>De belastingen voor de groep met de hoogste inkomens zijn <select size="1" id="myinput2" class="schaersvoorde_input"><option value="0">verhoogd</option><option value="1">verlaagd</option><option value="2">gelijk gebleven</option></select></td></tr></table>
+    
+    textanswer$n=<ul><li>Hoogste/Laagste kwintielverhouding $nu is $g5:$g1 = $ans1 &asymp $rans1</li><li>$rans1 $kleiner $gg</li><li>Dit betekent dat de inkomensverschillen $groter zijn geworden</li><li>De inkomens zijn dus $mooi </li><li>De belastingen voor de groep met de hoogste inkomens zijn $verhoogd</li></ul>
+    
+!endif
+
+helptext=<table class=\'grid_table\'>$head $body </table>$roundingtext
+
+question$n=<a onmouseover="return escape('<table class=\'grid_table\'>$head $body </table><hr />$aanvullend $roundingtext')">$ss<br />$st</a>
+
+

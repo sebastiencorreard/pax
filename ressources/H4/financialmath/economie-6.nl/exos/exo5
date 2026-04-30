@@ -1,0 +1,232 @@
+# De monopolist II [markt]
+# canvasdraw version
+n=$counter
+!if $n=1
+    total_exos=6
+    make_tr=1
+    rounding=1
+    # object$n = javascript html5-applet
+    applet=1
+    mathview=0
+    calculator=1
+    inputs=yes
+    cols=20
+    checkfile=exos/checkfile2.proc
+    math=0
+    questiontype=0
+    !if $teaching=1
+	viewlogo=1
+        logotext=<img src=\'$module_dir/gifs/monopolist.png\' alt=\'vergrijzing\' />
+        logo=<img src="$module_dir/gifs/monopolist.jpg" alt="noalt" />
+    !endif
+    k=!randitem 2,3,4,5,6,7
+    k=$[$k*10]
+    kw=$[$k*$k]
+    c=!randitem 10,12,14,15,16,18,20
+    sf=!randint 35,70
+    #c+k<b
+    b=$[$c+$k+$sf]
+    a=!randitem 1,2,5
+    a=1
+    a=$[-1*$a/1000]
+
+    bc=$[$b-$c]
+    d=$[($kw - $bc*$bc)/(4*$a)]
+    e=$[2*$a]
+    xsnijp1=$[($c-$b+$k)/(2*$a)]
+    ysnijp1=$[$a*$xsnijp1+$b]
+    xsnijp2=$[($c-$b-$k)/(2*$a)]
+    ysnijp2=$[$a*$xsnijp2+$b]
+#    formula1=\textrm{Monopolist: }\left[ \begin{array}{l} \textrm{TO} = $a q^{2} + $b q \\ \textrm{TK} = $c q + $d \\ \textrm{GO} = $a q + $b \\ \textrm{MO} = $e q + $b \\ \textrm{MK} = $c \end{array}\right.
+    to=$a*x^2+$b*x
+    go=$a*x+$b
+    mo=$e*x+$b
+    tk=$c*x+$d
+    mk=$c
+    gtk=$c+$d/x
+    xmax=$[-1*$b/$a]
+    ymax=$[$b+30]
+    xmajor=$[(1000*(ceil($xmax/1000)))/10]
+    xminor=$[(1000*(ceil($xmax/1000)))/50]
+    ymajor=$[(100*(ceil($ymax/100)))/10]
+    yminor=$[(100*(ceil($ymax/100)))/50]
+    mo1=$b
+    mo2=$[$e*$xmax+$b]
+    go1=$b
+    go2=$[$a*$xmax+$b]
+    # xrange
+    var2=$[$xminor/3],$[$yminor/3]
+    xlabel=aantal potjes creme
+    ylabel=prijs in \u20AC's
+    TCK=$[($ysnijp1 - $c)*$xsnijp1]
+    TCKmin=$[( $ysnijp1 - $yminor/3 -$c )*($xsnijp1 - $xminor/3)]
+    TCKmax=$[( $ysnijp1 + $yminor/3 -$c )*($xsnijp1 + $xminor/3)]
+    #answer1=$TCK
+    answer1=$TCK,$TCKmin,$TCKmax
+    textanswer1=<ul><li>TCK=($ysnijp1 &minus; $c)&times;$xsnijp1 = $[($ysnijp1 - $c)*$xsnijp1]</li><li>maar ik reken een getal tussen de $[( $ysnijp1 - $yminor/3 -$c )*($xsnijp1 - $xminor/3)] en $[( $ysnijp1 + $yminor/3 -$c )*($xsnijp1 + $xminor/3)] ook goed</li></ul>
+    #mo=mk -> $e*x+$b=$c -> x = ($c-$b)/$e ; y=$c
+    x2=$[($c-$b)/$e]
+    y3=$[$a*$x2+$b]
+    y4=$[$c+$d/$x2]
+    answer2=$x2,$c
+    answer3=$x2,$y3
+    # vierkant
+    opp=$[abs($x2*($y4-$y3))]
+    answer4=0,$y4,$x2,$y3,0,$y3,$x2,$y4,$opp
+    answer5=$[-1*$b/$e],0
+    
+    # toegevoegd opg 6 : snijpunten GO/GTK lijn/curve
+    #go=$a*x+$b
+    #gtk=$c+$d/x
+    sqrt=$[sqrt( ($b-$c)^2 + 4*$a*$d)]
+    x61=$[(-1*$b+$c+$sqrt)/(2*$a)]
+    x62=$[(-1*$b+$c-$sqrt)/(2*$a)]
+    y61=$[$a*$x61+$b]
+    y62=$[$a*$x62+$b]
+    answer6=$x61,$y61,$x62,$y62
+    helptext=<ul><li>p = verkoopprijs</li><li>q = hoeveelheid</li><li>TO = totale opbrengsten </li><li>TK = totale kosten</li><li>GO = gemiddelde opbrengst</li><li>MO = marginale opbrengsten</li><li>GTK = gemiddelde totale kosten</li></ul>
+
+    var6=size 540,540\
+    precision 1\
+    xrange $[-1*$xmajor],$xmax\
+    yrange $[-1*$ymajor],$ymax\
+    axis\
+    axisnumbering\
+    opacity 120,120\
+    grid $xmajor,$ymajor,grey,4,4,6,black\
+    arrow 0,0,$xmax,0,8,black\
+    arrow 0,0,0,$ymax,8,black\
+    linewidth 2\
+    opacity 255,255\
+    segment 0,$go1,$xmax,$go2,blue\
+    segment 0,$mo1,$xmax,$mo2,red\
+    segment 0,$mk,$xmax,$mk,brown\
+    curve green,$gtk\
+    xlabel $xlabel\
+    ylabel $ylabel\
+    legend MO:GTK:GO:MK:GVK\
+    legendcolors red:green:blue:brown:brown\
+    mouse red,22\
+    crosshairsize 12\
+    replyformat 22\
+    linewidth 2\
+    opacity 150,80
+    
+    #var6 is html5-applet in object$n in form.phtml
+    #var7 is html5-applet in object$n in answer.phtml
+    exotext=$empty
+    ss=Bereken met behulp van de grafiek de totale constante kosten (TCK)<br />
+    exotext=De totale constante kosten (TCK) = <input type="text" id="myinput0" class="schaersvoorde_input" size="8" value="" />
+    data=$var6
+    var7=$var6
+!else
+    !if $n=2
+	ss=Klik in de grafiek op het punt waar je de productieomvang bij een maximale winst kunt aflezen.<br />Met behulp van je rechter muisknop kun je de punten ook weer verwijderen
+	exotext=$empty
+	data=$var6
+	data=!append line userdraw crosshair,blue to $data
+	x=!item 1 of $answer2
+	y=!item 2 of $answer2
+	var7=$var6\
+	opacity 150,120\
+	filled\
+	fillcolor orange\
+	userdraw circle,red\
+	linewidth 4\
+	points green,$x,$y
+	
+    !else
+	!if $n=3
+	    ss=Klik in de grafiek op het punt waar je de verkoopprijs bij een maximale winst kunt aflezen.<br />Met behulp van je rechter muisknop kun je de punten ook weer verwijderen
+
+	    exotext=
+	    data=$var6
+	    data=!append line userdraw crosshair,blue to $data
+	    
+	    x=!item 1 of $answer3
+	    y=!item 2 of $answer3
+	    var7=$var6\
+	    opacity 150,120\
+	    filled\
+	    fillcolor orange\
+	    userdraw circle,red\
+	    linewidth 4\
+	    points green,$x,$y\
+	    linewidth 2\
+	    dashed\
+	    dashtype 2,4\
+	    vline $x,0,green
+	
+	!else
+	    !if $n=4
+		ss=Geef in de grafiek de omvang van de maximale winst aan (dmv een rechthoek)
+		exotext=
+		data=$var6
+		data=!append line filled\
+		fillcolor orange\
+		userdraw rect,red to $data
+		
+		x1=!item 1 of $answer4
+		y1=!item 2 of $answer4
+		x2=!item 3 of $answer4
+		y2=!item 4 of $answer4
+		
+		var7=$var6\
+		filled\
+		fillcolor orange\
+		userdraw circle,red\
+		linewidth 4\
+		frect $x1,$y1,$x2,$y2,green\
+		linewidth 2\
+		dashed\
+		dashtype 2,4\
+		vline $x2,0,green\
+		dashed\
+		dashtype 2,4\
+		hline 0,$y2,green\
+		dashed\
+		dashtype 2,4\
+		hline 0,$y1,green
+
+	    !else
+		!if $n=5
+		    ss=Klik in de  grafiek op het punt waar de omzet maximaal is.<br />Met behulp van je rechter muisknop kun je de punten ook weer verwijderen
+	
+		    exotext=$empty
+		    data=$var6
+		    data=!append line userdraw crosshair,blue to $data
+		
+		    x=!item 1 of $answer5
+		    y=!item 2 of $answer5
+		    var7=$var6\
+		    opacity 150,120\
+		    filled\
+		    fillcolor orange\
+		    userdraw circle,red\
+		    linewidth 4\
+		    points green,$x,$y
+		    
+		!else
+		    ss=Klik in de grafiek op de punten waar sprake is van een <kbd>break-evensituatie</kbd>
+		    exotext=$empty
+		    data=$var6
+		    data=!append line userdraw crosshairs,blue to $data
+		    x1=!item 1 of $answer6
+		    y1=!item 2 of $answer6
+		    x2=!item 3 of $answer6
+		    y2=!item 4 of $answer6
+		    var7=$var6\
+		    opacity 150,120\
+		    filled\
+		    fillcolor orange\
+		    userdraw circle,red\
+		    linewidth 4\
+		    points green,$x1,$y1,$x2,$y2
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+object$n=!exec canvasdraw $data
+question$n=$ss

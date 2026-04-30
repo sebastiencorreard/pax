@@ -1,0 +1,106 @@
+# var6 = max (aantal cellen in een kolom)
+# var5 = A1,B1 A2,B2 ... Amax,Bmax
+# var7 = head Kolom A,Kolom B ,Kolom C
+# var8 = aantal invoer kolommen
+var8=1
+var7=kolom A,kolom B<br />(percentages)
+var6=10
+#max=10
+questiontype=7
+javascript=js/spreadsheet.phtml
+inputs=yes
+cols=5
+rows=$var6
+math=0
+mathview=0
+# spreadsheet omrekenen naar percentage
+n=$counter
+tsv_file=som_$counter.tsv
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en optellen van kolommen\
+\
+"kolom 1"  "percentage"\
+
+
+
+list=$empty
+sum=0
+rnd=!randitem 1,2,3
+rounding=$[10^$rnd]
+!for p=1 to $var6
+ d1=!randint 1,49
+ d1=$[$d1*2]
+ var5=!append word $d1 to $var5
+ sum=$[$sum + $d1]
+ data=!append line $d1 to $data
+!next p
+
+answer$n=$empty
+tabel_ans=<table class="demospecial"><tr><th>kolom A</th><th>kolom B<br />(percentages)</th></tr>
+!for p=1 to $var6
+ L=!word $p of $var5
+ ans=$[(round($rounding*100*$L/$sum))/$rounding]
+ answer$n=!append item $ans to $(answer$n)
+ tabel_ans=!append word <tr><td>$L</td><td>$ans</td></tr> to $tabel_ans
+!next p
+
+tabel_ans=!append word </table> to $tabel_ans
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\' <hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br />\
+<em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />\
+Maak een kolom B waarbij elke cel van kolom B het percentage weergeeft<br />\
+van het corresponderende getal uit kolom A tov de som van kolom A.<br />\
+Rond dit percentage af op precies $rnd cijfers achter de komma.<br />\
+Stuur de inhoud van kolom B (mbv cut &amp; paste) op naar WIMS als antwoord.
+ 
+
+
+
+textanswer$n=$tabel_ans<ul>\
+<li>open het bestand </li>\
+<li>ga met je muis in <b>A$[7+$var6]</b> staan</li>\
+<li>bereken de som van kolom A...in formulebalk : = SOM(A7:A$[6+$var6]) [ENTER]</li>\
+<li>ga met je muis in B7 staan...in formulebalk : = 100 * A7 / &#36;A&#36;$[7+$var6]) [ENTER]<br />\
+de &#36;-tekens om de A zorgen ervoor dat er elke cel door het zelfde getal gedeeld wordt</li>\
+<li>Om kolom B af te ronden op $rnd decimalen ga naar C7...in de formulebalk : = AFRONDEN(B7:B$[$var6+6];$rnd) [ENTER]</li>
+<li>ga met je muis rechts onderin <b>C7</b> staan...je muis wordt een kruis...en scroll naar <b>C$[7+$var6]</b><br /></li>\
+<li>copy &amp; paste (CTRL C CTRL V) kolom <b>C</b> in het het antwoordveld van WIMS en stuur op als antwoord</li>\
+</ul>
+
+#table_answer=<table style="border:solid 1px black">\
+#<tr><th>A</th><th>B</th></tr>\
+
+var1=yes
+checkfile=$checkdir/number.proc
+make_tr=1
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

@@ -1,0 +1,149 @@
+!set title=Équation parallèle 2A
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r,r
+varcnt=18
+prevarcnt=14
+postvarcnt=3
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items D,d,m,p,q
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=Soit \(($val6)\) la droite d'équation&nbsp;
+val8=Réponse&nbsp;
+val9=Vous devez écrire votre équation sous la forme
+val10=Une équation est
+val11=Écrire une équation d'une droite parallèle à la droite \(($val6))
+val12=L'équation est bien celle d'une droite parallèle
+val13=C'est l'équation de la même droite ! Il n'y a pas assez de droites parallèles à
+val14=Oui,Non
+tmp0=!values v for v=-10 to 10
+
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in $(val15[1])*x+$(val15[2])*y
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in $(val15[2])*y+$(val15[1])*x
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val16
+
+tmp1=!texmath $val17
+
+tmp=!nonempty items $(tmp0)=$(val15[3]),$(tmp1)=$(val15[3])
+
+tmp2=!randitem $tmp
+val18=$(tmp2) 
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 19
+replytype2=auto
+
+replyname2=
+replygood2=?analyze 20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<div class="wimscenter"> 
+!insmath $val18
+$(). </div>	$val11.	<p><b>$val8:</b></p>	  <label for="reply1">$val10</label>:  
+!read oef/embed.phtml r1,7 
+$()	  <label for="reply2">=</label>  
+!read oef/embed.phtml r2,4 
+$().	<div class="wims_instruction">$val9 
+!insmath a x+b y=c
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!rawmath $val19
+
+val21=$(tmp0)
+tmp0=!rawmath $val20
+
+val22=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in ($val21)/($(val15[1])*x + $(val15[2])*y)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$[$(tmp0)]
+
+!exit
+
+:feedback
+!ifval $val23*$(val15[3])=$val22
+ <div class='oef_feedbacks'>$val13 ($val6) ???
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval NaN notin $val23$val22 and $val23*$(val15[3])!=$val22
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val12
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,15,18,19,20
+embedcnt=2

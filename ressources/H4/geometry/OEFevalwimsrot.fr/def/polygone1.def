@@ -1,0 +1,129 @@
+!set title=Noms des polygones 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(2)]
+val7=quadrilatère
+tmp=!trim 0,20,40,80,90,40	0,20,20,80,90,60,50,0	0,50,20,70,50,70,60,20,20,0	0,50,20,70,50,70,80,50,60,20,20,0
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=
+!for val10 =1 to 4 
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp0=!itemcnt $val11
+
+val12=$[rint($(tmp0)/2)]
+val13=
+val14=
+!for val15 =1 to $val12 
+tmp0=!randint $(val11[2*$val15-1]), $(val11[2*$val15-1])+9
+
+val16=$[rint($(tmp0))]
+tmp0=!randint $(val11[2*$val15]), $(val11[2*$val15])+9
+
+val17=$[rint($(tmp0))]
+val18=circle $val16,$val17,5,red
+tmp0=!append line $val18 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val16,$val17 to $val13
+
+val13=$(tmp0)
+!next
+!readproc oef/draw.phtml 100,100 \
+range 0,100,0,100	$val14	poly black,$val13 
+tmp0=$ins_url
+val14=$(tmp0)
+val14=<img src="$val14" alt="">
+tmp0=!append item $val14 to $val9
+
+val9=$(tmp0)
+!next
+tmp0=!item $val6 of $val9
+
+val19=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp0=!positionof item $val19 in $val9
+
+val6=$[rint($(tmp0))]
+replytype1=click
+replyname1=Réponse
+replygood1=$val6;$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Parmi les polygones suivants, lequel est un $val7 ?	<div class="wims_instruction">	 Cliquer sur l'image correspondante.	</div>	<div class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7
+embedcnt=1

@@ -1,0 +1,134 @@
+!set title=Cosinus et sinus d'un angle sur le cercle trigonométrique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!random -30, 30
+
+val6=$[$(tmp0)*0.1]
+t_=!replace internal \( by ( in 0.01*round(100*cos($val6))
+tmp0=!exec pari $t_
+
+val7=$[$(tmp0)]
+t_=!replace internal \( by ( in 0.01*round(100*sin($val6))
+tmp0=!exec pari $t_
+
+val8=$[$(tmp0)]
+tmp0=!randitem 1,2
+
+val9=$(tmp0)
+
+!ifval ($val9==1)
+val10=cos
+!else
+val10=sin
+!endif
+
+!ifval ($val9==1)
+val11=cosinus
+!else
+val11=sinus
+!endif
+
+!ifval ($val9==1)
+val12=$[$val7]
+!else
+val12=$[$val8]
+!endif
+val13=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});	var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});	var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});	var c = brd.create('circle', [pO,pI], {strokeWidth:2, strokeColor:'blue'}) ;	var pA = brd.create('point',[$val7 ,$val8],{name:'A',color:'green', fixed:true, visible:true});	brd.create('arrow',[pO,pI], {strokeWidth:2,strokeColor:'red'});	brd.create('arrow',[pO,pA], {strokeWidth:2, strokeColor:'red'});	brd.create('angle', [pI,pO,pA], {name:'a',  type:'sector', orthoType:'sectordot', orthoSensitivity:2, radius:1});	var aa = brd.create('arc',[pO,pI,pA], { strokeWidth:3 , strokeColor:'red'});	brd.create('text',[-1,1,function(){return 'x(A) = '  + pA.X();}], {color:'red', fixed:true});	brd.create('text',[0.5,1,function(){return 'y(A) = '  + pA.Y();}], {color:'red', fixed:true});	brd.update() ;	
+!readproc slib/geo2D/jsxgraph  jxgbox, 300 x 300, $val13 
+tmp0=$slib_out
+val14=$(tmp0)
+replytype1=numeric
+replyoption1=precision=100 
+replyname1=
+replygood1=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>A est un point du cercle trigonométrique. On note 
+!insmath a
+$() une mesure en radian de l'angle orienté   
+!insmath \left( \vec{OI} , \vec{OA} \right) 
+$() </p>		<p>Lire sur le graphique une valeur approchée  au centième du $val11 de  
+!insmath a
+$() .  </p>		$val14			<p align="center">	$val10( a)  =   
+!read oef/embed.phtml reply1 
+$()   (arrondi au centième)	</p>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval  abs($val12 - $m_reply1) > 0.1
+ <div class='oef_feedbacks'> Le point A  du cercle trigonométrique représente l'angle mesurant 
+!insmath a
+$() radians si et seulement si 
+!insmath x_A =  cos(a)
+$()   et  
+!insmath y_A =  sin(a)
+$().<br>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,14
+embedcnt=1

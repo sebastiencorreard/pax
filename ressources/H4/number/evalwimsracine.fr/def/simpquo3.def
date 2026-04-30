@@ -1,0 +1,136 @@
+!set title=Simplifier un quotient 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=6
+tmp=!nonempty items 2,3,5,7,10,11,13
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp0=!values v for v=2 to 20
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($val7*$(val8[1]))]
+val10=$[rint($(val8[2])^2*$val7)]
+tmp=!translate ";': to $     $ in $(val8[1])/$(val8[2])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+val12=\frac{$val9}{\sqrt{$val10}}
+tmp0=!itemcnt $val11
+
+val13=$[rint($(tmp0))]
+tmp0=!item 1 to $val13 of r1,r2
+
+val14=$(tmp0)
+oefsteps=$val14 
+nextstep=!nosubst $val14 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Réponse 1
+replygood1=$(val11[1])
+replytype2=numexp
+replyname2=Réponse 2
+replygood2=$(val11[2])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Ecrire 
+!insmath $val12
+$() sous la forme 
+!if $val13=2 
+$()
+!insmath a+c\sqrt{$val7}
+$() 
+!else
+$() 
+!insmath a\sqrt{$val7}
+$() 
+!endif
+$().	<div class="center">	
+!insmath $val12 =
+$() 
+!if $val13=2 
+$() 
+!read oef/embed.phtml r2,$val6 
+$() + 
+!endif
+$()  
+!read oef/embed.phtml r1,$val6 
+$() 
+!insmath \times \sqrt{$val7}
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,12,13
+embedcnt=2

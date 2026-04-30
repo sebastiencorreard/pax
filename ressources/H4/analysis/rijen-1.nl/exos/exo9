@@ -1,0 +1,63 @@
+#Lucasrij
+
+!set n=$counter
+total_exos=2
+helptext=$empty
+questiontype=0
+mathview=0
+embed=0
+cols=10
+math=0
+image=0
+checkfile=exos/precheck1.proc
+inputs=-1
+
+!if $counter=1
+ ss=!record 103 of lang/remarks.$taal
+ #@Gegeven is de onderstaande Lucasrij:<br />Bereken de volgende zes termen 
+ a=!randint 1,5
+ b=!randint 1,5
+ ans1=$[$a+$b]
+ ans2=$[$b+$ans1]
+ ans3=$[$ans2+$ans1]
+ ans4=$[$ans3+$ans2]
+ ans5=$[$ans4+$ans3]
+ ans6=$[$ans5+$ans4]
+ answer1=$ans1\
+ $ans2\
+ $ans3\
+ $ans4\
+ $ans5\
+ $ans6
+
+ description=u<sub>2</sub>,u<sub>3</sub>,u<sub>4</sub>,u<sub>5</sub>,u<sub>6</sub>,u<sub>7</sub>
+
+ tot=!exec moneyprint $[$b/$a],$[$ans1/$b],$[$ans2/$ans1],$[$ans3/$ans2],$[$ans4/$ans3],$[$ans5/$ans4],$[$ans6/$ans5] 4
+ 
+ formula1=!subst \left\{ \begin{array}{l}  u_{n} = u_{n-1} + u_{n-2} \\ \textrm{met} \: u_{0} = $a \\ \textrm{en} \: u_{1} = $b \\ \\ u_{2} =  \input{5}{0}{ }{ }{0} \\ u_{3} =  \input{5}{1}{}{ }{0} \\ u_{4} =  \input{5}{2}{}{ }{0} \\ u_{5} =  \input{5}{3}{ }{ }{0} \\ u_{6} =  \input{5}{4}{ }{ }{0} \\ u_{7} =  \input{5}{5}{ }{ }{0} \end{array} \right.
+ formula2=!subst \left\{ \begin{array}{l}  u_{n} = u_{n-1} + u_{n-2} &  \\  u_{0} = $a     \\ u_{1} = $b     \\  u_{2} =  $ans1 \\ u_{3} =  $ans2 \\ u_{4} =  $ans3 \\ u_{5} =  $ans4 \\ u_{6} =  $ans5 \\ u_{7} =  $ans6  \end{array} \right. \rightarrow  \left\{ \begin{array}{l} \frac{u_{1}}{u_{0}} = \input{8}{0}{ }{ }{0} \\ \frac{u_{2}}{u_{1}} = \input{8}{1}{ }{ }{0} \\ \frac{u_{3}}{u_{2}} = \input{8}{2}{ }{ }{0} \\ \frac{u_{4}}{u_{3}} = \input{8}{3}{ }{ }{0} \\ \frac{u_{5}}{u_{4}} = \input{8}{4}{ }{ }{0} \\ \frac{u_{6}}{u_{5}} = \input{8}{5}{ }{ }{0} \\ \frac{u_{7}}{u_{6}} = \input{8}{6}{ }{ }{0} \end{array} \right.
+ texanswer1=!subst \left\{ \begin{array}{l}  u_{n} = u_{n-1} + u_{n-2} \\ \textrm{met} \: u_{0} = $a \\ \textrm{en} \: u_{1} = $b \\ \\ u_{2} = $a+$b = $ans1 \\ u_{3} = $b+$ans1 = $ans2 \\ u_{4} = $ans2+$ans1 = $ans3 \\ u_{5} = $ans3+$ans2 = $ans4 \\ u_{6} = $ans4+$ans3 = $ans5 \\ u_{7} = $ans5+$ans4 = $ans6 \end{array} \right.
+ texanswer2=!subst \left\{ \begin{array}{l}  u_{n} = u_{n-1} + u_{n-2} &  \\  u_{0} = $a     \\ u_{1} = $b     \\  u_{2} =  $ans1 \\ u_{3} =  $ans2 \\ u_{4} =  $ans3 \\ u_{5} =  $ans4 \\ u_{6} =  $ans5 \\ u_{7} =  $ans6  \end{array} \right. \rightarrow  \left\{ \begin{array}{l} \frac{u_{1}}{u_{0}} = \frac{$b}{$a} \approx $(tot[1]) \\ \frac{u_{2}}{u_{1}} = \frac{$ans1}{$b} \approx $(tot[2]) \\ \frac{u_{3}}{u_{2}} = \frac{$ans2}{$ans1} \approx $(tot[3])  \\ \frac{u_{4}}{u_{3}} =  \frac{$ans3}{$ans2} \approx $(tot[4])  \\ \frac{u_{5}}{u_{4}} =  \frac{$ans4}{$ans3} \approx $(tot[5])  \\ \frac{u_{6}}{u_{5}} =  \frac{$ans5}{$ans4} \approx $(tot[6]) \\ \frac{u_{7}}{u_{6}} =  \frac{$ans6}{$ans5} \approx $(tot[7]) \end{array} \right.
+ 
+ answer2=$(tot[1])\
+ $(tot[2])\
+ $(tot[3])\
+ $(tot[4])\
+ $(tot[5])\
+ $(tot[6])\
+ $(tot[7])
+
+!else
+
+ breuk=!mathmlmath \frac{u_{n+1}}{u_{n}}
+ ss=!record 104 of lang/remarks.$taal
+ #@Bereken nu $breuk op 4 decimalen nauwkeurig...
+ rounding=1000
+ !readproc $remarkdir/rounding.$taal
+ 
+ description=u<sub>1</sub>/u<sub>0</sub>,u<sub>2</sub>/u<sub>1</sub>,u<sub>3</sub>/u<sub>2</sub>,u<sub>4</sub>/u<sub>3</sub>,u<sub>5</sub>/u<sub>4</sub>,u<sub>6</sub>/u<sub>5</sub>,u<sub>7</sub>/u<sub>8</sub>
+  
+!endif
+question$n=$ss
+
+!exit

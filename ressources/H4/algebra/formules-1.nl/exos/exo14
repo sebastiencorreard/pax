@@ -1,0 +1,152 @@
+#:25 Herleid de functie tot een machtsfunctie
+display=1
+checkfile=$checkdir/new_number.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+
+mathview=0
+inputs=-1
+helptext=
+keuze=!randint 1,2
+!if $mathml=2
+ m=!mathmlmath y=c*x^a
+!else
+ m=!htmlmath y=c*x^a
+!endif
+ss=!record 30 of lang/remarks.$taal
+#@Herleid de onderstaande formule tot de vorm: $m<br />en vul de waarden voor <b>c</b> en <b>a</b> in.
+
+question$n=$ss
+!if $R=1
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	c=!randint $[$a+2],$[$a+10]
+	d=$[$c-$a]
+	tot=!exec pari A=$d/10\
+	    printtex(A)\
+	    B=1/(A)\
+	    printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	f_inv=!line 3 of $tot
+	f_inv_tex=!line 4 of $tot
+	
+	a=$[$a/10]
+	c=$[$c/10]
+	!if . isin $[$b^($f_inv)]
+	    ans1=$b^($f_inv)
+	    ans1_tex=$b^{$f_inv_tex}
+	!else
+	    ans1=$b^($f_inv)
+	    ans1_tex=$b^{$f_inv_tex}=$[$b^($f_inv)]
+	!endif
+	ans2=-$f_inv
+	ans2_tex=-$f_inv_tex
+	exotext=!mathmlmath \left\{ \begin{array}{ll} x \cdot y^{-$a} = $b \cdot y^{-$c}  \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+	answer$n=$ans1\
+	$ans2
+	texanswer$n= \left[ \begin{array}{lll}x \cdot y^{-$a} = $b \cdot y^{-$c}  \\ \frac{y^{-$a}}{y^{-$c}} =$b \cdot \frac{1}{x} \\ y^{-$a - -$c}=$b \cdot x^{-1}\\y^{\frac{$d}{10}}=$b \cdot x^{-1}\\y^{$f_tex}=$b \cdot x^{-1}\\y=\left($b \cdot x^{-1} \right)^{$f_inv_tex}\\y=$b^{$f_inv_tex} \cdot \left( x^{-1} \right)^{$f_inv_tex}\\c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+	
+    !else
+	c=!randint 2,9
+	b=!randint 2,9
+	a=!randint $[$c+2],$[$c+10]
+	d=$[$c-$a]
+	tot=!exec pari A=$d/10\
+	    printtex(A)\
+	    B=1/(A)\
+	    printtex(B)\
+	    C=-1/A\
+	    printtex(-1*B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	f_inv=!line 3 of $tot
+	f_inv_tex=!line 4 of $tot
+	g_inv=!line 5 of $tot
+	g_inv_tex=!line 6 of $tot
+	
+	a=$[$a/10]
+	c=$[$c/10]
+	ans1=$b^($f_inv)
+	!if . isin $[$f_inv]
+	    ans1_tex=$b^{$f_inv_tex}
+	!else
+	    ans1_tex=$b^{$f_inv_tex}=\frac{1}{$b^{$g_inv_tex}}=\frac{1}{$[$b^($g_inv)]}
+	!endif
+#	ans1_tex=$b^{$f_inv_tex}
+	ans2=$g_inv
+	ans2_tex=$g_inv_tex
+	exotext=!mathmlmath \left\{ \begin{array}{ll} x \cdot y^{-$a} = $b \cdot y^{-$c}  \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+	answer$n=$ans1\
+	$ans2
+	texanswer$n= \left[ \begin{array}{lll}x \cdot y^{-$a} = $b \cdot y^{-$c}  \\ \frac{y^{-$a}}{y^{-$c}} =$b \cdot \frac{1}{x} \\ y^{-$a - -$c}=$b \cdot x^{-1}\\y^{\frac{$d}{10}}=$b \cdot x^{-1} \\y^{$f_tex}=$b \cdot x^{-1}\\y=\left($b \cdot x^{-1} \right)^{$f_inv_tex} \\y=$b^{$f_inv_tex} \cdot \left( x^{-1} \right)^{$f_inv_tex} \\y=$b^{$f_inv_tex} \cdot x^{$g_inv_tex} \\c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+    !endif
+    !exit
+!endif
+
+!if $R>1
+	a=!randint 2,7
+	b=!randint 15,19
+	c=!randint 2,7
+	a=$[-1*$a]
+	d=$[$a+$b-$c]
+	!if $d=10
+	    b=$[$b+2]
+	    d=$[$a+$b-$c]
+	!endif 
+	k=!randint 2,10
+	m=!randint 2,8
+	l=!randint 2,8
+	
+	tot=!exec pari A=$d/10\
+	    printtex(A)\
+	    B=1/(A)\
+	    printtex(B)\
+	    C=$k*$l/$m\
+	    printtex(C)\
+	    D=1/C\
+	    printtex(D)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	f_inv=!line 3 of $tot
+	f_inv_tex=!line 4 of $tot
+	v=!line 5 of $tot
+	v_tex=!line 6 of $tot
+	v_inv=!line 7 of $tot
+	v_inv_tex=!line 8 of $tot
+	
+	a=$[$a/10]
+	b=$[$b/10]
+	c=$[$c/10]
+	
+	!if . isin $[$b^($f_inv)]
+	    ans1=($v_inv)^($f_inv)
+	    ans1_tex=\left($v_inv_tex\right)^{$f_inv_tex}
+	!else
+	    ans1=($v_inv)^($f_inv)
+	    ans1_tex=$v_inv_tex^{$f_inv_tex}
+	!endif
+	ans2=$f_inv
+	ans2_tex=$f_inv_tex
+	exotext=!mathmlmath \left\{ \begin{array}{ll} x = \frac{$k y^{$a} \cdot $l y^{$b}}{$m y^{$c}}  \rightarrow  &  y = c \cdot x^{a}  \\ & c = \input{13}{0}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \\ & a = \input{13}{1}{font-size:1.2em;text-align:center;color:blue;background-color:lightgreen}{?}{0} \end{array}	\right.
+    answer$n=$ans1\
+	$ans2
+	texanswer$n= \left[ \begin{array}{lll} x = \frac{$k y^{$a} \cdot $l y^{$b}}{$m y^{$c}}   \\x = \frac{$k \cdot $l}{$m} \cdot \frac{y^{$a} \cdot y^{$b}}{y^{$c}}  \\ x = $v_tex \cdot y^{$a + $b -$c }\\x = $v_tex \cdot y^{$f_tex} \\y^{$f_tex}=$v_inv_tex \cdot x \\y=\left($v_inv_tex \cdot x \right)^{$f_inv_tex}\\y=\left($v_inv_tex \right)^{$f_inv_tex} \cdot x ^{$f_inv_tex} \\c = $ans1_tex \Wedge a = $ans2_tex \end{array} \right.
+	
+!exit
+	
+!endif
+
+

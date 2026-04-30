@@ -1,0 +1,273 @@
+# cumulatieve frequentie poylgoon
+# var3 = aantal punten in grafiek
+# var4 = aantal decimalen
+# var5 is lijst met linker,rechter grens,klassemidden voor de klas: 40,45,42.5 \50,55,52.5
+# var6 is itemlijst met "relatieve" percentages
+# file corrigeerd voor "dubbel" getekende punten en sorteert de lijst ivm GNUplot
+
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    nodata=1
+    !goto plaatje
+!endif
+nodata=0
+reply$n=!nospace $(reply$n)
+
+# 4,4,0,0,0,0,0,0,0,0,0,0,0,0,point@A@7@5,point@B@18@7,point@C@33@72,point@D@45@80,
+# tot=totalobject_count + ',' + \
+#    point_count + ',' + \
+#    circle_count + ',' + \
+#    line_count + ',' + \
+#    segment_count + ',' + \
+#    polygon_count + ',' + \
+#    conic_count + ',' + \
+#    ellipse_count + ',' + \
+#    hyperbola_count + ',' + \
+#    angle_count + ',' + \
+
+extra=$empty
+tt=!itemcnt $(reply$n)
+tot=!item 1 of $(reply$n)
+point_count=!item 2 of $(reply$n)
+
+!ifval $tot=0
+    errortext=$dontknow !!
+    #@Je hebt geen tekening gemaakt, $voornaam<br />Als je't niet weet kun je ook gewoon op de knop "ik weet het niet" ofzo klikken...
+    maxscore=$[$maxscore*$P2]
+    goback=1
+    !exit
+!endif
+!ifval $tot != $point_count
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    #@Hmmm, zit je te prutsen met de adres_balk?
+    goback=1
+    maxscore=$[$P7*$maxscore]
+    !exit
+!endif
+
+
+rnd=$[10^($var4)]
+list_x=$empty
+list_y=$empty
+# sorting reply data; looking for doublures
+!for s=15 to $[15+$point_count]
+    P=!item $s of $(reply$n)
+    P=!replace internal @ by , in $P
+    x=!item 3 of $P
+    y=!item 4 of $P
+    x=$[(round($x*$rnd))/$rnd]
+    y=$[(round($y*$rnd))/$rnd]
+    !if NaN notin $x
+	list_x=!append item $x to $list_x
+	list_y=!append item $y to $list_y
+    !endif
+!next s
+
+sorted_list_x=!sort numeric item of $list_x
+sorted_list_x=!listuniq $sorted_list_x
+real_point_count=!itemcnt $sorted_list_x
+
+!if $real_point_count != $point_count
+    ex=!record 64 of lang/remarks.$taal
+    #@Je hebt $[$point_count-$real_point_count] punten "dubbel" getekend...
+    extra=!append word $ <br />$ex $ to $extra
+!endif
+
+!ifval $real_point_count != $var3
+    !if $real_point_count>$var3
+	straf=$[$var3/$real_point_count]
+    !else
+	straf=$[$real_point_count/$var3]
+    !endif
+    ex=!record 65 of lang/remarks.$taal
+    #@<br /> en je had $var3 punten moeten tekenen , en niet $real_point_count ...
+    extra=!append word $ <br />$ex $ to $extra
+!else
+    straf=1
+!endif
+
+#errortext=real_point_coint=$real_point_count point_count=$point_count sorted_list_x=$sorted_list_x list_x=$list_x list_y=$list_y
+#goback=1
+#!exit
+found=$empty
+!for p=1 to $real_point_count
+    xs=!item $p of $sorted_list_x
+    !for s=1 to $point_count
+	!if $s notitemof $found
+	    xu=!item $s of $list_x
+	    !if $xu=$xs
+		ys=!item $s of $list_y
+		sorted_list_y=!append item $ys to $sorted_list_y
+		found=!append item $s to $found
+	    !endif
+	!endif
+    !next s
+!next p
+
+found=$empty
+score=0
+your_reply=<ul>
+r_ex2=!record 66 of lang/remarks.$taal
+#@je zit er 1 puntje naast...
+r_ex3=!record 67 of lang/remarks.$taal
+#@Je hebt de percentages gebruikt ipv de cumulatieve percentages...
+
+your_line=$empty
+
+!for s=1 to $real_point_count
+    x=!item $s of $sorted_list_x
+    y=!item $s of $sorted_list_y
+    gotit=0
+    !for p=1 to $var3
+	!if $gotit=0
+	    !if $p notitemof $found
+		klassegrenzen=!line $p of $var5
+		links=!item 1 of $klassegrenzen
+		rechts=!item 2 of $klassegrenzen
+		midden=!item 3 of $klassegrenzen
+		foutperc=!item $p of $var6
+		Mxy=!line $p of $(answer$n)
+	    	Mx=!item 1 of $Mxy
+		My=!item 2 of $Mxy
+	    	Mx=$[(round($Mx*$rnd))/$rnd]
+		My=$[(round($My*$rnd))/$rnd]
+	    	!ifval $x=$Mx and $y=$My
+		    !increase score
+		    found=!append item $p to $found
+		    gotit=1
+		    your_reply=!append word $ <li><b>(<span style="color:green">$x:$y</span>)</b></li> $ to $your_reply
+		!else
+		    !ifval $x=$Mx
+			!ifval $y=$[$My+1] or $y=$[$My-1]
+			    score=$[$score + $P4]
+		    	    found=!append item $p to $found
+			    gotit=1
+		    	    your_reply=!append word $ <li><b>(<span style="color:green">$x</span>:<span style="color:red">$y</span>)</b>$r_ex2</li> $ to $your_reply
+			!else
+			    !ifval $y=$foutperc
+				your_reply=!append word $ <li><b>(<span style="color:green">$x</span>:<span style="color:red">$y</span>)</b><br />$r_ex3</li> $ to $your_reply
+		    		found=!append item $p to $found
+				gotit=1    
+			    !else
+				score=$[$score + $P9]
+		    	        found=!append item $p to $found
+				gotit=1
+		    	        your_reply=!append word $ <li><b>(<span style="color:green">$x</span>:<span style="color:red">$y</span>)</b></li> $ to $your_reply
+			    !endif
+			!endif
+		    !else
+			!ifval $y=$My
+			    !ifval $x=$links
+				r_ex11=!record 68 of lang/remarks.$taal
+				your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex11</li> $ to $your_reply
+				score=$[$score + $P8]
+		    		found=!append item $p to $found
+				gotit=1
+			    !else
+				!ifval $x=$rechts and $rechts!=-1
+				    r_ex12=!record 69 of lang/remarks.$taal
+				    your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex12</li> $ to $your_reply
+				    score=$[$score + $P8]
+		    		    found=!append item $p to $found
+				    gotit=1
+				!else
+				    !ifval $x=$midden
+					your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex13</li> $ to $your_reply
+				        score=$[$score + $P8]
+		    			found=!append item $p to $found
+				        gotit=1
+				    !else
+					!ifval $x=$[$Mx+1] or $x=$[$Mx-1]
+					    your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex2</li> $ to $your_reply
+					    score=$[$score + $P4]
+		    			    found=!append item $p to $found
+					    gotit=1
+					!endif
+				    !endif
+				!endif
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next p
+    !if $gotit=0
+	your_reply=!append word $ <li><b>(<span style="color:red">$x:$y</span>)</b></li> $ to $your_reply
+    !endif
+!next s
+
+your_reply=!append word $ </ul> $ to $your_reply
+
+maxscore=$[$straf*$maxscore*$score/$var3]
+
+!if $maxscore>0.9
+    remark$n=$OK
+    # k is GNUplot color
+    k=2
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k=7
+    !else
+	remark$n=$NOK
+	k=1
+    !endif    
+!endif
+
+math=0
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+reply$n=$your_reply
+goback=0
+
+:plaatje
+!if $showanswer=1
+    # ivm gezeur van de fijne collega's... # 
+    plot=1
+    draw=0
+    insplot_data=$empty
+    !for p=1 to $var3
+	M1=!line $p of $(answer$n)
+        x1=!item 1 of $M1
+        y1=!item 2 of $M1
+	!if $nodata=0
+    	    x2=!item $p of $sorted_list_x
+    	    y2=!item $p of $sorted_list_y
+	    !if $x2=$empty
+		last=$[$p-1]
+    		x2=!item $last of $sorted_list_x
+    		y2=!item $last of $sorted_list_y
+	    !endif
+	!else
+	    x2=0
+	    y2=0
+	!endif
+	insplot_data=!append line $x1 $y1 $x2 $y2 to $insplot_data
+    !next p
+    # eerst het leering antwoor, dan is't plaatje iets "mooier"
+    # geen NOTILE !!! ivm out gnuplot versie
+    !if $nodata=0
+	#image$n="insplot_data" using 3:4 with linespoints title '$youranswer';linetype $k ,"insplot_data" using 1:2 with linespoints notitle;linetype 2 
+	image$n="insplot_data" using 3:4 with linespoints notitle ;linetype $k ,"insplot_data" using 1:2 with linespoints notitle ;linetype 2 
+    !else
+	#image$n="insplot_data" using 1:2 with linespoints notitle;linetype 2 
+	image$n="insplot_data" using 1:2 with linespoints notitle;linetype 2 
+    !endif
+    image_settings$n=size 0.5,0.5;border ; lmargin 2 ; tmargin 0 ; bmargin 2; rmargin 1;grid xtics ytics linetype 0
+!endif
+!exit
+
+#	Line and point color is specified by the linetype.
+#	linetype(lt)-color and lt-dash correspondence in gnuplot 4.0
+#	lt1 2 3 4 5 6 7 8 9 lt>10
+#	color red green blue magenta lightblue yellow black orange grey color 
+#	dashed type solid dashed short dashed dotted dot dashed dot short dashed ... ... ... dash @ mod(lt-1,9)+1 

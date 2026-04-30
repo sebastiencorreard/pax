@@ -1,0 +1,140 @@
+!set title=6-Photocopies successives
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=12
+prevarcnt=8
+postvarcnt=3
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 16
+
+val6=$[$(tmp0)/2]
+tmp0=!randint 1+$val6*4.1, min($val6*15.5,42)
+
+val7=$[$(tmp0)]
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+tmp0=!item $val8 of $val6,$val7
+
+val9=$[$(tmp0)]
+tmp0=!item $val8 of $val7,$val6
+
+val10=$[$(tmp0)]
+val11=$[$val10/$val9*100]
+tmp0=!randint sqrt($val10/$val9)*100, 400
+
+tmp1=!randint 25, sqrt($val10/$val9)*100
+
+tmp2=!item $val8 of  $(tmp0),$(tmp1)
+
+val12=$[rint($(tmp2))]
+val13=$[rint(round(100*$val11/$val12))]
+replyname1=
+replygood1=?analyze 14
+replyname2=
+replygood2=?analyze 15
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Dans cet exercice, il y a de nombreuses réponses possibles ; il suffit de donner l'une d'elles.
+
+solution=!nosubst Parmi les très nombreuses solutions possibles, on peut prendre par exemple des coefficients de $val12 % et $val13 % . 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!read oef/special.phtml tooltip <b>Passer la souris ici pour afficher les caractéristiques du photocopieur</b>,[ABOVE,true,STICKY,true,CLOSEBTN,true] ,<ul><li>Formats de papier disponibles : A4 (21*29.7 cm) et A3 (29.7*42 cm)</li>	<li>Dimensions utiles de la vitre : A3</li>	<li>Coefficients disponibles pour les agrandissements et réductions :	de 25% à 400% en nombre entier</li></ul>	Dans tous ces exercices, on fait abstraction du problème du positionnement	de l'original sur la vitre du photocopieur<br> (problème pourtant non négligeable	dans la pratique !)	 
+$()		<p>	Je veux photocopier un motif de telle sorte qu'un segment de longueur $val9 cm sur l'original  donne sur la photocopie un segment de longueur $val10 cm (à 1 mm près).	<br>Ce n'est pas possible en une seule fois, mais je peux le faire en deux photocopies successives.	</p><p>	Quels coefficients d'agrandissement/réduction puis-je choisir pour cela ?<br>	Première photocopie :  
+!read oef/embed.phtml reply1,5 
+$() %<br>	Deuxième photocopie :  
+!read oef/embed.phtml reply2,5 
+$() %	</p>	
+$()
+!exit
+
+:hint
+$()Dans cet exercice, il y a de nombreuses réponses possibles ; il suffit de donner l'une d'elles.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Parmi les très nombreuses solutions possibles, on peut prendre par exemple des coefficients de $val12 % et $val13 % . 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val16=$[$val14/100]
+val17=$[$val15/100]
+val18=$[$val9 * $val16*$val17]
+
+!exit
+
+:feedback
+!ifval floor($val14)<>$val14 or floor($val15)<>$val15 or $val14<25 or $val14>400 or $val15<25 or $val15>400
+ <div class='oef_feedbacks'>Attention : les coefficients doivent être entiers et compris entre 25% et 400%. 
+$()</div>
+!endif
+!ifval 1=1
+ <div class='oef_feedbacks'>Avec deux photocopies successives à $val14 % et $val15 %, la longueur du segment sur la photocopie mesure 
+!insmath $val9 * $val16 * $val17 = $val18
+$() cm. 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval floor($val14)=$val14 and floor($val15)=$val15 and $val14>=25 and $val14<=400 and $val15>=25 and $val15<=400 and $val18<$val10+0.1  and $val18>$val10-0.1 
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=9,10,12,13,14,15
+embedcnt=3

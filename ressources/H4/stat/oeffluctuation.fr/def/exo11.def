@@ -1,0 +1,144 @@
+!set title=Intervalle de confiance-sondage en politique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas, Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val7=$[rint($(tmp0))]
+tmp0=!item $val7 of Un homme politicien est présent,Une femme politicienne est présente
+
+val8=$(tmp0)
+tmp0=!item $val7 of ce candidat,cette candidate
+
+val9=$(tmp0)
+tmp0=!randint 980, 1020
+
+val10=$[rint($(tmp0))]
+tmp0=!randint ceil(0.45*$val10), floor(0.55*$val10)
+
+val11=$[rint($(tmp0))]
+val12=$[$val11/$val10]
+val13=$[rint(1000*$val12)/10]
+val14=$[($val12-1/sqrt($val10))]
+val15=$[($val12+1/sqrt($val10))]
+!if $val15<0.5 
+val6=$[rint(1)]
+!else
+!if 0.5<$val14 
+val6=$[rint(3)]
+!else
+val6=$[rint(2)]
+!endif
+!endif
+val16=ce candidat ne devrait pas être élu,le candidat peut-etre élu (ou pas !),le candidat devrait être élu
+replytype1=defaut
+
+replyname1=
+replygood1=$val13
+replytype2=default
+replyname2=
+replygood2=$val14
+replytype3=default
+replyname3=
+replygood3=$val15
+replytype4=menu
+replyname4=
+replygood4=$val6;$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	$val8 au second tour d'une élection municipale d'une ville de plus de 100 000 personnes.	 <br>Un sondage au près de $val10 personnes formant un échantillon représentatif des électeurs de la ville,	donne $val11 intentions de votes pour $val9.	<br>On suppose que toutes les personnes interrogées ont répondu honnêtement.		</div>	<div class="question">	<div>	Quel est le pourcentage d'intention de votes pour $val9 ?  
+!read oef/embed.phtml reply 1,5 
+$() (arrondir au millième)	</div>	<div>Au risque de 5 %, encadrer le pourcentage 
+!insmath p
+$() d'intention de votes pour $val9	 <br>
+!insmath p\in
+$()[ 
+!read oef/embed.phtml reply 2,5 
+$(); 
+!read oef/embed.phtml reply 3,5 
+$()]</div>	 <div>Au vu des résultats du sondage, vous pensez que  
+!read oef/embed.phtml reply4,5 
+$(). </div>	 </div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'amplitude de l'intervalle de fluctuation au seuil de 95 % [
+!insmath m
+$();
+!insmath M
+$()] est	
+!insmath 2/\sqrt(n)=M-m
+$() et son centre est 
+!insmath p=(m+M)/2
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11
+embedcnt=4

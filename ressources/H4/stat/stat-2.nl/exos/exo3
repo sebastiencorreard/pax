@@ -1,0 +1,211 @@
+#:zeepfabriek,wasverzachter,flacon,flacons,0.75@0.8@0.9@1,10,30
+#sqrt(2)*sqrt( pi)*erf(x/sqrt(2))/2
+n=$counter
+
+!if $counter=1
+    !if exam notin $session
+	logotext=een melkfabriek
+        logo=<img src="$module_dir/gifs/melk.gif" width="180" alt="MMMMM"/>  
+	viewlogo=1
+    !endif
+    cols=8
+    make_tr=1
+    inputs=1.1
+    !if $subject=3
+	var2=0
+	helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    !else
+	txt=!record 15 of lang/remarks.$taal
+	helptext=<a href=\'$module_dir/docs/tabel.pdf\' target=\'statistiek tabellen\'>Download PDF<br /><img src=\'$module_dir/gifs/tabellen.jpg\' alt=\'tabellen.pdf\' /><br />$txt</a>
+    !endif
+    var1=0
+    # antwoord is een getal, geen kans
+    questiontype=0
+    math=0
+    image=0
+    mathview=0
+    formula$n=$empty
+    # getal mogelijk met (verkeerde) eenheid
+    checkfile=exos/checkfile1.proc
+    ex1=&nbsp;ml
+    description=<b>V</b>
+!endif
+
+!if $var2=0
+    ding=!record 13 of lang/remarks.$taal
+    #@ (met je grafische rekenmachine)
+!else
+    ding=!record 15 of lang/remarks.$taal
+    #@ (met het tabellenboekje)
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# 25 onderwerpen
+nummer=!randint 1,25
+
+onderwerp=!record $nummer of lang/lijst1.$taal
+#:zeepfabriek,wasverzachter,flacon,flacons,0.75@0.8@0.9@1,10,30
+fabriek=!item 1 of $onderwerp
+produkt=!item 2 of $onderwerp
+verpakking=!item 3 of $onderwerp
+fles=!item 4 of $onderwerp
+volume=!item 5 of $onderwerp
+# 0.75@0.8@0.9@1
+verzameling=!replace internal @ by , in $volume
+# 0.75 , 0.8 , 0.9 , 1
+inhoud=!randitem $verzameling
+afw=!randitem 1,2,3,4,5
+mean=$[1000*$inhoud + $afw]
+# let op mean is in milliliter !!
+sig1=!item 6 of $onderwerp
+sig2=!item 7 of $onderwerp
+sigma=!randint $sig1,$sig2
+sigma=$[$sigma/10]
+P=<span style="font-size:16pt">P</span>
+!if $var2=0
+    etext=!record 13 of lang/remarks.$taal
+    #@ (met je grafische rekenmachine)
+!else
+    etext=!record 15 of lang/remarks.$taal
+    #@ (met het tabellenboekje)
+!endif
+
+!if $R=1
+    A=$[ceil(0.7*$sigma)]
+    mean=$[1000*$inhoud + 2*$A]
+    nieuw=$[1000*$inhoud]
+    Z=$[($nieuw-$mean)/$sigma]
+    Z1=$[round(100*(($nieuw-$mean)/$sigma))/100]
+    S=-10000
+    kans=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]   
+    kans=$[(round(10000*$kans))/100]   
+    ss=!record 33 of lang/remarks.$taal
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    #@ In een $fabriek wordt een batch $produkt afgevuld.<br />\
+    #@ Vandaag gebruiken ze een $inhoud liter $verpakking .<br />\
+    #@ De afvulmachine moet zo worden afgesteld, dat maar $kans % van de $fles een inhoud heeft van minder dan $inhoud liter.<br />\
+    #@ De vulling van een $verpakking is normaal verdeeld met een standaardafwijking van $sigma ml.<p>\
+    #@ Bereken op welk gemiddelde de machine moet worden afgesteld, opdat aan deze voorwaarde is voldaan.<br />\
+    #@ $ding  Geef je antwoord in <em>ml</em> nauwkeurig. 
+    answer$n=$mean 
+    !if $var2=0
+	rr=!record 34 of lang/remarks.$taal
+	#@ <ul><li>$P(X&le; $[1000*$inhoud] | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>intypen in Ti83 <kbd>invNorm</kbd>($[$kans/100]) (hier komt de z-waarde uit)</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($[1000*$inhoud] - &mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$[1000*$inhoud] - &mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$[1000*$inhoud] - &mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !else
+	rr=!record 35 of lang/remarks.$taal
+	#@ <ul><li>$P(X&le;$[1000*$inhoud] | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>Zoek in je tabellenboekje de kans die het dichtst bij $[$kans/100] ligt.</li>\
+	#@ <li>Zoek in je tabellenboekje de bij deze kans horende z-waarde.</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($[1000*$inhoud] - &mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$[1000*$inhoud] - &mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$[1000*$inhoud] - &mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !endif
+    textanswer$n=$rr
+ !exit
+!endif    
+!if $R=2
+    A=$[ceil(1.5*$sigma)]
+    B=$[ceil(2.5*$sigma)]
+    extra=!randint $[-1*$B],$[-1*$A]
+    nieuw=$[$mean+$extra]
+    Z=$[$extra/$sigma]
+    Z1=$[round(100*($extra/$sigma))/100]
+    S=-10000
+    kans=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]   
+    kans=$[(round(10000*$kans))/100]   
+    ss=!record 36 of lang/remarks.$taal
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    
+    #@ In een $fabriek wordt een batch $produkt afgevuld.<br />\
+    #@ Vandaag gebruiken ze een $inhoud liter $verpakking .<br />\
+    #@ De afvulmachine moet zo worden afgesteld,<br />\
+    #@  dat maar $kans % van de $fles een inhoud hebben minder dan $nieuw ml.<br />\
+    #@ De vulling van een $verpakking is normaal verdeeld met een standaardafwijking van $sigma ml.<p>\
+    #@ Bereken op welk gemiddelde de machine moet worden afgesteld, opdat aan deze voorwaarde is voldaan.<br />\
+    #@ Geef je antwoord in ml nauwkeurig. $ding  
+    answer$n=$mean 
+    !if $var2=0
+	rr=!record 37 of lang/remarks.$taal
+	#@ <ul><li>$P(X&le;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>intypen in Ti83 <kbd>invNorm</kbd>($[$kans/100]) (hier komt de z-waarde uit)</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($nieuw-&mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$nieuw-&mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$nieuw-&mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !else
+	rr=!record 38 of lang/remarks.$taal
+	#@ <ul><li>$P(X&le;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>Zoek in je tabellenboekje de kans die het dichtst bij $[$kans/100] ligt.</li>\
+	#@ <li>Zoek in je tabellenboekje de bij deze kans horende z-waarde.</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($nieuw-&mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$nieuw-&mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$nieuw-&mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !endif
+    textanswer$n=$rr
+ !exit
+!endif
+!if $R>2
+    A=$[ceil(1.9*$sigma)]
+    B=$[ceil(2.9*$sigma)]
+    extra=!randint $A,$B
+    nieuw=$[$mean+$extra]
+    Z=$[$extra/$sigma]
+    Z1=$[round(100*($extra/$sigma))/100]
+    S=10000
+    kans=$[0.5*(erf($S/sqrt(2))-erf($Z/sqrt(2)))]   
+    kans=$[(round(10000*$kans))/100]   
+    kans1=$[0.5*(erf($S/sqrt(2))-erf($Z1/sqrt(2)))]   
+    kans1=$[(round(10000*$kans1))/10000]   
+    ss=!record 39 of lang/remarks.$taal
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    #@ In een $fabriek wordt een batch $produkt afgevuld.<br />\
+    #@ Vandaag gebruiken ze een $inhoud liter $verpakking .<br />\
+    #@ De vulling van een $verpakking is normaal verdeeld met een standaardafwijking van $sigma ml.<p>\
+    #@ De $fles mogen niet meer dan $nieuw ml inhoud bevatten.<br />\
+    #@ <small>(in verband met machinale  handeling en thermische uitzetting)</small><br />\
+    #@ Bereken op welk gemiddelde de machine moet worden afgesteld,<br />\
+    #@  opdat maar in $kans % van de gevallen overschrijding van de $nieuw ml plaatsvindt.<br />\
+    #@ Geef je antwoord in ml nauwkeurig. $ding
+    answer$n=$mean 
+    !if $var2=0
+	rr=!record 40 of lang/remarks.$taal
+	#@ <ul><li>$P(X&gt;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>$P(X&le;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[1-$kans/100]</li>\
+	#@ <li>intypen in Ti83 <kbd>invNorm</kbd>($[1-$kans/100]) (hier komt de z-waarde uit)</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($nieuw-&mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$nieuw-&mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$nieuw-&mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !else
+	rr=!record 41 of lang/remarks.$taal
+	#@ <ul><li>$P(X&gt;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[$kans/100]</li>\
+	#@ <li>$P(X&le;$nieuw | &mu;=&mu; en &sigma;=$sigma)=$[1-$kans/100]</li>\
+	#@ <li>Zoek in je tabellenboekje de kans die het dichtst bij $[1-$kans/100] ligt.</li>\
+	#@ <li>Zoek in je tabellenboekje de bij deze kans horende z-waarde.</li>\
+	#@ <li>Gebruik de formule z=(g - &mu; )/ &sigma; </li>\
+	#@ <li>Dus $Z1=($nieuw-&mu;)/$sigma</li>\
+	#@ <li>Dan $Z1*$sigma=$nieuw-&mu;</li>\
+	#@ <li>Dus $[$Z1*$sigma]=$nieuw-&mu;</li>\
+	#@ <li>Dus &mu;=$(answer$n)</li></ul>
+    !endif
+    textanswer$n=$rr
+ !exit
+!endif
+
+# answer$n=!exec pari (round($rounding*(intnum(x=$S,$Z,e^(-0.5*x^2)))/(sqrt(2*pi))))/(1.0*$rounding)

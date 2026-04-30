@@ -1,0 +1,37 @@
+# inkoopprijs
+
+rounding=1
+n=$counter
+viewlogo=1
+mathview=0
+checkfile=exos/precheck1.proc
+cols=10
+rows=1
+inputs=1.1
+roundingtext=Geef je antwoord afgerond op hele &euro;&rsquo;s
+verkoopprijs=!randint 200,400
+perc1=!randint 20,60
+perc2=!randint 5,15
+perc3=!randint 5,15
+BTW=21
+verkoopprijs_ex_btw=$[100*$verkoopprijs/(100+$BTW)]
+kostprijs=$[$verkoopprijs_ex_btw*100/(100+$perc1)]
+verrekenprijs=$[$kostprijs*100/(100+$perc3)]
+inkoopprijs=$[(round(100*$verrekenprijs*100/(100+$perc2)))/100]
+answer$n=$[round($inkoopprijs)]
+tot=!exec moneyprint $verkoopprijs,$verkoopprijs_ex_btw,$verrekenprijs,$inkoopprijs,$(answer$n) 2
+verkoopprijs=$(tot[1])
+verkoopprijs_ex_btw=$(tot[2])
+verrekenprijs=$(tot[3])
+inkoopprijs=$(tot[4])
+answer$n=$(tot[5])
+
+ss=Een product wordt in de winkel verkocht voor &euro; $verkoopprijs,- [incl. $BTW % BTW]<br />De winkelier heeft deze consumentenprijs vastgesteld aan de hand van de volgende gegevens:<br /><ul><li>Hij heeft een <kbd>nettowinstopslagpercentage</kbd> gehanteerd van $perc1 % van de kostprijs</li><li>De inkoopprijs is in de kostprijs opgenomen bij wijze van een vaste verrekenprijs (<kbd>vvp</kbd>)</li><li>Deze <kbd>vvp</kbd> heeft hij berekend door de geschatte gemiddelde inkoopprijs te verhogen met <br />een opslagpercentage voor inkoopkosten van $perc2 %</li><li>Bovendien heeft hij de <kbd>vvp</kbd> nog verhoogd met een opslagpercentage voor <br />overige kosten van $perc3 %</li></ul>Bereken aan de hand van deze gegevens de inkoopprijs.<br /><small><em>Geef je antwoord op hele euro's nauwkeurig</em></small>
+
+question$n=$ss
+description=Inkoopprijs
+ex1=&euro;
+textanswer$n=<ul><li>We rekenen zo lang mogelijk door met onafgeronde getallen</li><li>De verkoopprijs exclusief BTW is: 100/$[100+$BTW] &times; $verkoopprijs = &euro; $verkoopprijs_ex_btw </li><li>De kostprijs is : 100/$[(100+$perc1)] &times; $verkoopprijs_ex_btw = &euro; $kostprijs </li><li>De vaste verrekenprijs (vvp) is : 100/$[(100+$perc3)] &times; $kostprijs = &euro; $verrekenprijs </li><li>De geschatte gemiddelde inkoopprijs is dus : 100/$[(100+$perc2)] &times; $verrekenprijs = &euro; $inkoopprijs</li></ul>Afgerond op hele euro's : &euro; $(answer$n)
+
+make_tr=1
+#fffff0=#e2ffc6

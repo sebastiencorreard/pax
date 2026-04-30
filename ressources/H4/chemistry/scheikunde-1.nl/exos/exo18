@@ -1,0 +1,222 @@
+#Bereken de pH 
+# 7 steps
+make_tr=1
+total_exos=7
+n=$counter
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten" /></a>  
+math=0
+calculator=1
+mathview=0
+questiontype=7
+cols=10
+rows=1
+embed=0
+largefont=18
+javascript=js/multi.js
+checkfile=exos/multicheck.proc
+math=0
+!if $counter=1
+    keuze=!randint 1,10
+    zuren=Azijnzuur,Mierenzuur,Phenol,HPO<sub>4</sub><sup>2-</sup>,HCO<sub>3</sub><sup>-</sup>,HF,HClO<sub>2</sub>,HNO<sub>2</sub>,Propaanzuur,HIO<sub>3</sub>
+    
+    alternatief=ethaanzuur,methaanzuur,hydroxybenzeen,hydrogeenfosfaat,hydrogeencarbonaat,waterstoffluoride,waterstofchloriet,waterstofnitriet,propionzuur,waterstofjodaad
+    
+    Kz=1.8*10^(-5),1.8*10^(-4),1.3*10^(-10),4.8*10^(-13),4.7*10^(-11),6.3*10^(-4),1.1*10^(-2),5.6*10^(-4),1.4*10^(-5),1.7*10^(-1)
+    
+    Kz_latex=1.8 \times 10^{-5}, 1.8 \times 10^{-4},1.3 \times 10^{-10},4.8 \times 10^{-13},4.7 \times 10^{-11},6.3 \times 10^{-4},1.1 \times 10^{-2},5.6 \times 10^{-4},1.4 \times 10^{-5},1.7 \times 10^{-1}
+    
+    Kz_html=1.8&times;10<sup>-5</sup>,1.8&times;10<sup>-4</sup>,1.3&times;10<sup>-10</sup>,4.8&times;10<sup>-13</sup>,4.7&times;10<sup>-11</sup>,6.3&times;10<sup>-4</sup>,1.1&times;10<sup>-2</sup>,5.6&times;10<sup>-4</sup>,1.4&times;10<sup>-5</sup>,1.7&times;10<sup>-1</sup>
+    
+    Cacids=CH3COOH,HCOOH,C6H5OH,HPO4^2-,HCO3^-,HF,HClO2,HNO2,CH3CH2COOH,HIO3
+    
+    Canions=CH3COO^-,HCOO^-,C6H5O^-,PO4^3-,CO3^2-,F^-,ClO2^-,NO2^-,CH3CH2COO^-,IO3^-
+    
+    Lacids=CH_{3}COOH,HCOOH,C_{6}H_{5}OH,HPO_{4}^{2-},HCO_{3}^{-},HF,HClO_{2},HNO_{2},CH_{3}CH_{2}COOH,HIO_{3}
+    
+    Lanions=CH_{3}COO^{-},HCOO^{-},C_{6}H_{5}O^{-},PO_{4}^{3-},CO_{3}^{2-},F^{-},ClO_{2}^{-},NO_{2}^{-},CH_{3}CH_{2}COO^{-},IO_{3}^{-}
+    
+    massanswer=2*C+4*H+2*O,1*C+2*H+2*O,6*C+6*H+6*O,1*P+4*O+1*H,1*C+3*O++1*H,1*F+1*H,1*Cl+2*O+1*H,1*N+2*O+1*H,3*C+2*O+6*H,1*I+3*O+1*H
+    
+    molmasses=60.05,46.03,94.11,95.98,61.02,20.01,68.46,47.01,74.08,175.91
+
+    ktex=!item $keuze of $Kz_latex
+    acid=!item $keuze of $zuren
+    alt=!item $keuze of $alternatief
+    Kh=!item $keuze of $Kz_html
+    kz=!item $keuze of $Kz
+    molmassa=!item $keuze of $molmasses
+    # chemeq
+    C1=!item $keuze of $Cacids
+    C2=!item $keuze of $Canions
+    C3=H^+
+    # latex
+    L1=!item $keuze of $Lacids
+    L2=!item $keuze of $Lanions
+    L3=H^{+}
+    K1=$ktex = \frac{ \left[ $L2 \right] \cdot \left[ $L3 \right] }{ \left[ $L1 \right] }
+    K2=$ktex \cdot \left[ $L1 \right] = \left[ $L2 \right] \cdot \left[ $L3 \right]
+    K3=$ktex \cdot \left[ $L1 \right] =  \left[ $L3 \right]^{2}
+    K4=\left[ H^{+} \right] = \sqrt{ $ktex \cdot \left[ $L1 \right] }
+
+    chemeq=$C1 -> $C2 + $C3
+    !if $wims_user=supervisor
+	applettext=$L1 \rightleftharpoons $L2 + $L3
+    !else
+	applettext=$L1 \rightleftharpoons
+    !endif
+    
+    v=!randint 3,15
+    #milliliter
+    v=$[$v*100]
+    # liter
+    V=$[$v/1000]
+    # mg
+    mgz=!randint 50,500
+    # g
+    g=$[$mgz/1000]
+    # voor chemeq
+    ans1=$chemeq
+    # molmassa
+    a2=$molmassa
+    ans2=$a2 gr/mol
+    # mol zuur
+    a3=$[$g/$a2]
+    ans3=$a3 mol
+    rans3=$[(round(10000*$a3))/10000]
+    # concentratie HAc in mol/l
+    a4=$[$a3/$V]
+    ans4=$a4 mol/l
+    rans4=$[(round(10000*$a4))/10000] mol/l
+    # verhouding H3O+
+    ans5=1
+    a6=$[sqrt($a4*($kz))]
+    a6tex=\sqrt{$a4 \cdot $ktex} 
+    ans6=$a6 mol/l
+    rans6=$[(round(10000*$a6))/10000]
+    # ph = -log(H3O^+)
+    ans7=$[-1*log(($a6))/log(10)]
+    rans7=$[(round(10*$ans7))/10]
+
+    applet=<object id="MiniInputApplet" width="400" height="80" classid="java:MiniInputApplet.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_code" value="MiniInputApplet.class" /><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="ChemInput.jar" /><param name="applettext" value="$applettext" /><param name="lang" value="$taal" /><param name="fontsize" value="$largefont" /><param name="pencolor" value="0,0,255,0.8" /><param name="pencolor" value="0,0,255,1" /><param name="#fffff0" value="250,250,200,1" /><param name="#fffff0" value="10,255,10,0.5" /><param name="#a0f0g0" value="250,240,225,0.2" /><param name="chembuttons" value="1" /><param name="navbuttons" value="1" />$nojava</object>
+    ss=We hebben een oplossing van $mgz mg $acid ($alt) in $v ml water.<br />\
+    We gaan nu in 7 kleine stappen bepalen wat de pH-waarde van deze oplossing is.<br />\
+    De evenwichtsconstante voor de protolyse is K<sub>z</sup>=$Kh (zie BINAS)<br />\
+    Kijk <span style="color:blue">hier</span> voor de gegevens.<br/>
+    
+    i1=Geef eerst de reactie van het zuur met water (de protolyse)<br /><em>kijk in de help-pagina voor een kleine toelichting op de invoerapplet.</em>
+    i2=Bereken nu de molmassa van $acid
+    i3=En hoeveel mol is $mgz mg $acid ?
+    i4=Bereken de concentratie $acid in mol/l
+    i5=Hoeveel mol H<sup>+</sup> geeft 1 mol $acid (de stoichiometrie verhouding volgens de reactievergelijking)  
+    i6=Bereken met behulp van de evenwichtsconstante K<sub>z</sub> de concentratie H<sup>+</sup> in deze oplossing
+    i7=Bereken nu de pH-waarde van de oplossing
+    var6=Voer de vergelijking in de applet in,De molmassa,Hoeveel mol,Concentratie $acid,1 mol $acid geeft,De concentratie H<sup>+</sup>,De pH-waarde
+    
+    var3=$inputtext1,$inputtext2,$inputtext3,$inputtext4,$inputtext5,$inputtext6,$inputtext7
+    
+    chemhelptxt=Gegeven : <ul><li><br />T = 298 K (25 <sup>o</sup>) en p = 1 atm (101325 Pa)</li><li>De Molmassa van Koolstof (C) is 12.0 </li><li>De Molmassa van Waterstof (H) is 1.0</li><li>De Molmassa van Zuurstof (O) 16.0</li><li>Het molair volume bij 25°C :24,5 dm<sup>3</sup>/mol (L/mol) </li><li>Een liter water weegt bij deze omstandigheden ongeveer 1000 gram</li><li>de K<sub>z</sub> van $acid bij T=298K is $Kz_html_</li><li>We veronderstellen geen ontleding of andere reacties.</li><li><em>Geef je antwoorden op alle 7 vragen met passende SI eenheden !</em></li></ul>
+    question1=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo18.jpg\' alt=\'inputapplet\' /><br />$chemhelptxt')">$ss</a><br />$i1
+    question2=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i2
+    question3=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i3
+    question4=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i4
+    question5=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i5
+    question6=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i6
+    question7=<a onmouseover="return escape('$chemhelptxt')">$ss</a><br />$i7
+    answer1=$ans1
+    answer2=$ans2
+    answer3=$ans3
+    answer4=$ans4
+    answer5=$ans5
+    answer6=$ans6
+    answer7=$ans7
+    texanswer1=$L1 \rightleftharpoons $L2 + $L3
+    text2=!item $keuze of $massanswer
+    textanswer2=$text2 $m_approx $ans2
+    
+    textanswer3=De molmassa is $ans2  dus 1 gr = 1/$a2 mol.<br />We hebben $mgz mg = $g gram <br />Dit is dan $g &times; 1/$a2 mol = $g/$a2 mol = $ans3  $m_approx $rans3
+    
+    textanswer4=De concentratie wordt uitgedrukt in mol/l.<br />$acid is opgelost is $v milliliter water = $v/1000 liter water = $V liter water.<br />De concentratie $acid is dus $ans3  per $V liter water<br />Dus $a3/$V mol/l = $ans4 $m_approx $rans4
+    
+    textanswer5=Volgens onze reactie vergelijking geeft 1 mol $acid $ans5 mol H<sup>+</sup>
+    
+    texanswer6=\left\{ \begin{array}{l} K_{z} = $K1 \\ \\ \textrm{$questionnumber} \:5) \: : $L2 = $L3 \\ \\ $K2 \\ \\ $K3 \\ $K4 = $a6tex \\ \left[ $L3 \right] \simeq $a6 \simeq $rans6\textrm{mol/l} \end{array}    
+    
+    textanswer7=De pH-waarde is -log( concentratie H<sup>+</sup> )= -1&times;log( [ H<sup>+</sup> ]) <br />  - log($a6) $m_approx $rans7 <p><a href="$module_dir/VWO5.voorbeeldsom.pdf">Hier</a> staat nog wat uitleg over je scheikunde vragen</p>
+    
+    inputs=yes
+# unitsproc
+# correct antwoordformat: number1 unit1,number2 unit2... number_n unit_n
+# var1=1,1,1...1 : we must have a unit in all answers.
+# var1=0,1,1,0 : number1,number2 unit2,number3 unit3,number4
+# var2=min1:max1,min2:max2,min3:max3,min4:max4  var2 is the range for the correct answer.
+# var2 may be assymetrical , or empty eg correct answer=2 min=1.9,max=3.5
+
+!endif
+    
+description=$(var6[$counter])
+!if $counter=1
+    var1=0
+    roundingtext=$empty
+    checkfile=$checkdir/chemcheck.proc
+    exotext=<table class="zebra_table_h2"><tr><td>$counter )&nbsp;$inputtext1 : </td></tr><tr><td>$applet</td></tr></table>
+!else
+    !if $counter=2
+	# molmassa
+	rounding=10
+	var1=1
+	var2=$empty
+	checkfile=$checkdir/units.proc
+    !else
+	!if $counter=3
+	    # aantal mol
+	    rounding=10000
+	    var1=1
+	    var2=$empty
+	    checkfile=$checkdir/units.proc
+	!else
+	    !if $counter=4
+		#cncentratie
+		rounding=10000
+		var1=1
+		var2=$empty
+		checkfile=$checkdir/units.proc
+	    !else
+		!if $counter=5
+		    rounding=10
+		    var1=yes
+		    var2=$empty
+		    checkfile=$checkdir/number.proc
+		!else
+		    !if $counter=6
+			# concentratie
+			rounding=10000
+			var1=1
+			var2=$empty
+			checkfile=$checkdir/units.proc
+		    !else
+			#pH-waarde
+			rounding=10
+			var1=yes
+			checkfile=$checkdir/number.proc
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !endif
+    !readproc $remarkdir/rounding.$taal
+    previous=$empty
+    !for p=1 to $[$counter-1]
+	previous=!append line <li><span style="color:blue">$youranswer $questionnumber $p): $(reply$p)</span></li> to $previous
+    !next p
+    exotext=<ul>$previous</ul><table class="zebra_table_h2"><tr><td>$counter )</td><td>$(var6[$counter])</td><td>&nbsp;&nbsp;=&nbsp;&nbsp;<input size="10" id="myinput0" value="" class="schaersvoorde_input" /></td></tr></table><em>$roundingtext</em>
+
+!endif
+
+helptext=<img src=\'$module_dir/gifs/exo18.jpg\' alt=\'inputapplet\' /><hr />$chemhelptxt
+
+!exit
+
+

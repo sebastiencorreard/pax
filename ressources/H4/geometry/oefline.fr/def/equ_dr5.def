@@ -1,0 +1,199 @@
+!set title=Parallèle à une droite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+keywords=line_equation
+language=fr
+computeanswer=yes
+leftrange=-5.000000
+rightrange=5.000000
+precision=10000
+title_it=Parallela ad una retta
+
+ansorder=r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=\mathcal{d}
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 10
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val8*$val10+$val11*(-1)^$val12)]
+t_=!rawmath $val13-$val8*$val10
+val14=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val8*x+$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!replace internal \( by ( in expand($(tmp0))
+tmp1=!exec maxima $t_
+
+val15=!rawmath $(tmp1)
+tmp=!translate ";': to $     $ in $val8*x+$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!replace internal \( by ( in expand($(tmp0))
+tmp1=!exec maxima $t_
+
+val16=!rawmath $(tmp1)
+tmp0=!texmath $val15
+
+val17=$(tmp0)
+tmp0=!texmath $val16
+
+val18=$(tmp0)
+val19=et
+val20=est
+val21=L'équation réduite de la droite
+val22=Coefficient directeur
+val23=Ordonnée à l'origine
+val24=abscisses,ordonnées
+tmp=!trim Dans le plan muni d'un repère, on considère la droite ; d'équation ; la droite ; parallèle à ; passant par
+val25=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Déterminer les coordonnées du point d'intersection ; de la droite ; avec l'axe des
+val26=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=it 
+val19=e
+val20=è
+val21=L'equazione esplicita della retta
+val22=Coefficiente angolare
+val23=Ordinata nell'origine
+val24=ascisse,ordinate
+tmp=!trim Nel piano descritto da un sistema di riferimento cartesiano, consideriamo la retta ; di equazione ; la retta ; parallela a ; passante per il punto
+val25=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Determinare le coordinate le punto di intersezione ; della retta ; con l'asse delle 
+val26=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!nonempty items $val24
+
+tmp0=!randitem $tmp
+val27=$(tmp0)
+!if $val27=$(val24[1]) 
+t_=!rawmath -$val14/$val8
+val28=!exec pari print($t_)
+t_=!rawmath 0
+val29=!exec pari print($t_)
+!endif
+!if $val27=$(val24[2]) 
+t_=!rawmath 0
+val28=!exec pari print($t_)
+t_=!rawmath $val14
+val29=!exec pari print($t_)
+!endif
+replytype1=default
+replyname1=$val22
+replygood1=$val28
+replytype2=default
+replyname2=$val23
+replygood2=$val29
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val25[1;]) 
+!insmath $val7
+$()	$(val25[2;]) 
+!insmath y = $val17
+$() $val19	$(val25[3;]) 
+!insmath $val7'
+$(), $(val25[4;]) 
+!insmath $val7
+$(), $(val25[5;]) 
+!insmath A($val10,$val13)
+$().	<div class="wims_question spacer">	$(val26[1;]) 
+!insmath M
+$() $(val26[2;]) 
+!insmath $val7'
+$()	$(val26[3;]) $val27 :	<div class="wimscenter">	
+!insmath M
+$() ( 
+!read oef/embed.phtml reply 1,5 
+$(); 
+!read oef/embed.phtml reply2, 5 
+$())	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val21 
+!insmath $val7'
+$() $val20 
+!insmath y = $val16
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,13,16,17,19,20,21,25,26,27
+embedcnt=2

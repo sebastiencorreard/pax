@@ -1,0 +1,89 @@
+n=$counter
+math=0
+roundingtext=$empty
+make_tr=1
+mathview=0
+questiontype=7
+javascript=js/sinus.4.phtml
+slider_min=0
+slider_max=$[2.2*pi]
+slider_width=420
+slider_height=30
+slider_text=roteer punt P
+embed=0
+inputs=yes
+math=0
+roundingtext=$empty
+make_tr=1
+helptext=$empty
+checkfile=exos/checkfile8.proc
+# letop: var1 wordt in js/sinus.js gebruikt voor tonen op te sturen antwoord
+var1=!randitem 1,2
+
+fun=!record 58 of lang/remarks.$taal
+#@ sinus, cosinus
+sometext=!record 61 of lang/remarks.$taal
+#@Je kunt het punt P op de eenheidscirkel laten bewegen met je muis...<br />Laat de applet in de goede positie staat...<br />Deze positie wordt als je antwoord naar de WIMS server gestuurd.
+#keuze=!randitem 1,2
+keuze=1
+# geen cosinus ivm onjuiste html5-plaatje !!! MOET WORDEN VERBETERD !!!
+
+fun=!item $keuze of $fun
+!if $keuze=1
+    # sinus
+    p=!randint 63,97
+    list=!record $p of gifs/inhoud
+    vraag=!item 4 of $list
+    vtex=!texmath $vraag
+    type=sin
+    !if $var1=2
+	# vraag naar sin(graden)
+	#-1=geen display; 0 = x-waarde;1=y-waarde; 2=graden ; 3=radialen
+	slider_value_type=3
+	degrees=degrees
+	ss=!record 59 of lang/remarks.$taal
+	#@Zet het punt P in de applet -ongeveer- in de goede positie.<br />De $fun van welke hoek in graden is ...
+	formula$n= \sin\left(\;\;[?]\; ^{o} \right) = $vtex
+    !else
+	# vraag naar sin(radialen)
+	degrees=radians
+	#-1=geen display; 0 = x-waarde;1=y-waarde; 2=graden ; 3=radialen
+	slider_value_type=2
+	ss=!record 60 of lang/remarks.$taal
+	#@ss=Zet het punt P in de applet -ongeveer- in de goede positie.<br />De sinus van welke hoek in radialen is ...
+	formula$n= \sin\left( \;\;[?]\;rad  \right) = $vtex
+    !endif
+!else
+    #cosinus
+    p=!randint 29,62
+    list=!record $p of gifs/inhoud
+    vraag=!item 4 of $list
+    vtex=!texmath $vraag
+    type=cos
+
+    !if $var1=2
+	# vraag naar cos(graden)
+	degrees=degrees
+	ss=!record 59 of lang/remarks.$taal
+	#@Zet het punt P in de applet -ongeveer- in de goede positie.<br />De $fun van welke hoek in graden is ...
+	formula$n= \cos\left( \;\;[?]\; ^{o} \right) = $vtex
+    !else
+	# vraag naar cos(radialen)
+	degrees=radians
+	ss=!record 60 of lang/remarks.$taal
+	#@Zet het punt P in de applet -ongeveer- in de goede positie.<br />De $fun van welke hoek in radialen is ...
+	formula$n= \cos\left(\;\; [?]\; rad  \right) = $vtex
+    !endif
+!endif
+
+answer$n=!item 2 of $list
+# answer$n is altijd in graden
+radialen=!item 3 of $list
+var2=$type
+#object$n=<object id=sinus codebase=$appletdir archive=sinus.jar code=sinus.class WIDTH=600 HEIGHT=240 ALIGN=CENTER MAYSCRIPT><param name=language value=$taal/><param name=degrees value=$degrees/><param name=show_curve value=yes/><param name=functiontype value=$type/> $nojava </object>
+question$n=<a onmouseover="return escape('$sometext')">$ss</a>
+texanswer$n= \displaystyle \$type \left( $(answer$n) ^{o} \right) = \displaystyle \$type \left( $radialen \right)\,=\,$vtex
+
+!exit
+
+

@@ -1,0 +1,50 @@
+target=transiadd
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{fr}
+\options{nofloat fixedgoal askcontext askresult}
+
+\matrix{vars=a,b,c,d
+p,q,r,s
+u,v,x,y
+}
+\text{vars=randomrow(\vars)}
+\text{vars=shuffle(\vars)}
+\text{a=item(1,\vars)}
+\text{b=item(2,\vars)}
+\text{c=item(3,\vars)}
+\text{d=item(4,\vars)}
+
+\text{eqr=random(,=)}
+\text{moreless=shuffle(<\eqr,>\eqr)}
+\text{more=item(1,\moreless)}
+\text{less=item(2,\moreless)}
+\text{ctx1=\a \more \b}
+\integer{ra=random(1,2)}
+\if{\ra=1}{
+  \text{ctx2=\b \more \c}
+  \methods{ineq/addterm ineq/addineq}
+  \text{prv=\a \more \c}
+  \minsteps{2}
+  \text{phrase=\name_phrase1}
+}{
+  \methods{ineq/addterm ineq/trans}
+  \text{ctx2=\c \more \d}
+  \text{prv=\a + \c \more \b + \d}
+  \minsteps{3}
+  \text{phrase=\name_phrase2}
+}
+
+\text{prv=simplify(\prv)}
+\context{\ctx1
+\ctx2}
+\goal{\prv}
+
+\statement{\name_statement[1] \phrase
+<p>
+\name_statement[2] \(\ctx1), \(\ctx2). \name_statement[3] \( \prv )
+\name_statement[4]
+}

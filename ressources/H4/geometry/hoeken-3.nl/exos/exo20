@@ -1,0 +1,211 @@
+#20 afhankelijk of strijdig
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=0
+!readproc $remarkdir/rounding.$taal
+embed=0
+math=0
+mathview=0
+n=$counter
+force_mathml=yes
+calculator=2
+make_tr=1
+inputs=-1
+
+helptext=!record 49 of lang/remarks.$taal
+#@Als je bij het oplossen van een stelsel vergelijkingen uitkomt op een vorm<br ><em>0*x = a</em><br />dan geldt: <ul><li>afhankelijk stelsel : a = 0 <br/>er zijn oneindig veel oplossingen </li><li>strijdig stelsel : a &ne; 0 <br />er zijn geen oplossingen</li></ul>
+sometext=!record 50 of lang/remarks.$taal
+#@strijdig,afhankelijk,Dit is een strijdig stelsel...want het heeft de vorm,Dit is een afhankelijk stelsel...want het heeft de vorm
+selectbox=!subst <select size="1" id="myselect0" name="myselect0" style="text-align:center;font-size:18px;border:0px;color:red"><option value="0">$dontknow</option><option value="1">$(sometext[1])</option><option value="2">$(sometext[2])</option></select>
+ss=!record 51 of lang/remarks.$taal
+#@Bereken voor welke waarde van <em>p</em> het volgende stelsel $selectbox is
+checkfile=$checkdir/new_number.proc
+
+!if $R=1
+ keuze=!randint 1,4
+ !if $keuze=1
+  a=!randint 1,9
+  b=!randint 2,7
+  c=!randint 5,25
+  !if $[$a*$b]=$c
+   c=$[$c+1]
+  !endif
+  ans=1/$b
+  ans_tex=\frac{1}{$b}
+  F1=x-p\cdot y
+  A1=$a
+  F2=$b\cdot x - y
+  A2=$c
+  strijdig=1
+  # het stelsel is strijdig
+  f=$[$a*$b-$c]
+  texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right.  \;\;\;\; \overset{\times $b}\longrightarrow  \left\{ \begin{array}{lcl.-} $b \cdot x  - $b\cdot p \cdot y & = & $[$a*$b]  \\ $F2 & = & $A2  \\ -$b \cdot p \cdot  y + y & = & $f \;- \end{array} \right. \longrightarrow  \\  \left(-$b \cdot p + 1 \right)y = $f \\  -$b \cdot p + 1  = 0 \longrightarrow  p = $ans_tex \\  \textrm{$(sometext[3]) : } \;\; 0\cdot y = $f \end{array} \right.
+
+ !else
+  !if $keuze=2
+   a=!randint 1,9
+   b=!randint 2,5
+   d=!randint 2,9
+   !if $b=$d
+    b=$[$b+1]
+   !endif
+   c=!randint 5,25
+   !if $[$a*$b]=$[$c*$d]
+    c=$[$c+1]
+   !endif
+   tot=!exec pari A=$d/$b\
+   printtex(A)
+   ans=!line 1 of $tot
+   ans_tex=!line 2 of $tot
+   F1=$d \cdot x - p \cdot y
+   A1=$a
+   F2=$b \cdot x - y
+   A2=$c
+   strijdig=1
+   # het stelsel is strijdig
+   f=$[$b*$d]
+   g=$[$b*$a]
+   h=$[$c*$d]
+   i=$[$g - $h]
+   texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right. \;\;\;\; \underset{\times $d}{\overset{\times $b}\longrightarrow} \left\{ \begin{array}{lcl.-} $f \cdot x  - $b\cdot p \cdot y & = & $g  \\ $f \cdot x  - $d \cdot y & = & $h  \\ -$b \cdot p \cdot  y + $d \cdot y & = & $i \;- \end{array} \right. \longrightarrow  \\ \left(-$b \cdot p + $d \right) y = $i \\  -$b \cdot p + $d  = 0 \longrightarrow  p = $ans_tex \\  \textrm{$(sometext[3]) : } \;\; 0\cdot y = $i \end{array} \right.
+  !else
+   !if $keuze=3
+    a=!randint 1,9
+    b=!randint 2,7
+    c=$[$a*$b]
+    ans=1/$b
+    ans_tex=\frac{1}{$b}
+    F1=x - p\cdot y
+    A1=$a
+    F2=$b\cdot x - y
+    A2=$c
+    strijdig=2
+    f=$[$a*$b-$c]
+    texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right.  \;\;\;\; \overset{\times $b}\longrightarrow  \left\{ \begin{array}{lcl.-} $b \cdot x  - $b\cdot p \cdot y & = & $[$a*$b]  \\ $F2 & = & $A2  \\ -$b \cdot p \cdot  y + y & = & $f \;- \end{array} \right. \longrightarrow  \\  \left(-$b \cdot p + 1 \right)y = $f \\  -$b \cdot p + 1  = 0 \longrightarrow  p = $ans_tex \\  \textrm{$(sometext[4]) : } \;\; 0\cdot y = $f \end{array} \right.
+    # het stelsel is afhankelijk  
+   !else
+    a=!randitem 2,4,6,8
+    b=!randint 2,4
+    d=!randitem 2,4
+    !if $b=$d
+     b=$[$b+1]
+    !endif
+    tot=!exec pari A=$d/$b\
+    printtex(A)\
+    B=$a*$b/$d\
+    printtex(B)\
+    C=B*$d\
+    printtex(C)\
+    D=$b*$a-(C)\
+    printtex(D)
+    
+    ans=!line 1 of $tot
+    ans_tex=!line 2 of $tot
+    c=!line 3 of $tot
+    c_tex=!line 4 of $tot
+    h=!line 5 of $tot
+    h_tex=!line 6 of $tot
+    i=!line 7 of $tot
+    i_tex=!line 8 of $tot
+    
+    F1=$d \cdot x - p \cdot y
+    A1=$a
+    F2=$b \cdot x - y
+    A2=$c_tex
+    strijdig=2
+    f=$[$b*$d]
+    g=$[$b*$a]
+    
+    # het stelsel is strijdig
+    texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right. \;\;\;\; \underset{\times $d}{\overset{\times $b}\longrightarrow} \left\{ \begin{array}{lcl.-} $f \cdot x  - $b\cdot p \cdot y & = & $g  \\ $f \cdot x  - $d \cdot y & = & $h_tex  \\ -$b \cdot p \cdot  y + $d \cdot y & = & $i \;- \end{array} \right. \longrightarrow  \\ \left(-$b \cdot p + $d \right) y = $i \\  -$b \cdot p + $d  = 0 \longrightarrow  p = $ans_tex \\  \textrm{$(sometext[4]) : } \;\; 0\cdot y = $i \end{array} \right.
+   !endif
+  !endif
+ !endif
+!else
+ keuze=!randint 1,2
+ breuk=!shuffle 1/3,1/4,1/5,1/2,3/2,3/4,3/5,2/3,2/5,4/5,1/6,5/6,1/7,2/7,2/7,4/7,5/7,6/7
+ !if $keuze=1
+  a=!randint 2,9
+  b=!item 1 of $breuk
+  c=!item 2 of $breuk
+  d=!item 4 of $breuk
+  !if $[$c*$d] = $[$a*$b]
+   b=!item 3 of $breuk
+  !endif
+  ans_tex=$a
+  b_tex=!texmath $b
+  c_tex=!texmath $c
+  d_tex=!texmath $d
+  F1=p \cdot x + $a \cdot y
+  A1=$c_tex
+  A2=x
+  F2=$b_tex - $d_tex \cdot y
+  strijdig=1
+  # het stelsel is strijdig
+  tot=!exec pari A=$a/($d)\
+  printtex(A)\
+  B=$c-($b)*(A)\
+  printtex(B)
+  
+  ans=!line 1 of $tot
+  ans_tex=!line 2 of $tot
+  g=!line 3 of $tot
+  g_tex=!line 4 of $tot
+  texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right.  \;\;\;\; \longrightarrow  \\  p \cdot \left($b_tex - $d_tex \cdot y \right) + $a \cdot y = $c_tex \longrightarrow  \\  $b_tex p - $d_tex\cdot p  \cdot y + $a \cdot y = $c_tex  \longrightarrow \\  \left( - $d_tex\cdot p + $a \right) y = $c_tex - $b_tex p \\ - $d_tex\cdot p + $a = 0 \longrightarrow p = $ans_tex \\ \textrm{we checken op strijdigheid of afhankelijkheid...} \\ 0 \cdot y =  $c_tex - $b_tex p \overset{p = $ans_tex} \rightarrow 0 \cdot y =  $c_tex - $b_tex \cdot $ans_tex  = $g_tex \\ \textrm{$(sometext[3]) : } \;\; 0\cdot y = $g_tex \end{array} \right.
+
+ !else
+  a=!randint 2,5
+  c=!item 2 of $breuk
+  d=!item 4 of $breuk
+  ans_tex=$a
+  c_tex=!texmath $c
+  d_tex=!texmath $d
+  tot=!exec pari A=$a/($d)\
+  printtex(A)\
+  B=($c)*($d)/($a)\
+  printtex(B)\
+  C=$c-(B)*(A)\
+  printtex(C)
+  
+  ans=!line 1 of $tot
+  ans_tex=!line 2 of $tot
+  b=!line 3 of $tot
+  b_tex=!line 4 of $tot
+  g=!line 5 of $tot
+  g_tex=!line 6 of $tot
+  
+  
+  F1=p \cdot x + $a \cdot y
+  A1=$c_tex
+  A2=x
+  F2=$b_tex - $d_tex \cdot y
+  strijdig=2
+  # het stelsel is afhankelijk
+  texanswer$n=\left[ \begin{array}{l} \left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right.  \;\;\;\; \longrightarrow  \\  p \cdot \left($b_tex - $d_tex \cdot y \right) + $a \cdot y = $c_tex \longrightarrow  \\  $b_tex p - $d_tex\cdot p  \cdot y + $a \cdot y = $c_tex  \longrightarrow \\  \left( - $d_tex\cdot p + $a \right) y = $c_tex - $b_tex p \\ - $d_tex\cdot p + $a = 0 \longrightarrow p = $ans_tex \\ \textrm{we checken op strijdigheid of afhankelijkheid...} \\ 0 \cdot y =  $c_tex - $b_tex p \overset{p = $ans_tex} \rightarrow 0 \cdot y =  $c_tex - $b_tex \cdot $ans_tex  = $g_tex \\ \textrm{$(sometext[4]) : } \;\; 0\cdot y = $g_tex \end{array} \right.
+ !endif
+!endif
+answer$n=$strijdig\
+$ans
+
+
+#ss=!record 48 of lang/remarks.$taal
+#sometext=!record 2 of lang/remarks.$taal
+!if $wims_user=supervisor
+ formula$n=\left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right. \longrightarrow  p = \input{10}{0}{text-align:center;font-size:18px;border:soid 1px;color:red}{$ans}{1}
+!else
+ formula$n=\left\{ \begin{array}{lcl} $F1 & = & $A1 \\ $F2 & = & $A2 \end{array} \right. \longrightarrow  p = \input{10}{0}{text-align:center;font-size:18px;border:solid 1px;color:red}{?}{0}
+!endif
+
+!if exam notin $session
+ question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+ question$n=$ss
+ helptext=$empty
+!endif
+
+!exit 
+
+

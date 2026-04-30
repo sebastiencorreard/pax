@@ -1,0 +1,67 @@
+#spaarhypotheek II
+n=$counter
+
+!if $counter=1
+    viewlogo=1
+    total_exos=2
+    mathview=0
+    make_tr=1
+    inputs=-1
+    checkfile=exos/precheck2.proc
+    telwoorden=!record 60 of $remarkdir/commonremarks.$taal
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    looptijd=!randitem 15,20,25,30
+    naam=!randitem $namen
+    perc=!randint 4,13
+    schuld=!randint 95,290
+    schuld=$[$schuld*1000]
+    factor=$[$perc/100]
+    interest=$[$schuld*$factor]
+    # letop  onbekende "spaarrente 2% onder interest
+    spaarpremie=$[10*(round((102 - $perc)/100*($schuld/(10*$looptijd))))]
+    interest_totaal=$[$looptijd*$interest]
+    voordeel=!randitem 20,25,30,35
+    fiscaal_voordeel=$[$interest_totaal*$voordeel/100]
+
+    exotext=!subst <table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Spaarpremie</th><th>Interest $perc %</th></tr><tr><th>1</th><th>$schuld</th><th>$spaarpremie</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/></th></tr><tr><th>2</th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value=""/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value=""/></th></tr></table>
+
+    var3=Het totale fiscale voordeel :<input type="text" id="myinput0" size="6" class="schaersvoorde_input" value=""/> &euro;
+    
+    description=Interest jaar 1,Schuld jaar 2,Spaarpremie jaar 2,Interest jaar 2
+    var1=5,5,5,5
+    var2=1,1,1,1
+    answer1=$interest\
+    $schuld\
+    $spaarpremie\
+    $interest
+    
+    answer2=$fiscaal_voordeel
+
+    textanswer1=<table class="default_table"><tr><th>Jaar</th><th>Schuld 1 jan.</th><th>Spaarpremie</th><th>Interest $perc %</th></tr><tr><th>1</th><th>$schuld</th><th>$spaarpremie</th><th><input type="text" id="myinput0" size="6" class="schaersvoorde_input" value="$interest" readonly="readonly"/></th></tr><tr><th>2</th><th><input type="text" id="myinput1" size="6" class="schaersvoorde_input" value="$schuld" readonly="readonly"/></th><th><input type="text" id="myinput2" size="6" class="schaersvoorde_input" value="$spaarpremie" readonly="readonly"/></th><th><input type="text" id="myinput3" size="6" class="schaersvoorde_input" value="$interest" readonly="readonly"/></th></tr></table><ul><li><kbd>Spaarhypotheek :</kbd> elke periode wordt interest en spaarpremie (geen aflossing) betaald</li><li>Interest  is : $factor &times; $schuld = &euro; $interest</li><li>De schuld in het tweede jaar : &euro; $schuld</li><li>De spaarpremie in het tweede jaar : &euro; $spaarpremie</li><li>De interest in het tweede jaar : &euro; $interest</li></ul>
+
+    textanswer2=Berekening van het fiscale voordeel bij een spaarhypotheek:<ul><li>Totaal wordt er aan interest betaald : $looptijd &times; $interest = &euro; $interest_totaal</li><li>Fiscaal voordeel is : $[$voordeel/100] &times; $interest_totaal = &euro; $fiscaal_voordeel</li></ul>
+    
+    rounding=10
+    
+    roundingtext=Rond je eindantwoord af hele &euro;&rsquo;s
+    
+    ss1=$naam sluit een spaarhypotheek af<br />De lening bedraagt &euro; $schuld , de looptijd is $looptijd jaar en de interest is vastgesteld op $perc %.
+    
+    question1=$ss1<br />Bereken de ontbrekende waarden (in &euro;) en vul de tabel in.<br />
+    
+    question2=$ss1<br />Stel dat het fiscale voordeel $voordeel % per jaar bedraagt.<br />Bereken in dit geval hoeveel &euro; het totale fiscale voordeel gedurende de hele looptijd is.
+    
+    helptext=$roundingtext
+
+!endif
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/spaarhypotheek$g.jpg" alt="spaarhypotheek"/>
+logotext=<img src=\'$module_dir/gifs/spaarhypotheek$g.jpg\' alt=\'spaarhypotheek\' />
+
+!if $n>1
+    var1=5
+    var2=1
+    description=Totale fiscale voordeel
+    exotext=$var3
+!endif
+

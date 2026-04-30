@@ -1,0 +1,49 @@
+\title{Points alignés ? (direct)}
+
+\author{Cyrille, Douriez}##Vérifications par Chantal Causse##
+\email{cyrille.douriez@ac-amiens.fr}
+
+\keywords{parallel,vectors,line}
+\description{Déterminer si des points sont alignés en utilisant les vecteurs}
+
+\computeanswer{no}
+
+\integer{cas=randint(1..7)}
+##1 : points alignés verticalement, autres : 2 1ers points sur droite d'équation y=ax+b##
+\integer{a=randint(-7..7)}
+\integer{b=randint(-12..12)}
+\integer{x1=randint(-5..5)}
+\integer{y1=\a*\x1+\b}
+\integer{coef=randint(-1,1)}
+\integer{x2=(\cas=1)? \x1:\x1+\coef*random(1..5)}
+\integer{y2=(\cas=1)? \y1+\coef*random(1..5):\a*\x2+\b}
+\integer{x3=(\cas=1)? \x1:\x1-\coef*random(1..5)}##x2<x1<x3 ou x3<x1<x2 pour cas>1, x1=x2=x3 sinon##
+\integer{y3=(\cas=1)? \y1-\coef*random(1..5):(\a*\x3+\b)+randitem(0,randint(1..3)*randint(-1,1))}##cas>1, 1 chance sur 2 d'être alignés##
+
+\integer{xvec1=\x2-\x1}
+\integer{yvec1=\y2-\y1}
+\integer{xvec2=\x3-\x1}
+\integer{yvec2=\y3-\y1}
+\integer{det=(\xvec1*\yvec2)-(\xvec2*\yvec1)}
+\integer{t=(\det=0)? 1:2}
+
+##Création des noms de points##
+\text{L=A,B,C,D,E,F,H,K}
+\text{L=shuffle(\L)}
+\text{L=wims(sort item \L[1..3])}
+\text{A=\L[1]}
+\text{B=\L[2]}
+\text{C=\L[3]}
+
+\statement{<p>Dans le plan muni d'un repère, on donne \(\A(\x1 ; \y1)), \(\B(\x2 ; \y2)) et \(\C(\x3 ; \y3)).</p>
+Les points \(\A), \(\B) et \(\C) sont-ils alignés ?
+<br/>\embed{reply 1}}
+
+\answer{}{\t;Oui,Non,Je ne sais pas}{type=radio}
+
+\solution{\(\overrightarrow{\A \B}) a pour coordonnées
+\(\left ( \begin{array}{c}\x2-(\x1)\\\y2-(\y1)\end{array} \right )=\left ( \begin{array}{c}\xvec1\\\yvec1\end{array} \right )) et le vecteur
+\(\overrightarrow{\A \C}) a pour coordonnées
+\(\left ( \begin{array}{c}\xvec2\\\yvec2\end{array} \right )) .
+Le déterminant de \(\overrightarrow{\A \B}) et \(\overrightarrow{\A \C}) est \(\xvec1 \times (\yvec2)-(\xvec2)\times (\yvec1)=\det) \if{\det!=0}{\(&ne;0)}
+donc ces vecteurs \if{\det=0}{sont}{ne sont pas} colinéaires et les points \(\A), \(\B) et \(\C) \if{\det=0}{sont}{ne sont pas} alignés. \if{\cas=1}{On peut également remarquer que les points\(\A), \(\B) et \(\C) sont sur la même droite verticale (car \(x_{\A}=x_{\B}=x_{\C})) donc ces points sont alignés.}}

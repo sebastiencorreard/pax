@@ -1,0 +1,269 @@
+# y = 0 + y = 1 --> x = gem + sigma
+# y = 0 + y =-1 --> x = gem - sigma
+
+# 2 vragen ;
+# 1: teken de lijn van de normale verdeling
+# 2: bepaal gemiddelde & sigma ; laat de lijnstukken staan (identiek aan exo3)
+
+goback=0
+errortext=$empty
+
+n=$counter
+
+sigma=!item 1 of $answer2
+gemiddelde=!item 2 of $answer2
+delta_x=$[round($var1/8)]
+gmin=$[$gemiddelde - $sigma]
+gmax=$[$gemiddelde + $sigma]
+
+!if ? isin $reply1
+    reply1=$dontknow
+    reply2=$dontknow
+    goback=0
+    maxscore=0
+    remark1=$NOK
+    remark2=$NOK
+    status=done
+    !if $teaching=1
+	!if $var8=0
+	data=line $var2,0,$gemiddelde,0,blue,140,4\
+	arrow $gemiddelde,0,$gemiddelde,-3.65,0.05,blue,140,4\
+	dline $var2,1,$gmax,1,blue,140,4\
+	dline $gmax,1,$gmax,-3.65,blue,140,4\
+	userdraw fcircle\
+	clickcolor orange,100
+	!appendfile getfile/1.data $data	
+	!else
+	    object$n=!exec canvasdraw\
+	    $var9\
+	    linewidth 2\
+	    segment $var2,0,$gemiddelde,0,blue\
+	    arrow2 $gemiddelde,0,$gemiddelde,-3.65,8,blue\
+	    dashtype 4,4\
+	    dsegment $var2,1,$gmax,1,blue\
+	    dsegment $gmax,1,$gmax,-3.65,blue\
+	    
+	!endif
+    !endif
+    !exit
+!endif
+# answer$n=sigma,gemiddelde
+# reply$n=sigma,gemiddelde,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,x7,y7,x8,y8
+# dus : 4 lijnstukken 8 punten 16 items
+# var1 is klassebreedte
+yrep=<ul>
+!if $counter=1
+    # de lijn is $(answer$n)
+    # de punten moeten op deze lijn liggen
+    x1=!item 1 of $reply1
+    y1=!item 2 of $reply1
+    x2=!item 3 of $reply1
+    y2=!item 4 of $reply1
+    
+    y11=!evalsubst x=$[$x1 - $delta_x] in $answer1
+    y12=!evalsubst x=$[$x1 + $delta_x] in $answer1
+    y13=!evalsubst x=$[$x1 - 2*$delta_x] in $answer1
+    y14=!evalsubst x=$[$x1 + 2*$delta_x] in $answer1
+
+    y21=!evalsubst x=$[$x2 - $delta_x] in $answer1
+    y22=!evalsubst x=$[$x2 + $delta_x] in $answer1
+    y23=!evalsubst x=$[$x2 - 2*$delta_x] in $answer1
+    y24=!evalsubst x=$[$x2 + 2*$delta_x] in $answer1
+    
+    score1=0
+    score2=0
+    !ifval $y1 > $y11 and $y1 < $y12
+	score1=1
+	k1=green
+    !else
+	!ifval $y1 > $y13 and $y1 < $y14
+	    score1=0.5
+	    k1=orange
+	!else
+	    k1=red
+	!endif
+    !endif 
+    !ifval $y2 > $y21 and $y2 < $y22
+	score2=1
+	k2=green
+    !else
+	!ifval $y2 > $y23 and $y2 < $y24
+	    score2=0.5
+	    k2=orange
+	!else
+	    k2=red
+	!endif
+    !endif
+    
+    maxscore=$[$maxscore*($score1+$score2)/2]
+    !if $maxscore=1
+	k=green
+	extra=!record 29 of lang/remarks.$taal
+	#@De lijn door de twee punten is prima getekend !
+    !else
+	!if $maxscore >0.4
+	    k=orange
+	    extra=!record 30 of lang/remarks.$taal
+	    #@De lijn door de twee punten is te onnauwkeurig getekend...
+	!else
+	    k=red
+	    extra=!record 31 of lang/remarks.$taal
+	    #@De lijn door de twee punten is niet goed getekend !
+	!endif
+    !endif
+	
+    yrep=!append word $ <li><b>( <font color=$k1> $x1 : $y1</font> )</b></font></li><li><b>( <font color=$k1> $x2 : $y2</font> )</b></font></li><li>$extra</li> $ to $yrep
+    
+    !if $var8=0
+	data=points $x1,$y1,$x2,$y2,$k,180,12\
+	linewidth 4
+	!appendfile getfile/1.data $data
+    !else
+	var9=!append line $ line $x1,$y1,$x2,$y2,$k $ to $var9
+    !endif
+!else
+    rep1=!line 1 of $(reply$n)
+    rep2=!line 2 of $(reply$n)
+    rep3=!line 3 of $(reply$n)
+
+    !ifval $rep1 > $[$sigma-$delta_x] and $rep1 < $[$sigma+$delta_x] 
+	score1=1
+	k1=green
+    !else
+	!ifval $rep1 > $[$sigma-2*$delta_x] and $rep1 < $[$sigma+2*$delta_x] 
+	    score1=$P6
+	    k1=orange
+	!else
+	    score1=0
+	    k1=red
+	!endif
+    !endif
+
+    !ifval $rep2 > $[$gemiddelde-$delta_x] and $rep2 < $[$gemiddelde+$delta_x] 
+        score2=1
+	k2=green
+    !else
+	!ifval $rep2 > $[$gemiddelde-2*$delta_x] and $rep2 < $[$gemiddelde+2*$delta_x] 
+	    score2=$P6
+	    k2=orange
+	!else
+	    !ifval $rep2 > $[($gemiddelde-$delta_x)/1000] and $rep2 < $[($gemiddelde+$delta_x)/1000] 
+		score2=1
+		k2=green
+		rep2=$rep2 <b>kg ???</b>...hmmmm
+	    !else
+		!ifval $rep2 > $[1000*($gemiddelde-$delta_x)] and $rep2 < $[1000*($gemiddelde+$delta_x)] 
+		    score2=1
+		    k2=green
+		    rep2=$rep2 <b>mg ???</b>...hmmmm
+		!else
+		    score2=0
+		    k2=red
+		!endif
+	    !endif
+	!endif
+    !endif
+    sometxt=!record 24 of lang/remarks.$taal
+    #Gemiddelde,gewicht in grammen,Grafiek,Standaardafwijking,Gemiddelde
+    txt3=!item 3 of $sometxt
+    txt4=!item 4 of $sometxt
+    txt5=!item 5 of $sometxt
+    
+    yrep=!append line <li>$txt4  = <font color=$k1>$rep1</font></li><li>$txt5 = <font color=$k2>$rep2</font></li> to $yrep
+
+    # gemiddelde in grafiek
+    score3=0
+    # sigma in grafiek
+    score4=0
+    # javascript checkt op juiste aantal coordinaten
+    k3=red
+    k4=red
+    your_data=$empty
+    !for p=1 to 15 step 2
+	x=!item $p of $rep3
+        y=!item $[$p+1] of $rep3
+	# y = 0 + y = 1 --> x = gem + sigma
+        # y = 0 + y =-1 --> x = gem - sigma
+	your_data=!append item $x,$y to $your_data
+	!if $score3=0
+	    !ifval $y > - 0.05 and $y < 0.05
+		!ifval $x > $[$gemiddelde - $delta_x] and $x < $[$gemiddelde + $delta_x]
+		    score3=1
+		    k3=green
+		!endif
+	    !endif  
+    	!endif
+	!if $score4=0
+	    # onderste sigma y=-1 : nauwkeurigheid +/- 0.05
+	    !ifval $y > - 1.05 and $y <-0.95
+		!ifval $x > $[$gmin - $delta_x] and $x < $[$gmin + $delta_x]
+		    score4=1
+		    k4=green
+		!endif
+	    !endif
+	!endif
+        !if $score4=0  
+	    # bovenste sigma y=1 : nauwkeurigheid +/- 0.05
+	    !ifval $y > 0.95 and $y < 1.05
+		!ifval $x > $[$gmax - $delta_x] and $x < $[$gmax + $delta_x]
+		    score4=1
+		    k4=green
+		!endif
+	    !endif  
+	!endif
+    !next p
+    
+    yrep=!append line <li>$txt3 : <span style="color:$k4"> $txt4 </span></li><li>$txt3 : <span style="color:$k3"> $txt5 </span></li> to $yrep
+
+    maxscore=$[$maxscore*($score1+$score2+$score3+$score4)/4]
+    
+    !if $var8=0
+	data=line $var2,0,$gemiddelde,0,blue,140,4\
+	arrow $gemiddelde,0,$gemiddelde,-3.65,0.05,blue,140,4\
+	dline $var2,1,$gmax,1,blue,140,4\
+	dline $gmax,1,$gmax,-3.65,blue,140,4\
+	userdraw fcircle\
+	clickcolor orange,100
+	
+	!appendfile getfile/1.data $data
+    !else
+	your_segments=$empty
+	!for p=1 to 16 step 4
+	    x1=!item $p of $your_data
+	    y1=!item $[$p+1] of $your_data
+	    x2=!item $[$p+2] of $your_data
+	    y2=!item $[$p+3] of $your_data
+	    your_segments=!append line segment $x1,$y1,$x2,$y2,red to $your_segments
+	!next p
+	object$n=!exec canvasdraw\
+	$var9\
+	linewidth 2\
+	segment $var2,0,$gemiddelde,0,blue\
+	arrow2 $gemiddelde,0,$gemiddelde,-3.65,8,blue\
+	dashtype 4,4\
+	dline $var2,1,$gmax,1,blue\
+	dline $gmax,1,$gmax,-3.65,blue\
+	linewidth 2\
+	points red,$your_data\
+	$your_segments
+	
+    !endif
+    textanswer1=$empty
+
+!endif
+
+reply$n=!append line </ul> to $yrep
+modulescore=$[$modulescore + $maxscore]
+!ifval $maxscore = 1
+    remark$n=$OK
+!else
+    !if $maxscore>0
+	remark$n=$BOK
+    !else
+    	remark$n=$NOK
+    !endif	
+!endif
+
+goback=0
+
+!exit

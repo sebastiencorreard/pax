@@ -1,0 +1,139 @@
+questiontype=0
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+insplot_data=$empty
+mathview=4
+image=0
+wordmax=30
+math=0
+cols=20
+embed=1
+rows=1
+## checkfile
+!if $rounding=-1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+checkfile=exos/checkfile3.proc
+varlist=$empty
+arglist=$empty
+varcnt=0
+##
+xlabel=x
+ylabel=y
+exotext=$empty
+helptext=!record 28 of lang/remarks.$taal
+!if $rounding <1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $R=1
+    a=!randitem -3,-2,-1,0,1,2
+    x1=!randitem 0,1,4
+    x1=$[$x1+$a]
+    delta=!randint 1,10
+    delta=$[$delta/100]
+    x2=$[$x1+$delta]
+    d=!randitem 1,2,3,4
+    !if $a=0
+	functie=$d*sqrt(x)
+	f=x
+    !else
+	functie=$d*sqrt(x-($a))
+	f=!rawmath x-$a
+    !endif
+    y1=$[$d*sqrt($x1-$a)]
+    y2=$[$d*sqrt($x2-$a)]
+    #formula$n=f\left( x \right) = $d \cdot \sqrt{$f}
+    formula$n=\left[ \begin{array}{l} f \left( x \right) = $d \cdot \sqrt{$f} \\ x \in \left[ $x1 ; $x2 \right] \\ \frac{\Delta y}{ \Delta x}  = [?] \end{array} \right.
+    
+    
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    te=!line 2 of $tot
+    rnd=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1}  = \frac{$y2-$y1}{$x2-$x1}\simeq $tex \simeq $rnd
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+    applettext=!nospace {vlist(f(x)=$d*sqrt($f),.,x isin [ $x1 : $x2 ] )} -> dy/dx =
+!endif
+!if $R=2
+    x1=!randitem 0,1,2,3,4
+    delta=!randint 1,10
+    delta=$[$delta/100]
+    x2=$[$x1+$delta]
+    a=!randitem 1,2,3
+    b=!randitem 8,9,10
+    c=!randitem -1,-2
+    functie=$c*(x-($a))*(x-($b))
+    keuze=!randitem 1,0
+    !if $keuze=0
+	formula$n=f\left( x \right) = $c \cdot \left( x-$a \right)\left( x-$b \right)
+    !else
+	tot=!exec pari A=($functie)\
+	printtex(A)
+	functie=!line 1 of $tot
+	f=!line 2 of $tot
+	formula$n=f\left( x \right) = $f
+    !endif
+    applettext=!nospace {vlist(f(x)=$functie,.,x isin [ $x1 : $x2 ] )} -> dy/dx =
+    y1=$[$c*($x1-$a)*($x1-$b)]
+    y2=$[$c*($x2-$a)*($x2-$b)]
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    rnd=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} =  \frac{f($x2) - f($x1)}{$x2 - $x1} =\frac{$y2-$y1}{$x2-$x1}=$tex \simeq $rnd
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+!endif
+!if $R>2
+    x1=!randitem 0,1,2,3,4
+    delta=!randint 1,10
+    delta=$[$delta/100]
+    x2=$[$x1+$delta]
+    a=!randitem 1,2,3
+    b=!randitem 8,9,10
+    c=!randitem -1,-2,1,2
+    d=!randitem 7,8,9,10,11,12
+    functie=$c*x*(x-$a)*(x-$b)+$d
+    keuze=!randitem 1,0
+    !if $keuze=0
+	formula$n=f\left( x \right) = $c \cdot x \cdot \left( x-$a \right)\left( x-$b \right) + $d
+    !else
+	tot=!exec pari A=(($c)*x*(x-($a))*(x-($b))+($d))\
+	printtex(A)
+	functie=!line 1 of $tot
+	f=!line 2 of $tot
+	formula$n=f\left( x \right) = $f
+    !endif
+    applettext=!nospace {vlist(f(x)=$functie,.,x isin [ $x1 : $x2 ] )} -> dy/dx =
+    y1=$[$c*$x1*($x1-$a)*($x1-$b)+$d]
+    y2=$[$c*$x2*($x2-$a)*($x2-$b)+$d]
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    rnd=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1}  = \frac{$y2-$y1}{$x2-$x1}=$tex \simeq$rnd
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+!endif

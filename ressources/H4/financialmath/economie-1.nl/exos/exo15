@@ -1,0 +1,74 @@
+# Macro-economie II
+n=$counter
+mathview=0
+checkfile=exos/precheck1.proc
+var1=yes
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding <1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+make_tr=1
+questiontype=0
+embed=0
+cols=10
+rows=2
+
+helptext=Keynesiaanse basismodel:<ul><li>C = particuliere consumptie</li><li>Y = nationaal inkomen</li><li>Y<sub>L</sub> = looninkomen</li><li>Y<sub>O</sub> = overigeinkomen</li><li>S = spaargeld</li><li>I = inversteringsvraag van bedrijven </li><li>W = nationaal product</li><li>EV = effectieve vraag</li><li>We veronderstellen dat I onafhankelijk is van het nationaal inkomen Y</li></ul>
+
+c1=!randint 10,18
+c1=$[$c1/20]
+c2=!randint 10,18
+c2=$[$c2/20]
+
+b=!randint 2,18
+b=$[5*$b]
+i=!randint 4,18
+i=$[5*$i]
+
+cc1=$[1-$c1]
+cc2=$[1-$c2]
+a1=$[$c2*$c1+$cc1*$cc2]
+a2=$[$c1*$cc2]
+a3=$[$a1+$a2]
+a4=$[1-$a3]
+ib=$[$i+$b]
+R=1
+cols=8
+!if $R=1
+    ss=Gegeven is het onderstaande model van een <kbd>gesloten economie</kbd> zonder collectieve sector.<br />Beantwoord de onderstaande 4 vragen.<br />Let op: reken zover mogelijk door met onafgeronde tussenstappen !!
+
+    tot=!exec pari A1=$ib/($a4)\
+    A2=$cc2*$ib/($a4)\
+    A3=$c1*$cc2*$ib/($a4) + $i\
+    A4=$a1*$ib/($a4) + $b\
+    round($rounding*A1)/$rounding\
+    round($rounding*A2)/$rounding\
+    round($rounding*A3)/$rounding\
+    round($rounding*A4)/$rounding
+    
+    !for p=1 to 4
+	ans$p=!line $p of $tot
+	rans$p=!line $[$p+4] of $tot
+	rans$p=$[$(rans$p)]
+    !next p
+    
+    formula$n=\left[ \begin{array}{l} C = $c1 Y_{L} + $cc1 Y_{OV} + $b \; \textrm{ ( in miljarden }\; \euro)  \\ Y  =  Y_{L} +  Y_{OV} \\ Y_{L} = $c2  Y \\ I =  $c1 Y_{OV} + $i \; \textrm{( in miljarden  }\; \euro )  \\ Y = C+I \end{array} \right.
+     
+    texanswer$n=\left[ \begin{array}{l} 1) \: C = $c1 \cdot $c2 \cdot Y + $cc1 \cdot $cc2 Y + $b \rightarrow C = $a1 \cdot Y + $b \\  I = $c1 \cdot $cc2 \cdot Y + $i \rightarrow  I =  $a2 \cdot Y + $i \\ Y = C + I \\  Y = $a1 \cdot Y + $b  + $a2 \cdot Y + $i = $a3 \cdot Y + $ib \\  $a4 \cdot Y = $ib \rightarrow \overline{Y} = \frac{$ib}{$a4} \simeq $rans1 \\  \\  2)\; Y_{OV} = $cc2 \cdot \frac{$ib}{$a4} \simeq $rans2 \\ 3)\: I = $c1 \cdot $cc2 \cdot \frac{$ib}{$a4} + $i \simeq $rans3 \\ 4)\: C = $a1 \cdot \frac{$ib}{$a4}  + $b \simeq $rans4 \end{array} \right.
+    
+    inputs=4
+    description=Bereken het <kbd>evenwichtsinkomen</kbd>,Bereken de hoogte van het <kbd>overige inkomen</kbd>,Bereken de omvang van de <kbd>investeringen</kbd>,Bereken de omvang van de <kbd>consumptieve uitgaven </kbd>
+    ex1=&times;10<sup>9</sup>&nbsp;&euro;
+    ex2=&times;10<sup>9</sup>&nbsp;&euro;
+    ex3=&times;10<sup>9</sup>&nbsp;&euro;
+    ex4=&times;10<sup>9</sup>&nbsp;&euro;
+    answer$n=$ans1,$ans2,$ans3,$ans4
+!endif
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>

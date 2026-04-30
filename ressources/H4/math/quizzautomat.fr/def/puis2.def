@@ -1,0 +1,116 @@
+!set title=Ordre de grandeur et opérations
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=skill_calculate
+computeanswer=yes
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 7
+
+val7=$[rint($(tmp0))]
+tmp0=!randint (0.75*10^$val6), (1.25*10^$val6)
+
+val8=$[rint($(tmp0))]
+tmp0=!randint (0.75*10^$val7), (1.25*10^$val7)
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3
+
+val10=$[rint($(tmp0))]
+val11=$val8 \times $val9,\frac{$val8}{$val9},$val8^2
+val12=10^($val6+$val7),10^($val6-$val7),10^(2*$val6)
+val13=$[rint($val6+$val7)]
+val14=$[rint($val6-$val7)]
+val15=$[rint($val6*2)]
+tmp=!trim 10^$val6 \times 10^$val7,\frac{10^$val6}{10^$val7},(10^$val6)^2	10^{$val6+$val7},10^{$val6-$val7},10^{2\times$val6}	10^$val13,10^$val14,10^$val15
+val16=!translate internal $	\
+$ to ;; in $tmp
+replytype1=numeric
+replyname1=Ordre de grandeur 
+replygood1=$[$(val12[$val10])]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Donner un ordre de grandeur sous la forme 10<sup>n</sup> de 
+!insmath $(val11[$val10])
+$().	<div class="wims_instruction">10<sup>n</sup> s'écrit 10^n.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val8\simeq 10^$val6
+$() 
+!if $val10<3 
+$()et 
+!insmath $val9\simeq 10^$val7
+$() 
+!endif
+$() donc un ordre de grandeur 	de 
+!insmath $(val11[$val10])
+$() est 
+!insmath $(val16[1;$val10])=$(val16[2;$val10])=$(val16[3;$val10])
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,16
+embedcnt=0

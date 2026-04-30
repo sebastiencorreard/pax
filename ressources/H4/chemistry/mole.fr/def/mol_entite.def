@@ -1,0 +1,131 @@
+!set title=quantité de matière et entité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Minne,Romain
+email=romain.minne@wanadoo.fr
+keywords=chimie,mole,masse,molaire,concentration,dilution,atom,periodic_table,molecules
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=c,r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(0)]
+tmp0=!random 1, 5
+
+val7=$[$(tmp0)]
+val8=$[round($val7*10)/10]
+tmp0=!randint 21, 23
+
+val9=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val8,2 
+tmp0=$slib_out
+val8=$(tmp0)
+val10=
+tmp0=!replace e+00 by $val10 in $val8
+
+val8=$(tmp0)
+val11=$[$val8*1e+$val9/6.02e23]
+!readproc slib/text/sigunits $val11,3 
+tmp0=$slib_out
+val11=$(tmp0)
+oefsteps=c1	r1 
+nextstep=!nosubst c1	r1 
+!readproc oef/steps.proc
+replytype1=sigunits
+replyname1=la quantité de matière est
+replygood1=$val11 mol#2
+choicename1=
+choicegood1=n=N/Na
+choicebad1=n=m/M ,n=V/Vm , C=n/V, CmèreVmère=CfilleVfille 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">Un fil de cuivre contient $val8 
+!insmath 10^$val9
+$()atomes.	Choisir la bonne formule puis calculer la quantité de matière contenue	dans l'échantillon.			
+!if $m_step=1 
+$()	Choisissez votre formule : 	 
+!read oef/embed.phtml choice 1 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="spacer">Vous avez choisi la formule : 
+!insmath n= \frac{N}{Na}
+$().</div>	Calculer la quantité de matière contenue dans l'échantillon.	<div>La quantité de matière contenue dans l'échantillon est m= 
+!read oef/embed.phtml r1 
+$()</div>	 
+!endif
+$()	
+!if $val6=1 
+$()	<h3>debug mode</h3>	Réponses : n= $val11 mol	 
+!endif
+$()	</div>	<div class="wims_instruction">	<div class="spacer">Consignes : </div> 	<ul class="wims_nopuce">	<li>on tiendra compte des chiffres 	significatifs et des unités.</li> 	<li>La puissance de 10: <i>
+!insmath 10^-1
+$()</i> s'écrit e-1 et l'unité <i>g
+!insmath *mol^-1
+$()</i> s'écrit g/mol.</li>	</ul></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,11
+embedcnt=2

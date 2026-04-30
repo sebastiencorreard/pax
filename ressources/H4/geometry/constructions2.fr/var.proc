@@ -1,0 +1,61 @@
+!! no need for translation
+
+!if $cmd=reply and $status!=waiting
+    error=double_reply
+    !exit
+!endif
+	 
+!!! CHECK GEOGEBRA FIGUR 
+
+!if $cmd=reply and $counter=1 
+    # generic appletcheckfile
+    !readproc check.proc
+
+    !if $try > $maxtry
+	# not seriously practicing
+	REMARK=!record 14 of remarks.$taal
+	module_score=1
+	status=done
+	!exit
+    !endif
+    
+    # specific checkfile (variable $checkfile is set in "exercises")
+    !readproc $checkfile
+    
+    !if $goback=1
+	# something wrong: give back exercise with a remark $REMARK
+	goback=0
+	!exit
+    !else
+	# we have completed the GGB construction 
+	result1=$REMARK
+	ahint1=$HINT
+        !increase counter
+	 module_score=$[(round(100*$score/$tasks))/10]
+         !if $module_score=0
+             status=done
+             !exit
+         !endif
+     !endif
+!endif
+!!!! END COUNTER=1 (GEOGEBRA)
+
+
+!!!! counter=2: ask for construction protocol and done
+
+!if  $status=waiting and $counter=2   
+           REMARK=!record 57 of remarks.$taal
+           result2=$REMARK
+          !advance counter    
+!endif
+
+
+!if $counter=3 and $but=$submittext 
+               status=done
+               REMARK=!record 58 of remarks.$taal
+               result2=$REMARK                 
+!endif
+											    
+											    
+											    
+											    

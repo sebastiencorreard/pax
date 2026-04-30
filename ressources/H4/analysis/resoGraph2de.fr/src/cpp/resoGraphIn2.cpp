@@ -1,0 +1,364 @@
+target=resoGraphIn2
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+/** version de nov 2004 **/
+/** six cas d'études pour les courbes **/
+
+\integer{cas=random(1..6)}
+\integer{xsize=4*random(2..4)}
+\integer{ysize=4*random(2..4)}
+\integer{sign=random(-1,1)}
+\integer{u=0.25*\ysize}
+\integer{v=0.5*\ysize}
+\integer{w=0.75*\ysize}
+
+/** valeurs par défaut **/
+
+\integer{a1=-\xsize}
+\integer{b1=random(-\v..\v)}
+\integer{a3=random(0.25*\xsize..0.75*\xsize)}
+\integer{b3=random(-\v..\v)}
+\integer{a4=\xsize}
+
+\text{courbef=\name_courbe[1]}
+\text{courbeg=\name_courbe[1]}
+\text{dot=.}
+
+/** casrel==0 pour inégalité stricte ; casrel==1 sinon **/
+\integer{casrel=random(0,1)}
+
+/** cas 1 : f droite (A1A4) passant par A3 et g arc parabole (A'1A3A'4) **/
+
+\integer{a3=\cas==1?random(-0.5*\xsize..0.5*\xsize)}
+\integer{b1=\cas==1?\sign*random(0..\v)}
+\integer{b4=\cas==1?(-\sign)*random(0..\v)}
+\function{f=\cas==1?\b1*(x-\a4)/(\a1-\a4) + \b4*(x-\a1)/(\a4-\a1)}
+
+\rational{b3=\cas==1?evaluate(\f,x=\a3)}
+\integer{d1=\cas==1?random(\b1-\sign ..-\sign*\v)}
+\integer{d4=\cas==1?random(\b4+\sign ..\sign*\v)}
+
+\function{g=\cas==1?\d1*(x-\a3)*(x-\a4)/((\a1-\a3)*(\a1-\a4)) + \b3*(x-\a1)*(x-\a4)/((\a3-\a1)*(\a3-\a4))+ \d4*(x-\a1)*(x-\a3)/((\a4-\a3)*(\a4-\a1))}
+
+\text{soleq=\cas==1?\a3}
+\text{ysoleq=\cas==1?\b3}
+\text{labelf=\cas==1?\a1,\b1}
+\text{labelg=\cas==1?\a1,\d1-\sign*0.5}
+\text{courbef=\cas==1?\name_courbe[2]}
+
+/** cas 2 : g cubique (A1 A2 A3 A4) et f parabole (A1 A3 A4') **/
+/** cas 3 : f cubique (A1 A2 A3 A4) et g droite (A1 A3) **/
+
+\integer{a1=\cas==2 or \cas==3?random(-0.75*\xsize..-0.25*\xsize)}
+\rational{a2=\cas==2 or \cas==3?-\xsize}
+\integer{b1=\cas==2 or \cas==3?(\sign)*random(0..\v-1)}
+\integer{b3=\cas==2 or \cas==3?(-\sign)*random(0..\v-1)}
+/** h droite (A1A3) **/
+\function{h=\cas==2 or \cas==3?\b1*(x-\a3)/(\a1-\a3) + \b3*(x-\a1)/(\a3-\a1)}
+\rational{h4=\cas==2 or \cas==3?evaluate(\h,x=\a4)}
+\rational{h2=\cas==2 or \cas==3?evaluate(\h,x=\a2)}
+\rational{b2=\cas==2 or \cas==3?\h2-\sign*random(1..\v-2)}
+\rational{b4=\cas==2 or \cas==3?\h4-\sign*random(1..\v-2)}
+\rational{d4=\cas==2 or \cas==3?\h4+\sign*random(1..\v-2)}
+
+\function{g=\cas==2?\b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \b2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+
+\function{f=\cas==2?\b1*(x-\a3)*(x-\a4)/((\a1-\a3)*(\a1-\a4)) + \b3*(x-\a1)*(x-\a4)/((\a3-\a1)*(\a3-\a4))+ \d4*(x-\a1)*(x-\a3)/((\a4-\a3)*(\a4-\a1))}
+
+\function{g=\cas==3? \h}
+\function{f=\cas==3? \b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \b2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+
+\text{soleq=\cas==2 or \cas==3?\a1,\a3}
+\text{ysoleq=\cas==2 or \cas==3?\b1,\b3}
+\text{labelg=\cas==2?\a2,\b2-\sign*0.5}
+\text{labelf=\cas==3?\a2,\b2-\sign*0.5}
+\text{labelf=\cas==2?\a4-2,\d4}
+\text{labelg=\cas==3?\a2,\h2}
+\text{courbeg=\cas==3?\name_courbe[2]}
+
+/** cas 4 : g parabole (A1 A3 A4) et f parabole A1 A3 et A'4 inversées et ventrues **/
+
+\integer{a1=\cas==4?random(-0.75*\xsize..-0.25*\xsize)}
+\integer{b3=\cas==4?(-\sign)*random(\u..\v)}
+\integer{b1=\cas==4?\sign*random(0..\u)}
+\integer{b4=\cas==4?\sign*random(0..\u)}
+\integer{d4=\cas==4?\b3-\sign*random(2..\v)}
+\function{g=\cas==4?\b1*(x-\a3)*(x-\a4)/((\a1-\a3)*(\a1-\a4)) + \b3*(x-\a1)*(x-\a4)/((\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a3)/((\a4-\a3)*(\a4-\a1))}
+\function{f=\cas==4?\b1*(x-\a3)*(x-\a4)/((\a1-\a3)*(\a1-\a4)) + \b3*(x-\a1)*(x-\a4)/((\a3-\a1)*(\a3-\a4))+ \d4*(x-\a1)*(x-\a3)/((\a4-\a3)*(\a4-\a1))}
+\text{soleq=\cas==4?\a1,\a3}
+\text{ysoleq=\cas==4?\b1,\b3}
+\text{labelf=\cas==4?\a4-2,\d4}
+\text{labelg=\cas==4?\a1-1,\b1}
+
+/** cas 5 : f arc parabole A1 A2 A4 croisant arc parabole g A1' A2 et A4' de même sens **/
+
+\integer{u=\cas==5?\v}
+\integer{a2=\cas==5?random(-0.5*\xsize..0.5*\xsize)}
+\integer{b2=\cas==5?\sign*random(1..\u)}
+\integer{b1=\cas==5?\b2-\sign*random(1..\u)}
+\integer{d1=\cas==5?\b1+\sign*random(1..\u-1)}
+\integer{b4=\cas==5?\b2-\sign*random(1..\u)}
+\integer{d4=\cas==5?\b4-\sign*random(1..\u-1)}
+
+\function{f=\cas==5? \b2*(x-\a1)*(x-\a4)/((\a2-\a4)*(\a2-\a1))+ \b1*(x-\a2)*(x-\a4)/((\a1-\a2)*(\a1-\a4)) + \b4*(x-\a1)*(x-\a2)/((\a4-\a2)*(\a4-\a1))}
+
+\function{g=\cas==5? \b2*(x-\a1)*(x-\a4)/((\a2-\a4)*(\a2-\a1))+ \d1*(x-\a2)*(x-\a4)/((\a1-\a2)*(\a1-\a4)) + \d4*(x-\a1)*(x-\a2)/((\a4-\a2)*(\a4-\a1))}
+
+\text{soleq=\cas==5?\a2}
+\text{ysoleq=\cas==5?\b2}
+\text{labelf=\cas==5?\a1,\b1}
+\text{labelg=\cas==5?\a1,\d1}
+
+/** cas 6 : g cubique (A2 A1 A3 A4) et f cubique (A2 A1 A3' A4') **/
+\integer{xsize=\cas==6?4*random(3,4)}
+\integer{ysize=\cas==6?\xsize+4}
+\integer{a1=\cas==6?random(-0.75*\xsize..-0.25*\xsize)}
+\integer{a3=\cas==6?random(0.25*\xsize..0.75*\xsize)}
+\integer{a2=\cas==6?-\xsize}
+\integer{a4=\cas==6?\xsize}
+\integer{b2=\cas==6?\sign*random(0.25*\xsize..0.5*\xsize)}
+\integer{b1=\cas==6?\sign*random(0.5*\xsize..0.75*\xsize)}
+\integer{b3=\cas==6?-\sign*random(0.5*\xsize..0.75*\xsize)}
+\integer{b4=\cas==6?-\sign*random(0.25*\xsize..0.5*\xsize)}
+\integer{d2=\cas==6?-\sign*random(0.25*\xsize..0.5*\xsize)}
+\integer{d4=\cas==6?-\sign*random(0.75*\xsize..\xsize)}
+
+\function{g=\cas==6?\b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \b2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+
+\function{f=\cas==6?\b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \d2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \d4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+
+\text{soleq=\cas==6?\a1,\a3}
+\text{ysoleq=\cas==6?\b1,\b3}
+\text{labelf=\cas==6?\a2,\d2-\sign*0.5}
+\text{labelg=\cas==6?\a2,\b2+\sign*0.5}
+
+/** liste des choix de réponse **/
+
+\integer{n=items(\soleq)}
+
+\text{ens1a=[-\xsize, \soleq[1]]}
+\text{ens1b= &#91; -\xsize &#44; \soleq[1] &#91; }
+
+\text{ens2a= \n==1? [\soleq[1], \xsize]: [\soleq[1], \soleq[2]]}
+\text{ens2b= \n==1? &#93;\soleq[1] &#44; \xsize&#93; : &#93;\soleq[1] &#44; \soleq[2] &#91;}
+\text{ens3a= \n==1? {\soleq[1]}:[\soleq[2], \xsize]}
+\text{ens3b= \n==1?\(\,\emptyset): &#93; \soleq[2] &#44; \xsize &#93;}
+\text{ens4 = [-\xsize, \xsize]}
+\text{I1=<i>I</i><sub>1</sub>}
+\text{I2=<i>I</i><sub>2</sub>}
+\text{I3=<i>I</i><sub>3</sub>}
+\text{I4=<i>I</i><sub>4</sub>}
+\text{I5=<i>I</i><sub>5</sub>}
+\text{I6=<i>I</i><sub>6</sub>}
+\text{I7=<i>I</i><sub>7</sub>}
+
+\text{choixint=\ens1a,\ens1b,\ens2a,\ens2b,\ens3a,\ens3b,\ens4}
+\text{choix1=\I1,\I2,\I3,\I4,\I5,\I6,\I7}
+
+\real{xmil=\n==2?0.5*(\soleq[1]+\soleq[2])}
+\real{fxmin=evaluate(\f,x=-\xsize)}
+\real{gxmin=evaluate(\g,x=-\xsize)}
+\real{fxmax=evaluate(\f,x=\xsize)}
+\real{gxmax=evaluate(\g,x=\xsize)}
+\real{fxmil=\n==2?evaluate(\f,x=\xmil)}
+\real{gxmil=\n==2?evaluate(\g,x=\xmil)}
+
+/*****************************************************/
+/** liste des numéros des bonnes reponses **/
+\text{repsol=0}
+/** construction des bonnes réponses (en deux temps)**/
+\text{repsol=( \casrel==0 and \fxmin < \gxmin )?\repsol,2}
+\text{repsol=( \casrel==1 and \fxmin < \gxmin )?\repsol,1}
+\text{repsol=(\n==2 and \casrel==0 and \fxmil < \gxmil )?\repsol,4}
+\text{repsol=(\n==2 and \casrel==1 and \fxmil < \gxmil )?\repsol,3}
+\text{repsol=(\casrel==0 and \fxmax < \gxmax )?\repsol,simplify(2*\n+2)}
+\text{repsol=( \casrel==1 and \fxmax < \gxmax )?\repsol,simplify(2*\n+1)}
+/** si repsol=0 c'est que n=1 et courbe de f est tangente à l'autre par dessus ; ens. sol vide ou reduit au point de contact/**
+\text{repsol1=(\n==1 and \repsol==0 and \casrel==1)?5}
+\text{repsol1=(\n==1 and \repsol==0 and \casrel==0)?6}
+/** si courbe tangente au deuxieme point d'intersection **/
+
+/** eliminer le zéro restant dans repsol dans les autres cas **/
+\integer{l=items(\repsol)}
+\text{repsol1=\l>1?item(2..\l,\repsol)}
+/** si repsol1 =1,3 c'est que l'ens des sol. est l'ens de def. entier /**
+\text{repsol1=(\repsol1[1]==1 and \repsol1[2]==3)?7}
+
+/** pour écrire la solution S **/
+
+\integer{l=items(\repsol1)}
+\text{repsol2=(\l==1)?\choixint[\repsol1[1]] }
+\text{repsol2=(\l==2)?
+\choixint[\repsol1[1]] \(\cup) \choixint[\repsol1[2]]
+}
+
+/** preparation du feedback graphique **/
+
+\text{black=120,120,120}
+
+\text{ticks=text black,-1,-20,small,-20
+text black,-1,-15,small,-15
+text black,-1,-10,small,-10
+text black,-1,-5,small,-5
+text black,-1,5,small,5
+text black,-1,10,small,10
+text black,-1,15,small,15
+text black,-1,20,small,20
+text black,-10,-0.2,small,-10
+text black,-5,-0.2,small,-5
+text black,5,-0.2,small,5
+text black,10,-0.2,small,10
+linewidth 3
+point 0,1,black
+point 1,0,black
+point -10,0,black
+point -5,0,black
+point 5,0,black
+point 10,0,black
+point 0,-20,black
+point 0,-15,black
+point 0,-10,black
+point 0,-5,black
+point 0,5,black
+point 0,10,black
+point 0,15,black
+point 0,20,black
+}
+
+\text{coordseg1=(\l==1 and \repsol1[1]==7)?-\xsize,0,\xsize,0}
+\text{coordseg1=(\repsol1[1] isitemof 1,2)?-\xsize,0,\soleq[1],0}
+\text{coordseg1=(\n==1 and \repsol1[1] isitemof 3,4)?\soleq[1],0,\xsize,0}
+\text{coordseg1=(\n==2 and \repsol1[1] isitemof 3,4)?\soleq[1],0,\soleq[2],0}
+\text{coordseg2=(\n==1 and \repsol1[2] isitemof 3,4)?\soleq[1],0,\xsize,0}
+\text{coordseg2=(\n==2 and \repsol1[2] isitemof 5,6)?\soleq[2],0,\xsize,0}
+
+\integer{psize=(\casrel==0)?0:4}
+\integer{borne1=\soleq[1]}
+\integer{borne2=(\n==2)?\soleq[2]:\borne1}
+\text{diambornexclue=(\n==1 and \repsol1[1]==2 and \repsol1[2]==4)?10:0}
+
+\text{enonce1=wims(replace internal FFFF by \courbef in \name_enonce1)}
+\text{enonce1=wims(replace internal GGGG by \courbeg in \enonce1)}
+\statement{
+<div class="wims_columns">
+  <div class="medium_size img_col">
+  <div class="wimscenter">
+\draw{400,400}{
+xrange -\xsize,\xsize
+yrange -\ysize,\ysize
+parallel -\xsize,-\ysize,-\xsize,\ysize,1,0,2*\xsize+1,grey
+parallel -\xsize,-\ysize,\xsize,-\ysize,0,1,2*\ysize+1,grey
+hline 0,0,\black
+vline 0,0,\black
+arrow 0,0,1,0,8,\black
+arrow 0,0,0,1,8,\black
+text black,-0.5,-0.3,small,O
+text black,1,-0.3,small,I
+text black,-0.5,1,small,J
+\ticks
+text blue,\labelf,medium,y=f(x)
+text green,\labelg,medium,y=g(x)
+linewidth 1.5
+plot blue,\f
+plot green,\g}
+</div></div>
+<div class="medium_size text_col">
+\enonce1 [-\xsize, \xsize]. \name_enonce2[1]
+\if{\n==2}{\name_enonce2[2] \soleq[1] \name_and
+\soleq[2]}{\name_enonce2[3] \soleq}.
+<p>
+Soit \(\mathcal{S}\) l'ensemble des solutions de l'inéquation
+\( f(x)\) \if{\casrel==0}{\(<\)}{\(\leq\)} \(g(x)\) dans [-\xsize, \xsize].
+</p>
+<p>On définit les intervalles suivants :</p>
+<ul class="inline">
+  <li>\I1 = \ens1a</li>
+  <li>\I2 = \ens1b</li>
+  <li>\I3 = \ens2a</li>
+  <li>\I4 = \ens2b</li>
+  <li>\I5 = \ens3a</li>
+  <li>\I6 = \ens3b</li>
+  <li>\I7 = \ens4</li>
+</ul>
+\name_question \(\mathcal{S}\) ?
+<div class="wimscenter">\embed{reply1}</div>
+<div class="wims_instruction">\name_inst</div>
+</div></div>
+}
+
+\hint{\name_hint}
+\answer{\name_answer}{\repsol1 ; \choix1}{type=checkbox}
+
+\feedback{(\repsol1[1]== 1 and \I2 isitemof \reply1) or
+(\repsol1[1]== 3 and \I4 isitemof \reply1) or
+(\repsol1[2]== 1 and \I2 isitemof \reply1) or
+(\repsol1[2]== 3 and \I4 isitemof \reply1) or
+(\repsol1[2]== 5 and \I6 isitemof \reply1)}
+{<b>Explication.</b> Comme l'inégalité est large les abscisses des points d'intersection sont aussi solution.}
+
+\feedback{(\repsol1[1]== 2 and \I1 isitemof \reply1) or
+(\repsol1[1]== 4 and \I3 isitemof \reply1) or
+(\repsol1[2]== 2 and \I1 isitemof \reply1) or
+(\repsol1[2]== 4 and \I3 isitemof \reply1) or
+(\repsol1[2]== 6 and \I5 isitemof \reply1)}
+{<b>Explication.</b> Comme l'inégalité est stricte les abscisses des points d'intersection ne sont pas solution.}
+
+\feedback{(items(\reply1)>1 and \I7 isitemof \reply1)}{<b>
+Votre réponse contient une incohérence.</b> Si [-\xsize, \xsize] était <i>un plus grand </i> intervalle inclus dans l'ensemble des solutions, il serait le seul.}
+
+\feedback{(\n==1 and items(\reply1)>1 and \I6 isitemof \reply1)}{<b>
+ Votre réponse contient une incohérence.</b> Dire que l'ensemble vide
+ \(\,\emptyset\) est <i>un plus grand</i> intervalle inclus dans l'ensemble des solutions, signifie qu'il n'y a aucune solution. Dans ce cas aucun autre intervalle ne pourrait convenir.}
+
+\feedback{(\repsol1[1]==7 and \I7 notitemof \reply1)}{<b>Explication.</b> La courbe bleue est située entièrement en-dessous de la courbe verte. Donc
+ tout réel \(x) dans [-\xsize, \xsize] vérifie \(f(x) \le g(x)).}
+
+\feedback{\repsol1[1]==2 and \repsol1[2]==4 and (\I2 notitemof \reply1 or \I4 notitemof \reply1) }{<b>Explication.</b> La courbe bleue est située entièrement en-dessous de la courbe verte. Donc tout réel \(x) dans [-\xsize, \xsize] vérifie \(f(x) < g(x)) <i>sauf</i> l'abscisse du point d'intersection des courbes (il est solution de \(f(x) = g(x))).}
+
+\feedback{(\l==1 and \repsol1[1]==6 and \I6 notitemof \reply1 )}{<b>Explication.</b> La courbe bleue est située entièrement au-dessus de la courbe verte. Donc aucun réel \(x) dans [-\xsize, \xsize] ne vérifie \(f(x) < g(x)).}
+
+\feedback{(\l==1 and \n==1 and \repsol1[1]==5 and \I5 notitemof \reply1 )}{<b>Explication.</b> La courbe bleue est située entièrement au-dessus de la courbe verte. Donc le seul réel \(x) vérifiant \(f(x)) \le \(g(x)) est l'abscisse du point d'intersection des courbes (il est solution de \(f(x) = g(x))).}
+
+/** Affichage systematique de la solution et construction graphique **/
+
+\feedback{1==1}{<b>\name_sol</b> \name_feed[1],
+\name_feed[2] \(f(x))\if{\casrel==0}{\(<)}{\(\leq)} \(g(x)) \name_is : \(\mathcal{S}\) = \repsol2 .
+\(\mathcal{S}\) \name_feed[3]:
+<div class="wimscenter">
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange -\ysize,\ysize
+parallel -\xsize,-\ysize,-\xsize,\ysize,1,0, 2*\xsize+1, grey
+parallel -\xsize,-\ysize,\xsize,-\ysize,0,1, 2*\ysize+1, grey
+hline 0,0,\black
+vline 0,0,\black
+arrow 0,0,1,0,8,\black
+arrow 0,0,0,1,8,\black
+text black,-0.5,-0.3,small,O
+text black,1,-0.3,small,I
+text black,-0.5,1,small,J
+text blue,\labelf,medium,y=f(x)
+text green,\labelg,medium,y=g(x)
+linewidth 1.5
+plot blue,\f
+plot green,\g
+dsegment \soleq[1],\ysoleq[1],\soleq[1],0,red
+dsegment \soleq[2],\ysoleq[2],\soleq[2],0,red
+text red,\soleq[1],-0.5,small,\soleq[1]
+text red,\soleq[2],-0.5,small,\soleq[2]
+circle \borne1,0,\diambornexclue,red
+linewidth 2
+segment \coordseg1,red
+segment \coordseg2,red
+linewidth \psize
+point \borne1,0,red
+point \borne2,0,red}
+</div>
+}

@@ -1,0 +1,85 @@
+# Parameters
+rounding=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=1
+cols=20
+rows=2
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+embed=1
+cols=20
+rows=2
+mathview=4
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/new_number.proc
+arglist=p
+varlist=$empty
+#Gegeven is de familie van functies
+#Voor welke waarde van <em>p</em> gaat de grafiek door het punt ($x ; $y )?
+#Voor welke waarde van <em>p</em> is <em>x</em>=$asymp de verticale asymptoot van de grafiek van <em>f<sub>a</sub></em>?
+ss=!record 39 of lang/remarks.$taal
+
+!if $taal=fr or $lang=fr or $myvar1=1
+ g=!randitem 2,10
+ !if $g=2
+  LOG=\log_{$g}
+ !else
+  LOG=\log
+ !endif
+!else
+ g=!randitem 2,3,4,5
+ LOG=^{$g}\log
+!endif
+inputs=-1
+in1=\input{10}{0}{background-color:lightblue;color:red;font-size:1.2em;text-align:center}{?}{0}
+
+!if $R=1
+    
+    a=!randint 1,9
+    y=!randint 1,5
+    b=!randint 5,9
+    x=!randint 1,9
+    ss1=!record 40 of lang/remarks.$taal
+    tot=!exec pari A=($g^$y-$b)/$x\
+    printtex(A)
+
+    answer$n=!line 1 of $tot
+    ans_tex=!line 2 of $tot
+    tussen=!rawmath x + $b
+    #applettext=!nospace log[$g]($tussen) = $a ->
+    texanswer$n=\left[ \begin{array}{l} $y =^{$g} \log (\textrm{p} \cdot $x +$b) \\ $g^{$y}= $x \textrm{p} + $b \\  $[$g^$y] = $x \textrm{p} + $b \\ $[$g^$y - $b] = $x \textrm{p}  \\ \textrm{p} =$ans_tex \end{array} \right.
+    formula$n=\left\{ \begin{array}{lcl} f_{\textrm{p}}(x) & = & $LOG(\textrm{p} $tussen) \\ P & & ($x : $y ) \\  p & = & $in1 \end{array} \right.
+    applettext=!nospace f_p(x)=log[$g](p*x+$b) ->
+
+!else
+    ss1=!record 41 of lang/remarks.$taal
+    b=!randint 1,9
+    pm=!randitem 1,-1
+    b=$[$pm*$b]
+    p=!randint 1,15
+    mp=!randitem 1,-1
+    p=$[$mp*$p]
+    tot=!exec pari A=(-1*$b)/$p\
+    printtex(A)
+    tussen=!rawmath x + $b
+    answer$n=$p
+    asymp=!line 1 of $tot
+    asymp_tex=!line 2 of $tot
+    formula$n=\left[ \begin{array}{l} f_{\textrm{p}}(x)=$LOG(\textrm{p} $tussen) \\ x_{as}=$asymp_tex \end{array} \right.  \rightarrow p = $in1
+    applettext=!nospace f_p(x)=log[$g](p*x+$b) ->
+    texanswer$n=\left[ \begin{array}{l} \textrm{p} $tussen = 0  \\ $asymp_tex \textrm{p} = $[-1*$b]  \\ p = $p \end{array} \right.
+!endif
+
+applettext=!nospace f_p(x)=log[$g](p*x+$b) ->
+mathviewpanel=$module_title:p=:/
+question$n=$ss <br /> $ss1

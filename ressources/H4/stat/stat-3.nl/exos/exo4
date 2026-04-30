@@ -1,0 +1,122 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+formula$n=$empty
+image=0
+math=0
+mathview=0
+questiontyp=0
+var1=1
+# kans
+cols=10
+rows=1
+!if $rounding<100
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+helptext=!record 14 of lang/remarks.$taal
+kleuren=!record 16 of lang/remarks.$taal
+#@ rood,zwart
+exotext=$empty
+#!record 21 of lang/remarks.$taal
+#@ Bereken de Kans op ?
+kaarten=!record 22 of lang/remarks.$taal
+#@ klaver,harten,schoppen,ruiten
+!if $R=1
+    keuze=!randitem 1,2
+    !if $keuze=1
+	soort=!randitem $kleuren
+	answer$n=1/2
+	rr=!record 29 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ Er zijn maar twee kleuren...rood en zwart.<br />Van beide kleuren zitten er 26 in een pakje.<br />\
+	#@ De kans is dus fifty fifty. Dus de kans is 1/2.
+    !else
+	soort=!randitem $kaarten
+	answer$n=1/4
+	rr=!record 30 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ Er zitten vier soorten kaarten in een setje.<br />\
+	#@ Te weten: klaver,harten,schoppen en ruiten.<br />\
+	#@ Van alle vier soorten heb je er evenveel, nl. 13.<br />\
+	#@ De kans is dus 1/4. 
+    !endif
+    ss=!record 31 of lang/remarks.$taal
+    question$n=$ss
+    #@ Je hebt een volledig setje kaarten.<br />\
+    #@ Je schudt ze goed door elkaar en pakt vervolgens &eacute;&eacute;n kaart van het stapeltje.<br />\
+    #@ Hoe groot is de kans dat deze kaart $soort is ?
+ !exit
+!endif
+!if $R=2
+    t1=!randitem 3,4,5,6
+    keuze=!randitem 1,2
+    !if $keuze=1
+	soort=!randitem $kleuren
+	G=1
+	GG=1
+	!for p=1 to $t1
+	    G=$[$G*((27-$p)/(53-$p))]
+	    GG=$GG*($[27-$p]/$[53-$p])
+	!next p
+	answer$n=$G
+	textanswer$n=<b>P</b>($t1 $soort)=$GG=$G
+    !else
+	soort=!randitem $kaarten
+	G=1
+	GG=1
+	!for p=1 to $t1
+	    G=$[$G*((14-$p)/(53-$p))]
+	    GG=$GG*($[14-$p]/$[53-$p])
+	!next p
+	answer$n=$G
+	textanswer$n=<b>P</b>($t1 $soort)=$GG=$G
+    !endif
+    ss=!record 32 of lang/remarks.$taal
+    question$n=$ss
+    #@ Je hebt een volledig setje kaarten.<br />\
+    #@ Je schudt ze goed door elkaar en pakt vervolgens $t1 kaarten van het stapeltje.<br />\
+    #@ Hoe groot is de kans dat deze kaarten $soort zijn ?
+ !exit
+!endif
+!if $R>2
+    choice=!record 33 of lang/remarks.$taal
+    #@ groter,kleiner
+    k1=!item 2 of $choice
+    k2=!item 1 of $choice
+    # k2=groter k1=kleiner
+    kleiner=!randitem $choice
+    !if $kleiner=$k2
+	keuze=!randint 1,12
+    !else
+	keuze=!randint 2,13
+    !endif
+    ss=!record 34 of lang/remarks.$taal
+    question$n=$ss
+    #@ Je heb een volledig pakje kaarten.<br />\
+    #@ Elke kaart telt als z'n nummer. <br />\
+    #@ Verder geldt: een Boer=11,Vrouw=12,Heer=13 en een Aas=1</em></small><br />\
+    #@ Je schud ze goed door elkaar en pak vervolgens &eacute;&eacute;n kaart van het stapeltje<br />\
+    #@ Hoe groot is de kans dat die kaart $kleiner is als $keuze ?
+    !if $kleiner=$k1
+        answer$n=$[4*($keuze -1)/52]
+	rr=!record 35 of lang/remarks.$taal
+	#@ Je hebt 4 keer $[$keuze -1] kaarten kleiner dan $keuze . <br /> <font size=+1>P</font>(kaart&lt; $keuze)=$[4*($keuze -1)]/52= $(answer$n)
+    !else
+        answer$n=$[(52- 4*$keuze)/52]
+	rr=!record 36 of lang/remarks.$taal
+	#@ Je hebt 4 keer $[13 - $keuze] kaarten groter dan $keuze . <br /> <font size=+1>P</font>(kaart&gt; $keuze)=$[4*(13- $keuze)]/52= $(answer$n)
+    !endif
+    textanswer$n=$rr
+ !exit
+!endif

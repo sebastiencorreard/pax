@@ -1,0 +1,137 @@
+!set n=$counter
+questiontype=0
+image=0
+mathview=0
+
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+cols=10
+rows=1
+description=$youranswer
+var1=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif  
+!if $rounding<100
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif 
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+#!record 37 of lang/remarks.$taal
+#@ kaartleggen, bereken de kans met terugleggen.
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+lijst=!shuffle 2,3,4,5,15,16,17,18,28,29,30,31,41,42,43,44
+
+helptext=!record 14 of lang/remarks.$taal
+!if $R=1
+    kleuren=!record 98 of lang/remarks.$taal
+    #@ rode,zwarte
+    soorten=!record 38 of lang/remarks.$taal
+    #@ Azen,Koningen,Vrouwen,Boeren,Harten,Ruiten,Klaver,Schoppen
+    soort=!randitem $soorten
+    kleur=!randitem $kleuren
+    naam=!item 3 of $index
+    num=!item 2 of $index
+    gif=!item 1 of $index
+    gif=<img src="$module_dir/cards/$gif" alt="$gif" /> 
+    aantal=!randitem 2,3,4
+    keuze=!randitem 1,1,2
+    !if $keuze=1
+	kaart=$soort
+	answer$n=(1/4)^$aantal
+	GG=$[(round($rounding*$(answer$n)))/$rounding]
+	aa=!record 39 of lang/remarks.$taal
+	#@ We hebben in ons stapelje 16 kaarten.<br />\
+	#@ Hierin zitten vier $soort .<br />\
+	#@ de kans op bijvoorbeeld &acute;&eacute;n van de $aantal is 1/4<br />\
+	#@ De kans op $aantal is dan (1/4)<sup>$aantal</sup>  &asymp; $GG
+	textanswer$n=$aa
+    !else
+	kaart=!record 40 of lang/remarks.$taal
+	#@ $kleur kaarten
+	answer$n=(1/2)^$aantal
+	GG=$[(round($rounding*$(answer$n)))/$rounding]
+	aa=!record 41 of lang/remarks.$taal
+	#@ We hebben in ons stapelje 16 kaarten.<br />\
+	#@ Hierin zitten 8 $kleur .<br />\
+	#@ de kans op bijvoorbeeld &acute;&eacute;n $kleur is 1/2<br />\
+	#@ De kans op $aantal $kleur is dan (1/2)<sup>$aantal</sup> &asymp; $GG
+	textanswer$n=$aa
+    !endif
+    hoeveel=!item $aantal of $telwoorden
+    ss=!record 42 of lang/remarks.$taal
+    #@ We hebben een pakje normale spelkaarten.We maken alleen gebruik van: \
+    #@ <table>\
+    #@ <td><ul><li>de Boer</li><li>de Vrouw</li><li>de Koning</li><li>de Aas</li></ul><br />\
+    #@ De rest van de kaarten gebruiken we nu niet...</td><td><img src=$module_dir/cards/00.gif/></td></table>\
+    #@ We trekken &eacute;&eacute;n voor &eacute;&eacute;n $aantal kaarten uit het stapeltje.<br />\
+    #@ Na elke trekking stoppen we de getrokken kaart terug in het stapelje en schudden opnieuw...<br />\
+    #@ <small>dit heet dus <em>"trekken met terugleggen"</em></small><p>\
+    #@ Bereken de kans op $hoeveel $kaart .     
+    question$n=$ss
+ !exit
+!endif
+
+!if $R=2
+    aantal=!randitem 3,4,5,6,7,8
+    h=$[$aantal-1]
+    hoeveel=!item $h of $telwoorden
+    soorten=!record 43 of lang/remarks.$taal
+    #@ Aas,Koning,Vrouw,Boer
+    soort=!randitem $soorten
+    answer$n=$[$aantal*(1/4)*(3/4)^($h)]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    aa=!record 44 of lang/remarks.$taal
+    #@ We hebben in ons stapelje 16 kaarten.<br />\
+    #@ de kans op bijvoorbeeld &acute;&eacute;n $soort is 1/4<br />\
+    #@ De kans op &acute;&eacute;n <kbd>g&acute;&eacute;n</kbd>$soort is dan 1 - 1/4 = 3/4<br />\
+    #@ We kunnen de $soort op $aantal manieren pakken; dus de kans wordt $aantal&times;0.25&times;0.75<sup>$h</sup>=$(answer$n) &asymp; $GG
+    textanswer$n=$aa
+    
+    ss=!record 45 of lang/remarks.$taal
+    #@ We hebben een pakje normale spelkaarten.We maken alleen gebruik van: \
+    #@ <table>\
+    #@ <td><ul><li>de Boer</li><li>de Vrouw</li><li>de Koning</li><li>de Aas</li></ul><br />\
+    #@ De rest van de kaarten gebruiken we nu niet...</td><td><img src=$module_dir/cards/00.gif/></td></table>\
+    #@ We trekken &eacute;&eacute;n voor &eacute;&eacute;n $aantal kaarten uit het stapeltje.<br />\
+    #@ Na elke trekking stoppen we de getrokken kaart terug in het stapelje en schudden opnieuw...<br />\
+    #@ <small>dit heet dus <em>"trekken met terugleggen"</em></small><p>\
+    #@ Bereken de kans op &eacute;&eacute;n $soort en $hoeveel andere kaarten <em>(niet $soort , dus)</em> .     
+    question$n=$ss
+ !exit
+!endif
+
+!if $R>2
+    p=!randitem 2,3,4,5
+    q=!randitem 2,3,4,5
+    aantal=$[$p+$q]
+    hoeveel1=!item $p of $telwoorden
+    hoeveel2=!item $q of $telwoorden
+    soorten=!record 46 of lang/remarks.$taal
+    #@ Azen,Koningen,Vrouwen,Boeren
+    soort=!randitem $soorten
+    answer$n=$[(0.25^$p)*(0.75^$q)*factorial($aantal)/(factorial($p)*factorial($q))]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    aa=!record 47 of lang/remarks.$taal
+    textanswer$n=$aa
+    #@ We kunnen de $soort op "$aantal boven $p" manieren (op de  grafische rekenmachine: <kbd>$aantal ncr $p</kbd>) pakken.\
+    #@ <br />Dus de berekening is als volgt:<br />
+    ss=!record 48 of lang/remarks.$taal
+    question$n=$ss
+    #@ We hebben een pakje normale spelkaarten.We maken alleen gebruik van: \
+    #@ <table>\
+    #@ <td><ul><li>de Boer</li><li>de Vrouw</li><li>de Koning</li><li>de Aas</li></ul><br />\
+    #@ De rest van de kaarten gebruiken we nu niet...</td><td><img src=$module_dir/cards/00.gif/></td></table>\
+    #@ We trekken &eacute;&eacute;n voor &eacute;&eacute;n $aantal kaarten uit het stapeltje.<br />\
+    #@ Na elke trekking stoppen we de getrokken kaart terug in het stapelje en schudden opnieuw...<br />\
+    #@ <small>dit heet dus <em>"trekken met terugleggen"</em></small><p>\
+    #@ Bereken de kans op $hoeveel1 $soort en $hoeveel2 andere kaarten <em>(niet $soort , dus)</em> .     
+    texanswer$n=\left( \begin{array}{ll} $aantal \\ $p \end{array} \right) \cdot \left( \frac{1}{4} \right)^{$p} \cdot  \left( \frac{3}{4} \right)^{$q} = $(answer$n) \simeq $GG
+!exit
+!endif
+

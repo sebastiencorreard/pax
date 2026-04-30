@@ -1,0 +1,138 @@
+!advance step
+!if $rseg= or $rptp=
+  error=notenoughinfo
+  !exit
+!endif
+ceseg= $rseg
+!! détermination de la face à laquelle appartient le segment
+segpar=-
+ceseglst= !replace internal - by , in $ceseg
+pt1 = $(ceseglst[1])
+pt2 = $(ceseglst[2])
+fpt1 = !text copy $pt1 mask 10
+fpt2 = !text copy $pt2 mask 10
+l = U,V,W,X,Y,Z
+frptp = !text copy $rptp mask 10
+!if $frptp isitemof $l
+  frptp = $rptp
+!endif
+faceori = !listintersect $(face$fpt1) and $(face$fpt2)
+facedest=
+!! détermination de la face parallèle
+nn=!itemcnt $faceori
+!for ii=1 to $nn
+  uneface = $(faceori[$ii])
+  lst1=1,3,5
+  !if $uneface isitemof $lst1
+     face = !eval $uneface + 1
+  !else
+     face = !eval $uneface - 1
+  !endif
+  facedest = !append item $face to $facedest
+!next
+trouveface = !listintersect $facedest and $(face$frptp)
+!if $trouveface=
+  error = pasfacepar
+!else
+  pt3=$rptp
+  !! détermination de la pente du segment
+  den =!eval ($(pt$pt1[1])) - ($(pt$pt2[1]))
+  num =!eval ($(pt$pt1[2])) - ($(pt$pt2[2]))
+  !!endif
+  !! détermination de tous les points à tester
+  lstpts=
+  n1=!itemcnt $trouveface
+  !for ii=1 to $n1
+    !for jj=1 to 4
+      pt=$(sommet$(trouveface[$ii])[$jj])
+      !if $pt != $frptp
+        lstpts = !append item $pt to $lstpts
+      !endif
+    !next
+  !next
+  !for ii=1 to $n1
+    !for jj=1 to 4
+      pt=$(milieu$(trouveface[$ii])[$jj])
+      !if $pt != $frptp
+        lstpts = !append item $pt to $lstpts
+        !for kk=1 to 6
+          lstpts = !append item $pt$kk to $lstpts
+        !next
+      !endif
+    !next
+  !next
+  !! test de tous ces points pour bonne pente
+  trouvept=0
+  n1=!itemcnt $lstpts
+  !for ii=1 to $n1
+     den2=!eval ($(pt$rptp[1])) - ($(pt$(lstpts[$ii])[1]))
+     num2=!eval ($(pt$rptp[2])) - ($(pt$(lstpts[$ii])[2]))
+     colin=!eval ($den2)*($num) - ($den)*($num2)
+    !if $colin<0.001 and $colin>-0.001
+      !advance trouvept
+      !if $trouvept=1
+        pt4=$(lstpts[$ii])
+      !else
+        pt3=$(lstpts[$ii])
+        !break
+      !endif
+    !endif
+  !next
+  !! pour éviter de tracaer AI au lieu de AB
+  !if $trouvept=0
+    error=passeginter
+  !else
+    frptp = !text copy $rptp mask 10
+    fpt4=!text copy $pt4 mask 10
+    lstdte=!listintersect $(dte$frptp) and $(dte$fpt4)
+    n=!itemcnt $lstdte
+    !if $n>0
+      ladte = $(dte$(lstdte[1]))
+      pt3=$(ladte[1])
+      pt4=$(ladte[2])
+    !endif
+    segparlst=$pt3,$pt4
+    segparlst=!sort item $segparlst
+    segpar=$(segparlst[1])-$(segparlst[2])
+    pt3=$(segparlst[1])
+    pt4=$(segparlst[2])
+    !if $segpar notitemof $segsplan
+      segsplan = !append item $segpar to $segsplan
+      ptsplan = !append item $pt3 to $ptsplan
+      ptsplan = !append item $pt4 to $ptsplan
+      color$pt3=red
+      color$pt4=red
+      bary_x= $bary_x+ $(pt$(pt3)[1])
+      bary_y= $bary_x+ $(pt$(pt3)[2])
+      bary_x= $bary_x+ $(pt$(pt4)[1])
+      bary_y= $bary_x+ $(pt$(pt4)[2])
+      ptsplan = !listuniq $ptsplan
+      ptsplan= !sort item $ptsplan
+      !! choix entre segment pointillé et segment plein
+      fcept1=!text copy $pt3 mask 10
+      fcept2=!text copy $pt4 mask 10
+      faceseg= !listintersect $(face$fcept1) and $(face$fcept2)
+      faceseg= !listintersect $faceseg and 2,3,6
+      !if $faceseg isitemof 2,3,6
+        typeline=segment
+      !else
+        typeline=dsegment
+      !endif
+      pt5=$(pt$rptp)
+      pt3=$(pt$pt3)
+      pt4=$(pt$pt4)
+      !if $pt5 issametext $pt3
+        ligne =
+      !else
+        ligne = linewidth 1\
+        dsegment $pt3,$pt5,green \
+        linewidth 3
+      !endif
+      cadre = $cadre \
+      $ligne \
+      $typeline $pt3,$pt4,yellow
+    !else
+      error = dejaseg
+    !endif
+  !endif
+!endif

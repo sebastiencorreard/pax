@@ -1,0 +1,99 @@
+# Nationaal inkomen en index  III
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding <11
+    rounding=10
+    dec=decimaal
+!else
+    dec=decimalen
+!endif
+roundingtext=Reken door met <b>onafgeronde getallen</b><br />en rond je <b>eindantwoord</b> af op $[log($rounding)/log(10)] $dec. 
+
+tiptext=let op: bij een afname krijg je een <span style=\'color:red\'>negatief</span> getal...
+helptext=$roundingtext<br />$tiptext
+
+math=0
+mathview=0
+make_tr=1
+questiontype=0
+embed=0
+cols=8
+rows=1
+inputs=1.1
+# laat geen formula$n zien
+var9=0
+checkfile=exos/precheck1.proc
+
+!if $R=1
+    jaar=!date +%Y
+    jaar2=$[$jaar-1]
+    periode=!randitem 10,20
+    jaar1=$[$jaar2 - $periode]
+    land=!randitem Wenderland, Anderland, Biloga,Akonderland,Randland,Waterkust,Zuid-Webastoland
+    geld=!randitem &euro;,&pound;,&fnof;,&#36;,&yen;
+    bevolking1=!randint 20,200
+    perc1=!randint 1,10
+    bevolking2=$[$bevolking1*(1+$perc1/100)]
+    ink1=!randint 300,700
+    pp=!randint 5,25
+    delta=$[$pp/100 + 1]
+    ink2=$[$ink1*$delta]
+    index1=100
+    index2=!randint 101,115
+    index0 = $[100+$pp]
+    index3 = $[100*$index0/$index2]
+    index4 = $[100 + $perc1]
+    ans1 = $[100*$index3/$index4]
+    answer$n=$[$ans1-100]
+    ans2 = $[(round($rounding*$(answer$n)))/$rounding]
+    ss=Van $land zijn de <span style="color:blue">volgende</span> gegevens bekend.<br />Bepaal de procentuele verandering van het re&euml;el nationaal inkomen<br />per hoofd van de bevolking in de periode $jaar1 &minus; $jaar2.
+       
+    texanswer$n=\left[\begin{array}{l} \textrm{De procentuele varandering van het nominaal nationaal inkomen :} \frac{$ink2 - $ink1}{$ink1} \times 100 \% = $pp \% \\ \\ \textrm{Indexcijfer nominaal nationaal inkomen ($jaar1 = 100) : } 100 + $pp = $index0 \\ \\ \textrm{Indexcijfer reeel nationaal inkomen ($jaar1 = 100) : } \frac{$index0}{$index2} \times 100 = $index3 \\ \\ \textrm{Procentuele verandering bevolkingsomvang : } \frac{$bevolking2 - $bevolking1}{$bevolking1} \times 100 \%  = $perc1 \% \\ \\ \textrm{Indexcijfer bevolking ($jaar1 = 100) :} 100 + $perc1 = $index4 \\ \\ \textrm{Indexcijfer reeel nationaal inkomen per hoofd van de bevolking ($jaar1 = 100)  : } \frac{$index3}{$index4} \times 100 = $ans1  \\ \\ \textrm{Procentuele verandering reeel nationaal inkomen per hoofd van de bevolking :} \\ $ans1 - 100  \% = $(answer$n) \simeq $ans2 \% \end{array} \right.
+    
+    description=Procentuele verandering
+
+    tabel=<table class=\'grid_table\'><tr><th>$land</th><th>$jaar1</th><th>$jaar2</th></tr><tr><td>nominaal nationaal inkomen<br />in miljard $geld</td><td>$ink1</td><td>$ink2</td></tr><tr><td>bevolking <br />in miljoen personen</td><td>$bevolking1</td><td>$bevolking2</td></tr><tr><td>consumentenprijsindex<br />$jaar1 = 100</td><td>$index1</td><td>$index2</td></tr></table>
+    ex1=%
+    question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+!else
+    
+    jaar=!date +%Y
+    jaar2=$[$jaar-1]
+    periode=!randitem 10,20
+    jaar1=$[$jaar2 - $periode]
+    geld=!randitem &euro;,&pound;,&fnof;
+    
+    bevolking1=!randint 20,200
+    perc1=!randint 1,10
+    bevolking2=$[$bevolking1*(1+$perc1/100)]
+    ink1=!randint 300,700
+    pp=!randint 5,25
+    delta=$[$pp/100 + 1]
+    ink2=$[$ink1*$delta]
+    index1=100
+    index3=$[$delta*100]
+    index2=!randint 105,150
+    index4 = $[100 + $perc1]
+
+    reeel=$[100*$index3/$index2] 
+    reeel2=$[100*$reeel/$index4]
+    answer$n=$[$reeel2 - 100]
+    ans = $[(round($rounding*$(answer$n)))/$rounding]
+
+    ss=Het nominaal nationaal inkomen van een land steeg in de<br />periode $jaar1 &minus; $jaar2 van $ink1 tot $ink2 miljard $geld <br />De consumentenprijsindex nam in deze periode toe van $index1 naar $index2<br />De bevolking nam in deze periode toe van $bevolking1 naar $bevolking2 miljoen mensen.<br />Bereken de procentuele verandering van het re&euml;le inkomen per hoofd van de bevolking
+
+    description=Procentuele verandering
+    ex1=%
+    
+    texanswer$n=\begin{array}{l}\textrm{Indexcijfer nominaal inkomen $jaar2 : } \frac{$ink2}{$ink1} \times 100 = $index3  \\ \\ \textrm{Indexcijfer consumentenprijsindex $jaar2 : } $index2 \\ \\ \textrm{Indexcijfer bevolkingsomvang $jaar2 : } \frac{$bevolking2}{$bevolking1} \times 100 = $index4 \\ \\ \textrm{Indexcijfer reeel inkomen $jaar2 : } \frac{$index3}{$index2} \times 100 = $reeel \\ \\ \textrm{Indexcijfer reeel inkomen per hoofd van de bevolking $jaar2 : } \frac{$reeel}{$index4} \times 100 = $reeel2 \\ \\ \textrm{Procentuele verandering reeel inkomen per hoofd van de bevolking in periode $jaar1 - $jaar2 : } \\ $reeel2 - 100 = $(answer$n) \simeq $ans \% \end{array} \right.
+    
+    tabel=$empty
+    
+    
+    question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+
+!endif

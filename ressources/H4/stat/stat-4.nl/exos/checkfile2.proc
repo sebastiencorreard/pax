@@ -1,0 +1,196 @@
+goback=0
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    reply$n=$dontknow
+    goback=0
+    maxscore=0
+    remark$n=$NOK
+    !if $teaching=1
+	!if $var8=0
+	# applet
+	    !appendfile getfile/$counter.data $var6\
+	    mouse no
+	
+	!else
+	    !if $var8=1
+		object$n=!exec canvasdraw\
+		$var9\
+		$var6
+	    !endif
+	!endif
+    !endif
+    !exit
+!endif
+# answer$n=$checkbox,$kans_data_bij_de_aantallen
+# var1=$xmin,$xmax
+# var2=4,6,8 (aantallen)
+# var3=1000-1020,1021-1040,1041-1060 (klassen)
+# var4 = de antwoord kansen
+# reply$n=$checkbox \n $kans_data_bij_de_aantallen list \n x1,y1,x2,y2....x_aantal,y_aantal
+# var7 = klassebreedte
+# eerst de checkbox-waarde
+# -1 = geen idee
+# 1 = niet normaal
+# 2 = normaal verdeeld
+ans1=!item 1 of $(answer$n)
+ans2=!item 2 to -1 of $(answer$n)
+rep1=!line 1 of $(reply$n)
+rep2=!line 2 of $(reply$n)
+rep3=!line 3 of $(reply$n)
+
+sometext=!record 40 of lang/remarks.$taal
+#@niet normaal verdeeld,normaal verdeeld,de verdeling is,heel goed,nee,$score3 punten goed getekend,geen van de punten is goed getekend...
+
+verdeling=!item $ans1 of $sometext
+de_verdeling_is=!item 3 of $sometext
+heel_goed=!item 4 of $sometext
+neen=!item 5 of $sometext
+goed_getekend=!item 6 of $sometext
+niet_getekend=!item 7 of $sometext
+
+!ifval $ans1 = $rep1
+    score1=1
+!else
+    score1=0
+!endif
+
+# check de tabel
+rt=!itemcnt $ans2
+score2=0
+show=<table class="grid_table">
+tot=0
+!for p=1 to $rt
+    rep=!item $p of $rep2
+    tot=$[$tot+$rep]
+!next p
+
+!for p=1 to $rt
+    ans=!item $p of $ans2
+    rep=!item $p of $rep2
+    aantal=!item $p of $var2
+    klasse=!item $p of $var3
+    !ifval $[round(100*$ans)] = $[round(100*$rep)]
+	!increase score2
+	k=green
+    !else
+	k=red
+    !endif
+    show=!append line <tr><td>$klasse</td><td>$aantal</td><td><span style="color:$k"><b>$rep</b></span></td></tr> to $show
+!next p
+show=!append line </table><ul> to $show
+# check de grafiek: antwoord volgorde is niet bepaald(dus mogelijk niet in de volgorde van $(answer$n))
+xmin=!item 1 of $var1
+xmax=!item 2 of $var1
+score3=0
+your_data=$empty
+# javascript checkt op juiste aantal coordinaten (aantal : kans)
+r3=!itemcnt $rep3
+dx=$[$var7/5]
+dy=0.05
+points_ok=0
+chk=0
+!for p=1 to $[$r3 - 1] step 2
+    !increase chk
+    x=!item $p of $rep3
+    y=!item $[$p+1] of $rep3
+    k1=$[0.50*(erf(($y-$dy)/sqrt(2)) - erf(-10000/sqrt(2)))]
+    k2=$[0.50*(erf(($y+$dy)/sqrt(2)) - erf(-10000/sqrt(2)))]
+    k3=$[0.50*(erf(($y-2*$dy)/sqrt(2)) - erf(-10000/sqrt(2)))]
+    k4=$[0.50*(erf(($y+2*$dy)/sqrt(2)) - erf(-10000/sqrt(2)))]
+    kans1=$[min($k1,$k2)]
+    kans2=$[max($k1,$k2)]
+    kans3=$[min($k3,$k4)]
+    kans4=$[max($k3,$k4)]
+    found=0
+    !for s=1 to $rt
+	!if $found=0
+	    aantal=!item $s of $var2
+	    !if $[$aantal-$dx]<$x and $x<$[$aantal+$dx]
+		kans_ok=!item $s of $var4
+		!if $kans1 < $kans_ok and $kans2 > $kans_ok
+		    !increase score3
+		    found=1
+		    your_data=!append line $ point $x,$y,green $ to $your_data
+		!else
+		    !if $kans3 < $kans_ok and $kans4 > $kans_ok
+			score3=$[$score3+0.7]
+		        found=1
+			your_data=!append line $ point $x,$y,orange $ to $your_data
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next s 
+    !if $found=0
+    	your_data=!append line $ point $x,$y,red $ to $your_data
+    !else
+    	!increase points_ok
+    !endif
+!next p
+
+!if $score3 > 0
+    #rem=!subst $goed_getekend
+    rem=$points_ok $goed_getekend
+!else
+    rem=$niet_getekend
+    #geen van de punten is goed getekend...
+!endif
+
+show=!append line <li>$rem</li> to $show
+
+!if $score1 = 1
+    rem=$heel_goed
+    #Heel goed
+    k=green
+!else
+    rem=$neen
+    #nee
+    k=red 
+!endif 
+
+reply$n=!append line $ <li><span style="color:$k">$rem</span> : $de_verdeling_is $verdeling</li></ul> $ to $show
+
+maxscore=$[$maxscore*( (4*$score1 + 4*$score2/$rt + $score3/$chk )/9)]
+!if NaN isin $maxscore
+    maxscore=0
+!endif
+modulescore=$[$modulescore + $maxscore]
+
+!ifval $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>4.5
+	remark$n=$BOK
+    !else
+    	remark$n=$NOK
+    !endif
+!endif
+
+!if $teaching=1
+ !if $var8=0
+  # java applet
+  data=$var6\
+  linewidth 6\
+  $your_data\
+  userdraw fcircle\
+  clickcolor orange,150
+
+!appendfile getfile/$counter.data $data
+ 
+ !else
+    !if $var8=1
+    # html5 
+    object$n=!exec canvasdraw \
+    $var9\
+    $var6\
+    linewidth 4\
+    $your_data
+  
+    !endif
+ !endif
+!endif
+goback=0
+
+!exit
+

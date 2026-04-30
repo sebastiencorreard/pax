@@ -1,0 +1,91 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+mathview=5
+n=$counter
+# geen check op type functie
+var4=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+#pari kijkt na
+var1=0
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	k=$[$a*$a]
+	formula$n=x = \frac{$a}{\sqrt{y + $b}}
+	applettext=!nospace  x =  $a/sqrt(y+$b)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath -1*$b+$k/x^2
+	
+	answer$n=-$b+$k/x^2
+	texanswer$n=\left[ \begin{array}{l} x \cdot \sqrt{y+$b}=$a \rightarrow \\ x^{2} \cdot (y+$b)=$a^{2} \rightarrow \\ y+$b=\frac{$k}{x^{2}}\rightarrow \\  y=-$b + \frac{$k}{x^{2}} \end{array} \right.
+    !else
+	a=!randint 2,9
+	b=!randint 2,9
+	k=$[$a*$a]
+	formula$n=x = \frac{$a}{\sqrt{y - $b}}
+	applettext=!nospace  x =  $a/sqrt(y-$b)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $b+$k/x^2
+	
+	answer$n=$b+$k/x^2
+	texanswer$n=\left[ \begin{array}{l} x \cdot \sqrt{y-$b}=$a \rightarrow \\ x^{2} \cdot (y-$b)=$a^{2} \rightarrow \\ y-$b=\frac{$k}{x^{2}}\rightarrow \\  y=$b + \frac{$k}{x^{2}} \end{array} \right.
+    !endif
+    !goto KLAAR
+!endif
+
+!if $R>1
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	c=!randint 2,9
+	formula$n=x = \frac{$a}{$b + \root{$c} \of{y}}
+	applettext=!nospace  x =  $a/($b + sqrt[$c](y)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath ($a/x-$b)^$c
+	
+	answer$n=($a/x-$b)^$c
+	texanswer$n=\left[ \begin{array}{l} x \cdot \left($b + \root{$c} \of{y} \right)=$a \rightarrow \\ $b + \root{$c} \of{y} =\frac{$a}{x} \rightarrow \\ \root{$c} \of{y} =-$b + \frac{$a}{x} \rightarrow \\ y=\left(-$b + \frac{$a}{x} \right)^{$c} \end{array} \right.
+    !else
+	a=!randint 2,9
+	b=!randint 2,9
+	c=!randint 2,9
+	formula$n=x = \frac{$a}{$b - \root{$c} \of{y}}
+	applettext=!nospace  x =  $a/($b - sqrt[$c](y)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath ($b - $a/x)^$c
+	
+	answer$n=($b - $a/x)^$c
+	texanswer$n=\left[ \begin{array}{l} x \cdot \left($b - \root{$c} \of{y} \right)=$a \rightarrow \\ $b -\root{$c} \of{y} =\frac{$a}{x} \rightarrow \\ \root{$c} \of{y} =$b -\frac{$a}{x} \rightarrow \\ y=\left($b -\frac{$a}{x} \right)^{$c} \end{array} \right.
+    !endif
+    !goto KLAAR
+!endif
+
+
+:KLAAR
+
+!if $teaching=1
+    image=0
+    insplot_set=size 0.6,0.6 ;grid ;autoscale;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    !insplot [-10:10] [-10:10] $var2 notitle , x notitle
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+
+!endif

@@ -1,0 +1,216 @@
+#:24 Positief en negatief verband (kringloop applet) [ domein I ]
+# GEEN STEPS
+var1=$empty
+var2=$empty
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/checkfile7.proc
+total_exos=1
+
+math=0
+xsize=800
+ysize=600
+
+choice=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12,13
+sol=+,-,-,+,+,+,-,-,-,+,+,+,+
+cnt=1
+rnd=!randint 3,7
+seq=$empty
+!for p in $choice
+    !if $cnt < $rnd
+	# voorgekookte antwoorden
+	a$p=!item $p of $sol
+	true$p=0
+	k$p=lightgreen
+    !else
+	true$p=1
+	k$p=orange
+	s=!item $p of $sol
+	a$p=?
+	seq=!append item $p to $seq
+    !endif
+    cnt=$[$cnt+1]
+!next p
+
+seq=!sort numeric item $seq
+!for s in $seq
+    a=!item $s of $sol
+    answer$n=!append item $a to $(answer$n)	
+!next s
+answer$n=!nospace $(answer$n)
+exotext=!exec canvasdraw\
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,90\
+linewidth 3\
+opacity 180,60\
+frect 7,20,40,12,green\
+frect 8,65,38,56,green,50\
+frect 31,10,50,0,green,50\
+frect 30,42,70,33,green,50\
+frect 29,80,57,71,green,50\
+frect 72,65,95,56,green,50\
+frect 49,55,75,47,green,50\
+frect 68,25,87,11,green,50\
+fontfamily 22px Ariel\
+string red,9,15,binnenlands prijspeil\
+string red,9,60,concurrentie positie\
+string red,33,5,loonkosten\
+string red,32,36,saldo lopende rekenening\
+string red,31,75,effectieve vraag\
+string red,75,60,werkloosheid\
+string red,50,50,rentetarieven ECB\
+string red,70,18,koers in \u20AC\
+#effectieve vraag -> binnenlandsprijspijl\
+segment 29,75,2,75,blue\
+segment 2,75,2,16.5,blue\
+arrow 2,16.5,6.8,16.5,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k1;font-size:24px\
+input 0,50,1,$true1,$a1\
+#binnenlandsprijspijl -> concurrentiepositie\
+arrow 13,20,13,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k2;font-size:24px\
+input 11,50,1,$true2,$a2\
+#koers euro -> concurrentiepositie\
+segment 68,22,23,22,blue\
+arrow 23,22,23,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k3;font-size:24px\
+input 21,50,1,$true3,$a3\
+#koers euro -> binnenlandsprijspijl\
+arrow 68,15,40,15,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k4;font-size:24px\
+input 48,17,1,$true4,$a4\
+#loonkosten -> binnenlandsprijspijl\
+segment 31,6,16,6,blue\
+arrow 16,6,16,12,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k5;font-size:24px\
+input 19,8,1,$true5,$a5\
+#loonkosten -> werkeloosheid\
+segment 50,7.5,88,7.5,blue\
+arrow 88,7.5,88,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k6;font-size:24px\
+input 85,49,1,$true6,$a6\
+#werkeloosheid -> loonkosten\
+segment 93,56,93,2,blue\
+arrow 93,2,50,2,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k7;font-size:24px\
+input 54,5,1,$true7,$a7\
+#effectieve vraag -> werkeloosheid\
+segment 57,75,78,75,blue\
+arrow 78,75,78,65,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k8;font-size:24px\
+input 63,77,1,$true8,$a8\
+#rentetarieven ECB -> effectieve vraag\
+arrow 52,55,52,71,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k9;font-size:24px\
+input 50,66,1,$true9,$a9\
+#rentetarieven ECB -> koers euro\
+arrow 73.5,47,73.5,24.75,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k10;font-size:24px\
+input 72,43,1,$true10,$a10\
+#saldo lopenderekening -> effectieve vraag\
+arrow 46,42,46,71,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k11;font-size:24px\
+input 44,63,1,$true11,$a11\
+#saldo lopenderekening -> concurrentie positie\
+arrow 32,55.7,32,42,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k12;font-size:24px\
+input 30,50,1,$true12,$a12\
+#saldo lopenderekening -> koers euro\
+arrow 69,33,69,25,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:$k13;font-size:24px\
+input 63,31,1,$true13,$a13
+
+textanswer$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,90\
+linewidth 3\
+opacity 180,60\
+frect 7,20,40,12,green\
+frect 8,65,38,56,green,50\
+frect 31,10,50,0,green,50\
+frect 30,42,70,33,green,50\
+frect 29,80,57,71,green,50\
+frect 72,65,95,56,green,50\
+frect 49,55,75,47,green,50\
+frect 68,25,87,11,green,50\
+fontfamily 22px Ariel\
+string red,9,15,binnenlands prijspeil\
+string red,9,60,concurrentie positie\
+string red,33,5,loonkosten\
+string red,32,36,saldo lopende rekenening\
+string red,31,75,effectieve vraag\
+string red,75,60,werkloosheid\
+string red,50,50,rentetarieven ECB\
+string red,70,18,koers in \u20AC\
+#effectieve vraag -> binnenlandsprijspijl\
+segment 29,75,2,75,blue\
+segment 2,75,2,16.5,blue\
+arrow 2,16.5,6.8,16.5,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 0,50,1,$true1,+\
+#binnenlandsprijspijl -> concurrentiepositie\
+arrow 13,20,13,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 11,50,1,$true2,-\
+#koers euro -> concurrentiepositie\
+segment 68,22,23,22,blue\
+arrow 23,22,23,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 21,50,1,$true3,-\
+#koers euro -> binnenlandsprijspijl\
+arrow 68,15,40,15,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 48,17,1,$true4,+\
+#loonkosten -> binnenlandsprijspijl\
+segment 31,6,16,6,blue\
+arrow 16,6,16,12,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 19,8,1,$true5,+\
+#loonkosten -> werkeloosheid\
+segment 50,7.5,88,7.5,blue\
+arrow 88,7.5,88,56,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 85,49,1,$true6,+\
+#werkeloosheid -> loonkosten\
+segment 93,56,93,2,blue\
+arrow 93,2,50,2,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 54,5,1,$true7,-\
+#effectieve vraag -> werkeloosheid\
+segment 57,75,78,75,blue\
+arrow 78,75,78,65,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 63,77,1,$true8,-\
+#rentetarieven ECB -> effectieve vraag\
+arrow 52,55,52,71,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 50,66,1,$true9,-\
+#rentetarieven ECB -> koers euro\
+arrow 73.5,47,73.5,24.75,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 72,43,1,$true10,+\
+#saldo lopenderekening -> effectieve vraag\
+arrow 46,42,46,71,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 44,63,1,$true11,+\
+#saldo lopenderekening -> concurrentie positie\
+arrow 32,55.7,32,42,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 30,50,1,$true12,+\
+#saldo lopenderekening -> koers euro\
+arrow 69,33,69,25,8,blue\
+inputstyle maxlength:1;text-align:center;color:blue;background-color:lightgreen;font-size:24px\
+input 63,31,1,$true13,+
+
+question$n=Geef van elke pijl in de figuur aan of er sprake is van een positief(+) dan wel negatief(&minus;) verband.
+math=0
+!exit
+
+
+

@@ -1,0 +1,122 @@
+# kansboom test
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+answer$n=1
+
+# p = kans
+# t = aantal trekkingen
+# xm = breedte op xrange
+# ym = hoogte op yrange
+# r = radius circel
+# xc - x centrum cirkel;
+# yc = y centrum cirkel
+# gap = ruimte tussen de onderste cirkels
+# w = inputfield width
+# h = inputfield height
+xmin=0
+r=1
+P=3
+gap=0.5
+T=2
+h=0.8
+w=1.8
+
+xmax=$[$P^($T)*(2*($r+$gap))]
+ymax=$[$T*(2*$r)]
+in=0
+!for s=0 to $T
+    in=$[$in + $P^$s]
+!next s
+
+data=debug yes\
+coordinates yes\
+clickcolor red,60\
+mouse yes\
+precision 1\
+userdraw frect\
+xrange $gap,$xmax\
+yrange $gap,$ymax+$r\
+linewidth 4\
+inputs $in
+
+yc=0
+c=$T
+
+!for t1=$T to 0 step -1
+    yc=$[$yc + $ymax/($T+$r)]
+    num = $[$P^$t1]
+    step = $[$xmax/($num+1)]
+    off=0
+    Xcenter$c=$empty
+    Ycenter$c=$empty
+    !for p1=1 to $num
+	off=$[$off+$step]
+	data=!append line fcircle $off,$yc,$r,orange,180 to $data
+	data=!append line circle $off,$yc,$r,red,180 to $data
+	data=!append line inputfield $off-$w/2,$[$yc+$h/2],$w,$h,helvetica,22,lightblue,red to $data
+	Xcenter$c=!append item $off to $(Xcenter$c)
+	Ycenter$c=!append item $yc to $(Ycenter$c)
+    !next p1
+    c=$[$c-1]
+!next t1
+
+
+!for t1=$T to 1 step -1
+    num=!itemcnt $(Xcenter$[$t1-1])
+    cnt=0
+    !for a=1 to $num
+	x1=!item $a of $(Xcenter$[$t1-1])
+	y1=!item $a of $(Ycenter$[$t1-1])
+	!for p=$cnt to $[$cnt+$P-1]
+	    x2=!item $[$p+1] of $(Xcenter$t1)
+	    y2=!item $[$p+1] of $(Ycenter$t1)
+	    data=!append line line $x1,$y1,$x2,$y2,blue,120,10 to $data
+	!next p
+	cnt=$[$cnt+$P]
+    !next a
+!next t1
+
+#!for t1=$T to 0 step -1
+#    num=$[$P^($t1-1)]
+#    cnt=1
+#    !for a=1 to $num
+#	x1=!item $a of $(Xcenter$t1)
+#	y1=!item $a of $(Ycenter$t1)
+#	!for p=$cnt to $[$cnt+$P-1]
+#	    x2=!item $p of $(Xcenter$[$t1-1])
+#	    y2=!item $p of $(Ycenter$[$t1-1])
+#	    data=!append line line $x1,$y1,$x2,$y2,blue,120,10 to $data
+#	!next p
+#	cnt=$[$cnt+$P]
+#    !next a
+#!next t1
+
+#!for t=$T to 1 step -1
+#    num=!itemcnt $(Xcenter$t)
+#    cnt=1
+#    !for p=1 to $num
+#	x1=!item $p of $(Xcenter$t)
+#	y1=!item $p of $(Ycenter$t)
+#	!for s=1 to $P
+#	    x2=!item $cnt of $(Xcenter$[$t-1])
+#	    y2=!item $cnt of $(Ycenter$[$t-1])
+#	    data=!append line line $x1,$y1,$x2,$y2,blue,120,10 to $data
+#	    !increase cnt    
+#	!next s
+#    !next p
+#!next t1
+
+xsize=1000
+ysize=300
+applet=1
+
+myname=$counter.data
+!filewrite getfile/$myname $data
+question$n=$ss
+helptext=<a onmouseover="return escape('')"><img src="$gifdir/tip.jpg" alt="tip"/></a>
+object$n=<object id="FlyApplet" name="FlyApplet" code="FlyApplet.class" archive="FlyApplet.jar" codebase="$appletdir" width="$xsize" height="$ysize"><param name="transparent" value="white"/><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname"/>

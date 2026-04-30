@@ -1,0 +1,206 @@
+# letop: voorsubject=2,3,4
+# subject 2+3 : teken toename diagram nav lijn (dus segmenten)
+# subject 4 : teken lijn nav toename diagram (dus polyline)
+goback=0
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+Ax=!line 1 of $(reply$n)
+Ay=!line 2 of $(reply$n)
+ta=!itemcnt $(answer$n)
+points=$[0.5*$ta]
+extra=$empty
+tx=!itemcnt $Ax
+!if $tx=0
+    errortext=!record 10 of lang/remarks.$taal
+    #@ Je hebt geen tekening gemaakt<br />Als je't niet weet kun je ook gewoon op de knop "ik weet het niet" ofzo klikken...
+    maxscore=$[$maxscore*$P3]
+    goback=1
+    !exit
+!endif
+!if $tx > $[$points + 15]
+    errortext=!record 11 of lang/remarks.$taal
+    #@ Deze "tekening" ga ik echt niet nakijken...<br />Klik jij maar op de "ik zou het niet weten" knop.
+    maxscore=$[$maxscore*$P5]
+    goback=1
+    !exit
+!endif
+
+!if $tx < 2
+    errortext=!record 15 of lang/remarks.$taal
+    #@ Je hebt geen lijn of lijnstukken getekend.
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+
+X=$empty
+Y=$empty
+!if $subject=4
+    ans_plaatje=polyline green
+    rep_plaatje=polyline red
+!else
+    ans_plaatje=$empty
+    rep_plaatje=$empty
+!endif
+!for p=1 to $[$ta-1] step 2
+    q=$[$p+1]
+    x=!item $p of $(answer$n)
+    y=!item $q of $(answer$n)
+    X=!append item $x to $X
+    Y=!append item $y to $Y
+    !if $subject=4
+	ans_plaatje=!append item $x,$y to $ans_plaatje
+    !else
+	ans_plaatje=!append line segment $x,0,$x,$y,green to $ans_plaatje    
+    !endif
+!next p
+
+#answer$n = x,y,x,y,x,y => X=x,x,x  Y=y,y,y
+ta=$[$ta/2]
+
+# alleen voor een rechte lijn als tekening
+# eerte (x:y) punt en laatste (x:y) in't goede antwoord
+# als deze punten worden gebruikt is't inorde
+x1=!item 1 of $X
+x2=!item -1 of $X
+y1=!item 1 of $Y
+y2=!item -1 of $Y
+# trick ...for nonexisting "zero lenght segment"
+score=1
+has_end=0
+has_error=0
+ansx=$empty
+ansy=$empty
+colors=$empty
+!if $tx<$ta
+    may_skip_zero_length=1
+!else
+    may_skip_zero_length=0
+!endif
+!for p=1 to $tx
+    x=!item $p of $Ax
+    y=!item $p of $Ay
+    x=$[(round(10*($x)))/10]
+    y=$[(round(10*($y)))/10]
+    ansx=!append item $x to $ansx
+    ansy=!append item $y to $ansy
+    !if $var1=1
+    # speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+	!ifval ($x=$x1 and $y=$y1) or ($x=$x2 and $y=$y2)
+    	    !increase has_end
+	!endif
+    !endif
+    hit=0
+    !for s=1 to $ta
+	!if $hit=0
+	    xg=!item $s of $X
+	    yg=!item $s of $Y
+	    !ifval $x=$xg and $y=$yg
+		hit=1
+		!increase score
+	    !endif
+	    # een leerling hoeft geen lijnstuk lengte nul in te vullen
+	    !if $may_skip_zero_length=1
+		!ifval $yg=0
+		    may_skip_zero_length=0
+		    !increase score
+		    ansx=!append item $xg to $ansx
+		    ansy=!append item $yg to $ansy
+		    hit=1
+		!endif
+	    !endif
+	!endif
+    !next s
+    !if $hit=0
+	!increase has_error
+    !endif
+    !if $subject=4
+	rep_plaatje=!append item $x,$y to $rep_plaatje
+    !endif
+!next p
+rep=$empty
+!for p=1 to $[$tx-1] step 2
+    x1=!item $p of $Ax
+    x2=!item $[$p+1] of $Ax
+    y1=!item $p of $Ay
+    y2=!item $[$p+1] of $Ay
+    dy=$[$y2-$y1]
+    !if $subject!=4
+	rep_plaatje=!append line segment $x1,$y1,$x2,$y2,blue to $rep_plaatje    
+    !endif
+    rep=!append word $ <li>($x1 : $y1) -- ($x2 : $y2) $m_rightarrow $m_Delta y = $dy</li> $ to $rep
+!next p
+
+reply$n=$(reply$n)<br /><ul>$rep</ul>
+
+!if $var1=0
+    maxscore=$[$maxscore*$score/$ta]
+!else
+    # speciale geval van  de rechte lijn als antwoord: 2 punten zijn genoeg
+    !if $has_end=2 and $has_error=0
+	maxscore=1
+	ex=!record 9 of lang/remarks.$taal
+	#@ heel goed gezien !
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+    !else
+	!if $has_end=2 and $has_error>0
+	    ex=!record 16 of lang/remarks.$taal
+	    #@ Je hebt natuurlijk wel gelijk: <br />twee buitenste punten zijn genoeg om het lijnstuk te beschrijven.<br />Maar wat was al die andere "gekritsel" ?
+	    !if $extra=$empty
+		extra=$ex
+	    !else
+		extra=$extra<br />$ex
+	    !endif
+	!endif
+	maxscore=$[$maxscore*$score/$ta]
+    !endif
+!endif
+# correctie...
+!if $maxscore >= 1
+    maxscore=1
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.8
+#	!if $try=0
+#	    #dus de som niet terug/...de lage maxscore komt dus door fouten in de tekening
+#	    maxscore=0.3
+#	    remark$n=$NOK
+#	    k=red
+#	!else
+	    # handhaven deze score....de maxscore wordt veroorzaakt retourneren van de som
+	    remark$n=$BOK
+	    k=orange
+#	!endif
+    !else
+	remark$n=$NOK
+	maxscore=0
+	k=red
+    !endif
+!endif    
+
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+# lijn tekenen nav toename diagram
+object$n=!exec canvasdraw \
+$var9\
+linewidth 8\
+$rep_plaatje\
+linewidth 12\
+$ans_plaatje\
+zoom blue
+
+!exit

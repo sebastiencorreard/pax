@@ -1,0 +1,308 @@
+!! position droite et plan
+!if $mode=3
+  !if $selplan=1
+    !! choix de la face du cube
+    face = !randint 1,6
+    lstpts=
+    !for pt in $listpoint
+      !if $face isitemof $(face$pt)
+        lstpts= !append item $pt to $lstpts
+      !endif
+    !next
+    lstpts = !shuffle $lstpts
+    ptsplan = $(lstpts[1]),$(lstpts[2])
+    lstdte=!listintersect $(dte$(lstpts[1])) and $(dte$(lstpts[2]))
+    lstdte2=
+    !for ii=3 to 8
+      lstdte2=!listintersect $lstdte and $(dte$(lstpts[$ii]))
+      !if $lstdte2=
+        ptsplan= !append item $(lstpts[$ii]) to $ptsplan
+        !break
+      !endif
+    !next
+    ptsplan = !sort item $ptsplan
+    tplan=$(ptsplan[1])$(ptsplan[2])$(ptsplan[3])
+    !! choix de la droite
+    facedte=!randint 1,6
+    lstpt=
+    !for ii = 1 to 20
+      !if $facedte isitemof $(face$(listpoint[$ii]))
+        lstpt= !append item $(listpoint[$ii]) to $lstpt
+      !endif
+    !next
+    lstpt = !shuffle $lstpt
+    pt1 = $(lstpt[1])
+    pt2 = $(lstpt[2])
+  !else
+    pt1=$(ceplan[1])
+    pt2=$(ceplan[2])
+    tplan=$(ceplan[3])$(ceplan[4])$(ceplan[5])
+    ptsplan=$(ceplan[3]),$(ceplan[4]),$(ceplan[5])
+    face=$(ceplan[6])
+  !endif
+  faceseg= !listintersect $(face$pt1) and $(face$pt2)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline1=dsegment
+  !else
+    typeline1=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[1])) and $(face$(ptsplan[2]))
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline2=dsegment
+  !else
+    typeline2=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[2])) and $(face$(ptsplan[3]))
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline3=dsegment
+  !else
+    typeline3=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[3])) and $(face$(ptsplan[1]))
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline4=dsegment
+  !else
+    typeline4=segment
+  !endif
+
+  dessin= \
+    $typeline1 $(pt$pt1),$(pt$pt2),red\
+    $typeline2 $(pt$(ptsplan[1])),$(pt$(ptsplan[2])),blue\
+    $typeline3 $(pt$(ptsplan[2])),$(pt$(ptsplan[3])),blue\
+    $typeline4 $(pt$(ptsplan[3])),$(pt$(ptsplan[1])),blue\
+
+
+  !! Détermination de la réponse
+  goodrep1=3
+  facedest= !listintersect $(face$pt1) and $(face$pt2)
+  !!debug facedest $facedest, face $face
+  !if $face isitemof $facedest
+    goodrep1=2
+  !else
+    !if $face isitemof 1,3,5
+      facepar=!eval $face+1
+    !else
+      facepar=!eval $face-1
+    !endif
+    !if $facepar isitemof $facedest
+      goodrep1=1
+    !else
+      !!tester droites des milieux
+      !if ($face=1 or $face=2) and ($pt1 isitemof Q,R,S,T) and ($pt2 isitemof Q,R,S,T)
+          goodrep1=1
+      !endif
+      !if ($face=3 or $face=4) and ($pt1 isitemof O,P,K,L) and ($pt2 isitemof O,P,K,L)
+          goodrep1=1
+      !endif
+      !if ($face=5 or $face=6) and ($pt1 isitemof I,J,M,N) and ($pt2 isitemof I,J,M,N)
+          goodrep1=1
+      !endif
+    !endif
+  !endif
+  !! fin $mode=3
+!endif
+
+!! position orthogonale
+!if $mode=4
+  colorrep1=mygreen
+  colorrep2=mygreen
+  !if $selplan=2
+    pt1=$(ceplan[1])
+    pt2=$(ceplan[2])
+    pt3=$(ceplan[1])
+    pt4=$(ceplan[3])
+  !else
+    !! selection de 2 couples de points ;;;; pas sur une même face
+    lstind=!shuffle 20
+    pt1= $(listpoint[$(lstind[1])])
+    pt2= $(listpoint[$(lstind[2])])
+    pt3= $(listpoint[$(lstind[1])])
+    pt4= $(listpoint[$(lstind[4])])
+  !endif
+  faceseg= !listintersect $(face$pt1) and $(face$pt2)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline1=dsegment
+  !else
+    typeline1=segment
+  !endif
+  faceseg= !listintersect $(face$pt3) and $(face$pt4)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline2=dsegment
+  !else
+    typeline2=segment
+  !endif
+
+  dessin= \
+   $typeline1 $(pt$pt1),$(pt$pt2),red\
+   $typeline2 $(pt$pt3),$(pt$pt4),blue
+
+  !! détermination des bonnes réponses
+  goodrep1=0
+  vect1x=!eval $(PT$pt1[1]) - $(PT$pt2[1])
+  vect1y=!eval $(PT$pt1[2]) - $(PT$pt2[2])
+  vect1z=!eval $(PT$pt1[3]) - $(PT$pt2[3])
+  vect2x=!eval $(PT$pt3[1]) - $(PT$pt4[1])
+  vect2y=!eval $(PT$pt3[2]) - $(PT$pt4[2])
+  vect2z=!eval $(PT$pt3[3]) - $(PT$pt4[3])
+  pdtscal=!eval ($vect1x) * ($vect2x) + ($vect1y) * ($vect2y) + ($vect1z) * ($vect2z)
+  !if $pdtscal=0
+    goodrep1=1
+  !else
+    goodrep1=2
+  !endif
+!endif
+!! fin $mode=4
+
+!! nature de triangles
+!if $mode=5
+  colorrep1=mygreen
+  colorrep2=mygreen
+  !if $selplan=2
+    pt1=$(ceplan[1])
+    pt2=$(ceplan[2])
+    pt3=$(ceplan[1])
+    pt4=$(ceplan[3])
+  !else
+    !! selection de 2 couples de points ;;;; pas sur une même face
+    lstind=!shuffle 20
+    pt1= $(listpoint[$(lstind[1])])
+    pt2= $(listpoint[$(lstind[2])])
+    pt3= $(listpoint[$(lstind[1])])
+    pt4= $(listpoint[$(lstind[4])])
+    dte=!listintersect $(face$pt1) and $(face$pt2)
+    dte=!listintersect $dte and $(face$pt4)
+    n=!itemcnt $dte
+    !if $n>0
+     pt4= $(listpoint[$(lstind[3])])
+    !endif
+  !endif
+  faceseg= !listintersect $(face$pt1) and $(face$pt2)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline1=dsegment
+  !else
+    typeline1=segment
+  !endif
+  faceseg= !listintersect $(face$pt2) and $(face$pt4)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline2=dsegment
+  !else
+    typeline2=segment
+  !endif
+  faceseg= !listintersect $(face$pt4) and $(face$pt1)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline3=dsegment
+  !else
+    typeline3=segment
+  !endif
+
+  dessin= \
+   $typeline1 $(pt$pt1),$(pt$pt2),red\
+   $typeline2 $(pt$pt2),$(pt$pt4),red\
+   $typeline3 $(pt$pt4),$(pt$pt1),red\
+
+  !! détermination des bonnes réponses
+  goodrep1=5
+  vect1x=!eval $(PT$pt1[1]) - $(PT$pt2[1])
+  vect1y=!eval $(PT$pt1[2]) - $(PT$pt2[2])
+  vect1z=!eval $(PT$pt1[3]) - $(PT$pt2[3])
+  vect2x=!eval $(PT$pt1[1]) - $(PT$pt4[1])
+  vect2y=!eval $(PT$pt1[2]) - $(PT$pt4[2])
+  vect2z=!eval $(PT$pt1[3]) - $(PT$pt4[3])
+  vect3x=!eval $(PT$pt2[1]) - $(PT$pt4[1])
+  vect3y=!eval $(PT$pt2[2]) - $(PT$pt4[2])
+  vect3z=!eval $(PT$pt2[3]) - $(PT$pt4[3])
+  pdtscal1=!eval ($vect1x) * ($vect2x) + ($vect1y) * ($vect2y) + ($vect1z) * ($vect2z)
+  !if $pdtscal1=0
+    goodrep1=1
+  !endif
+  pdtscal2=!eval ($vect3x) * ($vect2x) + ($vect3y) * ($vect2y) + ($vect3z) * ($vect2z)
+  !if $pdtscal2=0
+    goodrep1=1
+  !endif
+  pdtscal3=!eval ($vect1x) * ($vect3x) + ($vect1y) * ($vect3y) + ($vect1z) * ($vect3z)
+  !if $pdtscal3=0
+    goodrep1=1
+  !endif
+  nvect1=!eval ($vect1x)^2 + ($vect1y)^2 + ($vect1z)^2
+  nvect2=!eval ($vect2x)^2 + ($vect2y)^2 + ($vect2z)^2
+  nvect3=!eval ($vect3x)^2 + ($vect3y)^2 + ($vect3z)^2
+  nat_iso=0
+  !if $nvect1=$nvect2
+    !advance nat_iso
+    !if $goodrep1=1
+      goodrep1=3
+    !else
+      goodrep1=2
+    !endif
+  !endif
+  !if $nvect2=$nvect3
+    !if $goodrep1=1
+      goodrep1=3
+    !else
+      goodrep1=2
+    !endif
+    !if $nat_iso=1
+      goodrep1=4
+    !endif
+    !!debug $nat_iso, $nvect1, $nvect2,$nvect3
+    nat_iso=1
+  !endif
+  !if $nvect1=$nvect3
+    !if $goodrep1=1
+      goodrep1=3
+    !else
+      goodrep1=2
+    !endif
+    !if $nat_iso=1
+      goodrep1=4
+    !endif
+    nat_iso=1
+  !endif
+!endif
+!! fin $mode=5
+
+cube=linewidth 3\
+polyline black,0,0,0,10,10,10,10,0,0,0\
+polyline black,0,10,2,13,12,13,10,10\
+dpolyline black,0,0,2,3,12,3\
+dsegment 2,3,2,13,black\
+polyline black,10,0,12,3,12,13\
+
+cadre= \
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+$cube\
+text $colorA,-0.4,-0.5,medium,A\
+text $colorB,10.1,-0.5,medium,B\
+text $colorD,2.6,3,medium,D\
+text $colorC,12.1,3,medium,C\
+text $colorE,-1,11,medium,E\
+text $colorF,10.7,10.8,medium,F\
+text $colorH,2.6,14.2,medium,H\
+text $colorG,12.1,14.2,medium,G\
+text $colorI,5,-0.5,medium,I\
+text $colorJ,7,4.2,medium,J\
+text $colorK,1.4,1.8,medium,K\
+text $colorL,11.5,1.8,medium,L\
+text $colorM,5,9.5,medium,M\
+text $colorN,7,14.5,medium,N\
+text $colorO,0,12.2,medium,O\
+text $colorP,11.3,11.8,medium,P\
+text $colorQ,-0.8,5.5,medium,Q\
+text $colorR,10.3,5.5,medium,R\
+text $colorS,12.3,8.5,medium,S\
+text $colorT,2.2,8.5,medium,T\
+linewidth 5\
+points blue,0,0,0,10,10,10,10,0,2,13,12,13,2,3,12,3\
+points green,5,0,7,3,1,1.5,11,1.5,5,10,7,13,1,11.5,11,11.5,0,5,10,5,2,8,12,8\
+linewidth 3\
+$dessin

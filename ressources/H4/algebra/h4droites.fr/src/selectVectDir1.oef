@@ -1,0 +1,234 @@
+\title{Sélectionner un vecteur directeur I}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Joachim, Yaméogo}
+\email{yameogo@unice.fr}
+\format{html}
+\css{
+<style>
+table.choice_menu {
+   border: 1px solid white;
+   border-collapse: collapse;
+   padding: 4px;
+   text-align: center;
+   margin: auto;
+}
+table.choice_menu td {
+   border: 1px solid white;
+   border-collapse: collapse;
+   padding: 4px;
+   text-align: center;
+}
+</style>
+}
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.3,0.7,medium,j
+text black,-0.3,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.3,-0.2,large,x
+text black,-0.3,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication de la droite ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+
+\integer{a=\y2-(\y1)}
+\integer{b=\x1-(\x2)}
+\integer{c=(\x1)*(\y2-(\y1))-(\y1)*(\x2-(\x1))}
+\function{hf=(\a)*x+(\b)*y}
+\text{eqD1=maxima(\hf-(\c);)}
+\text{eqD1=texmath(\eqD1=0)}
+\text{eqD2=texmath(\hf=\c)}
+\text{eqDroite=random(\eqD1,\eqD2)}
+
+\integer{u1=-\b}
+\integer{u2=\a}
+
+## on construit la liste des vecteurs à afficher ##
+\text{kList=shuffle(-5,-4,-3,3,4,5)}
+\integer{v1=random(-1,1)*random(1,2,3)}
+\matrix{vList=}
+\for{k=1 to 3}{
+  \real{v2=(\kList[\k]+(\v1)*(\u2))/(\u1)}
+  \matrix{vList=\vList
+              \v1,\v2
+       }
+  }
+\matrix{vList=\vList
+            \u1,\u2
+     }
+
+## on choisit les endroits où afficher en adaptant la longueur des vecteurs ##
+\matrix{wList=}
+\for{k=1 to 4}{
+  \integer{oxw=random(-1..1)}
+  \integer{oyw=random(-1..1)}
+  \integer{m1=min(abs(\oxw-(\xmin)),abs(\oxw-(\xmax)))}
+  \integer{m2=min(abs(\oyw-(\ymin)),abs(\oyw-(\ymax)))}
+  \integer{dil=random(-1,1)*random(3..min(\m1,\m2))}
+  \real{norm=sqrt((\vList[\k;1])^2+(\vList[\k;2])^2)}
+  \real{bxw=\oxw+(\dil/(\norm))*(\vList[\k;1])}
+  \real{byw=\oyw+(\dil/(\norm))*(\vList[\k;2])}
+  \matrix{wList=\wList
+              \oxw,\oyw,\bxw,\byw
+       }
+  }
+
+## on permute les vecteurs de sorte que la bonne réponse puisse changer de place ##
+\text{permut=shuffle(4)}
+\text{brep=position(4,\permut)}
+
+
+## traçage des vecteurs ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\text{graph1=
+\cadre
+linewidth 2
+arrow \wList[\permut[1];],10,\couleurs[1]
+}
+
+\text{graph2=
+\cadre
+linewidth 2
+arrow \wList[\permut[2];],10,\couleurs[2]
+}
+
+\text{graph3=
+\cadre
+linewidth 2
+arrow \wList[\permut[3];],10,\couleurs[3]
+}
+
+\text{graph4=
+\cadre
+linewidth 2
+arrow \wList[\permut[4];],10,\couleurs[4]
+}
+
+####### enoncé de l'exo #######
+\statement{
+<div class="affiche_pres">
+  Le plan \(\RR^2) est muni d'un repère orthonormé \((O,i,j)). On considère
+  la droite <b>D</b> dont une &eacute;quation est donn&eacute;e par
+  &nbsp; \(\eqDroite).
+  <br>
+  Dans la liste suivante, trouvez un vecteur directeur pour la droite <b>D</b>.
+</div>
+<div class="affiche_pres" style="text-align:center;">
+  <table class="choice_menu">
+    <tr>
+      <td style="background-color:antiquewhite;">
+        \embed{reply1, 1}
+      </td>
+      <td style="background-color:antiquewhite;">
+        \draw{\dimh,\dimv}{
+	\graph1
+	}
+      </td>
+      <td style="background-color:white;">
+        &nbsp; &nbsp;
+      </td>
+      <td style="background-color:silver;">
+        \embed{reply1,2}
+      </td>
+      <td style="background-color:silver;">
+        \draw{\dimh,\dimv}{
+	\graph2
+	}
+      </td>
+    </tr>
+    <tr>
+      <td style="background-color:silver;">
+        \embed{reply1,3}
+      </td>
+      <td style="background-color:silver;">
+        \draw{\dimh,\dimv}{
+	\graph3
+	}
+      </td>
+      <td style="background-color:white;">
+        &nbsp; &nbsp;
+      </td>
+      <td style="background-color:antiquewhite;">
+        \embed{reply1,4}
+      </td>
+      <td style="background-color:antiquewhite;">
+        \draw{\dimh,\dimv}{
+	\graph4
+	}
+      </td>
+    </tr>
+  </table>
+</div>
+}
+##### collecte de la réponse de l'utilisateur #####
+\reply{}{\brep;1,2,3,4}{type=radio}
+
+## Aide ou rappel ##
+\hint{
+  Vous pouvez utiliser le th&eacute;or&egrave;me suivant:
+  <p style="background-color:bisque;">
+  <b>Th&eacute;or&egrave;me:</b> L'ensemble des points \(M(x,y)) tels que \(a x + b y=c),
+  avec \(a) et \(b) non simultanément nuls, est une droite admettant le vecteur
+  \(\vec{v}(-b,a)) pour vecteur directeur.
+  </p>
+}

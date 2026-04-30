@@ -1,0 +1,142 @@
+n=$counter
+questiontype=7
+javascript=js/kansverdeling1.js
+checkfile=exos/checkfile9.proc
+xsize=600
+ysize=600
+mathview=0
+math=0
+cols=6
+make_tr=1
+!if $rounding<1
+ rounding=10000
+ !readproc $remarkdir/rounding.$taal
+ !endif
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    num=!randint 3,4
+    p=!randint 5,10
+    q=!randint 5,10
+!else
+    !if $R=2
+	num=!randint 5,6
+	p=!randint 9,15
+	q=!randint 9,15
+    !else
+	num=!randint 7,8
+	p=!randint 9,15
+	q=!randint 9,15
+    !endif
+!endif
+
+k=!randint 0,1
+!if $k=0
+    jongens=!record 78 of $remarkdir/commonremarks.$taal
+    naam=!randitem $jongens
+!else
+    meisjes=!record 79 of $remarkdir/commonremarks.$taal
+    naam=!randitem $meisjes
+!endif
+
+terugleggen=!randitem zonder terugleggen, in &eacute;&eacute;n greep
+kleuren=!record 63 of lang/remarks.$taal
+#@ red@rooie,blue@blauwe,green@groene,yellow@gele
+vaas=!record 64 of lang/remarks.$taal
+#@ vaas,bak,aquarium,bakje,schaal,doos,kistje,zak
+ballen=!record 65 of lang/remarks.$taal
+#@ ballen,knikkers,kogels,kogeltjes,stuiters,kauwgomballen
+kleuren=!shuffle $kleuren
+vaas=!randitem $vaas
+ballen=!randitem $ballen
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1
+k2=!replace internal @ by , in $k2
+kleur1=!item 2 of $k1
+color1=!item 1 of $k1
+kleur2=!item 2 of $k2
+color2=!item 1 of $k2
+
+totaal=$[$p+$q]
+
+ss=In een $vaas zitten $p $kleur1 $ballen en $q $kleur2 $ballen.<br />\
+$naam pakt $terugleggen $num $ballen.<br/>\
+Stochast X is het aantal $kleur1 $ballen dat $naam trekt.<br/>\
+Maak de bijhorende kansverdeling en bereken de verwachtingswaarde.<br />Je mag de verwachtingswaarde opgeven in twee decimalen nauwkeurig.<hr />
+question$n=$ss
+helptext=<img src=\'$module_dir/gifs/exo1.png\' alt=\'noalt\'>
+#type=1
+#answer$n=1,1,2,2,3,3,4,4,5,5
+#!exit
+#getal
+verwachting=0
+#uitleg
+verwacht=$empty
+sometxt=!record 17 of lang/remarks.$taal
+#@aantal,berekening,kans
+#r1=!item 1 of $sometxt
+r2=!item 2 of $sometxt
+r3=!item 3 of $sometxt
+texanswer$n=$ \begin{array}{l} \begin{array}{c|c|c} \textrm{X} &  \textrm{$r2} & \textrm{P(X=x)}  \\ \hline  $
+
+!for t=0 to $num
+    P=$[(factorial($p)/(factorial($t)*factorial($p - $t)))*(factorial($q)/(factorial($num - $t)*factorial($q + $t - $num)))/((factorial($p+$q)/(factorial($num)*factorial($p + $q - $num))))]
+    PP=$[(round(10000*$P))/10000]
+    verwachting=$[$verwachting + $PP*$t]
+    !if $t<$num
+	verwacht=!append word $ $PP \times $t + $ to $verwacht
+    !else
+	verwacht=!append word $ $PP \times $t $ to $verwacht
+    !endif
+    answer$n=!append item $t,$P to $(answer$n)
+    texanswer$n=!append word $ $t & \frac{ \left( \begin{array}{c} $p \\ $t  \end{array} \right) \cdot \left( \begin{array}{c} $q \\ $[$num - $t]  \end{array} \right) }{ \left( \begin{array}{c} $[$p + $q] \\ $num  \end{array} \right) } &  \approx $PP  \\  &  &  \\ $ to $(texanswer$n)
+!next t
+
+texanswer$n=!append word $ \end{array} \\ E(X)=$verwacht=$verwachting \end{array} $ to $(texanswer$n)
+     
+
+#texanswer$n=!append word $ \end{array} \\  \begin{array}{l} E(X)=$kans \cdot $num = $verw \\ \sigma(X)= \sqrt{$kans \cdot $niet_kans \cdot $num}=$standaard \end{array} \end{array} $ to $(texanswer$n)
+
+
+answer$n=!append item $verwachting to $(answer$n)
+#exotext=$(answer$n)
+
+!if exam notin $session
+    txt=!record 17 of lang/remarks.$taal
+    #@:aantal,berekening,kans 
+    aantallen=$(txt[1])
+    kansen=$(txt[3])
+    
+    data=mouse yes\
+    userdraw lines\
+    clickcolor green\
+    xrange -1,$[$num+1]\
+    yrange -0.1,1\
+    linewidth 2\
+    hline 0,0,black\
+    vline 0,0,black\
+    grid 1,1,1,0.1,blue,blue,1,1,120,120\
+    xlabel $aantallen,14,helvetic,blue,200\
+    ylabel $kansen,14,helvetic,blue,200\
+    xscale 0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,12,fontname,black,1\
+    yscale 0,0,0.1,0.1,0.2,0.2,0.3,0.3,0.4,0.4,0.5,0.5,0.6,0.6,0.7,0.7,0.8,0.8,0.9,0.9,1,1.0,12,Helvetica,black,1\
+    linewidth 12\
+    points $(answer$n),red\
+    linewidth 4
+    
+    xsize=300
+    ysize=300
+    
+    myname=$counter.data
+    !filewrite getfile/$myname $data
+    textanswer$n=<a onmouseover="return escape('<object id=\'FlyApplet\' width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name = \'java_codebase\' value = \'$appletdir\' /><param name = \'java_archive\' value = \'FlyApplet.jar\' /><param name = \'java_code\' value = \'FlyApplet.class\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\'/>$nojava</object>')">$(textanswer$n)</a>
+!endif
+
+

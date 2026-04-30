@@ -1,0 +1,205 @@
+!set title=Expression fonction affine à partir de deux images
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=12
+postvarcnt=2
+replycnt=3
+choicecnt=0
+conditioncnt=3
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,3,3,3
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val8=$[rint($val7+$(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem -1,1
+
+val10=$[rint($val9+$(tmp0)*$(tmp1))]
+val11=$[rint($val7)]
+t_=!rawmath ($val10-$val9)/($val8-$val7)
+val12=!exec pari print($t_)
+t_=!rawmath $val9-$val12*$val7
+val13=!exec pari print($t_)
+!if $val6=2 
+val10=$[rint($val9)]
+!endif
+!if $val6=2 
+val13=$[rint($val9)]
+!endif
+!if $val6=2 
+val12=$[rint(0)]
+!endif
+tmp0=!item $val6 of $val11,$val13,$val12*x+$val13
+
+val14=$(tmp0)
+replytype1=formal
+replyname1=
+replygood1=?analyze 15
+replytype2=formal
+replyname2=
+replygood2=?analyze 16
+replytype3=function
+replyname3=
+replygood3=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction affine 
+!insmath f
+$() qui vérifie 
+!insmath f($val7)=$val9
+$() et 
+!insmath f($val8)=$val10
+$().	<ul class="wims_nopuce"> 	<li>Déterminer le taux d'accroissement 
+!insmath m
+$() de cette fonction :
+!insmath m=
+$()  
+!read oef/embed.phtml reply 1,5 
+$()</li>	<li>Déterminer 
+!insmath p
+$(), image de 0 par 
+!insmath f
+$() : 
+!insmath p=
+$()  
+!read oef/embed.phtml reply 2,5 
+$()</li>	<li>Donner l'expression de 
+!insmath f
+$() en fonction de 
+!insmath x
+$() : 
+!insmath f(x)=
+$()  
+!read oef/embed.phtml reply 3,5 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()  	L'expression d'une fonction affine 
+!insmath f
+$() est 
+!insmath f(x)=m x+p
+$() où, la valeur du taux d'accroissement 
+!insmath m
+$() 	se calcule par la formule	<br><center>
+!insmath m=(f(a)-f(b))/(a-b)
+$()</center>	<br>et la valeur de l'image de 0 
+!insmath p
+$()  se calcule par la formule	<br><center>
+!insmath p=f(a)-m \times a
+$() ou 
+!insmath p=f(b)-m \times b
+$() </center>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!translate ";': to $     $ in $val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in $val15*x+$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+condweight1=4 
+
+!ifval $val15 = $val12 
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=calcul de m juste ?
+condweight2=4 
+
+!ifval $val16 = $val9-$val15*$val7 or $val16 = $val10-$val15*$val8 
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=calcul de p cohérent avec calcul de m et valeurs ?
+condweight3=2 
+
+!ifval $val17   issametext   $val18
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=expression de f(x) cohérente avec les valeurs calculées ?
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,12,15,16,17
+embedcnt=3

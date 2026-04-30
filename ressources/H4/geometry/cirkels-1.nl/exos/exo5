@@ -1,0 +1,189 @@
+#:5 raaklijn aan een cirkel I
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+
+force_mathml=yes
+calculator=2
+helptext=$empty
+make_tr=1
+ss=!record 7 of lang/remarks.$taal
+@#Punt P ligt op cirkel <em>c</em><br />Stel de vergelijking op  van de raaklijn k aan de cirkel door punt P.<br />Geef je antwoord in de vorm van <em>y=ax+b</em>
+mtext=!record 8 of lang/remarks.$taal
+#@vergelijking raaklijn k is , het middelpunt van de cirkel , de helling van OP is , de helling van k loodrecht op OP is , P ligt op raaklijn k , algemene formule voor een rechte
+
+!if $R=1
+ x=!randint 1,6
+ pm=!randitem 1,-1
+ x=$[$pm*$x]
+ y=!randint 1,9
+ mp=!randitem 1,-1
+ y=$[$mp*$y]
+ c=$[($x)^2+($y)^2]
+ tot=!exec pari A=($y)+($x)*($x)/($y)\
+ printtex(A) \
+ B=-1*($x)/($y)\
+ printtex(B)\
+ printtex((B)*x+(A))
+
+ b=!line 1 of $tot
+ btex=!line 2 of $tot
+ a=!line 3 of $tot
+ atex=!line 4 of $tot
+ texans=!line 5 of $tot
+ Mx=0
+ My=0
+ answer$n=!rawmath $a*x+$b
+ OP=OP
+ centrum=O
+ formula$n=\left[ \begin{array}{ll} c: & x^{2} + y^{2} = $c \\ P:  & ($x : $y) \\ k: & y = ax + b  \end{array} \Rightarrow  \textrm{ $(mtext[1]) : } \;\;\;   \input{24}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0}  \right.
+
+ texanswer$n=\left[ \begin{array}{l} c:  x^{2} + y^{2} = $c \\ P  ($x : $y) \\ k: y = ax + b  \\ \textrm{ $(mtext[2]) : } ( 0 : 0 ) \\ \textrm{ $(mtext[3]) : } \frac{$y}{$x} \\ \textrm{ $(mtext[4]) : }\; a = -1 \cdot\frac{$x}{$y} = $atex \\ \textrm{ $(mtext[5]) : } $y = $atex \cdot $x + b \Rightarrow b = $btex \\ k: y = $texans \end{array} \right.
+
+!else
+ OP=MP
+ centrum=M
+ !if $R=2
+  mx=!randint 1,6
+  my=!randint 1,6
+  x=!randint $[$mx-5],$[$mx+5]
+  y=!randint $[-1*$my-5],$[-1*$my+5]
+  !if $x=$mx
+   x=$[$x+1]
+  !endif
+  !if $y=$[-1*$my]
+   y=$[$y+1]
+  !endif
+  # M ($mx:-$my)
+  c=$[($x-$mx)^2+($y+$my)^2]
+  Mx=$mx
+  My=-$my
+  tot=!exec pari A=(($y)+($my))/(($x) - ($mx))\
+  printtex(A)\
+  B=-1/(A)\
+  printtex(B)\
+  C=($y) - ($x)*($mx - ($x))/(($y)+($my))\
+  printtex(C)\
+  D=B*x+C\
+  printtex(D)
+
+  a=!line 1 of $tot
+  atex=!line 2 of $tot
+  inv=!line 3 of $tot
+  invtex=!line 4 of $tot
+  b=!line 5 of $tot
+  btex=!line 6 of $tot
+  answer$n=!line 7 of $tot
+  texans=!line 8 of $tot
+  
+  
+  formula$n=\left[ \begin{array}{ll} c: & (x-$mx)^{2} + (y+$my)^{2} = $c \\ P  & ($x : $y) \\ k: & y = ax + b  \end{array} \Rightarrow  \textrm{ $(mtext[1]) : } \;\;\;   \input{24}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0}  \right.
+  texanswer$n=\left[ \begin{array}{l} c: (x-$mx)^{2} + (y+$my)^{2} = $c \\  P  ($x : $y) \\ k: y = ax + b  \\ \textrm{ $(mtext[2]) : }\;\; M ( $mx : -$my ) \\ \textrm{ $(mtext[3]) : } \frac{$y + $my}{$x - $mx} = $atex \\ \textrm{ $(mtext[4]) : }\;\; a =  -1 \cdot \frac{$x - $mx}{$y + $my} = $invtex \\ \textrm{ $(mtext[5]) : } \Rightarrow  $y = $invtex \cdot $x + b \Rightarrow b = $btex \\ k: y = $texans \end{array} \right.
+  
+ !else
+
+  mx=!randint 1,6
+  my=!randint 1,6
+  x=!randint $[$mx-5],$[$mx+5]
+  y=!randint $[-1*$my-5],$[-1*$my+5]
+  !if $x=$mx
+   x=$[$x+1]
+  !endif
+  !if $y=$[-1*$my]
+   y=$[$y+1]
+  !endif
+  # M ($mx:-$my)
+  c=$[($x-$mx)^2+($y+$my)^2]
+  Mx=$mx
+  My=-$my
+  
+  tot=!exec pari A=(($y)+($my))/(($x) - ($mx))\
+  printtex(A)\
+  B=-1/(A)\
+  printtex(B)\
+  C=($y) - ($x)*($mx - ($x))/(($y)+($my))\
+  printtex(C)\
+  D=B*x+C\
+  printtex(D)
+
+  a=!line 1 of $tot
+  atex=!line 2 of $tot
+  inv=!line 3 of $tot
+  invtex=!line 4 of $tot
+  b=!line 5 of $tot
+  btex=!line 6 of $tot
+  answer$n=!line 7 of $tot
+  texans=!line 8 of $tot
+  
+  cc=$[$mx*$mx+$my*$my - $c]
+  !if $cc=0
+    tt=x^{2}+y^{2} - $[2*$mx] x + $[2*$my] y
+  !else
+   !if $cc < 0
+    tt=x^{2}+y^{2} - $[2*$mx] x + $[2*$my] y $cc
+   !else
+    tt=x^{2}+y^{2} - $[2*$mx] x + $[2*$my] y + $cc
+   !endif
+  !endif
+  formula$n=\left[ \begin{array}{ll} c: & $tt = 0 \\ P  & ($x : $y) \\ k: & y = ax + b  \end{array} \Rightarrow  \textrm{ $(mtext[1]) : } \;\;\;   \input{24}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0}  \right.
+  texanswer$n=\left[ \begin{array}{l}c: $tt = 0 \\ c: (x-$mx)^{2} + (y+$my)^{2} = $c \\  P  ($x : $y) \\ k: y = ax + b  \\ \textrm{ $(mtext[2]) : }\;\; M ( $mx : -$my ) \\  \textrm{ $(mtext[3]) : } \frac{$y + $my}{$x - $mx} = $atex \\ \textrm{ $(mtext[4])  : }\;\; a =  -1 \cdot \frac{$x - $mx}{$y + $my} = $invtex \\ \textrm{ $(mtext[5]) : } \Rightarrow  $y = $invtex \cdot $x + b \Rightarrow b = $btex \\ k: y = $texans \end{array} \right.
+ !endif
+!endif
+
+checkfile=$checkdir/equation.proc
+arglist=y,k(x),k:y
+varlist=x
+
+
+
+y1l=!evalsubst x=-100 in $(answer$n)
+y2l=!evalsubst x=100 in $(answer$n)
+radius=$[sqrt($c)]
+rr=$[10*(ceil($radius/10))]
+xmin=$[$Mx-1.5*$rr]
+xmax=$[$Mx+1.5*$rr]
+ymin=$[$My-1.5*$rr]
+ymax=$[$My+1.5*$rr]
+
+min=$[min($xmin,$ymin)]
+max=$[max($xmax,$ymax)]
+klik=!record 63 of $remarkdir/commonremarks.$taal
+plaatje=!exec canvasdraw \
+size 300,300\
+xrange $min,$max\
+yrange $min,$max\
+#grid 3,3,grey\
+frect -100,100,100,-100,white\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$Mx,$My,$x,$y\
+fontfamily 18px Ariel\
+circles green,$Mx,$My,$radius\
+string blue,$[$x+0.5],$[$y+0.5],P\
+string blue,$[$Mx+0.5],$[$My+0.5],$centrum\
+line -100,$y1l,100,$y2l,purple\
+intooltip $klik\
+zoom blue
+
+
+helptext=<textarea cols=20 rows=2>y = a*x + b \nk(x) = ax + b </textarea>
+question$n=$ss<span style="color:blue">$plaatje</span>
+#question$n=<a onmouseover="return escape('$helptext')">$ss</a><span style="color:blue">$plaatje</span>
+
+!exit

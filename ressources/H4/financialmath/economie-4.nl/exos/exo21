@@ -1,0 +1,56 @@
+# Primitieve opslagmethode
+# steps
+n=$counter
+!if $counter=1
+    mathview=0
+    !if $total_exos >2
+	total_exos=2
+    !endif
+    checkfile=exos/precheck1.proc
+    make_tr=0
+    cols=6
+    rows=1
+    rounding=100
+    roundingtext=Rond je antwoord af op twee decimalen.
+    inputs=1.1
+    bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+    grondstof1=!randint 75,400
+    grondstof1=$[$grondstof1*1000]
+    loonkosten1=!randint 150,350
+    loonkosten1=$[$loonkosten1*1000]
+    perc=!randint 5,35
+    fac=$[$perc/100]
+    
+    kosten1=$[$fac*($grondstof1+$loonkosten1)]
+
+    answer1=$perc
+    grondstof2=!randint 10,40
+    loonkosten2=!randint 10,30
+    tot=$[$grondstof2+$loonkosten2]
+    opslag=$[$fac*$tot]
+    answer2=$[(1+$fac)*($grondstof2+$loonkosten2)]
+    mot=!exec moneyprint $grondstof1,$grondstof2,$loonkosten1,$loonkosten2 2
+    grondstof1=$(mot[1])
+    grondstof2=$(mot[2])
+    loonkosten1=$(mot[3])
+    loonkosten2=$(mot[4])
+    
+    textanswer1=<ul><li>De indirecte kosten worden berekend als een percentage van de totale directe kosten.</li><li> $kosten1 / ($grondstof1 + $loonkosten1) &times; 100% = $perc %</li></ul>
+
+    textanswer2=De berekening van de kostprijs:<table class="zebra_table_h2"><tr><td>Directe grondstofkosten</td><td>&nbsp;&nbsp;&euro;</td><td>$grondstof2</td><td>&nbsp;</td></tr><tr><td>Directe loonkosten</td><td>&nbsp;&nbsp;&euro;</td><td>$loonkosten2</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td><hr /></td><td>+</td></tr><tr><td>Totale directe kosten</td><td>&nbsp;&nbsp;&euro;</td><td>$tot</td><td>&nbsp;</td></tr><tr><td>Opslag indirecte kosten ($perc%)<sup>*</sup></td><td>&nbsp;&nbsp;&euro;</td><td>$opslag</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td><hr /></td><td>+</td></tr><tr><td>Kostprijs</td><td>&nbsp;&nbsp;&euro;</td><td>$answer2</td><td>&nbsp;</td></tr></table><sup>*</sup> zie antwoord 1)
+    som=$bedrijf gebruikt de primitieve opslagmethode.<br />De indirecte kosten worden berekend als <br />een percentage van de totale directe kosten.<br />Hiervoor zijn <span class="schaersvoorde_link">deze gegevens</span> bekend.
+    mousetxt=<table class=\'grid_table\'><caption>$bedrijf primitieve opslagmethode</caption><tr><th>Directe grondstofkosten</th><th>&euro; $grondstof1</th></tr><tr><th>Directe loonkosten</th><th>&euro; $loonkosten1</th></tr><tr><th>Indirecte kosten</th><th>&euro; $kosten1</th></tr></table>
+    question1=<a onmouseover="return escape('$mousetxt<hr />$roundingtext')">$som<br />Bereken het opslagpercentage voor de dekking van de indirecte kosten.</a>
+    question2=<a onmouseover="return escape('$mousetxt<hr />$roundingtext')">$som<br />Bereken de kostprijs van een product dat &euro; $grondstof2 directe grondstofkosten<br />en &euro; $loonkosten2 aan directe loonkosten nodig heeft.</a>
+    helptext=$mousetxt<hr />$roundingtext
+!endif
+
+!if $n=1
+    description=opslagpercentage
+    ex1=%
+!else
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+    description=de kostprijs
+    ex1=&euro;
+!endif
+!exit

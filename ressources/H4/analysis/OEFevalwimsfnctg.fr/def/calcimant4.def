@@ -1,0 +1,131 @@
+!set title=Détermination d'image et d'antécédent 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -9, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -9, 9
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val10=$[rint($(tmp0))]
+val11=$[rint(0)]
+
+!ifval $val8*$val10+$val9=0
+val9=$[rint( $val9-1)]
+!endif
+val12=l'image
+val13=le (ou les) antécédent(s)
+val14=numeric
+val15=fset
+t_=!replace internal \( by ( in ($val6*x+$val7)*($val8*x+$val9)
+tmp0=!exec maxima $t_
+
+tmp1=!texmath $(tmp0)
+
+val16=$(tmp1)
+val17=$[rint(($val6*$val10+$val7)*($val8*$val10+$val9))]
+t_=!rawmath -$val7 /($val6)
+val18=!exec pari print($t_)
+t_=!rawmath -$val9 /($val8)
+val19=!exec pari print($t_)
+val20=$val18,$val19
+replytype1=$val14
+
+replyname1=
+replygood1=$val17
+replytype2=$val15
+
+replyname2=
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction 
+!insmath f
+$() donnée par son expression algébrique:	<div class="wimscenter">
+!insmath f(x)=$val16
+$().</div>	<div class="wims_question">Déterminer $val12 de $val10 et $val13 de $val11 :	<ul>	<li><label for="reply1">$val12 de $val10:</label>  
+!read oef/embed.phtml reply1,5 
+$()</li>	<li><label for="reply2">$val13 de $val11:</label> 
+!read oef/embed.phtml reply2,5 
+$()	<div class="wims_instruction">	  S'il y a plusieurs réponses, les séparer par une virgule.</div>	</li>	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,16
+embedcnt=2

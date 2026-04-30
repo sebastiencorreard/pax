@@ -1,0 +1,193 @@
+questiontype=1
+checkfile=$checkdir/multiplechoice.proc
+insplot_data=$empty
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+!if $options<3 or $options>8
+    options=4
+!endif
+xsize=480
+ysize=480
+make_tr=1
+choice=!randint 1,$options
+answer$n=$choice
+question$n=!record 23 of lang/remarks.$taal
+#@ Welke functietabel komt overeen met het <b>toenamendiagram</b> ?
+etext=!record 2 of lang/remarks.$taal
+helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' >
+num=5
+image=0
+plot=1
+math=0
+multiimage=0
+xmin=!randitem 0,1,2,-1,-2
+xmax=$[$xmin+$num]
+ansdx=$empty
+ansdy=$empty
+insplot_data=$empty
+
+!if $R < 3
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    b=!randitem 0,1,2,3,4,5
+    r=!randitem -1,1
+    pm=!randitem -,+
+    !for p=1 to $options
+	Y$p=$empty
+	ex$p=$empty
+	xtabel=$empty
+	ytabel=$empty
+	a=!item $p of $aa
+	a=$[$a*$r]
+	!if $R=1
+	    f=$a*x $pm $b
+	!else
+	    f=$a*x^2 $pm $b
+	!endif
+	!if $p=$choice
+	    plotfunctie=$f
+	!endif
+	!for s=$xmin to $xmax
+	    # set functie x/y waarden van xmin-xmax
+	    y=!evalsubst x=$s in $f
+	    Y$p=!append item $y to $(Y$p)
+	    xtabel=!append line <td>$s</td> to $xtabel
+	    ytabel=!append line <td>$y</td> to $ytabel
+	!next s
+	ex$p=<table class="demospecial"><tr><th>x</th>$xtabel</tr><tr><th>y</th>$ytabel</tr></table>
+    !next p
+    x=$[$xmin+1]
+    ymax=-100
+    ymin=100
+    canvasdata=$empty
+    k=!randitem red,blue,green
+    !for s=1 to $num
+	y1=!item $s of $(Y$choice)
+	y2=!item $[$s+1] of $(Y$choice)
+	dy=$[$y2-$y1]
+	!if $dy>$ymax
+	    ymax=$dy
+	!endif
+	!if $dy<$ymin
+	    ymin=$dy
+	!endif
+	canvasdata=!append line segment $x,0,$x,$dy,$k to $canvasdata
+	insplot_data=!append line $x $dy to $insplot_data
+	ansdx=!append line <td>1</td> to $ansdx
+	ansdy=!append line <td>$dy</td> to $ansdy
+	!increase x
+    !next s
+    ymin=$[round($ymin)-2]
+    ymax=$[round($ymax)+2]
+    !if $ymax<1
+	ymax=1
+    !endif
+    !if $ymin>-1
+	ymin=-1
+    !endif
+    ans=<table class="demospecial"><tr><th>$m_Delta x</th>$ansdx</tr><tr><th>$m_Delta y</th>$ansdy</tr></table>
+#    insplot_set=size 1.0,1.0; boxwidth 0.05;title ; border 3;xzeroaxis lt -1 ;linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid mxtics mytics xtics ytics linetype 2;xtics 1;ytics 1;mytics 2
+#    !insplot [$[$xmin-1] : $[$xmax+1]] [$ymin:$ymax] "insplot_data" notitle with boxes fillstyle solid lt 1
+    exotext=!exec canvasdraw\
+    size 400,300\
+    bgcolor white\
+    xrange $[$xmin-1],$[$xmax+1]\
+    yrange $[$ymin-1],$[$ymax+1]\
+    precision 10\
+    axis\
+    axisnumbering\
+    grid 1,1,grey,4,4,6,grey\
+    linewidth 8\
+    $canvasdata\
+    precision 100\
+    mouse blue,22\
+    intooltip <span style='color:blue'><b>$etext</b></span>
+
+    textanswer$n=$(ex$choice)<br />$ans<br/>$exotext
+
+    
+    
+ !exit
+!else
+    image=0
+    math=0
+    draw=0
+    plot=0
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    !for p=1 to $options
+        x=$xmin
+	xtabel=$empty
+	ytabel=$empty
+	ex$p=$empty
+	!for k=1 to $num
+	    pm=!randitem +,-
+	    r=!randitem -1,1
+	    a=!randitem 1,2,3
+	    y=!item $p of $aa
+	    y=$[$r*$y $pm $a]
+	    Y$p=!append item $y to $(Y$p)
+	    xtabel=!append line <td>$x</td> to $xtabel
+	    ytabel=!append line <td>$y</td> to $ytabel
+	    !increase x
+	!next k
+	ex$p=<table class="demospecial"><tr><th>x</th>$xtabel</tr><tr><th>y</th>$ytabel</tr></table>
+    !next p
+    tot=$empty
+    x=$[$xmin+1]
+    ymax=0
+    ymin=0
+    canvasdata=$empty
+    k=!randitem red,blue,green
+    !for s=1 to $num
+	y1=!item $s of $(Y$choice)
+	y2=!item $[$s+1] of $(Y$choice)
+	dy=$[$y2-$y1]
+	!if $dy>$ymax
+	    ymax=$dy
+	!endif
+	!if $dy<$ymin
+	    ymin=$dy
+	!endif
+	canvasdata=!append line segment $x,0,$x,$dy,$k to $canvasdata
+	insplot_data=!append line $x $dy  to $insplot_data
+	!increase x
+	ansdx=!append line <td>1</td> to $ansdx
+	ansdy=!append line <td>$dy</td> to $ansdy
+    !next s
+    ymin=$[round($ymin)-2]
+    ymax=$[round($ymax)+2]
+    !if $ymax<1
+	ymax=1
+    !endif
+    !if $ymin>-1
+	ymin=-1
+    !endif
+    ans=<table class="demospecial"><tr><th>$m_Delta x</th>$ansdx</tr><tr><th>$m_Delta y</th>$ansdy</tr></table>
+#    insplot_set=size 1.0,1.0; boxwidth 0.05;title ; border 3;xzeroaxis lt -1 ;linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid mxtics mytics xtics ytics linetype 2 ; xtics 1 ; ytics 1; mytics 2
+#    !insplot [$[$xmin-1] : $[$xmax+1]] [$ymin : $ymax]  "insplot_data" notitle with boxes fillstyle solid lt 1
+
+    exotext=!exec canvasdraw\
+    size 400,300\
+    bgcolor white\
+    xrange $[$xmin-1],$[$xmax+1]\
+    yrange $ymin,$ymax\
+    precision 10\
+    axis\
+    axisnumbering\
+    grid 1,1,grey,2,2,6,grey\
+    linewidth 8\
+    $canvasdata\
+    precision 100\
+    mouse blue,22\
+    intooltip <span style='color:blue'><b>$etext</b></span>
+
+    textanswer$n=$(ex$choice)<br />$ans<br/>$exotext
+
+ !exit
+!endif
+
+

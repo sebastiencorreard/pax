@@ -1,0 +1,112 @@
+n=$counter
+#answer=y=-2/7*x+53/7\
+# 2/7*x+17/7
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ formula$n=$var9
+ remark$n=$NOK
+ !exit
+!endif
+AAA=!tolower $(reply$n)
+AAA=!nospace $AAA
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+A1=!rawmath $A1
+A2=!rawmath $A2
+# waar is de x?
+A1=!replace internal = by , in $A1
+A2=!replace internal = by , in $A2
+chk1=!itemcnt $A1
+chk2=!itemcnt $A2
+!if $chk1<2 or $chk2<2
+ errortext=!record 19 of lang/remarks.$taal
+ #@je antwoord moet een nette vergelijking van een (raak)lijn zijn:<br /> y = ax+b
+ goback=1
+ maxscore=$[$P1*$maxscore]
+ !exit
+!endif
+
+A11=!item 1 of $A1
+A12=!item 2 of $A1
+!if y isin $A11 and x isin $A12
+ A1=$A12
+!else
+ !if y isin $A12 and x isin $A11
+    A1=$A11
+ !else
+  errortext=!record 19 of lang/remarks.$taal
+  #je antwoord moet een nette vergelijking van een (raak)lijn zijn:<br /> y = ax+b
+  goback=1
+  maxscore=$[$P1*$maxscore]
+  !exit
+ !endif
+!endif
+
+# hetzelfde voor de tweede vergelijking
+A21=!item 1 of $A2
+A22=!item 2 of $A2
+!if y isin $A21 and x isin $A22
+ A2=$A22
+!else
+ !if y isin $A22 and x isin $A21
+    A2=$A21
+ !else
+  errortext=!record 19 of lang/remarks.$taal
+  #je antwoord moet een nette vergelijking van een (raak)lijn zijn:<br /> y = ax+b
+  goback=1
+  maxscore=$[$P1*$maxscore]
+  !exit
+ !endif
+!endif
+
+G1=!line 1 of $(answer$n)
+G2=!line 2 of $(answer$n)
+test=!exec pari x=0;if( ($A1) - ($G1)<10^-15 || ($A1) - ($G2)<10^-15,print(1),print(0));\
+x=0;if( ($A2) - ($G2)<10^-15 || ($A2) - ($G1)<10^-15,print(1),print(0));\
+x=10;if( ($A1) - ($G1)<10^-15 || ($A1) - ($G2)<10^-15,print(1),print(0));\
+x=10;if( ($A2) - ($G2)<10^-15 || ($A2) - ($G1)<10^-15,print(1),print(0));
+
+#exotext=A1=$A1 A2=$A2 AAA=$AAA test=$test
+#goback=1
+#!exit
+
+# 5*0+12/17 == 23*0+12/17 : test op constante
+t1=!line 1 of $test
+t2=!line 2 of $test
+# test op hele lijn
+t3=!line 3 of $test
+t4=!line 4 of $test
+t5=$[$t1+$t2+$t3+$t4]
+extra=$empty
+!if $t5=4
+ score=1
+!else
+ !if $[$t1+$t2]=2
+  score=0.6
+  extra=!record 20 of lang/remarks.$taal
+  #@je hebt de constante van de lijnen wel goed...
+ !else
+  score=$[$t5/4]
+ !endif
+!endif
+math=0
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.9
+ remark$n=$OK
+ k=green
+!else
+ !if $maxscore>0.4
+  remark$n=$BOK
+  k=orange
+ !else
+  remark$n=$NOK
+  k=red
+ !endif
+!endif
+
+remark$n=!append line $extra to $(remark$n)
+modulescore=$[$modulescore + $maxscore]
+goback=0
+formula$n=$var9
+!exit

@@ -1,0 +1,149 @@
+!set title=Calcul des quartiles (liste)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=quartile
+precision=1000
+
+ansorder=r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 8, 20
+
+val6=$[rint($(tmp0))]
+val7=
+!for val8 =1 to $val6 
+tmp0=!randint 1, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!append item $val9 to $val7
+
+val7=$(tmp0)
+!next
+tmp0=!sort numeric list $val7
+
+val10=$(tmp0)
+val11=$[$val6/4]
+!if floor($val11)<$val11 
+val12=$[rint(floor($val11)+1)]
+!else
+val12=$[rint($val11)]
+!endif
+val13=$[3*$val6/4]
+!if floor($val13)<$val13 
+val14=$[rint(floor($val13)+1)]
+!else
+val14=$[rint(floor($val13))]
+!endif
+val15=$[rint($(val10[$val12]))]
+val16=$[rint($(val10[$val14]))]
+val17=$[rint($val16-$val15)]
+tmp0=!replace internal , by  \(\,;\,) in $val7
+
+val7=$(tmp0)
+tmp0=!replace internal , by  \(\,;\,) in $val10
+
+val10=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val12]
+replytype2=numeric
+replyname2=
+replygood2=$[$val15]
+replytype3=numeric
+replyname3=
+replygood3=$[$val14]
+replytype4=numeric
+replyname4=
+replygood4=$[$val16]
+replytype5=numeric
+replyname5=
+replygood5=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la série des $val6 nombres :	<div class="wimscenter">$val7</div>	<div class="wims_question">Complétez par les bonnes valeurs :	<ul><li>Q1 est la  
+!read oef/embed.phtml r1,2 
+$()ème valeur donc Q1= 
+!read oef/embed.phtml r2,2 
+$().</li><li>	Q3 est la  
+!read oef/embed.phtml r3,2 
+$()ème valeur donc Q3= 
+!read oef/embed.phtml r4,2 
+$().</li><li>	L'écart interquartile est  
+!read oef/embed.phtml r5,2 
+$().	</li></ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p><b>On classe d'abord les valeurs dans l'ordre croissant :</b></p>	<div class="wimscenter"> $val10</div>	<ul><li>L'effectif total est $val6.</li>	<li>
+!insmath \frac{$val6}{4}=$val11
+$() donc Q1 est la $val12 ème valeur 	
+!if floor($val11)<$val11 
+$()(arrondi par excès) 
+!endif
+$() : Q1=$val15.	</li><li>
+!insmath 3\times \frac{$val6}{4}=$val13
+$() donc Q3 est la $val14 ème valeur	
+!if floor($val13)<$val13 
+$()(arrondi par excès) 
+!endif
+$() : Q3=$val16.	</li><li>L'écart interquartile est Q3-Q1=$val17.	</li></ul>	 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,13,14,15,16,17
+embedcnt=5

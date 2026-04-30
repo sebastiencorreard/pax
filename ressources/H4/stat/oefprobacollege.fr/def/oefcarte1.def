@@ -1,0 +1,156 @@
+!set title=Carte 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+keywords=probability,events
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=coeur,pique,carreau,trèfle
+val7=un as,un roi,une dame,un valet,un dix,un neuf,un huit,un sept,un six,un cinq,un quatre,un trois,un deux
+tmp0=!randitem 32,52
+
+val8=$(tmp0)
+tmp0=!randint 1, 4
+
+val9=$[rint($(tmp0))]
+!if $val8=32 
+tmp0=!randint 1, 8
+
+val10=$[rint($(tmp0))]
+!else
+tmp0=!randint 1, 13
+
+val10=$[rint($(tmp0))]
+!endif
+tmp0=!randint 1, 3
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+val12=un $(val6[$val9])
+!if $val8=32 
+val13=$[rint(8)]
+!else
+val13=$[rint(13)]
+!endif
+!endif
+!if $val11=2 
+val12=$(val7[$val10])
+val13=$[rint(4)]
+!endif
+!if $val11=3 
+val12=$(val7[$val10]) de $(val6[$val9])
+val13=$[rint(1)]
+!endif
+val14=$[rint($val8/4)]
+tmp0=!replace internal une by in $val7
+
+val15=$(tmp0)
+tmp0=!replace internal un by in $val15
+
+val15=$(tmp0)
+tmp0=!shuffle $val14
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in ($val13)/($val8)
+tmp0=!exec maxima $t_
+
+val17=$(tmp0)
+val18=(sous forme de fraction)
+
+!ifval $val11=1
+val19= $(val6[$val9])
+!else
+val19=$(val15[$val10])
+!endif
+
+!ifval $val11=3
+val19=$(val15[$val10]) de $(val6[$val9])
+!else
+val19=$val19
+!endif
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Dans un jeu de $val8 cartes, il y a : <ul><li> $val14 cartes de chaque couleur (cœur, pique, carreau, trèfle)</li> <li> 4 $(val15[$(val16[1])])</li> <li> 4 $(val15[$(val16[2])])</li> <li> 4 $(val15[$(val16[3])])</li> <li> 4 $(val15[$(val16[4])])</li> <li> ...</li> </ul>
+
+
+!goto stat
+
+!exit
+
+:question
+$()	Nous avons un jeu de $val8 cartes.	Nous tirons une carte au hasard.	<p>Quelle est la probabilité d'avoir $val12 ?</p>	<div class="spacer">	<label for="reply1">La probabilité $val18 =</label>  
+!read oef/embed.phtml r1,5 
+$() </div>	
+$()
+!exit
+
+:hint
+$()Dans un jeu de $val8 cartes, il y a : <ul><li> $val14 cartes de chaque couleur (cœur, pique, carreau, trèfle)</li> <li> 4 $(val15[$(val16[1])])</li> <li> 4 $(val15[$(val16[2])])</li> <li> 4 $(val15[$(val16[3])])</li> <li> 4 $(val15[$(val16[4])])</li> <li> ...</li> </ul>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_sc_reply1<1
+ <div class='oef_feedbacks'>	<div class="feedback">Il y a exactement $val13 $val19 dans un jeu de $val8 cartes. <br>La probabilité est donc égale à 
+!insmath \frac{$val13}{$val8}
+$()	<br>$m_feed2</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,12,13,14,15,16,18,19
+embedcnt=1

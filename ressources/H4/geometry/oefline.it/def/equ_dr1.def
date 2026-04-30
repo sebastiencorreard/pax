@@ -1,0 +1,184 @@
+!set title=Equazione di rette e vettori direttori
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+author=Frédéric, PITOUN
+email=lva.pitoun@free.fr
+computeanswer=yes
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in expand((x-$val6)*$val8-(y-$val7)*$val9 = 0)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!rawmath $val8/$val9
+val11=!exec pari print($t_)
+t_=!rawmath $val7-$val6*$val8/$val9
+val12=!exec pari print($t_)
+t_=!replace internal \( by ( in y=($val11)*x+$val12
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+oefsteps=reply1,reply2,reply3	reply4,reply5 
+nextstep=!nosubst reply1,reply2,reply3	reply4,reply5 
+!readproc oef/steps.proc
+replytype1=rational
+
+replyname1=\(a) semplificato
+replygood1=?analyze 14
+replytype2=rational
+
+replyname2=\(b) semplificato
+replygood2=?analyze 15
+replytype3=rational
+
+replyname3=\(c) semplificato
+replygood3=?analyze 16
+replytype4=default
+replyname4=Il coefficiente angolare della retta \(d
+replygood4=$val11
+replytype5=default
+replyname5=L'ordinata nell'origine della retta \(d)
+replygood5=$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Si consideri la retta 
+!insmath d
+$() passante	 per il punto 
+!insmath A
+$() di coordinate 
+!insmath \left( \begin{array}{c}	$val6 \\ $val7	 \end{array}\right) 
+$() e diretta secondo il vettore 
+!insmath \overrightarrow{u}
+$() di coordinate 		
+!insmath \left( \begin{array}{c}	$val9 \\ $val8	 \end{array}\right) 
+$().<br/>	 
+!if $m_step=1 
+$()	Detereminare un'equazione della retta 
+!insmath d
+$():		<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,6 
+$() x +  
+!read oef/embed.phtml reply 2,6 
+$() y +  
+!read oef/embed.phtml reply 3,6 
+$()=0	</div> 
+!endif
+$()		 
+!if $m_step=2 
+$()Sì, 
+!insmath $val10
+$() è certamente un'equazione di 
+!insmath d
+$(), la sua equazione in forma esplicita è:		<div class="wimscenter">	
+!insmath y = 
+$() 
+!read oef/embed.phtml reply 4,6 
+$() 
+!insmath x + 
+$() 
+!read oef/embed.phtml reply 5,6 
+$()	</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Un'equazione della retta 
+!insmath d
+$() è 
+!insmath $val10
+$(), la sua equazione in forma esplicita è 
+!insmath $val13
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val14)*($val9) + ($val15)*($val8) = 0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Il vettore direttore di questa retta è corretto
+
+!ifval ($val14)*($val6) + ($val15)*($val7)+$val16=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Il punto \(A) si trova su questa retta
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,13,14,15,16
+embedcnt=5

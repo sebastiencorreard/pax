@@ -1,0 +1,83 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Repr&eacute;sentation graphique d'un ensemble de nombres donn&eacute; par un encadrement
+slib_parms=8\
+,borne inf&eacute;rieure
+<,symbole inf&eacute;rieure  (< ou <=)
+,symbole sup&eacute;rieure (< ou <=)
+,borne sup&eacute;rieure
+500,taille horizontale du dessin (minimum 300)\
+80,taille verticale du dessin (minimum 80)\
+-5,abscisse minimale\
+5,abscisse maximale\
+black,couleur de l'axe\
+red,couleur des solutions
+
+slib_author=Fabrice Guerimand
+slib_out=Les donn&eacute;es pour insdraw</li></ol>
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+
+!distribute items $slib_input into s_borne,s_symb,s_symb2,s_borne2,s_xsize,s_ysize,s_xmin,s_xmax,s_colora,s_colorg
+
+s_borne=$[$s_borne]
+s_borne2=$[$s_borne2]
+!if NaN isin $s_borne$s_borne2
+ !exit
+!endif
+s_borne=$[min($s_borne,$s_borne2)]
+s_borne2=$[max($s_borne,$s_borne2)]
+!bound s_symb within <,<=,=< default <
+!bound s_symb2 within <,<=,=< default <
+!default s_xsize=300
+!default s_ysize=100
+s_ysize=$[max(80,$s_ysize)]
+!default xmin=-5
+!default xmax=5
+!default s_colora=black
+!default s_colorg=red
+
+s_mincnt=!charcnt $s_xmin
+s_maxcnt=!charcnt $s_xmax
+s_borcnt=!charcnt $s_borne
+s_borcnt2=!charcnt $s_borne2
+s_mincnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_mincnt]
+s_maxcnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_maxcnt]
+s_borcnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_borcnt]
+s_borcnt2=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_borcnt2]
+
+slib_out=range $s_xmin-2,$s_xmax+2,-3,2\
+arrow $s_xmin-2,0,$s_xmax+2,0,20,$s_colora\
+linewidth 2\
+parallel $s_xmin,-0.3,$s_xmin,0.3,1,0,$s_xmax-$s_xmin+1,$s_colora\
+text $s_colora,$s_xmin-$s_mincnt,-0.4,medium,$s_xmin\
+text $s_colora,$s_xmax-$s_maxcnt,-0.4,medium,$s_xmax\
+segment $s_borne,-1,$s_borne,1,$s_colorg\
+text $s_colora,$s_borne-$s_borcnt,-1.2,medium,$s_borne\
+segment $s_borne2,-1,$s_borne2,1,$s_colorg\
+text $s_colora,$s_borne2-$s_borcnt2,-1.2,medium,$s_borne2\
+segment $s_borne,0,$s_borne2,0,$s_colorg
+
+!if $s_xmax*$s_xmin<0
+slib_out=$slib_out\
+text $s_colora,-0.15,-0.4,medium,0
+!endif
+s_ega==
+!if $s_ega isin $s_symb
+ slib_out=$slib_out\
+parallel $s_borne,1,$s_borne+1,1,0,-2,2,$s_colorg
+!else
+ slib_out=$slib_out\
+parallel $s_borne,1,$s_borne-1,1,0,-2,2,$s_colorg
+!endif
+!if $s_ega isin $s_symb2
+ slib_out=$slib_out\
+parallel $s_borne2,1,$s_borne2-1,1,0,-2,2,$s_colorg
+!else
+ slib_out=$slib_out\
+parallel $s_borne2,1,$s_borne2+1,1,0,-2,2,$s_colorg
+!endif

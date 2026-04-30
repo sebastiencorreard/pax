@@ -1,0 +1,108 @@
+# voorcheck op antwoorden als sin(90)=1 of 1=sin(90) of antwoord=1...
+# number.proc voorziet hier niet in
+n=$counter
+goback=0
+errortext=$empty
+!if ? isin $(reply$n)
+    maxscore=0
+    goback=0
+    remark$n=$NOK
+    !exit
+!endif
+
+arglist=$empty
+
+reply$n=!lower $(reply$n)
+test=!replace internal = by , in $(reply$n)
+t=!itemcnt $test
+
+!if $t=1
+    tt=$[abs($(reply$n))]
+    !if NaN notin $tt
+	!ifval $tt>1
+	    ex=!record 65 of lang/remarks.$taal
+	    !if $teaching=1
+		errortext=$ex
+		goback=1
+		maxscore=$[$P7*$maxscore]
+	    !else
+		remark$n=$NOK <br />$ex
+		goback=0
+		maxscore=0
+	    !endif
+	    !exit
+	!endif
+    !endif
+    t1=!replace sin by @ in $(reply$n)
+    t2=!replace cos by @ in $(reply$n)
+    t3=!replace tan by @ in $(reply$n)
+    !if @ isin $t1,$t2,$t3
+	maxscore=$[$P6*$maxscore]
+	goback=1
+	errortext=!record 66 of lang/remarks.$taal
+	!exit
+    !endif
+    
+    !readproc $checkdir/number.proc
+    !exit
+!else
+    !if $t>2
+	errortext=!record 48 of $remarkdir/commonremarks.$taal
+	maxscore=$[$P1*$maxscore]
+	goback=1
+	!exit
+    !else
+	t1=!item 1 of $test
+	t2=!item 2 of $test
+	chk1=0
+	chk2=0
+	!for p in sin,cos,tan
+	    !if $p isin $t1
+		chk1=1
+	    !endif
+	    !if $p isin $t2
+		chk2=1
+	    !endif
+	!endif
+	    
+	!if $chk1=1 and $chk2=0
+	    reply$n=$t2
+	!else
+	    !if $chk1=0 and $chk2=1
+		reply$n=$t1
+	    !else
+		!if NaN isin $[1*$t1] and NaN notin $[1*$t2]
+		    reply$n=$t2
+		!else
+		    !if NaN isin $[1*$t2] and NaN notin $[1*$t1]
+			reply$n=$t1
+		    !else
+			errortext=!record 36 of $remarkdir/commonremarks.$taal
+			maxscore=$[$P3*$maxscore]
+			goback=1
+			!exit
+		    !endif
+		!endif
+	    !endif
+	!endif
+	!if $teaching=1
+	    !ifval $[abs($(reply$n))]>1
+		errortext=!record 65 of lang/remarks.$taal
+		goback=1
+		maxscore=$[$P7*$maxscore]
+		!exit
+	    !endif
+	!endif
+	t1=!replace sin by @ in $(reply$n)
+	t2=!replace cos by @ in $(reply$n)
+	t3=!replace tan by @ in $(reply$n)
+	!if @ isin $t1,$t2,$t3
+	    maxscore=$[$P6*$maxscore]
+	    goback=1
+	    errortext=!record 66 of lang/remarks.$taal
+	    !exit
+	!endif
+	!readproc $checkdir/number.proc
+	!exit
+    !endif
+!endif

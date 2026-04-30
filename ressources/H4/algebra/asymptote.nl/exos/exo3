@@ -1,0 +1,204 @@
+# vertikal \lim_{x \uparrow a} f(x)=\pm\infty \,\mbox{ en/of } \lim_{x \downarrow a} f(x)=\pm\infty
+# horizontal \lim_{x \to + \infty} f(x) = p \,\mbox{ of }  \lim_{x \to -\infty} f(x) = q
+
+n=$counter
+mathviewpanel=$module_title :x=:y=:and:or:sqrt()
+checkfile=exos/checkfile1.proc
+questiontype=0
+embed=1
+cols=20
+rows=2
+plot=1
+draw=0
+math=0
+ss=!record 19 of lang/remarks.$taal
+#@ Bepaal <b>alle</b> asymptoten van de onderstaande functie
+rem1=!record 3 of lang/remarks.$taal
+#@ Zie </a> voor de schrijfwijze de help pagina's
+rem2=!record 24 of lang/remarks.$taal
+helptext=$rem1<br />$rem2
+vertikaal=!record 4 of lang/remarks.$taal
+#@ De vertikale asymptoot is: de lijn
+vertikalen=!record 5 of lang/remarks.$taal
+#@ De vertikale asymptoten zijn de lijnen
+h=!record 43 of lang/remarks.$taal
+#@ horizontale asymptoot
+v=!record 44 of lang/remarks.$taal
+#@verticale asymptoot
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $teaching=1 and $image=0
+    etext=!record 6 of lang/remarks.$taal
+    #@ Hier</a> staat een klein grafiekje van de functie
+    #exotext=<a href="javascript:showimage();">$exotext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+!else
+    exotext=$empty
+!endif
+
+texanswer$n=$empty
+n=$counter
+# dit voor onmouseover
+prefix=size 0.5,0.5;notics;autoscale;
+# dit voor answer.phtml
+prefix2=size 0.5,0.5;grid ;axis;autoscale; xlabel "<x-axis>";ylabel"<y-axis>" ;border
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+alsdan=!record 42 of lang/remarks.$taal
+als=!item 1 of $alsdan
+dan=!item 2 of $alsdan
+
+
+!if $R=1
+    a=!randitem -15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    plotfunction=$a/(x-$b)
+    applettext=!nospace f(x) = $plotfunction ->
+    formula$n=f(x)\,=\,\frac{$a}{x - $b}
+    as1=$b
+    as2=0
+    answer$n=$as1@vertikaal,$as2@horizontaal
+    texanswer$n= \left[ \begin{array}{l} $als \,\, x - $b  \rightarrow 0 \,\, $dan \,\, \frac{$a}{x - $b} \rightarrow \pm \infty \\ x-$b=0 \rightarrow x = $b  \\ \\  \textrm{$v}\,:\, x = $b \\ \\ \\  $als \,\, x \rightarrow \pm \infty  \,\, $dan \,\, f(x) \rightarrow 0 \\ \\  \textrm{$h}\,:\, y = 0 \end{array} \right.
+    !if $teaching=1
+	image=0
+	xrange=-20:20
+	ymin=-20
+	ymax=20
+	yrange=$ymin:$ymax
+	image_settings$n=$prefix2 ; arrow 1 from $as1,$ymin to $as1,$ymax nohead lt 4
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1 , $as2 notitle lt 4
+	insplot_set=$(image_settings$n) ;
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1 , $as2 notitle lt 4
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    keuze=!randitem 1,2
+    !if $keuze=1
+	##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+	##verticale asymptoot:x=b of x=c of x=0
+	a=!randitem -15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        c=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    !else
+        a=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        c=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    !endif
+    plotfunction=($a*x+$b)/($c*x-$d)
+    applettext=!nospace f(x) = $plotfunction ->
+    formula$n=f(x)\,=\,\frac{$a\cdot x +$b}{$c \cdot x - $d}
+    tot=!exec pari A=($a/$c) \
+    B=($d/$c)\
+    printtex(A)\
+    printtex(B)
+    as1=!line 1 of $tot
+    as2=!line 2 of $tot
+    tex_as1=!line 3 of $tot
+    tex_as2=!line 4 of $tot
+    answer$n=$as1@horizontaal,$as2@vertikaal
+
+    texanswer$n= \left[ \begin{array}{l} $als \,\, $c x - $d  \rightarrow 0 \,\, $dan \,\, \frac{$a x + $b}{$c x - $d} \rightarrow \pm \infty \\ $c x-$d=0 \rightarrow x = $tex_as2  \\ \\  \textrm{$v}\,:\, x = $tex_as2 \\ \\  \\  \textrm{$h}\,:\, y = $tex_as1 \end{array} \right.
+    !if $teaching=1
+	image=0
+	ymin=-20
+	ymax=20
+	xrange=-20:20
+	yrange=$ymin : $ymax
+	image_settings$n=$prefix2 ; arrow 1 from $as2,$ymin to $as2,$ymax nohead lt 4
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1 , $as1 notitle lt 4
+	insplot_set=$(image_settings$n) ;
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1 , $as1 notitle lt 4
+    !endif
+ !exit
+!endif
+
+!if $R=3
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##verticale asymptoot:x=b of x=c of x=0
+    a=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    c=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    
+    plotfunction=($a*x^2+$b)/($c*x^2-$d)
+    applettext=!nospace f(x) = $plotfunction ->
+    formula$n=f(x)\,=\,\frac{$a\cdot x^2 +$b}{$c \cdot x^2 - $d}
+    as1=sqrt($d/$c)
+    as2=-1*sqrt($d/$c)
+    tot=!exec pari A=($a/$c)\
+    printtex(A)
+    as3=!line 1 of $tot
+    tex_as3=!line 2 of $tot
+    !if . isin $[$as1]
+	tot=!exec pari D=$d/$c\
+	printtex(D)
+	D=!line 1 of $tot
+	tex_D=!line 2 of $tot
+	as1=sqrt($D)
+	as2=-1*sqrt($D)
+	tex_as1=\sqrt{\left($tex_D\right)}
+	tex_as2=-\sqrt{\left($tex_D\right)}
+    !else
+	as1=$[$as1]
+	as2=$[-1*$as2]
+	tex_as1=$as1
+	tex_as2=$as2
+    !endif
+    answer$n=$as1@vertikaal,$as2@vertikaal,$as3@horizontaal
+
+    texanswer$n= \left[ \begin{array}{l} $als \,\, $c x^{2} - $d  \rightarrow 0 \,\, $dan \,\, \frac{$a x^{2} + $b}{$c x^{2} - $d} \rightarrow \pm \infty \\ $c x^{2}-$d=0 \rightarrow x= $tex_as1 \wedge x = $tex_as2  \\ \\  \textrm{$v}\,:\, x = $tex_as1 \wedge x = $tex_as2 \\ \\  \\  \textrm{$h}\,:\, y = $tex_as3 \end{array} \right.
+    !if $teaching=1
+	image=0
+	ymin=-20
+	ymax=20
+	xrange=-20:20
+	yrange=$ymin : $ymax
+	image_settings$n=$prefix  ; arrow 1 from $as1,$ymin to $as1,$ymax nohead lt 4; arrow 2 from $as2,$ymin to $as2,$ymax nohead lt 4
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1 , $as3 notitle lt 4
+	insplot_set=$(image_settings$n) ;
+    	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1 , $as3 notitle lt 4
+    !endif
+  !exit
+!endif
+  
+!if $R>3
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##verticale asymptoot:x=b of x=c of x=0
+    a=!randitem -4,-3,-2,-1,1,2,3,4
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem 1,2,3,4,5,6
+    g=!randitem 0.5,1.5,2,2.5,3
+    tot=!exec pari A=(x+$b)*(x-$c)\
+    printtex(A)
+    f=!line 1 of $tot
+    f_tex=!line 2 of $tot
+    
+    plotfunction=$a*$g^(1/($f))
+    formula$n=\left[ \begin{array}{l} f(x) = $a \cdot $g^{n} \\ \\ n=\frac{1}{$f_tex} \end{array} \right.
+    applettext=!nospace $ f(x)=$a*$g^n and n=1/($f) ->
+    as1=$[-1*$b]
+    as2=$c
+    as3=$a
+    answer$n=$as1@vertikaal,$as2@vertikaal,$as3@horizontaal
+    texanswer$n= \left[ \begin{array}{l} $als $f_tex \rightarrow 0 \,\, $dan \,\, \frac{1}{$f_tex} \rightarrow \pm \infty \\ $f_tex=0 \rightarrow x=$as1 \wedge x=$as2 \\ \\ \textrm{$v: }\,\,  x=$as1 \wedge x=$as2 \\ \\ $als \,\, x \rightarrow \pm \infty \,\, $dan \,\, $f_tex \rightarrow \infty \\ $als \,\, x \rightarrow \pm \infty \,\, $dan \,\, \frac{1}{$f_tex} \rightarrow 0 \\ $als \,\, x \rightarrow \pm \infty \,\, $dan \,\, f(x) \rightarrow $as3 \\ \textrm{$h: } y=$as3 \end{array} \right.
+    xrange=-8,8
+    yrange=-10,10
+    !if $teaching=1
+	image=0
+	ymin=-10
+	ymax=10
+	xrange=-8:8
+	yrange=$ymin : $ymax
+	image_settings$n=$prefix2  ; arrow 1 from $as1,$ymin to $as1,$ymax nohead lt 4; arrow 2 from $as2,$ymin to $as2,$ymax nohead lt 4
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1 , $as3 notitle lt 4
+	insplot_set=$(image_settings$n) ;
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1 , $as3 notitle lt 4
+    !endif
+  !exit
+!endif

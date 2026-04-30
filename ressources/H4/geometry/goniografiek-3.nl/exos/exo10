@@ -1,0 +1,192 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=0
+# veroorszaakt <tr>
+make_tr=0
+cols=10
+rows=2
+# voorlopig ?
+checkfile=$checkdir/number.proc
+# volgorde is van belang
+var1=yes
+
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+
+sometxt=!record 3 of lang/remarks.$taal
+#@balanslijn,x-as,y-as,Gegeven de functie:,Bepaal ,Amplitude , Frequentie , Evenwichtlijn,Periode,Met de rechter muisknop kun je het canvas van de applet bewegen
+#@!balance line,x-axis,y-axis 
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+Gegeven=!item 4 of $sometxt
+Bepaal=!item 5 of $sometxt
+Amplitude=!item 6 of $sometxt
+Frequentie=!item 7 of $sometxt
+Evenwichtslijn=!item 8 of $sometxt
+Periode=!item 9 of $sometxt
+hlptxt=!item 10 of $sometxt
+xsize=480
+ysize=320
+
+gonio=!randitem sin,cos
+!if $R=1
+    b=!randitem -3,-2.5,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3
+    C=2/3,1/5,1/4,1/3,2/5,1/2,1,3/2,2,12/5,3,4
+    D=3*pi,10*pi,8*pi,6*pi,5*pi,4*pi,2*pi,4*pi/3,pi,5*pi/6,2*pi/3,pi/2
+    p=!itemcnt $C
+    q=!randint 1,$p
+    c=!item $q of $C
+    periode=!item $q of $D
+    texperiode=!texmath $periode
+    factor=!texmath $c
+    amplitude=$b
+    f=!nospace $b*$gonio($c*x)
+    functie=!texmath $f
+    ss=!record 4 of lang/remarks.$taal
+    #@<span color="blue"Hier</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE1.gif"/></p>Bepaal aan de hand van de grafieken de periode,b en c .
+    xmin=-1
+    xmax=$[round(1.2*$periode)]
+    ymin=$[-2*(abs($b))]
+    ymax=$[2*(abs($b))]
+    inputs=3
+    description=<b>$Periode</b>,<b>b</b>,<b>c</b>
+    answer$n=$periode,$b,$c
+    helptext<img src=\'$module_dir/gifs/exo2.1.help.jpg\' alt=\'help\'/><br />$hlptxt
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{ b : }\: $amplitude \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array} \right.
+
+!else
+    !if $R>1
+	###a+bsin(cx)
+	a=!randitem -3,-5/2,-2,-3/2,-1,-1/2,0,1/2,1,3/2,2,5/2,3
+	b=!randitem 1/2,1,3/2,2,5/2,3
+	# P=pi
+	c=!randitem (P/2),(2*P/3),P,2*P,(2*P/5)
+	periode=!exec pari (2*P)/($c)
+	frequentie=!exec pari ($c)/(2*P)
+	periode=!replace internal  P by pi in $periode
+	frequentie=!replace internal P by pi in $frequentie
+	c=!replace internal P by pi in $c
+	factor=!texmath $c
+	texperiode=!texmath $periode
+	evenwicht=$a
+	amplitude=!exec pari abs($b)
+	xmin=-1
+	xmax=$[round(1.5*$periode)]
+	ymin=$[round($a-abs($b))-1]
+	ymax=$[round($a+abs($b))+1]
+	!if $ymax <=0
+	    ymax=1
+	!endif
+	!if $ymin >= 0
+	    ymin=-1
+	!endif
+	f=!rawmath $a $pm $b*$gonio($c*x)
+	f=!nospace $f
+	functie=!texmath $f
+
+	
+	ss=!record 5 of lang/remarks.$taal
+	#@<span style="color:blue">Hieronder</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafiek de periode, de frequentie, a, de amplitude  en c .
+	
+	inputs=5
+	description=<b>$Periode</b>,<b>$Frequentie</b>,<b>a</b>,<b>$Amplitude</b>,<b>c</b>
+	
+	answer$n=$periode,$frequentie,$a,$amplitude,$c
+	helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\'/><br />$hlptxt
+
+	texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{$Frequentie : }\: $frequentie \\ \textrm{$Evenwichtslijn  (a) : }\: y = $a \\ \textrm{$Amplitude : }\: $amplitude \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array}
+    !endif
+!endif
+
+# JCM applet
+#limitspanel=yes
+#myname=$wims_nowseconds.data
+#!filewrite getfile/$myname $f
+#myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+#question$n=<a onmouseover="this.T_OPACITY=55;this.T_PADDING=10;this.T_WIDTH=$[$xsize+30];this.T_HEIGHT=$[$ysize+30];return escape('<object codebase=\'$appletdir\' archive=\'jcm1.0-config.jar\' code=\'SilentSimpleGraph.class\' width=\'$xsize\' height=\'$ysize\'><param name=\'File\' value=\'$myfile\'/><param name=\'UseFunctionInput\' value=\'no\'/><param name=\'XLabel\' value=\'$xas\'/><param name=\'YLabel\' value=\'$yas\'/><param name=\'UseGrid\' value=\'yes\'/><param name=\'GridColor\' value=\'orange\'/><param name=\'UseLimitsPanel\' value=\'$limitspanel\'/><param name=\'BackgroundColor\' value=\'white\'/><param name=\'Insets\' value=\'5\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'GraphColor\' value=\'red\'/><param name=\'AxesColor\' value=\'blue\'/><param name=\'PanelBackground\' value=\'white\'/><param name=\'BorderWidth\' value=\'0\'/><param name=\'PanelTitle\' value=\'$module_title\'/><param name=\'TitleBackground\' value=\'white\'/><param name=\'UseMouseZoom\' value=\'no\'/><param name=\'UsePanner\' value=\'yes\'/><param name=\'UseComputeButton\' value=\'no\'/><param name=\'Limits\' value=\'$xmin,$xmax,$ymin,$ymax\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'ShowPoint\' value=\'yes\'/>$nojava</object>')">$ss</a>
+
+# flyapplet
+
+
+# mouse active in applet: shows coordinates in 2 decimals
+!if $R=1
+    data=coordinates yes\
+    precision 100\
+    userdraw fcircle\
+    clickcolor blue,60\
+    xrange -pi,$xmax\
+    yrange $ymin,$ymax\
+    grid pi,1,pi/6,0.5,gold,gold,1,1,200,120\
+    linewidth 2\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    dvline -1*pi,0,green\
+    dvline pi,0,green\
+    dvline 2*pi,0,green\
+    dvline 3*pi,0,green\
+    dvline 4*pi,0,green\
+    dvline 5*pi,0,green\
+    dvline 6*pi,0,green\
+    dvline 7*pi,0,green\
+    dvline 8*pi,0,green\
+    dvline 9*pi,0,green\
+    xscale -1*pi,- pi ,-0.5*pi,- pi /2,pi/2, pi /2,1*pi, pi , 1.5*pi, 3/2 pi , 2*pi,2 pi ,3*pi,3 pi ,4*pi,4 pi ,5*pi,5 pi ,6*pi,6 pi ,7*pi,7 pi ,8*pi,8 pi ,9*pi,9 pi ,12,Ariel,red,1\
+    yscale  -5,-5,-4,-4,-3,-3,-2,-2,-1,-1,-0.5,-0.5,0.5,0.5,1,1,2,2,3,3,4,4,5,5,12,Ariel,red,1\
+    xlabel x-as,14,red,200\
+    ylabel y-as,14,red,200\
+    linewidth 2\
+    curve $f,red,120\
+    rect -pi,$ymin,$xmax,$ymax,black,255,5\
+    linewidth 1\
+    mouse yes
+
+!else
+    # R=2
+    data=coordinates yes\
+    precision 100\
+    userdraw fcircle\
+    clickcolor blue,60\
+    xrange $xmin,$xmax\
+    yrange $ymin,$ymax\
+    linewidth 1\
+    grid 1,1,0.5,0.5,gold,gold,1,1,180,120\
+    linewidth 2\
+    hline 0,0,blue\
+    vline 0,0,blue\
+    xscale -5,-5,-4,-4,-3,-3,-2,-2,-1,-1,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,12,Ariel,red,1\
+    yscale  -5,-5,-4,-4,-3,-3,-2,-2,-1,-1,1,1,2,2,3,3,4,4,5,5,12,Ariel,red,1\
+    curve $f,red\
+    xlabel x-as,14\
+    ylabel y-as,14\
+    linewidth 1\
+    mouse yes
+
+!endif
+myname=$counter.data
+!filewrite getfile/$myname $data
+
+helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\' />
+question$n=<a onmouseover="return escape('<object id=\'FlyApplet\'  width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_code\' value=\'FlyApplet.class\' /><param name=\'java_archive\' value=\'FlyApplet.jar\' /><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'transparent\' value=\'white\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\' />$nojava</object>')">$ss</a>
+object$n=<object id="FlyApplet"  width="$xsize" height="$ysize" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_code" value="FlyApplet.class" /><param name="java_archive" value="FlyApplet.jar" /><param name="java_codebase" value="$appletdir" /><param name="transparent" value="white" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname" />$nojava</object>
+etext=!record 17 of lang/remarks.$taal
+exotext=<a onclick="wims_help=window.open('$wims_ref_name?wims_window=new&+lang=nl&+session=$session&+module=$module&+cmd=help','wims_help','status=no,toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes')"><hr class="schaersvoorde_hr"/><span class="schaersvoorde_link">$etext</span></a>
+

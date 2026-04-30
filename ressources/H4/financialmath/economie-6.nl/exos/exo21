@@ -1,0 +1,65 @@
+n=$counter
+# verkeersvergelijking Fisher II
+!if $counter=1
+    mathview=0
+    checkfile=$checkdir/new_number.proc
+    make_tr=1
+    cols=8
+    inputs=1.1
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+perc1=!randint 15,30
+perc2=!randint 20,60
+perc3=!randint 8,20
+
+tot=!exec moneyprint $[$perc1/$rounding],$[$perc2/$rounding],$[$perc3/$rounding] 1
+
+perc1=!item 1 of $tot
+perc2=!item 2 of $tot
+perc3=!item 3 of $tot
+
+index2=(100+$perc2)
+
+keuze=!randint 1,4
+!if $keuze=1
+    af=af
+    daalde=daalde
+    index1=(100 - $perc1)
+    index3=(100 - $perc3)
+!else
+    !if $keuze=2
+	af=af
+	daalde=steeg
+	index1=(100 - $perc1)
+	index3=(100 + $perc3)
+
+    !else
+	!if $keuze=3
+	    af=toe
+	    daalde=daalde
+	    index1=(100 + $perc1)
+	    index3=(100 - $perc3)
+	!else
+	    af=toe
+	    daalde=steeg
+	    index1=(100 + $perc1)
+	    index3=(100 + $perc3)
+	!endif
+    !endif
+!endif
+
+tussen=$[$index2*$index3/$index1]
+answer$n=$[$tussen - 100]
+rans=$[(round($rounding*$(answer$n)))/$rounding]
+
+textanswer$n=<ul><li>M &sdot; V = P &sdot; Y</li><li>Het is handig om deze vraag met <kbd>indexcijfers</kbd> op te lossen.</li><li>P = M &sdot; V / Y</li><li>P = $index2 &times; $index3 / $index1 =  $[$index2] &times; $[$index3] / $[$index1] </li><li>P = $tussen</li><li>Dus : $rans %</li></ul>
+
+ss=In een land nam het productievolume (Y) over een bepaalde periode met $perc1 % $af.<br />De maatschappelijke geldhoeveelheid (M) steeg met $perc2 %.<br />De omloopsnelheid (V) $daalde met $perc3 %.<br /><br />Bereken de verandering in het prijsniveau (P) in procenten.
+
+description=verandering in het prijsniveau (P)
+ex1=&nbsp;%
+m_rightarrow=&nbsp;=&nbsp;
+
+question$n=$ss

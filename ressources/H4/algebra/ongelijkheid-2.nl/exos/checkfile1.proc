@@ -1,0 +1,58 @@
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# coordinaten (reply$n) (answer$n)
+# var1=X1,Y1,X2,Y2
+# var2=ongelijkheid
+# var4= ineq
+# var5= remark coord
+# var6= remark ineq
+# score1= coord
+# score2= ineq
+# var3= coordinaten
+# reply$n=(x:y) (x:y),1<x<5
+goback=0
+n=$counter
+errortext=$empty
+!if $(reply$n)=?
+    # the "I don't know button"
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+testvar2=!itemcnt $(reply$n)
+
+!if $testvar2!=2
+    !if $testvar2 > 2
+	errortext=!record 64 of $remarkdir/commonremarks.$taal
+    !else
+	testvar1=2
+	maxscore=$[$P1*$maxscore]
+	errortext=!record 50 of $remarkdir/commonremarks.$taal
+    !endif
+    !exit
+    goback=1
+!endif
+
+var5=$empty
+var6=$empty
+extra=$empty
+score1=0
+score2=0
+var3=!item 1 of $(reply$n)
+var4=!item 2 of $(reply$n)
+!readproc exos/coord.proc
+!if $goback=1
+    !exit
+!endif
+!readproc exos/ineq.proc
+!if $goback=1
+    !exit
+!endif
+maxscore=$[$maxscore*($score1 + $score2)/2]
+modulescore=$[$modulescore + $maxscore]
+remark$n=<ol><li>$inputtext1: $var5</li><li>$inputtext2: $var6</li></ol>
+goback=0
+!exit
+

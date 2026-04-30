@@ -1,0 +1,397 @@
+!set title=den Wortschatz der Zahlen lernen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+
+ansorder=r
+varcnt=101
+prevarcnt=100
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=zahlen
+!readproc slib/utilities/notepad Notepad,small 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!nosubst Mettre en correspondance les mots français et leur traduction en allemand.
+
+val8=$(tmp0)
+tmp0=!nosubst 
+
+val9=$(tmp0)
+val10=
+val11=
+val12=no
+val13=no
+val14=no
+val15=no
+val16=yes
+val17=50x200x200
+val18=split
+val19=1
+val20=aucune de ces possibilités
+val21=clickfill
+val22=
+val23=
+val24=
+val25=
+val26=
+val27=background-color: #FFFFCC;	margin: 2% 2%;	padding: 1%;
+val28=background-color: #FFCC99;	color: black;	margin: 2% 2%;	padding: 0%;
+val29=
+val30=ol li {list-style: upper-alpha; }
+val31=yes
+val32=inside
+val33=yes
+val34=1
+val35=
+val36=
+val37=deu
+val38=---
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val39=$(tmp0)
+tmp0=!recordcnt $val39
+
+val40=$[rint($(tmp0))]
+val41=1
+val42=1
+val43=10
+
+!ifval $val21 iswordof case 
+val44= autocomplete=off
+!endif
+tmp0=!replace internal - by in $val38
+
+val38=$(tmp0)
+val45=$val22,$val23,$val24
+
+!ifval $val25 = 
+val25=++>
+!endif
+
+!ifval $val34 notwordof 0 
+val34=$[rint( 1)]
+!endif
+
+!ifval $val26!=yes 
+val46= noreaccent
+!else
+val46=
+!endif
+
+!ifval $val31 issametext no 
+!readproc slib/utilities/nopaste  
+tmp0=$slib_out
+val47= $(tmp0)
+!endif
+
+!ifval $val8 issametext 
+tmp0=!getdef instruction in $val39
+
+val8= $(tmp0)
+!endif
+
+!ifval $val9 issametext 
+tmp0=!getdef instruction2 in $val39
+
+val9= $(tmp0)
+!endif
+
+!ifval $val17 issametext 
+tmp0=!getdef size in $val39
+
+val17= $(tmp0)
+!endif
+
+!ifval $val13 issametext 
+tmp0=!getdef reading_file in $val39
+
+val13= $(tmp0)
+!endif
+tmp0=!record 0 of $val13
+
+val48=$(tmp0)
+
+!ifval $val12 issametext 
+tmp0=!getdef audio_file in $val39
+
+val12= $(tmp0)
+!endif
+
+!ifval $val12 notsametext  and  $val12 notsametext no
+!readproc slib/media/audio $val1/$val12,player=$val38 
+tmp0=$slib_out
+val49=	<p align="center">$(tmp0)</p>
+!endif
+
+!ifval $val14 issametext 
+tmp0=!getdef image_file in $val39
+
+val14= $(tmp0)
+!endif
+
+!ifval $val14 notsametext  and  $val14 notsametext no
+tmp0=!makelist <img src=$val1/x> for x in $val14
+
+val50=	$(tmp0)
+!endif
+
+!ifval $val15 issametext 
+tmp0=!getdef video_file in $val39
+
+val15= $(tmp0)
+!endif
+!if $val15 notsametext  and  $val15 notsametext no 
+
+!ifval http notin $val15 
+val15= $val1/$val15
+!endif
+
+!ifval $val15 notsametext 
+val51= <a wims_target=external href="$val15">[video] </a></p>
+!endif
+!endif
+
+!ifval $val10 issametext 
+tmp0=!getdef choice in $val39
+
+val52= $(tmp0)
+!else
+val52=$val10
+!endif
+val53=<style>	 .question {$val27}	 .reponse {$val28}	 .oefstatement{$val29}	 $val30	 </style>	 
+
+!ifval $val36 notwordof 1 2 3 4 5 6 7 8 9 10 
+val36= 1
+!endif
+
+!ifval $val21 iswordof dragfill clickfill 
+val17= $val17 x 1
+!endif
+val42=$[rint(min($val40,$val42))]
+val41=$[rint(min($val42*$val41,$val40))]
+
+!ifval $val16 issametext yes 
+tmp0=!shuffle $val40
+
+val54= $(tmp0) 
+!else
+tmp1=!makelist x for x = 1 to $val40
+
+val54=	$(tmp1)
+!endif
+tmp0=!randrecord $val6
+
+val55=$(tmp0)
+tmp0=!embraced randitem $val55
+
+val55=$(tmp0)
+val56=$val55
+tmp=!translate internal $	$ to ; in $val56
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val56=$(tmp0)
+tmp0=!getopt audio in $val56
+
+val57=$(tmp0)
+tmp0=!getopt image in $val56
+
+val58=$(tmp0)
+tmp0=!getopt title in $val56
+
+val59=$(tmp0)
+tmp0=!getopt intro in $val56
+
+val60=$(tmp0)
+
+!ifval $val57$val58$val59$val60  notsametext 
+val61= 1 
+!else
+val61= 0
+!endif
+val62=
+
+!ifval $val59 notsametext 
+val62=$val62<p align="center">$val59</p>
+!endif
+
+!ifval $val60 notsametext 
+val62=$val62 $val60
+!endif
+
+!ifval $val58 notsametext 
+val62= $val62 <p align="center"><img src=$val1/$val58></p>
+!endif
+
+!ifval $val57 notsametext 
+!readproc slib/media/audio $val1/$val57,player=$val38 
+tmp0=$slib_out
+val62= $val62<p align="center">$(tmp0)</p>
+!endif
+
+!ifval $val61=1  
+val63= $val62
+!else
+val63=&nbsp;
+!endif
+
+!ifval $val61=1 
+tmp0=!line 2 to -1 of $val55
+
+tmp=!trim  $(tmp0)
+val55=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $val55
+val55=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val55
+
+tmp0=!rowcnt $tmp
+val64=$[rint($(tmp0))]
+
+!ifval $val43 issametext all 
+val43=$[rint( $val64)]
+!else
+val43=$[rint(min($val64,$val43))]
+!endif
+tmp0=!shuffle $val64
+
+val52=$(tmp0)
+tmp=!trim $(val55[$(val52[1..$val43]);])
+val55=!translate internal $	\
+$ to ;; in $tmp
+val65=
+val66=
+!for val67  = 1 to $val43 
+!if .mp3 isin $(val55[$val67;2]) or .jpg isin $(val55[$val67;2]) or .gif isin $(val55[$val67;2]) or .png isin $(val55[$val67;2]) 
+!if .mp3 isin $(val55[$val67;2]) 
+tmp0=!nospace $(val55[$val67;2])
+
+val68=$(tmp0)
+!readproc slib/media/audio $val1/$(val55[$val67;2]),player=$val38 
+tmp0=$slib_out
+val68=$(tmp0)
+!endif
+!if .jpg isin $(val55[$val67;2]) or .gif isin $(val55[$val67;2]) or .png isin $(val55[$val67;2]) 
+tmp0=!nospace $(val55[$val67;1])
+
+val68=$(tmp0)
+val68=imgrename($val1/$(val55[$val67;1]) )
+!endif
+!else
+val68=$(val55[$val67;2])
+!endif
+tmp0=!append item $val68 to $val66
+
+val66=$(tmp0)
+!next
+!for val67  = 1 to $val43 
+!if .mp3 isin $(val55[$val67;1]) or .jpg isin $(val55[$val67;1]) or .gif isin $(val55[$val67;1]) or .png isin $(val55[$val67;1]) 
+!if .mp3 isin $(val55[$val67;1]) 
+tmp0=!nospace $(val55[$val67;1])
+
+val68=$(tmp0)
+!readproc slib/media/audio $val1/$(val55[$val67;1]),player=$val38 
+tmp0=$slib_out
+val68=$(tmp0)
+!endif
+!if .jpg isin $(val55[$val67;1]) or .gif isin $(val55[$val67;1]) or .png isin $(val55[$val67;1]) 
+tmp0=!nospace $(val55[$val67;1])
+
+val68=$(tmp0)
+val68=imgrename($val1/$(val55[$val67;1]) )
+!endif
+!else
+val68=$(val55[$val67;1])
+!endif
+tmp0=!append item $val68 to $val65
+
+val65=$(tmp0)
+!next
+replytype1=correspond
+replyname1=
+replygood1=$val65; $val66
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val47$val53 $val8 $val63	  
+!if $val48 notsametext  
+$() 
+!read oef/special.phtml help reading,[à lire] 
+$() 
+!endif
+$()	  
+!if $val50 notsametext  
+$() 
+!read oef/special.phtml help image,[à regarder] 
+$() 
+!endif
+$()	  $val49$val51	  <div class="question"><center> 
+!read oef/embed.phtml reply1,$val17 
+$()</center></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,17,47,48,49,50,51,53,63
+embedcnt=3

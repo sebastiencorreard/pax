@@ -1,0 +1,99 @@
+target=droitespara
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{10}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\integer{x1=random(-8..8)}
+\integer{y1=random(-8..8)}
+\integer{x3=random(-8..8)}
+\integer{y3=random(-8..8)}
+\integer{y2=random(-8..8)}
+\integer{y4=random(-8..8)}
+
+\integer{de=random(1,2,3,3)}
+
+\if{\de==3}{
+  \integer{x2=random(-8..8)}
+  \integer{x4=random(-8..8)}
+}
+\if{\de==1}{
+  \integer{tmp=random(1,2)}
+  \integer{x2=\tmp==1?\x1:random(-8..8)}
+  \integer{x4=\tmp==1?random(-8..8):\x3}
+}
+
+\if{\de==2}{
+  \integer{x2=\x1}
+  \integer{x4=\x3}
+}
+
+\if{\x1==\x2 && \y1==\y2}{\integer{y2=\y1+random(-2,2,-3,3)}}
+\if{\x3==\x4 && \y3==\y4}{\integer{y4=\y3+random(-2,2,-3,3)}}
+
+\integer{x=(\x2-\x1)}
+\integer{y=(\y2-\y1)}
+\integer{X=(\x4-\x3)}
+\integer{Y=(\y4-\y3)}
+\integer{d=\x*\Y-\y*\X}
+\integer{ok=\d==0?1:2}
+\integer{rep1=\x==0?1:2}
+\integer{rep2=\X==0?1:2}
+\rational{m=\rep1==2?\y/\x}
+\rational{m2=\rep2==2?\Y/\X}
+\integer{rep7=3}
+\integer{rep7=\x*\X==0?1}
+\integer{rep7=\x==0 and \X==0?2}
+
+\statement{
+<div style="background-color:#FFFF66">
+Dans un repère \((O,\vec{i},\vec{j})\) orthogonal donné du plan,
+on considère les quatre points :
+<div class="wimscenter">\(A( \x1 ; \y1 )\), \(B(\x2 ; \y2)\), \(C( \x3 ; \y3)\) et \(D( \x4 ; \y4)\).</div>
+On se propose de déterminer si les droites \((A B)\) et \((C D)\) sont parallèles,
+<b>en raisonnant sur leurs coefficients directeurs</b>.
+<ul><li>
+La droite \((A B)\) est \embed{reply1,10} car les points \(A\) et \(B\)
+ont des abscisses \embed{reply2,10}, donc on \embed{reply3,10}
+définir le coefficient directeur de \((A B)\).
+</li><li>
+La droite \((C D)\) est \embed{reply4,10} car les points \(C\) et \(D\)
+ont des abscisses \embed{reply5,10}, donc on \embed{reply6,10}
+définir le coefficient directeur de \((C D)\).
+</li><li>
+Cocher l'affirmation pertinente pour poursuivre le raisonnement :
+\embed{reply7,10}
+</li><li>
+Finalement on conclut que : \embed{reply8, 10}.
+</li></ul>
+</div>
+}
+
+\answer{}{\rep1;\name_choix[1;]}{type=menu}
+\answer{}{\rep1;\name_choix[2;]}{type=menu}
+\answer{}{\rep1;\name_choix[3;]}{type=menu}
+\answer{}{\rep2;\name_choix[1;]}{type=menu}
+\answer{}{\rep2;\name_choix[2;]}{type=menu}
+\answer{}{\rep2;\name_choix[3;]}{type=menu}
+\answer{}{\rep7; \name_choix1}{type=menu}
+\answer{}{\ok;\name_choix2}{type=menu}
+
+\hint{On ne peut définir le coefficient directeur que si la droite est non verticale (non parallèle à l'axe des ordonnées). Dans ce cas, le coefficient directeur \(m\)
+de la droite \((A B)\) est : \( m = \frac{y_B - y_A}{x_B - x_A}\). <br>
+Une droite \(D\) verticale (parallèle à l'axe des ordonnées) n'admet pas de coefficient directeur (sa pente est "infinie").
+<br> Une droite \(D\) verticale admet une équation du type \(x = c\) où \(c\)
+est une constante. Tous les points de \(D\) ont alors la même abscisse \(c\).
+}
+
+\feedback{0==0}{
+<h2 class="small">\name_solution</h2>
+Les droites \if{\ok==1}{sont}{ne sont pas} parallèles.
+\if{\rep7==3}{
+On a deux droites non verticales de pentes \if{\ok==1}{égales}{différentes} \(m_1=\m\)  et \(m_2=\m2\).}
+\if{\rep7==1}{
+L'une des droites est verticale et pas l'autre. Elles ne peuvent donc pas être parallèles.}
+\if{\rep7==2}{Les deux droites sont verticales, donc nécessairement parallèles.}
+}

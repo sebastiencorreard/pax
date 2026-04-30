@@ -1,0 +1,159 @@
+!set title=Lois de Descartes 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey ; Georges, Khaznadar
+email=benoit.markey@ac-lille.fr
+language=fr
+computeanswer=yes
+precision=100
+
+ansorder=r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1000, 1200
+
+val6=$[$(tmp0)/1000]
+tmp0=!randint 1330, 1750
+
+val7=$[$(tmp0)/1000]
+tmp0=!randint 18, 75
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val9=$[rint($(tmp0)*$val8)]
+val10=$[$val6/$val7*sin($val9*pi/180)]
+val11=$[arcsin($val10)*180/pi]
+val12=$[abs($val11)]
+val13=$[round($val12)]
+!readproc slib/text/sigunits $val13 °,2 
+tmp0=$slib_out
+val14=$(tmp0)
+val15=$[rint(130)]
+val16=$[min(270-$val9,270)]
+val17=$[max(270-$val9,270)]
+val18=frect 0,$val15,2*$val15,2*$val15, yellow	hline $val15,$val15, blue	dvline $val15,$val15, blue	text blue,$val15+10,$val15-13,medium,I	text red,1.5$val15,1.6*$val15,medium, milieu 2	text red,1.5*$val15,0.2*$val15,medium, milieu 1	arrow $val15*(1-sin($val9*pi/180)),$val15*(1-cos($val9*pi/180)),$val15,$val15,$val15/15,red	arc $val15,$val15,50,50,$val16,$val17, green	text green, $val15-10-30*sin($val9*pi/360),$val15-13-30*cos($val9*pi/360),medium,i1	
+val19=frect  0,$val15,2*$val15,2*$val15, yellow	hline $val15,$val15, blue	dvline $val15,$val15, blue	text blue,$val15+10,$val15-13,medium,I	text red,1.5*$val15,1.6*$val15,medium, milieu 2	text red,1.5*$val15,0.2*$val15,medium, milieu 1	arrow $val15*(1-sin($val9*pi/180)),$val15*(1-cos($val9*pi/180)),$val15,$val15,$val15/15,red		
+val20=darrow $val15,$val15,$val15*(1+sin($val11*pi/180)),$val15*(1+cos($val11*pi/180)),$val15/15,red	darrow $val15,$val15,$val15*(1-sin($val11*pi/180)),$val15*(1+cos($val11*pi/180)),$val15/15,red	darrow $val15,$val15,$val15*(1+sin($val11*pi/180)),$val15*(1-cos($val11*pi/180)),$val15/15,red		
+val16=$[min(90-$val11,90)]
+val17=$[max(90-$val11,90)]
+val21=arrow $val15,$val15,$val15*(1+sin($val11*pi/180)),$val15*(1+cos($val11*pi/180)),$val15/15,red	arc $val15,$val15,50,50,$val16,$val17, green	text green, $val15-10+30*sin($val11*pi/360),$val15+30*cos($val11*pi/360),medium,i2	
+!readproc oef/draw.phtml 2*$val15,2*$val15 \
+$val19	 
+tmp0=$ins_url
+val22=$(tmp0)	
+!readproc oef/draw.phtml 2*$val15,2*$val15 \
+$val18	$val21	 
+tmp0=$ins_url
+val23=$(tmp0)	
+!readproc oef/draw.phtml 2*$val15,2*$val15 \
+$val19	$val20		 
+tmp0=$ins_url
+val24=$(tmp0)	
+tmp=!trim $val24;polygone,$val15+30*$val9/$val8,$val15+10,$val15,$val15+10,-10*$val9/$val8+$val15*(1+sin($val11*pi/180)),$val15*(1+cos($val11*pi/180)),20*$val9/$val8+$val15*(1+sin($val11*pi/180)),$val15*(1+cos($val11*pi/180))	
+val25=!translate internal $	\
+$ to ;; in $tmp
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=\(n_2)
+replygood1=$[$val7 ]
+replytype2=coord
+replyname2=cliquer sur le rayon réfracté
+replygood2=$val25
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_emph">Cet exercice comporte deux étapes.</div>		
+!if $m_step=1 
+$()<div class="wims_emph">Etape 1.</div>	<div class="wimscenter">	<img src="$val22" alt="figure 1"></div>	<div>	On considère la propagation d'un rayon lumineux d'un milieu 1 vers un	milieu 2 pour une radiation monochromatique.		On suppose que l'angle d'incidence 
+!insmath i_1
+$() est égal à $val8°,  que l'indice du milieu 1 vaut	
+!insmath n_1
+$() = $val6 et que l'angle de réfraction vaut 	
+!insmath i_2
+$() = $val14 .</div>	 <div class="wims_question">Donnez l'indice de réfraction 
+!insmath n_2
+$() du milieu 2 : 
+!insmath n_2
+$()= 
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wims_instruction">	<ul class="wims_nopuce">	<li>REMARQUE sur l'écriture scientifique: 3.1 e1 signifie 
+!insmath 3,1\times 10 ^1
+$()</li>	<li>ATTENTION: on arrondira l'angle au degré près et on n'oubliera	 pas l'unité ! (exemple : 4,82468° donne 5° ;  31.357312° donne 31°)</li></ul></div> 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="wims_emph">Etape 2.</div> Effectivement 
+!insmath n_2
+$()=$val7 et 
+!insmath i_2
+$() = $val13 °.</p>	<div class="wims_question">Parmi les rayons proposés, choisissez le bon rayon réfracté (le rayon incident est un trait plein).</p>	<div class="wimscenter"> 
+!read oef/embed.phtml reply2 
+$()</div></div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La bonne réponse, est 	
+!insmath n_2
+$() = $val7.		<p>Les angles d'incidence et de réfraction se mesurent de la 	façon suivante:</p>	<p style="text-align:center">	<img src="$val23" alt="figure 3"></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,13,14,22,23
+embedcnt=2

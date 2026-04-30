@@ -1,0 +1,173 @@
+!set title=	Ensemble de nombres	
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard	
+email=regine@mangeard.fr	
+
+ansorder=r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1	)]
+tmp=!trim 3,14	\(91/13)	\(sqrt(100))	2	\(sqrt(3)/3)	-5	\(20/100)	\(310/5)	2,34	\(sqrt(0,01)/2)	\(10/7)	\(-9/63)	\(63/9)	\(2+1/3)	\(-1/3+1/6)	\(12/(7+5))	\(2sqrt(5)/sqrt(10))	\(sqrt(5^2-4^2))	\((1+sqrt(5))(1-sqrt(5)))	\((13-7)/(13+7))	7,14141414	\(11/3)	\(11/8)	\(sqrt(121))	\(-156/3)	\(21/180)	\(sqrt(1000))	\(93/6)	\(11/5)	\(-25/sqrt(100))	\(-60sqrt(2)/sqrt(8))	
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val7
+
+val8=$[rint($(tmp0))]
+tmp=!trim entier naturel	entier relatif	décimal	rationnel	réel	<span style="color:magenta">Choix vide</span>	
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rowcnt $val9
+
+val10=$[rint($(tmp0)-1)]
+tmp=!trim 3,4,5	1,2,3,4,5	1,2,3,4,5	1,2,3,4,5	5	2,3,4,5	3,4,5	1,2,3,4,5	3,4,5	3,4,5	4,5	4,5	1,2,3,4,5	4,5	4,5	1,2,3,4,5	5	1,2,3,4,5	2,3,4,5	3,4,5	3,4,5	4,5	3,4,5	1,2,3,4,5	2,3,4,5	4,5	5	3,4,5	3,4,5	3,4,5	2,3,4,5	
+val11=!translate internal $	\
+$ to ;; in $tmp
+val12=$[rint(0	)]
+val13=$[rint()]
+val14=$[rint()]
+val15=$[rint()]
+val16=$[rint(5	)]
+val17=lavender,wheat,turquoise
+val18=lightsteelblue
+val19=$[rint(floor(($val16+1)/2))]
+val20=$[rint((($val16+1)%2))]
+tmp0=!randint 1, $val8
+
+val21=$[rint($(tmp0))]
+val22=$(val7[$val21;])
+val23=$(val11[$val21;])
+tmp0=!shuffle $val10
+
+val24=$(tmp0)
+tmp0=!item 1 to $val16 of $val24
+
+val24=$(tmp0)
+tmp0=!sort numeric item $val24
+
+val24=$(tmp0)
+val25=$[rint($val10+1)]
+tmp0=!append item $val25 to $val24
+
+val24=$(tmp0)
+val26=
+!for val27  in $val24 
+tmp0=!append line $(val9[$val27;]) to $val26
+
+val26=$(tmp0)
+!next
+tmp=!trim $val26
+val26=!translate internal $	\
+$ to ;; in $tmp
+val28=$[rint($val16+1)]
+tmp0=!values i for i=1 to $val28
+
+val29=$(tmp0)
+tmp0=!listintersect $val23 and $val24
+
+val30=$(tmp0)
+tmp0=!itemcnt $val30
+
+val31=$[rint($(tmp0))]
+!if $val31=0 
+val32=$val28
+!else
+val32=
+!for val27  in $val30 
+tmp0=!positionof item $val27 in $val24
+
+val33=$(tmp0)
+tmp0=!append item $val33 to $val32
+
+val32=$(tmp0)
+!next
+!endif
+val34=Les propriétés de $val22
+tmp0=!values i for i=1 to $val19
+
+val35=$(tmp0)
+tmp0=!values $val19+i for i=1 to $val19
+
+val36=$(tmp0)
+val37=<p>	On considère <span class="wims_emph">le nombre</span>	<span class="bold">$val22 </span>.	Dans la liste ci-dessous, cochez tous les ensembles auquel	<span class="wims_emph">le nombre</span> <span class="bold">$val22</span> appartient.	</p>	
+replytype1=checkbox
+replyname1=$val34
+replygood1=$val32;$val29
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val37		<table class="wimscenter wimsnoborder">	     
+!for m_k=1 to $val19 
+$()	    <tr>	      <td style="background-color:$(val17[(2*$m_k-1)%3+1]);text-align:left">	        <table>	   <tr>	     <td style="background-color:$val18">	        
+!read oef/embed.phtml reply 1,$(val35[$m_k]) 
+$()	     </td>	     <td style="text-align:center">	      $(val26[$m_k;])	     </td>	   </tr>	 </table>	      </td>	      <td style="background-color:$(val17[(2*$m_k)%3+1]);text-align:left">	        <table>	   <tr>	     <td style="background-color:$val18">	               
+!read oef/embed.phtml reply 1,$(val36[$m_k]) 
+$()	     </td>	     <td>	      $(val26[($m_k+$val19);])	     </td>	   </tr>	 </table>	      </td>	    </tr>	     
+!next
+$()	    
+!if $val20<>0 
+$()	    <tr>	      <td style="background-color:$(val17[$val28%3+1]) colspan="2">	        <table>	   <tr>	     <td style="background-color:steelblue">	        
+!read oef/embed.phtml reply 1,$val28 
+$()	     </td><td>	         $(val26[$val28;])	     </td>	   </tr>	 </table>	      </td>	    </tr>	     
+!endif
+$()	  </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=17,18,19,20,26,28,35,36,37
+embedcnt=3

@@ -1,0 +1,170 @@
+!set title=9-Agrandissement maximal 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=xrange 0,32	yrange 0,23	linewidth 2	rectangle 1,1,31,22,black	linewidth 1	polygon green,4.6,1,31,15.4,27.4,22,1,7.6	fill 16,12,skyblue	text black ,8,3,large,?	
+tmp0=!randitem 1,2
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 18, 36
+
+tmp1=!randint 40, 55
+
+tmp2=!item $val7 of $(tmp0)/10,$(tmp1)/10
+
+val8=$[$(tmp2)]
+val9=$[rint(floor(40/$val8))]
+tmp0=!randint 6, $val9/$val8
+
+val10=$[$(tmp0)/2]
+val11=$[$val10 *$val8]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+tmp0=!item $val12 of A4,A3
+
+val13=$(tmp0)
+tmp0=!item $val12 of 21,29.7
+
+val14=$[$(tmp0)]
+tmp0=!item $val12 of 29.7,42
+
+val15=$[$(tmp0)]
+val16=$[($val8*$val14-$val15)/($val8^2-1)]
+val17=$[sqrt($val16^2+($val14-$val8*$val16)^2)]
+val18=$[rint(floor(100*$val17/$val10))]
+val19=$[round(180*atan($val16/($val14-$val8*$val16))/pi)]
+!if $val18>400 
+val10=$[$val10*2]
+val11=$[$val11*2]
+val18=$[round($val18/2)]
+!endif
+!if $val18>400 
+val10=$[$val10*2]
+val11=$[$val11*2]
+val18=$[round($val18/2)]
+!endif
+tmp0=!shuffle $val10,$val11
+
+val20=$(tmp0)
+val21=$[round($val10*$val18/10)/10]
+val22=$[round($val11*$val18/10)/10]
+val23=$[floor(100*min(4,min($val14/$val10,$val15/$val11)))]
+val24=$[round($val10*$val23/10)/10]
+val25=$[round($val11*$val23/10)/10]
+val26=xrange 0,$val15	yrange 0,$val14	linewidth 2	rectangle 0,0,$val15,$val14,black	linewidth 1	polygon green,$val16,0,$val15,$val8*$val16,$val15-$val16,$val14,0,$val14-$val8*$val16	fill 16,12,skyblue		
+val27=xrange 0,$val15	yrange 0,$val14	linewidth 2	rectangle 0,0,$val15,$val14,black	linewidth 1	polygon green,0,0,$val25,0,$val25,$val24,0,$val24	fill 1,1,skyblue		
+replytype1=numeric
+replyname1=
+replygood1=$[$val18]
+replytype2=numeric
+replyname2=
+replygood2=$[$val19]
+replytype3=menu
+replyname3=
+replygood3=$val7;non,oui
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 
+!read oef/special.phtml tooltip <b>Passer la souris ici pour afficher	les caractéristiques du photocopieur</b>,[ABOVE,true,STICKY,true,CLOSEBTN,true] ,	<ul><li>Formats de papier disponibles : A4 (21*29.7 cm) et A3 (29.7*42 cm)</li>	<li>Dimensions utiles de la vitre : A3</li>	<li>Coefficients disponibles pour les agrandissements et réductions : de 25% à 400%	en nombre entier</li></ul>	Dans tous ces exercices, on fait abstraction du problème du positionnement de l'original	sur la vitre du photocopieur	<br> (problème pourtant non négligeable dans la pratique !)	 
+$()	<p>	Je veux photocopier la reproduction d'un tableau que j'ai trouvée dans un livre. <br>	Celle-ci mesure $(val20[1]) cm sur $(val20[2]) cm.</p>		Je souhaite l'agrandir<b> au maximum</b> pour qu'elle tienne sur une feuille de format $val13,	et je veux voir si je peux gagner en agrandissement en mettant l'original "de travers", pour que la photocopie ressemble à ceci :<br>	<div class="wimscenter"> 
+!read oef/draw.phtml 300,210 \
+$val6 
+$()Ce dessin n'est pas à l'échelle.</div>	<p>	Pour que le résultat obtenu sur la photocopie corresponde au dessin ci-dessus,	que dois-je choisir comme coefficient sur le photocopieur ?  
+!read oef/embed.phtml reply1,5 
+$()</p><p>	Quel angle ferait la longueur du tableau avec la longueur de la feuille ? (angle noté <b>?</b>	sur le dessin)  
+!read oef/embed.phtml reply2,5 
+$() (angle arrondi au degré).</p><p>	Obtiendrait-on ainsi un plus grand agrandissement qu'en gardant les bords du tableau	parallèles aux bords de la feuille ?  
+!read oef/embed.phtml reply3 
+$()	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()On peut par exemple utiliser le fait que les deux triangles jaunes sont semblables.<br>	 
+!read oef/draw.phtml 300,210 \
+$val6	fill 2,2,yellow	fill 20,2,yellow 
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>Dessins environ à l'échelle :<br>  
+!read oef/draw.phtml 300,210 \
+$val26 
+$()	Coefficient : $val18 %	  ;  Dimensions du tableau sur la photocopie : $val21 cm sur $val22 cm<p>	 
+!read oef/draw.phtml 300,210 \
+$val27 
+$()  Coefficient : $val23 %	  ;  Dimensions du tableau sur la photocopie : $val24 cm sur $val25 cm</p>	
+!if $val7=1 
+$()Pour avoir l'agrandissement maximum, on gardera les côtés du	tableau parallèles à ceux de la feuille. 
+!else
+$() Pour avoir l'agrandissement maximum,	on mettra l'original "en diagonale" avec un angle de $val19 par rapport aux côtés de la feuille. 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,13,18,19,20,21,22,23,24,25,26,27
+embedcnt=4

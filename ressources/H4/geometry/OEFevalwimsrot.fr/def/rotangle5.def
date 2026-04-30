@@ -1,0 +1,140 @@
+!set title=Angle d'une rotation 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 5,6,8,9
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=red,blue,yellow,green,purple,grey,white,sienna,pink
+val8=rouge,bleue,jaune,verte,violette,grise,blanche,marron,rose
+tmp0=!values v for v=1 to 9
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp0=!item $val9 of $val7
+
+val7=$(tmp0)
+tmp0=!item $val9 of $val8
+
+val8=$(tmp0)
+!readproc slib/polyfig1 $val6,300,($val7) 
+tmp0=$slib_out
+val10=$(tmp0)
+!readproc oef/draw.phtml 300,300 \
+$val10 
+tmp0=$ins_url
+val11=$(tmp0)
+val12=$[360/$val6]
+tmp0=!item 1 to $val6 of $val8
+
+val8=$(tmp0)
+val8=$val8,$val8
+tmp0=!item $val6 of ,,,,2,2,,3,3
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, $val13
+
+val13=$[rint($(tmp0))]
+val12=$[rint(($val6-$val13)*$val12)]
+val14=$[rint(2*$val6)]
+val15=$[rint(ceil($val14/4))]
+val14=$[rint(floor(3*$val14/4))]
+tmp0=!randint $val14, $val15
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+tmp0=!item $val17 of -1,1
+
+val18=$[rint($(tmp0))]
+tmp0=!item $val16-$val18*$val13 of $val8
+
+val19=$(tmp0)
+tmp0=!item $val16 of $val8
+
+val16=$(tmp0)
+
+!ifval $val18<0
+val18=positif
+!else
+val18=négatif
+!endif
+val20=Par une rotation de centre O et de sens $val18, l'image de la figure $val16 est la figure $val19.<br>	  Quelle est la mesure de l'angle de cette rotation
+replytype1=numeric
+replyname1=
+replygood1=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   $val20 ?	<p><b>Votre réponse :</b></p>	  <label for="reply1">L'angle de cette rotation est de</label>  
+!read oef/embed.phtml r1,5 
+$()° .	<div class="wimscenter"><img src="$val11" alt=""></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,20
+embedcnt=1

@@ -1,0 +1,84 @@
+#18 Begin en eindstand balansposten
+n=$counter
+rounding=1
+mathview=0
+cols=5
+helptext=$empty
+checkfile=$checkdir/new_number.proc
+!readproc $remarkdir/rounding.$taal
+make_tr=0
+bedrijf=!randitem Vertigo Chemical Specialities,Hadjema Manufacturing BV,Vriesekamp Textile Services NV,Agio Coatings BV,Ritsma Agri Chemicals NV,Berg Chemicals NV,HaGeBo BV,Zeepfabriek Wienke BV...
+inputs=3
+description=Machines,Voorraad,Debiteuren
+#inputtext1=Machines
+#inputtext2=Voorraad
+#inputtext3=Debiteuren
+m_rightarrow=&nbsp;=&nbsp;
+ex1=&euro;
+ex2=&euro;
+ex3=&euro;
+jaar=!date +%Y
+jaar=$[$jaar-1]
+
+machines=!randint 10,30
+machines=$[$machines*10]
+voorraad=!randint 10,30
+voorraad=$[$voorraad*10]
+debiteuren=!randint 5,15
+debiteuren=$[$debiteuren*10]
+liquidemiddelen=!randint 20,40
+liquidemiddelen=$[$liquidemiddelen*10]
+totaal=$[$machines+$voorraad+$debiteuren+$liquidemiddelen]
+a1=$[round($totaal/40)]
+a2=$[round($totaal/20)]
+eigenvermogen=!randint $a1,$2
+eigenvermogen=$[$eigenvermogen*10]
+vreemdvermogen=$[$totaal-$eigenvermogen]
+
+perc1=!randint 150,250
+perc1=$[$perc1/10]
+b1=$[round($machines*$perc1/100)]
+b2=$[round($machines*$perc1/50)]
+# machines1 in 1000 euro !!
+machines1=!randint $b1,$b2
+ans1=$[1000*($machines+$machines1 - $machines*$perc1/100)]
+text_ans1=<table class="zebra_table_h2"><caption>Oplosschema "Machines" </caption><tr><td>&nbsp;</td><td>Machines (beginstand)</td><td>$machines</td><td>&nbsp;</td></tr><tr><td>+</td><td>Investeringen</td><td>$machines1</td><td>aanschaf machines</td></tr><tr><td>&minus;</td><td>Afschrijvingen</td><td>$[$machines*$perc1/100]</td><td>$perc1 % van $machines</td></tr><tr><td>&nbsp;</td><td>Machines (eindstand)</td><td>&euro;$ans1</td><td>&nbsp;</td></tr></table>
+
+# inkopen
+inkopen1=!randint 400,600
+
+#brutowinst
+perc2=!randint 25,55
+brutowinst=!randint $[round(0.2*$inkopen1)],$[round(0.6*$inkopen1)]
+
+# omzet
+omzet1=$[($brutowinst*($perc2+100))/100]
+
+ans2=$[1000*($voorraad+$inkopen1-$brutowinst)]
+text_ans2=<table class="zebra_table_h2"><caption>Oplosschema "Voorraad" </caption><tr><td>&nbsp;</td><td>Voorraad</td><td>$voorraad</td><td>&nbsp;</td></tr><tr><td>+</td><td>Inkopen</td><td>$inkopen1</td><td>&nbsp;</td></tr><tr><td>&minus;</td><td>Inkoopwaarde van de omzet</td><td>$brutowinst</td><td><ul><li>Omzet &minus; Inkoopwaarde = Brutowinst</li><li>$[1000*$omzet1] / $[$perc2+100] &times; 100 = &euro; $[$brutowinst*1000]</li></ul></td></tr><tr><td>&nbsp;</td><td>Voorraad (eindstand)</td><td>&euro;$ans2</td><td>&nbsp;</td></tr></table>
+
+# ans3
+perc3=!randint 4,7
+perc4=!randint 5,9
+perc3=$[$perc3*10]
+perc4=$[$perc4*10]
+ans3=$[1000*($debiteuren+$omzet1*$perc4/100 - $debiteuren*$perc3/100)]
+text_ans3=<table class="zebra_table_h2"><caption>Oplosschema "Debiteuren" </caption><tr><td>&nbsp;</td><td>Debiteuren</td><td>$debiteuren</td><td>&nbsp;</td></tr><tr><td>+</td><td>Verkopen op rekening</td><td>$[$omzet1*$perc4/100]</td><td>$[$perc4/100] &times; $[1000*$omzet1] </td></tr><tr><td>&minus;</td><td>Ontvangst van debiteuren</td><td>$[$debiteuren*$perc3/100]</td><td>$[$perc3/100] &times; $debiteuren</td></tr><tr><td>&nbsp;</td><td>Debiteuren (eindstand)</td><td>&euro;$ans3</td><td>&nbsp;</td></tr></table>
+
+
+
+ss=Gegeven is <span class="schaersvoorde_link">deze</span> balans van onderneming "$bedrijf".<br /><ul><li>In het boekjaar $jaar is voor &euro; $[1000*$machines1] geinvesteerd in machines, over deze investering wordt in dat jaar nog niet afgeschreven. De afschrijvingen van de reeds aanwezige machines bedragen elk jaar $perc1 % van de boekwaarde.</li><li>De omzet bedroeg in $jaar &euro; $[1000*$omzet1]. De brutowinst bedroeg $perc2 % van de inkoopwaarde van de omzet.</li><li>De inkopen bedroegen in $jaar &euro; $[1000*$inkopen1]</li><li>Van de post debiteuren op 1 januari $jaar werd $perc3 % ontvangen en van de omzet werd $perc4 % op rekening verkocht </li></ul>Gevraagd: bereken van deze balanspost de boekwaarde op 31 december $jaar.<br /><em>Met btw hoeft geen rekening te worden gehouden.<br />Waar nodig afronden op hele &euro;'s
+
+answer$n=$ans1\
+$ans2\
+$ans3
+
+var1=1,1,1
+var2=1,1,1
+
+textanswer$n=$text_ans1 <hr /> $text_ans2 <hr /> $text_ans3
+balans=<table class=\'balans_2\'><caption>Balans 1 januari $jaar (bedragen &times;&euro;1000 )</caption><tr><th>Activa</th><th>&euro;&times;1000</th><th>Passiva</th><th>&euro;&times;1000</th></tr><tr><td>Machines</td><td>$machines</td><td>Eigen vermogen</td><td>$eigenvermogen</td></tr><tr><td>Voorraad</td><td>$voorraad</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Debiteuren</td><td>$debiteuren</td><td>Vreemd vermogen</td><td>$vreemdvermogen</td></tr><tr><td>Liquide middelen</td><td>$liquidemiddelen</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Totaal</td><td>$totaal</td><td>Totaal</td><td>$totaal</td></tr></table>
+question$n=<a onmouseover="return escape('$balans')">$ss</a>
+
+
+

@@ -1,0 +1,155 @@
+!! no need for translation
+# rectangle triangle in $principal (say B)
+# we need the circle of diameter [AC] 
+#  hence a line point-middle is required for the diameter
+#  (minimum = 1 circle + 1 line)
+
+
+
+check=0
+
+tot=0
+
+
+!!! Extract values of all user points
+!!! take care of names
+
+!for t in $type
+ !if point isin $t
+    !advance tot
+    t=!replace internal @ by , in $t
+    A=!item 2 of $t
+    x$A=!item 3 of $t
+    y$A=!item 4 of $t
+ !endif
+!next t
+
+!!! check number of required points
+
+nb=!itemcnt $ptnames
+
+!if $tot < $nb
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+!!! in the case the mediatrice of diameter [AC] is built to get the middle,
+!!! there must be 3 more points ; hence no penalty if $nb < $tot
+
+!! check orthogogonality of  2 vectors (vec{P_1P_2} and vec{P_2P_3} where P_2 is ppal)
+
+b=$principal
+tmp=!row $b of A,B,C;B,A,C;C,A,B
+b=!item 1 of $tmp
+a=!item 2 of $tmp
+c=!item 3 of $tmp
+
+!! vec{P_1P_2}
+xu=$[$(x$b)-$(x$a)]
+yu=$[$(y$b)-$(y$a)]
+!! vec{P_2P_3}
+xv=$[$(x$c)-$(x$b)]
+yv=$[$(y$c)-$(y$b)]
+!! product scalar null
+dist1=$[$xu*$xv + $yu*$yv]
+dist1=$[abs($dist1)]
+
+
+!!! check number of circles  (1 is necessary and sufficient)
+circ=0
+!for t in $type
+  !if circle isin $t
+     !advance circ
+  !endif
+!next t
+
+!!! check number of lines (1 is necessary and sufficient)
+line=0
+!for t in $type
+  !if line isin $t
+     !advance line
+  !endif
+!next t
+
+
+!ifval $dist1<$precision 
+!increase check 
+!endif
+
+!ifval $dist1<0.01 
+#the precision is very good : the student must used circle+line and his construction is what I want to have.
+!increase check 
+!endif
+
+!if $debug=1
+debug_data=!append line <li>tot=$tot</li><li>circ=$circ</li><li>dist1=$dist1 dist2=$dist2 dist3=$dist3 check=$check</li> to $debug_data
+!endif
+
+!if $check >= 2
+#All is right !
+      REMARK=!record 23 of remarks.$taal
+      HINT=$OK
+      score=$[$score + 1]
+## BUT at random because no circle or line as required
+   !if $circ = 0 
+      HINT=!record 64 of remarks.$taal
+      goback=1
+   !else
+      !if $line = 0
+          HINT=!record 65 of remarks.$taal
+          goback=1
+      !else
+      !!! too much circles
+          !if $circ>1
+                HINT=!record 67 of remarks.$taal
+                score=$[$score - 0.3]
+          !endif
+       !endif
+   !endif
+!else
+  !if $check = 1
+#the triangle is "almost rectangle"
+    score=$[$score+0.3]
+    REMARK=!record 24 of remarks.$taal
+    !if $circ = 0
+#the student didn't build any circle
+       HINT= !record 64 of remarks.$taal
+       goback=1
+    !endif
+    !if $line = 0
+#the student didn't build any line
+      HINT= !record 65 of remarks.$taal
+      goback=1
+    !endif
+    !if $[$circ*$line]>0
+#there are circles and lines, but maybe points are not intersection of lines and circles
+      HINT=!record 66  of remarks.$taal
+   !endif
+   HINT=$HINT $BOK
+!else
+#the triangle isn't rectangle
+    REMARK=!record 25 of remarks.$taal
+    !if $circ = 0
+#the student didn't build any circle
+       HINT= !record 64 of remarks.$taal
+       goback=1
+    !endif
+    !if $line = 0
+#the student didn't build any line
+      HINT= !record 65 of remarks.$taal
+      goback=1
+    !endif
+    !if $[$circ*$line]>0
+#there are circles and lines, but maybe points are not intersection of lines and circles
+      HINT=!record 66  of remarks.$taal
+   !endif
+    HINT=$HINT $NOK
+  !endif
+!endif	
+
+!if $debug=1
+debug_data=!append line <li>circlecount circ=$circ</li><li>the HINT=$HINT</li> to $debug_data
+!endif
+    

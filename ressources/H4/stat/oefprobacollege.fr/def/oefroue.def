@@ -1,0 +1,136 @@
+!set title=Roue 1 en Francs Pacifique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=red,yellow,green,blue,grey
+val7=rouge,jaune,vert,bleu,gris
+val8=1,2,2
+tmp0=!randint 2, 3
+
+tmp1=!randint 2, 4
+
+tmp2=!randint 2, 5
+
+val9=1,2,$(tmp0),$(tmp1),$(tmp2)
+!for val10 =3 to 5 
+!for val11 =1 to $(val9[$val10]) 
+val8=$val8,$val10
+!next
+!next
+tmp0=!itemcnt $val8
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val13=ellipse 0,0,2,2,black	segment 0,0,1,0,black	arrow 0.4,1.4,0.3,1,15,black
+val14=0
+!for val10 =1 to $val12 
+val15=$[2*pi/$val12]
+val16=$[$val14+$val15/2]
+tmp0=!item $(val8[$val10]) of $val6
+
+val17=$(tmp0)
+val14=$[$val14+$val15]
+val13=$val13	segment 0,0,cos($val14),sin($val14),black	fill cos($val16)/2,sin($val16)/2, $val17	
+!next
+val18=$[rint($(val9[5])/$val12*100)]
+val19=$[rint((3+$(val9[3]))/$val12*100)]
+val20=$[rint(3/$val12*100)]
+replytype1=numeric
+replyname1=
+replygood1=$[$val12]
+replytype2=numeric
+replyname2=
+replygood2=$[$val18]
+replytype3=numeric
+replyname3=
+replygood3=$[$val19]
+replytype4=numeric
+replyname4=
+replygood4=$[$val20]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right">	  
+!read oef/draw.phtml 200,200 \
+xrange -1.5,1.5	yrange -1.5,1.5	$val13 
+$()	</div>	Dans une loterie, une roue équilibrée est divisée en secteurs identiques.	<ul><li>La couleur rouge permet de gagner 50 000 Francs.	</li><li>La couleur jaune permet de gagner 10 000 Francs.	</li><li>La couleur verte permet de gagner 1 000 Francs.	</li><li>La couleur bleue permet de gagner 100 Francs.	</li><li>La couleur grise ne fait rien gagner.	</li></ul>		<ol><li> <label for="reply1">Combien avons-nous de secteurs sur la roue ? :</label>  
+!read oef/embed.phtml r1,5 
+$()	</li><li> <label for="reply2">Quelle est la probabilité (en %) de ne rien gagner ? :</label>  
+!read oef/embed.phtml r2,5 
+$() %	</li><li> <label for="reply3">Quelle est la probabilité (en %) de gagner au moins 1 000 F ? :</label>  
+!read oef/embed.phtml r3,5 
+$() %	</li><li> <label for="reply4">Quelle est la probabilité (en %) de gagner 10 000 F ou plus ? :</label>  
+!read oef/embed.phtml r4,5 
+$() %	</li></ol>	<div class="wims_instruction">Vous donnerez des valeurs arrondies à l'unité.</div> 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13
+embedcnt=4

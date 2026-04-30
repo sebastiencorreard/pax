@@ -1,0 +1,314 @@
+!set title=Droites parallèles (par les équations)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oefenv lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Solution
+tmp=!trim verticale,non verticale	  égales,distinctes	  ne peut pas,peut
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=l'une des droites est verticale mais l'autre non,les deux droites sont verticales,aucune droite n'est verticale et il faut calculer les coefficients directeurs
+val10=les droites sont parallèles,les droites ne sont pas parallèles
+tmp0=!randint -8, 8
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val12=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val13=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val14=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val15=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3,3
+
+val17=$[rint($(tmp0))]
+!if $val17==3 
+tmp0=!randint -8, 8
+
+val18=$[rint($(tmp0))]
+tmp0=!randint -8, 8
+
+val19=$[rint($(tmp0))]
+!endif
+!if $val17==1 
+tmp0=!randitem 1,2
+
+val20=$[rint($(tmp0))]
+
+!ifval $val20==1
+val18=$[rint($val11)]
+!else
+tmp0=!randint -8, 8
+
+val18=$[rint($(tmp0))]
+!endif
+
+!ifval $val20==1
+tmp0=!randint -8, 8
+
+val19=$[rint($(tmp0))]
+!else
+val19=$[rint($val13)]
+!endif
+!endif
+!if $val17==2 
+val18=$[rint($val11)]
+val19=$[rint($val13)]
+!endif
+!if $val11==$val18 && $val12==$val15 
+tmp0=!randitem -2,2,-3,3
+
+val15=$[rint($val12+$(tmp0))]
+!endif
+!if $val13==$val19 && $val14==$val16 
+tmp0=!randitem -2,2,-3,3
+
+val16=$[rint($val14+$(tmp0))]
+!endif
+val21=$[rint(($val18-$val11))]
+val22=$[rint(($val15-$val12))]
+val23=$[rint(($val19-$val13))]
+val24=$[rint(($val16-$val14))]
+val25=$[rint($val21*$val24-$val22*$val23)]
+
+!ifval $val25==0
+val26=$[rint(1)]
+!else
+val26=$[rint(2)]
+!endif
+
+!ifval $val21==0
+val27=$[rint(1)]
+!else
+val27=$[rint(2)]
+!endif
+
+!ifval $val23==0
+val28=$[rint(1)]
+!else
+val28=$[rint(2)]
+!endif
+
+!ifval $val27==2
+t_=!rawmath $val22/$val21
+val29=!exec pari print($t_)
+!endif
+
+!ifval $val28==2
+t_=!rawmath $val24/$val23
+val30=!exec pari print($t_)
+!endif
+val31=$[rint(3)]
+
+!ifval $val21*$val23==0
+val31=$[rint(1)]
+!endif
+
+!ifval $val21==0 and $val23==0
+val31=$[rint(2)]
+!endif
+replytype1=menu
+replyname1=
+replygood1=$val27;$(val8[1;])
+replytype2=menu
+replyname2=
+replygood2=$val27;$(val8[2;])
+replytype3=menu
+replyname3=
+replygood3=$val27;$(val8[3;])
+replytype4=menu
+replyname4=
+replygood4=$val28;$(val8[1;])
+replytype5=menu
+replyname5=
+replygood5=$val28;$(val8[2;])
+replytype6=menu
+replyname6=
+replygood6=$val28;$(val8[3;])
+replytype7=menu
+replyname7=
+replygood7=$val31; $val9
+replytype8=menu
+replyname8=
+replygood8=$val26;$val10
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">	Dans un repère 
+!insmath (O,\vec{i},\vec{j})
+$() orthogonal donné du plan,	on considère les quatre points :	<div class="wimscenter">
+!insmath A( $val11 ; $val12 )
+$(), 
+!insmath B($val18 ; $val15)
+$(), 
+!insmath C( $val13 ; $val14)
+$() et 
+!insmath D( $val19 ; $val16)
+$().</div>	On se propose de déterminer si les droites 
+!insmath (A B)
+$() et 
+!insmath (C D)
+$() sont parallèles,	<b>en raisonnant sur leurs coefficients directeurs</b>.	<ul><li>	La droite 
+!insmath (A B)
+$() est  
+!read oef/embed.phtml reply1,10 
+$() car les points 
+!insmath A
+$() et 
+!insmath B
+$()	ont des abscisses  
+!read oef/embed.phtml reply2,10 
+$(), donc on  
+!read oef/embed.phtml reply3,10 
+$()	définir le coefficient directeur de 
+!insmath (A B)
+$().	</li><li>	La droite 
+!insmath (C D)
+$() est  
+!read oef/embed.phtml reply4,10 
+$() car les points 
+!insmath C
+$() et 
+!insmath D
+$()	ont des abscisses  
+!read oef/embed.phtml reply5,10 
+$(), donc on  
+!read oef/embed.phtml reply6,10 
+$()	définir le coefficient directeur de 
+!insmath (C D)
+$().	</li><li>	Cocher l'affirmation pertinente pour poursuivre le raisonnement :	 
+!read oef/embed.phtml reply7,10 
+$()	</li><li>	Finalement on conclut que :  
+!read oef/embed.phtml reply8, 10 
+$().	</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()On ne peut définir le coefficient directeur que si la droite est non verticale (non parallèle à l'axe des ordonnées). Dans ce cas, le coefficient directeur 
+!insmath m
+$()	de la droite 
+!insmath (A B)
+$() est : 
+!insmath  m = \frac{y_B - y_A}{x_B - x_A}
+$(). <br>	Une droite 
+!insmath D
+$() verticale (parallèle à l'axe des ordonnées) n'admet pas de coefficient directeur (sa pente est "infinie").	<br> Une droite 
+!insmath D
+$() verticale admet une équation du type 
+!insmath x = c
+$() où 
+!insmath c
+$()	est une constante. Tous les points de 
+!insmath D
+$() ont alors la même abscisse 
+!insmath c
+$().	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'>	<h2 class="small">$val7</h2>	Les droites 
+!if $val26==1 
+$()sont 
+!else
+$() ne sont pas 
+!endif
+$() parallèles.	
+!if $val31==3 
+$()	On a deux droites non verticales de pentes 
+!if $val26==1 
+$()égales 
+!else
+$() différentes 
+!endif
+$() 
+!insmath m_1=$val29
+$()  et 
+!insmath m_2=$val30
+$(). 
+!endif
+$()	
+!if $val31==1 
+$()	L'une des droites est verticale et pas l'autre. Elles ne peuvent donc pas être parallèles. 
+!endif
+$()	
+!if $val31==2 
+$()Les deux droites sont verticales, donc nécessairement parallèles. 
+!endif
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,12,13,14,15,16,18,19,26,29,30,31
+embedcnt=8

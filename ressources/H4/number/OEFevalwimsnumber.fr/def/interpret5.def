@@ -1,0 +1,143 @@
+!set title=Interpréter un résultat 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Jean-Pierre, Boudine
+email=regine@mangeard.fr
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 31, 39
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 21, 29
+
+val7=$[rint($(tmp0))]
+
+!ifval 3*$val7-2*$val6=0
+val6=$[rint($val6+1)]
+!endif
+val8=$[rint(3*$val7-2*$val6)]
+val9=$[rint(-4*$val7+3*$val6)]
+val10=!rawmath $val9-$val8*sqrt(2)
+val11=$[($val6-$val7*sqrt(2))/(3-2*sqrt(2))-$val9+$val8*sqrt(2)]
+
+!ifval $val9>0
+val12=-
+!else
+val12=+
+!endif
+
+!ifval $val8>0
+val13=+
+!else
+val13=-
+!endif
+
+!ifval $val9<0
+val9=$[rint(-$val9)]
+!endif
+
+!ifval $val8<0
+val8=$[rint(-$val8)]
+!endif
+val14=$[$val11]
+val15=!rawmath $val10
+val16=$[0]
+replytype1=formal
+replyname1=expression simplifiée
+replygood1=$val15
+replytype2=numeric
+replyname2=Valeur exacte
+replygood2=$[$val16]
+replytype3=radio
+replyname3=Confiance
+replygood3=2;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Lorsqu'on évalue 
+!insmath A
+$()=
+!insmath \frac{$val6-$val7\sqrt{2}}{3-2\sqrt{2}}$val12$val9 $val13 $val8\sqrt{2}
+$() à la calculatrice,<br />	  on obtient 
+!insmath A
+$()=$val14.	<p>	  Que faut-il en penser?	</p>	<ol>	<li> Simplifier 
+!insmath \frac{$val6-$val7\sqrt{2}}{3-2\sqrt{2}}
+$()= 
+!read oef/embed.phtml reply1,10 
+$()<br />	<i> Taper "sqrt(2)" pour 
+!insmath \sqrt{2}
+$()</i></li>	<li> En déduire la valeur exacte de 
+!insmath A
+$():	
+!insmath A
+$()= 
+!read oef/embed.phtml reply2,10 
+$()</li>	<li> Pouvait-on faire confiance au résultat affiché par la calculatrice?  
+!read oef/embed.phtml reply3 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,12,13,14
+embedcnt=3

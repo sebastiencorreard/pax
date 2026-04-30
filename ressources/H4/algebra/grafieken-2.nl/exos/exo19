@@ -1,0 +1,70 @@
+# inverse machtsfuncties
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=1
+arglist=y,x
+mathviewpanel=$module_title:y=:x:+:-:*:/
+etext=<textarea cols=\'20\' rows=\'2\' class=\'schaersvoorde_textarea\' readonly=\'readonly\'>x = 1/2*y + 123</textarea>
+ss=!record 95 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+question$n=<a onmouseover="return escape('$etext')">$ss</a>
+!if $R=1
+    var1=0
+    #pari checkt
+    a=!randitem 2,3,4,5,6,7,8
+    b=!randitem 1,2,3,4,5,6,7,8,9,10
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    range=[-10:10] [-10:10]
+    formula$n=y \, =  \, \frac{1}{$a} \cdot x $pm $b
+    applettext=!nospace y= 1/($a) cdot x $pm $b ->
+    answer$n=$a*y $mp $[$b*$a]
+    plot_ans=$a*x $mp $[$b*$a]
+    var1=0
+    texanswer$n= y=\frac{1}{$a} \cdot x $pm $b \rightarrow \left[ \begin{array}{l}  \frac{1}{$a} \cdot x= y $mp $b \\ x=$a\cdot y $mp $[$b*$a]  \end{array} \right.
+    var2=(1/$a)*x $pm ($b)
+    !goto KLAAR
+!endif
+!if $R>1
+    var1=1
+    # maxima moet check overnemen van pari
+    a=!randitem 3,5,7,9
+    b=!randitem 1,2,3,4,5,6,7,8,9,10
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    range=[$[$b-5]:$[$b+5]] [-50:50]
+    formula$n=y \, =  \, \left( x $pm $b \right)^{$a}
+    applettext=!nospace y=(x $pm $b)^$a ->
+    answer$n=y^(1/$a) $mp $b
+    plot_ans=x^(1/$a) $mp $b
+    var1=1
+    #maxima moet check overnemen van pari
+    texanswer$n= y =\left( x $pm $b \right)^{$a} \rightarrow \left[ \begin{array}{l}  y^{1/$a} = x $pm $b \\ x=y^{1/$a} $mp $b \\ x=\root $a \of y $mp $b \end{array}
+    var2=(x $pm $b)^$a
+!endif
+
+:KLAAR
+!if $teaching=1
+    image=0
+    insplot_set=size 0.6,0.6 ;grid;noautoscale;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    !insplot $range $var2 notitle
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+
+!endif

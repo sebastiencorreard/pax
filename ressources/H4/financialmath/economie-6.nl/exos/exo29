@@ -1,0 +1,60 @@
+#Re&euml;el rendement
+n=$counter
+cols=6
+mathview=0
+make_tr=1
+rounding=100
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/precheck2.proc
+description=Re&euml;el rendement
+inputs=1.1
+jaren=!randint 3,5
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+jaar=!item $jaren of $telwoorden
+head1=<tr><th>&nbsp;</th>
+head2=<tr><th>Nominaal rendement</th>
+head3=<tr><th>Inflatie</th>
+sum_rendement=1
+sum_inflatie=1
+show_sum_rendement=$empty
+show_sum_inflatie=$empty
+!for p=1 to $jaren
+    head1=!append word <th>Jaar $p</th> to $head1
+    nom$p=!randint 10,200
+    k=!randint 0,1
+    nom$p=$[0.1*$(nom$p)]
+    !if $k=0
+	getal=$(nom$p)
+    !else
+	getal=&nbsp;&minus;$(nom$p)
+	nom$p=$[-1*$(nom$p)]
+    !endif
+    head2=!append word <td>$getal %</td> to $head2
+    inf$p=!randint 10,40
+    inf$p=$[0.1*$(inf$p)]
+    head3=!append word <td>$(inf$p) %</td> to $head3
+    rendement$p=$[($(nom$p) + 100)/100]
+    inflatie$p=$[($(inf$p) + 100)/100]
+    sum_rendement=$[$sum_rendement*$(rendement$p)]
+    show_sum_rendement=!append item $(rendement$p) to $show_sum_rendement
+    sum_inflatie=$[$sum_inflatie*$(inflatie$p)]
+    show_sum_inflatie=!append item $(inflatie$p) to $show_sum_inflatie
+!next p
+show_sum_rendement=!replace internal , by &nbsp;&times; in $show_sum_rendement
+show_sum_inflatie=!replace internal , by &nbsp;&times; in $show_sum_inflatie
+answer$n=!exec moneyprint $[100*$sum_rendement/$sum_inflatie - 100] 
+head1=!append word </tr> to $head1
+head2=!append word </tr> to $head2
+head3=!append word </tr> to $head3
+tabel=<table class=\'grid_table\'>$head1 $head2 $head3</table>
+tmp=$[$sum_rendement / $sum_inflatie]
+ss=Stel een pensioenfonds maakt een <span style="color:blue">overzicht</span> van de volgende nominale <br />rendementen en de ontwikkelingen van de inflatie in de afgelopen $jaar jaar.<br /><br />Bereken met hoeveel procent de re&euml;ele waarde van het pensioenfonds is veranderd in de afgelopen $jaar jaar.<br />Afronden op twee decimalen
+ex1=&nbsp;%
+m_rightarrow=&nbsp;=&nbsp;
+rr=<ul><li>Nominaal rendement : $show_sum_rendement = $sum_rendement</li><li>Inflatie : $show_sum_inflatie = $sum_inflatie</li><li>$sum_rendement / $sum_inflatie = $tmp </li><li>Dus de re&euml;le verandering is : <br /> 100 &times; $tmp &minus; 100 = $(answer$n) %</li></ul>
+question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+textanswer$n=$rr
+helptext=$empty
+var1=0.01
+# afronding per invulveld in new_number.proc
+var2=100

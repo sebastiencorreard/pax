@@ -1,0 +1,61 @@
+option:symbols=" "
+
+!if vector_left isin $(replyoption$i) or vector_right isin $(replyoption$i)
+  !set vector_left_=!getopt vector_left_ in $(replyoption$i)
+  !set vector_right_=!getopt vector_right_ in $(replyoption$i)
+!endif
+
+!default vector_left_=(
+!default vector_right_=)
+dd=!declosing $(reply$i)
+reply$i=$vector_left_ $dd $vector_right_
+!if ; isin $dd
+ test=NaN
+  !exit
+!endif
+m_reply$i=$dd
+!if $wims_read_parm=nocompare
+  !exit
+!endif
+
+good=!declosing $(replygood$i)
+!if , notin $good
+  good=!words2items $good
+!endif
+!if , notin $dd
+  dd=!words2items $dd
+!endif
+replyGood$i=$vector_left_$good$vector_right_
+n1=!itemcnt $good
+n2=!itemcnt $dd
+
+test=
+!if $n1=$n2
+  test=yes
+  !for j=1 to $n1
+    x_=!item $j of $good
+    y_=!item $j of $dd
+    !distribute item $[$x_],$[$y_] into x_,y_
+    !if NaN isin $x_ or Inf isin $x_
+      Test=bad $i
+      !exit
+    !endif
+    !if NaN isin $y_ or Inf isin $y_
+      test=NaN
+      !exit
+    !endif
+    !ifval $x_!=$y_
+      test=
+    !endif
+  !next j
+!else
+  badsize$i=true
+!endif
+
+!if $test=yes
+  test=
+  diareply$i=good
+  !advance freegot
+!else
+  diareply$i=bad
+!endif

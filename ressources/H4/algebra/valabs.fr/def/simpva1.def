@@ -1,0 +1,146 @@
+!set title=Simplification de valeur absolue 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David Doyen
+email=david.doyen@u-pem.fr
+language=fr
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+tmp=!translate ";': to $     $ in -$val8/$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+tmp0=!texmath $val9
+
+val10=$(tmp0)
+tmp=!nonempty items $val7*x+$val8,$val8+$val7*x
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+t_=!replace internal \( by ( in $val11
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+tmp0=!texmath $val11
+
+val12=$(tmp0)
+val13=abs($val11)
+tmp0=!randint 1, 2
+
+val14=$(tmp0)
+!if $val14=1 
+val15=\({x \geq $val10}\)
+t_=!rawmath $val9+1
+val16=!exec pari print($t_)
+!else
+val15=\({x \leq $val10}\)
+t_=!rawmath $val9-1
+val16=!exec pari print($t_)
+!endif
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val16) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val17=!exec pari print($t_)
+!if $val17>0 
+val18=$val11
+val19=\($val12 \geq 0\)
+val20=\($val13= $val18\)
+!else
+t_=!replace internal \( by ( in -($val11)
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+val19=\($val12 \leq 0\)
+val20=\($val13= -($val11)= $val18\)
+!endif
+replytype1=formal
+replyname1=
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst Si $val15, alors $val19.<br> D'où, $val20.
+
+
+!goto stat
+
+!exit
+
+:question
+$()On suppose $val15. Simplifier l'expression 
+!insmath $val13
+$() en une expression ne faisant pas intervenir de valeur absolue.<br class="spacer">	
+!insmath $val13
+$() 
+!insmath =
+$()  
+!read oef/embed.phtml reply1,4 
+$()	
+$()
+!exit
+
+:hint
+$()Etudier le signe de 
+!insmath $val12
+$() quand $val15.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Si $val15, alors $val19.<br> D'où, $val20.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,15,19,20
+embedcnt=1

@@ -1,0 +1,353 @@
+# modificatie 12/2011
+# scoring systeem aangepast : maxscore alleen gebruiken bij goback=1 en niet direct voor $score toepassen
+# teaching=1 beter ingezet
+# type remark$n ($OK,$BOK,$NOK) wordt nu (tegenwoordig) aan't eind bepaald door maxscore
+# javascript neemt over : check op "O" ipv "0" &  "," ipv "." &  lege antwoorden & 5e+03 notatie -> 5*10^3 etc
+
+# LET OP: checkfile verwacht bij var1=0 een getal 
+# of een getal met eenheid uit ml,mil,milliliter,millilitre !
+# de vraag moet dan ook in ml,mil,milliliter,millilitre worden gesteld !
+ 
+goback=0
+errortext=$empty
+#var1=0 : antwoord is een getal, geen kans  ; eenheid (ml/l/cm^3 etc ) wordt -indien vermeld- serieus genomen
+
+n=$counter
+
+!if ? isin $(reply$n) 
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+AAA=!lower $(reply$n)
+extra=$empty
+    
+AAA=!nospace $AAA
+
+!if $var1=0
+    factor=1
+    ex=$empty
+    # var1=0 dus gewoon getal met de eenheid uit $var3
+    # var1=1 antwoord is  kans
+    !if NaN isin $[1*($AAA)]
+	# waarschijnlijk eenheid vermeld?
+	!for p in ml,mil,milliliter,millilitre
+	    !if $p isin $AAA
+		AAA=!replace internal $p by $empty in $AAA
+		factor=1
+		!goto PRIMA
+	    !endif
+	!next p
+	!for p in liter,litre,dm^3,dm**3,lt,l
+	    !if $p isin $AAA
+		AAA=!replace internal $p by $empty in $AAA
+		factor=1000
+		ex=!record 51 of lang/remarks.$taal
+		#@ <br />Ik zie dat je het antwoord in liters hebt opgeschreven...<br /> 
+		extra=!append line <br />$ex to $extra
+		unit_r=dm<sup>3</sup>
+		!goto PRIMA
+	    !endif
+	!next p
+	!for p in cm^3,cm**3
+	    !if $p isin $AAA
+		AAA=!replace internal $p by $empty in $AAA
+		factor=1
+		ex=!record 52 of lang/remarks.$taal
+		#@ <br />Maakt mij niet uit dat je het antwoord in cm^3 hebt opgeschreven...<br /> 
+		extra=!append line <br />$ex to $extra
+		!goto PRIMA
+	    !endif
+	!next p
+	!for p in mm^3,mm**3
+	    !if $p isin $AAA
+		AAA=!replace internal $p by $empty in $AAA
+		factor=10^-3
+		unit_r=mm<sup>3</sup>
+		ex=!record 53 of lang/remarks.$taal
+		#@ <br />en ik dacht dat ik een antwoord in ml (cm<sup>3</sup>) had gevraagd??<br /> 
+		extra=!append line <br />$ex to $extra
+		!goto PRIMA
+	    !endif
+	!next p
+	!for p in m^3,m**3,cuub,kuub,cubicmetre
+	    !if $p isin $AAA
+	        AAA=!replace internal $p by $empty in $AAA
+		factor=10^6
+		unit_r=m<sup>3</sup>
+		ex=!record 54 of lang/remarks.$taal
+		#@ Sjonge jonge jonge...ben jij wel lekker: in cuubs ??<br /> 
+		extra=!append line <br />$ex to $extra
+		!goto PRIMA		
+	    !endif
+	!next p
+	:PRIMA
+    !endif
+
+    # hmm laat nog even staan ivm eventuele onvoorzien moeilijkheden 12/2011
+    AAA=!replace internal e- by *10^- in $AAA
+    AAA=!replace internal e+ by *10^ in $AAA
+    !for p in sin,cos,tan,ln,log,sqrt,pi,e^,^e,erf
+	test=!toupper $p
+	AAA=!replace internal $p by $test in $AAA
+    !next p
+    AAA=!replace [a-z\~\`\@\#\$\%\&\+\=\_\;\:\"\?\'] by $empty in $AAA
+    test=!wordcnt $AAA
+    !if $test=0
+	testvar=$(reply$n)
+	maxscore=$[$maxscore*$P7]
+	errortext=!record 36 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit    
+    !endif	
+    AAA=!tolower $AAA
+    AAA=!rawmath $AAA
+    !if NaN isin $[1*($AAA)]
+	maxscore=$[$maxscore*$P7]
+	errortext=!record 26 of $remarksdir/commonremarks.$taal
+	goback=1
+	!exit    
+    !endif
+    #12/2011: $org gebruiken we om te signaleren of een leerling goede antwoord verkeerde eenheid heeft ingetiept ....
+    org=$AAA
+    AAA=$[$factor*($AAA)]
+!endif
+
+#12/2011
+
+!if $rounding<1
+    rnd=1000
+!else
+    rnd=$rounding
+!endif
+
+score=0
+
+!if $var1=1
+    !if % isin $AAA
+	maxscore=$[$P9*$maxscore]
+        ex=!record 1 of lang/remarks.$taal
+	#@ Een kans is een getal tussen 0 en 1 en geen percentage,$voornaam\
+        #@ <br /><small>alhoewel we het daar in het dagelijks leven niet zo nauw mee nemen.</small>
+	errortext=$ex
+        percent=1
+    !else
+	percent=0
+    !endif
+    # antwoord is  kans
+    AAA=!replace [a-z\~\`\@\#\$\%\&\+\=\_\;\:\"\?\'] by $empty in $AAA
+    test=!wordcnt $AAA
+    !if $test=0
+	testvar=$(reply$n)
+	maxscore=$[$maxscore*$P7]
+	errortext=!record 36 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit    
+    !endif	
+    AAA=!tolower $AAA
+    AAA=!rawmath $AAA
+    !if NaN isin $[1*($AAA)]
+	maxscore=$[$maxscore*$P7]
+	errortext=!record 26 of $remarksdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    ex=$empty
+    # $var1=1 antwoord is  kans
+    !if $teaching=1 and $percent=0
+	# geen % in reply
+	error=0
+	!if $AAA > 1 and $AAA < 2
+	    ex=!record 2 of lang/remarks.$taal
+	    #@ Een kans die groter is dan &eacute;&eacte;n is wel een beetje vreemd.<br />\
+	    #@De kans is per definitie 0 &lt; P &lt; 1<br />Reken je zaakjes nog eens even na, $voornaam
+	    error=1
+	!else
+	    !if $AAA <0 and $AAA >-1
+		ex=!record 3 of lang/remarks.$taal
+		#@ Een kans die groter is dan &eacute;&eacte;n is wel een beetje vreemd.<br />\
+		#@De kans is per definitie 0 &lt; P &lt; 1<br />Reken je zaakjes nog eens even na, $voornaam
+	        error=1
+	    !else
+		!if $AAA >= 2
+		    ex=!record 4 of lang/remarks.$taal
+		    #@ Een kans is geen percentage (je hebt dan ook geen %-teken ingevuld...).<br />\
+		    #@ De kans is per definitie 0 &lt; P &lt; 1<br />Reken je zaakjes nog eens even na, $voornaam
+		    error=1
+		!else
+		    !if $AAA <= -1
+			ex=!record 5 of lang/remarks.$taal
+		        #@ Een kans is geen percentage (je hebt dan ook geen %-teken ingevuld...).<br />\
+		    	#@ De kans is per definitie 0 &lt; P &lt; 1<br />Reken je zaakjes nog eens even na, $voornaam
+			error=1
+		    !endif
+		!endif
+	    !endif
+	!endif
+	!if $error=1
+	    # wegwezen	
+	    maxscore=$[$P5*$maxscore]
+	    errortext=$ex
+	    goback=1
+	 !exit
+	!endif
+    !endif
+    !if / isin $AAA
+	!if . isin $AAA
+	    breuk=0
+	!else
+	    breuk=1
+	!endif
+    !else
+	breuk=0
+	!if $teaching=1
+	    !if . isin $AAA
+		test=!replace internal . by , in $AAA
+	        t=!item 2 of $test
+		factor1=!charcnt $t
+	        !if $factor1 > $[log($rnd)/log(10)]
+		    ex=!record 6 of lang/remarks.$taal
+		    extra=!append line <br />$ex to $extra
+		!endif
+	    !endif
+	!endif
+    !endif
+    # var=1 kansantwoord
+    !if $[1*($AAA)]=$[100*($(answer$n))] and $percent=1
+	score=1
+	# opmerking $ex is al opgenomen in $extra
+    !else
+	!if $[1*($AAA)]=$[100*($(answer$n))]
+	    # geen percent teken : wel antwoord als percentage
+	    ex=!record 8 of lang/remarks.$taal
+	    #@ <br /><small>Je hebt -waarschijnlijk-  een percentage opgeschreven i.p.v. een Kans<br />\
+	    #@ De kans is namenlijk per definitie 0 &lt; P &lt; 1<br />\
+	    #@ Bij een examen krijg je hiervoor absoluut strafpunten.<br />\
+	    #@ (en zeker als je dan ook nog het %-teken vergeet...)</small>
+	    score=$P7
+	    extra=!append line $ex to $extra	
+	!else
+	    # kans <=1
+	    A1=$[(round($rnd*($AAA)))/$rnd]
+	    G1=$[(round($rnd*($(answer$n))))/$rnd]
+	    !if $A1=$G1
+		score=1
+		!if $breuk=1
+		    ex=!record 9 of lang/remarks.$taal
+		    #@ <br />prima, je hebt de kans als breuk uitgerekend !!<br />
+		    extra=!append line $ex to $extra	
+		!endif    
+    	    !else
+		!if $teaching=1
+		    !for p in 10,100,1000,0.1,0.01,0.001
+			!if $score=0
+			    !if $[$p*$AAA]=$(answer$n)
+				score=$P5
+				ex=!record 10 of lang/remarks.$taal
+			        #@Je hebt een paar rekenfoutjes gemaakt, en zit er een ordegrootte naast...
+				extra=!append line $ <br />$ex<br />$p &times; <span style="color:red">$AAA</span> = <span style="color:green">$GGG</span> $ to $extra
+			    !endif
+			!endif
+		    !next p
+		    !if $score=0
+			rnd=$[$rnd/10]
+			A1=$[(round($rnd*($AAA)))/$rnd]
+			G1=$[(round($rnd*($(answer$n))))/$rnd]
+			!if $A1=$G1
+			    score=$P4
+			    ex=!record 29 of $remarkdir/commonremarks.$taal
+			    extra=!append line <br />$ex to $extra
+			!else
+			    score=0
+			!endif
+		    !endif
+		!else
+		    score=0
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if $var1=0
+    # aantallen en geen kans
+    !if $teaching=1
+	!if . isin $AAA
+	    test=!replace internal . by , in $AAA
+	    t=!item 2 of $test
+	    factor1=!charcnt $t
+	    !if $factor1 > $[log($rounding)/log(10)]
+		ex=!record 6 of lang/remarks.$taal
+	        extra=!append line <br />$ex to $extra
+	    !endif
+	!endif
+    !endif
+    !if $[1*($AAA)]=$[1*($(answer$n))]
+	score=1
+    !else
+	AAA=$[(round($rnd*($AAA)))/$rnd]
+	GGG=$[(round($rnd*($(answer$n))))/$rnd]
+	!if $AAA=$GGG
+	    score=1
+	!else
+	    !if $teaching=1
+		!if $org=$GGG
+		    # 12/2011 goede antwoord; verkeerde eenheid
+		    unit_a=ml
+		    ex=!record 92 of $remarkdir/commonremarks.$taal
+		    #@<br />je hebt een verkeerde eenheid gebruikt !<br /><em>$unit_r</em> ipv <span style="color:green"><em>$unit_a</em></span>
+		    score=$P8
+		    extra=!append line $ex to $extra	
+		!else
+		    score=0
+		    !for p in 10,100,1000,10000,0.1,0.01,0.001,0.0001
+			!if $score=0
+			    !if $[$p*$AAA]=$GGG
+				score=$P5
+				ex=!record 10 of lang/remarks.$taal
+			        #@Je hebt een paar rekenfoutjes gemaakt, en zit er een ordegrootte naast...
+				extra=!append word $ <br />$ex<br />$p &times; <span style="color:red">$AAA</span> = <span style="color:green">$GGG</span> $ to $extra
+			    !endif
+			!endif
+		    !next p
+		!endif
+	    !else
+		score=0
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if $score >0.8
+    k=green
+!else
+    !if $score>0.4
+	k=orange
+    !else
+	k=red
+    !endif
+!endif
+
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=!append line $ <br />$extra $ to $(remark$n)
+!endif
+reply$n=!append line <ul><li><span style="color:$k">$AAA</span></li></ul> to $(reply$n)
+
+!exit
+

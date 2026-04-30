@@ -1,0 +1,150 @@
+# DHTML sleep sommetjes
+n=$counter
+checkfile=exos/checkfile2.proc
+javascript=js/exo6.js
+mathview=0
+questiontype=7
+image=0
+cols=30
+make_tr=1
+rows=1
+math=0
+inputs=yes
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif 
+!if $rounding=-1
+    rounding=0
+    !read $remarkdir/rounding.$taal
+!endif
+keuze=!randitem 1,2
+plus=<img src="$module_dir/gifs/plus.gif" name="img1" id="img1" style="width:58px;height:58px" alt="+" />
+min=<img src="$module_dir/gifs/min.gif" name="img2" id="img2" style="width:58px;height:58px" alt="&minus;" />
+asymp=<img src="$module_dir/gifs/asymp.gif" style="width:58px;height:58px" alt="|" />
+nul=<img src="$module_dir/gifs/nul.gif" style="width:58px;height:58px" alt="0" />
+
+!if $R=1
+    a=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    b=!randint 1,40
+    c=!randint 2,40
+    d=!randitem -1,1
+    c=$[$d*$c]
+    plotfunction=$a/($c*x-$b)
+    formula$n=f(x)\,\,=\,\,\frac{$a}{$c x - $b}
+    tot=!exec pari $b/($c)\
+    printtex($b/($c))
+    tex_as1=!line 2 of $tot
+    as1=!line 1 of $tot
+    !if $[$a*$d]>0
+	answer$n=$as1,-,x,+
+	textanswer$n=<table nowrap="nowrap" bgcolor=cornsilk><tr><td>x</td><td></td><td>x=$as1</td><td></td></tr><tr><td>f(x)</td><td>$min</td><td>$asymp</td><td>$plus</td></tr></table>
+    !else
+	answer$n=$as1,+,x,-
+	textanswer$n=<table nowrap="nowrap" bgcolor=cornsilk><tr><td>x</td><td></td><td>$as1</td><td></td></tr><tr><td>f(x)</td><td>$plus</td><td>$asymp</td><td>$min</td></tr></table>
+    !endif
+    texanswer$n= x_{asymp}\,\,=\,\,$tex_as1
+    !goto KLAAR
+!endif
+!if $R=2
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##vertikaale asymptoot:x=b of x=c of x=0
+    a=!randitem -15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    c=!randitem 2,3,4,5,6,7,8
+    b=!randitem 2,3,4,5
+    keuze=!randitem 1,0
+    !if $keuze=1
+	plotfunction=$a/($c*x + $b)
+	formula$n=f(x)\,\,=\,\,\frac{$a}{ $c \cdot x + $b}
+	tot=!exec pari -1*$b/($c)\
+	printtex(-1*$b/($c))
+	
+	as1=!line 1 of $tot
+	tex_as1=!line 2 of $tot
+    !else
+	plotfunction=$a/($c*x - $b)
+	formula$n=f(x)\,\,=\,\,\frac{$a}{ $c \cdot x - $b}
+	tot=!exec pari A=$b/$c\
+	printtex(A)
+	as1=!line 1 of $tot
+	tex_as1=!line 2 of $tot
+    !endif
+    !if $a>0
+	answer$n=$as1,-,x,+
+	textanswer$n=<table nowrap="nowrap" bgcolor=cornsilk><td>x</td><td></td><td>x=$as1</td><td></td><tr><td>f(x)</td><td>$min</td><td>$asymp</td><td>$plus</td></table>
+    !else
+	answer$n=$as1,+,x,-
+	textanswer$n=<table nowrap="nowrap" bgcolor=cornsilk><td>x</td><td></td><td>x=$as1</td><td></td><tr><td>f(x)</td><td>$plus</td><td>$asymp</td><td>$min</td></table>
+    !endif
+    texanswer$n= x_{asymp}\,\,=\,\,$tex_as1
+    !goto KLAAR
+!endif
+!if $R>2
+    keuze=!randitem 1,2
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##vertikaale asymptoot:x=b of x=c of x=0
+    a=!randitem -15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    b=!randitem 1,4,9,16,25,36,49,64
+    !if $keuze=1
+	plotfunction=$a/(-x^2 + $b)
+	formula$n=f(x)\,\,=\,\,\frac{$a}{-x^{2} + $b}
+	as1=$[-1*sqrt($b)]
+	as2=$[sqrt($b)]
+	!if $a<0
+	    answer$n=$as1,$as2,+,x,-,x,+
+	    textanswer$n=<table><tr><td>x</td><td></td><td>x1=$as1</td><td></td><td>x2=$as2</td><td></td></tr><tr><td>f(x)</td><td>$plus</td><td>$asymp</td><td>$min</td><td>$asymp</td><td>$plus</td></tr></table>
+	!else
+	    answer$n=$as1,$as2,-,x,+,x,-
+	    textanswer$n=<table><tr><td>x</td><td></td><td>x1=$as1</td><td></td><td>x2=$as2</td><td></td></tr><tr><td>f(x)</td><td>$min</td><td>$asymp</td><td>$plus</td><td>$asymp</td><td>$min</td></tr></table>
+	!endif
+    !else
+    	c=!randitem 1,2,3,4,5,6
+    	d=!randitem 1,2,3,4,5,6
+	f=!exec pari printtex($a/((x - $c)*(x+$d)))
+	formula$n=f(x)\,\,=\,\,$f
+    	as2=$c
+	as1=$[-1*$d]
+	!if $a<0
+	    answer$n=$as1,$as2,-,x,+,x,-
+	    textanswer$n=<table><tr><td>x</td><td></td><td>x1=$as1</td><td></td><td>x2=$as2</td><td></td></tr><tr><td>f(x)</td><td>$min</td><td>$asymp</td><td>$plus</td><td>$asymp</td><td>$min</td></tr></table>
+	!else
+	    answer$n=$as1,$as2,+,x,-,x,+
+	    textanswer$n=<table><tr><td>x</td><td></td><td>x1=$as1</td><td></td><td>x2=$as2</td><td></td></tr><tr><td>f(x)</td><td>$plus</td><td>$asymp</td><td>$min</td><td>$asymp</td><td>$plus</td></tr></table>
+	!endif
+    !endif
+    texanswer$n= x_{asymp1}\,\,=\,\,$as1 \wedge  x_{asymp2}\,\,=\,\,$as2
+!endif
+
+:KLAAR
+
+ss=!record 25 of lang/remarks.$taal
+#@Bepaal het tekenverloop en de vertikale asymptoten <br />van de onderstaande functie <em>f</em><br /><em><small>sleep de plus-, min- en asymptoot-symbolen naar de goede plek</small></em><p>
+sometext=!record 26 of lang/remarks.$taal
+#@<span style="color:blue"><b>Hoe</b></span> vul ik een antwoord in?
+helptext=<img src=\'$module_dir/gifs/help.exo6.jpg\' alt=\'noalt\' />
+question$n=$ss <a onmouseover="return escape('$helptext')"><small>$sometext</small></a>
+
+DHTML=$empty
+invul=$empty
+exotext=$empty
+nulpunten=5
+options=10
+DHTML=!append item "img1" + COPY + $options  to $DHTML
+DHTML=!append item "img2" + COPY + $options  to $DHTML
+i=0
+!for p=1 to $nulpunten
+    m=$[$p+1]
+    invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:128px;border:1px solid #ff0000"><table><tr><th><input type="text" id="myinput$i" size="4" value="$(reply$n)" /></th></tr><tr><td><br />$asymp</td></tr> </table></div></td> to $invul
+    DHTML=!append item "div$m" to $DHTML
+    !increase i
+!next p
+options=$[$nulpunten+2]
+DHTML=!append item "div0" + NO_DRAG  to $DHTML
+DHTML=!append item "div1" + NO_DRAG  to $DHTML
+
+dhtml=<script type="text/javascript">SET_DHTML( CURSOR_MOVE , $DHTML);</script>
+
+exotext=<table style="background-color:lightblue"><tr><th><em>x</em></th><th><table><tr><td><img src="$module_dir/gifs/min_oneindig.gif" alt="-inf" /></td><td><div id="div1" name="div1" style="position:relative;height:60px;width:400px;background-color:lightblue">&nbsp;</div></td><td><img src="$module_dir/gifs/plus_oneindig.gif" alt="+inf" /></td></tr></table></th></tr><tr><th>f(<em>x</em>)</th><th><table><tr><td>&nbsp;</td><td><div id="div0" name="div0" style="position:relative;height:60px;width:400px;background-color:lightblue">&nbsp;</div></td><td>&nbsp;</td></tr></table></th></tr></table><table><tr><th><table><tr><th>$plus</th><tr><th>$min</th></tr></table><th><table><tr>$invul</tr></table></th></tr></table>
+
+

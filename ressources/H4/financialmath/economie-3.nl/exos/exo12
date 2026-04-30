@@ -1,0 +1,135 @@
+# Sparen
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+lnd=Amerikaanse,&#36;,dollars,0.65\
+Bahreinse,Bahreinse dinar,dinars,1.80\
+Engelse,&#163;,ponden,1.10\
+Deense,Deense kroon,kronen,0.15\
+Isra&euml;lische,Shekel,shekels,0.20\
+Zwitserse,Zwitserse frank,franken,0.70\
+Zuid Afrikaanse,Zuid-afrikaanse Rand,Randen,0.10\
+Canadese,Canadese dollar,dollars,0.65\
+Nieuw Zeelandse,NZ dollar,dollars,0.50\
+Koeweitse,Koeweitse Dinar,dinars,2.40\
+India,Indiaase rupee,rupees,1.60
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+k=!randint 1,11
+landen=!line $k of $lnd
+land=!item 1 of $landen
+munt=!item 2 of $landen
+munten=!item 3 of $landen
+koers=!item 4 of $landen
+wissel=$[round(100*1/$koers)/100]
+plaatje=<img src=$module_dir/gifs/land$k.jpg alt=noalt />
+m=!randint 3,6
+begin=!randint 1960,2000
+eind=$[$begin+$m]
+stijgen=!randint 0,1
+head=<th>&nbsp;</th>
+lijn1=<th>&euro; in <em>$munt</em></th>
+lijn2=<th><em>$munt</em> in &euro;</th>
+antwoord2=<th><em>$munt</em> in &euro;</th>
+antwoord1=<th>&euro; in <em>$munt</em></th>
+
+!if $R=1
+    !for p=0 to $m
+	perc=!randint 2,10
+	!if $stijgen=0
+	    wissel=!exec moneyprint $[$wissel*(100-$perc)/100]
+	!else
+	    wissel=!exec moneyprint $[$wissel*(100+$perc)/100]
+	!endif
+	jr=$[$begin+$p]
+	ans=$[1/$wissel]
+	answer$n=!append item $ans to $(answer$n)
+	showans=!exec moneyprint $ans
+	head=!append word <th>$jr</th> to $head
+	lijn1=!append word <th>$wissel</th> to $lijn1
+	lijn2=!append word <th><input id="myinput$p" size="3" class="schaersvoorde_input" value=""/></th> to $lijn2
+	antwoord2=!append word <th><input id="myinput$p" size="3" value="$showans" class="schaersvoorde_input" readonly="readonly"/></th> to $antwoord2
+	var2=!append item $jr : to $var2
+    !next p
+    antwoord1=$lijn1
+!else
+    !for p=0 to $m
+	keuze=!randint 0,1
+	!if $keuze=0
+	    perc=!randint 2,10
+	    !if $stijgen=0
+		wissel=!exec moneyprint $[$wissel*(100-$perc)/100]
+	    !else
+		wissel=!exec moneyprint $[$wissel*(100+$perc)/100]
+	    !endif
+	    jr=$[$begin+$p]
+	    ans=$[1/$wissel]
+	    answer$n=!append item $ans to $(answer$n)
+	    showans=!exec moneyprint $ans
+	    head=!append word <th>$jr</th> to $head
+	    lijn1=!append word <th>$wissel</th> to $lijn1
+	    lijn2=!append word <th><input id="myinput$p" size="3" class="schaersvoorde_input" value=""/></th> to $lijn2
+	    antwoord1=!append word <th>$wissel</th> to $antwoord1
+	    antwoord2=!append word <th><input id="myinput$p" size="3" value="$showans" class="schaersvoorde_input" readonly="readonly"/></th> to $antwoord2
+	    var2=!append item $jr : to $var2
+	!else
+	    perc=!randint 2,10
+	    !if $stijgen=0
+		wissel=!exec moneyprint $[$wissel*(100-$perc)/100]
+	    !else
+		wissel=!exec moneyprint $[$wissel*(100+$perc)/100]
+	    !endif
+	    jr=$[$begin+$p]
+	    ans=$[1/$wissel]
+	    ans=!exec moneyprint $ans
+	    showans=!exec moneyprint $[1/$ans]
+	    answer$n=!append item $[1/$ans] to $(answer$n)
+	    head=!append word <th>$jr</th> to $head
+	    lijn1=!append word <th><input id="myinput$p" size="3" class="schaersvoorde_input" value=""/></th> to $lijn1
+	    lijn2=!append word <th>$ans</th> to $lijn2
+	    antwoord1=!append word <th><input id="myinput$p" size="3" value="$showans" class="schaersvoorde_input" readonly="readonly"/></th> to $antwoord1
+	    antwoord2=!append word <th>$ans</th> to $antwoord2
+	    var2=!append item $jr : to $var2
+	!endif
+    !next p
+!endif
+
+var2=!append item keuze,keuze to $var2
+!if $stijgen=0
+    answer$n=!append item 3 to $(answer$n)
+    answer$n=!append item 4 to $(answer$n)
+    app=appreciatie
+    dep=depreciatie
+!else
+    answer$n=!append item 4 to $(answer$n)
+    answer$n=!append item 3 to $(answer$n)
+    dep=appreciatie
+    app=depreciatie
+!endif
+ss=De concurrentiepositie van een land in het internationale handelsverkeer wordt onder andere <br />be&iuml;nvloed door de ontwikkeling van het prijspeil en de wisselkoers van de valuta van dat land.<hr />In de tabel is aangegeven hoe de wisselkoers van de euro in de $land $munten <br />is <span class="schaersvoorde_link">geweest</span> in de periode $begin tot $eind (jaargemiddelde).<br />Vul nu de tabel in en beantwoord de meerkeuze vragen.<br />
+
+duim=De getallen zijn uiteraard uit de duim gezogen...<br />...voor 1998 was er geen sprake van een euro.<br />... we konden pas genieten van deze munt in 2002
+
+roundingtext=Rond je antwoord af op twee decimalen
+rounding=100
+
+exotext=<table class="zebra_table_h2"><tr>$head</tr><tr>$lijn1</tr><tr>$lijn2</tr></table><br />In de periode $begin t/m $eind was sprake van een <select  size="1" id="myinput$[$m+1]" class="schaersvoorde_input"><option value="4">appreciatie</option><option value="3">depreciatie</option><option value="2">devaluatie</option><option value="1">revaluatie</option></select> van de euro <br />en een <select  size="1" id="myinput$[$m+2]" class="schaersvoorde_input"><option value="4">appreciatie</option><option value="3">depreciatie</option><option value="2">devaluatie</option><option value="1">revaluatie</option></select> van de $munt
+
+helptext=$plaatje <br /> $roundingtext
+
+textanswer$n=<table class="zebra_table_h2"><tr>$head</tr><tr>$antwoord1</tr><tr>$antwoord2</tr></table>\
+<br />In de periode $begin t/m $eind was sprake van een <b>$dep</b> van de euro en een <b>$app</b> van de $munt.
+ 
+question$n=<a onmouseover="return escape('$duim<br /><br />$roundingtext')">$ss</a>
+
+

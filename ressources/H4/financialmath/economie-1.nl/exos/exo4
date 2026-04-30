@@ -1,0 +1,163 @@
+# Break-even III
+# 3 lijnen en maximale winst
+# reply$n is leerling antwoord met $var9 formules en een getal
+# var5=X schaal factor (bijv x1000)                                                                                                        
+# var6=Y schaal factor (bijv x1000)                                                                                                        
+# var7=item lijst namen voor x-variabelen                                                                                                             
+# var8=item lijst namen voor y-variabelen                                                                                                              
+# var9 = aantal RECHTE lijnen
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+mathview=0
+# schema: fabrikant,l,min,max,merk
+#:vliegruigbouwer,1,5,35,Boeing,Bombardier,Cessna,Airbus,British Aerospace,General Dynamics,Dassault,Tupolev,Lockheed
+#:private jets,corporate jets,business jets,private jets [bizjets]
+#:landingsgestel:3:8,interieur:1:6,turbine:10:25,overige kosten:5:10,energiekosten:2:5
+#:botenbouwer,2,30,300,Aiken,Arcona,Atlantic,Avar,Bashford Howison,Beneteau,Bruce Roberts,Catalina,Contest,C-yacht,Dehler,Delphia,Dufour,Elan,Etap,Fantasi,Faurby,Finngulf,Franchi,Frauscher,Friendship,Geuzenvalk,Grand soleil,Haber,Hans Christian,Hanse,Hunter,Jeanneau,Jonmeri,Maestro,Majestic
+#:zeiljacht,plezierjacht,catamarans,trimarans,klassieke zeilboten,motor sailers,motorkruisers,open zeilboten,sportcruisers,zeiljachten
+#:materiaalkosten:15:25,interieur:5:25,energiekosten:4:7,overigekosten:3:10
+var9=3
+var7=q
+sometext=de TO-vergelijking,de TK-vergelijking,de TW-vergelijking,de maximale winst,TO,TK,TW,break-evenafzet,break-evenomzet
+var8=!item 5 to 7 of $sometext
+TO=!item 5 of $sometext
+TK=!item 6 of $sometext
+TW=!item 7 of $sometext
+k=!randitem 41,44
+ding=!record $k of lang/remarks.$taal
+type=!record $[$k+1] of lang/remarks.$taal
+soort=!randitem $type
+rest=!record $[$k+2] of lang/remarks.$taal
+description=$empty
+fabrikant=!item 1 of $ding
+l=!item 2 of $ding
+logo=<img src="$module_dir/gifs/$l.jpg" alt="$fabrikant"/>
+!if $l=1
+    factor=10^6
+    hfactor=10<sup>6</sup>
+    textfactor=miljoen
+    textfactors=miljoenen
+    ontwikkel_kosten=!randint 20,40
+    afschrijving=!randint 100,200
+    arbeid=!randint 150,350
+!else
+    !if $l=2
+	factor=1000
+	hfactor=10<sup>3</sup>
+	textfactor=duizend
+	textfactors=duizenden
+	ontwikkel_kosten=!randint 200,800
+	afschrijving=!randint 100,200
+	arbeid=!randint 400,950
+    !endif
+!endif
+
+prijs_min=!item 3 of $ding
+prijs_max=!item 4 of $ding
+merken=!item 5 to -1 of $ding
+merk=!randitem $merken
+verkoop_prijs=!randint $prijs_min,$prijs_max
+
+t=!itemcnt $rest
+omschrijving=<ul>
+#constante_kosten=$[($ontwikkel_kosten +$afschrijving + $arbeid)]
+# rekenen variabele kosten uit
+constante_kosten=$[($ontwikkel_kosten +$afschrijving + $arbeid)]
+variabele_kosten=0
+var_kosten=$empty
+!for p=1 to $t
+    P=!item $p of $rest
+    P=!replace internal : by , in $P
+    P1=!item 1 of $P
+    Pmin=!item 2 of $P
+    Pmax=!item 3 of $P
+    PP=!randint $Pmin,$Pmax
+    pr=$[ceil($PP/100*$verkoop_prijs)]
+    variabele_kosten=$[$variabele_kosten + $pr]
+    text_var_kosten=!append word +$pr to $text_var_kosten
+    omschrijving=!append word $ <li>$P1 :$pr $textfactor &euro;</li> $ to $omschrijving
+!next p
+text_var_kosten=!char 2 to -1 of $text_var_kosten
+
+omschrijving=!append word $ </ul> $ to $omschrijving
+
+
+#break_even=$[$constante_kosten/($verkoop_prijs - $variabele_kosten)]
+break_even=$[round($constante_kosten/($verkoop_prijs - $variabele_kosten))]
+arbeid=$[$break_even*($verkoop_prijs - $variabele_kosten)-$ontwikkel_kosten-$afschrijving]
+constante_kosten=$[($ontwikkel_kosten +$afschrijving + $arbeid)]
+a=!randint 10,40
+q_max=$[ceil($break_even)+$a]
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $R=1
+    checkfile=exos/checkfile2.proc
+    exotext=$empty
+    embed=0
+    make_tr=1
+    questiontype=0
+    inputs=4
+    cols=20
+    rows=1
+    !for p=1 to 4
+	description=!append item $(sometext[$p]) to $description
+    !next p
+    LL=Stel <em>$(description[1]) ,$(description[2]) en $(description[3])</em> op<br/>en bepaal $(description[4]) .<br />Geef deze antwoorden in $textfactors &euro;'s<br /><small><em>Neem aan dat de markt voor deze $soort zeer ruim is</em></small>
+    
+    tk=$constante_kosten + $variabele_kosten*q
+    to=$[$verkoop_prijs]*q
+    tw=$[$verkoop_prijs - $variabele_kosten]*q - $constante_kosten
+    w=$[($verkoop_prijs - $variabele_kosten)*$q_max - $constante_kosten]
+    answer$n=$to,$tk,$tw,$w
+    
+    textanswer$n=<ul><li>constante kosten = $ontwikkel_kosten + $afschrijving + $arbeid = $[$ontwikkel_kosten + $afschrijving + $arbeid] &euro; </li><li>variabele kosten = $text_var_kosten = $variabele_kosten &euro;</li><li>$TO=$[$verkoop_prijs]&times;q (in $textfactors &euro;'s)</li><li>$TK=$constante_kosten + $variabele_kosten&times;q (in $textfactors &euro;'s)</li><li>$TW=$[$verkoop_prijs - $variabele_kosten]&times;q &minus; $constante_kosten (in $textfactors &euro;'s)</li><li>Winst=$[($verkoop_prijs - $variabele_kosten)*$q_max - $constante_kosten] $textfactor &euro;</li></ul>
+    
+    helptext=Geef je antwoorden als reguliere formules<br />Gebruik de variabele <b>q</b> voor het productie volume en de afkortingen<br /><ul><li><b>$TO</b> voor totale opbrengst</li><li><b>$TK</b> voor totale kosten</li><li><b>$TW</b> voor totale winst</li></ul><img src=$module_dir/gifs/exo4.$R.jpg alt=plaatje/>
+    ex4=&times;10<sup>6</sup>&nbsp;&euro;
+!else
+    checkfile=$checkdir/number.proc
+    exotext=$empty
+    embed=0
+    make_tr=1
+    questiontype=0
+    inputs=2
+    cols=20
+    rows=1
+    !for p=8 to 9
+	description=!append item $(sometext[$p]) to $description
+    !next p
+    #break-evenafzet en break-evenomzet
+    LL=Bereken break-evenafzet en -omzet van deze $fabrikant. <br /><small>Bereken de omzet in $textfactors &euro;'s .</small>
+    
+    omzet=$[$constante_kosten + $variabele_kosten*$break_even]
+    answer$n=$break_even,$omzet
+    textanswer$n=<ul><li>$TW=($verkoop_prijs - $variabele_kosten)&times;q &minus; $constante_kosten (in $textfactors &euro;'s)</li><li>$TW=$[$verkoop_prijs - $variabele_kosten]&times;q &minus; $constante_kosten (in $textfactors &euro;'s)</li><li>$TW=0</li><li>$[$verkoop_prijs - $variabele_kosten]&times;q = $constante_kosten</li><li>break-evenafzet = $constante_kosten/$[$verkoop_prijs - $variabele_kosten] = $break_even</li><li>break-evenomzet = $constante_kosten + $variabele_kosten&times;$break_even = $omzet (in $textfactors &euro;'s)</li></ul>
+    ex1=stuks 
+    ex2= &times; $hfactor &euro; 
+!endif
+
+ss=De $fabrikant $merk produceert $soort <br />\
+Deze $soort worden verkocht voor $verkoop_prijs $textfactor &euro; per stuk.<br />\
+De jaarlijkse constante en variabele kosten van de productie <span class="schaersvoorde_link">staan hier.</span>\
+<hr class="schaersvoorde_hr" />Met de bestaande productiecapaciteit kunnen jaarlijks $q_max $soort worden geproduceerd.<br />$LL</a>
+
+mousetxt=<ul><li>Ontwikkelkosten : $ontwikkel_kosten $textfactor &euro;</li><li>Interest en afschrijvingen : $afschrijving $textfactor &euro;</li><li>Personeelskosten : $arbeid $textfactor &euro;</li></ul>De variabele kosten per productie eenheid bedragen:$omschrijving 
+
+
+
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+
+
+
+    

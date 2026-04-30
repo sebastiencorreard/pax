@@ -1,0 +1,208 @@
+!set title=Antécédent par tableau des variations
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style> 
+
+ansorder=r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim \(\searrow),\(\nearrow),\(\searrow)	\(\nearrow),\(\searrow),\(\nearrow)
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=\(\nearrow),\(\searrow)
+val8=\(\nearrow),\(\searrow)
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+val10=$[rint(1)]
+!else
+val10=$[rint(2)]
+!endif
+
+!ifval $val9=1
+val11=$[rint(2)]
+!else
+val11=$[rint(1)]
+!endif
+
+!ifval $val9=1
+val12=1,2,1
+!else
+val12=2,1,2
+!endif
+val8=$(val6[$val9;])
+tmp0=!randint -10, 10
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val14=$[rint($val13+$(tmp0))]
+tmp0=!randint 1, 10
+
+val15=$[rint($val14+$(tmp0))]
+tmp0=!randint 1, 10
+
+val16=$[rint($val15+$(tmp0))]
+val17=$val13,$val14,$val15,$val16
+tmp0=!randint -10, 10
+
+val18=$[rint($(tmp0))]
+!if $val9=1 
+tmp0=!randint 1, 10
+
+val19=$[rint($val18-$(tmp0))]
+tmp0=!randint 1, 10
+
+val20=$[rint($val19+$(tmp0))]
+
+!ifval $val20=$val18
+val20=$[rint($val20+1)]
+!endif
+tmp0=!randint 1, 10
+
+val21=$[rint($val20-$(tmp0))]
+
+!ifval $val21=$val18
+val21=$[rint($val21-1)]
+!endif
+
+!ifval $val21=$val19
+val21=$[rint($val21-1)]
+!endif
+!else
+tmp0=!randint 1, 10
+
+val19=$[rint($val18+$(tmp0))]
+tmp0=!randint 1, 10
+
+val20=$[rint($val19-$(tmp0))]
+
+!ifval $val20=$val18
+val20=$[rint($val20-1)]
+!endif
+tmp0=!randint 1, 10
+
+val21=$[rint($val20+$(tmp0))]
+
+!ifval $val21=$val18
+val21=$[rint($val21+1)]
+!endif
+
+!ifval $val21=$val19
+val21=$[rint($val21+1)]
+!endif
+!endif
+val22=$val18,$val19,$val20,$val21
+tmp0=!shuffle 4
+
+val23=$(tmp0)
+val24=$[rint($(val17[$(val23[1])])-$(val22[$(val23[2])]))]
+val25=$[rint($(val22[$(val23[1])]))]
+val18=$[rint($val18+$val24)]
+val19=$[rint($val19+$val24)]
+val20=$[rint($val20+$val24)]
+val21=$[rint($val21+$val24)]
+val25=$[rint($val25+$val24)]
+!if $val9=1 
+val26=top,bottom,top,bottom
+!else
+val26=bottom,top,bottom,top
+!endif
+val27=$val18
+val28=$val19
+val29=$val20
+val30=$val21
+replytype1=numeric
+replyname1=antécédent de $(val17[$(val23[1])])
+replygood1=$[$(val17[$(val23[2])])]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit 
+!insmath f
+$() une fonction définie sur &#91; $val13;$val16 &#93; dont le	tableau des variations est donné ci-dessous	<table class="wimscenter wimsnoborder tab_var">	<tr>	  <th style="width:15%;"> 
+!insmath x
+$()</th>	      <td style="width:15%;text-align:left"> $val13</td>	      <td style="width:8%;"></td>	      <td style="width:15%;">$val14</td>	      <td style="width:8%;"></td>	      <td style="width:15%;">$val15</td>	      <td style="width:8%;"></td>	      <td style="width:15%;text-align:right">$val16</td>	</tr><tr>	  <th valign="middle" style="width:15%;" >
+!insmath f(x)
+$()</th>	     <td style="width:15%;text-align:left" valign="$(val26[1])"> $val27 </td>	     <td style="width:8%;"> $(val8[1]) </td>	     <td style="width:15%;" valign="$(val26[2])"> $val28 </td>	     <td style="width:8%;"> $(val8[2])  </td>	     <td style="width:15%;" valign="$(val26[3])"> $val29 </td>	     <td style="width:8%;"> $(val8[3]) </td>	     <td style="width:15%;text-align:right" valign="$(val26[4])"> $val30 </td>	</tr>	</table>		Trouver un antécédent de $(val17[$(val23[1])]) par la fonction 
+!insmath f
+$() :  
+!read oef/embed.phtml reply1 
+$()	
+$()
+!exit
+
+:hint
+$() On lit les images dans la partie 
+!insmath f(x)
+$() du tableau.	<br />	On lit les antécédents sur la ligne des 
+!insmath x
+$() du tableau.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1=$val25 and $m_reply<>$(val17[$(val23[2])])
+ <div class='oef_feedbacks'> Attention, vous avez lu l'image de $(val17[$(val23[1])])!	Il faut chercher la valeur $(val17[$(val23[1])]) dans la partie 
+!insmath f(x)
+$()	du tableau et lire son antécédent dans la ligne des 
+!insmath x
+$() du tableau.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,13,14,15,16,17,23,25,26,27,28,29,30
+embedcnt=1

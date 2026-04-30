@@ -1,0 +1,107 @@
+<script language="javascript" type="text/javascript"  src="$jsdir/geogebra2wims.js"></script>
+<script language="javascript" type="text/javascript">
+    var list_of_things=new Array();
+    !if $list_of_things=$empty 
+	!! A list of all possible object names
+	list_of_things=['text','point','line','segment','circle','function','polygon','conic','ellipse','polynomial','vector','number','angle'];
+    !else
+	list_of_things=$list_of_things
+    !endif
+    function sendanswer(){
+	var reply=geogebra2wims(list_of_things);
+	reply=encodeURIComponent( reply );
+	t=confirm(" $send ?");
+	if(t==true){var URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n='+reply ;
+	document.location.href = URL;
+	document.applets[0].destroy();
+	}
+    }
+
+    function dontknow(){
+	t=confirm(" $dontknow ?");
+	if(t==true){URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n=%3F' ;
+	document.location.href = URL;document.applets[0].destroy();
+	}                                                                                                                                                                 
+    } 
+</script>
+<p align="center">
+<table bgcolor=$bgcolor1 cellpadding=$cellpadding cellspacing=$cellspacing>
+    <td valign="top" align="left">
+	$(question$n)
+	!if $exotext != $empty
+	    <br>
+	    $exotext
+	!endif
+	!if $(formula$n) != $empty
+	    <p align="center">
+		<table border="1" cellpadding="15" bgcolor="#ffffa0">
+		    <th>
+			!insmath $(formula$n)
+		    </th>
+		</table>    
+	    </p>
+	!endif
+    <td>
+    <tr>
+    <td  valign="top">
+	!if $width=$empty
+	    !set width=640
+	    !set height=480
+	!endif
+	<p align="center">
+    	    <applet name="ggbApplet" code="geogebra.GeoGebraApplet" codebase="java/geogebra" archive="geogebra.jar" width=$width height=$height>
+		<param name="language" value="$lang">
+		<param name="filename" value="../../$module_dir/$ggb">
+		<param name="showToolBar"  value="$showToolBar">
+		<param name="showMenuBar"  value="$showMenuBar">
+		<param name="framePossible" value="$framePossible">
+		<param name="customToolBar" value=$customToolBar>
+		$nojava
+	    </applet>    
+	    <script language="javascript" type="text/javascript">
+		$appletcommand
+	    </script>
+	    <table>
+		!if $inputs>0
+		    <th>
+			<form name="sendtext">
+			    <table>
+			    !for i=1 to $inputs
+				<td>
+				    $(inputtext$i)
+				</td>
+				<td>
+				    $m_rightarrow
+				</td>
+				<td>
+				!if $wims_user=supervisor
+				    !set voorzeggen=!item $i of $(answer$n)
+				    <input  style=$textareastyle name="myvar1" size=$cols value=$voorzeggen>
+				!else
+				    <input  style=$textareastyle name="myvar1" size=$cols value="$myvar1">
+				!endif
+				</td>
+				<tr>
+			    !next i
+			    </table>
+			</form>
+		    </th>
+		    <tr>
+		!endif
+		<td>	
+		    <center>
+		    <table>
+			<th>
+			    <input type=button style=$mybuttonstyle onclick="sendanswer();" name="but1" value="$send">
+			</th>
+			<th>
+			    <input type=button style=$mybuttonstyle onclick="dontknow();" name="but2" value="$dontknow">
+			</th>
+		    </table>
+		    </center>
+		</td>
+	    </table>    
+	</p>
+    </td>
+</table>
+</p>

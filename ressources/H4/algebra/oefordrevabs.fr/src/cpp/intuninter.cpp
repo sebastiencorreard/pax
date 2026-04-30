@@ -1,0 +1,335 @@
+target=intuninter
+%%
+\observation{L'objet de l'exercice est de donner l'intersection ou la réunion de deux intervalles I et J}
+%%
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\format{html}
+#include "css.inc"
+
+%% borne pour la valeur absolue d'une des racines %%
+\integer{singmax=20}
+\integer{valinfg=-2*\singmax}
+\integer{valinfd=2*\singmax}
+
+%% écart maximale entre les racines %%
+\integer{singdif=10}
+
+%% Choix des bornes %%
+\integer{sing1=random(-\singmax..\singmax)}
+\integer{sing2=random(1..\singdif)+\sing1}
+\integer{sing3=random(-\singmax..\singmax)}
+\integer{sing4=random(1..\singdif)+\sing3}
+
+%% la liste des objets que l'on peut cliquer pour résoudre l'exercice %%
+\text{x1=\(\sing1)}
+\text{x2=\(\sing2)}
+\text{x3=\(\sing3)}
+\text{x4=\(\sing4)}
+\text{crocg=&#91;}
+\text{crocd=&#93;}
+\text{union=\(\cup)}
+\text{inter=\(\cap)}
+\text{infg=\(-\infty)}
+\text{infd=\(+\infty)}
+\text{empt=\(\emptyset)}
+\text{ptvirg=&#59;}
+\text{permut=shuffle(\x1,\x2,\x3,\x4)}
+
+\text{clicList=
+\crocg,\ptvirg,\crocd,\union,\inter,\infg,\infd,\empt,\permut[1],\permut[2],\permut[3],\permut[4]
+}
+%% taille des symboles et des champs à remplir par clic LxHxnb %%
+\text{size=60x40x12}
+
+%% Choix du type d'encadrement
+\integer{k=randint(1..3)}
+\integer{kb=randint(1..3)}
+%% k= 1 encadrement, k= 2 x symb val , k=3 val symb x
+%% la liste des symboles d'inégalité %%
+\text{sgt=>}
+\text{sge=\(\ge )}
+\text{slt=<}
+\text{sle=\(\le )}
+
+\text{symboles=\slt,\sle,\sgt,\sge}
+\text{swapsymb=3,4,1,2}
+\integer{symbx1=randint(1..2)}
+\integer{symbx2=randint(1..2)}
+\integer{symbx=\symbx1+2*(\symbx2-1)}
+\integer{symbx3=randint(1..2)}
+\integer{symbx4=randint(1..2)}
+\integer{symbbx=\symbx3+2*(\symbx4-1)}
+%% Choix de l'hypothèse
+\if{\k=1}
+  {
+    \text{eqx=\sing1 \symboles[\symbx1] \(x) \symboles[\symbx2] \sing2 }
+  }
+  {
+    \text{eqx=\k=2? \(x) \symboles[\symbx] \sing2: \sing1 \symboles[\symbx] \(x) }
+  }
+
+%% calcul de la question %%
+
+\if{\k=1}{
+    \text{croc1=\symbx1=1?\crocd:\crocg}
+    \text{croc2=\symbx2=1?\crocg:\crocd}
+    \text{brep=\croc1,\x1,\ptvirg,\x2,\croc2}
+    \text{brepf=\croc1\x1\ptvirg\x2\croc2}
+    \integer{v1=\sing1}
+    \integer{v2=\sing2}
+    \text{typeeq=l'encadrement}
+    }{
+     \text{typeeq=l'inégalité}
+     \if{\k=2 and \symbx2=1}
+       {
+%% x < ou <= sing2
+       \text{croc2=\symbx1=1?\crocg:\crocd}
+       \text{brep=\crocd,\infg,\ptvirg,\x2,\croc2}
+       \text{brepf=\crocd\infg\ptvirg\x2\croc2}
+       \integer{v1=\valinfg}
+       \integer{v2=\sing2}
+       }
+     \if{\k=2 and \symbx2=2}
+       {
+%% x > ou >= sing2
+       \text{croc1=\symbx1=1?\crocd:\crocg}
+       \text{brep=\croc1,\x2,\ptvirg,\infd,\crocg}
+       \text{brepf=\croc1\x2\ptvirg\infd\crocg}
+       \integer{v1=\sing2}
+       \integer{v2=\valinfd}
+    }
+     \if{\k=3 and \symbx2=1}
+       {
+%% sing1 < ou <= x
+       \text{croc1=\symbx1=1?\crocd:\crocg}
+       \text{brep=\croc1,\x1,\ptvirg,\infd,\crocg}
+       \text{brepf=\croc1\x1\ptvirg\infd\crocg}
+       \integer{v1=\sing1}
+       \integer{v2=\valinfd}
+       }
+     \if{\k=3 and \symbx2=2}
+       {
+%% sing1 > ou >= x
+       \text{croc2=\symbx1=1?\crocg:\crocd}
+       \text{brep=\crocd,\infg,\ptvirg,\x1,\croc2}
+       \text{brepf=\crocd\infg\ptvirg\x1\croc2}
+       \integer{v1=\valinfg}
+       \integer{v2=\sing1}
+      }
+
+  }
+
+\if{\kb=1}{
+    \text{crocb1=\symbx3=1?\crocd:\crocg}
+    \text{crocb2=\symbx4=1?\crocg:\crocd}
+    \text{brepb=\crocb1,\x3,\ptvirg,\x4,\crocb2}
+    \text{brepfb=\crocb1\x3\ptvirg\x4\crocb2}
+    \integer{v3=\sing3}
+    \integer{v4=\sing4}
+    \text{typeeq=l'encadrement}
+    }{
+     \text{typeeq=l'inégalité}
+     \if{\kb=2 and \symbx4=1}
+       {
+%% x < ou <= sing2
+       \text{crocb2=\symbx3=1?\crocg:\crocd}
+       \text{brepb=\crocd,\infg,\ptvirg,\x4,\crocb2}
+       \text{brepfb=\crocd\infg\ptvirg\x4\crocb2}
+       \integer{v3=\valinfg}
+       \integer{v4=\sing4}
+       }
+     \if{\kb=2 and \symbx4=2}
+       {
+%% x > ou >= sing2
+       \text{crocb1=\symbx3=1?\crocd:\crocg}
+       \text{brepb=\crocb1,\x4,\ptvirg,\infd,\crocg}
+       \text{brepfb=\crocb1\x4\ptvirg\infd\crocg}
+       \integer{v3=\sing4}
+       \integer{v4=\valinfd}
+    }
+     \if{\kb=3 and \symbx4=1}
+       {
+%% sing1 < ou <= x
+       \text{crocb1=\symbx3=1?\crocd:\crocg}
+       \text{brepb=\crocb1,\x3,\ptvirg,\infd,\crocg}
+       \text{brepfb=\crocb1\x3\ptvirg\infd\crocg}
+       \integer{v3=\sing3}
+       \integer{v4=\valinfd}
+       }
+     \if{\kb=3 and \symbx4=2}
+       {
+%% sing1 > ou >= x
+       \text{crocb2=\symbx3=1?\crocg:\crocd}
+       \text{brepb=\crocd,\infg,\ptvirg,\x3,\crocb2}
+       \text{brepfb=\crocd\infg\ptvirg\x3\crocb2}
+       \integer{v3=\valinfg}
+       \integer{v4=\sing3}
+       }
+
+  }
+
+%% choix intersection ou union
+\integer{kt=randint(1,2)}
+
+\text{slien=\kt=1?\union:\inter}
+\text{slientex=\kt=1?\bigcup:\bigcap}
+%% calcul de la réponse %%
+\text{qrep=\brep}
+\text{qrepb=\brepb}
+\text{qrepf=\brepf}
+\text{qrepfb=\brepfb}
+\if{\v1<\v3}
+  {
+  \integer{val1=\v1}
+  \integer{val2=\v2}
+  \integer{val3=\v3}
+  \integer{val4=\v4}
+  }
+  {
+  \if{\v1=\v3}
+    {
+      \if{\v2<= \v4}
+      {
+       \integer{val1=\v1}
+       \integer{val2=\v2}
+       \integer{val3=\v3}
+       \integer{val4=\v4}
+      }
+      {
+       \integer{val1=\v3}
+       \integer{val2=\v4}
+       \integer{val3=\v1}
+       \integer{val4=\v2}
+       \text{qrep=\brepb}
+       \text{qrepb=\brep}
+       \text{qrepf=\brepfb}
+       \text{qrepfb=\brepf}
+      }
+    }
+    {
+       \integer{val1=\v3}
+       \integer{val2=\v4}
+       \integer{val3=\v1}
+       \integer{val4=\v2}
+       \text{qrep=\brepb}
+       \text{qrepb=\brep}
+       \text{qrepf=\brepfb}
+       \text{qrepfb=\brepf}
+    }
+  }
+\if{\kt=2}{
+%% intersection
+  \if{\val3>\val2}  {\text{grep=\empt}}{
+    \text{croc1f=\qrepb[1]}
+    \text{croc2f=\qrep[5]}
+    \if{\val4<\val2}{
+       \text{croc2f=\qrepb[5]}
+       \text{grep=\croc1f,\qrepb[2],\ptvirg,\qrepb[4],\croc2f}
+    }{
+       \text{grep=\croc1f,\qrepb[2],\ptvirg,\qrep[4],\croc2f}
+    }
+    \if{\val3=\val2 and (\croc1f=\crocd or \croc2f=\crocg)}
+       {\text{grep=\empt}}
+  }
+}{
+%% union
+  \if{\val3>\val2}{
+    \text{grep=\qrep,\slien,\qrepb}
+  }{
+    \if{\val4>=\val2}{
+      \text{grep=\qrep[1],\qrep[2],\ptvirg,\qrepb[4],\qrepb[5]}
+     }{
+      \text{grep=\qrep[1],\qrep[2],\ptvirg,\qrep[4],\qrep[5]}
+    }
+  }
+}
+%% Rédaction d'une explication graphique
+\integer{xmin=-2*\singmax}
+\integer{xmax=2*\singmax}
+\integer{y0=0}
+\text{intdraw=}
+\if{\val1>\valinfg}
+  {\text{intdraw=\intdraw
+text black,\val1,\y0-2,medium,\val1}
+   \if{\qrep[1]=\crocg}
+    {
+      \text{intdraw=\intdraw
+       polyline orange,\val1+2,\y0+3,\val1,\y0+3,\val1,\y0+7,\val1+2,\y0+7}
+    }{
+      \text{intdraw=\intdraw
+       polyline orange,\val1-2,\y0+3,\val1,\y0+3,\val1,\y0+7,\val1-2,\y0+7}
+    }
+   }
+\if{\val2<\valinfd}{
+  \text{intdraw=\intdraw
+text black,\val2,\y0-2,medium,\val2}
+  \if{\qrep[5]=\crocg}{
+    \text{intdraw=\intdraw
+       polyline orange,\val2+2,\y0+3,\val2,\y0+3,\val2,\y0+7,\val2+2,\y0+7}
+  }{
+    \text{intdraw=\intdraw
+       polyline orange,\val2-2,\y0+3,\val2,\y0+3,\val2,\y0+7,\val2-2,\y0+7}
+  }
+}
+\if{\val3>\valinfg}{
+  \text{intdraw=\intdraw
+text black,\val3,\y0-2,medium,\val3}
+  \if{\qrepb[1]=\crocg}{
+    \text{intdraw=\intdraw
+       polyline green,\val3+2,\y0+8,\val3,\y0+8,\val3,\y0+12,\val3+2,\y0+12}
+  }{
+    \text{intdraw=\intdraw
+       polyline green,\val3-2,\y0+8,\val3,\y0+8,\val3,\y0+12,\val3-2,\y0+12}
+  }
+}
+\if{\val4<\valinfd}{
+  \text{intdraw=\intdraw
+text black,\val4,\y0-2,medium,\val4}
+  \if{\qrepb[5]=\crocg}{
+    \text{intdraw=\intdraw
+       polyline green,\val4+2,\y0+8,\val4,\y0+8,\val4,\y0+12,\val4+2,\y0+12}
+  }{
+    \text{intdraw=\intdraw
+       polyline green,\val4-2,\y0+8,\val4,\y0+8,\val4,\y0+12,\val4-2,\y0+12}
+  }
+}
+
+\text{image= xrange \xmin-5,\xmax+5,
+  yrange \y0-5,\y0+15,
+  segment \xmin,\y0,\xmax,\y0,blue
+  segment \val1,\y0+5,\val2,\y0+5,orange
+  segment \val3,\y0+10,\val4,\y0+10,green
+\intdraw
+}
+
+\text{partie=\slien issametext \union? coloriée avec au moins une couleur:coloriée par les deux couleurs}
+\text{size1=\confparm1=1 ? :x-large}
+%% Maintenant, rédigeons l'énoncé %%
+
+\statement{
+<div class="rm">
+   \name_question:
+   <div class="wimscenter">
+      J=\brepf \(\slientex\) \brepfb.
+   </div>
+ <div class="wims_instruction">
+\name_instruction </div>
+ <p>\name_answer:</p>
+ <div>
+     J=\embed{reply1,\size}.
+ </div>
+ </div>
+}
+
+%% Récupération des réponses %%
+\answer{}{\grep;\clicList}{type=clickfill}
+\solution{<div class="rm solution">
+On commence par représenter sur une droite les deux intervalles:
+<div class="wimscenter">\draw{800,100}{\image}</div>
+La solution cherchée est la partie \partie.
+</div>}

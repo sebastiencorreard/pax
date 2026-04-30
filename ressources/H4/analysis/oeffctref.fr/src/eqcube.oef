@@ -1,0 +1,179 @@
+\title{Résolution graphique et cubique}
+\language{fr}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{yes}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+## Choix du nombre de solution
+\integer{nbsol=random(3,3,3,3,3,1,1,1,2,2)}
+\text{listnbsol=Aucune solution, une solution, deux solutions, 3 solutions}
+## integer{nbsol=3}
+
+## Choix de l'équation à résoudre
+\text{lstsing=wims(values x for x = -2 to 2)}
+\text{lstsing=shuffle(\lstsing)}
+\rational{sing1=\lstsing[1]}
+\integer{den1=random(1,2)}
+\integer{num1=\sing1}
+\rational{sing1=\sing1/\den1}
+\if{\nbsol=1}
+{
+   \rational{sing2=-(\sing1)/2}
+   \integer{den2=\den1*2}
+   \integer{num2=-(\num1)}
+   \integer{indsol=2}
+   \text{goodrep=\sing1}
+   \integer{a=(\den1*\den2)^2}
+## calcul de la pente de la tangente en sing2
+   \rational{pente=(\sing1)^2+(\sing1)*(\sing2)+(\sing2)^2}
+## on abaisse la pente pour ne pas toucher sing2
+   \rational{pente=\pente-randint(1..8)/(\den1)}
+   \rational{b=-\a*(\pente)}
+##  la fonction affine doit passer par sing1,sing^3
+   \rational{ordori=(\sing1)^3-(\pente)*(\sing1)}
+   \rational{c=-\a*(\ordori)}
+   \function{g=simplify(\pente*x +(\ordori))}
+}
+{
+\if{\nbsol=2}
+  {
+   \rational{sing2=\sing1}
+   \integer{den2=\den1}
+   \integer{num2=\num1}
+   \integer{indsol=3}
+   \rational{sing3=-2*(\sing1)}
+   \text{goodrep=\sing1,\sing3}
+  }
+  {
+   \rational{sing2=\lstsing[2]}
+   \integer{den2=random(1,2)}
+   \integer{num2=\sing2}
+   \rational{sing2=\sing2/\den2}
+   \rational{sing3=-(\sing1)-(\sing2)}
+   \integer{indsol=4}
+   \if{\sing1=\sing2}
+    {
+     \integer{nbsol=2}
+     \integer{indsol=3}
+     \text{goodrep=\sing1,\sing3}
+    }
+    {
+    \if{\sing1=\sing3}
+     {
+       \integer{nbsol=2}
+       \integer{indsol=3}
+       \text{goodrep=\sing1,\sing2}
+     }
+     {
+     \if{\sing2=\sing3}
+       {
+         \integer{nbsol=2}
+         \integer{indsol=3}
+         \text{goodrep=\sing1,\sing3}
+       }
+       {
+         \text{goodrep=\sing1,\sing2,\sing3}
+       }
+      }
+     }
+  }
+  \function{f=(\den1)^2*(\den2)^2*(x- (\sing1))*(x-(\sing2)*(x-\sing3))}
+  \integer{a=(\den1*\den2)^2}
+  \integer{b=-\a*((\sing1)^2+(\sing1)*(\sing2)+(\sing2)^2)}
+  \integer{c=\a*(\sing1)*(\sing2)*((\sing1)+(\sing2))}
+  \function{g=simplify(((\sing1)^2+(\sing1)*(\sing2)+(\sing2)^2)*x -(\sing1)^2*(\sing2)-(\sing1)*(\sing2)^2)}
+ }
+\text{s1=\b>0?+:-}
+\integer{b=\b<0?\b*(-1)}
+\text{s2=\c>0?+:-}
+\integer{c=\c<0?\c*(-1)}
+\text{equat= \a x^3 }
+\if{\b !=0}
+  {\text{equat=\equat \s1 \b x }}
+\if{\c !=0}
+  {\text{equat=\equat \s2 \c }}
+\text{equat=\equat=0}
+\text{eqaff=\g}
+\text{eqaff=wims(replace * by in \eqaff)}
+\text{mstep=r1
+r2
+r3}
+
+
+### cadre générique ###
+\text{cadre=
+xrange -5,5
+yrange -9,9
+gridfill 0,0,5,5,\gridcolor
+linewidth 1
+linewidth 2
+  parallel -5,-9,-5,9,1,0,12,blue
+  parallel -5,-9,5,-9,0,1,19,blue
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+    linewidth 2
+    plot red,x^3
+}
+## fin du cadre générique ##
+\text{cadre2=\cadre
+    plot green,\g
+}
+\if{\nbsol>1}
+ {\text{tindiquer=les solutions de l'équation (séparées par une virgule)}}
+ {\text{tindiquer=la solution de l'équation}}
+
+\nextstep{\mstep}
+
+####### enoncé de l'exo #######
+\statement{
+<p>
+On veut résoudre graphiquement dans \(\ \RR) l'équation :</p>
+<div class="wimscenter"> \(\equat).</div>
+\if{\step=1}{<p>
+On dispose pour cela de la représentation graphique de la fonction cube de référence \(f(x)=x^3).</p>
+<div class="float_right">\draw{400,400}{\cadre}</div>
+
+<p>On se propose de tracer sur le même dessin la représentation graphique d'une
+fonction affine judicieusement choisie.</p>
+<p>Indiquer l'expression algébrique de cette fonction :</p>
+<div class="wimscenter">\(g(x)=)\embed{reply 1,10}</div>
+}
+{
+On dispose maintenant des représentations graphiques des fonctions </p>
+<div class="wimscenter"><span style="color:red">\(f)</span>, avec \(f(x)=x^3)
+ et <span style="color:green">\(g)</span>, avec \(g(x)=)\eqaff.</div>
+<div class="float_right">\draw{400,400}{\cadre2}</div>
+\if{\step=2}
+  {
+<p>Combien de solutions l'équation possède-t-elle ?</p>
+<div class="wimscenter"> \(\equat):</div>
+<ul>
+<li>\embed{reply 2,1}</li>
+<li>\embed{reply 2,2}</li>
+<li>\embed{reply 2,3}</li>
+<li>\embed{reply 2,4}</li>
+</ul>
+  }
+  {\if{\nbsol>0}
+   {
+  Indiquer \tindiquer :</p>
+<div class="wimscenter"> \(S=)\embed{reply3,5}</div>
+<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5.</div> }
+  }
+}
+}
+
+#### soumission de réponse ####
+\answer{g(x)}{\g}{type=formal}
+\answer{nb solutions}{\indsol;\listnbsol}{type=radio}
+\answer{solution}{\goodrep}{type=fset}

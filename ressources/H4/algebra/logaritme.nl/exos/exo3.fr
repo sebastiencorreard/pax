@@ -1,0 +1,214 @@
+#Rekenregels 3   [ log(a) - log(b) ]
+mathviewpanel=$module_title:log():log[2]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+display=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+#checkfile=$checkdir/number.proc
+checkfile=exos/checkfile1.proc
+varlist=$empty
+arglist=$empty
+question$n=!record 1 of lang/remarks.$taal
+#@ Schrijf als &eacute;&eacute;n logaritme:
+helptext=<img src=\'$module_dir/gifs/exo3.jpg\' alt=\'noalt\' />
+
+g=!randitem 2,10
+keuze=!randitem 1,0
+#var1 is uitvoer js-script van letterijk overtypen...                                                                                      
+#var2=aantal 10logs in goede antwoord                                                                                                      
+#var3=aantal logs in var1
+
+!if $R=1
+ b=!randitem 2,3,4,5,6
+ p=!randitem 2,3,4,5,6
+ a=$[$p*$b]
+ !if $g=2
+  formula$n=\log_{$g}($a)\,-\,\log_{$g}($b)\,=\,[?]
+  applettext=!nospace log[$g]($a)-log[$g]($b)=
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=(log($a)/log($g))-(log($a)/log($g))
+  var3=4
+  texanswer$n=\log_{$g}($a)\,-\,\log_{$g}($b)\,=\, \log_{$g}\left(\frac{$a}{$b}\right) \,=\, \log_{$g}($p) 
+ !else
+  formula$n=\log($a)\,-\,\log($b)\,=\,[?]
+  applettext=!nospace log($a)-log($b)=
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)
+   var2=1
+   test=$empty
+  !endif
+  var1=log($a)-log($a)
+  var3=2
+  texanswer$n=\log($a)\,-\,\log($b)\,=\, \log\left(\frac{$a}{$b}\right) \,=\, \log($p) 
+ !endif
+ !exit
+!endif
+
+!if $R=2 
+ b=!randitem 2,3,4,5,6
+ a=!randitem 2,3,4,5
+ c=!randitem 2,3,4
+ tot=!exec pari A=($a^$c)/$b\
+ printtex(A)
+ p=!line 1 of $tot
+ ptex=!line 2 of $tot
+ !if $g=1
+  formula$n=$c \cdot \log_{$g}($a)\,-\,\log_{$g}($b)\,=\,[?]
+  applettext=!nospace $c*log[$g]($a)-log[$g]($b)=
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)/log($g)
+   var2=2
+   test=$empty
+  !endif
+  var1=$c*(log($a)/log($g))-(log($b)/log($g))
+  var3=4
+  texanswer$n=$c \cdot \log_{$g}($a)\,-\,\log_{$g}($b)\,=\, \log_{$g}\left( $a^{$c} \right)\,-\,\log_{$g}($b)\,=\,\log_{$g}\left( \frac{$a^{$c}}{$b} \right) =\log_{$g}\left( $ptex \right) $test 
+ 
+ !else
+  formula$n=$c \cdot \log($a)\,-\,\log($b)\,=\,[?]
+  applettext=!nospace $c*log($a)-log($b)=
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)
+   var2=1
+   test=$empty
+  !endif
+  var1=$c*(log($a))-log($b)
+  var3=2
+  texanswer$n=$c \cdot \log($a)\,-\, \log($b)\,=\,\log\left( $a^{$c} \right)\,-\,\log($b)\,=\,\log\left( \frac{$a^{$c}}{$b} \right) =\log\left( $ptex \right) $test 
+ 
+ !endif
+!exit
+!endif
+
+!if $R=3
+ b=!randitem 2,3,4
+ c=!randitem 2,4,6
+ e=$[0.5*$c]
+ d=!randitem 1,2,3
+ a=$[$d*$b]
+ tot=!exec pari A=($a^($e))/$b\
+ printtex(A)
+ p=!line 1 of $tot
+ ptex=!line 2 of $tot
+ !if $g=2
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)/log($g)
+   var2=2
+   test=$empty
+  !endif
+  formula$n=$c \cdot \log_{$g}\left( \sqrt{$a} \right)\,-\,\log_{$g}($b)\,=\,[?]     
+  applettext=!nospace $c*log[$g](sqrt($a))-log[$g]($b)=
+  var1=$c*(log(sqrt($a))/log($g))-(log($b)/log($g))
+  var3=4
+  texanswer$n=$c \cdot \log_{$g}\left( \sqrt{$a} \right)\,-\,\log_{$g}($b)=\log_{$g}\left( \left(\sqrt{$a} \right)^{$c} \right)\,-\,\log_{$g}($b)=\log_{$g}\left(\frac{$[$a^$e]}{$b} \right)=\log_{$g}\left( $ptex \right) $test
+ 
+ !else
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)
+   var2=1
+   test=$empty
+  !endif
+  formula$n=$c \cdot \log\left( \sqrt{$a} \right)\,-\, \log($b)\,=\,[?]     
+  applettext=!nospace $c*log(sqrt($a))-log($b)=
+  var1=$c*(log(sqrt($a)))-log($b)
+  var3=2
+  texanswer$n=$c \cdot \log\left( \sqrt{$a} \right)\,-\, \log($b)=\log\left( \left(\sqrt{$a} \right)^{$c} \right)\,-\,\log($b)=\log\left(\frac{$[$a^$e]}{$b} \right)=\log\left( $ptex \right) $test
+ 
+ !endif
+!exit
+!endif
+
+!if $R>3
+ b=!randitem 2,3,4
+ c=!randitem 2,4,6
+ e=$[0.5*$c]
+ a=!randitem 2,3,4,5,6,7,8,9
+ d=!randitem 2,3,4
+ f=$[$b^$d]
+ tot=!exec pari A=($a^($e))/$b\
+ printtex(A)
+ p=!line 1 of $tot
+ ptex=!line 2 of $tot
+ !if $g=2
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)/log($g)
+   var2=2
+   test=$empty
+  !endif
+  formula$n=$c \cdot \log_{$g}\left( \sqrt{$a} \right)\,-\,\frac{1}{$d} \cdot \log_{$g}($f)\,=\,[?]     
+  applettext=!nospace $c*log[$g](sqrt($a))-1/($d)*log[$g]($f)=
+  var1=$c*(log(sqrt($a))/log($g))-1/$d*(log($f)/log($g))
+  var3=4
+  texanswer$n=$c \cdot \log_{$g}\left( \sqrt{$a} \right)\,-\,\frac{1}{$d} \cdot \log_{$g}($f)=\log_{$g}\left( \left(\sqrt{$a} \right)^{$c} \right)\,-\,\log_{$g} \left($f^\frac{1}{$d}\right)=\log_{$g}\left(\frac{$[$a^$e]}{$b} \right)=\log_{$g}\left( $ptex \right) $test
+ !else
+  test=$[log($p)/log($g)]
+  !if . notin $test
+   answer$n=$test
+   var2=0
+   test= =$test
+  !else
+   answer$n=log($p)
+   var2=1
+   test=$empty
+  !endif
+  formula$n=$c \cdot \log\left( \sqrt{$a} \right)\,-\,\frac{1}{$d} \cdot \log($f)\,=\,[?]     
+  applettext=!nospace $c*log(sqrt($a))-1/($d)*log($f)=
+  var1=$c*(log(sqrt($a)))-1/$d*(log($f))
+  var3=2
+  texanswer$n=$c \cdot \log\left( \sqrt{$a} \right)\,-\,\frac{1}{$d} \cdot \log($f)=\log\left( \left(\sqrt{$a} \right)^{$c} \right)\,-\,\log \left($f^\frac{1}{$d}\right)=\log\left(\frac{$[$a^$e]}{$b} \right)=\log\left( $ptex \right) $test
+ !endif
+ !exit
+!endif
+

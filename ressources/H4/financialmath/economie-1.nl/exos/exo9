@@ -1,0 +1,129 @@
+# Belasting (steps)
+n=$counter
+mathview=0
+math=0
+# beperk aantal mogelijke vragen tot het reeele aantal subvraagjes.
+!if $total_exos>3
+    total_exos=3
+!endif
+#7/6/2013 
+checkfile=exos/precheck2.proc
+description=$youranswer
+inputs=1.1
+cols=10
+# leg alles vast tijdens de eerste vraag
+!if $counter=1
+    # 7/6/2013 2 euro
+    var1=2
+    var2=100
+    tarief1=!randint 500,700
+    tarief2=!randint $[$tarief1+50],820
+    tarief1=$[5*$tarief1/100]
+    tarief2=$[5*$tarief2/100]
+    tarief3=42
+    tarief4=52
+    schijf1=!randint 15000,20000
+    schijf2=!randint 11000,14999
+    schijf3=!randint 15000,20000
+    vrijstelling=!randint 3000,4000
+    # spaargeld moet > dan $vrijstelling
+    spaargeld=!randint $[$vrijstelling+1000],$[$vrijstelling+4000]
+    spaargeld=$[$spaargeld*5]
+    vrijstelling=$[$vrijstelling*5]
+    heffingskorting=!randint 300,400
+    heffingskorting=$[$heffingskorting*5]
+    arbeidskorting=!randint 170,200
+    arbeidskorting=$[$arbeidskorting*5]
+    brutoinkomen=!randint 80,160
+    brutoinkomen=$[$brutoinkomen*1000]
+    woningforfait=!randint 120,200
+    woningforfait=$[$woningforfait*10]
+    hypotheek=!randint 100,450
+    hypotheek=$[$hypotheek*1000]
+    rente=!randint 40,110
+    rente=$[$rente/10]
+    rente=!exec moneyprint $rente
+    fictiefrendement=4
+    fictiefrendementbelasting=30
+    sex=!randint 0,1
+    !if $sex=1
+	heer=De heer
+	hij=hij
+    !else
+	heer=Mevrouw
+	hij=zij
+    !endif
+    achternamen=!record 63 of lang/remarks.$taal
+    achternaam=!randitem $achternamen
+    
+
+    # de eerste vraag...van de 3
+    
+    belastbareinkomen=$[$brutoinkomen + $woningforfait - $hypotheek*$rente/100]
+    belastingschijf1=$[floor($tarief1*$schijf1/100)]
+    belastingschijf2=$[floor($tarief2*$schijf2/100)]
+    test=$[$belastbareinkomen - $schijf1 - $schijf2]
+    !if $test < $schijf3
+	schijf3=$test
+	schijf4text=geen belasting  in schijf 4
+	belastingschijf4=0
+	marginale_belastingdruk=$tarief3
+    !else
+	schijf4=$[$belastbareinkomen - $schijf1 - $schijf2 - $schijf3]
+	belastingschijf4=$[floor($tarief4*$schijf4/100)]
+	schijf4text=vierde schijf: $tarief4 % van ($belastbareinkomen - $schijf1 - $schijf2 - $schijf3) = &euro; $belastingschijf4
+	marginale_belastingdruk=$tarief4
+    !endif
+    belastingschijf3=$[floor($tarief3*$schijf3/100)]    
+    answer1=$[$belastingschijf1 + $belastingschijf2 + $belastingschijf3 + $belastingschijf4]
+    box3belasting=$[floor( ($fictiefrendement/100)*($fictiefrendementbelasting/100)*($spaargeld - $vrijstelling))]
+    box13belasting=$[$answer1 + $box3belasting]
+    answer2=$[$box13belasting - $heffingskorting - $arbeidskorting]
+    gemiddeldebelastingdruk=$[(round(10*($answer2/$brutoinkomen*100)))/10]
+    answer3=$gemiddeldebelastingdruk\
+    $marginale_belastingdruk
+    
+    textanswer1=<ul><li>Het belastbare inkomen van $heer $achternaam is:<br />brutoinkomen + eigenwoningforfait &minus; betaalde hypotheekrente = <br />$brutoinkomen + $woningforfait - $hypotheek&times;$rente/100 = &euro; $belastbareinkomen</li><li>eerste schijf: $tarief1 % van $schijf1 = &euro; $belastingschijf1</li><li>tweede schijf: $tarief2 % van $schijf2 = &euro; $belastingschijf2</li><li>derde schijf: $tarief3 % van $schijf3 = &euro; $belastingschijf3</li><li>$schijf4text</li></ul>De totale belasting in box1 is : $belastingschijf1 + $belastingschijf2 + $belastingschijf3 + $belastingschijf4 = &euro; $answer1
+
+    textanswer2=<ul><li>De belasting in box3: $fictiefrendement/100 &times; $fictiefrendementbelasting/100 &times; ($spaargeld &minus; $vrijstelling) = &euro; $box3belasting;</li><li>Totaal box1 en box3 = $answer1 + $box3belasting = &euro; $box13belasting </li><li>De totaal verschuldigde inkomstenbelasting is: $box13belasting &minus; heffingskortingen <br />$box13belasting &minus; $heffingskorting &minus; $arbeidskorting = &euro; $answer2 </li></ul>
+
+    textanswer3=De gemiddelde belastingdruk voor $heer $achternaam is: $answer2 / $brutoinkomen &times; 100 % = $gemiddeldebelastingdruk %<br />De marginale belastingdruk is $marginale_belastingdruk %
+    
+    ex1=&euro;
+
+    helptext=<ul><b>Tarieven in box 1</b>:<li>$tarief1 % van &euro; $schijf1 [eerste schijf]</li><li>$tarief2 % van &euro; $schijf2 [tweede schijf]</li><li>$tarief3 % van &euro; $schijf3 [derde schijf]</li><li>$tarief4 % van het meerdere [vierde schijf]</li></ul><ul><b>Tarief in box 3:</b><li>Over het gemiddeld vermogen wordt een fictief rendement van $fictiefrendement % verondersteld, waarover $fictiefrendementbelasting % belasting moet worden betaald.</li><li>Er is een vermogensvrijstelling van &euro; $vrijstelling.</li></ul><ul><b>Heffingskortingen:</b><li>Algemene heffingskorting : &euro; $heffingskorting</li><li>Arbeidskorting : &euro; $arbeidskorting</li></ul>
+    
+    
+    roundingtext=<small><em>Reken in gehele euro's en rond steeds naar beneden af.</em></small>
+    txt1=In een bepaald jaar golden <span style="color:blue">de volgende tarieven</span> van belastingen en sociale premies.
+    txt2=$heer $achternaam was in het betreffende jaar in loondienst <br />en had een brutoinkomen van &euro; $brutoinkomen , dat verhoogd moest<br />worden met een eigenwoningforfait &euro; $woningforfait .<br />Als enige aftrekpost gold de betaalde hypotheekrente.<br />$heer $achternaam had een hypothecaire lening van &euro; $hypotheek,<br />waarover $hij $rente % interest betaalde.<br />Tevens had $heer $achternaam over het betreffende jaar een gemiddeld vermogen van &euro; $spaargeld .
+    som1=a) Bereken de totaal verschuldigde belasting voor $heer $achternaam in box 1 .
+    som2=b) Bereken de door $heer $achternaam totaal verschuldigde inkomstenbeslasting<br />over het betreffende jaar.
+    som3=c) Bereken de gemiddelde en marginale belastingdruk voor $heer $achternaam<br />[op 1 decimaal nauwkeurig]
+
+    question1=<a onmouseover="return escape('$helptext')">$txt1<br />$txt2</a><hr class="schaersvoorde_hr">$som1
+    question2=<a onmouseover="return escape('$helptext')">$txt1<br />$txt2</a><hr class="schaersvoorde_hr">$som2
+    question3=<a onmouseover="return escape('$helptext')">$txt1<br />$txt2</a><hr class="schaersvoorde_hr">$som3
+
+!endif
+
+make_tr=1
+questiontype=0
+
+!if $counter>1
+    exotext=<ul>
+    !for p=1 to $[$counter-1]
+	exotext=!append line <li><span style="color:blue">$questionnumber $p) $youranswer : $(reply$p)</span></li> to $exotext
+    !next p
+    exotext=!append line </ul> to $exotext
+!endif
+
+!if $n=3
+    var1=0.1,0.1
+    var2=100,100
+    inputs=2
+    checkfile=exos/precheck3.proc
+    description=De gemiddelde belasting druk,De marginale belasting druk
+    ex1=%
+    ex2=%
+!endif

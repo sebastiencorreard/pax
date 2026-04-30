@@ -1,0 +1,94 @@
+#:4 snijpunten lijn en cirkel
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=5
+mathviewpanel=$module_title:+:-:^:(x;y) and (x;y)
+math=0
+
+force_mathml=yes
+calculator=2
+checkfile=$checkdir/new_number.proc
+# ivm afronden 34.45
+# 14/5/2016
+var1=0.05
+helptext=$empty
+make_tr=1
+
+vorm=!mathmlmath \left(x - a\right)^{2} + \left( y - b\right)^{2} = C
+
+mtext=!record 4 of lang/remarks.$taal
+ss=!record 6 of lang/remarks.$taal
+#@Bereken de co&ouml;rdinaten van de snijpunten van cirkel c en lijn l<br />Geef je antwoord op als (x:y)
+
+
+
+#a=!randint 2,6
+#b=!randint 1,5
+#x1=!randint -10,0
+#x2=!randint 2,6
+#y1=$[$a*$x1+$b]
+#y2=$[$a*$x2+$b]
+
+#y=-1/a x +b
+a=!randint 2,7
+b=!randint 1,8
+pm=!randitem 1,-1
+b=$[$pm*$b]
+x1=!randitem $[-3*$a],$[-2*$a],$[-1*$a]
+y1=$[-1*$x1/$a+$b]
+x2=!randitem $a,$[2*$a],$[3*$a]
+y2=$[-1*$x2/$a+$b]
+
+mx=((($x1)+($x2))/2)
+my=((($y1)+($y2))/2)
+
+#middelloodlijn en (mx;my) y=a*x+my-a*mx
+cx=!randint 1,5
+tot=!exec pari A=$a*$cx+$my-$a*$mx\
+printtex(y - A)\
+B=($x2-($cx))^2+($y2-(A))^2\
+printtex(B)\
+C=(x-$cx)^2 + (-1/$a*x + ($b) - A)^2\
+printtex(C)\
+D=(C)-(B)\
+printtex(D)
+
+cy=!line 1 of $tot
+cy_tex=!line 2 of $tot
+rr=!line 3 of $tot
+rr_tex=!line 4 of $tot
+tussen1=!line 6 of $tot
+tussen2=!line 8 of $tot
+formula$n=\left[ \begin{array}{lr} c: & \left(x - $cx\right)^{2} + \left($cy_tex \right)^{2} & = & $rr_tex \\ l: & y + \frac{1}{$a} x & =  & $b  \end{array} \right.
+#formula$n=\left[ \begin{array}{lr} c: & \left(x - $cx\right)^{2} + \left(y - $cy_tex \right)^{2} & = & $rr_tex \\ l: & y + \frac{1}{$a} x & =  & $b  \end{array} \right.
+
+checkfile=$checkdir/coord.proc
+
+!if $b < 0
+    bb=$b
+!else
+    bb=+$b
+!endif
+!if $cy < 0
+    ccy=+ $[-1*$cy]
+!else
+    ccy=- $cy
+!endif
+
+texanswer$n=\left[ \begin{array}{l} y = -\frac{1}{$a} x $bb \;\; \textrm{ $(mtext[5]) } \\ \left(x - $cx\right)^{2} + \left( -\frac{1}{$a} x $bb $ccy\right)^{2}  =  $rr_tex \\ $tussen1 = $rr_tex \\ $tussen2 = 0 \\ \textrm{ $(mtext[6]) ...} \\ x_{1} = $x1 \wedge x_{2} = $x2 \\ \textrm{ $(mtext[7]) ...} \\ \textrm{ $(mtext[8]) :}  \; \left($x1 : $y1\right) \wedge  \left($x2 : $y2\right)  \end{array}\right. 
+
+answer$n=$x1,$y1,$x2,$y2
+
+question$n=$ss 
+
+
+!exit 

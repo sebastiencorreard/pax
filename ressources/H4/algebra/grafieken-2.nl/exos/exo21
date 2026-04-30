@@ -1,0 +1,125 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+mathview=0
+questiontype=10
+embed=1
+cols=20
+rows=2
+math=1
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 96 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+keuze=0
+!if $R=1
+#pari kijkt na
+var1=0
+    !if $keuze=1
+	d=!randint 2,5
+	f=!randint 2,4
+	a=$[$d*$f]
+	b=!randint 1,6
+	c=!randint 1,10
+	e=!randint 1,10
+	tot=!exec pari A=($a*$b-$c-$d*$e)/$d\
+	printtex(A)
+	g=!line 1 of $tot
+	g_tex=!line 2 of $tot
+	!if $g>0
+	    g_tex=+$g_tex
+	!else
+	    !if $g<0
+		g_tex=$g_tex
+	    !else
+		g_tex=$empty
+	    !endif
+	!endif
+	formula$n=$a \left(x + $b \right) - $c  =  $d \left( y + $e \right)
+	applettext=!nospace  $a*(x + $b) - $c  =  $d *( y + $e)->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath ($a*(x + $b) - $c - $d*$e)/$d
+	
+	answer$n=$f*x+$g
+	texanswer$n=\left[ \begin{array}{l}  $a x + $[$a*$b] - $c  =  $d y + $[$d*$e] \rightarrow \\ $d y = $a x + $[$a*$b - $c] - $[$d*$e] \rightarrow \\  y=$f x $g_tex  \end{array} \right.
+    !else
+	a=!randint 2,5
+	b=!randint 2,5
+	c=!randint 1,9
+	formula$n=$a \left(x + $b y \right) - \left( $c - x \right)  =   y
+	applettext=!nospace  $a*(x + $b*y)-($c-x) = y->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath (-$a-1)*x+$c
+	tot=!exec pari A=(-1*$a - 1)/($a*$b-1)\
+	printtex(A)\
+	B=$c/($a*$b-1)\
+	printtex(B)
+	d=!line 1 of $tot
+	d_tex=!line 2 of $tot
+	e=!line 3 of $tot
+	e_tex=!line 4 of $tot
+	!if $e>0
+	    e_tex=+$e_tex
+	!else
+	    !if $e<0
+		e_tex=$e_tex
+	    !else
+		e_tex=$empty
+	    !endif
+	!endif
+	answer$n=$d*x+$e
+	texanswer$n=\left[ \begin{array}{l} $a x + $[$a*$b] y - $c + x  =   y \rightarrow \\ $[$a*$b - 1] y = $[-$a -1]x + $c \rightarrow \\  y=$d_tex x $e_tex  \end{array} \right.
+	
+    !endif
+    !goto KLAAR
+!endif
+
+!if $R>1
+    var1=1
+    pm=!randitem +,-
+    # maxima
+    !if $keuze=1
+	a=!randint 2,20
+	b=!randint 2,5
+	formula$n=\frac{1}{y - $b x}   =  $a $pm x
+	applettext=!nospace  1/(y - $b*x) = $a $pm x->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=$b*x+1/($a $pm x)
+	
+	answer$n=$b*x+1/($a $pm x)
+	texanswer$n=\left[ \begin{array}{l}  y - $b x  =   \frac{1}{$a $pm x}\rightarrow \\ y = $b x + \frac{1}{$a $pm x} \rightarrow \end{array} \right.
+    !else
+	a=!randint 2,10
+	b=!randint 2,9
+	formula$n=\frac{$a}{x + y}   =  x^{$b}
+	applettext=!nospace  $a/(x + y) = x^$b ->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=-1*x+$a/(x^$b)
+	
+	answer$n=-x+$a/x^$b
+	texanswer$n=\left[ \begin{array}{l} \frac{x+y}{$a}  =   \frac{1}{x^{$b}}\rightarrow \\ x+y=  =   \frac{$a}{x^{$b}}\rightarrow \\ y = -x + \frac{$a}{x^{$b}} \rightarrow \end{array} \right.
+    !endif
+    !goto KLAAR
+!endif
+
+
+:KLAAR
+
+!if $teaching=1
+    image=0
+    insplot_set=size 0.6,0.6 ;grid ;autoscale;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    !insplot [-10:10] [-10:10] $var2 notitle , x notitle
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+
+!endif

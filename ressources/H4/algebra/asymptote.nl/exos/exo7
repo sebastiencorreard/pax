@@ -1,0 +1,174 @@
+# andere functies: log
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title :x=:y=:and:or:sqrt()
+n=$counter
+math=0
+plot=1
+draw=0
+cols=20
+rows=2
+embed=1
+questiontype=0
+alsdan=!record 42 of lang/remarks.$taal
+als=!item 1 of $alsdan
+dan=!item 2 of $alsdan
+
+ss=!record 2 of lang/remarks.$taal
+#@ Bepaal <b>alle</b> asymptoten van de onderstaande functie
+rem1=!record 3 of lang/remarks.$taal
+#@ Zie </a> voor de schrijfwijze de help pagina's
+rem2=!record 24 of lang/remarks.$taal
+helptext=$rem1 <br /> $rem2
+vertikaal=!record 4 of lang/remarks.$taal
+#@ De vertikale asymptoot is: de lijn
+vertikalen=!record 5 of lang/remarks.$taal
+#@ De vertikale asymptoten zijn de lijnen
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $teaching=1 and $image=0
+    etext=!record 6 of lang/remarks.$taal
+    #@ Hier</a> staat een klein grafiekje van de functie
+    #exotext=<a href="javascript:showimage();">$exotext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span style="color:blue">$etext</span></a>
+!else
+    exotext=$empty
+!endif
+# dit voor onmouseover
+prefix=size 0.5,0.5;notics;autoscale;
+# dit voor answer.phtml
+prefix2=size 0.5,0.5;grid ;axis;autoscale; xlabel "<x-axis>";ylabel"<y-axis>" ;border
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    b=!randitem 1,2,3,4,5,6,7,8
+    q=!randitem 1,2
+    !if $q=1
+	plotfunction=log(x-$b)
+	formula$n=f(x)=\log(x-$b)
+	f=x - $b
+    !else
+	plotfunction=log($b-x)
+	formula$n=f(x)=\log($b-x)
+	f=$b - x
+    !endif
+    applettext=!nospace f(x)=$plotfunction ->
+    as1=$b
+    textanswer$n=$vertikaal x=$as1
+    texanswer$n=\left[ \begin{array}{l} $als \,\, x \rightarrow 0 \,\, $dan \,\, \log(x) \rightarrow - \infty  \\ \\ $f = 0 \rightarrow x = $b \\ $als \,\, x \rightarrow $b \,\, $dan \,\,  \log ($f) \rightarrow - \infty  \\ \textrm{$vertikaal}\;\;x = $as1 \end{array}\right.
+    answer$n=$as1@vertikaal
+    !if $teaching=1
+	image=0
+	ymin=-10
+	ymax=10
+	xrange=$[$as1-10]:$[$as1+10]
+        yrange=$ymin:$ymax
+	image_settings$n=$prefix2 ; arrow $n from $as1,$ymin to $as1,$ymax nohead lt 4 
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1
+    	insplot_set=$prefix
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##verticale asymptoot:x=b of x=c of x=0
+    a=!randitem -5,-4,-3,-2,-1,2,3,4,5,0.5,0.75,0.25,-0.5,-0.75,-0.25,-1.5
+    !if $a>0
+	inf=-\infty
+    !else
+	inf=\infty
+    !endif
+    b=!randitem 1,2,3,4,5,6,7,8,9
+    c=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    pm =!randitem +,-
+    keuze=!randint 0,1
+    !if $keuze=1
+	plotfunction=$a*log($c*x + $b)
+	formula$n=f(x)=$a\cdot\log($c\cdot x + $b)
+	f=$c\cdot x + $b
+	tot=!exec pari A= -1*$b/($c)\
+	printtex(A)
+    !else
+	plotfunction=$a*log($c*x - $b)
+	formula$n=f(x)=$a\cdot\log($c\cdot x - $b)
+	tot=!exec pari A= $b/($c)\
+	printtex(A)
+	f=$c\cdot x + $b
+    !endif
+    as1=!line 1 of $tot
+    tex_as1=!line 2 of $tot
+    applettext=!nospace f(x)=$plotfunction ->
+    textanswer$n=$vertikaal x=$as1
+    texanswer$n=\left[ \begin{array}{l} $als \,\, x \rightarrow 0 \,\, $dan \,\, \log(x) \rightarrow - \infty  \\ \\ $f = 0 \rightarrow x = $tex_as1 \\ $als \,\, x \rightarrow $tex_as1 \;\;\; $dan \;\;\; $a \cdot \log ($f) \rightarrow $inf  \\ \textrm{$vertikaal}\;\;x = $tex_as1 \end{array}\right.
+    answer$n=$as1@verticaal
+    !if $teaching=1
+	image=0
+	ymin=$[-5*abs($a)]
+	ymax=$[5*abs($a)]
+	xrange=$[$as1-10]:$[$as1+10]
+	yrange=$ymin:$ymax
+	image_settings$n=$prefix2 ; arrow $n from $as1,$ymin to $as1,$ymax nohead lt 4 
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1
+	insplot_set=$prefix 
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    ##algemene vergelijking hyperbool:##f(x)=a/(x*(x-b)*(x-c))
+    ##verticale asymptoot:x=b of x=c of x=0
+    a=!randitem -5,-4,-3,-2,-1,2,3,4,5,0.5,0.75,0.25,-0.5,-0.75,-0.25,-1.5
+    !if $a>0
+	inf=-\infty
+    !else
+	inf=\infty
+    !endif
+    b=!randitem 1,2,3,4,5,6,7,8,9
+    c=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    d=!randitem 2,3,4,5,6,7,8,9,10
+    pm=!randitem +,-
+    keuze=!randitem 1,0
+    !if $keuze=1
+	mp=!randitem +,-
+        plotfunction=$a*log($c*x $pm $b) $mp $d
+	formula$n=f(x)=$a\cdot\log($c\cdot x $pm $b) $mp $d
+	f=$c\cdot x $pm $b
+	ymin=-20
+	ymax=20
+    !else
+        plotfunction=$a*log($c*x $pm $b)/$d
+	formula$n=f(x)=\frac{$a\cdot\log($c\cdot x $pm $b)}{$d}
+	ymin=-5
+	ymax=5
+	f=$c\cdot x $pm $b
+    !endif
+    applettext=!nospace f(x)=$plotfunction ->
+    !if $pm=+
+	tot=!exec pari A=(-1*$b/($c))\
+	printtex(A)
+    !else
+	tot=!exec pari A=($b/($c))\
+	printtex(A)
+    !endif
+    as1=!line 1 of $tot
+    tex_as1=!line 2 of $tot
+    textanswer$n=$vertikaal x=$as1
+    answer$n=$as1@verticaal
+    texanswer$n=\left[ \begin{array}{l} $als \,\, x \rightarrow 0 \,\, $dan \,\, \log(x) \rightarrow -\infty  \\ \\ $f = 0 \rightarrow x = $tex_as1 \\ $als \,\, x \rightarrow $tex_as1 \,\, $dan  \;\;\; \textrm{f(x)} \rightarrow $inf  \\ \textrm{$vertikaal}\;\;x = $tex_as1 \end{array}\right.
+    !if $teaching=1
+	image=0
+	xrange=$[$as1-4]:$[$as1+4]
+	yrange=$ymin:$ymax
+	image_settings$n=$prefix2 ; arrow $n from $as1,$ymin to $as1,$ymax nohead lt 4 
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1     
+	insplot_set=$prefix
+	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1     
+    !endif
+ !exit
+!endif
+

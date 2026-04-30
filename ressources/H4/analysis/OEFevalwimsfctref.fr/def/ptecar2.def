@@ -1,0 +1,155 @@
+!set title=Propriété caractéristique 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist x,-x for x=1 to 20
+
+val6=$(tmp0)
+tmp0=!shuffle 40
+
+val7=$(tmp0)
+val8=$[rint($(val6[$(val7[1])]))]
+val9=$[rint($(val6[$(val7[2])]))]
+val10=$[rint($(val6[$(val7[3])]))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randitem 1,2,4,5
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val11=!exec pari print($t_)
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randitem 1,2,4,5
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val12=!exec pari print($t_)
+t_=!rawmath $val11*$val8+$val12
+val13=!exec pari print($t_)
+t_=!rawmath $val11*$val9+$val12
+val14=!exec pari print($t_)
+t_=!rawmath $val11*$val10+$val12
+val15=!exec pari print($t_)
+
+!ifval $val12=0
+tmp0=!texmath $val11*x
+
+val16=$(tmp0)
+!else
+tmp1=!texmath $val11*x+$val12
+
+val16=$(tmp1)
+!endif
+tmp0=!randitem 1,2
+
+val17=$[rint($(tmp0))]
+
+!ifval $val17=2
+tmp0=!randint 1, 5
+
+tmp1=!randitem 1,-1
+
+t_=!rawmath $val15+$(tmp0)*$(tmp1)
+val15=!exec pari print($t_)
+!endif
+replytype1=radio
+replyname1=affine?
+replygood1=$val17;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction 
+!insmath f
+$() telle que	<div class="wimscenter">
+!insmath f($val8)=$val13
+$(), 
+!insmath f($val9)=$val14
+$() et 
+!insmath f($val10)=$val15
+$()</div>	  La fonction 
+!insmath f
+$() peut-elle être une fonction affine&nbsp;?	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,7 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val17=1
+ <div class='oef_feedbacks'>
+!insmath f(x)=$val16
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,13,14,15,16,17
+embedcnt=1

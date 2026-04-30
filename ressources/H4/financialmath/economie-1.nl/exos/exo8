@@ -1,0 +1,96 @@
+# Break-even V
+#Een vraag, waarbij geen tussenstappen worden gevraagd.
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+cols=6
+mathview=0
+embed=0
+make_tr=1
+questiontype=0
+inputs=1.1
+description=aantal ontslagen medewerkers
+rows=1
+checkfile=exos/precheck1.proc
+#loonkosten per werknemer
+loon=!randitem 20@2@2@5,22@2@5@11,24@2@3@5,26@2@2@5,28@2@5@7,30@2@3@5,32@2@5@5,34@2@5@5,36@2@3@5
+loon=!replace internal @ by , in $loon
+loonk=!item 1 of $loon
+loonk=$[1000*$loonk]
+f=!randitem 2,3,4
+factor=!item $f of $loon
+d=!randitem 2,4,5 
+winst1=$[$d*$factor]
+
+#aantal werknemers + te ontslagen werknemers
+aantal=!randitem 2,4,5,10
+werkn=$[$aantal*$factor]
+a=$[floor($werkn/2)]
+over=!randint $a,$[$werkn-1]
+ov=$[$over/2]
+!if . isin $ov
+    over=$[$over-1]
+!endif
+answer$n=$[$werkn-$over]
+#loonkosten totaal
+loonkosten1=$[$werkn*$loonk]
+loonkosten2=$[$over*$loonk]
+constante_kosten=$[2*$loonkosten1] 
+
+#break-evenafzet
+break_even=$[$constante_kosten/$winst1]
+
+winst2=$[($loonkosten1+$loonkosten2)/$break_even]
+
+energie=!randint 9,20
+energie=$[$energie/10]
+onderdelen1=!randint 30,70
+on=!randint 5,15
+onderdelen2=$[$onderdelen1-$on]
+onderdelen1=$[$onderdelen1/10]
+onderdelen2=$[$onderdelen2/10]
+
+vk1=$[$energie+$onderdelen1]
+prijs1=$[$winst1+$vk1]
+vk2=$[$energie+$onderdelen2]
+prijs2=$[$winst2+$vk2]
+
+tot=!exec moneyprint $onderdelen1,$onderdelen2,$vk1,$vk2,$prijs1,$prijs2,$energie 2
+onderdelen1=$(tot[1])
+onderdelen2=$(tot[2])
+vk1=$(tot[3])
+vk2=$(tot[4])
+prijs1=$(tot[5])
+prijs2=$(tot[6])
+energie=$(tot[7])
+
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+    
+to=$constante_kosten + $variabele_kosten*x
+tk=$[$verkoop_prijs]*x
+tw=$[$verkoop_prijs - $variabele_kosten]*x - $constante_kosten
+w=$[($verkoop_prijs - $variabele_kosten)*$q_max - $constante_kosten]
+    
+textanswer$n=<ul><li>TK=$vk1 &times; q + $constante_kosten</li><li>TO=$prijs1 &times; q</li><li>TK=TO</li><li>$vk1 &times; q + $constante_kosten = $prijs1 &times; q</li><li>$constante_kosten = $[$prijs1 - $vk1] &times; q</li><li>break-even = $constante_kosten /$[$prijs1 - $vk1] = $break_even</li></ul>Nu richting bezuiniging<ul><li>kosten per werknemer= $[$constante_kosten/2]/$werkn = $[$constante_kosten/(2*$werkn)]</li><li>constante-kosten = $[$constante_kosten/2] + aantal werknemers &times; $[$constante_kosten/(2*$werkn)] <span style="color:red">(A)</span></li><li>TK=$vk2 &times; q + constante-kosten</li><li>TO=$prijs2 &times; q</li><li>TK=TO en q=$break_even</li><li>$vk2 &times; $break_even + constante-kosten = $prijs2 &times; $break_even</li><li>$[$vk2*$break_even] + constante-kosten = $[$prijs2*$break_even]</li><li>constante-kosten=$[$prijs2*$break_even] - $[$vk2*$break_even]=$[$prijs2*$break_even - $vk2*$break_even]<span style="color:red">(B)</span></li><li><span style="color:red">(A) en (B)</span> combineren</li><li>$[$constante_kosten/2] + aantal werknemers &times; $[$constante_kosten/(2*$werkn)] = $[$prijs2*$break_even - $vk2*$break_even]</li><li>aantal werknemers &times; $[$constante_kosten/(2*$werkn)] = $[$prijs2*$break_even - $vk2*$break_even] - $[$constante_kosten/2]</li><li>aantal werknemers = $over</li><li>aantal ontslagen $werkn &minus; $over = $(answer$n)</li></ul>
+
+    
+
+ss=Een fabrikant verkoopt product Y tegen een prijs van &euro; $prijs1 per stuk. <br />De variabele kosten bestaan uit:<ul><li>onderdelen : &euro; $onderdelen1</li><li> energie : &euro; $energie</li></ul>De constante kosten zijn in totaal &euro; $constante_kosten, waarvan de helft <br />aan loonkosten voor de $werkn werknemers.<br />Het bedrijf heeft geen winstoogmerk en produceert op het break-evenpunt.<br />Neem aan dat vervolgens de prijs van het product daalt tot  &euro; $prijs2 .<br />Men wil de afzet op het oorspronkelijke niveau handhaven en gaat op de kosten bezuinigen.<br />Men slaagt erin de kosten van de onderdelen terug te brengen tot &euro; $onderdelen2 .<br />De energiekosten blijven gelijk.<br />Bereken hoeveel personeelsleden ontslagen moeten worden om op dezelfde break-evenafzet uit te komen.
+
+
+question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/exo8.jpg alt=plaatje/>')">$ss</a>
+
+
+
+
+    

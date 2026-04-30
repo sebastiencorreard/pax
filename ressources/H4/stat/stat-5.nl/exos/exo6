@@ -1,0 +1,65 @@
+# steekproef en standaardafwijking II
+# Brood bevat gemiddeld circa 0.35 gram zout (140 mg natrium) per boterham van ongeveer 35 gram.
+# 
+# Vifit bijna evenveel suiker als Coca Cola of RedBull
+# Frisdrank 			   Per 250 ml/260 gr 	 Suikerklontjes   PERC
+# Chocomelk 			29.75 g 			7	11.44 %
+# Capri Sun 			25.00 g 			6	 9.61 %
+# Vifit 			20.25 g 			5	 7.79 %	
+# Coca Cola 			26.50 g 			6	10.15%
+# Roosvicee (aangelengd) 	23.75 g 			5.5	 9.13 %	
+# Redbull 			27.50 g 			6,5	10.58 %
+# Fristi 			20.50 g 			5	 7.88 %
+# Hoe zwaar is een suikerklontje?
+# Uiteraard zit er wel verschil in het gewicht (afhangende van de grootte) maar een gemiddeld suikerklontje weegt 3,5 gram.
+# Ze zijn in verschillende maten beschikbaar: Een grote weegt ongeveer 4,4 gram. Een middel 3,9 en de kleinste weegt 3,1 gram.
+
+n=$counter
+mathview=0
+make_tr=1
+embed=0
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontyp=0
+checkfile=$checkdir/new_number.proc
+rounding=1
+!readproc $remarkdir/rounding.$taal
+
+perc=!randint 50,120
+perc=$[0.1*$perc]
+sigma=!randint 100,300
+sigma=$[0.0001*$sigma]
+
+ss=!record 38 of lang/remarks.$taal
+#@De Nierstichting is bezorgt over het stijgende aantal diabetes pati&euml;nten.<br />Ze laten het suikergehalte van de populairste frisdranken onderzoeken.<br />Hoe groot moet men de steekproef maken, opdat de standaardafwijking hoogstens $sigma is, <br />\waarbij men bij het opzetten van de steekproef uitgaat van een geschat gemiddelde suikerpercentage in frisdrank van $perc %
+
+
+
+inputs=1.1
+
+question$n= <a onmouseover="return escape('<img src=\'$module_dir/gifs/exo5.png\' alt=\'no alt\' />')">$ss</a>
+helptext=<img src=\'$module_dir/gifs/exo5.png\' alt=\'no alt\' />
+P=$[0.01*$perc]
+PP=$[$P*(1-$P)]
+P2=$[$sigma*$sigma]
+aantal=$[$PP/$P2]
+answer$n=$[ceil($aantal)]
+
+texanswer$n=\begin{array}{l} s  =  \sqrt{ \frac{p \cdot \left( 1 - p \right)}{ n }}  \\ $sigma = \sqrt{ \frac{$P \cdot \left( 1 - $P \right)}{ n }} \\ $sigma = \sqrt{ \frac{$PP}{ n }} \\ $sigma^{2} = \frac{$PP}{ n } \\ n \times $P2 = $PP \\ n = \frac{$PP}{$P2} \\ n = $aantal \\ n = $(answer$n) \end{array}
+
+rr=!record 39 of lang/remarks.$taal
+#@De steekproefgrootte moet minimaal $(answer$n) zijn , opdat de standaardafwijking hoogstens $sigma is.
+textanswer$n=$rr
+
+description=!record 36 of lang/remarks.$taal
+#@De steekproefgrootte moet minimaal 
+ex1=!record 40 of lang/remarks.$taal
+#@bemonsterde frisdranken bevatten 
+
+!exit
+
+#formula$n=\left[\begin{array}{lll} s & = & \sqrt{ \frac{p \cdot \left( 1 - p \right)}{ n }} \\ & & \textrm{met daarin  :} \\  s & : & steekproefstandaardafwijking \\ p &  : & steekproefproportie \\ n & : &steekproefgrootte \end{array} \right.

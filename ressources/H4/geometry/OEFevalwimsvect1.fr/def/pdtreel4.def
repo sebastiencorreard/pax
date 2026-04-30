@@ -1,0 +1,198 @@
+!set title=Produit d'un vecteur par un réel IV
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=-4
+val7=12
+val8=-4
+val9=8
+tmp0=!randint 0, 3
+
+tmp1=!randint 4, 5
+
+tmp2=!randint 6, 8
+
+val10=$(tmp0),$(tmp1),$(tmp2)
+val11=$val10
+val12=$[rint($val6)]
+val13=$[rint($val8)]
+val14=$[rint($val6 + $val9 -($val8))]
+val15=$[rint($val9)]
+val16=$[rint($val6+4)]
+val17=$[rint($val8)]
+val18=$[rint($val16+$val9-$val8)]
+val19=$[rint($val9)]
+tmp0=!randint 0, 3
+
+tmp1=!randint 4, 5
+
+tmp2=!randint 6, 8
+
+val20=$(tmp0),$(tmp1),$(tmp2)
+val21=
+!for val22 =1 to 3 
+val23=$[rint($(val20[$val22])+4)]
+tmp0=!append item $val23 to $val21
+
+val21=$(tmp0)
+!next
+val24=Les droites portant les points \(A\), \(B\), \(C\) et \(E\), \(F\), \(G\) sont parallèles.
+val25=A,B,C
+val26=E,F,G
+tmp0=!shuffle 3
+
+val27=$(tmp0)
+tmp0=!shuffle 3
+
+val28=$(tmp0)
+val29=\overrightarrow{$(val25[$(val27[1])]) $(val25[$(val27[2])])}
+val30=\overrightarrow{$(val26[$(val28[1])]) $(val26[$(val28[2])])}
+val31=\( $val30 )
+val32=\( $val29 )
+t_=!rawmath ($(val21[$(val28[2])])-$(val21[$(val28[1])]))/($(val10[$(val27[2])])-$(val10[$(val27[1])]))
+val33=!exec pari print($t_)
+t_=!rawmath 1/($val33)
+val34=!exec pari print($t_)
+!if $val33>1 or $val33<-1 
+val35=c'est \($val30) qui a la plus grande norme
+
+!ifval $val33>0
+val35=$val35 et \($val30) et \($val29) sont de même sens
+!else
+val35=$val35 et \($val30) et \($val29) sont de sens opposés
+!endif
+
+!ifval $val33>0
+val36= Le coefficent doit donc être supérieur à 1
+!else
+val36= Le coefficent doit donc être inférieur à -1
+!endif
+!else
+val35=c'est \($val29) qui a la plus grande norme
+
+!ifval $val33>0
+val35=$val35 et \($val30) et \($val29) sont de même sens
+!else
+val35=$val35 et \($val30) et \($val29) sont de sens opposés
+!endif
+
+!ifval $val33>0
+val36= Le coefficent doit donc être positif et inférieur à 1
+!else
+val36= Le coefficent doit donc être négatif et supérieur à -1
+!endif
+!endif
+val37=lightblue
+val38=400
+val39=400
+val40=linewidth 1	parallel 0,$val8,0,$val9,0.2,0,floor(5*($val7))+1,$val37	parallel 0,$val8,0,$val9,-0.2,0,floor(5*abs($val6))+1,$val37	parallel $val6,0,$val7,0,0,0.2,floor(5*($val9))+1,$val37	parallel $val6,0,$val7,0,0,-0.2,floor(5*abs($val8))+1,$val37	
+val41=linewidth 1	parallel 0,$val8,0,$val9,1,0,floor($val7+1),$val37	parallel 0,$val8,0,$val9,-1,0,floor(abs($val6)+1),$val37	parallel $val6,0,$val7,0,0,1,floor($val9+1),$val37	parallel $val6,0,$val7,0,0,-1,floor(abs($val8)+1),$val37	
+val42=linewidth 2	segment $val12,$val13,$val14,$val15,red	linewidth 5	points red,$(val10[1]),$(val11[1]),$(val10[2]),$(val11[2]),$(val10[3]),$(val11[3])	text red,$(val10[$(val27[1])])-0.5,$(val11[$(val27[1])])+0.5,medium,$(val25[$(val27[1])])	text red,$(val10[$(val27[2])])-0.5,$(val11[$(val27[2])])+0.5,medium,$(val25[$(val27[2])])	text red,$(val10[$(val27[3])])-0.5,$(val11[$(val27[3])])+0.5,medium,$(val25[$(val27[3])])	
+val43=linewidth 2	segment $val16,$val17,$val18,$val19,blue	linewidth 5	points blue,$(val21[1]),$(val20[1]),$(val21[2]),$(val20[2]),$(val21[3]),$(val20[3])	text blue,$(val21[$(val28[1])])-0.5,$(val20[$(val28[1])])+0.5,medium,$(val26[$(val28[1])])	text blue,$(val21[$(val28[2])])-0.5,$(val20[$(val28[2])])+0.5,medium,$(val26[$(val28[2])])	text blue,$(val21[$(val28[3])])-0.5,$(val20[$(val28[3])])+0.5,medium,$(val26[$(val28[3])])	
+val44=xrange $val6-1,$val7+1	yrange $val8-1,$val9+1	$val41	$val42	$val43	
+val45=$val44	
+replytype1=numeric
+replyname1=coeff
+replygood1=$[$val33]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	<div class="medium_size">	 
+!read oef/draw.phtml $val38,$val39 \
+	 $val45 
+$()	</div>	<div class="medium_size">	$val24	 Complétez par un réel l'égalité vectorielle suivante:	<div class="wimscenter">	 <label for="reply1">$val31 = </label> 
+!read oef/embed.phtml r1,4 
+$() $val32	</div>	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1>0 and $val33<0
+ <div class='oef_feedbacks'> Attention les vecteurs 
+!insmath $val30
+$() et 
+!insmath $val29
+$() sont de sens opposés,	  le coefficient doit donc être négatif
+$()</div>
+!endif
+!ifval $m_reply1<0 and $val33>0
+ <div class='oef_feedbacks'> Attention les vecteurs 
+!insmath $val30
+$() et 
+!insmath $val29
+$() sont de même sens,	  le coefficient doit donc être positif
+$()</div>
+!endif
+!ifval $m_reply1== $val34
+ <div class='oef_feedbacks'> Attention : on a 
+!insmath $val30
+$()= $val33 
+!insmath $val29
+$() et 
+!insmath  $val29 
+$()= $val34 
+!insmath $val30
+$()<br />	$val35<br>	$val36
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=24,29,30,31,32,33,34,35,36,38,39,45
+embedcnt=1

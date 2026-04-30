@@ -1,0 +1,323 @@
+!set title=Résolution graphique et parabole 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=99
+prevarcnt=98
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+val7=$[rint(1)]
+val8=lightblue
+val9=Aucune solution, une solution, deux solutions, une infinité de solutions
+tmp0=!randint 0, 2
+
+val10=$[rint($(tmp0))]
+val10=$[rint(2)]
+val11=Sur le dessin ci-contre, on a représenté la fonction \(f) définie sur \(\ \RR) par :	<div class="wimscenter">\(f(x) = x^2),</div>	  ainsi que la fonction linéaire \(g_1) définie sur \(RR) par
+val12=
+!if $val10=0 
+val13=vide
+tmp0=!randint 1, 5
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val14*($val14+$val15))]
+val17=$[rint($val14)]
+val18=$[rint($val17)]
+val14=$[rint($val14+$val15)]
+val19=$[rint($val14)]
+tmp=!translate ";': to $     $ in $val17/($val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val14/($val16)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val21=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val22=$[rint($(tmp0))]
+
+!ifval $val22=1
+val23=+
+!else
+val23=-
+!endif
+val24=+
+
+!ifval $val22=1
+val25=-
+!else
+val25=+
+!endif
+val26=-
+val27=!rawmath x^2 $val23 ($val20)*x $val24 ($val21)
+val28=x^2
+
+!ifval $val17>0
+val29=+
+!else
+val29=-
+!endif
+
+!ifval $val17<0
+val17=$[rint($val17*(-1))]
+!endif
+
+!ifval $val14>0
+val30=+
+!else
+val30=-
+!endif
+
+!ifval $val14<0
+val14=$[rint($val14*(-1))]
+!endif
+!if $val17 !=0 
+t_=!rawmath $val20*(-1)
+val31=!exec pari print($t_)
+val28=$val28 $val23 $val20 * x
+val32=$val25 ($val20) * x
+val33=$val23 ($val20) * x
+!else
+val32=
+val33=
+!endif
+!if $val14 !=0 
+val28=$val28 $val24 $val21
+val32=$val32 $val26 $val21
+val33=$val33 $val26 $val21
+!endif
+val34=$[rint(1)]
+!else
+tmp0=!values x for x = -4 to 4
+
+val35=$(tmp0)
+tmp0=!shuffle $val35
+
+val35=$(tmp0)
+t_=!rawmath $(val35[1])
+val36=!exec pari print($t_)
+
+!ifval $val36=0
+t_=!rawmath $(val35[3])
+val36=!exec pari print($t_)
+!endif
+val37=$[rint($val36)]
+t_=!rawmath $val36/$val6
+val36=!exec pari print($t_)
+!if $val10=1 
+t_=!rawmath $val36
+val38=!exec pari print($t_)
+val7=$[rint($val6)]
+val39=$[rint($val37)]
+val34=$[rint(2)]
+val13=$val36
+!else
+t_=!rawmath 0
+val38=!exec pari print($t_)
+val39=$[rint($val38)]
+t_=!rawmath $val38/$val7
+val38=!exec pari print($t_)
+t_=!rawmath $val36+($val38)
+val40=!exec pari print($t_)
+!if $val40=0 
+t_=!rawmath $(val35[3])
+val38=!exec pari print($t_)
+val39=$[rint($val38)]
+t_=!rawmath $val38/$val7
+val38=!exec pari print($t_)
+!endif
+val34=$[rint(3)]
+!if $val36=$val38 
+val10=$[rint(1)]
+val34=$[rint(2)]
+val13=$val36
+!else
+val13=$val36,$val38
+!endif
+!endif
+val27=!rawmath $val6*$val7*(x- ($val36))*(x-($val38))
+val16=$[rint($val6*$val7)]
+val17=$[rint(-$val16*(($val36)+($val38)))]
+
+!ifval $val17>0
+val29=+
+!else
+val29=-
+!endif
+
+!ifval $val17<0
+val17=$[rint($val17*(-1))]
+!endif
+val14=$[rint($val16*($val36)*($val38))]
+
+!ifval $val14>0
+val30=+
+!else
+val30=-
+!endif
+
+!ifval $val14<0
+val14=$[rint($val14*(-1))]
+!endif
+val28=$val16*x^2
+!if $val17 !=0 
+val28=$val28 $val29$val17*x
+!endif
+!if $val14 !=0 
+val28=$val28 $val30 $val14
+!endif
+tmp=!translate ";': to $     $ in (($val36)+($val38))*x -($val36)*($val38)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val32=!rawmath $(tmp0)
+tmp=!translate ";': to $     $ in -(($val36)+($val38))*x +($val36)*($val38)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val33=!rawmath $(tmp0)
+val41=$val32
+!endif
+tmp0=!shuffle green,blue,orange,purple
+
+val42=$(tmp0)
+tmp0=!shuffle 4
+
+val43=$(tmp0)
+t_=!replace internal \( by ( in $val32
+tmp0=!exec maxima $t_
+
+val44=$(tmp0)
+t_=!replace internal \( by ( in $val33
+tmp0=!exec maxima $t_
+
+val45=$(tmp0)
+t_=!replace internal \( by ( in \g3
+tmp0=!exec maxima $t_
+
+val46=$(tmp0)
+t_=!replace internal \( by ( in \g4
+tmp0=!exec maxima $t_
+
+val47=$(tmp0)
+val41=$val44
+val48=
+tmp0=!append item $val41 to $val48
+
+val48=$(tmp0)
+val41=$val45
+tmp0=!append item $val41 to $val48
+
+val48=$(tmp0)
+val41=$val46
+tmp0=!append item $val41 to $val48
+
+val48=$(tmp0)
+val41=$val47
+tmp0=!append item $val41 to $val48
+
+val48=$(tmp0)
+val49=$val32,$val33,\g3,\g4
+tmp0=!shuffle 2
+
+val50=$(tmp0)
+val51=plot $(val42[$(val43[$(val50[1])])]),$val32
+val52=<span style="color:$(val42[$(val43[$(val50[1])])])">	  \(g_1(x)\) = \($val44\)</span>
+val53=xrange -5,5	yrange -1.2,17	gridfill 0,0,5,5,$val8	linewidth 1	linewidth 2	parallel -5,-1,-5,17,1,0,12,gray	parallel -5,-1,5,-1,0,1,19,gray	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	linewidth 2	plot red,x^2	$val51	
+!if $val10>1 
+val54=les solutions de l'équation (séparées par une virgule)
+!else
+val54=la solution de l'équation
+!endif
+replytype1=fset
+replyname1=solution
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="wims_columns">	 <div class="medium_size img_col">	 
+!read oef/draw.phtml 400,400 \
+$val53 
+$()</div>	 <div class="medium_size text_col">	  <div>$val11</div>	  <div class="wimscenter">$val52.</div>	    Utiliser ce dessin pour résoudre graphiquement dans 
+!insmath \ \RR
+$() l'équation:	    <div class="wimscenter">
+!insmath $val28 =0
+$().</div>	  
+!if $val12!= 
+$()	    <div class="wims_instruction">$val12</div> 
+!endif
+$()	  <p>	    Indiquer la ou les solutions de l'équation :	  </p>	    <div class="wimscenter"> <label for="reply1">
+!insmath S=
+$()</label> 
+!read oef/embed.phtml reply1,5 
+$()</div>	  <div class="wims_instruction">	  Les solutions sont entières ou de la forme un entier +0.5.	  S'il n'y a pas de solution taper <span class="tt">vide</span>.	  S'il y a plusieurs solutions, les séparer par une virgule.	  </div>	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,28,52,53
+embedcnt=1

@@ -1,0 +1,121 @@
+!set title=Donner les valeurs interdites
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 11
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 11
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 11
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 11
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 20
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=!rawmath $val6*x+$val7+($val10/(x*($val8*x+$val9)))
+val12=!rawmath $val6*x+$val7+($val10/((x-$val8)^2-($val9)^2))
+val13=!rawmath ($val6*x)/($val8*x^2-$val9)
+val14=!rawmath ($val6*x)/(($val8*x+$val9)^2+($val10)*($val8*x+$val9))
+val15=$val11,$val12,$val13,$val14
+val16=0,(-$val9)/$val8;	$val8-$val9,$val8+$val9;	-sqrt(($val9)/($val8)),sqrt(($val9)/($val8));	(-$val9)/$val8,(-$val9-($val10))/($val8);	
+tmp0=!randint 1, 4
+
+val17=$[rint($(tmp0))]
+tmp0=!texmath $(val15[$val17])
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in $(val16[$val17;1]);
+tmp0=!exec maxima $t_
+
+val19=$(tmp0)
+t_=!replace internal \( by ( in $(val16[$val17;2]);
+tmp0=!exec maxima $t_
+
+val20=$(tmp0)
+val21=$val19,$val20
+val22=Les valeurs interdites sont:
+replytype1=fset
+replyname1=$val22
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question"">	      On considère l'équation 
+!insmath $val18=0
+$().	      <br>	      Donner la liste des valeurs interdites de cette équation.	      <br>	      (<em>Entrez les éléments de la liste en les séparant par	      des virgules</em>	<br> Pour entrer une racinne carée, taper sqrt(..))	</div>	<div>	        $val22 &nbsp;  
+!read oef/embed.phtml reply 1, 30 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,22
+embedcnt=1

@@ -1,0 +1,57 @@
+# Breakeven omzet  II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+rounding=1
+checkfile=exos/precheck1.proc
+
+#$checkdir/number.proc
+nu=!date +%Y
+jaar=$[$nu-1]
+BTW=21
+btw=1.21
+ip=!randint 30,80
+ip=$[$ip/10]
+fac=!randint 200,400
+fac1=$[$fac/100]
+vp=$[round($ip*$fac1)]
+vp_btw=$[$btw*$vp]
+vk=!randint 10,40
+vk=$[$vk/10]
+fac=$[ceil($vk+$ip)]
+fac2=$[$fac-$vk-$ip]
+vk=$[$vk+$fac2]
+
+!if $[$vp-$ip-$vk] <= 0
+    vk=$[$vp-$ip-1]
+!endif
+tot=!exec moneyprint $ip,$vp,$vk,$vp_btw
+ip=$(tot[1])
+vp=$(tot[2])
+vk=$(tot[3])
+vp_btw=$(tot[4])
+
+afzet=!randint 50,99
+afzet=$[$afzet*1000]
+varkosten=$[$afzet*$vk]
+bea=!randint 1000,1600
+bea=$[$bea*10]
+ck=$[$bea*($vp -$ip - $vk)]
+
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+ss=Van bedrijf $bedrijf is gegeven dat de totale constante kosten &euro; $ck bedragen.<br />De verkoopprijs van de geproduceerde goederen bedragen &euro; $vp_btw per stuk inclusief $BTW % btw.<br />De inkoopprijs bedraagt &euro; $ip per geproduceerd artikel.<br />De variabele kosten bij een afzet van $afzet stuks zijn &euro; $varkosten.<br />Bereken de break-evenomzet.
+cols=10
+description=Break-evenomzet
+ex1=&euro;
+inputs=1.1
+roundingtext=Geef je eindantwoord op als een heel getal
+answer$n=$[$bea*$vp]
+question$n =<a onmouseover="return escape('$roundingtext')">$ss </a>
+helptext=$roundingtext
+texanswer$n=\left[ \begin{array}{l} \; \textrm{De verkoopprijs exclusief $BTW\% btw : } \;\frac{$vp_btw}{$btw} = $vp \; \textrm{ euro per stuk} \\ \\ \; \textrm{Variabele kosten per stuk : } \frac{$varkosten}{$afzet} = $vk \; \textrm{ euro per stuk} \\ \\ \; \textrm{Break-evenafzet : BEA=}\frac{$ck}{$vp - $ip - $vk} = $bea \; \textrm{ stuks} \\ \\ \; \textrm{Break-evenomzet : BEO=}$bea \times $vp = $(answer$n) \; \textrm{ euro} \end{array}  \right.

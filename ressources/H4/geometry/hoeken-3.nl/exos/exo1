@@ -1,0 +1,151 @@
+#1 hoek tussen twee lijnen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=10
+!readproc $remarkdir/rounding.$taal
+embed=0
+applet=0
+inputs=1.1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+checkfile=$checkdir/new_number.proc
+# ivm afronden 34.45
+# 14/5/2016
+var1=0.05
+helptext=$empty
+make_tr=1
+
+ss=!record 4 of lang/remarks.$taal
+#@Bepaal de hoek in graden tussen de lijnen <em>m</em> en <em>l</em>
+a1=!randint 2,9
+a2=!randint -9,-2
+b1=!randint -15,-1
+b2=!randint 1,15
+reciproc=0
+!if $R>1
+ p=!randint 2,7
+ q=!randint 2,7
+ a=!randint 1,$[5*$p]
+ b=!randint $[-5*$q],-1
+ tot=!exec pari A=$a/$p\
+ printtex(A)\
+ B=($b)/$q\
+ printtex(B)
+ a1=!line 1 of $tot
+ a1_tex=!line 2 of $tot
+ a2=!line 3 of $tot
+ a2_tex=!line 4 of $tot
+ !if $[$a1*$a2] = -1
+  reciproc=1
+ !endif
+
+ mathtext=!mathmlmath \left[ \begin{array}{l} l\,: $p y - $a x = $[$p*$b1] \\ \\ m\,: $q y + $[abs($b)] x = $[$q*$b2] \end{array}\right.
+ 
+ texanswer$n= \left[ \begin{array}{l} l\,:\,  $p y - $a  x = $[$p*$b1] \\ $p y =  $a x $[$p*$b1] \\ y = $a1_tex x  $b1 \\ m\,: $q y + $[abs($b)] x = $[$q*$b2] \\ $q y = $b x + $[$q*$b2] \\ y = $a2_tex x +  $b2 \end{array}\right.
+
+!else
+ mathtext=!mathmlmath \left[ \begin{array}{l} l\,: y=$a1 x $b1 \\ \\ m\,: y=$a2 x +$b2 \end{array}\right.
+
+!endif
+xs=$[(($b2)-($b1))/(($a1)-($a2))]
+ys=$[($a1)*($xs)+($b1)]
+xmin=$[floor($xs) - 5]
+xmax=$[ceil($xs) + 5]
+ymin=$[floor($ys) - 5]
+ymax=$[ceil($ys) + 5]
+
+y11=$[$a1*(-100)+$b1]
+y12=$[$a1*(100)+$b1]
+y21=$[$a2*(-100)+$b2]
+y22=$[$a2*(100)+$b2]
+
+
+question$n=$ss <p style="text-align:center">$mathtext</p>
+
+hoek1=$[(180*(atan($a1)))/pi]
+hoek2=$[(180*(atan($a2)))/pi]
+hoek3=$[$hoek1 - $hoek2]
+!if $hoek3 > 90
+ answer$n=$[180 - $hoek3]
+!else
+ answer$n=$hoek3
+!endif
+h1=$[(round(100*$hoek1))/100]
+h2=$[abs((round(100*$hoek2))/100)]
+h4=$[(round(10*($(answer$n))))/10]
+!if $reciproc=1
+
+ a1_tex_ml=!mathmlmath $a1_tex
+ a2_tex_ml=!mathmlmath $a2_tex
+ rr=!record 10 of lang/remarks.$taal
+ textanswer$n=$rr
+ #@ <ul><li>De richtingsco&euml;efficient van de lijnen <em>l</em> en <em>m</em> zijn $a1_tex_ml en $a2_tex_ml.</li><li>$a1_tex_ml &times; $a2_tex_ml = -1</li><li> Dus de lijnen staan loodrecht op elkaar en de hoek is dus precies 90&deg;</li></ul>
+
+!else
+
+ !if $hoek3 > 90
+  hoektext=180 &minus; $hoek1 &minus; $[abs($hoek2)] &asymp; $h4&deg;
+  hoekplaatje=filled\
+  fillcolor blue\
+  angle $xs,$ys,1,$hoek1,$[$(answer$n)+$hoek1],blue\
+  string blue,$xs-0.4,$ys+1.3,$h4\u00b0\
+
+ !else
+  hoektext=$hoek1 + $[abs($hoek2)] &asymp; $h4&deg;
+  hoekplaatje=#
+ !endif
+ rr=!record 11 of lang/remarks.$taal
+ #@<ul><li>We trekken een horizontale lijn door het snijpunt van <em>l</em> en <em>m</em>(rode stippellijn in het plaatje...)</li><li>De richtingshoek tussen <em>l</em> en de rode stippellijn is tan<sup>-1</sup>($a1) &asymp; $hoek1&deg; dus de hoek is ongeveer $h1&deg;(de oranje hoek in het plaatje...) N.B. voor tan<sup>-1</sup> wordt ook wel de term <em>atan</em> gebruikt</li><li>De richtingshoek tussen <em>m</em> en de rode stippellijn is tan<sup>-1</sup>($a2)  &asymp; $hoek2&deg; dus de hoek is ongeveer $h2&deg;(de groene hoek in het plaatje...) </li><li> De hoek tussen twee lijnen is altijd de scherp hoek</li><li>De hoek tussen lijnen <em>m</em> en <em>l</em> is  $hoektext</li></ul>
+ textanswer$n=$rr
+
+!endif
+ex1=&deg;
+description=!record 9 of lang/remarks.$taal
+#@De hoek tussen <em>m</em> en <em>l</em>
+
+object$n=!exec canvasdraw\
+size 300,300\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+linewidth 1\
+precision 1\
+axis\
+axisnumbering\
+grid 1,1,grey,1,1,5,black\
+precision 100\
+legend l(x)=$a1\u2219x $b1:m(x)=$a2\u2219x+$b2\
+legendcolors blue:green\
+linewidth 2\
+dhline 0,$ys,red\
+line -100,$y11,100,$y12,blue\
+line -100,$y21,100,$y22,green\
+linewidth 6\
+point $xs,$ys,red\
+opacity 180,40\
+linewidth 1\
+filled\
+fillcolor red\
+angle $xs,$ys,1,0,$hoek1,red\
+fillcolor green\
+filled\
+angle $xs,$ys,1,0,$hoek2,green\
+fillcolor green\
+filled\
+fontfamily italic 14px Ariel\
+string red,$xs+1,$ys+1,$h1\u00b0\
+string green,$xs+1,$ys-1,$h2\u00b0\
+$hoekplaatje\
+zoom red\
+mouse red,22
+
+
+!exit 

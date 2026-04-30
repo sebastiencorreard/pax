@@ -1,0 +1,135 @@
+!set title=Sens d'une rotation 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$(tmp0)
+tmp0=!item $val6 of $val1/pentaA.gif,$val1/hexaA.gif,$val1/octoA.gif
+
+val7=$(tmp0)
+tmp0=!item $val6 of 72,60,45
+
+val8=$(tmp0)
+val9=A,B,C,D,E	F,G,H,I,J	A,B,C,D,E,F	G,H,I,J,K,L	A,C,E,G,I,K,M,Q	B,D,F,H,J,L,N,P
+tmp0=!randint 2*$val6-1, 2*$val6
+
+val10=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+val10=$val10,$val10
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+val8=$[rint($val11*$val8)]
+tmp0=!itemcnt $val10
+
+val12=$[rint($(tmp0))]
+val13=$[rint(ceil($val12/4))]
+val12=$[rint(floor(3*$val12/4))]
+tmp0=!randint $val12, $val13
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val15=$[rint($(tmp0))]
+tmp0=!item $val15 of -1,1
+
+val16=$[rint($(tmp0))]
+tmp0=!item $val14+$val16*$val11 of $val10
+
+val17=$(tmp0)
+tmp0=!item $val14-$val16*$val11 of $val10
+
+val18=$(tmp0)
+tmp0=!item $val14 of $val10
+
+val14=$(tmp0)
+val19=$val18,$val17,$val14
+
+!ifval $val16<0
+val16=positif
+!else
+val16=négatif
+!endif
+val20=$val17
+val21=Quelle est l'image de $val14 par la rotation de centre O, d'angle $val8° et de sens $val16
+val22=L'image de $val14 est
+choicename1=
+choicegood1=$val20
+choicebad1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   $val21 ?<p>	<b>Votre réponse :</b></p>	$val22  
+!read oef/embed.phtml c1 
+$()	 <div class="wimscenter">	  <img src="$val7" alt="">	 </div>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,21,22
+embedcnt=1

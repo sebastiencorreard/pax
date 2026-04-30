@@ -1,0 +1,151 @@
+n=$counter
+#answer=(x-$x2)^2+(y-$y2)^2=$t
+
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+AAA=!tolower $(reply$n)
+AAA=!rawmath $AAA
+!for p in $wims_rawmath_variables
+ !if $p notin $AAA
+  txt=!record 21 of lang/remarks.$taal
+  #@je bent variabele $p vergeten
+  maxscore=$P6*$maxscore
+  !if exam isin $session
+   extratxt=$txt
+  !else
+   goback=1
+   errortext=$txt
+   !exit
+  !endif
+ !endif
+!next p
+AAA=!replace internal = by , in $AAA
+# (x-a)^2+(y-b)^2,c
+p=!itemcnt $AAA
+!if $p < 2
+ txt=!record 22 of lang/remarks.$taal
+ #@de cirkelvergelijking is van het type (x-a)^2+(y-b)^2=c
+ maxscore=$P1*$maxscore
+ !if exam isin $session
+  extratxt=!append line <br />$txt to $extratxt
+ !else
+  goback=1
+  errortext=$txt
+ !exit
+ !endif
+!endif
+!if $p > 2
+    AAA=!item -1 to -2 of $AAA
+    txt=!record 23 of lang/remarks.$taal
+    #@van je antwoord $(reply$n) kijk ik alleen naar het laatste gedeelte... $(A[1]) = $(A[2])
+    extratxt=!append line <br />$txt to $extratxt
+!endif
+# ^ tellen
+chk=!positionof char ^ in $AAA
+# (x-a),2+(y-b),2,c
+p=!itemcnt $chk
+!if $p!=2
+ txt=!record 22 of lang/remarks.$taal
+ #de cirkelvergelijking is van het type (x-a)^2+(y-b)^2=c
+ maxscore=$P1*$maxscore
+ !if exam isin $session
+  extratxt=!append line <br />$txt to $extratxt
+ !else
+  goback=1
+  errortext=$txt
+ !exit
+ !endif
+!endif 
+
+# we weten nu bijna zeker dat er een juiste formulering is gebruikt...tenzij de zaak letterlljk&sluw is overgetikt
+
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+!if x notin $A1
+ p=$A2
+ A2=$A1
+ A1=$p
+!endif
+# A1 (x-5)^2+(y-7)^2
+# A2 = r^2
+GGG=!replace internal = by , in $(answer$n)
+G1=!item 1 of $GGG
+G2=!item 2 of $GGG
+
+test=!exec pari if(1.0*($A1)-1.0*($A2) == 1.0*($G1)-1.0*($G2),1,0)\
+if(1.0*($A1) == 1.0*($G1) || 1.0*($A1) == 1.0*($G2),1,0)\
+if(1.0*($A2) == 1.0*($G2) || 1.0*($A2) == 1.0*($G1),1,0)
+
+t1=!line 1 of $test
+t2=!line 2 of $test
+t3=!line 3 of $test
+t4=$[$t1+$t2+$t3]
+!if $t4=3
+ score=1
+!else
+ !if $t1=1
+  # var1<0 geen check op letterlijk
+  score=1
+  !if $var1>0
+   score=0
+   # check op letterlijk intiepen
+   chk=!nospace $(reply$n)
+   chk=!lower $chk
+   chk=!replace internal + by $empty in $(reply$n)
+   chk=!replace internal - by $empty in $chk
+   # als iemand ...=-123 omzet naar ...+123=0
+   chk=!replace internal =0 by $empty in $chk
+   chk=!replace internal = by $empty in $chk
+   chk=!replace internal * by $empty in $chk
+   # als iemand x^2/1 toevoegd
+   chk=!replace internal / by $empty in $chk
+   chk=!replace internal ( by $empty in $chk
+   chk=!replace internal ) by $empty in $chk
+   # wat niet te controleren valt , iets als 8x --> omgebouwd naar --> 16x/2
+   chk=!exec toascii $chk
+   !ifval $var1=$chk
+    ex=!record 24 of lang/remarks.$taal
+    #@<br />Je hebt de zaak letterlijk overgetikt...
+    extratxt=!append line $ $ex  $ to $extratxt
+   !endif
+  !endif
+ !else
+  !if $t2=1
+    ex=!record 25 of lang/remarks.$taal
+    #@<br />Je hebt de cirkelvergelijking $A1 goed 
+   extratxt=!append line $ex to $extratxt
+   score=0.7
+  !else
+   !if $t3=1
+    score=0.6
+    ex=!record 26 of lang/remarks.$taal
+    #@<br />Je hebt de constante c=$A2 goed
+    extratxt=!append line $ex to $extratxt
+   !endif
+  !endif
+ !endif
+!endif
+math=0
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK <br />$extra
+        k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+
+remark$n=!append line $extratxt to $(remark$n)
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

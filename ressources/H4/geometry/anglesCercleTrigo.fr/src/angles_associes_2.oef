@@ -1,0 +1,82 @@
+\title{Angles associés (cocher un point)}
+\language{fr}
+\author{Véronique, Royer} 
+\email{royer.veronique@orange.fr}
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+//// géneration aléatoire d'un angle, éviter les positions proches des axes
+ \real{angle = randitem(-1,1)*random(0.2 .. pi - 0.2)  }
+ \if( -0.1 < (\angle - pi/2) && (\angle - pi/2)  < 0.1){\real{angle = random( pi/2 - 0.2 , pi/2 + 0.2) }}
+
+\real{angle=pari(0.01*floor(\angle*100))}
+
+\text{assocs=  pi - \angle, pi + \angle, -\angle,    2*pi +\angle, -pi - \angle, -pi + \angle, 2*pi - \angle}
+/// pour l'énoncé (nommer l'angle associé)
+\text{noms= \pi - \alpha, \pi + \alpha, -\alpha, 2\pi +\alpha, -\pi - \alpha, -\pi + \alpha, 2\pi - \alpha}
+\text{ptsols=  B, C, D, A, B, C, D}
+
+/// choix aléatoire
+\integer{alea=randint(1..7)}
+\real{ assoc=  item( \alea , \assocs)} 
+\text{nom = item( \alea , \noms) }
+\text{ptsol = item( \alea , \ptsols) }
+
+\integer{goodrep = item(\alea, 2,3,4,1,2,3,4)}
+
+/// lignes trigos et coord des points
+\real{cos = pari(cos(\angle))}
+\real{sin = pari(sin(\angle))}
+\real{minuscos = -\cos}
+\real{minussin = -\sin}
+
+
+
+\text{jscript = 
+var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});
+var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});
+var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});
+
+var c = brd.create('circle', [pO,pI], {strokeWidth:1, strokeColor:'grey'}) ;
+
+var pA = brd.create('point',[\cos,\sin], {name:'A',size: 3,  face: 'o', fixed:true, color:'blue'});
+var pB = brd.create('point',[\minuscos,\sin], {name:'B',size: 2,  face: 'o', fixed:true, color:'black'});
+var pC = brd.create('point',[\minuscos,\minussin], {name:'C',size: 2,  face: 'o', fixed:true, color:'black'});
+var pD = brd.create('point',[\cos,\minussin], {name:'D',size: 2,  face: 'o', fixed:true, color:'black'});
+
+brd.create('segment',[pA,pB], { strokeWidth:1, strokeColor:'blue'});
+brd.create('segment',[pB,pC], { strokeWidth:1, strokeColor:'blue'});
+brd.create('segment',[pC,pD], { strokeWidth:1, strokeColor:'blue'});
+brd.create('segment',[pD,pA], { strokeWidth:1, strokeColor:'blue'});
+
+brd.create('arc',[pO,pI,pA], { strokeWidth:2 , strokeColor:'blue'});
+
+brd.update() ; 
+}
+
+\text{fig = slib(geo2D/jsxgraph  jxgbox, 300 x 300, \jscript)}
+
+\statement{ 
+<p>Soit  A un point du cercle trigonométrique tel que   
+l'angle orienté \(\left( \vec{OI} , \vec{OA} \right) ) mesure \(\alpha = \angle) radians. </p>
+<p>Les points B, C et D
+sont  les symétriques du point A respectivement  par rapport à :  l'axe des ordonnées,  à l'origine, à l'axe des abscisses.
+</p>
+\fig
+<p>
+Quel est le point P du cercle tel que   l'angle  orienté \(\left( \vec{OI} , \vec{OP} \right) ) mesure \(\beta\;= \; \nom) radians
+? </p>
+P  =   \embed{reply1}
+
+}
+
+
+\answer{Point associé }{\goodrep ;A,B,C,D }{type=radio}
+
+
+
+
+
+
+ 

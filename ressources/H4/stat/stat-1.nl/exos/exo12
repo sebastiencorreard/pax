@@ -1,0 +1,83 @@
+!set n=$counter
+cols=25
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/vreemde_eend.nieuw.2.phtml
+checkfile=exos/checkfile2.proc
+math=0
+image=0
+inputs=yes
+make_tr=1
+!if $rounding<100 or $rounding=$empty
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+    # increasing
+    !if $counter=1
+	options=2
+	var4=!randitem 4,8
+	var4=7
+    !else
+	!if $counter=2
+	    options=3
+	    var4=!randitem 4,8,12
+	!else
+	    options=5
+	    var4=!randint 8,12,16
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=2
+	var4=!randitem 4,8
+    !else
+	!if $level=2
+	    options=3
+	    var4=!randitem 4,8,12
+	!else
+	    options=5
+	    var4=!randitem 8,12,16
+	!endif
+    !endif
+!endif
+
+!if $subject=12
+    # geen freq
+    var5=0
+!else
+    var5=1
+!endif
+helptext=!record 41 of lang/remarks.$taal
+
+ss1=!record 56 of lang/remarks.$taal
+#@ Bepaal aan de hand van je eigen verzamelde meetgegevens:<p>
+description=!record 2 of lang/remarks.$taal
+#@ Het gemiddelde,de standaardafwijking ($m_sigma ),de mediaan ( $m_mu ),het eerste kwartiel (Q1),standaardafwijking ($m_sigma )
+meting=!record 10 of lang/remarks.$taal
+#@ meting,seconden
+
+met1=!item 1 of $meting
+met2=!item 2 of $meting
+datatable=$empty
+!for p=1 to $options
+    datatable=!append line $ <tr><td>$(description[$p])</td><td>=</td><td><input id="myinput$[$p-1]" size="10" value="" class="schaersvoorde_input" /></td></tr> $ to $datatable
+!next p
+question$n=<a onmouseover="return escape('$helptext')">$ss1</a>
+exotext=<table class="zebra_table_h2">$datatable</table>
+t=!recordcnt lang/questions.$taal
+lst=$empty
+!for p=1 to $t
+    lst=!append item $p to $lst
+!next p
+lst=!shuffle $lst
+# var6 is js-array
+var6=$empty
+!for p=1 to $t
+    s=!item $p of $lst
+    PP=!record $s of lang/questions.$taal
+    PP=!lines2items $PP
+    var6=!append item $PP to $var6
+!next p

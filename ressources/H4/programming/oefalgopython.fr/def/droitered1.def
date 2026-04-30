@@ -1,0 +1,385 @@
+!set title=Équation réduite d'une droite 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r,r,r,r,r,r,r
+varcnt=67
+prevarcnt=66
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val2==)
+val6=ambiance
+!else
+val6=$val2
+!endif
+tmp0=!randint 10, 50
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val8=$[rint($(tmp0)$(tmp1))]
+tmp0=!randint -4, 4
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val10=$[rint($(tmp0))]
+t_=!replace internal \( by ( in expand($val8*x^2+$val9*x+$val10)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp=!translate ;";': to $     $ in $val11,x
+
+tmp=!lower $tmp
+tmp0=!exec maxima diff($tmp);
+val12=!rawmath $(tmp0)
+tmp0=!replace x by x_i in $val12
+
+val13=$(tmp0)
+tmp0=!replace x by t in $val11
+
+val14=$(tmp0)
+tmp0=!replace x by t in $val12
+
+val15=$(tmp0)
+tmp0=!replace \^ by ** in $val11
+
+val16=$(tmp0)
+tmp0=!replace \^ by ** in $val12
+
+val17=$(tmp0)
+tmp0=!replace \^2 by *x in $val11
+
+val18=$(tmp0)
+tmp0=!replace \^3 by *x*x in $val18
+
+val19=$(tmp0)
+tmp0=!texmath $val11
+
+val20=$(tmp0)
+val21=$[-$val9/2/$val8]
+tmp0=!randint 2, 5
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val23=$[rint($(tmp0))]
+val24=$[rint(floor($val21)-$val22)]
+val25=$[rint(floor($val21)+$val23)]
+
+!ifval ($val8>0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)-10
+val26=!exec pari print($t_)
+!endif
+
+!ifval ($val8>0 and abs($val22)>=abs($val23))
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)+10
+val27=!exec pari print($t_)
+!else
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)+10
+val27=!exec pari print($t_)
+!endif
+
+!ifval ($val8<0)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)+10
+val27=!exec pari print($t_)
+!endif
+
+!ifval ($val8<0 and abs($val22)>=abs($val23))
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val24) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)-10
+val26=!exec pari print($t_)
+!else
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val25) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)-10
+val26=!exec pari print($t_)
+!endif
+tmp0=!texmath $val26
+
+val28=$(tmp0)
+tmp0=!texmath $val27
+
+val29=$(tmp0)
+
+!ifval ($val24>0)
+val30=$[rint(-1)]
+!else
+val30=$[rint($val24-1)]
+!endif
+
+!ifval ($val25<0)
+val31=$[rint(1)]
+!else
+val31=$[rint($val25+1)]
+!endif
+
+!ifval ($val27<0 and $val26<0 )
+val32=$[rint(10)]
+!else
+val32=$[rint($val27)]
+!endif
+
+!ifval ($val27>0 and $val26>0)
+val33=$[rint(-10)]
+!else
+val33=$[rint($val26)]
+!endif
+tmp=!trim $val30,$val32,$val31,$val33
+val34=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in f(t)=$val14;
+tmp0=!exec pari $t_
+
+val35=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox1,600 x 200,JXG.Options.point.fixed = false;	JXG.Options.point.showInfobox=true;	JXG.Options.point.highlight=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.size = 5;	JXG.Options.point.withLabel=true;	const board = JXG.JSXGraph.initBoard('jsxbox1', {axis:false, boundingbox: [-10,2,10,-2],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	const xxaxis = board.create('axis', [[0, 0], [1,0]]);	var p1=board.create('point',[-8,0],{name:'a', fixed: true, strokeColor:'black',label: {Color:'blue',offset:[-15,10]}});	var p2=board.create('point',[8,0],{name:'b', fixed: true, strokeColor:'black',label: {Color:'blue'}});	board.create('line',[p1,p2],{straightFirst:false, straightLast:false});	var nn = board.create('slider',[[-8,1.5],[-4,1.5],[1,1,10]],{name:'nombre de sous-intervalles',snapWidth:1});	var dynamicObjects = [];	var glider_xi = null;	var lastN = -1;	function clearDynamic() {	  if (glider_xi !== null) {	    board.removeObject(glider_xi);	    glider_xi = null;	  }	  for (var i = 0; i < dynamicObjects.length; i++) {	    board.removeObject(dynamicObjects[i]);	  }	  dynamicObjects = [];	}	function rebuild() {	  var n = Math.round(nn.Value());	  if (n === lastN) return;	  lastN = n;	  var a = p1.X();	  var b = p2.X();	  var h = (b - a) / n;	  board.suspendUpdate();	  clearDynamic();	  var subdivPoints = [];	  for (var i = 0; i <= n; i++) {	      var xi = a + h * i;	      var pt = board.create('point', [xi, 0], {name: 'x_{' + i + '}', strokeColor: 'green', fillColor: 'green', face: '+', size: 11, fixed: true,showInfobox: false, label: { offset: [0, -18], fontSize: 10 }});	      dynamicObjects.push(pt);	      subdivPoints.push(pt);	      if (i < n) {var txt = board.create('text', [xi + h / 2, 0.5, 'h'], {anchorX: 'middle', fontSize: 12, fixed: true});	        dynamicObjects.push(txt);	      }	  }	var topSeg = board.create('segment', [[a, 0.25], [b, 0.25]], { strokeColor: 'green', strokeWidth: 2, fixed: true});	dynamicObjects.push(topSeg);	glider_xi = board.create('glider', [a, 0, xxaxis], { name: 'x_i',	  showInfobox: false,	  fillColor: 'white', strokeColor: 'red',	  face: 'o', size: 12,	  attractors: subdivPoints,	  attractorDistance: h / 2,	  snatchDistance: h / 2,	  label: { color: 'red', offset: [0, 25], fontSize: 12 }	});	var label_xi = board.create('text', [0, -1, function() {	      var k = Math.round((glider_xi.X() - p1.X()) / h);	      if (k === 0) return 'x_i = a';	      if (k === 1) return 'x_i = a+h';	      return 'x_i = a+' + k + 'h';	    }], { anchorX: 'middle', fontSize: 14, color: 'red', fixed: true });	dynamicObjects.push(label_xi);	board.unsuspendUpdate();	}	rebuild();	nn.on('drag', function() {rebuild();});	 
+tmp0=$slib_out
+val36=$(tmp0)
+val37=Déterminer l'équation réduite d'une droite \((d )\) passant par 2 points
+tmp0=!randint -5, 5
+
+val38=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val39=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val40=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val41=$[rint($(tmp0))]
+!while $val38==$val40 
+tmp0=!randint -5, 5
+
+val38=$[rint($(tmp0))]
+!endwhile
+val30=$[rint(-6)]
+val31=$[rint(6)]
+val33=$[rint(-6)]
+val32=$[rint(6)]
+t_=!rawmath ($val41-$val39)/($val40-$val38)
+val42=!exec pari print($t_)
+val43=$val42*x+p
+t_=!rawmath $val39-($val41-$val39)/($val40-$val38)*$val38
+val44=!exec pari print($t_)
+val45=$val42*x+$val44
+val46=<p>Soit une droite \((d)\) passant par les points \(A($val38;$val39)\)	 et \(B($val40;$val41)\). On recherche l'équation réduite de cette droite de la forme :	 \(y=m x+p \).</p>
+val47=Représentation graphique des points \(A\), \(B\) en rouge et de la	 droite créée en vert
+t_=!replace internal \( by ( in default(format, "f.8");	xa=$val38;	ya=$val39;	xb=$val40;	yb=$val41;	pn=$val7;	xxli=[xa*1.0,xb*1.0];	yyli=[ya*1.0,yb*1.0];	mmli=(yb-ya)/(xb-xa)*1.0;	ppli=ya-mmli*xa;	
+tmp0=!exec pari $t_
+
+val48=$(tmp0)
+val49=\#Initialisation des variables\#	x_A=??	y_A=??	x_B=??	y_B=??	\#Initialisation des listes\#	x_list=[x_A,x_B]	y_list=[y_A,y_B]	\#Coeur du programme\#	m=??	p=??	\#Affichage des listes\#	print(x_list)	print(y_list)	print('m=',m)	print('p=',p)
+val50=m=Sk.ffi.remapToJs(Sk.globals["m"]);	p=Sk.ffi.remapToJs(Sk.globals["p"]);
+val51=for(var jj = 0; jj < xlen; jj=jj+1) {	var t=brd.create('point', [x_liste[jj],y_liste[jj]],{color:'red',fixed:true,name:""});}	brd.create('functiongraph', [function(x){ return m*x+p;}, $val30, $val31], {strokeWidth: 2,Color: "green"});	
+val52=$[rint(7)]
+val53=Compléter l'algorithme et vérifier vos calculs à l'aide du graphique.
+val54=
+val55=JXG.Options.point.showInfobox = true;	JXG.Options.point.infoboxDigits = 5;	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =4;	JXG.Options.text.useMathJax = true;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val34],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	$val54	
+!readproc slib/geo2D/jsxgraph jsxbox,500 x 500,$val55 
+tmp0=$slib_out
+val56=$(tmp0)
+t_=!replace internal \( by ( in print(xxli);
+tmp0=!exec pari $t_
+
+val57=$(tmp0)
+t_=!replace internal \( by ( in print(yyli);
+tmp0=!exec pari $t_
+
+val58=$(tmp0)
+tmp0=!declosing $val57
+
+tmp=!trim $(tmp0)
+val59=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val58
+
+tmp=!trim $(tmp0)
+val60=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print(mmli);
+tmp0=!exec pari $t_
+
+val61=$(tmp0)
+t_=!replace internal \( by ( in print(ppli);
+tmp0=!exec pari $t_
+
+val62=$(tmp0)
+tmp0=!declosing $val61
+
+tmp=!trim $(tmp0)
+val63=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $val62
+
+tmp=!trim $(tmp0)
+val64=!translate internal $	\
+$ to ;; in $tmp
+replytype1=formal
+replyoption1=nonstop 
+replyname1=
+replygood1=(y_B-y_A)/(x_B-x_A)
+replytype2=numexp
+replyoption2=nonstop 
+replyname2=
+replygood2=$val42
+replytype3=formal
+replyoption3=nonstop 
+replyname3=
+replygood3=$val43,$val45
+replytype4=equation
+replyoption4=nonstop 
+replyname4=
+replygood4=!rawmath $val42*$val38+p=$val39,p
+replytype5=formal
+replyoption5=nonstop 
+replyname5=
+replygood5=$val44
+replytype6=formal
+replyoption6=nonstop 
+replyname6=
+replygood6=$val45
+replytype7=runcode
+
+replyoption7=precision=10000 \instruction_code 
+replyweight7=10 
+replyname7=
+replygood7=[x_list,[$val59]],[y_list,[$val60]],[m,[$val63]],[p,[$val64]]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<p class="problematique">$val37</p>	<div class="enonce">	$val46	<div class="question">	<div class="bold">Déterminer une équation réduite de la droite 
+!insmath ( d )
+$() :</div>	<ul>	<li>Donner la formule permettant le calcul du coefficient directeur 
+!insmath m
+$() lorsque les coordonnées de 2 points	 
+!insmath A(x_A;y_A)
+$() et 
+!insmath B(x_B;y_B)
+$() sont connues :	<div class="wims_instruction"> Pour écrire correctement 
+!insmath x_A
+$(), taper x_A .	 Pour écrire correctement 
+!insmath y_A
+$(), taper y_A ...</div>	<div class="wimscenter">
+!insmath m=
+$()  
+!read oef/embed.phtml reply1,20 
+$() </div></li>	<li>Déterminer la valeur du coefficient directeur sous forme fractionnaire si nécessaire :	<div class="wimscenter">
+!insmath m=
+$()  
+!read oef/embed.phtml reply2,20 
+$() </div></li>	<li>À l'aide des calculs précédents, déduire l'équation réduite de la droite :	<div class="wimscenter">
+!insmath y=
+$()  
+!read oef/embed.phtml reply3,20 
+$() </div></li>	<li>Le point 
+!insmath A
+$() ou 
+!insmath B
+$() appartient à la droite 
+!insmath (d)
+$() donc on peut écrire l'équation suivante :	<div class="wimscenter"> 
+!read oef/embed.phtml reply4,20 
+$() </div></li>	<li>Résoudre l'équation précédente et déterminer la valeur de l'ordonnée à l'origine 
+!insmath p
+$().	<div class="wimscenter">
+!insmath p=
+$() 
+!read oef/embed.phtml reply5,20 
+$() </div></li>	<li>En déduire l'équation réduite de la droite 
+!insmath (d)
+$() :	<div class="wimscenter">
+!insmath y=
+$() 
+!read oef/embed.phtml reply6,20 
+$() </div></li>	</ul>	</div>	<div class="question">	<div class="bold">$val53</div>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply$val52,[python,[$val49]];[idtest2,theme=$val6 canvas init \instruction_code,Jouer le code !] 
+$()	</div>	<div class="wimscenter wimsborder box">	<b>$val47</b>	$val56	</div>	</div></div></div>	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	$val50	const xlen=x_liste.length;	const brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val34],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	brd.suspendUpdate();	$val51	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,34,37,46,47,49,50,51,52,53,56
+embedcnt=7

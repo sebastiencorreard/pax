@@ -1,0 +1,120 @@
+n=$counter
+goback=0
+
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+# hmmm is dit wel zo handig?
+A=!nospace $(reply$n)
+G=!nospace $(answer$n)
+alfa=a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+!for p=1 to 26
+    letter=!item $p of $alfa
+    A=!replace internal $letter by $p in $A
+    G=!replace internal $letter by $p in $G
+    letter=!toupper $letter
+    s=$[$p+1]
+    A=!replace internal $letter by $s in $A
+    G=!replace internal $letter by $s in $G
+!next p
+!for p=1 to 10
+    A=!replace internal ^$p- by -$p in $A
+    G=!replace internal ^$p- by -$p in $G
+!next p
+A=!replace internal _ by $empty in $A
+G=!replace internal _ by $empty in $G
+A=!replace internal -, by -1, in $A
+G=!replace internal -, by -1, in $G
+A=!replace internal ^+1, by ^+, in $A
+G=!replace internal ^+1, by ^+, in $G
+A=!replace internal ^1+, by ^+, in $A
+G=!replace internal ^1+, by ^+, in $G
+A=!replace internal ^ by + in $A
+G=!replace internal ^ by + in $G
+#errortext=$A<br />$G
+#goback=1
+#!exit
+t=!itemcnt $G
+score=0
+#var1=naam zout,formule,positieve ion,negatieve ion,verhouding
+n1=!item 2 of $var1
+n2=!item 3 of $var1
+n3=!item 4 of $var1
+n4=!item 5 of $var1
+rep=<table><tr><th>$n1</th><th>$n2</th><th>$n3</th><th>$n4</th></tr>
+Tbody=$empty
+#<table style="border-width:1px;border-style:outset" $paperbg cellpadding="5"><tr>
+c=1
+!for p=1 to $t
+    ex=$empty
+    !if $c>4
+	rep=!append word </tr> to $rep
+	c=1
+    !endif
+    !if $c=1
+	rep=!append word <tr> to $rep
+    !endif
+    a=!item $p of $A
+    !if ? isin $a
+	rep=!append word <td><span style="color:red">$dontknow</span></td> to $rep
+    !else
+	g=!item $p of $G
+	org=!item $p of $(reply$n)
+	!if $c != 4
+	    !ifval $[$a] = $[$g]
+		!increase score
+		k=green
+	    !else
+		k=red
+		ex=!item $p of $(answer$n)
+		ex=[moest zijn: <span style="color:green">$ex</span>]
+	    !endif
+    	    rep=!append word <td><span style="color:$k">$org</span> $ex</td> to $rep
+	!else
+	    # laatste item is de verhouding 3:1 3 staattot 1 3/1 1;1 
+	    lasta=!replace [a-z\:\;\\/\!\~\@\#\%\&\(\)\{\}] by , in $a
+	    z=!itemcnt $lasta
+	    !for s=1 to $[$z+1]
+		lasta=!replace internal ,, by , in $lasta
+	    !next s
+	    a1=!item 1 of $lasta
+	    a2=!item 2 of $lasta
+	    g=!replace : by , in $g
+	    g1=!item 1 of $g
+	    g2=!item 2 of $g
+	    !ifval $g1=$a1 and $g2=$a2
+		!increase score
+		k=green
+	    !else
+		!ifval $g2=$a1 and $g1=$a2
+		    k=orange
+		    ex=[omgedraaid...]
+		    score=$[$score+0.4]
+		!else
+		    k=red
+		!endif
+	    !endif
+	    rep=!append word <td><span style="color:$k">$org</span> $ex</td> to $rep
+	!endif
+	# er zijn 4 vragen per $option, er zijn $option vragen per exo
+    !endif
+    !increase c
+!next p
+
+reply$n=!append word </table> to $rep
+maxscore=$[$maxscore*$score/$t]
+modulescore=$[$modulescore_org+$maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!exit
+

@@ -1,0 +1,209 @@
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+questiontype=0
+# geen problemen met arrows <=>
+use_ineq=1
+#mathviewpanel=$module_title:(x;y):x<:x<=:x>:x>=
+mathview=0
+inputs=2
+make_tr=0
+display=1
+draw=1
+plot=0
+math=0
+varlist=x
+image=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif 
+sometext1=!record 33 of lang/remarks.$taal
+description=!record 39 of lang/remarks.$taal
+helptext=!record 53 of lang/remarks.$taal
+onder=!item 1 of $sometext1
+boven=!item 2 of $sometext1
+en=!item 3 of $sometext1
+and=!record 58 of lang/remarks.$taal
+
+checkfile=exos/checkfile1.proc
+!if $R=1
+    cols=12
+    a=!randitem 2,4,6,8,10
+    b=!randitem 5,7,9,11,12,14,16,19
+    q=!randitem 1,2,3,4,5,6,7,8,9
+    p=!randitem 1,2,3,4,5,6,7,8,9
+    pm=!randitem +,-
+    mp=!randitem +,-
+    f=!randitem f,h,k
+    g=!randitem g,m,r
+    #haakse lijnen
+    rc1=$a/$b
+    rc2=-1*$b/$a
+    L1=($rc1)*x $pm ($q)
+    L2=($rc2)*x $mp ($p)
+    # x(rc1-rc2) = $mp $p - ($pm $q)
+    #x=(($mp $p) - ($pm $q))/($rc1 - $rc2)
+    
+    tot=!exec pari printtex($L1)\
+    printtex($L2)\
+    (($mp ($p)) - ($pm ($q)))/(($rc1) - ($rc2))\
+    a=(($mp ($p)) - ($pm ($q)))/(($rc1) - ($rc2)); ($rc1)*a $pm $q
+    
+    lijn1=!line 1 of $tot
+    lijn2=!line 2 of $tot
+    x1=!line 3 of $tot
+    y1=!line 4 of $tot
+
+    var1=$x1,$y1
+    !if $rounding!=0
+	x1=$[(round($rounding*$x1))/$rounding]
+	y1=$[(round($rounding*$y1))/$rounding]
+    !else
+	x1=$x1
+	y1=$y1
+    !endif
+        
+    keuze=!randitem 1,2
+    !if $keuze=1
+    # lijn1>lijn2 ==> x>X
+	gk= >
+	ligging=$boven
+	var2=x>$x1
+	ongelijkheid=x&gt;$x1
+	latextekst=$f > $g
+    !else
+    # lijn2>lijn1 = => x<X
+	gk= <
+	ligging=$onder
+	var2=x<$x1
+	ongelijkheid=x&lt;$x1
+	latextekst=$f < $g
+    !endif
+    F=$f
+    G=$g	
+    f=&nbsp;$f&nbsp;
+    g=&nbsp;$g&nbsp;
+    formula$n=\left[ \begin{array}{l}$F(x)=$lijn1\\ \\  $G(x)=$lijn2 \\ \\ $F(x) $gk $G(x)\end{array}\right.
+    #applettext=!nospace  {array( $F(x)=$L1 ,array( $G(x)=$L2 , $F(x) $gk $G(x) ))}  -> 
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1)  \\ $var2 \end{array}\right.
+    ss=!record 34 of lang/remarks.$taal
+    #@ Bepaal de snijpunten tussen twee rechte lijnen<br />En los de ongelijkheid op.<p>Gegeven zijn twee rechte lijnen $f en $g <br /><ul><li>Bepaal de co&ouml;rdinaten van het snijpunt tussen $f en $g</li><li>Geef aan voor welke <em>x</em>-waarden de grafiek van $f $ligging die van $g ligt.</li></ul>
+    question$n=$ss
+    rr=!record 35 of lang/remarks.$taal
+    #@ het snijpunt ($x:$y)<br />De grafiek van $f ligt $ligging $g als geldt: $ongelijkheid
+    textanswer$n=$rr
+    !if $teaching=1
+	transparent=$white
+	grafiek=linewidth 1\
+	vline 0,0,blue\
+	hline 0,0,blue\
+	linewidth 2\
+	curve red,$L1\
+	curve green,$L2\
+	linewidth s*14\
+	point $[$x1],$[$y1],yellow
+    !endif
+    answer$n=($x1:$y1),$var2
+ !goto READY
+!endif
+
+!if $R>1
+    cols=20
+    a=!randitem 2,4,6,8,10
+    b=!randitem 5,7,9,11,12,14,16,19
+    q=!randitem 1,2,3,4,5,6,7,8,9
+    p=!randitem 1,2,3,4,5,6,7,8,9
+    c=!randitem 4,6,8,10
+    s=$[$a+$c]
+    !if $s=$q
+	s=$[$q+2]
+    !endif
+    pm=!randitem +,-
+    mp=!randitem +,-
+    #haakse lijnen
+    rc1=$a/$b
+    rc2=-1*$b/$a
+    RR=($rc1)*x $pm ($q)
+    G=($rc2)*x $mp ($p)
+    B=($rc1)*x $pm ($s)
+    r=&nbsp;r&nbsp;
+    g=&nbsp;g&nbsp;
+    b=&nbsp;b&nbsp;
+    # x(rc1-rc2) = $mp $p - ($pm $q)
+    #x=(($mp $p) - ($pm $q))/($rc1 - $rc2)
+    
+    tot=!exec pari printtex($RR)\
+    printtex($G)\
+    printtex($B)\
+    (($mp ($p)) - ($pm ($q)))/(($rc1) - ($rc2))\
+    a=(($mp ($p)) - ($pm ($q)))/(($rc1) - ($rc2)); ($rc1)*a $pm ($q)\
+    (($mp ($p)) - ($pm ($s)))/(($rc1) - ($rc2))\
+    b=(($mp ($p)) - ($pm ($s)))/(($rc1) - ($rc2)); ($rc1)*b $pm ($s)
+    
+    R1=!line 1 of $tot
+    G1=!line 2 of $tot
+    B1=!line 3 of $tot
+    x1=!line 4 of $tot
+    y1=!line 5 of $tot
+    x2=!line 6 of $tot
+    y2=!line 7 of $tot
+
+    var1=$x1,$y1,$x2,$y2
+    
+    !if $pm=+
+	ligging=$g $boven $r <b>$and</b> $g $onder $b 
+	var2=$x1<x&&x<$x2
+	texans=$x1<x<$x2
+	ongelijkheid=$x2 &lt; x &lt; $x1
+	latextekst=r < g < b
+    !else
+	ligging=$g $onder $r <b>$and</b> $g $boven $b 
+	var2=$x2<x&&x<$x1
+	texans=$x2<x<$x1 
+	ongelijkheid=$x1 &lt; x &lt; $x2
+	latextekst=b < g < r
+    !endif
+    formula$n=$latextekst\rightarrow \left[ \begin{array}{l}r(x)=$R1\\g(x)=$G1\\b(x)=$B1\end{array}\right.
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1) \\ ($x2 : $y2) \\ $texans \end{array}\right.
+    !if $graph>0
+	ss=!record 36 of lang/remarks.$taal
+	extratekst=$ss
+	#@ <p align="left">In de grafiek zijn de drie lijnen gekleurd weergegeven<br />de lijn $r is <span color=red> rood gekleurd</span> en de lijn $g is <span color=green> groen gekleurd</span><br />de lijn $b is natuurlijk <span color=$fontcolor6> in't blauw</span></p>
+    !endif
+	
+    ss=!record 37 of lang/remarks.$taal
+    #@ Bepaal de snijpunten tussen twee rechte lijnen<br />En los de ongelijkheid op.<p> Gegeven de drie rechte lijnen: $r  , $g en $b <br /><ul><li>Bepaal de co&ouml;rdinaten van de snijpunten tussen $r , $g en $b</li><li>Geef aan voor welke <em>x</em>-waarden de grafiek van $ligging ligt .</li></ul><br />$extratekst
+    question$n=$ss
+    rr=!record 38 of lang/remarks.$taal
+    #@ <div align="left">Het goede antwoord is dus: <ul><li>De snijpunten: ($x1:$y1) &and; ($x2:$y2)</li><li>En waar de grafiek van  $ligging  geldt: $ongelijkheid</li></ul></div>
+    textanswer$n=$rr
+    !if $teaching=1
+	transparent=$white
+	grafiek=linewidth 2\
+	curve red,$RR \
+	curve green,$G \
+	curve blue,$B \
+	linewidth s*18\
+	points yellow,$[$x1],$[$y1],$[$x2],$[$y2]
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!endif
+
+:READY
+!if $teaching=1
+    xrange=-30,30
+    yrange=-30,30
+    insdraw_size=320,320    
+    !insdraw xrange $xrange\
+    yrange $yrange\
+    linewidth 1\
+    $grafiek
+	
+    stext=!record 54 of lang/remarks.$taal
+    exotext=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$stext</span></a>
+!endif
+!exit

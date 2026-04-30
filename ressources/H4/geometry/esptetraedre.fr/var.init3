@@ -1,0 +1,140 @@
+!! position droite et plan
+!if $mode=3
+  !if $selplan=1
+    !! choix de la face du tetraedre
+    face = !randint 1,4
+    lstpts=
+    !for pt in $listpoint
+      !if $face isitemof $(face$pt)
+        lstpts= !append item $pt to $lstpts
+      !endif
+    !next
+    lstpts = !shuffle $lstpts
+    ptsplan = $(lstpts[1]),$(lstpts[2])
+    lstdte=!listintersect $(dte$(lstpts[1])) and $(dte$(lstpts[2]))
+    lstdte2=
+    !for ii=3 to 8
+      lstdte2=!listintersect $lstdte and $(dte$(lstpts[$ii]))
+      !if $lstdte2=
+        ptsplan= !append item $(lstpts[$ii]) to $ptsplan
+        !break
+      !endif
+    !next
+    ptsplan = !sort item $ptsplan
+    tplan=$(ptsplan[1])$(ptsplan[2])$(ptsplan[3])
+    !! choix de la droite
+    facedte=!randint 1,4
+    lstpt=
+    !for ii = 1 to 16
+      !if $facedte isitemof $(face$(listpoint[$ii]))
+        lstpt= !append item $(listpoint[$ii]) to $lstpt
+      !endif
+    !next
+    lstpt = !shuffle $lstpt
+    pt1 = $(lstpt[1])
+    pt2 = $(lstpt[2])
+  !else
+    pt1=$(ceplan[1])
+    pt2=$(ceplan[2])
+    tplan=$(ceplan[3])$(ceplan[4])$(ceplan[5])
+    ptsplan=$(ceplan[3]),$(ceplan[4]),$(ceplan[5])
+    face=$(ceplan[6])
+  !endif
+  faceseg= !listintersect $(face$pt1) and $(face$pt2)
+  faceseg= !listintersect $faceseg and 2,3,6
+  !if $faceseg=
+    typeline1=dsegment
+  !else
+    typeline1=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[1])) and $(face$(ptsplan[2]))
+  faceseg= !listintersect $faceseg and 1,2
+  !if $faceseg=
+    typeline2=dsegment
+  !else
+    typeline2=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[2])) and $(face$(ptsplan[3]))
+  faceseg= !listintersect $faceseg and 1,2
+  !if $faceseg=
+    typeline3=dsegment
+  !else
+    typeline3=segment
+  !endif
+  faceseg= !listintersect $(face$(ptsplan[3])) and $(face$(ptsplan[1]))
+  faceseg= !listintersect $faceseg and 1,2
+  !if $faceseg=
+    typeline4=dsegment
+  !else
+    typeline4=segment
+  !endif
+
+  dessin= \
+   $typeline1 $(pt$pt1),$(pt$pt2),red\
+   $typeline2 $(pt$(ptsplan[1])),$(pt$(ptsplan[2])),blue\
+   $typeline3 $(pt$(ptsplan[2])),$(pt$(ptsplan[3])),blue\
+   $typeline4 $(pt$(ptsplan[3])),$(pt$(ptsplan[1])),blue\
+
+  !! Détermination de la réponse
+  goodrep1=3
+  facedest= !listintersect $(face$pt1) and $(face$pt2)
+  !if $face isitemof $facedest
+    goodrep1=2
+  !else
+    !! calcul de la pente de la droite choisie
+    cpt1=$(PT$pt1)
+    cpt2=$(PT$pt2)
+    vecx=!eval $(cpt1[1]) - $(cpt2[1])
+    vecy=!eval $(cpt1[2]) - $(cpt2[2])
+    vecz=!eval $(cpt1[3]) - $(cpt2[3])
+    !! calcul du vecteur normal au plan
+    cpt3=$(PT$(ptsplan[1]))
+    cpt4=$(PT$(ptsplan[2]))
+    cpt5=$(PT$(ptsplan[3]))
+    vec1x=!eval $(cpt3[1]) - $(cpt4[1])
+    vec2x=!eval $(cpt3[1]) - $(cpt5[1])
+    vec1y=!eval $(cpt3[2]) - $(cpt4[2])
+    vec2y=!eval $(cpt3[2]) - $(cpt5[2])
+    vec1z=!eval $(cpt3[3]) - $(cpt4[3])
+    vec2z=!eval $(cpt3[3]) - $(cpt5[3])
+    nvecx=!eval $vec1y*$vec2z - $vec1z*$vec2y
+    nvecy=!eval $vec1z*$vec2x - $vec1x*$vec2z
+    nvecz=!eval $vec1x*$vec2y - $vec1y*$vec2x
+    pdtscal=!eval $nvecx*$vecx +$nvecy*$vecy +$nvecz*$vecz
+    !if $pdtscal<0.001 and $pdtscal >-0.001
+      goodrep1=1
+    !endif
+  !endif
+!! fin $mode=3
+!endif
+
+tetra=linewidth 3\
+polyline black,0,0,24,0,6,18,0,0\
+polyline black,24,0,18,12,6,18\
+dsegment 0,0,18,12,black\
+
+cadre=  \
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+$tetra \
+text $colorA,-0.4,-0.5,medium,A\
+text $colorC,24.1,-0.5,medium,C\
+text $colorB,6,18.8,medium,B\
+text $colorD,18.1,12.8,medium,D\
+text $colorM,1,6,medium,M\
+text $colorN,3,12,medium,N\
+text $colorI,7.8,-0.5,medium,I\
+text $colorJ,15.8,-0.5,medium,J\
+text $colorK,5.8,4.8,medium,K\
+text $colorL,11.8,8.8,medium,L\
+text $colorO,12,12.8,medium,O\
+text $colorP,18.2,6.8,medium,P\
+text $colorQ,10,16.8,medium,Q\
+text $colorR,14,14.8,medium,R\
+text $colorS,20,9.2,medium,S\
+text $colorT,22,5.4,medium,T\
+linewidth 5\
+points blue,0,0,24,0,6,18,18,12\
+points green,8,0,16,0,2,6,4,12,6,4,12,8,12,12,18,6,10,16,14,14,20,8,22,4\
+linewidth 3\
+$dessin

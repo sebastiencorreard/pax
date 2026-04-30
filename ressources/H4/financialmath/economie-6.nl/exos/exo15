@@ -1,0 +1,103 @@
+#:12 Systeem nationale rekeningen [ domein H ]
+# GEEN STEPS
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+make_tr=1
+questiontype=7
+javascript=js/sleep.js
+checkfile=exos/checkfile4.proc
+answer$n=1
+image=0
+math=0
+var1=$empty
+var2=$empty
+var3=$empty
+#lijst=!shuffle Lang vreemd vermogen,Kort vreemd vermogen,Vaste activa,Vlottende activa,Voorraden,Gebouw,Debiteuren,Banksaldo,Kasgelden,Inventaris,Rekening-courant,Eigen vermogen,Hypothecaire lening,Crediteuren
+
+xsize=100
+ysize=20
+
+###### ACTIVA #########
+gebouw=!randint 300,400
+gebouw=$[1000*$gebouw]
+inventaris=!randint 50,200
+inventaris=$[1000*$inventaris]
+voorraden=!randint 400,600
+voorraden=$[1000*$voorraden]
+debiteuren=!randint 100,300
+debiteuren=$[1000*$debiteuren]
+kasgelden=!randint 10,30
+kasgelden=$[1000*$kasgelden]
+banksaldo=!randint 30,70
+banksaldo=$[1000*$banksaldo]
+sum_links=$[$gebouw + $inventaris + $voorraden + $debiteuren + $kasgelden + $banksaldo]
+ 
+##### PASSIVA #######
+hypothecairelening=!randint 150,450
+hypothecairelening=$[1000*$hypothecairelening]
+rekeningcourant=!randint 75,150
+rekeningcourant=$[1000*$rekeningcourant]
+crediteuren=!randint 130,250
+crediteuren=$[1000*$crediteuren]
+# eigenvermogen wordt in eerste intstantie gebruikt voor kloppend maken
+sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant]
+
+### kloppend maken #####
+diff=$[$sum_links - $sum_rechts]
+!if $diff > 0
+    eigenvermogen=$diff
+!else
+    # hmmm niet goed genoeg
+    eigenvermogen=!randint 30,60
+    eigenvermogen=$[$eigenvermogen*1000]
+    sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant + $eigenvermogen]
+    diff=$[$sum_links - $sum_rechts]
+    !if $diff>0
+	crediteuren=$diff
+    !else
+	rekeningcourant=$[$rekeningcourant + (-1*$diff)] 
+    !endif
+!endif
+sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant + $eigenvermogen]
+
+
+var1=Voorraden,Gebouw,Debiteuren,Banksaldo,Kasgelden,Inventaris,Rekening-courant,<b>Eigen vermogen</b>,Hypothecaire lening,Crediteuren,<b>Lang vreemd vermogen</b>,<b>Kort vreemd vermogen</b>,<b>Vaste activa</b>,<b>Vlottende activa</b>
+var2=$voorraden,$gebouw,$debiteuren,$banksaldo,$kasgelden,$inventaris,$rekeningcourant,$eigenvermogen,$hypothecairelening,$crediteuren,$empty,$empty,$empty,$empty
+
+keuze=!shuffle 1,2,3,4,5,6,7,8,9,10
+k=0
+!for p in $keuze
+    !increase k
+    bedrag$p=$(var2[$p])
+    !if $k=10
+	vervang=$p
+	onbekend_bedrag=$(bedrag$p)
+	bedrag=<span style="color:red">&nbsp;&nbsp;?&nbsp;&nbsp;</span>
+    !else
+	bedrag=$(bedrag$p)
+    !endif
+!next p
+v=!item $vervang of $var2
+var3=!replace internal $v by ? in $var2
+
+answer$n=12,1,5,13,0,2,3,4\
+7,10,8,11,9,6\
+$onbekend_bedrag,$sum_links,$sum_rechts
+
+var8=12,1,5\
+13,0,2,3,4\
+7\
+10,8\
+11,9,6
+
+total_exos=1
+
+ss=Een balans en een resultatenrekening (winst -en verliesrekening) zijn manieren waarop<br />financi&euml;le gegevens geordend kunnen worden.<br />Voorraadgrootheden maken onderdeel uit van de balans en stroomgrootheden van de resultatenrekening.<hr /><br />Maak de balans op door de gegevens uit de linker kolom<br />naar de correcte plek in de balans te slepen.<br />En vul de invulvelden in.
+var4=12
+helptext=Gewoon:<br />slepen naar de goede kolom,<br />onder de juiste post<br />in de goede volgorde<br />correct invullen<br />en opsturen ... 
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+textanswer$n=<table class="balans_2"><tr><td><b>VASTE ACTIVA</b></td><td>&nbsp;</td><td><b>EIGEN VERMOGEN</b></td><td>&euro; $eigenvermogen</td></tr><tr><td>Gebouw</td><td>&euro; $gebouw</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Inventaris</td><td>&euro; $inventaris</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td><b>VLOTTENDE ACTIVA</b></td><td>&nbsp;</td><td><b>LANG VREEMD VERMOGEN</b></td><td>&nbsp;</td></tr><tr><td>Voorraden</td><td>&euro; $voorraden</td><td>Hypothecaire lening</td><td>&euro; $hypothecairelening</td></tr><tr><td>Debiteuren</td><td>&euro; $debiteuren</td><td><b>KORT VREEMD VERMOGEN</b></td><td>&nbsp;</td></tr><tr><td>Banksaldo</td><td>&euro; $banksaldo</td><td>Crediteuren</td><td>&euro; $crediteuren</td></tr><tr><td>Kasgelden</td><td>&euro; $kasgelden</td><td>Rekening-courant</td><td>&euro; $rekeningcourant</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td><b>Totaal</b></td><td>&euro; $sum_links</td><td><b>Totaal</b></td><td>&euro; $sum_rechts</td></tr></table>

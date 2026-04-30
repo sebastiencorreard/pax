@@ -1,0 +1,61 @@
+checkfile=exos/checkfile2.proc
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+questiontype=0
+embed=1
+cols=15
+rows=1
+var1=0
+var2=0
+# var2 -> breuk
+var3=1
+# var3 -> varlist
+keuze=0
+kans=1
+mathviewpanel=$module_title:x=
+helptext=<img src=\'$module_dir/gifs/exo5.help.jpg\' alt=\'noalt\' />
+!if $R>0
+    # niet meer materiaal : MOET NOG WEL !!!!
+    g=!randitem 2,3,4,5,6,7,8,9
+    a=!randitem 1,2,3,4,5
+    b=!randint 1,20
+    ff=^{\textstyle $g}\log \left( x \right) + $a
+    gg=^{\textstyle $g}\log \left( $b - x \right) 
+    tot=!exec pari A=$b/(1+$g^$a)\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} f(x) = g(x) \\ $ff = $gg \rightarrow \\ ^{\textstyle $g}\log \left( x \right) + ^{\textstyle $g}\log \left( $g^{$a} \right)  = $gg \\ ^{\textstyle $g}\log \left( x \cdot  $g^{$a} \right)  = $gg \\ \left( $g^{$a} \cdot x \right)  = \left( $b - x  \right) \\ \left( ($g^{$a} + 1) \cdot x \right)  = $b \\ x = \frac{$b}{1 + $g^$a} = $tex \end{array}\right.
+    formula$n= \left[ \begin{array}{ll} f\left( x \right) = & $ff  \\ \\  g\left( x \right) = & $gg  \end{array}\right.
+    applettext=!nospace {vlist(f(x)= log[$g](x)+$a,.,g(x)=log[$g]($b-x),.,f(x)=g(x))} -> 
+    ss=!record 56 of lang/remarks.$taal
+    #@ Gegeven zijn de twee functies <em>f</em> en <em>g</em><p><font size=+1>Los de vergelijking <font size=+1>f(<em>x</em>) = g(<em>x</em>)</font> exact op. 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+    F=$a + log10(x)/(log10($g))
+    G=log10($b -x)/(log10($g))
+    	
+    !if $teaching=1
+	image=0
+	plot=1
+	draw=0
+	svg=0
+	image_settings$n=size 0.5,0.5 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	image$n= $F notitle , $G  notitle
+	insplot_set=size 0.8,0.8 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	etext=!record 63 of $remarkdir/commonremarks.$taal
+	#@ kijk hier</a> voor een illustratie
+	exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\'alt=\'noalt\ />')"><span class="schaersvoorde_link">$etext</span></a>
+	!insplot  $F notitle , $G  notitle
+    !endif
+ !exit
+!endif

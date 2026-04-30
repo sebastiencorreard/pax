@@ -1,0 +1,386 @@
+#:12 Systeem nationale rekeningen (kringloop applet) [ domein H ]
+# GEEN STEPS
+var1=$empty
+var2=$empty
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=yes
+cols=20
+checkfile=$checkdir/new_number.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+exotext=$empty
+xsize=640
+ysize=400
+R=1
+helptext=<ul><li><b>BBP</b> = bruto binnenlands product</li><li><b>C</b> = particuliere consumptie</li> <li><b>B</b> = saldo belastingen</li><li><b>S</b> = besparing van de gezinnen</li><li><b>I</b> = netto investeringen van bedrijven</li><li><b>O</b> = overheidsbestedingen</li><li><b>E</b> = export</li><li><b>M</b> = import</li><li><b>Y</b> = nationaal inkomen</li></ul>
+ss=De geldkringloop is een weergave van de <a onmouseover="return escape('$helptext')"><span class="schaersvoorde_link">basiselementen</span></a> uit het systeem van de nationale rekeningen.<br />In het systeem van de nationale rekeningen wordt het onderscheidt gemaakt tussen de sectoren<br /><b>gezinnen, ondernemingen, overheid</b> en <b>buitenland</b>. De genoemde bedragen zijn in <b>miljarden &euro;'s</b>.
+
+p=!randint 20,40
+C=!randint 100,200
+C=$[$C*10]
+B=$[10*(round($p*$C/1000))]
+O=!randint $[$B+5],$[$B+50]
+M=!randint 5,25
+M=$[$M*10]
+E=!randint $[$M+5],$[$M+50]
+I=!randint 20,35
+I=$[$I*10]
+
+S=$[$I+($O - $B) + ( $E - $M)]
+EM=$[$E - $M]
+OB=$[$O - $B]
+Y=$[$C+$S+$B]
+SI=$[$S - $I]
+
+#EM=!randint 6,18
+#EM=$[$EM*2]
+#OB=!randint 6,14
+#OB=$[$OB*5]
+##IS=!randint 8,16
+##IS=$[$IS*2]
+#B=!randint 25,45
+#B=$[$B*5]
+#C=!randint 100,150
+#C=$[$C*10]
+#E=!randint 15,30
+#E=$[$E*10]
+##I=!randint 20,35
+##I=$[$I*10]
+#M=$[$E+$EM]
+#O=$[$B+$OB]
+##S=$[$I+$IS]
+##I + EM + OB = S
+#Y=$[$C+$I+$O+$E-$M]
+#S=$[$Y-$B-$C]
+#I=$[$S - $EM - $OB]
+!if $R=1
+    exotext=$empty
+    ss1=Vul de kringloop in.    
+    keuze=!randint 1,3
+    !if $keuze=1
+	!if $wims_user=supervisor
+	    intext1=Y = $Y
+	    intext2=C = $C
+    	    intext3=S = $S
+	    intext4=B = $B
+    	    intext5=O-B = $OB
+	    intext6=I = $I
+	    intext7=M = $M
+    	    intext8=E-M = $EM
+	    intext9=E = $E
+    	    intext10=O = $O
+	!else
+	    intext1=Y = $Y
+	    intext2=C = $C
+    	    intext3=S = ?
+	    intext4=B = $B
+    	    intext5=O-B = $OB
+	    intext6=I = ?
+	    intext7=M = ?
+    	    intext8=E-M = $EM
+	    intext9=E = $E
+    	    intext10=O = ?
+	!endif
+	
+	arglist=S=,I=,M=,O=
+
+	true1=0
+	true2=0
+	true3=1
+	true4=0
+	true5=0
+	true6=1
+	true7=1
+	true8=0
+	true9=0
+	true10=1
+	
+	k1=white
+	k2=white
+	k3=orange
+	k4=white
+	k5=white
+	k6=orange
+	k7=orange
+	k8=white
+	k9=white
+	k10=orange
+	answer$n=$S\
+	$I\
+	$M\
+	$O
+	
+	textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = $C + S + $B $m_rightarrow  S = $Y &minus; $C &minus; $B = $S </li><li>O &minus; B = $OB en B = $B $m_rightarrow O = $OB + $B = $O</li><li>E &minus; M = $EM en E = $E $m_rightarrow M = $E &minus; $EM = $M</li><li>I + O &minus; B + E &minus; M = S $m_rightarrow I + $OB + $EM = $S $m_rightarrow I = $I</li></ul>
+    !else
+	!if $keuze=2
+	    !if $wims_user=supervisor
+	    intext1=Y = $Y
+	    intext2=C = $C
+    	    intext3=S = $S
+	    intext4=B = $B
+    	    intext5=O-B = $OB
+	    intext6=I = $I
+	    intext7=M = $M
+    	    intext8=E-M = $EM
+	    intext9=E = $E
+    	    intext10=O = $O
+	    !else
+	    intext1=Y = $Y
+	    intext2=C = $C
+    	    intext3=S = $S
+	    intext4=B = ?
+    	    intext5=O-B = $OB
+	    intext6=I = ?
+	    intext7=M = $M
+    	    intext8=E-M = $EM
+	    intext9=E = ?
+    	    intext10=O = ?
+	    !endif
+	
+	    arglist=B,I,E,O
+	    true1=0
+	    true2=0
+	    true3=0
+	    true4=1
+	    true5=0
+	    true6=1
+	    true7=0
+	    true8=0
+	    true9=1
+	    true10=1
+	
+	    k1=white
+	    k2=white
+	    k3=white
+	    k4=orange
+	    k5=white
+	    k6=orange
+	    k7=white
+	    k8=white
+    	    k9=orange
+	    k10=orange
+	    
+	    answer$n=$B\
+	    $I\
+	    $E\
+	    $O
+	
+	    textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = $C + $S + B $m_rightarrow  B = $Y &minus; $C &minus; $S = $B </li><li>O &minus; B = $OB  en B = $B $m_rightarrow O = $OB + $B = $O</li><li>E &minus; M = $EM en M = $M $m_rightarrow E = $M +  $EM = $E<li>S = I + E &minus; M + O &minus; B $m_rightarrow $S = I + $EM + $OB $m_rightarrow I=$I</li></ul>
+	!else
+	    !if $wims_user=supervisor
+	    intext1=Y = $Y
+	    intext2=C = $C
+    	    intext3=S = $S
+	    intext4=B = $B
+    	    intext5=O-B = $OB
+	    intext6=I = $I
+	    intext7=M = $M
+    	    intext8=E-M = $EM
+	    intext9=E = $E
+    	    intext10=O = $O
+	    !else
+	    intext1=Y = $Y
+	    intext2=C = ?
+    	    intext3=S = $S
+	    intext4=B = $B
+    	    intext5=O-B = ?
+	    intext6=I = $I
+	    intext7=M = $M
+    	    intext8=E-M = ?
+	    intext9=E = ?
+    	    intext10=O = $O
+	    !endif
+	    arglist=C,O-B,E-M,E
+	    true1=0
+	    true2=1
+	    true3=0
+	    true4=0
+	    true5=1
+	    true6=0
+	    true7=0
+	    true8=1
+	    true9=1
+	    true10=0
+	
+	    k1=white
+	    k2=orange
+	    k3=white
+	    k4=white
+	    k5=orange
+	    k6=white
+	    k7=white
+	    k8=orange
+    	    k9=orange
+	    k10=white
+	    
+	    answer$n=$C\
+	    $OB\
+	    $EM\
+	    $E
+	
+	    textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = C + $S + $B $m_rightarrow  C = $Y &minus; $S &minus; $B = $C </li><li>O &minus; B =  $O &minus; $B = $OB</li><li>Y + M = I + C + E + O $m_rightarrow $Y + $M = $I + $C + E + $O $m_rightarrow E = $E </li><li>S = I + E &minus; M + O &minus; B $m_rightarrow S = $I + $EM + $OB = $S</li><li>E &minus; M = $E &minus; $M = $EM</li></ul>
+	!endif
+    !endif
+!endif
+
+
+plaatje=!exec canvasdraw \
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,100\
+opacity 60,60\
+fontfamily bold italic 56px Courier\
+stringup grey,5,0,26,GELDKRINGLOOP\
+linewidth 3\
+opacity 255,60\
+fontfamily italic 16px Ariel\
+frect 1,55,14,47.5,green\
+frect 39.5,80,52.8,73,green\
+frect 83,55,97.5,47.5,green\
+frect 38.8,55,56.8,44.75,green\
+frect 38.5,29.5,55,21,green\
+string red,1.1,50,bedrijven\
+string red,39,25,buitenland\
+string red,40,51,financiele\
+string red,40,46,instellingen\
+string red,40,75,gezinnen\
+string red,85,50,overheid\
+#gezinnen <-> bedrijven\
+segment 5,55,5,79,blue\
+arrow 5,79,38,79,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k1;font-size:16px\
+input 8,82,6,$true1,$intext1\
+inputstyle text-align:center;color:blue;background-color:$k2;font-size:16px\
+input 22,77.5,6,$true2,$intext2\
+arrow 7,75,7,55,8,blue\
+segment 7,75,38,75,blue\
+#gezinnen -> financiele instellingen\
+arrow 45,72,45,55,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k3;font-size:16px\
+input 41,67,6,$true3,$intext3\
+#gezinnen -> overheid\
+segment 53,76,90,76,blue\
+arrow 90,76,90,55,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k4;font-size:16px\
+input 62,79,6,$true4,$intext4\
+#financiele instellingen -> overheid\
+arrow 57,50,82,50,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k5;font-size:16px\
+input 61,53,6,$true5,$intext5\
+#financiele instellingen -> buitenland\
+arrow 45,44,45,30,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k6;font-size:16px\
+input 20,52,6,$true6,$intext6\
+#bedijven -> buitenland\
+arrow 5.5,22,5.5,47,8,blue\
+segment 5.5,22,38,22,blue\
+inputstyle text-align:center;color:blue;background-color:$k7;font-size:16px\
+input 7,38,6,$true7,$intext7\
+#buitenland -> bedrijven\
+arrow 10,27,38,27,8,blue\
+segment 10,27,10,47,blue\
+inputstyle text-align:center;color:blue;background-color:$k8;font-size:16px\
+input 41,40,6,$true8,$intext8\
+#financiele instellingen -> bedrijven\
+arrow 38.5,49,14.5,49,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k9;font-size:16px\
+input 11.8,24.75,6,$true9,$intext9\
+#overheid -> bedrijven\
+segment 90,47,90,15,blue\
+segment 90,15,2,15,blue\
+arrow 2,15,2,47,8,blue\
+inputstyle text-align:center;color:blue;background-color:$k10;font-size:16px\
+input 65,18.5,6,$true10,$intext10
+
+exotext=!append line $plaatje to $exotext
+
+question$n=$ss <hr />$ss1
+
+math=0
+
+
+ans_plaatje=!exec canvasdraw \
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,100\
+opacity 60,60\
+frect 0,100,100,0,yellow\
+fontfamily bold italic 56px Courier\
+stringup grey,5,0,26,GELDKRINGLOOP\
+linewidth 3\
+opacity 255,60\
+fontfamily italic 16px Ariel\
+frect 1,55,14,47.5,green\
+frect 39.5,80,52.8,73,green\
+frect 83,55,97.5,47.5,green\
+frect 38.8,55,56.8,44.75,green\
+frect 38.5,29.5,55,21,green\
+string red,1.1,50,bedrijven\
+string red,39,25,buitenland\
+string red,40,51,financiele\
+string red,40,46,instellingen\
+string red,40,75,gezinnen\
+string red,85,50,overheid\
+#gezinnen <-> bedrijven\
+segment 5,55,5,79,blue\
+arrow 5,79,38,79,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 8,82,6,0,$intext1\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 22,77.5,6,0,$intext2\
+arrow 7,75,7,55,8,blue\
+segment 7,75,38,75,blue\
+#gezinnen -> financiele instellingen\
+arrow 45,72,45,55,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 41,67,6,0,$intext3\
+#gezinnen -> overheid\
+segment 53,76,90,76,blue\
+arrow 90,76,90,55,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 62,79,6,0,$intext4\
+#financiele instellingen -> overheid\
+arrow 57,50,82,50,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 61,53,6,0,$intext5\
+#financiele instellingen -> buitenland\
+arrow 45,44,45,30,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 20,52,6,0,$intext6\
+#bedijven -> buitenland\
+arrow 5.5,22,5.5,47,8,blue\
+segment 5.5,22,38,22,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 7,38,6,0,$intext7\
+#buitenland -> bedrijven\
+arrow 10,27,38,27,8,blue\
+segment 10,27,10,47,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 41,40,6,0,$intext8\
+#financiele instellingen -> bedrijven\
+arrow 38.5,49,14.5,49,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 11.8,24.75,6,0,$intext9\
+#overheid -> bedrijven\
+segment 90,47,90,15,blue\
+segment 90,15,2,15,blue\
+arrow 2,15,2,47,8,blue\
+inputstyle text-align:center;color:blue;background-color:lightgreen;font-size:16px\
+input 65,18.5,6,0,$intext10\
+fillcolor orange\
+filled\
+userdraw rect,blue
+
+
+textanswer$n=!append line $ans_plaatje to $(textanswer$n)
+
+
+!exit
+

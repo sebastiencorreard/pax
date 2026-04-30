@@ -1,0 +1,86 @@
+# normale verdeling (de vuistregels)
+# altijd een ander sommetje : maximaal 5 stuks
+n=$counter
+!if $counter=1
+ !if $total_exos > 4
+  total_exos=4
+ !endif
+ var9=!shuffle 1,2,3,4
+ var8=!shuffle 1,2,3,4
+!endif
+
+k=!item $counter of $var9
+keuze=!item $counter of $var8
+n=$counter
+v=!randint 1,16
+viewlogo=1
+logo=<img src="$module_dir/gifs/bonbon$v.jpeg" alt="melk" width="180px" />
+logotext=hmmmm...
+mathview=0
+make_tr=1
+embed=0
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontyp=0
+checkfile=$checkdir/new_number.proc
+!if $rounding<10 
+ rounding=100
+ !readproc $remarkdir/rounding.$taal
+!endif
+doosje=!randint 30,70
+doosje=$[$doosje/10]
+num=!randitem 9,16,25
+gram1=!randint 110, 180
+gram1=$[$gram1/10]
+gram2=!randint 8,12
+gram2=$[$gram2/10]
+sigma=$[$gram2*sqrt($num)]
+bonbons=$[$num*$gram1]
+
+ss=!record 48 of lang/remarks.$taal
+#@Een fabrikant verpakt $num bonbons in een doosje.<br /> Het gewicht van een bonbon is normaal verdeeld met een gemiddeld gewicht van $gram1 gram en<br />een standaardafwijking van $gram2 gram.
+
+
+inputs=1.1
+!if $keuze=1
+ ss1=!record 49 of lang/remarks.$taal
+ #@Bereken het maximale gewicht van de 2.5% lichtste bonbons in het doosje.
+ answer$n=$[$bonbons - 2*$sigma]
+ textans=!record 50 of lang/remarks.$taal
+ #@De maximale inhoud van de kleinste 2.5% (links in de gauss curve) : $num&nbsp;&times;&nbsp;$gram1 &minus; 2 &times; &radic;($num)&nbsp;&times;&nbsp;&sigma; = $bonbons &minus; 2 &times; $sigma 
+!else
+ !if $keuze=2
+  ss1=!record 51 of lang/remarks.$taal
+  #@Bereken het minimale gewicht van de 2.5% zwaarste bonbons in het doosje.
+  answer$n=$[$bonbons + 2*$sigma]
+  textans=!record 52 of lang/remarks.$taal
+  #@De minimale inhoud van de grootste 2.5% (rechts in de gauss curve) : $num&nbsp;&times;&nbsp;$gram1 + 2 &times; &radic;($num)&nbsp;&times;&nbsp;&sigma; = $bonbons + 2 &times; $sigma 
+ !else
+  !if $keuze=3
+   ss1=!record 53 of lang/remarks.$taal
+   #@Bereken het  maximale gewicht van de 16% lichtste bonbons in het doosje.
+   answer$n=$[$bonbons - $sigma]
+   textans=!record 54 of lang/remarks.$taal
+   #@De maximale inhoud van de kleinste 16% (links in de gauss curve) : $num&nbsp;&times;&nbsp;$gram1 &minus; &radic;($num)&nbsp;&times;&nbsp;&sigma; = $bonbons &minus; $sigma 
+  !else
+    ss1=!record 55 of lang/remarks.$taal
+    #@Bereken het minimale gewicht van de 16% zwaarste bonbons in het doosje.
+    answer$n=$[$bonbons + $sigma]
+    textans=!record 56 of lang/remarks.$taal
+    #@De minimale inhoud van de grootste 16% (rechts in de gauss curve) : $num&nbsp;&times;&nbsp;$gram1  + &radic;($num)&nbsp;&times;&nbsp;&sigma; = $bonbons  + $sigma
+  !endif
+ !endif
+!endif    
+description=!record 57 of lang/remarks.$taal
+#@Het gewicht is :&nbsp;
+ex1=&nbsp;gr
+
+question$n=$ss<br />$ss1</a><br />
+helptext=$empty
+textanswer$n=$textans = $(answer$n) gr
+
+!exit
+

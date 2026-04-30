@@ -1,0 +1,134 @@
+!set title=9 - Lac
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=eguillet@cfai.org
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_en=9 - Lake
+
+ansorder=r,r,c
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=2
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=oui,non
+tmp=!trim en pascals	en bars à 1 bar près	rupture
+val8=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val7=yes,no
+tmp=!trim inpascals	in bars up to 1 bar	rupture
+val8=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 80, 150
+
+val9=$[$(tmp0)]
+tmp0=!randint 8, 15
+
+val10=$[$(tmp0)]
+tmp0=!randint 975, 1025
+
+val11=$[100*$(tmp0)]
+tmp0=!randint 1000, 1035
+
+val12=$[$(tmp0)]
+tmp0=!randint 972, 988
+
+val13=$[$(tmp0)/100]
+val14=$val1/serie_700_pression_sous_marine4.jpg
+val15=$[$val11+$val12*$val13*$val9]
+val16=$[rint($val15/100000)]
+val17=$(val7[1])
+
+!ifval $val16<=$val10
+val17=non
+!endif
+replytype1=default
+replyname1=\(p_A) $(val8[1;])
+replygood1=$val15
+replytype2=default
+replyname2=\(p_A) $(val8[2;])
+replygood2=$val16
+choicename1=$(val8[3;])
+choicegood1=$val17
+choicebad1=$val7
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer"><img src="$val14" alt=""></div>		
+!if $val6!=en 
+$()	Un point A est situé à $val9 m au-dessous de la surface d'un lac.	La pression supportable par les canalisations est	$val10 bars. La pression atmosphérique est $val11 Pa,	la masse volumique de l'eau est $val12 kg/m<sup>3</sup>,	g = $val13 N/kg, 1 bar = 10<sup>5</sup> Pa.	<ol>	<li>En appliquant le principe fondamental de l'hydrostatique,	calculer la pression au point A, en pascals et en bars.	</li>	<li>	Y a-t-il risque de rupture des canalisations ?	</li>	</ol>	<div class="wims_instruction">	Donnez le résultat de la première question sous	forme décimale avec une précision d'au moins 10<sup>-2</sup>.	</div>	 
+!endif
+$()		
+!if $val6=en 
+$()	Un point A est situé à $val9 m au-dessous de la surface d'un lac.	La pression supportable par les canalisations est	$val10 bars. La pression atmosphérique est $val11 Pa,	la masse volumique de l'eau est $val12 kg/m<sup>3</sup>,	g = $val13 N/kg, 1 bar = 10<sup>5</sup> Pa.	<ol>	<li>En appliquant le principe fondamental de l'hydrostatique,	calculer la pression au point A, en pascals et en bars.	</li>	<li>	Y a-t-il risque de rupture des canalisations ?	</li>	</ol>	<div class="wims_instruction">	Donnez le résultat de la première question sous	forme décimale avec une précision d'au moins 10<sup>-2</sup>.	</div>	 
+!endif
+$()		
+$()
+!exit
+
+:hint
+$()<p>	
+!insmath p_A - p_{at} = \rho.g.h
+$()	</p>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,11,12,13,14
+embedcnt=0

@@ -1,0 +1,187 @@
+target=image
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{10}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+/** version nov 2004 **/
+
+\integer{xsize=random(8,10,12)}
+\integer{ysize=4*random(2..4)}
+\integer{casf=random(1..6)}
+
+/** casf=3 interpolation cubique ; choix + délicat des points **/
+
+\integer{sign=random(-1,1)}
+\integer{a1=-\xsize}
+\integer{a2=\sign*random(1..\xsize-4)}
+\integer{a3=-\sign*random(1..\xsize-4)}
+\integer{a4=\xsize}
+\integer{b1=\casf==3?\sign*random(0.25*\ysize..0.75*\ysize):random(-1,1)*random(0.5*\ysize..0.75*\ysize)}
+\integer{b2=\casf==3?-\sign*random(1..0.5*\ysize):random(-0.75*\ysize..0.75*\ysize)}
+\integer{b3=\casf==3?\sign*random(1..0.5*\ysize):random(-0.75*\ysize..0.75*\ysize)}
+\integer{b4=\casf==3?-\sign*random(0.25*\ysize..0.75*\ysize):random(-1,1)*random(0.5*\ysize..0.75*\ysize)}
+
+/** f(a3)= b3 avec coord entières, sauf casf=5 **/
+
+\function{f=\casf==1?\b2*(x-\a3)/(\a2-\a3) + \b3*(x-\a2)/(\a3-\a2)}
+\function{f=\casf==2?
+ \b1*(x-\a3)*(x-\a4)/((\a1-\a4)*(\a1-\a3))+ \b3*(x-\a1)*(x-\a4)/((\a3-\a1)*(\a3-\a4)) + \b4*(x-\a3)*(x-\a1)/((\a4-\a1)*(\a4-\a3))}
+\function{f=\casf==3?
+\b1*(x-\a2)*(x-\a3)*(x-\a4)/((\a1-\a2)*(\a1-\a3)*(\a1-\a4)) + \b2*(x-\a1)*(x-\a3)*(x-\a4)/((\a2-\a1)*(\a2-\a3)*(\a2-\a4))+ \b3*(x-\a1)*(x-\a2)*(x-\a4)/((\a3-\a2)*(\a3-\a1)*(\a3-\a4))+ \b4*(x-\a1)*(x-\a2)*(x-\a3)/((\a4-\a2)*(\a4-\a1)*(\a4-\a3))}
+\rational{k=\casf==4?\sign*0.5*random(1..3)}
+\function{f=\casf==4?\k*sqrt((x-\a2)^2)+\b2}
+\function{f=\casf==5?\sign*(\a3+\xsize+1)/(x+\xsize+1) + \b3-\sign}
+\function{f=\casf==6?(\b2-\b3)*(x-\a2)/(\a3-\a2)+\b2 + 1/(x-\a1+0.5)}
+
+\integer{x1=random(-\xsize+1..-\xsize+3)}
+\integer{x4=random(\xsize-3..\xsize-1)}
+\integer{x2=(\casf==4)?0.5*(\a2+\a3):\a2}
+\integer{x3=\a3}
+\real{y0=evaluate(\f,x=0)}
+\real{y1=evaluate(\f,x=\x1)}
+\real{y2=evaluate(\f,x=\x2)}
+\real{y3=(\casf==4 or \casf==6)?evaluate(\f,x=\x3):\b3}
+\real{y4=evaluate(\f,x=\x4)}
+
+/** preparation du graphique **/
+
+\text{ll=\casf<5?\b1,\b2,\b4,\y1,\y2,\y3,\y4:\y1,\y2,\y3,\y4}
+\text{ll=wims(sort numeric items \ll)}
+\integer{yfloor=\ll[1]}
+\integer{yceiling=\ll[-1]}
+\integer{ymin=(\yfloor>0)?-1:\yfloor-2}
+\integer{ymax=(\yceiling<0)?1:\yceiling+2}
+
+\text{coordx1=\y1>0?\x1,-0.5:\x1,0.5}
+\text{coordx2=\y2>0?\x2,-0.5:\x2,0.5}
+\text{coordx3=\y3>0?\x3,-0.5:\x3,0.5}
+\text{coordx4=\y4>0?\x4,-0.5:\x4,0.5}
+
+\text{black=120,120,120}
+
+\text{ticks=text black,-1,-20,small,-20
+text black,-1,-15,small,-15
+text black,-1,-10,small,-10
+text black,-1,-5,small,-5
+text black,-1,5,small,5
+text black,-1,10,small,10
+text black,-1,15,small,15
+text black,-1,20,small,20
+text black,-10,-0.2,small,-10
+text black,-5,-0.2,small,-5
+text black,5,-0.2,small,5
+text black,10,-0.2,small,10
+linewidth 3
+point -10,0,black
+point -5,0,black
+point 5,0,black
+point 10,0,black
+point 0,-30,black
+point 0,-20,black
+point 0,-15,black
+point 0,-10,black
+point 0,-5,black
+point 0,5,black
+point 0,10,black
+point 0,15,black
+point 0,20,black
+point 0,30,black}
+
+/** les réponses **/
+
+\integer{\rep1=(\casf==4 or \casf==6)?pari(round(\y3)):\y3}
+\integer{\rep2=pari(floor(\y2))}
+\integer{\rep3=\rep2+1}
+\text{choix=strictement inférieure,égale,strictement supérieure}
+\integer{\rep4=(\y1<\y4)?1}
+\integer{\rep4=(\y1==\y4)?2}
+\integer{\rep4=(\y1>\y4)?3}
+
+\statement{\ll<div class="wims_columns">
+  <div class="medium_size img_col">
+<div class="wimscenter">
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange \ymin,\ymax
+parallel -\xsize,\ymin,-\xsize,\ymax,1,0,2*\xsize+1,grey
+parallel -\xsize,\ymin,\xsize,\ymin,0,1,-\ymin+\ymax+1,grey
+hline 0,0,\black
+vline 0,0,\black
+arrow 0,0,1,0,8,\black
+arrow 0,0,0,1,8,\black
+text black,-0.5,-0.2,small,O
+text black,1,-0.2,small,I
+text black,-0.5,1,small,J
+\ticks
+text blue,\x0+0.5,\y0,medium,C
+linewidth 1.5
+plot blue,\f
+}
+</div></div>
+  <div class="medium_size text_col">
+  Une fonction \(f) définie sur l'intervalle [-\xsize, \xsize] est donnée par sa courbe \(C),
+  représentée dans le repère (0 ; I, J) ci-contre.
+  <p>
+  D'après le graphique, on a les propriétés suivantes :
+  </p>
+  <ul>
+  <li> L'image de \x3 par \(f) vaut \embed{reply1, 5} (valeur arrondie à l'unité).
+  </li><li>
+  L'image de \x2 par \(f), notée \(b), est encadrée par les entiers consécutifs suivants : <div class="wimscenter">\embed{reply2,5} \le \(b) &lt; \embed{reply3,5}</div>
+  </li><li>
+  \(f)(\x1) est \embed{reply4} à \(f)(\x4).
+  </li></ul>
+</div></div>
+}
+
+\hint{\name_hint}
+\answer{\(f)(\x3) = }{\rep1}{type=numeric}
+\answer{\name_answer[1] \(f)(\x2)}{\rep2}{type=numeric}
+\answer{\name_answer[2]}{\rep3}{type=numeric}
+\answer{}{\rep4 ;\choix}{type=radio}
+
+/** montrer la lecture graphique en cas de mauvaise réponse **/
+
+\feedback{0==0}{On construit les images demandées comme suit :
+<div class="wimscenter">
+\draw{350,350}{
+xrange -\xsize,\xsize
+yrange \ymin,\ymax
+parallel -\xsize,\ymin,-\xsize,\ymax,1,0,2*\xsize+1,grey
+parallel -\xsize,\ymin,\xsize,\ymin,0,1,-\ymin+\ymax+1,grey
+hline 0,0,\black
+vline 0,0,\black
+arrow 0,0,1,0,8,\black
+arrow 0,0,0,1,8,\black
+text \black,-0.5,-0.3,small,O
+text \black,1,-0.3,small,I
+text \black,-0.5,1,small,J
+linewidth 1.5
+plot blue,\f
+dsegment \x4,0,\x4,\y4,blue
+dsegment \x1,0,\x1,\y1,blue
+dsegment \x3,0,\x3,\y3,red
+dsegment \x2,0,\x2,\y2,red
+dsegment \x4,\y4,0,\y4,blue
+dsegment \x1,\y1,0,\y1,blue
+dsegment \x3,\y3,0,\y3,red
+dsegment \x2,\y2,0,\y2,red
+linewidth 5
+point \x1, \y1,blue
+point \x2,\y2,red
+point \x3,\y3,red
+point \x4,\y4,blue
+text red,\coordx2,small, \x2
+text blue,\coordx1,small, \x1
+text blue,\coordx4,small, \x4
+text red,\coordx3,small, \x3
+text red,-\sign -0.5,\y2 + 0.2,small, f(\x2)
+text red,\sign -0.5,\y3 + 0.2, small, f(\x3)
+text blue,0.5,\y1 + 0.2, small, f(\x1)
+text blue ,-1.5 ,\y4 + 0.2, small, f(\x4)}
+</div>
+}

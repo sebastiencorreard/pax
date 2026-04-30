@@ -1,0 +1,140 @@
+!set title=Coordonnées d'un vecteur (graphique) 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+keywords=coordinates, vectors
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle u,v,w
+
+val6=$(tmp0)
+val7=$(val6[1])
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=$[rint($val8)]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 4
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 2,4,6
+
+tmp0=!randitem $tmp
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val11=$[rint($val10+$(tmp0)*$(tmp1))]
+tmp=!nonempty items red,green,blue,purple
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=$[rint(300)]
+val14=$[rint(max(abs($val10),abs($val11))+1)]
+val15=$[rint(max(abs($val8),abs($val9))+1)]
+val16=$[rint(max($val14,$val15)+1)]
+val17=range -$val14,$val14,-$val15,$val15	parallel -$val14,-$val15,$val14,-$val15,0,1,2*$val15+1,grey	parallel -$val14,-$val15,-$val14,$val15,1,0,2*$val14+1,grey	arrow -$val14,0,$val14,0,20,black	arrow 0,-$val15,0,$val15,20,black	text black,-0.4,0,medium,0	text black,$val14-0.5,0,medium,X	text black,-0.5,$val15,medium,Y	text black,-0.4,1.2,medium,1	text black,1,0,medium,1	linewidth 2	arrow $val10,$val8,$val11,$val9,15,$val12
+!readproc oef/draw.phtml $val13,$val13 \
+$val17 
+tmp0=$ins_url
+val18=$(tmp0)
+tmp=!translate ";': to $     $ in $val11-$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in $val9-$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+!if $val2=2 
+val21=[\left( reply1 ; reply2 \right)]
+!else
+val21=[\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}]
+!endif
+replytype1=numexp
+replyname1=Abscisse
+replygood1=$val19
+replytype2=numexp
+replyname2=Ordonnée
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="grid-x grid-margin-x">	  <div class="cell medium-6 small-12  flex-dir-column">	    <div class="flex-child-auto">	        Le plan muni d'un repère 
+!insmath (O,I,J)
+$().	        On a tracé un représentant du vecteur 
+!insmath \overrightarrow{$val7}
+$().	        <p>Quelles sont ses coordonnées ?</p>	    </div>	    <div class="flex-child-auto">	        <b>Votre réponse</b> :	          Les coordonnées du vecteur 
+!insmath \overrightarrow{$val7}
+$() sont	          <div class="wimscenter">	           
+!read oef/special.phtml mathmlinput $val21,5,noanswer	reply1,,color:blue;text-align:center;	reply2,,color:blue;text-align:center;	 
+$().	          </div>	    </div>	  </div>	  <div class="cell medium-6 small-12">	     <div class="unbreakable"><img src="$val18" alt=""></div>	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,18,21
+embedcnt=1

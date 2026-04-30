@@ -1,0 +1,105 @@
+!! no need for translation
+#parallelogram (tool "parallel")
+
+
+check=0
+type=!lower $type
+tot=0
+
+!!! Extract values of all user points
+
+ptcnt=0
+!for t in $type
+ !if point isin $t
+    !advance ptcnt
+    !advance tot
+    t=!replace internal @ by , in $t
+    x$ptcnt=!item 3 of $t
+    y$ptcnt=!item 4 of $t
+ !endif
+!next
+
+!!! check number of required points
+
+nb=!itemcnt $ptnames
+!if $tot < $nb
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+!if $tot > $nb
+REMARK=!record 3 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+
+!! distance from A to B
+dAB=$[sqrt(($x1-$x2)^2+($y1-$y2)^2)]
+!! distance from B to C
+dBC=$[sqrt(($x2-$x3)^2+($y2-$y3)^2)]
+!! distance from D to C
+dDC=$[sqrt(($x4-$x3)^2+($y4-$y3)^2)]
+!! distance from D to A
+dDA=$[sqrt(($x4-$x1)^2+($y4-$y1)^2)]
+
+
+dist1=$[abs($dAB-$dDC)]
+dist2=$[abs($dBC-$dDA)]
+
+!!! check number of lines
+line=0
+!for t in $type
+  !if line isin $t
+     !advance line
+  !endif
+!next t
+
+
+!ifval ($dist1<$precision and $dist2<$precision) 
+    !increase check 
+!endif
+
+!ifval ($dist1<0.01 and $dist2<0.01) 
+    #the precision is very good : the student must used circles and his construction is what I want to have.
+    !increase check 
+!endif
+
+!if $check >= 2
+    #All is right !
+    score=$[$score + 1]
+    REMARK=!record 23 of remarks.$taal
+    HINT=$OK
+!else
+    !if $check = 1
+	score=$[$score+0.3]
+	REMARK=!record 24 of remarks.$taal
+	!if $line < 2
+	    #the student didn't build two lines 
+	    HINT=!record 46 of remarks.$taal
+            goback=1
+	!else
+	    #there are lines , but maybe points which are not "on the lines"
+    	    HINT=!record 47 of remarks.$taal
+	!endif
+	HINT=$HINT $BOK
+    !else
+	REMARK=!record 25 of remarks.$taal
+	!if $line < 2
+	    #the student didn't build two lines
+	    HINT=!record 46 of remarks.$taal
+            goback=1
+	!else
+	    #there are lines, but maybe aren't the points right-named
+    	    HINT=!record 48 of remarks.$taal
+	!endif
+	HINT=$HINT $NOK
+    !endif
+!endif	
+
+!if $debug=1
+    debug_data=!append line <li>linecount line=$line</li><li>the HINT=$HINT</li> to $debug_data
+!endif

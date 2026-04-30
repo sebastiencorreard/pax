@@ -1,0 +1,100 @@
+# answer from applet in degrees : 
+# the applet can be easily adjusted on 0.01 pi radians or on 1 degree
+# reply is itemlist: technical in degrees,show in radians,show in  degrees
+goback=0
+extra=$empty
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    maxscore=0
+    goback=0
+    remark$n=$NOK
+    !exit
+!endif
+!if $subject=19
+ aaa=!item 1 of $(reply$n)
+ #...geen htmlmath in answer.phtml
+!else
+ aaa=!item 3 of $(reply$n)
+!endif
+math=0
+!if $var1=2
+    reply$n=$aaa &deg; (&asymp;$[(round(100*$aaa))/100] &deg;)
+    # vraag naar graden
+!else
+    reply$n=$aaa &deg; (&asymp;$[(round(100*$aaa/180))/100] &pi; rad)
+    # vraag naar radialen
+!endif
+
+# technical answer in degrees
+# correct answer always in degrees
+a=$[abs($aaa)]
+g=$[$(answer$n)]
+rondjes=$[abs(ceil($a/360))]
+r=$[1+abs(ceil($g/360))]
+
+!if $rondjes>$r
+    veel=1
+!else
+    veel=0
+!endif
+
+# var2=sin of cos
+ggg=$[(round(10*$var2((pi*round($(answer$n)))/180)))/10]
+aaa=$[(round(10*$var2((pi*round($aaa))/180)))/10]
+
+!if $[abs($ggg - $aaa)] < 0.1
+    maxscore=1
+    remark$n=$OK
+    !if $veel=1
+	extra=!record 62 of lang/remarks.$taal
+	#@en ook nog eens $rondjes keer extra rond gedraaid :)
+    !endif
+!else
+    !if $[abs($ggg + $aaa)] < 0.1 and $ggg!=0
+	maxscore=0.6
+	extra=!record 55 of lang/remarks.$taal
+	#@Je hebt het punt P de verkeerde kant opgedraaid !
+	remark$n=$BOK
+	!if $veel=1
+	    ex=!record 63 of lang/remarks.$taal
+	    #@en ook nog eens $rondjes keer extra de verkeerde kant op gedraaid :)
+	    extra=!append line $ <br />$ex $ to $extrs
+	!endif
+    !else
+	!if $[abs($ggg - $aaa)] < 0.2
+	    extra=!record 56 of lang/remarks.$taal
+	    #@Dat was niet al te nauwkeurig...
+	    maxscore=0.7
+	    remark$n=$BOK
+	    !if $veel=1
+		extra=!record 62 of lang/remarks.$taal
+	    !endif
+	!else
+	    !if $[abs($ggg - $aaa)] < 0.3
+		extra=!record 57 of lang/remarks.$taal
+		#@Dat was behoorlijk onnauwkeuring (last van RSI?)
+		maxscore=0.4
+		remark$n=$NOK
+		!if $veel=1
+		    extra=!record 62 of lang/remarks.$taal
+		!endif
+	    !else
+		maxscore=0
+		remark$n=$NOK
+		!if $veel=1
+		    extra=!record 64 of lang/remarks.$taal
+		    #@van gonio snap je niet veel...<br /> maar een dikke $rondjes rondjes draaien<br />met je muis is natuurlijk ook niet niks :P
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+
+remark$n=$(remark$n)<br />$extra
+
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

@@ -1,0 +1,73 @@
+!set ans_require=skulpt,codemirror
+!set wims_form_method=post
+!set anstype=yes
+!set anstyle=dprompt
+
+!if $wims_read_parm=def
+ !exit
+!endif
+
+!set oef_answer_option$i=$inputsize
+!set para$i=!declosing $(inputsize[2;])
+!set id$i=$(para$i[1])
+!set code$i=$(inputsize[1;])
+!set code$i=!replace internal $	$ by $\n$ in $(code$i)
+!set nbr$i=!itemcnt $(replygood$i)
+
+!reset listvar$i
+!for jj=1 to $(nbr$i)
+  !set tt=!declosing $(replygood$i[$jj])
+  !set tt=$(tt[1])
+  !set listvar$i=!append item $(tt) to $(listvar$i)
+!next
+
+!set textvar$i="["+sc+"],"
+!for nimp in $(listvar$i)
+   !set textvar$i=$(textvar$i)+"["+$(nimp)+"],"
+!next
+
+!if turtle isin $(listvar$i)
+  !set tur$i=var canv = document.querySelector("div#mycanvasidtest2 canvas:last-child");\
+turtle=canv.toDataURL();
+!endif
+
+!if print isin $(listvar$i)
+  !set listvar$i=$(listvar$i[2..-1])
+!endif
+!if turtle isin $(listvar$i)
+  !set listvar$i=$(listvar$i[1..-2])
+!endif
+
+!if $(listvar$i)!=
+!for nimp in $(listvar$i)
+  !set convar$i=!append line var $(nimp)=Sk.ffi.remapToJs(Sk.globals["$(nimp)"]); to $(convar$i)
+!next
+!endif
+
+!set kk$i=!getopt keyword_python in $(replyoption$i)
+!set kk$i=!replace internal char & by , in $(kk$i)
+
+!for nimp in $(kk$i)
+  !set kexp$i=!append word /($nimp)/igm.test(sc)&& to $(kexp$i)
+!next
+!set kexp$i=$(kexp$i) true
+
+!readproc slib/coding/runcode $(code$i),$(para$i)
+$slib_out
+
+
+<script>
+/*<![CDATA[*/
+var capture$i = function() {var print=document.getElementById('outputexec$(id$i)').textContent.replace(/\n/g,':');
+var scr=document.getElementById('$(id$i)').innerText.replace(/^\d+\n$/gm,'');
+var sc=scr.replace(/\n/gm,'@@@@');
+$(convar$i)
+$(tur$i)
+if ($(kexp$i)){document.getElementById('runcode$i').value=$(textvar$i);}else{alert("Les mots clefs ne sont pas utilises");}
+}
+/*]]>*/
+</script>
+
+<input type="hidden" name="reply$i" id="runcode$i" value="" />
+!set oef_js_submit=$oef_js_submit capture$i();
+!reset para$i id$i nbr$i code$i listvar$i kk$i kexp$i

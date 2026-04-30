@@ -1,0 +1,36 @@
+
+!set cut=1357
+<div class="wimscenter" style="padding:40px;">
+!for i=1 to $askcnt
+  !if $i isin $cut
+    <p>
+  !endif
+  !for t in a,b,c1,c2
+    !set t$t=!item $i of $($(t)_list)
+  !next t
+  !set formula= x = $ta*t+$tc1, y = $tb*t+$tc2
+  !if $status=waiting
+    <span class="equation">
+    !href cmd=reply&good=$i \($formula\)
+    </span>
+  !else
+    !if $i=$good and $i!=$real
+      <span class="goodequation equation">
+    !endif
+    !if $i=$real and $i!=$good
+      <span class="equation yourequation">
+    !endif
+    !if $i =$good and $i =$real
+      <span class="equation yourequation goodequation">
+    !endif
+    !if $i !=$good and $i !=$real
+      <span class="equation">
+    !endif
+    \($formula\)
+    </span>
+  !endif
+  !if $[$i-1] isin $cut or $i=$askcnt
+    </p>
+  !endif
+!next i
+</div>

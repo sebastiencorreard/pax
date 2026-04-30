@@ -1,0 +1,180 @@
+!set title=&Eacute;quilibrer des réactions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Georges Khaznadar
+email=georges.khaznadar@free.fr
+oefcss= <style> table tr th,td{ border: 1px black solid; border-collapse: collapse; } </style> 
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=H2 + O2 -> H2O, 2H2 + O2 -> 2H2O, -2, -1, 2;	CH4 + O2 -> CO2 + H2O, CH4 + 2O2 -> CO2 + 2H2O, -1, -2, 1, 2;	C2H6 + O2 -> CO2 + H2O, 2C2H6 + 7O2 -> 4CO2 + 6H2O, -2,-7,4,6;	C3H8 + O2 -> CO2 + H2O, C3H8 + 5O2 -> 3CO2 + 4H2O,-1,-5,3,4;	S + O2 -> SO2, S + O2 -> SO2, -1,-1,1;	S + O2 -> SO3, S + 3/2O2 -> SO3,-2,-3,2;	C + O2 -> CO2, C + O2 -> CO2, -1,-1,1;	C + O2 -> CO, C + 1/2O2 -> CO, -2,-1,2;	Mg + O2 -> MgO, Mg + 1/2O2 -> MgO, -2,-1,2;	Zn + O2 -> ZnO, Zn + 1/2O2 -> ZnO, -2,-1,2;	Na + O2 -> Na2O, 2Na + 1/2O2 -> Na2O,-4,-1,2;	Li + O2 -> Li2O, 2Li + 1/2O2 -> Li2O, -4,-1,2;	Na + O2 -> Na2O2, 2Na + O2 -> Na2O2, -2,-1,1;	Na + Cl2 -> NaCl, Na + 1/2Cl2 -> NaCl, -2,-1,2;	Li + Cl2 -> LiCl, Li + 1/2Cl2 -> LiCl, -2,-1,2;	Na + Br2 -> NaBr, Na + 1/2Br2 -> NaBr, -2,-1,2;	Li + Br2 -> LiBr, Li + 1/2Br2 -> LiBr, -2,-1,2;	Mg + Cl2 -> MgCl2, Mg + Cl2 -> MgCl2, -1,-1,1;	Zn + Cl2 -> ZnCl2, Zn + Cl2 -> ZnCl2, -1,-1,1;	Fe + Cl2 -> FeCl3, Fe + 3/2Cl2 -> FeCl3, -2,-3,-2;	Al + Cl2 -> AlCl3, Al + 3/2Cl2 -> AlCl3, -2,-3,-2;	Fe + H^+ -> Fe^2+ + H2, Fe + 2H^+ -> Fe^2+ + H2, -1,-2,1,1;	Mg + H^+ -> Mg^2+ + H2, Mg + 2H^+ -> Mg^2+ + H2, -1,-2,1,1;	Zn + H^+ -> Zn^2+ + H2, Zn + 2H^+ -> Zn^2+ + H2, -1,-2,1,1;	Al + H^+ -> Al^3+ + H2, Al + 3H^+ -> Al^3+ + 3/2H2, -2,-6,2,3;	Fe + Cu^2+ -> Fe^2+ + Cu, Fe + Cu^2+ -> Fe^2+ + Cu, -1,-1,1,1;	Al + Cu^2+ -> Al^3+ + Cu, 2Al + 3Cu^2+ -> 2Al^3+ + 3Cu, -2,-3,2,3;	Cu + Ag^+ -> Cu^2+ + Ag, Cu + 2Ag^+ -> Cu^2+ + 2Ag, -1,-2,1,2;	Al + Ag^+ -> Al^3+ + Ag, Al + 3Ag^+ -> Al^3+ + 3Ag, -1,-3,1,3;	Fe + Ag^+ -> Fe^2+ + Ag, Fe + 2Ag^+ -> Fe^2+ + 2Ag, -1,-2,1,2	
+tmp0=!itemcnt $(val6[;1])
+
+val7=$[rint($(tmp0))]
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+val9=$[rint(5)]
+val10=
+val11=
+val12=
+val13=
+val14=
+val15=
+!for val16 =1 to $val9 
+tmp0=!item $val16 of $val8
+
+val17=$[rint($(tmp0))]
+val18=$(val6[$val17;])
+tmp0=!item 1 of $val18
+
+val11=$val11 $(tmp0),
+tmp0=!item 2 of $val18
+
+val10=$val10 $(tmp0),
+tmp0=!item 1 of $val18
+
+!readproc slib/chemistry/chemeq_tex $(tmp0) 
+tmp1=$slib_out
+val13=$val13 $(tmp1);
+tmp0=!item 2 of $val18
+
+!readproc slib/chemistry/chemeq_tex $(tmp0) 
+tmp1=$slib_out
+val12=$val12 $(tmp1);
+tmp0=!item 3 to -1 of $val18
+
+val14=$val14 $(tmp0);
+!if $val16=1 
+val15=r1
+!else
+val15=$val15, r$val16
+!endif
+!next
+oefsteps=$val15 
+nextstep=!nosubst $val15 
+!readproc oef/steps.proc
+replytype1=chemeq
+replyname1=
+replygood1=$(val10[1])
+replytype2=chemeq
+replyname2=
+replygood2=$(val10[2])
+replytype3=chemeq
+replyname3=
+replygood3=$(val10[3])
+replytype4=chemeq
+replyname4=
+replygood4=$(val10[4])
+replytype5=chemeq
+replyname5=
+replygood5=$(val10[5])
+replytype6=chemeq
+replyname6=
+replygood6=$(val10[6])
+replytype7=chemeq
+replyname7=
+replygood7=$(val10[7])
+replytype8=chemeq
+replyname8=
+replygood8=$(val10[8])
+replytype9=chemeq
+replyname9=
+replygood9=$(val10[9])
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Équilibrez les équations de réactions suivantes :	<table>	<tr><th>Équation non(?)-équilibrée</th>	<th>(on peut copier-coller<br>ou tirer-glisser)</th>	<th>Réponse à modifier</th></tr>	 
+!for m_j=1 to $val9 
+$()	<tr><td>
+!insmath $(val13[$m_j;])
+$()</td><td>$(val11[;$m_j])</td><td> 
+!read oef/embed.phtml r\j 
+$()</td></tr>	 
+!next
+$()	</table>	
+$()
+!exit
+
+:hint
+$()<h3>Comment écrire une équation chimique avec le langage Chemeq</h3>	Pour pouvoir écrire les équations chimiques au clavier sans trop de	difficultés, le langage Chemeq est utilisé.<p>	Voici quelques exemples de la syntaxe de Chemeq&nbsp;:	<table bgcolor="lightyellow">	<tr><th>Tapez ceci&nbsp;...</th><th>...&nbsp;pour signifier cela</th></tr>	<tr><th><tt>-></tt></th><td>
+!insmath \rightarrow
+$()<br> le signe de réaction</td></tr>	<tr><th><tt>C_s</tt></th><td>
+!insmath {}C_s
+$() <br>du carbone à l'état solide</td></tr>	<tr><th><tt>H2_g</tt></th><td>
+!insmath {}H_2_g
+$() <br>du dihydrogène à l'état gazeux</td></tr>	<tr><th><tt>H^+_aq</tt></th><td>
+!insmath {}H^+_{aq}
+$() <br>ion oxonium en solution aqueuse</td></tr>	<tr><th><tt>H2O</tt></th><td>
+!insmath {}H_2O
+$() <br>molécule d'eau</td></tr>	<tr><th><tt>4H2O</tt></th><td>
+!insmath {}4H_2O
+$() <br>Quatre molécules d'eau</td></tr>	<tr><th><tt>Zn + 2H^+_aq</tt></th><td>
+!insmath {}Zn + 2H^+_{aq}
+$() <br>un atome de zinc et deux ions oxonium<br><big>Attention&nbsp;:</big> les syntaxes <tt>Zn+2H^+_aq</tt> ou <tt>Zn+ 2H^+_aq</tt> sont fausses&nbsp;!<br>En effet la grammaire de chemeq ne peut pas décider si le zinc est ou n'est pas à l'état d'ion.<br><b>L'espace après <tt>Zn</tt> est obligatoire pour décider que c'est un atome neutre.</b></td></tr>	</table>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<table>	<tr><th>Équation non(?)-équilibrée</th>	<th>Réponse équilibrée<br>(à une multiplication près)</th></tr>	 
+!for m_k=1 to $val9 
+$()	<tr><td>
+!insmath $(val13[$m_k;])
+$()</td><td>
+!insmath $(val12[$m_k;])
+$()</td></tr>	 
+!next
+$()	</table>		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,12,13
+embedcnt=1

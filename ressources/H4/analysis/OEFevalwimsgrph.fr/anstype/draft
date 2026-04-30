@@ -1,0 +1,69 @@
+
+good=$(replygood$i)
+option=$(replyoption$i)
+dd=$(reply$i)
+m_reply$i=$dd
+
+!if $wims_read_parm=nocompare
+ !exit
+!endif
+
+reply$i=!reaccent $(reply$i)
+badchars=
+repchars=!text repeat $ $ to 256
+
+!if nodigit iswordof $option
+ badchars=0123456789$badchars
+!endif
+!if noquote iswordof $option
+ badchars="'`$badchars
+!endif
+!if nomathop iswordof $option
+ badchars=+-=*/^<>%|$badchars
+!endif
+!if noparenthesis iswordof $option or noparentheses iswordof $option
+ badchars=()[]{}$badchars
+!endif
+!if nopunct iswordof $option
+ badchars=.,;!?:()[]{}$badchars
+!endif
+
+!if reaccent iswordof $option
+ dd=!reaccent $dd
+!endif
+!if $badchars != $empty
+ dd=!translate internal $badchars to $repchars in $dd
+ good=!translate internal $badchars to $repchars in $good
+!endif
+!if nocase iswordof $option
+ dd=!tolower $dd
+ good=!tolower $good
+!endif
+!if deaccent iswordof $option or noaccent iswordof $option
+ dd=!deaccent $dd
+ good=!deaccent $good
+!endif
+!if singlespace iswordof $option or $badchars != $empty
+ dd=!singlespace $dd
+ good=!singlespace $good
+!endif
+!if nospace iswordof $option
+ dd=!nospace $dd
+ good=!nospace $good
+!endif
+
+good=!trim $good
+dd=!trim $dd
+
+!if $good=$empty
+ Test=bad $i
+ !exit
+!endif
+
+!if $dd=$good
+ diareply$i=good
+ !advance freegot
+!else
+ diareply$i=bad
+!endif
+

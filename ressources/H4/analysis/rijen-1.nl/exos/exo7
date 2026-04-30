@@ -1,0 +1,76 @@
+# no need for translation
+mathview=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+image=0
+math=0
+cols=10
+inputs=1.1
+make_tr=1
+description=$youranswer
+texanswer$n=$empty
+formula$n=$empty
+checkfile=$checkdir/number.proc
+
+!if $R=1
+    !if $rounding <1
+	rounding=0
+    !endif
+    !readproc $remarkdir/rounding.$taal
+    a=!randitem 5,6,7,8,9,10,11,12,13,14,15,16
+    r=!randint 10,30
+    b=!randint 10,50
+    b=$[100*$b]
+    g=$[(100+$r)/100]
+    g=$[(100+$r)/100]    
+    tussen=$[1+ $b*($g-1)/$a]
+    answer$n=$[floor((log(($b*($g-1))/$a + 1))/(log($g)))]
+    textanswer$n=U<sub>(n)</sub>=$a&times;$g<sup>n-1</sup><br /><table class="zebra_table_h2"><tr><th>n</th><th>&nbsp;1&nbsp;</th><th>2</th><th>3</th><th>4</th><th>5</th><th>&nbsp;- -&nbsp;</th><th>&nbsp;- -&nbsp;</th><th>p</th></tr><tr><td>&nbsp;U(n)&nbsp;</td><td>&nbsp;$a&nbsp;</td><td>&nbsp;$a &times; $g&nbsp; </td><td>&nbsp;$a &times; $g <sup>2</sup>&nbsp;</td><td>&nbsp;$a &times; $g <sup>3</sup>&nbsp;</td><td>&nbsp;$a &times; $g <sup>4</sup>&nbsp;</td><td>&nbsp;- -&nbsp;</td><td>&nbsp;- -&nbsp;</td><td>&nbsp;$a &times; $g <sup>p-1</sup>&nbsp;</td></tr></table>S(U<sub>p</sub>)=($a &times; $g<sup>p</sup> &minus; $a)/($g &minus; 1) &le; $b $m_longrightarrow <br />($a &minus; $a &times; $g<sup>p</sup>)/(1 &minus; $g) = $b <br />($a &minus; $a &times; $g<sup>p</sup>)/$[1 - $g] = $b <br />($a &minus; $a &times; $g<sup>p</sup>) = $b &times; $[1 - $g]<br />$a &minus; $a &times; $g<sup>p</sup> = $[ $b * (1 - $g)]<br />&minus; $a &times; $g<sup>p</sup> = $[ $b * (1 - $g) - $a]<br />$g<sup>p</sup> = $tussen $m_longrightarrow <br />p = log($tussen)/log($g) = $[log($tussen)/log($g)] $m_longrightarrow <br />p=$(answer$n) <hr class="schaersvoorde_hr" /><b>Ti-83 GRM</b> <br /><ul><li>y<sub>1</sub>=($a &minus; $a &times; $g<sup>x</sup>)/(1 &minus; $g)</li><li>y<sub>2</sub>=$b</li><li>intersect </li><li>x=$[log($tussen)/log($g)] </li></ul>p=$(answer$n)
+    
+    ss=!record 54 of lang/remarks.$taal
+    #@ Gegeven is de rij U<sub>n</sub> met U<sub>1</sub>=$a <br />\
+    #@ Deze rij heeft <em>p</em> termen.<br />\
+    #@ Van deze rij U<sub>n</sub> is verder nog gegeven dat elke term <em>$r % groter</em> is dan de <em>voorgaande term</em>.<br />\
+    #@ De som van de termen is <em>kleiner dan $b</em>.<br />\
+    #@ Met &eacute;&eacute;n term meer zou de som <em>groter zijn dan $b</em>.<p>\
+    #@ Bereken de waarde van <em>p</em> exact.
+    question$n=$ss
+ !exit
+!endif
+
+
+!if $R>1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+    a=!randitem 5,6,7,8,9,10,11,12,13,14,15,16
+    ru=!randint 10,30
+    rv=!randint 5,20
+    b=!randint 10,50
+    b=$[100*$b]
+    gu=$[(100+$ru)/100]
+    gv=$[(100-$rv)/100]
+    p=$[floor((log(($b*($gu-1))/$a + 1))/(log($gu)))]
+    tussen=$[1+ $b*($gu-1)/$a]
+    answer$n=$[(round(100*$a*(1-$gv^($p))/(1-$gv)))/100]
+    textanswer$n=U<sub>(n)</sub>=$a&times;$gu<sup>n</sup> en V<sub>(n)</sub>=$a&times;$gv<sup>n</sup><br />S(U<sub>p</sub>)=( $a &minus; $a &times; $gu<sup>p</sup>)/(1 &minus; $gu) &le; $b $m_longrightarrow <br />$gu<sup>p</sup> &le; $tussen $m_longrightarrow<br />p &le; log($tussen)/log($gu) $m_longrightarrow <br />p &le; $[log($tussen)/log($gu)] $m_longrightarrow <br />p=$p <br />S(V<sub>$p</sub>)=$a&times;(1 &minus; $gv<sup>$p</sup>)/(1 &minus; $gv) $m_longrightarrow <br />S<sub>$p</sub>=$(answer$n)
+
+    ss=!record 55 of lang/remarks.$taal
+    #@ Gegeven is zijn rijen U<sub>n</sub> en V<sub>n</sub><br />\
+    #@ Voor beiden rijen geldt dat de eerste term U<sub>1</sub> en V<sub>1</sub> gelijk is aan $a <br />\
+    #@ Beiden rijen hebben <em>p</em> termen.<br />\
+    #@ Van de rij U<sub>n</sub> is verder nog gegeven dat elke term <em>$ru % groter</em> is dan de <em>voorgaande term</em>.<br />\
+    #@ De som van de termen van U<sub>n</sub> is <em>kleiner dan $b</em>.<br />\
+    #@ Met &eacute;&eacute;n term meer zou de som van U<sub>n</sub> <em>groter zijn dan $b</em>.<p>\
+    #@ Van de rij V<sub>n</sub> is gegeven dat elke term <em>$rv % kleiner</em> is dan de voorgaande term.<p>\
+    #@ Bereken voor V<sub>n</sub> op twee decimalen nauwkeurig de <em>som</em> dan de termen.
+
+    question$n=$ss
+ !exit
+!endif
+
+

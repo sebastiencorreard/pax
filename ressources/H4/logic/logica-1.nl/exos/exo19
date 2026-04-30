@@ -1,0 +1,108 @@
+# ayllogismen
+n=$counter
+mathview=0
+applet=0
+questiontype=1
+checkfile=$checkdir/multiplechoice.proc
+inputs=yes
+make_tr=1
+math=0
+draw=0
+multiimage=0
+kk=!shuffle 1,2,3
+k1=!item 1 of $kk
+k2=!item 2 of $kk
+k3=!item 3 of $kk
+rec1=!record $k1 of lang/syllogismen
+rec2=!record $k2 of lang/syllogismen
+rec3=!record $k3 of lang/syllogismen
+L=!linecnt $rec1
+r=!randint 10,$L
+ABC=!line $r of $rec1
+A=!item 1 of $ABC
+B=!item 2 of $ABC
+C=!item 3 of $ABC
+
+wisk1=!line 1 of $rec1
+wisk2=!line 2 of $rec1
+wisk3=!line 3 of $rec1
+
+a1=!line 4 of $rec1
+a2=!line 5 of $rec1
+a3=!line 6 of $rec1
+b1=!line 4 of $rec2
+b2=!line 5 of $rec2
+b3=!line 6 of $rec2
+c1=!line 4 of $rec3
+c2=!line 5 of $rec3
+c3=!line 6 of $rec3
+
+options=3
+ans=!shuffle 1,2,3
+answer$n=!item 1 of $ans
+g=$(answer$n)
+f=!item 2 of $ans
+h=!item 3 of $ans
+ex$g=<ul><li>majorpremisse:$a1</li><li>minorpremisse:$a2</li><li>conclusie:$a3</li></ul>
+ex$f=<ul><li>majorpremisse:$b1</li><li>minorpremisse:$b2</li><li>conclusie:$b3</li></ul>
+ex$h=<ul><li>majorpremisse:$c1</li><li>minorpremisse:$c2</li><li>conclusie:$c3</li></ul>
+
+helptext=Een premisse is een aanname dat iets waar is. Premissen zijn de basisaannamen van een syllogisme (een redenering in de logica). Een syllogisme is doorgaans opgebouwd uit een majorpremisse, een minorpremisse en een conclusie.<br />let op: een majorpremisse als <b>all muizen zijn groen</b> moet als waar worden beschouwd binnen de redenering ! <br />Let op: de omgedraaide A ( &#8704; de al-kwantor) spreek je uit als \'voor alle ... geldt:\'
+
+ss=Gegeven de onderstaande logische bewering.<br />\
+welke van de 3 opties is de correcte weergave ?
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+formula$n=\left\{ \begin{array}{lr} $wisk1 & \; \\ \; & \Rightarrow $wisk3 \\ $wisk2 & \; \end{array} \right. 
+textanswer$n=De correcte "vertaling" is dus: $(ex$g)
+
+!if $k1=1
+ circle1=circles red,1.3,1.3,0.8
+ circle2=circles blue,1,0.5,1.8
+ circle3=circles green,0,0,3
+ txt1=string red,1.3,1.3,$C
+ txt2=string blue,0,0,$A
+ txt3=string green,-1.5,-2,$B
+!else
+ !if $k1=2
+ circle1=circles red,-2,0,1.8
+ circle2=circles blue,-1.5,0.5,0.5
+ circle3=circles green,1,1,1
+ txt1=string red,-3,-1,$A
+ txt2=string blue,-1.5,0.5,$C
+ txt3=string green,1,1,$B
+ 
+ !else
+ circle1=circles red,-2.5,0,1
+ circle2=circles blue,1.5,0.5,0.8
+ circle3=circles green,1,1,1.8
+ txt1=string red,-2.5,0,$A
+ txt2=string blue,1.5,0.5,$C
+ txt3=string green,1,2,$B
+ 
+ !endif
+!endif
+
+object$n=!exec canvasdraw \
+size 300,300\
+xrange -4,4\
+yrange -4,4\
+fontfamily 12px Courier\
+centered\
+opacity 255,20\
+filled\
+fillcolor red\
+$circle1\
+filled\
+fillcolor blue\
+$circle2\
+filled\
+fillcolor green\
+$circle3\
+$txt1\
+$txt2\
+$txt3
+
+
+
+#formula$n= \left\{ \begin{array}{lcl} \textrm{een paar eigenschappen van de lege verzameling...} & : & \varnothing \\ \textrm{ Elke verzameling A heeft de lege verzameling als deelverzameling } & : &   \forall A: \varnothing \subseteq A \\ \textrm{ Voor elke verzameling A geldt: de vereniging van A met de lege verzameling is A } & :   & \forall A:A\cup \varnothing = A \\ \textrm{ Voor elke verzameling A geldt: de doorsnede van A met de lege verzameling is de lege verzameling } & :   & \forall A:A\cap \varnothing = \varnothing \\ \textrm{ Het cartesisch product van A en de lege verzameling is leeg } & :   & \forall A:\varnothing \times A = \varnothing \\ \textrm{ De enige deelverzameling van de lege verzameling is de lege verzameling } & :   & \forall A:A\subseteq \varnothing \Rightarrow A=\varnothing \end{array} \right.

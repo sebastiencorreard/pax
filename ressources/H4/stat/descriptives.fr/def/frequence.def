@@ -1,0 +1,118 @@
+!set title=Fréquence d'une valeur (liste)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+precision=1000
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 10,20
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+val8=
+val9=0
+!for val10 =1 to $val6 
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!append item $val11 to $val8
+
+val8=$(tmp0)
+!if $val11=$val7 
+val9=$[rint($val9+1)]
+!endif
+!next
+tmp0=!replace internal , by  \(\,;\,) in $val8
+
+val8=$(tmp0)
+t_=!rawmath $val9/$val6
+val12=!exec pari print($t_)
+t_=!rawmath 100*$val9/$val6
+val13=!exec pari print($t_)
+val14=$[$val12]
+replytype1=numeric
+replyname1=Fréquence de $val7
+replygood1=$[$val12]
+replytype2=numeric
+replyname2=Fréquence de $val7
+replygood2=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Donner la fréquence (fraction ou nombre décimal puis pourcentage) de la valeur	<strong style="color:blue;" class="larger">$val7</strong> dans la liste des	$val6 nombres ci-dessous	<div class="wimscenter"><h3>$val8</h3></div>	<div class="wims_question"><label for "reply1">La fréquence de $val7</label> est  
+!read oef/embed.phtml r1,3 
+$() soit  
+!read oef/embed.phtml r2,3 
+$()<label for "reply2">%</label>. </div>	<div class="wims_instruction">Donner une fraction ou un nombre décimal pour la première case.	Attention : <ul><li>pour 
+!insmath \frac{4}{5}
+$() saisir : 4/5,</li>	<li>pour 0,67 saisir : 0<b>.</b>67 </li>	<li>pour la deuxième case saisir un nombre <b>entier</b>.</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>La fréquence d'une valeur est le quotient de l'effectif de cette valeur par l'effectif total de la série. </p>	<p>Ici il faut faire le quotient de l'effectif de $val7 qui vaut $val9 par l'effectif total : $val6.</p>	<p>La fréquence de $val7  vaut donc <b>
+!insmath \frac{$val9}{$val6}=$val14
+$()</b> ce qui en pourcentage s'écrit <b>
+!insmath $val13\%
+$()</b></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,13,14
+embedcnt=2

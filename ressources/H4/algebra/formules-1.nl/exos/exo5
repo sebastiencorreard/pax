@@ -1,0 +1,151 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+mathview=5
+# geen check op type functie
+var4=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+# geen check op type functie
+var4=0
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+ss=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+helptext=<textarea cols=\'20\' rows=\'2\' class=\'schaersvoorde_textarea\' readonly=\'readonly\' >y = 5/3*x - 11/7</textarea>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+#pari kijkt na
+    var1=0
+    a=!randitem 2,4,6,8,10,12,14
+    b=!randint 2,9
+    c=!randint 1,15
+    c=$[$c*15]
+    !if $keuze=1
+	formula$n= $a x + $b y = $c
+	applettext=!nospace  $a*x + $b*y = $c ->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c/$b - $a/$b*x
+	tot=!exec pari A=$c/$b\
+	printtex(A)\
+	B=$a/$b\
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	answer$n=$f-$g*x
+	texanswer$n=\left[ \begin{array}{l} $b \cdot y = $c - $a \cdot x \rightarrow \\ y = \frac{$c}{$b}-\frac{$a}{$b}x \rightarrow \\  y=$f_tex - $g_tex x \end{array} \right.
+    !else
+	formula$n= $a x - $b y = $c
+	applettext=!nospace  $a*x - $b*y = $c ->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c/$b + $a/$b*x
+	tot=!exec pari A=$c/$b\
+	printtex(A)\
+	B=$a/$b\
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	answer$n=$g*x - $f
+	texanswer$n=\left[ \begin{array}{l} $a \cdot x = $c + $b \cdot y \rightarrow \\ $b\cdot y = $a \cdot x - $c \\y = \frac{$a}{$b} \cdot x -\frac{$c}{$b} \rightarrow \\  y=$g_tex \cdot x - $f_tex  \end{array} \right.
+    !endif
+!exit
+!endif
+
+!if $R=2
+#pari kijkt na
+    var1=0
+    a=!randint 2,15
+    b=!randint 1,15
+    !if $keuze=0
+	formula$n=$a \cdot x \cdot y = $b
+	tot=!exec pari A=$b/$a\
+	printtex(A*1/x)
+	
+	var2=$b/($a*x)
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	answer$n=$f*1/x
+	texanswer$n=\left[ \begin{array}{l} $(formula$n) \\ y = \frac{$b}{$a \cdot x} \\  y = $f_tex \end{array} \right.
+	
+    !else
+	c=!randint 10,30
+	formula$n=$a \cdot x \cdot y + $b = $c
+	tot=!exec pari A=($c-$b)/$a\
+	printtex(A*1/x)
+	
+	var2=$[$c-$b]/($a*x)
+	d=$[$c-$b]
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	answer$n=$f*1/x
+	texanswer$n=\left[ \begin{array}{l} $(formula$n) \\ $a \cdot x \cdot y = $c - $b = $d \\ y = \frac{$d}{$a \cdot x} \\  y = $f_tex \end{array} \right.
+    
+    !endif
+!exit
+!endif
+
+!if $R>2
+#pari kijkt na
+    var1=0
+    B=!randint 2,50
+    d=!randint 2,6
+    e=!randint 8,20
+    A=$[$d*$B]
+    C=$[$e*$B]
+    a=$[$A/10]
+    b=$[$B/10]
+    c=$[$C/10]
+    !if $keuze=1
+	formula$n= $a x + $b y - $c =0
+	applettext=!nospace  $a*x + $b*y - $c = 0 ->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c/$b - $a/$b*x
+	tot=!exec pari A=$c/$b\
+	printtex(A)\
+	B=$a/$b\
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	answer$n=$f-$g*x
+	texanswer$n=\left[ \begin{array}{l} $b \cdot y = $c - $a \cdot x \rightarrow \\ y = \frac{$c}{$b}-\frac{$a}{$b}x \rightarrow \\  y=$f_tex - $g_tex x \end{array} \right.
+    !else
+	formula$n= $a x - $b y = $c
+	applettext=!nospace  $a*x - $b*y = $c ->
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $c/$b + $a/$b*x
+	tot=!exec pari A=$c/$b\
+	printtex(A)\
+	B=$a/$b\
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	answer$n=$g*x - $f
+	texanswer$n=\left[ \begin{array}{l} $a \cdot x = $c + $b \cdot y \rightarrow \\ $b\cdot y = $a \cdot x - $c \\y = \frac{$a}{$b} \cdot x -\frac{$c}{$b} \rightarrow \\  y=$g_tex \cdot x - $f_tex  \end{array} \right.
+    !endif
+!exit
+!endif

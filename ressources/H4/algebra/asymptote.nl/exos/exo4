@@ -1,0 +1,83 @@
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title :x=:y=:and:or:sqrt()
+n=$counter
+math=0
+plot=1
+draw=0
+embed=1
+cols=20
+rows=2
+questiontype=0
+rem1=!record 3 of lang/remarks.$taal
+#@ Zie </a> voor de schrijfwijze de help pagina's
+rem2=!record 23 of lang/remarks.$taal
+helptext=$rem1<br />$rem2
+ss=!record 18 of lang/remarks.$taal
+#@ Bepaal <b>alle</b> asymptoten van de onderstaande functie
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+vertikaal=!record 4 of lang/remarks.$taal
+#@ De vertikale asymptoot is: de lijn
+vertikalen=!record 5 of lang/remarks.$taal
+#@ De vertikale asymptoten zijn de lijnen
+!if $teaching=1
+    #@ Bepaal in $m_RR <b>alle</b> asymptoten van de onderstaande periodieke functie<br />geef je antwoord op in een generieke vorm. 
+    etext=!record 6 of lang/remarks.$taal
+    #@ Hier</a> staat een klein grafiekje van de functie
+    #exotext=<a href="javascript:showimage();">$exotext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+!else
+    exotext=$empty
+!endif
+
+# dit voor onmouseover
+prefix=size 0.5,0.5;notics;autoscale;
+# dit voor answer.phtml
+prefix2=size 0.5,0.5;grid ;axis;autoscale; xlabel "<x-axis>";ylabel"<y-axis>" ;border
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+alsdan=!record 42 of lang/remarks.$taal
+als=!item 1 of $als
+dan=!item 2 of $als
+
+!if $R>0
+    wims_rawmath_variables=k,x,pi
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem 1/2,1,2,3
+    d=!randitem 2,3,4
+    ymin=$[-1*$d]
+    ymax=$d
+    plotfunction=$b/($d*sin($c*x))
+    applettext=!nospace f(x) = $plotfunction ->
+    formula$n=f(x)\,\,=\,\,\frac{$b}{$d\cdot \sin($c\cdot x)}
+    answer$n=k*pi/($c)@special
+    !if $c=1/2
+	x_tex= 2\cdot k \cdot \pi
+    !else
+	!if $c=1
+	    x_tex= k \cdot \pi
+	!else
+	    x_tex=\frac{ k \cdot \pi}{$c}
+	!endif
+    !endif
+    texanswer$n= \left[ \begin{array}{l} \textrm{$als } \,\, x \rightarrow 0} \;\; \textrm{$dan } \,\,  \displaystyle{\frac{1}{x}} \rightarrow \pm  \infty \\ \\ \textrm{$vertikalen: } \\ $d\cdot \sin($c\cdot x) = 0 \rightarrow \\ \sin($c \cdot x ) = 0 \rightarrow  \\ $c \cdot x = 0 \cdots \pi \cdots 2\pi \cdots 3\pi \cdots 4\pi \cdots k \times \pi \\ $c \cdot x = k \cdot \pi \;\; \;\; \left( k \in \mathcal{Z} \right) \\ x  = \displaystyle{ $x_tex } \;\;\;\; \left( k \in \mathcal{Z} \right) \end{array} \right.
+    !if $teaching=1
+	image=0
+	xmin=-6
+        xmax=6
+	!for p=$xmin to $xmax
+	    as=$[$p*pi/($c)]
+	    asline=!append line arrow $p from $as,$ymin to $as1,$ymax nohead lt 4 ; to $asline 
+	!next p
+	xrange=$xmin:$xmax
+	yrange=$[4*$ymin]:$[4*$ymax]
+	image_settings$n=$prefix2 ; $asline
+    	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1 
+	insplot_set=$prefix ;
+    	!insplot [$xrange] [$yrange] $plotfunction notitle lt 1
+    !endif
+ !exit
+!endif

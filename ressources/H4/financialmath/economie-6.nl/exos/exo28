@@ -1,0 +1,37 @@
+# Obligatiekoers en kapitaalmarktrente
+n=$counter
+cols=6
+mathview=0
+make_tr=1
+rounding=100
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/precheck2.proc
+description=Koers bij stijging,Koers bij daling
+inputs=-1
+
+waarde=!randint 10,90
+waarde=$[$waarde*100]
+perc=!randint 30,70
+perc2=!randint $[$perc+1],$[$perc+10]
+perc3=!randint $[$perc-10],$[$perc-1]
+tot=!exec moneyprint $[$perc/10],$[$perc2/10],$[$perc3/10] 1
+perc1=$(tot[1])
+perc2=$(tot[2])
+perc3=$(tot[3])
+
+obligatie=$[$perc1*$waarde/100]
+ans1=!exec moneyprint $[100*$obligatie/$perc2]
+ans2=!exec moneyprint $[100*$obligatie/$perc3]
+answer$n=$ans1\
+$ans2
+
+ss=<em>Deze opgave wil het verband duidelijk maken tussen de verandering in de kapitaalmarktrente en<br />de waarde van een obligatie.</em><br /><br />Een obligatie met een nominale waarde van &euro; $waarde heeft een jaarlijkse vaste rentevergoeding van $perc1 %.<br />(met de looptijd hoeft in deze opgave geen rekening te worden gehouden.)<br />
+rr=<ol style="list-style-type:lower-alpha"><li><ul><li>$perc1 % van $waarde is &euro; $obligatie</li><li>$perc2 % moet dan gelijk zijn aan &euro; $obligatie</li><li>De waarde van de obligatie zal dan worden : $obligatie / $perc2 &times; 100 = &euro; $ans1</li><li>Conclusie: de waarde van de obligatie zal dalen als de kapitaalmarktrente stijgt.</li></ul></li><li><ul><li>$perc1 % van $waarde is &euro; $obligatie</li><li>$perc3 % moet dan gelijk zijn aan &euro; $obligatie</li><li>De waarde van de obligatie zal dan worden : $obligatie / $perc3 &times; 100 = &euro; $ans2</li><li>Conclusie: de waarde van de obligatie zal stijgen als de kapitaalmarktrente daalt.</li></ul></li></ol>
+question$n=$ss
+textanswer$n=$rr
+helptext=$empty
+var1=0.01,0.01
+# afronding per invulveld in new_number.proc
+var2=100,100
+
+exotext=<table class="grid_table"><tr><th>a)</th><td>Bereken wat de koers van de obligatie wordt<br />als de kapitaalmarktrente stijgt naar $perc2 %</td><td>&nbsp;&nbsp;&euro;&nbsp;&nbsp;<input type="text" size="$cols" id="myinput0" value="" class="schaersvoorde_input" /></td></tr><tr><th>b)</th><td>Bereken wat de koers van de obligatie wordt<br /> als de kapitaalmarktrente daalt naar $perc3 %</td><td>&nbsp;&nbsp;&euro;&nbsp;&nbsp;<input type="text" size="$cols" id="myinput1" value="" class="schaersvoorde_input" /></td></tr></table>

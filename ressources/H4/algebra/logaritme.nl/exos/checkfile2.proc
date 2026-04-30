@@ -1,0 +1,137 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+n=$counter
+# X_MAX -> var1                                                                                                 
+# X_MIN -> var2                                                                                                 
+# Y_MAX -> var3                                                                                                 
+# Y_MIN -> var4
+# grondtal -> var5
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    object$n=$empty
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !increase try
+    !exit
+!endif
+errortext=$empty
+# reply$n=x1,y1;x2,y2
+
+AAA=!replace [a-z\~!@#$%^&*_:'"] by $empty in $(reply$n)
+AAA=!replace internal ; by , in $AAA
+test=!itemcnt $AAA
+!if $test > 4
+    errortext=!record 20 of lang/remarks.$taal
+    #@ Hmmmm, Je zit een beetje te knoeien met de adres-balk...
+    goback=1
+    maxscore=$[$P6*$maxscore]
+    !increase try
+    !exit
+!endif    
+x1=!item 1 of $AAA
+x2=!item 3 of $AAA
+!ifval $x1=$x2 
+    errortext=!record 21 of lang/remarks.$taal
+    #@ Nee hoor $voornaam ,<br />\
+    #@ je moet natuurlijk wel twee verschillende punten in de applet maken<br />\
+    #@ wel listig bedacht ;)
+    maxscore=$[$P4*$maxscore]
+    !increase try
+    goback=1
+    !exit
+!endif
+
+y1=!item 2 of $AAA
+y2=!item 4 of $AAA
+!if $y1>522 or $y1<-5 or $x1>600 or $x1<0 or $y2>522 or $y2<-5 or $x2>600 or $x2<0  
+    errortext=!record 22 of lang/remarks.$taal
+    #@ Nee hoor $voornaam ,<br />\
+    #@ je moet natuurlijk wel ergens <b>op</b> het logpapier klikken<br />\
+    #@ Even verbeteren, graag :)
+    maxscore=$[$P3*$maxscore]
+    !increase try
+    goback=1
+    !exit
+!endif
+toll=12
+#PIX
+reply$n=$empty
+# 60 pix =0 66 pix
+# 394 pix = var1 595 pix
+# 6 pix tollerantie
+r=0
+score=0
+
+factor=1
+!for p=1 to 4 step 2
+    !increase r
+    Xpix=!item $p of $AAA
+    Ypix=!item $[$p+1] of $AAA
+    XX=$[(($Xpix-66)*$var1)/529]
+    #X1=$[(($Xpix-(66+$toll))*$var1)/529]
+    #X2=$[(($Xpix-(66-$toll))*$var1)/529]
+    YY=$[round($var5^((log($var3)/log($var5))*(522-$Ypix)/511))]
+    Y1=$[round($var5^((log($var3)/log($var5))*((522+$toll)-$Ypix)/511))]
+    Y2=$[round($var5^((log($var3)/log($var5))*((522-$toll)-$Ypix)/511))]
+#    YY=$[$var5^((log($var3)/log($var5))*(522-$Ypix)/511)]
+#    Y1=$[$var5^((log($var3)/log($var5))*((522+$toll)-$Ypix)/511)] 
+#    Y2=$[$var5^((log($var3)/log($var5))*((522-$toll)-$Ypix)/511)]
+    !if $XX < 0.25
+	# correctie 9/3/2009 [was $XX<0]
+	XX=0
+    !endif
+    x=$[(round(10*$XX))/10]
+    y=$[(round($factor*$YY))/$factor]
+    org=!evalsubst x=$x in $(answer$n) 
+    !if $org=-Inf 
+	Ya=0
+    !else
+	Ya=$[(round($factor*$org))/$factor]
+    !endif
+    !if NaN isin $Ya
+	maxscore=$[$P2*$maxscore]
+	errortext=!record 26 of $remarkdir/commonremarks.$taal
+	goback=1
+	!increase try
+	!exit
+    !endif
+    !if $Y1<=$Ya and $Ya<=$Y2
+	!increase score
+	reply$n=!append line <span style="color:green">($x:$org)</span><br /> to $(reply$n)
+    !else
+	!if $Y1 >= $Ya and $Ya >=$Y2
+	    !increase score
+	    reply$n=!append line <span style="color:green">($x:$org)</span><br /> to $(reply$n)
+	!else
+	    ex=!record 23 of lang/remarks.$taal
+	    reply$n=!append line ($x:$y)<br /> to $(reply$n)
+	    reply$n=!append line $ex<br /> to $(reply$n)
+	    #@  $(reply$n) <span style="color:red">en dat moest zijn ($x:$org)</span><br />
+	!endif
+    !endif
+!next p
+
+maxscore=$[$maxscore*($score/2)]
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $score>0
+	ex=!record 24 of lang/remarks.$taal
+	#@ Je hebt maar 1 co&ouml;rdinaten paar van de twee goed $BOK
+	remark$n=$BOK<br />$ex
+    !else
+    	remark$n=$NOK
+    !endif
+!endif
+object$n=$empty
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

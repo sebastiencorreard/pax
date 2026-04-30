@@ -1,0 +1,105 @@
+!set title=Nombre de liaisons
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey;Marie-joëlle,Ramage
+email=markey@ac-lilles.fr;marie-joelle.ramage@universite-paris-saclay.fr
+oefcss=<style> table.montableau { border:1px solid black} table.montableau td {text-align:left;border:1px solid black ; width:10%} table.montableau th {text-align:center;border:1px solid black} </style>
+
+ansorder=r,r,r
+varcnt=6
+prevarcnt=5
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim H,1	He,0	Li,1	C,4	Si,4	P,3	N,3	O,2	S,2	F,1	Cl,1	Ar,0	Ne,0
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+tmp=!trim $(val6[$(val8[1]);])	$(val6[$(val8[2]);])	$(val6[$(val8[3]);])
+val9=!translate internal $	\
+$ to ;; in $tmp
+val10=Donner le nombre de liaisons que chaque atome ci-dessous va <i>a priori</i> former au sein d'une molécule.
+replytype1=case
+replyname1=
+replygood1=$(val9[1;2])
+replytype2=case
+replyname2=
+replygood2=$(val9[2;2])
+replytype3=case
+replyname3=
+replygood3=$(val9[3;2])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <div class="wimscenter"><div class="spacer"><img src="$val1/tableauperiodique.png"></div> <div>CC BY-SA 4.0 - Illustration provenant de wikipédia.</div>
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	<div class="spacer">$val10</div>	<div class="wimscenter"><table class="montableau"><tr><th>Eléments</th><th>$(val9[1;1])</th><th>$(val9[2;1])</th><th>$(val9[3;1])</th></tr>	<tr><th>Nbre de liaisons</th><th> 
+!read oef/embed.phtml reply1,10 
+$()</th><th> 
+!read oef/embed.phtml reply2,10 
+$()</th><th> 
+!read oef/embed.phtml reply3,10 
+$()</th></tr>	</table></div></div></div>
+$()
+!exit
+
+:hint
+$()<div class="wimscenter"><div class="spacer"><img src="$val1/tableauperiodique.png"></div> <div>CC BY-SA 4.0 - Illustration provenant de wikipédia.</div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,10
+embedcnt=3

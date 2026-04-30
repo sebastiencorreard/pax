@@ -1,0 +1,157 @@
+!set title=Calculer avec des fractions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rectorat de Nice
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,3,5
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 13,15
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp=!nonempty items 2,3,5,7,9
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+tmp=!nonempty items 2,3
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0)*$val8)]
+tmp0=!shuffle 2,5,7,11
+
+val10=$(tmp0)
+val11=$[rint($(val10[1])*$(val10[2]))]
+val12=11/$val8 + 9/$val9,\frac{11}{$val8} + \frac{9}{$val9}	$val7/$val6-4/$val6*7/3,\frac{$val7}{$val6}-\frac{4}{$val6} \times \frac{7}{3}	$val11/$(val10[3]) * $(val10[4])/$(val10[1]),\frac{$val11}{$(val10[3])} \times \frac{$(val10[4])}{$(val10[1])}
+val13=et écrire les résultats sous forme simplifiée
+tmp0=!shuffle 1,2,3
+
+val14=$(tmp0)
+val15=
+val16=
+!for val17 =1 to 3 
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $(val14[$val17]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$(tmp0)
+tmp0=!item 2 of $val18
+
+val18=$(tmp0)
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+tmp=!translate ";': to $     $ in $val19
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+tmp0=!append item $val18 to $val15
+
+val15=$(tmp0)
+!next
+replytype1=numexp
+replyname1=Réponse
+replygood1=$(val15[1])
+replytype2=numexp
+replyname2=Réponse
+replygood2=$(val15[2])
+replytype3=numexp
+replyname3=Réponse
+replygood3=$(val15[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Calculer les expressions suivantes $val13 :	<ul>	<li>
+!insmath A = $(val16[1])
+$()	<div>
+!insmath A
+$() =  
+!read oef/embed.phtml r1,\size 
+$()</div>	</li><li>	 
+!insmath B = $(val16[2])
+$()	<div>
+!insmath B
+$() =  
+!read oef/embed.phtml r2,\size 
+$()</div>	</li><li>	 
+!insmath C = $(val16[3])
+$()	<div>
+!insmath C
+$() =  
+!read oef/embed.phtml r3,\size 
+$()</div>	</li>	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,16
+embedcnt=3

@@ -1,0 +1,186 @@
+# voor exo14 : zelf een venndiagram tekenen
+goback=0
+math=0
+errortext=$empty
+score=0
+extra=$empty
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ object$n=&nbsp;
+ !exit
+!endif
+
+AAA=!lower $(reply$n)
+# cirkels en text -> line=2 & line=11
+# -->  -3.1,-2.1,-1.1;1.2,1.3,1.2;48,41,23  --> x;y,Dpx
+# --> -3.8,-2.9,-1.9,-0.9;1,1.7,0.4,1.2;a,v,d,w --> x;y;TXT
+
+cirkels=!line 2 of $AAA
+text=!line 11 of $AAA
+cirkels=!translate ';' to '\n' in $cirkels
+cx=!line 1 of $cirkels
+cy=!line 2 of $cirkels
+cd=!line 3 of $cirkels
+chk=!itemcnt $cx
+!if $chk!=$var3
+ ex=<br />Je hebt geen $var3 cirkels getekent (maar $chk stuks...) dus is je antwoord altijd fout...
+ remark$n=$NOK $ex
+ maxscore=0
+ goback=0
+ !exit
+!endif
+
+text=!translate ';' to '\n' in $text
+tx=!line 1 of $text
+ty=!line 2 of $text
+tt=!line 3 of $text
+thk=!itemcnt $tx
+l=!itemcnt $var4
+!if $thk<$l
+ ex=<br />Je hebt niet de vereiste $l unieke labels ($var4) bij de gebieden geplaats...<br />maar slechts $thk stuks... ($tt)<br />dus ik kan je antwoord niet nakijken...
+ remark$n=$NOK $ex
+ maxscore=0
+ goback=0
+ !exit
+!endif
+
+# Diameter in px -> x-range ... $var2=0,10 
+xmin=!item 1 of $var2
+xmax=!item 2 of $var2
+f=$[($xmax - $xmin)/$xsize]
+## sorteer de cirkels in de volgorde van de vraag A,B,C
+!for p=1 to $var3
+ xc$p=!item $p of $cx
+ yc$p=!item $p of $cy
+ dc=!item $p of $cd
+ rc$p=$[$f*$dc]
+!next p
+dc12 = $[sqrt( ($xc1 - $xc2)*($xc1 - $xc2) + ($yc1 - $yc2)*($yc1 - $yc2) )]
+dc23 = $[sqrt( ($xc2 - $xc3)*($xc2 - $xc3) + ($yc2 - $yc3)*($yc2 - $yc3) )]
+dc13 = $[sqrt( ($xc1 - $xc3)*($xc1 - $xc3) + ($yc1 - $yc3)*($yc1 - $yc3) )]
+err=0
+!if $dc12 > $[$rc1+ $rc2]
+ !increase err
+!endif
+!if $dc23 > $[$rc2+ $rc3] or $dc13 > $[$rc1+ $rc3]
+ !increase err
+!endif
+!if $err>0
+ errortext=$err cirkels liggen niet in een normaal 'venndiagram'<br/>misschien is je antwoord correct, maar helaas ik kan de zaak zo niet nakijken...
+ goback=1
+ !exit
+!endif
+# seq=sequence
+seq=$empty
+sol=$empty
+UP=!toupper $var4
+q=!item -1 of $var4
+found_c=0
+found_q=0
+repl=$empty
+your_c=$empty
+your_p=$empty
+your_s=$empty
+!for p=1 to $thk
+ # a,b,c,d,d,d,d
+ a=!item $p of $tt
+ A=!toupper $a
+ idx=!positionof item $a in $var4
+ x=!item $p of $tx
+ y=!item $p of $ty
+ !if $a=$q
+  found_q=1
+  xq=!append item $x to $xq
+  yq=!append item $y to $yq
+  your_p=!append item $x,$y to $your_p
+  your_s=!append line string blue,$x,$y,$A to $your_s
+ !else
+  !for s=1 to $var3
+   xc=!item $s of $cx
+   yc=!item $s of $cy
+   dc=!item $s of $cd
+   rc=$[$f*$dc]
+   your_c=!append item $xc,$yc,$rc to $your_c
+   d=$[sqrt( ($x - $xc)*($x - $xc) + ($y - $yc)*($y - $yc) )]
+   !if $d<$rc
+    !increase found_c
+    x$idx=$xc
+    y$idx=$yc
+    r$idx=$rc
+    your_s=!append line string green,$xc,$yc,$A to $your_s
+   !endif
+  !next s
+ !endif
+!next p
+!if $found_c < $var3
+ ex=Je hebt niet alle cirkels gelabelled<br />ik kan je antwoord dus niet nakijken...
+ remark$n=$NOK <br /> $ex
+ goback=0
+ maxscore=0
+ !exit
+!endif
+!if $found_q=0
+ Q=!toupper $q
+ ex=Je hebt het gebied voor $Q niet aangegeven<br />ik kan je antwoord dus niet nakijken...
+ remark$n=$NOK <br /> $ex
+ goback=0
+ maxscore=0
+ !exit
+!endif
+
+s=!itemcnt $xq
+!for r=1 to $s
+ x=!item $r of $xq
+ y=!item $r of $yq
+ !for p=1 to $var3
+  d$p=$[sqrt( ($x - $(x$p))*($x - $(x$p)) + ($y - $(y$p))*($y - $(y$p)) )]
+  paristring=!append word d$p=$(d$p);r$p=$(r$p); to $paristring
+ !next p
+ paristring=!append word $(answer$n) to $paristring
+!next p
+tot=!exec pari $paristring
+s=!linecnt $tot
+c=0
+nc=0
+!for p=1 to $s
+ S=!line $p of $tot
+ !if 1 notin $S
+  maxscore=0
+  !increase nc
+ !else
+  !increase c
+ !endif
+!next p
+
+!if $maxscore=1
+ remark$n=$OK
+ color=green
+!else
+ color=red
+ Q=!toupper $q
+ extra=Je hebt $c gebieden ($Q) goed gemarkeerd en $nc gebieden ($Q) incorrect...<br />en bij logica is nu eenmaal iets helemaal goed <b>of</b> helmaal fout...
+ remark$n=$NOK<br />$extra
+!endif
+
+!if $teaching=1
+ 
+ object$n=!exec canvasdraw\
+ size 300,300\
+ xrange $var2\
+ yrange $var2\
+ opacity 230,30\
+ filled\
+ fontfamily Italic 22px Ariel\
+ circles $color,$your_c\
+ linewidth 3\
+ points $color,$your_p\
+ $your_s
+ 
+!endif
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

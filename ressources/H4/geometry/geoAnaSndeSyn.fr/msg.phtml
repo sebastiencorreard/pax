@@ -1,0 +1,285 @@
+!! Fichier msg.phtml
+!!! This file contains error messages. It will be processed
+!!! whenever the variable `error' is not empty.
+!set name_msgerror=Vous n'avez pas entré la valeur,correctement.
+!set name_errwarning=Votre calcul,est faux. La bonne réponse est\
+Votre réponse,est incorrecte
+
+!if $mode1 isitemof exo1,exo2
+  !goto ERR1
+!else
+  !goto ERR3
+!endif
+!!!! EXOS 1, 2
+!!! REPONSES INCORRECTEMENT ECRITES
+:ERR1
+!if $[$etape]=1
+  !if noAB iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(A B\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noAC iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(A C\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noBC iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(B C\) $(name_msgerror[1;2])</span>
+  !endif
+  !exit
+!!Fin etape 1
+!endif
+!if $[$etape]=3
+  !if noxI iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_I\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyI iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_I\) $(name_msgerror[1;2])</span>
+  !endif
+  !exit
+!!Fin etape 3
+!endif
+!if $[$etape]=4
+  !if noxE iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_E\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyE iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_E\) $(name_msgerror[1;2])</span>
+  !endif
+  !exit
+!!Fin etape 4
+!endif
+!if $[$etape]=6
+  !if noxD iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_D\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyD iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_D\) $(name_msgerror[1;2])</span>
+  !endif
+!!Fin etape 6
+  !exit
+!endif
+!if $[$etape]=7
+  !if noxF iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_F\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyF iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_F\) $(name_msgerror[1;2])</span>
+  !endif
+!!Fin etape 7
+  !exit
+!endif
+!if $[$etape]=8
+  !if noxG iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_G\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyG iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_G\) $(name_msgerror[1;2])</span>
+  !endif
+!!Fin etape 8
+  !exit
+!endif
+!if $[$etape]=9
+  !if noxH iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(x_H\) $(name_msgerror[1;2])</span>
+  !endif
+  !if noyH iswordof $error
+    <span class="oef_indbad">$(name_msgerror[1;1]) \(y_H\) $(name_msgerror[1;2])</span>
+  !endif
+!!Fin etape 9
+  !exit
+!endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!! EXOS 3 et 4
+
+:ERR3
+
+!let Bien=!randitem Bravo, Bien, Bien joué, Bon travail, Félicitations
+!if $etape<$nbstep
+  <h2 class="small">Analyse de vos réponses à l'étape $etape.</h2>
+!endif
+
+!!!! GENERIC FOR EXO3 EXO4
+
+!if norep iswordof $error
+  <span class="oef_indbad">Attention, vous n'avez pas rentré toutes les réponses.</span>
+  !exit
+!endif
+!if nonum iswordof $error
+  <span class="oef_indbad">Attention, une réponse (au moins) n'est pas un nombre.</span>
+  !exit
+!endif
+!if decimal iswordof $error
+  <span class="oef_indbad">Attention, une réponse (au moins) est écrite sous forme décimale. Or les valeurs sont entières ou rationnelles, et dans ce cas il faut donner
+ des fractions irréductibles.</span>
+  !exit
+!endif
+!if none iswordof $error
+  <span class="oef_indgood">Bien, vos réponses sont toutes justes !</span>
+  !exit
+!endif
+!if $mode1=exo4
+  !goto ERR4
+!endif
+!!! EXO 3 ETAPE 1
+!if $etape=1
+!!class="oef_indbad"
+  <div>
+  !if 1 iswordof $error or 2 iswordof $error
+    $(name_errwarning[2;1]) \(I($rep1; $rep2)\) est incorrecte.
+  !!! pretty printing (parenthesis for negative numbers)
+    !if $[$xB]<0
+      !let txB=($xB)
+    !else
+      !let txB=$xB
+    !endif
+    !if $[$yB]<0
+      !let tyB=($yB)
+    !else
+      !let tyB=$yB
+    !endif
+    On a :
+     <div class="wimscenter">
+    \(x_I = \frac{x_A+x_B}{2} = \frac{$xA+$txB}{2} = $repxI\)
+    et
+    \(y_I = \frac{y_A+y_B}{2} = \frac{$yA+$tyB}{2} = $repyI\)
+    </div>
+  !endif
+  !if 3 iswordof $error or 4 iswordof $error
+    $(name_errwarning[2;1]) \(\overrightarrow{C I}($rep3; $rep4)\) $(name_errwarning[2;2]).
+    On a :
+    <div class="wimscenter">
+    !if $[$xC]<0
+      !let txC=($xC)
+    !else
+      !let txC=$xC
+    !endif
+    !if $[$yC]<0
+      !let tyC=($yC)
+    !else
+      !let tyC=$yC
+    !endif
+    !insmath x_{\overrightarrow{C I}} = x_I - x_C = $repxI - $txC = $repxCI
+    et
+    !insmath y_{\overrightarrow{C I}} = y_I - y_C = $repyI - $tyC = $repyCI
+    </div>
+  !endif
+  !if 5 iswordof $error or 6 iswordof $error
+    $(name_errwarning[2;1]) \(G($rep5; $rep6)\) $(name_errwarning[2;2]).
+    \(G\) étant situé aux 2/3 de la médiane issue de \(C\) on a
+    !insmath \overrightarrow{C G}=\frac{2}{3}\overrightarrow{C I}
+    , d'où:
+    <div class="wimscenter">
+    !if $[$repxCI]<0
+      !let txCI=($repxCI)
+    !else
+      !let txCI=$repxCI
+    !endif
+    !if $[$repyCI]<0
+      !let tyCI=($repyCI)
+    !else
+      !let tyCI=$repyCI
+    !endif
+    !insmath x_{G} = x_C + \frac{2}{3}x_{\overrightarrow{C I}} = $xC + \frac{2}{3}\times $txCI = $repxG
+      et
+    !insmath y_{G} = y_C + \frac{2}{3}y_{\overrightarrow{C I}} = $yC + \frac{2}{3}\times $tyCI = $repyG
+     </div>
+  !endif
+  </div>
+!endif
+!!! EXO 3 ETAPE 2
+!if $etape=2
+  <div>
+  !if $q<0
+    !let tq=$q
+  !else
+    !let tq=+ $q
+  !endif
+  !if 1 iswordof $error or 2 iswordof $error
+    La hauteur issue de \(A\) est la droite \((AP)\).
+    Votre réponse \( y = $rep1 x + $rep2\) n'est pas une équation de \((A P)\).
+    <div class="wimscenter">L'équation réduite de \((A P)\) est : \( y = $n x $tq \).</div>
+  !endif
+  !let hc1=!item 1 of $rephC
+  !let hc2=!item 2 of $rephC
+  !if 3 iswordof $error or 4 iswordof $error
+    Votre réponse \($rep3 = $rep4\) n'est pas une équation de la hauteur issue de \(C\).
+    <div class="wimscenter">La hauteur issue de \(C\) est la droite d'équation :
+    \($hc1 = $hc2 \).</div>
+  !endif
+  !if 5 iswordof $error or 6 iswordof $error
+    $(name_errwarning[2;1]) \(H($rep5; $rep6)\) $(name_errwarning[2;2]).
+    \(H\) est le point d'intersection des deux hauteurs, donc ses coordonnées
+    vérifient les deux équations \( y = $n x $tq \) et \($hc1 = $hc2 \).
+    On trouve : \(x_H = $repxH\) et \(y_H = $repyH\).
+  !endif
+  </div>
+!endif
+!!! EXO 3 ETAPE 3
+!if $etape=3
+  <div>
+  !if $r<0
+    !let tr=$r
+  !else
+    !let tr=+$r
+  !endif
+  !if 1 iswordof $error or 2 iswordof $error
+    Votre réponse \( y = $rep1 x + $rep2\) n'est pas une équation de la médiatrice de \([B C]\).
+    La médiatrice de \([B C]\) est la parallèle à la hauteur \((A P)\) passant par \(J\) le milieu
+    de \([B C]\) (ces droites ont donc le même coefficient directeur).
+    <div class="wimscenter">Son équation réduite est : \( y = $n x $tr \).</div>
+  !endif
+  !let mc1=!item 1 of $repmC
+  !let mc2=!item 2 of $repmC
+  !if 3 iswordof $error or 4 iswordof $error
+    Votre réponse \($rep3 = $rep4\) n'est pas une équation de la médiatrice de \([A B]\).
+    <div class="wimscenter">la médiatrice de \([A B]\) a pour équation réduite : \($mc1 = $mc2 \).</div>
+  !endif
+  !if 5 iswordof $error or 6 iswordof $error
+    $(name_errwarning[2;1]) \(M($rep5; $rep6)\) $(name_errwarning[2;2]).
+    \(M\) est le point d'intersection des deux médiatrices, donc ses coordonnées
+    vérifient les deux équations \( y = $n x $tr\) et \($mc1 = $mc2\).
+    On trouve : \(x_M = $repxM\) et \(y_M = $repyM\).
+  !endif
+  </div>
+!endif
+!!!! EXO 3 ETAPE 4
+!if $etape=4
+  <div>
+  !let x=!item 1 of $repco
+  !let y=!item 2 of $repco
+  !let u=!item 3 of $repco
+  !let v=!item 4 of $repco
+  !let co1=!item 5 of $repco
+  !let co2=!item 6 of $repco
+  !if 1 iswordof $error or 2 iswordof $error
+    $(name_errwarning[2;1]) \(\overrightarrow{G H}($rep1; $rep2)\) $(name_errwarning[2;2]).
+    La bonne réponse est \(\overrightarrow{G H}($x; $y)\).
+  !endif
+  !if 3 iswordof $error or 4 iswordof $error
+    <br>$(name_errwarning[2;1]) \(\overrightarrow{G M}($rep3; $rep4)\) $(name_errwarning[2;2]).
+    La bonne réponse est \(\overrightarrow{G M}($u; $v)\).
+  !endif
+  !if 5 iswordof $error
+    <br>$(name_errwarning[2;1]) \(x y' = $rep5\) $(name_errwarning[2;2]).
+    La bonne réponse est \(x y' = $co1\).
+  !endif
+  !if 6 iswordof $error
+    <br>$(name_errwarning[2;1]) \(y x' = $rep6\) $(name_errwarning[2;2]).
+    La bonne réponse est \(y x' = $co2\).
+  !endif
+  !if 7 iswordof $error or 8 iswordof $error or 9 iswordof $error
+    <br>Votre conclusion est incorrecte.
+  !endif
+  </div>
+!endif
+!if $mode1=exo3
+  !exit
+!endif
+!!! END EXO3
+:ERR4
+!if $error!=none
+  <div class="oef_indbad">
+  $(error)
+  </div>
+!endif
+
+!!! fin msg

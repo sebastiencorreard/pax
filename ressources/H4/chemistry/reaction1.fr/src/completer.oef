@@ -1,0 +1,132 @@
+\author{Georges Khaznadar}
+\email{georges.khaznadar@free.fr}
+\title{Compléter des équations}
+
+\comment{equation, équation équilibrée, coefficients}
+\css{
+<style>
+table tr th,td{
+  border: 1px black solid;
+  border-collapse: collapse;
+}
+</style>
+}
+\text{donnees=
+FeO_s + CO_g -> Fe_s, FeO_s + CO_g -> Fe_s +CO2_g, -1,-1,1,1;
+Mg_s + H^+ -> Mg^2+, Mg_s + 2H^+ -> Mg^2+ + H_2_g, -1, -2,1,1;
+F2_g -> Ca^2+ + F^-, F2_g + Ca_s -> Ca^2+ + 2F^-, -1,-1,1,2;
+Al2O3_s + Cl2_g -> AlCl3_s + CO_g, Al2O3_s + 3 Cl2_g + 6C_s -> 2AlCl3_s + 6CO_g, -1,-3,-6,2,6;
+H2SO4 + Cu_s + H^+ -> Cu^2+ + SO2_g, H2SO4 + Cu_s + 2H^+ -> Cu^2+ + SO2_g + 2H2O, -1,-1,-2,1,1,2;
+CaCO3_s + CO2_g + H2O -> HCO3^-, CaCO3_s + CO2_g + H2O -> 2HCO3^- + Ca^2+, -1,-1,-1,2,1
+}
+\integer{nb=wims(itemcnt \donnees[;1])}
+\text{index=shuffle(\nb)}
+\integer{maxstep=6}
+\text{debugstr=}
+
+\text{modele=}
+\text{depart=}
+\text{modeleL=}
+\text{departL=}
+\text{coeffs=}
+\text{r=}
+
+\for{i=1 to \maxstep}{
+ \integer{n=item(\i,\index)}
+ \text{ligne=\donnees[\n;]}
+ \text{depart=\depart item(1,\ligne),}
+ \text{modele=\modele item(2,\ligne),}
+ \text{departL=\departL slib(chemistry/chemeq_tex item(1,\ligne));}
+ \text{modeleL=\modeleL slib(chemistry/chemeq_tex item(2,\ligne));}
+ \text{coeffs=\coeffs item(3..-1,\ligne);}
+ \if{\i=1} {
+   \text{r=r1}
+ }{
+   \text{r=\r, r\i}
+ }
+}
+
+\text{exemples=C_s,CO2_g,H2O_l,Ca_s,Ca^2+,H^+,H2_g}
+\text{e=}
+\text{m=}
+\for {j=1 to 7}{
+ \text{ex= item(\j,\exemples)}
+ \text{e=\e \ex,}
+ \text{m=\m slib(chemistry/chemeq_tex \ex),}
+}
+
+\steps{\r}
+
+\statement{
+\if{\debug=1}{
+ DEBUG : nb=\nb index=\index<br>
+ depart=\depart <br>
+ modele=\modele <br>
+ coeffs=\coeffs <br>
+ r= \r <br>
+ debugstr = \debugstr <br>
+<hr>
+}
+Les réactions ci-dessous ne peuvent pas être 
+équilibrées telles quelles. Il y manque un composant, soit 
+parmi les réactifs, soit parmi les produits. Trouvez le composant
+manquant parmi la liste ci-dessous :
+<p>
+\for{k=1 to 7}{
+ \e[;\k] : \(\m[;\k]) ;
+}
+<p>
+Vous devrez préciser par le choix de l'indice, l'état physique du 
+composant, au moins dans les cas où celui-ci est : 
+<ul>
+<li>solide : dans ce cas, marquez "_s" pour faire <sub>s</sub>.
+<li>gazeux : dans ce cas, marquez "_g" pour faire <sub>g</sub>.
+</ul>
+Les cas des liquides ou des solutions aqueuses ne seront pas 
+distingués.
+<table>
+<tr><th>Équation incomplète</th>
+<th>(On peut copier-coller<br>ou tirer-glisser)</th>
+<th>Réponse à modifier</th></tr>
+
+\for{l=1 to \maxstep}{
+<tr><td>\(\departL[\l;])</td><td>\depart[;\l]</td><td>\embed{r\l}</td></tr>
+}
+</table>
+}
+
+\solution{
+<table>
+<tr><th>Équation incomplète/th><th>Réponse équilibrée<br>(à une multiplication près)</th></tr>
+\for{p=1 to \maxstep}{
+<tr><td>\(\departL[\p;])</td><td>\(\modeleL[\p;])</td></tr>
+}
+</table>
+
+}
+
+\reply{}{\modele[1]}{type=chemeq}
+\reply{}{\modele[2]}{type=chemeq}
+\reply{}{\modele[3]}{type=chemeq}
+\reply{}{\modele[4]}{type=chemeq}
+\reply{}{\modele[5]}{type=chemeq}
+\reply{}{\modele[6]}{type=chemeq}
+\reply{}{\modele[7]}{type=chemeq}
+\reply{}{\modele[8]}{type=chemeq}
+\reply{}{\modele[9]}{type=chemeq}
+
+\hint{<h3>Comment écrire une équation chimique avec le langage Chemeq</h3>
+Pour pouvoir écrire les équations chimiques au clavier sans trop de
+difficultés, le langage Chemeq est utilisé.<p>
+Voici quelques exemples de la syntaxe de Chemeq&nbsp;:
+<table bgcolor="lightyellow">
+<tr><th>Tapez ceci&nbsp;...</th><th>...&nbsp;pour signifier cela</th></tr>
+<tr><th><tt>-></tt></th><td>\(\rightarrow)<br> le signe de réaction</td></tr>
+<tr><th><tt>C_s</tt></th><td>\({}C_s) <br>du carbone à l'état solide</td></tr>
+<tr><th><tt>H2_g</tt></th><td>\({}H_2_g) <br>du dihydrogène à l'état gazeux</td></tr>
+<tr><th><tt>H^+_aq</tt></th><td>\({}H^+_{aq}) <br>ion oxonium en solution aqueuse</td></tr>
+<tr><th><tt>H2O</tt></th><td>\({}H_2O) <br>molécule d'eau</td></tr>
+<tr><th><tt>4H2O</tt></th><td>\({}4H_2O) <br>Quatre molécules d'eau</td></tr>
+<tr><th><tt>Zn + 2H^+_aq</tt></th><td>\({}Zn + 2H^+_{aq}) <br>un atome de zinc et deux ions oxonium<br><big>Attention&nbsp;:</big> les syntaxes <tt>Zn+2H^+_aq</tt> ou <tt>Zn+ 2H^+_aq</tt> sont fausses&nbsp;!<br>En effet la grammaire de chemeq ne peut pas décider si le zinc est ou n'est pas à l'état d'ion.<br><b>L'espace après <tt>Zn</tt> est obligatoire pour décider que c'est un atome neutre.</b></td></tr>
+</table>
+}

@@ -1,0 +1,174 @@
+!set title=Ordre 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rectorat de Nice
+email=fwguerima@free.fr
+language=fr
+
+ansorder=r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=45x60x1
+val7=nombre
+tmp0=!shuffle 2,3,5,7
+
+val8=$(tmp0)
+tmp0=!randitem 3,9,11,13
+
+tmp=!translate ";': to $     $ in 2*$(val8[1])
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(tmp0)/$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp3=!randitem 3,9,11,13
+
+tmp=!translate ";': to $     $ in $(val8[1])
+
+tmp=!lower $tmp
+tmp4=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val8[2])*$(tmp3)/$(tmp4)
+
+tmp=!lower $tmp
+tmp5=!exec maxima fullratsimp($tmp);
+tmp6=!randitem 3,9,11,13
+
+tmp=!translate ";': to $     $ in 4*$(val8[1])
+
+tmp=!lower $tmp
+tmp7=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val8[3])*$(tmp6)/$(tmp7)
+
+tmp=!lower $tmp
+tmp8=!exec maxima fullratsimp($tmp);
+tmp9=!randitem 3,9,11,13
+
+tmp=!translate ";': to $     $ in 8*$(val8[1])
+
+tmp=!lower $tmp
+tmp10=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val8[4])*$(tmp9)/$(tmp10)
+
+tmp=!lower $tmp
+tmp11=!exec maxima fullratsimp($tmp);
+val9=$(tmp2),$(tmp5),$(tmp8),$(tmp11)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+!if $val10<4 
+val9=3/2,7/4,35/16,15/8
+!endif
+tmp0=!sort numeric items $(val9[1..4])
+
+val11=$(tmp0)
+val9=
+!for val12 =1 to 4 
+tmp0=!item $val12 of $val11
+
+val13=$(tmp0)
+tmp0=!texmath $val13
+
+val13=$(tmp0)
+val13=\($val13)
+tmp0=!append item $val13 to $val9
+
+val9=$(tmp0)
+!next
+replytype1=clickfill
+replyname1=$val7 1
+replygood1=?analyze 14;$val9
+replytype2=clickfill
+replyname2=$val7 2
+replygood2=?analyze 15;$val9
+replytype3=clickfill
+replyname3=$val7 3
+replygood3=?analyze 16;$val9
+replytype4=clickfill
+replyname4=$val7 4
+replygood4=?analyze 17;$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Rangez les nombres en bas, du plus petit au plus grand.	<table class="wimscenter wimsnoborder"><tr>	<td> 
+!read oef/embed.phtml r1,$val6 
+$()</td>	 
+!for m_t=2 to 4 
+$()	 <td> 
+!insmath <
+$() </td><td> 
+!read oef/embed.phtml r\t,$val6 
+$()</td>	 
+!next
+$()	</tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val9 issametext $val14,$val15,$val16,$val17
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bon ordre
+
+!exit
+
+:stat
+vsavelist=6,9,14,15,16,17
+embedcnt=2

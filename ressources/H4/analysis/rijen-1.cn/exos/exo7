@@ -1,0 +1,80 @@
+# no need for translation
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+exotext=!record 97 of lang/remarks.$taal
+questiontype=0
+image=0
+math=0                
+texanswer$n=$empty
+formula$n=$empty
+checkfile=$checkdir/number.proc
+!if $rounding <10
+    rounding=100
+!endif
+!readproc $remarkdir/rounding.$taal
+
+!if $R=1
+    a=!randitem 5,6,7,8,9,10,11,12,13,14,15,16
+    r=!randint 10,30
+    b=!randint 10,50
+    b=$[100*$b]
+    g=$[(100+$r)/100]
+    a=7
+    b=1000
+    r=10
+    g=$[(100+$r)/100]    
+    tussen=$[1+ $b*($g-1)/$a]
+    answer$n=$[floor((log(($b*($g-1))/$a + 1))/(log($g)))]
+    textanswer$n=U<sub>n+1</sub>=$a&times;$g<sup>n</sup><br>\
+    <b>S</b>(U<sub>p</sub>)=$a&times;(1-$g<sup>p</sup>)/(1-$g) &le; $b $m_longrightarrow\
+    $g<sup>p</sup> &le; $tussen $m_longrightarrow\
+    p &le; log($tussen)/log($g) $m_longrightarrow\
+    p=$(answer$n)
+    ss=!record 54 of lang/remarks.$taal
+    #@ Gegeven is de rij U<sub>n</sub> met U<sub>1</sub>=$a <br>\
+    #@ Deze rij heeft <em>p</em> termen.<br>\
+    #@ Van deze rij U<sub>n</sub> is verder nog gegeven dat elke term <em>$r % groter</em> is dan de <em>voorgaande term</em>.<br>\
+    #@ De som van de termen is <em>kleiner dan $b</em>.<br>\
+    #@ Met &eacute;&eacute;n term meer zou de som <em>groter zijn dan $b</em>.<p>\
+    #@ Bereken de waarde van <em>p</em> exact.
+    question$n=$ss
+ !exit
+!endif
+
+
+!if $R>1
+    a=!randitem 5,6,7,8,9,10,11,12,13,14,15,16
+    ru=!randint 10,30
+    rv=!randint 5,20
+    b=!randint 10,50
+    b=$[100*$b]
+    gu=$[(100+$ru)/100]
+    gv=$[(100-$rv)/100]
+    p=$[floor((log(($b*($gu-1))/$a -1))/(log($gu)))]
+    tussen=$[1+ $b*($gu-1)/$a]
+    answer$n=$[(round(100*$a*(1-$gv^($p))/(1-$gv)))/100]
+    textanswer$n=U<sub>n+1</sub>=$a&times;$gu<sup>n</sup> en V<sub>n+1</sub>=$a&times;$gv<sup>n</sup><br>\
+    <b>S</b>(U<sub>p</sub>)=$a&times;(1-$gu<sup>p</sup>)/(1-$gu) &le; $b $m_longrightarrow \
+    $gu<sup>p</sup> &le; $tussen $m_longrightarrow<br>\
+    p &le; log($tussen)/log($gu) $m_longrightarrow p=$p <br>\
+    <b>S</b>(V<sub>$p</sub>)=$a&times;(1-$gv<sup>$p</sup>)/(1-$gv) $m_longrightarrow <b>S</b><sub>$p</sub>=$(answer$n)
+
+    ss=!record 55 of lang/remarks.$taal
+    #@ Gegeven is zijn rijen U<sub>n</sub> en V<sub>n</sub><br>\
+    #@ Voor beiden rijen geldt dat de eerste term U<sub>1</sub> en V<sub>1</sub> gelijk is aan $a <br>\
+    #@ Beiden rijen hebben <em>p</em> termen.<br>\
+    #@ Van de rij U<sub>n</sub> is verder nog gegeven dat elke term <em>$ru % groter</em> is dan de <em>voorgaande term</em>.<br>\
+    #@ De som van de termen van U<sub>n</sub> is <em>kleiner dan $b</em>.<br>\
+    #@ Met &eacute;&eacute;n term meer zou de som van U<sub>n</sub> <em>groter zijn dan $b</em>.<p>\
+    #@ Van de rij V<sub>n</sub> is gegeven dat elke term <em>$rv % kleiner</em> is dan de voorgaande term.<p>\
+    #@ Bereken voor V<sub>n</sub> op twee decimalen nauwkeurig de <em>som</em> dan de termen.
+
+    question$n=$ss
+ !exit
+!endif
+
+

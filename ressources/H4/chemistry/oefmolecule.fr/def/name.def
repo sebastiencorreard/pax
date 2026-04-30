@@ -1,0 +1,203 @@
+!set title=Associer molécules et noms
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey; Bernadette,Perrin-Riou ; Marie-joëlle Ramage
+email=bernadette.m.riou@orange.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=35
+prevarcnt=33
+postvarcnt=1
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1
+val7=2
+val8=nom
+val9=130
+val10=130x60
+val11=3
+val12=3
+val13=image
+tmp0=!lookup $val13 in ind.cles
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+tmp1=!item 1 to $val11+10 of $(tmp0)
+
+val15=$(tmp1)
+val16=
+!for val17 =1..$val11 
+tmp0=!lookup $(val15[$val17]) in descriptif
+
+val18=$(tmp0)
+val18=$(val18[$val7])
+tmp0=!translate | to , in $val18
+
+val18=$(tmp0)
+tmp=!nonempty items $val18
+
+tmp0=!randitem $tmp
+val18=$(val15[$val17])/$(tmp0)
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+!next
+tmp0=!makelist imgrename($val1/ttt	        width=$val9) for ttt in $val16
+
+val19=$(tmp0)
+val20=
+!for val17 =1..$val11 
+tmp0=!lookup $(val15[$val17]) in descriptif
+
+val21=$(tmp0)
+val21=$(val21[$val6])
+tmp0=!translate internal | to , in $val21
+
+val21=$(tmp0)
+tmp=!nonempty items $val21
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+
+!ifval $val6 = 4 
+tmp0=!append item \($val21) to $val20
+
+val20= $(tmp0) 
+!else
+tmp1=!append item $val21 to $val20
+
+val20= $(tmp1)
+!endif
+!next
+val22=
+!for val17 =$val11+1 to $val11+$val12 
+tmp0=!lookup $(val15[$val17]) in descriptif
+
+val21=$(tmp0)
+val21=$(val21[$val6])
+tmp0=!translate internal | to , in $val21
+
+val21=$(tmp0)
+tmp=!nonempty items $val21
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+
+!ifval $val6 = 4 
+tmp0=!append item \($val21) to $val20
+
+val22= $(tmp0) 
+!else
+tmp1=!append item $val21 to $val20
+
+val22= $(tmp1)
+!endif
+!next
+tmp0=!item 1 to $val11 of r1,r2,r3,r4,r5,r6,r7,r8
+
+val23=$(tmp0)
+oefsteps=$val23 
+nextstep=!nosubst $val23 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=Le premier nom
+replygood1=$(val20[1]);$(val22[1..$val12])
+replytype2=clickfill
+replyname2=Le second nom
+replygood2=$(val20[2])
+replytype3=clickfill
+replyname3=Le troisième nom
+replygood3=$(val20[3])
+replytype4=clickfill
+replyname4=Le quatrième nom
+replygood4=$(val20[4])
+replytype5=clickfill
+replyname5=Le cinquième nom
+replygood5=$(val20[5])
+replytype6=clickfill
+replyname6=Le sixième nom
+replygood6=$(val20[6])
+replytype7=clickfill
+replyname7=Le septième nom
+replygood7=$(val20[7])
+replytype8=clickfill
+replyname8=Le huitième nom
+replygood8=$(val20[8])
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  Voici le code des couleurs des atomes : <table class="wimscenter wimsborder"> <tr> <th>Nom</th><th>Symbole</th><th>Image</th><th>Nom</th><th>Symbole</th> <th>Image</th><th>Nom</th><th>Symbole</th><th>Image</th> </tr><tr> <td>bore</td> <td>B</td> <td><img src="$val1/atome/b.png" $val10 alt=""></td> <td>béryllium</td> <td>Be</td> <td><img src="$val1/atome/be.png" $val10 alt=""></td> <td>carbone</td> <td>C</td> <td><img src="$val1/atome/c.png" $val10 alt=""></td> </tr><tr> <td>chlore</td> <td>Cl</td> <td><img src="$val1/atome/cl.png" $val10 alt=""></td> <td>fluor</td> <td>F </td> <td><img src="$val1/atome/f.png" $val10 alt=""></td> <td>hydrogène</td> <td>H</td> <td><img src="$val1/atome/h.png" $val10 alt=""></td> </tr><tr> <td>azote</td> <td>N</td> <td><img src="$val1/atome/n.png" $val10 alt=""></td> <td>oxygène</td> <td>O</td> <td><img src="$val1/atome/o.png" $val10 alt=""></td> <td>phosphore</td> <td>P</td> <td><img src="$val1/atome/p.png" $val10 alt=""></td> </tr><tr> <td>soufre</td> <td>S</td> <td><img src="$val1/atome/s.png" $val10 alt=""></td> </tr> </table> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_instruction">On trouvera en indication le code des couleurs.</div>	<div class="wims_question">Voici une série d'images de modèles éclatés de molécules.	  Associer molécules et $val8 :<br>	<ul class="inline wims_nopuce wimscenter">	  
+!for m_c=1 to $val11 
+$()	  <li>	   
+!read oef/img.phtml $val1/$(val16[$m_c]) width=$val9  
+$()	  <br>  
+!read oef/embed.phtml reply \c,$val10 
+$()	  </li>	  
+!next
+$()	 </ul></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() Voici le code des couleurs des atomes : <table class="wimscenter wimsborder"> <tr> <th>Nom</th><th>Symbole</th><th>Image</th><th>Nom</th><th>Symbole</th> <th>Image</th><th>Nom</th><th>Symbole</th><th>Image</th> </tr><tr> <td>bore</td> <td>B</td> <td><img src="$val1/atome/b.png" $val10 alt=""></td> <td>béryllium</td> <td>Be</td> <td><img src="$val1/atome/be.png" $val10 alt=""></td> <td>carbone</td> <td>C</td> <td><img src="$val1/atome/c.png" $val10 alt=""></td> </tr><tr> <td>chlore</td> <td>Cl</td> <td><img src="$val1/atome/cl.png" $val10 alt=""></td> <td>fluor</td> <td>F </td> <td><img src="$val1/atome/f.png" $val10 alt=""></td> <td>hydrogène</td> <td>H</td> <td><img src="$val1/atome/h.png" $val10 alt=""></td> </tr><tr> <td>azote</td> <td>N</td> <td><img src="$val1/atome/n.png" $val10 alt=""></td> <td>oxygène</td> <td>O</td> <td><img src="$val1/atome/o.png" $val10 alt=""></td> <td>phosphore</td> <td>P</td> <td><img src="$val1/atome/p.png" $val10 alt=""></td> </tr><tr> <td>soufre</td> <td>S</td> <td><img src="$val1/atome/s.png" $val10 alt=""></td> </tr> </table> 
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val10=style="width:70px;height:70px;"
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,9,10,11,16
+embedcnt=1

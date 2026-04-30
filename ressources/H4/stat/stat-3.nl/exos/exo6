@@ -1,0 +1,182 @@
+questiontyp=0
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif 
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cols=10
+var1=1
+image=0
+mathview=0
+formula$n=$empty
+dice=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+#!record 49 of lang/remarks.$taal
+#@Dobbelstenen en bereken de Kans op ?
+
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+smallwords=!record 50 of lang/remarks.$taal
+#@ en,een
+en=!item 1 of $smallwords
+een=!item 2 of $smallwords
+nummers=1,2,3,4,5,6
+!for s=1 to 6
+    S$s=0
+!next s
+dice=$empty
+dobbel=$empty
+hetantwoord=!record 109 of lang/remarks.$taal
+!if $R=1
+    # twee dobbelstenen
+    numdobbel=2
+    tot=$empty	
+    !for p=1 to 2
+	num$p=!randitem $nummers
+	!for s in $nummers
+	    !if $(num$p)=$s
+		!increase S$s
+	    !endif	
+	!next s
+	naam=!item $(num$p) of $telwoorden
+	dobbel=!append item $een&nbsp;<b>$naam</b>&nbsp;$rr to $dobbel
+	dice=!append line <img src="$module_dir/dice/$(num$p).gif"/> to $dice
+    !next p
+    !for s=1 to 6
+	tot=!append item $(S$s) to $tot
+    !next s
+    !if 2 notin $tot
+	answer$n=1/18
+	texanswer$n=2\cdot \frac{1}{6} \cdot \frac{1}{6} = \frac{1}{18}
+    !else
+	answer$n=1/36
+	texanswer$n= \frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}
+    !endif
+    textanswer$n=$hetantwoord $(answer$n)
+    ss=!record 51 of lang/remarks.$taal
+    #@ Ik heb $numbobbel eerlijke dobbelstenen<br />\
+    #@ Hoe groot is de kans op:<br /> $dobbel ?<br />\
+    #@ De volgorde doet er niet toe !
+    !if $teaching=1
+	zoals=!record 56 of lang/remarks.$taal
+	#@ <p>Zoals bijvoorbeeld:<br /> $dice<br />
+	question$n=$ss $zoals
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    # drie dobbelstenen
+    numdobbel=3
+    tot=$empty
+    !for p=1 to 3
+	num$p=!randitem $nummers
+	!for s in $nummers
+	    !if $(num$p)=$s
+		!increase S$s
+	    !endif
+	!next s
+	naam=!item $(num$p) of $telwoorden
+	dobbel=!append item $een&nbsp;<b>$naam</b>&nbsp;$rr to $dobbel
+	dice=!append line <img src="$module_dir/dice/$(num$p).gif" alt="noalt" /> to $dice
+    !next p
+    !for s=1 to 6
+	tot=!append item $(S$s) to $tot
+    !next s
+    !if 3 isitemof $tot
+	answer$n=1/216
+	texanswer$n=\frac{1}{6} \cdot\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{216}
+    !else
+	!if 2 isitemof $tot
+	    answer$n=1/72
+	    texanswer$n=3 \cdot \frac{1}{6} \cdot\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{72}
+	!else
+	    answer$n=1/36
+	    texanswer$n=6 \cdot \frac{1}{6} \cdot\frac{1}{6} \cdot \frac{1}{6} = \frac{1}{36}
+	!endif    
+    !endif
+    textanswer$n=$hetantwoord $(answer$n)
+    ss=!record 51 of lang/remarks.$taal
+    #@ Ik heb $numdobbel eerlijke dobbelstenen<br />\
+    #@ Hoe groot is de kans op:<br /> $dobbel ?<br />\
+    #@ De volgorde doet er niet toe !
+    !if $teaching=1
+	zoals=!record 56 of lang/remarks.$taal
+	#@ <p>Zoals bijvoorbeeld:<br /> $dice<br />
+	question$n=$ss $zoals
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    # vier dobbelstenen
+    numdobbel=4
+    tot=$empty	
+    !for p=1 to 4
+	num$p=!randitem $nummers
+	!for s in $nummers
+	    !if $(num$p)=$s
+		!increase S$s
+	    !endif
+	!next s
+	naam=!item $(num$p) of $telwoorden
+	dobbel=!append item $een&nbsp;<b>$naam</b>&nbsp;$rr to $dobbel
+	dice=!append line <img src="$module_dir/dice/$(num$p).gif" alt="noalt" /> to $dice
+    !next p
+    !for s=1 to 6
+	tot=!append item $(S$s) to $tot
+    !next s
+    !if 4 isitemof $tot
+	answer$n=1/1296
+	texanswer$n=\frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} = \frac{1}{1296}
+    !else
+	!if 3 isitemof $tot
+	    answer$n=1/324
+	    texanswer$n=4 \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} = \frac{1}{324}
+	!else
+	    !if 2 isitemof $tot
+		t=!positionof char 2 in $tot
+		# 0,0,2,0,2,0 => t=3,5
+		# 1,0,1,0,2,0 => t=5
+		t=!itemcnt $t
+		!if $t=2
+		    answer$n=1/216
+		    texanswer$n=\frac{4 \cdot 3 \cdot 2 \cdot 1 }{2 \cdot 2} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} = \frac{1}{216}
+		!else
+		    answer$n=1/108
+		    texanswer$n=\frac{4 \cdot 3 \cdot 2 \cdot 1 }{2} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6}=\frac{1}{108}
+		!endif
+	    !else
+		answer$n=1/54
+		texanswer$n=4 \cdot 3 \cdot 2 \cdot 1 \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6} \cdot \frac{1}{6}=\frac{1}{54}
+	    !endif
+	!endif
+    !endif
+    textanswer$n=$hetantwoord $(answer$n)
+    ss=!record 51 of lang/remarks.$taal
+    #@ Ik heb $numbobbel eerlijke dobbelstenen<br />\
+    #@ Hoe groot is de kans op:<br /> $dobbel ?<br />\
+    #@ De volgorde doet er niet toe !
+    !if $teaching=1
+	zoals=!record 56 of lang/remarks.$taal
+	#@ <p>Zoals bijvoorbeeld:<br /> $dice<br />
+	question$n=$ss $zoals
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+

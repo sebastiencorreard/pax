@@ -1,0 +1,135 @@
+n=$counter
+# LET OP answer$n is in GRADEN !!!!!
+# GEOGEBRA stuurt ook het antwoord in GRADEN
+questiontype=4
+math=0
+cols=15
+rows=1
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+customToolBar=" 0 | 40 "
+list_of_things=['angle'];
+exotext=$empty
+helptext=$empty
+showToolBar=true
+showMenuBar=false
+framePossible=true
+#ggb=ggb/sinus0.ggb
+#ggb=ggb/sinus1.ggb
+#ggb=ggb/sinus2.ggb
+#ggb=ggb/sinus3.ggb
+#ggb=ggb/cirkel01.ggb
+#ggb=ggb/cosinus1.ggb
+
+!if $rounding<1 or $rounding=$empty
+    rounding=100
+!endif
+checkfile=exos/checkfile6.proc
+width=800
+height=420
+keuze=!randitem 1,0
+dingen=!record 43 of lang/remarks.$taal
+
+!if $keuze=1
+    ggb=ggb/cirkelsin1.ggb
+    eenheid=!item 2 of $dingen
+    unit= \pi
+!else
+    ggb=ggb/cirkelsin2.ggb
+    eenheid=!item 1 of $dingen 
+    unit=^{o}
+!endif
+!if $R=1
+    inputs=0
+    kies=!randitem 1,0
+    k=!randint 2,88
+    !if $kies=1
+	h1=$[90-$k]
+	h2=$[90+$k]
+    !else	
+	h1=$[270-$k]
+	h2=$[270+$k]
+    !endif
+    answer$n=$h1,$h2
+    h=$[(round(1000*sin($h1*pi/180)))/1000]
+    customToolBar=" 0 | 40 "
+    list_dof_things=['angle'];
+    helptext=$empty
+    tekst1=&#945; - 1/10 &#176;
+    tekst2=&#945; + 1/10 &#176;
+    exotext=<input type="button" value="$tekst1" onclick="document.getElementById('ggbApplet').evalCommand('a=a-(pi/1800)')"/><input type="button" value="$tekst2" onclick="document.getElementById('ggbApplet').evalCommand('a=a+(pi/1800)')"/>
+    ss=!record 41 of lang/remarks.$taal
+    question$n=$ss
+    #@Gegeven de eenheidscirkel (straal=1)<br />Een punt P kun je met behulp van de "slider" of de "knoppen" over de eenheidscirkel laten lopen.<br />De lengte van lijnstuk <b>SP</b> (of natuurlijk S'P') is per definitie in de eenheidscirkel (straal=1)<br />de sinus van de draaihoek $m_alpha .De draaihoek zelf is in $eenheid uitgezet als horizontale-as (&alpha;-as)<br />Laat het punt P nu over de eenheidscirkel lopen, tot dat -ongeveer- geldt:  sin($m_alpha) = $h<br /><small>laat de applet in deze positie staan, als je het antwoord opstuurd</small>
+    texanswer$n=!subst \sin(\alpha)\,=\,\sin($h $unit) \rightarrow \alpha = $h1^{o} \wedge \alpha = $h2^{o} 
+ !exit
+!endif
+!if $R>1
+    kies=!randitem 1,0
+    !if $kies=1
+        k=!randint 1,11
+	g=$[$k*15]
+	d=$[abs(90-$g)]
+	h1=$[90-$d]
+	h2=$[90+$d]
+    !else
+        k=!randint 13,23
+	g=$[$k*15]
+	d=$[abs(270-$g)]
+	h1=$[270-$d]
+	h2=$[270+$d]
+    !endif
+    tot=!exec pari A=($h1/180)\
+    printtex(A)\
+    B=($h2/180)\
+    printtex(B)
+	
+    hr1=!line 1 of $tot
+    hrt1=!line 2 of $tot
+    hr2=!line 3 of $tot
+    hrt2=!line 4 of $tot
+    hr1=pi*$hr1
+    hr2=pi*$hr2
+     
+    h=$[(round(100*sin($hr1)))/100]
+    !if $keuze=1
+	# pi radialen
+	var1=1
+	!ifval $h1=$h2
+	    answer$n=$h1
+	    ans=\sin\left( $hrt1 \pi \right) = $h
+	!else
+	    answer$n=$h1,$h2
+	    ans=\left[ \begin{array}{l} \sin\left( $hrt1 \pi \right) = $h \\ \sin\left( $hrt2 \pi \right) = $h \end{array} \right.
+	!endif
+    !else
+	var1=0
+	# graden	
+	!ifval $h1=$h2
+	    answer$n=$h1
+	    ans=$h1 ^{o}
+	!else
+	    answer$n=$h1,$h2
+	    ans=\left[ \begin{array}{l} \alpha = $h1 ^{o} \\ \alpha = $h2 ^{o}\end{array} \right.
+	!endif
+    !endif
+    inputs=1
+    tekst1=&#945; - 1/10 &#176;
+    tekst2=&#945; + 1/10 &#176;
+    exotext=<input type="button" value="$tekst1"  onclick="document.getElementById('ggbApplet').evalCommand('a=a-(pi/1800)')"/><input type="button" value="$tekst2"  onclick="document.getElementById('ggbApplet').evalCommand('a=a+(pi/1800)')"/>
+    ss=!record 42 of lang/remarks.$taal
+    s1=!record 44 of lang/remarks.$taal
+    #@<em>Voor welke waarden van $m_alpha in $eenheid geldt dat sin($m_alpha) = $h ?</em>
+    inputtext1=$s1
+    question$n=$ss
+    #@Gegeven de eenheidscirkel (straal=1)<br />Een punt P kun je met behulp van de "slider" of de "knoppen" over de eenheidscirkel laten lopen.<br />De lengte van lijnstuk <b>SP</b> (of natuurlijk S'P') is per definitie in de eenheidscirkel (straal=1)<br />de sinus van de draaihoek $m_alpha .De draaihoek zelf is in $eenheid uitgezet als horizontale-as (&alpha;-as)<br /> Voor welke waarden van $m_alpha (uitgedrukt in $eenheid) geldt dat sin($m_alpha) = $h ?<br /><small>Vul de getallen in en laat de applet in een goede positie staan, als je het antwoord opstuurd</small>
+    texanswer$n=\sin(\alpha)\,=\,$h \rightarrow $ans
+ !exit
+!endif
+
+    
+

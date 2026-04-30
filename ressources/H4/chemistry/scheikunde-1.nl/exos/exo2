@@ -1,0 +1,219 @@
+n=$counter
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten" /></a>  
+
+math=0
+inputs=yes
+calculator=1
+mathview=0
+questiontype=7
+make_tr=1
+#applet
+width=600
+height=220
+largefont=28
+# var2 is in units.proc een getal met range
+var2=$empty
+
+prec=1000
+!if $rounding < 1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+javascript=js/cheminput.js
+checkfile=exos/checkfile1.proc
+!if $counter=1
+    var5=$empty
+    max=!recordcnt docs/data3.def
+    !for p=1 to $max
+	var5=!append item $p to $var5
+    !next p
+    var5=!shuffle $var5
+!endif
+num=!item $counter of $var5
+data=!record $num of docs/data3.def
+# vraag1
+M=!line 5 of $data
+ans1=$M
+
+ans7 = !line 7 of $data
+texanswer$n = !line 9 of $data
+!if $taal=en
+    chemical=!line 1 of $data
+!else
+    !if $taal=nl
+	chemical=!line 2 of $data
+	chemical=!item 1 of $chemical
+    !else
+        chemical=!line 1 of $data
+    !endif
+!endif
+
+verhouding=!line 11 of $data
+positive=!word 1 of $chemical
+negative=!word 2 of $chemical
+vplus=!item 1 of $verhouding
+vmin=!item 2 of $verhouding
+#vraag 3  hoeveel positieve ionen
+#vraag 4  hoeveel negatieve ionen
+
+
+chemical=!nospace $chemical
+
+cc=!randint 111,999
+cc=$[$cc/10]
+pow=!randitem -2,-3
+conc1=$cc*10^$pow
+#vraag2
+k=!randint 1,4
+!if $k=1
+    gram=mg
+    volume_chemical=!randitem 250,350,500,750,1000,1500
+    volume_unit=ml
+    # 0.1 mg nauwkeurig
+    weight_chemical=$[$M*($conc1)*$volume_chemical]
+    weight_chemical=$[(round(10*($weight_chemical)))/10]
+!else
+    !if $k=2
+        gram=gr
+        volume_chemical=!randitem 1.00,1.50,2.00,2.50
+	volume_unit=L
+	# 0.0001 gr = 0.1 mg nauwkeurig
+	weight_chemical=$[$M*($conc1)*$volume_chemical]
+	weight_chemical=$[(round(10000*($weight_chemical)))/10000]
+    !else
+	!if $k=3
+    	    gram=gr
+	    volume_chemical=!randitem 250,350,500,750,1000,1500
+	    volume_unit=ml
+	    weight_chemical=$[$M*($conc1)*$volume_chemical/1000]
+	    weight_chemical=$[(round(10000*($weight_chemical)))/10000]
+	!else
+	    gram=mg
+	    volume_chemical=!randitem 1.000,1.125,1.250,1.500,1.750,2.000,2.250,2.500,2.750,3.000
+	    volume_unit=L
+	    weight_chemical=$[$M*($conc1)*1000*$volume_chemical]
+	    weight_chemical=$[(round(10*($weight_chemical)))/10]
+	!endif
+    !endif
+!endif
+ans2=$conc1
+ans3=$[$vplus*$ans2]
+ans4=$[$vmin*$ans2]
+#vraag5
+
+k=!randint 1,4
+cc=!randint 111,999
+cc=$[$cc/10]
+pow=!randitem -1,-2,-3
+conc=$cc*10^($pow)
+
+!if $k=1
+    conc_present=$cc&times;10<sup>$pow</sup> mol/l
+!else
+    !if $k=2
+	conc_present=$cc&times;10<sup>$pow</sup> mmol/ml
+    !else
+	!if $k=3
+	    conc_present=$cc&times;10<sup>$[$pow+3]</sup> mmol/l
+	!else
+	    conc_present=$cc&times;10<sup>$[$pow-3]</sup> mol/ml
+	!endif
+    !endif
+!endif
+# antwoord : van mol/l ->  gram/liter 
+ans5=$[$M*$conc]
+#vraag6
+leeg=!randint 200,450
+leeg=$[$leeg/100]
+pipet=!randitem 5,10,15,20,25,50
+droog=!randint 99,399
+droog=$[$pipet*$droog/100]
+droog=$droog*10^-2
+ans6=$[1000*(($droog)/($M))/$pipet]
+
+tot=!exec moneyprint $ans1,$ans2,$ans3,$ans4,$ans5,$ans6 3
+#ans_1=$[(round($prec*($ans1)))/$prec]
+#ans_2=$[(round($prec*($ans2)))/$prec]
+#ans_3=$[(round($prec*($ans3)))/$prec]
+#ans_4=$[(round($prec*($ans4)))/$prec]
+#ans_5=$[(round($prec*($ans5)))/$prec]
+#ans_6=$[(round($prec*($ans6)))/$prec]
+!for p=1 to 6
+    ans_$p=!item $p of $tot
+!next p
+
+!for p=31 to 41
+    L$p=!record $p of lang/remarks.$taal
+!next p
+
+text=!nosubst $L31<ol><li>$L32</li><li>$L33</li><li>$L34<ol><li>$L35</li><li>$L36</li><li>$L37</li></ol></li><li>$L38<ol><li>$L39<li>$L40</li></ol></li></ol>$L41
+
+
+
+!if $wims_user=supervisor
+    vraag1=!subst <input id="myinput0" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans1 gr/mol" />
+    vraag2=!subst <input id="myinput1" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans2 mol/l" />
+    vraag3=!subst <input id="myinput2" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans3 mol/l" />
+    vraag4=!subst <input id="myinput3" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans4 mol/l" />
+    vraag5=!subst <input id="myinput4" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans5 gr" />
+    vraag6=!subst <input id="myinput5" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" name="myinput" value="$ans6 mol/l" />
+
+    applettext=!line 9 of $data
+!else
+    vraag1=<input id="myinput0" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag2=<input id="myinput1" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag3=<input id="myinput2" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag4=<input id="myinput3" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag5=<input id="myinput4" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    vraag6=<input id="myinput5" size="10" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;" type="text" value="" />
+    
+    applettext=!line 3 of $data
+    applettext=$applettext \leftrightarrow
+!endif
+
+
+answer$n=$ans1 gr/mol,$ans2 mol/l,$ans3 mol/l,$ans4 mol/l,$ans5 gr ,$ans6 mol/l
+# eenheid erbij : units.proc
+var1=1,1,1,1,1,1
+var9=$ans7
+
+helptext=<img src=\'$module_dir/gifs/exo2.jpg\' alt=\'applet\' />
+question$n=$empty
+
+
+textselect=1
+exotext=!subst $text
+
+# in vraag* zitten nu de antwoorden
+vraag1=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_1 gr/mol" readonly="readonly" />
+vraag2=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_2 mol/l" readonly="readonly" />
+vraag3=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_3 mol/l" readonly="readonly" />
+vraag4=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_4 mol/l" readonly="readonly" />
+vraag5=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_5 gr" readonly="readonly" />
+vraag6=!subst <input size="10" style="font-size:18px;background-color:lightgreen;border:1px solid #ff0000;" type="text" value="$ans_6 mol/l" readonly="readonly" />
+
+textanswer$n=!subst $text
+
+#@ Het zout $chemical lost op in water.
+#@ Maak de dissociatie van $chemical in de applet kloppend
+#@ Bereken de molmassa van $chemical :  $vraag1
+#@ We lossen $weight_chemical $gram $chemical op in $volume_chemical $volume_unit water. 
+#@ Wat is de molaire concentratie $chemical ? :  $vraag2
+#@ Wat is de concentratie aan $positive -ionen in deze oplossing?:  $vraag3
+#@ Wat is de concentratie aan $negative -ionen in deze oplossing?:  $vraag4
+#@ We hebben een oplossing met een onbekende hoeveelheid $chemical...<br /> Met de twee onderstaande methodes achterhalen we het gehalte aan $chemical : <p>
+#@ We maken eerst verschillende bekende concentraties $chemical in water.<br />En bepalen met een UV/Visible spectrometer hiervan de extincies bij een geschikte golflengte...<br /> Maken ijklijn door de concentratie uit te zetten tegen absorptie.<br />En meten vervolgens de onbekende verdunning...<br /> Stel dat we in de ijklijn kunnen aflezen dat de onbekende concentratie $conc_present is<br />: hoeveel gram $chemical hebben we dan per liter opgelost ?:  $vraag5 <br />
+#@ We nemen met een geijkte pipet van $pipet ml een monster uit een waterige<br />oplossing van onbekende sterkte van $chemical.<br />En doen dit monster in een gewogen petri-schaaltje [leeggewicht $leeg gram]<br />Met behulp van een magnetron dampen we het monster zover in dat alle water is verdwenen.<br />We veronderstellen geen verliezen door ontleding en overkoken of ander ongemak...<br />Het schaaltje weegt nu $[$leeg + $droog] gram. <br />Bereken molaire concentratie van de onbekende oplossing ?: $vraag6</ol></ol>
+#@ Geef alle antwoorden in gebruikelijke S.I. eenheden.
+
+

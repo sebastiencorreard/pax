@@ -1,0 +1,143 @@
+!set title=Given sum
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Gang Xiao
+email=xiao@unice.fr
+language=fr
+title_fr=Somme donnée
+
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Let,and, be two real numbers with ,and,Prove 
+!if $val6=fr 
+val7=Soit,et, deux nombres réels avec,et,Montrez que
+!endif
+m_options=nofloat
+tmp0=!randitem ineq/addterm,prf/contrapose
+
+val8=$(tmp0)
+m_methods=$val8 ineq/exsides,	  ineq/trans, ineq/addineq, ineq/mulineq
+m_minsteps=2
+tmp=!trim a,b	c,d	x,y	r,s	s,t	p,q	
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp0=!item 1 of $val9
+
+val10=$(tmp0)
+tmp0=!item 2 of $val9
+
+val11=$(tmp0)
+tmp0=!randint 3, 20
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 3, 20
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val12 + $val13)]
+val15=
+tmp0=!randitem ,=
+
+val16=$(tmp0)
+tmp0=!shuffle <,>
+
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 2 of $val17
+
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in $val10 + $val11 $val18$val16 $val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+val21=$val10 $val19= $val12
+val22=$val11 $val18$val16 $val13
+m_context=$val20	$val21
+m_goal=$val22
+val23=$m_goal
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) 
+!insmath $val10
+$() $(val7[2]) 
+!insmath $val11
+$() $(val7[3]) 
+!insmath $val20
+$()	  $(val7[4]) 
+!insmath $val21
+$().	  $(val7[5]) 
+!insmath  $val23 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,20,21,23
+embedcnt=0

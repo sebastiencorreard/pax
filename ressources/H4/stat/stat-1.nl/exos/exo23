@@ -1,0 +1,117 @@
+# Teken de polygoon a.h.v. tabel
+# ivm GNUplot & insplot_data van wims !!
+total_exos=1
+n=$counter
+!if $rounding <10
+    rounding=-1
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+# GeoGebra
+list_of_things=[ 'point'];
+customToolBar=" 0 | 15 || 40 | 41 | 42 | 6 "
+appletcommand=$empty
+ggb=ggb/1.ggb
+questiontype=4
+inputs=0
+showToolBar=true
+showMenuBar=false
+framePossible=true
+width=640
+height=480
+make_tr=1
+math=0
+plot=0
+draw=0
+image=0
+image=0
+checkfile=exos/checkfile4.proc
+helptext=img src=$module_dir/gifs/help1.jpg alt=noalt />
+
+fruitsoort=!record 15 of lang/remarks.$taal
+#@  appels,peren,handperen,goudreinetten,notarisappels,aardappels,komkommers,perziken,grapefruit,sinaasappels,bananen,druivetrossen
+fruit=!randitem $fruitsoort
+
+sometext=!record 26 of lang/remarks.$taal
+#@Klasse middens (gram),Percentage $fruit, Klassen (gram),Gewicht,rechtergrens
+klassemiddens=!item 1 of $sometext
+perc=!item 2 of $sometext
+klassengew=!item 3 of $sometext
+gewicht=!item 4 of $sometext
+rechtergrens=!item 5 of $sometext
+
+klassen=!randitem 6,7,8
+klassebreedte=!randitem 4,5,6,7,8
+min=!randint 60,120
+maxhoogte=!randint 75,155
+data=$empty
+meting=$empty
+var5=$empty
+!for p=1 to $klassen
+    r=!randint 70,100
+    r=$[$r/100]
+    L$p=$[$min + ($p-1)*$klassebreedte]
+    R$p=$[$min + $p*$klassebreedte]
+    hoogte$p=$[$r*$maxhoogte*sin(pi*$p/$klassen)]
+    totaal=$[$totaal + $(hoogte$p)]
+    KM$p=$[($(L$p)+$(R$p))/2]
+    var5=!append line $(L$p),$(R$p) to $var5
+!next p
+
+tp=0
+var3=$[$klassen-1]
+!for p=1 to $var3
+    percent$p=$[(round(1000*$(hoogte$p)/$totaal))/10]
+    !if $p=$[$klassen-1]
+	percent$p=$[100-$tp]
+    !endif
+    tp=$[$(percent$p)+$tp]
+    data=!append word $ <tr><td>$(L$p) &minus; &lt; $(R$p)</td><td>$(KM$p)</td><td>$(percent$p) %</td></tr> $ to $data
+    meting=!append word $ <tr><td>$(L$p) &minus; &lt; $(R$p)</td><td>$(percent$p) %</td></tr> $ to $meting
+    answer$n=!append line $(KM$p),$(percent$p) to $(answer$n)
+!next p
+
+data=<table class="grid_table"><tr><th><small>$klassengew</small></th><th><small>$klassemiddens</small></th><th><small>$perc</small></th></tr>$data</table>
+meting=<table class="grid_table"><tr><th><small>$klassengew</small></th><th><small>$perc</small></th></tr>$meting</table>
+exotext=$empty
+ss=!record 57 of lang/remarks.$taal
+#@Het tabel hieronder geeft de procentuele gewichtsverdeling van een partij $fruit weer.<br />De gewichten zijn afgerond op hele grammen.<br />De percentages zijn afgerond op 1 decimaal nauwkeurig.<br />Teken het bijhorende <b>frequentie</b> polygoon in de GeoGebra applet
+
+question$n=$ss<br />$meting<br />
+
+textanswer$n=$data
+
+# intrimmen van GeoGebra.xml
+var1=$gewicht
+var2=$perc
+eenheid=gr
+xtick=20.0
+ytick=10.0
+#decimals
+var4=1
+xscale=9.0
+yscale=10.0
+xzero=40
+yzero=380
+appletcommand=$empty
+appletcommand=!append line $ var xml=new String(document.getElementById("ggbApplet").getXML()); $ to $appletcommand
+appletcommand=!append line $ var old1=new String("<axis id=\"0\" label=\"x-axis\" unitLabel=\"unit\" showNumbers=\"true\" tickDistance=\"10.0\"/>"); $ to $appletcommand
+appletcommand=!append line $ var new1=new String("<axis id=\"0\" label=\"$var1\" unitLabel=\"$eenheid\" showNumbers=\"true\" tickDistance=\"$xtick\"/>"); $ to $appletcommand
+appletcommand=!append line $ var old2=new String("<axis id=\"1\" label=\"y-axis\" unitLabel=\"unit\" showNumbers=\"true\" tickDistance=\"10.0\"/>"); $ to $appletcommand
+appletcommand=!append line $ var new2=new String("<axis id=\"1\" label=\"$var2\" unitLabel=\"%\" showNumbers=\"true\" tickDistance=\"$ytick\"/>"); $ to $appletcommand
+appletcommand=!append line $ var old3=new String("<grid distX=\"10.0\" distY=\"10.0\"/>"); $ to $appletcommand
+appletcommand=!append line $ var new3=new String("<grid distX=\"$xtick\" distY=\"$ytick\"/>"); $ to $appletcommand
+appletcommand=!append line $ var old4=new String("<decimals val=\"0\"/>"); $ to $appletcommand
+appletcommand=!append line $ var new4=new String("<decimals val=\"$var4\"/>"); $ to $appletcommand
+appletcommand=!append line $ var old5=new String("<coordSystem xZero=\"154.0\" yZero=\"417.34653465346537\" scale=\"9.0\" yscale=\"4.653465346534653\"/>"); $ to $appletcommand
+appletcommand=!append line $ var new5=new String("<coordSystem xZero=\"$xzero\" yZero=\"$yzero\" scale=\"$xscale\" yscale=\"$yscale\"/>"); $ to $appletcommand
+appletcommand=!append line $ xml=xml.replace(old1,new1);xml=xml.replace(old2,new2);xml=xml.replace(old3,new3);xml=xml.replace(old4,new4);xml=xml.replace(old5,new5);document.getElementById("ggbApplet").setXML(xml); $ to $appletcommand
+
+!exit
+
+
+
+
+
+
+

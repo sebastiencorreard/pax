@@ -1,0 +1,238 @@
+# reply$n is een GeoGebra antwoord met als laatste $var9 items de leerling-formule van de leerling-getekende lijn
+# var5=X schaal factor (bijv x1000)
+# var6=Y schaal factor (bijv x1000)
+# var7= naam voor x-variabele
+# var8= naam voor y-variabele
+# var9 = aantal RECHTE lijnen
+math=0
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+linecnt=!item 4 of $(reply$n)
+
+!if $linecnt = 0
+    errortext=Je bent vergeten een lijn te tekenen...<br />Even opnieuw :(
+    goback=1
+    maxscore=$[$P1*$maxscore]
+    reply$n=!item $[-1*$options+1] to -1 of $(reply$n)
+    !exit
+!endif
+
+!if $linecnt != $var9
+    !if $linecnt > $var9
+	rem=Je hebt $[$linecnt-$var9] teveel lijn(en) getekend...
+        maxscore=$[$P4*$maxscore]
+    !else
+	rem=Je hebt $[$var9-$linecnt] te weinig lijn(en) getekend...
+        maxscore=$[$P4*$maxscore]
+    !endif
+!else
+    rem=$empty
+!endif
+  
+
+# reply1= 1,0,0,1,0,0,0,0,0,0,0,0,0,0,line@a@(-1*(4)/(-8))@( -16)/(-8),text=y=4*x+5@y=6x-3@whatever 
+ggblines=!item 15 to $[14+$linecnt] of $(reply$n)
+formulas=!item $[15+$linecnt] to -1 of $(reply$n)
+formulas=!nospace $formulas
+formulas=!replace internal text= by $empty in $formulas
+formulas=!replace internal @ by , in $formulas
+score1=0
+score2=0
+# var9 is aantal lijnen
+checked=0
+# ly kan zijn TK of TK,TW,TO
+ly=!lower $var8
+lx=!lower $var7
+your_reply=$empty
+!for p=1 to $var9
+    ggbline=!item $p of $ggblines
+    !if $ggbline=$empty
+	k=red
+	your_reply=!append line $ <li>GeoGebra : <font color=$k2>niet getekend</font></li> $ to $your_reply 
+    !else
+	ggbline=!replace internal @ by , in $ggbline
+        rc=!item 3 of $ggbline
+	const=!item 4 of $ggbline
+        y_symbool=!item $p of $var8
+        yourformula2= $y_symbool = $[1.0*($rc)]*$var7 + $[(1.0*($const))]
+        yourline2b=!rawmath $[1.0*($rc)]*x + $[(1.0*($const))]
+	# vergeten te kijken naar schaalverdeing?
+        yourline2a=!rawmath $[($var6/$var5)*($rc)]*x + $[($var6*($const))]
+	extra1=$empty
+	extra2=$empty
+	# nu de getekende lijn in de applet
+	# de volgorde is niet bepaald: dus we lopen door alle goede lijnen...wel tricky
+        found=0
+	test1=!evalsubst x=100 in $yourline2a
+        test1b=!evalsubst x=100 in $yourline2b
+	!for s=1 to $var9
+	    !if $s notin $checked
+		# lopen door answer$n lijnen...kijken of ie erbij zit
+		myline=!item $s of $(answer$n)
+		test2=!evalsubst x=100 in $myline
+		!ifval $test1=$test2
+		    !increase score2
+		    k2=green
+		    found=$s
+		    checked=!append item $s to $checked
+		!else
+		    !ifval $test1b=$test2
+			score2=$[$score2 + $P3]
+		    	k2=orange
+			extra2=<br />Niet goed getekend.<br />Je hebt vergeten naar de schaalverdeling van de assen te kijken... <br />$var7 ($var5 &times;) en  $var8 ($var6 &times;)
+		    	found=$s
+			checked=!append item $s to $checked
+		    !endif
+		!endif
+	    !endif
+	!next s
+	# niet goed .... is de constante wel goed ?
+        !if $found = 0
+    	    test3=!evalsubst x=0 in $yourline2a
+	    test3b=!evalsubst x=0 in $yourline2b
+	    !for s=1 to $var9
+		!if $s notin $checked
+		    # lopen door answer$n lijnen...kijken of ie erbij zit
+	    	    myline=!item $s of $(answer$n)
+	    	    test4=!evalsubst x=0 in $myline
+		    !ifval $test3=$test4
+			score2=$[$score2+$P6]
+		        k2=orange
+			extra2=<br />maar je hebt de constante wel goed...
+		        found=$s
+			checked=!append item $s to $checked
+		    !else
+			!ifval $test3b=$test4
+			    score2=$[$score2 + $P6]
+			    k2=orange
+		    	    extra2=<br />Niet goed getekend.<br />Je hebt vergeten naar de schaalverdeling van de assen te kijken... <br />$var7 ($var5 &times;) en  $var8 ($var6 &times;)
+			    found=$s
+			    checked=!append item $s to $checked
+			!endif
+		    !endif
+		!endif    
+	    !next s	
+	!endif
+        # niet goed ... is de richting wel goed?
+	!if $found = 0
+	    test5=$[$test1 - $test3]
+	    test5b=$[$test1b - $test3b]
+	    !for s=1 to $var9
+		!if $s notin $checked
+		    test2=!evalsubst x=100 in $myline
+	    	    test4=!evalsubst x=0 in $myline
+		    test6=$[$test2 - $test4]
+		    !ifval $test5=$test6
+			score2=$[$score2 + $P6]
+		        k2=orange
+			found=$s
+			checked=!append item $s to $checked
+			extra2=<br />maar je hebt de helling van de lijn wel goed...
+		    !else
+			!ifval $test5b=$test6
+			    score2=$[$score2 + $P8]
+			    k2=orange
+			    found=$s
+		    	    checked=!append item $s to $checked
+			    extra2=<br />Niet goed getekend.<br />Je hebt vergeten naar de schaalverdeling van de assen te kijken...maar je hebt de helling van de getekende lijn met verkeerde schaalverdeling wel goed...
+			!endif
+		    !endif
+		!endif
+	    !next s
+	!endif
+	!if $found = 0
+	    k2=red
+	!endif
+	your_reply=!append line $ <li>GeoGebra : <font color=$k2>$yourformula2</font>$extra2</li> $ to $your_reply 
+    !endif
+!next p
+
+# en nu de 3 ? formules
+##### let op altijd 3 invulvelden
+!for q=1 to $var9
+    yourformula=!item $q of $formulas
+    extra1=$empty
+    extra2=$empty
+    # eerst de formeel ingevoerde formule in invulveld: de volgorde van de lijnen is hier per definitie goed.
+    # en de antwoorden moeten 1:1 kloppen.
+    myline=!item $q of $(answer$n)
+    t=!replace internal = by , in $yourformula
+    t=!lower $t
+    # via javascript hebben we al gechecked of de formule in de  vorm y=mx+b is [checked op "=" teken]
+    t1=!item 1 of $t
+    t2=!item 2 of $t
+    # lx = !lower $var7
+    nietchecken=0
+    !if ($lx isin $t2) and ($t1 isitemof $ly)  
+	yourline=!lower $t2
+    !else
+	!if ($lx isin $t1) and ($t2 isitemof $ly)
+	    yourline=!lower $t1
+	    extra1=<br />Ik zie liever dat je de lijn opschrijft als bijv: $var8 = 1.234*$var7 + 4.321
+	!else
+	    extra1=Ik mis in je antwoord ($yourformula) de vereiste variabelen <b>$var8 en $var7</b>
+	    nietchecken=1
+	    k1=red
+	    your_reply=!append line $ <li><font color=$k1>$yourformula</font>$extra1 </li> $ to $your_reply 
+	!endif
+    !endif
+    !if $nietchecken=0
+	yourline=!replace internal $lx by x in $yourline
+        yourline=!rawmath $yourline
+	test1=!evalsubst x=100 in $yourline
+        test2=!evalsubst x=100 in $myline
+	!ifval $test1=$test2
+	    !increase score1
+	    k1=green
+	!else
+	    test3=!evalsubst x=0 in $yourline
+	    test4=!evalsubst x=0 in $myline
+	    !ifval $test3=$test4
+		score1=$[$score1 + $P6]
+	        k1=orange
+		extra1=<br />maar je hebt de constante wel goed...
+	    !else
+		test5=$[$test1-$test3]
+	        test6=$[$test2-$test4]
+		!ifval $test5=$test6
+		    score1=$[$score1 + $P6]
+		    k1=orange
+		    extra1=<br />maar je hebt de helling van de lijn wel goed...
+		!else
+		    k1=red
+		!endif
+	    !endif
+	!endif
+	your_reply=!append line $ <li><font color=$k1>$yourformula</font>$extra1 </li> $ to $your_reply
+    !endif
+!next q
+
+
+your_reply=<ul>$your_reply</ul>
+# formule invullen weegt zwaarder dan de tekening
+maxscore=$[$maxscore*(3*$score1 + $score2)/(4*$var9)]
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+reply$n=$your_reply
+
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit

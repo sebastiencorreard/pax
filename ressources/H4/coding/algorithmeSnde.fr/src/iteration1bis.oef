@@ -1,0 +1,76 @@
+\title{Itération : exemples numériques (2)}
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+
+\text{monaide=wims(record 1 of langage)}
+\help{\monaide}
+
+/** choix syntaxe variable du langage programmation **/
+
+\integer{ii=random(2,3,4)}
+\matrix{syntax=wims(record \ii of langage)}
+
+\text{DISPLAY=item(5,\syntax)}
+\text{FOR=item(7,\syntax)}
+\text{FROM=item(8,\syntax)}
+\text{TO=item(9,\syntax)}
+\text{ENDFOR=item(10,\syntax)}
+\text{WHILE=item(11,\syntax)}
+\text{ENDWHILE=item(12,\syntax)}
+
+\text{aff=&larr;}
+\text{sto=&rarr;}
+\text{le=&le;}
+\integer{\tmp=random(1..4)}
+\text{X=item(\tmp,X,A,U,P)}
+\text{Y=item(\tmp,Y,B,V,Q)}
+\text{N=randitem(N,I,J)}
+\integer{x0=random(-10..10)}
+\integer{n=randint(2..8)}
+\integer{n0=randint(0,1)}
+\integer{pas=randitem(-1,1)*random(1..4)}
+
+\matrix{algos = \x0 \sto \X, \pas \sto \Y, \FOR \N \FROM \n0 \TO \n, \N + 1 \sto \N, \X + \Y \sto \X, \ENDFOR, \DISPLAY \X
+\x0 \sto \X, \pas \sto \Y, \n0 \sto \N, \WHILE \N \le \n, \X + \Y \sto \X, \N + 1 \sto \N, \ENDWHILE, \DISPLAY \X
+\x0 \sto \X, \pas \sto \Y, \n0 \sto \N, \WHILE \N \le \n, \X + \Y \sto \X, \N + 1 \sto \N, \ENDWHILE, \DISPLAY \Y
+\x0 \sto \X, \pas \sto \Y, \n0 \sto \N, \WHILE \N \le \n, \X + \Y \sto \X, \N + 1 \sto \N, \ENDWHILE, \DISPLAY \N
+\x0 \sto \X, \pas \sto \Y, \FOR \N \FROM \n0 \TO \n, \N + 2 \sto \N, \X + \Y \sto \X, \ENDFOR, \DISPLAY \X
+\x0 \sto \X, \pas \sto \Y, \FOR \N \FROM \n0 \TO \n, \N + 2 \sto \N, \X + \Y \sto \X, \ENDFOR, \DISPLAY \N
+}
+\integer{\size=rows(\algos)}
+\integer{\cas=randint(\size)}
+\text{algo=row(\cas,\algos)}
+
+\text{algopp=wims(replace internal , by </td></tr><tr><td> in \algo)}
+
+\integer{\iter=\cas>4?pari(1+floor((\n-\n0)/2)):\n-\n0+1}
+\integer{lastn= \cas>4? \n0+2*\iter: \n+1}
+\integer{lastX=\x0+(\iter*\pas)}
+
+\integer{rep=\cas<3 or \cas==5?\lastX}
+\integer{rep=\cas==3?\pas}
+\integer{rep=\cas==4 or \cas==6?\lastn}
+
+\statement{
+On exécute l'algorithme suivant :
+<div class="wimscenter">
+<table style="text-align:left; background-color:lightblue;" cellpadding=5><tr><td>
+\algopp
+</td></tr></table>
+</div>
+Quand cet algorithme a terminé, il affiche la valeur : \embed{reply1,8}
+}
+
+\answer{}{\rep}{type=numeric}
+
+\feedback{\reply1!=\rep}{
+L'algorithme exécute \iter fois les instructions de la boucle.
+
+Quand l'algorithme termine, les variables ont pour valeurs respectives :
+<ul><li>
+\Y = \pas (\Y n'a pas été modifiée)
+</li><li>\N = \lastn
+</li><li>
+\X = \x0+ \iter &times; \Y = \lastX
+</li></ul>
+}

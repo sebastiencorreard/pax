@@ -1,0 +1,87 @@
+n=$counter
+embed=1
+formula$n=f\left(x\right)\:=\:[?]
+cols=20
+rows=1
+mathview=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc
+funtype=!record 1 of lang/remarks.$taal
+#@sin:sinus ,cos:cosinus
+gonio=!randitem $funtype
+gonio=!replace internal : by , in $gonio
+functie=!item 1 of $gonio
+soort=!item 2 of $gonio
+
+ss=!record 2 of lang/remarks.$taal
+#@Hier zie je een beweegbare voorstelling van een <kbd>$soort functie</kbd>.<br />De bedoeling is dat je , met behulp van de <em>applet</em> door variatie van<br /> de schuifparameters <em>b</em> of <em>c</em> of <em>d</em> of combinaties hiervan<br />het functievoorschrift voor de getoonde <span color=red><kbd>$soort functie</kbd></span> opstelt...<br /><small>Let op b,c of d kunnen ook gewoon nul zijn en dus gewoon niet meedoen <br />Echter alle parameters komen slechts 1 keer voor in de gezocht formule.</small>
+
+
+helptext=!record 3 of lang/remarks.$taal
+#@De gezochte goniometrische functie zou van het type <kbd>f(x)= a*$functie(x/c)-d</kbd> kunnen zijn
+wims_rawmath_variables=b,c,d
+pm=!randitem +,-
+
+!if $subject=5
+    !if $R=1
+	!if $counter=1
+	    var1=d*$functie(x),c*$functie(x),b*$functie(x),\
+	    $functie(d*x),$functie(c*x),$functie(b*x),\
+	    $functie(d $pm x),$functie(c $pm x),$functie(b $pm x),\
+	    d $pm $functie(x),c $pm $functie(x),b $pm $functie(x)
+	    
+	    var1=!shuffle $var1
+	!endif
+    !else
+	!if $R=2
+	    !if $counter=1
+		var1=d $pm b*$functie(x),c $pm $functie(b*x),b $pm $functie(x+c),b - $functie(x $pm c),\
+		c $pm b*$functie(x),b $pm $functie(d*x),d $pm $functie(x+b),d $pm $functie(x-b),\
+		c+$functie(b $pm x),b+$functie(c*x),d+$functie(x $pm c),d $pm $functie(x $pm c)
+		
+		var1=!shuffle $var1
+	    !endif
+	!else
+	    !if $counter=1
+		var1=d*$functie(x+c),c*$functie(x+b),b*$functie(d*x),\
+		b*$functie(d*x),d+$functie(c*x+b),c+$functie(b*x),\
+		c*$functie(d+x),d*$functie(c+x),c*$functie(b+x),\
+		d+b*$functie(x),c+$functie(b*x),b+$functie(x+c),\
+		c+b*$functie(x),b+$functie(d*x),d+$functie(x+b),\
+		$functie(d*x+b),c*$functie(b*x+d),c+d*$functie(b*x),c+d*$functie(b*x),\
+		d+c*$functie(x+b),c+$functie(x-b),b+$functie(d*x+c),b*$functie(d*x-c),\
+		$functie(b*x+d),c*$functie(x+d),b*$functie(d*x+c)
+
+		var1=!shuffle $var1
+	    !endif
+	!endif
+    !endif
+!else
+ !if $subject=6
+    !if $counter=1
+	var1=b+d*$functie(x/c),b+c*$functie(x/d),d+c*$functie(x/b),\
+	b+$functie(d*x/c),(c*$functie(b*x)/d),(d*$functie(b*x))/c,c+d*$functie(x/b),\
+	d+($functie(x+b))/c,$functie(d*x+c),c-$functie(b*x+d),c*$functie(x-d),b*$functie(d*x+c)\
+	(d*$functie(x))/b,b+c*$functie(x)/d,d+c*$functie(x)/b,\
+	$functie(c+x/d),c*$functie(d-x/b),c+$functie(d-x/b),c+$functie(d+x/b),\
+	($functie(x+b))/c,($functie(d*x+c))/b,($functie(b*x+d))/c,c+($functie(x+d))/b,b+$functie(d*x/c)
+	var1=!shuffle $var1
+    !endif
+ !endif
+!endif
+answer$n=!item $counter of $var1
+answer$n=!nospace $(answer$n)
+myname=$wims_nowseconds.data
+!filewrite getfile/$myname $(answer$n)
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+applet=1
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+object$n=<object width="520" height="360" classid="java:SilentFamiliesOfGraphs.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="jcm1.0-config.jar" /><param name="java_code" value="SilentFamiliesOfGraphs.class" /><param name="Parameter1" value="d 0 10 1" /><param name="Parameter2" value="b 0 10 1" /><param name="Parameter3" value="c 0 10 1" /><param name="File" value="$myfile" /><param name="UseFunctionInput" value="no" /><param name="XLabel" value="x-as" /><param name="YLabel" value="y-as" /><param name="UseGrid" value="yes" /><param name="GridColor" value="orange" /><param name="UseLimitsPanel" value="no" /><param name="BackgroundColor" value="black" /><param name="Insets" value="5" /><param name="CanvasColor" value="white" /><param name="GraphColor" value="red" /><param name="AxesColor" value="blue" /><param name="PanelBackground" value="yellow" /><param name="BorderWidth" value="0" /><param name="PanelTitle" value="$module_title" /><param name="TitleBackground" value="yellow" />$nojava</object>
+
+texanswer$n=!texmath f(x)=$(answer$n)
+#<object codebase=\'$appletdir\' archive=\'jcm1.0-config.jar\' code=\'SilentFamiliesOfGraphs.class\' width=\'640\' height=\'480\'><param name=\'Parameter1\' value=\'d 0 10 1\'/><param name=\'Parameter2\' value=\'b 0 10 1\'/><param name=\'Parameter3\' value=\'c 0 10 1\'/><param name=\'File\' value=\'$myfile\'/><param name=\'UseFunctionInput\' value=\'no\'/><param name=\'XLabel\' value=\'x-as\'/><param name=\'YLabel\' value=\'y-as\'/><param name=\'UseGrid\' value=\'yes\'/><param name=\'GridColor\' value=\'orange\'/><param name=\'UseLimitsPanel\' value=\'no\'/><param name=\'BackgroundColor\' value=\'black\'/><param name=\'Insets\' value=\'5\'/><param name=\'CanvasColor\' value=\'white\'/><param name=\'GraphColor\' value=\'red\'/><param name=\'AxesColor\' value=\'blue\'/><param name=\'PanelBackground\' value=\'yellow\'/><param name=\'BorderWidth\' value=\'0\'/><param name=\'PanelTitle\' value=\'$module_title\'/><param name=\'TitleBackground\' value=\'yellow\'/>$nojava</object>

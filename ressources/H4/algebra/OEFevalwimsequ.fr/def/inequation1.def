@@ -1,0 +1,132 @@
+!set title=Résoudre une inéquation 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=c,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Résoudre l'inéquation suivante&nbsp;
+tmp0=!values v for v=2 to 9
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+val8=1,$(val7[2]),0,$(val7[4])
+tmp0=!randint 1, 4
+
+val9=$[rint($(tmp0))]
+tmp0=!item $val9 of <,>,<=,>=
+
+val10=$(tmp0)
+val11=inférieurs stricts,supérieurs stricts,inférieurs ou égaux,supérieurs ou égaux
+tmp0=!item $val9 of $val11
+
+val12=$(tmp0)
+tmp0=!item $val9 of supérieurs stricts,inférieurs stricts,supérieurs ou égaux,inférieurs ou égaux
+
+val13=$(tmp0)
+tmp=!nonempty items x,y,z,a,b,u,v
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+t_=!replace internal \( by ( in $(val8[1])*$val14+$(val8[2]);
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in $(val8[3])*$val14+$(val8[4]);
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+tmp0=!texmath $val15 $val10 $val16
+
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in ($(val8[4])-$(val8[2]))/($(val8[1])-$(val8[3]))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+
+!ifval $(val8[1])-$(val8[3])>0
+val19=$val12
+!else
+val19=$val13
+!endif
+replytype1=numexp
+replyname1=Frontière
+replygood1=$val18
+choicename1=Sens
+choicegood1=$val19
+choicebad1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6:	<div class="wimscenter">
+!insmath $val17
+$().</div>	<b>Votre réponse :</b><br>	  Les solutions de cette inéquation sont les nombres  
+!read oef/embed.phtml c1 
+$()	  <label for="reply1">à</label>  
+!read oef/embed.phtml r1,6 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,17
+embedcnt=2

@@ -1,0 +1,93 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+n=$counter
+wims_compare_precision=10000
+
+!if $(reply$n)=?
+    !for p=1 to $options
+	rep=!append item ? to $rep
+    !next p
+    reply$n=$rep
+!endif
+
+t=!itemcnt $(reply$n)
+!if $t != $options
+    !if $t=0
+	errortext=!record 62 of $remarkdir/commonremarks.$taal
+    !else
+	!if $t>$options
+	    errortext=!record 64 of  $remarkdir/commonremarks.$taal
+	    maxscore=$[$P3*$maxscore]
+	!else
+	    testvar1=$options
+	    testvar2=$t
+	    errortext=!record 50 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$P6*$maxscore]
+	!endif
+    !endif
+    goback=1
+    !exit
+!endif
+
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+questionmark=0
+score=0
+!if $rounding=$empty
+    rounding=1000
+!endif
+!for p=1 to $options
+    rep=!item $p of $AAA
+    !if ? isin $rep
+	!increase questionmark
+	extra$p=$NOK
+    !else
+	# no ?
+	rep=!replace [a-z\~\!\@\#\$\%\&\_\:\;\"\'\=] by $empty in $rep
+	G=!item $p of $(answer$n)
+	rep=$[(round($rounding*$rep))/$rounding]
+	G=$[(round($rounding*$G))/$rounding]
+	!if NaN isin $rep,$G
+	    maxscore=$[$P5*$maxscore]
+	    errortext=!record 26 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	 !endif
+	!ifval $rep=$G
+	    !increase score
+	    extra$p=$OK
+	!else
+	    rn=$[$rounding/10]
+	    rep=$[(round($rr*$rep))/$rr]
+	    g=$[(round($rr*$g))/$rr]
+	    !ifval $g=$rn
+		extra$p=$BOK
+		score=$[$score+0.4]
+	    !else
+		extra$p=$NOK
+	    !endif
+	!endif
+    !endif
+!next p
+
+reply=<ol>
+!for p=1 to $options
+    rep=!item $p of $(reply$n)
+    reply=!append line <li>$rep $(extra$p)</li> to $reply
+!next p
+reply$n=$reply </ol>
+math=0
+maxscore=$[($maxscore*$score)/$options]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

@@ -1,0 +1,135 @@
+checkfile=$checkdir/number.proc
+arglist=x
+# answer must be 'x=123'
+image=0
+math=0
+rows=2
+cols=20
+questiontype=0
+embed=1
+mathview=2
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+ss=!record 143 of lang/remarks.$taal
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+    c=!randitem 16,64,144,256,400
+    C=$[sqrt($c)]
+    b=!randitem 2,4,6,8,10,12,14,16,18,20
+    
+    tot=!exec pari A=($c/8) + ($b^2)/2\
+    printtex(A)\
+    x1=($b/2) + (1/4)*$C\
+    printtex(x1)\
+    x2=($b/2) - (1/4)*$C\
+    printtex(x2)\
+    if(x1<$b && (x1)^2<A,x1,nil)\
+    if(x2<$b && (x2)^2<A,x2,nil)
+
+    a=!line 1 of $tot
+    A=!line 2 of $tot
+    x1=!line 7 of $tot
+    x2=!line 8 of $tot
+    answer$n=$empty
+    texanswer$n=\longrightarrow \left[ \begin{array}{l}
+    !if $x1!=nil
+	X1=!line 4 of $tot
+	answer$n=$x1
+	texanswer$n=!append line  x_{1} = $X1 to $(texanswer$n) 
+    !endif
+    !if $x2!=nil
+	X2=!line 6 of $tot
+	answer$n=!append item $x2 to $(answer$n)
+	texanswer$n=!append line \\ \\ x_{2}=$X2 to $(texanswer$n)
+    !endif
+    # formula=log($A - x^2)=2*log($b - x)
+    texanswer$n=!append line $ \end{array} \right. $ to $(texanswer$n)
+    formula$n= \log \left($A - x^{2} \right)=2 \cdot \log \left($b - x \right)
+    applettext=!nospace log($a - x^2)=2*log($b - x) ->
+ !exit
+!endif 
+
+!if $R=2
+    c=!randitem 4,16,36,64,100,144,196,256,324,400
+    C=$[sqrt($c)]
+    b=!randitem 1,2,3,4,5,6,7,8,9
+    tot=!exec pari A=($c/8) + ($b^2)/2\
+    printtex(A)\
+    x1=($b/2) + (1/4)*$C\
+    printtex(x1)\
+    x2=($b/2) - (1/4)*$C\
+    printtex(x2)\
+    if(x1<$b && (x1)^2<A,x1,nil)\
+    if(x2<$b && (x2)^2<A,x2,nil)
+
+    a=!line 1 of $tot
+    A=!line 2 of $tot
+    x1=!line 7 of $tot
+    x2=!line 8 of $tot
+    answer$n=$empty
+    texanswer$n=\longrightarrow \left[ \begin{array}{l}
+    !if $x1!=nil
+	X1=!line 4 of $tot
+	answer$n=$x1
+	texanswer$n=!append line  x_{1} = $X1 to $(texanswer$n) 
+    !endif
+    !if $x2!=nil
+	X2=!line 6 of $tot
+	answer$n=!append item $x2 to $(answer$n)
+	texanswer$n=!append line \\ \\ x_{2}=$X2 to $(texanswer$n)
+    !endif
+    # formula=log($A - x^2)=2*log($b - x)
+    texanswer$n=!append line $ \end{array} \right. $ to $(texanswer$n)
+    formula$n= \log \left($A - x^{2} \right)=2 \cdot \log \left($b - x \right)
+    applettext=!nospace log($a - x^2)=2*log($b - x) ->
+ !exit
+!endif 
+
+!if $R>2
+    c=!randitem 1,4,9,16,25,36,49,64,81,100,121,144,169,196,256,289,324,361,400
+    C=$[sqrt($c)]
+    b=!randitem 1,2,3,4,5
+
+    tot=!exec pari A=($c+3*$b^4)/(12*$b)\
+    printtex(A)\
+    x1=(3*$b^2-$C)/(6*$b)\
+    printtex(x1)\
+    x2=(3*$b^2+$C)/(6*$b)\
+    printtex(x2)\
+    if(x1<$b && (x1)^3<A,x1,nil)\
+    if(x2<$b && (x2)^3<A,x2,nil)
+
+    a=!line 1 of $tot
+    A=!line 2 of $tot
+    x1=!line 7 of $tot
+    x2=!line 8 of $tot
+    answer$n=$empty
+    texanswer$n=\longrightarrow \left[ \begin{array}{l}
+    !if $x1!=nil
+	X1=!line 4 of $tot
+	answer$n=$x1
+	texanswer$n=!append line  x_{1} = $X1 to $(texanswer$n) 
+    !endif
+    !if $x2!=nil
+	X2=!line 6 of $tot
+	answer$n=!append item $x2 to $(answer$n)
+	texanswer$n=!append line \\ \\ x_{2}=$X2 to $(texanswer$n)
+    !endif
+    # formula=($A - x^3)=3*log($b - x)
+    texanswer$n=!append line $ \end{array} \right. $ to $(texanswer$n)
+    formula$n= \log \left($A - x^{3} \right)=3 \cdot \log \left($b - x \right)
+    applettext=!nospace log($a - x^3)=3*log($b - x) ->
+ !exit
+!endif 
+

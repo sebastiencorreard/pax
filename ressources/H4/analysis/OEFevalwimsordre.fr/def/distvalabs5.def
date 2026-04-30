@@ -1,0 +1,239 @@
+!set title=Valeur absolue et distance V
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Jean-Pierre, Boudine
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=49
+prevarcnt=48
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val6=$[rint($(tmp0)* $(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val7=$[rint($(tmp0)* $(tmp1))]
+
+!ifval $val7=$val6
+val7=$[rint($val7+2)]
+!endif
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+tmp0=!randitem -1,-2,2
+
+t_=!rawmath $(tmp0)
+val10=!exec pari print($t_)
+!else
+tmp1=!randitem -1,-2,-3,2,3
+
+t_=!rawmath $(tmp1)/$val7
+val10=!exec pari print($t_)
+!endif
+
+!ifval $val10=1
+t_=!rawmath 2
+val10=!exec pari print($t_)
+!endif
+val11=40x100x100
+!readproc slib/draw/repere 800,30,10,-12,12,-1,0,1,0,black,white 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$[rint($(tmp0))]
+tmp0=!item 2 of $val13
+
+val15=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val16=$[rint($(tmp0))]
+tmp0=!item 2 of $val13
+
+val17=$[rint($(tmp0))]
+val14=$[rint(0)]
+val16=$[rint(1)]
+val18=xrange -16,16	  yrange -3,3	  hline 0,0,red	  arrow 15,0,16,0,15,red	  parallel -15,-0.2,-15,0.2,1,0,5,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,5,blue	  text red,-0.1,1.5,medium,O	
+val19=$[rint(-15)]
+val20=$[rint(4)]
+val21=A,B,C,D,E,F
+tmp0=!itemcnt $val21
+
+val22=$[rint($(tmp0))]
+val23=$[rint($val15)]
+val24=
+val25=
+val26=
+val27=
+tmp0=!shuffle $val22
+
+val28=$(tmp0)
+!for val29 =1 to $val22/2 
+tmp0=!randint $val19+($val29-1)*$val20 ,  $val19+$val29*$val20-1
+
+val30=$[rint($(tmp0))]
+val31=$[rint(-1*($val30))]
+val32=$[rint($val14+$val30*$val16)]
+val33=$[rint($val14+$val31*$val16)]
+val18=$val18	 text red,$val32-0.1,1.5,medium,$(val21[$(val28[$val29])])	 text red,$val32-0.1,-1,medium,$val30	 segment $val32,-0.2,$val32,0.2,red	 text red,$val33-0.1,1.5,medium,$(val21[$(val28[$val29+$val22/2])])	 text red,$val33-0.1,-1,medium,$val31	 segment $val33,-0.2,$val33,0.2,red	
+tmp0=!append item $val30 to $val24
+
+val24=$(tmp0)
+tmp0=!append item $val32 to $val25
+
+val25=$(tmp0)
+tmp0=!texmath abs(x-($val30))
+
+tmp1=!texmath abs(($val30)-x)
+
+tmp2=!texmath abs(-x+($val30))
+
+tmp3=!texmath abs(-($val30)+x)
+
+val34=\($(tmp0)\),\($(tmp1)\),\($(tmp2)\),\($(tmp3)\)
+tmp=!nonempty items $val34
+
+tmp0=!randitem $tmp
+val35=$(tmp0)
+tmp0=!append item $val35 to $val26
+
+val26=$(tmp0)
+val36=M$(val21[$(val28[$val29])]),$(val21[$(val28[$val29])])M
+tmp=!nonempty items $val36
+
+tmp0=!randitem $tmp
+tmp1=!append item $(tmp0) to $val27
+
+val27=$(tmp1)
+tmp0=!append item $val31 to $val24
+
+val24=$(tmp0)
+tmp0=!append item $val33 to $val25
+
+val25=$(tmp0)
+tmp0=!texmath abs(x-($val31))
+
+tmp1=!texmath abs(($val31)-x)
+
+tmp2=!texmath abs(-x+($val31))
+
+tmp3=!texmath abs(-($val31)+x)
+
+val34=\($(tmp0)\),\($(tmp1)\),\($(tmp2)\),\($(tmp3)\)
+tmp=!nonempty items $val34
+
+tmp0=!randitem $tmp
+val35=$(tmp0)
+tmp0=!append item $val35 to $val26
+
+val26=$(tmp0)
+val36=M$(val21[$(val28[$val29+$val22/2])]),$(val21[$(val28[$val29+$val22/2])])M
+tmp=!nonempty items $val36
+
+tmp0=!randitem $tmp
+tmp1=!append item $(tmp0) to $val27
+
+val27=$(tmp1)
+!next
+replytype1=correspond
+replyname1=Correspondance objet/equation
+replygood1=$val27;$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Soit M le point d'abscisse 
+!insmath x
+$() sur la droite graduée d'origine O.	<div class="wimscenter">	 
+!read oef/draw.phtml 800,64 \
+$val18 
+$()	</div>	  Associer les valeurs absolues aux distances auxquelles elle correspondent.	<div class="wimscenter"> 
+!read oef/embed.phtml reply 1,$val11 
+$()	</div>	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,18
+embedcnt=1

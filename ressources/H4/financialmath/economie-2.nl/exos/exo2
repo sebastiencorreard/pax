@@ -1,0 +1,52 @@
+# bruto winst [steps] slechts 2 vragen
+#fffff0=#e2ffc6
+!if $counter=1
+    rounding=100
+    roundingtext=Rond je antwoorden af op twee decimalen.
+    n=$counter
+    viewlogo=1
+    mathview=0
+    !if $total_exos >2
+	total_exos=2
+    !endif
+    checkfile=exos/precheck1.proc
+    cols=10
+    inputs=1.1
+    rows=1
+    make_tr=1
+    aantal=!randitem 10,20,25,50
+    winkelier=!randitem Oldenkamp,Fries,Smits,Wienke,Scharenborg,Roelhof,Berenschot,Van Waaijen
+    fabrikant=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies
+    dingen=!randitem aanstekers@5@25@10,sigaren@5@40@10,zonnebrillen@80@400@10,vulpennen@20@100@10,hamburgers@20@90@100,viltstiften@10@70@10,kant&klaar maaltijden@25@90@10,badhanddoeken@40@80@10,raamwissers@30@60@10
+    ding=!replace internal @ by , in $dingen
+    product=!item 1 of $ding
+    min=!item 2 of $ding
+    max=!item 3 of $ding
+    f=!item 4 of $ding
+    adviesprijs=!randint $min,$max
+    # dus adviesprijs is voor 1 verpakking = doos van 10 of zo-
+    adviesprijs=$[$aantal*$adviesprijs/$f]
+    perc=!randint 20,50
+    inkoopprijs=$[(round(10*$adviesprijs*$perc/100))/10]
+    verpakking=doos van $aantal $product
+    
+    tot=!exec moneyprint $perc,$inkoopprijs,$adviesprijs
+    perc=$(tot[1])
+    inkoopprijs=$(tot[2])
+    adviesprijs=$(tot[3])
+    var6=Het brutowinstopslagpercentage voor $winkelier op $verpakking,De brutowinstmarge per $verpakking
+        
+    answer1=$[(round(10000*(($adviesprijs-$inkoopprijs)/$inkoopprijs)))/100]
+    answer2=$[(round(10000*(($adviesprijs-$inkoopprijs)/$adviesprijs)))/100]
+    textanswer1=(adviesprijs &minus; inkoopprijs)/inkoopprijs &times; 100% = ($adviesprijs &minus; $inkoopprijs)/$inkoopprijs &times; 100% = $[($adviesprijs-$inkoopprijs)]/$inkoopprijs &times; 100%  = $answer1 %
+    textanswer2=(adviesprijs &minus; inkoopprijs)/adviesprijs &times; 100% = ($adviesprijs &minus; $inkoopprijs)/$adviesprijs &times; 100% = $[($adviesprijs-$inkoopprijs)]/$adviesprijs &times; 100%  = $answer2 %
+    ex1=%
+    som=$winkelier verkoopt onder andere $product van $fabrikant .<br />Fabrikant $fabrikant verkoopt de $product voor &euro; $inkoopprijs [excl. BTW]<br /> per $verpakking aan $winkelier .<br />$fabrikant heeft de adviesprijs bepaald op &euro; $adviesprijs [excl. BTW] per $verpakking.<br/>Beantwoord de onderstaande vraag :
+    question1=<a onmouseover="return escape('brutowinst in procenten van de inkoopprijs <br /><hr />$roundingtext')">$som</a>
+    question2=<a onmouseover="return escape('brutowinst in procenten van de inkoopprijs <br /><hr />$roundingtext')">$som</a>
+!endif
+description=$(var6[$counter])
+
+!if $n>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif

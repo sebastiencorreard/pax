@@ -1,0 +1,170 @@
+!set title=Archimède
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=eguillet@cfai.org
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_en=Archimède
+
+ansorder=r,r,c,r,c,r,c
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=4
+choicecnt=3
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim On donne	volume en	poids	unité	poussée d'Archimède	poids apparent	cuivre	eau
+val7=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+tmp=!trim On donne	volume en	poids	unité	poussée d'Archimède	poids apparent	cuivre	eau
+val7=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!randint 1800, 2500
+
+val8=$[$(tmp0)/100]
+tmp0=!randint 8, 15
+
+val9=$[$(tmp0)]
+tmp0=!randint 850, 895
+
+val10=$[$(tmp0)/100]
+tmp0=!randint 972, 988
+
+val11=$[$(tmp0)/100]
+tmp0=!randint 975, 1025
+
+val12=$[$(tmp0)/1000]
+val13=$[$val8/$val10]
+val14=$[($val8/1000)*$val11]
+val15=$[(($val13*$val12)/1000)*$val11]
+val16=$[$val14-$val15]
+val17=$val1/serie_700_cuivre2.jpg
+replytype1=sigunits
+replyname1=$(val7[2;]) cm<sup>3</sup>
+replygood1=$val13 #4
+replytype2=sigunits
+replyname2=$(val7[3;])
+replygood2=$val14 #4
+replytype3=sigunits
+replyname3=$(val7[5;])
+replygood3=$val15 #4
+replytype4=sigunits
+replyname4=$(val7[6;])
+replygood4=$val16 #4
+choicename1=$(val7[4;])
+choicegood1=newton
+choicebad1=joule,kg,pascal,bar
+choicename2=$(val7[4;])
+choicegood2=newton
+choicebad2=joule,kg,pascal,bar
+choicename3=$(val7[4;])
+choicegood3=newton
+choicebad3=joule,kg,pascal,bar
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer"><img src="$val17" alt=""></div>		
+!if $val6!=en 
+$()On plonge un corps A en cuivre de $val8 g dans une éprouvette cylindrique de	$val9 cm de diamètre contenant de l'eau.	Le corps A est totalement immergé dans l'eau.	<ol>	<li>Calculer le volume du corps A.</li>	<li>Calculer le poids du corps A.</li>	<li>Calculer l'intensité de la poussée d'Archimède exercée sur A.</li>	<li>Le corps A pèse "moins lourd" dans l'eau. Calculer son poids "apparent".	</li>	</ol>	 
+!endif
+$()		
+!if $val6=en 
+$()On plonge un corps A en cuivre de $val8 g dans une éprouvette cylindrique de	$val9 cm de diamètre contenant de l'eau.	Le corps A est totalement immergé dans l'eau.	<ol>	<li>Calculer le volume du corps A.</li>	<li>Calculer le poids du corps A.</li>	<li>Calculer l'intensité de la poussée d'Archimède exercée sur A.</li>	<li>Le corps A pèse "moins lourd" dans l'eau. Calculer son poids "apparent".	</li>	</ol>	 
+!endif
+$()		<div class="wims_instruction">		
+!if $val6!=en 
+$()	<p>Les résultats doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>		 
+!endif
+$()		
+!if $val6=en 
+$()	<p>The results doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>	 
+!endif
+$()		</div>	<p>	$(val7[1;]) 
+!insmath \rho_{$(val7[7;])}= $val10
+$() g/cm<sup>3</sup>,	 g = $val11 N/kg,	 
+!insmath \rho_$(val7[8;]) = $val12
+$()\ g/cm<sup>3</sup>.	</p>	
+$()
+!exit
+
+:hint
+$()<p>	
+!insmath p_A - p_{at} = \rho.g.h
+$()	</p>
+$()
+!exit
+
+:help
+$()	
+!if $m_help_subject issametext fscient or $m_help_subject issametext  
+$()		
+!if $val6!=en 
+$()	<h3>Notation scientifique :</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()	
+!if $val6=en 
+$()	<h3>Scientific notation:</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()		 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,17
+embedcnt=2

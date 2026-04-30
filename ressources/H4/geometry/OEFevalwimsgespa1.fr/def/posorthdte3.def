@@ -1,0 +1,251 @@
+!set title=Orthogonalité relative de droites III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+
+ansorder=r
+varcnt=81
+prevarcnt=80
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=orthogonales, non orthogonales
+val7=On considère le cube <span style="color:blue">ABCDEFGH</span>
+val8=Les points <span style="color:green">I,J,K,L,M,N,O,P,Q,R,S,T</span> sont les milieux	 des arêtes auxquelles ils appartiennent
+
+!ifval ($val2==)
+val9=$[rint(1)]
+!else
+val9=$[rint($val2)]
+!endif
+val10=$[rint(20)]
+val11=$[rint(9)]
+val12=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T
+val13=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20
+val14=
+!for val15 =1 to 20 
+tmp0=!append item green to $val14
+
+val14=$(tmp0)
+!next
+tmp=!trim 0,0	10,0	12,3	2,3	0,10	10,10	12,13	2,13	5,0	7,3	1,1.5	11,1.5	5,10	7,13	1,11.5	11,11.5	0,5	10,5	12,8	2,8
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,3,5	1,3,6	1,4,6	1,4,5	2,3,5	2,3,6	2,4,6	2,4,5	1,3	1,4	1,5	1,6	2,3	2,4	2,5	2,6	3,5	3,6	4,6	4,5
+val17=!translate internal $	\
+$ to ;; in $tmp
+val18=(AB),(BC),(CD),(AD),(EF),(FG),(GH),(EH),(AE),(BF),(CG),(DH)
+val19=I,L,J,K,M,P,N,O,Q,R,S,T
+tmp=!trim A,B,A-B,1,3,I	B,C,B-C,1,6,L	C,D,C-D,1,4,J	A,D,A-D,1,5,K	E,F,E-F,2,3,M	F,G,F-G,2,6,P	G,H,G-H,2,4,N	E,H,E-H,2,5,O	A,E,A-E,3,5,Q	B,F,B-F,3,6,R	C,G,C-G,4,6,S	D,H,D-H,4,5,T	
+val20=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,4,9	1,2,10	2,3,11	3,4,12	5,8,9	5,6,10	6,7,11	7,8,12	1	3	4	2	5	7	8	6	9	10	11	12
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0	0,1,0	0,1,1	0,0,1	1,0,0	1,1,0	1,1,1	1,0,1	0,0.5,0	0,0.5,1	0,0,0.5	0,1,0.5	1,0.5,0	1,0.5,1	1,0,0.5	1,1,0.5	0.5,0,0	0.5,1,0	0.5,1,1	0.5,0,1
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,3,4	5,6,7,8	1,10,5,9	3,11,7,12	4,12,8,9	2,11,6,10	
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,3	1,6	1,4	1,5	2,3	2,6	2,4	2,5	3,5	3,6	4,6	4,5	
+val24=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 6
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val26=$[rint($(tmp0))]
+val27=
+!for val28  = $val11 to $val10 
+!if $val25 isitemof $(val17[$val28;]) 
+tmp0=!append item $(val12[$val28]) to $val27
+
+val27=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val27
+
+val27=$(tmp0)
+val29=$(val27[1])
+val30=$(val27[2])
+val27=
+!for val28  = $val11 to $val10 
+!if $val26 isitemof $(val17[$val28;]) 
+tmp0=!append item $(val12[$val28]) to $val27
+
+val27=$(tmp0)
+!endif
+!next
+tmp0=!shuffle $val27
+
+val27=$(tmp0)
+val31=$(val27[1])
+val32=$(val27[2])
+tmp0=!positionof item $val29 in $val12
+
+val33=$[rint($(tmp0))]
+tmp0=!positionof item $val30 in $val12
+
+val34=$[rint($(tmp0))]
+tmp0=!positionof item $val31 in $val12
+
+val35=$[rint($(tmp0))]
+tmp0=!positionof item $val32 in $val12
+
+val36=$[rint($(tmp0))]
+val37=segment $(val16[$val33;]),$(val16[$val34;]),red	 segment $(val16[$val35;]),$(val16[$val36;]),blue	
+val38=$[rint(0)]
+t_=!rawmath $(val22[$val33;1])-($(val22[$val34;1]))
+val39=!exec pari print($t_)
+t_=!rawmath $(val22[$val35;1])-($(val22[$val36;1]))
+val40=!exec pari print($t_)
+t_=!rawmath $(val22[$val33;2])-($(val22[$val34;2]))
+val41=!exec pari print($t_)
+t_=!rawmath $(val22[$val35;2])-($(val22[$val36;2]))
+val42=!exec pari print($t_)
+t_=!rawmath $(val22[$val33;3])-($(val22[$val34;3]))
+val43=!exec pari print($t_)
+t_=!rawmath $(val22[$val35;3])-($(val22[$val36;3]))
+val44=!exec pari print($t_)
+t_=!rawmath ($val39) * ($val40) + ($val41) * ($val42) + ($val43) * ($val44)
+val45=!exec pari print($t_)
+!if $val45<0.001 and $val45>-0.001 
+val38=$[rint(1)]
+!else
+val38=$[rint(2)]
+!endif
+val46=linewidth 3	polyline black,0,0,0,10,10,10,10,0,0,0	polyline black,0,10,2,13,12,13,10,10	dpolyline black,0,0,2,3,12,3	dsegment 2,3,2,13,black	polyline black,10,0,12,3,12,13	
+val47=xrange -5,15	yrange -5,15	$val46	text $(val14[1]),-0.4,-0.5,medium,A	text $(val14[2]),10.1,-0.5,medium,B	text $(val14[4]),2.6,3,medium,D	text $(val14[3]),12.1,3,medium,C	text $(val14[5]),-1,11,medium,E	text $(val14[6]),10.7,10.8,medium,F	text $(val14[7]),2.6,14.2,medium,H	text $(val14[8]),12.1,14.2,medium,G	text $(val14[9]),5,-0.5,medium,I	text $(val14[10]),7,4.2,medium,J	text $(val14[11]),1.4,1.8,medium,K	text $(val14[12]),11.5,1.8,medium,L	text $(val14[13]),5,9.5,medium,M	text $(val14[14]),7,14.5,medium,N	text $(val14[15]),0,12.2,medium,O	text $(val14[16]),11.3,11.8,medium,P	text $(val14[17]),-0.8,5.5,medium,Q	text $(val14[18]),10.3,5.5,medium,R	text $(val14[19]),12.3,8.5,medium,S	text $(val14[20]),2.2,8.5,medium,T	linewidth 5	points blue,0,0,0,10,10,10,10,0,2,13,12,13,2,3,12,3	points green,5,0,7,3,1,1.5,11,1.5,5,10,7,13,1,11.5,11,11.5,0,5,10,5,2,8,12,8	linewidth 3	$val37	
+!if $val9==2 
+val48=aa=Segment($val29,$val30)	SetColor[aa,red]	ShowLabel[aa, false]	bb=Segment($val31,$val32)	SetColor[bb,blue]	ShowLabel[bb, false]	
+val49=I,J,K,L,M,N,O,P,Q,R,S,T
+val50=I=(0,-3,0)	J=(0,3,0)	K=(-3,0,0)	L=(3,0,0)	M=(0,-3,6)	N=(0,3,6)	O=(-3,0,6)	P=(3,0,6)	Q=(-3,-3,3);	R=(3,-3,3);	S=(3,3,3);	T=(-3,3,3);
+!for val15  in $val49 
+val51=SetColor[$val15,darkgreen]
+tmp0=!append line $val51 to $val50
+
+val50=$(tmp0)
+!next
+val12=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W
+val52=
+!for val15  in $val12 
+val51=SetFixed[$val15,true]
+val53=$val51	SetPointSize($val15,3);
+tmp0=!append line $val53 to $val52
+
+val52=$(tmp0)
+!next
+val54=a,b,c,d,e,f,g,h,i,j,k,l
+val55=
+!for val15  in $val54 
+val51=ShowLabel[$val15, false]
+tmp0=!append line $val51 to $val55
+
+val55=$(tmp0)
+!next
+val56=U,V,W
+val57=
+!for val15  in $val56 
+val51=SetColor[$val15,red]
+tmp0=!append line $val51 to $val57
+
+val57=$(tmp0)
+!next
+tmp=!trim -3,-3,0	3,-3,0	3,3,0	-3,3,0	-3,-3,6	3,-3,6	3,3,6	-3,3,6	0,-3,0	0,3,0	-3,0,0	3,0,0	0,-3,6	0,3,6	-3,0,6	3,0,6	-3,-3,3	3,-3,3	3,3,3	-3,3,3
+val58=!translate internal $	\
+$ to ;; in $tmp
+val59=
+!for val15 =1 to 8 
+val60=$(val12[$val15])=($(val58[$val15;]))
+tmp0=!append line $val60 to $val59
+
+val59=$(tmp0)
+!next
+val61=enable3d=true	SetVisibleInView(xAxis,-1,false);	SetVisibleInView(yAxis,-1,false);	SetVisibleInView(zAxis,-1,false);	\lp_outil	$val59	$val50	a=Segment(A,B);	b=Segment(B,C);	c=Segment(C,D);	d=Segment(D,A);		e=Segment(E,F);	f=Segment(F,G);	g=Segment(G,H);	h=Segment(H,E);		i=Segment(A,E);	j=Segment(B,F);	k=Segment(C,G);	l=Segment(D,H);	\vectt	$val52	$val55	$val57	$val48	SetPerspective("T");	
+!readproc slib/geo2D/geogebra width=600;	height=600;	$val61 
+tmp0=$slib_out
+val62=$(tmp0)
+!endif
+replytype1=radio
+replyname1=orthogonalité relative
+replygood1=$val38;$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		
+!if $val9==2 
+$()	<div style="display: inline-block;">$val62</div>	<div style="display: inline-block;vertical-align:top;width:550px;">	 
+!else
+$() 	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 300,300 \
+$val47 
+$()</div>	 <div class="medium_size text_col">	 
+!endif
+$()			$val7. $val8.	  <p>	  On considère les droites <span style="color:red">($val29$val30)</span>	  et <span style="color:blue">($val31$val32)</span>	 et on s'intéresse à leur orthogonalité éventuelle.	 </p>	  Les droites <span style="color:red">($val29$val30)</span>	  et <span style="color:blue">($val31$val32)</span> sont	<ul>	  <li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	  <li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	</ul>	</div>	
+!if $val9=1 
+$()</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,29,30,31,32,47,62
+embedcnt=2

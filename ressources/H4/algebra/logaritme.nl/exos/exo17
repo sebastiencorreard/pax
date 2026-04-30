@@ -1,0 +1,91 @@
+#Vergelijkingen 1 [ g^x = b ]
+n=$counter
+mathviewpanel=$module_title:x=:ln:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]()
+rounding=0
+display=1
+!readproc $remarkdir/rounding.$taal
+mathview=5
+image=0
+questiontype=0
+inputs=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+varlist=$empty
+arglist=x
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo7.jpg\' alt=\'noalt\' />
+
+keuze=!randitem 1,0
+smallfont=18
+largefont=24
+!if $R=1
+    !if $keuze=1
+	b=!randint 1,200
+	b_tex=$b
+	formula$n=e^{x}=$b_tex
+	tex=$empty
+	answer$n=ln($b)
+	# nodig voor precheck : aangeven of er een ln() of log[10]() wordt gevraagd in antwoord
+	checkfile=exos/precheck1.proc
+    !else
+	checkfile=$checkdir/number.proc
+    	d=!randitem 3,4,5,6
+	be=!randitem e@e@1@1,sqrt(e)@\sqrt{e}@\frac{1}{2}@1/2,sqrt[$d](e)@\root $d \of{e}@\frac{1}{$d}@1/$d,1/sqrt(e)@\frac{1}{\sqrt{e}}@-\frac{1}{2}@-1/2,1/e@\frac{1}{e}@-1@-1,1/sqrt[$d](e)@\frac{1}{\root $d \of{e}}@-\frac{1}{$d}@-1/$d
+	
+	be=!replace internal @ by , in $be
+	b=!item 1 of $be
+	b_tex=!item 2 of $be
+	tex=!item 3 of $be
+	tex= =$tex
+	formula$n=e^{x}=$b_tex 
+	answer$n=!item 4 of $be
+    !endif
+    applettext=!nospace e^x = $b ->
+    texanswer$n=e^{x}=$b_tex \rightarrow x =  \ln \left( $b_tex \right) $tex
+ !exit
+!endif
+
+checkfile=exos/precheck1.proc
+!if $R=2
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    p=!randitem 2,3,4,5,6,7,8,9
+    pm=!randitem 1,-1
+    a=$[$pm*$a]
+    b=$[$p*$a]
+    formula$n=$a \cdot e^{x}=$b
+    applettext=!nospace $a*e^x = $b ->
+    answer$n=ln($p)
+    texanswer$n=\left[ \begin{array}{l} $a \cdot e^{x}=$b \\ e^{x}=\frac{$b}{$a} \\ e^{x}=$p \\ x= \ln($p) \end{array} \right.
+ !exit
+!endif
+
+!if $R=3
+    a=!randint 2,10
+    p=!randint 2,20
+    b=$[$a+$p]
+    d=!randitem 1,2,3,4,5
+    c=$[$d*$p]
+    formula$n=$c \cdot e^{x} + $a =$b 
+    applettext=!nospace $c*e^x+$a = $b ->
+    answer$n=ln(1/$d)
+    texanswer$n=\left[ \begin{array}{l} $c \cdot e^{x} + $a =$b \\ $c\cdot e^{x}= $p \\ \\ e^{x}=\frac{$p}{$c} \rightarrow  e^{x}=\frac{1}{$d} \\  \\ x= \ln\left( \frac{1}{$d} \right)  \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    b=!randint 2,25
+    formula$n=\left(\frac{1}{e}\right)^{-x} =$b
+    applettext=!nospace (1/e)^(-x)  =  $b ->
+    answer$n=ln($b)
+    texanswer$n=\left[ \begin{array}{l} \left(\frac{1}{e}\right)^{-x}=$b \\ \left( e^{-1} \right)^{-x}=$b  \\ e^{(-1 \cdot -x) } = $b \\ e^{x}=$b \\ x=\ln($b) \end{array} \right.
+ !exit
+!endif
+

@@ -1,0 +1,178 @@
+!set title=Fonction 03
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+
+ansorder=r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=Initialiser correctement
+val8=Jouer le code et envoyer la réponse.
+val9=dans le programme afin d'obtenir une représentation graphique identique.
+val10=<img src="$val1/attention.png" alt="Attention"> La variable	  \(\text{a}\) doit impérativement être comprise entre 0.01 et 1.
+val11=<ul><li>Il est indispensable d'appeler la librarie mathématique de Python en utilisant	  l'instruction <code>from math import *</code>	  au début du programme si l'on souhaite utiliser la fonction racine carrée <code>sqrt(x)</code>.	  </li><li>	  L'instruction <code>assert</code> suivie d'une condition permet d'effectuer une	  <strong>exception</strong> sur des valeurs définies par la condition.</li>	 </ul>
+val12=Quelle(s) conjecture(s) pouvez-vous effectuer par lecture du graphique ?
+
+!ifval ($val2==)
+val13=$[rint(1)]
+!else
+val13=$[rint($val2)]
+!endif
+tmp=!trim ambiance,neat;rubyblue,eclipse;the-matrix,3024-day
+val14=!translate internal $	\
+$ to ;; in $tmp
+val15=$val7 les valeurs des variables \(\text{x}\),	 \(\text{a}\) et \(\text{xm}\) $val9 $val8
+val16=0
+val17=0
+tmp0=!randint -5, -1
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 6, 15
+
+val19=$[rint($val18+$(tmp0))]
+tmp=!nonempty items 0.5,1,2
+
+tmp0=!randitem $tmp
+val20=$[$(tmp0)]
+val21=??
+val22=??
+val23=??
+val24=Maîtriser la construction de représentations graphiques
+t_=!replace internal \( by ( in f(t)=$val17;
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in default(format, "f.5");	nn=1;	xi=$val18;	ymin=f(xi);	ymax=f(xi);	pas=$val20;	xl=[];	yl=[];	colorl=[];	colorll=[black];	while(xi<=$val19 || abs(xi-$val19)<10^(-4),	yi=f(xi);	xl=concat(xl,xi);	yl=concat(yl,yi);	xi=xi+pas;	$val6	if(f(xi)<ymin && abs(xi)>0.0001,ymin=f(xi););	if(f(xi)>ymax && abs(xi)>0.0001,ymax=f(xi));	nn=nn+1;);	
+tmp0=!exec pari $t_
+
+val26=$(tmp0)
+t_=!replace internal \( by ( in print(xl);
+tmp0=!exec pari $t_
+
+val27=$(tmp0)
+t_=!replace internal \( by ( in print(yl);
+tmp0=!exec pari $t_
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in print(ymin);
+tmp0=!exec pari $t_
+
+val29=$(tmp0)
+t_=!replace internal \( by ( in print(ymax);
+tmp0=!exec pari $t_
+
+val30=$(tmp0)
+t_=!replace internal \( by ( in print(colorl);
+tmp0=!exec pari $t_
+
+val31=$(tmp0)
+t_=!replace internal \( by ( in print(colorll);
+tmp0=!exec pari $t_
+
+val32=$(tmp0)
+t_=!replace internal \( by ( in print(nzero);
+tmp0=!exec pari $t_
+
+val33=$(tmp0)
+val34=$[rint(floor(($val19-$val18)/$val20)+1)]
+val35=$[rint(min(10,$val34))]
+val36=Le code Python donné ci-dessous permet de construire le tableau de valeurs	  d'une fonction dans 2 listes \(\text{x_list}\) et \(\text{y_list}\). La représentation	  graphique du tableau de valeurs est construite automatiquement lorsque le code est joué.	  Compléter cet algorithme afin de réaliser la représentation graphique proposée. Afin de	  vous aider, les coordonnées exactes des $val35 premiers points	  sont données dans le tableau de valeurs ci-dessous.
+val37=
+!for val38 =1 to $val34 
+tmp0=!append line board.create('point', [$(val27[$val38]),$(val28[$val38])],{color:"black"}); to $val37
+
+val37=$(tmp0)
+!next
+val39=\#Initialisation des variables#	\initpythn	x=$val21	a=$val23	xm=$val22	\#Définition d'une fonction#	def f(x):	  return $val16	\#Initialisation des listes#	x_list=[]	y_list=[]	\initpythcol	\#Boucle afin de construire les listes#	while x<=xm:	  y=f(x)	  x_list.append(x)	  y_list.append(y)	  x=x+a	  \scriptpyth	\#Affichage des 10 premiers termes des listes#	print(x_list[\:10])	print(y_list[\:10])	\scriptpythh
+!readproc slib/geo2D/jsxgraph jsxbox1,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.showInfobox=false;	JXG.Options.point.highlight=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.size = 60/$val34;	JXG.Options.point.withLabel=true;	var board = JXG.JSXGraph.initBoard('jsxbox1', {axis:true, boundingbox: [$val18-1,$val30+1,$val19+1,$val29-1],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	$val37	 
+tmp0=$slib_out
+val40=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "[]";	JXG.Options.point.withLabel=true; 
+tmp0=$slib_out
+val41=$(tmp0)
+replytype1=runcode
+
+replyoption1=precision=1000 \instruction_code 
+replyname1=
+replygood1=[x_list,[$val27]],[y_list,[$val28]]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">$val24</p>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val36	<table class="wimscenter wimsborder">	<tr><th>
+!insmath x_i
+$()</th>	 
+!for m_ii=1 to $val35 
+$()<td>$(val27[$m_ii])</td> 
+!next
+$()	</tr>	<tr><th>
+!insmath y_i
+$()</th>	 
+!for m_ii=1 to $val35 
+$()<td>$(val28[$m_ii])</td> 
+!next
+$()	</tr>	</table>	<div class="question">	$val15	</div>	</div>	<div>	 
+!read oef/embed.phtml reply1,[python,[$val39]];[idtest2,fullscreen theme=[$(val14[$val13;])] canvas init \instruction_code,Jouer le code !] 
+$()	</div>	$m_inst	<br>	<div class="wimscenter wimsborder box">	<div>Représentation graphique du tableau de valeurs</div>	$val41	</div>	<div class="wimscenter wimsborder box">	<div>Représentation graphique à effectuer</div>	$val40	</div>	</div>	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	$m_javalc	const xlen=x_liste.length;	function findMinMax(arr,ar) {let xmin = arr[0], xmax = arr[0],ymin = ar[0], ymax = ar[0];	  for (let i = 1, len=arr.length; i < len; i++){	    let v = arr[i];	    let vv = ar[i];	    xmin = (v < xmin && Math.abs(v)>0.0001) ? v : xmin;	    xmax = (v > xmax && Math.abs(v)>0.0001) ? v : xmax;	    ymin = (vv < ymin && Math.abs(v)>0.0001) ? vv : ymin;	    ymax = (vv > ymax && Math.abs(v)>0.0001) ? vv : ymax;}	  return [Math.round(xmin)-1,Math.round(xmax)+1,Math.round(ymin)-1,Math.round(ymax)+1];}	let xyminmax=findMinMax(x_liste,y_liste);	JXG.Options.point.size =60/$val34;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [xyminmax[0],xyminmax[3],xyminmax[1],xyminmax[2]],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	brd.suspendUpdate();	for(var jj = 0; jj < xlen; jj=jj+1) {	brd.create('point', [x_liste[jj],y_liste[jj]],{color:'black'});	}	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,13,14,15,24,27,28,34,35,36,39,40,41
+embedcnt=1

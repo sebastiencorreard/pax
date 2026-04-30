@@ -1,0 +1,162 @@
+# Hypothese toetsing I
+!if $counter=1
+    viewlogo=0
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+    make_tr=1
+    cols=10
+    helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    checkfile=exos/checkfile3.proc
+    #checkfile=$checkdir/number.proc
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    inputs=-1
+!endif
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+text=!record 103 of lang/remarks.$taal
+#@overschrijdingskans,wordt verworpen,wordt niet verworpen
+#@!statistical significance,is not true,is true
+verpakking=!record 104 of lang/remarks.$taal
+#@pakken,pak,gewicht,kg,flessen,fles,inhoud,liter
+#@!boxes,box,weight,kg,bottles,bottle,volume,litre
+k=!randint 1,6
+products=!record 105 of lang/remarks.$taal
+#@suiker,meel,muesli,cola,melk,karnemelk
+#@!products=sugar,wheat flower,Muesli,coca colas,milk,buttermilk
+
+# scheme:
+# ding,min gewicht,max gewicht,min sigma,max sigma,verpakking
+data=!line $k of 1001,1010,20,60,1\
+1001,1020,30,80,1,\
+501,515,20,60,1,\
+1001,1050,30,90,5\
+1001,1050,20,50,5\
+1001,1050,20,50,5
+
+sugar=!item $k of $products
+g1=!item 1 of $data 
+g2=!item 2 of $data 
+s1=!item 3 of $data 
+s2=!item 4 of $data
+vp=!item 5 of $data
+
+bags=!item $vp of $verpakking
+bag=!item $[$vp+1] of $verpakking
+viewlogo=1
+logo=<img src=$module_dir/gifs/$k.jpg alt=$sugar/>
+logotext=$bag $sugar
+weight=!item $[$vp+2] of $verpakking
+kg=!item $[$vp+3] of $verpakking
+
+mu=!randint $g1,$g2
+mu=$[$mu/1000]
+sigma=!randint $s1,$s2
+sigma=$[$sigma/1000]
+perc=!randint 1,5
+perc3=!randint 10,40
+keuze1=!randint 0,2
+stuks=!randint 4,15
+stuks=$[10*$stuks]
+sig=$[$sigma/sqrt($stuks)]
+!if $keuze1=0
+    zin=!record 106 of lang/remarks.$taal
+    #@Een medewerker van het kwaliteitslaboratorium vermoedt dat de machine niet meer naar behoren afvult.
+    #@!A laboratory employe suspects the filling machine needs some recalibration.
+    keuze2=!randint 0,1
+    ans1=2
+    hypothese=H<sub>0</sub>:&mu;=$mu H<sub>1</sub>:&mu;&ne;$mu
+!else
+    !if $keuze1=1
+	zin=!record 107 of lang/remarks.$taal
+	#@Een consumenten organisatie zegt dat het de $bags gemiddeld minder dan $mu $kg zijn !.
+	#@!A consumer organisation declares that the $bags $sugar of this company weigh on average less than $mu $kg !.
+	keuze2=0
+	ans1=1
+	hypothese=H<sub>0</sub>:&mu;=$mu H<sub>1</sub>:&mu;&lt;$mu
+    !else
+	zin=!record 108 of lang/remarks.$taal
+	#@Het hoofd inkoop  van dit bedrijf beweert dat het gemiddelde $weight meer dan $mu $kg is.
+	#@!The sales manager of the company says that the $weight is on average more thn $my $kg
+	keuze2=1
+	ans1=0
+	hypothese=H<sub>0</sub>:&mu;=$mu H<sub>1</sub>:&mu;&gt;$mu
+    !endif
+!endif
+
+!if $keuze2=1
+    g=$[(round(1000*($mu+$sigma*$perc3/100)))/1000]
+    Z=$[($g - $mu)/$sig]
+    S=10000
+    ans2=$[0.5*(erf($S/sqrt(2)) - erf($Z/sqrt(2)))]
+    r_ans2=$[(round($rounding*$ans2))/$rounding]
+    kans=P(X>$g)</li><li>normalcdf($g,1000000,$mu,$sigma/&radic;$stuks) = $ans2 &asymp; $r_ans2
+!else
+    g=$[(round(1000*($mu-$sigma*$perc3/100)))/1000]
+    Z=$[($g - $mu)/$sig]
+    S=-10000
+    ans2=$[0.5*(erf($Z/sqrt(2)) - erf($S/sqrt(2)))] 
+    r_ans2=$[(round($rounding*$ans2))/$rounding]
+    kans=P(X<$g)</li><li>normalcdf(-100000,$g,$mu,$sigma/&radic;$stuks) = $ans2 &asymp; $r_ans2
+!endif
+
+H0tekst=!record 109 of lang/remarks.$taal
+overschrijdingskans=!item 1 of $text
+#@H<sub>0</sub> wordt verworpen,H<sub>0</sub> wordt niet verworpen
+!if $keuze1=0
+    over_schrijdings_kans=$overschrijdingskans=2 &times; $ans2 = $[2*$ans2]
+    ans2=$[2*$ans2]
+    !if $ans2 < $[$perc/100]
+	ans3=0
+	HH=!item 1 of $H0tekst
+	verworpen=$ans2&lt;$[$perc/100] ($perc %)</li><li>$HH
+    !else
+	HH=!item 2 of $H0tekst
+	ans3=1
+	verworpen=$ans2&gt;$[$perc/100] ($perc %)</li><li>$HH
+    !endif
+!else
+    over_schrijdings_kans=$overschrijdingskans=$ans2
+    !if $ans2 < $[$perc/100]
+	ans3=0
+	HH=!item 1 of $H0tekst
+	verworpen=$ans2&lt;$[$perc/100] ($perc %)</li><li>$HH
+    !else
+	ans3=1
+	HH=!item 2 of $H0tekst
+	verworpen=$ans2&gt;$[$perc/100] ($perc %)</li><li>$HH
+    !endif
+!endif
+
+ss=!record 110 of lang/remarks.$taal
+#@Een machine vult $bags $sugar af.<br />Het gewicht X van een $bag $sugar is normaal verdeeld met $m_mu = $mu $kg<br />en $m_sigma = $sigma $kg.<br />$zin  <br />Een steekproef van $stuks $bags $sugar geeft een gemiddelde van $g $kg.<br />
+wordt_verworpen=!item 2 of $text
+wordt_niet_verworpen=!item 3 of $text
+welk_toets_model=!record 111 of lang/remarks.$taal
+bereken=!record 112 of lang/remarks.$taal
+signi=!record 113 of lang/remarks.$taal
+intrap1=<select size="1" id="myselect0" class="schaersvoorde_textarea"><option value="0">H0:&mu;=$mu H1:&mu;&gt;$mu </option><option value="1">H0:&mu;=$mu H1:&mu;&lt;$mu</option><option value="2">H0:&mu;=$mu H1:&mu;&ne;$mu</option></select>
+intrap2=<select size="1" id="myselect1" class="schaersvoorde_textarea"><option value="0">H0 $wordt_verworpen </option><option value="1">H0 $wordt_niet_verworpen </option></select>
+
+exotext=<ol><li>$welk_toets_model $intrap1<br /></li><li>$bereken <b>P</b>&nbsp;=&nbsp;<input type="text" class="schaersvoorde_input" id="myinput0" size="10" value="" /><br /></li><li>$signi :  $intrap2</li></ol>
+
+answer$n=$ans2,$ans1,$ans3
+var1=chance,bool,bool
+
+var2=!record 114 of lang/remarks.$taal
+#@H0/H1 hypotheses,overschrijdingskans,conclusie
+hypo=!item 1 of $var2
+question$n=$ss
+
+rr=<ul><li>$hypo : &nbsp;$hypothese (option $ans1)</li><li>$kans</li><li>$over_schrijdings_kans </li><li>$verworpen (option $ans3) </li></ul>
+
+textanswer$n=$rr
+

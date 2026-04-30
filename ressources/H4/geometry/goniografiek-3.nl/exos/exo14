@@ -1,0 +1,157 @@
+# Formule van Simpson
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $R=1
+    !if $rounding=-1
+	rounding=0
+        !readproc $remarkdir/rounding.$taal
+    !endif
+!endif
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=1
+cols=30
+rows=2
+checkfile=exos/precheck.proc
+#$checkdir/coord.proc
+a=!randint 2,15
+b=!randint 2,15
+d=!randint 1,15
+c=!randint $[$d+1],25
+
+keuze=!randint 0,1
+kans=!randint 1,2
+kans=2
+keuze=2
+txt1=!record 12 of lang/remarks.$taal
+#@De amplitude van V is
+!if $kans=1
+    ss=!record 13 of lang/remarks.$taal
+    #@Bepaal de som van de onderstaande functies mbv <kbd>de formule van Simpson</kbd>.
+    !if $keuze=1
+	v1=$a*sin($b*x+$c)
+	v2=$a*sin($b*x+$d)
+	
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ V(t) = V_{1} + V_{2}  \\ \textrm{$txt1 = [?] } \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ V(t) = V_{1} + V_{2} = [?] \end{array} \right.
+	!endif
+	answer$n=$[(2*$a)]*cos($[($c-$d)/2])*sin(($b*t)+$[($c+$d)/2])
+	v=$[(2*$a)]*cos($[($c-$d)/2])*sin(($b*x)+$[($c+$d)/2])
+	amplitude=$[abs(2*$a*cos(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} + V_{2} = $a \cdot \sin\left( $b t + $c \right) + $a \cdot \sin\left( $b t + $d \right)  \\ V(t) = $a \cdot \left( \sin\left( $b t + $c \right) + \sin\left( $b t + $d \right)\right) \\ V(t) = $a \cdot \left( 2 \cdot \sin\left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)    \right)     \right) \\ V(t) = 2 \cdot $a \cdot  \sin \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \cos \left( \frac{$[$c - $d]}{2} \right) \\ V(t) = $[2*$a] \cos \left($[($c-$d)/2] \right) \cdot \sin \left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left( $[(2*$a)] \cos( $[($c-$d)/2] )\right) \approx $amplitude   \end{array} \right.
+	
+    !else
+	v1=$a*cos($b*x+$c)
+	v2=$a*cos($b*x+$d)
+	
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} + V_{2} \\ \textrm{$txt1 = [?] } \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} + V_{2} = [?] \end{array} \right.
+	!endif
+	answer$n=$[(2*$a)]*cos($[($c-$d)/2])*cos(($b*t)+$[($c+$d)/2])
+	v=$[(2*$a)]*cos($[($c-$d)/2])*cos(($b*x)+$[($c+$d)/2])
+	
+	amplitude=$[abs(2*$a*cos(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} + V_{2} = $a \cdot \cos\left( $b t + $c \right) + $a \cdot \cos\left( $b t + $d \right)  \\ V(t) = $a \cdot \left( \cos\left( $b t + $c \right) + \cos \left( $b t + $d \right)\right) \\ V(t) = $a \cdot \left( 2 \cdot \cos \left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)\right) \right) \\ V(t) = 2 \cdot $a \cdot \cos \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \cos \left( \frac{$[$c - $d]}{2} \right) \\ V(t) = $[2*$a] \cos \left($[($c-$d)/2] \right) \cdot \cos\left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(2*$a)] \cos($[($c-$d)/2]) \right) \approx $amplitude  \end{array} \right.
+
+    !endif
+!else
+    ss=!record 14 of lang/remarks.$taal
+    #@Bepaal het verschil van de onderstaande functies mbv <kbd>de formule van Simpson</kbd>.
+    !if $keuze=1
+	v1=$a*sin($b*x+$c)
+	v2=$a*sin($b*x+$d)
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} \\ \textrm{$txt1 = [?]} \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} = [?] \end{array} \right.
+	!endif    
+	answer$n=$[(2*$a)]*sin($[($c-$d)/2])*cos(($b*t)+$[($c+$d)/2])
+	
+	v=$[(2*$a)]*sin($[($c-$d)/2])*cos(($b*x)+$[($c+$d)/2])
+	    
+	amplitude=$[abs(2*$a*sin(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} - V_{2} = $a \cdot \sin\left( $b t + $c \right) - $a \cdot \sin\left( $b t + $d \right)  \\ \\  V(t) = $a \cdot \left( \sin\left( $b t + $c \right) - \sin\left( $b t + $d \right)\right) \\ \\ V(t) = $a \cdot \left( 2 \cdot \sin\left( \frac{1}{2} \left( $b t + $c - $b t - $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c + $b t + $d \right) \right) \right) \\ \\ V(t) = 2 \cdot $a \cdot  \sin \left( \frac{$[$c-$d]}{2} \right) \cdot \cos \left($b t + \frac{$[$c + $d]}{2} \right) \\ \\ V(t) = $[2*$a] \sin \left($[($c-$d)/2] \right) \cdot \cos \left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(2*$a)] \sin($[($c-$d)/2]) \right) \approx $amplitude  \end{array} \right.
+	
+    !else
+	
+	v1=$a*cos($b*x+$c)
+	v2=$a*cos($b*x+$d)
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} \\ \textrm{$txt1 = [?]} \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} = [?] \end{array} \right.
+	!endif    
+	answer$n=$[(-2*$a)]*sin($[($c-$d)/2])*sin(($b*t)+$[($c+$d)/2])
+	    
+	v=$[(-2*$a)]*sin($[($c-$d)/2])*sin(($b*x)+$[($c+$d)/2])
+	    
+	amplitude=$[abs(2*$a*sin(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} - V_{2} = $a \cdot \cos\left( $b t + $c \right) - $a \cdot \cos\left( $b t + $d \right)  \\ \\ V(t) = $a \cdot \left( \cos\left( $b t + $c \right) - \cos \left( $b t + $d \right)\right) \\ \\ V(t) = $a \cdot \left( -2 \cdot \sin \left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \sin \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)\right) \right) \\ \\ V(t) = -2 \cdot $a \cdot \sin \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \sin \left( \frac{$[$c - $d]}{2} \right) \\ \\ V(t) = $[-2*$a] \sin \left($[($c-$d)/2] \right) \cdot \sin\left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(-2*$a)] \sin($[($c-$d)/2])\right) \approx $amplitude  \end{array} \right.
+
+    !endif
+!endif
+
+!if $R>1
+    answer$n=$amplitude
+    ss=!record 15 of lang/remarks.$taal
+    #@Bereken de amplitude van <b>V</b> op 3 decimalen nauwkeurig.<br />Gebruik hiervoor de <kbd>Formules van Simpson</kbd>
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+    checkfile=$checkdir/new_number.proc
+!else
+    checkfile=$checkdir/equation.proc
+    arglist=V,V(t)
+    varlist=t
+    varcnt=1
+!endif
+
+assen=!record 16 of lang/remarks.$taal
+tas=!item 1 of $assen
+yas=!item 2 of $assen
+# simpson.gif :formula1=\begin{array}{ll} & \textrm{Formules van Simpson} \\ \\ 1 & \sin(t) + \sin(u) = 2 \cdot \sin \left(\frac{1}{2}\left(t + u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t - u \right) \right) \\ \\ 2 & \sin(t) - \sin(u) = 2  \cdot\sin \left(\frac{1}{2}\left(t - u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t + u \right) \right) \\ \\ 3 & \cos(t) + \cos(u) = 2  \cdot\cos \left(\frac{1}{2}\left(t + u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t - u \right) \right) \\ \\ 4 & \cos(t) - \cos(u) = -2  \cdot\sin \left(\frac{1}{2}\left(t + u \right) \right) \cdot \sin\left( \frac{1}{2}\left(t - u \right) \right) \end{array}
+#appletsize
+xsize=400
+ysize=320
+xmin=$[-2*pi/$b]
+xmax=$[2*pi/$b]
+# flyapplet data
+
+data=\
+xrange $xmin,$xmax\
+yrange $[-2*$a],$[2*$a]\
+linewidth 1\
+grid pi,2,pi/2,1,gold,gold,1,1,150,100\
+linewidth 2\
+vline 0,0,black,70\
+hline 0,0,black,70\
+curve $v1,red,140\
+curve $v2,blue,140\
+curve $v,green,140\
+text $xmin,$[1.6*$a],Ariel,14,V1,red\
+text $xmin,$[1.4*$a],Ariel,14,V2,blue\
+text $xmin,$[1.2*$a],Ariel,14,V(t),green\
+xlabel $tas,14,red,200\
+ylabel $yas,14,red,200\
+
+myname=$counter.data
+!filewrite getfile/$myname $data
+
+helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\' readonly=\'readonly\' >V = sin(4t) + pi\nV(t) = sin(4t) + pi\n</textarea><hr /><img src=\'$module_dir/gifs/simpson.gif\' alt=\'simpson\' />
+
+question$n=<a onmouseover="return escape('<object id=\'FlyApplet\'  width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_code\' value=\'FlyApplet.class\' /><param name=\'java_archive\' value=\'FlyApplet.jar\' /><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'transparent\' value=\'white\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\' />$nojava</object><textarea cols=\'25\' rows=\'3\' class=\'schaersvoorde_textarea\' readonly=\'readonly\' > V = sin(4t) + pi\n of \n V(t) = sin(4t) + pi\n</textarea>')">$ss</a>
+
+description=$youranswer
+!exit
+
+

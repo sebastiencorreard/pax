@@ -1,0 +1,90 @@
+# DE monopolist I [markt]
+make_tr=0
+embed=1
+var1=yes
+n=$counter
+!if $level=0
+  R=$counter
+!else
+  R=$level
+!endif
+rounding=1
+mathview=0
+embed=1
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck1.proc
+math=0
+a=!randitem 1,4,5,8
+a=$[-1*$a/1000]
+b=!randint 6,15
+b=$[10*$b]
+c=!randint 2,10
+d=!randint 10,70
+d=$[$d*1000]
+e=$[2*$a]
+display=1
+ss1=Van een monopolist zijn de onderstaande vergelijkingen bekend.<br />De bedragen zijn in &euro;'s ; de hoeveelheid is <kbd>q</kbd>.
+formula$n=\textrm{Monopolist: } \left[ \begin{array}{l} \textrm{TO} = $a q^{2} + $b q \\ \textrm{TK} = $c q + $d \\ \textrm{GO} = $a q + $b \\ \textrm{MO} = $e q + $b \\ \textrm{MK} = $c \end{array}\right.
+#to=$a*q*q + $b*q
+#go=$a*q+$b
+#mo=$e*q+$b
+#tk=$c*q+$d
+#mk=$c
+
+!if $R=1
+  q1=0
+  q2=!randint 1,10
+  q2=$[$q2*1000]
+  t=!randint 2,4
+  q3=$[$t*$q2]
+  f1=$a*q*q + $b*q
+  f2=$a*q+$b
+  f3=$e*q+$b
+  f4=$c*q+$d
+  f5=$c
+  roundingtext=Geef je antwoord op als een geheel getal...
+  kolom1=TO,GO,MO,TK,MK
+  head=<tr><th>q</th><th>$q1</th><th>$q2</th><th>$q3</th></tr> 
+  body=$empty
+  body2=$empty
+  i=0
+  !for p=1 to 5
+	w=!item $p of $kolom1
+    ans1=!evalsubst q=$q1 in $(f$p)
+    ans2=!evalsubst q=$q2 in $(f$p)
+    ans3=!evalsubst q=$q3 in $(f$p)
+    answer$n=!append item $ans1,$ans2,$ans3 to $(answer$n)
+    body=!append word $ <tr><td><b>$w</b></td><td><input id="myinput$i" size="8" class="schaersvoorde_input"/></td><td><input id="myinput$[$i+1]" name="myinput$[$i+1]" size="8" class="schaersvoorde_input"/></td><td><input id="myinput$[$i+2]" name="myinput$[$i+2]" size="8" class="schaersvoorde_input"/></td></tr> $ to $body
+    body2=!append word $ <tr><td><b>$w</b></td><td><input id="myinput$i" size="8" class="schaersvoorde_input" value="$ans1" readonly="readonly"/></td><td><input id="myinput$[$i+1]" name="myinput$[$i+1]" size="8" class="schaersvoorde_input" value="$ans2 " readonly="readonly"/></td><td><input id="myinput$[$i+2]" name="myinput$[$i+2]" size="8" class="schaersvoorde_input" value="$ans3" readonly="readonly"/></td></tr> $ to $body2 
+    i=$[$i+3]
+  !next p
+  invultabel=<table class="zebra_table_h2"><caption>Monopolist</caption>$head $body </table>
+  anstabel=<table class="demospecial">$head $body2 </table>
+  exotext=$invultabel
+  textanswer$n=$anstabel
+  ss2=Vul aan de hand van de <span class="schaersvoorde_link">formules</span> de onderstaande tabel in.
+!else
+  ss2=Vul met de gegeven <span class="schaersvoorde_link">formules</span> de onderstaande invulvelden in.
+  exotext=<table class="zebra_table_h2"><tr><td>Bereken de productieomvang waar de winst maximaal is:</td><td><input id="myinput0" size="8" class="schaersvoorde_input"/>&nbsp;(<small>rond af op helen</small>)</td></tr><tr><td>Bereken de prijs waarbij de winst maximaal is:</td><td><input id="myinput1" size="8" class="schaersvoorde_input"/>&nbsp;(<small>rond af op twee decimalen</small>)</td></tr><tr><td>Bereken de omvang van de maximale winst:</td><td><input id="myinput2" name="myinput2" size="8" class="schaersvoorde_input"/>&nbsp;(<small>rond af op twee decimalen</small>)</td></tr><tr><td>Bereken de productieomvang waar de omzet maximaal is:</td><td><input id="myinput3" name="myinput3" size="8" class="schaersvoorde_input"/>&nbsp;(<small>rond af op helen</small>)</td></tr></table>
+  
+  ans1=$[($c-$b)/$e]
+  ans2=$[$a*$ans1+$b]
+  totomzet=$[$a*$ans1*$ans1+$b*$ans1]
+  totkosten=$[$c*$ans1+$d]
+  ans3=$[$totomzet-$totkosten]
+  ans4=$[-1*$b/$e]
+  answer$n=$ans1,$ans2,$ans3,$ans4
+  
+  textanswer$n=<ol><li>De winst is maximaal als geldt : <kbd>MO = MK</kbd><br />$e&times;q+$b = $c $m_rightarrow $e&times;q = $c &minus; $b $m_rightarrow q = $[$c-$b]/$e = $ans1 </li><li>Bij een monopolist geldt: <kbd>GO = prijsafzetlijn = de verkoopprijs</kbd><br /><kbd>GO</kbd> = $a&times;$ans1 + $b = &euro; $ans2</li><li>De totale maximale winst is: <kbd>TO &minus; TK</kbd><br /><kbd>TO</kbd> = $a &times; $ans1<sup>2</sup> + $b &times; $ans1 = &euro; $totomzet<br /><kbd>TK</kbd> = $c &times; $ans1 + $d = &euro; $totkosten<br />Dus de maximale winst is : $totomzet &minus; $totkosten = &euro; $ans3 </li><li>De productieomvang waar de omzet maximaal is, vinden we door <kbd>MO = 0</kbd> te stellen.<br />$e&times;q + $b = 0 $m_rightarrow $e &times; q = -$b $m_rightarrow q = -$b/$e = $ans4</li></ol>
+  #afronding
+  var10=1,100,100,1
+  roundingtext=$empty
+!endif
+
+helptext=<ul><li>p = verkoopprijs</li><li>q = hoeveelheid</li><li>TO = totale opbrengsten </li><li>TK = totale kosten</li><li>GO = gemiddelde opbrengst</li><li>MO = marginale opbrengsten</li><li>MK = marginale kosten</li></ul>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss1<br />$ss2</a>
+
+

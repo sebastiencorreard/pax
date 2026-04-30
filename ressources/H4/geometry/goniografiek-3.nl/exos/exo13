@@ -1,0 +1,124 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=0
+# veroorzaakt <tr>
+make_tr=0
+cols=10
+rows=1
+# voorlopig ?
+checkfile=$checkdir/number.proc
+# volgorde is van belang
+var1=yes
+
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+
+sometxt=!record 3 of lang/remarks.$taal
+#@evenwichtslijn,x-as,y-as,Gegeven de functie:,Bepaal ,Amplitude , Frequentie , Evenwichtlijn,Periode,Met de rechter muisknop kun je het canvas van de applet bewegen
+#@!balance line,x-axis,y-axis 
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+Gegeven=!item 4 of $sometxt
+Bepaal=!item 5 of $sometxt
+Amplitude=!item 6 of $sometxt
+Frequentie=!item 7 of $sometxt
+Evenwichtslijn=!item 8 of $sometxt
+Periode=!item 9 of $sometxt
+hlptxt=!item 10 of $sometxt
+xsize=480
+ysize=320
+
+gonio=!randitem sin,cos
+!if $R=1
+    b=!randitem -3,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3
+    a=!randitem -5,-4,-3,-2,-1,0,1,2,3,4,5
+    C=2/3,1/5,1/4,1/3,1/2,1,3/2,2,5/2,3,7/2,4
+    D=3*pi,10*pi,8*pi,6*pi,4*pi,2*pi,4*pi/3,pi,4*pi/5,2*pi/3,4*pi/7,pi/2
+    p=!itemcnt $C
+    q=!randint 1,$p
+    c=!item $q of $C
+    periode=!item $q of $D
+    texperiode=!texmath $periode
+    factor=!texmath $c
+    ampl=$[abs($b)]
+    f=!rawmath $a+$b*$gonio($c*x)
+    f=!nospace $f
+    functie=!texmath $f
+    ss=!record 9 of lang/remarks.$taal
+    #@<span style="color:blue">Hier</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafieken a en b .
+    xmin=-1
+    xmax=$[round(1.2*$periode)]
+    ymin=$[$a-(abs($b))-2]
+    ymax=$[$a+(abs($b))+2]
+    inputs=2
+    description=<b>a</b>,<b>$Amplitude</b>
+    answer$n=$a,$ampl
+    helptext=<img src=\'$module_dir/gifs/exo2.1.help.jpg\' alt=\'help\' /><br />$hlptxt
+
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Evenwichtslijn : }\: y = $a \\  \textrm{$Amplitude : }\: $ampl \\ \\ f(x)=$functie \end{array} \right.
+
+!else
+    ###a+bsin(cx)
+    a=!randitem -3,-5/2,-2,-3/2,-1,-1/2,0,1/2,1,3/2,2,5/2,3
+    b=!randitem 1/2,1,3/2,2,5/2,3,7/2,4,-1,-3/2,-2,-5/2,-3,-7/2,-4
+    # P=pi
+    c=!randitem (P/2),(2*P/3),P,2*P,(2*P/5)
+    periode=!exec pari (2*P)/($c)
+    periode=!replace internal  P by pi in $periode
+    c=!replace internal P by pi in $c
+    factor=!texmath $c
+    texperiode=!texmath $periode
+    evenwicht=$a
+    ampl=!exec pari abs($b)
+    xmin=-1
+    xmax=$[round(1.5*$periode)]
+    ymin=$[round($a-abs($b))-1]
+    ymax=$[round($a+abs($b))+1]
+    f=!rawmath $a + $b*$gonio($c*x)
+    f=!nospace $f
+    functie=!texmath $f
+
+    ss=!record 10 of lang/remarks.$taal
+    #@<span style="color:blue">Hieronder</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafiek de periode, a en b van de functie.
+    inputs=3
+    description=<b>$Periode</b>,<b>a</b>,<b>b</b>
+    answer$n=$periode,$a,$b
+    helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\' /><br />$hlptxt
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{$Evenwichtslijn  (a) : }\: y = $a \\ b=$b \rightarrow \textrm{$Amplitude : }\: $ampl \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array} \right.
+
+!endif
+
+limitspanel=yes
+
+myname=$wims_nowseconds.data
+!filewrite getfile/$myname $f
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+
+question$n=<a onmouseover="return escape('<object width=\'$xsize\' height=\'$ysize\'classid=\'java:SilentSimpleGraph..class\' type=\'application/x-java-applet;jpi-version=1.4\' ><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'jcm1.0-config.jar\' /><param name=\'java_code\' value=\'SilentSimpleGraph.class\' /><param name=\'File\' value=\'$myfile\' /><param name=\'UseFunctionInput\' value=\'no\' /><param name=\'XLabel\' value=\'$xas\' /><param name=\'YLabel\' value=\'$yas\' /><param name=\'UseGrid\' value=\'yes\' /><param name=\'GridColor\' value=\'orange\' /><param name=\'UseLimitsPanel\' value=\'$limitspanel\' /><param name=\'BackgroundColor\' value=\'white\' /><param name=\'Insets\' value=\'5\' /><param name=\'CanvasColor\' value=\'white\' /><param name=\'GraphColor\' value=\'red\' /><param name=\'AxesColor\' value=\'blue\' /><param name=\'PanelBackground\' value=\'white\' /><param name=\'BorderWidth\' value=\'0\' /><param name=\'PanelTitle\' value=\'$module_title\' /><param name=\'TitleBackground\' value=\'white\' /><param name=\'UseMouseZoom\' value=\'no\' /><param name=\'UsePanner\' value=\'yes\' /><param name=\'UseComputeButton\' value=\'no\' /><param name=\'Limits\' value=\'$xmin,$xmax,$ymin,$ymax\' /><param name=\'CanvasColor\' value=\'white\' /><param name=\'ShowPoint\' value=\'yes\' />$nojava</object>')">$ss</a>
+
+etext=!record 17 of lang/remarks.$taal
+exotext=<a onclick="wims_help=window.open('$wims_ref_name?wims_window=new&+lang=nl&+session=$session&+module=$module&+cmd=help','wims_help','status=no,toolbar=no,location=no,menubar=no,scrollbars=yes,resizable=yes')"><span class="schaersvoorde_link"><hr class="schaersvoorde_hr"/>$etext</span></a>
+object$n=<object width="$xsize" height="$ysize" classid="java:SilentSimpleGraph.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="jcm1.0-config.jar" /><param name="java_code" value="SilentSimpleGraph.class" /><param name="File" value="$myfile" /><param name="UseFunctionInput" value="no" /><param name="XLabel" value="$xas" /><param name="YLabel" value="$yas" /><param name="UseGrid" value="yes" /><param name="GridColor" value="orange" /><param name="UseLimitsPanel" value="$limitspanel" /><param name="BackgroundColor" value="white" /><param name="Insets" value="5" /><param name="CanvasColor" value="white" /><param name="GraphColor" value="red" /><param name="AxesColor" value="blue" /><param name="PanelBackground" value="white" /><param name="BorderWidth" value="0" /><param name="PanelTitle" value="$module_title" /><param name="TitleBackground" value="white" /><param name="UseMouseZoom" value="no" /><param name="UsePanner" value="yes" /><param name="UseComputeButton" value="no" /><param name="Limits" value="$xmin,$xmax,$ymin,$ymax" /><param name="CanvasColor" value="white" /><param name="ShowPoint" value="yes" />$nojava</object>
+
+
+
+!exit
+

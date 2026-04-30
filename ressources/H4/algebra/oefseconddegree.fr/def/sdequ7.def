@@ -1,0 +1,134 @@
+!set title=Equation 7 : équation produit
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=10
+prevarcnt=7
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -15, 1
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val6*(x-$val7)*(x-$val8)
+tmp0=!exec maxima $t_
+
+val9=!rawmath $(tmp0)
+val10=$val7,$val8
+t_=!replace internal \( by ( in x-$val7
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val8
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+replytype1=fset
+replyname1=Solutions
+replygood1=$val10
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Résoudre dans 
+!insmath \mathbb{R}
+$(), l'équation :	
+!insmath $val9=0
+$().</p>	<p>L'ensemble des solutions est  
+!read oef/embed.phtml r1,8 
+$().</p>	<div class="wims_instruction">Séparer les solutions éventuelles par une virgule.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val9=0
+$() &hArr; (
+!insmath $val6
+$() étant non nul) 
+!insmath $val11=0
+$() ou 
+!insmath $val12=0
+$() &hArr; 
+!insmath x=$val7
+$() ou 
+!insmath x=$val8
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in x-$val7
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val8
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12
+embedcnt=1

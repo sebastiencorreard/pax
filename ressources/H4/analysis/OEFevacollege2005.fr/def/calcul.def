@@ -1,0 +1,145 @@
+!set title=Calcul avec parenthèses
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rectorat de Nice
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle 2,3,4,5,6,7,8
+
+val6=$(tmp0)
+tmp0=!randint 3, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint $val7+1, 20
+
+val8=$[rint($(tmp0))]
+val9=$(val6[1])-$(val6[2])-$(val6[3])*$(val6[4]),$(val6[1])-$(val6[2])-$(val6[3])\times $(val6[4])	$(val6[1])-($(val6[2])-$(val6[3])*$(val6[4])),$(val6[1])-($(val6[2])-$(val6[3])\times $(val6[4]))	$(val6[1])-($val8-$val7)*$(val6[4]),$(val6[1])-($val8-$val7)\times $(val6[4])
+tmp0=!shuffle 1,2,3
+
+val10=$(tmp0)
+val11=
+val12=
+!for val13 =1 to 3 
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row $(val10[$val13]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val14=$(tmp0)
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+tmp=!translate ";': to $     $ in $val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+tmp0=!append item $val14 to $val11
+
+val11=$(tmp0)
+!next
+replytype1=numexp
+replyname1=Réponse
+replygood1=$(val11[1])
+replytype2=numexp
+replyname2=Réponse
+replygood2=$(val11[2])
+replytype3=numexp
+replyname3=Réponse
+replygood3=$(val11[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Calculer les expressions suivantes $m_compenonce :	<ul>	<li>
+!insmath A = $(val12[1])
+$()	<div>
+!insmath A
+$() =  
+!read oef/embed.phtml r1,\size 
+$()</div>	</li><li>	 
+!insmath B = $(val12[2])
+$()	<div>
+!insmath B
+$() =  
+!read oef/embed.phtml r2,\size 
+$()</div>	</li><li>	 
+!insmath C = $(val12[3])
+$()	<div>
+!insmath C
+$() =  
+!read oef/embed.phtml r3,\size 
+$()</div>	</li>	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12
+embedcnt=3

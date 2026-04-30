@@ -1,0 +1,263 @@
+\title{Méd-Q1-Q3 (résolution graphique)}
+\language{fr}
+\range{-5..5}
+\author{David, Rousseau}
+\keywords{median,quartile}
+##sur la base d'un exercice de Bernadette, Perrin-Riou;Jean-Jacques, Kamdem Fodjo##
+
+\computeanswer{no}
+\format{html}
+\precision{100}
+\css{<style>
+.jxgbox{float:left;margin:1em}
+</style>}
+\integer{n=randint(5..8)}
+\real{m=0}
+\text{long1=}
+\text{list1=\m}
+\for{i=1 to \n}{
+  \text{c=item(-1,\list1)}
+  \integer{long1=randint(1..3)*5}
+  \integer{b=\c+\long1}
+  \text{list1=\list1,\b}
+}
+\integer{borne=item(-1,\list1)-1}
+\integer{h=2*randint(25..50)} ##Effectif total##
+\integer{med=randint(20..40)}
+\real{coeff=1}
+text{liste=slib(stat/random \h,item(1,\list1),\borne)}
+text{liste=slib(stat/binomial \h,\borne, 10)}
+\text{liste=slib(stat/normal \h,\med,\borne/2)}
+\text{liste=wims(values min(abs(x),\borne*\coeff) for x in \liste)}
+\text{listef=slib(stat/effectif [\liste],[\list1])}
+\text{liste=item(1,\listef)}
+\text{list1=item(2,\listef)}
+\text{list1=wims(declosing \list1)} ##Bornes##
+\text{liste=wims(declosing \liste)} ##Effectifs##
+\text{n=items(\liste)} ##Nombre de classes##
+\real{DE1=\h/4}
+\real{DE2=\h/2}
+\real{DE3=3*\h/4}
+\integer{borne=item(-1,\list1)-1}
+
+\text{trace1=item(\1,\list1)}
+\text{trace2=0}
+\text{trace=item(1,\list1),0}
+\real{S=0}
+\real{S11=0} ##pour le cas où eff total/4< premier effectif##
+\real{S12=item(1,\liste)} ##pour le cas où eff total/4< premier effectif##
+\text{rang1=1}
+\text{rang2=1}
+\text{rang3=1}
+
+\for{i=1 to \n}{
+\real{S=\S+item(\i,\liste)}
+\text{trace=\trace,item(\i+1,\list1),\S}
+\text{r=item(\i+1,\list1)}
+\text{trace1= \trace1
+text blue,\r-1,-2,medium,\r
+dline \r,0,\r,\S,blue
+disk \r,\S,5,blue}
+
+\text{trace2= \trace2
+text orange,\m-3,\S,medium,\S
+dline \m,\S,\r,\S,gold
+disk \r,\S,5,gold}
+
+\real{f=(\b-\m)*2}
+\real{g=(\borne+1)*2}
+\text{para1= parallel \m,-10,\m,10,5,0,\f,black
+parallel \m,-5,\m,5,1,0,\f,blue}
+\text{para2= parallel \m-1,0,\m+1,0,0,20,\g,black}
+
+\integer{j=\i+1}
+ \if{\S<\DE1}{\text{rang1=\rang1,\j}
+  \real{S11=\S} \real{S12=\S+item(\j,\liste)}
+  \real{rang11=\DE1-\S11}
+  }
+\if{\S<\DE2}{\text{rang2=\rang2,\j}
+  \real{S21=\S} \real{S22=\S+item(\j,\liste)}
+  \real{rang21=\DE2-\S21}
+  }
+ \if{\S<\DE3}{\text{rang3=\rang3,\j}
+  \real{S31=\S} \real{S32=\S+item(\j,\liste)}
+  \real{rang31=\DE3-\S31}
+  }
+}##S...1 et S...2 : ECC encadrant DE... ##
+
+
+\text{rang1=item(-1,\rang1)}
+\integer{rangsuiv1=\rang1+1}
+\text{classe1=item(\rang1,\list1),item(\rangsuiv1,\list1)}
+\real{amplitude1=item(2,\classe1)-item(1,\classe1)}
+\text{effdeclas1=item(\rang1,\liste)}
+\rational{Q1=item(1,\classe1)+\amplitude1*((\DE1-\S11)/(\S12-\S11))}##Thalès##
+\real{Q12=ceil(\Q1)+1}
+\real{Q11=floor(\Q1)-1}
+\text{trace31=line 0,\DE1,\Q1,\DE1,green}
+\text{trace41= line \Q1,0,\Q1,\DE1,orange}
+
+\text{rang2=item(-1,\rang2)}
+\integer{rangsuiv2=\rang2+1}
+\text{classe2=item(\rang2,\list1),item(\rangsuiv2,\list1)}
+\real{amplitude2=item(2,\classe2)-item(1,\classe2)}
+\text{effdeclas2=item(\rang2,\liste)}
+\real{Med=item(1,\classe2)+\amplitude2*((\DE2-\S21)/(\S22-\S21))}
+\real{Med2=ceil(\Med)+1}
+\real{Med1=floor(\Med)-1}
+\text{trace32=line 0,\DE2,\Med,\DE2,green}
+\text{trace42= line \Med,0,\Med,\DE2,orange}
+
+\text{rang3=item(-1,\rang3)}
+\integer{rangsuiv3=\rang3+1}
+\text{classe3=item(\rang3,\list1),item(\rangsuiv3,\list1)}
+\real{amplitude3=item(2,\classe3)-item(1,\classe3)}
+\text{effdeclas3=item(\rang3,\liste)}
+\rational{Q3=item(1,\classe3)+\amplitude3*((\DE3-\S31)/(\S32-\S31))}
+\real{Q32=ceil(\Q3)+1}
+\real{Q31=floor(\Q3)-1}
+\text{trace33=line 0,\DE3,\Med,\DE3,green}
+\text{trace43= line \Q3,0,\Med,\DE3,orange}
+
+\integer{Q1ent=(maxima(mod(\Q1*10,10))<5)? floor(\Q1):floor(\Q1)+1}
+\integer{Q3ent=(maxima(mod(\Q3*10,10))<5)? floor(\Q3):floor(\Q3)+1}
+\integer{Medent=(maxima(mod(\Med*10,10))<5)? floor(\Med):floor(\Med)+1}
+\integer{Q1exact=(floor(\Q1*1000)=\Q1*1000)? 1:0}
+\integer{Q3exact=(floor(\Q3*1000)=\Q3*1000)? 1:0}
+
+
+trace du polygone des effectifs cumulés
+\text{dessin=lines red,\trace}
+
+\text{table=<table class="wimscenter wimsborder">
+  <tr>}
+\text{table=\table<th>classes</th>}
+\for {i=1 to \n}{
+  \text{a1=item(\i,\list1)}
+  \text{a2=item(\i+1,\list1)}
+  \text{table=\table <th>\(\lbrack \a1,\a2 \lbrack) </th>}
+  }
+\text{table=\table </tr>}
+\text{table=\table <tr>}
+\text{table=\table<th>Effectifs</th>}
+\for {i=1 to \n}{
+  \text{a1=item(\i,\liste)}
+  \text{table=\table <td>\a1</td>}
+  }
+\text{table=\table </tr>}
+\text{table=\table </table>}
+\text{rangex=pari([\m-5, \borne+5])}
+\text{rangey=pari([-5,\S+5])}
+\text{wh=pari([\rangex[2]-(\rangex[1]),\rangey[2]-(\rangey[1])])}
+\text{dessin1=xrange \rangex
+yrange \rangey
+\dessin
+hline \m,0,purple
+vline \m,0,black
+linewidth 2
+\trace1
+\trace2}
+
+####corr
+\text{dessin2=\dessin1
+\par1
+\par2}
+\text{dessinrep=dline \m,\DE3,\Q3,\DE3,navy}
+### griser les axes
+\text{dessin2=wims(replace internal blue by grey in \dessin2) }
+\text{dessin2=wims(replace internal orange by grey in \dessin2) }
+\text{dessin2=wims(replace internal gold by grey in \dessin2) }
+### fin corr
+\text{size=600,600}
+\text{image=draw(\size
+\dessin1)}
+\text{script=var brd = JXG.JSXGraph.initBoard('jsxbox', {boundingbox:[\rangex[1],\rangey[2],\rangex[2],\rangey[1]],axis:true,keepaspectratio:false,grid:true});
+  var URLimg='\image';
+    var im=brd.create('image',[URLimg,[\rangex[1],\rangey[1]],[\wh[1],\wh[2]]],{fixed: true});
+    var l=brd.create('line',[[-1,0],[-1,\rangey[2]]],{strokeColor:'black',fixed: true,visible:false});
+    var sl1=brd.create('glider',[l],{strokeColor:'black',name:'',snapSizeY:0.5,snapToGrid:true});
+    var l1=brd.create('line',[sl1,[\rangex[2],function(){return sl1.Y()}]],{strokeColor:'green'});
+    var sl2=brd.create('glider',[\rangex[2]/10,0,l1],{strokeColor:'black',name:'',snapToGrid:true});
+    var l2=brd.create('line',[sl2,[function(){return sl2.X()},0]],{strokeColor:'green'});
+}
+
+
+
+\text{jsxgraph=slib(geo2D/jsxgraph jsxbox,\size[1]x \size[2],\script)}
+### corr
+
+### fin corr
+
+
+
+\statement{\test
+<p>La figure ci dessous représente la ligne brisée des effectifs cumulés de données groupées par classes.</p>
+\jsxgraph
+<div class="wims_instruction">Vous pouvez déplacer les deux points glissants rouges
+sur la figure afin de déterminer géométriquement une médiane ou un quartile.
+</div>
+ <div class="wims_question">
+Donner les valeurs des indicateurs suivants :
+<ul><li> la médiane =\embed{r1,8}</li>
+<li> le premier quartile =\embed{r2,8}</li>
+<li> le troisième quartile =\embed{r3,8}</li></ul>
+ </div>
+
+}
+\answer{Méd}{\Med1,\Med2,\Med}{type=range}
+\answer{Q1}{\Q11,\Q12,\Q1}{type=range}
+\answer{Q3}{\Q31,\Q32,\Q3}{type=range}
+\text{dessinrep=(\sc_reply1< 1 or \sc_reply2<1 or \sc_reply3<1)? \dessinrep
+dline \reply1,0,\reply1,\rangey[2],red
+dline \reply2,0,\reply2,\rangey[2],red
+dline \reply3,0,\reply3,\rangey[2],red
+}
+
+
+\solution{
+<ul>
+<li><b>L'effectif total</b> de la série est égal à \h. Par lecture graphique, en bleu sur la figure.</li>
+<li>La <b>médiane</b> d'une série statistique est le nombre réel partageant la série en deux séries de même effectif. Il faut donc connaitre 50% (la moitié) de l'effectif total (c'est à dire, ici, \DE2)
+</li>
+
+</li>
+<li>Le <b>premier quartile</b> d'une série statistique est la plus petite valeur \(m\) pour laquelle 25% (le quart) des
+données de la série (c'est à dire, ici, \DE1) ont une valeur inférieure ou égale à \(m\).
+</li>
+<li>Le <b>troisième quartile</b> d'une série statistique est la plus petite valeur \(m\) pour laquelle 75% (les trois-quarts) des
+données de la série (c'est à dire, ici, \DE3) ont une valeur inférieure ou égale à \(m\).
+</li>
+<li>Lorsque les données sont groupées par classes, on détermine la médaine et les premier et troisième quartiles en
+supposant que les éléments d'une classe sont répartis uniformément à
+l'intérieur de celle-ci. La figure montre comment déterminer graphiquement
+la médiane (violet) et les premier (vert) et troisième (marron) quartiles dans ce cas.
+Graphiquement, on obtient Med=\(\simeq)\Medent, Q1\(\simeq)\Q1ent et Q3=\(\simeq)\Q3ent.</li>
+<li>
+En faisant le calcul avec le théorème de Thalès, on obtient Q1\if{\Q1exact=1}{=}{\(\simeq)}\Q1 et Q3\if{\Q3exact=1}{=}{\(\simeq)}\Q3.
+</li>
+</ul>
+
+\if{\sc_reply1<1 or \sc_reply2<1 or \sc_reply3<1}{
+  <div class="wimscenter">Vos réponses sont en rouge.</div>
+}
+
+<div class="wimscenter">\draw{\size}{
+\dessin2
+linewidth 2
+\dessinrep
+dline \m,\DE1,\Q1,\DE1,green
+dline \Q1,0,\Q1,\DE1,green
+text green,\Q1-1,-1,medium,Q1=\Q1ent
+text green,-5,\DE1+1,medium,\DE1
+dline \m,\DE2,\Med,\DE2,purple
+dline \Med,0,\Med,\DE2,purple
+text purple,\Med-1,-1,medium,Mediane=\Medent
+text purple,-5,\DE2+1,medium,\DE2
+dline \m,\DE3,\Q3,\DE3,brown
+dline \Q3,0,\Q3,\DE3,brown
+text brown,\Q3-1,-1,medium,Q3=\Q3ent
+text brown,-5,\DE3+1,medium,\DE3
+text blue,-3,\h,medium,\h
+}
+</div>
+}

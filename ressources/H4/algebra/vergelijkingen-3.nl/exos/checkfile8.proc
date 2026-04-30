@@ -1,0 +1,361 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+AAA=!rawmath $AAA
+
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+extra=$empty
+wims_exec_error=$empty
+wims_compare_precision=10000
+
+AAA=!nospace $(reply$n)
+AAA=!replace internal is by = in $AAA
+
+!for i in pi,sin,cos,tan,log,sqrt,abs,$var3,$var2,$var1,$var4
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+
+AAA=!replace [a-z\~!@#$%&_;"'] by $empty in $AAA
+
+X=!lower $var1
+Y=!lower $var2
+Z=!lower $var3
+K=!lower $var4
+AAA=!lower $AAA
+
+
+
+# var2 = a*$var1 + c
+# $var3 mag er niet inzitten
+!if ($Z isin $AAA) or ($K isin $AAA)
+    ex=!record 128 of lang/remarks.$taal
+    #@ De variabelen <em>$var3</em>  en <em>$var4</em> moesten 
+    #@ juist ge&euml;limineerd worden uit het stelsel van vergelijkingen
+    !if $teaching=1
+	errortext=$ex
+	goback=1
+	maxscore=$[$maxscore*$P5]
+    !else
+	goback=0
+	maxscore=0
+	remark$n=$NOK<br />$ex
+    !endif
+ !exit
+!endif
+
+!if $Y notin $AAA
+    testvar=$var2
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 54 of $remarkdir/commonremarks.$taal
+    # In je antwoord zou toch eigenlijk de variabele(n) "<em>$testvar</em>" moeten voorkomen.
+    goback=1
+    !exit
+!endif
+
+!if $X notin $AAA
+    testvar=$var1
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 54 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+test=!replace internal > by @ in $AAA
+!if @ isin $test
+    AAA=!replace internal $Y:$X-> by $Y= in $AAA
+    AAA=!replace internal $Y($X)= by $Y= in $AAA
+    AAA=!replace internal $Y:$X--> by $Y= in $AAA
+    AAA=!replace internal $Y:$X=> by $Y= in $AAA
+    AAA=!replace internal $Y:$X==> by $Y= in $AAA
+    ex=!record 138 of lang/remarks.$taal
+    #@ Je mag voor deze keer de "functie notatie gebruiken,$voornaam<br />\
+    #@ maar liever zie ik bij deze som de vergelijkings notatie
+    !if $extra=$empty
+	extra=$ex
+    !else 
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+test=!replace internal = by @ in $AAA
+!if @ notin $test
+    maxscore=$[$maxscore*$P3]
+    errortext=!record 33 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+!if $Y($X) isin $AAA
+    maxscore=$[$P3*$maxscore]
+    AAA=!replace internal $Y($X)= by $Y= in $AAA
+    ex=!record 138 of lang/remarks.$taal
+    #Je mag voor deze keer de "functie notatie gebruiken,$voornaam<br />\
+    #maar liever zie ik bij deze som de vergelijkings notatie
+    maxscore=$[$P2*$maxscore]
+    !if $extra=$empty
+	extra=$ex
+    !else 
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+!if $K!=#
+    # some exercises use only var1,var2,var3 -> var4=#
+    wims_rawmath_variables=$X $Y $Z $K
+!else
+    wims_rawmath_variables=$X $Y $Z
+!endif
+
+AAA=!nospace $AAA
+test=!replace internal =$Y by @ in $AAA
+!if @ isin $test
+    t=!replace internal = by , in $AAA
+    t1=!item 1 of $t
+    t2=!item 2 of $t
+    testvar1=<span style="color:green">$t2 = $t1</span>
+    testvar2=<span style="text-decoration:line-through">&nbsp;&nbsp;$t1 = $t2&nbsp;&nbsp;</span>
+    ex=!record 16 of $remarkdir/commonremarks.$taal
+    maxscore=$[$maxscore*$P4]
+    !if $teaching=1
+	goback=1
+	errortext=$ex
+	!exit
+    !else
+	AAA=!nospace $t2 = $t1
+	!if $extra=$empty
+	    extra=$ex
+	!else 
+	    extra=$extra<br />$ex
+	!endif
+    !endif
+!endif
+
+t=!positionof char x in $AAA
+t1=!char $[$t+1] of $AAA
+!if $t1 != $empty
+    cijfers=0123456789
+    !if $t1 isin $cijfers
+	maxscore=$[$P4*$maxscore]
+	testvar1=<span style="color:green">y=5*x + 123</span>
+	testvar2=<span style="text-decoration:line-through">y=x5 + 123</span>
+	ex=!record 16 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+	    !exit
+	!else
+	    AAA=!replace internal x by x* in $AAA
+	    !if $extra=$empty
+		extra=$ex
+	    !else 
+		extra=$extra<br />$ex
+	    !endif
+	!endif
+    !endif
+!endif
+
+
+AAA=!rawmath $AAA
+test=!replace internal = by , in $AAA
+t1=!item 1 of $test
+t2=!item 2 of $test
+
+!if $Y isin $t1
+    # dus y=5*x+2  checken op 5*y=25*x+10
+    err=0
+    !for i in *,+,-,/
+	!if $i isin $t1
+	    ex=!record 84 of lang/remarks.$taal
+	    #@ een vergelijking wordt meestal geschreven als <em>$var2 = 123*$var1-321</em>
+	    err=1
+	    !if $teaching=1
+		errortext=$ex
+		maxscore=$[$P5*$maxscore]
+		goback=1
+	    !else
+		# fout, wegwezen
+		remark$n=$NOK<br />$ex
+		maxscore=0
+		goback=0
+	    !endif
+	  !exit
+	!endif
+    !next i
+    !if $Y notin $t2
+	AAA=$t2
+	!if $X notin $AAA
+	    ex=!record 85 of lang/remarks.$taal
+	    # errortext=Je hebt een wel heel vreemde vergelijking op geschreven...<br />\
+	    # Wat denk je van $var2 = huppeldepup*$var1 + nogwat <br />ofzo?
+	    !if $teaching=1
+		errortext=$ex
+		maxscore=$[$P5*$maxscore]
+		goback=1
+	    !else
+		# fout, wegwezen
+		remark$n=$NOK<br />$ex
+		maxscore=0
+		goback=0
+	    !endif
+	  !exit
+	!endif
+    !else
+	# y =4x + y
+	ex=!record 85 of lang/remarks.$taal
+	#@ Je hebt een wel heel vreemde vergelijking op geschreven...<br />\
+	#@ Wat denk je van $var2 = huppeldepup*$var1 + nogwat <br />ofzo?
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	    goback=1
+	!else
+	    # fout, wegwezen
+	    remark$n=$NOK<br />$ex
+	    maxscore=0
+	    goback=0
+	!endif   
+      !exit 
+    !endif
+!else
+    !if $Y isin $t2
+	maxscore=$[$maxscore*$P1]
+	ex=!record 86 of lang/remarks.$taal
+	# Ik zie liever een vergelijking in de vorm:<br /><table style="border-width:1px;border-style:outset" cellpadding=15><th>$var2 = huppeldepup*$var1 + nogwat</rh></table> 
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+	!else
+	    AAA=$t1
+	    !if $extra=$empty
+		extra=$ex
+	    !else
+		extra=$extra<br />$ex
+	    !endif
+	!endif    
+    !endif
+!endif
+
+GGG=!tolower $(answer$n)
+AAA=!tolower $AAA
+
+# very simple check on left computations or "unfinished substitutions"
+dingen=^,/
+!for r in $dingen
+    !if $r isin $AAA
+	# only if ^ or / notin this answer...
+        !goto SKIPTHIS
+    !endif
+!next r
+!if (+ isin $AAA) or (- isin $AAA)
+    nummers=0,1,2,3,4,5,6,7,8,9,(,)
+    !for s in +,-,*
+        t=!positionof char $s in $AAA
+        !if $t != $empty
+            !for p in $t
+                t1=!char $[$p-1] of $AAA
+                t2=!char $[$p+1] of $AAA
+                !if ($t1 isitemof $nummers) and ($t2 isitemof $nummers)
+		    maxscore=$[$P3*$maxscore]
+		    extra=!record 14 of $remarkdir/commonremarks.$taal
+		    !goto SKIPTHIS
+		    # no need to seek further
+                !endif
+            !next p
+        !endif
+    !next s
+!endif
+
+:SKIPTHIS
+#test=!exec pari if($AAA == $GGG ,1,0)
+
+# final check
+tot=!exec maxima if $AAA = $GGG then 1 else 0;\
+if expand($AAA) = $GGG then 1 else 0;
+
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+
+t1=!line 1 of $tot
+t2=!line 2 of $tot
+!if $t1=0 and $t2=1
+    testvar1= $(reply$n)
+    maxscore=$[$P2*$maxscore]
+    ex=!record 74 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+test=$[1*$t2]
+
+!if NaN isin $test
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+ex=$empty
+!if $test=0
+    sub=!randint 10,1000
+    A=!evalsubst $X=$sub in $AAA
+    G=!evalsubst $X=$sub in $GGG
+    !ifval $A=$G
+	test=0.8
+	ex=!record 126 of lang/remarks.$taal
+	#@ Maar niet exact berekend...(lastige breuken?)
+    !else
+	A=$[round(100*$A)]
+	G=$[round(100*$G)]
+	!ifval $A=$G
+	    ex=!record 127 of lang/remarks.$taal
+	    test=0.4
+	    #@ Maar wel erg slordig breukenrekenwerk
+	!endif
+    !endif
+    !if $ex !=$empty
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$test]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra!= $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

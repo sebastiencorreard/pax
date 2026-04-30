@@ -1,0 +1,60 @@
+# Variable initialisation file.
+# This file is read by wims for new sessions.
+
+# content of the file: initialisation of the problem.
+
+debug=0
+debugstr=
+
+status=waiting
+step=1
+wims_module_log=$cmd
+score1=0
+score2=0
+score3=0
+
+
+#milieu=air,eau,verre ordinaire,verre spécial(flint),diamant
+milieu=lucht,water,glas,speciaal glas (flint),diamant
+indice=1,1.33,1.5,1.65,2.5
+
+milieu1=!item $m1 of $milieu
+milieu2=!item $m2 of $milieu
+
+indice1=!item $m1 of $indice
+indice2=!item $m2 of $indice
+
+!if $nm > 9
+  nm=9
+!endif
+
+!if $indice2 > $indice1
+  maxincidence=85
+!else
+  maxincidence=180/3.1416*$[arcsin(0.98*$indice2/$indice1)]
+!endif
+
+!for i from 1 to $nm
+  rand=!randint -3,3
+  incid$i=$[$maxincidence/$nm*$i+$rand/2]
+  !! spread a little more this series towards zero
+  incid$i=$[($(incid$i)-$maxincidence/$nm)*($nm-0.5)/($nm-1)+$maxincidence/2/$nm]
+  !! just allow 1/2 degrees
+  incid$i=$[round($(incid$i)*2)/2]
+  !! ensure that incid$i is not too big
+  test=$[sin(3.1416/180*$(incid$i))*$indice1/$indice2]
+  !while $test>0.98
+    incid$i=$[$(incid$i)-1]
+    test=$[sin(3.1416/180*$(incid$i))*$indice1/$indice2]
+  !endwhile
+  c_sini$i=$[sin(3.1416/180*$(incid$i))]
+  c_sinr$i=$[$indice1/$indice2* $(c_sini$i)]
+  refra$i=$[180/3.1416*arcsin($(c_sinr$i))]
+  refra$i=$[round(2*$(refra$i))/2]
+  !! on garde 3 chiffres significatifs
+  units_option=o
+  c_sini$i=!exec units-filter $(c_sini$i)#3
+  c_sinr$i=!exec units-filter $[sin(3.1416/180*$(refra$i))]#3
+!next i
+
+liste_points=

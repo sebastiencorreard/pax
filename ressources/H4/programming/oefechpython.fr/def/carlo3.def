@@ -1,0 +1,531 @@
+!set title=Méthode de Monte-Carlo 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+keywords=python,probability
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=101
+prevarcnt=74
+postvarcnt=26
+replycnt=12
+choicecnt=0
+conditioncnt=6
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val3==)
+val6=ambiance
+!else
+val6=$val3
+!endif
+
+!ifval ($val2==)
+val7=1
+!endif
+
+!ifval ($val2==1)
+val8=$[rint(0)]
+!else
+val8=$[rint(1)]
+!endif
+
+!ifval ($val8==1)
+val9=par défaut et par excès
+!endif
+val10=int
+val11=random
+val12=[]
+tmp0=!char 1 of $val12
+
+val13=$(tmp0)
+tmp0=!char 2 of $val12
+
+val14=$(tmp0)
+tmp0=!randint 0, 10
+
+val15=$[rint($(tmp0))]
+val16=$[rint(1000+100*$val15)]
+val17=\#Importation des librairies\#	from random import $val11	\#Entrer les variables\#
+val18=carré
+val19=Méthode de Monte-Carlo : Calcul d'intégrale complexe
+tmp0=!randint 1, 2
+
+val20=$[rint($(tmp0))]
+val21=1/(1+Math.pow(x,2)),x*(1-x)*Math.pow((Math.sin(200*x*(1-x))),2)
+val22=$(val21[$val20])
+val23=1/(1+t^2),t*(1-t)*(sin(200*t*(1-t)))^2
+val24=$(val23[$val20])
+tmp0=!replace t by x in $val24
+
+val25=$(tmp0)
+tmp=!translate ";': to $     $ in $val25
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!replace internal \( by ( in $(tmp0)
+tmp1=!exec maxima $t_
+
+val25=$(tmp1)
+tmp0=!texmath $val25
+
+val25=$(tmp0)
+tmp=!trim pi/4,0.0558
+val26=!translate internal $	\
+$ to ;; in $tmp
+val27=$(val26[$val20])
+val28=$val27
+
+!ifval ($val20==1)
+val27=$val27
+!endif
+
+!ifval ($val20==2)
+val27=$[$val27/0.25]
+!endif
+t_=!rawmath 0.8
+val29=!exec pari print($t_)
+
+!ifval ($val20==1)
+t_=!rawmath 0.25
+val30=!exec pari print($t_)
+!else
+t_=!rawmath 0.05
+val30=!exec pari print($t_)
+!endif
+
+!ifval ($val20==1)
+t_=!rawmath 1
+val31=!exec pari print($t_)
+!else
+t_=!rawmath 0.25
+val31=!exec pari print($t_)
+!endif
+
+!ifval ($val20==1)
+t_=!rawmath 1
+val32=!exec pari print($t_)
+!else
+t_=!rawmath 0.25
+val32=!exec pari print($t_)
+!endif
+t_=!rawmath -0.1
+val33=!exec pari print($t_)
+t_=!rawmath 1.1
+val34=!exec pari print($t_)
+
+!ifval ($val20==1)
+t_=!rawmath -0.1
+val35=!exec pari print($t_)
+!else
+t_=!rawmath -0.05
+val35=!exec pari print($t_)
+!endif
+
+!ifval ($val20==1)
+t_=!rawmath 1.1
+val36=!exec pari print($t_)
+!else
+t_=!rawmath 0.3
+val36=!exec pari print($t_)
+!endif
+
+!ifval ($val20==1)
+t_=!rawmath 1
+val37=!exec pari print($t_)
+!else
+t_=!rawmath 0.25
+val37=!exec pari print($t_)
+!endif
+val38=\(0<x<1\)
+
+!ifval ($val20==1)
+val39=\(0<y<1\)
+!else
+val39=\(0<y<0.25\)
+!endif
+
+!ifval ($val20==2)
+val40= ??
+!endif
+
+!ifval ($val20==1)
+val18=carré
+!else
+val18=rectangle
+!endif
+val41=<p>Soit la fonction \(f\) continue et définie sur l'intervalle \(\left[0;1\right]\) par	 \(f(x)=$val25\).</p>	<div class="wims_instruction">Déplacer le point \(M(x;y)\) et analyser les conditions	 permettant le changement de couleur.</div>
+val42=box,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =3;	var board = JXG.JSXGraph.initBoard('box', {axis:true, boundingbox: [$val33,$val36,$val34,$val35],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,showFullscreen: true});	var ff = function(x){ return $val22;};	var pol1= board.create('point', [0,0],{name:"A",strokeColor: "blue",fixed:true});	var pol2= board.create('point', [0,$val31],{name:"B",strokeColor: "blue",fixed:true});	var pol3= board.create('point', [1,$val32],{name:"C",strokeColor: "blue",fixed:true});	var pol4= board.create('point', [1,0],{name:"D",strokeColor: "blue",fixed:true});	var pol = board.create('polygon', [pol1, pol2, pol3,pol4],	            {strokeColor: 'blue', fillColor: 'red', fillOpacity: 0.3});	var pp = board.create('point', [$val29,$val30],{name:'\(M(x;y)\)',strokeColor: "blue",fillColor:"blue",fixed:false,size:"12",face:"[]"});	board.on('move', function() {	board.suspendUpdate();	pp.moveTo([Math.min(1,pp.X()), Math.min(1,pp.Y())]);	pp.moveTo([Math.max(pp.X(), 0), Math.max(0, pp.Y())]);	let aa=pp.Y();	let bb=ff(pp.X());	if(aa-bb>0){pp.setAttribute({strokeColor: "red",fillColor:"red",trace:false});}	if(aa-bb<0){pp.setAttribute({strokeColor: "blue",fillColor:"blue",trace:false});}	board.unsuspendUpdate();	});	var pp1 = board.create('point', [function(){return pp.X();},0],{visible: false});	var pp2 = board.create('point', [0,function(){return pp.Y();}],{visible: false});	var sg1 = board.create('segment', [pp,pp1],{dash:1});	var sg2 = board.create('segment', [pp,pp2],{dash:1});	var c1 = board.create('functiongraph', [ff,0,1]);	var i1 = board.create('integral', [[0, 1], c1],{fixed: true, withLabel:false, Color:"blue"});	
+!readproc slib/geo2D/jsxgraph $val42 
+tmp0=$slib_out
+val43=$(tmp0)
+val44=sous la courbe de la fonction \(f\)
+tmp0=!randint 500, 1000
+
+val45=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val46=$[rint($(tmp0))]
+
+!ifval ($val46==1)
+val47=npi=??
+!else
+val47=
+!endif
+
+!ifval ($val46==1)
+val48=
+!else
+val48=npi=??
+!endif
+
+!ifval ($val46=1)
+val49=au-dessous
+!else
+val49=au-dessus
+!endif
+val50=
+val17=$val17	nt=?? \#Nombre de points	npi= 0 \#Nombre de points dans le domaine violet	\#initialisation des listes\#	x_list_b = []	y_list_b = []	x_list_r = []	y_list_r = []	\#################	\#définition de la fonction\#	def f(x):	  return ??	\#################	for i in range(nt):	    a=$val11()	    b=$val11()	    x = a	    y = b $val40	    if ?? :	        x_list_b.append(x)	        y_list_b.append(y)	        $val47	    else:	        x_list_r.append(x)	        y_list_r.append(y)	        $val48	A_violette=npi/nt $val40	$val50	print('Le rapport des aires de l intégrale et du carré est égal à environ ', npi/nt)
+val51=x_liste_b=Sk.ffi.remapToJs(Sk.globals["x_list_b"]);	y_liste_b=Sk.ffi.remapToJs(Sk.globals["y_list_b"]);	x_liste_r=Sk.ffi.remapToJs(Sk.globals["x_list_r"]);	y_liste_r=Sk.ffi.remapToJs(Sk.globals["y_list_r"]);	l_liste_b=x_liste_b.length;	l_liste_r=x_liste_r.length;	rnpi=Sk.ffi.remapToJs(Sk.globals["npi"]);	rA_v=Sk.ffi.remapToJs(Sk.globals["A_violette"]);	
+val52=
+val53=reply7,[python,[$val17]];[idtest7,theme=$val6 canvas init \instruction_code,Jouer le code !]
+val54=[nt,$val45]
+val55=
+val56=
+val57=
+val58=
+val59=
+val60=
+val61=
+val62=
+val63=$[rint()]
+val64=$[]
+val65=$[rint()]
+val66=$[]
+val67=
+val68=
+val69=<p><b>Nicholas Constantine Metropolis</b>, né le 11 juin 1915 à Chicago est un	physicien gréco-américain qui propose une méthode très originale du calcul du nombre	\(pi\).</p>	<p>La méthode de Monte-Carlo consiste à tirer aléatoirement un grand nombre de points dont les	 coordonnées \(x\) et \(y\) vérifient les inéquations	suivantes : $val38 et $val39. On dénombre les points $val44 et le nombre total de points.</p>
+val70=Jouer le code et envoyer la réponse.<br>	<img src="$val1/attention.png" alt="Attention"> : L'algorithme proposé est lent et il	 met plusieurs secondes à s'exécuter. 
+val71=jsxbox,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =1;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val33,$val36,$val34,$val35],	shownavigation:false,showCopyright : false,	showZoom : false,keepaspectratio : true,showFullscreen: true});	
+!readproc slib/geo2D/jsxgraph $val71 
+tmp0=$slib_out
+val72=$(tmp0)
+val73=<li>À l'aide des réponses précédentes, compléter l'algorithme ci-dessous	en effectuant $val45 points.</li>
+replytype1=formal
+replyname1=
+replygood1=f(x)
+replytype2=menu
+replyoption2=shuffle 
+replyname2=
+replygood2=$val46;<,>=,>,<=
+replytype3=formal
+replyname3=
+replygood3=f(x)
+replytype4=formal
+replyname4=
+replygood4=$val37
+replytype5=formal
+replyname5=
+replygood5=$val28
+replytype6=formal
+replyname6=
+replygood6=npi/nt
+replytype7=runcode
+
+replyoption7=precision=100 
+replyname7=
+replygood7=$val54
+replytype8=js2wims1
+
+replyweight8=0 
+replyoption8=noanalyzeprint 
+replyname8=
+replygood8=[x_liste_b],[x_liste_r],[y_liste_b],[y_liste_r],[rnpi],[rA_v]
+replytype9=numeric
+replyoption9=comma 
+replyname9=inc1
+replygood9=?analyze 74
+replytype10=numeric
+replyoption10=comma 
+replyname10=inc2
+replygood10=?analyze 75
+replytype11=formal
+replyname11=inc1
+replygood11=$val27
+replytype12=radio
+replyoption12=shuffle 
+replyname12=
+replygood12=?analyze 76;\(p \in I_c\),\(p \notin I_c\),\(p \cap I_c\),\(p \cup I_c\)
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<p class="problematique">$val19</p>	<div id="boiteg">	<img src="$val1/Nicholas.png" style="width:200px" alt="Nicholas Constantine Metropolis">	</div>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val69 $val41	$val43	<div class="question">	<ul>	<li> Soit 
+!insmath M
+$() le point de coordonnées 
+!insmath M (x ; y )
+$() appartenant à la courbe représentative de la fonction 
+!insmath C_f
+$().	 Exprimer la relation entre 
+!insmath x
+$(), 
+!insmath y
+$() et la fonction 
+!insmath f
+$().	<div class="unbreakable wimscenter">
+!insmath y={}
+$() 
+!read oef/embed.phtml reply1,2 
+$()</div></li>	<li> Soit 
+!insmath M
+$() le point de coordonnées 
+!insmath M (x ; y )
+$() appartenant au plan délimité par les inéquations suivantes	 $val38 et $val39. Exprimer une inégalité stricte ou large en fonction de 
+!insmath x
+$(), 
+!insmath y
+$()	 et la fonction 
+!insmath f
+$() pour que le point 
+!insmath M 
+$() soit $val49 de la courbe.	<div class="unbreakable wimscenter">
+!insmath y
+$() 
+!read oef/embed.phtml reply2 
+$() 
+!read oef/embed.phtml reply3,2 
+$()</div></li>	<li>Quelle est l'aire du $val18 
+!insmath ABCD
+$() ?	<div class="wimscenter">
+!insmath \mathcal{A}(\mathrm{ABCD})=
+$() 
+!read oef/embed.phtml reply4,2 
+$()</div></li>	<li>Calculer l'aire exacte du domaine violet ci-dessus.	<div class="unbreakable wimscenter">
+!insmath \displaystyle \int_{0}^{1} $val25 \, \mathrm{d}x={}
+$() 
+!read oef/embed.phtml reply5,4 
+$()</div></li>	<li>Dans le cas où le nombre total 
+!insmath nt
+$() de points est très important, déterminer le rapport entre l'aire du domaine	 violet et l'aire du carré en fonction du nombre total 
+!insmath nt
+$() de points et du nombre 
+!insmath npi
+$() de points $val44 .	<div class="wimscenter">
+!insmath \frac{\mathcal{A}(violette)}{\mathcal{A}(\mathrm{ABCD})}\approx
+$() 
+!read oef/embed.phtml reply6,2 
+$()</div></li>	$val73	$m_instruction3	<li>$val70</li>	</ul>	<div>	 
+!read oef/embed.phtml $val53 
+$()	</div>	<div class="wimscenter wimsborder box">	$val72	</div>	
+!if $m_sc_reply1= 
+$() 
+!read oef/embed.phtml reply8 
+$() 
+!endif
+$()	<ul>	<li>Déterminer l'intervalle de confiance à 
+!insmath 10^{-2}
+$() près $val9 :  
+!read oef/special.phtml mathmlinput [I_c=\left[reply9;reply10\right]],3	reply 9,,color:blue;font-size:20px	reply 10,,color:blue;font-size:20px 
+$()</li>	<li>Quelle est la probabilité théorique qui appartient à cet intervalle avec un seuil de confiance de 95% ?	<div class="wimscenter"> 
+!read oef/embed.phtml reply11,5 
+$()</div></li>	<li>La probabilité théorique 
+!insmath p
+$() appartient-elle à l'intervalle de confiance ?	<ul class="wims_nopuce"> 
+!for m_h=1 to 4 
+$()<li> 
+!read oef/embed.phtml reply12,\h 
+$()</li> 
+!next
+$()</ul>	</li>	</ul>	</div>	<script>	function graph(){ptt=0;	$val51	let nl=Sk.ffi.remapToJs(Sk.globals["nt"]);	let npi=Sk.ffi.remapToJs(Sk.globals["npi"]);	JXG.Options.point.size =2;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val33,$val36,$val34,$val35],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : true,showFullscreen: true});	brd.suspendUpdate();	for(let jj = 0; jj < l_liste_b; jj=jj+1) {brd.create('point', [x_liste_b[jj],y_liste_b[jj]],{Color:'blue'});}	for(let jj = 0; jj < l_liste_r; jj=jj+1) {brd.create('point', [x_liste_r[jj],y_liste_r[jj]],{Color:'red'});}	$m_jsss3_2	brd.unsuspendUpdate();}	execidtest7.addEventListener('click',graph);	</script>	</div></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val77=$m_reply8
+tmp0=!declosing $(val77[1])
+
+val55=$(tmp0)
+tmp0=!declosing $(val77[2])
+
+val56=$(tmp0)
+tmp0=!declosing $(val77[3])
+
+val57=$(tmp0)
+tmp0=!declosing $(val77[4])
+
+val58=$(tmp0)
+val59=$val55,$val56;$val57,$val58
+tmp0=!declosing $(val77[5])
+
+val68=$(tmp0)
+tmp0=!declosing $(val77[6])
+
+val67=$(tmp0)
+tmp0=!declosing $(val77[6])
+
+val78=$(tmp0)
+t_=!replace internal \( by ( in f(t)=$val24;
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in dat=[$val59];	cint=0;	npi=0;	m=matrix(2,$val45,i,j,if(0<=dat[i,j] && dat[i,j]<=1,if(i==1 && (dat[2,j]<f(dat[1,j])),npi=npi+1;),cint=cint+1;));	A_v=npi/$val45;	
+tmp0=!exec pari $t_
+
+val79=$(tmp0)
+t_=!replace internal \( by ( in print(A_v);
+tmp0=!exec pari $t_
+
+val62=$(tmp0)
+
+!ifval ($val20==2)
+val62=$[0.25*$val62]
+!else
+val62=$[$val62]
+!endif
+
+!ifval ($val20==2)
+val27=$[0.25*$val27]
+!else
+val27=$[$val27]
+!endif
+t_=!replace internal \( by ( in print(cint);
+tmp0=!exec pari $t_
+
+val60=$(tmp0)
+t_=!replace internal \( by ( in print(npi);
+tmp0=!exec pari $t_
+
+val61=$(tmp0)
+val63=$[rint(($val61/$val45-1/sqrt($val45))*100)]
+
+!ifval ($val8==0)
+val63=$[rint($val63)]
+!else
+val63=$[rint(floor($val63))]
+!endif
+val64=$[$val63/100]
+val65=$[rint(($val61/$val45+1/sqrt($val45))*100)]
+
+!ifval ($val8==0)
+val65=$[rint($val65)]
+!else
+val65=$[rint(ceil($val65))]
+!endif
+val66=$[$val65/100]
+
+!ifval (($val64 < $val27) and ($val27 <$val66))
+val80=$[rint(1)]
+!else
+val80=$[rint(2)]
+!endif
+
+!ifval (($val64 < $val27) and ($val27 < $val66))
+val81=\in
+!else
+val81=\notin
+!endif
+
+!ifval (\in isin $val76)
+val82=1
+!endif
+
+!ifval (\notin isin $val76)
+val82=2
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs($val60)<0.00001
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Les valeurs de \(x\) et de \(y\) sont bien comprises entre 0 et 1
+
+!ifval abs($val61-$val68)<0.1
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Le nombre de points $val44 est donc de $val68
+
+!ifval abs($val62-$val78)<10^(-6)
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=La valeur de $val78 renvoyée par l'algorithme est correcte
+
+!ifval abs($val64-$val74)<10^(-2)
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=La borne inférieure de l'intervalle de confiance est $val64. Votre réponse est $val74 
+
+!ifval abs($val66-$val75)<10^(-2)
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=La borne supérieure de l'intervalle de confiance est $val66. Votre réponse est $val75 
+
+!ifval $val82 == $val80 
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=La bonne réponse : \(p $val81 I_c\). Votre réponse $val76 est-elle juste ?
+
+!exit
+
+:stat
+vsavelist=1,8,9,18,19,20,24,25,27,33,34,35,36,38,39,41,43,44,45,49,51,53,55,56,57,58,59,60,61,62,63,64,65,66,68,69,70,72,73,74,75,76
+embedcnt=11

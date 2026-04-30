@@ -1,0 +1,242 @@
+#exo1 zonder applet
+# snijpunten met de evenwichtslijn [applet in onmouseover]
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+sometxt=!record 1 of lang/remarks.$taal
+#@balanslijn,x-as,y-as,Gegeven de functie:,Bepaal de co\"{o}rdinaten van de aangegeven , snijpunten met de evenwichtslijn,bereken
+ss=!record 2 of lang/remarks.$taal
+#!Gegeven de onderstaande goniometrische functie.<br />Bepaal de co&ouml;rdinaten van de <span style="color:blue">hier aangegeven snijpunten</span> met de evenwichtslijn
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+txt1=!item 4 of $sometxt
+txt2=!item 5 of $sometxt
+txt3=!item 6 of $sometxt
+bereken=!item 7 of $sometxt
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=1
+cols=20
+rows=2
+checkfile=exos/precheck.proc
+#$checkdir/coord.proc
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+!if $R=1
+    c=!randitem 2*AA/9,AA/4,2*AA/7,AA/3,2*AA/5,4*AA/9,AA/2,4*AA/7,2*AA/3,4*AA/5,AA	
+#    p=!exec pari 2*AA/($c)
+    breuk=!replace internal AA by 1 in $c
+    tot=!exec pari 2*AA/($c)\
+	printtex($breuk)
+    
+    p=!line 1 of $tot
+    breuk=!line 2 of $tot
+
+    c=!replace AA by pi in $c
+    p=!replace AA by pi in $p
+    a=!randitem -4,-3,-2,-1,1,2,3,4
+    b=!randint 1,5
+    !if $keuze=1
+	x1=0
+	x2=!exec pari $p/2
+	f=$a $mp $b*sin($c*x)
+	arg=
+	!if $mp=+
+	 tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	!else
+	 tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	!endif
+    !else
+	tot=!exec pari A=$p/4\
+	A+$p/2
+	x1=!line 1 of $tot
+	x2=!line 2 of $tot
+	f=$a $mp $b*cos($c*x)
+	arg=
+	!if $mp=+
+	 tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $[$a+$b] & $a & $[$a-$b] & $a & $[$a+$b] \end{array}
+	!else
+	 tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	!endif
+    !endif
+    functie=!texmath $letter(x)=$f
+    y=$a
+!else
+    c=!randitem AA,AA/2,AA/4,AA/6,AA/8,AA/10,AA/12,AA/14,AA/16,AA/18
+#    p=!exec pari 2*AA/($c)
+
+    br=!replace internal AA by 1 in $c
+    
+    tot=!exec pari 2*AA/($c)\
+    printtex($br)
+    
+    p=!line 1 of $tot
+    breuk=!line 2 of $tot
+    
+    c=!replace AA by pi in $c
+    p=!replace AA by pi in $p
+    a=!randitem -4,-3,-2,-1,1,2,3,4
+    b=!randint 1,5
+    x=!randint 0,$p
+    tot=!exec pari A=$x/2\
+    A + $p/2
+    x1=!line 1 of $tot
+    x2=!line 2 of $tot
+    
+    
+    !if $keuze=1
+	tot2=!exec pari A=(2*$x1/$p)\
+	    printtex(A)\
+	    B=(2*$x1/($p*$br))\
+	    printtex(B)
+	    
+	    d=!line 1 of $tot2
+	    d_tex=!line 2 of $tot2
+	    verschuiving=!line 4 of $tot2
+	d=$d*pi
+	!if $d=0*pi
+	    f=$a $pm $b*sin($c*x)
+	    arg=sin($c*x)
+	    !if $mp=+
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	    !else
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	    !endif
+	!else
+	    f=$a $pm $b*sin($c*x - $d)
+	    arg=sin\left($breuk \pi \cdot x - $d_tex \pi\right)=sin\left( $breuk \pi \left( x-$verschuiving \right) \right) \rightarrow \textrm{de verschuiving is: } $verschuiving
+	    !if $mp=+
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & $verschuiving & $verschuiving + \frac{1}{4} \cdot $p & $verschuiving + \frac{2}{4} \cdot $p & $verschuiving + \frac{3}{4} \cdot $p & $verschuiving + $p  \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	    !else
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	    !endif
+	    
+	!endif
+    !else
+	# cos
+	
+#	e=!exec pari ((2*$x1/$p)-1/2)
+
+	tot2=!exec pari A=((2*$x1/$p)-1/2)\
+	    printtex(A)\
+	    B=(2*$x1/($p*$br)-1/(2*$br))\
+	    printtex(B)\
+	    C=(1/2-(2*$x1/$p))\
+	    printtex(C)\
+	    D=(-1*(2*$x1/($p*$br)-1/(2*$br)))\
+	    printtex(D)
+	    
+	    e=!line 1 of $tot2
+	    
+	    verschuiving=!line 4 of $tot2
+	    verschuif=!line 8 of $tot2
+	    
+	    !if $e <0
+		e_tex=!line 6 of $tot2
+		e_tex= + $e_tex
+		versch=+ $verschuif
+	    !else
+		e_tex=!line 2 of $tot2
+		e_tex=- $e_tex
+		versch=-$verschuiving
+	    !endif
+	    
+
+	e=$e*pi
+	!if $e=0*pi
+	    f=$a $pm $b*cos($c*x)
+	    arg=
+	    !if $mp=+
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $[$a+$b] & $a & $[$a-$b] & $a & $[$a+$b] \end{array}
+	    !else
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $p & \frac{2}{4} \cdot $p & \frac{3}{4} \cdot $p & $p  \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	    !endif
+	!else
+	    f=$a $pm $b*cos($c*x - $e)
+	    arg=cos\left($breuk \pi \cdot x $e_tex \pi\right)=cos\left( $breuk \pi \left( x $versch \right) \right) \rightarrow \textrm{de verschuiving is: } $verschuiving
+	    !if $pm=+
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & $verschuiving & $verschuiving + \frac{1}{4} \cdot $p & $verschuiving + \frac{2}{4} \cdot $p & $verschuiving + \frac{3}{4} \cdot $p & $verschuiving + $p  \\  y & $[$a+$b] & $a  & $[$a-$b] & $a & $[$a+$b] \end{array}
+	    !else
+	     tabel=\begin{array}{c|c|c|c|c|c-.} x & $verschuiving & $verschuiving + \frac{1}{4} \cdot $verschuiving + $p & $verschuiving + \frac{2}{4} \cdot $p & $verschuiving + \frac{3}{4} \cdot $p & $verschuiving + $p  \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	    !endif
+	!endif
+    !endif
+    functie=!texmath $letter(x)=$f
+    y=$a
+!endif
+
+
+f=!nospace $f
+answer$n=$x1,$a,$x2,$a
+arg=!texmath $arg
+tekst=!record 29 of lang/remarks.$taal
+tekst=amplitude is,periode is,snijpunten met de evenwichtslijn 
+amplitude=!item 1 of $tekst
+periode=!item 2 of $tekst
+snijpunten=!item 3 of $tekst
+formula$n=\left[ \begin{array}{l}\textrm{$txt1} \\ \\ $functie \\ \\ \textrm{$txt2} \\ \textrm{$txt3} \end{array} \right.
+texanswer$n=\left[ \begin{array}{l} \textrm{$evenwichtslijn : } \:\: y = $a \\ \textrm{$amplitude  : } $b \\ \textrm{$periode :} \frac{2 \pi}{$breuk \pi}=$p \\ $arg \\ \\  $tabel \\ \\ \textrm{$snijpunten  } \, \, \left($x1 : $a \right)  \left($x2 : $a \right)  \end{array} \right.
+
+xsize=480
+ysize=320
+ymax=10
+ymin=-10
+xmin=-1*pi
+xaxis_text=$emtpy
+xmax=$[ceil($x2+pi)]
+# flyapplet data
+kliktxt=!record 27 of lang/remarks.$taal
+
+mathml=!mathmlmath \color{red} $functie
+data=size=$xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 255,200\
+filled\
+rect -100,100,100,-100,white\
+linewidth 1\
+axis\
+grid pi,2,gold,6,2,8,grey\
+linewidth 2\
+curve red,$f\
+string darkred,$xmin,$a,evenwichtslijn\
+dashtype 2,2\
+dashed\
+hline 0,$a,darkred\
+linewidth 3\
+point $[$x1],$a,green\
+point $[$x2],$a,green\
+mathml 1,$ymax,$xmax,$ymin,$mathml\
+mouse red,24\
+opacity 255,100\
+linewidth 1\
+replyformat -1\
+userdraw line,green\
+zoom green\
+intooltip <span style='color:blue;font-weight:bold'>$kliktxt</span>
+
+plaatje=!exec canvasdraw $data
+question$n=$ss<br />$plaatje
+helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvorde_textarea\' readonly=\'readonly\' > (pi/2:-sqrt(2)) \n (pi:-sqrt(2))</textarea>
+etext=!record 17 of lang/remarks.$taal
+textanswer$n=$plaatje
+
+
+
+
+!exit
+

@@ -1,0 +1,264 @@
+!set title=Alignement de points III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+val7=$[rint(1)]
+val8=$[rint(1)]
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val10 / $val6
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val12 / $val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val13=!exec pari print($t_)
+tmp0=!randint 1, 5
+
+val14=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val14 / $val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val15=!exec pari print($t_)
+tmp0=!randitem 1,-1
+
+val16=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val17=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val18=$[rint($(tmp0))]
+
+!ifval $val16=1
+val19=
+!else
+val19=-
+!endif
+
+!ifval $val17=1
+val20=+
+!else
+val20=-
+!endif
+
+!ifval $val18=1
+val21=
+!else
+val21=-
+!endif
+
+!ifval $val11=1
+val22=
+!else
+tmp0=!texmath $val11
+
+val22=$(tmp0)
+!endif
+
+!ifval $val13=1
+val23=
+!else
+tmp0=!texmath $val13
+
+val23=$(tmp0)
+!endif
+
+!ifval $val15=1
+val24=
+!else
+tmp0=!texmath $val15
+
+val24=$(tmp0)
+!endif
+val25=\(M\) et \(N\)
+val26=Les points \(A\), \(M\) et \(N\) sont-ils alignés
+!if $val9=1 
+!if $val19=$val20 and $val11=$val13 
+
+!ifval $val17=1
+val20=-
+!else
+val20=+
+!endif
+!endif
+tmp=!translate ";': to $     $ in ($val21 $val15+1) * ($val20 $val13) /(($val19 $val11) - ($val20 $val13)) 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+
+!ifval $val27>0
+val28=$[rint(1,-1)]
+!endif
+
+!ifval $val27<0
+t_=!rawmath $val27*(-1)
+val27=!exec pari print($t_)
+!endif
+
+!ifval $val28=1
+val29=+
+!else
+val29=-
+!endif
+!else
+tmp0=!randitem 1,2
+
+val30=$[rint($(tmp0))]
+!if $val30=1 
+tmp=!translate ";': to $     $ in ($val21 $val15+1) * ($val20 $val13) /(($val19 $val11) - ($val20 $val13)) 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+
+!ifval $val27>0
+val28=$[rint(1,-1)]
+!endif
+
+!ifval $val27<0
+t_=!rawmath $val27*(-1)
+val27=!exec pari print($t_)
+!endif
+
+!ifval $val28=1
+val29=-
+!else
+val29=+
+!endif
+!else
+tmp=!translate ";': to $     $ in ($val21 $val15+1) * ($val20 $val13) /(($val19 $val11) - ($val20 $val13)) +1 
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+
+!ifval $val27<0
+t_=!rawmath $val27*(-1)
+val27=!exec pari print($t_)
+!endif
+tmp0=!randitem 1,-1
+
+val28=$[rint($(tmp0))]
+
+!ifval $val28=1
+val29=-
+!else
+val29=+
+!endif
+!endif
+!endif
+
+!ifval $val27=1
+val31=
+!else
+tmp0=!texmath $val27
+
+val31=$(tmp0)
+!endif
+val32=\(\overrightarrow{A M} = $val19 $val22 \overrightarrow{A B} $val20 $val23 \overrightarrow{B C})<br>	\(\overrightarrow{B N} =)
+
+!ifval $val27=0
+val33= \($val21 $val24 \overrightarrow{A B})
+!else
+val33= \($val21 $val24 \overrightarrow{A B} $val29 $val31 \overrightarrow{A C})
+!endif
+val32=$val32 $val33
+replytype1=radio
+replyname1=Alignement ?
+replygood1=$val9;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère un triangle non aplati 
+!insmath A B C
+$() et les points $val25 définis par:	<div class="wimscenter">	 $val32	</div>	$val26 ?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=25,26,32
+embedcnt=0

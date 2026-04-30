@@ -1,0 +1,190 @@
+!set title=Tracer de fonctions affines 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist x/2 for x=-4 to 4
+
+val6=$(tmp0)
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val7=!exec pari print($t_)
+tmp0=!makelist x for x=-3 to 3
+
+val8=$(tmp0)
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+t_=!rawmath $(tmp0)
+val9=!exec pari print($t_)
+val10=$[rint(1)]
+
+!ifval $val7=0
+tmp0=!texmath $val9*x
+
+val11=$(tmp0)
+!else
+tmp1=!texmath $val9*x+$val7
+
+val11=$(tmp1)
+!endif
+
+!ifval $val9=0
+tmp0=!texmath $val7
+
+val11=$(tmp0)
+!endif
+val12=lightblue
+val13=xrange -5,5	yrange -5,5	gridfill 0,0,5,5,$val12	linewidth 3	vline 1,0,$val12	vline 2,0,$val12	vline 3,0,$val12	vline 4,0,$val12	vline 5,0,$val12	vline -1,0,$val12	vline -2,0,$val12	vline -3,0,$val12	vline -4,0,$val12	vline -5,0,$val12	hline 0,1,$val12	hline 0,2,$val12	hline 0,3,$val12	hline 0,4,$val12	hline 0,5,$val12	hline 0,-1,$val12	hline 0,-2,$val12	hline 0,-3,$val12	hline 0,-4,$val12	hline 0,-5,$val12	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+!readproc oef/draw.phtml 400,400 \
+$val13 
+tmp0=$ins_url
+val14=$(tmp0)	
+!readproc oef/draw.phtml 400,400 \
+$val13	fcircle 0,$val7,10,green 
+tmp0=$ins_url
+val15=$(tmp0)	
+val16=$val13	fcircle 0,$val7,10,green	fcircle $val10,$val9*$val10+$val7,10,green	
+!readproc slib/draw/repere 400,400,0,-5,5,-5,5,1,1,black,grey 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$[rint($(tmp0))]
+tmp0=!item 2 of $val18
+
+val20=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val21=$[rint($(tmp0))]
+tmp0=!item 2 of $val18
+
+val22=$[rint($(tmp0))]
+val23=$[rint($val19)]
+val24=$[rint($val20+$val7*$val22)]
+val25=$[rint($val23-$val21 /3)]
+val26=$[rint($val24-$val22 /3)]
+val27=$[rint($val23+$val21 /3)]
+val28=$[rint($val24+$val22 /3)]
+val29=$[rint($val19+$val10*$val21)]
+val30=$[rint($val20+($val9*$val10+$val7)*$val22)]
+val31=$[rint($val29-$val21 /3)]
+val32=$[rint($val30-$val22 /3)]
+val33=$[rint($val29+$val21 /3)]
+val34=$[rint($val30+$val22 /3)]
+oefsteps=r1	r2 
+nextstep=!nosubst r1	r2 
+!readproc oef/steps.proc
+replytype1=coord
+replyname1=A(x0)
+replygood1=$val14;rectangle,$val25,$val26,$val27,$val28
+replytype2=coord
+replyname2=B(x1)
+replygood2=$val15;rectangle,$val31,$val32,$val33,$val34
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère une fonction affine d'expression algébrique	<div class="wimscenter"> 
+!insmath f(x)=$val11
+$() </div>	
+!if $m_step=1 
+$()	Cliquer au point d'abscisse 
+!insmath x_0=0
+$() appartenant à sa représentation graphique.	<div class="wimscenter">	 
+!read oef/embed.phtml reply1 
+$()	</div>	 
+!else
+$() 	  Cliquer maintenant au point d'abscisse 
+!insmath x_1=$val10
+$()	<div class="wimscenter">	 
+!read oef/embed.phtml reply2 
+$()	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() 
+!read oef/draw.phtml 400,400 \
+$val16 
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,16
+embedcnt=2

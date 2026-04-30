@@ -1,0 +1,278 @@
+!set title=Résolution graphique et cubique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=64
+prevarcnt=63
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+tmp0=!randitem 3,3,3,3,3,1,1,1,2,2
+
+val7=$[rint($(tmp0))]
+val8=Aucune solution, une solution, deux solutions, 3 solutions
+tmp0=!values x for x = -2 to 2
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+t_=!rawmath $(val9[1])
+val10=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+val12=$[rint($val10)]
+t_=!rawmath $val10/$val11
+val10=!exec pari print($t_)
+!if $val7=1 
+t_=!rawmath -($val10)/2
+val13=!exec pari print($t_)
+val14=$[rint($val11*2)]
+val15=$[rint(-($val12))]
+val16=$[rint(2)]
+val17=$val10
+val18=$[rint(($val11*$val14)^2)]
+t_=!rawmath ($val10)^2+($val10)*($val13)+($val13)^2
+val19=!exec pari print($t_)
+tmp0=!randint 1, 8
+
+t_=!rawmath $val19-$(tmp0)/($val11)
+val19=!exec pari print($t_)
+t_=!rawmath -$val18*($val19)
+val20=!exec pari print($t_)
+t_=!rawmath ($val10)^3-($val19)*($val10)
+val21=!exec pari print($t_)
+t_=!rawmath -$val18*($val21)
+val22=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val19*x +($val21)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+!else
+!if $val7=2 
+t_=!rawmath $val10
+val13=!exec pari print($t_)
+val14=$[rint($val11)]
+val15=$[rint($val12)]
+val16=$[rint(3)]
+t_=!rawmath -2*($val10)
+val24=!exec pari print($t_)
+val17=$val10,$val24
+!else
+t_=!rawmath $(val9[2])
+val13=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val13)]
+t_=!rawmath $val13/$val14
+val13=!exec pari print($t_)
+t_=!rawmath -($val10)-($val13)
+val24=!exec pari print($t_)
+val16=$[rint(4)]
+!if $val10=$val13 
+val7=$[rint(2)]
+val16=$[rint(3)]
+val17=$val10,$val24
+!else
+!if $val10=$val24 
+val7=$[rint(2)]
+val16=$[rint(3)]
+val17=$val10,$val13
+!else
+!if $val13=$val24 
+val7=$[rint(2)]
+val16=$[rint(3)]
+val17=$val10,$val24
+!else
+val17=$val10,$val13,$val24
+!endif
+!endif
+!endif
+!endif
+val25=!rawmath ($val11)^2*($val14)^2*(x- ($val10))*(x-($val13)*(x-$val24))
+val18=$[rint(($val11*$val14)^2)]
+val20=$[rint(-$val18*(($val10)^2+($val10)*($val13)+($val13)^2))]
+val22=$[rint($val18*($val10)*($val13)*(($val10)+($val13)))]
+tmp=!translate ";': to $     $ in (($val10)^2+($val10)*($val13)+($val13)^2)*x -($val10)^2*($val13)-($val10)*($val13)^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=!rawmath $(tmp0)
+!endif
+
+!ifval $val20>0
+val26=+
+!else
+val26=-
+!endif
+
+!ifval $val20<0
+val20=$[rint($val20*(-1))]
+!endif
+
+!ifval $val22>0
+val27=+
+!else
+val27=-
+!endif
+
+!ifval $val22<0
+val22=$[rint($val22*(-1))]
+!endif
+val28=$val18 x^3 
+!if $val20 !=0 
+val28=$val28 $val26 $val20 x 
+!endif
+!if $val22 !=0 
+val28=$val28 $val27 $val22 
+!endif
+val28=$val28=0
+val29=$val23
+tmp0=!replace * by in $val29
+
+val29=$(tmp0)
+val30=r1	r2	r3
+val31=xrange -5,5	yrange -9,9	gridfill 0,0,5,5,$val6	linewidth 1	linewidth 2	  parallel -5,-9,-5,9,1,0,12,blue	  parallel -5,-9,5,-9,0,1,19,blue	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	    linewidth 2	    plot red,x^3	
+val32=$val31	    plot green,$val23	
+!if $val7>1 
+val33=les solutions de l'équation (séparées par une virgule)
+!else
+val33=la solution de l'équation
+!endif
+dynsteps=yes
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=g(x)
+replygood1=$val23
+replytype2=radio
+replyname2=nb solutions
+replygood2=$val16;$val8
+replytype3=fset
+replyname3=solution
+replygood3=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	On veut résoudre graphiquement dans 
+!insmath \ \RR
+$() l'équation :</p>	<div class="wimscenter"> 
+!insmath $val28
+$().</div>	
+!if $m_step=1 
+$()<p>	On dispose pour cela de la représentation graphique de la fonction cube de référence 
+!insmath f(x)=x^3
+$().</p>	<div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val31 
+$()</div>		<p>On se propose de tracer sur le même dessin la représentation graphique d'une	fonction affine judicieusement choisie.</p>	<p>Indiquer l'expression algébrique de cette fonction :</p>	<div class="wimscenter">
+!insmath g(x)=
+$() 
+!read oef/embed.phtml reply 1,10 
+$()</div>	 
+!else
+$()	 	On dispose maintenant des représentations graphiques des fonctions </p>	<div class="wimscenter"><span style="color:red">
+!insmath f
+$()</span>, avec 
+!insmath f(x)=x^3
+$()	 et <span style="color:green">
+!insmath g
+$()</span>, avec 
+!insmath g(x)=
+$()$val29.</div>	<div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val32 
+$()</div>	
+!if $m_step=2 
+$()	<p>Combien de solutions l'équation possède-t-elle ?</p>	<div class="wimscenter"> 
+!insmath $val28
+$():</div>	<ul>	<li> 
+!read oef/embed.phtml reply 2,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,3 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,4 
+$()</li>	</ul>	   
+!else
+$()	   
+!if $val7>0 
+$()	  Indiquer $val33 :</p>	<div class="wimscenter"> 
+!insmath S=
+$() 
+!read oef/embed.phtml reply3,5 
+$()</div>	<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5.</div>  
+!endif
+$()	   
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,28,29,31,32,33
+embedcnt=6

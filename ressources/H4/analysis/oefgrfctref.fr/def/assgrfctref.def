@@ -1,0 +1,164 @@
+!set title=Association de graphiques de fonction de référence
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+
+ansorder=r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Dans le plan muni d'un repère orthonormé \((O,i,j)\),	  associez son graphe à chacune des fonctions ci-dessous
+val8=Correspondance graphe/fonction
+val9=Graphe
+val10=lightblue
+val11=xrange -3,3	yrange -3.5,3.5	gridfill 0,0,5,5,$val10	linewidth 3	vline 1,0,$val10	vline 2,0,$val10	vline 3,0,$val10	vline -1,0,$val10	vline -2,0,$val10	vline -3,0,$val10	hline 0,1,$val10	hline 0,2,$val10	hline 0,3,$val10	hline 0,-1,$val10	hline 0,-2,$val10	hline 0,-3,$val10	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+tmp0=!randitem -2,-3/2,-1,-1/2,1/2,1,3/2,2
+
+val12=$(tmp0)
+val13=1/2,1,2,3
+tmp0=!randitem -3/2,-5/4,-1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1,5/4,3/2
+
+val14=$(tmp0)
+tmp0=!randitem -1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1
+
+val15=$(tmp0)
+val16=cos
+val17=sin
+val18=
+val19=
+!for val20  in $val13 
+val19=(\($val12)/(($val20)*x+(-($val20)*($val14))))
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+val19=\(($val12)*x+($val20))
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+val19=(\($val20)*x^2)
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+val19=\(($val20)*x^3)
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+val19=($val16($val20*x))
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+val19=($val17($val20*x))
+tmp0=!append item $val19 to $val18
+
+val18=$(tmp0)
+!next
+tmp0=!shuffle $val18
+
+val21=$(tmp0)
+tmp0=!shuffle 19
+
+val22=$(tmp0)
+val23=
+!for val24 =1 to 4 
+val25=$[rint($(val22[$val24]))]
+val26=$(val18[$val25])
+t_=!replace internal \( by ( in expand($val26);
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+tmp0=!texmath $val26
+
+val26=\($(tmp0))
+tmp0=!append item $val26 to $val23
+
+val23=$(tmp0)
+!next
+tmp0=!shuffle red,blue,orange,green
+
+val27=$(tmp0)
+val28=180
+val29=
+!for val24 =1 to 4 
+val25=$[rint($(val22[$val24]))]
+!readproc oef/draw.phtml $val28,$val28 \
+    $val11	    linewidth 2	    plot $(val27[$val24]),$(val18[$val25])	     
+tmp0=$ins_url
+val30=<img src="	    $(tmp0)"	    width="$val28"	    height="$val28"	    alt="">	    
+tmp0=!append item $val30 to $val29
+
+val29=$(tmp0)
+!next
+val31=$val28 x$val28 x$val28
+replytype1=correspond
+replyname1=$val8
+replygood1=$val29;$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() $val7	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val31 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,31
+embedcnt=1

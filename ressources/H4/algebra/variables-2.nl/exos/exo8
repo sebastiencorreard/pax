@@ -1,0 +1,83 @@
+n=$counter
+image=0
+cols=15
+rows=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+question$n=!record 8 of lang/remarks.$taal
+helptext=<img src=\'$module_dir/gifs/exo8.jpg\' alt=\'noalt\' />
+a=!randitem 2,3,4,5,6,-2,-3,-4,-5
+b=!randitem 2,3,4
+c=$[$b*$a]
+d=!randitem 2,3,4,5
+e=!randitem 2,3,4,5
+f=!randitem 2,3,4,5
+
+letters=x,y,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+keuze=!randitem 1,2,3
+
+!if $R=1
+    !if $keuze=1 
+	var1=($a*$x*$y^$d)/($c*$x^$e*$y^$f)
+	formula$n=\frac{$a \cdot $x \cdot $y^{  $d}}{$c\cdot $x^{  $e} \cdot $y^{  $f}} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$a \cdot $x \cdot $y^{  $d}}{$c\cdot $x^{  $e} \cdot $y^{  $f}} = $tex 
+    !endif
+    !if $keuze=2
+	var1=($c*$x*$y^$d)/($a*$x^$e*$y^$f)
+	formula$n=\frac{$c \cdot $x \cdot $y^{  $d}}{$a\cdot $x^{  $e} \cdot $y^{  $f}} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$c \cdot $x \cdot $y^{  $d}}{$a\cdot $x^{  $e} \cdot $y^{  $f}}  = $tex 
+    !endif
+    !if $keuze=3
+	var1=($c*$x^$e*$y^$d)/($a*$x*$y^$f)
+	formula$n=\frac{$c \cdot $x^{  $e} \cdot $y^{  $d}}{$a\cdot $x \cdot $y^{  $f}} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$c \cdot $x^{  $e} \cdot $y^{  $d}}{$a\cdot $x \cdot $y^{  $f}} = $tex 
+    !endif
+    applettext=!nospace $var1 =
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+!else
+    pm=!randitem +,-
+    d=$[$e+$b]
+    !if $keuze=1
+	var1=($x^$d $pm $x^$e*$y)/($x^$e*$y)
+	formula$n=\frac{$x^{  $d} $pm $x^{  $e}\cdot $y}{$x^{  $e}\cdot $y} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$x^{  $d} $pm $x^{  $e}\cdot $y}{$x^{  $e}\cdot $y} = $tex 
+    !endif
+    !if $keuze=2
+	var1=($x^$d*$y^$f $pm $x^$e*$y)/($x^$e*$y)
+	formula$n=\frac{$x^{  $d}\cdot $y^{  $f} $pm $x^{  $e}\cdot $y}{$x^{  $e}\cdot $y} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$x^{  $d}\cdot $y^{  $f} $pm $x^{  $e}\cdot $y}{$x^{  $e}\cdot $y} = $tex 
+    !endif
+    !if $keuze=3
+	var1=($x^$e*$y)/($x^$d $pm $x^$e*$y)
+	formula$n=\frac{$x^{  $e}\cdot $y }{$x^{  $d} $pm $x^{  $e}\cdot $y} \,=\,[?]
+	answer$n=!exec maxima ratsimp($var1); 
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$x^{  $e}\cdot $y }{$x^{  $d} $pm $x^{  $e}\cdot $y} = $tex
+    !endif
+    applettext=!nospace $var1 =
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+!endif
+!exit

@@ -1,0 +1,136 @@
+checkfile=$checkdir/multiplechoice.proc
+mathview=0
+questiontype=1
+n=$counter
+image=0
+multiimage=0
+math=1
+multiimage=0
+display=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+make_tr=1
+soort=!randitem 0,1
+keus=!randitem 0,1
+    
+!if $soort=1
+    Domein=!record 14 of lang/remarks.$taal
+    x=x
+    !if $keus=1
+	DB=D_{f} :
+    !else
+	DB=D_{f} =
+    !endif
+!else
+    Domein=!record 15 of lang/remarks.$taal
+    x=y
+    !if $keus=1
+	DB=B_{f} :
+    !else
+	DB=B_{f} =
+    !endif
+!endif
+    
+txt1=!record 16 of lang/remarks.$taal
+# De schrijfwijzen voor Domein en Bereik.
+txt2=!record 17 of lang/remarks.$taal
+question$n=$txt1<br />$txt2
+helptext=$empty
+# Welke schrijfwijze voor het <kbd>$Domein</kbd> komt overeen met?
+#records=!shuffle 1,2,3,4,5,6,7,8
+options=4
+
+answer$n=!randint 1,$options
+a=!randint -200,200
+plus=!randint 1,200
+b=$[$a+$plus]
+
+record=!randfile exos/lijst1.def
+# 1 :$a \le $x \le $b                                                                                                       
+# 2 $a \ge $x \le $b                                                                                                        
+# 3 $b \le $x \le $a                                                                                                        
+# 4 $b \ge $x \le $a                                                                                                        
+# 5 \left[ $a ; $b \right]                                                                                                  
+# 6 \left[ $b ; $a \right]                                                                                                  
+# 7 \left< $b ; $a \right>                                                                                                  
+# 8 \left< $a ; $b \right>
+
+!if $R=1
+    ff=!shuffle 2,3,4
+    c=0
+    !for p=1 to $options
+	!if $p=$(answer$n)
+	    formula$n=!line 5 of $record
+	    formula$n=$DB $(formula$n)
+	    ex$p=!line 1 of $record
+	    texanswer$n=$(ex$p)
+	!else
+	    !increase c
+	    keuze=!item $c of $ff
+	    ex$p=!line $keuze of $record
+	!endif
+	ex$p=$DB $(ex$p)
+    !next p
+ !exit
+!endif
+
+!if $R=2
+    ff=!shuffle 6,7,8
+    c=0
+    !for p=1 to $options
+	!if $p=$(answer$n)
+	    formula$n=!line 1 of $record
+	    formula$n=$DB $(formula$n)
+	    ex$p=!line 5 of $record
+	    texanswer$n=$(ex$p)
+	!else
+	    !increase c
+	    keuze=!item $c of $ff
+	    ex$p=!line $keuze of $record
+	!endif
+	ex$p=$DB $(ex$p)
+    !next p
+ !exit
+!endif
+
+!if $R>2
+    k=!randitem 1,2
+    !if $k=1
+	ff=!shuffle 2,3,4
+	c=0
+	!for p=1 to $options
+	    !if $p=$(answer$n)
+		formula$n=!line 5 of $record
+		formula$n=$DB $(formula$n)
+		ex$p=!line 1 of $record
+		texanswer$n=$(ex$p)
+	    !else
+		!increase c
+		keuze=!item $c of $ff
+		ex$p=!line $keuze of $record
+	    !endif
+	    ex$p=$DB $(ex$p)
+	!next p
+    !else
+	ff=!shuffle 6,7,8
+	c=0
+	!for p=1 to $options
+    	    !if $p=$(answer$n)
+		formula$n=!line 1 of $record
+		formula$n=$DB $(formula$n)
+		ex$p=!line 5 of $record
+		texanswer$n=$(ex$p)
+	    !else
+		!increase c
+		keuze=!item $c of $ff
+		ex$p=!line $keuze of $record
+	    !endif
+	    ex$p=$DB $(ex$p)
+	!next p
+    !endif
+ !exit
+!endif
+

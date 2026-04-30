@@ -1,0 +1,269 @@
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+mathview=0
+image=0
+make_tr=0
+questiontype=0
+inputs=2
+cols=15
+draw=1
+plot=0
+math=0
+varlist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+checkfile=exos/checkfile1.proc 
+keuze=!randitem groter,kleiner
+helptext=!record 53 of lang/remarks.$taal
+description=!record 39 of lang/remarks.$taal
+descr=!record 57 of lang/remarks.$taal
+#@Snijpunten ,Oplossing van de ongelijkheid, de lijn, de parabool
+lijn=$(descr[3])
+parabool=$(descr[4])
+
+!if $R=1
+    a=!randitem 2,3,4,5
+    b=!randitem 1,2,3,4   
+    c=$[$a*$b]
+    p1=$a*x^2  
+    l1=$c
+    ptex1=!texmath $p1
+    L1=!texmath $l1
+    x1=sqrt($b)
+    x2=-1*sqrt($b)
+    y1=$c
+    y2=$c
+    var1=$x1,$y1,$x2,$y2
+    tussen_tex=$a x^{2}=$c \rightarrow x^{2}=$b
+    !if $rounding>0
+	x1=$[(round($rounding*$x1))/$rounding]
+	x2=$[(round($rounding*$x2))/$rounding]
+	y1=$[(round($rounding*$y1))/$rounding]
+	y2=$[(round($rounding*$y2))/$rounding]
+	x1_tex=$x1
+	x2_tex=$x2
+    !else
+	!if . isin $[$x1]
+	    x1=$x1
+	    x2=$x2
+	    x1_tex=\sqrt{$b}
+	    x2_tex=-\sqrt{$b}
+	!else
+	    x1=$[$x1]
+	    x2=$[$x2]
+	    x1_tex=$x1
+	    x2_tex=$x2
+	!endif
+	y1=$y1
+	y2=$y2
+    !endif
+    !if $keuze=groter
+	var2=x<$x2&&x>$x1
+	GG=x<$x2_tex \vee x>$x1_tex
+	latextext=$a x^{2} > $c
+	latextekst=$a x <sup>2</sup> > $c
+    !else
+	var2=$x2<x&&x<$x1
+	GG=$x2_tex<x<$x1_tex
+	latextext=$a x^{2} < $c
+	latextekst=$a x<sup>2</sup> < $c
+    !endif
+    !if $teaching=1
+	xrange=-10,10
+	yrange=-40,40
+        grafiek=linewidth 2\
+        curve red,$p1\
+        curve green,$l1\
+        linewidth 6\
+        points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+        text black,7,-0.5,normal,x-axis\	
+        textup black,-0.5,15,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!goto READY
+!endif
+
+!if $R=2
+    a=!randitem 2,3,4,5
+    b=!randitem 1,2,3,4
+    d=!randitem 1,2,3,4,5 
+    c=$[$a*$b]
+    pp=!randitem 1,-1
+    a=$[$a*$pp]
+    c=$[$c*$pp]
+    pm=!randitem +,-
+    f=$[$c $pm $d]
+    p1=$a*x^2 $pm $d 
+    l1=$f
+    ptex1=!texmath $p1
+    L1=!texmath $l1
+    x1=sqrt($b)
+    x2=-1*sqrt($b)
+    y1=$f
+    y2=$f
+    var1=$x1,$y1,$x2,$y2
+    tussen_tex=$a x^{2} $pm $d = $f \rightarrow $a x^{2}=$c \rightarrow x^{2} = $b
+    !if $rounding>0
+	x1=$[(round($rounding*$x1))/$rounding]
+	x2=$[(round($rounding*$x2))/$rounding]
+	y1=$[(round($rounding*$y1))/$rounding]
+	y2=$[(round($rounding*$y2))/$rounding]
+	x1_tex=$x1
+	x2_tex=$x2
+    !else
+	!if . isin $[$x1]
+	    x1=$x1
+	    x2=$x2
+	    x1_tex=\sqrt{$b}
+	    x2_tex=-\sqrt{$b}
+	!else
+	    x1=$[$x1]
+	    x2=$[$x2]
+	    x1_tex=$x1
+	    x2_tex=$x2
+	!endif
+	y1=$y1
+	y2=$y2
+    !endif
+    !if $pp=1
+	!if $keuze=groter
+	    var2=x<$x2&&x>$x1
+	    GG=x<$x2_tex \vee x>$x1_tex
+	    latextext=$a x^{2} $pm $d > $f
+	    latextekst=$a x<sup>2</sup> $pm $d > $f
+	!else
+	    var2=$x2<x&&x<$x1
+	    GG=$x2_tex<x<$x1_tex
+	    latextext=$a x^{2} $pm $d < $f
+	    latextekst=$a x<sup>2</sup> $pm $d < $f
+	!endif
+    !else
+	!if $keuze=groter
+	    var2=$x2<x&&x<$x1
+	    GG=$x2_tex<x<$x1_tex
+	    latextext=$a x^{2} $pm $d > $f
+	    latextekst=$a x<sup>2</sup> $pm $d > $f
+	!else
+	    var2=x<$x2&&x>$x1
+	    GG=x<$x2_tex \vee x>$x1_tex
+	    latextext=$a x^{2} $pm $d < $f
+	    latextekst=$a x<sup>2</sup> $pm $d < $f
+	!endif
+    !endif
+    !if $teaching=1
+	xrange=-10,10
+	yrange=-40,40
+        grafiek=linewidth 2\
+        curve red,$p1\
+        curve green,$l1\
+        linewidth 6\
+        points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+        text black,7,-0.5,normal,x-axis\	
+        textup black,-0.5,15,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!goto READY
+
+!endif
+
+!if $R>2
+    a=!randitem 1,-1
+    b=!randint 1,7
+    c=!randitem 1,2,3,4,5,6,7
+    d=$[$a*$c*$c]
+    optie=!randitem 1,2
+    !if $optie=1
+	p1=$a*(x + $b) ^2 
+	x1=$[$c-$b]
+	x2=$[-1*$c-$b]
+	tussen=x+$b
+	tussen_tex=(x + $b )^{2} = $[$c*$c] \rightarrow x + $b = $c \vee x + $b = -$c
+    !else
+	p1=$a*(x - $b) ^2 
+	x1=$[$c + $b]
+	x2=$[-1*$c + $b]
+	tussen=x-$b
+	tussen_tex=(x - $b )^{2} = $[$c*$c] \rightarrow x - $b = $c \vee x - $b = -$c
+    !endif
+    l1=$d
+    ptex1=!texmath $p1
+    L1=$l1
+    y1=$d
+    y2=$d
+    var1=$x1,$y1,$x2,$y2
+    x1_tex=$x1
+    x2_tex=$x2
+    
+    !if $a=1
+	!if $keuze=groter
+	    var2=x<$x2&&x>$x1
+	    GG=x<$x2_tex \vee x>$x1_tex
+	    latextext=($tussen)^{2} > $d
+	    latextekst=($tussen)<sup>2</sup> > $d
+	!else
+	    var2=$x2<x&&x<$x1
+	    GG=$x2_tex<x<$x1_tex
+	    latextext=($tussen)^{2} < $d
+	    latextekst=($tussen)<sup>2</sup> < $d
+	!endif
+    !else
+	!if $keuze=groter
+	    var2=$x2<x&&x<$x1
+	    GG=$x2_tex<x<$x1_tex
+	    latextext=-($tussen)^{2} > $d
+	    latextekst=-($tussen)<sup>2</sup> > $d
+	!else
+	    var2=x<$x2&&x>$x1
+	    GG=x<$x2_tex \vee x>$x1_tex
+	    latextext=-($tussen)^{2} < $d
+	    latextekst=-($tussen)<sup>2</sup> < $d
+	!endif
+    !endif
+    !if $teaching=1
+	xrange=-15,15
+	!if $d > 0
+	    yrange=-10,$[$d+10]
+	!else
+	    yrange=$[$d-10],10
+	!endif
+        grafiek=linewidth 2\
+        curve red,$p1\
+        curve green,$l1\
+        linewidth 6\
+        points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+        text black,7,-0.5,normal,x-axis\	
+        textup black,-0.5,15,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!endif
+
+:READY
+
+formula$n=\left[ \begin{array}{l} \textrm{$lijn: } y=$L1 \\ \textrm{$parabool : } y=$ptex1 \\ \\ $latextext \end{array}\right.
+texanswer$n=$tussen_tex \rightarrow \left[ \begin{array}{l} ($x2_tex : $y2) \vee ($x1_tex : $y1) \\   $GG \end{array}\right.
+
+ss=!record 56 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $teaching=1
+    insdraw_size=320,320
+    !insdraw xrange $xrange\
+    yrange $yrange\
+    linewidth 1\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    $grafiek
+
+    stext=!record 54 of lang/remarks.$taal
+    exotext=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$stext</span></a>
+!endif
+
+
+

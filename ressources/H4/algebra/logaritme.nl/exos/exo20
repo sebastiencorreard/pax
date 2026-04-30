@@ -1,0 +1,161 @@
+# Vergelijkingen III [ log(bx+c) = a ]
+mathviewpanel=$module_title:x=:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+rounding=0
+mathview=5
+display=1
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo10.jpg\' alt=\'noalt\' />
+smallfont=16
+largefont=24
+!if $taal=fr or $lang=fr or $myvar1=1
+ g=!randitem 2,10,10
+ !if $g=2
+  LOG=\log_{$g}
+ !else
+  LOG=\log
+ !endif
+!else
+ g=!randitem 2,3,4,5,6,7,8,9
+ LOG=^{$g}\log
+!endif
+keuze=!randitem 0,1,2
+
+
+!if $R=1
+    b=!randitem 2,3,4,5,6
+    a=!randitem 2,3,4,5,6
+    c=$[$a*$b]
+    !if $keuze=0
+	formula$n=$LOG(x)=$LOG($a)+$LOG($b) 
+	applettext=!nospace log[$g](x) =log[$g]($a) + log[$g]($b) ->
+	texanswer$n=\left[ \begin{array}{l} $LOG(x)=$LOG($a)+$LOG($b)\\ $LOG(x)=$LOG($c)\\ x= $c \end{array} \right.
+    !else
+	!if $keuze=1
+	    g=10
+	    formula$n=\log(x)=\log($a)+\log($b) 
+	    applettext=!nospace log(x) = log($a)+log($b) ->
+	    texanswer$n=\left[ \begin{array}{l} \log(x)=\log($a)+\log($b)\\ \log(x)=\log($c)\\ x= $c \end{array} \right.
+	!else
+	    g=e
+	    formula$n=\ln(x)=\ln($a)+\ln($b) 
+	    applettext=!nospace ln(x) = ln($a) + ln($b) ->
+	    texanswer$n=\left[ \begin{array}{l} \ln(x)=\ln($a)+\ln($b)\\ \ln(x)=\ln($c)\\ x= $c \end{array} \right.
+	!endif
+    !endif
+    answer$n=$c
+ !exit
+!endif
+
+!if $R=2
+    b=!randitem 2,3,4,5,6,7
+    a=!randitem 2,3,4,5
+    c=$[$a*$b]
+    !if $keuze=0
+	formula$n=$LOG(x)=$LOG($c)-$LOG($b) 
+	applettext=!nospace log[$g](x) =log[$g]($c) - log[$g]($b) ->
+	texanswer$n=\left[ \begin{array}{l} $LOG(x)=$LOG($c) - $LOG($b)\\ $LOG(x)=$LOG\left(\frac{$c}{$b}\right)=$LOG($a)\\ x= $a \end{array} \right.
+    !else
+	!if $keuze=1
+	    g=10
+	    formula$n=\log(x)=\log($c)-\log($b)
+	    applettext=!nospace log(x) = log($c)-log($b) ->
+	    texanswer$n=\left[ \begin{array}{l} \log(x)=\log($c) - \log($b)\\ \log(x)=\log\left(\frac{$c}{$b}\right)=\log($a)\\ x= $a \end{array} \right.
+	!else
+	    g=e
+	    formula$n=\ln(x)=\ln($c)-\ln($b) 
+	    applettext=!nospace ln(x) = ln($c) - ln($b) ->
+	    texanswer$n=\left[ \begin{array}{l} \ln(x)=\ln($c) - \ln($b)\\ \ln(x)=\ln\left(\frac{$c}{$b}\right)=\ln($a)\\ x= $a \end{array} \right.
+	!endif
+    !endif
+    answer$n=$a
+ !exit
+!endif
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	b=!randitem 2,3,4,5,6
+	a=!randitem 2,3,4,5
+	c=!randitem 2,3,4
+	d=!randitem 2,3
+        f=!randitem 2,3,4,5
+        p=!randitem 1,2
+	g=$[$f+$p]
+	!if $keuze=2
+	    tot=!exec pari A=$a^$c/$f\
+	    printtex(A)
+	!else
+	    tot=!exec pari A=$a^$c*$f\
+	    printtex(A)
+	!endif
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	!if $keuze=0
+	    formula$n=$LOG \left( x \right) =$c \cdot ^{$g} \log \left( $a \right) + \frac{1}{$d} \cdot $LOG \left(  $[$f^$d] \right)
+	    applettext=!nospace log[$g]( x)  =$c*log[$g]( $a)  + 1/$d*log[$g]( $[$f^$d])  ->
+	    texanswer$n=\left[ \begin{array}{l} $LOG\left( x\right) =$LOG\left( $a^{$c}\right)  + $LOG \left( $[$f^$d] ^{\left(  \frac{1}{$d} \right)}  \right) \\ \\$LOG\left( x\right) =$LOG\left( $[$a^$c]\cdot $f\right)  \\ \\ x= $tex \end{array} \right.
+	!else
+	    !if $keuze=1
+		formula$n=\ln\left( x\right) =$c \cdot \ln\left( $a\right) + \frac{1}{$d} \cdot \ln \left( $[$f^$d] \right) 
+	        applettext=!nospace ln( x)  =$c*ln( $a)  + 1/$d*ln( $[$f^$d])  ->
+		texanswer$n=\left[ \begin{array}{l} \ln \left( x \right) =\ln\left( $a^{$c} \right)  + \ln \left( $[$f^$d]  ^{\left(  \frac{1}{$d} \right)}  \right) \\ \\ \ln\left( x\right) =\ln\left( $[$a^$c] \cdot $f\right)  \\ \\ x= $tex \end{array} \right.
+	    !else
+		formula$n=$LOG\left( x \right) = $c \cdot $LOG \left( $a \right) - \frac{1}{$d} \cdot ^{$g} \log \left( $[$f^$d] \right)  
+		applettext=!nospace log[$g]( x)  =$c*log[$g]( $a)  - 1/$d*log[$g]( $[$f^$d])  ->
+		texanswer$n=\left[ \begin{array}{l} $LOG\left( x \right) = $LOG \left( $a^{$c} \right)  - ^{$g} \log \left( $[$f^$d]  ^{\left(  \frac{1}{$d} \right)}  \right) \\ \\ $LOG\left( x \right) =$LOG\left( $[$a^$c] \right)  - $LOG\left( $f \right)  \\ \\ $LOG\left( x \right) =$LOG\left(  \frac{$[$a^$c]}{$f} \right)  \\ \\ x = $tex \end{array} \right.
+	    !endif
+	!endif
+    !else
+	b=!randitem 2,3,4,5,6
+	a=!randitem 2,3,4,5
+	c=!randitem 2,3,4
+        d=!randitem 2,3
+        f=!randitem 2,3,4,5
+	p=!randitem 1,2
+        g=$[$f+$p]
+	!if $keuze=2
+	    tot=!exec pari A=$a^$c*$g/$f\
+	    printtex(A)
+	!else
+	    tot=!exec pari A=$a^$c*$f/$g\
+	    printtex(A)
+	!endif
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	!if $keuze=0
+	    formula$n=$LOG\left( x\right) =$c \cdot $LOG\left( $a\right) + \frac{1}{$d} \cdot $LOG \left( \frac{$[$f^$d]}{$[$g^$d]} \right)  
+	    applettext=!nospace log[$g]( x)  =$c*log[$g]( $a)  + 1/$d*log[$g]( $[$f^$d]/$[$g^$d])  ->
+	    texanswer$n=\left[ \begin{array}{l} $LOG\left( x\right) =$LOG\left( $a^{$c}\right)  + $LOG \left( \frac{$[$f^$d]}{$[$g^$d]}  ^\left(  \frac{1}{$d} \right)  \right) \\ \\$LOG\left( x\right) =$LOG\left( $[$a^$c]\right)  + $LOG\left( \frac{$f}{$g}\right)  \\ \\ x= $tex \end{array} \right.
+	!else
+	    !if $keuze=1
+		formula$n=\ln\left( x\right) =$c \cdot \ln\left( $a\right) + \frac{1}{$d} \cdot \ln \left( \frac{$[$f^$d]}{$[$g^$d]} \right) 
+		applettext=!nospace ln( x)  =$c*ln( $a)  + 1/$d*ln( $[$f^$d]/$[$g^$d])  ->
+		texanswer$n=\left[ \begin{array}{l} \ln\left( x\right) =\ln\left( $a^{$c}\right)  + \ln \left( \frac{$[$f^$d]}{$[$g^$d]}  ^\left(  \frac{1}{$d} \right)  \right) \\ \\\ln\left( x\right) =\ln\left( $[$a^$c]\right)  + \ln\left( \frac{$f}{$g}\right)  \\ \\ x= $tex \end{array} \right.
+	    !else
+		formula$n=$LOG\left( x\right) =$c \cdot $LOG\left( $a\right) - \frac{1}{$d} \cdot $LOG \left( \frac{$[$f^$d]}{$[$g^$d]} \right) 
+		applettext=!nospace log[$g]( x)  =$c*log[$g]( $a)  - 1/$d*log[$g]( $[$f^$d]/$[$g^$d])  ->
+		texanswer$n=\left[ \begin{array}{l} $LOG\left( x \right) = $LOG\left( $a^{$c} \right)  - $LOG \left( \frac{$[$f^$d]}{$[$g^$d]}^{\left(  \frac{1}{$d} \right)}  \right) \\ \\ $LOG\left( x \right) = $LOG\left( $[$a^$c] \right)  - $LOG\left( \frac{$f}{$g} \right)  \\ \\$LOG\left( x \right) = $LOG\left(  \frac{ $[$a^$c] }{ \frac{$f}{$g} } \right)  \\ \\ x = $[$a^$c] \cdot \frac{$g}{$f} \\ \\ x= $tex \end{array} \right.
+	    !endif
+	!endif
+    !endif
+!endif
+!exit
+

@@ -1,0 +1,309 @@
+\author{Georges Khaznadar}
+\email{georges.khaznadar@free.fr}
+\title{Coefficients stœchiométriques (1)}
+
+\language{french}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\if{vide\confparm2 = vide}{
+  \text{confparm2=data.txt}
+}
+
+\if{vide\confparm1 = vide}{
+  \text{equation=}
+}{
+  \text{A=slib(chemistry/chemeq_tex \confparm1[1])}
+  \text{B=slib(chemistry/chemeq_tex \confparm1[2])}
+  \if{rightarrow isin \A and rightarrow isin \B}{
+    # la syntaxe de confparm1 est OK, on garde ça comme équation.
+    \text{equation=\confparm1[1]}
+    \text{OKequation=\confparm1[2]}
+    \text{ligne=\confparm1}
+  }{
+    \text{ligne=wims(randrecord \confparm2)}
+    \text{equation=\ligne[1]}
+    \text{OKequation=\ligne[2]}
+    \text{warning=<span style="color:#ffbb44;"><p>
+      <b>Attention</b> : l'équation <span class="tt">\confparm1</span>
+      n'est pas bien interprétée. Une autre équation a été
+      choisie aléatoirement,
+      sa syntaxe est : <span class="tt">\equation</span> </p></span>
+    }
+  }
+}
+
+\if{vide\equation = vide}{
+  \text{ligne=wims(randrecord \confparm2)}
+  \text{equation=\ligne[1]}
+  \text{OKequation=\ligne[2]}
+}
+
+\css{<style type="text/css">
+.valignBottom {
+  vertical-align: bottom;
+}
+.alignCenter {
+  text-align: center;
+}
+
+.monIntro {
+  background-color:#ffffdd;
+  border: 1px black solid;
+  padding: 1em;
+  border-radius: 0.5em;
+}
+
+.width60 {width:60%;}
+.chem {border:1px; background-color:#ffeecc;}
+.chem1 {background-color:#ffeecc;}
+.charge {background-color:#ddffdd;}
+.tt {
+  font-family: monospace;
+}
+</style>}
+
+\matrix{m=slib(chemistry/chemeq_equilibrium \equation)}
+\matrix{col1=\m[;1]}
+\matrix{m=\m[;2..-1]}
+\matrix{OKm=slib(chemistry/chemeq_equilibrium \OKequation)}
+\matrix{OKm=\OKm[;2..-1]}
+\integer{c=items(\m[1;])}
+\integer{r=rows(\m)}
+\integer{nel=floor((\r-2)/2)}
+# charge = 1 s'il y a des ions
+\integer{charge=\r-2-2*\nel}
+\integer{fleche=position(%,\m[2;])}
+# g et d sont le nombres d'entités chimiques à gauche et à droite
+# d0 est l'index du premier membre de droite
+\integer{g=\fleche-1}
+\integer{d=\c-\fleche}
+\integer{d0=\fleche+1}
+
+\text{empty=}
+\text{el=}
+\text{arite=}
+\text{total=}
+\text{reponses=}
+\text{invite=}
+\text{okrep=}
+\text{typerep=}
+\text{sizerep=}
+\integer{nr=1}
+
+\for{i0=1 to \nel}{
+  \integer{i=1+\i0*2}
+  \text{el=\el wims(replace _.* by \empty in \col1[1;\i]),}
+  \text{arite=\arite \m[\i;];}
+}
+\if{\charge = 1}{
+  # rc est le numéro pour la réponse de charge.
+  \integer{rc=\nel+1}
+}
+
+########################
+# création du tableau total (bonnes réponses pour les nombres d'atomes)
+########################
+\for{i01=4 to \r step 2}{
+  \text{total=\total \OKm[\i01;];}
+}
+\if{\charge=1}{
+  \text{total=\total \OKm[\r;];}
+}
+
+\text{rendu=slib(chemistry/chemeq_tex \equation)}
+
+# numéro du morceau d'énoncé
+\integer{ne=1}
+
+\text{enonce=
+<div class="monIntro" >
+ <p>
+ Voici une équation de réaction chimique : \(\rendu)
+ </p>
+ <p>Vous déterminerez les coefficients stœchiométriques,
+ et les décomptes d'atomes, élément par élément.
+ </p>
+ </div>
+<hr class="width60">
+<table>
+<!-- L'équation où on insère des + -->
+<tr>
+<th>Équation</th>
+}
+# Écriture de l'équation
+\for{i1=1 to \c}{
+  \if{\i1!=\fleche}{
+    \if{\i1!=1 and \i1!=\d0}{\text{enonce=\enonce<td>+</td>}}
+    \if{\i1=1}{
+      ##########################################
+      # le tout premier coefficient sera fixé donc tout le reste en dépend      #
+      ##########################################
+      \integer{coefficient1=\m[2;1]}
+      \if{\coefficient1=1}{\text{\c1=}}{\text{\c1=\coefficient1}}
+      \text{enonce=\enonce <td class="chem">\(\c1 {}\m[1;\i1]{})</td>}
+    }{
+      ####################################
+      # le point-virgule correspond à l'emplacement d'un embed  #
+      ####################################
+      \text{enonce=\enonce<td class="chem1"> ;  \({}\m[1;\i1]{})</td>}
+      \text{invite=\invite Coefficient stoechiométrique de l'espèce \m[1;\i1],}
+      ##########################################
+      # okrep va contenir la valeur du coefficient stoechiométrique               #
+      ##########################################
+      \real{ok=\OKm[2;\i1] / \OKm[2;1]  *  \coefficient1}
+      \text{okrep=\okrep \ok,}
+      \text{typerep=\typerep numeric,}
+      \text{sizerep=\sizerep 5,}
+      \if{\nr=1}{
+        \text{reponses=r1}
+      }{
+        \text{reponses=\reponses, r\nr}
+      }
+      \integer{nr=\nr+1}
+      \integer{ne=\ne+1}
+    }
+  }{
+       \text{enonce=\enonce<td>\(\rightarrow)</td>}
+  }
+}
+\text{enonce=\enonce</tr>}
+
+\for{i5=1 to \nel}{
+  \text{enonce=\enonce
+    <!-- traitement de l'élément \el[\i5] -->
+    <tr>
+    <th>molécularité de l'élément \el[\i5]</th>
+  }
+  \for{i6=1 to \c}{
+    \if{\i6!=\fleche}{
+      \if{\i6!=1 and \i6 != \d0}{
+        \text{enonce=\enonce<td><br></td>}
+      }
+      \text{enonce=\enonce<td class="alignCenter">\arite[\i5;\i6]</td>}
+    }{
+    \text{enonce=\enonce<td><br></td>}
+    }
+  }
+
+  \text{enonce=\enonce</tr>
+  <tr class="arite">
+  <th>nombre d'atomes pour \el[\i5]</th>
+  }
+  \for{i8=1 to \c}{
+    \if{\i8!=\fleche}{
+      \if{\i8!=1 and \i8!=\d0}{
+        \text{enonce=\enonce<td>+</td>}
+      }
+      ####################################
+      # le point-virgule correspond à l'emplacement d'un embed #
+      ####################################
+      \text{enonce=\enonce<td class="alignCenter total">;</td>}
+      \text{invite=\invite nombre d'atome (\el[\i5] dans \m[1;\i8]),}
+      ##########################################
+      # okrep va contenir une inconnue, afin de faire une condition spéciale #
+      ##########################################
+      \real{ok=\total[\i5;\i8]*\coefficient1/\OKm[2;1]}
+      \text{okrep=\okrep \ok,}
+      \text{typerep=\typerep numeric,}
+      \text{sizerep=\sizerep 5,}
+      \if{\nr=1}{
+        \text{reponses=r1}
+      }{
+        \text{reponses=\reponses, r\nr}
+      }
+      \integer{nr=\nr+1}
+      \integer{ne=\ne+1}
+    }{
+      \text{enonce=\enonce<td>=</td>}
+    }
+  }
+  \text{enonce=\enonce</tr>}
+}
+\if{\charge>0}{
+  \text{enonce=\enonce
+    <tr class="charge">
+    <th>bilan des charges électriques</th>
+  }
+  \for{i9=1 to \c}{
+    \if{\i9!=\fleche}{
+      \if{\i9!=1 and \i9 != \d0}{
+        \text{enonce=\enonce<td class="valignBottom">+</td>}
+      }
+     ####################################
+     # le point-virgule correspond à l'emplacement d'un embed #
+     ####################################
+      \text{enonce=\enonce<td class="alignCenter charge">;</td>}
+      \text{invite=\invite charge pour \m[1;\i9],}
+      \real{ok=\total[-1;\i9]*\coefficient1/\OKm[2;1]}
+      \text{okrep=\okrep \ok,}
+      \text{typerep=\typerep numeric,}
+      \text{sizerep=\sizerep 5,}
+      \if{\nr=1}{
+        \text{reponses=r1}
+      }{
+        \text{reponses=\reponses, r\nr}
+      }
+      \integer{nr=\nr+1}
+      \integer{ne=\ne+1}
+   }{
+      \text{enonce=\enonce<td class="valignBottom">=</td>}
+    }
+    </tr>
+  }
+}
+
+\text{enonce=\enonce
+  </table>
+}
+
+\steps{\reponses
+}
+# À l'aide de "steps", on se limite donc à ((c-1)*(nel + charge)) réponses,
+# mais on en définit plusieurs ci-dessous.
+
+\statement{
+  \if{vide\ligne[3]!=vide}{
+    <h3>\ligne[3]</h3>
+  }
+  \warning<br>
+  \for{x=1 to \ne}{
+    \enonce[\x;] \if{\x<\ne}{\embed{r\x,\sizerep[\x]}}
+  }
+  <div  class="wims_instruction">
+  Le coefficient de l'espèce \({}\m[1;1]{}) est fixé à \coefficient1.
+  \if{\coefficient1=1}{On ne l'a pas écrit, ce qui est la syntaxe courante.}
+  Attention : pour les coefficients inconnus, vous <i>devez</i> marquer 1 si leur valeur est 1.
+  </div>
+}
+
+\reply{\invite[1]}{\okrep[1]}{type=\typerep[1]}
+\reply{\invite[2]}{\okrep[2]}{type=\typerep[2]}
+\reply{\invite[3]}{\okrep[3]}{type=\typerep[3]}
+\reply{\invite[4]}{\okrep[4]}{type=\typerep[4]}
+\reply{\invite[5]}{\okrep[5]}{type=\typerep[5]}
+\reply{\invite[6]}{\okrep[6]}{type=\typerep[6]}
+\reply{\invite[7]}{\okrep[7]}{type=\typerep[7]}
+\reply{\invite[8]}{\okrep[8]}{type=\typerep[8]}
+\reply{\invite[9]}{\okrep[9]}{type=\typerep[9]}
+\reply{\invite[10]}{\okrep[10]}{type=\typerep[10]}
+\reply{\invite[11]}{\okrep[11]}{type=\typerep[11]}
+\reply{\invite[12]}{\okrep[12]}{type=\typerep[12]}
+\reply{\invite[13]}{\okrep[13]}{type=\typerep[13]}
+\reply{\invite[14]}{\okrep[14]}{type=\typerep[14]}
+\reply{\invite[15]}{\okrep[15]}{type=\typerep[15]}
+\reply{\invite[16]}{\okrep[16]}{type=\typerep[16]}
+\reply{\invite[17]}{\okrep[17]}{type=\typerep[17]}
+\reply{\invite[18]}{\okrep[18]}{type=\typerep[18]}
+\reply{\invite[19]}{\okrep[19]}{type=\typerep[19]}
+\reply{\invite[10]}{\okrep[20]}{type=\typerep[10]}
+\reply{\invite[11]}{\okrep[21]}{type=\typerep[11]}
+\reply{\invite[12]}{\okrep[22]}{type=\typerep[12]}
+\reply{\invite[13]}{\okrep[23]}{type=\typerep[13]}
+\reply{\invite[14]}{\okrep[24]}{type=\typerep[14]}
+\reply{\invite[15]}{\okrep[25]}{type=\typerep[15]}
+\reply{\invite[16]}{\okrep[26]}{type=\typerep[16]}
+\reply{\invite[17]}{\okrep[27]}{type=\typerep[17]}
+\reply{\invite[18]}{\okrep[28]}{type=\typerep[18]}
+\reply{\invite[19]}{\okrep[29]}{type=\typerep[19]}

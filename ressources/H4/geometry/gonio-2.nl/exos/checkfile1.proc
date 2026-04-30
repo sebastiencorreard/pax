@@ -1,0 +1,155 @@
+n=$counter
+goback=0
+extra=$empty
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+    
+AAA=!lower $(reply$n)
+!if x notin $AAA
+    ex=!record 6 of lang/remarks.$taal
+    #@De gezochte functie is van het type sinus of cosinus [sin(x) cos(x)].<br />Ik kon de variable <kbd>x</kbd> niet vinden in je antwoord <kbd>$(reply$n)</kbd>
+    !if $teaching=1
+	errortext=$ex
+	maxscore=$[$maxscore*$P5]
+	goback=1
+    !else
+	remark$n=$NOK<br />$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+
+
+test=!replace internal = by @ in $AAA
+!if @ isin $test
+    AAA=!replace internal = by , in $AAA
+    A1=!item 1 of $AAA
+    A2=!item 2 of $AAA
+    !if sin isin $A2 or cos isin $A2
+	AAA=$A2
+    !else
+	ex=!record 7 of lang/remarks.$taal
+	#@Het is handiger als je zo'n functie noteerd als <kbd>f(x) = $A1</kbd>
+	AAA=$A1
+	extra=!append line $ex to $extra
+    !endif
+!else
+ errortext=!record 15 of lang/remarks.$taal
+ goback=1
+ !exit
+!endif
+
+test=!nospace $AAA
+found_gonio=0
+!for p in sin,cos
+    !if $p isin $AAA
+	fun=$p
+	found_gonio=1
+	test=!replace internal $p( by @ in $AAA
+	!if @ notin $test
+	    AAA=!replace internal $p by $p( in $AAA
+	    AAA=!append word ) to $AAA
+	    AAA=!nospace $AAA
+	    ex=!record 8 of lang/remarks.$taal
+	    #@Je kunt een functie beter met haakjes noteren, zoals $p(x) ipv sinx of cosx
+	    extra=!append line $ex to $extra
+	!endif
+    !endif
+!next p
+
+!if $found_gonio=0
+    ex=!record 9 of lang/remarks.$taal
+    #@De gezochte functie is van het type sinus of cosinus [sin/cos].<br />Ik kon deze niet vinden in je antwoord <kbd>$(reply$n)</kbd>
+    !if $teaching=1
+	errortext=$ex
+	maxscore=$[$maxscore*$P6]
+	goback=1
+    !else
+	remark$n=$NOK<br />$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+
+AAA=!rawmath $AAA
+
+!for i in d,b,c,s
+    ding=!nospace $i x
+    AAA=!replace internal $ding by $i*x in $AAA
+    ding=!nospace x $i
+    AAA=!replace internal $ding by $x*i in $AAA
+    AAA=!replace internal $i$fun by $i*$fun in $AAA
+!next i
+
+!if $fun=sin
+    A1=!replace internal sin by cos in $AAA
+!else
+    A1=!replace internal cos by sin in $AAA
+!endif
+
+AAA=!replace [\~\!\@\#\$\%\&\:\;\"\'] by $empty in $AAA
+test=!exec maxima trigexpandtimes=true;trigexpandplus=true;\
+if trigrat((trigreduce(rationalize($AAA)))) = trigrat((trigreduce(rationalize($(answer$n))))) then 1 else 0;\
+if trigrat((trigreduce(rationalize(-1*($AAA))))) = trigrat((trigreduce(rationalize($(answer$n))))) then 1 else 0;\
+if trigrat((trigreduce(rationalize($A1)))) = trigrat((trigreduce(rationalize($(answer$n))))) then 1 else 0;
+
+
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+# to ignore things like true;true;(o3)
+test=!words2items $test
+s=1
+!for p in $test
+    !if $p isin 0,1
+	c$s = $p
+	!increase s
+    !endif
+!next p
+
+!if $c1=1
+    score=1
+!else
+    !if $c2=1
+	score=$P3
+	ex=!record 10 of lang/remarks.$taal
+	#@Je hebt wat plussen en minnen verwisseld...
+	extra=!append line <br />$ex to $extra
+    !else
+	!if $c3=1
+	    score=$P7
+	    ex=!record 11 of lang/remarks.$taal
+	    #@Nee, de functie was geen <kbd>$fun</kbd>...<br />dat stond toch duidelijk in de vraag.
+	    extra=!append line <br />$ex to $extra
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+goback=0
+modulescore=$[$modulescore+$maxscore]
+!exit

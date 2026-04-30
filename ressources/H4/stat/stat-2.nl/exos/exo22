@@ -1,0 +1,105 @@
+#Hypothese toetsing III
+# ballenbak
+#<applet id="ballenbak" code="Plinko.class" codebase="$appletdir" archive="Plinko.jar" width="220" height="100" MAYSCRIPT>
+#    <param name="wims_exercise" value="1"> 
+#    <param name="xsize" value="400">
+#    <param name="ysize" value="400">
+#    <param name="fontsize" value="12">
+#    <param name="bins" value="$bins">
+#    <param name="chance" value="$chance">
+#    <param name="speed" value="$speed">
+#    <param name="title" value="Applet by Prof. P. Little">
+#    <param name="language" value="$taal">
+#    <param name="balls" value="$balls"> 
+#</applet> 
+n=$counter
+answer$n=1
+total_exos=1
+!if $counter=1
+    make_tr=1
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+    mathview=0
+    rows=1
+    questiontype=7
+    tekentoets=1
+    javascript=js/plinko4.js
+    checkfile=exos/checkfile4.proc
+    math=0
+    image=0
+    inputs=0
+    var1=bool,bool,chance,bool
+    var2=!record 117 of lang/remarks.$taal
+    #@H0 hypothese,H1 hypothese,overschrijdingskans,conclusie
+    helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download.(windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+
+!endif
+
+perc=!randint 1,5
+balls=1000
+min_balls=50
+speed=8
+# oneven aantal bakjes !
+bins=!randitem 5,7,9,11
+chance=!randint 46,54
+chance=$[$chance/100]
+spijkers=0
+!for p=1 to $[$bins-1]
+    spijkers=$[$p+$spijkers]
+!next p
+txt=!record 115 of lang/remarks.$taal
+#@proefpersoon,Fumistop &reg;,placebo,wordt H0 verworpen,wordt H0 niet verworpen,bakje,ballen
+verworpen=!item 4 of $txt
+nietverworpen=!item 5 of $txt
+bakje=!item 6 of $txt
+ballen=!item 7 of $txt
+ss=!record 119 of lang/remarks.$taal
+#@Je hebt zelf een <em>bord van Galton</em> in elkaar gespijkerd...<br>In een perfect bord van Galton is de kans op links of rechts precies een 1/2.<br>Je wilt controleren of alle $spijkers spijkers goed in de plank zijn geslagen.<br>Hiertoe voer je een experiment uit met minimaal $min_balls knikkers.<br>De applet stopt -hopelijk- na 1000 ballen...maar je mag zelf het experiment eerder bee&iuml;ndigen.<br>Maak gebruik van een <em>tekentoets</em>. Neem als significantie $perc %
+
+question$n=$ss
+
+P=1/2,1/4,3/4,1/5,4/5,$perc/100
+k=!shuffle 1,2,3,4,5,6
+select=$empty
+i=0
+w=0
+# text bij selectboxes : &mu; &ne; geven problemen bij presentatie
+var7=$empty
+var8=$empty
+!for p in $k
+    d=!item $p of $P
+    H0=!append line <option value="$i">H0 : p &lt;  $d</option> to $H0
+    var7=!append item $ H0 : p &lt;  $d $ to $var7
+    !increase i
+    !if $p=1
+	ans1=$i
+    !endif
+    H0=!append line <option value="$i">H0 : p = $d</option> to $H0
+    var7=!append item $ H0 : p =  $d $ to $var7
+    !increase i
+    H1=!append line <option value="$w">H1 : p &ne; $d</option> to $H1
+    var8=!append item $ H1 : p &ne;  $d $ to $var8
+    !if $p=1
+	ans2=$w
+    !endif
+    !increase w
+    H1=!append line <option value="$w">H1 : p &gt; $d</option> to $H1
+    var8=!append item $ H1 : p &gt;  $d $ to $var8
+    !increase w
+!next p
+
+var9=!subst $bins,$verworpen,$nietverworpen,$perc,$ans1,$ans2,$bakje,$ballen,$chance
+intrap1=<select size="1" id="myinput0" class="schaersvoorde_input">$H0</select>
+intrap2=<select size="1" id="myinput1" class="schaersvoorde_input">$H1</select>
+intrap3=<select size="1" id="myinput3" class="schaersvoorde_input"><option value="0">$verworpen</option><option value="1">$nietverworpen</option></select>
+
+welkmodel=!record 111 of lang/remarks.$taal
+#@Welk toetsmodel wordt gebruikt?
+de_overschrijdingskans=!record 112 of lang/remarks.$taal
+#@Bereken de overschrijdingskans
+bij_een_significantieniveau=!record 113 of lang/remarks.$taal
+#@Bij een significantieniveau van $perc % 
+
+exotext=<ol><li>$welkmodel  $intrap1 $intrap2</li><li>$de_overschrijdingskans :  <input id="myinput2" type="text" class="schaersvoorde_input" size="10" /></li><li>$bij_een_significantieniveau  $intrap3</li></ol>
+
+

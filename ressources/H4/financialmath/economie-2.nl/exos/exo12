@@ -1,0 +1,233 @@
+# kengetallen III steps
+n=$counter
+
+!if $counter=1
+    mathview=0
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=6
+    rows=1
+    inputs=1.1
+    rounding=100
+    roundingtext=Geef je antwoord op twee decimalen nauwkeurig
+    # alles vastleggen en antwoorden uitrekenen
+    nu=!date +%Y
+    jaar1=$[$nu-1]
+    bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+    
+    # mo is maand voor obligatie 
+    # mh is maand voor hypotheek
+    maanden=maart,april,mei,juni,juli,augustus,september,oktober
+    mh=!randint 3,9
+    mo=!randint 3,10
+    !if $mh=$mo
+	mh=$[$mh+1]
+    !endif
+    maand_hypotheek=!item $[$mh-2] of $maanden
+    maand_obligatie=!item $[$mo-2] of $maanden
+
+    ###### ACTIVA #########
+    # KOPIE VAN exo10 !!!
+    # afschrijving gebouwen
+    gebouw2=!randint 25,60
+    factor=!randint 70,90
+    gebouw1=$[round($factor/100*$gebouw2)]
+    gebouw1=$[100*$gebouw1]
+    gebouw2=$[100*$gebouw2]
+
+    # afschrijving machines
+    machine1=!randint 10,30
+    factor=!randint 85,95
+    machine2=$[round($factor/100*$machine1)]
+    machine1=$[100*$machine1]
+    machine2=$[100*$machine2]
+
+    # voorraad
+    voorraad1=!randint 10,20
+    voorraad2=!randint 10,20
+    voorraad1=$[$voorraad1*50]
+    voorraad2=$[$voorraad2*50]
+    !if $voorraad2<=$voorraad1
+	voorraad2=$[$voorraad1+50]
+    !endif
+
+    # debiteuren
+    debiteuren1=!randint 6,20
+    debiteuren2=!randint 6,20
+    debiteuren1=$[$debiteuren1*50]
+    debiteuren2=$[$debiteuren2*50]
+    !if $debiteuren2=$debiteuren1
+	debiteuren2=$[$debiteuren2+50]
+    !endif
+
+    # vooruitbetaalde bedragen
+    vooruitbetaald1=!randint 5,20
+    vooruitbetaald2=!randint 5,20
+    vooruitbetaald1=$[$vooruitbetaald1*10]
+    vooruitbetaald2=$[$vooruitbetaald2*10]
+    !if $vooruitbetaald2=$vooruitbetaald1
+	vooruitbetaald2=$[$vooruitbetaald2+10]
+    !endif
+
+    # liquide middelen
+    liquide1=!randint 10,40
+    liquide2=!randint 10,40
+    liquide1=$[$liquide1*10]
+    liquide2=$[$liquide2*10]
+    !if $liquide2=$liquide1
+	liquide2=$[$liquide2+10]
+    !endif
+    Atotaal1=$[$gebouw1 + $machine1 + $voorraad1 + $debiteuren1 + $vooruitbetaald1 + $liquide1]
+    Atotaal2=$[$gebouw2 + $machine2 + $voorraad2 + $debiteuren2 + $vooruitbetaald2 + $liquide2]
+    activa1=$gebouw1,$machine1,$voorraad1,$debiteuren1,$vooruitbetaald1,$liquide1,&nbsp;,&nbsp;,&nbsp;,$Atotaal1
+    activa2=$gebouw2,$machine2,$voorraad2,$debiteuren2,$vooruitbetaald2,$liquide2,&nbsp;,&nbsp;,&nbsp;,$Atotaal2
+    activa=Gebouwen,Machines,Voorraad producten,Debiteuren,Vooruitbetaalde bedragen,Liquide middelen,&nbsp;,&nbsp;,&nbsp;,Totaal
+    ##### PASSIVA #######
+    # algemene reserves
+    reserve1=!randint 10,20
+    reserve2=!randint 10,20
+    reserve1=$[$reserve1*50]
+    reserve2=$[$reserve2*50]
+    !if $reserve2=$reserve1
+	reserve2=$[$reserve2+50]
+    !endif
+
+    # voorziening
+    voorziening1=!randint 3,10
+    factor=!randint 40,60
+    voorziening2=$[round($factor/100*$voorziening1)]
+    voorziening1=$[$voorziening1*100]
+    voorziening2=$[$voorziening2*100]
+
+    # hypotheek
+    hypotheek1=!randint 5,10
+    hypotheek2=!randint 5,10
+    hypotheek1=$[$hypotheek1*50]
+    hypotheek2=$[$hypotheek2*50]
+    !if $hypotheek2<=$hypotheek1
+	plus=!randint 5,9
+	hypotheek2=$[$hypotheek1+($plus*10)]
+    !endif
+    hypotheek_lening=$[$hypotheek1*($mh - 1)/12 + $hypotheek2*(12 - $mh + 1)/12] 
+
+    # obligatie
+    obligatie1=!randint 10,15
+    obligatie2=!randint 10,15
+    obligatie1=$[$obligatie1*50]
+    obligatie2=$[$obligatie2*50]
+    !if $obligatie2=$obligatie1
+	obligatie2=$[$obligatie2+50]
+    !endif
+    obligatie_lening=$[$obligatie1*($mo - 1)/12 + $obligatie2*(12 - $mo + 1)/12] 
+
+    # crediteuren
+    crediteuren1=!randint 5,10
+    crediteuren2=!randint 5,10
+    crediteuren1=$[$crediteuren1*50]
+    crediteuren2=$[$crediteuren2*50]
+    !if $crediteuren2=$crediteuren1
+	crediteuren2=$[$crediteuren2+50]
+    !endif
+
+    subPtotaal1=$[$reserve1 + $voorziening1 + $hypotheek1 + $obligatie1 + $crediteuren1]
+    aandelenvermogen1=$[$Atotaal1 - $subPtotaal1]
+    Ptotaal1=$[$aandelenvermogen1 + $reserve1 + $voorziening1 + $hypotheek1 + $obligatie1 + $crediteuren1]
+    # winst
+    winst1=&nbsp;
+    winst2=!randint 25,55
+    winst2=$[10*$winst2]
+
+    subPtotaal2=$[ $reserve2 + $voorziening2 + $hypotheek2 + $obligatie2 + $crediteuren2 + $winst2]
+    aandelenvermogen2=$[$Atotaal2 - $subPtotaal2]
+    Ptotaal2=$[$aandelenvermogen2 + $reserve2 + $voorziening2 + $hypotheek2 + $obligatie2 + $crediteuren2 + $winst2]
+    passiva2=$aandelenvermogen2,$reserve2,$voorziening2,$hypotheek2,$obligatie2,$crediteuren2,$winst2,&nbsp;,&nbsp;,$Ptotaal2
+    passiva1=$aandelenvermogen1,$reserve1,$voorziening1,$hypotheek1,$obligatie1,$crediteuren1,$winst1,&nbsp;,&nbsp;,$Ptotaal1
+    passiva=Geplaatst aandelenvermogen,Algemene reserves,Voorzieningen,6% Hypothecaire lening,5% Obligatielening,Crediteuren,Nettowinst na belasting,&nbsp;,&nbsp;,Totaal
+
+    sometext=Balans per 31 december $jaar1 (bedragen &times; duizend euro)
+    tabel=$sometext<br /><table class=\'balans_3\'><tr><th>Activa</th><th>1 jan</th><th>31 dec</th><th>Passiva</th><th>1 jan</th><th>31 dec</th></tr>
+
+    !for p=1 to 10
+	ac=!item $p of $activa
+        pc=!item $p of $passiva
+        a1=!item $p of $activa1
+	a2=!item $p of $activa2
+        p1=!item $p of $passiva1
+	p2=!item $p of $passiva2
+	tabel=!append word $ <tr><td>$ac</td><td>$a1</td><td>$a2</td><td>$pc</td><td>$p1</td><td>$p2</td></tr> $ to $tabel 
+    !next p
+    tabel=!append word </table> to $tabel
+
+    k=!randint 1,2
+    datums = 1 januari $jaar1,31 december $jaar1
+    datum=!item $k of $datums
+    ss0=Aan de jaarrekening van <kbd>$bedrijf</kbd> zijn de <span class="schaersvoorde_link">volgende balansen</span> van <br />respectievelijk het begin en het eind van het boekjaar gegeven.
+
+    ss1=De bedragen van het eigen vermogen kunnen als gemiddelden worden beschouwd voor $jaar1.<br />Bereken met behulp van de balans de rentabiliteit van het eigen vermogen.<br /><small>$roundingtext</small>
+    
+    delta_hypotheek=$[1000*($hypotheek2-$hypotheek1)]
+    leverancierskrediet=!randint 10,30
+    # crediteuren1=250 - 500 duizend euro
+    leverancierskrediet=$[($crediteuren1*$leverancierskrediet)]
+    # lc is in 1000-tallen
+    lc=$[$leverancierskrediet/1000]
+    
+    ss2=Van de hypotheek is bekend dat de schuld op 1 $maand_hypotheek is aangepast met &euro;  $delta_hypotheek .<br />De aflossing op de obligatielening heeft op 1 $maand_obligatie plaats gevonden.<br />Van de overige posten van het vreemd vermogen mag worden verondersteld dat de spreiding<br />gelijkmatig over het jaar heeft plaatsgevonden.<br />De kosten van het leverancierskrediet bedroegen in $jaar1 &euro; $leverancierskrediet.<br />Bereken met behulp van de balans het interestpercentage van het gemiddeld vreemd vermogen.<br /><small>$roundingtext</small>
+    
+    ss3=De vennootschapsbelasting bedroeg 25% .<br />Bereken met behulp van de balans de rentabiliteit van het totale vermogen.<br /><small>$roundingtext</small>
+    
+# let op in 1000-tallen
+    gemiddeld_eigenvermogen=$[($aandelenvermogen1 + $reserve1 + $aandelenvermogen2 + $winst2 +$reserve2)/2]
+    gemiddeld_vreemdvermogen=$[$obligatie_lening + $hypotheek_lening + ($voorziening1+$voorziening2)/2 + ($crediteuren1+$crediteuren2)/2]
+    interestkosten_vreemdvermogen=$[0.05*$obligatie_lening + 0.06*$hypotheek_lening + $lc] 
+    vennootschapsbelasting=0.25
+    netwinst=$[($winst2/(1 - $vennootschapsbelasting))]
+    vz=$[($voorziening1 + $voorziening2)/2]
+    cz=$[($crediteuren1 + $crediteuren2)/2]
+
+    answer1=$[100*$winst2/$gemiddeld_eigenvermogen]
+    answer2=$[100*$interestkosten_vreemdvermogen/$gemiddeld_vreemdvermogen]
+    answer3=$[100*($netwinst + $interestkosten_vreemdvermogen)/($gemiddeld_eigenvermogen + $gemiddeld_vreemdvermogen)]
+    var2=100*$winst2/$gemiddeld_eigenvermogen,100*$interestkosten_vreemdvermogen/$gemiddeld_vreemdvermogen
+    
+    ans1=$[(round($answer1*100))/100]
+    ans2=$[(round($answer2*100))/100]
+    ans3=$[(round($answer3*100))/100]
+    
+    texanswer1=\left[ \begin{array}{l} \textrm{REV} = \frac{\textrm{ nettowinst (na belasting)}}{\textrm{eigen vermogen}} \times 100 \% \\ \textrm{Gemiddeld eigen vermogen} = \frac{ \textrm{aandelenvermogen + reserve + nettowinst}}{2} \\ \textrm{Gemiddeld eigen vermogen} = \frac{$aandelenvermogen1 + $reserve1 + 0 + $aandelenvermogen2 + $reserve2 + $winst2}{2} = $gemiddeld_eigenvermogen \\ \textrm{REV :} \frac{$winst2}{$gemiddeld_eigenvermogen} \times 100 \% = $answer1 \% \simeq $ans1 \%  \\ \\ \textrm{let op: alle bedragen zijn in duizenden euro's} \end{array}\right.
+
+    texanswer2=\left[ \begin{array}{l} \textrm{IVV} = \frac{\textrm{ interestkosten vreemd vermogen}}{\textrm{ gemiddeld vreemd vermogen }} \times 100 \% \\ \\ \textrm{Gemiddeld vreemd vermogen :} \\ \textrm{Obligatielening} = $obligatie1\times \frac{$[($mo - 1)]}{12} + $obligatie2 \times \frac{$[(12 - $mo + 1)]}{12} = $obligatie_lening \\ \textrm{Hypotheek} = $hypotheek1\times \frac{$[($mh - 1)]}{12} + $hypotheek2 \times \frac{$[(12 - $mh + 1)]}{12} = $hypotheek_lening \\ \textrm{Voorzieningen} = \frac{$voorziening1 + $voorziening2 }{2} = $vz \\ \textrm{Crediteuren} = \frac{$crediteuren1 + $crediteuren2 }{2} = $cz \\ \textrm{Gemiddeld vreemd vermogen } =  $obligatie_lening + $hypotheek_lening + $vz + $cz  = $gemiddeld_vreemdvermogen \\ \\ \textrm{Interestkosten vreemd vermogen :} \\ \textrm{Obligatielening :} 0.05 \times $obligatie_lening = $[0.05*$obligatie_lening] \\ \textrm{Hypotheek :} 0.06 \times $hypotheek_lening  = $[0.06*$hypotheek_lening] \\ \textrm{Leverancierskrediet :} $lc \\ \textrm{Interestkosten vreemd vermogen }= $[0.05*$obligatie_lening] + $[0.06*$hypotheek_lening] + $lc = $interestkosten_vreemdvermogen \\ \\ \textrm{IVV} = \frac{$interestkosten_vreemdvermogen}{$gemiddeld_vreemdvermogen} \times 100 \% = $answer2 \% \simeq $ans2 \%  \\ \\ \textrm{let op: alle bedragen zijn in duizenden euro's}  \end{array}\right.
+    
+    texanswer3=\left[ \begin{array}{l} \textrm{Rentabiliteit totaal vermogen (RTV) } = \frac{\textrm{nettowinst voor belasting + interestkosten}}{\textrm{gemiddeld totaal vermogen}}  \times 100 \% \\ \\  \textrm{Netto winst voor belasting} = 100\% \times \frac{$winst2}{100 - 25}  =  \frac{$winst2}{0.75} = $netwinst \\ \\ \textrm{RTV} = \frac{ $netwinst + $interestkosten_vreemdvermogen }{$gemiddeld_eigenvermogen + $gemiddeld_vreemdvermogen}\times 100 \% = $answer3 \% \simeq $ans3 \%  \\ \\ \textrm{let op: alle bedragen zijn in duizenden euro's} \end{array}\right.
+
+    var3=Rentabiliteit van het eigen vermogen, Interestpercentage van het gemiddeld vreemd vermogen,Rentabiliteit van het totale vermogen
+    ex1=%
+    helptext=<img src=\'$module_dir/gifs/exo12.jpg\' alt=\'formule\' />
+    question1=<a onmouseover="return escape('<table><tr><td>$tabel</td><td>$helptext</td></tr></table>')">$ss0 <br />$ss1</a>
+    question2=<a onmouseover="return escape('<table><tr><td>$tabel</td><td>$helptext</td></tr></table>')">$ss0 <br />$ss2</a>
+    question3=<a onmouseover="return escape('<table><tr><td>$tabel</td><td>$helptext</td></tr></table>')">$ss0 <br />$ss3</a>
+!endif
+description=$(var3[$counter])
+!if $counter=2
+    prev=!item 1 of $var3
+    ans=!item 1 of $var2
+    exotext=<span style="color:green">Het correcte antwoord:<br />1) $prev : $ans = $answer1</span> 
+!else
+    !if $counter=3
+    prev=!item 2 of $var3
+    ans=!item 2 of $var2
+    exotext=!append line $ <br /><span style="color:green">2) $prev : $ans = $answer2</span> $ to $exotext 
+    !endif
+!endif
+
+#formula$n=\begin{array}{l}\textrm{REV} = \frac{\textrm{nettowinst na belasting}}{\textrm{gemiddeld EV}}\times 100 \% \end{array}
+#formula$n=\begin{array}{l}\textrm{IVV} = \frac{\textrm{interestkosten (gemiddeld) vreemd vermogen}}{\textrm{gemiddeld vreemd vermogen}}\times 100 \% \end{array}
+#formula$n=\begin{array}{l}\textrm{RTV} = \frac{\textrm{nettowinst voor belasting}+\textrm{interestkosten}}{\textrm{gemiddeld totaal vermogen}}\times 100 \% \end{array}
+
+#formula$n=\size[10] \begin{array}{l} \begin{array}{l}\textrm{REV} = \frac{\textrm{nettowinst na belasting}}{\textrm{gemiddeld EV}}\times 100 \% \end{array} \\ \begin{array}{l}\textrm{IVV} = \frac{\textrm{interestkosten (gemiddeld) vreemd vermogen}}{\textrm{gemiddeld vreemd vermogen}}\times 100 \% \end{array} \\ \begin{array}{l}\textrm{RTV} = \frac{\textrm{nettowinst voor belasting}+\textrm{interestkosten}}{\textrm{gemiddeld totaal vermogen}}\times 100 \% \end{array} \end{array}
+
+
+

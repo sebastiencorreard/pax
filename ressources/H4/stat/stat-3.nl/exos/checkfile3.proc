@@ -1,0 +1,251 @@
+n=$counter
+goback=0
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+# 0.8, 0.8,0.2 \n W,V  \n 0.8,0.2,0.8,0.2 \n W,V,W:V
+# item 1 is answer to the question
+# item 2 to -1 is applet probability tree
+
+#		p=0.1	p=0.9
+#		a	b
+#	p=0.1	p=0.9	p=0.1	p=0.9
+#   c		d	e		f
+
+org1=!item 1 of $(reply$n)
+a2=!item 2 to -1 of $(reply$n)
+
+g11=!item 1 of $(answer$n)
+g2=!item 2 to -1 of $(answer$n)
+
+a11=!replace [a-z\\~\!\@\#\$\%\_\=\+\%\,\"\:\;] by $empty in $org1
+!if NaN isin  $[1*($a11)]
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    #@ Je antwoord $a1 kan ik niet nakijken<br />Graag verbeteren...
+    goback=1
+    maxscore=$[$P4*$maxscore] 
+!endif
+
+rnd1=$rounding
+rnd2=$[$rounding/10]
+a1=$[ (round($a11*$rnd1))/$rnd1]
+a11=$[ (round($a11*$rnd2))/$rnd2]
+g1=$[ (round($g11*$rnd1))/$rnd1]
+a11=$[ (round($g11*$rnd2))/$rnd2]
+
+
+score1=0
+score2=0
+rep1=$empty
+!ifval $a1 = $g1
+    score1=1
+    k=green
+!else
+    !ifval $a11 = $g11
+	score1=$P3
+	extra=!record 155 of lang/remarks.$taal
+	#@Dat is niet al te nauwkeurig...
+	k=orange
+    !else
+	!ifval $[$a1/100] = $g1
+	    extra=!record 149 of lang/remarks.$taal
+	    #@<br />Je hebt je antwoord in procenten gegeven...<br />Maar een kans is een getal tussen 0 en 1 !!
+	    score1=$P2
+	    k=orange
+	!else
+	    !ifval $[$a11/100] = $g11
+		extra=!record 150 of lang/remarks.$taal
+		#@ <br />Erg onnauwkeuring...en bovendien heb je een antwoord in procenten gegeven...<br />Maar een kans is een getal tussen 0 en 1 !!
+	        score1=$P4
+		k=orange
+	    !else
+		!ifval $a1>1
+		    extra= ....pfff ?
+		!endif
+		k=red
+	    !endif
+	!endif
+    !endif
+!endif
+rep1=!append line <span style="color:$k">$org1<font>$extra to $rep1
+
+extra=$empty
+# remove all p=0.123,chance=0.234 etc from the answer
+a2=!replace [a-zA-Z]*= by $empty in $a2
+a2=!lower $a2
+g2=!lower $g2
+
+lines_a2=!linecnt $a2
+lines_g2=!linecnt $g2
+!if $lines_a2 < $lines_g2
+    extra=!record 151 of lang/remarks.$taal
+    #@je komt $[$lines_g2 - $lines_a2] regel(s) te kort in je diagram...
+    maxscore=$[$maxscore*$lines_a2/$lines_g2]
+!endif
+
+Atmp1=$empty
+Atmp2=$empty
+Gtmp1=$empty
+Gtmp2=$empty
+
+!for p=1 to $[$lines_g2 - 1] step 2
+    ll=!line $p of $g2
+    Gtmp1=!append line $ll to $Gtmp1
+    ll=!line $[$p+1] of $g2
+    Gtmp2=!append line $ll to $Gtmp2
+!next p
+tg1=!linecnt $Gtmp1
+
+!if $lines_a2 > $lines_g2 
+    # check for empty lines
+    !for p=1 to $[$lines_a2 - 1] step 2
+	ll=!line $p of $a2
+	!if $ll != $empty
+	    Atmp1=!append line $ll to $Atmp1
+	!endif
+	ll=!line $[$p+1] of $a2
+	!if $ll != $empty
+	    Atmp2=!append line $ll to $Atmp2
+	!endif
+    !next p
+!else
+    !for p=1 to $[$lines_a2-1] step 2
+	ll=!line $p of $a2
+	Atmp1=!append line $ll to $Atmp1
+	ll=!line $[$p+1] of $a2
+	Atmp2=!append line $ll to $Atmp2
+    !next p
+!endif
+ta1=!linecnt $Atmp1
+ta2=!linecnt $Atmp2
+!if $ta1 != $ta2
+    extra=!record 152 of lang/remarks.$taal
+    #@je bent een onderdeeltje (een getal of een letter ? )vergeten aan je kans-boom... 
+!endif
+!if $ta1 != $tg1
+    !if $ta1 > $tg1
+	ex=!record 153 of lang/remarks.$taal
+	#@je hebt er wat takken ($[$ta1-$tg1] ) bij bedacht?
+	maxscore=$[$maxscore*$tg1/$ta1]
+    !else
+	ex=!record 154 of lang/remarks.$taal
+	#@je bent wat ($[$tg1-$ta1] )takken vergeten...
+	maxscore=$[$maxscore*$ta1/$tg1]
+    !endif
+    extra=!append line $ <br />$ex $ to $extra
+!endif
+
+
+score2=0
+rep2=$empty
+total_checks=0
+checked=0
+# als alles goed is, Gtmp1 zijn getallen Gtmp2 zijn letters/.
+could_not_find=!record 156 of lang/remarks.$taal
+#@ Deze kon ik niet vinden in je kansboom:
+
+sum_cijfers_a=0
+Atmp1=!lower $Atmp1
+Atmp1=!replace [a-z\~\!\@\#\$\%\&\_\|\=\"\'\:\;\{\}] by $empty in $Atmp1
+# need to do: check if Atmp1 is really numbers
+# Atmp1 = cijfers ??
+# Atmp2 = letters 
+!for p=1 to $tg1
+    gg1=!line $p of $Gtmp1
+    gg2=!line $p of $Gtmp2
+    aa1=!line $p of $Atmp1
+    aa2=!line $p of $Atmp2
+    !if $aa1 != $empty
+	gt=!itemcnt $gg1
+	at=!itemcnt $aa1
+	!for z=1 to $at
+	    ci=!item $z of $aa1
+	    sum_cijfers_a$p=$[$(sum_cijfers_a$p) + $ci]
+	!next z
+	checked=$empty
+	!if $at = $gt
+	    !for s=1 to $gt
+		found=0
+		!increase total_checks
+		cijfer_g=!item $s of $gg1
+		cijfer_g1=$[(round($rnd1*$cijfer_g))/$rnd1]
+		cijfer_g2=$[(round($rnd2*$cijfer_g))/$rnd2]
+		letter_g=!item $s of $gg2
+		!for r=1 to $at
+		    !if $found=0
+			!if $r notin $checked
+			    cijfer_a=!item $r of $aa1  
+			    cijfer_a1=$[(round($rnd1*$cijfer_a))/$rnd1]
+			    cijfer_a2=$[(round($rnd2*$cijfer_a))/$rnd2]
+		    	    letter_a=!item $r of $aa2
+			    !ifval ($cijfer_g1 = $cijfer_a1)
+				!if $letter_g = $letter_a
+				    !increase score2
+			    	    found=1
+				    rep2=!append line <span style="color:green">$letter_a : $cijfer_a1</span><br /> to $rep2
+				    checked=!append item $r to $checked
+				!endif
+			    !else
+				!ifval  ($cijfer_g1 = $cijfer_a1)
+				    !if $letter_g = $letter_a
+					score2=$[$score2 + 0.7]
+			    		found=1
+					rep2=!append line <span style="color:orange">$letter_a : $cijfer_a2</span><br /> to $rep2
+					checked=!append item $r to $checked
+				    !endif
+				!endif
+			    !endif
+			!endif
+		    !endif
+		!next r
+		!if $found=0
+		    rep2=!append line <span style="color:red">$could_not_find</span> <span style="color:blue"><b>$letter_g : $cijfer_g</b></span><br /> to $rep2
+		!endif
+	    !next s
+	!else
+	    rep2=!append line <span style="color:red"> ----?---- </span><br /> to $rep2
+	    # wat te zeggen
+	!endif
+    !endif
+    rep=!append line <br /> to $rep
+!next p
+
+!if $total_check=0
+    score2=0
+!else
+    score2=$[$score2/$total_checks]
+!endif
+ex=$empty
+!for s=1 to $tg1
+    !if $(sum_cijfers_a$s) != $empty
+	!if $[round($(sum_cijfers_a$s))] != 1
+	    ex=!append line $ <b>P</b><sub>$s</sub>  = $(sum_cijfers_a$s) ... <br /> $ to $ex
+	!endif
+    !endif
+!next p
+extra=!append line $ <br />$ex $ to $extra
+
+maxscore=$[$maxscore*($score1 + 2*$score2)/3]
+modulescore=$[$modulescore + $maxscore]
+
+reply$n=<ul> <li>$rep1</li><li>$rep2</li></ul><small><kbd>$(reply$n)</kbd></small>
+math=0
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore > 0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=!append line $ <br />$extra $ to $(remark$n)
+!endif
+goback=0
+!exit
+

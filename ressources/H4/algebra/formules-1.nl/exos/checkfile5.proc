@@ -1,0 +1,101 @@
+# speciaal voor exo10 : antwoord zijn coordinaten is iets als (5+3*c:1-2*c)
+# answer$n=3*c+5,5*c-4
+n=$counter
+extra=$empty
+goback=0
+errortext=$empty
+!if ? isin $(reply$n)
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+!if c notin $AAA
+ testvar=c
+ errortext=!record 32 of $remarkdir/commonremarks.$taal
+ #@ Je bent de variabele "<b>$testvar</b>" vergeten te gebruiken.<br />Even aanvullen.
+ goback=1
+ # heavy pentalty...
+ maxscore=$[$P3*$maxscore]
+ goback=1
+ !exit
+!endif
+test=!replace internal ( by @ in $AAA
+test=!replace internal ; by @ in $test
+test=!replace internal : by @ in $test
+!if @ notin $test
+ errortext=!record 22 of lang/remarks.$taal
+ #@Je moet coordinaten schrijven als (X:Y)
+ maxscore=$[$P1*$maxscore]
+ goback=1
+ !exit
+!endif
+
+AAA=!replace internal ( by $empty in $AAA
+AAA=!replace internal ) by $empty in $AAA
+AAA=!replace internal : by , in $AAA
+AAA=!replace internal ; by , in $AAA
+test=!itemcnt $AAA
+!if $test != 2
+ errortext=!record 23 of lang/remarks.$taal
+ #@ik verwacht hier &eacute;&eacute;n antwoord...iets als <b>( 3+c : 6-2*c )</b>
+ maxscore=$[$P4*$maxscore]
+ goback=1
+ !exit
+!endif
+wims_rawmath_variables=c
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+A1=!rawmath $A1
+A2=!rawmath $A2
+G1=!item 1 of $(answer$n)
+G2=!item 2 of $(answer$n)
+
+A1=!evalsubst c=10 in $A1
+A2=!evalsubst c=10 in $A2
+G1=!evalsubst c=10 in $G1
+G2=!evalsubst c=10 in $G2
+!if $A1=$G1 and $A2=$G2
+    score=1
+    extra=$empty
+!else
+    !if $A1=$G1 or $A2=$G2
+	extra=!record 24 of lang/remarks.$taal
+	#@slechts &eacute;&eacute;n co&ouml;rdinaat is correct...
+	score=0.5
+    !else
+	!if $A2=$G1 and $A1=$G2
+	    extra=!record 25 of lang/remarks.$taal
+	    #@Je hebt de coordinaten verwisseld...
+	    score=0.5
+	!else
+	    !if $A2=$G1 or $A2=$G1
+		extra=!record 26 of lang/remarks.$taal
+		#@Hmmm...Je hebt de coordinaten verwisseld...? en slechts &eacute;&eacute;ntje is correct...
+		score=0.2
+	    !else
+		score=0
+	    !endif
+	!endif
+    !endif
+!endif
+	
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK $extra
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK $extra
+    !else
+	remark$n=$NOK $extra
+    !endif
+!endif
+goback=0
+!exit
+
+

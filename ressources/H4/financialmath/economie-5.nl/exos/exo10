@@ -1,0 +1,44 @@
+#Inkomsten omwerken tot baten I
+
+n=$counter
+viewlogo=1
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/vereniging$g.jpg" alt="vereniging"/>
+logotext=<img src=\'$module_dir/gifs/vereniging$g.jpg\' alt=\'vereniging\'/>
+mathview=0
+make_tr=1
+inputs=1.1
+total_exos=1
+checkfile=exos/precheck1.proc
+rounding=1
+roundingtext=Geef je antwoord in hele &euro;&rsquo;s
+volgendjaar=!date +%Y
+nu=$[$volgendjaar - 1]
+toen=$[$volgendjaar - 2]
+leden=!randint 100,400
+contributie=!randint 15,35
+vijf=!randitem 0,5
+contributie= $[10*$contributie + $vijf]
+
+telaat=!randint 2,15
+nogniet=!randint 2,15
+optijd=$[$leden - $nogniet]
+vooruit=!randint 2,15
+betalingen=$[$optijd + $vooruit + $telaat]
+
+vereniging=!randitem Helios,A.Z.S.W,AD$toen,Ons Genoegen,De Harmonie,Eigen Haard
+
+ss=Vereniging <kbd>$vereniging</kbd> heeft al jaren een constant ledental.<br />De contributie bedraagt &euro; $contributie per lid per jaar.<br />In het jaar $nu ontving <kbd>$vereniging</kbd> $betalingen betalingen in verband met contributies.<br />Van deze $betalingen betalingen, betaalden $telaat leden voor $toen ,<br />$optijd  leden betaalden voor $nu en $nogniet leden betaalden nog niet voor $nu .<br />In totaal betaalden $vooruit leden al voor $volgendjaar.<br />Bereken de contributiebaten voor het jaar $nu.
+
+ans1=$[$betalingen*$contributie]
+ans2=$[($telaat + $vooruit)*$contributie]
+ans3=$[$nogniet*$contributie]
+answer$n=$[$ans1 - $ans2 + $ans3]
+question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+description=Contributiebaten voor $nu
+ex1=&euro;
+
+textanswer$n=<table class="default_table"><tr><td>Contributie inkomsten $nu</td><td style="text-align:center">$betalingen &times; &euro; $contributie</td><td style="text-align:right">&euro; $ans1</td></tr><tr><td>Achterstallige contributie $toen<br />en/of<br />vooruit ontvangen $volgendjaar </td><td style="text-align:center">($telaat + $vooruit)&times; &euro; $contributie</td><td style="text-align:right">&minus; &euro; $ans2</td></tr><tr><td>Nog te ontvangen contributie $nu</td><td style="text-align:center">$nogniet &times; &euro; $contributie</td><td style="text-align:right">&euro; $ans3</td></tr><tr><td><hr /></td><td style="text-align:center"><hr /></td><td style="text-align:right"><hr /></td></tr><tr><td>Contributie baten $nu</td><td style="text-align:center">&nbsp;</td><td style="text-align:right">&euro; $(answer$n)</td></tr></table><br /><b>ofwel</b> : De contributie baten $nu  voor <kbd>$vereniging</kbd> zijn : <br />$ans1 &minus; $ans2 + $ans3 = &euro; $(answer$n)
+
+helptext=$roundingtext
+!exit

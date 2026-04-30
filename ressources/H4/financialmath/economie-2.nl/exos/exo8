@@ -1,0 +1,74 @@
+# liquiditeitsbegroting &amp; resultatenrekening III
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+
+nu=!date +%Y
+jaar1=$[$nu-2]
+jaar2=$[$nu-1]
+# 7/6/2013 : btw is variabele $btw
+btw=21
+bank=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+maanden=Januari,Februari,Maart,April,Mei,Juni,Juli,Augustus,September,Oktober,November,December
+rounding=100
+roundingtext=Geef je antwoord op twee decimalen afgerond.
+checkfile=exos/precheck1.proc
+
+inperc=!randitem 70,80,90
+uitperc=$[$inperc - 10]
+bruto=!randint 20,40
+
+max=!randint 6,9
+begin=!randint 6,10
+jaar=$jaar1
+tabel=<table class=\'zebra_table_h2\'><tr><th>Datum</th><th>Inkopen</th><th>Verkopen</th><tr>
+!for p=1 to $max
+    mnd=$[$begin+$p]
+    !if $mnd>12
+	mnd=$[$mnd-12]
+	jaar=$jaar2
+    !endif
+    maand$p=!item $mnd of $maanden
+    in$p=!randint 50,80
+    in$p=$[100*(round($(in$p)*$mnd))]
+    f=!randint 125,150
+    f=$[$f/100]
+    uit$p=$[100*(round($f*$(in$p)/100))]
+    tabel=!append word $ <tr><td><b>$(maand$p) $jaar</b></td><td>&euro; $(in$p)</td><td >&euro; $(uit$p)</td></tr> $ to $tabel 
+!next p
+tabel=!append word $ </table> $ to $tabel
+
+ss=Bij $bank wordt aan debiteuren &eacute;&eacute;n maand krediet verstrekt.<br />Van crediteuren wordt twee maanden krediet genoten.<br />De brutowinst bedraagt $bruto % van de inkoopwaarde van de omzet.<br />De inkopen vinden voor $inperc % op rekening plaats, de verkopen vinden voor $uitperc % op rekening plaats.<br />Voor het opstellen van een liquiditeitsbegroting worden de <span class="schaersvoorde_link">deze gegevens</span> verstrekt<br />(incl. $btw % btw)
+ 
+!if $R=1
+    i=!randint 1,$max
+    ex=Bereken de omzet van $bank (excl. btw) over de maand $(maand$i)
+    description=Omzet in $(maand$i)
+    answer$n=$[100*$(uit$i)/(100+$btw)]
+    textanswer$n=De omzet &euro; $(uit$i) is inclusief btw van $btw %.<br />Dus de omzet exclusief btw is: 100 &times; $(uit$i) &divide; $[100+$btw]  = &euro; $[(round(100*$(answer$n)))/100]
+!else
+    !if $R=2
+	i=!randint 2,$max
+	w=$[$i-1]
+	ex=Bereken het bedrag dat $bank ontvangt van debiteuren in $(maand$i).
+	description=Ontvangen in $(maand$i)
+	answer$n=$[($uitperc/100)*$(uit$w)]
+	textanswer$n=De gehanteerde krediettermijn van $bank is 1 maand.<br />De verkoop in $(maand$w) was &euro; $(uit$w).<br />Dus $[$uitperc/100] &times; $(uit$w) = &euro; $(answer$n)
+    !else
+	i=!randint 3,$max
+	w=$[$i-2]
+	ex=Bereken het bedrag dat $bank aan crediteuren betaald in de maand $(maand$i).
+	description=Betaald in $(maand$i)
+	answer$n=$[($inperc/100)*$(in$w)]
+	textanswer$n=De gehanteerde krediettermijn voor $bank is 2 maanden.<br />De inkoop in $(maand$w) bedroeg &euro; $(in$w).<br />Dus $[$inperc/100] &times; $(in$w) = &euro; $(answer$n)
+    !endif
+!endif
+ex1=&euro;
+make_tr=1
+inputs=1.1
+helptext=$tabel
+question$n=<a onmouseover="return escape('$helptext')">$ss<br />$ex</a>

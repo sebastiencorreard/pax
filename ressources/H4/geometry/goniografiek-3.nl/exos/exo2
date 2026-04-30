@@ -1,0 +1,150 @@
+# exo2 zonder applet
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=0
+# veroorszaakt <tr>
+make_tr=0
+cols=10
+rows=2
+# voorlopig ?
+checkfile=$checkdir/number.proc
+# volgorde is van belang
+var1=yes
+
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+
+sometxt=!record 3 of lang/remarks.$taal
+#@balanslijn,x-as,y-as,Gegeven de functie:,Bepaal ,Amplitude , Frequentie , Evenwichtlijn,Periode,Met de rechter muisknop kun je het canvas van de applet bewegen
+#@!balance line,x-axis,y-axis 
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+Gegeven=!item 4 of $sometxt
+Bepaal=!item 5 of $sometxt
+Amplitude=!item 6 of $sometxt
+Frequentie=!item 7 of $sometxt
+Evenwichtslijn=!item 8 of $sometxt
+Periode=!item 9 of $sometxt
+hlptxt=!item 10 of $sometxt
+xsize=480
+ysize=320
+gonio=!randitem sin,cos
+
+!if $R=1
+    b=!randitem -3,-2.5,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3
+    C=2/3,1/5,1/4,1/3,2/5,1/2,1,3/2,2,12/5,3,4
+    D=3*pi,10*pi,8*pi,6*pi,5*pi,4*pi,2*pi,4*pi/3,pi,5*pi/6,2*pi/3,pi/2
+    d=1,1,1,1,1,1,0,0,0,0,0,0,0
+    p=!itemcnt $C
+    q=!randint 1,$p
+    c=!item $q of $C
+    periode=!item $q of $D
+    # dc : voor canvas x-as verdeling
+    dc=!item $q of $d
+    !if $dc=0
+xas_tekst=xaxis -3.5*pi:7\u03c5/2:-3*pi:-3\u03c5:-2.5*pi:-5\u03c5/2:-2*pi:-2\u03c5:-1.5*pi:-3\u03c5/2:-1*pi:-\u03c5:-0.5*pi:-\u03c0/2:-pi/6:-\u03c0/6:0:0:pi/6:\u03c0/6:0.5*pi:\u03c0/2:pi:\u03c0:1.5*pi:3\u03c0/2:2*pi:2\u03c0:2.5*pi:5\u03c0/2:3*pi:3\u03c0:3.5*pi:7\u03c0/2:4*pi:4\u03c0\
+grid pi,1,gold,6,2,8,grey
+
+    !else
+xas_tekst=xaxis -10*pi:-10\u03c5:-9*pi:-9\u03c5:-8*pi:-8\u03c5:-7*pi:-7\u03c5:-6*pi:-6\u03c5:-5*pi:-5\u03c5:-4*pi:-4\u03c5:-3*pi:3\u03c5:-2*pi:-2\u03c5:-1*pi:-\u03c05:0:0:pi:\u03c0:2*pi:2\u03c0:3*pi:3\u03c0:4*pi:4\u03c0:5*pi:5\u03c0:6*pi:6\u03c0:7*pi:7\u03c0:8*pi:8\u03c0:9*pi:9\u03c0:10*pi:10\u03c0\
+grid pi,1,gold,6,2,8,grey
+
+    !endif
+    texperiode=!texmath $periode
+    factor=!texmath $c
+    amplitude=$b
+    f=!nospace $b*$gonio($c*x)
+    functie=!texmath $f
+    ss=!record 4 of lang/remarks.$taal
+    #@<span color="blue"Hier</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE1.gif"/></p>Bepaal aan de hand van de grafieken de periode,b en c .
+    xmin=-1
+    xmax=$[round(1.2*$periode)]
+    ymin=$[-2*(abs($b))]
+    ymax=$[2*(abs($b))]
+    inputs=3
+    description=<b>$Periode</b>,<b>b</b>,<b>c</b>
+    answer$n=$periode,$b,$c
+    helptext=<img src=\'$module_dir/gifs/exo2.1.help.jpg\' alt=\'help\'/><br />$hlptxt
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{ b : }\: $amplitude \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array} \right.
+
+!else
+    ###a+bsin(cx)
+    a=!randitem -3,-5/2,-2,-3/2,-1,-1/2,0,1/2,1,3/2,2,5/2,3
+    b=!randitem 1/2,1,3/2,2,5/2,3
+    # P=pi
+    c=!randitem (P/2),(2*P/3),P,2*P,(2*P/5)
+    periode=!exec pari (2*P)/($c)
+    frequentie=!exec pari ($c)/(2*P)
+    periode=!replace internal  P by pi in $periode
+    frequentie=!replace internal P by pi in $frequentie
+    c=!replace internal P by pi in $c
+    factor=!texmath $c
+    texperiode=!texmath $periode
+    evenwicht=$a
+    amplitude=!exec pari abs($b)
+    xmin=-1
+    xmax=$[round(1.5*$periode)]
+    ymin=$[round($a-abs($b))-1]
+    ymax=$[round($a+abs($b))+1]
+    !if $ymax <=0
+	ymax=1
+    !endif
+    !if $ymin >= 0
+	ymin=-1
+    !endif
+    f=!rawmath $a $pm $b*$gonio($c*x)
+    f=!nospace $f
+    functie=!texmath $f
+xas_tekst=grid $[$periode],1,gold,6,2,8,grey
+
+    ss=!record 5 of lang/remarks.$taal
+    #@<span style="color:blue">Hieronder</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafiek de periode, de frequentie, a, de amplitude  en c .
+    inputs=5
+    description=<b>$Periode</b>,<b>$Frequentie</b>,<b>a</b>,<b>$Amplitude</b>,<b>c</b>
+    answer$n=$periode,$frequentie,$a,$amplitude,$c
+    helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\'/><br />$hlptxt
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{$Frequentie : }\: $frequentie \\ \textrm{$Evenwichtslijn  (a) : }\: y = $a \\ \textrm{$Amplitude : }\: $amplitude \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array}
+
+!endif
+
+kliktxt=!record 27 of lang/remarks.$taal
+#@klik <b>hier</b> voor een plaatje&nbsp;(HTML5 canvas)
+data=size $xsize,$ysize\
+precision 100\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+frect -100,100,100,-100,white\
+opacity 150,150\
+axis\
+axisnumbering\
+$xas_tekst\
+linewidth 2\
+curve red,$f\
+mouse red,24\
+zoom grey\
+intooltip <span style='color:blue;'>$kliktxt</span>
+    
+
+plaatje=!exec canvasdraw $data
+helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\' />
+question$n=$ss<br />$plaatje
+!exit

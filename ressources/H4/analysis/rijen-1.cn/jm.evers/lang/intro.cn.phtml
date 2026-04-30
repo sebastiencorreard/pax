@@ -1,0 +1,281 @@
+!! change these for use in common authordir :)
+!set phtmldir=jm.evers/phtml
+!set jsdir=$module_dir/jm.evers/js
+!set gifdir=$module_dir/jm.evers/gifs
+!set max_s=40
+
+!header
+!form new
+!set taal=$lang
+!set s=0
+!for p=1 to 100
+    !set competence=!record $[-1*$p] of lang/remarks.$taal
+    !if $competence=$empty
+    !goto READY
+    !else    
+    !increase s
+    !if # isin $competence
+        !set competence=!replace internal # by $empty in $competence
+        !set selecttext=!append line <option value="$s"></option> to $selecttext
+    !endif
+    !set sum=!append word <li>$competence</li> to $sum
+    !set selecttext=!append line <option value="$s">$competence</option> to $selecttext
+    !endif
+!next p
+:READY
+    <input type=hidden name=module value="$module">
+    <a onmouseover="return escape('$module_title<br>是 <em>SCHAERSVOORDE AALTEN</em> 开发的 WIMS 模块</b><br><img src=$gifdir/schaersvoorde.jpg>')">
+    <hr width="50%">
+    <p align="center">
+        <font color="red">
+        <em>
+            设置
+        </em>
+        </font>
+    </p>
+    <hr width="50%">
+    </a>
+    <p align="center">
+    <table bgcolor=$bgcolor2>
+        <td>
+        <p align="left">
+             <a onmouseover="return escape('<ol>$sum</ol><br>本模块目前有 $s 个不同主题<br>每个主题通常有 4 个难度等级')">
+                哪个 <font color="blue">主题</font> ?
+            </a>
+            <select name="subject">
+            !for p=1 to $s
+                !line $p of $selecttext
+            !next p
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('每个主题可有 4 难度等级<br>默认的为 <em>递增</em>')">
+            哪个 <font color="blue">难度等级</font> :
+            </a>
+            <select name="level">
+                <option value=0>递增</option>
+            <option value=1>容易</option>
+                <option value=2>正常</option>
+                <option value=3>难</option>
+                <option value=4>很难</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('每个练习中得到一个分数可以最多列出 10 个问题')">
+            设置练习的 <font color="blue">问题个数</font>:
+            </a>
+            <input size=10 name="total_exos" value=3>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('回答应该达到怎样的<em>精确度</em>?<br><em>数学精确</em>意为即使用 <em>1.4142</em> 表示 <em>&radic;2</em> 也会扣分<br>默认值是 <em>不指定</em> : 意为由练习决定')">
+            回答的 <font color="blue">精确度</font> ?
+            </a>
+            <select name="rounding">
+            <option value=-1>不指定</option>
+            <option value=0>数学精确</option>
+                <option value=100000>5 位小数</option>
+                    <option value=10000>4 位小数</option>
+            <option value=1000>3 位小数</option>
+                <option value=100>2 位小数</option>
+                <option value=10>1 位小数</option>
+                <option value=1>整数</option>
+            </select>
+        </p>
+        !if $usage=$empty
+        <p align="left">
+            <a onmouseover="return escape('这些给出一些<em>默认设置</em><ul><li><font color=green><b>正式考试</b></font> 严格检查你的回答, 在最后<em>只给出得分</em><li><font color=green><b>模拟考试</b></font> 不那么严格的检查, 最后只给出分数<li><font color=green><b>训练</b></font> 给出所有可用的教学指导以及正确答案, 有时还有其它额外信息<li><font color=red><b>自定义</b></font> 给你一个<em>新的菜单</em>, 其中有<em>所有</em>可用的调节<br>例如数学预览, TeX字体大小 , 图像, 支持, 计算器, 时间限制等等<li><font color=blue><b>打印版</b></font> 给出一个新菜单<br>你可以调整书面的练习<br><em>只含可用于书面的练习: 小工具及插入的问题等都被排除</em> <br><em>重设图像大小</em>, 重新安排练习元素以达到美观的效果 (使用浏览器 DHTML)<br>每一行的问题数受到码长的限制</ul> ')">
+            设置练习的 <font color="blue">用途</font> :
+            </a>
+            <select name="usage">
+            <option value=2> 训练 :) </option>
+            <option value=4> 自定义 </option>
+            <option value=3> 打印版 </option>
+            <option value=1> 模拟考试 </option>
+                <option value=0> 正式考试 </option>
+            </select>
+        </p>
+        !endif
+        <p align="center">
+                <table>
+            <th>
+                <input type="hidden" name="taal" value="$taal">
+                <input style="background-color:lightgreen;font-weight:normal;font-size:14px" type="submit"  value="确认上述设置">
+            </th>
+            </table>
+        </p>
+        </td>
+        !if $usage=3 or $usage=4
+        <input type="hidden" name="usage" value="5">
+        <tr>
+        <td>
+        <hr width="50%">
+        !if devel isin $module_dir
+        <p align="left">
+            自由格式 , 多重选择 , 拖放 ? 
+            <a onmouseover="return escape('此变量可在练习文件内<br>另设或个别设置.<br>不是每个自由格式模块都能通过选取$$questiontype而成为多重选择<br><br>对于某些$$subject, 使用 GeoGebra 的模块将会如此<br>不受你在这里的设置的影响...')">
+            <font color=blue>或 GeoGebra</font>
+            </a>
+            <select name="questiontype">
+            <option value=0>自由格式回答</option>
+                <option value=1>多重选择</option>
+                <option value=2>拖放</option>
+                <option value=3>热点</option>
+            <option value=0></option>
+            <option value=0></option>
+            <option value=0></option>
+                <option value=4>GeoGebra</option>
+                <option value=5>GeoGebra+图像</option>
+                <option value=6>自定义
+            (含有帮助信息)
+            </option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('如果你利用这个模板开发 jm.evers 模块<br>你是否需要本模块使用的变量的一些信息<br>这些信息可通过帮助得到')">
+            帮助页中的 <font color="blue">开发时纠错</font> 信息
+            </a>
+            <select name="debug">
+            <option value=0>否</option>
+            <option value=1>是</option>
+            </select>
+        </p>
+        !endif
+        <p align="left">
+            <a onmouseover="return escape('码长限制最多 100.<br>如果由于语法错误导致练习内的返回数超过此值, <br>得分将是 <b>1</b>')">
+            设置语法错的 <font color="blue">最大返回数</font> :
+            </a>
+            <input size=5 name="maxtry" value=5>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('如果设为是, 将对学生有更多帮助<br>小错误将被返回订正.<br><em>可能</em>会提供某些特殊的帮助页.<br>在可能时还会提供图解.<br>默认<em>是</em>')">
+            对学生的 <font color="blue">训练性支持</font> 
+            </a>
+            <select name="teaching">
+            <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('如果练习有可用的图形或函数图像, 是否需要显示它?<br>默认<b>是</b>')">
+            显示 <font color="blue">图形</font> ?
+            </a>
+            <select name="image">
+                <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        !if $usage=3
+            <input type="hidden" name="printexo" value="1">
+        !endif
+        !if $usage=4
+        <p align="left">
+            <a onmouseover="return escape('这个变量可在练习时修改, 还有一个码长限制...')">
+            在多重选择, 拖放或多项的情形, <font color="blue">项数多少</font>
+            </a>
+            <input size=5 name="options" value=4>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('设为<b>是</b>时, 当学生正确回答了一个子问题时, 会显示 OK 符号 <img src=$gifdir/ok.gif> <img src=$gifdir/bok.gif> <img src=$gifdir/nok.gif><br>甚至出现一个随机的怪异符号? ')">
+            在练习内显示 <font color="blue">正确(OK) 或错误(NOK) 符号</font> ?
+            </a>
+            <select name="goodbadsign">
+            <option value=2>是与一段评注</option>
+            <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('在测试的最后显示<em>正确答案</em>吗?<br>默认 <em>是</em>')">
+            在练习 <font color="blue">末尾</font> 显示正确答案 ?            
+            </a>
+            <select name="showanswer">
+                <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('要使用 Javascript 计算器吗?<br><img src=$gifdir/basic.jpg><img src=$gifdir/science.jpg>')">
+            弹出式 javascript <font color="blue">计算器</font> ?
+            </a>
+            <select name="calculator">
+            <option value=1>简单计算器</option>
+            <option value=2>科学计算器</option>
+            <option value=0>无计算器</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('要提供一个写字板作为草稿用吗? ')">
+            弹出式 <font color="blue">草稿写字板</font> ?
+            </a>
+            <select name="scribbling">
+            <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('需要一个小钟吗')">
+            一个 <font color="blue">Javascript 小钟?</font>
+            </a>
+            <select name="time">
+            <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('还没有设置时间限制...')">
+            每个练习的 <font color="blue">时间限制</font> 
+            </a>
+            <input size=15 name="duration" value="未设置"> 分
+        </p>
+!!        <p align="left">
+!!            <a onmouseover="return escape('Met <em>ja</em> wordt het goede antwoord aan het einde van de opdracht<br>samen met het ingevulde leerling antwoorden en eventuele feedback in een overzichtelijke tabel getoond.<br>Default is <em>ja</em>')">
+!!            在最后显示 <font color="blue">正确答案</font> 吗 ?        
+!!            <select name="storedata">
+!!            <option value=0>否</option>
+!!            <option value=1>是(默认)</option>
+!!            </select>
+!!        </p>
+        <p align="left">
+            <a onmouseover="return escape('<img src=$gifdir/math.jpg><br>有<b>两个</b>选项<ol><li>使用 Java Applet</li><li>使用 WIMS 的嵌入数学函数, 给出公式的图形</li></ol>两个选项都把回答直接发送给 WIMS 服务器.<br>如果服务器很忙或很慢, 宁可使用 applet')">
+            在回答时弹出 <font color="blue">数学公式输入</font> 窗口 ?
+            </a>
+            <select name="mathview">
+            <option value=0>不, 仅是通常的输入栏</option>
+            <option value=1>WIMS 数学输入</option>
+            <option value=2>嵌入式 javaapplet</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('这里你可以控制数学公式的字体大小<br>在模块里可以修改此值<ul><li><img src=$gifdir/4.gif>+4</li><li><img src=$gifdir/3.gif>+3</li><li><img src=$gifdir/2.gif>+2</li><li><img src=$gifdir/1.gif>+1</li><li><img src=$gifdir/0.gif>0</li><li><img src=$gifdir/-1.gif>-1</li><li><img src=$gifdir/-2.gif>-2</li><li><img src=$gifdir/-3.gif>-3</li><li><img src=$gifdir/-4.gif>-4</li></ul>')">
+            调整 <font color="blue">LaTeX 数学公式</font> 的字体大小 ?
+            </a>
+            <select name="mytexsize">
+            <option value="0">保持不变</option>
+            <option value="+4">+4</option>
+            <option value="+3">+3</option>
+            <option value="+2">+2</option>
+            <option value="+1">+1</option>
+            <option value="-1">-1</option>
+            <option value="-2">-2</option>
+            <option value="-3">-3</option>
+            <option value="-4">-4</option>
+            </select>
+        </p>
+        <p align="left">
+            <a onmouseover="return escape('若设为 <em>是</em>, 禁止使用从页面到输入区的<em>截取与粘贴</em>功能<br>如果你想要学生自己写回答的话, 这是很有用的... ')">
+            禁止使用鼠标 <font color="blue">截取与粘贴</font> ?
+            </a>
+            <select name="noselect">
+            <option value=1>是</option>
+            <option value=0>否</option>
+            </select>
+        </p>
+        !endif
+        </td>
+        !endif
+    </table>
+    <script type="text/javascript" src="$jsdir/wz_tooltip.js"></script>
+</form>
+
+
+

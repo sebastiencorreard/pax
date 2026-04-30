@@ -1,0 +1,236 @@
+!set title=Tableau de variations et extremum 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard
+oefcss=<style> table.tab_var {margin-left:auto;margin-right:auto; border:solid 1px black;} table.tab_var tr, table.tab_var td, table.tab_var th { padding:7pt;margin-top:10px; margin-bottom:10px; text-align:center; border-collapse:collapse; min-width:10pt; } table.tab_var th { border:solid 1px black} table.tab_var tr { border:solid 1px black} </style>
+
+ansorder=r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<,>,on ne peut pas savoir
+tmp0=!makelist x for x=-10 to 10
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!item 1 to 12 of $val7
+
+val7=$(tmp0)
+tmp0=!sort numeric list $val7
+
+val7=$(tmp0)
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=1
+val9=\(\nearrow),\(\searrow)
+!else
+val9=\(\searrow),\(\nearrow)
+!endif
+!if $val8=2 
+val10=top,bottom,top,bottom,top
+!else
+val10=bottom,top,bottom,top,bottom
+!endif
+tmp0=!randint -20, 20
+
+val11=$[rint($(tmp0))]
+
+!ifval $val8=1
+tmp0=!randint 5, 10
+
+val12=$[rint($val11+$(tmp0))]
+!else
+tmp1=!randint 5, 10
+
+val12=$[rint($val11-$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 5
+
+val13=$[rint($val11-$(tmp0))]
+!else
+tmp1=!randint 2, 5
+
+val13=$[rint($val11+$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 5
+
+val14=$[rint($val13-$(tmp0))]
+!else
+tmp1=!randint 2, 5
+
+val14=$[rint($val13+$(tmp1))]
+!endif
+
+!ifval $val8=1
+tmp0=!randint 2, 10
+
+val15=$[rint($val13-$(tmp0))]
+!else
+tmp1=!randint 2, 10
+
+val15=$[rint($val13+$(tmp1))]
+!endif
+val16=$val11
+val17=$val12
+val18=$val14
+val19=$val13
+val20=$val15
+val21=<table class="tab_var">	<tr>	  <th style="width:15%">\(x)</th>	      <td style="width:12%;text-align:left">$(val7[1])</td>	      <td style="width:8%"></td>	      <td style="width:12%">$(val7[4])</td>	      <td style="width:8%"></td>	      <td style="width:12%">$(val7[7])</td>	      <td style="width:8%"></td>	      <td style="width:12%">$(val7[10])</td>	      <td style="width:8%"></td>	      <td style="width:12%;text-align:right">$(val7[12])</td>	</tr><tr>	  <th style="vertical-align:middle;width:15%">\(f(x))</th>	     <td style="width:12%;text-align:left;vertical-align:$(val10[1])">$val16</td>	     <td style="width:8%">$(val9[1]) </td>	     <td style="width:12%;vertical-align:$(val10[2])">$val17</td>	     <td style="width:8%">$(val9[2]) </td>	     <td style="width:12%;vertical-align:$(val10[3])">$val18</td>	     <td style="width:8%">$(val9[1]) </td>	     <td style="width:12%;text-align:right; vertical-align:$(val10[4])">$val19 </td>	     <td style="width:8%">$(val9[2]) </td>	     <td style="width:12%;vertical-align:$(val10[5])">$val20</td>	      </tr>	</table>	
+val22=$(val7[1])
+val23=$(val7[4])
+
+!ifval $val8=1
+val24=1
+!else
+val24=2
+!endif
+val25=$(val7[4])
+val26=$(val7[7])
+
+!ifval $val8=1
+val27=2
+!else
+val27=1
+!endif
+val28=$(val7[7])
+val29=$(val7[12])
+val30=3
+tmp0=!randint 1, 3
+
+val31=$[rint($(tmp0))]
+!if $val31=1 
+val32=$val22,$val23,$val25,$val26,$val28,$val29
+val33=$val24,$val27,$val30
+!endif
+!if $val31=2 
+val32=$val25,$val26,$val22,$val23,$val28,$val29
+val33=$val27,$val24,$val30
+!endif
+!if $val31=3 
+val32=$val25,$val26,$val28,$val29,$val22,$val23
+val33=$val27,$val30,$val24
+!endif
+val34=$(val32[1])
+val35=$(val32[2])
+val36=$(val32[3])
+val37=$(val32[4])
+val38=$(val32[5])
+val39=$(val32[6])
+val40=$(val33[1])
+val41=$(val33[2])
+val42=$(val33[3])
+replytype1=menu
+replyname1=$val34 et $val35
+replygood1=$val40;$val6
+replytype2=menu
+replyname2=$val36 et $val37
+replygood2=$val41;$val6
+replytype3=menu
+replyname3=$val38 et $val39
+replygood3=$val42;$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction 
+!insmath f
+$() définie sur &#91; $(val7[1]);$(val7[12]) &#93; et donnée par	  le tableau de variations suivant:	<div class="wimscenter">$val21</div>		  Comparer les réels suivants, sachant que 
+!insmath a
+$() et 
+!insmath b
+$() sont deux réels de l'intervalle 
+!insmath I
+$() et
+!insmath a < b
+$():	<ul>	<li>avec 
+!insmath I=
+$() &#91; $val34;$val35 &#93; : 
+!insmath f(a)
+$()  
+!read oef/embed.phtml reply1 
+$() 
+!insmath f(b)
+$()</li>	<li>avec 
+!insmath I=
+$() &#91; $val36;$val37 &#93; : 
+!insmath f(a)
+$()  
+!read oef/embed.phtml reply2 
+$() 
+!insmath f(b)
+$()</li>	<li>avec 
+!insmath I=
+$() &#91; $val38;$val39 &#93; : 
+!insmath f(a)
+$()  
+!read oef/embed.phtml reply3 
+$() 
+!insmath f(b)
+$()</li>		</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,21,34,35,36,37,38,39
+embedcnt=3

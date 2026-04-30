@@ -1,0 +1,178 @@
+# alleen letters in 't antwoord
+goback=0
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+reply$n=!lower $(reply$n)
+Rlinks=!line 1 of $(reply$n)
+Rrechts=!line 2 of $(reply$n)
+Rinvoer=!line 3 of $(reply$n)
+Alinks=!line 1 of $(answer$n)
+Arechts=!line 2 of $(answer$n)
+Ainvoer=!line 3 of $(answer$n)
+
+a1=!itemcnt $Alinks
+a2=!itemcnt $Arechts
+r1=!itemcnt $Rlinks
+r2=!itemcnt $Rrechts
+
+!if $a1 != $r1
+    !if $r1>$a1
+	extra=Er staan in de passiva teveel posten
+    !else
+	extra=Er staan in de activa teveel posten
+    !endif    
+!endif
+
+#var8=12,1,5\                                                                                                                               
+#13,0,2,3,4\                                                                                                                                
+#7\                                                                                                                                         
+#10,8\                                                                                                                                      
+#11,9,6
+#z=!linecnt $var8
+
+# nu kijken of de activa op orde is
+t=$[$a1+$a2]
+score_links=0
+rep_links=<ul>
+!for p=1 to $t
+    !if $p<= $r1
+	r=!item $p of $Rlinks
+	found=0
+	symbol=!item $[$r+1] of $var1
+	bedrag=!item $[$r+1] of $var2
+	!if $r != -1
+	    !if $r=12
+		next_to_find=1,5
+		found=1
+		head=!item 13 of $var1
+		!increase score_links
+		rep_links=!append word <li><span style="color:blue"><b>$head</b></span></li> to $rep_links
+	    !else
+		!if $r=13
+		    found=1
+		    next_to_find=0,2,3,4
+		    head=!item 14 of $var1
+		    !increase score_links
+		    rep_links=!append word <li><span style="color:blue"><b>$head</b></span></li> to $rep_links
+		!endif
+	    !endif
+	    !if $found=0
+    		!for i in $next_to_find
+		    !if $r=$i and $found=0
+			!increase score_links
+			found=1
+			rep_links=!append word <li><span style="color:green">$symbol : &euro;$bedrag</span></li> to $rep_links
+		    !endif
+		!next i
+		!if $found=0
+		    score_links=$[$score_links - 1]
+		    rep_links=!append word <li><span style="color:red">$symbol : &euro;$bedrag</span></li> to $rep_links
+		!endif
+	    !endif
+	!endif
+    !endif
+!next p
+rep_links=!append word </ul> to $rep_links
+# nu kijkenb of de passiva op orde is
+score_rechts=0
+rep_rechts=<ul>
+!for p=1 to $t
+    !if $p <= $r2
+	r=!item $p of $Rrechts
+	found=0
+	symbol=!item $[$r+1] of $var1
+	bedrag=!item $[$r+1] of $var2
+	!if $r != -1
+	    !if $r=7
+		!increase score_rechts
+	        found=1
+		rep_rechts=!append word <li><span style="color:green">$symbol : &euro;$bedrag</span></li> to $rep_rechts
+	    !else
+		!if $r=10
+		    found=1
+		    next_to_find=8
+		    head=!item 11 of $var1
+		    !increase score_rechts
+		    rep_rechts=!append word <li><span style="color:blue"><b>$head</b></span></li> to $rep_rechts
+		!else
+		    !if $r=11
+			found=1
+			next_to_find=9,6
+			head=!item 12 of $var1
+			!increase score_rechts
+			rep_rechts=!append word <li><span style="color:blue"><b>$head</b></span></li> to $rep_rechts
+		    !endif
+		!endif
+	    !endif
+	    !if $found=0
+		!for i in $next_to_find
+		    !if $r=$i and $found=0
+			!increase score_rechts
+			found=1
+			rep_rechts=!append word <li><span style="color:green">$symbol : &euro;$bedrag</span></li> to $rep_rechts
+		    !endif
+		!next i
+		!if $found=0
+		    score_rechts=$[$score_rechts - 1]
+		    rep_rechts=!append word <li><span style="color:red">$symbol : &euro;$bedrag</span></li> to $rep_rechts
+		!endif
+	    !endif
+	!endif
+    !endif
+!next p
+rep_rechts=!append word </ul> to $rep_rechts
+
+# nu kijken of tde 3 invoervelden goed zijn
+score_invoer=0
+rep_invoer=<ul>
+
+!for p=1 to 3
+    a=!item $p of $Ainvoer
+    r$p=!item $p of $Rinvoer
+    # soms gaat er iets mis...
+    !if $[round($a)]=$[round($(r$p))]
+	!increase score_invoer
+	rep_invoer=!append word <li><span style="color:green">$(r$p)</span></li> to $rep_invoer
+    !else
+	rep_invoer=!append word <li><span style="text-decoration:line-through">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:red">$(r$p)</span>&nbsp;&nbsp;&nbsp;&nbsp;</span></li> to $rep_invoer
+    !endif
+!next p
+!if $r2 != $r3
+    rep_invoer=!append word <li>je activa en passiva zijn niet gelijk ... <span style="color:red">$r2 &ne; $r3</span></li> to $rep_invoer
+!endif
+rep_invoer=!append word </ul> to $rep_invoer
+
+score=$[(2*$score_links/$a1 + 2*$score_rechts/$a2 + $score_invoer/3)/5]
+
+reply$n=<table class="balans_1"><tr><th>Activa</th><th>Passiva</th></tr><tr><td>$rep_links</td><td>$rep_rechts</td></tr></table>Getallen invoer : $rep_invoer
+
+!if NaN isin $score of $score<0
+    score=0
+!endif
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+
+!exit
+#errortext=score=($score_links/($loops_links) + $score_rechts/($loops_rechts))/2= $[($score_links/($loops_links) + $score_rechts/($loops_rechts))/2]  rem=$rem <br />$debug<hr />$(reply$n)
+#goback=1
+
+
+

@@ -1,0 +1,236 @@
+!set title=Branchement conditionnel : double-lancer de dé (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+
+ansorder=r,r,r,r,r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 1 of langage
+
+val6=$(tmp0)
+tmp0=!randitem 2,3,4
+
+val7=$[rint($(tmp0))]
+tmp0=!record $val7 of langage
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of $val8
+
+val9=$(tmp0)
+tmp0=!item 2 of $val8
+
+val10=$(tmp0)
+tmp0=!item 3 of $val8
+
+val11=$(tmp0)
+tmp0=!item 4 of $val8
+
+val12=$(tmp0)
+tmp0=!item 5 of $val8
+
+val13=$(tmp0)
+tmp0=!item 6 of $val8
+
+val14=$(tmp0)
+val15=&larr;
+val16=&rarr;
+val17=&le;
+tmp0=!randitem 1,2,3,3
+
+val18=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=1
+val20=$[rint(2)]
+!else
+val20=$[rint(1)]
+!endif
+val21=$[rint($val20)]
+val19=$[rint($val19-1)]
+val20=$[rint($val20-1)]
+tmp=!nonempty items 4,6,8,12
+
+tmp0=!randitem $tmp
+val22=$[rint($(tmp0))]
+tmp0=!randint 1, $val22
+
+val23=$[rint($(tmp0))]
+val24=$[rint(2*$val23)]
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!item $val7 of  =, &ne; , &ge; ,&le;
+
+val25=$(tmp0)
+val26=égal à, différent de , supérieur ou égal à, inférieur ou égal à
+tmp0=!item $val7 of  $val26
+
+val27=$(tmp0)
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!item $val7 of  = , &ne; , &ge; ,&le;
+
+val28=$(tmp0)
+
+!ifval $val18=1
+val29= égal au , différent du , supérieur ou égal au , inférieur ou égal au 
+!endif
+
+!ifval $val18=2
+val29= égal au , différent du , inférieur ou égal au , supérieur ou égal au
+!endif
+
+!ifval $val18=3
+val29= égale à , différente de , supérieure ou égale à , inférieure ou égale à 
+!endif
+tmp0=!item $val7 of $val29
+
+val30=$(tmp0)
+val31=$[rint($val7)]
+val32=
+!for val33 =1 to 4 
+val34=$(val29[$val33])
+!if $val18<3 
+val32=$val32,le résultat du deuxième lancer est $val34 résultat du premier lancer.
+!else
+val32=$val32,la somme des résultats des lancers est $val34 $val24.
+!endif
+!next
+tmp0=!item 2 to 5 of $val32
+
+val32=$(tmp0)
+val35=On lance un dé équilibré à $val22 faces. Si le résultat du premier lancer est	$val27 $val23, alors on relance le dé. Si le résultat du deuxième lancer est $val30 résultat du premier lancer,	 alors on a gagné. Dans tous les autres cas on a perdu.
+val36=On lance un dé équilibré à $val22 faces. Si le résultat du premier lancer est $val27 $val23, on relance le dé.	 Si la somme des résultats des deux lancers est $val27 $val24, alors on a gagné. Dans tous les autres cas on a perdu.	
+val37=$val19 $val16 G -; $val14(1,$val22) $val16 D -; D $val16 S -; $val9 D $val25 $val23 -;	$val10-; $val14(1,$val22) $val16 D-;$val9 D $val28 S -;$val10 -;$val20 $val16 G-;$val12-;	$val12-; 
+val38=$val19 $val16 G -; $val14(1,$val22) $val16 D -; $val9 D $val25 $val23 -;	$val10-; $val14(1,$val22) $val16 S-;$val9 D $val28 S -;$val10 -;$val20 $val16 G-;$val12-;	$val12-; 
+val39=$val19 $val16 G -; $val14(1,$val22) $val16 D -; D $val16 S -; $val9 D $val25 $val23 -;	$val10-; $val14(1,$val22) $val16 D-; S + D $val16 S -;$val9 S $val28 $val24 -;$val10 -;$val20 $val16 G-;$val12-;	$val12-;
+val40=$val9 G = $val19-; $val10 -; $val13 "PERDU"-; $val11-; $val13 "GAGNE"-; $val12 ,	$val9 G = $val20-; $val10 -; $val13 "GAGNE"-; $val11-; $val13 "PERDU"-; $val12
+tmp=!nonempty items $val40
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+val41=le résultat du premier lancer,	le résultat du deuxième lancer,	la somme des deux lancers,	le gain final,	la mise initiale	
+val42=$[rint($val18)]
+tmp0=!item $val18 of $val37,$val38,$val39
+
+val43=$(tmp0)
+val43=$val43 $val15
+tmp0=!replace internal -; by </td></tr><tr><td> in $val43
+
+val44=$(tmp0)
+replytype1=integer
+
+replyname1=nb faces
+replygood1=$val22
+replytype2=menu
+replyoption2=shuffle 
+replyname2=rôle de S
+replygood2=$val42;$val41
+replytype3=integer
+
+replyname3=relance
+replygood3=$val23
+replytype4=radio
+replyname4=valeur de G
+replygood4=$val21;0,1
+replytype5=menu
+replyoption5=shuffle 
+replyname5=regle
+replygood5=$val31;$val32
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()		<p>L'algorithme ci-dessous utilise l'instruction $val14(1,<i>n</i>).	Chaque appel de $val14(1,<i>n</i>) donne un entier choisi aléatoirement entre 1 et <i>n</i>.	On peut ainsi simuler un lancer de dé équilibré à <i>n</i> faces.	</p>	<table cellpadding="5" padding-left="20" width="100%">	<tr>	<td width="25%">	<table bgcolor="lightblue" cellpadding="1" align="center">	<tr><td>	$val44	</td></tr></table>	</td>	<td width="75%" valign="top" class="oefstatement" >		<p>Répondez aux questions suivantes sur le fonctionnement de cet algorithme,	en remplissant tous les champs de réponse :</p>	<ol>	<li>On lance un dé à  
+!read oef/embed.phtml reply1,5 
+$() faces.</li>	<li>La variable S 
+!if $val18=3 
+$()(à la 6ème ligne) 
+!endif
+$() sert à stocker  
+!read oef/embed.phtml reply2 
+$().</li>	<li>On relance le dé, si le résultat du premier lancer est $val27  
+!read oef/embed.phtml reply3,5 
+$().</li>	<li>On affiche "GAGNE" quand la valeur finale de la variable G est  
+!read oef/embed.phtml reply4,5 
+$().</li>	<li>La condition 3. étant remplie, on "gagne" si  
+!read oef/embed.phtml reply5 
+$()</li>	</ol>	</td>	</tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val6
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val18<3
+ <div class='oef_feedbacks'><p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>	&#171;<font color="blue">$val35</font>&#187;.
+$()</div>
+!endif
+!ifval $val18==3
+ <div class='oef_feedbacks'><p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>	&#171;<font color="blue">$val36</font>&#187;.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,18,27,35,36,44
+embedcnt=5

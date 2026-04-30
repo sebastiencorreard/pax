@@ -1,0 +1,78 @@
+# enkel logpapier: y-as logarithmisch
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif 
+display=1
+math=0
+mathview=0
+questiontype=0
+inputs=0
+applet=1
+image=0
+plot=1
+make_tr=1
+erase=!record 67 of $remarkdir/commonremarks.$taal
+n=$counter
+wordmax=10
+checkfile=exos/checkfile4.proc
+
+
+# var5 -> grondtal
+!if $R=1
+    var5=10
+    a=!randitem 1,2,3,4,5
+    aa=!exec pari A=$a/$var5\
+    printtex(A)
+    a1=!line 1 of $aa
+    a2=!line 2 of $aa
+ !goto KLAAR
+!endif
+!if $R=2
+    var5=!randitem 4,6,8,12,14,16
+    a1=1
+    a2=1
+ !goto KLAAR
+!endif
+!if $R=3
+    var5=!randitem 5,6,7,8,9,10,11,12
+    a1=1/$var5
+    a2=\frac{1}{$var5}
+ !goto KLAAR
+!endif
+!if $R>3
+    var5=!randitem 5,6,7,8,9,10,11,12
+    b=$[$var5^2]
+    a1=1/$b
+    a2=\frac{1}{$b}
+!endif
+:KLAAR
+# pas op dat de lijn wel binnen beeld blijft
+pm=!randitem +,-
+var6=x
+### $pm $b
+answer$n=$a1*$var5^($var6)
+textanswer$n=$empty
+question$n=!record 58 of lang/remarks.$taal
+formula$n= f(x)\,=\,$a2 \cdot $var5^{$var6}
+# X_MAX- >var1
+# X_MIN- >var2
+# Y_MAX- >var3
+# Y_MIN- >var4
+var1=!randitem 3,4,6
+var2=0
+var3=!evalsubst x=$[$var1+1] in $(answer$n)
+var3=$[1000*(ceil($var3/1000))]
+var4=1
+lijntype=line
+setting=logscale y $var5 ; border ; tmargin 1 ; rmargin 1 ; xtics 0,0.5,$var1 ;  ytics 1,$var5,$var3 ; mytics $var5  ; mxtics 2 ;grid xtics ytics mxtics mytics linetype 2 , linetype 2 ; xlabel "x-axis" ; ylabel "y-axis" ;  zeroaxis linetype 1 
+insplot_set=size 1.2,1.4 ;$setting
+!insplot [$var2 : $var1] [$var4 : $var3] 0 notitle
+image_settings$n=size 0.7,0.7;$setting
+image$n=[$var2 : $var1] [$var4 : $var3] $(answer$n) title "$(answer$n)"  
+
+# wims input applet
+object$n=<object id="input" width="640" height="640" classid="java:input.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="java" /><param name="java_archive" value="input.jar" /><param name="java_code" value="input.class" /><param name="background" value="$ins_url"/><param name=retry value="$erase"/><param name=prompt value="$send"/><param name="type" value="$lijntype"/><param name="replyurl" value="$wims_ref_name?module=$module&+session=$session&cmd=reply&reply$n=$java_reply" />$nojava</object>
+
+ 

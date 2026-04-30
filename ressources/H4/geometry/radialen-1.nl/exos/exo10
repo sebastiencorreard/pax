@@ -1,0 +1,109 @@
+# radialen + graden : sinus of cosinus
+#exo1 Eenheidscirkel , Sinus of Cosinus & radialen [ applet ]
+#exo2 Eenheidscirkel , Sinus of Cosinus & radialen [ plaatjes ]                                                                           
+#exo3 Eenheidscirkel , Sinus of Cosinus & graden [ applet ]
+#exo4 Eenheidscirkel , Sinus of Cosinus & graden [ plaatjes ]                                                                           
+
+# sinus.java parameters:
+#<param name="language" value="nl/fr/en"/> default en
+#<param name="show_curve" value="yes/no"/> default yes
+#<param name="type" value="sin/cos"/> default sin
+#<param name="degrees" value="yes/rad/no"/> default yes or radians or no
+#<param name="Xaxis_units" value="yes/no"/> default yes using degrees or radians depending on "param degrees"
+#<param name="start" value="begin value of point P in degrees"/> default 0
+#<param name="end" value="end value of point P in degrees"/> default no value
+
+
+n=$counter
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+math=0
+checkfile=exos/checkfile7.proc
+make_tr=0
+mathview=0
+questiontype=0
+cols=20
+rows=2
+embed=1
+helptext=$empty
+p=!randint 1,28
+list=!record $p of gifs/inhoud
+#: plaatje, graden ,latex radialen ,sin(graden),cos(graden) 
+plaatje=!item 1 of $list
+graden=!item 2 of $list
+latexradialen=!item 3 of $list
+radialen=!exec pari $graden/180
+!if $subject<12
+    whatever=$radialen <em>&pi;</em> rad.
+!else
+    whatever=$graden <em>&deg;</em>.
+!endif
+keuze=!randitem 1,2
+!if $keuze=1
+    # sinus
+    type=sin
+    # answer$n altijd in graden
+    answer$n=!item 4 of $list
+    ss=!record 51 of lang/remarks.$taal
+    #@Bereken de sinus van de <span style="color:blue">gegeven hoek</span>.<br />De sinus van $whatever is:
+!else
+    # cosinus
+    type=cos
+    answer$n=!item 5 of $list
+    ss=!record 52 of lang/remarks.$taal
+    #@Bereken de cosinus van de <span style="color:blue">gegeven hoek</span>.<br />De cosinus van $whatever is:
+!endif
+lookat=!record 53 of lang/remarks.$taal
+#@Kijk hier voor een illustratie
+sometext=!record 54 of lang/remarks.$taal
+#@<p><span style="color:blue"> Je kunt het punt P op de eenheidscirkel laten bewegen met je muis...</span><br />
+question$n=$ss
+tex=!texmath $(answer$n)
+texanswer$n=\displaystyle \$type\left( $graden ^{o} \right) = \displaystyle \$type\left( $radialen \pi \right)\,=\,$tex
+
+
+!if $subject=10
+    # applet in onmouseover.
+    applet=0
+    inputs=1
+    begin=0
+    end=$graden
+    object$n=<object id="sinus" width="300" height="300" classid="java:sinus.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="sinus.jar" /><param name="java_code" value="sinus.class" /><param name="language" value="$taal" /><param name="start" value="$end" /><param name="degrees" value="rad" /><param name="show_curve" value="no" /><param name="functiontype" value="$type" />$nojava</object>
+    obj=<object id=\'sinus\'  width=\'300\' height=\'300\' classid=\'java:sinus.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'sinus.jar\' /><param name=\'java_code\' value=\'sinus.class\' /><param name=\'language\' value=\'$taal\' /><param name=\'start\' value=\'$begin\' /><param name=\'degrees\' value=\'rad\' /><param name=\'show_curve\' value=\'no\' /><param name=\'functiontype\' value=\'$type\' />$nojava</object>
+    exotext=<a onmouseover="return escape('$obj $sometext')"><span class="schaersvoorde_link">$lookat</span></a>
+    formula$n= \displaystyle \$type \:\left( $latexradialen \right)= [?]
+ !exit
+!endif
+
+!if $subject=11
+    #plaatjes
+    exotext=<a onmouseover="return escape('<img src=\'$module_dir/gifs/$plaatje\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$lookat</span></a>
+    textanswer$n=<img src="$module_dir/gifs/$plaatje" alt="noalt" style="width:320px" />
+    formula$n= \displaystyle \$type\left( $latexradialen \right) = [?]
+ !exit
+!endif
+
+!if $subject=12
+    # applet in onmouseover.
+    applet=0
+    inputs=1
+    begin=0
+    end=$graden
+    object$n=<object id="sinus" width="300" height="300" classid="java:sinus.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="sinus.jar" /><param name="java_code" value="sinus.class" /><param name="language" value="$taal" /><param name="start" value="$end" /><param name="degrees" value="degrees" /><param name="show_curve" value="no" /><param name="functiontype" value="$type" /> $nojava </object>
+    obj=<object id=\'sinus\' width=\'300\' height=\'300\' classid=\'java:sinus.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'sinus.jar\' /><param name=\'java_code\' value=\'sinus.class\' /><param name=\'language\' value=\'$taal\' /><param name=\'start\' value=\'$begin\' /><param name=\'degrees\' value=\'degrees\' /><param name=\'show_curve\' value=\'no\' /><param name=\'functiontype\' value=\'$type\' /> $nojava </object>
+    exotext=<a onmouseover="return escape('$obj  $sometext')"><span class="schaersvoorde_link">$lookat</span></a>
+    formula$n= \displaystyle \$type\left( $graden ^{o} \right) = [?]
+ !exit
+!endif
+
+!if $subject=13
+    #plaatjes
+    exotext=<a onmouseover="return escape('<img src=\'$module_dir/gifs/$plaatje\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$lookat</span></a>
+    textanswer$n=<img src="$module_dir/gifs/$plaatje" alt="noalt" style="width:320px" />
+    formula$n= \displaystyle \$type\left( $graden ^{o}\right) = [?]
+ !exit
+!endif
+

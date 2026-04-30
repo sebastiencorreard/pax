@@ -1,0 +1,108 @@
+#:3 
+n=$counter
+total_exos=2
+!if $counter=1
+ checkfile=exos/checkfile1.proc
+ var1=yes
+ mathview=0
+ rounding=-1
+ inputs=-1
+ helptext=spreek uit: als P dan Q
+z1=Als het regent dan draag ik een paraplu.\
+regent,paraplu\
+Geen paraplu dragen betekent dat het niet regent.\
+Ook als het niet regent, kan ik toch een paraplu dragen.
+z2=Als ik uien snijd dan moet ik huilen.\
+uien,huilen\
+Ik huil niet, dus ik snijd geen uien\
+Ook als ik geen uien snijd kan ik toch huilen
+acht=!randint 6,9
+z3=Als ik een $acht haal dan heb ik een voldoende.\
+$acht,voldoende\
+Ik heb geen voldoende gehaald, dus geen $acht.\
+Ook al heb ik geen $acht gehaald, mijn cijfer kan toch voldoende zijn. Bijvoorbeeld een $[$acht +1].
+vier=!randint 1,5
+z4=Als ik een $vier haal dan heb ik een onvoldoende.\
+$vier,onvoldoende\
+Ik heb geen onvoldoende gehaald, dus geen $vier.\
+Ook al heb ik geen $vier gehaald, mijn cijfer kan toch onvoldoende zijn. 
+z5=Als het 20.00 uur is dan kijk ik naar het journaal.\
+20,journaal\
+Ik kijk geen journaal, dus het is niet 20.00 uur.\
+Ook al is het geen 20.00 uur, dan kan ik op een ander tijdstip het journaal bekijken.
+z6=Als het zaterdag is dan ga ik voetballen.\
+zaterdag,voetballen\
+Ik voetbal niet, dus het is niet zaterdag.\
+Op een andere dag dan zaterdag kan ik ook voetballen.
+
+stxt=Gegeven de volgende <em>implicatie</em> :
+k=!randint 1,6
+ss1=!line 1 of $(z$k)
+zin=!replace internal dan by , in $ss1
+Ptext=!item 1 of $zin
+Qtext=!item 2 of $zin
+
+answer1=!line 2 of $(z$k)
+con=!mathmlmath \large{ P \Rightarrow Q}
+con1=!mathmlmath \large{ P \Rightarrow Q  \rightarrow \not Q \Rightarrow \not P}
+P=!mathmlmath \large{P}
+Q=!mathmlmath \large{Q}
+NP=!mathmlmath \large{\not P}
+de_pijl=!mathmlmath \large{\Rightarrow}
+ss2=Vul de waarheidstabel in...
+txt=waar,niet waar
+answer2=1,1,0,1
+answer=0,0,1,0,1,1,1,0,0,1,1,1
+ansbody=$empty
+body=$empty
+id=0
+a=1
+inv=3,6,9,12
+
+
+!for p=1 to 4
+ body=!append word $ <tr> $ to $body
+ ansbody=!append word $ <tr> $ to $ansbody
+ !for s=1 to 3
+  !if $(answer[$a])=0
+   atxt=niet waar
+  !else
+   atxt=waar
+  !endif
+  !if $a isitemof $inv
+   body=!append word $ <td><select class="schaersvoorde_input" id="myinput$id" ><option value="0">$(txt[2])</option><option value="1">$(txt[1])</option></select></td> $ to $body
+   id=$[$id+1]
+  !else
+   body=!append word $ <td>$atxt</td> $ to $body  
+  !endif
+  ansbody=!append line <td>$atxt</td> to $ansbody
+  a=$[$a+1]
+ !next s
+ body=!append word $ </tr> $ to $body
+ ansbody=!append word $ </tr> $ to $ansbody
+!next p
+ 
+var9=<center><table class="demospecial"><tr><th>$P</th><th>$Ptext</th></tr><tr><th>$Q</th><th>$Qtext</th></tr></table><table class="demospecial"><tr><th>$P</th><th>$Q</th><th>$con</th></tr>$body</table></center>
+rr=<table class="demospecial"><tr><th>$P</th><th>$Q</th><th>$con</th></tr> $ansbody </table>
+question1=<a onmouseover="return escape('spreek uit: als P dan Q')">$stxt<br />"<em>$ss1</em>"</a>
+exotext=<table class="demospecial"><caption>Bepaal propositie $P &amp; propositie $Q bij de  impicatie <a onmouseover="return escape('$helptext')">$con</a></caption><tr><th>$P : <input type="text" id="myinput0" size="30" /></th></tr><tr><th>$Q : <input type="text" id="myinput1" size="30" /> </th></tr></table> 
+textanswer1=<ul><li>$P : $Ptext</li><li>$Q : $Qtext</li></ul>
+
+tt1=!line 3 of $(z$k)
+tt2=!line 4 of $(z$k)
+rij1=$con1 <br />spreek uit: Als Q niet waar is, dan is P ook niet waar.
+rij2=Als P niet waar is ($NP), dan zegt dat niets over het al dan niet waar zijn van Q.
+
+textanswer2=$rr<br />\
+<ul>\
+<li>$rij1<br /><em>$tt1</em></li>\
+<li>$rij2<br /><em>$tt2</em></li>\
+<li>elzelsbruggetje: de pijl ($de_pijl) gaat maar &eacute;&eacute;n kant op</li>\
+</ul>
+
+question2=<a onmouseover="return escape('$helptext')">$stxt<br />"<em>$ss1</em>"</a>
+!else
+ exotext=$var9
+ checkfile=$checkdir/number.proc
+!endif
+!exit

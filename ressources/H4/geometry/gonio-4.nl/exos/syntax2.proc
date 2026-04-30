@@ -1,0 +1,49 @@
+diff=1
+# ideal: the lines x=2*k*pi
+# ideal: the lines x=2kpi/4
+# ideal: the lines x=k*pi/5
+# ideal: the lines x=0.2kpi
+# did they use another letter for the constant?
+nw=!replace [0-9] by $empty in $AAA
+nw=!replace internal x by $empty in $nw
+nw=!varlist $nw
+# trouble 2fpi -> nw= fpi
+dingen=pi,sin,cos,tan,sqrt
+!for p in $dingen
+    !if $p isin $nw
+	d=!nospace , $p ,
+	nw=!replace internal $p by $d in $nw
+    !endif
+!next p
+t1=!char 1 of $nw
+!if $t1=,
+    nw=!char 2 to -1 of $nw
+!endif
+t1=!char -1 of $nw
+!if $t1=,
+    nw=!char 1 to -2 of $nw
+!endif
+nw=!replace internal ,, by , in $nw
+
+gg=!varlist $(answer$n)
+test=!listcomplement $gg in $nw
+# k,pi,x  f,pi,x -> f
+tc=!itemcnt $test
+!if $tc=1
+    AAA=!replace internal $test by k in $AAA
+    ex=!record 21 of lang/remarks.$taal
+    #@ Ik heb je teller <b>$test</b> geinterpreteerd als de <b>k</b> $m_in $m_Z
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+    goback=o
+    !exit
+!else
+    maxscore=$[$P2*$maxscore]
+    goback=1
+    errortext=!record 19 of lang/remarks.$taal
+    !exit
+!endif
+

@@ -1,0 +1,132 @@
+# Vergelijkingen III [ log(bx+c) = a ]
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+display=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo10.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,1,1,1,1,0
+!if $lang=fr or $taal=fr or $myvar1=1
+ g=!randitem 2,10
+ mathviewpanel=$module_title:x=:log():log[2]():
+ !if $g=10
+  LOG=\log
+ !else
+  LOG=\log_{$g}
+ !endif
+!else
+ !if $keuze=1
+  g=!randitem 2,3,4,5,6,7,8,9
+  LOG=^{$g}\log
+ !else
+  g=10
+  LOG=\log
+ !endif
+ mathviewpanel=$module_title:x=:log():log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+!endif
+
+!if $R=1
+    b=!randitem 2,3,4,5
+    a=!randitem 0,1,2,3,4,5
+    !if $keuze=1
+	formula$n=$LOG($b x)=$a
+	applettext=!nospace log[$g]($b*x) = $a ->
+    !else
+#	g=10
+	formula$n=\log($b x)=$a 
+	applettext=!nospace log($b* x) = $a ->
+	answer$n=10^$a
+    !endif
+    tot=!exec pari A=($g^($a))/$b\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    !if . notin $(answer$n)
+	tex=x=$tex
+    !else
+	tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $LOG($b x)=$a \\ $b x = $g^{$a} \\ x= \frac{$[$g^$a]}{$b} \\ $tex \end{array} \right.
+ !exit
+!endif
+
+!if $R=2
+    b=!randitem 2,3,4,5
+    a=!randitem 0,1,2,3,4,5
+    c=!randint 1,15
+    pm=!randitem -1,1
+    c=$[$pm*$c]
+    tussen=!rawmath x + $c
+    
+    !if $keuze=1
+	formula$n=$LOG($b $tussen )=$a 
+	applettext=!nospace log[$g]($b*$tussen) = $a ->
+    !else
+#	g=10
+	formula$n=\log($b $tussen)=$a 
+	applettext=!nospace log($b*$tussen) = $a ->
+    !endif
+    tot=!exec pari A=($g^($a)-($c))/$b\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    !if . notin $(answer$n)
+	tex= \rightarrow x=$tex
+    !else
+	tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $LOG($b $tussen )=$a \\ $b $tussen = $g^{$a} \rightarrow $b \cdot x = $[$g^$a - ($c)]  \\ x= \frac{$[$g^$a-($c)]}{$b} $tex \end{array} \right.
+    
+ !exit
+!endif
+
+!if $R>2
+    d=!randitem 2,3,4,5
+    b=!randitem 2,3,4,5
+    p=!randitem 2,3,4,5,6
+    a=$[$d*$p]
+    c=!randint 1,15
+    pm=!randitem -1,1
+    c=$[$pm*$c]
+    tussen=!rawmath x + $c
+    
+    !if $keuze=1
+	formula$n=$d \cdot $LOG($b $tussen ) = $a
+	applettext=!nospace $d*log[$g]($b*$tussen) = $a ->
+    !else
+#	g=10
+	formula$n=$d \cdot \log($b $tussen) = $a 
+	applettext=!nospace $d*log($b*$tussen) = $a ->
+    !endif
+    tot=!exec pari A=($g^($p)-($c))/$b\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    !if . notin $(answer$n)
+	tex= \rightarrow x=$tex
+    !else
+	tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $LOG($b $tussen )=$p \\ $b $tussen = $g^{$p} \rightarrow $b \cdot x = $[$g^$p - ($c)]  \\ x= \frac{$[$g^$p-($c)]}{$b} $tex \end{array} \right.
+    
+ !exit
+!endif
+
+

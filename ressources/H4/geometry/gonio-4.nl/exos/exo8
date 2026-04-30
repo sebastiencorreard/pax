@@ -1,0 +1,161 @@
+# exo7 vergelijking oplossen
+
+n=$counter
+!if $rounding !=0
+  rounding=0
+  !readproc $remarkdir/rounding.$taal
+!endif
+checkfile=exos/sinus.kpi.proc
+
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+
+embed=1
+inputs=-1
+mathview=5
+make_tr=0
+math=0
+ss=!record 22 of lang/remarks.$taal
+#@Los de onderstaande vergelijking <b>exact</b> op.
+m_rightarrow=$empty
+mathviewpanel=$module_title:x=: or :k*pi:2*k*pi:sin():cos():tan()
+aymptoot=!record 23 of lang/remarks.$taal
+!if $R=1
+ y=5
+ k=!randint 1,3
+ b=!item $k of 1/3,1,3
+ btex=!item $k of \frac{1}{3},1,3
+ ctex=!item $k of \frac{1}{3}\sqrt{3}, 1, \sqrt{3}
+ ans=!line $k of 1/6*pi,5/6*pi\
+ 1/4*pi,3/4*pi\
+ 1/3*pi,2/3*pi
+ anstex=!line $k of \frac{1}{6}\pi,\frac{5}{6}\pi \
+ \frac{1}{4}\pi,\frac{3}{4}\pi \
+ \frac{1}{3}\pi,\frac{2}{3}\pi
+ ans1=!item 1 of $ans
+ ans2=!item 2 of $ans
+ anstex1=!item 1 of $anstex
+ anstex2=!item 2 of $anstex
+ 
+ # aantal antwoorden in $(answer$n)
+ var4=2 
+ keuze=!randitem 0,1
+
+ !if $keuze=0
+  formula$n=\tan^{2}\left(x\right) = $btex \rightarrow ?
+  answer$n=$ans1 + k*pi, $ans2 +k*pi
+  texanswer$n=\left\{\begin{array}{l} \tan^{2}\left(x\right) = $btex \\ \tan(x)=$ctex \vee \tan(x)=-$ctex \\ \left[ \begin{array}{c|c|c|c|c_} \alpha & 0 & \frac{1}{6}\pi &\frac{1}{4}\pi &\frac{1}{3}\pi &\frac{1}{2}\pi \\ \sin(\alpha) & 0 & \frac{1}{2} &\frac{1}{2}\sqrt{2} &\frac{1}{2}\sqrt{3} & 1 \\ \cos(\alpha) & 1 & \frac{1}{2}\sqrt{3} &\frac{1}{2}\sqrt{2} &\frac{1}{2} & 0 \\ \tan(\alpha) & 0 & \frac{1}{3}\sqrt{3} & 1 &\sqrt{3} & \textrm{$asymptoot} \end{array}\right] \\ \\ x=$anstex1 + k \cdot \pi \vee x=$anstex2+ k \cdot \pi \end{array} \right.
+  f1=tan(x)*tan(x)
+  f2=$b
+  js=jscurve red,$f1\
+  hline 0,$f2,blue
+ 
+ !else
+  d=!line $k of 1/6,5/6\
+  1/4,3/4\
+  1/3,2/3
+  
+  d1=!item 1 of $d
+  d2=!item 2 of $d 
+  
+  m=!randint 1,5
+  a=!item $m of 1/6,1/5,1/4,1/3,1/2
+  
+  p=!randint 1,2
+  pm=!item $p of +,-
+  mp=!item $p of -,+
+  
+  tot=!exec pari A=$d1 $mp $a\
+  printtex(A)\
+  B=$d2 $mp $a\
+  printtex(B)
+  
+  dd1=!line 1 of $tot
+  dd1tex=!line 2 of $tot
+  dd2=!line 3 of $tot
+  dd2tex=!line 4 of $tot
+  
+  atex=!item $m of \frac{1}{6}\pi,\frac{1}{5}\pi,\frac{1}{4}\pi,\frac{1}{3}\pi,\frac{1}{2}\pi 
+  formula$n=\tan^{2}\left(x $pm $atex \right) = $btex \rightarrow ?
+  ar=$[0.1*(round(10*$a*pi))]
+  f1=!nospace (tan(x $pm $ar))*(tan(x $pm $ar))
+  f2=$b
+  answer$n=$dd1*pi+k*pi ,$dd2*pi + k*pi
+  texanswer$n=\left\{\begin{array}{l} \tan^{2}\left(x $pm $atex \right) = $btex \\ \tan(x $pm $atex )=$ctex \vee \tan(x $pm $atex ) =-$ctex \\ \\ \\  \left[ \begin{array}{c|c|c|c|c_} \alpha & 0 & \frac{1}{6}\pi &\frac{1}{4}\pi &\frac{1}{3}\pi &\frac{1}{2}\pi \\ \sin(\alpha) & 0 & \frac{1}{2} &\frac{1}{2}\sqrt{2} &\frac{1}{2}\sqrt{3} & 1 \\ \cos(\alpha) & 1 & \frac{1}{2}\sqrt{3} &\frac{1}{2}\sqrt{2} &\frac{1}{2} & 0 \\ \tan(\alpha) & 0 & \frac{1}{3}\sqrt{3} & 1 &\sqrt{3} & \textrm{asymptoot} \end{array}\right] \\  \\ \\ x $pm $atex = $anstex1 + k \cdot \pi \vee x $pm $atex = $anstex2+ k \cdot \pi \\ x=$dd1tex \pi + k \cdot \pi \vee x=$dd2tex \pi + k \cdot \pi \end{array} \right.
+
+  js=jsplot red,$f1\
+  hline 0,$f2,blue
+ !endif
+
+!endif
+
+!if $R>1
+ k=!randint 1,3
+ a1tex=!item $k of \frac{1}{3}\sqrt{3}, 1, \sqrt{3}
+ a2tex=!item $k of \sqrt{3}, 1  , \frac{1}{3}\sqrt{3}
+ a=!item $k of sqrt(3), 1  , 1/3*sqrt(3)
+ a2=$[$(a)]
+ y=$[ceil($a)+1]
+ tussen=!item $k of 1/6,1/4,1/3
+ tussenans=!item $k of 1/6*pi,1/4*pi,1/3*pi
+ tussenanstex=!item $k of \frac{1}{6}\pi,\frac{1}{4}\pi,\frac{1}{3}\pi
+ kk=!randint 1,22
+ b=!item $kk of 1/9,1/8,1/7,1/6,1/5,1/4,1/3,2/5,3/5,4/5,2/7,3/7,4/7,5/7,6/7,3/8,5/8,7/8,2/9,4/9,5/9,7/9
+ btex=!item $kk of \frac{1}{9}\pi,\frac{1}{8}\pi,\frac{1}{7}\pi,\frac{1}{6}\pi,\frac{1}{5}\pi,\frac{1}{4}\pi,\frac{1}{3}\pi,\frac{2}{5}\pi,\frac{3}{5}\pi,\frac{4}{5}\pi,\frac{2}{7}\pi,\frac{3}{7}\pi,\frac{4}{7}\pi,\frac{5}{7}\pi,\frac{6}{7}\pi,\frac{3}{8}\pi,\frac{5}{8}\pi,\frac{7}{8}\pi,\frac{2}{9}\pi,\frac{4}{9}\pi,\frac{5}{9}\pi,\frac{7}{9}\pi
+ 
+ # aantal antwoorden in $(answer$n)
+ var4=1 
+ tot=!exec pari A=$tussen +  $b\
+ printtex(A)
+ 
+ ans=!line 1 of $tot
+ anstex=!line 2 of $tot
+ !if $a=1
+  a2tex = $empty 
+  breuk=1
+ !else
+  breuk=\frac{1}{$a2tex}
+  a2tex = $a2tex \cdot 
+ !endif
+ formula$n=$a2tex \sin\left(x - $btex \right) = \cos\left(x-$btex\right) \rightarrow ?
+ f1=!nospace $a2*sin(x-$[$b*pi])
+ f2=cos(x-$[$b*pi])
+ 
+ answer$n=$ans + k*pi
+ texanswer$n=\left\{\begin{array}{l} $a2tex \sin\left(x - $btex \right) = \cos\left(x-$btex\right) \\ \frac{\sin\left(x - $btex \right)}{\cos\left(x-$btex\right)} = $breuk \\ \tan \left(x - $btex \right) = $a1tex \\ \\ \\  \left[ \begin{array}{c|c|c|c|c_} \alpha & 0 & \frac{1}{6}\pi &\frac{1}{4}\pi &\frac{1}{3}\pi &\frac{1}{2}\pi \\ \sin(\alpha) & 0 & \frac{1}{2} &\frac{1}{2}\sqrt{2} &\frac{1}{2}\sqrt{3} & 1 \\ \cos(\alpha) & 1 & \frac{1}{2}\sqrt{3} &\frac{1}{2}\sqrt{2} &\frac{1}{2} & 0 \\ \tan(\alpha) & 0 & \frac{1}{3}\sqrt{3} & 1 &\sqrt{3} & \textrm{asymptoot} \end{array}\right] \\  \\ \\ x - $btex  = $tussenanstex + k \cdot \pi  \\ x=$anstex \pi + k \cdot \pi \end{array} \right.
+ 
+js=jscurve blue,$f1\
+jscurve red,$f2
+
+!endif
+
+
+xsize=380
+ysize=280
+
+applet=1
+
+object$n=!exec canvasdraw \
+size $xsize,$ysize\
+xrange -7,7\
+yrange -$y,$y\
+opacity 255,200\
+axis\
+# axisnumbering\
+xaxis -4*pi:-4\u03c0:-3*pi:-3\u03c0:-2*pi:-2\u03c0:-pi:-\u03c0:-0.5*pi:-\u00bd\u03c0:0:0:0.5*pi:\u00bd\u03c0:pi:\u03c0:2*pi:2\u03c0:3*pi:3\u03c0:4*pi:4\u03c0\
+precision 1\
+grid pi,1,grey,2,2,5,grey\
+linewidth 1\
+precision 100\
+opacity 255,255\
+linewidth 2\
+$js \
+mouse red,22
+
+helptext=<img src=$module_dir/gifs/exo8.jpg alt=noalt />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit

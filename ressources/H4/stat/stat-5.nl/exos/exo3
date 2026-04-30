@@ -1,0 +1,101 @@
+# normale verdeling (de vuistregels)
+# altijd een ander sommetje : maximaal 5 stuks
+!if $counter=1
+ !if $total_exos > 5
+  total_exos=5
+ !endif
+ var9=!shuffle 1,2,3,4,5
+ var8=!shuffle 1,2,3,4,5
+!endif
+k=!item $counter of $var9
+keuze=!item $counter of $var8
+
+n=$counter
+viewlogo=1
+logo=<img src="$module_dir/gifs/melk.gif" alt="melk" width="180px" />
+logotext=
+mathview=0
+make_tr=1
+embed=0
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+questiontyp=0
+checkfile=$checkdir/new_number.proc
+!if $rounding<10 
+ rounding=100
+ !readproc $remarkdir/rounding.$taal
+!endif
+
+flessen=500 510,520 4,9\
+750 760,778 6,15\
+1000 1018,1030 8,12\
+1500 1517,1535 10,16\
+2000 2020,2040 11,19
+
+fles=!line $k of $flessen
+nom=!word 1 of $fles
+vol=!word 2 of $fles
+std=!word 3 of $fles
+inhoud=!randint $(vol[1]),$(vol[2])
+sigma=!randint $(std[1]),$(std[2])
+
+ss=!record 16 of lang/remarks.$taal
+#@In een melkfabriek worden $nom ml flessen melk afgevuld.<br />De inhoud van de flessen is normaal verdeeld met een gemiddelde van $inhoud ml<br />en een standaardafwijking &sigma;=$sigma ml.
+logotext=$ss
+
+
+inputs=1.1
+!if $keuze=1
+ ss1=!record 17 of lang/remarks.$taal
+ #@Bereken de maximale inhoud in milliliters van afgevulde flessen met de kleinste 2.5% van de normale verdeling.
+ answer$n=$[$inhoud - 2*$sigma]
+ textans=!record 18 of lang/remarks.$taal
+ #@De maximale inhoud van de kleinste 2.5% (links in de gauss curve) : $inhoud &minus; 2 &times; &sigma; = $inhoud &minus; 2 &times; $sigma = 
+!else
+ !if $keuze=2
+  ss1=!record 19 of lang/remarks.$taal
+  #@Bereken de minimale inhoud in milliliters van afgevulde flessen met de grootste 2.5% van de normale verdeling.
+  answer$n=$[$inhoud + 2*$sigma]
+  textans=!record 20 of lang/remarks.$taal
+  #@De minimale inhoud van de grootste 2.5% (rechts in de gauss curve) : $inhoud + 2 &times; &sigma; = $inhoud + 2 &times; $sigma = 
+ !else
+  !if $keuze=3
+   ss1=!record 21 of lang/remarks.$taal
+   #@Bereken de maximale inhoud in milliliters van afgevulde flessen met de kleinste 16% van de normale verdeling.
+   answer$n=$[$inhoud - $sigma]
+   textans=!record 22 of lang/remarks.$taal
+   #@De maximale inhoud van de kleinste 16% (links in de gauss curve) : $inhoud &minus; &sigma; = $inhoud &minus; $sigma = 
+  !else
+   !if $keuze=4
+    ss1=!record 23 of lang/remarks.$taal
+    #@Bereken de minimale inhoud in milliliters van afgevulde flessen met de grootste 16% van de normale verdeling.
+    answer$n=$[$inhoud + $sigma]
+    textans=!record 24 of lang/remarks.$taal
+    #@De minimale inhoud van de grootste 16% (rechts in de gauss curve) : $inhoud + &sigma; = $inhoud + $sigma
+   !else
+    ss1=!record 25 of lang/remarks.$taal
+    #@Bereken de minimale inhoud in milliliters van afgevulde flessen met de grootste 50% van de normale verdeling.
+    answer$n=$inhoud
+    textans=!record 26 of lang/remarks.$taal
+    #@De minimale inhoud van de grootste 50% is natuurlijk : $inhoud   
+   !endif
+  !endif
+ !endif
+!endif    
+description=!record 27 of lang/remarks.$taal
+#@Deze inhoud is :&nbsp;
+ex1=&nbsp;ml
+
+question$n= $ss<br />$ss1<br />
+helptext=$empty
+
+rr=$textans = $(answer$n) ml <br /><img src="$module_dir/gifs/gauss.$keuze.png" alt="gauss" />
+textanswer$n=$rr
+
+!exit
+
+

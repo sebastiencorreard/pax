@@ -1,0 +1,124 @@
+# 1/8/2008 checked :OK
+n=$counter
+mathview=0
+questiontype=1
+!if $options <2 or $options>8
+    options=4
+!endif
+checkfile=$checkdir/multiplechoice.proc
+multiimage=1
+image=0
+math=0
+draw=1
+plot=0
+xsize=360
+ysize=80
+make_tr=1
+YSIZE=480
+data=$empty
+LINES=$empty
+TEXT=$empty
+!set n=$counter
+checkfile=$checkdir/multiplechoice.proc
+data=$empty
+xdata=$empty
+ydata=$empty
+etext=!record 24 of lang/remarks.$taal
+exotext=<a href="javascript:showimage()">$etext</a>
+helptext=$empty
+LINES=$empty
+TEXT=$empty
+
+# een mooie functie en z'n inverse
+f=!randint 8,14
+g=!randitem 10,20,30,40
+h=!randint 30,40
+k=!randitem 1,2,3,4,5,6
+functie=!randitem 100/(1+2^($f-x))@$f-(log((100-x)/x))/(log(2)),\
+($g)^(0.1*x)-1@(log(x+1))/(0.1*log($g)),\
+$h*(log(x-$k))@$k+e^(x/$h)
+
+functie=!replace internal @ by , in $functie
+F1=!item 1 of $functie
+F2=!item 2 of $functie
+!for p in 0,25,50,75,100
+    K$p=!evalsubst x=$p in $F2
+    !if NaN isin $(K$p)
+	K$p=0
+    !endif
+!next p
+!if $K100>40
+    K100=20
+!endif
+sometext=!record 27 of lang/remarks.$taal
+#@ X-waarde,Percentage
+xwaarde=!item 1 of $sometext
+Percentage=!item 2 of $sometext
+
+!for p=0 to 100 step 10
+    y=!evalsubst x=$p in $F2
+    !if NaN isin $[1*$y]
+	y=0
+    !endif
+    !if $p=100
+	!if $y >40
+	    y=20
+	!endif
+    !endif
+    y=$[(round(100*$y))/100] 
+    xdata=!append word $ <td>$y</td> $ to $xdata
+    ydata=!append word <td>$p</td> $ to $ydata
+!next p
+data=<table class="grid_table"><tr><th>$xwaarde</th>$xdata</tr><tr><th>$Percentage %</th>$ydata</tr></table>
+ss=!record 28 of lang/remarks.$taal
+question$n=$ss<hr class="schaersvoorde_hr">$data
+insplot_set=border;zeroaxis;tmargin 1 ; rmargin 1;grid;xlabel "x-axis" ;ylabel "$ (percentage)" xtics 0,1,20;ytics 0,5,100
+#;xtics 0,1,20;ytics 0,5,100
+!insplot [0:20] [0:100] $F1 notitle
+
+answer$n=!randint 1,$options
+!for p=0 to 40 step 2
+    LINES=!append line dline $p,1,$p,5,black to $LINES
+    TEXT=!append line text black,$[$p-0.1],1,normal,$p to $TEXT
+!next p
+
+!for p=1 to $options
+    !if $p=$(answer$n)
+	ex$p=transparent $white\
+	xrange -1,$K100+1\
+	yrange 0,10\
+	$LINES\
+	frect $K25,5,$K50,9,red\
+	frect $K50,5,$K75,9,blue\
+	linewidth 2\
+	line $K0,7,$K25,7,red\
+	line $K75,7,$K100,7,blue\
+	line $K0,5,$K0,9,red\
+	line $K100,5,$K100,9,blue\
+	$TEXT
+	image$n=$(ex$p)
+    !else
+	pm =!randitem +,-
+	p0=!randitem 0,0.5,1
+	p1=!randint 5,20
+	p1=$[$p1/10]
+	p2=!randint 5,20
+	p2=$[$p2/10]
+	K2=$[($K50 $pm $p0)]
+	K1=!randitem $[$K2-$p1],$[$K0+$p2]
+	K3=!randitem $[($K100-$p2)],$[$K2+$p2]
+
+	ex$p=transparent $white\
+	xrange -1,$K100+1\
+	yrange 0,10\
+	$LINES\
+	frect $K1,5,$K2,9,red\
+	frect $K2,5,$K3,9,blue\
+	linewidth 2\
+	line $K0,7,$K1,7,red\
+	line $K3,7,$K100,7,blue\
+	line $K0,5,$K0,9,red\
+	line $K100,5,$K100,9,blue\
+	$TEXT
+    !endif
+!next    

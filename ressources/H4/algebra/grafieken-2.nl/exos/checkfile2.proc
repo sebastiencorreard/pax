@@ -1,0 +1,178 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+left=!record 43 of lang/remarks.$taal
+right=!record 44 of lang/remarks.$taal
+up=!record 45 of lang/remarks.$taal
+down=!record 46 of lang/remarks.$taal
+#left=-1
+#right=+1
+#up=-2
+#down=+2
+
+# answer$n=-1,$a,+2,$b
+n=$counter
+goback=0
+errortext=$empty
+
+c=!wordcnt $(reply$n)
+!if $c=0
+    goback=1
+    maxscore=$[$P2*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+
+AAA=!lower $(reply$n)
+#left=-1
+#right=+1
+#up=+2
+#down=-2
+!for p in $left
+    AAA=!replace internal $p by @-1@ in $AAA 
+!next p
+!for p in $right
+    AAA=!replace internal $p by @+1@ in $AAA 
+!next p
+!for p in $up
+    AAA=!replace internal $p by @+2@ in $AAA 
+!next p
+!for p in $down
+    AAA=!replace internal $p by @-2@ in $AAA 
+!next p
+AAA=!words2items $AAA
+AAA=!replace internal , by @ in $AAA
+AAA=!nospace $AAA
+
+AAA=!replace [a-z\!\"\`\%\_\=\:\;\#\~] by $empty in $AAA
+
+!for p=1 to 3
+    AAA=!replace internal @@ by @ in $AAA
+!next p
+t1=!char 1 of $AAA
+t2=!char -1 of $AAA
+!if $t1=@
+    AAA=!char 2 to -1 of $AAA
+!endif
+!if $t2=@
+    AAA=!char 1 to -2 of $AAA
+!endif
+!if @ notin $AAA
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 50 of lang/remarks.$taal
+    #@Je moet aangeven of de grafiek van <b>f</b> naar links,rechts,boven of onderen<br />verschoven moet worden om de grafiek van <b>g</b> te krijgen
+    goback=1
+    !exit
+!endif
+AAA=!replace internal @ by , in $AAA
+!for p=1 to 3
+    AAA=!replace internal ,, by , in $AAA
+!next p
+t2=!itemcnt $AAA
+!if $t2 >4
+    # maximaal 4 items... up,1,down,2
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 50 of lang/remarks.$taal
+    #@Je moet aangeven of de grafiek van f naar links,rechts,boven of onderen<br />verschoven moet worden om de grafiek van g te krijgen
+    goback=1
+    !exit
+!endif
+
+GGG=!nospace $(answer$n)
+t1=!itemcnt $GGG
+score=0
+nicereply=$empty
+!for p=1 to $[$t1-1] step 2
+    g1=!item $p of $GGG
+    g2=!item $[$p+1] of $GGG
+    check=0
+    !for a=1 to $[$t2-1] step 2
+        a1=!item $a of $AAA
+	a2=!item $[$a+1] of $AAA
+	!if $check=0
+	    !ifval ($g1=$a1 and $g2=$a2) or ($g2=$a1 and $g1=$a2)
+		!if $showanswer=1
+		    # very expensive TeX presentation of the reply
+		    !if $a1=-1
+			nicereply=!append word $ $a2 \leftarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a1=+1
+			nicereply=!append word $ $a2 \rightarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a2=-1
+			nicereply=!append word $ $a1 \leftarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a2=+1
+			nicereply=!append word $ $a1 \rightarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a1=-2
+			nicereply=!append word $ $a2 \downarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a1=+2
+			nicereply=!append word $ $a2 \uparrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a2=-2
+			nicereply=!append word $ $a1 \downarrow \\ $ to $nicereply
+			!goto READY
+		    !endif
+		    !if $a2=+2
+			nicereply=!append word $ $a1 \uparrow \\ $ to $nicereply
+		    !endif
+		!endif
+		
+		:READY
+		!increase score
+		check=1
+	    !endif
+	!endif
+    !next s
+!next p
+!if $t2>$t1
+    factor=($t1/$t2)
+!else
+    !if $t1>$t2
+	factor=($t2/$t1)
+    !else
+	factor=1
+    !endif
+!endif
+    
+maxscore=$[$factor*$maxscore*$score*2/$t1]
+!if $maxscore>1
+    maxscore=1
+!endif
+modulescore=$[$modulescore+$maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK
+    !else
+        remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n) <br />$extra
+!endif
+
+!if $showanswer=1
+    math=1
+    reply$n=\left[ \begin{array}{l} $nicereply \end{array}
+!endif
+goback=0
+!exit

@@ -1,0 +1,107 @@
+#:25 Herleid de functie tot een machtsfunctie
+#display=1
+checkfile=$checkdir/new_number.proc
+!if $rounding!=0
+ rounding=10
+ !read $remarkdir/rounding.$taal
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+embed=0
+cols=12
+rows=2
+make_tr=1
+math=0
+inputs=1.1
+description=K wordt dan
+ex1=keer zo groot
+mathview=0
+#inputs=-1
+helptext=
+keuze=!randint 1,2,3,4,1,2
+v=!randint 5,10
+ss=!record 31 of lang/remarks.$taal
+#@Bereken bij de volgende formule hoeveel keer zo groot K wordt in het geval q $v keer zo groot wordt. 
+
+sometext=!record 32 of lang/remarks.$taal
+#@K wordt dan,keer zo groot
+
+description=$(sometext[1])
+ex1=$(sometext[2])
+question$n=$ss
+
+m_rightarrow=&nbsp;
+!if $R>0
+ !if $keuze=1
+  a=!randint 5,50
+  a=$[$a/10]
+  b=!randint 11,40
+  b=$[$b/10]
+  formula=!mathmlmath K=$a \cdot q^{$b}
+  answer$n=$v^($b)
+  !if $rounding=0
+   rans=$empty
+  !else
+   rounding=10
+   rans=\approx $[(round($rounding*$(answer$n)))/$rounding]
+  !endif
+  !read $remarkdir/rounding.$taal
+  texanswer$n= \left[ \begin{array}{l}K=$a \cdot q^{$b} \\ \; \\ K=$a \cdot \left($v \cdot q \right)^{$b}\\K=$a \cdot \left($v\right)^{$b} \cdot q ^{$b}\\K=\left($v\right)^{$b} \cdot $a  \cdot q ^{$b} \\ \left($v\right)^{$b} $rans \; \textrm{ $(sometext[2]) }  \end{array} \right.
+ !else
+  !if $keuze=2
+   a=!randint 5,50
+   a=$[$a/10]
+   b=!randint 11,40
+   b=$[$b/10]
+   formula=!mathmlmath K=\frac{$a}{q^{$b}} 
+   answer$n=1/($v^($b))
+   !if $rounding=0
+    rans=$empty
+   !else
+    rounding=100000
+    rans=\approx $[(round($rounding*$(answer$n)))/$rounding]
+   !endif
+   !read $remarkdir/rounding.$taal
+   texanswer$n= \left[ \begin{array}{l} K=\frac{$a}{q^{$b}}  \\ \; \\K=\frac{$a}{\left($v \cdot q \right)^{$b}}\\K=\frac{$a}{\left($v\right)^{$b} \cdot q ^{$b}} \\K=\frac{1}{$v^{$b}}\cdot \frac{$a}{q^{$b}}\\ \frac{1}{\left($v\right)^{$b}} $rans \;\textrm{ $(sometext[2]) }  \end{array} \right.
+  !else
+   !if $keuze=3
+    a=!randint 5,50
+    formula=!mathmlmath K=$a \sqrt{q}
+    answer$n=$v^(1/2)
+    !if $rounding=0
+     rans=$empty
+    !else
+     rounding=10
+     rans=$[(round($rounding*$(answer$n)))/$rounding]
+     !if . notin $rans
+        rans= = $rans
+     !else
+        rans=\approx $rans
+     !endif
+    !endif
+    texanswer$n= \left[ \begin{array}{l} K=$a \sqrt{q} \\ \; \\ K=$a \sqrt{($v \cdot q)}=$a \cdot \left($v \cdot q \right)^{\frac{1}{2}} \\ K=$a \cdot $v ^{\frac{1}{2}}\cdot q^{\frac{1}{2}} \\ K=$v ^{\frac{1}{2}}\cdot $a \cdot  q^{\frac{1}{2}} \\ K=$v ^{\frac{1}{2}}\cdot $a \sqrt{q} \\ $v^{\frac{1}{2}} $rans \;\textrm{ $(sometext[2]) }  \end{array} \right.
+   !else
+    a=!randint 5,50
+    formula=!mathmlmath K=\frac{$a}{ \sqrt{q}}
+    answer$n=1/($v^(1/2))
+    !if $rounding=0
+     rans=$empty
+    !else
+     rounding=1000
+     rans=\approx $[(round($rounding*$(answer$n)))/$rounding]
+    !endif
+   !read $remarkdir/rounding.$taal
+    texanswer$n= \left[ \begin{array}{l} K=\frac{$a}{ \sqrt{q}} \\ \; \\ K=\frac{$a}{ \sqrt{($v \cdot q)}}=\frac{$a}{\left($v \cdot q \right)^{\frac{1}{2}}} \\ K=\frac{$a}{$v ^{\frac{1}{2}}\cdot q^{\frac{1}{2}}} \\ K=\frac{1}{$v ^{\frac{1}{2}}}\cdot \frac{$a}{q^{\frac{1}{2}}} \\ K=\frac{1}{$v^{\frac{1}{2}}} \cdot \frac{$a}{ \sqrt{q}} \\ \frac{1}{$v^{\frac{1}{2}}} $rans \; \textrm{ $(sometext[2]) }  \end{array} \right.
+   !endif
+  !endif
+ !endif
+!endif
+exotext=<p style="text-align:center">$formula</p>
+
+!exit
+

@@ -1,0 +1,39 @@
+!set wims_form_method=post
+!set anstype=yes
+!set anstyle=dprompt
+
+!if $wims_read_parm=def
+ !exit
+!endif
+
+!set oef_answer_option$i=$inputsize
+!set jspara$i=!declosing $(inputsize[2;])
+!set jsid$i=$(para$i[1])
+!set jscode$i=$(inputsize[1;])
+!set jsnbr$i=!itemcnt $(replygood$i)
+
+!reset jslistvar$i
+!for jj=1 to $(jsnbr$i)
+  !set tt=!declosing $(replygood$i[$jj])
+  !set tt=$(tt[1])
+  !set jslistvar$i=!append item $(tt) to $(jslistvar$i)
+!next
+
+!set jstextvar$i=""
+!for nimp in $(jslistvar$i)
+  !set jstextvar$i=$(jstextvar$i)+"["+$(nimp)+"],"
+!next
+
+!set ans_require=
+
+<script>
+/*<![CDATA[*/
+!reset jscaptur$i
+var jscaptur$i = function() {
+document.getElementById('js2wims$i').value=$(jstextvar$i);
+}
+/*]]>*/
+</script>
+<input type="hidden" name="reply$i" id="js2wims$i" value="" />
+!set oef_js_submit=$oef_js_submit jscaptur$i();
+!reset jspara$i jsid$i jsnbr$i jscode$i jslistvar$i jstextvar$i

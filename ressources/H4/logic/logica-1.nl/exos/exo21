@@ -1,0 +1,92 @@
+n=$counter
+mathview=0
+applet=0
+questiontype=1
+checkfile=$checkdir/multiplechoice.proc
+make_tr=1
+
+keuze=!randint 1,4
+math=1
+A=$empty
+
+txt1=is een even getal
+txt2=is een oneven getal
+txt3=is een gebroken getal
+txt4=is een negatief getal
+txt5=is een veelvoud van 3
+txt6=is een rationeel getal
+
+!if $keuze=1
+ r=!randint 4,8
+ min=!randint 10
+ max=!randint 99
+ !for p=1 to $r
+  a=!randint $min,$max
+  !if $[$a%2] != 0
+   a=$[$a+1]
+  !endif
+  A=!append item $a to $A
+ !next p
+!goto KLAAR
+!endif
+
+!if $keuze=2
+ r=!randint 4,8
+ min=!randint 10
+ max=!randint 99
+ !for p=1 to $r
+  a=!randint $min,$max
+  !if $[$a%2] != 1
+   a=$[$a-1]
+  !endif
+  A=!append item $a to $A
+ !next p
+!goto KLAAR
+!endif
+
+!if $keuze=3
+ r=!randint 4,8
+ min=!randint 10
+ max=!randint 99
+ !for p=1 to $r
+  a=!randint $min,$max
+  h=!randint 1,99
+  A=!append item $a.$h to $A
+ !next p
+!goto KLAAR
+!endif
+
+!if $keuze=4
+ r=!randint 4,8
+ min=!randint 10
+ max=!randint 99
+ !for p=1 to $r
+  a=!randint $min,$max
+  A=!append item -$a to $A
+ !next p
+!endif
+
+
+#[\forall x:x\in $C\Rightarrow x\in $A]
+:KLAAR
+prop=\left[ \forall x: x\in A \Rightarrow x \;\textrm{ $txt1 } \right] \
+\left[ \forall x: x \in A \Rightarrow x \;\textrm{ $txt2 } \right] \
+\left[ \forall x: x \in A \Rightarrow x \;\textrm{ $txt3 }\right] \
+\left[ \forall x: x \in A \Rightarrow x \;\textrm{ $txt4 } \right]
+texanswer$n=$ \left\{ \begin{array}{l} A = \{ $A \} \\ $
+kies=!shuffle 4,3,2,1
+!for p=1 to 4
+ t=!item $p of $kies
+ !if $t=$keuze
+  answer$n=$p
+  k=green
+ !else
+  k=red
+ !endif
+ ex$p=!line $t of $prop
+ texanswer$n=!append word $ \color{$k} $(ex$p) \\ $ to $(texanswer$n) 
+!next p
+ss=Gegeven de verzamelingen A={$A}<br />Welke van de onderstaande proposities is waar?
+question$n=$ss
+texanswer$n=!append word $ \end{array} \right. $ to $(texanswer$n)
+

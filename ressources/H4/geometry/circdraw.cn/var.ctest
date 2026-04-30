@@ -1,0 +1,51 @@
+!if _free isin _$jreply
+  jreply=!replace internal _free= by in _$jreply
+!endif
+
+m=!itemcnt $gdata
+n=!itemcnt $jreply
+!if $n<3
+ error=empty_data
+ !exit
+!endif
+
+!if $n<$m
+ mean=100
+ !exit
+!endif
+
+mean=0
+!if $gtype=circle
+ !for i=1 to $m
+  s_=!item $i of $gdata
+  t_=!item $i of $jreply
+  mean=$[$mean+($s_-($t_))^2]
+ !next i
+ mean=$[sqrt($mean/2)]
+!endif
+
+!if $gtype=polygon
+ !if $m!=$n
+  mean=100
+  !exit
+ !endif
+ curvecomp_1=$gdata
+ curvecomp_2=$jreply
+ curvecomp_option=discret1 discret2
+ curvecomp_tolerance=$tol2
+ curvecomp_xrange=0,$size
+ curvecomp_yrange=0,$size
+ test=!exec curvecomp
+ !distribute words $test into m1,m2
+ !if $m1=$empty
+  error=bad_data
+  !exit
+ !endif
+ mean=$[max($m1,$m2)/5]
+!endif
+
+!if NaN isin $mean or Inf isin $mean
+ error=bad_data
+ !exit
+!endif
+

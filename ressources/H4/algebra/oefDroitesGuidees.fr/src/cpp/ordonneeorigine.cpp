@@ -1,0 +1,72 @@
+target=ordonneeorigine
+\language{fr}
+\range{-10..10}
+\computeanswer{no}
+\format{html}
+\precision{50}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{s=6}
+\integer{p=randint(-(\s-1)..(\s-1))}
+\integer{xa=randint(-1,1)*randint(1..(\s-1))}
+\integer{ya=randint(-(\s-1)..(\s-1))}
+\rational{m = simplify( (\ya - \p)/ \xa)}
+\real{pixMx=(200*0 / \s + 200)/2}
+\real{pixMy=(-200*\p / \s + 200)/2}
+\function{f=simplify(\m*x+\p)}
+
+\text{lerepere=
+xrange -\s,\s
+yrange -\s,\s
+parallel -\s,-\s,-\s,\s,1,0,2*\s+1,grey
+parallel -\s,-\s,\s,-\s,0,1,2*\s+1,grey
+hline 0,0,black
+vline 0,0,black
+arrow 0,0,1,0,8,black
+arrow 0,0,0,1,8,black
+}
+
+\text{ledessin=draw(200,200
+\lerepere
+fcircle \xa,\ya,9,blue
+text blue,\xa + 0.5,\ya,small,A)}
+\statement{
+<div style="background-color:#FFFF66">
+Dans le repère orthonormal, on considère la droite \(D\) de
+\special{tooltip pente,,\name_tooltip}
+ \(\m\) et passant par le point \(A\).
+<p>
+Cliquer sur le point d'intersection de la droite \(D\)
+avec l'axe des ordonnées.
+</p>
+<div class="wims_instruction">
+NB : Dans un repère orthonormal, la <span style="color:blue">pente d'une droite</span>
+est son coefficient directeur.</div>
+<div class="wimscenter">\embed{reply1}</div>
+</div>}
+
+\answer{}{\ledessin; point,\pixMx,\pixMy}{type = coord}
+
+\hint{On peut envisager deux méthodes :
+<ol><li>calculer l'ordonnée à l'origine \(p\) de \(D\) en écrivant que le point \(A\)
+appartient à \(D\) ; on résout alors l'équation : \(y_A = m x_A+p\).
+</li><li>construire le point recherché \(B\) tel que le rapport de la
+variation des ordonnées sur la variation des abscisses soit égal à la pente :
+\(\frac{\Delta y}{\Delta x}=\frac{y_B-y_A}{x_B-x_A}=m\).
+</li></ol>}
+\feedback{\result1=-1 or \result1=1 }{
+  \name_feed
+<div class="wimscenter">
+\draw{200,200}{
+\lerepere
+fcircle \xa,\ya,8,blue
+text blue,\xa + 0.5,\ya,small,A
+linewidth 2
+plot blue,\f
+fcircle 0,\p,8,green
+text blue,0.5,\p,small,B
+}
+</div>
+}

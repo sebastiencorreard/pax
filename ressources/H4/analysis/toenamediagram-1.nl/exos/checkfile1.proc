@@ -1,0 +1,231 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+reply$n=!nospace $(reply$n)
+# tot=totalobject_count + ',' + \
+#    point_count + ',' + \
+#    circle_count + ',' + \
+#    line_count + ',' + \
+#    segment_count + ',' + \
+#    polygon_count + ',' + \
+#    conic_count + ',' + \
+#    ellipse_count + ',' + \
+#    hyperbola_count + ',' + \
+#    angle_count + ',' + \
+# GEOGEBRA: lijn  =>  line @ name @ slope @ constant
+# GEOGEBRA: lijn  =>  line @ name @ perp @ x=number
+# GEOGEBRA: point  => point@ name @ x @ y
+
+extra=$empty
+tt=!itemcnt $(reply$n)
+tot=!item 1 of $(reply$n)
+
+!ifval $tot=0
+    errortext=!record 10 of lang/remarks.$taal
+    #@ Je hebt geen tekening gemaakt, $voornaam<br />Als je't niet weet kun je ook gewoon op de knop "ik weet het niet" ofzo klikken...
+    maxscore=$[$maxscore*$P2]
+    goback=1
+    !exit
+!endif
+!ifval $tot > $[$points + 15]
+    errortext=!record 11 of lang/remarks.$taal
+    #@ Deze "tekening" ga ik echt niet nakijken...<br />Klik jij maar op de "ik zou het niet weten" knop
+    maxscore=$[$maxscore*$P5]
+    goback=1
+    !exit
+!endif
+
+point_count=!item 2 of $(reply$n)
+segment_count=!item 5 of $(reply$n)
+
+test=$[gcd($point_count,2)]
+!if $test=1
+    # oneven: nodig voor een segment met nul-lengte en dus maar 1 punt ipv 2
+    point_count=$[$point_count+1]
+    segment_count=$[$segment_count+1]
+!endif
+
+!if $segment_count != $segments
+    !if $segment_count>$segments
+	extra=!record 12 of lang/remarks.$taal
+	#@ Je het $segment_count lijnstukken getekend in de applet<br />Dat is dus $[$segment_count-$segments] te veel.
+	!if $teaching=1
+	    maxscore=$[$maxscore*$P3]
+	    errortext=$extra
+	    goback=1
+	    !exit
+	!else
+	    maxscore=$[$maxscore*$segments/$segment_count]
+	!endif
+    !else
+	extra=!record 13 of lang/remarks.$taal
+	#@ Je het $segment_count lijnstukken getekend in de applet<br />Dat is dus $[$segments - $segment_count] te weinig.
+	!if $teaching=1
+	    errortext=$extra
+	    maxscore=$[$maxscore*$P3]
+	    #errortext=<h1>hier</h1>
+	    goback=1
+	    !exit
+	!else
+	    !if $segment_count=0
+		errortext=$extra
+		maxscore=$[$maxscore*$P3]
+		goback=1
+		!exit
+	    !else
+		maxscore=$[$maxscore*$segment_count/$segments]
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if NaN isin $maxscore
+    errortext==!record 14 of lang/remarks.$taal
+    #@ Je hebt een ongeldige tekening ingeleverd, met $points_count punten en $segment_count segments...
+    maxscore=$[$maxscore*$P3]
+    goback=1
+    !exit
+!endif
+# convert the correct answer is list x,y,x,y,x,y
+ta=!itemcnt $(answer$n)
+# $p,0,$p,$a 
+X=$empty
+Y=$empty
+max1=0
+min1=0
+!for p=1 to $[$ta-1] step 2
+    q=$[$p+1]
+    x=!item $p of $(answer$n)
+    y=!item $q of $(answer$n)
+    !if $y>$max1
+	max1=$y
+    !endif
+    !if $y<$min1
+	min1=$y
+    !endif
+    X=!append item $x to $X
+    Y=!append item $y to $Y
+#   frect 0.9,0,1.1,-3,green\
+#   frect 0.9,0,1.1,0,green\ 
+    goedrect=!append line $ frect $[$x - 0.2],0,$[$x + 0.2],$y,green $ to $goedrect
+!next p
+
+#trick ...for nonexisting "zero length segment"
+score=1
+
+reply=$empty
+max2=0
+min2=0
+!for p=1 to $tt
+    AAA=!item $p of $(reply$n)
+    !if point isin $AAA
+	hit=0
+	# point@A@x@y -> point,A,x,y
+	AAA=!replace internal @ by , in $AAA
+	x=!item 3 of $AAA
+	y=!item 4 of $AAA
+	x=$[(round(10*($x)))/10]
+	y=$[(round(10*($y)))/10]
+	!if $y>$max2
+	    max2=$y
+	!endif
+	!if $y<$min2
+	    min2=$y
+	!endif
+	r=0
+	!for s=1 to $ta
+	    !if $hit=0
+		xg=!item $s of $X
+		yg=!item $s of $Y
+		!ifval $x=$xg and $y=$yg
+		    hit=1
+		    s=$ta
+		    xl=!append item $x to $xl
+		    yl=!append item $y to $yl
+		    kl=!append item green to $kl
+		    !increase score
+		    reply=!append word $ <li><span style="color:green">($x:$y)</span> $ to $reply
+		!endif
+	    !endif
+	!next s
+	!if $hit=0
+	    reply=!append word $ <li><span style="color:red;text-decoration:line-through">($x:$y)</span></li> $ to $reply
+	    xl=!append item $x to $xl
+	    yl=!append item $y to $yl
+	    kl=!append item red to $kl
+	!endif
+    !endif
+!next p
+reply$n=<ol>$reply</ol>
+
+tx=!itemcnt $xl
+!for s=1 to $tx step 2
+    r=$[$s+1]
+    x1=!item $s of $xl
+    x2=!item $r of $xl
+    y1=!item $s of $yl
+    y2=!item $r of $yl
+    k1=!item $s of $kl
+    k2=!item $r of $kl
+    !if red isin $k1,$k2
+	leerlingrect=!append line $ frect $[$x1-0.2],$y1,$[$x2+0.2],$y2,red $ to $leerlingrect
+    !endif
+!next s
+score=$[$maxscore*$score*2/$ta]
+
+# eigenlijk moet alles goed zijn....alleen "consideratie" voor leerlingen die de som hebben teruggekregen
+!if $score >= 1
+    maxscore=1
+    remark$n=$OK
+!else
+    #fffff moet beter
+    !if $score>0.8
+	!if $maxscore=1
+	    # dus de som nooit geretourneerd en dus niet alles goed !
+	    maxscore=0.4
+	    remark$n=$BOK
+	!else
+    	    remark$n=$OK
+	!endif
+    !else
+	remark$n=$NOK
+	maxscore=0
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+
+math=0
+!if $showanswer=1
+ # ivm gezeur van de fijne collega's...
+ # 
+ insdraw_size=200,200
+ draw=1 
+ minx=!item 1 of $(answer$n)
+ maxx=!item -2 of $(answer$n)
+ maxy=$[max($max1,$max2)]
+ miny=$[min($min1,$min2)]
+ 
+ image$n=200,200\
+ xrange $[$minx-1],$[$maxx+1]\
+ yrange $[$miny-1],$[$maxy+1]\
+ $leerlingrect\
+ linewidth 4\
+ $goedrect\
+ hline 0,0,blue
+ 
+!endif
+!exit

@@ -1,0 +1,93 @@
+!read language lang/names
+!set wims_backslash_insmath=yes
+
+!if $status!=waiting and $status!=done
+  !changeto var.prep
+!endif
+
+!if $cmd=reply and $status!=waiting
+  error=double_reply
+  !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+  # Analysis of the reply should be placed here.
+  # The following lines are just a template.
+
+  choice=!trim $choice
+  !bound choice within A,B,C default $
+  !if $choice=$empty
+    error=empty_data
+    !exit
+  !endif
+
+  f1=!mathsubst a=($a0) in $f
+  f2=!mathsubst a=($a1) in $f
+  v1=!evalsubst b=($b0) in $f1
+  v2=!evalsubst b=($b0) in $f2
+  v3=!evalsubst b=($b1) in $f1
+  v4=!evalsubst b=($b1) in $f2
+  max=$[max($v1,max($v2,max($v3,$v4)))]
+  min=$[min($v1,min($v2,min($v3,$v4)))]
+  good=C
+  !if $min>=$c0
+    !if $orient=1
+      good=B
+    !else
+      good=A
+    !endif
+  !endif
+  !if $max<=$c0
+    !if $orient=1
+      good=A
+    !else
+      good=B
+    !endif
+  !endif
+
+ diagnostics=good
+ !if $choice!=$good
+    diagnostics=bad
+ !endif
+ !if $choice=C and $good=C and $exask=yes
+    !for i in a1,a2,b1,b2
+      ex$i=!trim $(ex$i)
+      !if $(ex$i)=$empty
+        error=empty_data
+        !exit
+      !endif
+      ex$i=$[$(ex$i)]
+      !if NaN isin $(ex$i)
+        error=bad_data
+        !exit
+      !endif
+    !next i
+    !if $exa1<=$a0 or $exa1>=$a1 or $exa2<=$a0 or $exa2>=$a1 or\
+        $exb1<=$b0 or $exb1>=$b1 or $exb2<=$b0 or $exb2>=$b1
+      error=out_of_range
+      !exit
+    !endif
+    f1=!mathsubst a=($exa1) in $f
+    f1=!evalsubst b=($exb1) in $f1
+    f2=!mathsubst a=($exa2) in $f
+    f2=!evalsubst b=($exb2) in $f2
+    !if $orient=1 and ($f1>=$c0 or $f2<$c0) or\
+        $orient=2 and ($f1<=$c0 or $f2>$c0)
+      diagnostics=bad
+    !endif
+  !endif
+
+  !advance repeated
+  !if $diagnostics=good
+    goodgot=$[$goodgot+3]
+  !else
+    goodgot=$[$goodgot-1]
+  !endif
+  !if $repeated<$repeat
+    status=next
+ !else
+    status=done
+    module_score=$[rint(100*(max(0,$goodgot)/($repeat*3))^$scoreexp)/10]
+    wims_module_log=score $module_score/10
+  !endif
+!endif

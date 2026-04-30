@@ -1,0 +1,337 @@
+target=mr1 mr2 mr3
+\language{fr}
+\range{-5..5}
+\author{Laurent,Gallien;Julien,Lyotard;Moïse,Muller;Jean-Luc,Pernette;Irem de Dijon}
+\email{Julien.Lyotard@ac-dijon.fr}
+représentationgraphique variations tableaudevariations conclusion
+\computeanswer{no}
+\format{html}
+\precision{100000}
+
+\real{a=randint(3..4)/100}
+\real{b=randint(35..55)/100}
+\function{f=-\a*x*x*x+\b*x*x}
+
+\function{fp=diff(\f,x)}
+\real{ap=3*\a}
+\real{bp=2*\b}
+
+\function{ff=pari(\f)}
+\function{fff=texmath(\ff)}
+
+\function{fpp=pari(\fp)}
+\function{fppp=texmath(\fpp)}
+
+\matrix{xm=solve(\fp,x=0..100)}
+\real{yo=solve(\f,x=\xm[2]..100)}
+\text{it=slib(function/bounds \f,x,0,\yo)}
+\integer{ymax=\it[2]+3}
+
+\integer{angle=randint(3..6)*10}
+\real{anglerad=\angle*pi/180}
+\integer{ttg=tan(\anglerad)*1000000}
+\integer{tg=tan(\anglerad)*100}
+\real{tga=\tg/100}
+\real{ttga=\ttg/1000000}
+
+\function{ffp=\fp+\tga}
+\integer{xr=solve(\ffp,x=\xm[2]..100)*100}
+\real{xxr=\xr/100}
+\integer{xrr=solve(\ffp,x=\xm[2]..100)*1000}
+\real{xxrr=\xrr/1000}
+
+
+\integer{del=(\bp^2-4*-\ap*\tga)*10000}
+\real{dell=\del/10000}
+
+\integer{deel=(\bp^2-4*-\ap*\tga)*1000000}
+\real{deell=\deel/1000000}
+
+\text{pro=Comment raccorder des voies de montagnes russes ?}
+\text{enonce=Les montagnes russes sont nées vers la fin des années 1700\(,) de l’idée de recréer les courses
+ de luges qui avaient lieu dans les environs de Saint Petersburg. Un chariot à roues attaché à des rails\(,)
+ se substituait à la luge. Aujourd’hui encore\(,) ce type d’attraction tient une place particulière
+ dans les fêtes foraines et autres parcs d’attractions. Les tracés sont de plus en plus audacieux.
+<br />
+Un nouveau tracé est en étude pour un parc d’attraction. La première partie du tracé prévoit deux formes.
+ La première est modélisée par la fonction \(f) sur l’intervalle [0 ; 12] par : \(f(x)=\fff)
+ ( \(x) représente la distance horizontale parcourue en m). La deuxième est une portion rectiligne mais
+ orientée à \angle° par rapport à l’horizontale. Le but de l'activité est de modifier la fin du tracé
+ pour le rendre moins abrute et donc finir par une droite. Par conséquent le chariot commence son parcours
+ sur la fonction \(f) et il le termine sur la droite en vert à <b>placer correctement</b>.}
+
+\text{derive=wims(record 0 of help/derive.txt)}
+\text{tableau=wims(record 0 of help/tableau.txt)}
+\css{<style type="text/css">
+  .jxgbox {margin-left:auto;margin-right:auto;}
+  .jsxgraph_button {text-align:center;}
+</style>} 
+\text{A=slib(geo2D/jsxgraph jsxbox,1000 x 500,var brd = JXG.JSXGraph.initBoard('jsxbox',
+ {axis:false, boundingbox: [-10,\ymax,30,-1]});
+ xaxis = brd.create('axis', [[0, 0], [1, 0]], {
+ ticks: { ticksDistance: 1,  insertTicks: false}});
+yaxis = brd.create('axis', [[0, 0], [0, 1]],{
+ ticks: { ticksDistance: 1,  insertTicks: false}});
+/*definition du repere au dessus*/
+/*definition de la fonction et la derive*/
+var ff = function(x) { return \f; };
+var ffp=function(x) { return -\ap*x*x+\bp*x;};
+var g = function(x) { return -0.03*x*x*x+0.36*x*x+1; };
+/*trace de la fonction*/
+var fct= brd.create('functiongraph', [function(x){return ff(x);},0,\yo],{strokeColor:'red'});
+/*trace de la tangente*/
+var gtan=brd.create('glider',[7,12,fct],{name:'Bouge moi', strokeColor:'black',highlightFillOpacity:0});
+var ptan=brd.create('point',[function(){ return gtan.X()+1;},function(){ return gtan.Y()+-\ap*gtan.X()*gtan.X()+\bp*gtan.X();}],{visible:false});
+var tan=brd.create('line',[gtan,ptan]);
+/*rapporteur*/
+var gequerre=brd.create('glider',[18,0,xaxis],{name:'Déplace moi', strokeColor:'black'});
+var pequerre=brd.create('point',[0,6],{name:'Tourne moi', strokeColor:'black',showInfobox:true});
+var ppequerre=brd.create('point',[-20,0],{visible:false});
+var sequerre = brd.createElement('line',[pequerre,gequerre], 
+ {straightFirst:false, straightLast:false, strokeWidth:2, strokeColor:'green', dash:0});
+var ssequerre = brd.createElement('line',[ppequerre,gequerre], 
+ {straightFirst:true, straightLast:false, strokeWidth:2, strokeColor:'green', dash:0});
+var pangle=brd.create('point',[function(){return gequerre.X()-2;},0],{visible:false});
+brd.create('angle',[pequerre,gequerre,pangle],{orthoSensitivity:2,orthoType:'square', radius:2, name:function() { 
+   return JXG.Math.Geometry.trueAngle(pequerre,gequerre,pangle).toFixed(1) + "&deg;";}});
+/*permet de lier gequerre à pequerre et donc de garder un angle constant*/
+/*permet de lier gequerre à pequerre et donc de garder un angle constant*/
+ var tOff = brd.create('transform', [function(){return gequerre.X()},function(){return gequerre.Y()}], {type:'translate'});
+ tOff.bindTo(pequerre); 
+/*Affichage*/
+var n=0;
+var txt = brd.create('text', [28,\ymax,function(){
+    return '<b>Angle : </b> &#194;='+JXG.Math.Geometry.trueAngle(pequerre,gequerre,pangle).toFixed(1) + "&deg;"
+    +'<br /><b>Abscisse du point "Bouge moi" =</b>'+ gtan.X().toFixed(2)
+    +'<br /><b>Nombre dérivé =</b>'+((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X())).toFixed(2)
+    +'<br /><b>Équation de la tangente :</b><br /> y='+ ((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X())).toFixed(2)+'x
+    +'+(-((ptan.Y()-gtan.Y())/(ptan.X()-gtan.X()))*ptan.X()+ptan.Y()).toFixed(2);
+  }],{anchorX:'right', anchorY:'top',cssClass:'jsx',fontSize:12});
+
+var urlchenille = "\imagedir/chenille2.png";
+brd.create('image',[urlchenille,[-1,0], [2,2] ]);
+
+var start = 0,
+      end = \yo,
+      x = start,
+      step = 0.2;  
+      turtle = brd.create('turtle', [x, ff(x)]);
+           var moveForward = function() {
+           if (n>0) {brd.removeObject(imm);}
+           /*chronophotographique*/
+           if(n%4==0){
+           immm=brd.create('image',[urlchenille,[x-1,ff(x)], [2,2] ]);
+           var tt=brd.create('transform',[Math.atan(ffp(x)), x,ff(x)],{type:'rotate'});
+           tt.bindTo(immm);}
+           /*trajectoire de l'image*/
+           imm= brd.create('image',[urlchenille,[x-1,ff(x)], [2,2] ]);
+           trot=brd.create('transform',[Math.atan(ffp(x)), x,ff(x)],{type:'rotate'});
+           trot.bindTo(imm);           
+             x=x+step;
+             n=n+1;
+             if (x>end) {/*brd.removeObject(imm);*/n=0;x=start;return;}
+             turtle.setPos([x,ff(x)]);
+           setTimeout(moveForward, 100);
+           };
+           turtle.hideTurtle();
+           )}
+debug
+f=\f;fp=\fp;angle=\angle;anglerad=\anglerad;tg=\tg;fpp=\fpp;fppp=\fppp;yo=\yo;fpppp=\fpppp;ymax=\ymax;xm=\xm;xr=\xr
+#if #TARGET(mr1)
+\title{3.1 Montagnes Russes (lecture graphique)}
+\matrix{nstep= reply1}
+\nextstep{\nstep}
+
+\statement{
+<div class="encadre">
+<div id="boiteg">
+<img src="\imagedir/montagnesrusses.jpg" alt="Pub pour les montagnes russes" />
+</div>
+<div id="boited">
+<img src="\imagedir/montagnesrusses3.jpg" alt="Manège" />
+</div>
+<p class="problematique"> \pro</p>
+<div class="enonce">\enonce </div>
+<p class="problematique"> À quel endroit peut-on raccorder les deux portions de voie sans point
+ anguleux sans briser la courbure ?</p>
+<br />
+
+<div class="center">
+<a class="bouton" onclick="moveForward()"> Animation</a>
+</div>
+<br />
+\A
+<div class="question">
+<div class="etape">Essai \step</div>
+Effectuer une méthode permettant de déterminer l'abscisse du point de raccordement des deux parties de voies.
+<ul>
+\if{\step>=2 and \sc_reply1=0}{<li>En bougeant le point "Tourne moi", réaliser un angle de \angle °.</li>}
+\if{\step>=3 and \sc_reply1=0}{<li>En bougeant le point "Déplace moi", placer la droite verte
+ pour que la courbe et la droite soient raccord sans point anguleux.</li>}
+\if{\step>=4 and \sc_reply1=0}{<li>En déplaçant le point "Bouge moi", placer la droite bleu
+ sur la droite verte.</li>}
+\if{\step>=5 and \sc_reply1=0}{<li>Lire l'abscisse du point "Bouge moi".</li>}
+</ul>
+<div class="wimscenter"> \(x=)\embed{reply1,4} à 0.1</div>
+</div>
+
+</div>}
+
+\answer{}{\xxr-0.1,\xxr+0.1,\xxr}{type=range}{option=nonstop}
+
+\text{nstep=(\step=2 and \sc_reply1=0)? reply1}
+\text{nstep=(\step=3 and \sc_reply1=0)? reply1}
+\text{nstep=(\step=4 and \sc_reply1=0)? reply1}
+\text{nstep=(\step=5 and \sc_reply1=0)? reply1}
+#endif
+
+#if #TARGET(mr2)
+\title{3.2 Montagnes Russes (équation du 2° degré)}
+\matrix{nstep= reply1,reply2,reply3}
+\nextstep{\nstep}
+
+\statement{
+<div class="encadre">
+<div id="boiteg">
+<img src="\imagedir/montagnesrusses.jpg" alt="Pub pour les montagnes russes" />
+</div>
+<div id="boited">
+<img src="\imagedir/montagnesrusses3.jpg" alt="Manège" />
+</div>
+<p class="problematique"> \pro</p>
+<div class="enonce">\enonce </div>
+<p class="problematique"> À quel endroit peut-on raccorder les deux portions de voie sans point
+ anguleux sans briser la courbure ?</p>
+<br />
+
+<div class="center">
+<a class="bouton" onclick="moveForward()"> Animation</a>
+</div>
+<br />
+\A
+<div class="question">
+<div class="etape">Essai \step</div>
+Effectuer une méthode permettant de déterminer l'abscisse du point de raccordement des deux parties de voies.
+<ul>
+\if{\step>=2 and \sc_reply1=0}{<li>En bougeant le point "Tourne moi", réaliser un angle de \angle °.</li>}
+\if{\step>=3 and \sc_reply1=0}{<li>En bougeant le point "Déplace moi", placer la droite verte
+ pour que la courbe et la droite soient raccord sans point anguleux.</li>}
+\if{\step>=4 and \sc_reply1=0}{<li>En déplaçant le point "Bouge moi", placer la droite bleu
+ sur la droite verte.</li>}
+\if{\step>=5 and \sc_reply1=0}{<li>Lire l'abscisse du point "Bouge moi".</li>}
+\if{\sc_reply1=1}{Graphiquement, la valeur de l'abscisse est : \(x)=\reply1}
+</ul>
+<div class="wimscenter"> \(x=)\embed{reply1,4} à 0,1</div>
+Une manière plus formelle de résoudre la problèmatique est d'utiliser la fonction dérivée <span class="unbreakable">\(f'(x) = \fppp\).</span>
+ Puis chercher les valeurs de \(x\) pour lesquels \(f'(x)\) est égal au nombre dérivé. 
+<ul>
+\if{\step>=2 and \sc_reply2=0}{<li>Résoudre l'équation : \(\fppp)=-\tga</li>}
+\if{\step>=3 and \sc_reply2=0}{<li>Résoudre l'équation : \(\fppp)+\tga=0</li>}
+\if{\step>=4 and \sc_reply2=0}{<li>Déterminer les valeurs de a, b et c en identifiant avec l'équation \(ax^2+bx+c=0).</li>}
+\if{\step>=5 and \sc_reply2=0}{<li>Après identification, on détermine : a=-\ap, b=\bp et c=\tga</li>}
+\if{\step>=6 and \sc_reply2=0}{<li>La valeur de \(Delta) est donc de : \(Delta=\dell)</li>}
+\if{\step>=7 and \sc_reply2=0}{<li>Utiliser les formules suivantes : \(x_1 = \frac{-b-\sqrt{\Delta}}{2a}  \quad et  \quad x_2 = \frac{-b+\sqrt{\Delta}}{2a})</li>}
+</ul>
+<div class="wimscenter"> \(x=)\embed{reply2,4} à 0,01</div>
+ Le résultat trouvé précédemment est-il pertinent : \embed{reply3}
+
+</div>
+
+</div>}
+
+\answer{}{\xxr-0.1,\xxr+0.1,\xxr}{type=range}{option=nonstop}
+\answer{}{\xxr}{type=numeric}{option=nonstop}
+\answer{}{1;Oui,Non}{type=radio}{option=nonstop}
+
+\text{nstep=(\step=2 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=3 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=4 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=5 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=6 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=7 and \sc_reply1=0)? reply1,reply2}
+
+\text{nstep=(\step=2 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=3 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=4 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=5 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=6 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=7 and \sc_reply1=1)? reply2}
+\text{nstep=(\sc_reply1=1 and \sc_reply2=1)?}
+#endif
+
+#if #TARGET(mr3)
+\title{3.3 Montagnes Russes (équation du 2° degré et dérivation)}
+\matrix{nstep= reply1,reply2,reply3}
+\nextstep{\nstep}
+
+\statement{
+<div class="encadre">
+<div id="boiteg">
+<img src="\imagedir/montagnesrusses.jpg" alt="Pub pour les montagnes russes" />
+</div>
+<div id="boited">
+<img src="\imagedir/montagnesrusses3.jpg" alt="Manège" />
+</div>
+<p class="problematique"> \pro</p>
+<div class="enonce">\enonce </div>
+<p class="problematique"> À quel endroit peut-on raccorder les deux portions de voie sans point
+ anguleux sans briser la courbure ?</p>
+<br />
+
+<div class="center">
+<a class="bouton" onclick="moveForward()"> Animation</a>
+</div>
+<br />
+\A
+<div class="question">
+<div class="etape">Essai \step</div>
+Effectuer une méthode permettant de déterminer l'abscisse du point de raccordement des deux parties de voies.
+<ul>
+\if{\step>=2 and \sc_reply1=0}{<li>En bougeant le point "Tourne moi", réaliser un angle de \angle °.</li>}
+\if{\step>=3 and \sc_reply1=0}{<li>En bougeant le point "Déplace moi", placer la droite verte
+ pour que la courbe et la droite soient raccord sans point anguleux.</li>}
+\if{\step>=4 and \sc_reply1=0}{<li>En déplaçant le point "Bouge moi", placer la droite bleu
+ sur la droite verte.</li>}
+\if{\step>=5 and \sc_reply1=0}{<li>Lire l'abscisse du point "Bouge moi".</li>}
+\if{\sc_reply1=1}{Graphiquement, la valeur de l'abscisse est : \(x)=\reply1}
+</ul>
+<div class="wimscenter"> \(x=)\embed{reply1,4} à 0.1</div>
+Une manière formelle de résoudre la problèmatique est d'utiliser la fonction dérivée \(f'(x))
+ et le coefficient directeur de la droite verte. 
+<ul>
+\if{\step>=2 and \sc_reply2=0}{<li>Résoudre l'équation : \(f'(x))=coefficient directeur de la droite verte</li>}
+\if{\step>=3 and \sc_reply2=0}{<li>Le coefficient directeur de la droite verte a pour valeur : \(\tan \angle ^\circ= \ttga)</li>}
+\if{\step>=4 and \sc_reply2=0}{<li>La fonction dérivée est : \(f'(x)) = \(\fppp)</li>}
+\if{\step>=5 and \sc_reply2=0}{<li>Déterminer les valeurs de a, b et c en identifiant avec l'équation \(ax^2+bx+c=0).</li>}
+\if{\step>=6 and \sc_reply2=0}{<li>Après identification, on détermine : \(a=-\ap\); \(b=\bp\) et \(c=\ttga\)</li>}
+\if{\step>=7 and \sc_reply2=0}{<li>La valeur de \(Delta) est donc de : \(Delta=\deell)</li>}
+\if{\step>=8 and \sc_reply2=0}{<li>Utiliser les formules suivantes : \(x_1 = \frac{-b-\sqrt{\Delta}}{2a}  \quad \text{et}  \quad x_2 = \frac{-b+\sqrt{\Delta}}{2a})</li>}
+</ul>
+<div class="wimscenter"> \(x=)\embed{reply2,4} à 0.001</div>
+ Le résultat trouvé précédemment est-il pertinent : \embed{reply3}
+
+</div>
+
+</div>}
+
+\answer{}{\xxr-0.1,\xxr+0.1,\xxr}{type=range}{option=nonstop}
+\answer{}{\xxrr}{type=numeric}{option=nonstop}
+\answer{}{1;Oui,Non}{type=radio}{option=nonstop}
+
+\text{nstep=(\step=2 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=3 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=4 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=5 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=6 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=7 and \sc_reply1=0)? reply1,reply2}
+\text{nstep=(\step=8 and \sc_reply1=0)? reply1,reply2}
+
+\text{nstep=(\step=2 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=3 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=4 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=5 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=6 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=7 and \sc_reply1=1)? reply2}
+\text{nstep=(\step=8 and \sc_reply1=1)? reply2}
+\text{nstep=(\sc_reply1=1 and \sc_reply2=1)?}
+#endif

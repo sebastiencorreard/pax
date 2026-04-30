@@ -1,0 +1,183 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# een gewoon getalsmatig antwoord gelijk aan bewerking5.proc
+# MAAR soms zijn er 2 goede antwoorden ... een floor en een round...
+# een gebroken getal geven we terug... met teaching
+# anders maxscore=0.8
+n=$counter
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+wims_exec_error=$empty
+AAA=!lower $(reply$n)
+test=!nospace $AAA
+# nieuw: we testen op een gebroken getal met een komma
+!if , isin $test
+    t=!positionof char , in $test    
+    check=0
+    cont=0
+    cijfers=1234567890
+    !for p in $t
+	t1=!char $[$p-1] of $test
+	t2=!char $[$p+1] of $test
+	!if $t1 isin $cijfers and $t2 isin $cijfers
+	    !increase check
+	!else
+	    !increase cont
+	!endif
+    !next p
+	
+    !if $cont>0 and $check>0
+	maxscore=$[$maxscore*$P1]
+	# meerder komma's tja...
+	errortext=!record 79 of lang/remarks.$taal
+	#@ Je kunt in dit geval beter geen komma's gebruiken in je antwoord...<br />\
+	#@ Dat is verrekte lastig nakijken voor mij<br />\
+	#@ Eventjes verbeteren, $voornaam
+	goback=1
+	!exit
+    !endif
+    !if $check>0
+	AAA=!replace internal , by . in $AAA
+	test=!nospace $AAA
+	extra=!record 80 of lang/remarks.$taal
+	# <br /><small>Decimale getallen schrijven we tegenwoordig met een PUNT<br />\
+	# en <b>niet</b> met een KOMMA...</small>
+    !endif
+!endif
+
+!if .. isin $AAA
+    errortext=!record 98 of lang/remarks.$taal
+    goback=1
+    maxscore=$[$maxscore*$P1]
+    !exit
+!endif
+
+test=!replace internal = by @ in $AAA
+!if @ isin $test    
+    AAA=!replace internal = by , in $AAA
+    # sommigen vullen in S20=12342
+    A1=!item 1 of $AAA
+    A2=!item 2 of $AAA
+    !if NaN isin $[1*($A2)]
+	goback=1
+	maxscore=$[$P2*$maxscore]
+	rem=!record 77 of lang/remarks.$taal
+	#@ Je antwoord $A1 = $A2 is wel wat lastig nakijken...<br />\
+	#@ Ik verwacht gewoon een getalsmatig antwoord<br />Even verbeteren, $voornaam
+	errortext=$rem
+        !exit
+    !else
+	AAA=$A2
+	!if NaN isin $[1*($A1)]
+	    rem=!record 78 of lang/remarks.$taal
+	    #@ Ik ging ervan uit dat je antwoord $A1 = $A2 nagekeken moest worden als $A2
+	    extra=$extra<br />$rem
+	!endif
+    !endif
+!endif
+
+# wetenschappelijke notatie; maar niet op syntax 4e10 ipv 5e+10 reken ik niet helemaal fout :)
+t=!positionof char e in $test
+!if $t !=$empty
+    check=0
+    cijfers1=* 1 2 3 4 5 6 7 8 9 0
+    cijfers2=1 2 3 4 5 6 7 8 9 0
+    !for p in $t
+	t1=!char $[$p-1] of $test
+	t2=!char $[$p+1] of $test
+	!if $t1 isin $cijfers1 and $t2 isin $cijfers2
+	    AAA=!replace internal e by e+ in $AAA
+	    check=1
+	!endif
+    !next p
+    !if $check=1
+	rem=!record 65 of lang/remarks.$taal
+	extra=$extra<br />$rem
+	# <br /><small>Let op de wetenschappelijke schrijfwijze van machten<br />\
+	# Gebruik 5e+10 of 5*10^10 en <b>g&eacute;&eacute;n</b> 5e10<br />\
+	# Ik ga er nu even vanuit dat je een <b>plus(+) teken</b> bent vergeten...</small>
+	!if $teaching=0
+	    maxscore=$[$maxscore*$P1]
+	!endif    
+    !endif
+!endif
+
+# correctie wetenschappelijke e+ notatie -> 10^
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+AAA=!replace internal ** by * in $AAA
+
+AAA=!nospace $AAA
+AAA=!replace [a-z\~\!\@\#\:\;\,\"\'\=] by $empty in $AAA
+
+aaa=$[round($AAA)]
+
+!if NaN isin $aaa
+    testvar=$(reply$n)
+    maxscore=$[$P4*$maxscore]
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!ifval $aaa != $AAA
+    maxscore=$[$maxscore*$P2]
+    !if $teaching=1
+	rem=!record 81 of lang/remarks.$taal
+	#@ Je maakt een kleine gedachten fout...<br />\
+	#@ er kunnen natuurlijk nooit $AAA bomen zijn ?<br />\
+	#@ dat moeten natuurlijk $aaa bomen zijn...
+	extra=$extra<br />$rem
+    !else
+	# strafpuntjes voor 1234.56 bomen
+	rem=!record 82 of lang/remarks.$taal
+	#@ Maar veel erger is dat we natuurlijk geen $AAA bomen hebben...<br />\
+	#@ dat zal toch wel $[round($AAA)] moeten zijn,  denk je niet? $voornaam
+	extra=$extra<br />$rem
+    !endif
+    # corrigeren antwoord 
+    AAA=$aaa
+!endif
+
+score=0
+!if $var1=2
+    # twee antwoorden mogelijk
+    # floor en round 
+    G1=!item 1 of $(answer$n)
+    G2=!item 2 of $(answer$n)
+    !ifval $AAA=$G1 or $AAA=$G2
+	remark$n=$OK
+	score=1
+    !else
+	remark$n=$NOK
+    !endif
+!else
+    !ifval $AAA=$(answer$n)
+	score=1
+	remark$n=$OK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+maxscore=$[$maxscore*$score]
+
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit
+

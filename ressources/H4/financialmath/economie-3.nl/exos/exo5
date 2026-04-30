@@ -1,0 +1,55 @@
+# Kruislingse elasticiteit III
+# steps
+n=$counter
+
+#fffff0=#e2ffc8
+!if $counter=1
+    !if $total_exos>2
+	total_exos=2
+    !endif
+    mathview=0
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=6
+    rows=1
+    inputs=1.1
+    rounding=100
+    roundingtext=Rond je getalsmatige antwoord af op twee decimalen
+    factor_a=!randint 12,24
+    factor_a=$[-5*$factor_a]
+    factor_b=!randint 3,10
+    factor_b=$[5*$factor_b]
+    prijs_a=!randint 2,6
+    prijs_b=!randint 4,12
+    tot=!exec float_calc scale=2\
+    $prijs_a/2\
+    $prijs_b/2
+    prijs_a=!line 1 of $tot
+    prijs_b=!line 2 of $tot
+    constante=!randint 8,20
+    constante=$[100*$constante]
+    q_a=$[ $factor_a*$prijs_a + $factor_b*$prijs_b + $constante]
+    var6=Kruiselingse prijselasticiteit E<sub>v</sub>,Kruiselingse prijselasticiteit E<sub>k</sub<
+    answer1=$[$factor_a*$prijs_a/$q_a]
+    ans1=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer1=\left[ \begin{array}{l} E_{v} = \frac{\Delta q_{A}}{\Delta p_{A}} \\ q_{A} = $factor_a p_{A} + $factor_b p_{B} + $constante \\ \hline \\ q_{A} = $factor_a \cdot $prijs_a + $factor_b \cdot $prijs_b + $constante \\ q_{A} = $[$factor_a*$prijs_a] + $[$factor_b*$prijs_b] + $constante = $q_a \\ \textrm{Stel een toename in de prijs van goed A met een bedrag h : } p_{A} = $prijs_a + h \\ \textrm{ Invoeren in de formule :} \\ q_{A} = $factor_a  \cdot \left( $prijs_a +h \right) + $factor_b \cdot $prijs_b + $constante \\ q_{A} = $factor_a \cdot $prijs_a + $factor_a \cdot h + $factor_b \cdot $prijs_b + $constante \\ q_{A} = $factor_a \cdot h + $q_a \\ \Delta q_{A} = \frac{$factor_a \cdot h + $q_a - $q_a}{$q_a} = \frac{$factor_a \cdot h}{$q_a} \\ \Delta p_{A} = \frac{h}{$prijs_a} \\ \\ E_{v} = \displaystyle{\frac{\frac{$factor_a \cdot h}{$q_a}}{\frac{h}{$prijs_a}}} = \frac{$factor_a \cdot h}{$q_a} \times \frac{$prijs_a}{h} \\ \\ E_{v} = $factor_a \cdot \frac{$prijs_a}{$q_a} \simeq $ans1 \end{array}
+    answer2=$[$factor_b*$prijs_b/$q_a]
+    ans2=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer2=\begin{array}{l} E_{k} = $factor_b \cdot \frac{$prijs_b}{$q_a} \simeq $ans2 \end{array}
+
+    helptext=$roundingtext
+    som=De vraag (Q) naar een goed <b>A</b> (Q<sub><small>A</small></sub>) hangt als volgt <br />\
+    van de prijzen (P)  van goed <b>A</b> (P<sub><small>A</small></sub>) en goed <b>B</b> (P<sub><small>B</small></sub>) af:<hr />\
+    <span style="font-size:1.2em;color:red">Q<sub><small>A</small></sub> = $factor_a P<sub><small>A</small></sub> + $factor_b P<sub><small>B</small></sub> + $constante</span>\
+    <hr />Verder is gegeven dat P<sub><small>A</small></sub> = $prijs_a en P<sub><small>B</small></sub> = $prijs_b.
+
+    question1=<a onmouseover="return escape('$roundingtext')">$som <br />Bereken de prijselasticiteit van de gevraagde hoeveelheid van goed <b>A</b>.</a>
+    question2=<a onmouseover="return escape('$roundingtext')">$som <br />Bereken de kruiselingse prijselasticiteit van de vraag naar goed <b>A</b> tov de prijs van $goed <b>B</b>.</a>
+
+!endif
+description=$(var6[$counter])
+!if $counter>1
+    exotext=<span style="color:blue"> $youranswer : $reply1</span>
+!endif
+
+!exit

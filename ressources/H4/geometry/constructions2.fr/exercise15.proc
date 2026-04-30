@@ -1,0 +1,163 @@
+! no need for translation
+# projection of point C orthogonally over (AB) 
+# we need at least 2 circles, and the line (AB)
+# see http://de.wikipedia.org/wiki/Lot_(Mathematik)
+# the circles Circ(A ; AC) und Circ(B, BC) intersect in (CC')
+# (CC') is perpendicular to (AB)
+
+check=0
+
+tot=0
+
+!!! Extract names and values of all user points
+
+thenms=
+!for t in $type
+ !if point isin $t
+    !advance tot
+    t=!replace internal @ by , in $t
+    A=!item 2 of $t
+    thenms=$thenms,$A
+    x$A=!item 3 of $t
+    y$A=!item 4 of $t
+ !endif
+!next t
+
+
+!!! check number of required points A,B,C,D
+
+
+missed=0
+!for nm in $ptnames
+     !if $nm notitemof $thenms
+          missed=1
+          !break
+     !endif
+!next nm
+
+    
+!if $missed=1
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+
+
+!! check vector orthogonality (vec{CD} \perp  vec{AB})
+!! check D on (AB) -> colinearity vec{AD} and vec{AB}
+
+!! vec{AB}
+xu=$[$(xB)-$(xA)]
+yu=$[$(yB)-$(yA)]
+!! vec{AD}
+xv=$[$(xD)-$(xA)]
+yv=$[$(yD)-$(yA)]
+!! vec{CD}
+xw=$[$(xD)-$(xC)]
+yw=$[$(yD)-$(yC)]
+!! vect. perp
+dist1=$[abs($xu*$xw+$yu*$yw)]
+!! vect colin.
+dist2=$[abs($xu*$yv-$yu*$xv)]
+
+
+!!! check number of circles  (2 are necessary and sufficient)
+circ=0
+!for t in $type
+  !if circle isin $t
+     !advance circ
+  !endif
+!next t
+
+!!!! check number of lines or segments (2 are necessary)
+!!!! simplify :  only 1 checked ->(AB) or [AB]  necessary
+
+line=0
+!for t in $type
+  !if line isin $t or segment isin $t
+     !advance line
+  !endif
+!next t
+
+
+!ifval $dist1<$precision  and $dist2<$precision 
+!increase check 
+!endif
+
+!ifval $dist1<0.01  and $dist2<0.01 
+#the precision is very good : the student must used circle+line and his construction is what I want to have.
+!increase check 
+!endif
+
+!if $debug=1
+debug_data=!append line <li>tot=$tot</li><li>circ=$circ</li><li>dist1=$dist1 dist2=$dist2 dist3=$dist3 check=$check</li> to $debug_data
+!endif
+!if $check >= 2
+#All is right !
+   REMARK=!record 23 of remarks.$taal
+   score=$[$score + 1]
+   HINT=OK
+    !if $circ < 2
+#the student didn't build 2 circles
+       HINT= !record 72 of remarks.$taal
+       goback=1
+    !else
+        !if $line = 0
+#the student didn't build any line
+            HINT= !record 65 of remarks.$taal
+            goback=1
+        !else
+#there are too much circles  or lines 
+            !if $circ > 2  or $line > 2
+               HINT=!record 74 of remarks.$taal
+               score=$[$score - 0.3]
+            !endif
+        !endif
+    !endif
+!else
+  !if $check = 1
+#the point D is almost the projection
+     score=$[$score+0.3]
+     REMARK=!record 24 of remarks.$taal
+     !if $circ < 2
+#the student didn't build 2 circles
+        HINT= !record 72 of remarks.$taal
+        goback=1
+     !else
+         !if $line = 0
+#the student didn't build any line
+            HINT= !record 65 of remarks.$taal
+            goback=1
+        !else
+#there are circles and lines, but maybe points are not intersection of lines and circles
+            HINT=!record 66  of remarks.$taal
+        !endif
+     !endif
+      HINT=$HINT $BOK
+  !else
+#the point D isn't the projection
+     REMARK=!record 25 of remarks.$taal
+     !if $circ < 2
+#the student didn't build 2 circles
+        HINT= !record 72 of remarks.$taal
+        goback=1
+     !else
+         !if $line = 0
+#the student didn't build any line
+           HINT= !record 65 of remarks.$taal
+            goback=1
+         !else
+#there are circles and lines, but maybe points are not intersection of lines and circles
+            HINT=!record 66  of remarks.$taal
+         !endif
+      !endif
+      HINT=$HINT $NOK
+   !endif
+!endif	
+
+!if $debug=1
+debug_data=!append line <li>circlecount circ=$circ</li><li>the HINT=$HINT</li> to $debug_data
+!endif
+    

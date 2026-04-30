@@ -1,0 +1,49 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid calls to the module.
+
+!if robot isin $session
+ error=robot
+ !exit
+!endif
+
+!if $cmd=reply and $status!=waiting
+ error=double_reply
+ !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+ pari_in=0
+ ans_tex=
+ !for i=1 to $term
+  num$i=!trim $(num$i)
+  !if $(num$i)=$empty
+   error=empty_data
+   empty_data=$i
+   !exit
+  !endif
+  nu=$[$(num$i)]
+  !if . isin $nu or + isin $(num$i) or * isin $(num$i) or / isin $(num$i)\
+	or NaN isin $nu
+   error=bad_data
+   bad_data=$i
+   !exit
+  !endif
+  num$i=$nu
+  pari_in=$pari_in+($nu/$(den$i))
+  ans_tex=!append item {$(num$i)\over $(den$i)} to $ans_tex
+ !next i
+ ans_tex=!translate , to + in $ans_tex
+ pari_out=!exec pari r=$pari_in; print(numerator(r))\
+ 	print(denominator(r))
+ ans_num=!line 1 of $pari_out
+ ans_den=!line 2 of $pari_out
+ diagnostic=$[$ans_num*$denom-($num)*$ans_den]
+ reply_cnt=$[$reply_cnt+1]
+
+ !ifval $diagnostic=0
+  status=done
+  module_score=$[rint(100/$reply_cnt)/10]
+  wims_module_log=score $module_score/10
+ !endif
+!endif
+

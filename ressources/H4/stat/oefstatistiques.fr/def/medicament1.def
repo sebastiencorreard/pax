@@ -1,0 +1,427 @@
+!set title=Médicament1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien,Lyotard;Moïse,Muller
+email=Julien.Lyotard@ac-dijon.fr
+author=Moïse, Muller
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+oefcss=<style> .good{color:#0dff00;font-weight:bold;} .bad{color:red;text-decoration:line-through;font-weight:bold;} </style>
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000000
+
+ansorder=r,r,r,r,r,r
+varcnt=88
+prevarcnt=86
+postvarcnt=1
+replycnt=6
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/stat/normal 50,1.569,0.086 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val7=!translate internal $	\
+$ to ;; in $tmp
+!for val8 =1 to 50 
+val9=$[rint($(val6[1;$val8])*100)]
+val10=$[$val9/100]
+tmp0=!append item $val10 to $val7
+
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!replace internal , by ; in $val7
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val11
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/stat/arithmean $val7 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val12=$[$(tmp1)]
+tmp0=!sort numeric item $val7
+
+val13=$(tmp0)
+tmp0=!item -1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 1 of $val13
+
+val15=$(tmp0)
+!readproc slib/stat/median [$val7] 
+tmp0=$slib_out
+val16=$[$(tmp0)]
+!readproc slib/stat/covariance [$val7] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+val18=$[rint(sqrt($(val17[3;1]))*10000)]
+val18=$[$val18/10000]
+val19=$[($(val13[ceil(50/4)])+1/4*($(val13[ceil(50/4+1)])-$(val13[ceil(50/4)])))]
+val20=$[$(val13[ceil(3*50/4)])-1/4*($(val13[ceil(3*50/4)])-$(val13[ceil(3*50/4-1)]))]
+val21=$[rint($val15*100)]
+val22=$[$val21/100]
+val23=$[rint($val16*100)]
+val24=$[$val23/100]
+val25=$[rint($val20*100)]
+val26=$[$val25/100]
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val28=$[rint($(tmp0))]
+
+!ifval ($val27=1)
+val29=$[1.25]
+!else
+val29=$[1.482]
+!endif
+
+!ifval ($val28=1)
+val30=$[0.02]
+!else
+val30=$[0.1689]
+!endif
+
+!ifval (($val27=1) or ($val28=1))
+val31=$[rint(1)]
+!else
+val31=$[rint(2)]
+!endif
+
+!ifval ($val27=1)
+val32=1,2
+!endif
+
+!ifval ($val28=1)
+val32=3,4
+!endif
+
+!ifval (($val27=1) and ($val28=1))
+val32=1,2,3,4
+!endif
+
+!ifval (($val27=2) and ($val28=2))
+val32=7,8,9
+!endif
+!readproc slib/stat/normal 25,$val29,$val30 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val33=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val34=!translate internal $	\
+$ to ;; in $tmp
+!for val8 =1 to 25 
+val9=$[rint($(val33[1;$val8])*100)]
+val10=$[$val9/100]
+tmp0=!append item $val10 to $val34
+
+tmp=!trim $(tmp0)
+val34=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!replace internal , by ; in $val34
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val35
+
+tmp=!trim $(tmp0)
+val35=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/stat/arithmean $val34 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val36=$[$(tmp1)]
+tmp0=!sort numeric item $val34
+
+val37=$(tmp0)
+tmp0=!item -1 of $val37
+
+val38=$(tmp0)
+tmp0=!item 1 of $val37
+
+val39=$(tmp0)
+!readproc slib/stat/median [$val34] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val40=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/stat/covariance [$val34] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val41=!translate internal $	\
+$ to ;; in $tmp
+val42=$[rint(sqrt($(val41[3;1]))*10000)]
+val42=$[$val42/10000]
+val43=$[($(val37[ceil(25/4)]))]
+val44=$[($(val37[ceil(3*25/4)]))]
+val45=$[rint($val36*10000)]
+val46=$[$val45/10000]
+val47=$[rint($val39*100)]
+val48=$[$val47/100]
+val49=$[rint($val43*100)]
+val50=$[$val49/100]
+val51=$[rint($val40*100)]
+val52=$[$val51/100]
+val53=$[rint($val44*100)]
+val54=$[$val53/100]
+val55=$[rint($val38*100)]
+val56=$[$val55/100]
+!readproc slib/stat/normal 25,1.482,0.1689 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val57=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val58=!translate internal $	\
+$ to ;; in $tmp
+!for val8 =1 to 25 
+val9=$[rint($(val57[1;$val8])*100)]
+val10=$[$val9/100]
+tmp0=!append item $val10 to $val58
+
+tmp=!trim $(tmp0)
+val58=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!replace internal , by ; in $val58
+
+tmp=!trim $(tmp0)
+val59=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val59
+
+tmp=!trim $(tmp0)
+val59=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/stat/arithmean $val58 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val60=$[$(tmp1)]
+tmp0=!sort numeric item $val58
+
+val61=$(tmp0)
+tmp0=!item -1 of $val61
+
+val62=$(tmp0)
+tmp0=!item 1 of $val61
+
+val63=$(tmp0)
+!readproc slib/stat/median [$val58] 
+tmp0=$slib_out
+val64=$[$(tmp0)]
+!readproc slib/stat/covariance [$val58] 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val65=!translate internal $	\
+$ to ;; in $tmp
+val66=$[rint(sqrt($(val65[3;1]))*10000)]
+val66=$[$val66/10000]
+val67=$[($(val61[ceil(25/4)]))]
+val68=$[($(val61[ceil(3*25/4)]))]
+tmp=!trim 14,9,4
+val69=!translate internal $	\
+$ to ;; in $tmp
+val70=var brd = JXG.JSXGraph.initBoard('jxgbox', {	axis:false,boundingbox: [0.8, 20, 2, -2], grid:true, shownavigation:false});	 xaxis = brd.create('axis', [[0, 0], [1, 0]], {	 ticks: { ticksDistance: 0.1, insertTicks: false}});	yaxis = brd.create('axis', [[-1000, 0], [-1000, 1]],{	 ticks: { ticksDistance:1, insertTicks: false}});	brd.create('text',[1.2,18,"Diagramme en boîte à moustaches" ],{fontSize:30});	brd.create('text',[0.8,$(val69[2]),"Placebo"],{fontSize:20});	jxgbox_rep1 = brd.create('point',jxgbox_var1, {face:'o', name:'Déplace moi', size:2, showInfobox: true});	jxgbox_rep2 = brd.create('point',jxgbox_var2, {face:'o', name:'', size:2, showInfobox: true});	jxgbox_rep3 = brd.create('point',jxgbox_var3, {face:'o', name:'', size:2, showInfobox: true});	jxgbox_rep4 = brd.create('point',jxgbox_var4, {face:'o', name:'', size:2, showInfobox: true});	jxgbox_rep5 = brd.create('point',jxgbox_var5, {face:'o', name:'', size:2, showInfobox: true});	brd.on('move', function(){	jxgbox_rep1.moveTo([ Math.min(jxgbox_rep1.X(),jxgbox_rep2.X()), $(val69[2])]);	jxgbox_rep2.moveTo([Math.min(jxgbox_rep2.X(),jxgbox_rep3.X()), $(val69[2])]);	jxgbox_rep3.moveTo([Math.min(jxgbox_rep3.X(),jxgbox_rep4.X()), $(val69[2])]);	jxgbox_rep4.moveTo([Math.min(jxgbox_rep4.X(),jxgbox_rep5.X()), $(val69[2])]);	jxgbox_rep5.moveTo([Math.max(jxgbox_rep4.X(),jxgbox_rep5.X()), $(val69[2])]);	});	jxgbox_rep11 = brd.create('point',[function(){return jxgbox_rep1.X()},$(val69[2])+1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep111 = brd.create('point',[function(){return jxgbox_rep1.X()},$(val69[2])-1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep55 = brd.create('point',[function(){return jxgbox_rep5.X()},$(val69[2])+1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep555 = brd.create('point',[function(){return jxgbox_rep5.X()},$(val69[2])-1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep22 = brd.create('point',[function(){return jxgbox_rep2.X()},$(val69[2])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep222 = brd.create('point',[function(){return jxgbox_rep2.X()},$(val69[2])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep33 = brd.create('point',[function(){return jxgbox_rep3.X()},$(val69[2])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep333 = brd.create('point',[function(){return jxgbox_rep3.X()},$(val69[2])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep44 = brd.create('point',[function(){return jxgbox_rep4.X()},$(val69[2])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgbox_rep444 = brd.create('point',[function(){return jxgbox_rep4.X()},$(val69[2])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	brd.create('line',[jxgbox_rep1,jxgbox_rep2],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep4,jxgbox_rep5],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep11,jxgbox_rep111],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep55,jxgbox_rep555],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep22,jxgbox_rep222],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep33,jxgbox_rep333],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep44,jxgbox_rep444],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep22,jxgbox_rep44],{straightFirst:false, straightLast:false});	brd.create('line',[jxgbox_rep222,jxgbox_rep444],{straightFirst:false, straightLast:false})	brd.create('text',[0.8,$(val69[1]),"Avant traitement"],{fontSize:20});	miniB = brd.create('point',[$val15,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	miniBh = brd.create('point',[$val15,$(val69[1])+1], {name:'',visible:false});	miniBb = brd.create('point',[$val15,$(val69[1])-1], {name:'',visible:false});	brd.create('line',[miniBh,miniBb],{straightFirst:false, straightLast:false});	Q1B = brd.create('point',[$val19,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q1Bh = brd.create('point',[$val19,$(val69[1])+2], {name:'', visible:false});	Q1Bb = brd.create('point',[$val19,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[Q1Bh,Q1Bb],{straightFirst:false, straightLast:false});	brd.create('line',[Q1B,miniB],{straightFirst:false, straightLast:false});	medianB = brd.create('point',[$val16,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	medianBh = brd.create('point',[$val16,$(val69[1])+2], {name:'', visible:false});	medianBb = brd.create('point',[$val16,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[medianBh,medianBb],{straightFirst:false, straightLast:false});	Q3B = brd.create('point',[$val20,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q3Bh = brd.create('point',[$val20,$(val69[1])+2], {name:'', visible:false});	Q3Bb = brd.create('point',[$val20,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[Q3Bh,Q3Bb],{straightFirst:false, straightLast:false});	brd.create('line',[Q3Bh,Q1Bh],{straightFirst:false, straightLast:false});	brd.create('line',[Q3Bb,Q1Bb],{straightFirst:false, straightLast:false});	maxiB = brd.create('point',[$val14,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	brd.create('line',[Q3B,maxiB],{straightFirst:false, straightLast:false});	maxiBh = brd.create('point',[$val14,$(val69[1])+1], {name:'',visible:false});	maxiBb = brd.create('point',[$val14,$(val69[1])-1], {name:'',visible:false});	brd.create('line',[maxiBh,maxiBb],{straightFirst:false, straightLast:false});	
+val71=var brd = JXG.JSXGraph.initBoard('jxgboxx', {	axis:false,boundingbox: [0.8, 20, 2, -2], grid:true, shownavigation:false});	 xaxis = brd.create('axis', [[0, 0], [1, 0]], {	 ticks: { ticksDistance: 0.1, insertTicks: false}});	yaxis = brd.create('axis', [[-1000, 0], [-1000, 1]],{	 ticks: { ticksDistance:1, insertTicks: false}});	brd.create('text',[1.2,18,"Diagramme en boîte à moustaches" ],{fontSize:30});	brd.create('text',[0.8,$(val69[3]),"Médicament"],{fontSize:20});	jxgboxx_rep1 = brd.create('point',jxgboxx_var1, {face:'o', name:'Déplace moi', size:2, showInfobox: true});	jxgboxx_rep2 = brd.create('point',jxgboxx_var2, {face:'o', name:'', size:2, showInfobox: true});	jxgboxx_rep3 = brd.create('point',jxgboxx_var3, {face:'o', name:'', size:2, showInfobox: true});	jxgboxx_rep4 = brd.create('point',jxgboxx_var4, {face:'o', name:'', size:2, showInfobox: true});	jxgboxx_rep5 = brd.create('point',jxgboxx_var5, {face:'o', name:'', size:2, showInfobox: true});	brd.on('move', function(){	jxgboxx_rep1.moveTo([ Math.min(jxgboxx_rep1.X(),jxgboxx_rep2.X()), $(val69[3])]);	jxgboxx_rep2.moveTo([Math.min(jxgboxx_rep2.X(),jxgboxx_rep3.X()), $(val69[3])]);	jxgboxx_rep3.moveTo([Math.min(jxgboxx_rep3.X(),jxgboxx_rep4.X()), $(val69[3])]);	jxgboxx_rep4.moveTo([Math.min(jxgboxx_rep4.X(),jxgboxx_rep5.X()), $(val69[3])]);	jxgboxx_rep5.moveTo([Math.max(jxgboxx_rep4.X(),jxgboxx_rep5.X()), $(val69[3])]);	});	jxgboxx_rep11 = brd.create('point',[function(){return jxgboxx_rep1.X()},$(val69[3])+1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep111 = brd.create('point',[function(){return jxgboxx_rep1.X()},$(val69[3])-1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep55 = brd.create('point',[function(){return jxgboxx_rep5.X()},$(val69[3])+1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep555 = brd.create('point',[function(){return jxgboxx_rep5.X()},$(val69[3])-1], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep22 = brd.create('point',[function(){return jxgboxx_rep2.X()},$(val69[3])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep222 = brd.create('point',[function(){return jxgboxx_rep2.X()},$(val69[3])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep33 = brd.create('point',[function(){return jxgboxx_rep3.X()},$(val69[3])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep333 = brd.create('point',[function(){return jxgboxx_rep3.X()},$(val69[3])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep44 = brd.create('point',[function(){return jxgboxx_rep4.X()},$(val69[3])+2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	jxgboxx_rep444 = brd.create('point',[function(){return jxgboxx_rep4.X()},$(val69[3])-2], {face:'o', name:'', size:2, showInfobox: true,visible:false});	brd.create('line',[jxgboxx_rep1,jxgboxx_rep2],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep4,jxgboxx_rep5],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep11,jxgboxx_rep111],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep55,jxgboxx_rep555],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep22,jxgboxx_rep222],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep33,jxgboxx_rep333],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep44,jxgboxx_rep444],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep22,jxgboxx_rep44],{straightFirst:false, straightLast:false});	brd.create('line',[jxgboxx_rep222,jxgboxx_rep444],{straightFirst:false, straightLast:false});	brd.create('text',[0.8,$(val69[1]),"Avant traitement"],{fontSize:20});	miniB = brd.create('point',[$val15,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	miniBh = brd.create('point',[$val15,$(val69[1])+1], {name:'',visible:false});	miniBb = brd.create('point',[$val15,$(val69[1])-1], {name:'',visible:false});	brd.create('line',[miniBh,miniBb],{straightFirst:false, straightLast:false});	Q1B = brd.create('point',[$val19,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q1Bh = brd.create('point',[$val19,$(val69[1])+2], {name:'', visible:false});	Q1Bb = brd.create('point',[$val19,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[Q1Bh,Q1Bb],{straightFirst:false, straightLast:false});	brd.create('line',[Q1B,miniB],{straightFirst:false, straightLast:false});	medianB = brd.create('point',[$val16,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	medianBh = brd.create('point',[$val16,$(val69[1])+2], {name:'', visible:false});	medianBb = brd.create('point',[$val16,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[medianBh,medianBb],{straightFirst:false, straightLast:false});	Q3B = brd.create('point',[$val20,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q3Bh = brd.create('point',[$val20,$(val69[1])+2], {name:'', visible:false});	Q3Bb = brd.create('point',[$val20,$(val69[1])-2], {name:'', visible:false});	brd.create('line',[Q3Bh,Q3Bb],{straightFirst:false, straightLast:false});	brd.create('line',[Q3Bh,Q1Bh],{straightFirst:false, straightLast:false});	brd.create('line',[Q3Bb,Q1Bb],{straightFirst:false, straightLast:false});	maxiB = brd.create('point',[$val14,$(val69[1])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	brd.create('line',[Q3B,maxiB],{straightFirst:false, straightLast:false});	maxiBh = brd.create('point',[$val14,$(val69[1])+1], {name:'',visible:false});	maxiBb = brd.create('point',[$val14,$(val69[1])-1], {name:'',visible:false});	brd.create('line',[maxiBh,maxiBb],{straightFirst:false, straightLast:false});	brd.create('text',[0.8,$(val69[2]),"Placebo"],{fontSize:20});	miniGG = brd.create('point',[$val63,$(val69[2])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	miniGGh = brd.create('point',[$val63,$(val69[2])+1], {name:'',visible:false});	miniGGb = brd.create('point',[$val63,$(val69[2])-1], {name:'',visible:false});	brd.create('line',[miniGGh,miniGGb],{straightFirst:false, straightLast:false});	Q1GG = brd.create('point',[$val67,$(val69[2])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q1GGh = brd.create('point',[$val67,$(val69[2])+2], {name:'', visible:false});	Q1GGb = brd.create('point',[$val67,$(val69[2])-2], {name:'', visible:false});	brd.create('line',[Q1GGh,Q1GGb],{straightFirst:false, straightLast:false});	brd.create('line',[Q1GG,miniGG],{straightFirst:false, straightLast:false});	medianGG = brd.create('point',[$val64,$(val69[2])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	medianGGh = brd.create('point',[$val64,$(val69[2])+2], {name:'', visible:false});	medianGGb = brd.create('point',[$val64,$(val69[2])-2], {name:'', visible:false});	brd.create('line',[medianGGh,medianGGb],{straightFirst:false, straightLast:false});	Q3GG = brd.create('point',[$val68,$(val69[2])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	Q3GGh = brd.create('point',[$val68,$(val69[2])+2], {name:'', visible:false});	Q3GGb = brd.create('point',[$val68,$(val69[2])-2], {name:'', visible:false});	brd.create('line',[Q3GGh,Q3GGb],{straightFirst:false, straightLast:false});	brd.create('line',[Q3GGh,Q1GGh],{straightFirst:false, straightLast:false});	brd.create('line',[Q3GGb,Q1GGb],{straightFirst:false, straightLast:false});	maxiGG = brd.create('point',[$val62,$(val69[2])], {face:'+', name:'', size:4, showInfobox: true,fixed:true});	brd.create('line',[Q3GG,maxiGG],{straightFirst:false, straightLast:false});	maxiGGh = brd.create('point',[$val62,$(val69[2])+1], {name:'',visible:false});	maxiGGb = brd.create('point',[$val62,$(val69[2])-1], {name:'',visible:false});	brd.create('line',[maxiGGh,maxiGGb],{straightFirst:false, straightLast:false});	
+val72=La concentration moyenne du taux de glucose avec le placebo est inférieur à la concentration moyenne avant traitement.,	Le taux de glucose médian avant le traitement est supérieur au taux de glucose avec le placebo.,	Le taux de glucose est maximum avec le placebo.,	Le taux de glucose est minimum avec le placebo.,	Le taux de glucose est maximum avant traitement.,	L'écart type \(\sigma) est minimum avec le placebo.,	L'écart type \(\sigma) est maximum avec le placebo.,	L'étendue est minimum avant traitement.,	L'étendue est maximum avant le placebo.	
+val73=La concentration moyenne du taux de glucose avec le médicament est inférieur à la concentration moyenne avec le placebo.,	Le taux de glucose médian avec le placebo est supérieur au taux de glucose avec le médicament.,	L'écart type avec le médicament est inférieur à l'écart type du placebo.,	L'écart interquartile avec le placebo est supérieur à l'écart interquartile avec le médicament.,	Le taux moyen de glucose avec le medicament est inférieur à la glycémie avant traitement.,	L'écart type avec le médicament est inférieur à l'écart type avant traitement.,	L'écart interquartile avec le placebo est proche de l'écart interquartile avec le médicament.,	Le taux de glucose médian avec le placebo est proche du taux de glucose avec le médicament.,	La concentration moyenne du taux de glucose avec le médicament est proche de la concentration moyenne avec le placebo.	
+replytype1=numeric
+replyoption1=nonstop 
+replyname1=Minimum
+replygood1=$[$val22]
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=Médiane
+replygood2=$[$val24]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=3<sup>e</sup> quartile
+replygood3=$[$val26]
+replytype4=jsxgraph
+
+replyoption4=absolue precision=0.1 
+replyname4=
+replygood4=?analyze 74;\jsq1;\jsme;\jsq3;\jsmax
+replytype5=radio
+replyoption5=split shuffle nonstop 
+replyname5=
+replygood5=1;Oui,Non
+replytype6=checkbox
+replyoption6=split eqweight shuffle nonstop 
+replyname6=Les arguments recevables sont
+replygood6=1,2;$val72
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">L'effet placebo, existe-t-il ?</p>	<br>	Vous travaillez dans un laboratoire qui vient de mettre au point un médicament dans le traitement du diabète.	<br>	Cinquante personnes atteintes par cette maladie sont réparties en deux groupes :	<ul><li>le groupe 1 est traité avec le médicament censé <b>abaisser</b> le taux de glucose dans le sang</li>	<li>le groupe 2 est traité avec un produit placebo. Le médicament placebo ne contient que des composés	 chimiques neutres ou n’interférant a priori pas avec l'évolution de la maladie.</li></ul>	Avant le traitement, on a pris soin de mesurer la glycémie des 50 malades. (taux de glucose exprimé en	 gramme par litre de sang)	<table class="wimscenter wimsborder">	<tr><th colspan="10">Résultats des glycémies avant tout traitement en g/L</th></tr>	 
+!for m_j=1 to 5 
+$()<tr> 
+!for m_jj=1 to 10 
+$()	<td><b>$(val11[$m_jj+10*($m_j-1);])</b></td> 
+!next
+$()	</tr> 
+!next
+$()	</table>	<br>	À la fin du traitement, la glycémie des 50 malades est mesurée. Les résultats obtenus sont les	suivants :	<table class="wimscenter wimsborder">	<tr><th colspan="5">Groupe 1 : traité avec le médicament</th><td rowspan="6"></td>	<th colspan="5">Groupe 2 : traité avec le placebo</th>	</tr>	 
+!for m_j=1 to 5 
+$()<tr> 
+!for m_jj=1 to 5 
+$()	<td><b>$(val35[$m_jj+5*($m_j-1);])</b></td> 
+!next
+$()	 
+!for m_jj=1 to 5 
+$()	<td><b>$(val59[$m_jj+5*($m_j-1);])</b></td> 
+!next
+$()	</tr> 
+!next
+$()	</table>	<br>	<div class="question">	Le laboratoire a envoyé les analyses à l'hôpital qui a retourné le document suivant. Malheureusement	 le stagiaire a oublié des valeurs dans le tableau et n'a pas construit correctement la boîte à moustache	 du placebo.	 <br>	 Compléter le tableau par lecture du diagramme.	<br>	<table class="wimscenter wimsborder">	<tr><th></th><th>Nombre de patients</th><th>Moyenne</th><th>
+!insmath \sigma
+$()</th><th>Minimum</th><th>Q<sub>1</sub></th><th>Médiane</th><th>Q<sub>3</sub></th><th>Maximum</th></tr>	<tr><th>Avant traitement</th><td>50</td><td>$val12</td><td>$val18</td><td> 
+!read oef/embed.phtml reply1,4 
+$()</td><td>$val19</td><td> 
+!read oef/embed.phtml reply2,4 
+$()</td><td> 
+!read oef/embed.phtml reply3,4 
+$()</td><td>$val14</td></tr>	<tr><th>Placebo</th><td>25</td><td>$val60</td><td>$val66</td><td>$val63</td><td>$val67</td><td>$val64</td><td>$val68</td><td>$val62</td></tr>	</table>	<br>	Ajuster les points pour réaliser la boîte à moustache du placebo.	 
+!read oef/embed.phtml reply4,800x400	jxgbox	$val70	jxgbox_var1=[1.15,9] ; jxgbox_var2=[1.25,9] ; jxgbox_var3=[1.35,9] ; jxgbox_var4=[1.45,9] ; jxgbox_var5=[1.8,9]	 
+$()	<br>	Le placebo est-il efficace contre le diabète ?	<ul>	 
+!for m_h = 1 to 2 
+$()<li> 
+!read oef/embed.phtml reply5,\h 
+$()</li> 
+!next
+$()	</ul>	Justifier son choix en cochant la ou les bons arguments :	<ul>	 
+!for m_h = 1 to 9 
+$()<li> 
+!read oef/embed.phtml reply6,\h 
+$()</li> 
+!next
+$()	</ul>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $m_reply4
+val75=!translate internal $	\
+$ to ;; in $tmp
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><ul>	<li>
+!if (abs($(val75[1;1])-$val63)<0.01) 
+$()Le minimum est bien placé en xmin = <span class="good">$val63</span> 
+!else
+$() Le minimum est mal placé et on a : xmin = <span class="bad">$(val75[1;1])</span><span class="good">$val63</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val75[2;1])-$val67)<0.01) 
+$()Le premier quartile est bien placé en Q<sub>1</sub> = <span class="good">$val67</span> 
+!else
+$() Le premier quartile est mal placé et on a : Q<sub>1</sub> = <span class="bad">$(val75[2;1])</span><span class="good">$val67</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val75[3;1])-$val64)<0.01) 
+$()La médiane est bien placée en M<sub>e</sub> = <span class="good">$val64</span> 
+!else
+$() La médiane est mal placée et on a : M<sub>e</sub> = <span class="bad">$(val75[3;1])</span><span class="good">$val64</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val75[4;1])-$val68)<0.01) 
+$()Le troisième quartile est bien placé en Q<sub>3</sub> = <span class="good">$val68</span> 
+!else
+$() Le troisième quartile est mal placé et on a : Q<sub>3</sub> = <span class="bad">$(val75[4;1])</span><span class="good">$val68</span> 
+!endif
+$()</li>	<li>
+!if (abs($(val75[5;1])-$val62)<0.01) 
+$()Le maximum est bien placé en xmax = <span class="good">$val62</span> 
+!else
+$() Le maximum est mal placé et on a : xmax = <span class="bad">$(val75[5;1])</span><span class="good">$val62</span> 
+!endif
+$()</li>	</ul>	<script>	brd.removeObject(jxgbox_rep1);	var jxgbox_rep1=brd.create('point',[$(val75[1;1]),9], {face:'o', name:'', size:2, showInfobox: true});	brd.create('line',[jxgbox_rep1,jxgbox_rep2],{straightFirst:false, straightLast:false});	/*jxgbox_rep1.setAttribute({name:'Ah&#33;green'});Fonctionne avec la v0.98*/	brd.suspendUpdate();	brd.create('point',[$val63,9], {face:'o', name:'Min', size:'8',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val67,9], {face:'o', name:'Q<sub>1</sub>', size:'8',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val64,9], {face:'o', name:'M<sub>e</sub>', size:'8',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val68,9], {face:'o', name:'Q<sub>3</sub>', size:'8',fixed:true,strokeColor:'green',fillColor:'none'});	brd.create('point',[$val62,9], {face:'o', name:'Max',size:'8',fixed:true,strokeColor:'green',fillColor:'none'});	</script>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval (abs($(val75[1;1])-$val63)<0.01 and (abs($(val75[2;1])-$val67)<0.01) and (abs($(val75[3;1])-$val64)<0.01) and (abs($(val75[4;1])-$val68)<0.01) and (abs($(val75[5;1])-$val62)<0.01))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Votre diagramme en boîte à moustache est correct 
+
+!exit
+
+:stat
+vsavelist=11,12,14,18,19,35,59,60,62,63,64,66,67,68,70,74
+embedcnt=6

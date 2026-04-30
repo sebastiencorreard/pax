@@ -1,0 +1,114 @@
+!set title=Point d'une droite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David
+email=mcld@math.u-psud.fr 
+keywords=lines
+language=fr
+computeanswer=no
+title_it=Punto su una retta
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=\mathcal{d}
+tmp0=!randitem 1,-1
+
+tmp1=!randint 2, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 8
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -100, 100
+
+t_=!rawmath $(tmp0)/10
+val10=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val8*$val10+$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val11=!exec pari print($t_)
+tmp=!trim Dans le plan rapporté à un repère, on considère la droite \($val7\) d'équation ; Pour quelle valeur de \(b\), le point \(M\) de coordonnées ; appartient-il à \($val7\)&nbsp;
+val12=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=it 
+tmp=!trim Nel piano descritto da un sistema di riferimento cartesiano, consideriamo la retta \($val7\) di equazione ; Per quale valore di \(b\), il punto \(M\) di coordinate ; appartiene a \($val7\)
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+replytype1=numeric
+replyname1=\(b\)
+replygood1=$[$val9 ]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val12[1;])	    
+!insmath y=$val8 x + b
+$().	    $(val12[2;])	    
+!insmath ($val10,$val11)
+$()	    $(val12[3;])?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,11,12
+embedcnt=0

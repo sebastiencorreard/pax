@@ -1,0 +1,177 @@
+n=$counter
+mathview=0
+questiontype=10
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+arglist=g(x),y
+xsize=360
+ysize=360
+var1=0
+# pari checkt antwoord
+helptext=$empty
+checkfile=exos/checkfile1.proc
+image=0
+draw=0
+plot=0
+applet=0
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+pm=!randitem +,-
+mp=!randitem +,-
+
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+!if $R=1
+    d=!randitem 2,3,4
+    b=!randitem 1,2,3,4,5
+    c=!randitem -1,1
+    !if $c=-1
+	xrange=-6,5
+	yrange=-1,8
+	answer$n=$d^x + $b
+	bewerken=!record 18 of lang/remarks.$taal
+	#@verschuiven in vertikale richting
+    !else
+	xrange=-6,5
+	yrange=$[-1*$b-2],5
+	answer$n=$d^x - $b
+	bewerken=!record 18 of lang/remarks.$taal
+	#@verschuiven in vertikale richting
+    !endif
+ !goto IMAGE
+!endif
+    
+!if $R=2
+    d=!randitem 2,3,4
+    b=!randitem 1,2,3,4,5
+    c=!randitem -1,1
+    !if $c=-1
+	xrange=-8,5
+	yrange=-2,10
+	answer$n=$d^(x + $b)
+	bewerken=!record 20 of lang/remarks.$taal
+	#@verschuiven in horizontale richting
+    !else
+	xrange=-5,9
+	yrange=-2,10
+	answer$n=$d^(x - $b)
+	bewerken=!record 20 of lang/remarks.$taal
+	#@verschuiven in horizontale richting
+    !endif
+ !goto IMAGE
+!endif
+    
+    
+!if $R=3
+    a=!randitem 1,2,3,4,5
+    b=!randitem 1,2,3,4,5
+    c=!randitem -1,1
+    d=!randitem 2,3,4
+    !if $c=-1
+	xrange=-9,9
+	yrange=-2,10
+	answer$n=$d^(x $pm $a) + $b
+    !else
+	xrange=-9,9
+	yrange=-10,4
+	answer$n=$d^(x $pm $a) - $b
+    !endif
+    bewerken=!record 22 of lang/remarks.$taal
+    #@te verschuiven in horizontale en vertikale richting.<br />Daarnaast vindt er ook nog een vertikale vermenigvuldiging vanuit de <em>x-</em>as plaats.<br />Let op het punt (1;1) op f(x). Vanuit (0;0)naar (1;1) ga je 1 naar rechts, 1 omhoog.<br />Kijk naar de top van g(x). 1 naar rechts de vermenigvuldigingsfactor omhoog..
+!endif
+
+!if $R>3
+    a=!randitem 1,2,3
+    b=!randitem -1,-2,2
+    g=$[abs($b)]
+    c=!randitem -1,1
+    d=!randitem 2,3
+    !if $g=$d
+	d=$[$d+1]
+    !endif
+    !if $b=2
+	xrange=-9,9
+	yrange=-5,10
+	answer$n=$b*$d^x $pm $a
+    !else
+	xrange=-7,7
+	yrange=-10,10
+	answer$n=$b*$d^(x $pm $a)
+    !endif
+    bewerken=!record 24 of lang/remarks.$taal
+    #@te verschuiven in horizontale en vertikale richting.<br />Daarnaast vindt er ook nog een vertikale vermenigvuldiging vanuit de <em>x-</em>as plaats.<br />Let op het punt (1;1) op f(x). Vanuit (0;0)naar (1;1) ga je 1 naar rechts, 1 omhoog.<br />Kijk naar de top van g(x). 1 naar rechts de vermenigvuldigingsfactor omhoog..
+    helptext=zie helppagina
+    #<img src="$module_dir/gifs/exp1.jpg" alt="noalt" />
+    #<br />
+    #<img src="$module_dir/gifs/exp2.jpg" alt="noalt" />
+!endif
+    
+:IMAGE
+f=$d^x
+var2=$f
+g=$(answer$n)
+texanswer$n=!texmath g(x) = $g 
+formula$n= \left[ \begin{array}{lll} f(x) & = & $d^{x} \\ g(x) & = & [?] \end{array}\right.
+ss=!record 15 of lang/remarks.$taal
+question$n=$ss
+#@Gegeven is de functie en grafiek van <em>f(x)</em><br />Bepaal het functie voorschrift van de <font color=$c2>$k2 grafiek <em>g(x)</em></font><br />welke ontstaat door de <font color=$c1> $k1 grafiek van <em>f(x)</em></font> te<br />$bewerken 
+tt=!record 16 of lang/remarks.$taal
+#@Het functie voorschrift van <font color=$c2><em>g(x)</em></font> is:
+description=$tt
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xrange\
+yrange $yrange\
+bgcolor white\
+fontfamily 12pt Ariel\
+precision 1\
+opacity 120,255\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+opacity 255,255\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue

@@ -1,0 +1,83 @@
+\title{Simplification de valeur absolue 3}
+\language{fr}
+\author{David Doyen}
+\email{david.doyen@u-pem.fr}
+
+% Tirage aléatoire des données et préparation de l'énoncé
+
+\text{lval=-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9}
+\text{lval=shuffle(\lval)}
+\text{a1=\lval[1]}
+\text{b1=\lval[2]}
+\text{a2=\lval[3]}
+\text{b2=\lval[4]}
+\text{x01=simplify(-\b1/\a1)}
+\text{x02=simplify(-\b2/\a2)}
+
+\text{cas=randint(1..2)}
+\if{\cas=1}{
+\rational{x0=max(\x01,\x02)}
+\text{xx0=texmath(\x0)}
+\text{cond=\({x \geq \xx0}\)}
+\rational{xs=\x0+1}
+}{
+\rational{x0=min(\x01,\x02)}
+\text{xx0=texmath(\x0)}
+\text{cond=\({x \leq \xx0}\)}
+\rational{xs=\x0-1}
+}
+
+\text{expr1 = randitem(\a1*x+\b1,\b1+\a1*x)}
+\text{expr1 = pari(\expr1)}
+\text{eexpr1= texmath(\expr1)}
+\text{absexpr1=abs(\expr1)}
+\text{expr2 = randitem(\a2*x+\b2,\b2+\a2*x)}
+\text{expr2 = pari(\expr2)}
+\text{eexpr2= texmath(\expr2)}
+\text{absexpr2=abs(\expr2)}
+\text{sg=randitem(+,-)}
+\text{exprtot = abs(\expr1) \sg abs(\expr2) }
+
+% Calcul de la réponse et préparation de la solution
+
+\rational{s1=evaluate(\expr1,x=\xs)}
+\if{\s1>0}{
+\text{absexpr1simp=\expr1}
+\text{signexpr1=\(\eexpr1 \geq 0\)}
+\text{simpexpr1=\(\absexpr1= \absexpr1simp\)}
+}{
+\text{absexpr1simp=pari(-(\expr1))}
+\text{signexpr1=\(\eexpr1 \leq 0\)}
+\text{simpexpr1=\(\absexpr1= -(\expr1)= \absexpr1simp\)}
+}
+
+\rational{s2=evaluate(\expr2,x=\xs)}
+\if{\s2>0}{
+\text{absexpr2simp=\expr2}
+\text{signexpr2=\(\eexpr2 \geq 0\)}
+\text{simpexpr2=\(\absexpr2 = \absexpr2simp\)}
+}{
+\text{absexpr2simp=pari(-(\expr2))}
+\text{signexpr2=\(\eexpr2 \leq 0\)}
+\text{simpexpr2=\(\absexpr2 = -(\expr2)= \absexpr2simp\)}
+}
+
+\text{rep=pari(\absexpr1simp \sg (\absexpr2simp))}
+
+% Enoncé
+
+\statement{On suppose \cond. Simplifier l'expression \(\exprtot\) en une expression ne faisant pas intervenir de valeur absolue.<br class="spacer">
+\(\exprtot\) \(=\) \embed{reply1,10}
+}
+\answer{}{\rep}{type=formal}
+
+% Indication
+
+\hint{Etudier le signe de \(\eexpr1\) et \(\eexpr2\) quand \cond.}
+
+% Solution
+
+\solution{Si \cond, alors \signexpr1 et \signexpr2.<br>
+D'où, \simpexpr1 et \simpexpr2.<br>
+Finalement, \(\exprtot=\rep\).
+}

@@ -1,0 +1,190 @@
+\title{Sélectionner un vecteur directeur II}
+\author{Marie-Claude, David;Joachim, Yaméogo}
+\email{Marie-Claude.David@math.u-psud.fr,Yameogo@unice.fr}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.3,0.7,medium,j
+text black,-0.3,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.3,-0.2,large,x
+text black,-0.3,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication de la droite ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+
+\integer{a=\y2-(\y1)}
+\integer{b=\x1-(\x2)}
+\integer{c=(\x1)*(\y2-(\y1))-(\y1)*(\x2-(\x1))}
+\function{hf=(\a)*x+(\b)*y}
+\text{eqD1=maxima(\hf-(\c);)}
+\text{f=maxima(((-\a)*x+(\c))/(\b);)}
+\text{eqD1=texmath(\eqD1=0)}
+\text{eqD2=texmath(\hf=\c)}
+\text{eqDroite=random(\eqD1,\eqD2)}
+
+\integer{u1=-\b}
+\integer{u2=\a}
+
+## on construit la liste des vecteurs à afficher ##
+\text{kList=shuffle(-5,-4,-3,3,4,5)}
+\integer{v1=random(-1,1)*random(1,2,3)}
+\matrix{vList=}
+\for{k=1 to 3}{
+  \integer{v2=\kList[\k]+(\v1)*(\u2)}
+  \matrix{vList=\vList
+              (\u1)*(\v1),\v2
+       }
+  }
+\matrix{vList=\vList
+            \u1,\u2
+     }
+
+\text{vectList=}
+\for{k=1 to 4}{
+  \integer{dil=random(-3,-2,-1,2,3)}
+  \integer{vx=(\dil)*(\vList[\k;1])}
+  \integer{vy=(\dil)*(\vList[\k;2])}
+  \if{\k=4}{
+    \integer{w1=\vx}
+    \integer{w2=\vy}
+    \text{rapp=\dil=-1? - : \dil}
+   }
+   \if{\vy<0}{
+     \text{v=texmath(\vx\vec{i} \vy\vec{j})}
+     }{
+    \text{v=\vy<>0?texmath(\vx\vec{i}+\vy\vec{j}):texmath(\vx\vec{i})}
+    }
+  \text{vectList=wims(append item \v to \vectList)}
+}
+
+## on permute les vecteurs de sorte que la bonne réponse puisse changer de place ##
+\text{permut=shuffle(4)}
+\text{brep=position(4,\permut)}
+
+
+## le dessin de la droite pour la correction ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\text{graph=
+\cadre
+linewidth 2
+plot \couleurs[1],\f
+}
+
+####### enoncé de l'exo #######
+\statement{
+<p>
+  Dans le plan \(\RR^2) est muni d'un repère \((O,i,j)), on considère
+  la droite \(\mathcal{D}\) dont une &eacute;quation est donn&eacute;e par
+  &nbsp; \(\eqDroite).
+  <br>
+  Dans la liste suivante, trouvez un vecteur directeur pour la droite \(\mathcal{D}\).
+</p>
+<ul>
+  <li>\embed{reply1,1} :  \(\vectList[\permut[1]])</li>
+  <li>\embed{reply1,2} :  \(\vectList[\permut[2]])</li>
+  <li>\embed{reply1,3} :  \(\vectList[\permut[3]])</li>
+  <li>\embed{reply1,4} :  \(\vectList[\permut[4]])</li>
+</ul>
+}
+##### collecte de la réponse de l'utilisateur #####
+\reply{}{\brep;1,2,3,4}{type=radio}
+
+## Aide ou rappel ##
+\hint{
+   Vous pouvez utiliser le th&eacute;or&egrave;me suivant:
+  <p style="background-color:bisque;">
+    <b>Th&eacute;or&egrave;me:</b> L'ensemble des points \(M\ (x,y)\) tels que
+    \(a x + b y = c\), avec \(a) et \(b) non simultanément nuls, est une droite admettant
+    le vecteur \(\vec{v}\ (-b,a)) pour vecteur directeur.
+  </p>
+}
+
+## Solution rédigée ##
+\solution{
+   <p> Voici un
+    <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution.
+  </p>
+  <p>
+  Pour trouver un vecteur directeur de la droite \(\mathcal{D}\), nous allons appliquer le
+  th&eacute;or&egrave;me suivant:</p>
+  <p style="background-color:bisque;">
+  <b>Th&eacute;or&egrave;me:</b> L'ensemble des points \(M(x,y)) tels que \(a x + b y = c\),
+  avec \(a) et \(b) non simultanément nuls, est une droite admettant le vecteur
+  \(\vec{v}(-b,a)) pour vecteur directeur.
+  </p>
+  Ici nous avons \(a=\a) et \(b=\b). Un vecteur directeur de la droite \(\mathcal{D}\) est
+  donc le vecteur \(\vec{v}\ (\u1,\u2)), qui est colinéaire au
+  \brep<sup><small>&egrave;me</small></sup> vecteur non nul &nbsp;
+  \(\vec{w}\ (\w1,\w2)) &nbsp; de la liste propos&eacute;e. On vérifiera l'égalité :
+  \(\vec{w}\ (\w1,\w2)=\rapp\vec{v}\ (\u1,\u2)).</p>
+  <p class="wimscenter">
+        Voici une représentation graphique de la droite \(\mathcal{D}\).
+      <br>
+        \draw{\dimh,\dimv}{
+	  \graph
+	  }
+  </p>
+}

@@ -1,0 +1,129 @@
+#12 inproduct II
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=0
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=1
+checkfile=$checkdir/new_number.proc
+helptext=!record 7 of lang/remarks.$taal
+
+keuze=!randint 1,4
+!if $keuze=1
+ # Q1 Q2
+ xa=!randint 2,8
+ ya=!randint 2,8
+ xb=!randint -8,-2
+ yb=!randint 2,8
+ start=$[(180*(atan($ya/$xa)))/pi]
+ str=0,2.4
+!else
+ !if $keuze=2
+  # Q2 Q3
+  xa=!randint -8,-2
+  ya=!randint 2,8
+  xb=!randint -8,-2
+  yb=!randint -8,-2
+  start=$[180+(180*(atan($ya/$xa)))/pi]
+  str=-4,0.5
+ !else
+  !if $keuze=3
+  # Q3 Q4
+   xa=!randint -8,-2
+   ya=!randint -8,-2
+   xb=!randint 2,8
+   yb=!randint -8,-2
+   start=$[180+(180*(atan($ya/$xa)))/pi]
+   str=-1,-2.6
+  !else
+   #Q1 Q4
+   xa=!randint 2,8
+   ya=!randint 2,8
+   xb=!randint 2,8
+   yb=!randint -8,-2
+   start=$[(180*(atan($yb/$xb)))/pi]
+   str=2,0
+  !endif
+ !endif
+!endif
+
+vectoren=!mathmlmath \vec{a} = \begin{pmatrix} $xa \\ $ya \end{pmatrix} \;\;,\;\; \vec{b} = \begin{pmatrix} $xb \\ $yb \end{pmatrix}
+!if $R=1
+ make_tr=0
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+ inputs=-1
+ ml=!mathmlmath \vec{a} \cdot \vec{b}  =  \input{6}{0}{background-color:lightgreen;color:blue;text-align:center;font-size:16pt}{?}{0}
+ exotext=!record 23 of lang/remarks.$taal
+ #@Gegeven zijn de vectoren <span style="display:inline-block">$vectoren</span><br /><br />Bereken het inproduct: $ml<br />&nbsp;<br />
+
+ answer$n=$[$xa*$xb + $ya*$yb]
+ sometext=!record 24 of lang/remarks.$taal
+ #@Het inproduct van beide vectoren is :
+ texanswer$n=\left[\begin{array}{l} \vec{a} = \begin{pmatrix} $xa \\ $ya \end{pmatrix} \\ \vec{b} = \begin{pmatrix} $xb \\ $yb \end{pmatrix} \\ \textrm{$sometext} \\  \vec{a} \cdot \vec{b} = $xa \cdot $xb + $ya \cdot $yb = $(answer$n)  \end{array}\right.
+ object$n=&nbsp;
+!else
+ exotext=$empty
+ inputs=1.1
+ make_tr=1
+ description=&angle;&alpha;
+ ex1=&deg;
+
+ rounding=1
+ !readproc $remarkdir/rounding.$taal
+
+ vec_a=!mathmlmath \vec{a}
+ vec_b=!mathmlmath \vec{b}
+ ss=!record 25 of lang/remarks.$taal
+ #@De hoek &alpha; is de hoek tussen de vectoren $vectoren<br />Bereken deze hoek in graden.
+
+ inproduct=$[$xa*$xb + $ya*$yb]
+ lengte_a2=$[($xa)^2+($ya)^2]
+ lengte_b2=$[($xb)^2+($yb)^2]
+ lengte_a=$[sqrt($xa*$xa+$ya*$ya)]
+ lengte_b=$[sqrt($xb*$xb+$yb*$yb)]
+ cos=$[$inproduct/($lengte_a*$lengte_b)]
+ rad=$[acos($inproduct/($lengte_a*$lengte_b))]
+ hoek=$[$rad*180/pi]
+ hk=$[round($rad*180/pi)]
+ answer$n=$hoek
+
+ question$n=$ss
+ !if $inproduct=0
+ texanswer$n= \left[\begin{array}{l} \color{red} \cos(\alpha) = \frac{\vec{a} \cdot \vec{b}}{\left| \vec{a} \right| \cdot \left| \vec{b} \right| } \\ \cos(\alpha) = \frac{$xa \cdot $xb + $ya \cdot $yb }{\sqrt{($xa)^{2} + ($ya)^{2}} \cdot \sqrt{($xb)^{2} + ($yb)^{2}} } \\ \cos(\alpha) = \frac{$inproduct }{\sqrt{$lengte_a2} \cdot\sqrt{$lengte_b2} } \\ \cos(\alpha) = 0 \\ \alpha = 90^{o} \end{array}\right.
+ !else
+ texanswer$n= \left[\begin{array}{l} \color{red} \cos(\alpha) = \frac{\vec{a} \cdot \vec{b}}{\left| \vec{a} \right| \cdot \left| \vec{b} \right| } \\ \cos(\alpha) = \frac{$xa \cdot $xb + $ya \cdot $yb }{\sqrt{($xa)^{2} + ($ya)^{2}} \cdot \sqrt{($xb)^{2} + ($yb)^{2}} } \\ \cos(\alpha) = \frac{$inproduct }{\sqrt{$lengte_a2} \cdot\sqrt{$lengte_b2} } \\ \cos(\alpha) \approx $cos \\ \alpha \approx $hoek^{o} \approx $hk^{o} \end{array}\right.
+ !endif
+
+object$n=!exec canvasdraw \
+size 400,400\
+xrange -9,9\
+yrange -9,9\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 90,110\
+grid 1,1,grey,2,2,6,grey\
+precision 100\
+opacity 255,255\
+linewidth 1\
+arrow 0,0,$xa,$ya,8,blue\
+arrow 0,0,$xb,$yb,8,red\
+fontfamily italic 14px Ariel\
+string red,$str,$hk\u00b0\
+fillcolor orange\
+filled\
+opacity 250,30\
+angle 0,0,2,$start,$[$hoek+$start],green\
+mouse red,22
+
+!endif
+
+!exit

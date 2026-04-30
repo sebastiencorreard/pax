@@ -1,0 +1,114 @@
+#5 Vectoren optellen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=1
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+#checkfile=$checkdir/coord.proc
+checkfile=exos/precheck.proc
+helptext=!record 7 of lang/remarks.$taal
+make_tr=1
+ax1=!randitem -5,-4,-3
+ay1=!randitem -8,-7,-6
+bx1=!randitem 2,3,4
+by1=!randitem -8,-7,-6
+vx1=!randitem -4,-3,-2,-1,1,2,3,4
+vy1=!randint 1,4
+vx2=!randitem -4,-3,-2,-1,1,2,3,4
+vy2=!randint 1,4
+
+xmin=-10
+xmax=10
+ymin=-10
+ymax=10
+ax2=$[$ax1+$vx1]
+ay2=$[$ay1+$vy1]
+bx2=$[$bx1+$vx2]
+by2=$[$by1+$vy2]
+xp=!randitem -1,-2,0,1,2
+yp=!randitem -1,-2,0,1,2
+
+kax=$[$ax2 - $ax1]
+kay=$[$ay2 - $ay1]
+kbx=$[$bx2 - $bx1]
+kby=$[$by2 - $by1]
+
+a_ml=!mathmlmath \vec a
+b_ml=!mathmlmath \vec b
+
+!if $R=1
+
+ ab_tex=\vec a + \vec b
+ ab_ml=!mathmlmath $ab_tex
+ answer$n=$xp,$yp,$[$xp+$ax2-$ax1+$bx2-$bx1],$[$yp+$ay2-$ay1+$by2-$by1]
+ kabx=$[$kax+$kbx]
+ kaby=$[$kay+$kby]
+ pm1=$empty
+ pm2=+
+
+!else
+
+ d=!randint 1,4
+ ab_tex=!item $d of \vec a + \vec b,\vec a - \vec b,-\vec a + \vec b,-\vec a - \vec b
+ ab_ml=!mathmlmath $ab_tex
+ 
+ pm1=!item $d of $empty,$empty,-,-
+ pm2=!item $d of +,-,+,-
+ answer$n=!line $d of $xp,$yp,$[$xp + $ax2 - $ax1 + $bx2 - $bx1],$[$yp + $ay2 - $ay1 + $by2 - $by1]\
+ $xp,$yp,$[$xp + $ax2 - $ax1 - $bx2 + $bx1],$[$yp + $ay2 - $ay1 - $by2 + $by1]\
+ $xp,$yp,$[$xp - $ax2 + $ax1 + $bx2 - $bx1],$[$yp - $ay2 + $ay1 + $by2 - $by1]\
+ $xp,$yp,$[$xp - $ax2 + $ax1 - $bx2 + $bx1],$[$yp - $ay2 + $ay1 - $by2 + $by1]
+ 
+ kabx=!item $d of $[$kax+$kbx],$[$kax-$kbx],$[-1*$kax+$kbx],$[-1*$kax-$kbx]
+ kaby=!item $d of $[$kay+$kby],$[$kay-$kby],$[-1*$kay+$kby],$[-1*$kay-$kby]
+
+!endif
+
+xab=$[$xp + $kabx]
+yab=$[$yp + $kaby]
+
+
+ss=!record 8 of lang/remarks.$taal
+#@Gegeven vectoren $a_ml met beginpunt ($ax1 : $ay1) en eindpunt  ($ax2: $ay2) <br />en vector $b_ml met beginpunt ($bx1 : $by1) en eindpunt  ($bx2: $by2)<br />Teken in het plaatje de vector $ab_ml met beginpunt ($xp:$yp)
+question$n=<a onmouseover='return escape("$helptext")'>$ss</a>
+sometext=!record 5 of lang/remarks.$taal
+texanswer$n=\left[ \begin{array}{l} \textrm{$(sometext[1])  }\, \vec a  =  \begin{pmatrix} $kax \\ $kay \end{pmatrix} \\ \textrm{$(sometext[1])  }\, \vec b  =  \begin{pmatrix} $kbx \\ $kby \end{pmatrix} \\ \textrm{$(sometext[3])  }\, $ab_tex  = $pm1 \begin{pmatrix} $kax \\ $kay \end{pmatrix}  $pm2 \begin{pmatrix} $kbx \\ $kby \end{pmatrix} = \begin{pmatrix} $kabx \\ $kaby \end{pmatrix}   \\ \textrm{$(sometext[2]) }\, \left( $xp + $kabx : $yp + $kaby \right) =  \left( $xab : $yab \right) \end{array}\right.
+
+var5=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 110,110\
+grid 1,1,grey,2,2,6,grey\
+snaptogrid\
+opacity 255,255\
+mathml $ax1,$ay1,$[$ax1+1],$[$ay1+1],$a_ml\
+mathml $bx1,$by1,$[$bx1+1],$[$by1+1],$b_ml\
+linewidth 1\
+arrow $ax1,$ay1,$ax2,$ay2,8,blue\
+arrow $bx1,$by1,$bx2,$by2,8,blue\
+userinput_xy\
+userdraw arrow,blue\
+precision 10\
+mouse red,22\
+replyformat 21
+
+!if $wims_user=supervisor
+ var5=!append line arrow $(answer$n),8,lightgreen to $var5
+!endif
+
+object$n=!exec canvasdraw\
+$var5
+
+!exit 

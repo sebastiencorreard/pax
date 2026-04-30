@@ -1,0 +1,201 @@
+!set title=Coordonnées d'un point 2B
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r,r
+varcnt=21
+prevarcnt=19
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items d,p,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=Soit \(($val6)\) la droite d'équation&nbsp;
+val10=Réponse&nbsp;
+val11=Donner les coordonnées d'un point appartenant à la droite \(($val6)\)	  mais n'appartenant pas à l'axe des ordonnées
+val12=Oui,Non
+tmp0=!randitem -2,1,-1,2
+
+val13=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val14=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+
+!ifval $val15=1 
+t_=!replace internal \( by ( in $val7*x + $val8*y
+tmp0=!exec pari $t_
+
+val16= $(tmp0) = $val14 
+!else
+t_=!replace internal \( by ( in $val8*y+$val7*x
+tmp1=!exec pari $t_
+
+val16= $(tmp1) = $val14
+!endif
+tmp=!translate ";': to $     $ in $val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+t_=!rawmath ($val14-$val7*$val13)/$val8
+val17=!exec pari print($t_)
+val18=$[rint($val7*$val13+$val8*$val17)]
+
+!ifval $val15=1 
+t_=!replace internal \( by ( in $val7*$val13 + $val8*y
+tmp0=!exec pari $t_
+
+val19= $(tmp0) = $val14 
+!else
+t_=!replace internal \( by ( in $val8*y+$val7*$val13
+tmp1=!exec pari $t_
+
+val19= $(tmp1) = $val14
+!endif
+val9=Soit \(($val6)\) la droite d'équation&nbsp;
+val10=Réponse&nbsp;
+val11=Donner les coordonnées d'un point appartenant à la droite \(($val6)\)	  mais n'appartenant pas à l'axe des ordonnées
+val12=Oui,Non
+replytype1=numexp
+replyname1=
+replygood1=?analyze 20
+replytype2=numexp
+replyname2=
+replygood2=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val9:	<div class="wimscenter"> 
+!insmath $val16
+$().</div>	$val11.	<div class=wims_question><b>$val10:</b>	  Les coordonnées du point choisi sont ( 
+!read oef/embed.phtml r1,5 
+$() ;  
+!read oef/embed.phtml r2,5 
+$()).</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<h3>Méthode.</h3> Il faut trouver deux nombres 
+!insmath x
+$() et 
+!insmath y
+$()	  qui vérifient l'équation 
+!insmath $val16
+$().	 	 <p>Le point ne doit pas être sur l'axe des ordonnées,	 donc son abscisse 
+!insmath x
+$() ne doit pas être égal à zéro.</p>	 	 <h3>Exemple :</h3>	 
+!if $val7=0 
+$()Puisque l'équation est de la forme, 
+!insmath y=$val17
+$(), il suffit que la seconde	 coordonnée soit égale à 
+!insmath $val17
+$() pour que le point appartienne à la droite 
+!insmath ($val6)
+$(). 
+!else
+$()	 On choisit :
+!insmath x=$val13
+$().		<br>Il faut alors résoudre :  
+!insmath $val19
+$(). La solution est 
+!insmath y=$val17
+$().		<br>Ainsi le point de coordonnées 
+!insmath ($val13 ; $val17)
+$() appartiennent à la droite 
+!insmath ($val6)
+$().	 
+!endif
+$()	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in $val7*($val20)+$val8*($val21)-($val14)
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val22=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le point appartient à la droite
+
+!ifval $val20<>0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Le point n'appartient pas à l'axe des ordonnées
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,13,14,16,17,19,20,21
+embedcnt=2

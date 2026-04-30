@@ -1,0 +1,102 @@
+#sqrt(2)*sqrt( pi)*erf(x/sqrt(2))/2
+!set n=$counter
+!if $counter=1
+    # leg alle def-var's 1 keer vast
+    !if $subject=11
+	var2=0
+	helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    !else
+	txt=!record 15 of lang/remarks.$taal
+	helptext=<a href=\'$module_dir/docs/tabel.pdf\' target=\'statistiek tabellen\'>Download PDF<br /><img src=\'$module_dir/gifs/tabellen.jpg\' alt=\'tabellen.pdf\' /><br />$txt</a>
+    !endif
+
+    make_tr=1
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+    var1=0
+    # antwoord is een getal, geen kans
+    questiontype=0
+    math=0
+    image=0
+    cols=8
+    mathview=0
+    formula$n=$empty
+    checkfile=exos/checkfile1.proc
+    inputs=1.1
+    description=&#956;
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+!if $var2=0
+    etext=!record 13 of lang/remarks.$taal
+    #@ (met je grafische rekenmachine)
+!else
+    etext=!record 15 of lang/remarks.$taal
+    #@ (met het tabellenboekje)
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mean=!randint 250,1000
+mean=$[$mean/10]
+a=!randitem 2,3,4,5
+sig1=$[floor($mean/10)]
+sig2=$[$sig1+$a]
+sigma=!randint $[10*$sig1],$[10*$sig2]
+sigma=$[$sigma/10]
+b=!randint 1,27
+b=$[$b/10]
+pm=!randitem +,-
+g=$[round(10*($mean $pm $sigma*$b))/10]
+g1=$[round(10*($mean - $sigma*$b))/10]
+g2=$[round(10*($mean + $sigma*$b))/10]
+P=<span style="font-size:16pt">P</span>
+!if $R=1
+    Z=$[($g-$mean)/$sigma]
+    Z1=$[round(100*(($g-$mean)/$sigma))/100]
+    S=-1000000
+    kans=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]
+    kans=$[(round(10000*$kans))/10000]
+    kans1=$[0.5*(erf($Z1/sqrt(2))-erf($S/sqrt(2)))]
+    kans1=$[(round(10000*$kans1))/10000]
+    ss=!record 73 of lang/remarks.$taal
+    #@ Bereken voor de normaal verdeelde variabele V het gemiddelde &mu; als:<br />$P(V &le; $g | &mu;=? en &sigma;=$sigma)=$kans
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    answer$n=$mean 
+    !if $var2=0
+   	rr=!record 74 of lang/remarks.$taal
+	#@ <ul><li>$P(V &le; $g | &mu;=? ; &sigma;=$sigma)=$kans</li><li>intypen in Ti83 <kbd>invNorm</kbd>($kans); Nu heb je de z-waarde.</li><li>&mu; = $g - z * $sigma</li>&mu; = $g - $Z*$sigma<li>Dus Het gemiddelde = $mean</li></ul>
+    !else
+	rr=!record 75 of lang/remarks.$taal
+	#@ <ul><li>$P(V&le;$g | &mu;=? ; &sigma;=$sigma)=$kans</li><li>Zoek in je tabel de kans die het dichtst bij $kans ligt</li><li>Dat is $kans1</li><li>De bijbehorende z=$Z1</li><li>Gebruik de formule z=(g - &mu; )/ &sigma; </li><li>Dus $Z1=($g-&mu;)/$sigma</li><li>Dan $Z1*$sigma=$g-&mu;</li><li>Dus $[$Z1*$sigma]=$g-&mu;</li><li>Dus Het gemiddelde= $mean</li></ul>
+    !endif
+    textanswer$n=$rr
+ !exit
+!endif
+!if $R>1
+    Z=$[($g-$mean)/$sigma]
+    Z1=$[round(100*(($g-$mean)/$sigma))/100]
+    S=-1000000
+    kans=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]   
+    kans=$[(round(10000*$kans))/10000]   
+    kans1=$[0.5*(erf($Z1/sqrt(2))-erf($S/sqrt(2)))]   
+    kans1=$[(round(10000*$kans1))/10000]   
+    ss=!record 76 of lang/remarks.$taal
+    #@ Bereken voor de normaal verdeelde variabele V het gemiddelde &mu; als:<br />$P(V &ge; $g | &mu;=? en &sigma;=$sigma)=$[1-$kans]
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    answer$n=$mean 
+    !if $var2=0
+   	rr=!record 77 of lang/remarks.$taal
+	#@ <ul><li>$P(V &ge; $g | &mu;=? ; &sigma;=$sigma)=$[1-$kans]</li><li>$P(V &lt; $g | &mu;=? ; &sigma;=$sigma)=$kans</li><li>intypen in Ti83 <kbd>invNorm</kbd>($kans); Nu heb je de z-waarde.</li><li>&mu; = $g - z * $sigma</li>&mu; = $g - $Z*$sigma<li>Dus Het gemiddelde = $mean</li></ul>
+    !else
+	rr=!record 78 of lang/remarks.$taal
+	#@ <ul><li>$P(V&ge;$g | &mu;=? ; &sigma;=$sigma)=$[1-$kans]</li><li>$P(V&lt;$g | &mu;=? ; &sigma;=$sigma)=$kans</li><li>Zoek in je tabel de kans die het dichtst bij $kans ligt</li><li>Dat is $kans1</li><li>De bijbehorende z=$Z1</li><li>Gebruik de formule z=(g - &mu; )/ &sigma; </li><li>Dus $Z1=($g-&mu;)/$sigma</li><li>Dan $Z1*$sigma=$g-&mu;</li><li>Dus $[$Z1*$sigma]=$g-&mu;</li><li>Dus Het gemiddelde= $mean</li></ul>
+    !endif
+    m_rightarrow=&nbsp;=&nbsp;
+    textanswer$n=$rr
+ !exit
+!endif
+# answer$n=!exec pari (round($rounding*(intnum(x=$S,$Z,e^(-0.5*x^2)))/(sqrt(2*pi))))/(1.0*$rounding)

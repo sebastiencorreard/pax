@@ -1,0 +1,272 @@
+\title{Tableau d'avancement 1}
+\language{fr}
+\range{-5..5}
+\author{Benoît,MARKEY;  Georges,KHAZNADAR}
+\email{bmarkey@tele2.fr, georgesk@ofset.org}
+\computeanswer{yes}
+\format{html}
+\precision{1000000}
+
+\if{rien\confparm1 = rien}
+{
+  \\ valeur par défaut
+  \text{confparm1=acide-metal1}
+}
+% choix d'une ligne au hasard dans le fichier de données ".dat"
+\text{l=wims(randfile \confparm1.dat)}
+
+\text{css=<style>
+td.td-center {
+  text-align: center;
+}
+.smaller {
+  font-size: 85%;
+}
+table.table-border2 {
+  border: 2px black solid;
+}
+table.table-border2 td{
+  border: 1px black solid;
+  border-collapse: collapse;
+  padding: 3px;
+}
+</style>
+}
+
+% récupération de données dans le fichier ".txt" correspondant
+\text{present=wims(record 1 of \confparm1.txt)}
+\text{formulesreac=wims(line 2 of \present)}
+\text{formulesprod=wims(line 3 of \present)}
+\text{present=wims(line 1 of \present)}
+
+% application de la slib chemistry/chemeq_equilibrium
+\text{l1=slib(chemistry/chemeq_equilibrium \l,nostate)}
+
+% récupération des composés chimiques de leurs coefficients stœchio, etc.
+\text{components=wims(row 1 of \l1)}
+\text {coeffs=wims(row 2 of \l1)}
+\integer{n=wims(itemcnt \components)}
+\integer{m=wims(positionof item % in \coeffs)}
+\integer{gauche=\n-\m}
+\integer{droite=\n-\gauche-2}
+\integer{n=\gauche + \droite}
+
+% reconstitution de la ligne à afficher
+\text{l=\l,\gauche,\droite}
+\text{l=\l,wims(item 2 to \m-1 of \components)}
+\text{l=\l,wims(item \m+1 to -1 of \components)}
+\text{l=\l,wims(item 2 to \m-1 of \coeffs)}
+\text{l=\l,wims(item \m+1 to -1 of \coeffs)}
+
+% a1 est de la forme 0.00xyz ; a2 est de la forme 0.0xyz
+\real{a1=randint(111..999)/100000}
+\real{a2=randint(111..999)/10000}
+
+% on choisit un des réactifs au hasard
+\text{reac=}
+\integer{randomreac=wims(rowcnt \formulesreac)}
+\integer{min=min(\randomreac,\gauche)}
+
+% on recalibre les coefficients à appliquer à chaque réactif
+\for{f1=1 to \min}{
+  \real{r=slib(stat/random 1,\formulesreac[\f1;1],\formulesreac[\f1;2],Z) / \formulesreac[\f1;3]}
+  \text{reac=\reac \r,}
+}
+
+\for{f11=\min+1 to \gauche}{
+  \real{r=slib(stat/random 1,\formulesreac[\randomreac;1],\formulesreac[\randomreac;2],Z) / \formulesreac[\randomreac;3]}
+  \text{reac=\reac \r,}
+}
+
+% on choisit un des produits au hasard
+\text{prod=}
+\integer{randomreac=wims(rowcnt \formulesprod)}
+\integer{min=min(\randomreac,\droite)}
+
+% on recalibre les coefficients à appliquer à chaque produit
+\for{f2=1 to \min}{
+  \real{r=slib(stat/random 1,\formulesprod[\f2;1],\formulesprod[\f2;2],Z) / \formulesprod[\f2;3]}
+  \text{prod=\prod \r,}
+}
+
+\for{f21=\min+1 to \droite}{
+  \real{r=slib(stat/random 1,\formulesprod[\randomreac;1],\formulesprod[\randomreac;2],Z) / \formulesprod[\randomreac;3]}
+  \text{prod=\prod \r,}
+}
+
+\integer{total=3+2*\n}
+\integer{coeffp=\total-\n+1}
+\integer{coeffr=\total-\droite+1}
+
+\text{polyreac=\reac[1]-\l[\coeffp+1-1]*x}
+\for{i11=2 to \gauche}
+{
+\text{polyreac=\polyreac,\reac[\i11]-\l[\coeffp+\i11-1]*x}
+}
+\text{polyprod=\prod[1]+\l[\coeffr+1-1]*x}
+\for{i12=2 to \droite}
+{
+\text{polyprod=\polyprod,\prod[\i12]+\l[\coeffr+\i12-1]*x}
+}
+
+\text{max=\reac[1]/\l[\coeffp]}
+\for{i17=2 to \gauche}
+{
+\text{max=\max,\reac[\i17]/\l[\coeffp+\i17-1]}
+}
+\real{xmax1=\gauche=1?\reac[1]/\l[\coeffp]:min(\max[1],\max[2])}
+\for{i18=1 to \gauche}
+{
+\real{xmax=min(\xmax1,\max[\i18])}
+}
+
+\text{val=\polyreac[1]}
+\for{i13=2 to \gauche}
+{
+\text{val=\val,\polyreac[\i13]}
+}
+\for{i14=1 to \droite}
+{
+\text{val=\val,\polyprod[\i14]}
+}
+\text{sol=\xmax}
+\for{i15=1 to \gauche}
+{
+\text{sol=\sol,wims(replace x by \xmax in \polyreac[\i15])}
+}
+\for{i16=1 to \droite}
+{
+\text{sol=\sol,wims(replace x by \xmax in \polyprod[\i16])}
+}
+
+
+\text{r=reply 1}
+\for{i1=2 to \n+1}
+{
+  \text{r=\r,reply \i1}
+}
+
+\steps{\r}
+
+\statement{
+\css
+<h3>\present</h3>
+<p>
+ Compléter le tableau d'avancement ci-dessous. Remarquez comment
+ la ligne pour l'état intermédiaire a été remplie en utilisant
+ les coefficients stoechiométriques.
+</p>
+<p class="smaller">(pensez à consulter l'indication)</p>
+<table class="table-border2">
+<!-- ligne 1 -->
+<tr>
+	<td class="td-center" colspan=2>
+		équation chimique
+	</td>
+	\for{i2=1 to \gauche-1}
+	{
+	  <th>\(\l[3+\i2])</th>
+	  <th>+</th>
+	}
+	<th>\(\l[3+\gauche]) </th>
+	<td>\(\rightarrow) </td>
+	\for{i3=1 to \droite-1}
+	{
+	  <th>\(\l[3+\gauche+\i3]) </th>
+	  <th>+</th>
+	}
+	<th>\(\l[3+\gauche+\droite]) </th>
+</tr>
+<!-- ligne 2 -->
+<tr>
+	<td>état du système</td>
+	<td>avancement</td>
+	\for{i4=1 to \gauche-1}
+	{
+	  <td>nombre de moles</td>
+	  <td>&nbsp;</td>
+	}
+	<td>nombre de moles</td>
+	<td>&nbsp;</td>
+	\for{i5=1 to \droite-1}
+	{
+	  <td>nombre de moles</td>
+	  <td>&nbsp;</td>
+	}
+	<td>nombre de moles</td>
+</tr>
+<!-- ligne 3 -->
+<tr>
+	<td>état initial</td>
+	<td class="td-center">\(x=0)</td>
+	\for{i6=1 to \gauche-1}
+	{
+	  <td class="td-center">\reac[\i6]</td>
+	  <td>&nbsp;</td>
+	}
+	<td class="td-center">\reac[\gauche]</td>
+	<td>&nbsp;</td>
+	\for{i7=1 to \droite-1}
+	{
+	  <td class="td-center">\prod[\i7]</td>
+	  <td>&nbsp;</td>
+	}
+	<td class="td-center">\prod[\droite]</td>
+</tr>
+<!-- ligne 4 -->
+<tr>
+    <td>état intermédiaire</td><td class="td-center">\(x = ??)</td>
+	\for{i8=1 to \n-1}
+	{
+		<td class="td-center">
+			<div style="background:lightyellow;border:black dashed 1px">\val[\i8]</div>
+		</td>
+		<td>
+			&nbsp;
+		</td>
+	}
+	<td class="td-center">
+		<div style="background:lightyellow;border:black dashed 1px">\val[\n]</div>
+	</td>
+</tr>
+<!-- ligne 5 -->
+<tr>
+	<td>état final</td>
+	<td class="td-center">\(x_{max})=\embed{\r[1],4}</td>
+	\for{i9=2 to \n}
+	{
+	  <td class="td-center">\embed{\r[\i9],10}</td>
+	  <td>&nbsp;</td>
+	}
+	<td class="td-center">\embed{\r[1+\n],10}</td>
+</tr>
+</table>
+
+
+}
+
+\answer{\Name 1}{\sol[1]}{type=function}
+\answer{\Name 2}{\sol[2]}{type=function}
+\answer{\Name 3}{\sol[3]}{type=function}
+\answer{\Name 4}{\sol[4]}{type=function}
+\answer{\Name 5}{\sol[5]}{type=function}
+\answer{\Name 6}{\sol[6]}{type=function}
+\answer{\Name 7}{\sol[7]}{type=function}
+\answer{\Name 8}{\sol[8]}{type=function}
+\answer{\Name 9}{\sol[9]}{type=function}
+\answer{\Name 10}{\sol[10]}{type=function}
+\answer{\Name 11}{\sol[11]}{type=function}
+\answer{\Name 12}{\sol[12]}{type=function}
+\answer{\Name 13}{\sol[13]}{type=function}
+
+\hint{
+  <p>
+    Les réponses s'écrivent de la façon suivante:
+  </p>
+  <p>
+    si \(x_{max}) est un nombre fractionnaire, vous devez le laissez sous
+    cette forme dans les calculs afin d'obtenir la meilleure précision
+    (Exemple si \(x_{max}=7/11), vous pouvez entrer des calculs du type
+    \(4-2*7/11), l'ordinateur effectuera le calcul)
+  </p>
+}

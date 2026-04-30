@@ -1,0 +1,75 @@
+option:precision=" "
+
+!set reply$i=!nonempty items $(reply$i)
+
+replygood=$(replygood$i)
+
+precision=!getopt precision in $(replyoption$i)
+!default precision=100
+
+opt=!declosing $(oef_answer_option$i[2;])
+
+m_reply$i=$(reply$i)
+
+!if $wims_read_parm=nocompare
+  !exit
+!endif
+
+!! on analyse numeriquement la reponse
+!! probleme d'espace entre pari/gp et python donc nospace
+jscnt_variable=!itemcnt $(replygood$i)
+
+!if $(jscntvariable)==0
+  !exit
+!endif
+
+!reset jscnt_rep jssc tab
+tab=<div style="overflow-x:auto;"><table class="wimscenter wimsborder"><tr><th>Variable</th><th>Votre reponse</th><th>Correction</th></tr>
+!for j= 1 to $jscnt_variable
+  !if \ notin $(replygood$i[$j]) and $(replygood$i[$j]) != $empty
+    !increase jscnt_rep
+    good=!declosing $(replygood$i[$j])
+    Aff_goodvar=$(good[1])
+    good=$(good[2..-1])
+    Aff_good=$(good)
+    rep=$(reply$i[$[$j]])
+    Aff_rep$i=$(reply$i[$[$j]])
+    !if $j==1
+      rep=!nospace $(rep)
+    !endif
+    !if  $(good) == $(rep)
+      jssc=$jssc 1/$jscnt_variable
+      coo=green
+    !endif
+    !if $(good)!= $(rep)
+      jssc=$jssc 0
+      coo=red
+    !endif
+    !if $(good)==$empty
+      diareply$i=good
+      !exit
+    !endif
+    tab=$(tab)<tr style="border-width:1px;border-style:solid;background-color:$(coo);color:black;"><td>$(Aff_goodvar)</td><td>$(Aff_rep$i)</td><td>$(Aff_good)</td></tr>
+    !endif
+  !endif
+jssc=$jssc,
+!next
+reply_$i=$(tab)</table></div>
+
+jssc=!nonempty items $jssc
+
+score=!replace internal , by + in $jssc
+
+score=$[($score)]
+freegot=$[$freegot+$score]
+
+!if $score=1
+ diareply$i=good
+!else
+ !if $score > 0.3
+   partialgood$i=yes
+   diareply$i=good
+ !else
+   diareply$i=bad
+ !endif
+!endif

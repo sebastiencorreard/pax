@@ -1,0 +1,112 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+var4=0
+mathview=5
+rounding=0
+!read $remarkdir/rounding.$taal
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=18
+rows=1
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+#pari kijkt na
+ var1=0
+ a=!randint 2,45
+ b=!randint 2,9
+ c=$[$b*$b]
+ formula$n= \sqrt{y+$a}=$b x
+ applettext=!nospace sqrt(y+$a)=$b*x -> 
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ var2=!rawmath -$a+$c*x^2
+ answer$n=-$a+$c*x^2
+ texanswer$n=\left[ \begin{array}{l} y+$a=$b^{2} \cdot x^{2}  \rightarrow \\ y=-$a+$c x^{2} \end{array} \right.
+ !goto KLAAR
+!endif
+
+!if $R=2
+ keuze=!randitem 0,1
+ var1=0
+ # pari
+ a=!randint 2,50
+ b=!randint 2,12
+ !if $keuze=0
+  c=$[$b*$b]
+  formula$n= \sqrt{$a \cdot y \cdot x}=$b
+  applettext=!nospace sqrt($a*y*x)=$b   ->
+  # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+  tot=!exec pari A=$c/($a*x)\
+  printtex(A)
+
+  answer$n=!line 1 of $tot
+  tussen=!line 2 of $tot
+  !if $c isin $tussen and $a isin $tussen
+    ans=$empty
+  !else
+   ans=\rightarrow y=$tussen
+  !endif
+  var2=$c/($a*x)
+  texanswer$n=\left[ \begin{array}{l} $a \cdot y \cdot x = $b^{2}\rightarrow \\ y= \frac{$c}{$a x} $ans  \end{array} \right.
+ !else
+  d=!randint 2,15
+  e=$[$b-$d]
+  !if $e=0
+    d=$[$d+5]
+    e=$[$b-$d]
+  !endif
+  c=$[$e*$e]
+  formula$n= $d + \sqrt{$a \cdot y \cdot x}=$b
+  applettext=!nospace $d + sqrt($a*y*x)=$b   ->
+  # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+  tot=!exec pari A=$c/($a*x)\
+  printtex(A)
+  answer$n=!line 1 of $tot
+  tex_ans=!line 2 of $tot
+  var2=$c/($a*x)
+  texanswer$n=\left[ \begin{array}{l} \sqrt{$a \cdot y \cdot x}=$b-$d=$e \rightarrow \\ $a \cdot y \cdot x = ($e)^{2}  \rightarrow \\ y= \frac{$c}{$a x}  \\ y = $tex_ans \end{array} \right.
+ !endif
+ !goto KLAAR
+!endif
+
+!if $R>2 
+ var1=0
+ pm=!randitem +,-
+ # pari
+ a=!randint 2,50
+ b=!randint 2,9
+ c=!randint 2,9
+ d=$[$b*$b]
+ e=$[2*$b*$c]
+ f=$[$a-$c*$c]
+ formula$n= $c + \sqrt{$a - y}=$b x
+ applettext=!nospace  $c + sqrt($a - y)=$b*x -> 
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ var2=!rawmath -$d*x^2+$e*x+$f	
+ answer$n=!rawmath -$d*x^2+$e*x+$f
+ !if $f <0
+  ans=-$d x^{2}+$e x $f
+ !else
+  ans=-$d x^{2}+$e x + $f
+ !endif
+ tussen=!rawmath + $f
+ texanswer$n=\left[ \begin{array}{l} \sqrt{$a - y}=$b x - $c \rightarrow \\ $a-y=($b x-$c)\cdot ($b x-$c) \rightarrow \\ $a-y=$d x^{2} -$e x + $[$c*$c] \rightarrow \\ y=-$d x^{2}+$e x +$a - $[$c*$c] \rightarrow \\ y=$ans \end{array} \right.
+    !goto KLAAR
+!endif
+
+:KLAAR
+
+!exit

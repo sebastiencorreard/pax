@@ -1,0 +1,67 @@
+!if $annuler=Annuler le dernier point
+     !reset annuler dernier_point
+     n=!itemcnt $liste_points
+     liste_points=!item 1 to -4 of $liste_points
+     !! remettre la virgule en trop si la liste n'est pas vide
+     !if $n > 3
+       liste_points=$liste_points,
+     !endif
+     !readproc slib/graphpaper/millimetre $paperlayout, $papercolors, $liste_points
+     graphe= $slib_out
+   !else
+     !if $click_x$click_y != $empty
+       !if $fini!=Envoyer
+         !readproc slib/graphpaper/whereclick $paperlayout, $click_x,$click_y
+	 !reset $click_x,$click_y
+         dernier_point=$slib_out
+         liste_points=$liste_points $dernier_point
+         !readproc slib/graphpaper/millimetre $paperlayout, $papercolors, $liste_points
+         graphe= $slib_out
+       !endif
+     !endif
+   !endif
+   !if $fini=Envoyer
+    good=0
+    !for i from 1 to $nm
+     g_dot$i=0
+    !next i
+    !!!!! à vérifier pour ce décompte de points
+    n=!itemcnt $liste_points
+    n=$[$n-1]
+    !for i from 1 to $n step 2
+      l=!item $i of $liste_points
+      T=!item $[$i+1] of $liste_points
+      !for j from 1 to $nm
+        diff1=$[abs(($l - $(l$j))/$l)]
+        !if $diff1 < 0.05
+          diff2=$[abs(($T - $(T$j))/$T)]
+          !if $diff2 < 0.05
+            g_dot$j=1
+          !else
+            g_dot$j=0
+          !endif
+        !endif
+      !next j
+    !next i
+    !! plus un point par croix _bien placée_
+    !for i from 1 to $nm
+     !if $(g_dot$i)=1
+       good=$[$good+1]
+     !endif
+    !next i
+    !! moins un point par croix en trop
+    !if $n > $[2*$nm]
+      good=$[$good - $n/2 +$nm]
+    !endif
+    result2=$[$bareme2*$good/$nm]
+    !! merge solutions into correct_points
+    correct_points=
+    !for i from 1 to $nm
+      correct_points=$correct_points $(l$i), $(T$i),
+    !next i
+    correct_points=[ $correct_points ]
+    step=3
+    paperlayout=6.5,5,1,1,$(l$nm) max l (m),$(T$nm) max T (s)
+    !readproc slib/graphpaper/correct_milli $paperlayout, $papercolors, $correct_points, $liste_points
+    graphe=$slib_out
+  !endif fini

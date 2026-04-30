@@ -1,0 +1,186 @@
+!set title=Conservation des éléments (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+author=Georges Khaznadar
+email=georgesk@ofset.org
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(0)]
+val7=
+tmp0=!recordcnt data/cycles
+
+val8=$[rint($(tmp0))]
+!if $val2=0 
+tmp0=!randint 1, $val8
+
+val9=$[rint($(tmp0))]
+!else
+val9=$[rint($val2)]
+!endif
+tmp0=!record $val9 of data/cycles
+
+val10=$(tmp0)
+tmp0=!linecnt $val10
+
+val11=$[rint($(tmp0))]
+val12=
+val13=
+val8=$[rint(0)]
+val14=
+val15=$[rint(1)]
+val16=
+val17=
+val18=
+val19=$[rint(0)]
+val20=
+!for val21 =1 to $val11 
+tmp0=!line $val21 of $val10
+
+val22=$(tmp0)
+!if $val22 iswordof /title/ /general/ /images/ /reactions/ /formal/ /questions/ /answers/  
+val12=$val22
+!else
+!if $val12=/general/ 
+val23=$val22
+!endif
+!if $val12=/reactions/ 
+val13=$val13$val22;
+val8=$[rint($val8+1)]
+!endif
+!if $val12=/questions/ 
+val14=$val14$val22;
+val17=$val17	r$val15
+val15=$[rint($val15+1)]
+!endif
+!if $val12=/answers/ 
+val16=$val16$val22;
+!endif
+!if $val12=/formal/ 
+val20=$val20$val22;
+!endif
+!if $val12=/images/ 
+val18=$val18$val22;
+val19=$[rint($val19+1)]
+!endif
+!endif
+!next
+val24=
+!for val25 =1 to $val8 
+!readproc slib/chemistry/chemeq_tex $(val20[$val25;]) 
+tmp0=$slib_out
+val26=$(tmp0)
+val24=$val24<li>$(val13[$val25;]) <center><div style='background:lightyellow; border: 1px solid green'>\($val26)</div></center></li>
+!next
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=menu
+replyoption1=shuffle 
+replyname1=$(val14[1;])
+replygood1=1;$(val16[1;])
+replytype2=menu
+replyoption2=shuffle 
+replyname2=$(val14[2;])
+replygood2=1;$(val16[2;])
+replytype3=menu
+replyoption3=shuffle 
+replyname3=$(val14[3;])
+replygood3=1;$(val16[3;])
+replytype4=menu
+replyoption4=shuffle 
+replyname4=$(val14[4;])
+replygood4=1;$(val16[4;])
+replytype5=menu
+replyoption5=shuffle 
+replyname5=$(val14[5;])
+replygood5=1;$(val16[5;])
+replytype6=menu
+replyoption6=shuffle 
+replyname6=$(val14[6;])
+replygood6=1;$(val16[6;])
+replytype7=menu
+replyoption7=shuffle 
+replyname7=$(val14[7;])
+replygood7=1;$(val16[7;])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 
+!if $val6=1 
+$()	<h3>Debug activé</h3>	reactions = $val13<br>	formulas = $val20<br>	<hr>	 
+!endif
+$()	 
+!if $val19>0 
+$()	  <table width="100%"><tr>	   
+!for m_i0=1 to $val19 
+$()	    <td align="center"><img src="$val1/../$(val18[$m_i0;1])"><br>$(val18[$m_i0;2])</td>	   
+!next
+$()	  </tr></table>	 
+!endif
+$()	<div style='background:lightyellow; border: 1px solid red;'>	 $val23	</div>	<p>Voici une suite de réactions chimiques&nbsp;:</p>	<ol type='a'>	$val24	</ol>	 
+!for m_s1=1 to $m_step 
+$()	  $(val14[$m_s1;])  
+!read oef/embed.phtml r\s1 
+$()<br>	 
+!next
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,13,14,18,19,20,23,24
+embedcnt=1

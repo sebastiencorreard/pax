@@ -1,0 +1,167 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+GGG=!words2items $(answer$n)
+GGG=!nospace $GGG
+GGG=!lower $GGG
+A1=!replace [a-z\~\!\@\#\$\%\_\=\:\;\'\"] by $empty in $AAA
+G1=!replace [a-z\~\!\@\#\$\%\_\=\:\;\'\"] by $empty in $GGG
+A2=!replace [0-9\.\/\(\)] by $empty in $AAA
+G2=!replace [0-9\.\/\(\)] by $empty in $GGG
+A1=!nospace $A1
+G1=!nospace $G1
+!for p=1 to 4
+    A1=!replace internal ,, by , in $A1
+    G1=!replace internal ,, by , in $G1
+!next p    
+a1=!char 1 of $A1
+a2=!char -1 of $A1
+!if $a1=,
+    A1=!char 2 to -1 of $A1
+!endif
+!if $a2=,
+    A1=!char 1 to -2 of $A1
+!endif
+g1=!char 1 of $G1
+g2=!char -1 of $G1
+!if $g1=,
+    G1=!char 2 to -1 of $G1
+!endif
+!if $g2=,
+    G1=!char 1 to -2 of $G1
+!endif
+score1=0
+score2=0
+t1=!itemcnt $G1
+t2=!itemcnt $A1
+klaar=0
+!ifval $[$t1+$t2]=0
+    score1=1
+    # het antwoord is dus zonder getallen: <-inf:+inf> ofwel langle,minfty,s,plusinfty,rangle
+    !goto KLAAR
+!endif
+
+!ifval $[$t1+$t2]>0
+    # eerst de getallen
+    t1=!itemcnt $G1
+    t2=!itemcnt $A1
+    !if $t1=$t2
+	!for p=1 to $t1
+	    G=!item $p of $G1
+	    A=!item $p of $A1
+	    !ifval $A=$G
+		!increase score1
+	    !endif
+	!next p
+	score1=$[$score1/$t1]
+    !else
+	extra1=!record 54 of lang/remarks.$taal
+	#@ je hebt de getalsmatige grenzen niet goed<br />
+	!for p=1 to $t1
+	    G=!item $p of $G1
+	    A=!item $p of $A1
+	    !if $A != $empty
+		!ifval $G=$A
+		    !increase score1
+		!endif
+	    !endif
+	!next p
+	!if $t2>$t1
+	    score1=$[$score1*$t1/$t2]
+	!else
+	    score1=$[$score1*$t2/$t1]
+	!endif
+    !endif
+!else
+    #t1=!itemcnt $G1
+    #t2=!itemcnt $A1
+    score1=0
+    extra1=!record 55 of lang/remarks.$taal
+    #@ de getallen zijn niet goed ingevuld<br />
+!endif
+
+:KLAAR
+score2=0
+A2=!replace internal , by $empty in $A2
+G2=!replace internal , by $empty in $G2
+
+!if $A2 issametext $G2
+    !increase score2
+    extra2=!record 56 of lang/remark.$taal
+    #@ tekens zijn goed<br />
+!else
+    extra2=!record 57 of lang/remarks.$taal
+    #@tekens zijn fout ?<br />
+!endif
+extra=$extra1 $extra2
+maxscore=$[$maxscore*($score1+$score2)/2]
+#goback=0
+#errortext=AAA=$AAA A1=$A1 A2=$A2 <p> GGG=$GGG G1=$G1 G2=$G2 score2=$score2 score1=$score1 maxscore=$maxscore klaar=$klaar t1=$t1 t2=$t2
+#goback=1
+#!exit
+
+!if $maxscore>0.9
+    remark$n=$OK <br />$extra
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK <br />$extra
+    !else
+        remark$n=$NOK <br />$extra
+    !endif
+!endif
+modulescore=$[$modulescore+$maxscore]
+!if $showanswer=1
+    rep=$empty
+    t=!itemcnt $AAA
+    !for p=1 to $t
+	A=!item $p of $AAA
+	sign=$empty
+	!if $A=langle
+	    sign=&nbsp;&lt;&nbsp;
+	!else
+	    !if $A=lbracket
+		sign=&nbsp;[&nbsp;
+	    !else
+		!if $A=rangle
+		    sign=&nbsp;&gt;&nbsp;
+		!else
+		    !if $A=rbracket
+			sign=&nbsp;]&nbsp;
+		    !else
+			!if $A=s
+			    sign=&nbsp;:&nbsp;
+			!else
+			    !if $A=mininfty
+				sign=&nbsp;-inf&nbsp;
+			    !else
+				!if $A=plusinfty
+				    sign=&nbsp;+inf&nbsp;
+				!else
+				    !if $A=u
+					sign=&nbsp;U&nbsp;
+				    !else
+					sign=$A
+				    !endif
+				!endif
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+	rep=!append word $sign to $rep
+    !next p
+    reply$n=$rep
+!endif
+!exit

@@ -1,0 +1,101 @@
+#4 Vectoren optellen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=1
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+#checkfile=$checkdir/coord.proc
+checkfile=exos/precheck.proc
+helptext=!record 7 of lang/remarks.$taal
+#@Als de resultante vector toevallig buitenbeeld valt...<br />maak dan gewoon gebruik van de invoervelden 
+make_tr=1
+ax1=!randitem -8,-7,-6
+ay1=!randitem -8,-7,-6
+vx=!randint 1,4
+vy=!randint 1,4
+k=!randint 1,11
+f=!item $k of -1,-2,-3,2,3,1/2,3/2,5/2,-1/2,-3/2,-5/2
+f_ml=!item $k of -1,-2,-3,2,3,\frac{1}{2},\frac{3}{2},\frac{5}{2},-\frac{1}{2},-\frac{3}{2},-\frac{5}{2}
+xmin=-10
+xmax=10
+ymin=-10
+ymax=10
+ax2=$[$ax1+$vx]
+ay2=$[$ay1+$vy]
+!if $f<0
+ # Q1
+ xp=!randitem 0,1,2
+ yp=!randitem 0,1,2
+!else
+ # Q3
+ xp=!randitem 0,-1,-2
+ yp=!randitem 0,-1,-2 
+!endif
+
+tot=!exec pari X=($f)*($vx)\
+Y=($f)*($vy)\
+A=$xp+X\
+B=$yp+Y\
+printtex(X)\
+printtex(Y)\
+printtex(A)\
+printtex(B)
+
+x2p=!line 3 of $tot
+y2p=!line 4 of $tot
+x_tex=!line 5 of $tot
+y_tex=!line 6 of $tot
+x2_tex=!line 7 of $tot
+y2_tex=!line 8 of $tot
+answer$n=$xp,$yp,$x2p,$y2p
+
+
+a1_ml=!mathmlmath \vec a \,\, \begin{pmatrix} $vx \\ $vy \end{pmatrix}
+a1_plaatje=!mathmlmath \vec a
+a2_ml=!mathmlmath $f_ml \vec a
+b_ml =!mathmlmath \vec b
+
+sometext=!record 5 of lang/remarks.$taal
+#@Kengetal van,Het eindpunt van de vector
+texanswer$n=\left[ \begin{array}{l} \textrm{$(sometext[1]) } \vec b = $f_ml \times \begin{pmatrix} $vx \\ $vy \end{pmatrix} =  \begin{pmatrix} $x_tex \\ $y_tex \end{pmatrix} \\ \textrm{$(sometext[2]) : } \left( $xp+$x_tex: $yp+$y_tex \right) = \left( $x2_tex : $y2_tex \right) \end{array}\right.
+
+ss=!record 6 of lang/remarks.$taal
+#@Gegeven vector $a1_ml en punt P ($xp:$yp)<br />Teken in het plaatje de vector $b_ml = $a2_ml met P als beginpunt 
+question$n=<a onmouseover='return escape("$helptext")'>$ss</a>
+
+var5=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 110,110\
+grid 1,1,grey,2,2,6,grey\
+snaptogrid\
+opacity 255,255\
+mathml $ax1,$ay1,$[$ax1+1],$[$ay1+1],$a1_plaatje\
+linewidth 1\
+arrow $ax1,$ay1,$ax2,$ay2,8,blue\
+userinput_xy\
+userdraw arrow,blue\
+precision 10\
+mouse red,22\
+replyformat 21
+
+!if $wims_user=supervisor
+ var5=!append line arrow $(answer$n),8,lightgreen to $var5
+!endif
+
+object$n=!exec canvasdraw\
+$var5
+
+!exit 

@@ -1,0 +1,127 @@
+# exponentiele functies
+questiontype=0
+embed=1
+mathview=0
+n=$counter
+helptext=$empty
+#inputs=1
+cols=20
+rows=2
+checkfile=exos/checkfile2.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+
+question$n=!record 47 of lang/remarks.$taal
+#@Welke verschuiving moet je op de grafiek van <b>f</b> toepassen,<br />om de grafiek van <b>g</b> te krijgen
+etext=!record 48 of lang/remarks.$taal
+stext=!record 49 of lang/remarks.$taal
+#@geef je antwoord in de vorm:<br /><textarea cols=20 rows=2>1 naar rechts </textarea><br /><textarea cols=20 rows=2>6 naar boven </textarea><br />textarea cols=20 rows=2>3 naar rechts en 2 naar boven</textarea><br /><textarea cols=20 rows=2>5 naar links en 4 naar beneden</textarea><br />
+exotext=<a onmouseover="return escape('$stext')"><span class="schaersvoorde_link">$etext</span></a>
+# answer$n:
+# -1 : to the left
+# 1 : to the right
+# -2 : down
+# 3 :  up
+# answer$n=-1,3,+2,7 meaning 3 to the left and 7 up
+!if $R=1
+    d=!randint 2,9
+    f=$d^x
+    a=!randint 1,9
+    keuze=!randitem 3,2,1,0
+    !if $keuze=0
+	g=$d^(x-$a)
+	G=$d^{x - $a}
+	answer$n=+1,$a
+	texanswer$n= g(x)  =  f(x - $a)
+	rr=!record 51 of lang/remarks.$taal
+	#@De grafiek van f moeten we $a naar rechts verschuiven om de grafiek van g te krijgen
+    !else
+	!if $keuze=1
+	    g=$d^(x+$a)
+	    G=$d^{x + $a}
+	    answer$n=-1,$a
+	    texanswer$n= g(x)  =  f(x + $a)
+	    rr=!record 52 of lang/remarks.$taal
+	    #@De grafiek van f moeten we $a naar links verschuiven om de grafiek van g te krijgen
+	!else
+	    !if $keuze=2
+		g=$d^x + $a
+	    	G= $d^{x} + $a
+		answer$n=+2,$a
+		texanswer$n= g(x)  =  f(x) + $a
+		rr=!record 53 of lang/remarks.$taal
+		#@De grafiek van f moeten we $a omhoog verschuiven om de grafiek van g te krijgen
+	    !else
+		g=$d^x - $a
+		G=$d^{x} - $a
+		answer$n=-2,$a
+		texanswer$n= g(x)  =  f(x) - $a
+		rr=!record 54 of lang/remarks.$taal
+		#@De grafiek van f moeten we $a omlaag verschuiven om de grafiek van g te krijgen
+	    !endif
+	!endif
+    !endif
+    textanswer$n=$rr
+    formula$n=\left[ \begin{array}{l} f(x)=$d^x \\ \\ g(x)= $G \end{array} \right.
+    !if $teaching=1
+	!goto IMAGE
+    !endif
+ !exit
+!endif
+
+!if $R>1
+    d=!randint 2,6
+    f=$d^x
+    a=!randint 1,4
+    keuze=!randitem 1,0
+    !if $keuze=0
+	tot=!exec pari A=$d^(-1*$a)\
+	printtex(A)
+	b=!line 1 of $tot
+	b_tex=!line 2 of $tot
+	g=$b*$d^x
+	G=$b_tex \cdot $d^{x}
+	answer$n=+1,$a
+	texanswer$n= $b_tex  =  $d^{-$a} \rightarrow g(x)  =  $d^{-$a}\cdot $d^{x}  =  $d^{x-$a}
+	rr=!record 51 of lang/remarks.$taal
+	#@De grafiek van f moeten we $a naar rechts verschuiven om de grafiek van g te krijgen
+    !else
+	b=$[$d^$a]
+	g=$b*$d^x
+	G=$b \cdot $d^{x}
+	answer$n=-1,$a
+	texanswer$n= $b  =  $d^{$a} \rightarrow g(x)  =  $d^{$a}\cdot $d^{x}  =  $d^{x+$a}
+	rr=!record 52 of lang/remarks.$taal
+	#@De grafiek van f moeten we $a naar links verschuiven om de grafiek van g te krijgen
+    !endif
+    textanswer$n=$rr
+    formula$n=\left[ \begin{array}{l} f(x)=$d^x \\ \\ g(x)= $G \end{array} \right.
+    !if $teaching=1
+	!goto IMAGE
+    !endif
+ !exit
+!endif
+
+
+
+
+:IMAGE
+
+
+!if $teaching=1
+    image=0
+    image_settings$n=size 0.4,0.4 ;grid;autoscale;xzeroaxis lt -1;yzeroaxis lt -1;xlabel "<x-axis>";ylabel"<y-axis>" ;border
+    insplot_set=size 0.6,0.6 ;grid ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image$n= [-10:10] [-20:20] $f notitle, $g notitle 
+    !insplot $(image$n)
+    plot=1
+    draw=0
+    svg=0
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+
+!endif
+

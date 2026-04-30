@@ -1,0 +1,132 @@
+# Breuken en variabelen vereenvoudigen
+n=$counter
+mathview=4
+cols=20
+rows=1
+math=0
+embed=1
+image=0
+helptext=$empty
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+x=!randitem x,y,z
+
+#@ Schrijf als 1 breuk
+# var1 is used for checking  "literal typing" of question
+varlist=$x
+wims_rawmath_variables=$varlist
+!if $R=1
+    helptext=<img src=\'$module_dir/gifs/exo11a.jpg\' alt=\'noalt\' />
+    checkfile=exos/checkfile3.proc
+    a=!randitem 2,3,4,5,6,7
+    b=!randitem 1,2,3,4
+    c=$[$a+$b]
+    d=!randitem 2,3,4,5
+    e=$[$d*$a]
+    f=$[$d*$c]
+    question$n=!record 31 of lang/remarks.$taal
+    #@Vereenvoudig voor alle $x $m_in $m_R \{-$d}
+    var1=($a*$x + $e)/($c*$x + $f)
+    applettext=!nospace $var1 =
+    formula$n=\left[ \begin{array}{l}\frac{$a \cdot $x + $e}{$c \cdot $x + $f} \,=\, [?] \\  \\ $x \in \mathcal{R}\backslash \{-$d \} \end{array} \right.
+    tussen=\frac{$a \cdot \left( $x + $d \right)}{$c \cdot \left( $x + $d \right)}
+    tot=!exec pari A=$a/$c \
+    printtex(A)
+    
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\  $tussen = \\  $tex \end{array}\right.
+    #checkfile=$checkdir/deduction.proc
+    var5=10
+    var6=2
+ !exit
+!endif
+
+!if $R=2
+    helptext=<img src=\'$module_dir/gifs/exo11b.jpg\' alt=\'noalt\' />
+    question$n=!record 26 of lang/remarks.$taal
+    checkfile=$checkdir/simplify.proc
+    arglist=$empty
+    a=!randitem 2,3,4,5,6,7,8,9
+    b=!randitem 2,3,4,5,6,7,8,9
+    pm=!randitem +,-
+    var1=($a*$x^2 $pm $b*$x)/($x^3)
+    applettext=!nospace $var1 =
+    formula$n=\frac{$a \cdot $x^{2} $pm $b \cdot $x}{ $x^{3}}\,=\,[?]
+    answer$n=($a*$x $pm $b)/($x^2)
+    tussen=\frac{$x \cdot ($a \cdot $x $pm $b )}{$x \cdot $x^{2}}
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen = \\ \frac{$a \cdot $x $pm $b}{ $x^{2}} \end{array}\right.
+ !exit
+!endif
+
+
+!if $R=3
+    helptext=<img src=\'$module_dir/gifs/exo11c.jpg\' alt=\'noalt\' />
+    question$n=!record 26 of lang/remarks.$taal
+    checkfile=$checkdir/simplify.proc
+    arglist=$empty
+    a=!randitem 1,2,3,4
+    b=!randitem 1,2,3,4
+    t1=($x - $a)*($x + $b)
+    n1=($x - $a)*($x - $a)
+    tex_t1=( $x - $a ) \cdot ($x + $b)
+    tex_n1=( $x - $a ) \cdot ($x - $a)
+    tot=!exec pari A=$t1\
+    printtex(A) \
+    B=$n1 \
+    printtex(B)
+
+    
+    t2=!line 1 of $tot
+    tex_t2=!line 2 of $tot
+    n2=!line 3 of $tot
+    tex_n2=!line 4 of $tot
+    
+    var1=($t2)/($n2)
+    applettext=!nospace $var1 =
+    formula$n=\frac{$tex_t2}{$tex_n2} \,=\,[?]
+    answer$n=($x + $b)/($x - $a)
+    tussen=\frac{$tex_t1}{$tex_n1}
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen  = \\ \frac{ $x + $b }{ $x - $a } \end{array}\right.
+ !exit
+!endif
+
+!if $R>3
+    helptext=<img src=\'$module_dir/gifs/exo11d.jpg\' alt=\'noalt\' />
+    question$n=!record 26 of lang/remarks.$taal
+    checkfile=$checkdir/simplify.proc
+    arglist=$empty
+    d=!randitem 2@3,2@5,3@4,3@5,4@5
+    d=!replace internal @ by , in $d
+    a=!item 1 of $d
+    c=!item 2 of $d
+    b=!randitem 1,2,3,4,5
+    pm=!randitem +,-
+    t1=$a*($x $pm $b)*($x - $b)
+    n1=$c*($x $pm $b)*($x + $b)
+    tex_t1=$a \cdot ( $x $pm $b ) \cdot ($x - $b)
+    tex_n1=$c \cdot ( $x $pm $b ) \cdot ($x + $b)
+    tot=!exec pari A=$t1\
+    printtex(A) \
+    B=$n1 \
+    printtex(B)
+
+    
+    t2=!line 1 of $tot
+    tex_t2=!line 2 of $tot
+    n2=!line 3 of $tot
+    tex_n2=!line 4 of $tot
+    
+    var1=($t2)/($n2)
+    applettext=!nospace $var1 =
+    formula$n=\frac{$tex_t2}{$tex_n2} \,=\,[?]
+    answer$n=($a*$x - $[$a*$b])/($c*$x +$[$c*$b])
+    tussen=\frac{$tex_t1}{$tex_n1}
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \rightarrow \\ $tussen  = \\ \frac{ $a \cdot $x - $[$a*$b] }{ $c \cdot $x + $[$c*$b] } \end{array}\right.
+    
+ !exit
+!endif

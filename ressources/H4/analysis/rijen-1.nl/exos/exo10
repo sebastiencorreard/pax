@@ -1,0 +1,122 @@
+# Recursie en Formule
+
+n=$counter
+total_exos=3
+helptext=$empty
+questiontype=0
+mathview=0
+embed=0
+cols=10
+math=0
+image=0
+checkfile=$checkdir/number.proc
+inputs=-1
+
+!if $counter=1
+ r=!randint 1,4
+ sometext1=!record 105 of lang/remarks.$taal
+ #@maandblad,voetbalvereniging,sportclub,kaartclub
+ sometext2=!record 106 of lang/remarks.$taal
+ #@abonnees,leden,leden,leden
+
+ 
+ maandblad=!item $r of $sometext1
+ abonnees=!item $r of $sometext2
+
+ sometext3=!record 107 of lang/remarks.$taal
+ #@Maandnummer,aantal nieuwe $abonnees in deze maand,totale aantal $abonnees na deze maand
+ 
+ ttext=!subst $(sometext3[1]) <i>n</i>,A<sub><i>n</i></sub><br />($(sometext3[2])),N<sub><i>n</i></sub><br />($(sometext3[3]))
+ head=<table class="demospecial"><tr><th>$(ttext[1])</th>
+ regel1=<tr><td>$(ttext[2])</td>
+ regel2=<tr><td>$(ttext[3])</td>
+ ansregel1=<tr><td>$(ttext[2])</td>
+ ansregel2=<tr><td>$(ttext[3])</td>
+ idx=0
+ 
+
+ k=!randint 5,9
+ i=!randitem 2,1
+ break=$[$k-$i]
+ 
+ b=!randint 5,100
+ a=!randitem 4,6,8,10,12
+ c=!randint 5,25
+
+ N0=$b
+ answer1=$empty
+ !for p=1 to $k
+  A$p=$[$a*$p+$c]
+  N$p=$[$(N$[$p-1]) + $(A$p)]
+  head=!append word <th>$p</th> to $head
+  !if $p < $break
+   regel1=!append word <td>$(A$p)</td> to $regel1
+   regel2=!append word <td>$(N$p)</td> to $regel2
+   ansregel1=!append word <td>$(A$p)</td> to $ansregel1
+   ansregel2=!append word <td>$(N$p)</td> to $ansregel2
+  !else
+   regel1=!append word <td><input id="myinput$idx" type="text" size="2" value="" /></td> to $regel1
+   ansregel1=!append word <td><b>$(A$p)</b></td> to $ansregel1
+   !increase idx
+   regel2=!append word <td><input id="myinput$idx" type="text" size="2" value="" /></td> to $regel2
+   ansregel2=!append word <td><b>$(N$p)</b></td> to $ansregel2
+   !increase idx
+   answer1=!append item $(A$p),$(N$p) to $answer1
+  !endif
+ !next p
+ inputs=-1
+ 
+ head=!append word </tr> to $head
+ regel1=!append word </tr> to $regel1
+ regel2=!append word </tr> to $regel2
+ ansregel1=!append word </tr> to $ansregel1
+ ansregel2=!append word </tr> to $ansregel2
+
+ tabel=$head $regel1 $regel2 </table>
+ anstabel=$head $ansregel1 $ansregel2 </table>
+
+ description=
+ ss1=!record 108 of lang/remarks.$taal
+ #@Een $maandblad houdt een reclame campagne om het aantal $abonnees te vergroten.<br />Voor de campagne was het aantal $abonnees $b.<br />In de tabel zie je het verloop van het aantal $abonnees na de reclame campagne.<br />Voor de eerste $[$break-1] maanden geldt de formule A<sub><i>n</i></sub> = $a <i>n</i> + $c <br />Vul de tabel verder in...
+
+ ss2=!record 109 of lang/remarks.$taal
+ #@Bereken het totale aantal $abonnees na $[$k+2] maanden.<br />Voor de eerste $[$break-1] maanden geldt de formule A<sub><i>n</i></sub> = $a <i>n</i> + $c <br />
+ # letop altijd 2 maand verder
+ answer2=$[$(N$k)+$a*($k+1)+$c + $a*($k+2)+$c]
+ 
+ ss3=!record 110 of lang/remarks.$taal
+ #@Met behulp van de formule van A<sub>n</sub> kan een formule worden opgesteld voor het totale aantal $abonnees N<sub><i>n</i></sub>. <br /> Deze formule kan geschreven worden als N<sub><i>n</i></sub>=$[0.5*$a] <i>n</i><sup>2</sup>+ q<i>n</i> + r. <br /> Bereken de waarden van <b>q</b> en <b>r</b>.
+ ha=$[0.5*$a]
+ ansq=$[$ha+$c]
+ ansr=$b
+ 
+ sometext4=!record 111 of lang/remarks.$taal
+ #@na,maanden,de formule voor het totaal aantal leden is,we vullen de eerste twee punten in,we berekenen q door de bovenste van de onderste af te trekken
+ answer3=$ansq,$ansr
+
+ question1=$ss1
+ textanswer1=$anstabel
+ exotext=$tabel
+ question2=$ss2
+ 
+ texanswer2=N_{$[$k+2]} = N_{$k} + A_{$[$k+1]} + A_{$[$k+2]} = $(N$k)+ $[$a*($k+1)+$c] + $[$a*($k+2)+$c] = $answer2
+ question3=$ss3 
+ ex1=$abonnees $(sometext4[1]) $[$k+2] $(sometext4[2])
+ texanswer3=\left[ \begin{array}{l} \textrm{$(sometext4[3]) : } \; N_{n} = $ha \cdot n^{2} + q\cdot n + r \\ \textrm{$(sometext4[4])...} \\ n = 1 \rightarrow $ha \cdot 1^{2} + 1 \cdot q + r = $N1 \rightarrow q + r = $[ $N1 - $ha ] \\ n = 2 \rightarrow $ha \cdot 2^{2} + 2 \cdot q + r = $N2 \rightarrow 2\cdot q + r = $[ $N2 - 4*$ha ] \\ \textrm{ $(sometext4[5]) ... } \\ q = $[$N2 - 4*$ha] - $[ $N1 - $ha] = $ansq \\ r = $[ $N1 - $ha] - q = $[ $N1 - $ha] - $ansq = $ansr \end{array} \right.
+
+!else
+ exotext=$textanswer1
+ sometext5=!record 112 of lang/remarks.$taal
+ #@totaal aantal,de waarde van <b>q</b>,de waarde van <b>r</b>
+ !if $counter=2
+  inputs=1.1
+  description=$(sometext5[1])
+  make_tr=1
+ !else
+  inputs=2
+  description=$(sometext5[2]),$(sometext5[3])
+  ex1=$empty
+ !endif
+!endif
+
+!exit

@@ -1,0 +1,54 @@
+!read language lang/names
+!set wims_backslash_insmath=yes
+!set wims_html_header=$wims_html_header\
+ <style type="text/css">\
+ .equation {padding:20px;}\
+ .goodequation {font-weight:bold}\
+ .yourequation {color:blue}\
+</style>
+
+!header
+
+!read present.phtml
+
+!if $error!=$empty
+  <div class="wims_msg alert">
+  !read msg.phtml
+  </div>
+!endif
+
+!if $status=waiting
+  !read form.phtml
+    !set wims_ref_class=wims_button
+    <p>
+  !if $repeat>1
+    !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_abandon
+  !else
+    !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_newexo
+  !endif
+  </p>
+!else
+  <div>
+   !read answer.phtml
+  </div>
+  <p>
+  !set wims_ref_class=wims_button
+  !if $repeat>1
+    !if $status=next
+      !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_abandon
+    !else
+      !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_news
+    !endif
+  !else
+    !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_otherexo
+  !endif
+  </p>
+  !if $worksheet=$empty
+    <p class="wimsform wimscenter">
+    !set wims_ref_class=wims_button
+    !href module=$module $name_reconfig
+    </p>
+  !endif
+!endif
+
+!tail

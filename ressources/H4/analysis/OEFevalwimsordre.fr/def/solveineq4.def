@@ -1,0 +1,163 @@
+!set title=Résoudre une inéquation 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard;Jean-Pierre, Boudine
+email=regine@mangeard.fr
+
+ansorder=r,r,r,r,r,r
+varcnt=8
+prevarcnt=2
+postvarcnt=5
+replycnt=6
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=r1,r2
+val7=1 2
+dynsteps=yes
+oefsteps=$val6 
+nextstep=!nosubst $val6 
+!readproc oef/steps.proc
+replytype1=radio
+replyweight1=5 
+replyname1=addition
+replygood1=1;Oui,Non
+replytype2=radio
+replyname2=soustraction
+replygood2=?analyze 8;Oui,Non
+replytype3=numeric
+replyname3=a
+replygood3=?analyze 9
+replytype4=numeric
+replyname4=b
+replygood4=?analyze 10
+replytype5=numeric
+replyname5=c
+replygood5=?analyze 11
+replytype6=numeric
+replyname6=d
+replygood6=?analyze 12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On a : 
+!insmath a <= b
+$() et <span class="nowrap">
+!insmath c <= d
+$().</span>	<ul><li>Est-il vrai en général que 
+!insmath a + c <= b + d
+$() ?  
+!read oef/embed.phtml reply1 
+$()</li>	<li>Est-il vrai en général que 
+!insmath a - c <= b - d 
+$() ?  
+!read oef/embed.phtml reply2 
+$()</li>	</ul>	
+!if $m_step=2 and $m_reply2 issametext Oui 
+$()	  Non, on n'a pas toujours 
+!insmath a - c <= b - d
+$().<br>	  Donnez un exemple numérique simple où 
+!insmath a <= b
+$() et 
+!insmath c <= d
+$(),	  alors que <span class="nowrap">
+!insmath a - c >= b - d
+$() :</span>	<ul>	<li><label for="reply3">a=</label> 
+!read oef/embed.phtml reply3,3 
+$()</li>	<li><label for="reply4">b=</label> 
+!read oef/embed.phtml reply4,3 
+$()</li>	<li><label for="reply5">c=</label> 
+!read oef/embed.phtml reply5,3 
+$()</li>	<li><label for="reply6">d=</label> 
+!read oef/embed.phtml reply6,3 
+$()</li>	</ul>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step=2 
+!if $m_reply2 issametext Oui 
+val6=r3,r4,r5,r6
+val7=1 2
+!else
+val7=2
+val6=
+!endif
+!else
+val6=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+condlist=$val7
+condweight1=2 
+
+!ifval ($m_reply3 <= $m_reply4) and ($m_reply5 <= $m_reply6) and ($m_reply3 -$m_reply5) >= ($m_reply4 -$m_reply6)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=exemples
+condweight2=3 
+
+!ifval $m_reply2 issametext Non
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=soustraction
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12
+embedcnt=6

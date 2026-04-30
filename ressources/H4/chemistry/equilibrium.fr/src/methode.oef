@@ -1,0 +1,265 @@
+\author{Georges Khaznadar}
+\email{georges.khaznadar@free.fr}
+\title{Méthode pour équilibrer une équation.}
+
+\if{vide\confparm2 = vide}{
+  \text{confparm2=data.txt}
+}
+
+\if{vide\confparm1 = vide}{
+  \text{equation=}
+}{
+  \text{A=slib(chemistry/chemeq_tex \confparm1[1])}
+  \text{B=slib(chemistry/chemeq_tex \confparm1[2])}
+  \if{rightarrow isin \A and rightarrow isin \B}{
+    # la syntaxe de confparm1 est OK, on garde ça comme équation.
+    \text{equation=\confparm1[1]}
+    \text{OKequation=\confparm1[2]}
+  }{
+    \text{ligne=wims(randrecord \confparm2)}
+    # dans ce fichier, les positions 2 sont toutes équilibrées
+    # et les positions 1 le sont parfois; on choisit plus souvent les premières.
+    \integer{i=random(1,1,1,2,2)}
+    \text{equation=\ligne[\i]}
+    \text{OKequation=\ligne[2]}
+    \text{warning=<span style="color:#ffbb44;"><p>
+      <b>Attention</b> : l'équation <span class="tt">\confparm1</span>
+      n'est pas bien interprétée. Une autre équation a été
+      choisie aléatoirement,
+      sa syntaxe est : <span class="tt">\equation</span> </p></span>
+    }
+  }
+}
+
+\if{vide\equation = vide}{
+  \text{ligne=wims(randrecord \confparm2)}
+  # dans ce fichier, les positions 2 sont toutes équilibrées
+  # et les positions 1 le sont parfois; on choisit plus souvent les premières.
+  \integer{i=random(1,1,1,2,2)}
+  \text{equation=\ligne[\i]}
+  \text{OKequation=\ligne[\i]}
+}
+
+\css{<style>
+.valignBottom{
+  vertical-align: bottom;
+}
+.alignCenter{
+  text-align: center;
+}
+.monIntro {background-color:#ffffdd; border: 1px black solid;}
+.monIntroTR {background-color:#ffffdd; text-align: center;}
+.width60 {width:60%;}
+.chem {border:1px; background-color:#ffeecc;}
+.chem1 {background-color:#ffeecc;}
+.charge {background-color:#ddffdd;}
+.tt {font-family: monospace;}
+</style>}
+
+\matrix{m=slib(chemistry/chemeq_equilibrium \equation)}
+\matrix{col1=\m[;1]}
+\matrix{m=\m[;2..-1]}
+\integer{c=items(\m[1;])}
+\integer{r=rows(\m)}
+\integer{nel=floor((\r-2)/2)}
+# charge = 1 s'il y a des ions
+\integer{charge=\r-2-2*\nel}
+\integer{fleche=position(%,\m[2;])}
+# g et d sont le nombres d'entités chimiques à gauche et à droite
+# d0 est l'index du premier membre de droite
+\integer{g=\fleche-1}
+\integer{d=\c-\fleche}
+\integer{d0=\fleche+1}
+
+\text{empty=}
+\text{el=}
+\text{arite=}
+\text{total=}
+\text{cumulg=}
+\text{cumuld=}
+\text{ok=}
+\text{nok=}
+\text{equilibre= est équilibrée.}
+\for{i0=3 to \r step 2}{
+  \text{el=\el wims(replace _.* by \empty in \col1[1;\i0]),}
+  \text{arite=\arite \m[\i0;];}
+}
+\for{i01=4 to \r step 2}{
+  \text{total=\total \m[\i01;];}
+  \integer{cg=0}
+  \for{j0=1 to \g}{
+    \integer{cg=\cg+(\m[\i01;\j0])}
+  }
+  \integer{cd=0}
+  \for{j1=\d0 to \c}{
+    \integer{cd=\cd+(\m[\i01;\j1])}
+  }
+  \text{cumulg= \cumulg \cg,}
+  \text{cumuld= \cumuld \cd,}
+  \text{e=wims(replace _.* by \empty in \col1[1;\i01])}
+  \if{\cg=\cd}{
+    \text{ok=\ok oui : c'est équilibré pour \e,}
+  }{
+    \text{ok=\ok non : ce n'est pas équilibré pour \e,}
+    \text{nok=\nok \e,}
+    \text{equilibre=n'est pas équilibrée}
+    # un seul déséquilibre et la réponse sera non
+  }
+}
+\if{\charge=1}{
+  \integer{cg=0}
+  \integer{cd=0}
+  \for{j2=1 to \g}{
+    \integer{cg=\cg+(\m[\r;\j2])}
+  }
+  \for{j3=\d0 to \c}{
+    \integer{cd=\cd+(\m[\r;\j3])}
+  }
+  \text{cumulg= \cumulg \cg,}
+  \text{cumuld= \cumuld \cd,}
+  \if{\cg=\cd}{
+    \text{ok=\ok oui : les charges sont équilibrées.}
+  }{
+    \text{ok=\ok non : les charges ne sont pas équilibrées.}
+    \text{nok=\nok charge,}
+    \text{equilibre=n'est pas équilibrée}
+  }
+}
+\text{nok=\nok[1..-2]}
+\integer{noks=items(\nok)}
+\if{\noks>1}{
+  \text{nok=Car les éléments non équilibrés sont <b>\nok</b>.}
+}
+\if{\noks=1}{
+  \text{nok=Car l'élément <b>\nok</b> n'est pas équilibré.}
+}
+
+\text{rendu=slib(chemistry/chemeq_tex \equation)}
+\text{conclusion=\equilibre=1?est équilibrée.:n'est pas équilibrée.}
+
+\statement{
+
+\warning
+<table class="monIntro"><tr><td>
+ Considérons l'équation de réaction chimique \(\rendu)
+</td></tr></table>
+<hr class="width60">
+<table>
+<!-- L'équation où on insère des + -->
+<tr>
+<th>Équation</th>
+\for{i1=1 to \g}{
+ \if{\i1 > 1}{<td>+</td>}
+ <td>\({}\m[1;\i1]{})</td>
+}
+<td>\(\rightarrow)</td>
+\for{i2=\d0 to \c}{
+ \if{\i2 > \d0}{<td>+</td>}
+ <td>\({}\m[1;\i2]{})</td>
+}
+<td><br></td>
+</tr>
+<!-- Les coefficients stœchiométriques -->
+<tr class="monIntroTR">
+<th>Coefficients stœchiométriques</th>
+\for{i3=1 to \g}{
+ \if{\i3 > 1}{<td>&nbsp;</td>}
+  <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#99aadd;">
+   \m[2;\i3]
+  </td>
+}
+<td>&nbsp;</td>
+\for{i4=\d0 to \c}{
+ \if{\i4 > \d0}{<td>&nbsp;</td>}
+  <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#99aadd;">
+    \m[2;\i4]
+  </td>
+}
+<td> commentaires </td>
+</tr>
+\for{i5=1 to \nel}{
+  <!-- traitement de l'élément \el[\i5] -->
+  <tr>
+    <th>molécularité de l'élément \el[\i5]</th>
+    \for{i6=1 to \g}{
+      \if{\i6>1}{<td>&nbsp;</td>}
+      <td class="alignCenter">\arite[\i5;\i6]</td>
+    }
+    <td>&nbsp;</td>
+    \for{i7=\d0 to \c}{
+      \if{\i7>\d0}{<td>&nbsp;</td>}
+      <td class="alignCenter">\arite[\i5;\i7]</td>
+    }
+    <td><br></td>
+ </tr>
+  <tr style="background:#ffddee;">
+    <th>nombre d'atomes pour \el[\i5]</th>
+    \for{i8=1 to \g}{
+      \if{\i8>1}{<td class="valignBottom">+</td>}
+      <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#aa9988;">
+        <table><tr>
+	  <td class="monIntro" style="border-style:solid; border-width:1px; border-color:#99aadd;">
+	    \m[2;\i8]
+	  </td>
+	  <td>
+	    \times
+	  </td>
+	  <td style="background:white;">
+	    \arite[\i5;\i8]
+	  </td>
+	  <td>
+	    =
+	  </td>
+	</tr></table>
+	\total[\i5;\i8]
+      </td>
+    }
+    <td class="valignBottom">=?</td>
+    \for{i9=\d0 to \c}{
+      \if{\i9>\d0}{<td class="valignBottom">+</td>}
+      <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#aa9988;">
+        <table><tr>
+	  <td class="monIntro" style="border-style:solid; border-width:1px; border-color:#99aadd;">
+	    \m[2;\i9]
+	  </td>
+	  <td>
+	    \times
+	  </td>
+	  <td style="background:white;">
+	    \arite[\i5;\i9]
+	  </td>
+	  <td>
+	    =
+	  </td>
+	</tr></table>
+	\total[\i5;\i9]
+      </td>
+    }
+    <td class="valignBottom">\ok[\i5]</td>
+  </tr>
+}
+\if{\charge=1}{
+<tr style="background:#ddffdd;">
+  <th>bilan des charges électriques</th>
+  \for{i10=1 to \g}{
+    \if{\i10>1}{<td class="valignBottom">+</td>}
+      <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#aa9988;">
+        ( \m[-1;\i10] )
+      </td>
+    }
+    <td class="valignBottom">=?</td>
+    \for{i11=\d0 to \c}{
+      \if{\i11>\d0}{<td class="valignBottom">+</td>}
+      <td class="alignCenter" style="border-style:solid; border-width:1px; border-color:#aa9988;">
+        ( \m[-1;\i11])
+      </td>
+    }
+    <td class="valignBottom">\ok[-1]</td>
+  </tr>
+}
+</table>
+<hr class="width60">
+<table class="monIntro"><tr><td>
+ Conclusion, l'équation \(\rendu) <b>\equilibre</b><br>\nok
+</td></tr></table>
+}

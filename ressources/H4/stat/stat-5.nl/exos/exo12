@@ -1,0 +1,131 @@
+# ordinale variabelen
+n=$counter
+mathview=0
+  #@maxV<sub>cp</sub> &asymp; $rans ... er is dus sprake van een $textans3
+make_tr=1
+embed=0
+ht=!record 82 of lang/remarks.$taal
+#@Let op: je mag je  eindantwoorden opsturen in 1 decimaal nauwkeurig....<br />maar reken zover mogelijk door met onafgronde getallen !!!
+htext=<span style=\'color:red;font-weight:bold\'>$ht</span><br /><img src=$module_dir/gifs/maxp.jpg alt=maxvcp />
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+total_exos=3
+questiontype=0
+checkfile=$checkdir/new_number.proc
+rounding=10
+!readproc $remarkdir/rounding.$taal
+disclaim=!record 64 of lang/remarks.$taal
+#@alles is uit mijn duim gezogen...
+!if $counter=1
+ inputs=-1
+ !for p=1 to 12
+  a=$[$p-1]
+  in$p=<input type="text" id="myinput$a" class="schaersvoorde_input" size="5" />
+ !next p
+ sometext=!record 83 of lang/remarks.$taal
+ #@Heel erg lekker, Goed , Redelijk ,Slecht 
+ dingen=!record 84 of lang/remarks.$taal
+ #@Restaurant I, Cumulatief %<br >restaurant I, Restaurant II, Cumulatief %<br >restaurant II, Verschil %
+ !for p=1 to 5
+  K$p=!item $p of $sometext
+  A$p=!item $p of $dingen
+ !next p
+ 
+ even=0
+ oneven=0
+ !for p=1 to 8
+  !if $[$p%2] = 0
+    g$p=!randint 10,150
+    even=$[$even+$(g$p)]
+  !else
+    g$p=!randint 1,100
+    oneven=$[$oneven+$(g$p)]
+  !endif
+ !next p
+ ans1=$[100*$g1/$oneven]
+ ans2=$[100*$g2/$even]
+ ans3=$[abs($ans1-$ans2)]
+
+ ans4=$[100*($g1+$g3)/$oneven]
+ ans5=$[100*($g2+$g4)/$even]
+ ans6=$[abs($ans5-$ans4)]
+
+ ans7=$[100*($g1+$g3+$g5)/$oneven]
+ ans8=$[100*($g2+$g4+$g6)/$even]
+ ans9=$[abs($ans7-$ans8)]
+ 
+ ans10=$[100*($g1+$g3+$g5+$g7)/$oneven]
+ ans11=$[100*($g2+$g4+$g6+$g8)/$even]
+ ans12=$[abs($ans11-$ans10)]
+ 
+ rans=$empty
+ # bug in moneyprint: wims@zondag:~/src/Misc/moneyprint> ./moneyprint 0 1 --> -0.0 !!!
+ !for p=1 to 11
+  answer$n=!append line $(ans$p) to $(answer$n)
+  ra$p=!exec moneyprint $(ans$p) 1
+ !next p
+ 
+ answer2=0
+ !for p in 3,6,9,12
+  !if $(ans$p) > $answer2
+   answer2=$(ans$p)
+  !endif
+ !next p
+ answer1=!append line $ans12 to $answer1
+ ra12=0
+ exotext=!subst <table class="demospecial"><tr><th>&nbsp;</th><th>$A1</th><th>$A2</th><th>$A3</th><th>$A4</th><th>$A5</th></tr><tr><td>$K1</td><td>$g1</td><td>$in1</td><td>$g2</td><td>$in2</td><td>$in3</td></tr><tr><td>$K2</td><td>$g3</td><td>$in4</td><td>$g4</td><td>$in5</td><td>$in6</td></tr><tr><td>$K3</td><td>$g5</td><td>$in7</td><td>$g6</td><td>$in8</td><td>$in9</td></tr><tr><td>$K4</td><td>$g7</td><td>$in10</td><td>$g8</td><td>$in11</td><td>$in12</td></tr></table>
+ textanswer1=!subst <table class="demospecial"><tr><th>&nbsp;</th><th>$A1</th><th>$A2</th><th>$A3</th><th>$A4</th><th>$A5</th></tr><tr><td>$K1</td><td>$g1</td><td>$ra1</td><td>$g2</td><td>$ra2</td><td>$ra3</td></tr><tr><td>$K2</td><td>$g3</td><td>$ra4</td><td>$g4</td><td>$ra5</td><td>$ra6</td></tr><tr><td>$K3</td><td>$g5</td><td>$ra7</td><td>$g6</td><td>$ra8</td><td>$ra9</td></tr><tr><td>$K4</td><td>$g7</td><td>$ra10</td><td>$g8</td><td>$ra11</td><td>$ra12</td></tr></table>
+
+ ss=!record 85 of lang/remarks.$taal
+ #@Via een enquete worden bezoekers van twee restaurants gevraagd om het eten te beoordelen.<br />Er zijn een viertal kwalitatieve beoordelings kriteria, te weten: <em>$sometext</em> .<br />De uitslag van het onderzoek staat in de onderstaande tabel.<br />Vul de tabel verder in...
+ 
+
+!else
+ !if $counter=2
+  exotext=$textanswer1
+  ss=!record 86 of lang/remarks.$taal
+  #@Geef het maximale verschil in cumulatief percentage. (maxV<sub>cp</sub>)
+  inputs=1.1
+  description=maxV<sub>cp</sub>
+  m_rightarrow= &nbsp;=&nbsp;
+  rr=!record 87 of lang/remarks.$taal
+  #@$answer2 % is het grootste maximale verschil in cumulatief percentage<br />(zie tabel)
+  textanswer$n=$rr
+ 
+ 
+ !else
+  rans=!exec moneyprint $answer2 1
+  dingen=!record 67 of lang/remarks.$taal
+  #@groot verschil,middelmatig verschil,gering verschil
+  ss=!record 88 of lang/remarks.$taal
+  #@Het goede antwoord was maxV<sub>cp</sub> &asymp; $rans .<br />Er is hier sprake van een...
+  inputs=-1
+
+  exotext=!subst <select size="1" id="myselect0" name="myselect0" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select> 
+
+  !if $answer2 > 40
+   answer3=1
+  !else
+   !if $answer2 <=20
+    answer3=3
+   !else
+    answer3=2
+   !endif
+  !endif
+  textans3=$(dingen[$answer3])
+  rr=!record 89 of lang/remarks.$taal
+  #@maxV<sub>cp</sub> &asymp; $rans ... er is dus sprake van een $textans3
+  textanswer3=$rr
+ !endif
+!endif 
+question$n=<a onmouseover="return escape('$htext')">$ss</a>
+helptext=<img src=$module_dir/gifs/stat.gif alt=stat width=80% />
+
+!exit
+
+
+
+

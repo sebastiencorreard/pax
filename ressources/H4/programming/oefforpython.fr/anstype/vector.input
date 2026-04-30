@@ -1,0 +1,39 @@
+!set ans_require=
+!set anstype=yes
+!set anstyle=numeric
+!if $wims_read_parm=def
+  !exit
+!endif
+!if debug iswordof $m_oefenv and ?analyze notin $(replygood$i)
+  !set replydefaulted=yes
+  !if $oef_default=yes
+    !default reply$i=$(replygood$i)
+  !endif
+!endif
+!if $wims_read_parm!=noprompt
+  <tr><td><label for="reply$i">$(replyname$i)</label>&nbsp;=</td><td>
+!endif
+
+!read anstype/inputcss.inc
+
+!if vector_left isin $(replyoption$i) or vector_right isin $(replyoption$i)
+  !set vector_left_=!getopt vector_left_ in $(replyoption$i)
+  !set vector_right_=!getopt vector_right_ in $(replyoption$i)
+!endif
+
+!default vector_left_=(
+!default vector_right=)
+
+
+!bound inputsize between integer 1 and 100 default 30
+$vector_left_
+<input list="emptylist" id="reply$i" size="$inputsize" name="reply$i" value="$(reply$i)" autocapitalize="none" $inputoption>
+$vector_right_
+
+!if symbols isin $(replyoption$i)
+  !read anstype/symbols.inc
+!endif
+!if $wims_read_parm!=noprompt
+  </td></tr>
+!endif
+!reset inputsize inputoption option

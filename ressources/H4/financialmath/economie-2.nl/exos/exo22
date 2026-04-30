@@ -1,0 +1,86 @@
+# Eigenvermogen III
+# 
+n=$counter
+
+#fffff0=#e2ffc8
+!if $counter=1
+    mathview=0
+    !if $total_exos >2
+	total_exos=2
+    !endif
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=10
+    rows=1
+    viewlogo=1
+    var9=!shuffle 1,2,3,4,5,6,7,8,9
+    rounding=100
+    roundingtext=Rond geldbedragen af  op hele &euro; centen [2 decimalen]
+    bedrijf=!randitem Somsen Export BV,Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading 
+    koers1=!randint 3,9
+    koers1=$[$koers1/2]
+    # wpa = winst per aandeel
+    wpa=!randint 5,50
+    wpa=$[$wpa/10]
+    koers3=$[$koers1 + $wpa]
+    koers2=!randint $[10*($koers1+0.1)],$[10*($koers3-0.1)]
+    koers2=$[$koers2/10]
+    tot=!exec moneyprint $koers1,$koers2,$koers3 2
+    koers1=$(tot[1])
+    koers2=$(tot[2])
+    koers3=$(tot[3])
+    aantal1=!randint 200,600
+    # aantal2 = aandelen in poretfeuille
+    perc=!randint 100,300
+    perc=$[$perc/1000]
+    aantal2=$[round($aantal1*$perc)]
+    aantal1=$[100*$aantal1]
+    aantal2=$[100*$aantal2]
+    aandelen1=$[$koers1*$aantal1]
+    aandelen2=$[$koers1*$aantal2]
+    aandelen=$[$aandelen1+$aandelen2]
+    agio=$[$koers3 - $koers1]
+    
+    herwaardering=!randint 80,200
+    herwaardering=$[1000*$herwaardering]
+    winstreserve=!randint 50,100
+    winstreserve=$[1000*$winstreserve]
+    agioreserve=$[($koers2 -$koers1)*$aantal1]
+    obligatielening=!randint 100,300
+    obligatielening=$[1000*$obligatielening]
+    crediteuren=!randint 10,60
+    crediteuren=$[1000*$crediteuren]
+    lijst2=$aandelen,$aandelen2,$aandelen1,$herwaardering,$winstreserve,$agioreserve,$obligatielening,$crediteuren
+    lijst1=Maatschappelijk aandelenvermogen,Aandelen in portefeuille,Geplaatst aandelenvermogen,Herwaarderingsreserve,Winstreserve,Agioreserve,Obligatielening,Crediteuren
+    tabel=<table class=\'balans_2\'><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th>
+    !for p=1 to 8
+	txt=!item $p of $lijst1
+	geld=!item $p of $lijst2
+	tabel=!append word $ <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td>$txt</td><td>&euro; &nbsp; $geld</td></tr> to $tabel
+    !next p
+    tabel=!append word $ </table> $ to $tabel
+    
+    agioreserve2=$[$agioreserve + $aandelen2/$koers1*($koers3 - $koers1)]
+    eigenvermogen=$[$aandelen + $herwaardering + $winstreserve + $agioreserve2] 
+    answer1=$koers2
+    answer2=$[$eigenvermogen/($aantal1 + $aantal2)]
+    ans2=$[(round(100*$answer2))/100]
+    textanswer1=<ul><li>Aantal geplaatste aandelen bedraagt: $aandelen1 &divide; $koers1 = $aantal1 stuks</li><li> Agio per aandeel bedraagt dan : &euro; $agioreserve &divide; $aantal1 = &euro; $[$koers2-$koers1]</li><li>Dus de emissiekoers bedroeg : &euro; $koers1 +  &euro;$[$koers2-$koers1] = &euro; $answer1</li></ul>
+    textanswer2=<ul><li>Geplaats aandelenvermogen wordt : &euro; $aandelen </li><li>Agioreserve wordt: $agioreserve + $aandelen2/$koers1 &times;($koers3 &minus; $koers1)  = $agioreserve + $[$aandelen2/$koers1] &times;$[($koers3 - $koers1)] = &euro; $agioreserve2</li><li>Eigenvermogen : $aandelen + $herwaardering + $winstreserve + $agioreserve2 = &euro; $eigenvermogen</li><li>Aantal aandelen is nu : $aandelen &divide; $koers1 = $[$aantal1 + $aantal2] stuks</li><li>De intrinsieke waarde per aandeel na de emissie : $eigenvermogen &divide; $[$aantal1 + $aantal2] = $answer2 &asymp; &euro; $ans2</li></ul>
+    
+    som=Gegeven in <span class="schaersvoorde_link">dit gedeelte van een balans</span> van de onderneming $bedrijf<br />De nominale waarde van een aandeel bedraagt &euro; $koers1.<br />De agioreserve is in zijn geheel tot stand gekomen tijdens de emissie van de aandelen,<br />wat tot op heden &eacute;&eacute;n keer is gebeurd.
+    question1=<a onmouseover="return escape('$tabel')">$som<hr />Bereken de emissiekoers waartegen de aandelen destijds zijn geplaatst.</a>
+    question2=<a onmouseover="return escape('$tabel')">$som <br />De resterende aandelen in portefeuille worden geplaatst tegen een koers van &euro; $koers3 <hr />Bereken de intrinsieke waarde per aandeel na de emissie.</a>
+    var6=Emissiekoers,Intrinsieke waarde
+!endif
+ex1=&euro;
+description=$(var6[$counter])
+inputs=1.1
+nm=!item $counter of $var9
+logo=<img src="$module_dir/gifs/aandeel_klein.jpg" alt="noalt" />
+logotext=<img src=\'$module_dir/gifs/aandeel$nm.jpg\' alt=\'noalt\' />
+!if $n>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif
+
+!exit

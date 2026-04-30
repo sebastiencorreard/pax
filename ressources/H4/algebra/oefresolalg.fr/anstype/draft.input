@@ -1,0 +1,27 @@
+!set anstype=yes
+!set anstyle=numeric
+!if $wims_read_parm=def
+ !exit
+!endif
+!if debug iswordof $m_oefenv and ?analyze notin $(replygood$i)
+ !set replydefaulted=yes
+ !if $oef_default=yes
+  !set r_=!rawmatrix $(replygood$i)
+  !default reply$i=!rows2lines $r_
+ !endif
+!endif
+!if $wims_read_parm!=noprompt
+ <tr><td>$(replyname$i)&nbsp;=&nbsp;$m_leftpar4</td>
+!endif
+
+!set inputsize=!translate x to , in $inputsize
+!set inputsize=!items2words $inputsize
+!distribute words $inputsize into sizer,sizec
+!bound sizer between integer 1 and 15 default 5
+!bound sizec between integer 1 and 100 default 25
+
+<textarea name="reply$i" rows="$sizer" cols="$sizec"
+class="nowrap">$(reply$i)</textarea>
+!if $wims_read_parm!=noprompt
+ <td>$m_rightpar4
+!endif

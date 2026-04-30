@@ -1,0 +1,46 @@
+n=$counter
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+
+!for p=1 to 2
+    g$p=!item $p of $(answer$n)
+    a$p=!item $p of $(reply$n)
+    !if NaN isin $[1.0*$(a$p)]
+	testvar=$(a$p)
+        errortext=!record 55 of $remarkdir/commonremarks.$taal
+        maxscore=$[$P8*$maxscore]
+        goback=1
+        !exit
+    !endif
+!next p
+
+score=0
+
+chk=$[($g1)*($a1) + ($g2)*($a2)]
+!ifval $chk = 0
+    score=1
+!endif
+
+math=0
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK
+        k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+reply$n=!mathmlmath \color{$k} \begin{pmatrix} $a1 \\ $a2 \end{pmatrix} 
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

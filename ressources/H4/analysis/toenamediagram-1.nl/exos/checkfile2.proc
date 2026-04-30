@@ -1,0 +1,191 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+reply$n=!nospace $(reply$n)
+# tot=totalobject_count + ',' + \
+#    point_count + ',' + \
+#    circle_count + ',' + \
+#    line_count + ',' + \
+#    segment_count + ',' + \
+#    polygon_count + ',' + \
+#    conic_count + ',' + \
+#    ellipse_count + ',' + \
+#    hyperbola_count + ',' + \
+#    angle_count + ',' + \
+# GEOGEBRA: lijn  =>  line @ name @ slope @ constant
+# GEOGEBRA: lijn  =>  line @ name @ perp @ x=number
+# GEOGEBRA: point  => point@ name @ x @ y
+extra=$empty
+tt=!itemcnt $(reply$n)
+tot=!item 1 of $(reply$n)
+
+!if $tot=0
+    errortext=!record 10 of lang/remarks.$taal
+    #@ Je hebt geen tekening gemaakt<br />Als je't niet weet kun je ook gewoon op de knop "ik weet het niet" ofzo klikken...
+    maxscore=$[$maxscore*$P3]
+    goback=1
+    !exit
+!endif
+!if $tot > $[$points + 15]
+    errortext=!record 11 of lang/remarks.$taal
+    #@ Deze "tekening" ga ik echt niet nakijken...<br />Klik jij maar op de "ik zou het niet weten" knop.
+    maxscore=$[$maxscore*$P5]
+    goback=1
+    !exit
+!endif
+
+point_count=!item 2 of $(reply$n)
+
+test=$[gcd($point_count,2)]
+!if $test=1
+    # oneven: nodig voor een segment met nul-lengte en dus maar 1 punt ipv 2
+    point_count=$[$point_count+1]
+!endif
+
+!if $point_count < 2
+    errortext=!record 15 of lang/remarks.$taal
+    #@ Je hebt geen lijn of lijnstukken getekend.
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+
+total=!itemcnt $(answer$n)
+X=$empty
+Y=$empty
+!for p=1 to $[$total-1] step 2
+    q=$[$p+1]
+    x=!item $p of $(answer$n)
+    y=!item $q of $(answer$n)
+    X=!append item $x to $X
+    Y=!append item $y to $Y
+!next p
+
+#answer$n = x,y,x,y,x,y => X=x,x,x  Y=y,y,y
+total=$[$total/2]
+
+# alleen voor een rechte lijn als tekening
+# eerte (x:y) punt en laatste (x:y) in't goede antwoord
+# als deze punten worden gebruikt is't inorde
+x1=!item 1 of $X
+x2=!item -1 of $X
+y1=!item 1 of $Y
+y2=!item -1 of $Y
+# trick ...for nonexisting "zero lenght segment"
+score=1
+has_end=0
+has_error=0
+reply=$empty
+ansx=$empty
+ansy=$empty
+!for p=1 to $tt
+    AAA=!item $p of $(reply$n)
+    !if point isin $AAA
+	hit=0
+	# point@A@x@y -> point,A,x,y
+	AAA=!replace internal @ by , in $AAA
+	x=!item 3 of $AAA
+	y=!item 4 of $AAA
+	x=$[(round(10*($x)))/10]
+	y=$[(round(10*($y)))/10]
+	ansx=!append item $x to $ansx
+	ansy=!append item $y to $ansy
+	!if $var1=1
+	    # speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+	    !ifval ($x=$x1 and $y=$y1) or ($x=$x2 and $y=$y2)
+		!increase has_end
+	    !endif	
+	!endif
+	!for s=1 to $total
+	    !if $hit=0
+		xg=!item $s of $X
+		yg=!item $s of $Y
+		!ifval $x=$xg and $y=$yg
+		    hit=1
+		    !increase score
+		    reply=!append item <span style="color:green">($x:$y) to $reply
+		!endif
+	    !endif
+	!next s
+	!if $hit=0
+	    !increase has_error
+	    reply=!append item <span style="color:red;text-decoration:line-through">($x:$y)</span> to $reply 
+	!endif
+    !endif
+!next p
+
+rep=$empty
+!for p=1 to $[$point_count-1] step 2
+    r=$[$p+1]
+    rep1=!item $p of $reply
+    rep2=!item $r of $reply
+    y1=!item $p of $ansy
+    y2=!item $r of $ansy
+    #x1=!item $p of $ansx
+    #x2=!item $r of $ansx
+    #dx=$[$x2-$x1]
+    dy=$[$y2-$y1]    
+    rep=!append word $ <tr><td>$rep1 -- $rep2</td><td>$m_Delta y=$dy</td></tr> $ to $rep
+!next p
+reply$n=<table>$rep</table>
+
+!if $var1=0
+    maxscore=$[$maxscore*$score/$total]
+!else
+    # speciale geval van  de rechte lijn als antwoord: 2 punten zijn genoeg
+    !if $has_end=2 and $has_error=0
+	maxscore=1
+	ex=!record 9 of lang/remarks.$taal
+	#@ heel goed gezien !
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+    !else
+	!if $has_end=2 and $has_error>0
+	    ex=!record 16 of lang/remarks.$taal
+	    #@ Je hebt natuurlijk wel gelijk: <br />twee buitenste punten zijn genoeg om het lijnstuk te beschrijven.<br />Maar wat was al die andere "gekritsel" ?
+	    !if $extra=$empty
+		extra=$ex
+	    !else
+		extra=$extra<br />$ex
+	    !endif
+	!endif
+	maxscore=$[$maxscore*$score/$total]
+    !endif
+!endif
+# correctie...
+!if $maxscore >= 1
+    maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore>0.8
+#	!if $try=0
+#	    #dus de som niet terug/...de lage maxscore komt dus door fouten in de tekening
+#	    maxscore=0.3
+#	    remark$n=$NOK
+#	!else
+	    # handhaven deze score....de maxscore wordt veroorzaakt retourneren van de som
+	    remark$n=$BOK
+#	!endif
+    !else
+	remark$n=$NOK
+	maxscore=0
+    !endif
+!endif    
+
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit

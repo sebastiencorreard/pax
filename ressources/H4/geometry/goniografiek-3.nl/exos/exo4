@@ -1,0 +1,254 @@
+# snijpunten met de evenwichtslijn [applet in onmouseover]
+# exo4 zonder applet
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+sometxt=!record 1 of lang/remarks.$taal
+#@balanslijn,x-as,y-as,Gegeven de functie:,Bepaal de co\"{o}rdinaten van de aangegeven , snijpunten met de evenwichtslijn,bereken
+ss=!record 2 of lang/remarks.$taal
+#!Gegeven de onderstaande goniometrische functie.<br />Bepaal de co&ouml;rdinaten van de <span style="color:blue">hier aangegeven snijpunten</span> met de evenwichtslijn
+extext=!record 8 of lang/remarks.$taal
+#@Typ voor &pi; <br />het woord <span style="color:blue">pi</span>.
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+txt1=!item 4 of $sometxt
+txt2=!item 5 of $sometxt
+txt3=!item 6 of $sometxt
+bereken=!item 7 of $sometxt
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=1
+cols=20
+rows=2
+checkfile=exos/precheck.proc
+#$checkdir/coord.proc
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+tekst=!record 29 of lang/remarks.$taal
+#tekst=amplitude is,periode is,snijpunten met de evenwichtslijn,de verschuiving 
+amplitude=!item 1 of $tekst
+periode=!item 2 of $tekst
+snijpunten=!item 3 of $tekst
+verschuiving=!item 4 of $tekst
+!if $R=1
+    c=!randitem 1,2,3,4,1/2,1/4,1/3
+    tot1=!exec pari A=2/($c)\
+     printtex($c)\
+     printtex(A)
+     
+    pp=!line 1 of $tot1
+    pp_tex=!line 3 of $tot1
+    c_tex=!line 2 of $tot1
+    p=$pp*AA
+    p=!replace AA by pi in $p
+    a=!randitem -4,-3,-2,-1,1,2,3,4
+    b=!randint 1,5
+    !if $keuze=1
+	x1=0
+	xx1=0
+	xx2=!exec pari $pp/2
+	x2=$xx2*pi
+	f=$a $mp $b*sin($c*x)
+	!if $c=1
+	    arg=$a $mp $b \cdot \sin(x)
+	!else
+	    arg=$a $mp $b \cdot \sin($c_tex x)
+	!endif
+	!if $mp=+
+    	  tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi  & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	!else
+          tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	!endif
+    !else
+	tot=!exec pari A=$pp/4\
+	A+$pp/2
+	xx1=!line 1 of $tot
+	xx2=!line 2 of $tot
+	x1=$xx1*pi
+	x2=$xx2*pi
+	f=$a $mp $b*cos($c*x)
+	!if $c=1
+	    arg=$a $mp $b \cdot \cos(x)
+	!else
+	    arg=$a $mp $b \cdot \cos($c_tex x)
+	!endif
+	!if $mp=+
+          tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi  & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $[$a+$b] & $a & $[$a-$b] & $a & $[$a+$b] \end{array}
+	!else
+          tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	!endif
+    !endif
+    
+    functie=$letter(x)=$arg
+    f=!nospace $f
+    formula$n=\left[ \begin{array}{l} \textrm{$txt1} \\ \\  $functie \\ \\ \textrm{$txt2} \\ \textrm{$txt3} \end{array} \right.
+    texanswer$n=\left[ \begin{array}{l} \textrm{$evenwichtslijn : } y = $a \\ \textrm{$amplitude : } \, $b \\ \textrm{$periode : } \frac{2\pi}{$c_tex}=$pp_tex \pi  \\ \textrm{$bereken } \,\,  $arg = $a \\ \\ $tabel \\ \\ \\ \textrm{$snijpunten : } \, \left($xx1 \pi : $a \right) \, \left($xx2 \pi: $a \right)  \end{array} \right.
+!else
+    c=!randitem 1,1/2,1/4,1/6,1/8,2/3,2/5,2/7,2/9,2,3,4,5
+    tot1=!exec pari A=2/($c)\
+     printtex($c)\
+     printtex(A)
+     
+    pp=!line 1 of $tot1
+    pp_tex=!line 3 of $tot1
+    c_tex=!line 2 of $tot1
+    p=$pp*AA
+    p=!replace AA by pi in $p
+    pround=$[round($p/2)]
+    a=!randitem -4,-3,-2,-1,1,2,3,4
+    b=!randint 1,5
+    x=!randint 0,$pround
+    tot=!exec pari A=$x/2\
+     $pp/2\
+     $pp/4\
+     3*$pp/4\
+     printtex(A)
+    x=!line 1 of $tot
+    x_tex=!line 5 of $tot 
+    tot2=!exec pari A=($c*$x)\
+	printtex(A)
+    d=!line 1 of $tot2
+    d_tex=!line 2 of $tot2
+
+    !if $keuze=1
+	xx1=$x
+	xx2=!line 2 of $tot
+	x1=$x
+	x2=$xx1+$xx2*pi
+	!if $d=0
+	    #$d=0*pi
+	    f=$a $pm $b*sin($c*x)
+	    !if $c=1
+		arg=$a $pm $b \cdot \sin(x)
+		arg1=
+	    !else
+		arg=$a $pm $b \cdot \sin\left($c_tex x\right)
+		arg1=
+	    !endif
+	    !if $mp=+
+    	      tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi  & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	    !else
+              tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	    !endif
+	!else
+	    f=$a $pm $b*sin($c*x - $d)
+	    !if $c=1
+		arg=$a $pm $b \cdot \sin\left(x - $d_tex \right)
+		arg1=\sin\left(x - $d_tex \right) \rightarrow \textrm{$verschuiving : }\, \, $d_tex
+		ver=$d_tex
+	    !else
+		arg=$a $pm $b \cdot \sin\left($c_tex x - $d_tex\right)
+		arg1=\sin\left($c_tex x - $d_tex\right)=\sin\left($c_tex \left(x - $x_tex \right) \right) \rightarrow \textrm{$verschuiving : }\, \, $x_tex
+		ver=$x_tex
+	    !endif
+	    !if $mp=+
+    	      tabel=\begin{array}{c|c|c|c|c|c-.} x & $ver & $ver + \frac{1}{4} \cdot $pp_tex \pi  & $ver + \frac{2}{4} \cdot $pp_tex \pi & $ver + \frac{3}{4} \cdot $pp_tex \pi  & $ver + $pp_tex \pi \\  y & $a & $[$a+$b] & $a & $[$a-$b] & $a \end{array}
+	    !else
+              tabel=\begin{array}{c|c|c|c|c|c-.} x & $ver & $ver + \frac{1}{4} \cdot $pp_tex \pi & $ver + \frac{2}{4} \cdot $pp_tex \pi & $ver + \frac{3}{4} \cdot $pp_tex \pi  & $ver + $pp_tex \pi \\  y & $a & $[$a-$b] & $a & $[$a+$b] & $a \end{array}
+	    !endif
+	!endif
+	texanswer$n=\left[ \begin{array}{l} \textrm{$evenwichtslijn } y = $a \\ \textrm{$amplitude : } \,\, $b \\ \textrm{$periode :} \frac{2\pi}{$c_tex}=$pp_tex \pi \\ $arg1 \\  \\ $tabel \\  \\ \textrm{$snijpunten : } \,\, \left($x : $a \right) \,\,  \left($x + $xx2 \pi : $a \right)  \end{array} \right.
+    !else
+	x=!line 1 of $tot
+	xx1=!line 3 of $tot
+	xx2=!line 4 of $tot
+	x1=$x+$xx1*pi
+	x2=$x+$xx2*pi
+	!if $d=0
+	    #$e=0*pi
+	    f=$a $pm $b*cos($c*x)
+	    !if $c=1
+		arg=$a $pm $b \cdot \cos(x)
+		arg1=
+	    !else
+		arg=$a $pm $b \cdot \cos\left($c_tex x\right)
+		arg1=
+	    !endif
+	    !if $pm=+
+              tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi  & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $[$a+$b] & $a & $[$a-$b] & $a & $[$a+$b] \end{array}
+	    !else
+              tabel=\begin{array}{c|c|c|c|c|c-.} x & 0 & \frac{1}{4} \cdot $pp_tex \pi & \frac{2}{4} \cdot $pp_tex \pi & \frac{3}{4} \cdot $pp_tex \pi  & $pp_tex \pi \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	    !endif
+	!else
+	    !if $c=1
+	      f=$a $pm $b*cos(x - $d)
+	      arg=$a $pm $b \cdot \cos\left(x - $d_tex\right)
+	      arg1=\cos\left(x - $d_tex\right) \rightarrow \textrm{$verschuiving : }\, \, $d_tex
+	      ver=$d_tex
+	    !else
+	      f=$a $pm $b*cos($c*x - $d)
+	      arg=$a $pm $b \cdot \cos\left($c_tex x - $d_tex\right)
+	      arg1=\cos\left($c_tex x - $d_tex\right)=\cos\left($c_tex \left(x - $x_tex \right) \right) \rightarrow \textrm{$verschuiving : }\, \, $x_tex
+	      ver=$x_tex
+	    !endif
+	    !if $pm=+
+    	      tabel=\begin{array}{c|c|c|c|c|c-.} x & $ver & $ver + \frac{1}{4} \cdot $pp_tex \pi  & $ver + \frac{2}{4} \cdot $pp_tex \pi & $ver + \frac{3}{4} \cdot $pp_tex \pi  & $ver + $pp_tex \pi \\  y & $[$a+$b] & $a & $[$a-$b] & $a  & $[$a+$b] \end{array}
+	    !else
+              tabel=\begin{array}{c|c|c|c|c|c-.} x & $ver & $ver + \frac{1}{4} \cdot $pp_tex \pi & $ver + \frac{2}{4} \cdot $pp_tex \pi & $ver + \frac{3}{4} \cdot $pp_tex \pi  & $ver + $pp_tex \pi \\  y & $[$a-$b] & $a & $[$a+$b] & $a & $[$a-$b] \end{array}
+	    !endif
+	!endif
+	texanswer$n=\left[ \begin{array}{l} \textrm{$evenwichtslijn } y = $a \\ \textrm{$amplitude : } \,\, $b \\ \textrm{$periode :} \frac{2\pi}{$c_tex}=$pp_tex \pi \\ $arg1 \\ $tabel \\ \textrm{$snijpunten : }  \left($x+$xx1 \pi : $a \right) \,\, \left($x+ $xx2 \pi: $a \right)  \end{array} \right.
+    !endif
+functie=$letter(x)=$arg
+f=!nospace $f
+formula$n=\left[ \begin{array}{l} \textrm{$txt1} \\ \\  $functie \\ \\ \textrm{$txt2} \\ \textrm{$txt3} \end{array} \right.
+!endif
+
+
+#functie=$letter(x)=$arg
+#f=!nospace $f
+answer$n=$x1,$a,$x2,$a
+#formula$n=\left[ \begin{array}{l} \textrm{$txt1} \\ \\  $functie \\ \\ \textrm{$txt2} \\ \textrm{$txt3} \end{array} \right.
+#appletsize
+xsize=400
+ysize=320
+ymax=10
+ymin=-10
+xmin=$[-1*pi]
+xmax=$[$x2+pi]
+helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\' readonly=\'readonly\'> (pi/2:-sqrt(2)) \n (pi:-sqrt(2))</textarea>
+
+mathml=!mathmlmath $functie
+kliktxt=!record 27 of lang/remarks.$taal
+
+data=size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 205,215\
+bgcolor $wims_bgcolor\
+axis\
+grid pi,2,gold,2,2,8,grey\
+linewidth 2\
+dashtype 6,6\
+dashed\
+hline 0,$a,darkred\
+curve red,$f\
+linewidth 6\
+point $[$x1],$a,green\
+point $[$x2],$a,green\
+precision 10\
+mouse red,24\
+zoom grey\
+mathml $[$xmax/3],$ymax,$xmax,$ymin,$mathml\
+intooltip <span style='color:blue;'>$kliktxt</span>
+
+plaatje=!exec canvasdraw $data
+
+question$n=$ss<br />$plaatje
+
+
+

@@ -1,0 +1,156 @@
+!set title=Moyenne - valeur manquante
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=mean
+precision=1000
+oefcss=<style type="text/css"> td.cel{width: 14%;}</style>
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 12
+
+val6=$[rint($(tmp0))]
+val7=
+val8=0
+!for val9 =1 to $val6 
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!append item $val10 to $val7
+
+val7=$(tmp0)
+!next
+tmp0=!replace internal , by  \(\,\,) in $val7
+
+val7=$(tmp0)
+tmp0=!randint 0, 6
+
+val11=$(tmp0)
+tmp0=!randint 2, 8
+
+val12=$(tmp0)
+!for val9 =2 to 4 
+tmp0=!randint 1, 10
+
+val13=$[rint($(val11[$val9-1])+$(tmp0))]
+tmp0=!randint 2, 12
+
+val14=$[rint($(tmp0))]
+tmp0=!append item $val13 to $val11
+
+val11=$(tmp0)
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+!next
+!readproc slib/stat/sum [$val11;$val12] 
+tmp0=$slib_out
+val15=$[rint($(tmp0) )]
+!readproc slib/stat/sum [$val12] 
+tmp0=$slib_out
+val16=$[rint($(tmp0) )]
+t_=!rawmath $val15/$val16
+val15=!exec pari print($t_)
+t_=!rawmath $(val11[1])*$(val12[1])+$(val11[2])*$(val12[2])+$(val11[3])*$(val12[3])
+val17=!exec pari print($t_)
+t_=!rawmath $val16*$val15
+val18=!exec pari print($t_)
+t_=!rawmath $val18-$val17
+val19=!exec pari print($t_)
+replytype1=formal
+replyname1=\(x)
+replygood1=$(val11[4])
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On donne la série suivante :	<div class="wims_scrollable">	<table class="wimscenter wimsborder" ><tbody>	<tr><th>Valeurs</th>	<td class="cel">$(val11[1])</td>	<td class="cel">$(val11[2])</td>	<td class="cel">$(val11[3])</td>	<td class="cel">
+!insmath x
+$()</td>	</tr>	<tr><th>Effectifs</th>	<td class="cel">$(val12[1])</td>	<td class="cel">$(val12[2])</td>	<td class="cel">$(val12[3])</td>	<td class="cel">$(val12[4])</td>	</tr>	</tbody></table></div>	<div class="wims_question">Trouver la valeur de 
+!insmath x
+$() pour que la série ci-dessus	ait une moyenne égale à 
+!insmath $val15
+$().	<div class="wimscenter"><label for "reply1">
+!insmath x
+$()</label>= 
+!read oef/embed.phtml r1,8 
+$()</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>Sachant le calcul à produire pour la moyenne, il faut résoudre :	
+!insmath ($(val11[1])*$(val12[1])+$(val11[2])*$(val12[2])+$(val11[3])*$(val12[3])+x*$(val12[4]))/($(val12[1])+$(val12[2])+$(val12[3])+$(val12[4]))=$val15
+$().</p>	<p>
+!insmath ($(val11[1])*$(val12[1])+$(val11[2])*$(val12[2])+$(val11[3])*$(val12[3])+x*$(val12[4]))/($(val12[1])+$(val12[2])+$(val12[3])+$(val12[4]))=$val15
+$()	<br>&hArr; 
+!insmath ($(val11[1])*$(val12[1])+$(val11[2])*$(val12[2])+$(val11[3])*$(val12[3])+x*$(val12[4]))/($val16)=$val15
+$()	<br>&hArr; 
+!insmath ($val17+$(val12[4])x)/$val16=$val15
+$()	<br>&hArr; 
+!insmath $val17+$(val12[4])x=$val15*$val16
+$()	<br>&hArr; 
+!insmath $val17+$(val12[4])x=$val18
+$()	<br>&hArr;  
+!insmath $(val12[4])x=$val19
+$()	<br>&hArr; 
+!insmath x=$(val11[4])
+$().</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,15,16,17,18,19
+embedcnt=1

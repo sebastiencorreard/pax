@@ -1,0 +1,152 @@
+# trying to compare the chemical names. very expensive and not very good
+# maybe the "symtext" is a solution to this ?
+ 
+extra1=$empty
+n=$counter
+score1=0
+ca=!lower $my_name
+sa=!lower $your_name
+
+ca=!nospace $ca
+sa=!nospace $sa
+
+ca=!deaccent $ca
+sa=!deaccent $sa
+
+ca=!replace internal ph by f in $ca
+sa=!replace internal ph by f in $sa
+
+# heptyn -> heptyne
+ca=!replace internal tyn by tyne in $ca
+sa=!replace internal tyn by tyne in $sa
+# hepteen -> heptene
+ca=!replace internal een by ene in $ca
+sa=!replace internal een by ene in $sa
+# heptaan -> heptane
+ca=!replace internal aan by ane in $ca
+sa=!replace internal aan by ane in $sa
+# zuur -> acid
+ca=!replace internal zuur by acid in $ca
+sa=!replace internal zuur by acid in $sa
+
+# acide -> acid
+ca=!replace internal acide by acid in $ca
+sa=!replace internal acide by acid in $sa
+
+score1=0
+
+!if $ca=$sa
+    score1=1
+    k1=green
+    extra1=!record 61 of lang/remarks.$taal
+    #@ heel goed, de exacte systematische naam !!
+!else
+    # check for n-butanol -> 1-butanol
+    t1=!char 1 of $sa
+    t2=!char 2 of $sa
+    !if $t1=n and $t2=-
+	sa=!char 3 to -1 of $sa
+	sa=1-$sa
+    !endif
+    ca=!replace [-()\+\=\@\"\'\<\>\/\\/] by $empty in $ca 
+    sa=!replace [-()\+\=\@\"\'\<\>\/\\/] by $empty in $sa
+    
+    !if $ca=$sa
+	score1=$P1
+	k1=green
+	extra1=!record 62 of lang/remarks.$taal
+	#@  Hmmm, je mist wat punctuatie in de chemische naam
+    !else
+	ca=!replace internal , by @,@ in $ca
+	sa=!replace internal , by @,@ in $sa
+	# is this enough... or should we goto to 20? tetradeca -> 410 ...
+	numbers=mono,di,tri,tetra,penta,hexa,hepta,octa,nona,deca,undeca,dodeca
+	getallen=1,2,3,4,5,6,7,8,9,10,11,12
+	!for p=1 to 12
+	    nm=!item $p of $numbers
+	    mm=!item $p of $getallen
+	    ca=!replace internal $nm by $mm, in $ca
+	    sa=!replace internal $nm by $mm, in $sa
+	!next p
+	!if $ca=$sa
+	    score1=$P3
+	    k1=orange
+	    extra1=!record 63 of lang/remarks.$taal
+	    #@Nee, we gebruiken potjes latijn voor de uitgangen:<br />$numbers
+	!else
+	    numbers=i,ii,iii,iv,v,vi,vii,viii,ix,x
+	    !for p=1 to 10
+		nm=!item $p of $numbers
+		ca=!replace internal $nm by $p in $ca
+		sa=!replace internal $nm by $p in $sa
+	    !next p
+	    !if $ca=$sa
+		score1=$P4
+		extra1=!record 64 of lang/remarks.$taal
+		# je moet beter op de nummers letten (IV of 4)
+		k1=orange
+	    !else
+		test_a=!replace [0-9\,\.] by $empty in $ca
+		test_s=!replace [0-9\,\.] by $empty in $cs
+		!if $test_a = $test_s
+		    basescore=1
+		!else
+		    a=!charcnt $ca
+		    b=!charcnt $sa
+		    !if $a > $b
+			basescore=$[$b/$a]
+		    !else
+			basescore=$[$a/$b]
+		    !endif
+		!endif
+		!for p=1 to 10
+		    ca=!replace internal $p by $p, in $ca
+		    sa=!replace internal $p by $p, in $sa
+		    ca=!replace internal ,, by , in $ca
+		    sa=!replace internal ,, by , in $sa
+		!next p
+		st=!itemcnt $sa
+		ct=!itemcnt $ca
+		!if $ct=0 or $st=0
+		    score1=0
+		!else
+		    ss=0
+		    !for p=1 to $ct
+	    		c=!item $p of $ca
+			found=0
+			!for f=1 to $st
+			    s=!item $f of $sa
+			    !if $s != $empty and $found=0
+		    		!if $c isin $s
+				    !increase ss
+				    found=1
+				    f=$st
+				!endif
+			    !endif
+			!next f
+		    !next p
+		    !if $ss=0
+			score1=0
+		    !else
+			!if $st > $ct
+			    ff=$[$ct/$st]
+			!else
+			    ff=$[$st/$ct]
+			!endif
+			score1=$[$basescore*$ff*$ss/$ct]
+			!if $score1<0.2
+			    score1=0
+			    k1=red
+			!else
+			    k1=orange
+			    extra1=!record 65 of lang/remarks.$taal
+			    #@Heeel erg slordig met je systematische naam !!
+			!endif
+		    !endif
+		!endif	
+	    !endif
+	!endif
+    !endif
+!endif
+
+!exit

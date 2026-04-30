@@ -1,0 +1,154 @@
+!set title=Solution d'une équation 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+precision=100
+
+ansorder=r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val7=$[rint($val6+$(tmp0))]
+val8=+,-
+tmp0=!randitem 1,2
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val10=$[rint($(tmp0))]
+
+!ifval $val9=2
+val11=-
+!endif
+
+!ifval $val10=2
+val12=-
+!endif
+val13=$[rint($val9*$val10)]
+
+!ifval $val13=2
+val14=-
+!endif
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val16=$[rint($val11 $val6+$val15)]
+tmp0=!randint 2, 8
+
+tmp1=!randitem 1,-1
+
+val17=$[rint($(tmp0)*$(tmp1))]
+val18=$[rint(-($val12 $val7)+$val17)]
+tmp0=!texmath $val15*x +$val17
+
+tmp1=!texmath $val16*x+$val18
+
+val19=$(tmp0)=$(tmp1)
+val20=\($val14\frac{$val7}{$val6}\)
+val21=\($val14\frac{$val6}{$val7}\)
+val22=$[rint($val12 $val7 - $val11 $val6)]
+val23=$val22
+val24=$val20,$val21,$val23
+tmp0=!shuffle 3
+
+val25=$(tmp0)
+tmp0=!positionof item 1 in $val25
+
+val26=$[rint($(tmp0))]
+!if $val26=1 
+val27=1,2,2
+!else
+!if $val26=2 
+val27=2,1,2
+!else
+val27=2,2,1
+!endif
+!endif
+replytype1=radio
+replyname1=$(val24[1])
+replygood1=$(val27[1]);Oui,Non
+replytype2=radio
+replyname2=$(val24[2])
+replygood2=$(val27[2]);Oui,Non
+replytype3=radio
+replyname3=$(val24[3])
+replygood3=$(val27[3]);Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Dire si les valeurs suivantes sont solutions de l'équation <span class="nowrap">
+!insmath $val19
+$().</span>	<ul>	<li>$(val24[$(val25[1])]) est solution:  
+!read oef/embed.phtml reply1 
+$()</li>	<li>$(val24[$(val25[2])]) est solution:  
+!read oef/embed.phtml reply2 
+$()</li>	<li>$(val24[$(val25[3])]) est solution:  
+!read oef/embed.phtml reply3 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,24,25
+embedcnt=3

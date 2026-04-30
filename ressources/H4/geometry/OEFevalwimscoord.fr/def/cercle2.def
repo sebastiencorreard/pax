@@ -1,0 +1,174 @@
+!set title=Cercle 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+keywords=circle, coordinates
+
+ansorder=r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,D,E,F,G,H,K,L,M,N,P
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+tmp0=!values v,-v for v=1 to 10
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+val11=$[rint($(val10[1]))]
+val12=$[rint($(val10[2]))]
+val13=$[rint($(val10[3]))]
+val14=$[rint($(val10[4]))]
+val15=$[($val11+$val13)/2]
+val16=$[($val12+$val14)/2]
+val17=Les coordonnées de \($val7) sont ($val11 ; $val12) et celles de \($val9) sont ($val15 ; $val16).	 <p>Quelles sont les coordonnées du point \($val8)&nbsp;
+val18=les coordonnées du point \($val8) sont
+val19=$[$val13]
+val20=$[$val14]
+!if $val2=2 
+val21=[\left( reply1 ; reply2 \right)]
+!else
+val21=[\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}]
+!endif
+!readproc oef/draw.phtml 200,200 \
+xrange -100,100	yrange -100,100	circle 0,0,128,black	text blue,-75,0,medium , $val7	text blue,70,0,medium , $val8	crosshair 64,0,blue	text red,0,20,medium , $val9	crosshair 0,0,red	crosshair -64,0,blue	segment -64,0,64,0,blue	segment -36,-8,-34,8,blue	segment -33,-8,-31,8,blue	segment 36,8,34,-8,blue	segment 33,8,31,-8,blue	 
+tmp0=$ins_url
+val22=$(tmp0)
+val23=<img src="$val22" alt="représentation graphique" style="float:right;margin-top:-0.5em">
+val24=Il est souvent très utile de faire une figure codée.
+
+!ifval $val13<0
+val25=($val13)
+!else
+val25=$val13
+!endif
+
+!ifval $val14<0
+val26=($val14)
+!else
+val26=$val14
+!endif
+replytype1=numexp
+replyname1=Abscisse
+replygood1=$val19
+replytype2=numexp
+replyname2=Ordonnée
+replygood2=$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Le plan est muni d'un repère orthonormé 
+!insmath (O,I,J)
+$() et	
+!insmath \mathcal{C}
+$() est un cercle de centre 
+!insmath $val9
+$() et de diamètre 
+!insmath [ $val7 $val8 ]
+$().	$val17?</p>	<div class="spacer">	  <b>Votre réponse</b> :	$val18	<div class="wimscenter">	 
+!read oef/special.phtml mathmlinput $val21,5,noanswer	reply1,,color:blue;text-align:center;	reply2,,color:blue;text-align:center;	 
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val23	<p> <b>On sait que </b>:	dans le plan muni d'un repère, pour deux points 
+!insmath A(x_A;y_A)
+$()	et 
+!insmath B(x_B;y_B)
+$() les coordonnées du milieu du segment 
+!insmath [ A\,B ]
+$() se calculent	avec la formule suivante :</p>	<div class="wimscenter">	(
+!insmath \frac{x_A+x_B}{2}
+$() ; 
+!insmath \frac{y_A+y_B}{2}
+$()).	</div>	<p>
+!insmath $val9
+$() est le centre du cercle de diamètre 
+!insmath [ $val7\,$val8 ]
+$(), donc 
+!insmath $val9
+$() est le	milieu du segment 
+!insmath [ $val7\,$val8 ]
+$().</p>	<p>Les coordonnées 
+!insmath (x_$val8;y_$val8)
+$() du point 
+!insmath $val8
+$() vérifient donc : </p>	<div class="wimscenter">	(
+!insmath \frac{$val11+x_$val8}{2}
+$() ; 
+!insmath \frac{$val12+y_$val8}{2}
+$())=(
+!insmath $val15
+$() ; 
+!insmath $val16
+$()).	</div>	<p> Il faut résoudre :</p>	<div class="wimscenter">	
+!insmath \frac{$val11+x_$val8}{2}=$val15
+$() et 
+!insmath \frac{$val12+y_$val8}{2}=$val16
+$().	</div>	<p>Ce qui donne :</p>	<div class="wimscenter">	
+!insmath x_$val8=$val19
+$() et 
+!insmath y_$val8=$val20
+$().	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,11,12,15,16,17,18,19,20,21,23
+embedcnt=1

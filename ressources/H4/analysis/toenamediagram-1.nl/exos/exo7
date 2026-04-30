@@ -1,0 +1,111 @@
+questiontype=0
+n=$counter
+inputs=1
+cols=10
+rows=1
+embed=0
+mathview=0
+image=0
+wordmax=30
+math=0
+applet=1
+R=$level
+!if $level=0
+    R=$counter
+!endif
+insplot_data=$empty
+!if $rounding=-1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+## checkfile
+checkfile=exos/checkfile3.proc
+varlist=$empty
+arglist=$empty
+varcnt=0
+##
+xlabel=t-as  
+ylabel=y-as  
+exotext=$empty
+helptext=$empty
+!if $R=1
+    a=!randitem -3,-2,-1,0,1,2
+    x1=!randitem 0,1,4
+    x1=$[$x1+$a]
+    b=!randitem 8,9,10
+    x2=!randitem 9,16,25
+    x2=$[$x2+$a]
+    c=!randitem -1,-2
+    d=!randitem 1,2,3,4
+    functie=$d*sqrt(x-($a))
+    y1=$[$d*sqrt($x1-$a)]
+    y2=$[$d*sqrt($x2-$a)]
+    
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+
+    texanswer$n=\left[ \begin{array}{l}\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f(t_{2}) - f(t_{1})}{t_{2} - t_{1}} \\ t_{2} = $x2 \\ t_{1} = $x1 \\ \frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1} = \\  \frac{$y2-$y1}{$x2-$x1} = \frac{$[$y2-$y1]}{$[$x2-$x1]} = $tex \end{array} \right.
+!else
+    !if $R=2
+	x1=!randitem 0,1,2,3,4
+        x2=!randitem 6,7,8,9
+        a=!randitem 1,2,3
+        b=!randitem 8,9,10
+        c=!randitem -1,-2
+        functie=$c*(x-$a)*(x-$b)
+        y1=$[$c*($x1-$a)*($x1-$b)]
+        y2=$[$c*($x2-$a)*($x2-$b)]
+        tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+        printtex(A)\
+        printtex($functie)
+    
+        answer$n=!line 1 of $tot
+
+        tex=!line 2 of $tot
+        texanswer$n=\left[ \begin{array}{l}\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f(t_{2}) - f(t_{1})}{t_{2} - t_{1}} \\ t_{2} = $x2 \\ t_{1} = $x1  \\ \frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1} = \\ \frac{$y2-$y1}{$x2-$x1} = \frac{$[$y2-$y1]}{$[$x2-$x1]} = $tex \end{array} \right.
+    !else
+	x1=!randitem 0,1,2,3,4
+        x2=!randitem 6,7,8,9
+        a=!randitem 1,2,3
+        b=!randitem 8,9,10
+        c=!randitem -1,-2,1,2
+        d=!randitem 7,8,9,10,11,12
+        functie=$c*x*(x-$a)*(x-$b)+$d
+        y1=$[$c*$x1*($x1-$a)*($x1-$b)+$d]
+        y2=$[$c*$x2*($x2-$a)*($x2-$b)+$d]
+        tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+        printtex(A)\
+        printtex($functie)
+            
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+
+	texanswer$n=\left[ \begin{array}{l}\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f(t_{2}) - f(t_{1})}{t_{2} - t_{1}} \\ t_{2} = $x2 \\ t_{1} = $x1  \\ \frac{\Delta $ylabel}{\Delta $xlabel} =  \frac{f($x2) - f($x1)}{$x2 - $x1} = \\ \frac{$y2-$y1}{$x2-$x1} = \frac{$[$y2-$y1]}{$[$x2-$x1]} = $tex \end{array} \right.
+    !endif
+!endif
+
+formula$n=\frac{\Delta y}{\Delta t} = [?] 
+ss=!record 6 of lang/remarks.$taal
+# Bepaal de gemiddelde verandering per tijdseenheid van t=$x1 tot t=$x2
+question$n=$ss
+description=!record 27 of lang/remarks.$taal
+make_tr=1
+object$n=!exec canvasdraw\
+size 380,240\
+xrange -5,5\
+yrange -1,10\
+axis\
+axisnumbering\
+xlabel $xlabel\
+ylabel $ylabel\
+precision 1\
+grid 2,2,grey,2,2,5,black\
+precision 100\
+jscurve red,$functie\
+setlimits\
+jsmath $functie\
+
+!exit

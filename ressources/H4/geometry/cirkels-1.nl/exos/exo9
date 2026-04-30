@@ -1,0 +1,229 @@
+#:5 afstand tussen twee cirkels
+
+n=$counter
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+
+embed=0
+applet=1
+inputs=-1
+math=0
+cols=5
+rows=1
+mathview=0
+math=0
+force_mathml=yes
+checkfile=exos/precheck2.proc
+#checkfile=$checkdir/new_number.proc
+calculator=2
+helptext=$empty
+make_tr=0
+ss=!record 14 of lang/remarks.$taal
+#@Bereken de afstand tussen de twee cirkels <em>c<sub>1</sub></em> en <em>c<sub>2</sub></em>
+keuze=!randitem 1,1,2
+mtext=!record 15 of lang/remarks.$taal
+
+
+!if $keuze=1
+ mx=!randint 2,6
+ my=!randint 2,6
+ nx=!randint 3,8
+ ny=!randint 3,8
+ mn=$[floor(sqrt(($mx+$nx)*($mx+$nx)+($my+$ny)*($my+$ny)))]
+ wc=$[floor(0.5*$mn)]
+ c=!randint 2,$wc
+ e=!randint 2,$wc
+ cc=$[$c*$c]
+ ee=$[$e*$e]
+ !if $R=1
+  cirkel1=(x - $mx)^{2} + (y - $my)^{2} = $cc
+  cirkel2=(x + $nx)^{2} + (y + $ny)^{2} = $ee
+  tussen=$empty
+ !else
+  cirkel1=x^{2} - $[ 2*$mx] x + y^{2} - $[2*$my] y = $[$cc - $mx*$mx - $my*$my]
+  cirkel2=x^{2} + $[ 2*$nx] x + y^{2} + $[2*$ny] y = $[$ee - $nx*$nx - $ny*$ny]
+  tussen=$ c_{1} :(x - $mx)^{2} + (y - $my)^{2} = $cc \\  c_{2} : (x + $nx)^{2} + (y + $ny)^{2} = $ee \\ $
+ !endif 
+ mc1=($mx;$my)
+ mc2=(-$nx;-$ny)
+ Mc1=$mx,$my
+ Mc2=-$nx,-$ny
+ S=-$nx,$my
+ nm2=$[($mx+$nx)*($mx+$nx)+($my+$ny)*($my+$ny)]
+ nm=sqrt($nm2)
+ nm_tex=\sqrt{($mx + $nx)^{2}+($my + $ny)^{2}}
+ answer$n=($nm)-$c-$e
+ chk=$[($nm) - $c - $e]
+ !if $chk <= 0 
+  answer$n=0
+  tex_ans= $  \le 0 \;\textrm{ $(mtext[2]) }
+ !else
+  tot=!exec maxima sqrtdispflag:true;\
+  $(answer$n);\
+  tex1($(answer$n));
+  # maxima tex1 produceerd "1 - \\frac{1}{2}" --> wims mathml wordt niks
+  # maxima tex produceerd $$1 - \frac{1}{2}$$ --> wims: -\frac{1}{2}
+  tot=!singlespace $tot
+  answer$n=!word 2 of $tot
+  tex_ans=!word 3 of $tot
+  tex_ans=!replace internal " by $empty in $tex_ans
+  tex_ans=!replace internal \\ by \ in $tex_ans
+  tex_ans= $ = $tex_ans
+  !if $rounding<1
+   rans=$empty
+  !else
+   rans=$[(round($rounding*($(answer$n))))/$rounding]
+   rans=\approx $rans
+  !endif
+ !endif
+ texanswer$n=\left[ \begin{array}{l} $tussen \textrm{$(mtext[1])  }\; c_{1}:  M =  $mc1 \\ \textrm{ $(mtext[1])  }\; c_{2}: N =  $mc2 \\ d(M,N) = $nm_tex =  \sqrt{$nm2} \\ d\left(c_{1},c_{2}\right) = \sqrt{$nm2} - \sqrt{$cc} - \sqrt{$ee} $tex_ans $rans  \end{array} \right.
+ xmin=$[-1*($nx) - $e-1]
+ xmax=$[$mx + $c+1]
+ ymin=$[-$ny - $e-1]
+ ymax=$[$my+$c+1]
+!else
+# keuze=2
+ mx=!randint 4,10
+ my=!randint 4,10
+ c=!randint 6,15
+ cc=$[$c*$c]
+ g=$[round($c/3)]
+ f=!randint 1,$[$g-1]
+ pm=!randitem +,-
+ mp=!randitem +,-
+ nx=$[$mx $pm $f]
+ ny=$[$my $mp $f]
+ e=!randint 2,$g
+ cc=$[$c*$c]
+ ee=$[$e*$e]
+ S=$nx,$my 
+ !if $R=1
+  cirkel1=(x - $mx)^{2} + (y - $my)^{2} = $cc
+  !if $nx=0
+   cirkel2=x^{2} + (y - $ny)^{2} = $ee
+  !else
+   !if $ny=0
+    cirkel2=(x - $nx)^{2} + y^{2} = $ee
+   !else
+    cirkel2=(x - $nx)^{2} + (y - $ny)^{2} = $ee   
+   !endif
+  !endif  
+  tussen=$empty
+ !else
+  cirkel1=x^{2} - $[ 2*$mx] x + y^{2} - $[2*$my] y = $[$cc - $mx*$mx - $my*$my]
+  !if $nx=0
+   cirkel2=x^{2} + y^{2} - $[2*$ny] y = $[$ee - $nx*$nx - $ny*$ny]
+  !else
+   !if $ny=0
+    cirkel2=x^{2} - $[ 2*$nx] x + y^{2} = $[$ee - $nx*$nx - $ny*$ny]
+   !else
+    cirkel2=x^{2} - $[ 2*$nx] x + y^{2} - $[2*$ny] y = $[$ee - $nx*$nx - $ny*$ny]
+   !endif
+  !endif
+  tussen=$ c_{1} :(x - $mx)^{2} + (y - $my)^{2} = $cc \\  c_{2} : (x - $nx)^{2} + (y - $ny)^{2} = $ee \\ $
+ !endif 
+ # nm2 = afstand tussen de middelpunden in't kwadraaat 
+ mc1=($mx;$my)
+ mc2=($nx;$ny)
+ Mc1=$mx,$my
+ Mc2=$nx,$ny
+ nm2=$[($mx-$nx)*($mx-$nx)+($my-$ny)*($my-$ny)]
+ nm=sqrt($nm2)
+ nm_tex=\sqrt{($mx - $nx)^{2}+($my - $ny)^{2}}
+ answer$n=$c - ($nm) - $e
+ chk=$[$c - ($nm) - $e]
+ !if $chk <= 0 
+  answer$n=0
+  tex_ans= $  \le 0 \;\textrm{ $(mtext[2]) }
+ !else
+  tot=!exec maxima sqrtdispflag:true;\
+  $(answer$n);\
+  tex1($(answer$n)); 
+  # maxima tex1 produceerd "1 - \\frac{1}{2}" --> wims mathml wordt niks
+  # maxima tex produceerd $$1 - \frac{1}{2}$$ --> wims: -\frac{1}{2}
+  tot=!singlespace $tot
+  answer$n=!word 2 of $tot
+  tex_ans=!word 3 of $tot
+  tex_ans=!replace internal " by $empty in $tex_ans
+  tex_ans=!replace internal \\ by \ in $tex_ans
+  tex_ans= $ = $tex_ans
+  !if $rounding<1
+   rans=$empty
+  !else
+   rans=$[(round($rounding*($(answer$n))))/$rounding]
+   rans=\approx $rans
+  !endif
+ !endif
+ xmin=$[$mx - $c - 1]
+ xmax=$[$mx + $c + 1]
+ ymin=$[$my - $c - 1]
+ ymax=$[$my + $c + 1]
+
+ texanswer$n=\left[ \begin{array}{l} $tussen \textrm{$(mtext[1]) }\; c_{1}:  M =  $mc1 \\ \textrm{$(mtext[1]) }\; c_{2}: N =  $mc2 \\ d(M,N) = $nm_tex =  \sqrt{$nm2} \\ d\left(c_{1},c_{2}\right) = \sqrt{$cc} - \sqrt{$nm2} - \sqrt{$ee}  $tex_ans $rans  \end{array} \right.
+!endif
+
+formula$n=\left[ \begin{array}{ll} c_{1}: & $cirkel1  \\ c_{2}: & $cirkel2  \\ d(c_{1},c_{2}) &  =   \input{12}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0} \end{array}\right.
+
+question$n=$ss
+
+min=$[min($xmin,$ymin)]
+max=$[max($xmax,$ymax)]
+
+object$n=!exec canvasdraw \
+size 300,300\
+xrange $min,$max\
+yrange $min,$max\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$Mc1,$Mc2\
+circles blue,$Mc1,$c,$Mc2,$e\
+dashed\
+segment $Mc1,$Mc2,green\
+zoom blue\
+mouse red,22
+
+!if $(answer$n)=0
+var9=size 300,300\
+xrange $min,$max\
+yrange $min,$max\
+vline 0,0,black\
+hline 0,0,black\
+opacity 200,100\
+fcircles blue,$Mc1,$c\
+fcircles red,$Mc2,$e\
+linewidth 3\
+points red,$Mc1,$Mc2\
+zoom blue\
+mouse red,22
+
+!else
+var9=size 300,300\
+xrange $min,$max\
+yrange $min,$max\
+vline 0,0,black\
+hline 0,0,black\
+circles blue,$Mc1,$c,$Mc2,$e\
+dashed\
+segment $Mc1,$Mc2,green\
+dhline $Mc1,red\
+dvline $Mc2,red\
+linewidth 2\
+arrow2 $S,$Mc1,10,green\
+arrow2 $S,$Mc2,10,green\
+linewidth 3\
+points red,$S,$Mc1,$Mc2\
+zoom blue\
+mouse red,22
+!endif
+#question$n=<a onmouseover="return escape('$helptext')">$ss</a><span style="color:blue">$plaatje</span>
+
+!exit

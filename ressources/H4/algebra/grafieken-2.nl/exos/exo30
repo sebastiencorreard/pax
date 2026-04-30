@@ -1,0 +1,91 @@
+#:30 Herleid de functie tot een machtsfunctie III
+display=1
+checkfile=exos/precheck.proc
+arglist=f(x),y
+varlist=x
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+
+mathview=5
+smallfont=12
+largefont=18
+mathviewpanel=$module_title:f(x)=:y=:x:+:-:*:/:^
+!if $useropts != $empty
+    mathml=!char 2 of $useropts
+!endif
+a=!randint 2,50
+b=!randint 11,99
+d=!randint 11,99
+!if $b=$d
+    b=$[$b+5]
+!endif
+b=$[$b/10]
+d=$[$d/10]
+c=!randint 2,30
+f=!randint 50,80
+f=$[$f/10]
+g=!randint 50,99
+!if $R=1
+    keuze=!randitem 1,2
+    !if $mathml=2
+	m=!mathmlmath f(x)=c*x^a
+    !else
+	m=!htmlmath f(x)=c*x^a
+    !endif
+    ss=!record 99 of lang/remarks.$taal
+    #@Herleid de onderstaande functie tot een machtsfunctie<br />van de vorm: $m . En hierbij is x &gt;0
+    question$n=$ss
+
+    !if $keuze=1
+	formula$n=f(x) = \frac{$a x^{$b} + $c x^{$d} - $f x + $g}{x} = [?]
+	applettext=!nospace f(x) = ($a*x^$b+$c*x^$d-$f*x+$g)/x ->
+	var1=!nospace ($a*x^$b+$c*x^$d-$f*x+$g) / x
+	answer$n=$a*x^$[$b-1]+$c*x^$[$d-1]-$f+$g*x^(-1)
+	texanswer$n= f(x) =\frac{$a x^{$b}}{x} + \frac{$c x^{$d}}{x} -\frac{ $f x}{x} +\frac{$g}{x}=$a x^{$[$b-1]}+$c x^{$[$d-1]}-$f+$g x^{-1}
+    !else
+	formula$n=f(x) = \frac{$a x^{$b} - $c x^{$d} + $f x + $g}{x} = [?]
+	applettext=!nospace f(x) = ($a*x^$b - $c*x^$d + $f*x + $g)/x ->
+	var1=!nospace ($a*x^$b - $c*x^$d + $f*x + $g) / x
+	answer$n=$a*x^$[$b-1]-$c*x^$[$d-1]+$f+$g*x^(-1)
+	texanswer$n= f(x) =\frac{$a x^{$b}}{x} - \frac{$c x^{$d}}{x} +\frac{ $f x}{x} +\frac{$g}{x}=$a x^{$[$b-1]}-$c x^{$[$d-1]}+$f+$g x^{-1}
+    !endif
+    !exit
+!endif
+!if $R>1
+    !if $mathml=2
+	m=!mathmlmath f(x)=c*x^a
+    !else
+	m=!htmlmath f(x)=c*x^a
+    !endif
+    ss=!record 98 of lang/remarks.$taal
+    #@Herleid de onderstaande functie tot een machtsfunctie<br />van de vorm: $m . En hierbij is x &gt;0
+    question$n=$ss
+
+    a=!randint 2,9
+    b=!randint 2,5
+    c=!randint 3,9
+    c=$[$c/2]
+    d=!randint 2,5
+    f=!randint 2,50
+    g=!randint 2,5
+    formula$n=f(x) = \frac{x^{$a} \cdot \left($b x^{$c} \right)^{$d}}{$f x^{$g}} = [?]
+    applettext=!nospace f(x) = (x^$a*($b*x^$c)^$d)/($f*x^$g) ->
+    var1=!nospace (x^$a*($b*x^$c)^$d /($f*x^$g)
+    tot=!exec pari $b^$d/$f\
+    printtex($b^$d/$f)
+	
+    h=!line 1 of $tot
+    h_tex=!line 2 of $tot
+    k=$[$a+$c*$d-$g]
+    answer$n=$h*x^$k
+    texanswer$n= \left[ \begin{array}{l}f(x)=\frac{x^{$a} \cdot $b^$d \cdot \left(x^{$c} \right)^{$d}}{$f x^{$g}} \\f(x)=\frac{x^{$a} \cdot $[$b^$d] \cdot \x^{$c \cdot $d}}{$f x^{$g}} \\f(x)= \frac{$[$b^$d] \cdot x^{$a} \cdot \x^{$c \cdot $d}}{$f x^{$g}} \\f(x)=$[$b^$d] \cdot \frac{x^{$[$a + $c*$d]}}{$f x^{$g}} \\f(x)=$h_tex \cdot x^{$k} \end{array}
+    !exit
+!endif

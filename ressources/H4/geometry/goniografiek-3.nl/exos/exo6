@@ -1,0 +1,158 @@
+#exo6 zonder applet
+# Formule van Simpson
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $R=1
+    !if $rounding=-1
+	rounding=0
+        !readproc $remarkdir/rounding.$taal
+    !endif
+!endif
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=1
+cols=30
+rows=2
+checkfile=exos/precheck.proc
+#$checkdir/coord.proc
+a=!randint 2,15
+b=!randint 2,15
+d=!randint 1,15
+c=!randint $[$d+1],25
+
+keuze=!randint 0,1
+kans=!randint 1,2
+kans=2
+keuze=2
+txt1=!record 12 of lang/remarks.$taal
+#@De amplitude van V is
+!if $kans=1
+    ss=!record 13 of lang/remarks.$taal
+    #@Bepaal de som van de onderstaande functies mbv <kbd>de formule van Simpson</kbd>.
+    !if $keuze=1
+	v1=$a*sin($b*x+$c)
+	v2=$a*sin($b*x+$d)
+	
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} + V_{2}  \\ \textrm{$txt1 = [?] } \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} + V_{2} = [?] \end{array} \right.
+	!endif
+	answer$n=$[(2*$a)]*cos($[($c-$d)/2])*sin(($b*t)+$[($c+$d)/2])
+	v=$[(2*$a)]*cos($[($c-$d)/2])*sin(($b*x)+$[($c+$d)/2])
+	amplitude=$[abs(2*$a*cos(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} + V_{2} = $a \cdot \sin\left( $b t + $c \right) + $a \cdot \sin\left( $b t + $d \right)  \\ V(t) = $a \cdot \left( \sin\left( $b t + $c \right) + \sin\left( $b t + $d \right)\right) \\ V(t) = $a \cdot \left( 2 \cdot \sin\left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)    \right)     \right) \\ V(t) = 2 \cdot $a \cdot  \sin \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \cos \left( \frac{$[$c - $d]}{2} \right) \\ V(t) = $[2*$a] \cos \left($[($c-$d)/2] \right) \cdot \sin \left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left( $[(2*$a)] \cos( $[($c-$d)/2] )\right) \approx $amplitude   \end{array} \right.
+	
+    !else
+	v1=$a*cos($b*x+$c)
+	v2=$a*cos($b*x+$d)
+	
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} + V_{2} \\ \textrm{$txt1 = [?] } \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} + V_{2} = [?] \end{array} \right.
+	!endif
+	answer$n=$[(2*$a)]*cos($[($c-$d)/2])*cos(($b*t)+$[($c+$d)/2])
+	v=$[(2*$a)]*cos($[($c-$d)/2])*cos(($b*x)+$[($c+$d)/2])
+	
+	amplitude=$[abs(2*$a*cos(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} + V_{2} = $a \cdot \cos\left( $b t + $c \right) + $a \cdot \cos\left( $b t + $d \right)  \\ V(t) = $a \cdot \left( \cos\left( $b t + $c \right) + \cos \left( $b t + $d \right)\right) \\ V(t) = $a \cdot \left( 2 \cdot \cos \left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)\right) \right) \\ V(t) = 2 \cdot $a \cdot \cos \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \cos \left( \frac{$[$c - $d]}{2} \right) \\ V(t) = $[2*$a] \cos \left($[($c-$d)/2] \right) \cdot \cos\left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(2*$a)] \cos($[($c-$d)/2]) \right) \approx $amplitude  \end{array} \right.
+
+    !endif
+!else
+    ss=!record 14 of lang/remarks.$taal
+    #@Bepaal het verschil van de onderstaande functies mbv <kbd>de formule van Simpson</kbd>.
+    !if $keuze=1
+	v1=$a*sin($b*x+$c)
+	v2=$a*sin($b*x+$d)
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} - V_{2} \\ \textrm{$txt1 = [?]} \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \sin\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \sin\left( $b t + $d\right)  \\ \special{color=green} V(t) = V_{1} - V_{2} = [?] \end{array} \right.
+	!endif    
+	answer$n=$[(2*$a)]*sin($[($c-$d)/2])*cos(($b*t)+$[($c+$d)/2])
+	
+	v=$[(2*$a)]*sin($[($c-$d)/2])*cos(($b*x)+$[($c+$d)/2])
+	    
+	amplitude=$[abs(2*$a*sin(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} - V_{2} = $a \cdot \sin\left( $b t + $c \right) - $a \cdot \sin\left( $b t + $d \right)  \\ \\  V(t) = $a \cdot \left( \sin\left( $b t + $c \right) - \sin\left( $b t + $d \right)\right) \\ \\ V(t) = $a \cdot \left( 2 \cdot \sin\left( \frac{1}{2} \left( $b t + $c - $b t - $d\right) \right) \cdot  \cos \left( \frac{1}{2} \left($b t + $c + $b t + $d \right) \right) \right) \\ \\ V(t) = 2 \cdot $a \cdot  \sin \left( \frac{$[$c-$d]}{2} \right) \cdot \cos \left($b t + \frac{$[$c + $d]}{2} \right) \\ \\ V(t) = $[2*$a] \sin \left($[($c-$d)/2] \right) \cdot \cos \left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(2*$a)] \sin($[($c-$d)/2]) \right) \approx $amplitude  \end{array} \right.
+	
+    !else
+	
+	v1=$a*cos($b*x+$c)
+	v2=$a*cos($b*x+$d)
+	!if $R=2
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} \\ \textrm{$txt1 = [?]} \end{array} \right.
+	!else
+	    formula$n=\left[ \begin{array}{l} \special{color=red} V_{1} = $a \cdot \cos\left( $b t + $c\right) \\ \special{color=blue} V_{2} = $a \cdot \cos\left( $b t + $d\right)  \\ V(t) = V_{1} - V_{2} = [?] \end{array} \right.
+	!endif    
+	answer$n=$[(-2*$a)]*sin($[($c-$d)/2])*sin(($b*t)+$[($c+$d)/2])
+	    
+	v=$[(-2*$a)]*sin($[($c-$d)/2])*sin(($b*x)+$[($c+$d)/2])
+	    
+	amplitude=$[abs(2*$a*sin(($c-$d)/2))]
+	texanswer$n=\left[ \begin{array}{l} V(t) = V_{1} - V_{2} = $a \cdot \cos\left( $b t + $c \right) - $a \cdot \cos\left( $b t + $d \right)  \\ \\ V(t) = $a \cdot \left( \cos\left( $b t + $c \right) - \cos \left( $b t + $d \right)\right) \\ \\ V(t) = $a \cdot \left( -2 \cdot \sin \left( \frac{1}{2} \left( $b t + $c + $b t + $d\right) \right) \cdot  \sin \left( \frac{1}{2} \left($b t + $c - $b t - $d \right)\right) \right) \\ \\ V(t) = -2 \cdot $a \cdot \sin \left( $b t + \frac{$[$c+$d]}{2} \right) \cdot \sin \left( \frac{$[$c - $d]}{2} \right) \\ \\ V(t) = $[-2*$a] \sin \left($[($c-$d)/2] \right) \cdot \sin\left($b t + $[($c+$d)/2] \right) \\ \\ \textrm{$txt1 : abs}\left($[(-2*$a)] \sin($[($c-$d)/2])\right) \approx $amplitude  \end{array} \right.
+
+    !endif
+!endif
+
+!if $R>1
+    answer$n=$amplitude
+    ss=!record 15 of lang/remarks.$taal
+    #@Bereken de amplitude van <b>V</b> op 3 decimalen nauwkeurig.<br />Gebruik hiervoor de <kbd>Formules van Simpson</kbd>
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+    checkfile=$checkdir/new_number.proc
+!else
+    checkfile=$checkdir/equation.proc
+    arglist=V,V(t)
+    varlist=t
+    varcnt=1
+!endif
+
+assen=!record 16 of lang/remarks.$taal
+tas=!item 1 of $assen
+yas=!item 2 of $assen
+# simpson.gif :formula1=\begin{array}{ll} & \textrm{Formules van Simpson} \\ \\ 1 & \sin(t) + \sin(u) = 2 \cdot \sin \left(\frac{1}{2}\left(t + u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t - u \right) \right) \\ \\ 2 & \sin(t) - \sin(u) = 2  \cdot\sin \left(\frac{1}{2}\left(t - u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t + u \right) \right) \\ \\ 3 & \cos(t) + \cos(u) = 2  \cdot\cos \left(\frac{1}{2}\left(t + u \right) \right) \cdot \cos\left( \frac{1}{2}\left(t - u \right) \right) \\ \\ 4 & \cos(t) - \cos(u) = -2  \cdot\sin \left(\frac{1}{2}\left(t + u \right) \right) \cdot \sin\left( \frac{1}{2}\left(t - u \right) \right) \end{array}
+#appletsize
+xsize=480
+ysize=320
+xmin=$[-2*pi/$b]
+xmax=$[2*pi/$b]
+ymin=$[-2*$a]
+ymax=$[2*$a]
+
+mathml=!mathmlmath $(formula$n)
+kliktxt=!record 27 of lang/remarks.$taal
+
+data=size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 205,215\
+frect -100,100,100,-100,white\
+axis\
+axisnumbering\
+grid pi,2,gold,6,4,8,grey\
+linewidth 2\
+curve red,$v1\
+curve blue,$v2\
+curve green,$v\
+precision 10\
+mouse red,24\
+zoom grey\
+mathml 0,$ymax,$xmax,$ymin,$mathml\
+intooltip <span style='color:blue;'>$kliktxt</span>
+
+plaatje=!exec canvasdraw $data
+
+question$n=$ss<br />$plaatje
+
+
+

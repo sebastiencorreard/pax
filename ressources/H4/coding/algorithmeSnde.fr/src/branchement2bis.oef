@@ -1,0 +1,151 @@
+\title{Branchement conditionnel : double-lancer de dé (2)}
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+\language{fr}
+\format{html}
+\computeanswer{no}
+
+\text{monaide=wims(record 1 of langage)}
+\help{\monaide}
+
+/** choix syntaxe variable du langage programmation **/
+
+\integer{ii=random(2,3,4)}
+\matrix{syntax=wims(record \ii of langage)}
+\text{IF=item(1,\syntax)}
+\text{THEN=item(2,\syntax)}
+\text{ELSE=item(3,\syntax)}
+\text{ENDIF=item(4,\syntax)}
+\text{DISPLAY=item(5,\syntax)}
+\text{ALEA=item(6,\syntax)}
+
+\text{aff=&larr;}
+\text{sto=&rarr;}
+\text{le=&le;}
+
+/** enquête sur trois algo. avec double lancers de dé**/
+
+\integer{cas=random(1,2,3,3)}
+
+/** codage affichage gagné / perdu **/
+\integer{G0=random(1,2)}
+\integer{G1=\G0=1?2:1}
+\integer{repG=\G1}
+\integer{G0=\G0-1}
+\integer{G1=\G1-1}
+
+/** codage des tests de lancers **/
+\integer{N=randitem(4,6,8,12)}
+\integer{M=random(1..\N)}
+\integer{M2=2*\M}
+\integer{ii=random(1..3)}
+\text{rel1=item(\ii, =, &ne; , &ge; ,&le;)}
+\text{lesrel1= égal à, différent de , supérieur ou égal à, inférieur ou égal à}
+\text{trel1=item(\ii, \lesrel1)}
+\integer{ii=random(1..3)}
+\text{rel2= item(\ii, = , &ne; , &ge; ,&le;)}
+\text{lesrel2=\cas=1? égal au , différent du , supérieur ou égal au , inférieur ou égal au }
+/** alg1b wrt alg1a : rôles de D et S inversés ; inverser rep. inégalités**/
+\text{lesrel2=\cas=2? égal au , différent du , inférieur ou égal au , supérieur ou égal au}
+\text{lesrel2=\cas=3? égale à , différente de , supérieure ou égale à , inférieure ou égale à }
+\text{trel2=item(\ii,\lesrel2)}
+\integer{regle=\ii}
+
+\text{lesregles=}
+\for{j=1 to 4}
+{\text{rel=\lesrel2[\j]}
+ \if{\cas<3}
+   {\text{lesregles=\lesregles,le résultat du deuxième lancer est \rel résultat du premier lancer.}}
+   {\text{lesregles=\lesregles,la somme des résultats des lancers est \rel \M2.}}
+}
+\text{lesregles=item(2..5,\lesregles)}
+
+/** "règles" de jeu pour feedback **/
+
+\text{jeu1= On lance un dé équilibré à \N faces. Si le résultat du premier lancer est
+\trel1 \M, alors on relance le dé. Si le résultat du deuxième lancer est \trel2 résultat du premier lancer,
+ alors on a gagné. Dans tous les autres cas on a perdu.}
+
+\text{jeu2= On lance un dé équilibré à \N faces. Si le résultat du premier lancer est \trel1 \M, on relance le dé.
+ Si la somme des résultats des deux lancers est \trel1 \M2, alors on a gagné. Dans tous les autres cas on a perdu.
+}
+/** Deux algos pour jeu1, mais inversion des rôles de S et D **/
+
+\text{alg1a= \G0 \sto G -; \ALEA(1,\N) \sto D -; D \sto S -; \IF D \rel1 \M -;
+\THEN-; \ALEA(1,\N) \sto D-;\IF D \rel2 S -;\THEN -;\G1 \sto G-;\ENDIF-;
+\ENDIF-; }
+
+\text{alg1b= \G0 \sto G -; \ALEA(1,\N) \sto D -; \IF D \rel1 \M -;
+\THEN-; \ALEA(1,\N) \sto S-;\IF D \rel2 S -;\THEN -;\G1 \sto G-;\ENDIF-;
+\ENDIF-; }
+
+/** algo pour jeu2 **/
+
+\text{alg2= \G0 \sto G -; \ALEA(1,\N) \sto D -; D \sto S -; \IF D \rel1 \M -;
+\THEN-; \ALEA(1,\N) \sto D-; S + D \sto S -;\IF S \rel2 \M2 -;\THEN -;\G1 \sto G-;\ENDIF-;
+\ENDIF-;}
+
+\text{afficher=\IF G = \G0-; \THEN -; \DISPLAY "PERDU"-; \ELSE-; \DISPLAY "GAGNE"-; \ENDIF ,
+\IF G = \G1-; \THEN -; \DISPLAY "GAGNE"-; \ELSE-; \DISPLAY "PERDU"-; \ENDIF}
+\text{aff=randitem(\afficher)}
+
+
+\text{roles=le résultat du premier lancer,
+le résultat du deuxième lancer,
+la somme des deux lancers,
+le gain final,
+la mise initiale
+}
+
+/**choix de l'algo selon cas **/
+
+\integer{repS=\cas}
+
+\text{algo=item(\cas,\alg1a,\alg1b,\alg2)}
+\text{algo=\algo \aff}
+\text{algopp=wims(replace internal -; by </td></tr><tr><td> in \algo)}
+
+
+\statement{
+
+<p>L'algorithme ci-dessous utilise l'instruction \ALEA(1,<i>n</i>).
+Chaque appel de \ALEA(1,<i>n</i>) donne un entier choisi aléatoirement entre 1 et <i>n</i>.
+On peut ainsi simuler un lancer de dé équilibré à <i>n</i> faces.
+</p>
+<table cellpadding="5" padding-left="20" width="100%">
+<tr>
+<td width="25%">
+<table bgcolor="lightblue" cellpadding="1" align="center">
+<tr><td>
+\algopp
+</td></tr></table>
+</td>
+<td width="75%" valign="top" class="oefstatement" >
+
+<p>Répondez aux questions suivantes sur le fonctionnement de cet algorithme,
+en remplissant tous les champs de réponse :</p>
+<ol>
+<li>On lance un dé à \embed{reply1,5} faces.</li>
+<li>La variable S \if{\cas=3}{(à la 6ème ligne)} sert à stocker \embed{reply2}.</li>
+<li>On relance le dé, si le résultat du premier lancer est \trel1 \embed{reply3,5}.</li>
+<li>On affiche "GAGNE" quand la valeur finale de la variable G est \embed{reply4,5}.</li>
+<li>La condition 3. étant remplie, on "gagne" si \embed{reply5}</li>
+</ol>
+</td>
+</tr>
+</table>
+}
+
+\answer{nb faces}{\N}{type=integer}
+\answer{rôle de S}{\repS;\roles}{type=menu}{option=shuffle}
+\answer{relance}{\M}{type=integer}
+\answer{valeur de G}{\repG;0,1}{type=radio}
+\answer{regle}{\regle;\lesregles}{type=menu}{option=shuffle}
+
+/** feedback **/
+
+\feedback{\cas<3}{<p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>
+&#171;<font color="blue">\jeu1</font>&#187;.}
+
+\feedback{\cas==3}{<p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>
+&#171;<font color="blue">\jeu2</font>&#187;.}

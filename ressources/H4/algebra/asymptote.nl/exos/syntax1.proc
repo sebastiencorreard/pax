@@ -1,0 +1,75 @@
+# generieke oplossingen x=2kpi/3
+!if k notin $AAA
+    diff=1
+    # ideal: the lines x=2*k*pi
+    # ideal: the lines x=2kpi/4
+    # ideal: the lines x=k*pi/5
+    # ideal: the lines x=0.2kpi
+    # did they use another letter for the constant?
+    ta=!wordcnt $AAA
+    replaced=0
+    goodword=0
+    !for i=1 to $ta
+	A=!word $i of $AAA
+	!if pi isin $A
+	    test=!replace [0-9\x\y\=\(\)\pi\\/\\*] by $empty in $A
+	    test=!nospace $test
+	    t=!charcnt $test
+	    !if $t=0
+		errortext=!record 8 of lang/remarks.$taal
+		#@ Je gebruikt wel een heel vreemde schrijfwijze<br />Kijk toch nog maar eens eventjes in de help pagina's
+		maxscore=$[$maxscore*$P3]
+		goback=1
+		!exit
+	    !endif
+	    !if $t=1
+		!if $test iswordof a b c d e f g h i j m l n o p q r s t u v w z
+		    check=0
+		    !if elem isin $AAA
+			check=1
+			!for w in z,nat,int
+			    !if $w isin $AAA
+				check=2
+			    !endif
+			!next w
+		    !endif
+		    !if $check=0
+			errortext=!record 9 of lang/remarks.$taal
+			#@ Dat je de integer "k" niet als teller wilt gebruiken,mij best<br />Maar vermeld dan wel even dat:<br /><table cellpadding=15 style="border-width:1px;border-style:outset"><td>met <b>$test<b> element van $m_ZZ</td></table>
+			goback=1
+			maxscore=$[$maxscore*$P3]
+			!exit			
+		    !endif
+		    !if $check !=2
+			errortext=!record 22 of lang/remarks.$taal
+			#@ Nee de teller k moet zijn: <b>k element van Z</b>
+			goback=1
+			maxscore=$[$maxscore*$P4]
+			!exit
+		    !endif
+		    AAA=!replace internal $test by k in $AAA
+		    replaced=1
+		    goodword=$i
+		    ex=!record 10 of lang/remarks.$taal
+		    #@ Ik heb je teller <b>$test</b> geinterpreteerd als de <b>k</b> $m_in $m_Z
+		    extra=$ex
+		    !goto READY
+		!endif
+	    !endif
+	!endif
+    !next i
+    :READY
+    !if $replaced=0 or $goodword=0
+	errortext=!record 8 of lang/remarks.$taal
+	#@ Je gebruikt wel een heel vreemde schrijfwijze<br />Kijk toch nog maar eens eventjes in de help pagina's
+        maxscore=$[$maxscore*$P3]
+	goback=1
+        !exit
+    !endif
+    AAA=!word $goodword of $AAA
+!endif
+
+AAA=!nospace $AAA
+AAA=!replace internal pi by PI in $AAA
+AAA=!replace internal k by K in $AAA
+

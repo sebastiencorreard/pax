@@ -1,0 +1,207 @@
+# ontbinden in factoren
+make_tr=1
+# geen applet
+mathview=0
+n=$counter
+image=0
+cols=25
+rows=3
+math=0
+# geen wiskunde in antwoord
+questiontype=0
+checkfile=exos/checkfile1.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $options<2 or $options>10
+    options=5 
+!endif
+inputs=$options
+textanswer=$empty
+# var1 = letter1
+# var2 = letter2
+# var3 = varcount  varcnt
+# var4 = letterlijk
+# var5 = controle
+var6=0
+var7=1
+var1=!randitem x,p,t,a
+var2=!randitem y,q,h,b
+m_rightarrow=&nbsp;=&nbsp;
+description=$empty
+textanswer$n=<table class="zebra_table_h2">
+helptext=<img src=\'$module_dir/gifs/exo15.jpg\' alt=\'noalt\' />
+!if $R=1
+    question$n=!record 7 of lang/remarks.$taal
+    var4=1
+    wims_rawmath_variables=$var1
+    var3=1
+    numbers=2,3,4,5,6,7,8,9,10
+    numbers=!shuffle $numbers
+    !for p=1 to $options
+        keuze=!randitem 1,2,3
+	kans=!randitem 1,2,3,4
+        number1=!item $p of $numbers
+        !if $keuze=1
+	    answer=($var1 + $number1)^2
+	    !if $kans=1
+		vraag=$var1^2 + $[2*$number1]*$var1 + $[$number1*$number1]
+    	    !else
+		!if $kans=2
+		    vraag=$[2*$number1]*$var1+ $var1^2  + $[$number1*$number1]
+		!else
+		    !if $kans=3
+			vraag=$[2*$number1]*$var1 + $[$number1*$number1] + $var1^2
+		    !else    
+			vraag=$[$number1*$number1] + $[2*$number1]*$var1  + $var1^2
+		    !endif
+		!endif
+	    !endif
+	!endif
+        !if $keuze=2
+	    answer=($var1 - $number1)^2
+	    !if $kans=1
+		vraag=$var1^2 - $[2*$number1]*$var1 + $[$number1*$number1]
+    	    !else
+		!if $kans=2
+		    vraag=$[-2*$number1]*$var1 + $var1^2  + $[$number1*$number1]
+		!else
+		    !if $kans=3
+			vraag=$[-2*$number1]*$var1 + $[$number1*$number1] + $var1^2
+		    !else
+			vraag=$[$number1*$number1] - $[2*$number1]*$var1  + $var1^2
+		    !endif
+		!endif
+	    !endif
+        !endif
+	!if $keuze=3
+	    answer=($var1 - $number1)*($var1+$number1)
+	    !if $kans=1 or $kans=2
+		vraag=$var1^2 - $[$number1*$number1]
+    	    !else
+		vraag=$[-1*$number1*$number1] + $var1^2
+	    !endif
+        !endif
+	var5=!append item $vraag to $var5
+	html=!htmlmath $vraag
+	description=!append item $p)&nbsp;&nbsp;$html&nbsp;&nbsp; to $description
+        answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath $answer
+	textanswer=!append word $ <tr><td>$p)</td><td>$html</td><td>=</td><td> $htmlgoed</td></tr> $ to $textanswer
+    !next p
+    textanswer$n=!append word $ $textanswer </table> $ to $(textanswer$n)
+ !exit
+!endif
+
+!if $R=2
+    question$n=!record 22 of lang/remarks.$taal
+    wims_rawmath_variables=$var1
+    var3=1
+    var4=0
+    numbers=2,3,4,5,6,7,8,9,10
+    numbers=!shuffle $numbers
+    
+    !for p=1 to $options
+	keuze=!randitem 1,2,3
+        number1=!item $p of $numbers
+        number2=!item $[$p + 1] of $numbers
+        number3=!item $[$p + 2] of $numbers
+        number4=!item $[$p + 3] of $numbers
+        mp=!randitem +,-
+        pm=!randitem +,-
+	pp=!randitem -1,1
+	!if $keuze=1
+	    answer=$[$pp*$number1]*($var1 $pm $number2)^2
+	!endif
+	!if $keuze=2
+	    answer=$var1*($var1 $pm $number3)^2
+	!endif
+	!if $keuze=3
+	    answer=$var1^2*($var1 $pm $number4)^2
+	!endif
+	vraag=!exec pari $answer
+	var5=!append item $vraag to $var5
+	html=!htmlmath $vraag
+	description=!append item $p)&nbsp;&nbsp;$html&nbsp;&nbsp; to $description
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath $answer
+	textanswer=!append word $ <tr><td>$p)</td><td>$html</td><td>=</td><td> $htmlgoed</td></tr> $ to $textanswer
+    !next p
+    textanswer$n=!append word $ $textanswer </table> $ to $(textanswer$n)
+ !exit
+!endif
+
+!if $R=3
+    question$n=!record 22 of lang/remarks.$taal
+    wims_rawmath_variables=$var1
+    var3=1
+    var4=0
+    numbers=2,3,4,5,6,7,8,9,10
+    numbers=!shuffle $numbers
+    
+    !for p=1 to $options
+	keuze=!randitem 1,2,3
+        number1=!item $p of $numbers
+        number2=!item $[$p + 1] of $numbers
+        number3=!item $[$p + 2] of $numbers
+        number4=!item $[$p + 3] of $numbers
+        mp=!randitem +,-
+        pm=!randitem +,-
+	pp=!randitem -1,1
+	!if $keuze=1
+	    answer=$[$pp*$number1]*($var1 + $number2)*($var1 - $number2)
+	!endif
+	!if $keuze=2
+	    answer=$var1*($var1 - $number3)*($var1 + $number3)
+	!endif
+	!if $keuze=3
+	    answer=$var1^2*($var1 + $number4)*($var1 - $number4)
+	!endif
+	vraag=!exec pari $answer
+	var5=!append item $vraag to $var5
+	html=!htmlmath $vraag
+	description=!append item $p)&nbsp;&nbsp;$html&nbsp;&nbsp; to $description
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath $answer
+	textanswer=!append word $ <tr><td>$p)</td><td>$html</td><td>=</td><td> $htmlgoed</td></tr> $ to $textanswer
+    !next p
+    textanswer$n=!append word $ $textanswer </table> $ to $(textanswer$n)
+ !exit
+!endif
+
+!if $R>3
+#bolleboosjes
+    question$n=!record 7 of lang/remarks.$taal
+    var4=0
+    numbers=2,3,4,5,6,7,8,9,10
+    numbers=!shuffle $numbers
+    !for p=1 to $options
+        keuze=!randitem 1,2
+	pm=!randitem +,-
+	number1=!item $p of $numbers
+	number2=!item $[$p + 1] of $numbers
+	number3=!item $[$p + 2] of $numbers
+	number4=!item $[$p + 3] of $numbers
+	wims_rawmath_variables=$var1
+	var3=1
+	!if $keuze=1
+	    answer=($number1*$var1 - $number2)*($number1*$var1 + $number2)
+	!endif
+	!if $keuze=2
+	    answer=($number3*$var1 $pm  $number4)^2
+	!endif
+	vraag=!exec pari $answer
+	var5=!append item $vraag to $var5
+	html=!htmlmath $vraag
+	description=!append item $p)&nbsp;&nbsp;$html&nbsp;&nbsp; to $description
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath  $answer
+	textanswer=!append word $ <tr><td>$p)</td><td>$html</td><td>=</td><td> $htmlgoed</td></tr> $ to $textanswer
+    !next p
+    textanswer$n=!append word $ $textanswer </table> $ to $(textanswer$n)
+ !exit
+!endif
+
+

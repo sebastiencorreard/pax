@@ -1,0 +1,258 @@
+\title{Entreprises VS SCOP}
+\language{fr}
+\range{-5..5}
+\author{Julien, Lyotard}
+\email{Julien.Lyotard@ac-dijon.fr}
+
+\computeanswer{no}
+\format{html}
+\precision{1000000}
+
+\text{flash=slib(media/video [mp4="https://tube-sciences-technologies.apps.education.fr/download/videos/f3cf553b-683e-44b2-ab1b-ca3d56bf9b6c-240.mp4"])} 
+
+\text{inte=wims(values x*1000 for x = 0 to 10)}
+\matrix{do=9,11,4,3,2,0,0,0,0,1
+7,5,15,3,0,0,0,0,0,0}
+\integer{a=randint(1..10)}
+\integer{b=randint(1..10)}
+\matrix{doo=pari(\a*[\do[1;]])}
+\matrix{dooo=pari(\b*[\do[2;]])}
+\matrix{don=\doo
+\dooo}
+\text{cc=wims(values x*1000+500 for x = 0 to 10)}
+
+\integer{n=items(\don[1;])} 
+\integer{total=0}
+\integer{produit=0}
+\matrix{listproduit=}
+\integer{tot=\don[1;1]}
+\matrix{listeecc=\tot}
+\for {y=1 to \n}{\integer{total=\total+\don[1;\y]}
+\integer{tot=\tot+\don[1;(\y+1)]}
+\integer{s=\don[1;\y]*\cc[\y]}
+\integer{produit=\produit+\s}
+\matrix{listproduit=wims(append item \s to \listproduit)}
+\matrix{listeecc=wims(append item \tot to \listeecc)}
+}
+
+\integer{nsc=items(\don[2;])} 
+\integer{totalsc=0}
+\integer{produitsc=0}
+\matrix{listproduitsc=}
+\integer{totsc=\don[2;1]}
+\matrix{listeeccsc=\totsc}
+\for {y=1 to \nsc}{\integer{totalsc=\totalsc+\don[2;\y]}
+\integer{totsc=\totsc+\don[2;(\y+1)]}
+\integer{ssc=\don[2;\y]*\cc[\y]}
+\integer{produitsc=\produitsc+\ssc}
+\matrix{listproduitsc=wims(append item \ssc to \listproduitsc)}
+\matrix{listeeccsc=wims(append item \totsc to \listeeccsc)}
+}
+
+\integer{totp=\don[1;1]/\total*100}
+\matrix{listeeccp=\totp}
+\for{yy=1 to \n}{\integer{totp=\totp+\don[1;(\yy+1)]/\total*100}
+\matrix{listeeccp=wims(append item \totp to \listeeccp)}
+\integer{me=(\listeeccp[\yy]<50)?\cc[\yy+1]}
+}
+
+\integer{totpsc=\don[2;1]/\totalsc*100}
+\matrix{listeeccpsc=\totpsc}
+\for{yy=1 to \nsc}{\integer{totpsc=\totpsc+\don[2;(\yy+1)]/\totalsc*100}
+\matrix{listeeccpsc=wims(append item \totpsc to \listeeccpsc)}
+\integer{mesc=(\listeeccpsc[\yy]<50)?\cc[\yy+1]}
+}
+
+\integer{zz=\produitsc/\totalsc*100}
+\real{zzz=\zz/100}
+
+\integer{moyee=\produit/\total*100}
+\real{moye=\moyee/100}
+
+\statement{
+<div class="encadre">
+<p class="problematique">Comment sont répartis les salaires dans deux entreprises ?</p>
+<div class="wimscenter">\flash</div>
+Dans une entreprise classique, les salaires versés aux employés sont répartis de la manière
+ suivante :
+<ul><li>\don[1;1] employés sont en contrat aidé avec un salaire compris entre &#91; 0 ; 1 000 &#91;</li>
+<li>\don[1;2] employés sont au Smic avec un salaire compris entre &#91; 1 000 ; 2 000 &#91;</li>
+<li>\don[1;3] cadres dont les salaires fluctuent entre &#91; 2 000 ; 3000 &#91;</li>
+<li>\don[1;4] commerciaux ont un salaire variant de &#91; 3 000 ; 4 000 &#91; selon les mois.</li>
+<li>\don[1;5] cadres supérieurs ont un salaire compris entre &#91; 4 000 ; 5 000 &#91;</li>
+<li>\don[1;10] cadres dirigeants avec un salaire variant de &#91;9 000 ; 10 000 &#91;</li></ul>
+Dans une entreprise coopérative et participative (SCOP) où chaque employé possède une partie
+ des parts de l'entreprise, les salaires versés aux employés sont répartis de la manière
+ suivante :
+<ul><li>\don[2;1] employés sont en contrat aidé avec un salaire compris entre &#91; 0 ; 1 000 &#91;</li>
+<li>\don[2;2] employés sont au Smic avec un salaire compris entre &#91; 1 000 ; 2 000 &#91;</li>
+<li>\don[2;3] employés dont les salaires fluctuent entre &#91; 2 000 ; 3000 &#91;</li>
+<li>\don[2;4] cadres supérieurs ont un salaire variant de &#91; 3 000 ; 4 000 &#91;</li></ul>
+
+<div class="question">
+Compléter les tableaux relatifs aux <b>entreprises</b>.
+<ul class="conteneur-onglets">
+<li class="inactif onglet" id="affiche-contenu-1" onclick="javascript:Affiche('1');">ENTREPRISE</li>
+<li class="inactif onglet" id="affiche-contenu-2" onclick="javascript:Affiche('2');">SCOP</li>
+</ul>
+
+<div class="contenu" id="contenu_1">
+<table class="wimscenter wimsborder">
+<tr>
+<th>Montant des salaires <br> Répartis en classes</th>
+<th>Effectifs<br>n<sub>i</sub></th>
+<th>Centre de classe<br>x<sub>i</sub></th>
+<th>Produit<br>n<sub>i</sub>x<sub>i</sub></th>
+<th>ECC</th>
+<th>ECC en %</th>
+</tr>
+\for{jj=1 to 10}{
+<tr>
+<td><span style="font-size: 10px">&#91; \inte[\jj];\inte[\jj+1] &#91;</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+10, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+20, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+30, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+40, 4}</span></td>
+</tr>}
+<tr><td><b>Total = \(\sum)</b></td><td>\embed{reply51, 4}</td><td></td><td>\embed{reply52, 4}</td><td></td><td></td></tr>
+</table>
+</div>
+
+<div class="contenu" id="contenu_2">
+<table class="wimscenter wimsborder">
+<tr>
+<th>Montant des salaires <br> Répartis en classes</th>
+<th>Effectifs<br>n<sub>i</sub></th>
+<th>Centre de classe<br>x<sub>i</sub></th>
+<th>Produit<br>n<sub>i</sub>x<sub>i</sub></th>
+<th>ECC</th>
+<th>ECC en %</th>
+</tr>
+\for{jj=1 to 4}{
+<tr>
+<td><span style="font-size: 10px">&#91; \inte[\jj];\inte[\jj+1] &#91;</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+52, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+56, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+60, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+64, 4}</span></td>
+<td><span style="font-size: 10px">\embed{reply\jj+68, 4}</span></td>
+</tr>}
+<tr><td><b>Total = \(\sum)</b></td><td>\embed{reply73, 4}</td><td></td><td>\embed{reply74, 4}</td><td></td><td></td></tr>
+</table>
+
+</div>
+
+<script>
+Affiche('1');
+</script>
+
+<br>
+<br>
+<table class="wimscenter wimsborder">
+<tr><th></th>
+<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ENTREPRISE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SCOP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th></tr>
+<tr><th>Moyenne</th><td>\(\bar{x}=)\embed{reply75, 4}</td><td>\(\bar{x}=)\embed{reply76, 4}</td></tr>
+<tr><th>Médiane</th><td>\embed{reply77, 4}</td><td>\embed{reply78, 4}</td></tr>
+</table>
+Quel est l'indicateur qui vous semble le plus pertinent pour évaluer la répartition des salaires ?
+<ul>
+\for{h = 1 to 2}{<li>\embed{reply79,\h}</li>}
+</ul>
+</div>
+</div>}
+
+\answer{}{\don[1;1]}{type=numeric}
+\answer{}{\don[1;2]}{type=numeric}
+\answer{}{\don[1;3]}{type=numeric}
+\answer{}{\don[1;4]}{type=numeric}
+\answer{}{\don[1;5]}{type=numeric}
+\answer{}{\don[1;6]}{type=numeric}
+\answer{}{\don[1;7]}{type=numeric}
+\answer{}{\don[1;8]}{type=numeric}
+\answer{}{\don[1;9]}{type=numeric}
+\answer{}{\don[1;10]}{type=numeric}
+
+\answer{}{\cc[1]}{type=numeric}
+\answer{}{\cc[2]}{type=numeric}
+\answer{}{\cc[3]}{type=numeric}
+\answer{}{\cc[4]}{type=numeric}
+\answer{}{\cc[5]}{type=numeric}
+\answer{}{\cc[6]}{type=numeric}
+\answer{}{\cc[7]}{type=numeric}
+\answer{}{\cc[8]}{type=numeric}
+\answer{}{\cc[9]}{type=numeric}
+\answer{}{\cc[10]}{type=numeric}
+
+\answer{}{\listproduit[1]}{type=numeric}
+\answer{}{\listproduit[2]}{type=numeric}
+\answer{}{\listproduit[3]}{type=numeric}
+\answer{}{\listproduit[4]}{type=numeric}
+\answer{}{\listproduit[5]}{type=numeric}
+\answer{}{\listproduit[6]}{type=numeric}
+\answer{}{\listproduit[7]}{type=numeric}
+\answer{}{\listproduit[8]}{type=numeric}
+\answer{}{\listproduit[9]}{type=numeric}
+\answer{}{\listproduit[10]}{type=numeric}
+
+\answer{}{\listeecc[1]}{type=numeric}
+\answer{}{\listeecc[2]}{type=numeric}
+\answer{}{\listeecc[3]}{type=numeric}
+\answer{}{\listeecc[4]}{type=numeric}
+\answer{}{\listeecc[5]}{type=numeric}
+\answer{}{\listeecc[6]}{type=numeric}
+\answer{}{\listeecc[7]}{type=numeric}
+\answer{}{\listeecc[8]}{type=numeric}
+\answer{}{\listeecc[9]}{type=numeric}
+\answer{}{\listeecc[10]}{type=numeric}
+
+\answer{}{\listeeccp[1]}{type=numeric}
+\answer{}{\listeeccp[2]}{type=numeric}
+\answer{}{\listeeccp[3]}{type=numeric}
+\answer{}{\listeeccp[4]}{type=numeric}
+\answer{}{\listeeccp[5]}{type=numeric}
+\answer{}{\listeeccp[6]}{type=numeric}
+\answer{}{\listeeccp[7]}{type=numeric}
+\answer{}{\listeeccp[8]}{type=numeric}
+\answer{}{\listeeccp[9]}{type=numeric}
+\answer{}{\listeeccp[10]}{type=numeric}
+
+\answer{}{\total}{type=numeric}
+\answer{}{\produit}{type=numeric}
+
+\answer{}{\don[2;1]}{type=numeric}
+\answer{}{\don[2;2]}{type=numeric}
+\answer{}{\don[2;3]}{type=numeric}
+\answer{}{\don[2;4]}{type=numeric}
+
+\answer{}{\cc[1]}{type=numeric}
+\answer{}{\cc[2]}{type=numeric}
+\answer{}{\cc[3]}{type=numeric}
+\answer{}{\cc[4]}{type=numeric}
+
+\answer{}{\listproduitsc[1]}{type=numeric}
+\answer{}{\listproduitsc[2]}{type=numeric}
+\answer{}{\listproduitsc[3]}{type=numeric}
+\answer{}{\listproduitsc[4]}{type=numeric}
+
+\answer{}{\listeeccsc[1]}{type=numeric}
+\answer{}{\listeeccsc[2]}{type=numeric}
+\answer{}{\listeeccsc[3]}{type=numeric}
+\answer{}{\listeeccsc[4]}{type=numeric}
+
+\answer{}{\listeeccpsc[1]}{type=numeric}
+\answer{}{\listeeccpsc[2]}{type=numeric}
+\answer{}{\listeeccpsc[3]}{type=numeric}
+\answer{}{\listeeccpsc[4]}{type=numeric}
+
+\answer{}{\totalsc}{type=numeric}
+\answer{}{\produitsc}{type=numeric}
+
+\answer{}{\produit/\total}{type=numeric}
+\answer{}{\zzz}{type=numeric}
+
+\answer{}{\me}{type=numeric}
+\answer{}{\mesc}{type=numeric}
+
+\answer{}{2;La moyenne,la médiane}{type=radio}{option=shuffle split nonstop}

@@ -1,0 +1,188 @@
+# kijkt var1-lijnen na [via geogebra]
+# answer$n=rc1,const1,rc2,const2,rc3,const3, ... ,rc_$var1,const_$var1
+
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+wims_compare_precision=1000
+#    tot=totalobject_count + ',' + \
+#    point_count + ',' + \
+#    circle_count + ',' + \
+#    line_count + ',' + \
+#    segment_count + ',' + \
+#    polygon_count + ',' + \
+#    conic_count + ',' + \
+#    ellipse_count + ',' + \
+#    hyperbola_count + ',' + \
+#    angle_count + ',' + \
+#    vector_count + ',' + \
+#    function_count + ',' + \
+#    polynomial_count + ',' + \
+#    text_count + ',' + tot;
+#3,0,0,3,0,0,0,0,0,0,0,0,0,0,line@a@(-1*(2.521)/(-8.296))@( -14.8)/(-8.296),line@b@(-1*(2.246)/(-7.792))@( -44.183)/(-7.792),line@c@(-1*(1.925)/(-7.975))@( -65.804)/(-7.975),
+tot=!itemcnt $(reply$n)
+
+!if $tot>50
+    maxscore=$[$P3*$maxscore]
+    errortext=Hmmmm....
+    #@ leuk he, dat GeoGebra...<br />Het heeft een GNU licencie<br />Je kunt het dus gewoon gratis downloaden<br />en <b>thuis</b> installeren (java 1.4) en net zoveel prutsen als je wilt<br />Maar NU weer gewoon serieus aan het werk met de opgave!!
+    goback=1
+    !exit
+!endif
+
+AAA=!item 15 to -1 of $(reply$n)
+AAA=!replace internal @ by , in $AAA
+acnt=!itemcnt $AAA
+linecnt=!item 4 of $(reply$n)
+
+!if $linecnt != $var1
+    ex=!record 89 of lang/remarks.$taal
+    #@Je hebt $linecnt lijn(en) getekend...<br />Dat moesten er $var1 zijn !
+    !if $teaching=1
+	maxscore=$[$P5*$maxscore]
+	errortext=$ex
+	goback=1
+	!exit
+    !else
+	!if $var1>$linecnt
+	    maxscore=$[$maxscore*$linecnt/$var1]
+	!else
+	    maxscore=$[$maxscore*$linecnt/$var1]
+	!endif
+	extra=$ex
+    !endif
+!endif
+
+rep=$empty
+ta=!itemcnt $(answer$n)
+# dus $[$var1*2]
+ct=0
+!for s=1 to $acnt step 4
+    L=!item $s to $[$s+3] of $AAA
+    !if $L != $empty
+	!increase ct
+	found=0
+	rc2=!item -2 of $L
+	const2=!item -1 of $L
+	!if $rc2=perp
+	    rc21=10000000
+	    const21=10000
+	    rc22=10000000
+	    const22=10000
+	!else
+	    rc21=$[(round(100*($rc2)))/100]
+	    const21=$[(round(100*($const2)))/100]
+	    rc22=$[(round(10*($rc2)))/100]
+	    const22=$[(round(10*($const2)))/100]
+	!endif
+	ex=$empty
+	temp1=$empty
+	temp2=$empty
+	!for p=1 to $ta  step 2
+	    !if $found=0
+		# loop through the correct set of rc/const values
+	        rc1=!item $p of $(answer$n)
+		const1=!item $[$p+1] of $(answer$n)
+	        rc11=$[(round(100*$rc1))/100]
+		const11=$[(round(100*$const1))/100]
+	        rc12=$[(round(10*$rc1))/100]
+		const12=$[(round(10*$const1))/100]
+	        temp1=!append item $rc11,$const11 to $temp1
+		temp2=!append item $rc12,$const12 to $temp2
+		ex=$empty
+		!ifval $rc11=$rc21 and $const11=$const21
+		    !increase score
+		    found=1
+		    k=green
+		!else
+		    !ifval $rc12=$rc22 and $const12=$const22
+			ex=!record 90 of lang/remarks.$taal
+			#@een beetje slordig getekend
+			score=$[$score+0.7]
+			found=1
+			k=orange
+		    !endif
+		!endif
+	    !endif
+	!next p
+	!if $found=1
+	    rep=!append word $ <li><span style="color:$k">y = $[$rc2]*x + $[$const2]</span> $ex </li> $ to $rep
+	!else
+	    # the correct line was not found...
+	    # check if maybe the rc2 or const2 is fine?
+	    cc=!itemcnt $temp
+	    !for p=1 to $cc step 2
+		!if $found=0
+		    rc11=!item $p of $temp1
+		    const11=!item $[$p+1] of $temp1
+		    !ifval $rc11 = $rc21
+			score=$[$score + 0.5]
+		        ex=!record 91 of lang/remarks.$taal
+			#@je hebt de richtings co&euml;fficient wel goed
+			rep=!append word $ <li><span style="color:red">y = </span><span style="color:green">$[$rc2]</span>*x<span style="color:red"> + $[$const2]</span> $ex </li> $ to $rep
+		        found=1
+		    !else
+			!ifval $const11 = $const21
+			    found=1
+			    score=$[$score + 0.5]
+			    ex=!record 92 of lang/remarks.$taal
+			    #@je hebt de constante wel goed
+			    rep=!append word $ <li><span style="color:red">y = $[$rc2]*x</span><span style="color:green"> + $[$const2]</span> $ex </li> $ to $rep
+			!endif
+		    !endif
+		    !if $found=0
+			rc12=!item $p of $temp2
+		        const12=!item $[$p+1] of $temp2
+			!ifval $rc12 = $rc22
+			    score=$[$score + 0.5]
+		    	    ex=!record 93 of lang/remarks.$taal
+			    #@Slordig getekend,maar je hebt de richtings co&euml;fficient wel redelijk goed
+			    rep=!append word $ <li><span style="color:red">y = </span><span style="color:green">$[$rc2]</span>*x<span style="color:red"> + $[$const2]</span> $ex </li> $ to $rep
+		    	    found=1
+			!else
+			    !ifval $const12 = $const22
+				found=1
+				score=$[$score + 0.5]
+				ex=!record 94 of lang/remarks.$taal
+				#@Slordig getekend, maar je hebt de constante wel redelijk goed
+				rep=!append word $ <li><span style="color:red">y = $[$rc2]*x</span><span style="color:green"> + $[$const2]</span> $ex </li> $ to $rep
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !next p
+	    !if $found=0
+		rep=!append word $ <li><span style="color:red">y = $[$rc2]*x + $[$const2]</span> $ex </li> $ to $rep
+	    !endif
+	!endif
+    !endif
+!next s
+
+reply$n=<ol>$rep</ol>
+maxscore=$[$maxscore*$score/$ct]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra !=$empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+goback=0
+!exit

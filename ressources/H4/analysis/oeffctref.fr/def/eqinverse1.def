@@ -1,0 +1,323 @@
+!set title=Résolution graphique et hyperbole
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=71
+prevarcnt=70
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+tmp0=!randitem 2,2,2,2,2,1,1,1,0,0
+
+val7=$[rint($(tmp0))]
+val8=Aucune solution, une solution, deux solutions, une infinité de solutions
+!if $val7=0 
+tmp0=!randint 1, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val9*($val9+$val10))]
+tmp0=!randitem 1,-1
+
+val12=$[rint($val9*$(tmp0))]
+val13=$[rint($val12)]
+val9=$[rint($val9+$val10)]
+val14=$[rint($val9)]
+
+!ifval $val12>0
+val15=+
+!else
+val15=-
+!endif
+
+!ifval $val12<0
+val12=$[rint($val12*(-1))]
+!endif
+
+!ifval $val9>0
+val16=+
+!else
+val16=-
+!endif
+
+!ifval $val9<0
+val9=$[rint($val9*(-1))]
+!endif
+val17=$val11 x 
+tmp=!translate ";': to $     $ in $val11 / $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val18=!exec pari print($t_)
+val19=-$val18 * x 
+!if $val12 !=0 
+tmp=!translate ";': to $     $ in  $val12 / $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+val17=$val17 $val15 $val12  
+
+!ifval $val13>0
+val19=$val19 - $val20
+!else
+val19=$val19 + $val20
+!endif
+!endif
+val17=$val17 $val16 \frac{$val9}{x} 
+val17=$val17=0
+tmp0=!replace * by in $val19
+
+val21=$(tmp0)
+val22=$[rint(1)]
+val23=r1	r2	
+!else
+tmp0=!values x for x = 1 to 4
+
+tmp1=!values -x for x=1 to 4
+
+val24=$(tmp0),$(tmp1)
+tmp0=!shuffle $val24
+
+val24=$(tmp0)
+t_=!rawmath $(val24[1])
+val25=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val26=$[rint($(tmp0))]
+val27=$[rint($val25)]
+t_=!rawmath $val25/$val26
+val25=!exec pari print($t_)
+!if $val7=1 
+t_=!rawmath $val25
+val28=!exec pari print($t_)
+val29=$[rint($val26)]
+val30=$[rint($val27)]
+val22=$[rint(2)]
+val31=$val25
+!else
+t_=!rawmath $(val24[2])
+val28=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val29=$[rint($(tmp0))]
+val30=$[rint($val28)]
+t_=!rawmath $val28/$val29
+val28=!exec pari print($t_)
+val22=$[rint(3)]
+!if $val25=$val28 
+val7=$[rint(1)]
+val22=$[rint(2)]
+val31=$val25
+!else
+val31=$val25,$val28
+!endif
+!endif
+val32=!rawmath $val26*$val29*(x- ($val25))*(x-($val28))
+val11=$[rint($val26*$val29)]
+val12=$[rint(-$val11*(($val25)+($val28)))]
+val20=$[rint($val12)]
+
+!ifval $val12>0
+val15=+
+!else
+val15=-
+!endif
+
+!ifval $val12<0
+val12=$[rint($val12*(-1))]
+!endif
+val9=$[rint($val11*($val25)*($val28))]
+val33=$[rint($val9)]
+
+!ifval $val9>0
+val16=+
+!else
+val16=-
+!endif
+
+!ifval $val9<0
+val9=$[rint($val9*(-1))]
+!endif
+
+!ifval $val11=1
+val17=x
+!else
+val17= $val11 x 
+!endif
+!if $val12 !=0 
+val17=$val17 $val15 $val12 
+!endif
+!if $val9 !=0 
+val17=$val17 $val16 \frac{$val9}{x} 
+!endif
+val17=$val17=0
+
+!ifval $val33>0
+val34=-
+!else
+val34=
+!endif
+val35=$[rint($val20*$val33)]
+
+!ifval $val35>0
+val15=-
+!else
+val15=+
+!endif
+tmp=!translate ";': to $     $ in $val34 $val11*x / ($val9) $val15 ($val12) / ($val9)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=!rawmath $(tmp0)
+val21=$val19
+tmp0=!replace * by in $val21
+
+val21=$(tmp0)
+val23=r1	r2	r3
+!endif
+val36=xrange -5,5	yrange -5,5	gridfill 0,0,5,5,$val6	linewidth 1	linewidth 2	  parallel -5,-5,-5,5,1,0,11,blue	  parallel -5,-5,5,-5,0,1,11,blue	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	    linewidth 2	    plot red,1/x	
+val37=$val36	    plot green,$val19	
+!if $val7>1 
+val38=les solutions de l'équation (séparées par une virgule)
+!else
+val38=la solution de l'équation
+!endif
+dynsteps=yes
+oefsteps=$val23 
+nextstep=!nosubst $val23 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=g(x)
+replygood1=$val19
+replytype2=radio
+replyname2=nb solutions
+replygood2=$val22;$val8
+replytype3=fset
+replyname3=solution
+replygood3=$val31
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	On veut résoudre graphiquement dans 
+!insmath \ \RR
+$() l'équation </p>	<div class="wimscenter">
+!insmath $val17
+$().</div>		
+!if $m_step=1 
+$()	<p>On dispose pour cela de la représentation graphique de la fonction	inverse de référence 
+!insmath f(x)=\frac{1}{x}
+$().</p>	<div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val36 
+$()</div>	<p>On se propose de tracer sur le même dessin la représentation graphique d'une	fonction affine judicieusement choisie.</p>	<p>Indiquer l'expression algébrique de cette fonction:</p>	<div class="wimscenter">
+!insmath g(x)=
+$() 
+!read oef/embed.phtml reply 1,10 
+$()</div>	 
+!else
+$()	 	On dispose maintenant des représentations graphiques des fonctions </p>	<div class="wimscenter"><font color="red">
+!insmath f
+$()</font>, avec 
+!insmath f(x)=\frac{1}{x}
+$()	 et <font color="green">
+!insmath g
+$()</font>, avec 
+!insmath g(x)=
+$()$val21.</div>	<div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val37 
+$()</div>	
+!if $m_step=2 
+$()	<p>   Combien de solutions possède l'équation :</p>	<div class="wimscenter"> 
+!insmath $val17
+$():</div>	<ul>	<li> 
+!read oef/embed.phtml reply 2,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,3 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,4 
+$()</li>	</ul>	   
+!else
+$()	   
+!if $val7>0 
+$()	  Indiquer $val38 :	<div class="wimscenter"> 
+!insmath S=
+$() 
+!read oef/embed.phtml reply3,5 
+$()</div>	<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5.</div>	   
+!endif
+$()	   
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,17,21,36,37,38
+embedcnt=6

@@ -1,0 +1,61 @@
+# vreemdvermogen
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+inputs=no
+questiontype=7
+javascript=js/exo16.js
+var1=yes
+checkfile=$checkdir/number.proc
+
+num=!randitem 78,79
+
+jaar=!randint 10,15
+jaar=$[2*$jaar]
+aflossing=!randint 5,9
+aflossing=$[1000*$aflossing]
+lening=$[$aflossing*$jaar]
+perc1=!randint 40,80
+perc1=$[$perc1/10]
+perc2=!randint 10,17
+perc2=$[2*$perc2]
+
+namen=!record $num of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+ss=$naam sluit een lineaire hypotheek af.<br />\
+De lening bedraagt &euro; $lening .De looptijd is $jaar jaar.<br />\
+Bereken de ontbrekende waarden (op jaarbasis) in de tabel.<p>
+
+interest=$[$lening*$perc1/100]
+belastingvoordeel=$[$interest*$perc2/100]
+nettomaandlast=$[(round(100*($aflossing + $interest - $belastingvoordeel)/12))/100]
+answer$n=$aflossing,$interest,$belastingvoordeel,$nettomaandlast
+c=0
+
+var2=Aflossing,Interest,Belastingvoordeel,Netto maandlast
+tabel=<table style="border-width:1px;border-style:outset"><tr><th>Schuld 1 januari</th><th>Aflossing</th><th>Interest $perc1 %</th><th>Belastingvoordeel</th><th>Netto maandlast</th></tr><td style="text-align:center;font-size:18px;border:0px;background-color:lightgreen">$lening</td>
+ans_tabel=$tabel
+
+!for p=1 to 4
+    ans=!item $p of $(answer$n) 
+    input = <input type="text" name="myinput$c" id="myinput$c" size="10" style="text-align:center;font-size:18px;border:0px;background-color:orange" value=""/> 
+    input_ans = <input type="text" name="myinput$c" id="myinput$c" size="10" style="font-size:18px;border:0px;background-color:lightgreen" value="&euro; $ans" readonly="readonly"/> 
+    !increase c
+    tabel=!append word <td nowrap="nowrap" align=center bgcolor=orange>&euro; $input</td> to $tabel
+    ans_tabel=!append word <td align=center>$input_ans</td> to $ans_tabel
+!next p
+tabel=!append word </table> to $tabel
+ans_tabel=!append word </table> to $ans_tabel
+roundingtext=Rond je antwoord af op hele &euro;&rsquo;s
+rounding=1
+question$n =<a onmouseover="return escape('$roundingtext')">$ss </a>
+exotext=<form name="myform1"  id="myform1" action="">$tabel</form>
+helptext=<a onmouseover="return escape('')"><img src="$gifdir/tip.jpg" alt="tip" /></a>
+textanswer$n=$ans_tabel
+

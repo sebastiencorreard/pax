@@ -1,0 +1,120 @@
+# reply$n is lijst ; javascript checkt op onzin
+# correcte antwoord is:
+# veranderd is items uit answer$n:                                                                                                                    
+# var1=4,5,6,8,9,15                                                                                                                  
+#answer$n=$gebouw,$inventaris,$transport,$[$voorraad-$voor],$[$debiteuren+$deb],$[$kas+$contant],$rabobank,$[$Atotaal+$winst],$[$vermogen+$winst],$hypotheek,$lening,$crediteuren,$belasting,$ing,$[$Ptotaal+$winst] 
+# description=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,Activa Totaal,Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,Passiva Totaal 
+math=0
+goback=0
+errortext=$empty
+n=$counter
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+ta=!itemcnt $(answer$n)
+tg=!itemcnt $var1
+activa=0
+pasiva=0
+score=0
+!for p=1 to $ta
+    ex=$empty
+    rep=!item $p of $(reply$n)
+    ans=!item $p of $(answer$n)
+    desc=!item $p of $description
+    k1=black
+    !if $p<8
+	activa = $[$activa + $rep]
+    !endif
+    !if $p = 8 
+	suma=$rep
+    !endif
+    !if $p =15
+	sump=$rep
+    !endif
+    !if $p>8 and $p<15
+	pasiva = $[$pasiva + $rep]
+    !endif
+    !if $p isitemof $var1
+	real=1
+	k2=blue
+    !else
+	k2=black
+	real=0
+    !endif
+    !if ? isin $rep
+	extra=&nbsp;volgende keer beter...
+	k1=red
+    !else
+	!ifval $rep = $ans
+	    !if $p isitemof $var1
+		k1=green
+		score=$[$score+1]
+	    !endif
+	!else
+	    k1=red
+	    !if $real=1
+		!ifval $rep = $[-1*$ans]
+		    extra= <b>-1 &times; $ans ...</b>
+		!else
+		    found=0
+		    !for s in 1/1000,1/100,1/10,10,100,1000
+			!if $found = 0
+			    !if $rep = $[$s*$ans]
+				extra=Je zit er een factor $a naast :(
+				k=orange
+				score=$[$score+0.2]
+				found=1
+			    !endif
+			!endif
+		    !next s
+		!endif
+	    !else
+		ex=<em>nee, dit heeft hier niets mee te maken...</em>
+	    !endif
+	!endif	
+    !endif
+    your_reply=!append line $ <li><span style="color:$k2"><b>$desc :</b></span>&nbsp;<span style="color:$k1">$rep</span></li>$ex $ to $your_reply 
+!next p
+
+maxscore=$[$maxscore*$score/$tg]
+
+extra=$empty
+!if $activa != $pasiva
+    extra=Je <b>Activa</b> zijn &euro; $activa en je <b>Pasiva</b> zijn &euro; $pasiva !<br />Die moeten wel aan elkaar gelijk zijn op een balans...<br />Beter rekenen de volgende keer :)
+!else
+    !if $score <0.8
+	score=$[$score+0.1]
+	extra=Maar je activa en pasiva zijn aan elkaar gelijk !
+    !endif
+!endif
+!if $activa != $suma
+    ex=<br />De optelling van de Activa kolom is niet goed : $activa != $suma ...
+    extra=!append line $ex to $extra
+!endif
+!if $pasiva != $sump
+    ex=<br />De optelling van de Pasiva kolom is niet goed : $pasiva != $sump ...
+    extra=!append line $ex to $extra
+!endif
+
+    
+
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+reply$n=<ul>$your_reply<ul>$extra
+
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit

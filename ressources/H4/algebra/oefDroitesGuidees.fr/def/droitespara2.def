@@ -1,0 +1,286 @@
+!set title=Droites parallèles (par les vecteurs)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Frédéric, Pitoun; Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10
+
+ansorder=r,r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oefenv lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Solution
+val8=parallèles,non parallèles,colinéaires,non colinéaires
+val9=Abscisse, Ordonnée, Coefficient,Droites
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val12=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, 4
+
+val19=$[rint($(tmp0))]
+val20=$[rint($val10+$val14*$val18*(-1)^$val16)]
+val21=$[rint($val11+$val15*$val18*(-1)^$val16)]
+tmp0=!randitem 0,1,1,0,0,0
+
+val22=$[rint($(tmp0))]
+tmp0=!randitem 0,1,0,1,0,0
+
+val23=$[rint($(tmp0))]
+val24=$[rint($val12+$val14*$val19*(-1)^$val17+$val22)]
+val25=$[rint($val13+$val15*$val19*(-1)^$val17+$val23)]
+val26=$[rint(($val20-$val10))]
+val27=$[rint(($val21-$val11))]
+val28=$[rint(($val24-$val12))]
+val29=$[rint(($val25-$val13))]
+val30=$[rint($val26*$val29-$val27*$val28)]
+
+!ifval $val30==0
+t_=!rawmath $val28/$val26
+val31=!exec pari print($t_)
+!else
+t_=!rawmath 0
+val31=!exec pari print($t_)
+!endif
+t_=!rawmath $val28/$val26
+val32=!exec pari print($t_)
+
+!ifval $val27!=0
+t_=!rawmath $val29/$val27
+val18=!exec pari print($t_)
+!endif
+
+!ifval $val30==0
+val33=$[rint(1)]
+!else
+val33=$[rint(2)]
+!endif
+replytype1=default
+replyname1=$(val9[1]) x
+replygood1=$val26
+replytype2=default
+replyname2=$(val9[2]) y
+replygood2=$val27
+replytype3=default
+replyname3=$(val9[1]) x'
+replygood3=$val28
+replytype4=default
+replyname4=$(val9[2]) y'
+replygood4=$val29
+replytype5=default
+replyname5=$(val9[3]) k
+replygood5=$val31
+replytype6=menu
+replyoption6=shuffle 
+replyname6=$(val9[4])
+replygood6=$val33;$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">	Dans un repère 
+!insmath (O,\vec{i},\vec{j})
+$() donné du plan,	on considère les quatre points :	<div class="wimscenter">
+!insmath A( $val10 ; $val11 )
+$(), 
+!insmath B($val20 ; $val21)
+$(), 
+!insmath C( $val12 ; $val13)
+$(), 
+!insmath D( $val24 ; $val25)
+$()</div>	On se propose de déterminer si les droites 
+!insmath (A B)
+$() et 
+!insmath (C D)
+$() sont parallèles,	<b>par le calcul vectoriel</b>.	<ul><li>	Le vecteur 
+!insmath \overrightarrow{A B}
+$() a pour coordonnées :	<label for="reply1">
+!insmath x
+$() =</label>  
+!read oef/embed.phtml reply1,5 
+$() et	<label for="reply2">
+!insmath y
+$() =</label>  
+!read oef/embed.phtml reply2,5 
+$()	</li><li>	Le vecteur 
+!insmath \overrightarrow{C D}
+$() a pour coordonnées :	<label for="reply3">
+!insmath x'
+$() =  
+!read oef/embed.phtml reply3,5 
+$()</label>	et <label for="reply4">
+!insmath y'
+$() =</label>  
+!read oef/embed.phtml reply4,5 
+$()	</li><li>	Existe-t-il un réel 
+!insmath k
+$() tel que	
+!insmath \overrightarrow{C D} = k\overrightarrow{A B}
+$() ?	<br>	<b>Si <span style="color:green">oui, donnez la valeur exacte de	<span class="tt">k</span></span> ,	<span style="color:red">sinon, entrez la valeur 0 </span></b>:	<div class="wimscenter"><label for="reply5">
+!insmath k 
+$() =  
+!read oef/embed.phtml reply5,5 
+$() </label></div>	</li><li>	Les droites 
+!insmath (A B)
+$() et 
+!insmath (C D)
+$() sont donc  
+!read oef/embed.phtml reply6,10 
+$().	</li>	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()Montrer que les droites 
+!insmath (A B)
+$() et 
+!insmath (C D)
+$() sont parallèles, équivaut à montrer que	les vecteurs 
+!insmath \overrightarrow{A B}
+$() et 
+!insmath \overrightarrow{C D}
+$() sont colinéaires.	<br>	Les vecteurs 
+!insmath \overrightarrow{A B}
+$() et 
+!insmath \overrightarrow{C D}
+$() sont colinéaires si et seulement si il existe un réel 
+!insmath k
+$() tel que	
+!insmath \overrightarrow{C D} = k\overrightarrow{C D}
+$().	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 0==0
+ <div class='oef_feedbacks'>	<h2 class="small">$val7</h2>	Les vecteurs 
+!insmath \overrightarrow{A B}
+$() et 
+!insmath \overrightarrow{C D}
+$() ont pour coordonnées respectives :	
+!insmath \overrightarrow{A B}\left(\begin{array}{c} x=$val26 \\ y=$val27 \end{array}\right)
+$() et	
+!insmath \overrightarrow{C D}\left(\begin{array}{c} x'=$val28 \\ y'=$val29 \end{array}\right)
+$().</p>	<p>Critère de colinéarité :	 <div class="wimscenter">	
+!insmath  \overrightarrow{A B} =k\overrightarrow{C D} \Longleftrightarrow	\left|\begin{array}{c} x' = kx \\ y' = ky \end{array}\right.
+$()	
+!if $val27!=0 
+$()	
+!insmath \Longleftrightarrow	\left|\begin{array}{c} k = \frac{$val28}{$val26} = $val32 \\ k = \frac{$val29}{$val27} = $val18 \end{array}\right.
+$() 
+!else
+$()	 
+!insmath \Longleftrightarrow	\left|\begin{array}{c} k = \frac{$val28}{$val26} = $val32 \\ $val29=k\times$val27 \end{array}\right.
+$() 
+!endif
+$()	</div>	
+!if $val33==1 
+$()Le système admet une solution : 
+!insmath k = $val31
+$(). 
+!else
+$() Le système n'admet aucune solution. 
+!endif
+$()	</p>	<p>Donc les vecteurs 
+!insmath \overrightarrow{A B}
+$() et 
+!insmath \overrightarrow{C D}
+$()	
+!if $val33==1 
+$()sont 
+!else
+$() ne sont pas 
+!endif
+$() colinéaires et les droites 
+!insmath (A B)
+$() et 
+!insmath (C D)
+$()
+!if $val33==0 
+$()sont donc 
+!else
+$() ne sont donc pas 
+!endif
+$() parallèles.	</p>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,13,18,20,21,24,25,26,27,28,29,31,32,33
+embedcnt=6

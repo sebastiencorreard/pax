@@ -1,0 +1,136 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# bij deze checkfile kijken we een gwewoon getal na
+# er mag geen x= of 2x/4 in voorkomen
+n=$counter
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+leeg=!wordcnt $(reply$n)
+!if $leeg=0
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!else
+    !if $wordmax = $empty
+        wordmax=10
+    !endif
+    !if $leeg > $wordmax
+        errortext=!record 48 of $remarkdir/commonremarks.$taal
+        maxscore=$[$P3*$maxscore]
+        goback=1
+        !exit
+    !endif
+!endif
+
+AAA=!nospace $(reply$n)
+
+!for p in $varlist
+    t=!nospace $p =
+    test=!replace internal $t by @ in $AAA
+    !if @ isin $test
+	ex=!record 34 of lang/remarks.$taal
+	#@Nee, het antwoord kan natuurlijk nooit in de vorm <em>$p = huppeldepup</em> zijn...
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+	    maxscore=$[$P7*$maxscore]
+	!else
+	    remark$n=$ex
+	    maxscore=0 $NOK
+	    goback=0
+	!endif
+     !exit
+    !endif
+    !if $p isin $AAA
+	ex=!record 33 of lang/remarks.$taal
+	#@Denk nog eens even goed na...<br />Kan de variabele <em>$p</em> niet worden ge&euml;limineerd ??
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$P7*$maxscore]
+	    goback=1
+	!else
+	    remark$n=$ex $NOK
+	    maxscore=0
+	    goback=0
+	!endif
+	!exit    
+    !endif
+!next p
+
+AAA=!rawmath $AAA
+!for p in a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+    !if $p isvariableof $AAA
+	ex=!record 32 of lang/remarks.$taal
+	#@Nee, de variabele $p komt in de som niet voor...
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+	    maxscore=$[$P7*$maxscore]
+	!else
+	    remark$n=$ex
+	    maxscore=0 $NOK
+	    goback=0
+	!endif
+     !exit
+    !endif
+!next p
+
+test=!replace [a-z]= by @ in $AAA
+!if @ isin $test
+    ex=!record 30 of lang/remarks.$taal
+    #@Nee, je moest de uitdrukking vereenvoudigen en zeker niet proberen uit te rekenen
+    !if $teaching=1
+	errortext=$ex
+	goback=1
+	maxscore=$[$P7*$maxscore]
+    !else
+	remark$n=$ex
+	maxscore=0 $NOK
+	goback=0
+    !endif
+ !exit
+!endif
+
+AAA=!replace [a-z\`\!\"\$\%\&\_\=\#\~\'\:\;] by $empty in $AAA
+test=$[1*($AAA)]
+!if NaN isin $test
+    maxscore=$[$P4*$maxscore]
+    errortext=!record 39 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit   
+!endif
+
+# nieuwe check met pari 17/1/2008
+test=!exec pari if( abs( (1.0*($AAA)) - (1.0*($(answer$n))))<10^-15 , 1,0)
+score=0
+!if $test=1
+    score=1
+!else
+    !ifval $[round(1000*$AAA)]=$[round(1000*$(answer$n))]
+	score=0.5
+    !endif
+!endif
+    
+maxscore=$[$score*$maxscore]
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+        remark$n=$BOK
+    !else
+        remark$n=$NOK
+    !endif
+!endif
+modulescore=$[$modulescore + $maxscore]
+!exit

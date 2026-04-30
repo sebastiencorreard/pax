@@ -1,0 +1,120 @@
+n=$counter
+questiontype=1
+checkfile=$checkdir/multiplechoice.proc
+mathview=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+insplot_data=$empty
+!if $options<3 or $options>8
+    options=4
+!endif
+make_tr=1
+choice=!randint 1,$options
+answer$n=$choice
+ss=!record 21 of lang/remarks.$taal
+#@ Welke toenametabel komt overeen met het getoonde grafiek ?
+etext=!record 22 of lang/remarks.$taal
+#@<span style="color:blue">Klik hier</span> voor de grafiek <em>(gebruikt een java applet)</em>
+image=0
+math=0
+xmin=0
+xmax=6
+delta=1
+!if $R=1 or $R=2
+    # met JCM applet als functionplotter
+    sometext=!record 7 of lang/remarks.$taal
+    #@ De tabel is gemaakt met deze functie
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    b=!randitem 0,1,2,3,4,5
+    r=!randitem -1,1
+    pm=!randitem -,+
+    !for p=1 to $options
+	Y$p=$empty
+	a=!item $p of $aa
+	a=$[$a*$r]
+	!if $R=1
+	    f=$a*x $pm $b
+	!else
+	    f=$a*x^2 $pm $b
+	!endif
+	!if $p=$choice
+	    plotfunctie=$f
+	!endif
+	!for s=$xmin to $xmax
+	    y=!evalsubst x=$s in $f
+	    Y$p=!append item $y to $(Y$p)
+	!next s
+    !next p
+
+    !for p=1 to $options
+	ex$p=$empty
+	xtabel=$empty
+	ytabel=$empty
+	!for s=1 to $[$xmax-1]
+	    y1=!item $s of $(Y$p)
+	    y2=!item $[$s+1] of $(Y$p)
+	    xtabel=!append line <td>$s</td> to $xtabel
+	    ytabel=!append line <td>$[$y2-$y1]</td> to $ytabel
+	!next s
+	ex$p=<table class="grid_table"><tr><th>x</th>$xtabel</tr><tr><th>$m_Delta y</th>$ytabel</tr></table>
+    !next p
+    niceplot=!htmlmath f(x)=$plotfunctie
+    textanswer$n=<ul><li>$(ex$choice)</li><li>$sometext<br />$niceplot</li></ul>
+    obj=<object width=\'420\' height=\'310\' classid=\'java:SimpleGraph.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'jcm1.0-config.jar\' /><param name=\'java_code\' value=\'SimpleGraph.class\' /><param name=\'UseFunctionInput\' value=\'no\' /><param name=\'UseGrid\' value=\'yes\' /><param name=\'Function\' value=\'$plotfunctie\' /><param name=\'PanelBackground\' value=\'255;255;224\' /><param name=\'CanvasColor\' value=\'255;255;224\' /><param name=\'BackgroundColor\' value=\'255;255;224\' /></object>
+    question$n=<a onmouseover=" return escape('$obj')">$ss<br /><small>$etext</small></a>
+!endif
+!if $R>2
+    dataset=$empty
+    # met GNUplot als dataplotter
+    sometext=!record 8 of lang/remarks.$taal
+    #@ De tabel is gemaakt van deze randomdata
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    !for p=1 to $options
+	Y$p=$empty
+	!for x=$xmin to $xmax
+	    pm=!randitem +,-
+	    r=!randitem -1,1
+	    a=!randitem 1,2,3
+	    y=!item $p of $aa
+	    y=$[$r*$y $pm $a]
+	    Y$p=!append item $y to $(Y$p)
+	    !if $p=$choice
+		# de grafiek
+		# insplot_data=!append line $x $y to $insplot_data
+		dataset=!append word $x,$y; to $dataset
+		showx=!append line <td>$x</td> to $showx
+		showy=!append line <td>$y</td> to $showy
+	    !endif
+	!next x
+    !next p
+    !for p=1 to $options
+	ex$p=$empty
+	xtabel=$empty
+	ytabel=$empty
+	!for s=1 to $[$xmax-1]
+	    y1=!item $s of $(Y$p)
+	    y2=!item $[$s+1] of $(Y$p)
+	    xtabel=!append line <td>$s</td> to $xtabel
+	    ytabel=!append line <td>$[$y2-$y1]</td> to $ytabel
+	!next s
+	ex$p=<table class="grid_table"><tr><th>x</th>$xtabel</tr><tr><th>$m_Delta y</th>$ytabel</tr></table>
+    !next p
+    
+    #insplot_set=size 0.8,0.8; autoscale y ; border 3;zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ; ytics 1
+    #!insplot [$[$xmin-$delta] : $[$xmax+$delta]] insplot_data notitle  with lines lt 1
+    #exotext=<a href=javascript:showimage();>$exotext 
+    textanswer$n=$(ex$choice)<br />$sometext<br /><table class="grid_table"><tr><th>x</th>$showx</tr><tr><th>y</th>$showy</tr></table>
+    question$n=$ss
+    helptext=&nbsp;
+    applet=0
+    #object$n=<object width="680" height="320" classid="java:ptolemy.plot.PlotApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="Plot.jar" /><param name="java_code" value="ptolemy.plot.PlotApplet.class" /><param name="progressbar" value="true" /><param name="scriptable" value="false" /><param name="background" value="#ffffff" /><param name="name" value="WIMS PlotApplet" /><param name="data" value="TitleText:$empty;numsets:1;color:on;lines:on;marks:various;xticks:$empty;xlabel:x;ylabel:y ;grid :on;$dataset" />$nojava</object>
+    obj=<object width=\'680\' height=\'320\' classid=\'java:ptolemy.plot.PlotApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'Plot.jar\' /><param name=\'java_code\' value=\'ptolemy.plot.PlotApplet.class\' /><param name=\'progressbar\' value=\'true\' /><param name=\'scriptable\' value=\'false\' /><param name=\'background\' value=\'#ffffff\' /><param name=\'name\' value=\'WIMS PlotApplet\' /><param name=\'data\' value=\'TitleText:$empty;numsets:1;color:on;lines:on;marks:various;xticks:$empty;xlabel:x;ylabel:y ;grid :on;$dataset\' />$nojava</object>
+    question$n=<a onmouseover=" return escape('$obj')">$ss<br /><small>$etext</small></a>
+!endif
+
+
+
+    

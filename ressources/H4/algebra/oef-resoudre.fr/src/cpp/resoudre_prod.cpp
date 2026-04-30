@@ -1,0 +1,123 @@
+target=eq_prod
+
+\text{data=shuffle(2,3,4,5,6,7,8,9,0.2,1.4,2.5,3.7,0.05,4.5,1.25,7.75)}
+\if{\confparm1=Z}{
+ \text{data=shuffle(2,-3,4,-5,-6,7,-8,9,0.2,-1.4,2.5,-3.7,0.05,-4.5,1.25,-7.75)}
+}
+\if{\confparm1=Q}{
+ \text{data=shuffle(-1/2,1/3,-2/3,1/4,-3/4,1/5,-2/5,3/5,-4/5,1/6,-5/6,2,-3,4,-5,6)}
+}
+
+
+\precision{1000}
+\text{question=}
+\text{sol=}
+\text{solapprox=}
+\text{complement=}
+\text{solu=solution}
+\text{ac1=}
+\text{ac2=}
+\integer{nmax=2}
+\author{Paul, Byache}
+
+#if #TARGET(eq_prod)
+ \title{Equation produit.}
+ \text{solu=ensemble des solutions}
+ \text{ac1=&#123;}
+ \text{ac2=&#125;}
+ \text{complement=(l'inconnue est notée par une lettre, qui n'est pas forcément \(x)) }
+ \text{x=randitem(x,x,y,z,t)}
+ 
+
+ \for{k=1 to \nmax} {
+
+  //équations de la forme : (ax+b)(cx+d)=0
+  \text{complement=}
+  \rational{a=\data[4*(\k-1)+1]}
+  \rational{b=\data[4*(\k-1)+2]}
+  \rational{c=\data[4*(\k-1)+3]}
+  \rational{d=\data[4*(\k-1)+4]}
+  //dans la dernière, un facteur multiplicatif supplémentaire
+  \integer{parm= \k=3 ? random(2,3,4,5) : 1}
+  //dans la deuxième, a ou c vaut 1 et b ou d vaut 0
+  \if{\k=2}{
+    \integer{hasard=random(1,2)}
+    \integer{hasard2=random(1,2)}
+    \rational{a=\hasard=1 ? 1 : \a}
+    \rational{c=\hasard=2 ? 1 : \c}
+    \rational{b=\hasard2=1 ? 0 : \b}
+    \rational{d=\hasard2=2 ? 0 : \d}
+  }
+  \text{quest=\parm (\a*\x+\b)(\c*\x+\d)=0}
+  \text{quest=\b=0 ? \a*\x(\c*\x+\d)=0 : \quest}
+  \text{quest=\d=0 ? (\a*\x+\b)(\c*\x)=0 : \quest}
+  \text{quest=(\d=0 and \c=1) ? (\a*\x+\b)\x=0 : \quest}
+
+\if{\confparm1=Q}
+{
+  \rational{s1=-(\b)/(\a)}
+  \integer{sapprox1=\s1*1000}
+  \real{sapprox1=\sapprox1/1000}
+  \rational{s2=-(\d)/(\c)}
+  \integer{sapprox2=\s2*1000}
+  \real{sapprox2=\sapprox2/1000}
+}
+{ //si les coeff peuvent être décimaux, on calcule la valeur exacte en utilisant des fractions (non décimales)
+  \integer{num1=\b*100}
+  \integer{den1=\a*100}
+  \rational{s1=-(\num1)/(\den1)}
+  \integer{sapprox1=\s1*1000}
+  \real{sapprox1=\sapprox1/1000}
+  \integer{num2=\d*100}
+  \integer{den2=\c*100}
+  \rational{s2=-(\num2)/(\den2)}
+  \integer{sapprox2=\s2*1000}
+  \real{sapprox2=\sapprox2/1000}
+}
+  
+  \text{s= \s1 , \s2 }
+  \text{sapprox= \sapprox1 , \sapprox2 }
+  
+  \text{exemple=<table style="text-align:center;"><tr><td colspan=3>\((2*x+3)(4*x+5)=0)</td></tr><tr><td>\( 2*x+3=0)</td><td>ou</td><td>\(4*x+5=0)</td></tr><tr><td>\( 2*x=-3)</td><td> </td><td>\( 4*x=-5)</td></tr><tr><td>\( x=-3/2)</td><td> </td><td>\( x=-5/4)</td></tr><tr><td colspan=3>Ensemble des solutions : \(S)=&#123;\(-3/2 ; -5/4)&#125;</td></tr></table>}
+  \if{\confparm1=Z}{
+    \text{exemple=<table style="text-align:center;"><tr><td colspan=3>\((-2*x+3)(-4*x-5)=0)</td></tr><tr><td>\( -2*x+3=0)</td><td>ou</td><td>\( -4*x-5=0)</td></tr><tr><td>\( -2*x=-3)</td><td> </td><td>\( -4*x=5)</td></tr><tr><td>\( x=\frac{-3}{-2}=3/2)</td><td> </td><td>\( x=\frac{5}{-4}=-5/4)</td></tr><tr><td colspan=3>Ensemble des solutions : \(S)=&#123;\(3/2 ; -5/4)&#125;</td></tr></table>}
+  }
+  \if{\confparm1=Q}{
+    \text{exemple=<table style="text-align:center;"><tr><td colspan=3>\((x/2+1/3)(4/5*x+5)=0)</td></tr><tr><td>\( x/2+1/3=0)</td><td>&nbsp;&nbsp;&nbsp;ou&nbsp;&nbsp;&nbsp;</td><td>\( 4/5*x+5=0)</td></tr><tr><td>\( x/2=-1/3)</td><td> </td><td>\( 4/5*x=-5)</td></tr><tr><td>\( x=-\frac{1}{3}\times 2=-\frac{2}{3})</td><td> </td><td>\( x=\frac{-5}{\frac{4}{5}}=-5 \times \frac{5}{4}=-\frac{25}{4})</td></tr><tr><td colspan=3>Ensemble des solutions : \(S)=&#123;\(-2/3 ; -25/4)&#125;</td></tr></table>}
+  }
+  
+  \text{question=wims(append item \quest to \question)}
+  \text{sol=wims(append item \s to \sol)}
+  \text{solapprox=wims(append item \sapprox to \solapprox)}
+ }
+
+#endif
+
+
+
+\statement{
+Résoudre \complement: 
+<ul>
+ <li> équation 1 : \(\question[1]). L'ensemble des solutions de cette équation est : \(S=)\embed{r1,5}</li> 
+ <li> équation 2 : \(\question[2]). L'ensemble des solutions de cette équation est : \(S=)\embed{r2,5}</li> 
+</ul>
+<div class="wims_instruction"> Si vous voulez voir un exemple, cliquer ci-dessous sur "Indication".
+<p>Donner la valeur exacte de la solution ou une valeur approchée à \(10^-3) près. </p>
+<p>Rédigez vos calculs sur une feuille de brouillon.</p>
+</div>
+}
+
+\answer{}{\sol[1],\sol[2]}{type=aset}{option=distinct_inputs,comma,absolute}
+\answer{}{\sol[3],\sol[4]}{type=aset}{option=distinct_inputs,comma,absolute}
+
+
+\solution{
+Voici les solutions : 
+<ul>
+\for{j=1 to \nmax}{
+ <li> \solu de l'équation \j : \ac1 \(\sol[(\j-1)*2+1],\sol[2*\j]) \ac2 ou alors : \ac1 \(\solapprox[(\j-1)*2+1],\solapprox[2*\j]) \ac2 </li>
+}
+</ul>
+}
+
+\hint{Voici un exemple :<br/>\exemple}

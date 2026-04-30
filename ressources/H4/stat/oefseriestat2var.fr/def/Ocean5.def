@@ -1,0 +1,178 @@
+!set title=1.5 (C4)Activité Formatrice
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=https://tube-sciences-technologies.apps.education.fr/download/videos
+val7=7.1,8.1,7.5,7.5,7.75,7.1,7,7.6,7.55,7.7,7.45,6.5,6.55,7.35,6.3,7.3,6.1,7.8,7.05,6.5,6.4,6.6,6.9,5.9,6.35,6.3,5.5
+tmp0=!replace internal , by ; in $val7
+
+tmp=!trim $(tmp0)
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal . by , in $val8
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 27
+
+val10=$(tmp0)
+tmp0=!item 1 to 23 of $val10
+
+val11=$(tmp0)
+val12=$[rint(480)]
+val13=$[rint(1080)]
+val14=
+val15=
+val16=
+val17=
+val18=
+!for val19 =1 to 27 
+val20=$[rint(($val19+3)*5)]
+val21=$[($(val7[$val19])-5)/0.5*10+10]
+tmp0=!append item $val20,$val21 to $val17
+
+val17=$(tmp0)
+val22=$[rint(1979+$val19)]
+val23=$[$(val7[$val19])-5]
+tmp0=!append item $val22,$val23 to $val15
+
+val15=$(tmp0)
+!if $val19 isitemof $val11 
+tmp0=!append item $val22,$val23 to $val14
+
+val14=$(tmp0)
+!else
+val24=$[rint(($val19/2+1.5)*60+3)]
+val25=$[rint(480-(63+($(val7[$val19])-5)*60/0.5))]
+tmp0=!append item $val24,$val25 to $val18
+
+val18=$(tmp0)
+!endif
+!next
+val26=
+!for val19 =2 to 7 
+val27=$[rint($val19*10)]
+val28=$[rint($val27+1)]
+val29=$[$val19*0.5+4.5]
+val30=segment 9,$val27,11,$val27,128,128,128
+val31=text blue,5,$val28,medium,$val29
+val26=$val26	$val30	$val31
+!next
+!readproc slib/graphpaper/millimetre 18,8,-988,1,2,0.5,[255,255,255],[190,190,190],,style:grad=xy,$val14 
+tmp0=$slib_out
+val32=$(tmp0)
+!readproc slib/graphpaper/millimetre 18,8,-988,1,2,0.5,[255,255,255],[190,190,190],,style:grad=xy,$val15 
+tmp0=$slib_out
+val33=$(tmp0)
+!readproc slib/graphpaper/millimetre 18,8,-988,1,2,0.5,[255,255,255],[190,190,190],,style:grad=xy,$val15 
+tmp0=$slib_out
+val34=$(tmp0)
+val35=linewidth 3	arrow 10,0,10,80,20,128,128,128	$val26
+val36=linewidth 3	arrow 10,0,10,80,20,128,128,128	$val26	polyline blue,$val17
+val37=$val32	$val35
+val38=$val33	$val36
+val39=$val33	$val36	fcircle 85,49,12,red
+!readproc oef/draw.phtml $val13,$val12 \
+$val37 
+tmp0=$ins_url
+val40=$(tmp0)
+!readproc oef/draw.phtml $val13,$val12 \
+$val38 
+tmp0=$ins_url
+val41=$(tmp0)
+!readproc oef/draw.phtml $val13,$val12 \
+$val39 
+tmp0=$ins_url
+val42=$(tmp0)
+val43=Quelle serait l’étendue minimale de la glace de mer en Arctique durant l’été 2050 ?
+val44=A l'aide d'images satellites, un groupe d'expert a relevé la surface minimum de la banquise	 en Arctique.	Source : Nations Unies – GIEC (Groupe d’experts intergouvernemental sur l’évolution du climat – IPCC en anglais)	 rapport 2007	<br><br>
+replytype1=jsxgraphcurve
+
+replyoption1=color1=blue color2=red 
+replyname1=
+replygood1=$val41;points,513,183
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div id="boited">	<img src="$val1/banquise.png" alt="Banquise">	</div>	<div id="boiteg">	<img src="$val1/arctiquefonteeee.gif" alt="Fonte de la banquise">	<br>	<b>Évolution de la glace de mer entre 1979 et 2007</b>	</div>	<p class="problematique"> $val43</p>	<div class="enonce">$val44	Les résultats obtenus ont été placés dans le tableau suivant :	<div class="wims_scrollable">	<table class="wimscenter">	<tr>	<th><b>Année</b></th>	 
+!for m_j=1980 to 2006 
+$()<td> $m_j </td> 
+!next
+$()	</tr>	<tr>	<th><b>Millions de km<sup>2</sup></b></th>	 
+!for m_j=1 to 27 
+$()<td class="wimscenter"> $(val9[$m_j;]) </td> 
+!next
+$()	</tr>	</table>	</div>	<b>L'ensemble des résultats sont à arrondir à 0,01.</b>	</div>	<div class="solution">	Les coordonnées du points G sont (1993;6,95).	</div>	<div class="question">	Placez le point G sur le graphique.	</div>	<div class="jsxgraph">	 
+!read oef/embed.phtml reply1,$val13 x $val12 
+$()	</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,9,12,13,43,44
+embedcnt=1

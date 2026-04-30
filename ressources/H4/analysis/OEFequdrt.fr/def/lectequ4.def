@@ -1,0 +1,110 @@
+!set title=Quelle est l'ordonnée à l'origine 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items d,p,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+val9=Soit \(($val6)\) la droite d'équation&nbsp;
+val10=Réponse&nbsp;
+val11=Quelle est l'ordonnée à l'origine de la droite \(($val6))
+val12=Oui,Non
+val13=L'ordonnée à l'origine
+tmp0=!randint 2, 6
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val7*x +$val14*y
+tmp0=!exec pari $t_
+
+t_=!replace internal \( by ( in $val14*y+$val7*x
+tmp1=!exec pari $t_
+
+tmp=!nonempty items $(tmp0) = $val8,$(tmp1) = $val8
+
+tmp2=!randitem $tmp
+val15=$(tmp2)
+t_=!rawmath $val8/$val14
+val16=!exec pari print($t_)
+replytype1=numexp
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val9:	<div class="wimscenter"> 
+!insmath $val15
+$().</div>	$val11 ?	<h3$val10:</h3>	<label for="reply1">$val13 est</label>  
+!read oef/embed.phtml r1,5 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,13,15
+embedcnt=1

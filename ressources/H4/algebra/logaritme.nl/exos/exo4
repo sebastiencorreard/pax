@@ -1,0 +1,99 @@
+#Rekenregels 4 variablelen
+!if $lang=fr or $taal=fr or myvar1=1
+ !changeto exos/exo4.fr
+!endif
+mathviewpanel=$module_title:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+rounding=0
+mathview=5
+display=1
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=exos/checkfile1.proc
+varlist=$empty
+arglist=$empty
+question$n=!record 1 of lang/remarks.$taal
+#@ Schrijf als &eacute;&eacute;n logaritme:
+helptext=<img src=\'$module_dir/gifs/exo4.jpg\' alt=\'noalt\' />
+letters=!shuffle x,y,z,a,b,d,k,p,m
+g=!randitem 2,3,4,5,6,7,8,9
+a=!item 1 of $letters
+b=!item 2 of $letters
+keuze=!randitem 1,0
+varlist=$a,$b
+wims_rawmath_variables=$a,$b
+var4=1
+# var4=1 $varlist not empty
+!if $R=1
+    !if $keuze=1
+	pm=+
+	answer$n=log($a*$b)/log($g)
+	texanswer$n=^{$g}\log($a)+^{$g}\log($b)= ^{$g}\log($a \cdot $b) 
+    !else
+	pm=-
+	answer$n=log($a/$b)/log($g)
+	texanswer$n=^{$g}\log($a)-^{$g}\log($b)= ^{$g}\log\left( \frac{$a}{$b} \right) 
+    !endif
+    formula$n=^{$g}\log($a)$pm^{$g}\log($b)=[?]     
+    applettext=!nospace log[$g]($a) $pm log[$g]($b)=
+    var1=(log($a)/log($g))$pm(log($b)/log($g))
+    var3=4
+    var2=2
+ !exit
+!endif
+
+!if $R=2
+    !if $keuze=1
+	formula$n=^{$g}\log( \sqrt{$b})+^{$g}\log(\sqrt{$b})=[?]     
+	applettext=!nospace log[$g](sqrt($b))+log[$g](sqrt($b))=
+	var1=(log(sqrt($b))/log($g))+(log(sqrt($b))/log($g))
+	answer$n=log($b)/log($g)
+	var3=4
+	var2=2
+	texanswer$n=^{$g}\log(\sqrt{$b})+^{$g}\log(\sqrt{$b})=^{$g}\log(\sqrt{$b} \cdot \sqrt{$b})= ^{$g}\log($b)
+    !else
+	formula$n=^{$g}\log\left(\frac{1}{$b}\right)+^{$g}\log($b)=[?]     
+	applettext=!nospace log[$g](1/($b))+log[$g]($b)=
+	var1=(log(1/$b)/log($g))+(log($b)/log($g))
+	answer$n=0
+	var3=4
+	var2=0
+	texanswer$n=^{$g}\log\left(\frac{1}{$b}\right)+^{$g}\log($b)=^{$g}\log\left($b\cdot \frac{1}{$b}\right)= ^{$g}\log(1)=0
+    !endif
+ !exit
+!endif
+
+
+!if $R>2
+    kans=!randint 0,1
+    var2=2
+    var3=2
+    varlist=$a
+    !if $kans=0
+	formula$n=^{$g}\log($a)+1 =[?]
+	applettext=!nospace log[$g]($a)+1=
+	answer$n=log($g*$a)/log($g)
+	var1=(log($a)/log($g))+1
+	texanswer$n=^{$g}\log($a)+1 = ^{$g}\log($a) + ^{$g}\log($g) = ^{$g}\log($g \cdot $a)
+    !else
+	b=!randitem 2,3,4,5
+	formula$n=^{$g}\log($a)+$b =[?]
+        applettext=!nospace log[$g]($a)+$b=
+        answer$n=log($[$g^$b]*$a)/log($g)
+	var1=(log($a)/log($g))+$b
+        texanswer$n=^{$g}\log($a)+$b = ^{$g}\log($a) + ^{$g}\log($g^$b) = ^{$g}\log\left( $g^{$b} \cdot $a \right)=^{$g}\log\left( $[$g^$b] \cdot $a \right)  
+    !endif
+ !exit
+!endif
+

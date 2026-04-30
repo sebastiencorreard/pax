@@ -1,0 +1,105 @@
+image=0
+draw=0
+math=0
+cols=10
+rows=2
+mathview=0
+!set n=$counter
+!if $rounding<100
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+fruitsoort=!record 15 of lang/remarks.$taal
+#@  appels,peren,handperen,goudreinetten,notarisappels,aardappels,komkommers,perziken,grapefruit,sinaasappels,bananen,druivetrossen
+sometext=!record 26 of lang/remarks.$taal
+#@ Klasse middens (gram),Percentage $fruit, Klassen (gram)
+checkfile=exos/checkfile1.proc
+questiontype=0
+options=2
+inputs=$options
+meting=$empty
+HTEXT=$empty
+data=$empty
+RECT=$empty
+RECT2=$empty
+fruit=!randitem $fruitsoort
+klassemiddens=!item 1 of $sometext
+pecentagefruit=!item 2 of $sometext
+klassengew=!item 3 of $sometext
+klassen=!randitem 6,7,8,9,10
+klassebreedte=!randitem 4,5,6,7,8
+min=!randint 60,120
+maxhoogte=!randint 75,155
+data=$empty
+!for p=1 to $klassen
+    r=!randint 70,100
+    r=$[$r/100]
+    L$p=$[$min + ($p-1)*$klassebreedte]
+    R$p=$[$min + $p*$klassebreedte - 1]
+    hoogte$p=$[$r*$maxhoogte*sin(pi*$p/$klassen)] 
+    totaal=$[$totaal + $(hoogte$p)]
+    KM$p=$[($(L$p)+$(R$p))/2]
+!next p
+h=1
+KT=0
+tp=0
+!for p=1 to $[$klassen-1]
+    percent$p=$[(round(1000*$(hoogte$p)/$totaal))/10]
+    !if $p=$[$klassen-1]
+	percent$p=$[100-$tp]
+    !endif
+    tp=$[$(percent$p)+$tp]
+    KT=$[$KT + $(KM$p)*$(percent$p)/100] 
+    data=!append word $ <tr><td>$(L$p) - $(R$p)</td><td>$(KM$p)</td><td>$(percent$p)</td></tr> $ to $data
+    HTEXT=!append line text black,$[$p-0.85],$[0.75*$(hoogte$p)],huge,$(percent$p) % to $HTEXT
+    !if $h=1
+	HTEXT=!append line text black,$[$p-0.9],-2,huge,$(L$p)-$(R$p) to $HTEXT
+	h=0
+    !else
+	HTEXT=!append line text black,$[$p-0.9],-5,huge,$(L$p)-$(R$p) to $HTEXT   
+	h=1
+    !endif
+!next p
+ans1=$KT
+!for p=1 to $[$klassen-1]
+    SD=$[($(percent$p)/100)*($(KM$p)-$KT)^2 + $SD]
+!next p
+
+ans2=$[sqrt($SD)]
+data_table=<table class="zebra_table_h2"><tr><th>$klassengew</th><th>$klassemiddens</th><th>$percentagefruit $fruit</th></tr>$data</table>
+kleurtjes=!shuffle lightgreen,grey,orange,yellow,red,lightblue,pink,cyan
+
+!for p=1 to $[$klassen-1]
+    kleur=!item $p of $kleurtjes
+    RECT=!append line rect $[$p-1],0,$p,$(hoogte$p),black to $RECT   
+    RECT2=!append line frect $[$p-1],0,$p,$(hoogte$p),$kleur to $RECT2
+!next p
+
+make_tr=1
+
+plaatje=\
+xrange -1,$klassen\
+yrange -20,$[$maxhoogte+10]\
+linewidth 3\
+$RECT2\
+$RECT\
+$HTEXT\
+rect -1,-20,$klassen,$[$maxhoogte+10],white
+
+htext=!record 19 of lang/remarks.$taal
+insdraw_size=640,480
+!insdraw $plaatje
+
+answer$n=$ans1,$ans2
+ss=!record 16 of lang/remarks.$taal
+#@ Het histogram hieronder geeft de procentuele gewichtsverdeling van een partij $fruit weer.<br />De gewichten zijn afgerond op hele grammen.<br />De percentages zijn afgerond op 1 decimaal nauwkeurig.<br />Bereken aan de hand van het histogram <ol><li>het gemiddelde gewicht van deze partij $fruit</li><li>en de standaarddeviatie van deze partij</li></ol>
+rr=!record 17 of lang/remarks.$taal
+#@ <ol><li>Het gemiddelde gewicht is dus $(ans1) gram</li><li>De standaardafwijking: $m_sigma = $ans2</li></ol>
+description=!record 18 of lang/remarks.$taal
+#@ gemiddelde gewicht,standaard deviatie
+question$n=$ss
+textanswer$n=$rr <hr class="schaersvoorde_hr"/>$data_table
+helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+xsize=400
+ysize=400
+exotext=<a onclick="javascript:showimage()"><small>$htext</small></a>

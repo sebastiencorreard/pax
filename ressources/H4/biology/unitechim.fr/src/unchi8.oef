@@ -1,0 +1,153 @@
+type=gapfill
+textarea="data"
+:Réponses à choisir dans un menu déroulant ou à écrire dans une case. Plusieurs textes peuvent être proposés.
+
+Cet exercice présente des textes où des champs de réponse sont insérés.
+<p>
+Pour construire un exercice avec ce modèle, il suffit d'entrer les textes.
+Une syntaxe facile permet d'incorporer les champs de choix multiples et les
+réponses libres dans les textes.
+</p>
+<p>
+Auteur du modèle : Gang Xiao <qualite@wimsedu.info>
+</p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{H- Bilan sur l'unité chimique}
+:\author{Jonathan, Faivre}
+:\email{prof.svt.lc@gmail.com}
+:\credits{}
+:Données principales.
+Ecrire des textes séparés par des points virgules
+Les textes eux-mêmes ne peuvent donc pas contenir
+des point-virgules. <p>
+Les questions à poser doivent être mises entre une paire de
+double-points d'interrogation "??".
+</p><p>
+La question est un choix multiple de type menu s'il contient plusieurs objets séparés
+par des virgules, la bonne réponse étant en premier. Si la question (entre ??) ne
+contient qu'un objet, c'est alors une réponse libre (réponse à écrire), numérique s'il s'agit d'un
+nombre ou textuel sinon.</p>
+<p>
+On peut mettre jusqu'à 20 questions dans le texte.
+Si plusieurs réponses correctes sont possibles dans une réponse libre, séparer
+toutes les bonnes réponses (synonymes) par un trait vertical <span class="tt wims_code_words">|</span>.
+L'analyse est alors faite par symtext pour les experts.</p>
+help
+</p>
+\text{data=Tous les êtres vivants sont constitués par des cellules.
+Toutes ces cellules sont composées ??de molécules,d'atomes,d'ions,de cations??. Ces dernières composent le vivant et peuvent être classées en trois grandes catégories les p??rotéines??, les g??lucides?? et les l??ipides??.
+Pour chaque famille on retrouvera dans les molécules toujours les mêmes ??atomes,ions,molécules,cations?? qui sont notés C pour ??carbone??, H pour ??hydrogène?? et O pour ??oxygène??.
+Le fait que tous les êtres vivants sont tous composés des mêmes molécules et que ces molécules contiennent toujours au moins ces trois atomes de base permet d'affirmer qu'il existe une unité chimique}
+
+:Texte affiché avant la question. Balises html admises. Peut être vide.
+help
+\text{pre=Remplissez les cases :}
+
+:Texte affiché après la question. Balises html admises. Peut être vide.
+help
+\text{post=}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\precision{10000}
+\text{data=wims(singlespace \data)}
+\text{data=wims(nonempty rows \data)}
+\text{data=randomrow(\data)}
+\text{data=\accolade=1 ? wims(embraced randitem \data)}
+\text{data=slib(text/cutchoice2 \data)}
+\integer{qs=min(20,floor(rows(\data)/2))}
+\text{types=}
+\text{options=}
+\text{lengths=}
+
+\text{good=}
+\text{field=}
+\for{i=1 to \qs}{
+ \text{f=\data[2*\i;]}
+ \integer{test=items(\f)}
+ \if{\test>1}{
+  \text{g=\f[1]}
+  \text{f=wims(sort items \f)}
+  \text{g=positionof(\g,\f)}
+  \text{good=\good\g;,}
+  \text{field=\field\f;}
+  \text{types=\types[]menu,}
+  \text{lengths=\lengths,}
+ }{
+  \text{good=\good\f,}
+  \integer{c=wims(charcnt \f)}
+  \text{field=\field;}
+  \real{test=\f}
+  \if{\test issametext NaN}{
+   \text{test=wims(translate internal | to , in \f)}
+   \integer{c=wims(charcnt \test[1])}
+   \integer{c=min(50,max(6,\c+6))}
+   \text{lengths=\lengths\c,}
+   \text{types=\types[]atext,}
+   \text{options=| isin \f?\options[]symtext}
+  }{
+   \integer{c=max(5,\c+2)}
+   \text{lengths=\lengths\c,}
+   \text{f1=wims(nospace \f)}
+   \text{test=wims(text select -0123456789 in \f)}
+   \text{types=\test issametext \f1 and abs(\f)<4000?\types[]numexp,:\types[]number,}
+  }
+ }
+ \text{options=\options,}
+}
+
+\text{pre=\accolade=1 ?wims(embraced randitem \pre)}
+\text{post=\accolade=1 ?wims(embraced randitem \post)}
+\text{qlist=wims(makelist reply x for x=1 to \qs)}
+\steps{\qlist}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+\statement{<div class="instruction">
+\pre
+</div>
+\data[1;]
+\for{k=1 to \qs}{
+\embed{r \k,\lengths[\k]} \data[2*\k+1;]
+}
+\post}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{Champ 1}{\good[1]\field[1;]}{type=\types[1]}{option=\options[1]}
+\answer{Champ 2}{\good[2]\field[2;]}{type=\types[2]}{option=\options[2]}
+\answer{Champ 3}{\good[3]\field[3;]}{type=\types[3]}{option=\options[3]}
+\answer{Champ 4}{\good[4]\field[4;]}{type=\types[4]}{option=\options[4]}
+\answer{Champ 5}{\good[5]\field[5;]}{type=\types[5]}{option=\options[5]}
+\answer{Champ 6}{\good[6]\field[6;]}{type=\types[6]}{option=\options[6]}
+\answer{Champ 7}{\good[7]\field[7;]}{type=\types[7]}{option=\options[7]}
+\answer{Champ 8}{\good[8]\field[8;]}{type=\types[8]}{option=\options[8]}
+\answer{Champ 9}{\good[9]\field[9;]}{type=\types[9]}{option=\options[9]}
+\answer{Champ 10}{\good[10]\field[10;]}{type=\types[10]}{option=\options[10]}
+\answer{Champ 11}{\good[11]\field[11;]}{type=\types[11]}{option=\options[11]}
+\answer{Champ 12}{\good[12]\field[12;]}{type=\types[12]}{option=\options[12]}
+\answer{Champ 13}{\good[13]\field[13;]}{type=\types[13]}{option=\options[13]}
+\answer{Champ 14}{\good[14]\field[14;]}{type=\types[14]}{option=\options[14]}
+\answer{Champ 15}{\good[15]\field[15;]}{type=\types[15]}{option=\options[15]}
+\answer{Champ 16}{\good[16]\field[16;]}{type=\types[16]}{option=\options[16]}
+\answer{Champ 17}{\good[17]\field[17;]}{type=\types[17]}{option=\options[17]}
+\answer{Champ 18}{\good[18]\field[18;]}{type=\types[18]}{option=\options[18]}
+\answer{Champ 19}{\good[19]\field[19;]}{type=\types[19]}{option=\options[19]}
+\answer{Champ 20}{\good[20]\field[20;]}{type=\types[20]}{option=\options[20]}
+
+
+
+

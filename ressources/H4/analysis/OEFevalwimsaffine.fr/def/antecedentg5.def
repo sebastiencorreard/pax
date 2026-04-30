@@ -1,0 +1,112 @@
+!set title=Lecture graphique d'antécédent 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v for v=1 to 8
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+val8=$[rint(-$(val7[1]))]
+val9=$[rint(-$(val7[2]))]
+tmp=!nonempty items 1/2,1/4,1/3,2,3,4,5
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+val11=$val10*x+$val9-$val10*$val8
+!readproc slib/draw/repere 400,400,0,-10,10,-10,10,1,1,black,grey 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!line 3 to -1 of $val12
+
+val12=$(tmp0)
+!readproc oef/draw.phtml 400,400 \
+$val12	range -10,10,-10,10	plot blue,$val11	text black,9.5,-0.3,medium,X	text black,-1.5,10,medium,$val6(X)	text black,0.9,-0.3,medium,1	text black,-0.6,1.5,medium,1 
+tmp0=$ins_url
+val13=$(tmp0)
+replytype1=numexp
+replyname1=réponse
+replygood1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Soit 
+!insmath $val6
+$() une fonction affine dont la représentation graphique est donnée ci-dessous.	<div class="wimscenter"><img src="$val13" alt=""></div>	  Quel nombre a pour image $val9 par cette fonction ?	<p><b>Votre réponse :</b></p>	  <label for="reply1">Le nombre qui a pour image $val9 par cette fonction est</label>  
+!read oef/embed.phtml r1,5 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,13
+embedcnt=1

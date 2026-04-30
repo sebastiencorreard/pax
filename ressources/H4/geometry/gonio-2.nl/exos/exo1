@@ -1,0 +1,67 @@
+n=$counter
+embed=1
+formula$n=$empty
+#f\left(x\right)\;=\;
+cols=20
+rows=1
+mathview=0
+questiontype=7
+javascript=js/gonio.phtml
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc
+inputs=yes
+applet=0
+funtype=!record 1 of lang/remarks.$taal
+#@sin:sinus ,cos:cosinus
+gonio=!randitem $funtype
+gonio=!replace internal : by , in $gonio
+functie=!item 1 of $gonio
+soort=!item 2 of $gonio
+txt=!record 13 of lang/remarks.$taal
+description=!item 1 of $txt
+exotext=$description :  <input class="schaersvoorde_input" size="20" id="myinput0" type="text" />
+slidertext=!record 16 of lang/remarks.$taal
+ss=!record 2 of lang/remarks.$taal
+#@Hier zie je een beweegbare voorstelling van een <kbd>$soort functie</kbd>.<br />De bedoeling is dat je , met behulp van de <em>applet</em> door variatie van<br /> de schuifparameters <em>b</em> of <em>c</em> of <em>d</em> of combinaties hiervan<br />het functievoorschrift voor de getoonde <span color=red><kbd>$soort functie</kbd></span> opstelt...<br /><small>Let op b,c of d kunnen ook gewoon nul zijn en dus gewoon niet meedoen <br />Echter alle parameters komen slechts 1 keer voor in de gezocht formule.</small>
+
+
+helptext=!record 3 of lang/remarks.$taal
+#@De gezochte goniometrische functie zou van het type <kbd>f(x)= a*$functie(x/c)-d</kbd> kunnen zijn
+wims_rawmath_variables=b,c,d,x
+pm=!randitem +,-
+!if $subject=1
+ !if $R=1
+  var=!nospace d*(Math.$functie(x)),c*(Math.$functie(x)),b*(Math.$functie(x)),(Math.$functie(d*x)),(Math.$functie(c*x)),(Math.$functie(b*x)),(Math.$functie(d $pm x)),(Math.$functie(c $pm x)),(Math.$functie(b $pm x)),d $pm (Math.$functie(x)),c $pm (Math.$functie(x)),b $pm (Math.$functie(x))
+ !else
+  !if $R=2
+   var=!nospace d $pm b*(Math.$functie(x)),c $pm (Math.$functie(b*x)),b $pm (Math.$functie(x+c)),b - (Math.$functie(x $pm c)),c $pm b*(Math.$functie(x)),b $pm (Math.$functie(d*x)),d $pm (Math.$functie(x+b)),d $pm (Math.$functie(x-b)),c+(Math.$functie(b $pm x)),b+(Math.$functie(c*x)),d+(Math.$functie(x $pm c)),d $pm (Math.$functie(x $pm c))
+  !else
+   var=!nospace d*(Math.$functie(x+c)),c*(Math.$functie(x+b)),b*(Math.$functie(d*x)),b*(Math.$functie(d*x)),d+(Math.$functie(c*x+b)),c+(Math.$functie(b*x)),c*(Math.$functie(d+x)),d*(Math.$functie(c+x)),c*(Math.$functie(b+x)),d+b*(Math.$functie(x)),c+(Math.$functie(b*x)),b+(Math.$functie(x+c)),c+b*(Math.$functie(x)),b+(Math.$functie(d*x)),d+(Math.$functie(x+b)),(Math.$functie(d*x+b)),c*(Math.$functie(b*x+d)),c+d*(Math.$functie(b*x)),c+d*(Math.$functie(b*x)),d+c*(Math.$functie(x+b)),c+(Math.$functie(x-b)),b+(Math.$functie(d*x+c)),b*(Math.$functie(d*x-c)),(Math.$functie(b*x+d)),c*(Math.$functie(x+d)),b*(Math.$functie(d*x+c))
+  !endif
+ !endif
+!else
+ var=!nospace b+d*(Math.$functie(x/c)),b+c*(Math.$functie(x/d)),d+c*(Math.$functie(x/b)),b+(Math.$functie(d*x/c)),c*(Math.$functie(b*x)/d),d*(Math.$functie(b*x))/c,c+d*(Math.$functie(x/b)),d+(Math.$functie(x+b))/c,(Math.$functie(d*x+c)),c-(Math.$functie(b*x+d)),c*(Math.$functie(x-d)),b*(Math.$functie(d*x+c)),d*(Math.$functie(x))/b,b+c*(Math.$functie(x))/d,d+c*(Math.$functie(x))/b,Math.$functie(c+x/d),c*(Math.$functie(d-x/b)),c+(Math.$functie(d-x/b)),c+(Math.$functie(d+x/b)),(Math.$functie(x+b))/c,(Math.$functie(d*x+c))/b,(Math.$functie(b*x+d))/c,c+(Math.$functie(x+d))/b,b+(Math.$functie(d*x/c))
+!endif
+var1=!shuffle $var
+jsfunctie=!item $counter of $var1
+answer$n=!replace internal Math. by $empty in $jsfunctie
+
+#xmin=-5
+#ymin=-5
+#ymax=5
+#xmax=5
+#xsize=400
+#ysize=300
+#stappen=300
+# data voor afstelling geven we door aan var9 ivm terug geven na kleine user-fouten in checkfile
+#var9=$jsfunctie,$xmin,$xmax,$ymin,$ymax,$xsize,$ysize,$stappen
+var9=$jsfunctie,-4,4,-4,4,400,300,300
+
+question$n=<a onmouseover="return escape('$helptext<br />$slidertext')">$ss</a><br /><em>$slidertext</em>
+texanswer$n=!texmath f(x)=$(answer$n)
+

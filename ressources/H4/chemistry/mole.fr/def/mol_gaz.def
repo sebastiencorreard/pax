@@ -1,0 +1,133 @@
+!set title=quantité de matière et gaz
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Minne,Romain
+email=romain.minne@wanadoo.fr
+keywords=chimie,mole,masse,molaire,concentration,dilution,atom,periodic_table,molecules
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,c
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(0)]
+tmp0=!random 1, 3
+
+val7=$[$(tmp0)]
+val8=$[round($val7*10)/10]
+!readproc slib/text/sigunits $val8,2 
+tmp0=$slib_out
+val8=$(tmp0)
+val9=
+tmp0=!replace e+00 by $val9 in $val8
+
+val8=$(tmp0)
+val10=$[round($val8/22.4*1000)/1000]
+oefsteps=c1	r1 
+nextstep=!nosubst c1	r1 
+!readproc oef/steps.proc
+replytype1=sigunits
+replyname1=la quantité de matière est
+replygood1=$val10 mol#2
+choicename1=
+choicegood1=n=V/Vm
+choicebad1=n=m/M , n=N/Na, C=n/V, CmèreVmère=CfilleVfille 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">Un flacon de volume V=$val8 L contient du dihydrogène H<sub>2</sub>.	Choisir la bonne formule puis calculer la quantité de matière contenue	dans la bouteille.		<div class="small spacer">Données :	<ul class="wims_nopuce">	<li>	M<sub>C</sub>=12.0 g
+!insmath *mol^-1
+$(), M<sub>H</sub>=1.00 g
+!insmath *mol^-1
+$(), M<sub>O</sub>=16.0 g
+!insmath *mol^-1
+$(),	M<sub>N</sub>=14.0 g
+!insmath *mol^-1
+$()</li>	<li>V<sub>m</sub>=22.4 L
+!insmath *mol^-1
+$()</li></ul></div>			
+!if $m_step=1 
+$()	Choisissez votre formule :	 
+!read oef/embed.phtml choice 1 
+$()	 
+!endif
+$()	
+!if $m_step=2 
+$()	<div class="spacer">	Vous avez choisi la formule 
+!insmath n=\frac{V}{V_m}
+$(). </div>	Calculer la quantité de matière contenue dans la bouteille.	<div class="spacer">La quantité de matière contenue dans la bouteille est n= 
+!read oef/embed.phtml r1 
+$().</div>	 
+!endif
+$()	
+!if $val6=1 
+$()	<h3>debug mode</h3>	Réponses : n= $val10 mol	 
+!endif
+$()	</div>	<div class="wims_instruction">	Consignes : 	<ul class="wims_nopuce">	<li>on tiendra compte des chiffres significatifs et des unités.</li> 	<li>La puissance de 10 <i>
+!insmath 10^-1
+$()</i> s'écrit e-1 et l'unité	 <i>g
+!insmath *mol^-1
+$()</i> s'écrit g/mol.</li>	 <li>Le séparateur de décimales est un point (.).</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,10
+embedcnt=2

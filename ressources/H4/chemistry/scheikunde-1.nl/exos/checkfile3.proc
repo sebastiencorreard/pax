@@ -1,0 +1,110 @@
+# chemdata.value = reply + '\n' + mass + '\n' + brutto + '\n' + brutto_html + '\n' + my_svg;
+# in this test $inputs = 3: line 1 of $(reply$n)
+# input1 = chemical name item 1
+# input2 = brutto formula item 2
+# input3 = molecule mass item 3
+
+# answer$n = chemical name
+# rest of answers we get from the applet:  mass+"\n"+brutto+"\n"+brutto_html;
+# line 2 of reply$n = real mass of picture molfile 
+# line 3 of reply$n = brutto formula of picture molfile
+# line 4 of reply$n = html brutto formula of picture molfile
+# line 5 of reply$n = SVG of picture molfile
+
+n=$counter
+errortext=$empty
+goback=0
+!if $(reply$n)=?
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+your_answer=!line 1 of $(reply$n)
+your_name=!item 1 of $your_answer
+your_bruto=!item 2 of $your_answer
+your_molmass=!item 3 of $your_answer
+
+my_molmass=!line 2 of $(reply$n)
+my_bruto=!line 3 of $(reply$n)
+my_bruto_html=!line 4 of $(reply$n)
+my_svg=!line 5 of $(reply$n)
+
+formula$n=!line 9 of $(reply$n)
+my_name=$(answer$n)
+
+!if $your_name=? and $your_bruto=? and $your_molmass=?
+    maxscore=0
+    remark$n=$NOK
+    reply$n=?
+    !goto SHORTCUT
+!endif
+
+my_molmass= $[(round(10*$my_molmass))/10]
+
+txt=!record 67 of lang/remarks.$taal
+#@ Chemische naam,Bruto Formule,Molecuul gewicht
+name=!item 1 of $txt
+bruto=!item 2 of $txt
+molmassa=!item 3 of $txt
+
+!if ? isin $your_name
+    score1=0.1
+    k1=red
+    extra1=$empty
+!else
+    !readproc exos/name.proc
+    !if $goback=1
+	maxscore=$[$P2*$maxscore]
+	reply$n=$your_name,$your_bruto,$your_molmass
+	#needed for refill()
+        !exit
+    !endif
+!endif
+
+!if ? isin $your_brutto
+    score2=0.1
+    k2=red
+    extra2=$empty
+!else
+    !readproc exos/formula.proc
+    !if $goback=1
+	maxscore=$[$P3*$maxscore]
+	reply$n=$your_name,$your_bruto,$your_molmass
+	#needed for refill()
+	!exit
+    !endif
+!endif
+
+!if ? isin $your_molmass
+    score3=0.1
+    k3=red
+    extra3=$empty
+!else
+    !readproc exos/molmass.proc
+    !if $goback=1
+	maxscore=$[$P3*$maxscore]
+	reply$n=$your_name,$your_bruto,$your_molmass
+	#needed for refill()
+	!exit
+    !endif
+!endif
+
+maxscore=$[$maxscore*((2*$score1 + 3*$score2 + 1*$score3)/6)]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+reply$n=<ol><li>$name : <span class="color:$k1"><kbd>$your_name</kbd></span><br />$extra1</li><li>$bruto : <span class="color:$k2">$your_bruto</span><br />$extra2</li><li>$molmassa : <span class="color:$k3">$your_molmass</span><br />$extra3</li></ol>
+
+
+:SHORTCUT
+textanswer$n=<ol><li>$my_svg</li><li>$name : <kbd>$(answer$n)</kbd></li><li>$bruto : <kbd>$my_bruto_html</kbd></li><li>$molmassa : $my_molmass gr/mol</li></ol>
+

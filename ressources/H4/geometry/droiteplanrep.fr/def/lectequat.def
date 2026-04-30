@@ -1,0 +1,202 @@
+!set title=Lecture graphique de l'équation réduite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez;Bruno,Mifsud
+email=cyrille.douriez@ac-amiens.fr;communaute.mutuwims@laposte.net
+keywords=line,equations
+language=fr
+
+ansorder=r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 0,1,1,1
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 3,5
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val8,$val9)
+tmp0=!exec pari $t_
+
+val10=$[rint($(tmp0))]
+val8=$[rint($val8/$val10)]
+val9=$[rint($val9/$val10)]
+tmp0=!randint -3, 3
+
+val11=$[rint($(tmp0))]
+
+!ifval $val6==0
+val12= line $val7,10,$val7,-10,blue 
+!else
+val12= plot blue, ($val8/$val9)*x+$val11
+!endif
+
+!ifval $val11=0
+val13=!rawmath  ($val8/$val9) x
+!else
+val13=!rawmath ($val8/$val9) x+$val11
+!endif
+
+!ifval $val6==0
+val14=1
+!else
+val14=2
+!endif
+
+!ifval $val6==0
+val15=$val7
+!else
+val15=$val13
+!endif
+val16=xrange -10,10	yrange -10,10	parallel -10,-10,10,-10,0,1,20, grey	parallel -10,-10,-10,10,1,0,20, grey	hline 0,0,black	vline 0,0,black	crosshairs black,1,0,0,1	parallel -5,-0.3,-5,0.3,10,0,2,black	parallel -0.3,-5,0.3,-5,0,10,2,black	text black , 5,-0.5,small , 5	text black , -5,-0.5,small , -5	text black , 0.3,-5,small , -5	text black , -0.5,5,small , 5	text black , -0.5,-0.3,small , O	text black , 0.8,-0.3,small , I	text black , -0.9,1.5,small , J	linewidth 1.5
+!readproc oef/draw.phtml 300,300 \
+$val16	$val12	 
+tmp0=$ins_url
+val17=$(tmp0)
+val18=$[rint($val8+$val11)]
+
+!ifval $val6==0 
+val19= crosshair $val7,2,red
+!else
+val19=crosshair $val9,$val18,red
+!endif
+
+!ifval $val6==0 
+val20= crosshair $val7,-2,green
+!else
+val20=crosshair 0,$val11,green
+!endif
+!if $val6==1 
+
+!ifval $val9>0 
+val21= arrow 0,$val11,$val9,$val11,8,red
+!else
+val21=arrow $val9,$val11,0,$val11,8,red
+!endif
+val22=arrow $val9,$val11,$val9,$val18,8,green
+!endif
+!readproc oef/draw.phtml 300,300 \
+$val16	$val19	$val20	$val21	$val22	$val12 
+tmp0=$ins_url
+val23=$(tmp0)
+replytype1=menu
+replyname1=
+replygood1=$val14;x=,y=
+replytype2=function
+replyname2=
+replygood2=!rawmath $val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Lire graphiquement l'équation de la droite tracée :</p>	<div class="wimscenter"><img src="$val17" alt="graphique"></div>	<div class=wims_question>L'équation de la droite est  
+!read oef/embed.phtml r1,7 
+$()  
+!read oef/embed.phtml r2,7 
+$()</div>	<div class=wims_instruction>Choisir le type d'équation et la compléter</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	
+!if $val6=0 
+$()<ul>	<li>La droite est parallèle à l'axe des ordonnées. Elle a donc une équation du type 
+!insmath  x = k
+$(), il faut déterminer la valeur de 
+!insmath k
+$().	</li><li>Tous les points de la droite ont la même abscisse.	</li><li>Pour exemple les deux points tracés en rouge et vert ont pour coordonnées 
+!insmath ($val7;2)
+$() et 
+!insmath ($val7;-2)
+$()	</li><li>La droite a donc pour équation 
+!insmath x=$val7
+$()	</li></ul>  
+!else
+$() 	<ul>	<li>La droite n'est pas parallèle à l'axe des ordonnées. Elle a donc une équation du type 
+!insmath  y = m x +p
+$(), il faut déterminer les valeurs de 
+!insmath m
+$() et de 
+!insmath p
+$().	</li><li>On repère l'ordonnée à l'origine en lisant l'ordonnée du point d'intersection avec l'axe des ordonnées.	C'est le point vert d'ordonnée $val11. L'<b>ordonnée à l'origine</b> est donc égale à $val11. (
+!insmath p=$val11
+$())	</li><li>Puis on repère un second point sur la droite et sur le quadrillage, par exemple le point tracé en rouge qui a pour coordonnées
+!insmath ($val9;$val18)
+$().	</li><li>Puis on se déplace sur le quadrillage en comptant les unités et <b>en faisant attention au sens</b> :	<ul><li>parallèlement à l'axe des abscisses : 
+!insmath $val9
+$() (<font class="red">flèche rouge </font>sur le graphique)	</li><li>parallèlement à l'axe des ordonnées : 
+!insmath $val8
+$() (<font class="green">flèche verte</font> sur le graphique)	</li><li>ce qui donne la valeur du <b>coefficient directeur</b> : 
+!insmath $val8/$val9
+$() (
+!insmath m=$val8/$val9
+$())	</li></ul>	</li><li>La droite a donc pour équation 
+!insmath y=$val13
+$()	</li></ul> 
+!endif
+$()	</p><center><img src="$val23" alt="graphique" ></center>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,13,17,18,23
+embedcnt=2

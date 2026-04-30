@@ -1,0 +1,215 @@
+# used for wims read/readproc
+authordir=jm.evers
+# used for html/apache
+AUTHORDIR=$module_dir/jm.evers
+
+######### DO NOT CHANGE THIS ################
+gifdir=$AUTHORDIR/gifs
+appletdir=$AUTHORDIR/applets
+jsdir=$AUTHORDIR/js
+htmldir=$AUTHORDIR/html
+
+remarkdir=$authordir/lang
+phtmldir=$authordir/phtml
+checkdir=$authordir/checkfiles
+procdir=$authordir/proc
+
+# wims variables
+status=waiting
+wims_multiexec=maxima pari octave
+
+# a few variables initialized
+modulescore=0
+counter=1
+maxscore=1
+try=0
+# fly imagesize
+XSIZE=300
+YSIZE=300
+# if set to 1: multiplechoice wih images
+multiimage=0
+#counts dynamic inserted images: usage "ins_attr=name=insert$imagecnt" is empoyed by DHTML
+imagecnt=0
+# scoring penalties P[10] : every time the students get's another chance of
+# correcting syntaxerrors (or other) maxscore=$[$maxscore*$P1]
+# where at the beginning of each exercise: maxscore=1
+# if the answer is 100% good, after several tries:
+# modulescore=$[$modulescore + $maxscore]
+
+!bound mathview within 0,1,2 default 2
+!bound viewlogo within 0,1 default 0
+!bound mytexsize within -4,-3,-2,-1,0,+1,+2,+3,+4 default +2
+!bound rounding within -1,0,1,10,100,1000,10000,100000,1000000
+!bound level within 0,1,2,3,4 default 0
+!bound image within 0,1 default 0
+!bound plot within 0,1 default 0
+!bound draw within 0,1 default 0
+!bound applet within 0,1 default 0
+!bound teaching within 0,1
+!bound maxtry between 1 and 100 default 5
+!bound total_exos within 1,2,3,4,5,6,7,8,9,10 default 3
+!bound special within 0,1 default 0
+!bound options within 2,3,4,5,6,7,8 default 4
+!bound taal within en,fr,nl,es,it,cn
+!bound questiontype within 0,1,2,3,4,5,6 default 0
+!bound math within 0,1 default 1
+!bound goodbadsign within 0,1,2
+!bound showanswer within 0,1
+!bound inputs within 0,1,2,3,4,5,6,7 default 1
+!bound calculator within 0,1,2
+!bound time within 0,1
+!bound scribbling within 0,1
+!bound printexo within 0,1
+!bound noselect within 0,1 default 1
+!bound usage within 0,1,2,3,4,5 default 2
+# minimal appearance control...
+fontcolor1=black
+fontcolor2=blue
+fontcolor3=red
+fontcolor4=green	
+fontcolor5=orange
+bgcolor1=#fffff0
+bgcolor2=#fffff0
+bgcolor3=#a0f0g0
+cellpadding=10
+cellspacing=1
+border=1
+mybuttonstyle=background-color:$bgcolor1;font-weight:normal;font-size:14px;text-align:center;
+textareastyle="font-size:18px;background-color:#e8ffff;border:1px solid #ff0000"
+# defaults for "textarea nowrap" answering field for freestyle answer
+rows=3
+cols=30
+# some handy text:
+send=!record 4 of $remarkdir/commonremarks.$taal
+helptext=!record 5 of $remarkdir/commonremarks.$taal
+nojava=!record 7 of $remarkdir/commonremarks.$taal
+dontknow=!record 9 of $remarkdir/commonremarks.$taal
+questionnumber=!record 10 of $remarkdir/commonremarks.$taal
+youranswer=!record 43 of $remarkdir/commonremarks.$taal
+mathcheck=!record 75 of $remarkdir/commonremarks.$taal
+mathchecktext=!record 76 of $remarkdir/commonremarks.$taal
+!if $printexo=1
+    paperbg=$empty
+!else
+    paperbg= background="$gifdir/paper.jpg"
+!endif
+# usage
+# 0 formal exam
+# 1 test exam
+# 2 training
+# 3 printjob goback to intro for adjustment -> usage=5
+# 4 goback to adjust yourself=> usage=5
+
+!if $usage=0
+    # define the defaults for formal jm.evers exam
+    showanswer=0
+    options=4
+    maxtry=10
+    teaching=0
+    noselect=1
+    mathview=0
+    goodbadsign=0
+    calculator=0
+    scribbling=0
+    time=0
+    P1=0.9
+    P2=0.85
+    P3=0.8
+    P4=0.7
+    P5=0.6
+    P6=0.5
+    P7=0.4
+    P8=0.3
+    P9=0.2
+    P10=0.1
+    # needs to be specified: not clear right now (see score.proc)
+    scoringtype=0
+    !goto KLAAR
+!endif
+!if $usage=1
+    # define the defaults for a test exam
+    showanswer=0
+    options=4
+    maxtry=6
+    teaching=0
+    noselect=1
+    mathview=2
+    goodbadsign=1
+    calculator=1
+    scribbling=1
+    time=1
+    P1=0.95
+    P2=0.9
+    P3=0.85
+    P4=0.8
+    P5=0.7
+    P6=0.6
+    P7=0.5
+    P8=0.3
+    P9=0.2
+    P10=0.1
+    # needs to be specified: not clear right now (see score.proc)
+    scoringtype=0
+    !goto KLAAR
+!endif
+!if $usage=2
+    # define the defaults for training
+    #in real exam mode no "exotitle" present
+    exotitle=!record $[-1*$subject] of lang/remarks.$taal
+    showanswer=1
+    image=1
+    options=4
+    maxtry=5
+    teaching=1
+    goodbadsign=2
+    calculator=2
+    scribbling=1
+    noselect=1
+    mathview=2
+    time=1
+    P1=0.95
+    P2=0.9
+    P3=0.85
+    P4=0.8
+    P5=0.7
+    P6=0.65
+    P7=0.6
+    P8=0.5
+    P9=0.4
+    P10=0.3
+    # needs to be specified: not clear right now (see score.proc)
+    scoringtype=0
+    !goto KLAAR
+!endif
+!if $usage>2
+    #in real exam mode no "exotitle" present
+    exotitle=!record $[-1*$subject] of lang/remarks.$taal
+    P1=0.95
+    P2=0.9
+    P3=0.85
+    P4=0.8
+    P5=0.7
+    P6=0.6
+    P7=0.5
+    P8=0.3
+    P9=0.2
+    P10=0.1
+    # needs to be specified: not clear right now (see score.proc)
+    scoringtype=0
+!endif
+:KLAAR
+
+!if $goodbadsign !=0
+    # signs of content./.
+    OK=<img src="$gifdir/ok.gif" alt="">
+    NOK=<img src="$gifdir/nok.gif" alt="">
+    BOK=<img src="$gifdir/bok.gif" alt="">
+    !if $goodbadsign=2
+	nok=!record 56 of $remarkdir/commonremarks.$taal
+	bok=!record 57 of $remarkdir/commonremarks.$taal
+	ok=!record 58 of $remarkdir/commonremarks.$taal
+    !endif
+!endif
+
+
+!readproc $remarkdir/rounding.$taal

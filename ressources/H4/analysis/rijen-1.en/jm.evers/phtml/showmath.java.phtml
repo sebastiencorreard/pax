@@ -1,0 +1,105 @@
+!set n=$counter
+<script language="javascript" type="text/javascript"  src="$jsdir/../lang/remarks.$taal.js"></script>
+<script language="javascript" type="text/javascript"  src="$jsdir/precheck.js"></script>
+<script language="javascript" type="text/javascript">
+    function exitMathView(){
+	document.applets[0].destroy();window.close(); 
+    }
+
+    var URL;
+    var applet=0;
+    function sendanswer(){
+	var v;var input;var reply=new Array ;var total=new Array;
+	var ml;var t1;var t2;var appletid;
+	if(document.applets[0]){
+	    appletid=(document.applets[0].id);
+	    if(appletid=="MathView"){
+		applet=1;
+		input=document.applets[0].getLinear();
+		input=input+'';
+		if(input.indexOf(',')!=-1){alert(r4);return;}
+		v=input.length;if(v==0){alert(r1);return;}if(v>100){alert(r2); return;}if(v==0){alert(r1);return;}
+		if(check_f(input)==0){return;}
+		if(check_o(input)==0){return;}
+		input=check_s(input);if(check_x(input)==0){return;}
+		if(check_log_NaN(input)==0){return;}if(check_sqrt_NaN(input)==0){return;}
+		reply[0]=input;
+		t1=input.indexOf("[");
+		if(t1 !=- 1){
+		    if(input.indexOf("sqrt[")!=-1){input=specialroot(input);if(input=="error"){return;}}
+		    if(input.indexOf("log[")!=-1){input=speciallog(input);if(input=="error"){return;}}
+		    t1=input.indexOf("[");
+		    if(t1!=-1){alert(r13);return;}
+		}
+		input=input.replace(/#/g,' ');
+		total[0]=input;
+	    	t=confirm(r0+"\n"+reply);
+		if(t==true){
+		    total=encodeURIComponent(total);
+		    URL = '$wims_ref_name?session=$myvar4&+module=$module&+cmd=reply&+reply$n='+total ;
+		    opener.location.href = URL;
+		    document.applets[0].destroy();
+		    window.close();
+		}
+	    }
+	}
+    }
+</script>
+
+<table>
+    <td align="center">
+	<table>
+	<td align="center">
+		<input type="button" style="background-color:lightgreen;font-weight:normal;font-size:14px;text-align:center;"value="EXIT" onclick="javascript:exitMathView();"/>
+	</td>
+	!if $inputs=1
+		<td align="center">
+		<input type="button" style="background-color:red;font-weight:normal;font-size:14px;text-align:center;"value="$send" onclick="javascript:sendanswer();"/>
+		</td>
+	!endif
+	</table>
+    </td>
+    <tr>
+    <td align="center">
+	<table border=1 width=100%>
+	    <th>
+		<applet id="MathView" code="MathView.class" codebase="$appletdir" archive="MathView.jar" width="580" height="240">
+		    !! will default to background color of html-page/element
+		    <script language="javascript" type="text/javascript">
+			var thisbackground=document.bgColor;
+			if(thisbackground){var obj="\<param name=bgcolor value="+thisbackground+"\>"}else{var obj="\<param name=bgcolor value=#ffffff\>"}
+			document.write(obj.toString());
+		    </script>	
+		<param name="largefont" value="$largefont">
+		!if $wims_user=supervisor
+		    <param name="oldreply" value="
+		    !nospace $(answer$n)
+		    ">
+		!else
+		    <param name="oldreply" value="
+		    !nospace $(reply$n)
+		    ">
+		!endif
+		<param name="smallfont" value="$smallfont">
+		<param name="helptext" value="$applettext">
+		!! helptext : can display "exercise" math in the applet applettext=!nospace 1 / ( 1 + x ) =
+		<param name="wimsvars" value="$varlist">
+		!! declare varlist=x,y,z,s or varlist=x y z s
+		!if $mathviewpanel=$empty
+		    <param name="my_panel" value="$module_title:and:or:sqrt():+:-:*:/">
+		!else
+		    <param name="my_panel" value="$mathviewpanel">
+		!endif
+		!! syntax $mathviewpanel:
+		!! value=" title : specialbutton1 : specialbutton2 : specialbutton3 : specialbutton4"
+		!! no unicode allowed
+		!! the applet can identify: and,or,inf,sqrt,isin,notin,-> (arrow)
+		!! maximum number of functions=6? 
+		$nojava
+		</applet>
+	    </th>
+	</table>
+    </td>
+</table>
+!exit
+

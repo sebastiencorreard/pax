@@ -1,0 +1,123 @@
+#:17 Beleggen in de AEX [ domein G ]
+var1=$empty
+make_tr=1
+n=$counter
+!if $level=0
+  R=$counter
+!else
+  R=$level
+!endif
+rounding=100
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=$checkdir/new_number.proc
+math=0
+f=!randint 1,7
+viewlogo=1
+logotext=<img src=\'$module_dir/gifs/aex$f.jpg\' alt=\'AEX\' />
+logo=<img src="$module_dir/gifs/aex$f.jpg" alt="AEX" />
+R=1
+description=$empty
+!if $R=1
+  jaar=!date +%Y
+  nu=$[$jaar - 1]
+  ss1=Gegeven:<ul><li>Op 3 januari 1987 ging de voorloper van de huidige Amsterdamse beursindex (AEX-index) van start.</li><li>De AEX-index komt tot stand door middel van een samengesteld gewogen gemiddelde.</li><li>Om de onderstaande opgave te vereenvoudigen wordt gerekend met 5 beursfondsen<br />in plaats van de 25 waaruit de AEX in werkelijkheid bestaat.<br />Bovendien worden de wegingsfactoren als constanten beschouwd</li></ul>
+  
+  ss2=Bereken met behulp van <span class="schaersvoorde_link">deze gegevens</span> uit het basisjaar de <br />ontbrekende waarden in de tabel voor 31 december $nu
+  
+  roundingtext=Rond de prijs van een aandeel af op euro centen (twee decimalen)<br />Rond je index-cijfers af op twee decimalen. 
+  
+  k=!shuffle 1,2,3,4,5
+  company=Ahold,ING,Philips,Royal Dutch (SHELL),Unilever
+  fondsen=$empty
+  bedrijflogo=$empty
+  !for p in $k
+	bedrijflogo=!append item bedrijf$p.jpg to $bedrijflogo
+	fondsen=!append item $(company[$p]) to $fondsen
+  !next p
+  head=<table style=\'text-align:center\'><caption>Beginstand AEX-index op 3 januari 1987 (basisjaar) is 100</caption><tr><th>Bedrijf</th><th>&nbsp;</th><th>Prijs</th><th>Partieel indexcijfer</th><th>wegingsfactor</th></tr>
+  head2=<table style="text-align:center"><caption>Beginstand AEX-index op 3 januari 1987 (basisjaar) is 100</caption><tr><th>Bedrijf</th><th>Prijs</th><th>Partieel indexcijfer</th><th>wegingsfactor</th></tr>
+  mousetabel=$empty
+  invultabel=$empty
+  answertabel
+  eind_aex=0
+  textans_eind_aex=$empty
+  kleuren=!shuffle #99ff9b,#bbd4ff,#ffbb63,#a4c6ff
+  k1=!item 1 of $kleuren
+  k2=!item 2 of $kleuren
+  k3=!item 3 of $kleuren
+  k4=!item 4 of $kleuren
+
+  tot=0
+  wegingen=$empty
+  !for p=1 to 4
+	w=!randint 5,23
+	tot=$[$w+$tot]
+	wegingen=!append item $[$w/100] to $wegingen
+  !next p
+  wegingen=!append item $[(100-$tot)/100] to $wegingen
+  wegingen=!shuffle $wegingen
+  
+  !for p=1 to 5
+	bedrijf=!item $p of $fondsen
+	plaatje=!item $p of $bedrijflogo
+	!if $p>2
+	  prijs1=!randint 2,10
+	!else
+	  prijs1=!randitem 2,4,5,8,10
+	!endif
+	prijs1=!exec moneyprint $prijs1
+	weging=!item $p of $wegingen
+	mousetabel=!append word $ <tr><th><img src=\'$module_dir/gifs/$plaatje\' alt=\'bedrijf$p\' /></th><th bgcolor=\'$k2\'>$bedrijf</th><th bgcolor=\'$k1\'>&euro; $prijs1</th><th bgcolor=\'$k3\'>100</th><th bgcolor=\'$k4\'>$weging</th></tr> $ to $mousetabel
+    !if $p>2
+	  index=!randint 12,35
+	  index=$[10*$index]
+	  ans=!exec moneyprint $[$prijs1*$index/100]
+	  description=!append item 100 to $description
+	  invulveld=<input name="myinput$[$p-1]" id="myinput$[$p-1]" size="6" style="background-color:$k1;font-weight:normal;font-size:16px;text-align:center;" value=""/>
+	  invultabel=!append word $ <tr><th style="background-color:$k2" nowrap="nowrap">$bedrijf</th><th style="background-color:$k1" nowrap="nowrap">&euro;&nbsp;$invulveld</th><th style="background-color:$k3" nowrap="nowrap">$index</th><th style="background-color:$k4" nowrap="nowrap">$weging</th></tr> $ to $invultabel
+	  answertabel=!append word $ <tr><th style="background-color:$k2" nowrap="nowrap">$bedrijf</th><th style="background-color:$k1" nowrap="nowrap">&euro; $prijs1 &times; $index / 100 = &euro; $ans </th><th style="background-color:$k3" nowrap="nowrap">$index</th><th style="background-color:$k4" nowrap="nowrap">$weging</th></tr> $ to $answertabel
+	  eind_aex=$[$eind_aex+$index*$weging]
+	  textans_eind_aex=!append word $ + [ $index &times; $weging ] $ to $textans_eind_aex
+	!else
+	  diff=!randint 1,5
+	  prijs2=!exec moneyprint $[$prijs1 + $diff]
+	  ans=$[100*$prijs2/$prijs1]
+	  # wienke 30/11/2011
+	  #description=!append item 10 to $description
+	  description=!append item 100 to $description
+	  invulveld=<input name="myinput$[$p-1]" id="myinput$[$p-1]" size="6" style="background-color:$k3;font-weight:normal;font-size:16px;text-align:center;" value=""/>
+	  invultabel=!append word $ <tr><th style="background-color:$k2" nowrap="nowrap">$bedrijf</th><th style="background-color:$k1" nowrap="nowrap">&euro; $prijs2</th><th style="background-color:$k3" nowrap="nowrap">$invulveld</th><th style="background-color:$k4" nowrap="nowrap">$weging</th></tr> $ to $invultabel
+	  answertabel=!append word $ <tr><th style="background-color:$k2" nowrap="nowrap">$bedrijf</th><th style="background-color:$k1" nowrap="nowrap">&euro; $prijs2</th><th style="background-color:$k3" nowrap="nowrap">100 &times; $prijs2 / $prijs1 = $ans</th><th style="background-color:$k4" nowrap="nowrap">$weging</th></tr> $ to $answertabel
+	  eind_aex=$[$eind_aex+$ans*$weging]
+	  textans_eind_aex=!append word $ + [ $ans &times; $weging ] $ to $textans_eind_aex
+	!endif
+	answer$n=!append line $ans to $(answer$n)
+  !next p
+  answer$n=!append line $eind_aex to $(answer$n)
+  # aex rond getal:
+  # wienke 30/11/2011 
+  #description=!append item 1 to $description
+  description=!append item 100 to $description
+  
+  textans_eind_aex=!char 3 to -1 of $textans_eind_aex 
+  
+  answertabel=!append word $ </table><br />De <b>eindstand AEX-index</b> is <br />: $textans_eind_aex = $eind_aex = $[round($eind_aex)]$ to $answertabel
+  
+  invultabel=!append word $ </table><br />De <b>eindstand AEX-index</b> is : <input type="text" id="myinput5" size="10" class="schaersvoorde_input" value=""/> $ to $invultabel
+  
+  mousetabel=!append word $mousetabel </table> to $head
+  textanswer$n=!append word $answertabel to $head2
+  
+  exotext=$head2 $invultabel
+  
+  helptext=$roundingtext
+  
+  question$n=<a onmouseover="return escape('$mousetabel<br />$roundingtext')">$ss1 $ss2</a><br /><em><small>$roundingtext</small></em><br /><br />
+!else
+!endif
+
+
+

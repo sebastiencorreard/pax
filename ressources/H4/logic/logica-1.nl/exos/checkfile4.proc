@@ -1,0 +1,61 @@
+goback=0
+math=0
+errortext=$empty
+score=0
+extra=$empty
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ object$n=&nbsp;
+ !exit
+!endif
+
+AAA=!lower $(reply$n)
+AAA=!replace internal : by , in $AAA
+at=!itemcnt $AAA
+!if $at < $var3
+ errortext=Je zou toch tenminste $var3 verschillende punten klikken...
+ goback=1
+ !exit
+!endif
+student=$empty
+your_answer=$empty
+final=0
+fout=0
+maxscore=1
+!for a=1 to $at step 2
+ x=!item $a of $AAA
+ y=!item $[$a+1] of $AAA
+ chk=!exec pari x=$x;y=$y;$(answer$n)
+ !if 1 notin $chk
+  student=!append line crosshair $x,$y,red to $student
+  !increase $fout
+  maxscore=0
+ !else
+  student=!append line crosshair $x,$y,green to $student
+ !endif
+ sequence=!append item $chk to $sequence
+!next a
+!if $maxscore=1
+ remark$n=$OK
+!else
+ remark$n=$NOK
+ extra=van de $[0.5*$at] punten heb je er $fouten fout aan geklikt
+!endif
+modulescore=$[$modulescore + $maxscore]
+
+!if $teaching=1
+ object$n=!exec canvasdraw \
+ size 300,300\
+ $var5 \
+ opacity 255,120\
+ $student
+
+!endif
+
+reply$n=zie plaatje...
+goback=0
+
+!exit

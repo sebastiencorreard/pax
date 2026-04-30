@@ -1,0 +1,200 @@
+!set title=Forme canonique du second degré (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+
+ansorder=r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 12
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 1,1,1,2,2,3
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+t_=!rawmath $val7/$val8
+val9=!exec pari print($t_)
+t_=!rawmath -($val9/2)
+val10=!exec pari print($t_)
+t_=!rawmath -($val9/2)^2
+val11=!exec pari print($t_)
+val12=!rawmath x^2 +$val9 x
+tmp=!nonempty items -1,-2,-3,-4,1,2,3,4
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+val14=$val13
+
+!ifval $val13==1
+val14=
+!endif
+
+!ifval $val13==-1
+val14=-
+!endif
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 12
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val12=!rawmath x^2 +$val9*x
+tmp0=!replace internal * by in $val12
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in $val13*($val12) +$val15
+tmp0=!exec maxima $t_
+
+val17=!rawmath $(tmp0)
+t_=!rawmath $val15-$val13*($val9/2)^2
+val18=!exec pari print($t_)
+oefsteps=reply1, reply2	reply3, reply4 
+nextstep=!nosubst reply1, reply2	reply3, reply4 
+!readproc oef/steps.proc
+replytype1=rational
+
+replyoption1=nonstop 
+replyname1=Coefficient \(\,\alpha\)
+replygood1=$val10
+replytype2=rational
+
+replyoption2=nonstop 
+replyname2=Coefficient \(\,\beta\)
+replygood2=$val11
+replytype3=rational
+
+replyoption3=nonstop 
+replyname3=Coefficient \(\,\alpha\)
+replygood3=$val10
+replytype4=rational
+
+replyoption4=nonstop 
+replyname4=Coefficient \(\,\gamma\)
+replygood4=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<!--- Première étape -->	Soit 
+!insmath u
+$() la fonction définie sur 
+!insmath \R
+$() par 
+!insmath  u(x) = $val12
+$().	
+!if $m_step==1 
+$()	  <h2 class="small">Question 1.</h2>	  Réécrire 
+!insmath u(x)
+$() sous forme canonique :	  <div class="wimscenter"> 
+!insmath u(x) = (x - \alpha)^2 + \beta 
+$()	  avec <label for="reply1">
+!insmath \,\alpha
+$() =</label>  
+!read oef/embed.phtml reply1,8 
+$()	   <label for="reply2">et 
+!insmath \,\beta
+$() =</label>  
+!read oef/embed.phtml reply2,8 
+$().</div>	 
+!endif
+$()	<!--- Deuxième étape-->	
+!if $m_step==2 
+$()	  <h2 class="small">Analyse de la question 1.</h2>	  
+!if $m_reply1=$val10 and $m_reply2=$val11 
+$()	    <span class="oef_indgood">Vous avez répondu correctement. On a bien&nbsp;:</span> 
+!else
+$()	     <span class="oef_indbad">Vous vous êtes trompé. La bonne réponse est&nbsp;:</span>  
+!endif
+$()	  
+!insmath $val12 = (x - $val10)^2 + $val11
+$().	  <h2 class="small">Question 2.</h2>	  En déduire la forme canonique de 
+!insmath f(x) = $val17
+$() :	  <div class="wimscenter"> 
+!insmath f(x) = $val14(x - \alpha)^2 + \gamma 
+$()	  avec <label for="reply3">
+!insmath \,\alpha
+$() =</label>  
+!read oef/embed.phtml reply3,8 
+$()	   <label for="reply4">et 
+!insmath \,\gamma
+$() =</label>  
+!read oef/embed.phtml reply4,8 
+$().	   </div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()	Dans l'expression 
+!insmath x^2 + a x
+$() on reconnaît le début du développement	de 
+!insmath \left(x + \frac{a}{2} \right)^2
+$().	On fait apparaître 
+!insmath \left(\frac{a}{2} \right)^2
+$()	et l'on utilise une identité remarquable :	<div class="wimscenter">	
+!insmath x^2 + a x = \left[ x^2 + 2\times\frac{a}{2}\times x + \left(\frac{a}{2}\right)^2 \right] \; - \; \left(\frac{a}{2}\right)^2= \left(x + \frac{a}{2}\right)^2 - \left(\frac{a}{2}\right)^2
+$().</div>	</div>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,14,17
+embedcnt=4

@@ -1,0 +1,106 @@
+!set title=Mesure de l'angle d'incidence
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-joëlle,Ramage
+email=marie-joelle.ramage@laposte.net
+language=fr
+precision=100
+oefcss=<style> .box{display:flex ; align-items: stretch} .box2{margin: 10px} .imgmax{height:100% ; width : 100% ; object-fit : contain} **/adaptation du conteneur au contenu /** </style>
+
+ansorder=r
+varcnt=10
+prevarcnt=9
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=600,420
+tmp0=!randint 1, 180
+
+val7=$[rint($(tmp0))]
+val8=$[rint(abs(90-$val7))]
+val9=$[(3.14159*$val7/180)]
+val10=$[400*cos($val9)+303]
+val11=$[400*sin($val9)+127]
+val12=$val10,$val11
+val13=xrange 0,600	yrange 0,420	copy 0,420,-1,-1,-1,-1,rapporteur6002.png	linewidth 2	arrow $val12,303,128,10,red	text black,500,25,large,Milieu 2	text black,500,400,large,Milieu 1	
+!readproc oef/draw.phtml $val6 \
+$val13 
+tmp0=$ins_url
+val14=$(tmp0) 
+replytype1=numeric
+replyname1=Commentaire
+replygood1=$[$val8 ]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div>Soit un faisceau lumineux. Ce rayon atteint l'interface entre deux milieux, comme schématisé sur la figure ci-dessous. On appelle 
+!insmath i_1
+$() cet angle d'incidence.	<p class="wimscenter"><img src="$val14" alt="dioptre avec rapporteur" /></div>	<div class="wims_question">Déterminer la mesure de l'angle d'incidence en degré, sans tenir compte de son orientation  : 
+!insmath i_1
+$() (en °)= 
+!read oef/embed.phtml reply1,5 
+$().</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La bonne réponse, avec 2 chiffres significatifs, est 	
+!insmath i_1
+$() = $val8 °. 	<div class="box">	<div><img class="imgmax" src="$val1/vocabulaire.jpg" alt="terminoligie angles et rayons suivant le modèle de Descartes"></div>	<div class="box2">Les angles d'incidence 
+!insmath i_1
+$() et de réfraction 
+!insmath i_2
+$() se mesurent par rapport à la normale de la surface du dioptre.</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,14
+embedcnt=1

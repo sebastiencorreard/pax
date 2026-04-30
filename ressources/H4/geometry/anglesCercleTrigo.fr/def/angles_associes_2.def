@@ -1,0 +1,131 @@
+!set title=Angles associés (cocher un point)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!random 0.2 ,  pi - 0.2
+
+val6=$[$(tmp0)*$(tmp1)  ]
+t_=!replace internal \( by ( in 0.01*floor($val6*100)
+tmp0=!exec pari $t_
+
+val6=$[$(tmp0)]
+val7=pi - $val6, pi + $val6, -$val6,    2*pi +$val6, -pi - $val6, -pi + $val6, 2*pi - $val6
+val8=\pi - \alpha, \pi + \alpha, -\alpha, 2\pi +\alpha, -\pi - \alpha, -\pi + \alpha, 2\pi - \alpha
+val9=B, C, D, A, B, C, D
+tmp0=!randint 1, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!item  $val10 of  $val7
+
+val11=$[$(tmp0)]
+tmp0=!item  $val10 of  $val8
+
+val12=$(tmp0) 
+tmp0=!item  $val10 of  $val9
+
+val13=$(tmp0) 
+tmp0=!item $val10 of  2,3,4,1,2,3,4
+
+val14=$[rint($(tmp0))]
+t_=!replace internal \( by ( in cos($val6)
+tmp0=!exec pari $t_
+
+val15=$[$(tmp0)]
+t_=!replace internal \( by ( in sin($val6)
+tmp0=!exec pari $t_
+
+val16=$[$(tmp0)]
+val17=$[-$val15]
+val18=$[-$val16]
+val19=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});	var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});	var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});		var c = brd.create('circle', [pO,pI], {strokeWidth:1, strokeColor:'grey'}) ;		var pA = brd.create('point',[$val15,$val16], {name:'A',size: 3,  face: 'o', fixed:true, color:'blue'});	var pB = brd.create('point',[$val17,$val16], {name:'B',size: 2,  face: 'o', fixed:true, color:'black'});	var pC = brd.create('point',[$val17,$val18], {name:'C',size: 2,  face: 'o', fixed:true, color:'black'});	var pD = brd.create('point',[$val15,$val18], {name:'D',size: 2,  face: 'o', fixed:true, color:'black'});		brd.create('segment',[pA,pB], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pB,pC], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pC,pD], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pD,pA], { strokeWidth:1, strokeColor:'blue'});		brd.create('arc',[pO,pI,pA], { strokeWidth:2 , strokeColor:'blue'});		brd.update() ; 	
+!readproc slib/geo2D/jsxgraph  jxgbox, 300 x 300, $val19 
+tmp0=$slib_out
+val20=$(tmp0)
+replytype1=radio
+replyname1=Point associé
+replygood1=$val14 ;A,B,C,D 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 	<p>Soit  A un point du cercle trigonométrique tel que   	l'angle orienté 
+!insmath \left( \vec{OI} , \vec{OA} \right) 
+$() mesure 
+!insmath \alpha = $val6
+$() radians. </p>	<p>Les points B, C et D	sont  les symétriques du point A respectivement  par rapport à :  l'axe des ordonnées,  à l'origine, à l'axe des abscisses.	</p>	$val20	<p>	Quel est le point P du cercle tel que   l'angle  orienté 
+!insmath \left( \vec{OI} , \vec{OP} \right) 
+$() mesure 
+!insmath \beta\;= \; $val12
+$() radians	? </p>	P  =    
+!read oef/embed.phtml reply1 
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,20
+embedcnt=1

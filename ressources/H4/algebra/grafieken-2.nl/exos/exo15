@@ -1,0 +1,48 @@
+n=$counter
+helptext=$empty
+description=$youranswer
+# truuk om verticale layout te forceren
+questiontype=10
+rounding=-1
+options=!randitem 5,6,7,8
+checkfile=$checkdir/equation.proc
+arglist=H,H(t)
+varlist=t
+#we geven 1 tabel met $options kolommen...
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    or=!record 108 of lang/remarks.$taal
+    a=!randitem 200,210,220,230,240,250,300,350,400,450,500,550,600,650,700,750,800,850,900
+    b=!randint 20,40
+    b=$[$b/10]
+    X=1,2,3,4,5,6,7,8,9,10
+    d=$[round(100*$a/(2^($b)))/100]
+    texanswer$n=\left[ \begin{array}{l} H(1)=$a \rightarrow $a=\frac{a}{1^{n}} \rightarrow a=$a \\ \\ H(2)=$d \rightarrow $d = \frac{$a}{2^{n}} \\ \\ 2^{n}=\frac{$a}{$d} \rightarrow n=^{2} \log $[$a/$d] = \frac{\log $[$a/$d]}{\log 2} \approx $b \\ \textrm{$or }\\ y_{1}=\frac{$a}{2^{x}}\\ y_{2}=$d\\ [0;$[round(2*$b)]] [0;$[10*round(2*$d/10)]]\\ intersect\\ x \approx $b \rightarrow n\approx $b \\ \\ \bf{H(t)}\,=\, \frac{$a}{t^{$b}}\end{array} \right.
+!endif
+!if $R>1
+    a=!randitem 2000,3000,4000,5000
+    b=!randitem 1.4,1.5,1.6,1.7,1.8,1.9,2,2.1,2.2,2.3,2.4,2.5
+    d1=$[round(100*$a/2^($b))/100]
+    d2=$[round(100*$a/4^($b))/100]
+    X=2,3,4,5,6,7,8,9,10,11,12
+    texanswer$n=\left[ \begin{array}{l} H=\frac{a}{t^{n}} \rightarrow H \cdot t^{n} = a \\ \\ H(2)=$d1 ; H(4)=$d2\\ \\ $d2 \cdot 4^{n} = a \\ \\ $d1 \cdot 2^{n} = a \\ \\ \frac{$d2 \cdot 4^{n}}{$d1 \cdot 2^{n}}=\frac{a}{a}=1\\ \\ \frac{$d2}{$d1} \cdot \left(\frac{4}{2}\right)^{n}= 1 \\ \\ $[$d2/$d1] \cdot 2^{n} =1 \rightarrow 2^{n} = $[$d1/$d2] \\ \\ n = ^{2} \log $[$d1/$d2] \approx $b \\ \\ $d1 \cdot 2^{$b} =a \approx  $a  \\ \\ \bf{H(t)}\,=\,\frac{$a}{t^{$b}} \end{array} \right.
+!endif
+answer$n=$a/t^$b
+
+!for s=1 to $options
+    x=!item $s of $X
+    lijst1=!append line <td>$x</td> to $lijst1
+    c=$[round(100*$a/($x^($b)))/100]
+    lijst2=!append line <td>$c</td> to $lijst2
+!next s
+mathviewpanel=$module_title:H(t)=:t:+:-:/:*:^
+ss=!record 76 of lang/remarks.$taal
+#Bepaal de formule, die hoort bij onderstaande tabel.<br />H is recht evenredig met t<sup>n</sup>.<br /><small>Rond a af op een geheel getal. Rond n af op twee decimalen</small><p>
+helptext=!record 77 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><hr class="schaersvoorde_hr" /><table class="demospecial"><tr><th>t</th>$lijst1</tr><tr><th>H</th>$lijst2</tr></table>
+

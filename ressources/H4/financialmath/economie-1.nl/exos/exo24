@@ -1,0 +1,84 @@
+# : Vraag &amp; aanbodvergelijking II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+roundingtext=Rond je <b>eindantwoord</b> af op twee decimalen. 
+mathview=0
+make_tr=1
+checkfile=exos/precheck1.proc
+cols=12
+!if $R=1
+    embed=1
+    inputs=1.1
+    k1=!randint -10,-20
+    k1=$[$k1/10]
+    k2=!randint 2,10
+    b1=!randint 20,50
+    b2=!randint 8,50
+    onder=$[ceil(($b1 + $b2)/($k2-($k1)))]
+    prijs=!randint $onder,$[2*$onder]
+    Qv=$[$k1*$prijs + $b1]
+    Qa=$[$k2*$prijs - $b2]
+    !if $Qv < 0.5 or $Qa < 0.5
+	prijs=!randint 9,18
+	k1=-1
+	k2=2
+	b1=20
+	b2=5
+    !endif
+    
+    ss=Op een markt voor een landbouwproduct besluit de overheid de producent te beschermen<br />door het instellen van een minimumprijs van &euro; $prijs per kg.<br />Verder zijn volgende gegevens bekend over vraag &amp; aanbod.<br />Bereken hiermee de kosten die gemoeid zijn met het opkopen van het aanbodoverschot voor de overheid.<br />
+    
+    formula$n=\left[ \begin{array}{l} Q_{v} = $k1 \cdot p + $b1 \\ Q_{a} = $k2 \cdot p - $b2  \\ \textrm{de prijs wordt gegeven in}\; \euro / kg \\ \textrm{de hoeveelheid is in duizenden kg} \end{array} \right.
+    
+    inputtext1=De kosten in &euro;&rsquo;s
+    Qv=$[$k1*$prijs + $b1]
+    Qa=$[$k2*$prijs - $b2]
+    over=$[$Qa - $Qv]
+    answer$n=$[$prijs*$over*1000]
+    ex1=&euro;
+
+    texanswer$n=!subst \left[ \begin{array}{l} Q_{v} = $k1 \cdot $prijs + $b1 = $Qv \\ Q_{a} = $k2 \cdot $prijs - $b2 = $Qa\\ \textrm{Overschot :}\; Q_{a} - Q_{v} = $Qa - $Qv = $over \;\textrm{ in duizenden kilo's} \\ \textrm{Kosten voor de overheid : } \;$prijs \times $[$over*1000]  = $(answer$n) \;\textrm{ euro} \end{array} \right.
+!else
+    embed=0
+    inputs=2
+    k1=!randint -10,-20
+    k1=$[$k1/10]
+    k2=!randint 2,10
+    b1=!randint 15,40
+    b2=!randint 10,20
+    boven=$[floor(($b1 + $b2)/($k2-($k1)))]
+    onder=$[round($boven/4)]
+    prijs=!randint $[10*$onder],$[10*$boven]
+    prijs=$[$prijs/10]
+    Qv=$[$k1*$prijs + $b1]
+    Qa=$[$k2*$prijs - $b2]
+    !if $Qa < 0.5 or $Qv < 0.5
+	prijs=!randint 30,40
+	prijs=$[$prijs/10]
+	k1=-1
+	k2=2
+	b1=10
+	b2=4
+	Qv=$[$k1*$prijs + $b1]
+	Qa=$[$k2*$prijs - $b2]
+    !endif    
+    ans1=$[1000*($Qv-$Qa)]
+    ans2=$[round(10000*$b2/$k2)]
+    ans2=$[$ans2/100]
+    answer$n=$ans1,$ans2
+    ex1=stuks
+    ex2=&euro;
+    formula$n=\left[ \begin{array}{lr} Q_{v} = $k1 \cdot p + $b1 \\  Q_{a} = $k2 \cdot p - $b2  \\  \textrm{de prijs is in honderden} \; \euro  \\ \textrm{de hoeveelheid is in duizenden } \end{array} \right.
+    description=Aanbodtekort,Maximumprijs
+    ss=Op de markt voor huurwoningen vindt de overheid dat de consument<br />moet worden beschermd door middel van het instellen van een<br />maximumprijs van &euro; $[$prijs*100].<br />Verder zijn de hieronder staande  gegevens bekend over vraag &amp; aanbod.<hr class="schaersvoorde_hr" />Bereken het aanbodtekort van huurwoningen dat ontstaat door het instellen <br />van een maximumprijs door de overheid.<br />Bereken bij welke maximumprijs er geen huurwoningen meer aangeboden zullen worden.
+    
+    texanswer$n=!subst \left[ \begin{array}{l} \textrm{Bij een prijs van } $[$prijs*100]  \euro : p = $prijs \\ Q_{v} = $k1 \cdot $prijs + $b1 = $Qv \\ Q_{a} = $k2 \cdot $prijs - $b2 = $Qa \\ \textrm{Aanbodtekort : } Q_{v} - Q_{a} = $Qv - $Qa = $[$Qv-$Qa] \; \textrm{in duizenden}\\ \textrm{ dus } \; $ans1 \;\textrm{ woningen} \\ \\ \textrm{Waar }\; Q_{a}=0 \;\textrm{ worden er geen woningen meer aangeboden : } \\ $k2 \cdot p - $b2 = 0 \rightarrow \frac{$b2}{$k2} = $[$b2/$k2] \rightarrow   $ans2 \;\textrm{ euro is dan de maximum prijs} \end{array} \right.
+!endif
+
+question$n =<a onmouseover="return escape('$roundingtext')">$ss</a>
+ 

@@ -1,0 +1,221 @@
+wims_exec_error=$empty
+controle=1
+wordmax=25
+charmax=125
+rounding=100
+# nu eerst de getallen...daarna pas de < > tekens
+aa=!singlespace $AAA
+aa=!words2items $aa
+aa=!nospace $aa
+aa=!rawmath $aa
+aa=!replace [a-z\~\`\!\@\&\#\%\_\"\:\;|'\?\|\=\>\<] by , in $aa 
+aa=!lower $aa
+!for r=1 to $wordmax
+    aa=!replace internal ,, by , in $aa
+!next r
+aa=!replace internal sqrt, by sqrt in $aa
+aa=!replace internal (, by ( in $aa
+aa=!replace internal ,) by ) in $aa
+aa=!replace internal ,. by . in $aa
+aa=!replace internal ., by . in $aa
+aa=!replace internal ,/ by / in $aa
+aa=!replace internal /, by / in $aa
+aa=!replace internal ,* by * in $aa
+aa=!replace internal *, by * in $aa
+aa=!replace internal ^, by ^ in $aa
+aa=!replace internal ,^ by ^ in $aa
+aa=!replace internal ^, by ^ in $aa
+#problemen bij 3 getallen -4,-4,-4	
+#aa=!replace internal ,- by - in $aa
+#aa=!replace internal -, by - in $aa
+aa=!replace internal ,+ by , in $aa
+aa=!replace internal +, by , in $aa
+aa=!nospace $aa
+aa=!replace internal ,, by , in $aa
+
+#LET OP: CRUCIAAL noteer GOED$n alijd als $X<4&&$X>5
+GGG=!nospace $GGG
+gg=!replace internal && by , in $GGG	
+gg=!replace [a-z\<\>\&\&&\=] by $empty in $gg	
+gg=!nospace $gg
+gg=!replace internal ,, by , in $gg
+T1=!char 1 of $aa	
+T2=!char -1 of $aa
+!if $T1=,
+    aa=!char 2 to -1 of $aa
+!endif    
+!if $T2=,
+    aa=!char 1 to -2 of $aa
+!endif    
+K=!itemcnt $aa
+S=!itemcnt $gg
+#debug	
+!if $K != $S
+    ex=!record 32 of lang/remarks.$taal
+    errortext=$errortext <br />$ex
+    # <br /><span style="color:red">Je hebt een deel van de ongelijkheid niet goed</span>
+    controle=0
+ !exit
+!endif
+
+!for r=1 to $S
+    A$r=!item $r of $aa
+    G$r=!item $r of $gg
+!next r
+	
+!if $rounding > 0
+    !for r=1 to $S
+	a$r=$[(round(($(A$r))*$rounding))/$rounding]
+	g$r=$[(round(($(G$r))*$rounding))/$rounding]
+    !next r
+!else
+    # pari if(1/5==0,2,ja,nee) ==> nee 
+    # pari if(1.0*(1/5)==0,2,ja,nee) ==> ja 
+    !for r=1 to $S
+	a$r=1.0*$(A$r)
+	g$r=1.0*$(G$r)
+    !next r	
+!endif
+	
+!if $S=3
+    test1=!exec pari if( ($a1==$g1 || $a1==$g2 || $a1==$g3) && ($a2==$g1 || $a2==$g2 || $a2==$g3) && ($a3==$g1 || $a3==$g2 || $a3==$g3),ja,nee)
+!else
+    !if $S=2
+	test1=!exec pari if( ($a1==$g1 || $a1==$g2) && ($a2==$g2 || $a2==$g1),ja,nee)
+    !else	
+	!if $S=1
+	    test1=!exec pari if($a1==$g1,ja,nee)
+	!endif
+    !endif
+!endif
+!if $wims_exec_error!=$empty
+    testvar=$AAA
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+##getallen niet goed: klaar...antwoord fout
+!if $test1=nee
+    fout=!randitem $fouten
+    ex=!record 32 of lang/remarks.$taal
+    errortext=$errortext <br />$ex
+    controle=0
+ !exit
+!endif	
+
+#DE ONGELIJKHEID (wat een ellende)
+
+TT=!replace internal = by @ in $test
+GG=!replace internal = by @ in $GGG
+
+!if (@ isin $GG and @ notin $TT)
+    controle=0.8
+    ex=!record 45 of lang/remarks.$taal
+    errortext=$errortext<br />$ex
+!endif 
+
+test=!words2items $AAA
+!for w in sqrt,log,pi,sin,cos,tan,abs
+    W=!toupper $w
+    test=!replace internal $w by $W in $test   
+!next p
+test=!replace [a-wz\~\`\!\@\&\+\#\%\_\"\'\?\|] by , in $test
+test=!lower $test
+test=!rawmath $test
+
+!for q=1 to 10
+    test=!replace internal ,, by , in $test
+!next q
+
+test=!replace internal =, by = in $test
+test=!replace internal ,= by = in $test
+test=!replace internal *, by * in $test
+test=!replace internal ,* by * in $test
+test=!replace internal (, by ( in $test
+test=!replace internal ,) by ) in $test
+test=!replace internal +, by + in $test
+test=!replace internal ,+ by + in $test
+test=!replace internal >+ by > in $test
+test=!replace internal >,+ by > in $test
+test=!replace internal <+ by < in $test
+test=!replace internal <,+ by < in $test
+test=!replace internal >,- by >- in $test
+test=!replace internal <,- by <- in $test
+
+#test=!replace internal ,+ by + in $test
+test=!replace internal ^, by ^ in $test
+test=!replace internal ,^ by ^ in $test
+test=!replace internal -, by - in $test
+#test=!replace internal ,- by - in $test
+test=!replace internal /, by / in $test
+test=!replace internal ,/ by / in $test
+test=!replace internal >, by > in $test
+test=!replace internal ,> by > in $test
+test=!replace internal <, by < in $test
+test=!replace internal ,< by < in $test
+test=!replace internal >,$X by >$X in $test
+test=!replace internal $X,> by $X> in $test
+test=!replace internal <,$X by <$X in $test
+test=!replace internal $X,< by $X< in $test
+test=!replace internal $X$X by $X&&$X in $test
+test=!replace internal $X,$X by $X&&$X in $test
+# oh man
+test=!replace internal =$X< by =$X&&$X< in $test
+test=!replace internal =$X> by =$X&&$X> in $test
+## 5< =$X=> =6 6< =$X&&$X>  =6
+test=!replace internal >$X= by >$X&&$X= in $test
+test=!replace internal <$X= by <$X&&$X= in $test
+test=!replace internal <$X< by <$X&&$X< in $test
+test=!replace internal >$X> by >$X&&$X> in $test
+test=!replace internal >$X< by >$X&&$X< in $test
+test=!replace internal <$X> by <$X&&$X> in $test
+# hmmm
+test=!replace internal &&< by &&< in $test
+test=!replace internal <&& by < in $test
+
+T1=!char 1 of $test
+T2=!char -1 of $test
+
+!if $T1=,
+    test=!char 2 to -1 of $test
+!endif    
+!if $T2=,
+    test=!char 1 to -2 of $test
+!endif    
+
+test=!replace internal , by && in $test
+GGG=!replace internal = by $empty in $GGG
+test=!replace internal = by $empty in $test
+GGG=!nospace $GGG
+#test=!replace internal $ &&&& $ by $ && $ in $test
+#test=!nospace $test
+
+!for r=1 to $S
+    testgetal1=$[$(g$p)+0.2]
+    testgetal2=$[$(g$p)-0.2]
+    ##vreselijke truuk: we vervangen de $X door een getal; testen of de bewering waar is	
+    test1=!replace internal $X by $testgetal1 in $test
+    GGG1=!replace internal $X by $testgetal1 in $GGG
+    test2=!replace internal $X by $testgetal2 in $test
+    GGG2=!replace internal $X by $testgetal2 in $GGG
+    ##$X>4 of 4<$X => 0>4&&4<0
+
+    c=!exec pari if(($test1)==($GGG1) ,1,0)\
+    if(($test2)==($GGG2) ,1,0)
+    
+    c1=!line 1 of $c
+    c2=!line 2 of $c
+    !if NaN isin $c1,$c2 or $wims_exec_error != $empty
+	errortext=!record 26 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    #CCC=!append line c1=$c1 c2=$c2  <br /> to $CCC
+    !if 0 isin $c1,$c2
+	controle=0
+	!goto KLAAR
+    !endif	    	
+!next r 
+:KLAAR
+!exit

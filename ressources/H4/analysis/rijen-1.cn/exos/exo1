@@ -1,0 +1,234 @@
+# no need for translation 
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+# De Meetkundige Rij<br>Bereken enkele termen.
+# var2=terms
+var1=U
+keuze=!randitem 1,1,2
+!if $keuze=1
+    TYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+    NTYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+!else
+    TYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+    NTYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+!endif		
+
+math=0
+image=0
+
+!if $R=1
+    checkfile=$checkdir/multiplechoice.proc
+    questiontype=1
+    multiimage=0
+    options=!randitem 4,6
+    answer$n=!randint 1,$options
+    termen=!randitem 4,5,6
+    !for p=1 to $options
+	ex$p=$empty
+	r=!randitem 2,3,4
+	a=!randitem 2,3,4,5,6,-2,-3,-4,-5,-6
+	!if $p=$(answer$n)
+	    !if $keuze=1
+		!for t=1 to $termen
+		    U=$[$a*$r^($t)]
+		    ex$p=!append item $U&nbsp; to $(ex$p)
+		!next t
+	    !else
+		t=!randitem 3,4,5
+		f=!randint 1,100
+		!for b=1 to $termen
+		    U=$[$b*$f+$r^($t)]
+		    ex$p=!append item $U&nbsp; to $(ex$p)
+		!next a
+	    !endif
+	    ss=!record 14 of lang/remarks.$taal
+	    som=!append line $ss to $som
+	!else
+	    !if $keuze=1
+		t=!randitem 3,4,5
+		f=!randint 1,100
+		!for b=1 to $termen
+		    U=$[$b*$f+$r^($t)]
+		    ex$p=!append item $U&nbsp; to $(ex$p)
+		!next a
+	    !else
+		!for t=1 to $termen
+		    U=$[$a*$r^($t)]
+		    ex$p=!append item $U&nbsp; to $(ex$p)
+		!next t
+	    !endif
+	    ss=!record 15 of lang/remarks.$taal
+	    som=!append line $ss to $som
+	!endif
+    !next p
+    ss=!record 16 of lang/remarks.$taal
+    #@ Welke van de onderstaande rijen is een <b>$TYPE Rij</b>?<br><small>multiplechoice</small><p>
+    question$n=$ss
+    textanswer$n=<table>$som</table>
+ !exit
+!endif
+
+# tool-tip help
+extext=!record 97 of lang/remarks.$taal
+exotext=!record 99 of lang/remarks.$taal
+sometext=!record 100 of lang/remarks.$taal
+exotext=<p>$extext<br><a onmouseover="return escape('$sometext')">$exotext</a>
+
+!if $R=2
+    questiontype=0
+    checkfile=exos/checkfile1.proc
+    r=!randitem 2,3,4,5,6,7,8,9
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    choices=$[$counter+2]
+    !if $r=$a
+	r=$[$a+1]
+    !endif	
+    termen=$empty
+    var2=$empty
+    som=$empty
+    # formule a*r^n
+    mathp=and:
+    !if $keuze=1
+	# meetkundige rij
+	 formule=U<sub>n</sub>=$a&times;$r<sup>n</sup>
+	!for p=1 to $choices
+    	    t=$[$p-1]
+	    var2=!append item $t to $var2
+	    termen=!append item U<sub>$t</sub> to $termen
+	    mathp=!append word U$t=: to $mathp
+	    U=$[$a*$r^($t)]
+	    answer$n=!append item $U to $(answer$n) 
+	    som=!append line <li>U<sub>$t</sub>=$a&times;$r<sup>$t</sup>=$U</li> to $som 
+	!next p
+    !else
+	# rekenkundige rij
+	f=!randint 1,10
+	formule=U<sub>n</sub>=$[$a*$f] + $r n
+	!for p=1 to $choices
+    	    t=$[$p-1]
+	    var2=!append item $t to $var2
+	    termen=!append item U<sub>$t</sub> to $termen
+	    mathp=!append word U$t=: to $mathp
+	    U=$[$a*$f+$r*$t]
+	    answer$n=!append item $U to $(answer$n) 
+	    som=!append line <li>U<sub>$t</sub>=$[$a*$f]+$r&times;$t=$U</li> to $som 
+	!next p
+    !endif
+    mathp=!nospace $mathp
+    mathviewpanel=$module_title:$mathp
+    ss=!record 17 of lang/remarks.$taal
+    #@ Gegeven de <em>$TYPE rij</em> met <b>rangnummerformule</b>:<p align="center">$formule</p>\
+    #@ Bereken de termen $termen van deze rij.
+    question$n=$ss
+    textanswer$n=<ul>$som</ul>
+ !exit
+!endif
+
+!if $R=3
+    questiontype=0
+    checkfile=exos/checkfile1.proc
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    choices=$[$counter+2]
+    !if $r=$a
+	a=$[$r+1]
+    !endif	
+    termen=$empty
+    var2=$empty
+    som=$empty
+    mathp=and:
+    !if $keuze=1
+	r=!randitem 2,3,4,5,6,7,8,9,10
+	# meetkundg formule a*r^n-1
+	formule=!record 18 of lang/remarks.$taal
+	#@ U<sub>n</sub>=$r&times;U<sub>n-1</sub> met U<sub>1</sub>=$a
+	!for p=1 to $choices
+	    t=$[$p-1]
+	    var2=!append item $t to $var2
+	    termen=!append item U<sub>$t</sub> to $termen
+	    mathp=!append word U$t=: to $mathp
+	    U=$[$a*$r^($t)]
+    	    answer$n=!append item $U to $(answer$n) 
+	    som=!append line <li>U<sub>$t</sub>=$a&times;$r<sup>$t</sup>=$U</li> to $som 
+	!next p
+    !else
+	r=!randint 5,50
+	# rekenkundige rij formule 
+	formule=!record 19 of lang/remarks.$taal
+	#@ U<sub>n</sub>=U<sub>n-1</sub> + $r met U<sub>1</sub>=$a
+	!for p=1 to $choices
+	    t=$[$p-1]
+	    var2=!append item $t to $var2
+	    termen=!append item U<sub>$t</sub> to $termen
+	    mathp=!append word U$t=: to $mathp
+	    U=$[$a+$r*$t]
+    	    answer$n=!append item $U to $(answer$n) 
+	    som=!append line <li>U<sub>$t</sub>=$a+$r&times;$t=$U</li> to $som 
+	!next p
+    !endif
+    mathp=!nospace $mathp
+    mathviewpanel=$module_title:$mathp
+    ss=!record 20 of lang/remarks.$taal
+    #@ Gegeven de <em>$TYPE rij</em> met <b>recursieformule</b>:<p align="center">$formule</p>\
+    #@ Bereken de termen $termen van deze rij.
+    question$n=$ss
+    textanswer$n=<ul>$som</ul>
+ !exit
+!endif
+
+!if $R>3
+    checkfile=exos/checkfile1.proc
+    var2=$empty
+    !if $keuze=1
+	# meetkundig
+	r=!randitem 2,3,4
+        a=!randitem 2,3,4,5,6,7,8,9,10
+        # formule a*r^n-1
+        termen=!shuffle 3,4,5,6,7,8,9,10
+	formule=$a&times;$r<sup>n-1</sup>
+        !for p in 1,2
+	    t=!item $p of $termen
+	    f=$[$t-1]
+	    U=$[$a*$r^($f)]
+	    T$p=U<sub>$t</sub>=$U
+	!next p
+	d=!item 3 of $termen
+	f=$[$d-1]
+	b=$[$a*$r^$f]
+	answer$n=$a,$b
+    !else
+	# rekenkundig
+	# a+r(n-1)
+	r=!randitem 2,3,4,5,6,7,8,9,10
+        a=!randitem 2,3,4,5,6,7,8,9,10
+        termen=!shuffle 3,4,5,6,7,8,9,10
+	formule=$a+$r(n-1)
+	!for p in 1,2
+	    t=!item $p of $termen
+	    f=$[$t-1]
+	    U=$[$a+$r*$f]
+	    T$p=U<sub>$t</sub>=$U
+	!next p
+	d=!item 3 of $termen
+	f=$[$d-1]
+	b=$[$a+$r*$f]
+	answer$n=$a,$b
+    !endif
+    ss=!record 21 of lang/remarks.$taal
+    #@ Gegeven de <em>$TYPE rij</em> met<p align="center"> $T1 <br> en <br>$T2</p>\
+    #@ Bereken de termen U<sub>1</sub> en U<sub>$d</sub> deze rij
+    mathviewpanel=$module_title:and:U1=:U$d=
+    question$n=$ss
+    var2=1,$d
+    ss=!record 22 of lang/remarks.$taal
+    #@ De onderliggende $TYPE formule was: $formule
+    textanswer$n=<ul><li>U<sub>1</sub>=$a</li><li>U<sub>$d</sub>=$b</li><li>$ss</li></ul>
+  !exit
+!endif    

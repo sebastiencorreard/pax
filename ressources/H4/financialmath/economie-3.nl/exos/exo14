@@ -1,0 +1,121 @@
+ # Inkomensverdeling I
+#
+make_tr=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=1
+mathview=0
+calculator=1
+inputs=1.1
+cols=6
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+pl=!randint 1,7
+#viewlogo=1
+#logotext=<img src=$module_dir/gifs/vergrijzing$pl.jpg alt=vergrijzing />
+#logo=<img src=$module_dir/gifs/vergrijzing.jpg alt=vergrijzing />
+vandaag=!date +%Y
+jaar=!randint 2000,$vandaag
+options=!randitem 4,5,8,10
+!if $options=10
+    factor=1.2
+!else
+    factor=1.25
+!endif
+head=<tr><th>Inkomensgroepen</th><th>% aandeel in totaal<br />personen</th><th>% aandeel in totaal<br />inkomen</th></tr>
+body=$empty
+perc=$[100/$options]
+getallen=$empty
+min=$[10*(round(100/(2*$options)))]
+max=$[10*(round($factor*$perc))]
+som=0
+getallen=$empty
+!for p=1 to $[$options - 1]
+    g=!randint $min,$max
+    g=$[$g/10]
+    som=$[$som+$g]
+    !if $som>90
+	max=$[10*(100-$som)]
+	min=1
+    !endif
+    getallen=!append line 1.0*$g to $getallen
+!next p
+laatste=$[100 - $som]
+som=$[$som+$laatste]
+getallen=!append line $laatste to $getallen
+getallen=!exec float_calc scale=1\
+$getallen
+
+getallen=!lines2items $getallen
+getallen=!sort numeric item $getallen
+
+!for p=1 to $options
+    g$p=!item $p of $getallen
+    !if $p=1
+	comment=(laagste)
+    !else
+	!if $p = $options
+	    comment=(hoogste)
+	!else
+	    comment=$empty
+	!endif
+    !endif
+    body=!append word <tr><td>Groep $p $comment</td><td>$perc</td><td>$(g$p)</td></tr> to $body
+!next p
+ss=In <span class="schaersvoorde_link">deze tabel</span> zijn voor een land enkele gegevens over de<br />secundaire personele inkomensverdeling van $jaar weergegeven.
+
+inkomen=!randint 20,40
+inkomen=$[$inkomen/2]
+inkomen=$[$inkomen*1000]
+# in miljoenen !!
+aantal_personen=!randint 50,150
+aantal_personen=$[$aantal_personen/10]
+aanvullend=Hieronder vind je de volgende aanvullende gegevens:<ul><li>het gemiddelde inkomen in de laagste inkomensgroep bedraagt &euro; $inkomen</li><li>het totaal aantal personen bedraagt $aantal_personen miljoen</li></ul>
+
+groeps_aantal=$[$perc*$aantal_personen/100]
+groeps_inkomen=$[$groeps_aantal*$inkomen]
+totaal_inkomen=$[$groeps_inkomen*100/$g1]
+
+!if $R=1
+    roundingtext=Geef je eindantwoord op in <em>hele miljarden</em> &euro;&rsquo;s
+    
+    st=Bereken met behulp van de tabel en de aanvullende gegevens,<br />het totale inkomen van dit land in $jaar.<br />
+    
+    description=Totale inkomen
+    ex=miljard &euro;
+    
+    ans=$totaal_inkomen
+    
+    answer$n=$[$totaal_inkomen/1000]
+    rans=$[round($(answer$n))]
+    
+    description=Totale inkomen in $jaar
+    ex1=&euro;
+    
+    textanswer$n=<ul><li>$perc % van $aantal_personen miljoen = $groeps_aantal miljoen personen</li><li>$groeps_aantal miljoen &times; &euro; $inkomen = &euro; $groeps_inkomen miljoen</li><li>&euro; $groeps_inkomen miljoen is $g1 % van het totale inkomen van het land</li><li>Het totale land inkomen is dan:<br />&euro; $groeps_inkomen / $g1 &times; 100 % = &euro; $ans miljoen = &euro; $(answer$n) &times;10<sup>9</sup> &euro; </li><li> Afgerond  &euro; $rans miljard</li></ul>
+    
+!else
+    roundingtext=Reken zover mogelijk door met onafgeronde getallen<br />en rond je <em>eindantwoord</em> af op <em>hele</em> &euro;&rsquo;s
+    groep=!randint 2,$options
+    st=Bereken met behulp van de tabel en de aanvullende gegevens<br />het gemiddelde inkomen in groep $groep.
+    gik=$[$(g$groep)*$totaal_inkomen/100]
+    description=Gemiddelde inkomen in groep $groep
+    answer$n=$[$gik/$groeps_aantal]
+    rans=$[round($(answer$n))]
+
+    description=Gemiddelde inkomen in groep $groep :
+    ex1=&euro;
+	
+    textanswer$n=<ul><li>$perc % van $aantal_personen miljoen = $groeps_aantal miljoen personen</li><li>$groeps_aantal miljoen &times; &euro; $inkomen = &euro; $groeps_inkomen miljoen</li><li>&euro; $groeps_inkomen miljoen is $g1 % van het totale inkomen van het land</li><li>Het totale land inkomen is dan:<br />&euro; $groeps_inkomen / $g1 &times; 100 % = &euro; $totaal_inkomen miljoen</li><li>$(g$groep) % van $totaal_inkomen is &euro; $gik miljoen in groep $groep.</li><li>$gik miljoen / $groeps_aantal miljoen = &euro; $(answer$n) &asymp; &euro; $rans</li></ul>
+!endif
+
+helptext=<table class=\'grid_table\'>$head $body </table>$roundingtext
+
+question$n=<a onmouseover="return escape('<table class=\'grid_table\'>$head $body </table><hr />$aanvullend $roundingtext')">$ss</a><br /><br />$st
+
+

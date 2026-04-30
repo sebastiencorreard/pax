@@ -1,0 +1,131 @@
+n=$counter
+R=$counter
+mathview=0
+
+# beperk aantal mogelijke vragen tot het reeele aantal subvraagjes.
+!if $total_exos>4
+    total_exos=4
+!endif
+
+# leg alles vast tijdens de eerste vraag
+# bewaar de gegevens die later nodig zijn in var1...var9
+!if $counter=1
+    arbeid=!randint 10,50
+    arbeid=$[$arbeid/2]
+    grondstoffen=!randint 4,50
+    grondstoffen=$[$grondstoffen/2]
+    energie=!randint 7,30
+    energie=$[$energie/2]
+    prijs=!randint 10,40
+    prijs=$[$prijs*10]
+    variabele_kosten=$[$arbeid+$grondstoffen+$energie]
+    breakeven=!randint 5,20
+    breakeven=$[$breakeven*100]
+    constante_kosten=$[$breakeven*($prijs-$variabele_kosten)]
+
+    tot=!exec moneyprint $arbeid,$grondstoffen,$energie,$prijs,$variabele_kosten,$constante_kosten 2
+    arbeid=$(tot[1])
+    grondstoffen=$(tot[2])
+    energie=$(tot[3])
+    prijs=$(tot[4])
+    variabele_kosten=$(tot[5])
+    konstante_kosten=$(tot[6])
+    a=!randint 1,40
+    a=$[$a*100]
+    productie_volume=$[2*$breakeven+$a]
+    
+    var1=$arbeid,$grondstoffen,$energie,$constante_kosten,$prijs,$productie_volume
+    tw=$[$prijs-$variabele_kosten]*q-$constante_kosten
+    mw=$[$productie_volume*($prijs-$variabele_kosten)-$constante_kosten]
+    be=$breakeven
+    bo=$[$breakeven*$prijs]
+    var2=$tw,$mw,$be,$bo
+    var4=!record 50 of lang/remarks.$taal
+    #@TW-vergelijking,de maximale winst,de break-evenafzet, de break-evenomzet
+    maxwinst=!item 2 of $var4
+    break_even=!item 3 of $var4
+    break_omzet=!item 4 of $var4
+    
+    # het goede antwoord per level:
+    textanswer$total_exos=<ul><li>TK=$variabele_kosten&times;q + $constante_kosten </li><li>TO=$prijs&times;q </li><li>TW=$[$prijs - $variabele_kosten]&times;q &minus; $constante_kosten </li>
+    
+    !if $total_exos=2
+	textanswer1=Zie vraag $total_exos
+	textanswer$total_exos=!append line $ <li>$maxwinst=$[$prijs - $variabele_kosten] &times; $productie_volume &minus; $constante_kosten = &euro; $mw</li> $ to $(textanswer$total_exos)
+    !else
+	!if $total_exos=3
+	    textanswer2=Zie vraag $total_exos
+	    textanswer$total_exos=!append line $ <li>$break_even: TW=$[$prijs - $variabele_kosten]&times;q &minus; $constante_kosten=0 </li><li>$break_even=$constante_kosten/$[$prijs - $variabele_kosten]=$breakeven</li> $ to $(textanswer$total_exos)
+	!else
+	    textanswer3=Zie vraag $total_exos
+	    textanswer$total_exos=!append line $ <li>$break_omzet=$breakeven &times; $prijs = $bo</li> $ to $(textanswer$total_exos) 
+	!endif
+    !endif
+    textanswer$total_exos=!append line $ </ul> $ to $(textanswer$total_exos)
+    
+    # de somtekst
+    var3=!subst Een onderneming produceert een product <b>X</b>.De variabele kosten per stuk bestaan uit:<br /> <br /><table class="grid_table"><tr><td>Arbeid</td><td> &euro; $arbeid</td></tr><tr><td>Grondstoffen</td><td> &euro; $grondstoffen</td></tr><tr><td>Energie</td><td> &euro; $energie</td></tr></table> <ul><li>De totale constante kosten per periode zijn &euro; $constante_kosten.</li><li>De marktprijs voor product <b>X</b> bedraagt &euro; $prijs.</li><li>De productiecapaciteit in een periode is $productie_volume stuks.</li><ul>
+    
+    # onmouseover texten
+    var5=!record 56 of lang/remarks.$taal
+    #@ Noteer je antwoord als een vergelijking.<br />Gebruik <kbd><b>TW</b></kbd> voor de totale winst <br />en gebruik <kbd><b>q</b></kbd> voor productie volume.<br />Dus iets als: <kbd><b>TW = 123*q+321</b></kbd>
+    var6=!record 57 of lang/remarks.$taal
+    #@ Geef je antwoord in euro&rsquo;s (&euro;)
+!endif
+
+answer$n=!item $R of $var2
+inputtext1=!item $R of $var4
+varlist=q
+embed=0
+make_tr=1
+questiontype=0
+inputs=1.1
+cols=25
+rows=1
+
+!if $counter>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif
+
+!if $R=1
+    checkfile=$checkdir/equation.proc
+    arglist=TW
+    LL=Stel de winst-vergelijking TW op.
+    description=De winst vergelijking
+    etext=$var5
+    cols=25
+!else
+    !if $R=2
+	arglist=$empty
+	checkfile=exos/precheck1.proc
+	LL=!record 53 of lang/remarks.$taal
+	#@ Bereken de maximale totale winst.
+	etext=$var6
+	description=De maximale totale winst
+	ex1=&euro;
+	cols=10
+    !else
+	!if $R=3
+	    arglist=$empty
+	    checkfile=exos/precheck1.proc
+	    LL=!record 54 of lang/remarks.$taal
+	    #@ Bereken de break-evenafzet.
+	    etext=$var6
+	    description=break-evanafzet
+	    ex1=stuks X
+	    cols=6
+	!else
+	    arglist=$empty
+	    checkfile=exos/precheck1.proc
+	    LL=!record 55 of lang/remarks.$taal
+	    #@ Bereken de break-evenomzet.
+	    etext=$var6
+	    description=break-evenomzet
+	    ex1=&euro;
+	    cols=8
+	!endif
+    !endif
+!endif
+    
+helptext=$etext<br /><img src=\'$module_dir/gifs/exo7.$R.jpg\' alt=\'plaatje\' />
+question$n=<a onmouseover="return escape('$helptext')">$var3 <br />$LL</a>

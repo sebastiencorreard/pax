@@ -1,0 +1,256 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# vereenvoudigen logaritmes
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+wims_exec_error=$empty
+goback=0
+errortext=$empty
+extra=$empty
+
+#var1 is uitvoer js-script van letterijk overtypen...                                                                                      
+#var2=aantal 10logs in goede antwoord var2=0 -> antwoord is integer                                                                                                      
+#var3=aantal logs in var1
+#var4= $varlist is not $empty
+
+AAA=!lower $(reply$n)
+AAA=!rawmath $AAA
+
+test=!replace internal = by @ in $AAA
+!if @ isin $test
+    # take final result?
+    test=!replace internal @ by , in $test
+    AAA=!item -1 of $test
+    t=!charcnt $AAA
+    !if $t = 0
+	errortext=!record 7 of lang/remarks.$taal
+	#@Je antwoord valt in deze vorm niet na te kijken<br />Probeer het eens met een meer wiskundige schrijfwijze?
+	maxscore=$[$P6*$maxscore]
+	!increase try
+	goback=1    
+    !endif
+    rest=!item 1 to -2 of $test
+    extra=!record 36 of lang/remarks.$taal
+!endif
+
+!for i in sqrt,log,sin,tan,cos,abs,ln
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+
+!if $var4=1
+    !for i in $varlist
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !next i
+!else
+    var4=0
+!endif
+AAA=!replace [a-z\~\!\@\#\$\%\:\;\=\_\>\<] by $empty in $AAA
+AAA=!tolower $AAA
+AAA=!nospace $AAA
+AAA=!rawmath $AAA
+var1=!nospace $var1
+
+!if $var1=$AAA
+    ex=!record 5 of lang/remarks.$taal
+    #@ Je hebt de vraag overgetikt...
+    remark$n=$ex $NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+ca=!charcnt $AAA
+cg=!charcnt $var1
+cc=!charcnt $(answer$n)
+
+logcnt=!replace internal log by @ in $AAA
+copylogcnt=!replace internal log by @ in $var1
+
+!if @ isin $logcnt
+    logcnt=!positionof char @ in $logcnt
+    logcnt=!itemcnt $logcnt
+!else
+    logcnt=0
+!endif
+
+GGG=$(answer$n)
+!if $var4=0
+    # geen variabelen
+    !if NaN isin $[1*($AAA)]
+	test=!replace internal - by $empty in $AAA
+	!if NaN notin $[1*$test]
+	    ex=!record 6 of lang/remarks.$taal
+	    #@Een logaritme (of wortel) uit een negatief getal??
+	    remark$n=$ex $NOK
+	    maxscore=0
+	    goback=0
+	!else
+	    errortext=!record 7 of lang/remarks.$taal
+	    #@Je antwoord valt in deze vorm niet na te kijken<br />Probeer het eens met een meer wiskundige schrijfwijze?
+	    maxscore=$[$P6*$maxscore]
+	    !increase try
+	    goback=1
+	!endif
+     !exit
+    !endif
+!endif
+
+score=0
+!if $var2=0
+    # antwoord is integer [er zit geen log in correcte antwoord]
+    test=!exec pari if($AAA == $GGG ,1,0)
+    !ifval $test=1
+	!if $logcnt=0
+	    !if . isin $AAA
+		score=0.95
+		ex=!record 11 of lang/remarks.$taal
+		#@hmmm, rekenmachientje ?
+	    !else	
+		score=1
+	        ex=!record 8 of lang/remarks.$taal
+		#@Heel goed gezien !!
+	    !endif
+	!else
+	    !if $logcnt=2
+		# ^2 log(8) == javascript == log(8)log(2)
+		score=0.85
+		ex=!record 9 of lang/remarks.$taal
+		#@Op zich correct, maar $AAA is natuurlijk gewoon : $GGG
+	    !else
+		score=0.1
+		ex=!record 10 of lang/remarks.$taal
+		#@Je hebt de logaritme niet correct vereenvoudigd...<br />of zelfs de som letterlijk overgetikt ?
+	    !endif
+	!endif
+    !else
+	AAA=$[(round(1000*($AAA)))/1000]
+	GGG=$[(round(1000*($GGG)))/1000]
+	!ifval $AAA=$GGG
+	    score=0.3
+	    ex=!record 11 of lang/remarks.$taal
+	    #@hmmm, rekenmachientje ?
+	!else
+	    score=0
+	!endif
+    !endif
+!else
+    # logaritme in antwoord
+    maxima_precision=30
+    # more decimals than common calculator?
+    !if $var4=0
+	# geen variabelen
+	test=!exec maxima if float($AAA) = float($GGG) then 1 else 0;
+    !else
+	test=!exec maxima if float($AAA) = float($(answer$n)) then 1 else 0;
+    !endif
+    !if $wims_exec_error != $empty
+	!increase try
+	goback=1
+	maxscore=$[$P1*$maxscore]
+	errortext=!record 7 of lang/remarks.$taal
+	#@je antwoord $(reply$n) is in deze vorm niet na te kijken ...                                                                           
+	!exit
+    !endif
+    !if $test=1
+	!if $logcnt=$var2
+	    !if $ca=$cg and $cc != $cg and $cg != $[$cc+2]
+		ex=!record 12 of lang/remarks.$taal
+		#ex=AAA=$AAA GGG=$GGG logcnt=$logcnt var2=$var2 ca=$ca cg=$cg cc=$cc
+		#@je antwoord lijkt wel erg verdacht veel op de vraag ?
+		score=0.2
+	    !else
+		score=1
+	    !endif
+	!else
+	    !if $logcnt<$[2*$var2]
+		score=0.7
+		ex=!record 13 of lang/remarks.$taal
+		#@Je hebt de logaritme niet correct vereenvoudigd
+	    !else
+		score=0.1
+		ex=!record 14 of lang/remarks.$taal
+		#@Je hebt de logaritme niet correct vereenvoudigd...<br />of zelfs de som letterlijk overgetikt ?
+	    !endif
+	!endif
+    !else
+	# maxima thinks it's wrong : if float(log(8)/log(4)) = float(1.5) then Yes else No; Yes
+	# but it may be correct.
+	!if $var4=1
+	    !for i in $varlist
+		gg=!randint 10,100
+		AAA=!replace internal $i by $gg in $AAA
+		GGG=!replace internal $i by $gg in $GGG
+	    !next i
+	    AAA=$[$AAA]
+	    GGG=$[$GGG]
+	!endif
+	test=!exec pari if($AAA == $GGG ,1,0)
+	# if(log(8)/log(4) == 1.5,Yes,No) Yes
+	!if $wims_exec_error != $empty
+	    !increase try
+	    goback=1
+	    maxscore=$[$P1*$maxscore]
+	    errortext=!record 7 of lang/remarks.$taal
+	    #@je antwoord $(reply$n) is in deze vorm niet na te kijken ...  
+	    !exit
+	!endif
+	!if $test=1
+	    # pari says it's OK
+	    !if $logcnt=$var2
+		score=0.75
+		ex=!record 15 of lang/remarks.$taal
+		#@Je hebt niet nauwkeurig genoeg gewerkt:<br />Deze som gaat over logaritme rekenregels...
+	    !else
+		t=!charcnt $AAA
+		!if $t>6
+		    score=0.1
+		    ex=!record 11 of lang/remarks.$taal
+		    #@hmmm, rekenmachientje ?
+		    ##@Je hebt de logaritme niet correct vereenvoudigd...<br />of zelfs de som letterlijk overgetikt ?
+		!else
+		    score=1
+	    	    ex=!record 8 of lang/remarks.$taal
+		    #@Heel goed gezien !!
+		!endif
+	    !endif
+	!else
+	    AAA=$[(round(1000*($AAA)))/1000]
+	    GGG=$[(round(1000*($GGG)))/1000]
+	    !ifval $AAA=$GGG
+		score=0.3
+		ex=!record 11 of lang/remarks.$taal
+		#@hmmm, rekenmachientje ?
+	    !else
+		score=0
+	    !endif
+	!endif
+    !endif
+!endif
+
+maxscore=$[$score*$maxscore]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n) <br /> $extra 
+!endif
+!if $ex != $empty
+    remark$n=$(remark$n) <br /> $ex
+!endif

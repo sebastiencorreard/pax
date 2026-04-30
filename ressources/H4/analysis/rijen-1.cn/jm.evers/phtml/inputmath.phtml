@@ -1,0 +1,42 @@
+!! not needed any more replace by a modified wims m_help popup: see showmath.wims.phtml or showmath.java.phtml
+!exit
+
+!set n=$counter
+!set width=140
+!set height=240
+!if $wordmax=$empty
+    !set wordmax=50
+!endif
+<script language="javascript" type="text/javascript">
+    function sendanswer() {
+    var reply = document.applets[0].getLinear();
+    var test=reply.length();
+    if (test == 0)
+	{
+    	    alert("You did not give an answer... \n You may always fill in a Questionmark ?");
+	}
+     else
+        if (test > $wordmax)
+	{
+	    alert("Your answer is too long... \n just $wordmax chars allowed here");
+	}
+	    else
+	    {
+	    !if $debug=1
+		alert("We will send : "+reply+" \n as answer to the WIMS server");
+	    !endif
+	    reply=encodeURIComponent(reply);
+	    var URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n='+reply ;
+	    document.location.href = URL;
+	    }
+	}
+</script>
+
+<center>
+<form name="inputmath">
+    <applet id="MathView" code="MathView.class" codebase="$appletdir" archive="MathView.jar" width="$width" height="$height">$nojava</applet>
+    <br>
+    <input type="button" style="$mybuttonstyle"  value="$send" onclick="javascript:sendanswer();"/>
+</form>
+</center>
+

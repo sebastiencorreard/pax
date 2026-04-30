@@ -1,0 +1,59 @@
+#11 Inwendig product I
+embed=0
+applet=0
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+make_tr=0
+rounding=0
+!readproc $remarkdir/rounding.$taal
+checkfile=$checkdir/new_number.proc
+a=!randint 3,15
+b=!randint 3,15
+keuze=!randint 0,1
+!if $keuze=0
+  k=!randint 1,7
+  in_ab=$[$a*$b]
+  hoek=!item $k of 30,45,60,90,120,135,150
+  tot=!exec pari printtex(($a)*($b)/2)
+  answer$n=!item $k of $[1/2*$in_ab]*sqrt(3),$[1/2*$in_ab]*sqrt(2),$[1/2*$in_ab],0,$[-1/2*$in_ab],$[-1/2*$in_ab]*sqrt(2),$[-1/2*$in_ab]*sqrt(3)
+  tex_ans=!item $k of $tot\sqrt{3},$tot\sqrt{2},$tot,0,-$tot,-$tot\sqrt{2},-$tot\sqrt{3}
+  wortel=!item $k of \frac{1}{2}\sqrt{3},\frac{1}{2}\sqrt{2},\frac{1}{2},0,-\frac{1}{2},-\frac{1}{2}\sqrt{2},-\frac{1}{2}\sqrt{3}
+  exact=!record 26 of lang/remarks.$taal
+  rounding=0
+  !readproc $remarkdir/rounding.$taal
+  is= \,=\,
+  tex_ans=$a \cdot $b \cdot \cos\left( $hoek^{o}\right) = $a \cdot $b \cdot $wortel = $tex_ans
+!else
+  hoek=!randint 30,150
+  rad=$[$hoek*pi/180]
+  exact=$empty
+  answer$n=$[$a*$b*cos($rad)]
+  rounding=100
+  rans= $[(round($rounding*$(answer$n)))/$rounding]
+  tex_ans=$a \cdot $b \cdot \cos\left( $hoek^{o}\right) \approx $(answer$n) \approx $rans
+  !readproc $remarkdir/rounding.$taal
+  is=\approx
+!endif
+
+in=\input{5}{0}{background-color:lightgreen;color:blue;text-align:center;font-size:16pt}{?}{0}
+
+uit=\input{8}{0}{background-color:orange;color:blue;text-align:center;font-size:11pt}{$(answer$n)}{1}
+
+exotext=!mathmlmath \left\{ \begin{array}{lcl} \left| \vec a \right| &  =  & $a \\ \left| \vec b \right| &  =  & $b \\ \alpha & = & $hoek ^{o}  \\ \vec a \cdot \vec b & $is & $in \end{array} \right.
+
+vraag=\left\{ \begin{array}{lcl} \left| \vec a \right| &  =  & $a \\ \left| \vec b \right| &  =  & $b \\ \alpha & = & $hoek ^{o}  \\ \vec a \cdot \vec b & $is & $uit \end{array} \right.
+
+vec_a=!mathmlmath \vec{a}
+
+vec_b=!mathmlmath \vec{b}
+
+question$n=!record 22 of lang/remarks.$taal
+#@Gegeven zijn de lengtes van $vec_a, $vec_b<br />en hun onderlinge hoek $hoek&deg;<br />Bereken $exact de grootte van het inwendig product.
+
+texanswer$n=\begin{array}{l}\color{black} $vraag \\ \begin{array}{l} \color{red}\vec{a} \cdot \vec{b} = \left|\vec{a}\right| \cdot \left|\vec{b}\right| \cdot \cos(\alpha) \\ \vec{a} \cdot \vec{b} $is $tex_ans \end{array} \end{array}
+
+!exit

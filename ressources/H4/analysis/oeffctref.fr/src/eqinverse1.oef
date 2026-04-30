@@ -1,0 +1,183 @@
+\title{Résolution graphique et hyperbole}
+\language{fr}
+\author{Régine Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{yes}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+## Choix du nombre de solutions
+\integer{nbsol=random(2,2,2,2,2,1,1,1,0,0)}
+\text{listnbsol=Aucune solution, une solution, deux solutions, une infinité de solutions}
+##  integer{nbsol=0}
+\if{\nbsol=0}
+ {
+\integer{c=random(1..5)}
+\integer{d=random(1..5)}
+\integer{a=\c*(\c+\d)}
+\integer{b=\c*random(1,-1)}
+\integer{bb=\b}
+\integer{c=\c+\d}
+\integer{cc=\c}
+\text{s1=\b>0?+:-}
+\integer{b=\b<0?\b*(-1)}
+\text{s2=\c>0?+:-}
+\integer{c=\c<0?\c*(-1)}
+\text{equat= \a x }
+\rational{a2=simplify(\a / \c)}
+\text{g=-\a2 * x }
+\if{\b !=0}
+  {
+   \rational{b2=simplify( \b / \c)}
+   \text{equat=\equat \s1 \b  }
+   \text{g=\bb>0?\g - \b2:\g + \b2}
+
+  }
+   \text{equat=\equat \s2 \frac{\c}{x} }
+\text{equat=\equat=0}
+\text{eqaff=wims(replace * by in \g)}
+
+\integer{indsol=1}
+\text{mstep=r1
+r2
+}
+
+ }
+ {
+## Choix de l'équation à résoudre
+\text{lstsing=wims(values x for x = 1 to 4),wims(values -x for x=1 to 4)}
+\text{lstsing=shuffle(\lstsing)}
+\rational{sing1=\lstsing[1]}
+\integer{den1=random(1,2)}
+\integer{num1=\sing1}
+\rational{sing1=\sing1/\den1}
+
+\if{\nbsol=1}
+  {
+   \rational{sing2=\sing1}
+   \integer{den2=\den1}
+   \integer{num2=\num1}
+   \integer{indsol=2}
+   \text{goodrep=\sing1}
+  }
+  {
+\rational{sing2=\lstsing[2]}
+\integer{den2=random(1,2)}
+\integer{num2=\sing2}
+\rational{sing2=\sing2/\den2}
+\integer{indsol=3}
+\if{\sing1=\sing2}
+  {
+  \integer{nbsol=1}
+  \integer{indsol=2}
+  \text{goodrep=\sing1}
+  }
+  {
+\text{goodrep=\sing1,\sing2}
+  }
+ }
+\function{f=\den1*\den2*(x- (\sing1))*(x-(\sing2))}
+\integer{a=\den1*\den2}
+\integer{b=-\a*((\sing1)+(\sing2))}
+\integer{b2=\b}
+\text{s1=\b>0?+:-}
+\integer{b=\b<0?\b*(-1)}
+\integer{c=\a*(\sing1)*(\sing2)}
+\integer{c2=\c}
+\text{s2=\c>0?+:-}
+\integer{c=\c<0?\c*(-1)}
+\text{equat=\a=1?x: \a x }
+\if{\b !=0}
+  {\text{equat=\equat \s1 \b }}
+\if{\c !=0}
+  {\text{equat=\equat \s2 \frac{\c}{x} }}
+\text{equat=\equat=0}
+\text{s0=\c2>0?-:}
+\integer{b3=\b2*\c2}
+\text{s1=\b3>0?-:+}
+\function{g=simplify(\s0 \a*x / (\c) \s1 (\b) / (\c))}
+\text{eqaff=\g}
+\text{eqaff=wims(replace * by in \eqaff)}
+\text{mstep=r1
+r2
+r3}
+
+}
+### cadre générique ###
+\text{cadre=
+xrange -5,5
+yrange -5,5
+gridfill 0,0,5,5,\gridcolor
+linewidth 1
+linewidth 2
+  parallel -5,-5,-5,5,1,0,11,blue
+  parallel -5,-5,5,-5,0,1,11,blue
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+    linewidth 2
+    plot red,1/x
+}
+## fin du cadre générique ##
+\text{cadre2=\cadre
+    plot green,\g
+}
+\if{\nbsol>1}
+ {\text{tindiquer=les solutions de l'équation (séparées par une virgule)}}
+ {\text{tindiquer=la solution de l'équation}}
+
+
+\nextstep{\mstep}
+
+####### enoncé de l'exo #######
+\statement{
+<p>
+On veut résoudre graphiquement dans \(\ \RR) l'équation </p>
+<div class="wimscenter">\(\equat).</div>
+
+\if{\step=1}{
+<p>On dispose pour cela de la représentation graphique de la fonction
+inverse de référence \(f(x)=\frac{1}{x}).</p>
+<div class="float_right">\draw{400,400}{\cadre}</div>
+<p>On se propose de tracer sur le même dessin la représentation graphique d'une
+fonction affine judicieusement choisie.</p>
+<p>Indiquer l'expression algébrique de cette fonction:</p>
+<div class="wimscenter">\(g(x)=)\embed{reply 1,10}</div>
+}
+{
+On dispose maintenant des représentations graphiques des fonctions </p>
+<div class="wimscenter"><font color="red">\(f)</font>, avec \(f(x)=\frac{1}{x})
+ et <font color="green">\(g)</font>, avec \(g(x)=)\eqaff.</div>
+<div class="float_right">\draw{400,400}{\cadre2}</div>
+\if{\step=2}
+  {
+<p>   Combien de solutions possède l'équation :</p>
+<div class="wimscenter"> \(\equat):</div>
+<ul>
+<li>\embed{reply 2,1}</li>
+<li>\embed{reply 2,2}</li>
+<li>\embed{reply 2,3}</li>
+<li>\embed{reply 2,4}</li>
+</ul>
+  }
+  {\if{\nbsol>0}
+   {
+  Indiquer \tindiquer :
+<div class="wimscenter"> \(S=)\embed{reply3,5}</div>
+<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5.</div>
+  }
+  }
+}
+}
+
+#### soumission de réponse ####
+\answer{g(x)}{\g}{type=formal}
+\answer{nb solutions}{\indsol;\listnbsol}{type=radio}
+\answer{solution}{\goodrep}{type=fset}

@@ -1,0 +1,153 @@
+!set title=Evaluer second degré 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!values v for v=2 to 12
+
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$[rint($(tmp0))]
+tmp0=!item 2 of $val6
+
+val8=$[rint($(tmp0))]
+tmp0=!item 3 of $val6
+
+val9=$[rint($(tmp0))]
+val10=$[rint(gcd($val7,$val8))]
+tmp0=!randint 2, 5
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val12=$[rint($(tmp0))]
+val10=$[rint(gcd($val11,$val12))]
+!if $val10!=1 
+val11=$[rint(4)]
+val12=$[rint(9)]
+!endif
+tmp=!nonempty items x,y,z,t,u,v
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp=!nonempty items A,B,C,D,V
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp0=!shuffle -,+
+
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val17=$(tmp0)
+tmp0=!item 2 of $val16
+
+val16=$(tmp0)
+val18=$val7*$val13^2$val16$val8*$val13+$val9
+val19=1/$val11
+tmp0=!texmath $val18
+
+val20=$(tmp0)
+tmp0=!texmath $val19
+
+val21=$(tmp0)
+tmp0=!replace internal $val13 by ($val19) in $val18
+
+val22=$(tmp0)
+tmp=!translate ";': to $     $ in $val22
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+replytype1=numexp
+replyname1=réponse
+replygood1=$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Quelle est la valeur de l'expression 
+!insmath $val14 = $val20
+$() pour 
+!insmath $val13 = $val21
+$() ?	<p>	<b>Votre réponse :</b>	</p>	<div class="wimscenter">	
+!insmath $val14 =
+$()  
+!read oef/embed.phtml r1,20 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14,20,21
+embedcnt=1

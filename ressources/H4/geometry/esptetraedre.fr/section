@@ -1,0 +1,421 @@
+#### TETRAEDRE SECTION
+!if $mode=1
+  !if $user=$(name_user1[1]) or $nbsteps>10
+    status=done
+  !endif
+  !if $user=$(name_user1[2])
+    !if $ract=
+      error = noaction
+    !else
+      !advance step
+    !endif
+  !endif
+
+  !if $user=$(name_user1[3])
+    !advance step
+    !if $rpt1= or $rpt2=
+      error=notenoughinfo
+      !exit
+    !endif
+    cept1=$rpt1
+    cept2=$rpt2
+    subst=0
+    linesubst=
+    !if $cept1 isitemof $substpt
+      subst=1
+      trouve=0
+      !for ii=1 to 24
+        ceprol=$(prol$ii)
+        !if $(ceprol[6])=$cept2 and $(ceprol[4])=$cept1
+          ptsplan = !replace item $cept1 by $(ceprol[5]) in $ptsplan
+          ptsplan = !sort item $ptsplan
+          cept1=$(ceprol[5])
+          trouve=1
+          !break
+        !endif
+        !if $(ceprol[6])=$cept2 and $(ceprol[5])=$cept1
+          ptsplan = !replace item $cept1 by $(ceprol[4]) in $ptsplan
+          ptsplan = !sort item $ptsplan
+          cept1=$(ceprol[4])
+          trouve=1
+          !break
+        !endif
+      !next
+      !if $trouve=0
+        lien=$(relie$cept1)
+        n=!itemcnt $lien
+        !for jj=1 to $n
+          ind= !eval 2*$jj - 1
+          ind2= !eval 2*$jj
+          !if $(lien[$ind])=$cept2
+            ptsplan = !replace item $cept1 by $(lien[$ind2]) in $ptsplan
+            ptsplan = !sort item $ptsplan
+            ptsubst=$cept1
+            cept1=$(lien[$ind2])
+            linesubst=linewidth 1\
+              dsegment $(pt$ptsubst),$(pt$cept1),green\
+              linewidth 3
+            trouve=1
+            !break
+          !endif
+          !if $(lien[$ind2])=$cept2
+            ptsplan = !replace item $cept1 by $(lien[$ind]) in $ptsplan
+            ptsplan = !sort item $ptsplan
+            ptsubst=$cept1
+            cept1=$(lien[$ind])
+            linesubst=linewidth 1\
+              dsegment $(pt$ptsubst),$(pt$cept1),green\
+              linewidth 3
+            trouve=1
+            !break
+          !endif
+        !next
+      !endif
+    !else
+      !if $cept2 isitemof $substpt
+        subst=1
+        trouve=0
+        !for ii=1 to 24
+          ceprol=$(prol$ii)
+          !if $(ceprol[6])=$cept1 and $(ceprol[4])=$cept2
+            ptsplan = !replace item $cept2 by $(ceprol[5]) in $ptsplan
+            ptsplan = !sort item $ptsplan
+            cept2=$(ceprol[5])
+            trouve=1
+            !break
+          !endif
+          !if $(ceprol[6])=$cept1 and $(ceprol[5])=$cept2
+            ptsplan = !replace item $cept2 by $(ceprol[4]) in $ptsplan
+            ptsplan = !sort item $ptsplan
+            cept2=$(ceprol[4])
+            trouve=1
+            !break
+          !endif
+        !next
+        !if $trouve=0
+          lien=$(relie$cept2)
+          n=!itemcnt $lien
+          !for jj=1 to $n
+            ind= !eval 2*$jj - 1
+            ind2= !eval 2*$jj
+            !if $(lien[$ind])=$cept1
+              ptsplan = !replace item $cept2 by $(lien[$ind2]) in $ptsplan
+              ptsplan = !sort item $ptsplan
+              ptsubst=$cept2
+              cept2=$(lien[$ind2])
+              linesubst=linewidth 1\
+              dsegment $(pt$ptsubst),$(pt$cept2),green\
+              linewidth 3
+              trouve=1
+              !break
+            !endif
+            !if $(lien[$ind2])=$cept1
+              ptsplan = !replace item $cept2 by $(lien[$ind]) in $ptsplan
+              ptsplan = !sort item $ptsplan
+              ptsubst=$cept2
+              cept2=$(lien[$ind])
+              linesubst=linewidth 1\
+                dsegment $(pt$ptsubst),$(pt$cept2),green\
+                linewidth 3
+              trouve=1
+              !break
+            !endif
+          !next
+        !endif
+      !endif
+    !endif
+    :debut
+    pt1=$(pt$cept1)
+    pt2=$(pt$cept2)
+    !if $subst=1
+      lstpt=$cept1,$cept2
+      lstpt= !sort item $lstpt
+      !if $(lstpt[1])-$(lstpt[2]) notitemof $segsplan
+        segsplan = !append item $(lstpt[1])-$(lstpt[2]) to $segsplan
+        ptsplan = !append item $cept1 to $ptsplan
+        ptsplan = !append item $cept2 to $ptsplan
+        bary_x= $bary_x+ $(pt1[1])
+        bary_y= $bary_y+ $(pt1[2])
+        bary_x= $bary_x+ $(pt2[1])
+        bary_y= $bary_y+ $(pt2[2])
+        ptsplan = !listuniq $ptsplan
+        ptsplan= !sort item $ptsplan
+      !else
+        error = dejaseg
+      !endif
+    !else
+      !! si le nom du point est sur 2 caractère ne prendre que le premier pour déterminer sa face
+      fcept1 = !text copy $cept1 mask 10
+      fcept2 = !text copy $cept2 mask 10
+      ptcoplan=!listintersect $(face$fcept1) and $(face$fcept2)
+      flptcoplan=!itemcnt $ptcoplan
+      !if $flptcoplan=0
+        error=$error ptnoncoplan
+        !advance errcnt
+      !else
+        error=
+        ## si les points sont A,I tracer A,B
+        lstdte= !listintersect $(dte$fcept1) and $(dte$fcept2)
+        n= !itemcnt $lstdte
+        !if $n>0
+          ladte = $(dte$(lstdte[1]))
+          lstpt=$(ladte[1]),$(ladte[2])
+          pt1=$(pt$(ladte[1]))
+          pt2=$(pt$(ladte[2]))
+          !if $(ladte[3]) notitemof $segsplan
+            segsplan = !append item $(ladte[3]) to $segsplan
+            ptsplan = !append item $(ladte[1]) to $ptsplan
+            ptsplan = !append item $(ladte[2]) to $ptsplan
+            bary_x= $bary_x+ $(pts$(ladte[1])[1])
+            bary_y= $bary_y+ $(pts$(ladte[1])[2])
+            bary_x= $bary_x+ $(pts$(ladte[2])[1])
+            bary_y= $bary_y+ $(pts$(ladte[2])[2])
+            ptsplan = !listuniq $ptsplan
+            ptsplan= !sort item $ptsplan
+          !else
+            error = dejaseg
+          !endif
+        !else
+          lstpt=$cept1,$cept2
+          lstpt= !sort item $lstpt
+          !if $(lstpt[1])-$(lstpt[2]) notitemof $segsplan
+            segsplan = !append item $(lstpt[1])-$(lstpt[2]) to $segsplan
+          !else
+            error = dejaseg
+          !endif
+        !endif
+      !endif
+    !endif
+    !if $error=
+      !! choix entre segment pointillé et segment plein
+      fcept1=!text copy $(lstpt[1]) mask 10
+      fcept2=!text copy $(lstpt[2]) mask 10
+      faceseg= !listintersect $(face$fcept1) and $(face$fcept2)
+      faceseg= !listintersect $faceseg and 1,2
+      !if $faceseg=
+        typeline=dsegment
+      !else
+        typeline=segment
+      !endif
+      cadre = $cadre \
+        $typeline $pt1,$pt2,yellow\
+        $linesubst
+    !endif
+  !endif
+
+  !if $user=$(name_user1[4])
+    !advance step
+    !if $rseg= or $rptp=
+      error=notenoughinfo
+    !exit
+    !endif
+    ceseg= $rseg
+    !! Trouver la parallele
+    segpar=-
+    ceseglst= !replace internal - by , in $ceseg
+    pt1 = $(ceseglst[1])
+    pt2 = $(ceseglst[2])
+    fpt1 = !text copy $pt1 mask 10
+    fpt2 = !text copy $pt2 mask 10
+    frptp = !text copy $rptp mask 10
+    trouvepar=0
+    !for ii=1 to 6
+      !if $ceseg isitemof $(par$ii)
+        trouvepar=1
+        !break
+      !endif
+    !next
+    !if $trouvepar=0
+      error=paspararete
+    !else
+      !!vérifier que le point de destination est sur une face contenant l'arete
+      dte=$(dte$ii)
+      faces=$(dte[4]),$(dte[5])
+      interface=!listintersect $faces and $(face$rptp)
+      n= !itemcnt $interface
+      !if $n=0
+        arete=$(par$ii[1])
+        error =pasfacepar
+      !else
+        cettepar=$(par$ii)
+        !for jj=2 to 5
+          unseg=$(cettepar[$jj])
+          unseg= !replace internal - by , in $unseg
+          !if $rptp=$(unseg[1]) or $rptp=$(unseg[2])
+            pt3=$(unseg[1])
+            pt4=$(unseg[2])
+            segpar=$(cettepar[$jj])
+            !if $segpar notitemof $segsplan
+              segsplan = !append item $segpar to $segsplan
+              ptsplan = !append item $pt3 to $ptsplan
+              ptsplan = !append item $pt4 to $ptsplan
+              bary_x= $bary_x+ $(pt$(pt3)[1])
+              bary_y= $bary_x+ $(pt$(pt3)[2])
+              bary_x= $bary_x+ $(pt$(pt4)[1])
+              bary_y= $bary_x+ $(pt$(pt4)[2])
+              ptsplan = !listuniq $ptsplan
+              ptsplan= !sort item $ptsplan
+              !! choix entre segment pointillé et segment plein
+              fcept1=!text copy $pt3 mask 10
+              fcept2=!text copy $pt4 mask 10
+              faceseg= !listintersect $(face$fcept1) and $(face$fcept2)
+              faceseg= !listintersect $faceseg and 1,2
+              !if $faceseg isitemof 1,2
+                typeline=segment
+              !else
+                typeline=dsegment
+              !endif
+              pt3=$(pt$pt3)
+              pt4=$(pt$pt4)
+              cadre = $cadre \
+                $typeline $pt3,$pt4,yellow
+            !else
+              error = dejaseg
+            !endif
+          !endif
+        !next
+      !endif
+    !endif
+  !endif
+  !if $user=$(name_user2[1])
+    !! il faut ordonner les segments
+
+    segpoly= $(segsplan[1])
+    segpolylst= !replace internal - by , in $segpoly
+    lstsegs= !listcomplement $segpoly in $segsplan
+    sortpts=
+    cepoint= $(segpolylst[1])
+    sortpts= !append item $cepoint to $sortpts
+    cepoint= $(segpolylst[2])
+    sortpts= !append item $cepoint to $sortpts
+
+    nbpts= !itemcnt $segsplan
+    !if $nbpts<3
+      error=pasassezpts
+    !else
+      !for kk=3 to $nbpts
+        n=!itemcnt $lstsegs
+        trouveseg=0
+        !for ii = 1 to $n
+          ceseg=$(lstsegs[$ii])
+          ceseglst= !replace internal - by , in $ceseg
+          ptdeb= $(ceseglst[1])
+          ptfin= $(ceseglst[2])
+
+          !if $ptdeb=$cepoint
+            sortpts=!append item $ptfin to $sortpts
+            cepoint=$ptfin
+            segpoly= !append item $(lstsegs[$ii]) to $segpoly
+            lstsegs= !listcomplement $segpoly in $segsplan
+            trouveseg=1
+            !break
+          !else
+            !if $ptfin=$cepoint
+              cepoint=$ptdeb
+              !!text reverse $ceseg
+              segpoly = !append item $ceseg to $segpoly
+              lstsegs= !listcomplement $segpoly in $segsplan
+              sortpts = !append item $ptdeb to $sortpts
+              trouveseg=1
+              !break
+            !endif
+          !endif
+        !next
+        !if $trouveseg=0
+          error=$error openpoly
+          !advance errcnt
+          !advance errcnt
+          !break
+        !else
+          error=
+        !endif
+      !next
+      !if $error=
+        n= !itemcnt $ptsplan
+        bary_x=$bary_x / $n
+        bary_y=$bary_y / $n
+        polyg=fpoly orange
+        n=!itemcnt $sortpts
+        !for ii=1 to $n
+          polyg= $polyg ,$(pt$(sortpts[$ii]))
+        !next
+        flpoly=ok
+        cadre = $cadre \
+          $polyg \
+          $tetra
+      !endif
+    !endif
+  !endif
+!endif
+!!! un endif de trop ?
+!if $user=$(name_user2[2])
+  !!on vérifie que les 2 segments choisis sont coplanaires
+  !advance step
+  !if $rseg1= or $rseg2=
+    error=notenoughinfo
+  !exit
+  !endif
+  rseg1lst= !replace internal - by , in $rseg1
+  pt1= $(rseg1lst[1])
+  pt2= $(rseg1lst[2])
+  rseg2lst= !replace internal - by , in $rseg2
+  pt3= $(rseg2lst[1])
+  pt4= $(rseg2lst[2])
+
+  segcoplan=!listintersect $(face$(pt1)) and $(face$(pt2))
+  segcoplan=!listintersect $(face$(pt3)) and $segcoplan
+  segcoplan=!listintersect $(face$(pt4)) and $segcoplan
+  flsegcoplan=!itemcnt $segcoplan
+  !if $flsegcoplan=0
+    error=$error segnoncoplan
+    !advance errcnt
+    !advance errcnt
+  !else
+    error=
+    seg1 = $pt1,$pt2
+    seg1 = !sort item $seg1
+    seg1 = $(seg1[1])-$(seg1[2])
+    seg2 = $pt3,$pt4
+    seg2 = !sort item $seg2
+    seg2 = $(seg2[1])-$(seg2[2])
+    !for ii = 1 to 96
+      ceprol= $(prol$ii)
+      !if ($(ceprol[1])=$seg1 and $(ceprol[2])=$seg2) or ($(ceprol[1])=$seg2 and $(ceprol[2])=$seg1)
+        pt1=$(ceprol[3])
+        pt1=$(pt$pt1)
+        lpt2=$(ceprol[4])
+        pt2=$(pt$lpt2)
+        !if $(pt2[1]) > $xmax
+           xmax=$xmaxmax
+        !endif
+        !if $(pt2[1]) < $xmin
+           xmin=$xminmin
+        !endif
+        !if $(pt2[2]) > $ymax
+           ymax=$ymaxmax
+        !endif
+        !if $(pt2[2]) < $ymin
+          ymin=$yminmin
+        !endif
+        pt3=$(ceprol[5])
+        pt3=$(pt$pt3)
+        ligne =linewidth 1\
+          dpolyline green,$pt1,$pt2,$pt3\
+          text black,$pt2,medium,$(ceprol[4])\
+          linewidth 3
+        cadre = $cadre \
+          $ligne
+        ptsplan = !append item $lpt2 to $ptsplan
+        ptsplan = !listuniq $ptsplan
+        ptsplan= !sort item $ptsplan
+      !endif
+    !next
+  !endif
+!endif
+
+!if $user=$(name_user1[5])
+  !advance step
+  !advance errcnt
+!endif
+
+#### Intersection tétraèdre

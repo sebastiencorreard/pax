@@ -1,0 +1,243 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+!set n=$counter
+wims_exec_error=$empty
+wims_compare_precision=10000
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+
+!if : isin $AAA
+    # hetgoedeantwoordis: log(3:4) 
+    # hetgoedeantwoordis: log(5):log(3:4) 
+    # dit moeten we nakijken...
+    AAA=!replace internal log by L in $AAA
+    T=!positionof : in $AAA
+    cijfers=0,1,2,3,4,5,6,7,8,9,(,),L,/,^,*,$wims_rawmath_variables
+    # ook de L van log...
+    !for p in $T
+	t1=!char $[$p-1] of $AAA
+	t2=!char $[$p+2] of $AAA
+	!if ($t1 isitemof $cijfers) and ($t2 isitemof $cijfers)
+	    AAA=!replace internal char number $[$p+1] by / in $AAA
+	    extra=!record 78 of lang/remarks.$taal
+	    #@ <br />$voornaam, <br />ik wil hebben dat je de volgende keer een "/"-streep gebruikt bij een deling of breuk<br />\
+	    #@ en zeker geen ":" dubbelepunt. 
+	    maxscore=$[$P1*$maxscore]
+	!else
+    	    AAA=!replace internal char number $[$p+1] by @ in $AAA
+	!endif
+    !next p
+    AAA=!replace internal L by log in $AAA
+    AAA=!replace internal @ by $empty in $AAA
+    AAA=!nospace $AAA
+!endif
+
+GGG=!nospace $(answer$n)
+!for i in log,sqrt,ln,abs,pi
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+
+!if $var3!=0
+    # er zijn dus variabelen in't antwoord 
+    !for i in $wims_rawmath_variables
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !next i
+!endif
+
+## 5e+3 => 5*10^3 ( 5e+3 + 4 => 5*10^3+4 )
+## 5*10^4*3 => 3*5*10^4
+test=!replace [0-9] by @ in $AAA
+!if @e@ isin $test
+    errortext=!record 79 of lang/remarks.$taal
+    #@ Als je de wetenschappelijke <kbd>e</kbd> notatie gebruikt<br />\
+    #@ Kun je beter schrijven 1.25e+3 of 1.25*10^3<br />\
+    #@ of 1.25e-3 of 1.25*10^-3<br />\
+    #@ Probeer het nog eens
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!endif
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+!for p=1 to 3
+    AAA=!replace internal ** by * in $AAA
+!endif
+AAA=!replace x[_0-9]*= by $empty in $AAA 
+AAA=!replace [a-z\~!@#$%&_;"'=] by $empty in $AAA
+AAA=!lower $AAA
+
+!if ln isin $AAA 
+    !if ln notin $(answer$n)
+	ex=!record 80 of lang/remarks.$taal
+	#@ Ik verwachtte hier eigenlijk een gewone <sup>10</sup><kbd>log</kbd>
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$P7*$maxscore]
+    	    goback=1
+    	    !exit
+	!else
+	    goback=0
+	    errortext=$NOK  $fout
+	    opmerking$n=$NOK
+	!endif
+    !else
+	GGG=!replace internal ln by log in $GGG
+	AAA=!replace internal ln by log in $AAA
+    !endif
+!endif
+
+!if $var1!=0
+    # var1=0 geen log  var1>0 wel log in antwoord
+    !if log notin $AAA
+	errortext=!record 80 of lang/remarks.$taal
+	#@ Ik verwachtte hier eigenlijk een gewone <sup>10</sup><kbd>log</kbd>
+	!if $teaching=1
+	    maxscore=$[$P7*$maxscore]
+    	    goback=1
+    	    !exit
+	!else
+	    # gewoon fout en niet verder nakijken
+	    goback=0
+	    maxscore=0
+	    remark$n=$NOK
+	    !exit
+	!endif
+    !endif
+    test=!replace internal log by , in $AAA
+    t=!itemcnt $test
+    !if $var1 > 1
+	# meerdere logs in't goede antwoord
+	!if $t > 3
+	    !if $teaching=1
+		errortext=!record 82 of lang/remarks.$taal
+		#@ Nee ,je zou de som als &eacute;&eacute;n <kbd>log</kbd> schrijven...<br />\
+		#@ Je hebt mazzel: je mag het nog een keertje proberen, $voornaam  ;)
+    		goback=1
+		maxscore=$[$P7*$maxscore]
+		!exit
+	    !else
+		# gewoon fout en niet verder nakijken
+		goback=0
+		maxscore=0
+		remark$n=$NOK
+		!exit
+	    !endif
+	!endif
+    !endif
+!endif
+!readproc exos/syntax1.proc 
+    
+!if $goback=1
+    goback=1
+    !exit
+!endif
+
+
+!if NaN isin $[1*$AAA] and $var3=0
+    #var3=0:geen variabelen
+    testvar=$(reply$n)
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$P6*$maxscore]
+    !exit
+!endif
+
+!if $var2=1
+    # var2=1 -> breuk in antwoord
+    !if $teaching=1 and $var1=1
+    # var1=1 er zit een log in (log=1 was dat)
+	# log(2/8)
+	test=!replace internal / by , in $AAA
+	!if , isin $test
+	    test=!replace [a-z\(\)] by $empty in $test
+	    t=!itemcnt $test
+	    !if $t>2
+		testvar=$(reply$n)
+		errortext=!record 26 of $remarkdir/commonremarks.$taal
+		maxscore=$[$P6*$maxscore]
+		goback=1
+		!exit
+	    !endif
+	    t1=!item 1 of $test
+	    t2=!item 2 of $test
+	    t3=$[gcd($t1,$t2)]
+	    !if $t3 !=1
+		!ifval $AAA=$(answer$n)
+		    errortext=!record 81 of lang/remarks.$taal
+		    #@ Op zich is je antwoord prima, maar je kunt nog verder vereenvoudigen, $voornaam<br />Probeer het nog eens
+		    maxscore=$[$P3*$maxscore]
+		    goback=1
+		    !exit
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if $var3=1
+    # log(xy) wel , log(yy) niet
+    # pari geeft fout bij if(log(x)==log(x),1,0)
+    AAA=!rawmath $AAA 
+    !for p in $wims_rawmath_variables
+	g=!randint 1,1000
+	AAA=!replace internal $p by $g in $AAA
+	GGG=!replace internal $p by $g in $GGG
+    !next p
+!endif
+
+test=!exec pari if(1.0*($AAA) == 1.0*($GGG) ,1,0)
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$P6*$maxscore]
+    !exit
+!endif
+
+!if $test=0
+    A1=$[round(100*$AAA)]
+    G1=$[round(100*$GGG)]
+    !ifval $A1=$G2
+	test=0.7
+	ex=!record 29 of $remarkdir/commonremarks.$taal
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$test]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore >0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+modulescore=$[$modulescore + $maxscore]	
+goback=0
+!exit

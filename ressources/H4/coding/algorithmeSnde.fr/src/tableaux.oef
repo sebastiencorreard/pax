@@ -1,0 +1,106 @@
+\title{Tableaux : accès aux éléments}
+
+\author{Véronique, Royer}
+\email{royer.veronique@orange.fr}
+
+\text{monaide=wims(record 8 of langage)}
+\help{\monaide}
+
+
+
+\text{eq= &#61; }
+\text{\equals = &#61&#61; }
+\text{ob = &#123; }
+\text{cb = &#125; }
+
+
+\integer{lg=randint(3..6)}
+\text{arrayint=shuffle(\lg)}
+\integer{i=random(\lg)-1}
+
+\text{\listx = shuffle(x,y,z,u,v,t)}
+\text{\listx = item(1.. randint(3..6), \listx)}
+\text{\lista = shuffle(a,b,c,d,e,f)}
+\text{\lista = item(1.. randint(3..6), \lista)}
+\text{\listA = shuffle(A,B,C,D,E,F)}
+\text{\listA = item(1..randint(3..6), \listA)}
+
+\matrix{arraych=\listx
+\lista
+\listA
+}
+
+\integer{r=random(rows(\arraych)-1)}
+\integer{c=random(items(row(\r+1,\arraych))-1)}
+
+\matrix{mains = int[] tab \eq <\arrayint > : print( tab.length ) :
+ int tab[] = <\arrayint > : print( tab[\i]) :
+char[][] tab = < <\arraych[1;]> + <\arraych[2;]> + <\arraych[3;]> > : print( tab[\r][\c]) :
+char[][] tab = < <\arraych[1;]> + <\arraych[2;]> + <\arraych[3;]> > : print( tab[\r].length) :
+}
+
+\integer{q1=randitem(1,2)}
+\integer{q2=randitem(3,4)}
+\text{main1=row(\q1,\mains)}
+\text{main2=row(\q2,\mains)}
+
+
+\text{main1=wims(replace internal < by \ob in \main1)}
+\text{main1=wims(replace internal > by \cb in \main1)}
+\text{main1=wims(replace internal : by ; <br> in \main1)}
+
+\text{main2=wims(replace internal < by \ob in \main2)}
+\text{main2=wims(replace internal > by \cb in \main2)}
+\text{main2=wims(replace internal : by ; <br> in \main2)}
+\text{main2=wims(replace internal + by , in \main2)}
+
+\text{typeq2=(\q2==3)?case:numeric}
+\int{rep1=item(\q1, \lg,\arrayint[\i+1])}
+\text{rowq2=row(\r+1,\arraych)}
+\text{rep2 = item(\q2-2, item(\c+1, \rowq2) , items(\rowq2) )}
+
+
+\steps{reply1
+reply2
+}
+
+\statement{ [q2 : \typeq2]
+
+<p style="color:blue">Cet exercice comporte deux étapes.</p>
+
+<p style="font-size:large;"> <strong> \if{\step==1}{Question 1}{Question 2} / 2</strong> : On exécute les lignes de code suivantes : <br>
+(<span style="color:red"><i>cliquer en bas sur le bouton d'aide pour comprendre la syntaxe</i>)</span> </p>
+
+<div style="border:solid 1px black; padding: 10px; font-size:large; width:500px; background-color:lightblue;">
+<p> \if{\step==1}{\main1}{\main2}
+</p>
+</div>
+
+<div style="border:solid 1px black; padding: 10px; font-size:large; width:500px; background-color:lightgray;">
+
+<p >Quelle est la valeur qui sera affichée ? </p>
+
+\if{\step==1}{<p>La valeur affichée est :&nbsp; \embed{reply 1,8}</p>}
+\if{\step==2}{<p>La valeur affichée est : &nbsp; \embed{reply 2,8}</p>}
+</div>
+
+
+}
+
+
+\answer{Question 1 :}{\rep1}{type=numeric}{option=nonstop}
+
+\answer{Question 2 :}{\rep2}{type=\typeq2}
+
+
+
+\feedback{\reply1 != \rep1}
+{<span style="color:red">Question 1 </span>: Hélas, votre réponse était incorrecte. <br>
+<table border="1px" cellpadding="5px" margin="5px" ><tr><td>\main1 </td><td>La valeur affichée est \rep1.</td></tr></table>}
+
+\feedback{\reply2 != \rep2}
+{<span style="color:red">Question 2 </span>: Hélas votre réponse était incorrecte.
+<table border="1px" cellpadding="5px" margin="5px" ><tr><td>\main2 </td>
+<td> tab[\r] est égal à \ob \rowq2 \cb .<br>
+tab[\r][\c] est l'élément de rang \c de cette liste (<strong>en comptant à partir de 0</strong>).<br>
+La valeur affichée est donc \rep2.<br> </td></tr></table>}

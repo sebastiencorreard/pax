@@ -1,0 +1,159 @@
+\title{fonction 1}
+\integer{tot=4}
+
+\keywords{python Image}
+\text{prob=Axe des abscisses}
+
+
+\text{enonce=Le code python donné ci-dessous permet de construire la
+ représentation graphique d'une fonction. Compléter cette algorithme afin de réaliser
+ la construction proposée. Afin de vous aider on donne les coordonnées exactes
+  des 10 premiers points dans le tableau de valeurs ci-dessous.}
+
+\integer{xi=randint(-3..-1)}
+\integer{xm=\xi+randint(4..6)}
+\real{pas=0.01}
+\integer{nx=(\xm-\xi)/\pas+1}
+
+\text{zz=pari(f(t)=t^2;)}
+
+\text{DD=pari(default(format, "f.5");
+xi=\xi;
+ymin=f(xi);
+ymax=f(xi);
+pas=\pas;
+xl=[];
+yl=[];
+while(xi<=\xm,
+yi=f(xi);
+xl=concat(xl,xi);
+yl=concat(yl,yi);
+xi=xi+pas;
+if(f(xi)<ymin,ymin=f(xi););
+if(f(xi)>ymax,ymax=f(xi)););
+)}
+
+
+\text{xl=pari(print(xl);)}
+\text{yl=pari(print(yl);)}
+
+\text{ymin=pari(print(ymin);)}
+\text{ymax=pari(print(ymax);)}
+
+
+\text{mjsx=}
+\for{kj=1 to \nx}{
+\text{mjsx=wims(append line board.create('point', [\xl[\kj],\yl[\kj]],{color:'black'}); to \mjsx)}
+}
+
+\text{inst=Modifier cet algorithme pour qu'il effectue la représentation donnée à droite ou ci-dessous.}
+
+
+
+
+
+
+
+\language{fr}
+\author{Julien, Lyotard}
+\email{Julien.Lyotard@ac-dijon.fr}
+\css{<style>
+.CodeMirror {max-height:350px;}
+.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}
+.CodeMirror pre {box-shadow: none; !important}
+.wims_editor{display:inline-block;vertical-align:top;}
+.exec{overflow: auto;display:inline-block;}
+.exec > pre {background-color: #ffb795;overflow: auto;}
+
+.box{overflow: auto;display:inline-block;}
+</style>}
+
+\text{code=
+##############################
+#Initialisation des variables#
+##############################
+x=\xi
+a=\pas
+###########################
+#Définition d'une fonction#
+###########################
+def f(x):
+    return x**2
+###########################
+#Initialisation des listes#
+###########################
+x_list=[]
+y_list=[]
+######################################
+#Boucle afin de construire les listes#
+######################################
+while x<=\xm:
+  y=f(x)
+  x_list.append(x)
+  y_list.append(y)
+  x=x+a
+#############################################
+#Affichage des 10 premiers termes des listes#
+#############################################
+print(x_list[:10])
+print(y_list[:10])
+}
+\text{A=slib(geo2D/jsxgraph jsxbox1,400 x 400,JXG.Options.point.fixed = true;
+JXG.Options.point.showInfobox=false;
+JXG.Options.point.name = "";
+JXG.Options.point.face = "[]";
+JXG.Options.point.size = 60/\nx;
+JXG.Options.point.withLabel=true;
+var board = JXG.JSXGraph.initBoard('jsxbox1', {axis:true, boundingbox: [\xi-1,\ymax+1,\xm+1,\ymin-1],shownavigation:true});
+\mjsx
+)}
+\text{B=slib(geo2D/jsxgraph jsxbox,400 x 400,JXG.Options.point.fixed = true;
+JXG.Options.point.showInfobox=false;
+JXG.Options.point.name = "";
+JXG.Options.point.face = "[]";
+JXG.Options.point.withLabel=true;)}
+ymax\ymax||ymin=\ymin||\nx|||xl=\xl||yl=\yl
+\statement{
+<div class="encadre">
+<p class="problematique">\prob</p>
+<div id="boited">
+<img src="\imagedir/python.png" alt="Logo de Python" />
+</div>
+<div class="enonce">
+\enonce
+<table class="wimscenter wimsborder">
+<tr><th>\(x_i\)</th>
+\for{ii=1 to 10}{<td>\xl[\ii]</td>}
+</tr>
+<tr><th>\(y_i\)</th>
+\for{ii=1 to 10}{<td>\yl[\ii]</td>}
+</tr>
+</table>
+<br/>
+<div>
+\embed{reply1,[python,[\code]];[idtest2,canvas init,Jouer le code !]}
+</div>
+\inst
+<br/>
+<div class="wimscenter wimsborder box">
+\B
+</div>
+<div class="wimscenter wimsborder box">
+\A
+</div>
+</div>
+<script>
+function graph(){
+x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);
+y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);
+let xlen=x_liste.length;
+JXG.Options.point.size =60/\nx;
+var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [\xi-1,\ymax+1,\xm+1,\ymin-1],shownavigation:true});
+brd.suspendUpdate();
+for(var jj = 0; jj < xlen; jj=jj+1) {
+brd.create('point', [x_liste[jj],y_liste[jj]],{color:'black'});}
+brd.unsuspendUpdate();}
+execidtest2.addEventListener('click',graph);
+</script>
+}
+\answer{}{[x_list,[\xl]],[y_list,[\yl]]}{type=runcode}{option=precision=100}

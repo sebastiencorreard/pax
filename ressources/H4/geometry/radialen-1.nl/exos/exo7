@@ -1,0 +1,118 @@
+#:8 Graden & Radialen & eenheidscirkel II [HTML5] 
+n=$counter
+inputs=yes
+mathview=0
+questiontype=7
+make_tr=1
+javascript=js/sinus.2.phtml
+math=0
+checkfile=$checkdir/new_number.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $teaching=0
+    helptext=$empty
+    exotext=$empty
+!else
+    helptext=!record 63 of $remarkdir/commonremarks.$taal
+    exotext=$empty
+!endif
+!if $rounding<1 or $rounding=$empty
+    rounding=100
+!endif
+keuze=!randitem 1,2,3,4
+slider_min=0
+slider_height=20
+slider_width=420
+slider_text=!record 67 of lang/remarks.$taal
+!if $keuze=1
+    slider_value_type=2
+    !if $R=1
+	h=!randint 0,200
+	slider_max=$[2*pi]
+    !else
+	# tot 720 graden of 4pi
+	h=!randint 0,400
+	slider_max=$[4*pi]
+    !endif
+    h=$[$h/100]
+    deg=$[$h*180]
+    ans=$deg&deg; = $h $m_pi rad
+    answer$n=$deg
+    # +/- 4.5 graden = +/- 0.08 rad
+    var1=4.5
+    ht=!record 36 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h $m_pi radialen
+    !goto READY
+!endif
+    
+!if $keuze=2
+    slider_value_type=3
+    !if $R=1
+	h=!randint 1,360
+	slider_max=$[2*pi]
+    !else
+	# tot 720 graden of 4pi
+	slider_max=$[4*pi]
+	h=!randint 1,720
+    !endif
+    deg=$h
+    ans=$deg&deg; = $[$h/180] $m_pi rad
+    var1=0.08
+    answer$n=$[pi*$h/180]
+    ht=!record 37 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h &deg;
+    !goto READY
+!endif
+
+!if $keuze=3
+    slider_value_type=3
+    !if $R=1
+	deg=!randint 1,360
+	slider_max=$[2*pi]
+    !else
+	# tot 720 graden of 4pi
+	deg=!randint 1,720
+	slider_max=$[4*pi]
+    !endif
+    h=$[(round($rounding*$deg*pi/180))/$rounding]
+    ans=$deg&deg; = $h rad
+    answer$n=$deg
+    var1=0.08
+    ht=!record 38 of lang/remarks.$taal
+    ht=!subst $ht
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $(answer$n) &deg;
+    answer$n=$h
+    !goto READY
+!endif
+    
+!if $keuze=4
+    slider_value_type=2
+    !if $R=1
+	deg=!randint 1,360
+	slider_max=$[2*pi]
+    !else
+    # tot 720 graden of 4pi
+	deg=!randint 1,720
+	slider_max=$[4*pi]
+    !endif
+    h=$[(round($rounding*$deg*pi/180))/$rounding]
+    ans=$deg&deg; = $h rad
+    var1=4.5
+    answer$n=$deg
+    ht=!record 39 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h radialen
+!endif
+# het answer$n moet in graden zijn (dus geen radialen)
+
+:READY
+hoektext=!subst $ht
+rr=!record 50 of lang/remarks.$taal
+#@De hoek is $ans
+textanswer$n=$rr
+ss=!record 40 of lang/remarks.$taal
+question$n=$ss
+#@Gegeven een eenheidscirkel (straal =1)<br />$hoektext
+

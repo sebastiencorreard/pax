@@ -1,0 +1,314 @@
+type=classify
+textarea="data"
+:Classer les objets par catégorie en glisser-déposer.
+
+On présente une liste d'objets, et il faut les classer selon leurs
+propriétés, en les tirant vers les cases prévues avec la souris.
+<p>
+Pour construire un exercice avec ce modèle, il suffit d'entrer la liste
+d'objets et leurs propriétés.
+<p>
+Avec une petite modification, une variante de ce modèle peut accepter des
+images comme objets.
+
+<p>
+Auteur du modèle : Gang Xiao <qualite@wimsedu.info>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{G- Classer dans la chaîne alimentaire}
+:\author{Jonathan, Faivre}
+:\email{prof.svt.lc@gmail.com}
+:\credits{}
+:Nombre d'objets à classer par exercice. Jusqu'à 20.
+
+\integer{tot=10}
+
+:Le nombre maximal d'objets présentés ayant une même propriété.
+Ce nombre doit être strictement plus grand que 1.
+\integer{max1=3}
+
+:Le nombre de propriétés à présenter (par défaut le nombre de propriétés)
+Si le nombre de propriétés est strictement inférieur au nombre de propriétés,
+un distracteur sera choisi parmi les propriétés non tirées.
+\text{prop_cnt=}
+
+:La taille des objets à glisser, en pixels, x fois y.
+Pensez aux gens qui augmentent la taille de polices de leurs navigateurs !
+Ne mettez pas les cases trop petites.
+\text{size1=100x50}
+
+:Liste de propriétés. Jusqu'à 10, séparées par des virgules.
+
+\text{prop=décomposeur,producteur primaire,consommateur primaire,consommateur secondaire}
+
+:Données principales.
+Ecrire (un par ligne) les objets à classer, puis leur catégorie, séparés par une virgule. <p>
+L'objet peut être un mot, une phrase (sans virgules) et même une image.
+Il vaut mieux définir des données en quantité abondante pour chaque
+catégorie et au minimum deux objets pour chaque catégorie.</p><p>
+Attention à ne pas introduire d'erreurs de frappe dans les propriétés !
+Sinon l'objet correspondant peut causer des dysfonctionnements de l'exercice.</p>
+\matrix{data=le ver de terre, décomposeur
+le cloporte, décomposeur
+les champignons, décomposeur
+la mouche, décomposeur
+les collemboles, décomposeur
+les mille-pattes, décomposeur
+le scarabée, décomposeur
+le fraisier, producteur primaire
+le framboisier, producteur primaire
+le châtaignier, producteur primaire
+le lilas, producteur primaire
+le mimosa,la marguerite, producteur primaire
+le coquelicot, producteur primaire
+le thym, producteur primaire
+la renoncule, producteur primaire
+le chêne, producteur primaire
+l'érable, producteur primaire
+le bouleau, producteur primaire
+la centaurée des prés, producteur primaire
+le bleuet, producteur primaire
+la violette, producteur primaire
+la pivoine, producteur primaire
+le persil, producteur primaire
+le lierre, producteur primaire
+l'herbe, producteur primaire
+l'aulne, producteur primaire
+le pissenlit, producteur primaire
+l'iris, producteur primaire
+le lamier blanc, producteur primaire
+la menthe verte, producteur primaire
+la sauge, producteur primaire
+le mouton, consommateur primaire
+la chèvre, consommateur primaire
+le lapin, consommateur primaire
+le lièvre, consommateur primaire
+le criquet, consommateur primaire
+la musaraigne, consommateur primaire
+la vache, consommateur primaire
+la marmotte, consommateur primaire
+le sanglier, consommateur primaire
+la biche, consommateur primaire
+le blaireau, consommateur primaire
+l'escargot, consommateur primaire
+la limace, consommateur primaire
+l'âne, consommateur primaire
+le cheval, consommateur primaire
+le mulet, consommateur primaire
+le chevreuil, consommateur primaire
+la brebis, consommateur primaire
+le puceron, consommateur primaire
+l'aigle, consommateur secondaire
+le renard, consommateur secondaire
+l'ours, consommateur secondaire
+la chauve-souris, consommateur secondaire
+la couleuvre,consommateur secondaire
+Le faucon, consommateur secondaire
+le loup, consommateur secondaire
+l'épervier, consommateur secondaire
+le corbeau, consommateur secondaire
+la vipère, consommateur secondaire
+la coccinelle, consommateur secondaire}
+
+:Mots d'option.
+Ajouter <ul><li> le mot <span class="wims_code_words">shuffle</span> si on veut que l'ordre des propriétés soit
+aléatoire, </li><li>le mot <span class="wims_code_words">vertical</span>
+si vous voulez une disposition verticale des champs.
+</li></ul>
+\text{option=}
+
+:Texte avant le tableau. Balises html admises.
+
+\text{pre=Classez les organismes selon leur place dans la
+chaîne alimentaire.}
+
+:Texte après le tableau. Balises html admises.
+
+\text{post=}
+
+:Verbe et article à afficher devant la catégorie classée.
+
+\text{estun=est un}
+
+:Comment dire si un objet n'est pas classé ?
+
+\text{noclass=n'appartient à aucune catégorie}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\integer{pcnt=items(\prop)}
+\integer{prop_cnt=\prop_cnt=? \pcnt}
+\integer{prop_cnt=min(\prop_cnt,\pcnt)}
+\integer{datacnt=rows(\data)}
+\integer{max2=\max1+1}
+\integer{tot=\tot<\pcnt?\pcnt}
+\text{prop=\pcnt>1 and shuffle iswordof \option?shuffle(\prop)}
+
+\text{first=}
+\text{firsti=}
+\text{second=}
+\text{secondi=}
+\text{dist=}
+\text{disti=}
+\for{i=1 to \prop_cnt}{
+ \text{t=shuffle(column(1,wims(select \data where column 2 issametext \prop[\i])))}
+ \integer{s=min(\max1,items(\t))}
+ \text{first=wims(append item \t[1] to \first)}
+ \text{firsti=wims(append item \i to \firsti)}
+ \if{\s > 1}{
+  \text{second=wims(append item \t[2..\s] to \second)}
+  \text{secondi=wims(append item wims(makelist \i for x=2 to \s) to \secondi)}
+ }
+}
+distracteur
+\if{\prop_cnt<\pcnt}{
+ \text{t=shuffle(column(1,wims(select \data where column 2 issametext \prop[\prop_cnt+1])))}
+ \integer{s=min(\max1,items(\t))}
+ \text{dist=wims(append item \t[1] to \dist)}
+ \text{disti=wims(append item \i to \disti)}
+}
+
+\if{\tot>\prop_cnt}{
+ \integer{scnt=items(\second)}
+ \integer{secnt=min(\tot-\prop_cnt,\scnt)}
+ \integer{tot=\prop_cnt+\secnt}
+ \text{sh2=shuffle(\scnt)}
+ \text{sh2=\sh2[1..\secnt]}
+ \text{second=item(\sh2,\second)}
+ \text{secondi=item(\sh2,\secondi)}
+ \text{all=\first,\second}
+ \text{alli=\firsti,\secondi}
+}{
+ \text{all=\first}
+ \text{alli=\firsti}
+}
+\text{all=wims(nonempty items \all)}
+\text{all=wims(listuniq \all)}
+\integer{acnt=items(\all)}
+\text{sh=shuffle(\acnt)}
+\text{all=item(\sh,\all)}
+\text{alli=item(\sh,\alli)}
+\text{prop=\prop[1..\prop_cnt]}
+\text{props=wims(tolower \prop)}
+\text{alls=wims(tolower \all)}
+\text{size=\size1 x \max2}
+\text{sizev=\size x \max2}
+\text{rep=item(1..\prop_cnt,wims(makelist r x for x=1 to 10))}
+\steps{\rep}
+\integer{distc=\dist!= ? 1 : 0}
+\conditions{wims(makelist x for x=1 to \acnt + \distc)}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::La commande pour afficher le champ de réponse numéro 3 par exemple,
+c'est \embed{reply 3,\size} <p>
+Et le nom de la propriété numéro 4, c'est \prop[4] avec la première lettre
+en majuscule, ou \props[4] tout en minuscule.
+\statement{<div class="instruction">
+\pre
+</div>
+<table class="wimsnoborder">
+\if{vertical iswordof \option}{
+  <tr>\for{k=1 to \prop_cnt}{<th>\prop[\k]</th>}</tr>
+  <tr>\for{k=1 to \prop_cnt}{
+    <td style="text-align:left;vertical-align:top">\embed{reply \k, \sizev}</td>}
+  </tr>
+}{
+  \for{k=1 to \prop_cnt}{
+   <tr>
+     <th>\prop[\k]</th>
+     <td style="text-align:left">\embed{reply \k, \size}</td>
+   </tr>
+  }
+ }
+</table>
+\post}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+
+\answer{\prop[1]}{\r1;\all,\dist}{type=dragfill}
+\answer{\prop[2]}{\r2}{type=dragfill}
+\answer{\prop[3]}{\r3}{type=dragfill}
+\answer{\prop[4]}{\r4}{type=dragfill}
+\answer{\prop[5]}{\r5}{type=dragfill}
+\answer{\prop[6]}{\r6}{type=dragfill}
+\answer{\prop[7]}{\r7}{type=dragfill}
+\answer{\prop[8]}{\r8}{type=dragfill}
+\answer{\prop[9]}{\r9}{type=dragfill}
+\answer{\prop[10]}{\r10}{type=dragfill}
+
+\text{totans=item(1..\prop_cnt,
+	wims(items2words \r1),
+	wims(items2words \r2),
+	wims(items2words \r3),
+	wims(items2words \r4),
+	wims(items2words \r5),
+	wims(items2words \r6),
+	wims(items2words \r7),
+	wims(items2words \r8),
+	wims(items2words \r9),
+	wims(items2words \r10))}
+text{totans=wims(replace internal &#39; to ' in \totans)}
+\text{clean=}
+\text{check=}
+\for{t=1 to \acnt}{
+ \integer{cat=0}
+ \for{r=1 to \prop_cnt}{
+  \integer{cat=\all[\t] iswordof \totans[\r]?\r}
+ }
+ \if{\cat > 0}{
+  \text{clean=\clean \estun \props[\cat],}
+  \text{check=\alli[\t]=\cat?\check 1,:\check 0,}
+ }{
+  \text{clean=\clean \noclass,}
+  \text{check=\check 0,}
+ }
+}
+
+\if{\dist!=}{
+ \for{t=1 to 1}{
+   \integer{cat=0}
+   \for{r=1 to \prop_cnt}{
+    \integer{cat=\dist[\t] iswordof \totans[\r]?\r}
+   }
+ \if{\cat = 0}{
+   \text{clean=\clean \dist[\t] \noclass,}
+   \text{check=\check 1,}
+  }{
+   \text{clean=\clean \dist[\t] \estun \props[\cat],}
+   \text{check=\check 0,}
+  }
+ }
+}
+
+\condition{\all[1] \clean[1]}{\check[1]=1}
+\condition{\all[2] \clean[2]}{\check[2]=1}
+\condition{\all[3] \clean[3]}{\check[3]=1}
+\condition{\all[4] \clean[4]}{\check[4]=1}
+\condition{\all[5] \clean[5]}{\check[5]=1}
+\condition{\all[6] \clean[6]}{\check[6]=1}
+\condition{\all[7] \clean[7]}{\check[7]=1}
+\condition{\all[8] \clean[8]}{\check[8]=1}
+\condition{\all[9] \clean[9]}{\check[9]=1}
+\condition{\all[10] \clean[10]}{\check[10]=1}
+\condition{\all[11] \clean[11]}{\check[11]=1}
+\condition{\all[12] \clean[12]}{\check[12]=1}
+\condition{\all[13] \clean[13]}{\check[13]=1}
+\condition{\all[14] \clean[14]}{\check[14]=1}
+\condition{\all[15] \clean[15]}{\check[15]=1}
+\condition{\all[16] \clean[16]}{\check[16]=1}
+\condition{\all[17] \clean[17]}{\check[17]=1}
+\condition{\all[18] \clean[18]}{\check[18]=1}
+\condition{\all[19] \clean[19]}{\check[19]=1}
+\condition{\all[20] \clean[20]}{\check[20]=1}
+
+
+
+

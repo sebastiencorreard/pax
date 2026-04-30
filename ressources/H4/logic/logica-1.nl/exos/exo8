@@ -1,0 +1,158 @@
+#[ and or not]
+
+# let op met size canvas plaatje: de (her)inkeuring hangt af van de grootte
+n=$counter
+!if $counter=1
+ var9=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12,13
+ wordmin=noshow
+!endif
+keuze=!item $counter of $var9
+mathview=0
+applet=0
+checkfile=exos/checkfile3.proc
+inputs=-1
+make_tr=1
+kleuren=!shuffle red,green,blue,orange,cyan,purple
+dingen=!shuffle mannen,vrouwen,kinderen
+things=!randline mannen,vrouwen,kinderen\
+computers,laptops,tablets\
+lucht,vuur,water,aarde\
+A,B,C\
+K,L,M\
+U,Y,W
+
+dingen=!shuffle $things
+!for p=1 to 3
+ k$p=!item $p of $kleuren
+ t$p=!item $p of $dingen
+!next p
+fk=!item 4 of $kleuren
+
+# NIET VERANDEREN !!!
+m1x=-1
+m1y=-1
+m2x=0
+m2y=1
+m3x=1
+m3y=-1
+r1=2
+r2=2
+r3=2
+
+T1=\color{$k1}{ $t1 }
+T2=\color{$k2}{ $t2 }
+T3=\color{$k3}{ $t3 }
+EN=\color{black} \wedge
+OR=\color{black} \vee
+NOT=\color{black} \not
+
+bewering1=$T1 $EN $T2 $EN $T3 
+bewering2=$T1 $OR $T2 $EN $T3
+bewering3=$T1 $EN $T2 $OR $T3
+bewering4=$T1 $OR $T2 $OR $T3 
+bewering5= $NOT $T1 $EN $T2 $EN $T3 
+bewering6=$T1 $EN $NOT $T2 $EN $T3
+bewering7=$T1 $EN $T2 $EN $NOT $T3
+bewering8=$NOT $T1 $EN $NOT $T2 $EN $T3
+bewering9=$T1 $EN $NOT $T2 $EN $NOT $T3
+bewering10=$NOT $T1 $EN $NOT $T2 $EN $NOT $T3 
+bewering11=$NOT \left( $T1 $EN $T2 $EN $T3 \right)
+bewering12=$NOT $T1 $EN \left( $NOT $T2  $OR $NOT $T3 \right)
+bewering13=$NOT $NOT \left( $T1 $EN  $T2 $EN $T3 \right)
+
+delete=VERWIJDEREN
+!if $subject=8
+ type=userdraw clickfill,$fk
+ helptext=zoek het gebied (of gebieden)  waar alle beweringen waar zijn...en klik met je muis hierop.<br />let op: ook het hele vierkant kan een gebied zijn...<br />let op: als je computer niet te snel is...moet je gewoon wachten tot het gebied is ingekleurd...wordt de (wait | wacht) cursor weer je normale cursor en het gebied is nog steeds niet ingekleurd, klik dan binnen het gebied op een iets ander punt.
+!else
+ type=linewidth=2\
+ userdraw crosshairs,$fk
+
+ helptext=zoek het gebied (of gebieden)  waar alle beweringen waar zijn...en klik met je muis hierop.<br />let op: ook het hele vierkant kan een gebied zijn...
+!endif
+
+plaatje=xrange -4,4\
+yrange -4,4\
+fontsize 24\
+grid 10,10,snow\
+precision 100\
+linewidth 5\
+opacity 255,255\
+rect -4,4,4,-4,black\
+fontfamily Italic 16px Courier\
+centerstring black,3.6,universum (U)\
+circles $k1,$m1x,$m1y,$r1\
+circles $k2,$m2x,$m2y,$r2\
+circles $k3,$m3x,$m3y,$r3\
+legend $t1:$t2:$t3\
+legendcolors $k1:$k2:$k3\
+#string $k1,-4,2,$t1\
+#string $k2,-2,3,$t2\
+#string $k3,0,2,$t3\
+replyformat 8\
+opacity 255,150\
+$type\
+clearbutton $delete
+
+#mouse red,22
+
+ans1=a=if(d1<$r1 && d2<$r2 && d3<$r3 ,1,0);print(a);
+ans2=a=if(d1<$r1 && d2>$r2 && d3>$r3 ,1,0);b=if(d1<$r1 && d2<$r2 && d3>$r3 ,1,0);c=if(d1<$r1 && d2<$r2 && d3<$r3 ,1,0);d=if(d1<$r1 && d2>$r2 && d3<$r3 ,1,0);e=if(d1>$r1 && d2<$r2 && d3<$r3 ,1,0);print(a,b,c,d,e);
+ans3=a=if(d1>$r1 && d2>$r2 && d3<$r3 ,1,0);b=if(d1<$r1 && d2>$r2 && d3<$r3 ,1,0);c=if(d1>$r1 && d2<$r2 && d3<$r3 ,1,0);d=if(d1<$r1 && d2<$r2 && d3<$r3 ,1,0);e=if(d1<$r1 && d2<$r2 && d3>$r3 ,1,0);print(a,b,c,d,e);
+ans4=a=if(d1<$r1 && d2>$r2 && d3>$r3 ,1,0);b=if(d1>$r1 && d2<$r2 && d3>$r3 ,1,0);c=if(d1>$r1 && d2>$r2 && d3<$r3 ,1,0);d=if(d1<$r1 && d2<$r2 && d3>$r3 ,1,0);e=if(d1>$r1 && d2<$r2 && d3<$r3 ,1,0);f=if(d1<$r1 && d2>$r2 && d3<$r3 ,1,0);g=if(d1<$r1 && d2<$r2 && d3<$r3 ,1,0);print(a,b,c,d,e,f,g);
+ans5=a=if(d1>$r1 && d2<$r2 && d3<$r3 ,1,0);print(a);
+ans6=a=if(d1<$r1 && d2>$r2 && d3<$r3 ,1,0);print(a);
+ans7=a=if(d1<$r1 && d2<$r2 && d3>$r3 ,1,0);print(a);
+ans8=a=if(d1>$r1 && d2>$r2 && d3<$r3 ,1,0);print(a);
+ans9=a=if(d1<$r1 && d2>$r2 && d3>$r3 ,1,0);print(a);
+ans10=a=if(d1>$r1 && d2>$r2 && d3>$r3 ,1,0);print(a);
+ans11=a=if(d1<$r1 && d2>$r2 && d3>$r3 ,1,0);b=if(d1>$r1 && d2<$r2 && d3>$r3 ,1,0);c=if(d1>$r1 && d2>$r2 && d3<$r3 ,1,0);d=if(d1<$r1 && d2<$r2 && d3>$r3 ,1,0);e=if(d1>$r1 && d2<$r2 && d3<$r3 ,1,0);f=if(d1<$r1 && d2>$r2 && d3<$r3 ,1,0);g=if(d1>$r1 && d2>$r2 && d3>$r3 ,1,0);print(a,b,c,d,e,f,g);
+ans12=a=if(d1>$r1 && d2>$r2 && d3>$r3 ,1,0);b=if(d1>$r1 && d2<$r2 && d3>$r3 ,1,0);c=if(d1>$r1 && d2>$r2 && d3<$r3 ,1,0);print(a,b,c);
+ans13=$ans1
+# voor in 't antwoord
+fill1=fill 0,0,green
+fill2=fill 0,0,green;fill -2,-1,green;fill -1,0.5,green;fill 0,-1.5,green;fill 1,0,green
+fill3=fill 0,0,green;fill -1,0.3,green;fill 1,0.3,green;fill 0,-1.7,green;fill 1.8,-1.5,green
+fill4=fill -2,-1,green;fill 2,-1,green;fill 0,2,green;fill -1,0,green;fill 1,0,green;fill 0,-2,green;fill 0,0,green
+fill5=fill 1.2,0.5,green
+fill6=fill 0,-1.5,green
+fill7=fill -1,0,green
+fill8=fill 1,-2,green
+fill9=fill -2,-1,green
+fill10=fill 0,-3,green
+fill11=fill -3,-3,green;fill -1.5,0.5,green;fill -1.5,-2,green;fill 0,-1.5,green;fill 1,0.5,green;fill 0,2,green;fill 2,-1,green
+#fill11=fillall green,-3,-3,-1.5,0.5,-1.5,-2,0,-1.5,1,0.5,0,2,2,-1
+fill12=fill 0,-3,green;fill 0,2.5,green;fill 2,0,green
+fill13=$fill1
+
+exotext=!exec canvasdraw \
+size 400,400\
+$plaatje
+
+var5=$plaatje
+
+# hoeveel vlakken moeten er gekleurd zijn?
+corr=1,5,5,7,1,1,1,1,1,1,7,3,1
+# 3 cirkels
+var1=3
+# centra
+var2=$m1x,$m1y,$m2x,$m2y,$m3x,$m3y
+var3=$(corr[$keuze])
+answer$n=$(ans$keuze)
+var4=!nosubst d1=$d1;d2=$d2;d3=$d3;$(answer$n)
+bewering=!mathmlmath  \Large{$(bewering$keuze)} 
+ss=Geef in het onderstaande <em>Venndiagram</em> waar geldt<hr/>$bewering <hr/><em>kijk hier voor de logica voorrangsregels...</em>
+tiptxt=voorrangsregels <p><img src=\'$module_dir/gifs/voorrang1.jpg\'  /><br /><img src=\'$module_dir/gifs/voorrang2.jpg\'  /></p>
+question$n=<a onmouseover="return escape('$tiptxt')">$ss</a>
+
+textanswer$n=!exec canvasdraw \
+size 400,400\
+$plaatje\
+opacity 255,150\
+$(fill$keuze)
+
+
+#formula$n=\left\{ \begin{array}{l|l|c|l-} \textrm{operator} & \textrm{symbool } : & \textrm{voorrang} \\ \textrm{niet} & \not & \textrm{hoog} \\ \textrm{en} & \wedge & \textrm{ midden } \\ \textrm{of} & \vee & \textrm{laag}  \end{array}\right.
+#formula$n= \left\{\begin{array}{lcl} A \vee B \wedge C & \equiv & A \vee ( B \wedge C ) \\ A \wedge B \vee C \wedge D & \equiv &  ( A \wedge B ) \vee ( C \wedge D ) \\ A \wedge B \wedge C \vee D & \equiv & (( A \wedge B ) \wedge C ) \vee D \\  \not A \wedge B \vee C & \equiv & (( \not A ) \wedge B ) \vee C  \end{array}\right. 
+!exit
+ 

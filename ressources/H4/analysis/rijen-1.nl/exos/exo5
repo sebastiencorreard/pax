@@ -1,0 +1,144 @@
+# no need for translation
+!set n=$counter
+mathview=0
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+arglist=$empty
+varlist=$empty
+exotext=!record 97 of lang/remarks.$taal
+#!record 7 of lang/remarks.$taal
+#@ Somrij van een Meetkundige Reeks
+questiontype=0
+image=0
+math=0
+var2=$empty
+var1=S
+description=$empty
+!if $R=1
+    textanswer$n=<ul>
+    r=!randitem 2,3,4,5,6,7,8,9,10
+    a=!randint 2,20
+    options=!randitem 3,4,5,6,7,8
+    inputs=$options
+    make_tr=0
+    checkfile=exos/checkfile1.proc
+    ss=!record 42 of lang/remarks.$taal
+    question$n=$ss
+    #:Geef de eerste $options termen van de Somrij<br />van de onderstaande Meetkundig reeks.<br />
+    #U<sub>n</sub>=$a*$r<sup>n</sup
+    tot=0
+    !for p=1 to $options
+	t=$[$p-1]
+	U=$[$a*$r^($p-1)]
+	tot=$[$U + $tot]
+	var2=!append item $t to $var2
+	answer$n=!append item $tot to $(answer$n)
+	textanswer$n=!append word $ <li>$var1<sub>$t</sub>=$tot</li> $ to $(textanswer$n)
+	description=!append item $var1<sub>$t</sub> to $description
+    !next p
+    formula$n = \left[ \begin{array}{l} U_{n} = $a \cdot $r^{n} \\ S_{0} = [?] \\ \cdots\cdots  \\ S_{$[$options -1]} = [?] \end{array} \right.
+    textanswer$n=!append word $ </ul> $ to $(textanswer$n)
+ !exit
+!endif
+
+#8/5/2009 werkt nu intern met 7 decimalen voor nakijken. 
+# goede antwoord wordt nu met pari berekend op 50 decimalen
+# het leerlingantwoord mag nu ook exact zijn; met breukstreep.
+#28/5/2009 was ook niet goed !! de checkfile5.proc is beter.
+
+checkfile=exos/checkfile5.proc
+inputs=1
+embed=1
+cols=20
+rows=1
+!if $R=2
+    r=!randitem 2,3,4,5,6,7,8,9,10
+    a=!randint 2,20
+    options=!randitem 3,4,5,6,7,8
+    # checkfile=$checkdir/number.proc
+    ss=!record 43 of lang/remarks.$taal
+    #Gegeven is de Rangnummer formule van een Meetkundige rij<br />U<sub>n</sub>=$a*$r<sup>n</sup>
+    #Bereken de Som van de eerste $options termen.
+    formula$n = \left[ \begin{array}{l} U_{n} = $a \cdot $r ^{n} \\ S = U_{0} + \cdots + \cdots +U_{$[$options -1]} \end{array} \right.
+    
+    question$n=$ss
+
+    wimsanswer=$[($a*(1-$r^$options))/(1-$r)]
+
+    tot=!exec pari A=($a*(1-$r^$options))/(1-$r)\
+    abs(A - $wimsanswer)
+
+    answer$n=!line 1 of $tot
+    var2=!line 2 of $tot
+    
+    texanswer$n=\frac{$a \cdot $r^{$options} - $a}{$r - 1}=$(answer$n) \simeq $wimsanswer
+#    $a \cdot \frac{1-$r^{$options}}{1-$r}=$(answer$n) \simeq $wimsanswer
+ !exit
+!endif
+
+# 15/5/2010 grote getallen ingetrimmed Ti83 
+!if $R=3
+    !if $rounding<1
+	rounding=100
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    # checkfile=$checkdir/number.proc
+    r=!randint 5,20
+    !if $r=10
+	r=11
+    !endif
+    r=$[$r/10]
+    options=!randint 15,24
+    a=!randint 2,20
+    ss=!record 44 of lang/remarks.$taal
+    #@ Gegeven is de directe formule van een Meetkundige rij\
+    #@ <p align="center">U<sub>n</sub>=$a*$r<sup>n-1</sup></p>\
+    #@ Bereken de Som van de eerste $options termen.
+    formula$n = \left[ \begin{array}{l} U_{n} = $a \cdot $r ^{n} \\ S = U_{0} + \cdots + \cdots +U_{$[$options -1]} \end{array} \right.
+    
+    question$n=$ss
+    #answer$n=$[($a*(1-$r^$options))/(1-$r)]
+    wimsanswer=$[($a*(1-$r^$options))/(1-$r)]
+
+    tot=!exec pari A=($a*(1-$r^$options))/(1-$r)\
+    abs(A - $wimsanswer)
+
+    answer$n=!line 1 of $tot
+    var2=!line 2 of $tot
+
+    texanswer$n=\frac{$a \cdot $r^{$options}-$a}{$r-1}=$(answer$n) \simeq $wimsanswer
+    #$a \cdot \frac{1-$r^{$options}}{1-$r}=$(answer$n) \simeq $wimsanswer
+ !exit
+!endif
+
+!if $R>3
+    !if $rounding<1
+	rounding=100
+        !readproc $remarkdir/rounding.$taal
+    !endif
+    # checkfile=$checkdir/number.proc
+    r=!randint 12,20
+    r=$[$r/10]
+    options=!randint 15,26
+    a=!randint 2,20
+    ss=!record 45 of lang/remarks.$taal
+    #@ Gegeven is de Recursie formule van een Meetkundige rij\
+    #@ c<p align="center">U<sub>n</sub>=$r*U<sub>n-1</sub> met U<sub>0</sub>=$a</p>\
+    #@ Bereken de som van de eerste $options termen.
+    
+    question$n=$ss
+    formula$n = \left[ \begin{array}{l} U_{n} = $r\cdot U_{n-1} \wedge U_{0} = $a \\ S = U_{0} + \cdots + \cdots +U_{$[$options -1]} \end{array} \right.
+
+    wimsanswer=$[($a*(1-$r^$options))/(1-$r)]    
+
+    tot=!exec pari A=($a*(1-$r^$options))/(1-$r)\
+    abs(A - $wimsanswer)
+
+    answer$n=!line 1 of $tot
+    var2=!line 2 of $tot
+    texanswer$n=U_{n} = $a \cdot $r ^{n} \rightarrow  \frac{$a \cdot $r^{$options}-$a}{$r-1}= $(answer$n)  \simeq $wimsanswer
+ !exit
+!endif

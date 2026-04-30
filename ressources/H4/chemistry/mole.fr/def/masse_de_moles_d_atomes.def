@@ -1,0 +1,129 @@
+!set title=Masse d'un nombre de moles d'atomes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Markey, Benoît
+email=benoit.markey@ac-lille.fr
+keywords=chimie,mole,masse,molaire,concentration,dilution,atom,periodic_table,molecules
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim H,hydrogène,1,1,1,0,0,1.01,+	He,Hélium,4,2,2,0,0,4,2+	Li,Lithium,7,3,2,1,0,6.94,+	Be,Béryllium,9,4,2,2,0,9,2+	B,Bore,11,5,2,3,0,10.8,3+	C,Carbone,12,6,2,4,0,12,n'existe pas	N,Azote,14,7,2,5,0,14,3-	O,Oxygène,16,8,2,6,0,16,2-	F,Fluor,19,9,2,7,0,19,-	Ne,Néon,20,10,2,8,0,20.2,n'existe pas	Na,Sodium,23,11,2,8,1,23,+	Mg,Magnésium,24,12,2,8,2,24.3,2+	Al,Aluminium,27,13,2,8,3,27,3+	Si,Silicium,28,14,2,8,4,28.1,n'existe pas	P,Phosphore,31,15,2,8,5,31,3-	S,Soufre,32,16,2,8,6,32.1,2-	Cl,Chlore,35,17,2,8,7,35.5,-	Ar,Argon,40,18,2,8,8,39.9,n'existe pas	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+val8=$[rint($(val7[3])-$(val7[4]))]
+val9=$[1.7E-27*($(val7[3]))]
+tmp0=!randint 1, 26
+
+val10=$[rint($(tmp0))]
+val11=$[$val10*$val9*6.02E26]
+!readproc slib/lang/frapostrophe de $(val7[2]) 
+tmp0=$slib_out
+val12=$(tmp0)
+!readproc slib/chemistry/leftind $(val7[3]),$(val7[4]),$(val7[1]), 
+tmp0=$slib_out
+val13=$(tmp0)
+replytype1=units
+replyname1=protons
+replygood1=$val9 kg
+replytype2=units
+replyname2=Question 2
+replygood2=$val11 g 
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div>Soit l'atome $val12 dont le symbole chimique est: 
+!insmath $val13
+$()</div> 	<div class="wims_question">	<ol><li>Sachant que la masse d'un nucléon est 	
+!insmath m_n = 1.7*10^(-27)
+$() kg, calculer la masse d'un atome $val12.	<div class="spacer">La masse de l'atome $val12 est m<sub>$(val7[2])</sub> =   
+!read oef/embed.phtml reply 1,20 
+$()</div>	 </li>	<li>Evaluer la masse 
+!if $val10 = 1 
+$()d'une mole d'atome 
+!else
+$()  de $val10 moles d'atomes 
+!endif
+$() $val12.	<div class="spacer">la masse 
+!if $val10 = 1 
+$()d'une mole d'atome 
+!else
+$()  de $val10 moles d'atomes 
+!endif
+$() $val12 est 
+!insmath  m = 
+$()  
+!read oef/embed.phtml reply 2,20 
+$()</div></li>	</ol></div>		<div class="wims_instruction">	<div class="spacer">Consignes : </div>	<ul>	<li>Ne pas oublier les unités.</li>	<li>En écriture scientifique, la lettre E remplace 10.</li>	<li>Utilisez le point comme séparateur décimal. Par exemple, 4*10<sup>-8</sup> se note 5.4E-8.</li></ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,12,13
+embedcnt=2

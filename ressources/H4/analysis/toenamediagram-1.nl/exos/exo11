@@ -1,0 +1,110 @@
+#list_of_things=['point','line','segment','circle','function','polygon','cone','ellipse','polynomial']
+#customToolBar=0 , 1 , 10 , 16 , 6
+# alleen integers in ggb file !! decimalen=0
+n=$counter
+mathview=0
+R=$level
+!if $level=0
+    R=$counter
+!endif
+# van tabel naar geogebra
+checkfile=exos/checkfile2.proc
+# speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+var1=0
+
+#GeoGebra
+list_of_things=[ 'line','segment','point' ];
+customToolBar=" 0 | 15 || 40 | 41 | 42 | 6 "
+appletcommand=$empty
+ggb=ggb/grid1.ggb
+showToolBar=true
+showMenuBar=false
+framePossible=false
+xsize=480
+ysize=480
+image=0
+# GnuPlot
+make_tr=1
+insplot_data=$empty
+wordmax=300
+math=0
+questiontype=4
+inputs=0
+etext=!record 26 of lang/remarks.$taal
+exotext=<a href="javascript:showimage();">$etext</a>
+helptext=!record 17 of lang/remarks.$taal
+#@ <em>GeoGebra</a> help pagina's</em>
+
+ss=!record 18 of lang/remarks.$taal
+#@ Gegeven is de onderstaande tabel.<br />Teken in de GeoGebra applet een <b>toenamendiagram<b> met stapgrootte <b>1</b> van deze tabel.<p>
+
+!if $R=1
+    xmin=0
+    xmax=6
+    segments=$[$xmax-$xmin]
+    points=$[2*$segments]
+    a=!randitem 0,1,2
+    b=!randitem 3,4,5,6
+    c=!randitem -2,-1,-1,2,3
+    functie=$c*(x-$a)*(x-$b)
+    texanswer$n=!exec pari printtex($functie)
+    texanswer$n=f(x)\,=\,$(texanswer$n)
+    xtabel=$empty
+    ytabel=$empty
+    !for x=0 to $xmax
+	y=!evalsubst x=$x in $functie
+	y=$[$y]
+	YY=!append item $y to $YY
+	xtabel=!append line <td>&nbsp;&nbsp;$x&nbsp;&nbsp;</td> to $xtabel
+	ytabel=!append line <td>&nbsp;&nbsp;$y&nbsp;&nbsp;</td> to $ytabel
+    !next x
+    question$n=$ss<br /><table class="zebra_table_h2"><tr><th>x</th>$xtabel</tr><tr><th>y</th>$ytabel</tr></table>
+    Y=0
+    !for x=1 to $[$xmax] 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	answer$n=!append item $x,0 to $(answer$n)
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append word $ <li>Segment ($x:0) -- ($x:$y) - $m_Delta y=$y </li> $  to $(textanswer$n)
+    !next x
+!endif
+
+!if $R>1
+    a=!randitem 0,1,2,3
+    b=!randitem 1,2,3,4,5,6
+    c=!randitem -2,-1,-1,2,3
+    d=!randitem 5,6,7
+    xmin=$[-1*$a-2]
+    xmax=$[$xmin + $d]
+    segments=[$xmax-$xmin]
+    points=$[2*$segments]
+    functie=$c*(x+$a)*(x-$b)
+    texanswer$n=!exec pari printtex($functie)
+    texanswer$n=f(x)\,=\,$(texanswer$n)\,\,\,\wedge \,\,D_f=[$xmin,$xmax]
+    xtabel=$empty
+    ytabel=$empty
+    !for x=$xmin to $xmax
+	y=!evalsubst x=$x in $functie
+	y=$[$y]
+	YY=!append item $y to $YY
+	xtabel=!append line <td>&nbsp;&nbsp;$x&nbsp;&nbsp;</td> to $xtabel
+	ytabel=!append line <td>&nbsp;&nbsp;$y&nbsp;&nbsp;</td> to $ytabel
+    !next x
+    question$n=$ss<br /><table class="zebra_table_h2"><tr><th>x</th>$xtabel</tr><tr><th>y</th>$ytabel</tr></table>
+    Y=0
+    x=$[$xmin+1]
+    !for p=1 to $[$xmax-$xmin] 
+	y1=!item $p of $YY
+	y2=!item $[$p+1] of $YY
+	y=$[$y2-$y1]
+	answer$n=!append item $x,0 to $(answer$n)
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append word $ <li>Segment ($x:0) -- ($x:$y) - $m_Delta y=$y $ to $(textanswer$n)
+	!increase x
+    !next p
+!endif
+
+insplot_set=size 1.0,1.0; autoscale ; border 3; zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ; ytics 1 
+!insplot [0:$xmax] $functie notitle lt 1
+

@@ -1,0 +1,123 @@
+questiontype=0
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding=-1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+insplot_data=$empty
+mathview=4
+helptext=!record 28 of lang/remarks.$taal
+image=0
+wordmax=30
+math=0
+cols=15
+rows=2
+embed=1
+## checkfile
+checkfile=exos/checkfile3.proc
+varlist=$empty
+arglist=$empty
+varcnt=0
+##
+xlabel=x
+ylabel=y
+exotext=$empty
+!if $R=1
+    a=!randitem -3,-2,-1,1,2,3
+    x1=!randitem 0,1,4
+    x1=$[$x1+$a]
+    b=!randitem 8,9,10
+    x2=!randitem 9,16,25
+    x2=$[$x2+$a]
+    c=!randitem -1,-2
+    d=!randitem 1,2,3,4
+    functie=$d*sqrt(x-($a))
+    y1=$[$d*sqrt($x1-$a)]
+    y2=$[$d*sqrt($x2-$a)]
+    f=!rawmath x-$a
+    formula$n=\left[ \begin{array}{l} f \left( x \right) = $d \cdot \sqrt{$f} \\ x \in \left[ $x1 ; $x2 \right] \\ \frac{\Delta y}{ \Delta x}  = [?] \end{array} \right.
+    applettext=!nospace {vlist( f(x) = $d*sqrt($f) ,., x isin [$x1 : $x2 ])} -> dy/dx=
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1} = \frac{$y2-$y1}{$x2-$x1}=$tex
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R=2
+    x1=!randitem 0,1,2,3,4
+    x2=!randitem 6,7,8,9
+    a=!randitem 1,2,3
+    b=!randitem 8,9,10
+    c=!randitem -1,-2
+    functie=$c*(x-$a)*(x-$b)
+    keuze=!randitem 1,0
+    !if $keuze=0
+	formula$n=f\left( x \right) = $c \cdot \left( x-$a \right)\left( x-$b \right)
+    !else
+	tot=!exec  pari A=($c*(x-($a))*(x-($b)))\
+	printtex(A)
+	functie=!line 1 of $tot
+	f=!line 2 of $tot
+	formula$n=f\left( x \right) = $f 
+    !endif
+    applettext=!nospace {vlist( f(x) = $functie ,., x isin [$x1 : $x2 ])} -> dy/dx=
+    y1=$[$c*($x1-$a)*($x1-$b)]
+    y2=$[$c*($x2-$a)*($x2-$b)]
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1}  = \frac{$y2-$y1}{$x2-$x1}=$tex
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R>2
+    x1=!randitem 0,1,2,3,4
+    x2=!randitem 6,7,8,9
+    a=!randitem 1,2,3
+    b=!randitem 8,9,10
+    c=!randitem -1,-2,1,2
+    d=!randitem 7,8,9,10,11,12
+    functie=$c*x*(x-$a)*(x-$b)+$d
+    keuze=!randitem 1,0
+    !if $keuze=0
+	formula$n=f\left( x \right) = $c \cdot x \cdot \left( x-$a \right)\left( x-$b \right) + $d
+    !else
+	tot=!exec pari A=($c*x*(x-($a))*(x-($b))+($d))\
+	printtex(A)
+	functie=!line 1 of $tot
+	f=!line 2 of $tot
+	formula$n=f\left( x \right) = $f
+    !endif
+    applettext=!nospace {vlist( f(x) = $functie ,., x isin [$x1 : $x2 ])} -> dy/dx=
+    y1=$[$c*$x1*($x1-$a)*($x1-$b)+$d]
+    y2=$[$c*$x2*($x2-$a)*($x2-$b)+$d]
+    tot=!exec pari A=($y2-($y1))/($x2-($x1))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\frac{\Delta $ylabel}{\Delta $xlabel} = \frac{f($x2) - f($x1)}{$x2 - $x1}  = \frac{$y2-$y1}{$x2-$x1}=$tex
+    ss=!record 24 of lang/remarks.$taal
+    #@ Bepaal de gemiddelde verandering van <em>f</em> op het interval <b>[ $x1 : $x2 ]</b> 
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    !if $teaching=1 or $image=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif

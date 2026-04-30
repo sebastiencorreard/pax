@@ -1,0 +1,89 @@
+# Vergelijkingen VI [ log(x) = a ] met breuken
+rounding=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=1
+mathview=5
+mathviewpanel=$module_title:x=:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+rounding=0
+cols=20
+rows=2
+inputs=-1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+
+b=!randint 1,15
+pm=!randitem -1,1
+b=$[$pm*$b]
+
+!if $R=1
+    helptext=<img src=\'$module_dir/gifs/exo12a.jpg\' alt=\'noalt\' />
+    # applet can't handle broken log's like ^(1/2)log(c)
+    embed=1
+    cols=20
+    rows=1
+    k=!randint 1,4
+    g=!item $k of 1/2,1/3,1/4,1/5
+    gt=!item $k of \frac{1}{2},\frac{1}{3},\frac{1}{4},\frac{1}{5}
+    gg=!item $k of 2,3,4,5
+    a=!randitem 2,3,4,5,6
+    tussen=!rawmath x + $b
+    formula$n=^{$gt}\log($tussen)=$a 
+    #applettext=!nospace log[$g]($tussen) = $a ->
+    tot=!exec pari A=($g)^$a - ($b)\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    test=$[$(answer$n)]
+    !if . notin $test
+	answer$n=$test
+	tex=$test
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $tussen = \left( $gt \right)^{$a} \\  $tussen = \frac{1}{\textstyle $gg^{$a}} \\ x=$tex \end{array} \right.
+ !exit
+!endif
+
+!if $R>1
+    embed=0
+    inputs=1
+    display=1
+    helptext=<img src=\'$module_dir/gifs/exo12b.jpg\' alt=\'noalt\' />
+    g=!randitem 2,3,4,5,6,7,8,9
+    a=!randitem 1/2,1/3,1/4,1/5,1/6,1/7
+    b=!randitem 2/3,3/4,2/5,3/5,4/5,1/3,5/6,2/7,3/7,4/7,5/7,6/7
+    tot=!exec pari A=$a+$b\
+    printtex(A)\
+    printtex($b)\
+    printtex($a)
+    c=!line 1 of $tot
+    ctex=!line 2 of $tot
+    btex=!line 3 of $tot
+    atex=!line 4 of $tot
+    
+    formula$n=$btex + ^{$g}\log(x) = $ctex 
+    applettext=!nospace $b + log[$g](x) = $c ->
+    answer$n=$g^($a)
+    test=$[$(answer$n)]
+    !if . notin $test
+	answer$n=$test
+	tex= \rightarrow x=$test
+    !else
+	tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} ^{$g}\log(x)=$ctex - $btex \\ x= $g^{\textstyle $ctex - $btex } \\ x=$g^{\textstyle $atex} $tex \end{array} \right.
+ !exit
+!endif

@@ -1,0 +1,196 @@
+# empirische kans en tabellen I
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<10
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+formula$n=$empty
+var1=1
+# dus geen aantallen maar  een kans 0<P<1
+math=0
+cols=10
+rows=3
+image=0
+make_tr=1
+inputs=1.1
+questiontype=0
+description=$youranswer
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+d=!randitem 1,2,3
+logo=<img src=$module_dir/gifs/blessure.$d.jpg alt="Mooi Dom"/>
+viewlogo=1
+#text voor records
+txt=!record 125 of lang/remarks.$taal
+#@aantal blessures , leeftijd ,totaal ,blessures
+aantal_blessures=!item 1 of $txt
+leeftijd=!item 2 of $txt
+totaal=!item 3 of $txt
+blessures=!item 4 of $txt
+max_blessures=!randitem 4,5
+max_leeftijd=!randitem 40,50
+#max_blessures=5
+#max_leeftijd=50
+head1=<th style=\'background-color:yellow\'>$aantal_blessures</th>
+head2=<th style=\'background-color:lightgreen\'>$leeftijd</th>
+!for p=1 to $max_blessures
+    head2=!append word <th style=\'background-color:yellow\'>$[$p-1]</th> to $head2
+!next p
+head2=!append word <th>$totaal</th></tr><tr> to $head2
+        
+step=10
+# max is max aantal geblesseerden per klasse
+max=!randint 8,20
+totaal_voetballers=0
+rijen=$empty
+# t = horizontale teller r=verticale teller
+t=1
+tmax=$[$max_leeftijd/$step]
+laatsterij=<td><b>$totaal</b></td>
+!for t=1 to $tmax
+    age=$[$t*$step]
+    !if $t=1
+	rijen=!append word <td style=\'background-color:lightgreen\'><b>&lt; $age</b></td> to $rijen
+    !else
+	!if $t=$tmax
+	    rijen=!append word <td style=\'background-color:lightgreen\'><b>&ge; $[$age-$step]</b></td> to $rijen
+	!else
+	    rijen=!append word <td style=\'background-color:lightgreen\'><b>$[$age - $step]  - $[$age - 1]</b></td> to $rijen
+	!endif
+    !endif
+    leeftijden=!append item $age to $leeftijden
+    !for s=1 to $max_blessures
+	num=!randint 1,$max
+	totaal_voetballers=$[$totaal_voetballers+$num]
+	cell$t$s=$num
+	sumvertical$s=$[$(sumvertical$s) + $num]
+	sumhorizontal$t=$[$(sumhorizontal$t) + $num]
+	rijen=!append word <td>$num</td> to $rijen
+    !next s
+    rijen=!append word <td><span style=\'color:green\'><b>$(sumhorizontal$t)</b></span></td></tr><tr> to $rijen
+!next t
+
+!for s=1 to $max_blessures
+    laatsterij=!append word <td><span style=\'color:green\'><b>$(sumvertical$s)</b></span></td> to $laatsterij
+!next s
+laatsterij=!append word <td><span style=\'color:red\'><b>$totaal_voetballers</b></span></td> to $laatsterij
+tabel=<table  class=\'grid_table\'><tr>$head1</tr><tr><td><table class=\'grid_table\'><tr>$head2</tr><tr>$rijen</tr><tr>$laatsterij</tr></table></td></tr></table>
+helptext=$tabel
+logotext=$tabel
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+decimalen=!item $[log($rounding)/log(10)] of $telwoorden
+
+s1=!record 126 of lang/remarks.$taal
+#@Een sportvereniging heeft van haar $totaal_voetballers actieve leden <br />gedurende &eacute;&eacute;n jaar het aantal blessures bijgehouden.<br />Verdeeld naar leeftijdsklassen <span style="color:blue"><u>staan hun resultaten in deze tabel</u></span>.<br />Bereken in $decimalen decimalen nauwkeurig de kans dat een <em>willekeurig gekozen lid</em><br />
+
+!if $R=1
+    k=!randint 1,$[$tmax-1]
+    leeftijd=!item $k of $leeftijden
+    sum=0
+    keuze=!randitem 1,0
+    !if $keuze=1
+	s2=!record 127 of lang/remarks.$taal
+	#@jonger is dan $leeftijd jaar
+	P=P(&lt; $leeftijd)
+	sum=0
+	!for t=0 to $k
+	    sum=$[$sum+$(sumhorizontal$t)]
+	!next t
+    !else
+	s2=!record 128 of lang/remarks.$taal
+	#@ouder is dan $leeftijd jaar
+	P=P(&gt; $leeftijd)
+	!for t=$[$k+1] to $tmax
+	    sum=$[$sum+$(sumhorizontal$t)]
+	!next t
+    !endif
+    answer$n=!exec pari $sum/$totaal_voetballers
+    afgerond=$[(round($rounding*$sum/$totaal_voetballers))/$rounding]
+    question$n=<a onmouseover="return escape('$tabel')">$s1 $s2</a>
+    rr=!record 129 of lang/remarks.$taal
+    #@Er zijn vlgs de tabel $sum leden $s2<br />De kans is dan $sum/$totaal_voetballers<br />Dus $P = $(answer$n) en afgerond op $decimalen decimalen $afgerond
+    textanswer$n=$rr
+    texanswer$n=$empty
+ !exit
+!endif
+
+!if $R>1
+    sum=0
+    keuze=!randitem 1,2,3,4
+    !if $keuze=1
+        k=!randint 1,$[$tmax-2]
+        leeftijd=!item $k of $leeftijden
+        injury=!randint 2,$[$max_blessures-2]
+	s2=!record 130 of lang/remarks.$taal
+	#@jonger is dan $leeftijd jaar en minder dan $injury blessures heeft
+	P=P( &lt; $leeftijd &amp; $blessures &lt; $injury )
+	sum=0
+	!for t=1 to $k
+	    !for s=1 to $[$injury-1]
+		sum=$[$sum+$(cell$t$s)]
+	    !next s
+	!next t
+    !endif
+    !if $keuze=2
+        k=!randint 1,$[$tmax-2]
+        leeftijd=!item $k of $leeftijden
+        injury=!randint 2,$[$max_blessures-1]
+	s2=!record 131 of lang/remarks.$taal
+	#@jonger is dan $leeftijd jaar en meer dan $injury blessures heeft
+	P=P( &lt; $leeftijd &amp; $blessures &gt; $injury )
+	sum=0
+	!for t=1 to $k
+	    !for s=$[$injury+1] to $max_blessures
+		sum=$[$sum+$(cell$t$s)]
+	    !next s
+	!next t
+    !endif
+    !if $keuze=3
+    k=!randint 2,$[$tmax-1]
+    leeftijd=!item $k of $leeftijden
+    injury=!randint 2,$[$max_blessures-2]
+	s2=!record 132 of lang/remarks.$taal
+	#@ouder is dan $leeftijd jaar en minder dan $injury blessures heeft
+	P=P( &gt; $leeftijd &amp; $blessures &lt; $injury )
+	sum=0
+	!for t=$[$k+1] to $tmax
+	    !for s=1 to $[$injury-1]
+		sum=$[$sum+$(cell$t$s)]
+	    !next s
+	!next t
+    !endif
+    !if $keuze=4
+    k=!randint 2,$[$tmax-1]
+    leeftijd=!item $k of $leeftijden
+    injury=!randint 2,$[$max_blessures-1]
+	s2=!record 133 of lang/remarks.$taal
+	#@ouder is dan $leeftijd jaar en meer dan $injury blessures heeft
+	P=P( &lt; $leeftijd &amp; $blessures &gt; $injury )
+	sum=0
+	!for t=$[$k+1] to $tmax
+	    !for s=$[$injury+1] to $max_blessures
+		sum=$[$sum+$(cell$t$s)]
+	    !next s
+	!next t
+    !endif
+
+    answer$n=!exec pari $sum/$totaal_voetballers
+    afgerond=$[(round($rounding*$sum/$totaal_voetballers))/$rounding]
+    question$n=<a onmouseover="return escape('$tabel')">$s1 $s2</a>
+    rr=!record 134 of lang/remarks.$taal
+    #@Er zijn vlgs de tabel $sum leden $s2<br />De kans is dan $sum/$totaal_voetballers<br />Dus $P = $(answer$n) en afgerond op $decimalen decimalen $afgerond
+    textanswer$n=$rr
+    texanswer$n=$empty
+ !exit
+!endif
+
+
+
+
+

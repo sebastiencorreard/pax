@@ -1,0 +1,197 @@
+goback=0
+errortext=$empty
+!if ? isin $reply3
+    reply$n=$dontknow
+    goback=0
+    maxscore=0
+    remark$n=$NOK
+    !exit
+!endif
+# answer$n=$checkbox,$kans_data_bij_de_aantallen
+# var1=$xmin,$xmax
+# var2=4,6,8 (aantallen)
+# var3=1000-1020,1021-1040,1041-1060 (klassen)
+# var4 = de antwoord kansen
+# reply$n=$checkbox \n  x1,y1,x2,y2....x_aantal,y_aantal
+
+# eerst de checkbox-waarde
+# -1 = geen idee
+# 1 = niet normaal
+# 2 = normaal verdeeld
+ans1=!item 1 of $(answer$n)
+# ans2 is formule
+ans2=!item 2 of $(answer$n)
+rep1=!line 1 of $reply3
+rep2=!line 2 of $reply3
+sometext=!record 40 of lang/remarks.$taal
+#@niet normaal verdeeld,normaal verdeeld,de verdeling is,heel goed,nee,$score3 punten goed getekend,geen van de punten is goed getekend...
+
+verdeling=!item $ans1 of $sometext
+de_verdeling_is=!item 3 of $sometext
+heel_goed=!item 4 of $sometext
+neen=!item 5 of $sometext
+goed_getekend=!item 6 of $sometext
+niet_getekend=!item 7 of $sometext
+
+!ifval $ans1 = $rep1
+    score1=1
+!else
+    score1=0
+!endif
+
+# check de grafiek: antwoord volgorde is niet bepaald(dus mogelijk niet in de volgorde van $(answer$n))
+xmin=!item 1 of $var1
+xmax=!item 2 of $var1
+your_data=$empty
+rt=!itemcnt $rep2
+dx=0.02
+# javascript checkt op juiste aantal coordinaten 
+# x-waarde 0.5,1.5 etc 
+cnt=0
+score2=0
+tmp_list=$empty
+your_point=$empty
+opmerking=!record 49 of lang/remarks.$taal
+#@percentage is heel precies,percentage is goed ,percentage is redelijk goed,percentage is te onnauwkeurig,percentage niet goed ,percentage is...hmmm
+remark_x=!record 50 of lang/remarks.$taal
+remark_y=!record 51 of lang/remarks.$taal
+!for p=1 to $rt step 2
+    x=!item $p of $rep2
+    !if $x>1
+	rem_x=$empty
+	rem_y=$empty
+	score_x=0
+	score_y=0
+	x_ok=0
+	y_ok=0
+	!increase cnt
+	!if $[(round(10*($x - floor($x))))/10]= 0.5
+	    rem_x=!subst $remark_x
+	    #@<br><font color="green">De rechter grens $[floor($x)+0.5] is goed gezien !!</font> 
+	    k1=green
+	    x_ok=1
+	    score_x=1
+	!else
+	    k1=red
+	    rem_x=!subst $remark_y
+	    #!record 52 of lang/remarks.$taal
+	    #@<br><font color="red">Nee : de rechtergrens ligt bij $[round($x)] + 0.5 </font> 
+	!endif
+        y=!item $[$p+1] of $rep2
+	y1=!evalsubst x=$[$x-$dx] in $ans2
+        y2=!evalsubst x=$[$x+$dx] in $ans2
+	y_max=$[max($y1,$y2)]
+        y_min=$[min($y1,$y2)]
+	kans=$[(round(500*(erf($y/sqrt(2)) - erf(-10000/sqrt(2)))))/10]
+	!if $y_min <= $y and $y_max >= $y
+	    y_ok=1
+	    score_y=1
+	    k2=green
+	    z=1
+	!else
+	    !if $y_min <= $[$y+0.06] and $y_max >= $[$y-0.06]
+		score_y=0.9
+		k2=green
+		y_ok=1
+		z=2
+	    !else
+		y1=!evalsubst x=$[$x-2*$dx] in $ans2
+		y2=!evalsubst x=$[$x+2*$dx] in $ans2
+		y_max=$[max($y1,$y2)]
+		y_min=$[min($y1,$y2)]
+		!if $y_min <= $y and $y_max >= $y
+		    score_y=0.7
+		    k2=green
+		    y_ok=1
+		    z=3
+		!else
+		    !if $y_min <= $[$y+0.06] and $y_max >= $[$y-0.06]
+			score_y=0.4
+			k2=orange
+			y_ok=1
+			z=4
+		    !else
+			!if $y_min <= $[$y+0.8] and $y_max >= $[$y-0.08]
+			    score_y=0.2
+			    k2=red
+			    y_ok=1
+			    z=5
+			!else
+			    z=6
+			    k2=red
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+	opm=!item $z of $opmerking
+	rem_y=<br /><span style="color:$k2">$opm</span>
+	!if $y_ok=1 and $x_ok=1
+	    score2=$[$score2 + ($score_x + $score_y)/2]
+	    your_point=!append line point $x,$y,green,255,8 to $your_point
+	!else
+	    your_point=!append line point $x,$y,red,255,8 to $your_point
+	!endif
+	your_list=!append word $ <li>(<span style="color:$k1">$x</span>  : <span style="color:$k2">$kans %</span>) $rem_x $rem_y </li> $ to $your_list
+    !else
+	tmp_list=!append word $ <li>$donkknow</li> $ to $tmp_list
+    !endif
+!next p
+# delen door echte aantal gecontroleerde x/y paren
+score2=$[$score2/$cnt]
+mydata=$empty
+!for x=0.5 to 5.5 step 1
+    # het correcte antwoord
+    y=!evalsubst x=$x in $ans2
+    mydata=!append item $x,$y to $mydata
+!next x
+!if $var8=0
+# applet
+ data=linewidth 3\
+ points $mydata,blue,255,8\
+ $your_point
+ 
+ !fileappend  getfile/data.2 $data
+!else
+# html5
+ object$n=!exec canvasdraw\
+ $var7\
+ points blue,$mydata\
+ $your_point
+
+!endif
+
+
+
+!if $score1 = 1
+    rem=$heel_goed
+    #Heel goed
+    k=green
+!else
+    rem=$neen
+    #nee
+    k=red
+!endif
+
+
+!if $cnt=0
+    maxscore=0
+    $your_list=$tmp_list
+!else
+    maxscore=$[$maxscore*(($score1 + 2*$score2 )/3)]
+!endif
+
+reply$n=<ul><li><span style="color:$k">$rem</span> : $de_verdeling_is $verdeling</li><li><ul>$your_list</ul></li></ul>
+modulescore=$[$modulescore + $maxscore]
+
+!ifval $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0
+	remark$n=$BOK
+    !else
+    	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

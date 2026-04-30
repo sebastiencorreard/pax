@@ -1,0 +1,443 @@
+# this file expects a reply$n and returns a modulescore
+# the student answer should be a simplified version of the question
+# the answer should be checked on litteral retyping the correct answer
+# a varlist should be provided: 
+# varlist=x
+# varlist=x,y,z
+# a verbatim original of the question should be provided
+# var1=the original math construct (e.g non latex,preferably rawmath)
+
+# for instance: the simplify  \frac{4x^{3}}{2x^{\frac{-1}{2}}}
+#  varlist=x 
+# var1=4*x^3/(2*x^(-1/2))
+
+
+
+!if $wims_user=supervisor
+    !if $varlist=$empty
+        errortext=YOU SHOULD DECLARE : <br>varlist=x or varlist=yield
+        goback=1
+        !exit
+    !endif
+    !if $var1=$empty
+        errortext=YOU SHOULD DECLARE A $$var1 = a rawmath formula of the question<br>\
+	for instance: the simplify  \frac{4x^{3}}{2x^{\frac{-1}{2}}}<br>\
+	varlist=x<br>\
+	var1=4*x^3/(2*x^(-1/2))
+        goback=1
+        !exit
+    !endif    
+!endif
+
+n=$counter
+goback=0
+errortext=$empty
+
+test=!wordcnt $(reply$n)
+!if $test=0
+    goback=1
+    !increase try
+    maxscore=$[$P9*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    !exit
+!endif
+
+
+AAA=!nospace $(reply$n)
+AAA=!rawmath $AAA
+AAA=!lower $AAA
+AAA=!rawmath $AAA
+var=!lower $varlist
+va=!varlist $AAA
+testvar=$empty
+!for i in $va
+    !if $i notin $var
+	testvar=!append line <b>$i</b> to $testvar
+    !endif
+!next i
+
+!if $testvar!=$empty
+    ex=!record 77 of $remarkdir/commonremarks.$taal
+    !if $teaching=1
+	maxscore=$[$P7*$maxscore]
+	goback=1
+	errortext=$ex
+	!increase try
+    !else
+	remark$n=$NOK<br>$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+
+!for i in $var
+    !if $i notin $AAA 
+	testvar=$i
+	ex=!record 32 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    errortext=$ex
+	    # heavy pentalty...
+	    maxscore=$[$P7*$maxscore]
+	    !increase try
+    	!else
+	    remark$n=$NOK<br>$ex
+	!endif
+	!exit
+    !else
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA 
+    !endif
+!next i
+
+# check on scientific notation 3e+12 3*10^12
+AAA=!nospace $AAA
+!if x10 isin $AAA
+    ex=!record 68 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !if $teaching=1
+	goback=1
+	!increase try
+	errortext=$ex
+      !exit
+    !else
+	AAA=!replace internal x10 by *10 in $AAA
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+    !endif
+!endif
+test=!replace [0-9]e[0-9] by @ in $AAA
+!if @ isin $test
+    maxscore=$[$P1*$maxscore]
+    testvar1=!replace internal e by e+ in $AAA
+    testvar1=<font color=green>$testvar1</font>
+    testvar2=<br><font color=red>$AAA</font>
+    errortext=!record 16 of $remarkdir/commonremarks.$taal
+    goback=1
+    !increase try
+    !exit
+!endif
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+    
+!for p=1 to 3
+    AAA=!replace internal ** by * in $AAA
+!next p
+    
+t=!char 1 of $AAA
+!if $t=*
+    AAA=!char 2 to -1 of $AAA
+!endif
+
+
+#check for sin etc
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs,*i,i*,+i,i+,-i,i-
+    !if $i isin $AAA
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+AAA=!replace [a-z\~\!\@\#\$\%\&\_\|\=\"\'\:\;] by $empty in $AAA
+AAA=!lower $AAA
+AAA=!nospace $AAA
+AAA=!rawmath $AAA
+
+# check for 4*11*n^3  instead of 44*n^3 and x*x*x
+# attention to 6*4*10^3 --> 6@4#3 --> 6@4 meaning can be simplified further
+# and 4*10^ will be ignored
+test=!replace [\*][0-9]*[\^] by # in $AAA
+test=!replace internal * by @ in $test
+!if @ isin $test
+    things=0,1,2,3,4,5,6,7,8,9
+    t=!positionof char @ in $test
+    !if $t != $empty
+	!for p in $t
+	    d1=!char $[$p-1] of $test
+	    d2=!char $[$p+1] of $test
+	    !if ($d1 isin $things) and ($d2 isin $things)
+		testvar=$AAA
+		errortext=!record 74 of $remarkdir/commonremarks.$taal
+		!if $teaching=1
+		    maxscore=$[$P4*$maxscore]
+		!else
+		    maxscore=$[$P8*$maxscore]
+		!endif
+		goback=1
+		!increase try
+		!exit
+	    !endif
+	!next p
+	!for p in $t
+	    d1=!char $[$p-1] of $test
+	    d2=!char $[$p+1] of $test
+	    !if $d1=$d2
+		!if ($d1 isin $varlist) and ($d2 isin $varlist)
+		    testvar=$AAA
+		    errortext=!record 74 of $remarkdir/commonremarks.$taal
+		    !if $teaching=1
+			maxscore=$[$P4*$maxscore]
+		    !else
+			maxscore=$[$P8*$maxscore]
+		    !endif
+		    goback=1
+		    !increase try
+		    !exit
+		!endif
+	    !endif
+	!next p
+    !endif    
+!endif
+
+# check on literal copying of the exo, this is important because 
+# we use pari to check if the reply is the same as the answer
+a1=$AAA
+o1=!lower $var1
+o1=!rawmath $o1
+o1=!nospace $o1
+c1=!lower $(answer$n)
+c1=!rawmath $c1
+c1=!nospace $c1
+
+!if $c1!=$o1
+    !if $o1 issametext $a1
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    !increase try
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    remark$n=$NOK<br>$ex
+	    goback=0
+	    maxscore=0
+	!endif
+     !exit
+    !endif
+!endif
+
+
+c2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\-\"\'\:\;\?] by $empty in $c1
+o2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\-\"\'\:\;\?] by $empty in $o1
+o2=!nospace $o2
+c2=!nospace $c2
+!if $o2!=$c2
+    a2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\-\"\'\:\;\?] by $empty in $a1
+    a2=!nospace $a2
+    !if $o2 issametext $a2
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    !increase try
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    remark$n=$NOK<br>$ex
+	    goback=0
+	    maxscore=0
+	!endif
+     !exit
+    !endif
+!endif
+
+testname=!lower $module_dir
+# assuming toascii/2ascii is installed on myserver
+!if my isin $testname
+    o3=!exec toascii $o2
+    c3=!exec toascii $c2
+    !ifval $o3!=$c3
+	a3=!exec toascii $a2
+	!ifval $a3=$o3
+	    ex=!record 73 of $remarkdir/commonremarks.$taal
+	    !if $teaching=1
+		goback=1
+		!increase try
+		errortext=$ex
+		maxscore=$[$P5*$maxscore]
+	    !else
+		# this answer will be wrong !!! no consideration
+		remark$n=$NOK<br>$ex
+		goback=0
+		maxscore=0
+	    !endif
+    	    !exit
+	!endif
+    !endif
+!else
+    # very expensive wakeup octave
+    o3=!exec octave sum(toascii("$o2"))
+    c3=!exec octave sum(toascii("$c2"))
+    !ifval $o3!=$c3
+	a3=!exec octave sum(toascii("$a2"))
+	!ifval $a3=$o3
+	    ex=!record 73 of $remarkdir/commonremarks.$taal
+	    !if $teaching=1
+		goback=1
+		!increase try
+		errortext=$ex
+		maxscore=$[$P5*$maxscore]
+	    !else
+		# this answer will be wrong !!! no consideration
+		remark$n=$NOK<br>$ex
+		goback=0
+		maxscore=0
+	    !endif
+    	    !exit
+	!endif
+    !endif
+!endif
+
+# now AAA=y^5/3
+A=!lower $AAA
+G=!lower $(answer$n)
+var=!lower $varlist
+!for p in $varlist
+    num=!randitem 10,100
+    A=!replace internal $p by $num in $A
+    G=!replace internal $p by $num in $G
+!next p
+A=$[$A]
+G=$[$G]
+
+
+# very expensive but te only way to compare "variables in powers" like x^a
+tot=!exec maxima if rationalize(expand($AAA)) = rationalize(expand($(answer$n))) then 1 else 0 ;\
+if $A=$G then 1 else 0 ;\
+ratsimp($AAA);
+
+!if $wims_exec_error != $emptym
+    testvar=$(reply$n)
+    !increase try
+    maxscore=$[$P4*$maxscore]
+    goback=1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+ !exit                                                                                       
+!endif
+
+# check if the answer can be simplified further on variable level?
+aaa=!line 3 of $tot
+simpler=0
+!for p in $varlist
+    c1=!positionof char $p in $AAA
+    c2=!positionof char $p in $aaa
+    c1=!itemcnt $c1
+    c2=!itemcnt $c2
+    !if $c2<$c1
+	!increase simpler
+    !endif
+!next p
+# count variables : now all uppercase?
+#ta=0
+#tg=0
+#tc=0
+#!for i in $varlist
+#    I=!toupper $i
+#    a=!positionof char $I in $AAA
+#    g=!positionof char $i in $(answer$n)
+#    c=!positionof char $i in $var1
+#    a=!itemcnt $a
+#    g=!itemcnt $g
+#    c=!itemcnt $c
+#    ta=$[$ta+$a]
+#    tg=$[$tg+$g]
+#    tc=$[$tc+$c]    
+#!next i
+
+!if $simpler>0
+    # can the answer be further simplified on variable level?
+    ex=!record 74 of $remarkdir/commonremarks.$taal
+    testvar=<em>$AAA</em>
+    !if $teaching=1
+	goback=1
+	!increase try
+	errortext=$ex
+	maxscore=$[$P5*$maxscore]
+    !else
+	# this answer will be wrong !!! no consideration
+	remark$n=$NOK<br>$ex
+	goback=0
+	maxscore=0
+    !endif
+ !exit
+!endif
+
+t1=!line 1 of $tot
+t2=!line 2 of $tot
+maxscore=$[$maxscore*(9*$t1+$t2)/10]
+!if $[$t1+$t2]=2
+    remark$n=$OK
+    # in some cases we can "check" if the correct student answer (a fraxction) can be written simpler...    
+    !if / isin $AAA and / isin $(answer$n)
+	a=!replace internal / by , in $AAA
+	at=!itemcnt $a
+	g=!replace internal / by , in $(answer$n)
+	gt=!itemcnt $g
+	!if $at=2 and $gt=2
+	    a1=!item 1 of $a
+	    a2=!item 2 of $a
+	    g1=!item 1 of $g
+	    g2=!item 2 of $g
+	    rep1=0
+	    rep2=0
+	    !for p in $varlist
+		!if $p isin $a1 and $p isin $g1
+		    a1=!replace internal $p by 10 in $a1
+		    g1=!replace internal $p by 10 in $g1
+		    rep1=1
+		!endif
+		!if $p isin $a2 and $p isin $g2
+		    rep2=1
+		    a2=!replace internal $p by 11 in $a2
+		    g2=!replace internal $p by 11 in $g2
+		!endif
+	    !next p
+	    !if $rep1=1 and $rep2=1
+		!ifval $a1 != $g1 or $a2 != $g2
+		    ex=!record 74 of $remarkdir/commonremarks.$taal
+		    maxscore=$[$P4*$maxscore]
+		    !if $extra=$empty
+			extra=$ex
+		    !else
+			extra=$extra<br>$ex
+		    !endif    
+		!endif
+	    !endif
+	!endif
+    !endif
+!else
+    !if $t2=1
+	testvar1=$(answer$n)
+	testvar2=$(reply$n)
+	ex=!record 16 of $remarkdir/commonremarks.$taal
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif    
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br>$extra
+!endif    
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

@@ -1,0 +1,155 @@
+!set title=Repérage simple d'un point I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=1
+tmp0=!randitem -1,-2,2
+
+t_=!rawmath $(tmp0)
+val8=!exec pari print($t_)
+!else
+tmp1=!randitem -1,-2,-3,2,3
+
+t_=!rawmath $(tmp1)/$val7
+val8=!exec pari print($t_)
+!endif
+
+!ifval $val8=1
+t_=!rawmath 2
+val8=!exec pari print($t_)
+!endif
+val9=$val8
+tmp0=!replace internal / by , in $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+
+!ifval $(tmp0)>1
+val9=\frac{$(val9[1])}{$(val9[2])}
+!endif
+
+!ifval $val9=1
+val9= 
+!endif
+
+!ifval $val9=-1
+val9=-
+!endif
+t_=!rawmath 1-$val8
+val10=!exec pari print($t_)
+val11=$[rint($val8*($val7))]
+val12=$[rint(0)]
+val13=$[rint(403)]
+val14=$[rint(31)]
+val15=$[rint($val13+$val14*$val11)]
+val16=$[rint($val15-0.3*$val14)]
+val17=$[rint($val15+0.3*$val14)]
+!readproc oef/draw.phtml 806,64 \
+  xrange -13,13	  yrange -1,3	  hline 0,0,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1.5,medium,A	  text red,$val7-0.1,1.5,medium,B	  segment 0,-0.2,\a,0.2,red	  segment $val7,-0.2,$val7,0.2,red 
+tmp0=$ins_url
+val18=$(tmp0)	  
+val19=xrange -13,13	  yrange -1,3	  hline 0,0,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1.5,medium,A	  text red,$val7-0.1,1.5,medium,B	  text red,$val11-0.1,-0.5,medium,M	  segment 0,-0.2,\a,0.2,red	  segment $val7,-0.2,$val7,0.2,red	  segment $val11,-0.2,$val11,0.2,red	  
+tmp0=!texmath $val10*x+$val8*y
+
+val20=$(tmp0)
+tmp0=!replace internal x by \overrightarrow{A M} in $val20
+
+val20=$(tmp0)
+tmp0=!replace internal y by \overrightarrow{B M} in $val20
+
+val20=$(tmp0)
+replytype1=coord
+replyname1=f(\X)
+replygood1=$val18;rectangle,$val16,0,$val17,64
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Placer le point 
+!insmath M
+$() défini par:	<div class="wimscenter">	
+!insmath \overrightarrow{A M}=$val9 \overrightarrow{A B}
+$()	</div>	<div class="wimscenter">	 
+!read oef/embed.phtml r1 
+$()	</div>	  Cliquer à l'emplacement du point 
+!insmath M
+$().	 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="wimscenter">	 
+!read oef/draw.phtml 800,64 \
+$val19 
+$()	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,19
+embedcnt=1

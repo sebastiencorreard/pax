@@ -1,0 +1,64 @@
+target=resolva2
+%%
+\observation{L'objet de l'exercice est de résoudre un abs(x-a) = abs(x-b) par l'appartenance à un intervalle}
+%%
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\format{html}
+#include "css.inc"
+
+%% borne pour le rayon %%
+\integer{rayonmax=20}
+
+%% borne pour le centre %%
+\integer{centremax=10}
+
+%% Choix des bornes %%
+\integer{sing1=random(1..\centremax)*randint(1,-1)}
+\integer{sing2=random(1..\rayonmax)}
+
+%% Choix de l'hypothèse
+    \text{eqx=\(abs(texmath(x-(\sing1)))) = \(abs(texmath(x-(\sing2)))) }
+    \text{eqs1=texmath(x-(\sing1))}
+
+%% calcul de la bonne réponse %%
+\rational{rep1=(\sing2+(\sing1))/2}
+\text{size=\confparm1=1 ? :x-large}
+%% Maintenant, rédigeons l'énoncé %%
+\statement{
+<div class="rm">
+  \name_question:
+  <div class="wimscenter">
+   \eqx.
+  </div>
+<p>\name_answer:</p>
+ <div class="wimscenter">
+    S= &#123;\embed{reply1,3}&#125;.
+ </div>
+</div>
+}
+
+%% Récupération des réponses %%
+\answer{}{\rep1}{type=numeric}
+
+%% Indication
+\hint{ <div class="hint">\(abs(x - a)\) \name_hint </div>}
+
+%% Solution
+\solution{
+<div class="solution">
+ \eqx équivaut à <span class="nowrap">\(d(x,\sing1) = d(x,\sing2)\).</span><br>
+ Sur une droite graduée, considérons les points \(\mathrm{M}\) d'abscisse <span class="nowrap">\(x\),</span>
+ \(\mathrm{A}\) d'abscisse \(\sing1\) et \(\mathrm{B}\) d'abscisse <span class="nowrap">\(\sing2\).</span><br>
+Ainsi \eqx équivaut à <span class="nowrap">\(\mathrm{ M A} = \mathrm{ M B}\).</span><br>
+Le point \(\mathrm{M}\), aligné avec \(\mathrm{A}\) et <span class="nowrap">\(\mathrm{B}\),</span> est à égale distance
+de \(\mathrm{A}\) et de <span class="nowrap">\(\mathrm{B}\),</span>
+il est donc au milieu du segment \([\mathrm{A B}]\)&nbsp;:<br>
+\(x = \frac{\sing1+\sing2}{2}\)<br>
+\(x = \rep1\)
+</div>
+}

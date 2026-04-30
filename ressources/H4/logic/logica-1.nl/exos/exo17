@@ -1,0 +1,100 @@
+n=$counter
+mathview=0
+applet=1
+checkfile=exos/checkfile7.proc
+inputs=yes
+make_tr=1
+!if $total_exos>3
+ total_exos=3
+!endif
+
+num=$[2*$counter+1]
+
+K=$empty
+L=$empty
+M=$empty
+kk=$empty
+lk=$empty
+keuze=1
+!if $keuze=1
+ things=!shuffle a,b,c,d,e,f,g,h,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z
+!else
+ things=!shuffle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27
+!endif
+k_=!item 1 to 9 of $things
+l_=!item 10 to 19 of $things
+m_=!item 20 to 24 of $things
+!for p=1 to $num
+ a=!item $p of $k_
+ b=!item $p of $l_
+ c=!item $p of $m_
+ K=!append item $a,$c to $K
+ L=!append item $b,$c to $L
+ M=!append item $c to $M
+
+ kk=!append item $a to $kk
+ ll=!append item $b to $ll
+!next p
+#namen=!shuffle Z,X,Y,W,Q,S
+namen=K,L,M
+K=!listuniq $K
+L=!listuniq $L
+M=!listuniq $M
+kk=!listuniq $kk
+ll=!listuniq $ll
+
+Q=!mathmlmath $(namen[3]) = $(namen[1]) \wedge $(namen[2])
+ss=Gegeven de verzamelingen $(namen[1])={$K} en $(namen[2])={$L}<br />Teken de beide verzamelingen en hun doorsnede $(namen[3]) in het onderstaande diagram...
+helptext=
+# lijst,normale volgorde,omgedraaide volgorde
+answer$n=$M\
+$kk\
+$ll
+var9=4,4,3.5\
+6,6,3.5
+
+formula$n=\left\{ \begin{array}{l} $(namen[1]) = \{ $K \} \\ $(namen[2]) = \{ $L \} \\ $(namen[3]) = $(namen[1]) \intersection $(namen[2]) \\  \color{red} \textrm{doorsnede of deelverzameling: } x\in $(namen[1])\cap $(namen[2]) \iff x\in $(namen[1])\wedge x\in $(namen[2])  \end{array}\right.
+
+!if $wims_user=supervisor
+question$n=$ss<br />$(namen[1]):$kk<br />$(namen[2]):$ll<br />$(namen[3]):$M
+!else
+question$n=$ss
+!endif
+
+var2=0,10
+var5=xrange $var2\
+yrange $var2\
+linewidth 8\
+opacity 255,255\
+rect 0,10,10,0,black\
+centerstring blue,9.5,universum (U)\
+fontfamily Bold 22px Ariel\
+linewidth 2\
+circles red,4,4,3.5,6,6,3.5\
+inputstyle fontcolor:red;text-align:center;\
+precision 100\
+multistrokecolors red\
+multifullcolors red\
+multifillopacity 255,30\
+multistrokeopacity 255,255\
+multilabel tekst,stop met tekenen\
+multidraw text\
+fontfamily Bold 32px Ariel\
+string green,1.7,1.7,$(namen[1])\
+string blue,8,7,$(namen[2])\
+string red,6,3.5,$(namen[3])
+
+#mouse red,22
+
+xsize=400
+ysize=400
+object$n=!exec canvasdraw \
+size $xsize,$ysize\
+$var5
+
+texanswer$n=\left\{ \begin{array}{l} $(namen[1]) = \{ $K \} \\ $(namen[2]) = \{ $L \} \\ $(namen[3]) = $(namen[1]) \intersection $(namen[2])  = \{ $M \} \\ \textrm{ of iets anders opgeschreven: } \\ $(namen[1]) \wedge $(namen[2]) = \{ $M \} \\ $(namen[1]) \wedge \not $(namen[2]) = \{ $kk \} \\ $(namen[2]) \wedge \not $(namen[1]) = \{ $ll \}  \\ $(namen[1]) \vee $(namen[2]) = \{ $kk,$ll,$M \} \\ \not $(namen[2]) \wedge \not $(namen[1]) = \varnothing \end{array}\right.
+
+# regel 2 afkoringen voor in't venndiagram
+# regel 3 nakijk voorwaarden
+# regel 4 plaatje
+# regel 5 vereiste aantal cirkels

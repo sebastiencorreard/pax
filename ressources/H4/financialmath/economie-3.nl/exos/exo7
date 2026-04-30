@@ -1,0 +1,56 @@
+# Inkomens elasticiteit II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+checkfile=exos/precheck1.proc
+make_tr=1
+cols=10
+rows=1
+inputs=1.1
+rounding=100
+roundingtext=Rond je antwoord af op twee decimalen
+helptext=$roundingtext
+perc1=!randint 110,130
+inkomen1=!randint 15,45
+inkomen2=$[round($perc1*$inkomen1/100)]
+inkomen1=$[1000*$inkomen1]
+inkomen2=$[1000*$inkomen2]
+perc2=!randint 120,190
+geld1=!randint 40,140
+geld2=$[round($perc2*$geld1/100)]
+geld1=$[10*$geld1]
+geld2=$[10*$geld2]
+
+delta_y=$[100*($inkomen2 - $inkomen1)/$inkomen1]
+    
+
+!if $R=1
+    delta_q=$[100*($geld2 - $geld1)/$geld1]
+    ss=Een gemiddelde consument met een inkomen van &euro; $inkomen1<br />besteedde &euro; $geld1 aan goed <b>A</b>.<br />Het inkomen van de gemiddelde consument steeg naar &euro; $inkomen2.<br />Nu geeft de gemiddelde consument &euro; $geld2 uit aan goed <b>A</b>.<br />De prijs van het goed <b>A</b> is niet veranderd.<br />Bereken de inkomenselasticiteit van het goed <b>A</b>
+    
+    answer$n=$[($delta_q)/($delta_y)]
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\left[ \begin{array}{l} \textrm{Omdat de prijs van goed A niet verandert,} \\ \textrm{zijn de procentuele veranderingen} \\ \textrm{van uitgaven en gevraagde hoeveelheid gelijk} \\ E_{y} = \frac{\Delta q}{\Delta y} \\ \\ \Delta y = \frac{$inkomen2 - $inkomen1}{$inkomen1} \times 100 \simeq $delta_y \% \\ \\ \Delta q = \frac{$geld2 - $geld1}{$geld1} \times 100 \simeq $delta_q \% \\ \\ E_{y} \simeq \frac{$delta_q}{$delta_y} \simeq $ans \end{array} \right.
+
+!else
+    perc3=!randint 110,$perc2
+    perc3=$[10*(floor($perc3/10))]
+    ss=Een gemiddelde consument met een inkomen van &euro; $inkomen1<br />besteedde &euro; $geld1 aan goed <b>A</b>.<br />Het inkomen van de gemiddelde consument steeg naar &euro; $inkomen2.<br />Nu geeft de gemiddelde consument &euro; $geld2 uit aan goed <b>A</b>.<br />De prijs van goed <b>A</b> is met $[$perc3 - 100] % gestegen.<br />Bereken de inkomenselasticiteit van het goed <b>A</b>
+    
+    
+    geld3=$[$geld2*100/$perc3]
+    delta_q=$[100*($geld3 - $geld1)/$geld1]
+    answer$n=$[($delta_q)/($delta_y)]
+    ans=$[(round($rounding*$(answer$n)))/$rounding]
+    texanswer$n=\left[ \begin{array}{l} \textrm{Uitgaven aan A zonder prijsstijging : } \frac{100}{$perc3} \times $geld2 = $geld3 \\  E_{y} = \frac{\Delta q}{\Delta y} \\ \\ \Delta y = \frac{$inkomen2 - $inkomen1}{$inkomen1} \times 100 \simeq $delta_y \% \\ \\ \Delta q = \frac{$geld3 - $geld1}{$geld1} \times 100 \simeq $delta_q \% \\ \\ E_{y} \simeq \frac{$delta_q}{$delta_y} \simeq $ans \end{array} \riight.
+
+!endif
+
+description=Inkomenselasticiteit E<sub>y</sub>
+question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+
+!exit

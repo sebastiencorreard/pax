@@ -1,0 +1,199 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+cols=15
+rows=4
+image=0
+math=0
+description=$youranswer
+rounding=10000
+!readproc $remarkdir/rounding.$taal
+questiontype=0
+checkfile=exos/checkfile1.proc
+var1=1
+formula$n=$empty
+texanswer$n=$empty
+make_tr=1
+inputs=1.1
+kleuren=!record 60 of lang/remarks.$taal
+#@ red@rooie,blue@blauwe,green@groene,yellow@gele
+exotext=$empty
+#!record 61 of lang/remarks.$taal
+#@ Trekken zonder terugleggen
+vaas=!record 62 of lang/remarks.$taal
+#@ vaas,bak,aquarium,bakje,schaal,doos,kistje,zak
+ballen=!record 63 of lang/remarks.$taal
+#@ ballen,knikkers,kogels,kogeltjes,stuiters,kauwgomballen
+or=!record 172 of lang/remarks.$taal
+theanswer=!record 109 of lang/remarks.$taal
+kleuren=!shuffle $kleuren
+vaas=!randitem $vaas
+ballen=!randitem $ballen
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1
+k2=!replace internal @ by , in $k2
+kleur1=!item 2 of $k1
+color1=!item 1 of $k1
+kleur2=!item 2 of $k2
+color2=!item 1 of $k2
+keuze=!randitem 0,1
+!if $R=1
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    !if $keuze=1
+	aantal=!randint 2,$a
+	kleur=$kleur1
+	c=$a
+    !else
+	aantal=!randint 2,$b
+	kleur=$kleur2
+	c=$b
+    !endif
+    som=1
+    SOM=1
+    !for p=1 to $aantal
+	som=($som)*(($c+1-$p)/($tot+1-$p))
+	SOM=$SOM*$[$c+1-$p]/$[$tot+1-$p]
+    !next p	
+    answer$n=!exec pari $som
+    texanswer$n=\frac{\left( \begin{array}{c}$c\\$aantal\end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}=$(answer$n) \simeq $rans
+    textanswer$n=!htmlmath $SOM = $(answer$n) &asymp; $[$(answer$n)]
+    rans=$[round($rounding*($(answer$n)))/$rounding]
+    textanswer$n=<br /><b>$or</b> <br /> $(textanswer$n) &asymp;$rans
+    ss=!record 64 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $aantal $ballen uit <em>zonder terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op $aantal $kleur $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 4 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    aantal=!randint 2,$b
+    som=(($a*($aantal+1))/$tot)
+    SOM=$[$aantal+1]*$a/$tot
+    !for p=1 to $aantal
+	som=($som)*(($b+1-$p)/($tot-$p))
+	SOM=$SOM*$[$b+1-$p]/$[$tot-$p]
+    !next p
+    answer$n=!exec pari $som
+    textanswer$n=!htmlmath $SOM = $(answer$n)  &asymp; $[$(answer$n)]
+    rans=$[round($rounding*($(answer$n)))/$rounding]
+    texanswer$n=\frac{\left(\begin{array}{c}$a\\ 1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$[$aantal+1]\end{array}\right)}=$(answer$n) \simeq $rans
+    textanswer$n=<br /><b>$or</b> <br /> $(textanswer$n) &asymp;$rans
+    ss=!record 65 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $[$aantal+1] $ballen uit <em>zonder terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op &eacute;&eacute;n  $kleur1 en $aantal $kleur2 $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 4 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R=3
+    a=!randitem 3,4,5,6,7
+    b=!randitem 3,4,5,6,7
+    tot=$[$a+$b]
+    a1=!randint 2,$a
+    b1=!randint 2,$b
+    # havo methode
+    TT=factorial($a)*factorial($b)*factorial($a1+$b1)*factorial($a+$b-$a1-$b1)
+    NN=factorial($a1)*factorial($b1)*factorial($a-$a1)*factorial($b-$b1)*factorial($a+$b)
+    answer$n=$[($TT)/($NN)]
+#    textanswer$n=!htmlmath $(answer$n)
+    rans=$[round($rounding*($(answer$n)))/$rounding]
+    texanswer$n=\frac{\left(\begin{array}{c}$a\\ $a1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$b1  \end{array}\right)}{\left(\begin{array}{c}$tot\\$[$a1+$b1]\end{array}\right)}=$(answer$n) \simeq $rans
+#    textanswer$n=<b>$or</b> <p> $(textanswer$n) &asymp; $rans
+    ss=!record 66 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $[$a1+$b1] $ballen uit <em>zonder terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op $a1 $kleur1 en $b1 $kleur2 $ballen .\
+    #@ <br /><small><em>Rond af op tenminste 4 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+!if $R>3
+    choice=!record 67 of lang/remarks.$taal
+    #@ hoogstens,ten minste
+    hoogstens=!item 1 of $choice
+    tenminste=!item 2 of $choice
+    
+    a=!randitem 6,7,8,9,10,11,12,13,14,15
+    b=!randitem 10,11,12,13,14,15
+    tot=$[$a+$b]
+    a1=!randitem 3,4,5
+    b1=!randint 2,3,4,5
+    aantal=$[$a1+$b1]
+    g1=$[(factorial($b)*factorial($tot - $aantal))/(factorial($b-$aantal)*factorial($tot))]
+    g2=$[$g1 + ($aantal*$a*factorial($b)*factorial($tot-$aantal))/(factorial($b-$aantal+1)*factorial($tot))]
+    g3=$[$g2 + ($a*($a-1)*$aantal*($aantal-1)*factorial($tot-$aantal)*factorial($b))/(2*factorial($b-$aantal+2)*factorial($tot))]
+    keuze=2
+    !if $keuze=1
+        a11=!randitem 1,2 
+	hoogstens=$hoogstens
+	!if $a11=1
+	    answer$n=$g2
+	    rans=$[round($rounding*($(answer$n)))/$rounding]
+	    textanswer$n=!htmlmath P(0 $kleur1) + P(1 $kleur1)  &asymp; $(answer$n)
+	    texanswer$n=\frac{\left(\begin{array}{c}$a\\ 0 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal \end{array}\right)} + \frac{\left(\begin{array}{c}$a\\ 1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-1]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}=$(answer$n) \simeq $rans
+	!else
+	    answer$n=$g3
+	    rans=$[round($rounding*($(answer$n)))/$rounding]
+	    textanswer$n=!htmlmath P(0 $kleur1) + P(1 $kleur1) + P(2 $kleur1) &asymp; $(answer$n)
+	    texanswer$n=\frac{\left(\begin{array}{c}$a\\ 0 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal \end{array}\right)} + \frac{\left(\begin{array}{c}$a\\ 1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-1]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)} + \frac{\left(\begin{array}{c}$a\\ 2 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-2]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}=$(answer$n) \simeq $rans
+	!endif
+    !else
+        a11=!randitem 1,2,3
+	hoogstens=$tenminste
+	!if $a11=1
+	    answer$n=$[1-$g1]
+	    rans=$[round($rounding*($(answer$n)))/$rounding]
+	    textanswer$n=!htmlmath 1-P(0 $kleur1) &asymp; $(answer$n)
+	    texanswer$n=1-\frac{\left(\begin{array}{c}$a\\ 0 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal \end{array}\right)}=$(answer$n) \simeq $rans
+	!else
+	    !if $a11=2
+		answer$n=$[1-$g2]
+		rans=$[round($rounding*($(answer$n)))/$rounding]
+		textanswer$n=!htmlmath 1 - P(0 $kleur1) - P(1 $kleur1)  &asymp; $(answer$n)
+		texanswer$n=1-\frac{\left(\begin{array}{c}$a\\ 0 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal \end{array}\right)}-\frac{\left(\begin{array}{c}$a\\ 1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-1]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}=$(answer$n) \simeq $rans
+	    !else
+		answer$n=$[1-$g3]
+		rans=$[round($rounding*($(answer$n)))/$rounding]	    
+		textanswer$n=!htmlmath 1 - P(0 $kleur1) - P(1 $kleur1) - P(2 $kleur1)  &asymp; $(answer$n)
+		texanswer$n=1-\frac{\left(\begin{array}{c}$a\\ 0 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$aantal  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal \end{array}\right)}-\frac{\left(\begin{array}{c}$a\\ 1 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-1]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}-\frac{\left(\begin{array}{c}$a\\ 2 \end{array}\right)\cdot\left(\begin{array}{c}$b\\$[$aantal-2]  \end{array}\right)}{\left(\begin{array}{c}$tot\\$aantal\end{array}\right)}=$(answer$n) \simeq $rans
+	    !endif
+	!endif
+    !endif
+    textanswer$n=$theanswer $(textanswer$n) &asymp; $rans
+    	
+    # havo methode
+    ss=!record 68 of lang/remarks.$taal
+    #@ We hebben een $vaas met $a $kleur1 en $b $kleur2 $ballen .<br />\
+    #@ Je trekt er <em>aselect</em> $aantal $ballen uit <em>zonder terugleggen</em>.<br />\
+    #@ Wat is de kans bij deze trekking op <b><kbd>$hoogstens</kbd></b> $a11 $kleur1 ?\
+    #@ <br /><small><em>Rond af op tenminste 4 decimalen</em></small>
+    question$n=$ss
+    !if $teaching=1
+	!readproc exos/image.proc
+    !endif
+ !exit
+!endif
+

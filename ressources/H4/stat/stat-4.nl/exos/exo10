@@ -1,0 +1,468 @@
+# normaal waarschijnlijkheidspapier
+!if $counter=1
+    math=0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+    mathview=0
+    questiontype=7
+    javascript=js/normaal_waarschijnlijkheids_papier.js
+    inputs=yes
+    applet=0
+    make_tr=1
+    image=0
+    total_exo=1
+    plot=1
+    xsize=480
+    ysize=480
+    checkfile=exos/checkfile2.proc
+    # canvas var8=1...applet var8=0
+    var8=0
+!endif
+n=$counter
+keuze=!randitem 2,2,1
+
+# LET OP : alleen normaal verdeeld ivm moeilijkheden plotten punten z/y -waarde!
+answer$n=$keuze
+sometext=!record 20 of lang/remarks.$taal
+#@klassen,aantallen,percentage,cumulatief<br>percentage
+r1=!item 1 of $sometext
+r2=!item 2 of $sometext
+r3=!item 3 of $sometext
+r4=!item 4 of $sometext
+
+anstabel=<table class="demospecial"><tr><th>$r1</th><th>$r2</th><th>$r3</th><th>$r4</th></tr>
+
+var2=$empty
+var3=$empty
+var4=$empty
+var5=$empty
+var6=$empty
+var7=$empty
+!if $keuze=2
+# normaal verdeeld = 2
+    gem=!randint 100,300
+    gem=$[$gem*10]
+    aantal=!randint 10,50
+    aantal=$[$aantal*100] 
+    sig=$[round($gem/500)]
+    sigma=!randint $sig,$[$sig+5]
+    sigma=$[10*$sigma]
+    range=$[8*$sigma]
+    klas=$[10*round($range/100)]
+    a=!randitem -4.6,-4.4,-4.2,-4,-3.8
+    b=!randint 8,10
+    zet=$empty
+    !for p=1 to $b
+	g$p=$[$gem + $a*$klas]
+	z$p=$[($(g$p) - $gem)/$sigma]
+	a=$[$a+1]
+	#zet=!append item $(z$p) to $zet
+    !next p
+    tot=0
+    !for p=1 to $[$b-1]
+	w=$[$p+1]
+        chance=$[0.5*(erf($(z$w)/sqrt(2)) - erf($(z$p)/sqrt(2)))]
+	a=$[round($aantal*$chance)]
+	var5=!append item $a to $var5
+	tot=$[$tot+$a]
+    !next p
+    cum_perc=0
+    cum_kans=0
+    !for p=1 to $[$b-1]
+	w=$[$p+1]
+        chance=$[0.5*(erf($(z$w)/sqrt(2)) - erf($(z$p)/sqrt(2)))]
+	a=$[round($aantal*$chance)]	
+	!if $a > 0
+    	    var2=!append item $(g$w) to $var2
+	    var3=!append item $ [ $(g$p) : $(g$w) &gt; $ to $var3
+	    kans=$[$a/$tot]
+	    #z=!item $p of $zet
+	    cum_kans=$[$cum_kans+$kans]
+	    cum_perc=$[$kans*100 + $cum_perc]
+	    cumperc=$[(round(100*$cum_perc))/100]
+	    perc=$[(round(10000*$kans))/100]
+	    anstabel=!append line $ <tr><th>[ $(g$p) : $(g$w) &gt;</th><th>$a</th><th>$perc</th><th>$cumperc</th></tr> $ to $anstabel
+	    answer$n=!append item $cum_perc to $(answer$n)
+	    var4=!append item $cum_kans to $var4
+	    #var4=!append item $cum_kans to $var4
+	!endif
+    !next p
+    var6=line $g2,$z2,$(g$b),$(z$b),blue
+    anstabel=!append line </table> to $anstabel
+    textanswer$n=!record 21 of lang/remarks.$taal
+    #@De verdeling is normaal verdeeld, omdat de punten ,getekend op normaal waarschijnlijkheidspapier , op een nagenoeg rechte lijn liggen.$anstabel
+    xmin=$g1
+    xmax=$(g$b)
+!else
+#niet  normaal verdeeld = 1
+    b=!randint 11,13
+    b=10
+    tot=0
+    helft=$[round($b/2) - 1]
+    Zgetallen=-10
+    klas=!randint 3,10
+    klas=$[5*$klas]
+    g1=!randint 50,250
+    g1=$[10*$g1]
+    g1=2000
+    klas=50
+    aantal=!randint 10,50
+    aantal=$[$aantal*100]
+    !for p=1 to $b
+	!if $p>1
+	    g$p=$[$g1 + $K]
+	!endif
+	!if $p<$helft
+	    z=!randint -350,-1
+	!else
+	    !if $p=$b
+		z=371.9
+	    !else
+		z=!randint 1,350
+	    !endif
+	!endif
+	Zgetallen=!append item $[$z/100] to $Zgetallen
+	K=$[$p*$klas]
+    !next p
+    #
+    g$[$b+1]=$[$(g$b)+$klas]
+    Zgetallen=!sort numeric item $Zgetallen
+    tot=0
+    t=!itemcnt $Zgetallen
+    !for p=1 to $[$t-1]
+	z1=!item $p of $Zgetallen
+	z2=!item $[$p+1] of $Zgetallen
+	chance=$[erf($z2/sqrt(2)) - erf($z1/sqrt(2))]
+	a=$[round($aantal*$chance)]
+	tot=$[$tot+$a]
+    !next p
+    cum_perc=0
+    cum_kans=0
+    !for p=1 to $b
+	w=$[$p+1]
+	z$p=!item $p of $Zgetallen
+	z$w=!item $w of $Zgetallen
+        chance=$[0.5*(erf($(z$w)/sqrt(2)) - erf($(z$p)/sqrt(2)))]
+	a=$[round($aantal*$chance)]
+	var5=!append item $a to $var5
+    	var2=!append item $(g$w) to $var2
+	var3=!append item $ [ $(g$p) : $(g$w) &gt; $ to $var3
+	cum_kans=$[$cum_kans+$chance]
+	cum_perc=$[$chance*100 + $cum_perc]
+	cumperc=$[(round(100*$cum_perc))/100]
+	perc=$[(round(10000*$chance))/100]
+	var6=!append item $(g$w),$(z$w) to $var6
+	anstabel=!append line $ <tr><th>[ $(g$p) : $(g$w) &gt;</th><th>$a</th><th>$perc</th><th>$cumperc</th></tr> $ to $anstabel
+	answer$n=!append item $cum_perc to $(answer$n)
+	var4=!append item $cum_kans to $var4
+    !next p
+
+    anstabel=!append line </table> to $anstabel
+    textanswer$n=!record 22 of lang/remarks.$taal
+    var6=points $var6,blue,255,8
+    xmin=$g1
+    xmax=$(g$[$b+1])
+
+!endif
+
+question$n=!record 23 of lang/remarks.$taal
+#@Gegeven is de onderstaande tabel. Bereken de cumulatieve percentages.<br>Reken zover mogelijk door met onafgeronde getallen. Geef de eindpercentages op in twee decimalen.<br>En teken de punten op het normaal waarschijnlijkheidspapier.<br>Met de rechtermuisknop kun je de punten weer verwijderen.
+
+var1=$xmin,$xmax
+var7=$klas
+vline=$empty
+xscale=$empty
+gridcolor1=blue
+gridcolor2=green
+
+
+!for p=$xmin to $[$xmax+$klas -1] step $klas
+    vline=!append line line $p,-3.719,$p,3.719,$gridcolor1,255,1 to $vline
+    xtext=!append line text $[$p-$klas/3],-3.96,helvetica,12,$p,black to $xtext
+    !if $p < $[$xmax+$klas]
+	vtic=!append line line $p,-3.75,$p,-3.6,black,255,2 to $vtic
+    !endif
+!next p
+
+
+# plaatje
+dx=$[6+$xmin]
+
+data=mouse yes\
+coordinates yes\
+userdraw point\
+clickcolor red,200\
+xrange $[$xmin-$klas] ,$[$xmax+$klas]\
+yrange -4,4\
+$vline\
+line $xmin,-3.7190,$xmax,-3.7190,$gridcolor1\
+line $xmin,-3.2905,$xmax,-3.2905,$gridcolor1\
+line $xmin,-3.0902,$xmax,-3.0902,$gridcolor1\
+line $xmin,-2.8782,$xmax,-2.8782,$gridcolor1\
+line $xmin,-2.5758,$xmax,-2.5758,$gridcolor1\
+line $xmin,-2.3263,$xmax,-2.3263,$gridcolor1\
+line $xmin,-2.0537,$xmax,-2.0537,$gridcolor1\
+line $xmin,-1.6449,$xmax,-1.6449,$gridcolor1\
+line $xmin,-1.2816,$xmax,-1.2816,$gridcolor1\
+line $xmin,-0.84162,$xmax,-0.84162,$gridcolor1\
+line $xmin,-0.52440,$xmax,-0.52440,$gridcolor1\
+line $xmin,-0.25335,$xmax,-0.25335,$gridcolor1\
+line $xmin,0,$xmax,0,$gridcolor1\
+line $xmin,0.25335,$xmax,0.25335,$gridcolor1\
+line $xmin,1.3408,$xmax,1.3408,$gridcolor2,160,1\
+line $xmin,0.52440,$xmax,0.52440,$gridcolor1\
+line $xmin,0.84162,$xmax,0.84162,$gridcolor1\
+line $xmin,1.2816,$xmax,1.2816,$gridcolor1\
+line $xmin,1.6449,$xmax,1.6449,$gridcolor1\
+line $xmin,2.0537,$xmax,2.0537,$gridcolor1\
+line $xmin,2.3263,$xmax,2.3263,$gridcolor1\
+line $xmin,2.5758,$xmax,2.5758,$gridcolor1\
+line $xmin,2.8782,$xmax,2.8782,$gridcolor1\
+line $xmin,3.0902,$xmax,3.0902,$gridcolor1\
+line $xmin,3.2905,$xmax,3.2905,$gridcolor1\
+line $xmin,3.7190,$xmax,3.7190,$gridcolor1\
+line $xmin,-3.4316,$xmax,-3.4316,$gridcolor2,160,1\
+line $xmin,-3.5401,$xmax,-3.5401,$gridcolor2,160,1\
+line $xmin,-3.3528,$xmax,-3.3528,$gridcolor2,160,1\
+line $xmin,-3.2389,$xmax,-3.2389,$gridcolor2,160,1\
+line $xmin,-3.1947,$xmax,-3.1947,$gridcolor2,160,1\
+line $xmin,-3.1559,$xmax,-3.1559,$gridcolor2,160,1\
+line $xmin,-3.1214,$xmax,-3.1214,$gridcolor2,160,1\
+line $xmin,-2.9677,$xmax,-2.9677,$gridcolor2,160,1\
+line $xmin,-2.7478,$xmax,-2.7478,$gridcolor2,160,1\
+line $xmin,-2.6521,$xmax,-2.6521,$gridcolor2,160,1\
+line $xmin,-2.5121,$xmax,-2.5121,$gridcolor2,160,1\
+line $xmin,-2.4573,$xmax,-2.4573,$gridcolor2,160,1\
+line $xmin,-2.4089,$xmax,-2.4089,$gridcolor2,160,1\
+line $xmin,-3.5401,$xmax,-3.5401,$gridcolor2,100,1\
+line $xmin,-2.3656,$xmax,-2.3656,$gridcolor2,100,1\
+line $xmin,-2.1973,$xmax,-2.1973,$gridcolor2,100,1\
+line $xmin,-2.1444,$xmax,-2.1444,$gridcolor2,100,1\
+line $xmin,-2.2571,$xmax,-2.2571,$gridcolor2,100,1\
+line $xmin,-2.0969,$xmax,-2.0969,$gridcolor2,100,1\
+line $xmin,-1.8808,$xmax,-1.8808,$gridcolor2,100,1\
+line $xmin,-1.7507,$xmax,-1.7507,$gridcolor2,100,1\
+line $xmin,-1.5548,$xmax,-1.5548,$gridcolor2,100,1\
+line $xmin,-1.4758,$xmax,-1.4758,$gridcolor2,100,1\
+line $xmin,-1.4051,$xmax,-1.4051,$gridcolor2,100,1\
+line $xmin,-1.3408,$xmax,-1.3408,$gridcolor2,100,1\
+line $xmin,-1.1750,$xmax,-1.1750,$gridcolor2,100,1\
+line $xmin,-1.1264,$xmax,-1.1264,$gridcolor2,100,1\
+line $xmin,-1.0803,$xmax,-1.0803,$gridcolor2,100,1\
+line $xmin,-1.0364,$xmax,-1.0364,$gridcolor2,100,1\
+line $xmin,-0.99446,$xmax,-0.99446,$gridcolor2,100,1\
+line $xmin,-0.95417,$xmax,-0.95417,$gridcolor2,100,1\
+line $xmin,-0.91537,$xmax,-0.91537,$gridcolor2,100,1\
+line $xmin,-0.87790,$xmax,-0.87790,$gridcolor2,100,1\
+line $xmin,-0.77219,$xmax,-0.77219,$gridcolor2,100,1\
+line $xmin,-0.70630,$xmax,-0.70630,$gridcolor2,100,1\
+line $xmin,-0.64335,$xmax,-0.64335,$gridcolor2,100,1\
+line $xmin,-0.58284,$xmax,-0.58284,$gridcolor2,100,1\
+line $xmin,-0.46770,$xmax,-0.46770,$gridcolor2,100,1\
+line $xmin,-0.41246,$xmax,-0.41246,$gridcolor2,100,1\
+line $xmin,-0.35846,$xmax,-0.35846,$gridcolor2,100,1\
+line $xmin,-0.30548,$xmax,-0.30548,$gridcolor2,100,1\
+line $xmin,-1.2265,$xmax,-1.2265,$gridcolor2,100,1\
+line $xmin,-0.20189,$xmax,-0.20189,$gridcolor2,100,1\
+line $xmin,-0.15097,$xmax,-0.15097,$gridcolor2,100,1\
+line $xmin,-0.10043,$xmax,-0.10043,$gridcolor2,100,1\
+line $xmin,-0.050154,$xmax,-0.050154,$gridcolor2,100,1\
+line $xmin,0.050154,$xmax,0.050154,$gridcolor2,100,1\
+line $xmin,0.10043,$xmax,0.10043,$gridcolor2,100,1\
+line $xmin,0.15097,$xmax,0.15097,$gridcolor2,100,1\
+line $xmin,0.20189,$xmax,0.20189,$gridcolor2,100,1\
+line $xmin,0.30548,$xmax,0.30548,$gridcolor2,100,1\
+line $xmin,0.35846,$xmax,0.35846,$gridcolor2,100,1\
+line $xmin,0.41246,$xmax,0.41246,$gridcolor2,100,1\
+line $xmin,0.46770,$xmax,0.46770,$gridcolor2,100,1\
+line $xmin,0.55338,$xmax,0.55338,$gridcolor2,100,1\
+line $xmin,0.58284,$xmax,0.58284,$gridcolor2,100,1\
+line $xmin,0.64335,$xmax,0.64335,$gridcolor2,100,1\
+line $xmin,0.70630,$xmax,0.70630,$gridcolor2,100,1\
+line $xmin,0.77219,$xmax,0.77219,$gridcolor2,100,1\
+line $xmin,0.91537,$xmax,0.91537,$gridcolor2,100,1\
+line $xmin,0.95417,$xmax,0.95417,$gridcolor2,100,1\
+line $xmin,0.99446,$xmax,0.99446,$gridcolor2,100,1\
+line $xmin,1.0364,$xmax,1.0364,$gridcolor2,100,1\
+line $xmin,1.0803,$xmax,1.0803,$gridcolor2,100,1\
+line $xmin,1.1264,$xmax,1.1264,$gridcolor2,100,1\
+line $xmin,1.1750,$xmax,1.1750,$gridcolor2,100,1\
+line $xmin,1.2265,$xmax,1.2265,$gridcolor2,100,1\
+line $xmin,1.4051,$xmax,1.4051,$gridcolor2,100,1\
+line $xmin,1.4758,$xmax,1.4758,$gridcolor2,100,1\
+line $xmin,1.5548,$xmax,1.5548,$gridcolor2,100,1\
+line $xmin,1.7507,$xmax,1.7507,$gridcolor2,100,1\
+line $xmin,1.8808,$xmax,1.8808,$gridcolor2,100,1\
+line $xmin,2.0969,$xmax,2.0969,$gridcolor2,100,1\
+line $xmin,2.1444,$xmax,2.1444,$gridcolor2,100,1\
+line $xmin,2.1973,$xmax,2.1973,$gridcolor2,100,1\
+line $xmin,2.2571,$xmax,2.2571,$gridcolor2,100,1\
+line $xmin,2.4089,$xmax,2.4089,$gridcolor2,100,1\
+line $xmin,2.4573,$xmax,2.4573,$gridcolor2,100,1\
+line $xmin,2.5121,$xmax,2.5121,$gridcolor2,100,1\
+line $xmin,2.6521,$xmax,2.6521,$gridcolor2,100,1\
+line $xmin,2.7478,$xmax,2.7478,$gridcolor2,100,1\
+line $xmin,2.9677,$xmax,2.9677,$gridcolor2,100,1\
+line $xmin,3.1559,$xmax,3.1559,$gridcolor2,100,1\
+line $xmin,3.1947,$xmax,3.1947,$gridcolor2,100,1\
+line $xmin,3.2389,$xmax,3.2389,$gridcolor2,100,1\
+line $xmin,3.3528,$xmax,3.3528,$gridcolor2,100,1\
+line $xmin,3.4316,$xmax,3.4316,$gridcolor2,100,1\
+line $xmin,3.5401,$xmax,3.5401,$gridcolor2,100,1\
+$vtic\
+$xtext\
+line $xmin,-3.7190,$dx,-3.7190,black\
+line $xmin,-3.2905,$dx,-3.2905,black\
+line $xmin,-3.0902,$dx,-3.0902,black\
+line $xmin,-2.8782,$dx,-2.8782,black\
+line $xmin,-2.5758,$dx,-2.5758,black\
+line $xmin,-2.3263,$dx,-2.3263,black\
+line $xmin,-2.0537,$dx,-2.0537,black\
+line $xmin,-1.6449,$dx,-1.6449,black\
+line $xmin,-1.2816,$dx,-1.2816,black\
+line $xmin,-0.84162,$dx,-0.84162,black\
+line $xmin,-0.52440,$dx,-0.52440,black\
+line $xmin,-0.25335,$dx,-0.25335,black\
+line $xmin,0,$dx,0,black\
+line $xmin,0.25335,$dx,0.25335,black\
+line $xmin,0.52440,$dx,0.52440,black\
+line $xmin,0.84162,$dx,0.84162,black\
+line $xmin,1.2816,$dx,1.2816,black\
+line $xmin,1.6449,$dx,1.6449,black\
+line $xmin,2.0537,$dx,2.0537,black\
+line $xmin,2.3263,$dx,2.3263,black\
+line $xmin,2.5758,$dx,2.5758,black\
+line $xmin,2.8782,$dx,2.8782,black\
+line $xmin,3.0902,$dx,3.0902,black\
+line $xmin,3.2905,$dx,3.2905,black\
+line $xmin,3.7190,$dx,3.7190,black\
+line $xmin,-3.4316,$dx,-3.4316,black,160,1\
+line $xmin,-3.5401,$dx,-3.5401,black,160,1\
+line $xmin,-3.3528,$dx,-3.3528,black,160,1\
+line $xmin,-3.2389,$dx,-3.2389,black,160,1\
+line $xmin,-3.1947,$dx,-3.1947,black,160,1\
+line $xmin,-3.1559,$dx,-3.1559,black,160,1\
+line $xmin,-3.1214,$dx,-3.1214,black,160,1\
+line $xmin,-2.9677,$dx,-2.9677,black,160,1\
+line $xmin,-2.7478,$dx,-2.7478,black,160,1\
+line $xmin,-2.6521,$dx,-2.6521,black,160,1\
+line $xmin,-2.5121,$dx,-2.5121,black,160,1\
+line $xmin,-2.4573,$dx,-2.4573,black,160,1\
+line $xmin,-2.4089,$dx,-2.4089,black,160,1\
+line $xmin,-2.3656,$dx,-2.3656,black,100,1\
+line $xmin,-2.1973,$dx,-2.1973,black,100,1\
+line $xmin,-2.1444,$dx,-2.1444,black,100,1\
+line $xmin,-2.2571,$dx,-2.2571,black,100,1\
+line $xmin,-2.0969,$dx,-2.0969,black,100,1\
+line $xmin,-1.8808,$dx,-1.8808,black,100,1\
+line $xmin,-1.7507,$dx,-1.7507,black,100,1\
+line $xmin,-1.5548,$dx,-1.5548,black,100,1\
+line $xmin,-1.4758,$dx,-1.4758,black,100,1\
+line $xmin,-1.4051,$dx,-1.4051,black,100,1\
+line $xmin,-1.3408,$dx,-1.3408,black,100,1\
+line $xmin,-1.1750,$dx,-1.1750,black,100,1\
+line $xmin,-1.1264,$dx,-1.1264,black,100,1\
+line $xmin,-1.0803,$dx,-1.0803,black,100,1\
+line $xmin,-1.0364,$dx,-1.0364,black,100,1\
+line $xmin,-0.99446,$dx,-0.99446,black,100,1\
+line $xmin,-0.95417,$dx,-0.95417,black,100,1\
+line $xmin,-0.91537,$dx,-0.91537,black,100,1\
+line $xmin,-0.87790,$dx,-0.87790,black,100,1\
+line $xmin,-0.77219,$dx,-0.77219,black,100,1\
+line $xmin,-0.70630,$dx,-0.70630,black,100,1\
+line $xmin,-0.64335,$dx,-0.64335,black,100,1\
+line $xmin,-0.58284,$dx,-0.58284,black,100,1\
+line $xmin,-0.46770,$dx,-0.46770,black,100,1\
+line $xmin,-0.41246,$dx,-0.41246,black,100,1\
+line $xmin,-0.35846,$dx,-0.35846,black,100,1\
+line $xmin,-0.30548,$dx,-0.30548,black,100,1\
+line $xmin,-1.2265,$dx,-1.2265,black,100,1\
+line $xmin,-0.20189,$dx,-0.20189,black,100,1\
+line $xmin,-0.15097,$dx,-0.15097,black,100,1\
+line $xmin,-0.10043,$dx,-0.10043,black,100,1\
+line $xmin,-0.050154,$dx,-0.050154,black,100,1\
+line $xmin,0.050154,$dx,0.050154,black,100,1\
+line $xmin,0.10043,$dx,0.10043,black,100,1\
+line $xmin,0.15097,$dx,0.15097,black,100,1\
+line $xmin,0.20189,$dx,0.20189,black,100,1\
+line $xmin,0.30548,$dx,0.30548,black,100,1\
+line $xmin,0.35846,$dx,0.35846,black,100,1\
+line $xmin,0.41246,$dx,0.41246,black,100,1\
+line $xmin,0.46770,$dx,0.46770,black,100,1\
+line $xmin,0.55338,$dx,0.55338,black,100,1\
+line $xmin,0.58284,$dx,0.58284,black,100,1\
+line $xmin,0.64335,$dx,0.64335,black,100,1\
+line $xmin,0.70630,$dx,0.70630,black,100,1\
+line $xmin,0.77219,$dx,0.77219,black,100,1\
+line $xmin,0.91537,$dx,0.91537,black,100,1\
+line $xmin,0.95417,$dx,0.95417,black,100,1\
+line $xmin,0.99446,$dx,0.99446,black,100,1\
+line $xmin,1.0364,$dx,1.0364,black,100,1\
+line $xmin,1.0803,$dx,1.0803,black,100,1\
+line $xmin,1.1264,$dx,1.1264,black,100,1\
+line $xmin,1.1750,$dx,1.1750,black,100,1\
+line $xmin,1.2265,$dx,1.2265,black,100,1\
+line $xmin,1.4051,$dx,1.4051,black,100,1\
+line $xmin,1.4758,$dx,1.4758,black,100,1\
+line $xmin,1.5548,$dx,1.5548,black,100,1\
+line $xmin,1.7507,$dx,1.7507,black,100,1\
+line $xmin,1.8808,$dx,1.8808,black,100,1\
+line $xmin,2.0969,$dx,2.0969,black,100,1\
+line $xmin,2.1444,$dx,2.1444,black,100,1\
+line $xmin,2.1973,$dx,2.1973,black,100,1\
+line $xmin,2.2571,$dx,2.2571,black,100,1\
+line $xmin,2.4089,$dx,2.4089,black,100,1\
+line $xmin,2.4573,$dx,2.4573,black,100,1\
+line $xmin,2.5121,$dx,2.5121,black,100,1\
+line $xmin,2.6521,$dx,2.6521,black,100,1\
+line $xmin,2.7478,$dx,2.7478,black,100,1\
+line $xmin,2.9677,$dx,2.9677,black,100,1\
+line $xmin,3.1559,$dx,3.1559,black,100,1\
+line $xmin,3.1947,$dx,3.1947,black,100,1\
+line $xmin,3.2389,$dx,3.2389,black,100,1\
+line $xmin,3.3528,$dx,3.3528,black,100,1\
+line $xmin,3.4316,$dx,3.4316,black,100,1\
+line $xmin,3.5401,$dx,3.5401,black,100,1\
+text $[$xmin-$klas],-3.7190,helvetica,12,0.01 %,black\
+text $[$xmin-$klas],-3.2905,helvetica,12,0.05 %,black\
+text $[$xmin-$klas],-3.0902,helvetica,12,0.1 %,black\
+text $[$xmin-$klas],-2.8782,helvetica,12,0.2 %,black\
+text $[$xmin-$klas],-2.5758,helvetica,12,0.5 %,black\
+text $[$xmin-$klas],-2.3263,helvetica,12,1 %,black\
+text $[$xmin-$klas],-2.0537,helvetica,12,2 %,black\
+text $[$xmin-$klas],-1.6449,helvetica,12,5 %,black\
+text $[$xmin-$klas],-1.2816,helvetica,12,10 %,black\
+text $[$xmin-$klas],-0.84162,helvetica,12,20 %,black\
+text $[$xmin-$klas],-0.52440,helvetica,12,30 %,black\
+text $[$xmin-$klas],-0.25335,helvetica,12,40 %,black\
+text $[$xmin-$klas],0,helvetica,12,50 %,black\
+text $[$xmin-$klas],0.25335,helvetica,12,60 %,black\
+text $[$xmin-$klas],0.52440,helvetica,12,70 %,black\
+text $[$xmin-$klas],0.84162,helvetica,12,80 %,black\
+text $[$xmin-$klas],1.2816,helvetica,12,90 %,black\
+text $[$xmin-$klas],1.6449,helvetica,12,95 %,black\
+text $[$xmin-$klas],2.0537,helvetica,12,98 %,black\
+text $[$xmin-$klas],2.3263,helvetica,12,99 %,black\
+text $[$xmin-$klas],2.5758,helvetica,12,99.5 %,black\
+text $[$xmin-$klas],2.8782,helvetica,12,99.8 %,black\
+text $[$xmin-$klas],3.0902,helvetica,12,99.9 %,black\
+text $[$xmin-$klas],3.2905,helvetica,12,99.95 %,black\
+text $[$xmin-$klas],3.7190,helvetica,12,99.99 %,black\
+linewidth 2
+
+
+!if $wims_user=supervisor
+    data=!append line $var6\
+linewidth 2\
+to $data
+!endif
+myname=$counter.data
+
+!filewrite getfile/$myname $data
+
+prob_paper=<object id="FlyApplet" width="$xsize" height="$ysize" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname"/>$nojava</object>
+
+!if $teaching=1
+    textanswer$n=!append line $ <hr />$prob_paper $ to $(textanswer$n)
+!endif
+!exit

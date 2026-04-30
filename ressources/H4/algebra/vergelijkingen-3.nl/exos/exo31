@@ -1,0 +1,62 @@
+checkfile=$checkdir/number.proc
+arglist=x
+# answer must be 'x=123'
+image=0
+math=0
+rows=2
+cols=20
+mathview=
+# no applet: not implemented log[x](123) ... FIXME 
+# no applet: log[a](log[b](123)) will cause trouble...
+questiontype=0
+embed=1
+# no applet : formula can not be correctly displayed...
+mathview=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+!if $rounding <0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+ss=!record 143 of lang/remarks.$taal
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+    a=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 1,2,3
+    k=!randint 1,7
+    k1=sqrt(10),10,10*sqrt(10),100,1000,1/10,1/100
+    k2=\sqrt{10},10,10\cdot \sqrt{10},100,1000,\frac{1}{10},\frac{1}{100}
+    k3=1/2,1,3/2,2,3,-1,-2
+    b=!item $k of $k1 
+    B=!item $k of $k2
+    d=!item $k of $k3
+    e=!exec pari E=$d/($a^$c)\
+    printtex(E)
+    e1=!line 1 of $e
+    e2=!line 2 of $e
+    answer$n=10^($e1)
+    texanswer$n=\rightarrow x = 10^{$e2}
+    formula$n= ^{$a}\log \left( ^{x} \log \left( $B \right) \right) =$c
+ !exit
+!endif 
+
+!if $R>1
+    a=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 1,2,3
+    b=!randitem 2,3,4,5,6,7,8,9
+    d=$[$a^$c]
+    formula$n= ^{$a}\log \left( ^{x}\log \left( $b \right) \right)=$c
+    #x1=10^((log($b)/log(10))/$d)
+    x1=$b^(1/$d)
+    X1=$b^{\frac{1}{$d}}
+    answer$n=$x1
+    texanswer$n= \rightarrow x = $X1 
+ !exit
+!endif 
+

@@ -1,0 +1,84 @@
+# Nationaal inkomen en index I
+n=$counter
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding <11
+    rounding=10
+    dec=decimaal
+!else
+    dec=decimalen
+!endif
+roundingtext=Reken door met <b>onafgeronde getallen</b><br />en rond je <b>eindantwoord</b> af op $[log($rounding)/log(10)] $dec. 
+helptext=$roundingtext
+math=0
+make_tr=1
+questiontype=0
+cols=6
+rows=2
+#laat geen formula$n zien
+var9=0
+checkfile=exos/precheck1.proc
+mathview=0
+math=0
+
+
+!if $R=1
+    embed=0
+    inkomen=!randint 1020,1140
+    inkomen=$[$inkomen/10]
+    beroeps=!randint 1020,1140
+    beroeps=$[$beroeps/10]
+    consument=!randint 1020,1140
+    consument=$[$consument/10]
+    jaar1=!randitem 1996,1997,1998,1999
+    a=!randitem 1,2,3
+    jaar2=$[$jaar1+$a]
+    b=!randitem 4,5
+    jaar3=$[$jaar1+$b]
+    !if $inkomen=$beroeps or $inkomen=$consument
+	inkomen=$[$inkomen + 0.05]
+    !endif
+    !if $beroeps=$consument
+	beroeps=$[$beroeps+0.05]
+    !endif
+    ans1=$[$inkomen-100]
+    ans2=$[$beroeps-100]
+    ans3=$[$consument-100]
+    extex=$empty
+    mousetable=<table class=\'grid_table\'><tr><td>nationaal inkomen ($jaar1=100)</td><td>$inkomen</td><tr><td>werkloze beroepsbevolking ($jaar2=100)</td><td>$beroeps</td><tr><td>consumentenprijs ($jaar3=100)</td><td>$consument</td></table>
+    ss=Gegeven zijn de <span class="schaersvoorde_link">volgende indexcijfers</span><br />Bepaal van de genoemde economische variabelen <br />de procentuele verandering sinds het basisjaar.
+    answer$n=$ans1,$ans2,$ans3
+    inputs=3
+    description=Nationaal inkomen,Werkloze beroepsbevolking,Consumentenprijs
+    question$n=<a onmouseover="return escape('$mousetable<hr />$roundingtext')">$ss</a>
+    texanswer$n=\left[ \begin{array}{l} \textrm{Nationaal inkomen :} \frac{$inkomen - 100}{100} \cdot 100 = $ans1 \% \\ \textrm{Werkloze beroepsbevolking :} \frac{$beroeps - 100}{100} \cdot 100 = $ans2 \% \\ \textrm{Consumentenprijs :} \frac{$consument - 100}{100} \cdot 100 = $ans3 \% \end{array} \right.
+    ex1=%
+    ex2=%
+    ex3=%
+!else
+    inputs=1.1
+    cols=8
+    embed=0
+    rows=1
+    landen=!randitem Wenderland@pound, Andorma@euro , Biloga@yen, Akonderland@yen
+    landen=!replace internal @ by , in $landen
+    land=!item 1 of $landen
+    geld=!item 2 of $landen
+    inkomen=!randint 600,995
+    bevolking=!randint 200,800
+    bevolking=$[$bevolking/20]
+    extex=$empty
+    ss=Het nominaal nationaal inkomen van $land was in een bepaald jaar &$geld; $inkomen miljard. <br />De bevolkingsomvang was in dat jaar $bevolking miljoen personen. <br />Bepaal het nominaal nationaal inkomen per hoofd van de bevolking.
+    answer$n=$[$inkomen*1000/$bevolking]
+    description=inkomen per hoofd van de bevolking
+    ex1=&$geld;
+    texanswer$n=\frac{$inkomen \cdot 10^{9}}{$bevolking \cdot 10^{3}} = $(answer$n) 
+    question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+!endif
+
+
+

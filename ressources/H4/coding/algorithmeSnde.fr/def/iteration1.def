@@ -1,0 +1,165 @@
+!set title=Itération : exemples numériques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 1 of langage
+
+val6=$(tmp0)
+val7=&larr;
+val8=&rarr;
+val9=&le;
+tmp0=!randint 1, 4
+
+val10=$[rint($(tmp0))]
+tmp0=!item $val10 of X,A,U,P
+
+val11=$(tmp0)
+tmp0=!item $val10 of Y,B,V,Q
+
+val12=$(tmp0)
+tmp=!nonempty items N,I,J
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp0=!randint -10, 10
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val15=$[rint($(tmp0))]
+tmp0=!randitem 0,1
+
+val16=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 4
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp=!trim $val14 $val8 $val11, $val17 $val8 $val12, Pour $val13 Allant De $val16 A $val15, $val13 + 1 $val8 $val13, $val11 + $val12 $val8 $val11, Fin Pour, Afficher $val11	$val14 $val8 $val11, $val17 $val8 $val12, $val16 $val8 $val13, Tant que $val13 $val9 $val15, $val11 + $val12 $val8 $val11, $val13 + 1 $val8 $val13, Fin Tant que, Afficher $val11	$val14 $val8 $val11, $val17 $val8 $val12, $val16 $val8 $val13, Tant que $val13 $val9 $val15, $val11 + $val12 $val8 $val11, $val13 + 1 $val8 $val13, Fin Tant que, Afficher $val12	$val14 $val8 $val11, $val17 $val8 $val12, $val16 $val8 $val13, Tant que $val13 $val9 $val15, $val11 + $val12 $val8 $val11, $val13 + 1 $val8 $val13, Fin Tant que, Afficher $val13	$val14 $val8 $val11, $val17 $val8 $val12, Pour $val13 Allant De $val16 A $val15, $val13 + 2 $val8 $val13, $val11 + $val12 $val8 $val11, Fin Pour, Afficher $val11	$val14 $val8 $val11, $val17 $val8 $val12, Pour $val13 Allant De $val16 A $val15, $val13 + 2 $val8 $val13, $val11 + $val12 $val8 $val11, Fin Pour, Afficher $val13	
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val18
+
+tmp0=!rowcnt $tmp
+val19=$[rint($(tmp0))]
+tmp0=!randint $val19
+
+val20=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val18
+
+tmp=!row $val20 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp0=!replace internal , by </td></tr><tr><td> in $val21
+
+val22=$(tmp0)
+
+!ifval $val20>4
+t_=!replace internal \( by ( in 1+floor(($val15-$val16)/2)
+tmp0=!exec pari $t_
+
+val23=$[rint($(tmp0))]
+!else
+val23=$[rint($val15-$val16+1)]
+!endif
+
+!ifval $val20>4
+val24=$[rint( $val16+2*$val23)]
+!else
+val24=$[rint( $val15+1)]
+!endif
+val25=$[rint($val14+($val23*$val17))]
+
+!ifval $val20<3 or $val20==5
+val26=$[rint($val25)]
+!endif
+
+!ifval $val20==3
+val26=$[rint($val17)]
+!endif
+
+!ifval $val20==4 or $val20==6
+val26=$[rint($val24)]
+!endif
+replytype1=numeric
+replyname1=
+replygood1=$[$val26]
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()	On exécute l'algorithme suivant :	<div class="wimscenter">	<table style="text-align:left; background-color:lightblue;" cellpadding=5><tr><td>	$val22	</td></tr></table>	</div>	Quand cet algorithme a terminé, il affiche la valeur :  
+!read oef/embed.phtml reply1,8 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val6
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1!=$val26
+ <div class='oef_feedbacks'>	L'algorithme exécute $val23 fois les instructions de la boucle.		Quand l'algorithme termine, les variables ont pour valeurs respectives :	<ul><li>	$val12 = $val17 ($val12 n'a pas été modifiée)	</li><li>$val13 = $val24	</li><li>	$val11 = $val14+ $val23 &times; $val12 = $val25	</li></ul>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,12,13,14,17,22,23,24,25,26
+embedcnt=1

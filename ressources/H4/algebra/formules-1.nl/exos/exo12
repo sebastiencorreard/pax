@@ -1,0 +1,76 @@
+#:25 Herleid de functie tot een machtsfunctie
+display=1
+checkfile=exos/precheck.proc
+arglist=f(x),y
+varlist=x
+rounding=100
+roundingtext=!record 29 of lang/remarks.$taal
+#!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+var2=$empty
+mathview=5
+smallfont=18
+largefont=26
+mathviewpanel=$module_title:y =:x:+:-:*:/:^
+helptext=$roundingtext <br />y = 1.23*x^(-0.66)
+keuze=!randint 1,2
+!if $mathml=2
+ m=!mathmlmath y=c*x^a
+!else
+ m=!htmlmath y=c*x^a
+!endif
+question$n=!record 28 of lang/remarks.$taal
+#@Herleid de onderstaande formule tot de vorm: $m <br /> Rond c en a af op twee decimalen. 
+!if $R=1
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,9
+	c_af=$[0.01*(round(100*(1/$a)^(1/$b)))]
+	a_af=$[0.01*(round(100*(1/$b)))]
+	formula$n=x = $a \cdot y^{$b}
+	applettext=!nospace x = $a * y^$b ->
+	var1=!nospace $a * y^$b
+	
+	answer$n=$c_af*x^$a_af
+	texanswer$n= \left[ \begin{array}{lll}x = $a \cdot y^{$b} \\ \frac{1}{$a} x=y^{$b} \\ y=\left(\frac{1}{$a}x\right)^{\frac{1}{$b}} \\ y=\left(\frac{1}{$a}\right)^{\frac{1}{$b}} \cdot x^{\frac{1}{$b}} \\ y \approx $c_af \cdot x^$a_af \end{array} \right.
+	
+    !else
+	a=!randint 2,9
+	b=!randint 2,9
+	c_af=$[0.01*(round(100*($a)^(1/$b)))]
+	a_af=$[0.01*(round(100*(-1/$b)))]
+	formula$n=x = $a \cdot y^{-$b}
+	applettext=!nospace x = $a * y^(-$b) ->
+	var1=!nospace $a * y^(-$b)
+	
+	answer$n=$c_af*x^($a_af)
+	texanswer$n= \left[ \begin{array}{lll} x = $a \cdot y^{-$b} \Rightarrow x=$a \cdot \frac{1}{y^{$b}} \\ x \cdot y^{$b}=$a \\ y^{$b}=\frac{$a}{x}=$a \cdot x^{-1}\\ y= \left($a \cdot x^{-1} \right)^{\frac{1}{$b}}\\ y= \left($a \right)^{\frac{1}{$b}} \cdot \left( x^{-1}\right)^{\frac{1}{$b}}\\ y= \left($a \right)^{\frac{1}{$b}} \cdot x^{-\frac{1}{$b}}\\ y \approx $c_af \cdot x^{$a_af} \end{array} \right.
+    !endif
+    !exit
+!endif
+
+!if $R>1
+    a=!randint 2,9
+    b=!randint 2,9
+    d=!randint 3,9
+    e=$[$d-1]
+    c_af=$[0.01*(round(100*($a/$b)^(1/$e)))]
+    a_af=$[0.01*(round(100*(-1/$e)))]
+    formula$n= \frac{$a y}{x}=$b y ^{$d}
+    applettext=!nospace $a*y/x = $b * y^$d ->
+    var1=!nospace $b * y^$d
+	
+    answer$n=$c_af*x^($a_af)
+    texanswer$n= \left[ \begin{array}{lll}\frac{$a y}{x}=$b y ^{$d}\\  \frac{1}{x}=\frac{$b y ^{$d}}{$a y}\\ \frac{1}{x}=\frac{$b}{$a} \cdot y^{$e}\\ y^{$e}=\frac{$a}{$b} \cdot \frac{1}{x}\\ y^{$e}=\frac{$a}{$b} \cdot x^{-1}\\ y= \left(\frac{$a}{$b} \cdot x^{-1} \right)^{\frac{1}{$e}}=\left(\frac{$a}{$b} \right)^{\frac{1}{$e}} \cdot x^{-\frac{1}{$e}}\\ y \approx $c_af \cdot x^{$a_af} \end{array} \right.
+	
+    !exit
+!endif
+
+

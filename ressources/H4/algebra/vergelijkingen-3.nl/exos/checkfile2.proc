@@ -1,0 +1,367 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+!set n=$counter
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+# var1=1 => er zit een log in 
+wims_exec_error=$empty
+!set wims_compare_precision=10000
+extra=$empty
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+test=!replace internal =x by @ in $AAA
+!if @ isin $test
+    maxscore=$[$P2*$maxscore] 
+    errortext=!record 97 of lang/remarks.$taal
+    #@ Je kunt beter <br /><b><kbd>x = iets</kbd></b><br /> op schrijven i.p.v <b>$AAA</b>
+    goback=1
+    !exit
+!endif
+# check for decimal comma...
+goback=0
+!readproc $checkdir/decimalpoint.proc
+!if $goback=1
+    !exit
+!endif
+
+AAA=!replace x[_0-9]*= by @ in $AAA
+# x1=1/3 -> @1/3
+# x1=3 and x2=4 -> @3and@4 
+
+!if @ notin $AAA
+    # we wish correct syntax x1=1122 or x=1122
+    testvar=<b>x</b>
+    errortext=!record 98 of lang/remarks.$taal
+    #@ Ik verwacht een antwoord met iets als <em>x=123</em><br />Dus even netjes noteren
+    goback=1
+    !exit
+!else
+    # detecting more than 1 solution 
+    # comparing with number of correct solutions
+    # if not the same -> nogood
+    AAA=!replace internal , by $empty in $AAA
+    # @3,and@4 -> @3and@4
+    AAA=!nospace $AAA
+    t1=!char 1 of $AAA
+    !if $t1=@
+	AAA=!char 2 to -1 of $AAA
+    !endif
+    t1=!char -1 of $AAA
+    !if $t1=@
+	AAA=!char 1 to -2 of $AAA
+    !endif
+    # @3and@4 -> 3and@4
+    AAA=!replace internal @ by , in $AAA
+    # 3and,4
+    testvar2=!itemcnt $AAA
+    testvar1=!itemcnt $(answer$n)
+    !if $testvar1 != $testvar2
+	ex=!record 65 of $remarkdir/commonremarks.$taal
+	#@ Er zijn $testvar1 wortels en geen $testvar2
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	    goback=1
+	!else
+	    remark$n=$NOK<br />$ex
+	    maxscore=0
+	    goback=0
+	!endif
+     !exit
+    !endif
+!endif
+
+AAA=!nospace $AAA
+!if : isin $AAA
+    # hetgoedeantwoordis:x=log(3:4) 
+    # dit moeten we nakijken...
+    AAA=!replace internal log by L in $AAA
+    T=!positionof : in $AAA
+    cijfers=0,1,2,3,4,5,6,7,8,9,(,),L,/,^,*
+    # de L van log...
+    !for p in $T
+	t1=!char $[$p-1] of $AAA
+	t2=!char $[$p+2] of $AAA
+	!if $t1 isin $cijfers and $t2 isin $cijfers
+	    AAA=!replace internal char number $[$p+1] by / in $AAA    
+	    ex=!record 99 of lang/remarks.$taal
+	    #@ <br />$voornaam, <br />ik wil hebben dat je de volgende keer een
+	    #@  "/"-streep gebruikt bij een deling of breuk<br />\
+	    #@ en zeker geen ":" dubbelepunt. 
+	!else
+    	    AAA=!replace internal char number $[$p+1] by @ in $AAA
+	!endif
+    !next p
+    AAA=!replace internal L by log in $AAA
+    AAA=!replace internal @ by $empty in $AAA
+    AAA=!nospace $AAA
+    !if $extra=$emtpy
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+!for i in log,sqrt,ln,abs,$wims_rawmath_variables
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+
+test=!replace [0-9] by @ in $AAA
+!if @e@ isin $test
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 79 of lang/remarks.$taal
+    #Als je de wetenschappelijke <kbd>e</kbd> notatie gebruikt<br />\
+    #Kun je beter schrijven 1.25e+3 of 1.25*10^3<br />\
+    #of 1.25e-3 of 1.25*10^-3<br />\
+    #Probeer het nog eens
+    goback=1
+    !exit
+!endif
+## 5e+3 => 5*10^3 ( 5e+3 + 4 => 5*10^3+4 )
+## 5*10^4*3 => 3*5*10^4
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+AAA=!replace internal ** by * in $AAA
+
+AAA=!replace [a-z\~!@#$%&_;"'=] by $empty in $AAA
+AAA=!lower $AAA
+GGG=!nospace $(answer$n)
+GGG=!replace internal ln by log in $GGG
+
+!if $var1=0
+    # var1=0  -> no "log" in answer
+    !if ln isin $AAA 
+	AAA=!replace internal ln by log in $AAA
+    !endif
+!endif
+
+!if $var1 !=0
+    !if ln isin $AAA
+	ex=!record 80 of lang/remarks.$taal
+	#@ Ik verwachtte hier eigenlijk een gewone <sup>10</sup><kbd>log</kbd>
+	!if $teaching=1
+	    maxscore=$[$P4*$maxscore]
+	    errortext=$ex
+	    goback=1
+    	!else
+	    goback=0
+	    remark$n=$NOK<br />$ex
+	    maxscore=0
+	!endif
+      !exit
+    !endif
+    !if log notin $AAA
+	ex=!record 80 of lang/remarks.$taal
+	#@ Ik verwachtte hier eigenlijk een gewone <sup>10</sup><kbd>log</kbd>
+	!if $teaching=1
+	    maxscore=$[$P6*$maxscore]
+	    errortext=$ex
+    	    goback=1
+	!else
+	    goback=0
+	    remark$n=$NOK<br />$ex
+	    maxscore=0
+	!endif
+     !exit
+    !endif
+    !if $teaching=1
+	err=0
+	aaa=!replace [\(\)] by $empty in $AAA
+	# let op (1,2,3) is 1 item ...
+	test1=!replace internal log by , in $aaa
+    	t1=!itemcnt $test1
+	!if $var1=1
+    	    !if $t1 = 1
+		ex=!record 100 of lang/remarks.$taal
+		extra=$extra<br />$ex
+		err=1
+		#$extra <br />Je zou de som als een enkele <kbd>logaritme</kbd> 
+		#(<em>met grondtal 10</em>) noteren...<br />
+	    !else
+		!if $t1 !=2
+		    err=1
+		    ex=!record 101 of lang/remarks.$taal
+		    extra=$extra<br />$ex
+		    #$extra <br /> Je moet deze <kbd>logaritme</kbd> echt anders noteren...<br />\
+		    #Denk eraan dat we in het antwoord een logaritme met 
+		    #<em>grondtal 10</em> moeten hebben <br />\
+		    #en dat bijvoorbeeld <kbd>log(10)</kbd> = 1<br />\
+		    #Als je dit niet snapt, kijk <b>nu</b> dan eventjes in de
+		    # <em>help-pagina</em> van deze som...<br />
+		!endif
+	    !endif
+	!else
+	    # var1=2 dus twee log() in't goede antwoord dus 3 items als var1=,
+	    !if $t1 !=3
+		err=1
+		ex=!record 102 of lang/remarks.$taal
+		extra=$extra<br />$ex
+		#$extra <br />Let op : denk eraan dat we in het 
+		#antwoord een logaritme met <em>grondtal 10</em> moeten hebben <br />\
+		#<br />Als je dit niet snapt, kijk <b>nu</b> dan eventjes 
+		#in de <em>help-pagina</em> van deze som...
+	    !endif
+	!endif
+	!if $err=1
+	    errortext=$extra
+	    maxscore=$[$maxscore*$P4]
+	    goback=1
+	    !exit
+	!endif
+    !endif
+!endif
+
+
+!readproc exos/syntax1.proc 
+    
+!if $goback=1
+    goback=1
+    errortext=$errortext
+    !exit
+!endif
+
+
+!if $var3=0
+    !if NaN isin $[1*$AAA]
+	testvar=$(reply$n)
+	maxscore=$[$P5*$maxscore]
+	errortext=!record 26 of $remarkdir/commonremarks.$taal
+        goback=1
+        !exit
+    !endif
+!endif
+
+
+!if $teaching=1 and $varlist !=1
+    !if $var2=1
+	# var2=1 -> breuk in antwoord
+	!if $var1 isin 1,0
+	    # log(2/8) of 2/8
+	    test=!replace internal / by , in $AAA
+	    !if , isin $test
+		test=!replace [a-z\(\)] by $empty in $test
+		t=!itemcnt $test
+		!if $t>2
+		    testvar=$(reply$n)
+		    maxscore=$[$P6*$maxscore]
+		    errortext=!record 26 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    !exit
+		!endif
+		t1=!item 1 of $test
+		t2=!item 2 of $test
+		t3=$[gcd($t1,$t2)]
+		!if $t3 !=1
+		    !ifval $AAA=$(answer$n)
+			errortext=!record 103 of lang/remarks.$taal
+		    !else
+			errortext=!record 104 of lang/remarks.$taal
+			#Je kunt de breuk nog verder vereenvoudigen, $voornaam<br />\
+		        #Even verbeteren, graag...
+		    !endif
+		    maxscore=$[$P2*$maxscore]
+		    goback=1
+		    !exit
+		!endif
+	    !endif
+	!endif
+    	!if $var1>1
+	    # hmmmm    
+	!endif
+    !endif
+!endif
+!if $var3=1
+    # log(xy) wel , log(yy) niet
+    # pari geeft fout bij if(log(x)==log(x),1,0) 
+    !for p in $wims_rawmath_variables
+	g=!randint 1,1000
+	AAA=!replace internal $p by $g in $AAA
+	GGG=!replace internal $p by $g in $GGG
+    !next p
+!endif
+
+!if $var1=0 and log isin $AAA
+    # 9-04-2008 nav 'DHaere antwoord=-3/4 en log(10^(-3/4)) werd fout gerekend...
+    ex=!record 136 of lang/remarks.$taal
+    #@ Je kunt het antwoord ook zonder logaritme schrijven
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+    test=$[1.0*($AAA)/(log(10))]
+    !if NaN notin $test
+	AAA=$test
+	GGG=$[1.0*($GGG)]
+    !endif
+!endif
+
+test=!exec pari if(($AAA) == ($GGG) ,1,0)
+
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+ex=0
+!if $test=0
+    !if $rounding<1
+	!ifval $AAA=$GGG
+	    test=$P5
+	    ex=!record 66 of $remarkdir/commonremarks.$taal
+	!endif
+    !else
+	A1=$[(round($rounding*$AAA))/$rounding]
+	G1=$[(round($rounding*$GGG))/$rounding]
+	!ifval $A1=$G1
+	    test=1
+	!else
+	    rnd=$[($rounding/10)]
+	    A1=$[(round($rnd*$AAA))/$rnd]
+	    G1=$[(round($rnd*$GGG))/$rnd]
+	    !ifval $A1=$G1
+		test=$P6
+		ex=!record 29 of $remarkdir/commonremarks.$taal
+	    !endif
+	!endif
+    !endif
+    !if $ex != 0
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$test]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.8
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif

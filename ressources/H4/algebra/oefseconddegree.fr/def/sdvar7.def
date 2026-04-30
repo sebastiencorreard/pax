@@ -1,0 +1,224 @@
+!set title=Variations d'une fonction du second degré sous forme factorisée a(x-x1)(x-x2) 2 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=David, Rousseau
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 6
+
+val6=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint($val6*$val7)]
+
+!ifval ($val7=-1)
+val9=$[rint( 1)]
+!else
+val9=$[rint(2)]
+!endif
+
+!ifval ($val7=-1)
+val10= 1
+!else
+val10=2
+!endif
+
+!ifval ($val7=-1)
+val11= 2
+!else
+val11=1
+!endif
+tmp0=!randint 1, 6
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 6
+
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val13=$[rint(($val12+$(tmp0))*$(tmp1))]
+val14=!rawmath $val8* (x-$val12)(x-$val13)
+t_=!rawmath ($val12+$val13)/2
+val15=!exec pari print($t_)
+
+!ifval ($val13>0)
+val16= f(x)=a (x-x_1)(x-x_2),\frac{x_1+x_2}{2},\frac{$val12+$val13}{2} =$val15
+!else
+val16=f(x)=a (x-x_1)(x-x_2),\frac{x_1+(x_2)}{2},\frac{$val12+$val13}{2} =$val15
+!endif
+val17=r1	r2	r3,r4
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=auto
+
+replyoption1=nonstop 
+replyname1=réponse
+replygood1=$val15
+replytype2=menu
+replyname2=son signe est
+replygood2=$val9;négatif,positif
+replytype3=menu
+replyname3=
+replygood3=$val10;croissante,décroissante
+replytype4=menu
+replyname4=
+replygood4=$val11;croissante,décroissante
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère la fonction 
+!insmath f
+$() définie sur 
+!insmath \mathbb{R}
+$() par 
+!insmath f(x)= $val14
+$().<br>	
+!if $m_step=1 
+$()	Quelle est l'abscisse du sommet de la parabole représentant 
+!insmath f
+$() ?  
+!read oef/embed.phtml r1,4 
+$()	<div class="wims_instruction"> Pour un nombre rationnel, écrire 3/7 par exemple. Simplifier si besoin pour avoir un dénominateur positif.</div>	 
+!endif
+$()	
+!if $m_step=2 
+$()Quel le signe du terme de plus haut degré de 
+!insmath f(x)
+$() ?  
+!read oef/embed.phtml r2 
+$()  
+!endif
+$()	
+!if $m_step=3 
+$()
+!insmath f
+$() est d'abord  
+!read oef/embed.phtml r3 
+$() sur &#93;
+!insmath -\infty ; $val15
+$()&#93; puis  
+!read oef/embed.phtml r4 
+$() sur &#91;
+!insmath  $val15; +\infty 
+$()&#91;. 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>Pour une fonction du second degré 
+!insmath f
+$() d'expression 
+!insmath $(val16[1])
+$(), le sommet de la parabole représentative a pour abscisse 
+!insmath $(val16[2])
+$()	.	Ici le sommet a donc pour abscisse 
+!insmath $(val16[3])
+$().	<p>Le coefficient de 
+!insmath x^2
+$() dans 
+!insmath f(x)
+$() est 
+!insmath $val8
+$(), il est donc 
+!if $val8>0 
+$()positif 
+!else
+$() négatif 
+!endif
+$(). On en déduit que 
+!insmath f
+$() est	
+!if $val8>0 
+$()décroissante 
+!else
+$() croissante 
+!endif
+$() sur &#93;
+!insmath -\infty ; $val15
+$()&#93; et 
+!if $val8>0 
+$()croissante 
+!else
+$() décroissante 
+!endif
+$() sur &#91;
+!insmath  $val15; +\infty 
+$()&#91; (parabole représentative orientée vers le 
+!if $val8>0 
+$()haut 
+!else
+$() bas 
+!endif
+$()). 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,14,15,16
+embedcnt=4

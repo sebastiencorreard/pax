@@ -1,0 +1,50 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=trace un polygone r&eacute;gulier
+slib_parms=5\
+5,nombre de côt&és\
+100,taille de l'image\
+4/5,coefficient de déformation par rapport à un polygone régulier.
+black,couleur segment\
+red,couleur point\
+
+slib_author=Fabrice Guerimand
+slib_out=Les donn&eacute;es pour insdraw</li></ol>
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+
+!distribute items $slib_input into s_nb,s_taille,s_defo,s_cos,s_cop
+s_nb=$[$s_nb]
+s_taille=$[$s_taille]
+s_defo=$[$s_defo]
+!bound s_defo between 2/3 and 1 default 4/5
+!bound s_taille between 50 and 500 default 100
+!bound s_nb between 3 and 30 default 5
+!default s_cos=black
+!default s_cop=red
+
+s_a0=!random 0,2*pi
+s_A=2*pi/$s_nb
+s_x0=$[$s_taille/2]
+s_r=$[($s_taille-20)/2]
+slib_out=$empty
+s_poly=$empty
+!for s_k=1 to $s_nb
+ s_rx=!random $s_defo,1
+ s_rx=$[$s_rx*$s_r]
+ s_Ax=!random $s_defo,1
+ s_Ax=$[$s_Ax*$s_A]
+ s_poly=!append item $[$s_rx*cos($s_a0+($s_k-1)*$s_A+$s_Ax)+$s_x0],$[$s_rx*sin($s_a0+($s_k-1)*$s_A+$s_Ax)+$s_x0] to $s_poly
+!next s_k
+ slib_out=$slib_out\
+poly $s_cos,$s_poly
+!for s_k=1 to $s_nb
+ s_x=!item 2*$s_k-1 of $s_poly
+ s_y=!item 2*$s_k of $s_poly
+ slib_out=$slib_out\
+circle $s_x,$s_y,3,$s_cop
+!next s_k

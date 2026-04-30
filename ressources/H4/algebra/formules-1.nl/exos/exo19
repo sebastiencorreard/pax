@@ -1,0 +1,78 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+var4=0
+mathview=5
+
+rounding=0
+!read $remarkdir/rounding.$taal
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=18
+rows=1
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+#pari kijkt na
+ var1=0
+ a=!randint 2,9
+ b=!randint 2,15
+ c=!randint 2,15
+ tot=!exec pari A=($c+$b)/$a\
+ printtex(A)
+ 
+ d=!line 1 of $tot
+ dtex=!line 2 of $tot
+ 
+ formula$n= \frac{\sqrt{$a y - $b}}{\sqrt{x + $c}}=1
+ applettext=!nospace sqrt($a*y-$b)/sqrt(x+$c)=1 -> 
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ var2=1/$a*x+$d
+ answer$n=1/$a*x+$d
+ texanswer$n=\left[ \begin{array}{l} \sqrt{$a y - $b}=\sqrt{x + $c}  \rightarrow \\ $a y - $b = x +$c \rightarrow \\ $a y = x + $[$b+$c] \rightarrow \\ y=\frac{1}{$a} x + $dtex \end{array} \right.
+ !goto KLAAR
+!endif
+
+!if $R>1
+ var1=0
+ # pari
+ a=!randint 2,9
+ b=!randint 2,9
+ c=!randint 2,9
+ d=!randint 1,5
+ e=$[$d+1]
+ tot=!exec pari A=$e*$e/($d*$d)\
+ printtex(A)\
+ B=1/$c*A\
+ printtex(B)
+ 
+ f=!line 1 of $tot
+ ftex=!line 2 of $tot
+ g=!line 3 of $tot
+ gtex=!line 4 of $tot
+ 
+ formula$n= \sqrt{\frac{$a - $b x}{$c y}}=\frac{$d}{$e}
+ applettext=!nospace sqrt(($a-$b*x)/($c*y))=$d/$e -> 
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ var2=$g*($a-$b*x)
+ answer$n=$g*($a-$b*x)
+ texanswer$n=\left[ \begin{array}{l} \frac{$a - $b x}{$c y} = \frac{$[$d*$d]}{$[$e*$e]} \rightarrow \\ \,\, \\ \frac{$c y}{$a - $b x} = \frac{$[$e*$e]}{$[$d*$d]} \rightarrow \\ \,\, \\ $c y = $ftex ( $a -$b x) \rightarrow \\ \,\, \\ y= $gtex ($a - $b x)  \end{array} \right.
+ !goto KLAAR
+!endif
+
+
+:KLAAR
+
+!exit

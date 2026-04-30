@@ -1,0 +1,156 @@
+!set title=Sont-elles perpendiculaires 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=c
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items D,d,m,p,q
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v for v=-10 to 10
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!randint 1, 2
+
+val8=$[rint($(tmp0))]
+val9=Soit \(($val6)\) la droite d'équation&nbsp;
+val10=Réponse&nbsp;
+val11=Oui,Non
+val12=Soient,et, les deux droites d'équation&nbsp;
+val13=Les droites, et , sont-elles
+val14=perpendiculaires
+tmp0=!listcomplement 0 in $val7
+
+val7=$(tmp0)
+tmp=!nonempty items -1,-2,1,2
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+
+!ifval $val8=1
+val16=$[rint(-1*($(val7[2]))*($val15))]
+!else
+val16=$[rint($(val7[4]))]
+!endif
+
+!ifval $val8=1
+val17=$[rint($(val7[1])*($val15))]
+!else
+val17=$[rint($(val7[5]))]
+!endif
+
+!ifval $(val7[1])*($(val7[5]))-($(val7[2]))*($(val7[4]))=0
+val8=$[rint(1)]
+!endif
+tmp0=!texmath $(val7[1])*x + $(val7[2])*y
+
+tmp1=!texmath $(val7[2])*y + $(val7[1])*x 
+
+tmp=!nonempty items $(tmp0),$(tmp1)
+
+tmp2=!randitem $tmp
+val18=$(tmp2)
+tmp0=!texmath $val16*x + $val17*y
+
+tmp1=!texmath $val17*y+$val16*x
+
+tmp=!nonempty items $(tmp0),$(tmp1)
+
+tmp2=!randitem $tmp
+val19=$(tmp2)
+tmp0=!shuffle $val18= $(val7[3]) , $val19 = $(val7[6]) 
+
+val20=$(tmp0)
+tmp0=!item $val8 of $val11
+
+val21=$(tmp0)
+choicename1=
+choicegood1=$val21
+choicebad1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val12[1]) 
+!insmath ($val6 _1)
+$() $(val12[2]) 
+!insmath ($val6 _2)
+$() $(val12[3]):	<ul>	 <li>
+!insmath ($val6 _1)
+$() : 
+!insmath $(val20[1])
+$() </li>	 <li>
+!insmath ($val6 _2)
+$() : 
+!insmath $(val20[2])
+$() </li>	</ul>	  $(val13[1]) 
+!insmath ($val6 _1)
+$() $(val13[2]) 
+!insmath ($val6 _2)
+$() $(val13[3]) $val14 ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,14,20
+embedcnt=0

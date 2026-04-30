@@ -1,0 +1,133 @@
+n=$counter
+mathview=0
+inputs=0
+questiontype=4
+math=0
+cols=35
+rows=1
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $teaching=0
+    helptext=$empty
+    exotext=$empty
+!else
+    helptext=!record 63 of $remarkdir/commonremarks.$taal
+    exotext=$empty
+!endif
+#no_button=1
+width=440
+height=460
+showToolBar=true
+showMenuBar=false
+framePossible=true
+#ggb=ggb/sinus0.ggb
+#ggb=ggb/sinus1.ggb
+#ggb=ggb/sinus2.ggb
+#ggb=ggb/sinus3.ggb
+#ggb=ggb/sinus4.ggb
+#ggb=ggb/cosinus1.ggb
+
+!if $rounding<1 or $rounding=$empty
+    rounding=100
+!endif
+
+checkfile=exos/checkfile4.proc
+keuze=!randitem 1,2,3,4
+!if $keuze=1
+    # vragen naar pi radialen : gegeven graden
+    !if $R=1
+	ggb=ggb/cirkel1.ggb
+	h=!randint 0,200
+	h=$[$h/100]
+	answer$n=$[$h*180]
+	ans=$(answer$n)&deg; = $h $m_pi rad
+    !else
+	# tot 720 graden of 4pi
+	ggb=ggb/cirkel11.ggb
+	h=!randint 0,400
+	h=$[$h/100]
+	answer$n=$[$h*180]
+	ans=$(answer$n)&deg; = $h $m_pi rad 
+    !endif
+    ht=!record 36 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h $m_pi radialen
+    !goto READY
+!endif
+    
+!if $keuze=2
+    # vragen naar graden : gegeven pi radialen
+    !if $R=1
+	ggb=ggb/cirkel0.ggb
+	h=!randint 1,360
+	answer$n=$h
+	ans=$(answer$n)&deg; = $[$h/180] $m_pi rad
+    !else
+	# tot 720 graden of 4pi
+	ggb=ggb/cirkel01.ggb
+	h=!randint 1,720
+	answer$n=$h
+	ans=$(answer$n)&deg; = $[$h/180] $m_pi rad
+    !endif
+    ht=!record 37 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h &deg;
+    !goto READY
+!endif
+
+!if $keuze=3
+    # gegeven radialen (geen pi) :vragen naar graden
+    !if $R=1
+	ggb=ggb/cirkel2.ggb
+	answer$n=!randint 1,360
+	h=$[(round($rounding*$(answer$n)*pi/180))/$rounding]
+	ans=$(answer$n)&deg; = $h rad
+    !else
+	# tot 720 graden of 4pi
+	ggb=ggb/cirkel21.ggb
+	answer$n=!randint 1,720
+	h=$[$(answer$n)*pi/180]
+	ans=$(answer$n)&deg; = $h rad
+    !endif
+    ht=!record 38 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $(answer$n) &deg;
+    !goto READY
+!endif
+    
+!if $keuze=4
+    # gegeven graden :vragen naar radialen (geen pi)
+    !if $R=1
+	ggb=ggb/cirkel3.ggb
+	answer$n=!randint 1,360
+	h=$[(round($rounding*$(answer$n)*pi/180))/$rounding]
+	ans=$(answer$n)&deg; = $h rad
+    !else
+    # tot 720 graden of 4pi
+	ggb=ggb/cirkel31.ggb
+	answer$n=!randint 1,720
+	h=$[$(answer$n)*pi/180]
+	ans=$(answer$n)&deg; = $h rad
+    !endif
+    ht=!record 39 of lang/remarks.$taal
+    #@"Teken" met de slider of de knoppen van de java applet<br />een hoek $m_alpha van ongeveer $h radialen
+!endif
+# het answer$n moet in graden zijn (dus geen radialen)
+
+:READY
+hoektext=!subst $ht
+customToolBar=" 0 | 40 "
+list_of_things=['angle']; 
+exotext=$empty
+helptext=$empty
+tekst1=&#945; - &#189; &#176;
+tekst2=&#945; + &#189; &#176;
+rr=!record 50 of lang/remarks.$taal
+#@De hoek is $ans
+textanswer$n=$rr
+exotext=!subst <input type="button" value="$tekst1" onclick="document.getElementById('ggbApplet').evalCommand('a=a-(pi/360)')" /><input type="button" value="$tekst2" onclick="document.getElementById('ggbApplet').evalCommand('a=a+(pi/360)')" />
+ss=!record 40 of lang/remarks.$taal
+question$n=$ss
+#@Gegeven een eenheidscirkel (straal =1)<br />$hoektext
+

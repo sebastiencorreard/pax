@@ -1,0 +1,51 @@
+n=$counter
+errortext=$empty
+!if ? isin $(reply$n)
+ goback=0
+ remark$n=$NOK
+ maxscore=0
+ !exit
+!endif
+# speciaal voor exo21
+reply$n=!nospace $(reply$n)
+!if sqrt isin $(reply$n)
+ errortext=!record 40 of lang/remarks.$taal
+ #@Nee, de bedoeling is dat de functie wordt geschreven als een machtsfunctie<br />dus geen wortels (sqrt)
+ goback=1
+ maxscore=$[$maxscore*$P2]
+ !exit
+!endif
+
+!if f(x) isin $(reply$n)
+ max=2
+!else
+ !if y isin $(reply$n)
+  max=1
+ !else
+  errortext=!record 33 of $remarkdir/commonremarks.$taal
+  #Je antwoord moest een vergelijking / functievoorschrift zijn.<br />Even verbeteren.
+  goback=1
+  !exit
+ !endif
+!endif
+chk=!positionof char x in $(reply$n)
+chk=!itemcnt $chk
+!if $chk>$max
+ errortext=!record 41 of lang/remarks.$taal
+ #@Nee, je antwoord <b>$(reply$n)</b> kan echt nog simpeler worden geschreven...
+ goback=1
+ maxscore=$[$maxscore*$P2]
+ !exit
+!endif
+# eerst check op letterlijk overtiepen
+a=$(reply$n)
+g=$(answer$n)
+return=-1
+
+!readproc exos/copy_of_question.proc
+!if $return !=-1
+    goback=$return
+!else
+    !readproc $checkdir/equation.proc
+!endif
+!exit

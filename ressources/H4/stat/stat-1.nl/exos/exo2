@@ -1,0 +1,93 @@
+# 1/8/2008 checked :OK
+n=$counter
+image=0
+mathview=0
+math=0
+helptext=$empty 
+R=$level
+!if $rounding<100
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+    R=$counter
+!endif 
+make_tr=1
+cols=8
+rows=1
+options=3
+checkfile=exos/checkfile1.proc
+wims_read_parm=$empty
+exotext=$empty
+bandjes=!record 4 of lang/remarks.$taal
+#@ !randitem Beatles,Gun'n Roses,Neil Young,Nick Cave & the Bad Seeds,U2,Shakira,Normaal,Marco Bossato,The Fall,The Cramps,Johnny Cash
+bandje=!randitem $bandjes
+jongens=0
+meisjes=0
+Jtotaal=$empty
+Mtabel=$empty
+Jtabel=$empty
+hoofd=$empty
+
+start=!randint 3,9
+tot=!randint 5,10
+eind=$[$start + $tot]
+hhh=!record 5 of lang/remarks.$taal
+#@ <th>Aantal CD's</th>,Jtabel=<td>Aantal Jongens</td>,Mtabel=<td>Aantal Meisjes</td>
+hoofd=!item 1 of $hhh
+Jtabel=!item 2 of $hhh
+Mtabel=!item 3 of $hhh
+
+D= 0,1,2,3,4,5,2,3,4,1,2
+!for p=$start to $eind
+    jongens$p=!randitem $D
+    meisjes$p=!randitem $D
+    jongens=$[$jongens + $(jongens$p)]
+    meisjes=$[$meisjes + $(meisjes$p)]
+    Jtotaal=$[$p*$(jongens$p) + $Jtotaal]
+    Mtotaal=$[$p*$(meisjes$p) + $Mtotaal]
+    hoofd=!append word <th>$p</th> to $hoofd
+    Jtabel=!append word <td>$(jongens$p)</td> to $Jtabel
+    Mtabel=!append word <td>$(meisjes$p)</td> to $Mtabel
+!next p
+
+helptext=<table class=\'zebra_table_h2\'><tr>$hoofd</tr><tr>$Jtabel</tr><tr>$Mtabel</tr></table>
+leden=$[$jongens+$meisjes]
+ss=!record 7 of lang/remarks.$taal
+#@ De fanclub van $bandje heeft $leden leden<br />$jongens jongens en $meisjes meisjes.<br />In de onderstaande tabel zie je hoeveel CD's ze van hun idool hebben<br />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+ans1=$[$Jtotaal/$jongens]
+ans2=$[$Mtotaal/$meisjes]
+ans3=$[($Mtotaal + $Jtotaal)/($jongens + $meisjes)]
+
+!if $R>2
+    options=4
+    extra=!randint 10,20
+    Mextra=!randint 100,200
+    Mextra=$[$Mextra/10]
+    
+    more1=!record 8 of lang/remarks.$taal
+    #@ De club organiseert een speciale leden werfactie<br />Er melden zich $extra jongens met gemiddeld $Mextra CD's als nieuw lid.<br />Hoe groot wordt nu het gemiddelde aantal CD's per fanclublid ?
+    question$n=!append line $ <small>$more1</small> $ to $(question$n)
+    
+    ans4=$[($extra*$Mextra + $Mtotaal + $Jtotaal)/($extra + $meisjes + $jongens)]
+    more2=!record 9 of lang/remarks.$taal
+    #@ Het gemiddelde aantal CD's per lid word nu:<br /><small><b>(</b> $extra nieuwe_leden &times; $Mextra extra_CD's_gemiddeld   + ($Mtotaal CD's_totaal_meisjes) + ($Jtotaal CD's_totaal_jongens)<b>)</b><span size="+1"> &divide;</span> <b>(</b> $extra nieuwe_leden  + $meisjes meisjes + $jongens jongens<b>)</b></small> = $ans4
+    answer$n=$ans1,$ans2,$ans3,$ans4
+!else
+    answer$n=$ans1,$ans2,$ans3
+!endif
+
+description=!record 6 of lang/remarks.$taal
+#@ Het gemiddelde aantal CD's per jongen is $ans1,Het gemiddelde aantal CD's per meisje is $ans2,Het gemiddelde aantal CD's per lid van de fanclub is dus $ans3
+rrr=$empty
+!for p=1 to $options
+    rrr=!append word $ <li>$(description[$p]):&nbsp;<b>$(ans$p)</b></li> $ to $rrr
+!next p
+!if $R>2
+    textanswer$n=<ol>$rrr<li>$more2</li></ol>
+!else
+    textanswer$n=<ol>$rrr</ol>
+!endif
+inputs=$options

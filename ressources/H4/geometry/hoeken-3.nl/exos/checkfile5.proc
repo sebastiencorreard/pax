@@ -1,0 +1,77 @@
+n=$counter
+#var9 is vergelijkinh correcte lijn 
+#var9=($y2/$x2)*x-($c/$x2)
+
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+
+!for p=1 to 4
+ a$p=!item $p of $(reply$n)
+ g$p=!item $p of $(answer$n)
+!next p
+lijn_a=!rawmath $[($a4/$a3)]*x - $[($a4*$a1)/($a3)-$a2]
+
+y1=!evalsubst x=10 in $var9
+y2=!evalsubst x=100 in $var9
+ya1=!evalsubst x=10 in $lijn_a
+ya2=!evalsubst x=100 in $lijn_a
+
+!if NaN isin $ya1$ya2
+ errortext=!record 36 of $remarkdir/commonremarks.$taal
+ goback=1
+ maxscore=$P6
+ !exit
+!endif
+
+!if $y1=$ya1 and $y2=$ya2
+    score=1
+    k1=green
+    k2=graan
+!else
+ chk1=$[$g3/$a3]
+ chk2=$[$g4/$a4]
+ !if $chk1=$chk2
+  score=0.6
+  k1=red
+  k2=green
+  extra=!record 45 of lang/remarks.$taal
+  #@Je hebt de richtingsvector correct
+ !else
+  y1=!evalsubst x=$a1 in $var9
+  !if $y1=$a2
+   k1=green
+   k2=red
+   score=0.5
+   extra=!record 46 of lang/remarks.$taal
+   #@Je hebt de plaatsvector correct
+  !else
+   k1=red
+   k2=red
+   score=0    
+  !endif    
+ !endif
+!endif
+math=0
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK <br />$extra
+        k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+
+reply$n=!mathmlmath \color{$k1} \begin{pmatrix} $a1 \\ $a2 \end{pmatrix} + \lambda  \color{$k2}\begin{pmatrix} $a3 \\ $a4 \end{pmatrix} 
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

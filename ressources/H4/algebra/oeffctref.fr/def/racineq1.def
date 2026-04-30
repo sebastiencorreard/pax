@@ -1,0 +1,177 @@
+!set title=Racine carrée inéquation 1: &radic;(x)>a
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=squareroot, inequations
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=1000
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 4
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+val7=$[rint(-$val6)]
+tmp0=!randint 2, 4
+
+val8=$[rint($(tmp0))]
+val9=&lt;,&le;,&ge;,&gt;
+val10=$[$val6*$val6]
+!if $val6>0 
+
+!ifval ($val6=4)
+val11= 2
+!else
+val11=&radic;($val6)
+!endif
+!else
+
+!ifval ($val6=-4)
+val11= 2
+!else
+val11=&radic;($val7)
+!endif
+!endif
+val12=$val10,&#123;,&#125;,$val11,-$val11,&#93;,&#91;,U,&empty;,0,+&infin;,-&infin;
+!if $val6<0 
+tmp=!trim &empty;	&empty;	&#91;,0,&#59;,+&infin;,&#91;	&#91;,0,&#59;,+&infin;,&#91;
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6=0 
+tmp=!trim &empty;	&#123;,0,&#125;	&#91;,0,&#59;,+&infin;,&#91;	&#93;,0,&#59;,+&infin;,&#91;
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val6>0 
+tmp=!trim &#91;,0,&#59;,$val10,&#91;	&#91;,0,&#59;,$val10,&#93;	&#91;,$val10,&#59;,+&infin;,&#91;	&#93;,$val10,&#59;,+&infin;,&#91;
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8<3 
+!if $val6<=0 
+val14=-10,-11,20,-11
+!endif
+!if $val6>0 
+val14=0,0,$val10,0
+!endif
+!else
+!if $val6<=0 
+val14=0,0,20,0
+!endif
+!if $val6>0 
+val14=$val10,0,20,0
+!endif
+!endif
+!if $val6>0 
+val15=$val10,$val6,$val10,0
+!else
+val15=-10,-11,20,-11
+!endif
+!if $val6>0 
+val16=$val10
+!else
+val16=bidon 
+!endif
+replytype1=dragfill
+replyname1=Solutions
+replygood1=$(val13[$val8;]);$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Résoudre dans &#91;0;+&infin;&#91; l'inéquation :	<div class="wimscenter wims_emph">	&radic;(x) $(val9[$val8]) $val6</div>	S= 
+!read oef/embed.phtml r1,45x30 
+$()	<div class="wims_instruction">	Faire glisser les élements afin de former l'ensemble des solutions.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>L'équation 
+!insmath \sqrt{x}=$val6
+$() 
+!if $val6<0 
+$()n'a pas de solution puisque 
+!insmath \sqrt{x}\geq 0
+$() pour tout réel 
+!insmath x
+$()	 
+!else
+$() a une solution : 
+!insmath $val10
+$() 
+!endif
+$().	<br>
+!if $val6<0 
+$()D'après le signe de la fonction racine carrée (elle est <b>positive</b>), 
+!else
+$() D'après la variation de la fonction racine carrée (elle est <b>stictement croissante</b>), 
+!endif
+$()	<br>On obtient 
+!if $val6>0 or $val8>=3 
+$()(en orange) 
+!endif
+$() l'ensemble des solutions.</p>	<p>	<center> 
+!read oef/draw.phtml 300,300 \
+	xrange -3,20	yrange -5,10	linewidth 2	segment -10,0,20,0, black	segment 0,-10,0,10, black	segment -10,$val6,20,$val6,green	text black,-0.5,0,medium,O	text black,18,-0.1,medium,x	text black,-0.5,9,medium,y	segment $(val15[1]),$(val15[2]),$(val15[3]),$(val15[4]),green	segment $(val14[1]),$(val14[2]),$(val14[3]),$(val14[4]),orange	text green,0.3,$val6,medium,$val6	text orange,$val16,-0.3,medium,$val16	plot blue,sqrt(x) 
+$()	<br>En bleu, la courbe de la fonction racine carrée.	</center></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,14,15,16
+embedcnt=1

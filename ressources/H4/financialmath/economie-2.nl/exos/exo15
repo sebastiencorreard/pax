@@ -1,0 +1,106 @@
+# beurskengetallen I
+rounding=100
+roundingtext=Afronden op twee decimalen
+n=$counter
+mathview=0
+nu=!date +%Y
+jaar1=$[$nu-1]
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+checkfile=exos/precheck1.proc
+make_tr=1
+cols=6
+rows=1
+
+fout=0
+goed=0
+keuze=!randint 0,1
+!if $keuze=1
+    #winst
+    pm=+
+!else
+    #verlies
+    pm=-
+!endif
+intrinsieke_waarde=!randint 6,18
+ans1=!exec moneyprint $[0.5*$intrinsieke_waarde]
+a=!randint 6,20
+b=!randint 1,5
+aantal=$[$a*10000]
+eigenvermogen=$[$aantal*$ans1]
+# bij perc > 57 te vaak winst > reserves !!!
+perc=!randint 25,57
+nominale_waarde=$[ceil($perc*$ans1/100)]
+!if $nominale_waarde=$intrinsieke_waarde
+    nominale_waarde=$[$intrinsieke_waarde - 1]
+!endif
+
+vermogen=$[$aantal*$nominale_waarde]
+reserves=$[$eigenvermogen-$vermogen]
+
+dividend=!randint 5,25
+# die is niet goed: er kon NaN ontstaan !
+# we moeten koers2 een percentage van koers1 laten worden
+# 24/2/2011
+koers1=!randint 30,50
+koers1=$[$koers1*0.5]
+delta=!randint 1,10
+delta=$[$delta*0.5]
+koers2=$[$koers1 $pm $delta]
+!if $koers2=0
+    koers2=$[0.5*$koers1]
+!endif
+tot=!exec moneyprint $nominale_waarde,$koers1,$koers2
+nominale_waarde=$(tot[1])
+koers1=$(tot[2])
+koers2=$(tot[3])
+k=!randint 1,5
+wp=$[$dividend+$k]
+winst=$[$vermogen*$wp/100]
+!if $winst > $reserves
+    # op 8000 keer 100% goed ;laten dit toch staan 20/6/2012
+    winst=$[$reserves*0.9]
+!endif
+
+ss1=<ul>$bedrijf $jaar1<li>Geplaatst aandelenvermogen: &euro; $vermogen</li><li>De reserves, inclusief de nettowinst van &euro; $winst , bedroegen &euro; $reserves</li><li>Nominale waarde van een aandeel &euro; $nominale_waarde</li><li>Dividend percentage $dividend %</li><li>De beurskoers 1 januari $jaar1 &euro; $koers1 en op 31 december $jaar1 &euro; $koers2 </ul>
+
+
+ss2=Van $bedrijf zijn over het verslagjaar $jaar1 de <span style="color:blue">volgende gegevens</span> bekend:<br />Beantwoord de onderstaande vijf vragen :
+    
+ans2=$[$nominale_waarde*$dividend/100]
+ans3=$[100*$ans2/$koers2]
+wpa=!exec moneyprint $[$winst/$aantal]
+ans4=$[$koers2/$wpa]
+ans5=$[100*($ans2 + $koers2 - $koers1 )/$koers1]
+answer$n=$ans1,$ans2,$ans3,$ans4,$ans5
+
+rans3=$[(round(100*$ans3))/100]
+rans4=$[(round(100*$ans4))/100]
+rans5=$[(round(100*$ans5))/100]
+
+helptext=<img src=\'$module_dir/gifs/exo15.jpg\' alt=\'formules\'/>
+question$n=<a onmouseover="return escape('$ss1<hr />$helptext')">$ss2</a>
+
+inputs=5
+
+#description=Intrinsieke waarde,Dividend per aandeel,Dividendrendement,Koers / Winst verhouding,Totale rendement op aandelen in $jaar1
+
+description=a) De intrinsieke waarde van een aandeel op 31 december $jaar1,b) Het beschikbare dividend per aandeel,c) Het dividendrendement per aandeel op 31 december $jaar1,d) De koers / winst verhouding op 31 december $jaar1,e) Het totale rendement op de aandelen in $jaar1
+m_rightarrow=&nbsp;=
+ex1=&euro;
+ex2=&euro;
+ex4=$empty
+ex3=%
+ex5=%
+
+textanswer$n=<ol><li><ul><li>Intrinsieke waarde = eigen vermogen</li><li>Eigen vermogen per aandeel = eigen vermogen <span size+1>&divide;</span> aantal aandelen</li><li>EV = &euro; $vermogen + &euro; $reserves</li><li>Aantal aandelen  = &euro; $vermogen <span size+1>&divide;</span> &euro; $nominale_waarde = $aantal </li><li>Dus &euro; $eigenvermogen <span size+1>&divide;</span> $aantal = &euro; $ans1</li></ul></li><li><ul><li>Dividenpercentage = dividend in procenten van de nominale waarde</li><li>$dividend % van &euro; $nominale_waarde = &euro; $ans2</li></ul></li><li><ul><li>Dividendrendement = beschikbaar dividend <span size+1>&divide;</span> koerswaarde per aandeel &times; 100%</li><li>&euro; $ans2 <span size+1>&divide;</span> $koers2 &times; 100% = $rans3 %</li></ul></li><li><ul><li>Beurskoers <span size+1>&divide;</span> winst per aandeel</li><li>Winst per aandeel : $winst <span size+1>&divide;</span> $aantal = $wpa</li><li>Koers/winst verhouding is $koers2 <span size+1>&divide;</span> $wpa = $rans4 </li></ul></li><li><ul><li>Het totale rendement op aandelen in 2010 = <b>(</b>dividend + (koerwinst of verlies) <b>)</b> / koers beginperiode &times; 100%</li><li>Dus : <b>(</b>$ans2 + $koers2 - $koers1<b>)</b> / $koers1 &times; 100% =  $[($ans2 + $koers2 - $koers1 )] / $koers1 &times; 100% = $rans5 % </li></ul></li></ol>
+!exit
+
+#formule.15.2.gif\begin{array}{l}\textrm{Koers / Winst verhouding = } \displaystyle \frac{\textrm{koers van het aandeel}}{\textrm{winst per aandeel}}\end{array}
+#formule.15.1.gif formula$n=\begin{array}{l}\textrm{dividendrendement = } \displaystyle \frac{\textrm{dividend}}{\textrm{koers van het aandeel}} \times 100 \% \end{array}
+#formula$n=\begin{array}{l}\textrm{Totaal rendement } = \displaystyle \frac{\textrm{dividend + Koerswinst (of verlies)}}{\textrm{koers begin periode}} \times 100 \% \end{array}
+
+#useropts=421
+# 7/6/2013 verandering in popup formules
+#formula$n=\begin{array}{ll} \textrm{bij vraag c) } \,\,&\,\,\color{red} \begin{array}{l}\textrm{Dividendrendement = } \displaystyle \frac{\textrm{beschikbaar dividend}}{\textrm{ koerswaarde }} \times 100 \% \end{array} \\ \textrm{bij vraag d) } \,\,&\,\,\color{red} \begin{array}{l}\textrm{Koers / Winst verhouding = } \displaystyle \frac{\textrm{koerswaarde}}{\textrm{nettowinst per aandeel}}\end{array} \\ \textrm{bij vraag e) } \,\,&\,\,\color{red} \begin{array}{l}\textrm{Totaal rendement } = \displaystyle \frac{\textrm{beschikbaar dividend + koersverandering}}{\textrm{koerswaarde}} \times 100 \% \end{array} \end{array}
+
+

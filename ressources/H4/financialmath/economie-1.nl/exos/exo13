@@ -1,0 +1,186 @@
+# Belasting III (box 1)
+n=$counter
+mathview=0
+# beperk aantal mogelijke vragen tot het reeele aantal subvraagjes.
+!if $total_exos>2
+    total_exos=2
+!endif
+#6/7/2013 new_number.poc
+#checkfile=exos/precheck1.proc
+checkfile=exos/precheck3.proc
+inputs=1.1
+cols=10
+# leg alles vast tijdens de eerste vraag
+# bewaar de gegevens die later nodig zijn in var1...var9
+!if $counter=1
+    # 7/6/2013 +/- 2 euro
+    var1=2
+    var2=100
+    tarief11=!randint 500,680
+    tarief11=$[$tarief11/20]
+    tarief12=!randint 200,300
+    tarief12=$[$tarief12/20]
+    
+    tarief3=42
+    tarief4=52
+
+    tar1=!randint 50,75
+    tar1=$[$tar1/20]
+    tar2=!randint 80,125
+    tar2=$[$tar2/20]
+    tar2=$[$tar2+$tar1]
+    
+    premie11=$[$tarief11 - $tar1]
+    premie12=$[$tarief12 - $tar1]
+    tarief21=$[$tar2 + $premie11]
+    tarief22=$[$premie12 + $tar2]
+    
+    
+    leeftijd=!randint 28,75
+    !if $leeftijd>64
+    	keuze=1
+	tarief1=$tarief12
+	tarief2=$tarief22
+	h1=5
+	h2=20
+	a1=1
+	a2=4
+    !else
+	keuze=!randitem 1,1,2,3
+	tarief1=$tarief11
+	tarief2=$tarief21    
+	h1=20
+	h2=80
+	a1=3
+	a2=7
+    !endif
+    !if $keuze=1
+	brutoinkomen=!randint 20,50
+	woningforfait=!randint 100,200
+        hypotheek=!randint $h1,$h2
+	aflossing=!randint $a1,$a2
+    !else
+	!if $keuze=2
+	    brutoinkomen=!randint 51,100
+	    woningforfait=!randint 100,200
+	    hypotheek=!randint 200,300
+	    aflossing=!randint 4,8
+	!else
+	    brutoinkomen=!randint 101,160
+	    woningforfait=!randint 900,1500
+	    hypotheek=!randint 300,600
+	    aflossing=!randint 5,15
+	!endif
+    !endif
+    brutoinkomen=$[$brutoinkomen*1000]
+    woningforfait=$[$woningforfait*10]
+    hypotheek=$[$hypotheek*1000]
+    aflossing=$[$aflossing*1000]
+
+    schijf1=!randint 13000,16000
+    d1=!randint 10000,15000
+    schijf2=$[$schijf1 + $d1]
+    d1=!randint 15000,23000
+    schijf3=$[$schijf2 + $d1]
+    heffingskorting=!randint 300,400
+    heffingskorting=$[$heffingskorting*5]
+    rente1=!randint 20,30
+    rente1=$[$rente1/5]
+    d1=!randint 3,6
+    rente2=$[$rente1+$d1/5]
+    k=!randitem 1,0
+    !if $k=1
+	# verhogen
+	veranderd=verhoogd
+    !else
+	# verlagen
+	veranderd=verlaagd
+	rente=$rente1
+	rente1=$rente2
+	rente2=$rente
+    !endif
+
+    sex=!randint 0,1
+    !if $sex=1
+	Heer=De heer
+	heer=de heer
+	hij=hij
+	zijn=zijn
+	Zijn=Zijn
+    !else
+	Heer=Mevrouw
+	heer=mevrouw
+	hij=zij
+	zijn=haar
+	Zijn=Haar
+    !endif
+    achternamen=!record 63 of lang/remarks.$taal
+    achternaam=!randitem $achternamen
+    tabel1=<table><tr><th wrap=\'nowrap\'>Belastbaar inkomen uit werk en eigen woning</th></tr><tr><th><table class=\'grid_table\'><tr><th>Schijf</th><th>vanaf</th><th>t/m</th></tr><tr><td>1</td><td>&minus;</td><td>&euro;$schijf1</td></tr><tr><td>2</td><td>&euro;$schijf1</td><td>&euro;$schijf2</td></tr><tr><td>3</td><td>&euro;$schijf2</td><td>&euro;$schijf3</td></tr><tr><td>4</td><td>&euro;$schijf3</td><td>&minus;</td></tr></table></th></tr></table>
+    tabel2=<table><tr><th wrap=\'nowrap\'>Inkomstenbelasting en premie volksverzekeringen</th></tr><tr><th><table class=\'grid_table\'><tr><th>Schijf</th><th>tot 65 jaar</th><th>65 jaar en ouder</th></tr><tr><td>1</td><td nowrap=\'nowrap\'>$tar1 % belasting <hr />$premie11 % premies (totaal $tarief11 %)</td><td nowrap=\'nowrap\'>$tar1 % belasting <hr /> $premie12 % premies (totaal $tarief12 %)</td></tr><tr><td>2</td><td nowrap=\'nowrap\'>$tar2 % belasting <hr /> $premie11 % premies (totaal $tarief21 %)</td><td nowrap=\'nowrap\'>$tar2 % belasting <hr /> $premie12 % premies (totaal $tarief22 %)</td></tr><tr><td>3</td><td>$tarief3 %</td><td>$tarief3 %</td></tr><tr><td>4</td><td>$tarief4 %</td><td>$tarief4 %</td></tr></table></th></tr></table>
+    
+    helptext=<table style=\'background-color:#ffffff\'><tr><th style=\'vertical-align:top\'>$tabel1</th><th style=\'vertical-align:top\'>$tabel2</th></tr></table>
+    
+    vraagtxt=$Heer $achternaam ($leeftijd jaar) had in een bepaald jaar een bruto-inkomen van &euro; $brutoinkomen <br />en een bijtelling voor het eigenwoningforfait van &euro; $woningforfait.<br />$Zijn enige aftrekpost was de rente van een hypothecaire lening.<br />Deze lening bedroeg aan het begin  van het jaar &euro; $hypotheek .<br />Op 1 juli loste $hij &euro;$aflossing op de lening af.<br />Op die datum werd tevens de rente $veranderd van $rente1 % naar $rente2 % .<br />De heffingskorting voor de $heer $achternaam was &euro;$heffingskorting.<br />De tarieven van de loon en inkomstenbelasting van dat betreffende jaar kunnen met <span style="color:blue">deze tabel</span> worden weergegeven.
+    
+
+    # de eerste vraag...van de 3
+    
+    hypo=$[floor(0.5*$rente1/100*$hypotheek)+floor(0.5*$rente2/100*($hypotheek-$aflossing))]
+    belastbaarinkomen=$[$brutoinkomen + $woningforfait - $hypo]
+    
+    !if $belastbaarinkomen > $schijf3
+	schijf4=$[$belastbaarinkomen - $schijf3]
+	tebetalenbelasting=$[floor($schijf4*$tarief4/100) + floor(($schijf3-$schijf2)*$tarief3/100) + floor(($schijf2-$schijf1)*$tarief2/100) + floor($schijf1*$tarief1/100) - $heffingskorting]
+	marginalebelastingdruk=$tarief4
+	tebetalentext=$tarief4 % van ( &euro;$belastbaarinkomen &minus; &euro;$schijf3) + $tarief3 % van ( &euro;$schijf3 &minus; &euro;$schijf2) + $tarief2 % van ( &euro;$schijf2 &minus;  &euro;$schijf1) + $tarief1 % van &euro;$schijf1
+    !else
+	!if $belastbaarinkomen > $schijf2
+	    schijf3=$[$belastbaarinkomen - $schijf2]
+	    tebetalenbelasting=$[floor($schijf3*$tarief3/100) + floor(($schijf2-$schijf1)*$tarief2/100) + floor($schijf1*$tarief1/100) - $heffingskorting]
+	    marginalebelastingdruk=$tarief3
+	    tebetalentext=$tarief3 % van ( &euro;$belastbaarinkomen &minus; &euro;$schijf2) + $tarief2 % van ( &euro;$schijf2 &minus;  &euro;$schijf1) + $tarief1 % van &euro;$schijf1
+	!else
+	    !if $belastbaarinkomen > $schijf1
+		marginalebelastingdruk=$tarief2
+		schijf2=$[$belastbaarinkomen - $schijf1]
+		tebetalenbelasting=$[floor($schijf2*$tarief2/100) + floor($schijf1*$tarief1/100) - $heffingskorting]	
+		tebetalentext=$tarief2 % van ( &euro;$belastbaarinkomen &minus; &euro;$schijf1) + $tarief1 % van &euro;$schijf1
+	    !else
+		marginalebelastingdruk=$tarief1
+		tebetalenbelasting=$[floor($belastbaarinkomen*$tarief1/100) - $heffingskorting]
+		tebetalentext=$tarief1 % van &euro;$belastbaarinkomen
+	    !endif
+	!endif
+    !endif
+    answer1=$tebetalenbelasting
+    gemiddeldebelastingdruk=$[(round(10*$answer1/$brutoinkomen*100))/10]
+    answer2=$gemiddeldebelastingdruk\
+    $marginalebelastingdruk
+    textanswer1=<ul>Belastbaar inkomen <li>De hypotheekrente is : <br />0.5 &times; $[$rente1/100] &times;$hypotheek + 0.5 &times; $[$rente2/100] &times;($hypotheek-$aflossing)  = &euro; $hypo</li><li>Belastbaar inkomen is :<br /> bruto-inkomen + eigenwoningforfait &minus; hypotheekrente = <br />&euro; $brutoinkomen + &euro;$woningforfait &minus; &euro;$hypo = &euro; $belastbaarinkomen</li><li>Te betalen belasting is :<br /> $tebetalentext  - heffingskorting = &euro;$tebetalenbelasting</li></ul>
+	
+    textanswer2=De gemiddelde belastingdruk voor $heer $achternaam is: $answer1 / $brutoinkomen &times; 100 % = $gemiddeldebelastingdruk %<br />De marginale belastingdruk is $marginalebelastingdruk %
+    
+    question1=<a onmouseover="return escape('$helptext')">$vraagtxt</a><hr class=\'schaersvoorde_hr\' />a) Bereken het bedrag dat $heer $achternaam over het betreffende jaar aan belasting en premies diende te betalen.<br /><small><em>Reken in gehele euro's en rond steeds naar beneden af.</em></small>
+
+    question2=<a onmouseover="return escape('$helptext')">$vraagtxt</a><hr class=\'schaersvoorde_hr\' />b) Bereken de gemiddelde en marginale belastingdruk voor $heer $achternaam [op 1 decimaal nauwkeurig]
+    
+    description=Belasting &amp; premies    
+    ex1=&euro;
+!endif
+
+make_tr=1
+questiontype=0
+
+!if $counter>1
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+!endif
+!if $n=2
+    # +/- 0.1 %
+    var1=0.1,0.1
+    var2=10,10
+    inputs=2
+    description=Gemiddelde belasting druk,Marginale belasting druk
+    ex1=%
+    ex2=%
+!endif

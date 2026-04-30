@@ -1,0 +1,148 @@
+!set title=Calcul d'écart-type (liste)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=standard_deviation
+precision=10000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 12
+
+val6=$[rint($(tmp0))]
+val7=
+!for val8 =1 to $val6 
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+tmp0=!append item $val9 to $val7
+
+val7=$(tmp0)
+!next
+tmp=!trim $val7
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=$[$(val10[1])]
+!for val8 =2 to $val6 
+val11=$[rint($val11+$(val10[$val8]))]
+!next
+t_=!rawmath $val11/$val6
+val11=!exec pari print($t_)
+tmp0=!replace internal , by  + in $val7
+
+val12=$(tmp0)
+!readproc slib/stat/variance $val7 
+tmp0=$slib_out
+val13=$(tmp0)
+t_=!replace internal \( by ( in sqrt($(val13[1]))
+tmp0=!exec maxima $t_
+
+val14=$[$(tmp0)]
+t_=!replace internal \( by ( in mod(floor(1000*$val14),10)
+tmp0=!exec maxima $t_
+
+val15=$[rint($(tmp0))]
+val14=$[floor(100*$val14)/100]
+
+!ifval ($val15<5)
+val16=$[ $val14]
+!else
+val16=$[$val14+0.01]
+!endif
+tmp0=!replace internal , by  \(\,;\,) in $val7
+
+val7=$(tmp0)
+replytype1=range
+replyname1=
+replygood1=!rawmath $val14,$val14+0.01,$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer l'écart-type de la liste de valeurs suivante :	<div class="wimscenter">$val7	</div>	<div class="wims_question"><label for "reply1">L'écart-type est égal à :</label>  
+!read oef/embed.phtml r1 
+$()</div>	<div class=wims_instruction>On donnera une valeur approchée à 0.01 près. Le séparateur décimal est le point.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() 
+!read oef/special.phtml glossary mathematics/statistics/fr/standard_deviation,tooltip=[L'écart-type,300px]  
+$() est la racine carré de la  
+!read oef/special.phtml glossary mathematics/statistics/fr/variance,tooltip=[variance,300px]  
+$().	On a donc 
+!insmath \sigma=\sqrt{\frac{\sum\limits_{i=1}^$val6 (x_i-\bar x)^2}{n} }
+$(), où :	<ul><li> 
+!insmath n
+$() est l'effectif total, ici : 
+!insmath $val6
+$()	</li><li> les 
+!insmath x_i
+$() sont les valeurs de la série statistique : 
+!insmath x_1=$(val10[1])
+$(), 
+!insmath x_2=$(val10[2])
+$() etc 
+!insmath x_$val6=$(val10[$val6])
+$().	</li><li> 
+!insmath \bar x
+$() est la moyenne de la série : 
+!insmath \frac{$val12}{$val6} \approx $val11
+$().	</li></ul>	      
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12
+embedcnt=3

@@ -1,0 +1,83 @@
+# CHECKFILE AANPASSEN : DECIMALE GETALLEN MET EEN KOMMA CORRIGEREN !!!
+math=0
+mathview=0
+# spreadsheet gemiddelde van een kolom
+n=$counter
+tsv_file=som_$counter.tsv
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en optellen van kolommen\
+\
+"kolom 1"\
+
+
+sum=0
+max=!randint 300,500
+rnd=!randitem 1,2,3
+rounding=$[10^$rnd]
+!for p=1 to $max
+ d1=!randint 1,99
+ sum=$[$sum + $d1]
+ data=!append line $d1 to $data
+!next p
+
+answer$n=$[$sum/$max]
+ans=$[(round($rounding*$sum/$max))/$rounding]
+
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\' <hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br /><em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />Bereken het gemiddelde van de getallen in kolom A.<br />Rond dit antwoord af op $rnd decimalen.<br />Stuur dit antwoord op naar WIMS als antwoord.
+ 
+
+
+
+textanswer$n=Er zijn $max (A1 t/m A6 zijn leeg) cellen met getallen...de som van deze cellen is $sum<br />\
+Het goede antwoord is dan $sum / $max &asymp; $(answer$n)\
+<ul>\
+<li>open het bestand </li>\
+<li>ga met je muis in <b>A$[7+$max]</b> staan</li>\
+<li>bereken de som van kolom A...in formulebalk : = SOM(A7:A$[6+$max]) [ENTER]</li>\
+<li>ga met je muis in een lege cel staan...in formulebalk : =  A$[7+$max] / $max  [ENTER]</li>\
+<li>rond dit getal af op $rnd decimalen<br />\
+Dit kan ook mbv van de spreadsheet...in formulebalk : <b>= AFRONDEN(SOM(A7:A$[6+$max]);$rnd)</b> [ENTER] </li>\
+<li>Let op: als je Engels als taal hebt : <b>= ROUND(SUM(A7:A$[6+$max]);$rnd)</b> [ENTER]</li>\
+</ul>\
+TIP: je vindt het aantal <b>niet-lege-cellen-met-getallen</b> in kolom A door <b>= AANTAL(A:A)<b/> of in een engelse versie <b>=COUNT(A:A)</b>
+
+checkfile=$checkdir/number.proc
+var1=yes
+inputs=1.1
+cols=5
+rows=10
+make_tr=1
+description=Gemiddelde waarde in kolom A :
+ex1=$empty 
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

@@ -1,0 +1,103 @@
+checkfile=$checkdir/number.proc
+arglist=x
+# meaning the answer should be in the form 'x=123'
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+#var3=x
+math=0
+questiontype=0
+embed=1
+cols=20
+rows=2
+image=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=2
+mathviewpanel=$module_title:x=:and:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+question$n=!record 62 of lang/remarks.$taal
+#@ Los op:<br /><small><em>bereken dus de waarden van x</em><br />noteer bij meerdere oplossingen iets als:<br /><em>x</em>=1 en <em>x</em>=2/3 of zo...<br />en bij breuken graag het antwoord vereenvoudigen.</small>
+!if $R=1
+    # 1/a*x^-b = 1/c
+    # 1/(a*x^b)=1/c
+    # ax^b=c
+    # x^b=c/a => x=(c/a)^(1/b)
+    a=!randitem 2,3,4,5,6
+    f=!randitem 2,3,4,5
+    exp=$[-1*($counter+1)]
+    b=$[-1*$exp]
+    c=$[$f*$a]
+    x=$f^(1/$b)
+    xx=$f^{\textstyle 1/$b}
+    formula$n=\frac{1}{$a} \cdot x^{\textstyle $exp} = \frac{1}{$c} 
+    applettext=!nospace 1/($a) * x^($exp) = 1/($c) ->
+    !if $[gcd($exp,2)]=2
+    	#even
+	answer$n=$x,-$x
+	texanswer$n=\left[ \begin{array}{l} \frac{1}{$a} \cdot x^{\textstyle $exp} = \frac{1}{$c} \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}}= \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{\textstyle  $b} \of{$f} = $xx \wedge x=-$xx \end{array} \right.
+    !else
+	#oneven
+	answer$n=$x
+	texanswer$n=\left[ \begin{array}{l} \frac{1}{$a} \cdot x^{\textstyle $exp} = \frac{1}{$c} \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}} = \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{ \textstyle  $b} \of{$f} = $xx  \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R=2
+    # e/(e*a)*x^-b= 1/c => 1/a*x-b =1/c 
+    e=!randitem 2,3,4,5
+    a=!randitem 2,3,4,5,6
+    f=!randitem 2,3,4,5
+    exp=$[-1*($counter+1)]
+    b=$[-1*$exp]
+    c=$[$f*$a]
+    x=$f^(1/$b)
+    xx=$f^{\textstyle 1/$b}
+    formula$n=\frac{$e}{$[$e*$a]} \cdot x^{\textstyle $exp} = \frac{1}{$c} 
+    applettext=!nospace $e/($[$e*$a]) * x^($exp) = 1/($c) ->
+    !if $[gcd($exp,2)]=2
+    	#even
+	answer$n=$x,-$x
+	texanswer$n=\left[ \begin{array}{l} \frac{$e}{$[$e*$a]} \cdot x^{\textstyle $exp} = \frac{1}{$c}  \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}}= \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{ \textstyle  $b} \of{$f} = $xx \wedge x=-$xx \end{array} \right.
+    !else
+	#oneven
+	answer$n=$x
+	texanswer$n=\left[ \begin{array}{l} \frac{$e}{$[$e*$a]} \cdot x^{\textstyle $exp} = \frac{1}{$c} \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}} = \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{ \textstyle  $b} \of{$f} = $xx  \end{array} \right.
+    !endif
+    
+ !exit
+!endif 
+
+!if $R>2
+    # e/a*x^-b = e*e/c*e
+    # 1/(a*x^b)=1/c
+    # ax^b=c
+    # x^b=c/a => x=(c/a)^(1/b)
+    e=!randitem 2,3,4
+    p=!randitem 1,2,3,4
+    a=$[$e+$p]
+    f=!randitem 2,3,4,5
+    exp=$[-1*($counter+1)]
+    b=$[-1*$exp]
+    c=$[$f*$a]
+    x=$f^(1/$b)
+    xx=$f^{\textstyle 1/$b}
+    formula$n=\frac{$e}{$a} \cdot x^{\textstyle $exp} = \frac{$[$e*$e]}{$[$c*$e]}
+    applettext=!nospace $e/$a * x^($exp) = $[$e*$e]/($[$c*$e]) ->
+    !if $[gcd($exp,2)]=2
+    	#even
+	answer$n=$x,-$x
+	texanswer$n=\left[ \begin{array}{l} \frac{$e}{$a} \cdot x^{\textstyle $exp} = \frac{$[$e*$e]}{$[$c*$e]}  \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}}= \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{ \textstyle  $b} \of{$f} = $xx \wedge x=-$xx \end{array} \right.
+    !else
+	#oneven
+	answer$n=$x
+	texanswer$n=\left[ \begin{array}{l} \frac{$e}{$a} \cdot x^{\textstyle $exp} = \frac{$[$e*$e]}{$[$c*$e]}  \rightarrow \\ \frac{1}{$a \cdot x^{\textstyle $b}} = \frac{1}{$c} \rightarrow \\ $a \cdot x^{\textstyle $b} = $c \rightarrow \\ x = \root{ \textstyle  $b} \of{$f} = $xx  \end{array} \right.
+    !endif
+ !exit
+!endif 
+

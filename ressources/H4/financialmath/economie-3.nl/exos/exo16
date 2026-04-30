@@ -1,0 +1,95 @@
+# Arbeidsmarkt
+#
+var1=yes
+make_tr=1
+n=$counter
+total_exos=5
+mathview=0
+calculator=1
+inputs=1.1
+cols=10
+checkfile=exos/precheck1.proc
+math=0
+questiontype=0
+m_rightarrow=$empty
+!if $counter=1
+    nu=!date +%Y
+    t=!randint 1,10
+    jaar=$[$nu-$t]
+
+    bgb=!randint 7000,13000
+    perc1=!randint 65,80
+    bb=$[round(($perc1/100)*$bgb)]
+    perc2=!randint 86,98
+    wgp=$[round(($perc2/100)*$bb)]
+    perc3=!randint 75,90
+    wgj=$[round(($perc3/100)*$wgp)]
+    perc4=!randint 6,20
+    vac=$[round(($perc4/1000)*$wgp)]
+    tabelletje=<table class=\'zebra_table_h2\'><tr><th>Kengetallen arbeidsmarkt</th><th>$jaar</th></tr><tr><td>Beroepsgeschikte bevolking (&times;1000 personen)</td><td>$bgb</td></tr><tr><td>Beroepsbevolking (&times;1000 personen)</td><td>$bb</td></tr><tr><td>Werkgelegenheid (&times;1000 personen)</td><td>$wgp</td></tr><tr><td>Werkgelegenheid (&times;1000 jaren)</td><td>$wgj</td></tr><tr><td>Vacatures (&times;1000)</td><td>$vac</td></tr></table>
+    var6=Hoe groot was het arbeidsaanbod in $jaar ? : ,Hoe groot was de arbeidsvraag in $jaar ? :,Bereken het werkloosheidspercentage in $jaar : ,Bereken de participatiegraad voor $jaar : ,Bereken de p/a-ratio voor $jaar :
+    
+    answer1=$[$bb*1000]
+    textanswer1=Arbeidsaanbod = Beroepsbevolking.<br />Dus is $(var6[1]) = $bb &times; 1000 is $answer1 personen.
+    question1=!subst <a onmouseover="return escape('$tabelletje')"><span class="schaersvoorde_link">Hier</span>  staan de gegevens over vraag en aanbod <br /> op de arbeidsmarkt in $jaar<br />Rond je eindantwoord af op hele personen</a>
+
+    answer2=$[$wgp*1000]
+    textanswer2=Arbeidsvraag = Werkgelegenheid.<br />Dus is  $(var6[2]) = $wgp &times; 1000 is $answer2 personen.	
+    question2=!subst <a onmouseover="return escape('$tabelletje')"><span class="schaersvoorde_link">Hier</span>  staan de gegevens over vraag en aanbod <br /> op de arbeidsmarkt in $jaar<br />Rond je eindantwoord af op hele personen</a>
+
+    answer3=$[100*($bb - $wgp)/$bb]
+    ans3=$[(round(10*$answer3))/10]
+    werk=$[($bb - $wgp)*1000]
+    texanswer3=\begin{array}{l} \begin{array}{l.l.l-l.} Beroepsbevolking & = & $[$bb*1000]  & \\  Werkgelegenheid & = & $[$wgp*1000] & - \\ \hline Werkeloosheid  & = & $werk &  \end{array} \\ \text{werkeloosheidspercentage } = \frac{\text{werkeloosheid in personen}}{\textrm{beroepsbevolking}} \times 100 \%  = \frac{$werk}{$[$bb*1000]} \times 100 \% = $ans3 \% \end{array}
+    question3=!subst <a onmouseover="return escape('$tabelletje')"><span class="schaersvoorde_link">Hier</span>  staan de gegevens over vraag en aanbod <br /> op de arbeidsmarkt in $jaar</a>
+
+    answer4=$[100*($bb/$bgb)]
+    ans4=$[(round(10*$answer4))/10]
+    texanswer4=\text{participatiegraad} = \frac{\textrm{beroepsbevolking}}{ \textrm{beroepsgeschikte bevoking}} \times 100\% = \frac{$[$bb*1000]}{$[$bgb*1000]} \times 100 \% \approx $ans4 \% 
+    question4=!subst <a onmouseover="return escape('$tabelletje')"><span class="schaersvoorde_link">Hier</span>  staan de gegevens over vraag en aanbod <br />op de arbeidsmarkt in $jaar</a>
+
+    answer5=$[$wgp/$wgj]
+    ans5=$[(round(100*$answer5))/100]
+    texanswer5= \text{p/a -ratio} = \frac{\textrm{werkgelegenheid in personen}}{\textrm{werkgelegenheid in arbeidjaren}} =  \frac{$[$wgp*1000]}{$[$wgj*1000]} \approx $ans5 
+    question5=!subst <a onmouseover="return escape('$tabelletje')"><span class="schaersvoorde_link">Hier</span>  staan de gegevens over vraag en aanbod <br />op de arbeidsmarkt in $jaar</a>
+    
+!endif
+#mytexsize=+4
+#formula1=\begin{array}{l} \textrm{p/a-ratio}=\frac{\textrm{Werkgelegenheid in personen}}{\textrm{Werkgelegenheid in arbeidsjaren}}\end{array}
+description=$(var6[$counter])
+!if $n=1
+    roundingtext=Rond je eindantwoord af op hele personen
+    formuleplaatje=$roundingtext
+    ex1=personen
+    rounding=1
+!else
+    !if $n=2
+	rounding=1
+	ex1=personen
+	roundingtext=Rond je eindantwoord af op hele personen
+	formuleplaatje=$roundingtext
+    !else
+	!if $n=3
+	    rounding=10
+	    ex1=%
+	    roundingtext=Rond je eindantwoord af op &eacute;&eacute;n decimaal nauwkeurig.
+	    formuleplaatje=<img src=\'$module_dir/gifs/formule1.exo16.gif\' alt=\'plaatje\' />
+	    
+	!else
+	    !if $n=4
+		rounding=10
+		ex1=%
+		roundingtext=Rond je eindantwoord af op &eacute;&eacute;n decimaal nauwkeurig.
+		formuleplaatje=<img src=\'$module_dir/gifs/formule2.exo16.gif\' alt=\'plaatje\' />
+	    !else
+		ex1=$empty
+		rounding=100
+		roundingtext=Rond je eindantwoord af op twee decimalen nauwkeurig.
+		formuleplaatje=<img src=\'$module_dir/gifs/formule3.exo16.gif\' alt=\'plaatje\' />
+	    !endif
+	!endif
+    !endif
+!endif
+helptext=$formuleplaatje
+
+

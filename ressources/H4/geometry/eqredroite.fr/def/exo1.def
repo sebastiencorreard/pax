@@ -1,0 +1,177 @@
+!set title=Lecture graphique d'une équation de droite
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 1,2,3,3,3
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+val7=$[rint(0)]
+tmp0=!randint 1, 5
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -5, 5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+!while  $val10=$val9   
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+!endwhile
+val11=$[rint($val8)]
+t_=!rawmath ($val10-$val9)/($val8-$val7)
+val12=!exec pari print($t_)
+t_=!rawmath $val9-$val12*$val7
+val13=!exec pari print($t_)
+!if $val6=1 
+val7=$[rint($val8)]
+!endif
+!if $val6=2 
+val10=$[rint($val9)]
+!endif
+!if $val6=2 
+val13=$[rint($val9)]
+!endif
+
+!ifval $val13=0
+val14=y=$val12*x
+!else
+val14=y=$val12*x+$val13
+!endif
+tmp0=!item $val6 of x=$val11+0*y,y=$val13+0*x,$val14
+
+val15=$(tmp0)
+t_=!replace internal \( by ( in $val15
+tmp0=!exec maxima $t_
+
+val16=$(tmp0)
+val17=vline $val11,0, red
+val18=hline 0,$val13, red
+val19=plot red,$val12*x+$val13
+tmp0=!item $val6 of $val17,$val18,$val19
+
+val20=$(tmp0)
+val21=xrange -5.2, 5.2	     yrange -5.2, 5.2	     parallel -6,-6,6,-6,0,1,12, grey	     parallel -6,-6,-6,6,1,0,12, grey	     line 1,-0.1,1,0.1, black	     line -0.1,1,0.1,1, black	     text black,-0.3,-0.1,medium,O	     text black,0.9,-0.1,medium,I	     text black,-0.3,1.1,medium,J	     linewidth 2	     arrow -5.2,0,5.2,0,15,black	     arrow 0,-5.2,0,5.2,15,black	     
+!readproc oef/draw.phtml  400,400  \
+     $val21	     vline $val11,0, red  
+tmp0=$ins_url
+val22=$(tmp0)
+!readproc oef/draw.phtml  400,400   \
+     $val21	     hline 0,$val13, red  
+tmp0=$ins_url
+val23=$(tmp0)
+!readproc oef/draw.phtml  400,400   \
+    $val21	     plot red,$val12*x+($val13)  
+tmp0=$ins_url
+val24=$(tmp0)
+tmp0=!item $val6 of $val22,$val23,$val24
+
+val25=$(tmp0)
+replytype1=equation
+replyoption1=noanalyzeprint 
+replyname1=\($val16)
+replygood1=!rawmath $val15
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class='enonce'>Dans le repère 
+!insmath (O;I,J)
+$(), la droite dessinée ci-dessous en rouge a pour pour	 équation réduite  
+!read oef/embed.phtml reply 1,12 
+$() . </div>		<div class="wimscenter">  	 	    <img src = "$val25" alt="droite qui passe par A($val7;$val9) et B($val8;$val10) "/>	  </div>	
+$()
+!exit
+
+:hint
+$()		<ul>	 <li>Si la droite est parallèle à l'axe des ordonnées et l'équation réduite est de la forme 
+!insmath x=k
+$() où 
+!insmath k
+$() est l'abscisse commune des points.	 <div class="wimscenter">	 	 </li>	<li>Si la droite est parallèle à l'axe des abscisses et l'équation réduite est de la forme 
+!insmath y=p
+$() où 
+!insmath p
+$() est l'ordonnée commune des points.	</li>	<li>	Dans tous les autres cas, la droite l'équation réduite est de la forme 
+!insmath y=m x+p
+$() où 
+!insmath m=\frac{\Delta y}{\Delta x}
+$() et 
+!insmath p
+$() est l'ordonnée du point d'intersection de la droite avec l'axe des ordonnées.		</li>	</ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>L'équation réduite de la droite est 
+!insmath $val16
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,16,25
+embedcnt=1

@@ -1,0 +1,185 @@
+!set title=Cocher le zéro d'une fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+author=YAMEOGO Joachim
+email=yameogo@math.unice.fr
+
+ansorder=r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+!for val7 =1 to 4 
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in ($val8)/($val9);
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+tmp0=!append item $val10 to $val6
+
+val6=$(tmp0)
+!if $val7=1 
+val11=$[rint($val8)]
+val12=$[rint($val9)]
+!endif
+!if $val7=2 
+val13=$[rint($val8)]
+val14=$[rint($val9)]
+!endif
+!next
+val15=$(val6[1])
+val16=$(val6[2])
+val17=$(val6[3])
+t_=!replace internal \( by ( in ($(val6[4])+($val16)*($val17))/($val15);
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in (($val15)*x+($val16))/(($val17)*x+($val18));
+tmp0=!exec maxima $t_
+
+val19=$(tmp0)
+tmp0=!texmath $val19=0
+
+val19=$(tmp0)
+val20=$[rint(-$val12*$val13)]
+val21=$[rint($val11*$val14)]
+tmp0=!shuffle -3,-2,-1,1,2,3
+
+val22=$(tmp0)
+val23=
+!for val7 =1 to 5 
+val8=$[rint(($val20)*($(val22[$val7])))]
+val9=$[rint(($val21)*($(val22[$val7])))]
+tmp0=!texmath ($val8)/($val9)
+
+tmp1=!append item $(tmp0) to $val23
+
+val23=$(tmp1)
+!next
+tmp=!nonempty items $val23
+
+tmp0=!randitem $tmp
+val24=$(tmp0)
+tmp0=!shuffle -4,-3,-2,-1,1,2,3,4
+
+val25=$(tmp0)
+val26=
+!for val7 =1 to 5 
+t_=!replace internal \( by ( in (-$val16)/($val15)+(1/($(val25[$val7])));
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+tmp0=!texmath $val27
+
+tmp1=!append item $(tmp0) to $val26
+
+val26=$(tmp1)
+!next
+tmp0=!append item $val24 to $val26
+
+val26=$(tmp0)
+tmp0=!shuffle 6
+
+val28=$(tmp0)
+tmp0=!positionof item 6 in $val28
+
+val29=$[rint($(tmp0))]
+replytype1=radio
+replyname1=
+replygood1=$val29;1,2,3,4,5,6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<center>	<table>	  <tr>	    <td align=center>	      <p style="background-color:lightblue">	      Résoudre dans 
+!insmath \RR
+$() l'équation  	      <br>	      
+!insmath $val19
+$() &nbsp; . 	      <br>	      Cocher la bonne réponse dans la liste ci-dessous. 	      </p>	    </td>	  </tr>	</table>	</center>	<br>	<center>	  <table  cellpadding=4 border=4>	    <tr>	      <td align=center bgcolor=antiquewhite>	         
+!read oef/embed.phtml reply 1,1 
+$()	      </td>	      <td align=center bgcolor=antiquewhite>	        &nbsp; 
+!insmath $(val26[$(val28[1])])
+$() &nbsp;	      </td>	      <td bgcolor=white align=center>	        &nbsp; &nbsp; 	      </td>	      <td align=center bgcolor=silver>	         
+!read oef/embed.phtml reply 1,2 
+$()	      </td>	      <td align=center bgcolor=silver>	        &nbsp; 
+!insmath $(val26[$(val28[2])])
+$() &nbsp;	      </td>	    </tr>	    <tr>	      <td align=center bgcolor=silver>	         
+!read oef/embed.phtml reply 1,3 
+$()	      </td>	      <td align=center bgcolor=silver>	        &nbsp; 
+!insmath $(val26[$(val28[3])])
+$() &nbsp;	      </td>	      <td bgcolor=white align=center>	        &nbsp; &nbsp; 	      </td>	      <td align=center bgcolor=antiquewhite>	         
+!read oef/embed.phtml reply 1,4 
+$()	      </td>	      <td align=center bgcolor=antiquewhite>	        &nbsp; 
+!insmath $(val26[$(val28[4])])
+$() &nbsp;	      </td>	    </tr>	    <tr>	      <td align=center bgcolor=antiquewhite>	         
+!read oef/embed.phtml reply 1,5 
+$()	      </td>	      <td align=center bgcolor=antiquewhite>	         &nbsp; 
+!insmath $(val26[$(val28[5])])
+$() &nbsp;	      </td>	      <td bgcolor=white align=center>	        &nbsp; &nbsp; 	      </td>	      <td align=center bgcolor=silver>	         
+!read oef/embed.phtml reply 1,6 
+$()	      </td>	      <td align=center bgcolor=silver>	         &nbsp; 
+!insmath $(val26[$(val28[6])])
+$() &nbsp;	      </td>	    </tr>	  </table>	</center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,26,28
+embedcnt=6

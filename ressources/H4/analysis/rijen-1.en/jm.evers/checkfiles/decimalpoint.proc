@@ -1,0 +1,55 @@
+# this is an proc file called by another proc file
+# it expects AAA as input and outputs also AAA
+# DECIMAL POINT CHECK
+# check on decimal comma : we want a decimal point
+# this is not to be called directly
+# the answer reply$n was already "filtered"
+# and moved to $AAA
+!if $AAA=$empty
+    !if $wims_user=supervisor or ~ isin $module
+	errortext="this file ($checkdir/decimalpoint.proc) was not used correctly<br>\
+	the default student answer reply$n should have been copied into AAA ($AAA)<br>\
+	simply do: AAA=$(reply$n) <br>or AAA=!!lower $(reply$n)<br> BUT NEVER !!nospace
+	goback=1
+    !endif
+    !exit
+!endif
+ 
+tot=!singlespace  $AAA
+c=!positionof char , in $tot
+!if $c != $empty
+    ta=!itemcnt $(answer$n)
+    !if $ta>1
+	check=1
+    !else
+	check=0
+    !endif
+    nummers=0123456789
+    !for i in $c
+	c1=!char $[$i-1] of $tot
+	c2=!char $[$i+1] of $tot
+	!if $c1 isin $nummers and $c2 isin $nummers
+	    !increase check
+	    !if $check >1
+		errortext=!record 28 of $remarkdir/commonremarks.$taal
+		!increase try
+		goback=1
+		maxscore=$[$P1*$maxscore]
+	     !exit					
+	    !else
+		# we replace just 1 time a decimal comma by a point...
+		ex=!record 24 of $remarkdir/commonremarks.$taal
+		tot=!replace internal char number $i by . in $tot
+		# replaced a 'decimal comma' by a decimal point
+		!if $extra=$empty
+		    extra=$ex
+		!else
+		    extra=$extra<br>$ex
+		!endif
+	    !endif
+	!endif
+    !next i
+    AAA=$tot
+!endif
+
+!exit

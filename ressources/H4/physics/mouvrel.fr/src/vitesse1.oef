@@ -1,0 +1,334 @@
+\title{Vitesse d'un point}
+\author{Georges Khaznadar}
+\email{georgesk@ofset.org}
+\license{GNU G.P.L.}
+
+\text{data=wims(randfile /data1)}
+
+============================================
+= file format:                             =
+= 1: title, don't translate it             =
+= 2: comment, how to use these data        =
+= 3: title for the human, can be translated=
+= 4: x as a prametric expression of t      =
+= 5: y as a parametric expression of t     =
+============================================
+
+\real{dt=random(0.02,0.04,0.06)} == intervalle de temps en seconde
+\text{deltat=slib(text/sigunits \dt,2)}
+\real{t0=random(0..100)}    == date de départ
+\integer{n=randint(9..12)} == nombre de points
+\text{nompoint=A} == nom des points
+\text{methode=
+Ici, la méthode utilisée pour déterminer la vitesse au point
+\nompoint<sub>n</sub> consiste à diviser la distance séparant
+les points \nompoint<sub>n-1</sub> et \nompoint<sub>n+1</sub>
+par le double de l'intervalle de temps \(\Delta)t = \deltat s}
+\text{enonce=On a enregistré \data[3;], l'intervalle de temps entre deux points est
+ \(\Delta)t&nbsp;=&nbsp;\dt&nbsp;s.}
+===== loi horaire, x et y sont en m, t est en s =======
+\function{fx=\data[4;]}
+\function{fy=\data[5;]}
+
+\if{\data[1;]=uniform_circular}{
+ \real{v=random(0.15..0.45)}  == vitesse en m/s
+ \real{v=random(-\v,\v)}
+ \function{fx=wims(mathsubst v=\v in \fx)}
+ \function{fy=wims(mathsubst v=\v in \fy)}
+ \real{r=random(0.1..0.2)}    == rayon en m
+ \function{fx=wims(mathsubst r=\r in \fx)}
+ \function{fy=wims(mathsubst r=\r in \fy)}
+}
+\if{\data[1;]=uniform}{
+ \real{vx=random(0.15..0.45)}  == vitesse en m/s
+ \real{vx=random(-\vx,\vx)}
+ \real{vy=random(0.15..0.45)}  == vitesse en m/s
+ \real{vy=random(-\vy,\vy)}
+ \function{fx=wims(mathsubst a=\vx in \fx)}
+ \function{fy=wims(mathsubst b=\vy in \fy)}
+}
+\if{\data[1;]=parabolic}{
+ \real{vx=random(0.15..0.45)}  == vitesse en m/s
+ \real{vx=random(-\vx,\vx)}
+ \real{vy=random(0.15..0.45)}  == vitesse en m/s
+ \real{vy=random(-\vy,\vy)}
+ \real{ax=random(1..2)}
+ \real{ax=random(-\ax,\ax)}
+ \real{ay=random(1..2)}
+ \real{ay=random(-\ay,\ay)}
+ \real{t0=-random(3..4)*\dt}
+ \function{fx=wims(mathsubst a=\vx in \fx)}
+ \function{fy=wims(mathsubst c=\vy in \fy)}
+ \function{fx=wims(mathsubst b=\ax in \fx)}
+ \function{fy=wims(mathsubst d=\ay in \fy)}
+}
+
+\text{x=}
+\text{y=}
+\for{i=1 to \n}{
+  \real{t=\t0+(\i-1)*\dt}
+  \real{newx=wims(mathsubst t=\t in \fx)}
+  \real{newy=wims(mathsubst t=\t in \fy)}
+  \text{x=\x \newx,}
+  \text{y=\y \newy,}
+  \if{\i=1}{
+   \real{maxx=\newx}
+   \real{minx=\newx}
+   \real{maxy=\newy}
+   \real{miny=\newy}
+  }{
+   \if{\newx>\maxx}{\real{maxx=\newx}}
+   \if{\newx<\minx}{\real{minx=\newx}}
+   \if{\newy>\maxy}{\real{maxy=\newy}}
+   \if{\newy<\miny}{\real{miny=\newy}}
+  }
+}
+
+\real{width=\maxx-\minx}
+\real{height=\maxy-\miny}
+\real{size=max(\width,\height)}
+\text{dimension=400,400}
+
+\real{minxdraw=0.5*(\minx+\maxx)-0.55*\size}
+\real{maxxdraw=0.5*(\minx+\maxx)+0.55*\size}
+\real{minydraw=0.5*(\miny+\maxy)-0.55*\size}
+\real{maxydraw=0.5*(\miny+\maxy)+0.55*\size}
+
+\text{range=range \minxdraw,\maxxdraw,\minydraw,\maxydraw}
+
+\text{dessin=}
+
+\for{i1=1 to \n}{
+ \integer{numero=\i1-1}
+ \real{xc=\x[\i1]}
+ \real{xt=\xc}
+ \real{xt1=\xt+\size/60}
+ \real{yc=\y[\i1]}
+ \real{yt=\yc-\size/40}
+ \real{yt1=\yt-\size/80}
+ \text{dessin=\dessin
+  circle \xc,\yc,2,red
+  text blue,\xt,\yt,medium,\nompoint
+  text blue,\xt1,\yt1,small,\numero}
+}
+
+=== tableau des distances ===
+\text{d=}
+\for{i2=1 to \n}{
+ \for{i3=1 to \n}{
+  \if{\i3<=\i2}{
+   \text{d=\d ,}
+  }{
+   \real{distance=sqrt((\x[\i2]-\x[\i3])^2+(\y[\i2]-\y[\i3])^2)}
+   \text{distance=slib(text/sigunits \distance, 2)}
+   \text{d=\d \distance,}
+  }
+ }
+ \text{d=\d;}
+}
+
+\text{nomcol=}
+\for{i4=1 to \n}{
+ \integer{numero=\i4-1}
+ \text{nomcol=\nomcol \nompoint<sub>\numero</sub>,}
+}
+\text{nomlig=\nomcol}
+
+\text{dist=<table border=1><tr><td>&nbsp;</td>}
+\for{i5=2 to \n}{
+ \text{dist=\dist<th>\nomcol[\i5]</th>}
+}
+\text{dist=\dist</tr>}
+
+\integer{nprime=\n-1}
+\for{i6=1 to \nprime}{
+ \for{i7=1 to \n}{
+  \if{\i7 < \i6}{
+   \text{dist=\dist<td>&nbsp;</td>}
+  }
+  \if{\i7=\i6}{
+   \text{dist=\dist<th>\nomlig[\i7]</th>}
+  }
+  \if{\i7>\i6}{
+   \text{dist=\dist<td bgcolor="lightcyan">\d[\i6;\i7]</td>}
+  }
+ }
+ \text{dist=\dist</tr>}
+}
+\text{dist=\dist<table>}
+
+\precision{100}
+\computeanswer{no}
+=== première question ====
+=== un point est choisi on demande les deux voisins ===
+\integer{numchoisi=randint(2..\nprime)}
+\integer{n0=\numchoisi-2}
+\integer{n1=\numchoisi-1}
+\integer{n2=\numchoisi}
+\text{pointsvoisins=\nompoint\n0, \nompoint\n2}
+\text{pointchoisi=\nompoint\n1}
+
+=== deuxième question =====
+\real{distance=\d[\(\numchoisi-1);\(\numchoisi+1)]}
+\real{dt2=\dt*2}
+\real{vitesse=\distance/\dt/2}
+
+=== troisième question ====
+=== on va faire en sorte que le vecteur vitesse représente environ un ===
+=== quart de la taille de la trajectoire visible                      ===
+=== on calcule une image cliquable où il faut montrer le bout du      ===
+=== vecteur vitesse.                                                  ===
+
+\integer{vf=randint(3..5)}
+\real{vfactor=\size/\vf/\vitesse}
+\real{vxorg=\x[\numchoisi]}
+\real{vyorg=\y[\numchoisi]}
+\real{norme=sqrt((\x[\numchoisi+1]-\x[\numchoisi-1])^2+(\y[\numchoisi+1]-\y[\numchoisi-1])^2)}
+\real{xunit=(\x[\numchoisi+1]-\x[\numchoisi-1])/\norme}
+\real{yunit=(\y[\numchoisi+1]-\y[\numchoisi-1])/\norme}
+\real{vxext=\vxorg+\vfactor*\vitesse*\xunit}
+\real{vxext1=\vxorg+0.8*\vfactor*\vitesse*\xunit- 0.1*\vfactor*\vitesse*\yunit}
+\real{vxext2=\vxorg+0.8*\vfactor*\vitesse*\xunit+ 0.1*\vfactor*\vitesse*\yunit}
+\real{vyext=\vyorg+\vfactor*\vitesse*\yunit}
+\real{vyext1=\vyorg+0.8*\vfactor*\vitesse*\yunit+ 0.1*\vfactor*\vitesse*\xunit}
+\real{vyext2=\vyorg+0.8*\vfactor*\vitesse*\yunit- 0.1*\vfactor*\vitesse*\xunit}
+
+\text{vecteur=segment \vxorg,\vyorg,\vxext,\vyext,red
+ ftriangle \vxext,\vyext,\vxext1,\vyext1,\vxext2,\vyext2,red
+}
+
+
+\real{ordreV=10^floor(lg(\vitesse))}
+\real{valV=\vitesse/\ordreV}
+\text{graduations=0,0.5,1,1.5,2}
+\if{\valV>2}{
+ \text{graduations=0,1,2,3,4,5}
+}
+\if{\valV>5}{
+ \text{graduations=0,2,4,6,8,10}
+}
+\integer{lastgrad=\graduations[-1]}
+
+== ajouter un peu de place en haut==
+\real{maxydraw=\maxydraw+0.05*\size}
+\real{maxxdraw=\maxxdraw+0.025*\size}
+\real{minxdraw=\minxdraw-0.025*\size}
+
+\text{echelle=}
+
+\for{grad in \graduations}{
+ \real{grad1=\grad*\ordreV}
+ \real{x0=\minxdraw+0.1*\size+\vfactor*\grad1}
+ \real{x1=\minxdraw+0.08*\size+\vfactor*\grad1}
+ \real{y0=\maxydraw-0.04*\size}
+ \real{y1=\maxydraw-0.02*\size}
+ \text{echelle=\echelle
+ segment \x0,\y0,\x0,\y1,blue
+ text blue,\x1,\y0,small,\grad}
+}
+
+\real{x0=\minxdraw+0.1*\size}
+\real{x1=\minxdraw+0.1*\size+\vfactor*\grad1}
+\real{y0=\maxydraw-0.03*\size}
+\real{y1=\maxydraw-0.08*\size}
+\text{libelle=Echelle (x \ordreV m/s)}
+
+\text{echelle=\echelle
+ segment \x0,\y0,\x1,\y0,blue
+ text blue,\x0,\y1,medium,\libelle
+}
+
+== agrandir un peu si le vecteur dépasse ==
+\real{newminxdraw=\vxext<\minxdraw?\vxext-\size*0.05:\minxdraw}
+\real{newmaxxdraw=\vxext>\maxxdraw?\vxext+\size*0.05:\maxxdraw}
+\real{newminydraw=\vyext<\minydraw?\vyext-\size*0.05:\minydraw}
+\real{newmaxydraw=\vyext>\maxydraw?\vyext+\size*0.05:\maxydraw}
+
+\text{newrange=range \newminxdraw,\newmaxxdraw,\newminydraw,\newmaxydraw}
+
+\real{xrep=rint(399*(0+(\vxext-\newminxdraw)/(\newmaxxdraw-\newminxdraw)))}
+\real{yrep=rint(399*(1-(\vyext-\newminydraw)/(\newmaxydraw-\newminydraw)))}
+
+\text{imagequestion=draw(\dimension
+\newrange
+\dessin
+\echelle)
+}
+
+\text{imagecorrige=draw(\dimension
+\newrange
+\dessin
+\echelle
+\vecteur)
+}
+
+\steps{r1
+r2,r3,r4
+r5
+}
+
+\statement{
+ \enonce
+ <br>
+ <table><tr><td><!-- énoncé --> 
+  <table border=1 bgcolor="lightyellow"><tr><td>
+  \if{\step>0}{
+   Écrivez la liste des points à considérer si l'on veut calculer
+   la vitesse en \pointchoisi&nbsp;:&nbsp;\embed{r1,7} 
+  }
+  \if{\step>1}{
+   <hr width="80%">
+   Pour faire le calcul de vitesse, précisez&nbsp;:
+   <ul>
+    <li> la distance à prendre en compte, 
+     d&nbsp;=&nbsp;\embed{r2,7}</li>
+    <li>la durée à prendre en compte,
+     \(\Delta)t&nbsp;=&nbsp;\embed{r3,7},</li>
+    <li>puis calculer la vitesse du point en \pointchoisi,
+     v&nbsp;=&nbsp;\embed{r4,7}
+   </ul>
+  }
+  \if{\step>2}{
+   <hr width="80%">
+   <table bgcolor=white><tr><td>
+    <font color=red><b>cliquez</b></font> 
+    sur l'image de droite, là ou devrait se trouver l'extrémité du vecteur
+    vitesse pour le point \pointchoisi, en tenant compte de l'échelle des vitesses.
+    </td></tr></table>
+  }
+  \if{\step=1}{
+   <br>
+   (séparez les noms par des virgule)
+  }
+  </td></tr></table>
+ </td><td>
+  \if{\step<3}{
+   \draw{\dimension}{\range\dessin}
+  }
+  \if{\step=3}{
+   \embed{r5,405x410}
+  }
+ </td></tr></table>
+ \if{\step=2}{
+  <hr>
+  <h3>Indication : tableau des distances</h3>
+   distances mesurées entre points (unité m)<br>\dist
+  }
+}
+
+\reply{r1}{\pointsvoisins}{type=set}
+\reply{r2}{\distance m}{type=units}
+\reply{r3}{\dt2 s}{type=units}
+\reply{r4}{\vitesse m/s}{type=units}
+\reply{r5}{\imagequestion;circle,\xrep,\yrep,50}{type=coord}
+
+\solution{
+\if{\step=3}{
+<table><tr><td>Il fallait cliquer sur l'extrémité du vecteur vitesse 
+ représenté ci-contre&nbsp;<img src=\imagecorrige border=2></td></tr></table>
+}}
+
+
+\help{
+<table border=1 bgcolor=lightyellow><tr><td>\methode</td></tr></table>
+}

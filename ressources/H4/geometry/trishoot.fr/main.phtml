@@ -1,0 +1,77 @@
+!read language lang/names
+!header
+!read types/$ctype.phtml
+<div class="wims_question">
+$(name_question_$ctype)
+!if $ctype!=7
+  <div class="wims_smallhelp">$(name_help_$ctype)</div>
+!endif
+</div>
+<p>$(name_answer_$ctype)</p>
+!set wims_ins_alt=empty
+!if $status=wait
+  <p>$name_indication</p>
+  !form reply
+  <div>
+  <div class="float_left spacer">
+  !distribute items alt="Click",1,form click into ins_attr,ins_border,ins_tag
+!else
+  <div class="float_left spacer">
+  !set ins_attr=alt="Result"
+!endif
+  !insdraw fill 1,1,255,255,255\
+transparent 255,255,255\
+$ins_src
+ </div>
+ <div class="float_right">
+!set prompt_cnt=!linecnt $prompt
+<ul class="wims_nopuce">
+!for j=1 to $prompt_cnt
+  <li>$(prompt[$j;1])&nbsp;:&nbsp;$(prompt[$j;2])</li>
+!next
+</ul>
+</div>
+
+<br class="clearall" />
+!if $status=wait
+  !formend
+  </div>
+!endif
+
+!if $status!=wait
+  <p>$name_ecart: $[rint($error*2)/10] mm.
+  !if $reply_cnt<$shoots
+      $name_average: $mean mm.
+      </p>
+      <p class="wimscenter">
+       !set wims_ref_class=wims_button
+       !href cmd=next $name_continue
+      </p>
+  !else
+    </p><p>
+    $name_theend = $mean mm,
+    $name_score = $module_score/10.
+    </p>
+    <p>$name_resume
+    !set insdraw_size=$[$ring_size*20],$[$ring_size*20]
+    !insdraw fill 1,1,255,255,255\
+     transparent 255,255,255\
+     $rings\
+     $target
+    </p>
+
+    !set wims_ref_class=wims_button
+    <p class="wimscenter">
+    !href cmd=renew&worksheet=$wims_sheet&$module_init_parm $name_news
+&nbsp;
+    !if $worksheet=$empty
+      !set wims_ref_class=wims_button
+      !href module=$module $name_change
+    !endif
+    </p>
+  !endif
+  </div>
+!endif
+
+:end
+!tail

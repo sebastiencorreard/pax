@@ -1,0 +1,118 @@
+#Vergelijkingen 1 [ g^x = b ]
+n=$counter
+rounding=0
+!readproc $remarkdir/rounding.$taal
+mathview=5
+image=0
+questiontype=0
+inputs=-1
+cols=10
+rows=1
+embed=0
+make_tr=1
+description=$youranswer
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+varlist=$empty
+arglist=x
+ss=!record 3 of lang/remarks.$taal
+question$n=$ss <br />
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=$empty
+mathviewpanel=minimaal:x=: and : or : -> 
+!if $R=1
+  g=!randitem 2,3,4,5
+  c=!randint 1,5
+  b=$[$g^$c]
+  formula$n=$g^{x}\,=\,$b 
+  applettext=!nospace $g^x = $b ->
+  var1=
+  answer$n=$c
+  texanswer$n=$g^{x}\,=\,$b \,=\, $g^{$c}\rightarrow x = $c
+ !exit
+!endif
+
+!if $R=2
+    keuze=!randitem 1,0
+    !if $keuze=0
+	g=!randitem 2,3,4,5
+	c=!randint 1,5
+	tot=!exec pari A=$g^(-1*$c)\
+	printtex(A)
+	b=!line 1 of $tot
+	b_tex=!line 2 of $tot
+	formula$n=$g^{x}\,=\,$b_tex
+	applettext=!nospace $g^x = $b ->
+	var1=
+	answer$n=$[-1*$c]
+        texanswer$n=$g^{x}\,=\,\frac{1}{$g^{$c}}\,=\, $g^{-$c}\rightarrow x = -$c
+    !else
+	g=!randitem 2,3,4,5
+	c=!randint 1,5
+	b=$[$g^$c]
+	tot=!exec pari A=$g^(-1)\
+	printtex(A)
+	g1=!line 1 of $tot
+	g_tex=!line 2 of $tot
+	formula$n=\left( $g_tex \right) ^{x}\,=\,$b 
+	applettext=!nospace (1/$g)^x = $b ->
+	var1=
+	answer$n=$[-1*$c]
+        texanswer$n=\left( $g^{-1} \right)^{x}\,=\,$b \rightarrow $g^{-x} \,=\, $g^{$c} \rightarrow x \, =\, -$c
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    #keuze=!randitem 2,1,0
+    !if $keuze=0
+	a=!randint 2,5
+	g=!randitem 2,3,4,5
+	c=!randint 1,5
+	tot=!exec pari A=$a*$g^(-1*$c)\
+	printtex(A)
+	b=!line 1 of $tot
+	b_tex=!line 2 of $tot
+	formula$n=$a \cdot $g^{x}\,=\,$b_tex 
+	applettext=!nospace $a*$g^x = $b ->
+	var1=
+	answer$n=$[-1*$c]
+	texanswer$n=$g^{x}\,=\,\frac{1}{$[$g^($c)]} \,=\,\frac{1}{$g^{$c}}\,=\, $g^{-$c}\rightarrow x = -$c
+    !else
+	!if $keuze=1
+	    a=2
+	    g=!randitem 2,3,4,10
+	    c=!randint 1,3
+	    b=$[$g^($a*$c)]
+	    tot=!exec pari A=$g^(-1)\
+	    printtex(A)
+	    g1=!line 1 of $tot
+	    g_tex=!line 2 of $tot
+	    formula$n=\left( $g_tex \right) ^{$a x}\,=\,$b 
+	    applettext=!nospace (1/$g)^($a*x) = $b ->
+	    var1=
+	    answer$n=$[-1*$c]
+	    texanswer$n=\left( $g^{-1} \right)^{$a x}\,=\,$b \rightarrow $g^{-$a x} \,=\, $g^{$[$a*$c]} \rightarrow x \, =\, -$c
+        !else
+	    a=!randint 2,5
+	    g=!randitem 2,3,4,5
+	    c=!randint 1,5
+	    b=$[$a*$g^($c)]
+	    formula$n=$a \cdot $g^{x}\,=\,$b
+	    applettext=!nospace $a*$g^x = $b ->
+	    var1=
+	    answer$n=$c
+	    texanswer$n=$g^{x}\,=\,$[$g^($c)] \,=\,$g^{$c}\rightarrow x = $c
+        !endif
+    !endif
+ !exit
+!endif
+
+

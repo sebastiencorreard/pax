@@ -1,0 +1,168 @@
+ \documentclass[11pt]{article}
+\usepackage{amsthm,amsfonts}
+\usepackage[french]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{pslatex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%ù
+\input wims.sty
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\wimsinclude{persowims.sty}%pour inclure des fichiers non lus par latex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{thm}{Théorème}[section]
+\newtheorem{theo}[thm]{Théorème}
+\newtheorem{prop}[thm]{Proposition}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{definition}
+\newtheorem{defn}{Définition}[section] 
+\newtheorem{ex}{Exemple}
+\newtheorem{exo}{Exercice}
+\newtheorem{rem}{Remarque}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\def\RR{\mathbb R}
+\def\NN{\mathbb N}
+\def\ZZ{\mathbb Z}
+\def\CC{\mathbb C}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+%% indispensable
+\title{Mon document}
+\author{Bernadette Perrin-Riou}
+\email{bpr@math.u-psud.fr}
+\section{utilisation des environnements}
+  \begin{thm}
+    Voici un théorème
+  \end{thm}
+  \begin{proof}
+    Voici la démonstration.
+  \end{proof}
+  \begin{defn} 
+    Voici une définition
+  \end{defn}
+  \begin{rem} 
+    Voici une remarque
+  \end{rem}
+  \begin{defn}[titre]
+    Voici une définition avec titre
+  \end{defn}
+\section{Insertion d'un exercice}
+Pour insérer un exercice, prendre les deux premières lignes
+dans le fichier source d'une feuille d'exercice et les coller
+par un \&. 
+\begin{exo}
+Faites l'exercice d'application\index{exercice1}
+\exercise{module=H6/analysis/oefcourbe.fr&exo=courb1&scoredelay=&confparm1=A&confparm1=B}{Courbes}
+\end{exo}
+\section{Insertion d'un exemple}
+Un exemple de dessin non vu dans le fichier pdf \index{exemple}
+ \begin{wimsonly}
+  \begin{wims}
+    \def{matrix A = -6,28,21
+      4,-15,-12
+     -8,a,25}
+    \def{text P = pari(charpoly( [\A], x))}
+    \def{text color=blue,purple,red,orange,yellow}
+    \def{text dessin = xrange -1,4
+      yrange -10,10
+      hline 0,0,black
+      vline 0,0, black
+    }
+    \def{text liste = 31.8,31.9,32,32.1,32.2}
+    \def{integer cnt = items(\liste)}
+    \for{i = 1 to \cnt}{
+      \def{text p = evalue(\P,a = \liste[\i])}
+      \def{text dessin = \dessin
+        plot \color[\i], \p
+      }
+     }
+  \end{wims}
+  Voici le graphe des polynômes caractéristiques des matrices \([\A]) pour les valeurs 
+  de \(a) suivantes : \liste.
+    <p class="wimscenter"> \draw{300,300}{\dessin} </p>
+  Que remarquez-vous ? 
+\end{wimsonly}
+
+
+\section{Une animation qui ne doit pas être dans latex}
+\begin{wimsonly}
+\begin{wims}
+
+\def{text liste=1,2,3,4,10,20,24,28,32,36,40}
+\def{text listepoint=-1.8,-1.8,-1.8,-1.5,-1.2,-1.2}
+\def{integer cnt =items(\liste)}
+\def{text h=wims(makelist x for x = 1 to \cnt)}
+
+\comment{L'entier N est le paramètre qui permet "d'avancer" ;
+parm1 est une variable qui va être transmis à la page suivante. Au
+départ parm1 ne vaut rien donc N = 1 ; ensuite parm1 vaut N
+donc N va s'incrémenter
+}
+\def{integer N = \parm1 notitemof \h ? 1 : \parm1 + 1}
+\def{text commentaire =\N >= \cnt ? Recommencer:Continuer}
+\comment{on fait un lien sur la même page mais en transmettant
+le paramètre \N}
+\link{.}{\commentaire}{}{parm1=\N}{dessin}
+\comment{Ensuite, c'est du code pour faire un dessin}
+\def{text couleur=wims(makelist yellow,orange,pink,blue,green for x = 2 to 5)}
+\def{text dessin= xrange -2,2
+  yrange -1,1
+  hline 0,0,black
+  arrow  0,0,1,0,6,black
+  arrow 0,0,0,1,6,black
+  vline 0,0,black}
+\comment{On ne trace que les N premières courbes}
+\for{i = 1 to \N}{
+  \def{integer j = 2*\liste[\i]}
+  \def{function f=x/(1+x^(\j))}
+  \def{real a=evalue(\f,x=\listepoint[\i])}
+  \def{text dessin=\dessin
+     plot \couleur[\i],\f
+     text \couleur[\i],\listepoint[\i],\a,medium,f\j}
+}
+<a id="dessin"></a>
+\draw{500,300}{\dessin}
+
+\end{wims}
+\end{wimsonly}
+\section{Les listes}
+  Voici une liste avec pli (fold)
+  \begin{description}
+    \item[Graphe] voici la définition
+    \item[Coloriage] Colorier un graphe, c'est ...
+  \end{description}
+\section{Les tableaux}
+ \begin{tabular}{|c|c|c|}
+ \hline
+ &a&\(\frac{1}{2}\) \\
+  \hline
+ c&d&f\\
+  \hline
+ \end{tabular}
+ 
+ \section{Un algorithme}
+Vous pouvez configurer l'environnement algorithm dans latex pour 
+que les mots clés soient en français
+
+\begin{algorithm}
+\caption{Liste des polygones de Newton}
+\begin{algorithmic}[1]
+\REQUIRE test~test~doumentRennes2.fr, b
+\ENSURE   et  tels que  a + v b = pgcd(a,b)
+\IF{test~test~doumentRennes2.fr = 0}
+  \STATE Retourner NaN
+\ENDIF
+  \STATE  \rightarrow a,   \rightarrow b,  vx \rightarrow 0,   \rightarrow 1
+  \WHILE{  y <> 0}
+   \STATE  \rightarrow quotient de x par y,  \rightarrow x-q*y
+  \STATE  \rightarrow vy
+  \STATE  \rightarrow vx - q*vy
+  \STATE  \rightarrow t
+  \STATE  \rightarrow y
+  \STATE  \rightarrow r
+\ENDWHILE
+ \STATE Retourner \lbrack x, (x-b*vx)/a, vx \rbrack 
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}

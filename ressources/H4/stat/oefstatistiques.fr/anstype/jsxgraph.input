@@ -1,0 +1,85 @@
+!set ans_require=jsxgraph
+
+!set anstype=yes
+!set anstyle=dprompt
+
+!if $wims_read_parm=def
+ !exit
+!endif
+
+!set oef_answer_option$i=!replace internal $	$ by $\
+$  in $inputsize
+!set variable=!line -1 of $(oef_answer_option$i)
+!set oef_answer_option$i=!line 1 to -2 of $(oef_answer_option$i)
+!set oef_answer_option$i=!nonempty lines $(oef_answer_option$i)
+!set Inputsize=!line 1 of $(oef_answer_option$i)
+!set test=!text remove 0123456789x in $Inputsize
+!if $test issametext $empty
+ !set Inputsize=!replace internal x by , in $Inputsize
+ !set oef_answer_option$i=!line 2 to -1 of $(oef_answer_option$i)
+ !set oef_answer_option$i=!declosing $(oef_answer_option$i)
+ !distribute items $Inputsize into xsize,ysize
+!endif
+
+!set jbox=!line 1 of $(oef_answer_option$i)
+!set your_brd=!word 2 of $jbox
+!set jbox=!word 1 of $jbox
+!default your_brd=brd$i
+
+!set oef_answer_option$i=!line 2 to -1 of $(oef_answer_option$i)
+!set script$i=$(oef_answer_option$i)
+!set variable=!replace internal ; by $\
+$ in $variable
+!set cnt_var=!linecnt $variable
+!reset liste_variable
+!reset liste_dim
+!for j_ = 1 to $cnt_var
+ !set l_=!line $j_ of $variable
+ !set l_=!replace internal = by , in $l_
+ !set liste_variable=!append item $jbox_$(l_[1]) to $liste_variable
+ !set script$i=!replace internal $jbox_$(l_[1]) by $(l_[2]) in $(script$i)
+ !set l_=!declosing $(l_[2])
+ !set l_=!itemcnt $l_
+ !set liste_dim=!append item $l_ to $liste_dim
+!next
+
+!set oef_answer_option$i=$your_brd,$jbox,$xsize x $ysize,$(oef_answer_option$i)\
+$liste_variable
+!set style_point=!getopt style in $(replyoption$i)
+!set style_point=!declosing $style_point
+!default style_point=size: 1, showInfobox: false, name:''
+!if freepoint isin $(replyoption$i)
+  !set script$i=$(script$i)\
+    var jsxbox_free=[];\
+JXG.addEvent(document.getElementById('jsxbox'), 'click', function (e) {\
+    var coords = new JXG.Coords(JXG.COORDS_BY_SCREEN, $(your_brd).getMousePosition(e),$(your_brd));\
+    var p=$(your_brd).create('point', coords.usrCoords.slice(1),{$style_point});\
+    var c = [p.X(), p.Y()];\
+    jsxbox_free.push(c);\
+}, this);
+!endif
+!readproc slib/geo2D/jsxgraph $jbox,$xsize x $ysize,$(script$i)
+$slib_out
+
+<script type="text/javascript">
+/*<![CDATA[*/
+var capture$i = function() {
+        document.getElementById('jsreply$i').value=
+!for j=1 to $cnt_var
+  !set rep=!replace internal var by rep in $(liste_variable[$j])
+  !if $(liste_dim[$j])=1
+    $(rep).Value() + ';' +
+  !else
+    $(rep).X() + ',' + $(rep).Y() + ';' +
+  !endif
+!next
+!if freepoint isin $(replyoption$i)
+ 'free=' + jsxbox_free + ';' +
+!endif
+'';}
+/*]]>*/
+</script>
+
+<input type="hidden" name="reply$i" id="jsreply$i" value="" />
+!set oef_js_submit=$oef_js_submit capture$i();
+!reset your_brd jbox

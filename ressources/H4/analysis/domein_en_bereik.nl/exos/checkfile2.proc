@@ -1,0 +1,234 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+#ongelijkheden
+n=$counter
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif 
+tussenscore=0
+original=$empty
+!for p=1 to 2
+    rem$p=$empty
+    AAA=!item $p of $(reply$n)
+    !if $AAA=$empty
+	errortext=!record 62 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    !if ? isin $AAA
+	rem$p=$NOK
+	!goto SHORTCUT
+    !endif
+    GGG=!item $p of $(answer$n)
+    AAA=!lower $AAA
+    !if $p=1
+	# domein: dus x,R,Z,N,>,<,= geen y
+	ja=x,r,z,n,>,<,=
+	jaja=x,r,z,n,log,ln,sqrt,abs,sin,cos,tan
+	nee=y
+	X=x
+	DF=df,d_f
+	dom=!record 14 of lang/remarks.$taal
+    !else
+	# bereik: dus y,R,Z,N,>,<,= maar geen x
+	ja=y,r,z,n,>,<,=
+	jaja=y,r,z,n,log,ln,sqrt,abs,sin,cos,tan
+	nee=x
+	X=y
+	DF=bf,b_f
+	dom=!record 15 of lang/remarks.$taal
+    !endif
+
+    !if r notin $AAA
+	AAA=!replace internal all by z in $AAA
+	AAA=!replace internal nat by n in $AAA
+    !else
+	!if $X notin $AAA
+	    # B_f = R\{3,9}
+	    # D_f = R
+	    sps=0
+	    check=!nospace $AAA
+	    !for s in $DF
+		!if $s isin $check
+		    !increase sps
+		    check=!replace internal $s by $empty in $check
+		!endif 
+	    !next s
+	    !if $sps=0
+		maxscore=$[$maxscore*$P1]
+		errortext=!record 34 of lang/remarks.$taal
+		goback=1
+		!exit
+	    !else
+		AAA=$check
+	    !endif
+	!endif
+	!if $X isin $AAA and elem notin $AAA
+	    maxscore=$[$maxscore*$P1]
+	    errortext=!record 33 of lang/remarks.$taal
+		# Je moet bij  vraag $p gewoon het $dom noteren, $voornaam<br />\
+		# Ik vind wat tegenstrijdige dingetjes in je antwoord :)<br />\
+	        # Kijk anders even in de <em>help-pagina</em> van deze som voor de syntax regels...
+	    goback=1
+	    !exit
+	!endif
+	test=!replace internal /{ by @ in $AAA
+	#####} # just for my syntax_high_lighting
+	!if @ isin $test
+	    errortext=!record 48 of lang/remarks.$taal
+	    maxscore=$[$P1*$maxscore]
+	    goback=1
+	    !exit
+	!endif
+	# de zin: x is element van R\{1,2}
+	test=!replace internal \ by @ in $AAA
+	!if @ isin $test
+	    !readproc exos/syntax.proc
+	    # en bouwen antwoord om naar eigen syntax -1<x&&x>1 (...)
+	    !if $goback=1
+		!exit
+	    !endif
+	!else
+	    !if ($X isin $AAA and elem isin $AAA) or ($sps!=0)
+		AAA=r
+	    !else
+		!if r notwordof $AAA
+		    maxscore=$[$maxscore*$P1]
+		    errortext=!record 34 of lang/remarks.$taal
+		    # Je moet bij deze vraag gewoon het $dom noteren, $voornaam<br />\
+		    # Kijk anders even in de <em>help-pagina</em> van deze som voor de syntax regels...
+		    goback=1
+	    	    !exit
+		!endif
+	    !endif
+	    !if R isin $GGG
+		rem$p=$OK
+		!increase tussenscore
+	    !else
+		rem$p=$NOK
+	    !endif
+	   !goto SHORTCUT
+	!endif
+    !endif
+    # check for idiots filling in 20>10x
+    test=!nospace $AAA
+    test=!replace internal > by @ in $test
+    test=!replace internal < by @ in $test
+    test=!replace internal = by $empty in $test
+    # x@5
+    pos=!positionof char @ in $test
+    t=!itemcnt $pos
+    !if $t=1
+	getallen=0,1,2,3,4,5,6,7,8,9,-,+
+	c=!item 1 of $pos
+	c1=!char $[$c-1] of $test
+        c2=!char $[$c+1] of $test
+        c3=!char $[$c+2] of $test
+        !if $c1 isitemof $getallen
+    	    !if ($c2 isitemof $getallen) or ($c3 isitemof $getallen)
+		errortext=!record 47 of lang/remarks.$taal
+		maxscore=$[$maxscore*$P1]
+		goback=1
+    	        !exit
+	    !endif
+	!endif
+    !endif
+	!if $teaching=1
+    	    test=0
+	    !for i in $ja
+		!if $i isin $AAA
+		    !increase test
+		!endif
+	    !next i
+	    !if $test=0
+		errortext=!record 34 of lang/remarks.$taal
+		# Je moet bij deze vraag gewoon het $dom noteren, $voornaam<br />\
+		# Kijk anders even in de <em>help-pagina</em> van deze som...
+	        maxscore=$[$maxscore*$P1]
+		goback=1
+		!exit
+	    !endif
+	!endif  
+	test=0
+	opm=$empty
+	!for i in $nee
+	    !if $i isin $AAA
+		!increase test
+		opm=!append line <kbd>$i</kbd> to $opm
+	    !endif
+	!next i
+	!if $test > 0
+	    errortext=!record 44 of lang/remarks.$taal
+	    # Je moet bij deze vraag gewoon het $dom noteren, $voornaam<br />\
+	    # Maar ik trof iets als $opm aan in je antwoord ($AAA)<br />\
+	    # Kijk eerst even in de help-pagina's van deze som.
+	    maxscore=$[$maxscore*$P1]
+	    goback=1
+	    !exit
+	!endif
+	test=!replace internal => by @ in $AAA
+	!if @ isin $test
+	    errortext=!record 41 of lang/remarks.$taal
+	    # Je gebruikt een wat vreemde syntax (nl. => ) voor &ge; ,$voornaam<br />\
+	    # Jij moet voor &ge; opschrijven <kbd>&gt;=</kbd><br />\
+	    # <small>we beginnen dus met het ongelijkheids-teken</small><br />\
+	    # Kijk ook eens even in de help-pagina's van deze som.
+	    maxscore=$[$maxscore*$P1]
+	    goback=1
+	    !exit
+	!endif
+	test=!replace internal =< by @ in $AAA
+	!if @ isin $test
+	    errortext=!record 42 of lang/remarks.$taal
+	    # Je gebruikt een wat vreemde syntax (nl. =< ) voor &le; ,$voornaam<br />\
+	    # Jij moet voor &le; opschrijven <kbd>&lt;=</kbd><br />\
+	    # <small>we beginnen dus met het ongelijkheids-teken</small><br />\
+	    # Kijk ook eens even in de help-pagina's van deze som.
+	    maxscore=$[$maxscore*$P1]
+	    goback=1
+	    !exit
+	!endif
+    !else
+	# wordt nu door javascript afgevangen als "use_ineq=1"
+        AAA=!replace internal => by >= in $AAA
+        AAA=!replace internal =< by <= in $AAA
+    !endif
+
+    !for i in $jaja
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !next i
+    AAA=!replace [a-z\~!@#$_="':;] by $empty in $AAA
+    AAA=!tolower $AAA
+    GGG=!tolower $GGG
+
+    !readproc exos/ineq.proc
+    !if $goback=1
+	goback=1
+	!exit
+    !endif
+    tussenscore=$[$tussenscore + $controle]
+    !if $controle=1
+	rem$p=$OK
+    !else
+    	!if $controle>0
+	    rem$p=$BOK
+	!else
+	    rem$p=$NOK
+	!endif
+    !endif
+    :SHORTCUT
+    org=!item $p of $(reply$n)
+    org=!replace internal < by &lt; in $org
+    org=!replace internal > by &gt; in $org
+    orginial=!append line <li>$org</li> to $original
+!next p
+goback=0
+remark$n=<ol><li>$rem1</li><li>$rem2</li></ol>
+maxscore=$[$maxscore*($tussenscore/2)]
+modulescore=$[$modulescore + $maxscore]
+!exit

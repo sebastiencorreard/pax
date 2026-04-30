@@ -1,0 +1,130 @@
+checkfile=$checkdir/number.proc
+!if $rounding<0
+    rounding=0
+!endif
+!readproc $remarkdir/rounding.$taal
+arglist=x
+# answer must be 'x=123'
+mathview=2
+image=0
+math=0
+questiontype=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+embed=1
+cols=25
+rows=3
+make_tr=1
+ss=!record 143 of lang/remarks.$taal
+#@ Los op:<br><small><em>bereken dus de waarden van x</em><br>noteer bij meerdere oplossingen iets als:<br><em>x</em>=1 en <em>x</em>=2/3 of zo...<br>en bij breuken graag het antwoord vereenvoudigen.</small>
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+    a=!randitem -5,-4,-3,-2,1,2,3,4,5
+    d=!randitem 1,4,9,16,25,49,64,81
+    !ifval $[$a*$a]=$d
+	a=$[$a+1]
+    !endif
+    c=!randitem 0.0001,0.001,0.01,0.1,10,100,1000,10000
+    C=!texmath $c
+    e=$[4*log($c)/log(10)]
+    
+    tot=!exec pari A=(($a)*($a)-($d))/($e)\
+    printtex(A)\
+    B=(($d)-($a)*($a))/($e)\
+    printtex(B)
+    
+    b=!line 1 of $tot
+    B1=!line 2 of $tot
+    b2=!line 3 of $tot
+    B2=!line 4 of $tot
+    !if $b>0
+	minB=-$B1
+	BA=-$b
+    !else
+	minB=+$B2
+	BA=+$b2
+    !endif
+    root=$[sqrt($d)]
+    t1=$[$a-$root]
+    t2=$[$a+$root]
+    tot=!exec pari A=$t1/(2*$b)\
+    B=$t2/(2*$b)\
+    printtex(A)\
+    printtex(B)
+    
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    t11=!line 3 of $tot
+    t22=!line 4 of $tot
+    x1=10^($t1)
+    x2=10^($t2)
+    X1=10^{\textstyle $t11}
+    X2=10^{\textstyle $t22}
+    formula$n= x^{\textstyle $a $minB \cdot \log(x)}=$C
+    formula$n=!replace internal -- by - in $(formula$n)
+    applettext=!nospace  x^($a $BA * log(x)) = $c ->
+    applettext=!replace internal -- by - in $applettext
+    answer$n=$x1,$x2
+    texanswer$n= x_1 = $X1 \wedge x_2 = $X2
+ !exit
+!endif 
+
+!if $R>1
+    a=!randitem -5,-4,-3,-2,1,2,3,4,5
+    d=!randitem 1,4,9,16,25,49,64,81
+    !if $[$a*$a]=$d
+	a=$[$a+1]
+    !endif
+    c=!randitem 0.01,0.1,sqrt(10),10,10*sqrt(10),100,100*sqrt(10),1000*sqrt(10),sqrt(10)/10,sqrt(10)/100
+    C=!texmath $c
+    e=$[4*log($c)/log(10)]
+    tot=!exec pari A=(($a)*($a)-($d))/($e)\
+    printtex(A)\
+    B=(($d)-($a)*($a))/($e)\
+    printtex(B)
+    b=!line 1 of $tot
+    B1=!line 2 of $tot
+    b2=!line 3 of $tot
+    B2=!line 4 of $tot
+    !if $b>0
+	minB=-$B1
+	BA=-$b
+    !else
+	minB=+$B2
+	BA=+$b2
+    !endif
+    root=$[sqrt($d)]
+    t1=$[$a-$root]
+    t2=$[$a+$root]
+    tot=!exec pari A=$t1/(2*$b)\
+    B=$t2/(2*$b)\
+    printtex(A)\
+    printtex(B)
+    
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    t11=!line 3 of $tot
+    t22=!line 4 of $tot
+    x1=10^($t1)
+    x2=10^($t2)
+    X1=10^{\textstyle $t11}
+    X2=10^{\textstyle $t22}
+    formula$n= x^{\textstyle $a $minB \cdot \log(x)}=$C
+    formula$n=!replace internal -- by + in $(formula$n)
+    applettext=!nospace  x^($a $BA * log(x)) = $c ->
+    applettext=!replace internal -- by + in $applettext
+    answer$n=$x1,$x2
+    texanswer$n= x_1 = $X1 \wedge x_2 = $X2
+ !exit
+!endif 
+

@@ -1,0 +1,147 @@
+# exo5 zonder applet
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=0
+# veroorzaakt <tr>
+make_tr=0
+cols=10
+rows=1
+# voorlopig ?
+checkfile=$checkdir/number.proc
+# volgorde is van belang
+var1=yes
+
+mp=!randitem +,-
+pm=!randitem +,-
+keuze=!randint 0,1
+#sin,cos
+letter=!randitem f,g,h,k,m
+
+sometxt=!record 3 of lang/remarks.$taal
+#@evenwichtslijn,x-as,y-as,Gegeven de functie:,Bepaal ,Amplitude , Frequentie , Evenwichtlijn,Periode,Met de rechter muisknop kun je het canvas van de applet bewegen
+#@!balance line,x-axis,y-axis 
+evenwichtslijn=!item 1 of $sometxt
+xas=!item 2 of $sometxt
+yas=!item 3 of $sometxt
+Gegeven=!item 4 of $sometxt
+Bepaal=!item 5 of $sometxt
+Amplitude=!item 6 of $sometxt
+Frequentie=!item 7 of $sometxt
+Evenwichtslijn=!item 8 of $sometxt
+Periode=!item 9 of $sometxt
+hlptxt=!item 10 of $sometxt
+xsize=480
+ysize=320
+
+gonio=!randitem sin,cos
+!if $R=1
+    b=!randitem -3,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3
+    a=!randitem -5,-4,-3,-2,-1,0,1,2,3,4,5
+    C=2/3,1/2,1,3/2,2,5/2,3,7/2,4
+    D=3*pi,4*pi,2*pi,4*pi/3,pi,4*pi/5,2*pi/3,4*pi/7,pi/2
+    p=!itemcnt $C
+    q=!randint 1,$p
+    c=!item $q of $C
+    periode=!item $q of $D
+    texperiode=!texmath $periode
+    factor=!texmath $c
+    ampl=$[abs($b)]
+    f=!rawmath $a+$b*$gonio($c*x)
+    f=!nospace $f
+    functie=!texmath $f
+    ss=!record 9 of lang/remarks.$taal
+    #@<span style="color:blue">Hier</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafieken a en b .
+    xmin=-1
+    xmax=$[ceil(1.2*$periode)]
+    am=$[ceil($ampl)]
+    !if $[abs($a)] >3
+        ymin=$[$a-$am-4]
+        ymax=$[$a+$am+4]
+    !else
+        ymin=$[$a-$am-3]
+        ymax=$[$a+$am+3]
+    !endif
+    inputs=2
+    description=<b>a</b>,<b>$Amplitude</b>
+    answer$n=$a,$ampl
+    helptext=<img src=\'$module_dir/gifs/exo2.1.help.jpg\' alt=\'help\' /><br />$hlptxt
+
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Evenwichtslijn : }\: y = $a \\  \textrm{$Amplitude : }\: $ampl \\ \\ f(x)=$functie \end{array} \right.
+
+!else
+    ###a+bsin(cx)
+    a=!randitem -3,-5/2,-2,-3/2,-1,-1/2,0,1/2,1,3/2,2,5/2,3
+    b=!randitem 1/2,1,3/2,2,5/2,3,7/2,4,-1,-3/2,-2,-5/2,-3,-7/2,-4
+    # P=pi
+    c=!randitem (P/2),(2*P/3),P,2*P,(2*P/5)
+    periode=!exec pari (2*P)/($c)
+    periode=!replace internal  P by pi in $periode
+    c=!replace internal P by pi in $c
+    factor=!texmath $c
+    texperiode=!texmath $periode
+    evenwicht=$a
+    ampl=!exec pari abs($b)
+    xmin=-1
+    xmax=$[ceil(1.5*$periode)]
+    am=$[ceil($ampl)]
+    !if $[abs($a)] >2 
+        ymin=$[$a-$am-3]
+        ymax=$[$a+$am+3]
+    !else
+        ymin=$[$a-$am-2]
+        ymax=$[$a+$am+2]
+    !endif
+    f=!rawmath $a + $b*$gonio($c*x)
+    f=!nospace $f
+    functie=!texmath $f
+
+    ss=!record 10 of lang/remarks.$taal
+    #@<span style="color:blue">Hieronder</span> zie je een grafiek van een goniometrische functie<br />De algemene formule van deze functie is :<p align="center"><img src="$module_dir/gifs/TYPE2.gif"/></p>Bepaal aan de hand van de grafiek de periode, a en b van de functie.
+    inputs=3
+    description=<b>$Periode</b>,<b>a</b>,<b>b</b>
+    answer$n=$periode,$a,$b
+    helptext=<img src=\'$module_dir/gifs/exo2.2.help.jpg\' alt=\'help\' /><br />$hlptxt
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{$Periode : }\: $texperiode \\ \textrm{$Evenwichtslijn  (a) : }\: y = $a \\ b=$b \rightarrow \textrm{$Amplitude : }\: $ampl \\ \textrm{c : }\: $factor \\ f(x)=$functie \end{array} \right.
+
+!endif
+
+kliktxt=!record 27 of lang/remarks.$taal
+data=size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+precision 1\
+opacity 205,215\
+frect -100,100,100,-100,white\
+axis\
+axisnumbering\
+grid 1,1,gold,4,2,12,grey\
+linewidth 2\
+precision 1000\
+curve red,$f\
+mouse red,24\
+zoom grey\
+intooltip <span style='color:blue;'>$kliktxt</span>
+
+plaatje=!exec canvasdraw $data
+
+question$n=$ss<br />$plaatje
+
+#xaxis -10:-9:-8:-7:-6:-5:-4:-3:-2:-1:0:1:2:3:4:5:6:7:8:9:10\
+#xaxis -10*pi:-10\u03c5:-9*pi:-9\u03c5:-8*pi:-8\u03c5:-7*pi:-7\u03c5:-6*pi:-6\u03c5:-5*pi:-5\u03c5:-4*pi:-4\u03c5:-3*pi:3\u03c5:-2*pi:-2\u03c5:-1*pi:-\u03c05:0:0:pi:\u03c0:2*pi:2\u03c0:3*pi:3\u03c0:4*pi:4\u03c0:5*pi:5\u03c0:6*pi:6\u03c0:7*pi:7\u03c0:8*pi:8\u03c0:9*pi:9\u03c0:10*pi:10\u03c0\
+#grid pi,1,gold,6,2,8,grey\
+
+

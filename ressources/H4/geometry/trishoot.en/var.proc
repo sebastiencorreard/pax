@@ -1,0 +1,79 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid working calls to the module.
+
+ring_size=5
+crosize=6
+color0=0,0,0
+color1=255,0,0
+color2=0,255,0
+color3=0,0,255
+color4=155,0,155
+color5=0,155,155
+gcolor=0,0,0
+insdraw_size=$size,$size
+
+!if $status!=wait
+  ctype=!randitem $type
+  !read types/$ctype.prep
+  xsize=$[$size-($borderx1)-($borderx2)]
+  ysize=$[$size-($bordery1)-($bordery2)]
+  !for i in 1,2,3,4,11,12,13
+    x$i=$[$xsize*($(x$i)-$xmin)/($xmax-$xmin)+($borderx1)]
+    y$i=$[$ysize*($(y$i)-$ymin)/($ymax-$ymin)+($bordery1)]
+  !next i
+  xc=$(x$click)
+  yc=$(y$click)
+  status=wait
+  noname=
+!endif
+
+no_name=$click_x$click_y
+!read types/$ctype.proc
+
+!if $click_x$click_y!=$empty and $status=wait
+  click_x=$[$click_x]
+  click_y=$[$click_y]
+  xc1=!eval $click_x-$crosize
+  xc2=!eval $click_x+$crosize
+  yc1=!eval $click_y-$crosize
+  yc2=!eval $click_y+$crosize
+  ss=$[$size-1]
+  ins_src=$ins_src\
+    segment $xc1,$yc1,$xc2,$yc2,$color0\
+    segment $xc1,$yc2,$xc2,$yc1,$color0\
+    fcircle $xc,$yc,2,$gcolor\
+    circle $xc,$yc,$[$crosize*3],$gcolor\
+    segment 0,0,$ss,0,255,255,0\
+    segment 0,0,0,$ss,255,255,0\
+    segment 0,$ss,$ss,$ss,255,255,0\
+    segment $ss,0,$ss,$ss,255,255,0
+  xe=$[$click_x-$xc]
+  ye=$[$click_y-$yc]
+  error=$[sqrt(($xe)^2+($ye)^2)]
+  reply_cnt=$[$reply_cnt+1]
+  !if $reply_cnt>$shoots
+    reply_cnt=1
+    tot_error=$error
+    target=
+  !else
+    tot_error=$[$tot_error+$error]
+  !endif
+  !if $error<$ring_size*10
+    target=$target\
+    fcircle $[rint($xe+$ring_size*10)],$[rint($ye+$ring_size*10)],5,$color0
+  !endif
+  mean=$[rint(2*$tot_error/$reply_cnt)/10]
+  !if $reply_cnt>=$shoots
+    module_score=!eval 10-floor($mean)
+    !if $module_score<0 or NaN isin $module_score
+      module_score=0
+    !endif
+    wims_module_log=$reply_cnt shoots, error=$mean mm, $module_score/10
+    rings=
+    !for i=0 to 10
+      rings=$rings\
+       circle $[$ring_size*10],$[$ring_size*10],$[2*$i*$ring_size],160,160,160
+    !next i
+  !endif
+ !distribute item $ into status,click_x,click_y
+!endif

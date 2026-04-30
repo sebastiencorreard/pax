@@ -1,0 +1,51 @@
+# het antwoord is iets als
+# x elem R \{1,2,3}                                                                                                            
+# x<1 1<x<2 2<x<3 x>3                                                                                                           
+# x elem R \{1,2}                                                                                                              
+# x<1 1<x<2 x>2                                                                                                                 
+# x elem R \{1}                                                                                                                
+# x<1 x>1 
+
+# testen op /{}
+A=!replace [a-z\{\}\(\}\/\\] by $empty in $AAA
+    
+
+test=!itemcnt $A
+!if $test=0
+    maxscore=$[$maxscore*$P1]
+    errortext=!record 48 of lang/remarks.$taal
+    # syntax niet in orde: geef je antwoord als <em>x element R\{1,2}</em> <br /> als je bedoelt: x&lt;1 en 1&lt;x&lt;2 en x&gt;2
+    goback=1
+    !exit
+!endif
+
+!if $test=1
+    AAA=!nospace $X<$A && $X>$A
+#    AAA= $X<$A  $X>$A
+!else
+    !if $test=2
+	A1=!item 1 of $A
+	A2=!item 2 of $A
+	# translate to internal syntax
+	 AAA=!nospace $X<$A1 && $A1<$X && $X<$A2  && $X>$A2
+	#AAA=$X<$A1 $A1<$X $X<$A2 $X>$A2
+
+    !else
+	!if $test=3
+	    A1=!item 1 of $A
+    	    A2=!item 2 of $A
+    	    A3=!item 3 of $A
+	    AAA=!nospace $X<$A1 && $A1<$X && $X<$A2  &&  $A2<$X<$A3 && $X>$A3	
+	    #AAA=$X<$A1 $A1<$X $X<$A2 $A2<$X $X<$A3 $X>$A3	
+	!else
+	    maxscore=$[$maxscore*$P4]
+	    errortext=!record 49 of lang/remarks.$taal
+	    # Als ik dit antwoord nakijk, reken ik het fout<br />Ik hoop dat je een schrijf/syntax/denk foutje hebt gemaakt...<br />\
+	    # Kijk even in de help pagina's voor de bedoeling van deze som.
+	    goback=1
+	    !exit
+	!endif
+    !endif
+!endif
+
+goback=1                                 

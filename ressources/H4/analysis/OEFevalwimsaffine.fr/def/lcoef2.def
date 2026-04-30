@@ -1,0 +1,136 @@
+!set title=Lecture du coefficient 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v for v=4 to 9
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0)*$(val7[1]))]
+val9=1/$val8*x
+val10=\frac{1}{$val8}
+val11=$[rint(-$val8)]
+tmp0=!texmath -1/($val8)
+
+val12=$(tmp0),$val8,$val11
+val13=Quel est le coefficient de la fonction \($val6\)
+!readproc slib/draw/repere 400,400,0,-10,10,-10,10,1,1,black,grey 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!line 3 to -1 of $val14
+
+val14=$(tmp0)
+!readproc oef/draw.phtml 400,400 \
+$val14	range -10,10,-10,10	plot blue,$val9	text black,9.5,-0.3,medium,X	text black,-1.5,10,medium,$val6(X)	text black,0.9,-0.3,medium,1	text black,-0.5,1.5,medium,1 
+tmp0=$ins_url
+val15=$(tmp0)
+val16=A,B,C,D,E,F,G,H
+tmp0=!shuffle $val12,$val10
+
+val12=$(tmp0)
+tmp0=!positionof item $val10 in $val12
+
+val17=$(tmp0)
+val18=<ul>
+tmp0=!itemcnt $val12
+
+val19=$[rint($(tmp0))]
+!for val20 =1 to $val19 
+val18=$val18<li><b>$(val16[$val20])</b> : \($(val12[$val20])\)</li>
+!next
+val18=$val18</ul>
+tmp0=!item $val17 of $val16
+
+val21=$(tmp0)
+tmp0=!item 1 to $val19 of $val16
+
+val22=$(tmp0)
+val23=Soit \($val6\) une fonction linéaire dont la représentation graphique est donnée ci-contre.
+replytype1=menu
+replyname1=réponse
+replygood1=$val17;$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val23<br>	$val13 ?	$val18	<div class="wimscenter"><img src="$val15" alt=""></div>	<b>Votre réponse :</b>	<div class="wimscenter">	  La bonne réponse est la  
+!read oef/embed.phtml r1 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,18,23
+embedcnt=1

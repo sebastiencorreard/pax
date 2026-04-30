@@ -1,0 +1,134 @@
+# ChemInputApplet: 3 replys ascii,html,latex
+# var9 is the correct chemical equasion
+
+n=$counter
+Gf=$var9
+
+test=!replace internal -> by @ in $Af
+test=!replace internal => by @ in $test
+
+found_arrow=0
+!if @ notin $test
+    errortext=!record 1 of lang/remarks.$taal
+    testvar=$Ah 
+    #@Ik geloof dat je even in de help-pagina van deze som moet kijken<br />Want ik kan geen "echte" reactie vergelijking ontdekken in <b>$(reply$n)</b>
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!else
+    found_arrow=1
+!endif
+
+Af=!replace [\&\%\$\#\@\!\~\`\"\'\:\;\?\,\.\_\] by $empty in $Af
+Af=!nospace $Af
+#### riskant maar i.v.m. chemeq noodzakelijk
+!if ^ isin $Af
+    !for p=1 to 7
+	Af=!replace internal ^+$p+ by ^$p+@+@ in $Af
+	Af=!replace internal ^-$p+ by ^$p-@+@ in $Af
+    !next p
+    # Al^3+3Cl^-  --> syntaxfout (+ vergeten Al^3+ + 3Cl^-) 
+    # moeten de leerling daar op te wijzen...
+    plussen=!positionof char + in $Af
+    cijfers=0 1 2 3 4 5 6 7 8 9
+    alph=A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+    eind=!char -1 of $Af
+    !for p in $plussen
+	p0=!char $[$p-2] of $Af
+	p1=!char $[$p-1] of $Af
+	p2=!char $[$p+1] of $Af
+	!if $p0=^ and $eind!=+
+	    !if $p1 isin $cijfers and ($p2 isin $cijfers or $p2 isin $alph)
+    		errortext=!record 2 of lang/remarks.$taal
+		#@Een syntaxfoutje, je bent een "+" vergeten...<br />Kijk even in de helppagina's voor de syntaxregeltjes
+		maxscore=$[$P1*$maxscore]
+		goback=1
+		!exit
+	    !endif
+	!endif
+    !next p
+    # nog wat correcties nodig om chemeq niet te laten stijgeren...
+    Af=!replace internal ^++ by ^+1@+@ in $Af
+    Af=!replace internal ^-+ by ^-1@+@ in $Af
+    Af =!replace internal ++ by +@+@ in $Af
+    Af =!replace internal -+ by -@+@ in $Af
+!else
+    Af=!replace internal ++ by + in $Af
+    Af=!replace internal + by @+@ in $Af
+!endif
+
+# arrows, equivalence
+
+test=!replace internal = by # in $Af
+# testen op CH4 +2O2 = CO2 + 2H2O ipv  CH4 +2O2 -> CO2 + 2H2O
+!if # isin $test and $found_arrow=0
+    check=0
+    dingen=<,>
+    t=!positionof char = in $Af
+    !for p in $t
+	t1=!char $[$p-1] of $Af
+	t2=!char $[$p+1] of $Af
+	!if $t1 notin $dingen and $t2 notin $dingen
+	    !increase check 
+	!endif
+    !next p
+    !if $check>0
+	errortext=!record 3 of lang/remarks.$taal
+	#@Nee je moet natuurlijk wel de goede equivalentie pijlen gebruiken...<br />A + B -> C <br /> A + B <-> C <br />Kijk maar eventjes in de help-pagina's	
+	goback=1
+	maxscore=$[$P1*$maxscore]
+	!exit
+    !endif
+!endif
+!for i=1 to 5
+    Af=!replace internal = by - in $Af
+    Af=!replace internal -- by - in $Af
+!next i
+    
+Af =!replace internal <-> by -> in $Af
+Af =!replace internal -><- by -> in $Af
+Af =!replace internal -> by @->@ in $Af
+test=!replace internal -> by , in $Af
+t1=!itemcnt $test
+!if $t1 !=2
+    errortext=!record 4 of lang/remarks.$taal
+    #@Je maakt een syntaxfoutje<br />Kijk in de Help-pagina's voor een paar tips...
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !increase try
+    !exit
+!endif
+
+!if ^ notin $Af
+    # syntax CO2+ +H2O vergeven -> CO2 ++ H2O -> CO2 + H2O 
+    !if +@+ isin $Af
+	Af=!replace internal +@+ by + in $Af
+    !endif
+!endif
+
+Af=!replace internal @ by $   $ in $Af
+Af=!singlespace $Af
+
+Af=!exec chemeq_n $Af
+Gf=!exec chemeq_n $Gf
+
+!if $Af=$Gf
+    score=1
+    k=green
+!else
+    k=red
+    score=0
+    error= !exec chemeq_error $Af
+    !if $error != $empty
+	error=!replace internal ERROR by $empty in $error
+	error=!replace internal : by $ in $error
+	error=!replace internal / by , in $error
+        links=!item 1 of $error
+        rechts=!item 2 of $error
+        extra1=!record 5 of lang/remarks.$taal
+	#@<br />De <b>massabalans</b> is niet inorde...<br /><em>Links en rechts van de pijl zijn verschillen:<br />Het linker gedeelte was: $links<br />Het rechter gedeelte was: $rechts</em><br />
+    !endif
+!endif
+Ah=<span style="color:$k">$Ah</span>
+maxscore=$[$maxscore*$score]
+

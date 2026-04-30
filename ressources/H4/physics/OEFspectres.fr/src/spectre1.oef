@@ -1,0 +1,155 @@
+\title{Les spectres (1)}
+\author{Benoit Markey}
+\email{benoit.markey@ac-lille.fr}
+
+
+\range{-5..5}
+
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\comment{spectre: X,nom,longueur_onde1 en en angström,intensité raie1,longueur_onde2 en en angström,intensité raie2,...}
+\matrix{spectre=wims(record 1 of tableau_spectres)}
+\text{sp=randomrow(\spectre)}
+\integer{nb=(items(\sp)-2)/2}
+\text{nom=\sp[2]}
+\integer{taille=80}
+\text{image=\imagedir/spectre.png}
+
+\text{raie=}
+\text{raie_noir=}
+
+\for{i=2 to \nb}{
+\real{long=(\sp[(\i-1)*2+3]/10)}
+
+\if{\long>380 and \long<439}{
+\integer{R=-(\long-440)/(440-380)*255}
+\integer{G=0}
+\integer{B=255}
+}
+
+\if{\long>440 and \long<489}{
+\integer{R=0}
+\integer{G=(\long-440)/(490-440)*255}
+\integer{B=255}
+}
+
+\if{\long>490 and \long<509}{
+\integer{R=0}
+\integer{G=255}
+\integer{B=(\long-510)/(510-490)*255}
+}
+
+\if{\long>510 and \long<579}{
+\integer{R=(\long-510)/(580-510)*255}
+\integer{G=255}
+\integer{B=0}
+}
+
+\if{\long>580 and \long<644}{
+\integer{R=255}
+\integer{G=-(\long-645)/(645-580)*255}
+\integer{B=0}
+}
+
+\if{\long>645}{
+\integer{R=255}
+\integer{G=0}
+\integer{B=0}
+}
+
+\integer{x1=10+((\long-400)/400)*800-0.5*(\sp[(\i-1)*2+4]/60)}
+\integer{x2=\x1+0.5*(\sp[(\i-1)*2+4]/60)}
+\text{raie=\raie
+frect \x1,0,\x2,\taille,\R,\G,\B}
+\text{raie_noir=\raie_noir
+frect \x1,0,\x2,\taille,black}
+}
+
+\text{axe=arrow 0,\taille+10,840,\taille+10,10,black
+parallel 10,\taille+6,10,\taille+14,40,0,25,black
+text black,1,\taille+15,medium,400
+text black,201,\taille+15,medium,500
+text black,402,\taille+15,medium,600
+text black,603,\taille+15,medium,700
+text black,804,\taille+15,medium,800
+text black,640,\taille+10,small,longueur d'onde (nm)
+}
+
+
+\text{image2=draw(850,\taille+40
+frect 10,0,810,\taille,black
+\raie
+\axe
+)}
+
+\text{spectre=frect 10,0,12,\taille,170,0,255}
+\integer{lambda=399}
+
+\for{j=1 to 400}{
+\integer{lambda=\lambda+1}
+
+\if{\lambda>380 and \lambda<439}{
+\integer{R=-(\lambda-440)/(440-380)*255}
+\integer{G=0}
+\integer{B=255}
+}
+
+\if{\lambda>440 and \lambda<489}{
+\integer{R=0}
+\integer{G=(\lambda-440)/(490-440)*255}
+\integer{B=255}
+}
+
+\if{\lambda>490 and \lambda<509}{
+\integer{R=0}
+\integer{G=255}
+\integer{B=(\lambda-510)/(510-490)*255}
+}
+
+\if{\lambda>510 and \lambda<579}{
+\integer{R=(\lambda-510)/(580-510)*255}
+\integer{G=255}
+\integer{B=0}
+}
+
+\if{\lambda>580 and \lambda<644}{
+\integer{R=255}
+\integer{G=-(\lambda-645)/(645-580)*255}
+\integer{B=0}
+}
+
+\if{\lambda>645}{
+\integer{R=255}
+\integer{G=0}
+\integer{B=0}
+}
+\text{spectre=\spectre
+frect 10+2*(\j-1),0,10+2*\j,\taille,\R,\G,\B
+}
+}
+
+\text{image1=draw(850,\taille+40
+\spectre
+\raie_noir
+\axe
+)}
+\matrix{liste=\image1,\sp[2],absorption
+\image2,\sp[2],émission}
+\integer{tir=randint(1..2)}
+\text{rep1=row(\tir,\liste)}
+\if{\tir=1}{
+\text{rep2=absorption}
+\text{rep_faux=émission}
+}
+\if{\tir=2}{
+\text{rep2=émission}
+\text{rep_faux=absorption}
+}
+\statement{
+Voici le spectre de l'élèment \rep1[2].<br>
+<img src="\rep1[1]"><br>
+De quel type de spectre s'agit-il? \embed{reply1,10}
+}
+\choice{réponse}{\rep2}{\rep_faux}

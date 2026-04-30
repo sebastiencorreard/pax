@@ -1,0 +1,136 @@
+# alleen letters in 't antwoord
+goback=0
+errortext=$empty
+n=$counter
+#errortext=$(reply$n)
+#goback=1
+#!exit
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+reply$n=!lower $(reply$n)
+
+# sorteren op links en rechts
+t=!itemcnt $(reply$n)
+
+links_tekst=$empty
+links_getal=$empty
+rechts_tekst=$empty
+rechts_getal=$empty
+for p=1 to $t step 4
+    P=!item $p of $(reply$n)
+    links_tekst=!append item $P to $links_tekst
+    P=!item $[$p+1] of $(reply$n)
+    links_getal=!append item $P to $links_tekst
+    P=!item $[$p+2] of $(reply$n)
+    rechts_tekst=!append item $P to $rechts_tekst
+    P=!item $[$p+3] of $(reply$n)
+    rechts_getal=!append item $P to $rechts_getal
+!next p
+
+errortext=$links_tekst<br />$links_getal<br />$rechts_tekst<br />$rechts_getal
+goback=1
+!exit
+var9=Voorraden,Gebouw,Debiteuren,Banksaldo,Kasgelden,Inventaris,Rekening-courant,Eigen vermogen,Hypothecaire lening,Crediteuren
+volgorde=1,1,1,1,1,1,2,2,2,2
+
+var8=1,voorraden,raden,voor\
+1,gebouw,gebauw,ouw,auw\
+1,debiteuren,debi,bi\
+1,banksaldo,bank,saldo,aldo\
+1,kasgelden,kas,geld\
+1,inventaris,inve\
+2,crediteuren,kredi,credi,di\
+2,hypothecairelening,hipo,hypo,lening,len\
+2,rekening-courant,coura,koura\
+2,eigenvermogen,eige,vermog
+
+# item 1+(n*4)
+var7=vasteactiva,vlottendeactiva,totaal
+# item 3+(n*4)
+var6=eigenvermogen,langvreemdvermogen,kortvreemdvermogen,totaal
+
+list2=!shuffle 1,2,3,4,5,6,7,8,9,10
+static_table=<table border=\'1\' summary=\'tabel\' >
+k=0
+sum=0
+!for p in $list2
+    !increase k
+    ding=$(var9[$p])
+    links_rechts=$(volgorde[$p])
+    !if $k=10
+bedrag$p=$[abs($sum)]
+bedrag=<span style="color:red"><b>???</b></span>
+    !else
+bedrag=!randint 50,500
+bedrag$p=$[$bedrag*100]
+    !endif
+    !if $links_rechts=1
+sum=$[$sum+$bedrag]
+    !else
+sum=$[$sum - $bedrag]
+    !endif
+    static_table=!append word <tr><td>$ding</td><td>&euro; $(bedrag$p)</td></tr> to $static_table
+!next p
+static_table=!append word </table> to $static_table
+var9=Voorraden,Gebouw,Debiteuren,Banksaldo,Kasgelden,Inventaris,Rekening-courant,Eigen vermogen,Hypothecaire lening,Crediteuren
+volgorde=1,1,1,1,1,1,2,2,2,2
+
+var8=1,voorraden,raden,voor\
+1,gebouw,gebauw,ouw,auw\
+1,debiteuren,debi,bi\
+1,banksaldo,bank,saldo,aldo\
+1,kasgelden,kas,geld\
+1,inventaris,inve\
+2,crediteuren,kredi,credi,di\
+2,hypothecairelening,hipo,hypo,lening,len\
+2,rekening-courant,coura,koura\
+2,eigenvermogen,eige,vermog
+
+# item 1+(n*4)
+var7=vasteactiva,vlottendeactiva,totaal
+# item 3+(n*4)
+var6=eigenvermogen,langvreemdvermogen,kortvreemdvermogen,totaal
+
+list2=!shuffle 1,2,3,4,5,6,7,8,9,10
+static_table=<table border=\'1\' summary=\'tabel\' >
+k=0
+sum=0
+!for p in $list2
+    !increase k
+    ding=$(var9[$p])
+    links_rechts=$(volgorde[$p])
+    !if $k=10
+bedrag$p=$[abs($sum)]
+bedrag=<span style="color:red"><b>???</b></span>
+    !else
+bedrag=!randint 50,500
+bedrag$p=$[$bedrag*100]
+    !endif
+    !if $links_rechts=1
+sum=$[$sum+$bedrag]
+    !else
+sum=$[$sum - $bedrag]
+    !endif
+    static_table=!append word <tr><td>$ding</td><td>&euro; $(bedrag$p)</td></tr> to $static_table
+!next p
+static_table=!append word </table> to $static_table
+
+maxscore=$[$maxscore*$factor*$score/$t1]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

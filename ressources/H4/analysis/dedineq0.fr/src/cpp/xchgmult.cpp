@@ -1,0 +1,59 @@
+target=xchgmult
+\title{Échange et mult}
+\author{Gang Xiao}
+\email{xiao@unice.fr}
+\language{fr}
+\options{nofloat fixedgoal askcontext askresult}
+
+\matrix{vars=a,b
+c,d
+p,q
+s,t
+x,y
+}
+\text{vars=randomrow(\vars)}
+\text{x=item(1,\vars)}
+\text{y=item(2,\vars)}
+\matrix{vars=\x+randint(2..10)*\y,randint(2..10)*\x-\y
+\x,randint(1..10)*random(-1,1)*\y
+\x+randint(1..10)*random(-1,1),\y
+\x^2,random(1,-1)*randint(2..10)*\y
+random(sin,cos,log)(\x),\y+randint(0..10)*random(-1,1)
+random(sin,cos,log)(\x+random(-1,1)*\y),randint(0..10)*random(-1,1)
+}
+\text{vars=randomrow(\vars)}
+\text{vars=shuffle(\vars)}
+\function{x=item(1,\vars)}
+\function{y=item(2,\vars)}
+
+\text{eqr=random(,=)}
+\text{moreless=shuffle(<\eqr,>\eqr)}
+\text{more=item(1,\moreless)}
+\text{less=item(2,\moreless)}
+\text{ctx=simplify(\x \more \y)}
+
+\integer{ra=random(1,2)}
+\if{\ra=1}{
+  \methods{ineq/addterm ineq/exsides}
+  \text{prv=-(\x) \less -(\y)}
+  \minsteps{2}
+  \text{phrase=\name_phrase1}
+}{
+  \methods{ineq/addterm ineq/mulnum}
+  \text{prv=\y \less \x}
+  \minsteps{2}
+  \text{phrase=name_phrase2}
+}
+
+\text{prv=simplify(\prv)}
+\equivalence{\ctx}
+\text{gl=wims(nospace \prv)}
+
+\statement{\name_statement[1] \phrase.
+<p>
+\name_statement[2] \( \ctx ) \name_statement[3] \( \prv ) \name_statement[4].
+</p>
+}
+
+\text{test=wims(nospace \newobject)}
+\condition{\test issametext \gl}

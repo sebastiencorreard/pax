@@ -1,0 +1,327 @@
+!! change these for common authordir 
+!set phtmldir=jm.evers/phtml
+!set jsdir=$module_dir/jm.evers/js
+!set gifdir=$module_dir/jm.evers/gifs
+
+!set max_s=40
+!header
+!form new
+!set talen=en nl cn
+!if $lang notin $talen
+    !set taal=en
+    !set translated=0
+!else
+    !set translated=1
+    !set taal=$lang
+!endif
+!set s=0
+!for p=1 to 100
+    !set competence=!record $[-1*$p] of lang/remarks.$taal
+    !if $competence=$empty
+	!goto READY
+    !else    
+	!increase s
+	!if # isin $competence
+	    !set competence=!replace internal # by $empty in $competence
+	    !set selecttext=!append line <option value="$s"></option> to $selecttext
+	!endif
+	!set sum=!append word <li>$competence</li> to $sum
+	!set selecttext=!append line <option value="$s">$competence</option> to $selecttext
+    !endif
+!next p
+:READY
+    <input type=hidden name=module value="$module">
+    <a onmouseover="return escape('$module_title<br> is a Dutch WIMS module produced by <em>SCHAERSVOORDE AALTEN</em></b><br><img src=$gifdir/schaersvoorde.jpg>')">
+    <hr width="50%">
+	<p align="center">
+	    <font color="red">
+		<em>
+		    Configuration section 
+		</em>
+	    </font>
+	</p>
+    <hr width="50%">
+    </a>
+    <p align="center">
+	<table bgcolor=$bgcolor2>
+	    <td>
+		<p align="left">
+		!if $translated=0
+		    !! mylaguages are defined in the actual module (intro.phtml)
+		    <a onmouseover="return escape('Sorry<br>No support for $lang')">
+			<small>
+			    <em>
+				<font color="red">
+				Sorry,<br>
+				but the supported languages of this module are: <b>$talen</b><br>
+				And at this moment there is no support for <b>$lang</b><br>
+				The module is native to Dutch, but will default to English
+				</font>
+			    </em>
+			</small>
+		    </a>
+		    !set taal=en
+		    !! defaults to english for my my-work
+!!		!else
+!!		    <a onmouseover="return escape('the variable $$talen for this module is<br>$talen<br><font color=red>Please note:<br>this jm.evers module is native in Dutch (and translated into English)<br>All other languages are goooogled....<br>and will be not -yet- really usable...</font>')">
+!!			Set the <font color="blue">module language</font> :
+!!		    </a>
+!!		    <select name="taal">
+!!			!set langcnt=!wordcnt $talen
+!!			!for l=1 to $langcnt
+!!			    !set L=!word $l of $talen
+!!			    <option value=$L>$L</option>
+!!			!next p	
+!!			    <option value=fr>fr (not usable)</option>
+!!			    <option value=de>de (not usable)</option>
+!!			    <option value=it>it (not usable)</option>
+!!			    <option value=es>es (not usable)</option>
+!!
+!!		    </select>
+		!endif
+		<p align="left">
+		     <a onmouseover="return escape('<ol>$sum</ol><br>This module has $s different subjects or topics<br>normally, each subject has 4 levels')">
+	    		Which <font color="blue">topic</font> ?:
+		    </a>
+		    <select name="subject">
+			!for p=1 to $s
+			    !line $p of $selecttext
+			!next p
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('Every subject can have 4 difficulty levels <br>and  default level is <em>increasing</em>')">
+			Set the difficulty <font color="blue">level</font> of this exercise:
+		    </a>
+		    <select name="level">
+	    		<option value=0>increasing</option>
+			<option value=1>easy</option>
+	    		<option value=2>normal</option>
+	    		<option value=3>difficult</option>
+	    		<option value=4>very difficult</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('All exercises have a maximium of 10 questions in a row for 1 score')">
+			Set the <font color="blue">number</font> of exercises:
+		    </a>
+		    <input size=10 name="total_exos" value=3>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('What accuracy do we want in numerical answers?<br><em>Mathematical precise</em> meaning <em>1.4142</em> is not without penalty accepted as <em>&radic;2</em></em><br>The default is <em>not applicable</em> meaning: let the exercise decide ...<br>note: the module can always override your settings')">
+			<font color="blue">accuracy</font> of the answer?
+		    </a>
+		    <select name="rounding">
+			<option value=-1>not applicable</option>
+			<option value=0>mathematical precise</option>
+	    		<option value=100000>5 decimals</option>
+	    	    	<option value=10000>4 decimals</option>
+			<option value=1000>3 decimals</option>
+	    		<option value=100>2 decimals</option>
+	    		<option value=10>1 decimal</option>
+	    		<option value=1>integers</option>
+		    </select>
+		</p>
+		!if $usage=$empty
+		<p align="left">
+		    <a onmouseover="return escape('This can give some <em>default config settings</em><ul><li><font color=green><b>formal exam</b></font> meaning very strict answer_checking and <em>just the score</em> at the end <li><font color=green><b>testexam</b></font> with a less rigid checking regime, but still just the score at the end of the test<li><font color=green><b>training</b></font> giving all available teaching support and full disclosure of the correct answer, sometimes including extra information <li><font color=red><b>select yourself</b></font> gives you a <em>new menu</em> with access to <em>all</em> available adjustments<br>like Mathpreview, TeXsize, Images, Support, Calculators , Timelimits <br>And with the option to generate a set of HTML hyperlinks towards your specific settings of this exercise<li><font color=blue><b>printerversion</b></font> gives a new menu <br>where you can adjust the exercise for a papertest<br><em>Only if the exercise is useful on paper: applets and other noisy questionstyles excluded</em> <br>also <em>resize images</em> and even re-arrange the exercise elements into a good looking papertest (using a cross browser DHTML)<br>There is a <em>hardcoded</em> limit to the number of questions in a row</ul> ')">
+			Set the <font color="blue">usage</font> of this exercise:
+		    </a>
+		    <select name="usage">
+			<option value=2>used for training :)</option>
+			<option value=4>select yourself</option>
+			<option value=3>printerversion of exercise</option>
+			<option value=1>used for testexam</option>
+	    		<option value=0>used in formal exam</option>
+		    </select>
+		</p>
+		!endif
+		<p align="center">
+	    	    <table>
+			<th>
+			    <input type="hidden" name="taal" value="$taal">
+			    <input style="background-color:lightgreen;font-weight:normal;font-size:14px" type="submit"  value="CONFIGURATION IS OK">
+			</th>
+		    </table>
+		</p>
+	    </td>
+	    !if $usage=3 or $usage=4
+	    <input type="hidden" name="usage" value="5">
+	    <tr>
+	    <td>
+	    <hr width="50%">
+		!if devel isin $module_dir
+		<p align="left">
+		    Freestyle ,Multiplechoice ,Drag&Drop? 
+		    <a onmouseover="return escape('This variable can be set differently <br>or individually in a exo files.<br>Not every freestyle module can be made multiplechoice by choosing this $$questiontype here<br><br>A module using GeoGebra for a certain $$subject will do so<br>independant of what you set here...')">
+			<font color=blue>or GeoGebra</font>
+		    </a>
+		    <select name="questiontype">
+			<option value=0>Freestyle answers</option>
+		    	<option value=1>Multiplechoice</option>
+		    	<option value=2>Drag & Drop</option>
+		    	<option value=3>Hotspot</option>
+			<option value=0></option>
+			<option value=0></option>
+			<option value=0></option>
+		    	<option value=4>GeoGebra</option>
+		    	<option value=5>GeoGebra+image</option>
+		    	<option value=6>Roll your own
+			(some howto info included)
+			</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('If You are using this template for development of a jm.evers module<br>Would you like some info on the variables <br>used by the module<br>This info is available through the help-pages')">
+			<font color="blue">Development debug</font> information in the help-pages
+		    </a>
+		    <select name="debug">
+			<option value=0>no</option>
+			<option value=1>yes</option>
+		    </select>
+		</p>
+		!endif
+		<p align="left">
+		    <a onmouseover="return escape('This has a hardcoded maximum of 100.<br>If the amount of returns of an exercise -due to syntax based errors- exceeds this value, the score will be a <b>1</b>')">
+			Set the number of <font color="blue">maximum returns</font> for syntax errors:
+		    </a>
+		    <input size=5 name="maxtry" value=5>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('If set to yes, there will be more consideration with the student<br>Small errors will be returned for correction.<br> Some special help-pages <em>may</em> be offered.<br>If possible and usefull ,there will always be a graph or illustration available<br>The default value is <em>yes</em>')">
+			Some <font color="blue">training support</font> for the student
+		    </a>
+		    <select name="teaching">
+			<option value=1>yes</option>
+			<option value=0>no</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('If the exercise has an image or a functionplot -and it is not vital to the exercise- should we show it?<br>Default is <b>yes</b>')">
+			If appropriate an <font color="blue">illustration</font> ?
+		    </a>
+		    <select name="image">
+	    		<option value=1>yes</option>
+			<option value=0>no</option>
+		    </select>
+		</p>
+		!if $usage=3
+		    <input type="hidden" name="printexo" value="1">
+		!endif
+		!if $usage=4
+		<p align="left">
+		    <a onmouseover="return escape('this variable can be overruled by the exercise, and there is a hardcoded maximum to this...')">
+			In case of multiplechoice ,Drag&Drop or multiple items, how <font color="blue">many items</font>
+		    </a>
+		    <input size=5 name="options" value=4>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('If set to <b>yes</b> a OK-sign will be shown to the student, if a sub-question is answered correctly <img src=$gifdir/ok.gif> <img src=$gifdir/bok.gif> <img src=$gifdir/nok.gif><br>Or even a random -sometimes funny- remark along with it? ')">
+			A <font color="blue">Good (OK) or Bad (NOK)</font> in between exercises?
+		    </a>
+		    <select name="goodbadsign">
+			<option value=2>Yes and a remark</option>
+			<option value=1>yes</option>
+			<option value=0>no</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('Do you want to show the <em>correct answer</em> at the end of the test<br>Default is <em>yes</em>')">
+			Show the correct answer <font color="blue">at the end</font> of the exercise ?
+		    </a>
+		    <select name="showanswer">
+	    		<option value=1>yes</option>
+			<option value=0>no</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('Do you want to use a certain type of Javascript Calculator<br><img src=$gifdir/basic.jpg><img src=$gifdir/science.jpg>')">
+			A PopUp javascript<font color="blue"> Calculator?</font>
+		    </a>
+		    <select name="calculator">
+			<option value=1>very basic model</option>
+			<option value=2>"scientific" model</option>
+			<option value=0>no calculators</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('Do you want to offer a scribbling block, e.g. a textarea for calculations? ')">
+			A PopUp <font color="blue">Scribbling-block?</font>
+		    </a>
+		    <select name="scribbling">
+			<option value=1>Yes</option>
+			<option value=0>No</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('This gives a very small running clock')">
+			A simple <font color="blue">JS clock?</font>
+		    </a>
+		    <select name="time">
+			<option value=1>yes</option>
+			<option value=0>no clock</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('The time limit is not yet implemented')">
+			<font color="blue">Time limit</font> per exercise
+		    </a>
+		    <input size=15 name="duration" value="not implemented"> minutes
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('<img src=$gifdir/math.jpg><br>There are <b>two</b> options<ol><li>Using a Java Applet</li><li>Using the insmath_function of WIMS giving a gif-image of the formula</li></ol>Both options send the answer directly to WIMS server.<br>On busy or slow Wims Servers, the applet is prefered')">
+			A <font color="blue">Math formula Input </font> field?
+		    </a>
+		    <select name="mathview">
+			<option value=0>No , use only Normal TextArea</option>			
+			<option value=3>Yes , use JAVA Applet</option>			
+			<option value=2>Option : JAVA Applet</option>
+			<option value=1>Option : WIMS Math</option>
+		    </select>
+		</p>
+		<p align="left">
+		    <a onmouseover="return escape('Here you can control the size of the mathematical inserts<br>The module can always overrule this value <ul><li><img src=$gifdir/4.gif>+4</li><li><img src=$gifdir/3.gif>+3</li><li><img src=$gifdir/2.gif>+2</li><li><img src=$gifdir/1.gif>+1</li><li><img src=$gifdir/0.gif>0</li><li><img src=$gifdir/-1.gif>-1</li><li><img src=$gifdir/-2.gif>-2</li><li><img src=$gifdir/-3.gif>-3</li><li><img src=$gifdir/-4.gif>-4</li></ul>')">
+			Adjust the size of <font color="blue">LaTeX Math</font> ?
+		    </a>
+		    <select name="mytexsize">
+			<option value="0">leave intact</option>
+			<option value="+4">+4</option>
+			<option value="+3">+3</option>
+			<option value="+2">+2</option>
+			<option value="+1">+1</option>
+			<option value="-1">-1</option>
+			<option value="-2">-2</option>
+			<option value="-3">-3</option>
+			<option value="-4">-4</option>
+		    </select>
+		</p>
+	
+		<p align="left">
+		    <a onmouseover="return escape('If set to <em>yes</em> it disables the use of <em>cut and paste</em> from the page into the input area<br>Sometimes Handy, if you want the students to write their own answers... ')">
+			Disable <font color="blue">Mouse Text selection</font> ?
+		    </a>
+		    <select name="noselect">
+			<option value=1>yes</option>
+			<option value=0>no</option>
+		    </select>
+		</p>
+
+		<p align="left">
+		    <a onmouseover="return escape('If set to <em>yes</em> we will generate a series of hyperlinks towards this exercise,<br>with </b>all</b> the specific exercise settings, you\'ve decided on.<br>Use for instance <em>cut and paste</em> to merge the exercise links in your homepage , schoolwebsite or your Electronic Learning System ')">
+			Generate <font color="blue">Hyperlinks</font> to this specific exercise ?
+		    </a>
+		    <select name="printexo">
+			<option value=0>no</option>
+			<option value=2>yes</option>
+		    </select>
+		</p>
+		!endif
+	    </td>
+	    !endif
+    </table>
+    <script type="text/javascript" src="$jsdir/wz_tooltip.js"></script>
+</form>
+
+
+
+			

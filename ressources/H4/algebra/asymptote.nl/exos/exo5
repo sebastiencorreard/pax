@@ -1,0 +1,121 @@
+# answer$n=2@vertikaal,-3@verticaal,0@horizontaal
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathviewpanel=$module_title :x=:y=:and:or:sqrt()
+questiontype=0
+plot=1
+embed=1
+cols=20
+rows=2
+draw=0
+math=0
+display=1
+ss=!record 41 of lang/remarks.$taal
+#@ Bepaal voor de onderstaande functie voor x &gt;0 de horizontale asymptoot
+rem1=!record 3 of lang/remarks.$taal
+#@ Zie </a> voor de schrijfwijze de help pagina's
+rem2=!record 24 of lang/remarks.$taal
+helptext=$rem1<br />$rem2
+#@ De horizontale asymptoot is: de lijn
+vertikalen=!record 4 of lang/remarks.$taal
+#@ De vertikale asymptoten zijn de lijnen
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $teaching=1 and $image=0
+    etext=!record 6 of lang/remarks.$taal
+    #@Hier</a> staat een klein grafiekje van de functie
+    # exotext=<a href="javascript:showimage();">$exotext
+    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$etext</span></a>
+!else
+    exotext=$empty
+!endif
+
+# dit voor onmouseover
+prefix=size 0.5,0.5;notics;autoscale;
+# dit voor answer.phtml
+prefix2=size 0.5,0.5;grid ;axis;autoscale; xlabel "<x-axis>";ylabel"<y-axis>" ;border
+keuze=!randitem 0,1
+
+!if $R=1
+    a=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+    g=!randint 10,99
+    g=$[$g/100]
+    plotfunction=$a*$g^x
+    formula$n=f(x)=$a \cdot $g^{x}
+    applettext=!nospace f(x)=$plotfunction ->
+    as1=0
+    !if $teaching=1
+	image=0
+	xrange=-2 : $[round($g*40)]
+	yrange= -2 : 2
+	image_settings$n=$prefix2 ;
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1
+	insplot_set=$prefix ;
+	!insplot $plotfunction notitle lt 1
+    !endif
+    textanswer$n=$vertikalen y=$as1
+    answer$n=$as1@horizontaal
+    texanswer$n= \left[ \begin{array}{l}\lim_{_{x \rightarrow \infty }} \;\;\; $a \cdot $g ^{x} = $a \cdot 0 = 0 \\ \textrm{$vertikalen} \;\;\; y = $as1 \end{array} \right.
+ !exit
+!endif
+!if $R=2
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    g=!randint 10,99
+    g=$[$g/100]
+    b=!randint 1,15
+    !if $keuze=0
+	plotfunction=$b + $a*$g^x
+	formula$n= f(x)=$b + $a \cdot $g^{x}
+	as=$b
+	yrange= -1 : $[2*$b]
+	texanswer$n=\left[\begin{array}{l} \lim_{_{x \rightarrow \infty }} \;\;\;$b + $a \cdot $g^{x} = $b + $a \cdot 0 = $as \\ \textrm{$vertikalen} \;\;\; y = $as \end{array} \right.
+    !else
+	plotfunction=$a*$g^x - $b
+	formula$n = f(x)=$a \cdot $g^{x} - $b
+	as=$[-1*$b]
+	yrange=$[-1*$b-2]: $b
+	texanswer$n= \left[ \begin{array}{l}\lim_{_{x \rightarrow \infty }}\;\;\; $a \cdot $g^{x} - $b = $a \cdot 0 - $b  = $as \\ \textrm{$vertikalen} \;\;\; y = $as \end{array} \right.
+    !endif
+    applettext=!nospace f(x)=$plotfunction ->
+    !if $teaching=1
+	image=0
+	xrange=-2 : $[round($g*40)]
+	yrange= $yrange
+	image_settings$n=$prefix2 ; 
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1
+	insplot_set=$prefix
+	!insplot $plotfunction notitle lt 1,$as
+    !endif
+    textanswer$n=$vertikalen y=$as
+    answer$n=$as@horizontaal
+ !exit
+!endif
+!if $R>2
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    g=!randint 2,8
+    b=!randint 1,15
+    mp=!randitem 1,-1
+    b=$[$mp*$b]
+    pm=!randitem +,-
+    plotfunction=$b $pm $a/$g^x
+    formula$n=f(x)=$b $pm \frac{$a}{$g^{x}}
+    applettext=!nospace f(x)=$plotfunction ->
+    as1=$b
+    !if $teaching=1
+	image=0
+	xrange=-2 : $[round(1/$g*40)]
+	yrange= $[-1*1/$g*abs($a)]: $[2*$b]
+	image_settings$n=$prefix2; 
+	image$n=[$xrange] [$yrange] $plotfunction notitle lt 1
+	insplot_set=$prefix
+	!insplot  $plotfunction notitle lt 1,$as1
+    !endif
+    textanswer$n=$vertikalen y=$as1
+    answer$n=$as1@horizontaal
+    texanswer$n= \left[ \begin{array}{l} \lim_{_{x \rightarrow \infty }}\;\;\; $b $pm \frac{$a}{$g ^{x}} = $b $pm 0 = $as1 \\ \\ \textrm{$vertikalen} \;\;\; y = $as1 \end{array} \right.
+    !exit
+!endif

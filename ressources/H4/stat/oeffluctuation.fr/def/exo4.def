@@ -1,0 +1,137 @@
+!set title=Intervalle de fluctuation détermination p et n
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Thomas, Charon
+email=thomas.charon@ac-lyon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=1000
+
+ansorder=r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 25,64,100,400,625,1600,2500
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 26, 1000
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem $val6,$val7
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 200, 800
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/1000]
+val11=$[$val10-1/sqrt($val8)]
+val12=$[$val10+1/sqrt($val8)]
+val13=$[floor(1000*$val11)/1000]
+val14=$[ceil(1000*$val12)/1000]
+val15=$[rint((2/($val14-$val13))^2)]
+val16=$[($val13+$val14)/2]
+replytype1=default
+replyname1=
+replygood1=$val16
+replytype2=range
+replyname2=
+replygood2=!rawmath $val15-1, $val15+1
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="enonce">	L'intervalle de fluctuation au seuil de 95 % relatif aux paramètres 
+!insmath p
+$() (proportion du caractère étudié)	et 
+!insmath n
+$() (taille de l'échantillon) est : [$val13;$val14]</div>	 <div class="question">	<div>Quelle est la valeur de 
+!insmath p
+$() ?  
+!read oef/embed.phtml reply 1,5 
+$() (arrondir au millème)</div>	<div>Quelle est la de 
+!insmath n
+$() ?  
+!read oef/embed.phtml reply 2,5 
+$() </div>	</div>	
+$()
+!exit
+
+:hint
+$()Si 
+!insmath 0,2 <= p <= 0,8
+$() et 
+!insmath n <= 25
+$(), alors l'intervalle de fluctuation au seuil de 95 % relatif aux paramètres	 
+!insmath p
+$() et 
+!insmath n
+$() est l'intervalle [
+!insmath p-1/sqrt(n)
+$();
+!insmath p+1/sqrt(n)
+$()]	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'amplitude de l'intervalle de fluctuation au seuil de 95 % [
+!insmath m
+$();
+!insmath M
+$()] est	
+!insmath 2/\sqrt(n)=M-m
+$() et son centre est 
+!insmath p=(m+M)/2
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,14
+embedcnt=2

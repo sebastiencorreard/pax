@@ -1,0 +1,82 @@
+#14 vectorvoorstelling
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=0
+inputs=1.1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+make_tr=1
+
+pvx=!randint 1,5
+pm=!randitem -1,1
+pvx=$[$pvx*$pm]
+pvy=!randint 1,5
+mp=!randitem -1,1
+pvy=$[$pvy*$mp]
+
+rvx=!randint 1,5
+rvy=!randint 1,3
+pp=!randitem -1,1
+rvy=$[$rvy*$pp]
+vv=!mathmlmath $$$$ \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $pvx \\ $pvy \end{pmatrix} + \lambda \begin{pmatrix} $rvx \\ $rvy \end{pmatrix} $$$$
+ss0=!record 27 of lang/remarks.$taal
+#@Gegeven de lijn <em>m</em> met vector voorstelling $vv<br />
+!if $R=1
+ checkfile=$checkdir/coord.proc
+ L=!randint -19,19
+ L=$[0.5*$L]
+ ss1=!record 28 of lang/remarks.$taal
+ #@Bereken de co&ouml;rdinaten van het punt <b>(x:y)</b> by &lambda; = $L
+ x=$[$pvx+$L*$rvx]
+ y=$[$pvy+$L*$rvy]
+ answer$n=$x,$y
+ description=(x : y)
+
+ texanswer$n=\left[ \begin{array}{l} x  =  $pvx + $L \cdot $rvx  =  $x \\  y  =  $pvy + $L \cdot $rvy  =  $y \\ ( $x : $y )  \end{array}\right.
+ helptext=<b>(5 : 6)</b>
+
+!else
+ checkfile=$checkdir/new_number.proc
+ L=!randint 1,20
+ pm=!randitem -0.5,0.5
+ L=$[$pm*$L]
+ xa=$[$pvx+$L*$rvx]
+ ya=$[$pvy+$L*$rvy]
+ !if $R=2
+  answer$n=$L
+  V=!mathmlmath  \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $xa \\ $ya \end{pmatrix}
+  ss1=!record 29 of lang/remarks.$taal
+  #@Voor welke waarde van &lambda; krijg je de vector <span style="display:inline-block">$V</span> ?
+  m_rightarrow=$empty
+  description=&lambda; =
+  txt=!record 31 of lang/remarks.$taal
+  #@  en dus 'et klopt weer...,Controleren
+
+  texanswer$n=\left[ \begin{array}{l} x  =  $pvx + \lambda \cdot $rvx  =  $xa \\ \lambda \cdot $rvx = $xa - $pvx \\ \lambda= \frac{$[$xa - $pvx]}{$rvx} = $L \\ \textrm{ $(txt[2])} \\ y  =  $pvy + $L \cdot $rvy  =  $ya \, \textrm{$(txt[1])}  \end{array}\right.
+
+  helptext=&lambda; = 1.234
+
+ !else
+  ss1=!record 30 of lang/remarks.$taal
+  #@=Bereken de waarde <b>y<sub>A</sub></b> als het punt <b>A ($xa : y<sub>A</sub>)</b> op de lijn <em>m</em> ligt.
+  m_rightarrow=$empty
+  description=<b>y<sub>A</sub></b> =
+
+  answer$n=$ya
+
+  texanswer$n=\left[ \begin{array}{l} x  =  $pvx + \lambda \cdot $rvx  =  $xa \\ \lambda \cdot $rvx = $xa - $pvx \\ \lambda= \frac{$[$xa - $pvx]}{$rvx} = $L \\ y_{A}  =  $pvy + $L \cdot $rvy  =  $ya \\ y_{A} = $ya \end{array}\right.
+  helptext= <b>y<sub>A</sub></b> =1.234
+
+ !endif
+!endif
+
+question$n=$ss0 <a onmouseover="return escape('$helptext')">$ss1</a>
+
+!exit

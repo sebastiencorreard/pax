@@ -1,0 +1,368 @@
+!set title=Méthode par balayage avec seuil
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+computeanswer=yes
+precision=1000000
+
+ansorder=r,r,r,r,r,r,r
+varcnt=70
+prevarcnt=63
+postvarcnt=6
+replycnt=7
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7+1)]
+val9=$[rint(1)]
+val10=$[rint()]
+val11=$[]
+
+!ifval ($val2==)
+val12=ambiance
+!else
+val12=$val2
+!endif
+
+!ifval ($val7==1)
+val13=1,2
+!endif
+
+!ifval ($val7==2)
+val13=1,1,2
+!endif
+
+!ifval ($val7==3)
+val13=1,1,1,2
+!endif
+tmp0=!randint 1, 2
+
+val14=$[rint($(tmp0))]
+
+!ifval ($val14==1)
+val15=croissante
+!else
+val15=décroissante
+!endif
+
+!ifval ($val14==1)
+val16=$[rint(1)]
+!else
+val16=$[rint(-1)]
+!endif
+
+!ifval ($val14==1)
+val17=<
+!else
+val17=>
+!endif
+tmp0=!randint 3, 10
+
+val18=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val19=$[rint(3*$(tmp0))]
+tmp0=!randitem 37,38,50,51,52,63
+
+val20=$[rint($(tmp0))]
+t_=!rawmath (($val19)^2-$val20)/4
+val21=!exec pari print($t_)
+t_=!replace internal \( by ( in expand($val16*($val18*x+1)*(x^2-($val19)*x+($val21)))
+tmp0=!exec maxima $t_
+
+val22=!rawmath $(tmp0)
+tmp0=!replace x by t in $val22
+
+val23=$(tmp0)
+tmp0=!replace \^ by ** in $val22
+
+val24=$(tmp0)
+tmp0=!replace \^2 by *x in $val22
+
+val25=$(tmp0)
+tmp0=!replace \^3 by *x*x in $val25
+
+val26=$(tmp0)
+tmp0=!texmath $val22
+
+val27=$(tmp0)
+val28=$[($val19+sqrt($val20))/2]
+val29=$[rint(floor($val28))]
+val30=$[rint($val29+1)]
+
+!ifval ($val14==1)
+evaltmp=$val22
+
+evaltmp=!mathsubst x=($val29) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val31=!exec pari print($t_)
+!else
+evaltmp=$val22
+
+evaltmp=!mathsubst x=($val30) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val31=!exec pari print($t_)
+!endif
+tmp0=!texmath $val31
+
+val32=$(tmp0)
+
+!ifval ($val14==1)
+evaltmp=$val22
+
+evaltmp=!mathsubst x=($val30) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val33=!exec pari print($t_)
+!else
+evaltmp=$val22
+
+evaltmp=!mathsubst x=($val29) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val33=!exec pari print($t_)
+!endif
+tmp0=!texmath $val33
+
+val34=$(tmp0)
+tmp0=!randint $val31+1, $val33-1
+
+val35=$[rint($(tmp0))]
+val36=JXG.Options.point.showInfobox = true;	JXG.Options.point.infoboxDigits = 5;	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =4;	JXG.Options.text.useMathJax = true;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [$val29,$val33,$val30,$val31],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	xaxis = brd.create('axis', [[0, 0], [1,0]]);	yaxis = brd.create('axis', [[$val29+0.1, 0], [$val29+0.1,1]]);	var c1=brd.create('functiongraph', [function(x){ return $val26;}, $val29, $val30], {strokeWidth: 2});	var liii=brd.create('line',[[0,$val35],[1,$val35]],{Color:'green',fixed:true});	
+!readproc slib/geo2D/jsxgraph jsxbox,500 x 500,$val36 
+tmp0=$slib_out
+val37=$(tmp0)
+val38=de balayage
+val39=<p>Soit \(f\) une fonction définie par \(f(x)=$val27\) sur l'intervalle \(\lbracket$val29;$val30\rbracket\).</p>	<p>Démontrer que l'équation \(f(x)=$val35\) admet une unique solution sur cet intervalle	 et en déduire la solution arrondie à \(10^{-$val7}\).</p>	<div class="bold">Existence d'une unique solution à l'équation \(f(x)=$val35\) à l'aide	 du corollaire du théorème des valeurs intermédiaires :</div>	<div class="text-left"><u>Propositions admises :</u></div>	<ul><li>La fonction \(f\) est composée de fonctions usuelles continues sur \(\mathbb{R}\)	 donc elle est continue sur l'intervalle \(\lbracket$val29;$val30\rbracket\).</li>	<li>La fonction \(f\) est strictement $val15 sur l'intervalle	 \(\lbracket$val29;$val30\rbracket\) prenant ses valeurs	  dans l'intervalle \(\lbracket$val32;$val34\rbracket\).</li>	<li> \($val35 \in \lbracket$val32;$val34\rbracket\)</li></ul>	<div class="text-left"><u>Conclusion :</u></div>	D'après le corollaire du théorème des valeurs intermédiaires, il existe une unique solution \(&#945;\) à l'équation	  \(f(x)=$val35\) sur l'intervalle \(\lbracket$val29;$val30\rbracket\).	<div class="spacer"></div>	<div class="bold">Recherche d'une valeur arrondie de la solution \(&#945;\) à \(10^{-$val7}\) :</div>	<p>La méthode $val38 détermine un encadrement	 d'amplitude inférieure ou égale à \(10^{-\n}\) de la solution \(&#945;\) de	  l'équation \(f(x)=$val35\) sur l'intervalle \(\lbracket$val29;$val30\rbracket\).</p>
+t_=!replace internal \( by ( in f(t)=$val23;
+tmp0=!exec pari $t_
+
+val40=$(tmp0)
+val41=Méthode de balayage avec seuil pour résoudre une équation de la forme \(f(x)=$val35\)
+t_=!replace internal \( by ( in default(format, "f.8");	vd=$val29;	xxli=[];	yyli=[];	vfilp=[];	vfalp=[];	vdd=[];	vff=[];	x=vd;	for(p=1,4,	xli=[];	yli=[];	while(f(x) $val17 $val35 ,	xli=concat(xli,x*1.00);	yli=concat(yli,f(x)*1.0);	x=x+10^(-p););	xxli=concat(xxli,[xli]);	yyli=concat(yyli,[yli]);	vfilp=concat(vfilp,f(x-10^(-p))*1.0);	vfalp=concat(vfalp,f(x)*1.0);	vdd=concat(vdd,(x-10^(-p))*1.0);	vff=concat(vff,x*1.0);	x=x-10^(-p););	
+tmp0=!exec pari $t_
+
+val42=$(tmp0)
+val43=\#Initialisation des variables\#	xmin=??	x=xmin	pas=??	\#Initialisation des listes#	x_list=[]	y_list=[]	\#Définition d'une fonction#	def f(x):	  return $val24	\#Coeur du programme\#	while f(x) ?? $val35 :	  y=f(x)	  x_list.append(x)	  y_list.append(y)	  x=x+pas	\#Affichage des listes#	print(x_list)	print(y_list)	print('f(',x,')=',f(x))	
+val9=$[rint($val7+1)]
+val43=\#Initialisation des variables\#	xmin=??	x=xmin	pas=??	\#Initialisation des listes#	x_list=[]	y_list=[]	\#Définition d'une fonction#	def f(x):	  return $val24	\#Coeur du programme\#	while f(x) ?? $val35 :	  y=f(x)	  x_list.append(x)	  y_list.append(y)	  x=x+pas	\#Affichage des listes#	print(x_list)	print(y_list)	print('f(',x,')=',f(x))	
+!readproc slib/runcode [python,[$val43]],idtest2,theme=$val12 canvas init \instruction_code,Jouer le code ! 
+tmp0=$slib_out
+val44=$(tmp0)
+val45=0.1,0.01,0.001,0.0001
+t_=!replace internal \( by ( in print(xxli);
+tmp0=!exec pari $t_
+
+val46=$(tmp0)
+t_=!replace internal \( by ( in print(yyli);
+tmp0=!exec pari $t_
+
+val47=$(tmp0)
+tmp0=!declosing $(val46[1])
+
+tmp1=!declosing $(val46[2])
+
+tmp2=!declosing $(val46[3])
+
+tmp3=!declosing $(val46[4])
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2);$(tmp3)
+val48=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $(val47[1])
+
+tmp1=!declosing $(val47[2])
+
+tmp2=!declosing $(val47[3])
+
+tmp3=!declosing $(val47[4])
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2);$(tmp3)
+val49=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print(vfilp);
+tmp0=!exec pari $t_
+
+val50=$(tmp0)
+t_=!replace internal \( by ( in print(vfalp);
+tmp0=!exec pari $t_
+
+val51=$(tmp0)
+t_=!replace internal \( by ( in print(vdd);
+tmp0=!exec pari $t_
+
+val52=$(tmp0)
+t_=!replace internal \( by ( in print(vff);
+tmp0=!exec pari $t_
+
+val53=$(tmp0)
+tmp0=!declosing $val50
+
+val54=$(tmp0)
+tmp0=!declosing $val51
+
+val55=$(tmp0)
+tmp0=!declosing $val52
+
+val56=$(tmp0)
+tmp0=!declosing $val53
+
+val57=$(tmp0)
+val58=[xmin,[$val29]]\tmax1[pas,[$(val45[1])]],[x_list,[$(val48[1;])]],[y_list,[$(val49[1;])]]
+val59=[xmin,[$(val56[1])]]\tmax2[pas,[$(val45[2])]],[x_list,[$(val48[2;])]],[y_list,[$(val49[2;])]]
+val60=[xmin,[$(val56[2])]]\tmax3[pas,[$(val45[3])]],[x_list,[$(val48[3;])]],[y_list,[$(val49[3;])]]
+val61=[xmin,[$(val56[3])]]\tmax4[pas,[$(val45[4])]],[x_list,[$(val48[4;])]],[y_list,[$(val49[4;])]]
+val10=$[rint(($(val57[3])+$(val56[3]))/2*10^($val7))]
+val10=$[rint(($(val57[4])+$(val56[4]))/2*10^($val7))]
+val11=$[$val10/10^($val7)]
+replytype1=numeric
+replyoption1=comma nonstop 
+replyname1=
+replygood1=?analyze 62
+replytype2=numeric
+replyoption2=comma nonstop 
+replyname2=
+replygood2=?analyze 63
+replytype3=numeric
+replyoption3=comma nonstop 
+replyname3=
+replygood3=?analyze 64
+replytype4=numeric
+replyoption4=comma nonstop 
+replyname4=
+replygood4=?analyze 65
+replytype5=numeric
+replyoption5=comma nonstop 
+replyname5=
+replygood5=$[$(val56[$val9])]
+replytype6=numeric
+replyoption6=comma nonstop 
+replyname6=
+replygood6=$[$(val57[$val9])]
+replytype7=numeric
+replyoption7=comma 
+replyname7=
+replygood7=$[$val11]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<p class="problematique">$val41</p>	<div class="enonce">	$val39	<div class="question">	<p>Compléter l'algorithme afin de trouver un encadrement de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val8}
+$() :</p>	$val44	<div class="wimscenter wimsborder box">	<b>Représentation graphique de la courbe 
+!insmath C_f
+$() et de la droite d'équation 
+!insmath y=$val35
+$()</b>	$val37	</div>	<div class="question">	<div class="text-left"><u>Conclusion :</u></div>	À l'aide des résultats numériques et graphiques effectués par l'algorithme, indiquer l'encadrement permettant	 de déterminer la valeur arrondie de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val7}
+$(). Les valeurs des images doivent être arrondies au millième.	<br>	 
+!read oef/special.phtml mathmlinput [\left.\begin{array}{lcl}	f(reply1) &=& reply2 \\ \hline	f(reply3) &=& reply4	\end{array}	\right \rbrace \Rightarrow reply5 \leq &#945; \leq reply6],6	reply1,,color:blue;font-size:20px	reply2,,color:blue;font-size:20px	reply3,,color:blue;font-size:20px	reply4,,color:blue;font-size:20px	reply5,,color:blue;font-size:20px	reply6,,color:blue;font-size:20px 
+$()	<p>La valeur arrondie à 
+!insmath 10^{-$val7}
+$() est donc 
+!insmath &#945;\simeq
+$()  
+!read oef/embed.phtml reply7,4 
+$()</p>	</div></div></div></div>	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	const xlen=x_liste.length;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [$val29,$val33,$val30,$val31],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	xaxis = brd.create('axis', [[0, 0], [1,0]]);	yaxis = brd.create('axis', [[$val29+0.1, 0], [$val29+0.1,1]]);	brd.suspendUpdate();	var c1=brd.create('functiongraph', [function(x){ return $val26;}, $val29, $val30], {strokeWidth: 2});	var liii=brd.create('line',[[0,$val35],[1,$val35]],{Color:'green',fixed:true});	for(var jj = 0; jj < xlen; jj=jj+1) {	brd.create('point', [x_liste[jj],y_liste[jj]],{color:'red',fixed:true,name:""});}	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step==2 
+val9=$[rint(2)]
+!endif
+!if $m_step==3 
+val9=$[rint(3)]
+!endif
+!if $m_step==4 
+val9=$[rint(4)]
+!endif
+val9=$[rint($val7+1)]
+tmp=!trim $m_reply1,$m_reply2,$m_reply3,$m_reply4
+val6=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/runcode [python,[$val43]],idtest2,theme=$val12 canvas init \instruction_code,Jouer le code ! 
+tmp0=$slib_out
+val44=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ((abs($(val6[1])-$(val56[$val9]))<10^(-$val8)) and (abs($(val6[2])-$(val54[$val9]))<10^(-3))) or ((abs($(val6[1])-$(val57[$val9]))<10^(-$val8)) and (abs($(val6[2])-$(val55[$val9]))<10^(-3)))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(f($(val6[1]))=$(val6[2])\)
+
+!ifval ((abs($(val6[3])-$(val56[$val9]))<10^(-$val8)) and (abs($(val6[4])-$(val54[$val9]))<10^(-3))) or ((abs($(val6[3])-$(val57[$val9]))<10^(-$val8)) and (abs($(val6[4])-$(val55[$val9]))<10^(-3)))
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(f($(val6[3]))=$(val6[4])\)
+
+!exit
+
+:stat
+vsavelist=1,6,7,8,9,12,26,29,30,31,33,35,37,39,41,43,44,54,55,56,57,62,63,64,65
+embedcnt=2

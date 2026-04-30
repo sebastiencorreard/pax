@@ -1,0 +1,376 @@
+# this file expects a reply$n and returns a modulescore
+# CHECKING INEQUALITIES
+# x>5 or 5<x<34 or even? 10>x>5 10>x and x>5 x<10 and x>5 etc
+# var2= 5<x&&x<10&&x>13
+
+!if ? isin $var4
+    score2=0.1
+    var6=$NOK
+    !exit
+!endif
+extra=$empty
+n=$counter
+goback=0
+errortext=$empty
+AAA=!lower $var4
+!if $varlist notin $AAA
+    testvar=!item 1 of $varlist
+    errortext=!record 23 of $remarkdir/commonremarks.$taal
+    maxscore=$[$maxscore*$P3]
+    goback=1
+ !exit 
+!endif
+
+test=!replace internal < by @ in $AAA
+test=!replace internal > by @ in $test
+!if @ notin $test
+    testvar=!item 1 of $varlist
+    errortext=!record 23 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+# checken eerst of er een = teken in zit, en als dat zo is het zelfde aantal als in't goede antwoord
+t1=!positionof char = in $var2
+t1=!itemcnt $t1
+t2=!positionof char = in $AAA
+t2=!itemcnt $t2
+!if $t1 != $t2
+    maxscore=$[$maxscore*$P3]
+    !if $t1 > $t2
+	extra=!record 44 of $remarkdir/commonremarks.$taal
+    !else
+	extra=!record 45 of $remarkdir/commonremarks.$taal
+    !endif
+!endif
+
+# checken op wetenschappelijk schrijfwijze
+aaa=!singlespace $AAA
+aaa=!replace internal ** by ^ in $aaa
+aaa=!replace internal e+ by *10^ in $aaa
+aaa=!replace internal e- by *10^- in $aaa
+!for p=1 to 3
+    aaa=!replace internal ** by * in $aaa
+!next p
+t=!char 1 of $aaa
+!if $t=*
+    aaa=!char 2 to -1 of $aaa
+!endif
+
+# checken op een 'o' als "0"
+t=!positionof char o in $aaa
+!if $t != $empty
+    nummers=0.:;,123456789
+    !for p in $t
+	t1=!char $[$p-1] of $aaa
+	t2=!char $[$p+1] of $aaa
+	!if $t1 isin $nummers or $t1 isin $nummers
+	    # dus 123o 123.o 
+	    maxscore=$[0.95*$maxscore]
+	    !if $teaching=1
+		errortext=!record 13 of $remarkdir/commonremarks.$taal
+		goback=1
+	      !exit
+	    !else
+		# we corrigeren o -> 0 ! 
+		aaa=!replace internal char number $p by 0 in $aaa
+		ex=!record 13 of $remarkdir/commonremarks.$taal
+		extra=$extra <br />$ex
+	    !endif
+	!endif
+    !next p
+!endif
+    
+#check on sin(x) sin(|x|) sin|x| etc
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs
+    !if $i isin $aaa
+	# eerst testen op absoluutstrepen |x|
+	test1=!replace internal $i| by # in $aaa
+	!if # isin $test1
+	    # dus ln|x| ===> ln(|x|) 
+	    # rawmath rekent af met |x| => abs(x)    
+	    pos=!positionof char | in $aaa
+	    tot=!itemcnt $pos
+	    !if $[gcd($tot,2)] != 2
+	        # oneven aantal |-strepen 
+		errortext=!record 15 of $remarkdir/commonremarks.$taal
+		goback=1
+		!exit
+	    !endif
+	    !for r=1 to $[$tot-1]
+		p1=!item $r of $pos
+		p2=!item $[$r+1] of $pos
+		aaa=!replace internal char number $p1 by ~ in $aaa
+		aaa=!replace internal char number $p2 by # in $aaa
+		aaa=!replace internal ~ by (| in $aaa
+		aaa=!replace internal # by |) in $aaa
+	    !next r
+	!endif
+	test2=!replace internal $i( by # in $aaa
+	!if # notin $test2
+	    maxscore=$[$P2*$maxscore]
+	    testvar1=!nospace $i ( x )
+	    testvar2=!nospace $i x
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	!endif
+	I=!toupper $i
+	aaa=!replace internal $i by $I in $aaa
+    !endif
+!next i
+
+aaa=!replace internal pi by PI in $aaa
+aaa=!singlespace $aaa
+aaa=!words2items $aaa
+aaa=!nospace $aaa
+aaa=!rawmath $aaa
+V=!toupper $varlist
+AAA=!replace internal $varlist by $V in $aaa
+# AAA wordt later gebruikt bij ongelijkheid
+
+aaa=!replace [a-z\~\`\!\@\&\#\%\_\"\:\;|'\?\|\=\>\<] by , in $aaa
+aaa=!lower $aaa
+!for p=1 to 5
+    aaa=!replace internal ,, by , in $aaa
+!next p
+aaa=!replace internal sqrt, by sqrt in $aaa
+aaa=!replace internal sin, by sin in $aaa
+aaa=!replace internal cos, by cos in $aaa
+aaa=!replace internal tan, by tan in $aaa
+aaa=!replace internal (, by ( in $aaa
+aaa=!replace internal ,) by ) in $aaa
+aaa=!replace internal ,. by . in $aaa
+aaa=!replace internal ., by . in $aaa
+aaa=!replace internal ,/ by / in $aaa
+aaa=!replace internal /, by / in $aaa
+aaa=!replace internal ,* by * in $aaa
+aaa=!replace internal *, by * in $aaa
+aaa=!replace internal ^, by ^ in $aaa
+aaa=!replace internal ,^ by ^ in $aaa
+aaa=!replace internal ^, by ^ in $aaa
+#problemen bij 3 getallen -4,-4,-4
+#aaa=!replace internal ,- by - in $aaa
+#aaa=!replace internal -, by - in $aaa
+aaa=!replace internal ,+ by , in $aaa
+aaa=!replace internal +, by , in $aaa
+aaa=!nospace $aaa
+aaa=!replace internal ,, by , in $aaa
+t1=!char 1 of $aaa
+t2=!char -1 of $aaa
+!if $t1=,
+    aaa=!char 2 to -1 of $aaa
+!endif
+!if $t2=,
+    aaa=!char 1 to -2 of $aaa
+!endif
+test=!charcnt $aaa
+!if $test=0
+    testvar=<br />x&gt;2<br /> x&le;12 <br /> 2&gt;x&le;12
+    errortext=!record 53 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P4*$maxscore]
+    goback=1
+    !exit
+!endif
+
+#ATTENTION var2 should be written like $varlist<4&&$varlist>5
+# 5<x && x<10 && x>15 (but without spaces...)
+ggg=!replace internal && by , in $var2	
+ggg=!replace [$varlist\<\>\&\&&\=] by $empty in $ggg	
+ggg=!nospace $ggg
+K=!itemcnt $aaa
+S=!itemcnt $ggg
+!if $K != $S
+    # answer wrong
+    ex=!record 46 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	var6=$NOK<br />$ex
+    !else
+	var6=$NOK<br />$extra<br />$ex
+    !endif
+    !if $math=0
+	var4=!replace internal < by &lt; in $var4
+	var4=!replace internal > by &gt; in $var4
+    !endif
+    score2=0
+    !exit
+!endif
+
+!for r=1 to $S
+    A$r=!item $r of $aaa
+    G$r=!item $r of $ggg
+!next r
+	
+!if $rounding > 0
+    !for r=1 to $S
+	A=!item $r of $aaa
+	G=!item $r of $ggg
+	a$r=$[(round(($A)*$rounding))/$rounding]
+	g$r=$[(round(($G)*$rounding))/$rounding]
+    !next r
+!else
+    # pari if(1/5==0,2,ja,nee) ==> nee 
+    # pari if(1.0*(1/5)==0,2,ja,nee) ==> ja 
+    !for r=1 to $S
+	a$r=(1.0*($(A$r)))
+	g$r=(1.0*($(G$r)))
+    !next r	
+!endif
+
+!if $S>5
+    goback=1
+    errortext=THERE ARE MORE THAN 5 (e.g. $S) ITEMS IN THE CORRECT ANSWER<br />THIS PROC-FILE CAN ONLY HANDLE 5
+    !exit
+!endif	
+!if $S=5
+    test1=!exec pari if( ($a1==$g1 || $a1==$g2 || $a1==$g3 || $a1==$g4  || $a1==$g5) && ($a2==$g1 || $a2==$g2 || $a2==$g3 || $a2==$g4 || $a2==$g5) && ($a3==$g1 || $a3==$g2 || $a3==$g3  || $a3==$g4 || $a3==$g5)  && ($a4==$g1 || $a4==$g2 || $a4==$g3  || $a4==$g4 || $a4==$g5)  && ($a5==$g1 || $a5==$g2 || $a5==$g3  || $a5==$g4 || $a4==$g5),1,0)
+!endif
+!if $S=4
+    test1=!exec pari if( ($a1==$g1 || $a1==$g2 || $a1==$g3 || $a1==$g4) && ($a2==$g1 || $a2==$g2 || $a2==$g3 || $a2==$g4) && ($a3==$g1 || $a3==$g2 || $a3==$g3  || $a3==$g4)  && ($a4==$g1 || $a4==$g2 || $a4==$g3  || $a4==$g4),1,0)
+!endif
+!if $S=3
+    test1=!exec pari if( ($a1==$g1 || $a1==$g2 || $a1==$g3) && ($a2==$g1 || $a2==$g2 || $a2==$g3) && ($a3==$g1 || $a3==$g2 || $a3==$g3),1,0)
+!endif
+!if $S=2
+    test1=!exec pari if( ($a1==$g1 || $a1==$g2) && ($a2==$g2 || $a2==$g1),1,0)
+!endif	
+!if $S=1
+    test1=!exec pari if($a1==$g1,1,0)
+!endif
+
+!if $wims_exec_error!=$empty
+    testvar=$var4
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+##getallen niet goed: snel klaar...antwoord gewoon fout
+!if $test1=0
+    # answer wrong
+    ex=!record 47 of $remarkdir/commonremarks.$taal
+    !if $extra=$empty
+	var6=$NOK<br />$ex
+    !else
+	var6=$NOK<br />$extra<br />$ex
+    !endif
+    score2=0
+    !if $math=0
+	var4=!replace internal < by &lt; in $var4
+	var4=!replace internal > by &gt; in $var4
+    !endif
+ !exit
+!endif	
+
+
+#NOW the Inequality
+AAA=!replace [a-z\~\`\!\@\&\+\#\%\_\"\'\?\|] by , in $AAA
+AAA=!lower $AAA
+AAA=!rawmath $AAA
+!for q=1 to 5
+    AAA=!replace internal ,, by , in $AAA
+!next q
+
+AAA=!replace internal =, by = in $AAA
+AAA=!replace internal ,= by = in $AAA
+AAA=!replace internal *, by * in $AAA
+AAA=!replace internal ,* by * in $AAA
+AAA=!replace internal (, by ( in $AAA
+AAA=!replace internal ,) by ) in $AAA
+AAA=!replace internal +, by + in $AAA
+AAA=!replace internal ,+ by + in $AAA
+AAA=!replace internal >+ by > in $AAA
+AAA=!replace internal >,+ by > in $AAA
+AAA=!replace internal <+ by < in $AAA
+AAA=!replace internal <,+ by < in $AAA
+AAA=!replace internal >,- by >- in $AAA
+AAA=!replace internal <,- by <- in $AAA
+AAA=!replace internal ^, by ^ in $AAA
+AAA=!replace internal ,^ by ^ in $AAA
+AAA=!replace internal -, by - in $AAA
+AAA=!replace internal /, by / in $AAA
+AAA=!replace internal ,/ by / in $AAA
+AAA=!replace internal >, by > in $AAA
+AAA=!replace internal ,> by > in $AAA
+AAA=!replace internal <, by < in $AAA
+AAA=!replace internal ,< by < in $AAA
+AAA=!replace internal >,$varlist by >$varlist in $AAA
+AAA=!replace internal $varlist,> by $varlist> in $AAA
+AAA=!replace internal <,$varlist by <$varlist in $AAA
+AAA=!replace internal $varlist,< by $varlist< in $AAA
+AAA=!replace internal $varlist$varlist by $varlist&&$varlist in $AAA
+AAA=!replace internal $varlist,$varlist by $varlist&&$varlist in $AAA
+AAA=!replace internal =$varlist< by =$varlist&&$varlist< in $AAA
+AAA=!replace internal =$varlist> by =$varlist&&$varlist> in $AAA
+## 5< =x=> =6 6< =x&&x>  =6
+AAA=!replace internal >$varlist= by >$varlist&&$varlist= in $AAA
+AAA=!replace internal <$varlist= by <$varlist&&$varlist= in $AAA
+AAA=!replace internal <$varlist< by <$varlist&&$varlist< in $AAA
+AAA=!replace internal >$varlist> by >$varlist&&$varlist> in $AAA
+AAA=!replace internal >$varlist< by >$varlist&&$varlist< in $AAA
+AAA=!replace internal <$varlist> by <$varlist&&$varlist> in $AAA
+
+t1=!char 1 of $AAA
+t2=!char -1 of $AAA
+!if $t1=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+!if $t2=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+AAA=!replace internal , by && in $AAA
+AAA=!replace internal &&&& by && in $AAA
+# correct ineq=$var2
+GGG=!replace internal = by $empty in $var2
+AAA=!replace internal = by $empty in $AAA
+GGG=!nospace $GGG
+AAA=!nospace $AAA
+
+score2=1
+!for p=1 to $S
+    testgetal1=$[$(g$p)+0.2]
+    testgetal2=$[$(g$p)-0.2]
+    ##vreselijke truuk: we vervangen de x door een getal; testen of de bewering waar is	
+    A1=!replace internal $varlist by $testgetal1 in $AAA
+    G1=!replace internal $varlist by $testgetal1 in $GGG
+    A2=!replace internal $varlist by $testgetal2 in $AAA
+    G2=!replace internal $varlist by $testgetal2 in $GGG
+    ##x>4 of 4<x => 0>4&&4<0
+    tot=!exec pari if(($A1)==($G1),1,0)\
+    if(($A2)==($G2) ,1,0)
+    
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    !if NaN isin $t1,$t2
+	errortext=!record 39 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    !if 0 isin $t1,$t2
+	score2=0
+	!goto READY2
+    !endif
+!next p
+
+:READY2
+
+# html in't antwoord
+!if $math=0
+    var4=!replace internal > by &gt; in $var4
+    var4=!replace internal < by &lt; in $var4
+!endif
+
+!if $score2=1
+    var6=$OK
+!else
+    !if $score2>0.5
+	var6=$BOK
+    !else
+	var6=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    var6=$var6<br />$extra
+!endif
+!exit

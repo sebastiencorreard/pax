@@ -1,0 +1,52 @@
+# gelijk aan DHTML maar dan met invoerveld voor echte interval notatie
+n=$counter
+mathview=0
+image=0
+checkfile=exos/checkfile1.proc
+inputs=yes
+make_tr=1
+rows=1
+embed=1
+math=0
+cols=25
+rows=2
+questiontype=7
+javascript=js/exo12.js
+a=!randitem 2,3,4,5,6,7,8,9
+b=!randitem 1,2,3,4,5,6,7,8,9
+!if $subject=11
+    lijst=lijst9.def
+!else
+    lijst=lijst10.def
+!endif
+aantal_records=!recordcnt exos/$lijst
+num=!randint 1,$aantal_records
+vraag=!record $num of exos/$lijst
+functie=!line 1 of $vraag
+description=!record 51 of lang/remarks.$taal
+#@ Domein ,Bereik
+keuze=!randitem 1,2
+ding=$(description[$keuze])
+#dl1=!line 3 of $vraag
+dl2=!line 4 of $vraag
+#bl1=!line 6 of $vraag
+bl2=!line 7 of $vraag
+texfun=!texmath $functie
+!if $keuze=1
+    # ding = domein 
+    answer$n=!line 2 of $vraag
+    texanswer$n= \rightarrow  D_{f} : $dl2  
+    formula$n=\left[ \begin{array}{l} f(x) = $texfun \\ \textrm{$(description[1])} \:\: D_{f} = [?] \end{array} \right. \rightarrow
+!else
+    # ding = bereik
+    answer$n=!line 5 of $vraag
+    texanswer$n= \rightarrow B_{f} =  $bl2
+    formula$n=\left[ \begin{array}{l} f(x) = $texfun \\ \textrm{$(description[2])} \:\: B_{f} = [?] \end{array} \right. \rightarrow
+!endif
+sometext=!record 59 of lang/remarks.$taal
+ss=!record 58 of lang/remarks.$taal
+question$n=$ss
+linktext=!record 53 of lang/remarks.$taal
+helptext=$linktext<hr />$sometext
+exotext=<a onmouseover="return escape('$sometext<hr><textarea cols=\'30\' rows=\'1\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' >< -inf : -10 ] U [ 5 : +inf > </textarea>')"><span class="schaersvoorde_link">$linktext</span></a> 
+

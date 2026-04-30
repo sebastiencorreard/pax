@@ -1,0 +1,234 @@
+!set title=Reconnaitre des fonctions affines 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r,r,r
+varcnt=45
+prevarcnt=28
+postvarcnt=16
+replycnt=3
+choicecnt=0
+conditioncnt=3
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist x,-x for x=1 to 20
+
+val6=$(tmp0)
+tmp0=!shuffle 40
+
+val7=$(tmp0)
+val8=$[rint($(val6[$(val7[1])]))]
+val9=$[rint($(val6[$(val7[2])]))]
+val10=$[rint($(val6[$(val7[3])]))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 1, 7
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val11=!exec pari print($t_)
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 1, 7
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val12=!exec pari print($t_)
+t_=!rawmath $val11*$val8+$val12
+val13=!exec pari print($t_)
+t_=!rawmath $val11*$val9+$val12
+val14=!exec pari print($t_)
+t_=!rawmath $val11*$val10+$val12
+val15=!exec pari print($t_)
+
+!ifval $val12=0
+tmp0=!texmath $val11*x
+
+val16=$(tmp0)
+!else
+tmp1=!texmath $val11*x+$val12
+
+val16=$(tmp1)
+!endif
+val17=$[rint(2)]
+tmp0=!makelist x/2,-x/2 for x=1 to 6
+
+val18=$(tmp0)
+tmp0=!makelist x/2,-x/2 for x=1 to 6
+
+val19=$(tmp0)
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+tmp0=!shuffle $val19
+
+val19=$(tmp0)
+val20=red,blue,green,orange,magenta,cyan
+val21=rouge,bleu,vert,orange,magenta,cyan
+tmp0=!shuffle 6
+
+val7=$(tmp0)
+val22=plot $(val20[$(val7[1])]),$(val18[1])	plot $(val20[$(val7[2])]),$(val18[2])	plot $(val20[$(val7[3])]),$(val19[3])*x+$(val18[3])	plot $(val20[$(val7[4])]),$(val19[4])*x+$(val18[4])	plot $(val20[$(val7[5])]),$(val19[5])*x	plot $(val20[$(val7[6])]),$(val19[6])*x	
+val23=lightblue
+val24=xrange -3,3	yrange -3.5,3.5	gridfill 0,0,5,5,$val23	linewidth 3	vline 1,0,$val23	vline 2,0,$val23	vline 3,0,$val23	vline -1,0,$val23	vline -2,0,$val23	vline -3,0,$val23	hline 0,1,$val23	hline 0,2,$val23	hline 0,3,$val23	hline 0,-1,$val23	hline 0,-2,$val23	hline 0,-3,$val23	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	linewidth 2	$val22	
+val25=$(val21[$(val7[3])]),$(val21[$(val7[4])])
+val26=$(val21[$(val7[5])]),$(val21[$(val7[6])])
+val27=$(val21[$(val7[1])]),$(val21[$(val7[2])])
+val28=$val25,$val26,$val27
+val29=affines non linéaires non constantes
+val30=constantes
+replytype1=clickfill
+replyname1=fonctions affines non linéaires
+replygood1=?analyze 31;$val28
+replytype2=clickfill
+replyname2=fonctions linéaires
+replygood2=?analyze 32;$val28
+replytype3=clickfill
+replyname3=fonctions non affines
+replygood3=?analyze 33;$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter"> 
+!read oef/draw.phtml 400,400 \
+$val24 
+$()</div>	 On a tracé les représentations graphiques de 6 fonctions.	  Classer ces fonctions selon leur nature.	<ul><li>fonctions $val29&nbsp;:	 
+!read oef/embed.phtml r1,\size 
+$()</li>	<li>fonctions linéaires&nbsp;:	 
+!read oef/embed.phtml r2,\size 
+$()</li>	<li>fonctions $val30&nbsp;:	 
+!read oef/embed.phtml r3,\size 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val34=$val31,$val25
+tmp0=!listuniq $val34
+
+val34=$(tmp0)
+tmp0=!listuniq $val31
+
+val31=$(tmp0)
+tmp0=!itemcnt $val34
+
+val35=$[rint($(tmp0))]
+tmp0=!itemcnt $val31
+
+val36=$[rint($(tmp0))]
+val37=$val32,$val26
+tmp0=!listuniq $val37
+
+val37=$(tmp0)
+tmp0=!itemcnt $val37
+
+val38=$[rint($(tmp0))]
+tmp0=!listuniq $val32
+
+val32=$(tmp0)
+tmp0=!itemcnt $val32
+
+val39=$[rint($(tmp0))]
+tmp0=!itemcnt $val26
+
+val40=$[rint($(tmp0))]
+val41=$val33,$val27
+tmp0=!listuniq $val41
+
+val41=$(tmp0)
+tmp0=!itemcnt $val41
+
+val42=$[rint($(tmp0))]
+tmp0=!listuniq $val33
+
+val33=$(tmp0)
+tmp0=!itemcnt $val33
+
+val43=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val35=$val17 and $val36=$val17
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=fonctions affines non linéaires 
+
+!ifval $val38=$val17 and $val39=$val17
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=fonctions linéaires 
+
+!ifval $val42=$val17 and $val43=$val17
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=fonctions non affines 
+
+!exit
+
+:stat
+vsavelist=17,24,25,26,27,29,30,31,32,33
+embedcnt=3

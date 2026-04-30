@@ -1,0 +1,104 @@
+#Investeringsselectie
+n=$counter
+
+!if $counter=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    mathview=0
+    make_tr=1
+    inputs=-1
+    checkfile=exos/precheck2.proc
+    # geen steps, wel zelfde verhaaltje & tabel met data
+    roundingtext=Geef je antwoord in hele &nbsp;&euro;&nbsp;&rsquo;s
+    rounding=1
+    nu=!date +%Y
+    levensduur=3
+    afschrijving=!randint 400,800
+    tussen1=$[$afschrijving - 100]
+    tussen2=$[$afschrijving - 300]
+    rest=!randint $tussen1,$tussen2
+    kapitaal=$[$rest+3*$afschrijving]
+    
+    nettowinst1=!randint 150,350
+    nettowinst2=!randint 150,350
+    nettowinst3=!randint 150,350
+    
+    kapitaal=$[$kapitaal*1000]
+    nettowinst1=$[$nettowinst1*1000]
+    nettowinst2=$[$nettowinst2*1000]
+    nettowinst3=$[$nettowinst3*1000]
+    rest=$[$rest*1000]
+    afschrijving=$[$afschrijving*1000]
+   
+    rendement=!randint 40,120
+    rendement=$[$rendement/10]
+    project=!randitem Phoenix,Solenu,LunaStar,Battlestar,DeepHorizon,UltraKabel,SpeedoGlas,Glasvezel Nu ! 
+    
+    bedrijf=!randitem Vertigo Invest,Horizon Capital,Hadjema Investments BV,Vriesekamp Ventures NV,Agio Vastgoed BV,Ritsma Realinvest NV,BergInvest NV,HaGeBo BV,Molenkamp Kapitaal BV,VNZ FunInvest, LuciDa Capital,Wienke Investments BV   
+    
+    ss=Onderneming <kbd>$bedrijf</kbd> heeft de beschikking over een bedrag <br />van &nbsp;&euro;&nbsp;$kapitaal om te investeren in project <em>$project</em>.<br />De verwachte economische levensduur is $levensduur jaar. De restwaarde bedraagt dan &nbsp;&euro;&nbsp;$rest .<br />Het minimaal gewenste rendement bedraagt $rendement %
+    
+    
+    ans1=$[$afschrijving + $nettowinst1]
+    ans2=$[$afschrijving + $nettowinst2]
+    ans3=$[$afschrijving + $nettowinst3+$rest]
+    
+    answer1=$ans1\
+    $ans2\
+    $ans3
+    
+    var1=5,5,5
+    var2=1,1,1
+    ans1tabel=<table class="zebra_table_h2"><tr><th>Jaar</th><th>Nettowinst</th><th>Cashflow</th></tr><tr><th>1</th><td>&nbsp;&euro;&nbsp;$nettowinst1</td><td>&nbsp;&euro;&nbsp;<input type="text" id="none" size="6" class="schaersvoorde_input" value="$ans1" readonly="readonly"/></td></tr><tr><th>2</th><td>&nbsp;&euro;&nbsp;$nettowinst2</td><td>&nbsp;&euro;&nbsp;<input type="text" id="none" size="6" class="schaersvoorde_input" value="$ans2" readonly="readonly"/></td></tr><tr><th>3</th><td>&nbsp;&euro;&nbsp;$nettowinst3</td><td>&nbsp;&euro;&nbsp;<input type="text" id="none" size="6" class="schaersvoorde_input" value="$ans3" readonly="readonly"/></td></tr></table>
+
+    textanswer1=$ans1tabel<ul><li><kbd>Cashflow = Nettowinst + Afschijvingen<kbd></li><li>Bij de cashflow in het derde jaar moet de <b>restwaarde</b> worden opgeteld </li><li<kbd>Afschrijving = ( A - R) / n</kbd><br />waarin:<br />A = kapitaal<br />R = restwaarde<br />n = economische levensduur</li><li>Afschrijving = ( $kapitaal &minus; $rest ) / 3 = &nbsp;&euro;&nbsp;$afschrijving</li><li>Cashflow<sub>jaar 1</sub> = $afschrijving + $nettowinst1 = &nbsp;&euro;&nbsp;$ans1</li><li>Cashflow<sub>jaar 2</sub> = $afschrijving + $nettowinst2 = &nbsp;&euro;&nbsp;$ans2</li><li>Cashflow<sub>jaar 3</sub> = $afschrijving + $nettowinst3 + $rest = &nbsp;&euro;&nbsp;$ans3</li></ul>
+    
+    f2=$[$kapitaal - $ans2 - $ans1]
+    factor=$[$f2/$ans3]
+    maand=$[$factor*12]
+    Maand=$[ceil($maand)]
+    ans4=$[24 + $Maand]
+    answer2=$ans4
+
+    textanswer2=<ul><li>Er moet in totaal &nbsp;&euro;&nbsp;$kapitaal worden terug verdiend</li><li>Na twee jaar is terug verdiend &nbsp;&euro;&nbsp;$ans2 + &nbsp;&euro;&nbsp;$ans1 = &nbsp;&euro;&nbsp;$[$ans1+$ans2]</li><li>In het derde jaar moet worden terug verdiend : &nbsp;&euro;&nbsp;$kapitaal &minus; $ans2 &minus $ans1 = &nbsp;&euro;&nbsp;$f2</li><li>De cashflow in het derde jaar is &nbsp;&euro;&nbsp;$ans3</li><li>Dus $f2 / $ans3 = $factor jaar = $maand maanden</li><li>Dus afgerond naar boven : $Maand maanden</li><li>Totaal 24 + $Maand  = $ans4 maanden </li></ul>
+    f3=$[1+$rendement/100]
+    C=$[$ans1*$f3^(-1) + $ans2*$f3^(-2) + $ans3*$f3^(-3)]
+    answer3=$[round($C - $kapitaal)]
+
+    textanswer3=<ul><li>De formule voor het berekenen van de <kbd>contante waarde</kbd> (NCW)<br /><kbd>C =  K &times; (1 + i)<sup>-n</sup></kbd><br />waarin:<br />C = contante waarde<br />K = kapitaal<br />i = rentepercentage<br />n = aantal perioden/termijnen</li><li>Contant maken van cashflows : <br />C = $ans1 &times; $f3<sup>-1</sup> + $ans2 &times; $f3^<sup>-2</sup> + $ans3&times; $f3<sup>-3</sup> = &nbsp;&euro;&nbsp;$C </li><li>NCW = $C &minus; $kapitaal = &nbsp;&euro;&nbsp;$answer3</li></ul>
+    
+    var6=Cashflow eerste jaar,Cashflow tweede jaar,Cashflow derde jaar
+    
+    exotext=<table class="grid_table"><tr><th>Jaar</th><th>Nettowinst</th><th>Cashflow</th></tr><tr><th>1</th><td>&nbsp;&euro;&nbsp;$nettowinst1</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput0" size="10" class="schaersvoorde_input" value=""/></td></tr><tr><th>2</th><td>&nbsp;&euro;&nbsp;$nettowinst2</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput1" size="10" class="schaersvoorde_input" value=""/></td></tr><tr><th>3</th><td>&nbsp;&euro;&nbsp;$nettowinst3</td><td>&nbsp;&euro;&nbsp;<input type="text" id="myinput2" size="10" class="schaersvoorde_input" value=""/></td></tr></table>
+    question1=$ss<br />Bereken de <b>cashflow voor de jaren 1 t/m 3</b> (<small><em>Denk aan de restwaarde in het derde jaar !!</em></small>)    
+    question2=$ss<br /><br /> $ans1tabel<br />Bereken de terugverdientijd van de cashflows in hele maanden<br />(<small><em>De maanden moeten altijd naar boven worden afgerond bij het berekenen van de terugverdientijd</em></small>)
+    question3=$ss<br /><br /> $ans1tabel<br />Bereken de netto contante waarde van dit project.
+!endif
+
+!if $counter=2
+    exotext=$empty
+    roundingtext=Geef je antwoord op in hele maanden<br />De maanden moeten altijd naar boven worden afgerond bij het berekenen van de terugverdientijd
+    rounding=1
+    inputs=1.1
+    var1=$empty
+    var2=$empty
+    ex1=hele maanden
+    cols=5
+    description=Terugverdientijd
+!else
+    !if $counter=3
+	inputs=1.1
+	var1=1
+	var2=1
+	rounding=1
+	ex1=&euro;
+	cols=10
+	roundingtext=Geef je antwoord in hele &nbsp;&euro;&nbsp;&rsquo;s
+	description=Netto contante waarde van dit project
+    !endif
+!endif
+helptext=$roundingtext
+!exit
+#<select  size="1" id="myinput2" name="myinput2" style="text-align:center;font-size:18px;border:0px;background-color:orange"  ><option value="-1">afname</option><option value="1">toename</option></select>
+

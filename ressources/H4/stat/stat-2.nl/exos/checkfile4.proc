@@ -1,0 +1,236 @@
+# reply$n:
+#11,10,1,1,H0 : p = 1/100,H1 : p â‰  1/100,1,wordt H0 niet verworpen,8,40,94,146,72,33,6
+# rans1,rans2,open rans3,rans4,text_ans1,text_ans2,open_ans3,text_ans4,bin1,bin2,bin3....bin$bins
+#var9=$bins,$verworpen,$nietverworpen,$perc,$ans1,$ans2,bakje,ballen
+#var8=option list H0 (text)
+#var7=option list H1 (text)
+n=$counter
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    textanswer$n=!record 124 of lang/remarks.$taal
+    #@Je hebt me geen data opgestuurd...<br />en er is dus ook geen goed antwoord :)
+    !exit
+!endif
+
+a1=!item 1 of $(reply$n)
+a2=!item 2 of $(reply$n)
+a3=!item 3 of $(reply$n)
+a3=!replace [a-z\~!@#$_%:;] by $empty in $a3
+a4=!item 4 of $(reply$n)
+txt1=!item $[$a1+1] of $var7
+txt2=!item $[$a2+1] of $var8
+txt3=!item 7 of $(reply$n)
+txt4=!item 8 of $(reply$n)
+values=!item 9 to -1 of $(reply$n)
+
+bins=!item 1 of $var9
+verworpen=!item 2 of $var9
+nietverworpen=!item 3 of $var9
+perc=!item 4 of $var9
+ans1=!item 5 of $var9
+ans2=!item 6 of $var9
+bakje=!item 7 of $var9
+ballen=!item 8 of $var9
+chance=!item 9 of $var9
+
+!if $subject=22
+    #tekentoets
+    helft=$[ceil($bins/2)]
+    links=0
+    rechts=0
+    sum=0
+    body1=<td>$bakje</td>
+    body2=<td>$ballen</td>
+    !for p=1 to $bins
+	sum=$[$sum + $(values[$p])]
+	body1=!append word $ <td>$p</td> $ to $body1
+	body2=!append word $ <td>$(values[$p])</td> $ to $body2
+	!if $p<$helft
+	    links=$[$links + $(values[$p])]
+	!else
+	    !if $p>$helft
+		rechts=$[$rechts + $(values[$p])]
+	    !endif
+	!endif
+    !next p
+    
+    tot=$links+$rechts
+    !if $links < $rechts
+	X=$links
+    !else
+	X=$rechts
+    !endif
+    # ans1 en ans2 zijn bekend
+    # significantie = $perc 
+    kans=!exec octave binocdf($X,$tot,1/2)
+    kans=$[1*($kans)]
+    rkans=$[(round($rounding*$kans))/$rounding]
+#<option value="0">$verworpen</option>\
+#<option value="1">$nietverworpen</option>
+    ans3=$[2*$kans]    
+    rans3=$[(round($rounding*$ans3))/$rounding]
+    !if $ans3 < $[$perc/100]
+	H0=$verworpen
+	ans4=0
+	groter=&lt;
+    !else
+	H0=$nietverworpen
+	ans4=1
+	groter=&gt;
+    !endif
+    rr1=<table class="grid_table"><tr>$body1</tr><tr>$body2</tr></table>
+    rr2=!record 125 of lang/remarks.$taal
+
+    
+    #@Het midden is bakje $helft.<br />Links van bakje $helft zijn $links ballen<br />Rechts van bakje $helft zijn $rechts ballen.<br />Het totaal aantal ballen links en rechts van het midden is $tot ballen.<br />We moeten nu de kans berekenen P(X &le; $X | n=$tot , p = 1/2).<br />Met de GRM wordt dit dan <kbd>binomcdf($tot,1/2,$X)</kbd> &asymp; $kans &asymp; $rkans.<br />Omdat er sprake is van een twee-zijdige toets H<sub>0</sub>:p=1/2 en H<sub>1</sub>:p &ne; 1/2<br />wordt de overschrijdings kans 2&times; $kans &asymp; $ans3  &asymp;$rans3<br />$ans3 $groter $[$perc/100] : $H0<br />Overigens, ik heb in de applet de kans ingesteld op $chance .
+!else
+    # subject=23 normale benadering
+    helft=$[floor(0.5*$bins)]
+    sigma=sqrt(0.25*($bins - 1))
+    rsigma=&radic;($[0.25*($bins-1)])
+    sum=0
+    body1=<td>$bakje</td>
+    body2=<td>$ballen</td>
+    rechts=0
+    !for p=1 to $bins
+	sum=$[$sum + $(values[$p])]
+	body1=!append word $ <td>$p</td> $ to $body1
+	body2=!append word $ <td>$(values[$p])</td> $ to $body2
+	rechts=$[$rechts + ($p - 1)*($(values[$p]))]
+    !next p
+    gemiddelde=$[$rechts/$sum]
+    steekproefsigma=$[$sigma/(sqrt($sum))]
+    Z=$[($gemiddelde-$helft)/($steekproefsigma)]
+    !if $gemiddelde<$helft
+	S=-100000
+	kans=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]
+	groterP=&lt;
+	normalcdf=normalcdf($S,$gemiddelde,$helft,$rsigma / &radic;($sum)))
+    !else
+	S=100000
+	kans=$[0.5*(erf($S/sqrt(2))-erf($Z/sqrt(2)))]
+	groterP=&gt;
+	normalcdf=normalcdf($gemiddelde,$S,$helft,$rsigma / &radic;($sum)))
+    !endif
+    roundkans=$[(round(1000000*$kans))/1000000]
+    rkans=$[(round($rounding*$kans))/$rounding]
+    ans3=$[2*$kans]
+    roundans3=$[(round(1000000*$ans3))/1000000]
+    rans3=$[(round($rounding*$ans3))/$rounding]
+    !if $ans3 < $[$perc/100]
+	H0=$verworpen
+	ans4=0
+	groter=&lt;
+    !else
+	H0=$nietverworpen
+	ans4=1
+	groter=&gt;
+    !endif
+    rr1=<table class="grid_table"><tr>$body1</tr><tr>$body2</tr></table>
+    rr2=!record 126 of lang/remarks.$taal
+    #@Je hebt dus in totaal $sum ballen laten vallen...<br />In deze Galton bak met $bins bakjes valt een bal $bins &minus; 1  = $[$bins - 1] keer naar links of rechts.<br />Je verwacht bij een goede bak van Galton , dus met p=1/2 , dat een bal gemiddeld $helft keer naar rechts valt. E(X)=$[$bins-1] &times 1/2 =$helft<br />&sigma;(X)=&radic;($[$bins-1] &times; 1/2 &times; 1/2) = $rsigma &asymp; $[round(1000*$sigma)/1000] <br />In je experiment is je steekproefgemiddelde van <img src="$module_dir/gifs/barX.gif" alt="meanX"/> : $gemiddelde<br />P(X $groterP $gemiddelde | &mu; = $helft , &sigma; =$rsigma  / &radic;($sum))<br />Met de GRM wordt dit dan <kbd>$normalcdf</kbd> &asymp; $roundkans &asymp; $rkans.<br />Omdat er sprake is van een twee-zijdige toets H<sub>0</sub>:&mu;=$helft en H<sub>1</sub>:&mu; &ne; $helft<br />wordt de overschrijdings kans 2&times; $roundkans &asymp; $roundans3  &asymp;$rans3<br />$rans3 $groter $[$perc/100] : $H0<br />Overigens, ik heb in de applet de kans ingesteld op $chance .
+
+!endif
+
+textanswer$n=$rr1 $rr2
+!if $rounding<1
+    rnd1=1000
+    rnd2=100
+!else
+    rnd1=$rounding
+    rnd2=$[$rounding/10]
+!endif
+# ans3 is overschrijdingskans
+ans3=!replace [a-z\~\:\;\&\%\=\"\`\>\<\@] by $empty in $ans3
+
+
+# select boxes
+!ifval $ans1 = $a1
+    score1=1
+    k1=green
+!else
+    score1=0
+    k1=red
+!endif
+!ifval $ans2 = $a2
+    score2=1
+    k2=green
+!else
+    score2=0
+    k2=red
+!endif
+!ifval $ans4 = $a4
+    score4=1
+    k4=green
+!else
+    score4=0
+    k4=red
+!endif
+
+#open answer
+ex=$empty
+!if ? isin $a3
+    score3=0
+    k3=red
+    ex=$dontknow
+!else
+    test=$[(round($rnd1*$rans3))/$rnd1]
+    !ifval $test = $[(round($rnd1*$a3))/$rnd1]
+	score3=1
+        k3=green
+    !else
+	!ifval $[100*$test] = $[(round($rnd1*$a3))/$rnd1]
+	    score3=1
+	    k3=green
+	    ex=!record 127 of lang/remarks.$taal
+	    #@<br />Je hebt de kans als percentage uitgerekend
+	!else
+	    !ifval $test = $[1 - (round($rnd1*$a3))/$rnd1]
+		!if $test < 1 and $test > 0 
+		    score3=$P9
+		    k3=orange
+	    	    ex=!record 128 of lang/remarks.$taal
+		    #@<br />Je hebt de verkeerde kans (1 - P) uitgerekend !
+	    	!else
+	    	    k3=red
+	    	    score3=0
+	    	!endif
+	    !else
+		!ifval $[(round($rnd2*$rans3))/$rnd2] = $[(round($rnd2*$a3))/$rnd2]
+		    score3=$P5
+		    k3=orange
+		    ex=!record 129 of lang/remarks.$taal
+		    #@<br />Je hebt een afrondingsfout gemaakt.
+		!else
+		    score3=0
+		    k3=red
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+
+
+reply$n=<ul><li><span style="color:$k1">$txt1</span></li><li><span style="color:$k2">$txt2</span></li><li><span style="color:$k3">$txt3</span>$ex</li><li><span style="color:$k4">$txt4</span></li></ul>
+math=0
+maxscore=$[$maxscore*($score1 + $score2 + 5*$score3 + 3*$score4)/10]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+goback=0
+!exit

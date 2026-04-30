@@ -1,0 +1,78 @@
+#23 Wortel n wet III (rekenmachine Ti83) 
+!if $counter=1
+    !if exam isin $session
+	viewlogo=0
+    !else
+	viewlogo=1
+    !endif
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+    make_tr=1
+    cols=10
+    rows=2
+    helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    checkfile=$checkdir/new_number.proc
+    inputs=1.1
+    description=<b>P</b>
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cnt=0
+produkten=!record 134 of lang/remarks.$taal
+#@vloeibare zeep,olijfolie,motorolie,tweetakt olie,kettingzaag olie
+# dingen,ding,nominale inhoud,maximale inhoude,sigma_minimaal,sigma_maximaal
+dit_ding=!randline 
+verpakking=!record 122 of lang/remarks.$taal
+#@flessen@fles@750@765,flessen@fles@500@515,flessen@fles@1000@1030,jerrycans@jerrycan@5000@5120,jerrycans@jerrycan@2500@2580
+dit_ding=!randitem $verpakking
+dit_ding=!replace internal @ by , in $dit_ding
+
+product=!randitem $produkten
+bottles=!item 1 of $dit_ding
+bottle=!item 2 of $dit_ding
+content=!item 3 of $dit_ding
+max_content=!item 4 of $dit_ding
+average=!randint $[$content+1],$max_content
+s1=$[3*(floor($average - $content))]
+s2=$[10*(floor($average - $content))]
+sigma=!randint $s1,$s2
+sigma=$[$sigma/10]
+sample_num=!randint 5,20
+sample_num=$[$sample_num*10]
+s3=$[2*(floor($average - $content))]
+e=!randint 0,$s3
+e=$[($e/10)]
+sample_average=$[$average - $e]
+
+S=-100000
+sample_sigma=$[$sigma/(sqrt($sample_num))]
+Z=$[($sample_average - $average)/$sample_sigma] 
+answer$n=$[0.5*(erf($Z/sqrt(2)) - erf($S/sqrt(2)))]
+ans=$[(round(10000*($(answer$n))))/10000]
+!if $viewlogo=1
+    logotext=...
+    s=!randint 1,3
+    logo=<img src=$module_dir/gifs/afvul$s.jpg alt=afvullen/>
+!endif
+ss=!record 123 of lang/remarks.$taal
+#@In een fabriek wordt $product geproduceerd en afgevuld in $bottles van $content ml.<br />Gemiddeld wordt er $average ml $product in een $bottle afgevuld, met een standaard afwijking van $sigma ml<br />Na klachten van meerdere klanten over een te geringe inhoud van de $bottle,<br />wordt d.m.v. een steekproef van $sample_num $bottles onderzocht of deze klachten terecht zijn.<br />Men vond een steekproef gemiddelde van $sample_average .<br />Bereken de kans op dit steekproef gemiddelde uitgaande van een gemiddelde van $average ml.<br />Geef je antwoord op vier decimalen nauwkeurig.
+htext=!record 13 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$htext')">$ss</a>
+
+X=<img src="$module_dir/gifs/barX.gif" alt="X"/>
+
+rr=<ul><li><b>P</b> ( $X &le; $sample_average  | $m_mu = $average , $m_sigma = $sigma / &radic;($sample_num) )  &asymp; $ans</li><li>Texas Instruments Ti83 : <kbd>normalcdf(-100000 , $sample_average , $average , $sigma/&radic;($sample_num)</kbd> &asymp; $ans</li></ul>
+
+textanswer$n=$rr
+
+

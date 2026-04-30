@@ -1,0 +1,161 @@
+!set title=Concentration massique (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey ;Marie-Claude, David
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 100, 9999
+
+val6=$[rint($(tmp0))]
+val7=$[$val6/10000]
+tmp0=!randint 2, 4
+
+val8=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val7 ,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!translate . to , in $val9
+
+val10=$(tmp0)
+tmp0=!randint 1, 100
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val12=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val11 ,$val12 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!translate . to , in $val13
+
+val14=$(tmp0)
+val15=$[rint(min($val8,$val12))]
+val16=$[$val9*$val13/1000 ]
+tmp0=!translate . to , in $val16
+
+val17=$(tmp0)
+!readproc slib/text/sigunits $val16 g,$val15 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp0=!translate . to , in $val18
+
+val19=$(tmp0)
+tmp=!trim de diiode,d'hydroxyde de sodium,de saccharose,d'acide chlorhydrique, d'acide nitrique, de soude, d'acide acétique, de chlorure de sodium
+val20=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle $val20
+
+tmp=!trim $(tmp0)
+val21=!translate internal $	\
+$ to ;; in $tmp
+val22=$(val21[1])
+replytype1=sigunits
+replyoption1=noanalyzeprint 
+replyname1=\(m) 
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On dispose d'une solution $val22 de concentration	
+!insmath c = $val10 
+$()
+!insmath \textrm{g.L}^{-1}
+$().	Le volume connu avec précision est 
+!insmath v = $val14
+$() mL.</p>	<p>Donnez, en tenant compte des chiffres significatifs, la masse 
+!insmath m
+$() $val22 introduite.</p>	<div class="wimscenter">
+!insmath m
+$() =  
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wims_instruction">Pour entrer la réponse, remplacer la virgule par un point.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On utilise la formule 
+!insmath m = c.v
+$() et, <i>sans tenir compte des chiffres significatifs</i>, on obtient	:	<p class="wimscenter"> 
+!insmath m = $val17
+$() g.</p>	La bonne réponse doit être donnée avec 
+!insmath $val15
+$() chiffres significatifs car 
+!insmath $val10
+$() a 
+!insmath $val8
+$() chiffres significatifs	 et 
+!insmath $val14
+$() a 
+!insmath $val12
+$() chiffres significatifs.<br>	La réponse est donc : 
+!insmath m = $val19 
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><p>La bonne réponse est 
+!insmath m = $val19
+$(). Si votre réponse est fausse, vérifiez la valeur numérique, le nombre de chiffres significatifs et l'unité.</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,12,14,15,17,19,22
+embedcnt=1

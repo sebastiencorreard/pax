@@ -1,0 +1,104 @@
+# 1/8/2008 checked :OK
+n=$counter
+helptext=$empty
+mathview=0
+questiontype=1
+!if $options<2 or $options>8
+    options=4
+!endif
+checkfile=$checkdir/multiplechoice.proc
+image=0
+# dus geen plaatje in de vraag
+plot=0
+draw=1
+multiimage=1
+xsize=300
+ysize=100
+make_tr=1
+data=$empty
+LINES=$empty
+TEXT=$empty
+etext=!record 24 of lang/remarks.$taal
+exotext=<a href="javascript:showimage();">$etext</a>
+question$n=!record 25 of lang/remarks.$taal
+
+# een mooie functie en z'n inverse
+f=!randint 8,14
+g=!randitem 10,20,30,40
+h=!randint 30,40
+k=!randitem 1,2,3,4,5,6
+functie=!randline 100/(1+2^($f-x)),$f-(log((100-x)/x))/(log(2)) \
+($g)^(0.1*x)-1,(log(x+1))/(0.1*log($g)) \
+$h*(log(x-$k)),$k+e^(x/$h)
+
+F1=!item 1 of $functie
+F2=!item 2 of $functie
+xdata=$empty
+ydata=$empty
+!for p in 0,25,50,75,100
+    K$p=!evalsubst x=$p in $F2
+    !if $K100 >40
+	K100=20
+    !endif
+    xdata=!append word $ <td>$p</td> $ to $xdata
+    !if NaN isin $(K$p)
+	K$p=0
+    !endif
+    ydata=!append word $ <td>$[round($(K$p))]</td> $ to $ydata
+!next p
+textanswer$n=<table class="grid_table"><tr><th>x</th>$xdata</tr><tr><th>%</th>$ydata</tr></table>
+!if $K100>40
+    K100=20
+!endif
+insplot_set=border;zeroaxis;tmargin 1 ; rmargin 1;grid;xlabel "x-axis" ;ylabel "% (percentage)";xtics 0,1,20;ytics 0,5,100
+!insplot [0:20] [0:100] $F1 notitle
+answer$n=!randint 1,$options
+!for p=0 to 40 step 2
+    LINES=!append line dline $p,1,$p,5,black to $LINES
+    TEXT=!append line text black,$[$p-0.1],1,normal,$p to $TEXT
+!next p
+	
+!for p=1 to $options
+    !if $p=$(answer$n)
+	ex$p=transparent $white\
+	xrange -1,$K100+1\
+	yrange 0,10\
+	$LINES\
+	frect $K25,5,$K50,9,red\
+	frect $K50,5,$K75,9,blue\
+	linewidth 2\
+	line $K0,7,$K25,7,red\
+	line $K75,7,$K100,7,blue\
+	line $K0,5,$K0,9,red\
+	line $K100,5,$K100,9,blue\
+	$TEXT
+	!if $showanswer=1
+	    image$n=$(ex$p)
+	!endif
+    !else
+	pm =!randitem +,-
+	p0=!randitem 0,0.5,1
+	p1=!randint 5,20
+	p1=$[$p1/10]
+	p2=!randint 5,20
+	p2=$[$p2/10]
+	K2=$[($K50 $pm $p0)]
+	K1=!randitem $[$K2-$p1],$[$K0+$p2]
+	K3=!randitem $[($K100-$p2)],$[$K2+$p2]
+
+	ex$p=transparent $white\
+	xrange -1,$K100+1\
+	yrange 0,10\
+	$LINES\
+	frect $K1,5,$K2,9,red\
+	frect $K2,5,$K3,9,blue\
+	linewidth 2\
+	line $K0,7,$K1,7,red\
+	line $K3,7,$K100,7,blue\
+	line $K0,5,$K0,9,red\
+	line $K100,5,$K100,9,blue\
+	$TEXT
+    !endif
+!next p
+
+

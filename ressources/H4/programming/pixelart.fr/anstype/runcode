@@ -1,0 +1,84 @@
+option:precision=" "
+
+!set reply$i=!nonempty items $(reply$i)
+
+replygood=$(replygood$i)
+
+precision=!getopt precision in $(replyoption$i)
+!default precision=100
+
+opt=!declosing $(oef_answer_option$i[2;])
+
+sssc=!replace internal @@@@ by \n in $(reply$i[1])
+sssc=!replace internal &#8203; by in $(sssc)
+
+m_reply$i=$(reply$i)
+
+!if $wims_read_parm=nocompare
+  !exit
+!endif
+
+!! on analyse numeriquement la reponse
+!! probleme d'espace entre pari/gp et python donc nospace
+cnt_variable=!itemcnt $(replygood$i)
+!reset cnt_rep sc
+tab=<table class="wimscenter wimsborder" style="overflow-x:auto;"><tr><th>Variable</th><th>Votre reponse</th><th>Correction</th></tr>
+!for j= 1 to $cnt_variable
+  !if \ notin $(replygood$i[$j]) and $(replygood$i[$j]) != $empty
+    !increase cnt_rep
+    good=!declosing $(replygood$i[$j])
+    Aff_goodvar=$(good[1])
+    good=$(good[2..-1])
+    Aff_good=$(good)
+    rep=$(reply$i[$[$j+1]])
+    Aff_rep=$(rep)
+    !if $j==1
+      rep=!nospace $(rep)
+    !endif
+    !if  $(good) == $(rep)
+      sc=$sc 1/$cnt_variable
+      coo=green
+    !else
+      sc=$sc 0
+      coo=red
+    !endif
+    !if $j=$(cnt_variable) and turtle isin $(replygood)
+    !else
+       tab=$(tab)<tr style="border-width:1px;border-style:solid;background-color:$(coo)"><td>$(Aff_goodvar)</td><td>$(Aff_rep)</td><td>$(Aff_good)</td></tr>
+    !endif
+  !endif
+sc=$sc,
+!next
+
+sc=!nonempty items $sc
+
+score=!replace internal , by + in $sc
+
+score=$[($score)]
+freegot=$[$freegot+$score]
+
+!if $score=1
+ diareply$i=good
+!else
+ !if $score > 0.3
+   partialgood$i=yes
+   diareply$i=good
+ !else
+   diareply$i=bad
+ !endif
+!endif
+
+!reset ccc
+!if turtle isin $(replygood$i)
+  ccc=canvas
+  img_good=!declosing $(replygood$i[-1])
+  iimg_good=!declosing $(img_good[2..-1])
+  img_rep=!declosing $(reply$i[-1])
+  reply$i=$(tab)<tr><td style="background-color:$(coo)">Turtle</td><td><img src="$img_rep" /></td><td><img src="$(iimg_good)" /></td></tr></table>
+!else
+  reply$i=$(tab)</table>
+!endif
+
+!readproc slib/coding/runcode [python,$(sssc)],$(opt[1]),$(ccc) readonly,$(opt[3])
+reply_$i=$slib_out
+

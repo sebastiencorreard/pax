@@ -1,0 +1,64 @@
+!! On pose les questions dans ce fichier. D'habitude, c'est par
+!! des forms. Voici un exemple de conception de la forme de réponse.
+
+!form reply
+!!!!!!!!!!!!!!!!!!!! STEP 1 and greaters !!!!!!!!!!!!!!!!!!!!
+!read tableau.phtml
+!if $step=1
+ <br><input type=submit value="$wims_name_send">
+!else
+ <br>$wims_name_Score1&nbsp; $score1 / 6.<br>
+!endif $step=1
+!!!!!!!!!!!!!!!!!!!!!! STEP 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!
+!if $step=2
+ <p>
+ <table bgcolor=lightyellow><tr><td>
+ Tracez le graphique des valeurs de 
+ !insmath \sin(i_2)
+ (en ordonnée), en fonction de 
+ !insmath \sin(i_1)
+ (en abscisse).
+ Placez les points sur le graphique en cliquant, puis validez 
+ (bouton <i>$wims_name_send</i> ci-dessous), quand ils sont tous là.<br>
+ Le bouton d'annulation permet d'effacer le dernier point cliqué.
+ </td></tr></table>
+ <p>
+ !if $debug=1
+   <h3>Dernier point cliqué : $dernier_point</h3>
+   <b>liste</b> $liste_points <br>
+ !endif
+ <input type=submit name="fini" value="$wims_name_send"> 
+ <input type=submit name="annuler" value="Annuler le dernier point">
+ <p>
+ !set ins_tag=form click
+ !insdraw $graphe
+!endif $step=2
+!!!!!!!!!!!!!!!! STEP 3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!if $step=3
+ !insdraw $graphe
+ <br>
+ note intermédiaire&nbsp;: $score2 / 3
+ <p>
+ <table bgcolor=lightyellow><tr><td>
+ Par les points corrects, on peut faire passer une droite
+ d'équation 
+ !insmath y=a\times x
+ ou plutôt
+ !insmath \sin(i_2) = \frac{n_1}{n_2}\sin(i_1)
+ .
+ <p>
+ Calculez le coefficient directeur de la droite,
+ !insmath a=\frac{n_1}{n_2}= ...
+ <input type=text name=rapport size=5>
+ </td></tr></table>
+ <input type=submit value="$wims_name_send"> 
+!endif $step=3
+!!!!!!!!!!!!!!! step > 1 !!!!!!!!!!!!!!!!!!!!!!
+!if $step >1
+ !for i=1 to $nm
+  <input type="hidden" name="sini$i" value="$(sini$i)">
+  <input type="hidden" name="sinr$i" value="$(sinr$i)">
+ !next i
+!endif
+
+</form>

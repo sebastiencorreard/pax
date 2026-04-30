@@ -1,0 +1,85 @@
+# Macro-economie V
+# steps
+mathview=0
+math=0
+n=$counter
+checkfile=exos/precheck1.proc
+
+roundingtext=$empty
+!if $total_exos>4
+    total_exos=4
+!endif
+inputs=1
+questiontype=0
+embed=1
+cols=10
+rows=1
+make_tr=1
+helptext=Keynesiaanse basismodel:<ul><li>C = particuliere consumptie</li><li>Y = nationaal inkomen</li><li>I = investeringsvraag van bedrijven </li><li>W = nationaal product</li><li>EV = effectieve vraag</li><li>A<sub>a</sub> = beroepsbevolking</li><li>K = kapitaalgoederen voorraad</li><li>a = gemiddelde arbeidsproductiviteit</li><li>k = gemiddelde kapitaal productiviteit</li><li>We veronderstellen dat I onafhankelijk is van het nationaal inkomen Y</li></ul>
+
+!if $counter=1
+    exotext=$empty
+    cons=!randint 12,18
+    factor=$[20-$cons]
+    cons=$[5*$cons]
+    consq=($cons/100)
+    C0=!randint 5,12
+    C0=$[$factor*$C0]
+    I0=!randint 5,12
+    I0=$[$factor*$I0]
+    perc=!randint 11,19
+    perc=$[5*$perc]
+    var5=Van een gesloten economie zonder collectieve sector is het volgende gegeven:<ul><li>De gezinnen consumeren van elke inkomensstijging $cons %</li><li>De autonome consumptie bedraagt &euro; $C0 miljard , de autonome investeringen &euro; $I0 miljard.</li><li>Bij het evenwichtsinkomen is $perc % van de productiecapaciteit bezet.</li></ul>
+    
+    Yevenwicht=$[(round(100*($I0+$C0)/(1-$consq)))/100]
+    C=$[$consq*$Yevenwicht+ $C0]
+    answer1=$[(round(100*$C/$Yevenwicht))/100]
+    texanswer1=\left[ \begin{array}{l} \textrm{ Het evenwichtsinkomen is :} \overline{Y} = \frac{1}{1-$[$consq]} \times \left( $I0 + $C0\right) = $Yevenwicht \\ \textrm{De consumptieve uitgaven bedragen :} $[$consq] \times $Yevenwicht + $C0 = $C \\ \textrm{De gemiddelde consumptiequote is :} \frac{$C}{$Yevenwicht} \simeq $answer1 \end{array} \right.
+    
+    answer2=$[$Yevenwicht*100/$perc]
+    ans2=$[(round(100*$answer2))/100]
+    texanswer2=\left[ \begin{array}{l} \textrm{Omvang van de productiecapaciteit is :} \\ \frac{100}{$perc} \times $Yevenwicht \simeq $ans2 \: \textrm{ in miljarden \euro} \end{array} \right.
+    
+    tot=!exec pari A=1/(1-$consq)\
+    printtex(A)
+    
+    answer3=!line 1 of $tot
+    ans3=!line 2 of $tot
+    texanswer3=\left[ \begin{array}{l} \\ \textrm{De multiplier is :} \frac{1}{1-$[$consq]} = \frac{1}{$[1-$consq]} = $ans3  \\ \end{array} \right.
+    
+    delta_autonoom=$[(round(100*(($answer2 - $Yevenwicht)/($answer3))))/100]
+    delta1=$[floor($delta_autonoom)]
+    delta2=$[round($delta_autonoom/4)]
+    delta_cons=!randint $delta1,$delta2
+    var2=$delta_cons
+    answer4=$[$delta_autonoom - $delta_cons]
+    texanswer4=\left[ \begin{array}{l} \textrm{Het bestedingsevenwicht wordt bereikt bij :} $ans2 \: \textrm{in miljaren Euro's , zie vraag 1)} \\ \textrm{De autonome bestedingen moeten omhoog met :} \frac{$ans2 - $Yevenwicht}{$answer3} \simeq $delta_autonoom \\ \textrm{Als de autonome consumptie met $delta_cons miljard toeneemt} \\ \textrm{moeten de investeringen met $answer4 miljard \euro stijgen.} \\ \end{array} \right.
+
+!endif
+
+!if $counter=1
+    ss=Bereken de gemiddelde consumptiequote bij het evenwichtsinkomen.<br />Geef je antwoord in twee decimalen
+    
+    formula$n=\text{Gemiddelde consumptiequote}
+    rounding=100
+    exotext=$empty
+!else
+    exotext=!append line <span style="color:blue">Je antwoord op vraag <b>$[$n-1])</b> $(reply$[$n-1])</span><br /> to $exotext
+    !if $counter=2
+	ss=Bereken de omvang van de productiecapaciteit.<br />Geef je antwoord in miljarden &euro; en afgerond op twee decimalen
+	formula$n=\text{Omvang productiecapaciteit}
+	rounding=100
+    !else
+	!if $counter=3
+	    ss=Bepaal de grootte van de <kbd>multiplier</kbd><br />Reken deze factor <b>exact</b> uit !
+	    formula$n=\text{De multiplier }
+	    rounding=0
+	!else
+	    ss=Als de autonome consumptie met &euro; $var2 miljard toeneemt,<br />met welk bedrag moeten de autonome investeringen dan toenemen om bestedingsevenwicht te bereiken.<br />Gebruik bij je berekening de <kbd>multiplier</kbd>.<br />Geef je antwoord in miljarden &euro; en afgerond op twee decimalen
+	    formula$n=\text{Toename autonome investeringen }
+	!endif
+    !endif
+!endif
+
+
+question$n=<a onmouseover="return escape('$helptext')"> $var5 <br />$ss</a>

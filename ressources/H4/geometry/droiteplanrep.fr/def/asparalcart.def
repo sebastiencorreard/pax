@@ -1,0 +1,201 @@
+!set title=Equation parallèle qui passe par A (eq cartésienne)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez;Bruno,Mifsud
+email=cyrille.douriez@ac-amiens.fr;communaute.mutuwims@laposte.net
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+val2=1
+!else
+val2=$val2
+!endif
+tmp0=!randitem A,B,C,D,E
+
+val6=$(tmp0)
+tmp0=!randint 2, 15
+
+tmp1=!randitem -1,1
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 15
+
+tmp1=!randitem -1,1
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 15
+
+tmp1=!randitem -1,1
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -20, 20
+
+val10=$[rint($(tmp0))]
+tmp0=!randint -20, 20
+
+val11=$[rint($(tmp0))]
+
+!ifval ($val7*$val10+$val8*$val11+$val9=0)
+tmp0=!randint 1, 6
+
+val11=$[rint( $val11+$(tmp0))]
+!else
+val11=$[rint($val11)]
+!endif
+val12=$[rint(-$val7*$val10-$val8*$val11)]
+val13=!rawmath $val7*x+$val8*y+$val12
+val14=$val7 x 
+
+!ifval $val8>0
+val14=$val14+$val8 y
+!else
+val14=$val14 $val8 y
+!endif
+
+!ifval $val9>0
+val14=$val14+$val9
+!else
+val14=$val14 $val9 
+!endif
+!if $val2=1 
+t_=!replace internal \( by ( in (-$val7*x-$val9)/$val8
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+val16=xrange -50,50	yrange -50,50	hline 0,0,black	vline 0,0,black	parallel -30,-1,-30,1,60,0,2,black	parallel -1,-30,1,-30,0,60,2,black	text black , 30,-0.5,small , 30	text black , -30,-0.5,small , -30	text black , 0.3,-30,small , -30	text black , 1,30,small , 30	text black , 1,-1,small , O	linewidth 1.5
+!readproc oef/draw.phtml 100,100 \
+$val16	plot blue, $val15	crosshairs red,$val10,$val11	 
+tmp0=$ins_url
+val17=$(tmp0)
+val18=<img src="$val17" alt="représentation graphique" style="float:right;margin-top:-0.5em">
+!endif
+val19=$[rint(-$val8)]
+val20=$[rint(abs($val10))]
+val21=$[rint(abs($val11))]
+
+!ifval ($val10>0)
+val22= x-$val10
+!else
+val22=x+$val20
+!endif
+
+!ifval ($val11>0)
+val23= y-$val11
+!else
+val23=y+$val21
+!endif
+replytype1=equation
+replyname1=Equation de \(d_2)
+replygood1=!rawmath $val13=0
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class=wims_question>$val18	Déterminer une équation de la droite 
+!insmath (d_2)
+$() parallèle à la droite 
+!insmath (d_1)
+$() d'équation	 
+!insmath $val14 =0
+$() et passant par 
+!insmath $val6($val10 ; $val11)
+$().	<br > L'équation de 
+!insmath (d_2)
+$() est :	 
+!read oef/embed.phtml r1,50 
+$()	</div>	<div class=wims_instruction>Donner une équation de la forme a*x+b*y+c=0.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	$val18	<p>
+!insmath $val6($val10 ; $val11)
+$() et 
+!insmath $val14 =0
+$()</p>	<p>On a : 
+!insmath \overrightarrow{u}\left ( \begin{array}{c}$val19 \\ $val7 \end{array} \right )
+$() est un vecteur directeur de 
+!insmath d_1
+$()	donc de 
+!insmath d_2
+$() puisque ces deux droites sont parallèles.</p>	<p>Ensuite : 	</p><p>
+!insmath M(x; y)
+$() appartient à 
+!insmath d_2
+$() 	</p><p>&hArr;  
+!insmath \overrightarrow{u}
+$() et 
+!insmath \overrightarrow{$val6 M}\left ( \begin{array}{c}$val22\\$val23\end{array} \right )
+$() sont colinéaires 	</p><p>&hArr; leur déterminant est nul	</p><p>&hArr; 
+!insmath $val7($val22)
+$()
+!if $val8>0 
+$()
+!insmath {}+{}
+$() 
+!endif
+$()
+!insmath $val8 ($val23)
+$()=0 	</p><p>&hArr; 
+!insmath $val13=0
+$().</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,13,14,18,19,22,23
+embedcnt=1

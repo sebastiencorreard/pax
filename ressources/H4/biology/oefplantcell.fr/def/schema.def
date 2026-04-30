@@ -1,0 +1,138 @@
+!set title=Schéma d'une cellule végétale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=F.,Paris; Sophie,Lemaire
+email=sophie.lemaire@math.u-psud.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=9
+postvarcnt=4
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=300,300
+tmp=!trim 140,110,-1,-1,le noyau	150,210,-1,-1,le cytoplasme	156,224,-1,-1,une mitochondrie	180,245,1,1,la membrane plasmique	125,65,-1,1,la paroi cellulosique	142,180,-1,-1,un chloroplaste	180,135,-1,1,la vacuole	
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=$[rint(1)]
+val9=$[rint(7)]
+tmp0=!randint $val8, $val9
+
+val10=$[rint($(tmp0))]
+val11=xrange 0,$(val6[1])	yrange 0,$(val6[2])	copy 0,$(val6[2]),-1,-1,-1,-1,celluleelodee.jpg	arrow $(val7[$val10;1])+30*($(val7[$val10;3])),$(val7[$val10;2])+30*$(val7[$val10;4]),$(val7[$val10;1]),$(val7[$val10;2]),10,black
+!readproc oef/draw.phtml $val6 \
+$val11	 
+tmp0=$ins_url
+val12=$(tmp0)	
+val13=r1
+val14=
+dynsteps=yes
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=
+replygood1=?analyze 15;$(val7[$val8..$val9;5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici un schéma simplifié de l'ultrastructure d'une cellule végétale chlorophyllienne (Elodée) :	
+!if $m_step=1 
+$()	<div class="center">	<img src="$val12" alt="">	 </div>	 
+!else
+$()	 <div class="center"><img src="$val14" alt=""></div> 
+!endif
+$()	Cliquer sur le nom de l'élément désigné par la flèche noire :	<div class="wimscenter"> 
+!read oef/embed.phtml reply1,110x40x1 
+$()</div>			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val13=
+tmp0=!positionof item $m_reply1 in $(val7[;5])
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16==$val10 
+val17= arrow 
+!else
+val17=darrow
+!endif
+!readproc oef/draw.phtml $val6 \
+$val11	$val17 $(val7[$val16;1])+30*($(val7[$val16;3])),$(val7[$val16;2])+30*$(val7[$val16;4]),$(val7[$val16;1]),$(val7[$val16;2]),10,black	 
+tmp0=$ins_url
+val14=$(tmp0)	
+
+!exit
+
+:feedback
+!ifval $val16!=$val10 
+ <div class='oef_feedbacks'><span class="oef_indbad"> Erreur ! La flèche noire n'indique	pas $m_reply1, mais $(val7[$val10;5]). Sur le dessin ci-dessus, la flèche en pointillés vous montre $m_reply1.	</span>
+$()</div>
+!endif
+!ifval $val16=$val10
+ <div class='oef_feedbacks'><span class="oef_indgood">Bonne réponse : la flèche noire indique  $(val7[$val10;5]).</span>
+$()</div>
+!endif
+
+!exit
+
+:test
+condoption1=hide 
+
+!ifval $val16=$val10
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,14,15
+embedcnt=1

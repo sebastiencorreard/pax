@@ -1,0 +1,710 @@
+!set title=Méthode par balayage classique (guidée)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+computeanswer=yes
+precision=1000000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=94
+prevarcnt=69
+postvarcnt=24
+replycnt=33
+choicecnt=0
+conditioncnt=8
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist r x for x = 1 to 8
+
+val6=$(tmp0)
+tmp=!trim $val6
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=1,2
+tmp=!trim 
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val13+1)]
+val15=$[rint(1)]
+val16=$[rint()]
+val17=$[]
+
+!ifval ($val2==)
+val18=ambiance
+!else
+val18=$val2
+!endif
+
+!ifval ($val13==1)
+val19=1,2
+!endif
+
+!ifval ($val13==2)
+val19=1,1,2
+!endif
+
+!ifval ($val13==3)
+val19=1,1,1,2
+!endif
+tmp0=!randint 1, 2
+
+val20=$[rint($(tmp0))]
+
+!ifval ($val20==1)
+val21=croissante
+!else
+val21=décroissante
+!endif
+
+!ifval ($val20==1)
+val22=$[rint(1)]
+!else
+val22=$[rint(-1)]
+!endif
+
+!ifval ($val20==1)
+val23=<
+!else
+val23=>
+!endif
+tmp0=!randint 3, 10
+
+val24=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+val25=$[rint(3*$(tmp0))]
+tmp0=!randitem 37,38,50,51,52,63
+
+val26=$[rint($(tmp0))]
+t_=!rawmath (($val25)^2-$val26)/4
+val27=!exec pari print($t_)
+t_=!replace internal \( by ( in expand($val22*($val24*x+1)*(x^2-($val25)*x+($val27)))
+tmp0=!exec maxima $t_
+
+val28=!rawmath $(tmp0)
+tmp0=!replace x by t in $val28
+
+val29=$(tmp0)
+tmp0=!replace \^ by ** in $val28
+
+val30=$(tmp0)
+tmp0=!replace \^2 by *x in $val28
+
+val31=$(tmp0)
+tmp0=!replace \^3 by *x*x in $val31
+
+val32=$(tmp0)
+tmp0=!texmath $val28
+
+val33=$(tmp0)
+val34=$[($val25+sqrt($val26))/2]
+val35=$[rint(floor($val34))]
+val36=$[rint($val35+1)]
+
+!ifval ($val20==1)
+evaltmp=$val28
+
+evaltmp=!mathsubst x=($val35) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val37=!exec pari print($t_)
+!else
+evaltmp=$val28
+
+evaltmp=!mathsubst x=($val36) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val37=!exec pari print($t_)
+!endif
+tmp0=!texmath $val37
+
+val38=$(tmp0)
+
+!ifval ($val20==1)
+evaltmp=$val28
+
+evaltmp=!mathsubst x=($val36) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val39=!exec pari print($t_)
+!else
+evaltmp=$val28
+
+evaltmp=!mathsubst x=($val35) in $evaltmp
+tmp1=($evaltmp)
+t_=!rawmath $(tmp1)
+val39=!exec pari print($t_)
+!endif
+tmp0=!texmath $val39
+
+val40=$(tmp0)
+tmp0=!randint $val37+1, $val39-1
+
+val41=$[rint($(tmp0))]
+val42=JXG.Options.point.showInfobox = true;	JXG.Options.point.infoboxDigits = 5;	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	JXG.Options.point.size =4;	JXG.Options.text.useMathJax = true;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [$val35,$val39,$val36,$val37],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	xaxis = brd.create('axis', [[0, 0], [1,0]]);	yaxis = brd.create('axis', [[$val35+0.1, 0], [$val35+0.1,1]]);	var c1=brd.create('functiongraph', [function(x){ return $val32;}, $val35, $val36], {strokeWidth: 2});	var liii=brd.create('line',[[0,$val41],[1,$val41]],{Color:'green',fixed:true});	
+!readproc slib/geo2D/jsxgraph jsxbox,500 x 500,$val42 
+tmp0=$slib_out
+val43=$(tmp0)
+val44=de balayage
+val45=<p>Soit \(f\) une fonction définie par \(f(x)=$val33\) sur l'intervalle \(\lbracket$val35;$val36\rbracket\).</p>	<p>Démontrer que l'équation \(f(x)=$val41\) admet une unique solution sur cet intervalle	 et en déduire la solution arrondie à \(10^{-$val13}\).</p>	<div class="bold">Existence d'une unique solution à l'équation \(f(x)=$val41\) à l'aide	 du corollaire du théorème des valeurs intermédiaires :</div>	<div class="text-left"><u>Propositions admises :</u></div>	<ul><li>La fonction \(f\) est composée de fonctions usuelles continues sur \(\mathbb{R}\)	 donc elle est continue sur l'intervalle \(\lbracket$val35;$val36\rbracket\).</li>	<li>La fonction \(f\) est strictement $val21 sur l'intervalle	 \(\lbracket$val35;$val36\rbracket\) prenant ses valeurs	  dans l'intervalle \(\lbracket$val38;$val40\rbracket\).</li>	<li> \($val41 \in \lbracket$val38;$val40\rbracket\)</li></ul>	<div class="text-left"><u>Conclusion :</u></div>	D'après le corollaire du théorème des valeurs intermédiaires, il existe une unique solution \(&#945;\) à l'équation	  \(f(x)=$val41\) sur l'intervalle \(\lbracket$val35;$val36\rbracket\).	<div class="spacer"></div>	<div class="bold">Recherche d'une valeur arrondie de la solution \(&#945;\) à \(10^{-$val13}\) :</div>	<p>La méthode $val44 détermine un encadrement	 d'amplitude inférieure ou égale à \(10^{-\n}\) de la solution \(&#945;\) de	  l'équation \(f(x)=$val41\) sur l'intervalle \(\lbracket$val35;$val36\rbracket\).</p>
+t_=!replace internal \( by ( in f(t)=$val29;
+tmp0=!exec pari $t_
+
+val46=$(tmp0)
+val47=Méthode de balayage classique pour résoudre une équation de la forme \(f(x)=$val41\)
+t_=!replace internal \( by ( in default(format, "f.8");	vd=$val35;	xxli=[];	yyli=[];	mli=[];	vfilp=[];	vfalp=[];	vdd=[];	vff=[];	for(p=1,4,	xli=[];	yli=[];	if(p==1,vf=vd+1.0*10^(-p+1);,vf=vd+1.0*10^(-p+1)-10^(-p););	forstep(x=vd,vf,1.0*10^(-p),xli=concat(xli,x*1.00);	yli=concat(yli,f(x)*1.0);	if(f(x) $val23 $val41,vd=x;);	);	xxli=concat(xxli,[xli]);	yyli=concat(yyli,[yli]);	vfilp=concat(vfilp,f(vd));	vfalp=concat(vfalp,f(vd+10^(-p)));	vdd=concat(vdd,vd);	vff=concat(vff,vd+10^(-p));	);	
+tmp0=!exec pari $t_
+
+val48=$(tmp0)
+val49=\#Initialisation des variables\#	xmin=??	x=xmin	xmax=??	pas=??	\#Initialisation des listes\#	x_list=[]	y_list=[]	\#Définition d'une fonction\#	def f(x):	  return $val30	\#Coeur du programme\#	while x < xmax:	  y=f(x)	  x_list.append(x)	  y_list.append(y)	  x=x+pas	\#Corrige le problème de mantisse\#	x_list=x_list[:10]	y_list=y_list[:10]	\#Affichage des listes et de l'image de l'abscisse maximale\#	print(x_list)	print(y_list)	print('f(',xmax,')=',f(xmax))	
+val50=0.1,0.01,0.001,0.0001
+t_=!replace internal \( by ( in print(xxli);
+tmp0=!exec pari $t_
+
+val51=$(tmp0)
+t_=!replace internal \( by ( in print(yyli);
+tmp0=!exec pari $t_
+
+val52=$(tmp0)
+tmp0=!declosing $(val51[1])
+
+tmp1=!declosing $(val51[2])
+
+tmp2=!declosing $(val51[3])
+
+tmp3=!declosing $(val51[4])
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2);$(tmp3)
+val53=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!declosing $(val52[1])
+
+tmp1=!declosing $(val52[2])
+
+tmp2=!declosing $(val52[3])
+
+tmp3=!declosing $(val52[4])
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2);$(tmp3)
+val54=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in print(vfilp);
+tmp0=!exec pari $t_
+
+val55=$(tmp0)
+t_=!replace internal \( by ( in print(vfalp);
+tmp0=!exec pari $t_
+
+val56=$(tmp0)
+t_=!replace internal \( by ( in print(vdd);
+tmp0=!exec pari $t_
+
+val57=$(tmp0)
+t_=!replace internal \( by ( in print(vff);
+tmp0=!exec pari $t_
+
+val58=$(tmp0)
+tmp0=!declosing $val55
+
+val59=$(tmp0)
+tmp0=!declosing $val56
+
+val60=$(tmp0)
+tmp0=!declosing $val57
+
+val61=$(tmp0)
+tmp0=!declosing $val58
+
+val62=$(tmp0)
+val63=,[xmax,[$val36]],
+val64=,[xmax,[$(val62[1])]],
+val65=,[xmax,[$(val62[2])]],
+val66=,[xmax,[$(val62[3])]],
+val67=[xmin,[$val35]]$(val63[pas,[$(val50[1])]]),[x_list,[$(val53[1;])]],[y_list,[$(val54[1;])]]
+val68=[xmin,[$(val61[1])]]$(val64[pas,[$(val50[2])]]),[x_list,[$(val53[2;])]],[y_list,[$(val54[2;])]]
+val69=[xmin,[$(val61[2])]]$(val65[pas,[$(val50[3])]]),[x_list,[$(val53[3;])]],[y_list,[$(val54[3;])]]
+val70=[xmin,[$(val61[3])]]$(val66[pas,[$(val50[4])]]),[x_list,[$(val53[4;])]],[y_list,[$(val54[4;])]]
+val16=$[rint(($(val62[3])+$(val61[3]))/2*10^($val13))]
+val17=$[$val16/10^($val13)]
+dynsteps=yes
+oefsteps=$val7 
+nextstep=!nosubst $val7 
+!readproc oef/steps.proc
+replytype1=runcode
+
+replyoption1=precision=10000 \instruction_code 
+replyweight1=10 
+replyname1=
+replygood1=$val67
+replytype2=numeric
+replyoption2=comma nonstop 
+replyname2=
+replygood2=?analyze 71
+replytype3=numeric
+replyoption3=comma nonstop 
+replyname3=
+replygood3=?analyze 72
+replytype4=numeric
+replyoption4=comma nonstop 
+replyname4=
+replygood4=?analyze 73
+replytype5=numeric
+replyoption5=comma nonstop 
+replyname5=
+replygood5=?analyze 74
+replytype6=numeric
+replyoption6=comma nonstop 
+replyname6=
+replygood6=$[$(val61[1])]
+replytype7=numeric
+replyoption7=comma nonstop 
+replyname7=
+replygood7=$[$(val62[1])]
+replytype8=radio
+replyoption8=shuffle 
+replyweight8=20 
+replyname8=
+replygood8=1;oui,non
+replytype9=runcode
+
+replyoption9=precision=10000 \instruction_code reset 
+replyweight9=10 
+replyname9=
+replygood9=$val68
+replytype10=numeric
+replyoption10=comma nonstop 
+replyname10=
+replygood10=?analyze 75
+replytype11=numeric
+replyoption11=comma nonstop 
+replyname11=
+replygood11=?analyze 76
+replytype12=numeric
+replyoption12=comma nonstop 
+replyname12=
+replygood12=?analyze 77
+replytype13=numeric
+replyoption13=comma nonstop 
+replyname13=
+replygood13=?analyze 78
+replytype14=numeric
+replyoption14=comma nonstop 
+replyname14=
+replygood14=$[$(val61[2])]
+replytype15=numeric
+replyoption15=comma nonstop 
+replyname15=
+replygood15=$[$(val62[2])]
+replytype16=radio
+replyoption16=shuffle 
+replyweight16=10 
+replyname16=
+replygood16=$(val19[2]);oui,non
+replytype17=runcode
+
+replyoption17=precision=10000 \instruction_code reset 
+replyweight17=10 
+replyname17=
+replygood17=$val69
+replytype18=numeric
+replyoption18=comma nonstop 
+replyname18=
+replygood18=?analyze 79
+replytype19=numeric
+replyoption19=comma nonstop 
+replyname19=
+replygood19=?analyze 80
+replytype20=numeric
+replyoption20=comma nonstop 
+replyname20=
+replygood20=?analyze 81
+replytype21=numeric
+replyoption21=comma nonstop 
+replyname21=
+replygood21=?analyze 82
+replytype22=numeric
+replyoption22=comma nonstop 
+replyname22=
+replygood22=$[$(val61[3])]
+replytype23=numeric
+replyoption23=comma nonstop 
+replyname23=
+replygood23=$[$(val62[3])]
+replytype24=radio
+replyoption24=shuffle 
+replyweight24=10 
+replyname24=
+replygood24=$(val19[3]);oui,non
+replytype25=runcode
+
+replyoption25=precision=10000 \instruction_code reset 
+replyweight25=10 
+replyname25=
+replygood25=$val70
+replytype26=numeric
+replyoption26=comma nonstop 
+replyname26=
+replygood26=?analyze 83
+replytype27=numeric
+replyoption27=comma nonstop 
+replyname27=
+replygood27=?analyze 84
+replytype28=numeric
+replyoption28=comma nonstop 
+replyname28=
+replygood28=?analyze 85
+replytype29=numeric
+replyoption29=comma nonstop 
+replyname29=
+replygood29=?analyze 86
+replytype30=numeric
+replyoption30=comma nonstop 
+replyname30=
+replygood30=$[$(val61[4])]
+replytype31=numeric
+replyoption31=comma nonstop 
+replyname31=
+replygood31=$[$(val62[4])]
+replytype32=radio
+replyoption32=shuffle 
+replyweight32=10 
+replyname32=
+replygood32=$(val19[4]);oui,non
+replytype33=numeric
+replyoption33=comma 
+replyweight33=30 
+replyname33=
+replygood33=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<p class="problematique">$val47</p>	<div class="enonce">	$val45	<div class="question">	<div class="etape">Étape $m_step</div>	
+!if $m_step==1 and $m_sc_reply8!=0 
+$()	<p>Compléter l'algorithme afin de trouver un encadrement de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val15}
+$() :</p>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply1,[python,[$val49]];[idtest2,theme=$val18 canvas init \instruction_code,Jouer le code !] 
+$()	</div> 
+!else
+$()  
+!endif
+$()	
+!if ($m_step==2 and oui isin $m_reply8 and $m_sc_reply16!=0) 
+$()	<p>Compléter l'algorithme afin de trouver un encadrement de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val15}
+$() :</p>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply9,[python,[$val49]];[idtest2,theme=$val18 canvas init \instruction_code,Jouer le code !] 
+$()	</div> 
+!else
+$()  
+!endif
+$()	
+!if $m_step==3 and oui isin $m_reply16 and $m_sc_reply24!=0 
+$()	<p>Compléter l'algorithme afin de trouver un encadrement de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val15}
+$() :</p>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply17,[python,[$val49]];[idtest2,theme=$val18 canvas init \instruction_code,Jouer le code !] 
+$()	</div> 
+!else
+$()  
+!endif
+$()	
+!if $m_step==4 and oui isin $m_reply16 and oui isin $m_reply24 and $m_sc_reply32!=0 
+$()	<p>Compléter l'algorithme afin de trouver un encadrement de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val15}
+$() :</p>	<div class="wimsborder box">	 
+!read oef/embed.phtml reply25,[python,[$val49]];[idtest2,theme=$val18 canvas init \instruction_code,Jouer le code !] 
+$()	</div> 
+!else
+$()  
+!endif
+$()	
+!if ($m_step==1 and $m_sc_reply8!=0) or ($m_step==2 and oui isin $m_reply8 and $m_sc_reply16!=0) or ($m_step==3 and oui isin $m_reply16 and $m_sc_reply24!=0) or ($m_step==4 and oui isin $m_reply16 and oui isin $m_reply24 and $m_sc_reply32!=0) 
+$()	<div class="wimscenter wimsborder box">	<b>Représentation graphique de la courbe 
+!insmath C_f
+$() et de la droite d'équation 
+!insmath y=$val41
+$()</b>	$val43	</div> 
+!else
+$()  
+!endif
+$()	<div class="question">	<div class="text-left"><u>Conclusion :</u></div>	À l'aide des résultats numériques et graphiques effectués par l'algorithme, déterminer un encadrement de 
+!insmath &#945;
+$()	 à 
+!insmath 10^{-$val15}
+$(). Les valeurs des images doivent être arrondies au millième.	<br>	 
+!read oef/special.phtml mathmlinput [\left.\begin{array}{lcl}	f(reply2) &=& reply3 \\ \hline	f(reply4) &=& reply5	\end{array}	\right \rbrace \Rightarrow reply6 \leq &#945; \leq reply7],6	reply2,,color:blue;font-size:20px	reply3,,color:blue;font-size:20px	reply4,,color:blue;font-size:20px	reply5,,color:blue;font-size:20px	reply6,,color:blue;font-size:20px	reply7,,color:blue;font-size:20px 
+$()	
+!if $m_step>=2 
+$() 
+!read oef/special.phtml mathmlinput [\left.\begin{array}{lcl}	f(reply10) &=& reply11 \\ \hline	f(reply12) &=& reply13	\end{array}	\right \rbrace \Rightarrow reply14 \leq &#945; \leq reply15],6	reply10,,color:blue;font-size:20px	reply11,,color:blue;font-size:20px	reply12,,color:blue;font-size:20px	reply13,,color:blue;font-size:20px	reply14,,color:blue;font-size:20px	reply15,,color:blue;font-size:20px 
+$()	 
+!endif
+$()	
+!if $m_step>=3 and $val13>=2 
+$() 
+!read oef/special.phtml mathmlinput [\left.\begin{array}{lcl}	f(reply18) &=& reply19 \\ \hline	f(reply20) &=& reply21	\end{array}	\right \rbrace \Rightarrow reply22 \leq &#945; \leq reply23],6	reply18,,color:blue;font-size:20px	reply19,,color:blue;font-size:20px	reply20,,color:blue;font-size:20px	reply21,,color:blue;font-size:20px	reply22,,color:blue;font-size:20px	reply23,,color:blue;font-size:20px 
+$()	 
+!endif
+$()	
+!if $m_step>=4 and $val13>=3 
+$() 
+!read oef/special.phtml mathmlinput [\left.\begin{array}{lcl}	f(reply26) &=& reply27 \\ \hline	f(reply28) &=& reply29	\end{array}	\right \rbrace \Rightarrow reply30 \leq &#945; \leq reply31],6	reply26,,color:blue;font-size:20px	reply27,,color:blue;font-size:20px	reply28,,color:blue;font-size:20px	reply29,,color:blue;font-size:20px	reply30,,color:blue;font-size:20px	reply31,,color:blue;font-size:20px 
+$()	 
+!endif
+$()	
+!if ($m_step==1) or ($m_step==2) or ($m_step==3 and oui isin $m_reply16) or ($m_step==4 and oui isin $m_reply24) 
+$()	<p>Est-il nécessaire de poursuivre pour déterminer une valeur arrondie de 
+!insmath &#945;
+$() à 
+!insmath 10^{-$val13}
+$() ?  
+!read oef/embed.phtml reply[$val15*8] 
+$()</p> 
+!endif
+$()	
+!if (non isin $m_reply16 and $val13==1) or (non isin $m_reply24 and $val13==2) or (non isin $m_reply32 and $val13==3) 
+$()	<p>La valeur arrondie à 
+!insmath 10^{-$val13}
+$() est donc 
+!insmath &#945;\simeq
+$()  
+!read oef/embed.phtml reply33,4 
+$()</p> 
+!endif
+$()	
+!if ($m_sc_reply8==0) or ($m_sc_reply16==0 and $val13!=1) or ($m_sc_reply24==0 and $val13!=2) or ($m_sc_reply32==0 and $val13!=3) 
+$()	<div class="solution">	Le nombre d'informations n'est pas suffisant pour trancher entre 
+!insmath &#945;\simeq $(val61[$val15])
+$()	 ou 
+!insmath &#945;\simeq $(val62[$val15])
+$(). Par conséquent il est nécessaire de faire au moins	 une étape supplémentaire pour être plus précis.</div> 
+!endif
+$()	
+!if ($m_sc_reply16==0 and $val13==1) or ($m_sc_reply24==0 and $val13==2) or ($m_sc_reply32==0 and $val13==3) 
+$()	<div class="solution">	Le nombre d'informations est suffisant donc la valeur de 
+!insmath &#945;=$val17
+$().	</div> 
+!endif
+$()	</div></div></div></div>	<script>	function graph(){	x_liste=Sk.ffi.remapToJs(Sk.globals["x_list"]);	y_liste=Sk.ffi.remapToJs(Sk.globals["y_list"]);	const xlen=x_liste.length;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [$val35,$val39,$val36,$val37],	shownavigation:false,showCopyright : false,	showZoom : true,keepaspectratio : false,	  zoom: {factorX: 1.25,factorY: 1.25,wheel: true,needShift: false,eps: 0.001},	  pan: {needShift: false,enabled: true,needTwoFingers: true,pinchHorizontal: true, pinchVertical: true,pinchSensitivity: 7}});	xaxis = brd.create('axis', [[0, 0], [1,0]]);	yaxis = brd.create('axis', [[$val35+0.1, 0], [$val35+0.1,1]]);	brd.suspendUpdate();	var c1=brd.create('functiongraph', [function(x){ return $val32;}, $val35, $val36], {strokeWidth: 2});	var liii=brd.create('line',[[0,$val41],[1,$val41]],{Color:'green',fixed:true});	for(var jj = 0; jj < xlen; jj=jj+1) {	brd.create('point', [x_liste[jj],y_liste[jj]],{color:'red',fixed:true,name:""});}	brd.unsuspendUpdate();}	execidtest2.addEventListener('click',graph);	</script>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_step==2 
+val15=$[rint(2)]
+!endif
+!if $m_step==3 
+val15=$[rint(3)]
+!endif
+!if $m_step==4 
+val15=$[rint(4)]
+!endif
+tmp=!trim $m_reply2,$m_reply3,$m_reply4,$m_reply5
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $m_reply10,$m_reply11,$m_reply12,$m_reply13
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $m_reply18,$m_reply19,$m_reply20,$m_reply21
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $m_reply26,$m_reply27,$m_reply28,$m_reply29
+val11=!translate internal $	\
+$ to ;; in $tmp
+val7=
+tmp0=!makelist r x for x = 9 to 16
+
+val6=$(tmp0)
+tmp0=!makelist r x for x = 17 to 24
+
+val87=$(tmp0)
+tmp0=!makelist r x for x = 25 to 32
+
+val88=$(tmp0)
+
+!ifval ($m_step==2 and ($m_sc_reply8==0))
+val7=
+!endif
+
+!ifval ($m_step==2 and $m_sc_reply8==1)
+val7=$val6
+!endif
+
+!ifval ($m_step==2 and $m_sc_reply8==1)
+val8=1,2,3,4
+!endif
+
+!ifval ($m_step==3 and $m_sc_reply16==0)
+val7=
+!endif
+
+!ifval ($m_step==3 and non isin $m_reply16)
+val7=reply33
+!endif
+
+!ifval ($m_step==3 and oui isin $m_reply16)
+val7=$val87
+!endif
+
+!ifval ($m_step==3 and oui isin $m_reply16)
+val8=1,2,3,4,5,6
+!endif
+
+!ifval ($m_step==4 and $m_sc_reply24==0)
+val7=
+!endif
+
+!ifval ($m_step==4 and non isin $m_reply24)
+val7=reply33
+!endif
+
+!ifval ($m_step==4 and oui isin $m_reply24)
+val7=$val88
+!endif
+
+!ifval ($m_step==4 and oui isin $m_reply24)
+val8=1,2,3,4,5,6,7,8
+!endif
+
+!ifval ($m_step==5 and non isin $m_reply32)
+val7=reply33
+!endif
+
+!ifval ($m_step==5 and oui isin $m_reply32)
+val7=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+condlist=$val8
+
+!ifval ((abs($(val12[1])-$(val61[1]))<10^(-$val14)) and (abs($(val12[2])-$(val59[1]))<10^(-3))) or ((abs($(val12[1])-$(val62[1]))<10^(-$val14)) and (abs($(val12[2])-$(val60[1]))<10^(-3)))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(f($(val12[1]))=$(val12[2])\)
+
+!ifval ((abs($(val12[3])-$(val61[1]))<10^(-$val14)) and (abs($(val12[4])-$(val59[1]))<10^(-3))) or ((abs($(val12[3])-$(val62[1]))<10^(-$val14)) and (abs($(val12[4])-$(val60[1]))<10^(-3)))
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(f($(val12[3]))=$(val12[4])\)
+
+!ifval ((abs($(val9[1])-$(val61[2]))<10^(-$val14)) and (abs($(val9[2])-$(val59[2]))<10^(-3))) or ((abs($(val9[1])-$(val62[2]))<10^(-$val14)) and (abs($(val9[2])-$(val60[2]))<10^(-3)))
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=\(f($(val9[1]))=$(val9[2])\)
+
+!ifval ((abs($(val9[3])-$(val61[2]))<10^(-$val14)) and (abs($(val9[4])-$(val59[2]))<10^(-3))) or ((abs($(val9[3])-$(val62[2]))<10^(-$val14)) and (abs($(val9[4])-$(val60[2]))<10^(-3)))
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=\(f($(val9[3]))=$(val9[4])\)
+
+!ifval ((abs($(val10[1])-$(val61[3]))<10^(-$val14)) and (abs($(val10[2])-$(val59[3]))<10^(-3))) or ((abs($(val10[1])-$(val62[3]))<10^(-$val14)) and (abs($(val10[2])-$(val60[3]))<10^(-3)))
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=\(f($(val10[1]))=$(val10[2])\)
+
+!ifval ((abs($(val10[3])-$(val61[3]))<10^(-$val14)) and (abs($(val10[4])-$(val59[3]))<10^(-3))) or ((abs($(val10[3])-$(val62[3]))<10^(-$val14)) and (abs($(val10[4])-$(val60[3]))<10^(-3)))
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=\(f($(val10[3]))=$(val10[4])\)
+
+!ifval ((abs($(val11[1])-$(val61[4]))<10^(-$val14)) and (abs($(val11[2])-$(val59[4]))<10^(-3))) or ((abs($(val11[1])-$(val62[4]))<10^(-$val14)) and (abs($(val11[2])-$(val60[4]))<10^(-3)))
+ condtest7=1
+!else
+ condtest7=0
+!endif
+condname7=\(f($(val11[1]))=$(val11[2])\)
+
+!ifval ((abs($(val11[3])-$(val61[4]))<10^(-$val14)) and (abs($(val11[4])-$(val59[4]))<10^(-3))) or ((abs($(val11[3])-$(val62[4]))<10^(-$val14)) and (abs($(val11[4])-$(val60[4]))<10^(-3)))
+ condtest8=1
+!else
+ condtest8=0
+!endif
+condname8=\(f($(val11[3]))=$(val11[4])\)
+
+!exit
+
+:stat
+vsavelist=1,6,8,9,10,11,12,13,14,15,17,18,32,35,36,37,39,41,43,45,47,49,59,60,61,62,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86
+embedcnt=10

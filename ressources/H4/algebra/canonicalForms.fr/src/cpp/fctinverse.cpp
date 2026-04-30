@@ -1,0 +1,109 @@
+target=fctinverse fctinverse2
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+#if defined TARGET_fctinverse
+\integer{a=randitem(-1,1)*random(1..4)}
+\integer{b=random(-12..12)}
+\integer{c=1}
+#endif
+\integer{d=randitem(-1,1)*random(1..12)}
+#if defined TARGET_fctinverse2
+\integer{a=randitem(-1,1)*random(1..6)}
+\integer{b=random(-12..12)}
+\integer{c=randitem(-1,1)*random(1..4)}
+
+\integer{p1=maxima(gcd(\a,\b);)}
+\integer{p2=maxima(gcd(\c,\d);)}
+\integer{p=maxima(gcd(\p1,\p2);)}
+\if{\p!=1}{
+  \integer{a=\a/\p}
+  \integer{b=\b/\p}
+  \integer{c=\c/\p}
+  \integer{d=\d/\p}
+}
+#endif
+\function{u=simplify(\a*x+\b)}
+\function{v=simplify(\c*x+\d)}
+\text{u=wims(replace internal * by in \u)}
+\text{v=wims(replace internal * by in \v)}
+
+\text{f=\frac{\u}{\v}}
+\rational{vi=-\d/\c}
+\rational{rep2=\b-(\a*\d)/\c}
+\rational{rep3=\a/\c}
+\function{e=simplify(a+ \d*b)}
+\text{e=wims(replace internal * by in \e)}
+#if defined TARGET_fctinverse2
+\function{g=simplify(\c*b)}
+\text{g=wims(replace internal * by in \g)}
+#endif
+\steps{reply1
+reply2,reply3}
+<div style="background:#F6E497;padding:2;">
+\statement{
+Soit \(f\) la fonction définie par \( f(x) = \f\).
+<!--- Première étape -->
+\if{\step==1}{
+  <h2 class="small">Question 1.</h2>
+  Quel est l'ensemble de définition de \(f\) ?
+  <div class="wimscenter">\( D_{f} = \RR \setminus \{\alpha\} \)
+  avec <label for="reply1">\(\,\alpha\) =</label> \embed{reply1,8}.</div>
+  }
+<!--- Deuxième étape-->
+\if{\step==2}{
+  <h2 class="small">Analyse de la question 1.</h2>
+  \if{\reply1=\vi}{
+    <p class="oef_indgood">Votre réponse est juste:}
+    {<p><span class="oef_indbad">Votre réponse est erronée.</span>
+    \(f(x)\) n'est pas défini lorsque \(\v = 0\), donc}
+    \(D_{f} = \RR \setminus \{\vi\}\).
+    </p>
+  <h2 class="small">Question 2.</h2>
+  On peut écrire \(f\) sous forme canonique, comme suit :
+  <div class="wims_question">Pour tout réel \(x \neq \vi\),
+  \(f(x) = \frac{a}{\v} + b\)
+  avec <label for="reply2">\(a\) =</label> \embed{reply2,8}
+  et <label for="reply3">\(b\) =</label> \embed{reply3,8}.
+  </div>
+  }
+}
+\answer{Valeur interdite}{\vi}{type=rational}{option=nonstop}
+\answer{Coefficient \(a\)}{\rep2}{type=rational}{option=nonstop}
+\answer{Coefficient \(b\)}{\rep3}{type=rational}{option=nonstop}
+!!<div style="background:#A2B5BF;padding:2;">
+\hint{
+  Réduire au même dénominateur l'expression \(\frac{a}{\v} + b \).
+  On <i>identifie</i> le numérateur du quotient obtenu avec celui de \(f(x)\).
+  C'est-à-dire, on choisit \(a\) et \(b\) pour que les deux
+  numérateurs respectifs de \(\frac{a}{\v} + b\) et de \(\f\)
+  soient identiques.
+#if defined TARGET_fctinverse2
+  Attention les solutions peuvent être rationnelles...
+#endif
+</div>}
+\feedback{reply2!=\rep2 or reply3!=\rep3}{
+  <h2 class="small">Solution.</h2>
+#if defined TARGET_fctinverse
+  <div class="wimscenter">
+  \(\frac{a}{\v} + b = \frac{a + b(\v)}{\v} = \frac{ b x + \e}{\v} \).
+#endif
+#if defined TARGET_fctinverse2
+  Pour tout réel \(x\) différent de \(\vi\) :
+  <div class="wimscenter">
+  \(\frac{a}{\v} + b = \frac{a + b(\v)}{\v} = \frac{ \g x + \e}{\v} \)
+#endif
+  </div>
+#if defined TARGET_fctinverse
+  On identifie avec le numérateur de \(f(x)\) : \(b x + \e = \a x + \b\)
+  (pour tout réel \(x\) différent de \(\vi\)).
+  Il suffit de choisir : \( b = \a\) et \(\e = \b\).
+#endif
+#if defined TARGET_fctinverse2
+  On identifie avec le numérateur de \(f(x)\) : \( \g x + \e = \a x + \b\).
+  Il suffit de choisir : \( \g = \a\) et \(\e = \b\).
+#endif
+  <p>
+  On obtient \(b = \rep3\) et \( a = \rep2\).
+  </p>
+}

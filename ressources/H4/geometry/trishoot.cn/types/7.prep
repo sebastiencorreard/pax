@@ -1,0 +1,76 @@
+# given triangle, find incenter
+
+shift=!random 0,2*pi
+x1=$[cos($shift)+1]
+y1=$[sin($shift)+1]
+a=!random 0.2*pi,2*pi/3
+x2=$[cos($shift+$a)+1]
+y2=$[sin($shift+$a)+1]
+a=!random 2*$a,2*pi-$a
+x3=$[cos($shift+$a)+1]
+y3=$[sin($shift+$a)+1]
+
+a1=$[$y2-$y3]
+b1=$[$x3-$x2]
+c1=$[($x3)*($y2)-($x2)*($y3)]
+r1=$[sqrt(($a1)^2+($b1)^2)]
+a2=$[$y3-$y1]
+b2=$[$x1-$x3]
+c2=$[($x1)*($y3)-($x3)*($y1)]
+r2=$[sqrt(($a2)^2+($b2)^2)]
+a3=$[$y1-$y2]
+b3=$[$x2-$x1]
+c3=$[($x2)*($y1)-($x1)*($y2)]
+r3=$[sqrt(($a3)^2+($b3)^2)]
+A1=$[$r2*($a1)-$r1*($a2)]
+B1=$[$r2*($b1)-$r1*($b2)]
+C1=$[$r2*($c1)-$r1*($c2)]
+A2=$[$r3*($a1)-$r1*($a3)]
+B2=$[$r3*($b1)-$r1*($b3)]
+C2=$[$r3*($c1)-$r1*($c3)]
+det=$[($A1)*($B2)-($A2)*($B1)]
+x4=$[(($C1)*($B2)-($C2)*($B1))/($det)]
+y4=$[(($A1)*($C2)-($A2)*($C1))/($det)]
+
+c=$[-($b1)*$x4+($a1)*$y4]
+det=$[($a1)^2+($b1)^2]
+x11=$[(($a1)*($c1)-($b1)*($c))/($det)]
+y11=$[(($a1)*($c)+($b1)*($c1))/($det)]
+c=$[-($b2)*$x4+($a2)*$y4]
+det=$[($a2)^2+($b2)^2]
+x12=$[(($a2)*($c2)-($b2)*($c))/($det)]
+y12=$[(($a2)*($c)+($b2)*($c2))/($det)]
+c=$[-($b3)*$x4+($a3)*$y4]
+det=$[($a3)^2+($b3)^2]
+x13=$[(($a3)*($c3)-($b3)*($c))/($det)]
+y13=$[(($a3)*($c)+($b3)*($c3))/($det)]
+
+xmin=$[min($x1,min($x2,$x3))]
+xmax=$[max($x1,max($x2,$x3))]
+ymin=$[min($y1,min($y2,$y3))]
+ymax=$[max($y1,max($y2,$y3))]
+xrange=$[$xmax-$xmin]
+yrange=$[$ymax-$ymin]
+xfill=0
+yfill=0
+!if $xrange<$yrange
+ xmax=$[$xmin+$yrange]
+ xfill=$[($yrange-$xrange)/$yrange]
+ xrange=$yrange
+!endif
+!if $yrange<$xrange
+ ymax=$[$ymin+$xrange]
+ yfill=$[($xrange-$yrange)/$xrange]
+ yrange=$xrange
+!endif
+
+range1=$[$size/30]
+range2=!random $size/10,$size/4
+heart=$[$size-$range2]
+borderx1=!random $range1,$range2-$range1+$heart*$xfill
+bordery1=!random $range1-$heart*$yymin,$range2-$range1+$heart*$yfill
+borderx2=$[$range2-$borderx1]
+bordery2=$[$range2-$bordery1]
+
+click=!randint 1,3
+

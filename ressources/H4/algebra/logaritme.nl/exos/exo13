@@ -1,0 +1,144 @@
+checkfile=$checkdir/number.proc
+arglist=x
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+questiontype=0
+embed=1
+cols=15
+rows=1
+image=0
+helptext=<img src=\'$module_dir/gifs/exo13.jpg\' alt=\'noalt\' />
+ss=!record 16 of lang/remarks.$taal
+#@ Gegeven zijn de twee f uncties <em>f</em> en <em>g</em><br />Los de vergelijking <span size=+1>f(<em>x</em>) = g(<em>x</em>)</span> op. 
+in1=\input{10}{0}{background-color:lightblue;color:red;font-size:1.2em;text-align:center}{x = ?}{0}
+inputs=-1
+!if $lang=fr or $taal=fr or $myvar1=1
+ g=!randitem 2,10
+ !if $g=2
+  LOG=\log_{$g}
+ !else
+  LOG = \log
+ !endif
+!else
+ g=!randitem 2,3,4,5,6,7,8,9
+ LOG=^{$g}\log
+!endif
+!if $R=1 
+    a=!randitem 3,4,5,6,7,8
+    b=!randitem 1,2,3
+    c=!randint 4,20
+    d=!randitem 1,2,3
+    ff=$LOG \left( $a x  - $b \right)
+    fff=log[$g]($a*x - $b)
+    !if $d=1
+	gg=$LOG \left( $c - x \right) 
+	ggg=log[$g]($c -x )
+    !else
+	gg=$LOG \left( $c - $d x \right)
+	ggg=log[$g]($c - $d*x )
+    !endif
+    # ax-b=c-dx
+    # (a-(-d))x=c-(-b)
+    # x=(c-(-b)/(a-(-d))
+    applettext=!nospace $fff = $ggg ->
+    tot=!exec pari A=($c-(-$b))/($a-(-$d))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} f(x)=g(x) \\ $ff = $gg \\ $a x -$b = $c - $d x \\ $[$a+$d] x = $c + $b \\ x = $tex \end{array} \right.
+    formula$n= \left\{ \begin{array}{lll} f\left( x \right) & = & $ff  \\ \\  g\left( x \right)& = & $gg  \\ f(x) & =  & g(x)\end{array} \right. \rightarrow  $in1	
+    F=log10($a*x - $b)/(log10($g))
+    G=log10($c - $d*x)/(log10($g))
+    !if $teaching=1
+	plot=1
+	draw=0
+	image_settings$n=size 0.5,0.5 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	image$n=[-10:$[ ceil($c/$d)+5] ] $F notitle , $G  notitle
+	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	!insplot $(image$n)
+	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    a=!randitem 1,2,3,4,5
+    b=!randint 4,20
+    !if $a=1
+        ff=1+$LOG \left( x \right)
+	fff=1+log[$g](x)
+    !else
+        ff=1+$LOG \left( $a x \right)
+	fff=1+log[$g]($a*x)
+    !endif
+    gg=$LOG \left( $b - x \right)
+    ggg=log[$g]($b - x)
+    applettext=!nospace $fff = $ggg -> 
+    tot=!exec pari A=($b)/(1+($a)*($g))\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array} {l} f(x)=g(x) \\ $ff = $gg \\ $LOG \left($g \right)+$LOG \left($a x \right)=$LOG \left( $b - x \right) \\ $LOG \left($g \cdot $a x \right)=$LOG \left( $b - x \right) \\ $[$g*$a]x = $b - x \\ $[$a*$g+1] x=$b \\ x= $tex \end{array}
+    formula$n= \left\{ \begin{array}{ccc} f\left( x \right) & = & $ff  \\ \\  g\left( x \right) & = & $gg \\ f(x) & = & g(x)  \end{array}\right. \rightarrow  $in1
+	
+    F=1+log10($a*x)/(log10($g))
+    G=log10($b - x)/(log10($g))
+    !if $teaching=1
+	plot=1
+	draw=0
+	image_settings$n=size 0.5,0.5 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	image$n=[-10:$[$b+5] ] $F notitle , $G  notitle
+	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	!insplot $(image$n)
+	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    g=!randitem 2,3,4,5,6,7,8,9
+    a=!randitem 1,2,3,4,5
+    b=!randitem 1,20
+    ff=$LOG \left( x \right) + $a
+    fff=log[$g](x) + $a
+    gg=$LOG \left( $b - x \right)
+    ggg=log[$g]($b - x)
+    applettext=!nospace $fff = $ggg ->
+    tot=!exec pari A=$b/(1+$g^$a)\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array} {l} f(x)=g(x) \\ $ff = $gg \\ $LOG \left(x \right)+$LOG \left($g^{$a} \right)=$LOG \left( $b - x \right) \\ $LOG \left(x \cdot $g^{$a}  \right)=$LOG \left( $b - x \right) \\ $LOG \left($[$g^$a] x \right)=$LOG \left( $b - x \right) \\ $[$g^$a]x = $b - x \\ $[$g^$a+1] x=$b \\ x= $tex \end{array} \right.
+    formula$n= \left\{ \begin{array}{ccc} f\left( x \right) & = & $ff  \\ \\  g\left( x \right) & = & $gg  \\ \\ f(x) & = & g(x) \end{array}\right. \rightarrow  $in1
+	
+    F=$a + log10(x)/(log10($g))
+    G=log10($b -x)/(log10($g))
+
+    !if $teaching=1
+	plot=1
+	draw=0
+	image_settings$n=size 0.5,0.5 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	image$n=[-10:$[$b+5] ] $F notitle , $G  notitle
+	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+	!insplot $(image$n)
+	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+
+ !exit
+!endif
+

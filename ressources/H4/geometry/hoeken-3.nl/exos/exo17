@@ -1,0 +1,73 @@
+#17 snijpunt met de assen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=0
+inputs=1.1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+make_tr=1
+R=1
+total_exos=1
+checkfile=$checkdir/coord.proc
+!if $R=1
+ a=!randint 1,15
+ pm=!randitem -1,1
+ a=$[$a*$pm]
+ b=!randint 1,15
+ c=!randint 1,15
+ mp=!randitem -1,1
+ c=$[$c*$mp]
+ d=!randint 1,15
+
+ lijn_ml=!mathmlmath \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $a - $b \cdot t \\ $c + $d \cdot t \end{pmatrix}
+ ss=Gegeven is de lijn <em>l</em>: $lijn_ml
+
+ keuze=!randint 0,1
+ sometext=!record 40 of lang/remarks.$taal
+ #@Snijpunt met de x-as :, Snijpunt met de y-as : ,De coordinaten zijn :
+ !if $keuze=0
+  ss1=!record 41 of lang/remarks.$taal
+  #@Bereken de co&ouml;rdinaten van het snijpunt met de <em>x</em>-as
+
+  tot=!exec pari A=($a)+($b)*($c)/($d)\
+  printtex(A)\
+  printtex(-1*($c)/($d))
+
+  ans=!line 1 of $tot
+  tex_ans=!line 2 of $tot
+  t_tex=!line 3 of $tot
+
+  answer$n=$ans,0
+  C=!rawmath $[-1*$c]
+
+
+  texanswer$n= \left[ \begin{array}{l} \textrm{$(sometext[1])} y = 0 \longrightarrow $c + $d \cdot t = 0 \rightarrow t = $t_tex \\ x = $a - $b \cdot $t_tex = $tex_ans \\ \textrm{$(sometext[3])} \left( $tex_ans : 0 \right) \end{array} \right.
+
+ !else
+  ss1=!record 42 of lang/remarks.$taal
+  #@Bereken de co&ouml;rdinaten van het snijpunt met de <em>y</em>-as
+  tot=!exec pari A=($c)+($a)*($d)/($b)\
+  printtex(A)\
+  printtex($a/$b)
+
+  ans=!line 1 of $tot
+  tex_ans=!line 2 of $tot
+  t_tex=!line 3 of $tot
+
+  answer$n=0,$ans
+  texanswer$n= \left[ \begin{array}{l}  \textrm{$(sometext[2]) } x = 0 \longrightarrow $a - $b \cdot t = 0 \rightarrow t = $t_tex \\ y = $c + $d \cdot $t_tex = $tex_ans \\ \textrm{$(sometext[3])} \left( 0 : $tex_ans \right) \end{array} \right.
+ !endif
+
+ description=(x : y)
+
+!endif
+question$n=$ss<br />$ss1
+
+!exit

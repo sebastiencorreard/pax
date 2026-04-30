@@ -1,0 +1,79 @@
+checkfile=$checkdir/number.proc
+arglist=x
+# answer must be 'x=123'
+image=0
+math=0
+mathview=2
+questiontype=0
+embed=1
+cols=20
+rows=2
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+ss=!record 60 of lang/remarks.$taal
+#@ Los op:<br><small><em>bereken dus de waarden van x</em><br>noteer bij meerdere oplossingen iets als:<br><em>x</em>=1 en <em>x</em>=2/3 of zo...<br>en bij breuken graag het antwoord vereenvoudigen.</small>
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+    a=!randitem 2,3,4,5,6
+    b=!randitem 2,3,4,5
+    m=!randitem 2,3,4
+    d=$[$m*$b]
+    c=!randint 1,20
+    pm=!randitem +,-
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    formula$n= $b \cdot $a^{(x $pm $c)}=$d
+    applettext=!nospace $b * $a^(x $pm $c) = $d ->
+    t=$[1000*log($m)/log($a) $mp $c]
+    !if . isin $t
+	x1=log($m)/log($a) $mp $c
+	X1=\frac{\ln ( $m ) }{\ln ( $a ) } $mp $c
+    !else
+	x1=$[log($m)/log($a) $mp $c]
+	X1=$x1
+    !endif
+    answer$n=$x1
+    texanswer$n= x = $X1
+ !exit
+!endif 
+
+!if $R>1
+    a=!randitem 2,3,4,5,6
+    d=!randitem 2,3,4,5
+    m=!randitem 2,3,4
+    b=$[$m*$d]
+    c=!randint 1,20
+    pm=!randitem +,-
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    formula$n= $b \cdot $a^{(x $pm $c)}=$d
+    applettext=!nospace $b * $a^(x $pm $c) = $d ->
+    t=$[1000*log($m)/log($a) $mp $c]
+    !if . isin $t
+	x1=(-1*log($m))/log($a) $mp $c
+	X1=\frac{- \ln ( $m ) }{\ln ( $a ) } $mp $c
+    !else
+	x1=$[-1*log($m)/log($a) $mp $c]
+	X1=$x1
+    !endif
+    answer$n=$x1
+    texanswer$n= x = $X1
+ !exit
+!endif
+

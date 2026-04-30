@@ -1,0 +1,91 @@
+# no need for translation
+!set n=$counter
+mathview=0
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+arglist=$empty
+varlist=$empty
+extext=!record 97 of lang/remarks.$taal
+#!record 7 of lang/remarks.$taal
+#@ Somrij van een Meetkundige Reeks
+questiontype=0
+image=0
+math=0
+var2=$empty                
+var1=S
+a=!randint 1,20
+r=!randitem 2,3,4,5,6,7,8,9,10
+text=!record 99 of lang/remarks.$taal
+sometext=!record 100 of lang/remarks.$taal
+exotext=<br>$extext<br><a onmouseover="return escape('$sometext')">$text</a>
+helptext=<a onmouseover="return escape('$sometext')">$text</a>
+!if $R=1
+    options=!randitem 3,4,5,6,7,8
+    checkfile=exos/checkfile1.proc
+    ss=!record 42 of lang/remarks.$taal
+    question$n=$ss
+    #@ Geef de eerste $options termen van de Somrij van de onderstaande Meetkundig reeks.\
+    #@ <p align="center">U<sub>n</sub>=$a*$r<sup>n-1</sup></p>    
+    
+    tot=0
+    sub1=$empty
+    !for p=1 to $options
+    t=$[$p-1]
+	U=$[$a*$r^($p-1)]
+	tot=$[$U + $tot]
+	var2=!append item $t to $var2
+	answer$n=!append item $tot to $(answer$n)
+	sub1=!append line $U + to $sub1
+    !next p 
+    sub1=!char 1 to -2 of $sub1
+    texanswer$n=!texmath $sub1 = $tot
+ !exit
+!endif
+
+!if $R=2
+    options=!randitem 3,4,5,6,7,8
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    ss=!record 43 of lang/remarks.$taal
+    #@ Gegeven is de Rangnummer formule van een Meetkundige rij\
+    #@ <p align="center">U<sub>n</sub>=$a*$r<sup>n-1</sup></p>\
+    #@ Bereken de Som van de eerste $options termen.
+    
+    question$n=$ss
+    answer$n=$[($a*(1-$r^$options))/(1-$r)]
+    texanswer$n=$a \cdot \frac{1-$r^{$options}}{1-$r}=$(answer$n)
+ !exit
+!endif
+
+!if $R=3
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    options=!randint 15,50
+    ss=!record 44 of lang/remarks.$taal
+    #@ Gegeven is de Rangnummer formule van een Meetkundige rij\
+    #@ <p align="center">U<sub>n</sub>=$a*$r<sup>n-1</sup></p>\
+    #@ Bereken de Som van de eerste $options termen.
+    
+    question$n=$ss
+    answer$n=$[($a*(1-$r^$options))/(1-$r)]
+    texanswer$n=$a \cdot \frac{1-$r^{$options}}{1-$r}=$(answer$n)
+ !exit
+!endif
+
+!if $R>3
+    checkfile=$checkdir/number.proc
+    # checkfile=exos/checkfile5.proc
+    options=!randint 15,50
+    ss=!record 45 of lang/remarks.$taal
+    #@ Gegeven is de Recursie formule van een Meetkundige rij\
+    #@ c<p align="center">U<sub>n</sub>=$r*U<sub>n-1</sub> met U<sub>1</sub>=$a</p>\
+    #@ Bereken de som van de eerste $options termen.
+    
+    question$n=$ss
+    answer$n=$[($a*(1-$r^$options))/(1-$r)]     
+    texanswer$n=U_{n} = $a \cdot $r ^{n} \rightarrow $a \cdot \frac{1-$r^{$options}}{1-$r} = $(answer$n)
+ !exit
+!endif

@@ -1,0 +1,130 @@
+checkfile=exos/checkfile8.proc
+image=0
+cols=20
+rows=1
+questiontype=0
+embed=1
+mathview=2
+rounding=0
+!readproc $remarkdir/rounding.$taal
+math=0
+!set n=$counter
+
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $variabelen=1
+    letters=a,b,c,d,f,x,y,z,p,g,k,t,r,n,m
+    letters=!shuffle $letters 
+    var1=!item 1 of $letters
+    var2=!item 2 of $letters
+    var3=!item 3 of $letters
+!else
+    var1=x
+    var2=y
+    var3=u
+!endif
+var4=#
+## trick to use 1 checkfile 
+getallen=!shuffle 2,3,4,5,6,7,8,9,10
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+c=!item 3 of $getallen
+d=!item 4 of $getallen
+e=!item 5 of $getallen
+f=!item 6 of $getallen
+g=!item 7 of $getallen
+h=!item 8 of $getallen
+
+pm=!randitem +,-
+mp=!randitem +,-
+
+mathviewpanel=$module_title:$var1=:$var2=:$var3=
+stext=<textarea cols=\'20\' rows=\'1\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' >$var2 = 4*$var1 - 23</textarea>
+ss=!record 66 of lang/remarks.$taal
+#@ Schrijf de drie vergelijkingen als &eacute;&eacute;n formule <br /><em>Dus geef <kbd>$var2</kbd> als functie van <kbd>$var1</kbd></em> 
+question$n=<a onmouseover="return escape('$stext')">$ss</a>
+!if $R=1
+    # x=z pm b => z=(x - (pm b))
+    # y=z mp  c
+    # texanswer$n= y=(x - (pm b)) pm c
+    fun=!rawmath ($var1 - ($pm $b)) $mp $c
+    g=!exec pari A=$fun\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var1 = $var3 $pm $b  \\ \\ $var2 = $var3 $mp $c \end{array}\right.
+    applettext=!nospace {vlist( $var1 = $var3 $pm $b  ,.,. $var2 = $var3 $mp $c )}->
+ !exit
+!endif
+
+!if $R=2
+    # x=az => z=x/a
+    # y=dz mp  c
+    # texanswer$n= y=dx/a mp c 
+    g=!exec pari A=$d*$var1/$a $mp $c\
+    printtex(A)
+    g1=!line 1 of $g
+    g2=!line 2 of $g    
+    texanswer$n=$var2 = $g2
+    answer$n=$g1
+    formula$n=\left\{ \begin{array}{l} $var1 = $a \cdot $var3 \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    applettext=!nospace { vlist( $var1 = $a * $var3 ,., $var2 = $d * $var3 $mp $c )}->
+ !exit
+!endif
+
+!if $R>2
+#    kans=!randint 0,2
+    !if $kans=1
+	# x=az pm b => z= (x - (pm b))/a
+        # y=dz mp  c
+        # texanswer$n= y=d((x - (pm b))/a ) mp c 
+        fun=!rawmath $d*(($var1- ($pm $b) )/$a ) $mp $c
+        g=!exec pari A=$fun\
+        printtex(A)
+        g1=!line 1 of $g
+        g2=!line 2 of $g
+        texanswer$n=$var2 = $g2
+        answer$n=$g1
+        formula$n=\left\{ \begin{array}{l} $var1 = $a \cdot $var3 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+        applettext=!nospace { vlist( $var1 = $a * $var3 $pm $b ,., $var2 = $d * $var3 $mp $c )}->
+	!exit
+    !else
+	!if $kans=2
+	    # x=z/a pm b => z/a = x-(pm b) => z=a*(x-(pm b))
+	    # y=dz mp  c
+	    # texanswer$n= y=d*(a*(x-(pm b))) mp c
+            fun=!rawmath $d*($a*($var1-($pm $b))) $mp $c
+            g=!exec pari A=$fun\
+            printtex(A)
+    	    g1=!line 1 of $g
+    	    g2=!line 2 of $g
+    	    texanswer$n=$var2 = $g2
+    	    answer$n=$g1
+    	    formula$n=\left\{ \begin{array}{l} $var1 = \frac{1}{$a} \cdot $var3 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+    	    applettext=!nospace { vlist( $var1 = 1/($a) * $var3 $pm $b ,., $var2 = $d * $var3 $mp $c )}->
+    	    !exit
+	!else
+	    e=!randitem 2,3,4,5,6,7,8
+	    a=$[$a+$e]
+	    # x=e*z/a pm b => ex/a=x- (pm b) => ex=a(x- (pm b)) => x=a(x- (pm b))/e
+	    # y=dz mp  c
+	    # texanswer$n= y=d*(a(x- (pm b))/e ) mp c 
+	    fun=!rawmath $d*($a*($var1-($pm $b))/$e ) $mp $c	    
+	    g=!exec pari A=$fun\
+	    printtex(A)
+	    g1=!line 1 of $g
+	    g2=!line 2 of $g
+	    texanswer$n=$var2 = $g2
+	    answer$n=$g1
+	    formula$n=\left\{ \begin{array}{l} $var1 = \frac{$e}{$a} \cdot $var3 $pm $b \\ \\ $var2 = $d \cdot $var3 $mp $c \end{array}\right.
+	    applettext=!nospace ( vlist( $var1 = $e/($a) * $var3 $pm $b ,., $var2 = $d * $var3 $mp $c )} ->
+	    !exit
+	!endif
+    !endif
+!endif

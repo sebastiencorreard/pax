@@ -1,0 +1,157 @@
+!set title=Equation cartésienne et parallèles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=line_equation
+language=fr
+title_it=Equazioni cartesiane e parallelismo
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=\mathcal{d}
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 20
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 20
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 20
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val12=$[rint($(tmp0)*$(tmp1))]
+val13=$[rint($val12*$val8)]
+val14=$[rint($val12*$val9)]
+tmp0=!randint -20, 20
+
+val15=$[rint($val12*$val10+$(tmp0))]
+t_=!replace internal \( by ( in expand($val11*($val8*x+$val9*y+$val10))
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+!if $val17=1 
+t_=!replace internal \( by ( in expand($val12*$val8*x+k*y+$val15)
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+val19=$[rint($val14)]
+!endif
+!if $val17=2 
+t_=!replace internal \( by ( in $val12*$val9*y+k*x+$val15
+tmp0=!exec maxima $t_
+
+val18=!rawmath $(tmp0)
+val19=$[rint($val13)]
+!endif
+val20=et
+val21=Déterminer,pour que les droites,d'équations respectives,soient parallèles,Une valeur de
+!if $val6=it 
+val20=e
+val21=Determinare,in modo che le rette,di equazioni rispettivamente,siano parallele,Un possibile valore di 
+!endif
+replytype1=default
+replyname1=\(k\)
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val21[1]) 
+!insmath k
+$() $(val21[2]) 
+!insmath $val7
+$() $val20	
+!insmath $val7'
+$() $(val21[3]):	<div class="wimscenter">
+!insmath $val16=0
+$()</div>	$val20	<div class="wimscenter">
+!insmath $val18=0
+$()</div>	 $(val21[4]).	 <div class="spacer">	$(val21[5]) 
+!insmath k
+$() $m_name_is  
+!read oef/embed.phtml reply 1 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,16,18,20,21
+embedcnt=1

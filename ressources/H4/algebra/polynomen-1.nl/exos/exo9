@@ -1,0 +1,144 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=5
+mathviewpanel=$module_title:x=:sqrt():\u2227:^:+:-:/
+embed=1
+math=0
+cols=20
+rows=3
+arglist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $R=1
+    a=!randint 2,9
+    c=!randint 2,9
+    b=!randint 1,19
+    d=!randint 1,19
+    formula$n=f(x)=\left($a x + $b \right)\left($c x - $d \right)
+    tot=!exec pari A=-1*$b/$a\
+    printtex(A)\
+    B=$d/$c\
+    printtex(B)
+    
+    x1=!line 1 of $tot
+    x1_tex=!line 2 of $tot
+    x2=!line 3 of $tot
+    x2_tex=!line 4 of $tot
+    answer$n=$x1,$x2
+    !if $rounding>0
+	rndx1=$[(round($rounding*$x1))/$rounding]
+	rndx2=$[(round($rounding*$x2))/$rounding]
+	rnd_tex= \\  x1 \approx $rndx1 \wedge x2 \approx $rndx2
+    !else
+	rnd_tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $a x + $b = 0 \wedge $c x - $d = 0 \rightarrow \\  x1=$x1_tex \wedge x2=$x2_tex $rnd_tex \end{array} \right.
+
+!else
+    !if $R=2
+        a=!randint 2,9
+        c=!randint 2,9
+        b=!randint 1,19
+        d=!randint 1,19
+        formula$n=f(x)=\left($a x - $b \right)\left($c x^{2} - $d \right)
+        tot=!exec pari A=$b/$a \
+        printtex(A)\
+        B=$d/$c\
+        printtex(B)
+    
+        x1=!line 1 of $tot
+        x1_tex=!line 2 of $tot
+        k=!line 3 of $tot
+        k_tex=!line 4 of $tot
+        x2=sqrt($k)
+        x3=-1*sqrt($k)
+        x2_tex=\sqrt{\left($k_tex\right)}
+        x3_tex=-\sqrt{\left($k_tex\right)}
+        answer$n=$x1,$x2,$x3
+        !if $rounding>0
+            rndx1=$[(round($rounding*$x1))/$rounding]
+            rndx2=$[(round($rounding*$x2))/$rounding]
+            rndx3=$[(round($rounding*$x3))/$rounding]
+            rnd_tex=$ \\  x1 \approx $rndx1 \wedge x2 \approx $rndx2 \wedge x3 \approx $rndx3 $
+        !else
+            rnd_tex=$empty
+        !endif
+        texanswer$n=\left[ \begin{array}{l} $a x - $b = 0 \wedge $c x^{2} - $d = 0 \rightarrow  \\ $a x - $b = 0 \wedge $c x^{2} = $d \rightarrow \\  x1=$x1_tex \wedge x2=$x2_tex \wedge x3=$x3_tex $rnd_tex  \end{array} \right.
+
+    !else
+	!if $R=3
+	    a=!randint 2,9
+	    b=!randint 1,19
+	    c=!randitem 3,5,7,9
+	    d=!randint 1,19
+	    formula$n=f(x)=\left($a x - $b \right)\left(x^{$c} - $d \right)
+	    tot=!exec pari A=$b/$a \
+	    printtex(A)
+	    x1=!line 1 of $tot
+	    x1_tex=!line 2 of $tot
+	    x2=$d^(1/$c)
+	    !if . isin $[$x2]
+		x2_tex=\root{$c} \of{$d} = $d^{\frac{1}{$c}}
+	    !else
+		x2_tex=\root{$c} \of{$d}=$[$x2]
+	    !endif
+	    answer$n=$x1,$x2
+	    !if $rounding>0
+		rndx1=$[(round($rounding*$x1))/$rounding]
+		rndx2=$[(round($rounding*$x2))/$rounding]
+		rnd_tex= \\  x1 \approx $rndx1 \wedge x2 \approx $rndx2
+	    !else
+		rnd_tex=$empty
+	    !endif
+	    texanswer$n=\left[ \begin{array}{l} $a x - $b = 0 \wedge x^{$c} - $d = 0 \rightarrow \\  x1=$x1_tex \wedge x2=$x2_tex  $rnd_tex \end{array} \right.
+	!else
+	    a=!randint 1,12
+	    t=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12
+	    c=!item 1 of $t
+	    b=!item 2 of $t
+	    d=!item 3 of $t
+	    tot=!exec pari A=(x+$a)*(x-$b)\
+	    printtex(A)\
+	    B=(x-$c)*(x-$d)\
+	    printtex(B)
+	    f=!line 1 of $tot
+	    f_tex=!line 2 of $tot
+	    g=!line 3 of $tot
+	    g_tex=!line 4 of $tot
+	    formula$n=f(x)=\left($f_tex \right)\left($g_tex \right)
+	    x1=$[-1*$a]
+	    x2=$b
+	    x3=$c
+	    x4=$d
+	    answer$n=$x1,$x2,$x3,$x4
+	    texanswer$n=\left[ \begin{array}{l} $f_tex=0 \wedge $g_tex=0 \rightarrow \\ (x+$a)(x-$b)=0 \wedge (x-$c)(x-$d)=0 \rightarrow \\  x1=$x1 \wedge x2=$x2 \wedge x3=$x3 \wedge x4=$x4 \end{array} \right.
+	!endif
+    !endif
+!endif
+ 
+sometxt=!record 1 of lang/remarks.$taal
+#@Bereken alle <b>nulpunten</b> van de onderstaande functie.,Bereken alle <b>snijpunten</b> van de onderstaande functie met de x-as.,<span style="color:blue">Hier</span> staat een klein plaatje,Snijden met de x-as,x-as,y-as
+ss=!item 1 of $sometxt
+#Bereken de nulpunten van de onderstaande functie.
+checkfile=$checkdir/number.proc
+helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\'readonly=\'readonly\'> x1=11 \n x2=22 \n x3=33</textarea>
+
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+!exit
+
+

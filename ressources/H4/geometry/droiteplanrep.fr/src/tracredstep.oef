@@ -1,0 +1,101 @@
+\title{Tracé d'une droite par étapes}
+\language{fr}
+\range{-5..5}
+\author{Cyrille Douriez;Bruno,Mifsud}
+\email{cyrille.douriez@ac-amiens.fr;communaute.mutuwims@laposte.net}
+\keywords{line,equations}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{type=randint(1,2)}
+\integer{a=randint(1..5)*randint(-1,1)}
+\integer{aden=randint(3,5,7)}
+\integer{anum=randint(1..(\aden-1))*randint(-1,1)}
+
+\integer{b=(\a<0 or \anum<0)? randint(-4..9):randint(-9..4)}
+\if{\b=0}{\function{f=(\type=1)? maxima(\a*x):(\anum/\aden)*x}}
+{\function{f=(\type=1)? maxima(\a*x+\b):(\anum/\aden)*x+\b}}
+\rational{m=(\type=1)? \a:\anum/\aden}
+\integer{x2=(\type=1)? 1:\aden}
+\integer{y2=(\type=1)? \a+\b:\anum+\b}
+\integer{x1=0}
+\integer{y1=\b}
+\real{xrect1d=200+20*(\x1+0.1)}##pour pas cliquer sur le premier point##
+\real{yrect11d=(\m=0)? 200-20*(\m*0.1+\y1)-4: 200-20*(\m*0.1+\y1)-10}##Sommets du polygone reponse droite en pixels##
+\real{yrect12d=(\m=0)? 200-20*(\m*0.1+\y1)+4: 200-20*(\m*0.1+\y1)+10}
+\real{yrect21d=(\m=0)? 200-20*(\m*(10-\x1)+\y1)-4: 200-20*(\m*(10-\x1)+\y1)-10}
+\real{yrect22d=(\m=0)? 200-20*(\m*(10-\x1)+\y1)+4: 200-20*(\m*(10-\x1)+\y1)+10}
+\real{xrect1g=200+20*(\x1-0.1)}##pour pas cliquer sur le premier point##
+\real{yrect11g=(\m=0)? 200-20*(-\m*0.1+\y1)-4: 200-20*(-\m*0.1+\y1)-10}##Sommets du polygone reponse gauche en pixels##
+\real{yrect12g=(\m=0)? 200-20*(-\m*0.1+\y1)+4: 200-20*(-\m*0.1+\y1)+10}
+\real{yrect21g=(\m=0)? 200-20*(\m*(-10-\x1)+\y1)-4: 200-20*(\m*(-10-\x1)+\y1)-10}
+\real{yrect22g=(\m=0)? 200-20*(\m*(-10-\x1)+\y1)+4: 200-20*(\m*(-10-\x1)+\y1)+10}
+\real{yrect22g=(\a=0)? 200-20*(\a*(-10-\x1)+\y1)+4: 200-20*(\a*(-10-\x1)+\y1)+10}
+\text{img=xrange -10,10
+yrange -10,10
+parallel -10,-10,10,-10,0,1,20, grey
+parallel -10,-10,-10,10,1,0,20, grey
+hline 0,0,black
+vline 0,0,black
+arrow 0,0,1,0,8, black
+arrow 0,0,0,1,8, black
+crosshairs black,0,5,0,-5,5,0,-5,0
+text black , -0.5,5,small , 5
+text black , -0.7,-5,small , -5
+text black , 5,-0.3,small , 5
+text black , -5,-0.3,small , -5
+text black , -0.5,-0.3,small , O
+text black , 1,-0.3,small , I
+text black , -0.5,1,small , J}
+
+\text{image1=draw(400,400
+\img)}
+
+
+\text{image2=draw(400,400
+\img
+fcircle 0,\b,10,green)
+}
+::: solution
+
+\text{image3=draw(400,400
+\img
+fcircle 0,\b,10,green
+fcircle \x2,\y2,10,green
+arrow 0,\b,\x2,\b,8, red
+arrow \x2,\b,\x2,\y2,8, blue
+linewidth 1.5
+plot green, \f)
+}
+\if{\type=1}{
+\integer{dx=1}
+\integer{dy=\a}}
+{\integer{dx=\aden}
+\integer{dy=\y2-\b}}
+
+
+\text{etapes=r1
+r2}
+\nextstep{\etapes}
+
+\statement{<p>On souhaite ici construire la droite (d) d'équation \(y=\f).</p>
+\if{\step=1}{<p>L'ordonnée à l'origine \(\b) donne (sans calcul) les coordonnées d'un point de cette droite. </p>
+<div class=wims_question>Cliquez sur ce point.</div>
+\embed{reply1,400,400}}
+\if{\step=2}{Le coefficient directeur \if{\type=1}{\(\a)}{\(\frac{\anum}{\aden})} permet de placer (sans calcul) d'autres points appartenant à la droite.
+<div class=wims_question> Cliquer sur un autre point appartenant à la droite. </div>
+<div class=wims_instruction>On prendra soin de cliquer sur un point du quadrillage.</div>
+ \embed{reply2,400,400}}
+ }
+\answer{}{\image1;circle,200,200-20*\b,9}{type=coord}{option=nonstop}
+\answer{}{\image2;(polygon,\xrect1d,\yrect11d,\xrect1d,\yrect12d,400,\yrect22d,400,\yrect21d)|(polygon,\xrect1g,\yrect11g,\xrect1g,\yrect12g,0,\yrect22g,0,\yrect21g)}{type=coord}
+\solution{<img src="\image3" alt="droite" >
+<ul>
+<li>Le fait que l'ordonnée à l'origine soit égal à \(\b), assure que le point de coordonnées \((0;\b)) est sur la droite. C'est le premier point demandé.</li>
+<li>Ensuite, pour le second point, en partant du premier point, on se déplace sur le quadrillage en comptant les unités et <b>en faisant attention au sens</b> : </li>
+<ul><li>parallélement à l'axe des abscisses : \(\dx) (<font color="red">flèche rouge </font>sur le graphique)
+</li><li>parallélement à l'axe des ordonnées : \(\dy) (<font color="blue">flèche bleue</font> sur le graphique)
+
+</li><li>ce qui donne la position du second point.
+</li></ul></ul> }

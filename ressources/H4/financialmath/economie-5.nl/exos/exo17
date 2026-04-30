@@ -1,0 +1,44 @@
+#17 Converteerbare obligatie
+n=$counter
+rounding=100
+mathview=0
+cols=5
+helptext=$empty
+checkfile=$checkdir/new_number.proc
+!readproc $remarkdir/rounding.$taal
+make_tr=1
+bedrijf=!randitem Vertigo Chemical Specialities,Hadjema Manufacturing BV,Vriesekamp Textile Services NV,Agio Coatings BV,Ritsma Agri Chemicals NV,Berg Chemicals NV,HaGeBo BV,Zeepfabriek Wienke BV...
+inputs=-1
+description=Conversiekoers,Aantal aandelen
+m_rightarrow=&nbsp;=&nbsp;
+ex1=&euro;
+ex2=stuks
+perc=!randint 10,50
+perc=!exec moneyprint $[0.1*$perc] 1
+factor=!randint 2,6
+factor=$[$factor*100]
+#num2=!randint 8,20
+num1=!randint 4,10
+num2=!randitem 10,20,25
+stuks=$[$factor*$num1]
+nominaal=!randint 40,90
+nominaal1=$[10*$nominaal]
+lening=$[$stuks*$nominaal1]
+#bijbetaling=$[0.4*$nominaal1]
+bijbetaling=!randint $[round(0.3*$nominaal)],$[round(0.6*$nominaal)]
+bijbetaling=$[10*$bijbetaling]
+ans1=!exec moneyprint $[($num1*$nominaal1+$bijbetaling)/$num2]
+ans2=$[$factor*$num2]
+nominaal2=!randint 20,30
+
+question$n=Onderneming $bedrijf heeft een $perc % converteerbare obligatielening uitstaan, groot &euro; $lening.<br />Alle obligaties zijn &euro; $nominaal1 nominaal.<br />Bij de uitgifte was besloten $num1 obligaties met bijbetaling van &euro; $bijbetaling rechtgeven op $num2 aandelen van &euro; $nominaal2 nominaal.
+
+answer$n=$ans1\
+$ans2
+
+var1=0.01,1
+var2=100,1
+
+exotext=<br /><table class="zebra_table_h2"><tr><td>a)</td><td>Bereken de conversie koers </td><th>&euro;&nbsp;<input type="text" size="$cols" id="myinput0" value="" class="schaersvoorde_input" /></th></tr><tr><td>b)</td><td>Bereken hoeveel aandelen er worden geplaatst<br />als alle obligaties worden omgewisseld in aandelen.</td><th><input type="text" size="$cols" id="myinput1" value="" class="schaersvoorde_input" />&nbsp; stuks</th></tr></table>
+
+textanswer$n=<ol style="list-style-type:lower-alpha"><li>Conversiekoers: ( $num1 &times; $nominaal1 + $bijbetaling ) / $num2 = &euro; $ans1 </li><li>Aantal aandelen:<ul><li>aantal obligaties : $lening / $nominaal1 = $stuks stuks</li><li>per $num1 obligaties $num2 aandelen</li><li>per $stuks obligaties : $num2 &times; ($stuks / $num1 ) = $num2 &times; $factor = $ans2 aandelen</li></ul></li></ol>

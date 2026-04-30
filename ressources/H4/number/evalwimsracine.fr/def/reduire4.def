@@ -1,0 +1,123 @@
+!set title=Réduire 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=12
+tmp=!nonempty items 2,3,5,6,7,10,11,13
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp0=!values v for v=2 to 14
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!shuffle +,+,+,-,-,-
+
+val9=$(tmp0)
+val10=$[rint($val7*$(val8[1])^2)]
+val11=$[rint($(val9[2])$(val8[2])*$(val8[1])$(val9[1]) $(val8[3]))]
+val12=$(val9[2])$(val8[2])\sqrt{$val10},$(val9[1])$(val8[3])\sqrt{$val7}
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp0=!items2words $val12
+
+val12=$(tmp0)
+tmp0=!char 1 of $val12
+
+val13=$(tmp0)
+!if +=$val13 
+tmp0=!char 2 to -1 of $val12
+
+val12=$(tmp0)
+!endif
+val11=$val11*sqrt($val7),sqrt($val7)*$val11
+replytype1=litexp
+replyname1=Réponse 1
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Ecrire l'expression suivante sous la forme 
+!insmath a\sqrt{b}
+$() où 
+!insmath b
+$() est un entier positif le plus petit possible.	<div class="center">	
+!insmath $val12 =
+$()  
+!read oef/embed.phtml r1,$val6 
+$()	</div>	<small>(Taper sqrt(2) pour 
+!insmath \sqrt{2}
+$().)</small>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12
+embedcnt=1

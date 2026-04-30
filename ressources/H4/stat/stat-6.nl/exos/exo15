@@ -1,0 +1,196 @@
+!if $counter=1
+ var9=!shuffle blue,green,red,orange,lightblue,cyan,brown,aliceblue,lightgreen,pink
+!endif
+math=0
+applet=0
+mathview=0
+
+# var6 = max1,max2,max3... (aantal cellen in een kolom)
+# var5 = A1,B1 A2,B2 ... Amax,Bmax
+# var7 = head Kolom A,Kolom B ,Kolom C
+# var8 = aantal invoer kolommen.
+var1=yes
+questiontype=7
+javascript=js/spreadsheet.phtml
+inputs=yes
+cols=5
+math=0
+mathview=0
+rounding=1
+#var7=klassen,frequentie
+#var6=$num2
+#var8=1
+
+n=$counter
+tsv_file=som_$counter.$wims_nowseconds.tsv
+#my_temp_css=<meta name="content-disposition" content="attachement; filename=$tsv_file" />
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+helptext=<ul>Doorloop de volgende route nadat je Excel geopend hebt<li>Bestand</li><li>Externe gegevens uit tekst ophalen</li><li>wims.tsv importeren</li><li>Bestandstype: gescheiden</li><li>Scheidingsteken: tab</li><li>Tekstindicator: &quot;</li><li>Voltooien</li><li>Ok</li></ul>
+#<ul>En dan moet je de punt vervangen door een komma.<li>Start</li><li>Zoeken en selecteren</li><li>Vervangen</li><li>Zoeken naar . (punt)</li><li>Vervangen door , (komma) </li></ul>
+dag=!randint 2,4
+min=!randitem 10,15,20,30
+num=$[$dag*24*60/$min]
+k=!randint 0,1
+ph1=550
+ph2=750
+!if $k=1
+ lozing1=250
+ lozing2=550
+ begin=$[0.01*$lozing1]
+ klasse=$begin &minus; $[0.01*$lozing1+0.4]
+ # [ 2.5-2.9 ]
+ k1=$[$begin-0.05]
+ k2=$[$begin-0.05+0.5]
+ k3=$[$begin-0.05+1]
+ k4=$[$begin-0.05+1.5]
+ k5=$[$begin-0.05+2]
+ k6=$[$begin-0.05+2.5]
+ k7=$[$begin-0.05+3]
+ k8=$[$begin-0.05+3.5]
+ k9=$[$begin-0.05+4]
+ k10=$[$begin-0.05+4.5]
+ k11=$[$begin-0.05+5]
+ kk=11
+!else
+ lozing1=750
+ lozing2=950
+ begin=$[0.01*$ph1]
+ klasse= $begin &minus; $[0.01*$ph1+0.4]
+ # [ 5.5-5.9 ]
+ k1=$[$begin-0.05]
+ k2=$[$begin-0.05+0.5]
+ k3=$[$begin-0.05+1]
+ k4=$[$begin-0.05+1.5]
+ k5=$[$begin-0.05+2]
+ k6=$[$begin-0.05+2.5]
+ k7=$[$begin-0.05+3]
+ k8=$[$begin-0.05+3.5]
+ k9=$[$begin-0.05+4]
+ kk=9
+!endif
+t=!randint 2,8
+r=!randint 20,50
+dump_start=$[round($num/$t)]
+dump_end=$[$dump_start+$r]
+datum=!date %d-%m-%Y
+
+data=Meetgegevens station 21\
+datum $datum\
+begin 0:00\
+eind 23:59\
+bewerkt door: $wims_firstname $wims_lastname\
+\
+"meting"	"ph-waarde"\
+
+
+
+
+calc_data=$empty
+ph_min=10
+ph_max=0
+!for p=1 to $num
+ ph=!randint $ph1,$ph2
+ !if $p>=$dump_start
+  !if $p<= $dump_end
+   ph=!randint $lozing1,$lozing2
+  !endif
+ !endif
+ ph=$[0.01*$ph]
+ !if $ph > $ph_max
+  ph_max=$ph
+ !endif
+ !if $ph < $ph_min
+  ph_min=$ph
+ !endif
+ PH=!replace internal . by , in $ph
+ data=!append line "meting $p"	$PH to $data
+ calc_data=!append item $ph to $calc_data
+!next p
+
+!filewrite getfile/$tsv_file $data
+
+sortdata=!sort numeric item $calc_data
+!for p=1 to $kk
+ klasse$p=0
+!next p
+!for p=1 to $num
+ d=!item $p of $sortdata
+ !for k=1 to $kk
+  s=$(k$k)
+  !if $d >= $s and $d < $[$s+0.5] 
+   !increase klasse$k
+  !endif
+ !next k
+!next p
+
+ymax=0
+staaf=$empty
+body=$empty
+textansw=$empty
+answer$n=$empty
+var5=$empty
+!for p=1 to $kk
+ answer$n=!append item $(klasse$p) to $(answer$n)
+ !if $(klasse$p)>$ymax
+  ymax=$(klasse$p)
+ !endif
+ s=$(k$p)
+ # kl=linker grens kr=rechter grens
+ kl=$[$s+0.05]
+ kr=$[$s+0.45]
+ staaf=!append item $kl,$(klasse$p),$kr,0 to $staaf
+ body=!append word <tr id="mytr$[$p-1]"><td>$kl &minus $kr</td><td><input class="schaersvoorde_input" size="4" id="myinput$[$p-1]" value=""></td></tr>  to $body
+ var5=!append word $ $kl&minus;$kr $ to $var5
+ textans=!append word <tr id="mytr$[$p-1]"><td>$kl &minus; $kr</td><td>$(klasse$p)</td></tr>  to $textans
+!next p
+
+var7=klassen,frequentie
+var6=$kk
+var8=1
+
+ss=Bij een riviertje wordt $dag dagen lang om de $min minuten de pH waarde van het water gemeten.<br />\
+Men vermoedt dat een chemische fabriek illegaal loost op het riviertje.<br />\
+De metingen staan in 'tsv' formaat : <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file">$tsv_file</a><br />\
+Vul de frequentietabel in.
+
+checkfile=$checkdir/number.proc
+make_tr=1
+
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+#exotext=<table class="demospecial"><tr><th>klasse</th><th>frequentie</th></tr>$body</table>
+#excel=Excel: INTERVAL(B6:B-eind;D6:D-eind). In de D kolom staan de rechtergrenzen. Vervolgens [Ctrl][Shift][Enter].<br />In Open Office gebruik je de functie "Frequency"<br />
+textanswer$n=<table class="demospecial"><tr><th>klasse</th><th>frequentie</th></tr>$textans</table>\
+<ul>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo15/PH0.png>')">Open het bestand met je spreadsheet programma...<br />Let op de rechtergrens !</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo15/PH1.png>')">Maak een nieuwe kolom met rechtergrenzen...</a><br />Let op: de getallen zijn in twee decimalen opgegeven en de klassen in 1 decimaal ! <br />bijv: klassen 2.5-2.9 en 3.0-3.4 dan hoort meting 2.94 in klasse 2.5-2.9<br />in excel moet je de rechtergrens dus 2.94 nemen en niet 2.9</li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo15/PH2.png>')">Maak gebruik van de functie INTERVAL...<br />gegevensmatrix zijn de ph-waardes<br />en <em>interval_verwijzing</em> zijn de rechtergrenzen</a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo15/PH3.png>')">Rechtermuis in veld E9...muis  wordt een kruis...scroll naar beneden...dit zijn nog niet de juiste getallen<br />Selecteer de kolom E en ga met de muis naar de formulebalk en gebruik tegelijkertijd <b>[Ctrl][Shift][Enter]</b></a></li>\
+<li><a onmouseover="return escape('<img src=$module_dir/gifs/exo15/PH4.png>')">bijna klaar...stuur deze kolom op via cut&amp;paste naar WIMS</a></li>\
+</ul>
+
+kleur=!item $counter of $var9
+ymax=$[10*(ceil(0.1*$ymax))]
+ymin=$[-1*(floor(0.1*$ymax))]
+object$n=!exec canvasdraw\
+size 500,260\
+xrange -1,15\
+yrange $ymin,$ymax\
+fontfamily italic 10px Ariel\
+centerstring blue,0.95*$ymax,$wims_firstname $wims_lastname\
+xlabel pH-waarde\
+ylabel frequentie\
+axis\
+axisnumbering\
+precision 1\
+legend frequentie polygoon\
+grid 1,10,grey,4,2,4,grey\
+filled\
+opacity 150,50\
+fillcolor green\
+rects $kleur,$staaf\
+zoom red
+
+exotext=!append line $tekening to $exotext

@@ -1,0 +1,106 @@
+# Arbeidsmarkt
+#
+var1=yes
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=8
+checkfile=exos/precheck1.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+questiontype=0
+
+land=!randitem Waterland,Engerland,Duizelland,Fransland,Spaanderland,Welgi&euml;,Noorderrijk,Zweijtserland,Waldolahland
+
+nu=!date +%Y
+nu=$[$nu-1]
+t=!randint 4,10
+toen=$[$nu - $t]
+# inflatie per jaar...
+inflatie=!randint 10,60
+inflatie=$[$inflatie/10] 
+# percentage werkelozen op de beroepsbevolking
+werkloosheid=!randint 20,80
+werkloosheid=$[$werkloosheid/10]
+
+wga=100
+perc1=!randint 2,60
+perc2=!randint 2,60
+!if $perc2 < $perc1
+    w=!randint 1,10 
+    perc2=$[$perc1+$w]
+!endif
+perc1=$[$perc1/10]
+wgp=$[100+$perc1]
+
+perc2=$[$perc2/10]
+np=$[100+$perc2]
+
+perc3=!randint 5,20
+perc3=$[$perc3/10]
+lw=$[(round(1000*(((100+$inflatie+$perc3)/100)^$t)))/10]
+
+in=$[(round(1000*(((100+$inflatie)/100)^$t)))/10]
+
+wbp=!randint 40,200
+wbp=!nospace $wbp 00000
+
+wlp1=$[10*(round($wbp*$werkloosheid/1000))]
+per=$[round(1000/($wgp/100)^$t)]
+f1=!randint 6,15
+f2=!randint 6,15
+perc4=!randint $[$per-$f1],$[$per+$f2]
+wlp2=$[1000*round(($perc4/1000*$wlp1)/1000)]
+
+tabelletje=<table class="default_table"><caption>In onderstaande tabel staan enkele kerngegevens van $land</caption><tr><th>Kerngegevens $nu tov $toen <br />Indexcijfers met $toen als basisjaar</th><th>$toen<br />(basisjaar)</th><th>$nu</td></tr><tr><td>Werkgelegenheid (in arbeidsjaren)</td><td>100</td><td>$wga</td></tr><tr><td>Werkgelegenheid (personen)</td><td>100</td><td>$wgp</td></tr><tr><td>Arbeidsaanbod (personen)</td><td>100</td><td>&nbsp;&minus;&minus;&nbsp;</td></tr><tr><td>Nationaal product</td><td>100</td><td>$np</td></tr><tr><td>Loonsom per werknemer</td><td>100</td><td>$lw</td></tr><tr><td>Inflatie</td><td>100</td><td>$in</td></tr><tr><td>Werkende beroepsbevolking (in personen)</td><td>$wbp</td><td>&nbsp;&minus;&minus;&minus;&nbsp;</td></tr><tr><td>Werkloze beroepsbevolking (in personen)</td><td>$wlp1</td><td>$wlp2</td></tr></table>
+    
+rounding=100
+roundingtext=Geef je eindantwoord op in twee decimalen...<br />Reken zo ver mogelijk door met onafgeronde getallen 
+
+var2=Indexcijfer,Procentuele verandering
+
+!if $R=1
+    index=$[100*($np/$wgp)]
+    ans1=$[$index-100]
+    ans2a=$[100*$lw/$index]
+    ans2=$[$ans2a - 100]
+    rans1=$[(round(100*$ans1))/100]
+    rans2=$[(round(100*$ans2))/100]
+    inputs=2
+    ex1=%
+    ex2=%
+    ss=<ol><li>Bereken de procentuele verandering van de arbeidsproductiviteit<br /> in $land in $nu tov $toen</li><li>Bereken de procentuele verandering van de loonkosten per eenheid product<br />in $land in $nu tov $toen</li></ol>
+    
+    description=Arbeidsproductiviteits verandering,Loonkosten verandering
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{a) Arbeidsproductiviteits index} = \frac{\textrm{Index nationaal product}}{\textrm{Index werkgelegenheid in personen}} \times 100 = \frac{$np}{$wgp}\times 100 \approx $index \\ \\ \textrm{De arbeidsproductiviteit is met} $ans1 \% \approx $rans1 \% \textrm{ gestegen} \\ \\ \textrm{b)} \frac{\textrm{Index loonsom per werknemer}}{\textrm{Index arbeidsproductiviteit}} \times 100 = \frac{$lw}{$index}\times 100 = $ans2a \\ \\ \textrm{Dus een stijging van }  \; $ans2 \% \approx $rans2 \% \end{array} \right.
+
+!else
+    ss=<ol><li>Bereken het indexcijfer van het arbeidsaanbod<br />van $land in $nu tov $toen</li><li>Bereken de procentuele verandering van de re&euml;le<br />loonkosten per werknemer in $land in $nu tov $toen</li></ol>
+    description=Indexcijfer,Verandering loonkosten
+    aanbod1=$[$wbp + $wlp1] 
+    aanbod2=$[$wbp*$wgp/100 + $wlp2]
+    ans1=$[100*$aanbod2/$aanbod1]
+    ric=$[100*$lw/$in]
+    ans2=$[$ric - 100]
+    rans1=$[(round(100*$ans1))/100]
+    rans2=$[(round(100*$ans2))/100]
+    texanswer$n=\left[ \begin{array}{l}\textrm{1) Arbeidsaanbod $toen }\; = $wbp + $wlp1 = $aanbod1 \\ \\ \textrm{   Arbeidsaanbod $nu } \; = $wbp \times \frac{$wgp}{100} + $wlp2 = $aanbod2  \\ \\ \textrm{Indexcijfer $nu }\; = \frac{$aanbod2}{$aanbod1} \times 100 = $ans1 \approx $rans1  \\ \\ \textrm{b) RIC = }\; \frac{\textrm{NIC}}{\textrm{PIC}} \times 100 = \frac{$lw}{$in} \times 100  = $ric \\ \\ \textrm{Dus gestegen met :} \;$ans2 \% \approx $rans2 \% \end{array} \right.
+    inputs=2
+    ex1=$empty
+    ex2=%
+    
+!endif
+
+
+answer$n=$ans1,$ans2
+helptext=$formuleplaatje
+question$n=$tabelletje<a onmouseover="return escape('Rond je eindantwoord af op hele personen')">$ss</a>
+
+

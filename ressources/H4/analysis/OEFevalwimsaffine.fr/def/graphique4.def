@@ -1,0 +1,140 @@
+!set title=Graphique 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=$[rint(300)]
+tmp0=!values v for v=4 to 9
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$[rint($(val8[2]))]
+val10=$[rint($(val8[1]))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 3
+
+val11=$[rint($(tmp0)*$(tmp1))]
+val12=$val10/$val9*x,($val9-$val11)/$val10*x+($val11),($val10-$val11)/$val9*x+($val11),$val9/$val10*x
+tmp0=!texmath $(val12[1])
+
+val13=$(tmp0)
+val14=Soit \($val6\) la fonction linéaire définie par : \($val6 : x\mapsto $val13\).	 Quelle est sa représentation graphique
+!readproc slib/draw/repere $val7,$val7,0,-10,10,-10,10,1,1,black,grey 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!line 3 to -1 of $val15
+
+val15=$(tmp0)
+val16=
+!for val17 =1 to 4 
+tmp0=!item $val17 of $val12
+
+val18=\$(tmp0)
+!readproc oef/draw.phtml $val7,$val7 \
+$val15	range -10,10,-10,10	plot blue,$val18	text black,9.5,-0.3,medium,X	text black,-0.6,10,medium,Y	text black,0.9,-0.3,medium,1	text black,-0.6,1.5,medium,1 
+tmp0=$ins_url
+val19=$(tmp0)
+tmp0=!append item $val19 to $val16
+
+val16=$(tmp0)
+!next
+val20=A,B,C,D,E,F,G,H
+tmp0=!item 1 of $val16
+
+val21=$(tmp0)
+tmp0=!shuffle $val16
+
+val22=$(tmp0)
+tmp0=!positionof item $val21 in $val22
+
+val23=$(tmp0)
+tmp0=!item $val23 of $val20
+
+val24=$(tmp0)
+val25=A,B,C,D
+choicename1=réponse
+choicegood1=$val24
+choicebad1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val14 ?	<table class="wimscenter wimsborder">	 <tr>	  <td>Réponse A :<br><img src="$(val22[1])" alt=""></td>	  <td>Réponse B :<br><img src="$(val22[2])" alt=""></td>	 </tr><tr>	   <td>Réponse C :<br><img src="$(val22[3])" alt=""></td>	   <td>Réponse D :<br><img src="$(val22[4])" alt=""></td>	 </tr>	</table>	<b>Votre réponse :</b>	<div class="wimscenter">	  La bonne réponse est :  
+!read oef/embed.phtml c1 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,22
+embedcnt=1

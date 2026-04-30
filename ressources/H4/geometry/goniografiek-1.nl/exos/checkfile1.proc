@@ -1,0 +1,168 @@
+# var2=foute functie
+# var1=xmin,xmax,ymin,ymax
+# reply$n is javascript antwoord x,y in echte coordinaten op de goede curve
+n=$counter
+goback=0
+errortext=$empty
+!if ? isin $(reply$n)
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+
+t=!itemcnt $(reply$n)
+
+!if $t!=2
+    errortext=!record 7 of lang/remarks.$taal
+    #@Geen idee
+    goback=1
+    maxscore=$P5
+    !exit
+!endif
+xmin=!item 1 of $var1
+xmax=!item 2 of $var1
+ymin=!item 3 of $var1
+ymax=!item 4 of $var1
+
+bereik_x=$[abs($xmax)+abs($xmin)]
+bereik_y=$[abs($ymax)+abs($ymin)]
+# cursor blok=4 px breedte=$xsize px [400] 1%
+Xmarge=$[6*$bereik_x/$xsize]
+Ymarge=$[6*$bereik_y/$ysize]
+# 100 cursor blokje op 400 px
+# 100 blokjes = op schaal 20
+# 1 blokje = 0.2 op de schaal
+#
+# deze zijn afgerond op $rounding (1.02:2.04)
+Xklik=!item 1 of $(reply$n)
+Yklik=!item 2 of $(reply$n)
+
+Y=!evalsubst x=$Xklik in $(answer$n)
+!if NaN isin $Y
+    ex=!record 14 of lang/remarks.$taal
+    #@ <br />Je hebt geklikt op ($Xklik : $Yklik) <br />maar daar is de functie f(x)=$(answer$n) niet is gedefinieerd..
+    !if $teaching=1
+	goback=1
+	errortext=$ex
+	maxscore=$P5
+    !else
+	goback=0
+	remark$n=$ex
+	maxscore=0
+    !endif
+    !exit
+!endif
+
+Y1=!evalsubst x=$[$Xklik-$Xmarge] in $(answer$n)
+Y2=!evalsubst x=$[$Xklik+$Xmarge] in $(answer$n)
+Yt=!evalsubst x=$Xklik in $var2
+Yt1=!evalsubst x=$[$Xklik-$Xmarge] in $var2
+Yt2=!evalsubst x=$[$Xklik+$Xmarge] in $var2
+!if NaN isin $Y1
+    Y1=$Y
+!endif
+!if NaN isin $Y2
+    Y2=$Y
+!endif
+!if NaN isin $Yt
+    Yt=100000000
+!endif
+!if NaN isin $Yt1
+    Yt1=$Yt
+!endif
+!if NaN isin $Yt2
+    Yt2=$Yt
+!endif
+!if $rounding<1
+    rnd=100
+!else
+    rnd=$rounding
+!endif
+# ronden af
+#Y=$[(round($rnd*$Y))/$rnd]
+#Y1=$[(round($rnd*$Y1))/$rnd]
+#Y2=$[(round($rnd*$Y2))/$rnd]
+#Yt1=$[(round($rnd*$Yt1))/$rnd]
+#Yt2=$[(round($rnd*$Yt2))/$rnd]
+
+score=0
+!if ($Y2>$Yklik and $Y1<$Yklik) or ($Y2<$Yklik and $Y1>$Yklik)  
+    # geklikt op de goede curve
+    !if ($Yt2>$Yklik and $Yt1<$Yklik) or ($Yt2<$Yklik and $Yt1>$Yklik)
+	# maar ook op de foute curve
+	ex=!record 8 of lang/remarks.$taal
+	#@Nee, je moet natuurlijk wel op een significant punt klikken...<br />Dus bijvoorbeeld niet op een snijpunt van beide functies
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$maxscore*$P5]
+	    goback=1
+	!else
+	    goback=0
+	    maxscore=0
+	    remark$n=$NOK<br />$ex
+	!endif
+	!exit
+    !else
+	score=1
+    !endif
+!else
+    !if ($Yt2>$Yklik and $Yt1<$Yklik) or ($Yt2<$Yklik and $Yt1>$Yklik) 
+	extra=!record 9 of lang/remarks.$taal
+	#@<br />Je hebt op de verkeerde grafiek geklikt...
+    !else
+	# onnauwkeurig
+	Y1=$[$Y1 - $Ymarge]
+        Y2=$[$Y2 + $Ymarge]
+	!if ($Y2>$Yklik and $Y1<$Yklik) or ($Y2<$Yklik and $Y1>$Yklik)
+	    !if ($Yt2>$Yklik and $Yt1<$Yklik) or ($Yt2<$Yklik and $Yt1>$Yklik)
+		extra=!record 10 of lang/remarks.$taal
+		score=0.6
+		#@<br />Erg onnauwkeurig en ook nog eens te dicht bij de andere grafiek
+	    !else
+		score=0.9
+		extra=!record 11 of lang/remarks.$taal
+		#@<br />Hmmm iets te onnauwkeurig...
+	    !endif
+	!else
+	    Yt1=$[$Yt1 - $Ymarge]
+    	    Yt2=$[$Yt2 + $Ymarge]
+	    !if ($Yt2>$Yklik and $Yt1<$Yklik) or ($Yt2<$Yklik and $Yt1>$Yklik)
+		extra=!record 12 of lang/remarks.$taal
+		#@<br />Je hebt op de verkeerde grafiek geklikt...en ook nog eens erg onnauwkeurig
+	    !else
+		extra=!record 13 of lang/remarks.$taal
+		#@<br />Je hebt op geen van de twee grafieken geklikt...
+	    !endif
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.7
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+
+modulescore=$[$modulescore+$maxscore]
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+reply$n=($Xklik : $Yklik)
+!if $showanswer=1
+image$n=$(image$n)\
+linewidth 8 \
+point $Xklik,$Yklik,$k
+!endif
+!exit
+
+

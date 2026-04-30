@@ -1,0 +1,118 @@
+# Afschrijving II
+# steps
+n=$counter
+
+#fffff0=#ccffcc
+
+!if $counter=1
+    inputs=1.1
+    mathview=0
+    !if $total_exos >3
+	total_exos=3
+    !endif
+    checkfile=exos/precheck2.proc
+    make_tr=1
+    cols=6
+    rows=1
+    # ding,minprijs,maxprijs,econ_levenduur_min,econ_levenduur_max,technisch_levenduur_min,technisch_levenduur_max,rest_perc_min,rest_perc_max
+    machines=Vriesenkamp precisie techniek BV,CNC draaibank,15,80,10,20,5,10,20,40,10,30\
+    Kramp machinebouw BV,5-assige freesmachine,15,80,10,20,5,10,20,40,10,30\
+    Zeepfabriek Schoongenoegen NV,Roerketel,12,22,15,30,5,15,50,150,100,200\
+    Frisdrankfabriek FruDrink,Afvulinstallatie,18,36,15,20,2,8,50,150,50,150\
+    Fietsfabriek De Hinde,Lasrobot,8,12,5,9,1,4,6,20,6,15\
+    Transportbedrijf Heen&amp;weer,50 tons tankwagen,8,16,8,12,3,5,30,60,6,12\
+    Vereniging de Windoogst,5 MW windturbine,70,120,18,22,8,12,80,120,100,200\
+    Vereniging de Zonnewind,PV-installatie (200 kW aan zonnepanelen),40,50,15,20,5,6,1,2,100,180
+    
+    l=!randint 1,7
+    
+    M=!line $l of $machines
+    bedrijf=!item 1 of $M
+    machine=!item 2 of $M
+    prijs_min=!item 3 of $M
+    prijs_max=!item 4 of $M
+    econ_min=!item 5 of $M 
+    econ_max=!item 6 of $M 
+    tech_min=!item 7 of $M
+    tech_max=!item 8 of $M
+    rest_min=!item 9 of $M
+    rest_max=!item 10 of $M
+    perc_min=!item 11 of $M
+    perc_max=!item 12 of $M
+    viewlogo=1
+    logo=<img src="$module_dir/gifs/$l.jpg" alt="ding" />
+    logotext=$machine
+    btw=21
+    aanschaf=!randint $prijs_min,$prijs_max
+    aanschaf=$[10000*$aanschaf]
+    aanschaf_prijs=$[(1+$btw/100)*$aanschaf]
+    perc1=!randint $perc_min,$perc_max
+    installatie=$[$aanschaf*$perc1/1000]
+    aanschaf_waarde=$[$aanschaf+$installatie]
+    perc2=!randint $rest_min,$rest_max
+    restwaarde=$[$perc2*$aanschaf_waarde/1000]
+    levensduur_e=!randint $econ_min,$econ_max
+    t=!randint $tech_min,$tech_max
+    levensduur_t=$[$levensduur_e + $t]
+    # aanschaf_waarde ??????        
+    afschrijving_maand=$[100*(floor(($aanschaf_waarde - $restwaarde)/(100*12*$levensduur_e)))]
+    restwaarde=$[$aanschaf_waarde - 12*$levensduur_e*$afschrijving_maand]
+    k=!randint 1,8
+    maand=!item $k of maart,april,mei,juni,juli,augustus,september,oktober
+    dag=!item $k of 31,30,31,30,31,30,31,30
+    aanschafjaar=!randint 1995,2005
+    j=!randint 1,$[$levensduur_e-1]
+    jaar=$[$aanschafjaar + $j]
+    
+    helptext=<img src=\'$module_dir/gifs/afschrijven.gif\' alt=\'formule\' /><hr />Het voorbeeld over de aanschaf van een $machine is niet realistisch...
+    
+    var6=Jaarlijkse afschrijvingskosten,Afschrijvingspercentage per maand,De boekwaarde op 31 dec. $jaar
+    
+    answer1=$[12*$afschrijving_maand]
+    answer2=$[100*$afschrijving_maand/($aanschaf_waarde)]
+    ans2=$[(round(100*$answer2))/100]
+    maand2=$[10-$k]
+    maanden=$[$j*12+$maand2]
+    af_tot=$[$afschrijving_maand*$maanden]
+    answer3=$[$aanschaf_waarde - $af_tot]
+
+    textanswer1=<ul><li>Afschrijven betekent: <kbd>het boekhoudkundig verwerken van waardedaling van productiemiddelen</kbd></li><li>Berekening: <kbd>Jaarlijkse afschrijving = (aanschafwaarde &minus; restwaarde ) <b>/</b> economische levensduur</kbd></li><li>Dus: $aanschaf_prijs<b>/</b>$[1+$btw/100] = &euro; $aanschaf</li><li><kbd>Aanschafwaarde</kbd> bedraagt de <kbd>aanschafprijs + installatiekosten</kbd>, dus &euro; $aanschaf_waarde</li><li>De jaarlijkse afschrijving wordt: ($aanschaf_waarde &minus; $restwaarde) <b>/</b> $levensduur_e = &euro; $answer1 per jaar</li></ul>
+    textanswer2=<ul><li>De afschrijving per jaar bedraagt &euro; $answer1<br />De afschrijving per maand bedraagt $answer1/12 = &euro; $afschrijving_maand </li><li>Het afschrijvingspercentage per maand is: $afschrijving_maand <b>/</b> $aanschaf_waarde &times; 100 % &asymp; $ans2 % </li></ul>
+    textanswer3=<ul><li><kbd>Boekwaarde</kbd> is het bedrag waarvoor de $machine op de balans komt te staan, <b>nadat</b> er is afgeschreven. </li><li>Er is $j jaar en $maand2 maanden afgeschreven, dat zijn $maanden maanden.</li><li>$maanden maanden is in geld uitgedrukt &euro; $afschrijving_maand &times; $maanden = &euro; $af_tot afgeschreven</li><li>De boekwaarde op 31 december $jaar : $aanschaf_waarde &minus; $af_tot = &euro; $answer3</li></ul>
+
+    som=$bedrijf schaft op $dag $maand $aanschafjaar een $machine aan.<br />Van deze aanschaf is het volgende gegeven:<ul><li>Aanschafprijs bedraagt &euro; $aanschaf_prijs inclusief $btw % btw</li><li>Installatiekosten &euro; $installatie exclusief btw</li><li>Technische levensduur is $levensduur_t jaar</li><li>Economische levensduur is $levensduur_e jaar</li><li>Restwaarde is &euro; $restwaarde exclusief btw</li><li>Er wordt jaarlijks met een vast percentage van<br />de aanschafwaarde afgeschreven</li></ul>
+    question1=<a onmouseover="return escape('$helptext')">$som<br />Bereken de jaarlijkse afschrijvingskosten.</a>
+    question2=<a onmouseover="return escape('$helptext')">$som<br />Bereken het afschrijvingspercentage per maand.<br />Rond je eindandwoord af op 2 decimalen.</a>
+    question3=<a onmouseover="return escape('$helptext')">$som<br />Bereken de boekwaarde van deze $machine op 31 december $jaar</a>
+
+!endif
+
+description=$(var6[$counter])
+# new_number.proc
+# var1=1 : answer1 +/- 1
+# var2=1 : rounding1 = 1
+!if $n=1
+    rounding=1
+    roundingtext=Geef je antwoord in hele &euro;&rsquo;s
+    ex1=&euro;
+    var1=1
+    var2=1
+!else
+    exotext=!append word $ <span style="color:blue">$youranswer $[$n-1]) $(reply$[$n-1])</span> $  to $exotext
+    !if $n=2
+	ex1=%
+	rounding=100
+	roundingtext=Geef je antwoord in twee decimalen nauwkeurig.
+	var1=0.01
+	var2=2
+    !else
+	ex1=&euro;
+	rounding=1
+	roundingtext=Geef je antwoord in hele &euro;&rsquo;s
+	var1=1
+	var2=1
+    !endif
+!endif
+
+
+!exit

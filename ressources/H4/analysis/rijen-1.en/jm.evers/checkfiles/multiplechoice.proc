@@ -1,0 +1,57 @@
+# CHECKS A MULTIPLECHOICE ANSWER
+# ALSO DRAG+DROP SINGLEDROP MULTIPLE CHOICE
+# this file expects a reply$n and returns a modulescore
+
+n=$counter
+goback=0
+errortext=$empty
+
+test=!wordcnt $(reply$n)
+!if $test=0
+    goback=1
+    !increase try
+    maxscore=$[$P2*$maxscore]
+    !if $questiontype=2
+	errortext=!record 41 of $remarkdir/commonremarks.$taal
+    !else
+	errortext=!record 42 of $remarkdir/commonremarks.$taal
+    !endif
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    modulescore=$[$modulescore + 0.1]
+    b=$(answer$n)
+    answer$n=$(ex$b)
+    !exit
+!endif
+
+!ifval $(reply$n) > $options
+    # this means hacking the module
+    goback=1
+    !increase try
+    maxscore=$[$P5*$maxscore]
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!ifval $(answer$n) = $(reply$n)
+    modulescore=$[$modulescore + $maxscore]
+    remark$n=$OK
+!else
+    maxscore=0
+    remark$n=$NOK
+!endif
+
+!if $showanswer=1
+    # hope this gives not too much trouble with non mathlike questions
+    a=$(reply$n)
+    reply$n=$(ex$a)
+    b=$(answer$n)
+    answer$n=$(ex$b)
+!endif
+
+!exit

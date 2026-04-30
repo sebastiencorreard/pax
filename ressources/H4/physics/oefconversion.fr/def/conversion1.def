@@ -1,0 +1,128 @@
+!set title=Conversion (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Markey Benoît
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+tmp1=!randint 1, 5
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val7=$[rint($(tmp2))]
+tmp0=!randint 10^($val6), 10^($val6+1)-1
+
+val8=$[$(tmp0)]
+val9=$[$val8/10^($val7)]
+tmp=!trim nm,-9	mu m,-6	mm,-3	cm,-2	dm,-1	m,0	dam,1	hm,2	km,3
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=$(val10[;1])
+tmp0=!shuffle $val11
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+tmp0=!positionof item $val13 in $val11
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp0=!item 2 of $val15
+
+val16=$(tmp0)
+val17=$[rint($val16)]
+val18=\x*10^($val17)
+val19=$[$val17]
+replytype1=numeric
+replyname1=exposant
+replygood1=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()			Convertir  :
+!insmath $val9   $val13
+$()	en 
+!insmath m
+$() en complétant l'exposant de la puissance de 10:<br>	<p> 
+!insmath $val9  $val13
+$()	= $val9 $m_times 10<sup><sup> 
+!read oef/embed.phtml reply 1,4 
+$() </sup></sup>$m_m</p>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,13
+embedcnt=1

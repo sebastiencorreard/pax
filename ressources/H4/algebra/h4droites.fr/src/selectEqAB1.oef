@@ -1,0 +1,195 @@
+\title{Sélectionner une équation I}
+\author{Marie-Claude, David;Joachim, Yaméogo}
+\email{Marie-Claude.David@math.u-psud.fr,yameogo@unice.fr}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=300}
+\text{dimv=300}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.3,0.7,medium,j
+text black,-0.3,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.3,-0.2,large,x
+text black,-0.3,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+configuration de maxima
+\text{vide=maxima(ordergreat(x,y,z,t))}
+
+## fabrication de la droite ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+
+\integer{a=\y2-(\y1)}
+\integer{b=\x1-(\x2)}
+\integer{c=(\x1)*(\y2-(\y1))-(\y1)*(\x2-(\x1))}
+\function{hf=(\a)*x+(\b)*y}
+\text{eqD1=maxima(\hf-(\c);)}
+\text{f=maxima(((-\a)*x+(\c))/(\b);)}
+\text{eqD1=texmath(\eqD1=0)}
+\text{eqD2=texmath(\hf=\c)}
+\text{eqDroite=\eqD1}
+
+\integer{u1=-\b}
+\integer{u2=\a}
+
+## on construit une liste de vecteurs directeurs ##
+\text{kList=shuffle(-5,-4,-3,3,4,5)}
+\integer{v1=random(-1,1)*random(1,2,3)}
+\matrix{vList=}
+\for{k=1 to 3}{
+  \integer{v2=\kList[\k]+(\v1)*(\u2)}
+  \matrix{vList=\vList
+              (\u1)*(\v1),\v2
+       }
+  }
+\matrix{vList=\vList
+            \u1,\u2
+     }
+
+\matrix{vectList=}
+\for{k=1 to 4}{
+  \integer{dil=random(-3,-2,-1,2,3)}
+  \integer{vx=(\dil)*(\vList[\k;1])}
+  \integer{vy=(\dil)*(\vList[\k;2])}
+  \if{\k=4}{
+    \integer{w1=\vx}
+    \integer{w2=\vy}
+     \text{rapp=\dil=-1? - : \dil}
+   }
+  \matrix{vectList=\vectList
+    \vx,\vy
+    }
+}
+## on fabrique quatre équations avec les quatre vecteurs précédents ##
+\text{eqList=}
+\text{d4=(x-(\x1))*(\vectList[4;2])-(y-(\y1))*(\vectList[4;1])}
+\text{eq4=texmath(maxima(expand(\d4);)=0)}
+\for{k=1 to 3}{
+  \integer{oxD=random(-1,1)*random(1..3)}
+  \integer{oyD=random(-1,1)*random(1..3)}
+  \text{dd=(x-(\oxD))*(\vectList[\k;2])-(y-(\oyD))*(\vectList[\k;1])}
+  \text{eq=texmath(maxima(expand(\dd);)=0)}
+  \text{eqList=wims(append item \eq to \eqList)}
+  }
+\text{eqList=wims(append item \eq4 to \eqList)}
+
+## on permute les équations de sorte que la bonne réponse puisse changer de place ##
+\text{permut=shuffle(4)}
+\text{brep=position(4,\permut)}
+
+
+## le dessin de la droite pour la correction ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\text{graph=
+\cadre
+linewidth 2
+plot \couleurs[1],\f
+}
+
+####### enoncé de l'exo #######
+\statement{
+<p>
+Dans le plan \(\RR^2) muni d'un repère  \((O,i,j)\), on considère la droite \(\mathcal{D}\) passant par les deux points \(A\ (\x1,\y1)\) et \(B\ (\x2,\y2)\).
+<br>
+Dans la liste suivante, trouvez une équation de la droite \(\mathcal{D}\).
+</p>
+<ul><li>\embed{reply1,1} : \(\eqList[\permut[1]])</li>
+    <li>\embed{reply1,2} : \(\eqList[\permut[2]])</li>
+    <li>\embed{reply1,3} : \(\eqList[\permut[3]])</li>
+    <li>\embed{reply1,4} : \(\eqList[\permut[4]])</li>
+</ul>
+ }
+##### collecte de la réponse de l'utilisateur #####
+\reply{}{\brep;1,2,3,4}{type=radio}
+
+## Aide ou rappel ##
+\hint{
+  Au choix:
+  <ul>
+  <li style="background-color:bisque;">
+  Trouver dans la liste, une équation satisfaite à la fois par \(A) et \(B).
+  </li>
+  <li style="background-color:bisque;">
+  Pour un point \(M(x,y)\in \RR^2), écrire une relation de colinéarité entre
+  le vecteur \(\vec{AM}(x-x_A,y-y_A)) et le vecteur \(\vec{AB}).
+  </li>
+  </ul>
+}
+
+## Solution rédigée ##
+\solution{
+<p> Voici un
+  <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution:
+ </p>
+ <p>
+   Un vecteur directeur de la droite \(\mathcal{D}\) est
+  donné par \(\overrightarrow{AB}\ (\u1,\u2)\), qui est colinéaire au vecteur directeur
+  \(\vec{w}\ (\w1,\w2)\) de la
+  \brep<sup><small>&egrave;me</small></sup> équation de la liste propos&eacute;e.
+  On remarquera que \(\vec{w}\ (\w1,\w2)=\rapp \overrightarrow{AB}\ (\u1,\u2)\). Il ne reste plus qu'à
+  s'assurer que l'un au moins des points \(A) ou \(B) vérifie cette équation.</p>
+  <div class="wimscenter">
+    <p>Voici une représentation graphique de la droite \(\mathcal{D}\).</p>
+        \draw{\dimh,\dimv}{
+	  \graph
+	  }
+  </div>}

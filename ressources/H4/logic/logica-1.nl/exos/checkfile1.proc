@@ -1,0 +1,62 @@
+goback=0
+errortext=$empty
+score=0
+extra=$empty
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+AAA=!lower $(reply$n)
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+G1=!item 1 of $(answer$n)
+G2=!item 2 of $(answer$n)
+ex1=$empty
+ex2=$empty
+!if $G1 notin $AAA
+ ex1=hmmm, ik zie geen propositie voor P in je antwoord...
+ goback=1
+!endif
+!if $G2 notin $AAA
+ ex1=en ik zie geen propositie voor Q in je antwoord...
+ goback=1
+!endif
+!if $goback=1
+    errortext=$ex1<br />$ex2
+    maxscore=$[$P1*$maxscore]
+    !exit
+!endif
+k1=red
+k2=red
+!if $G1 isin $A1 and $G1 notin $A2
+ score=$[$score+1]
+ ex1=Ok, $A1 is een correcte propositie voor P
+ k1=green
+!else
+ ex1=$A1 is vlgs mij geen correcte propositie voor P
+!endif
+!if $G2 isin $A2 and $G2 notin $A1
+ score=$[$score+1]
+ ex2=Ok, $A2 is een correcte propositie voor Q
+ k2=green
+!else
+ ex2=$A2 is vlgs mij geen correcte propositie voor Q
+!endif
+
+
+!if $maxscore>0.9
+ remark$n=$OK
+!else
+ !if $maxscore>0.5
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+remark$n=$(remark$n)<br />$ex1<br />$ex2
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

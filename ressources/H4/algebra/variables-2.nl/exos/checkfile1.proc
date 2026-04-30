@@ -1,0 +1,274 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+n=$counter
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+wims_exec_error=$empty
+woordmax=30
+# var1 = letter1
+# var2 = letter2
+# var3 = varcount  varcnt
+# var4 =letterlijk
+# var5 = controle
+
+test=!itemcnt $(reply$n)
+!if $test >$options
+    errortext=!record 64 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+score=0
+!for p=1 to $options
+    rem$p=$empty
+    errortext=$empty
+    result$p=red
+    ant=!item $p of $(reply$n)
+    !if ? isin $ant
+	score=$[$score + 0.1]
+	result$p=red
+	!goto SHORTCUT
+    !endif
+    leeg=!wordcnt $ant
+    !if $leeg=0
+	errortext=!record 37 of $remarkdir/commonremarks.$taal
+	maxscore=$[$P1*$maxscore]
+	goback=1
+	!exit 
+    !endif
+    !if $var4=0
+	# letterlijk vervalt door check op haakjes
+	test=!replace internal ( by @ in $ant
+	!if @ isin $test and $var6=1
+	    errortext=!record 14 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P3*$maxscore]
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+	!if @ notin $test and $var7=1
+	    errortext=!record 15 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P3*$maxscore]
+		goback=1
+		!exit
+	    !else
+		rem$p=<br />$errortext
+		result$p=red
+		!goto SHORTCUT
+	    !endif
+	!endif
+    !endif
+    ant=!lower $ant
+    #ant=!rawmath $ant
+    ant=!nospace $ant
+    ant=!replace internal : by / in $ant
+    !for s in $var1,$var2
+	ant=!rawmath $ant
+	!if $s*$s isin $ant
+	    errortext=!record 16 of lang/remarks.$taal
+	    #@ Nou <kbd>$(letter$s)*$(letter$s)</kbd> kan toch echt wel korter worden geschreven, $voornaam<br />doe dat nog maar eens dunnetjes over!
+	    !if $teaching=1
+		goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit	    
+	    !else
+		rem$p=<br />$errortext
+		reultaat=red
+		!goto SHORTCUT
+	    !endif
+	!endif 
+    !next s
+    ggg=!item $p of $(answer$n)
+    !if $var4=1
+	# check op letterlijk overtypen bij factorizatie: 6x^2-10x+34 == (6x^2-10x+34) 
+	con=!item $p of $var5
+	con=!nospace $con
+	con=!rawmath $con
+	a=!declosing $ant
+	c=!declosing $con
+	!if $ant=$con or $a=$c
+	    errortext=!record 73 of $remarkdir/commonremarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P3*$maxscore]
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+    !endif
+    testvar=$ant
+    !if $var3=1
+	# var3 is varcount (var3=1 nu 1 variabele)
+	# var1 = letter1
+	!if ($var1 isin $ggg) and ($var1 notin $ant)
+	    errortext=!record 27 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P5*$maxscore]
+		testvar=$var1
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+	ant=!replace internal $var1 by A in $ant
+	test=!replace [a-z] by @ in $ant
+	!if @ isin $test
+	    errortext=!record 17 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P3*$maxscore]
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+	ant=!replace [a-z\~\!\_\=\#\%\@\"\'\:\;\?\|] by $empty in $ant
+	ant=!replace internal A by $var1 in $ant
+	
+	# voldoende versimpeld?
+	t1=!positionof char $var1 in $ggg
+	a1=!positionof char $var1 in $ant
+	t1=!itemcnt $t1
+	a1=!itemcnt $a1
+	!if $t1 < $a1
+	    testvar=$ant
+	    errortext=!record 21 of lang/remarks.$taal
+	    #@ Je antwoord <b>$testvar</b> kan nog verder worden vereenvoudigd
+	    !if $teaching=1
+		maxscore=$[$P5*$maxscore]
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+    !else
+	# er zijn twee variabelen var1 en var2
+	!if ($var2 isin $ggg) and ($var2 notin $ant)
+	    testvar=$var2
+	    errortext=!record 27 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P5*$maxscore]
+		goback=1
+		!exit
+	    !else
+		rem$p=<br />$errortext
+		result$p=red
+		!goto SHORTCUT
+	    !endif
+	!endif
+	!if ($var1 isin $ggg) and ($var1 notin $ant)
+	    testvar=$var1
+	    errortext=!record 27 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P5*$maxscore]
+		goback=1
+		!exit
+	    !else
+		result$p=red
+		rem$p=<br />$errortext
+		!goto SHORTCUT
+	    !endif
+	!endif
+	ant=!replace internal $var1 by A in $ant
+	ant=!replace internal $var2 by B in $ant
+	test=!replace [a-z] by @ in $ant
+	!if @ isin $test
+	    errortext=!record 17 of lang/remarks.$taal
+	    !if $teaching=1
+		maxscore=$[$P5*$maxscore]
+		goback=1
+		!exit
+	    !else
+		rem$p=<br />$errortext
+		result$p=red
+		!goto SHORTCUT
+	    !endif
+	!endif
+	ant=!replace [a-z\~\!\_\=\#\%\@\"\'\:\;\?\|] by $empty in $ant
+	ant=!replace internal A by $var1 in $ant
+	ant=!replace internal B by $var2 in $ant
+	# voldoende versimpeld?
+	t1=!positionof char $var1 in $ggg
+	t2=!positionof char $var2 in $ggg
+	a1=!positionof char $var1 in $ant
+	a2=!positionof char $var2 in $ant
+	t1=!itemcnt $t1
+	a1=!itemcnt $a1
+	t2=!itemcnt $t2
+	a2=!itemcnt $a2
+	!if $t1 < $a1 or $t2 < $a2
+	    testvar=$ant
+	    errortext=!record 21 of lang/remarks.$taal
+	    #@Je antwoord <b>$testvar</b> kan nog verder worden vereenvoudigd
+	    !if $teaching=1
+		maxscore=$[$P4*$maxscore]
+		goback=1
+		!exit
+	    !else
+		rem$p=<br />$errortext
+		result$p=red
+		!goto SHORTCUT
+	    !endif
+	!endif
+    !endif
+    ant=!nospace $ant
+    ant=!rawmath $ant
+    test=!exec pari if($ggg==$ant,1,0)
+    !if $wims_exec_error != $empty
+	maxscore=$[$P4*$maxscore]
+	errortext=!record 39 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    !if $test=1
+	!increase score
+	result$p=green
+    !endif
+    #CCC=!append line som$p $ggg==$ant<br />test=$test<br />maxscore=$maxscore<br />score=$score<br /><hr /> to $CCC
+:SHORTCUT
+!next p
+
+maxscore=$[$maxscore*$score/$options]
+modulescore=$[$modulescore + $maxscore]
+antw=$empty
+!for p=1 to $options
+    ant=!item $p of $(reply$n)
+    ant=!htmlmath $ant
+    antw=!append word $ <tr><td>$p )</td><td><span style="color:$(result$p)">$ant</span><small>$(rem$p)</small></td></tr> $ to $antw
+!next p
+reply$n=<table class="zebra_table_h2">$antw</table>
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+!exit

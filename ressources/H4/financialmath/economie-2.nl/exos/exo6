@@ -1,0 +1,74 @@
+# liquiditeitsbegroting &amp; resultatenrekening I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+
+bank=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies
+nu=!date +%Y
+jaar1=!randint 1999,$nu
+d=!randint 3,8
+jaar2=$[$jaar1+$d]
+rente=!randint 30,90
+rente=$[$rente/10]
+lening=!randint 2,10
+factor=10000
+lening=$[$lening*$factor]
+a=!randint 15,25
+aflossing=$[1000*(floor($lening/($a*1000)))]
+!if $aflossing=0
+    aflossing=100
+!endif
+maanden=januari,februari,maart,april,mei,juni,juli,augustus,september,oktober,november,december
+b=!randint 2,6
+c=!randint 1,12
+!if $c=$b
+    c=$[$b+3]
+!endif
+maand1=!item $b of $maanden
+maand2=!item $c of $maanden
+rounding=1
+checkfile=exos/precheck1.proc
+
+ss=$bank verstrekt 1 $maand1 $jaar1 een $rente % onderhandse lening ter grootte van &euro; $lening .<br />Elk jaar, te beginnen in $[$jaar1+1] , ontvangt $bank op 1 $maand1 een aflossing van &euro; $aflossing .<br />De interestbetaling van de lening gebeurt achteraf op 1 $maand1 van elk jaar.<br />Maandelijks stelt $bank een balans en een winst- en verliesrekening op.
+
+roundingtext=geef je antwoorden in hele &euro;
+
+helptext=$roundingtext
+
+!if $R=1
+    ex=Bereken de grootte van de schuldrest op 1 $maand2 $jaar2
+    !if $c<$b
+	answer$n=$[$lening-(($d-1)*$aflossing)]
+	af=$[$d-1]
+    !else
+	answer$n=$[$lening-($d*$aflossing)]
+	af=$d
+    !endif
+    textanswer$n=Op 1 $maand2 $jaar2 zijn er $af aflossingen geweest,<br />zodat de schuldrest bedraagt: &euro; $lening &minus; $af &times; &euro; $aflossing = &euro; $(answer$n) 
+    description=Schuldrest
+!else
+    !if $R=2
+	maand3=!item $[$b-1] of $maanden
+	ex=Bereken de interestopbrengst voor $maand3 $jaar2
+	ans=$[$lening-(($d-1)*$aflossing)]
+	af=$[$d-1]
+	answer$n=$[($ans*$rente/1200)]
+	textanswer$n=Op 1 $maand3 $jaar2 zijn er $af aflossingen geweest,<br />zodat de schuldrest bedraagt: &euro; $lening &minus; $af &times; &euro; $aflossing = &euro; $ans <br />De interestopbrengst voor $maand3 $jaar2 is dan $[$rente/100] &times; $ans &divide; 12 = &euro; $[round($(answer$n))]
+	description=Interestopbrengst
+    !else
+	ex=Bereken het bedrag aan interest en aflossing dat $bank op 1 $maand1 $jaar2 ontvangt.
+	af=$[$jaar2-$jaar1-1]
+	ans=$[$lening-($af*$aflossing)]
+	answer$n=$[($rente/100)*$ans+$aflossing]
+	textanswer$n=Op 1 $maand1 $jaar2 wordt $[$rente/100] &times; $ans = $[$ans*$rente/100] interest en $aflossing aflossing ontvangen.<br />totaal dus &euro; $[round($(answer$n))]
+	description=Interest &amp; aflossing
+    !endif
+!endif
+make_tr=1
+inputs=1.1
+ex1=&euro;
+question$n=<a onmouseover="return escape('$roundingtext')">$ss<br />$ex</a>

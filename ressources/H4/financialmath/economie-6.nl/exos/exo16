@@ -1,0 +1,93 @@
+#:15 Balans, winst- en verliesrekening II (spreadsheet applet) [ domein E ]
+# GEEN STEPS
+n=$counter
+mathview=0
+calculator=1
+inputs=0
+make_tr=1
+checkfile=exos/checkfile5.proc
+answer$n=1
+image=0
+math=0
+
+omzet=!randint 300,1300
+inkopen=!randint 150,$[$omzet-100]
+loonkosten=!randint 100,$[$omzet-150]
+overigekosten=!randint 25,100
+
+totaal=$[$inkopen+$loonkosten+$overigekosten]
+diff=$[$omzet - ($totaal)] 
+!if $diff>0
+    winst=$diff
+    verlies=null
+    totaal=$omzet
+!else
+    verlies=$[abs($diff)]
+    winst=null
+!endif
+
+
+var8=!subst kosten,onkosten\
+$inkopen,inkopen,inkoop,ink\
+$loonkosten,loonkosten,loon,salaris,sala\
+$overigekosten,overigekosten,overigen,divers,misc\
+$winst,winst,profit,profijt,credit,marge\
+$totaal,totaal,total,tot,sum,som
+
+var7=!subst opbrengsten,baten\
+$omzet,omzet,verkoop,verhandeld,handel\
+$verlies,verlies,loss,debet\
+$totaal,totaal,total,tot,sum,som
+
+
+
+# geen spaties: werewr@ @4355@ ewrw @ 45
+!if $wims_user=supervisor
+
+head=!subst KOSTEN@@OPBRENGSTEN@\
+Inkopen@$inkopen@Omzet@$omzet\
+Loonkosten@$loonkosten@@\
+Overige kosten@$overigekosten@@\
+Winst@$winst@Verlies@$verlies\
+@@@\
+totaal@=SUM(B1:B5)@totaal@=SUM(D1:D5) 
+
+!else
+
+head=KOSTEN@@OPBRENGSTEN@\
+@@@\
+@@@\
+@@@\
+@@@\
+@@@\
+@@@\
+Winst@@Verlies@\
+Totaal@=SUM(B1:B8)@Totaal@=SUM(D1:D8) 
+
+
+!endif
+
+
+
+myname=data.$n
+tsv=!translate '@' to '\t' in $head
+!filewrite getfile/$myname $tsv
+
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+total_exos=1
+
+ss=<a onmouseover="return escape('$helptext')">Stel met behulp van de onderstaande</a> gegeven de resultatenrekening in "scontrovorm" samen.<br />De bedragen zijn in duizenden euro's <br /><table class="default_table"><tr><td>Inkopen</td><td>&euro;$inkopen</td></tr><tr><td>Omzet</td><td>&euro;$omzet</td></tr><tr><td>Loonkosten</td><td>&euro;$loonkosten</td></tr><tr><td>Overige kosten</td><td>&euro;$overigekosten</td></tr></table>
+
+helptext=Klik op de &rsquo;pijl&rsquo; om de applet zichtbaar te maken<br />Klik op het &rsquo;kruis&rsquo; om de applet zichtbaar te maken...de gegevens worden gewoon bewaard.<br />Gebruik de knop rechts bovenin de applet om het spreadsheet naar WIMS ter controle te sturen...<br />
+question$n=$ss
+
+exotext=<object id="SharpTools" width="120" height="32 "classid="java:SharpTools/MainApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="SharpTools.jar" /><param name="java_code" value="SharpTools/MainApplet" /><param name="file" value="$myfile"/><param name="language" value="$taal"/><param name="X_screen_location" value="0"/><param name="Y_screen_location" value="0"/><param name="window_width" value="860"/><param name="window_height" value="300"/><param name="empty_cell" value="null"/><param name="FIRSTCOLUMNWIDTH" value="1"/><param name="COLUMNS" value="4"/><param name="ROWS" value="13"/><param name="replyurl" value="$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n="/><param name="reply_type" value="1"/><param name="convert_initial_tsv_to_matrix" value="0"/><param name="fontsize" value="16"/><param name="TOOLBAR_NEW" value="true"/><param name="TOOLBAR_PRINT" value="true"/><param name="TOOLBAR_UNDO" value="true"/><param name="TOOLBAR_REDO" value="true"/><param name="TOOLBAR_CUT" value="true"/><param name="TOOLBAR_COPY" value="true"/><param name="TOOLBAR_PASTE" value="true"/><param name="TOOLBAR_FIND" value="true"/><param name="TOOLBAR_INSERTROW" value="true"/><param name="TOOLBAR_INSERTCOLUMN" value="true"/><param name="TOOLBAR_DELETEROW" value="true"/><param name="TOOLBAR_DELETECOLUMN" value="true"/><param name="TOOLBAR_SORTCOLUMN" value="true"/><param name="TOOLBAR_HISTOGRAM" value="true"/><param name="TOOLBAR_HELP" value="true"/><param name="TOOLBAR_FUNCTIONS" value="true"/>$nojava</object>
+
+
+textanswer$n=<table class="balans_2"><caption>Resultaten rekening in "scontrovorm"</caption><tr><td><b>KOSTEN</b></td><td>&nbsp;</td><td><b>OPBRENGSTEN</b></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Inkopen</td><td>&euro; $inkopen</td><td>Omzet</td><td>$omzet</td></tr><tr><td>Loonkosten</td><td>&euro; $loonkosten</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Overige kosten</td><td>&euro; $overigekosten</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Winst</td><td>&euro; $winst</td><td>Verlies</td><td>&euro; $verlies</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Totaal</td><td>&euro; $totaal</td><td>Totaal</td><td>&euro; $totaal</td></tr></table>
+
+
+#replytype:
+<!-- 0 = matrix  ["1","2","3";"a","b","c"] note: "" string protection for pari evaluation -->\
+<!-- 1 = csv 1,2,3 \n a,b,c  note : no string protection -->\
+<!-- 2 = tsv 1 \t 2 \t 3 \n a \t b \t c  note : no string protection -->\

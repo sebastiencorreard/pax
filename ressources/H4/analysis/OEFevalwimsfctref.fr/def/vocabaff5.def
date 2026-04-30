@@ -1,0 +1,157 @@
+!set title=Vocabulaire des fonctions affines 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!makelist x,-x for x=1 to 20
+
+val6=$(tmp0)
+tmp0=!shuffle 40
+
+val7=$(tmp0)
+val8=$[rint($(val6[$(val7[1])]))]
+val9=$[rint($(val6[$(val7[2])]))]
+val10=$[rint($(val6[$(val7[3])]))]
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 1, 7
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val11=!exec pari print($t_)
+tmp0=!randint 1, 9
+
+tmp1=!randitem 1,-1
+
+tmp2=!randint 1, 7
+
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp3)
+val12=!exec pari print($t_)
+t_=!rawmath $val11*$val8+$val12
+val13=!exec pari print($t_)
+t_=!rawmath $val11*$val9+$val12
+val14=!exec pari print($t_)
+t_=!rawmath $val11*$val10+$val12
+val15=!exec pari print($t_)
+
+!ifval $val12=0
+tmp0=!texmath $val11*x
+
+val16=$(tmp0)
+!else
+tmp1=!texmath $val11*x+$val12
+
+val16=$(tmp1)
+!endif
+tmp0=!randint 1, 3
+
+val17=$[rint($(tmp0))]
+
+!ifval $val17=3
+t_=!rawmath 0
+val11=!exec pari print($t_)
+!endif
+
+!ifval $val11>0
+val18=$[rint(1)]
+!else
+val18=$[rint(2)]
+!endif
+
+!ifval $val11=0
+val18=$[rint(3)]
+!endif
+
+!ifval $val11=0
+tmp0=!texmath $val12
+
+val16=$(tmp0)
+!else
+tmp1=!texmath $val11*x+$val12
+
+val16=$(tmp1)
+!endif
+replytype1=radio
+replyname1=sens
+replygood1=$val18;Strictement croissante,Strictement décroissante,Constante
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  On considère une fonction affine d'expression algébrique	<div class="wimscenter"> 
+!insmath f(x)=$val16
+$() </div>	<p>	  Déterminer son sens de variation.	</p>	 
+!read oef/embed.phtml reply1 
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16
+embedcnt=1

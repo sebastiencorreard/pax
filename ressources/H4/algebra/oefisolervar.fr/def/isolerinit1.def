@@ -1,0 +1,133 @@
+!set title=Isoler 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Groupe, MutuWIMS
+email=communaute.mutuwims@laposte.net
+language=fr
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=X
+tmp=!trim U/R, I, U, R*I,  R, U/I	     L, 2*pi*R, R,L/(2*pi), R, L/(2*pi)	     E,P*t,P,E/t,t,E/P	     v,d/t,d,v*t,t,d/v	     F,m*a,m,F/a,a,F/m	  
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!itemcnt $val8
+
+val9=$[rint($(tmp0)/2-1)]
+tmp0=!texmath $(val8[1]) = $(val8[2])
+
+val10=$(tmp0)
+tmp0=!randint 1, $val9
+
+val11=$(tmp0)
+val12=$(val8[2*$val11+1])
+val13=$(val8[2*$val11+2])
+val6=Pour être sûr que votre réponse soit bien interprétée par le logiciel, indiquez les signes de multiplication 	  par le caractère " * ".
+!if pi isin $val13 
+val6=$val6 <br>Tapez <b>pi</b> pour \( \pi \).
+!endif
+tmp0=!replace internal | by , in $val13
+
+val13=$(tmp0)
+tmp=!nonempty items Isoler la variable \($val12\) dans l'équation suivante,Ecrire la variable \($val12\) en fonction des autres variables de l'équation suivante
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+val15=Réponse
+tmp0=!texmath $val13
+
+val16=$val12=$(tmp0)
+replytype1=formal
+replyname1=\($val12=\)
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val14 : \($val10\) \newline $val15 : ................ \end{statement} \begin{solution} \($val16\) \end{solution}
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val14 :	<div class="wimscenter">	
+!insmath $val10
+$()	</div>	<div class="wims_question">	$val15 : <label for="reply1">
+!insmath $val12=
+$()</label> 
+!read oef/embed.phtml r1 
+$()	</div>	
+!if $val6 notsametext X 
+$()<div class=wims_instruction>$val6</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() 
+!insmath  $val16 
+$() 
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val14 : 
+!insmath $val10
+$() $m_newline $val15 : ................ $m_end{statement} $m_begin{solution} 
+!insmath $val16
+$() $m_end{solution}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,12,14,15,16
+embedcnt=1

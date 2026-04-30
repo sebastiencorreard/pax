@@ -1,0 +1,140 @@
+#FIFO,LIFO en VVP
+n=$counter
+g=!randint 1,10
+logo=<img src="$module_dir/gifs/lifo$g.jpg" alt="lifo.fifo" />
+logotext=<img src=\'$module_dir/gifs/lifo$g.jpg\' alt=\'lifo.fifo\' />
+
+!if $counter=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    mathview=0
+    make_tr=1
+    inputs=2
+    ex1=&euro;
+    ex2=&euro;
+    checkfile=exos/precheck2.proc
+    # geen steps, wel zelfde verhaaltje & tabel met data
+    viewlogo=1
+    rounding=Geef je antwoord op hele &euro;&rsquo; nauwkeurig
+    rounding=1
+    helptext=$roundingtext
+    nu=!date +%Y
+    maand=!randitem februari,maart,april,mei,juni,juli,augustus,september,oktober,november
+    datum1=1
+    datum2=5
+    datum3=7
+    datum4=10
+    d=!randint 0,19
+    datum1=$[$datum1+$d]
+    datum2=$[$datum2+$d]
+    datum3=$[$datum3+$d]
+    datum4=$[$datum4+$d]
+    # vaste verkoopprijs *10
+    # 3 tot 25 euro/kg
+    vvp=!randint 30,250
+    vvp=50
+    delta=10
+    
+    getallen=$empty
+    !for p=1 to 15
+	k=!randint 50,100
+	getallen=!append item $k to $getallen
+    !next p
+    getallen=!sort numeric item of $getallen
+    getallen=!listuniq $getallen
+    # verkopen op datum4 : kg4 kleiner dan kg2,kg3 : kg4>kg1 
+    # kg1 < kg4 < kg3/kg2
+    kg1=!item 1 of $getallen
+    kg4=!item 2 of $getallen
+    t1=!item -1 of $getallen
+    t2=!item -2 of $getallen
+    gt=!shuffle $t1,$t2
+    kg2=!item 1 of $gt
+    kg3=!item 2 of $gt
+    # voorraad op datum1
+    prijs1=$vvp
+    # inkopen op datum2
+    prijs2=!randint $[$vvp-$delta],$[$vvp+$delta]
+    !if $prijs1=$prijs2
+	prijs2=$[$prijs1+1]
+    !endif
+    # inkopen op datum3
+    prijs3=!randint $[$vvp-$delta],$[$vvp+$delta]
+    !if $prijs3=$prijs1
+	prijs3=$[$prijs3-1]
+    !endif
+    # deze prijs is hoger dan de inkoopprijzen
+    max_inkoop=$[max($prijs2,$prijs3)]
+    prijs4=!randint $[$max_inkoop+$delta],$[$max_inkoop+3*$delta]
+    
+    eenheid=!randitem kg,liter
+    totprijs=!exec moneyprint $[$prijs1/10],$[$prijs2/10],$[$prijs3/10],$[$prijs4/10]
+    !for p=1 to 4
+	prijs$p=!item $p of $totprijs
+    !next p
+    kg1=$[$kg1*100]
+    kg2=$[$kg2*100]
+    kg3=$[$kg3*100]
+    kg4=$[$kg4*100]
+    # kg4 > kg1 !!!!
+
+    bedrijf=!randitem Vertigo Chemical Specialities,Hadjema Manufacturing BV,Vriesekamp Textile Services NV,Agio Coatings BV,Ritsma Agri Chemicals NV,Berg Chemicals NV,HaGeBo BV,Zeepfabriek Wienke BV   
+    
+    ss=De industi&euml;le onderneming <kbd>$bedrijf</kbd> heeft de <span class="schaersvoorde_link">volgende gegevens</span> <br />verzameld over de maand $maand
+    
+    mousetxt=<ul><li>$datum1 $maand voorraad $kg1 $eenheid &agrave; &euro; $prijs1 per $eenheid<br />dit is tevens de <b>v</b>aste <b>v</b>erreken <b>p</b>rijs (vvp)</li><li>$datum2 $maand ingekocht en ontvangen $kg2 $eenheid &agrave; &euro; $prijs2 per $eenheid</li><li>$datum3 $maand ingekocht en ontvangen $kg3 $eenheid &agrave; &euro; $prijs3 per $eenheid</li><li>$datum4 $maand verkocht $kg4 $eenheid tegen een verkoopprijs van &euro; $prijs4</li></ul>
+    
+        
+    #LIFO
+    ans1=$[$kg4*$prijs4 - $kg4*$prijs3]
+    ans2=$[$kg1*$prijs1 + $kg2*$prijs2 + ($kg3 - $kg4)*$prijs3]
+    #FIFO
+    ans3=$[$kg4*$prijs4  - $kg1*$prijs1 - ($kg4 - $kg1)*$prijs2]
+    ans4=$[($kg2 - ($kg4 - $kg1))*$prijs2 + $kg3*$prijs3]
+    #VVP
+    ans5=$[$kg4*$prijs4 - $kg4*$prijs1]
+    ans6=$[(($kg1+$kg2+$kg3) - $kg4)*$prijs1]
+
+    answer1=$ans1\
+    $ans2
+    
+    answer2=$ans3\
+    $ans4
+    
+    answer3=$ans5\
+    $ans6
+    
+    # new_number.proc
+    # +/1 1 euro
+    var1=1,1
+    # afgerond op integers
+    var2=1,1
+
+    question1=<a onmouseover="return escape('$mousetxt')">$ss</a><ol><li>Bereken de bruttowinst die wordt behaald met de verkoop op $datum4 $maand<br />als wordt gewerkt met het <kbd>LIFO systeem</kbd></li><li>Bereken de waarde van de voorraad na verkoop op $datum4 $maand <br />als wordt gewerkt met het <kbd>LIFO systeem</kbd></li></ol>
+
+    question2=<a onmouseover="return escape('$mousetxt')">$ss</a><ol><li>Bereken de bruttowinst die wordt behaald met de verkoop op $datum4 $maand<br />als wordt gewerkt met het <kbd>FIFO systeem</kbd></li><li>Bereken de waarde van de voorraad na verkoop op $datum4 $maand <br />als wordt gewerkt met het <kbd>FIFO systeem</kbd></li></ol>
+
+    question3=<a onmouseover="return escape('$mousetxt')">$ss</a><ol><li>Bereken de brutowinst die wordt behaald met de verkoop op $datum4 $maand<br />als wordt gewerkt met het systeem volgens de <kbd>VVP</kbd></li><li>Bereken de waarde van de voorraad na verkoop op $datum4 $maand<br /> als wordt gewerkt met het systeem volgens de <kbd>VVP</kbd></li></ol>
+    
+    
+    textanswer1= LIFO betekend <kbd>Last In First Out</kbd><ol> <li>Brutowinst LIFO<ul><li><kbd>Brutowinst = Omzet &minus; Inkoopwaarde van de omzet</kbd></li><li>Bruttowinst = $kg4 $eenheid &times; &euro;$prijs4 &minus; $kg4 $eenheid &times; &euro;$prijs3 = &euro;$ans1</li></ul></li><li>Waarde voorraad LIFO<br />Waarde voorraad = $kg1 $eenheid &times; &euro;$prijs1 + $kg2 $eenheid &times; &euro;$prijs2 + <b>(</b>$kg3 &minus; $kg4 <b>)</b> $eenheid &times; &euro;$prijs3 = &euro;$ans2</li></ol>
+   
+    textanswer2= FIFO betekend <kbd>First In First Out</kbd><ol><li>Brutowinst FIFO<ul><li><kbd>Brutowinst = Omzet &minus; Inkoopwaarde van de omzet</kbd></li><li>Bruttowinst = $kg4 $eenheid &times; &euro;$prijs4 &minus; $kg1 $eenheid &times; &euro;$prijs1 &minus; <b>(</b>$kg3 &minus; $kg4 $eenheid<b>)</b>&times; &euro;$prijs2 = &euro;$ans3</li></ul></li><li>Waarde voorraad FIFO<br />Waarde voorraad = <b>(</b>$kg2 &minus; <b>(</b>$kg4 &minus; $kg1<b>)</b> $eenheid<b>)</b> &times; &euro;$prijs2 + $kg3 $eenheid &times; &euro;$prijs3 = &euro; $ans4</li></ol>
+    
+    textanswer3= VVP betekend dat er wordt gerekend met een <kbd>vaste prijs</kbd>.<br />In dit geval is de VVP &euro;$prijs1 (gegeven)<ol><li>De brutowinst VVP wordt: $kg4 $eenheid &times; &euro;$prijs4 &minus; $kg4 $eenheid &times; &euro;$prijs1 = &euro; $ans5</li><li>De waarde van de voorraad met VVP wordt:<b>((</b>$kg1 + $kg2 + $kg3<b>)</b> &minus; $kg4<b>)</b> $eenheid &times; &euro;$prijs1 = &euro; $ans6 </li></ol>Overzicht:<table class="default_table"><tr><th>&nbsp;</th><th>Brutowinst</th><th>Waarde voorraad</th></tr><tr><th><b>LIFO</b></th><th>&euro; $ans1</th><th>&euro; $ans2</th></tr><tr><th><b>FIFO</b></th><th>&euro; $ans3</th><th>&euro; $ans4</th></tr><tr><th><b>VVP</b></th><th>&euro; $ans5</th><th>&euro; $ans6</th></tr></table>
+    
+    description=Brutowinst met <kbd>LIFO systeem</kbd>,Waarde voorraad met <kbd>LIFO systeem</kbd>
+
+!else
+    !if $counter=2
+	description=Bruttowinst met FIFO systeem,Waarde voorraad met FIFO systeem
+    !else
+	description=Bruttowinst met VVP systeem,Waarde voorraad met VVP systeem
+    !endif
+!endif
+
+
+!exit
+#<select  size="1" id="myinput2" name="myinput2" style="text-align:center;font-size:18px;border:0px;background-color:orange"  ><option value="-1">afname</option><option value="1">toename</option></select>
+

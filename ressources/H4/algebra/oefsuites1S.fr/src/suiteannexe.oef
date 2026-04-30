@@ -1,0 +1,190 @@
+\title{Utilisation d'une suite auxiliaire}
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\text{limlst=convergente,divergente de limite infinie,divergente sans limite}
+\text{lst1txt=croissante, décroissante, majorée,minorée}
+\text{lstrep=la suite semble être croissante,la suite n'est pas croissante,la suite semble être décroissante,la suite n'est pas décroissante,la suite semble être majorée,la suite n'est pas majorée,la suite semble être minorée ,la suite n'est pas minorée,la différence de termes consécutifs semble être constante,la différence de termes consécutifs n'est pas constante,le rapport de termes consécutifs semble être constant,le rapport de termes consécutifs n'est pas constant}
+\text{lstyesno=Oui,Non}
+\integer{a=random(2..10)}
+\integer{b=random(2..5)}
+\integer{c=random(2..10)}
+\integer{d=random(2..10)}
+\integer{sa=random(1,-1)}
+\integer{sb=random(1,-1)}
+\if{\b=\a}
+ {
+## on ne veut pas de raison à 1 mais n accepte -1
+ \integer{sa=-1}
+ \integer{sb=1}
+ }
+\integer{sc=random(1,-1)}
+\integer{sd=random(1,-1)}
+\text{tsa=\sa=1?+:-}
+\text{tsb=\sb=1?+:-}
+\text{tsc=\sc=1?+:-}
+\text{tsd=\sd=1?+:-}
+\integer{v0=random(1..10)*randint(1,-1)}
+
+## choix du type de relation entre un et vn
+\integer{cas=random(1,2)}
+\integer{cas=1}
+## cas = 1 vn=c/(un+e)
+## cas = 2 vn= c*un+ e
+
+\if{\cas=1}
+{
+\rational{c1=\b / \a }
+\integer{sc1=\sa *(\sb)}
+\rational{c2=\d*\b*(\sa)*(\sb) / \a - (\d)}
+\integer{sc2=\c2>0?\sd:\sd*(-1)}
+\rational{c2=\c2<0?\c2*(-1)}
+
+\text{tc1=\c1}
+\text{tc1=wims(replace internal / by , in \tc1)}
+\text{tc1=items(\tc1)=1?\tc1:\frac{\tc1[1]}{\tc1[2]}}
+\text{tc1=\tc1=1?:\tc1}
+\text{tc1=\tc1=-1?-:\tc1}
+
+\text{tc2=\c2}
+\text{tc2=wims(replace internal / by , in \tc2)}
+\text{tc2=items(\tc2)=1?\tc2:\frac{\tc2[1]}{\tc2[2]}}
+
+\text{signec1=\sc1=-1?-: }
+\text{signec2=\sc2=-1?-:+}
+
+## relation de recurrence pour u
+\text{urecur=\signec1 \tc1 u_n \signec2 \tc2}
+\text{murecur=\signec1 \c1* u_n \signec2 \c2}
+
+## relation donnant vn a partir de un
+\text{relvu=\sc>0?\frac{\c}{u_n \tsd \d}:-\frac{\c}{u_n \tsd \d}}
+\text{mrelvu=\sc>0?\c/ (u_n \tsd \d):-\c / (u_n \tsd \d)}
+\text{relvup=\sc>0?\frac{\c}{u_{n+1} \tsd \d}:-\frac{\c}{u_{n+1} \tsd \d}}
+\text{relvv=wims(replace internal u_{n+1} by \urecur in \relvup)}
+
+
+## relation donnant un a partir de vn
+\text{reluv=\sd>0?-\d \tsc \frac{\c}{v_n}:\d \tsc \frac{\c}{v_n}}
+\text{mreluv=\sd>0?-\d \tsc \c / v_n:\d \tsc \c / v_n}
+
+## relation de recurrence pour v
+\text{vrecur=\sa*\sb>0?\frac{\a}{\b}v_n:-\frac{\a}{\b}v_n}
+\text{mvrecur=\sa*\sb>0?(\a/ \b)*v_n:-(\a / \b)*v_n}
+\text{relvv2=wims(replace internal v_n by (\relvu) in \vrecur)}
+
+## relation donnant vn en fonction de n
+\text{vreln=\sc1>0?\v0 (\frac{\a}{\b})^n: \v0 (-\frac{\a}{\b})^n}
+\text{mvreln=\sc1>0?\v0*(\a /\b)^n: \v0 (-\a / \b)^n}
+
+## relation donnant un en fonction de n
+\text{ssd=\sd<0?:-}
+\text{ureln=\sc1>0?\ssd \d \tsc \frac{\c}{\v0} (\frac{\b}{\a})^n: \ssd \d \tsc \frac{\c}{\v0} (-\frac{\b}{\a})^n}
+\text{mureln=\sc1>0?\ssd \d \tsc \c/(\v0) * (\b /\a)^n: \ssd \d \tsc \c/(\v0)*(-\b / \a)^n}
+
+\rational{u0=evalue(\mreluv,v_n=\v0)}
+\text{relv0=wims(replace internal u_n by \u0 in \relvu)}
+\integer{indl=\b<\a?1:2}
+\integer{indl=(\indl=2 and \sc1<0)?3}
+}
+
+
+\rational{u1=evalue(\murecur,u_n=\u0)}
+\rational{u2=evalue(\murecur,u_n=\u1)}
+\text{mstep=r1,r2,r3,r4
+r5,r6
+r7,r8,r9,r10,r11
+}
+\integer{inddebug=0}
+\if{\inddebug=1}
+{
+\text{trace=\(v_{n+1}=\vrecur)<br>
+\(u_n=\reluv)<br>
+a:\sa \a, b:\sb \b, c: \sc \c, d: \sd \d<p>
+\u1,\u2,\v0,- indl \indl}
+}
+{\text{trace=}}
+
+
+\nextstep{\mstep}
+\text{size=\confparm1=1 ? :large}
+\statement{
+On considère la suite \(u_n) définie par la relation de récurrence
+\(u_{n+1}=\urecur) et de terme initial \(u_0=\u0).<br>
+\if{\step=1}{
+Calculer: <ul><li> <label for="reply1">\(u_1=)</label>\embed{reply1,5}</li>
+<li><label for="reply2">\(u_2=)</label>\embed{reply2,5}</li></ul>
+La suite \(u_n) peut-elle être arithmétique? \embed{reply 3},
+peut-elle être géométrique ? \embed{reply4}
+}{
+\if{\step=2}{
+\(u_0=\u0), \(u_1=\u1), \(u_2=\u2)
+<p>
+Pour justifier que la suite n'est pas <span class="wims_emph">arithmétique</span>,
+sélectionnez la proposition qui vous a permis de conclure.
+</p>
+<div class="wimscenter">\embed{reply5}</div>
+<p>
+Pour justifier que la suite n'est pas <span class="wims_emph">géométrique</span>,
+sélectionnez la proposition qui vous a permis de conclure.
+</p>
+<div class="wimscenter">\embed{reply6}</div>
+  }{
+On définit la suite \(v_n) par la relation:
+<div class="wimscenter">
+\(v_n=\relvu) pour tout \(n \in \NN)</div>
+
+Donner l'expression de \(v_{n+1}) en fonction de \(v_n):
+<label for="reply7">\(v_{n+1}=)</label>\embed{reply7,9}
+
+<div class="wims_instruction">Taper v_n pour \(v_n)</div>
+Calculer \<label for="reply8">(v0=)</label>\embed{reply8,3}
+Puis donner l'expression de \(v_n) en fonction de \(n):
+<label for="reply9">\(v_n=)</label>\embed{reply9,9}
+<p>
+Enfin donner l'expression de \(u_n) en fonction de \(n):
+<label for="reply10">\(u_n=)</label>\embed{reply10}
+</p><p>
+Que peut-on conclure de la suite \((u_n))?:</p>
+</p>
+
+La suite \((u_n)) est:
+\embed{reply11,1} &nbsp;
+\embed{reply11,2}&nbsp;\embed{reply11,3}.
+    }
+  }
+\trace
+}
+
+\answer{u1}{\u1}{type=numeric}
+\answer{u2}{\u2}{type=numeric}
+\answer{arithmétique?}{2;\lstyesno}{type=radio}
+\answer{géométrique?}{2;\lstyesno}{type=radio}
+\answer{pourquoi pas arithmétique?}{10;\lstrep}{type=menu}
+\answer{pourquoi pas géométrique?}{12;\lstrep}{type=menu}
+\answer{rel recurrence pour v}{\mvrecur}{type=formal}
+\answer{v0}{\v0}{type=numeric}
+\answer{rel fonctionnelle pour v}{\mvreln}{type=formal}
+\answer{rel fonctionnelle pour u}{\mureln}{type=formal}
+\answer{limite de \((u_n))}{\indl;\limlst}{type=radio}
+
+\feedback{\step>1}{
+On commence par écrire \(v_{n+1}) en fonction de \(u_{n+1}) en remplaçant \(n)
+par \(n+1) dans la relation donnant \(v_n) en fonction de \(u_n):<br>
+<div class="wimscenter">\(v_{n+1}=\relvup).</div>
+Puis on remplace \(u_{n+1}) par son expression en fonction de \(u_n)
+<div class="wimscenter">
+\(v_{n+1}=\relvv=\relvv2=\vrecur) :
+</div>On reconnait une suite géométrique.
+
+On calcule \(v_0) à partir de \(v_0=\relv0=\v0)
+Ce qui donne, pour la formule générale d'une suite géométrique:\(v_n=\vreln)<p>
+Enfin, on tire \(u_n) en fonction de \(v_n) à partir de \(v_n=\relvu \Leftrightarrow u_n=\reluv\):
+ \(\Leftrightarrow u_n=\ureln)
+</p>
+}

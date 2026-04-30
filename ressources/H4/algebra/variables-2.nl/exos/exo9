@@ -1,0 +1,205 @@
+# Schrijf als 1 breuk (+ -)
+n=$counter
+cols=25
+rows=1
+math=0
+image=0
+embed=1
+helptext=$empty
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+letters=x,y,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+question$n=!record 23 of lang/remarks.$taal
+helptext=<img src=\'$module_dir/gifs/exo9.jpg\' alt=\'noalt\' />
+#@ Schrijf als 1 breuk
+# var1 is used for checking  "literal typing" of question
+!if $mytexsize=0
+    mytexsize=+2
+!endif
+
+!if $R=1
+    getallen=!shuffle 1,2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!item 3 of $getallen
+    d=!item 4 of $getallen
+    keuze=!randitem 1,2,3,4
+    !if $keuze=1
+	var1=1/$x + $a/($x+$b)
+	applettext=!nospace $var1 =
+	formula$n=\frac{1}{$x} +  \frac{$a}{$x+$b} =[?]
+	tussen=\frac{1 \cdot ($x + $b)}{$x \cdot ( $x + $b )} + \frac{$a \cdot $x}{$x \cdot ($x + $b)}
+	answer$n=!rawmath ($[$a+1]*$x+$b)/($x*($x+$b)) 
+	tex=\frac{$[$a+1] \cdot $x + $b}{$x \cdot ($x + $b)}
+    !else
+	!if $keuze=2
+	    var1=1/$x - $a/($x+$b)
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{1}{$x} - \frac{$a}{$x+$b}  =[?]
+	    tussen=\frac{1 \cdot ($x + $b)}{$x \cdot ($x + $b)} - \frac{$a \cdot $x}{$x \cdot ($x + $b)} 
+	    answer$n=!rawmath ($[1-$a]*$x+$b)/($x*($x+$b)) 
+	    tex=\frac{$[1 - $a] \cdot $x + $b}{$x \cdot ($x + $b)}
+	!else
+	    !if $c=1
+		ff=1
+		FF=1
+	    !else
+	        ff=1/$c
+		FF=\frac{1}{$c}
+	    !endif
+	    !if $keuze=3
+		var1=$ff + $a/($x+$b)
+		applettext=!nospace $var1 =
+		formula$n=$FF + \frac{$a}{$x+$b} =[?]
+		tussen=\frac{1 \cdot ( $x + $b)}{$c \cdot ($x + $b)} + \frac{$a \cdot $c}{ $c \cdot ($x + $b)}
+		answer$n=!rawmath ($x+$[$b+$a*$c])/($c*($x+$b))
+		tex=\frac{$x + $[$b+$a*$c]}{$c \cdot ($x + $b)}
+	    !else
+		var1=$ff - $a/($x+$b)
+		applettext=!nospace $var1 =
+		formula$n=$FF - \frac{$a}{$x+$b} =[?] 
+		tussen=\frac{1 \cdot ( $x + $b)}{$c \cdot ($x + $b)} - \frac{$a \cdot $c}{ $c \cdot ($x + $b)}
+		answer$n=!rawmath ($x+$[$b-$a*$c])/($c*($x+$b))
+		tex=\frac{$x + $[$b-$a*$c]}{$c \cdot ($x + $b)}
+	    !endif
+	!endif
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $(formula$n)  \rightarrow \\ $tussen = \\  $tex  \end{array} \right.
+    
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    getallen=!shuffle 1,2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!item 3 of $getallen
+    d=!item 4 of $getallen
+    keuze=!randitem 1,2,3,4
+    !if $keuze=1
+	var1=$a/($x+$b) - $d/$x
+	applettext=!nospace $var1 =
+	formula$n=\frac{$a}{$x+$b} - \frac{$d}{$x} =[?]
+	tussen=\frac{$a \cdot $x }{$x \cdot ($x+$b)} - \frac{$d \cdot ($x + $b)}{$x \cdot ($x + $b)}
+    !else
+	!if $keuze=2
+	    var1=$a/($x-$b) - $d/($x-$c)
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{$a}{$x-$b} - \frac{$d}{$x - $c} =[?]  
+	    tussen=\frac{$a \cdot ($x - $c) }{($x - $b)($x - $c)} - \frac{$d \cdot ($x - $b)}{($x - $b)($x - $c)}
+	!else
+	    !if $keuze=3
+		var1=$a/($x-$b) + $d/($x-$c)
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{$x-$b} + \frac{$d}{$x - $c} =[?]
+		tussen=\frac{$a \cdot ($x - $c)}{($x - $b)($x - $c)} + \frac{$d \cdot ($x -$b)}{($x - $b)($x - $c)}
+	    !else
+		var1=$a/($x-$b) + $d/($x+$c)
+		applettext=!nospace $var1 =
+		formula$n=\frac{$a}{$x-$b} + \frac{$d}{$x + $c} =[?]
+		tussen=\frac{$a \cdot ($x + $c)}{($x - $b)($x + $c)} + \frac{$d \cdot ($x - $b)}{($x - $b)($x + $c)}
+	    !endif
+	!endif
+    !endif
+    tot=!exec pari A=$var1\
+    printtex(A)
+    
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} $(formula$n)  \rightarrow \\ $tussen = \\ $tex  \end{array} \right.
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	getallen=!shuffle 1,2,3,4,5,6,7,8,9
+        a=!item 1 of $getallen
+        b=!item 2 of $getallen
+        c=!item 3 of $getallen
+        d=!item 4 of $getallen
+        keuze=!randitem 1,2,3,4
+	!if $keuze=1
+	    var1=$a*$x/($x+$b) - $c/$x
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{$a \cdot $x}{$x+$b} - \frac{$c}{$x} =[?]
+	    tussen=\frac{$a \cdot $x \cdot $x}{ $x \cdot ($x + $b)} - \frac{$c \cdot ($x + $b)}{ $x \cdot ($x + $b)}
+	!else
+	    !if $keuze=2
+		var1=($a+$x)/($x-$b) - $d/($x-$c)
+	        applettext=!nospace $var1 =
+		formula$n=\frac{$a + $x}{$x-$b} - \frac{$d}{$x - $c} =[?]
+		tussen=\frac{($a + $x)($x - $c)}{($x - $b)($x - $c)} - \frac{$d \cdot ($x - $b)}{($x - $b)($x - $c)}
+	    !else
+		!if $keuze=3
+		    var1=($a+$x)/($x-$b) + ($d-$x)/($x-$c)
+		    applettext=!nospace $var1 =
+		    formula$n=\frac{$a + $x}{$x - $b} + \frac{$d - $x}{$x - $c} =[?]
+		    tussen=\frac{($a + $x)($x - $c)}{($x - $b)($x - $c)} + \frac{($d - $x)($x - $b)}{($x - $b)($x - $c)}
+		!else
+		    var1=$a*$x/($x-$b) + $d/($x+$c)
+		    applettext=!nospace $var1 =
+		    formula$n=\frac{$a \cdot $x}{$x-$b} + \frac{$d}{$x + $c} =[?]
+		    tussen=\frac{$a \cdot $x \cdot ($x + $c)}{($x - $b)($x + $c)} + \frac{$d \cdot ($x - $b)}{($x - $b)($x + $c)}
+		!endif
+	    !endif
+	!endif
+        tot=!exec pari A=$var1\
+        printtex(A)
+    
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} $(formula$n)  \rightarrow \\ $tussen  = \\ $tex \\  \end{array} \right.
+	varlist=!varlist $(answer$n)
+	wims_rawmath_variables=$varlist
+    !else
+	keuze=!randitem 1,2,3,4
+        b=!randint 2,5
+	!if $keuze=1
+	    var1=$x/($x-$y) + ($x-$y)/($x+$b*$y)
+	    applettext=!nospace $var1 =
+	    formula$n=\frac{$x}{$x-$y} + \frac{$x-$y}{$x+$b$y} =[?]
+	    tussen=\frac{$x \cdot ( $x + $b$y)}{($x - $y)($x + $b$y)} + \frac{($x - $y)($x - $y)}{($x - $y)($x + $b$y)}
+	!else
+	    a=!randitem 2,3,4
+	    !if $keuze=2
+		var1=$x/($x-$y) - ($x-$y)/($x+$b*$y)
+	        applettext=!nospace $var1 =
+		formula$n=\frac{$x}{$x-$y} - \frac{$x-$y}{$x+$b$y} =[?]
+		tussen=\frac{$x \cdot ( $x + $b$y)}{($x - $y)($x + $b$y)} - \frac{($x - $y)($x - $y)}{($x - $y)($x + $b$y)}
+	    !else
+		!if $keuze=3
+		    var1=$a*$x/($x-$y) + ($x-$y)/($x+$b*$y)
+		    applettext=!nospace $var1 =
+		    formula$n=\frac{$a \cdot $x}{$x-$y} + \frac{$x-$y}{$x+$b$y} =[?]  
+		    tussen=\frac{$a \cdot $x \cdot ( $x + $b$y)}{($x - $y)($x + $b$y)} + \frac{($x - $y)($x - $y)}{($x - $y)($x + $b$y)}
+		!else
+		    var1=$a*$x/($x-$y) - ($x-$y)/($x+$b*$y)
+		    applettext=!nospace $var1 =
+		    formula$n=\frac{$a \cdot $x}{$x-$y} - \frac{$x-$y}{$x+$b$y} =[?]  
+		    tussen=\frac{$a \cdot $x \cdot ( $x + $b$y)}{($x - $y)($x + $b$y)} - \frac{($x - $y)($x - $y)}{($x - $y)($x + $b$y)}
+		!endif
+	    !endif
+	!endif
+	answer$n=!exec maxima ratsimp($var1);
+	tex=!texmath $(answer$n)
+	texanswer$n=\left[ \begin{array}{l}  $(formula$n) \rightarrow  \\ $tussen  = \\ $tex  \end{array} \right.
+	varlist=!varlist $(answer$n)
+	wims_rawmath_variables=$varlist
+    !endif
+!endif
+!exit

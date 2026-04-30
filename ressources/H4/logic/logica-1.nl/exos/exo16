@@ -1,0 +1,95 @@
+# regel 1 tekst
+# regel 2 afkoringen voor in't venndiagram
+# regel 3 nakijk voorwaarden
+# regel 4 plaatje
+# regel 5 vereiste aantal cirkels
+n=$counter
+mathview=0
+applet=0
+javascript=js/verzameling.js
+questiontype=7
+checkfile=$checkdir/new_number.proc
+inputs=yes
+make_tr=1
+
+xsize=400
+ysize=400
+
+m0=1
+m1=10
+
+num=!randint  5,10
+A=$empty
+B=$empty
+E=$empty
+!for p=1 to $num
+ a=!randint $m0,$m1
+ b=!randint $m0,$m1
+ A=!append item $a to $A
+ B=!append item $b to $B
+!next p
+A=!listuniq $A
+B=!listuniq $B
+C=!listintersect $A and $B
+D=!listunion $A and $B
+
+ss=Gegeven de verzamelingen A={$A} en B={$B}<br />Bepaal de doorsnede (de deelverzameling) van beide verzamelingen.
+#<br />C={$C} E={$E}
+
+keuze=!randint 0,1
+keuze=0
+!if $keuze=0
+ Q=A \intersection  B
+ answer$n=$C
+!else
+ Q= A \union B
+ answer$n=$D
+!endif
+in=\input{5}{0}{color:red;background-color:yellow;text-align:center;}{}{0}
+exotext=!mathmlmath  \left\{ \begin{array}{l} A = \{ $A \} \\ B = \{ $B \} \\ C = $Q  \end{array}\right. \rightarrow  \begin{array}{l} \; \\  C =  \left\{   \;\;  $in \;\; \right\} \\ \; \end{array} 
+texanswer$n=\left\{ \begin{array}{l} \color{blue}A = \{ $A \} \\ \color{blue} B = \{ $B \} \\ \color{red} \textrm{Deelverzameling }\; C:\;  x\in A \cap B \Leftrightarrow x\in A \wedge x \in B \\  C = $Q = \{ $(answer$n) \} \end{array}\right.
+
+points1=$empty
+points2=$empty
+points3=$empty
+
+x1=-2
+x2=4
+x3=10
+yc=$[ceil(0.5*($m1-$m0))]
+rc=$[$m1-$m0]
+found=0
+!for p in $A,$B
+ !if $p isitemof $(answer$n)
+  points2=!append line string green,$x2,$p,$p to $points2
+  found=1
+ !else
+  !if $p isitemof $A
+   points1=!append line string blue,$x1,$p,$p to $points1
+  !else
+   points3=!append line string blue,$x3,$p,$p to $points3
+  !endif 
+ !endif
+!next p
+
+!if $found=0
+ points2=string red,$x2,$yc,EMPTY
+!endif
+object$n=!exec canvasdraw \
+size 300,300\
+xrange -5,15\
+yrange -5,$[$m1+10]\
+linewidth 2\
+fontfamily 14pt Ariel\
+$points1\
+$points2\
+$points3\
+circles red,$x1,$yc,$rc,$x3,$yc,$rc\
+hatchfill $x2,$yc,10,10,green\
+mouse red,22
+
+
+helptext=Noteer een verzameling als: {1,2,3,4,5}...dus als een komma gescheiden lijst
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+

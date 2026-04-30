@@ -1,0 +1,115 @@
+#:11 Redeneren met formules
+checkfile=$checkdir/number.proc
+var1=yes
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=0
+mathview=0
+inputs=-1
+helptext=$empty
+txt=!record 33 of lang/remarks.$taal
+#@stijgend,dalend,constant,geen idee
+# 1,2,3,0
+
+!if $R=1
+ g=!randint 2,10
+ h=!randint 2,9
+ h=$[0.1*$h]
+ k=!randint 2,50
+ a=!randint 2,999
+ a=$[0.01*$a]
+ b=!randint 1,99
+ d=$[-1*$a]
+ c=!randint 2,15
+ m=!randint 2,9
+ z=$[0.1*$m]
+
+ lijst=$g^{x},1\
+ $h^{x},2\
+ $k\sqrt{x},1\
+ $a\cdot x - $b,1\
+ $d\cdot x + $b,2\
+ x^{$c},1\
+ x^{-$c},2\
+ ^{$m}\log(x),1\
+ ^{$z}\log(x),2
+
+ v=!randint 1,9
+ L=!line $v of $lijst
+ f0=!item 1 of $L
+ f=!mathmlmath f(x) = $f0
+ f1=!mathmlmath $f0
+ answer$n=!item 2 of $L
+ s0=<select size="1" id="myinput0" style="text-align:center;font-size:1.0em;border:0px;background-color:lightgreen"><option value="1">$(txt[1])</option><option value="2">$(txt[2])</option><option value="3">$(txt[3])</option><option value="0">$(txt[4])</option></select>
+
+
+rem_1=!record 34 of lang/remarks.$taal
+#@Als <em>x</em> toeneemt, dan is $f1 &nbsp;dus&nbsp; $s0 
+rem_2=!record 35 of lang/remarks.$taal
+#@Als <em>x</em> toeneemt, dan is $f1 &nbsp;dus&nbsp; $(txt[$(answer$n)])
+exotext=<ul><li>$rem_1</li></ul>
+textanswer$n= <ul><li>$rem_2</li></ul>
+
+!else
+ g1=!randint 2,9
+ g2=$[0.1*$g1]
+ a1=!randint 2,15
+ b1=!randint 3,15
+ a2=$[-1*$a1]
+ k1=!randint 2,25
+ k2=$[-1*$k1]
+ m1=!randint 2,9
+ m2=$[0.1*$m1]
+ 
+ lijst=$g1^{$a1 x + $b1},$g1^{x},$a1 x + $b1,1,1,1\
+ $g1^{$a2 x + $b1},$g1^{x},$a2 x + $b1,2,1,2\
+ ($g2)^{$a1 x + $b1},($g2)^{x},$a1 x + $b1,2,2,1\
+ ($g2)^{$a2 x + $b1},($g2)^{x},$a2 x + $b1,1,2,2\
+ $k1\sqrt{$a1 x + $b1 },$k1\sqrt{x},$a1 x + $b1,1,1,1\
+ $k2\sqrt{$a1 x + $b1 },$k2\sqrt{x},$a1 x + $b1,2,2,1\
+ $k1\sqrt{$a2 x + $b1 },$k1\sqrt{x},$a2 x + $b1,2,1,2\
+ $k2\sqrt{$a2 x + $b1 },$k2\sqrt{x},$a2 x + $b1,1,2,2\
+ ^{$m1}\log($a1 x + $b1),^{$m1}\log(x),$a1 x + $b1,1,1,1\
+ ^{$m1}\log($a2 x + $b1),^{$m1}\log(x),$a2 x + $b1,2,1,2\
+ ^{$m2}\log($a1 x + $b1),^{$m2}\log(x),$a1 x + $b1,2,2,1\
+ ^{$m2}\log($a2 x + $b1),^{$m2}\log(x),$a2 x + $b1,1,2,2
+
+ v=!randint 1,12
+ L=!line $v of $lijst
+ f0=!item 1 of $L
+ f=!mathmlmath f(x) = $f0
+ f1=!item 2 of $L
+ f1=!mathmlmath $f1
+ f2=!item 3 of $L
+ f2=!mathmlmath $f2
+ 
+ ans1=!item 5 of $L
+ ans2=!item 6 of $L
+ ans3=!item 4 of $L
+ answer$n=$ans1,$ans2,$ans3
+ #f=!mathmlmath f(x) = ^{$g}\log\left($a x + $b \right) 
+#f1=!mathmlmath ^{$g}\log(x)
+ #f2=!mathmlmath $a x + $b
+!for p=1 to 3
+ s$p=<select size="1" id="myinput$[$p-1]" style="text-align:center;font-size:1.0em;border:0px;background-color:lightgreen"><option value="1">$(txt[1])</option><option value="2">$(txt[2])</option><option value="3">$(txt[3])</option><option value="0">$(txt[4])</option></select>
+!next p
+
+ rem_1=!record 36 of lang/remarks.$taal
+ #@<ul><li>Als <em>x</em> toeneemt, dan is $f1&nbsp;dus&nbsp;  $s1 </li><li>Als <em>x</em> toeneemt, dan is $f2&nbsp;dus&nbsp;  $s2</li><li>Bij toenemende <em>x</em> is $f&nbsp;dus&nbsp;  $s3</ul>
+ rem_2=!record 37 of lang/remarks.$taal
+ #@<ul><li>Als <em>x</em> toeneemt, dan is $f1&nbsp;dus&nbsp;  $(txt[$ans1]) </li>\<li>Als <em>x</em> toeneemt, dan is $f2&nbsp;dus&nbsp;  $(txt[$ans2])</li>\<li>Bij toenemende <em>x</em> is $f&nbsp;dus&nbsp;  $(txt[$ans3])</li></ul>
+
+ exotext=$rem_1
+ textanswer$n=$rem_2
+
+!endif
+
+question$n=!record 38 of lang/remarks.$taal
+#@Gegeven is de formule $f.<br />Beredeneer ahv de volgende stappen of de grafiek van <em>f</em> stijgt of daalt.

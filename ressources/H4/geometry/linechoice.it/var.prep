@@ -1,0 +1,78 @@
+
+alist=2,3,2,3,4,4,3,5,5,7,7,9
+blist=3,5,5,7,7,9,2,3,2,3,4,4
+len=!itemcnt $alist
+n=!randint 1,$len
+a=!item $n of $alist
+b=!item $n of $blist
+c1=!randint 1,3
+c2=!randint 1,3
+signa=!randitem 1,-1
+signb=!randitem 1,-1
+signc=!randitem 1,-1
+c1=$[$signc*$c1]
+c2=$[(-1)*($signa)*($signb)*($signc)*$c2]
+a=$[$signa*$a]
+b=$[$signb*$b]
+c=$[$c1*($b)-($c2)*($a)]
+ba=$[round(1000*($b)/($a))/1000]
+ab=$[round(1000*($a)/($b))/1000]
+ca=$[round(1000*($c)/($a))/1000]
+cb=$[round(1000*($c)/($b))/1000]
+
+s=!items2words $style
+ex=!text remove $s in 1345
+n=!charcnt $s
+sh=!shuffle $n
+s=!char $sh of $s
+sh=!shuffle 5-$n
+ex=!char $sh of $ex
+!if $type=1
+  !distribute chars 2$s$ex into givtype,asktype
+!endif
+!if $type=2
+  !distribute chars 2$s$ex into asktype,givtype
+!endif
+!if $type=3
+  !distribute chars $s$ex into givtype,asktype
+!endif
+
+alist =$a, -$a,  $a, -$a, $b, -$b,  $b, -$b
+blist =$b,  $b, -$b, -$b, $a,  $a, -$a, -$a
+c1list=$c1,$c1,-$c1,-$c1,$c2,-$c2, $c2,-$c2
+c2list=$c2,-$c2,$c2,-$c2,$c1, $c1,-$c1,-$c1
+clist =$c, -$c, -$c,  $c, $c,  $c,  $c,  $c
+balist=$ba,-$ba,-$ba,$ba,$ab,-$ab,-$ab, $ab
+ablist=$ab,-$ab,-$ab,$ab,$ba,-$ba,-$ba, $ba
+calist=$ca,$ca,-$ca,-$ca,$cb,-$cb, $cb,-$cb
+cblist=$cb,-$cb,$cb,-$cb,$ca, $ca,-$ca,-$ca
+
+!if $miss=yes
+  asklist=!shuffle 8
+  asklist=!item 1 to $askcnt of $asklist
+!else
+  l=!shuffle 7
+  l=!items $l of 2,3,4,5,6,7,8,9
+  l=!items 1 to $askcnt of 1,$l
+  t=!shuffle $askcnt
+  asklist=!items $t of $l
+!endif
+
+!distribute chars $ into a_list,b_list,c_list,c1_list,c2_list,ab_list,ba_list,ca_list,cb_list
+!for i=1 to $askcnt
+  ask=!item $i of $asklist
+  !for j in a,b,c,c1,c2,ab,ba,ca,cb
+    t_=!item $ask of $($(j)list)
+    $(j)_list=!append item $[$t_] to $($(j)_list)
+  !next j
+!next i
+
+prop=$[randint(100)/100+1.3]
+range=$[max(abs($ca),abs($cb))*$prop]
+size=0.5
+!if $asktype=2
+  size=0.275
+!endif
+
+status=waiting
+

@@ -1,0 +1,134 @@
+!set title=Sistema 3x3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/matrix/non0 3,3,10 
+tmp0=$slib_out
+val6=$(tmp0)
+t_=!replace internal \( by ( in [$val6]*[x;y;z]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 10
+
+tmp1=!randint 1, 10
+
+tmp2=!randint 1, 10
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2)
+val8=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in [$val6]*[$val8]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in $(val7[1;1])
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val7[2;1])
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val7[3;1])
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+replytype1=default
+replyname1=x
+replygood1=$(val8[1;1])
+replytype2=default
+replyname2=y
+replygood2=$(val8[2;1])
+replytype3=default
+replyname3=z
+replygood3=$(val8[3;1])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Risolvere il sistema seguente:	<table class="wimscenter wimsnoborder">	<tr> <td> 
+!insmath $val10
+$() </td> <td> 
+!insmath =
+$() </td> <td> 
+!insmath $(val9[1;1])
+$()</td></tr>	<tr> <td> 
+!insmath $val11
+$() </td> <td> 
+!insmath =
+$() </td> <td> 
+!insmath $(val9[2;1])
+$()</td></tr>	<tr> <td> 
+!insmath $val12
+$() </td> <td> 
+!insmath =
+$() </td> <td> 
+!insmath $(val9[3;1])
+$()</td></tr>	</table>	<span class="bold">Istruzioni:</span> Le soluzioni sono numeri interi.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,12
+embedcnt=0

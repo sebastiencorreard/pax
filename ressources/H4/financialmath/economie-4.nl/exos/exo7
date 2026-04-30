@@ -1,0 +1,81 @@
+#spaarhypotheek
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+inputs=-1
+questiontype=0
+var1=yes
+checkfile=$checkdir/number.proc
+
+num=!randitem 78,79
+
+jaar=!randint 10,15
+jaar=$[2*$jaar]
+perc1=!randint 40,80
+perc1=$[$perc1/10]
+perc2=!randint 10,20
+perc2=$[2*$perc2]
+aflossing=$[$perc2*$lening]
+#perc3=!randint 30,50
+#perc3=$[$perc3/10000]
+maandlast=!randint 30,50
+maandlast= $[20*$maandlast]
+perc3=!randint 70,80
+lening=$[$perc3/100*$jaar*12*$maandlast]
+#lening=$[$maandlast/$perc3]
+lening=$[1000*(round($lening/1000))]
+
+namen=!record $num of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+ss=$naam sluit een spaarhypotheek.<br />De lening bedraagt &euro; $lening .De looptijd is $jaar jaar.<br />De interest is vastgesteld op $perc1 %. <br />Het belastingvoordeel is $perc2 %<br />Bereken de ontbrekende waarden (op jaarbasis) in de tabel.
+
+interest=$[$lening*$perc1/100]
+belastingvoordeel=$[$interest*$perc2/100]
+spaarpremie=$[12*$maandlast - $lening*($perc1*(100-$perc2))/10000]
+!if $spaarpremie<1
+# correctie mbt negatieve spaarpremie 18/1/2011
+    smokkel=$[round($lening*($perc1*(100-$perc2))/100000)]
+    maandlast=$[$maandlast+$smokkel]
+    spaarpremie=$[12*$maandlast - $lening*($perc1*(100-$perc2))/10000]
+!endif
+tot=!exec moneyprint $maandlast,$spaarpremie,$interest,$belastingvoordeel
+maandlast=$(tot[1])
+spaarpremie=$(tot[2])
+interest=$(tot[3])
+belastingvoordeel=$(tot[4])
+
+answer$n=$spaarpremie,$interest,$belastingvoordeel
+
+var2=Spaarpremie,Interest,Belastingvoordeel
+tabel=<table class="default_table"><tr><th>Schuld 1 januari</th><th>Spaarpremie</th><th>Interest $perc1 %</th><th>Belastingvoordeel</th><th>Netto maandlast</th></tr>
+
+tabel=!append line <td>&euro; $lening</td> to $tabel
+ans_tabel=$tabel
+
+c=0
+!for p=1 to 3
+    ans=!item $p of $(answer$n) 
+    input = <input type="text" id="myinput$c" size="6" class="schaersvoorde_input" value=""/> 
+    input_ans = <input type="text" id="myinput$c" size="6" class="schaersvoorde_input" value="&euro; $ans" readonly="readonly"/> 
+    !increase c
+    tabel=!append word <td>&euro; $input</td> to $tabel
+    ans_tabel=!append word <td>$input_ans</td> to $ans_tabel
+!next p
+
+tabel=!append word <td>&euro; $maandlast</td></tr></table> to $tabel
+ans_tabel=!append word <td >&euro; $maandlast</td></tr></table> to $ans_tabel
+roundingtext=Rond je antwoord af op hele &euro;&rsquo;s
+rounding=1
+question$n =<a onmouseover="return escape('$roundingtext')">$ss </a>
+exotext=$tabel
+helptext=
+
+htext=<ul><li>De spaarpremie : $maandlast &times; 12 &minus; $[$perc1/100]&times;$[(100-$perc2)/100] &times; $lening = &euro; $spaarpremie</li><li>De interest is : $[$perc1/100] &times; $lening = &euro; $interest</li><li>Belasingvoordeel is : $[$perc2/100] &times; $interest = $belastingvoordeel</li></ul>
+textanswer$n=$ans_tabel <br /> $htext
+

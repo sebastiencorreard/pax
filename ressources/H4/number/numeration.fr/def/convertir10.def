@@ -1,0 +1,180 @@
+!set title=Convertir de la base p vers la base 10
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+title_it=Convertire dalla base p alla base 10
+
+ansorder=r,r,r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=20x25x
+tmp=!translate internal $	$ to ; in $val5
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val5
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!item 1 to $val7 of $val8
+
+val8=$(tmp0)
+tmp0=!shuffle 2,3,4,5,6
+
+val9=$(tmp0)
+val10=
+val11=
+val12=
+val13=$[rint(0)]
+!for val14 =1 to $val4 
+tmp0=!randint 1, $val7-1
+
+val15=$[rint($(tmp0))]
+tmp0=!randint $val7^$(val9[$val14]), $val7^($(val9[$val14])+1)
+
+val16=$[rint($(tmp0))]
+!readproc slib/basep $val16,$val8 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!append item $val15 to $val10
+
+val10=$(tmp0)
+!readproc slib/char2item $val16 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!itemcnt $val17
+
+val18=$[rint($(tmp0))]
+tmp0=!append item $val6$val18 to $val12
+
+val12=$(tmp0)
+tmp0=!append line $val17 to $val11
+
+val11=$(tmp0)
+!next
+tmp0=!item 1 to $val4 of r1,r2,r3,r4,r5
+
+val19=$(tmp0)
+tmp0=!randint 0, 2
+
+val13=$[rint($val13+$(tmp0))]
+val20=0,1,2,3,4,5,6,7,8,9
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val21=$(tmp0)
+!if $val21=it 
+val22=In questo esercizio si utilizza la base $val7.
+val23=Base
+val24=Base dieci
+val25=Scrivere in base dieci il numero in tabella.
+val26=Scrivere in base dieci i numeri in tabella:
+val27=numero
+!else
+val22=Dans cet exercice on utilise la base $val7.
+val23=Base
+val24=Base dix
+val25=Ecrire le nombre suivant en base dix?
+val26=Ecrire les nombres suivants en base dix :
+val27=nombre
+!endif
+oefsteps=$val19 
+nextstep=!nosubst $val19 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=$val10 1
+replygood1=$(val11[1;]);$val20
+replytype2=clickfill
+replyname2=$val10 2
+replygood2=$(val11[2;]);$val20
+replytype3=clickfill
+replyname3=$val10 3
+replygood3=$(val11[3;]);$val20
+replytype4=clickfill
+replyname4=$val10 4
+replygood4=$(val11[4;]);$val20
+replytype5=clickfill
+replyname5=$val10 5
+replygood5=$(val11[5;]);$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val22<p>	
+!if $val4=1 
+$()	 $val25	 
+!else
+$() 	 $val26	 
+!endif
+$()	</p>	<table class="wimscenter wimsborder">	 <tr><th>$val23 $val7</th><th>$val24</th></tr>	  
+!for m_k=1 to $val4 
+$()<tr><td>
+!insmath \overline{$(val10[$m_k])}^{$val7}
+$() </td><td>  
+!read oef/embed.phtml r\k,$(val12[$m_k]) 
+$()</td></tr> 
+!next
+$()	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=4,7,10,12,22,23,24,25,26
+embedcnt=1

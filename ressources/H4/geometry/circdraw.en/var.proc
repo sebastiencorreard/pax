@@ -1,0 +1,70 @@
+color1=blue
+color2=red
+
+!if $status notwordof waiting finish
+  !read var.prep
+  !goto draw
+!endif
+
+!if $status=finish and $cmd=reply
+  error=double_reply
+  !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+  jreply=!translate ; to , in $jreply
+  jreply=!nonempty items $jreply
+  !read var.ctest
+  !if $error!=$empty
+    !goto draw
+  !endif
+
+  status=done
+  !if $mean<=$tol1
+    thisscore=10
+  !else
+    !if $mean>$tol2
+      thisscore=0
+    !else
+      thisscore=$[10-10*($mean-$tol1)/($tol2-$tol1)]
+    !endif
+  !endif
+  scoreaccu=$[$scoreaccu+$thisscore]
+  !if $trycnt>=$repeat
+    status=finish
+    module_score=$[rint(10*$scoreaccu/$repeat)/10]
+    wims_module_log=score $module_score
+  !endif
+!endif
+
+:draw
+insdraw_size=$size,$size
+!if $status=waiting
+  !insdraw $drawsrc\
+   linewidth 1
+  img_url=$ins_url
+!else
+  n=!itemcnt $jreply
+  !if $gtype=circle and $n>=3
+    t=!item 1 to 3 of $jreply
+    input=circle $t*2+1,black
+  !endif
+  !if $gtype=polygon and $n>=4
+    input=polygon black,$jreply
+  !endif
+  draw=$drawsrc\
+   linewidth 1\
+   xrange 0,$size\
+   yrange $size,0\
+   $input
+  !insdraw $draw
+  !insdraw $draw\
+   xrange $xrange1,$xrange2\
+   yrange $yrange1,$yrange2\
+   linewidth 2\
+   $gplot
+  animate_delay=50
+  animate_loop=0
+  anim=!exec animate 1 2
+  !exit
+!endif

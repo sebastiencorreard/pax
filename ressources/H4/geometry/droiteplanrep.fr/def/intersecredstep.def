@@ -1,0 +1,393 @@
+!set title=Coordonnées point intersection à étape (eq réduite)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez;Bruno,Mifsud
+email=cyrille.douriez@ac-amiens.fr;communaute.mutuwims@laposte.net
+keywords=line,equations
+computeanswer=yes
+precision=100000000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+val2= 1
+!else
+val2=$val2
+!endif
+tmp0=!randint -5, 8
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -15, 15
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 8
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val7-$val8*$val6)]
+tmp0=!randint -10, -1
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val7-$val10*$val6)]
+t_=!replace internal \( by ( in $val8*x+$val9
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $val10*x+$val11
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+val14=$[rint($val8-$val10)]
+val15=$[rint($val11-$val9)]
+!if $val2=1 
+val16=xrange -20,20	yrange -20,20	hline 0,0,black	vline 0,0,black	parallel -10,-0.5,-10,0.5,20,0,2,black	parallel -0.5,-10,0.5,-10,0,20,2,black	text black , 10,-0.5,small , 10	text black , 1,10,small , 10	text black , 1,-1,small , O	linewidth 1.5
+!readproc oef/draw.phtml 100,100 \
+$val16	plot blue, $val12	plot blue, $val13	 
+tmp0=$ins_url
+val17=$(tmp0)
+val18=plot blue, $val12,$val13
+val19=<img src="$val17" alt="représentation graphique" style="float:right;margin-left:0.5em;margin-right:0.2em;">
+!readproc oef/draw.phtml 100,100 \
+$val16	crosshair $val6,$val7, red	plot blue, $val12	plot blue, $val13	 
+tmp0=$ins_url
+val20=$(tmp0)
+val21=<img src="$val20" alt="représentation graphique" style="float:right;margin-left:0.5em;margin-right:0.2em;">
+!endif
+!if $val8=1 
+val22=x
+!else
+!if $val8=-1 
+val22=-x
+!else
+val22=$val8 x
+!endif
+!endif
+!if $val9=0 
+val23=
+!else
+!if $val9>0 
+val23=+$val9
+!else
+val23=$val9
+!endif
+!endif
+val24=$val22 $val23
+!if $val10=1 
+val25=x
+!else
+!if $val10=-1 
+val25=-x
+!else
+val25=$val10 x
+!endif
+!endif
+!if $val11=0 
+val26=
+!else
+!if $val11>0 
+val26=+$val11
+!else
+val26=$val11
+!endif
+!endif
+val27=$val25 $val26
+
+!ifval $val6<0
+val28=($val6)
+!else
+val28=$val6
+!endif
+val29=<font color="green">Bravo !</font>
+val30=<font color="red">Erreur</font>
+val31=$[rint(ranint(1,2))]
+
+!ifval $val31=1
+val32=!rawmath $val12
+!else
+val32=!rawmath $val13
+!endif
+
+!ifval $val31=1
+val33=$val27
+!else
+val33=$val24
+!endif
+val34=r1	r2,r3	r4	r5	r6	r7,r8
+dynsteps=yes
+oefsteps=$val34 
+nextstep=!nosubst $val34 
+!readproc oef/steps.proc
+replytype1=function
+replyoption1=nonstop 
+replyname1=
+replygood1=!rawmath $val32
+replytype2=numeric
+replyoption2=nonstop 
+replyname2=
+replygood2=$[$val8-$val10]
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=
+replygood3=$[$val11-$val9]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=
+replygood4=$[$val6]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=
+replygood5=$[$val6]
+replytype6=numeric
+replyoption6=nonstop 
+replyname6=
+replygood6=$[$val7]
+replytype7=numeric
+replyoption7=nonstop 
+replyname7=
+replygood7=$[$val6]
+replytype8=numeric
+replyoption8=nonstop 
+replyname8=
+replygood8=$[$val7]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div> $val19 L'objectif de cet exercice à étapes est de déterminer les coordonnées du point d'intersection des droites 
+!insmath (d_1)
+$() d'équation 
+!insmath y=$val12
+$() et 
+!insmath (d_2)
+$() d'équation 
+!insmath y=$val13
+$() :	<br >On a 
+!insmath \left \lbrace \begin{array}{l} y=$val24 \\ y=$val27 \end{array}\right .
+$()	<br ><em>(On admet que 
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$() sont sécantes)</em></div>	
+!if $m_step=1 
+$()<div class=wims_question>On écrit l'égalité des membres de droite : 
+!insmath $val33=
+$() 
+!read oef/embed.phtml r1,5 
+$().</div> 
+!endif
+$()	
+!if $m_step=2 
+$()	
+!if $m_sc_reply1=1 
+$()$val29 
+!else
+$() $val30 
+!endif
+$() L'équation à résoudre est : 
+!insmath $val12=$val13
+$().	<p>On regroupe ensuite les termes en 
+!insmath x
+$() dans le membre de gauche, les termes numériques dans celui de droite :</p>	<div class=wims_question>  
+!read oef/embed.phtml r2,2 
+$() 
+!insmath x=
+$()  
+!read oef/embed.phtml r3,2 
+$().</div> 
+!endif
+$()	
+!if $m_step=3 
+$()	
+!if $m_sc_reply2=1 and $m_sc_reply3=1 
+$()$val29 
+!else
+$() $val30 
+!endif
+$() L'équation à résoudre est : 
+!insmath $val14 x=$val15
+$()	<div class=wims_question>On obtient 
+!insmath x=
+$() 
+!read oef/embed.phtml r4,2 
+$().</div> 
+!endif
+$()	
+!if $m_step=4 
+$()
+!if $m_sc_reply4=1 
+$()$val29 
+!else
+$() $val30 
+!endif
+$() 
+!insmath x=$val6
+$()	On remplace 
+!insmath x
+$() par la valeur trouvée dans l'équation de 
+!insmath (d_1)
+$()par exemple : <div class=wims_question>
+!insmath y=$val8 \times 
+$() 
+!read oef/embed.phtml r5,2 
+$()
+!if $val9>0 
+$()
+!insmath {}+$val9
+$() 
+!else
+$() 
+!insmath  $val9
+$() 
+!endif
+$().</div> 
+!endif
+$()	
+!if $m_step=5 
+$()
+!if $m_sc_reply5=1 
+$()$val29 
+!else
+$() $val30 
+!endif
+$() 
+!insmath y= $val8 \times $val28 
+$()
+!if $val9>0 
+$()
+!insmath {}+$val9
+$() 
+!else
+$() 
+!insmath  $val9
+$() 
+!endif
+$()	<div class=wims_question>On en déduit: 
+!insmath y=
+$() 
+!read oef/embed.phtml r6,2 
+$().</div> 
+!endif
+$()	
+!if $m_step=6 
+$()
+!if $m_sc_reply6=1 
+$()$val29 
+!else
+$() $val30 
+!endif
+$() 
+!insmath x=$val6
+$() et 
+!insmath y=$val7
+$()	<div class=wims_question>Les coordonnées du point d'intersection de 
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$() sont ( 
+!read oef/embed.phtml r7,2 
+$(); 
+!read oef/embed.phtml r8,2 
+$()).</div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val21	
+!if $val6=0 
+$()Si vous avez vu que les deux droites ont la même ordonnée à l'origine : 
+!insmath $val9
+$(), alors directement 
+!insmath A(0 ; $val7)
+$() est le point d'intersection 
+!endif
+$()	<ul><li>On a 
+!insmath \left \lbrace \begin{array}{l} y=$val24\\y=$val27 \end{array}\right .
+$().	</li><li> On écrit l'égalité des membres de droite: 
+!insmath $val12=$val13
+$().	</li><li>On regroupe les termes en 
+!insmath x
+$() dans le membre de gauche, les termes numériques dans celui de droite : 
+!insmath $val14 x=$val15
+$().	</li><li>On obtient 
+!insmath x=$val15/($val14)=$val6
+$().	</li><li>On remplace 
+!insmath x
+$() par la valeur trouvée dans l'une des deux équations. Par exemple dans l'équation de 
+!insmath (d_1)
+$() ici :	
+!if $val9>0 
+$()
+!insmath y=$val8 \times ($val6)+$val9=$val7
+$() 
+!else
+$() 
+!insmath y=$val8 \times ($val6) $val9=$val7
+$() 
+!endif
+$().	</li><li><b>Conclusion :</b> 
+!insmath (d_1)
+$() et 
+!insmath (d_2)
+$() se coupent en 
+!insmath A($val6 ; $val7)
+$().	</li></ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,12,13,14,15,19,21,24,27,28,29,30,33
+embedcnt=8

@@ -1,0 +1,256 @@
+# kengetallen I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=3
+    # geen gebouwen in verband met Cashflow
+    geen_gebouwen=1
+!else
+    geen_gebouwen=0
+!endif
+min1=100000000
+min2=100000000
+mathview=0
+nu=!date +%Y
+jaar1=$[$nu-1]
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+checkfile=exos/precheck1.proc
+make_tr=1
+cols=15
+rows=1
+###### ACTIVA #########
+# afschrijving gebouwen
+!if $geen_gebouwen=0
+    gebouw2=!randint 25,60
+    factor=!randint 70,90
+    gebouw1=$[round($factor/100*$gebouw2)]
+    gebouw1=$[100*$gebouw1]
+    gebouw2=$[100*$gebouw2]
+!else
+    # ivm rekenppartij
+    gebouw1=0
+    gebouw2=0
+!endif
+
+# afschrijving machines
+!if $geen_gebouwen=0
+    machine1=!randint 10,30
+!else
+    machine1=!randint 20,40
+!endif
+factor=!randint 85,95
+machine2=$[round($factor/100*$machine1)]
+machine1=$[100*$machine1]
+machine2=$[100*$machine2]
+
+# voorraad
+voorraad1=!randint 10,20
+voorraad2=!randint 10,20
+voorraad1=$[$voorraad1*50]
+voorraad2=$[$voorraad2*50]
+!if $voorraad2<=$voorraad1
+    voorraad2=$[$voorraad1+50]
+!endif
+
+# debiteuren
+!if $geen_gebouwen=0
+    debiteuren1=!randint 6,20
+    debiteuren2=!randint 6,20
+!else
+    debiteuren1=!randint 15,35
+    debiteuren2=!randint 15,35
+!endif
+debiteuren1=$[$debiteuren1*50]
+debiteuren2=$[$debiteuren2*50]
+!if $debiteuren2=$debiteuren1
+    debiteuren2=$[$debiteuren2+50]
+!endif
+
+# vooruitbetaalde bedragen
+vooruitbetaald1=!randint 5,20
+vooruitbetaald2=!randint 5,20
+vooruitbetaald1=$[$vooruitbetaald1*10]
+vooruitbetaald2=$[$vooruitbetaald2*10]
+!if $vooruitbetaald2=$vooruitbetaald1
+    vooruitbetaald2=$[$vooruitbetaald2+10]
+!endif
+
+# liquide middelen
+liquide1=!randint 10,40
+liquide2=!randint 10,40
+liquide1=$[$liquide1*10]
+liquide2=$[$liquide2*10]
+!if $liquide2=$liquide1
+    liquide2=$[$liquide2+10]
+!endif
+Atotaal1=$[$gebouw1 + $machine1 + $voorraad1 + $debiteuren1 + $vooruitbetaald1 + $liquide1]
+Atotaal2=$[$gebouw2 + $machine2 + $voorraad2 + $debiteuren2 + $vooruitbetaald2 + $liquide2]
+!if $geen_gebouwen=0
+    activa1=$gebouw1,$machine1,$voorraad1,$debiteuren1,$vooruitbetaald1,$liquide1,&nbsp;,&nbsp;,&nbsp;,$Atotaal1
+    activa2=$gebouw2,$machine2,$voorraad2,$debiteuren2,$vooruitbetaald2,$liquide2,&nbsp;,&nbsp;,&nbsp;,$Atotaal2
+    activa=Gebouwen,Machines,Voorraad producten,Debiteuren,Vooruitbetaalde bedragen,Liquide middelen,&nbsp;,&nbsp;,&nbsp;,Totaal
+!else
+    activa1=$machine1,$voorraad1,$debiteuren1,$vooruitbetaald1,$liquide1,&nbsp;,&nbsp;,&nbsp;,&nbsp;,$Atotaal1
+    activa2=$machine2,$voorraad2,$debiteuren2,$vooruitbetaald2,$liquide2,&nbsp;,&nbsp;,&nbsp;,&nbsp;,$Atotaal2
+    activa=Machines,Voorraad producten,Debiteuren,Vooruitbetaalde bedragen,Liquide middelen,&nbsp;,&nbsp;,&nbsp;,&nbsp;,Totaal
+!endif
+# minimum activa1=2650
+# maximum activa1=11000
+# minimum activa2=2750
+# maximum activa2=11500
+ 
+##### PASSIVA #######
+# algemene reserves
+reserve1=!randint 10,20
+reserve2=!randint 10,20
+reserve1=$[$reserve1*50]
+reserve2=$[$reserve2*50]
+!if $reserve2=$reserve1
+    reserve2=$[$reserve2+50]
+!endif
+
+# voorziening
+voorziening1=!randint 3,10
+factor=!randint 40,60
+voorziening2=$[round($factor/100*$voorziening1)]
+voorziening1=$[$voorziening1*100]
+voorziening2=$[$voorziening2*100]
+
+# hypotheek
+hypotheek1=!randint 5,10
+hypotheek2=!randint 5,10
+hypotheek1=$[$hypotheek1*50]
+hypotheek2=$[$hypotheek2*50]
+!if $hypotheek2=$hypotheek1
+    hypotheek2=$[$hypotheek2+50]
+!endif
+
+# obligatie
+obligatie1=!randint 10,15
+obligatie2=!randint 10,15
+obligatie1=$[$obligatie1*50]
+obligatie2=$[$obligatie2*50]
+!if $obligatie2=$obligatie1
+    obligatie2=$[$obligatie2+50]
+!endif
+
+# crediteuren
+crediteuren1=!randint 5,10
+crediteuren2=!randint 5,10
+crediteuren1=$[$crediteuren1*50]
+crediteuren2=$[$crediteuren2*50]
+!if $crediteuren2=$crediteuren1
+    crediteuren2=$[$crediteuren2+50]
+!endif
+
+subPtotaal1=$[$reserve1 + $voorziening1 + $hypotheek1 + $obligatie1 + $crediteuren1]
+aandelenvermogen1=$[$Atotaal1 - $subPtotaal1]
+Ptotaal1=$[$aandelenvermogen1 + $reserve1 + $voorziening1 + $hypotheek1 + $obligatie1 + $crediteuren1]
+
+# winst
+winst1=&nbsp;
+winst2=!randint 25,55
+winst2=$[10*$winst2]
+
+subPtotaal2=$[ $reserve2 + $voorziening2 + $hypotheek2 + $obligatie2 + $crediteuren2 + $winst2]
+aandelenvermogen2=$[$Atotaal2 - $subPtotaal2]
+Ptotaal2=$[$aandelenvermogen2 + $reserve2 + $voorziening2 + $hypotheek2 + $obligatie2 + $crediteuren2 + $winst2]
+passiva2=$aandelenvermogen2,$reserve2,$voorziening2,$hypotheek2,$obligatie2,$crediteuren2,$winst2,&nbsp;,&nbsp;,$Ptotaal2
+passiva1=$aandelenvermogen1,$reserve1,$voorziening1,$hypotheek1,$obligatie1,$crediteuren1,$winst1,&nbsp;,&nbsp;,$Ptotaal1
+passiva=Geplaatst aandelenvermogen,Algemene reserves,Voorzieningen,6% Hypothecaire lening,5% Obligatielening,Crediteuren,Nettowinst na belasting,&nbsp;,&nbsp;,Totaal
+sometext=Balans per 31 december $jaar1 (bedragen &times; duizend euro)
+tabel=$sometext<br /><table class=\'balans_3\'><tr><th>Activa</th><th>1 jan</th><th>31 dec</th><th>Passiva</th><th>1 jan</th><th>31 dec</th></tr>
+
+!for p=1 to 10
+    ac=!item $p of $activa
+    pc=!item $p of $passiva
+    a1=!item $p of $activa1
+    a2=!item $p of $activa2
+    p1=!item $p of $passiva1
+    p2=!item $p of $passiva2
+    tabel=!append word $ <tr><td>$ac</td><td>$a1</td><td>$a2</td><td>$pc</td><td>$p1</td><td>$p2</td></tr> $ to $tabel 
+!next p
+tabel=!append word </table> to $tabel
+
+k=!randint 1,2
+datums = 1 januari $jaar1,31 december $jaar1
+datum=!item $k of $datums
+ss=Aan de jaarrekening van <kbd>$bedrijf</kbd> zijn de <span class="schaersvoorde_link">volgende balansen</span> van <br />respectievelijk het begin en het eind van het boekjaar gegeven.
+
+inputs=1.1
+
+!if $subject=11
+    # exo11
+    !if $R=1
+	rounding=1
+	# 7/6/2013 formule_plaatje=<img src=$module_dir/gifs/exo11.1.gif alt=formule/>
+	roundingtext=Geef je antwoord in hele euro's
+	description=beschikbare werkkapitaal
+	answer=$[($(voorraad$k) + $(debiteuren$k) + $(vooruitbetaald$k) + $(liquide$k) - $(crediteuren$k))]
+    	answer$n=$[1000*$answer]
+	texanswer$n=\left[ \begin{array}{l} \textrm{$description = vlottende activa - kort vreemd vermogen } \\ \textrm{in dit geval : } \\ \textrm{$description = voorraad + debiteuren + vooruitbetaald + liquide - crediteuren} \\ \textrm{$description} = $(voorraad$k) + $(debiteuren$k) + $(vooruitbetaald$k) + $(liquide$k) - $(crediteuren$k) = $answer \; \textrm{duizend Euro} \end{array} \right.   	
+	
+	ss1=Bereken met behulp van <span class="schaersvoorde_link"> deze balans</span> de <kbd>$description</kbd> op $datum<br />$roundingtext
+	ex1=&euro;
+    !else
+	!if $R=2
+	# 7/6/2013	    formule_plaatje=<img src=$module_dir/gifs/exo11.2.gif alt=formule/>
+	    rounding=100
+    	    roundingtext=Geef ja antwoord op 2 decimalen nauwkeurig
+	    description=working capital ratio
+	    answer$n=$[($(voorraad$k) + $(debiteuren$k) + $(vooruitbetaald$k) + $(liquide$k) - $(crediteuren$k))/$(crediteuren$k)]
+	    ans=$[(round($rounding*$(answer$n)))/$rounding]
+	    !ifval $ans=$(answer$n)
+		ex=$empty
+	    !else
+		ex=\simeq $ans
+	    !endif
+    	    texanswer$n=\left[ \begin{array}{l}\textrm{$description} \,=\,\frac{\textrm{werkkapitaal}}{ \textrm{kort vreemd vermogen}} =\,\frac{\textrm{vlottende activa - kort vreemd vermogen }}{ \textrm{kort vreemd vermogen}} = \\ \\ \textrm{in dit geval : }  \\ \\ \frac{\textrm{voorraad + debiteuren + vooruitbetaald + liquide - crediteuren}}{ \textrm{crediteuren}} = \\ \\ \frac{$(voorraad$k) + $(debiteuren$k) + $(vooruitbetaald$k) + $(liquide$k) - $(crediteuren$k)}{ $(crediteuren$k)} = $(answer$n) $ex \end{array}\right.    
+	    ss1=Bereken met behulp van <span class="schaersvoorde_link"> deze balans</span> de <kbd>$description</kbd> op $datum
+	    ex1=$empty
+	!else
+	    rounding=1
+	# 7/6/2013	    formule_plaatje=<img src=$module_dir/gifs/exo11.3.gif alt=formule/>
+	    ex1=&euro;
+
+	    roundingtext=Geef je antwoord in hele euro's
+	    description=beschikbare werkkapitaal
+	    datum=!item 2 of $datums
+
+	    description=cashflow
+	    afschrijving_machine=$[$machine1 - $machine2]
+	    
+	    vast=$[($winst2+$afschrijving_machine)]
+	    vaste=!randint $[$vast/2],$vast
+	    vaste_activa=$[$vaste*1000]
+	    answer=$[$winst2 + ( $machine1 + $vaste - $machine2)]
+	    # terug naar hele euros
+	    answer$n=$[1000*$answer]
+	    texanswer$n=\left[ \begin{array}{l} \textrm{$description = nettowinst + afschrijvingen} \\ \textrm{in dit geval : } \\ \textrm{$description = nettowinst + afschrijvingen machine} \\ \textrm{$description} = $winst2 + ( $machine1 + $vaste - $machine2) \\ \textrm{$description} = $answer \; \textrm{duizend Euro} \end{array}\right.
+	    
+	    ss1=Verder is gegeven dat er in het boekjaar voor &euro; $vaste_activa aan <kbd>vaste activa</kbd> is aangeschaft.<br />Over de vlottende activa is in het boekjaar niet afgeschreven.<br />Bereken met behulp van <span class="schaersvoorde_link"> deze balans</span> de <kbd>$description</kbd> over $datum<br />$roundingtext
+	    
+	!endif
+    !endif
+!else
+    # iets answers
+!endif
+#7/6/2013 helptext=$tabel <hr />$formule_plaatje
+
+helptext=<table><tr><td>$tabel</td><td><img src=\'$module_dir/gifs/exo11.jpg\' alt=\'formule\' /></td></tr></table>
+question$n=<a onmouseover="return escape('$helptext')">$ss<p>$ss1</p></a>
+
+#formula$n=\begin{array}{l}\textrm{Working capital ratio} = \frac{\textrm{vlottende activa} - \textrm{kort vreemd vermogen}}{\textrm{kort vreemd vermogen}} \end{array}
+#formula$n=\begin{array}{l}\textrm{Werkkapitaal} = \textrm{vlottende activa} - \textrm{kort vreemd vermogen} \end{array}
+#formula$n=\begin{array}{l}\textrm{Cashflow} = \textrm{nettowinst na belasting} + \textrm{afschrijvingen} \end{array}
+
+#formula$n=\size[30] \begin{array}{l} \begin{array}{l} \textrm{Working capital ratio} = \frac{ \textrm{ vlottende activa } - \textrm{kort vreemd vermogen}}{\textrm{kort vreemd vermogen}} \end{array} \\ \begin{array}{l} \textrm{Werkkapitaal} = \textrm{vlottende activa} - \textrm{kort vreemd vermogen} \end{array} \\ \begin{array}{l}\textrm{Cashflow} = \textrm{nettowinst na belasting} + \textrm{afschrijvingen} \end{array} \end{array}
+
+
+
+
+

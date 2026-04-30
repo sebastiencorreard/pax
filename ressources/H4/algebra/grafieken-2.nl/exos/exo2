@@ -1,0 +1,143 @@
+n=$counter
+mathview=5
+questiontype=10
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+# graphpaper
+xsize=360
+ysize=360
+var1=0
+# pari checkt antwoord
+helptext=$empty
+checkfile=exos/checkfile1.proc
+arglist=g(x),y
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+make_tr=0
+applet=1
+pm=!randitem +,-
+mp=!randitem +,-
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+!if $R=1
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem -1,1
+    !if $c=-1
+	answer$n=1/(x $mp $b)
+	bewerken=!record 28 of lang/remarks.$taal
+	#@horizontale verschuiving.<br />Let op de vertikale asymptoot.
+    !else
+	answer$n=1/x $mp $b
+	bewerken=!record 26 of lang/remarks.$taal
+	#@vertikale verschuiving.<br />Let op de horizontale asymptoot.
+    !endif
+ !goto IMAGE
+!endif
+
+!if $R=2
+    a=!randitem 1,2,3,4,5
+    b=!randitem 1,2,3,4,5,6,7
+    answer$n=1/(x $mp $b) $pm $a
+    bewerken=!record 29 of lang/remarks.$taal
+    #@verschuiven in vertikale + horizontale richting<br />Let op beide asymptoten.
+ !goto IMAGE	
+!endif
+
+!if $R=3
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem -1,1
+    !if $c=-1
+	answer$n=-1/(x $mp $b)
+	bewerken=!record 27 of lang/remarks.$taal
+	#@spiegeling in de <em>x-</em>as en een horizontale verschuiving.<br />Let op de vertikale asymptoot.
+    !else
+	answer$n=-1/x $mp $b
+	bewerken=!record 25 of lang/remarks.$taal
+	#@spiegeling in de <em>x-</em>as en een vertikale verschuiving.<br />Let op de horizontale asymptoot.
+    !endif
+ !goto IMAGE
+!endif
+
+    
+!if $R>3
+    a=!randitem 1,2,3,4,5
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem -1,1
+    answer$n=$c*1/(x $mp $b) $pm $a
+    !if $c=-1
+	bewerken=!record 30 of lang/remarks.$taal
+	#@spiegeling in de <em>x-</em>as en een vertikale + horizontale verschuiving.<br />Let op beide asymptoten.
+    !else
+	bewerken=!record 31 of lang/remarks.$taal
+	#@vertikale + horizontale verschuiving.<br />Let op beide asymptoten.
+    !endif
+!endif
+
+    
+:IMAGE
+
+f=1/x
+var2=$f
+g=$(answer$n)
+texanswer$n=!texmath  g(x) = $g
+formula$n=\left[ \begin{array}{ccc} f(x) & = & \frac{1}{x} \\  g(x) & = & [?] \end{array} \right. 
+    
+ss=!record 15 of lang/remarks.$taal
+#@Gegeven is de functie en grafiek van <em>f(x)</em><br />Bepaal het functie voorschrift van de <font color=$c2>$k2 grafiek <em>g(x)</em></font><br />welke ontstaat door de <font color=$c1> $k1 grafiek van <em>f(x)</em></font> te<br />$bewerken 
+question$n=$ss
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -10,10\
+yrange -10,10\
+bgcolor white\
+fontfamily 12pt Ariel\
+opacity 120,255\
+precision 1\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+# asymptote \
+plotsteps 250\
+opacity 255,255\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue

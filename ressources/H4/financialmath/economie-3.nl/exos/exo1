@@ -1,0 +1,104 @@
+#elasticiteit 
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+cols=10
+rows=1
+
+#fffff0=#e2ffc8
+inputs=1.1
+
+
+checkfile=exos/precheck1.proc
+!if $R=1
+    rounding=100
+    roundingtext=Rond je antwoorden af op twee decimalen
+    prijs1=!randint 5,12
+    plus=!randint 1,19
+    plus=$[$plus*5]
+    tot=!exec moneyprint $prijs1,$[$prijs1+$plus/100] 
+    prijs1=$(tot[1])
+    prijs2=$(tot[2])
+    aantal1=!randint 100,200
+    aantal1=$[1000*$aantal1]
+    perc=!randint 10,20
+    aantal2=$[$aantal1-$perc*$aantal1/100]
+    aantal2=$[1000*(round($aantal2/1000))]
+    deltap=$[100*($prijs2-$prijs1)/$prijs1]
+    deltaq=$[100*($aantal2-$aantal1)/$aantal1]
+    answer$n=$[$deltaq/$deltap]
+    ans=$[(round(100*$(answer$n)))/100]
+    texanswer$n=\left[ \begin{array}{l} E_{v} = \frac{\Delta Q_{v}}{\Delta P} \\ \\ \Delta Q_{v} = \frac{$aantal2 - $aantal1}{$aantal1 \times 100} \simeq $deltaq \% \\ \\ \Delta P = \frac{$prijs2 - $prijs1}{$prijs1 \times 100} \simeq $deltap \% \\ \\ E_{v}  \simeq \frac{$deltaq}{$deltap} \simeq $(answer$n) \simeq $ans \end{array} \right.
+
+
+    ss=Gegeven:<br />\
+    Aanvankelijk is de prijs van een product &euro; $prijs1<br /> De gevraagde hoeveelheid van dit product is dan $aantal1 stuks.<br />Vervolgens wordt de prijs &euro; $prijs2 , waarbij de gevraagde hoeveelheid $aantal2 stuks is.<br />Bereken de prijselasticiteit van de gevraagde hoeveelheid.
+    
+    question$n=<a onmouseover="return escape('$roundingtext')">$ss </a>
+    description=De prijselasticiteit 
+!else
+    !if $R=2
+	rounding=1
+	roundingtext=Reken zover mogelijk door met onafgeronde getallen.<br />Rond je eindantwoord af op een geheel getal.
+	prijs1=!randint 4,12
+	prijs1=$[$prijs1/2]
+	plus=!randint 1,19
+	plus=$[$plus*5]
+	tot=!exec moneyprint $prijs1,$[$prijs1+$plus/100] 
+	prijs1=$(tot[1])
+	prijs2=$(tot[2])
+	tussen1=$[floor(100*$prijs1/($prijs2-$prijs1))]
+	tussen2=$[floor($tussen1/10)]
+	ev=!randint $tussen2,$tussen1
+	ev=$[floor($ev/10)]
+	ev=$[-1*$ev/10]
+        aantal1=!randint 8,30
+	aantal1=$[100*$aantal1]
+        deltap=$[100*($prijs2-$prijs1)/$prijs1]
+	deltaq=$[$deltap*$ev]
+	answer$n=$[$aantal1+($deltaq*$aantal1)/100]
+	!if . isin $(answer$n)
+	    ans=$[round($(answer$n))]
+	!else
+	    ans=$(answer$n)
+	!endif
+	texanswer$n=\left[ \begin{array}{l} E_{v} = \frac{\Delta Q_{v}}{\Delta P} \\ \\ \Delta P = \frac{$prijs2 - $prijs1}{$prijs1} \times 100 \simeq $deltap \% \\ \\ $ev \simeq \frac{\Delta Q_{v}}{$deltap} \\ \\ \Delta Q_{v} \simeq  $ev \cdot $deltap \simeq $deltaq \\ \\ \Delta Q_{v} = \frac{Q_{2}-$aantal1}{$aantal1} \times 100 \simeq $deltaq \\ \\ Q_{2} - $aantal1 \simeq \frac{$deltaq \cdot $aantal1}{100} \simeq $[$deltaq*$aantal1/100] \\ \\ Q_{2} \simeq $ans \;\textrm{stuks} \end{array} \right.
+    
+	ss=Gegeven:<br />Bij een stuksprijs van &euro; $prijs1 van een product werden $aantal1 verkocht.<br />De prijselasticiteit van de gevraagde hoeveelheid is dan: $ev .<br />De prijs wordt verhoogd naar &euro; $prijs2.<br />Bereken de nieuw verkochte hoeveelheid.
+	ex1=stuks
+        question$n=<a onmouseover="return escape('$roundingtext')">$ss </a>$dbg
+	description=De nieuw verkochte hoeveelheid 
+    !else
+	rounding=100
+	roundingtext=Rond je antwoorden af op twee decimalen
+	prijs1=!randint 4,12
+	prijs1=!exec moneyprint $[$prijs1/2]
+	ev=!randint -30,-11
+	ev=$[$ev/10]
+        aantal1=!randint 8,30
+	aantal1=$[100*$aantal1]
+	perc=!randint 75,95
+	aantal2=$[$aantal1*$perc/100]
+	aantal2=$[100*(round($aantal2/100))]
+	deltaq=$[100*($aantal2-$aantal1)/($aantal1)]
+	deltap=$[$deltaq/$ev]
+	answer$n=$[($deltap*$prijs1)/100 + $prijs1]
+	ans=$[(round(100*$(answer$n)))/100]
+
+    
+	ss=Gegeven:<br />Bij een stuksprijs van &euro; $prijs1 worden van een product $aantal1 aantallen verkocht.<br />De prijselasticiteit van de gevraagde hoeveelheid is $ev.<br />Bij de nieuwe prijs wordt de gevraagde hoeveelheid $aantal2.<br />Bereken de nieuwe prijs.
+	
+	texanswer$n=\left[ \begin{array}{l} E_{v} = \frac{\Delta Q_{v}}{\Delta P} \\ \\ \Delta Q_{v} = \frac{$aantal2 - $aantal1}{$aantal1} \times 100 \simeq $deltaq \\ \\ \Delta P = \frac{\Delta Q_{v}}{E_{v}} \simeq \frac{$deltaq}{$ev} \simeq $deltap  \\ \\ \Delta P = \frac{\textrm{prijs}_{\textrm{nieuw}} - \textrm{prijs}_{\textrm{oud}}}{\textrm{prijs}_{\textrm{oud}}} \times 100 \simeq $deltap \\ \\ \textrm{prijs}_{\textrm{nieuw}} \simeq \frac{$deltap \times $prijs1}{100} + $prijs1 \simeq $(answer$n) \simeq $ans \; \euro \end{array} \right.
+	
+        question$n=<a onmouseover="return escape('$roundingtext')">$ss </a>
+	description=De nieuwe prijs
+	ex1=&euro;
+    !endif
+!endif
+
+!exit

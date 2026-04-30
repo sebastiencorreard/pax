@@ -1,0 +1,113 @@
+# Teken de polygoon a.h.v. tabel
+# ivm GNUplot & insplot_data van wims !!
+total_exos=1
+make_tr=0
+n=$counter
+!if $rounding <10
+    rounding=-1
+    !readproc $remarkdir/rounding.$taal
+!endif
+helptext=<img src=$module_dir/gifs/sgraph1.jpg alt=noalt />
+mathview=0
+math=0
+plot=0
+draw=0
+inputs=-1
+image=0
+applet=1
+checkfile=exos/checkfile4b.proc
+fruitsoort=!record 15 of lang/remarks.$taal
+#@  appels,peren,handperen,goudreinetten,notarisappels,aardappels,komkommers,perziken,grapefruit,sinaasappels,bananen,druivetrossen
+fruit=!randitem $fruitsoort
+
+sometext=!record 26 of lang/remarks.$taal
+#@Klasse middens (gram),Percentage $fruit, Klassen (gram),Gewicht,rechtergrens
+klassemiddens=!item 1 of $sometext
+perc=!item 2 of $sometext
+klassengew=!item 3 of $sometext
+gewicht=!item 4 of $sometext
+rechtergrens=!item 5 of $sometext
+klassen=!randitem 6,7,8
+klassebreedte=!randitem 4,5,6,7,8
+min=!randint 60,120
+maxhoogte=!randint 75,155
+data=$empty
+meting=$empty
+var5=$empty
+!for p=1 to $klassen
+    r=!randint 70,100
+    r=$[$r/100]
+    L$p=$[$min + ($p-1)*$klassebreedte]
+    R$p=$[$min + $p*$klassebreedte - 1]
+    hoogte$p=$[$r*$maxhoogte*sin(pi*$p/$klassen)]
+    totaal=$[$totaal + $(hoogte$p)]
+    KM$p=$[($(L$p)+$(R$p))/2]
+    var5=!append line $(L$p),$(R$p) to $var5
+!next p
+
+xmin=$[10*(floor($min/10))]
+xmax=$[10*(ceil($(R$klassen)/10))]
+tp=0
+var3=$[$klassen-1]
+
+max_perc=0
+!for p=1 to $var3
+    percent$p=$[(round(1000*$(hoogte$p)/$totaal))/10]
+    !if $p=$[$klassen-1]
+	percent$p=$[100-$tp]
+    !endif
+    !if $(percent$p)>$max_perc
+	max_perc = $(percent$p)
+    !endif
+    tp=$[$(percent$p)+$tp]
+    data=!append word $ <tr><td>$(L$p) &minus; $(R$p)</td><td>$(KM$p)</td><td>$(percent$p) %</td></tr> $ to $data
+    meting=!append word $ <tr><td>$(L$p) &minus; $(R$p)</td><td>$(percent$p) %</td></tr> $ to $meting
+    answer$n=!append line $(KM$p),$(percent$p) to $(answer$n)
+!next p
+
+data=<table class="grid_table"><tr><th><small>$klassengew</small></th><th><small>$klassemiddens</small></th><th><small>$perc</small></th></tr>$data</table>
+meting=<table class="grid_table"><tr><th><small>$klassengew</small></th><th><small>$perc</small></th></tr>$meting</table>
+
+exotext=$empty
+ss=!record 71 of lang/remarks.$taal
+#Het tabel hieronder geeft de procentuele gewichtsverdeling van een partij $fruit weer.<br />De gewichten zijn afgerond op hele grammen.<br />De percentages zijn afgerond op 1 decimaal nauwkeurig.<br />Teken het bijhorende <b>frequentie</b> polygoon in de GeoGebra applet
+
+question$n=$ss<br />$meting<br />
+
+max_perc = $[10*(ceil($max_perc/10))]
+min=$[10*(floor($min/10))]
+max=$[10*(ceil($(R$var3) / 10))]
+textanswer$n=$data
+object$n=!exec canvasdraw\
+size 640,360\
+xrange 0,$max\
+yrange 0,$max_perc\
+precision 1\
+replyformat 2\
+fontfamily italic 14px Ariel\
+fontsize 14\
+xlabel $gewicht in gram\
+ylabel $perc\
+# sgraph xstart,ystart,xmajor,ymajor,xminor,yminor,major_color,minor_color\
+sgraph $min,0,4,4,4,4,grey,orange\
+linewidth 2\
+precision 1000\
+userinput_xy\
+userdraw polyline,blue\
+precision 10\
+mouse green,22
+
+#decimalen ivm afronden
+var4=1
+precision_x=$[5*($max - $min)/640]
+precision_y=$[5*$max_perc/360]
+# teken nauwkeurigheid...ongeveer
+var6=$precision_x,$precision_y
+!exit
+
+
+
+
+
+
+

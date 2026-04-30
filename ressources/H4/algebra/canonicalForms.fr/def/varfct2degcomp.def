@@ -1,0 +1,271 @@
+!set title=Variation d'une fonction du second degré (par composition)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+
+ansorder=r,r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=strictement croissante,strictement décroissante
+val8=strictement croissante sur,strictement décroissante sur
+val9=positives,négatives
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+val11=$[rint($val10*$(tmp0))]
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+tmp0=!randint 1, 8
+
+val14=$[rint($val13*$(tmp0))]
+tmp0=!randint -10, 10
+
+val15=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val14*x+$val15
+tmp0=!exec maxima $t_
+
+val16=!rawmath $(tmp0)
+tmp0=!replace internal * by in $val16
+
+val16=$(tmp0)
+t_=!rawmath -$val15/$val14
+val17=!exec pari print($t_)
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val18=$[rint($(tmp0))]
+val19=&#8734;
+
+!ifval $val18==1
+val20=&#91; $val17&#160;;&#160;+$val19 &#91; 
+!else
+val20=	  &#93; -$val19&#160; ; &#160;$val17 &#93;
+!endif
+
+!ifval $val18==1
+val21=&#91; $val17&#160;;&#160;+$val19 &#91; 
+!else
+val21=	  &#93; -$val19&#160; ; &#160;$val17 &#93;
+!endif
+
+!ifval $val13==1
+val22=$[rint(1)]
+!else
+val22=$[rint(2)]
+!endif
+
+!ifval $val13*$val18==1
+val23=$[rint(1)]
+!else
+val23=$[rint(2)]
+!endif
+
+!ifval $val23==1
+val24=\(\RR+\)
+!else
+val24=\(\RR-\)
+!endif
+
+!ifval $val23==1
+val25=$[rint(1)]
+!else
+val25=$[rint(2)]
+!endif
+t_=!replace internal \( by ( in $val11*t+$val12
+tmp0=!exec maxima $t_
+
+val26=!rawmath $(tmp0)
+tmp0=!replace internal * by in $val26
+
+val26=$(tmp0)
+
+!ifval $val10==1
+val27=$[rint(1)]
+!else
+val27=$[rint(2)]
+!endif
+val28=!rawmath $val11($val16)^2+$val12
+tmp0=!replace internal * by in $val28
+
+val28=$(tmp0)
+
+!ifval $val22*$val25==2
+val29=$[rint(2)]
+!else
+val29=$[rint(1)]
+!endif
+val30=\(\,\RR\)
+
+!ifval $val29*$val27==2
+val31=$[rint(2)]
+!else
+val31=$[rint(1)]
+!endif
+replytype1=menu
+replyname1=Variation de u
+replygood1=$val22;$val7
+replytype2=menu
+replyname2=
+replygood2=$val23;$val9
+replytype3=menu
+replyoption3=shuffle 
+replyname3=Variation des carrés
+replygood3=$val25;$(val8[1]) &#91; 0 &#59; +$val19&#91;,$(val8[2]) &#93; -$val19 &#59; 0 &#93;,$(val8[2]) &#93; 0 &#59; +$val19&#91;,$(val8[1]) &#93; -$val19 &#59; 0 &#91;
+replytype4=menu
+replyname4=Variation de v
+replygood4=$val27;$val7
+replytype5=menu
+replyname5=Variation de u^2
+replygood5=$val29;$val7
+replytype6=menu
+replyname6=Variation de f
+replygood6=$val31;$val7
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On considère la fonction 
+!insmath f
+$() définie sur $val30 par 
+!insmath f : x \mapsto $val28
+$().	On étudie son sens de variation sur l'intervalle $val21.	<p>	Complétez le texte suivant, afin que l'étude de variation	soit correcte sur $val21.	</p>	<div class="wims_question">	La fonction 
+!insmath f
+$() s'obtient comme composée 
+!insmath v\circ c \circ u
+$()	  des fonctions suivantes :	<ol><li>	d'abord, la fonction affine 
+!insmath u : x \mapsto $val16
+$() qui est	   
+!read oef/embed.phtml reply1 
+$() sur 
+!insmath \,\RR
+$()	et qui prend des valeurs  
+!read oef/embed.phtml reply2 
+$() sur l'intervalle $val21.	</li><li>	puis, la fonction carré 
+!insmath c : X \mapsto X^2
+$() qui est  
+!read oef/embed.phtml reply3 
+$().	</li><li>	Enfin, la fonction affine 
+!insmath v : t \mapsto $val26
+$() qui est  
+!read oef/embed.phtml reply4 
+$() sur 
+!insmath \,\RR
+$().	</li></ol>	On en déduit que :	<ol><li>	La fonction 
+!insmath x \mapsto ($val16)^2
+$() est  
+!read oef/embed.phtml reply5 
+$() sur l'intervalle $val21.	</li><li>	Par composition avec la fonction <b>
+!insmath v
+$()</b>, on conclut que la fonction	
+!insmath f : x \mapsto $val28
+$() est  
+!read oef/embed.phtml reply6 
+$() sur $val21.	</li></ol>	</div>	
+$()
+!exit
+
+:hint
+$()	  <ul><li>	  Si la fonction 
+!insmath u
+$() est strictement croissante sur 
+!insmath I
+$()	  et prend ses valeurs dans 
+!insmath J
+$(), et si la fonction 
+!insmath v
+$() est	  strictement croissante sur 
+!insmath J
+$(), alors la composée 
+!insmath v \circ u
+$()	  (soit 
+!insmath u
+$() suivie de 
+!insmath v
+$()) est strictement croissante sur 
+!insmath I
+$().	  </li><li>	  Si la fonction 
+!insmath u
+$() est strictement croissante sur 
+!insmath I
+$()	  et prend ses valeurs dans 
+!insmath J
+$(), et si la fonction 
+!insmath v
+$() est	  strictement décroissante sur 
+!insmath J
+$(), alors la composée	  
+!insmath v \circ u
+$() (soit 
+!insmath u
+$() suivie de 
+!insmath v
+$()) est strictement décroissante sur 
+!insmath I
+$().	  </li></ul>	  De façon générale :	  <ul><li>	  composer avec une fonction croissante revient à <b>conserver</b> le sens de variation de la première fonction ;	  </li><li>	  composer avec une fonction décroissante revient à <b>inverser</b> le sens de variation de la première fonction.	  </li></ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16,21,26,28,30
+embedcnt=6

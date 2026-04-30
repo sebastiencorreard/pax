@@ -1,0 +1,92 @@
+# Samengestelde interest
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+viewlogo=1
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/geld$g.jpg" alt="money" />
+logotext=<img src=\'$module_dir/gifs/geld$g.jpg\' alt=\'money\' />
+mathview=0
+make_tr=1
+inputs=no
+questiontype=0
+checkfile=exos/precheck1.proc
+!if $R=1
+    inputs=1.1
+    roundingtext=Geef je antwoord op in hele &euro; &rsquo;s
+    num=!randitem 78,79
+    namen=!record $num of $remarkdir/commonremarks.$taal
+    naam=!randitem $namen
+    rounding=1
+    jaar1=!randint 1960,1995
+    jaar2=!randint 2001,2040
+    factor=$[$jaar2 - $jaar1 + 1]
+    perc=!randint 20,140
+    perc=$[$perc/10]
+    begin_kapitaal=!randint 20,140
+    begin_kapitaal=$[$begin_kapitaal*100]
+    answer$n=!exec pari round($begin_kapitaal*(($perc+100)/100)^($factor))
+    !if $factor > 25
+	opa=!randitem opa,oma,overgrootvader,peetvader,overgrootmoeder,vader,moeder,oom,tante
+	ext=De $opa van
+	voor=voor $naam
+    !else
+	ext=$empty
+	voor=$empty
+    !endif
+    gr=$[($perc+100)/100]
+    ss=$ext $naam stortte op 1 januari $jaar1 &euro; $begin_kapitaal (omgerekend van gulden naar &euro;) <br />op een spaarrekening $voor. <br />De samengestelde interest bedroeg $perc % per jaar.<br />Bereken de eindwaarde van deze spaarrekening op 31 december $jaar2 .<br />Geef je antwoord op in hele &euro; &rsquo;s
+    description=De eindwaarde op 31 dec. $jaar2 
+    ex1=&euro;
+    textanswer$n=Er is dus $jaar2 - $[$jaar1 - 1]  = $factor jaren gespaard.<br />De (groei) factor wordt: ($perc + 100)/100 = $gr<br />De eindwaarde van het kapitaal is dan: $begin_kapitaal &times; $gr <sup>$factor</sup> =  &euro; $(answer$n)
+    
+    
+!else
+
+    perc1=!randint 2,9
+    perc1=$[$perc1/10]
+    perc2=!randint 20,90
+    perc2=$[$perc2/10]
+    k=!randint 1,3
+    set1=maand,jaar\
+    kwartaal,jaar\
+    maand,kwartaal
+    set2=12,4,3
+    set=!line $k of $set1
+    factor=!item $k of $set2
+    maand=!item 1 of $set
+    jaar=!item 2 of $set
+    groeifactor1=$[(100 + $perc1)/100]
+    groeifactor2=$[(100 + $perc2)/100]
+    ans1=$[($groeifactor1)^$factor]
+    Ans1=$[($ans1 - 1)*100]
+    ans2=$[($groeifactor2)^(1/$factor)]
+    Ans2=$[($ans2 - 1)*100]
+    rans1=$[(round(1000*$Ans1))/1000]
+    rans2=$[(round(1000*$Ans2))/1000]
+    answer$n=$Ans1,$Ans2
+    
+    rounding=1000
+    roundingtext=Rond je eindantwoorden af op drie decimalen.
+    ss=Gegeven is onderstaande tabel.<br />\
+    De gegevens zijn gebaseerd op samengestelde interest.<br />\
+    Bereken de ontbrekende waarden.<br />$roundingtext
+    
+    tabel=<table class="default_table"><tr><th>Interest per $maand</th><th>Interest per $jaar</th></tr><tr><th>$perc1 %</th><th><input type="text" id="myinput0" size="5" class="schaersvoorde_input" value=""/></th></tr><tr><th><input type="text" name="myinput1" id="myinput1" size="5" class="schaersvoorde_input" value=""/></th><th>$perc2 %</th></tr></table>
+
+    anstabel=<table class="default_table"><tr><th>Interest per $maand</th><th>Interest per $jaar</th></tr><tr><th>$perc1 %</th><th><input type="text" id="myinput0" size="5" class="schaersvoorde_input" value="$Ans1" readonly="readonly"/></th></tr><tr><th><input type="text" id="myinput1" size="5" class="schaersvoorde_input" value="$Ans2" readonly="readonly"/></th><th>$perc2 %</th></tr></table>
+    description=&nbsp;,&nbsp;
+    var2=Interest per $jaar,Interest per $maand
+    textanswer$n=<ol><li><ul><li>In een $jaar zitten $factor periodes van 1 $maand.</li><li>Een interest percentage van $perc1 % geeft een (groei)factor van (100 + $perc1)/100  = $groeifactor1</li><li>De (groei)factor per $jaar wordt dan : $groeifactor1<sup>$factor</sup> &asymp; $ans1 </li><li>De interest per $jaar is dan :($ans1 - 1)&times; 100 &asymp; $Ans1 &asymp; $rans1 </li></ul></li><li><ul><li>In een $jaar zitten $factor periodes van 1 $maand.</li><li>Een interest percentage van $perc2 % geeft een (groei)factor van (100 + $perc2)/100  = $groeifactor2</li><li>De (groei)factor per $maand wordt dan : $groeifactor2<sup>1/$factor</sup> &asymp; $ans2 </li><li>De interest per $maand is dan :($ans2 - 1)&times; 100 &asymp; $Ans2 &asymp; $rans2 </li></ul></li></ol>$anstabel
+    inputs=-1
+    exotext=$tabel
+!endif
+
+helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'\' /><hr />$roundingtext
+question$n =<a onmouseover="return escape('$helptext')">$ss</a>
+#useropts=621
+#formula$n=\begin{array}{lll} i & = & \frac{p}{100} \\ \\ C & = & K \times \left( 1 + i \right)^{-n} \\ \\ E & = & K \times \left( 1 + i \right)^{n} \end{array}
+

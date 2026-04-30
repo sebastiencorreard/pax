@@ -1,0 +1,66 @@
+# old system checking
+# 1   return score+                                                                                                                
+# 2   "\n"+weight_sa+                                                                                                             
+# 3   "\n"+weight_ca 
+# 4   "\n"+plain_formula_sa+                                                                                                       
+# 5   "\n"+plain_formula_ca+                                                                                                       
+# 6   "\n"+html_formula_sa+                                                                                                        
+# 7   "\n"+html_formula_ca+                                                                                                        
+# 8  "\n"+html_smiles_sa+                                                                                                         
+# 9  "\n"+html_smiles_ca+                                                                                                         
+# 10   "\n"+latex_formula_sa+                                                                                                       
+# 11  "\n"+latex_formula_ca+                                                                                                       
+# 12  "\n"+feedback+                                                                  
+
+############################
+#  "\n@"+Student_answer+                                                                                                        
+#  "\n@"+Correct_answer+                                                                                                        
+
+
+ 
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+score=!line 1 of $(reply$n)
+your_molweight=!line 2 of $(reply$n)
+my_molweight=!line 3 of $(reply$n)
+your_bruto=!line 6 of $(reply$n)
+my_bruto=!line 7 of $(reply$n)
+your_smile=!line 8 of $(reply$n)
+my_smile=!line 9 of $(reply$n)
+tex=!line 10 of $(reply$n)
+formula$n=!line 11 of $(reply$n)
+#feedback=!line 12 to -1 of $(reply$n)
+feedback=$empty
+# unreliable !!
+
+my_molweight= $[(round(100*$my_molweight))/100]
+your_molweight= $[(round(100*$your_molweight))/100]
+#textanswer$n=<ul><li>$my_smile </li><li>$my_bruto</li><li>M=$my_molweight gr/mol</li><ul>
+textanswer$n=<ul><li>$my_bruto</li><li>M=$my_molweight gr/mol</li><ul>
+
+!ifval $score >9
+    k=green
+    remark$n=$OK
+!else
+    !if $score >0
+	score=1
+    !endif
+    k=red
+    remark$n=$NOK
+!endif
+
+math=1
+reply$n=$tex
+maxscore=$[$maxscore*$score/10]
+modulescore=$[$modulescore+$maxscore]
+remark$n=!append line <ul><li><span style="color:$k">$your_bruto</span></li><li><span style="color:$k">M=$your_molweight gr/mol</span></li></ul> to $(remark$n)
+!exit
+
+

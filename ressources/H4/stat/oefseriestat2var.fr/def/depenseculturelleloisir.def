@@ -1,0 +1,153 @@
+!set title=3. Quelle est l'évolution des dépenses culturelles et de loisirs ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien LYOTARD
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+
+!ifval $val6=1 
+val7= activites
+!else
+val7=loisirs
+!endif
+val8=Télévision - hifi - vidéo, Informatique (y compris logiciels),DVD - CD - Disques - cassettes -	 pellicules photo,Presse - livres et papeterie,cinéma - spectacles vivants - musées - abonnements audiovisuels -	 développements et tirages de photographies,Jeux - jouets - articles de sport,Jardinage - animaux de compagnie,	 Services récréatifs et sportifs - voyages à forfait - week-ends,Jeux de hasard
+tmp0=!randint 1, 16
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9<=4 
+val10=$[rint( 2)]
+!else
+val10=$[rint(8)]
+!endif
+
+!ifval $val9<=4 
+val11=$[rint( 10)]
+!else
+val11=$[rint(20)]
+!endif
+tmp=!trim 1990,0.3332x-660.6739	1991,0.3233x-640.8638,y=0.3233x-640.8638	1992,0.3075x-609.0740,y=0.3075x-609.0740	1993,0.2747x-543.4145,y=0.2747x-543.4145	1994,0.2613x-506.2317,y=0.2613x-506.2317	1995,0.2739x-531.3174,y=0.2739x-531.3174	1996,0.2773x-538.2185,y=0.2773x-538.2185	1997,0.2903x-564.3061,y=0.2903x-564.3061	1998,0.3014x-586.5808,y=0.3014x-586.5808	1999,0.3197x-623.2670,y=0.3197x-623.2670	2000,0.3360x-655.8410,y=0.3360x-655.8410	2001,0.3601x-704.3304,y=0.3601x-704.3304	2002,0.3729x-730.0125,y=0.3729x-730.0125	2003,0.3842x-752.5534,y=0.3842x-752.5534	2004,0.4012x-786.7781,y=0.4012x-786.7781	2005,0.4483x-881.4086,y=0.4483x-881.4086
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal x by *x in $(val12[$val9;2])
+
+val13=$(tmp0)
+evaltmp=$val13
+
+evaltmp=!mathsubst x=(2015) in $evaltmp
+tmp0=($evaltmp)
+val14=$[$(tmp0)]
+tmp0=!replace internal x by in $(val12[$val9;2])
+
+val15=$(tmp0)
+tmp0=!replace internal - by , in $val15
+
+val16=$(tmp0)
+val17=$[$(val16[2])+$val11]
+val18=$[$(val16[1])]
+val19=$[rint(ceil($val17/$val18))]
+val20=Quelle est l'évolution des dépenses dans les loisirs ?
+val21=Un entrepreneur souhaite investir dans le marché des loisirs. Par conséquent il souhaite connaître les	 secteurs d'activités porteurs. En parcourant le site de l'INSEE,	 (Institut national de la statistique et des études économiques) il récupère le fichier	 open office suivant : <a href="$val1/depenses.ods">Évolution des loisirs</a>. Ce document officiel	 nous présente l'évolution dans le temps de 1959 à 2009 des dépenses réalisées par les familles dans les loisirs.	 Pour avoir une vision précise, il décide de faire l'étude depuis le début de l'année $(val12[$val9;1]). 	<br><br>
+replytype1=radio
+replyoption1=split shuffle noanalyzeprint 
+replyname1=Secteurs porteurs
+replygood1=$val10;$val8
+replytype2=equation
+replyoption2=noanalyzeprint 
+replyname2=
+replygood2=!rawmath $(val12[$val9;3])
+replytype3=numeric
+replyoption3=noanalyzeprint 
+replyname3=
+replygood3=$[$val14]
+replytype4=numeric
+replyoption4=noanalyzeprint 
+replyname4=
+replygood4=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<div id="haut">	<div class="wimscenter">	<img src="$val1/$val7.jpg" alt="Activités de loisirs">	</div></div>	<p class="problematique"> $val20</p>	<p class="enonce">$val21 </p>	<div class="question">	<ul><li>	Télécharger le fichier <a href="$val1/depenses.ods">Évolution des loisirs</a> et enregistrer le document pour pouvoir	 le modifier.<img src="$val1/attention.png" alt="Attention"><b>La notification en lecture seul doit diparaître.</b>	</li><li>	Réaliser un nuage de points à partir de l'année $(val12[$val9;1]) de l'ensemble des secteurs.	</li><li>	 Supprimer les colonnes inutiles et effectuer le diagramme.	</li><Li>	 Choisir parmi l'ensemble des propositions, le domaine d'activités le plus porteur :	<ul class="wims_nopuce">	 
+!for m_h = 1 to 9 
+$()<li> 
+!read oef/embed.phtml reply1,\h 
+$()</li> 
+!next
+$()	</ul>	<img src="$val1/attention.png" alt="Attention"><b>Si vous avez un doute entre 2 secteurs, comparer les coefficients directeurs des deux droites de tendances</b>	</li><li>	Déterminer une équation de la droite de tendance du secteur le plus rentable à 10<sup>-4</sup> :	<div class="wimscenter">	 
+!read oef/embed.phtml reply2,16 
+$()	</div></li>	<li>	Si la courbe de tendance se poursuit, quel serait le pourcentage des dépenses en 2015?	<div class="wimscenter">	 
+!read oef/embed.phtml reply3,6 
+$() Arrondir à 0,000 1.	</div>	</li><li>	En quelle année le secteur d'activité  dépasse les $val11 % ?	<div class="wimscenter">	 
+!read oef/embed.phtml reply4,4 
+$()	</div>	</li></ul>	</div>		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,9,11,12,20,21
+embedcnt=4

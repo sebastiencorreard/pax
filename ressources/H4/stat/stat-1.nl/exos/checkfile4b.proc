@@ -1,0 +1,212 @@
+# frequentie polygoon
+# reply$n=x1,x2,x3,...\
+# y1,y2,y3,...
+# var3 = aantal punten in grafiek
+# var4 = aantal decimalen
+# var5 is lijst met linker,rechter grens voor de klas: 40,45 \50,55
+# var6 is een schatting van de tekenprecisie ...ca 5 px
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    nodata=1
+    !goto plaatje
+!endif
+nodata=0
+raw_x=!line 1 of $(reply$n)
+raw_y=!line 2 of $(reply$n)
+extra=$empty
+list_x=$empty
+list_y=$empty
+rnd=$[10^($var4)]
+point_count=!itemcnt $raw_x
+precision_x=!item 1 of $var6
+precision_y=!item 2 of $var6
+# 20,100,100,120,120,190 -> 20,100,120,190 ivm segmenten in canvasdraw
+!for p=1 to $point_count
+ x1=!item $p of $raw_x
+ y1=!item $p of $raw_y
+ x1=$[(round($x1*$rnd))/$rnd]
+ y1=$[(round($y1*$rnd))/$rnd]
+ !if $p = 1
+  list_x=$x1
+  list_y=$y1
+ !else
+  !if $p = $point_count
+   list_x=!append item $x1 to $list_x
+   list_y=!append item $y1 to $list_y
+  !else
+   !if $p < $point_count
+    x2=!item $[$p+1] of $raw_x
+    y2=!item $[$p+1] of $raw_y
+    x2=$[(round($x2*$rnd))/$rnd]
+    y2=$[(round($y2*$rnd))/$rnd]
+    !if $[abs($x1 - $x2)] > $precision_x and $[abs($y1 - $y2)] > $precision_y
+     list_x=!append item $x1 to $list_x
+     list_y=!append item $y1 to $list_y
+    !endif
+   !endif
+  !endif
+ !endif
+!next p
+real_point_count=!itemcnt $list_x
+!ifval $real_point_count != $var3
+    straf=$[abs($var3-$real_point_count)]
+    ex=!record 65 of lang/remarks.$taal
+    #@<br /> en je had $var3 punten moeten tekenen , en niet $real_point_count ...
+    extra=!append word $ <br />$ex $ to $extra
+!else
+ straf=0
+!endif
+#exotext=$(reply$n)<br />point_count = $point_count<br/> real_point_count=$real_point_count<br />rnd=$rnd  precision_x=$precision_x precision_y=$precision_y <br />raw_x=$raw_x<br />raw_y=$raw_y<br />list_x=$list_x<br />list_y=$list_y<br />$(answer$n)
+#goback=1
+#!exit
+score=0
+your_reply=<ul>
+r_ex2=!record 66 of lang/remarks.$taal
+#@je zit er 1 puntje naast...
+your_line=$empty
+found=$empty
+!for s=1 to $real_point_count
+    x=!item $s of $list_x
+    y=!item $s of $list_y
+    gotit=0
+    !for p=1 to $var3
+	!if $gotit=0
+	    !if $p notitemof $found
+		klassegrenzen=!line $p of $var5
+		links=!item 1 of $klassegrenzen
+		rechts=!item 2 of $klassegrenzen
+		Mxy=!line $p of $(answer$n)
+	    	Mx=!item 1 of $Mxy
+		My=!item 2 of $Mxy
+	    	Mx=$[(round($Mx*$rnd))/$rnd]
+		My=$[(round($My*$rnd))/$rnd]
+	    	!ifval $x=$Mx and $y=$My
+		    !increase score
+		    found=!append item $p to $found
+		    gotit=1
+		    your_reply=!append word $ <li><b>(<span style="color:green">$x:$y</span>)</b></li> $ to $your_reply
+		!else
+		    !ifval $x=$Mx
+			!ifval $y=$[$My+1] or $y=$[$My-1]
+			    score=$[$score + $P4]
+		    	    found=!append item $p to $found
+			    gotit=1
+		    	    your_reply=!append word $ <li><b>(<span style="color:green">$x</span>:<span style="color:red">$y</span>)</b>$r_ex2</li> $ to $your_reply
+			!else
+			    score=$[$score + $P9]
+		    	    found=!append item $p to $found
+			    gotit=1
+		    	    your_reply=!append word $ <li><b>(<span style="color:green">$x</span>:<span style="color:red">$y</span>)</b></li> $ to $your_reply
+			!endif
+		    !else
+			!ifval $y=$My
+			    !ifval $x=$links
+				r_ex11=!record 62 of lang/remarks.$taal
+				#@je hebt het getal $links en niet het klassemidden voor dit punt gebruikt !
+				your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex11</li> $ to $your_reply
+				score=$[$score + $P8]
+		    		found=!append item $p to $found
+				gotit=1
+			    !else
+				!ifval $x=$rechts
+				#@je hebt het getal $rechts grens en niet het klassemidden voor dit punt gebruikt !
+				    r_ex12=!record 63 of lang/remarks.$taal
+				    your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex12</li> $ to $your_reply
+				    score=$[$score + $P8]
+		    		    found=!append item $p to $found
+				    gotit=1
+				!else
+				    !ifval $x=$[$Mx+1] or $x=$[$Mx-1]
+					your_reply=!append word $ <li><b>(<span style="color:red">$x</span>:<span style="color:green">$y</span>)</b><br />$r_ex2</li> $ to $your_reply
+					score=$[$score + $P4]
+		    			found=!append item $p to $found
+					gotit=1
+				    !endif
+				!endif
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next p
+    !if $gotit=0
+	your_reply=!append word $ <li><b>(<span style="color:red">$x:$y</span>)</b></li> $ to $your_reply
+    !endif
+!next s
+
+your_reply=!append word $ </ul> $ to $your_reply
+
+maxscore=$[$maxscore*$score/($straf+$var3)]
+
+!if $maxscore>0.9
+    remark$n=$OK
+    # k is GNUplot color
+    k=2
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k=7
+    !else
+	remark$n=$NOK
+	k=1
+    !endif
+!endif
+
+
+modulescore=$[$modulescore + $maxscore]
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+reply$n=$your_reply <br />$list_x<br/>$list_y 
+goback=0
+object$n=$empty
+:plaatje
+!if $showanswer=1
+    # ivm gezeur van de fijne collega's... # 
+    plot=1
+    draw=0
+    insplot_data=$empty
+    !for p=1 to $var3
+	M1=!line $p of $(answer$n)
+        x1=!item 1 of $M1
+        y1=!item 2 of $M1
+	!if $nodata=0
+    	    x2=!item $p of $list_x
+    	    y2=!item $p of $list_y
+	    !if $x2=$empty
+		last=$[$p-1]
+    	        x2=!item $last of $list_x
+    		y2=!item $last of $list_y
+	    !endif
+	!else
+	    x2=0
+	    y2=0
+	!endif
+	insplot_data=!append line $x1 $y1 $x2 $y2 to $insplot_data
+    !next p
+    # eerst het leering antwoord, dan is't plaatje iets "mooier"
+    # GEEN NOTILE ivm oude GNUplot versie in Leiden
+    !if $nodata=0
+	#image$n="insplot_data" using 3:4 with linespoints title '$youranswer';linetype $k ,"insplot_data" using 1:2 with linespoints notitle;linetype 2 
+	image$n="insplot_data" using 3:4 with linespoints notitle ;linetype $k ,"insplot_data" using 1:2 with linespoints notitle ;linetype 2 
+    !else
+	#image$n="insplot_data" using 1:2 with linespoints notitle;linetype 2 
+	image$n="insplot_data" using 1:2 with linespoints notitle;linetype 2 
+    !endif
+    image_settings$n=size 0.6,0.6;border ;autoscale; lmargin 6 ; tmargin 0 ; bmargin 2; rmargin 2;grid xtics ytics linetype 0
+!endif
+
+!exit
+
+#	Line and point color is specified by the linetype.
+#	linetype(lt)-color and lt-dash correspondence in gnuplot 4.0
+#	lt1 2 3 4 5 6 7 8 9 lt>10
+#	color red green blue magenta lightblue yellow black orange grey color 
+#	dashed type solid dashed short dashed dotted dot dashed dot short dashed ... ... ... dash @ mod(lt-1,9)+1 

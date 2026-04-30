@@ -1,0 +1,163 @@
+# y = 0 + y = 1 --> x = gem + sigma
+# y = 0 + y =-1 --> x = gem - sigma
+goback=0
+errortext=$empty
+n=$counter
+sigma=!item 1 of $(answer$n)
+gemiddelde=!item 2 of $(answer$n)
+delta=$[round($var1/5)]
+gmin=$[$gemiddelde - $sigma]
+gmax=$[$gemiddelde + $sigma]
+
+!if ? isin $(reply$n)
+    reply$n=$dontknow
+    goback=0
+    maxscore=0
+    remark$n=$NOK
+    !if $teaching=1
+	!if $var8=0
+	    # java
+	    data=line $var2,0,$gemiddelde,0,blue,140,4\
+	    arrow $gemiddelde,0,$gemiddelde,-3.65,0.05,blue,140,4\
+	    dline $var2,1,$gmax,1,blue,140,4\
+	    dline $gmax,1,$gmax,-3.65,blue,140,4\
+	    userdraw fcircle\
+	    clickcolor orange,100
+	    
+	    !appendfile getfile/$counter.data $data
+	!else
+	    object$n=!exec canvasdraw \
+	    $var9\
+	    linewidth 2\
+	    segment $var2,0,$gemiddelde,0,blue\
+	    arrow2 $gemiddelde,0,$gemiddelde,-3.65,8,blue\
+	    dsegment $var2,1,$gmax,1,blue\
+	    dsegment $gmax,1,$gmax,-3.65,blue
+	!endif
+    !endif
+    !exit
+!endif
+# answer$n=sigma,gemiddelde
+# reply$n=sigma,gemiddelde,x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6,x7,y7,x8,y8
+# dus : 4 lijnstukken 8 punten 16 items
+# var1 is klassebreedte
+rep1=!line 1 of $(reply$n)
+rep2=!line 2 of $(reply$n)
+rep3=!line 3 of $(reply$n)
+yrep=<ul>
+
+!ifval $rep1 > $[$sigma-$delta] and $rep1 < $[$sigma+$delta] 
+    score1=1
+    k1=green
+!else
+    !ifval $rep1 > $[$sigma-2*$delta] and $rep1 < $[$sigma+2*$delta] 
+	score1=$P6
+	k1=orange
+    !else
+	score1=0
+	k1=red
+    !endif
+!endif
+
+!ifval $rep2 > $[$gemiddelde-$delta] and $rep2 < $[$gemiddelde+$delta] 
+    score2=1
+    k2=green
+!else
+    !ifval $rep2 > $[$gemiddelde-2*$delta] and $rep2 < $[$gemiddelde+2*$delta] 
+	score2=$P6
+	k2=orange
+    !else
+	score2=0
+	k2=red
+    !endif
+!endif
+    
+yrep=!append line <li>Standaardafwijking = <span style="color:$k1">$rep1</span></li><li>Gemiddelde = <span style="color:$k2">$rep2</span></li> to $yrep
+
+# gemiddelde in grafiek
+score3=0
+# sigma in grafiek
+score4=0
+# javascript checkt op juiste aantal coordinaten
+k3=red
+k4=red
+your_data=$empty
+!for p=1 to 15 step 2
+    x=!item $p of $rep3
+    y=!item $[$p+1] of $rep3
+    # y = 0 + y = 1 --> x = gem + sigma
+    # y = 0 + y =-1 --> x = gem - sigma
+    your_data=!append item $x,$y to $your_data
+    !if $score3=0
+	!ifval $y > - 0.05 and $y < 0.05
+	    !ifval $x > $[$gemiddelde - $delta] and $x < $[$gemiddelde + $delta]
+		score3=1
+		k3=green
+	    !endif
+	!endif  
+    !endif
+    !if $score4=0
+	# onderste sigma y=-1 : nauwkeurigheid +/- 0.05
+	!ifval $y > - 1.05 and $y <-0.95
+	    !ifval $x > $[$gmin - $delta] and $x < $[$gmin + $delta]
+		score4=1
+		k4=green
+	    !endif
+	!endif
+    !endif
+    !if $score4=0  
+	# bovenste sigma y=1 : nauwkeurigheid +/- 0.05
+	!ifval $y > 0.95 and $y < 1.05
+	    !ifval $x > $[$gmax - $delta] and $x < $[$gmax + $delta]
+		score4=1
+		k4=green
+	    !endif
+	!endif  
+    !endif
+!next p
+
+sometxt=!record 24 of lang/remarks.$taal
+#Gemiddelde,gewicht in grammen,Grafiek,Standaardafwijking,Gemiddelde
+txt3=!item 3 of $sometxt
+txt4=!item 4 of $sometxt
+txt5=!item 5 of $sometxt
+yrep=!append line <li>$txt3 :<span style="color:$k4"> $txt4 </span></li><li>$txt3 :<span style="color:$k3"> $txt5 </span></li> to $yrep
+
+maxscore=$[$maxscore*($score1+$score2+$score3+$score4)/4]
+modulescore=$[$modulescore + $maxscore]
+reply$n=!append line </ul> to $yrep
+!ifval $maxscore = 1
+    remark$n=$OK
+!else
+    !if $maxscore>0
+	remark$n=$BOK
+    !else
+    	remark$n=$NOK
+    !endif
+!endif
+
+
+!if $teaching=1
+    !if $var8=0
+    data=points $your_data,red,120,12\
+    line $var2,0,$gemiddelde,0,blue,140,4\
+    arrow $gemiddelde,0,$gemiddelde,-3.65,0.05,blue,140,4\
+    dline $var2,1,$gmax,1,blue,140,4\
+    dline $gmax,1,$gmax,-3.65,blue,140,4
+    
+    !appendfile getfile/$counter.data $data
+    !else
+	object$n=!exec canvasdraw \
+	$var9\
+	linewidth 2\
+	points red,$your_data\
+	segment $var2,0,$gemiddelde,0,blue\
+	arrow2 $gemiddelde,0,$gemiddelde,-3.65,8,blue\
+	dsegment $var2,1,$gmax,1,blue\
+	dsegment $gmax,1,$gmax,-3.65,blue
+    
+    !endif
+!endif
+goback=0
+
+!exit

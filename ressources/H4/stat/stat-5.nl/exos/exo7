@@ -1,0 +1,49 @@
+# betrouwbaarheidsinterval I
+
+n=$counter
+mathview=0
+make_tr=1
+embed=1
+helptext=$empty 
+exotext=$empty
+image=0
+math=0
+cols=15
+rows=1
+questiontype=7
+javascript=js/interval.phtml
+checkfile=$checkdir/number.proc
+rounding=10
+!readproc $remarkdir/rounding.$taal
+
+perc=!randint 300,600
+perc=$[0.1*$perc]
+prop=$[0.01*$perc]
+sigma=!randint 100,300
+sigma=$[0.0001*$sigma]
+prov=!randitem Gelderland,Utrecht,Zeeland,Limburg,Noord-Holland,Zuid-Holland,Groningen,Friesland,Drenthe,Brabant
+aantal=!randint 10,50
+aantal=$[$aantal*50]
+ss=!record 41 of lang/remarks.$taal
+#@De provincie $prov doet een onderzoek naar sportiviteit onder jongeren.<br />Men neemt een steekproef van $aantal aselect gekozen jongeren in de leeftijd van 15 &minus; 25 jaar...<br />Uit deze steekproef blijkt $perc % van deze jongeren een sport te beoefenen.<br />Als je uitgaat van een betrouwbaarheid van 95% , tussen welke waarden zal dan het<br />percentage jongeren liggen dat een sport beoefend ?<br />Geef je antwoord in interval notatie en op &eacute;&eacute;n decimaal.
+
+inputs=yes
+
+question$n= <a onmouseover="return escape('<img src=\'$module_dir/gifs/exo7.png\' alt=\'no alt\' />')">$ss</a>
+helptext=<img src=\'$module_dir/gifs/exo7.png\' alt=\'no alt\' />
+
+ans1=$[100*($prop - 2*sqrt(($prop*(1 - $prop))/$aantal))]
+ans2=$[100*($prop + 2*sqrt(($prop*(1 - $prop))/$aantal))]
+tans1=$[$prop - 2*sqrt(($prop*(1 - $prop))/$aantal)]
+tans2=$[$prop + 2*sqrt(($prop*(1 - $prop))/$aantal)]
+rans1=$[(round($rounding*$ans1))/$rounding]
+rans2=$[(round($rounding*$ans2))/$rounding]
+answer$n=$ans1,$ans2
+sometext=!record 42 of lang/remarks.$taal
+#@Het 95% -betrouwbaarheidsinterval is gelijk aan,Met daarin,steekproefproportie,steekproefgrootte,De linkergrens,De rechtergrens ,Het 95% -betrouwbaarheidsinterval uitgedrukt in percentages is
+
+texanswer$n=\begin{array}{l} \textrm{ $(sometext[1]) : } \\ \; \\ \left[\begin{array}{lll} p - 2 \sqrt{\frac{p(1-p)}{n}}   , p + 2 \sqrt{\frac{p(1-p)}{n}} \end{array}\right] \\ \textrm{ $(sometext[2]) :} \\ p = \textrm{ $(sometext[3]) } \\ n = \textrm{ $(sometext[4]) : }  \\ \\ p = \frac{$perc}{100} = $prop \\ n = $aantal \\ \textrm{ $(sometext[5]) :} $prop - 2\sqrt{\frac{ $prop (1 - $prop)}{$aantal}} \approx $tans1  \rightarrow $rans1 \% \\ \textrm{ $(sometext[6]) :} $prop + 2\sqrt{\frac{ $prop (1 - $prop)}{$aantal}} \approx $tans2  \rightarrow $rans2 \%   \\ \textrm{ $(sometext[7]) : } \left[ $rans1 ; $rans2 \right] \end{array} 
+formula$n=!record 34 of lang/remarks.$taal
+#@Interval:
+
+!exit

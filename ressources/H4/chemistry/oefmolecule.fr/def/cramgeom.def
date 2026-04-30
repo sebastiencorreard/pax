@@ -1,0 +1,159 @@
+!set title=Représentation de Cram : convention
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey; Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1
+tmp0=!lookup cramimage in ind.cles
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+tmp1=!item 1 of $(tmp0)
+
+val8=$(tmp1)
+tmp0=!lookup $val8 in descriptif
+
+val9=$(tmp0)
+val10=$(val9[1])
+tmp0=!lower $val10
+
+!readproc slib/lang/frapostrophe de $(tmp0) 
+tmp1=$slib_out
+val11=$(tmp1)
+val12=$(val9[4])
+tmp0=!translate | to , in $(val9[3])
+
+val13=$(tmp0)
+tmp=!nonempty items $val13
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp0=!declosing $val13
+
+val13=$(tmp0)
+val14=$val8/$(val13[1])
+tmp0=!itemcnt $val13
+
+val15=$(tmp0)
+tmp0=!translate | to , in $(val9[2])
+
+val16=$(tmp0)
+
+!ifval $val15 = 1 
+tmp=!nonempty items $val16
+
+tmp0=!randitem $tmp
+val16= $val8/$(tmp0)
+!else
+val16=	$val8/$(val13[2])
+!endif
+val17=dans le plan de l'écran, en avant du plan de l'écran, en arrière du plan de l'écran
+val18=$(val9[7])
+tmp0=!replace internal | by , in $val18
+
+val18=$(tmp0)
+val19=$(val9[8])
+tmp0=!replace internal | by , in $val19
+
+val19=$(tmp0)
+val20=$(val9[9])
+tmp0=!replace internal | by , in $val20
+
+val20=$(tmp0)
+tmp0=!nonempty items $val18,$val19,$val20
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+val21=$(tmp1)
+
+!ifval $val21 isin $val18 
+val22= 1
+!else
+val22= 3
+!endif
+
+!ifval $val21 isin $val19 
+val22= 2
+!endif
+replytype1=radio
+replyname1=
+replygood1=$val22;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici la représentation de Cram de la molécule	  $val11 dont la formule chimique est 
+!insmath $val12
+$() :	   <div class="wimscenter"><img src="$val1/$val14" alt=""></div>	   L'atome $val21 est	<ul>	 <li> 
+!read oef/embed.phtml reply1,1 
+$()</li>	 <li> 
+!read oef/embed.phtml reply1,2 
+$()</li>	 <li> 
+!read oef/embed.phtml reply1,3 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,11,12,14,21
+embedcnt=3

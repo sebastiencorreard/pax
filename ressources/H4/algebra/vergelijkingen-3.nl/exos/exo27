@@ -1,0 +1,134 @@
+checkfile=exos/aftercheck.proc
+# ivm log in antwoord ipv ln 
+#2/2011
+#$checkdir/number.proc
+arglist=x
+# answer must be 'x=123'
+mathview=2
+image=0
+math=0
+cols=20
+rows=2
+embed=1
+questiontype=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+keuze=!randitem 1,0
+ss=!record 62 of lang/remarks.$taal
+#@ Los op:<br><small><em>bereken dus de waarden van x</em><br>noteer bij meerdere oplossingen iets als:<br><em>x</em>=1 en <em>x</em>=2/3 of zo...<br>en bij breuken graag het antwoord vereenvoudigen.</small>
+helptext=<textarea cols=\'20\' rows=\'4\' readonly=\'readonly\' class=\'schaersvoorde_textarea\' > x1=sqrt(2)/2 \n x2=4 \n x3=sqrt(2) \n x4=4.12*10^5</textarea>
+mathviewpanel=$module_title:x=:x_1=:x_2=:and
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+
+    a=!randitem 2,3,4
+    b=!randitem 2,3,4,5,6,7,8,9
+    !if $a=$b
+	a=$[$a+1]
+    !endif
+    !if $a=2
+	c=1
+    !else
+	c=1/$[$a-1]
+    !endif
+    !if $keuze=1
+	formula$n= e^{$a x} =e^{$b-x}
+	applettext=!nospace e^($a x) = e^($b-x) ->
+	tot=!exec pari A=$b/(1+$a)\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tex
+	texanswer$n=\left[ \begin{array}{l}e^{$a x} =e^{$b-x} \\ e^{$a x} - e^{$b - x} =0 \\e^{$a x} - e^{$b}\cdot e^{-x} =0\\ e^{$[$a+1] x} -e^{$b}=0 \\ x=$tex \end{array} \right.
+    !else
+	formula$n= e^{$a x} =$b e^{x}
+	applettext=!nospace e^($a x) = $b e^x ->
+	answer$n=$c*ln($b)
+	tex=$c \cdot \ln($b)
+	texanswer$n=\left[ \begin{array}{l}e^{$a x} =$b e^{x} \\ e^{$a x} - $b e^{x} =0 \\ e^{x}\left(e^{$[$a-1] x} - $b\right)=0 \\ x=$tex \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R=2
+    a=!randitem 1,2,3,4
+    b=!randitem 1,2,3,4,5
+    !if $a=$b
+	b=$[$b+1]
+    !endif
+    ab=$[$a*$b]
+    c=$[$b-$a]
+    !if $c<0
+	!if $c=-1
+	    c=-
+	!else
+	    c=$c
+	!endif
+    !else
+	!if $c=1
+	    c=+
+	!else
+	    c=+$c
+	!endif
+    !endif
+    answer$n=ln($a)
+    tex=\ln($a)
+    !if $keuze=1
+	formula$n= e^{2 x} $c e^{x}  =$ab
+	applettext=!nospace e^(2 x) $c e^x= $ab ->
+	texanswer$n=\left[ \begin{array}{l} e^{2 x} $c e^{x}  =$ab \\ e^{2x} $c e^{x} - $ab =0 \\ (e^{x} -$a)(e^{x}+$b)=0 \\ x=$tex \end{array} \right.
+    !else
+	d=$[$a-$b]
+	!if $d=-1
+	    d=-
+	!else
+	    !if $d=1
+		d=$empty
+	    !else
+	    d=$d
+	    !endif
+	!endif
+	formula$n= e^{2 x} =$d e^{x} + $ab
+	applettext=!nospace e^(2 x) = $d e^x + $ab ->
+	texanswer$n=\left[ \begin{array}{l} e^{2 x} =$d e^{x} + $ab \\ e^{2x} $c e^{x} - $ab =0 \\ (e^{x} -$a)(e^{x}+$b)=0 \\ x=$tex \end{array} \right.
+    !endif
+    answer$n=ln($a)
+ !exit
+!endif
+!if $R>2
+    a=!randitem 1,2,3,4,5,6,7,8
+    b=!randitem 1,2,3,4,5
+    !if $a=$b
+	b=$[$b+1]
+    !endif
+    ab=$[$a*$b]
+    !if $ab=1
+	ab=$empty
+    !endif
+    c=$[$b-$a]
+    !if $c<0
+	c=$c
+    !else
+	c=+$c
+    !endif
+    answer$n=ln($a)
+    tex=\ln($a)
+    !if $keuze=1
+	formula$n= e^{x} $c = $ab e^{-x}
+	applettext=!nospace e^(x) $c = $ab e^(-x)->
+        texanswer$n=\left[ \begin{array}{l} e^{x} $c = $ab e^{-x} \\ e^{x} - $ab e^{-x} $c =0 \\ \left( e^{x} - $ab e^{-x} $c \right) \cdot e^{x} =0 \cdot e^{x} \\ e^{2x} $c e^{x} - $ab =0 \\ (e^{x} -$a)(e^{x}+$b)=0 \\ x=$tex \end{array} \right.
+    !else
+	d=$[$a-$b]
+	formula$n= e^{x} - $ab e^{-x}=$d
+	applettext=!nospace e^x -$ab e^(-x)= $d ->
+        texanswer$n=\left[ \begin{array}{l} e^{x} - $ab e^{-x}=$d\\ e^{x} - $ab e^{-x} $c =0 \\ \left( e^{x} - $ab e^{-x} $c \right) \cdot e^{x} =0 \cdot e^{x} \\ e^{2x} $c e^{x} - $ab =0 \\ (e^{x} -$a)(e^{x}+$b)=0 \\ x=$tex \end{array} \right.
+    !endif
+ !exit
+!endif

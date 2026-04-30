@@ -1,0 +1,100 @@
+extra3=$empty
+score3=0
+sa=$your_molmass
+!if $rounding <1
+    rnd=100
+!else
+    rnd=$rounding
+!endif
+# 123gr/mol
+sa=!lower $sa
+sa=!singlespace $sa
+t1=!charcnt $sa
+number=!replace [a-z\\/] by $empty in $sa
+t2=!charcnt $number
+!if NaN isin $[1*$number] or $t2=0
+    errortext=!record 56 of lang/remarks.$taal
+    #@Wat is $sa ??
+    goback=1
+    !exit
+!endif
+facs=10,100,1000,0.1,0.01,0.001
+
+number=$[(round($rnd*$number))/$rnd]
+my_number=$[(round($rnd*$my_molmass))/$rnd]
+!if $t2=$t1
+    # no units
+    extra3=!record 57 of lang/remarks.$taal
+    #@Ik neem aan <b>gr/mol</b> ?
+    # no units mentioned...we suppose gr/mol
+    !ifval $number=$my_number
+	score3=1
+	k3=green
+    !else
+	!ifval $[round($number)] = $[round($my_number)]
+	    ex=!record 58 of lang/remarks.$taal
+	    #@ Niet al te precies...
+	    extra3=!append line $ <br />$ex $ to $extra3
+	    score3=$P1
+	    k3=orange
+	!else
+	    found=0
+	    !for f in $facs
+		!if $found=0
+		    !ifval $number = $[$f*$my_number]
+			extra3=!record 59 of lang/remarks.$taal
+			#@Je zit er een factor $f naast...
+			found=1
+			score3=0.15
+		    !endif
+		!endif
+	    !next f
+	    !if $found=0
+		score3=0
+	    !endif
+	    k3=red
+	!endif
+    !endif
+!else
+    # there may be units...
+    unit=!replace [0-9.] by $empty in $sa
+    A=!exec units-filter $number $unit
+    G=!exec units-filter $my_number $var5
+    
+    !if ERROR isin $A
+	errortext=!record 60 of lang/remarks.$taal
+	#@ Ik kan je antwoord <b>$sa</b> niet kontroleren<br />Geef je antwoord in een geldige <b>SI</b> eenheid...<br />Je "eenheid" <b>$unit ...</b> geeft natuurlijk problemen met nakijken.
+        maxscore=$[$P5*$maxscore]
+        goback=1
+	!exit
+    !endif
+    A1=!word 1 of $A
+    G1=!word 1 of $G
+    !ifval $A1=$G1
+	score3=1
+	k3=green
+    !else
+	!ifval $[round($A1)] = $[round($G1)]
+	    ex=!record 15 of lang/remarks.$taal
+	    extra3=!append line $ex to $extra3
+	    score3=$P1
+	    k3=orange
+	!else
+	    found=0
+	    !for f in $facs
+		!if $found=0
+		    !ifval $A1 = $[$f*$G1]
+			extra3=!record 59 of lang/remarks.$taal
+			found=1
+			score3=0.15
+		    !endif
+		!endif
+	    !next f
+	    !if $found=0
+		score3=0
+	    !endif
+	    k3=red
+	!endif
+    !endif
+!endif
+!exit

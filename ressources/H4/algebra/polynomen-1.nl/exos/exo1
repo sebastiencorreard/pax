@@ -1,0 +1,132 @@
+n=$counter
+embed=1
+math=0
+cols=15
+rows=2
+
+!if $subject=1
+    xx=x
+    xqtex=x
+    ymin=-20
+    ymax=20
+    #grid xmajor,ymajor,grid_color,xminor,yminor,size in px,axis_color+minor_color
+    grid=1,5,grey,2,2,5,black
+!else
+    !if $subject=2
+	q=2
+	ymin=-50
+	ymax=50
+	grid=1,10,gray,2,2,6,black
+    !else
+	!if $subject=3
+	    q=!randitem 3,4,5
+	    qq=1
+	!else
+	    qq=2
+	    q=!randitem 6,7,8,9
+	!endif
+	ymin=-$[10^($q-$qq)]
+	ymax=$[10^($q-$qq)]
+	grid=1,$[$ymax/5],grey,2,2,5,black
+    !endif
+    xx=x^$q
+    xqtex=x^{$q}
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=0
+!readproc $remarkdir/rounding.$taal
+
+!if $R=1
+    a=!randitem 1,2,3,4
+    b=!randitem 1,2,3,4
+    f=(x - $a)*(x - $b)*$xx
+    ft=(x - $a)*(x - $b)
+    x1=$a
+    x2=$b
+    x3=0
+!else
+    !if $R=2
+	a=!randitem 1,2,3,4,5
+        b=!randitem 1,2,3,4,5
+	f=(x - $a)*(x + $b)*$xx 
+	ft=(x - $a)*(x + $b) 
+	x1=$a
+        x2=$[-1*$b]
+	x3=0
+    !else
+        a=!randitem 1/2,1/3,1/4,1/5,1/6,1/7,1/8
+	b=!randitem 1,2,3,4,5
+	f=(x - $a)*(x - $b)*$xx 
+	ft=(x - $a)*(x - $b) 
+	x1=$a
+	x2=$b
+	x3=0
+    !endif
+!endif
+FF=!texmath $f
+tot=!exec pari A=$f\
+printtex(A)\
+printtex($ft)
+
+functie=!line 1 of $tot
+F=!line 2 of $tot
+FT=!line 3 of $tot
+ 
+functie=!nospace $functie
+keuze=!randint 0,1
+sometxt=!record 1 of lang/remarks.$taal
+#@Bereken alle <b>nulpunten</b> van de onderstaande functie.,Bereken alle <b>snijpunten</b> van de onderstaande functie met de x-as.,<span style="color:blue">Hier</span> staat een klein plaatje,Snijden met de x-as,x-as,y-as
+
+!if $keuze=0
+    answer$n=$x1,$x2,0
+    ss=!item 1 of $sometxt
+    #Bereken de nulpunten van de onderstaande functie.
+    checkfile=$checkdir/number.proc
+    arglist=x
+    helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\'readonly=\'readonly\'> x1=11 \n x2=22 \n x3=33</textarea>
+!else
+    answer$n=$x1,0,$x2,0,0,0
+    ss=!item 2 of $sometxt
+    #Bereken de snijpunten van de onderstaande functie met de x-as.
+    checkfile=$checkdir/coord.proc
+    helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\' readonly=\'readonly\'> (1:1)\n (2:2)\n (3:3)</textarea>
+!endif
+snijpunten=!item 4 of $sometxt
+
+texanswer$n=\left[ \begin{array}{l} f(x) = $F \rightarrow \\  f(x) = \left( $FT \right) \cdot $xqtex \rightarrow  \\ f(x) = $FF \\ \textrm{$snijpunten :}\: f(x) = 0\\ x_{1} = $x1 \\ x_{2} = $x2 \\ x_{3} = $x3 \\ \left($x1 : 0 \right) \wedge \left($x2 : 0 \right) \wedge \left($x3 : 0 \right) \end{array} \right.
+
+formula$n=f(x) = $F
+
+!if $teaching=1
+    xas=!item 5 of $sometxt
+    yas=!item 6 of $sometxt
+
+    canvasimage=!exec canvasdraw\
+    size 280,280\
+    bgcolor $wims_bgcolor\
+    xrange -5,5\
+    yrange $ymin,$ymax\
+    precision 100\
+    opacity 180,120\
+    axis\
+    grid $grid\
+    linewidth 2\
+    curve red,$functie\
+    xlabel $xas\
+    ylabel $yas\
+    opacity 255,255\
+    crosshairsize 6\
+    crosshairs green,$x1,0,$x2,0,0,0\
+    intooltip <img src="$gifdir/canvas.png" alt="plaatje">\
+    zoom red
+    
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!exit
+
+

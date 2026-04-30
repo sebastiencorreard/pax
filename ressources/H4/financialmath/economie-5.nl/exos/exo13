@@ -1,0 +1,105 @@
+# Machine uurtarief en kostprijs I
+n=$counter
+# geen steps, wel zelfde verhaaltje & tabel met data
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/productie$g.jpg" alt="productie" />
+logotext=<img src=\'$module_dir/gifs/productie$g.jpg\' alt=\'productie\' />
+
+!if $counter=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    mathview=0
+    make_tr=1
+    math=0
+    inputs=1.1
+    checkfile=exos/precheck2.proc
+    viewlogo=1
+    roundingtext=Geef je antwoord op &euro; centen nauwkeurig<br />Dus op twee decimalen afgerond.
+    rounding=100
+    nu=!date +%Y
+    toen=$[$nu-1]
+    
+    product=!randitem Trapo,Elasto,Styple,Verozon,Snap-O-Click,Dorondo,Viledo,Gr&ouml;lsch,Ledermaister,Lametto
+    
+    bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma products,Bergsma HiTec,HaGeBo BV,Molenkamp BV,VNZ manufacturing &amp; supplies, LuciDa BV,Wienke trading & manufacturing    
+    r=!randint 1,3
+    eenheid=!item $r of m2,kg,liter
+
+    materiaal_verbruik=!randint 111,999
+    materiaal_verbruik=!exec moneyprint $[$materiaal_verbruik/100]
+    
+    prijs_per_eenheid=!randint 50,999
+    prijs_per_eenheid=!exec moneyprint $[$prijs_per_eenheid/100]
+    
+    uurloon=!randint 150,350
+    uurloon=!exec moneyprint $[$uurloon/10]
+    # loon per uur
+    arbeidsuur=!randint 5,20
+    arbeidsuur=!exec moneyprint $[$arbeidsuur/100]
+    # in minuten
+    machinegebruik_m=!randint 10,100
+    machinegebruik_m=!exec moneyprint $[$machinegebruik_m/10]
+    # in uur
+    machinegebruik_u=$[60*$machinegebruik_m]
+    
+    begrote_productie=!randint 100,300
+    normale_productie=!randint $[$begrote_productie+5],$[$begrote_productie+50]
+    begrote_productie=$[100*$begrote_productie]
+    normale_productie=$[100*$normale_productie]
+    
+    totale_constante_machinekosten=!randint 1000,2500
+    totale_variabele_machinekosten=!randint $[$totale_constante_machinekosten+50],$[$totale_constante_machinekosten+300]
+    totale_constante_machinekosten=$[10*$totale_constante_machinekosten]
+    totale_variabele_machinekosten=$[10*$totale_variabele_machinekosten]
+    
+    totale_constante_verkoopkosten=!randint 300,700
+    totale_constante_verkoopkosten=$[10*$totale_constante_verkoopkosten]
+    
+    # % van commerciele kostprijs
+    perc1=!randint 30,80
+    perc1=$[$perc1/10]
+    
+    mousetable=Toegestaan per eenheid <em>$product</em>&reg; <ul><li>$materiaal_verbruik $eenheid &agrave; &euro; $prijs_per_eenheid per $eenheid .</li><li>$arbeidsuur arbeidsuur &agrave; &euro; $uurloon per arbeiduur.</li><li>machinegebruik $machinegebruik_m minuten.</li></ul>
+    
+    ss=De industri&euml;le onderneming <kbd>$bedrijf</kbd> produceert product <em>$product</em>&reg;<br />Voor de productie van 1 eenheid <em>$product</em>&reg; is <span style="color:blue"><b>dit toegestaan</b></span><br />Met betrekking tot de begroting van $toen is het volgende bekend.<br /><br /><table class="default_table"><tr><td>Begrote productie</td><td>$begrote_productie eenheden</td></tr><tr><td>Normale productie</td><td>$normale_productie eenheden</td></tr><tr><td>Totale constante machinekosten</td><td>&euro;$totale_constante_machinekosten</td></tr><tr><td>Totale variabele machinekosten</td><td>&euro;$totale_variabele_machinekosten</td></tr><tr><td>Totale constante verkoopkosten</td><td>&euro;$totale_constante_verkoopkosten</td></tr><tr><td>Standaard variabele verkoopkosten per eenheid</td><td>$perc1 % van de commerci&euml;le kostprijs</td></tr></table>
+
+    question1=<a onmouseover="return escape('$mousetable')">$ss</a><br />Bereken voor $bedrijf het <kbd>machine-uurtarief</kbd> voor $toen
+    
+    question2=<a onmouseover="return escape('$mousetable')">$ss</a><br />Bereken de fabricage-kostprijs.
+    
+    question3=<a onmouseover="return escape('$mousetable')">$ss</a><br />Bereken de commerci&euml;le kostprijs van &eacute;&eacute;n eenheid $product&reg;.
+    
+    answer1=!exec moneyprint $[(60/$machinegebruik_m)*(($totale_constante_machinekosten/$normale_productie) +($totale_variabele_machinekosten/$begrote_productie))]
+    tussen1=!exec moneyprint $[($totale_constante_machinekosten/$normale_productie) +($totale_variabele_machinekosten/$begrote_productie)]
+    
+    answer2=!exec moneyprint $[$materiaal_verbruik*$prijs_per_eenheid + $arbeidsuur*$uurloon +$tussen1]
+    
+    answer3=!exec moneyprint $[100*(($answer2 + $totale_constante_verkoopkosten/$normale_productie)/(100 - $perc1))]
+    
+    tussen3=$[$totale_constante_verkoopkosten/$normale_productie]
+    
+    tussen4=$[$answer2 + $tussen3]
+    tussen5= $[100 - $perc1]
+    texanswer1=\left[ \begin{array}{l} \;\textrm{kostprijs :} \frac{C}{N}+\frac{V}{B} \\ \\ \;\textrm{C = Constantekosten} \\ \;\textrm{N = Normale productie} \\ \;\textrm{V = Variabele kosten} \\ \;\textrm{B = Begrote productie} \\ \;\textrm{invullen: } \frac{$totale_constante_machinekosten}{$normale_productie} + \frac{$totale_variabele_machinekosten}{$begrote_productie} = $tussen1 \;\textrm{ per } $machinegebruik_m \;\textrm{ minuten} \\ \;\textrm{Dus het Machine uurtarief = } \frac{60}{$machinegebruik_m} \times $tussen1 = $answer1 \;\textrm{ euro} \end{array} \right.
+    
+    texanswer2=\left[\begin{array}{lr} \;\textrm{$materiaal_verbruik  $eenheid materiaal a  $prijs_per_eenheid per $eenheid } & $[$materiaal_verbruik*$prijs_per_eenheid] \;\textrm{ euro} \\ \;\textrm{$arbeidsduur arbeidsduur a $uurloon per uur} & $[$arbeidsuur*$uurloon] \;\textrm{ euro} \\ \;\textrm{$maschinegebruik_m minuten machinegebruik } & $tussen1 \;\textrm{ euro}\\ \hline & \\ \;\textrm{totaal opgeteld} & $answer2 \;\textrm{ euro} \end{array} \right.
+    
+    texanswer3=\left[ \begin{array}{l} \;\textrm{Commerciele kostprijs = Fabricagekosten per product + Verkoopkosten per product} \\ $answer2 \;\textrm{ euro} + \frac{$totale_constante_verkoopkosten}{$normale_productie}  \;\textrm{ euro} = 100\% - $perc1 \% \\ $answer2 + $tussen3 \;\textrm{ euro} = $tussen5 \% \\ $tussen4 \;\textrm{ euro} = $tussen5 \% \\ \;\textrm{Commerciele kostprijs = } 100 \% \\ \;\textrm{Commerciele kostprijs = } 100 \times \frac{$tussen4}{$tussen5} = $answer3 \;\textrm{ euro} \end{array} \right.
+    
+    var6=Machine-uurtarief voor $toen,Fabricage kostprijs,Commerciele kostprijs van 1 eenheid $product
+
+    helptext=$roundingtext
+    # plus of min 2 cent
+    var1=0.02
+    var2=$rounding
+    description=$(var6[$counter])
+!else
+    description=$(var6[$counter])
+    A=!word 1 of $(reply$[$counter-1])
+    exotext=!append line $ $youranswer : $A<br />  $ to $exotext
+!endif
+
+!exit
+#<select  size="1" id="myinput2" name="myinput2" style="text-align:center;font-size:18px;border:0px;background-color:orange"  ><option value="-1">afname</option><option value="1">toename</option></select>
+

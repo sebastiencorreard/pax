@@ -1,0 +1,211 @@
+!set title=Distance et valeur absolue
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+oefcss=<style> .rm { font-size:large} .hint { padding:20px;} .solution { padding:20px;} .flex_box{ justify-content:flex-start; } </style>
+
+ansorder=r,r
+varcnt=16
+prevarcnt=13
+postvarcnt=2
+replycnt=2
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=Soit \(\mathrm{M}\) le point d'abscisse \(x\)	  sur la droite graduée d'origine
+val8=Donner l'expression de la distance de \(\mathrm{M}\)	  à \(\mathrm{B}\) puis de \(\mathrm{C}\) à <span class="nowrap">\(\mathrm{M}\),</span>	  à l'aide d'une valeur absolue.
+val9=Vous avez répondu&nbsp;
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val10=$[rint($(tmp0)* $(tmp1))]
+tmp0=!randint 1, 10
+
+tmp1=!randitem 1,-1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+
+!ifval $val12=1
+tmp0=!randitem -1,-2,2
+
+t_=!rawmath $(tmp0)
+val13=!exec pari print($t_)
+!else
+tmp1=!randitem -1,-2,-3,2,3
+
+t_=!rawmath $(tmp1)/$val10
+val13=!exec pari print($t_)
+!endif
+
+!ifval $val13=1
+t_=!rawmath 2
+val13=!exec pari print($t_)
+!endif
+val14=xrange -13,13	  yrange -2,2	  hline 0,0,red	  arrow 12,0,13,0,15,red	  parallel -12,-0.2,-12,0.2,1,0,2,blue	  parallel -10,-0.4,-10,0.4,5,0,5,blue	  parallel -9,-0.2,-9,0.2,1,0,4,blue	  parallel -4,-0.2,-4,0.2,1,0,4,blue	  parallel 1,-0.2,1,0.2,1,0,4,blue	  parallel 6,-0.2,6,0.2,1,0,4,blue	  parallel 11,-0.2,11,0.2,1,0,2,blue	  text red,-0.1,1,medium,O	  text red,$val10-0.1,1,medium,B	  text red,$val11-0.1,1,medium,C	  text red,-0.1,-0.75,medium,0	  text red,$val10-0.1,-0.75,medium,$val10	  text red,$val11-0.1,-0.75,medium,$val11	  segment $val10,-0.2,$val10,0.2,red	  segment $val11,-0.2,$val11,0.2,red	
+tmp0=!texmath x-($val10)
+
+tmp1=!texmath $val10-x
+
+tmp2=!texmath -x+($val10)
+
+tmp3=!texmath -($val10)+x
+
+val15=$(tmp0),$(tmp1), $(tmp2), $(tmp3)
+tmp0=!texmath x-($val11)
+
+tmp1=!texmath $val11-x
+
+tmp2=!texmath -($val11)+x
+
+tmp3=!texmath -x+($val11)
+
+val16=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+
+!ifval $val2=1 
+val17= 
+!else
+val17=x-large
+!endif
+replyoption1=noanalyzeprint 
+replyname1=dxa
+replygood1=?analyze 18
+replyoption2=noanalyzeprint 
+replyname2=dxb
+replygood2=?analyze 19
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7 <span class="nowrap">
+!insmath \mathrm{O}
+$().</span>	 <div class="wimscenter">	 
+!read oef/draw.phtml 800,64 \
+$val14 
+$()	 </div>	$val8	<div class="wimscenter">	 
+!if $m_reply1!= 
+$()$val9:<br class="spacer"> 
+!endif
+$()	 
+!read oef/special.phtml mathmlinput [\mathrm{M B}=\left|reply1\right|],5,noanswer	 reply 1	  
+$()	 <br class="spacer">	 
+!read oef/special.phtml mathmlinput [\mathrm{C M}=\left|reply2\right|],5,noanswer	 reply 2	  
+$()	 </div>	 
+$()
+!exit
+
+:hint
+$()	<div class="hint">	Pour tous réels 
+!insmath x
+$() et <span class="nowrap">
+!insmath y
+$(),</span> <br>	
+!insmath \mathrm{d}\left(x,y\right)= \left|x - y\right|
+$()<br>	
+!insmath \phantom{\mathrm{d}\left(x,y\right)}= \left|y - x\right|
+$()<br>	
+!insmath \phantom{\mathrm{d}\left(x,y\right)}=\mathrm{d}\left(y,x\right)
+$()	</div>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="flex_box">	  <div style="padding-right:1em;">	
+!insmath \mathrm{MB}=\mathrm{d}\left(x,$val10 \right)
+$()<br>	
+!insmath \phantom{\mathrm{MB}}= \left|$(val15[1])\right|
+$()<br>	
+!insmath \phantom{\mathrm{MB}}= \left|$val10 - x\right|
+$()	  </div>	  <div >	
+!insmath \mathrm{CM}=\mathrm{d}\left($val11,x \right)
+$()<br>	
+!insmath \phantom{\mathrm{CM}}= \left|$val11 - x\right|
+$()<br>	
+!insmath \phantom{\mathrm{CM}}= \left|$(val16[1])\right|
+$()	  </div>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in $val18
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in $val19
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+tmp0=!texmath $val18
+
+
+!ifval $(tmp0) isitemof $val15
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\(\mathrm{M B}\) réponse exacte 
+tmp0=!texmath $val19
+
+
+!ifval $(tmp0) isitemof $val16
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=\(\mathrm{C M}\) réponse exacte  
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,14,15,16,18,19
+embedcnt=2

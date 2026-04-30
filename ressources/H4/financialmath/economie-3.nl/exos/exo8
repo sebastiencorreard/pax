@@ -1,0 +1,81 @@
+# Inkomens elasticiteit III
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+checkfile=exos/precheck2.proc
+# volgorde belangrijk
+var1=yes
+make_tr=1
+cols=10
+rows=1
+embed=1
+!if $R=1
+    rounding=100
+    roundingtext=Rond je getalsmatige antwoord af op twee decimalen
+    drempel=!randint 35,95
+    drempelinkomen=$[1000*$drempel]
+    rc=!randint 30,90
+    rc=$[$rc/10]
+    begin=$[$rc*$drempelinkomen]
+    nogiets=!randint 5,30
+    inkomen=$[1000*($drempel+$nogiets)]
+    uitgaven=$[$rc*$inkomen-$begin]
+
+    besteding=!randitem verre toeristische reizen,\
+    een cruise rond de wereld,\
+    de aanleg van een inpandig zwembad,\
+    een vakantiewoning in het buitenland
+    inputs=2
+    ss=Er bestaat een verband tussen de uitgaven aan $besteding en het inkomen.<br />(zie onderstaande formule, waarin <em>u</em> de uitgaven en <em>y</em> het inkomen voorstelt in &euro;'s per jaar.)<p>
+    
+    formula$n=\left[ \begin{array}{l}u = $rc \cdot y - $begin \\ \textrm{1) Bepaal het hierbij horende drempelinkomen.} \\ \textrm{2) Bereken de inkomenselasticiteit van de uitgaven aan} \\ \textrm{$besteding } \\ \textrm{bij een jaarinkomen van $inkomen euro} \end{array} \right.
+    description=Drempelinkomen,Inkomenselasticiteit
+# teller en noemer verwisseld 19/4/2012 (somsen)
+    ans=$[$rc*$inkomen/$uitgaven]
+    ans_r=$[(round($rounding*$ans))/$rounding]
+    answer$n=$drempelinkomen,$ans
+    
+    texanswer$n=\left[ \begin{array}{l} \textrm{Drempelinkomen :} \frac{$begin}{$rc} = $drempelinkomen \textrm{ euro} \\ \textrm{Inkomenselasticiteit :} E_{y} = $rc \times \frac{$inkomen}{$uitgaven} \simeq $ans \simeq $ans_r \end{array} \right.
+!else
+    rounding=1000
+    roundingtext=Rond je getalsmatige antwoord af op drie decimalen
+    inputs=3
+    rc1=!randint -140,-60
+    rc2=!randint -50,-15
+    rc1=$[$rc1/10]
+    rc2=$[$rc2/10]
+    rc3=!randint 5,14
+    rc3=$[$rc3/1000]
+    prijs1=!randint 25,125
+    prijs2=!randint 50,200
+    tot=!exec moneyprint $[$prijs1/100],$[$prijs2/100]
+    
+    prijs1=!item 1 of $tot
+    prijs2=!item 2 of $tot
+    inkomen=!randint 20,75
+    inkomen=$[1000*$inkomen]
+    aantal=$[round($rc1*$prijs1 + $rc2*$prijs2 + $rc3*$inkomen)]
+    ans1=$[$rc1*$prijs1/$aantal]
+    ans2=$[$rc2*$prijs2/$aantal]
+    ans3=$[$rc3*$inkomen/$aantal]
+    ans1_r=$[(round($rounding*$ans1))/$rounding]
+    ans2_r=$[(round($rounding*$ans2))/$rounding]
+    ans3_r=$[(round($rounding*$ans3))/$rounding]
+    answer$n=$ans1,$ans2,$ans3
+    texanswer$n=\left[ \begin{array}{l} \textrm{1) Prijselasticiteit :} E_{v}=$rc1 \times \frac{$prijs1}{$aantal} \simeq  $ans1 \simeq $ans1_r \\ \textrm{2) Kruiselingse prijselasticiteit :} E_{k}=$rc2 \times \frac{$prijs2}{$aantal} \simeq  $ans2 \simeq $ans2_r \\ \textrm{3) Inkomenselasticiteit :} E_{y}=$rc3 \times \frac{$inkomen}{$aantal} \simeq  $ans3 \simeq $ans3_r \end{array} \right.
+    
+    ss=Gegeven is de onderstaande vraagvergelijking voor het consumptiegoed <b>A</b>.<br />Waarin p<sub>A</sub> de prijs van <b>A</b> voorsteld, p<sub>B</sub> de prijs van goed <b>B</b> en <em>y</em> het gemiddeld inkomen.<br />Gegeven is dat p<sub>A</sub> = &euro; $prijs1 , p<sub>B</sub> = &euro; $prijs2 en <em>y</em> = &euro; $inkomen.<br />Bereken:<ol><li>De prijselasticiteit van de gevraagde hoeveelheid van goed <b>A</b></li><li>De kruiselingse prijselasticiteit van de gevraagde hoeveelheid van goed <b>A</b> tgv een prijsverandering van goed <b>B</b></li><li>De inkomenselasticiteit van de gevraagde hoeveelheid van goed <b>A</b></li></ol>
+    
+    description=Prijselasticiteit,Kruislinkse prijselasticiteit,Inkomenselasticiteit
+    
+    formula$n=\left[ \begin{array}{l}q_{A} = $rc1 \cdot p_{A} $rc2 \cdot p_{B} + $rc3 \cdot y \\ \textrm{1) De prijselasticiteit van de hoeveelheid A} \\ \textrm{2) De kruiselingse prijselasticiteit} \\ \textrm{3) De inkomenselasticiteit } \end{array} \right.
+    
+!endif
+
+helptext=$roundingtext
+question$n=<a onmouseover="return escape('$roundingtext')">$ss</a>
+!exit

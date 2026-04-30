@@ -1,0 +1,347 @@
+!set title=Plan non parallèle à une face V
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+
+ansorder=r,r
+varcnt=101
+prevarcnt=99
+postvarcnt=1
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=On considère le tétraèdre <span style="color:blue">ABCD</span>
+val7=Les points <span style="color:green">I,J,K,L,M,N,O,P,Q,R,S,T</span>	  divisent les arêtes auxquelles ils appartiennent en 3 segments égaux
+
+!ifval ($val2==)
+val8=$[rint(1)]
+!else
+val8=$[rint($val2)]
+!endif
+
+!ifval ($val8==1)
+tmp=!trim reply1
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval ($val8==2)
+tmp=!trim reply2
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval ($val3==)
+val10=$[rint(2)]
+!else
+val10=$[rint($val3)]
+!endif
+val11=A,B,C,D,I,J,K,L,M,N,O,P,Q,R,S,T
+val12=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+val13=
+!for val14 =1 to 16 
+tmp0=!append item green to $val13
+
+val13=$(tmp0)
+!next
+tmp=!trim 0,0	6,18	24,0	18,12	8,0	16,0	6,4	12,8	2,6	4,12	12,12	18,6	10,16	14,14	20,8	22,4
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,3,4	1,2,4	1,2,3	2,3,4	1,3	1,3	4,3	4,3	1,4	1,4	1,2	1,2	2,4	2,4	2,3	2,3
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,5	2,3,6	3,4,5	1,4,6
+val17=!translate internal $	\
+$ to ;; in $tmp
+val18=(AB),(BC),(CD),(AD),(AC),(BD)
+val19=M,O,T,K,I,Q
+val20=N,P,S,L,J,R
+tmp=!trim A,B,A-B,1,4,M,N	B,C,B-C,1,2,O,P	C,D,C-D,2,3,S,T	A,D,A-D,3,4,K,L	A,C,A-C,1,3,I,J	B,D,B-D,2,4,Q,R
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,4,5	1,2,6	2,3,5	3,4,6	5	5	4	4	1	1	2	2	6	6	3	3
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0	6,18,6	24,0,0	18,12,0	8,0,0	16,0,0	6,4,0	12,8,0	2,6,2	4,12,4	12,12,4	18,6,2	10,16,4	14,14,2	20,8,0	22,4,0	
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,2,5	2,3,6	5,3,4	1,6,4	
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1,4	1,2	2,3	3,4	1,3	2,4	
+val24=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 0,0,0	12,6,18	0,24,0	0,18,12	0,8,0	0,16,0	0,6,4	0,12,8	4,2,6	8,4,12	8,12,12	4,18,6	8,10,16	4,14,14	0,20,8	0,22,4
+val23=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 8
+
+val25=$[rint($(tmp0))]
+tmp=!trim M,P,T,K,S,L	N,O,T,K,S,L	I,K,Q,O,R,P	S,L,N,O,M,P	O,Q,K,I,L,J	P,R,K,I,L,J	N,Q,T,J,S,I	M,R,T,J,S,I	
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 2
+
+val27=$[rint($(tmp0))]
+!readproc slib/draw/repere 400,400,0,-3,30,-3,20,1,1,black,grey 
+tmp0=$slib_out
+val28=$(tmp0)
+val29=$(val26[$val25;1])
+val30=$(val26[$val25;2])
+tmp0=!positionof item $val29 in $val11
+
+val31=$[rint($(tmp0))]
+tmp0=!positionof item $val30 in $val11
+
+val32=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val33=$[rint($(tmp0))]
+val34=$(val26[$val25;2*$val27+$val33])
+tmp0=!positionof item $val34 in $val11
+
+val35=$[rint($(tmp0))]
+!if $val33=1 
+val36=linewidth 3	polyline red,$(val15[$val31;1]),$(val15[$val31;2]),$(val15[$val32;1]),$(val15[$val32;2]),$(val15[$val35;1]),$(val15[$val35;2])	
+val37=$(val26[$val25;2*$val27+2])
+!else
+val36=linewidth 3	polyline red,$(val15[$val32;1]),$(val15[$val32;2]),$(val15[$val31;1]),$(val15[$val31;2]),$(val15[$val35;1]),$(val15[$val35;2])	
+val37=$(val26[$val25;2*$val27+1])
+!endif
+tmp0=!positionof item $val37 in $val11
+
+val38=$[rint($(tmp0))]
+t_=!rawmath $(val15[$val38;1])
+val39=!exec pari print($t_)
+t_=!rawmath $(val15[$val38;2])
+val40=!exec pari print($t_)
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+tmp0=!item 1 of $val41
+
+val42=$[rint($(tmp0))]
+tmp0=!item 2 of $val41
+
+val43=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val28
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+tmp0=!item 1 of $val41
+
+val44=$[rint($(tmp0))]
+tmp0=!item 2 of $val41
+
+val45=$[rint($(tmp0))]
+val46=$[rint($val42+$val39*$val44-$val44/3)]
+val47=$[rint($val42+$val39*$val44+$val44/3)]
+val48=$[rint($val43+$val40*$val45-$val45/3)]
+val49=$[rint($val43+$val40*$val45+$val45/3)]
+val50=du quatrième sommet de ce quadrilatère.
+val51=Cliquer à l'emplacement $val50
+!if $val8==2 
+
+!ifval ($val10==1)
+t_=!rawmath 0.2
+val52=!exec pari print($t_)
+!else
+t_=!rawmath 0.00001
+val52=!exec pari print($t_)
+!endif
+
+!ifval ($val33==1)
+val53=$val30,$val34
+!else
+val53=$val29,$val34
+!endif
+
+!ifval ($val33==1)
+val54=$val29,$val30
+!else
+val54=$val29,$val30
+!endif
+val55=showToolBar=true;
+
+!ifval ($val10==1)
+val55=$val55	customToolBar="0||1";
+!else
+val55=$val55	customToolBar="0||5||2||3";
+!endif
+val56=aa=Segment($val54)	SetColor[aa,red]	ShowLabel[aa, false]	bb=Segment($val53)	SetColor[bb,red]	ShowLabel[bb, false]
+val57=a,b,c,d,e,f,g,h,i,j,k,l
+val58=
+!for val14  in $val57 
+val59=ShowLabel[$val14, false]
+tmp0=!append line $val59 to $val58
+
+val58=$(tmp0)
+!next
+!endif
+val60=linewidth 3	polyline black,0,0,24,0,6,18,0,0	polyline black,24,0,18,12,6,18	dsegment 0,0,18,12,black	
+val61=xrange -3,30	yrange -3,20	$val60	text $(val13[1]),-0.4,-0.5,medium,A	text $(val13[3]),24.1,-0.5,medium,C	text $(val13[2]),6,19,medium,B	text $(val13[4]),18.1,12.8,medium,D	text $(val13[9]),1,6.2,medium,M	text $(val13[10]),3,12.2,medium,N	text $(val13[5]),7.8,-0.5,medium,I	text $(val13[6]),15.8,-0.5,medium,J	text $(val13[7]),5.8,5,medium,K	text $(val13[8]),11.8,9,medium,L	text $(val13[11]),12,12.8,medium,O	text $(val13[12]),18.2,6.8,medium,P	text $(val13[13]),10,17,medium,Q	text $(val13[14]),14,15,medium,R	text $(val13[15]),20,9.2,medium,S	text $(val13[16]),22,5.4,medium,T	linewidth 5	points blue,0,0,24,0,6,18,18,12	points green,8,0,16,0,2,6,4,12,6,4,12,8,12,12,18,6,10,16,14,14,20,8,22,4	linewidth 3	$val36	
+val11=A,B,C,D,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W
+val62=
+!for val14  in $val11 
+val59=SetFixed[$val14,true]
+val63=$val59	SetPointSize($val14,3);
+tmp0=!append line $val63 to $val62
+
+val62=$(tmp0)
+!next
+tmp=!trim -3,-3,0	0,0,5	3,-3,0 	0,sqrt(18),0
+val64=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 1/3*($(val64[3;1]))+2/3*($(val64[1;1])),1/3*($(val64[3;2]))+2/3*($(val64[1;2])),1/3*($(val64[3;3]))+2/3*($(val64[1;3]))	2/3*($(val64[3;1]))+1/3*($(val64[1;1])),2/3*($(val64[3;2]))+1/3*($(val64[1;2])),2/3*($(val64[3;3]))+1/3*($(val64[1;3]))	1/3*($(val64[4;1]))+2/3*($(val64[1;1])),1/3*($(val64[4;2]))+2/3*($(val64[1;2])),1/3*($(val64[4;3]))+2/3*($(val64[1;3]))	2/3*($(val64[4;1]))+1/3*($(val64[1;1])),2/3*($(val64[4;2]))+1/3*($(val64[1;2])),2/3*($(val64[4;3]))+1/3*($(val64[1;3]))	1/3*($(val64[2;1]))+2/3*($(val64[1;1])),1/3*($(val64[2;2]))+2/3*($(val64[1;2])),1/3*($(val64[2;3]))+2/3*($(val64[1;3]))	2/3*($(val64[2;1]))+1/3*($(val64[1;1])),2/3*($(val64[2;2]))+1/3*($(val64[1;2])),2/3*($(val64[2;3]))+1/3*($(val64[1;3]))	1/3*($(val64[3;1]))+2/3*($(val64[2;1])),1/3*($(val64[3;2]))+2/3*($(val64[2;2])),1/3*($(val64[3;3]))+2/3*($(val64[2;3]))	2/3*($(val64[3;1]))+1/3*($(val64[2;1])),2/3*($(val64[3;2]))+1/3*($(val64[2;2])),2/3*($(val64[3;3]))+1/3*($(val64[2;3]))	1/3*($(val64[4;1]))+2/3*($(val64[2;1])),1/3*($(val64[4;2]))+2/3*($(val64[2;2])),1/3*($(val64[4;3]))+2/3*($(val64[2;3]))	2/3*($(val64[4;1]))+1/3*($(val64[2;1])),2/3*($(val64[4;2]))+1/3*($(val64[2;2])),2/3*($(val64[4;3]))+1/3*($(val64[2;3]))	2/3*($(val64[4;1]))+1/3*($(val64[3;1])),2/3*($(val64[4;2]))+1/3*($(val64[3;2])),2/3*($(val64[4;3]))+1/3*($(val64[3;3]))	1/3*($(val64[4;1]))+2/3*($(val64[3;1])),1/3*($(val64[4;2]))+2/3*($(val64[3;2])),1/3*($(val64[4;3]))+2/3*($(val64[3;3]))
+val65=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val64	$val65
+val66=!translate internal $	\
+$ to ;; in $tmp
+val67=
+!for val14 =1 to 8 
+val68=$(val11[$val14])=($(val66[$val14;]))
+tmp0=!append line $val68 to $val67
+
+val67=$(tmp0)
+!next
+t_=!rawmath 1/3
+val69=!exec pari print($t_)
+t_=!rawmath 2/3
+val70=!exec pari print($t_)
+val71=\vectt	I=Dilate(C,$val69,A)	J=Dilate(C,$val70,A)	K=Dilate(D,$val69,A)	L=Dilate(D,$val70,A)	M=Dilate(B,$val69,A)	N=Dilate(B,$val70,A)	O=Dilate(C,$val69,B)	P=Dilate(C,$val70,B)	Q=Dilate(D,$val69,B)	R=Dilate(D,$val70,B)	S=Dilate(C,$val69,D)	T=Dilate(C,$val70,D)
+val72=I,J,K,L,M,N,O,P,Q,R,S,T
+val73=
+!for val14  in $val72 
+val59=SetColor[$val14,darkgreen]
+tmp0=!append line $val59 to $val73
+
+val73=$(tmp0)
+!next
+val74=enable3d=true	SetVisibleInView(xAxis,-1,false);	SetVisibleInView(yAxis,-1,false);	SetVisibleInView(zAxis,-1,false);	$val55	$val67	\lp_mil	a=Segment(A,B);	b=Segment(A,C);	c=Segment(A,D);	d=Segment(B,C);	e=Segment(B,D);	f=Segment(C,D);	$val71	$val62	$val58	$val73	$val56	SetPerspective("T");	
+val75=E
+!readproc oef/draw.phtml 400,400 \
+$val61	 
+tmp0=$ins_url
+val76=$(tmp0)
+!if $val8==2 
+tmp0=!positionof item $val37 in $val11
+
+val77=$[rint($(tmp0))]
+tmp=!trim $(val66[$val38;])
+val78=!translate internal $	\
+$ to ;; in $tmp
+val79=$[$(val78[1;1])]
+val80=$[$(val78[1;2])]
+val81=$[$(val78[1;3])]
+val82=,800 x 800	$val74
+val51=Placer le point \($val75\) $val50 <div class="wims_instruction">
+
+!ifval ($val10==1)
+val51=$val51 Pour construire le point, cliquer sur un segment en dehors des points puis	 faire glisser le point.
+!else
+val51=$val51 Construire des droites pour que le point se trouve à l'intersection de celles-ci.
+!endif
+val51=$val51 </div>
+!endif
+dynsteps=yes
+oefsteps=$val9 
+nextstep=!nosubst $val9 
+!readproc oef/steps.proc
+replytype1=coord
+replyname1=X
+replygood1=$val76;rectangle,$val46,$val48,$val47,$val49
+replytype2=geogebra
+
+replyoption2=max=100 extra=yes output=coord feedbackscript=Correction 
+replyname2=
+replygood2=n,abs(x_$val75-($val79))<0.2,L'abscisse du point \($val75\) est bien placée;	n,abs(y_$val75-($val80))<0.2,L'ordonnée du point \($val75\) est bien placée;	n,abs(z_$val75-($val81))<0.2,La cote du point \($val75\) est bien placée;
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val6. $val7.	<p>	  On considère le plan <span style="color:red">($val29$val30$val34)</span>	  et on s'intéresse à son intersection avec ABCDEFGH: c'est un quadrilatère.	</p>	  $val51	<div class="wimscenter">	
+!if $val8==1 
+$() 
+!read oef/embed.phtml reply1 
+$() 
+!endif
+$()	
+!if $val8==2 
+$() 
+!read oef/embed.phtml reply2 $val82 
+$() 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step==2)
+val9=
+!endif
+
+!exit
+
+:feedback
+!ifval $val8==2
+ <div class='oef_feedbacks'>	<script>	function  Correction(){ggbApplet0.evalCommand("Plane($val29,$val30,$val34)");}	</script>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,29,30,34,51,82
+embedcnt=2

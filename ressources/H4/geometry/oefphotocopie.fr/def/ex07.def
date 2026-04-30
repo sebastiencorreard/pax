@@ -1,0 +1,133 @@
+!set title=7-Périmètres
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Chantal, Causse
+email=Chantal.Causse@noos.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 6, 20
+
+val6=$[$(tmp0)/2]
+val7=$[floor(100*min(400,14/$val6))]
+tmp0=!randint 1, 8
+
+val8=$[rint($(tmp0))]
+tmp0=!item $val8 of 3,4,5,6,7,8,9,10
+
+val9=$[rint($(tmp0))]
+tmp0=!item $val8 of du triangle équilatéral, du carré, du pentagone régulier, de l'hexagone régulier, de l'heptagone régulier, de l'octogone régulier, de l'ennéagone régulier, du décagone régulier
+
+val10=$(tmp0)
+val11=$[2*$val6*sin(pi/$val9)]
+val12=$[$val9*$val11]
+tmp0=!random $val12*25, $val12*$val7
+
+val13=$[floor($(tmp0)/10)/10]
+val14=$[rint(round($val13/$val12*100))]
+val15=$[round(2*pi*$val6*$val14/10)/10]
+val16=polygon red
+!for val17 =1 to $val9 
+val16=$val16,cos(2*$val17*pi/$val9),sin(2*$val17*pi/$val9)
+!next
+val18=xrange -1.2,1.2	yrange -1.2,1.2	fill 0,0,skyblue	linewidth 1	circle 0,0,250,blue	linewidth 1	$val16	fill 1,1,grey	fill 0,0,green		
+val19=$val18	triangle 0,0,1,0,cos(pi/$val9)^2,cos(pi/$val9)*sin(pi/$val9), gold	
+replytype1=numexp
+replyname1=Coefficient en %
+replygood1=$val14
+replytype2=numexp
+replyname2=Périmètre en cm, arrondi au mm
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 
+!read oef/special.phtml tooltip <b>Passer la souris ici pour afficher les caractéristiques du photocopieur</b>,[ABOVE,true,STICKY,true,CLOSEBTN,true] ,<ul><li>Formats de papier disponibles : A4 (21*29.7 cm) et A3 (29.7*42 cm)</li>	<li>Dimensions utiles de la vitre : A3</li>	<li>Coefficients disponibles pour les agrandissements et réductions :	de 25% à 400% en nombre entier</li></ul>	Dans tous ces exercices, on fait abstraction du problème du positionnement	de l'original sur la vitre du photocopieur<br> (problème pourtant non	négligeable dans la pratique !)	 
+$()<p>	 
+!read oef/draw.phtml 300,300 \
+$val18 
+$()	</p>	Le rayon du cercle bleu mesure $val6 cm.	Je souhaite que le périmètre $val10 sur la photocopie mesure $val13 cm.<br>	Que dois-je choisir comme coefficient sur le photocopieur ?<br>	Quel sera le périmètre du cercle sur la photocopie ?		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<span style="color:green">	
+!if $val9 = 4 or $val9 = 6 
+$()Vous pouvez utiliser la méthode générale indiquée ci-dessous, mais dans le cas $val10, il y a une méthode plus simple... 
+!endif
+$()	
+!if $val9=6 
+$()Penser par exemple à la construction au compas d'un hexagone régulier. 
+!endif
+$()	</span><br>	 
+!read oef/draw.phtml 300,300 \
+$val19 
+$()	<p>Vous pouvez déterminer l'un des angles du triangle jaune, puis utiliser les formules	de trigonométrie dans un triangle rectangle : </p>		
+!insmath \text{cosinus} = \displaystyle\frac{\text{côté adjacent}}{\text{hypoténuse}}
+$() <br>	 
+!insmath \text{sinus} = \displaystyle\frac{\text{côté opposé}}{\text{hypoténuse}}
+$() <br>	
+!insmath \text{tangente} = \displaystyle\frac{\text{côté opposé}}{\text{côté adjacent}}
+$()  
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9,10,13,18,19
+embedcnt=1

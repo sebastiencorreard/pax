@@ -1,0 +1,370 @@
+!set title=Signe 4 : a(x-x1)(x-x2) avec tableau de signes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+computeanswer=yes
+precision=100000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=23
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+
+!ifval ($val6<0)
+val7=$[rint( 1)]
+!else
+val7=$[rint(2)]
+!endif
+tmp0=!randint -10, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 6, 17
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in $val6*(x-$val8)*(x-$val9)
+tmp0=!exec maxima $t_
+
+val10=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val8
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val9
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+tmp0=!texmath $val10
+
+val10=$(tmp0)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+val13=$val8,$val9
+
+!ifval ($val8<$val9)
+val14=$[rint( 1)]
+!else
+val14=$[rint(-1)]
+!endif
+t_=!rawmath $val8
+val15=!exec pari print($t_)
+t_=!rawmath $val9
+val16=!exec pari print($t_)
+tmp=!trim 2,1,1	2,2,1	1,2,2	1,1,2	
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim +,-,-	+,+,-	-,+,+	-,-,+	
+val18=!translate internal $	\
+$ to ;; in $tmp
+!if $val14<0 
+val19=$(val17[4;])
+val20=$(val17[3;])
+val21=$(val18[4;])
+val22=$(val18[3;])
+!else
+val19=$(val17[3;])
+val20=$(val17[4;])
+val21=$(val18[3;])
+val22=$(val18[4;])
+!endif
+
+!ifval ($val6<0)
+val23= 1,2,1
+!else
+val23=2,1,2
+!endif
+
+!ifval ($val6<0)
+val24= -,+,-
+!else
+val24=+,-,+
+!endif
+
+!ifval ($val14<0)
+val25= &ensp;,0
+!else
+val25=0,&ensp;
+!endif
+
+!ifval ($val6<0)
+val26=-
+!else
+val26=+
+!endif
+val27=r1	r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,r23
+dynsteps=yes
+oefsteps=$val27 
+nextstep=!nosubst $val27 
+!readproc oef/steps.proc
+replytype1=fset
+replyoption1=nonstop 
+replyname1=Solutions
+replygood1=$val13
+replytype2=numeric
+replyname2=
+replygood2=$[$val15]
+replytype3=numeric
+replyname3=
+replygood3=$[$val16]
+replytype4=menu
+replyname4=
+replygood4=$val7;-,+
+replytype5=clickfill
+replyname5=
+replygood5=&ensp;;0,&#124;&#124;
+replytype6=menu
+replyname6=
+replygood6=$val7;-,+
+replytype7=clickfill
+replyname7=
+replygood7=&ensp;;0,&#124;&#124;
+replytype8=menu
+replyname8=
+replygood8=$val7;-,+
+replytype9=menu
+replyname9=
+replygood9=$(val19[1]);-,+
+replytype10=clickfill
+replyname10=
+replygood10=$(val25[1]);$(val25[2]),&#124;&#124;
+replytype11=menu
+replyname11=
+replygood11=$(val19[2]);-,+
+replytype12=clickfill
+replyname12=
+replygood12=$(val25[2]);$(val25[1]),&#124;&#124;
+replytype13=menu
+replyname13=
+replygood13=$(val19[3]);-,+
+replytype14=menu
+replyname14=
+replygood14=$(val20[1]);-,+
+replytype15=clickfill
+replyname15=
+replygood15=$(val25[2]);$(val25[1]),&#124;&#124;
+replytype16=menu
+replyname16=
+replygood16=$(val20[2]);-,+
+replytype17=clickfill
+replyname17=
+replygood17=$(val25[1]);$(val25[2]),&#124;&#124;
+replytype18=menu
+replyname18=
+replygood18=$(val20[3]);-,+
+replytype19=menu
+replyname19=
+replygood19=$(val23[1]);-,+
+replytype20=clickfill
+replyname20=
+replygood20=0;&#124;&#124;,&ensp;
+replytype21=menu
+replyname21=
+replygood21=$(val23[2]);-,+
+replytype22=clickfill
+replyname22=
+replygood22=0;&#124;&#124;,&ensp;
+replytype23=menu
+replyname23=
+replygood23=$(val23[3]);-,+
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Soit 
+!insmath f
+$() la fonction définie sur 
+!insmath \mathbb{R}
+$(), par :	
+!insmath f(x)=$val10
+$().</p>	
+!if $m_step=1 
+$()<p>Résoudre l'équation 
+!insmath f(x)=0
+$() : S= 
+!read oef/embed.phtml r1,8 
+$().</p>	<div class="wims_instruction">On séparera les solutions éventuelles par une virgule.</div> 
+!endif
+$()	
+!if $m_step=2 
+$()<p>Les solutions de l'équation 
+!insmath f(x)=0
+$() sont 
+!insmath $val8
+$() et 
+!insmath $val9
+$(). <br /> Etudier le signe de 
+!insmath f(x)
+$() :</p>	<table class="wimsborder" width="70%">	<tbody>	<tr>	<td style="width: 15%; ">
+!insmath x
+$()<br>	</td>	<td style="width: 24%; text-align: left">
+!insmath -\infty
+$()	</td>	<td style="width: 6%; "> 
+!read oef/embed.phtml r2,1 
+$()	</td>	<td style="width: 24%;">	</td>	<td style=" width: 6%; "> 
+!read oef/embed.phtml r3,1 
+$()	</td>	<td style=" width: 25%; text-align: right;">
+!insmath +\infty
+$()</td>	</tr>	<tr>	<td>
+!insmath $val6
+$()	</td>	<td> 
+!read oef/embed.phtml r4,4 
+$()	</td>	<td > 
+!read oef/embed.phtml r5,25x25 
+$()	</td>	<td> 
+!read oef/embed.phtml r6,4 
+$()</td>	<td> 
+!read oef/embed.phtml r7,25x25 
+$()	</td>	<td> 
+!read oef/embed.phtml r8,4 
+$()</td>	</tr>	<tr>	<td>
+!insmath $val11
+$()	</td>	<td > 
+!read oef/embed.phtml r9,4 
+$()	</td>	<td> 
+!read oef/embed.phtml r10,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r11,4 
+$()</td>	<td> 
+!read oef/embed.phtml r12,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r13,4 
+$()</td>	</tr>	<tr>	<td>
+!insmath $val12
+$()</td>	<td> 
+!read oef/embed.phtml r14,4 
+$()	</td>	<td> 
+!read oef/embed.phtml r15,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r16,4 
+$()</td>	<td> 
+!read oef/embed.phtml r17,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r18,4 
+$()</td>	</tr>	<tr>	<td>
+!insmath f(x)
+$()</td>	<td> 
+!read oef/embed.phtml r19,4 
+$()	</td>	<td> 
+!read oef/embed.phtml r20,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r21,4 
+$()</td>	<td> 
+!read oef/embed.phtml r22,1 
+$()	</td>	<td> 
+!read oef/embed.phtml r23,4 
+$()</td>	</tr>	</tbody>	</table>	<div class="wims_instruction">Faire glisser les étiquettes. En cas de mauvais alignement des cases oranges, zoomer.</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$() 
+!insmath $val10=0
+$() ssi 
+!insmath $val11=0
+$() ou 
+!insmath $val12=0
+$() ssi 
+!insmath x=$val8
+$() ou 
+!insmath x=$val9
+$().	<table style="text-align: left; width: 70%;" border="1" cellpadding="2"	cellspacing="2">	<tbody>	<tr>	<td style="width: 15%; text-align: center;">
+!insmath x
+$()<br>	</td>	<td style="vertical-align: top; width: 24%;">
+!insmath -\infty
+$()	</td>	<td style="vertical-align: top; width: 6%; text-align: center;">
+!insmath $val15
+$()	</td>	<td style="vertical-align: top; width: 24%;">	</td>	<td style="vertical-align: top; width: 6%; text-align: center;">
+!insmath $val16
+$()	</td>	<td style="vertical-align: top; width: 25%; text-align: right;">
+!insmath +\infty
+$()</td>	</tr>	<tr>	<td style="text-align: center;">	
+!insmath $val6
+$()	</td>	<td style="vertical-align: top; text-align: center;">$val26	</td>	<td style="vertical-align: top; text-align: center;">	</td>	<td style="vertical-align: top; text-align: center;">$val26</td>	<td style="vertical-align: top; text-align: center;">	</td>	<td style="vertical-align: top; text-align: center;">$val26</td>	</tr>	<tr>	<td style="text-align: center;">	
+!insmath $val11
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val21[1])	</td>	<td style="vertical-align: top; text-align: center;">
+!if $val14>0 
+$()0 
+!endif
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val21[2])</td>	<td style="vertical-align: top; text-align: center;">
+!if $val14<0 
+$()0 
+!endif
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val21[3])</td>	</tr>	<tr>	<td style="vertical-align: top; text-align: center;">
+!insmath $val12
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val22[1])	</td>	<td style="vertical-align: top; text-align: center;">
+!if $val14<0 
+$()0 
+!endif
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val22[2])</td>	<td style="vertical-align: top; text-align: center;">
+!if $val14>0 
+$()0 
+!endif
+$()	</td>	<td style="vertical-align: top; text-align: center;">$(val22[3])</td>	</tr>	<tr>	<td style="vertical-align: top; text-align: center;">
+!insmath f(x)
+$()</td>	<td style="vertical-align: top; text-align: center;">$(val24[1])	</td>	<td style="vertical-align: top; text-align: center;">0	</td>	<td style="vertical-align: top; text-align: center;">$(val24[2])</td>	<td style="vertical-align: top; text-align: center;">0	</td>	<td style="vertical-align: top; text-align: center;">$(val24[3])</td>	</tr>	</tbody>	</table>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11,12,14,15,16,21,22,24,26
+embedcnt=23

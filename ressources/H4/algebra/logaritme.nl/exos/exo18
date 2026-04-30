@@ -1,0 +1,83 @@
+# Vergelijkingen II [ g^(a*x) = b ]
+n=$counter
+mathviewpanel=$module_title:x=:ln:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]()
+rounding=0
+display=1
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=exos/precheck1.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo7.jpg\' alt=\'noalt\' />
+# appletfont iets groter ivm machten
+smallfont=18
+largefont=24
+keuze=!randitem 1,0
+
+!if $R=1
+    b=!randint 2,15
+    c=!randitem 2,3,4,5,6,7,8,9
+    !if $keuze=0
+	formula$n=e^{$c x}\,=\,$b 
+	applettext=!nospace e^($c cdot x) = $b ->
+        answer$n=ln($b)/$c
+	texanswer$n=\left[ \begin{array}{l} e^{$c x}=$b \\ $c x = \ln($b) \\ x = \frac{1}{$c} \cdot \ln($b) $tex \end{array} \right.
+    !else
+	formula$n=e^{\textstyle \frac{1}{$c} x}\,=\,$b 
+	applettext=!nospace e^(1/$c cdot x) = $b ->
+        answer$n=$c*ln($b)
+	texanswer$n=\left[ \begin{array}{lll} e^{\textstyle \frac{1}{$c} x} = $b \\ \frac{1}{$c} x = \ln($b) \\ x= $c \cdot \ln($b) $tex \end{array} \right.
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    a=!randint 2,10
+    p=!randitem 2,3,4,5
+    pm=!randitem -1,1
+    a=$[$pm*$a]
+    b=$[$p*$a]
+    c=!randitem 2,3,4,5,6,7,8,9
+    formula$n=$a \cdot e^{$c x}\,=\,$b 
+    applettext=!nospace $a cdot e^($c cdot x) = $b ->
+    answer$n=ln($p)/$c
+    texanswer$n=\left[ \begin{array}{l} $a \cdot e^{$c x}=$b \\ e^{$c x}=$p \\ $c x = \ln($p) \\ x = \frac{1}{$c} \cdot \ln($p) $tex \end{array} \right.
+ !exit
+!endif
+
+!if $R>2
+    c=!randitem 2,3,4,5
+    a=!randitem 2,3,4,5,6
+    b=!randitem 2,3,4,5,6,7,8,9,10
+    d=!randitem 1,2,3,4,5,6,7,8,9,10
+    pm=!randitem -1,1
+    g=$[$a*$b]
+    f=$[$c*$d]
+    !if $pm=1
+	formula$n=\frac{1}{$a}\cdot e^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} \,=\,$b 
+	applettext=!nospace 1/($a) * e^(1/($c)*x + $d ) = $b ->
+	answer$n=$c*ln($g) - ($f)
+	texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot e^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $b \\ \\ e^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $g \\ \\ \frac{1}{$c} \cdot x + $d = \ln($g) \\ \\ \frac{1}{$c} \cdot x  = \ln($g) - $d \\ \\  x = $c \cdot \ln($g) - $c \cdot $d \\ \\ x = $c \cdot \ln($g) - $[$c*$d] \end{array} \right.
+    !else
+	formula$n=\frac{1}{$a}\cdot e^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} \,=\,$b 
+	applettext=!nospace 1/($a) * e^(1/($c)*x - $d ) = $b ->
+	answer$n=$c*ln($g) + ($f)
+	texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot e^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $b \\ \\ e^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $g \\ \\ \frac{1}{$c} \cdot x - $d = \ln($g) \\ \\ \frac{1}{$c} \cdot x  = \ln($g) + $d \\ \\  x = $c \cdot \ln($g) + $c \cdot $d \\ \\   x = $c \cdot \ln($g) + $[$c*$d] \end{array} \right.
+    !endif
+ !exit
+!endif
+

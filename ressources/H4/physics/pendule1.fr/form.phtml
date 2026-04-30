@@ -1,0 +1,74 @@
+!! On pose les questions dans ce fichier. D'habitude, c'est par
+!! des forms. Voici un exemple de conception de la forme de réponse.
+
+!form reply
+!!!!!!!!!!!!!!!!!!!! STEP 1 !!!!!!!!!!!!!!!!!!!!
+!if $step=1
+ !read tableau.phtml
+ <br><input type=submit value="Envoyer">
+!endif $step=1
+!!!!!!!!!!!!!!!!!!!!!! STEP 2 !!!!!!!!!!!!!!!!!!!!!!!!!!!
+!if $step=2
+ <table><tr><td>
+  !read tableau.phtml
+  <br>$phrase_result<br> 
+ </td><td>
+ <table bgcolor=lightyellow><tr><td>
+ Tracez le graphique de la période T en fonction de la longueur du pendule l.<br>
+ Placez les points sur le graphique en cliquant, puis validez 
+ (bouton <i>Envoyer</i> ci-dessous), quand ils sont tous là.<br>
+ Le bouton d'annulation permet d'effacer le dernier point cliqué.
+ </td></tr></table>
+  </td></tr></table>
+ <p>
+ !if $debug=1
+   <h3>Dernier point cliqué : "$dernier_point"</h3>
+   <b>liste</b> "$liste_points" <br>
+ !endif
+ <input type=submit name="fini" value="Envoyer"> 
+ <input type=submit name="annuler" value="Annuler le dernier point">
+ <p>
+ !set ins_tag=form click
+ !insdraw $graphe
+!endif $step=2
+!!!!!!!!!!!!!!!! STEP 3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!if $step=3
+ <br>$phrase_result<br> 
+ !insdraw $graphe
+ <p>On constate que les points du graphique ne forment pas un alignement
+  avec l'origine. Le type de courbe est plutôt du type
+  !instex y=\sqrt{x}.
+  Calculez les valeurs des carrés de la période, dans le tableau 
+  suivant&nbsp;:
+ <p>
+ !read tableau2.phtml
+ <br><input type=submit name="fini3" value="Envoyer">
+!endif $step=3
+
+!!!!!!!!!!!!!!!! STEP 4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!ifval $step=4
+ <br>$phrase_result<br> 
+ !read tableau2.phtml
+ !if $debug=1
+   <h3>Dernier point cliqué : $dernier_point</h3>
+   <b>liste</b> $liste_points <br>
+ !endif
+ <input type=submit name="fini4" value="Envoyer"> 
+ <input type=submit name="annuler4" value="Annuler le dernier point">
+ <p>
+ !set ins_tag=form click
+ !insdraw $graphe
+ <br><input type=submit name="fini4" value="Envoyer">
+!endif $step=4
+
+!!!!!!!!!!!!!!!! STEP 5!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!if $step=5
+  Donnez la valeur de la pente de la droite, a = 
+  !if $debug=1
+    <input type='text' name='pente' value='$okpente'>
+  !else
+    <input type='text' name='pente'>
+  !endif
+    <br><input type=submit name="fini5" value="Envoyer">
+!endif step=5
+</form>

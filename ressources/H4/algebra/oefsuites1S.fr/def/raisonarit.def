@@ -1,0 +1,244 @@
+!set title=Raison de suites arithmétiques
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Soit \( (u_n) \) la suite arithmétique de terme général,	   \( (u_n) \) une suite arithmétique vérifiant
+val7=Indiquer le terme initial de rang 0 et la raison de cette suite.
+val8=Le terme initial  de rang 0 est,La raison est
+tmp0=!randint 1, 3
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+tmp1=!randitem -1,1
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 11
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 100
+
+val14=$[rint($(tmp0)*$(tmp1))]
+val14=$[$val14/10]
+tmp0=!randint 2, 3
+
+val15=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 3,5,9,15
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 2,7,4,8,14
+
+val17=$[rint($(tmp0)*$(tmp1))]
+!if $val9 == 1 
+!if $val10 == 1 
+tmp0=!texmath $val12* n + ($val11)
+
+val18=$(tmp0)
+val19=($val12) * n + ($val11)
+t_=!rawmath $val11
+val20=!exec pari print($t_)
+t_=!rawmath $val12
+val21=!exec pari print($t_)
+!else
+tmp0=!texmath $val13 * (($val12)*n + ($val11))
+
+val18=$(tmp0)
+val19=($val13) * (($val12) * n + ($val11))
+t_=!rawmath ($val13)*($val11)
+val20=!exec pari print($t_)
+val21=($val12)*($val13)
+!endif
+!endif
+!if $val9 == 2 
+tmp0=!randint 1, 40
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 41, 100
+
+val23=$[rint($(tmp0))]
+val24=u_{$val22}
+val25=u_{$val23}
+!if $val10 == 1 
+val19=($val12) * n + ($val11)
+t_=!rawmath $val11
+val20=!exec pari print($t_)
+t_=!rawmath $val12
+val21=!exec pari print($t_)
+!else
+val19=($val12)/($val13) * n + ($val11)/($val15)
+t_=!rawmath ($val11)/($val15)
+val20=!exec pari print($t_)
+t_=!rawmath ($val12)/($val13)
+val21=!exec pari print($t_)
+!endif
+evaltmp=$val19
+
+evaltmp=!mathsubst n=($val22) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val26=!exec pari print($t_)
+evaltmp=$val19
+
+evaltmp=!mathsubst n=($val23) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val27=!exec pari print($t_)
+val28=$val26
+tmp0=!replace internal / by , in $val28
+
+val28=$(tmp0)
+tmp0=!itemcnt $val28
+
+
+!ifval $(tmp0)=1
+val28=$val28
+!else
+val28=\frac{$(val28[1])}{$(val28[2])}
+!endif
+val29=$val27
+tmp0=!replace internal / by , in $val29
+
+val29=$(tmp0)
+tmp0=!itemcnt $val29
+
+
+!ifval $(tmp0)=1
+val29=$val29
+!else
+val29=\frac{$(val29[1])}{$(val29[2])}
+!endif
+!endif
+!if $val9==3 
+!if $val10 == 1 
+tmp0=!texmath $val12* (n + $val15) + ($val11)
+
+val18=$(tmp0)
+t_=!rawmath $val11+($val12)*$val15
+val20=!exec pari print($t_)
+t_=!rawmath $val12
+val21=!exec pari print($t_)
+!else
+tmp0=!texmath $val12*($val15*n + ($val13)) + ($val11)
+
+val18=$(tmp0)
+t_=!rawmath ($val12)*($val13)+($val11)
+val20=!exec pari print($t_)
+val21=($val12)*($val15)
+!endif
+!endif
+
+!ifval $val2=1 
+val30= 
+!else
+val30=x-large
+!endif
+replytype1=algexp
+replyname1=u_0
+replygood1=$val20
+replytype2=algexp
+replyname2=raison
+replygood2=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val9 != 2 
+$()	$(val6[1])	<div class="wimscenter">
+!insmath  u_n = $val18 
+$().</div>	 
+!else
+$() 	$(val6[2])	<div class="wimscenter">
+!insmath $val24 = $val28
+$(), 
+!insmath $val25 = $val29
+$().</div>	 
+!endif
+$()	<p>$val7</p>	<ul><li>	<label for="reply1">$(val8[1]):</label>  
+!read oef/embed.phtml r1,5 
+$()	</li><li>	<label for="reply2">$(val8[2]):</label>  
+!read oef/embed.phtml r2,5 
+$()	</li></ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,18,24,25,28,29
+embedcnt=2

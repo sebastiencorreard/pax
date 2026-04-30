@@ -1,0 +1,109 @@
+# Macro-economie IV
+# steps
+mathview=0
+math=0
+n=$counter
+checkfile=exos/precheck1.proc
+
+!if $rounding <1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $total_exos>4
+    total_exos=4
+!endif
+
+questiontype=0
+embed=0
+rows=1
+make_tr=1
+helptext=Keynesiaanse basismodel:<ul><li>C = particuliere consumptie</li><li>Y = nationaal inkomen</li><li>I = investeringsvraag van bedrijven </li><li>W = nationaal product</li><li>EV = effectieve vraag</li><li>A<sub>a</sub> = beroepsbevolking</li><li>K = kapitaalgoederen voorraad</li><li>a = gemiddelde arbeidsproductiviteit</li><li>k = gemiddelde kapitaal productiviteit</li><li>We veronderstellen dat I onafhankelijk is van het nationaal inkomen Y</li></ul>
+
+!if $counter=1
+    c=!randint 11,19
+    c=$[$c/20]
+    auto=!randint 10,140
+    invest=!randint 30,60
+    even=$[($auto + $invest)/(1 - $c)]
+    evenw=$[round($even)]
+
+    k=!randint 5,9
+    kp=$[2/$k]
+#    tot=!exec pari K=1/($k/2)\
+#    printtex(K)
+    
+#    kp=!line 1 of $tot
+#    kp_tex=!line 2 of $tot        
+
+    kmin=$[ceil(($evenw+10)/($kp))]
+    kmax=$[$kmin+1500]
+
+    kapitaal=!randint $kmin,$kmax
+    kapitaal=$[10*(round($kapitaal/10))]
+    
+    kk=$[round($kapitaal*$kp)]
+    
+    a=!randint 30,80
+    ap=$[$a*1000]
+    am=$[ceil(($kapitaal*$kp)/$a)]
+    amin=$[$am+1]
+    amax=$[$am+10]
+    arbeid=!randint $amin,$amax
+    max_arbeid=$[$arbeid*$a]
+    answer1=$[min($max_arbeid,$kk)]
+
+    werk_r=$[$evenw/$a]
+    WR=$[(round(100*$werk_r))/100]
+
+    answer2=$[$arbeid - $WR]    
+    
+    var5=Gegeven is het volgende model van een gesloten economie zonder collectieve sector:<ul><li>C = $c Y + $auto </li><li>I = $invest </li><li>Y = C + I</li><li>De arbeidsproductiviteit is &euro; $ap per arbeidsjaar.</li><li>De beroepsbevolking omvat $arbeid miljoen arbeidsjaren.</li></li><li>De kapitaalgoederenvoorraad is volledig benut bij een nationaal inkomen van &euro; $kk miljard.</li><li><small><em>De autonome bedragen luiden in miljarden euro's.</em></small></li></ul>
+    
+    texanswer1=\left[ \begin{array}{l} \textrm{Alle arbeid levert een productie van : } $arbeid \cdot 10^{6} \times $a \cdot 10^{3} = $max_arbeid \textrm{ miljard} \; \euro \\ \\ \textrm{Alle kapitaal levert een productie van : } $kk \textrm{ miljard }\;\euro \\ \\ \textrm{De maximale hoogte van het nationaal inkomen is dan : } $answer1  \: \textrm{ miljard } \;\euro \end{array} \right.
+    
+    texanswer2= \left[ \begin{array}{l} \begin{array}{l} \textrm{C = $c Y + $auto} \\ \textrm{I} = $invest \\ \textrm{Y = C + I} \end{array} \rightarrow \textrm{Y = $c Y + $auto + $invest} \\  \\ \textrm{$[1-$c] Y = $[$auto + $invest]} \\ \\ \overline{\textrm{Y}} = \frac{$[$auto + $invest]}{$[1-$c]} = $even \simeq $evenw \: \textrm{ miljard }\;\euro \\ \\ \textrm{De effectieve vraag is : $evenw  miljard}\; \euro \\ \\ \textrm{Daarbij zijn : } \; \frac{$evenw \times 10^{9}}{$a \times 10^{3}} \times \:\textrm{1 arbeidsjaar} = $WR \:\textrm{miljoen arbeidsjaar} \\ \\ \textrm{De totale werkloosheid is :} $arbeid - $WR = $answer2 \: \textrm{ miljoen arbeidsjaren} \end{array} \right.
+
+    werk_p=$[$max_kapitaal/$a]
+    WP=$[(round(100*$werk_p))/100]
+    Uc=$[(round(100*($kk - $evenw)/$a))/100]
+    Us=$[(round(100*($answer2 - $Uc)))/100]    
+    
+    answer3=$Uc,$Us
+    
+    texanswer3=\left[ \begin{array}{l} \textrm{De conjuncturele werkloosheid is :} \frac{($kk - $evenw)\times 10^{9}}{$a\times 10^{3}} \: \times \:\textrm{1 arbeidsjaar} = $Uc \: \textrm{ miljoen arbeidsjaren} \\ \\ \textrm{De structurele werkloosheid is :} $answer2 - $Uc = $Us \: \textrm{ miljoen arbeidsjaren} \end{array} \right.
+    
+    answer4=$[(round(10000*($kk - $auto - $invest)/($kk)))/10000]
+    
+    texanswer4=\left[ \begin{array}{l} \textrm{Y = C + I} \rightarrow \textrm{Y = c Y + $auto + $invest} \\ \\ $kk = c \times $kk + $[$auto + $invest] \\ \\ $kk c = $kk - $[$auto + $invest] \\ \\ c = \frac{$kk - $[$auto + $invest]}{$kk} \simeq $answer4 \end{array} \right.
+
+!endif
+
+!if $counter=1
+    ss=Bereken de maximale hoogte van het nationaal inkomen.<br />Geef je antwoord in miljarden euro's
+    description=maximale hoogte
+    inputs=1.1
+    ex1=&times;10<sup>9</sup>&nbsp;&euro;
+    cols=8
+!else
+    !if $counter=2
+	ss=Bereken de totale werkloosheid.<br />Geef je antwoord In miljoenen arbeidsjaren, afgerond op twee decimalen.
+	description=Totale werkloosheid
+	ex1=&times;10<sup>6</sup>&nbsp;arbeidsjaren
+    !else
+	!if $counter=3
+	    ss=Splits de totale werkloosheid in een conjunctureel en een structureel gedeelte.<br />\
+	    Geef je antwoord In miljoenen arbeidsjaren, afgerond op twee decimalen.
+	    description=Conjuncturele werkloosheid,Structurele werkloosheid
+	    ex1=&times;10<sup>6</sup>&nbsp;arbeidsjaren
+	    ex2=&times;10<sup>6</sup>&nbsp;arbeidsjaren
+	    inputs=2
+	!else
+	    ss=Bij welke waarde van de marginale consumptiequote is er bestedingsevenwicht?<br />\
+	    Geef je antwoord in 4 decimalen nauwkeurig.
+	    description=marginale consumptiequote
+	    inputs=1.1
+	!endif
+    !endif
+!endif
+
+question$n=$var5 <hr class="schaersvoorde_hr" /><a onmouseover="return escape('$helptext')">$ss</a>

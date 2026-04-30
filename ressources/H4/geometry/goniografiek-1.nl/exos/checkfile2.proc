@@ -1,0 +1,61 @@
+n=$counter
+goback=0
+errortext=$empty
+!if ? isin $(reply$n)
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+tt=!itemcnt $(reply$n)
+!if $tt!=2
+    goback=1
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P6*$maxscore]
+    !exit
+!endif
+a1=!item 1 of $(answer$n)
+a2=!item 2 of $(answer$n)
+r1=!item 1 of $(reply$n)
+r2=!item 2 of $(reply$n)
+extra=$empty
+score=0
+!if $a1=$r1 and $a2=$r2
+    score=1
+!else
+    !if $[$r1+$r2]=0
+	extra=!record 13 of lang/remarks.$taal
+    !else
+	!if $[$r1+$r2]=2
+	    extra=!record 16 of lang/remarks.$taal
+	!else
+	    !if $a1=$r2 and $a2=$r1
+		extra=!record 9 of lang/remarks.$taal
+	    !else
+		extra=!record 7 of lang/remarks.$taal
+	    !endif
+	!endif
+    !endif
+!endif
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.7
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+
+modulescore=$[$modulescore+$maxscore]
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+!exit
+
+

@@ -1,0 +1,148 @@
+#:12 Systeem nationale rekeningen [ domein H ]
+# GEEN STEPS
+n=$counter
+mathview=0
+calculator=1
+inputs=0
+make_tr=1
+checkfile=exos/checkfile3.proc
+answer$n=1
+image=0
+math=0
+###### ACTIVA #########
+gebouw=!randint 300,400
+gebouw=$[1000*$gebouw]
+inventaris=!randint 50,200
+inventaris=$[1000*$inventaris]
+voorraden=!randint 400,600
+voorraden=$[1000*$voorraden]
+debiteuren=!randint 100,300
+debiteuren=$[1000*$debiteuren]
+kasgelden=!randint 10,30
+kasgelden=$[1000*$kasgelden]
+banksaldo=!randint 30,70
+banksaldo=$[1000*$banksaldo]
+sum_links=$[$gebouw + $inventaris + $voorraden + $debiteuren + $kasgelden + $banksaldo]
+ 
+##### PASSIVA #######
+hypothecairelening=!randint 150,450
+hypothecairelening=$[1000*$hypothecairelening]
+rekeningcourant=!randint 75,150
+rekeningcourant=$[1000*$rekeningcourant]
+crediteuren=!randint 130,250
+crediteuren=$[1000*$crediteuren]
+# eigenvermogen wordt in eerste intstantie gebruikt voor kloppend maken
+sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant]
+
+### kloppend maken #####
+diff=$[$sum_links - $sum_rechts]
+!if $diff > 0
+    eigenvermogen=$diff
+!else
+    # hmmm niet goed genoeg
+    eigenvermogen=!randint 30,60
+    eigenvermogen=$[$eigenvermogen*1000]
+    sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant + $eigenvermogen]
+    diff=$[$sum_links - $sum_rechts]
+    !if $diff>0
+	crediteuren=$diff
+    !else
+	rekeningcourant=$[$rekeningcourant + (-1*$diff)] 
+    !endif
+!endif
+sum_rechts=$[$hypothecairelening + $crediteuren + $rekeningcourant + $eigenvermogen]
+
+
+lijst=Voorraden,Gebouw,Debiteuren,Banksaldo,Kasgelden,Inventaris,Rekening-courant,Eigen vermogen,Hypothecaire lening,Crediteuren
+lijst2=$voorraden,$gebouw,$debiteuren,$banksaldo,$kasgelden,$inventaris,$rekeningcourant,$eigenvermogen,$hypothecairelening,$crediteuren
+keuze=!shuffle 1,2,3,4,5,6,7,8,9,10
+static_table=<table class=\'default_table\'>
+k=0
+!for p in $keuze
+    !increase k
+    ding=!item $p of $lijst
+    bedrag$p=!item $p of $lijst2
+    !if $k=10
+	bedrag=<span style=\'color:red\'>&nbsp;&nbsp;?&nbsp;&nbsp;</span>
+    !else
+	bedrag=$(bedrag$p)
+    !endif
+    static_table=!append word <tr><td>$ding</td><td>&euro; $bedrag</td></tr> to $static_table
+!next p
+
+var8=!subst $voorraden,voorraden,raden,voor\
+$gebouw,gebouw,gebauw,ouw,auw\
+$debiteuren,debiteuren,debi,bi\
+$banksaldo,banksaldo,bank,saldo,aldo\
+$kasgelden,kasgelden,kas,geld\
+$inventaris,inventaris,inve\
+null,vasteactiva,vast\
+null,vlottendeactiva,vlot,acti\
+$sum_links,totaal,tot
+
+var7=!subst $crediteuren,crediteuren,kredi,credi,di\
+$hypothecairelening,hypothecairelening,hipo,hypo,lening,len\
+$rekeningcourant,rekening_courant,coura,koura\
+$eigenvermogen,eigenvermogen,eige,vermog\
+null,langvreemdvermogen,lang\
+null,kortvreemdvermogen,kort\
+$sum_rechts,totaal,tot
+
+
+# geen spaties: werewr@ @4355@ ewrw @ 45
+!if $wims_user=supervisor
+
+head=!subst Vaste Activa@@Eigen vermogen @$eigenvermogen\
+Gebouw@$gebouw@@\
+Inventaris@$inventaris@@\
+@@@\
+Vlottende activa@@Lang vreemd vermogen@\
+Voorraden@$voorraden @Hypothecaire lening@$hypothecairelening\
+Debiteuren@$debiteuren@Kort vreemd vermogen@\
+Banksaldo@$banksaldo@Crediteuren @$crediteuren\
+Kasgelden@$kasgelden@Rekening_courant@$rekeningcourant\
+@@@\
+totaal@=SUM(B1:B9)@totaal@=SUM(D1:D9) 
+
+!else
+
+head=Vaste Activa @@Eigen vermogen @\
+@@@\
+@@@\
+@@@\
+Vlottende activa @@Lang vreemd vermogen @\
+@@@\
+@@@\
+@@@\
+@@Kort vreemd vermogen @\
+@@@\
+@@@\
+@@@\
+totaal@=SUM(B1:B12)@totaal@=SUM(D1:D12) 
+
+
+!endif
+
+
+
+myname=data.$n
+tsv=!translate '@' to '\t' in $head
+!filewrite getfile/$myname $tsv
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+total_exos=1
+
+static_table=!append word </table> to $static_table
+
+ss=Een balans en een resultatenrekening (winst -en verliesrekening) zijn manieren waarop<br />financi&euml;le gegevens geordend kunnen worden.<br />Voorraadgrootheden maken onderdeel uit van de balans en stroomgrootheden van de resultatenrekening.<br />Verwerk <span style="color:blue">deze</span> gegevens op de juiste plaats in het spreadsheet van de balans<br />Klik op de 'pijl' om de applet zichtbaar te maken<br />Gebruik de knop rechts bovenin de applet om het spreadsheet naar WIMS ter controle te sturen...<br />
+
+helptext=Klik op de &rsquo;pijl&rsquo; om de applet zichtbaar te maken<br />Klik op het &rsquo;kruis&rsquo; om de applet zichtbaar te maken...de gegevens worden gewoon bewaard.<br />Gebruik de knop rechts bovenin de applet om het spreadsheet naar WIMS ter controle te sturen...
+
+question$n=<a onmouseover="return escape('$static_table')">$ss</a>
+
+exotext=<object id="SharpTools" width="120" height="32 "classid="java:SharpTools/MainApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="SharpTools.jar" /><param name="java_code="SharpTools/MainApplet" ><param name="file" value="$myfile"/><param name="language" value="$taal"/><param name="X_screen_location" value="0"/><param name="Y_screen_location" value="0"/><param name="window_width" value="860"/><param name="window_height" value="300"/><param name="empty_cell" value="null"/><param name="FIRSTCOLUMNWIDTH" value="1"/><param name="COLUMNS" value="4"/><param name="ROWS" value="13"/><param name="replyurl" value="$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n="/><param name="reply_type" value="1"/><param name="convert_initial_tsv_to_matrix" value="0"/><param name="fontsize" value="16"/><param name="TOOLBAR_NEW" value="true"/><param name="TOOLBAR_PRINT" value="true"/><param name="TOOLBAR_UNDO" value="true"/><param name="TOOLBAR_REDO" value="true"/><param name="TOOLBAR_CUT" value="true"/><param name="TOOLBAR_COPY" value="true"/><param name="TOOLBAR_PASTE" value="true"/>\<param name="TOOLBAR_FIND" value="true"/><param name="TOOLBAR_INSERTROW" value="true"/><param name="TOOLBAR_INSERTCOLUMN" value="true"/><param name="TOOLBAR_DELETEROW" value="true"/><param name="TOOLBAR_DELETECOLUMN" value="true"/><param name="TOOLBAR_SORTCOLUMN" value="true"/><param name="TOOLBAR_HISTOGRAM" value="true"/><param name="TOOLBAR_HELP" value="true"/><param name="TOOLBAR_FUNCTIONS" value="true"/>$nojava</object>
+
+textanswer$n=<table class="balans_2"><tr><td><b>VASTE ACTIVA</b></td><td>&nbsp;</td><td ><b>EIGEN VERMOGEN</b></td><td>&euro; $eigenvermogen</td></tr><tr><td>Gebouw</td><td>&euro; $gebouw</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Inventaris</td><td>&euro; $inventaris</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td><b>VLOTTENDE ACTIVA</b></td><td>&nbsp;</td><td><b>LANG VREEMD VERMOGEN</b></td><td>&nbsp;</td></tr><tr><td>Voorraden</td><td>&euro; $voorraden</td><td>Hypothecaire lening</td><td>&euro; $hypothecairelening</td></tr><tr><td>Debiteuren</td><td>&euro; $debiteuren</td><td><b>KORT VREEMD VERMOGEN</b></td><td>&nbsp;</td></tr><tr><td>Banksaldo</td><td>&euro; $banksaldo</td><td>Crediteuren</td><td>&euro; $crediteuren</td></tr><tr><td>Kasgelden</td><td>&euro; $kasgelden</td><td>Rekening-courant</td><td>&euro; $rekeningcourant</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td><b>Totaal</b></td><td>&euro; $sum_links</td><td><b>Totaal</b></td><td>&euro; $sum_rechts</td></tr></table>
+!exit
+<!-- 0 = matrix  ["1","2","3";"a","b","c"] note: "" string protection for pari evaluation -->\
+<!-- 1 = csv 1,2,3 \n a,b,c  note : no string protection -->\
+<!-- 2 = tsv 1 \t 2 \t 3 \n a \t b \t c  note : no string protection -->\

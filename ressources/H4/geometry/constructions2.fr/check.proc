@@ -1,0 +1,211 @@
+!! no need for translation
+
+# JUST TRYING TO IDENTIFY OBJECTS
+# USING ONLY THE JAVASCRIPT FUNCTION: encodeURIComponent(document.applets[0].getValueString('$p'));
+# IF GEOGEBRA EXPORTS THE CONSTRUCTION PROTOCOL THRU JAVASCRIPT
+# THIS FILE IS NOT NEEDED ANYMORE AND THE PROC FILE WILL BE MUCH SIMPLER?
+ 
+!if $appletanswer=$empty
+    REMARK=YOU'VE NOT ANSWERED THE QUESTION
+    !increase try
+    goback=1
+    !exit
+!endif	
+    
+# we preserve the original appletanswer to be able to see where things go wrong :)
+ans=!nospace $appletanswer
+  
+# rawmath tries to get rid of some strange things
+ans=!rawmath $ans
+    
+# trying to filter all strange symbols the applet sometimes (when using "input") sends to javascript-method 
+t=!charcnt $ans
+aaa=$ans
+# dingen=0 1 2 3 4 5 6 7 8 9 ^ * / + - = y x [ { ( . , : ; ) } ]
+dingen= ^ * / + - = [ { ( . , : ; ) } ] 0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 
+!for p=1 to $t
+    P=!char $p of $ans
+    !if $P notin $dingen    
+	aaa=!replace internal char number $p by $empty in $aaa
+    !endif
+!next p
+    
+ans=$aaa	
+
+# ans=!deaccent $ans (does not work good)
+# Get rid of all non-interesting ",," 
+    
+!for p=1 to 10
+    ans=!replace internal ,, by , in $ans
+!next p	
+    
+# get rid of first and last ","    
+p1=!char 1 of $ans
+p2=!char 2 of $ans
+!if $p1=, 
+    # the first ,1,2,3, -> 1,2,3,
+    ans=!char 2 to -1 of $ans
+!endif
+!if $p2=,
+    # the last 1,2,3, -> 1,2,3
+    ans=!char 1 to -2 of $ans
+!endif
+    
+# Do some first filtering of the $ans 
+    
+ans=!nospace $ans
+total=!itemcnt $ans
+    
+!if $total = $empty or $total=0
+    REMARK=!record 5 of remarks.$taal
+    !increase try
+    goback=1
+    !exit	
+!endif	
+!if $total > $maxobjects
+    REMARK=!record 6 of remarks.$taal
+    !increase try
+    goback=1
+    !exit
+!endif
+
+r=0    
+type=$empty
+!for p=1 to $total
+    # for now $type stores a description of the geogebra object...
+    # as a item list like: point@1.00@2.12,point@0@0
+    # 
+    A=!item $p of $ans
+    A=!nospace $A
+    org=$A
+    !if $A != $empty
+	!increase r	
+	# = in $A means: all objects
+	# : in $A means: circle,line,cone
+	!if : isin $A
+	    A=!replace internal : by , in $A
+	    A=!item 2 of $A
+	    !if x*y isin $A 
+		type=!append item cone@$A to $type
+	    !else
+		!if ^ notin $A
+		    type=!append item line@$A to $type
+		!else
+		    org=$A
+		    A=!replace internal = by , in $A
+		    dia=!item 2 of $A
+		    dia=$[sqrt($dia)]
+		    form=!item 1 of $A
+		    f=!replace internal ( by , in $form
+		    f=!replace internal ) by , in $f
+		    ft=!itemcnt $f
+		    !if $ft=1
+			xc=0
+			yc=0
+		    !else
+			xc=$empty
+			yc=$empty
+			!for c in $f
+			    !if x isin $c
+				xc=!replace internal x by 0 in $c
+				xc=$[-1*($xc)]
+			    !else
+				!if y isin $c    
+				    yc=!replace internal y by 0 in $c
+				    yc=$[-1*($yc)]
+				!endif
+			    !endif     
+			!next c
+		    !endif
+		    type=!append item circle@$xc@$yc@$dia to $type
+		!endif
+	    !endif		
+	!else
+	    # = sign is present : function, point,angle,vector,segment
+	    A=!replace internal = by , in $A
+!!! the name is put in  t1
+	    t1=!item 1 of $A
+	    t2=!item 2 to -1 of $A
+	    !if x isin $t1
+		type=!append item function@$t2 to $type
+	    !else
+		t3=!replace internal ( by # in $t2
+		t4=!char 1 of $A
+		
+		!if $t4=, or ^ isin $t1
+		    type=!append item angle@$t2 to $type
+		!else
+		    !if $t2 != $emtpy
+			t1=!replace [0-9] by $empty in $t1
+			# 28/4/2006
+			# V1 -> V
+			# V4 -> V
+			# i'm not sure if this is a sensible thing to do
+			# and it's very "expensive" using 
+			# an external (sed/tr) program to do translation
+			!if $t1 isin $ALPHABET
+			    # uppercase Polygone and points A= P=
+			    !if # isin $t3
+				A=!replace internal ( by $empty in $t2
+				A=!replace internal ) by $empty in $A
+				x=!item 1 of $A
+				y=!item 2 of $A    
+!!!! VRoyer: get also name of point 
+!!!! instead of type=!append item point@$x@$y to $type
+				type=!append item point@$t1@$x@$y to $type
+			    !else	
+				type=!append item polygone,$t2 to $type
+			    !endif
+			!else
+			    !if $t1 isin $alphabet
+				# lowercase vector,segment arc u=,v= etc
+				!if # isin $t3
+				    type=!append item vector@$t2 to $type
+				!else
+!!!! VRoyer: no need to get segment names ; value of segment is length
+                                   type=!append item segment@$t2 to $type	    
+				!endif
+			    !else
+				type=!append item unknown@$A to $type
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif	
+    !endif
+!next p	
+
+!!!! GET ONLY THE KNOWN (from $known) and REQUIRED ($ptnames) POINTS A B C or D in TYPE    
+!!!! these are the first 3 or 4 items of $type
+!!!! THEN UPDATE appletcommand and FEEDBACK GGB APPLET
+!!!!
+
+
+appletcommand=
+
+!for i = 1 to $total
+     tmp=!item $i of $type
+!!!! if tmp is  a point descriptor point@A@x@y
+     !if point isin $tmp
+         tmp=!replace internal @ by , in $tmp
+     !!!! tmp is of the form point,A,x,y
+         t1=!item 2 of $tmp
+         tmp=!item 3 to 4 of $tmp
+     !!! get only known or interesting points
+         !if $t1 isin $ptnames
+            appletcommand=$appletcommand;\
+               document.applets[0].evalCommand("$t1=($tmp)")
+             !if $t1 isitemof $known
+               appletcommand=$appletcommand;\
+                 document.applets[0].setColor("$t1",0,0,250)
+             !else
+               appletcommand=$appletcommand;\
+                  document.applets[0].setColor("$t1",250,0,0)
+             !endif  
+         !endif 
+     !endif
+!next i
+
+!exit
+    

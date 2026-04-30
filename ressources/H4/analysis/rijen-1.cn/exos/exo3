@@ -1,0 +1,72 @@
+# no need for translation 
+# recursief -> rangnummer
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+mathviewpanel=$module_title:and:Un=
+extext=!record 97 of lang/remarks.$taal
+#@ Omrekenen van Recursie formule naar Rangnummmer formule
+questiontype=0
+math=0
+image=0
+keuze=!randitem 1,2                                                                                          
+formula$n=$empty
+texanswer$n=$empty
+!if $keuze=1
+    TYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+    NTYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+!else
+    TYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+    NTYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+!endif
+exotext=!record 99 of lang/remarks.$taal
+sometext=!record 101 of lang/remarks.$taal
+exotext=<p>$extext<br><a onmouseover="return escape('$sometext')">$exotext</a>
+!if $R>0
+    checkfile=exos/checkfile4.proc
+    !if $keuze=2
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+        ss=!record 27 of lang/remarks.$taal
+	#@ Gegeven de Recursie formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n+1</sub>=U<sub>n</sub> + $r <br> met U<sub>0</sub>=$a</p>\
+	#@ Geef de Rangnummer formule van deze rij.
+	question$n=$ss
+	
+	answer$n=$a+$r*n
+	formule=U<sub>n</sub>=$a+$r n
+	!for p=1 to 5
+	    t=$[$p-1]
+	    U=$[$a+$r*$t]
+	    textanswer$n=!append line <li>U<sub>$t</sub>=$U</li> to $(textanswer$n)
+	!next p
+    !else
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+	ss=!record 28 of lang/remarks.$taal
+	question$n=$ss
+	#@ Gegeven de Recursie formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n</sub>=$r&times;U<sub>n-1</sub><br> met U<sub>1</sub>=$a</p>\
+	#@ Geef de Rangnummer formule van deze rij.
+	
+	answer$n=$a*$r^n
+	!for p=1 to 5
+	    t=$[$p-1]
+	    U=$[$a*$r^$t]
+	    textanswer$n=!append line <li>U<sub>$t</sub>=$U</ll> to $(textanswer$n)
+	!next p
+	formule=U<sub>n</sub>=$a&times;$r<sup>n</sup>
+    !endif
+    ss=!record 29 of lang/remarks.$taal
+    #@
+     Het is een $TYPE rij...dus de formule is: $formule 
+    textanswer$n=<ul>$(textanswer$n)</ul>$ss
+    !exit
+!endif

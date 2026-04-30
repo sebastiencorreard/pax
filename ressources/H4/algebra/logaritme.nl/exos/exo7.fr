@@ -1,0 +1,144 @@
+#Vergelijkingen 1 [ g^x = b ]
+n=$counter
+mathviewpanel=$module_title:x=:log():log[2]():
+rounding=0
+!readproc $remarkdir/rounding.$taal
+mathview=5
+image=0
+questiontype=0
+inputs=1
+display=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+varlist=$empty
+arglist=x
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo7.jpg\' alt=\'noalt\' />
+
+g=!randitem 2,10
+keuze=!randitem 1,0
+
+!if $R=1
+ b=!randint 1,200
+ formula$n=$g^{x}=$b 
+ applettext=!nospace $g^x = $b ->
+ var1=
+ check=$[log($b)/log($g)]
+ !if . notin $check
+  answer$n=$check
+  tex==$check
+  var2=0
+ !else
+  var2=1
+  tex=$empty
+ !endif
+ !if $g=2
+  answer$n=log($b)/log($g)
+  texanswer$n=$g^{x}=$b \rightarrow x = \log_{$g}($b) $tex
+ !else
+  answer$n=log($b)
+  texanswer$n=$g^{x}=$b \rightarrow x =  \log($b) $tex  
+ !endif
+!endif
+
+!if $R=2
+ a=!randitem 2,3,4,5,6,7,8,9,10
+ p=!randitem 2,3,4,5,6,7,8,9
+ pm=!randitem 1,-1
+ a=$[$pm*$a]
+ b=$[$p*$a]
+ formula$n=$a \cdot $g^{x}=$b 
+ applettext=!nospace $a*$g^x = $b ->
+ var1=
+ check=$[log($p)/log($g)]
+ !if $g=2
+  !if . notin $check
+   answer$n=$check
+   tex= $ =$check $
+  !else
+   tex=$empty
+   answer$n=log($p)/log($g)
+  !endif
+  texanswer$n=\left[ \begin{array}{ll} $a \cdot $g^{x}=$b \\ $g^{x}=\frac{$b}{$a} \\ $g^{x}=$p \\ x= \log_{2}($p) $tex \end{array} \right.
+ !else
+  !if . notin $check
+   answer$n=$check
+   tex= $ =$check $
+  !else
+   tex=$empty
+   answer$n=log($p)
+  !endif
+  texanswer$n=\left[ \begin{array}{ll} $a \cdot $g^{x}=$b \\ $g^{x}=\frac{$b}{$a} \\ $g^{x}=$p \\ x= \log($p) $tex \end{array} \right.
+ !endif
+!exit
+!endif
+
+!if $R=3
+ a=!randint 2,10
+ p=!randint 2,20
+ b=$[$a+$p]
+ d=!randitem 1,2,3,4,5
+ c=$[$d*$p]
+ formula$n=$c \cdot $g^{x} + $a =$b 
+ applettext=!nospace $c*$g^x+$a = $b ->
+ var1=
+ check=$[log(1/$d)/log($g)]
+ !if $g=2
+  !if . notin $check
+   answer$n=$check
+   tex==$check
+  !else
+   tex= \leftrightarrow x=\log_{$g}\left($d^{-1}\right) \leftrightarrow  x=-\log_{$g}($d) 
+   answer$n=log(1/$d)/log($g)
+  !endif
+  texanswer$n=\left[ \begin{array}{l} $c \cdot $g^{x} + $a =$b \\ $c\cdot $g^{x}= $p \\ \\ $g^{x}=\frac{$p}{$c} \rightarrow  $g^{x}=\frac{1}{$d} \\  \\ x= \log_{$g}\left( \frac{1}{$d} \right) $tex \end{array} \right.
+ !else
+   !if . notin $check
+   answer$n=$check
+   tex==$check
+  !else
+   tex= \leftrightarrow x=^$g\log\left($d^{-1}\right) \leftrightarrow  x=-\log($d) 
+   answer$n=log(1/$d)
+  !endif
+  texanswer$n=\left[ \begin{array}{l} $c \cdot $g^{x} + $a =$b \\ $c\cdot $g^{x}= $p \\ \\ $g^{x}=\frac{$p}{$c} \rightarrow  $g^{x}=\frac{1}{$d} \\  \\ x= \log\left( \frac{1}{$d} \right) $tex \end{array} \right.
+ !endif
+ !exit
+!endif
+
+!if $R>3
+ b=!randint 2,25
+ formula$n=\left(\frac{1}{$g}\right)^{-x} =$b 
+ applettext=!nospace (1/$g)^(-x)  =  $b ->
+ var1=
+ check=$[log($b)/log($g)]
+ !if $g=2
+  !if . notin $check
+   answer$n=$check
+   tex= $ =$check $
+  !else
+   tex=$empty
+   answer$n=log($b)/log($g)
+  !endif
+  texanswer$n=\left[ \begin{array}{l} \left(\frac{1}{$g}\right)^{-x}=$b \\ \left( $g^{-1} \right)^{-x}=$b  \\ $g^{(-1 \cdot -x) } = $b \\ $g^{x}=$b \\ x=\log_{$g}($b) $tex \end{array} \right.
+ !else
+  !if . notin $check
+   answer$n=$check
+   tex= $ =$check $
+  !else
+   tex=$empty
+   answer$n=log($b)
+  !endif
+  texanswer$n=\left[ \begin{array}{l} \left(\frac{1}{$g}\right)^{-x}=$b \\ \left( $g^{-1} \right)^{-x}=$b  \\ $g^{(-1 \cdot -x) } = $b \\ $g^{x}=$b \\ x=\log($b) $tex \end{array} \right.
+ !endif
+ !exit
+!endif
+

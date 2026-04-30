@@ -1,0 +1,125 @@
+!set title=Équation parallèle 1C
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items d,p,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=Soit \(($val6)\) la droite d'équation&nbsp;
+val8=Réponse&nbsp;
+val9=L'équation est&nbsp;
+val10=Écrire l'équation de la droite parallèle à la droite \(($val6))	 et passant par le point de coordonnées
+val10=Écrire l'équation de la droite parallèle à la droite \(($val6))	 et passant par le point de coordonnées
+val11=Oui,Non
+val9=L'équation est&nbsp;
+tmp0=!randint -10, 10
+
+val12=$[rint($(tmp0))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 10
+
+val14=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val14=$val13
+val14=$[rint($val14-1)]
+!endif
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 10
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val16=$[rint($val12*($val15) +$val14)]
+t_=!replace internal \( by ( in $val12*x +$val13
+tmp0=!exec pari $t_
+
+val17=y=$(tmp0)
+t_=!replace internal \( by ( in $val12*x +$val14
+tmp0=!exec pari $t_
+
+val18=$(tmp0)
+replytype1=algexp
+replyname1=
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<div class="wimscenter">
+!insmath $val17
+$().</div>	$val10 ($val15,$val16).	<p><b>$val8:</b></p>	  $val9: <label for="reply1">
+!insmath y
+$() =</label>  
+!read oef/embed.phtml r1,7 
+$().
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,15,16,17
+embedcnt=1

@@ -1,0 +1,125 @@
+#:25 Herleid de functie tot een machtsfunctie
+display=1
+checkfile=exos/checkfile2.proc
+arglist=f(x),y
+varlist=x
+rounding=0
+math=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+
+mathview=5
+smallfont=18
+largefont=26
+mathviewpanel=$module_title:y=:log[2]():log[3]():log[4]():log[5]():log[6]():log[7]():log[8]():log[9]()
+m=!mathmlmath y=a+b \cdot ^{g} \log(x)
+ss=!record 11 of lang/remarks.$taal
+#@Herleid de onderstaande functies door middel van substitutie naar de vorm $m
+question$n=$ss
+g=!randint 2,9
+!if $R=1
+    keuze=!randitem 1,2
+    !if $keuze=1
+	a=!randint 2,9
+	b=!randint 2,8
+	d=!randitem 0,1,1,1,2,2,2
+	tot=!exec pari A=($g^($d))/($b)\
+	printtex(A)
+	c=!line 1 of $tot
+	c_tex=!line 2 of $tot
+	f=$[$g^$d]
+	h=$[$a*$d]
+	!if $h=0
+	    tussen=$empty
+	!else
+	    tussen=$h +
+	!endif
+	formula$n=\left[ \begin{array}{l} y = $a \cdot ^{$g} \log \left($b t \right)\\ t = $c_tex x \\ y=a+b \cdot ^{g} \log\left( x \right)\end{array}\right.
+	answer$n=$h + $a*log(x)/log($g)
+	texanswer$n=\left[ \begin{array}{l} y = $a \cdot ^{$g} \log \left($b \cdot $c_tex x \right) \\ \\ 	y = $a \cdot ^{$g} \log \left($f x \right) \\ \\ y = $a \cdot \left( ^{$g} \log \left( $f \right) + ^{$g} \log \left( x \right) \right) \\ \\ y = $a \cdot ^{$g} \log \left( $f \right) + $a \cdot ^{$g} \log \left( x \right) \\ \\ y = $tussen $a ^{$g} \log(x)  \end{array} \right.	
+	 applettext=->
+	var1=!nospace $c * x^($a1/($a2)) * x^($b1/($b2))
+  !else
+	a=!randint 2,9
+	c=!randint 2,8
+	d=!randitem 0,1,2
+	tot=!exec pari A=($g^($d))/($c)\
+	printtex(A)
+	b=!line 1 of $tot
+	b_tex=!line 2 of $tot
+	f=$[$g^$d]
+	h=$[$a*$d]
+	!if $h=0
+	    tussen=$empty
+	!else
+	    tussen=$h +
+	!endif
+	formula$n=\left[ \begin{array}{l} y = $a \cdot ^{$g} \log \left( $b_tex t \right)\\ t = $c x \\ y=a+b \cdot ^{g} \log \left( x \right) \end{array}\right.
+	answer$n=$h + $a*log(x)/log($g)
+	texanswer$n=\left[ \begin{array}{l}	 y = $a \cdot ^{$g} \log \left($b_tex \cdot $c x \right) \\ \\ 	 y = $a \cdot ^{$g} \log \left( $f x \right) \\ \\ 	 y = $a \cdot \left( ^{$g} \log \left( $f \right) + ^{$g} \log \left( x \right) \right)\\ \\ 	 y = $a \cdot ^{$g} \log \left( $f \right) + $a \cdot ^{$g} \log \left( x \right) \\ \\  y = $tussen $a \cdot ^{$g} \log(x) \end{array}\right.
+	applettext=->
+	var1=!nospace $c * x^($a1/($a2)) * x^($b1/($b2))
+    !endif
+    !exit
+!endif
+
+!if $R>1
+    a=!randint 2,20
+    pm=!randitem 1,-1
+    a=$[$pm*$a]
+    c=!randint 2,9
+    d=!randitem -4,-3,-2,-1,1,2,3,4
+    tot=!exec pari A=($g^($d))/($c)\
+    printtex(A)\
+    B=$g^($d)\
+    printtex(B)
+    b=!line 1 of $tot
+    b_tex=!line 2 of $tot
+    f=!line 3 of $tot
+    f_tex=!line 4 of $tot
+    k=!randint 1,6
+    mp=!randitem 1,-1
+    k=$[$mp*$k]
+    !if $k=1
+	k=$[-1*$k]
+    !endif
+    keuze=!randitem 1,2
+    keuze=1
+    !if $keuze=1
+	h=$[$a+$d]
+	!if $h=0
+	    tussen=$empty
+	!else
+	    tussen=!rawmath $h+$k
+	!endif
+	tus=!rawmath $h+$k
+	formula$n=\left[ \begin{array}{l} y = $a + ^{$g} \log \left($b_tex \cdot t \right)\\ t = $c x^{$k} \\ y=a+b \cdot ^{g} \log\left( x \right)\end{array}\right.
+	answer$n=$tus*log(x)/log($g)
+	texanswer$n=\left[ \begin{array}{l} y = $a + ^{$g} \log \left($b_tex \cdot $c \cdot x^{$k} \right) \\ \\ y = $a + ^{$g} \log \left($f_tex x^{$k} \right) \\ \\ y = $a + ^{$g} \log \left($f_tex \right) + ^{$g} \log \left( x^{$k} \right) \\ \\ y = $a + $d  + $k \cdot ^{$g} \log \left( x \right) \\ \\ y = $tussen ^{$g} \log(x) \end{array}\right.
+	applettext=->
+	var1=!nospace $c * x^($a1/($a2)) * x^($b1/($b2))
+    !else
+	h=$[$a-$d]
+	!if $h=0
+	    tussen=$empty
+	!else
+	    tussen=!rawmath $h-$k
+	!endif
+	tus=!rawmath $h-$k
+	formula$n=\left[ \begin{array}{l} y = $a - ^{$g} \log \left($b_tex \cdot t \right)\\ t = $c x^{$k} \\ y=a+b \cdot ^{g} \log\left( x \right)\end{array}\right.
+	answer$n=$tus*log(x)/log($g)
+	texanswer$n=\left[ \begin{array}{l} y = $a - ^{$g} \log \left($b_tex \cdot $c \cdot x^{$k} \right) \\ \\ y = $a - ^{$g} \log \left($f_tex \cdot x^{$k} \right) \\ \\ y = $a - \left( ^{$g} \log \left($f_tex \right) + ^{$g} \log \left( x^{$k} \right)\right) \\ \\ y = $a - ^{$g} \log \left($f_tex \right) - ^{$g} \log \left( x^{$k} \right) \\ \\ y = $a - $d  - $k \cdot ^{$g} \log \left( x \right) \\ \\ y = $tussen ^{$g} \log(x) \end{array}\right.
+	applettext=->
+	var1=!nospace $c * x^($a1/($a2)) * x^($b1/($b2))
+    !endif
+    !exit
+!endif
+
+

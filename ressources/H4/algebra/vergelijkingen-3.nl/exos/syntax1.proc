@@ -1,0 +1,69 @@
+# checken op sin(x) sin(|x|) sin|x| log(x)
+n=$counter
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs
+    !if $i isin $AAA
+	# eerst testen ob absoluutstrepen |x|
+	test1=!replace internal $i| by # in $AAA
+	!if # isin $test1
+	    # dus ln|x| ===> ln(|x|) 
+	    # rawmath rekent af met |x| => abs(x)    
+	    pos=!positionof char | in $AAA
+	    tot=!itemcnt $pos
+	    !if $[gcd($tot,2)] != 2
+		# oneven aantal |-strepen 
+		errortext=!record 15 of $remarkdir/commonremarks.$taal
+		#@ Je hebt ergens een absoluut-streep '|' teveel of te weinig staan...<br />
+		#@ Deze typefout even verbeteren, $voornaam.
+		maxscore=$[$P1*$maxscore]
+		goback=1
+		!exit
+	    !endif
+	    !for r=1 to $[$tot-1]
+		p1=!item $r of $pos
+		p2=!item $[$r+1] of $pos
+		AAA=!replace internal char number $p1 by ~ in $AAA
+		AAA=!replace internal char number $p2 by # in $AAA
+		AAA=!replace internal ~ by (| in $AAA
+		AAA=!replace internal # by |) in $AAA
+	    !next r
+	!endif	
+	test2=!replace internal $i( by # in $AAA
+	!if # notin $test2
+	    testvar2=!nospace $i x
+	    testvar1=!nospace $i ( x )
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    #@ je moet <kbd>$H</kbd> schrijven in plaats van <kbd>$I</kbd> .<br />\
+	    #@ Het is voor mij anders geen doen om je antwoord na te kijken...<br />\
+	    #@ <small>en dat geldt overigens ook voor sin(x) , cos(x) , tan(x) , log(x)<br />\
+	    #@ ln(x) , sqrt(x) , ln(abs(x)) , ln(|x|) enzovoorts</small>
+	    goback=1
+	    maxscore=$[$P1*$maxscore]
+	    !exit
+	!endif
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+
+
+AAA=!rawmath $AAA
+# dus de positie van !rawmath is kritisch...
+# LET OP: rawmath ln(|x|) => ln(abs(x))
+# LET OP: rawmath ln|x| => ln(abs)*(x)
+!for i in $wims_rawmath_variables
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+AAA=!replace internal pi by PI in $AAA
+AAA=!replace internal *e by *E in $AAA
+AAA=!replace internal e* by E* in $AAA
+AAA=!replace internal ^e by ^E in $AAA
+AAA=!replace internal e^ by E^ in $AAA
+AAA=!replace internal abs by ABS in $AAA
+AAA=!replace [a-z\~\!\@\#\$\%\&\_\;] by $empty in $AAA
+AAA=!replace internal ^E by ^e in $AAA
+AAA=!replace internal E^ by e^ in $AAA
+AAA=!replace internal *E by *e in $AAA
+AAA=!replace internal E* by e* in $AAA
+AAA=!tolower $AAA
+goback=0

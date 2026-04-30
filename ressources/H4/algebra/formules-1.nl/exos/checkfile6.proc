@@ -1,0 +1,154 @@
+# answer$n=$d*x -$c,x>=$f,$e*x+$c,x<$f
+# var9=$f
+# reply$n = 
+#f(x) = -5x + 27 met D_f: x < 9/5  f(x) = 25x - 27 met D_f: x >= 9/5
+n=$counter
+goback=0
+varlist=x
+errortext=$empty
+test=!wordcnt $(reply$n)
+!if $test=0
+    goback=1
+    maxscore=$[$P2*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+extra=$empty
+aaa=!lower $(reply$n)
+aaa=!nospace $aaa
+!for p in f(x)=,y=,f1(x)=,f2(x)=,f_1(x)=,f_2(x)=,y1=,y2=,y_1=,y_2=
+ aaa=!replace internal $p by , in $aaa
+!next p
+!for p=1 to 3
+ aaa=!replace internal ,, by , in $aaa
+!next p
+chk=!itemcnt $aaa
+!if $chk < 2
+ errortext=Je moet wel een functievoorschrift opsturen...<br />dus iets met <em>f(x) = </em> of <em>y =</em>
+ maxscore=$[$P9*$maxscore]
+ goback=1
+ !exit
+!endif
+!for p in domein,df,d_f,with,met,is
+ aaa=!replace internal $p by , in $aaa
+!next p
+!for p=1 to 5
+ aaa=!replace internal ,, by , in $aaa
+!next p
+!for p in x,sqrt,sin,cos,tan,log,ln,pi,and,en,of
+ P=!toupper $p
+ aaa=!replace internal $p by $P in $aaa
+!next
+list1=<X<,<=X<,<X<=,<=X<=,>X>,>=X>,>X>=,>=X>=
+list2=<X@X<,<=X@X<,<X@X<=,<=X@X<=,>X@X>,>=X@X>,>X@X>=,>=X@X>=
+!for p=1 to 8
+ aaa=!replace internal $(list1[$p]) by $(list2[$p]) in $aaa
+!next p
+aaa=!replace internal >= by GT in $aaa
+aaa=!replace internal > by G in $aaa
+aaa=!replace internal <= by LT in $aaa
+aaa=!replace internal < by L in $aaa
+aaa=!replace internal AND by @ in $aaa
+aaa=!replace [a-z:;=] by $empty in $aaa
+aaa=!tolower $aaa
+aaa=!nospace $aaa
+
+ta=!itemcnt $aaa
+AF=$empty
+AU=$empty
+# filteren op vergelijking en ongelijkheid (Df)
+!for p=1 to $ta
+ P=!item $p of $aaa
+ !if $P!=$empty
+  !if g isin $P or l isin $P or @ isin $P
+   AU=!append item $P to $AU
+  !else
+   P=!rawmath $P
+   AF=!append item $P to $AF
+  !endif
+ !endif
+!next p
+AU=!replace internal gt by $ >= $ in $AU
+AU=!replace internal g by $ > $ in $AU
+AU=!replace internal lt by $ <= $ in $AU
+AU=!replace internal l by $ < $ in $AU
+AU=!replace internal @ by $ and $ in $AU
+tg=!itemcnt $(answer$n)
+tau=!itemcnt $AU
+taf=!itemcnt $AF
+
+parivraag=$empty
+!for p=1 to $tg step 2
+ G=!item $p of $(answer$n)
+ !for s=1 to $taf
+   A=!item $s of $AF
+   parivraag=!append line if(($G) == ($A),1,0) to $parivraag
+ !next s
+!next p
+# A1,A2,A3,A1,A2,A3
+score1=0
+chk_f=!exec pari $parivraag
+sum1=!linecnt $chk_f
+your_answer=<ul>
+!for p=1 to $sum1
+ s=!line $p of $chk_f
+ S=!item $p of $AF
+ !if 1 isin $s
+  !increase score1
+ !endif
+!next p
+score1=$[$score1/(0.5*$tg)]
+
+maximavraag=$empty
+!for p=2 to $tg step 2
+ G=!item $p of $(answer$n)
+ !for s=1 to $tau
+  A=!item $s of $AU
+  maximavraag=!append line if ($G) = ($A) then 1 else 0 ;  to $maximavraag
+ !next s
+!next p
+
+score2=0
+chk_u=!exec maxima $maximavraag
+sum2=!linecnt $chk_u
+!for p=1 to $sum2
+ s=!line $p of $chk_u
+ S=!item $p of $AU
+ !if 1 isin $s
+  !increase score2
+ !endif
+!next p
+score2=$[$score2/(0.5*$tg)]
+!if $score1 !=1
+  extra=er zit een foutje in opsplitsen van je functie...
+!endif
+!if $score2 !=1
+  extra=!append line <br />er zit een foutje in het Domein van je functie... to $extra
+!endif
+#exotext=$aaa <br />AU = $AU <br /> AF =$AF <br />pari1=$parivraag<br/>pari2=$maximavraag<br/>pari1=$chk_f<br />pari2=$chk_u<br /> score1=$score1 score2=$score2<br/>$your_answer
+#goback=1
+#!exit
+# if ( x<5 and x>7 ) = (x<5 and x>6) then Y else N;
+maxscore=$[$maxscore*($score1+$score2)/2]
+modulescore=$[$modulescore + $maxscore]
+
+reply$n=<textarea cols="25" rows="2" readonly >$(reply$n)</textarea>
+
+!if $maxscore>0.9
+ remark$n=$OK $extra
+!else
+ !if $maxscore>0.4
+  remark$n=$BOK $extra
+ !else
+  remark$n=$NOK $extra
+ !endif
+!endif
+goback=0
+!exit

@@ -1,0 +1,190 @@
+# Vergelijkingen II [ g^(a*x) = b ]
+n=$counter
+mathviewpanel=$module_title:x=:log():log[2]():x=: or : and : -> 
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+display=1
+questiontype=0
+inputs=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+question$n=!record 3 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><small><em>geef je antwoord in de vorm: x=...</em></small>
+helptext=<img src=\'$module_dir/gifs/exo7.jpg\' alt=\'noalt\' />
+
+g=!randitem 2,10
+keuze=!randitem 1,0
+
+!if $R=1
+ var1=$empty
+ b=!randint 2,15
+ c=!randitem 2,3,4,5,6,7,8,9
+ !if $g=2
+  !if $keuze=0
+   formula$n=$g^{$c x}=$b 
+   applettext=!nospace $g^($c*x) = $b ->
+   answer$n=log($b)/($c*log($g))
+   check=$[log($b)/(log($g))]
+   !if . notin $check
+    answer$n=$check/$c
+    tex==\frac{$check}{$c}
+   !else
+    tex=$empty
+   !endif
+   texanswer$n=\left[ \begin{array}{lll} $g^{$c x}=$b \\ $c x = \log_{$g}($b) \\ x = \frac{1}{$c} \cdot \log_{$g}($b) $tex \end{array}  
+  !else
+   formula$n=$g^{^{\textstyle \frac{1}{$c} x}}=$b 
+   applettext=!nospace $g^(x/($c)) = $b ->
+   answer$n=$c*log($b)/log($g)
+   check=$[$(answer$n)]
+   !if . notin $check
+    answer$n=$check
+    tex= =$check
+   !else
+    tex=$empty
+   !endif
+   texanswer$n=\left[ \begin{array}{lll} $g^{\textstyle \frac{1}{$c} x} = $b \\ \frac{1}{$c} x = \log_{$g}($b) \\ x= $c \cdot \log_{$g}($b) $tex \end{array}
+  !endif
+ !else
+  !if $keuze=0
+   formula$n=$g^{$c x}=$b 
+   applettext=!nospace $g^($c*x) = $b ->
+   check=$[log($b)/(log($g))]
+   !if . notin $check
+    answer$n=$check/$c
+    tex==\frac{$check}{$c}
+   !else
+    answer$n=log($b)/($c)
+    tex=$empty
+   !endif
+   texanswer$n=\left[ \begin{array}{lll} $g^{$c x}=$b \\ $c x = \log($b) \\ x = \frac{1}{$c} \cdot \log($b) $tex \end{array}  
+  !else
+   formula$n=$g^{^{\textstyle \frac{1}{$c} x}}=$b 
+   applettext=!nospace $g^(x/($c)) = $b ->
+   check=$[$c*log($b)/log($g)]
+   !if . notin $check
+    answer$n=$check
+    tex= =$check
+   !else
+    answer$n=$c*log($b)
+    tex=$empty
+   !endif
+   texanswer$n=\left[ \begin{array}{lll} $g^{\textstyle \frac{1}{$c} x} = $b \\ \frac{1}{$c} x = $g^\log($b) \\ x= $c \cdot ^$g \log($b) $tex \end{array}
+  !endif
+ !endif
+!exit
+!endif
+
+!if $R=2
+ a=!randint 2,10
+ p=!randitem 2,3,4,5
+ pm=!randitem -1,1
+ a=$[$pm*$a]
+ b=$[$p*$a]
+ c=!randitem 2,3,4,5,6,7,8,9
+ !if $g=2
+  formula$n=$a \cdot $g^{$c x}=$b 
+  applettext=!nospace $a * $g^($c*x) = $b ->
+  check=$[log($p)/($c*log($g))]
+  !if . notin $check
+   answer$n=$check/$c
+   tex= =\frac{$check}{$c}
+  !else
+   tex=$empty
+   answer$n=log($p)/($c*log($g))
+  !endif
+  texanswer$n=\left[ \begin{array}{lll} $a \cdot $g^{$c x}=$b \\ $g^{$c x}=$p \\ $c x = \log_{$g}($p) \\ x = \frac{1}{$c} \cdot \log_{$g}($p) $tex \end{array}      
+ !else
+  formula$n=$a \cdot $g^{$c x}=$b 
+  applettext=!nospace $a * $g^($c*x) = $b ->
+  check=$[log($p)/($c*log($g))]
+  !if . notin $check
+   answer$n=$check/$c
+   tex= =\frac{$check}{$c}
+  !else
+   tex=$empty
+   answer$n=log($p)/$c)
+  !endif
+  texanswer$n=\left[ \begin{array}{lll} $a \cdot $g^{$c x}=$b \\ $g^{$c x}=$p \\ $c x = \log($p) \\ x = \frac{1}{$c} \cdot \log($p) $tex \end{array}      
+ !endif
+!exit
+!endif
+!if $R>2
+ c=!randitem 2,3,4,5
+ a=!randitem 2,3,4,5,6
+ b=!randitem 2,3,4,5,6,7,8,9,10
+ d=!randitem 1,2,3,4,5,6,7,8,9,10
+ pm=!randitem -1,1
+ e=$[$a*$b]
+ f=$[$c*$d*$pm]
+ !if $g=2
+  !if $pm=1
+   formula$n=\frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} =$b 
+   applettext=!nospace 1/($a) * $g^(1/($c)*x + $d ) = $b ->
+   check=$[log($e)/(log($g))]
+   !if . notin $check
+    answer$n=$[$c*($check) - ($f)]
+    tex== $(answer$n)
+   !else
+    tex=$empty
+    answer$n=$c*log($e)/(log($g)) - ($f)
+   !endif
+   texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $b \\ \\ $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $e \\ \\ \frac{1}{$c} \cdot x + $d = \log_{$g}($e) \\ \\ \frac{1}{$c} \cdot x  = \log_{$g}($e) - $d \\ \\  x = $c \cdot \log_{$g}($e) - $c \cdot $d \\ \\ x = $c \cdot \log_{$g}($e) - $[$c*$d] \\ \\ $tex \end{array} \right.
+  !else
+   formula$n=\frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} =$b
+   applettext=!nospace 1/($a) * $g^(1/($c)*x - $d ) = $b ->
+   check=$[log($e)/(log($g))]
+   !if . notin $check
+    answer$n=$[$c*($check) - ($f)]
+    tex== $(answer$n)
+   !else
+    tex=$empty
+    answer$n=$c*log($e)/(log($g)) - ($f)
+   !endif
+   texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $b \\ \\ $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $e \\ \\ \frac{1}{$c} \cdot x - $d = ^$g\log($e) \\ \\ \frac{1}{$c} \cdot x  = ^$g\log($e) + $d \\ \\  x = $c \cdot ^$g\log($e) + $c \cdot $d \\ \\   x = $c \cdot ^$g\log($e) + $[$c*$d] \\ \\ $tex \end{array} \right.
+  !endif
+ !else
+  !if $pm=1
+   formula$n=\frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} =$b 
+   applettext=!nospace 1/($a) * $g^(1/($c)*x + $d ) = $b ->
+   check=$[log($e)/(log($g))]
+   !if . notin $check
+    answer$n=$[$c*($check) - ($f)]
+    tex== $(answer$n)
+   !else
+    tex=$empty
+    answer$n=$c*log($e) - ($f)
+   !endif
+   texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $b \\ \\ $g^{\textstyle \left( \frac{1}{$c} \cdot x + $d \right)} = $e \\ \\ \frac{1}{$c} \cdot x + $d = \log_{$g}($e) \\ \\ \frac{1}{$c} \cdot x  = \log_{$g}($e) - $d \\ \\  x = $c \cdot \log_{$g}($e) - $c \cdot $d \\ \\ x = $c \cdot \log_{$g}($e) - $[$c*$d] \\ \\ $tex \end{array} \right.
+  !else
+   formula$n=\frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} =$b
+   applettext=!nospace 1/($a) * $g^(1/($c)*x - $d ) = $b ->
+   check=$[log($e)/(log($g))]
+   !if . notin $check
+    answer$n=$[$c*($check) - ($f)]
+    tex== $(answer$n)
+   !else
+    tex=$empty
+    answer$n=$c*log($e) - ($f)
+   !endif
+   texanswer$n=\left[ \begin{array}{l} \frac{1}{$a}\cdot $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $b \\ \\ $g^{\textstyle \left( \frac{1}{$c} \cdot x - $d \right)} = $e \\ \\ \frac{1}{$c} \cdot x - $d = \log($e) \\ \\ \frac{1}{$c} \cdot x  = \log($e) + $d \\ \\  x = $c \cdot \log($e) + $c \cdot $d \\ \\   x = $c \cdot \log($e) + $[$c*$d] \\ \\ $tex \end{array} \right.
+  !endif
+ 
+ !endif
+    
+ !exit
+!endif
+
+

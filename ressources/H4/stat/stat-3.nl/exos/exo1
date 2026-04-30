@@ -1,0 +1,248 @@
+!set n=$counter
+checkfile=exos/checkfile1.proc
+questiontype=0
+image=0
+var1=1
+description=$youranswer
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+
+mathview=0
+cols=20
+rows=1
+!if $rounding<100
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+ 
+lijst=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,\
+20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,\
+40,41,42,43,44,45,46,47,48,49,50,51,52
+
+cards=$empty
+exotext=$empty
+#!record 1 of lang/remarks.$taal 
+boer=!record 2 of lang/remarks.$taal
+vrouw=!record 3 of lang/remarks.$taal
+heer=!record 4 of lang/remarks.$taal
+aas=!record 5 of lang/remarks.$taal
+helptext=!record 14 of lang/remarks.$taal
+#@ kaartleggen, bereken de kans.
+!if $R=1
+    nummer=!item 1 of $lijst
+    index=!record $nummer of lang/index.$taal
+    naam=!item 3 of $index
+    num=!item 2 of $index
+    gif=!item 1 of $index
+    voorbeeldgif=<img src="$module_dir/cards/$gif" alt="$gif" /> 
+    !if $num > 10
+	!if $num=11
+	    num=$boer
+	    !goto READY
+	!endif
+	!if $num=12
+	    num=$vrouw
+	    !goto READY
+	!endif
+	!if $num=13
+    	    num=$heer
+	    !goto READY
+	!endif
+    !endif
+    !if $num=1
+	num=$aas
+    !endif
+    :READY
+    k=!randint 4,51
+    ss=!record 6 of lang/remarks.$taal
+    #@ Ik heb een volledige pakje kaarten.<br />\
+    #@ Ik schud ze goed door elkaar en pak vervolgens $[$k+1] kaarten van het stapeltje af<br />\
+    #@ en draai er $k om...<br />\
+    #@ Hoe groot is nu de kans dat de nog niet omgedraaide kaart een <em>$naam $num</em> is ?<br />$voorbeeldgif
+    cards=$empty
+    #<img src="$module_dir/cards/0.gif" alt="???" />
+    t=0
+    !for p=2 to $[$k+1]
+	# p=1 is gereserveerd voor de showkaart...
+	nummer=!item $p of $lijst
+	index=!record $nummer of lang/index.$taal
+        gif=!item 1 of $index
+	!increase t
+	!if $t=8
+	    cards=!append line <br /> to $cards
+	    t=0
+	!endif
+        cards=!append line <img src="$module_dir/cards/$gif" alt="$gif" /> to $cards
+    
+    !next p
+    cards=!append line <img src="$module_dir/cards/0.gif" alt="????" /> to $cards
+    answer$n=$[1/(52-$k)]
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    rr=!record 7 of lang/remarks.$taal
+    #@ De kans op een $naam $num uit een stapeltje kaarten is natuurlijk 1/52<br />\
+    #@ Liggen er al $k andere kaarten op tafel -er zijn dus in het spel kaarten nog 52-$k over)<br />\
+    #@ is de kans op een bepaalde kaart 1/(52-$k) = 1/$[52-$k] =$(answer$n) of afgerond $GG .
+    textanswer$n=$rr
+    !if $teaching=1
+	question$n=$ss<br />$cards
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    type=5
+    kaarten=$empty
+    extratext=$empty
+    som=0
+    min=13
+    lijst=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,\
+    20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,\
+    40,41,42,43,44,45,46,47,48,49,50,51,52
+    !for p=1 to 2
+	nummer=!item $p of $lijst
+	index=!record $nummer of lang/index.$taal
+	naam=!item 3 of $index
+	num=!item 2 of $index
+	som=$[$num + $som]
+	gif=!item 1 of $index
+	gif=<img src="$module_dir/cards/$gif" alt="$gif" /> 
+	kaarten=!append line $gif to $kaarten	
+    !next p
+    waarde=$[28-$som]
+    !if $waarde<$som
+	mogelijkheden=$[$waarde-1]
+        #answer$n=$[($waarde-1)/169]
+    !else
+	mogelijkheden=$[$som-1]
+	#answer$n=$[($som-1)/169]
+    !endif
+    test=!exec pari Mod($mogelijkheden,2)
+    # test=Mod(0,2) even
+    test=!char 5 of $test
+    !if $test=0
+	# dus even
+	answer$n=$[$mogelijkheden*4/663]
+	# $[$mogelijkheden*(1/13)*(4/51)]
+	rr=!record 8 of lang/remarks.$taal
+	#@ Ik heb twee kaarten omgedraaid...<br />\
+	#@ Er zijn $mogelijkheden manieren om twee kaarten te pakken waarvan de som $som is...<br />\
+	#@ <small><em>zie de tabel in de help-pagina</em></small><br />\
+	#@ De kans is dan: $mogelijkheden &times; (4/52) &times; (4/51) = $mogelijkheden &times; 4/663 = $(answer$n)
+    !else
+	# dus oneven
+	answer$n=$[($mogelijkheden-1)*4/663 + 1/221]
+	# $[($mogelijkheden-1)*(1/13)*(4/51) + 4/52*(3/51) ]
+	rr=!record 9 of lang/remarks.$taal
+	#@ Ik heb twee kaarten omgedraaid...<br />\
+	#@ Er zijn $mogelijkheden manieren om twee kaarten te pakken waarvan de som $som is...<br />\
+	#@ <small><em>zie de tabel in de help-pagina</em></small><br />\
+	#@ Omdat de som van de kaarten ($som) even is,<br />is er &eacute;&eacute;n mogelijkheid waarbij je twee kaarten pakt\
+	#@ met de zelfde waarde...<br />\
+	#@ De kans is dan: ( $mogelijkheden - 1) &times; (4/52) &times; (4/51) + (4/52)&times;(3/51) = $[$mogelijkheden-1] &times; 4/663 + 1/221 = $(answer$n)
+    !endif	
+    ss=!record 10 of lang/remarks.$taal
+    #@ Van een goed geschud pakje kaarten pak ik de eerste twee kaarten.<br />\
+    #@ Hoe groot is de kans dat de waarde van twee omgedraaide kaarten samen $som is?\
+    #@ <br /><small>Let op: De waarde van een Boer=11 ; een Vrouw=12 ; een Koning=13 en een Aas=1</small><br />\
+    #@ <br />Zoals <em>bijvoorbeeld</em> in deze combinatie:<br />$kaarten
+    textanswer$n=$rr
+    !if $teaching=1
+	question$n=$ss<br />$cards
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    !if $R=3
+	opkop=2
+	k=!randint 3,42
+    !else
+	opkop=!randitem 3,4,5,6
+	k=!randint 25,52
+    !endif
+    type=5
+    kaarten=$empty
+    !for p=1 to $opkop
+	nummer=!item $p of $lijst 
+	index=!record $nummer of lang/index.$taal
+	naam=!item 3 of $index
+	num=!item 2 of $index
+	gif=!item 1 of $index
+	!if $num > 10
+	    !if $num=11
+		num=$boer
+	    !endif
+    	    !if $num=12
+		num=$vrouw
+	    !endif
+	    !if $num=13
+    		num=$heer
+	    !endif
+	!endif
+	!if $num=1
+	    num=$aas
+	!endif
+	NAAM=!append line $naam $num ; to $NAAM
+	gif=<img src="$module_dir/cards/$gif" alt="$gif" /> 
+	kaarten=!append line $gif to $kaarten
+    !next p
+    cards=!append line <hr style="height:2px;border-width:0;color:black;background-color:black;width:80%; /> to $cards
+    !for p=1 to $[$opkop+1]
+	cards=!append line <img src="$module_dir/cards/0.gif" alt="noalt" /> to $cards
+    !next p
+    ss=!record 11 of lang/remarks.$taal
+    #@ Ik leg $k kaarten op tafel. Ik draai er $[$k - $opkop] om.<br />\
+    #@ Hoe groot is de kans dat de nog niet omgedraaide $opkop kaarten de volgende combinatie heeft?<br /><small>$NAAM</small><br />\
+    #@ <small>de volgorde van deze $opkop kaarten doet er niet toe</small><br />$kaarten
+    t=$opkop
+    !for p=$[$opkop+1] to $k
+	# p=1 is gereserveerd voor de showkaart...
+	nummer=!item $p of $lijst
+	index=!record $nummer of lang/index.$taal
+        gif=!item 1 of $index
+	!if $t=8
+	    cards=!append line <br /> to $cards
+	    t=0
+	!endif
+	!increase t
+        cards=!append line <img src="$module_dir/cards/$gif" alt="$gif" /> to $cards
+    !next p
+    over=$[52 - $k + $opkop]
+    term=1
+    extratext=$empty
+    !for p=1 to $opkop
+	term=($term)*(1/($over-$p+1))
+    !next p
+    answer$n=$[factorial($opkop)*$term]    
+    GG=$[(round($rounding*$(answer$n)))/$rounding]
+    rangwoorden=!item 60 of $remarkdir/commonremarks.$taal
+    sometext=!record 12 of lang/remarks.$taal
+    #@ de kans op de $N kaart is 1/$[$over-$p+1]<br />
+    !for p=1 to $opkop
+	N=!item $p of $rangwoorden
+	now=$sometext
+	extratext=!append line $now to $extratext
+	berekening=!append line &times;1/$[$over-$p+1] to $berekening
+    !next
+    rr=!record 13 of lang/remarks.$taal
+    #@ Ik heb $[$k-$opkop] kaarten omgedraaid...er zitten nog $over kaarten in het pak<br />$extratext\
+    #@ <br />en dus is de kans $opkop ! $berekening = $(answer$n) en afgerond $GG
+    textanswer$n=$rr
+    !if $teaching=1
+	question$n=$ss<br />$cards
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+

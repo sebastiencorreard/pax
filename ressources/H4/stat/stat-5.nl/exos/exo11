@@ -1,0 +1,197 @@
+n=$counter
+mathview=0
+make_tr=1
+embed=0
+htext=<img src=$module_dir/gifs/phi.jpg alt=phi />>
+exotext=$empty
+image=0
+math=0
+cols=6
+rows=1
+total_exos=3
+questiontype=0
+checkfile=$checkdir/new_number.proc
+rounding=100
+!readproc $remarkdir/rounding.$taal
+disclaim=!record 64 of lang/remarks.$taal
+
+!if $counter=1
+ #@alles is uit mijn duim gezogen...
+ inputs=-1
+ description=phi
+ m_rightarrow= &nbsp;=&nbsp;
+ phi=!mathmlmath \phi
+
+ keuze=!randitem 0,1,2
+ kans=!randitem 0,1
+ !if $keuze=0
+  !if $kans=0
+   g1=!randint 10,20
+   g2=!randint 15,30
+   h1=!randint 40,70
+   h2=!randint 40,70
+  !else
+   h1=!randint 10,20
+   h2=!randint 15,30
+   g1=!randint 40,70
+   g2=!randint 40,70  
+  !endif
+ !else
+  !if $keuze=1
+    !if $kans=0
+     g1=!randint 5,15
+     g2=!randint 30,70
+     h1=!randint 30,70
+     h2=!randint 4,12
+   !else
+    g1=!randint 30,70
+    g2=!randint 5,15
+    h1=!randint 4,16
+    h2=!randint 30,70
+   !endif
+  !else
+   g1=!randint 30,70
+   g2=!randint 10,25
+   h1=!randint 7,16
+   h2=!randint 20,50
+  !endif
+ !endif
+ g3=$[$g2+$g1]
+ h3=$[$h2+$h1]
+ t1=$[$g1+$h1]
+ t2=$[$g2+$h2]
+ t3=$[$g3+$h3]
+
+ k=!randint 1,3
+ 
+ 
+ !if $k=1
+  spul=!record 70 of lang/remarks.$taal
+  #@kleurenblindheid,Mannen,Vrouwen,Wel kleurenblind,Niet kleurenblind
+  A=!item 1 of $spul
+  #kleurenblindheid
+  B=!item 2 of $spul
+  #Mannen
+  C=!item 3 of $spul
+  #Vrouwen
+  E=!item 4 of $spul
+  #Wel kleurenblind
+  F=!item 5 of $spul
+  #Niet kleurenblind
+  ss=!record 75 of lang/remarks.$taal
+  #@In een onderzoek naar $A worden $t3 mensen bevraagd <br />of ze een vorm van $A hebben.<br />In totaal worden $t1 mannen bevraagd, waarvan er $g1 aangeven kleurenblind te zijn.<br/ >Van de ondervraagde vrouwen blijken er $g2 kleurenblind te zijn...<br />Vul de tabel in...<br /><small>(<em>$disclaim</em>)</small>
+ 
+ !else
+  !if $k=2
+   spul=!record 71 of lang/remarks.$taal
+   #@kijkgedrag,Ouderen,Jongeren,Televisie,Internet
+   A=!item 1 of $spul
+   #kijkgedrag
+   B=!item 2 of $spul
+   #Ouderen
+   C=!item 3 of $spul
+   #Jongeren
+   E=!item 4 of $spul
+   #Televisie
+   F=!item 5 of $spul
+   #Internet
+   ss=!record 76 of lang/remarks.$taal
+   #@In een onderzoek naar $A worden $t3 mensen bevraagd.<br />In totaal worden $t1 ouderen bevraagd, waarvan er $g1 aangeven televisie te kijken.<br/ >Van de ondervraagde jongeren blijken er $h2 gebruik te maken van internet <br />(uitzending gemist en Youtube enz enz)<br />Vul de tabel in...<br /><small>(<em>$disclaim</em>)</small>
+  
+  !else
+   spul=!record 72 of lang/remarks.$taal
+   #@sportbeoefening,Jongens,Meisjes
+   sport1=!record 72 of lang/remarks.$taal
+   #@voetbal,basketbal,voetbal,atletiek
+   sport2=!record 73 of lang/remarks.$taal
+   #@handbal,volleybal,hockey,zwemsport
+   A=!item 1 of $spul
+   #sportbeoefening
+   B=!item 2 of $spul
+   #Jongens
+   C=!item 3 of $spul
+   #Meisjes
+   c=!randint 1,4
+   E=!item $c of $sport1
+   #@voetbal,basketbal,voetbal,atletiek
+   F=!item $c of $sport2
+   #handbal,volleybal,hockey,zwemsport
+   ss=!record 77 of lang/remarks.$taal
+   #@In een onderzoek naar $A worden $t3 jongeren bevraagd.<br />Van $t2 meisjes geven $g2 aan $E te beoefenen.<br/ >Van de ondervraagde jongens blijken er $h1 aan $F te doen. <br />Vul de tabel in...<br /><small>(<em>$disclaim</em>)</small>
+  
+  !endif
+ !endif
+ D=Totaal 
+ !for p=1 to 9
+  a=$[$p-1]
+  in$p=<input type="text" id="myinput$a" class="schaersvoorde_input" size="5" />
+ !next p
+ answer1=$g1\
+ $g2\
+ $g3\
+ $h1\
+ $h2\
+ $h3\
+ $t1\
+ $t2\
+ $t3
+ 
+ exotext=!subst <table class="demospecial"><tr><th>$A</th><th>$B</th><th>$C</th><th>$D</th></tr><tr><td>$E</td><td>$in1</td><td>$in2</td><td>$in3</td></tr><tr><td>$F</td><td>$in4</td><td>$in5</td><td>$in6</td></tr><tr><td>$D</td><td>$in7</td><td>$in8</td><td>$in9</td></tr></table>
+ 
+ textanswer1=!subst <table class="demospecial"><tr><th>$A</th><th>$B</th><th>$C</th><th>$D</th></tr><tr><td>$E</td><td>$g1</td><td>$g2</td><td>$g3</td></tr><tr><td>$F</td><td>$h1</td><td>$h2</td><td>$h3</td></tr><tr><td>$D</td><td>$t1</td><td>$t2</td><td>$t3</td></tr></table>
+ 
+
+!else
+ !if $counter=2
+  g1=!line 1 of $answer1
+  g2=!line 2 of $answer1
+  g3=!line 3 of $answer1
+  h1=!line 4 of $answer1
+  h2=!line 5 of $answer1
+  h3=!line 6 of $answer1
+  t1=!line 7 of $answer1
+  t2=!line 8 of $answer1
+  t3=!line 9 of $answer1
+  
+  answer2=$[(($g1*$h2)-($g2*$h1))/(sqrt( ($g1+$g2)*($g1+$h1)*($g2+$h2)*($h1+$h2) ))]
+  rans=!exec moneyprint $answer2
+  inputs=1.1
+  description=phi
+  m_rightarrow= &nbsp;=&nbsp;
+  phi=!mathmlmath \phi
+
+  sometext=!record 78 of lang/remarks.$taal
+  #@De 2x2 kruistabel, met phi is,de waarden uit de tabel invullen...
+  texanswer2=\left[  \begin{array}{l} \textrm{ $(sometext[1])} \;\;\begin{pmatrix} a & b \\ c & d \end{pmatrix}  \\ \textrm{$(sometext[2]) } = \frac{a \cdot d - b \cdot c}{ \sqrt{ (a+b) \cdot (a+c) \cdot (b+d) \cdot (c+d) } } \\ \textrm{$(sometext[3])}\\ \begin{pmatrix} $g1 & $g2 \\ $h1 & $h2 \end{pmatrix} \\  \textrm{phi} = \frac{$g1 \cdot $h2 - $g2 \cdot $h1}{ \sqrt{ ($g1+$g2) \cdot ($g1+$h1) \cdot ($g2+$h2) \cdot ($h1+$h2) } } \asymp $answer2 \asymp $rans  \end{array} \right.
+  ss=!record 79 of lang/remarks.$taal
+  #@Bepaal met behulp van de (correcte) tabel de <em>phi</em>-waarde ($phi)<br/><small>(<em>$disclaim</em>)</small><br/>$textanswer1
+ 
+ !else
+  rans=!exec moneyprint $answer2
+  ss=!record 80 of lang/remarks.$taal
+  #@Het goede antwoord was phi &approx; $rans<br/>Er is hier dus sprake van een...
+  dingen=!record 67 of lang/remarks.$taal
+  #@groot verschil,middelmatig verschil,gering verschil
+  inputs=-1
+  exotext=<select size="1" id="myselect0" name="myselect0" style="text-align:left;font-size:18px;border:1px;background-color:lightgreen"><option value="1">$(dingen[1])</option><option value="2">$(dingen[2])</option><option value="3">$(dingen[3])</option></select> 
+  ans=$[abs($rans)]
+  !if $ans > 0.4
+   answer3=1
+  !else
+   !if $ans < 0.2
+    answer3=3
+   !else
+    answer3=2
+   !endif
+  !endif
+  textans3=$(dingen[$answer3])
+  r3=!record 81 of lang/remarks.$taal
+  textanswer3=$r3
+  #@phi &asymp; $rans ... er is dus sprake van een $textans3
+ !endif
+!endif 
+question$n=<a onmouseover="return escape('$htext')">$ss</a>
+helptext=<img src=$module_dir/gifs/stat.gif alt=stat width=80% />
+
+
+!exit

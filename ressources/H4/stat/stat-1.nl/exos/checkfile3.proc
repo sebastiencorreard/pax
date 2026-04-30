@@ -1,0 +1,273 @@
+#<object id="ballenbak" code="Plinko.class" codebase="$appletdir" archive="Plinko.jar" width="220" height="100" MAYSCRIPT>                 
+#    <param name="wims_exercise" value="1"/>                                                                                                
+#    <param name="xsize" value="400"/>                                                                                                      
+#    <param name="ysize" value="400"/>                                                                                                      
+#    <param name="fontsize" value="12"/>                                                                                                    
+#    <param name="bins" value="$var1"/>                                                                                                     
+#    <param name="chance" value="$var4"/>                                                                                                   
+#    <param name="speed" value="$var3"/>                                                                                                    
+#    <param name="title" value="Applet by Prof. P. Little"/>                                                                                
+#    <param name="language" value="$taal"/>                                                                                                 
+#    <param name="balls" value="$var2"/>                                                                                                    
+#</object>   
+# reply=input_1,input_2,..,input_$options,balls in bin_1,balls in bin_2,..., balls in bin_$var1
+# modus,mediaan,gemiddelde,standaard afwijking,percentage,data...
+
+n=$counter
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    textanswer$n=!record 34 of lang/remarks.$taal
+    !exit
+!endif
+
+!if $rounding<1
+    rnd1=1000
+    rnd2=100
+!else
+    rnd1=$rounding
+    rnd2=$[$rounding/10]
+!endif
+
+rep=!item 1 to $options of $(reply$n)
+rep=!replace [a-z\~\:\;\&\%\=\"\`\>\<\@] by $empty in $rep
+reply_more_modus=0
+
+!for p=1 to $options
+    rep$p=!item $p of $rep
+    !if ? isin $(rep$p)
+	a$p=?
+	aa$p=?
+    !else
+	!if $p=1
+	    # modus: there may be more than 1 !! 4 5 6 => 4,5,6 modus=(4+5+6)/3 
+	    a1=!words2items $rep1
+	    t=!itemcnt $a1
+	    !if $t>1
+		am=0
+		reply_more_modus=$t
+		!for s=1 to $t
+		    a=!item $s of $a1
+		    am=$[$am+$a]
+		!next s
+		a1=$[(round($rnd1*($am/$t)))/$rnd1]
+		aa1=$[(round($rnd2*($am/$t)))/$rnd2]
+	    !else
+		a1=$[(round($rnd1*$(rep$p)))/$rnd1]
+		aa1=$[(round($rnd2*$(rep$p)))/$rnd2]
+	    !endif
+	!else
+	    a$p=$[(round($rnd1*$(rep$p)))/$rnd1]
+	    aa$p=$[(round($rnd2*$(rep$p)))/$rnd2]
+	!endif
+    !endif
+!next p
+
+data=!item $[$options+1] to -1 of $(reply$n)
+ddt=!itemcnt $data
+mod=0
+som=0
+table_h=$empty
+table_d=$empty
+totaal=$empty
+dt=0
+sum=0
+# ans1 = modus
+# ans2 = mediaan
+# ans3 = gemiddelde
+# ans4 = standaard afwijking
+# ans5 = aantal  mean-sigma
+
+# find modus: may be more than one ?
+list=!sort numeric reverse item $data
+modus=!item 1 of $list
+ans1=!positionof item $modus in $data
+t=!itemcnt $ans1
+mijn_modus=$ans1
+!if $t>1
+    am=0
+    !for s=1 to $t
+	g=!item $s of $ans1
+	am=$[$am+$g]
+    !next s
+    # modus: there may be more than 1 !! 4 5 6 => 4,5,6 ans1=(4+5+6)/3 
+    ans1=$[$am/$t]
+    answer_more_modus=$t
+!else
+    answer_more_modus=0
+!endif
+
+# calculate total sum and produce the answer table 
+# ddt = $var1 = number of bins, but we want to be sure ?
+!for bakje=1 to $ddt
+    balletjes=!item $bakje of $data
+    som=$[$som + $balletjes]
+    !for d=1 to $balletjes
+	totaal=!append item $bakje to $totaal
+	sum=$[$sum + $bakje]
+	!increase dt
+    !next d
+    table_h=!append word $ <th>$bakje</th> $ to $table_h
+    table_d=!append word $ <th>$balletjes</th> $ to $table_d
+!next bakje
+
+!if ? notin $rep
+    !if $som != $var2
+	!if $som > $var2
+	    extra=!record 48 of lang/remarks.$taal
+	    #@ Je hebt $[$som-$var2] extra knikkers laten vallen, ook goed
+	!else
+	    errortext=!record 49 of lang/remarks.$taal
+	    #@ Je hebt slechts $som knikkers laten vallen en dat zijn er gewoon $[$var2-$som] te weinig <br />Overnieuw !
+	    maxscore=$[$P3*$maxscore]
+	    goback=1
+	    !exit
+	!endif
+    !endif
+!endif
+# mean:
+ans3=$[$sum/$dt]
+
+variantie=0
+!for p=1 to $dt
+    t=!item $p of $totaal
+    variantie=$[$variantie + ($ans3-$t)^2]
+!next p
+ans4=$[sqrt($variantie/$dt)]
+extratext=$emptyp
+!if $options=5
+    # question about surface area %
+    round_ans3=$[(round($var5*$ans3))/$var5]
+    round_ans4=$[(round($var5*$ans4))/$var5]
+    x1=$[$round_ans3 - $var6*$round_ans4]
+    x2=$[$round_ans3 + $var6*$round_ans4]
+    #lijst_x=!append line x1=$x1 x2=$x2<br /> to $lijst_x
+    r1=$[floor($x1)]
+    r2=$[floor($x2)]
+    !if $[abs($x1-$r1)] >= 0.5
+	y1=$[ceil($x1)]
+    !else
+	y1=$[floor($x1)]
+    !endif
+    !if $[abs($x2-$r2)] <= 0.5
+	y2=$[floor($x2)]
+    !else
+	y2=$[ceil($x2)]
+    !endif
+    breedte1=$[$y1 - $x1 + 0.5]
+    breedte2=$[$x2 - $y2 + 0.5]
+    opp=0
+    !for p=$y1 to $y2
+	fac=1    
+        !if $p=$y1
+	    fac=$breedte1
+	!endif
+	!if $p=$y2
+	    fac=$breedte2
+	!endif
+        pp=!item $p of $data
+	opp=$[$opp + $pp*$fac]
+    !next p
+    ans5=$[(round($var5*100*$opp/$som))/$var5]
+    #ans5=$[$var5*(100*$opp/$som)]
+    latr_ex1=!record 54 of lang/remarks.$taal
+    latr_ex2=!record 55 of lang/remarks.$taal
+    #texanswer$n=\begin{array}{l} 5) \\ $ans3 - $ans4=$[$ans3 - $ans4]\\ $ans3 + $ans4=$[$ans3 + $ans4] \\ \\$[$y1+ 0.5]-$x1=$[$y1+ 0.5-$x1]\ \textrm{ $latr_ex1 }  $y1\\ $x2 - $[$y2 - 0.5] = $[$x2 - $y2 + 0.5] \textrm{ $latr_ex1 }\ $y2\\ \textrm{ $latr_ex2 } \\ 100*$opp/$som = $[100*$opp/$som] \end{array}	
+    mean=<img src="$module_dir/gifs/mean.gif" alt="\overset{-}{x}" />
+    extratext=<hr class="schaersvoorde_hr" /><span style="color:black"> $mean &minus; $var6 &times; $m_sigma :</span> $round_ans3 - $var6 &times; $round_ans4 = $[$round_ans3 - $var6*$round_ans4] <br /><span style="color:black"> $mean + $var6 &times; $m_sigma :</span>  $round_ans3 + $var6 &times; $round_ans4 = $[$round_ans3 + $var6*$round_ans4] <br /> $[$y1+ 0.5] - $x1 = $[$y1+ 0.5-$x1]  $latr_ex1  $y1 <br />  $x2 - $[$y2 - 0.5] = $[$x2 - $y2 + 0.5]  $latr_ex1 $y2 <br /> $latr_ex2 <br /> 100*$opp/$som = $ans5
+!endif
+textanswer$n=<table class="zebra_table_h2"><tr>$table_h </tr><tr>$table_d</tr></table>
+# find the median
+!if $[gcd($dt,2)]=2
+    m1=!item $[0.5*$dt] of $totaal
+    m2=!item $[0.5*$dt+1] of $totaal
+    ans2=$[($m2+$m1)/2]
+!else
+    ans2=!item $[($dt+1)/2] of $totaal
+!endif
+txt=$empty
+your_reply=<ol>
+rrr=!record 40 of lang/remarks.$taal
+
+# produce the student reply
+!for p=1 to $options
+    score$p=0
+    t=!item $p of $rrr
+    !if $p=1
+	txt=!append word $ <li>$t = $mijn_modus </li> $ to $txt
+    !else
+	txt=!append word $ <li>$t = $(ans$p) </li> $ to $txt
+    !endif
+    g$p=$[(round($rnd1*$(ans$p)))/$rnd1]
+    gg$p=$[(round($rnd2*$(ans$p)))/$rnd2]
+    !if $(g$p) = $(a$p)
+	!if $p=1
+	    #modus : there may be more than 1
+	    !if $answer_more_modus=$reply_more_modus
+		k=green
+		score$p=1
+		!if $answer_more_modus>0
+		    ex=!record 50 of lang/remarks.$taal
+		    #@ Heel goed gezien: meerdere gelijke modussen !
+		!endif
+	    !else
+		k=red
+		!if $answer_more_modus>0
+		    ex=!record 51 of lang/remarks.$taal
+		    #@ Er zijn meerdere gelijke modussen...
+		!else
+		    ex=!record 52 of lang/remarks.$taal
+		    #@ Er zijn geen meerdere gelijke modussen...
+		!endif
+	    !endif
+	    extra=!append line $ <br />$ex $ to $extra
+	!else
+	    k=green
+	    score$p=1
+	!endif
+    !else
+	!if $(gg$p) = $(aa$p)
+	    score$p=0.7
+	    k=orange
+	!else
+	    k=red
+	!endif
+    !endif
+    your_reply=!append line $ <li><span style="color:$k">$(rep$p)</span></li> $ to $your_reply
+!next p
+
+score=0
+!for p=1 to $options
+    !if $p=5
+	score=$[$score+2*$score5]
+	deler=6
+    !else
+	score=$[$score + $(score$p)]
+	deler=$options
+    !endif
+!next p
+
+textanswer$n=!append word $ <br /><ol> $txt $extratext </ol> $ to $(textanswer$n)
+your_reply=!append line $ </ol> $ to $your_reply
+reply$n=$your_reply
+math=0
+maxscore=$[$maxscore*$score/$deler]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empy
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+goback=0
+!exit

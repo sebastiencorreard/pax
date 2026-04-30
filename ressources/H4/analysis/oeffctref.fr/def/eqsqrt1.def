@@ -1,0 +1,341 @@
+!set title=Résolution graphique et demi-parabole
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=68
+prevarcnt=67
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=lightblue
+tmp0=!randitem 2,2,2,2,2,1,1,1,0,0
+
+val7=$[rint($(tmp0))]
+val8=Aucune solution, une solution, deux solutions, une infinité de solutions
+!if $val7=0 
+tmp0=!randitem 1,-1
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0)*($val9))]
+tmp0=!randint 1, 5
+
+val11=$[rint($(tmp0)*($val9))]
+tmp0=!randint 1, 5
+
+val12=$[rint($(tmp0)*($val9))]
+t_=!rawmath $val12 / ($val11)
+val13=!exec pari print($t_)
+!if $val13>1 
+t_=!rawmath abs(($val11)^2 / ($val12))*($val9)
+val12=!exec pari print($t_)
+!endif
+val14=$[rint(($val11)*(-1))]
+t_=!rawmath ($val12)*(-1)
+val15=!exec pari print($t_)
+val16=!rawmath $val10*x+($val11)*sqrt(x)+$val12
+
+!ifval $val10=1
+val17=x
+!else
+val17= $val10 x 
+!endif
+
+!ifval $val10=-1
+val17=- x
+!else
+val17=$val17
+!endif
+val18=$val10*x
+tmp=!translate ";': to $     $ in  $val10 / ($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val19=!exec pari print($t_)
+!if $val11=1 or $val11=-1 
+
+!ifval $val9>0
+val17=$val17 + \sqrt{x}
+!else
+val17= $val17 - \sqrt{x} 
+!endif
+!else
+
+!ifval $val9>0
+val17=$val17 + $val11 \sqrt{x}
+!else
+val17= $val17 - $val14 \sqrt{x} 
+!endif
+!endif
+val18=$val19 * x
+!if $val12 !=0 
+tmp=!translate ";': to $     $ in  $val12 / ($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val20=!exec pari print($t_)
+
+!ifval $val9>0
+val17=$val17 + $val12
+!else
+val17= $val17 - $val15 
+!endif
+val18=$val18 - $val20
+!endif
+val17=$val17=0
+tmp0=!replace * by in $val18
+
+val21=$(tmp0)
+val22=$[rint(1)]
+val23=r1	r2
+!else
+val24=0,1,2,3,4
+tmp0=!shuffle $val24
+
+val24=$(tmp0)
+t_=!rawmath $(val24[1])
+val25=!exec pari print($t_)
+!if $val7=1 
+val24=1,2,3,4
+tmp0=!shuffle $val24
+
+val24=$(tmp0)
+t_=!rawmath $(val24[1])
+val25=!exec pari print($t_)
+t_=!rawmath $val25
+val26=!exec pari print($t_)
+val22=$[rint(2)]
+t_=!rawmath ($val25)^2
+val27=!exec pari print($t_)
+val28=$val27
+!else
+t_=!rawmath $(val24[2])
+val26=!exec pari print($t_)
+val22=$[rint(3)]
+!if $val25=$val26 
+val7=$[rint(1)]
+val22=$[rint(2)]
+t_=!rawmath ($val25)^2
+val27=!exec pari print($t_)
+val28=$val27
+!else
+t_=!rawmath ($val25)^2
+val27=!exec pari print($t_)
+t_=!rawmath ($val26)^2
+val29=!exec pari print($t_)
+val28=$val27,$val29
+!endif
+!endif
+val16=!rawmath (x- ($val25))*(x-($val26))
+val10=$[rint(1)]
+val11=$[rint(-$val10*(($val25)+($val26)))]
+
+!ifval $val11>0
+val30=+
+!else
+val30=-
+!endif
+
+!ifval $val11<0
+val20=$[rint($val11*(-1))]
+!else
+val20=$[rint($val11)]
+!endif
+val12=$[rint($val10*($val25)*($val26))]
+
+!ifval $val12>0
+val31=+
+!else
+val31=-
+!endif
+
+!ifval $val12<0
+val32=$[rint($val12*(-1))]
+!else
+val32=$[rint($val12)]
+!endif
+
+!ifval $val10=1
+val17= x
+!else
+val17= $val10 x 
+!endif
+!if $val11 !=0 
+!if $val11=1 or $val11=-1 
+val17=$val17 $val30  \sqrt{x} 
+!else
+val17=$val17 $val30 $val20 \sqrt{x} 
+!endif
+!endif
+!if $val12 !=0 
+val17=$val17 $val31 $val32 
+!endif
+val17=$val17=0
+
+!ifval $val12=0
+tmp=!translate ";': to $     $ in -($val10)/ ($val11)*x
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=!rawmath $(tmp0)
+!else
+tmp=!translate ";': to $     $ in -($val10)/($val11)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val18=!rawmath $(tmp1)*x -($val12)/($val11)
+!endif
+val21=$val18
+tmp0=!replace * by in $val21
+
+val21=$(tmp0)
+val23=r1	r2	r3
+!endif
+val33=xrange -1,17	yrange -1.2,6	gridfill 0,0,5,5,$val6	linewidth 1	linewidth 2	  parallel -1,-1,-1,6,1,0,18,blue	  parallel -1,-1,17,-1,0,1,8,blue	linewidth 2	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	    linewidth 2	    plot red,sqrt(x)	
+val34=$val33	    plot green,$val18	
+!if $val7>1 
+val35=les solutions de l'équation (séparées par une virgule)
+!else
+val35=la solution de l'équation
+!endif
+!if \step=2 
+tmp0=!replace * by in \reply1
+
+val21=$(tmp0)
+!endif
+dynsteps=yes
+oefsteps=$val23 
+nextstep=!nosubst $val23 
+!readproc oef/steps.proc
+replytype1=formal
+replyname1=g(x)
+replygood1=$val18
+replytype2=radio
+replyname2=nb solutions
+replygood2=$val22;$val8
+replytype3=fset
+replyname3=solution
+replygood3=$val28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()		On veut résoudre graphiquement dans 
+!insmath \ \RR
+$() l'équation:	<div class="wimscenter"> 
+!insmath $val17
+$().</div>		
+!if $m_step=1 
+$()	<div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val33 
+$()</div>	<p>On dispose pour cela de la représentation graphique de la fonction racine carrée	de référence 
+!insmath f(x)=\sqrt{x}
+$().</p>		<p>	On se propose de tracer sur le même dessin la représentation graphique	d'une fonction affine judicieusement choisie.</p>	<p>Indiquer l'expression algébrique de cette fonction:</p>	<div class="wimscenter">
+!insmath g(x)=
+$() 
+!read oef/embed.phtml reply 1,10 
+$()</div>	 
+!else
+$()	 <div class="float_right"> 
+!read oef/draw.phtml 400,400 \
+$val34 
+$()</div>	<p>On dispose maintenant des représentations graphiques des fonctions	<span style="color:red">
+!insmath f
+$()</span>,	 et <span style="color:green">
+!insmath g
+$()</span> avec </p>	<div class="wimscenter"> avec 
+!insmath \special{color=red}f(x)=\sqrt{x}
+$()	 et  
+!insmath \special{color=green}g(x)=$val21
+$().	 </div>	
+!if $m_step=2 or ($m_step=3 and $val7=0) 
+$()	 <p>Combien de solutions l'équation possède-t-elle ?</p>	<div class="wimscenter"> 
+!insmath $val17
+$():</div>	<ul>	<li> 
+!read oef/embed.phtml reply 2,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,3 
+$()</li>	<li> 
+!read oef/embed.phtml reply 2,4 
+$()</li>	</ul>	   
+!else
+$()	   
+!if $val7>0 
+$()	<p>Indiquer $val35 :</p>	<div class="wimscenter"> 
+!insmath S=
+$() 
+!read oef/embed.phtml reply3,5 
+$().</div>	<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5. </div>	   
+!endif
+$()	   
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,17,21,33,34,35
+embedcnt=6

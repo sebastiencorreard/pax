@@ -1,0 +1,48 @@
+# Breakeven omzet  I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+rounding=1
+roundingtext=Geef je eindantwoord op als een heel getal
+checkfile=exos/precheck1.proc
+#$checkdir/number.proc
+nu=!date +%Y
+jaar=$[$nu-1]
+ip=!randint 100,200
+# 11/2011 totale constante kosten konden 0 worden... nu niet meer [getest in loop 1500x]
+#ip=!randint 30,80
+ip=$[$ip/10]
+fac=!randint 200,400
+fac1=$[$fac/100]
+vp=$[round($ip*$fac1)]
+tot=!exec moneyprint $ip,$vp 2
+ip=$(tot[1])
+vp=$(tot[2])
+
+vk=!randint 10,40
+vk=$[$vk/10]
+fac=$[ceil($vk+$ip)]
+fac2=$[$fac-$vk-$ip]
+vk=$[$vk+$fac2]
+afzet=!randint 50,99
+afzet=$[$afzet*1000]
+varkosten=$[$afzet*$vk]
+bea=!randint 1000,1600
+bea=$[$bea*10]
+ck=$[$bea*($vp - $ip - $vk)]
+ex1=&euro;
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+ss=Van bedrijf $bedrijf is gegeven dat de totale constante kosten &euro; $ck bedragen.<br />De verkoopprijs van de geproduceerde goederen bedragen &euro; $vp per stuk.<br />De inkoopprijs bedraagt &euro; $ip per geproduceerd artikel.<br />De variabele kosten bij een afzet van $afzet stuks zijn &euro; $varkosten.<br />Bereken de break-evenomzet.
+cols=10
+description=Break-evenomzet
+inputs=1.1
+answer$n=$[$bea*$vp]
+question$n =<a onmouseover="return escape('$roundingtext')">$ss </a>
+helptext=$roundingtext
+texanswer$n=\left[ \begin{array}{l} \textrm{Variabele kosten per stuk : } \frac{$varkosten}{$afzet} = $vk \; \textrm{ euro per stuk} \\ \\ \textrm{Break-evenafzet : BEA}\; =\; \frac{$ck}{$vp - $ip - $vk} = $bea \; \textrm{ stuks} \\ \\ \textrm{Break-evenomzet : BEO} \;=\; $bea \times $vp = $(answer$n) \; \textrm{ euro} \end{array} \right.

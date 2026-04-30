@@ -1,0 +1,175 @@
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+insplot_data=$empty
+mathview=0
+make_tr=1
+questiontype=0
+inputs=yes
+checkfile=exos/checkfile2b.proc
+# speciale geval voor rechte lijn als tekening/antwoord var1=1 : rechte var1=0 niks
+var1=0
+math=0
+image=0
+
+applet=1
+xmax=6
+xmin=1
+ymin=0
+ymax=0
+rnd_y=!randitem -5,-4,-3,-2,-1,0,1,2,3,4,5
+helptext=!record 31 of lang/remarks.$taal
+textanswer$n=<ul>
+!if $R=1
+    var1=1
+    # dus rechte lijn
+    autoscale=noautoscale y
+    a=!randitem 1,2,3,4,5
+    r=!randitem -1,1
+    a=$[$r*$a]
+    functie=$a*x + $rnd_y
+    f'=$a
+    X=0
+    # op x=0 y=rnd_y
+    # op x=1 y=rnd_y + Y
+    # op x=2 y=rnd_y + Y
+    # lijn die door leerlingen getekend moet worden.
+    points=2
+    !for x=0 to $[$xmax-1]
+	y=!evalsubst x=$x in $functie
+	!if $y < $ymin
+	    ymin=$y
+	!endif
+	!if $y > $ymax
+	    ymax=$y
+	!endif
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    # toename diagram plaatje voor bij de som
+    Y=0
+    !for x=1 to $[$xmax-1]
+	y=$a
+	Y=$[$Y+$a]
+        insplot_data=!append line $x 0 $y $y $y $Y to $insplot_data
+    !next x
+!endif
+
+!if $R=2
+    yy=!shuffle 1,2,3,4,5,6,7,8,9,10
+    # lijn die door leerlingen getekend moet worden.
+    YY=$empty
+    points=0
+    X=0
+    maxstep=0
+    !for x=0 to $[$xmax-1]
+	!increase points
+	r=!randitem -1,1
+	y=!item $[$x+1] of $yy
+	y=$[$r*$y]
+	!if $x=0
+	    y=$rnd_y
+	!endif
+	!if $y < $ymin
+	    ymin=$y
+	!endif
+	!if $y > $ymax
+	    ymax=$y
+	!endif
+
+	YY=!append item $y to $YY
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    #YY=1,4,-5,-7,-4,2
+    Y=0
+    !for x=1 to $[$xmax-1] 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	Y=$[$Y+$y]
+        insplot_data=!append line $x 0 $y $y $y  to $insplot_data
+    !next x
+    autoscale=autoscale y
+!endif
+
+!if $R>2
+    yy=!shuffle 1,2,3,4,5,6,7,8,9
+    # lijn die door leerlingen getekend moet worden.
+    YY=$empty
+    points=0
+    X=!randitem 1,2,3,4
+    !for x=0 to $[$xmax-1]
+	!increase points
+	r=!randitem -1,1
+	y=!item $[$x+1] of $yy
+	y=$[$r*$y]
+	!if $x=$X
+	    y=$rnd_y
+	!endif
+	!if $y < $ymin
+	    ymin=$y
+	!endif
+	!if $y > $ymax
+	    ymax=$y
+	!endif
+	YY=!append item $y to $YY
+	answer$n=!append item $x,$y to $(answer$n)
+	textanswer$n=!append line <li>($x:$y)</li> to $(textanswer$n)
+    !next x
+    #YY=1,4,-5,-7,-4,2
+    Y=0
+    !for x=1 to $[$xmax-1] 
+	y1=!item $x of $YY
+	y2=!item $[$x+1] of $YY
+	y=$[$y2-$y1]
+	Y=$[$Y+$y]
+        insplot_data=!append line $x 0 $y $y $y  to $insplot_data
+    !next x
+    autoscale=autoscale y
+!endif
+
+textanswer$n=!append line </ul> to $(textanswer$n)
+ss=!record 3 of lang/remarks.$taal
+#@ Het toenamendiagram is gegeven (Zie 'klik hier voor de grafiek')<br />Teken in de java-applet de bij deze toenamendiagram horende grafiek, van af x=0.<br /><b>y=$rnd_y</b> in <b>x=$X</b>.
+question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+
+insplot_set=size 1.0,1.0; $autoscale ; border 3;zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ; ytics 1 
+!insplot [-0.7:$xmax] "insplot_data" using 1:2:3:4:5 notitle with candlesticks lt 1  
+
+ymin=$[10*(floor(0.1*$ymin))]
+ymax=$[10*(ceil(0.1*$ymax))]
+    
+ystep= $[0.1*($ymax-$ymin)]
+!if $ymin>$[-1*$ystep]
+    ymin=$[-2*$ystep]
+!endif
+!if $ymax < $ystep
+    ymax=$[2*$ystep]
+!endif
+var9=size 680,480\
+xrange -2,$[$xmax+2]\
+yrange $ymin,$ymax\
+xlabel x-as     \
+ylabel y-as        \
+axisnumbering\
+axis\
+xsnaptogrid\
+precision 1\
+grid 1,$ystep,grey,4,4,6,black
+
+object$n=!exec canvasdraw \
+$var9\
+precision 100\
+replyformat 23\
+userinput_xy\
+linewidth 4\
+userdraw polyline,red\
+mouse green,22
+
+etext=!record 2 of lang/remarks.$taal
+exotext=<a href="javascript:showimage();">$etext</a> ymin=$ymin ymax=$ymax
+
+!exit

@@ -1,0 +1,85 @@
+!! no need for translation
+!set HOST=$httpd_HTTP_HOST
+
+<!--MODIFIED BY  VRoyer-->
+
+
+!if $counter=1
+
+<div style="font-color:blue ;background-color: #FFFF66 ;"><center>
+!!! main title
+<h3>	
+!set q1=!item 1 of $question
+  $q1
+!set q2=!item 2 of $question
+!if $q2!=$empty
+!insmath $q2
+!endif
+</h3>
+!!! first remarks and hints
+ <center>
+            <font color=red>$REMARK</font>
+	    <font color=blue>$HINT</font>
+</center>
+ </div>
+
+!endif
+
+<p align="center">
+    <applet code="geogebra.GeoGebraApplet" codebase="java/geogebra" 
+	archive="geogebra.jar"  
+	width="$width" height="$height">
+	<param name="language" value="$appletlanguage">
+        <param name="filename" value="../../$module_dir/binary/$file.ggb">
+        <param name="showToolBar" value="true">
+        <param name="customToolBar" value="$customToolBar">
+        <param name="showMenuBar" value="false">
+        <param name="framePossible" value="false">
+    </applet>   
+</p>
+<script language="JavaScript">
+    $appletcommand
+    function MyFun1() { 
+    !set VAR=$empty
+   !for p in $identify
+	var $p = encodeURIComponent(document.applets[0].getValueString('$p'));
+	!set VAR= !nospace $VAR + ' , ' +  ( $p )
+    !next p
+    
+    var URL = 'http://$HOST/wims/wims.cgi?session=$session&module=$module&cmd=reply&+answer=1&+appletanswer=' $VAR  ;            
+    document.location.href = URL;         
+      }
+</script>
+
+<!-- ADDED BY VRoyer: FORMS ONLY WHEN STATUS = WAITING -->
+!if $status=waiting
+
+!form
+!href target=wims_mhelp session=$session&+module=$module&+cmd=help                                                             
+!record 4 of remarks.$taal
+</a>
+<center>
+<input style="$style" type=button onclick="MyFun1()" name="but" value="$buttontext">  
+</center>
+</form> 
+
+!endif
+
+!if $debug=1
+    <p align="left">
+    Only visible when debug=1
+    <br>	
+    !set n=!recordcnt remarks.$taal
+    <table border="1" cellpadding="5">
+    !for p=1 to $n
+	!set pp=!record $p of remarks.$taal
+	!set ss=!wordcnt $pp
+	!if $ss >1
+	    <td>record $p </td><td><b>$pp</b></td><tr>
+	!else
+	    <td>record $p </td><td><b>EMPTY</b></td><tr>
+	!endif
+    !next p
+    </table>	
+</p>
+!endif

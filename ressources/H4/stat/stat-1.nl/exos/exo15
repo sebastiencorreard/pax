@@ -1,0 +1,101 @@
+# ballenbak
+n=$counter
+!if $rounding <1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+# speed
+var3=1
+# chance
+#var4=0.5
+# pin rows
+#var5=?
+
+!if $level=0
+    !if $counter=1
+	options=3
+	# var2=balls
+	var2=!randint 20,50
+	var1=!randitem 6,7,8,9
+	var5=2
+	var4=0.5
+	xsize=600
+	ysize=600
+    !else
+	!if $counter=2
+	    options=4
+	    var2=!randint 40,100
+	    var1=!randitem 7,8,9,10
+	    var5=!randitem 2,3,4
+	    var4=0.5
+	    xsize=600
+	    ysize=600
+	!else
+	    options=5
+	    var2=!randint 500,800
+	    var1=!randitem 9,10,11,12
+	    var3=4
+	    var5=!randitem 3,4,5
+	    var4=0.5
+	    xsize=600
+	    ysize=600
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=3
+	var2=!randint 20,50
+	var1=!randitem 6,7,8,9
+	var5=2
+	var4=0.5
+	xsize=600
+	ysize=600
+    !else
+	!if $level=2
+	    options=4
+	    var2=!randint 30,100
+	    var1=!randitem 7,8,9,10
+	    var5=!randitem 2,3,4
+	    var4=0.5
+	    xsize=600
+	    ysize=600
+	!else
+	    options=5
+	    var2=!randint 500,800
+	    var1=!randitem 9,10,11,12
+	    var3=4
+	    var5=!randitem 3,4,5
+	    var4=0.5
+	    xsize=600
+	    ysize=600
+	!endif
+    !endif
+!endif
+
+vragen=!record 40 of lang/remarks.$taal
+# bins / bakjes
+
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/plinko.nieuw.2.phtml
+checkfile=exos/checkfile3.proc
+math=0
+image=0
+vraagtable=$empty
+!for p=1 to $options
+    txt=!item $p of $vragen
+    description=!append item $txt to $description
+    vraagtable=!append line $ <tr><td>$txt</td><td>=</td><td><input id="myinput$[$p-1]" size="5" value="" class="schaersvoorde_input" /></td></tr> $ to $vraagtable
+!next p
+
+ss1=!record 46 of lang/remarks.$taal
+#@ In een <em>bord van Galton</wm> laat je $var2 knikkers vallen...<br />De kans voor een bal om naar links of rechts te gaan is $var4 <br />Voer het experiment in de <span style="color:blue">applet</span> uit.<br />Bepaal aan de hand van je resultaten :
+helptext=!record 47 of lang/remarks.$taal
+#@ Deze Plinko Applet is gemaakt door Dr. P. Little<br />Zie voor meer statistische applets <a target=new href=http://www.math.psu.edu/dlittle/applets.html> zijn website</a><p>Let op: de applet stopt vanzelf met het werpen van de balletjes<br />als het aantal van $var2 balletjes is bereikt.<br />Meer balletjes laten vallen mag wel, minder mag niet...
+
+question$n=<a onmouseover="return escape('$helptext')">$ss1</a>
+exotext=<table class="zebra_table_h2">$vraagtable</table>
+

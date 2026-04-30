@@ -1,0 +1,140 @@
+!set title=Interpréter un résultat 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard; Jean-Pierre, Boudine
+email=regine@mangeard.fr
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+
+ansorder=r,r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 15, 19
+
+val6=$[rint($(tmp0))]
+val7=$[rint(2*$val6)]
+tmp0=!randitem 1,2,3
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8^2)]
+
+!ifval $val8=1
+val10=\(\frac{(1+10^{-$val6})^2-1}{10^{-$val7}})
+!else
+val10=\(\frac{(1+$val8\times 10^{-$val6})^2-1}{$val9\times 10^{-$val7}})
+!endif
+
+!ifval $val8=1
+val11=\(\frac{(1+x)^2-1}{x^2})
+!else
+val11=\(\frac{(1+$val8 x)^2-1}{$val9 x^2})
+!endif
+val7=$[rint(2*$val6)]
+val12=1+2*$val8/($val9*x)
+val13=$[1+2*10^$val6]
+val14=$[0]
+val15=$val12
+val16=2,1,7
+val17=$[rint($(val16[$val8]))]
+
+!ifval $val8=3
+val18=$[rint($val6-1)]
+!else
+val18=$[rint($val6)]
+!endif
+replytype1=formal
+replyname1=expression simplifiée
+replygood1=$val15
+replytype2=numeric
+replyname2=matice
+replygood2=$[$val17]
+replytype3=numeric
+replyname3=exposant
+replygood3=$[$val18]
+replytype4=radio
+replyname4=Confiance
+replygood4=2;Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Lorsqu'on évalue l'expression 
+!insmath A
+$()=$val10 à la calculatrice, on obtient 0!	<ol>	<li> <label for="reply1">Simplifier $val11</label>	= 
+!read oef/embed.phtml reply1,10 
+$()</li>	<li> Puis donner l'ordre de grandeur 
+!insmath A
+$() en remplaçant 
+!insmath x
+$() par 
+!insmath 10^{-$val6}
+$() dans l'expression précédente:<br />	<div class="wimscenter">
+!insmath A
+$()= 
+!read oef/embed.phtml reply2,2 
+$()10<sup> 
+!read oef/embed.phtml reply3,3 
+$()</sup></div></li>	<li> Pouvait-on faire confiance au résultat affiché par la calculatrice?  
+!read oef/embed.phtml reply4 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11
+embedcnt=4

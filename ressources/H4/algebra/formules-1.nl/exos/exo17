@@ -1,0 +1,76 @@
+# vergelijking herschrijven tot y= ...
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+var4=0
+mathview=5
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+question$n=!record 3 of lang/remarks.$taal
+#Schrijf de volgende formules om tot een een formule die begint met x=.... .
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+#pari kijkt na
+ var1=0
+ a=!randitem 3,5,7,9,11,13,17
+ b=!randitem 2,4,8
+ formula$n= \frac{$a}{x+$b}= \frac{1}{y }
+ applettext=!nospace  -> $a/(x+$b)=1/y
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ var2=!rawmath (x+$b)/$a
+ answer$n=(x+$b)/$a
+ texanswer$n=\left[ \begin{array}{l} \frac{$a}{x+$b}= \frac{1}{y }  \rightarrow \\ y=\frac{x+$b}{$a} \end{array} \right.
+ !goto KLAAR
+!endif
+
+!if $R=2
+ var1=0
+ # pari
+ a=!randint 2,9
+ b=!randint 3,30
+ c=!randint 2,9
+ formula$n= \frac{x}{y-$a}= \frac{$b}{$c}
+ applettext=!nospace x/(y-$a) = $b/$c -> 
+ # var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+ tussen=!exec pari A=$c/$b\
+ printtex(A)
+ cb=!line 1 of $tussen
+ cb_tex=!line 2 of $tussen
+ var2=$cb*x+$a
+ answer$n=$cb*x+$a
+ texanswer$n=\left[ \begin{array}{l} x \cdot $c=$b \cdot (y-$a) \rightarrow \\ y-$a= \frac{$c x}{$b}\rightarrow y= $cb_tex x + $a  \end{array} \right.
+ !goto KLAAR
+!endif
+
+!if $R>2 
+ var1=0
+ pm=!randitem +,-
+ # pari
+ a=!randint 2,9
+ b=!randint 3,30
+ c=!randint 2,9
+ formula$n= \frac{x}{y-$a}= \frac{x+$b}{$c}
+ applettext=!nospace x/(y-$a) = (x+$b)/$c -> 
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=($c*x)/(x+$b)+$a
+	
+	answer$n=($c*x)/(x+$b)+$a
+	texanswer$n=\left[ \begin{array}{l} \frac{x}{y-$a}= \frac{x+$b}{$c} \rightarrow \\ \frac{y-$a}{x}= \frac{$c}{x+$b} \rightarrow \\ y-$a= \frac{$c x}{x+$b}\rightarrow \\ y=\frac{$c x}{x+$b}+$a \end{array} \right.
+    !goto KLAAR
+!endif
+
+:KLAAR
+

@@ -1,0 +1,95 @@
+# inverse hyperbolisch
+checkfile=exos/checkfile1.proc
+mathview=5
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=0
+questiontype=0
+embed=1
+cols=20
+rows=2
+plot=0
+draw=0
+math=1
+arglist=f^-1(x),y
+ss=!record 40 of lang/remarks.$taal
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+    a=!randitem 1,2,3,4,5,6,7,8,9,10
+    keuze=!randitem 0,1
+    min=$[-1*(abs($a))-10]
+    max=$[abs($a)+10]
+    range=[$min:$max] [$min:$max]
+    !if $keuze=1
+	formula$n=f(x) \, =  \,$a + \frac{1}{x}
+	applettext=!nospace f(x)=$a + 1/(x) ->
+	var2=$a + 1/x
+	answer$n=1/(x - $a)
+	texanswer$n= y=$a + \frac{1}{x} \rightarrow \left[ \begin{array}{l} x_{inv}=$a + \frac{1}{y_{inv}} \\ \frac{1}{y_{inv}} \,=\,  x_{inv} - $a \\ y_{inv}=\frac{1}{x_{inv} - $a} \\  f^{-1}(x)=\frac{1}{x - $a}  \end{array}
+    !else
+	formula$n=f(x) \, =  \,$a - \frac{1}{x}
+	applettext=!nospace f(x)=$a - 1/(x) ->
+	var2=$a - 1/x
+	answer$n=1/($a - x)
+	texanswer$n= y=$a - \frac{1}{x} \rightarrow \left[ \begin{array}{l} x_{inv}=$a - \frac{1}{y_{inv}} \\ \frac{1}{y_{inv}} \,=\, $a -  x_{inv} \\ y_{inv}=\frac{1}{$a - x_{inv}} \\  f^{-1}(x)=\frac{1}{$a - x}  \end{array}
+    !endif
+    !goto KLAAR
+!endif
+
+!if $R=2
+    a=!randitem 1,2,3,4,5,6,7,8,9,10
+    b=!randitem -1,1
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    min=$[-1*(abs($a))-10]
+    max=$[abs($a)+10]
+    range=[$min:$max] [$min:$max]
+    formula$n=f(x) \, = \, \frac{$b}{x $pm $a}
+    applettext=!nospace f(x)=$b/(x $pm $a) ->
+    answer$n=$b/(x) $mp $a
+    texanswer$n= y = \frac{$b}{x $pm $a} \rightarrow \left[ \begin{array}{l} x_{inv}= \frac{$b}{y_{inv} $pm $a} \\ x_{inv}\left( y_{inv} $pm $a \right) = $b \\ y_{inv} $pm  $a = \frac{$b}{x}  \\ y_{inv}= \frac{$b}{x} $mp $a   \\ f^{-1}(x) = \frac{$b}{x} $mp $a \end{array}
+    var2=$b/(x $pm $a)
+    !goto KLAAR
+!endif
+
+!if $R>2
+    a=!randitem 1,2,3,4,5,6,7,8,9,10
+    b=!randitem -2,-3,-4,-5,2,3,4,5
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    min=$[-1*(abs($a))-10]
+    max=$[abs($a)+10]
+    range=[$min:$max] [$min:$max]
+    formula$n=f(x) \, = \, \frac{$b}{x $pm $a}
+    applettext=!nospace f(x)=$b/(x $pm $a) ->
+    answer$n=$b/(x) $mp $a
+    texanswer$n= y = \frac{$b}{x $pm $a} \rightarrow \left[ \begin{array}{l} x_{inv}= \frac{$b}{y_{inv} $pm $a} \\ x_{inv}\left( y_{inv} $pm $a \right) = $b \\ y_{inv} $pm  $a = \frac{$b}{x}  \\ y_{inv}= \frac{$b}{x} $mp $a   \\ f^{-1}(x)= \frac{$b}{x} $mp $a  \end{array}
+    var2=$b/(x $pm $a)
+!endif
+
+:KLAAR
+!if $teaching=1
+    insplot_set=terminal gif transparent;size 0.6,0.6;grid ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image_settings$n=terminal gif transparent;size 0.6,0.6;grid;xzeroaxis lt -1;yzeroaxis lt -1;autoscale;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image$n=[-10:10] [-10:10] $var2 notitle, $(answer$n) notitle, x 
+    !insplot $(image$n)
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\' />
+    image=0
+    plot=1
+    draw=0
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+    question$n=$ss
+!endif

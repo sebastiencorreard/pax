@@ -1,0 +1,182 @@
+!set title=Coordonnées du milieu (graphique) 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+keywords=coordinates, midpoint
+
+ansorder=r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G,H,K,L,M,N,P
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+!if $val9=1 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,3,5
+
+tmp1=!randitem $tmp
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,2,3,4,5
+
+tmp1=!randitem $tmp
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 2,4,6
+
+tmp0=!randitem $tmp
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val12=$[rint($val10+$(tmp0)*$(tmp1))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,3,5
+
+tmp1=!randitem $tmp
+val13=$[rint($val11+$(tmp0)*$(tmp1))]
+!else
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,3,5
+
+tmp1=!randitem $tmp
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,2,3,4,5
+
+tmp1=!randitem $tmp
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items 2,4,6
+
+tmp0=!randitem $tmp
+tmp=!nonempty items -1,1
+
+tmp1=!randitem $tmp
+val13=$[rint($val11+$(tmp0)*$(tmp1))]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 1,3,5
+
+tmp1=!randitem $tmp
+val12=$[rint($val10+$(tmp0)*$(tmp1))]
+!endif
+!if $val2=2 
+val14=[\left( reply1 ; reply2 \right)]
+!else
+val14=[\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}]
+!endif
+val15=$[rint(300)]
+val16=$[rint(max(abs($val11),abs($val13))+1)]
+val17=$[rint(max(abs($val10),abs($val12))+1)]
+val18=range -$val16,$val16,-$val17,$val17	parallel -$val16,-$val17,$val16,-$val17,0,1,2*$val17+1,grey	parallel -$val16,-$val17,-$val16,$val17,1,0,2*$val16+1,grey	arrow -$val16,0,$val16,0,20,black	arrow 0,-$val17,0,$val17,20,black	text black,-0.4,0,medium,0	text black,$val16-0.5,0,medium,X	text black,-0.5,$val17,medium,Y	text black,-0.4,1.2,medium,1	text black,1,0,medium,1	circle $val11,$val10,5,red	circle $val13,$val12,5,red	text red,$val11,$val10-0.1,medium,$val7	text red,$val13,$val12-0.1,medium,$val8
+!readproc oef/draw.phtml $val15,$val15 \
+$val18 
+tmp0=$ins_url
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in ($val11+$val13)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+tmp=!translate ";': to $     $ in ($val10+$val12)/2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+replytype1=numexp
+replyname1=Abscisse
+replygood1=$val20
+replytype2=numexp
+replyname2=Ordonnée
+replygood2=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="grid-x grid-margin-x">	  <div class="cell medium-6 small-12  flex-dir-column">	    <div class="flex-child-auto">	        Soient 
+!insmath $val7
+$() et 
+!insmath $val8
+$() deux points du plan muni d'un repère 
+!insmath (O,I,J)
+$().	        <p>Quelles sont les coordonnées du milieu du segment 
+!insmath [$val7\,$val8]
+$() ?</p>	    </div>	    <div class="flex-child-auto">	        <b>Votre réponse</b> :	          Les coordonnées du milieu de 
+!insmath [$val7\,$val8]
+$() sont	          <div class="wimscenter">	           
+!read oef/special.phtml mathmlinput $val14,5,noanswer	reply1,,color:blue;text-align:center;	reply2,,color:blue;text-align:center;	 
+$().	          </div>	    </div>	  </div>	  <div class="cell medium-6 small-12">	     <div class="unbreakable"><img src="$val19" alt=""></div>	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,14,19
+embedcnt=1

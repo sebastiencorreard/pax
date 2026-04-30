@@ -1,0 +1,114 @@
+target=grmilieu1,grmilieu2,grmilieu3,grmilieu4,grmilieu5
+#define TITRE Coordonnées du milieu (graphique)
+#include "author.inc"
+\keywords{coordinates, midpoint}
+\text{lettres=shuffle(A,B,C,D,E,F,G,H,K,L,M,N,P)}
+\text{A=\lettres[1]}
+\text{B=\lettres[2]}
+
+#if defined TARGET_grmilieu1
+ \title{TITRE 1}
+ \integer{x1=randitem(1,-1)*randint(1..4)}
+ \integer{x2=\x1}
+ \integer{y1=randitem(1,-1)*randint(2..4)}
+ \integer{y2=\y1+randitem(2,4,6)*randitem(-1,1)}
+#endif
+#if defined TARGET_grmilieu2
+ \title{TITRE 2}
+ \integer{y1=randitem(1,-1)*randint(1..4)}
+ \integer{y2=\y1}
+ \integer{x1=randitem(1,-1)*randint(2..4)}
+ \integer{x2=\x1+randitem(2,4,6)*randitem(-1,1)}
+#endif
+#if defined TARGET_grmilieu3
+ \title{TITRE 3}
+ \integer{y1=randitem(1,-1)*randitem(1,3,5)}
+ \integer{y2=\y1+randitem(2,4,6)*randitem(-1,1)}
+ \integer{x1=randitem(1,-1)*randitem(1,3,5)}
+ \integer{x2=\x1+randitem(2,4,6)*randitem(-1,1)}
+#endif
+#if defined TARGET_grmilieu4
+ \title{TITRE 4}
+ \integer{ch=randint(1..2)}
+ \if{\ch=1}{
+  \integer{y1=randitem(1,-1)*randitem(1,3,5)}
+  \integer{x1=randitem(1,-1)*randitem(1,2,3,4,5)}
+  \integer{y2=\y1+randitem(2,4,6)*randitem(-1,1)}
+  \integer{x2=-\x1}
+ }{
+  \integer{x1=randitem(1,-1)*randitem(1,3,5)}
+  \integer{y1=randitem(1,-1)*randitem(1,2,3,4,5)}
+  \integer{x2=\x1+randitem(2,4,6)*randitem(-1,1)}
+  \integer{y2=-\y1}
+ }
+#endif
+#if defined TARGET_grmilieu5
+ \title{TITRE 5}
+ \integer{ch=randint(1..2)}
+ \if{\ch=1}{
+  \integer{y1=randitem(1,-1)*randitem(1,3,5)}
+  \integer{x1=randitem(1,-1)*randitem(1,2,3,4,5)}
+  \integer{y2=\y1+randitem(2,4,6)*randitem(-1,1)}
+  \integer{x2=\x1+randitem(1,-1)*randitem(1,3,5)}
+ }{
+  \integer{x1=randitem(1,-1)*randitem(1,3,5)}
+  \integer{y1=randitem(1,-1)*randitem(1,2,3,4,5)}
+  \integer{x2=\x1+randitem(2,4,6)*randitem(-1,1)}
+  \integer{y2=\y1+randitem(1,-1)*randitem(1,3,5)}
+ }
+#endif
+\if{\confparm1=2}
+{
+ \text{affcoord=[\left( reply1 ; reply2 \right)]}
+}{
+ \text{affcoord=[\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}]}
+}
+
+\integer{size=300}
+\integer{m1=max(abs(\x1),abs(\x2))+1}
+\integer{m2=max(abs(\y1),abs(\y2))+1}
+\text{dessin=range -\m1,\m1,-\m2,\m2
+parallel -\m1,-\m2,\m1,-\m2,0,1,2*\m2+1,grey
+parallel -\m1,-\m2,-\m1,\m2,1,0,2*\m1+1,grey
+arrow -\m1,0,\m1,0,20,black
+arrow 0,-\m2,0,\m2,20,black
+text black,-0.4,0,medium,0
+text black,\m1-0.5,0,medium,X
+text black,-0.5,\m2,medium,Y
+text black,-0.4,1.2,medium,1
+text black,1,0,medium,1
+circle \x1,\y1,5,red
+circle \x2,\y2,5,red
+text red,\x1,\y1-0.1,medium,\A
+text red,\x2,\y2-0.1,medium,\B}
+\text{figure=draw(\size,\size
+\dessin)}
+\text{x=simplify((\x1+\x2)/2)}
+\text{y=simplify((\y1+\y2)/2)}
+
+\statement{
+<div class="grid-x grid-margin-x">
+  <div class="cell medium-6 small-12  flex-dir-column">
+    <div class="flex-child-auto">
+        Soient \(\A) et \(\B) deux points du plan muni d'un repère \((O,I,J)).
+        <p>Quelles sont les coordonnées du milieu du segment \([\A\,\B]) ?</p>
+    </div>
+    <div class="flex-child-auto">
+        <b>Votre réponse</b> :
+          Les coordonnées du milieu de \([\A\,\B]) sont
+          <div class="wimscenter">
+          \special{mathmlinput \affcoord,5,noanswer
+reply1,,color:blue;text-align:center;
+reply2,,color:blue;text-align:center;
+}.
+          </div>
+    </div>
+  </div>
+  <div class="cell medium-6 small-12">
+     <div class="unbreakable"><img src="\figure" alt=""></div>
+  </div>
+</div>
+}
+
+\answer{Abscisse}{\x}{type=numexp}
+\answer{Ordonnée}{\y}{type=numexp}

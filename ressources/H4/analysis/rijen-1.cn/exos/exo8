@@ -1,0 +1,69 @@
+# no need for translation 
+# rangnummer -> Recursief
+mathview=0
+n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+questiontype=0
+image=0
+math=0
+extext=!record 97 of lang/remarks.$taal
+#@ Omrekenen van Rangnummer formule naar Recursieve formule
+keuze=!randitem 1,2                                                                                          
+!if $keuze=1
+    TYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+    NTYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+!else
+    TYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+    NTYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+!endif
+exotext=!record 99 of lang/remarks.$taal
+sometext=!record 101 of lang/remarks.$taal
+exotext=<p>$extext<br><a onmouseover="return escape('$sometext')">$exotext</a>
+!if $R>0
+    checkfile=exos/checkfile3.proc
+    !if $keuze=2
+	# rekenkundig
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+	formule=!record 31 of lang/remarks.$taal
+	#@ U(n+1)=U(n) + $r en U(0)=$a
+	ss=!record 30 of lang/remarks.$taal
+	#@ Gegeven de Rangnummer formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n</sub>=$a + $r n</p>Geef de Recursieve formule van deze rij.        
+	question$n=$ss
+	answer$n=U(n)+$r,$a
+	!for p=1 to 5
+	    t=$[$p-1]
+	    U=$[$a+$r*$t]
+	    textanswer$n=!append line <li>U<sub>$t</sub>=$U</li> to $(textanswer$n)
+	!next p
+    !else
+	# meetkundig
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+	formule=!record 33 of lang/remarks.$taal
+	#@ U(n+1)=$r&times;U(n) en U(0)=$a
+	ss=!record 32 of lang/remarks.$taal
+	#@ Gegeven de Rangnummer formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n</sub>=$a&times;$r<sup>n</sup></p>Geef de Recursieve formule van deze rij.
+	question$n=$ss
+	answer$n=$r*U(n),$a
+	!for p=1 to 5
+	    t=$[$p-1]
+	    U=$[$a*$r^$t]
+	    textanswer$n=!append line <li>U<sub>$t</sub>=$U</li> to $(textanswer$n)
+	!next p
+    !endif
+    vv=!record 34 of lang/remarks.$taal
+    #@ Het is een $TYPE rij...dus de Recursieve formule is: $formule 
+    textanswer$n=<ul>$(textanswer$n)</ul> $vv
+!endif
+!exit

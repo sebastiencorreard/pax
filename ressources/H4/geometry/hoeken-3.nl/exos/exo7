@@ -1,0 +1,96 @@
+#7 Kental
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=0
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+checkfile=$checkdir/new_number.proc
+helptext=!record 7 of lang/remarks.$taal
+make_tr=0
+
+#vec_a=!mathmlmath \begin{pmatrix} $kax \\ $kay \end{pmatrix}
+#vec_b=!mathmlmath \begin{pmatrix} $kbx \\ $kby \end{pmatrix}
+x=!shuffle -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10
+y=!shuffle -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10
+
+xa=!item 1 of $x
+ya=!item 1 of $y
+xb=!item 2 of $x
+yb=!item 2 of $y
+xc=!item 3 of $x
+yc=!item 3 of $y
+
+m=!randint 1,6
+kentallen=\vec{AB},\vec{BA},\vec{AC},\vec{CA},\vec{BC},\vec{CB}
+kental=!item $m of $kentallen
+kental_ml=!mathmlmath $kental
+ans=!line $m of $xb@$xa,$yb@$ya\
+$xa@$xb,$ya@$yb\
+$xc@$xa,$yc@$ya\
+$xa@$xc,$ya@$yc\
+$xc@$xb,$yc@$yb\
+$xb@$xc,$yb@$yc
+
+ans_1=!item 1 of $ans
+ans_2=!item 2 of $ans
+ans_1=!replace internal @ by , in $ans_1
+ans_2=!replace internal @ by , in $ans_2
+a1=!item 1 of $ans_1
+a2=!item 2 of $ans_1
+a3=!item 1 of $ans_2
+a4=!item 2 of $ans_2
+
+
+ans_1=$[$a1 - $a2]
+ans_2=$[$a3 - $a4]
+
+answer$n=$ans_1\
+$ans_2
+
+
+
+in1=\input{2}{0}{background-color:lightgreen;color:blue;text-align:center;font-size:16pt}{?}{0}
+in2=\input{2}{1}{background-color:lightgreen;color:blue;text-align:center;font-size:16pt}{?}{0}
+
+sometext=!record 5 of lang/remarks.$taal
+#Kengetal van,Het eindpunt van de vector
+formula$n=\begin{array}{ll}  A & ($xa : $ya) \\ B & ($xb : $yb) \\ C & ($xc : $yc)  \end{array} \overset{\,\,\textrm{$(sometext[1])}\,\,\, $kental\,\,} \longrightarrow \,\, \begin{pmatrix} $in1 \\ $in2 \end{pmatrix}
+
+ss=!record 14 of lang/remarks.$taal
+#@ Gegeven zijn de punten A ($xa : $ya) en B ($xb : $yb) en C ($xc : $yc)<br />Bereken het kental van $kental_ml
+question$n=$ss
+
+texanswer$n=$kental = \begin{pmatrix} $a1 \\ $a3 \end{pmatrix} - \begin{pmatrix} $a2 \\ $a4 \end{pmatrix} = \begin{pmatrix} $a1 - $a2 \\ $a3 - $a4 \end{pmatrix} = \begin{pmatrix} $[$ans_1] \\ $[$ans_2] \end{pmatrix} 
+
+object$n=!exec canvasdraw \
+size 400,400\
+xrange -11,11\
+yrange -11,11\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 90,110\
+grid 2,2,grey,2,2,6,grey\
+opacity 200,200\
+linewidth 6\
+fontfamily Bold 16px Ariel\
+string blue,$xa,$ya,A\
+string blue,$xb,$yb,B\
+string blue,$xc,$yc,C\
+points blue,$xa,$ya,$xb,$yb,$xc,$yc\
+precision 100\
+opacity 255,255\
+linewidth 1\
+arrow $a2,$a4,$a1,$a3,10,red\
+mouse red,22
+
+!exit 

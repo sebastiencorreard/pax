@@ -1,0 +1,161 @@
+# permutaties & combinaties III
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+formula$n=$empty
+var1=0
+math=0
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+cols=10
+description=$youranswer
+helptext=$empty
+# dus aantallen en geen kans 0<P<1
+image=0
+questiontype=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+kleuren=!record 85 of $remarkdir/commonremarks.$taal
+kmax=!itemcnt $kleuren
+kleuren=!shuffle $kleuren
+jurk=!record 118 of lang/remarks.$taal
+#@galajurk,baljurk,cocktailjurk,ballroomjurk,dansjurk,latinjurk,partyjurk,glitterjurk
+feest=!record 119 of lang/remarks.$taal
+#@coctailfeest,galafeest,eindexamenfeest,feest,party,dansfeest,swingfeest,coctailparty,bruiloftsfeest
+jurk=!randitem $jurk
+feest=!randitem $feest
+
+# er zijn 31 plaatjes van jurken
+logotext=Gala dress
+t=!randint 1,31
+logo=<img src=$module_dir/gifs/jurk.$t.jpg alt=Mooi/>
+viewlogo=1
+
+!if $R=1
+    a=!randitem 2,3,4,5,6,7
+    b=!randint 4,$[$kmax-8]
+    half=8
+    kk=$empty
+    tot=$empty
+    c=0
+    !for p=1 to $b
+	!increase c
+	!if $c > $half
+	    c=0 
+	    kk=!append line <br /> to $kk
+	!endif
+	k=!item $p of $kleuren
+	kk=!append word $k&nbsp; to $kk
+    !next p
+    
+    textanswer$n=$empty
+    ss=!record 120 of lang/remarks.$taal
+    #@$a vriendinnen zijn op zoek naar een $jurk voor een $feest .<br />Bij winkelketen X-factor vinden ze een flinke collectie mooie jurken.<br />Voorradig zijn jurken in de kleuren:<p align=left> <b>$kk</b> </p>Ze kopen allemaal &eacute;&eacute;n jurk.<br />Het maakt de vriendinnen niet uit of ze dezelfde kleur $jurk kiezen.<br />Hoeveel keuzemogelijkheden hebben ze ?
+    question$n=$ss
+    answer$n=$b^$a
+    textanswer$n=$empty
+    tex_ans=!exec pari printtex($(answer$n))
+    texanswer$n=\,$b^{$a} \,=\, $tex_ans
+ !exit
+!endif
+
+!if $R=2
+    a=!randitem 3,4,5,6,7
+    b=!randint 7,$[$kmax-3]
+    half=8
+    kk=$empty
+    c=0
+    !for p=1 to $b
+	!increase c
+	!if $c > $half
+	    c=0 
+	    kk=!append line <br /> to $kk
+	!endif
+	k=!item $p of $kleuren
+	kk=!append word $k&nbsp; to $kk
+    !next p
+    
+    tot=$empty
+    num=$empty
+    !for p=1 to $a
+	num=$[($b-$p+1)]
+	tot=!append word @$num to $tot
+    !next p
+    tot=!nospace $tot
+    tot=!char 2 to -1 of $tot
+    tot=!replace internal @ by \times in $tot
+    answer$n=!exec pari (factorial($b))/(factorial($[$b-$a]))
+    ans=$[round($(answer$n))]
+    #rr=!record 123 of lang/remarks.$taal
+    #textanswer$n=$rr
+    #@Met de grafische rekenmachine:<br /> $b npr $a<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg </a>(PDF)
+
+    tex_ans=!exec pari printtex($(answer$n))
+    texanswer$n= $tot \,=\,$ans
+    ss=!record 121 of lang/remarks.$taal
+    #@$b vriendinnen zijn op zoek naar een $jurk voor een $feest .<br />Bij winkelketen X-factor vinden ze een flinke collectie mooie jurken.<br />Voorradig zijn jurken in de kleuren:<p align=left> <b>$kk</b> </p>Ze kopen allemaal &eacute;&eacute;n jurk.<br />De vriendinnen willen uiteraard allemaal een verschillende kleur $jurk<br />Hoeveel keuzemogelijkheden hebben ze ?
+    question$n=$ss
+ !exit
+!endif
+
+!if $R>2
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    naam=!randitem $namen
+    !if $R=3
+	a=!randitem 2,3,4,5
+	b=!randint 6,12
+    !else
+	a=!randitem 3,4,5,6,7
+	b=!randint 7,20
+    !endif
+    half=8
+    kk=$empty
+    c=0
+    !for p=1 to $b
+	!increase c
+	!if $c > $half
+	    c=0 
+	    kk=!append line <br /> to $kk
+	!endif
+	k=!item $p of $kleuren
+	kk=!append word $k&nbsp; to $kk
+    !next p
+    
+    tot=$empty
+    num=$empty
+    !for p=1 to $a
+	num=$[($b-$p+1)]
+	tot=!append word @$num to $tot
+    !next p
+    tot=!nospace $tot
+    tot=!char 2 to -1 of $tot
+    tot=!replace internal @ by \times in $tot
+    answer$n=!exec pari (factorial($b))/((factorial($[$b-$a]))*(factorial($a)))
+    ans=$[round($(answer$n))]
+    rr=!record 174 of lang/remarks.$taal
+    textanswer$n=$rr : <b> $ans </b>
+    #@Met de grafische rekenmachine:<br /> $b ncr $a<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uit
+    #tex_ans=!exec pari printtex($(answer$n))
+    #texanswer$n=\left( \begin{array}{c} $b \\ $a \end{array} \right) = \frac{ $b !}{$a ! \cdot $[$b - $a] ! } = $tex_ans 
+    ss=!record 122 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam is op zoek een $jurk , en wel $a stuks voor haar toneelvereniging.<br />Bij winkelketen X-Factor vindt ze een hele partij geschikte jurken voorradig in de kleuren: <p align=left> <b>$kk</b> </p>Ze wil $a verschillende kleuren.<br />Hoeveel keuzemogelijkheden heeft $naam ?
+
+!endif
+
+
+
+
+
+
+
+
+
+
+

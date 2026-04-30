@@ -1,0 +1,153 @@
+!set title=Angles associés (déplacer un point)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=19
+prevarcnt=16
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+tmp1=!random 0.2 ,  pi - 0.2
+
+val6=$[$(tmp0)*$(tmp1)  ]
+t_=!replace internal \( by ( in 0.01*floor($val6*100)
+tmp0=!exec pari $t_
+
+val6=$[$(tmp0)]
+val7=pi - $val6, pi + $val6, -$val6,    2*pi +$val6, -pi - $val6, -pi + $val6, 2*pi - $val6
+val8=\pi - \alpha, \pi + \alpha, -\alpha, 2\pi +\alpha, -\pi - \alpha, -\pi + \alpha, 2\pi - \alpha
+val9=B, C, D, A, B, C, D
+tmp0=!randint 1, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!item  $val10 of  $val7
+
+val11=$[$(tmp0)]
+tmp0=!item  $val10 of  $val8
+
+val12=$(tmp0) 
+tmp0=!item  $val10 of  $val9
+
+val13=$(tmp0) 
+t_=!replace internal \( by ( in cos($val6)
+tmp0=!exec pari $t_
+
+val14=$[$(tmp0)]
+t_=!replace internal \( by ( in sin($val6)
+tmp0=!exec pari $t_
+
+val15=$[$(tmp0)]
+val16=$[-$val14]
+val17=$[-$val15]
+t_=!replace internal \( by ( in cos($val11)
+tmp0=!exec pari $t_
+
+val18=$[$(tmp0)]
+t_=!replace internal \( by ( in sin($val11)
+tmp0=!exec pari $t_
+
+val19=$[$(tmp0)]
+val20=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[-1.2,1.2,1.2,-1.2], axis:true, grid:true});	var pO = brd.create('point',[0,0], {name:'O',size: 2, face: 'o', fixed:true, color:'blue'});	var pI = brd.create('point',[1,0], {name:'I',size: 2,  face: 'o', fixed:true, color:'blue'});		var c = brd.create('circle', [pO,pI], {strokeWidth:1, strokeColor:'grey'}) ;		var pA = brd.create('point',[$val14,$val15], {name:'A',size: 3,  face: 'o', fixed:true, color:'blue'});	var pB = brd.create('point',[$val16,$val15], {name:'B',size: 2,  face: 'o', fixed:true, color:'black'});	var pC = brd.create('point',[$val16,$val17], {name:'C',size: 2,  face: 'o', fixed:true, color:'black'});	var pD = brd.create('point',[$val14,$val17], {name:'D',size: 2,  face: 'o', fixed:true, color:'black'});		jxgbox_rep1 = brd.create('glider', [jxgbox_var1[0], jxgbox_var1[1],c],{name:'P',size:3, color:'red'});		brd.create('segment',[pA,pB], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pB,pC], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pC,pD], { strokeWidth:1, strokeColor:'blue'});	brd.create('segment',[pD,pA], { strokeWidth:1, strokeColor:'blue'});		brd.create('arrow',[pO,jxgbox_rep1], { strokeWidth:2, strokeColor:'red'});	brd.create('angle', [pI,pO,jxgbox_rep1], { name:'\beta', type:'sector', orthoType:'sectordot', orthoSensitivity:2, radius:1});	brd.create('arrow',[pO,pI], {strokeWidth:2,strokeColor:'red'});	brd.create('arc',[pO,pI,jxgbox_rep1], { strokeWidth:3 , strokeColor:'red'});	brd.create('arc',[pO,pI,pA], { strokeWidth:2 , strokeColor:'blue'});		brd.update() ;	
+replytype1=jsxgraph
+
+replyoption1=precision=20 
+replyname1=Point associé
+replygood1=$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Soit 
+!insmath \alpha = $val6
+$() un réel et le point A du cercle trigonométrique tel que	l'angle orienté 
+!insmath \left( \vec{OI} , \vec{OA} \right) 
+$() mesure 
+!insmath \alpha
+$() radians. Les points B, C et D	sont  les symétriques du point A respectivement  par rapport à :  l'axe des ordonnées,  à l'origine, à l'axe des abscisses.	</p>		Le point rouge P est mobile  sur le cercle.	Bouger le point P pour que  l'angle  orienté 
+!insmath \left( \vec{OI} , \vec{OP} \right) 
+$() mesure 
+!insmath \beta\;= \; $val12
+$() radians	<br>	 
+!read oef/embed.phtml reply1, 400x400	jxgbox brd	$val20	jxgbox_var1=[1,0,c];	 
+$()			
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp=!trim $m_reply1
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val18,$val19
+val22=!translate internal $	\
+$ to ;; in $tmp
+
+!exit
+
+:feedback
+!ifval  abs($(val21[1]) - $(val22[1])) > 0.05 or   abs($(val21[2]) - $(val22[2])) > 0.05
+ <div class='oef_feedbacks'> C'est le point   $val13 qui  représente l'angle 
+!insmath $val12
+$() sur le cercle trigonométrique.  
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,18,19,20
+embedcnt=1

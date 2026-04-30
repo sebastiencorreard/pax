@@ -1,0 +1,210 @@
+!set title=Branchement conditionnel : double-lancer de dé 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+computeanswer=no
+
+ansorder=r,r,r,r,r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!record 1 of langage
+
+val6=$(tmp0)
+tmp0=!randitem 1,2,3,3
+
+val7=$[rint($(tmp0))]
+val8=&larr;
+val9=&rarr;
+val10=&le;
+tmp0=!randitem 1,2
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11=1
+val12=$[rint(2)]
+!else
+val12=$[rint(1)]
+!endif
+val13=$[rint($val12)]
+val11=$[rint($val11-1)]
+val12=$[rint($val12-1)]
+tmp=!nonempty items 4,6,8,12
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, $val14
+
+val15=$[rint($(tmp0))]
+val16=$[rint(2*$val15)]
+tmp0=!randint 1, 3
+
+val17=$[rint($(tmp0))]
+tmp0=!item $val17 of  =, &ne; , &ge; ,&le;
+
+val18=$(tmp0)
+val19=égal à, différent de , supérieur ou égal à, inférieur ou égal à
+tmp0=!item $val17 of  $val19
+
+val20=$(tmp0)
+tmp0=!randint 1, 3
+
+val17=$[rint($(tmp0))]
+tmp0=!item $val17 of  = , &ne; , &ge; ,&le;
+
+val21=$(tmp0)
+
+!ifval $val7=1
+val22= égal au , différent du , supérieur ou égal au , inférieur ou égal au 
+!endif
+
+!ifval $val7=2
+val22= égal au , différent du , inférieur ou égal au , supérieur ou égal au
+!endif
+
+!ifval $val7=3
+val22= égale à , différente de , supérieure ou égale à , inférieure ou égale à 
+!endif
+tmp0=!item $val17 of $val22
+
+val23=$(tmp0)
+val24=$[rint($val17)]
+val25=
+!for val26 =1 to 4 
+val27=$(val22[$val26])
+!if $val7<3 
+val25=$val25,le résultat du deuxième lancer est $val27 résultat du premier lancer.
+!else
+val25=$val25,la somme des résultats des lancers est $val27 $val16.
+!endif
+!next
+tmp0=!item 2 to 5 of $val25
+
+val25=$(tmp0)
+val28=On lance un dé équilibré à $val14 faces. Si le résultat du premier lancer est	$val20 $val15, alors on relance le dé. Si le résultat du deuxième lancer est $val23 résultat du premier lancer,	 alors on a gagné. Dans tous les autres cas on a perdu.
+val29=On lance un dé équilibré à $val14 faces. Si le résultat du premier lancer est $val20 $val15, on relance le dé.	 Si la somme des résultats des deux lancers est $val20 $val16, alors on a gagné. Dans tous les autres cas on a perdu.	
+val30=$val11 $val9 G -; ALEA(1,$val14) $val9 D -; D $val9 S -; Si D $val18 $val15 -;	Alors-; ALEA(1,$val14) $val9 D-;Si D $val21 S -;Alors -;$val12 $val9 G-;Fin-Si-;	Fin-Si-; 
+val31=$val11 $val9 G -; ALEA(1,$val14) $val9 D -; Si D $val18 $val15 -;	Alors-; ALEA(1,$val14) $val9 S-;Si D $val21 S -;Alors -;$val12 $val9 G-;Fin-Si-;	Fin-Si-; 
+val32=$val11 $val9 G -; ALEA(1,$val14) $val9 D -; D $val9 S -; Si D $val18 $val15 -;	Alors-; ALEA(1,$val14) $val9 D-; S + D $val9 S -;Si S $val21 $val16 -;Alors -;$val12 $val9 G-;Fin-Si-;	Fin-Si-;
+val33=Si G = $val11-; Alors -; Afficher "PERDU"-; Sinon-; Afficher "GAGNE"-; Fin-Si ,	Si G = $val12-; Alors -; Afficher "GAGNE"-; Sinon-; Afficher "PERDU"-; Fin-Si
+tmp=!nonempty items $val33
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val34=le résultat du premier lancer,	le résultat du deuxième lancer,	la somme des deux lancers,	le gain final,	la mise initiale	
+val35=$[rint($val7)]
+tmp0=!item $val7 of $val30,$val31,$val32
+
+val36=$(tmp0)
+val36=$val36 $val8
+tmp0=!replace internal -; by </td></tr><tr><td> in $val36
+
+val37=$(tmp0)
+replytype1=integer
+
+replyname1=nb faces
+replygood1=$val14
+replytype2=menu
+replyoption2=shuffle 
+replyname2=rôle de S
+replygood2=$val35;$val34
+replytype3=integer
+
+replyname3=relance
+replygood3=$val15
+replytype4=radio
+replyname4=valeur de G
+replygood4=$val13;0,1
+replytype5=menu
+replyoption5=shuffle 
+replyname5=regle
+replygood5=$val24;$val25
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val6
+
+
+!goto stat
+
+!exit
+
+:question
+$()		<p>L'algorithme ci-dessous utilise l'instruction ALEA(1,<i>n</i>).	Chaque appel de ALEA(1,<i>n</i>) donne un entier choisi aléatoirement entre 1 et <i>n</i>.	On peut ainsi simuler un lancer de dé équilibré à <i>n</i> faces.	</p>		<table cellpadding="5" padding-left="20" width="100%">	<tr>	<td width="25%">	<table bgcolor="lightblue" cellpadding="1" align="center">	<tr><td>	$val37	</td></tr></table>	</td>	<td width="75%" valign="top" class="oefstatement" >		<p>Répondez aux questions suivantes sur le fonctionnement de cet algorithme,	en remplissant tous les champs de réponse :</p>	<ol>	<li>On lance un dé à  
+!read oef/embed.phtml reply1,5 
+$() faces.</li>	<li>La variable S 
+!if $val7=3 
+$()(à la 6ème ligne) 
+!endif
+$() sert à stocker  
+!read oef/embed.phtml reply2 
+$().</li>	<li>On relance le dé, si le résultat du premier lancer est $val20  
+!read oef/embed.phtml reply3,5 
+$().</li>	<li>On affiche "GAGNE" quand la valeur finale de la variable G est  
+!read oef/embed.phtml reply4,5 
+$().</li>	<li>La condition 3. étant remplie, on "gagne" si  
+!read oef/embed.phtml reply5 
+$()</li>	</ol>	</td>	</tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val6
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val7<3
+ <div class='oef_feedbacks'><p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>	&#171;<font color="blue">$val28</font>&#187;.
+$()</div>
+!endif
+!ifval $val7==3
+ <div class='oef_feedbacks'><p>L'algorithme permet de simuler un jeu de dé selon la règle suivante :</p>	&#171;<font color="blue">$val29</font>&#187;.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,20,28,29,37
+embedcnt=5

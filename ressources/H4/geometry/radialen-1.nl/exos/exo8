@@ -1,0 +1,58 @@
+#:8 Graden & Radialen & eenheidscirkel II [HTML5] 
+n=$counter
+inputs=yes
+mathview=0
+questiontype=7
+make_tr=1
+!if $rounding=-1
+ rounding=100
+ !readproc $remarkdir/rounding.$taal
+!endif
+javascript=js/sinus.3.phtml
+slider_min=0
+slider_max=$[2*pi]
+slider_height=30
+slider_width=260
+slider_text=!record 67 of lang/remarks.$taal
+math=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<1 or $rounding=$empty
+    rounding=100
+!endif
+k=!randint 1,2
+XY=!item $k of x,y
+t=!randint 1,2
+type=!item $t of rad,&deg;
+deg=!randint 5,355
+rad=$[0.01*(round(100*$deg*pi/180))]
+deg=$[0.01*(round(100*$rad/pi*180))]
+!if $t=1
+    hoek=$rad
+    slider_value_type=3
+    extra_txt=$empty
+!else
+    slider_value_type=2
+    hoek=$deg
+    extra_txt=<br />$deg&deg; = $deg&times;&pi;/180 rad &asymp;$rad rad
+!endif
+!if $k=2
+    answer$n=$[sin($rad)]
+    fun=sin
+!else
+    fun=cos
+    answer$n=$[cos($rad)]
+!endif
+rans=$[0.01*(round(100*$(answer$n)))]
+checkfile=$checkdir/new_number.proc
+
+ss=!record 68 of lang/remarks.$taal
+#@Gegeven de eenheidscirkel.<br />Een punt P draait $hoek $type op de eenheidscirkel.<br />De horizontale as door het middelpunt O van de eenheidscirkel noemen we de x-as... <br />De vertikale as door het middelpunt O van de eenheidscirkel noemen we de y-as...<br />Bepaal de $XY co&ouml;rdinaat van P 
+question$n=$ss
+rr=!record 69 of lang/remarks.$taal
+#@De $XY -waarde van het punt P is gelijk aan de <b>$fun</b> van de draaihoek $hoek $type $extra_txt .<br />$XY = $fun($rad) &asymp; $(answer$n) &asymp; $rans 
+
+textanswer$n=$rr

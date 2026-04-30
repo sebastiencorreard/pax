@@ -1,0 +1,141 @@
+!if $noselect=1
+    <script language="javascript" type="text/javascript" src="$jsdir/nocut.js"></script>
+!endif
+<script type="text/javascript">
+    function showimage() {
+    MijnVenster1=window.open("$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif", "", "width=$XSIZE,height=$YSIZE,left=0,top=0");
+     MijnVenster1.focus();
+    }
+</script>
+<script language="JavaScript">
+    function dontknow(){
+    var URL = '$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n=%3F' ;
+    document.location.href = URL;
+    }
+</script>
+!set wims_texsize=$mytexsize
+
+!if $debug=1
+    !if $wims_exec_error != $empty
+	<p align="center">
+	    <font color="$fontcolor3">$wims_exec_error</font>
+	</p>
+    !endif
+!endif
+<table width="100%">
+    <td valign="top" align="left">
+	!if $exotitle != $empty
+	    <p align="left">
+		<font size=-1>
+		    <em>    
+			$exotitle
+		    </em>
+		</font>
+	    </p>
+	!endif
+	!if $rounding >=0
+	    <p align="left">
+		<small>
+		    <font color=red>
+		    $roundingtext
+		    </font>
+		</small>
+	    <p>
+	!endif
+    </td>
+    <td valign="top" align="right">
+	<table>
+	!if $viewlogo=1
+	    <td valign="top" align="right">
+		<a onmouseover="return escape('$logotext')">
+		    <div>
+			$logo
+		    </div>
+		</a>
+	    </td>
+	!endif
+	!if $inputs=1 and $questiontype=0
+	    !if $mathview>0
+		<td valign="top" align="right">
+		    <a onmouseover="return escape('$mathchecktext')">
+			<div>
+			    !set stupid_fix=!replace internal . by , in $session
+			    !set stupid_fix=!item 1 of $stupid_fix
+			    !set stupid_fix=!nospace $stupid_fix _ mhelp
+			    !href target=wims_mhelp session=$stupid_fix&+module=$module&+cmd=help&+myvar4=$session
+				<img src="$gifdir/math.jpg" alt="mathematical inputfield" border="0">
+			    </a>
+			</div>
+		    </a>
+		</td>
+	    !endif
+	!endif
+	!if $scribbling=1
+	    <td valign="top" align="right">
+		<a onClick=window.open("$htmldir/scribbling.html","scribbling","width=370,height=300,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no")>
+		    <img src="$gifdir/pencil.png" width="50" height="70" alt="scriblingpad" >
+		</a>
+	    </td>
+	!endif
+	!if $calculator=2
+	    <td valign="top" align="right">
+		<a onClick=window.open("$htmldir/scicalc.html","calculator","width=620,height=350,left=0,top=0,status=no,menubar=no,resizable=no,toolbar=no")>
+		    <img src="$gifdir/xcalc.png" width="50" height="70" alt="calculator" >
+		</a>
+	    </td>
+	!else
+	    !if $calculator=1
+		<td valign="top" align="right">
+		    <a onClick=window.open("$htmldir/basicalc.html","calculator","width=350,height=220,left=0,top=0")>
+			<img src="$gifdir/xcalc.png" width="50" height="70" alt="calculator" >
+		    </a>
+		</td>
+	    !endif
+	!endif
+	!if $debug=1
+	    <td valign="top" align="right">
+		!href target=wims_mhelp session=$session&+module=$module&+cmd=help
+		    <img src="$gifdir/exec.png" alt="debug-info">
+		</a>
+	    </td>
+	!endif
+	!if $time=1
+	    <td valign="top" align="right">
+		<script language="JavaScript">var clps = 0;function update() {if(clps) {clearTimeout(clps);clps  = 0;}var t = new Date();document.clock.time.value = ""  + t.getHours() + ":"  + t.getMinutes() + ":" + t.getSeconds();clps = setTimeout("update()", 1000);}function startclock() {clps = setTimeout("update()", 500);}
+		</script>
+		<body onload="javascript:startclock();">
+		<form name="clock">
+		    <input style="text-align:center;background-color:$bgcolor1;color:green;font-size:100%;" type="text" name="time" size="6">
+		</form>
+	    </td>
+	!endif
+	</table>
+    </td>
+</table>
+<p align="center">
+    !if $goback=1
+	<font color="$fontcolor3">
+	    $errortext
+	</font>
+    !else
+	!if $goodbadsign>0
+	    <small>
+		$(remark$[$n-1])
+	    </small>
+	!endif
+    !endif
+    !if $try = $maxtry
+	<br>
+	<font color=$fontcolor3>
+	    !set alarm=!record 52 of $remarkdir/commonremarks.$taal
+	    $alarm
+	</font>
+    !endif
+</p>
+<p align="left">
+!if $total_exos>1
+    <small>
+	$questionnumber <b>$n</b>)
+    </small>
+!endif
+</p>

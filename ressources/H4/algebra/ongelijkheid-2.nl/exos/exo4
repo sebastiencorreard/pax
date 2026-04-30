@@ -1,0 +1,300 @@
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+image=0
+mathview=0
+questiontype=0
+# geen problemen met arrows <=>
+use_ineq=1
+make_tr=0
+display=1
+inputs=2
+cols=15
+draw=1
+plot=0
+math=0
+varlist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc 
+l=<span style="color:green"><em>l</em></span>
+w=<span style="color:red"><em>w</em></span>
+boven=!record 50 of lang/remarks.$taal
+#@ de grafiek van de wortelfunctie $w boven de lijn $l ligt.
+onder=!record 51 of lang/remarks.$taal
+#@ de grafiek van de wortelfunctie $w onder de lijn $l ligt.
+helptext=!record 53 of lang/remarks.$taal
+description=!record 39 of lang/remarks.$taal
+keuze=!randitem groter,kleiner
+
+!if $R=1
+    a=!randitem 1,2,3,4,-1,-2,-3,-4
+    c=!randitem -3,-2,-1,1,2,3
+    !if $a>0
+	b=!randint -8,-1
+    !else
+	b=!randint 1,8
+    !endif
+    !if $c>0
+	d=!randitem -4,-3,-2,-1,1
+	e=!randint $[$d+1],8
+    !else
+	d=!randitem -1,1,2,3,4
+	e=!randint -9,$[$d-1]
+    !endif
+    l1=$e
+    w1=$c*sqrt($a*x +$b) + $d
+    x1=!exec pari (-1*($b))/($a) + ((($e) - ($d))*(($e) - ($d)))/(($c)*($c)*($a))
+    y1=$e
+    na=$[(-1*$b)/$a]
+    A=!exec pari printtex(($a)*x + ($b))
+	!if $d=0
+	    W1=$c \cdot \sqrt{$A} 
+	!else
+	    !if $d<0
+		 W1=$c \cdot \sqrt{$A} $d
+	    !else
+		W1=$c \cdot \sqrt{$A} + $d
+	    !endif
+	!endif
+    L1=!texmath $l1
+    !if $c>0
+	!if $a>0
+	    !if $keuze=groter
+	        ligging=$boven
+		var2=x>$x1
+		texans=x>$x1
+		ongelijkheid=x &gt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=$na<=x&&x<$x1
+		texans=$na \le x<$x1
+		ongelijkheid=$na &le; x &lt; $x1
+		latextekst=w < l
+	    !endif
+	!else
+	    !if $keuze=groter
+		ligging=$boven
+		var2=x<$x1
+		texans=x<$x1
+		ongelijkheid=x &lt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=$x1<x&&x<=$na
+		texans=$x1<x \le $na
+		ongelijkheid=$x1 &lt; x &le; $na
+		latextekst=w < l
+	    !endif
+	!endif
+    !else
+	!if $a>0
+	    !if $keuze=groter
+	        ligging=$boven
+		var2=$na<=x&&x<$x1
+		texans=$na \le x<$x1
+		ongelijkheid=$na &le; x &lt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=x>$x1
+		texans=x>$x1
+		ongelijkheid=x &gt; $x1
+		latextekst=w < l
+	    !endif
+	!else
+	    !if $keuze=groter
+		ligging=$boven 
+		var2=$x1<x&&x<=$na
+		texans=$x1<x \le $na
+		ongelijkheid=$x1 &lt; x &le; $na
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=x<$x1
+		texans=x<$x1
+		ongelijkheid=x &lt; $x1
+		latextekst=w < l
+	    !endif
+	!endif	
+    !endif
+    var1=$x1,$y1
+    coordinaten=($x1:$y1)
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1)  \\ $texans \end{array}\right.
+    answer$n=($x1:$y1),$var2
+    !if $teaching=1
+	xrange=$[-1*(abs($x1)+30)],$[(abs($x1)+30)]
+	yrange=$[-1*(abs($y1)+10)],$[abs($y1)+10]
+	transparent=$white
+        grafiek=linewidth 2\
+        curve red,$w1\
+        curve green,$l1\
+        linewidth s*14\
+        point $[$x1],$[$y1],yellow\
+        text black,$[(abs($x1)+20)],-0.5,normal,x-axis\
+	textup black,-2,$[abs($y1)+5],normal,y-axis
+    !endif
+!endif
+
+!if $R>1
+    !if $rounding<1
+	rounding=100
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    a=!randitem 1,2,3,4,-1,-2,-3,-4
+    c=!randitem -3,-2,-1,1,2,3
+    b=!randint 4,15
+    d=!randitem -1,1,2,3,4
+    !if $c>0
+	!if $a>0
+	    d=$[-1*$d]
+	    e=!randint $d,8
+	    f=!randitem -4,-3,-2,-1
+	!else
+	    d=$[-1*$d]
+	    e=!randint $d,8
+	    f=!randitem 1,2,3,4
+	!endif
+     !else
+        !if $a>0
+	    e=!randint -9,$d
+	    f=!randitem 1,2,3,4
+	!else
+	    e=!randint -9,$d
+	    f=!randitem -4,-3,-2,-1
+	!endif
+    !endif
+    l1=$f*x+$e
+    w1=$c*sqrt($a*x +$b) + $d
+##voort oog
+    A=!exec pari printtex(($a)*x + ($b))
+	!if $d=0
+	    W1=$c \cdot \sqrt{$A} 
+	!else
+	    !if $d<0
+		 W1=$c \cdot \sqrt{$A} $d
+	    !else
+		W1=$c \cdot \sqrt{$A} + $d
+	    !endif
+	!endif
+    L1=!texmath $l1
+##
+    A=$[$f*$f]
+    B=$[2*($e-$d)*$f-$c*$c*$a]
+    C=$[($e-$d)*($e-$d)-$c*$c*$b]
+    D=$[sqrt($B*$B-4*$A*$C)]
+    na=$[(-1*$b)/$a]
+    !if $a>0
+	x1=!exec pari (-1*($B)-($D))/(2*($A))
+	y1=$[$f*$x1+$e]
+    !else
+	x1=!exec pari (-1*($B)+($D))/(2*($A))
+	y1=$[$f*$x1+$e]
+    !endif
+    x1=$[(round((10*$rounding)*$x1))/(10*$rounding)]
+    y1=$[(round((10*$rounding)*$y1))/(10*$rounding)]
+    na=$[(round((10*$rounding)*$na))/(10*$rounding)]
+    !if $c>0
+	!if $a>0
+	    !if $keuze=groter
+	        ligging=$boven
+		var2=x>$x1
+		texans=x>$x1
+		ongelijkheid=x &gt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=$na<=x&&x<$x1
+		texans=$na \le x<$x1
+		ongelijkheid=$na &le; x &lt; $x1
+		latextekst=w < l
+	    !endif
+	!else
+	    !if $keuze=groter
+		ligging=$boven
+		var2=x<$x1
+		texans=x<$x1
+		ongelijkheid=x &lt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=$x1<x&&x<=$na
+		texans=$x1<x \le $na
+		ongelijkheid=$x1 &lt; x &le; $na
+		latextekst=w < l
+	    !endif
+	!endif
+    !else
+	!if $a>0
+	    !if $keuze=groter
+	        ligging=$boven
+		var2=$na<=x&&x<$x1
+		texans=$na \le x <$x1
+		ongelijkheid=$na &le; x &lt; $x1
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=x>$x1
+		texans=x>$x1
+		ongelijkheid=x &gt; $x1
+		latextekst=w < l
+	    !endif
+	!else
+	    !if $keuze=groter
+		ligging=$boven
+		var2=$x1<x&&x<=$na
+		texans=$x1<x \le $na
+		ongelijkheid=$x1 &lt; x &le; $na
+		latextekst=w > l
+	    !else
+		ligging=$onder
+		var2=x<$x1
+		texans=x<$x1
+		ongelijkheid=x &lt; $x1
+		latextekst=w < l
+	    !endif
+	!endif
+    !endif
+    var1=$x1,$y1
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1) \\ $texans \end{array}\right.
+    answer$n=($x1:$y1),$var2
+    coordinaten=($x1:$y1)
+    !if $teaching=1
+	xrange=$[-1*(abs($x1)+30)],$[(abs($x1)+30)]
+	yrange=$[-1*(abs($y1)+10)],$[abs($y1)+10]
+	transparent=$white
+	grafiek=linewidth 2\
+	curve red,$w1\
+	curve green,$l1\
+	linewidth s*14\
+	point $x1,$y1,yellow\
+        text black,$[(abs($x1)+20)],-0.5,normal,x-axis\
+	textup black,-2,$[abs($y1)+5],normal,y-axis
+    !endif
+!endif
+formula$n=\left\{\begin{array}{l}l(x)=$L1\\ \\ w(x)=$W1 \\ \\ $latextekst\end{array} \right.
+ss=!record 49 of lang/remarks.$taal
+#@ Bepaal de snijpunten tussen wortelfunctie en rechte lijn<br />en los de ongelijkheid op.<p>Gegeven de rechte lijn $l en wortelfunctie $w  <br /><ul><li>Bepaal de co&ouml;rdinaten van de snijpunten tussen $l en $w </li><li>Geef aan voor welke <em>x</em>-waarden de grafiek van $ligging  .</li></ul>
+question$n=$ss
+rr=!record 52 of lang/remarks.$taal
+#@ <div align="left">Het goede antwoord is dus: <ul><li>de snijpunten   $coordinaten  </li><li>En waar de grafiek van  $ligging  geldt:<br /> $ongelijkheid</li></ul></div>
+!if $teaching=1
+    insdraw_size=320,320
+    !insdraw xrange $xrange\
+    yrange $yrange\
+    linewidth 1\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    plotsteps 1000\
+    $grafiek
+
+    stext=!record 54 of lang/remarks.$taal
+    exotext=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$stext</span></a>
+!endif
+    

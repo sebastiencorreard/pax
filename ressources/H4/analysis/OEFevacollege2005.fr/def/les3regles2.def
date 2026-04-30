@@ -1,0 +1,162 @@
+!set title=Les trois règles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=quotient,inverse,produit
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+val2=$[rint(3)]
+tmp0=!values v,-v for v=2 to 9
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+val8=
+val9=
+val10=
+val11=
+!for val12 =1 to $val2 
+tmp0=!item $val12 of $val6
+
+val13=$(tmp0)
+tmp0=!item $val12 of $val7
+
+val14=$[rint($(tmp0))]
+!readproc slib/calcpuis $val13,8,$val14 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!item 1 of $val15
+
+val16=$(tmp0)
+tmp0=!item 2 of $val15
+
+val17=$(tmp0)
+tmp0=!append item $val16 to $val8
+
+val8=$(tmp0)
+tmp0=!append item $val17 to $val9
+
+val9=$(tmp0)
+
+!ifval $val14<0
+val14=($val14)
+!endif
+tmp0=!append item $val14 to $val10
+
+val10=$(tmp0)
+tmp0=!append item r$val12 to $val11
+
+val11=$(tmp0)
+!next
+oefsteps=$val11 
+nextstep=!nosubst $val11 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=\($(val8[1]))
+replygood1=$(val9[1])
+replytype2=numexp
+replyname2=\($(val8[2]))
+replygood2=$(val9[2])
+replytype3=numexp
+replyname3=\($(val8[3]))
+replygood3=$(val9[3])
+replytype4=numexp
+replyname4=\($(val8[4]))
+replygood4=$(val9[4])
+replytype5=numexp
+replyname5=\($(val8[5]))
+replygood5=$(val9[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()Calculer l'expression suivante :	<div class="wimscenter">
+!insmath $val8
+$() = $val10<sup> 
+!read oef/embed.phtml r1,3 
+$()</sup>.</div> 
+!else
+$()	 Calculer les expressions suivantes :	<ul>	  
+!for m_k=1 to $val2 
+$()	  <li>
+!insmath $(val8[$m_k])
+$() = $(val10[$m_k])<sup> 
+!read oef/embed.phtml r\k,3 
+$()</sup>.</li>	   
+!next
+$()	</ul> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,8,10
+embedcnt=2

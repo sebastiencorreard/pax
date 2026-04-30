@@ -1,0 +1,140 @@
+\title{Intervalle de fluctuation#}
+\language{fr}
+\range{-5..5}
+\author{Thomas, Charon}
+\email{thomas.charon@ac-lyon.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+
+\integer{x2=random(25,64,100,400,625,1600,2500)}
+\integer{x3=random(26..1000)}
+\integer{x4=random(5..24)}
+\integer{n=random(\x2,\x2,\x3,\x4)}
+\integer{n=random(5..100)}
+\integer{p1=random(1..999)}
+\real{p=\p1/1000}
+
+\if {\confparm1=2}
+	{
+	\real{m1=\p-1/sqrt(\n)}
+	\real{M1=\p+1/sqrt(\n)}
+	}
+	{
+	\text{INT=slib(stat/binomialinv [0.025,0.975],\n,\p)}
+	\real{m1=\INT[1]/\n}
+	\real{M1=\INT[2]/\n}
+	}
+
+\real{m=floor(1000*\m1)/1000}
+\real{M=ceil(1000*\M1)/1000}
+
+\if {\confparm1=2}
+	{
+		\integer{s1=\p<0.2? 0:1}
+		\integer{s2=\p>0.8? 0:1}
+		\integer{s3=\n<25? 0:1}
+	}
+	{
+		\integer{s1=\p*\n<5? 0:1}
+		\integer{s2=(1-\p)*\n<5? 0:1}
+		\integer{s3=\n<30? 0:1}
+
+	}
+\integer{s=\s1*\s2*\s3}
+\integer{r=\s+1}
+\text{ choix = oui,non}
+\integer{rep=-\s+2}
+\matrix{N1=reply 1}
+\matrix{N2=reply 1
+reply 2, reply 3}
+\matrix{N=\s=0? \N1 : \N2}
+\steps{\N}
+
+
+\statement{
+<p class="consigne">
+\if {\confparm1=2}{Cet exercice est paramétré pour le <b>niveau seconde</b>}{Cet exercice est paramétré pour le
+<b>niveau première</b> : vous devez utiliser la loi binomiale !}
+</p>
+<div class="enonce">
+On considère un échantillon de taille \(n = \n\) issu d'une population pour laquelle
+on étudie un caractère qui apparaît avec une proportion \(p=\p\). </div>
+
+\if{\step=1}{<div class="question">
+		Peut-on déterminer un intervalle de fluctuation au seuil de 95 % relatif
+		aux paramètres \(p=\p\)
+		(proportion du caractère étudié) et \(n =\n\) ?
+		<div class="wimscenter">\embed{reply 1}</div></div>
+	}
+	\if{\step=2}{<div class="enonce">
+		A l'aide de la loi binomiale, calculer l'intervalle de fluctuation au seuil de 95 %
+		relatif aux paramètres \(p =\p\)
+		et \(n=\n\).</div>
+ 		<div class="question">L'intervalle de fluctuation demandé est
+		<div class="wimscenter">[\embed{ reply 2,5 };\embed{ reply 3,5 }] (arrondir au millième)
+		</div></div>
+
+	}
+
+
+}
+
+\hint
+
+
+	{
+	\if {\confparm1=2}
+		{Si \(0,2 \leq p \leq 0,8\) et \(n \geq 25\), alors l'intervalle de
+		fluctuation au seuil
+		de 95 % relatif aux paramètres
+		\(p) et \(n) est l'intervalle [\(p-1/sqrt(n)) ; \(p+1/sqrt(n))]
+		}
+
+		{On considère que la situation revient à répéter \n fois de suite
+		un tirage au sort dans des conditions identiques et indépendantes :
+		en cas de succès (probabilité \p), la personne
+		concernée possède le caractère. En cas d'échec, elle ne l'a pas.
+		On nomme X la variable aléatoire égale au nombre de succès obtenus.
+		X suit donc une loi binomiale de paramètres \(n)=\n et \(p)=\p.
+		<br>Dans la loi de probabilité de X, on repère la plus petite
+		valeur \(a) pour laquelle \(P(X <= a) > 0.025).
+		<br>On repère également la plus petite valeur \(b) pour laquelle
+		\(P(X <= b) <= 0.975)...
+		}
+	}
+\answer{}{\rep;\choix}{type=radio}
+\answer{}{\m}{type=default }
+\answer{}{\M}{type=default }
+
+
+
+
+\solution{
+	\if {\confparm1=2}
+	{
+	\if{\step=1}
+		{\if{\rep=2}
+			{On ne peut pas déterminer l'intervalle de fluctuation au seuil de 95 %
+			car \(n) doit être supérieur à 25 et \(p) compris entre 0,2 et 0,8}
+			{On peut déterminer l'intervalle de fluctuation au seuil de 95 % car \(n >= 25)
+			et \(n \in [0,2 ; 0,8])}
+		}
+	\if{\step=2}
+		{L'intervalle de fluctuation au seuil de 95 % est l'intervalle [\(p-1/sqrt(n));\(p+1/sqrt(n))]}
+	}
+	{\if{\step=1}
+		{\if{\rep=2}
+			{On ne peut pas déterminer l'intervalle de fluctuation au seuil de 95 %
+			car \(n) doit être supérieur à 25 et \(np) et \(n(1-p)) supérieures à 5}
+			{On peut déterminer l'intervalle de fluctuation au seuil de 95 % car \(n >= 25)
+			et \(np) et \(n(1-p)) sont tous les deux supérieurs à 5}
+		}
+	\if{\step=2}
+		{La plus petite valeur \(a) pour laquelle \(P(X <= a) > 0.025) est \(a)=\INT[1].
+		La plus petite valeur \(b) pour laquelle \(P(X <= b) <= 0.975) est \(b)=\INT[2].
+		donc, l'intervalle de confiance au seuil de 95 % est l'intervalle [\(a/n);\(b/n)]=[\m;\M]
+		}
+	}
+	}

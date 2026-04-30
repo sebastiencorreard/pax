@@ -1,0 +1,165 @@
+!set title=Vocabulaire angle et cercle 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=range -70,70,-70,70	circle 0,0,100,black	fcircle 0,0,5,red
+tmp0=!shuffle A,B,D,E,F,G,H,I,K,L,M,N,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val7=$(tmp0)
+tmp0=!randint -45, -30
+
+tmp1=!randint 30, 45
+
+val8=$(tmp0),,$(tmp1)
+val9=$[-sqrt(2500-($(val8[1]))^2)]
+val10=$[-sqrt(2500-($(val8[3]))^2)]
+!readproc oef/draw.phtml 140,140 \
+$val6	segment $(val8[1]),$val9,0,0,black	segment 0,0,$(val8[3]),$val10,black	fcircle $(val8[1]),$val9,5,red	fcircle $(val8[3]),$val10,5,red	text black,$(val8[1])-5,$val9-5,medium,$(val7[1])	text black,0,-3,medium,O	text black,$(val8[3]),$val10-10,medium,$(val7[3]) 
+tmp0=$ins_url
+val11=$(tmp0)
+tmp0=!randint -45, -30
+
+tmp1=!randint 30, 45
+
+val8=$(tmp0),,$(tmp1)
+val9=$[-sqrt(2500-($(val8[1]))^2)]
+val10=$[-sqrt(2500-($(val8[3]))^2)]
+!readproc oef/draw.phtml 140,140 \
+$val6	segment $(val8[1]),$val9,0,0,black	segment $(val8[1]),$val9,$(val8[3]),$val10,black	fcircle $(val8[1]),$val9,5,red	fcircle $(val8[3]),$val10,5,red	text black,$(val8[1])-5,$val9-5,medium,$(val7[4])	text black,0,-3,medium,O	text black,$(val8[3]),$val10-10,medium,$(val7[6]) 
+tmp0=$ins_url
+val12=$(tmp0)
+tmp0=!randint -45, -30
+
+tmp1=!randint 30, 45
+
+val8=$(tmp0),,$(tmp1)
+val9=$[-sqrt(2500-($(val8[1]))^2)]
+val10=$[-sqrt(2500-($(val8[3]))^2)]
+!readproc oef/draw.phtml 140,140 \
+$val6	segment $(val8[1]),$val9+15,0,0,black	segment 0,0,$(val8[3]),$val10+15,black	fcircle $(val8[1]),$val9+15,5,red	fcircle $(val8[3]),$val10+15,5,red	text black,$(val8[1])-5,$val9+30,medium,$(val7[7])	text black,0,-3,medium,O	text black,$(val8[3]),$val10+30,medium,$(val7[9]) 
+tmp0=$ins_url
+val13=$(tmp0)
+tmp0=!randint -45, -30
+
+val8=$(tmp0)
+val14=$[-sqrt(2500-($val8)^2)]
+!readproc oef/draw.phtml 140,140 \
+$val6	segment $val8,$val14,-$val8,-$val14,black	fcircle $val8,$val14,5,red	fcircle -$val8,-$val14,5,red	text black,0,-3,medium,O	text black,$val8-5,$val14-5,medium,$(val7[10])	text black,-$val8+15,-$val14,medium,$(val7[12]) 
+tmp0=$ins_url
+val15=$(tmp0)
+tmp=!trim Vraie,\(\widehat{$(val7[1])O$(val7[3])}) est un angle au centre du cercle ci-dessus,$val11	Fausse,\(\widehat{O$(val7[4])$(val7[6])}) est un angle au centre du cercle ci-dessus,$val12	Fausse,\(\widehat{$(val7[7])O$(val7[9])}) est un angle au centre du cercle ci-dessus,$val13	Vraie,\(\widehat{$(val7[10])O$(val7[12])}) est un angle au centre du cercle ci-dessus,$val15
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 1,2,3,4
+
+val17=$(tmp0)
+val18=
+val19=
+val20=
+!for val21 =1 to 4 
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row $(val17[$val21]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+tmp0=!append item $(val22[1]) to $val20
+
+val20=$(tmp0)
+tmp0=!append item $(val22[3]) to $val19
+
+val19=$(tmp0)
+tmp0=!append item $(val22[2]) to $val18
+
+val18=$(tmp0)
+!next
+val23=Vraie,Fausse
+replytype1=clickfill
+replyname1=question 1
+replygood1=$(val20[1]);$val23
+replytype2=clickfill
+replyname2=question 2
+replygood2=$(val20[2]);$val23
+replytype3=clickfill
+replyname3=question 3
+replygood3=$(val20[3]);$val23
+replytype4=clickfill
+replyname4=question 4
+replygood4=$(val20[4]);$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Pour chacune des affirmations suivantes, indiquez si elle est vraie ou fausse.	<ul>	   <li><img src="$(val19[1])" alt=""><br>$(val18[1])  
+!read oef/embed.phtml r1 
+$()</li>	   <li><img src="$(val19[2])" alt=""><br>$(val18[2])  
+!read oef/embed.phtml r2 
+$()</li>	   <li><img src="$(val19[3])" alt=""><br>$(val18[3])  
+!read oef/embed.phtml r3 
+$()</li>	   <li><img src="$(val19[4])" alt=""><br>$(val18[4])  
+!read oef/embed.phtml r4 
+$()</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19
+embedcnt=4

@@ -1,0 +1,324 @@
+\title{Suites bornées à étape }
+\language{fr}
+\range{-5..5}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{choixrepM= majorée, non majorée }
+\text{choixrepm= minorée, non minorée }
+\text{choixatteint= oui, non}
+\text{variation= croissante, décroissante, non monotone }
+\text{indice = n+1, n-1, 2*n, 2*n+1}
+\integer{kterme=random(1..4)}
+\text{uchoix=\terme[\kterme]}
+
+\integer{nat=randint(1,1,2,2,3,3,3,3,4,4,4,4,5,5,5,5)}
+\integer{dif=randint(1..2)}
+\integer{exp=randint(1..2)}
+ nat = 1 arithmétique, 2 géométrique, 3 hyperbole décomposée,
+ 4 hyperbole, 5 parabole
+ dif = 1 simple, 2 plus dur
+ exp = 1 formule explicite, 2 recurrence
+\text{signeraison=positive,négative}
+\text{compareraison=positive et supérieure à 1, positive et inférieure à 1, négative}
+
+\integer{a=random(2..10)}
+\integer{b=random(-1,1)*random(4..10)}
+\integer{c=random(2..11)}
+\integer{d=random(-1,1)*random(2..10)}
+\integer{e=random(2..3)}
+\integer{f=random(-1,1)*random(3,5,9,15)}
+\integer{u0=random(-1,1)*random(2,7,4,8,14)}
+
+########## debug
+integer{nat=5}
+integer{b=4}
+integer{d=-4}
+integer{c=1}
+
+
+\if{\nat == 1}
+{
+#### suite arithmétique: une seule borne
+\if{\exp== 1}
+{
+\text{s=\b n + \a}
+\integer{indrep=\b>0?1:2}
+\integer{indrepM=\b>0?2:1}
+\integer{indrepm=\b>0?1:2}
+\text{question= \(u_n)=\s }
+\integer{sr=\b>0?1:2}
+\rational{valb=\a}
+\integer{indrep3=1}
+}
+{
+\text{s=texmath(u_n + (\b))}
+\integer{indrep=\b>0?1:2}
+\text{question= \(u_0)=\u0 et \(u_{n+1} = \s)}
+\integer{sr=\b>0?1:2}
+\integer{indrepM=\b>0?2:1}
+\integer{indrepm=\b>0?1:2}
+\rational{valb=\u0}
+\integer{indrep3=1}
+}
+\text{\borne=\indrepM=1?plus petit majorant:plus grand minorant}
+\text{mstep2=r3,r4}
+\text{quest2= Indiquer son \borne: \embed{r3}<br>
+est-il atteint ? \embed{r4}}
+\text{tfeed= c'est une suite arithmétique de raison \b \signeraison[\sr]<br>
+la suite est donc \variation[\indrep], la suite est donc \choixrepM[\indrepM] et \choixrepm[\indrepm]}
+}
+
+\if{\nat == 2}
+{
+##### suite géométrique:
+\integer{k=random(1..2)}
+
+\integer{be=(\b)*(\e)}
+
+### pour avoir le moins au numérateur
+\if{\b<0 and \k=2}{\integer{b=-1*(\b)}
+\integer{e=-1*(\e)}}
+####
+
+\text{rgeo=\k=1?\frac{\b}{\e}:\frac{\e}{\b}}
+\integer{kk=(\u0>0 and \k=1) or (\u0<0 and \k=2)?1:2}
+\if{\exp== 1}
+{
+\text{s=\u0 \times (\rgeo)^n}
+\integer{indrep=\be<0?3:\kk}
+\text{question= \(u_n = \s) }
+}
+{\text{s=(\rgeo) u_n}
+\integer{indrep=\be<0?3:\kk}
+\text{question= \(u_0)=\u0 et \(u_{n+1} = \s)}
+}
+\if{\u0>0}{
+  \if{\k=1}{
+    \integer{indrepM=2}
+    \integer{indrepm=1}
+    \text{mstep2=r3,r4}
+    \text{\borne=plus grand minorant}
+    \rational{valb=\u0}
+    \integer{indrep3=1}
+    \text{quest2= Indiquer son \borne: \embed{r3}<br>
+est-il atteint ? \embed{r4}:}
+    \text{quest3=}
+    \text{mstep3=}
+    \text{tfeed=c'est une suite géométrique de terme initial \u0 positif, de raison \(\rgeo) positive et supérieure à 1<br>
+la suite est donc \variation[\indrep] }
+  }{
+    \integer{indrepM=1}
+    \integer{indrepm=1}
+    \text{mstep2=r3,r4}
+    \text{\borne=plus petit majorant}
+    \text{\borne2=plus grand minorant}
+    \rational{valb=\u0}
+    \integer{indrep3=1}
+    \text{quest2= Indiquer son \borne: \embed{r3}<br>
+est-il atteint ? \embed{r4}:}
+    \rational{valb2=0}
+    \integer{indrep4=2}
+    \text{quest3= Indiquer son plus grand minorant: \embed{r5}<br>
+est-il atteint ? \embed{r6}:}
+    \text{mstep3=r5,r6}
+\text{tfeed=c'est une suite géométrique de terme initial \u0 positif, de raison \(\rgeo) positive et inférieure à 1<br>
+la suite est donc \variation[\indrep]    }
+  }
+}
+{
+### u0 < 0
+  \if{\k=1}
+  {
+    \integer{indrepM=1}
+    \integer{indrepm=2}
+    \text{mstep2=r3,r4}
+    \text{\borne=plus petit majorant}
+    \rational{valb=\u0}
+    \integer{indrep3=1}
+    \text{quest2= Indiquer son \borne: \embed{r3}<br>
+est-il atteint ? \embed{r4}:}
+    \text{quest3=}
+    \text{mstep3=}
+\text{tfeed=c'est une suite géométrique de terme initial \u0 négatif, de raison \(\rgeo) positive et supérieure à 1<br>
+la suite est donc \variation[\indrep]    }
+  }
+  {
+    \integer{indrepM=1}
+    \integer{indrepm=1}
+    \text{mstep2=r3,r4}
+    \text{\borne=plus petit majorant}
+    \text{\borne2=plus grand minorant}
+    \rational{valb=0}
+    \integer{indrep3=2}
+    \text{quest2= Indiquer son \borne: \embed{r3}<br>
+est-il atteint ? \embed{r4}:}
+    \rational{valb2=\u0}
+    \integer{indrep4=1}
+    \text{quest3= Indiquer son plus grand minorant: \embed{r5}<br>
+est-il atteint ? \embed{r6}:}
+    \text{mstep3=r5,r6}
+\text{tfeed=c'est une suite géométrique de terme initial \u0 négatif, de raison \(\rgeo) positive et inférieure à 1<br>
+la suite est donc \variation[\indrep]    }
+  }
+
+}
+\if{\indrep=3}
+{
+  \if{\k=1}
+   {
+    \integer{indrepM=2}
+    \integer{indrepm=2}
+    \text{mstep3=}
+    \text{mstep2=}
+   }
+   {
+    \integer{indrepM=1}
+    \integer{indrepm=1}
+    \text{mstep2=r3,r4}
+    \text{\borne=plus petit majorant}
+    \text{\borne2=plus grand minorant}
+    \rational{u1=\k=1 ?(\u0)*(\b)/(\e):(\u0)*(\e)/(\b)}
+    \rational{valb=\u0>0?\u0:\u1}
+    \integer{indrep3=1}
+    \text{quest2= Indiquer son \borne:\valb \embed{r3}<br>
+est-il atteint ? \embed{r4}:}
+    \rational{valb2=\u0>0?\u1:\u0}
+    \integer{indrep4=1}
+    \text{quest3= Indiquer son plus grand minorant:\valb2 \embed{r5}<br>
+est-il atteint ? \embed{r6}:}
+    \text{mstep3=r5,r6}
+   }
+\text{tfeed=c'est une suite géométrique de raison \(\rgeo)
+ \compareraison[\indrep]<br>
+la suite est donc \variation[\indrep]  }
+}
+
+}
+
+\if{\nat== 3 or \nat == 4}
+{
+\integer{k=random(1..2)}
+\text{s=\c  + \frac{\b}{ n + \a}}
+ \if{\nat==4}
+ {\integer{d=\c*\a+(\b)}
+ \text{s= \frac{\d + \c n}{n + \a}}
+ }
+\text{question= \(u_n = \s) }
+\integer{indrep=\b<0?1:2}
+\text{tf=wims(replace internal n by x in \s)}
+\text{tfeed= \( u_n=f(n)) avec \(f(x)= \tf)<br>
+La fonction \(f) est \variation[\indrep] sur \(\RR^+)<br>
+la suite est donc \variation[\indrep]}
+
+\integer{indrepM=1}
+\integer{indrepm=1}
+\text{mstep2=r3,r4}
+\text{mstep3=r5,r6}
+\text{\borne=plus petit majorant}
+\text{\borne2=plus grand minorant}
+
+\if{\b>0}
+  {
+  \rational{valb=\c+\b/\a}
+  \rational{valb2=\c}
+  \integer{indrep3=1}
+  \integer{indrep4=2}
+  }
+  {
+  \rational{valb2=\c+(\b)/\a}
+  \rational{valb=\c}
+  \integer{indrep4=1}
+  \integer{indrep3=2}
+  }
+}
+\if{\nat==5}
+{\integer{k=random(1..2)}
+\text{s=\b n^2 +\d n + \c}
+\integer{bd=\b*\d}
+\integer{bb=\b>0?1:2}
+\integer{indrep=\bd<0?3:\bb}
+\rational{absom=-(\d)/(\b)/2}
+\text{tf=wims(replace internal n by x in \s)}
+\if{\bd<0 and \absom<1}
+{
+ \integer{indrepb=\b>0?1:2}
+ \integer{u1=(\b)+(\d)+(\c)}
+ \if{(\b>0 and \c<=\u1) or (\b<0 and \c>=\u1)}
+   {\integer{indrepc=\b>0?1:2}}
+   {\integer{indrepc=3}}
+
+   \text{tfeed= \( u_n=f(n)\) avec \(f(x)= \tf\)<br>
+La fonction \(f\) est \variation[\indrep] sur \(\RR^+), mais \variation[\indrepb] sur &#91; \absom &#59; \(+\infty\) &#91;<br>
+Or \(u_0\)=\c et \(u_1\)=\u1.
+la suite est donc \variation[\indrepc]}
+ }
+ {
+\text{tfeed= \( u_n=f(n)\) avec \(f(x)= \tf\).<br>
+  La fonction \(f\) est \variation[\indrep] sur \(\RR^+\),
+  la suite est donc \variation[\indrep]}
+}
+\text{question= \(u_n = \s\) }
+\rational{delta=(4*(\b)*(\c)-(\d)^2)/(4*(\b))}
+\if{\bd>0}
+{ \rational{valb=\c}}
+{ \rational{absom=-(\d)/(\b)/2}
+  \integer{n1=floor(\absom)}
+  \integer{n2=\n1+1}
+  \integer{vn1= \b * \n1^2 + (\d) * \n1 + \c}
+  \integer{vn2= \b * \n2^2 + (\d) * \n2 + \c}
+  \if{\b>0}
+    {\rational{valb=\vn1<\vn2?\vn1:\vn2}}
+    {\rational{valb=\vn1>\vn2?\vn1:\vn2}}
+}
+\text{mstep2=r3,r4}
+\text{mstep3=}
+\if{\b>0}
+ {
+  \integer{indrepM=2}
+  \integer{indrepm=1}
+  \text{\borne=plus grand minorant}
+ }
+ {
+  \integer{indrepM=1}
+  \integer{indrepm=2}
+  \text{\borne=plus petit majorant}
+ }
+\integer{indrep3=1}
+}
+\text{\mstep=r1,r2}
+\nextstep{\mstep}
+
+\text{size=\confparm1=1 ? :large}
+\statement{<i>Cet exercice comporte au moins deux étapes.</i>
+<p>
+Soit \( (u_n) \) la suite définie par:</p>
+<div class="wimscenter">\question</div>
+On cherche à étudier ses bornes éventuelles.
+\if{\step=1}{<div>La suite est : \embed{r1} et \embed{r2}</div>
+}
+{
+   \if{\step=2}
+   {<div><label for="reply3"><label for="reply3">Indiquer son \borne :</label></label> \embed{r3},
+est-il atteint ? \embed{r4}</div>
+   }
+   {<div><label for="reply5">Indiquer son plus grand minorant :</label>  \embed{r5},
+est-il atteint ? \embed{r6}</div>
+   }
+}
+}
+\if{\step=2}{\text{mstep=\mstep2}}
+{ \if{\step=3}{\text{mstep=\mstep3}}{\text{mstep=}}
+
+}
+
+\answer{la suite est-elle}{\indrepM;\choixrepM}{type=menu}
+\answer{la suite est-elle}{\indrepm;\choixrepm}{type=menu}
+\answer{\borne}{\valb}{type=numeric}
+\answer{atteint}{\indrep3;\choixatteint}{type=menu}
+\answer{\borne2}{\valb2}{type=numeric}
+\answer{atteint}{\indrep4;\choixatteint}{type=menu}
+\feedback{1=1}{\tfeed}

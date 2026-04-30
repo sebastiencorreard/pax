@@ -1,0 +1,72 @@
+# Eigenvermogen I
+# 
+n=$counter
+
+#fffff0=#e2ffc8
+!if $counter=1
+    mathview=0
+    !if $total_exos >3
+	total_exos=3
+    !endif
+    viewlogo=1
+    var9=!shuffle 1,2,3,4,5,6,7,8,9
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=8
+    rows=1
+    rounding=100
+    roundingtext=Rond geldbedragen af  op hele &euro; centen [2 decimalen]
+    inputs=1.1
+    helptext=$roundingtext
+    koers1=!randint 6,12
+    koers1=$[$koers1/2]
+    koers2=!randint $[ceil($koers1)+1],$[2*$koers1+1]
+    aantal1=!randint 200,500
+    aantal2=!randint $[round($aantal1/5)],$[$aantal1-10]
+    aantal1=$[100*$aantal1]
+    aantal2=$[100*$aantal2]
+    aandelen1=$[$koers1*$aantal1]
+    aandelen2=$[$koers1*$aantal2]
+    aandelen=$[$aandelen1+$aandelen2]
+    agio=$[$koers2 - $koers1]
+    # moneyprint !!
+    tot=!exec moneyprint $agio,$koers1,$koers2 2
+    agio=$(tot[1])
+    koers1=$(tot[2])
+    koers2=$(tot[3])
+    
+    
+    
+    answer1=$aantal1
+    answer2=$[$aantal2*$agio]
+    answer3=$[($aandelen+$aantal2*$agio)/($aantal2 + $aantal1)]
+    ans3=$[(round(100*$answer3))/100]
+    textanswer1=<ul><li>Geplaatst aandelenvermogen tegen nominale waarde bedraagt &euro; $aandelen1</li><li>Dus $aandelen1 &divide; $koers1 = $aantal1 stuks aandelen.</li></ul>
+    textanswer2=<ul><li>Agio ontstaat door plaatsing van aandelen boven de nominale waarde</li><li>Agio per aandeel is : $koers2 - $koers1  = &euro; $agio </li><li>Aantal ge&euml;mitteerde aandelen is : $aandelen2 &divide; $koers1 = $aantal2 stuks </li><li>Dus $aantal2 stuks &times; &euro; $agio = &euro; $answer2</li></ul>
+    textanswer3=<ul><li>Eigen vermogen bedraagt : &euro; $aandelen + &euro; $answer2  = &euro; $[$aandelen + $answer2] </li><li>Aantal aandelen bedraagt : $aantal1 + $aantal2 = $[$aantal1+$aantal2] stuks </li><li>Dus de intrinsieke waarde per aandeel na de emissie is  &euro;$[$aandelen + $answer2] &divide; $[$aantal1+$aantal2] stuks = $answer3 &asymp; $ans3 &euro;/stuk  </li></ul>
+    
+    som=Gegeven:<br /><ul><li>Maatschappelijk aandelenkapitaal : &euro; $aandelen</li><li>Aandelen in portefeuille : &euro;$aandelen2</li><li>De nominale waarde van een aandeel bedraagt : &euro; $koers1</li></ul>
+    question1=<a onmouseover="return escape('$roundingtext')">$som<hr />Bereken hoeveel aandelen er zijn geplaatst.</a>
+    question2=<a onmouseover="return escape('$roundingtext')">$som<hr />De aandelen in portefeuille worden ge&euml;mitteerd tegen een koers van &euro; $koers2<br />Bereken de toename van de agioreserve.</a>
+    question3=<a onmouseover="return escape('$roundingtext')">$som<hr />De aandelen in portefeuille worden ge&euml;mitteerd tegen een koers van &euro; $koers2<br />Bereken de intrinsieke waarde per aandeel na de emissie.</a>
+    
+!endif
+nm=!item $counter of $var9
+logo=<img src="$module_dir/gifs/aandeel_klein.jpg" alt="noalt" />
+logotext=<img src=\'$module_dir/gifs/aandeel$nm.jpg\' alt=\'noalt\' />
+
+!if $counter=1
+    description=Aantal aandelen
+    ex1=stuks
+!else
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+    !if $counter=2
+	description=Toename agioreserve
+	ex1=&euro;
+    !else
+	description=Intrinsieke waarde per aandeel
+	ex1=&euro;
+    !endif
+!endif
+
+!exit

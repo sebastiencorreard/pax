@@ -1,0 +1,246 @@
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+mathview=0
+image=0
+make_tr=0
+questiontype=0
+# geen problemen met arrows <=>
+use_ineq=1
+inputs=2
+cols=12
+draw=1
+display=1
+plot=0
+math=0
+varlist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+checkfile=exos/checkfile1.proc 
+l=<span style="color:green"><em>l</em></span>
+p=<span style="color:red"><em>p</em></span>
+keuze=!randitem groter,kleiner
+boven=!record 40 of lang/remarks.$taal
+#@ de parabool $p boven de lijn $l ligt.
+onder=!record 41 of lang/remarks.$taal
+#@ de parabool $p onder de lijn $l ligt.
+helptext=!record 53 of lang/remarks.$taal
+description=!record 39 of lang/remarks.$taal
+
+!if $R=1
+    a=!randitem 1,3,5,7,9
+    b=!randitem 0,2,4,6,8    
+    c=!randitem 1/2,1/4,1/3,2/3,6/7,7/4,9/4,13/4,3/4,2/5,3/5,5/6,5/8,7/8,9/10,1,2,3/2,4/5,3,4,5,6
+    e=!randitem -1,1
+    c=!exec pari ($e)*($c)
+    d=!exec pari ($a)*($b) - ($c)
+    p1=x^2 + $[$b-$a]*x -$d    
+    l1=$c
+    ptex1=!texmath $p1
+    L1=!texmath $l1
+    x1=$a
+    x2=$[-1*$b]
+    y1=$c
+    y2=$c
+    var1=$x1,$y1,$x2,$y2
+    !if $rounding>0
+	x1=$[(round($rounding*$x1))/$rounding]
+	x2=$[(round($rounding*$x2))/$rounding]
+	y1=$[(round($rounding*$y1))/$rounding]
+	y2=$[(round($rounding*$y2))/$rounding]
+    !else
+	x1=$x1
+	x2=$x2
+	y1=$y1
+	y2=$y2
+    !endif
+    !if $keuze=groter
+	ligging=$boven 
+	var2=x<$x2&&x>$x1
+	GG=x<$x2 \vee x>$x1
+	ongelijkheid=x &lt; $x2 V x &gt; $x1
+	latextext=p > l
+    !else
+	ligging=$onder 
+	var2=$x2<x&&x<$x1
+	GG=$x2<x<$x1
+	ongelijkheid=$x2 &lt; x &lt; $x1
+	latextext=p < l
+    !endif
+    !if $teaching=1
+	xrange=-10,10
+	yrange=-40,40
+        grafiek=linewidth 2\
+        curve red,$p1\
+        curve green,$l1\
+        linewidth 6\
+        points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+        text black,7,-0.5,normal,x-axis\	
+        textup black,-0.5,15,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!goto READY
+!endif
+!if $R=2
+    b=!randitem 2,3,4,5,6,7,-2,-3,-4,-5,-6,7
+    a=!randitem 2,3,4,5,-1,-2,-3,-4,-5
+    c=!randitem 4,6,8,10,12,-4,-6,-8,-10,-12
+    pm=!randitem +,-
+    x1=!randitem -6,-5,-4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5,6
+    y1=$[$a*$x1*$x1 $pm $b*$x1 - ($c) ]
+    y2=$[$a*$x2*$x2 $pm $b*$x2 - ($c) ]
+    p1=!rawmath $a*x^2 $pm $b*x - $c
+    ptex1=!texmath $p1
+
+    tussen=!exec pari A=((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+    printtex(A) 
+    l1=!line 1 of $tussen
+    L1=!line 2 of $tussen
+
+    !if $rounding!=0
+	x1=$[(round($rounding*$x1))/$rounding]
+	x2=$[(round($rounding*$x2))/$rounding]
+	y1=$[(round($rounding*$y1))/$rounding]
+	y2=$[(round($rounding*$y2))/$rounding]
+    !else
+	x1=$x1
+	x2=$x2
+	y1=$y1
+	y2=$y2
+    !endif
+    var1=$x1,$y1,$x2,$y2
+    !if $a>0
+	!if $keuze=groter
+	    ligging=$boven
+	    var2=x<$x1&&x>$x2
+	    GG=x<$x1 \vee x>$x2
+	    ongelijkheid=x &lt; $x1 V x &gt; $x2
+	    latextext=p > l
+	!else
+	    ligging=$onder
+	    var2=$x1<x&&x<$x2
+	    GG=$x1<x<$x2
+	    ongelijkheid=$x1 &lt; x &lt; $x2
+	    latextext=p < l
+	!endif
+    !else
+    	!if $keuze=groter
+	    ligging=$boven
+	    var2=$x1<x&&x<$x2
+	    GG=$x1<x<$x2
+	    ongelijkheid=$x1 &lt; x &lt; $x2
+	    latextext=p > l
+	!else
+	    ligging=$onder
+	    var2=x<$x1&&x>$x2
+	    GG=x<$x1 \vee x>$x2
+	    ongelijkheid=x &lt; $x1 V x &gt; $x2
+	    latextext=p < l
+	!endif
+    !endif
+    !if $teaching=1
+	xrange=-8,8
+        yrange=-300,300
+	grafiek=linewidth 2\
+	curve red,$p1\
+	curve green,$l1\
+	linewidth s*14\
+	points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+	text black,5,-5,normal,x-axis\
+	textup black,-0.5,200,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!goto READY
+!endif
+
+!if $R>2
+    b=!randitem 1/2,1/3,1/4,3/4,2/3,4/5,3/5,5/4,7/4,7/5,9/4,13/4
+    a=!randitem 1/2,1/3,2/3,1/4,3/4,1/5,-1/4,-2/3,-3/4,-4/5,-5/7,-9/4,13/4
+    c=!randitem 4,6,8,10,12,-4,-5,-6,-7,-8,-9,-10,-12
+    pm=!randitem +,-
+    x1=!randitem -6,-5,-4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5,6
+    y1=!exec pari ($a)*($x1)*($x1) $pm ($b)*($x1) - ($c) 
+    y2=!exec pari ($a)*($x2)*($x2) $pm ($b)*($x2) - ($c) 
+    p1=!rawmath $a*x^2 $pm $b*x - $c
+    ptex1=!texmath $p1
+    tussen=!exec pari A=((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+    printtex(A)
+    l1=!line 1 of $tussen
+    L1=!line 2 of $tussen
+
+    var1=$x1,$y1,$x2,$y2
+    !if $a>0
+	!if $keuze=groter
+	    ligging=$boven
+	    var2=x<$x1&&x>$x2
+	    GG=x<$x1 \vee x>$x2
+	    ongelijkheid=x &lt; $x1 V x &gt; $x2
+	    latextext=p > l
+	!else
+	    ligging=$onder
+	    var2=$x1<x&&x<$x2
+	    GG=$x1<x<$x2
+	    ongelijkheid=$x1 &lt; x &lt; $x2
+	    latextext=p < l
+	!endif
+    !else
+    	!if $keuze=groter
+	    ligging=$boven
+	    var2=$x1<x&&x<$x2
+	    GG=$x1<x<$x2
+	    ongelijkheid=$x1 &lt; x &lt; $x2
+	    latextext=p > l
+	!else
+	    ligging=$onder
+	    var2=x<$x1&&x>$x2
+	    GG=x<$x1 \vee x>$x2
+	    ongelijkheid=x &lt; $x1 V x &gt; $x2
+	    latextext=p < l
+	!endif
+    !endif
+    !if $teaching=1
+	xrange=-8,8
+	yrange=-300,300
+        grafiek=linewidth 2\
+	curve red,$p1\
+	curve green,$l1\
+	linewidth s*14\
+	points yellow,$[$x1],$[$y1],$[$x2],$[$y2]\
+	text black,5,-5,normal,x-axis\
+	textup black,-0.5,200,normal,y-axis
+    !endif
+    answer$n=($x1:$y1) ($x2:$y2),$var2
+!endif
+
+:READY
+
+formula$n=\left[ \begin{array}{l}l(x)=$L1\\ \\ p(x)=$ptex1 \\ \\ $latextext \end{array}
+texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1) \\ ($x2 : $y2) \\ $GG \end{array}\right.
+
+ss=!record 42 of lang/remarks.$taal
+question$n=$ss
+#@ Gegeven de rechte lijn $l en parabool $p  <br /><ul><li>Bepaal de co&ouml;rdinaten van de snijpunten tussen $l en $p </li><li>Geef aan voor welke <em>x</em>-waarden de grafiek van $ligging .</li></ul>
+rr=!record 43 of lang/remarks.$taal
+textanswer$n=$rr
+#@ <p align="left">Het goede antwoord is dus: <ul><li>de snijpunten ($x1:$y1) &and; ($x2:$y2)</li>OP<li>En waar de grafiek van $ligging  geldt:<br /> $ongelijkheid</li></ul></p> 
+
+!if $teaching=1
+    insdraw_size=320,320
+    !insdraw xrange $xrange\
+    yrange $yrange\
+    linewidth 1\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    $grafiek
+
+    stext=!record 54 of lang/remarks.$taal
+    exotext=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$stext</span></a>
+!endif

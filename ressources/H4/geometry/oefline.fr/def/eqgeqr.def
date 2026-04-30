@@ -1,0 +1,144 @@
+!set title=Equation réduite et équation cartésienne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=line_equation
+language=fr
+title_it=Equazione esplicita e equazione cartesiana
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=\mathcal{d}
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 20
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 20
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 20
+
+val10=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in $val8*x+$val9*y+$val10
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+t_=!rawmath -$val8/$val9
+val12=!exec pari print($t_)
+t_=!rawmath -$val10/$val9
+val13=!exec pari print($t_)
+tmp0=!randitem 1,2
+
+val14=$[rint($(tmp0))]
+val15=est
+val16=le coefficient directeur,l'ordonnée à l'origine
+val17=Le coefficient directeur,L'ordonnée à l'origine
+tmp=!trim On considère la droite ; d'équation ; Déterminer ; de la droite 
+val18=!translate internal $	\
+$ to ;; in $tmp
+val19=Réponse
+!if $val6=it 
+val15=è
+val16=il coefficiente angolare,l'ordinata nell'origine
+val17=Il coefficiente angolare,L'ordinata nell'origine
+tmp=!trim Consideriamo la retta ; di equazione ; Determinare ; della retta 
+val18=!translate internal $	\
+$ to ;; in $tmp
+val19=Risposta
+!endif
+!if $val14=1 
+t_=!rawmath $val12
+val20=!exec pari print($t_)
+!endif
+!if $val14=2 
+t_=!rawmath $val13
+val20=!exec pari print($t_)
+!endif
+replytype1=default
+replyname1=$val19
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val18[1;]) 
+!insmath $val7
+$() $(val18[2;])	 
+!insmath $val11=0
+$(). $(val18[3;])	 $(val16[$val14]) $(val18[4;]) 
+!insmath $val7
+$().	<div class="spacer">	 $(val17[$val14]) $(val18[4;]) 
+!insmath $val7
+$()	 $val15  
+!read oef/embed.phtml reply 1 
+$().	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,14,15,16,17,18
+embedcnt=1

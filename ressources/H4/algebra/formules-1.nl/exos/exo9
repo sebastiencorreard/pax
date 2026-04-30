@@ -1,0 +1,73 @@
+#:25 Herleid naar ax+by=c
+display=1
+checkfile=exos/checkfile4.proc
+arglist=x,y
+varlist=x,y
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+math=1
+
+mathview=5
+smallfont=18
+largefont=26
+mathviewpanel=$module_title:f(x)=:y=:x:sqrt():+:*:/
+helptext=$empty
+keuze=!randitem 0,1
+!if $R=1
+    question$n=!record 15 of lang/remarks.$taal
+    #@Schrijf de volgende functie in de vorm ax+by=c, waarbij a, b en c hele getallen zijn.
+    b=!randint 2,9
+    f=!randint 2,6
+    a=$[$b-1]
+    c=$[$f*$b]
+    g=$a/$b
+    !if $keuze=0
+	formula$n=y = -\frac{$a}{$b}  x + $f
+	applettext=!nospace y =  -$g*x + $f->
+	answer$n=$a*x+$b*y=$c
+	texanswer$n=\left[ \begin{array}{l} y + \frac{$a}{$b} \cdot x = $f \\ $a x + $b y =$c \end{array}\right.
+    !else
+	formula$n=y = \frac{$a}{$b} x - $f
+	applettext=!nospace y =  $g*x - $f->
+	answer$n=$a*x-$b*y=$c
+	texanswer$n=\left[ \begin{array}{l} \frac{$a}{$b} x - y  = $f \\$a x - $b y =$c \end{array}\right.
+    !endif
+!exit
+!endif
+
+!if $R>1
+    question$n=!record 16 of lang/remarks.$taal
+    #@Schrijf de volgende functie in de vorm x/p+y/q=1
+    txt=!record 27 of lang/remarks.$taal
+    aa=!shuffle  2,3,4,5,6,7,8,9
+    a=!item 1 of $aa
+    b=!item 2 of $aa
+    tot=!exec pari A=$b/$a\
+    printtex(A)
+    p=!line 1 of $tot
+    p_tex=!line 2 of $tot
+    !if $keuze=0
+	texanswer$n=\left[ \begin{array}{l} $a x + y= $b \\ \frac{$a x}{$b} + \frac{y}{$b} =1 \\ \frac{x}{$p_tex} + \frac{y}{$b} =1  \end{array}\right. \rightarrow \left[ \begin{array}{lll} p & = &\input{5}{0}{text-align:center;background:lightblue;font-size:16pt;color:blue}{$p}{1} \\ \, \, \\ q & = &\input{5}{1}{text-align:center;background:lightblue;font-size:16pt;color:blue}{$b}{1} \end{array}\right.
+	formula$n=\left[ \begin{array}{l} y = -$a \cdot x +$b \\ \textrm{$(txt[1]) :} \frac{x}{p} + \frac{y}{q} = 1 \\ \textrm{$(txt[2])} \end{array}\right. \rightarrow \left[ \begin{array}{lll} p & = &\input{5}{0}{text-align:center;background:orange;font-size:16pt;color:blue}{}{0} \\ \, \, \\ q & = &\input{5}{1}{text-align:center;background:orange;font-size:16pt;color:blue}{}{0}  \end{array}\right.
+    !else
+	p=-$p
+	answer$n=x/($p)+y/$b=1
+	texanswer$n=\left[ \begin{array}{l} -$a x + y= $b \\ \frac{-$a x}{$b} + \frac{y}{$b} =1 \\ \frac{x}{-$p_tex} + \frac{y}{$b} =1  \end{array}\right. \rightarrow \left[ \begin{array}{lll} p & = &\input{5}{0}{text-align:center;background:lightblue;font-size:16pt;color:blue}{$p}{1} \\ \, \, \\ q & = &\input{5}{1}{text-align:center;background:lightblue;font-size:16pt;color:blue}{$b}{1} \end{array}\right.
+	formula$n=\left[ \begin{array}{l} y = $a \cdot x +$b \\ \textrm{$(txt[1]) :} \frac{x}{p} + \frac{y}{q} = 1 \\ \textrm{$(txt[2])} \end{array}\right. \rightarrow \left[ \begin{array}{lll} p & = &\input{5}{0}{text-align:center;background:orange;font-size:16pt;color:blue}{}{0} \\ \, \, \\ q & = &\input{5}{1}{text-align:center;background:orange;font-size:16pt;color:blue}{}{0}  \end{array}\right.
+    !endif
+    mathview=0
+    answer$n=$p\
+    $b
+    checkfile=$checkdir/new_number.proc
+    rounding=0
+    inputs=-1    
+!exit
+!endif
+

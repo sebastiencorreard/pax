@@ -1,0 +1,164 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=1.1
+cols=10
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+image=0
+var1=0
+questiontype=0
+description=$youranswer
+#!record 74 of lang/remarks.$taal
+#@ Permutaties en Combinaties
+mensen=!record 75 of lang/remarks.$taal
+#@ studenten,leerlingen,amateur voetballers,volleyballers,krantenjongens,oud leerlingen,buurtbewoners,camping gasten
+feesten=!record 76 of lang/remarks.$taal
+#@ party,feest,fuif,avondje,gala avond,barbecue,bonte avond,swing feest,beachparty
+organisatie=!record 77 of lang/remarks.$taal
+#@ financi&euml;en,muziek,drank,hapjes,schoonmaken,vervoer
+
+leerlingen=!randitem $mensen
+feest=!randitem $feesten
+!if $R=1
+    aantal=!randint 15,20
+    num=!randitem 3,4
+
+    !for p=1 to $num
+	zaak=!item $p of $organisatie
+        zaken=!append line <li>$zaak</li> to $zaken
+    !next p
+    G=1
+    g=$empty
+    !for p=$aantal to $[$aantal - $num + 1] step -1
+	G=$G*$p
+	g=!append line $p@ to $g
+    !next p
+    answer$n=$[$G]
+    texanswer$n=!char 1 to -2 of $g
+    texanswer$n=!replace internal @ by $ \cdot $ in $(texanswer$n)
+    texanswer$n=$(texanswer$n) \,\,=\,\,$(answer$n)
+
+    ss=!record 78 of lang/remarks.$taal
+    question$n=$ss
+    #@ $aantal $leerlingen willen een $feest organiseren .<br />\
+    #@ Voor de organisatie hiervan zijn $num personen uit deze groep $leerlingen nodig.<br />\
+    #@ De volgende taken worden verdeeld onder deze $num personen:<ul>$zaken</ul><p>\
+    #@ Op hoeveel manieren kunnen we $num personen kiezen uit deze groep van $aantal $leerlingen ?
+ !exit
+!endif
+
+!if $R=2
+    aantal=!randint 7,10
+    num=!randint 2,$[$aantal -4]
+    a=$aantal
+    b=$num
+    te=1
+    nm=1
+    !for p=1 to $num
+	nm=$p*$nm
+	te=$te*$[($aantal-$p+1)]
+    !next p
+    answer$n=$[($te)/($nm)]
+    te=!char 3 to -1 of $te
+    nm=!char 1 to -3 of $nm
+    rr=!record 173 of lang/remarks.$taal
+    textanswer$n=$rr : <b> $(answer$n) </b>
+    #texanswer$n=\frac{$te}{$nm}
+    #texanswer$n=!replace internal * by $ \cdot $ in $(texanswer$n)
+    #texanswer$n=\left( \begin{array}{c} $aantal \\ $num \end{array} \right ) \,\, = \,\, $(texanswer$n) \,\,=\,\,$(answer$n)
+
+    ss=!record 79 of lang/remarks.$taal
+    #@ $aantal $leerlingen willen een $feest organiseren .<br />\
+    #@ Voor de organisatie hiervan zijn $num personen uit deze groep $leerlingen nodig.<p>\
+    #@ Hoeveel verschillende groepen van $num personen kunnen we samenstellen uit deze groep van $aantal $leerlingen ?
+    question$n=$ss
+ !exit
+!endif
+
+!if $R=3
+    aantal=!randint 11,25
+    num=!randitem 3,4,5
+    a=$aantal
+    b=$num
+    te=1
+    nm=1
+    !for p=1 to $num
+	nm=$p*$nm
+	te=$te*$[($aantal-$p+1)]
+    !next p
+    answer$n=$[($te)/($nm)]
+    te=!char 3 to -1 of $te
+    nm=!char 1 to -3 of $nm
+    rr=!record 112 of lang/remarks.$taal
+    textanswer$n=$rr
+    texanswer$n=\frac{$te}{$nm}
+    texanswer$n=!replace internal * by $ \cdot $ in $(texanswer$n)
+    texanswer$n=\left( \begin{array}{c} $aantal \\ $num \end{array} \right ) \,\, = \,\, $(texanswer$n) \,\,=\,\,$(answer$n)
+
+    ss=!record 79 of lang/remarks.$taal
+    #@ $aantal $leerlingen willen een $feest organiseren .<br />\
+    #@ Voor de organisatie hiervan zijn $num personen uit deze groep $leerlingen nodig.<p>\
+    #@ Hoeveel verschillende groepen van $num personen kunnen we samenstellen uit deze groep van $aantal $leerlingen ?
+    question$n=$ss
+ !exit
+!endif
+
+
+!if $R>3
+    aantal=!randint 15,20
+    num=!randitem 3,4
+    over=$aantal
+    sometext=!record 80 of lang/remarks.$taal
+    #@  personen voor 
+    !for p=1 to $num
+	t$p=$over
+	!if $p=$num
+	    a=$over
+	!else    
+	    a=!randint 2,$[round($over/$num)]
+	    over=$[$over - $a]
+	!endif
+	m$p=$a
+	zaak=!item $p of $organisatie
+        zaken=!append line <li>$a $sometext $zaak</li> to $zaken
+    !next p
+    tot=1
+    !for p=1 to $num
+	t=$(t$p)
+	m=$(m$p)
+	tot=$tot*(factorial($t)/((factorial($m))*(factorial($t-$m))))
+	#texanswer$n=!append line \left(\begin{array}{c}$t \\ $m \end{array}\right) to $(texanswer$n)	
+	texanswer$n=!append line % $t \\ $m @ to $(texanswer$n)	
+    !next p
+    answer$n=$[$tot]
+    texanswer$n=!replace internal % by \left(\begin{array}{c} in $(texanswer$n)
+    texanswer$n=!replace internal @ by \end{array}\right)\cdot in $(texanswer$n)
+    texanswer$n=!char 1 to -6 of $(texanswer$n)
+    texanswer$n=$(texanswer$n) \,\,=\,\, $(answer$n)
+
+    ss=!record 81 of lang/remarks.$taal
+    #@ $aantal $leerlingen willen een $feest ...<br />\
+    #@ Ze spreken af dit met <em>z'n allen</em> te organiseren.<br />\
+    #@ De volgende $num taken worden verdeeld onder deze $aantal $leerlingen:<ul>$zaken</ul><p>\
+    #@ Op hoeveel manieren kunnen we $aantal $leerlingen verdelen over $num taken ??
+    question$n=$ss
+ !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+

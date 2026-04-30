@@ -1,0 +1,184 @@
+!set title=Description de courbe 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+
+ansorder=r,r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 6
+
+tmp1=!randitem -1,1
+
+val6=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -9, 1
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($val8+$(tmp0))]
+
+!ifval ($val6>0)
+val10=$[rint( 2)]
+!else
+val10=$[rint(1)]
+!endif
+t_=!replace internal \( by ( in $val6*(x-$val8)*(x-$val9)
+tmp0=!exec maxima $t_
+
+val11=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val8
+tmp0=!exec maxima $t_
+
+val12=!rawmath $(tmp0)
+t_=!replace internal \( by ( in x-$val9
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+val14=$[($val8+$val9)/2]
+
+!ifval ($val9>0)
+val15= \frac{$val8+$val9}{2}=$val14
+!else
+val15=\frac{$val8+($val9)}{2}=$val14
+!endif
+val16=Les racines de \(f) sont \($val8) et \($val9) (en effet, \(f(x)=0) &hArr; \($val12=0) ou \($val13=0) &hArr; \(x=$val8) ou \(x=$val9)) donc la parabole est symétrique par rapport à la droite d'équation	\(x=$val15\)
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+t_=!rawmath $(tmp0)
+val17=!exec pari print($t_)
+tmp0=!texmath $val11
+
+val11=$(tmp0)
+replytype1=atext
+replyname1=
+replygood1=parabole
+replytype2=menu
+replyname2=
+replygood2=$val10;le bas,le haut
+replytype3=equation
+replyname3=
+replygood3=!rawmath x=$val14
+replytype4=formal
+replyname4=
+replygood4=$val14
+replytype5=formal
+replyname5=
+replygood5=$val17
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit 
+!insmath f
+$() la fonction du second degré d'expression : 
+!insmath f(x)=$val11
+$().<br>	La courbe représentative de 
+!insmath f
+$() est une  
+!read oef/embed.phtml r1,7 
+$() orientée vers  
+!read oef/embed.phtml r2 
+$(), symétrique par rapport à la droite d'équation	 
+!read oef/embed.phtml r3,2 
+$() et de sommet S( 
+!read oef/embed.phtml r4,3 
+$() ;  
+!read oef/embed.phtml r5,3 
+$()).
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath f
+$() étant une fonction du second degré, sa courbe est une parabole. Comme le coefficient de 
+!insmath x^2
+$() dans 
+!insmath f(x)
+$() est 
+!if $val10==2 
+$()
+!insmath $val6>0
+$(), 
+!else
+$() 
+!insmath $val6<0
+$(), 
+!endif
+$() cette parabole est orientée vers	le 
+!if $val10==2 
+$()haut. 
+!else
+$() bas. 
+!endif
+$() $val16. Le sommet de cette parabole a pour coordonnées	
+!insmath ($val14 ; f($val14))
+$() c'est à dire 
+!insmath ($val14; $val17)
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,14,16,17
+embedcnt=5

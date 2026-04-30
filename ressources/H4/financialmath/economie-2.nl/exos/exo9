@@ -1,0 +1,91 @@
+# liquiditeitsbegroting &amp; resultatenrekening III
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+nu=!date +%Y
+jaar1=$[$nu-2]
+jaar2=$[$nu-1]
+#7/6/2013 : btw is variabele $btw
+btw=21
+bank=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+maanden=Januari,Februari,Maart,April,Mei,Juni,Juli,Augustus,September,Oktober,November,December
+rounding=100
+checkfile=exos/precheck1.proc
+roundingtext=Afronden op twee decimalen.
+
+inperc=!randitem 70,80,90
+uitperc=$[$inperc - 10]
+bruto=!randint 20,40
+
+max=!randint 6,9
+begin=!randint 6,10
+jaar=$jaar1
+
+tabel=<table class=\'zebra_table_h2\'><tr><th>Datum</th><th>Inkopen</th><th>Verkopen</th><tr>
+
+!for p=1 to $max
+    mnd=$[$begin+$p]
+    !if $mnd>12
+	mnd=$[$mnd-12]
+	jaar=$jaar2
+    !endif
+    maand$p=!item $mnd of $maanden
+    in$p=!randint 50,80
+    in$p=$[100*(round($(in$p)*$mnd))]
+    f=!randint 125,150
+    f=$[$f/100]
+    uit$p=$[100*(round($f*$(in$p)/100))]
+    tabel=!append word $ <tr><td><b>$(maand$p) $jaar</b></td><td>&euro; $(in$p)</td><td >&euro; $(uit$p)</td></tr> $ to $tabel 
+!next p
+
+tabel=!append word $ </table> $ to $tabel
+ss=Bij $bank wordt aan debiteuren &eacute;&eacute;n maand crediet verstrekt.<br />Van crediteuren wordt twee maanden crediet genoten.<br />De brutowinst bedraagt $bruto % van de inkoopwaarde van de omzet.<br />De inkopen vinden voor $inperc % op rekening plaats, de verkopen vinden voor $uitperc % op rekening plaats.<br />Voor het opstellen van een liquiditeitsbegroting worden de <span class="schaersvoorde_link">deze gegevens</span> verstrekt<br />(incl. $btw % btw)
+ 
+!if $R=1
+    i=!randint 1,$max
+    ex=Bereken de inkoopwaarde van de omzet voor de $(maand$i)
+    description=Inkoopwaarde van de omzet
+    ans=$[100*($(uit$i)/(100+$btw))]
+    answer$n=$[100*$ans/(100 + $bruto)]
+    textanswer$n=<ul><li>Winstberekeningen altijd exclusief btw</li><li>Omzet - Inkoopwaarde van de omzet = Brutowinst</li><li>100 &times; $(uit$i) &divide; $[100+$btw] = &euro; $ans [omzet exclusief btw]</li><li>Inkoopwaarde van de omzet = 100 &times; $ans &divide;  $[100+$bruto] = &euro; $[(round(100*$(answer$n)))/100] </li></ul>
+!else
+    !if $R=2
+	i=!randint 1,$max
+	ex=Bereken de brutowinst van $bank voor de maand $(maand$i)
+	description=Brutowinst in $(maand$i)
+	ans=$[100*$(uit$i)/(100+$btw)]
+	answer$n=$[$bruto*$ans/(100 + $bruto)]
+	textanswer$n=<ul><li>Winstberekeningen altijd exclusief btw.</li><li>Omzet &minus; Inkoopwaarde = Brutowinst</li><li>$(uit$i) &divide; $[100+$btw] &times; 100 = &euro $ans [omzet excl. btw]</li><li>Brutowinst = $ans &divide; $[$bruto+100] &times; $bruto = &euro; $[(round(100*$(answer$n)))/100]</li></ul>
+    !else
+	keuze=!randint 0,1
+	!if $keuze=1
+	    i=!randint 2,$max
+	    w=$[$i-1]
+	    ex=Bereken het totale bedrag dat in $(maand$i) door $bank wordt ontvangen wegens de verkoop van goederen.
+	    description=Ontvangen in $(maand$i)
+	    ans1=$[$(uit$i)*((100 - $uitperc)/100)]
+	    ans2=$[$(uit$w)*$uitperc/100]
+	    answer$n=$[$ans1 + $ans2]
+	    textanswer$n=<ul><li>$[100 - $uitperc] % contant : $[(100 - $uitperc)/100] &times; $(uit$i) = &euro; $ans1 </li><li>$uitperc % debiteuren (crediettermijn is 1 maand) : $[$uitperc/100] &times; $(uit$w) = &euro; $ans2 </li><li>Totaal ontvangen : &euro; $ans1 + &euro; $ans2 = &euro; $(answer$n)</li></ul>
+	!else
+	    i=!randint 3,$max
+	    w=$[$i-2]
+	    ex=Bereken het totale bedrag dat $bank in $(maand$i) moet betalen aan inkopen.
+	    description=Betaald in $(maand$i)
+	    ans1=$[$(in$i)*((100 - $inperc)/100)]
+	    ans2=$[$(in$w)*$inperc/100]
+	    answer$n=$[$ans1 + $ans2]
+	    textanswer$n=<ul><li>De gehanteerde crediettermijn voor $bank is 2 maanden</li><li>$[100 - $inperc] % contant : $[(100 - $inperc)/100] &times; $(in$i) = &euro; $ans1 </li><li>$inperc % crediteuren (crediettermijn is 2 maand) : $[$inperc/100] &times; $(in$w) = &euro; $ans2 </li><li>Totaal betaald : &euro; $ans1 + &euro; $ans2 = &euro; $(answer$n)</li></ul>
+	!endif
+    !endif
+!endif
+
+make_tr=1
+inputs=1.1
+helptext=$tabel
+ex1=&euro;
+question$n=<a onmouseover="return escape('$helptext')">$ss<br />$ex</a>

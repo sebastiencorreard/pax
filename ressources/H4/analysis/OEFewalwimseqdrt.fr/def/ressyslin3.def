@@ -1,0 +1,142 @@
+!set title=Résolution d'un système linéaire III
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+keywords=linear_system
+
+ansorder=r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=a,m,u,x
+val7=b,n,v,y
+tmp0=!randint 1, 4
+
+val8=$[rint($(tmp0))]
+val9=$(val6[$val8])
+val10=$(val7[$val8])
+tmp0=!makelist x,-x for x=2 to 9
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!item 1 to 3 of $val11
+
+val12=$(tmp0),$(tmp1)
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+val13=$[rint($(val12[1]))]
+val14=$[rint($(val12[2]))]
+val15=$[rint($(val12[3]))]
+val16=$[rint($(val12[4]))]
+val17=$[rint($val13*$val16-$val14*$val15)]
+
+!ifval $val17=0
+val15=$[rint(-1*($val15))]
+!endif
+val17=$[rint($val13*$val16-$val14*$val15)]
+tmp0=!randint -9, 9
+
+val18=$[rint($(tmp0))]
+tmp0=!randint -9, 9
+
+val19=$[rint($(tmp0))]
+val20=$[rint($val18*$val16-$val14*$val19)]
+val21=$[rint($val13*$val19-$val18*$val15)]
+tmp=!translate ";': to $     $ in $val20/$val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val22=!exec pari print($t_)
+tmp=!translate ";': to $     $ in $val21/$val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val23=!exec pari print($t_)
+tmp0=!texmath $val13*$val9+$val14*$val10
+
+val24=$(tmp0)
+tmp0=!texmath $val15*$val9+$val16*$val10
+
+val25=$(tmp0)
+replytype1=numexp
+replyname1=$val9
+replygood1=$val22
+replytype2=numexp
+replyname2=$val10
+replygood2=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Résoudre le système :	<div class="wimscenter">
+!insmath  \left \lbrace \begin{array}{rcll} $val24&=&$val18 & (1)\\ $val25&=&$val19 & (2)\end{array} \right .
+$()	</div>	<div class="wimscenter">S={( 
+!read oef/embed.phtml reply1,4 
+$(), 
+!read oef/embed.phtml reply2,4 
+$())}</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,24,25
+embedcnt=2

@@ -1,0 +1,115 @@
+!! no need for translation
+#thales 1
+
+
+
+check=0
+type=!lower $type
+tot=0
+
+!!! Extract values of all user points
+
+ptcnt=0
+!for t in $type
+ !if point isin $t
+    !advance ptcnt
+    !advance tot
+    t=!replace internal @ by , in $t
+    x$ptcnt=!item 3 of $t
+    y$ptcnt=!item 4 of $t
+ !endif
+!next
+
+!!! check number of required points
+
+nb=!itemcnt $ptnames
+!if $tot < $nb
+REMARK=!record 5 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+!if $tot > $nb
+REMARK=!record 3 of remarks.$taal
+goback=1
+!increase try
+!exit
+!endif
+
+
+!! distance from A to B
+dAB=$[sqrt(($x1-$x2)^2+($y1-$y2)^2)]
+!! distance from A to C
+dAC=$[sqrt(($x1-$x3)^2+($y1-$y3)^2)]
+
+!!  ??  AC=xx/yy AC  ??
+dist1=$[abs($xx*$dAB-$yy*$dAC)]
+!!  ?? C is on the segment AB  ?? 
+dist2=$[($x3-$x1)/($x2-$x1)]
+dist3=$[($y3-$y1)/($y2-$y1)]
+
+
+!!! check number of line
+line=0
+!for t in $type
+  !if line isin $t
+     !advance line
+  !endif
+!next t
+
+
+
+!!!if the point C isn't on the segment [AB]!
+!ifval ($[abs($dist2-$dist3)]>0.01) or $dist2 < 0 or $dist2 > 1
+    goback=1
+    !increase try
+    REMARK=!record 51 of remarks.$taal
+    !exit
+!else
+
+!ifval ($dist1<$precision) 
+    !increase check 
+!endif
+
+!!!!ifval ($dist1<0.08) 
+!ifval ($dist1<0.1) 
+    #the precision is very good : the student must used circles and his construction is what I want to have.
+    !increase check 
+!endif
+
+!if $check >= 2
+    #All is right !
+    score=$[$score + 1]
+    REMARK=!record 23 of remarks.$taal
+    HINT=$OK
+!else
+    !if $check = 1
+	score=$[$score+0.2]
+	REMARK=!record 24 of remarks.$taal
+	!if $line < 3
+	    HINT=!record 46 of remarks.$taal
+            HINT= $HINT $BOK
+            goback=1
+	!else
+	    HINT=!record 47 of remarks.$taal
+	    HINT=$HINT $BOK
+        !endif
+    !else
+	REMARK=!record 25 of remarks.$taal
+	!if $line < 3
+	    HINT=!record 46 of remarks.$taal
+            HINT= $HINT $NOK
+            goback=1
+	!else
+            HINT=!record 48 of remarks.$taal
+            HINT=$HINT $NOK
+        !endif
+    !endif
+!endif	
+
+!if $debug=1
+    debug_data=!append line <li>linecount line=$line</li><li>the HINT=$HINT</li><li>dist1=$dist1</li><li>xx=$xx yy=$yy</li> to $debug_data
+!endif
+
+!endif

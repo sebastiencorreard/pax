@@ -1,0 +1,269 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# answer$n is een tweetal hoeken in graden.
+# als inputs=0 verwachten we een antwoord dmv applet
+# als input=1 verwachten we een tweetal getallen: in graden of radialen
+n=$counter
+
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+tot=!item 1 of $(reply$n)
+chk=!itemcnt $(answer$n)
+# goede antwoord heeft twee items, leerling maar 1
+!if $tot !=1
+    er=1
+    !if $tot > $[5*$chk]
+        ex=!record 47 of lang/remarks.$taal
+	#@ ZoZo,leuk he dat GeoGebra...
+    !else
+	ex=!record 46 of lang/remarks.$taal
+	#@ Je zit met de som te prutsen...je moet natuurljk de objecten niet verwijderen...
+    !endif
+!endif
+!if $er=1
+    !if $teaching=1
+	maxscore=$[$P3*$maxscore]
+	errortext=$ex
+	goback=1
+    !else
+	remark$n=$NOK<br />$ex
+	maxscore=0
+	goback=0
+    !endif
+ !exit
+!endif
+
+# alleen hoek
+AAA=!item 15 of $(reply$n)
+# reply$n= 1,0,0,0,0,0,0,0,0,1,0,0,0,0,angle@1 @ 353^0,
+# antwoord is in graden
+AAA=!replace internal @ by , in $AAA
+AAA=!item 2 of $AAA
+AAA=!nospace $AAA
+AAA=!replace internal ^0 by $empty in $AAA
+!if degree isin $AAA
+    AAA=!replace internal degree by $empty in $AAA
+!else    
+    !if ^0 isin $AAA
+	AAA=!replace internal ^0 by $empty in $AAA
+    !else
+    #radians?
+	AAA=!replace [a-z/~!@#$=_-] by $empty in $AAA
+	AAA=180*($AAA)/pi
+    !endif
+!endif
+
+org=$[round($AAA)]
+
+!if NaN isin $[1*$AAA]
+    errortext=!record 48 of lang/remarks.$taal
+    #@ Dit antwoord kan ik niet nakijken<br />Geen idee wat je hier uitspookt...
+    maxscore=$[$P5*$maxscore]
+    goback=1
+    !exit
+!endif
+
+score=0
+!ifval $chk=2
+    G1=!item 1 of $(answer$n)
+    G2=!item 2 of $(answer$n)
+    G1=$[abs((round(100*(sin(pi*$G1/180))))/100)]
+    G2=$[abs((round(100*(sin(pi*$G2/180))))/100)]
+    G11=$[0.98*$G1]
+    G12=$[1.02*$G1]
+    G21=$[0.98*$G2]
+    G22=$[1.02*$G2]
+    AAA=$[abs((round(100*(sin($AAA*pi/180))))/100)]
+    !ifval ($AAA >$G11 and $AAA <$G12) or ($AAA >$G21 and $AAA <$G22)
+	score=1
+	kl=green
+    !else
+	G11=$[0.94*$G1]
+	G12=$[1.06*$G1]
+	G21=$[0.94*$G2]
+	G22=$[1.06*$G2]
+	!ifval ($AAA >$G11 and $AAA <$G12) or ($AAA >$G21 and $AAA <$G22)
+	    score=0.6
+	    kl=orange
+	!else
+	    score=0
+	    kl=red
+	!endif
+    !endif
+!else
+    G1=!item 1 of $(answer$n)
+    G1=$[abs((round(100*(sin(pi*$G1/180))))/100)]
+    G11=$[0.98*$G1]
+    G12=$[1.02*$G1]
+    AAA=$[abs((round(100*(sin($AAA*pi/180))))/100)]
+    !ifval $AAA >$G11 and $AAA <$G12
+	score=1
+	kl=green
+    !else
+	G11=$[0.94*$G1]
+	G12=$[1.06*$G1]
+	!ifval $AAA >$G11 and $AAA <$G12
+	    score=0.6
+	    kl=orange
+	!else
+	    score=0
+	    kl=red
+	!endif
+    !endif
+!endif
+
+youranswer2=$empty
+youranswer1=<span style="color:$kl">GeoGebra : $org &deg; </span>
+
+!if $inputs=1
+    #var1=1 : antwoord leerling in radialen
+    #var1=0 : antwoord leerling in graden
+    # check the input fields
+    # vartxt=document.forms['sendtext'].elements['myvar1'].value;                                               
+    # t=encodeURIComponent( txt );                                                                             
+    # var URL = '$wims_ref_name?session=$session&module=$module&cmd=reply&+reply$n='+tot+','+'text='+txt;
+    AAA=!item -5 to -1 of $(reply$n)
+    AAA=!replace internal text= by # in $AAA
+    t=!positionof char # in $AAA
+    AAA=!char $[$t+1] to -1 of $AAA
+    test=!wordcnt $AAA
+    !if $test=0
+	myvar1=$AAA
+	errortext=!record 62 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+    AAA=!words2items $AAA
+    AAA=!nospace $AAA
+    AAA=!replace internal pi by PI in $AAA
+    AAA=!replace [a-z\#\~\`\_\=\+\-\:\;\"\'\>\<] by $empty in $AAA
+    AAA=!lower $AAA
+    AAA=!nospace $AAA
+    !for p=1 to 4
+	AAA=!replace internal ,, by , in $AAA
+    !next p
+    t2=!itemcnt $AAA
+    # chk=!itemcnt $(answer$n)
+    !if $t2 != $chk
+	!if $t2=0
+	    ex=!record 62 of $remarkdir/commonremarks.$taal
+	    !if $teaching=1
+		maxscore=$[$maxscore*$P7]
+		errortext=$ex
+		myvar1=$AAA
+		goback=1
+	    !else
+		remark$n=$NOK $ex
+		goback=0
+		maxscore=0
+	    !endif
+	    !exit
+	!endif
+	!if $t2>$[5*$chk]
+	    ex=!record 48 of $remarkdir/commonremarks.$taal
+	    !if $teaching=1
+		maxscore=$[$maxscore*$P5]
+		errortext=$ex
+		myvar1=$AAA
+		goback=1
+	    !else
+		remark$n=$NOK $ex
+		goback=0
+		maxscore=0
+	    !endif
+	    !exit
+	!endif
+    !endif
+    f=1
+    !if $t2>$chk
+	f=$[$chk/$t2]
+    !else
+	f=$[$t2/$chk]
+    !endif
+    score2=0
+    klaar=0
+    !for p=1 to $chk
+        G=!item $p of $(answer$n)
+	G=$[(round(100*sin(($G)*pi/180)))/100]
+	# answer$n is altijd in graden
+	!for s=1 to $t2
+	    !if $klaar=0
+		A=!item $s of $AAA
+		A=!rawmath $A
+		!if NaN isin $[1*($A)]
+		    errortext=!record 45 of lang/remarks.$taal
+		    #@Je antwoord $A is niet echt lekker te controleren....
+		    myvar1=!replace internal , by $ $ in $AAA
+		    goback=1
+		    !exit
+		!endif
+		!if $var1=0
+		    # graden
+		    A=$[(round(100*sin(($A)*pi/180)))/100]
+		!else
+		    A=$[(round(100*sin($A)))/100]
+		!endif
+	        !ifval $A=$G
+		    !increase score2
+		    klaar=1
+		!else
+		    G=$[round(10*$G)]
+		    A=$[round(10*$A)]
+		    !ifval $A=$G
+			score2=$[$score2 + 0.7]
+		        klaar=1
+		    !endif
+		!endif
+	    !endif
+	!next s 
+	klaar=0
+    !next p
+    score2=$[($f*$score2)/$chk]
+    !if $score2=1
+	kl=green
+    !else
+	!if $score2>0.4
+	    kl=orange
+	!else
+	    kl=red
+	!endif
+    !endif
+    # verbalanswers more important
+    score=$[(round(100*((2*$score + 5*$score2)/7)))/100]
+    youranswer2=<br />Input: <ul style="color:$kl">
+    !for p=1 to $t2
+	A=!item $p of $AAA
+	A=!htmlmath $A
+	youranswer2=!append line <li>$A</li> to $youranswer2
+    !next p
+    youranswer2=$youranswer2</ul>
+!endif
+
+reply$n=$youranswer1 $youranswer2
+math=0
+!if $score>0.9
+    remark$n=$OK
+!else
+    !if $score>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

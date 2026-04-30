@@ -1,0 +1,164 @@
+!set title=Équation
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Rectorat de Nice
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(30x30x3)]
+tmp0=!shuffle 2,3,4,5,6,7,8,9
+
+val7=$(tmp0)
+tmp=!nonempty items x,y,a,b,u,v
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val9=(XX+$val8 = YY,YY-XX),(XX-$val8 = YY,XX-YY),(XX$val8 = YY,YY/XX),(\frac{$val8}{XX} = YY,YY*XX)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val10=
+val11=
+!for val12 =1 to 4 
+tmp0=!item $val12 of $val9
+
+val13=$(tmp0)
+tmp0=!declosing $val13
+
+val13=$(tmp0)
+tmp0=!shuffle 1,2
+
+val14=$(tmp0)
+tmp0=!item $(val14[1]) of $val7
+
+val15=$[rint($(tmp0))]
+tmp0=!item $(val14[2]) of $val7
+
+val16=$[rint($(tmp0))]
+tmp0=!replace internal XX by $val15 in $val13
+
+val13=$(tmp0)
+tmp0=!replace internal YY by $val16 in $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val17=$(tmp0)
+tmp0=!item 2 of $val13
+
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val18=$(tmp1)
+tmp0=!append item $val17 to $val10
+
+val10=$(tmp0)
+tmp0=!append item $val18 to $val11
+
+val11=$(tmp0)
+!next
+val19=Nombre
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=Equation 1
+replygood1=$(val11[1])
+replytype2=numexp
+replyoption2=noreduction 
+replyname2=Equation 2
+replygood2=$(val11[2])
+replytype3=numexp
+replyoption3=noreduction 
+replyname3=Equation 3
+replygood3=$(val11[3])
+replytype4=numexp
+replyoption4=noreduction 
+replyname4=Equation 4
+replygood4=$(val11[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Dans chaque cas, trouver quel nombre la lettre désigne.	<table class="wimscenter wimsborder">	<tr>	<td>
+!insmath $(val10[1])
+$()<br>	$val19 :  
+!read oef/embed.phtml r1,$val6 
+$()</td>	<td>
+!insmath $(val10[2])
+$() <br>	$val19 :  
+!read oef/embed.phtml r2,$val6 
+$()</td>	</tr><tr>	<td>
+!insmath $(val10[3])
+$() <br>	$val19 :  
+!read oef/embed.phtml r3,$val6 
+$()</td>	<td>
+!insmath $(val10[4])
+$() <br>	$val19 :  
+!read oef/embed.phtml r4,$val6 
+$()</td>	</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,19
+embedcnt=4

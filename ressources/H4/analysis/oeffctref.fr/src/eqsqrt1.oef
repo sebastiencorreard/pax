@@ -1,0 +1,193 @@
+\title{Résolution graphique et demi-parabole}
+\language{fr}
+\author{Régine, Mangeard}
+\email{regine@mangeard.fr}
+\computeanswer{yes}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+## Choix du nombre de solution
+\integer{nbsol=random(2,2,2,2,2,1,1,1,0,0)}
+## integer{nbsol=0}
+\text{listnbsol=Aucune solution, une solution, deux solutions, une infinité de solutions}
+
+\if{\nbsol=0}
+ {
+\integer{d=random(1,-1)}
+\integer{a=random(1..5)*(\d)}
+\integer{b=random(1..5)*(\d)}
+\integer{c=random(1..5)*(\d)}
+\rational{e=\c / (\b)}
+\if{\e>1}{\rational{c=abs((\b)^2 / (\c))*(\d)}}
+\integer{bb=(\b)*(-1)}
+\rational{cc=(\c)*(-1)}
+\function{f=\a*x+(\b)*sqrt(x)+\c}
+\text{equat=\a=1?x: \a x }
+\text{equat=\a=-1?- x:\equat}
+\text{g=\a*x}
+   \rational{a2=simplify( \a / (\bb))}
+   \if{\b=1 or \b=-1}
+    {
+   \text{equat=\d>0?\equat + \sqrt{x}: \equat - \sqrt{x} }
+     }
+    {
+   \text{equat=\d>0?\equat + \b \sqrt{x}: \equat - \bb \sqrt{x} }
+    }
+   \text{g=\a2 * x}
+
+\if{\c !=0}
+  {
+   \rational{b2=simplify( \c / (\b))}
+   \text{equat=\d>0?\equat + \c: \equat - \cc }
+   \text{g=\g - \b2}
+  }
+\text{equat=\equat=0}
+\text{eqaff=wims(replace * by in \g)}
+
+\integer{indsol=1}
+\text{mstep=r1
+r2}
+ }
+ {
+## Choix de l'équation à résoudre
+\text{lstsing=0,1,2,3,4}
+\text{lstsing=shuffle(\lstsing)}
+\rational{sing1=\lstsing[1]}
+
+\if{\nbsol=1}
+  {
+  \text{lstsing=1,2,3,4}
+  \text{lstsing=shuffle(\lstsing)}
+  \rational{sing1=\lstsing[1]}
+
+   \rational{sing2=\sing1}
+   \integer{indsol=2}
+   \rational{rsing1=(\sing1)^2}
+   \text{goodrep=\rsing1}
+  }
+  {
+\rational{sing2=\lstsing[2]}
+\integer{indsol=3}
+\if{\sing1=\sing2}
+  {
+  \integer{nbsol=1}
+  \integer{indsol=2}
+  \rational{rsing1=(\sing1)^2}
+  \text{goodrep=\rsing1}
+  }
+  {
+  \rational{rsing1=(\sing1)^2}
+  \rational{rsing2=(\sing2)^2}
+  \text{goodrep=\rsing1,\rsing2}
+  }
+   }
+\function{f=(x- (\sing1))*(x-(\sing2))}
+\integer{a=1}
+\integer{b=-\a*((\sing1)+(\sing2))}
+\text{s1=\b>0?+:-}
+\integer{b2=\b<0?\b*(-1):\b}
+\integer{c=\a*(\sing1)*(\sing2)}
+\text{s2=\c>0?+:-}
+\integer{c2=\c<0?\c*(-1):\c}
+\text{equat=\a=1? x: \a x }
+\if{\b !=0}
+  {
+  \if{\b=1 or \b=-1}
+    {\text{equat=\equat \s1  \sqrt{x} }}
+    {\text{equat=\equat \s1 \b2 \sqrt{x} }}
+  }
+\if{\c !=0}
+  {\text{equat=\equat \s2 \c2 }}
+\text{equat=\equat=0}
+\function{g=\c=0?simplify(-(\a)/ (\b)*x):simplify(-(\a)/(\b))*x -(\c)/(\b)}
+\text{eqaff=\g}
+\text{eqaff=wims(replace * by in \eqaff)}
+\text{mstep=r1
+r2
+r3}
+
+}
+### cadre générique ###
+\text{cadre=
+xrange -1,17
+yrange -1.2,6
+gridfill 0,0,5,5,\gridcolor
+linewidth 1
+linewidth 2
+  parallel -1,-1,-1,6,1,0,18,blue
+  parallel -1,-1,17,-1,0,1,8,blue
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+    linewidth 2
+    plot red,sqrt(x)
+}
+## fin du cadre générique ##
+\text{cadre2=\cadre
+    plot green,\g
+}
+\if{\nbsol>1}
+ {\text{tindiquer=les solutions de l'équation (séparées par une virgule)}}
+ {\text{tindiquer=la solution de l'équation}}
+\if{\step=2}
+{ \text{eqaff=wims(replace * by in \reply1)}}
+
+\nextstep{\mstep}
+
+####### enoncé de l'exo #######
+
+\statement{
+
+On veut résoudre graphiquement dans \(\ \RR) l'équation:
+<div class="wimscenter"> \(\equat).</div>
+
+\if{\step=1}{
+<div class="float_right">\draw{400,400}{\cadre}</div>
+<p>On dispose pour cela de la représentation graphique de la fonction racine carrée
+de référence \(f(x)=\sqrt{x}).</p>
+
+<p>
+On se propose de tracer sur le même dessin la représentation graphique
+d'une fonction affine judicieusement choisie.</p>
+<p>Indiquer l'expression algébrique de cette fonction:</p>
+<div class="wimscenter">\(g(x)=)\embed{reply 1,10}</div>
+}
+{<div class="float_right">\draw{400,400}{\cadre2}</div>
+<p>On dispose maintenant des représentations graphiques des fonctions
+<span style="color:red">\(f)</span>,
+ et <span style="color:green">\(g)</span> avec </p>
+<div class="wimscenter"> avec \(\special{color=red}f(x)=\sqrt{x})
+ et  \(\special{color=green}g(x)=\eqaff\).
+ </div>
+\if{\step=2 or (\step=3 and \nbsol=0)}
+  {
+ <p>Combien de solutions l'équation possède-t-elle ?</p>
+<div class="wimscenter"> \(\equat):</div>
+<ul>
+<li>\embed{reply 2,1}</li>
+<li>\embed{reply 2,2}</li>
+<li>\embed{reply 2,3}</li>
+<li>\embed{reply 2,4}</li>
+</ul>
+  }
+  {\if{\nbsol>0}
+   {
+<p>Indiquer \tindiquer :</p>
+<div class="wimscenter"> \(S=)\embed{reply3,5}.</div>
+<div class="wims_instruction">N.B: les solutions sont entières ou de la forme: un entier +0.5. </div>
+  }
+  }
+}
+}
+
+#### soumission de réponse ####
+\answer{g(x)}{\g}{type=formal}
+\answer{nb solutions}{\indsol;\listnbsol}{type=radio}
+\answer{solution}{\goodrep}{type=fset}

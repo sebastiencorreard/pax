@@ -1,0 +1,111 @@
+!set title=Calculer un antécédent
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=P. BYACHE
+email=paul-marcel-rog.byache@ac-aix-marseille.fr
+precision=10000
+
+ansorder=r
+varcnt=7
+prevarcnt=6
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,4,-2,-4,-5,-7,6,8,9,2/3,1/2,1/4,3/5
+
+t_=!rawmath $(tmp0)
+val6=!exec pari print($t_)
+tmp0=!randint 5, 12
+
+tmp1=!randint -9, 9
+
+tmp2=!randint 1, 5
+
+tmp3=!randint 2, 5
+
+tmp4=!randitem $(tmp0), $(tmp1), $(tmp2)/$(tmp3)
+
+t_=!rawmath $(tmp4)
+val7=!exec pari print($t_)
+t_=!rawmath $val6*$val7
+val8=!exec pari print($t_)
+tmp=!translate internal $	$ to ; in <I>f</I> est la fonction linéaire qui à <I>x</I> fait correspondre \($val6) <I>x</I>. 	<I>f</I> est la fonction linéaire qui à <I>x</I>  associe \($val6) × <I>x</I>. 	<I>f</I> est la fonction linéaire <br> <center> <I>f</I>  : <I>x</I> \(\mapsto) \($val6) <I>x</I>.</center> 
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in <I>f &#40; x &#41;</I> = $val8. Le nombre \(x) est égal à : 	<I>f</I>: <I>x</I> \(\mapsto) $val8 <br> Le nombre \(x) est égal à : 	Quel est le nombre dont l'image est $val8 ? Réponse : 
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+t_=!rawmath $val7
+val11=!exec pari print($t_)
+replytype1=numexp
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() <br> <br> <big> <strong> $val9  </big> </strong> 	<p> Complétez :</p>	<p align="center"> $val10  
+!read oef/embed.phtml reply1,4 
+$() </p>	<p> <i>ATTENTION: Si vous donnez une réponse sous forme de fraction, il faut qu'elle soit simplifiée.	</i></p>
+$()
+!exit
+
+:hint
+$()<font color = "purple"><br> Pour calculer l'image <I>f(x)</I> du nombre <I>x</I>, 	il faut le multiplier par le coefficient $val6.<br><br> 	
+!insmath x
+$() est donc le nombre qui, multiplié par $val6, est égal à $val8 ...</font>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10
+embedcnt=1

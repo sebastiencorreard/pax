@@ -1,0 +1,160 @@
+!set title=Factoriser simple 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!values v for v=2 to 12
+
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$[rint($(tmp0))]
+tmp0=!item 2 of $val6
+
+val8=$[rint($(tmp0))]
+val9=$[rint(gcd($val7,$val8))]
+!if $val9!=1 
+val7=$[rint(3)]
+val8=$[rint(7)]
+!endif
+tmp0=!item 3 of $val6
+
+val10=$[rint($(tmp0))]
+tmp0=!item 4 of $val6
+
+val11=$[rint($(tmp0))]
+val9=$[rint(gcd($val10,$val11))]
+!if $val9!=1 
+val10=$[rint(4)]
+val11=$[rint(9)]
+!endif
+tmp0=!item 5 of $val6
+
+val12=$[rint($(tmp0))]
+tmp0=!item 6 of $val6
+
+val13=$[rint($(tmp0))]
+val9=$[rint(gcd($val12,$val13))]
+!if $val9!=1 
+val12=$[rint(11)]
+val13=$[rint(3)]
+!endif
+tmp=!nonempty items x,y,z,t,u,v
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp=!nonempty items A,B,C,D,V
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!nonempty items -,+
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+tmp0=!shuffle -,+
+
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 2 of $val17
+
+val17=$(tmp0)
+val19=$[rint($val7*$val10)]
+val20=$[rint($val8*$val10)]
+tmp=!nonempty items $val19*$val14$val16$val20,$val19$val16$val20*$val14
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+t_=!replace internal \( by ( in factor($val21);
+tmp0=!exec maxima $t_
+
+val22=$(tmp0)
+tmp0=!texmath $val21
+
+val23=$(tmp0)
+replytype1=algexp
+replyname1=réponse
+replygood1=$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Factoriser au maximum l'expression suivante :	<div class="wimscenter"> 
+!insmath $val15 = $val23
+$()</div>	<p>	<b>Votre réponse :</b>	</p>	<div class="wimscenter">	
+!insmath $val15 =
+$()  
+!read oef/embed.phtml r1,20 
+$().	</div>	<div class="wims_instruction">Attention, dans la mesure du possible, le coefficient dominant de chaque facteur doit être positif.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,23
+embedcnt=1

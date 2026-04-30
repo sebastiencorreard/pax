@@ -1,0 +1,204 @@
+n=$counter
+questiontype=1
+checkfile=$checkdir/multiplechoice.proc
+mathview=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+insplot_data=$empty
+!if $options<3 or $options>8
+    options=4
+!endif
+make_tr=0
+choice=!randint 1,$options
+answer$n=$choice
+ss=!record 21 of lang/remarks.$taal
+#@ Welke toenametabel komt overeen met het getoonde grafiek ?
+etext=!record 22 of lang/remarks.$taal
+#@<span style="color:blue">Klik hier</span> voor de grafiek <em>(gebruikt een java applet)</em>
+image=0
+math=0
+applet=1
+plot=0
+xmin=0
+xmax=6
+delta=1
+
+!if $R=1 or $R=2
+    # met JCM applet als functionplotter
+    sometext=!record 7 of lang/remarks.$taal
+    #@ De tabel is gemaakt met deze functie
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    b=!randitem 0,1,2,3,4,5
+    r=!randitem -1,1
+    pm=!randitem -,+
+    !for p=1 to $options
+	Y$p=$empty
+	a=!item $p of $aa
+	a=$[$a*$r]
+	!if $R=1
+	    f=$a*x $pm $b
+	    fp=$a*x $pm $b
+	!else
+	    f=$a*x^2 $pm $b
+	!endif
+	!if $p=$choice
+	    correct=$f
+	!endif
+	!for s=$xmin to $xmax
+	    y=!evalsubst x=$s in $f
+	    Y$p=!append item $y to $(Y$p)
+	!next s
+    !next p
+
+    !for p=1 to $options
+	ex$p=$empty
+	xtabel=$empty
+	ytabel=$empty
+	ymin=0
+	ymax=0
+	!for s=1 to $[$xmax-1]
+	    y1=!item $s of $(Y$p)
+	    y2=!item $[$s+1] of $(Y$p)
+	    !if $y2>$ymax
+		ymax=$y2
+	    !endif
+	    !if $y1<$ymin
+		ymin=$y1
+	    !endif
+	    xtabel=!append line <td>$s</td> to $xtabel
+	    ytabel=!append line <td>$[$y2-$y1]</td> to $ytabel
+	!next s
+	ex$p=<table class="demospecial"><tr><th>x</th>$xtabel</tr><tr><th>$m_Delta y</th>$ytabel</tr></table>
+    !next p
+    niceplot=!htmlmath f(x)=$f
+    textanswer$n=<ul><li>$(ex$choice)</li><li>$sometext<br />$niceplot</li></ul>
+    
+    ymin=$[(round(100*($ymin-1)))/100]
+    ymax=$[(round(100*($ymax+1)))/100]
+    !if $ymin>-1
+	ymin=-1
+    !endif
+    !if $ymax<1
+	ymax=1
+    !endif
+    xstep=$[$xmax/10]
+    ystep=$[($ymax-$ymin)/10]
+    
+    var9=size 480,300\
+    bgcolor $wims_bgcolor\
+    xrange -1,$xmax\
+    yrange $ymin,$ymax\
+    xlabel x-as \
+    ylabel y-as \
+    axis\
+    axisnumbering\
+    precision 1\
+    grid 1,1,grey,2,2,6,blue\
+    linewidth 2\
+    precision 100\
+    jscurve red,$correct\
+    opacity 255,255\
+    crosshairsize 5\
+    strokecolor green\
+    jsmath $correct\
+    setlimits
+    
+
+    
+    object$n=!exec canvasdraw\
+    $var9
+
+    question$n=$ss
+
+    !exit
+!endif
+!if $R>2
+    dataset=$empty
+    # met GNUplot als dataplotter
+    sometext=!record 8 of lang/remarks.$taal
+    #@ De tabel is gemaakt van deze randomdata
+    aa=!shuffle 0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25
+    ymin=0
+    ymax=0
+    !for p=1 to $options
+	Y$p=$empty
+	!for x=$xmin to $xmax
+	    pm=!randitem +,-
+	    r=!randitem -1,1
+	    a=!randitem 1,2,3
+	    y=!item $p of $aa
+	    y=$[$r*$y $pm $a]
+	    Y$p=!append item $y to $(Y$p)
+	    !if $p=$choice
+		!if $y<$ymin
+	    	    ymin=$y
+		!endif
+		!if $y>$ymax
+		    ymax=$y
+		!endif
+		# de grafiek
+		# insplot_data=!append line $x $y to $insplot_data
+		dataset=!append item $x,$y to $dataset
+		showx=!append line <td>$x</td> to $showx
+		showy=!append line <td>$y</td> to $showy
+	    !endif
+	!next x
+    !next p
+    !for p=1 to $options
+	ex$p=$empty
+	xtabel=$empty
+	ytabel=$empty
+	!for s=1 to $[$xmax-1]
+	    y1=!item $s of $(Y$p)
+	    y2=!item $[$s+1] of $(Y$p)
+	    xtabel=!append line <td>$s</td> to $xtabel
+	    ytabel=!append line <td>$[$y2-$y1]</td> to $ytabel
+	!next s
+	ex$p=<table class="demospecial"><tr><th>x</th>$xtabel</tr><tr><th>$m_Delta y</th>$ytabel</tr></table>
+    !next p
+    
+    #insplot_set=size 0.8,0.8; autoscale y ; border 3;zeroaxis linetype 4 lw 3 ; tmargin 1 ; rmargin 1 ; grid linetype 2 ; xtics 1 ; ytics 1
+    #!insplot [$[$xmin-$delta] : $[$xmax+$delta]] insplot_data notitle  with lines lt 1
+    #exotext=<a href=javascript:showimage();>$exotext 
+    textanswer$n=$(ex$choice)<br />$sometext<br /><table class="demospecial"><tr><th>x</th>$showx</tr><tr><th>y</th>$showy</tr></table>
+    question$n=$ss
+    helptext=$empty
+    applet=1
+    
+    question$n=$ss
+    ymin=$[(round(100*($ymin-2)))/100]
+    ymax=$[(round(100*($ymax+2)))/100]
+    !if $ymin>-1
+	ymin=-1
+    !endif
+    !if $ymax<1
+	ymax=1
+    !endif
+    xstep=$[($xmax)/10]
+    ystep=$[($ymax-$ymin)/10]
+    var9=size 480,300\
+    bgcolor $wims_bgcolor\
+    xrange -1,$xmax\
+    yrange $ymin,$ymax\
+    xlabel x-as\
+    ylabel y-as      \
+    precision 1\
+    axis\
+    axisnumbering\
+    grid 1,1,grey,3,3,6,grey\
+    linewidth 2\
+    polyline red,$dataset\
+    precision 100\
+    mouse black,24
+
+    
+    object$n=!exec canvasdraw $var9
+
+!endif
+
+
+
+    

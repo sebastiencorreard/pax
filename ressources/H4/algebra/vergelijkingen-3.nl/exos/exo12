@@ -1,0 +1,182 @@
+#var3=x
+#checkfile=exos/checkfile6.proc
+checkfile=$checkdir/number.proc
+arglist=x
+image=0
+math=0
+questiontype=0
+embed=1
+cols=16
+rows=1
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+question$n=!record 61 of lang/remarks.$taal
+#@ Los op:<br /><small><em>bereken dus de waarden van x</em><br />noteer bij meerdere oplossingen iets als:<br /><em>x</em>=1 en <em>x</em>=sqrt(3) of zo...</small>
+keuze=!randitem 1,0
+mathview=2
+mathviewpanel=$module_title:x1=:x2=:and:sqrt()
+
+!if $R=1
+    # a*sqrt(b+x)-c=d => sqrt(b+x)=(d+c)/a => b+x=((d+c)/a)^2 => x=-b+((d+c)/a)^2 
+    # a*sqrt(b-x)-c=d => sqrt(b-x)=(d+c)/a => b-x=((d+c)/a)^2 => x=b-((d+c)/a)^2 
+    a=!randitem 2,3,4,5
+    b=!randitem 1,2,3,4,5,6,7,8
+    c=!randitem 1,2,3,4,5,6,7,8
+    d=!randitem 1,2,3,4,5,6,7,8
+    !if $keuze=0
+	formula$n=$a \cdot \sqrt{\left( $b + x \right)}-$c = $d 
+	applettext=!nospace $a*sqrt($b+x) - $c = $d ->
+	answer$n=!exec pari (($d+$c)/$a)^2-$b
+        texanswer$n=\left[ \begin{array}{l}$a \cdot \sqrt{\left( $b + x \right)}-$c = $d \rightarrow \\ $a \cdot \sqrt{\left( $b + x \right)} =$[$d+$c] \rightarrow \\ \sqrt{\left( $b + x \right)}=\frac{$[$d+$c]}{$a} \rightarrow \\ $b + x=\frac{$[($d+$c)^2]}{$[$a^2]} \rightarrow \\ x=$(answer$n) \end{array} \right.
+    !else
+        formula$n=$a \cdot \sqrt{\left( $b - x \right)}-$c = $d 
+	applettext=!nospace $a*sqrt($b-x) - $c = $d ->
+        answer$n=!exec pari $b-(($d+$c)/$a)^2
+        texanswer$n=\left[ \begin{array}{l}$a \cdot \sqrt{\left( $b - x \right)}-$c = $d \rightarrow \\  $a \cdot \sqrt{\left( $b - x \right)} =$[$d+$c] \rightarrow \\ \sqrt{\left( $b - x \right)}=\frac{$[$d+$c]}{$a} \rightarrow \\ $b - x=\frac{$[($d+$c)^2]}{$[$a^2]} \rightarrow \\ x=$(answer$n) \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R=2
+    a=!randitem 2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem 1,2,3,4,5,6,7
+    d=!randitem 1,2,3,4,5,6,7
+    !if $c=$d
+	d=$[$c+1]
+    !endif
+    r=$[$c-$d]
+    !if $r<0
+	r=$r
+    !else
+	r= + $r
+    !endif
+    !if $keuze=1
+	# (-x+a)(x+b)=0 => -x^2+(a-b)x+ab + (x+c)^2=(x+c)^2
+	!if $[$a+2*$c-$b]=0
+	    a=$[$a+1]
+	!endif
+	p=$[$a+2*$c-$b]
+        q=$[$a*$b+$c*$c]
+	#answer$n=$a,$[-1*$b]
+	#f1=sqrt($p*x+$q) - $d
+	#f2=x $r
+	# substitueren...ik heb even geen tijd om dit verder uit te zoeken :(
+	f=$[-1*$b]
+	f11=$[sqrt($p*$a + $q)-$d]
+	f12=$[$a $r]
+	f21=$[sqrt($p*$f + $q)-$d]
+	f22=$[$f $r]
+	!ifval $f11=$f12 and $f21=$f22
+	    answer$n=$a,$f
+	    ans= x\,=\,$a \vee x\,=\,$f
+	!else
+	    !ifval $f11=$f12
+		answer$n=$a
+		ans=x\,=\,$a
+	    !else
+		answer$n=$f
+		ans=x\,=\,$f
+	    !endif
+	!endif
+	formula$n=\sqrt{ \left( $p \cdot x + $q  \right)} - $d = x $r 
+	applettext=!nospace sqrt($p*x + $q) - $d = x $r ->
+	texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( $p \cdot x + $q  \right)} - $d = x $r \rightarrow \\ \sqrt{ \left( $p \cdot x + $q  \right)} = x + $[$r+$d] \rightarrow \\ $p \cdot x + $q = (x + $[$r+$d])^2  \rightarrow \\ x=$a \vee x=$f \rightarrow \\ $ans \end{array} \right.
+    !else
+	# (-x+a)(x+b)=0 => -x^2+(a-b)x+ab+(-x+c)^2=(-x+c)^2
+	!if $[$a-2*$c-$b]=0
+	    a=$[$a+1]
+	!endif
+	p=$[$a-2*$c-$b]
+        q=$[$a*$b+$c*$c]
+	f=$[-1*$b]
+	#answer$n=$a,$f
+	#fun=sqrt($p*x + $q) -$d = -x + ($r)
+	# substitueren...ik heb even geen tijd om dit verder uit te zoeken :(
+	f11=$[sqrt($p*($a) + $q) -$d]
+	f12=$[-1*($a) $r] 
+	f21=$[sqrt($p*($f) + $q) -$d]
+	f22=$[-1*($f) $r] 
+	!ifval $f11=$f12 and $f21=$f22
+	    answer$n=$a,$f
+	    ans= x\,=\,$a \vee x\,=\,$f
+	!else
+	    !ifval $f11=$f12
+		answer$n=$a
+		ans=x\,=\,$a
+	    !else
+		answer$n=$f
+		ans=x\,=\,$f
+	    !endif
+	!endif
+	formula$n=\sqrt{ \left( $p \cdot x + $q  \right)} - $d = -x $r 
+	applettext=!nospace sqrt($p*x + $q) - $d = -x $r ->
+	texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( $p \cdot x + $q  \right)} - $d = -x $r \rightarrow \\  \sqrt{ \left( $p \cdot x + $q  \right)} = -x + $[$r+$d] \rightarrow \\ $p \cdot x + $q = (-x + $[$r+$d])^2 \rightarrow \\ x=$a \vee x=$f \rightarrow \\ $ans \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R>2
+    a=!randitem 2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5,6,7
+    c=!randitem 1,2,3,4,5,6,7
+    d=!randitem 1,2,3,4,5,6,7
+    !if $keuze=1
+        !if $c=$d
+	    d=$[$c+1]
+        !endif
+        r=$[$c-$d]
+        !if $r<0
+	    r=$r
+        !else
+	    r= + $r
+        !endif
+        p=$[$a+$b+2*$c]
+        q=$[$a*$b+$c*$c]
+	!if $a=$b
+	    answer$n=$[-1*$a]
+	!else
+    	    answer$n=$[-1*$a],$[-1*$b]
+	    f1=$[sqrt(2*(-1*$a)^2+$p*(-1*$a)+ $q) - $d]
+	    f11=$[(-1*$a) + ($c - $d)]
+	    f2=$[sqrt(2*(-1*$b)^2+$p*(-1*$b)+ $q) - $d]
+	    f22=$[(-1*$b) + ($c - $d)]
+	    !ifval $f1=$f11 and $f2=$f22
+		answer$n=$[-1*$a],$[-1*$b]
+		gg= x\,=\, $[-1*$a] \vee x\,=\,$[-1*$b]
+	    !else
+		!if $f1=$f11
+		    answer$n=$[-1*$a]
+		    gg= x\,=\, $[-1*$a]
+		!else
+		    answer$n=$[-1*$b]
+		    gg= x\,=\,$[-1*$b]
+		!endif
+	    !endif
+	!endif
+        formula$n=\sqrt{ \left( 2x^2 + $p \cdot x + $q  \right)} - $d = x $r 
+	applettext=!nospace sqrt(2*x^2 + $p*x + $q )- $d = x $r
+        texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( 2x^2 + $p \cdot x + $q  \right)} - $d = x $r \rightarrow \\  \sqrt{ \left( 2x^2 + $p \cdot x + $q  \right)} = x + $[$r+$d] \rightarrow \\ 2x^2 + $p \cdot x + $q = (x + $[$r+$d])^2 \rightarrow \\ $gg \end{array} \right.
+    !else
+	!if $[$b-2*$c]=0
+	    c=$[$c+1]
+	!endif
+	p=$[$b-2*$c]
+	!if $p>0
+	    p=+ $p
+	!endif
+	q=$[$c*$c]
+	r=$[$c+$d]
+        answer$n=0,$[-1*$b]
+        formula$n=\sqrt{ \left( 2x^2 $p \cdot x + $q  \right)} + $d = -x + $r 
+	applettext=!nospace sqrt(2*x^2 + $p*x + $q )+ $d = -x + $r
+        texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( 2x^2 $p \cdot x + $q  \right)} + $d = -x + $r \rightarrow \\  \sqrt{ \left( 2x^2 + $p \cdot x + $q  \right)} = -x + $[$r-$d] \rightarrow \\ 2x^2 + $p \cdot x + $q = (-x + $[$r-$d])^2 \rightarrow \\ x=0 \vee x=$[-1*$b] \end{array} \right.
+    !endif
+ !exit
+!endif
+
+

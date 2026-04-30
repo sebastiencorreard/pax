@@ -1,0 +1,124 @@
+#var3=x
+#checkfile=exos/checkfile6.proc
+checkfile=$checkdir/number.proc
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+arglist=x
+# answer must be 'x=123'
+image=0
+math=0
+questiontype=0
+embed=1
+cols=20
+rows=1
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=2
+mathviewpanel=$module_title:x1=:x2=:and:sqrt()
+question$n=!record 62 of lang/remarks.$taal
+#@ Los op:<br /><small><em>bereken dus de waarden van x</em><br />noteer bij meerdere oplossingen iets als:<br /><em>x</em>=1 en <em>x</em>=2/3 of zo...<br />en bij breuken graag het antwoord vereenvoudigen.</small>
+!if $R=1
+    keuze=!randitem 1,0
+    pm=!randitem 1,-1
+    # g^(ax+b) = 1 => ax+b =0 => x=-1*(b)/(a)
+    a=!randint 2,20
+    a=$[$pm*$a]
+    b=!randitem 1,2,3,4,5,6,7,8,9,10
+    g=!randitem 2,3,4,5,6,7,8,9,10,e
+    !if $keuze=0
+	formula$n=$g^{\textstyle ($a x + $b)} = 1 
+	applettext=!nospace $g^($a*x+$b) = 1-> 
+	tot=!exec pari A=(-1*$b)/($a)\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} $g^{\textstyle ($a x + $b)} = 1 \rightarrow \\  $g^{\textstyle ($a \cdot x + $b)} = $g^0 \rightarrow \\  $a \cdot x + $b = 0 \rightarrow \\  x = $tex \end{array} \right.
+    !else
+	formula$n=$g^{\textstyle ($a x - $b)} = 1 
+	applettext=!nospace $g^($a*x-$b) = 1 -> 
+	tot=!exec pari A=($b)/($a)\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ($a x - $b)} = 1 \rightarrow \\  $g^{\textstyle ($a \cdot x - $b)} = $g^0 \rightarrow \\  $a \cdot x - $b = 0 \rightarrow \\  x = $tex \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R=2
+    # g^((x+b)(x+a)) = 1 => (x+b)(x+a)=0 => x=-a,-b    
+    cijfers=!shuffle 1,2,3,4,5,6,7,8,9,10
+    a=!item 1 of $cijfers
+    b=!item 2 of $cijfers
+    g=!randitem 2,3,4,5,6,7,8,9,10,e
+    keuze=!randitem 0,1,2
+    !if $keuze=0
+	formula$n=$g^{\textstyle ((x+$a)(x+$b))} = 1 
+	applettext=!nospace $g^((x+$a)*(x+$b)) = 1 -> 
+	answer$n=$[-1*$a],$[-1*$b]
+	texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ((x+$a)(x+$b))} = 1 \rightarrow \\ $g^{\textstyle ((x+$a)(x+$b))} = $g^0 \rightarrow \\  (x+$a)(x+$b)= 0 \rightarrow \\  x_{1}=$[-1*$a]  \vee x_{2}=$[-1*$b] \end{array} \right.
+    !else
+    
+	!if $keuze=1
+	    formula$n=$g^{\textstyle ((x-$a)(x-$b))} = 1 
+	    applettext=!nospace $g^((x-$a)*(x-$b)) = 1 ->
+	    answer$n=$a,$b
+	    texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ((x-$a)(x-$b))} = 1 \rightarrow \\  $g^{\textstyle ((x-$a)(x-$b))} = $g^0 \rightarrow \\  (x-$a)(x-$b)= 0 \rightarrow \\  x_{1}=$a \vee  x_{2}=$b \end{array} \right.
+	!else
+	    formula$n=$g^{\textstyle ((x+$a)(x-$b))} = 1
+	    applettext=!nospace $g^((x+$a)*(x-$b)) = 1 -> 
+	    answer$n=$[-1*$a],$b
+	    texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ((x+$a)(x-$b))} = 1 \rightarrow \\  $g^{\textstyle ((x+$a)(x-$b))} = $g^0 \rightarrow \\  (x+$a)(x-$b)= 0 \rightarrow \\  x_{1}=$[-1*$a] \vee  x_{2}=$b \end{array} \right.
+	!endif
+    !endif
+ !exit
+!endif 
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	# g^(x^2+abx + ab) = 1     
+        cijfers=!shuffle 1,2,3,4,5,6,7,8,9,10
+	a=!item 1 of $cijfers
+        b=!item 2 of $cijfers
+	g=!randitem 2,3,4,5,6,7,8,9,10,e
+        pm=!randitem -,+
+	mp=!randitem -,+
+        tot=!exec pari A=(x $mp $a)*(x $pm $b)\
+        printtex(A)
+   
+	functie=!line 1 of $tot
+        latexfunctie=!line 2 of $tot
+	formula$n=$g^{\textstyle ($latexfunctie)} = 1 
+	applettext=!nospace $g^($functie) = 1 -> 
+        answer$n=$[-1*($mp $a)],$[-1*($pm $b)]
+	texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ($latexfunctie)} = 1 \rightarrow \\  $g^{\textstyle ($latexfunctie)} = $g^0 \rightarrow \\  $latexfunctie = 0 \rightarrow \\  (x $mp $a)(x $mp $b) = 0 \rightarrow \\  x_{1}=$[-1*($mp $a)] \vee x_{2}=$[-1*($pm $b)] \end{array} \right.
+     !exit
+    !else
+	# g^(x^2+abx + ab +c) = g^(c)     
+        cijfers=!shuffle 1,2,3,4,5,6,7,8,9,10
+	a=!item 1 of $cijfers
+        b=!item 2 of $cijfers
+	c=!randitem 2,3,4,5,6,7,8,9,10
+        g=!randitem 2,3,4,5,6,7,8,9,10,e
+	pm=!randitem -,+
+        mp=!randitem -,+
+	tot=!exec pari A=(((x $mp $a)*(x $pm $b)) + $c)\
+	printtex(A)
+
+	functie=!line 1 of $tot
+	latexfunctie=!line 2 of $tot
+    
+	formula$n=$g^{\textstyle ($latexfunctie)} = $g^{$c} 
+	applettext=!nospace $g^($functie) = $g^$c -> 
+	answer$n=$[-1*($mp $a)],$[-1*($pm $b)]
+	texanswer$n=\left[ \begin{array}{l}$g^{\textstyle ($latexfunctie)} = $g^{$c} \rightarrow \\  $g^{\textstyle ($latexfunctie)} = $g^$c \rightarrow \\  $latexfunctie = $c \rightarrow \\  (x $mp $a)(x $mp $b) = 0 \rightarrow \\  x_{1} = $[-1*($mp $a)] \vee x_{2} = $[-1*($pm $b)] \end{array} \right. 
+    !endif
+ !exit
+!endif 

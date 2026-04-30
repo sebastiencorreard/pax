@@ -1,0 +1,75 @@
+mathviewpanel=$module_title:/:+:-:*:^
+rounding=0
+display=1
+mathview=5
+# mathview=5 : only input-applet
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+inputs=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=1
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+formula$n=$empty
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br><font size=-1>dus schrijf anders</font>
+sometext=!record 29 of lang/remarks.$taal
+helptext=<img src=\'$module_dir/gifs/exo4.jpg\' alt=\'noalt\' >
+# var1 is used for checking  "literal typing" of question
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+c=!item 2 of $getallen
+d=!item 3 of $getallen
+e=!item 4 of $getallen
+pm=!randitem +,-
+c=$d
+!if $R=1
+    var1=x^a/(x^($b*a)) $pm x/(x^($b*a))
+    formula$n=\frac{x^{ a}}{x^{ $b\cdot a}}  $pm  \frac{x}{x^{ $b\cdot a}} = [?] 
+    answer$n=!rawmath x^($[1-$b]*a) $pm  x^(1-$b*a) 
+    #answer$n=!exec maxima ratsimp($var1);
+    tex=!texmath $(answer$n)
+    texanswer$n=\frac{x^{ a}}{x^{ $b\cdot a}}  $pm  \frac{x}{x^{ $b\cdot a}} =  $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    applettext=!nospace x^a/(x^($b*a)) $pm x/(x^($b*a))=
+!else
+    !if $R=2
+	!if $[($c) $pm ($d)] = 0
+	    c = $e
+	!endif
+	var1=$c*x^(a)/(x^($b)) $pm $d*x^(a)/(x^($b))
+	formula$n=$c \cdot \frac{ x^{ a}}{x^{ $b}}  $pm  \frac{$d \cdot x^{ a}}{x^{ $b}} = [?]
+	answer$n=!rawmath $[$c $pm $d]*x^(a-$b)
+	tex=!texmath $(answer$n)
+        texanswer$n=\frac{$c \cdot x^{ a}}{x^{ $b}}  $pm  \frac{$d \cdot x^{ a}}{x^{ $b}} = $tex
+	varlist=!varlist $(answer$n)
+        wims_rawmath_variables=$varlist
+	applettext=!nospace $c*x^(a)/(x^($b)) $pm ($d*x^(a))/(x^($b))=
+    !else
+	var1=$c*x^(a)/(x^($b)) $pm $d*x^(a)/(x^($b))
+	formula$n=$c \cdot \frac{ x^{ a}}{x^{ $b}}  $pm  \frac{$d \cdot x^{ a}}{x^{ $b}} = [?]
+	!if $[($c) $pm ($d)] = 0
+	    answer$n=0
+	!else
+	    answer$n=!rawmath $[($c) $pm ($d)]*x^(a-$b)  
+	!endif
+	tex=!texmath $(answer$n)
+	texanswer$n=\frac{$c \cdot x^{ a}}{x^{ $b}}  $pm  \frac{$d \cdot x^{ a}}{x^{ $b}} = $tex
+        varlist=!varlist $(answer$n)
+	wims_rawmath_variables=$varlist
+	applettext=!nospace $c*x^(a)/(x^($b)) $pm ($d*x^(a))/(x^($b))=
+    !endif
+!endif
+!exit

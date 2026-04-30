@@ -1,0 +1,90 @@
+<div id="table_div" style="display:none"></div><br />
+<div id="plinko_div" style="display:none"><canvas id="plinko_bord" width="$xsize" height="$ysize">USE FIREFOX</canvas>
+</div>
+<script type="text/javascript" src="$module_dir/js/galton.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+<!-- no validator  -->
+/* P = var4  ; balls = var2 ; bins = var1 */
+ "use strict";
+//    galton('$var4','$var2','$var1'); 
+    galton('$var4','10','$var1'); 
+    var done=0;
+    !set rem2=tijd [sec],freq,Laat de gegevens in tabelvorm zien,bakje,ballen,Buiten
+    !set rem6=Je moet wel eerst de applet \n even de data laten genereren...
+    !set rem5=!item 3 of $rem2
+    !set rem7=!item 4 of $rem2
+    !set rem8=!item 5 of $rem2
+
+    var rem5="$rem5";var rem6="$rem6";var rem7="$rem7";var rem8="$rem8";
+    ballen_teller=document.getElementById("ballen_teller");
+    ballen_teller.style.display='none';
+
+    function sendanswer(){
+     if(done == 1){
+      var reply=new Array();var show="<ul>";var rep;var vraagnummer=1;var p = 0;
+      while( document.getElementById("myinput"+p) ){
+       rep = document.getElementById("myinput"+p).value;
+       if(rep.length == 0){setAlarm(r1+"&nbsp;"+vraagnummer);return 0;}
+       if(rep.indexOf(',') != -1){setAlarm(r25+" "+vraagnummer+"<br />"+r4);return} 
+       rep = rep.toLowerCase();if(check_o(rep)!=1){setAlarm(r25 + " " + vraagnummer +"\n"+ r5);return;} 
+       rep = prefix(rep);rep = science(rep);rep = rep.replace(/[a-z\~\`\""\''\@\#\%\_\=\:\;\$$\&\!]/g,'');
+       if(rep.length == 0){setAlarm(r2);return;}
+       show=show+"<li>"+description[p]+"&nbsp;=&nbsp;"+rep+"</li>";reply[p] = rep;
+       p++;vraagnummer++;
+      }
+      show=show+"</ul>";
+      myConfirm(show,reply+","+plinko_data+'\n'+sigma.toFixed(1),'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+     }
+     else
+     {
+      setAlarm(rem6);return;
+     };
+    };
+    var delay;
+    function plinko_start(){
+	ballen_teller.style.display='block';
+	if( done == 0 ){
+	 make_plinko('$xsize','$ysize','0,0,255,0.2','255,0,0,0.4','14');
+	 delay = window.setTimeout('extra()',$var9);
+	 document.getElementById('extra_button_1').style.display='none';
+	 document.getElementById('extra_button_2').style.display='block';
+	}
+    };
+    function extra(){
+	extra_balls('$var4','1');
+	ballen_teller.value = "aantal ballen = "+(1+totaal_ballen);
+	if(done == 0){ plinko_start(); }
+    };
+    var sigma = 0;
+    var sigma_r = 0;
+    function plinko_stop(){
+        var bins = $var1;
+        var totaal = 0;
+        var sum_ballen=0;
+        var p;
+        for( p=0; p < bins ; p++){
+         totaal = totaal + p*plinko_data[p];
+         sum_ballen = sum_ballen + plinko_data[p];
+        }
+        var mean = totaal / sum_ballen;
+        var variantie = 0;
+        for( p=0; p < bins ; p++){
+         variantie = variantie + plinko_data[p]*( mean - p )*( mean - p);
+        }
+        sigma = Math.sqrt(variantie / sum_ballen);
+        sigma_r = sigma.toFixed(1);
+        clearTimeout(delay);
+	done = 1;
+	document.getElementById('extra_button_2').style.display='none';
+	showme();
+    };
+    function showme(){
+	make_data_table("demospecial",rem8,rem7,sigma);
+    };	
+</script>
+
+    <input type="button" style="display:block;background-color:#ceffe5;color:black;font-weight:normal;font-size:16px;text-align:center;" id="extra_button_1" onclick="javascript:plinko_start();" value="start" />
+    <input type="button" style="display:none;background-color:#ff00e5;color:black;font-weight:normal;font-size:16px;text-align:center;"  id="extra_button_2" onclick="javascript:plinko_stop();" value="stop" />
+    <input type="text" style="display:none;" size="15" value="" id="ballen_teller" />
+

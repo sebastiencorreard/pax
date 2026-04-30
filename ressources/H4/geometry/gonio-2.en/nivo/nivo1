@@ -1,0 +1,99 @@
+n=$teller
+bewerking=bewerking1.proc
+!if $taal=nl
+    gonio=!randitem sin sinus ,cos cosinus
+    hint=denk eraan dat je de zaak netjes opschrijft<br>\
+    Ik doe mijn best om zoveel mogelijk de typische computersyntax<br>\
+    te vermijden, maar <em>dsin(bx)</em> moet je toch echt  schrijven als <em>d*sin(b*x)</em>
+    nivo_title=<font size="+1">Herleiden van het functievoorschrift door middel van diverse bewerkingen</font><br>De <em> $soort -functie </em>
+    SIN$n=!word 1 of $gonio
+    soort=!word 2 of $gonio
+
+    somtekst$n=De bedoeling is dat je ,met behulp van de <em>applet</em> door variatie \
+    van<br> de schuifparameters <em>b</em> of <em>c</em> of <em>d</em> of combinaties hiervan<br>\
+    het functievoorschrift voor de getoonde <font color=$fontcolor3><tt>$soort functie</tt></font> opstelt...<br>\
+    <small>Let op b,c of d kunnen ook gewoon nul zijn en dus gewoon niet "meedoen"  </small><br>
+!else
+    gonio=!randitem sin sine,cos cosine
+    hint=please remember to write decent math, e.g.write\
+     <em>dsin(bx)</em> as <em>d*sin(b*x)</em>
+    nivo_title=<font size="+1">Find the good function</font><br>The <em> $soort -function </em>
+    SIN$n=!word 1 of $gonio
+    soort=!word 2 of $gonio
+
+    somtekst$n=The intention of this exercise is that you try to find the function and it's arguments,\
+    presented in the graph of the applet.<br>\
+    Use the sliders <em>b</em> or <em>c</em> or<em>d</em> of the applet to trace the function...<br>\
+    The shown function is of the type: <font color=$fontcolor3><tt>$soort function</tt></font><br>\
+    <small>Pay attention: b,c or d <em>could</em> well be non-existing in the formula...</small><br>
+!endif
+    
+wims_rawmath_variables=b,c,d
+pm=!randitem +,-
+
+!if $instinker=0
+    !if $teller=1
+	FUNCTIES=d*$(SIN$n)(x),c*$(SIN$n)(x),b*$(SIN$n)(x),\
+	$(SIN$n)(d*x),$(SIN$n)(c*x),$(SIN$n)(b*x),\
+	$(SIN$n)(d $pm x),$(SIN$n)(c $pm x),$(SIN$n)(b $pm x),\
+	d $pm $(SIN$n)(x),c $pm $(SIN$n)(x),b $pm $(SIN$n)(x)
+    !endif
+
+    !if $teller=2
+	FUNCTIES=d $pm b*$(SIN$n)(x),c $pm $(SIN$n)(b*x),b $pm $(SIN$n)(x+c),b - $(SIN$n)(x $pm c),\
+	c $pm b*$(SIN$n)(x),b $pm $(SIN$n)(d*x),d $pm $(SIN$n)(x+b),d $pm $(SIN$n)(x-b),\
+	c+$(SIN$n)(b $pm x),b+$(SIN$n)(c*x),d+$(SIN$n)(x $pm c),d $pm $(SIN$n)(x $pm c)
+    !endif
+
+    !if $teller>2
+	FUNCTIES=d*$(SIN$n)(x+c),c*$(SIN$n)(x+b),b*$(SIN$n)(d*x),\
+	b*$(SIN$n)(d*x),d+$(SIN$n)(c*x+b),c+$(SIN$n)(b*x),\
+	c*$(SIN$n)(d+x),d*$(SIN$n)(c+x),c*$(SIN$n)(b+x),\
+	d+b*$(SIN$n)(x),c+$(SIN$n)(b*x),b+$(SIN$n)(x+c),\
+	c+b*$(SIN$n)(x),b+$(SIN$n)(d*x),d+$(SIN$n)(x+b),\
+	$(SIN$n)(d*x+b),c*$(SIN$n)(b*x+d),c+d*$(SIN$n)(b*x),c+d*$(SIN$n)(b*x),\
+	d+c*$(SIN$n)(x+b),c+$(SIN$n)(x-b),b+$(SIN$n)(d*x+c),b*$(SIN$n)(d*x-c),\
+	$(SIN$n)(b*x+d),c*$(SIN$n)(x+d),b*$(SIN$n)(d*x+c)
+    !endif
+!else    
+
+    FUNCTIES=b+d*$(SIN$n)(x/c),b+c*$(SIN$n)(x/d),d+c*$(SIN$n)(x/b),\
+    b+$(SIN$n)(d*x/c),(c*$(SIN$n)(b*x)/d),(d*$(SIN$n)(b*x))/c,c+d*$(SIN$n)(x/b),\
+    d+($(SIN$n)(x+b))/c,$(SIN$n)(d*x+c),c-$(SIN$n)(b*x+d),c*$(SIN$n)(x-d),b*$(SIN$n)(d*x+c)\
+    (d*$(SIN$n)(x))/b,b+c*$(SIN$n)(x)/d,d+c*$(SIN$n)(x)/b,\
+    $(SIN$n)(c+x/d),c*$(SIN$n)(d-x/b),c+$(SIN$n)(d-x/b),c+$(SIN$n)(d+x/b),\
+    ($(SIN$n)(x+b))/c,($(SIN$n)(d*x+c))/b,($(SIN$n)(b*x+d))/c,c+($(SIN$n)(x+d))/b,b+$(SIN$n)(d*x/c)
+
+!endif
+
+FUNCTIES=!shuffle $FUNCTIES
+
+GOED$n=!item $n of $FUNCTIES
+GOED$n=!nospace $(GOED$n)
+letter$n=!randitem $letters
+    
+    opgave$n=<p align=center>\
+    <applet codebase="$appletdir" archive="jcm1.0-config.jar" code="FamiliesOfGraphs.class" width="600" height="400">\
+    <param name="Parameter1" value="d 0 10 1">\
+    <param name="Parameter2" value="b 0 10 1">\
+    <param name="Parameter3" value="c 0 10 1">\
+    <param name="Function" value="$(GOED$n)">\
+    <param name="UseFunctionInput" value="no">\
+    <param name="XLabel" value="x-as">\
+    <param name="YLabel" value="y-as">\
+    <param name="UseGrid" value="yes">\
+    <param name="GridColor" value="orange">\
+    <param name="UseLimitsPanel" value="no">\
+    <param name="BackgroundColor" value="black">\
+    <param name="Insets" value="5">\
+    <param name="CanvasColor" value="white">\
+    <param name="GraphColor" value="red">\
+    <param name="AxesColor" value="blue">\
+    <param name="PanelBackground" value="yellow">\
+    <param name="BorderWidth" value="0">\
+    <param name="PanelTitle" value="Som voor $wims_user">\
+    <param name="TitleBackground" value="yellow">\
+    $geenjava</applet>
+
+
+

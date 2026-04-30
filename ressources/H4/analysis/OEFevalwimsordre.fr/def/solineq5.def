@@ -1,0 +1,294 @@
+!set title=Solution d'une inéquation 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+oefcss=<style>.border {border:solid black 1px}</style>
+
+ansorder=r
+varcnt=66
+prevarcnt=65
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=&#91;
+val7=&#93;
+val8=\(\cup\)
+val9=\(\cap\)
+val10=\(-\infty\)
+val11=\(+\infty\)
+val12=\(\emptyset\)
+val13=&#123;
+val14=&#125;
+val15=&#59;
+val16=OU
+val17=\(\le\)
+val18=\(<\)
+val19=\(x \in \RR\)
+tmp0=!randint 2, 9
+
+tmp1=!randitem 1,-1
+
+val20=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 9
+
+tmp1=!randitem 1,-1
+
+val21=$[rint($(tmp0)*$(tmp1))]
+val22=<,>,<=,>=
+val23=>,<,>=,<=
+tmp0=!randint 2, 9
+
+tmp1=!randitem 1,-1
+
+val24=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 9
+
+tmp1=!randitem 1,-1
+
+val25=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 4
+
+val26=$[rint($(tmp0))]
+val27=$(val22[$val26])
+!if $val26<3 
+val28=$val7
+val29=$val6
+!else
+val28=$val6
+val29=$val7
+!endif
+tmp=!translate ";': to $     $ in -$val21 / $val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val30=!exec pari print($t_)
+tmp=!translate ";': to $     $ in -$val25 / $val24
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val31=!exec pari print($t_)
+!if $val31=$val30 
+val25=$[rint(-$val25)]
+tmp=!translate ";': to $     $ in -$val25 / $val24
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val31=!exec pari print($t_)
+!endif
+tmp=!translate ";': to $     $ in $val20 / $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val32=!exec pari print($t_)
+tmp=!translate ";': to $     $ in -$val20 / $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val33=!exec pari print($t_)
+t_=!rawmath $val21
+val34=!exec pari print($t_)
+t_=!rawmath $val25
+val35=!exec pari print($t_)
+val36=\($val30)
+val37=\($val31)
+val38=\($val32)
+val39=\($val33)
+val40=\($val34)
+val41=\($val35)
+tmp0=!shuffle $val36,$val37,$val38,$val39,$val40,$val41
+
+val42=$(tmp0)
+tmp0=!listuniq $val42
+
+val42=$(tmp0)
+val43=$val6,$val15,$val7,$val8,$val9,$val10,$val11,$(val42[1]),$(val42[2]),$(val42[3]),$(val42[4]),$(val42[5]),$(val42[6]),$val12,$val13,$val14,$val17,$val18,$val16,x,$val19	
+val44=60x55x12
+
+!ifval $val30<$val31
+t_=!rawmath $val30
+val45=!exec pari print($t_)
+!else
+t_=!rawmath $val31
+val45=!exec pari print($t_)
+!endif
+
+!ifval $val30<$val31
+t_=!rawmath $val31
+val46=!exec pari print($t_)
+!else
+t_=!rawmath $val30
+val46=!exec pari print($t_)
+!endif
+
+!ifval $val30<$val31
+val47=$val36
+!else
+val47=$val37
+!endif
+
+!ifval $val30<$val31
+val48=$val37
+!else
+val48=$val36
+!endif
+val49=<table class="wimscenter wimsnoborder border">	<tr class="border"><th class="border" style="width:20%">\(x)</th><td style="width:10%">$val10</td><td style="width:20%">&nbsp;</td><td style="width:10%">\($val45\)</td><td style="width:20%">&nbsp;</td><td style="width:10%">\($val46\)</td><td style="width:20%">&nbsp;</td><td style="width:10%"> $val11 </td></tr>	
+!if $val20>0 
+
+!ifval $val30 < $val31
+tmp0=!texmath $val20*x+$val21
+
+val50=<tr class="border"><th class="border">\($(tmp0)\)</th><td>&nbsp;</td><td>-</td><td>0</td><td>+</td><td>&nbsp;</td><td>+</td><td>&nbsp;</td></tr>
+!else
+tmp1=!texmath $val20*x+$val21
+
+val50=<tr class="border"><th class="border">\($(tmp1)\)</th><td>&nbsp;</td><td>-</td><td>&nbsp;</td><td>-</td><td>0</td><td>+</td><td>&nbsp;</td></tr>
+!endif
+!else
+
+!ifval $val30 < $val31
+tmp0=!texmath $val20*x+$val21
+
+val50=<tr class="border"><th class="border">\($(tmp0)\)</th><td>&nbsp;</td><td>+</td><td>0</td><td>-</td><td>&nbsp;</td><td>-</td><td>&nbsp;</td></tr>
+!else
+tmp1=!texmath $val20*x+$val21
+
+val50=<tr class="border"><th class="border">\($(tmp1)\)</th><td>&nbsp;</td><td>+</td><td>&nbsp;</td><td>+</td><td>0</td><td>-</td><td>&nbsp;</td></tr>
+!endif
+!endif
+val49=$val49 $val50
+!if $val24>0 
+
+!ifval $val30 > $val31
+tmp0=!texmath $val24*x+$val25
+
+val50=<tr class="border"><th class="border">\($(tmp0)\)</th><td>&nbsp;</td><td>-</td><td>0</td><td>+</td><td>&nbsp;</td><td>+</td><td>&nbsp;</td></tr>
+!else
+tmp1=!texmath $val24*x+$val25
+
+val50=<tr class="border"><th class="border">\($(tmp1)\)</th><td>&nbsp;</td><td>-</td><td>&nbsp;</td><td>-</td><td>0</td><td>+</td><td>&nbsp;</td></tr>
+!endif
+!else
+
+!ifval $val30 > $val31
+tmp0=!texmath $val24*x+$val25
+
+val50=<tr class="border"><th class="border">\($(tmp0)\)</th><td>&nbsp;</td><td>+</td><td>0</td><td>-</td><td>&nbsp;</td><td>-</td><td>&nbsp;</td></tr>
+!else
+tmp1=!texmath $val24*x+$val25
+
+val50=<tr class="border"><th class="border">\($(tmp1)\)</th><td>&nbsp;</td><td>+</td><td>&nbsp;</td><td>+</td><td>0</td><td>-</td><td>&nbsp;</td></tr>
+!endif
+!endif
+val49=$val49 $val50
+val51=$[rint($val20*$val24)]
+
+!ifval $val51>0
+val52=+
+!else
+val52=-
+!endif
+
+!ifval $val51>0
+val53=-
+!else
+val53=+
+!endif
+val54=l'inéquation quotient
+tmp0=!texmath ($val20*x+$val21)/($val24*x+$val25) $val27 0
+
+val55=\($(tmp0)\)
+!if $val30<$val31 
+val50=<tr class="border"><th class="border">Quotient</th><td>&nbsp;</td><td>$val52</td><td>0</td><td>$val53</td><td><span style="color:red">&#124;&#124;</span></td><td>$val52</td><td>&nbsp;</td></tr></table>
+!else
+val50=<tr class="border"><th class="border">Quotient</th><td>&nbsp;</td><td>$val52</td><td><span style="color:red">&#124;&#124;</span></td><td>$val53</td><td>0</td><td>$val52</td><td>&nbsp;</td></tr></table>
+!endif
+val49=$val49 $val50
+!if ($val51>0 and ($val26=1 or $val26=3)) or ($val51<0 and ($val26=2 or $val26=4)) 
+
+!ifval $val30<$val31
+val56=$val28,$val47,$val15,$val48,$val6
+!else
+val56=$val7,$val47,$val15,$val48,$val29
+!endif
+!else
+
+!ifval $val30<$val31
+val56=$val7,$val10,$val15,$val47,$val29,$val8,$val7,$val48,$val15,$val11,$val6
+!else
+val56=$val7,$val10,$val15,$val47,$val6,$val8,$val28,$val48,$val15,$val11,$val6
+!endif
+!endif
+replytype1=clickfill
+replyname1=Solution
+replygood1=$val56;$val43
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Pour résoudre $val54,	<div class="wimscenter">$val55 </div>	 on a construit le tableau des signes suivant&nbsp;:	  $val49	  Donner l'ensemble solution sous forme d'intervalles.	<div class="spacer"> 
+!insmath S
+$() = 
+!read oef/embed.phtml reply1,$val44 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=44,49,54,55
+embedcnt=1

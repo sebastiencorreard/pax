@@ -1,0 +1,181 @@
+!set title=Listes en compréhension 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Yves, Moncheaux
+email=yves.moncheaux@ac-lille.fr
+
+ansorder=r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(7)]
+val7=$[rint(50)]
+val8=$[rint(250)]
+val9=$[rint(250)]
+val10=<p>Associez à chaque commande la liste qui sera créée. Certaines commandes ne sont pas valides, associez-les alors à la réponse "Erreur de syntaxe".</p>
+tmp=!trim [i**2 for i in range(3)],  [0, 1, 4]	[i**2 for i in range(4)], [0, 1, 4, 9]	[i**2 for i in range(5)], [0, 1, 4, 9, 16]	[i*2 for i in range(4)],  [0, 2, 4, 6]	[i*2 for i in range(5)],  [0, 2, 4, 6, 8]	[i*2 for i in range(3)],  [0, 2, 4]	[i**2 for i in range(1, 4)], [1, 4, 9]	[i**2 for i in range(1, 5)], [1, 4, 9, 16]	[i*2 for i in range(1, 4)],  [2, 4, 6]	[i*2 for i in range(1, 5)],  [2, 4, 6, 8]	[i*2 if i in range(3)], Erreur de syntaxe	[i*2 if i in range(4)], Erreur de syntaxe	[i*2 if i in range(5)], Erreur de syntaxe	[i*2 while i<3],  Erreur de syntaxe	[i*2 for i<4],  Erreur de syntaxe	[i*2 while i<5],  Erreur de syntaxe	[i*2 if i<3], Erreur de syntaxe	[i*2 if i<4], Erreur de syntaxe	[i*2 for i<5], Erreur de syntaxe	[i**2 for i<3],  Erreur de syntaxe	[i**2 while i<4],  Erreur de syntaxe	[i**2 while i<5],  Erreur de syntaxe	[i**2 if i<3], Erreur de syntaxe	[i**2 if i<4], Erreur de syntaxe	[i**2 for i<5], Erreur de syntaxe	
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of 1 oui, 2 non
+
+val12=$(tmp0)
+tmp0=!word 1 of $val12
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+val13=$[rint($(tmp0))]
+
+!ifval $val6>$val13
+val6=$[rint($val13)]
+!endif
+tmp0=!shuffle $val13
+
+tmp1=!item 1 to $val6 of $(tmp0)
+
+val14=$(tmp1)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+
+!ifval $val12=1
+tmp0=!embraced randitem $val11
+
+val11= $(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+val17=$(val7[])x$(val8[])x$val9
+
+!ifval $val12=1
+tmp0=!embraced randitem $val10
+
+val10= $(tmp0)
+!endif
+tmp=!trim 4, 8, 12, 16, 20	3, 6, 9, 12	0, 4, 8, 12, 16, 20	0, 3, 6, 9, 12, 15, 18	1, 4, 9, 16, 25, 36	1, 4, 9, 16, 25	0, 1, 4, 9, 16, 25	0, 1, 4, 9, 16	3, 5, 7, 9, 11	3, 5, 7, 9	1, 3, 5, 7, 9	1, 3, 5, 7, 9, 11	
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim 4*i for i in range(1,6)	3*i for i in range(1,5)	4*i for i in range(6)	3*i for i in range(7)	i**2 for i in range(1,7)	i**2 for i in range(1,6)	i**2 for i in range(6)	i**2 for i in range(5)	2*i+1 for i in range(1,6)	2*i+1 for i in range(1,5)	2*i+1 for i in range(5)	2*i+1 for i in range(6)	
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 12
+
+val20=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in  $val18
+
+tmp=!row $val20 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in  $val19
+
+tmp=!row $val20 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+oefsteps=reply1	reply2 
+nextstep=!nosubst reply1	reply2 
+!readproc oef/steps.proc
+replytype1=correspond
+replyname1=La réponse
+replygood1=$val15;$val16
+replytype2=raw
+replyname2=
+replygood2=?analyze 23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_step=1 
+$()	<p>Cet exercice comporte deux questions.</p>	<p> Question 1 sur 2 : </p>	$val10	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,$val17 
+$()	</div>	 
+!endif
+$()		
+!if $m_step=2 
+$()	<p> Question 2 sur 2 : </p>	<p>Voici une ligne de code python qui génère une liste : $val22</p>	<p>Ecrire cette liste :</p>	<div class="wimscenter">	[ 
+!read oef/embed.phtml reply2, 50 
+$()]	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val23 issametext $val21
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La réponse à la question 2 est-elle correcte ?
+
+!exit
+
+:stat
+vsavelist=10,17,21,22,23
+embedcnt=2

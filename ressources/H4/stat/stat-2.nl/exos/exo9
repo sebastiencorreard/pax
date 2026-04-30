@@ -1,0 +1,132 @@
+n=$counter
+#sqrt(2)*sqrt( pi)*erf(x/sqrt(2))/2
+
+!if $counter=1
+    !if $rounding<1
+	rounding=1000
+        !readproc $remarkdir/rounding.$taal
+    !endif
+    !if $subject=9
+	var2=0
+	helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    !else
+	txt=!record 15 of lang/remarks.$taal
+	helptext=<a href=\'$module_dir/docs/tabel.pdf\' target=\'statistiek tabellen\'>Download PDF<br /><img src=\'$module_dir/gifs/tabellen.jpg\' alt=\'tabellen.pdf\' /><br />$txt</a>
+    !endif
+    cols=8
+    make_tr=1
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    formula$n=$empty
+    checkfile=exos/checkfile1.proc
+    var1=1
+    # antwoord is kans
+    inputs=1.1
+    description=<b>P(V)</b>
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $var2=0
+    etext=!record 13 of lang/remarks.$taal
+    #@ (met je grafische rekenmachine)
+!else
+    etext=!record 15 of lang/remarks.$taal
+    #@ (met het tabellenboekje)
+!endif
+mean=!randint 250,1000
+mean=$[$mean/10]
+a=!randitem 2,3,4,5
+sig1=$[floor($mean/10)]
+sig2=$[$sig1+$a]
+sigma=!randint $[10*$sig1],$[10*$sig2]
+sigma=$[$sigma/10]
+b=!randint 1,27
+b=$[$b/10]
+c=!randint 1,27
+c=$[$c/10]
+pm=!randitem +,-
+g=$[round(10*($mean $pm $sigma*$b))/10]
+g1=$[round(10*($mean - $sigma*$b))/10]
+g2=$[round(10*($mean + $sigma*$c))/10]
+
+P=<span style="font-size:16pt">P</span>
+!if $R=1
+    !if $var2=0
+        Z=$[($g - $mean)/$sigma]
+    !else
+        Z=$[round(100*(($g - $mean)/$sigma))/100]
+    !endif
+    S=-10000
+    answer$n=$[0.5*(erf($Z/sqrt(2))-erf($S/sqrt(2)))]
+    G=$[round($rounding*$(answer$n))/$rounding]
+    !if $var2=0
+	rr=!record 56 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P(X&le;$inhoud)&asymp;$G<br />intypen in Ti83 <kbd>normalcdf</kbd>(-10000,$g,$mean,$sigma)
+    !else
+	rr=!record 57 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P(X&le;$inhoud)&asymp;$G<br /><ul><li>Bereken de <kbd>z-waarde</kbd> : z=($g-$mean)/$sigma &asymp; $[(1000*$inhoud-$mean)/$sigma]</li><li>rond dit z-getal af op twee decimalen</li><li>Zoek de kans op in je tabellenboekje</li></ul>
+    !endif
+    ss=!record 55 of lang/remarks.$taal
+    #@ Bereken voor de normaal verdeelde variabele V de volgende kans. $P(V<$g|\mu=$mu en \sigma=$sigma)
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+ !exit
+!endif
+!if $R=2
+    !if $var2=0
+        Z=$[($g - $mean)/$sigma]
+    !else
+        Z=$[round(100*(($g - $mean)/$sigma))/100]
+    !endif
+    S=10000
+    answer$n=$[0.5*(erf($S/sqrt(2))-erf($Z/sqrt(2)))]   
+    G=$[round($rounding*$(answer$n))/$rounding]   
+    !if $var2=0
+	rr=!record 59 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P(V&gt;$g)&asymp;$G<br />intypen in Ti83 <kbd>normalcdf</kbd>($g,10000,$mean,$sigma)
+    !else
+	rr=!record 60 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P(V&gt;$g)&asymp;$G<br /><ul><li>Bereken de <kbd>z-waarde</kbd> : z=($g - $mean)/$sigma=$[($nieuw - $mean)/$sigma]</li><li>$P(Z&le;$Z)&asymp;$[1-$G] (in tabellenboekje)</li><li>$P(Z&gt;$Z)&asymp;1- $[1-$G]&asymp;$G </li><li>$P(X&gt;$nieuw)&asymp;$G</li></ul>
+    !endif
+    ss=!record 58 of lang/remarks.$taal
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+    #@ Bereken voor de normaal verdeelde variabele V de volgende kans.$P(V>$g|\mu=$mu en \sigma=$sigma)
+ !exit
+!endif
+!if $R>2
+    !if $var2=0
+        Z=$[($g1 - $mean)/$sigma]
+        ZZ=$[($g2 - $mean)/$sigma]
+    !else
+        Z=$[round(100*(($g1 - $mean)/$sigma))/100]
+        ZZ=$[round(100*(($g2 - $mean)/$sigma))/100]
+    !endif
+    S=1000
+    answer$n=$[0.5*(erf($ZZ/sqrt(2))-erf($Z/sqrt(2)))]
+    G=$[round($rounding*$(answer$n))/$rounding]
+    !if $var2=0
+	rr=!record 62 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P($g1 &lt; V &le; $g2)&asymp;$G<br />intypen in Ti83 <kbd>normalcdf</kbd>($g1,$g2,$mean,$sigma)
+    !else
+	rr=!record 63 of lang/remarks.$taal
+	textanswer$n=$rr
+	#@ $P($g1 &lt; V &le; $g2)&asymp;$G<br /><ul><li>Bereken de twee <kbd>z-waarden</kbd> :<br />z=($g2 - $mean)/$sigma=$[($g2 - $mean)/$sigma]<br /> z=($g1 - $mean)/$sigma=$[($g1 - $mean)/$sigma]</li><li>$P(Z&le;$ZZ)- $P(Z&le;$Z)&asymp;$G (zoek de twee bijbehorende kansen in je tabellenboek en trek ze van elkaar af) </li><li>$P($g1 &lt; X &le; $g2)&asymp;$G</li></ul>
+    !endif
+    ss=!record 61 of lang/remarks.$taal
+    #@ Bereken voor de normaal verdeelde variabele V de volgende kans.$P($g1 &le; V &lt; $g2|&mu;=$mean en &sigma;=$sigma)
+    question$n=<a onmouseover="return escape('$etext')">$ss</a>
+ !exit
+!endif
+

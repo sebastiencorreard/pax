@@ -1,0 +1,101 @@
+# var5=sin of cos
+# invulveld 1 p= 
+# invulveld 2 q=
+!set n=$counter
+wims_exec_error=$empty
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+AAA=!nospace $(reply$n)
+# AAA=1,2
+AAA=!lower $AAA
+!for i in pi,sin,cos,tan,log,sqrt,ln,abs
+    I=!toupper $i
+    AAA=!replace internal $i by $I in $AAA
+!next i
+# check voor AAA=p=1,q=2 of zelfs AAA=q=2,p=1
+chk=!replace internal = by @ in $AAA
+!if @ isin $chk
+    a1=!item 1 of $chk
+    a2=!item 2 of $chk
+    a1=!replace internal @ by , in $a1
+    a2=!replace internal @ by , in $a2
+    a11=!item 1 of $a1
+    a21=!item 1 of $a2
+    aaa=$empty
+    !if p isin $a11
+	# p=1
+	aaa=!item 2 of $a1
+     !else
+	#1=p
+	aaa=$a11
+    !endif    
+    !if q isin $a21
+	# q=1
+	a22=!item 2 of $a2
+    !else
+	# 1=q
+	a22=$a21
+    !endif
+    aaa=!append item $a22 to $aaa
+    AAA=$aaa
+!endif
+# antwoorden als p= worden -alsnog- leeg gemaakt
+AAA=!replace [a-z\~!@#$%&_;"'=] by $empty in $AAA
+AAA=!lower $AAA
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+A1=!rawmath $A1
+A2=!rawmath $A2
+
+!if NaN isin $[1*($A1)],$[1*($A2)] 
+    errortext=hmmm... $(reply$n) ?
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+
+G1=!item 1 of $(answer$n)
+G2=!item 2 of $(answer$n)
+
+!if $var5=cos
+ test_2=!exec pari if(abs($var5(($A1)*Pi + ($A2)) - ($var5(($G1)*Pi + ($G2)))) < 10^(-15) ,1,0)\
+ if(abs($var5((-1*($A1))*Pi + (-1*($A2))) - ($var5(($G1)*Pi + ($G2)))) < 10^(-15) ,1,0)
+ 
+ !if 1 isin $test_2
+    test=1
+ !else
+    test=0
+ !endif
+!else
+ test=!exec pari if(abs($var5(($A1)*Pi + ($A2)) - ($var5(($G1)*Pi + ($G2)))) < 10^(-15) ,1,0)
+!endif
+!if $wims_exec_error != $empty
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+maxscore=$[$maxscore*$test]
+modulescore=$[$modulescore+$maxscore] 
+
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+math=0
+reply$n=$(reply$n)<ul><li style="color:$k">p = $A1</li><li style="color:$k">q = $A2 </li></ul>
+goback=0
+!exit
+
+	

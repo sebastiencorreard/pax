@@ -1,0 +1,125 @@
+mathviewpanel=$module_title:/:+:-:*:^
+rounding=0
+mathview=5
+display=1
+# mathview=5 : only input-applet
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+inputs=1
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+math=0
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+letters=x,y,a,b,c,d,f,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+getallen=!shuffle 2,3,4,5,6,7,8,9,-1,-2,-3,-4,-5,-6,-7,-8,-9
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+c=!item 3 of $getallen
+d=!item 4 of $getallen
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+helptext=<img src=\'$module_dir/gifs/exo1.jpg\' alt=\'noalt\' />
+# var1 is used for checking  "literal typing" of question
+!if $R=1
+    var1=($x^$a)/($x^$b)
+    tot=!exec pari $var1\
+    printtex($var1)
+    formula=\frac{$x^{ \textstyle $a}}{$x^{ \textstyle $b}}
+    formula$n=$formula \,=\,[?]
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$formula = $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    !if $a<0
+	a=($a)
+    !endif
+    !if $b<0
+	b=($b)
+    !endif
+    applettext=!nospace $x^$a/($x^$b)=
+ !exit
+!endif
+
+!if $R=2
+    var1=($c*$x^$a)/($d*$x^$b) 
+    tot=!exec pari $var1\
+    printtex($var1)
+    formula=\frac{$c\cdot $x^{ \textstyle $a}}{$d\cdot $x^{ \textstyle $b}}
+    formula$n=$formula \,=\,[?]
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$formula = $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+    !if $a<0
+	a=($a)
+    !endif
+    !if $b<0
+	b=($b)
+    !endif
+    applettext=!nospace ($c*$x^$a)/($d*$x^$b)=
+ !exit
+!endif
+
+
+!if $R>2
+    kans=!randint 0,1
+    c=!randint 2,5
+    a=!randint 2,5
+    p=!randitem -1,1
+    !if $kans=1
+	c=$[$c*$p]
+	var1=($c*$x)^$a/($x^$b)
+	tot=!exec pari $var1\
+        printtex($var1)
+	formula=\frac{\left($c \cdot $x \right)^{ \textstyle $a}}{$x^{ \textstyle $b}}
+	applettext=!nospace $var1=
+        !if $a<0
+	    a=($a)
+	!endif
+	!if $b<0
+	    b=($b)
+	!endif
+	applettext=!nospace ($c*$x)^$a/($x^$b)=
+     !else
+	d=$[$c+1]
+	c=$[$c*$p]
+	b=$[$a+1]
+	var1=($c*$x)^$a/($d*$x^$b)
+	tot=!exec pari ($var1)\
+	printtex($var1)
+	formula=\frac{\left($c\cdot $x\right)^{ \textstyle $a}}{$d\cdot $x^{ \textstyle $b}}
+	!if $a<0
+	    a=($a)
+	!endif
+	!if $b<0
+	    b=($b)
+	!endif
+	applettext=!nospace ($c*$x)^$a/($d*$x^$b)=
+    !endif
+    
+    formula$n=$formula \,=\,[?]
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$formula = $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+!endif
+

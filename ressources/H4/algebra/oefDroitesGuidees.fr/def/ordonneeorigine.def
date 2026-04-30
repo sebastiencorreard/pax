@@ -1,0 +1,151 @@
+!set title=Cliquer sur l'ordonnée à l'origine
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique, Royer
+email=royer.veronique@orange.fr
+language=fr
+leftrange=-10.000000
+rightrange=10.000000
+computeanswer=no
+precision=50
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oefenv lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Solution
+val8=La droite \(D\) est représentée ci-dessous. Elle coupe l'axe des ordonnées	  au point \(B\).
+val9=Dans un repère orthonormal du plan&#44;	  la pente d'une droite est son coefficient directeur.
+val10=$[rint(6)]
+tmp0=!randint -($val10-1), ($val10-1)
+
+val11=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, ($val10-1)
+
+val12=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -($val10-1), ($val10-1)
+
+val13=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in  ($val13 - $val11)/ $val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val14=!exec pari print($t_)
+val15=$[(200*0 / $val10 + 200)/2]
+val16=$[(-200*$val11 / $val10 + 200)/2]
+tmp=!translate ";': to $     $ in $val14*x+$val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=!rawmath $(tmp0)
+val18=xrange -$val10,$val10	yrange -$val10,$val10	parallel -$val10,-$val10,-$val10,$val10,1,0,2*$val10+1,grey	parallel -$val10,-$val10,$val10,-$val10,0,1,2*$val10+1,grey	hline 0,0,black	vline 0,0,black	arrow 0,0,1,0,8,black	arrow 0,0,0,1,8,black	
+!readproc oef/draw.phtml 200,200 \
+$val18	fcircle $val12,$val13,9,blue	text blue,$val12 + 0.5,$val13,small,A 
+tmp0=$ins_url
+val19=$(tmp0)
+replytype1=coord
+replyname1=
+replygood1=$val19; point,$val15,$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div style="background-color:#FFFF66">	Dans le repère orthonormal, on considère la droite 
+!insmath D
+$() de	 
+!read oef/special.phtml tooltip pente,,$val9 
+$()	 
+!insmath $val14
+$() et passant par le point 
+!insmath A
+$().	<p>	Cliquer sur le point d'intersection de la droite 
+!insmath D
+$()	avec l'axe des ordonnées.	</p>	<div class="wims_instruction">	NB : Dans un repère orthonormal, la <span style="color:blue">pente d'une droite</span>	est son coefficient directeur.</div>	<div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$()</div>	</div>
+$()
+!exit
+
+:hint
+$()On peut envisager deux méthodes :	<ol><li>calculer l'ordonnée à l'origine 
+!insmath p
+$() de 
+!insmath D
+$() en écrivant que le point 
+!insmath A
+$()	appartient à 
+!insmath D
+$() ; on résout alors l'équation : 
+!insmath y_A = m x_A+p
+$().	</li><li>construire le point recherché 
+!insmath B
+$() tel que le rapport de la	variation des ordonnées sur la variation des abscisses soit égal à la pente :	
+!insmath \frac{\Delta y}{\Delta x}=\frac{y_B-y_A}{x_B-x_A}=m
+$().	</li></ol>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_result1=-1 or $m_result1=1 
+ <div class='oef_feedbacks'>	  $val8	<div class="wimscenter">	 
+!read oef/draw.phtml 200,200 \
+	$val18	fcircle $val12,$val13,8,blue	text blue,$val12 + 0.5,$val13,small,A	linewidth 2	plot blue,$val17	fcircle 0,$val11,8,green	text blue,0.5,$val11,small,B	 
+$()	</div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,12,13,14,17,18
+embedcnt=2

@@ -1,0 +1,107 @@
+type=image
+textarea="data"
+:Étiquettes avec flèches
+Des étiquettes sont placées (leur extrémité intérieure au départ des flèches selon qu'elles sont à droite
+ou à gauche de l'image) et doivent être remplies avec les légendes
+proposées par glisser-déposer ou par clic.
+
+:%%%%%%%%
+
+:\title{B- La cellule animale}
+:\author{Jonathan, Faivre}
+:\email{prof.svt.lc@gmail.com}
+:\credits{J. Faivre}
+:Consigne
+
+\text{instruction=Légender le schéma de la cellule animale vue au microscope électronique ci-dessous.
+<div class="wims_instruction">Attention une légende peut ne pas être utile,
+mettez-la sur l'étiquette sans flèche dans ce cas.</div>}
+
+:Nom du fichier image
+
+\text{image=cellanim.png}
+
+:Nombre de questions (<=10)
+
+\integer{N=4}
+
+:Nombre maximum de pertubateurs
+
+\integer{n=3}
+
+:Taille des étiquettes
+
+\text{eti=200,30}
+
+:Couleur des flèches
+
+\text{color=black}
+
+:Format du type de réponse
+Les types de réponses possibles ici sont <span class="tt">dragfill</span> ou <span class="tt">clickfill</span>.
+\text{format=clickfill}
+
+:Données principales
+La première ligne est la taille de l'image en pixels.
+Les lignes suivantes sont formées de la légende suivie des coordonnées du point à cliquer
+ou de la flèche à tracer en pixels selon les exercices.
+\matrix{data=232,197
+Membrane plasmique,{[227,13,146,15],[18,120,48,117]}
+Cytoplasme,{[228,58,164,58],[209,160,145,157]}
+Noyau,{[228,103,91,98],[17,95,89,95]}
+Mitochondries,{[228,140,150,137],[14,143,66,143],[15,55,88,59]}
+Paroi,231,193, 231,193}
+
+
+:%%%%%%%%%%%%%%%%%%%%%%%%
+\text{data=wims(embraced randitem \data)}
+\text{size= \data[1;]}
+\text{coord = \data[2..-1;]}
+\integer{N1=rows(\coord)}
+\matrix{coord=\coord}
+\integer{N=min(\N,\N1)}
+\text{etix=\eti[1]}
+\text{etiy=\eti[2]}
+\text{position=}
+\text{V = shuffle(\N1)}
+\integer{M=max(0,min(\n,\N1-\N))}
+\text{K=\V[1..\N]}
+\text{dessinprelim=copy 0,0,-1,-1,-1,-1,\image}
+\for{k =1 to \N}{
+  \text{cor=\coord[\K[\k];2..-1]}
+  \text{cor=wims(declosing \cor)}
+  \text{dessinprelim=\dessinprelim
+arrow \cor[1],\cor[2],\cor[3],\cor[4],20,\color}
+  \text{co=\cor[1,2]}
+  \text{co=\cor[1] < \cor[3] ? pari([\co] - [\etix,\etiy/2]):
+     pari([\co] - [0,\etiy/2])}
+  \text{position=\position
+r \k,\co[1] x \co[2]}
+}
+\text{figure = draw(\size
+\dessinprelim)}
+
+\text{liste=\M >0? \coord[\V[\N+1..\N+\M];1]:}
+\text{Step=wims(makelist r x for x=1 to \N)}
+\steps{\Step}
+\statement{
+\instruction
+<div class="wimscenter">
+\special{imagefill \figure,\size[1] x \size[2],\etix x \etiy
+\position}
+</div>
+}
+
+\answer{}{\coord[\K[1];1]}{type=\format}
+\answer{}{\coord[\K[2];1]}{type=\format}
+\answer{}{\coord[\K[3];1]}{type=\format}
+\answer{}{\coord[\K[4];1]}{type=\format}
+\answer{}{\coord[\K[5];1]}{type=\format}
+\answer{}{\coord[\K[6];1]}{type=\format}
+\answer{}{\coord[\K[7];1]}{type=\format}
+\answer{}{\coord[\K[8];1]}{type=\format}
+\answer{}{\coord[\K[9];1]}{type=\format}
+\answer{}{\coord[\K[10];1]}{type=\format}
+
+
+

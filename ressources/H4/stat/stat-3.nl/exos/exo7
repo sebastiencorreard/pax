@@ -1,0 +1,120 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=1.1
+inputtext1=$youranswer
+description=$youranswer
+cols=10
+var1=1
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+#!record 21 of lang/remarks.$taal
+#@ Bereken de Kans op ?
+nummers=1,2,3,4,5,6
+helptext=<img src=\'$module_dir/gifs/dobbelstenen.gif\' alt=\'noalt\' />
+dobbel=0
+!if $R=1
+    data=!randint 1,11
+    data=!record $data of exos/lijst2
+    answer$n=!item 2 of $data
+    dob=!item 1 of $data
+    texanswer$n=!item 3 of $data
+    #@ Ik heb twee eerlijke dobbelstenen.<br />\
+    #@ Hoe groot is de kans op een totaal score van $dob ogen?
+    ss=!record 52 of lang/remarks.$taal
+    !if $teaching=1
+	!for r in 4,5
+	    # voorbeelden van dobbelstenen
+	    d=!item $r of $data 
+	    dice=!append line <img src="$module_dir/dice/$d.gif" alt="noalt" /> to $dice
+	!next r
+	zoals=!record 56 of lang/remarks.$taal
+	question$n=$ss <br /> $zoals
+    !else
+	question$n=$ss
+    !endif
+!endif
+
+!if $R=2
+    minmax=!record 53 of lang/remarks.$taal
+    #@ minstens,maximaal
+    min=!item 1 of $minmax
+    max=!item 2 of $minmax
+    maximaal=!randitem $minmax 
+    !if $maximaal=$max
+	!for p=1 to 2
+	    num=!randitem $nummers
+	    dobbel=$[$dobbel + $num]
+	    dice=!append line <img src="$module_dir/dice/$num.gif" alt="noalt" /> to $dice
+	!next p
+	dob=$dobbel
+    !else
+	!for p=1 to 2
+	    num=!randitem $nummers
+	    dobbel=$[$dobbel + $num]
+	    anders=$[7-$num]
+	    dice=!append line <img src="$module_dir/dice/$anders.gif" alt="noalt" /> to $dice
+	!next p
+	dob=$[14 - $dobbel]
+    !endif
+
+    !if $dobbel<8
+	d=$[$dobbel-1]
+	tot=0
+	!for p=1 to $[$dobbel-1]
+	    tot=$[$tot + $p]
+	!next p
+    !else
+	tot=21
+	!for p=1 to $[$dobbel - 7]
+	    tot=$[$tot + 6 - $p]
+	!next
+    !endif
+    tot=!exec pari A=$tot/36\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    texanswer$n=!line 2 of $tot
+    ss=!record 54 of lang/remarks.$taal
+    #@ Ik heb twee eerlijke dobbelstenen.<br />\
+    #@ Hoe groot is de kans op een totaal score van <span color=red><b>$maximaal</b></span> $dob ?  
+    !if $teaching=1
+	zoals=!record 56 of lang/remarks.$taal
+	question$n=$ss <br />$zoals
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    data=!randint 1,16
+    data=!record $data of exos/lijst3
+    answer$n=!item 2 of $data
+    dob=!item 1 of $data
+    texanswer$n=!item 3 of $data
+    !for r=4 to 6
+	# voorbeelden van dobbelstenen
+	d=!item $r of $data 
+	dice=!append line <img src="$module_dir/dice/$d.gif" alt="noalt" /> to $dice
+    !next r
+    ss=!record 55 of lang/remarks.$taal
+    #@ Ik heb drie eerlijke dobbelstenen.<br />\
+    #@ Hoe groot is de kans op een totaal score van $dob ogen?
+    !if $teaching=1
+	zoals=!record 56 of lang/remarks.$taal
+	question$n=$ss <br /> $zoals
+    !else
+	question$n=$ss
+    !endif
+!endif

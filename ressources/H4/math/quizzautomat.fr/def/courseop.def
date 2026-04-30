@@ -1,0 +1,531 @@
+!set title=Course d'opérations
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=quizz,subtraction,fraction,multiplication,mental_calculation,addition,skill_calculate
+oefobservation=Les résultats peuvent être négatifs par défaut. Configuration possible sur le module
+language=fr
+computeanswer=no
+
+ansorder=r,r,r,r,r,r,r,r,r,r
+varcnt=97
+prevarcnt=87
+postvarcnt=9
+replycnt=10
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val3 notwordof 1 2 3 4 5 6 7 8 9 10 
+val3=5
+!endif
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+val2=1
+!else
+val2=$val2
+!endif
+tmp0=!itemcnt $val4
+
+
+!ifval $(tmp0)=0 
+val4=1,2,3
+!else
+val4=$val4
+!endif
+tmp0=!itemcnt $val5
+
+
+!ifval $(tmp0)=0 
+val5=1,2,3
+!else
+val5=$val5
+!endif
+
+!ifval 3 isitemof $val4
+val6=<br>Aide à la saisie &#58; pour \(2/3\) saisir 2/3.
+!endif
+val7=<strong>La calculatrice n'est pas autorisée, ni le brouillon. $val6</strong>
+val8=
+val9=
+val10=
+val11=
+val12=
+val13=
+!for val14 =1 to $val3 
+tmp=!nonempty items $val4
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!nonempty items $val5
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+
+!ifval $val4<1
+val17=numeric
+!else
+val17=numexp
+!endif
+
+!ifval $val13 issametext 
+val13=$val17
+!else
+val13=$val13,$val17
+!endif
+
+!ifval $val15 issametext 1
+tmp0=!randint 3, 9
+
+val18=$[rint($(tmp0))]
+!endif
+
+!ifval $val15 issametext 2
+tmp0=!randint 3, 9
+
+tmp=!nonempty items 1,0.1,0.01
+
+tmp1=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val18=$[ $(tmp2)]
+!endif
+
+!ifval $val15 issametext 3
+tmp0=!randint 2, 9
+
+tmp1=!randitem 1,2,3
+
+tmp=!nonempty items 4,5,7,9
+
+tmp2=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp1)/$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+tmp4=!randitem 1,2,3
+
+tmp5=!randitem 4,5,7,9
+
+tmp=!translate ";': to $     $ in $(tmp4)/$(tmp5)
+
+tmp=!lower $tmp
+tmp6=!exec maxima fullratsimp($tmp);
+tmp7=!randitem 1,2,3
+
+tmp8=!randitem 4,5,7,9
+
+tmp=!translate ";': to $     $ in $(tmp7)/$(tmp8)
+
+tmp=!lower $tmp
+tmp9=!exec maxima fullratsimp($tmp);
+tmp=!nonempty items $(tmp0),$(tmp3),$(tmp6),$(tmp9)
+
+tmp10=!randitem $tmp
+t_=!rawmath $(tmp10)
+val18=!exec pari print($t_)
+!endif
+
+!ifval $val15 issametext 1
+tmp0=!randint 3, 9
+
+val19=$[rint($(tmp0))]
+!endif
+
+!ifval $val15 issametext 2
+tmp0=!randint 3, 9
+
+tmp=!nonempty items 0.1,0.01
+
+tmp1=!randitem $tmp
+tmp=!translate ";': to $     $ in $(tmp0)*$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val19=$[$(tmp2)]
+!endif
+
+!ifval $val15 issametext 3
+tmp0=!randitem 1,2,3
+
+tmp1=!randitem 4,5,7,9
+
+tmp=!translate ";': to $     $ in $(tmp0)/$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp2)
+val19=!exec pari print($t_)
+!endif
+!if $val16=2 
+val20=$val18
+val21=$val19
+t_=!rawmath max($val20,$val21)
+val18=!exec pari print($t_)
+t_=!rawmath min($val20,$val21)
+val19=!exec pari print($t_)
+!endif
+!if ($val15 issametext 1) and ($val16 isitemof 1,2) 
+tmp0=!randint 2, 7
+
+tmp1=!randint 1, 5
+
+val18=$[rint($(tmp0)*10+$(tmp1))]
+tmp0=!randint 6, 9
+
+tmp1=!randint 6, 8
+
+val19=$[rint($(tmp0)*10+$(tmp1))]
+!if $val16=2 and $val2=1 
+val20=$[rint($val18)]
+val21=$[rint($val19)]
+val18=$[rint(max($val20,$val21))]
+val19=$[rint(min($val20,$val21))]
+!endif
+!endif
+!if ($val15 issametext 2) and ($val16 isitemof 1,2) 
+tmp0=!randint 11, 89
+
+tmp1=!randint 111, 200
+
+tmp2=!shuffle $(tmp0)/10,$(tmp1)/100
+
+val22=$(tmp2)
+tmp0=!randitem 1,2
+
+!if $(tmp0)=1 
+tmp0=!randint 1, 50
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 4, 6
+
+tmp=!translate ";': to $     $ in $(tmp0)*10+$(val22[2])
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val9=$[$(tmp1)]
+
+!ifval $val2=1
+val18=$[rint(max($val8,$val9))]
+!else
+val18=$[rint($val8)]
+!endif
+
+!ifval $val2=1
+val19=$[min($val8,$val9)]
+!else
+val19=$[$val9]
+!endif
+!else
+tmp0=!randint 1, 5
+
+tmp=!translate ";': to $     $ in $(tmp0)*10+$(val22[1])
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val8=$[$(tmp1)]
+tmp0=!randint 1, 50
+
+val9=$[$(tmp0)]
+
+!ifval $val2=1
+val18=$[max($val8,$val9)]
+!else
+val18=$[$val8]
+!endif
+
+!ifval $val2=1
+val19=$[min($val8,$val9)]
+!else
+val19=$[$val9]
+!endif
+!endif
+!endif
+!if $val16 issametext 1 
+t_=!replace internal \( by ( in $val18+$val19
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+val24=\($val18\) \({}+{}\) \($val19\) \({}={}\)
+val25=Correction &#58; \($val18\) \({}+{}\) \($val19\)\({}={}\)\($val23\) 
+tmp0=!shuffle 2,3,5,7
+
+val14=$(tmp0)
+val8=$[rint($(val14[1]))]
+val9=$[rint($(val14[2]))]
+val26=$[rint($(val14[3]))]
+val27=$[rint($(val14[4]))]
+val28=$[rint($val8*$val27)]
+val29=$[rint($val9*$val26)]
+val30=$[rint($val9*$val27)]
+val31=$[rint($val28+$val29)]
+
+!ifval $val15 issametext 3 
+val25= <p>$val25 </p><p>Il faut mettre au même dénominateur pour faire l'opération.</p> 	<p>Exemple &#58; \(\frac{$val8}{$val9}+\frac{$val26}{$val27}=\frac{$val8 \times $val27}{$val9 \times $val27}+\frac{$val26 \times $val9}{$val27 \times $val9}\)	\({}=\frac{$val28+$val29}{$val30}=\frac{$val31}{$val30}\)</p>
+!endif
+!endif
+!if $val16 issametext 2 
+t_=!replace internal \( by ( in $val18-$val19
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+val24=\($val18\) \({}-{}\) \($val19\)\({}={}\)
+val25=Correction &#58; \($val18\) \({}-{}\) \($val19\)\({}={}\)\($val23\)
+tmp0=!shuffle 2,3,5,7
+
+val14=$(tmp0)
+val8=$[rint($(val14[1]))]
+val9=$[rint($(val14[2]))]
+val26=$[rint($(val14[3]))]
+val27=$[rint($(val14[4]))]
+val28=$[rint($val8*$val27)]
+val29=$[rint($val9*$val26)]
+val30=$[rint($val9*$val27)]
+val31=$[rint($val28-$val29)]
+
+!ifval $val15 issametext 3 
+val25= <p>$val25 </p><p>Il faut mettre au même dénominateur pour faire l'opération. </p>	<p> Exemple &#58; \(\frac{$val8}{$val9}-\frac{$val26}{$val27}=\frac{$val8 \times $val27}{$val9 \times $val27}-\frac{$val26 \times $val9}{$val27 \times $val9}\)	\({}=\frac{$val28-$val29}{$val30}=\frac{$val31}{$val30}\)</p>
+!endif
+!endif
+!if $val16 issametext 3 
+t_=!replace internal \( by ( in $val18*$val19
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+val24=\($val18\) \({}\times{}\) \($val19\) \({}={}\)
+val25=Correction &#58; \($val18\) \({}\times{}\) \($val19\) \({}={}\) \($val23\)
+
+!ifval $val15 issametext 2 
+val25= <p>$val25 </p>	<p>Exemples &#58; </p>	<ul class="wims_nopuce">	<li>\(3 \times 2=6 \)</li>	<li>\(0.03 \times 2=0.06 \)</li>	<li>\(0.3 \times 0.02=0.006 \)</li>	</ul>		
+!endif
+tmp0=!shuffle 2,3,5,7
+
+val14=$(tmp0)
+val8=$[rint($(val14[1]))]
+val9=$[rint($(val14[2]))]
+val26=$[rint($(val14[3]))]
+val27=$[rint($(val14[4]))]
+val32=$[rint($val8*$val26)]
+val30=$[rint($val9*$val27)]
+
+!ifval $val15 issametext 3 
+val25= <p>$val25 </p>	<p>Exemple &#58; \(\frac{$val8}{$val9} \times \frac{$val26}{$val27}=\frac{$val8 \times $val26}{$val9 \times $val27}\)	\({}=\frac{$val32}{$val30}\)</p>
+!endif
+!endif
+tmp0=!itemcnt $val8
+
+
+!ifval $(tmp0)=0
+val8= $val18
+!else
+val8=$val8,$val18
+!endif
+tmp0=!itemcnt $val9
+
+
+!ifval $(tmp0)=0
+val9= $val19
+!else
+val9=$val9,$val19
+!endif
+tmp0=!itemcnt $val10
+
+
+!ifval $(tmp0)=0
+val10= $val24
+!else
+val10=$val10,$val24
+!endif
+tmp0=!itemcnt $val11
+
+
+!ifval $(tmp0)=0
+val11= $val23
+!else
+val11=$val11,$val23
+!endif
+
+!ifval $val12 issametext 
+val12=$val25
+!else
+val12=$val12,$val25
+!endif
+!next
+tmp0=!makelist reply x for x=1 to $val3
+
+val33=$(tmp0)
+tmp0=!replace internal , by ; in $val33
+
+val33=$(tmp0)
+oefsteps=$val33 
+nextstep=!nosubst $val33 
+!readproc oef/steps.proc
+replytype1=$(val13[1])
+
+replyoption1=comma default=0 
+replyname1=$(val10[1])
+replygood1=$(val11[1])
+replytype2=$(val13[2])
+
+replyoption2=comma default=0 
+replyname2=$(val10[2])
+replygood2=$(val11[2])
+replytype3=$(val13[3])
+
+replyoption3=comma default=0 
+replyname3=$(val10[3])
+replygood3=$(val11[3])
+replytype4=$(val13[4])
+
+replyoption4=comma default=0 
+replyname4=$(val10[4])
+replygood4=$(val11[4])
+replytype5=$(val13[5])
+
+replyoption5=comma default=0 
+replyname5=$(val10[5])
+replygood5=$(val11[5])
+replytype6=$(val13[6])
+
+replyoption6=comma default=0 
+replyname6=$(val10[6])
+replygood6=$(val11[6])
+replytype7=$(val13[7])
+
+replyoption7=comma default=0 
+replyname7=$(val10[7])
+replygood7=$(val11[7])
+replytype8=$(val13[8])
+
+replyoption8=comma default=0 
+replyname8=$(val10[8])
+replygood8=$(val11[8])
+replytype9=$(val13[9])
+
+replyoption9=comma default=0 
+replyname9=$(val10[9])
+replygood9=$(val11[9])
+replytype10=$(val13[10])
+
+replyoption10=comma default=0 
+replyname10=$(val10[10])
+replygood10=$(val11[10])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wimscenter"><div class="wims_score_bar"><div class="inline">	     
+!for m_j=1 to $m_step-1 
+$()	    <div class="inline wims_seed_item" style="background-color:blue" title="done"></div>	   
+!next
+$()	   
+!for m_j=$m_step to $val3 
+$()	    <div class="inline wims_seed_item" style="background-color:#FFF" title="todo"></div>	   
+!next
+$()	</div></div></div>	<div class="wims_question">	 
+!for m_qq=1 to $val3 
+$()
+!if $m_step=$m_qq 
+$()	<label for="reply$m_qq">$(val10[$m_qq])  </label> 
+!read oef/embed.phtml r\qq,10	autofocus 
+$()	 
+!endif
+$() 
+!next
+$()</div>	<div class="wims_instruction">$val7</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val34=$[rint(0)]
+val35=$m_reply1,$m_reply2,$m_reply3,$m_reply4,$m_reply5,$m_reply6,$m_reply7,$m_reply8,$m_reply9,$m_reply10
+tmp0=!nonempty item $val35
+
+val35=$(tmp0)
+tmp0=!itemcnt $val35
+
+val36=$[rint($(tmp0))]
+tmp0=!itemcnt $val35
+
+val35=$[rint($(tmp0))]
+val35=$[$val35/$val3]
+!if $val35<0.5 
+tmp=!nonempty items Pas génial tout cela. Mais tu peux mieux faire en essayant de nouveau !,Essaye encore !
+
+tmp0=!randitem $tmp
+val37=$(tmp0)
+!else
+!if $val35>0.8 
+tmp=!nonempty items Très beau score !, Excellent., Belle performance !
+
+tmp0=!randitem $tmp
+val37=$(tmp0)
+!else
+tmp=!nonempty items Ton score est moyen &#44;  mais c'est déjà pas mal du tout.,Résultat prometteur ! Encore un peu d'entraînement et ce sera excellent !
+
+tmp0=!randitem $tmp
+val37=$(tmp0)
+!endif
+!endif
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><div class="feedback">$(val12[$val36])<p style="text-align:center">$val37</p></div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,7,10,12
+embedcnt=1

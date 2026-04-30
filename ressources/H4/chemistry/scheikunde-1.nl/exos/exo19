@@ -1,0 +1,110 @@
+# 2 versies: oud & nieuw [matchmol]
+n=$counter
+questiontype=7
+mathview=0
+image=0
+answer1=1
+make_tr=1
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten" /></a>  
+math=0
+# let op dit niet veranderen ivm verschillende lengtes datafiles n_alkanes.js.el,m_alkanes.js.el
+!if $level<2
+    R=1
+!else
+    R=2
+!endif
+!if $subject=19
+    template=no
+    !if $R=1
+	file=n_alkanes 
+    !else
+	file=m_alkanes 
+    !endif
+!else
+    !if $subject=20
+    	template=no
+	!if $R=1
+	    file=n_alkenes 
+	!else	
+	    file=m_alkenes 
+	!endif
+    !else
+	!if $subject=21
+	    template=no
+    	    !if $R=1
+		file=n_alkynes 
+	    !else
+    		file=m_alkynes 
+	    !endif
+	!else
+	    !if $subject=22
+		template=no
+		!if $R=1
+		    file=n_alcohols 
+		!else
+		    file=m_alcohols 
+		!endif
+	    !else
+		!if $subject=23
+		    template=no
+		    # limited to normal-hydrocarbonacids
+		    file=n_acids 
+		!else
+		    !if $subject=24
+			template=yes
+			file=aromatics 
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+checkversion=!char 1 to 4 of $wims_version
+checkversion=$[$checkversion*100]
+new=1
+file=!nospace $file .molrecords
+checkfile=exos/checkfile4b.proc
+javascript=js/wimschem3.js
+
+inputs=0
+deffile=docs/$file
+# altijd een andere vraag
+!if $counter=1
+    max=!recordcnt $deffile
+    var9=$empty
+    # maak een lijst
+    !for p=1 to $max
+	var9=!append item $p to $var9
+    !next p
+    var9=!shuffle $var9
+!endif
+
+num=!item $counter of $var9
+this=!record $num of $deffile
+names=!line 1 of $this
+!if $taal=nl
+    naam=!word 2 of $names
+!else
+    # english
+    naam=!word 1 of $names
+!endif
+data=!line 2 to -1 of $this
+var1=answer.$counter.mol
+!filewrite getfile/$var1 $data
+# checklist: zie anstype/chemdraw.$taal
+var8=9,14,15,16,17,18,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,58
+ss=!record 70 of lang/remarks.$taal
+question$n=$ss 
+#@Teken in de onderstaande applet de structuur formule van: <font size=+1><kbd>$naam</kbd></font>
+#@!Draw the structure formula of: <font size=+1><kbd>$naam</kbd></font> 
+# the appletparams
+
+var2=<param name="formattype" value="plain" /><param name="atoms" value="C,Cl,Br,O,H,S,P" /><param name="show_hydrogen" value="yes" /><param name="show_carbon" value="yes" /><param name="TOOL_CURSOR" value="yes" /><param name="TOOL_ROTATOR" value="yes" /><param name="TOOL_ERASOR" value="yes" /><param name="TOOL_DIALOG" value="no" /><param name="TOOL_EDIT" value="no" /><param name="TOOL_SETATOM" value="yes" /><param name="TOOL_SINGLE" value="yes" /><param name="TOOL_DOUBLE" value="yes" /><param name="TOOL_TRIPLE" value="yes" /><param name="TOOL_ZERO" value="yes" /><param name="TOOL_INCLINED" value="no" /><param name="TOOL_DECLINED" value="no" /><param name="TOOL_UNKNOWN" value="no" /><param name="TOOL_CHARGE" value="no" /><param name="TOOL_UNDO" value="yes" /><param name="TOOL_REDO" value="yes" /><param name="TOOL_TEMPLATE" value="$template" /><param name="TOOL_CUT" value="no" /><param name="TOOL_COPY" value="no" /><param name="TOOL_PASTE" value="no" /><param name="MENU_BLOCK" value="no" /><param name="MENU_SELECT" value="yes" /><param name="MENU_TRANSFORM" value="yes" /><param name="MENU_ZOOM" value="yes" /><param name="MENU_SHOW" value="no" /><param name="MENU_HYDROGEN" value="no" /><param name="MENU_STEREO" value="no" /><param name="MENU_HELP" value="yes" />
+
+!if $wims_user=supervisor and $new=1
+ var2=!append line $ <param name="file" value="$wims_ref_name?session=$s3&cmd=getfile&special_parm=$var1" /><param name="showfile" value="no" /> $ to $var2
+!endif
+checkfile=exos/checkfile4.proc

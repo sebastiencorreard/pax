@@ -1,0 +1,402 @@
+goback=0
+errortext=$empty
+score=0
+wordmax=10
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+!if $test=0 
+    maxscore=$[$P8*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+!if $test > $wordmax
+    maxscore=$[$P7*$maxscore]
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    goback=1
+ !exit
+!endif
+
+AAA=!lower $(reply$n)
+
+!if $teaching =1
+    is=!record 1 of lang/remarks.$taal
+    is=!nospace $is
+    !if $is iswordof $AAA
+	AAA=!replace internal $is by = in $AAA
+	extra=!record 20 of lang/remarks.$taal
+    !endif
+!endif
+check=0
+###
+test=!nospace $AAA
+###
+!for i in x,y,=
+    !if $i isin $AAA
+	!increase check
+    !endif
+!next i
+!if $check<2
+    errortext=!record 7 of lang/remarks.$taal
+    #@ Ik verwacht hier de vergelijking van een asymptoot<br />Dus iets als <em>de lijn x=1 en de lijn x=-4</em> of <em>de lijn y=1</em><br />Kijk even in de help-pagina's voor de 
+    syntaxregels
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+check=0
+!for i in =x,=y
+    !if $i isin $test
+	!increase check
+    !endif
+!next i
+!if $check!=0
+    errortext=!record 14 of lang/remarks.$taal
+    #@ Normaal schrijven we voor een lijn <em>x=1</em> en <span style="color:red">niet 1=x</span>...
+    maxscore=$[$P3*$maxscore]
+    goback=1
+    !exit
+!endif
+
+
+#check for sqrt sin etc
+checklist=$empty
+list=sqrt,log,sin,ln,cos,tan,sec,abs
+!for p=1 to 8
+    i=!item $p of $list
+    !if $i isin $test
+	checklist=!append item $i to $checklist
+	test2=!replace internal $i( by @ in $test
+	!if @ notin $test2
+	    testvar1=!nospace $i ( x )
+	    testvar2=!nospace $i x
+	    maxscore=$[$maxscore*$P2]
+	    errortext=!record 19 of $remarkdir/commonremarks.$taal
+	    goback=1
+	    !exit
+	!endif
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+
+!if $questiontype != 0
+    # questiontype=0 uses precheck.js for this...
+    
+    # check on scientific notation 3e+12 3*10^12
+    AAA=!replace internal ** by ^ in $AAA
+    AAA=!replace internal e+ by *10^ in $AAA
+    AAA=!replace internal e- by *10^- in $AAA
+    !for p=1 to 3
+	AAA=!replace internal ** by * in $AAA
+    !endif
+    t=!char 1 of $AAA
+    !if $t=*
+	AAA=!char 2 to -1 of $AAA
+    !endif
+
+    # check on the letter 'o' as number "0"
+    aaa=!nospace $AAA
+    t=!positionof char o in $aaa
+    !if $t != $empty
+	nummers=0 . 1 2 3 4 5 6 7 8 9 / + - * 
+        !for p in $t
+    	    check=0
+	    t1=!char $[$p-1] of $aaa
+    	    t2=!char $[$p+1] of $aaa
+	    !if $t1 isin $nummers and $t2 isin $nummers
+		check=1
+	    !endif
+	    # dus 123o 123.o
+	    !if $check=1
+		maxscore=$[$P2*$maxscore]
+		errortext=!record 13 of $remarkdir/commonremarks.$taal
+		goback=1
+		!exit
+	    !endif
+	!next p
+    !endif    
+    
+    # check on decimal 'comma'
+    tot=!singlespace $AAA
+    c=!positionof char , in $tot
+    !if $c != $empty
+        nummers=0123456789
+	!for i in $c
+	    c1=!char $[$i-1] of $tot
+	    c2=!char $[$i+1] of $tot
+	    !if $c1 isin $nummers and $c2 isin $nummers
+		!increase check
+		maxscore=$[$maxscore*$P1]
+		!if $check >1
+		    errortext=!record 28 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    !exit
+		!else
+		    # we replace only 1 decimal comma by a point...
+		    tot=!replace internal char number $i by . in $tot
+		    extra=!record 24 of $remarkdir/commonremarks.$taal
+		!endif
+	    !endif
+	!next i
+	AAA=$tot
+    !endif
+!endif
+
+AAA=!singlespace $AAA
+!if special isin $(answer$n)
+    # $AAA moet nu nog "woorden" zijn
+    # generieke oplossingen x=2kpi/3
+    !if pi notin $AAA
+	remark$n=$NOK
+	maxscore=0
+	goback=0
+     !exit
+    !endif
+    !readproc exos/syntax1.proc
+    !if $goback=1
+	!exit
+    !endif
+!endif
+
+# last preparings
+
+AAA=!words2items $AAA
+AAA=!nospace $AAA
+# there is a price to pay :)
+AAA=!replace internal x,= by X= in $AAA
+AAA=!replace internal y,= by Y= in $AAA
+AAA=!replace internal x= by X= in $AAA
+AAA=!replace internal y= by Y= in $AAA
+AAA=!replace [a-z\~!@#$%&_:;"] by $empty in $AAA
+
+# AAA= H,x=1,x=3,y=1,V
+AAA=!nospace $AAA
+!for p=1 to 3
+    # 3 arbitrary
+    AAA=!replace internal ,, by , in $AAA
+!next p
+
+t1=!char 1 of $AAA
+!if $t1=,
+    AAA=!item 2 to -1 of $AAA
+!endif
+
+AAA=!nospace $AAA
+t2=!char -1 of $AAA
+!if $t2=,
+    AAA=!item 1 to -2 of $AAA
+!endif
+
+AAA=!nospace $AAA
+AAA=!lower $AAA
+AAA=!replace internal *, by * in $AAA
+AAA=!replace internal ,* by * in $AAA
+AAA=!replace internal =, by = in $AAA
+AAA=!replace internal ,= by = in $AAA
+AAA=!replace internal ,) by ) in $AAA
+AAA=!replace internal -, by - in $AAA
+AAA=!replace internal +, by + in $AAA
+AAA=!replace internal /, by / in $AAA
+AAA=!nospace $AAA
+
+!if $checklist != $empty
+    !for i in $checklist
+	this=!nospace $i , (
+	that=!nospace $i (
+	AAA=!replace internal $this by $that in $AAA
+    !next i
+    AAA=!nospace $AAA
+!endif
+ta=!itemcnt $AAA
+!if $ta=0
+    maxscore=$[$maxscore*$P3]
+    errortext=!record 11 of lang/remarks.$taal
+    #@ Met $(reply$n) kan ik niks beginnen<br />Geef je antwoord iets wiskundiger<br />of kijk even in de help-pagina's naar de schrijfwijze van het een en ander.
+    goback=1
+    !exit
+!endif
+
+#errortext=AAA=$AAA ta=$ta
+#goback=1
+#!exit
+# het goede antwoord is 234@vertikaal,123@vertikaal,-5@horizontaal
+tg=!itemcnt $(answer$n)
+check=0
+hit=0
+syntaxerror=0
+score=0
+tot=$empty
+!if $rounding =$empty
+    # no rounding_off expect exact answer
+    rounding=0
+!endif
+!for p=1 to $tg
+    # loop through correct answer
+    spec=0
+    G=!item $p of $(answer$n)
+    G=!replace internal @ by , in $G
+    type=!item 2 of $G
+    value=!item 1 of $G
+    !if $type=vertikaal
+	variable=x
+	ding=x=
+    !else
+	!if $type=horizontaal
+	    variable=y
+	    ding=y=
+	!else
+	    spec=1
+	!endif
+    !endif
+    !if $spec=0
+	!for i=1 to $ta
+	    #loop through studentanswer
+	    A=!item $i of $AAA
+	    test=!replace internal $ding by @ in $A
+	    !if @ isin $test
+		A=!replace internal = by , in $A
+		A1=!item 1 of $A
+		!if $variable notin $A1
+		    !increase syntaxerror
+		    #syn=!append line $variable niet in $A1<br /> to $syn
+		!endif
+		A=!replace internal @ by $empty in $test
+		!if $A != $empty
+		    !if NaN isin $[1*($A)]
+		        maxscore=$[$maxscore*$P4]
+			errortext=!record 26 of $remarkdir/commonremarks.$taal
+			goback=1
+			 !exit
+		    !endif
+		    tot=!append item $A to $tot
+		    !if $rounding<1
+			# exact
+			t1=0
+			t2=0
+			t1=!exec pari if(abs(1.0*($A) - 1.0*($value)) < 10^-15 ,1,0)
+			!if $[1.0*($value)]=$[1.0*($A)]
+			    t2=1
+			!endif
+			!if $wims_exec_error != $empty
+			    maxscore=$[$maxscore*$P4]
+			    errortext=!record 26 of $remarkdir/commonremarks.$taal
+			    goback=1
+		    	    !exit
+		        !endif
+			!if $t1=1 or $t2=1
+			    !increase score
+			!else
+			    !if $[round(1000*$A)]=$[round(1000*$value)]
+				score=$[$score + 0.7]
+				extra=!record 12 of lang/remarks.$taal
+				#@ afrondingsfout: je antwoord moest exact zijn.
+			    !endif
+			!endif
+		    !else
+			# rounding >=1
+			!if $[round($rounding*$A)]=$[round($rounding*$value)]
+			    !increase score
+			!else
+			    rnd=$[$rounding/10]
+			    !if $[round($rnd*$A)]=$[round($rnd*$value)]
+				score=$[$score + 0.7]
+				extra=!record 13 of lang/remarks.$taal
+				#@ je hebt een afrondingsfout fout gemaakt<br />$roundingtext
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!next i
+    !else
+	wims_rawmath_variables=pi,k
+	# answer$n=k*pi/$c@special
+	# special case 2kpi
+	!for i=1 to $ta
+	    A=!item $i of $AAA
+	    !if x isin $A
+		!if pik isin $A
+		    A=!replace internal pik by k*pi in $A
+		    ex=!record 21 of lang/remarks.$taal
+		    #@ Je bedoelt k*pi ;)
+		    !if $extra=$empty
+			extra=$ex
+		    !else
+			extra=$extra<br />$ex
+		    !endif
+		!endif
+		A=!rawmath $A
+		test=!replace internal = by , in $A
+		t1=!item 1 of $test
+		t2=!item 2 of $test
+		!if x notin $t1
+		    !increase syntaxerror
+		    A=$t1
+		!else
+		    A=$t2
+		!endif
+		t=!exec pari if( $A==$value ,1,0)
+		!if $wims_exec_error != $empty
+		    maxscore=$[$maxscore*$P4]
+		    errortext=!record 26 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    !exit
+		!endif
+		!ifval $t=1
+		    !increase score
+		!endif
+	    !endif
+	!next i
+    !endif
+!next p
+
+!if $teaching=1
+    !if $syntaxerror !=0 
+	maxscore=$[$P5*$maxscore]
+	errortext=!record 14 of lang/remarks.$taal
+	#@ Je hebt het een foutje gemaakt<br />waarschijnlijk de  horizontale en verticale asymptoot verwisseld ?
+	goback=1
+	!exit
+    !endif
+!endif
+
+!ifval $ta=$tg 
+    maxscore=$[$maxscore*$score/$tg]
+!else
+    !ifval $ta > $tg
+	maxscore=$[$P8*$maxscore*$score/$ta]
+	ex=!record 16 of lang/remarks.$taal
+    !else
+	ex=!record 17 of lang/remarks.$taal
+	maxscore=$[$P5*$maxscore*$score/$tg]
+    !endif
+    !if $extra=$empty
+	extra=$ex
+    !else
+	extra=$extra<br />$ex
+    !endif
+!endif
+
+!if $maxscore=1
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

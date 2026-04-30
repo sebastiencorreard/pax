@@ -1,0 +1,150 @@
+!set title=Listes : ajouts d'éléments
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Yves, Moncheaux
+email=yves.moncheaux@ac-lille.fr
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(7)]
+val7=$[rint(50)]
+val8=$[rint(250)]
+val9=$[rint(250)]
+tmp0=!randint 4, 7
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 0, 20 repeat $val10
+
+val11=$(tmp0)
+tmp0=!randint 0, $val10-1
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 21, 30
+
+val13=$[rint($(tmp0))]
+val14=<p>Voici une liste définie dans le langage Python :</p>	<pre>	maliste = [$val11]	</pre>	
+val15=<p>Nous voulons ici que cette liste ait un élément supplémentaire, de valeur $val13.</p>	<p>Associez à chaque commande le résultat de son exécution.</p>	<ul>	<li>Certaines commandes ne sont pas conformes au langage Python, associez-les alors à la réponse "Erreur de syntaxe Python".	</li>	<li>Certaines commandes sont correctes d'un point de vue du langage Python mais non adaptées à la situation, 	associez-les alors à la réponse "Commande inadaptée ici".	</li>	</ul>	
+tmp=!trim maliste.append($val13), Ajoute la valeur $val13 dans la liste	maliste.append($val12, $val13), Erreur de syntaxe	maliste.append($val12), Commande inadaptée ici	liste.append($val12), Commande inadaptée ici	maliste.insert($val13),  Erreur de syntaxe	maliste.insert($val12),  Erreur de syntaxe	maliste.insert($val12, $val13),  Ajoute la valeur $val13 dans la liste à la position $val12	maliste.insert($val13, $val12),  Commande inadaptée ici	insert(maliste, $val12, $val13),  Erreur de syntaxe	append(maliste, $val13), Erreur de syntaxe	maliste[$val12] = $val13, Commande inadaptée ici	maliste = maliste + [$val13], Ajoute la valeur $val13 dans la liste	maliste = maliste + $val13, Erreur de syntaxe	
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of 1 oui, 2 non
+
+val17=$(tmp0)
+tmp0=!word 1 of $val17
+
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp0=!rowcnt $tmp
+val18=$[rint($(tmp0))]
+
+!ifval $val6>$val18
+val6=$[rint($val18)]
+!endif
+tmp0=!shuffle $val18
+
+tmp1=!item 1 to $val6 of $(tmp0)
+
+val19=$(tmp1)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row $val19 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+
+!ifval $val17=1
+tmp0=!embraced randitem $val16
+
+val16= $(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+val22=$(val7[])x$(val8[])x$val9
+
+!ifval $val17=1
+tmp0=!embraced randitem \explain
+
+val23= $(tmp0)
+!endif
+replytype1=correspond
+replyname1=
+replygood1=$val20;$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val14	$val15	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,$val22 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15,22
+embedcnt=1

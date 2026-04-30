@@ -1,0 +1,229 @@
+!set title=Recoller les sommets I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette,Perrin-Riou
+email=bernadette.m.riou@orange.fr
+title_it=Identifica i vertici I
+
+ansorder=r
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le nom du polyèdre est
+val8=Voici le patron d'un polyèdre convexe.	  Sélectionner les sommets qui se projettent sur le même sommet du polyèdre	  que le sommet marqué par une croix.
+!if $val6=it 
+val7=Il poliedro si chiama
+val8=Ecco lo sviluppo di un poliedro convesso.	  Seleziona i vertici che si incollano sul vertice constrassegnato con una croce.
+!endif
+
+!ifval $val2=
+val9=1
+!else
+val9=$val2
+!endif
+
+!ifval $val9=1
+val10=1,10
+!endif
+
+!ifval $val9=2
+val10=11,20
+!endif
+
+!ifval $val9=3
+val10=21,25
+!endif
+
+!ifval $val9=4
+val10=26,35
+!endif
+tmp0=!record 0 of data/polyedre_off/index2
+
+val11=$(tmp0)
+tmp0=!select $val11 where column 2>=$(val10[1]) and column 2<$(val10[2])
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val13=$(tmp0)
+tmp0=!shuffle $val13
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val13=$(tmp0)
+tmp0=!shuffle $val13
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $(val14[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+!readproc slib/geo2D/polynet $(val12[1;1]),raw 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!declosing $(val15[1])
+
+val16=$(tmp0)
+val17=$(val12[2])
+val18=
+val19=
+!for val20 =0 to $val17-1 
+tmp0=!select $val16 where column 3 = $val20
+
+val21=$(tmp0)
+tmp0=!itemcnt $(val21[;1])
+
+val22=$(tmp0)
+!if $val22>=3 
+tmp0=!append item $val20 to $val18
+
+val18=$(tmp0)
+!endif
+
+!ifval $val22>1
+val19= $val19;$(val21[;1,2])
+!endif
+!next
+!if $val18= 
+!for val20 =0 to $val17-1 
+tmp0=!select $val16 where column 3 = $val20
+
+val21=$(tmp0)
+tmp0=!itemcnt $(val21[;1])
+
+val22=$(tmp0)
+!if $val22>=2 
+tmp0=!append item $val20 to $val18
+
+val18=$(tmp0)
+!endif
+!next
+!endif
+tmp=!nonempty items $val18
+
+tmp0=!randitem $tmp
+val23=$(tmp0)
+tmp0=!select $val16 where column 3 = $val23
+
+val24=$(tmp0)
+val25=
+val26=
+!for val20 =1 to $val17 
+tmp0=!positionof row $(val24[$val20;]) in $val16
+
+val25=$val25,$(tmp0)
+!if $val20>=2 
+val26=$val26,$(val24[$val20;1,2])
+!endif
+!next
+tmp0=!nonempty items $val25
+
+val25=$(tmp0)
+tmp0=!nonempty items $val26
+
+val21=$(tmp0)
+tmp0=!replace internal $(val24[$(val25[1]);1,2]) by in $val19
+
+val19=$(tmp0)
+val19=$val19;$val21
+tmp0=!replace internal ; by , in $val19
+
+val19=$(tmp0)
+tmp0=!nonempty items $val19
+
+val19=$(tmp0)
+!readproc slib/geo2D/offdraw $val15, size=400 vertex_legend=[$(val25[1]),X] 
+tmp0=$slib_out
+val27=$(tmp0)
+!readproc slib/geo2D/offdraw $val15, html size=400 vertex_legend 
+tmp0=$slib_out
+val28=$(tmp0)
+val29=$(val27[2..-1;]);snaptopoints $val19
+tmp0=!word 2 to -1 of $(val27[1;])
+
+val30=$(tmp0)
+!readproc slib/geo3D/polyhedra $(val12[1;1]),300,300,show=[S,A,F] scale=0.8 color=[black,green,yellow,blue] width=[6,2] id=0 
+tmp0=$slib_out
+val31=$(tmp0)
+tmp0=!lookup $(val12[1;1]) in data/polyedre_off/index.$val6
+
+val32=$(tmp0)
+val32=$(val32[1])
+replytype1=draw
+
+replyoption1=split precision=10 
+replyname1=
+replygood1=[$val29];crosshairs,$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8					<div class="wims_columns">	 <div class="medium_size img_col">	  $val31	  <div class="wimscenter">$val32</div>	 </div><div class="medium_size text_col">		 
+!read oef/embed.phtml r1,$(val30[1])x$(val30[2]) 
+$()	</div>		</div>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,30,31,32
+embedcnt=1

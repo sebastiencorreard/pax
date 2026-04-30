@@ -1,0 +1,60 @@
+#:3 
+n=$counter
+
+!if $counter=1
+ #1#,2,3,#4#,5,6,#7#,8,9,#10#,11,12
+ var9=!shuffle 1,4,7,10 
+ wordmin=noshow
+ !if $total_exos >4
+  total_exos=4
+ !endif
+# checkfile=exos/checkfile2.proc
+ checkfile=$checkdir/logic.proc
+ mathview=5
+ math=0
+# ivm weg strippen => <->
+ convert_root=1
+ mathviewpanel=minimaal: not : and : or : => 
+ # : \u21D4
+ rounding=-1
+ inputs=-1
+!endif
+
+records=lang/zinnen
+keuze=!item $counter of $var9
+universum=!record $keuze of $records
+woordenboek=!record $[$keuze+1] of $records
+zinnen=!record $[$keuze+2] of $records
+universum=!lines2words $universum
+
+ktot=!linecnt $zinnen
+k=!randint 1,$ktot
+zin=!line $k of $zinnen
+answer$n=!item 1 of $zin
+tex=\vee,\wedge,\not,\Rightarrow,\leftrightarrow
+texans=$(answer$n)
+i=1
+!for p in or,and,not,=>,<=>
+ P=!item $i of $tex
+ texans=!replace internal $p by $ $P $ in $texans
+ !increase i
+!next p
+
+texanswer$n=\huge{ $texans }
+
+tekst=!item 2 of $zin
+wb=!linecnt $woordenboek
+tabel=<table class=\'demospecial\'>
+!for p=1 to $wb
+ P=!line $p of $woordenboek
+ P1=!item 1 of $P
+ P2=!item 2 of $P
+ tabel=!append word $ <tr><td>$P1</td><td>$P2</td></tr> $ to $tabel
+!next p
+
+tabel=!append word $ </table> $ to $tabel
+helptext=<table><tr><td>$tabel</td><td>$universum</td></tr></table>bijvoorbeeld: A &#8743; B &rArr; C
+question$n=<a onmouseover="return escape('$helptext')">Zet de onderstaande bewering om in een formele bewering...<br />kijk <b>hier</b> voor de afkortingen binnen dit universum...<hr /><tt>$tekst</tt></hr></a>
+
+!exit
+# &#8658;

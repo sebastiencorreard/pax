@@ -1,0 +1,125 @@
+!set title=Chez le fleuriste
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=11
+prevarcnt=10
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 50
+
+val6=$[$(tmp0)/10]
+tmp0=!randint 20, 50
+
+val7=$[$(tmp0)/10]
+
+!ifval $val6=$val7
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 1, 10
+
+val7=$[ $val7 + ($(tmp0))*$(tmp1)/10]
+!endif
+tmp0=!randint 6, 12
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8-1)]
+tmp0=!randint 2, $val9
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val8 - $val10)]
+val12=$[$val10*$val6 + $val11* $val7]
+val13=$[$val10*$val7 + $val11* $val6]
+
+!ifval $val2=1 
+val14= 
+!else
+val14=xx-large
+!endif
+replytype1=default
+replyname1=Nombre total de fleurs
+replygood1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>	Camille se rend chez le fleuriste. Pour le même nombre total de fleurs,	la fleuriste lui propose deux bouquets composés de roses et de tulipes,	le premier à $val12 euros et le deuxième à $val13 euros, dans lequel elle a remplacé	les roses par des tulipes et les tulipes par des roses.	</p><p>	Sachant qu'une rose coûte $val6 euros et une tulipe $val7 euros,	combien de fleurs Camille veut-elle acheter&nbsp;?	</p>	<div class="wimscenter"><label for="reply1">Nombre total de fleurs :</label>  
+!read oef/embed.phtml r1,3 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Soient 
+!insmath n
+$() le nombre total de fleurs,	 
+!insmath t
+$() le nombre de tulipes du premier bouquet.	Nous avons le système suivant <div class="wimscenter">	 
+!insmath 	  \begin{cases}	  $val6(n - t) + $val7 t &= $val12\\	 $val6 t + $val7 (n - t) &= $val13	 \end{cases}	 
+$()	</div>	Et la solution de ce système est 
+!insmath n=$val8
+$(), 
+!insmath t=$val11
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,12,13
+embedcnt=1

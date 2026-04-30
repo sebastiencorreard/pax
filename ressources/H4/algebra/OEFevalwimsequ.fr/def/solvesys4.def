@@ -1,0 +1,143 @@
+!set title=Résoudre un système d'équations 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!values v for v=2 to 5
+
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!randint -3, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -3, 3
+
+val8=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in x,y	u,v	a,b
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+val10=$(val9[1])
+val11=$(val9[2])
+
+!ifval $(val6[1])*$(val6[2])=0
+t_=!replace internal \( by ( in $(val6[1])*$val10+$(val6[2])*$val11;
+tmp0=!exec maxima $t_
+
+val12=$(tmp0)
+!else
+val12=$(val6[1])*$val10+$(val6[2])*$val11
+!endif
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+
+!ifval $(val6[3])*$(val6[4])=0
+t_=!replace internal \( by ( in $(val6[3])*$val10+$(val6[4])*$val11;
+tmp0=!exec maxima $t_
+
+val13=$(tmp0)
+!else
+val13=$(val6[3])*$val10+$(val6[4])*$val11
+!endif
+tmp0=!texmath $val13
+
+val13=$(tmp0)
+tmp=!translate ";': to $     $ in $(val6[1])*$val7+$(val6[2])*$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val14=$(tmp1)
+tmp=!translate ";': to $     $ in $(val6[3])*$val7+$(val6[4])*$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+val16=\(\left\lbrace\begin{array}{ccc}$val12&=&$val14\\ $val13&=&$val15\end{array}\right.)
+replytype1=numexp
+replyname1=$val10
+replygood1=$val7
+replytype2=numexp
+replyname2=$val11
+replygood2=$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Résoudre le système d'équations suivant :	<div class="wimscenter">$val16</div>	<b>Votre réponse </b><br>	  <label for="reply1">La solution du système	  est le couple</label> ( 
+!read oef/embed.phtml r1,5 
+$() ;  
+!read oef/embed.phtml r2,5 
+$()).
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=16
+embedcnt=2

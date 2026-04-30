@@ -1,0 +1,141 @@
+!set title=Mesure d'un angle 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!translate internal $	$ to ; in A,B,C	T,R,I	S,V,T	R,S,T	E,F,G
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+tmp0=!randint 5, 15
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val11=$[rint($(tmp0))]
+val12=<li>$val7$val8 = $val11 cm</li><li> $val7$val9 = $val10 cm</li>
+val13=180/pi*arctan($val10/$val11)
+tmp0=!shuffle $val8,$val9
+
+val14=$(tmp0)
+tmp0=!randint 4, 16
+
+val15=$[$(tmp0)/10]
+val16=$[sqrt(1-($val15-1)^2)]
+val17=$[sqrt($val15^2+$val16^2)/0.1]
+val18=$[sqrt((2-$val15)^2+$val16^2)/0.1]
+val19=$[$val15-$val15/$val17]
+val20=$[$val16-$val16/$val17]
+val21=$[$val19+(2-$val15)/$val18]
+val22=$[$val20-$val16/$val18]
+val23=$[$val15+(2-$val15)/$val18]
+val24=$[$val16-$val16/$val18]
+val25=range -0.2,2.2,-0.2,1.2	segment $val19,$val20,$val21,$val22,red	segment $val21,$val22,$val23,$val24,red	triangle 0,0,2,0,$val15,$val16,black	text black,$val15,$val16+0.14,medium,$val7	text black,-0.05,0,medium,$(val14[1])	text black,2,0,medium,$(val14[2])
+tmp0=!randint 0, 2
+
+val26=$[rint($(tmp0))]
+tmp0=!item $val26+1 of à l'unité,au dixième,au centième
+
+val27=$(tmp0)
+val13=$[rint(($val13)*10^$val26)/10^$val26]
+!readproc oef/draw.phtml 240,140 \
+$val25 
+tmp0=$ins_url
+val28=$(tmp0)
+replytype1=numexp
+replyname1=\(\widehat{$val7$val8$val9})
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 $val7$val8$val9 est un triangle rectangle en $val7.	<ul>$val12</ul>	  Calculer la mesure de l'angle 
+!insmath \widehat{$val7$val8$val9}
+$() arrondie $val27.	<div class="wimscenter">	 <img src="$val28" alt="">	</div>	<b>Votre réponse :</b><br>	<label for="reply1">
+!insmath \widehat{$val7$val8$val9} \simeq
+$()</label>  
+!read oef/embed.phtml r1,5 
+$()°.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,12,27,28
+embedcnt=1

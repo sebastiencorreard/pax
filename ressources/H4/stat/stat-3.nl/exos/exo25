@@ -1,0 +1,127 @@
+# permutaties & combinaties I
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif  
+viewlogo=1
+logo=<img src=$module_dir/gifs/boekenkast.jpg alt=noalt />
+logotext=<img src=$module_dir/gifs/boekenkast.jpg alt=noalt />
+mathview=0
+make_tr=1
+inputs=1.1
+cols=6
+helptext=$empty
+var1=0
+math=0
+description=$youranswer
+# dus aantallen en geen kans 0<P<1
+image=0
+questiontype=0
+formula$n=$empty
+checkfile=exos/checkfile1.proc
+exotext=$empty
+
+gender=!randitem 1,2
+!if $gender=1
+    namen=!record 78 of $remarkdir/commonremarks.$taal
+    #:Hij,hij,hem,zijn
+    rec=107
+!else
+    namen=!record 79 of $remarkdir/commonremarks.$taal
+    rec=108
+    #:Zij,zij,haar,haar
+!endif
+
+namen=!shuffle $namen
+naam=!item 1 of $namen
+voor=!record $rec of lang/remarks.$taal
+Hij=!item 1 of $voor
+hij=!item 2 of $voor
+hem=!item 3 of $voor
+zijn=!item 4 of $voor
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+doel=!record 110 of lang/remarks.$taal
+!if $R=1
+    a=!randint 8,12
+    bg=$[$a-2]
+    b=!randint 2,$bg
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    doel=!randitem $doel
+    ss=!record 111 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam heeft $A boeken in $zijn boekenkast .<br />$Hij wil er $B weggeven aan $zijn $doel .<br />Het maakt $hem niet uit welke boeken $hij weggeeft.<br />Lukraak doet $naam een greep in $zijn boekenkast .<br /><br /> Hoeveel verschillende mogelijkheden zijn er om<br />$b boeken te kiezen uit een verzameling van $a ?
+    
+    answer$n=!exec pari (factorial($a))/((factorial($[$a-$b]))*(factorial($b)))
+    ans=$[round($(answer$n))]
+    rr=!record 173 of lang/remarks.$taal
+    textanswer$n=$rr : <b>$ans</b>
+    #@Met de grafische rekenmachine:<br /> $a ncr $b<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg </a>(PDF)
+    #texanswer$n=\left( \begin{array}{c} $a \\ $b \end{array} \right) = \frac{ $a !}{$b ! \cdot $[$a - $b] ! } = $(answer$n)
+ !exit
+!endif
+
+!if $R=2
+    a=!randint 10,20
+    bg=$[$a-2]
+    b=!randint 4,$bg
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    doel=!randitem $doel
+    ss=!record 111 of lang/remarks.$taal
+    question$n=$ss
+    #@$naam heeft $A boeken in $zijn boekenkast .<br />$Hij wil er $B weggeven aan $zijn $doel .<br />Het maakt $hem niet uit welke boeken $hij weggeeft.<br />Lukraak doet $naam een greep in $zijn boekenkast .<br /><br /> Hoeveel verschillende mogelijkheden zijn er om<br />$b boeken te kiezen uit een verzameling van $a ?
+    
+    answer$n=!exec pari (factorial($a))/((factorial($[$a-$b]))*(factorial($b)))
+    ans=$[round($(answer$n))]
+    rr=!record 112 of lang/remarks.$taal
+    textanswer$n=$rr
+    #@Met de grafische rekenmachine:<br /> $a ncr $b<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg </a>(PDF)
+    texanswer$n=\left( \begin{array}{c} $a \\ $b \end{array} \right) = \frac{ $a !}{$b ! \cdot $[$a - $b] ! } = $ans
+ !exit
+!endif
+
+!if $R>2
+    a=!randint 8,15
+    b=!randint 2,7
+    A=!item $a of $telwoorden
+    B=!item $b of $telwoorden
+    
+    doel=!shuffle $doel
+    text=$empty
+    tot=$empty
+    !for p=1 to $b
+	doel=!item $[$p+1] of $namen
+	text=!append item &nbsp;$doel&nbsp; to $text
+	num=$[($a-$p+1)]
+	tot=!append word @$num to $tot
+    !next p
+    tot=!nospace $tot
+    tot=!char 2 to -1 of $tot
+    tot=!replace internal @ by \times in $tot
+    qq=!record 113 of lang/remarks.$taal
+    question$n=$qq
+    #@$naam heeft $A boeken in $zijn boekenkast .<br />$Hij wil er $B weggeven.<br />$Hij geeft ze aan $text .<br /><br />Hoeveel verschillende keuze mogelijkheden heeft $naam ?
+
+    answer$n=!exec pari (factorial($a))/(factorial($[$a-$b]))
+    ans=$[round($(answer$n))]
+    #rr=!record 114 of lang/remarks.$taal
+    #textanswer$n=$rr
+    #@Met de grafische rekenmachine:<br /> $a npr $b<br />zie ook deze <a href="$module_dir/docs/combinaties_en_permutaties.pdf">uitleg </a>(PDF)
+    texanswer$n= $tot \,=\,$ans
+ !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+
+

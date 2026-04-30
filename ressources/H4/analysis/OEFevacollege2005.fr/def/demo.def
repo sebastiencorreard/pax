@@ -1,0 +1,142 @@
+!set title=Critère de divisibilité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=c,r
+varcnt=8
+prevarcnt=6
+postvarcnt=1
+replycnt=1
+choicecnt=1
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 2,3,5,9,10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 5, 50
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,2
+
+val8=$[rint($(tmp0))]
+
+!ifval $val8=1
+val9=$[rint($val6*$val7)]
+!else
+tmp0=!randint 10, 500
+
+val9=$[rint($(tmp0))]
+!endif
+val10=$[$val9/$val6]
+
+!ifval . isin $val10
+val11=Non
+!else
+val11=Oui
+!endif
+replytype1=numexp
+replyname1=multiple
+replygood1=?analyze 12
+choicename1=Diviseur
+choicegood1=$val11
+choicebad1=Oui,Non
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Utilise un critère de divisibilité.
+
+help=!nosubst Pas d'aide
+
+
+!goto stat
+
+!exit
+
+:question
+$()<ol>	 <li>Le nombre 
+!insmath $val9
+$() est-il divisible par 
+!insmath $val6
+$() ?	<div><b>Votre réponse</b> :  
+!read oef/embed.phtml c1 
+$().</div></li>	 <li> Donner un multiple du nombre 
+!insmath $val9
+$() (différent de 
+!insmath $val9
+$()).	<div><b>Votre réponse</b> :  
+!read oef/embed.phtml r1 
+$().</div></li>	</ol>
+$()
+!exit
+
+:hint
+$()Utilise un critère de divisibilité.
+$()
+!exit
+
+:help
+$()Pas d'aide
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val13=$[$val12/$val9]
+
+!exit
+
+:feedback
+!ifval 0=0
+ <div class='oef_feedbacks'>Un nombre entier est divisible par 
+!insmath $val6
+$() lorsque ...
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval . notin $val13 and $val13!=NaN and $val12!=$val9 and $val13!=0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Multiple
+
+!exit
+
+:stat
+vsavelist=6,9,12
+embedcnt=2

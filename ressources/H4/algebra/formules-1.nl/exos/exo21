@@ -1,0 +1,135 @@
+#:21 Herleid de functie tot een machtsfunctie VI
+display=1
+checkfile=exos/precheck3.proc
+arglist=f(x),y
+varlist=x
+rounding=0
+!read $remarkdir/rounding.$taal
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var2=$empty
+questiontype=0
+math=0
+force_mathml=yes
+mathview=5
+smallfont=18
+largefont=26
+mathviewpanel=$module_title:f(x)=:y=:x:+:-:*:/:^
+helptext=<img src=\'$module_dir/gifs/exo2.jpg\' alt=\'noalt\' />
+m=!mathmlmath f(x)=c \cdot x^{a}
+ss=!record 1 of lang/remarks.$taal
+#@Herleid de onderstaande functie tot een machtsfunctie<br />van de vorm: $m . En hierbij is x &gt;0
+question$n=$ss
+
+!if $R=1
+ a=!randint 2,15
+ b=!randint 3,9
+ formula$n=f(x) = \frac{1}{\root{$b} \of{x}} \cdot $a \sqrt{x} = [?]
+ applettext=!nospace f(x) = 1/(x^(1/$b))*$a*x^(1/2) ->
+ var1=!nospace 1/(x^(1/$b))*$a*x^(1/2)
+ var2=!nospace $a*x^(1/2)/(x^(1/$b))
+ tot=!exec pari A=1/2-1/$b\
+ printtex(A)
+    
+ c=!line 1 of $tot
+ c_tex=!line 2 of $tot
+ answer$n=$a*x^($c)
+ texanswer$n= f(x) = \frac{1}{\root{$b} \of{x}} \cdot $a \sqrt{x} =$a \cdot \frac{1}{x^{\frac{1}{$b}}} \cdot x^{\frac{1}{2}}=$a \cdot x^{-\frac{1}{$b}} \cdot x^{\frac{1}{2}} =$a \cdot x^{\frac{1}{2}-\frac{1}{$b}} = $a \cdot  x^{$c_tex}
+
+ !exit
+!endif
+
+!if $R=2
+ keuze=!randitem 1,2
+ keuze=2
+ !if $keuze=1
+  a=!randint 2,5
+  b=!randint 3,5
+  c=!randint 2,9
+  d=!randint 2,9
+  formula$n=f(x) =\left( -\frac{1}{$a} \cdot x \right)^{$b} \cdot \left( \root{$c} \of{x^{$d}}\right)^{2}  = [?]
+  applettext=!nospace f(x) = (-1/$a*x)^$b * (x^($d/$c))^2 ->
+  var1=!nospace (-1/$a*x)^$b * (x^($d/$c))^2
+  tot=!exec pari A=$b+2*$d/$c\
+  printtex(A)\
+  printtex(2*$d/$c)
+  
+  exp=!line 1 of $tot
+  exp_tex=!line 2 of $tot
+  h_tex=!line 3 of $tot
+  e=$[$a^$b]
+  !if $b=4
+   f=1/$e
+   f_tex=\frac{1}{$e}
+  !else
+   f= -1/$e
+   f_tex= -\frac{1}{$e}
+  !endif
+  answer$n=$f*x^($exp)
+	
+#tot=!exec maxima $var1;\
+#tex1($var1)	
+#tot=!singlespace $tot
+#answer$n=!word 1 of $tot
+#tex_ans=!word 2 of $tot
+#tex_ans=!replace internal " by $empty in $tex_ans
+#tex_ans=!replace internal \\ by \ in $tex_an
+
+    texanswer$n=\left[ \begin{array}{lcl} f(x) & = & \left( -\frac{1}{$a} \cdot x \right)^{$b} \cdot \left( \root{$c} \of{x^{$d}}\right)^{2} \\ f(x) & = & \left( -\frac{1}{$a} \right)^{$b} \cdot x^{$b} \cdot \left( x^{\frac{$d}{$c} } \right)^{2}  \\ f(x) & = & $f_tex \cdot  x^{$b} \cdot x^{$h_tex} \\ f(x) & = & $f_tex \cdot x^{$exp_tex}  \end{array} \right.
+
+ !else
+  #keuze=2
+  a=!randint 2,9
+  b=!randint 2,5
+  c=!randint 2,9
+  d=!randint 2,20
+  formula$n=f(x) = \frac{\left( $a \cdot x \right)^{$b}}{$d \cdot \root{$c} \of{x}}
+  var1=($a*x)^$b/($d*x^(1/$c))
+  tot=!exec pari A=$a^$b/$d \
+  printtex(A)\
+  B=$b-1/$c\
+  printtex(B)
+  
+  e=!line 1 of $tot
+  e_tex=!line 2 of $tot
+  exp=!line 3 of $tot
+  exp_tex=!line 4 of $tot
+  
+  answer$n=$e*x^($exp)
+  
+  texanswer$n=\left[ \begin{array}{lcl} f(x) & = & \frac{\left( $a \cdot x \right)^{$b}}{$d \cdot \root{$c} \of{x}} \\ f(x) & = & \frac{$a^{$b} \cdot x^{$b}}{$d \cdot x^{\frac{1}{$c}}} \\  f(x) & = & \frac{$a^{$b}}{$d} \cdot x^{$b - \frac{1}{$c}} \\ f(x) & = & $e_tex \cdot x^{$exp_tex}   \end{array} \right.
+
+ !endif
+ !exit
+!endif
+
+
+!if $R=3
+ a=!randint 2,20
+ e=!randint 1,4
+ b=$[2*$e]
+ c=!randint 2,15
+ d=!randint 2,9
+ formula$n=f(x) = \left( \sqrt{ $a \cdot x }\right)^{$b} \cdot ( -$c )^{-$d}
+ 
+ tot=!exec pari A=$a^($e) / (-1 * $c )^$d \
+ printtex(A)\
+ (-1*$c)^$d
+
+ 
+ f=!line 1 of $tot
+ f_tex=!line 2 of $tot
+ tussen=!line 3 of $tot
+
+ var1=(sqrt($a*x))^$b*(-$c)^(-$d)
+ var2=($a*x)^$e/($tussen)
+ 
+ answer$n=$f*x^$e
+ texanswer$n=\left[ \begin{array}{lcl} f(x) & = & \left( \sqrt{ $a \cdot x }\right)^{$b} \cdot ( -$c )^{-$d} \\ f(x) & = & \left( ($a \cdot x  )^{\frac{1}{2}} \right)^{$b} \cdot \frac{1}{(-$c )^{$d}} \\ f(x) & = & \left( $a \cdot x  \right)^{\frac{$b}{2}} \cdot \frac{1}{(-$c )^{$d}} \\ f(x) & = &  $a^{$e} \cdot x^{$e} \cdot \frac{1}{(-$c )^{$d}} \\ f(x) & = &  \frac{$a^{$e}}{(-$c )^{$d}} \cdot x^{$e} \\ f(x) & = & $f_tex \cdot x^{$e} \end{array} \right.
+
+ !exit
+!endif

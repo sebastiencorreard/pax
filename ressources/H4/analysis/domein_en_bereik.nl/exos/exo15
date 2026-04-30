@@ -1,0 +1,79 @@
+n=$counter
+mathview=0
+inputs=1.1
+questiontype=0
+checkfile=$checkdir/new_number.proc
+helptext=<img src=\'$module_dir/gifs/help.exo15.jpg\' alt=\'noalt\' />
+embed=1
+cols=12
+c=!randitem 2,3,4,5,6,7,8,9
+d=!randitem 1,2,3,4,5,6,7,8,9
+e=!randitem 1,2,3,4,5,6,7,8,9
+ber=!randint 1,15
+mp=!randitem 1,-1
+ber=$[$mp*$ber]
+dom=!randint 2,15
+ss=!record 78 of lang/remarks.$taal
+# Bepaal het bereik (<b>B</b><sub>f</sub> ) en domein (<b>D</b><sub>f</sub> ) van de volgende functie:
+k=!randitem 1,2
+m=!randitem 1,2
+!if $k=1
+    pm=!randitem +,-
+    !if $m=1
+        nogmeer=!record 79 of lang/remarks.$taal
+        #@Voor welke waarde van <em>a</em> is het domein van <em>f</em> gelijk aan Df.
+        tot=!exec pari A=-1*$e/$dom\
+        printtex(A)
+        answer$n=!line 1 of $tot
+        tex_ans=!line 2 of $tot
+	Df=!subst \left. \langle \leftarrow ; $dom \right ]
+        domein=D
+        BD=$Df
+        arglist=a
+	pluse=+ $e
+        texanswer$n= a x + $e = 0 \rightarrow a x = -$e \rightarrow x = \frac{-$e}{a} = $dom \rightarrow a=$tex_ans
+    !else
+        nogmeer=!record 79 of lang/remarks.$taal
+        #@Voor welke waarde van <em>a</em> is het domein van <em>f</em> gelijk aan Df.
+        tot=!exec pari A=$e/$dom\
+        printtex(A)
+        answer$n=!line 1 of $tot
+        tex_ans=!line 2 of $tot
+	Df=!subst \left [ $dom ; \rightarrow \rangle \right.
+        domein=D
+        BD=$Df
+        arglist=a
+	pluse=-$e
+        texanswer$n= a x - $e = 0 \rightarrow a x = $e \rightarrow x = \frac{$e}{a} = $dom \rightarrow a=$tex_ans
+    !endif
+!else
+    tot=!exec pari A=($ber+$d)/$c\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex_ans=!line 2 of $tot
+    texanswer$n=$c b - $d = $ber \rightarrow b=$tex_ans
+    !if $m=1
+        nogmeer=!record 80 of lang/remarks.$taal
+        #@Voor welke waarde van <em>b</em> is het bereik van <em>f</em> gelijk aan Bf.
+        Bf=!subst \left [ $ber ; \rightarrow \rangle \right.
+        domein=B
+        BD=$Bf
+        arglist=b
+        pluse=+$e
+        pm=+
+    !else
+        nogmeer=!record 80 of lang/remarks.$taal
+        #@Voor welke waarde van <em>b</em> is het bereik van <em>f</em> gelijk aan Bf.
+        Bf=!subst \left. \langle \leftarrow ; $ber \right ]
+        domein=B
+        BD=$Bf
+        arglist=b
+        pluse=+$e
+        pm=-
+    !endif
+!endif
+
+#@:Gegeven is de familie van functies..
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><br />$nogmeer 
+
+formula$n=\left[ \begin{array}{l} f_{a,b}(x)=$c \cdot b - $d $pm \sqrt{a \cdot  x $pluse} \\ \\ $domein _{f} =  $BD \end{array} \right. 

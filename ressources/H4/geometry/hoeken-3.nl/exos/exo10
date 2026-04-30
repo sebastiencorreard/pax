@@ -1,0 +1,185 @@
+#10 Zwaartepunt
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=1
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+rounding=10
+#checkfile=$checkdir/coord.proc
+checkfile=exos/precheck.proc
+helptext=!record 7 of lang/remarks.$taal
+make_tr=1
+uitleg=$empty
+!if $R=1
+ xa=!randint -8,-2
+ xb=!randint 2,8
+ xmax=$[max(abs($xa),abs($xb)) + 1]
+ xmin=$[-1*$xmax]
+ ya=!randint $[$xmin+1],$[$xmax-1]
+ yb=$ya
+ ymax=$xmax
+ ymin=$xmin
+!else
+ keuze=!randint 0,3
+ !if $keuze=0
+  xa=!randint -8,-2
+  ya=!randint 0,8
+  xb=!randint 2,8
+  yb=!randint 0,8
+ !else
+  !if $keuze=1
+   xa=!randint 0,8
+   ya=!randint 2,8
+   xb=!randint 0,8
+   yb=!randint -8,-2
+  !else
+   !if $keuze=2
+    xa=!randint -8,-2
+    ya=!randint -8,0
+    xb=!randint 2,8
+    yb=!randint -8,0
+   !else
+    xa=!randint -8,-2
+    ya=!randint 2,8
+    yb=!randint -8,-2
+    xb=!randint -8,2
+   !endif
+  !endif
+ !endif
+!endif
+
+!if $R=2
+ a=!randint 2,10
+ b=$a
+!else
+ massa=!shuffle 2,3,4,5,6,7,8,9,10
+ a=!item 1 of $massa
+ b=!item 2 of $massa
+!endif
+
+tot=!exec pari xz=($a)/(($a) + ($b))*($xa)+($b)/(($a) + ($b))*($xb)\
+yz=($a)/(($a) + ($b))*($ya)+($b)/(($a) + ($b))*($yb)\
+printtex(xz)\
+printtex(yz)\
+printtex(($a)/(($a) + ($b)))\
+printtex(($b)/(($a) + ($b)))
+
+xz=!line 1 of $tot
+yz=!line 2 of $tot
+xz_tex=!line 3 of $tot
+yz_tex=!line 4 of $tot
+fa_tex=!line 5 of $tot
+fb_tex=!line 6 of $tot
+
+!if $R>1
+ # rekening houden met dat  (xz:yz) wel in beeld komt
+ xmin=$[min($xa,$xb)]
+ xmin=$[min($xz,$xmin) - 1]
+ xmax=$[max($xa,$xb)]
+ xmax=$[max($xz,$xmax) + 1]
+
+ ymin=$[min($ya,$yb)]
+ ymin=$[min($yz,$ymin) - 1]
+ ymax=$[max($ya,$yb)]
+ ymax=$[max($yz,$ymax) + 1]
+
+
+ fa=$a/$[$a+$b]
+ fb=$b/$[$a+$b]
+ xad=$[$a/($a+$b)*$xa]
+ yad=$[$a/($a+$b)*$ya]
+ xbd=$[$b/($a+$b)*$xb]
+ ybd=$[$b/($a+$b)*$yb]
+
+ uitleg=fillcolor orange\
+ opacity 200,40\
+ linewidth 2\
+ fpoly orange,0,0,$xad,$yad,$xz,$yz,$xbd,$ybd\
+ arrow 0,0,$xad,$yad,10,blue\
+ arrow 0,0,$xbd,$ybd,10,blue\
+ dashtype 3,6\
+ darrow 0,0,$xa,$ya,10,blue\
+ darrow 0,0,$xb,$yb,10,blue\
+ string black,$xad,$yad,$fa OA\
+ string black,$xbd,$ybd,$fb OB
+
+!endif
+
+
+answer$n=0,0,$xz,$yz
+xz_rnd=$[(round(100*$xz))/100]
+yz_rnd=$[(round(100*$yz))/100]
+ss=!record 20 of lang/remarks.$taal
+#@Gegeven zijn de punten A ($xa : $ya) en B ($xb  :$yb).<br />De (punt)massa in punt A is $a kg en de massa in punt B is $b kg.<br/>Teken in de applet de plaatsvector van het zwaartepunt Z.
+
+question$n=<a onmouseover='return escape("$helptext")'>$ss</a>
+
+texanswer$n=\left[ \begin{array}{l} \vec{z} = \frac{$a}{$a + $b} \cdot \begin{pmatrix} $xa \\ $ya \end{pmatrix} +  \frac{$b}{$a + $b} \cdot \begin{pmatrix} $xb \\ $yb \end{pmatrix} \\ \vec{z} = \begin{pmatrix} $xz_tex \\ $yz_tex \end{pmatrix} \approx \begin{pmatrix} $xz_rnd \\ $yz_rnd \end{pmatrix} \end{array}\right.
+
+somvector=!mathmlmath \vec{OZ} = $fa_tex \cdot \vec{OA} + $fb_tex \cdot \vec{OB}
+rr=!record 21 of lang/remarks.$taal
+#@Het zwaartepunt bevindt zich als eindpunt van de somvector van $somvector (zie plaatje)
+textanswer$n=$rr
+
+
+
+!if $xmin>-1
+ xmin=-1
+!endif
+!if $xmax<1
+  xmax=1
+!endif
+!if $ymin>-1
+ ymin=-1
+!endif
+!if $ymax<1
+ ymax=1
+!endif
+
+var5=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 90,110\
+grid 1,1,grey,4,4,6,grey\
+opacity 255,255\
+linewidth 2\
+userinput_xy\
+userdraw arrow,blue\
+segment $xa,$ya,$xb,$yb,red\
+linewidth 3\
+points red,$xa,$ya,$xb,$yb\
+fontfamily Italic 18px Ariel\
+string red,$[$xa+0.2],$[$ya-0.2],A\
+string red,$[$xb+0.2],$[$yb-0.2],B\
+precision 100\
+mouse red,22\
+replyformat 21
+
+!if $wims_user=supervisor
+ var5=!append line linewidth 2 \
+ arrow $(answer$n),8,lightgreen to $var5
+!endif
+
+object$n=!exec canvasdraw\
+$var5
+
+# dit is voor in het eindantwoord plaatje..zie precheck.proc
+var5=!append line linewidth 10\
+point $[$xz],$[$yz],red\
+string red,$[$xz+0.3],$[$yz+0.3],Z\
+$uitleg to $var5
+
+
+!exit

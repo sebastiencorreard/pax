@@ -1,0 +1,52 @@
+!read language lang/names
+!if $jtype iswordof jsxgraph
+  !set wims_html_header=$wims_html_header\
+  <style type="text/css">\
+   .jxgbox {margin-left:auto;margin-right:auto;}\
+   .jsxgraph_button {text-align:center;}\
+  </style>
+!endif
+!header
+
+!read present.phtml
+
+!if $error!=$empty
+ <div class="wims_alertmsg">
+ !read msg.phtml
+ </div>
+!endif
+
+!if $status=waiting
+ !read form.phtml
+ !if $repeat>1
+  !set nn=$name_giveup
+ !else
+  !set nn=$name_change
+ !endif
+ !set wims_ref_class=wims_button
+ !href cmd=renew&worksheet=$worksheet&$module_init_parm $nn
+
+!else
+ !read answer.phtml
+ <p>
+ !if $status=finish
+ !if $repeat>1
+  !set nn=$name_news
+ !else
+  !set nn=$name_newq
+ !endif
+ !set wims_ref_class=wims_button
+ !href cmd=renew&worksheet=$worksheet&$module_init_parm $nn
+
+ !else
+  !set wims_ref_class=wims_button
+ !href cmd=next $name_continue
+ &nbsp;
+  !set wims_ref_class=wims_button
+ !href cmd=renew&worksheet=$worksheet&$module_init_parm $name_giveup
+ !endif
+ </p>
+!endif
+
+:end
+!tail

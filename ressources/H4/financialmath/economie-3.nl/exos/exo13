@@ -1,0 +1,61 @@
+# Waardevast &amp; Welvaartsvast
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+inputs=-1
+cols=5
+checkfile=exos/precheck1.proc
+math=0
+pl=!randint 1,7
+viewlogo=1
+logotext=<img src=\'$module_dir/gifs/vergrijzing$pl.jpg\' alt=\'vergrijzing\' />
+logo=<img src="$module_dir/gifs/vergrijzing.jpg" alt="vergrijzing" />
+vandaag=!date +%Y
+nu=!randint 2000,$vandaag
+toen=$[$nu - 1]
+gegevens=Re&euml;el nationaalproduct,Gemiddeld cao-loon (incl. prijscompenstatie),Prijsniveau,Arbeidsproductiviteit
+head=<tr><th>Procentuele verandering $nu ten opzichte van $toen</th><th>&nbsp;</th></tr>
+
+v=!shuffle 1,2,3,4
+percentages=$empty
+!for p=1 to 4
+    perc=!randint 10,25
+    perc=$[$perc/10]
+    percentages=!append item $perc to $percentages
+!next p
+body=$empty
+!for p=1 to 4
+    vr=!item $p of $v
+    vrr=!item $vr of $gegevens
+    perc$vr=!item $vr of $percentages 
+    body=!append word <tr><td>$vrr</td><td>+&nbsp;$(perc$vr)&nbsp;%</td></tr> to $body
+!next p
+
+stelsel=geen idee,kapitaaldekkingsstelsel,omslagstelsel,AOW-stelsel,financieringsstelsel,overslagstelsel,markstelsel,middenloonstelsel,kapitaaldekkingstelsel,
+select=$empty
+lijst=!shuffle 1,2,3,4,5,6,7,8
+ant=!shuffle 0,1,2,3,4,5,6,7
+!for p in $lijst
+    st=!item $p of $stelsel
+    opt=!item $p of $ant 
+    !if $p=3
+	ans1=$opt
+    !endif
+    select=!append line <option value="$opt">$st</option> to $select
+!next p
+
+ss=Doordat in de loop van de 21<sup>ste</sup> eeuw een verdere vergrijzing van de bevolking wordt verwacht,<br />kan de financiering van de AOW een probleem worden...<hr />Stel dat voor Nederland de <span class="schaersvoorde_link">volgende gegevens</span> bekend zijn...<br />Beantwoord daarmee de onderstaande vragen.
+
+answer$n=$ans1,$perc2,$perc3
+var2=AOW gefinancierd via,AOW verhoogd met,AOW verhoogd met
+#org: exotext=<form name="myform1"  id="myform1" action=""><table summary="vraagtabel" cellpadding="5" cellspacing="1" bgcolor="#e2fff8"><tr><td>1) In Nederland wordt de AOW gefinancierd via het </td><td><select  size="1" id="myinput0" name="myinput0"><option value="-1">geen idee</option><option value="2">kapitaaldekkingsstelsel</option><option value="1">omslagstelsel</option></select></td></tr><tr><td>2) Met hoeveel procent zou de AOW uitkering moeten worden verhoogd<br />als er sprake zou zijn van een <em>welvaartsvaste</em> uitkering ?</td><td><input id="myinput1" name="myinput1" size="8" class="schaersvoorde_input"/>&nbsp;%</td></tr><tr><td>3) Met hoeveel procent zou de AOW uitkering moeten worden verhoogd<br />als er sprake zou zijn van een <em>waardevaste</em> uitkering? </td><td><input id="myinput2" name="myinput2" size="8"  class="schaersvoorde_input"/>&nbsp;%</td></tr></table></form>
+exotext=<table><tr><td>1) In Nederland wordt de AOW gefinancierd via het </td><td><select  size="1" id="myinput0" class="schaersvoorde_input">$select</select></td></tr><tr><td>2) Met hoeveel procent zou de AOW uitkering moeten worden verhoogd<br />als er sprake zou zijn van een <em>welvaartsvaste</em> uitkering ?</td><td><input id="myinput1" name="myinput1" size="8" class="schaersvoorde_input"/>&nbsp;%</td></tr><tr><td>3) Met hoeveel procent zou de AOW uitkering moeten worden verhoogd<br />als er sprake zou zijn van een <em>waardevaste</em> uitkering? </td><td><input id="myinput2" name="myinput2" size="8"  class="schaersvoorde_input"/>&nbsp;%</td></tr></table></form>
+
+helptext=
+
+textanswer$n=<ol><li>In Nederland wordt de AOW gefinancierd door het <em>omslagstelsel</em></li><li>Een <em>welvaartsvaste</em> uikering is een uitkering die gelijke tred<br />houdt met de gemiddelde stijging van de lonen,dus $perc2 % (zie tabel)</li><li>Een <em>waardevaste</em> uikering is gelijk aan de inflatie, dus $perc3 % (zie tabel)</li></ol>
+
+question$n=<a onmouseover="return escape('<table class=\'zebra_table_h2\'>$head $body </table>')">$ss</a>
+
+

@@ -1,0 +1,266 @@
+# n=1 getal + range : javascript checkt of't een getal is
+# answer1=$TCK,$TCKmin,$TCKmax 
+# n=2 1 coordinaat 
+# n=3 1 coordinaat 
+# n=4 1 rect; 2 coordinaten  linksboven,rechtsonder of linksonder,rechtsboven
+# n=5 1 coordinaat 
+# n=6 2 coordinaten/punten
+# var2= delta_x,delta_y
+#var6 is $(object$n)
+#var7 is data_answers --> $(object$n)
+
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    can=!exec canvasdraw $var7\
+    opacity 255,255\
+    bgcolor #ffce79
+    
+    object$n=$empty
+    textanswer$n=!append line $can to $(textanswer$n)
+    !exit
+!endif
+
+goback=0
+errortext=$empty
+extra=$empty
+score=0
+!if $n=1
+    ans=!item 1 of $answer1
+    min=!item 2 of $answer1
+    max=!item 3 of $answer1
+    dx=$[$max-$ans]
+    !if $[$max - $dx/3] > $reply1 and $[$min + $dx/3] < $reply1
+	score=1
+	k=green
+	extra=Heel precies bepaald !!
+    !else
+	!if $max>$reply1 and $min<$reply1
+	    score=0.9
+	    k=green
+	    extra=Goed bepaald...
+	!else
+	    !if $[$max + $dx/2]>$reply1 and $[$min - $dx/2]<$reply1
+		score=0.6
+		extra=Erg slordig bepaald...
+		k=orange
+	    !else
+		!if $[$max + $dx]>$reply1 and $[$min - $dx]<$reply1
+		    k=red
+		    score=0.2
+		    extra=Veel te onnauwkeurig
+		!else
+		    k=red
+		    score=0
+		    extra=gewoon fout...
+		!endif
+	    !endif
+	!endif
+    !endif
+    reply1=<span style="color:$k"><b>$reply1</b><br />$extra</span>
+!else
+    dx=!item 1 of $var2
+    dy=!item 2 of $var2
+    !if $n isin 2,3,5
+	xr=!item 1 of $(reply$n)
+	yr=!item 2 of $(reply$n)
+	xa=!item 1 of $(answer$n)
+	ya=!item 2 of $(answer$n)
+	!if $[$xr + 2*$dx/3]>$xa and $[$xr - 2*$dx/3]<$xa and $[$yr + 2*$dy/3]>$ya and $[$yr - 2*$dy/3]<$ya    
+	    score=1
+	    k=green
+	    extra=Heel precies bepaald !!
+	!else
+	    !if $[$xr + $dx]>$xa and $[$xr - $dx]<$xa and $[$yr + $dy]>$ya and $[$yr - $dy]<$ya    
+		score=1
+	        k=green
+	        extra=Goed bepaald...
+	    !else
+		!if $[$xr + 3*$dx/2]>$xa and $[$xr - 3*$dx/2]<$xa and $[$yr + 3*$dy/2]>$ya and $[$yr - 3*$dy/2]<$ya    
+		    score=0.8
+		    extra=Erg slordig bepaald...
+		    k=orange
+		!else
+		    !if $[$xr + 2*$dx]>$xa and $[$xr - 2*$dx]<$xa and $[$yr + 2*$dy]>$ya and $[$yr - 2*$dy]<$ya    
+			k=red
+		        score=0.4
+			extra=Veel te onnauwkeurig
+		    !else
+			k=red
+			score=0
+		    !endif
+		!endif
+	    !endif
+	!endif
+	    
+	reply$n=<span style="color:$k"><b>( $xr : $yr )</b><br />$extra</span>
+	# klaar -> object$n wordt antwoord_plaatje	
+	textanswer$n=!exec canvasdraw $var7\
+	points $k,$xr,$yr
+
+	object$n=$empty
+	
+    !else
+	!if $n=4
+	    xr1=!item 1 of $reply4
+	    yr1=!item 2 of $reply4
+	    xr2=!item 3 of $reply4
+	    yr2=!item 4 of $reply4
+	    opp_r=$[abs(($xr1 - $xr2)*($yr1 - $yr2))]
+	    opp_1=$[abs(($xr1 - $xr2 + 3*$dx)*( $yr1 - $yr2 + 3*$dy))]
+	    opp_2=$[abs(($xr1 - $xr2 - 3*$dx)*( $yr1 - $yr2 - 3*$dy))]
+	    opp_max=$[max($opp_1,$opp_2)]
+	    opp_min=$[min($opp_1,$opp_2)]
+	    # iets oprekken 5% 
+	    opp_max=$[1.05*$opp_max]
+	    opp_min=$[0.95*$opp_min]
+	    x1=!item 1 of $answer4
+	    y1=!item 2 of $answer4
+	    x2=!item 3 of $answer4
+	    y2=!item 4 of $answer4
+	    # of andersom
+	    x3=!item 5 of $answer4
+	    y3=!item 6 of $answer4
+	    x4=!item 7 of $answer4
+	    y4=!item 8 of $answer4
+	    opp_a=!item -1 of $answer4
+	    #checken eerst of't oppervlak redelijk goed is...
+	    !if $opp_max > $opp_a and $opp_min < $opp_a
+		f=0
+		!for p=1 to 4
+		    !if $f=0
+			!if $[$xr1 + 2.1*$dx]>$(x$p) and $[$xr1 - 2.1*$dx]<$(x$p)
+			    !if $[$yr1 + 2.1*$dy]>$(y$p) and $[$yr1 - 2.1*$dy]<$(y$p)
+				f=$p
+				# welke punt van't correcte antwoord ligt dicht bij xr1 ?
+			    !endif
+			!endif
+		    !endif
+		!next p
+		!if $f=0
+		    # geen van de correcte punten ligt dicht bij xr1
+		    k=red
+		    score=0.3
+		    extra=Hmmm, maar't oppervlak is toevallig wel redelijk in de buurt...
+		!else
+		    !if $[$xr1 + 5*$dx/6]>$(x$f) and $[$xr1 - 5*$dx/6]<$(x$f) and $[$yr1 + 5*$dy/6]>$(y$f) and $[$yr1 - 5*$dy/6]<$(y$f)
+			score=1
+			k=green
+			extra=Heel precies bepaald !!
+		    !else
+			!if $[$xr1 + $dx]>$(x$f) and $[$xr1 - $dx]<$(x$f) and $[$yr1 + $dy]>$(y$f) and $[$yr1 - $dy]<$(y$f)
+			    score=1
+	    		    k=green
+	    		    extra=Goed bepaald...
+			!else
+			    !if $[$xr1 + 3*$dx/2]>$(x$f) and $[$xr1 - 3*$dx/2]<$(x$f) and $[$yr1 + 3*$dy/2]>$(y$f) and $[$yr1 - 3*$dy/2]<$(y$f)
+				score=0.8
+				extra=Erg slordig getekend...maar 't oppervlak is redelijk goed
+				k=lightgreen
+			    !else
+				!if $[$xr1 + 2*$dx]>$(x$f) and $[$xr1 - 2*$dx]<$(x$f) and $[$yr1 + 2*$dy]>$(y$f) and $[$yr1 - 2*$dy]<$(y$f)
+				    k=orange
+		    		    score=0.6
+				    extra=Veel te onnauwkeurig getekend...maar 't oppervlak is wel redelijk goed ??
+				!else
+				    k=red
+				    score=0.3
+				    extra=Tja...dat was wel uit de losse pols... 
+				!endif
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !else
+		# oppervlakte niet in orde: nemen niet de moeite om de punten te checken...
+		score=0
+		k=red
+		extra=Het oppervlak van je rechthoek is niet correct...<br />ik kijk -voor't gemak- de hoekpunten van je rechthoek dus niet meer na...
+	    !endif 
+	    reply$n=<span style="color:$k"><b>( $xr1 : $yr1 ) en ( $xr2 : $yr2) <br /> oppervlak = $opp_r</b><br />$extra</span>
+
+	    textanswer$n=!exec canvasdraw $var7\
+	    opacity 150,80\
+	    frect $xr1,$yr1,$xr2,$yr2,$k\
+	    fontfamily italic 14px Courier\
+	    opacity 200,200\ 
+	    string blue,0,$y1,Oppervlak = $[round($opp_a)]
+	    
+	    object$n=$empty
+
+	!else
+	    !if $n=6
+		extra2=$empty
+		test=!itemcnt $(reply$n)
+		!if $test>4
+		    corr=$[1/($test-4)]
+		    extra2=Je hebt $[$test/2] punten getekend...<br />dat moesten er gewoon 2 zijn.<br />Je krijgt daar strafpunten voor<br />Voor het nakijken gebruik is alleen je twee eerst getekende punten :)
+		!else
+		    corr=1
+		!endif
+		x1r=!item 1 of $(reply$n)
+		y1r=!item 2 of $(reply$n)
+		x2r=!item 3 of $(reply$n)
+		y2r=!item 4 of $(reply$n)
+		x1a=!item 1 of $(answer$n)
+		y1a=!item 2 of $(answer$n)
+		x2a=!item 3 of $(answer$n)
+		y2a=!item 4 of $(answer$n)
+		!if ($[$x1r + 2*$dx/3]>$x1a and $[$x1r - 2*$dx/3]<$x1a and $[$y1r + 2*$dy/3]>$y1a and $[$y1r - 2*$dy/3]<$y1a) or ($[$x1r + 2*$dx/3]>$x2a and $[$x1r - 2*$dx/3]<$x2a and $[$y1r + 2*$dy/3]>$y2a and $[$y1r - 2*$dy/3]<$y2a)
+		    score=1
+		    k=green
+		    extra=Allebei goed en heel precies bepaald !!
+		!else
+		    !if ($[$x1r + $dx]>$x1a and $[$x1r - $dx]<$x1a and $[$y1r + $dy]>$y1a and $[$y1r - $dy]<$y1a) or ($[$x1r + $dx]>$x2a and $[$x1r - $dx]<$x2a and $[$y1r + $dy]>$y2a and $[$y1r - $dy]<$y2a)
+			score=1
+			k=green
+			extra=Allebeide punten goed bepaald...
+		    !else
+			!if ($[$x1r + 3*$dx/2]>$x1a and $[$x1r - 3*$dx/2]<$x1a and $[$y1r + 3*$dy/2]>$y1a and $[$y1r - 3*$dy/2]<$y1a) or ($[$x1r + 3*$dx/2]>$x2a and $[$x1r - 3*$dx/2]<$x2a and $[$y1r + 3*$dy/2]>$y2a and $[$y1r - 3*$dy/2]<$y2a)
+			    score=0.7
+			    extra=Hmmm....erg slordig...
+			    k=orange
+			!else
+			    !if ($[$x1r + 2*$dx]>$x1a and $[$x1r - 2*$dx]<$x1a and $[$y1r + 2*$dy]>$y1a and $[$y1r - 2*$dy]<$y1a) or ($[$x1r + 2*$dx]>$x2a and $[$x1r - 2*$dx]<$x2a and $[$y1r + 2*$dy]>$y2a and $[$y1r - 2*$dy]<$y2a)
+				k=red
+				score=0.4
+				extra=pfffff...veel te onnauwkeurig
+			    !else
+				k=red
+				score=0
+			    !endif
+			!endif
+		    !endif
+		!endif
+		score=$[$score*$corr]
+		reply$n=<span style="color:$k"><b>( $x1r : $y1r ) &nbsp; ( $x2r : $y2r )</b><br />$extra2 $extra</span>
+		
+		textanswer$n=!exec canvasdraw $var7\
+		linewidth 4\
+		points $k,$x1r,$y1r,$x2r,$y2r
+		
+		object$n=$empty
+	    !endif
+	!endif
+    !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $score>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+
+!exit
+
+

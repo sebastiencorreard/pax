@@ -1,0 +1,199 @@
+# balansmutaties III
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+inputs=-1
+make_tr=1
+questiontype=0
+checkfile=exos/checkfile3.proc
+
+###### ACTIVA #########
+# afschrijving gebouwen
+gebouw=!randint 300,400
+#gebouw=300
+gebouw=$[1000*$gebouw]
+
+# inventatris
+inventaris=!randint 50,200
+#inventaris=50
+inventaris=$[1000*$inventaris]
+
+# transportmiddelen
+transport=!randint 50,90
+#transport=50
+transport=$[1000*$transport]
+# voorraad
+voorraad=!randint 400,600
+#voorraad=400
+voorraad=$[1000*$voorraad]
+
+# debiteuren
+debiteuren=!randint 100,300
+#debiteuren=100
+debiteuren=$[1000*$debiteuren]
+
+# Kas
+kas=!randint 10,30
+#kas=10
+kas=$[1000*$kas]
+
+# Rabobank
+rabobank=!randint 30,70
+#rabobank=30
+rabobank=$[1000*$rabobank]
+
+Atotaal=$[$gebouw + $inventaris + $transport + $voorraad + $debiteuren + $kas + $rabobank]
+Nactiva=$gebouw,$inventaris,$transport,$voorraad,$debiteuren,$kas,$rabobank,&nbsp;,$Atotaal
+Tactiva=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,&nbsp;,Totaal
+# minimum activa1=2650
+# maximum activa1=1100
+# minimum activa2=2750
+# maximum activa2=11500
+ 
+##### PASSIVA #######
+# eigenvermogen
+vermogen=!randint 350,600
+#vermogen=600
+vermogen=$[1000*$vermogen] 
+
+# hypotheek
+hypotheek=!randint 150,450
+#hypotheek=450
+hypotheek=$[1000*$hypotheek]
+
+# lening
+lening=!randint 75,150
+#lening=150
+lening=$[1000*$lening]
+
+# crediteuren
+crediteuren=!randint 130,250
+#crediteuren=250
+crediteuren=$[1000*$crediteuren]
+
+# belasting
+belasting=!randint 90,150
+#belasting=150
+belasting=$[1000*$belasting]
+
+# ING
+ing=!randint 400,600
+#ing=400
+ing=$[1000*$ing] 
+
+subPtotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting]
+ing=$[$Atotaal - $subPtotaal]
+# corrigeren om balans sluitend te maken
+!if $ing < 10000
+    ing=!randint 60,110
+    ing=$[$ing*100]
+    subPtotaal=$[$hypotheek + $lening + $crediteuren + $belasting + $ing]
+    vermogen=$[$Atotaal - $subPtotaal]
+    !if $vermogen < 30000
+	vermogen=!randint 20,30
+	vermogen=$[$vermogen*1000]
+	subPtotaal=$[ $vermogen + $lening + $crediteuren + $belasting + $ing]
+	hypotheek=$[$Atotaal - $subPtotaal]
+    !endif	
+!endif
+
+Ptotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting + $ing]
+Tpassiva=Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,&nbsp;,&nbsp;,Totaal
+Npassiva=$vermogen,$hypotheek,$lening,$crediteuren,$belasting,$ing,&nbsp;,&nbsp;,$Ptotaal
+
+tabel=<table class="balans_2"><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th></tr>
+static_tabel=<table class=\'balans_2\' ><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th></tr>
+# let op: c/d bepalen myinput[] volgorde van het versturen
+c=0
+d=8
+!for p=1 to 9
+    ac=!item $p of $Nactiva
+    pc=!item $p of $Npassiva
+    AC=!item $p of $Tactiva
+    PC=!item $p of $Tpassiva
+    !if $AC!=&nbsp;
+	input_ac = &euro;&nbsp;<input type="text" id="myinput$c" size="7" class="schaersvoorde_input" value="$ac" /> 
+	sac =&euro; $ac
+	!increase c
+    !else
+	sac=&nbsp;
+	input_ac=&nbsp;
+    !endif
+    !if $PC!=&nbsp;
+	input_pc = &euro;&nbsp;<input type="text" id="myinput$d" size="7" class="schaersvoorde_input" value="$pc" /> 
+	spc=&euro; $pc
+	!increase d
+    !else
+	input_pc=&nbsp;
+	spc = &nbsp;
+    !endif
+    tabel=!append word $ <tr><td>$AC</td><td>$input_ac</td><td>$PC</td><td >$input_pc</td></tr> $ to $tabel 
+    static_tabel=!append word $ <tr><td>$AC</td><td>$sac</td><td>$PC</td><td>$spc</td></tr> $ to $static_tabel 
+!next p
+tabel=!append word </table> to $tabel
+static_tabel=!append word </table> to $static_tabel
+
+description=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,Activa Totaal,Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,Passiva Totaal
+
+!if $R=1
+    f1=!randint 40,80
+    f2=!randint 4,10
+    verkocht=!randint $[$voorraad/10],$[$voorraad/2]
+    verkocht=$[1000*(round($verkocht/1000))]
+    inkoop=$[$verkocht*$f1/100]
+    inkoop=$[100*(round($inkoop/100))]
+    over=$[$verkocht - $inkoop]
+
+    contant=$[$verkocht*$f2/100]
+    contant=$[100*(round($contant/100))]
+    oprekening=$[$verkocht - $contant]
+
+    ss=Verwerk de volgende gegevens in de onderstaande  <span class="schaersvoorde_link">balans</span>:<br /><br /><table class="grid_table"><tr><th>Verkochte goederen</th><th>&euro;</th></tr><tr><td>Op rekening</td><td>$oprekening</td></tr><tr><td>Contant</td><td>$contant</td></tr><tr><td>Inkoopwaarde</td><td>$inkoop</td></tr></table><hr />
+    
+    # veranderd is:
+    var1=4,5,6,8,9,15
+    answer$n=$gebouw,$inventaris,$transport,$[$voorraad-$inkoop],$[$debiteuren+$oprekening],$[$kas+$contant],$rabobank,$[$Atotaal+$over],$[$vermogen+$over],$hypotheek,$lening,$crediteuren,$belasting,$ing,$[$Ptotaal+$over]
+    textanswer$n=<ul><li>Debiteuren wordt : $debiteuren + $oprekening = &euro; $[$debiteuren + $oprekening]</li><li> Kas wordt : $kas + $contant = &euro; $[$kas + $contant]</li><li>Voorraad wordt : $voorraad &minus; $inkoop = &euro; $[$voorraad - $inkoop] </li><li>Eigenvermogen wordt : $vermogen + $verkocht &minus; $inkoop = $vermogen + $over = &euro; $[$vermogen + $over]</li><li>Het totaal wordt : $Atotaal + $over = &euro; $[$Atotaal + $over]</li></ul>
+
+!else
+    !if $R=2
+	f=!randint 40,80
+	prijs = !randint 300,900
+	prijs=$[100*$prijs]
+	aanbetalen=!randint 4,10
+	contant=$[$aanbetalen*$prijs/100]
+	oprekening=$[$prijs - $contant]
+	
+	ss=Verwerk de volgende gegevens in de onderstaande <span class="schaersvoorde_link">balans</span>:<table class="zebra_table_h2"><tr><th>Gekochte goederen</th><th>&euro;</th></tr><tr><td>Op rekening</td><td>$oprekening</td></tr><tr><td>Contant</td><td>$contant</td></tr></table><hr />
+	# veranderd is:
+	var1=4,6,8,12,15
+	answer$n=$gebouw,$inventaris,$transport,$[$voorraad+$prijs],$debiteuren,$[$kas - $contant],$rabobank,$[$Atotaal+$oprekening],$vermogen,$hypotheek,$lening,$[$crediteuren+$oprekening],$belasting,$ing,$[$Ptotaal+$oprekening]
+	textanswer$n=<ul><li> Kas wordt : $kas - $contant = &euro; $[$kas - $contant]</li><li>Voorraad wordt : $voorraad + $prijs = &euro; $[$voorraad + $prijs] </li><li>Crediteuren wordt : $crediteuren + $oprekening = &euro; $[$crediteuren + $oprekening]</li><li>Het totaal wordt : $Atotaal + $oprekening = &euro; $[$Atotaal + $oprekening]</li></ul>
+    
+    !else
+	f1=!randint 30,60
+	f2=!randint 5,10
+	post=$[min($debiteuren,$ing)]
+	via_ing=$[$f1*$post/100]
+	via_ing=$[100*(round($via_ing/100))]
+	contant=$[$f2*$via_ing/100]
+	contant=$[10*(round($contant/10))]
+	bedrag=$[$via_ing+$contant]
+	ss=Verwerk de volgende gegevens in de onderstaande  <span class="schaersvoorde_link">balans</span><table class="zebra_table_h2"><tr><th>Ontvangen van debiteuren</th><th>&euro;</th></tr><tr><td>Via ING</td><td>$via_ing</td></tr><tr><td>Contant</td><td>$contant</td></tr></table><hr />
+    
+	# veranderd is:
+	var1=5,6,8,14,15
+	answer$n=$gebouw,$inventaris,$transport,$voorraad,$[$debiteuren - $bedrag],$[$kas + $contant],$rabobank,$[$Atotaal - $via_ing],$vermogen,$hypotheek,$lening,$crediteuren,$belasting,$[$ing - $via_ing],$[$Ptotaal - $via_ing]
+	textanswer$n=<ul><li>Debiteuren wordt : $debiteuren &minus; $bedrag = &euro; $[$debiteuren - $bedrag]</li><li> Kas wordt : $kas + $contant = &euro; $[$kas + $contant]</li><li>ING wordt : $ing &minus; $via_ing = &euro; $[$ing - $via_ing] </li><li>Het totaal wordt : $Atotaal &minus; $via_ing = &euro; $[$Atotaal - $via_ing]</li></ul>
+    
+    !endif
+!endif
+
+question$n =<a onmouseover="ttLeft=true ;return escape('$static_tabel')">$ss </a>
+exotext=$tabel
+helptext=$static_tabel

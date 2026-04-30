@@ -1,0 +1,133 @@
+\title{Pixels arts}
+
+\css{<style>
+.CodeMirror {max-height:250px;}
+.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}
+.CodeMirror pre {box-shadow: none; !important}
+.wims_editor{display:inline-block;vertical-align:top;}
+.exec{overflow: auto;display:inline-block;}
+.exec > pre {background-color: #ffb795;overflow: auto;}
+#select_wims_editoridentifiant{background-color: #ffb795;}
+.box{overflow: auto;display:inline-block;}
+</style>}
+
+\integer{nc=randint(10..20)}
+\real{ncc=0.1*\nc}
+\real{ncm=1.1*\nc}
+
+\text{DD=pari(m=matrix(\nc,\nc,i,j,if(i%2==0,0,1));)}
+\text{DD=pari(print(m);)}
+text{DD=wims(replace internal ; by &#93;,&#91; in \DD )} <= Bonne affichage matrice
+\text{DD=wims(replace internal ; by , in \DD )} 
+text{DD=[\DD]}<= Bonne affichage matrice
+
+\text{mjsx=}
+\for{kj=1 to \nc}{
+\for{kk=1 to \nc}{
+\integer{s=(\kk-1)%2}
+\if{\s==0}{
+\text{mjsx=wims(append line board.create('point', [\kj-0.5,\kk-0.5],{color:'red'}); to \mjsx)}
+}}}
+
+
+
+\text{code=
+################
+#Initialisation#
+################
+nombre_ligne=\nc
+nombre_colonne=\nc
+mat= [[0] * nombre_colonne for _ in range(nombre_ligne)]
+#######################
+#Boucle sur la matrice#
+#######################
+for i in range(nombre_ligne):
+  for j in range(nombre_colonne):
+      mat[i][j]=1
+
+##########################
+#Affichage de la matrice##
+##########################
+for i in range(nombre_ligne):
+  print(mat[i])
+}
+\text{A=slib(geo2D/jsxgraph jsxbox1,400 x 400,JXG.Options.point.fixed = true;
+JXG.Options.point.showInfobox=false;
+JXG.Options.point.name = "";
+JXG.Options.point.face = "[]";
+JXG.Options.point.size = 150/\nc;
+JXG.Options.point.withLabel=true;
+var board = JXG.JSXGraph.initBoard('jsxbox1', {axis:false, boundingbox: [-\ncc,-\ncc,\ncm,\ncm],shownavigation:true});
+xaxis = board.create('axis', [[0, 0], [1,0]], 
+      {name:'x', 
+      withLabel: true, 
+      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/
+      offset: [-15, 20]   /*(in pixels)*/}
+      });
+yaxis = board.create('axis', [[0, 0], [0,1]], 
+      {name:'y',withLabel: true, 
+      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/
+      offset: [-20, 0]   /*(in pixels)*/}
+      ,ticks:{scale: 1}}
+      );
+\mjsx
+)}
+\text{B=slib(geo2D/jsxgraph jsxbox,400 x 400,JXG.Options.point.fixed = true;
+JXG.Options.point.showInfobox=false;
+JXG.Options.point.name = "";
+JXG.Options.point.face = "[]";
+JXG.Options.point.withLabel=true;)}
+
+\statement{
+<div class="encadre">
+<p class="problematique">Pixel art et python</p>
+
+<div>
+\embed{reply1,[python,[\code]];[idtest2,canvas init,Jouer le code !]}
+</div>
+<div class="enonce">
+Modifier cet algorithme pour qu'il effectue la représentation donnée à droite ou ci-dessous :
+<br/>
+<div class="wimscenter wimsborder box">
+\B
+</div>
+<div class="wimscenter wimsborder box">
+\A
+</div>
+</div>
+<script>
+function graph(){
+mat=Sk.ffi.remapToJs(Sk.globals["mat"]);
+let matligne=mat.length;
+let matcolonne=mat[0].length;
+let max=Math.max(matligne,matcolonne);
+let gg=1.1*max;
+let ggm=0.1*max;
+JXG.Options.point.size = 150/max;
+var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:false, boundingbox: [-ggm,-ggm,gg,gg],shownavigation:false});
+xxaxis = brd.create('axis', [[0, 0], [1,0]], 
+      {name:'x', 
+      withLabel: true, 
+      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/
+      offset: [-15, 20]   /*(in pixels)*/}
+      });
+yyaxis = brd.create('axis', [[0, 0], [0,1]], 
+      {name:'y',withLabel: true, 
+      label: {position: 'rt',/* possible values are 'lft', 'rt', 'top', 'bot'*/
+      offset: [-20, 0]   /*(in pixels)*/}
+      ,ticks:{scale: 1}}
+      );
+
+brd.suspendUpdate();
+for(var jj = 0; jj < matligne; jj=jj+1) {
+for(var ii = 0; ii < matcolonne; ii=ii+1) {
+/*name:aaa[ss][jj][ii]*/
+if(mat[jj][ii]==1){
+brd.create('point', [ii+0.5,jj+0.5],{color:'red'});}}}
+brd.unsuspendUpdate();}
+execidtest2.addEventListener('click',graph);
+</script>
+}
+
+
+\answer{}{[mat,[\DD]]}{type=runcode}{option= keywords=for|while}

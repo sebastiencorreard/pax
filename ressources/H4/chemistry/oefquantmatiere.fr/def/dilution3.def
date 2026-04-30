@@ -1,0 +1,189 @@
+!set title=Dilution (3)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey;Marie-Claude,David
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+oefobservation=Le nombre de chiffres significatifs est précisé dans les instructions.
+computeanswer=no
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 1000
+
+val6=$[rint($(tmp0))]
+val7=$[$val6/100]
+tmp0=!randint 2, 4
+
+val8=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val7,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!translate . to , in $val9
+
+val10=$(tmp0)
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+val12=$[$val11*100]
+tmp0=!randint 2, 4
+
+val13=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val12,$val13 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!translate . to , in $val14
+
+val15=$(tmp0)
+tmp0=!randint 1, $val6/2
+
+val16=$[rint($(tmp0))]
+val17=$[$val16/100]
+tmp0=!randint 2, 4
+
+val18=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val17,$val18 
+tmp0=$slib_out
+val19=$(tmp0)
+tmp0=!translate . to , in $val19
+
+val20=$(tmp0)
+val21=$[$val17*$val12/(1000*$val7)]
+val21=$[$val19*$val14/(1000*$val9)]
+val22=$[$val21*1000]
+val23=$[rint(min($val8,$val13))]
+val24=$[rint(min($val23,$val18))]
+!readproc slib/text/sigunits $val21 L,$val24 
+tmp0=$slib_out
+val21=$(tmp0)
+!readproc slib/text/sigunits $val22 mL,$val24 
+tmp0=$slib_out
+val25=$(tmp0)
+tmp0=!translate . to , in $val21
+
+val26=$(tmp0)
+replytype1=sigunits
+replyname1=\(V)
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>On dispose d'une solution mére de concentration	
+!insmath C = $val10
+$()
+!insmath \textrm{mol.L}^{-1}
+$().	On souhaite obtenir un volume 
+!insmath V' = $val15
+$() mL de solution fille	à  la concentration 
+!insmath C' = $val20
+$()
+!insmath  \textrm{mol.L}^{-1}
+$().</p>	<p>Quel volume 
+!insmath V
+$() de la solution mére faut-il prélever ?</p>	<div class="wimscenter">
+!insmath V = 
+$()  
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wims_instruction">La notation scientifique est acceptée comme par exemple 4.5*10^(-3) L ou 4.5 mL. Le résultat sera donné avec $val24 chiffres significatifs.	<p> Pour donner 
+!insmath 4.5*10^(-3)
+$(), on écrira 4.5e-3. Le séparateur de décimales est le point. </p></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>La quantité de matiére est identique dans 
+!insmath V
+$() mL de solution mére que dans 
+!insmath V'
+$() mL de solution fille puisqu'on ajoute juste du solvant.</p>	<p>La solution mére a une concentration de 
+!insmath C =  $val10
+$() 
+!insmath \textrm{mol.L}^{-1}
+$(). La quantité de matiére 
+!insmath n
+$() dans un volume 
+!insmath V
+$() de solution mére vaut 
+!insmath n = C*V
+$().	La solution fille a une concentration 
+!insmath C' =  $val20
+$()
+!insmath  \textrm{mol.L}^{-1}
+$(). La quantité de matiére dans un volume V' de solution fille vaut 
+!insmath n' = C'*V'
+$() moln, 
+!insmath V'
+$() est pris en L. <br>	Comme les quantités de matiére sont égales, on peut écrire  : 
+!insmath C \times V=C' \times V'
+$().</p>	<p>On souhaite calculer le volume de solution mére Ã   prélever soit :</p>	<p class="wimscenter">
+!insmath V=V'*C'/C = $val14*$val19/$val9 =$val21 = $val25 
+$(). </p>	Puisque il existe un rapport des concentrations (sans dimension), il est possible de prendre 
+!insmath V'
+$() en mL. Dans ce cas, 
+!insmath V
+$() est également en mL.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><p>La bonne réponse est 
+!insmath V = $val21 =$val25
+$(). Si votre réponse est fausse, vérifiez la valeur	numérique, le nombre de chiffres significatifs et l'unité.</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,14,15,19,20,21,24,25
+embedcnt=1

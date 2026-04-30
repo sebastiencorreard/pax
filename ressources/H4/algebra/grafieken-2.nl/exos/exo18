@@ -1,0 +1,129 @@
+# familie van grafieken : rechte lijn
+n=$counter
+make_tr=1
+mathview=0
+inputs=-1
+questiontype=0
+math=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=100
+#!readproc $remarkdir/rounding.$taal
+roundingtext=Rond 
+image=0
+applet=0
+checkfile=exos/checkfile3b.proc
+var1=3
+!if $R=1
+    formula$n=$empty
+    a1=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 2,3,4,5,6
+    a2=$[$a1+$c]
+    a3=$[$a1+2*$c]
+    num=!randint 1,15
+    keuze=<ul><li>$a1 mg</li><li>$a2 mg</li><li>$a3 mg</li></ul>
+    ss=!record 104 of lang/remarks.$taal
+    #@Een arts schrijft een pati&euml;nt een geneesmiddel voor.<br />De tabletten zijn voorradig in : $keuze Het medicijn wordt afgebroken door de lever.<br />Na het innemen van een tablet neemt de hoeveelheid actieve stof met $num % per uur af.<br />Bepaal de bij deze tabletten horende functies en voer ze in de GeoGebra applet in.<br />Noem de functies f(x), g(x),h(x)
+    g=$[(100-$num)/100]
+    answer$n=$a1*($g)^x,$a2*($g)^x,$a3*($g)^x
+    texanswer$n= \left[ \begin{array}{l} f(x) = $a1 \cdot $g^{x} \\  g(x) =  $a2 \cdot $g^{x} \\ h(x) =  $a3 \cdot $g^{x} \end{array} \right.
+roundingtext=Rond af op twee decimalen
+
+!else
+ !if $R=2
+    formula$n=$empty
+    a1=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 2,3,4,5,6
+    a2=$[$a1+$c]
+    a3=$[$a1+2*$c]
+    num=!randint 70,99
+    keuze=<ul><li>$a1 mg</li><li>$a2 mg</li><li>$a3 mg</li></ul>
+    ss=!record 105 of lang/remarks.$taal
+    #@Een arts schrijft een pati&euml;nt een geneesmiddel voor.<br />De tabletten zijn voorradig in : $keuze Het medicijn wordt afgebroken door de lever.<br />Na het innemen van een tablet neemt de hoeveelheid actieve stof met $num % per dag af.<br /> Bepaal de bij deze tabletten horende functies en voer ze in de GeoGebra applet in.<br />Druk deze afname uit <span style="color:red"><b>in uren</b></span> en de hoeveelheid in mg.<br /><b>Belangrijk</b>: Noem de functies f(x), g(x),h(x)
+    g=$[(100-$num)/100]
+    g=$[round($rounding*($g^(1/24)))/$rounding]
+    answer$n=$a1*($g)^x,$a2*($g)^x,$a3*($g)^x
+    # aantal verwachte lijnen
+    texanswer$n= \left[ \begin{array}{l} f(x) = $a1 \cdot $g^{x} \\  g(x) =  $a2 \cdot $g^{x} \\ h(x) =  $a3 \cdot $g^{x} \end{array} \right.
+    roundingtext=Rond de groeifactor af op precies twee decimalen  !!
+
+ !else
+    # geen punt zetten
+    var3=0
+    formula$n=$empty
+    a1=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 2,3,4,5,6
+    a2=$[$a1+3*$c]
+    a4=!randint $a1,$a2
+    t=!randitem 3,4,5,6
+    num=!randint 8,20
+    g=$[(100-$num)/100]
+    H=$[round($a4*$g^$t)]
+    a3=$[round($rounding*($H/($g^$t)))/$rounding]
+    keuze=<ul><li><b>$a1 mg</b></li><li><b>$a2 mg</b></li></ul> 
+    ss=!record 106 of lang/remarks.$taal
+    #@Een arts schrijft een pati&euml;nt een geneesmiddel voor.<br />De tabletten zijn voorradig in : $keuze <br />Het medicijn wordt afgebroken door de lever.<br />Na het innemen van een tablet neemt de hoeveelheid actieve stof met <span style="color:green"><b> $num % </b></span>per uur  af.<p> De arts wil een tablet, waarbij na <span style="color:green"><b>$t uur</b></span> nog<span style="color:green"><b> $H mg </b></span> hoeveelheid actieve stof in het lichaam aanwezig is.<br />Deze tablet heeft zij niet op voorraad en zal zij dus bijbestellen. <br />Bepaal de bij deze tabletten horende functies en voer deze in de GeoGebra applet in.<br /> Noem de functies, die op voorraad zijn f(x) en g(x)<br />\Noem de functie, die hoort bij de bij te bestellen tablet h(x)
+    answer$n=$a1*($g)^x,$a2*($g)^x,$a3*($g)^x
+    texanswer$n= \left[ \begin{array}{l} H=b\cdot g^{t} \\$H = b \cdot $g^$t \\ b= \frac{$H}{$g^$t} \approx $a3 \\ f(x) = $a1 \cdot $g^{x} \\  g(x) =  $a2 \cdot $g^{x} \\ h(x) =  $a3 \cdot $g^{x} \end{array} \right.
+    roundingtext=Rond af op precies twee decimalen  !!
+
+ !endif
+!endif
+
+helptext=$empty
+question$n=$ss <br /><em><b>$roundingtext</b></em>
+
+txt=!record 88 of lang/remarks.$taal
+#@x-as [tijd in uren], y-as [hoeveelheid in mg]
+label_x=!item 1 of $txt
+label_y=!item 2 of $txt
+
+klik=!record 107 of lang/remarks.$taal
+exotext=!exec canvasdraw\
+size 400,400\
+xrange -1,10\
+yrange -1,10\
+bgcolor white\
+xlabel $label_x\
+ylabel $label_y\
+axis\
+axisnumbering\
+precision 1\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+inputstyle text-align:center;background-color:#FFFF66;font-size:14pt;font-style:italic;color:blue;\
+strokecolor red\
+functionlabel f(x)=\
+userinput function\
+strokecolor blue\
+functionlabel g(x)=\
+userinput function\
+strokecolor green\
+functionlabel h(x)=\
+userinput function\
+zoom blue\
+intooltip <span style='color:blue;font-size:16px'>$klik<br /></span>
+
+object$n=!exec canvasdraw\
+size 300,300\
+xrange -1,10\
+yrange -1,10\
+axis\
+axisnumbering\
+precision 1\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$(answer$n[1])\
+jscurve green,$(answer$n[2])\
+jscurve blue,$(answer$n[3])\
+mouse red,22\
+zoom red
+
+

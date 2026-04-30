@@ -1,0 +1,346 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=WYSIWYG code editor
+slib_author=Julien, Lyotard
+slib_out=Code display
+slib_comment=the available themes are ambiance,neat or zenburn
+slib_require=CodeMirror
+slib_parms=3\
+, list of codes in brackets : - in case of one code: [prog_lang,code] - else, [[prog_lang1,[code1],name_code1],[prog_lang2,[code2],name_code2], ...]\
+0,id\
+ ,option: words as init(Initialization) nocssjs fullscreen theme=ambiance or theme=[ambiance,neat] bystep=[line number of the beginning of the marker,number of the marker's start character,line number of the end of the marker,marker end character number;...] instruction=[if 7<= i <= 14 :, while n<=10 :, instruction 3 ,...]
+
+slib_example=[python,[n=0\nwhile n<10:\n print n,n\n n=n+1]],1,readonly theme=[zenburn,neat]\
+[[python,[a=23*797961\nprint a],label1],[python,[n=0\nwhile n<10:\n print n\n n=n+1],label2]],2,theme=neat\
+[[python,[a=23*797961\nprint a],label1],[python,[n=0\nwhile n<10:\n print n\n n=n+1],label2]],3,init theme=zenburn\
+[[python,[a=23*797961\nprint a],label1],[C,[#include <stdio.h>\n#include <stdlib.h>\nint main()\n{\nprintf(\"Hello world!\n\");\nreturn 0;}],Hello word!,readonly]],4,init\
+[python,[n=0\nwhile n<10:\n print n,n\n n=n+1],readonly],5, bystep=[1,1,1,4;2,1,2,6;4,1,4,7;2,1,2,6;4,1,4,7]\
+[python,[n=0\nwhile n<10:\n print n,n\n n=n+1]],6,instruction=[if 7<= i <= 14 :, while n<=10 :,instruction 3] theme=neat
+
+/*
+CodeMirror : https://codemirror.net/
+Téléchargement : https://codemirror.net/codemirror.zip
+**rullers : affichage comptable( à regarder)
+**Completion automatique testée non implantée <= Bien
+**sublimtext testé non implanté
+**gutters<=permet de configurer les numéros de ligne+debug
+
+**multilangage implanté.
+**Buffer implanté avec l'option readonly et l'initialisation
+**Mode jour/nuit implanté
+**Full screen implanté avec l'aide d'Olivier
+*/
+!exit
+
+:proc
+
+!if fr==$(module_language)
+  !set slib_name_contrast_title=Nuit/Jour
+  !set slib_name_init=Réinitialisation
+  !set slib_name_bystep=Mode pas à pas
+  !set slib_name_fullscreen_title=Plein Ecran : F11
+!else
+  !set slib_name_contrast_title=Dark/Light
+  !set slib_name_init=Reset
+  !set slib_name_bystep=Steps by Steps
+  !set slib_name_fullscreen_title=Full Screen: F11
+!endif
+!set slib_name_fullscreen=&#10529;
+# &#9974; plus cohérent avec JSXGraph
+!set slib_name_contrast_dark=&#127769;
+!set slib_name_contrast_light=&#9728;
+
+!reset slib_readonly_list
+!distribute items $(wims_read_parm) into slib_code,slib_ids,slib_option
+
+slib_ids=!declosing $slib_ids
+!distribute item $slib_ids into slib_n,slib_id
+!default slib_n=0
+slib_prefeditor=wims_editor
+!default slib_id=$slib_prefeditor$slib_n
+slib_code=!declosing $slib_code
+
+!reset slib_theme$slib_n slib_themecss$slib_n slib_contrast_button$slib_n slib_scripts_contrast$slib_n
+!if theme isin $(slib_option)
+  !set slib_theme$slib_n=!getopt theme in $(slib_option)
+  !set slib_theme$slib_n=!declosing $(slib_theme$slib_n)
+  !set slib_theme_cnt$slib_n=!itemcnt $(slib_theme$slib_n)
+!endif
+!default slib_theme$slib_n=ambiance
+!for slib_e in $(slib_theme$slib_n)
+  !set slib_themecss$slib_n=!append line <link rel="stylesheet" href="scripts/js/external/codemirror/theme/$(slib_e).css">\
+    to $(slib_themecss$slib_n)
+!next
+
+!set slib_scripts_contrast$slib_n=editor$(slib_n).setOption("theme","$(slib_theme$slib_n[1])");localStorage.setItem("preferredmode","dark");
+!if $(slib_theme_cnt$slib_n)=2
+  !set slib_contrast_button$slib_n=<span onclick="contrast_$slib_n();" id="contrast_$slib_n" class="wims_button" title="$(slib_name_contrast_title)">\
+$(slib_name_contrast_dark)</span>
+  !set slib_scripts_contrast$slib_n=$(slib_scripts_contrast$slib_n)\
+      function contrast_$slib_n(){var x= localStorage.getItem("preferredmode");\
+                        var tt=document.getElementById("contrast_$slib_n");\
+      if (x=="dark"){editor$(slib_n).setOption("theme","$(slib_theme$slib_n[2])");\
+                     localStorage.setItem("preferredmode","light");\
+                     tt.innerHTML="$(slib_name_contrast_light)"};\
+      if (x=="light"){editor$(slib_n).setOption("theme","$(slib_theme$slib_n[1])");\
+                     localStorage.setItem("preferredmode","dark");\
+                     tt.innerHTML="$(slib_name_contrast_dark)"};\
+    }
+!endif
+
+!reset slib_instruction$slib_n
+!reset slib_instruction_out$slib_n
+!if instruction isin $(slib_option)
+  !set slib_instruction$slib_n=!replace internal = by _equal_ in $(slib_option)
+  !set slib_instruction$slib_n=!replace internal instruction_equal_ by instruction= in $(slib_instruction$slib_n)
+  !set slib_instruction$slib_n=!getopt instruction in $(slib_instruction$slib_n)
+  !set slib_instruction$slib_n=!declosing $(slib_instruction$slib_n)
+  !set slib_instruction$slib_n=!replace internal _equal_ by = in $(slib_instruction$slib_n)
+  !set slib_instcnt=!itemcnt $(slib_instruction$slib_n)
+  !for slib_b =1 to $slib_instcnt
+    !set slib_c=!item $slib_b of $(slib_instruction$slib_n)
+    !set slib_instruction_out$slib_n=!append word <span onclick="insertTextAtCursor(editor$(slib_n),'$slib_c');" \
+      class="wims_button wims_secondary_button">$slib_c</span> to $(slib_instruction_out$slib_n)
+  !next
+  !set slib_instruction_out$slib_n=<div id="instruction_id$slib_n">$(slib_instruction_out$slib_n)</div>
+  !if $slib_instruction_js=$empty
+    slib_instruction_js=function insertTextAtCursor(editor, text) {\
+      var selection = editor.getSelection();\
+      if(selection.length>0){editor.replaceSelection(text);}\
+      else{var doc = editor.getDoc();\
+        var cursor = doc.getCursor();\
+        var pos = {line: cursor.line,ch: cursor.ch}\
+        doc.replaceRange(text, pos);}}
+  !endif
+!endif
+
+!reset slib_bystep
+!if bystep isin $(slib_option)
+  slib_bystep=!getopt bystep in $(slib_option)
+  slib_bystep=!declosing $(slib_bystep)
+  slib_bystep=!rows2lines $slib_bystep
+  slib_bystep=!lines2items $slib_bystep
+  slib_bystep=!exec pari v=[$slib_bystep]; v-vector(#v,j,1)
+  slib_bystep_cnt=!itemcnt $(slib_bystep)
+  slib_bystep_cnt=$[$(slib_bystep_cnt)/4]
+  slib_bystep_script=<script src="scripts/js/external/codemirror/addon/edit/matchbrackets.js"></script>\
+  <script src="scripts/js/external/codemirror/addon/search/searchcursor.js"></script>\
+  <script src="scripts/js/external/codemirror/addon/selection/mark-selection.js"></script>\
+  <style>.marker{background-color:rgba(255, 255, 255, 1);color:black;}</style>
+!endif
+
+!if $(slib_bystep) !=$empty
+  slib_bystep_button=<span onclick="modebystep$(slib_n)();" id="bystep$(slib_n)" class="wims_button wims_warning">$slib_name_bystep</span>
+  slib_bystep_fct=function modebystep$(slib_n)(){\
+    let click=0;\
+    var tab=[$(slib_bystep)];\
+    var lo=tab.length/4-1;\
+    myMarker$(slib_n).forEach(function(element,index,arr){if(typeof(element[index])=="undefined" && index!=lo){click=index+1;}else{click=0;}\
+      delete arr[index];\
+      element.clear();\
+    });\
+    myMarker$(slib_n)[click]=editor$(slib_n).markText({line: tab[click*4] , ch: tab[click*4+1]}, {line: tab[click*4+2], \
+    ch: tab[click*4+3]}, {className:"marker",cleaWhenEmpty:false});\
+  }
+!else
+  slib_bystep_fct=$empty
+  slib_bystep_button=$empty
+!endif
+
+!reset slib_init
+!if readonly iswordof $(slib_option)
+  slib_readonly=true
+  !reset slib_init
+!else
+  slib_readonly=false
+  !if init iswordof $(slib_option)
+    slib_init=init
+  !else
+    !reset slib_init
+  !endif
+!endif
+!if init iswordof $(slib_option)
+  slib_init=init
+!else
+  slib_init=
+!endif
+!default slib_code=$empty
+!reset slib_code_select
+!if $(slib_code)!=$empty
+  slib_code=!declosing $(slib_code)
+  !if __[ isin __$(slib_code)
+    slib_code_cnt=!itemcnt $(slib_code)
+    slib_code_select=<div><select id="select_$(slib_id)">
+  !else
+    slib_code_cnt=1
+    slib_code=[$slib_code]
+  !endif
+!else
+  slib_code_cnt=0
+!endif
+
+!reset slib_code_s slib_code_op
+
+!for jj=1 to $(slib_code_cnt)
+  !if $(slib_code_cnt)!=1
+    slib_code$jj=!declosing $(slib_code[$jj])
+  !else
+    slib_code$jj=!declosing $(slib_code)
+  !endif
+  !if readonly iswordof $(slib_code$jj[4])
+    slib_readonly$jj=true
+  !else
+    slib_readonly$jj=false
+  !endif
+  slib_readonly_list=!append item $(slib_readonly$jj) to $(slib_readonly_list)
+  slib_prog_lang=!append item $(slib_code$jj[1]) to $slib_prog_lang
+  slib_code_code$jj=!declosing $(slib_code$jj[2])
+  slib_name_code$jj=$(slib_code$jj[3])
+  slib_code_code$jj=!replace internal $	$ by \n in $(slib_code_code$jj)
+  slib_code_data$jj=!rows2lines $(slib_code_code$jj)
+  slib_code_s=!append line <option value="$(slib_name_code$jj)">$(slib_name_code$jj)</option> to $slib_code_s
+  slib_code_op=!append line openBuffer_$(slib_n)("$(slib_name_code$jj)","$(slib_code_data$jj)" , "$(slib_prog_lang[$jj])"); to $slib_code_op
+  slib_o=$slib_o\
+  $(slib_code_code$jj)
+!next
+
+!if $(slib_code_cnt)=1
+  slib_readonly_list=$(slib_readonly)
+  slib_readonly1=$(slib_readonly)
+  slib_name_code1=bidon1
+  slib_code_init=editor$(slib_n).setValue("$(slib_code_data1)");
+!else
+  slib_code_init=$(slib_code_op)\
+ selectBuffer_$(slib_n)("$(slib_name_code1)");\
+ document.getElementById("select_$(slib_id)").options[0].selected = true;
+!endif
+
+!if init iswordof $(slib_option)
+  slib_init_button=<span onclick="initialisation$(slib_n)();" class="wims_button">$slib_name_init</span>
+  slib_init_fct=function initialisation$(slib_n)(){ $(slib_code_init)}
+!else
+  slib_init_button=$empty
+  slib_init_fct=$empty
+!endif
+
+!if fullscreen iswordof $(slib_option)
+  slib_fullscreen_button=<span onclick="editor$(slib_n)_fuse()" id="fullscreen$(slib_n)" class="wims_button" title="$(slib_name_fullscreen_title)">\
+$slib_name_fullscreen</span>
+  slib_fullscreen_editor=extraKeys: {"F11": function(cm) {cm.setOption("fullScreen", !cm.getOption("fullScreen"))},\
+                                     "Esc": function(cm) {if( cm.getOption("fullScreen")) {cm.setOption("fullScreen", false)};\
+                                                          if (document.getElementById("azaz$(slib_n)")){document.getElementById("azaz$(slib_n)").remove();}},}
+  !if $(slib_scripts_fullscreen)=$empty
+    slib_scripts_fullscreen=<link rel="stylesheet" href="scripts/js/external/codemirror/addon/display/fullscreen.css">\
+<style>.CodeMirror-fullscreen {z-index:2000;max-height:none;}</style>\
+<script src="scripts/js/external/codemirror/addon/display/fullscreen.js"></script>
+  !endif
+slib_scripts1_fullscreen=function editor$(slib_n)_fuse(){\
+  editor$(slib_n).setOption("fullScreen", !editor$(slib_n).getOption("fullScreen"));\
+  var retour=document.createElement('button');\
+  retour.id='azaz$(slib_n)';\
+  retour.type='button';\
+  retour.innerHTML='$(slib_name_fullscreen)';\
+  retour.className='CodeMirror-fullscreen wims_button';\
+  retour.style="top:90% !important;left:80% !important;width:40px;height:40px";\
+  document.body.appendChild(retour);\
+  retour.onclick =function(){editor$(slib_n).setOption("fullScreen", false);document.getElementById("azaz$(slib_n)").remove();};\
+}
+!else
+  slib_fullscreen_button=$empty
+  slib_fullscreen_editor=$empty
+  slib_scripts1_fullscreen=$empty
+!endif
+
+slib_prog_lang_uniq=!listuniq $(slib_prog_lang)
+
+!for nimp in $(slib_prog_lang_uniq)
+   slib_scripts_lang=!append line <script src="scripts/js/external/codemirror/mode/$nimp/$nimp.js"></script> to $(slib_scripts_lang)
+!next
+
+!reset slib_code_select_script
+
+!if $(slib_code_cnt)!=1
+  slib_code_select=$(slib_code_select)\
+$(slib_code_s)\
+  </select></div>
+  slib_code_select_script= var list_$(slib_n)=[$(slib_readonly_list)];\
+  var sel_$(slib_n)=document.getElementById("select_$(slib_id)");\
+  CodeMirror.on(sel_$(slib_n), "change", function() {\
+  selectBuffer_$(slib_n)(sel_$(slib_n).options[ sel_$(slib_n).selectedIndex].value);\
+  editor$(slib_n).setOption("readOnly",list_$(slib_n)[sel_$(slib_n).selectedIndex]);\
+  });\
+  var buffers_$(slib_n) = {};\
+  function openBuffer_$(slib_n)(name, text, mode) {buffers_$(slib_n)[name] = CodeMirror.Doc(text, mode);}\
+  function selectBuffer_$(slib_n)(name) {\
+    var buf = buffers_$(slib_n)[name];\
+    if (buf.getEditor()) buf = buf.linkedDoc({sharedHist: true});\
+    var old = editor$(slib_n).swapDoc(buf);\
+    var linked = old.iterLinkedDocs(function(doc) {linked = doc;});\
+    if (linked) {\
+      for (var name in buffers_$(slib_n)) if (buffers_$(slib_n)[name] == old) buffers_$(slib_n)[name] = linked;\
+      old.unlinkDoc(linked);\
+  }\
+  editor$(slib_n).focus();}
+!else
+  slib_code_op=
+!endif
+
+slib_code_select_script= $(slib_code_select_script)\
+$(slib_code_op)\
+var editor$(slib_n) = CodeMirror(document.getElementById("$(slib_n)"), {\
+  lineNumbers: true,\
+  matchBrackets: true,\
+  mode: "$(slib_prog_lang[1])",\
+  readOnly:$(slib_readonly1),\
+  styleSelectedText: true,\
+  viewportMargin: 10,\
+  indentUnit:2,\
+  autocapitalize:true,\
+  $(slib_fullscreen_editor)\
+});
+
+!if $(slib_code_cnt)!=1
+  slib_code_select_script= $(slib_code_select_script)\
+    selectBuffer_$(slib_n)("$(slib_name_code1)");
+!else
+  slib_code_select_script= $(slib_code_select_script)\
+    editor$(slib_n).setValue("$(slib_code_data1)");
+!endif
+
+!if $slib_code_js=$empty and nocssjs notin $(slib_option)
+  slib_code_js=<link rel="stylesheet" href="scripts/js/external/codemirror/codemirror.css">\
+<style>.CodeMirror pre {box-shadow: none !important;}</style>\
+  <script src="scripts/js/external/codemirror/codemirror.js"></script>\
+  $(slib_scripts_lang)\
+  $(slib_scripts_fullscreen)
+  slib_out=$slib_code_js
+!else
+  slib_out=
+!endif
+
+!if $(slib_bystep_script)!=$empty and nocssjs notin $(slib_option)
+  slib_out=$slib_out\
+  $(slib_bystep_script)
+!endif
+
+slib_out=$slib_out\
+$(slib_themecss$slib_n)\
+<div class="$slib_prefeditor" id="$slib_id">\
+$(slib_init_button)\
+$(slib_bystep_button)\
+$(slib_fullscreen_button)\
+$(slib_contrast_button$slib_n)\
+$(slib_code_select)\
+<div id="$(slib_n)"></div>\
+$(slib_instruction_out$slib_n)\
+</div>\
+<script>\
+$(slib_code_select_script)\
+$(slib_init_fct)\
+var myMarker$(slib_n)=[];\
+$(slib_bystep_fct)\
+$(slib_instruction_js)\
+$(slib_scripts_contrast$slib_n)\
+$(slib_scripts1_fullscreen)\
+</script>

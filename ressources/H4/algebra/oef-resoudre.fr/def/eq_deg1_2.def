@@ -1,0 +1,172 @@
+!set title=Equation du 1er degré (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+precision=1000
+
+ansorder=r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle 2,3,4,5,6,7,8,9,0.2,1.4,2.5,3.7,0.05,4.5,1.25,7.75
+
+val6=$(tmp0)
+!if $val2=Z 
+tmp0=!shuffle 2,-3,4,-5,-6,7,-8,9,0.2,-1.4,2.5,-3.7,0.05,-4.5,1.25,-7.75
+
+val6=$(tmp0)
+!endif
+!if $val2=Q 
+tmp0=!shuffle -1/2,1/3,-2/3,1/4,-3/4,1/5,-2/5,3/5,-4/5,1/6,-5/6,2,-3,4,-5,6
+
+val6=$(tmp0)
+!endif
+val7=
+val8=
+val9=
+val10=
+val11=solution
+val12=
+val13=
+val14=$[rint(2)]
+tmp=!nonempty items x,x,y,z,t
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+val10=(l'inconnue est notée par la lettre \($val15)) 
+val16=$val15
+val17=$val15
+!for val18 =1 to $val14 
+t_=!rawmath $(val6[4*($val18-1)+1])
+val19=!exec pari print($t_)
+t_=!rawmath $(val6[4*($val18-1)+2])
+val20=!exec pari print($t_)
+t_=!rawmath $(val6[4*($val18-1)+3])
+val21=!exec pari print($t_)
+t_=!rawmath $(val6[4*($val18-1)+4])
+val22=!exec pari print($t_)
+val23=$val19*$val15+$val20=$val21*$val15+$val22
+t_=!rawmath ($val22-$val20)/($val19-$val21)
+val24=!exec pari print($t_)
+val25=$[round($val24*1000)/1000]
+!if . isin $val24 
+
+!ifval abs($val25-$val24)>10^(-20) 
+val26=$val15 \approx $val25 
+!else
+val26= $val15=$val24
+!endif
+!else
+val26=x=$val24
+!endif
+val27=<table><tr><td>\(5x+2=3x+7)</td></tr><tr><td>\(\Leftrightarrow 5x-3x=7-2)</td></tr><tr><td>\(\Leftrightarrow 2x=5)</td></tr><tr><td>\(\Leftrightarrow x=5/2)</td></tr></table>
+!if $val2=Z 
+val27=<table><tr><td>\(-3x+2=-x-7)</td></tr><tr><td>\(\Leftrightarrow -3x+x=-7-2)</td></tr><tr><td>\(\Leftrightarrow -2x=-9)</td></tr><tr><td>\(\Leftrightarrow x=\frac{-9}{-2}=\frac{9}{2})</td></tr></table>
+!endif
+!if $val2=Q 
+val27=<table><tr><td>\(\frac{2}{3} x+\frac{1}{2}=\frac{x}{4}-7)</td></tr><tr><td>\(\Leftrightarrow \frac{2}{3} x-\frac{x}{4} =-7-\frac{1}{2})</td></tr><tr><td>\(\Leftrightarrow \frac{8}{12} x-\frac{3}{12} x =-\frac{14}{2}-\frac{1}{2})</td></tr><tr><td>\(\Leftrightarrow \frac{5}{12} x =-\frac{15}{2})</td></tr><tr><td>\(\Leftrightarrow x=\frac{-\frac{15}{2}}{\frac{5}{12}}=-\frac{15}{2}\times\frac{12}{5}=-18)</td></tr></table>
+!endif
+tmp0=!append item $val23 to $val7
+
+val7=$(tmp0)
+tmp0=!append item $val26 to $val8
+
+val8=$(tmp0)
+tmp0=!append item $val24 to $val9
+
+val9=$(tmp0)
+!next
+replytype1=numeric
+replyoption1=comma absolute 
+replyname1=
+replygood1=$[$(val9[1])]
+replytype2=numeric
+replyoption2=comma absolute 
+replyname2=
+replygood2=$[$(val9[2])]
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Voici un exemple :<br/>$val27
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Résoudre $val10:	<ul>	 <li> équation 1 : 
+!insmath $(val7[1])
+$(). Cette équation a une seule solution, qui est : 
+!insmath $val16
+$()= 
+!read oef/embed.phtml r1,5 
+$()</li>	 <li> équation 2 : 
+!insmath $(val7[2])
+$(). Cette équation a une seule solution, qui est : 
+!insmath $val17
+$()= 
+!read oef/embed.phtml r2,5 
+$()</li>	</ul>	<div class="wims_instruction"> Si vous voulez voir un exemple, cliquer ci-dessous sur "Indication".	<p>Donner la valeur exacte de la solution ou une valeur approchée à 
+!insmath 10^-3
+$() près. </p>	<p>Rédigez vos calculs sur une feuille de brouillon.</p>	</div>	
+$()
+!exit
+
+:hint
+$()Voici un exemple :<br/>$val27
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Voici les solutions :	<ul>	 
+!for m_j=1 to $val14 
+$()	 <li> $val11 de l'équation $m_j : $val12 
+!insmath $(val8[$m_j])
+$() $val13 </li>	 
+!next
+$()	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,12,13,14,16,17,27
+embedcnt=2

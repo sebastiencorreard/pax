@@ -1,0 +1,159 @@
+!set title=Affectation avec une variable et 4 instructions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+language=fr
+
+ansorder=r
+varcnt=27
+prevarcnt=25
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim ambiance,neat;3024-night,3024-day
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=a,b,c,d,f,g,h,l,m,n,o,p,q,r,s,t,u,v,x,y,z
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp0=!randint 3, 9
+
+val9=$[rint($(tmp0))]
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, $val9-1
+
+val10=$[rint($(tmp0)*$(tmp1))]
+val11=Après avoir lu les instructions, déterminer la valeur finale de la variable	 \($val8\).
+val12=
+tmp=!trim r1
+val13=!translate internal $	\
+$ to ;; in $tmp
+val14=
+val15=$[rint(1)]
+val16=$[rint(4)]
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 5
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 9
+
+val9=$[rint($val10*$(tmp0))]
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 9
+
+val17=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 4
+
+val18=$[rint($(tmp0)*$(tmp1))]
+val19=$val8=$val9
+t_=!replace internal \( by ( in $val8/$val10
+tmp0=!exec pari $t_
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in $val8+$val17
+tmp0=!exec pari $t_
+
+val21=$(tmp0)
+val22=$val18*$val8
+val23=$val19	$val8=$val20	$val8=$val21	$val8=$val22
+val24=$[rint(($val9/$val10+$val17)*$val18)]
+val25=Affectation des variables
+val26=Instruction
+tmp=!trim $val13
+val27=!translate internal $	\
+$ to ;; in $tmp
+!readproc slib/coding/editor [python,[$val23]],1,readonly fullscreen theme=[zenburn,neat] bystep=[$val14] 
+tmp0=$slib_out
+val28=$(tmp0)
+dynsteps=yes
+oefsteps=$val27 
+nextstep=!nosubst $val27 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$val24
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="encadre">	<p class="problematique">$val25</p>	<div id="boited">	<img src="$val1/python.png" alt="Logo de Python">	</div>	<div class="enonce">	$val11	$val12	<div class="question">	$val28	<div>La valeur finale de 
+!insmath $val8
+$() est :  
+!read oef/embed.phtml reply$val15,4 
+$()</div>	</div>	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step=2)
+val27=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,8,11,12,15,25,28
+embedcnt=1

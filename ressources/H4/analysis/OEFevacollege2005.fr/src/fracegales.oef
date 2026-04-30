@@ -1,0 +1,60 @@
+\title{Fractions égales}
+\language{fr}
+\author{XIAO, Gang}
+\email{xiao@unice.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{mulist=1,2,3,4,5,6}
+
+\integer{mucnt=items(\mulist)}
+\text{data=1/2,3/2,5/2,1/3,2/3,4/3,5/3,1/4,3/4,5/4,1/5,2/5,3/5,4/5,6/5,1/6,5/6}
+\text{all=}
+\for{f in \data}{
+ \text{ff=wims(translate / to , in \f)}
+ \text{nums=wims(values \ff[1]*x for x in \mulist)}
+ \text{dens=wims(values \ff[2]*x for x in \mulist)}
+ \text{this=}
+ \for{F=1 to \mucnt}{
+  \text{this=wims(append item \nums[\F]/\dens[\F] to \this)}
+ }
+ \matrix{all=\all
+shuffle(\this)}
+}
+
+\text{choices=item(1..items(\data),2,1,1,1,wims(values 0 for x=1 to 100))}
+
+\text{choices=shuffle(\choices)}
+\text{select=}
+\for{f=1 to items(\data)}{
+ \if{\choices[\f]>0}{
+  \text{s1=\all[\f;1..\choices[\f]]}
+  \text{select=wims(append item \s1 to \select)}
+ }
+}
+\integer{selcnt=items(\select)}
+\text{Select=}
+\for{s in \select}{
+ \text{s1=wims(replace internal / by \over in \s)}
+ \text{Select=wims(append item \({\s1}) to \Select)}
+}
+\text{size=40x60x1}
+
+\statement{Parmi les fractions présentées ci-dessous, trouver deux fractions qui sont égales.
+<p>
+<b>Les fractions égales :</b>
+</p>
+<div class="wimscenter">
+\embed{r1,\size} = \embed{r2,\size}
+</div>
+}
+
+\text{empty=}
+\text{os=wims(replace internal \over by / in \o1,\o2,\o3,\o4,\o5,\o6)}
+\text{os=wims(text select /1234567890, in \os)}
+\answer{Fraction 1}{\o1;\Select[1],\Select[\1*2+1..\selcnt]}{type=dragfill}
+\answer{Fraction 2}{\o2;\Select[2]}{type=dragfill}
+
+\text{eq1=pari((\os[1])-(\os[2]))}
+\condition{\o1 = \o2 \empty}{\eq1 issametext 0}

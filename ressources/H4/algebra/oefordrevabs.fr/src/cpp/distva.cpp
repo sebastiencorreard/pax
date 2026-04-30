@@ -1,0 +1,97 @@
+target=distva
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+\computeanswer{no}
+\format{html}
+\precision{100}
+#include "css.inc"
+
+%% on place 3 points O,B ,C,
+\integer{b=random(1..10)* random(1,-1)}
+\integer{c=random(1..10)*random(1,-1)}
+
+Choix parametre rationnel ou entier
+\integer{choix=random(1,2)}
+
+\rational{d=\choix=1?random(-1,-2,2):random(-1,-2,-3,2,3)/\b}
+On ne veut pas d=1
+\rational{d=\d=1?2}
+
+%% text{image= draw(806,100)}
+\text{image= xrange -13,13
+  yrange -2,2
+  hline 0,0,red
+  arrow 12,0,13,0,15,red
+  parallel -12,-0.2,-12,0.2,1,0,2,blue
+  parallel -10,-0.4,-10,0.4,5,0,5,blue
+  parallel -9,-0.2,-9,0.2,1,0,4,blue
+  parallel -4,-0.2,-4,0.2,1,0,4,blue
+  parallel 1,-0.2,1,0.2,1,0,4,blue
+  parallel 6,-0.2,6,0.2,1,0,4,blue
+  parallel 11,-0.2,11,0.2,1,0,2,blue
+  text red,-0.1,1,medium,O
+  text red,\b-0.1,1,medium,B
+  text red,\c-0.1,1,medium,C
+  text red,-0.1,-0.75,medium,0
+  text red,\b-0.1,-0.75,medium,\b
+  text red,\c-0.1,-0.75,medium,\c
+  segment \b,-0.2,\b,0.2,red
+  segment \c,-0.2,\c,0.2,red
+}
+
+%% preparation de la réponse
+\text{eqb=texmath(x-(\b)),texmath(\b-x), texmath(-x+(\b)), texmath(-(\b)+x)}
+text{eqb=x-(\b),\b-x, -x+(\b), -(\b)+x}
+text{eqb=pari(x-(\b))}
+\text{eqc=texmath(x-(\c)),texmath(\c-x),texmath(-(\c)+x),texmath(-x+(\c))}
+\text{size=\confparm1=1 ? :x-large}
+\statement{
+\name_enonce <span class="nowrap">\(\mathrm{O}\).</span>
+ <div class="wimscenter">
+\draw{800,64}{\image}
+ </div>
+\name_question
+<div class="wimscenter">
+ \if{\reply1!=}{\name_answer2:<br class="spacer">}
+\special{mathmlinput [\mathrm{M B}=\left|reply1\right|],5,noanswer
+ reply 1
+ }
+ <br class="spacer">
+\special{mathmlinput [\mathrm{C M}=\left|reply2\right|],5,noanswer
+ reply 2
+ }
+ </div>
+ }
+\answer{dxa}{\eqbt}{option=noanalyzeprint}
+\answer{dxb}{\eqct}{option=noanalyzeprint}
+\text{eqbt=pari(\eqbt)}
+\text{eqct=pari(\eqct)}
+\condition{\(\mathrm{M B}\) réponse exacte }{texmath(\eqbt) isitemof \eqb}
+condition{d(x,\b) bonne réponse }{\eqbt isitemof \eqb}
+\condition{\(\mathrm{C M}\) réponse exacte  }{texmath(\eqct) isitemof \eqc}
+
+\solution{
+<div class="flex_box">
+  <div style="padding-right:1em;">
+\(\mathrm{MB}=\mathrm{d}\left(x,\b \right)\)<br>
+\(\phantom{\mathrm{MB}}= \left|\eqb[1]\right|\)<br>
+\(\phantom{\mathrm{MB}}= \left|\b - x\right|\)
+  </div>
+  <div >
+\(\mathrm{CM}=\mathrm{d}\left(\c,x \right)\)<br>
+\(\phantom{\mathrm{CM}}= \left|\c - x\right|\)<br>
+\(\phantom{\mathrm{CM}}= \left|\eqc[1]\right|\)
+  </div>
+</div>
+}
+
+\hint{
+<div class="hint">
+Pour tous réels \(x\) et <span class="nowrap">\(y\),</span> <br>
+\(\mathrm{d}\left(x,y\right)= \left|x - y\right|\)<br>
+\(\phantom{\mathrm{d}\left(x,y\right)}= \left|y - x\right|\)<br>
+\(\phantom{\mathrm{d}\left(x,y\right)}=\mathrm{d}\left(y,x\right)\)
+</div>}

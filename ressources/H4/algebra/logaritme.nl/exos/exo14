@@ -1,0 +1,237 @@
+checkfile=$checkdir/ineq.proc
+!set n=$counter
+!if $rounding<1
+    rounding=0
+!else
+    rounding=100000
+!endif 
+!readproc $remarkdir/rounding.$taal
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+questiontype=0
+use_ineq=1
+embed=1
+image=0
+cols=15
+rows=2
+var1=0
+var2=0
+#var3=1
+varlist=x
+keuze=!randitem 0,1
+kans=!randitem 0,1
+text=!record 18 of lang/remarks.$taal
+helptext=$text<br /><img src=\'$module_dir/gifs/exo14.jpg\' alt=\'noalt\' />
+inputs=-1
+mathview=5
+mathviewpanel=$module_title:x=: > : < : >= : <= : and 
+!if $lang=fr or $taal=fr or $myvar1=1
+ g=!randitem 2,10,10
+ !if $g=2
+  LOG=\log_{2}
+ !else
+  LOG=log
+ !endif
+!else
+ g=!randitem 2,3,4,5,6,7,8,9
+ LOG=^{$g}\log
+!endif
+!if $R=1
+    a=!randitem 1,2,3,4,5
+    b=!randint 4,20
+    !if $a=1
+        ff=1+$LOG \left( x \right)
+	fff=1+log[$g](x)
+    !else
+        ff=1+$LOG \left( $a x \right)
+	fff=1+log[$g]($a*x)
+    !endif
+    gg=$LOG \left( $b - x \right) 
+    ggg=log[$g]($b - x)
+    tot=!exec pari A=($b)/(1+$a*$g)\
+    printtex(A)
+    t=!line 1 of $tot
+    ttex=!line 2 of $tot
+    formula$n= \left\{ \begin{array}{cc} f\left( x \right) = & $ff  \\ \\  g\left( x \right) = & $gg  \end{array}\right. 
+    F=1+log10($a*x)/(log10($g))
+    G=log10($b - x)/(log10($g))
+    !if $keuze=1
+	!if $kans=1
+	    teken= &lt;
+	    applettext=!nospace $fff < $ggg ->
+	    answer$n=!nospace 0 < x && x < $t
+	    texanswer$n=$ 0 < x < $ttex $
+	!else
+	    teken= &le;
+	    applettext=!nospace $fff <= $ggg ->
+	    answer$n=!nospace 0 < x && x <= $t
+	    texanswer$n=$ 0 < x \le $ttex $
+	!endif
+    !else
+	!if $kans=1
+	    teken= &gt;
+	    applettext=!nospace $fff > $ggg ->
+	    answer$n=!nospace $t < x && x < $b
+	    texanswer$n=  $ $ttex < x < $b $
+	!else
+	    teken= &ge;
+	    applettext=!nospace $fff >= $ggg ->
+	    answer$n=!nospace $t <= x && x < $b
+	    texanswer$n=$ $ttex \le x < $b $ 
+	!endif
+    !endif
+
+    ss=!record 17 of lang/remarks.$taal
+    !if $teaching=1
+    	plot=1
+    	draw=0
+    	image_settings$n=size 0.4,0.4 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	image$n=[-10:$[$b+5]] $F notitle , $G  notitle
+    	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	!insplot $(image$n)
+    	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+
+!if $R=2
+    a=!randitem 3,4,5,6,7,8
+    b=!randitem 1,2,3
+    c=!randint 4,20
+    d=!randitem 1,2,3
+    ff=$LOG \left( $a x  - $b \right)
+    fff=log[$g]($a*x-$b)
+    !if $d=1
+	gg=$LOG \left( $c - x \right)
+	ggg=log[$g]($c - x)
+    !else
+	gg=$LOG \left( $c - $d x \right)
+	ggg=log[$g]($c - $d*x)
+    !endif
+    tot=!exec pari A=($c+$b)/($a+$d)\
+    printtex(A)\
+    $b/$a\
+    printtex($b/$a)\
+    $c/$d\
+    printtex($c/$d)
+    
+    t=!line 1 of $tot
+    ttex=!line 2 of $tot
+    d1=!line 3 of $tot
+    dtex1=!line 4 of $tot
+    d2=!line 5 of $tot
+    dtex2=!line 6 of $tot
+
+    formula$n= \left\{ \begin{array}{cc} f\left( x \right) = & $ff  \\ \\  g\left( x \right) = & $gg \end{array}\right. 
+
+    F=log10($a*x - $b)/(log10($g))
+    G=log10($c - $d*x)/(log10($g))
+
+    !if $keuze=1
+	!if $kans=1
+	    teken= &lt;
+	    applettext=!nospace $fff < $ggg ->
+	    answer$n=!nospace $d1 < x && x < $t
+	    texanswer$n=$ $dtex1 < x < $ttex $
+	!else
+	    teken= &le;
+	    applettext=!nospace $fff <= $ggg ->
+	    answer$n=!nospace $d1 < x && x <= $t
+	    texanswer$n=$ $dtex1 < x \le $ttex $
+	!endif    
+    !else
+	!if $kans=1
+	    teken= &gt;
+	    applettext=!nospace $fff > $ggg ->
+	    answer$n=!nospace $t < x && x < $d2
+	    texanswer$n= $ $ttex < x < $dtex2
+	!else
+	    teken= &ge;
+	    applettext=!nospace $fff >= $ggg ->
+	    answer$n=!nospace $t <= x && x < $d2
+	    texanswer$n=$ $ttex \le x < $dtex2 $
+ 	!endif
+    !endif
+
+    ss=!record 17 of lang/remarks.$taal
+    !if $teaching=1
+    	plot=1
+    	draw=0
+    	image_settings$n=size 0.4,0.4 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	image$n=[-10:$[$b+5]] $F notitle , $G  notitle
+    	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	!insplot $(image$n)
+    	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+
+!if $R>2
+    a=!randitem 1,2,3,4
+    b=!randint 1,20
+    tot=!exec pari A=$b/(1+$g^$a)\
+    printtex(A)
+    t1=!line 1 of $tot
+    t2=!line 2 of $tot
+    ff=$LOG \left( x \right) + $a
+    gg=$LOG \left( $b - x \right)
+    fff=log[$g](x + $a)
+    ggg=log[$g]($b -x)
+    !if $keuze=1
+	!if $kans=1
+	    teken= &lt;
+	    applettext=!nospace $fff < $ggg ->
+	    answer$n=!nospace 0 < x && x < $t1
+	    texanswer$n= $ 0 < x <  $t2 $
+	!else
+	    teken= &le;
+	    applettext=!nospace $fff <= $ggg ->
+	    answer$n=!nospace 0 < x && x <= $t1
+	    texanswer$n= $ 0 < x \le $t2 $
+	!endif
+    !else
+	!if $kans=1
+	    teken= &gt;
+	    applettext=!nospace $fff > $ggg ->
+	    answer$n=!nospace $t1 < x && x < $b
+	    texanswer$n= $ $t2 < x < $b $
+	!else
+	    teken= &ge;
+	    applettext=!nospace $fff >= $ggg ->
+	    answer$n=!nospace $t1 <= x && x < $b
+	    texanswer$n= $ $t2 \le x < $b $
+	!endif
+    !endif
+    ss=!record 17 of lang/remarks.$taal
+    question$n=$ss
+
+    formula$n= \left\{ \begin{array}{cc} f\left( x \right) = & $ff  \\ \\  g\left( x \right) = & $gg \end{array}\right.
+
+    F=$a + log10(x)/(log10($g))
+    G=log10($b -x)/(log10($g))
+
+    !if $teaching=1
+    	plot=1
+    	draw=0
+    	image_settings$n=size 0.4,0.4 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	image$n=[-10:$[$b+5]] $F notitle , $G  notitle
+    	insplot_set=size 0.6,0.6 ;border ; autoscale ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xlabel "x-axis" ; ylabel "y-axis"
+    	!insplot $(image$n)
+    	question$n=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$ss</a>
+    !else
+	question$n=$ss
+    !endif
+ !exit
+!endif
+
+

@@ -1,0 +1,67 @@
+# no need for translation 
+# rangnummer -> Recursief
+mathview=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif        
+questiontype=0
+image=0
+math=0
+exotext=!record 97 of lang/remarks.$taal
+#@ Omrekenen van Rangnummer formule naar Recursieve formule
+keuze=!randitem 1,2                                                                                          
+!if $keuze=1
+    TYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+    NTYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+!else
+    TYPE=!record 13 of lang/remarks.$taal
+    #@ Rekenkundige
+    NTYPE=!record 12 of lang/remarks.$taal
+    #@ Meetkundige
+!endif
+helptext=!record 99 of lang/remarks.$taal
+sometext=!record 101 of lang/remarks.$taal                                                                                                  
+exotext=<p><a onmouseover="return escape('$sometext')">$exotext</a>
+!if $R>0
+    checkfile=exos/checkfile3.proc
+    !if $keuze=2
+	# rekenkundig
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+	ss=!record 30 of lang/remarks.$taal
+	#@ Gegeven de Rangnummer formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n</sub>=$a + $r(n-1)</p>Geef de Recursieve formule van deze rij.        
+	question$n=$ss
+	answer$n=U*(n-1)+$r,$a
+	formule=!record 31 of lang/remarks.$taal
+	#@ U(n)=U(n-1) + $r en U(1)=$a
+	!for p=1 to 5
+	    U=$[$a+$r*($p-1)]
+	    textanswer$n=!append line <li>U<sub>$p</sub>=$U</ll> to $(textanswer$n)
+	!next p
+    !else
+	# meetkundig
+	a=!randint 1,20
+	r=!randitem 2,3,4,5,6,7,8,9
+	ss=!record 32 of lang/remarks.$taal
+	#@ Gegeven de Rangnummer formule van een $TYPE rij:<p align="center">\
+	#@ U<sub>n</sub>=$a&times;$r<sup>n-1</sup></p>Geef de Recursieve formule van deze rij.        
+	question$n=$ss
+	answer$n=$r*U*(n-1),$a
+	formule=!record 33 of lang/remark.$taal
+	#@ U(n)=$r&times;U(n-1) en U(1)=$a
+	!for p=1 to 5
+	    U=$[$a*$r^($p-1)]
+	    textanswer$n=!append line <li>U<sub>$p</sub>=$U</ll> to $(textanswer$n)
+	!next p
+    !endif
+    append=!record 34 of lang/remarks.$taal
+    #@ Het is een $TYPE rij...dus de Recursieve formule is: $formule 
+    textanswer$n=<ul>$(textanswer$n)</ul>$append
+    !exit
+!endif

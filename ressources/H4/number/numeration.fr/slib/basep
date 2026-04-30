@@ -1,0 +1,36 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Passage de la base dix vers la base p.
+slib_parms=variable, séparés par des virgules\
+Le nombre en base dix\
+la liste des symboles de la base p séparés par des virgules
+
+slib_author=Fabrice Guerimand 
+slib_out=Le nombre &eacute;crit en base p en utilisant les symboles fournis.
+!exit
+
+:proc
+slib_input=$wims_read_parm
+slib_n=!item 1 of $wims_read_parm
+slib_s=!item 2 to -1 of $wims_read_parm
+slib_s=!nospace $slib_s
+slib_p=!itemcnt $slib_s
+
+slib_n=$[$slib_n]
+!if NaN isin $slib_n
+ slib_out=NaN
+ !exit
+!endif
+
+!if e isin $slib_n or E isin $slib_n
+ slib_out=NaN
+ !exit
+!endif
+
+slib_out=$empty
+!while $slib_n>0
+  slib_r=$[$slib_n%$slib_p]
+  slib_n=$[($slib_n-$slib_r)/$slib_p]
+  slib_out=$(slib_s[$slib_r+1])$slib_out
+!endwhile

@@ -1,0 +1,102 @@
+# Dekkingbijdrage I
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=4
+mathview=0
+make_tr=0
+rounding=100
+roundingtext=Rond al je antwoorden af op twee decimalen nauwkeurig.
+checkfile=exos/precheck1.proc
+nu=!date +%Y
+jaar=$[$nu-1]
+ck=!randint 1,6
+ck=$[$ck*5]
+vk=!randitem 2,2.5,4,5,10
+tot=!randline 4,10,20,25,30,35,40\
+5,10,15,20,25,30,35,40\
+8,10,20,30,40
+
+x=!item 1 of $tot
+tt=!item 2 to -1 of $tot
+ck=!randitem $tt
+vp=$[$vk+$ck/$x]
+y=$[$vp*$x]
+#fac1=!randint 12,25
+#fac1=$[$fac1/10]
+#vp=$[$fac1*$vk]
+kp=!randint $[100*($vk+1)],$[100*($vp - 1)]
+kp=$[$kp/100]
+afzet=!randint 25,90
+afzet=$[$afzet*100]
+tot=!exec moneyprint $vp,$kp,$ck,$vk
+vp=$(tot[1])
+kp=$(tot[2])
+ck=$(tot[3])
+vk=$(tot[4])
+
+produkt=!randitem Trapo,Elasto,Styple,Verozon,Snap-O-Click,Dorondo,Viledo,Gr&ouml;lsch,Ledermaister
+
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading & manufacturing
+
+ss=Fabriek $bedrijf produceert uitsluitend <br />het product <em>$produkt</em>&trade;.<br />Gegeven is de grafiek over het boekjaar $jaar<br />Verder is gegeven dat de <br />kostprijs van <em>$produkt</em> &euro; $kp per stuk is.<br />Bepaal en bereken aan de hand van de grafiek<br />de volgende vier vragen.
+
+ans1=$vk
+ans2=$[$ck*1000]
+ans3=!exec moneyprint $[$vp-$vk]
+ans4=$[$afzet*($vp-$kp)]
+
+ex1=&euro; / stuk
+ex2=&euro; 
+ex3=&euro; / stuk
+ex4=&euro;
+
+description=Variabele kosten,Totale constante kosten,Dekkingsbijdrage,Verkoopresultaat bij een<br /> afzet van $afzet stuks
+
+#inputtext1=De variabele kosten per stuk
+#inputtext2=De totale constante kosten
+#inputtext3=De dekkingsbijdrage per product
+#inputtext4=Het verkoopresultaat bij een afzet van $afzet stuks
+
+inputs=4
+answer$n=$ans1,$ans2,$ans3,$ans4
+
+textanswer$n=<ol><li>De variabele kosten per stuk.<br />Af te lezen bij het snijpunt is: ($x : $y)<br />Dit betekent dus dat bij een afzet van $[$x*1000] de totale kosten &euro;$[$y*1000] bedragen.<br />Het variabele deel is $[$y*1000] &minus; $[$ck*1000] = &euro; $[$y*1000 - $ck*1000].<br />De variabele kosten per stuk zijn dan : $[$y*1000 - $ck*1000] &divide; $[$x*1000] = &euro;  $ans1 per stuk.</li><li>De totale constante kosten<br />De totale constante kosten zijn onafhankelijk van de afzet.<br />Bij een afzet van 0 stuks zijn de constante kosten &euro; $[$ck*1000]</li><li>De dekkingsbijdrage per product<br />Dekkingsbijdrage per product is per definitie:<br /><em>verkoopkosten minus de variabelekosten per product</em> ofwel <b>p &minus; v</b>.<br />De verkoopprijs kan gevonden worden met een willekeurig punt<br />waar de lijn van de totale opbrengsten doorheen gaat.<br />Bijvoorbeeld: verkoopprijs -we gebruiken het "mooie snijpunt"  : $[$y*1000]&divide;$[$x*1000] = &euro; $vp<br />De dekkingsbijdrage is : $vp &minus; $vk = &euro; $ans3  per stuk.</li><li>Het verkoopresultaat bij een afzet van $afzet stuks<br />Het verkoopresultaat is <em>(verkoopprijs minus kostprijs) &times; afzet</em>  ofwel <b>(p &minus; kp)&times; afzet</b><br />( $vp &minus; $kp )&times; $afzet = &euro; $ans4</li></ol>
+
+y1=$ck
+y2=$[$ck+$vk*14]
+y3=0
+y4=$[$vp*14]
+tooltip=!exec canvasdraw \
+size 640,320\
+xrange -1,14\
+yrange -20,140\
+bgcolor $wims_bgcolor\
+opacity 120,120\
+precision 10\
+axis\
+axisnumbering\
+fontsize 18\
+fontfamily italic 14px Ariel\
+legend totale kosten:totale opbrengst\
+legendcolors red:green\
+grid 1,10,grey,1,1,8,blue\
+xlabel aantal eenheden (x1000)\
+ylabel opbrengst / kosten in \u20AC (x1000)\
+opacity 255,255\
+linewidth 3\
+segment 0,$y1,14,$y2,red\
+segment 0,$y3,14,$y4,green\
+point $x,$y,orange\
+fontfamily italic 22px Ariel\
+string black,$[$x-1.5],$[$y+4],($x:$y)\
+intooltip Klik <span class='schaersvoorde_link'>hier</span> voor de grafiek\
+mouse red,22
+ 
+helptext=$roundingtext
+question$n=$ss $tooltip<br />
+
+

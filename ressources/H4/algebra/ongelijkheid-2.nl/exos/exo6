@@ -1,0 +1,166 @@
+# lineaire ongelijkheid II [H3]
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=2
+n=$counter
+questiontype=0
+# geen problemen met arrows <=>
+use_ineq=1
+inputs=1
+rows=1
+cols=15
+embed=1
+draw=1
+embed=1
+plot=0
+math=0
+varlist=x
+image=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+helptext=!record 53 of lang/remarks.$taal
+ss=!record 55 of lang/remarks.$taal
+#@Los de onderstaande ongelijkheid op in $m_RR
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+checkfile=exos/checkfile2.proc
+mathviewpanel=$module_title:x<:x<=:x>:x>=:and
+!if $R=1
+    keuze=!randitem 1,2
+    !if $keuze=1
+	gk= \ge
+	GK= >=
+    !else
+	gk= \le
+	GK= <=
+    !endif
+    d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    !if $d=$b
+	d=$[$d+2]
+    !endif
+    p=!randitem 1,2,3,4,5
+    c=!randitem 2,3,4,5
+    a=$[$c+$p]
+    tot=!exec pari A=(($d)-($b))/($p)\
+    printtex(A)
+    
+    ans=!line 1 of $tot
+    ans_tex=!line 2 of $tot
+    formula$n=$a x + $b $gk $c x + $d 
+    applettext=!nospace  $a*x + $b $GK $c*x + $d ->
+    texanswer$n=\left[ \begin{array}{l} $p x + $b $gk $d \rightarrow \\ $p x $gk $d - $b \rightarrow \\ x $gk $ans_tex \end{array}\right.
+    answer$n=!nospace x $GK $ans
+    var2=$(answer$n)
+ !exit
+!endif
+
+!if $R=2
+    keuze=!randitem 1,2
+    !if $keuze=1
+	gk= \ge
+	GK= >=
+    !else
+	gk= \le
+	GK= <=
+    !endif
+    pm=!randitem -1,1
+    mp=!randitem -1,1
+    d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    !if $d=$b
+	d=$[$d+2]
+    !endif
+    d=$[$pm*$d]
+    b=$[$mp*$b]
+    p=!randitem 1,2,3,4,5
+    c=!randitem 2,3,4,5
+    a=$[$c+$p]
+    tot=!exec pari A=(($d)-($b))/($p)\
+    printtex(A)
+    tus1=!rawmath x + $b
+    tus2=!rawmath x + $d
+    
+    ans=!line 1 of $tot
+    ans_tex=!line 2 of $tot
+    formula$n=$a $tus1 $gk $c $tus2
+    applettext=!nospace $a $tus1 $GK $c $tus2 ->
+    texanswer$n=\left[ \begin{array}{l} $p $tus1 $gk $d \rightarrow \\ $p x $gk $[$d - $b] \rightarrow \\ x $gk $ans_tex \end{array}\right.
+    answer$n=!nospace x $GK $ans
+    var2=$(answer$n)
+ !exit
+!endif
+
+!if $R>2
+    keuze=!randitem 1,2
+    pm=!randitem -1,1
+    mp=!randitem -1,1
+    pp=!randitem -1,1
+    mm=!randitem -1,1
+    d=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    !if $d=$b
+	d=$[$d+2]
+    !endif
+    d=$[$pm*$d]
+    b=$[$mp*$b]
+    !if $R=3
+	c=!randitem 1,2,3,4,5,6,7,8,9,10
+	a=!randitem 1,2,3,4,5,6,7,8,9,10
+    !else
+	c=!randint 1,99
+	a=!randint 1,99
+	c=$[$c/10]
+	a=$[$a/10]
+    !endif
+    !if $a=$c
+	a=$[$a+1]
+    !endif
+    c=$[$pp*$c]
+    a=$[$mm*$a]
+    p=$[$a-($c)]
+    !if $keuze=1
+	!if $p<0
+	    gk= \ge
+	    GK= >=
+	    ggk= \le
+	    GGK= <=
+	!else
+	    gk= \ge
+	    GK= >=
+	    ggk= \ge
+	    GGK= >=
+	!endif
+    !else
+	!if $p<0
+	    gk= \le
+	    GK= <=
+	    ggk= \ge
+	    GGK= >=
+	!else
+	    gk= \le
+	    GK= <=
+	    ggk= \le
+	    GGK= <=
+	!endif
+    !endif
+    tot=!exec pari A=(($d)-($b))/($p)\
+    printtex(A)
+    tus1=!rawmath x + $b
+    tus2=!rawmath x + $d
+    
+    ans=!line 1 of $tot
+    ans_tex=!line 2 of $tot
+    formula$n=$a $tus1 $gk $c $tus2
+    applettext=!nospace $a $tus1 $GK $c $tus2 ->
+    texanswer$n=\left[ \begin{array}{l} $p $tus1 $gk $d \rightarrow \\ $p x $gk $[$d - $b] \rightarrow \\ x $ggk $ans_tex \end{array}\right.
+    answer$n=!nospace x $GGK $ans
+    var2=$(answer$n)
+ !exit
+!endif
+
+

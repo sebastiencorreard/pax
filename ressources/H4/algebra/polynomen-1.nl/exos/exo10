@@ -1,0 +1,136 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=5
+mathviewpanel=$module_title:x=:sqrt():\u2227:^:+:-:/
+embed=1
+math=0
+cols=20
+rows=3
+arglist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+keuze=!randitem 0,1
+!if $R=1
+    a=!randint 2,9
+    c=!randint 2,9
+    b=!randint 1,19
+    d=!randint 1,19
+    !if $keuze=0
+	formula$n=f(x)=$a x \cdot \left($c x - $d \right)
+	tot=!exec pari A=$d/$c\
+	printtex(A)
+	tex=$a x = 0 \wedge $c x - $d = 0
+    !else
+	formula$n=f(x)=$a x \sqrt{x} \cdot  \left($c x + $d \right)
+	tot=!exec pari A=-1*$d/$c\
+	printtex(A)
+	tex=$a x \sqrt{x} = 0 \wedge $c x + $d = 0
+    !endif
+    x1=0
+    x2=!line 1 of $tot
+    x2_tex=!line 2 of $tot
+    answer$n=$x1,$x2
+    !if $rounding>0
+	rndx2=$[(round($rounding*$x2))/$rounding]
+	rnd_tex= \\  x1 = 0 \wedge x2 \approx $rndx2
+    !else
+	rnd_tex=$empty
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $tex \rightarrow \\  x1=$x1 \wedge x2=$x2_tex $rnd_tex \end{array} \right.
+
+!else
+    !if $R=2
+	a=!randint 2,9
+	c=!randint 2,9
+	b=!randint 1,19
+	d=!randint 1,19
+	!if $keuze=0
+	    formula$n=f(x)=\frac{$a}{x} \cdot \left($c x - $d \right)
+	    tex=\frac{$a}{x} = 0 \wedge $c x - $d = 0
+	!else
+	    formula$n=f(x)=\left($c x - $d \right)^{2}
+	    tex=$c x - $d = 0
+	!endif
+	tot=!exec pari A=$d/$c\
+	printtex(A)
+	x1=!line 1 of $tot
+	x1_tex=!line 2 of $tot
+	answer$n=$x1
+	!if $rounding>0
+	    rndx1=$[(round($rounding*$x1))/$rounding]
+	    rnd_tex= \\  x1 \approx $rndx1
+	!else
+	    rnd_tex=$empty
+	!endif
+	texanswer$n=\left[ \begin{array}{l} $tex \rightarrow \\  x1=$x1_tex $rnd_tex \end{array} \right.
+
+    !else
+	a=!randint 2,5
+	f=!randitem 2,3,4,5,6
+	b=$[$a*$f]
+	c=!randitem 3,5,7,9
+	!if $keuze=0
+	    g=!randint 1,6
+	    d=sqrt(2),sqrt(3),sqrt(5),sqrt(6),sqrt(7),sqrt(11)
+	    d_tex=\sqrt{2},\sqrt{3},\sqrt{5},\sqrt{6},\sqrt{11}
+	    h=!item $g of $d
+	    h_tex=!item $g of $d_tex
+	!else
+	    g=!randint 1,16
+	    d=1/3,2/3,1/4,3/4,1/5,2/5,3/5,4/5,1/6,5/6,1/7,2/7,3/7,4/7,5/7,6/7
+	    
+	    d_tex=\frac{1}{3},\frac{2}{3},\frac{1}{4},\frac{3}{4},\frac{1}{5},\frac{2}{5},\frac{3}{5},\frac{4}{5},\frac{1}{6},\frac{5}{6},\frac{1}{7},\frac{2}{7},\frac{3}{7},\frac{4}{7},\frac{5}{7},\frac{6}{7}
+	    
+	    h=!item $g of $d
+	    h_tex=!item $g of $d_tex
+	!endif
+	pm=+,-
+	mp=-,+
+	k=!randitem 1,2
+	pm=!item $k of $pm
+	mp=!item $k of $mp
+	formula$n=f(x)=\left($a \sqrt{x} - $b \right)\left(x $pm $h_tex \right)
+	x1=$[$f*$f]
+	!if $mp=-
+	    x2=-$h
+	    x2_tex=-$h_tex
+	!else
+	    x2=$h
+	    x2_tex=$h_tex
+	!endif
+	answer$n=$x1,$x2
+	!if $rounding>0
+	    rndx2=$[(round($rounding*$x2))/$rounding]
+	    rnd_tex= \\  x1 = $x1  \wedge x2 \approx $rndx2
+	!else
+	    rnd_tex=$empty
+	!endif
+	texanswer$n=\left[ \begin{array}{l} $a \sqrt{x} - $b = 0 \wedge x $pm $h_tex = 0 \rightarrow \\ \sqrt{x} = \frac{$b}{$a}=$f  \wedge x = $x2_tex \rightarrow \\  x1=$x1 \wedge x2=$x2_tex  $rnd_tex \end{array} \right.
+    !endif
+!endif
+ 
+sometxt=!record 1 of lang/remarks.$taal
+#@Bereken alle <b>nulpunten</b> van de onderstaande functie.,Bereken alle <b>snijpunten</b> van de onderstaande functie met de x-as.,<span style="color:blue">Hier</span> staat een klein plaatje,Snijden met de x-as,x-as,y-as
+ss=!item 1 of $sometxt
+#Bereken de nulpunten van de onderstaande functie.
+checkfile=$checkdir/number.proc
+helptext=<textarea cols=\'20\' rows=\'3\' class=\'schaersvoorde_textarea\'readonly=\'readonly\'> x1=11 \n x2=22 \n x3=33</textarea>
+
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+!exit
+
+

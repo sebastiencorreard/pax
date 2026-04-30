@@ -1,0 +1,64 @@
+!set n=$counter
+mathview=0
+multiimage=0
+checkfile=$checkdir/multiplechoice.proc
+Domein=!record 14 of lang/remarks.$taal
+Bereik=!record 15 of lang/remarks.$taal
+questiontype=1
+math=1
+#!if $questiontype=2
+#    graph=!record 20 of lang/remarks.$taal
+#!else
+graph=!record 21 of lang/remarks.$taal
+#!endif    
+
+a=!randint 1,7
+b=!randint 1,7
+lijst=!randitem lijst2a.def,lijst2b.def
+options=4
+
+vraag=!randfile exos/$lijst
+functie=!line 1 of $vraag
+formula$n=!texmath f(x) = $functie
+helptext=$empty
+keus=!randitem 0,1
+soort=!randitem 0,1
+!if $keus=1
+    bereik=$Domein
+    !if $soort=0
+	DB=D_f :
+    !else
+	DB=D_f =
+    !endif
+    vraag=!line 2 to 5 of $vraag
+    # eerste item van $vraag is goed
+!else
+    !if $soort=0
+	DB=B_f :
+    !else
+	DB=B_f =
+    !endif
+    bereik=$Bereik
+    vraag=!line 6 to 9 of $vraag
+    # eerste item van $vraag is goed
+!endif
+
+
+keuzes=!shuffle 1,2,3,4
+!for p=1 to 4
+    nummer=!item $p of $keuzes
+    ex$p=!line $nummer of $vraag
+    ex$p=$DB  $(ex$p)
+    !if $nummer=1
+	answer$n=$p
+	texanswer$n=$(ex$p)
+    !endif
+!next p	
+!if $teaching=1
+    !readproc exos/image.proc
+!endif
+txt1=!record 18 of lang/remarks.$taal
+# Domein en Bereik van de wortelfunctie (sqrt)
+txt2=!record 19 of lang/remarks.$taal
+question$n=$txt1<br />$txt2
+# Welk <kbd>$bereik</kbd> past bij de $image  van de wortelfunctie?

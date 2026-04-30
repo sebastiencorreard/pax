@@ -1,0 +1,90 @@
+\title{Représentation de Cram (avec repère)}
+\author{Benoît, Markey; Bernadette, Perrin-Riou; Marie-joëlle, Ramage}
+\email{bernadette.m.riou@orange.fr}
+\language{fr}
+
+Mettre l'aide de la molécule dans un confparm1 par la suite
+\text{aide=1}
+===== Choisir les objets dans la catégorie désirée
+On ne prend que les molécules ayant cramimage  dans leurs clés
+
+* récupérer de tous les éléments ayant cramimage dans leurs clés
+\text{all=wims(lookup cramimage in ind.cles)}
+
+* prendre une ligne aléatoire parmi ceux définis ci-dessous
+* obj=symbole de la molécule = premier champ
+\text{obj=item(1,shuffle(\all))}
+
+* récupérer les informations sous forme de matrice ligne
+\text{molecule=wims(lookup \obj in descriptif)}
+
+* récupérer le nom et la formule de la molécule choisie
+\text{nommol = \molecule[1]}
+\text{denommol=slib(lang/frapostrophe de wims(lower \nommol))}
+\text{formule = \molecule[4]}
+
+* remplacer | par , dans le champ 3 de la matrice ligne molécule
+Pour le cas ou il y aurait plusieurs dessins de representations
+avec leur image 3D adaptée
+\text{dessincram =  wims(translate | to , in \molecule[3])}
+\text{dessincram = randitem(\dessincram)}
+\text{dessincram = wims(declosing \dessincram)}
+
+adresse de cram
+\text{adressecram = \obj/\dessincram[1]}
+\text{cnt = items(\dessincram)}
+
+\text{adresse= wims(translate | to , in \molecule[2])}
+adresse de l'image
+\text{adresse = \cnt = 1 ? \obj/randitem(\adresse):
+\obj/\dessincram[2]}
+
+** dessiner le repère **
+
+\text{origine=C1}
+\text{repere= arrow 30,50,30,7,10,black
+arrow 30,50,70,50,10,black
+arrow 30,50,10,70,10,black
+text black,12,68,medium,x
+text black,35,5,medium,z
+text black,72,50,medium,y
+text black,30,52,medium,\origine}
+
+\text{plan=\origine}
+\text{plan=wims(append word yz to \plan)}
+\text{plan=wims(nospace \plan)}
+
+
+\text{geometrie = dans le plan \plan, en avant du plan \plan, en arrière du plan \plan}
+\text{atome1 = \molecule[7]}
+\text{atome1=wims(replace internal | by , in \atome1)}
+
+* éliminer l'atome origine
+\text{vide=}
+\text{atome1=wims(replace item number 1 by \vide in \atome1)}
+
+\text{atome2 = \molecule[8]}
+\text{atome2=wims(replace internal | by , in \atome2)}
+\text{atome3 = \molecule[9]}
+\text{atome3=wims(replace internal | by , in \atome3)}
+
+\text{atome= randitem(wims(nonempty items \atome1,\atome2,\atome3))}
+
+\text{bon= \atome isin \atome1 ? 1: 3}
+\text{bon = \atome isin \atome2 ? 2}
+
+\statement{Voici la représentation de Cram de la molécule
+\denommol dont la formule chimique est \(\formule) :
+<div class="wimscenter"><img src="\imagedir/\adressecram" alt=""></div>
+On considère le repère
+<div class="wimscenter">\draw{80,80}{\repere}</div>
+L'atome \atome est
+<ul>
+ <li>\embed{reply1,1}</li>
+ <li>\embed{reply1,2}</li>
+ <li>\embed{reply1,3}</li>
+</ul>}
+
+\answer{}{\bon;\geometrie}{type=radio}
+
+*******************************************************

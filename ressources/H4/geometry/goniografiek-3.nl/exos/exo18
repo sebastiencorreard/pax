@@ -1,0 +1,122 @@
+# exo18 zonder applet
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+
+applet=0
+plot=0
+draw=0
+mathview=0
+embed=0
+# veroorszaakt <tr>
+make_tr=0
+inputs=-1
+# voorlopig ?
+#checkfile=$checkdir/number.proc
+checkfile=exos/checkfile3.proc
+# volgorde is van belang
+var1=yes
+
+sometext=!record 30 of lang/remarks.$taal
+#@de evenwichtsstand,de amplitude,de periode,een beginpunt,als
+
+ss=!record 31 of lang/remarks.$taal
+#@Geef van de sinuso&iuml;de de evenwichtsstand, de amplitude, de periode en de co&ouml;rdinaten van een beginpunt
+
+helptext=!record 32 of lang/remarks.$taal
+
+in1=\input{10}{0}{text-align:center;color:red;}{}{0}
+in2=\input{10}{1}{text-align:center;color:green;}{}{0}
+in3=\input{10}{2}{text-align:center;color:blue;}{}{0}
+in4=\input{10}{3}{text-align:center;color:black;}{}{0}
+in5=\input{10}{4}{text-align:center;color:black;}{}{0}
+a=!randint 1,80
+pm=!randitem -1,1
+a=$[$pm*$a]
+b=!randint 2,30
+keuze=!randint 0,1
+k=!randint 1,10
+!if $keuze=0
+ ct=!item $k of 1/2,1/3,1/4,1/5,2,3,4,5,6,7
+ cu=!item $k of 4*pi,6*pi,8*pi,10*pi,pi,2/3*pi,1/2*pi,2/5*pi,1/3*pi,2/7*pi
+ hp=!item $k of 2*pi,3*pi,4*pi,5*pi,0.5*pi,1/3*pi,1/4*pi,1/5*pi,1/6*pi,1/7*pi
+ dd=$[round(10*$hp)]
+ d=!randint 2,$dd
+ tot=!exec pari A=$d/10\
+ printtex(A)
+ d=!line 1 of $tot
+ dtex=!line 2 of $tot
+ dp=$hp-$d
+ dptex=!texmath $dp
+!else
+ ct=!item $k of 1,2,3,4,5,6,7,8,9,10
+ ct=$ct*pi
+ cu=!item $k of 2,1,2/3,1/2,2/5,1/3,2/7,1/4,2/9,1/5
+ hp=!item $k of 1,1/2,1/3,1/4,1/5,1/6,1/7,1/8,1/9,1/10
+ dd=$[round(10*$hp)]
+ d=!randint 1,$dd
+ tot=!exec pari A=$d/10\
+ printtex(A)
+ d=!line 1 of $tot
+ dtex=!line 2 of $tot
+ tot=!exec pari A=$hp-$d\
+ printtex(A)
+ dp=!line 1 of $tot
+ dptex=!line 2 of $tot
+!endif
+ctex=!texmath $ct
+cutex=!texmath $cu
+var9=$cu
+
+!if $R=1
+ exotext=!mathmlmath \left\{ \begin{array}{ll} y = $a + $b \cdot \sin\left($ctex \cdot \left( x + $dtex \right) \right) & \\ \textrm{ $(sometext[1])}  & : y = $in1 \\ \textrm{$(sometext[2])} & : $in2 \\ \textrm{$(sometext[3])} & : $in3 \\ \textrm{$(sometext[4])} & : \left( $in4 : $in5 \right) \end{array}\right.
+ answer$n=$a,$b,$cu,-$d,$a
+ pnt=-$d
+ beginpunt= (-$dtex:$a)
+ fun=$a+$b*(sin($ct*(x+$d)))
+
+!else
+ exotext=!mathmlmath \left\{ \begin{array}{ll} y = $a - $b \cdot \sin\left($ctex \cdot \left( x + $dtex \right) \right) & \\ \textrm{ $(sometext[1])}  & : y = $in1 \\ \textrm{$(sometext[2])} & : $in2 \\ \textrm{$(sometext[3])} & : $in3 \\ \textrm{$(sometext[4])} & : \left( $in4 : $in5 \right) \end{array}\right.
+ answer$n=$a,$b,$cu,$dp,$a
+ pnt=$dp 
+ beginpunt=\left($dptex:$a\right)
+ fun=$a-$b*(sin($ct*(x+$d)))
+
+!endif
+
+texanswer$n=\left[ \begin{array}{l}  y = d + a \cdot \sin(b(x - c))  \rightarrow \left[ \begin{array}{l} \textrm{ $(sometext[1])} : y = d \\ \textrm{ $(sometext[2])} = abs(a) \\  \textrm{ $(sometext[3])} = \frac{2\cdot\pi}{b} \\ \textrm{ $(sometext[5])} \: a > 0 : \textrm{ $(sometext[4]) } = (c;d) \\ \textrm{ $(sometext[5])} \: a < 0 : \textrm{ $(sometext[4]) } = \left( c+\frac{\pi}{b};d\right)  \end{array}\right. \\ y = $a + $b \cdot \sin\left($ctex \cdot \left( x + $dtex \right) \right) \\ \textrm{$(sometext[1])} : y = $a \\ \textrm{$(sometext[2])} : $b \\ \textrm{$(sometext[3])} : $cutex \\ \textrm{$(sometext[4])} :$beginpunt \end{array} \right.
+
+applet=0
+
+fun=!replace internal pi by (3.141593) in $fun
+
+question$n=<a onmouseover="return escape('$helptext')"> $ss</a>
+
+ymax= $[abs($a)+$b]
+ymin=$[$a-1.5*$b]
+object$n=!exec canvasdraw \
+size 300,300\
+xrange -$cu,$cu\
+yrange $ymin,$ymax\
+opacity 150,150\
+precision 1\
+vline 0,0,black\
+hline 0,0,black\
+grid 0.5*$cu,10,grey\
+linewidth 1\
+precision 100\
+jscurve red,$fun\
+mouse red,24\
+linewidth 3\
+point $pnt,$a,red\
+zoom blue
+
+!exit

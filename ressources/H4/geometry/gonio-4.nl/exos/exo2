@@ -1,0 +1,177 @@
+n=$counter
+embed=1
+inputs=-1
+mathview=0
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=1
+# geheel getal
+!readproc $remarkdir/rounding.$taal
+applet=1
+checkfile=$checkdir/new_number.proc
+!if exam isin $session
+ helptext=<img src=\'$gifdir/nohelp.jpg\' alt=\'noalt\' />
+!else
+ !if $subject < 5
+  htxt=!record 10 of lang/remarks.$taal
+  helptext=<img src=\'$module_dir/gifs/exo1.png\' alt=\'noalt\' /><br />$htxt
+ !endif
+!endif
+hoekA=!randint 20,70
+hoekB=!randint 20,70
+hoekC=$[180-($hoekA+$hoekB)]
+!if $hoekC > 80 and $hoekC < 100
+ hoekA=$[$hoekA+10]
+ hoekB=$[$hoekB+10]
+ hoekC=$[180-($hoekA+$hoekB)]
+!endif
+vormen=!record 3 of lang/remarks.$taal
+#@stomp,scherp,recht
+BC=!randint 5,15
+AC=$[0.1*(round(10*$BC*(sin($hoekB*pi/180))/(sin($hoekA*pi/180))))]
+AB=$[0.1*(round(10*$BC*(sin($hoekC*pi/180))/(sin($hoekA*pi/180))))]
+
+xa=0
+ya=0
+xb=$AB
+yb=0
+xc=$[$AC*cos($hoekA*pi/180)]
+yc=$[$AC*sin($hoekA*pi/180)]
+keuze=!randint 0,3
+txt=!record 8 of lang/remarks.$taal
+#@We gebruiken de sinusregel
+!if $keuze=0
+ # hoekB en b gegeven 
+ # a gegeven
+ # gevraagd hoek A
+ vorm=$(vormen[2])
+ sinus_ans=$[$BC*sin($hoekB*pi/180)/($AC)]
+ rans=$[180*(asin($sinus_ans))/pi]
+ answer$n=$[round($rans)]
+ ss=!record 4 of lang/remarks.$taal
+ #@Gegeven is de &Delta;ABC met &angle;B=$hoekB&deg;<br />Zijde AC heeft lengte $AC<br /> Zijde BC heeft lengte $BC<br />Bereken hoek A in graden( hoek A is $vorm)
+ texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} \frac{a}{\sin\left(\alpha\right)} =  \frac{b}{\sin\left(\beta \right)} \\  \frac{BC}{\sin\left(\angle A\right)} =  \frac{AC}{\sin\left(\angle B\right)}  \\  \frac{$BC}{\sin\left( \angle A \right)} =  \frac{$AC}{\sin\left( $hoekB \right)} \\   $BC \cdot \sin($hoekB) = $AC \cdot \sin\left(\angle A\right) \\ \sin\left( \angle A \right) = \frac{$BC \cdot \sin($hoekB)}{$AC} = $sinus_ans \\ \sin^{-1}($sinus_ans) \approx $rans^{o}  \approx $(answer$n)^{o}\end{array} 
+ exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle B & = & $hoekB^{o} \\ AC & = & $AC \\ BC & = & $BC \\ \angle A & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o}  \end{array}\right.
+
+!else
+ !if $keuze=1
+  # hoekB en b gegeven
+  # c gegeven
+  # gevraagd hoek C
+  sinus_ans=$[$AB*sin($hoekB*pi/180)/($AC)]
+  rans=$[180*(asin($sinus_ans))/pi]
+  ans=$[0.01*(round(100*$rans))]
+  ss=!record 5 of lang/remarks.$taal
+  #@Gegeven is de &Delta;ABC met &angle;B=$hoekB&deg;<br />Zijde AC heeft lengte $AC<br /> Zijde AB heeft lengte $AB<br />Bereken hoek C in graden ( hoek C is $vorm)
+  !if $hoekC > 90
+   vorm=$(vormen[1])
+   tussen= 180 - $ans = $[180 - $ans]
+   answer$n=$[round(180 - $ans)]
+  !else
+   tussen=$ans
+   answer$n=$[round($ans)]
+   !if $hoekC < 90
+    vorm=$(vormen[2])
+   !else
+    vorm=$(vormen[3])
+   !endif
+  !endif
+  texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} \frac{b}{\sin\left(\beta\right)} =  \frac{c}{\sin\left(\gamma\right)} \\ \frac{AC}{\sin\left(\angle B\right)} =  \frac{AB}{\sin\left(\angle C\right)} \\ \frac{$AC}{\sin\left( $hoekB^{o} \right)} =  \frac{$AB}{\sin\left( \angle C \right)} \\  $AC \cdot \sin\left(\angle C\right) = $AB \cdot \sin\left( $hoekB^{o}\right) \\ \sin\left( \angle C \right) = \frac{$AB \cdot \sin($hoekB)}{$AC} = $sinus_ans \\ \sin^{-1}($sinus_ans) \approx $rans^{o} \overset{$vorm}{\Longrightarrow} \angle C \approx $tussen \approx $(answer$n)^{o} \end{array} 
+  exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle B & = & $hoekB^{o} \\ AC & = & $AC \\ AB & = & $AB \\ \angle C & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o}  \end{array}\right.  
+ !else
+  !if $keuze=2
+   # hoekC en c gegeven
+   # b gegeven
+   # gevraagd hoek B
+   vorm=$(vormen[2])
+   sinus_ans=$[$AC*sin($hoekC*pi/180)/($AB)]
+   rans=$[180*(asin($sinus_ans))/pi]
+   answer$n=$[round($rans)]
+   ss=!record 6 of lang/remarks.$taal
+   #@Gegeven is de &Delta;ABC met &angle;C=$hoekC&deg;<br />Zijde AB heeft lengte $AB<br /> Zijde AC heeft lengte $AC<br />Bereken hoek B in graden ( hoek B is $vorm)
+   texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} \frac{b}{\sin\left(\beta\right)} =  \frac{c}{\sin\left(\gamma \right)} \\ \frac{AC}{\sin\left(\angle B\right)} =  \frac{AB}{\sin\left(\angle C \right)} \\ \frac{$AC}{\sin\left( \angle B  \right)} =  \frac{$AB}{\sin\left( $hoekC \right)} \\ $AC \cdot \sin($hoekC) = $AB \cdot \sin\left(\angle B\right) \\  \sin\left( \angle B \right) = \frac{$AC \cdot \sin($hoekC)}{$AB} = $sinus_ans \\ \sin^{-1}($sinus_ans) \approx $rans^{o} \approx $(answer$n)^{o}  \end{array} 
+   exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle C & = & $hoekC^{o} \\ AB & = & $AB \\ AC & = & $AC \\ \angle B & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o} \end{array}\right.
+   
+  !else
+   !if $keuze=3
+    # hoekC en c gegeven
+    # a gegeven
+    # gevraagd hoek A
+    vorm=$(vormen[2])
+    sinus_ans=$[$BC*sin($hoekC*pi/180)/($AB)]
+    rans=$[180*(asin($sinus_ans))/pi]
+    answer$n=$[round($rans)]
+    ss=!record 7 of lang/remarks.$taal
+    #@Gegeven is de &Delta;ABC met &angle;C=$hoekC&deg;<br />Zijde AB heeft lengte $AB<br /> Zijde BC heeft lengte $BC<br />Bereken hoek A in graden ( hoek A is $vorm)
+    texanswer$n=\begin{array}{l}\textrm{$txt} \\ \color{red} \frac{a}{\sin\left(\alpha\right)} =  \frac{c}{\sin\left(\gamma \right)} \\ \frac{BC}{\sin\left(\angle A\right)} =  \frac{AB}{\sin\left(\angle C \right)} \\ \frac{$BC}{\sin\left( \angle A \right)} =  \frac{$AB}{\sin\left( $hoekC \right)} \\ $BC \cdot \sin($hoekC) = $AB \cdot \sin\left(\angle A\right) \\ \sin\left( \angle A \right) = \frac{$BC \cdot \sin($hoekC)}{$AB} = $sinus_ans \\ \sin^{-1}($sinus_ans)  \approx $rans^{o} \approx $(answer$n)^{o}\end{array} 
+    exotext=!mathmlmath \left\{ \begin{array}{lcl} \angle C & = & $hoekC^{o} \\ AB & = & $AB \\ BC & = & $BC \\ \angle A & = &  \input{6}{0}{font-size:16pt;color:red;background-color:lightgreen;}{?}{0} ^{o} \end{array}\right.
+    
+   !endif
+  !endif
+ !endif
+!endif
+max=$[max($xc,$xb)]
+max=$[max($max,$yc)]
+# gebruik gelijke xrange==yrange ivm plaatje
+xsize=220
+ysize=220
+k=!randitem green,blue
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -4,$[$max+1]\
+yrange -4,$[$max+1]\
+opacity 200,30\
+linewidth 1\
+fillcolor orange\
+ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+opacity 255,255\
+fontfamily 14px Ariel\
+linewidth 2\
+points green,$xa,$ya,$xb,$yb,$xc,$yc\
+string black,$[$xa+0.3],$[$ya+0.3],A\
+string black,$[$xb+0.15],$[$yb+0.3],B\
+string black,$[$xc+0.3],$[$yc+0.3],C\
+zoom $k
+
+#linewidth 1\
+#replyformat -1\
+#userdraw arc,$k\
+#precision 10\
+#display degree,$k,16
+
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+# plaatje voor help
+# make_tr=1
+#m=!mathmlmath \color{red}\begin{array}{lll} \frac{a}{\sin\left(\angle A\right)} & = & \frac{b}{\sin\left(\angle B\right)} & = & \frac{c}{\sin\left(\angle C\right)} \end{array}
+#
+#object$n=!exec canvasdraw\
+#size $xsize,$ysize\
+#xrange -4,$[$max+1]\
+#yrange -4,$[$max+1]\
+#opacity 200,30\
+#linewidth 1\
+#fillcolor orange\
+#ftriangle $xa,$ya,$xb,$yb,$xc,$yc,$k\
+#opacity 255,255\
+#fontfamily 14px Ariel\
+#linewidth 2\
+#points green,$xa,$ya,$xb,$yb,$xc,$yc\
+#string black,$[$xa+0.3],$[$ya+0.3],A\
+#string black,$[$xb+0.15],$[$yb+0.3],B\
+#string black,$[$xc+0.3],$[$yc+0.3],C\
+#string black,$[0.5*$xc-0.3],$[0.5*$yc],b\
+#string black,$[0.5*$xb],-1,c\
+#string black,$[$xc+0.5*($xb-$xc)],$[0.5*$yc],a\
+#mathml -4,$max,$max,-4,$m
+#
+#exotext=$empty
+

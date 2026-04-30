@@ -1,0 +1,137 @@
+!set wims_texsize=$mytexsize
+!set n=$counter
+!if $showanswer=0
+    $finalresult
+    !! to ensure playback of the exam is possible
+    !if $wims_user=supervisor
+	<p align="center">
+	Allert: these results are only visible for the <em>supervisor</em>
+	<table bgcolor=$bgcolor2 cellpadding=10 cellspacing=$cellspacing border=1>
+	    !for n=1 to $total_exos
+		<td valign="top">
+		    <small>
+			!if $total_exos >1
+			    $questionnumber <b>$n</b>)<p>
+			!endif
+			$(question$n)
+			!if $(formula$n) !=$empty
+			    <br>
+			    !insmath $(formula$n) 
+			!endif
+			!if $(texanswer$n) != $empty
+			    <p>
+			    !insmath $(texanswer$n)
+			!endif
+			!if $(textanswer$n) != $empty
+			    <p>
+			    <font color=green>$(textanswer$n)</font>                                                                     
+        		!endif 	
+		    </small>
+		</td>
+		<td  valign="top">
+		    <small>
+			$youranswer
+			!if $(reply$n) != $empty
+			    <p>
+			    !if $multiimage=1
+				!if $plot=1
+				    !insplot $(reply$n)
+				!else
+				    !if $draw=1
+					!insdraw $(reply$n)
+				    !endif
+				!endif
+			    !else	
+				!if $math=1
+				    !insmath $(reply$n)
+				!else
+				    $(reply$n)
+				!endif
+			    !endif
+			!endif
+		</small>
+	    </td>
+	    <tr>
+	!next n
+    </table>
+    </p>
+    !endif
+!else
+    <p align="center">
+    <table bgcolor=$bgcolor2 cellpadding=10 cellspacing=$cellspacing border=1>
+	!for n=1 to $total_exos
+	    <td valign="top">
+		<small>
+		    !if $total_exos >1
+			$questionnumber <b>$n</b>)<p>
+		    !endif
+		    $(question$n)
+		    !if $(formula$n) !=$empty
+			<br>
+			!insmath $(formula$n) 
+		    !endif
+		    !if $(texanswer$n) != $empty
+			<p>
+			!insmath $(texanswer$n)
+		    !endif
+		    !if $(textanswer$n) != $empty
+			<p>
+			<font color=green>$(textanswer$n)</font>                                                                     
+        	    !endif 	
+		</small>
+	    </td>
+	    <td  valign="top">
+		<p align="center">
+		    !if $(image$n) != $empty
+			!if $plot=1
+			    !set insplot_set=$(image_settings$n) ; size 0.5,0.5;
+			    !insplot $(image$n)
+			!endif
+			!if $draw=1
+			    !set insdraw_size
+			    !insdraw $(image$n)
+			!endif
+		    !endif
+		</p>
+	    </td>
+	    <td  valign="top">
+		<small>
+		    $youranswer
+		    !if $(reply$n) != $empty
+			<p>
+			!if $multiimage=1
+			    !if $plot=1
+				!insplot $(reply$n)
+			    !else
+				!if $draw=1
+				    !insdraw $(reply$n)
+				!endif
+			    !endif
+			!else	
+			    !if $math=1
+				!insmath $(reply$n)
+			    !else
+				$(reply$n)
+			    !endif
+			!endif
+			<hr>
+		    !endif
+		    !if $goodbadsign>0	
+			<em>
+			    $(remark$n)
+			</em>
+		    !endif
+		</small>
+	    </td>
+	    <tr>
+	!next n
+    </table>
+    </p>
+    $finalresult
+!endif
+!ifval $try >0 and $module_score !=0
+    <br>
+    !set s=!record 87 of $remarkdir/commonremarks.$taal
+    <font size="-1" color="red">$s</font>
+!endif
+!exit

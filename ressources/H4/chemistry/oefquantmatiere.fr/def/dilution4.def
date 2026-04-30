@@ -1,0 +1,189 @@
+!set title=Dilution (4)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Benoît, Markey;Marie-Claude,David
+email=benoit.markey@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+oefobservation=Le nombre de chiffres significatifs est précisé dans les instructions.
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 1000
+
+val6=$[rint($(tmp0))]
+val7=$[$val6/100]
+tmp0=!randint 2, 4
+
+val8=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val7,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!translate . to , in $val9
+
+val10=$(tmp0)
+tmp0=!randint 1, 10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val12=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val11,$val12 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp0=!translate . to , in $val13
+
+val14=$(tmp0)
+tmp0=!randitem 10,20,25,50,100,200,250,500
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 2, 4
+
+val16=$[rint($(tmp0))]
+!readproc slib/text/sigunits $val15,$val16 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!translate . to , in $val17
+
+val18=$(tmp0)
+val19=$[$val9*$val13/$val17]
+tmp0=!translate . to , in $val19
+
+val20=$(tmp0)
+val21=$[rint(min($val8,$val12))]
+val22=$[rint(min($val21,$val16))]
+!readproc slib/text/sigunits $val19 mol/L,$val22 
+tmp0=$slib_out
+val23=$(tmp0)
+!readproc slib/text/sigunits $val19 ,$val22 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!translate . to , in $val24
+
+val25=$(tmp0)
+replytype1=sigunits
+replyoption1=noanalyzeprint 
+replyname1=\(C_F)
+replygood1=$val23
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	On dispose d'une solution mère de concentration	
+!insmath C_M = $val10 
+$()
+!insmath  \textrm{mol.L}^{-1}
+$().	On en prélève un volume 
+!insmath V_M = $val14 
+$() mL. On le verse dans une fiole	jaugée que l'on complète avec de l'eau pour obtenir une solution de volume final 
+!insmath V_F = $val18
+$() mL.</p>	<p>Quelle est la concentration molaire 
+!insmath C_F
+$() de la solution fille ?</p>	<div class="wimscenter">
+!insmath C_F = 
+$()  
+!read oef/embed.phtml reply1 
+$()</div>	<div class="wims_instruction">La notation scientifique est acceptée comme par exemple 4.5*10^(-3) L ou 4.5 mL. Le résultat sera donné avec $val22 chiffres significatifs.	<p> Pour donner 
+!insmath 4.5*10^(-3)
+$(), on écrira 4.5e-3. Le séparateur de décimales est le point. </p></div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<p>La quantité de matière est identique dans 
+!insmath V_M mL
+$() de solution mère que dans 
+!insmath V_F mL
+$() de solution fille puisqu'on ajoute juste du solvant.</p>	<p>La quantité de matière dans un volume 
+!insmath V
+$() d'une solution de concentration C vaut 
+!insmath n = C \times V
+$(). On peut donc écrire 
+!insmath C_M* V_M = C_F*V_F
+$() et, <i>sans tenir compte des chiffres significatifs</i>, on obtient :</p>	<p class="wimscenter"> 
+!insmath C_F =$val20\ \textrm{mol.L}^{-1}
+$()</p>	<p>La bonne réponse doit être donnée avec 
+!insmath $val22
+$() chiffres significatifs car 
+!insmath C_M
+$() a 
+!insmath $val8
+$() chiffres significatifs,	  
+!insmath V_M
+$() a 
+!insmath $val12
+$() chiffres significatifs et 
+!insmath V_F
+$() a 
+!insmath $val16
+$() chiffres significatifs.</p>	<p>La réponse est donc : 
+!insmath C_F = $val25
+$()
+!insmath \textrm{mol.L}^{-1}
+$().</p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'><p>La bonne réponse est 
+!insmath C_F = $val25
+$()
+!insmath \textrm{mol.L}^{-1}
+$(). Si votre réponse est fausse, vérifiez la valeur numérique, le nombre de chiffres significatifs et l'unité.</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,12,14,16,18,20,22,25
+embedcnt=1

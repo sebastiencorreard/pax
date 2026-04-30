@@ -1,0 +1,75 @@
+# Verfijnde opslagmethode
+# steps
+n=$counter
+
+#fffff0=#e2fff8
+!if $counter=1
+    mathview=0
+    !if $total_exos >2
+	total_exos=2
+    !endif
+    checkfile=exos/precheck1.proc
+    make_tr=1
+    cols=6
+    rows=1
+    rounding=100
+    roundingtext=Rond je antwoord af op twee decimalen.
+    bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+    grondstof1=!randint 75,400
+    grondstof1=$[$grondstof1*1000]
+
+    loonkosten1=!randint 150,350
+    loonkosten1=$[$loonkosten1*1000]
+    perc1=!randint 15,25
+    perc2=!randint 8,15
+    perc3=!randint 2,7
+    fac1=$[$perc1/100]
+    fac2=$[$perc2/100]
+    fac3=$[$perc3/100]
+    grondstof3=$[$fac1*$grondstof1]
+    loonkosten3=$[$fac2*$loonkosten1]
+    kosten3=$[$fac3*($grondstof1 + $loonkosten1)]    
+    kosten1=$[$kosten3 + $grondstof3 + $loonkosten3]
+    answer1=$perc1,$perc2,$perc3
+    grondstof2=!randint 10,40
+    loonkosten2=!randint 10,30
+    tot=!exec moneyprint $[$grondstof2+$loonkosten2]
+    opslag1=$[$fac1*$grondstof2]
+    opslag2=$[$fac2*$loonkosten2]
+    opslag3=$[$fac3*$tot]
+    answer2=!exec moneyprint $[$opslag1 + $opslag2 + $opslag3 + $tot  ]
+    
+    mot=!exec moneyprint $opslag1,$opslag2,$opslag3,$loonkosten1,$loonkosten2,$loonkosten3,$grondstof1,$grondstof2,$grondstof3 2
+    opslag1=$(mot[1])
+    opslag2=$(mot[2])
+    opslag3=$(mot[3])
+    loonkosten1=$(mot[4])
+    loonkosten2=$(mot[5])
+    loonkosten3=$(mot[6])
+    grondstof1=$(mot[7])
+    grondstof2=$(mot[8])
+    grondstof3=$(mot[9])
+    
+    textanswer1=<ul><li>Opslagpercentage directe grondstofkosten</li><li> $grondstof3 / $grondstof1 &times; 100% = $perc1 %</li><li>Opslagpercentage directe loonkosten</li><li> $loonkosten3 / $loonkosten1 &times; 100% = $perc2 %</li><li>Opslagpercentage totale directe kosten</li><li> $kosten3 / $[$grondstof1+$loonkosten1] &times; 100% = $perc3 %</li></ul>
+    textanswer2=De berekening van de kostprijs:<table class="zebra_table_h2"><tr><td>Directe grondstofkosten</td><td>&nbsp;&nbsp;&euro;</td><td>$grondstof2</td><td>&nbsp;</td></tr><tr><td>Directe loonkosten</td><td>&nbsp;&nbsp;&euro;</td><td>$loonkosten2</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td><hr /></td><td>+</td></tr><tr><td>Totale directe kosten</td><td>&nbsp;&nbsp;&euro;</td><td>$tot</td><td>&nbsp;</td></tr><tr><td>Opslag grondstofkosten ($perc1%)<sup>*</sup></td><td>&nbsp;&nbsp;&euro;</td><td>$opslag1</td><td>&nbsp;</td></tr><tr><td>Opslag loonkosten ($perc2%)<sup>*</sup></td><td>&nbsp;&nbsp;&euro;</td><td>$opslag2</td><td>&nbsp;</td></tr><tr><td>Opslag totale kosten ($perc3%)<sup>*</sup></td><td>&nbsp;&nbsp;&euro;</td><td>$opslag3</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td><td><hr /></td><td>+</td></tr><tr><td>Kostprijs</td><td>&nbsp;&nbsp;&euro;</td><td>$answer2</td><td>&nbsp;</td></tr></table><sup>*</sup> zie antwoord 1)
+    mousetxt=<table class=\'grid_table\'><tr><th>Directe grondstofkosten</th><th>&euro; $grondstof1</th></tr><tr><th>Directe loonkosten</th><th>&euro; $loonkosten1</th></tr><tr><th>Indirecte kosten</th><th>&euro; $kosten1</th></tr></table>
+    som=$bedrijf gebruikt de verfijnde opslagmethode.<br />Hiervoor zijn <span class="schaersvoorde_link">deze gegevens</span> bekend.<br />Het blijkt dat van de indirecte kosten,<br />&euro; $grondstof3 samenhangt met de directe grondstofkosten<br />&euro; $loonkosten3 met de directe loonkosten en<br />&euro; $kosten3 samenhangt met de totale directe kosten.
+    question1=<a onmouseover="return escape('$mousetxt<hr />$roundingtext')">$som<br />Bereken de opslagpercentages voor de indirecte kosten.</a>
+    question2=<a onmouseover="return escape('$mousetxt<hr />$roundingtext')">$som<br />Bereken de kostprijs van een product dat &euro; $grondstof2 directe grondstofkosten<br />en &euro; $loonkosten2 aan directe loonkosten nodig heeft.</a>
+    helptext=$mousetxt<hr />$roundingtext
+!endif
+
+!if $n=1
+    inputs=3
+    ex1=%
+    ex2=%
+    ex3=%
+    description=opslagpercentage directe grondstofkosten,opslagpercentage directe loonkosten,opslagpercentage totale directe kosten
+!else
+    inputs=1.1
+    ex1=&euro;
+    exotext=!append line <kbd><span style="color:blue">$questionnumber $[$counter-1]) $youranswer : $(reply$[$counter-1])</span></kbd><br /> to $exotext
+    description=de kostprijs
+!endif
+
+!exit

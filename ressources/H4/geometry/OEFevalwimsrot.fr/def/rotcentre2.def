@@ -1,0 +1,141 @@
+!set title=Centre d'une rotation 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=red,blue,yellow,green,purple,grey,sienna,pink
+val7=rouge,bleue,jaune,verte,violette,grise,marron,rose
+tmp0=!values v for v=1 to 9
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!item $val8 of $val6
+
+val6=$(tmp0)
+tmp0=!item $val8 of $val7
+
+val7=$(tmp0)
+val9=$[rint(60)]
+val10=range 0,5,0,5	parallel 0,-10,10,10*sqrt(3)-10,0,1,15,grey	parallel 0,15,10,15-10*sqrt(3),0,-1,15,grey	parallel 0,0,5,0,0,0.5,10,grey
+tmp0=!randint 0, 5
+
+val11=$[rint($(tmp0)*$val9)]
+tmp0=!randint 2, 3
+
+val12=$[rint($(tmp0))]
+tmp=!nonempty items -1,1
+
+tmp0=!randitem $tmp
+val13=$[rint($(tmp0))]
+val9=$[rint($val9*$val12)]
+val14=$[rint($val11+$val13*$val9)]
+tmp=!nonempty items 0,0.5
+
+tmp0=!randitem $tmp
+val15=$[$(tmp0)]
+tmp=!nonempty items 3,4,5
+
+tmp0=!randitem $tmp
+val16=$[($(tmp0)+$val15)/sqrt(3)]
+tmp0=!randint 2, 3
+
+val15=$[$(tmp0)+$val15]
+tmp=!translate internal $	$ to ; in 30,4/3	30,2/3
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+val10=$val10	flood $val16+$(val17[2])*cos(($(val17[1])+$val11)*pi/180),$val15+$(val17[2])*sin(($(val17[1])+$val11)*pi/180),$(val6[1])	flood $val16+$(val17[2])*cos(($(val17[1])+$val14)*pi/180),$val15+$(val17[2])*sin(($(val17[1])+$val14)*pi/180),$(val6[2])
+!readproc oef/draw.phtml 300,300 \
+$val10 
+tmp0=$ins_url
+val18=$(tmp0)
+
+!ifval $val13>0
+val13=positif
+!else
+val13=négatif
+!endif
+val19=$[rint(60*$val16)]
+val20=$[rint(300-60*$val15)]
+val21=$[rint(10)]
+val22=Sur la figure ci-contre, tous les triangles sont équilatéraux.<br>	  Par une rotation de sens $val13 et d'angle $val9°, l'image de la figure $(val7[1]) est la figure $(val7[2]).<br>	  Quel est le centre de cette rotation
+replytype1=coord
+replyname1=
+replygood1=$val18;circle,$val19,$val20,$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val22 ?	  <div class="wims_instruction">	  Cliquer sur la figure pour placer le centre.	  </div>	<div class="wimscenter">	  
+!read oef/embed.phtml r1 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=22
+embedcnt=1

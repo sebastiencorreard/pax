@@ -1,0 +1,233 @@
+#:7 raaklijn aan de cirkel II
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+
+force_mathml=yes
+calculator=2
+helptext=$empty
+make_tr=1
+ss=!record 10 of lang/remarks.$taal
+#@Stel de vergelijkingen op van de raaklijnen door P aan cirkel c. <br \>P ligt buiten cirkel c. <br \> Geef je raaklijnen in de vorm van: y=ax+b
+mtext=!record 11 of lang/remarks.$taal
+#:vergelijkingen raaklijnen zijn , 
+# A is raakpunt van een raaklijn op cirkel C , 
+# de straal van een cirkel staat altijd loodrecht op een raaklijn aan de cirkel ,.
+# er dus geldt , 
+# we passen pythagoras toe , 
+# snijlijn AB berekenen met de twee cirkels c en d met middelpunt M en P , 
+# snijlijn door AB ,.
+# Deze lijn snijden met cirkel c geeft de raakpunten A en B , 
+# en , 
+# Raaklijn 1 tussen punten P en A , 
+# Raaklijn 2 tussen punt P en B , 
+# met middelpunt M , 
+# snijlijn , 
+# raaklijn 1 , 
+# raaklijn 2 ,
+# afstand MP '
+# substitueren in vergelijking cirkel c:
+
+!if $R=1
+ x=!randint 2,7
+ y=!randint 2,7
+ !if $y=$x
+    y=$[$y+1]
+ !endif
+ ax=$x
+ ay=$y
+ bx=$y
+ by=-$x
+ c=$[$x*$x+$y*$y]
+ px=$[$x+$y]
+ py=$[$y-$x]
+ ma=0
+ mb=0
+ d=$[$px*$px+$py*$py]
+ tot=!exec pari A=($x)/($y)\
+  printtex(A)\
+  B=($py)+($x)/($y)*($px)\
+  printtex(B)\
+  C=($y)/($x)\
+  printtex(C)\
+  D=($py)-($y)/($x)*($px)\
+  printtex(D)\
+  E=(-2*($px))/(2*($py))\
+  printtex(E)\
+  F=(($px)*($px))/(2*($py))+(($py)*($py))/(2*($py))\
+  printtex(F)
+  
+  #printtex( (x - (A))*(x - (B)))
+  
+ a=!line 1 of $tot
+ atex=!line 2 of $tot
+ b1=!line 3 of $tot
+ b1tex=!line 4 of $tot
+ a2=!line 5 of $tot
+ a2tex=!line 6 of $tot
+ b2=!line 7 of $tot
+ b2tex=!line 8 of $tot
+ astex=!line 10 of $tot
+ bstex=!line 12 of $tot
+ tutex=!line 13 of $tot
+ ans1=!rawmath -$a*x+$b1
+ #-1*(A)*x+(B)
+ ans2=!rawmath $a2*x+$b2
+
+ answer$n=$ans1\
+ $ans2
+ sx1=$x
+ sy1=$y
+ sx2=$y
+ sy2=-$x
+ #tutex2=!exec pari printtex( (x - $a)*(x - $b1))
+ #tussen=\left\{ \begin{array}{l} \\  y = $astex x + $bstex \\  \textrm{$(mtext[17]) : } x^{2} + y^{2} = $c \\  x^{2} + \left( $astex x + $bstex\right)^2 = $c \\  x^{2} + \left( $astex x + $bstex\right)^{2} - $c = 0 \\ $tutex = 0  \righarrow $tutex2 \\ x_{1} = $ax \wedge x_{2} = $bx \rightarrow  y_{1} = $y \wedge y_{2} = $by  \end{array}  \right.
+ 
+ formula$n= \left[ \begin{array}{ll}  c : &  x^{2} + y^{2} = $c \\ P: & ($px : $py) \\ y= & a \cdot x+b  \end{array} \right. \Rightarrow  \textrm{ $(mtext[1]) : } \left\{ \begin{array}{l} \:\:\: \input{15}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{y = }{0} \\ \; \\  \:\:\: \input{15}{1}{background-color:yellow;text-align:center;color:red;font-style:italic}{y = }{0}  \end{array} \right.
+ var9= \left[ \begin{array}{ll}  c : &  x^{2} + y^{2} = $c \\ P: & ($px : $py) \\ & y=ax+b  \end{array} \right. \Rightarrow  \textrm{ $(mtext[1]) :  : } \left\{ \begin{array}{l} \:\:\: \input{15}{0}{background-color:lightgreen;text-align:center;color:red;font-style:italic}{y = $ans1 }{1} \\ \; \\  \:\:\: \input{15}{1}{background-color:lightgreen;text-align:center;color:red;font-style:italic}{y = $ans2}{1}  \end{array} \right.
+ texanswer$n= \left[ \begin{array}{ll} c: x^{2} + y^{2} = $c \,\, \textrm{ $(mtext[12]) }\; (0;0) \\ P: ($px : $py)  \\ \textrm{$(mtext[16]) :}\; d(MP)=\sqrt{($px)^{2}+($py)^{2}} = \sqrt{$d} \\  \textrm{ $(mtext[2]) } \\ \Bf{\textrm{ $(mtext[3]) } } \\ \textrm{ $(mtext[4]) } \angle MAP = 90^{o} \\ \textrm{ $(mtext[5]) : } \\ AP^{2}=OP^{2}- OA^{2} \Rightarrow AP^{2} = $d-$c = $c \\  \textrm{ $(mtext[6]) : }\\ \left\{ \begin{array}{lll.-.}c:  x^{2} + y^{2} & = & $c \\ d: x^{2} - $[2*$px]x + $[$px*$px]+y^{2} -  $[2*$py]y + $[$py*$py] & = & $c  \\ \hline & & - \\ $[2*$px]x+$[2*$py]y-$[$px*$px]-$[$py*$py] & = & 0 \end{array}\right. \\ \textrm{ $(mtext[7]) : }\;  $[2*$px]x+$[2*$py]y  = $[$px*$px + $py*$py] \Rightarrow y = $astex x + $bstex  \\  \textrm{ $(mtext[8]) : } \,  A($x;$y) \, \textrm{ $(mtext[9]) } \,  B($y;-$x) \\ \textrm{ $(mtext[10]) : } \,  y=-$atex x + $b1tex \\ \textrm{ $(mtext[11]) : } \,  y=$a2tex x + $b2tex \end{array} \right.
+!else
+ ma=!randint 1,5
+ mb=!randint 1,5
+ x=!randint 2,7
+ y=!randint 2,7
+ !if $y=$x
+    y=$[$y+1]
+ !endif
+
+ ax=$[$ma+$x]
+ ay=$[$mb+$y]
+ c=$[$x*$x+$y*$y]
+ px=$[$ma+$x+$y]
+ py=$[$mb+$y-$x]
+ mpx=$[$px-$ma]
+ mpy=$[$py-$mb]
+ d=$[$mpx*$mpx+$mpy*$mpy]
+ tot=!exec pari A=$x/$y\
+  printtex(A)\
+  B=$py+($x)/($y)*($px)\
+  printtex(B)\
+  C=$y/$x\
+  printtex(C)\
+  D=($py)-($y)/($x)*($px)\
+  printtex(D)\
+  E=(2*$ma-2*$px)/(-2*$mb+2*$py)\
+  printtex(E)\
+  F=($ma*$ma-$mb*$mb+$px*$px+$py*$py)/(-2*$mb+2*($py))\
+  printtex(F)
+  
+ a=!line 1 of $tot
+ atex=!line 2 of $tot
+ b1=!line 3 of $tot
+ b1tex=!line 4 of $tot
+ a2=!line 5 of $tot
+ a2tex=!line 6 of $tot
+ b2=!line 7 of $tot
+ b2tex=!line 8 of $tot
+ astex=!line 10 of $tot
+ bstex=!line 12 of $tot
+ 
+ ans1=!rawmath -$a*x+$b1
+ ans2=!rawmath $a2*x+$b2
+ answer$n=$ans1\
+ $ans2
+
+ sx1=$[$ma+$x]
+ sy1=$[$mb+$y]
+ sx2=$[$ma+$y]
+ sy2=$[$mb-$x]
+
+ bx=$sx2
+ by=$sy2
+ 
+ formula$n= \left[ \begin{array}{lll}  c : &  x^{2} + y^{2} - $[2*$ma] x - $[2*$mb] y = $[$c - $ma*$ma -$mb*$mb] \\P: & ($px : $py) \\ & y=ax+b  \end{array} \right. \Rightarrow  \textrm{ $(mtext[1]) : } \left\{ \begin{array}{l} \:\:\: \input{15}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{y = }{0} \\ \; \\  \:\:\: \input{15}{1}{background-color:yellow;text-align:center;color:red;font-style:italic}{y = }{0}  \end{array} \right.
+ var9= \left[ \begin{array}{lll}  c : &  x^{2} + y^{2} - $[2*$ma] x - $[2*$mb] y = $[$c - $ma*$ma -$mb*$mb] \\P: & ($px : $py) \\ & y=ax+b  \end{array} \right. \Rightarrow  \textrm{ $(mtext[1]) : } \left\{ \begin{array}{l} \:\:\: \input{15}{0}{background-color:lightgreen;text-align:center;color:red;font-style:italic}{y = $ans1 }{1} \\ \; \\  \:\:\: \input{15}{1}{background-color:lightgreen;text-align:center;color:red;font-style:italic}{y = $ans2}{1}  \end{array} \right.
+ texanswer$n= \left[ \begin{array}{ll} c : x^{2} + y^{2} - $[2*$ma] x - $[2*$mb] y = $[$c - $ma*$ma -$mb*$mb] \Rightarrow c: (x-$ma)^{2} + (y-$mb)^{2} = $c \,\, \textrm{ $(mtext[12]) : }($ma;$mb) \\ P: ($px : $py)  \\ \textrm{MP}=\sqrt{($px-$ma)^{2}+($py-$mb)^{2}}=\sqrt{$d} \\ \textrm{ $(mtext[2]) : } \\ AP^{2}=MP^{2}-MA^{2} \Rightarrow AP^{2}=$d-$c=$c \\ \textrm{ $(mtext[6]) : }\, \, c: (x-$ma)^{2} + (y-$mb)^{2} = $c \, \textrm{ $(mtext[9]) } \,  d: (x - $px)^{2} + (y - $py)^{2} = $c \Rightarrow \\ \textrm{ $(mtext[13]) : } y=$astex x + $bstex  \\ \textrm{ $(mtext[8]) : } \,  A($ax : $ay) \, \textrm{ $(mtext[9]) } \,  B($bx : $by) \\ \textrm{ $(mtext[14]) : } \,  y=-$atex x + $b1tex \\ \textrm{ $(mtext[15]) : } \,  y=$a2tex x + $b2tex \end{array} \right.
+
+!endif
+
+checkfile=exos/checkfile2.proc
+helptext=<textarea cols=20 rows=2>y=ax+b en y=mx+n</textarea>
+
+
+radius=$[sqrt($c)]
+rr=$[10*(ceil($radius/10))]
+xmin=-$rr
+xmax=15
+ymin=-$rr
+ymax=15
+
+klik=!record 63 of $remarkdir/commonremarks.$taal
+
+plaatje=!exec canvasdraw \
+size 300,300\
+xrange $xmin,$ymax\
+yrange $ymin,$ymax\
+#grid 3,3,grey\
+opacity 150,150\
+frect -100,100,100,-100,white\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$px,$py,$ma,$mb\
+fontfamily 18px Ariel\
+circles green,$ma,$mb,$radius\
+string blue,$[$px+0.5],$[$py+0.5],P\
+string blue,$[$ma+0.5],$[$mb+0.5],M\
+line $px,$py,$sx1,$sy1,cyan\
+line $px,$py,$sx2,$sy2,purple\
+intooltip $klik
+zoom blue
+
+
+object$n=!exec canvasdraw \
+size 400,400\
+xrange $xmin,$ymax\
+yrange $ymin,$ymax\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+fontfamily 18px Ariel\
+circles green,$ma,$mb,$radius\
+string blue,$[$px+0.5],$[$py+0.5],P\
+string blue,$[$ax+0.5],$[$ay+0.5],A\
+string blue,$[$ma+0.5],$[$mb+0.5],M\
+string blue,$[$bx+0.5],$[$by+0.5],B\
+line $px,$py,$sx1,$sy1,cyan\
+line $px,$py,$sx2,$sy2,purple\
+filled\
+opacity 100,80\
+triangle $px,$py,$ma,$mb,$ax,$ay,orange\
+dashed\
+circles green,$px,$py,$radius\
+points red,$px,$py,$ma,$mb,$ax,$ay,$bx,$by\
+nostatus\
+userdraw line,red\
+dashed\
+line $ax,$ay,$bx,$by,blue\
+zoom blue\
+opacity 160,160\
+precision 10\
+mouse red,24
+
+
+question$n=$ss<span style="color:blue">$plaatje</span>
+
+!exit 
+
+

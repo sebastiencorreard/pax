@@ -1,0 +1,129 @@
+# volgorde a=... b=... noet bepaald
+# scheiding door "and" of nieuwe regels
+# volgorde in answer$n is a_getal \n b_getal
+n=$counter
+
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+
+chk=!tolower $(reply$n)
+chk=!replace internal and by , in $chk
+chk=!replace internal en by , in $chk
+chk=!replace internal is by = in $chk
+cnt=!itemcnt $chk
+!if $cnt != 2 
+ cnt=!linecnt $(reply$n)
+ !if $cnt>1
+  !for p=1 to $cnt
+   chk=!line $p of $(reply$n)
+   chk=!nospace $chk
+   chk=!replace internal a= by @ in $chk
+   !if @ isin $chk
+    chk1=!replace internal @ by $empty in $chk
+   !else
+    chk=!replace internal b= by @ in $chk
+    !if @ isin $chk
+     chk2=!replace internal @ by $empty in $chk
+    !endif
+   !endif
+  !next p
+ !else
+  # ook geen regels in antwoord...gewoon a= b= vergeten?
+  errortext=!record 47 of lang/remarks.$taal
+  #@ik verwacht hier een antwoord als<br />a=123 <b>and</b> b=456<br />a=123 <b> &wedge; </b> b=456
+  goback=1
+  !exit
+ !endif
+!else
+ chk=!nospace $chk
+ # volgorde in answer$n : getal_a,getal_b
+ chk=!replace internal a= by @ in $chk
+ chk=!replace internal b= by # in $chk
+ chk1=!item 1 of $chk
+ chk2=!item 2 of $chk
+ !if @ isin $chk1 and # isin $chk2
+  chk1=!replace internal @ by $empty in $chk1
+  chk2=!replace internal # by $empty in $chk2
+ !else
+  !if # isin $chk1 and @ isin $chk2
+   chk1=!replace internal # by $empty in $chk1
+   chk2=!replace internal @ by $empty in $chk2
+   tmp=$chk1
+   chk1=$chk2
+   chk2=$tmp
+  !else
+   #gewoon a= b= vergeten?
+   errortext=!record 47 of lang/remarks.$taal
+   #@ik verwacht hier een antwoord als<br />a=123 <b>and</b> b=456<br />a=123 <b> &wedge; </b> b=456
+   goback=1
+   !exit
+  !endif
+ !endif
+!endif
+
+a=!rawmath $chk1
+b=!rawmath $chk2
+ga=!line 1 of $(answer$n)
+gb=!line 2 of $(answer$n)
+!if $rounding > 0 
+ a=$[(round($rounding*($a)))/$rounding]
+ b=$[(round($rounding*($b)))/$rounding]
+ ga=$[(round($rounding*($ga)))/$rounding]
+ gb=$[(round($rounding*($gb)))/$rounding]
+!else
+ a=$[1.0*($a)]
+ b=$[1.0*($b)]
+ ga=$[1.0*($ga)]
+ gb=$[1.0*($gb)]
+!endif
+
+tot=!exec pari if( abs($a - ($ga)) < 10^(-15) &&  abs($b - ($gb)) < 10^(-15), 4,0 ) \
+if( abs($a - ($gb)) < 10^(-15) &&  abs($b - ($ga)) < 10^(-15), 3,0 ) \
+if( abs($a - ($ga)) < 10^(-15) ||  abs($b - ($gb)) < 10^(-15), 2,0 ) \
+if( abs($a - ($gb)) < 10^(-15) ||  abs($b - ($ga)) < 10^(-15), 1,0 ) 
+
+score=0
+!for p=1 to 4
+ t=!line $p of $tot
+ score=$[$score+$t]
+!next p
+maxscore=$[$score*$maxscore/6]
+modulescore=$[$modulescore + $maxscore]
+
+extra=$empty
+!if $score=6
+ remark$n=$OK
+ k1=green
+!else
+ !if $score=4
+  remark$n=$BOK
+  k1=orange
+  extra=!record 48 of lang/remarks.$taal
+  #@tiepfoutje...je hebt de a en b waarden omgedraaid
+ !else
+  !if $score=2
+   extra=!record 49 of lang/remarks.$taal
+   #@je hebt 1 van de twee waarden goed...
+   remark$n=$BOK
+   k1=orange
+  !else
+   k1=red
+   !if $score=1
+    extra=!record 50 of lang/remarks.$taal
+    #@je hebt 1 van de twee waarden goed en ook nog a en b verwisseld...
+    remark$n=$NOK
+   !else
+    remark$n=$NOK
+   !endif
+  !endif
+ !endif
+!endif
+
+reply$n=<span style=color:$k1>a=$chk1 &wedge; b=$chk2</span>
+remark$n=!append line $extra to $(remark$n)
+
+!exit

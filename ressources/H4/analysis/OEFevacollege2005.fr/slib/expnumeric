@@ -1,0 +1,132 @@
+slib_input=$wims_read_parm
+slib_type=!item 1 of $slib_input
+slib_input=!item 2 to -1 of $slib_input
+!goto $slib_type
+
+
+!! ----------------------------------------   generation d'un calcul avec des puissances
+!! ne fait pas intervenir de puissance de puissance, le resultat est un entier fois une puissance de 10
+
+:puissance1
+slib_a=!randint 2,7
+slib_b=!randint 2,7
+sg=!shuffle +,-
+!distribute items $sg into sga,sgb
+slib_a=$[$sga$slib_a]
+slib_b=$[$sgb$slib_b]
+slib_c=!randint -3,3
+slib_c=$[$slib_c+($slib_a)+($slib_b)]
+slib_test=!listuniq $slib_a,$slib_b,$slib_c
+slib_test=!itemcnt $slib_test
+!ifval $slib_c=1 or $slib_c=0 or $slib_test!=3 
+ slib_a=5
+ slib_b=-7
+ slib_c=-5
+!endif
+
+c1=!randitem 2,3,4,6,7,8,9
+c2=!randint 2,3,4,6,7,8,9
+slib_ac=!randint 3,5,7
+slib_am=!randitem 10,100
+slib_ac=$[$c1*$slib_ac]
+slib_bc=!randint 3,5,7
+slib_bc=$[$c2*$slib_bc]
+slib_cc=$[$c1*$c2]
+slib_list=$[$slib_ac*$slib_am]*10^$slib_a,$slib_bc*10^$slib_b
+slib_list=!shuffle $slib_list
+slib_list=$slib_list,$slib_cc*10^$slib_c
+!distribute items $slib_list into slib_a,slib_b,slib_c
+slib_out=($slib_a*$slib_b)/($slib_c)
+!goto end
+
+
+!! --------------------------------------- tous les exercices sur les puissances de 10
+:puissance
+suivre=!randitem puissance1,puissance2,puissance3
+!goto $suivre
+
+
+!! ----------------------------------------   generation d'un calcul avec des puissances
+!! fait intervenir des puissances de puissance. Le resultat est un entier fois une puissance de 10
+:puissance2
+
+slib_p1=!randint 2,4
+slib_p2=!randint 2,4
+slib_b=!randint 2,7
+sg=!shuffle +,-
+!distribute items $sg into sga,sgb
+slib_p1=$[$sga$slib_p1]
+slib_p2=$[$sgb$slib_p2]
+sg=!randitem +,-
+slib_b=$[$sg$slib_b]
+slib_c=!randint -3,3
+slib_c=$[$slib_c+($slib_p1)*($slib_p2)+($slib_b)]
+slib_test=!listuniq $slib_b,$slib_c
+slib_test=!itemcnt $slib_test
+!ifval $slib_c=1 or $slib_c=0 or $slib_test!=2 
+ slib_p1=5
+ slib_p2=2
+ slib_b=-3
+ slib_c=3
+!endif
+
+c1=!randitem 2,3,4,6,7,8,9
+c2=!randint 2,3,4,6,7,8,9
+slib_ac=!randint 3,5,7
+slib_am=!randitem 10,100
+slib_ac=$[$c1*$slib_ac]
+slib_bc=!randint 3,5,7
+slib_bc=$[$c2*$slib_bc]
+slib_cc=$[$c1*$c2]
+slib_list=$[$slib_ac*$slib_am]*(10^$slib_p1)^$slib_p2,$slib_bc*10^$slib_b
+slib_list=!shuffle $slib_list
+slib_list=$slib_list,$slib_cc*10^$slib_c
+!distribute items $slib_list into slib_a,slib_b,slib_c
+slib_out=($slib_a*$slib_b)/($slib_c)
+!goto end
+
+!! ----------------------------------------   generation d'un calcul avec des puissances
+!! fait intervenir des puissances de puissance. Le resultat est une fraction 
+:puissance3
+
+!distribute items $slib_input into slib_max
+
+!default slib_max=10 
+
+slib_p1=!randint 2,4
+slib_p2=!randint 2,4
+slib_b=!randint 2,7
+sg=!shuffle +,-
+!distribute items $sg into sga,sgb
+slib_p1=$[$sga$slib_p1]
+slib_p2=$[$sgb$slib_p2]
+sg=!randitem +,-
+slib_b=$[$sg$slib_b]
+slib_c=!randint -1,1
+slib_c=$[$slib_c+($slib_p1)*($slib_p2)+($slib_b)]
+slib_test=!listuniq $slib_b,$slib_c
+slib_test=!itemcnt $slib_test
+!ifval $slib_c=1 or $slib_c=0 or $slib_test!=2 
+ slib_p1=4
+ slib_p2=2
+ slib_b=-5
+ slib_c=3
+!endif
+
+c1=!randitem 2,3,4,6,7,8,9
+c2=!randint 2,3,4,6,7,8,9
+slib_ac=!randint 3,$slib_max
+slib_am=!randitem 1,$slib_max
+slib_cm=!randint 3,$slib_max
+slib_ac=$[$c1*$slib_ac]
+slib_bc=!randint 3,10
+slib_bc=$[$c2*$slib_bc]
+slib_cc=$[$c1*$c2*$slib_cm]
+slib_list=$[$slib_ac*$slib_am]*(10^$slib_p1)^$slib_p2,$slib_bc*10^$slib_b
+slib_list=!shuffle $slib_list
+slib_list=$slib_list,$slib_cc*10^$slib_c
+!distribute items $slib_list into slib_a,slib_b,slib_c
+slib_out=($slib_a*$slib_b)/($slib_c)
+!goto end
+
+:end

@@ -1,0 +1,99 @@
+#Inflatie
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathview=0
+make_tr=1
+inputs=-1
+questiontype=0
+checkfile=exos/precheck1.proc
+k=!randitem 5,6,7
+jaar=!date +%Y
+jaar=$[$jaar-1]
+begin=$[$jaar-$k]
+head=<td style="text-align:left">Jaren</td>
+lijn1=<td style="text-align:left">% verandering CPI<br /> t.o.v. het voorafgaande jaar</td>
+lijn2=<td style="text-align:left">Re&euml;ele groei BBP<br />in % t.o.v. het voorafgaande jaar</td>
+
+ans1=100
+antwoord1=100
+!for p=1 to $k
+    pm=!randitem -1,1
+    mp=!randitem -1,1
+    perc1=!randint 1,49
+    perc2=!randint 1,49
+    cpi=$[$pm*$perc1/10]
+    bbp=$[$mp*$perc2/10]
+    cpi$p=$[($cpi+100)/100]
+    bbp$p=$[($bbp+100)/100]
+    jaar$p=$[$begin + $p]
+    head=!append word $ <td>$(jaar$p)</td> $ to $head
+    lijn1=!append word $ <td>$cpi</td> $ to $lijn1
+    lijn2=!append word $ <td>$bbp</td> $ to $lijn2
+    !if $p>1
+	ans1=$[$ans1*$(cpi$p)]
+	antwoord1=$antwoord1 &times; $(cpi$p)
+    !endif
+!next p
+ss=In de volgende tabel is de ontwikkeling weergegeven van het <em>consumentenprijsindexcijfer</em> (CPI) in een aantal jaren.<br />Dit inflatiecijfer kan worden gebruikt om vast te stellen hoe groot de re&euml;ele groei van de productie is geweest.<br />
+
+tabel=<table class="grid_table"><tr>$head</tr><tr>$lijn1</tr><tr>$lijn2</tr> </table>
+
+!if $R=1
+
+    txt=<br />Bereken met hoeveel procent het CPI is veranderd in $(jaar$k) tov $jaar1.<br />Geef aan of het om een stijging of daling gaat...<br /><br />
+    
+    !if $ans1>100
+	stijging=stijging
+	ans2=1
+    !else
+	!if $ans1<100
+	    stijging=daling
+	    ans2=-1
+	!else
+	    stijging=gelijk gebleven
+	    ans2=0
+	!endif
+    !endif
+    rans1=!exec moneyprint $[abs($ans1-100)]
+    #rans1=$[(round(100*(abs($ans1-100))))/100]
+    answer$n=$[$ans1-100],$ans2
+    exotext=<ol><li>Het CPI is in $(jaar$k) ten opzichte van $jaar1 met <input type="text" id="myinput0" size="8" class="schaersvoorde_input" value="" /> % veranderd</li><li>en dit is dus een <select  size="1" id="myinput1" class="schaersvoorde_input"><option value="1">stijging</option><option value="-1">daling</option><option value="0">niet veranderd</option></select> ?</li></ol>
+    
+    description=Procentuele CPI verandering,stijging of daling
+    
+    textanswer$n=<ul><li>Stel $jaar1 op 100</li><li>De procentuele verandering in $jaar2 tov $jaar1 is $[($cpi2-1)*100] %. Dit geeft een factor van $cpi2</li><li>De procentuele verandering in $jaar3  tov $jaar2 is $[($cpi3-1)*100] %. Dit geeft een factor van $cpi3</li><li>De procentuele verandering in $jaar4  tov $jaar3 is $[($cpi4-1)*100] %. Dit geeft een factor van $cpi4</li><li>etc etc etc</li><li>$antwoord1 = $ans1 %</li><li>Dus een <b>$stijging</b> van $[abs($ans1 - 100)] %  &asymp; $rans1 %</li></ul>
+!else
+    t=!randint 2,$k
+    txt=<br />Bereken de nominale verandering van het bruto nationaal inkomen in $(jaar$t) ten opzichte van $(jaar$[$t-1]) <br />\
+    Geef aan of het om een stijging of daling gaat.<br /><br />
+
+    exotext=<ol><li>De nominale verandering is : <input type="text" id="myinput0" size="8" class="schaersvoorde_input" value=""/> % </li><li>en dit is dus een <select  size="1" id="myinput1" class="schaersvoorde_input"><option value="1">stijging</option><option value="-1">daling</option><option value="0">niet veranderd</option></select>?</li></ol>
+    ans3=$(bbp$t)*$(cpi$t)
+    rans3=!exec moneyprint $[$ans3*100]
+    !if $ans3>1
+	stijging=stijging
+	ans4=1
+    !else
+	!if $ans3<1
+	    stijging=daling
+	    ans4=-1
+	!else
+	    stijging=gelijk gebleven
+	    ans4=0
+	!endif
+    !endif
+    description=Nominale verandering,stijging of daling
+    answer$n=$[$ans3*100-100],$ans4
+    textanswer$n=<ul><li>Nominaal indexcijfer = (re&euml;el indexecijfer &times; prijsindexcijfer ) / 100 </li><li>Afgekort <b>nic = (ric &times; pic)/100</b></li><li>In $(jaar$t) hebben we een prijsindexcijfer van 100 + $[100*($(cpi$t) - 1)]  = $[100*$(cpi$t)]</li><li>In $(jaar$t) hebben we een re&euml;el indexcijfer van 100 + $[100*($(bbp$t) - 1)] = $[100*$(bbp$t)]</li><li>nic = $[100*$(bbp$t)] &times; $[100*$(cpi$t)] / 100 &asymp; $rans3 </li><li>Dus een <b>$stijging</b> van $[abs($rans3 - 100)] %</li></ul>
+!endif
+rounding=100
+roundingtext=Geef je antwoorden op twee decimalen nauwkeurig.
+question$n =<a onmouseover="return escape('<ul><li>CPI : <b>C</b>onsumenten<b>P</b>rijs<b>I</b>ndex</li><li>BBP : <b>B</b>ruto<b>B</b>innenlands<b>P</b>roduct</li></ul>$roundingtext')">$ss</a>$txt $tabel
+
+helptext=$roundingtext
+
+

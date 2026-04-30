@@ -1,0 +1,90 @@
+\title{Conservation des éléments (1)}
+
+\language{fr}
+\author{Georges Khaznadar}
+\email{georgesk@ofset.org}
+\computeanswer{no}
+\format{html}
+\license{GPL V.2}
+\precision{100}
+
+\integer{debug=0}
+\text{debugstr=}
+
+\integer{nr=wims(recordcnt data/cycles)}
+\if{\confparm1=0}{
+  \integer{ir=randint(1..\nr)}
+}{
+  \integer{ir=\confparm1}
+}
+\text{data=wims(record \ir of data/cycles)}
+\integer{nl=wims(linecnt \data)}
+\text{currentdata=}
+\text{reactions=}
+\text{questions=}
+\integer{nq=1}
+\text{answers=}
+\text{replies=}
+\text{images=}
+\integer{ni=0}
+\for{i1=1 to \nl}{
+\text{l=wims(line \i1 of \data)}
+\if{\l iswordof /title/ /general/ /images/ /reactions/ /formal/ /questions/ /answers/ }{
+  \text{currentdata=\l}
+}{
+  \\else it is an ordinary line
+  \if{\currentdata=/general/}{\text{general=\l}}
+  \if{\currentdata=/reactions/}{\text{reactions=\reactions<li>\l</li>}}
+  \if{\currentdata=/questions/}{
+    \text{questions=\questions\l;}
+    \text{replies=\replies
+r\nq}
+    \integer{nq=\nq+1}
+  }
+  \if{\currentdata=/answers/}{
+    \text{answers=\answers\l;}
+  }
+  \if{\currentdata=/images/}{
+    \text{images=\images\l;}
+    \integer{ni=\ni+1}
+  }
+}
+
+}
+
+
+\steps{\replies}
+
+\statement{
+\if{\debug=1}{
+<h3>Debug activé</h3>
+confparm1 = \confparm1
+debugstr = \debugstr
+<hr>
+}
+\if{\ni>0}{
+  <table width="100%"><tr>
+  \for{i0=1 to \ni}{
+    <td align="center"><img src="\imagedir/../\images[\i0;1]"><br>\images[\i0;2]</td>
+  }
+  </tr></table>
+}
+<div style='background:lightyellow; border: 1px solid red;'>
+ \general
+</div>
+<p>Voici une suite de réactions chimiques&nbsp;:</p>
+<ol type='a'>
+\reactions
+</ol>
+\for{s1=1 to \step}{
+  \questions[\s1;] \embed{r\s1}<br>
+}
+}
+
+\reply{\questions[1;]}{1;\answers[1;]}{type=menu}{option=shuffle}
+\reply{\questions[2;]}{1;\answers[2;]}{type=menu}{option=shuffle}
+\reply{\questions[3;]}{1;\answers[3;]}{type=menu}{option=shuffle}
+\reply{\questions[4;]}{1;\answers[4;]}{type=menu}{option=shuffle}
+\reply{\questions[5;]}{1;\answers[5;]}{type=menu}{option=shuffle}
+\reply{\questions[6;]}{1;\answers[6;]}{type=menu}{option=shuffle}
+\reply{\questions[7;]}{1;\answers[7;]}{type=menu}{option=shuffle}

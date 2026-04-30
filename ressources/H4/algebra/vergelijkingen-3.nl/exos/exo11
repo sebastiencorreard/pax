@@ -1,0 +1,181 @@
+#checkfile=exos/checkfile6.proc
+checkfile=$checkdir/number.proc
+var3=x
+arglist=x
+# var3 -> varlist
+math=0
+questiontype=0
+embed=1
+cols=16
+rows=1
+mathview=2
+mathviewpanel=$module_title:x1=:x2=:and:sqrt()
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+question$n=!record 61 of lang/remarks.$taal
+#@  Los op:<br /><small><em>bereken dus de waarden van x</em><br />noteer bij meerdere oplossingen iets als:<br /><em>x</em>=1 en <em>x</em>=sqrt(3) of zo...</small>
+keuze=!randitem 1,0
+!if $R=1
+    # sqrt(x^2+ax+b^2)=b => x^2+ax+b^2=b^2 => x^2+ax=0 =>  x=0 V x=-a
+    # sqrt(x^2-ax+b^2)=b => x^2-ax+b^2=b^2 => x^2-ax=0 =>  x=0 V x=a
+    a=!randitem 2,3,4,5,6,7,8,9,10,12
+    b=!randitem 1,2,3,4,5,6,7,8
+    !if $keuze=0
+	pm=+
+	answer$n=0,-$a
+	A=-$a
+    !else
+	pm=-
+	answer$n=0,$a
+	A=$a
+    !endif
+    c=$[$b^2]
+    formula$n=\sqrt{\left( x^{2} $pm $a \cdot x + $c \right)} = $b
+    applettext=!nospace sqrt(x^2 $pm $a*x + $c) = $b ->
+    texanswer$n=\left[ \begin{array}{l} \sqrt{\left( x^{2} $pm $a \cdot x + $c \right) } = $b \rightarrow  \\ x^{2} $pm $a \cdot x + $c = $b^{2} \rightarrow  \\ x^{2} $pm $a \cdot x =0 \rightarrow \\ x \left( x $pm $a \right) = 0 \rightarrow \\ x=0 \vee x=$A \end{array}\right.
+ !exit
+!endif 
+
+!if $R=2
+    a=!randitem 2,3,4,5,6,7,8
+    b=!randitem 1,2,3,4,5,6,7,8
+    c=!randitem 1,2,3,4,6,7,8,9,10,11
+    e=!randitem 1,2,3,4,5
+    !if $keuze=1
+	# (x+a)(x+b)=0 => x^2+(a+b)x+ab+c^2=c^2
+	# sqrt( x^2+(a+b)x+ab+c^2)=sqrt(c^2)=c
+	pm=+
+	!if $a=$b
+	    answer$n=$[-1*$a]
+	!else
+	    answer$n=$[-1*$a],$[-1*$b]
+	!endif
+	f=$[$a*$b + $c^2]
+	g=$[$a+$b]
+	formula$n=\sqrt{ \left( x^{2} + $g \cdot x + $f  \right)} = $c 
+	applettext=!nospace sqrt(x^2 + $g*x +$f ) = $c ->
+	texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( x^{2} + $g \cdot x + $f  \right)} = $c \rightarrow  \\ x^{2} + $g \cdot x + $f = $c^{2} = $[$c*$c]  \rightarrow \\ \left( x+$a \right) \cdot \left( x+$b \right) = 0 \rightarrow \\  x= -$a \vee x= - $b  \end{array}\right.
+    !else
+	# (x - a)(x+b)=0 => x^2+(b-a)x - ab+c^2=c^2
+	# sqrt( x^2+(b-a)x-ab+c^2)=sqrt(c^2)=c
+	!if $a>=$b
+	    b=$[$a+$e]
+	!endif    
+	!if $a=$[-1*$b]
+	    answer$n=$a
+	!else
+	    answer$n=$a,$[-1*$a]
+	!endif
+	f=$[$a*$b - $c^2] 
+	!if $f <0
+	    pm=+
+	    f=$[-1*$f]
+	!else
+	    pm=-
+	!endif
+	g=$[$b-$a]
+	formula$n=\sqrt{ \left( x^{2} + $g \cdot x $pm $f  \right)} = $c 
+	applettext=!nospace sqrt(x^2 + $g*x $pm $f) = $c ->
+	texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( x^{2} + $g \cdot x $pm $f  \right)} = $c \rightarrow  \\ x^{2} + $g \cdot x $pm $f = $c^{2}  = $[$c*$c] \rightarrow \\  \left( x - $a \right) \cdot \left( x + $b \right) = 0 \rightarrow \\ x= $a \vee  x= -$b \end{array}\right.
+    !endif
+ !exit
+!endif 
+
+!if $R>2
+kans=!randint 0,1
+    !if $kans=1
+	a=!randitem 1,2,3,4,5,6
+        b=!randitem 1,2,3,4,5,6
+        c=!randitem 1,2,3,4,5,6
+	!if $keuze=1 
+	    #(x+a)(x+b)=0 => x^2+(a+b)x + ab + c^2  = c^2
+    	    # sqrt(x^2+(a+b)x + ab + c^2) = c
+	    f=$[$a+$b]
+	    h=$[$a*$b + $c*$c]
+	    formula$n=\sqrt{x^{2} + $f \cdot x + $h } = $c 
+	    applettext=!nospace sqrt(x^2 + $f*x + $h) = $c ->
+	    !if $a=$b
+    		answer$n=$[-1*$a]
+	    !else
+    		answer$n=$[-1*$a],$[-1*$b]
+	    !endif
+	    texanswer$n=\left[ \begin{array}{l}\sqrt{x^{2} + $f \cdot x + $h } = $c \rightarrow  \\ x^{2} + $f \cdot x + $h = $c^{2} = $[$c*$c] \rightarrow \\ \left( x + $a \right) \cdot \left( x + $b \right) = 0 \rightarrow \\ x= -$a \vee x= -$b \end{array}\right.
+	!else
+	    e=!randitem 1,2,3
+    	    !if $a<=$b
+		a=$[$b+$e]
+	    !endif
+	    !if $[$a*$b]=$[$c*$c]
+		c=$[$c+1]
+	    !endif
+	    # (x+a)(x-b)=0=> x^2+(a-b)x - ab + c^2  = c^2
+    	    # sqrt(x^2+(a-b)x - ab + c^2) = c
+	    p=$[-1*$a*$b+$c*$c]
+	    f=$[$a-$b]
+	    !if $p<0
+		formula$n=\sqrt{x^{2} + $f \cdot x $p } = $c 
+		applettext=!nospace sqrt(x^2 + $f*x $p ) = $c ->
+		texanswer$n=\left[ \begin{array}{l}\sqrt{x^{2} + $f \cdot x $p } = $c \rightarrow  \\ x^{2} + $f \cdot x $p =$c^{2} = $[$c*$c] \rightarrow \\ \left( x + $a \right)\cdot \left( x - $b \right) = 0 \rightarrow \\ x= -$a \vee x= $b  \end{array}\right.
+	    !else
+		formula$n=\sqrt{x^{2} + $f \cdot x + $p } = $c 
+		applettext=!nospace sqrt(x^2 + $f*x + $p ) = $c ->
+		texanswer$n=\left[ \begin{array}{l}\sqrt{x^{2} + $f \cdot x + $p } = $c \rightarrow \\ x^{2} + $f \cdot x + $p =$c^{2} = $[$c*$c] \rightarrow \\ \left( x + $a \right)\cdot \left( x - $b \right) = 0 \rightarrow \\ x= -$a \vee x= $b  \end{array}\right.
+	    !endif
+	    !if $[-1*$a]=$b
+		answer$n=$[-1*$a]
+	    !else
+		answer$n=$[-1*$a],$b
+	    !endif
+        !endif
+    !else
+	a=!randitem 1,2,3,4
+	b=!randitem 1,2,3,4
+	c=!randitem 2,3,4,5,6,7,8
+	!if $keuze=1
+	    # (x+a)(x+b)=0 => x^2+(a+b)x+ab+1/c^2=1/c^2
+	    # sqrt( x^2+(a+b)x+ab+1/c^2)=sqrt(1/c^2)=1/c
+	    !if $a=$b
+		answer$n=$[-1*$a]
+	    !else
+		answer$n=$[-1*$a],$[-1*$b]
+	    !endif
+	    tot=!exec pari A=$a*$b + (1)/$c^2\
+	    printtex(A)
+	    cc=!line 1 of $tot
+	    C=!line 2 of $tot
+	    f=$[$a+$b]
+	    formula$n=\sqrt{ \left( x^{2} + $f \cdot x + $C  \right)} = \frac{1}{$c} 
+	    applettext=!nospace sqrt(x^2 + $f + $cc) = 1/($c) ->
+	    texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( x^{2} + $f \cdot x + $C  \right)} = \frac{1}{$c} \rightarrow   \\ x^{2} + $f \cdot x + $C = \frac{1}{$c^{2}} = \frac{1}{$[$c*$c]} \rightarrow \\ \left( x + $a \right) \cdot \left( x + $b \right) = 0 \rightarrow \\ x= -$a \vee x= -$b  \end{array}\right.
+	!else
+	    # (x - a)(x+b)=0 => x^2+(b-a)x - ab+1/c^2=1/c^2
+	    # sqrt( x^2+(b-a)x-ab+1/c^2)=sqrt(1/c^2)=1/c
+	    e=!randitem 1,2,3
+	    !if $b<= $a
+		b=$[$a+$e]
+	    !endif
+	
+	    !if $a=$[-1*$b]
+		answer$n=$a
+	    !else
+		answer$n=$a,$[-1*$b]
+	    !endif
+	    tot=!exec pari A=$a*$b - (1)/$c^2\
+	    printtex(A)
+	    cc=!line 1 of $tot
+	    C=!line 2 of $tot
+	    f=$[$b-$a]
+	    formula$n=\sqrt{ \left( x^{2} + $f \cdot x - $C \right)} = \frac{1}{$c}
+	    applettext=!nospace sqrt(x^2 + $f - $cc) = 1/($c) ->
+	    texanswer$n=\left[ \begin{array}{l}\sqrt{ \left( x^{2} + $f \cdot x - $C \right)} = \frac{1}{$c} \rightarrow \\ x^{2} - $f \cdot x - $C = \frac{1}{$c^{2}} = \frac{1}{$[$c*$c]}  \rightarrow \\ \left( x - $a \right) \cdot \left( x + $b \right) = 0 \rightarrow \\ x=$a \vee x= -$b \end{array}\right.
+	!endif
+    !endif
+!endif
+!exit
+

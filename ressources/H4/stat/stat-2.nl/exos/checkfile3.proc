@@ -1,0 +1,174 @@
+# antwoord var1=int,int,chance,int,number,unit....
+# volgorde ligt vast
+#var7=itemlist H0 :mu >1/2 & H1 != 1/2 ,/...
+goback=0
+errortext=$empty
+n=$counter
+!if $(reply$n) = ?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+tg=!itemcnt $(answer$n)
+AAA=!item 1 to $tg of $(reply$n)
+
+score=0
+rep=<ul>
+!for p=1 to $tg
+    r_ex1=$empty
+    r_ex2=$empty
+    r_ex3=$empty
+    c=!item $p of $var1
+    g=!item $p of $(answer$n)
+    a=!item $p of $AAA
+    !if ? isin $a
+	k=red
+	r_ex1=$dontknow
+    !else
+	!if $c=bool
+	    # selectbox answer: integer
+	    !if $a=$g
+		score=$[$score+1]
+	        k=green
+	    !else
+		k=red
+	    !endif
+	!else
+	    !if $c=number
+		a=!replace [a-z\~!@#$%&_=:;] by $empty in $a
+		!if $rounding != -1
+		    a1=$[(round($rounding*$a))/$rounding]
+		    g1=$[(round($rounding*$g))/$rounding]
+		    rnd=$[$rounding/10]
+		    t=!replace internal . by , in $a
+		    t2=!item 2 of $t
+		    factor1=!charcnt $t2
+		    !if $factor1 > $[log($rounding)/log(10)]
+			r_ex2=!record 6 of lang/remarks.$taal
+		    !endif
+		!else
+		    g1=$g
+		    a1=$[1*$a]
+		    rnd=10000
+		!endif
+		!if NaN isin $a1
+		    r_ex1=hmmm ... $a $m_rightarrow NaN (Not a Number !)
+		    k=red
+		!else
+		    !ifval $a1 = $g1
+			score=$[$score+1]
+			k=green
+		    !else
+			a1=$[(round($rnd*$a))/$rnd]
+			g1=$[(round($rnd*$g))/$rnd]
+			!ifval $a1 = $g1
+			    score=$[$score + $P2]
+			    k=orange
+			    r_ex2=!record 10 of lang/remarks.$taal
+			!else
+			    k=red
+			!endif
+		    !endif
+		!endif
+	    !else
+		!if $c=chance
+		    !if % isin $a
+			perc=1
+		    !else
+			perc=0
+		    !endif
+		    a=!replace [a-z\~!@#$%&_=:;] by $empty in $a
+		    !if $rounding != -1
+			a1=$[(round($rounding*$a))/$rounding]
+			g1=$[(round($rounding*$g))/$rounding]
+			rnd=$[$rounding/10]
+			t=!replace internal . by , in $a
+			t2=!item 2 of $t
+			factor1=!charcnt $t2
+			!if $factor1 > $[log($rounding)/log(10)]
+			    r_ex2=!record 6 of lang/remarks.$taal
+			!endif
+		    !else
+			g1=$g
+			a1=$[1*$a]
+			rnd=10000
+		    !endif
+		    !if NaN isin $a1
+			r_ex1=hmmm ... $a $m_rightarrow NaN (Not a Number !)
+			k=red
+		    !else
+			!if $perc=1
+			    r_ex1=!record 8 of lang/remarks.$taal
+			    g1=$[(round($rounding*$g*100))/$rounding]
+			    !ifval $a1 = $g1
+				score=$[$score+$P1]
+				k=green
+			    !else
+				a1=$[(round($rnd*$a))/$rnd]
+				g1=$[(round($rnd*$g))/$rnd]
+				!ifval $a1 = $g1
+				    score=$[$score+$P3]
+				    k=orange
+				!else
+			    	    k=red
+				!endif
+			    !endif
+			!else	
+			    !if $a1 > 1
+				r_ex1=!record 1 of lang/remarks.$taal
+				k=red
+			    !else
+				!if $a1 < 0
+				    r_ex1=!record 2 of lang/remarks.$taal
+				    k=red
+				!else
+				    !ifval $a1 = $g1
+					score=$[$score+1]
+					k=green
+				    !else
+					a1=$[(round($rnd*$a))/$rnd]
+					g1=$[(round($rnd*$g))/$rnd]
+					!ifval $a1 = $g1
+					    score=$[$score + $P3]
+					    k=orange
+					    r_ex1=!record 10 of lang/remarks.$taal
+					!else
+					    k=red
+					!endif
+				    !endif
+				!endif
+			    !endif
+			!endif
+		    !endif
+		    !if / isin $a and k=green
+			r_ex3=!record 9 of lang/remarks.$taal
+		    !endif
+		!else
+		    !if $c=unit
+			#not yet
+		
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !endif
+    rep=!append word $ <li><span style="color:$k">$a</span>$r_ex1 $r_ex2 $r_ex3</li> $ to $rep
+!next p
+rep=!append word $ </ul> $ to $rep
+maxscore=$[$maxscore*$score/$tg]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+math=0
+reply$n=$rep
+goback=0
+!exit

@@ -1,0 +1,95 @@
+# var6 = max (aantal cellen in een kolom)
+# var5 = A1,B1 A2,B2 ... Amax,Bmax
+# var7 = head Kolom A,Kolom B ,Kolom C
+# var8 = aantal invoer kolommen.
+var8=1
+questiontype=7
+javascript=js/spreadsheet.phtml
+inputs=yes
+math=0
+mathview=0
+var7=kolom A,Kolom B
+var6=!randint 10,15
+rows=$var6
+cols=5
+
+#  Spreadsheet &amp; afwijking tot het gemiddelde
+n=$counter
+tsv_file=som_$counter.tsv
+datum=!date +%d-%m-%Y
+data=$datum\
+$wims_firstname $wims_lastname\
+spreadsheet en optellen van kolommen\
+\
+"kolom 1"\
+
+
+sum=0
+rnd=!randitem 1,2,3
+rounding=$[10^$rnd]
+$var5=$empty
+!for p=1 to $var6
+ d1=!randint 1,99
+ sum=$[$sum + $d1]
+ data=!append line $d1 to $data
+ var5=!append word $d1 to $var5
+!next p
+mean=$[$sum/$var6]
+tabel_ans=<table class="demospecial"><caption>gemiddelde van kolom A &approx; $mean</caption><tr><th>kolom A</th><th>kolom B</th></tr>
+!for p=1 to $var6
+ a=!word $p of $var5
+ ans=$[(round($rounding*($a - $mean)))/$rounding]
+ answer$n=!append item $ans to $(answer$n)
+ tabel_ans=!append word <tr><td>$a</td><td>$ans</td></tr> to $tabel_ans
+!next p
+tabel_ans=!append word </table> to $tabel_ans
+!filewrite getfile/$tsv_file $data
+
+helptext=Als je met Windows EXCEL werkt en deze niet automatisch een \'tsv\' bestand wil openen...via OPENEN MET...zoeken naar  EXCEL.EXE in \'Program Files ... Microsoft Office ... Office16 ... EXCEL.EXE\' <hr />werk je met Apple of een vrije Unix variant...zal OPEN OFFICE het \'tsv\' bestand vermoedelijk automatisch openen...
+
+mousetxt=Bewaar het bestand \'$tsv_file\' als een \'tsv\' bestandstype.<br />bijvoorbeeld \'$tsv_file\' of \'wims.tsv\'<br />Of open dit bestand direkt in je spreadsheet programma<br />bijvoorbeeld \'MS Excel\', \'OpenOffice Calc\' of een online-spreadsheet  als je een <a target=\'new\' href=\'https://docs.google.com/spreadsheets\'> Google account</a> hebt.<br />Bij gebruik van \'MS Excel\' zie <img src=$gifdir/tip.png />
+
+ss=Open <a href="$wims_ref_name?session=$session&cmd=getfile&special_parm=$tsv_file" download="$tsv_file"><b>deze data</b></a> in 'tsv' formaat met je spreadsheet programma.<br /><em>Let op dat je het spreadsheet in schrijfmode opent en niet in read-only</em><br /><br />Bereken in kolom B de afwijking van de corresponderende getallen <br />in kolom A tov het gemiddelde van kolom A.<br />Rond deze antwoorden in kolom B af op $rnd decimalen.<br />Stuur kolom B -via copy&amp;paste- op naar WIMS als antwoord.
+ 
+
+
+
+textanswer$n=$tabel_ans\
+<ul>\
+<li>open het bestand </li>\
+<li>ga met je muis in <b>A$[7+$var6]</b> staan</li>\
+<li>bereken het gemiddelde van kolom A...in formulebalk : = SOM(A7:A$[6+$var6])/$var6 [ENTER]</li>\
+<li>ga met je muis in cel B7 staan...in formulebalk : = A7 -  &#36;A&#36;$[7+$var6]  [ENTER]</li>\
+<li>ga met je muis rechts onderin B7 staan...je muis wordt een kruis...en scroll naar A$[6+$var6]</br >\
+<li>rond dit getal af op $rnd decimalen<br />\
+Dit kan ook mbv van de spreadsheet...in formulebalk : <b>= AFRONDEN( A7 -  &#36;A&#36;$[7+$var6];$rnd )</b> [ENTER] </li>\
+<li>Let op: als je Engels als taal hebt : <b>= ROUND( A7 -  &#36;A&#36;$[7+$var6];$rnd )</b> [ENTER]</li>\
+</ul>
+
+checkfile=$checkdir/number.proc
+var1=yes
+make_tr=1
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+
+!exit
+
+#chk=!exec canvasdraw\
+size 400,400\
+xrange 0,10\
+yrange 0,10\
+precision 10\
+axis\
+axisnumbering\
+grid 1,1,grey,2,2,4,grey\
+filled\
+linewidth 3\
+strokecolor blue\
+fillcolor orange\
+opacity 200,50\
+jsboxplot $data\
+boxplot y,2,5,1,3,5,7,9\
+precision 10\
+mousey red,22\
+zoom red
+
+!exit

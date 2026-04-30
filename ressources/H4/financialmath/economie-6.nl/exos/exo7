@@ -1,0 +1,103 @@
+#:7 Beleggen [risico &amp; informatie]
+var1=yes
+make_tr=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+rounding=1
+mathview=0
+calculator=1
+inputs=-1
+cols=20
+checkfile=exos/precheck2.proc
+math=0
+roundingtext=Rond je eindantwoord af op hele &euro;&rsquo;s
+rounding=1
+namen=!record 78 of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+periode=!randint 4,7
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+afgelopen=!item $periode of $telwoorden
+nu=!date +%Y
+nu=$[$nu - 1]
+begin=$[$nu - $periode +1]
+
+aandelen=!randint 20,90
+aandelen=$[$aandelen*100]
+obligatie=!randint 50,300
+obligatie=$[$obligatie*100]
+rij0=<th>&nbsp;</th>
+rij1=<td>Aandelen<br />(procentuele verandering tov jaar ervoor)</td>
+rij2=<td>Obligaties<br />(procentuele verandering tov jaar ervoor)</td>
+
+tot_a=$aandelen
+tot_o=$obligatie
+textans_a=&euro; $aandelen
+textans_o=&euro; $obligatie
+
+!if $R=1
+    !for p=1 to $periode
+	jaar=$[$begin+$p - 1]
+	perc_a=!randint 2,30
+	pm=!randitem 1,-1
+	perc_a=$[$pm*$perc_a]
+	factor_perc_a=$[(100+$perc_a)/100]
+	perc_o=!randint 10,55
+	perc_o=$[$perc_o/10]
+	factor_perc_o=$[(100+$perc_o)/100]
+	tot_a=$[$tot_a*$factor_perc_a]
+	tot_o=$[$tot_o*$factor_perc_o]
+	textans_a=!append word &times;$factor_perc_a to $textans_a
+	textans_o=!append word &times;$factor_perc_o to $textans_o
+	rij0=!append word <th>$jaar</th> to $rij0
+	rij1=!append word <td>$perc_a %</td> to $rij1
+	rij2=!append word <td>$perc_o %</td> to $rij2
+    !next p
+
+    exotext=<ol><li>Bereken de eindwaarde op 31 december $nu van de aandelen als $naam op<br />1 januari $begin voor een bedrag van &euro;$aandelen aan aandelen heeft gekocht.<br />Eindwaarde aandelen : <input type="text" id="myinput0" class="schaersvoorde_input" size="8"/>&nbsp;&euro;</li><li>Bereken de eindwaarde op 31 december $nu van de obligaties als $naam op<br /> 1 januari $begin voor een bedrag van &euro;$obligatie aan obligaties heeft gekocht.<br />Eindwaarde Obligaties : <input type="text" id="myinput1" class="schaersvoorde_input" size="8"/>&nbsp;&euro;</li></ol>
+    description=Eindwaarde aandelen,Eindwaarde obligaties
+
+!else
+    !for p=1 to $periode
+	jaar=$[$begin+$p - 1]
+	perc_a=!randint 2,30
+	pm=!randitem 1,-1
+	perc_a=$[$pm*$perc_a]
+	factor_perc_a=$[(100+$perc_a)/100]
+	perc_o=!randint 10,55
+	perc_o=$[$perc_o/10]
+	factor_perc_o=$[(100+$perc_o)/100]
+	tot_a=$[$tot_a/$factor_perc_a]
+	tot_o=$[$tot_o/$factor_perc_o]
+	textans_a=!append word &nbsp;&#8260;&nbsp;$factor_perc_a to $textans_a
+	textans_o=!append word &nbsp;&#8260;&nbsp;$factor_perc_o to $textans_o
+	rij0=!append word <th>$jaar</th> to $rij0
+	rij1=!append word <td>$perc_a %</td> to $rij1
+	rij2=!append word <td>$perc_o %</td> to $rij2
+    !next p
+
+    exotext=<ol><li>Bereken de beginwaarde op 1 januari $begin van de gekochte aandelen die <br />op 31 december $nu &euro;$aandelen waard zijn.<br />Beginwaarde aandelen : <input type="text" id="myinput0" class="schaersvoorde_input" size="8"/>&nbsp;&euro;</li><li>Bereken de beginwaarde op 1 januari $begin van de gekochte obligaties die <br />op 31 december $nu &euro;$obligatie waard zijn.<br />Beginwaarde obligatie : <input type="text" id="myinput1" class="schaersvoorde_input" size="8" />&nbsp;&euro;</li></ol>
+    description=Beginwaarde aandelen,Beginwaarde obligaties
+!endif
+    
+answer$n=$tot_a\
+$tot_o
+# +/- 2 euro
+var1=2,2
+# afronden op helen
+var2=1,1
+
+ss1=<kbd>$naam</kbd> (een belegger) wil weten welke beleggingscategorie in zijn portefeuille<br />in de afgelopen $afgelopen jaar het best gerendeerd heeft en verzamelt hiervoor de volgende gegevens:<br />
+
+textanswer$n=<ol><li>Aandelen: $textans_a &asymp; &euro; $[round($tot_a)].00</li><li>Obligaties : $textans_o &asymp; &euro; $[round($tot_o)].00</li></ol>
+
+tabel=<table class="demospecial"><tr>$rij0</tr><tr>$rij1</tr><tr>$rij2</tr></table>
+
+helptext=$empty
+
+question$n=<a onmouseover="return escape('$roundingtext')">$ss1</a><br />$tabel
+
+

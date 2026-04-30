@@ -1,0 +1,185 @@
+!set title=Vocabulaire des séries quantitatives 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=le salaire, des cadres, d'une entreprise, le salaire, les cadres, l'entreprise,1,2,1500,4500, en Euros	la cylindrée, des automobiles, des français, la cylindrée, les automobiles, les français,1,1,4,15,En Litres	le nombre d'enfants, des familles, françaises, le nombre d'enfants, les familles, les français,1,1,0,12	la taille, des femmes de 30 ans, en France, la taille, les femmes de 30 ans, les françaises,1,2,150,185, En cm	le temps passé sur Internet, par les adolescents, d'une ville de province, le temps passé sur Internet, les adolescents, une ville de province,1,2,0,360, En minutes
+val7=
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!randint 20, 50
+
+val9=$[rint($(tmp0))]
+val10=
+val11=$[rint($(val8[9]))]
+val12=$[rint($val11)]
+val13=$[rint($(val8[10])-1)]
+val14=$[rint($val13)]
+tmp0=!randint 5, 10
+
+val15=$[rint($(tmp0))]
+tmp0=!shuffle $val13-$val11
+
+val16=$(tmp0)
+tmp0=!randint 1, $val15
+
+val17=$[rint($(tmp0))]
+val18=
+val19=$[rint(0)]
+val20=
+!for val21 =1 to $val15 
+val22=$[rint($(val16[$val21])+$val11)]
+tmp0=!append item $val22 to $val20
+
+val20=$(tmp0)
+!next
+tmp0=!sort numeric list $val20
+
+val20=$(tmp0)
+!for val21 =1 to $val15 
+!if $val21=$val17 
+tmp0=!randint 6, 10
+
+val23=$[rint($(tmp0))]
+val24=$[rint($(val20[$val21]))]
+!else
+tmp0=!randint 1, 5
+
+val23=$[rint($(tmp0))]
+!endif
+val19=$[rint($val19+$val23)]
+tmp0=!append item $val23 to $val18
+
+val18=$(tmp0)
+val22=$[rint($(val20[$val21]))]
+!for val25 =1 to $val23 
+tmp0=!append item $val22 to $val10
+
+val10=$(tmp0)
+!next
+
+!ifval $val22<$val14
+val14=$[rint($val22)]
+!endif
+
+!ifval $val22>$val12
+val12=$[rint($val22)]
+!endif
+!next
+tmp=!nonempty items $val20
+
+tmp0=!randitem $tmp
+val22=$[rint($(tmp0))]
+tmp0=!positionof item $val22 in $val20
+
+val26=$[rint($(tmp0))]
+val27=$[rint($(val18[$val26]))]
+t_=!rawmath $val27 / $val19
+val28=!exec pari print($t_)
+tmp0=!shuffle $val10
+
+val29=$(tmp0)
+val30=$[rint($val12 - $val14)]
+val20=$val20,$(val8[10])
+val7=On a obtenu les résultats suivants:	<table class="wimscenter wimsborder">	  <tr>
+val7=$val7<th>$(val8[4]) </th><th> Effectif</th></tr>
+!for val31 =1 to $val15 
+val7=$val7 <tr><td> &#91; $(val20[$val31]) &#59; $(val20[$val31+1]) &#91; </td><td> $(val18[$val31])</td></tr>
+!next
+val7=$val7 </table>
+val32=$(val20[$val17+1])
+val33=$[$(val20[$val17+1])-$(val20[$val17])]
+val34=On étudie $(val8[1]) $(val8[2]) $(val8[3]).	$val7	
+val35=$(val8[6])
+val36=$(val8[4])
+val37=$(val8[5])
+val38=$[rint($(val8[7]))]
+val39=$[rint($(val8[8]))]
+val40=$val35,$val36,$val37
+val41=100x40x1
+replytype1=numeric
+replyname1=classe modale, borne gauche
+replygood1=$[$val24]
+replytype2=numeric
+replyname2=classe modale, borne droite
+replygood2=$[$val32]
+replytype3=numeric
+replyname3=amplitude
+replygood3=$[$val33]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val34	<ol>	<li>Quelle est la classe modale de la série ? &#91; 
+!read oef/embed.phtml reply1,5 
+$(); 
+!read oef/embed.phtml reply2,5 
+$()&#91;</li>	<li>Quelle est son amplitude ?  
+!read oef/embed.phtml reply3,5 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=34
+embedcnt=3

@@ -1,0 +1,52 @@
+n=$counter
+helptext=$empty
+description=$youranswer
+embed=0
+# truuk om verticale layout te forceren
+mathview=0
+questiontype=10
+inputs=1.1
+rounding=-1
+options=!randitem 5,6,7,8
+checkfile=$checkdir/equation.proc
+arglist=H,H(t)
+varlist=t
+#we geven 1 tabel met $options kolommen...
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    or=!record 108 of lang/remarks.$taal
+    a=!randitem 30,40,50,60,70,75,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,300
+    b=!randint 105,160
+    b=$[$b/100]
+    X=0,1,2,3,4,5,6,7,8,9,10
+    d=$[round(100*$a*2^($b))/100]
+    texanswer$n=\left[ \begin{array}{l} H(1)=$a \rightarrow $a=a \cdot 1^{n} \rightarrow a=$a \\ H(2)=$d \rightarrow $d = $a \cdot 2^{n} \\ 2^{n}=$d/$a \rightarrow n=^{2} \log $[$d/$a] \\ \textrm{$or } \\y_{1}=$a*2^{x} \\ y_{2}=$d \\ [0;$[round(3*$b)]] [0;$[10*round(2*$d/10)]] \\ intersect \\ x \approx $b \rightarrow n \approx $b\\ \bf{H(t)}\,=\,$a \cdot t^{$b}\end{array}\right.
+    !endif
+!if $R>1 
+    a=!randitem 100,120,140,150,160,180,190,200,210,220,240,250,300,400,500,600,700,800,900,1000
+    b=!randitem 110,120,130,140,150,160,170,180
+    b=$[$b/100]
+    d1=$[round(100*$a*2^($b))/100]
+    d2=$[round(100*$a*4^($b))/100]
+    X=2,3,4,5,6,7,8,9,10,11,12
+    texanswer$n=\left[ \begin{array}{l} H(2)=$d1 ; H(4)=$d2 \\ \\ \frac{$d2}{$d1} = \frac{a \cdot 4^{n}}{a \cdot 2^{n}} \\ \\ $[$d2/$d1] = 2^{n} \rightarrow n = ^{2} \log $[$d2/$d1] = $b \\ \\ H(2)=$d1 \rightarrow $d1 = a \cdot 2^{$b} \\ \\ a = \frac{$d1}{2^{$b}} \\ \bf{H(t)}\,=\,$a \cdot t^{$b}\end{array} \right.
+!endif
+answer$n=$a*t^$b
+
+!for s=1 to $options
+    x=!item $s of $X
+    lijst1=!append line <td>$x</td> to $lijst1
+    c=$[round(100*$a*$x^($b))/100]
+    lijst2=!append line <td>$c</td> to $lijst2
+!next s
+mathviewpanel=$module_title:H(t)=:t
+ss=!record 74 of lang/remarks.$taal
+#Bepaal de formule, die hoort bij onderstaande tabel.<br />H is recht evenredig met t<sup>n</sup>.<br /><small>Rond a af op een geheel getal. Rond n af op twee decimalen</small><p>
+helptext=!record 75 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><hr class="schaersvoorde_hr" /><table class="grid_table"><tr><th>t</th>$lijst1</tr><tr><th>H</th>$lijst2</tr></table>
+

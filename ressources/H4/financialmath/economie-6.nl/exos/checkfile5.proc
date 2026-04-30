@@ -1,0 +1,249 @@
+goback=0
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+reply$n=!lower $(reply$n)
+
+# sorteren op links en rechts
+t=!linecnt $(reply$n)
+
+links_tekst=$empty
+links_getal=$empty
+rechts_tekst=$empty
+rechts_getal=$empty
+test1=!line 1 of $(reply$n)
+test2=!line 2 of $(reply$n)
+tt=!itemcnt $test1
+!if $tt>4
+    nul=$empty
+    !for p=1 to $tt
+	r1=!item $p of $test1
+	r2=!item $p of $test2
+	!if null isin $r1 and null isin $r2
+	    not=!append item $p to $not
+	!else
+	    nul=!append item $p to $nul
+	!endif
+    !next p
+    rep_tmp=$empty
+    extra=Ik strip de lege kolommen uit je antwoord...<br />en gebruik alleen kolommen nummer: $nul
+    #lege kolom : strippen kolom weg
+    !for p=1 to $t
+	line=!line $p of $(reply$n)
+	tmp=$empty
+	!for s in $nul
+	    a=!item $s of $line
+	    tmp=!append item $a to $tmp
+	!next s
+	rep_tmp=!append line $tmp to $rep_tmp
+    !next p
+
+    reply$n=$rep_tmp
+!endif
+#errortext=tt=$tt test1=$test1 rep=$rep_tmp nul=$nul not=$not extra=$extra
+#goback=1
+#!exit
+comment=0
+!for p=1 to $t
+    line=!line $p of $(reply$n)
+    chk=!itemcnt $line
+    !if $chk!=4 and $comment=0
+	!if $chk>4
+	    ex=Je hebt $chk kolomen ingevoerd...<br />Ik kijk alleen naar de getallen van de eerste 4 ...
+	    extra=!append line $ex to $extra
+	    comment=1
+	# 4 kolommen...4 items per regel
+	    maxscore=$[4/$extra*$maxscore]
+	!else
+	    extra=Je hebt $chk kolomen ingevoerd ipv 4...<br />Dat ga ik dan dus ook niet nakijken
+	    maxscore=0
+	    remark$n=$NOK
+	    goback=0
+	    !exit
+	!endif
+    !endif
+    leeg=0
+    !for s=1 to 4
+	P$s=!item $s of $line
+	!if $(P$s)=null
+	    !increase leeg
+	!endif
+    !next s
+    !if $leeg<4
+        links_tekst=!append item $P1 to $links_tekst
+	links_getal=!append item $P2 to $links_getal
+	rechts_tekst=!append item $P3 to $rechts_tekst
+	rechts_getal=!append item $P4 to $rechts_getal
+    !endif
+!next p
+
+
+# nu kijken of de classificatie in links op orde is
+
+tot_links=!itemcnt $links_tekst
+# var8 is links 
+r=!linecnt $var8
+checked=$empty
+score_links=0
+loops_links=0
+
+#var8=!subst kosten\
+#$inkopen,inkopen,inkoop,ink\                                                                                                   
+#$loonkosten,loonkosten,loon,salaris,sala\                                                                                                  
+#$overigekosten,overigekosten,overigen,divers,misc\                                                                                         
+#$winst,winst,profit,profijt,marge\                                                                                                         
+#$totaal,totaal,tot,sum,som                                                                                                                 
+
+head=!line 1 of $var8
+next_to_find=0
+!for s in $head
+    !if $s isin $links_tekst
+	next_to_find=2,3,4,5,6
+    !endif
+!next s
+rem1=<ul>
+
+!if $next_to_find=0
+    extra=!append line $ <br />De kop van je linker kolom moet zijn : KOSTEN... $ to $extra
+!else
+    !for p=1 to $tot_links
+	P=!item $p of $links_tekst
+	num=!item $p of $links_getal
+	!if $P != null and $num != null
+	    P=!replace internal - by $empty in $P
+	    P=!replace internal _ by $empty in $P
+    	    P=!nospace $P
+	    !increase loops_links
+	    found=0
+	    !for s in $next_to_find
+		!if $s notin $checked
+		    !if $found=0
+			line=!line $s of $var8
+		    	bedrag=!item 1 of $line
+			tt=!itemcnt $line
+			!for q=2 to $tt
+			    !if $found=0
+				name=!item $q of $line
+			    	!if $name isin $P
+			    	    checked=!append item $s to $checked
+				    found=1
+				    !if $num = $bedrag or $[1*($num)] = $[1*$bedrag]
+					!increase score_links
+					rem1=!append word $ <li><span style="color:green">$P</span> : &euro; <span style="color:green">$num</span></li> $ to $rem1
+				    !else
+					score_links=$[$score_links +0.1]
+					rem1=!append word $ <li><span style="color:green">$P</span> : &euro; <span style="color:red">$num</span></li> $ to $rem1
+				    !endif
+				!endif
+			    !endif
+			!next q 
+		    !endif
+		!endif
+	    !next s
+	    !if $found=0
+		rem1=!append word $ <li><span style="text-decoration:line-through">&nbsp;&nbsp;<span style="color:red">$P</span>&nbsp;&nbsp;</span> &euro; <span style="color:red">$num</span> ??</li> $ to $rem1
+	    !endif
+	!endif	
+    !next p
+!endif
+
+#                                                                                                                                           
+#var7=!subst opbrengsten\
+#$omzet,omzet,verkoop,verhandeld,handel\                                                                                        
+#$verlies,verlies,                                                                                                                          
+#$totaal,totaal,tot,sum,som
+
+head=!line 1 of $var7
+next_to_find=0
+!for s in $head
+    !if $s isin $rechts_tekst
+	next_to_find=2,3,4,5
+    !endif
+!next s
+score_rechts=0
+loops_rechts=0
+tot_rechts=!itemcnt $rechts_tekst
+
+rem2=<ul>
+checked=$empty
+!if $next_to_find=0
+    extra=!append line $ <br />De kop van je rechter kolom moet zijn : OPBRENGSTEN... $ to $extra
+!else
+    !for p=1 to $tot_rechts
+	P=!item $p of $rechts_tekst
+	num=!item $p of $rechts_getal
+	!if $P != null and $num  != null
+	    P=!replace internal - by $empty in $P
+	    P=!replace internal _ by $empty in $P
+    	    P=!nospace $P
+	    !increase loops_rechts
+	    found=0
+	    !for s in $next_to_find
+		!if $s notin $checked
+		    !if $found=0
+			line=!line $s of $var7
+			bedrag=!item 1 of $line
+		    	tt=!itemcnt $line
+			!for q=2 to $tt
+			    !if $found=0
+				name=!item $q of $line
+				!if $name isin $P
+			    	    checked=!append item $s to $checked
+				    found=1
+				    !if $num = $bedrag or $[1*($num)] = $[1*$bedrag]
+				    	!increase score_rechts
+					rem2=!append word $ <li><span style="color:green">$P</span> : &euro; <span style="color:green">$num</span></li> $ to $rem2
+				    !else
+					score_rechts=$[$score_rechts +0.1]
+				    	rem2=!append word $ <li><span style="color:green">$P</span> : &euro; <span style="color:red">$num</span></li> $ to $rem2
+				    !endif
+				!endif
+			    !endif
+			!next q 
+		    !endif
+		!endif
+	    !next s
+	    !if $found=0
+		rem2=!append word $ <li><span style="text-decoration:line-through">&nbsp;&nbsp;<span style="color:red">$P</span>&nbsp;&nbsp;</span> &euro; <span style="color:red">$num</span> ??</li> $ to $rem2
+	    !endif
+	!endif
+    !next p
+!endif
+
+
+rem1=!append word </ul> to $rem1
+rem2=!append word </ul> to $rem2
+
+reply$n=$extra<table class="balans_1"><tr><td style="vertical-align:top">$rem1</td><td style="vertical-align:top">$rem2</td></tr></table>
+
+score=$[($score_links/($loops_links) + $score_rechts/($loops_rechts))/2]
+!if NaN isin $score
+    score=0
+!endif
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+goback=0
+
+#errortext=rem1=$rem1 <p> rem2=$rem2 nerxt_to_find=$next_to_find<p>score=($score_links/($loops_links) + $score_rechts/($loops_rechts))/2= $[($score_links/($loops_links) + $score_rechts/($loops_rechts))/2] 
+
+!exit
+
+
+
+

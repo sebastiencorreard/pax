@@ -1,0 +1,203 @@
+\title{Course d'opérations}
+\author{Bruno, Mifsud}
+\email{communaute.mutuwims@laposte.net}
+\observation{Les résultats peuvent être négatifs par défaut. Configuration possible sur le module}
+\keywords{quizz,subtraction,fraction,multiplication,mental_calculation,addition,skill_calculate}
+\language{fr}
+\computeanswer{no}
+\format{html}
+%%%%%repetitions
+ \if{\confparm2 notwordof 1 2 3 4 5 6 7 8 9 10}{
+    \text{confparm2 = 5}
+ }
+%%%%% résultats tous positifs %%% 1 : oui %%% 2:non
+\text{confparm1 =items(\confparm1)=0 ?1:\confparm1}
+ %%%%%%%%%%%%% coeff : 1 entier, 2 décimaux, 3 fraction
+\text{confparm3 =items(\confparm3)=0 ?1,2,3:\confparm3}
+  %%%%%%%%%%%%% opérations : 1 add, 2 Soust, 3 mult
+\text{confparm4 =items(\confparm4)=0 ?1,2,3:\confparm4}
+\text{instructionfraction=3 isitemof \confparm3?<br>Aide à la saisie &#58; pour \(2/3\) saisir 2/3.}
+\text{instruction=<strong>La calculatrice n'est pas autorisée, ni le brouillon. \instructionfraction</strong>}
+
+%%%%% a op b = s %%%
+%%%% initialisation
+\text{a=}
+\text{b=}
+\text{quest=}
+\text{s=}
+\text{feed=}
+\text{anstype=}
+\for{k=1 to \confparm2}{
+  %%%%% on ne change pas d'ensemble sur une même question
+  \text{ensnbr=randomitem(\confparm3)}
+  %%%%% choix de l'opération 
+  \text{tempop=randomitem(\confparm4)}
+  %%%%% type de réponse
+  \text{temp=\confparm3<1?numeric:numexp}
+  \text{anstype=\anstype issametext ?\temp:\anstype,\temp}
+  %%%% choix de a 
+  \integer{tempa=\ensnbr issametext 1?randint(3..9)}
+  \real{tempa=\ensnbr issametext 2? simplify(randint(3..9)*randomitem(1,0.1,0.01))}
+  %%%% 1 fois sur 4 un entier
+  \rational{tempa=\ensnbr issametext 3?randomitem(randint(2..9),simplify(randint(1,2,3)/randomitem(4,5,7,9)),simplify(randint(1,2,3)/randint(4,5,7,9)),simplify(randint(1,2,3)/randint(4,5,7,9)))}
+  %%%%% b choix de b
+  \integer{tempb=\ensnbr issametext 1?randint(3..9)}
+  \real{tempb=\ensnbr issametext 2?simplify(randint(3..9)*randomitem(0.1,0.01))}
+  \rational{tempb=\ensnbr issametext 3?simplify(randint(1,2,3)/randint(4,5,7,9))}
+  %%%%% si que des positifs %%%
+  \if{\tempop=2}{\text{temp1=\tempa}
+    \text{temp2=\tempb}
+    \rational{tempa=max(\temp1,\temp2)}
+    \rational{tempb=min(\temp1,\temp2)}
+    }
+      %%%% cas particuliers :
+      %%% si somme ou différence d'entier :
+      \if{(\ensnbr issametext 1) and (\tempop isitemof 1,2)}{ 
+      \integer{tempa=randint(2..7)*10+randint(1..5)}
+      \integer{tempb=randint(6..9)*10+randint(6..8)}
+      \if{\tempop=2 and \confparm1=1}{
+          %%% Résultats positifs 
+            \integer{temp1=\tempa}
+            \integer{temp2=\tempb}
+            \integer{tempa=max(\temp1,\temp2)}
+            \integer{tempb=min(\temp1,\temp2)}
+    
+        
+        }    
+      }
+%%% si somme ou différence de décimaux :
+\if{(\ensnbr issametext 2) and (\tempop isitemof 1,2)}{ 
+    \text{temp00=shuffle(randint(11..89)/10,randint(111..200)/100)}
+
+    \if{randint(1,2)=1}{
+      %%%% a est entier
+      \integer{a=randint(1..50)}
+      \real{b=simplify(randint(4..6)*10+\temp00[2])}
+      %%% cas que positifs %%%%%%%%%
+      \integer{tempa=\confparm1=1?max(\a,\b):\a}
+      \real{tempb=\confparm1=1?min(\a,\b):\b}
+      }{
+      %%%% b est entier
+      \real{a=simplify(randint(1..5)*10+\temp00[1])}
+      \real{b=randint(1..50)}
+      %%% cas que positifs %%%%%%%%%
+      \real{tempa=\confparm1=1?max(\a,\b):\a}
+      \real{tempb=\confparm1=1?min(\a,\b):\b}
+  }
+}
+%%%% calculs des questions et des réponses
+%%%% on passe la solution  dan parigp pour avoir une belle écriture
+\if{\tempop issametext 1}{
+\text{temps=pari(\tempa+\tempb)}
+\text{tempquest=\(\tempa\) \({}+{}\) \(\tempb\) \({}={}\)}
+\text{tempfeed=Correction &#58; \(\tempa\) \({}+{}\) \(\tempb\)\({}={}\)\(\temps\) }
+%%%%%% cas des fractions %%%%%%%%%
+\text{k=shuffle(2,3,5,7)}
+\integer{a=\k[1]}
+\integer{b=\k[2]}
+\integer{c=\k[3]}
+\integer{d=\k[4]}
+\integer{ad=\a*\d}
+\integer{cb=\b*\c}
+\integer{bd=\b*\d}
+\integer{tt=\ad+\cb}
+\text{tempfeed=\ensnbr issametext 3 ? <p>\tempfeed </p><p>Il faut mettre au même dénominateur pour faire l'opération.</p> 
+<p>Exemple &#58; \(\frac{\a}{\b}+\frac{\c}{\d}=\frac{\a \times \d}{\b \times \d}+\frac{\c \times \b}{\d \times \b}\)
+\({}=\frac{\ad+\cb}{\bd}=\frac{\tt}{\bd}\)</p>}
+}
+\if{\tempop issametext 2}{
+\text{temps=pari(\tempa-\tempb)}
+\text{tempquest=\(\tempa\) \({}-{}\) \(\tempb\)\({}={}\)}
+\text{tempfeed=Correction &#58; \(\tempa\) \({}-{}\) \(\tempb\)\({}={}\)\(\temps\)}
+%%%%%% cas des fractions %%%%%%%%%
+\text{k=shuffle(2,3,5,7)}
+\integer{a=\k[1]}
+\integer{b=\k[2]}
+\integer{c=\k[3]}
+\integer{d=\k[4]}
+\integer{ad=\a*\d}
+\integer{cb=\b*\c}
+\integer{bd=\b*\d}
+\integer{tt=\ad-\cb}
+\text{tempfeed=\ensnbr issametext 3 ? <p>\tempfeed </p><p>Il faut mettre au même dénominateur pour faire l'opération. </p>
+<p> Exemple &#58; \(\frac{\a}{\b}-\frac{\c}{\d}=\frac{\a \times \d}{\b \times \d}-\frac{\c \times \b}{\d \times \b}\)
+\({}=\frac{\ad-\cb}{\bd}=\frac{\tt}{\bd}\)</p>}
+}
+\if{\tempop issametext 3}{
+\text{temps=pari(\tempa*\tempb)}
+\text{tempquest=\(\tempa\) \({}\times{}\) \(\tempb\) \({}={}\)}
+
+\text{tempfeed=Correction &#58; \(\tempa\) \({}\times{}\) \(\tempb\) \({}={}\) \(\temps\)}
+%%%%%% cas des décimaux %%%%%%%%%
+\text{tempfeed=\ensnbr issametext 2 ? <p>\tempfeed </p>
+<p>Exemples &#58; </p>
+<ul class="wims_nopuce">
+<li>\(3 \times 2=6 \)</li>
+<li>\(0.03 \times 2=0.06 \)</li>
+<li>\(0.3 \times 0.02=0.006 \)</li>
+</ul>
+
+}
+%%%%%% cas des fractions %%%%%%%%%
+\text{k=shuffle(2,3,5,7)}
+\integer{a=\k[1]}
+\integer{b=\k[2]}
+\integer{c=\k[3]}
+\integer{d=\k[4]}
+\integer{ac=\a*\c}
+\integer{bd=\b*\d}
+\text{tempfeed=\ensnbr issametext 3 ? <p>\tempfeed </p>
+<p>Exemple &#58; \(\frac{\a}{\b} \times \frac{\c}{\d}=\frac{\a \times \c}{\b \times \d}\)
+\({}=\frac{\ac}{\bd}\)</p>}
+}
+
+\text{a=items(\a)=0? \tempa:\a,\tempa}
+\text{b=items(\b)=0? \tempb:\b,\tempb}
+\text{quest=items(\quest)=0? \tempquest:\quest,\tempquest}
+\text{s=items(\s)=0? \temps:\s,\temps}
+\text{feed=\feed issametext ?\tempfeed:\feed,\tempfeed}
+}
+
+\text{tempstep=wims(makelist reply x for x=1 to \confparm2)}
+\text{tempstep=wims(replace internal , by ; in \tempstep)}
+\steps{\tempstep}
+\statement{<div class="wimscenter"><div class="wims_score_bar"><div class="inline">
+    \for{j=1 to \step-1}{
+    <div class="inline wims_seed_item" style="background-color:blue" title="done"></div>
+  }
+  \for{j=\step to \confparm2}{
+    <div class="inline wims_seed_item" style="background-color:#FFF" title="todo"></div>
+  }
+</div></div></div>
+<div class="wims_question">
+\for{qq=1 to \confparm2}{\if{\step=\qq}{
+<label for="reply\qq">\quest[\qq]  </label>\embed{r\qq,10
+autofocus}
+}}</div>
+<div class="wims_instruction">\instruction</div>
+}
+\answer{\quest[1]}{\s[1]}{type=\anstype[1]}{option=comma default=0}
+\answer{\quest[2]}{\s[2]}{type=\anstype[2]}{option=comma default=0}
+\answer{\quest[3]}{\s[3]}{type=\anstype[3]}{option=comma default=0}
+\answer{\quest[4]}{\s[4]}{type=\anstype[4]}{option=comma default=0}
+\answer{\quest[5]}{\s[5]}{type=\anstype[5]}{option=comma default=0}
+\answer{\quest[6]}{\s[6]}{type=\anstype[6]}{option=comma default=0}
+\answer{\quest[7]}{\s[7]}{type=\anstype[7]}{option=comma default=0}
+\answer{\quest[8]}{\s[8]}{type=\anstype[8]}{option=comma default=0}
+\answer{\quest[9]}{\s[9]}{type=\anstype[9]}{option=comma default=0}
+\answer{\quest[10]}{\s[10]}{type=\anstype[10]}{option=comma default=0}
+\integer{compteur=0}
+\text{test=\reply1,\reply2,\reply3,\reply4,\reply5,\reply6,\reply7,\reply8,\reply9,\reply10}
+\text{test=wims(nonempty item \test)}
+\integer{test0=wims(itemcnt \test)}
+\integer{test=wims(itemcnt \test)}
+\real{test=\test/\confparm2}
+\if{\test<0.5}{
+\text{retour=randitem(Pas génial tout cela. Mais tu peux mieux faire en essayant de nouveau !,Essaye encore !)}
+}{
+\if{\test>0.8}{
+\text{retour=randitem(Très beau score !, Excellent., Belle performance !)}
+}{
+\text{retour=randitem(Ton score est moyen &#44;  mais c'est déjà pas mal du tout.,Résultat prometteur ! Encore un peu d'entraînement et ce sera excellent !)}
+}}
+\feedback{1=1}{<div class="feedback">\feed[\test0]<p style="text-align:center">\retour</p></div>}

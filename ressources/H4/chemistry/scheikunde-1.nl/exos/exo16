@@ -1,0 +1,127 @@
+# identical to exo17 ; ascii inputfields
+n=$counter
+mathview=0
+image=0
+inputs=1,1
+make_tr=1
+viewlogo=1
+checkfile=exos/checkfile5.proc
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten"/></a>  
+math=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+datafile=docs/data3.def
+!if $options>4
+    options=4
+!endif
+!if $counter=1
+    var2=$empty
+    max=!recordcnt $datafile
+    !if $[$total_exos*$options] > $max
+	# niet meer vragen dan er data records zijn.
+	total_exos=$[floor($max/$options)]
+    !endif
+    !for p=1 to $max
+	var2=!append item $p to $var2
+    !next p
+    var2=!shuffle $var2
+    set=$empty
+    a=1
+    !for p=1 to $total_exos
+	s=!item $a to $[$a+$options] of $var2
+	set=!append line $s to $set
+	a=$[$a+$options]
+    !next p
+    var2=$set	
+!endif
+
+set=!line $counter of $var2 
+
+var1=!record 72 of lang/remarks.$taal 
+#@naam zout,formule,+ ion,&minus; ion,+ ion : &minus; ion
+n1=!item 1 of $var1
+n2=!item 2 of $var1
+n3=!item 3 of $var1
+n4=!item 4 of $var1
+n5=!item 5 of $var1
+input=<input size="7" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;text-align:center" type="text" name="myinput" value=""/>
+Thead=<table><tr><th>$n1</th><th>$n2</th><th>$n3</th><th>$n4</th><th>$n5</th></tr>
+Tbody=$empty
+Tanswerbody=$empty
+!for p=1 to $options
+    num=!item $p of $set
+    chemrec=!record $num of $datafile
+    !if $taal=en
+	chemnaam=!line 1 of $chemrec
+    !else
+	chemnaam=!line 2 of $chemrec
+	!if $taal=nl
+	    chemnaam=!item 1 of $chemnaam
+	!else
+	    # change this if translated to fr
+	    chemnaam=!line 1 of $chemrec
+	!endif
+    !endif
+    chemnaam=!nospace $chemnaam
+    verhouding=!line 11 of $chemrec
+    verh_pos=!item 1 of $verhouding
+    verh_neg=!item 2 of $verhouding
+    ions=!line 6 of $chemrec
+    ions=!replace internal -> by , in $ions
+    salt=!item 1 of $ions
+    ionpm=!item 2 of $ions
+    ionpm=!replace internal $ + $ by , in $ionpm
+    positive=!item 1 of $ionpm
+    negative=!item 2 of $ionpm
+    !if $verh_pos != 1
+	negative=!replace internal ^- by ^$verh_pos- in $negative
+    !endif
+    !if $verh_neg != 1
+	positive=!replace internal ^+ by ^$verh_neg+ in $positive
+    !endif
+    !if $p=1
+	#example
+	demonaam=$chemnaam
+        Tbody=!append line $ <tr><td>$chemnaam</td><td>$salt</td><td>$positive</td><td>$negative</td><td>$verh_pos:$verh_neg</td></tr> $ to $Tanswerbody
+    !else
+	Tbody=!append line $ <tr><td>$chemnaam</td><td>$input</td><td>$input</td><td>$input</td><td>$input</td></tr> $ to $Tbody
+        Tanswerbody=!append line $ <tr><td>$chemnaam</td><td>$salt</td><td>$positive</td><td>$negative</td><td>$verh_pos:$verh_neg</td></tr> $ to $Tanswerbody
+	answer$n=!append item $salt,$positive,$negative,$verh_pos:$verh_neg to $(answer$n)
+    !endif
+!next p
+
+exotext=!subst $Thead $Tbody </table>
+textanswer$n=!subst $Thead $Tanswerbody </table> 
+
+question$n=!record 71 of lang/remarks.$taal
+#@Vul de tabel in.<br />De eerste regel met $demonaam is gewoon een voorbeeldje...<br /><small>let op: ik kijk hoofdletter gevoelig na !!</small>
+!exit
+
+#:Sodium foshate  
+#Natrium fosfaat  
+#Na_{3}PO_{4}  
+#Na3 P1 O4  
+#163.951  
+#Na3PO4 -> Na^+ + PO4^-  
+#Na3PO4 -> 3Na^+ + PO4^3-  
+#Na_{3}PO_{4} \rightarrow Na^{+} + PO_{4}^{-} 
+#Na_{3}PO_{4} \rightarrow 3 Na^{+} + PO_{4}^{3-} 
+#Na3PO4_aq -> 3 Na^+_aq + PO4^3-_aq  
+#3,1
+
+# :Sodium chloride  
+# Natrium chloride  
+#  NaCl   
+# Na1 Cl1  
+# 58.4428  
+# NaCl -> Na^+ + Cl^-  
+# NaCl -> Na^+ + Cl^-  
+# NaCl \rightarrow Na^{+} + Cl^{-} 
+# NaCl \rightarrow Na^{+} + Cl^{-} 
+# ClNa_aq -> Cl^-_aq + Na^+_aq  
+# 1,1

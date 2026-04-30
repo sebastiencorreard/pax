@@ -1,0 +1,253 @@
+#:10 afstand tussen lijn en cirkel
+
+n=$counter
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $level=0
+ R=$counter
+!else
+ R=$level
+!endif
+
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+mathview=0
+math=0
+force_mathml=yes
+checkfile=$checkdir/new_number.proc
+calculator=2
+helptext=$empty
+make_tr=0
+mx=!randint 2,8
+my=!randint 2,8
+radius=!randint 2,10
+c=$[$radius*$radius]
+# punt ligt in Q2,Q3 of Q4
+keuze=!randint 1,3
+keuze=3
+!if $keuze=1
+ #Q2
+ x=!randint $[$mx-2*$radius],$[$mx - $radius - 1]
+ y=!randint 1,10
+ !if $y=$my
+  y=$[$y+1]
+ !endif
+ xmin=$[$x-5]
+ xmax=$[$mx+$radius+1]
+ ymin=$xmin
+ ymax=$[$my+$radius+1]
+ max=$[max($ymax,$xmax)]
+ xmax=$max
+ ymax=$max
+!else
+ !if $keuze=2
+  #Q3
+  x=!randint $[$mx-2*$radius],$[$mx - $radius - 1]
+  y=!randint -7,-1
+  xmin=$[$x-7]
+  xmax=$[$mx+$radius+1]
+  ymin=$xmin
+  ymax=$[$my+$radius+1]
+  max=$[max($ymax,$xmax)]
+  xmax=$max
+  ymax=$max
+ !else
+  #Q4
+  y=!randint $[$my-2*$radius],$[$my - $radius - 1]
+  x=!randint 1,10
+  !if $x=$mx
+   x=$[$x+1]
+  !endif
+  ymin=$[$y-6]
+  xmax=$[$mx+$radius+1]
+  xmin=$ymin
+  ymax=$[$my+$radius+1]
+  max=$[max($ymax,$xmax)]
+  xmax=$max
+  ymax=$max
+ !endif
+!endif
+cirkel=(x - $mx)^{2} + (y - $my)^{2} = $c
+dy=$[$my - $y]
+dx=$[$mx - $x]
+q=$[$dy*$y+$dx*$x]
+
+!if $dy=1
+ lijn= y + $dx*x = $q
+ lijnf= $dx*x+y - $q = 0
+ aaa=$dx
+ bbb=1
+ ccc=$[-1*$q]
+!else
+ !if $dy=-1
+  lijn= -y + $dx*x = $q
+  lijnf= $dx*x - y - $q = 0
+  aaa=$dx
+  bbb=-1
+  ccc=$[-1*$q]
+ !else
+  lijn=$dy*y + $dx*x = $q
+  lijnf= $dx*x+$dy*y - $q = 0
+  aaa=$dx
+  bbb=$dy
+  ccc=$[-1*$q]
+ !endif
+!endif
+
+!if $dx=1
+ lijn= $dy*y + x = $q
+ lijnf= x+$dy*y - $q = 0
+ aaa=1
+ bbb=$dy
+ ccc=$[-1*$q]
+!else
+ !if $dx=-1
+  lijn= $dy*y - x = $q
+  lijnf= -x + $dy*y - $q =0
+  aaa=-1
+  bbb=$dy
+  ccc=$[-1*$q]
+ !else
+ lijn=$dy*y + $dx*x = $q
+ lijnf= $dx*x + $dy*y - $q = 0
+ aaa=$dx
+ bbb=$dy
+ ccc=$[-1*$q]
+ !endif
+!endif
+
+lijn=!rawmath $lijn
+lijn=!texmath $lijn
+lijnf=!rawmath $lijnf
+lijnf=!texmath $lijnf
+ans=sqrt($dx*$dx+$dy*$dy) - $radius
+
+tot=!exec maxima sqrtdispflag:true;\
+$ans;\
+tex1($ans);
+# maxima tex1 produceerd "1 - \\frac{1}{2}" --> wims mathml wordt niks
+# maxima tex produceerd $$1 - \frac{1}{2}$$ --> wims: -\frac{1}{2}
+
+tot=!singlespace $tot
+answer$n=!word 2 of $tot
+tex_ans=!word 3 of $tot
+tex_ans=!replace internal " by $empty in $tex_ans
+tex_ans=!replace internal \\ by \ in $tex_ans
+
+tot=!exec pari A=-1*($dx)/($dy)\
+printtex(A)\
+B=($y)+($dx)*($x)/($dy)\
+printtex(B)\
+C=($dy)/($dx)\
+printtex(C)\
+D=($my) - (C)*($mx)\
+printtex(D)
+
+rc_tex=!line 2 of $tot
+q_tex=!line 4 of $tot
+loodlijn_rc=!line 5 of $tot
+loodlijn_rc_tex=!line 6 of $tot
+b=!line 7 of $tot
+b_tex=!line 8 of $tot
+
+!if $rounding<1
+ rans=$empty
+!else
+ rans=$[(round($rounding*($(answer$n))))/$rounding]
+ rans=\approx $rans
+!endif
+
+ss=!record 16 of lang/remarks.$taal
+#@Bereken de afstand tussen de cirkel <em>c</em> en de lijn <em>l</em>
+sometext=!record 17 of lang/remarks.$taal
+
+ 
+#@we herschrijven de lijn naar de vorm,
+#@de helling van de loodlijn door M op l,
+#@want,
+#@de formule van de loodlijn bepalen,
+#@middelpunt van de cirkel ligt op de loodlijn,
+#@M invullen,
+#@de loodlijn is,
+#@bereken het snijpunt S tussen de twee lijnen door de loodlijn te substitueren in lijn l,
+#@het snijpunt is,
+#@de afstand tussen M en S is,
+#@de afstand tussen de cirkel c en lijn l,
+#@straal
+
+teller=$[abs($aaa * $mx + $bbb * $my + $ccc)]
+noemer=$[($aaa)^2 + ($bbb)^2]
+breuk= \frac{$teller}{\sqrt{$noemer}}
+!if . isin $[$teller / ( sqrt($noemer))]
+ breuk= \frac{$teller}{\sqrt{$noemer}}
+ breukans = $breuk - $radius = $tex_ans $rans
+!else
+ breuk=\frac{$teller}{\sqrt{$noemer}} = $[$teller / ( sqrt($noemer))]
+ breuk1=$[$teller / ( sqrt($noemer))]
+ breukans =$breuk1  - $radius = $[$breuk1 - $radius]
+!endif
+
+#\color{red} d(P,l) = \frac{| ap + bq +c |}{ \sqrt{ a^{2} + b^{2}}} \; \textrm{ met }\; P(p,q) \;\textrm{ en } \; l: ax+by+c = 0
+
+formula$n=\left[ \begin{array}{ll} c_{1}: & $cirkel  \\ l: & $lijn   \\ d(l,c) &  =   \input{20}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0} \end{array}\right.
+rr=\left[ \begin{array}{l}  c_{1} $cirkel  \\ l: $lijn \\  \textrm{$(sometext[1]) : } \;\; y=ax+b \longrightarrow y = $rc_tex \cdot x + $q_tex \\ \textrm{$(sometext[2]) }  = $loodlijn_rc_tex \;\; (\textrm{$(sometext[3]) } \;\; $rc_tex  \cdot $loodlijn_rc_tex = -1  ) \\ \textrm{$(sometext[4]) : } \; y = $loodlijn_rc_tex \cdot x + b \\ \textrm{$(sometext[5]) : } \; M ($mx : $my) \\ \textrm{ $(sometext[6]) : }\; $my = $loodlijn_rc_tex \cdot $mx + b \rightarrow b = $b_tex \\ \textrm{ $(sometext[7]) : } \; y = $loodlijn_rc_tex \cdot x + $b_tex \\ \textrm{$(sometext[8]) : } \\ \textrm{$(sometext[9]) :  } \; S ($x : $y) \\ \textrm{$(sometext[10]) : } d(M,S) = \sqrt{($mx-$x)^{2} + ($my-$y)^{2}} = \sqrt{$[($dx)^2] + $[($dy)^2]}  = \sqrt{$[($dx)^2 + ($dy)^2]} \\ \textrm{$(sometext[11]) : } \\  d(M,S) - \textrm{$(sometext[12]) } = \sqrt{$[($dx)^2 + ($dy)^2]} - $radius = $tex_ans $rans \\ \; \\  \textrm{of mbv de formule:} \\ \color{red} d(P,l) = \frac{| ap + bq +c |}{ \sqrt{ a^{2} + b^{2}}} \; \textrm{ met }\; P(p,q) \;\textrm{ en } \; l: ax+by+c = 0 \\ \left[ \begin{array}{ll} c_{1} & $cirkel \longrightarrow  M($mx ; $my) \; \textrm{en} \; r=$radius \\ l: & $lijnf \end{array} \right. \\ d(M,l) = \frac{| $aaa \cdot $mx + $bbb \cdot $my + $ccc |}{ \sqrt{ ($aaa)^{2} + ($bbb)^{2}}} = $breuk \\ d(c,l) = $breukans \end{array} \right.
+texanswer$n=$rr
+
+loodlijn=!rawmath $loodlijn_rc*x+$b
+L=!rawmath ($q-($dx)*x)/$dy
+y1l=!evalsubst x=-500 in $L
+y2l=!evalsubst x=500 in $L
+
+klik=!record 63 of $remarkdir/commonremarks.$taal
+
+plaatje=!exec canvasdraw \
+size 300,300\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 200,200\
+frect -300,300,300,-300,white\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$mx,$my\
+fontfamily 18px Ariel\
+circles green,$mx,$my,$radius\
+string blue,$[$mx+0.5],$[$my+0.5],M\
+line -500,$y1l,500,$y2l,red\
+intooltip <span style="color:blue;font-style:italic">$klik</span>\
+zoom blue\
+mouse red,22
+
+
+object$n=!exec canvasdraw\
+size 300,300\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+vline 0,0,black\
+hline 0,0,black\
+linewidth 2\
+points red,$mx,$my\
+fontfamily 18px Ariel\
+circles green,$mx,$my,$radius\
+string blue,$[$mx+0.5],$[$my+0.5],M\
+line -500,$y1l,500,$y2l,red\
+string blue,$x+1,$y+1,S\
+point $x,$y,blue\
+dashed \
+curve blue,$loodlijn\
+zoom blue\
+mouse red,22
+
+
+question$n=$ss<br />$plaatje<br />
+
+!exit
+
+

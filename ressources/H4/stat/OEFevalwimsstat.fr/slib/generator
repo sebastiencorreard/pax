@@ -1,0 +1,37 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=decompose le deuxieme parametre en somme
+slib_parms=2\
+5,nombre de termes dans la somme\
+100,nombre a decomposer
+
+slib_author=Fabrice Guerimand
+slib_out=la liste des termes
+!exit
+!! first and last number are not zero.
+
+:proc
+!distribute item $wims_read_parm into s_nb,s_tot
+!bound s_nb between 3 and 10 default 5
+!default s_som=100
+s_v=!values v for v=1 to 7
+s_v=$s_v,$s_v
+s_v=!shuffle $s_v
+s_v=!item 1 to $s_nb of $s_v
+s_som=!replace internal , by + in $s_v
+s_som=$[$s_som]
+s_tot=$[$s_tot-2]
+slib_out=$empty
+!for s_k=1 to $s_nb-1
+  s_tmp=!item $s_k of $s_v
+  !if $s_k=1
+    s_tmp=$[ceil($s_tot*$s_tmp/$s_som)]
+  !else
+    s_tmp=$[floor($s_tot*$s_tmp/$s_som)]
+  !endif
+  slib_out=!append item $s_tmp to $slib_out
+!next s_k
+s_v=!replace internal , by + in $slib_out
+s_tmp=$[$s_tot-($s_v)+2]
+slib_out=$slib_out,$s_tmp

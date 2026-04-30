@@ -1,0 +1,345 @@
+!set title=Équilibré, oui ou non ? (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Georges Khaznadar
+email=georges.khaznadar@free.fr
+oefcss=<style> .valignBottom{ vertical-align: bottom; } .alignCenter{ text-align: center; } .td1{ text-align: center; border: 1px solid #99aadd; } .td2 { text-align: center; border: 1px solid #aa9988; } .monIntro {background-color:#ffffdd; border: 1px black solid;} .monIntroTR {background-color:#ffffdd; text-align: center;} .width60 {width:60%;} .chem {border:1px; background-color:#ffeecc;} .chem1 {background-color:#ffeecc;} .charge {background-color:#ddffdd;} .tt {font-family: monospace;} </style>
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=79
+prevarcnt=78
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if vide$val3 = vide 
+val3=data.txt
+!endif
+!if vide$val2 = vide 
+val6=
+!else
+!readproc slib/chemistry/chemeq_tex $(val2[1]) 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/chemistry/chemeq_tex $(val2[2]) 
+tmp0=$slib_out
+val8=$(tmp0)
+!if rightarrow isin $val7 and rightarrow isin $val8 
+val6=$(val2[1])
+val9=$(val2[2])
+!else
+tmp0=!randrecord $val3
+
+val10=$(tmp0)
+tmp0=!randitem 1,1,1,2,2
+
+val11=$[rint($(tmp0))]
+val6=$(val10[$val11])
+val9=$(val10[2])
+val12=<span style="color:#ffbb44;"><p>	      <b>Attention</b> : l'équation <span class="tt">$val2</span>	      n'est pas bien interprétée. Une autre équation a été	      choisie aléatoirement,	      sa syntaxe est : <span class="tt">$val6</span> </p></span>	    
+!endif
+!endif
+!if vide$val6 = vide 
+tmp0=!randrecord $val3
+
+val10=$(tmp0)
+tmp0=!randitem 1,1,1,2,2
+
+val11=$[rint($(tmp0))]
+val6=$(val10[$val11])
+val9=$(val10[$val11])
+!endif
+!readproc slib/chemistry/chemeq_equilibrium $val6 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val13[;1])
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val13[;2..-1])
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!itemcnt $(val13[1;])
+
+val15=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val13
+
+tmp0=!rowcnt $tmp
+val16=$[rint($(tmp0))]
+val17=$[rint(floor(($val16-2)/2))]
+val18=$[rint($val16-2-2*$val17)]
+tmp0=!positionof item % in $(val13[2;])
+
+val19=$[rint($(tmp0))]
+val20=$[rint($val19-1)]
+val21=$[rint($val15-$val19)]
+val22=$[rint($val19+1)]
+val23=
+val24=
+val25=
+val26=
+val27=
+val28=
+val29=
+val30=1
+val31=
+val32=
+val33=$[rint(1)]
+!for val34 =1 to $val17 
+val11=$[rint(1+$val34*2)]
+tmp0=!replace _.* by $val23 in $(val14[1;$val11])
+
+val24=$val24 $(tmp0),
+val25=$val25 $(val13[$val11;]);
+val31=$val31 r$val33,
+val32=$val32 le bilan pour $(val24[-2]) est équilibré,
+val33=$[rint($val33+1)]
+!next
+!if $val18 = 1 
+val31=$val31 r$val33,
+val35=$[rint($val33)]
+val33=$[rint($val33+1)]
+val32=$val32 le bilan des charges est équilibré,
+!endif
+val32=$val32 l'équation de réaction est équilibrée
+val36=$[rint($val33)]
+val31=$val31 r$val36
+!for val37 =4 to $val16 step 2 
+val26=$val26 $(val13[$val37;]);
+val38=$[rint(0)]
+!for val39 =1 to $val20 
+val38=$[rint($val38+$(val13[$val37;$val39]))]
+!next
+val40=$[rint(0)]
+!for val41 =$val22 to $val15 
+val40=$[rint($val40+$(val13[$val37;$val41]))]
+!next
+val27=$val27 $val38,
+val28=$val28 $val40,
+tmp0=!replace _.* by $val23 in $(val14[1;$val37])
+
+val42=$(tmp0)
+!if $val38=$val40 
+val29=$val29 1,
+!else
+val29=$val29 2,
+val30=2
+!endif
+!next
+!if $val18=1 
+val38=$[rint(0)]
+val40=$[rint(0)]
+!for val43 =1 to $val20 
+val38=$[rint($val38+($(val13[$val16;$val43])))]
+!next
+!for val44 =$val22 to $val15 
+val40=$[rint($val40+($(val13[$val16;$val44])))]
+!next
+val27=$val27 $val38,
+val28=$val28 $val40,
+!if $val38=$val40 
+val29=$val29 1,
+!else
+val29=$val29 2,
+val30=2
+!endif
+!endif
+val29=$val29 $val30,
+!readproc slib/chemistry/chemeq_tex $val6 
+tmp0=$slib_out
+val45=$(tmp0)
+oefsteps=$val31 
+nextstep=!nosubst $val31 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=$(val32[1])
+replygood1=$(val29[1]);oui,non
+replytype2=menu
+replyname2=$(val32[2])
+replygood2=$(val29[2]);oui,non
+replytype3=menu
+replyname3=$(val32[3])
+replygood3=$(val29[3]);oui,non
+replytype4=menu
+replyname4=$(val32[4])
+replygood4=$(val29[4]);oui,non
+replytype5=menu
+replyname5=$(val32[5])
+replygood5=$(val29[5]);oui,non
+replytype6=menu
+replyname6=$(val32[6])
+replygood6=$(val29[6]);oui,non
+replytype7=menu
+replyname7=$(val32[7])
+replygood7=$(val29[7]);oui,non
+replytype8=menu
+replyname8=$(val32[8])
+replygood8=$(val29[8]);oui,non
+replytype9=menu
+replyname9=$(val32[9])
+replygood9=$(val29[9]);oui,non
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12	<table class="monIntro"><tr><td>	 Voici une équation de réaction chimique 
+!insmath $val45
+$()	 <br>Vous devrez déterminer, élément par élément, si la matière	 est conservée, puis enfin si la réaction est équilibrée.	</td></tr></table>	<hr class="width60">	<table>	<!-- L'équation où on insère des + -->	<tr>	<th>Équation</th>	 
+!for m_i1=1 to $val20 
+$()	 
+!if $m_i1 > 1 
+$()<td>+</td> 
+!endif
+$()	 <td>
+!insmath {}$(val13[1;$m_i1]){}
+$()</td>	 
+!next
+$()	<td>
+!insmath \rightarrow
+$()</td>	 
+!for m_i2=$val22 to $val15 
+$()	 
+!if $m_i2 > $val22 
+$()<td>+</td> 
+!endif
+$()	 <td>
+!insmath {}$(val13[1;$m_i2]){}
+$()</td>	 
+!next
+$()	<td><br></td>	</tr>	<!-- Les coefficients stœchiométriques -->	<tr class="monIntroTR">	<th>Coefficients stœchiométriques</th>	 
+!for m_i3=1 to $val20 
+$()	 
+!if $m_i3 > 1 
+$()<td>&nbsp;</td> 
+!endif
+$()	  <td class="td1">	   $(val13[2;$m_i3])	  </td>	 
+!next
+$()	<td>&nbsp;</td>	 
+!for m_i4=$val22 to $val15 
+$()	 
+!if $m_i4 > $val22 
+$()<td>&nbsp;</td> 
+!endif
+$()	  <td class="td1">	    $(val13[2;$m_i4])	  </td>	 
+!next
+$()	<td>Équilibré&nbsp;?</td>	</tr>	 
+!for m_i5=1 to $val17 
+$()	  <!-- traitement de l'élément $(val24[$m_i5]) -->	  <tr>	    <th>molécularité de l'élément $(val24[$m_i5])</th>	     
+!for m_i6=1 to $val20 
+$()	      
+!if $m_i6>1 
+$()<td>&nbsp;</td> 
+!endif
+$()	      <td class="alignCenter">$(val25[$m_i5;$m_i6])</td>	     
+!next
+$()	    <td>&nbsp;</td>	     
+!for m_i7=$val22 to $val15 
+$()	      
+!if $m_i7>$val22 
+$()<td>&nbsp;</td> 
+!endif
+$()	      <td class="alignCenter">$(val25[$m_i5;$m_i7])</td>	     
+!next
+$()	    <td><br></td>	 </tr>	  <tr style="background:#ffddee;">	    <th>nombre d'atomes pour $(val24[$m_i5])</th>	     
+!for m_i8=1 to $val20 
+$()	      
+!if $m_i8>1 
+$()<td>+</td> 
+!endif
+$()	      <td class="td2">	        $(val26[$m_i5;$m_i8])	      </td>	     
+!next
+$()	    <td>=?</td>	     
+!for m_i9=$val22 to $val15 
+$()	      
+!if $m_i9>$val22 
+$()<td>+</td> 
+!endif
+$()	      <td class="td2">	        $(val26[$m_i5;$m_i9])	      </td>	     
+!next
+$()	    <td> 
+!read oef/embed.phtml r\i5 
+$()</td>	  </tr>	 
+!next
+$()	
+!if $val18=1 
+$()	 <tr style="background:#ddffdd;">	  <th>bilan des charges électriques</th>	   
+!for m_i10=1 to $val20 
+$()	    
+!if $m_i10>1 
+$()<td class="valignMiddle">+</td> 
+!endif
+$()	      <td class="td2">	        ( $(val13[-1;$m_i10]) )	      </td>	     
+!next
+$()	    <td class="valignMiddle">=?</td>	     
+!for m_i11=$val22 to $val15 
+$()	      
+!if $m_i11>$val22 
+$()<td class="valignMiddle">+</td> 
+!endif
+$()	      <td class="td2">	        ( $(val13[-1;$m_i11]))	      </td>	     
+!next
+$()	    <td class="valignMiddle"> 
+!read oef/embed.phtml r$val35 
+$()</td>	  </tr>	 
+!endif
+$()	</table>	<hr class="width60">	<table class="monIntro"><tr><td>	 Après examen on conclut que l'équation 
+!insmath $val45
+$() est équilibrée :  
+!read oef/embed.phtml r$val36 
+$()	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,15,17,18,20,22,24,25,26,35,36,45
+embedcnt=3

@@ -1,0 +1,125 @@
+checkfile=$checkdir/number.proc
+arglist=x
+math=1
+embed=1
+questiontype=0
+cols=20
+rows=2
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=2
+mathviewpanel=$module_title:x=:and:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()       
+exotitle=!record 18 of lang/remarks.$taal
+#@ Vergelijkingen met Exponenten (type x^a=b)
+question$n=!record 62 of lang/remarks.$taal
+#@ Los op:<br /><small><em>bereken dus de waarden van x</em><br />noteer bij meerdere oplossingen iets als:<br /><em>x</em>=1 en <em>x</em>=2/3 of zo...<br />en bij breuken graag het antwoord vereenvoudigen.</small>
+keuze=!randitem 0,1
+even=!randitem 0,1
+    
+!if $even=1
+    g=!randitem 4,6,8,10
+!else
+    g=!randitem 3,5,7,9	
+!endif
+
+!if $R=1
+    e=!randitem 1,2,3,4,5,6
+    c=!randitem 2,3,4
+    b=$[$c+$e]
+    a=$[$c^$g]
+    
+    !if $keuze=1
+	formula$n=\left( x + $b \right)^{\textstyle $g} = $a 
+	applettext=!nospace (x + $b)^$g = $a ->
+	!if $even=1
+    	    # (x+b)^4=c^4 => x+b=c V x+b=-c => x=c-b V x=-c-b
+	    answer$n=$[$c - $b],$[-1*($c+$b)]
+	    texanswer$n=\left[ \begin{array}{l} \left( x + $b \right)^{\textstyle $g} = $a = $c^{$g} \rightarrow \\  x + $b =$c \vee x + $b =-$c \rightarrow \\ x = $[$c - $b] \vee x = $[-1*($c+$b)] \end{array} \right.
+	!else
+    	    # (x+b)^3=c^3 => x+b=c => x=c-b
+	    answer$n=$[$c - $b]
+	    texanswer$n=\left[ \begin{array}{l} \left( x + $b \right)^{\textstyle $g} = $a = $c^{$g}  \rightarrow \\  x + $b =$c \rightarrow \\ x = $c -$b \rightarrow \\ x= $(answer$n) \end{array} \right.
+	!endif
+    !else
+	formula$n=\left(x - $b \right)^{\textstyle $g} = $a 
+	applettext=!nospace (x - $b)^$g = $a ->
+	!if $even=1
+    	    # (x-b)^4=c^4 => x-b=c V x-b=-c => x=c+b V x=b-c
+	    answer$n=$[$c + $b],$[$b-$c]
+	    texanswer$n=\left[ \begin{array}{l} \left(x - $b \right)^{\textstyle $g} = $a  = $c^{$g} \rightarrow \\ x - $b =$c \vee x - $b =-$c \rightarrow \\ x = $[$c + $b] \vee x = $[$b-$c] \end{array} \right.
+	!else
+    	    # (x-b)^3=c^3 => x-b=c => x=c+b
+	    answer$n=$[$c + $b]
+	    texanswer$n=\left[ \begin{array}{l} \left(x - $b \right)^{\textstyle $g} = $a  = $c^{$g} \rightarrow \\  x - $b = $c \rightarrow \\ x = $c +$b \rightarrow \\ x=$(answer$n) \end{array} \right.
+	!endif
+    !endif
+ !exit
+!endif 
+
+!if $R>1
+    e=!randitem 1,2,3,4,5,6
+    c=!randitem 2,3,4
+    d=!randitem 2,3,4,5
+    b=$[$c+$e]
+    a=$[$c^$g]
+    
+    !if $keuze=1
+	formula$n=\left( $d \cdot x + $b\right)^{\textstyle $g} = $a 
+	applettext=!nospace ($d*x + $b)^$g = $a ->
+	!if $even=1
+	    # (dx+b)^4=c^4 => dx+b=c V dx+b=-c => x=(c-b)/d V (-c-b)/d
+	    tot=!exec pari A=($c - $b)/($d)\
+	    B=-1*($c+$b)/($d)\
+	    printtex(A)\
+	    printtex(B)
+	    
+	    g1=!line 1 of $tot
+	    g2=!line 2 of $tot
+	    answer$n=$g1,$g2
+	    G1=!line 3 of $tot
+	    G2=!line 4 of $tot
+	    texanswer$n=\left[ \begin{array}{l} \left( $d \cdot x + $b\right)^{\textstyle $g} = $a  = $c^{$g} \rightarrow \\  $d \cdot x + $b = $c \vee $d \cdot x + $b = -$c \rightarrow \\  x = $G1 \vee x = $G2 \end{array} \right.
+	!else
+	    tot=!exec pari A=($c-$b)/$d\
+	    printtex(A)
+	    answer$n=!line 1 of $tot
+	    G1=!line 2 of $tot
+	    texanswer$n=\left[ \begin{array}{l} \left( $d \cdot x + $b\right)^{\textstyle $g} = $a  = $c^{$g} \rightarrow \\  $d \cdot x + $b = $c  \rightarrow \\  x= \frac{$c - $b}{$d} \rightarrow \\ x = $G1  \end{array} \right.
+	!endif
+    !else
+	formula$n=\left( $d \cdot x - $b \right)^{\textstyle $g} = $a 
+	applettext=!nospace ($d*x - $b)^$g = $a ->
+	!if $even=1
+	    # (dx-b)^4=c^4 => dx-b=c V dx-b=-c
+	    dx - b =-c => dx = -c +b  => x=(c+b)/d V (-1*c + b)/d
+	    tot=!exec pari A=($c + $b)/($d)\
+	    B=(-1*($c) + ($b))/($d)\
+	    printtex(A)\
+	    printtex(B)
+	    
+	    g1=!line 1 of $tot
+	    g2=!line 2 of $tot
+	    answer$n=$g1,$g2
+
+	    G1=!line 3 of $tot
+	    G2=!line 4 of $tot
+	    texanswer$n=\left[ \begin{array}{l} \left( $d \cdot x - $b \right)^{\textstyle $g} = $a = $c^{$g}  \rightarrow \\ $d \cdot x - $b = $c \vee $d \cdot x - $b = -$c \rightarrow \\ x = $G1 \vee x=$G2 \end{array} \right.
+	!else
+	    # (dx-b)^3=c^3 => dx-b=c => x=(c+b)/d 
+	    tot=!exec pari A=($c+$b)/($d)\
+	    printtex(A)
+	    
+	    answer$n=!line 1 of $tot
+	    G1=!line 2 of $tot
+	    texanswer$n=\left[ \begin{array}{l} \left( $d \cdot x - $b \right)^{\textstyle $g} = $a = $c^{$g}  \rightarrow \\ $d \cdot x - $b = $c \rightarrow \\ $d \cdot x = $c+$d \rightarrow \\ x = $G1 \end{array} \right.
+	!endif
+    !endif
+ !exit
+!endif 
+

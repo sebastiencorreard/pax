@@ -1,0 +1,135 @@
+# idential to exo16 ; now applet input fields
+n=$counter
+mathview=0
+image=0
+inputs=1,1
+make_tr=1
+viewlogo=1
+questiontype=7
+javascript=js/cheminput2.js
+checkfile=exos/checkfile5.proc
+math=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+datafile=docs/data3.def
+!if $options>4
+    options=4
+!endif
+
+!if $counter=1
+    var2=$empty
+    max=!recordcnt $datafile
+    !if $[$total_exos*$options] > $max
+	# niet meer vragen dan er data records zijn.
+	total_exos=$[floor($max/$options)]
+    !endif
+    !for p=1 to $max
+	var2=!append item $p to $var2
+    !next p
+    var2=!shuffle $var2
+    set=$empty
+    a=1
+    !for p=1 to $total_exos
+	s=!item $a to $[$a+$options] of $var2
+	set=!append line $s to $set
+	a=$[$a+$options]
+    !next p
+    var2=$set	
+!endif
+
+set=!line $counter of $var2 
+
+var1=!record 72 of lang/remarks.$taal
+#@naam zout,formule,+ ion,&minus; ion,+ ion : &minus; ion
+n1=!item 1 of $var1
+n2=!item 2 of $var1
+n3=!item 3 of $var1
+n4=!item 4 of $var1
+n5=!item 5 of $var1
+demoname=Tin(II)fosfaat
+Thead=<tr><th>$n1</th><th>$n2</th><th>$n3</th><th>$n4</th><th>$n5</th></tr><tr><th>$demoname</th><th><img src=$module_dir/gifs/exo16b.jpg alt=noalt /></th><th><img src=$module_dir/gifs/exo16c.jpg alt=noalt /></th><th><img src=$module_dir/gifs/exo16d.jpg alt=noalt /></th><th><img src="$module_dir/gifs/exo16e.jpg" alt="noalt" /></th></tr>
+Tbody=$empty
+Tanswerbody=$empty
+c=0
+options=1
+!for p=1 to $options
+    num=!item $p of $set
+    chemrec=!record $num of $datafile
+    !if $taal=en
+	chemnaam=!line 1 of $chemrec
+    !else
+	chemnaam=!line 2 of $chemrec
+	!if $taal=nl
+	    chemnaam=!item 1 of $chemnaam
+	!else
+	    # change this if translated to fr
+	    chemnaam=!line 1 of $chemrec
+	!endif
+    !endif
+    chemnaam=!nospace $chemnaam
+    verhouding=!line 11 of $chemrec
+    verh_pos=!item 1 of $verhouding
+    verh_neg=!item 2 of $verhouding
+    ions=!line 6 of $chemrec
+    ions=!replace internal -> by , in $ions
+    ans1=!item 1 of $ions
+    ionpm=!item 2 of $ions
+    ionpm=!replace internal $ + $ by , in $ionpm
+    ans2=!item 1 of $ionpm
+    ans3=!item 2 of $ionpm
+    !if $verh_pos != 1
+	ans3=!replace internal ^- by ^$verh_pos- in $ans3
+    !endif
+    !if $verh_neg != 1
+	ans2=!replace internal ^+ by ^$verh_neg+ in $ans2
+    !endif
+    ans4=$verh_pos:$verh_neg
+    # ans1=$salt
+    # ans2=$positive
+    # ans3=$negative
+    # ans4=$verh_pos:$verh_neg
+    textinput=<input size="7" style="font-size:18px;background-color:yellow;border:1px solid #ff0000;text-align:center" type="text" id="myinput$[$p-1]" value=""/>
+    appletinput1=<object id="MiniInputApplet$c" width="140" height="48" classid="java:MiniInputApplet.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_code" value="MiniInputApplet.class" /><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="ChemInput.jar" /><param name="applettext" value="" /><param name="fontsize" value="20" /><param name="pencolor" value="0,0,255,1" /><param name="bgcolor1" value="245,250,0,0.1" /><param name="bgcolor2" value="0,250,10,1.0" />$nojava</object>
+    appletinput2=<object id="MiniInputApplet$[$c+1]" width="140" height="48" classid="java:MiniInputApplet.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_code" value="MiniInputApplet.class" /><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="ChemInput.jar" /><param name="applettext" value="" /><param name="fontsize" value="20" /><param name="pencolor" value="0,0,255,1" /><param name="bgcolor1" value="245,250,0,0.1" /><param name="bgcolor2" value="0,250,10,1.0" />$nojava</object>
+    appletinput3=<object id="MiniInputApplet$[$c+2]" width="140" height="48" classid="java:MiniInputApplet.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_code" value="MiniInputApplet.class" /><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="ChemInput.jar" /><param name="applettext" value="" /><param name="fontsize" value="20" /><param name="pencolor" value="0,0,255,1" /><param name="bgcolor1" value="245,250,0,0.1" /><param name="bgcolor2" value="0,250,10,1.0" />$nojava</object>
+    appletinput4=<object id="MiniInputApplet$[$c+3]" width="140" height="48" classid="java:MiniInputApplet.class" type="application/x-java-applet;jpi-version=1.4" ><param name="java_code" value="MiniInputApplet.class" /><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="ChemInput.jar" /><param name="applettext" value="" /><param name="fontsize" value="20" /><param name="pencolor" value="0,0,255,1" /><param name="bgcolor1" value="245,250,0,0.1" /><param name="bgcolor2" value="0,250,10,1.0" />$nojava</object>
+    Tbody=!append word $ <tr><th>$chemnaam</th><th>$appletinput1</th><th>$appletinput2</th><th>$appletinput3</th><th>$textinput</th></tr> $ to $Tbody
+    Tanswerbody=!append word $ <tr><th>$chemnaam</th><th>$ans1</th><th>$ans2</th><th>$ans3</th><th>$ans4</th></tr> $ to $Tanswerbody
+    answer$n=!append item $ans1,$ans2,$ans3,$ans4 to $(answer$n)
+    c=$[c+4]
+!next p
+
+var9=!subst <table class="grid_table"> $Thead $Tbody </table>
+textanswer$n=<table> $Thead $Tanswerbody </table> 
+
+question$n=!record 71 of lang/remarks.$taal
+#@Vul de tabel in.<br />De eerste regel met <kbd>$demonaam</kbd> is gewoon een voorbeeldje...<br /><small>let op: ik kijk hoofdletter gevoelig na !!</small>
+!exit
+
+#:Sodium foshate 
+#Natrium fosfaat 
+#Na_{3}PO_{4} 
+#Na3 P1 O4  
+#163.951  
+#Na3PO4 -> Na^+ + PO4^- 
+#Na3PO4 -> 3Na^+ + PO4^3- 
+#Na_{3}PO_{4} \rightarrow Na^{+} + PO_{4}^{-} 
+#Na_{3}PO_{4} \rightarrow 3 Na^{+} + PO_{4}^{3-} 
+#Na3PO4_aq -> 3 Na^+_aq + PO4^3-_aq 
+#3,1
+
+# :Sodium chloride 
+# Natrium chloride 
+# NaCl  
+# Na1 Cl1  
+# 58.4428  
+# NaCl -> Na^+ + Cl^- 
+# NaCl -> Na^+ + Cl^- 
+# NaCl \rightarrow Na^{+} + Cl^{-} 
+# NaCl \rightarrow Na^{+} + Cl^{-} 
+# ClNa_aq -> Cl^-_aq + Na^+_aq 
+
+# 1,1

@@ -1,0 +1,143 @@
+target= ineqva1interv ineqva2interv
+#if defined TARGET_ineqva1interv
+\title{Inéquations du type \({|a x+b|}\leq c\) (intervalles)}
+#endif
+#if defined TARGET_ineqva2interv
+\title{Inéquations du type \({|a x+b|}\geq c\) (intervalles)}
+#endif
+\language{fr}
+\author{David Doyen}
+\email{david.doyen@u-pem.fr}
+
+\text{x=x}
+\text{lsymb={<},\leq,{>},\geq}
+\text{lnsymb={>},\geq,{<},\leq}
+\text{lcr=\(\lbrack\),\(\rbrack\)}
+
+
+#if defined TARGET_ineqva1interv
+\text{type=randint(1..2)}
+#endif
+#if defined TARGET_ineqva2interv
+\text{type=randint(3..4)}
+#endif
+
+\text{a=randint(1..9)}
+\integer{b=randitem(-1,1)*randint(1..9)}
+\text{c=randint(1..9)}
+\rational{val1=(-\c-\b)/\a}
+\rational{val2=(\c-\b)/\a}
+\if{\b>0}{
+\text{expr=randitem(\a*x+\b,\b+\a*x)}
+}{
+\text{expr=randitem(\a*x+\b,\b+\a*x,-\a*x-\b,-\b-\a*x)}
+}
+\text{symb=\lsymb[\type]}
+\text{nsymb=\lnsymb[\type]}
+\text{expr=texmath(\expr)}
+\text{ineq={|\expr|} \symb \c}
+\text{lval=\x1,\x2}
+
+#if defined TARGET_ineqva1interv
+\text{corr=\(\ineq\)<br>
+\(\Leftrightarrow -\c \symb \expr \symb \c\)<br>
+\(\Leftrightarrow \val1 \symb \x \symb \val2\)<br>
+}
+#endif
+#if defined TARGET_ineqva2interv
+\text{corr=\(\ineq\)<br>
+\(\Leftrightarrow \expr \symb \c\) &nbsp; ou &nbsp; \(-(\expr) \symb \c\)<br>
+\(\Leftrightarrow \x \nsymb \val1\) &nbsp; ou &nbsp; \(\x \symb \val2\)<br>
+}
+#endif
+
+
+% Les quatre types de réponses possibles
+% type 1 : \rbrack val1,val2 \lbrack
+% type 2 : \lbrack val1,val2 \rbrack
+% type 3 : \rbrack -inf,val1 \lbrack \cup \rbrack val2,+inf \lbrack
+% type 4 : \rbrack -inf,val1 \rbrack \cup \lbrack val2,+inf \lbrack
+
+\if{\type<=2}{
+\text{ninterv=1}
+\text{e=\val1}
+\text{f=\val2}
+\if{\type=1}{
+\text{ee=\rbrack}
+\text{ff=\lbrack}
+}{
+\text{ee=\lbrack}
+\text{ff=\rbrack}
+}
+\text{intsol=\ee \e, \f \ff}
+}
+
+\if{\type>=3}{
+\text{ninterv=2}
+\text{ee=\rbrack}
+\text{e=-inf}
+\text{f=\val1}
+\if{\type=3}{
+\text{ff=\lbrack}
+\text{gg=\rbrack}
+}{
+\text{ff=\rbrack}
+\text{gg=\lbrack}
+}
+\text{g=\val2}
+\text{h=+inf}
+\text{hh=\lbrack}
+\text{intsol=\ee -\infty, \f \ff \cup \gg \g, +\infty \hh}
+}
+
+\text{eee=\(\ee\)}
+\text{fff=\(\ff\)}
+\text{ggg=\(\gg\)}
+\text{hhh=\(\hh\)}
+
+% Enoncé
+
+\statement{Déterminer l'ensemble des réels \(x\) tels que \(\ineq\). Ecrire cet ensemble sous la forme d'un intervalle ou d'une réunion d'intervalles.<br class="spacer">
+<table><tr><td>\embed{reply1,20x30x1}</td><td>\embed{reply2,2}</td><td>,</td><td>\embed{reply3,2}</td><td>\embed{reply4,20x30x1}</td><td>\embed{reply5,20x30x1}</td><td>\embed{reply6,20x30x1}</td><td>\embed{reply7,2}</td><td>,</td><td>\embed{reply8,2}</td><td>\embed{reply9,20x30x1}</td></tr></table><br>
+<div class="wims_instruction"> Si la réponse est un unique intervalle, il faut utiliser les 4 premières zones de réponse et laisser les autres vides. Pour une borne égale à \(+\infty\), écrire <span class="tt">+inf</span> dans le champ de réponse correspondant. Pour une borne égale à \(-\infty\), écrire <span class="tt">-inf</span>.</div>
+}
+
+% Analyse de la réponse
+
+\answer{}{\eeer;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\er}{type=formal}{option=noanalyzeprint}
+\answer{}{\fr}{type=formal}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\fffr;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\unionr;\({\cup}\)}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\gggr;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\gr}{type=formal}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\hr}{type=formal}{option=noanalyzeprint default=&nbsp;}
+\answer{}{\hhhr;\lcr}{type=clickfill}{option=noanalyzeprint default=&nbsp;}
+
+\text{ok=0}
+\if{\ninterv=1}{
+\text{diffe=simplify(\er-\e)}
+\text{difff=simplify(\fr-\f)}
+\if{(\eee issametext \eeer) and (\diffe=0) and (\difff=0) and (\fff issametext \fffr) and (\unionr notsametext \({\cup}\))}{\text{ok=1}}
+}
+
+\if{\ninterv=2}{
+\text{diffe=simplify(\er-\e)}
+\text{difff=simplify(\fr-\f)}
+\text{diffg=simplify(\gr-\g)}
+\text{diffh=simplify(\hr-\h)}
+\if{(\eee issametext \eeer) and (\diffe=0) and (\difff=0) and (\fff issametext \fffr) and (\ggg issametext \gggr) and (\diffg=0) and (\diffh=0) and (\hhh issametext \hhhr) and (\({\cup}\) issametext \unionr)}{\text{ok=1}}
+\text{diffe=simplify(\er-\g)}
+\text{difff=simplify(\fr-\h)}
+\text{diffg=simplify(\gr-\e)}
+\text{diffh=simplify(\hr-\f)}
+\if{(\ggg issametext \eeer) and (\diffe=0) and (\difff=0) and (\hhh issametext \fffr) and (\eee issametext \gggr) and (\diffg=0) and (\diffh=0) and (\fff issametext \hhhr) and (\({\cup}\) issametext \unionr)}{\text{ok=1}}
+}
+
+\condition{Bonne réponse}{\ok=1}
+
+% Corrigé
+
+\feedback{1=1}{<br><div class="bold" style="color:gray">Correction</div>
+\corr
+L'ensemble des réels \(x\) tels que \(\ineq\) est donc l'intervalle \(\intsol\).}

@@ -1,0 +1,127 @@
+# ballenbak
+n=$counter
+
+#<object id="ballenbak" code="Plinko.class" codebase="$appletdir" archive="Plinko.jar" width="220" height="100" MAYSCRIPT>
+#    <param name="wims_exercise" value="1"/>
+#    <param name="xsize" value="400"/>
+#    <param name="ysize" value="400"/>
+#    <param name="fontsize" value="12"/>
+#    <param name="bins" value="$var1"/>
+#    <param name="chance" value="$var4"/>
+#    <param name="speed" value="$var3"/>
+#    <param name="title" value="Applet by Prof. P. Little"/>
+#    <param name="language" value="$taal"/>
+#    <param name="balls" value="$var2"/>
+#</object>
+!if $rounding <1
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+var3=1
+var4=0.5
+!if $level=0
+    !if $counter=1
+	options=3
+	# var2=balls
+	var2=!randint 20,50
+	var1=!randitem 6,7,8,9,10
+	lijst=1,2,3
+    !else
+	!if $counter=2
+	    lijst=1,2,3,4
+	    options=4
+	    var2=!randint 30,100
+	    var1=!randitem 6,7,8,9,10
+	!else
+	    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+	    var6=!randitem 1,2
+	    var7=!item $var6 of $telwoorden
+	    !if $counter=3
+		lijst=1,2,3,4,5
+		options=5
+		var2=!randint 300,800
+		var1=!randitem 9,10,11,12
+		var3=4
+		var5=10
+	    !else
+		lijst=1,2,3,4,6
+		options=5
+		var2=!randint 500,800
+		var1=!randitem 9,10,11,12
+		var3=4
+		var5=1000000
+	    !endif
+	!endif
+    !endif
+!else
+    !if $level=1
+	options=3
+	lijst=1,2,3
+	var2=!randint 20,50
+	var1=!randitem 6,7,8,9,10
+    !else
+	!if $level=2
+	    lijst=1,2,3,4
+	    options=4
+	    var2=!randint 30,100
+	    var1=!randitem 6,7,8,9,10
+	!else
+	    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+	    !if $level=3
+		lijst=1,2,3,4,5
+		options=5
+		var2=!randint 300,800
+		var1=!randitem 9,10,11,12
+		var3=4
+		# 1 decimaal
+		var5=10
+		var6=!randitem 1,2
+		var7=!item $var6 of $telwoorden
+	    !else
+		# var5 nauwkeurigheid rekenmachine
+		var5=1000000
+		var6=!randitem 1,2
+		var7=!item $var6 of $telwoorden
+		options=5
+		lijst=1,2,3,4,6
+		var2=!randint 500,800
+		var1=!randitem 9,10,11,12
+		var3=4
+	    !endif
+	!endif
+    !endif
+!endif
+
+vragen=!record 40 of lang/remarks.$taal
+# bins / bakjes
+xsize=$[$var1*25]
+ysize=200
+mathview=0
+answer$n=1
+rows=1
+questiontype=7
+javascript=js/plinko.nieuw.phtml
+checkfile=exos/checkfile3.proc
+math=0
+image=0
+inputs=yes
+datatable=$empty
+description=$empty
+!for p in $lijst
+    desc=!item $p of $vragen
+    description=!append item $desc to $description
+    datatable=!append line $ <tr><td>$desc</td><td>=</td><td><input id="myinput$[$p-1]" size="5" value="" class="schaersvoorde_input" /></td></tr> $ to $datatable
+!next p
+
+ss1=!record 46 of lang/remarks.$taal
+#@ In een <em>bord van Galton</wm> laat je $var2 knikkers vallen...<br />De kans voor een bal om naar links of rechts te gaan is $var4 <br />Voer het experiment in de <span style="color:blue">applet</span> uit.<br />Bepaal aan de hand van je resultaten :
+#helptext=!record 47 of lang/remarks.$taal
+#@ Deze Plinko Applet is gemaakt door Dr. P. Little<br />Zie voor meer statistische applets <a target=new href=http://www.math.psu.edu/dlittle/applets.html> zijn website</a><p>Let op: de applet stopt vanzelf met het werpen van de balletjes<br />als het aantal van $var2 balletjes is bereikt.<br />Meer balletjes laten vallen mag wel, minder mag niet...
+mp4=$module_dir/mp4/plinko.$var1.200.mp4
+!if $taal!=nl
+ mp4=http://wims.math.leidenuniv.nl/wims/$mp4
+# mp4=http://wims.math.leidenuniv.nl/wims/modules/H4/stat/stat-1.nl/mp4/plinko.$var1.200.mp4
+!endif
+question$n=<a onmouseover="return escape('<video width=\'400\' height=\'400\' controls ><source src=\'$mp4\' type=\'video/mp4\'>Your browser does not support the video tag.</video>')">$ss1</a>
+exotext=<table class="zebra_table_h2">$datatable</table>

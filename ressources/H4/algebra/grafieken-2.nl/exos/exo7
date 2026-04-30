@@ -1,0 +1,174 @@
+# spiegel in de y-as
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+mathview=5
+embed=1
+cols=20
+rows=2
+math=1
+arglist=g(x),y
+ss=!record 67 of lang/remarks.$taal
+#@De grafiek van <b>f</b> wordt gespiegeld in de <em>y-as</em><br />Geef het functievoorschrift van het spiegelbeeld<br /><small> noem de functie <b>g</b></small>
+exotext=!record 48 of lang/remarks.$taal
+#@<span style="color:blue">Hoe</span> vul ik het antwoord in?
+sometext=!record 69 of lang/remarks.$taal
+#@geef je antwoord in de vorm:<br /><textarea cols=20 rows=2>g(x)=sqrt(x-7) of y=-x^5+3x</textarea><br />
+exotext=<a onmouseover="return escape('$sometext')"><span class="schaersvoorde_link">$exotext</span></a>
+
+!if $R=1
+    keuze=!randitem 1,1,0
+    a=!randint 2,9
+    b=!randint 2,9
+    !if $a=$b
+	a=$[$a+1]
+    !endif
+    c=!randitem 3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    !if $keuze=1
+	var1=0
+	# pari checkt
+	functies=$a*x^2 $pm $b*x\
+	$a*x^2 $pm $b*x $mp $c\
+	(x $pm $a)/(x $mp $b)\
+	x/(x $mp $b)\
+	($c*x)/(x $mp $b)\
+	(x $pm $a)^$c  $mp $b\
+	(x $pm $a)^$c  $mp $b
+    !else
+	var1=1
+	# maxima checkt
+	functies=sqrt(x $pm $b) \
+	$c*sqrt(x $pm $b) \
+	sqrt(x $pm $b) \
+	sqrt(-x $pm $b) \
+	sqrt($c*x $pm $b) \
+	$c*sqrt($a*x $pm $b) \
+	sqrt(x)
+    !endif
+        
+    functie=!randline $functies
+    var2=$functie
+    # var2 is originele functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  subst(-x,x,$functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+    !goto KLAAR
+!endif
+
+!if $R=2
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    var1=1
+    #maxima checkt     
+    functies=$a*x^2 $pm $b*x\
+    $c*sqrt(x $pm $b) \
+    sqrt(-x $pm $b) \
+    sqrt($c*x $pm $b) \
+    $c*sqrt($a*x $pm $b) \
+    $a*log($c*x $pm $b)\
+    $a*log(x)\
+    $a*log(x $pm $b)\
+    $a*log(x $pm $b)\
+    (x $pm $a)^$c  $mp $b\
+    (x $pm $a)^$c  $mp $b\
+    $a^x\
+    $a^x $pm $b
+        
+    functie=!randline $functies
+    var2=$functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  subst(-x,x,$functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+    !goto KLAAR
+!endif
+
+!if $R=3
+    keuze=!randitem 1,1,0
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 2,3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    !if $keuze=1
+	var1=0
+	#pari checkt
+	functies=$a*x^3 $pm $b*x^2  $mp $c*x\
+	$a*x^4 $pm $b*x^3  $mp $c\
+	$a*x^5 $pm $b*x^3  $mp $c
+    !else
+	var1=1
+	#maxima checkt
+	functies=sqrt(x^2 $pm $b) \
+	sqrt(x^2 $pm $b*x)\
+	sqrt($b*x $pm x^2)
+    !endif
+    functie=!randline $functies
+    var2=$functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  subst(-x,x,$functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+    !goto KLAAR
+!endif
+
+!if $R>3
+    var1=0
+    #pari checkt
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 2,3,4,5,6
+    pm=!randitem +,-
+    mp=!randitem +,-
+    !if $keuze=1
+	var1=0
+	#pari checkt
+	functies=$a*x^3 $pm $b*x^2  $mp $c*x\
+	$a*x^4 $pm $b*x^3  $mp $c\
+	$a*x^5 $pm $b*x^3  $mp $c\
+    !else
+	var1=1
+	#maxima checkt
+	functies=sqrt(x^2 $pm $b) \
+	sqrt(x^2 $pm $b*x)\
+	$a*log(x^2 $pm $b)
+    !endif
+    
+    functie=!randline $functies
+    var2=$functie
+    formula$n=!texmath f(x)=$functie
+    tot=!exec maxima  subst(-x,x,$functie);
+    answer$n=!line 1 of $tot
+    texanswer$n=!texmath g(x)=$(answer$n)
+!endif
+
+:KLAAR
+mathviewpanel=$module_title:g(x)=:y=:x:+:-:*:/
+applettext=!nospace f(x)=$functie ->
+!if $teaching=1
+    insplot_set=terminal gif transparent ;size 0.6,0.6 ;grid ;xzeroaxis lt -1;yzeroaxis lt -1;autoscale ;xlabel "<x-axis>";ylabel"<y-axis>" ;border
+    !insplot  $functie notitle, $(answer$n) notitle
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\' />
+    image$n=$functie notitle, $(answer$n) notitle 
+    image=0
+    plot=1
+    draw=0
+    image_settings$n=terminal gif transparent ;size 0.6,0.6 ;grid ;xzeroaxis lt -1;yzeroaxis lt -1;autoscale ;xlabel "<x-axis>";ylabel"<y-axis>" ;border
+    
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+    helptext=$empty
+    question$n=$ss
+!endif
+    

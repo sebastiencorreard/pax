@@ -1,0 +1,154 @@
+!set n=$counter
+<script language="javascript" type="text/javascript">
+    !! reads the applet and sends the result to wims
+    !! the applet is NO REPLACEMENT FOR RAWMATH !!! it still needs some tweaking ...
+    !! foolproof is showmath.wims.phtml 
+    !! jm.evers 1/2/2007
+    function exitmathview(){
+	document.applets[0].destroy();
+	window.close();    
+    }
+    
+    function sendanswer() {	
+	var reply = document.applets[0].getLinear();
+	!! is needed, otherwise things go totally wrong
+	var reply= reply + "";
+	!! check on length...100 chars is limit !!
+	var max=reply.length;
+	if(max>100){var taal="$taal";if(taal=="nl"){alert("Je antwoord is onrealistisch lang...\n Ga ik niet nakijken !"); return;}else{alert("Your answer is unreal...\n I will not waste cpu time on this !"); return;}}
+	reply=reply.replace(/\ /g,'');
+	!! Replace unicode by something we can deal with
+	reply=reply.replace(/\u21D4/g,'<=>');
+	reply=reply.replace(/\u2192/g,'<=>');
+	!! get rid of faulty habits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+\</g,'<');
+	reply=reply.replace(/\>\+/g,'>');
+	reply=reply.replace(/\u221A/g,'sqrt');
+!!!!!!!!! SYNTAX NOT YET IMPLEMENTED IN PROC-FILES !!!!!!!!!!
+	reply=reply.replace(/\u221B/g,'sqrt[3]');
+	reply=reply.replace(/\u221C/g,'sqrt[4]');
+!!!!!!!!! SYNTAX NOT YET IMPLEMENTED IN PROC-FILES !!!!!!!!!!
+	reply=reply.replace(/\u221E/g,'inf');
+	reply=reply.replace(/\u2216/g,'\\');
+	!! inverse function...
+	reply=reply.replace(/\+\u00AF\u00B9/g,'^-1');
+	!! get rid of faulty habits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+\\\+/g,'\\');
+	reply=reply.replace(/\u007B/g,'{');
+	reply=reply.replace(/\u007D/g,'}');
+	reply=reply.replace(/\u22c0/g,'and');
+	reply=reply.replace(/\u22c1/g,'or');
+	reply=reply.replace(/\u2208/g,'isin');
+	reply=reply.replace(/\u2209/g,'notin');
+	!! get rid of faulty habbits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+and\+/g,'and');
+	reply=reply.replace(/\+or\+/g,'or');
+	reply=reply.replace(/\+isin\+/g,'isin');
+	reply=reply.replace(/\+notin\+/g,'notin');
+	reply=reply.replace(/and/g,'\nand\n');
+	reply=reply.replace(/or/g,'\nor\n');
+	reply=reply.replace(/isin/g,'\nisin\n');
+	reply=reply.replace(/notin/g,'\nnotin\n');
+	reply= encodeURIComponent( reply );
+	var URL = '$wims_ref_name?session=$myvar4&+module=$module&+cmd=reply&+reply$n='+reply ;
+	opener.location.href = URL;
+
+	document.applets[0].destroy();
+	window.close();
+    }
+
+    function showanswer() {
+	var taal="$taal";
+	var reply = document.applets[0].getLinear();
+	!! is needed, otherwise things go totally wrong
+	var reply= reply + "";
+	!! check on length...100 chars is limit !!
+	var max=reply.length;
+	if(max>100){var taal="$taal";if(taal=="nl"){alert("Je antwoord is onrealistisch lang...\n Ga ik niet nakijken !"); return;}else{alert("Your answer is unreal...\n I will not waste cpu time on this !"); return;}}
+	reply=reply.replace(/\ /g,'');
+	!! Replace unicode by something we can deal with
+	reply=reply.replace(/\u21D4/g,'<=>');
+	reply=reply.replace(/\u2192/g,'<=>');
+	!! get rid of faulty habits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+\</g,'<');
+	reply=reply.replace(/\>\+/g,'>');
+	reply=reply.replace(/\u221A/g,'sqrt');
+!!!!!!!!! SYNTAX NOT YET IMPLEMENTED IN PROC-FILES !!!!!!!!!!
+	reply=reply.replace(/\u221B/g,'sqrt[3]');
+	reply=reply.replace(/\u221C/g,'sqrt[4]');
+!!!!!!!!! SYNTAX NOT YET IMPLEMENTED IN PROC-FILES !!!!!!!!!!
+	reply=reply.replace(/\u221E/g,'inf');
+	reply=reply.replace(/\u2216/g,'\\');
+	reply=reply.replace(/\+\u00AF\u00B9/g,'^-1');
+	!! get rid of faulty habits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+\\\+/g,'\\');
+	reply=reply.replace(/\u007B/g,'{');
+	reply=reply.replace(/\u007D/g,'}');
+	reply=reply.replace(/\u22c0/g,'and');
+	reply=reply.replace(/\u22c1/g,'or');
+	reply=reply.replace(/\u2208/g,'isin');
+	reply=reply.replace(/\u2209/g,'notin');
+	!! get rid of faulty habits of Jome-applet : introducing a + sign
+	!!(at least I don't know how to correct this in java)
+	reply=reply.replace(/\+and\+/g,'and');
+	reply=reply.replace(/\+or\+/g,'or');
+	reply=reply.replace(/\+isin\+/g,'isin');
+	reply=reply.replace(/\+notin\+/g,'notin');
+	reply=reply.replace(/and/g,'\nand\n');
+	reply=reply.replace(/or/g,'\nor\n');
+	reply=reply.replace(/isin/g,'\nisin\n');
+	reply=reply.replace(/notin/g,'\nnotin\n');
+		
+	if(taal=="nl"){alert("Je antwoord wordt door WIMS gezien als:\n \n"+reply+"\n ");}
+	if(taal!="nl"){alert("Your answer will be read by WIMS as:\n \n"+reply+"\n");}
+    }
+</script>
+
+<table>
+    <td align="center">
+	<table>
+	    <td align="center">
+		<input type="button" style="background-color:lightgreen;font-weight:normal;font-size:14px;text-align:center;"  value="EXIT" onclick="javascript:exitmathview();"/>
+	    </td>
+	    <td align="center">
+	    !if $questiontype=0 and $inputs=1
+		!! only for 1 inputfield in freestyle answers
+		<input type="button" style="background-color:lightgreen;font-weight:normal;font-size:14px;text-align:center;"  value="SHOW WIMS VIEW" onclick="javascript:showanswer();"/>
+	    </td>
+	    <td align="center">
+		<input type="button" style="background-color:red;font-weight:normal;font-size:14px;text-align:center;"  value="$send" onclick="javascript:sendanswer();"/>
+	    !endif
+	    </td>
+	</table>
+    </td>
+    <tr>
+    <td align="center">
+	<applet id="MathView" code="MathView.class" codebase="$appletdir" archive="MathView.jar" width="320" height="300">
+	    <param name=bgcolor value="0xffff50">");
+	    !!<param name="bgcolor" value="0xffff96">
+	    !! will default to background color of html-page/element : not yet implemented
+	    <param name="largefont" value="24">
+	    <param name="smallfont" value="16">
+	    <param name="helptext" value="Experimental applet: use with caution">
+	    !! helptext : will also be used to signal wrong param's
+	    <param name="wimsvars" value="$varlist">
+	    !! declare varlist=x,y,z,s    or varlist=x y z s
+	    !if $mathviewpanel=$empty
+		<param name="my_panel" value="$module_title">
+	    !else
+		<param name="my_panel" value="$mathviewpanel">
+	    !endif
+	    !! syntax value=" title : specialbutton1 : specialbutton2 : specialbutton3 : specialbutton4"
+	    !! unicode does not work...yet?
+	    !! maximum number of functions=4 
+	    $nojava
+	</applet>
+    </td>
+</table>
+
+!exit

@@ -1,0 +1,106 @@
+!set n=$counter
+<script type="text/javascript">
+    function demomath() {
+    var myvar1=document.mathform.myvar1.value;
+    var myvar2=document.mathform.myvar2.value;
+    var myvar3=document.mathform.myvar3.value;
+    var myvar4="$myvar4";
+    myvar1= encodeURIComponent( myvar1 );
+    myvar2= encodeURIComponent( myvar2 );
+    myvar3= encodeURIComponent( myvar3 );
+    myvar4= encodeURIComponent( myvar4 );
+    var URL = '$wims_ref_name?session=$session&module=$module&cmd=help&+&showmath=1&+myvar1='+myvar1+'&+myvar2='+myvar2+'&+myvar3='+myvar3+'&+myvar4='+myvar4;
+    document.location.href = URL;
+    }
+</script>
+<form name="mathform">
+    !increase myvar2
+    !if $myvar3 != $empty
+	!set wims_texsize=$myvar3
+    !endif
+    !! myvar2 counts the number of calls to this file
+    !! no playing allowed: 5 times then it's "over"
+    <input type=hidden name=myvar2 value=$myvar2>
+	<table $paperbg cellpadding="2" width="70%" >
+	    <td valign="top" align="lef">
+	<a onmouseover="return escape('$mathchecktext')">
+		Tex Size:<br>
+		<select name="myvar3">
+		    <option value="0">0</option>
+		    <option value="+4">+4</option>
+		    <option value="+3">+3</option>
+		    <option value="+2">+2</option>
+		    <option value="+1">+1</option>
+		    <option value="-1">-1</option>
+		    <option value="-2">-2</option>
+		    <option value="-3">-3</option>
+		    <option value="-4">-4</option>
+		</select>
+		</a>
+	    </td>
+	    <tr>
+	    <td valign="middle" align="center" style="border:1px solid #ff0000">
+		!if $myvar1!=$empty
+		    !set myvar1=!nonempty line $myvar1
+		    !set l=!linecnt $myvar1
+		    !if $l=1
+			!set myvar1=!rawmath $myvar1
+			!set texvar=!texmath $myvar1
+		    !else
+			!set symbols= --->,-->,->,===>,==>,=>
+			!for s=1 to $l
+			    !set L=!line $s of $myvar1
+			    !set L=!rawmath $L
+			    !set m=!append line $L to $m
+			    !for p in $symbols
+				!set L=!replace internal $p by \rightarrow in $L
+			    !next p
+			    !set L=!texmath $L
+			    !set texvar=!append line $L \\  to $texvar
+			!next s
+			!set texvar=\begin{array}{l} $texvar \end{array}
+			!set myvar1=$m
+		    !endif
+		    !insmath $texvar
+		!endif
+	    </td>
+	    !if $myvar2 !=5
+		<tr>
+		<td align="center">
+		    <textarea style=$textareastyle wrap="off" cols=20 rows=1 name="myvar1">$myvar1</textarea>
+		</td>
+		<tr>
+		<td align="center">
+		    <table>
+			<td align="center">
+			    <input  onclick="javascript:demomath();" style="background-color:lightgreen;font-weight:normal;font-size:11px;text-align:center;" value="SHOW FORMULA">
+			</td>
+			<td align="center">
+	    		    <input  onclick="javascript:window.close();" style="background-color:lightgreen;font-weight:normal;font-size:11px;text-align:center;" value="EXIT">  
+			</td>
+		    </table>
+		    !if $questiontype=0 and $inputs=1
+		    !! dus alleen laten opsturen bij een enkel open antwoord
+			<script language="javascript" type="text/javascript">
+			    function sendanswer() {
+				var reply=document.mathform.myvar1.value;
+				reply= encodeURIComponent( reply );
+				var URL = '$wims_ref_name?session=$myvar4&+module=$module&+cmd=reply&+reply$n='+reply ;
+				opener.location.href = URL;
+				window.close();
+				}
+			</script>
+			<form name="inputmath">
+			    <input type="button" style="background-color:red;font-weight:normal;font-size:11px;text-align:center;"  value="$send" onclick="javascript:sendanswer();"/>
+			</form>
+		    !endif
+		</td>
+	    !else
+		<tr>
+		<td align="center">
+	    	    <input  onclick="javascript:window.close();" style="$mybuttonstyle" value="EXIT">  
+		</td>	    
+	    !endif
+	</table>
+</form>
+<script type="text/javascript" src="$jsdir/wz_tooltip.js"></script>

@@ -1,0 +1,154 @@
+!set title=Reconnaître une fonction linéaire 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!values v for v=2 to 20
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+!if $val8=1 
+val9=$(val7[1]),$(val7[1]),$(val7[1])
+!else
+tmp=!trim $(val7[1]),$(val7[2]),$(val7[3])	$(val7[1]),$(val7[2]),$(val7[2])
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+!endif
+val10=$(val7[4]),$(val7[5]),$(val7[6])
+tmp=!translate ";': to $     $ in $(val10[1])*$(val9[1])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val10[2])*$(val9[2])
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val10[3])*$(val9[3])
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val11=$(tmp0),$(tmp1),$(tmp2)
+val12=Soit \($val6\) une fonction dont certaines valeurs ont été portées dans le tableau ci-dessous :	 <table class="wimscenter wimsborder"><tr><th>x</th><td>$(val10[1])</td><td>$(val10[2])</td><td>$(val10[3])</td></tr>	 <tr><th>$val6(x)</th><td>$(val11[1])</td><td>$(val11[2])</td><td>$(val11[3])</td></tr></table>	 Cette fonction peut-elle être linéaire
+val13=Oui,Non
+val14=A,B,C,D,E,F,G,H
+tmp0=!item $val8 of $val13
+
+val8=$(tmp0)
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!positionof item $val8 in $val13
+
+val15=$(tmp0)
+val16=<ul>
+tmp0=!itemcnt $val13
+
+val17=$[rint($(tmp0))]
+!for val11 =1 to $val17 
+val16=$val16<li><b>$(val14[$val11])</b> : $(val13[$val11])</li>
+!next
+val16=$val16</ul>
+tmp0=!item $val15 of $val14
+
+val18=$(tmp0)
+tmp0=!item 1 to $val17 of $val14
+
+val19=$(tmp0)
+replytype1=menu
+replyname1=réponse
+replygood1=$val15;$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12 ? <br>	$val16	<p><b>Votre réponse :</b></p>	  <label for="reply1">Ma réponse est</label> :  
+!read oef/embed.phtml r1 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,16
+embedcnt=1

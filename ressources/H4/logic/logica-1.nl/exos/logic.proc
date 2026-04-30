@@ -1,0 +1,84 @@
+# only usable in chroot 29/11/2017
+# see H4/logic/locica-1.nl/exos/src
+
+goback=0
+score=0
+extra=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ !exit
+!endif
+
+AAA=!singlespace $(reply$n)
+GGG=!singlespace $(answer$n)
+maxima_string=$empty
+
+AAA=!replace internal empty by $ nil $ in $AAA
+GGG=!replace internal empty by $ nil $ in $GGG
+
+!for p in <->,<-->,<==>,<=>
+ AAA=!replace internal $p by @ in $AAA
+ GGG=!replace internal $p by @ in $GGG
+ AAA=!replace internal @@ by @ in $AAA
+ GGG=!replace internal @@ by @ in $GGG
+!next p
+# in orginele logic.lisp wordt 'eq' '\sim' ... vervangen door \Leftrightarrow !!
+AAA=!replace internal @ by $ eq $ in $AAA
+GGG=!replace internal @ by $ eq $ in $GGG
+
+!for p in ==>,=>, -->, ->
+ AAA=!replace internal $p by @ in $AAA
+ GGG=!replace internal $p by @ in $GGG
+ AAA=!replace internal @@ by @ in $AAA
+ GGG=!replace internal @@ by @ in $GGG
+!next p
+# in logic.list implies ... -> \Rightarrow
+AAA=!replace internal @ by $ implies $ in $AAA
+GGG=!replace internal @ by $ implies $ in $GGG
+
+
+test=!exec maxima load("logic/logic.lisp");\
+logic_equiv($AAA,$GGG);\
+tex1($AAA);
+
+!if ljad isin $test
+ !for p=1 to $total_exos
+  textanswer$p=<span style="color:red">this module requires a <b>chrooted wims server</b>...</span>
+ !next p
+ goback=0
+ counter=$total_exos
+ !exit
+!endif
+
+res=!line 2 of $test
+tex_res=!line 3 of $test
+tex_res=!replace internal " by $empty in $tex_res
+tex_res=!replace internal \\ by \ in $tex_res
+tex_res=!replace internal nil by $ \varnothing $ in $tex_res
+tex_res=!mathmlmath \Huge{$tex_res}
+!if true isin $res
+ maxscore=1
+!else
+ maxscore=0
+!endif
+
+!if $maxscore>0.9
+ remark$n=$OK
+!else
+ !if $maxscore>0.5
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+
+math=0
+reply$n=!append line $ <br />$tex_res $ to $(reply$n)
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit
+

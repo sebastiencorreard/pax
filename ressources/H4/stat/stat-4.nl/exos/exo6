@@ -1,0 +1,95 @@
+n=$counter
+mathview=0
+math=0
+cols=6
+make_tr=1
+!if $rounding<1
+    rounding=10000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=10
+inputs=1.1
+checkfile=$checkdir/new_number.proc
+var2=$rounding
+var1=$[1/(10*$rounding)]
+cursussen=!record 62 of lang/remarks.$taal
+cursus=!randitem $cursussen
+aantal=!randint 50,100
+perc=!randint 25,75
+kans=$[$perc/100]
+verwacht=$[round($kans*$aantal)]
+niet_kans=$[1-$kans]
+a=$[round($aantal/5)]
+aantal1=!randint $[$verwacht - $a],$[$verwacht + $a]
+aantal2=!randint $[$verwacht - $a],$[$verwacht -1 ]
+ss=$aantal personen nemen deel aan een cursus "$cursus".<br />\
+Gemiddeld is $perc % van de deelnemers aan die cursus succesvol.<br />\
+Stochast X geeft het aantal successen.
+description=<b>P</b>
+m_rightarrow=&asymp;
+ex1=$empty
+octave_precision=6
+!if $R=1
+    ss1=Hoe groot is de kans dat maximaal $aantal1 deelnemers succesvol zijn?
+    #binomiaal
+    answer$n=!exec octave binocdf($aantal1,$aantal,$kans)
+    !if $(answer$n)=NaN
+	answer$n=0
+	!for t=0 to $aantal1
+	    P=$[($kans^($t))*(($niet_kans)^($aantal - $t))*(factorial($aantal)/(factorial($t) * factorial($aantal - $t)))]
+	    answer$n=$[$(answer$n)+$P]
+	!next t
+    !endif
+    r_ans=$[(round($rounding*$(answer$n)))/$rounding]
+    textanswer$n=P(X &le; $aantal1 | n = $aantal , p = $kans) &asymp; $(answer$n) &asymp; $r_ans<br />Met de GRM:<ul><li>Texas Instruments (Ti84)<ul><li>binomcdf($aantal , $kans , $aantal1)</li></ul></li><li>Casio (fx-CG) <ul><li>Binomial C.D</li><li>Lower: 0</li><li>Upper: $aantal1</li><li>Numtrial: $aantal</li><li>P: $kans</li></ul></li></ul>
+!else
+    !if $R=2
+	ss1=Hoe groot is de kans dat minstens $aantal2 deelnemers succesvol zijn?
+	aantal5=$[$aantal2 - 1]
+	#binomiaal
+        ans=!exec octave binocdf($aantal5,$aantal,$kans)
+	!if $ans=NaN
+	    ans=0
+	    !for t=0 to $aantal5
+		P=$[($kans^($t))*(($niet_kans)^($aantal - $t))*(factorial($aantal)/(factorial($t) * factorial($aantal - $t)))]
+	        ans=$[$ans + $P]
+	    !next t
+	!endif
+	answer$n=$[1-$ans]
+	r_ans=$[(round($rounding*$(answer$n)))/$rounding]
+	textanswer$n=P(X &ge; $aantal2 | n = $aantal , p = $kans) = 1 - P(X &le; $aantal5 ) &asymp; $(answer$n) &asymp; $r_ans<br />Met de GRM:<ul><li>Texas Instruments (Ti84)<ul><li>1-binomcdf($aantal , $kans , $aantal5)</li></ul></li><li>Casio (fx-CG) <ul><li>Binomial C.D</li><li>Lower: $aantal2</li><li>Upper: $aantal</li><li>Numtrial: $aantal</li><li>P: $kans</li></ul></li></ul>
+    !else
+	aantal3=!randint $[$verwacht - $a],$[$verwacht -1]
+	aantal4=!randint $[$verwacht  + 1],$[$verwacht + $a]
+	aantal5=$[$aantal3 - 1]
+	ss1=Hoe groot is de kans dat minstens $aantal3 en hoogstens $aantal4 deelnemers succesvol zijn?
+	#binomiaal
+        ans1=!exec octave binocdf($aantal4,$aantal,$kans)
+	ans2=!exec octave binocdf($aantal5,$aantal,$kans)
+	!if $ans1=NaN or $ans2=NAN
+	    ans1=0
+	    ans2=0
+	    !for t=0 to $aantal5
+		P=$[($kans^($t))*(($niet_kans)^($aantal - $t))*(factorial($aantal)/(factorial($t) * factorial($aantal - $t)))]
+	        ans2=$[$ans2 + $P]
+	    !next t
+	    !for t=0 to $aantal4
+		P=$[($kans^($t))*(($niet_kans)^($aantal - $t))*(factorial($aantal)/(factorial($t) * factorial($aantal - $t)))]
+	        ans1=$[$ans1 + $P]
+	    !next t
+	!endif
+	answer$n=$[$ans1-$ans2]
+	r_ans=$[(round($rounding*$(answer$n)))/$rounding]
+	textanswer$n=P($aantal3 &le; X &le; $aantal4 | n = $aantal , p = $kans) = P(X &le; $aantal4) - P(X &le; $aantal5 ) &asymp; $(answer$n) &asymp; $r_ans<br />Met de GRM:<ul><li>Texas Instruments (Ti84)<ul><li>binomcdf($aantal , $kans , $aantal4) - binomcdf($aantal , $kans , $aantal5)</li></ul></li><li>Casio (fx-CG) <ul><li>Binomial C.D</li><li>Lower: $aantal3</li><li>Upper: $aantal4</li><li>Numtrial: $aantal</li><li>P: $kans</li></ul></li></ul>
+    !endif
+!endif
+question$n=<a onmouseover="return escape('<img src\'=$module_dir/gifs/exo6.png\' alt=\'noalt\'>')">$ss<br />$ss1</a>
+helptext=<img src=\'$module_dir/gifs/exo6.png\' alt=\'noalt\'>
+
+

@@ -1,0 +1,42 @@
+
+!if $atype<3
+ type=$atype
+!else
+ type=!randitem 1,2
+!endif
+lim   =!item $level of 1,1,3,4,4,4,4,4
+askcnt=!item $level of 3,4,4,4,5,5,6,8
+miss  =!item $level of no,no,no,no,no,yes,yes,no
+ch=!randint 1,$lim
+
+a=!randitem -5,-4,-3,3,4,5
+b=!randitem -5,-4,-3,3,4,5
+c=!randitem -5,-4,-3,3,4,5
+f=!rawmath $a*x^2+$b*x+$c
+f1=$f
+f2=!rawmath $a*x^2-$b*x+$c
+f3=!rawmath -$a*x^2-$b*x-$c
+f4=!rawmath -$a*x^2+$b*x-$c
+f5=!rawmath $a*x^2+$b*x-$c
+f6=!rawmath $a*x^2-$b*x-$c
+f7=!rawmath -$a*x^2-$b*x+$c
+f8=!rawmath -$a*x^2+$b*x+$c
+xrange=!random 1.2,2.2
+yrange=!random 7,15
+
+!if $miss=yes
+ asklist=!shuffle 8
+ asklist=!item 1 to $askcnt of $asklist
+!else
+ t1=!items 1 to $ch-1 of 1,2,3,4,5,6,7,8
+ t2=!items $ch+1 to 8 of 1,2,3,4,5,6,7,8
+ t1=!append item $t2 to $t1
+ l=!shuffle 7
+ l=!items $l of $t1
+ l=!items 1 to $askcnt of $ch,$l
+ t=!shuffle $askcnt
+ asklist=!items $t of $l
+!endif
+real=!positionof item $ch in $asklist
+
+status=waiting

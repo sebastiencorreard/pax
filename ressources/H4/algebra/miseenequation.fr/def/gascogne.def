@@ -1,0 +1,121 @@
+!set title=Gascogne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 9
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val8=$[rint($(tmp0)*($val6*$val7-$val6-$val7))]
+val9=$[rint($val8-1)]
+tmp0=!randint 1, $val9
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val8-$val10)]
+val12=$[($val11+$val10)*$val6*$val7/($val6*$val7-$val6-$val7)]
+
+!ifval $val2=1 
+val13= 
+!else
+val13=xx-large
+!endif
+replytype1=default
+replyname1=Montant initial
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  Un cadet de Gascogne dit à ses amis :	<p>	<em>J'ai dépensé $val10
+!if $val10=1 
+$()écu 
+!else
+$() écus 
+!endif
+$() de plus que le 1/$val6 du contenu de ma bourse et il me reste	$val11 écus de plus que le 1/$val7 de ce que j'avais en entrant dans la taverne.</em>	</p>	Combien avait-il en entrant&nbsp;?	<div class="spacer"><label for="reply1">Montant initial :</label>  
+!read oef/embed.phtml r1,3 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Soient 
+!insmath m
+$() le montant initial, 
+!insmath d
+$() la dépense à la taverne.	Nous avons le système suivant <div class="wimscenter">	 
+!insmath 	  \begin{cases}	  d &= $val10 + 1/$val6 \times m \\	 m - d &= $val11 + 1/$val7 \times m	\end{cases}	
+$()	</div>	Donc:<div class="wimscenter">	  
+!insmath m = ($val11+$val10)*$val6*$val7/($val6*$val7-$val6-$val7)
+$().	</div>	Et la solution de ce système est 
+!insmath m = $val12
+$().	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12
+embedcnt=1

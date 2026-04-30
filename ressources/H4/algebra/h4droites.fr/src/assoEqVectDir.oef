@@ -1,0 +1,138 @@
+\title{Vecteurs directeurs et équations}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Joachim Yaméogo}
+\email{yameogo@unice.fr}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=200}
+\text{dimv=200}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.2,medium,i
+text red,-0.5,0.7,medium,j
+text black,-0.5,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.5,-0.2,large,x
+text black,-0.5,\ymax-0.4,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication de quatre droites et de leur équation réduite ##
+\text{couleurs=shuffle(red,blueviolet,green,brown)}
+
+\integer{u1=random(-1,1)*random(1,2,3)}
+\integer{u2=random(-1,1)*random(1,2,3)}
+\text{w1=random(-3,-2,-1,1,2,3)}
+\text{dList=shuffle(-13,-8,-5,3,9,13)}
+\text{coeffDirList=}
+\for{k=1 to 3}{
+  \text{coeff=(\u2)/(\u1)+((\dList[\k])/((\w1)*(\u1)))}
+  \text{coeffDirList=wims(append item \coeff to \coeffDirList)}
+  }
+\text{coeff=(\u2)/(\u1)}
+\text{coeffDirList=wims(append item \coeff to \coeffDirList)}
+
+\matrix{vectList=}
+\for{k=1 to 4}{
+  \real{dil=random(-1,1)*random(11/4,3,13/4,7/2,15/4,4)}
+  \real{norm=sqrt(1+(\coeffDirList[\k])^2)}
+  \real{ox=0}
+  \real{oy=0}
+  \real{ox1=(\ox)+(\dil)/(\norm)}
+  \real{oy1=(\oy)+((\dil)*(\coeffDirList[\k]))/(\norm)}
+  \text{v=arrow \ox,\oy,\ox1,\oy1,10,\couleurs[\k]}
+  \matrix{vectList=\vectList
+          \v
+    }
+}
+
+
+\text{eqList=}
+\text{graphList=}
+\for{k=1 to 4}{
+  \integer{oxD=random((\xmin+2)..(\xmax-2))}
+  \integer{oyD=random((\ymin+2)..(\ymax-2))}
+  \text{f=maxima(expand((\coeffDirList[\k])*(x-(\oxD))+(\oyD));)}
+  \text{eq=\(texmath(y=\f))}
+  \text{eqList=wims(append item \eq to \eqList)}
+
+  \text{graph=
+      <img src="
+          draw(\dimh,\dimv
+          \cadre
+          \vectList[\k;]
+          )"
+          width="\dimh"
+          height="\dimv"
+    alt=""
+         >
+  }
+
+  \text{graphList=wims(append item \graph to \graphList)}
+}
+
+\text{size=\dimh}
+\text{taille=\size x\size x150}
+####### enoncé de l'exo #######
+\statement{
+<div class="affiche_pres">
+      Dans le plan muni d'un repère \((O,i,j)\), associez à chacun
+      des vecteur ci-dessous, l'équation d'une droite dont il est le vecteur
+      directeur.
+</div>
+<br>
+<div class="affiche_pres" style="text-align:center;">
+  \embed{reply 1,\taille}
+</div>
+}
+#### soumission de réponse ####
+\reply{Correspondance droite/equation}{\graphList;\eqList}{type=correspond}
+
+## Aide ou rappel ##
+\hint{
+  <br>
+  <p style="background-color:bisque;">
+    Les vecteurs directeurs de la droite d'équation \(y = a x + b) sont tous les vecteurs
+    du plan qui sont colinéaires au vecteur \(\vec{v}(1,a)).
+  </p>
+}

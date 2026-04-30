@@ -1,0 +1,53 @@
+!! Analyse de réponse dans ce fichier.
+
+!if $asktype!=2
+ (Va¹a izbira je ozna&#269;ena s <b>krepko pisavo</b>, pravilen odgovor pa z
+ <font color=blue>modro barvo</font>.)<p>
+!endif
+
+!if $good!=0
+ !if $test=yes
+  Va¹a izbira je pravilna.
+ !else
+  !if $asktype isin 1,2
+   Va¹a izbira je napa&#269;na.
+  !else
+   Graf premice, ki ste jo izbrali, bi bil tak¹en:
+   !for t in ba,ca
+    !set t$t=!item $good of $($(t)_list)
+   !next t
+   <p align="center">
+   !set ins_attr=alt="Graf izbrane premice"
+   !insplot [-$range:$range] [-$range:$range] ($tba)*x-($tca) notitle
+   </p>
+  !endif
+ !endif
+!else
+ !if $real>0
+  Ne dr¾i. Med ponujenimi odgovori je tudi pravi!
+ !else
+  Dr¾i. Med ponujenimi odgovori ni pravilnega.
+ !endif
+!endif
+
+!if $test=yes
+ <font color=green><b>Pravilen odgovor.</b></font>
+!else
+ <font color=red><b>Napa&#269;en odgovor.</b></font>
+!endif
+
+!if $status=next
+ (Vpra¹anje ¹tevilka $replycnt od $repeat)
+ <p>
+ !href cmd=next Nadaljuj z naslednjim vpra¹anjem.
+ Vseh vpra¹anj v nizu je $repeat. Oceno dobite ¹ele po zaklju&#269;ku niza.
+!else
+ !if $repeat>1
+  <p>
+ Zaklju&#269;ili ste z re¹evanjem niza vpra¹anj, za katere ste dobili skupno oceno
+  $module_score/10.
+ !else
+  Rezultat: $module_score/10.
+ !endif
+!endif
+<p>

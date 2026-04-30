@@ -1,0 +1,148 @@
+!set title=Association de demi-paraboles
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Régine, Mangeard
+email=regine@mangeard.fr
+language=fr
+
+ansorder=r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Dans le plan muni d'un repère orthonormé \((O,i,j)\),	  associez son graphe à chacune des fonctions ci-dessous
+val8=Correspondance graphe/fonction
+val9=Graphe
+val10=lightblue
+val11=xrange -2,2	yrange -2.5,2.5	gridfill 0,0,5,5,$val10	linewidth 3	vline 1,0,$val10	vline 2,0,$val10	vline -1,0,$val10	vline -2,0,$val10	hline 0,1,$val10	hline 0,2,$val10	hline 0,-1,$val10	hline 0,-2,$val10	linewidth 1	vline 0,0,black	hline 0,0,black	arrow 0,0,1,0,10,magenta	arrow 0,0,0,1,10,magenta	text red,0.7,-0.1,medium,i	text red,-0.2,0.7,medium,j	text black,-0.2,-0.1,medium,O	
+val12=-2,-1,1,2
+val13=-3/2,-1,-1/2,0,1/2,1,3/2
+val14=-1,-3/4,-1/2,-1/4,0,1/4,1/2,3/4,1
+val15=
+!for val16  in $val12 
+!for val17  in $val13 
+!for val18  in $val14 
+val19=($val16)*sqrt(x-($val17))+$val18
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+!next
+!next
+!next
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+tmp0=!shuffle 4
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$[rint($(tmp0))]
+tmp0=!item 2 of $val20
+
+val22=$[rint($(tmp0))]
+tmp0=!item 3 of $val20
+
+val23=$[rint($(tmp0))]
+tmp0=!item 4 of $val20
+
+val24=$[rint($(tmp0))]
+val25=
+!for val26 =1 to 4 
+val27=$(val15[$val26])
+t_=!replace internal \( by ( in $val27
+tmp0=!exec maxima $t_
+
+val27=$(tmp0)
+tmp0=!texmath $val27
+
+val27=\($(tmp0))
+tmp0=!append item $val27 to $val25
+
+val25=$(tmp0)
+!next
+tmp0=!shuffle red,blue,orange,green
+
+val28=$(tmp0)
+val29=160
+val30=
+!for val26 =1 to 4 
+!readproc oef/draw.phtml $val29,$val29 \
+    $val11	    range $val17,2	    plot $(val28[$val26]),$(val15[$val26])	     
+tmp0=$ins_url
+val31=<img src=	    "$(tmp0)"	    width="$val29"	    height="$val29"	    alt="">	    
+tmp0=!append item $val31 to $val30
+
+val30=$(tmp0)
+!next
+val32=$val29 x$val29 x$val29
+replytype1=correspond
+replyname1=$val8
+replygood1=$val30;$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7	<div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val32 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,32
+embedcnt=1

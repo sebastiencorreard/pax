@@ -1,0 +1,178 @@
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+helptext=$empty
+cols=14
+make_tr=1
+rows=2
+inputs=2
+mathview=0
+checkfile=$checkdir/number.proc
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+vaas=!record 62 of lang/remarks.$taal
+vaas=!randitem $vaas
+ballen=!record 63 of lang/remarks.$taal
+ballen=!randitem $ballen
+!if $rounding <10
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+!if $R=1
+    # sigma en E(X)
+    A=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21
+    A=!shuffle $A
+    b=!randitem 6,7,8,9
+    aantal_b=!item $b of $telwoorden
+    lijst=$empty
+    som=0
+    a=$empty
+    !for p=1 to $b
+	z=!item $p of $A
+	a=!append item $z to $a
+    !next p
+    a=!sort numeric list $a
+    !for p=1 to $b
+	a$p=!item $p of $a
+	som=$[$som+$(a$p)]
+	lijst=!append item $(a$p) to $lijst
+    !next p
+    latexlijst=!replace internal , by + in $lijst
+    Ex=$[$som/$b]
+    Ex_rnd=$[(round($rounding*$Ex))/$rounding]
+    sum=0
+    latexsum=$empty
+    !for p=1 to $b
+	sum=$sum + ($(a$p)-$Ex)^2
+	latexsum=!append item \left( $(a$p)-E(X) \right)^{2} to $latexsum
+    !next p
+    latexsum=!replace internal , by + in $latexsum
+    sigma=$[sqrt(($sum)/$b)]
+    sigma_rnd=$[(round($rounding*$sigma))/$rounding]
+    formula$n=$empty
+    ss=!record 99 of lang/remarks.$taal
+    question$n=$ss
+    #@ In een $vaas zitten $aantal_b $ballen , genummerd:<table cellpadding=9 style=""$textareastyle"" ><td><span style="color:red"><kbd>$lijst</kbd></span></td></table><span size=+1><kbd>X</kbd></span> is het getrokken nummer bij een trekking.<br />Hoe groot is de <em>verwachtingswaarde</em> van de toevalsvariabele (<em>Stochast</em>) <span size=+1><kbd>X</kbd></span>?<br />en hoe groot is de <em>Standaard afwijking</em> $m_sigma ?
+    answer$n=$Ex,$sigma
+    in1=!record 100 of lang/remarks.$taal
+    #@ Verwachtingswaarde E(X) :
+    in2=!record 101 of lang/remarks.$taal
+    #@ Standaard afwijking $m_sigma :
+    description=$in1,$in2
+
+    tekstanswer$n=$empty
+    texanswer$n=\left[ \begin{array}{l} E(X)\,=\,\frac{$latexlijst}{$b} \,=\, \frac{$som}{$b} \simeq $Ex \simeq $Ex_rnd \\ \\ \sigma(X)\,=\,\sqrt{ \left( \frac{ $latexsum}{$b} \right) } \simeq $sigma \simeq $sigma_rnd \end{array} \right.
+ !exit
+!endif
+
+!if $R=2
+    # de som van stochast X
+    A=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+    A=!shuffle $A
+    b=!randitem 6,7,8,9
+    c=!randitem 3,4,5,6,7,8,9
+    aantal_b=!item $b of $telwoorden
+    aantal_c=!item $c of $telwoorden
+    lijst=$empty
+    som=0
+    a=$empty
+    !for p=1 to $b
+	z=!item $p of $A
+	a=!append item $z to $a
+    !next p
+    a=!sort numeric list $a
+    !for p=1 to $b
+	a$p=!item $p of $a
+	som=$[$som+$(a$p)]
+	lijst=!append item $(a$p) to $lijst
+    !next p
+    latexlijst=!replace internal , by + in $lijst
+    Ex=$[$som/$b]
+    Es=$[$c*$Ex]
+    Es_rnd=$[(round($rounding*$Es))/$rounding]
+    Ex_rnd=$[(round($rounding*$Ex))/$rounding]
+    sum=0
+    latexsum=$empty
+    !for p=1 to $b
+	sum=$sum + ($(a$p)-$Ex)^2
+	latexsum=!append item \left( $(a$p)-E(X) \right)^{2} to $latexsum
+    !next p
+    latexsum=!replace internal , by + in $latexsum
+    sigma=$[sqrt(($sum)/$b)]
+    sigma_rnd=$[(round($rounding*$sigma))/$rounding]
+    sigma_s=$[$sigma*sqrt($c)]
+    sigma_s_rnd=$[(round($rounding*$sigma_s))/$rounding]
+    formula$n=$empty
+    ss=!record 102 of lang/remarks.$taal
+    question$n=$ss
+    #@ In een $vaas zitten $aantal_b $ballen , genummerd:<table cellpadding=9 style=""$textareastyle"" ><td><span style="color:red"><kbd>$lijst</kbd></span></td></table>Jij trekt uit de $vaas $aantal_c $ballen <em>met terugleggen</em>.<br />S is de som van de $aantal_c getrokken nummers.<br />Hoe groot is de <em>verwachtingswaarde</em> van de toevalsvariabele <span size=+1><kbd>S</kbd></span>?<br />en hoe groot is de <em>Standaard afwijking</em> $m_sigma ?
+    answer$n=$Es,$sigma_s
+    in1=!record 103 of lang/remarks.$taal
+    #@ Verwachtingswaarde E(S) :
+    in2=!record 101 of lang/remarks.$taal
+    #@ Standaard afwijking $m_sigma :
+    description=$in1,$in2
+
+    tekstanswer$n=$empty
+    texanswer$n=\left[ \begin{array}{l} E(S)\,=\,$c \cdot E(X) \rightarrow E(S) \simeq  $c \cdot $Ex \simeq $Es \\ \\ \sigma(S)\,=\, \sqrt{ $c } \cdot \sigma(X) \rightarrow \sigma(S) \simeq \sqrt{$c} \cdot $sigma \simeq $sigma_s \simeq $sigma_s_rnd \end{array} \right.
+ !exit
+!endif
+
+
+!if $R>2
+    # gemiddelde
+    A=2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26
+    A=!shuffle $A
+    b=!randitem 6,7,8,9
+    c=!randitem 3,4,5,6,7,8,9
+    aantal_b=!item $b of $telwoorden
+    aantal_c=!item $c of $telwoorden
+    lijst=$empty
+    som=0
+    a=$empty
+    !for p=1 to $b
+	z=!item $p of $A
+	a=!append item $z to $a
+    !next p
+    a=!sort numeric list $a
+    !for p=1 to $b
+	a$p=!item $p of $a
+	som=$[$som+$(a$p)]
+	lijst=!append item $(a$p) to $lijst
+    !next p
+    latexlijst=!replace internal , by + in $lijst
+    Ex=$[$som/$b]
+    Ex_rnd=$[(round($rounding*$Ex))/$rounding]
+    sum=0
+    latexsum=$empty
+    !for p=1 to $b
+	sum=$sum + ($(a$p)-$Ex)^2
+	latexsum=!append item \left( $(a$p)-E(X) \right)^{2} to $latexsum
+    !next p
+    latexsum=!replace internal , by + in $latexsum
+    sigma=$[sqrt(($sum)/$b)]
+    sigma_rnd=$[(round($rounding*$sigma))/$rounding]
+    sigma_s=$[$sigma/(sqrt($c))]
+    sigma_s_rnd=$[(round($rounding*$sigma_s))/$rounding]
+    formula$n=$empty
+    ss=!record 104 of lang/remarks.$taal
+    question$n=$ss
+    #@ In een $vaas zitten $aantal_b $ballen , genummerd:<table cellpadding=9 style=""$textareastyle"" ><td><span style="color:red"><kbd>$lijst</kbd></span></td></table>Jij trekt uit de $vaas $aantal_c $ballen <em>met terugleggen</em>.<br />is het gemiddelde van de $aantal_c getrokken nummers.<br />Hoe groot is de <em>verwachtingswaarde</em> van de toevalsvariabele <img src=$module_dir/gifs/barX.gif/> ?<br />en hoe groot is de <em>Standaard afwijking</em>?
+    answer$n=$Ex,$sigma_s
+    in1=!record 105 of lang/remarks.$taal
+    #@ Verwachtingswaarde <img src=$module_dir/gifs/EbarX.gif/>
+    in2=!record 106 of lang/remarks.$taal
+    #@ Standaard afwijking <img src=$module_dir/gifs/sigma_barX.gif/>
+    description=$in1,$in2
+    tekstanswer$n=$empty
+    embed=1
+    #in1=verwachtingswaarde
+    formula$n=\left[ \begin{array}{l}\textrm{$in1}\:\: \bf{E} \left( \overline{X}\right) = [?] \\ \textrm{$in2}\:\: \sigma \left( \overline{X}\right)  = [?] \end{array} \right.
+    texanswer$n=\left[ \begin{array}{l} E\left( \overline{X}\right )\,=\,E(X) \rightarrow  E\left( \overline{X}\right )=$Ex \simeq $Ex_rnd \\ \\ \sigma(\overline{x})\,=\, \frac{ \sigma(X)}{\sqrt{$c}} \rightarrow \sigma(\overline{X}) \simeq \frac{$sigma}{\sqrt{$c}} \simeq $sigma_s \simeq $sigma_s_rnd \end{array} \right.
+ !exit
+!endif
+

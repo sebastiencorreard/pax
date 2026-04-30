@@ -1,0 +1,271 @@
+n=$counter
+# er zijn maar 2 vragen
+
+#30 Prijsdiscriminatie
+#viewlogo=1
+#logotext=<img src=$module_dir/gifs/vergrijzing$pl.jpg alt=vergrijzing />
+#logo=<img src=$module_dir/gifs/vergrijzing.jpg alt=vergrijzing />
+!if $counter=1
+    make_tr=1
+    rounding=1
+    applet=1
+    mathview=0
+    calculator=1
+    inputs=1.1
+    cols=5
+    checkfile=exos/checkfile2.proc
+    math=0
+    questiontype=0
+    total_exos=2
+    lijst=20:1/2:1/4,30:1/2:1/3,40:1/2:1/4,50:1/2:1/2,60:1/2:1/3,60:1/3:1/3,70:1/2:1/2,80:1/2:1/4
+    k=!randint 1,8
+    lst=$(lijst[$k])
+    lst=!replace internal : by , in $lst
+    x1=$(lst[1])
+    r=!randint 2,3
+    b1=$(lst[$r])
+    b2=!randint 1,2
+    c=!randint 1,3
+    c=$[10*$c]
+    a=$[$x1*$b2+$c]
+    euromax=$[$a-($b1)*$x1]
+    xmax=$[$a/($b1)]
+    !if $xmax > 400
+	xmajor=80
+	xminor=20
+	xmin=-80
+	xmax=$[$xmax+15]
+    !else
+	!if $xmax > 250
+	    xmajor=40
+	    xminor=10
+	    xmin=-40
+	    xmax=$[$xmax+15]
+	!else
+	    !if $xmax > 150
+		xmajor=20
+		xminor=5
+		xmin=-20
+		xmax=$[$xmax+5]
+	    !else
+		xmajor=10
+	        xminor=5
+		xmin=-10
+	        xmax=$[$xmax+5]
+	    !endif
+	!endif
+    !endif
+    !if $a < 60
+	ymax=$[$a+7.5]
+        ymajor=5
+        yminor=2.5
+        ymin=-5
+    !else
+	!if $a < 120
+	    ymax=$[$a+15]
+	    ymajor=10
+	    yminor=5
+	    ymin=-10
+	!else
+	    ymax=$[$a+25]
+	    ymajor=20
+	    yminor=5
+	    ymin=-20
+	!endif
+    !endif
+    xsize=600
+    ysize=400
+    # vraag 1
+    description=Omzet die hoort by maximale winst monopolist
+    ex1=&euro;
+    m_rightarrow=&nbsp;=&nbsp;
+    object$n=!exec canvasdraw\
+    size $xsize,$ysize\
+    precision 1\
+    xrange $xmin,$xmax\
+    yrange $ymin,$ymax\
+    fontsize 16\
+    fontfamily bold italic 16px Ariel\
+    axis\
+    axisnumbering\
+    xlabel aantal       \
+    ylabel \u20AC \
+    opacity 120,120\
+    legend MK:GO:MO\
+    legendcolors green:blue:red\
+    grid $xmajor,$ymajor,black,4,4,10,blue\
+    fontfamily bold 18px Ariel\
+    linewidth 2\
+    ftriangle 0,$euromax,$x1,$euromax,0,$a,lightgreen\
+    ftriangle $x1,$c,$[($a-$c)/($b1)],$c,$x1,$euromax,pink\
+    linewidth 3\
+    dashtype 4,4\
+    frect 0,$c,$x1,$euromax,yellow\
+    opacity 255,120\
+    segment 0,$a,$[$a/($b1)],0,blue\
+    segment 0,$a,$[$a/($b2)],0,red\
+    segment 0,$c,$[$a/($b1)],$c,green\
+    dsegment $x1,0,$x1,$[$a-$b1*$x1],red\
+    dsegment 0,$euromax,$x1,$euromax,red\
+    point $x1,$c,black\
+    #text $[7*$q],$p,ariel,14,MK = GTK = euro  $p,black\
+    #arrow $[6*$q],$[2.5*$p],$[6*$q],$[$p+0.2*$p],0.15,red,180,2\
+    #arrow $[4*$q],$[4.5*$p],$[4*$q],$[3*$p+0.2*$p],0.15,red,180,2\
+    #arrow $[3*$q],$[5.5*$p],$[3*$q],$[4*$p+0.2*$p],0.15,red,180,2\
+    string green,$[($a - $c)/($b1)],1.1*$c,MK\
+    string blue,$[0.9*($a/($b1)-$xminor)],$[0.8*$yminor],GO\
+    string red,$[$a/($b2)+0.5*$xminor],$yminor,MO \
+    mouse blue,34
+    
+    answer$n=$[$euromax*$x1]
+    #var1=$[$euromax*$x1 - $euromax*(x1-0.25*$xminor)]
+    var1=$[$euromax*$x1 - ($euromax - 0.2*$yminor)*($x1-0.2*$xminor)]
+    var2=1
+    checkfile=$checkdir/new_number.proc
+    
+    ss=Van een monopolist zijn de volgende gegevens af te lezen in grafiek.<br />Bereken de omzet die hoort bij de maximale winst van de monopolist. 
+    question$n=<a onmouseover="return escape('De muis geeft de co&ouml;rdinaten weer in de grafiek')">$ss</a
+    textanswer$n=Af te lezen in de grafiek: <ul><li>Maximale winst bij MO = MK</li><li>x-as (aantal) = $x1 </li><li>y-as (&euro;) = $euromax &euro;</li><li>Omzet bij maximale winst is dan : $euromax &times; $x1 = $(answer$n) </li></ul>
+
+ !exit
+!endif
+
+
+!if $counter=2
+    make_tr=1
+    rounding=1
+    applet=1
+    mathview=0
+    calculator=1
+    inputs=1.1
+    cols=5
+    checkfile=exos/checkfile2.proc
+    math=0
+    questiontype=0
+    total_exos=2
+    lijst=80:1/2:1/4,90:1/2:1/3,100:1/2:1/5,120:1/2:1/3,120:1/3:1/4,140:1/2:1/7,150:1/3:1/5
+    k=!randint 1,7
+    lst=$(lijst[$k])
+    lst=!replace internal : by , in $lst
+    a=$(lst[1])
+    r=!randint 2,3
+    b1=$(lst[$r])
+    b2=1
+    c=!randint 1,3
+    c=$[10*$c]
+    tussen=$[$a-$c]
+    p1=$[10*(round(0.1*($c+2/3*$tussen)))]
+    p2=$[10*(round(0.1*($c+1/3*$tussen)))]
+    x1=$[($a-$p1)/($b1)]
+    x2=$[($a-$p2)/($b1)]
+    xmax=$[$a/($b1)]
+!if $xmax > 400
+    xmajor=80
+    xminor=20
+    xmin=-80
+    xmax=$[$xmax+15]
+!else
+    !if $xmax > 250
+	xmajor=40
+	xminor=10
+	xmin=-40
+	xmax=$[$xmax+15]
+    !else
+	!if $xmax > 150
+	    xmajor=20
+	    xminor=5
+	    xmin=-20
+	    xmax=$[$xmax+5]
+	!else
+	    xmajor=10
+	    xminor=5
+	    xmin=-10
+	    xmax=$[$xmax+5]
+	!endif
+    !endif
+!endif
+!if $a < 60
+    ymax=$[$a+7.5]
+    ymajor=5
+    yminor=2.5
+    ymin=-5
+!else
+    !if $a < 120
+	ymax=$[$a+15]
+	ymajor=10
+	yminor=5
+	ymin=-10
+    !else
+	ymax=$[$a+25]
+	ymajor=20
+	yminor=5
+	ymin=-20
+    !endif
+!endif
+xsize=600
+ysize=400
+# vraag 1
+description=Omzet bij prijsdiscriminatie
+ex1=&euro;
+m_rightarrow=&nbsp;=&nbsp;
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+precision 1\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+fontsize 16\
+fontfamily bold italic 16px Ariel\
+axis\
+axisnumbering\
+xlabel aantal       \
+ylabel \u20AC \
+opacity 120,120\
+legend MK:GO:MO\
+legendcolors green:blue:red\
+grid $xmajor,$ymajor,black,4,4,6,blue\
+fontfamily bold 18px Ariel\
+linewidth 3\
+dashtype 4,4\
+ftriangle 0,$p1,$x1,$p1,0,$a,lightgreen\
+ftriangle $x1,$p2,$x2,$p2,$x1,$p1,lightgreen\
+ftriangle $x2,$c,$[($a-$c)/($b1)],$c,$x2,$p2,pink\
+frect 0,$c,$x2,$p2,yellow\
+frect 0,$p2,$x1,$p1,yellow\
+opacity 200,120\
+segment 0,$a,$[$a/($b1)],0,blue\
+segment 0,$a,$[$a/($b2)],0,blue\
+segment 0,$c,$[$a/($b1)],$c,blue\
+dsegment $x1,$p1,$x1,0,red\
+dsegment $x2,$p2,$x2,0,red\
+dsegment 0,$p2,$x2,$p2,red\
+dsegment 0,$p1,$x1,$p1,red\
+point $[($a-$c)/$b2],$c,black\
+string green,$[1.05*($a - $c)/($b1)],1.1*$c,MK\
+string blue,$[0.95*($a/($b1)-$xminor)],$[0.5*$yminor],GO\
+string red,$[($a-$c)/($b2)],$[1.2*$c],MO\
+frect $xmin,$ymax,$[0.9*$xmajor],$[$ymax-0.8*$ymajor],white\
+arrow 0,0.8*$p1,$x1,0.8*$p1,8,black\
+arrow $x1,0.8*$p1,0,0.8*$p1,8,black\
+arrow $x1,0.8*$p2,$x2,0.8*$p2,8,black\
+arrow $x2,0.8*$p2,$x1,0.8*$p2,8,black\
+string black,2*$xminor,0.9*$p1,groep 1\
+string black,$[$x1+3*$xminor],0.9*$p2,groep 2\
+mouse blue,34
+
+answer$n=$[$x1*$p1 + ($x2 - $x1)*$p2]
+ans1=$[($x1-0.2*$xminor)*$p1]
+ans2=$[(($x2-0.2*$xminor) - ($x1-0.2*$xminor))*$p2]
+ans=$[$ans1+$ans2]
+var1=$[$(answer$n) - $ans]
+var2=1
+checkfile=$checkdir/new_number.proc
+
+ss=Van een monopolist zijn de volgende gegevens af te lezen in grafiek.<br />Stel dat deze monopolist in staat is om prijsdiscriminatie toe te passen.<br />Voor <b>groep 1</b> kan zij een prijs vaststellen van &euro; $p1 <br />en voor <b>groep 2</b> een prijs van &euro; $p2.<br />Bereken in de situatie van prijsdiscriminatie de omzet van de monopolist.
+question$n=<a onmouseover="return escape('De muis geeft de co&ouml;rdinaten weer in de grafiek')">$ss</a>
+textanswer$n=Voorwaarden prijsdiscriminatie:<ul><li>Prijsdiscrimantie kan alleen bij een vorm van monopolie (prijszetter)</li><li>Er moet sprake zijn van verschillende deelmarkten en verschillende prijsafzetfuncties voor hetzelfde product (of dienst)Met andere woorden: vragers moeten gescheiden worden van een verschil in betalingsbereidheid</li><li>Af te lezen uit de grafiek:<ul><li>Groep 1: $x1 &times; &euro; $p1 = &euro; $[$x1*$p1 ]</li><li>Groep 2: ($x2 &minus; $x1) &times; &euro; $p2 = &euro; $[$p2*($x2 - $x1)] </li><li>Totaal : $[$x1*$p1 ] + $[$p2*($x2 - $x1)] = &euro; $(answer$n)</li></ul></li></ul>
+
+!exit
+!endif
+
+
+

@@ -1,0 +1,158 @@
+rounding=0
+!readproc $remarkdir/rounding.$taal
+checkfile=exos/checkfile2.proc
+!set n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+ss=!record 53 of lang/remarks.$taal
+#@ Los de volgende vergelijking op <br>en schrijf je antwoord als een <tt>logaritme</tt> (<em>met grondtal 10</em>).<p><small><em>ik verwacht een exacte oplossing,<br>en dus niet iets wat uit je rekenmachine rolt</em></small> 
+math=0
+embed=1
+cols=30
+rows=1
+questiontype=0
+image=0
+var2=0
+# var2 -> breuk
+var3=0
+# var3 -> varlist
+x=!randitem r,x,q
+y=!randitem p,y,v
+z=!randitem t,z,w
+# nu even niet
+mathview=2
+helptext=<img src=$module_dir/gifs/exo3.help.jpg>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+mathviewpanel=$module_title:x=:x_1=:x_2=:x_3=:and
+!if $R=1
+	wims_rawmath_variables=x
+	a=!randitem 2,3,4,5,6,7,8,9,10
+	g=!randitem 2,3,4,5,6,7,8,9,10
+	formula$n=$g^{\textstyle x} = $a 
+	applettext=!nospace $g^x = $a ->
+	!if $a=$g
+	    var1=0
+	    answer$n=1
+	    texanswer$n=x = ^{\textstyle $g}\log \left( $a \right) = 1
+	    !exit
+	!endif
+	!if $a=10
+	    var1=1
+	    answer$n=1/log($g)
+	    texanswer$n=x = ^{\textstyle $g}\log \left( $a \right) = \frac{1}{ \log \left( $g \right) }
+	    !exit
+	!endif
+	!if $g=10
+	    var1=1
+	    answer$n=log($a)
+	    texanswer$n=x = ^{\textstyle $g}\log \left( $a \right) = \log \left( $a \right)
+	    !exit
+	!endif
+	
+	test=$[log($a)/(log($g))]
+	!if . notin $test
+	    var1=0
+	    answer$n=$test
+	    texanswer$n=x = ^{\textstyle $g}\log \left( $a \right) = $test
+	    !exit
+	!else
+	    var1=2
+	    answer$n=log($a)/log($g)
+	    texanswer$n=x = ^{\textstyle $g}\log \left( $a \right) = \frac{\log \left( $a \right)}{\log \left( $g \right)}
+	    !exit
+	!endif
+!exit
+!endif
+
+!if $R=2
+    wims_rawmath_variables=x
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    b=!randitem 2,3,4,5,6,7,8,9,10
+    g=!randitem 2,3,4,5,6,7,8,9,10
+    formula$n=$g^{\textstyle $b \cdot x} = $a 
+    applettext=!nospace $g^($b*x) = $a ->
+    !if $a=$g
+	var1=0
+	answer$n=1/$b
+	texanswer$n= $b \cdot x = 1 \rightarrow x = \frac{1}{$b}
+	!exit
+    !endif
+    !if $a=10
+	var1=1
+	answer$n=1/($b*log($g))
+	texanswer$n= $b \cdot x = ^{\textstyle $g}\log \left( 10 \right) \rightarrow $b\cdot x=\frac{\log \left( 10 \right)}{\log \left( $g \right)}= \frac{1}{\log \left( $g \right)} \rightarrow x = \frac{1}{$b \cdot \log \left( $g \right)}
+	!exit
+    !endif
+    !if $g=10
+	var1=1
+	answer$n=(log($a))/$b
+	texanswer$n= $b \cdot x =\log \left( $a \right) \rightarrow x = \frac{ \log \left( $a \right)}{$b}
+	!exit
+    !endif
+    var1=2
+    answer$n=log($a)/($b*log($g))
+    texanswer$n= $b \cdot x = ^{\textstyle $g}\log \left( $a \right) \rightarrow x = \frac{1}{$b} \cdot ^{\textstyle $g}\log \left( $a \right) =\frac{1}{$b} \cdot \frac{\log\left( $a \right) }{ \log \left( $g \right)} 
+    !exit
+!endif
+
+!if $R>2
+    keuze=!randint 0,1
+    var1=0
+    wims_rawmath_variables=x
+    !if $keuze=0
+	pm=+
+	mp=-
+    !else
+	pm=-
+	mp=+
+    !endif	
+    b=!randitem 2,3,4,5
+    d=!randitem 1,2,3
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    g=!randitem 2,3,4,5,6,7,8,9,10
+    c=$[$d*$b]
+    formula$n=$g^{\textstyle $b\cdot x $pm $c} = $a 
+    applettext=!nospace $g^($b*x $pm $c) = $a ->
+    !if $a=$g
+	var1=0
+	answer$n=!exec pari 1/$b $mp $d	
+	texanswer$n= $b \cdot x $pm $c = 1 \rightarrow x = \frac{1}{$b} $mp \frac{$c}{$c} \rightarrow x= \frac{1}{$b} $mp $d
+	!exit
+    !endif
+    !if $a=10
+	var1=1
+	answer$n=1/($b*log($g)) $mp $d
+	texanswer$n= $b\cdot x $pm $c  = ^{\textstyle $g}\log \left( 10 \right) =\frac{\log \left( 10 \right)}{\log \left( $g \right)}= \frac{1}{\log \left( $g \right)} \rightarrow $b\cdot x = \frac{1}{\log \left( $g \right)} $mp $c \rightarrow x = \frac{1}{$b \cdot \log \left( $g \right)} $mp $d
+	!exit
+    !endif
+    !if $g=10
+	var1=1
+	answer$n=(log($a))/$b $mp $d
+	texanswer$n= $b \cdot x $pm $c  =\log \left( $a \right) \rightarrow $b \cdot x = \log \left( $a \right) $mp $c \rightarrow x = \frac{ \log \left( $a \right) }{$b} $mp $d
+	!exit
+    !endif
+    var1=2
+    answer$n=(log($a))/($b*log($g)) $mp $d
+    texanswer$n=$b \cdot x $pm $c = ^{\textstyle $g}\log \left( $a \right) \rightarrow $b \cdot x =  ^{\textstyle $g}\log \left( $a \right) $mp $c \rightarrow  x = \frac{1}{$b} \cdot ^{\textstyle $g}\log \left( $a \right) $mp \frac{$c}{$b} \rightarrow x= \frac{ \log \left( $a \right)}{$b \cdot \log \left( $g \right)} $mp $d
+    !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,97 @@
+#16 vectorvoorstelling III
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=0
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+make_tr=1
+checkfile=exos/checkfile5.proc
+!if $R=1
+ g=!shuffle 1,2,3,4,5,6,7,8,9
+ h=!shuffle 1,2,3,4,5,6,7,8,9
+ xa=!item 1 of $g
+ pm=!randitem -1,1
+ xa=$[$pm*$xa]
+ 
+ xb=!item 2 of $g
+ mp=!randitem -1,1
+ xb=$[$mp*$xb]
+ 
+ ya=!item 1 of $h
+ pm=!randitem -1,1
+ ya=$[$pm*$ya]
+ 
+ yb=!item 2 of $h
+ mp=!randitem -1,1
+ yb=$[$mp*$yb]
+ 
+ ss=!record 37 of lang/remarks.$taal
+ #@Stel een vectorvoorstelling op van de lijn<br />door de punten <b>A($xa : $ya)</b> en <b>B($xb : $yb)</b>.
+ 
+ x2=$[$xb - $xa]
+ y2=$[$yb - $ya]
+ answer$n=$xa,$ya,$x2,$y2
+ c=$[$y2*$xa - $x2*$ya]
+ var9=!rawmath $[$y2/$x2]*x-$[$c/$x2]
+
+ texanswer$n=\begin{array}{l} \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $xa  \\ $ya \end{pmatrix} + \lambda \begin{pmatrix} $xb - $xa \\ $yb - $ya \end{pmatrix} \longrightarrow \\ \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $xa  \\ $ya \end{pmatrix} + \lambda \begin{pmatrix} $x2 \\ $y2 \end{pmatrix} \end{array}
+
+!else
+ g=!shuffle 1,2,3,4,5,6,7,8,9
+ h=!shuffle 1,2,3,4,5,6,7,8,9
+ xa=0
+ xb=!item 1 of $g
+ mp=!randitem -1,1
+ xb=$[$mp*$xb]
+ 
+ ya=!item 1 of $h
+ yb=!item 2 of $h
+ mp=!randitem -1,1
+ yb=$[$mp*$yb]
+
+ x2=1
+ y2=$[$yb - $ya]
+ answer$n=$xa,$ya,$x2,$y2
+
+ var9=!rawmath $y2*x+$ya
+ 
+ vergelijking=!mathmlmath $$$$ y = $y2 \cdot x + $ya $$$$
+ ss=!record 38 of lang/remarks.$taal
+ #@Stel een vectorvoorstelling op van de lijn<br />met vergelijking:$vergelijking 
+ 
+ sometext=!record 39 of lang/remarks.$taal
+ #@De plaatsvector is dus,Helling,Dit betekent 1 naar rechts en $y2 omhoog...,De richtingsvector is dus ,De vectorvoorstelling wordt nu: , Dit betekent 1 naar rechts en $[-1*($y2)] omlaag
+ 
+ !if $y2 >= 0
+  richting=$(sometext[3])
+  # omhoog
+ !else
+  richting=$(sometext[6])
+  # omlaag
+ !endif
+
+ texanswer$n=\left[\begin{array}{l} x = 0 \longrightarrow y = $ya \\ \textrm{$(sometext[1]) }  \begin{pmatrix} 0 \\ $ya \end{pmatrix} \\  \textrm{$(sometext[2])} = $y2 \\ \textrm{$richting} \\ \textrm{$(sometext[4]) } \begin{pmatrix} 1 \\ $y2 \end{pmatrix}\\ \textrm{$(sometext[5]) } \\ \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $xa  \\ $ya \end{pmatrix} + \lambda \begin{pmatrix} $x2 \\ $y2 \end{pmatrix} \end{array}\right.
+
+!endif
+
+kleuren=!shuffle lightblue,orange,yellow,lightgreen,#c099af,#6b99af,#ac7fbb
+!for p=0 to 3
+ k=!item $[$p+1] of $kleuren
+ in$p=\input{2}{$p}{background-color:$k;color:blue;text-align:center;font-size:14pt}{?}{0}
+!next p
+
+mathinput=!mathmlmath \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} $in0 \\ $in1 \end{pmatrix} + \lambda \begin{pmatrix} $in2 \\ $in3 \end{pmatrix}
+
+exotext=<p align='center'>$mathinput</p>
+
+question$n=$ss
+
+!exit

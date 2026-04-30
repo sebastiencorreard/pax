@@ -1,0 +1,136 @@
+!set title=Retrouver l'équation d'une parabole/hyperbole
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=parabola,hyperbola
+author=Frédéric, Pitoun
+email=frederic.pitoun@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 2
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 5
+
+val9=$[rint($(tmp0)*$(tmp1))]
+!if $val6=1 
+t_=!replace internal \( by ( in $val9*(x-$val7)^2+$val8
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in expand($val10)
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+val11=la parabole
+val12=sommet
+!endif
+!if $val6=2 
+t_=!replace internal \( by ( in $val8+$val9/(x-$val7)
+tmp0=!exec maxima $t_
+
+val10=$(tmp0)
+val11=l'hyperbole
+val12=centre
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 3
+
+val13=$[rint($val7+$(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in subst($val13,x,$val10)
+tmp0=!exec maxima $t_
+
+t_=!rawmath $(tmp0)
+val14=!exec pari print($t_)
+replytype1=function
+replyname1=Formule
+replygood1=!rawmath $val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Déterminer une fonction 
+!insmath f
+$(), représentée par	$val11 de $val12 
+!insmath I($val7,$val8)
+$(), passant par le point	
+!insmath A($val13,$val14)
+$().	<div class="wimscenter">	On a 
+!insmath f(x)=
+$()  
+!read oef/embed.phtml reply 1 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13,14
+embedcnt=1

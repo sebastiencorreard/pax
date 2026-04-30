@@ -1,0 +1,67 @@
+# inverse logaritmisch
+mathview=5
+checkfile=exos/checkfile1.proc
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=f^-1(x),y
+ss=!record 40 of lang/remarks.$taal
+mathviewpanel=$module_title:y=:x:+:-:*:/
+!if $R=1
+    a=!randitem 1,2,3,4,5,6,7,8,9,10
+    g=!randitem 2,3,4,5,6,7
+    pm=!randitem -,+
+    !if $pm=+
+	mp=-
+    !else
+	mp=
+    !endif
+    min=$[-1*(abs($a))-10]
+    max=$[abs($a)+10]
+    range=[$min:$max] [$min:$max]	
+    formula$n=f(x) \, =  \,^{$g} \log \left( x $pm $a \right)
+    applettext=!nospace f(x)=log[$g](x $pm $a) ->
+    var2=log(x $pm $a)/log($g)
+    answer$n=$mp $a + $g^x
+    var1=0
+    texanswer$n=\left[ \begin{array}{l} x_{inv}=^{$g} \log \left( y_{inv} $pm $a \right) \\ y_{inv} $pm $a = $g^{x_{inv}} \\ y_{inv} = $mp $a + $g^{x_{inv}} \\ f^{-1}(x)=$mp $a + $g^{x}  \end{array}
+!endif
+
+!if $R>1
+    a=!randitem 1,2,3,4,5,6,7,8,9,10
+    g=!randitem 2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5,6,7,8,9
+    min=$[-1*(abs($a))-10]
+    max=$[abs($a)+10]
+    range=[$min:$max] [$min:$max]
+	
+    formula$n=f(x) \, = $b + \,^{$g} \log \left( x - $a \right)
+    applettext=!nospace f(x) = $b + log[$g](x-$a) ->
+    var2=$b + log(x - $a)/log($g)
+    answer$n=$a + $g^(x-$b)
+    var1=1
+    # maxima moet check overnemen ipv pari
+    texanswer$n=\left[ \begin{array}{l} x_{inv}=$b + ^{$g} \log \left( y_{inv} - $a \right) \\ x_{inv} - $b =  ^{$g} \log \left( y_{inv} - $a \right) \\ y_{inv} - $a = $g^{ x_{inv} - $b} \\ y_{inv}  = $a + $g^{ x_{inv} - $b} \\ f^{-1}(x)  = $a + $g^{ x - $b} \end{array}    
+!endif
+
+!if $teaching=1
+    insplot_set=terminal gif transparent;size 0.6,0.6 ;grid ;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image_settings$n=terminal gif transparent;size 0.6,0.6 ;grid;xzeroaxis lt -1;yzeroaxis lt -1;xlabel "<x-axis>";ylabel"<y-axis>" ;border 
+    image$n=$range $var2 notitle, $(answer$n) notitle, x notitle
+    !insplot $(image$n)
+    image=0
+    plot=1
+    draw=0
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-$n.gif\' alt=\'noalt\' />
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+    question$n=$ss
+!endif

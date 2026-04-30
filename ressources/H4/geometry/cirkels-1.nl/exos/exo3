@@ -1,0 +1,78 @@
+#middelpuntsvergelijking van een cirkel II
+!if $rounding=-1
+ rounding=0
+ !readproc $remarkdir/rounding.$taal
+!endif
+embed=0
+applet=0
+inputs=-1
+math=0
+cols=5
+rows=1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+helptext=$empty
+make_tr=1
+vorm=!mathmlmath \left(x - a\right)^{2} + \left( y - b\right)^{2} = C
+mtext=!record 4 of lang/remarks.$taal
+#:bereken de straal van de cirkel , algemene vergelijking van een cirkel , invullen ,  we gebruiken kwadraat afsplitsen 
+ss=!record 5 of lang/remarks.$taal
+#@Herleid de volgende vergelijking tot een middelpuntsvergelijking...<br ./>dus tot de vorm $vorm
+keuze=!randint 1,4
+a=!randint 1,9
+b=!randint 1,9
+c=!randint 1,20
+d=$[$c-$a*$a-$b*$b]
+e=$[2*$a]
+f=$[2*$b]
+
+!if $keuze=1
+ formule=x^{2} + y^{2} - $e x - $f y = $d 
+ answer$n=(x-$a)^2+(y-$b)^2=$c
+ tex1=x^{2} - $e x + y^{2} - $f y = $d 
+ tex2=\left( x - $a \right)^{2} - $[$a^2] + \left( y - $b\right)^{2} - $[$b^2] = $d
+ tex3=\left(x-$a\right)^{2}+\left(y-$b\right)^{2}=$c
+!else
+ !if $keuze=2
+  formule=x^{2} + y^{2} + $e x - $f y = $d 
+  answer$n=(x+$a)^2+(y-$b)^2=$c
+  tex1=x^{2} + $e x + y^{2} - $f y = $d 
+  tex2=\left( x + $a \right)^{2} - $[$a^2] + \left( y - $b\right)^{2} - $[$b^2] = $d
+  tex3=\left(x+$a\right)^{2}+\left(y-$b\right)^{2}=$c
+ !else
+  !if $keuze=3
+   formule=x^{2} + y^{2} - $e x + $f y = $d 
+   answer$n=(x-$a)^2+(y+$b)^2=$c
+   tex1=x^{2} - $e x + y^{2} + $f y = $d 
+   tex2=\left( x - $a \right)^{2} - $[$a^2] + \left( y + $b\right)^{2} - $[$b^2] = $d
+   tex3=\left(x-$a\right)^{2}+\left(y+$b\right)^{2}=$c
+  !else
+   formule=x^{2} + y^{2} + $e x + $f y = $d 
+   answer$n=(x+$a)^2+(y+$b)^2=$c
+   tex1=x^{2} + $e x + y^{2} + $f y = $d 
+   tex2=\left( x + $a \right)^{2} - $[$a^2] + \left( y + $b\right)^{2} - $[$b^2] = $d
+   tex3=\left(x+$a\right)^{2}+\left(y+$b\right)^{2}=$c
+  !endif
+ !endif
+!endif
+
+# var1 wordt gebruikt voor controle op letterlijk: var=-1 uitschakelen
+var1=!nospace x^2 y^2 $e x $f y $d
+var1=!replace internal - by $empty in $var1
+var1=!exec toascii $var1
+ 
+formula$n=$empty
+
+checkfile=exos/checkfile1.proc
+
+exotext=!mathmlmath $formule   \rightarrow  \input{24}{0}{background-color:yellow;text-align:center;color:red;font-style:italic}{}{0} 
+texanswer$n=\left[ \begin{array}{l} $formule \\ \textrm{ $(mtext[4]) ...} \\ $tex1 \\ $tex2 \\ $tex3 \end{array}\right. 
+
+nocut=0
+question$n=$ss
+
+
+!exit 

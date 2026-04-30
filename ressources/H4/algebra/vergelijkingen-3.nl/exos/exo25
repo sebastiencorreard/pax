@@ -1,0 +1,139 @@
+!set n=$counter
+cols=20
+questiontype=0
+mathview=0
+make_tr=1
+description=formule
+inputs=1.1
+image=0
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+
+#!if $variabelen=1
+#    s=!randitem 1,2
+#    var3=!item $s of p,y
+#    var2=!item $s of i,z	
+#    var1=!item $s of d,x
+#!else
+    var3=p
+    var2=I
+    var1=x
+    var4=#
+#!endif
+
+reisbureau=!record 68 of lang/remarks.$taal
+#@ toeristenorganistie,school,reisorganisatie,toeristen organisatie,leraren vakbond,leerlingen vakbond,voetbalvereniging,korfbalvereniging,kaartclub
+reisbureau=!randitem $reisbureau
+reis=!record 69 of lang/remarks.$taal
+#@ reisje,reis,uitstapje,tripje,dagtripje,langweekend,meerdagen tripje,vakantie,studiereisje,studiereis
+reis=!randitem $reis
+bestemming=!record 70 of lang/remarks.$taal
+#@ de Ardennen,de Veluwe,de waddenzee,Texel,Vlieland,Terschelling,de Zeeuwse kust,het Zwarte Woud,de Eifel,Parijs,London,Brussel
+bestemming=!randitem $bestemming
+buskosten=!record 71 of lang/remarks.$taal
+#@ buskosten,treinkosten,vliegtuigkosten,transportkosten
+buskosten=!randitem $buskosten
+
+q=!randint 100,300
+m=!randint 150,500
+m=$[$m/100]
+a=!randint 100,250
+a=$[10*$a]
+b=!randint 15,75
+
+formule1= $var3 = $q - $m*$var1
+formule2= $var2 = $var3*$var1
+f1=!htmlmath $formule1
+f2=!htmlmath $formule2
+ss=!record 72 of lang/remarks.$taal
+#@ Een $reisbureau organiseert een $reis naar $bestemming .<br />\
+#@ De prijs <em>$var3</em> per deelnemer is afhankelijk van het aantal deelnemers <em>$var1</em> en kun je berekenen met de formule:\
+#@ <p align="center"><table cellpadding=15 style="border-width:1px;border-style:outset" bgcolor=white ><td>$f1 <br /><em>$var3</em> in &euro;'s</td></table></p>
+!if $R=1
+    tekst=!record 73 of lang/remarks.$taal
+    #@ De inkomsten <em>$var2</em> ($reisbureau) uit een $reis zijn te berekenen met de formule:\
+    #@ <p align="center"><table cellpadding=15 bgcolor=white style="border-width:1px;border-style:outset"><td>$f2 <br /><em>$var2</em> in &euro;'s </td></table></p>\
+    #@ Druk <em>$var2</em> uit in <em>$var1</em>.<br />\
+    #@ <small><i>dus geef een formule met <em>$var2</em> als functie van <em>$var1</em>.</i></small>
+    question$n=$ss<br />$tekst
+    checkfile=exos/checkfile8.proc
+    answer$n=($q-$m*$var1)*$var1
+    textanswer$n= $var2=($q-$m*$var1)*$var1
+    !exit
+!endif
+    
+!if $R=2
+    var2=U
+    tekst=!record 74 of lang/remarks.$taal
+    #@ De uitgaven <em>$var2</em> (van de "$reisbureau") voor een $reis bestaan uit<br />\
+    #@ <ul><li>$a &euro; $buskosten</li><li>$b &euro; extra onkosten per deelnemer</li></ul><br />\
+    #@ Druk $var2 uit in $var1 .<br />\
+    #@ <small><i>dus geef een formule met <em>$var2</em> als functie van <em>$var1</em>.</i></small>
+    question$n=$ss<br />$tekst
+    checkfile=exos/checkfile8.proc
+    answer$n=$a + $b*$var1
+    textanswer$n= $var2=$a + $b*$var1
+    !exit
+!endif
+    
+!if $R>2
+    var2=W
+    tekst=!record 75 of lang/remarks.$taal
+    #@ De uitgaven <em>U</em> (van de "$reisbureau") voor een $reis bestaan uit<br />\
+    #@ <ul><li>$a &euro; $buskosten</li><li>$b &euro; extra onkosten per deelnemer</li></ul><br />\
+    #@ De winst <em>$var2</em> (van de "$reisbureau")  kun je berekenen door de <em>Uitgaven</em> van de <em>Inkomsten</em> af te trekken<br />\
+    #@ Stel een formule op voor de winst <em>W</em>.<br /><small>dus druk <em>W</em> uit in <em>$var1</em></small>
+    question$n=$ss<br />$tekst
+    checkfile=exos/checkfile8.proc
+    answer$n=!exec pari ($q-($m)*($var1))*$var1 - (($a) + ($b)*($var1))
+    textanswer$n=$var2=$(answer$n)
+    !exit
+!endif
+
+
+!exit
+!if $R>3
+    var2=W
+    h1=$empty
+    h2=$empty
+    answer$n=$empty
+    F=($q-$m*$var1)*$var1 - ($a + $b*$var1)
+	
+    #F=qx-mx^2 - a -bx
+    #F=-mx^2 + (q-b)x-a	
+    #F'=-2mx + q-b =0 => q-b=2mx => x=(q-b)/2m
+    max=!exec pari round(($q-($b))/(2*$m))
+    tt=$[round((2*$max)/4)]
+    !for p=1 to $[2*$max] step $tt
+	ant=!evalsubst $var1=$p in $F
+	answer$n=!append item $ant to $(answer$n)
+	h1=!append line <td>$p</td> to $h1
+	!if $wims_user=supervisor
+	    h2=!append line <td><input size=8 name="ant$p" value="$ant"/> to $h2
+	!endif
+    !next p
+    answer$n=!append item $max to $(answer$n)
+    !if $teaching=1
+	helptip=!record 76 of lang/remarks.$taal
+	#@ <br /><em>zie voor het berekenen van het maximum (de top van de parabool) de help-pagina van deze som</em>
+    !else
+	helptip=<br />
+    !endif
+	
+    tekst=!record 77 of lang/remarks.$taal
+    #@ De uitgaven <em>U</em> (van de "$reisbureau") voor een $reis bestaan uit<br />\
+    #@ <ul><li>$a &euro; $buskosten</li><li>$b &euro; extra onkosten per deelnemer</li></ul><br />\
+    #@ De winst <em>$var2</em> (van de "$reisbureau")  kun je berekenen door de <em>Uitgaven</em> van de <em>Inkomsten</em> af te trekken<br />\
+    #@ Stel voor jezelf een formule op voor de winst <em>W</em>.<br />En vul de tabel in aan de hand van je formule.<br />\
+    #@ <table style="border-width:1px;border-style:outset" bgcolor=white><td>aantal deelnemers <em>$var1</em></td>$h1<tr><td>winst <em>W</em> in &euro;'s</td>$h2</table><br />\
+    #@ Bij welk aantal deelnemers is de winst maximaal. <em>(of natuurlijk het verlies minimaal...)</em>\
+    #@ <br />Rond je antwoord af op hele mensen ;) $helptip
+    question$n=<table><td>$(question$n)</td><td>$tekst</td></table>
+    textanswer$n=$(answer$n)
+    checkfile=exos/checkfile8.proc
+    !exit
+!endif
+

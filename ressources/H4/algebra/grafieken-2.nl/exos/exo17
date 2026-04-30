@@ -1,0 +1,121 @@
+# familie van grafieken : hyperbool
+n=$counter
+make_tr=1
+mathview=0
+inputs=-1
+questiontype=0
+math=0
+applet=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+checkfile=exos/checkfile3b.proc
+
+!if $R=1
+    graphs=f(x) , g(x) , h(x)
+    var1=3
+    b=!randitem 1,2,3
+    c=!randitem 1,2,3,4
+    a1=!randitem 1,2,3
+    a2=$[$a1+$c]
+    a3=$[$a1+2*$c]
+    answer$n=$a1/x+$b,$a2/x+$b,$a3/x+$b
+    k=!randitem 1,2
+    var4=!word $k of 1,2 2,3 
+    eis=!item $k of $a1&nbsp;&lt;&nbsp;a&nbsp;&lt;&nbsp;$a2,$a2&nbsp;&lt;&nbsp;a&nbsp;&lt;&nbsp;$a3
+    formula$n= y = \frac{a}{x} + $b\leftarrow \left[ \begin{array}{l} f(x): a= $a1 \\ g(x): a = $a2 \\ h(x): a = $a3  \end{array} \right.
+    texanswer$n= \left[ \begin{array}{l} f(x) = \frac{$a1}{x} +$b\\  g(x) = \frac{$a2}{x}+$b\\ h(x) = \frac{$a3}{x} +$b  \end{array} \right.
+    # aantal verwachte lijnen
+    # names of the functions [order in answer$n]
+userinput=strokecolor red\
+functionlabel f(x)=\
+userinput function\
+strokecolor blue\
+functionlabel g(x)=\
+userinput function\
+strokecolor green\
+functionlabel h(x)=\
+userinput function
+
+ansplot=jscurve red,$(answer$n[1])\
+jscurve green,$(answer$n[2])\
+jscurve blue,$(answer$n[3])
+
+!else
+    b=!randitem 2,3,4,5,6,7
+    e=!randitem 1,2,3,4
+    c=!randitem 1,2,3,4
+    a1=!randitem 1,2,3
+    a2=$[$a1+$c]
+    a3=$[$a1+2*$c]
+    a4=$[$a1+3*$c]
+    k=!randitem 1,2,3
+    var4=!word $k of 1,2 2,3 3,4
+    eis=!item $k of $a1&nbsp;&lt;&nbsp;a&nbsp;&lt;&nbsp;$a2,$a2&nbsp;&lt;&nbsp;a&nbsp;&lt;&nbsp;$a3,$a3&nbsp;&lt;&nbsp;a&nbsp;&lt;&nbsp;$a4
+    formula$n= y = $b - \frac{a}{x+$e} \leftarrow \left[ \begin{array}{l} f(x) : a= $a1 \\ g(x) : a = $a2 \\ h(x) : a = $a3 \\ k(x): a = $a4  \end{array} \right.
+    answer$n=$b-$a1/(x+$e),$b-$a2/(x+$e),$b-$a3/(x+$e),$b-$a4/(x+$e)
+    texanswer$n= \left[ \begin{array}{l} f(x) = $b-\frac{$a1}{x+$e}\\  g(x) = $b-\frac{$a2}{x+$e}\\ h(x) = $b-\frac{$a3}{x+$e} \\ k(x) = $b-\frac{$a4}{x+$e} \end{array} \right.
+    # aantal verwachte lijnen
+    var1=4
+userinput=strokecolor red\
+functionlabel f(x)=\
+userinput function\
+strokecolor blue\
+functionlabel g(x)=\
+userinput function\
+strokecolor green\
+functionlabel h(x)=\
+userinput function\
+strokecolor orange\
+functionlabel k(x)=\
+userinput function
+
+ansplot=jscurve red,$(answer$n[1])\
+jscurve green,$(answer$n[2])\
+jscurve blue,$(answer$n[3])\
+jscurve orange,$(answer$n[4])\
+
+!endif
+
+ss=!record 84 of lang/remarks.$taal
+#@Gegeven de familie van functies met het onderstaande voorschrift.<br />"<span style="color:blue"><u>Teken</u></span>" in de <kbd>GeoGebra</kbd> applet de grafieken <em>$graphs</em> voor de verschillende "<em>a</em> -waarden"<br />En teken  vervolgens een punt in het gebied dat voldoet aan de eis:<span size=+1 color=blue>$eis</span> 
+helptext=<img src=\'$module_dir/gifs/exo18_$taal.jpg\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+klik=!record 107 of lang/remarks.$taal
+exotext=!exec canvasdraw\
+size 400,400\
+xrange -10,10\
+yrange -10,10\
+bgcolor white\
+axis\
+axisnumbering\
+precision 1\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+inputstyle text-align:center;background-color:#FFFF66;font-size:14pt;font-style:italic;color:blue;\
+$userinput\
+zoom blue\
+intooltip <span style=color:blue;font-size:16px>$klik<br /></span>
+
+object$n=!exec canvasdraw\
+size 300,300\
+xrange -10,10\
+yrange -10,10\
+axis\
+axisnumbering\
+legend f(x):g(x):h(x)\
+legendcolors red:green:blue\
+precision 1\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+$ansplot\
+mouse red,22\
+zoom red
+
+

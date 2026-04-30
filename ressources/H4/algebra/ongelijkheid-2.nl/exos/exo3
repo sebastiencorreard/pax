@@ -1,0 +1,242 @@
+!if $rounding=-1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+n=$counter
+image=0
+mathview=0
+questiontype=0
+# geen problemen met arrows <=>
+use_ineq=1
+inputs=2
+make_tr=0
+display=1
+draw=1
+plot=0
+math=0
+varlist=x
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc 
+l=<span style="color:green"><em>l</em></span>
+h=<span style="color:red"><em>h</em></span>
+keuze=!randitem onder,boven
+boven=!record 45 of lang/remarks.$taal
+#@ de hyperbool $h boven de lijn $l ligt.
+onder=!record 46 of lang/remarks.$taal
+#@ de hyperbool $h onder de lijn $l ligt.
+sometext=!record 47 of lang/remarks.$taal   
+#@ de snijpunten zijn,het snijpunt is
+helptext=!record 53 of lang/remarks.$taal
+intersection_points=!item 1 of $sometext
+intersection_point=!item 2 of $sometext
+description=!record 39 of lang/remarks.$taal
+
+!if $R=1
+    cols=15
+    a=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    b=!randitem 1,2,3,4,5,6,7,-1,-2,-3,-4,-5,-6,-7
+    c=!randitem -7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7
+    h1=!rawmath $a/(x + ($b))
+    H1=!texmath $h1
+    L1=$c
+    l1=$c
+    y1=$c
+    x1=!exec pari (($a) + (-1*($b)*($c)))/($c)
+    as=$[-1*$b]
+    snijpunt= $intersection_point ($x1:$y1)
+     !if $c>0
+        !if $a>0
+	    !if $keuze=boven
+		ligging=$boven
+		var2=$as<x&&x<$x1
+		texans=$as<x<$x1
+		ongelijkheid=$as &lt;x &lt;$x1
+		latextekst=h > l
+	    !else
+		ligging=$onder
+    		var2=x<$as&&x>$x1
+    		texans=x<$as \vee x>$x1	
+		ongelijkheid=x&lt;$as &and; x&gt;$x1 
+		latextekst=h < l
+	    !endif
+	!else
+	    !if $keuze=boven
+		ligging=$boven
+		var2=$x1<x&&x<$as
+		texans=$x1<x of x<$as
+		ongelijkheid=$x1 &lt; x &lt; $as
+		latextekst=h > l
+	    !else
+		ligging=$onder
+    		var2=x<$x1&&x>$as
+    		texans=x<$x1 \vee x>$as
+		ongelijkheid=x &lt; $x1 &and; x &gt; $as 
+		latextekst=h < l
+	    !endif
+	!endif
+    !else
+    #lijn onder x-axis
+        !if $a>0
+	    !if $keuze=boven
+		ligging=$boven
+		var2=x<$x1&&x>$as
+		texans=x<$x1 \vee x>$as
+		ongelijkheid=x &lt; $x1 &and; x &gt; $as
+		latextekst=h > l
+	    !else
+		ligging=$onder
+    		var2=$x1<x&&x<$as
+    		texans=$x1<x \vee x<$as
+		ongelijkheid=$x1 &lt; x &lt; $as 
+		latextekst=h < l
+	    !endif
+	!else
+	    !if $keuze=boven
+		ligging=$boven
+		var2=x<$as&&x>$x1
+		texans=x<$as \vee x>$x1
+		ongelijkheid=x &lt; $as &and; x &gt;$x1
+		latextekst=h > l
+	    !else
+		ligging=$onder
+    		var2=$as<x&&x<$x1
+    		texans=$as<x \vee x<$x1
+		ongelijkheid=$as &lt; x &lt; $x1
+		latextekst=h < l
+	    !endif
+	!endif
+    !endif
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1) \\ $texans \end{array}\right.
+    
+    answer$n=($x1:$y1),$var2
+    var1=$x1,$y1
+    
+    xrange=-10,10
+    yrange=-10,10
+    grafiek=linewidth 2\
+    curve red,$h1\
+    curve green,$l1\
+    dvline $as,0,yellow\
+    linewidth 6\
+    point $x1,$y1,yellow\
+    text black,7,-0.5,normal,x-axis\
+    textup black,-0.5,15,normal,y-axis
+
+!endif
+
+!if $R>1
+    cols=18
+    !if $rounding<1
+	rounding=100
+        !readproc $remarkdir/rounding.$taal
+    !endif
+    a=!randitem 1,2,3,4,5
+    b=!randitem 1,2,3,4,5
+    q=!randitem 1,2,3,4,5
+    m=!randitem 1/2,1/4,1/5,2/3,4/5,3/2,4/3,7/3,-1/2,-1/4,-1/5,-2/3,-4/5,-3/2,-4/3,-7/3
+    !if $m<0
+	a=$[-1*$a]
+    !endif	
+    A=$m
+    B=(($q)+($b)*($m))
+    C=(($b)*($q)-($a))
+    h1=!rawmath $a/(x + ($b))
+    H1=!texmath $h1
+    L1=!exec pari printtex($m*x+$q)
+    l1=$m*x+$q
+    D=(sqrt(($B)*($B) - 4*($A)*($C)))
+    tot=!exec pari A=((-1*($B) + ($D))/(2*($A)))\
+    B=((-1*($B) - ($D))/(2*($A)))\
+    (A)*($m) + ($q)\
+    (B)*($m) + ($q)
+    
+    x1=!line 1 of $tot
+    x3=!line 2 of $tot
+    y1=!line 3 of $tot
+    y3=!line 4 of $tot
+    
+    !ifval $x1 > $x3
+	x2=$x1
+	y2=$y1
+	x1=$x3
+	y1=$y3
+    !else
+	x2=$x3
+	y2=$y3
+    !endif
+    x1=$[(round($rounding*$x1)/$rounding)]
+    x2=$[(round($rounding*$x2)/$rounding)]
+    y1=$[(round($rounding*$y1)/$rounding)]
+    y2=$[(round($rounding*$y2)/$rounding)]
+    as=$[-1*$b]
+    
+    var1=$x1,$y1,$x2,$y2
+    snijpunt=$intersection_points  ($x1:$y1) &and; ($x2:$y2)
+    !if $a>0
+	!if $keuze=boven
+	    ligging=$boven
+	    var2=x<$x1&&$as<x&&x<$x2
+	    texans=x<$x1 \vee $as<x<$x2
+	    ongelijkheid=x&lt;$x1 of $as &lt; x &lt; $x2
+	    latextekst=h > l
+	!else
+	    ligging=$onder
+	    var2=$x1<x&&x<$as&&$x2<x
+	    texans=$x1<x \vee x<$as \vee $x2<x
+	    ongelijkheid=$x1 &lt; x &lt; $as of x &gt; $x2
+	    latextekst=h < l
+	!endif
+    !else
+	!if $keuze=boven
+	    ligging=$boven
+	    var2=$x1<x&&x<$as&&x>$x2
+	    texans=$x1<x<$as \vee x>$x2
+	    ongelijkheid=$x1 &lt; x &lt; $as of x &gt; $x2
+	    latextekst=h > l
+	!else
+	    ligging=$onder
+	    var2=x<$x1&&$as<x&&x<$x2
+	    texans=x<$x1 \vee $as<x<$x2
+	    ongelijkheid=x &lt; $x1 of $as &lt; x &lt; $x2
+	    latextekst=h < l
+	!endif
+    !endif
+    answer$n=($x1:$y1)($x2:$y2),$var2
+    texanswer$n=\rightarrow \left[ \begin{array}{l} ($x1 : $y1) \\ ($x2 : $y2) \\ $texans \end{array}\right.
+    
+    xrange=-10,10
+    yrange=-10,10
+    grafiek=linewidth 2\
+    curve red,$h1\
+    curve green,$l1\
+    dvline $as,0,yellow\
+    linewidth 6\
+    points  yellow,$x1,$y1,$x2,$y2\
+    text black,7,-0.5,normal,x-axis\
+    textup black,-0.5,15,normal,y-axis
+
+!endif
+
+formula$n=\left\{\begin{array}{l}l(x)=$L1\\ \\ h(x)=$H1 \\ \\ $latextekst \end{array}\right.
+ss=!record 44 of lang/remarks.$taal
+#@ Gegeven de rechte lijn $l en hyperbool $h<br /><ul><li>Bepaal de co&ouml;rdinaten van de snijpunten tussen $l en $h </li><li>Geef aan voor welke <em>x</em>-waarden de grafiek van $ligging  .</li></ul>
+rr=!record of 48 lang/remarks.$taal
+#@ <p align="left">Het goede antwoord is dus: <ul><li>$snijpunt</li><li>En waar de grafiek van  $ligging  geldt:<br /> $ongelijkheid</li></ul></p> 
+question$n=$ss
+textanswer$n=$rr
+
+insdraw_size=320,320
+
+!insdraw xrange $xrange\
+yrange $yrange\
+linewidth 1\
+vline 0,0,blue\
+hline 0,0,blue\
+$grafiek
+
+stext=!record 54 of lang/remarks.$taal
+exotext=<a onmouseover="return escape('<img src=\'$wims_refname?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')"><span class="schaersvoorde_link">$stext</span></a>

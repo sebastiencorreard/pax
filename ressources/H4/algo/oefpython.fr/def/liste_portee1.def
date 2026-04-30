@@ -1,0 +1,137 @@
+!set title=Listes : portée 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Yves Moncheaux
+email=yves.moncheaux@ac-lille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1
+
+ansorder=r,r,r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -10, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val7=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint -10, 10
+
+val9=$[rint($(tmp0))]
+tmp0=!randint -5, 5
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val10*2)]
+tmp0=!randint 0, 3
+
+val12=$[rint($(tmp0))]
+tmp=!trim $val6, $val7, $val8, $val9
+val13=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in i = $val12+1 ; l = [$val13] ; for (j = 1, 4,if(j != i, print(l[j]),print($val11)));
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+tmp0=!words2items $val14
+
+val14=$(tmp0)
+val15=def fonction(u, l):	    u = u * 2	    l[$val12] = u		a = $val10	maliste = [$val6, $val7, $val8, $val9]	fonction(a, maliste)	
+replytype1=numexp
+replyname1=
+replygood1=$val10
+replytype2=numexp
+replyname2=
+replygood2=$(val14[1])
+replytype3=numexp
+replyname3=
+replygood3=$(val14[2])
+replytype4=numexp
+replyname4=
+replygood4=$(val14[3])
+replytype5=numexp
+replyname5=
+replygood5=$(val14[4])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst N'oubliez pas que le premier élément d'une liste a pour indice 0.
+
+
+!goto stat
+
+!exit
+
+:question
+$()	A la fin de ce script Python :		<div class="spacer">	  
+!read oef/special.phtml editarea $val15 
+$()	</div>		<br>	La variable <i>a</i> vaut  
+!read oef/embed.phtml reply 1,3 
+$().	<br>	La liste <i>maliste</i> a pour valeur [ 
+!read oef/embed.phtml reply 2,3 
+$(),  
+!read oef/embed.phtml reply 3,3 
+$(),  
+!read oef/embed.phtml reply 4,3 
+$(),  
+!read oef/embed.phtml reply 5,3 
+$()].	
+$()
+!exit
+
+:hint
+$()N'oubliez pas que le premier élément d'une liste a pour indice 0.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15
+embedcnt=6

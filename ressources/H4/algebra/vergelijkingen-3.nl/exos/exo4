@@ -1,0 +1,124 @@
+checkfile=exos/checkfile2.proc
+rounding=0
+!readproc $remarkdir/rounding.$taal
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+math=0
+questiontype=0
+embed=1
+cols=16
+rows=1
+var1=0
+var2=0
+var3=1
+mathview=2
+keuze=!randitem 0,1
+pm=!randitem -1,1
+mathviewpanel=$module_title:x=:x_1=:x_2=:x_3=:and
+wims_rawmath_variables=x
+helptext=<img src=\'$module_dir/gifs/exo4.help.jpg\' alt=\'noalt\' />
+!if $R=1
+    ss=!record 54 of lang/remarks.$taal
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    #@ Los de onderstaande vergelijking <b>exact</b> op:
+    g=!randitem 2,3,4,5,6,7,8,9
+    a=!randint 1,10
+    a=$[$pm*$a]
+    formula$n=^{\textstyle $g}\log \left( x \right) = $a 
+    applettext=!nospace log[$g](x) = $a ->
+    !if $pm>0
+	answer$n=$[$g^$a]
+	texanswer$n= x = $g^{\textstyle $a} = $(answer$n)
+    !else
+	answer$n=$g^$a
+	b=$[$g^(-1*$a)]
+	texanswer$n= x = $g^{\textstyle $a} = \frac{1}{$g^{\textstyle $[-1*$a]}}= \frac{1}{$b}	
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    kans=!randint 0,1
+    !if $kans=0
+	ss=!record 54 of lang/remarks.$taal
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	#@ Los de onderstaande vergelijking <b>exact</b> op:
+	b=!randint 2,20
+	!if $keuze=0
+	    answer$n=sqrt($b)
+    	    texanswer$n= x^{\textstyle 2} = $b \rightarrow x = \sqrt{$b} 
+	    formula$n=^{\textstyle x}\log \left( $b \right) = 2 
+	    mathview=0
+	    # because my log[g](a) is only unicode based and not really clever...will be improved...in time
+	!else
+	    g=!randitem 2,3,4,5
+	    a=!randitem 2,3,4
+	    pm=!randitem +,-
+    	    formula$n=^{\textstyle $g}\log \left( x $pm $b \right) = $a 
+    	    applettext=!nospace log[$g](x $pm $b ) = $a ->
+	    answer$n=$[$g^$a - $pm $b]
+	    texanswer$n= x $pm $b = $g^{\textstyle $a} \rightarrow x = $(answer$n)
+	!endif
+      !exit
+    !else
+	ss=!record 54 of lang/remarks.$taal
+	#@ Los de onderstaande vergelijking <b>exact</b> op:
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	g=!randitem 2,3,4,5,6,7
+	a=!randitem 2,3,4,5
+        b=!randint 1,20
+	c=!randitem 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+	pm=!randitem +,-
+	d=$[$g^$a - $pm $b]
+	e=!randitem 1,2,3,4,5,6,7,8,9
+	!if $keuze=0
+	    formula$n=^{\textstyle $g}\log \left( $c \cdot x $pm $b \right) = $a 
+	    applettext=!nospace log[$g]($c * x $pm $b ) = $a ->
+	    answer$n=!exec pari $d/$c
+	    texanswer$n= $c \cdot x $pm $b = $g^{\textstyle $a} \rightarrow $c \cdot x = $d \rightarrow x = \frac{$d}{$c} = $(answer$n)  
+	!else
+	    formula$n=$e + ^{\textstyle $g}\log \left( $c \cdot x $pm $b \right) = $[$a+$e] 
+	    applettext=!nospace $e + log[$g]($c * x $pm $b ) = $[$a+$e] ->
+	    answer$n=!exec pari $d/$c
+	    texanswer$n= $c \cdot x $pm $b = $g^{\textstyle $a} \rightarrow $c \cdot x = $d \rightarrow x = \frac{$d}{$c} = $(answer$n)  
+	!endif
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    ss=!record 55 of lang/remarks.$taal
+    #@ Los de onderstaande vergelijking voor alle <em>x</em> &gt; 0 <n>exact</b> op:
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    g=!randitem 2,3,4,5
+    a=!randitem 2,3,4,5
+    b=!randitem 2,3,4,5,6,7,8
+    c=$[$g^$a]
+    e=!randitem 1,2,3,4,5,6,7,8,9
+    !if $pm=1
+	pp=+
+	mm=-
+    !else
+	pp=-
+	mm=+
+    !endif
+    !if $keuze=0
+        formula$n=^{\textstyle $g}\log \left( x ^{\textstyle $b} \right) = $a \rightarrow x = [?]
+	applettext=!nospace log[$g](x^$b) = $a ->
+    !else
+        formula$n=^{\textstyle $g}\log \left( x ^{\textstyle $b} \right) $pp $e = $[$a $pp $e] \rightarrow x = [?]
+	applettext=!nospace log[$g](x^$b) $pp $e = $[$a $pp $e]
+    !endif
+    answer$n=$c^(1/$b)
+    !if . notin $[$(answer$n)]
+	answer$n=$[$(answer$n)]
+        texanswer$n=x^{\textstyle $b} = $g^{\textstyle $a}=$c \rightarrow  x =$(answer$n)
+    !else
+	texanswer$n=x^{\textstyle $b} = $g^{\textstyle $a}=$c \rightarrow  x =$c^{\textstyle \frac{1}{$b}}
+    !endif
+!endif

@@ -1,0 +1,98 @@
+n=$counter
+embed=1
+cols=30
+rows=1
+mathview=0
+questiontype=0
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc
+inputs=1
+applet=1
+
+d=!randint -5,5
+a=!randint 1,8
+p=!randint 8,20
+tot=!exec pari A=2/$p\
+printtex(A)
+b1=!line 1 of $tot
+b2=!line 2 of $tot
+b=$b1*pi
+bjs=$[$b]
+btex=$b2\pi
+r=$[floor(0.5*$p)]
+c=!randint 1,$[$r-1]
+helptext=
+
+keuze=!randint 0,1
+!if $keuze=1
+ formule=!mathmlmath f(x) = d + a\cdot \cos(b(x - c))
+ answer$n=$d + $a*cos($b*(x-$c))
+ jsfunctie=$d + $a*(cos($bjs*(x-$c)))
+ 
+ want=!record 17 of lang/remarks.$taal
+ #@In x=$c is er een maximum
+!else
+ formule=!mathmlmath f(x) = d + a \cdot \sin(b(x - c))
+ answer$n=$d + $a*sin($b*(x-$c))
+ jsfunctie=$d + $a*(sin($bjs*(x-$c)))
+
+ want=!record 18 of lang/remarks.$taal
+ #@In x=$c gaat de grafiek stijgend door de evenwichtslijn
+!endif
+ss=!record 12 of lang/remarks.$taal
+#@In het onderstaande plaatje zie je een sinuso&iuml;de.<br />Dit is de grafiek van een functie $formule .<br />Geef het functievoorschrift door de waarden van a,b,c en d te bepalen.
+sometext=!record 13 of lang/remarks.$taal
+#@Het functievoorschrift is:,verwijder de hulp lijnen
+description=$(sometext[1])
+
+m_rightarrow=$empty
+helptext=!record 14 of lang/remarks.$taal
+#@Je kunt met de muis hulplijnen tekenen in de grafiek...
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+texans=!texmath $(answer$n)
+
+texanswer$n=\left\{ \begin{array}{lcl...-} d & = & $d \\ a & = & $a \\ b & = & $btex \\ c & = & $c \,\, \textrm{... $want } \\ f(x) & = & $texans \end{array}\right.
+xsize=600
+ysize=400
+xmin=-5
+xmax=$[$p+5]
+ymin=$[$d - $a - 1]
+ymax=$[$d + $a + 1]
+!if $ymax < 1
+ ymax=2
+!endif
+!if $ymin > -1
+ ymin=-2
+!endif
+
+object$n=!exec canvasdraw \
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 170,170\
+bgcolor $wims_bgcolor\
+precision 0\
+fontfamily 14px Ariel\
+axis\
+axisnumbering\
+grid 1,1,gold,1,1,4,grey\
+linewidth 2\
+dashtype 3,6\
+precision 100\
+opacity 255,255\
+jscurve red,$jsfunctie\
+mouse red,24\
+snaptogrid\
+linewidth 1\
+dashed\
+clearbutton $(sometext[2])\
+userdraw lines,blue\
+zoom grey\
+replyformat -1\
+nostatus\
+mathml $[$xmax/3],$ymax,$xmax,$ymin,$formule

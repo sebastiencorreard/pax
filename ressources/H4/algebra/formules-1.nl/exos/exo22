@@ -1,0 +1,134 @@
+# vergelijking herschrijven tot y= ...
+mathview=5
+checkfile=exos/checkfile1.proc
+rounding=0
+!read $remarkdir/rounding.$taal
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+var1=1
+# maxima
+questiontype=0
+embed=1
+cols=20
+rows=2
+math=0
+arglist=x,y
+keuze=!randitem 0,1
+vorm=!mathmlmath y=a \cdot x^{2}+b\cdot x + c
+ss=!record 43 of lang/remarks.$taal
+mathviewpanel=$module_title:y=:x:+:-:*:/
+helptext=<textarea cols=\'26\' rows=\'2\' class=\'schaersvoorde_textarea\' readonly=\'readonly\' >y = 123*x^2 + 12/7x + 6/3</textarea>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+#pari kijkt na
+    var1=0
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randint 2,9
+    d=!randint 1,25
+    !if $keuze=1
+	formula$n= $a \left(x^{2}-$b\right) + $c y = $d
+	applettext=!nospace  $a*(x^2 - $b) + $c*y = $d ->
+	
+	tot=!exec pari A=-1*$a/$c \
+	printtex(A) \
+	B=($a*$b+$d)/$c \
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $f*x^2 + $g
+	answer$n=$f*x^2+$g
+	texanswer$n=\left[ \begin{array}{l} $a \left(x^{2}-$b\right) + $c y = $d \rightarrow \\ $a x^{2} - $[$a*$b] + $c y = $d  \rightarrow \\  $c y =-$a x^{2} + $[$a*$b+$d]   \rightarrow \\  y=$f_tex \cdot x^{2} + $g_tex  \end{array} \right.
+    !else
+	formula$n= $a \left(x^{2}-$b\right) - $c y = $d
+	applettext=!nospace  $a*(x^2 - $b) - $c*y = $d ->
+	tot=!exec pari A=$a/$c \
+	printtex(A) \
+	B=($a*$b+$d)/$c \
+	printtex(B)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $f*x^2-$g
+	answer$n=$f*x^2-$g
+	texanswer$n=\left[ \begin{array}{l} $a \left(x^{2}-$b\right) - $c y = $d \rightarrow \\ $c y =$a \left(x^{2}-$b\right) - $d  \rightarrow \\  $c y =$a x^{2}-$[$a*$b] - $d  \rightarrow \\  y=$f_tex \cdot x^{2} - $g_tex  \end{array} \right.
+    !endif
+!exit
+!endif
+
+!if $R>1
+#pari kijkt na
+    var1=0
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randint 2,9
+    d=!randint 1,25
+    !if $keuze=1
+	formula$n= $a \left(x-$b\right)^{2} + $c y = $d
+	applettext=!nospace  $a*(x - $b)^2 + $c*y = $d ->
+	
+	tot=!exec pari A=-1*$a/$c \
+	printtex(A) \
+	B=(2*$a*$b)/$c\
+	printtex(B)\
+	C=($d-$a*$b*$b)/$c \
+	printtex(C)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	h=!line 5 of $tot
+	h_tex=!line 6 of $tot
+	
+	!if $h<0
+	    hh_tex=$h_tex
+	!else
+	    hh_tex=+ $h_tex
+	!endif 
+
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $f*x^2 + $g*x+$h
+	answer$n=$f*x^2+$g*x+$h
+	texanswer$n=\left[ \begin{array}{l} $a \left(x-$b\right)^{2} + $c y = $d \rightarrow \\ $a \left(x-$b\right)\cdot \left(x-$b\right)  + $c y = $d \rightarrow \\ $a \left(x^{2} - $[2*$b] x + $[$b*$b] \right)  + $c y = $d \rightarrow \\ $a x^{2} - $[2*$a*$b] x + $[$a*$b*$b] + $c y = $d \rightarrow \\ $c y = -$a x^{2} + $[2*$a*$b] x - $[$a*$b*$b] + $d \rightarrow \\ y=$f_tex \cdot x^{2} + $g_tex x $hh_tex \end{array} \right.
+    !else
+	formula$n= $a \left(x-$b\right)^{2} - $c y = $d
+	applettext=!nospace  $a*(x - $b)^2 - $c*y = $d ->
+	
+	tot=!exec pari A=$a/$c \
+	printtex(A) \
+	B=(2*$a*$b)/$c\
+	printtex(B)\
+	C=($a*$b*$b-$d)/$c \
+	printtex(C)
+	
+	f=!line 1 of $tot
+	f_tex=!line 2 of $tot
+	g=!line 3 of $tot
+	g_tex=!line 4 of $tot
+	h=!line 5 of $tot
+	h_tex=!line 6 of $tot
+	
+	# var2 moet vergelijking in x zijn  a+x=b+y -> y = a+x-b -> var2=a+x-b
+	var2=!rawmath $f*x^2 - $g*x+$h
+	answer$n=$f*x^2-$g*x+$h
+	
+	texanswer$n=\left[ \begin{array}{l} $a \left(x-$b\right)^{2} - $c y = $d \rightarrow \\ $a \left(x-$b\right)^{2} - $d = $c y \rightarrow \\ $c y = $a \left(x-$b\right)^{2} - $d \rightarrow \\ $c y = $a \left(x-$b\right)\cdot \left(x-$b\right) - $d \rightarrow \\ $c y = $a \left(x^{2} - $[2*$b] x + $[$b*$b] \right) - $d  \rightarrow \\ $c y = $a x^{2} - $[2*$a*$b] x + $[$a*$b*$b]  - $d \rightarrow \\ y=$f_tex \cdot x^{2} - $g_tex x + $h_tex \end{array} \right.	
+
+!endif
+
+!exit

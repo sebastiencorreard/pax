@@ -1,0 +1,76 @@
+n=$counter
+#answer$n=$e*x-$d*y=$c                                                                                                   
+
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+AAA=!replace internal = by , in $(reply$n)
+chk=!itemcnt $AAA
+!if $chk != 2
+ textvar=<b>3*x + 6*y = 123</b>
+ errortext=!record 53 of $remarkdir/commonremarks.$taal
+ goback=1
+ maxscore=$[$P3*$maxscore]
+!endif
+
+GGG=!replace internal = by , in $(answer$n)
+G1=!item 1 of $GGG
+G2=!item 2 of $GGG
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+
+!if x isin $A1 and y isin $A1
+ f=(($A2)/($G2))
+ lijn_a=!rawmath (($A1)/$f) - (($A2)/$f)
+!else
+ !if x isin $A2 and y isin $A2
+  f=(($A1)/($G2))
+  lijn_a=!rawmath (($A2)/($f)) - (($A1)/$f)
+ !else
+  textvar=<b>3*x + 6*y = 123</b>
+  errortext=!record 53 of $remarkdir/commonremarks.$taal
+  goback=1
+  maxscore=$[$P4*$maxscore]
+ !endif
+!endif
+lijn_g=!rawmath $G1 - $G2
+
+tot=!exec pari x=10;y=100;A=$lijn_a;B=$lijn_g;if( abs(A - B) < 10^(-15),1,0)\
+x=0;y=100;A=$lijn_a;B=$lijn_g;if( abs(A - B) < 10^(-15),1,0)\
+x=10;y=0;A=$lijn_a;B=$lijn_g;if( abs(A - B) < 10^(-15),1,0)
+
+t1=!line 1 of $tot
+t2=!line 2 of $tot
+t3=!line 3 of $tot
+
+!if $t1	= 1
+ score=1
+!else
+ !if $[$t2+$t3]=1
+  score=0.5
+ !else
+  score=0    
+ !endif
+!endif
+math=0
+maxscore=$[$maxscore*$score]
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+        remark$n=$BOK <br />$extra
+        k=orange
+    !else
+	remark$n=$NOK
+	k=red
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+goback=0
+
+!exit

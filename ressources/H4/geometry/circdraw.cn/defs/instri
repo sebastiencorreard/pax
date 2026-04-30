@@ -1,0 +1,35 @@
+title=$name_instri_title
+given=$name_instri_given
+goal=$name_instri_goal
+
+gtype=circle
+
+a=!random 0,2*pi
+angle1=0
+angle2=!random 0.3*pi,2*pi/3
+angle3=!random 2*$angle2,(2*pi+$angle2)/2
+
+!distribute items 1,1,-1,-1 into minx,miny,maxx,maxy
+!for aa=1 to 3
+ x=$[cos($(angle$aa)+$a)]
+ y=$[sin($(angle$aa)+$a)]
+ !distribute item $[min($minx,$x)],$[max($maxx,$x)],\
+		$[min($miny,$y)],$[max($maxy,$y)],$x,$y\
+		into minx,maxx,miny,maxy,x$aa,y$aa
+!next aa
+
+!read inscript.proc
+
+rand=0.1
+x0=$[($maxx+$minx)/2+random(2*$rand)-$rand]
+y0=$[($maxy+$miny)/2+random(2*$rand)-$rand]
+xmax=$[max(abs($maxx-$x0),abs($minx-$x0))]
+ymax=$[max(abs($maxy-$y0),abs($miny-$y0))]
+max=$[max($xmax,$ymax)*(random(0.2)+1.1)]
+!distribute items $[$x0-$max],$[$x0+$max],$[$y0-$max],$[$y0+$max]\
+	into xrange1,xrange2,yrange1,yrange2
+
+picture=polygon $color1,$x1,$y1,$x2,$y2,$x3,$y3
+
+!distribute item $x4,$y4,$[$dist*$size/(2*$max)] into cx,cy,radius
+

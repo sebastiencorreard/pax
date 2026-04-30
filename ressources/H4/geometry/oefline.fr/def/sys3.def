@@ -1,0 +1,144 @@
+!set title=Sytème de trois équations à trois inconnues
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=linear_system
+language=fr
+title_it=Sistema 3x3
+
+ansorder=r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=\mathcal{d}
+t_=!replace internal \( by ( in ordergreat(x,y,z,t)
+tmp0=!exec maxima $t_
+
+val8=$(tmp0)
+!readproc slib/matrix/non0 3,3,10 
+tmp0=$slib_out
+val9=$(tmp0)
+t_=!replace internal \( by ( in [$val9]*[x;y;z]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 1, 10
+
+tmp1=!randint 1, 10
+
+tmp2=!randint 1, 10
+
+tmp=!trim $(tmp0);$(tmp1);$(tmp2)
+val11=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in [$val9]*[$val11]
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val12=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in $(val10[1;1])
+tmp0=!exec maxima $t_
+
+val13=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val10[2;1])
+tmp0=!exec maxima $t_
+
+val14=!rawmath $(tmp0)
+t_=!replace internal \( by ( in $(val10[3;1])
+tmp0=!exec maxima $t_
+
+val15=!rawmath $(tmp0)
+tmp0=!texmath $val13
+
+val13=$(tmp0)
+tmp0=!texmath $val14
+
+val14=$(tmp0)
+tmp0=!texmath $val15
+
+val15=$(tmp0)
+val16=Résoudre le système
+val17=<b>Indication:</b> Les solutions sont entières.
+!if $val6=it 
+val16=Risolvere il seguente sistema
+val17=<b>Istruzioni:</b> Le soluzioni sono numeri interi.
+!endif
+replytype1=default
+replyname1=\(x\)
+replygood1=$(val11[1;1])
+replytype2=default
+replyname2=\(y\)
+replygood2=$(val11[2;1])
+replytype3=default
+replyname3=\(z\)
+replygood3=$(val11[3;1])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val16:	<div class="wimscenter">	  
+!insmath  \left\lbrace \begin{array}{ccc} $val13 & = & $(val12[1;1]) \\ $val14 & = & $(val12[2;1]) \\ $val15 & = & $(val12[3;1]) \\ \end{array} \right. 
+$()	 </div>	<div class="wims_instruction">	$val17	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,14,15,16,17
+embedcnt=0

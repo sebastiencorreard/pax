@@ -1,0 +1,161 @@
+!! no need for translation
+# square ABCD with center I
+# we need the circle of diameter [AC] and I middle of [AC]
+# and the mediatrice is required  (minimum = 3 circles + 1 line)
+
+
+check=0
+
+tot=0
+
+!!! Extract values of all user points
+!!! take care of names
+
+thenms=
+!for t in $type
+ !if point isin $t
+    !advance tot
+    t=!replace internal @ by , in $t
+    A=!item 2 of $t
+    thenms=$thenms,$A
+    x$A=!item 3 of $t
+    y$A=!item 4 of $t
+ !endif
+!next t
+
+!!! check existence of required points
+
+
+missed=0
+!for nm in $ptnames
+   !if $nm notitemof $thenms
+         missed=1
+        !break
+   !endif
+!next nm
+
+
+
+!if $missed=1
+  REMARK=!record 5 of remarks.$taal
+  goback=1
+  !increase try
+  !exit
+!endif
+
+
+!! check orthogogonality of  diagonals [AC] and [BD]
+!! then check I is the center (points are equidistant to I)
+
+!! vec{AC}
+xu=$[$xC-$xA]
+yu=$[$yC-$yA]
+!! vec{BD}
+xv=$[$xD-$xB]
+yv=$[$yD-$yB]
+!! product scalar null
+dist1=$[$xu*$xv + $yu*$yv]
+dist1=$[abs($dist1)]
+
+!! distances to center I
+d1=$[sqrt(($xA-$xI)^2+($yA-$yI)^2)]
+d2=$[sqrt(($xB-$xI)^2+($yB-$yI)^2)]
+d3=$[sqrt(($xC-$xI)^2+($yC-$yI)^2)]
+d4=$[sqrt(($xD-$xI)^2+($yD-$yI)^2)]
+dist2=$[abs($d1-$d2)]
+dist3=$[abs($d1-$d3)]
+dist4=$[abs($d3-$d4)]
+
+
+!!! check number of circles  (3 are necessary and sufficient)
+circ=0
+!for t in $type
+  !if circle isin $t
+     !advance circ
+  !endif
+!next t
+
+!!! check number of lines (2 are necessary and sufficient)
+line=0
+!for t in $type
+  !if line isin $t or segment isin $t
+     !advance line
+  !endif
+!next t
+
+
+!ifval $dist1<$precision  and  $dist2<$precision and  $dist3<$precision and $dist4<$precision 
+!increase check 
+!endif
+
+!ifval $dist1<0.01  and  $dist2<0.01 and  $dist3<0.01  and $dist4<0.01
+#the precision is very good : the student must used circle+line and his construction is what I want to have.
+!increase check 
+!endif
+
+!if $debug=1
+debug_data=!append line <li>tot=$tot</li><li>circ=$circ</li><li>dist1=$dist1 dist2=$dist2 dist3=$dist3 check=$check</li> to $debug_data
+!endif
+
+!if $check >= 2
+#All is right !
+      REMARK=!record 23 of remarks.$taal
+      HINT=$OK
+      score=$[$score + 1]
+## BUT at random because not enough circles or lines as required
+   !if $circ < 3  
+      HINT=!record 76 of remarks.$taal
+      goback=1
+   !else
+       !if $line < 1
+          HINT=!record 77 of remarks.$taal
+          goback=1
+       !else 
+          !if $circ > 3
+               HINT=!record 78 of remarks.$taal
+              score=$[$score - 0.3]
+          !endif
+       !endif     
+   !endif
+!else
+  !if $check = 1
+#the square is "almost square"
+    score=$[$score+0.3]
+    REMARK=!record 24 of remarks.$taal
+   !if $circ < 3  
+      HINT=!record 76 of remarks.$taal
+      goback=1
+   !else
+      !if $line < 1
+          HINT=!record 77 of remarks.$taal
+          goback=1
+      !else
+#there are circles and lines, but maybe points are not intersection of lines and circles
+             HINT=!record 66  of remarks.$taal
+      !endif
+    !endif
+    HINT=$HINT $BOK
+!!!! check = 0
+!else
+#the triangle isn't rectangle
+    REMARK=!record 25 of remarks.$taal
+   !if $circ < 3  
+      HINT=!record 64 of remarks.$taal
+      goback=1
+   !else
+      !if $line < 1
+          HINT=!record 65 of remarks.$taal
+          goback=1
+      !else
+#there are circles and lines, but maybe points are not intersection of lines and circles
+             HINT=!record 66  of remarks.$taal
+      !endif
+    !endif
+    HINT=$HINT $NOK
+  !endif
+!endif	
+
+!if $debug=1
+debug_data=!append line <li>circlecount circ=$circ</li><li>the HINT=$HINT</li> to $debug_data
+!endif
+    

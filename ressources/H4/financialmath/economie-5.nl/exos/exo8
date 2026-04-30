@@ -1,0 +1,65 @@
+#Obligatie I
+n=$counter
+viewlogo=1
+g=!randint 1,5
+logo=<img src="$module_dir/gifs/obligatie$g.jpg" alt="money"/>
+logotext=<img src=\'$module_dir/gifs/obligatie$g.jpg\' alt=\'money\' />
+total_exos=2
+mathview=0
+make_tr=1
+inputs=2
+cols=6
+checkfile=exos/precheck2.proc
+
+nu=!date +%Y
+k=!randint 6,12
+jaar1=$[$nu - $k-1]
+perc=!randint 40,120
+perc=$[$perc/10]
+uitgiftekoers=!randint 95,105
+!if $uitgiftekoers=100
+    uitgiftekoers=99
+    onder=onder
+!else
+    !if $uitgiftekoers>100
+	onder=boven
+    !else
+	onder=onder
+    !endif
+!endif
+looptijd=!randitem 5,10,15
+min=$[min($k,$[$looptijd-1])]
+periode=!randint 2,$min
+jaar2=$[$jaar1+$periode]
+obligatie=!randint 5,15
+obligatie=$[$obligatie*100]
+# num_termijn : aantal obligaties per jaar
+num_termijn=!randint 5,15
+num_termijn=$[$num_termijn*100]
+num=$[$looptijd*$num_termijn]
+opbrengst= $[($uitgiftekoers/100)*$obligatie]
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+ss=Onderneming $bedrijf wil gaan uitbreiden en geeft de voorkeur <br />aan de uitgifte van een $perc % <kbd>obligatielening</kbd>.<br />In het prospectus staan de <span class="schaersvoorde_link">volgende zaken vermeld</span> met betrekking tot deze lening.<br />Bereken de totale ontvangst op 1 januari $jaar1 nadat de emissie heeft plaatsgevonden.<br />En bereken hoeveel aan interest en aflossing moet worden betaald op 31 dec $jaar2
+mousetxt=<ul><li>De uitgifte vindt plaats op 1 januari $jaar1 .</li><li>De nominale waarde van een $perc % obligatie bedraagt &euro; $obligatie .</li><li>Er worden in totaal $num obligaties geplaatst. </li><li>De uitgiftekoers is $uitgiftekoers %</li><li>De looptijd van de obligatielening is $looptijd jaar. </li><li>De aflossing geschiedt in $looptijd gelijke jaarlijkse termijnen</li><li>De eerste aflossing vindt plaats op 31 december $jaar1</li><li>De interest wordt elk halfjaar achteraf betaald,<br />voor het eerst op 30 juni $jaar1</li></ul>
+
+ans1=$[$num*$obligatie*$uitgiftekoers/100]
+ans2=$[$obligatie*$num/$looptijd + ($num - $periode*$num/$looptijd)*$obligatie*0.5*$perc/100]
+tussen=$[$num - $periode*$num/$looptijd]
+tussen2=$[$tussen*$obligatie*0.5*$perc/100]
+tussen3=$[$num_termijn*$obligatie]
+question$n=<a onmouseover="return escape('$mousetxt')">$ss</a>
+answer$n=$ans1\
+$ans2
+
+var1=5,5
+var2=1,1
+description=Totale ontvangst 1 januari $jaar1,Betaald aan interest en aflossing op 31 dec $jaar2
+ex1=&euro;
+ex2=&euro;
+rounding=10
+roundingtext=Geef je antwoorden op in hele &euro;&rsquo;s.
+textanswer$n=<ol><li>Berekening totale ontvangst<ul><li>De uitgiftekoers bedraagt : $uitgiftekoers % dwz de uitgifte van obligaties plaatsvindt $onder de nominale waarde (100%)</li><li>De opbrengst per obligatie is dan : $[$uitgiftekoers/100] &times; $obligatie  = &euro; $opbrengst</li><li>De totale ontvangst : $num &times; $opbrengst = &euro; $ans1</li></ul></li><li>Berekening betaling interest en aflossing 31 dec $jaar2<ul><li>Er wordt &euro; $opbrengst per obligatie ontvangen ,<br />er moet wel over de nominale waarde interest worden betaald.<br />Tevens moet de gehele obligatie tegen de nominale waarde (100% = &euro; $obligatie) worden afgelost</li><li>Schuld in $jaar2 bedraagt : ($num &minus; $num/$looptijd &times; $periode) &times; $obligatie = $tussen &times; $obligatie </li><li>De interest moet worden betaald over het afgelopen halfjaar :<br />$tussen &times; $obligatie &times; $[$perc/100] &times; 0.5 = &euro; $tussen2</li><li>De aflossing :<br /> $num/$looptijd = $num_termijn obligaties per jaar. <br />De aflossing is dan $num_termijn &times; $obligatie = &euro; $tussen3</li><li>De interest en aflossing : $tussen2 + $tussen3 = &euro; $ans2</li></ul></li></ol>
+
+helptext=$roundingtext
+
+!exit

@@ -1,0 +1,124 @@
+!set title=Masse molaire (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Markey,Benoît
+email=benoit.markey@ac-lille.fr
+keywords=chimie,mole,masse,molaire,concentration,dilution,atom,periodic_table,molecules
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=100
+
+ansorder=r,r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 	H2 O,C H4,C O2,C2 H6,C3 H8,C4 H10, C5 H12,C6 H14,C7 H16,C8 H18,C9 H20,C10 H22,S O2,S O3,C O,Mg O,Zn O,Na2 O,Li2 O,Na Cl,Li Cl,Na Br,Li Br,Fe Cl2,Mg Cl2,Zn Cl2,Fe Cl3,Al Cl3,Li Al H4, Li O H,H2 O2,I2,Al2 S3,C12 H22 O11,C6 H12 O6,Ca C O3, C2 H6 O, Si O2, C Cl4, Cu S O4, U F4, N O2
+
+val6=$(tmp0)
+!readproc slib/chemistry/molarmass $val6 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/text/sigunits $val7 g/mol,3 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!randint 10, 100
+
+val9=$[rint($(tmp0))]
+val10=$[$val9/100]
+!readproc slib/text/sigunits $val10 g,3 
+tmp0=$slib_out
+val11=$(tmp0)
+val12=$[$val10/$val7]
+!readproc slib/text/sigunits $val12 mol,3 
+tmp0=$slib_out
+val13=$(tmp0)
+replytype1=numeric
+replyname1=Question 1
+replygood1=$[$val7 ]
+replytype2=sigunits
+replyname2=Question 2
+replygood2=$val13 
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">	  <ol>	  <li>Quelle est la masse molaire de la molécule suivante: 
+!insmath $val6
+$()?	   <div class="spacer"> M(
+!insmath $val6
+$())= 
+!read oef/embed.phtml reply1,10 
+$()
+!insmath g*mol^-1
+$()</div></li>		  <li>En déduire la quantité de matière 
+!insmath n
+$() contenue dans $val11 de 
+!insmath $val6
+$().	  <div class="spacer">
+!insmath n =
+$()  
+!read oef/embed.phtml reply2,10 
+$() </div></li>		  </ol>	</div>	<div class="wims_instruction">		Le tableau périodique des éléments est donné en <span class="wims_color3">indication</span>	<div class="spacer">Pour la question 2 :</div>	<ul class="wims_nopuce">	<li>Ne pas oublier l'unité.</li>	 <li>On donnera la valeur de n avec 3 chiffres significatifs.</li></ul></div>	
+$()
+!exit
+
+:hint
+$()	 
+!read oef/img.phtml $val1/periodique.png  
+$() 	<div class="wims_small">Ce tableau est une copie d'écran du site http://www.periodni.com/fr/, consulté le 20/3/2023. Nous avons copié cette page pour éviter de perdre le lien à long terme. Nous vous engageons à profiter de ce site tant qu'il est encore actif.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,11
+embedcnt=2

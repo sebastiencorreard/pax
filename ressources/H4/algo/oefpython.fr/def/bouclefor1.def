@@ -1,0 +1,306 @@
+!set title=Boucle for n°1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille, Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=loops
+oefcss=<style>#tab{text-align:center;overflow:auto;}</style>
+
+ansorder=r
+varcnt=63
+prevarcnt=62
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Aucun logiciel de programmation n'est autorisé pour répondre à cet exercice, sans quoi il ne sert pas à grand chose pour progresser.	<br />En revanche, une calculatrice est parfois nécessaire pour trouver la bonne réponse.
+val7=$[rint(5)]
+val7=$[rint(4)]
+tmp0=!randint 20, 50
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8+1)]
+t_=!replace internal \( by ( in isprime($val8)
+tmp0=!exec pari $t_
+
+val10=$[rint($(tmp0))]
+tmp0=!nosubst Que dire du programme suivant écrit en langage Python ?
+
+val11=$(tmp0)
+val12=for i in range(1,$val9) :	  if $val8 % i == 0 :	    print(i)	
+tmp0=!makelist x for x = 1 to 5
+
+val13=$(tmp0)
+tmp0=!makelist x for x = $val9-5 to $val9
+
+val14=$(tmp0)
+val15=$val13,...,$val14
+t_=!replace internal \( by ( in for (i = 1, $val8,if($val8 % i == 0, print(i),print("/")));
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+tmp0=!words2items $val16
+
+val17=$(tmp0)
+val18=$(val17[1..5]),...,$(val17[-5..-1])
+val19=\(i\)
+val20=print \(i\)
+val21=$[rint(11)]
+tmp0=!nosubst Il affiche tous les diviseurs positifs de $val8
+
+tmp=!trim $(tmp0)
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nosubst Il affiche tous les diviseurs positifs de $val9	Il affiche tous les entiers inférieurs ou égaux à $val8	Il affiche tous les entiers inférieurs ou égaux à $val9	Il peut servir à tester si $val9 est un nombre premier	
+
+tmp=!trim $(tmp0)
+val23=!translate internal $	\
+$ to ;; in $tmp
+val24=En langage naturel le programme est :
+val25=Pour \(i\) allant de 1 à $val8 faire :	  Si le reste de la division euclidienne de $val8 par \(i\) est nul alors :	    afficher la valeur de \(i\)	  Fin du si	Fin du pour	
+
+!ifval ($val10=1)
+val26=	Le programme affiche donc les diviseurs positifs de $val8.	Seuls 1 et $val8 sont affichés, cela signifie donc que $val8 est un nombre premier.
+!else
+val26=Le programme affiche donc les diviseurs positifs de $val8.	$val8 admet plus de deux diviseurs positifs, $val8 n'est donc pas un nombre premier.	
+!endif
+val27=$[rint(1)]
+val28=$[rint(0)]
+val29=
+val30=
+val31=
+val32=
+tmp0=!item 1 of 1 oui, 2 non
+
+val33=$(tmp0)
+tmp0=!word 1 of $val33
+
+val33=$(tmp0)
+val34=
+!if \feedback_general != $val34 
+val35=<p class="feedback">\feedback_general</p>
+!endif
+!if $val30 != $val34 
+val30=<div class="feedback good_answer">$val30</div>
+!endif
+!if $val31 != $val34 
+val31=<div class="feedback bad_answer">$val31</div>
+!endif
+!if $val32 != $val34 
+!endif
+tmp0=!nonempty rows $val22
+
+val22=$(tmp0)
+tmp0=!nonempty rows $val23
+
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val22
+
+tmp0=!rowcnt $tmp
+val36=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val23
+
+tmp0=!rowcnt $tmp
+val37=$[rint($(tmp0))]
+
+!ifval $val27<1
+val27=$[rint(1)]
+!endif
+
+!ifval $val27>$val36
+val27=$[rint($val36)]
+!endif
+
+!ifval $val7 > $val37+$val27
+val7=$[rint($val37+$val27)]
+!endif
+
+!ifval $val27>$val7-1
+val27=$[rint($val7-1)]
+!endif
+
+!ifval $val28>$val7-$val27
+val28=$[rint($val7-$val27)]
+!endif
+tmp0=!shuffle $val36
+
+val38=$(tmp0)
+tmp=!translate internal $	$ to ; in $val22
+
+tmp=!row $val38 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val39=$(tmp0)
+!if $val28>0 
+tmp=!translate internal $	$ to ; in $val23
+
+tmp=!row 1 to $val28 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val40=$(tmp0);
+tmp=!translate internal $	$ to ; in $val23
+
+tmp=!row $val28+1 to $val37 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+!else
+val28=$[rint(0)]
+val40=
+val41=$val23
+!endif
+tmp0=!shuffle $val37
+
+val42=$(tmp0)
+tmp=!translate internal $	$ to ; in $val41
+
+tmp=!row $val42 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val41=$(tmp0)
+tmp=!translate internal $	$ to ; in $val39
+
+tmp=!row 1 to $val27 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!translate internal $	$ to ; in $val41
+
+tmp=!row 1 to $val7-$val27-$val28 of $tmp
+tmp1=!translate internal $\
+$ to ; in $tmp
+val43=$(tmp0);$val40 $(tmp1)
+tmp0=!makelist 1 for x=1 to $val27
+
+tmp1=!makelist 0 for x=1 to $val7-$val27
+
+val44=$(tmp0),$(tmp1)
+tmp0=!shuffle $val7
+
+val45=$(tmp0)
+tmp0=!item $val45 of $val44
+
+val44=$(tmp0)
+tmp=!translate internal $	$ to ; in $val43
+
+tmp=!row $val45 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val43=$(tmp0)
+
+!ifval $val33=1 
+tmp0=!embraced randitem $val43
+
+val43= $(tmp0)
+!endif
+
+!ifval $val33=1 
+tmp0=!embraced randitem $val12
+
+val12= $(tmp0)
+!endif
+tmp0=!positionof item 1 in $val44
+
+val46=$(tmp0)
+tmp0=!item 1 to $val7 of A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+
+val47=$(tmp0)
+
+!ifval checkbox iswordof $val29
+val48=checkbox
+!else
+val48=radio
+!endif
+replytype1=$val48
+
+replyoption1=$val29 
+replyname1=La réponse
+replygood1=$val46;$val47
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val32
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <div class="oef_explain">	  $val11	    <div class="spacer">	     
+!read oef/special.phtml editarea $val12 
+$()	    </div>	  </div>	   
+!for m_i=1 to $val7 
+$()<div class="oefreply"> 
+!read oef/embed.phtml reply 1,\i, $(val47[$m_i]) :	  $(val43[$m_i;]) 
+$()</div> 
+!next
+$()	  <div class="wims_instruction">	  $val6	  </div>	  
+$()
+!exit
+
+:hint
+$()$val32
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<p>$val24</p>	 <div class="feedback">	  
+!read oef/special.phtml expandlines $val25 
+$()	 </div>	L'évolution des variables est donc la suivante:	<div id="tab">	<table class="wimscenter wimsborder">	<tr>	<th>$val19</th>	 
+!for m_j=1 to $val21 
+$()<td> $(val15[$m_j]) </td> 
+!next
+$()	</tr>	<tr>	<th>$val20</th>	 
+!for m_j=1 to $val21 
+$()<td> $(val18[$m_j]) </td> 
+!next
+$()	</tr>	</table>	</div>	<p>$val26</p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1 isitemof $(val47[$val46])
+ <div class='oef_feedbacks'>$val30
+$()</div>
+!endif
+!ifval $m_reply1 notitemof $(val47[$val46])
+ <div class='oef_feedbacks'>$val31
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,11,12,15,18,19,20,21,24,25,26,30,31,32,43,46,47
+embedcnt=3

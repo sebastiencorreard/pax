@@ -1,0 +1,160 @@
+!set title=5 - Gerbage
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Eric, Guillet
+email=eguillet@cfai.org
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_en=5 - Gerbage
+
+ansorder=r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 15, 35
+
+val7=$[rint(10*$(tmp0))]
+tmp0=!randint 10, 25
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 972, 988
+
+val9=$[$(tmp0)/100]
+tmp0=!randint 20, 40
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem 2,2.5,3,3.5,4,4.5,5,5.5,6,6.5
+
+val11=$[$(tmp0)]
+tmp0=!randitem -1,1
+
+tmp1=!randitem 0.25,0.5,0.75
+
+val12=$[($val11/2)+$(tmp0)*$(tmp1)]
+val13=$val1/serie_700_gerbage.jpg
+val14=$[$val8*$val7*$val9]
+val15=$[($val14+$val10*$val9)/($val11*$val12)]
+val16=<ul>(format décimal)	<li>Poids = $val14 (unités de poids)</li>	<li>Pression = $val15 (unités de pression)</li>	</ul>
+tmp=!trim poids d'un empilement	pression
+val17=!translate internal $	\
+$ to ;; in $tmp
+!if $val6=en 
+val16=<ul>(format décimal)	<li>Poids = $val14 (unités de poids)</li>	<li>Pression = $val15 (unités de pression)</li>	</ul>
+tmp=!trim poids d'un empilement	pression
+val17=!translate internal $	\
+$ to ;; in $tmp
+!endif
+replytype1=sigunits
+replyname1=$(val17[1;])
+replygood1=$val14 N#4
+replytype2=sigunits
+replyname2=$(val17[2;])
+replygood2=$val15 Pa#4
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+help=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst  $val16 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer"><img src="$val13" alt=""></div>			
+!if $val6=fr 
+$()	La masse d'un élément est m = $val7 kg.	<ol>	<li>Calculer le poids d'un empilement de $val8 éléments (on prendra g = $val9 N/kg).</li>	<li>Cet empilement repose sur un socle de masse $val10 kg de dimensions $val11 m par $val12 m.	Calculer la pression exercée sur le sol par l'ensemble.</li>	</ol>	 
+!endif
+$()	
+!if $val6=en 
+$()	La masse d'un élément est m = $val7 kg.	<ol>	<li>Calculer le poids d'un empilement de $val8 éléments (on prendra g = $val9 N/kg).</li>	<li>Cet empilement repose sur un socle de masse $val10 kg de dimensions $val11 m par $val12 m.	Calculer la pression exercée sur le sol par l'ensemble.</li>	</ol>	 
+!endif
+$()		<div class="wims_instruction">		
+!if $val6!=en 
+$()	<p>Les résultats doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>		 
+!endif
+$()		
+!if $val6=en 
+$()	<p>The results doivent être donnés au	 
+!read oef/special.phtml help fscient, format scientifique 
+$()	avec très exactement quatre chiffres significatifs.	Les puissances de 10 se notent comme à l'aide de certaines calculatrices,	par une lettre "e" qui signifie "10 à la puissance..."	</p><p>	Vous ne donnerez que les réponses numériques.	</p>	 
+!endif
+$()		</div>	
+$()
+!exit
+
+:hint
+$()<p>	
+!insmath P=m g
+$()<br>	
+!insmath p=\frac{F}{S}
+$()	</p>
+$()
+!exit
+
+:help
+$()	
+!if $m_help_subject issametext fscient or $m_help_subject issametext  
+$()		
+!if $val6!=en 
+$()	<h3>Notation scientifique :</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()	
+!if $val6=en 
+$()	<h3>Scientific notation:</h3>	Écrire un nombre en notation scientifique, c'est l'écrire sous la forme d'un	produit d'une puissance de 10 et d'un nombre décimal ayant	<span class="bold">un seul chiffre</span>,	<span style="text-decoration:underline">autre que zéro</span>,	<span class="bold">avant la virgule</span>.	<h4>Exemple :</h4>	A = 674.8 <span class="bold">s'écrit au format scientifique :</span>	<ul><li>	A = 6.748e2 (avec 4 chiffres significatifs)	</li>	<li>	A = 6.75e2  (avec 3 chiffres significatifs)	</li>	<li>	A = 7e2     (avec 1 chiffre significatif)	</li>	</ul>	(Le "e2", par exemple, signifie pour l'ordinateur, 10<sup>2</sup>).	 
+!endif
+$()		 
+!endif
+$()	
+$()
+!exit
+
+:solution
+$() $val16 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,16
+embedcnt=2

@@ -1,0 +1,63 @@
+!if $(reply$n)=?
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+!for p=1 to 5
+ ans$p=!item $p of $(reply$n)
+ ans$p=!rawmath $(ans$p)
+ rep$p=!item $p of $(answer$n)
+ ans$p=$[$(ans$p)]
+ rep$p=$[$(rep$p)]
+!next p
+
+
+ score=0
+!for p in 1,2,3,5
+ !if $[abs($(ans$p) - $(rep$p))] < 10^-9 
+  !increase score
+  k$p=green
+ !else
+  !if $[abs($(ans$p) - $(rep$p))] < 10^-2
+   score=$[$score+0.6]
+   k$p=orange
+  !else
+   k$p=red
+  !endif
+ !endif
+!next p
+
+k4=red
+!for p=0 to 50
+ a1=$[($ans4) + $p*($var9)]
+ a2=$[($ans4) - $p*($var9)]
+ !if $[abs(($a1)-($rep4))] <10^-9  or $[abs(($a2)-($rep4))] < 10^-9
+  !increase score
+  k4=green
+  !goto KLAAR
+ !endif
+!next p
+:KLAAR
+your_answer=<ul>
+!for p=1 to 5
+ ans$p=!item $p of $(reply$n)
+ your_answer=!append word <li><span style="color:$(k$p)">$(ans$p)</li> to $your_answer
+!next p
+your_answer=!append word <ul> to $your_answer
+
+reply$n=$(reply$n) $your_answer
+
+!if $score> 0.9
+ remark$n=$OK
+!else
+ !if $score>0.5
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+math=0
+modulescore=$[$modulescore + $score/5]
+!exit

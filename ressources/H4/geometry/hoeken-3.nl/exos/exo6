@@ -1,0 +1,123 @@
+#6 Plaatsvector
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=0
+applet=1
+inputs=-1
+n=$counter
+mathview=0
+math=0
+force_mathml=yes
+calculator=2
+#checkfile=$checkdir/coord.proc
+checkfile=exos/precheck.proc
+helptext=!record 7 of lang/remarks.$taal
+make_tr=0
+ax1=!randitem -5,-4,-3
+ay1=!randitem -8,-7,-6
+bx1=!randitem 2,3,4
+by1=!randitem -8,-7,-6
+vx1=!randitem -4,-3,-2,-1,1,2,3,4
+vy1=!randint 1,4
+vx2=!randitem -4,-3,-2,-1,1,2,3,4
+vy2=!randint 1,4
+
+xmin=-10
+xmax=10
+ymin=-10
+ymax=10
+ax2=$[$ax1+$vx1]
+ay2=$[$ay1+$vy1]
+bx2=$[$bx1+$vx2]
+by2=$[$by1+$vy2]
+xp=!randitem -1,-2,0,1,2
+yp=!randitem -1,-2,0,1,2
+
+kax=$[$ax2 - $ax1]
+kay=$[$ay2 - $ay1]
+kbx=$[$bx2 - $bx1]
+kby=$[$by2 - $by1]
+
+a_ml=!mathmlmath \vec a
+b_ml=!mathmlmath \vec b
+
+d=!randint 1,4
+e=!randint 1,12
+r=!randint 1,6
+list=1/4,1/2,3/4,3/2,2,3,-1/2,-3/2,-2,-3,-1/4,-3/4
+list_tex=\frac{1}{4},\frac{1}{2},\frac{3}{4},\frac{3}{2},2,3,-\frac{1}{2},-\frac{3}{2},-2,-3,-\frac{1}{4},-\frac{3}{4}
+fa=!item $e of $list
+fa_tex=!item $e of $list_tex
+fb=!item $r of $list
+fb_tex=!item $r of $list_tex
+ab_tex=!item $d of $fa_tex \cdot \vec a + \vec b,$fa_tex \cdot \vec a - \vec b,-\vec a + $fb_tex \cdot \vec b,-\vec a - $fb_tex \cdot \vec b
+ab_ml=!mathmlmath $ab_tex
+ 
+pm1=!item $d of $fa_tex \cdot,$fa_tex \cdot ,-,-
+pm2=!item $d of +,-,+$fb_tex \cdot,-$fb_tex \cdot
+
+ans=!line $d of ($fa)*($kax) + ($kbx),($fa)*($kay) + ($kby)\
+($fa)*($kax) - ($kbx),($fa)*($kay) - ($kby)\
+-1*($kax) + ($fb)*($kbx),-1*($kay) + ($fb)*($kby)\
+-1*($kax) - ($fb)*($kbx),-1*($kay) - ($fb)*($kby)
+ 
+ans_x=!item 1 of $ans
+ans_y=!item 2 of $ans
+
+tot=!exec pari A=$ans_x\
+B=$ans_y\
+printtex(A)\
+printtex(B)
+
+ans_x=!line 1 of $tot
+ans_y=!line 2 of $tot
+answer$n=0,0,$ans_x,$ans_y
+
+kabx=!line 3 of $tot
+kaby=!line 4 of $tot
+
+vec_a=!mathmlmath \begin{pmatrix} $kax \\ $kay \end{pmatrix}
+vec_b=!mathmlmath \begin{pmatrix} $kbx \\ $kby \end{pmatrix}
+
+ss=!record 12 of lang/remarks.$taal
+#@Gegeven vector $a_ml met kental $vec_a en<br />vector $b_ml met kental $vec_b<br />Teken in het plaatje de plaatsvector $ab_ml<br /><em>ik zou gebruik maken van de invoervelden...</em>
+question$n=<a onmouseover='return escape("$helptext")'>$ss</a>
+
+texanswer$n=\left[ \begin{array}{l} $ab_tex  = $pm1 \begin{pmatrix} $kax \\ $kay \end{pmatrix} $pm2 \begin{pmatrix} $kbx \\ $kby \end{pmatrix} \\ $ab_tex  = \begin{pmatrix}  $pm1 $kax  $pm2 $kbx \\  $pm1 $kay  $pm2 $kby \end{pmatrix} = \begin{pmatrix} $kabx \\ $kaby \end{pmatrix} \end{array}\right.
+
+textanswer$n=!record 13 of lang/remarks.$taal
+#@Een plaatsvector of positievector is een vector die de plaats van een punt bepaalt.<br />Het beginpunt is de <b>oorsprong (0:0)</b>
+
+var5=size 480,480\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+linewidth 1\
+precision 0\
+axis\
+axisnumbering\
+opacity 90,110\
+grid 1,1,grey,4,4,6,grey\
+snaptogrid\
+opacity 255,255\
+mathml $ax1,$ay1,$[$ax1+1],$[$ay1+1],$a_ml\
+mathml $bx1,$by1,$[$bx1+1],$[$by1+1],$b_ml\
+linewidth 1\
+arrow $ax1,$ay1,$ax2,$ay2,8,blue\
+arrow $bx1,$by1,$bx2,$by2,8,blue\
+userinput_xy\
+userdraw arrow,blue\
+precision 100\
+mouse red,22\
+replyformat 21
+
+!if $wims_user=supervisor
+ var5=!append line arrow $(answer$n),8,lightgreen to $var5
+!endif
+
+object$n=!exec canvasdraw\
+$var5
+
+!exit 

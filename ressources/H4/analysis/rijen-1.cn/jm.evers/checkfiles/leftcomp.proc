@@ -1,0 +1,87 @@
+# checkfor a stray '+' or '-' sign as operator.
+# Do your own calculations !
+# if this is true there is a small P3 penalty
+# and the exercise will be returned for correction
+# EVEN in Exam/Test exam mode !!
+
+# but an answer like 1+3000*sqrt(50) should ofcourse be Ok
+# and if $varlist is not empty, we should skip this test anyway
+# (3+4x) is a sound answer...
+# this file must be called by another procfile
+# it expects a variable called AAA which is a already modified/filtered
+# student answer reply$n 
+# this checking is not really foolproof see below.
+
+!if $varlist = $empty
+    !if (+ isin $AAA) or (- isin $AAA)
+	dingen=i,sqrt,cos,tan,abs,log,ln
+	# 'sin' 'pi' is covered by 'i'
+	!for r in $dingen
+	    !if $r isin $AAA
+		# no need to go on: 5+3*sqrt(2)+i is a good answer
+		# and it is too expensive to scheck "in" the sqrt() for calculations
+		!goto READY1
+	    !endif    
+	!next r
+	nummers=0,1,2,3,4,5,6,7,8,9
+ 	!for s in +,-
+	    t=!positionof char $s in $AAA
+	    !if $t != $empty
+		!for p in $t
+		    t1=!char $[$p-1] of $AAA
+    		    t2=!char $[$p+1] of $AAA
+		    !if ($t1 isitemof $nummers) and ($t2 isitemof $nummers)
+			maxscore=$[$P3*$maxscore]
+			errortext=!record 14 of $remarkdir/commonremarks.$taal
+		    	!increase try
+		    	goback=1
+		    	!exit
+		    !endif
+		!next p
+	    !endif
+	!next s
+    !endif     
+!endif
+
+!exit
+
+:READY1
+
+##################################
+# we could check for calculations 
+# within parenthesis like this:
+# (not cheap !)
+#
+# AAA=((1+4x)*(sqrt(2+4)))
+#
+# aaa=!replace internal ( by , in $AAA
+# aaa=!replace internal ) by , in $aaa
+#
+# now aaa == ,,1+4x,*,sqrt,2+4,,,
+# may be get rid of extra ,,,  first
+# 
+#
+#
+# t=!itemcnt $aaa
+# !for r=1 to $t
+# 	chk=!item $r of $aaa
+#	chk2=!charcnt $chk
+#	!if $chk2 >3
+#		!for x in $varlist
+#		    !if $x notin $chk
+#		       check on +-*
+#		    !endif
+#	  	!next x
+#	!endif
+# !next r
+
+
+
+
+
+
+
+
+
+
+

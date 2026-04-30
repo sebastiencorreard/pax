@@ -1,0 +1,99 @@
+# used for prececking
+# excerpt from simplify.proc
+# check on literal copying of the exo
+# use var1 as literal copy of the exercise question
+# use $rep as instance of the student reply
+# use $ans as instance of correct answer
+# this file checks 1 reply vs 1 answer
+# call manytimes if multiple anwers in sequence [sequence matters]
+# a=$A1
+# g=$G1
+# return=-1
+# !readproc $checkdir/copy_of_question.proc
+# !if $return != -1
+#	goback=$return
+#	!exit
+# !endif
+#
+
+a=!nospace $a
+a=!replace internal = by , in $a
+a=!item -1 of $a
+
+
+a=!lower $a
+a1=!lower $a
+a1=!rawmath $a1
+a1=!nospace $a1
+
+o1=!lower $var1
+o1=!rawmath $o1
+o1=!nospace $o1
+
+c1=!lower $g
+c1=!rawmath $c1
+c1=!nospace $c1
+
+!if $c1!=$o1
+    # is correct answer != raw question...
+    !if $o1 issametext $a1
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    return=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    remark$n=$NOK<br>$ex
+	    return=0
+	    maxscore=0
+	!endif
+	!exit
+    !endif
+!endif
+
+
+c2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\"\'\:\;\?\-] by $empty in $c1
+o2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\"\'\:\;\?\-] by $empty in $o1
+o2=!nospace $o2
+c2=!nospace $c2
+!if $o2!=$c2
+    a2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\"\'\:\;\?\-] by $empty in $a1
+    a2=!nospace $a2
+    !if $o2 issametext $a2
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    return=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    remark$n=$NOK<br>$ex
+	    return=0
+	    maxscore=0
+	!endif
+	!exit
+    !endif
+!endif
+
+tot=!exec toascii $o2,$c2,$a2
+o3=!item 1 of $tot
+c3=!item 2 of $tot
+!ifval $o3!=$c3
+    a3=!item 3 of $tot
+    !ifval $a3=$o3
+    	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    return=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    remark$n=$NOK<br>$ex
+	    return=0
+	    maxscore=0
+	!endif
+    !endif
+!endif
+
+!exit

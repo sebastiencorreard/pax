@@ -1,0 +1,113 @@
+!set title=Calcul d'angle 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items A,B,C,D
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val6=\widehat{$val6}
+val7=arctan(x)
+val8=\tan($val6)
+tmp0=!randint 130, 1000
+
+val9=$[$(tmp0)/100]
+tmp0=!replace internal x by $val9 in $val7
+
+val10=$(tmp0)
+tmp0=!randint 0, 2
+
+val11=$[rint($(tmp0))]
+tmp0=!item $val11+1 of au degré,au dixième de degré,au centième de degré
+
+val12=$(tmp0)
+val13=$[$val10/pi*180]
+val13=$[rint($val13*10^$val11)/10^$val11]
+tmp0=!texmath $val9
+
+val14=$(tmp0)
+replytype1=numexp
+replyname1=\($val6)
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Utiliser la calculatrice et donner l'arrondi $val12 de la mesure de l'angle aigu	
+!insmath $val6
+$() vérifiant :	<div class="wimscenter">	 
+!insmath $val8 = $val14 
+$()	</div>	<b>Réponse :</b><br>	 <label for="reply1">
+!insmath $val6 \simeq 
+$()</label>  
+!read oef/embed.phtml r1,5 
+$() °.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,14
+embedcnt=1

@@ -1,0 +1,135 @@
+!set title=Trouver la formule avec le graphique 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=c
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=$[rint(300)]
+tmp0=!values v,-v for v=2 to 5
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+val9=$(val8[1])*x+$(val8[2]),$(val8[1])*x-$(val8[2]),$(val8[2])*x+$(val8[1]),$(val8[2])*x-$(val8[1])
+!readproc slib/draw/repere $val7,$val7,0,-10,10,-10,10,1,1,black,grey 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!line 3 to -1 of $val10
+
+val10=$(tmp0)
+!readproc oef/draw.phtml $val7,$val7 \
+$val10	range -10,10,-10,10	plot blue,$(val9[1])	text black,9.5,-0.3,medium,X	text black,-0.6,10,medium,Y	text black,0.9,-0.3,medium,1	text black,-0.6,1.5,medium,1 
+tmp0=$ins_url
+val11=$(tmp0)
+val12=
+!for val13 =1 to 4 
+t_=!replace internal \( by ( in $(val9[$val13]);
+tmp0=!exec maxima $t_
+
+val14=$(tmp0)
+tmp0=!texmath $val14
+
+val14=$(tmp0)
+tmp0=!append item $val14 to $val12
+
+val12=$(tmp0)
+!next
+val15=F,G,H,J
+tmp0=!item 1 of $val12
+
+val16=$(tmp0)
+tmp0=!shuffle $val12
+
+val17=$(tmp0)
+tmp0=!positionof item $val16 in $val17
+
+val18=$(tmp0)
+val19=$(val15[$val18])
+choicename1=réponse
+choicegood1=$val19
+choicebad1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left spacer"><img src="$val11" alt=""></div>	  De quelle fonction la droite ci-contre est-elle la représentation graphique ?	 <ul>	   
+!for m_k=1 to 4 
+$()<li>
+!insmath $(val15[$m_k]) : x \mapsto $(val17[$m_k])
+$()</li> 
+!next
+$()	 </ul>	<b>Votre réponse :</b><br>	  C'est la représentation graphique de la fonction  
+!read oef/embed.phtml c1 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,15,17
+embedcnt=1

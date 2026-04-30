@@ -1,0 +1,210 @@
+n=$counter
+# var4 is number of datasets
+# options is number of questions
+# reply$n = answer_1,answer_2,...,answer_$options , total_time:number_of_tests \n time_1:freq_1 \n  time_2:freq_2 \n ... time_$var4:freq_$var4
+
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    textanswer$n=!record 34 of lang/remarks.$taal
+    !exit
+!endif
+
+!if $rounding<1
+    rnd1=1000
+    rnd2=100
+!else
+    rnd1=$rounding
+    rnd2=$[$rounding/10]
+!endif
+!for p=1 to $options
+    rep$p=!item $p of $(reply$n)
+    a$p=$[(round($rnd1*$(rep$p)))/$rnd1]
+    aa$p=$[(round($rnd2*$(rep$p)))/$rnd2]
+!next p
+
+data=!item -1 of $(reply$n)
+checks=!line 1 of $data
+checks=!replace internal : by , in $checks
+som=!item 1 of $checks
+check_var4=!item 2 of $checks
+data=!line 2 to -1 of $data
+dt=!linecnt $data
+
+textanswer$n=<table class="demospecial"><tr>
+check_som=0
+c=0
+totaal=$empty
+!if $var5=1
+    # frequency
+    freq_tot=0
+    tot=$empty
+    !for p=1 to $dt
+	s=!line $p of $data
+	s=!nospace $s
+        !if $s != $empty
+	    !increase c
+	    s=!replace internal : by , in $s
+    	    s1=!item 1 of $s
+	    s2=!item 2 of $s
+	    freq_tot=$[$freq_tot + $s2]
+    	    check_som=$[$check_som + $s1*$s2]
+	    textanswer$n=!append word $ <td>$s1 sec</td><td>$s2</td> $ to $(textanswer$n)
+    	    !if $c=4
+    		c=0
+    		!if $p=$dt
+	    	    textanswer$n=!append word $ </tr> $ to $(textanswer$n)
+    		!else
+	    	    textanswer$n=!append word $ </tr><tr> $ to $(textanswer$n)
+		!endif
+	    !endif
+	    !for r=1 to $s2
+		totaal=!append item $s1 to $totaal
+	    !next r
+	    tot=!append item $s1 to $tot
+	    #totaal=!append item $s1 to $totaal
+	    totaal_f=!append item $s2 to $totaal_f
+	!endif
+    !next p
+    dt=!itemcnt $totaal
+    ds=!itemcnt $tot
+    # gemiddelde
+    ans1=$[$check_som/$freq_tot]
+    NW=0
+    !for p=1 to $ds
+	s1=!item $p of $tot
+	s2=!item $p of $totaal_f
+        W=$[$s2*($s1-$ans1)^2]
+        NW=$[$W + $NW]
+    !next p
+    # standaardafwijking
+    ans2=$[sqrt($NW/$freq_tot)]
+!else
+    # zonder freq
+    !for p=1 to $dt
+	s=!line $p of $data
+	s=!nospace $s
+        !if $s != $empty
+	    !increase c
+	    s=!replace internal : by , in $s
+    	    s1=!item 1 of $s
+    	    check_som=$[$check_som + $s1]
+	    textanswer$n=!append word $  <td>$s1 sec</td> $ to $(textanswer$n)
+    	    !if $c=4
+    		c=0
+    		!if $p=$dt
+	    	    textanswer$n=!append word $ </tr> $ to $(textanswer$n)
+		!else
+	    	    textanswer$n=!append word $ </tr><tr> $ to $(textanswer$n)
+		!endif
+	    !endif
+	    totaal=!append item $s1 to $totaal
+	!endif
+    !next p
+    dt=!itemcnt $totaal
+    # gemiddelde
+    ans1=$[$check_som/$dt]
+    NW=0
+    !for p=1 to $dt
+	s1=!item $p of $totaal
+        W=$[($s1-$ans1)^2]
+        NW=$[$W + $NW]
+    !next p
+    # standaardafwijking
+    ans2=$[sqrt($NW/$dt)]
+!endif
+
+textanswer$n=!append word $ </table> $ to $(textanswer$n)
+
+# eerste & derde kwartiel
+totaal=!sort numeric list of $totaal
+!if $[gcd($dt,2)]=2
+    even=1
+    m1=!item $[0.5*$dt] of $totaal
+    m2=!item $[0.5*$dt+1] of $totaal
+    ans3=$[($m2+$m1)/2]
+    !if $[gcd((0.5*$dt),2)]=2
+	w1=$[0.25*$dt]
+	w11=$[0.25*$dt+1]
+	w3=$[0.75*$dt]
+	w33=$[0.75*$dt+1]
+	q1=!item $w1 of $totaal
+	q11=!item $w11 of $totaal
+	q3=!item $w3 of $totaal
+	q33=!item $w33 of $totaal
+    !else
+	w1=$[0.25*$dt+0.5]
+	w3=$[0.75*$dt+0.5]
+	w33=$w3
+	q1=!item $w1 of $totaal
+	q11=$q1
+	q3=!item $w3 of $totaal
+	q33=$q3
+    !endif
+!else
+    even=0
+    ans3=!item $[($dt+1)/2] of $totaal
+    !if $[gcd((0.5*($dt-1)),2)]=2
+	w1=$[0.25*$dt - 0.25]
+	w11=$[0.25*$dt + 0.75]
+	w3=$[0.75*$dt + 0.25]
+	w33=$[0.75*$dt + 1.25]
+	q1=!item $w1 of $totaal
+	q11=!item $w11 of $totaal
+	q3=!item $w3 of $totaal
+	q33=!item $w33 of $totaal
+    !else
+	w1=$[0.25*$dt+0.25]
+	w3=$[0.75*$dt+0.75]
+	w33=$w3
+	q1=!item $w1 of $totaal
+	q11=$q1
+	q3=!item $w3 of $totaal
+	q33=$q3
+    !endif
+!endif
+    
+ans4=$[($q1+$q11)/2]
+ans5=$[($q3+$q33)/2]
+rrr=!record 3 of lang/remarks.$taal
+#@ Het gemiddelde is dus $ans1,De standaarddeviatie $m_sigma is $ans2,De mediaan $m_mu is $ans3,Het eerste kwartiel is $ans4,Het derde kwartiel is $ans5 
+txt=$empty
+your_reply=<ol>
+score=0
+!for p=1 to $options
+    t=!item $p of $rrr
+    txt=!append word $  <li>$t</li> to $txt
+    g$p=$[(round($rnd1*$(ans$p)))/$rnd1]
+    gg$p=$[(round($rnd2*$(ans$p)))/$rnd2]
+    !ifval $(g$p) = $(a$p)
+	!increase score
+	k=green
+    !else
+	!ifval $(gg$p) = $(aa$p)
+	    score=$[$score + 0.7]
+	    k=orange
+	!else
+	    k=red
+	!endif
+    !endif
+    your_reply=!append word $ <li><span style="color:$k">$(rep$p)</span></li> $ to $your_reply
+!next p
+textanswer$n=!append word $ <br /><ol>$txt</ol> $ to $(textanswer$n)
+your_reply=!append word $  $ </ol> $ to $your_reply
+reply$n=$your_reply
+math=0
+maxscore=$[$maxscore*$score/$options]
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+goback=0
+!exit

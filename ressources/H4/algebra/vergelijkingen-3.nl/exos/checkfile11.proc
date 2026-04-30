@@ -1,0 +1,263 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# var5=het aantal goede (items) antwoorden in $(answer$n)
+n=$counter
+extra=$empty
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+AAA=!lower $(reply$n)
+wims_exec_error=$empty
+maxscore=1
+
+!if x notin $AAA
+    errortext=!record 87 of lang/remarks.$taal
+    maxscore=$[$P4*$maxscore]
+    # Je moet je antwoorden natuurlijk wel wiskundig noteren...<br />Wat dacht je van iets als:\
+    # <br />x=2*pi<br />en x=4/3*pi<br />of zo ?<br />\
+    # Je kan ook even in de help-pagina kijken, $voornaam
+    goback=1
+ !exit 
+!endif
+
+!if k isin $AAA and k notin $(answer$n)
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 88 of lang/remarks.$taal
+    # $voornaam ,er worden getalsmatige oplossingen verwacht<br />\
+    # en geen algemene oplossing (ik trof een <em>k</em> aan in je antwoord)<br />\
+    # Ik zou maar eens in de help-pagina's kijken :)
+    goback=1
+ !exit
+!endif
+
+AAA=!replace internal is by = in $AAA
+test=!replace internal = by @ in $AAA
+!if @ notin $test
+    errortext=!record 89 of lang/remarks.$taal
+    maxscore=$[$P1*$maxscore]
+    # Je moet je antwoorden natuurlijk wel wiskundig noteren...<br />Wat dacht je van iets als:\
+    # <br />x1=2*pi<br />en x2=4/3*pi<br />en x3=7/5*pi+1/2<br />of zo ?<br />\
+    # Je kan ook even in de help-pagina kijken, $voornaam
+    goback=1
+ !exit 
+!endif
+
+AAA=!singlespace $AAA
+test=!replace internal =x by @ in $AAA
+test=!replace internal = x by @ in $test
+!if @ isin $test
+    testvar1= <br /><b>x</b> = 2*pi<br />
+    testvar2= <br />2*pi = <b>x</b><br />
+    errortext=!record 96 of lang/remarks.$taal
+    goback=1
+    !if $teaching=1
+	maxscore=$[$P3*$maxscore]
+    !else
+	maxscore=$[$P1*$maxscore]
+    !endif
+ !exit 
+!endif
+
+AAA=!nospace $AAA
+AAA=!replace internal = by =, in $AAA
+
+# schrijfwijze ...
+!for i in 1,2,3,4,5,6,7,8,9,10
+    AAA=!replace internal x$i= by x= in $AAA
+    AAA=!replace internal x_$i= by x= in $AAA
+!next i
+
+!for i in sqrt,sin,cos,tan,log,ln,pi
+    S=!toupper $i
+    AAA=!replace internal $i by $S in $AAA
+!next i
+
+AAA=!replace internal = by , in $AAA
+AAA=!replace [a-z\~\`\!\@\&\#\%\_\:\;\"\'\?\|\=\<\>] by $empty in $AAA
+AAA=!lower $AAA
+AAA=!nospace $AAA
+!for p=1 to 4
+    AAA=!replace internal ,, by , in $AAA
+!next p
+
+test=!char 1 of $AAA
+!if $test=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+test=!char -1 of $AAA
+!if $test=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+
+ai=!itemcnt $AAA
+# reeds in nivo-file /var.def var5=!itemcnt $(answer$n)    
+
+!if $ai=0
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    testvar=$(reply$n)
+    errortext=!record 23 of common/commonremarks.$taal
+    !exit
+!endif
+
+#meerdere goede antwoorden
+!if $ai != $var5
+    # minder leerlingantwoorden
+    !if $ai<$var5
+	ex=!record 90 of lang/remarks.$taal
+	extra=$extra<br />$ex
+	#$extra je hebt $ai x-waarde opgegeven...<br />\
+	#dat is dus te weinig, je krijgt in elkgeval "strafpunten" hiervoor.
+	maxscore=$[$maxscore*$ai/$var5]
+    !else
+	!if $ai>$[$var5+4]
+	    errortext=!record 91 of lang/remarks.$taal
+	    #Dus jij denkt echt dat er $ai snijpunten zijn op het gegeven Domein ?<br />\
+	    #Dat geloof ik niet !<br />Probeer het eens serieus, $voornaam
+	    goback=1
+	    !exit
+	!endif
+	ex=!record 92 of lang/remarks.$taal
+	extra=$extra<br />$ex
+	#$extra je hebt $ai x-waarde opgegeven...<br />\
+	#dat is dus te veel, je krijgt in elkgeval "strafpunten" hiervoor.
+	maxscore=$[$maxscore*$var5/$ai]
+    !endif
+!endif
+
+# answer$n is een $var5 aantal oplossingen;
+
+AAA=!nospace $AAA
+aaa=$empty
+!if $rounding<1
+    rounding=100
+!endif
+!for p=1 to $ai
+    # we rekenen alle termen uit en ronden af op 2 decimalen - zoals ook wordt gevraagd.
+    A$p=!item $p of $AAA
+    A$p=!rawmath $(A$p)
+    A$p=$[round($rounding*($(A$p)))/$rounding]
+    aaa=!append item $(A$p) to $aaa
+!next p
+
+!if NaN isin $aaa
+    maxscore=$[$P2*$maxscore]
+    testvar=<br />$(reply$n)<br />
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+	
+aaa=!nospace $aaa
+cont1=!listuniq $aaa
+cont1=!itemcnt $cont1
+!if $cont1 < $ai
+    aw=$[$ai-$cont1+1] 
+    ex=!record 93 of lang/remarks.$taal
+    extra=$extra<br />$ex
+    #$extra <br />Maar je hebt ook $aw dezelfde antwoorden opgegeven...
+    maxscore=$[$maxscore*$cont1/$ai]
+    ai=$cont1
+!endif
+
+paritest=$empty
+score=0
+	
+!for p=1 to $ai
+    A=!item $p of $aaa
+    #A=$[(round($rounding*$A))/$rounding]
+    !for s=1 to $var5
+	G=!item $s of $(answer$n)
+	G=$[(round($rounding*($G)))/$rounding]
+	paritest=!append line if((1.0*($A))==(1.0*($G)),1,0) to $paritest
+    !next s
+!next p
+
+tot=!exec pari $paritest
+
+!if $wims_exec_error != $empty
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    testvar=$(reply$n)
+    goback=1
+    !exit
+!endif
+
+lcnt=!linecnt $tot
+test=0
+!for p=1 to $lcnt
+    t=!line $p of $tot
+    test=$[$test+$t]
+!next p   
+
+score=$[$test/$var5]
+# als alles goed is is $test1=$test2 => score=1
+!if $test != $var5 and $test>0
+    !if $test>1
+	aw=$test
+	ex=!record 94 of lang/remarks.$taal
+	extra=$extra<br />$ex
+	#$extra <br />en je hebt $aw antwoorden <span style="color:green">goed</span>  
+    !else
+	ex=!record 95 of lang/remarks.$taal
+	extra=$extra<br />$ex
+	#$extra <br />en je hebt &eacute;&eacute;n antwoord <span style="color:green">goed</span>  
+    !endif
+!endif
+!if NaN isin $score 
+    testvar=$(reply$n)
+    maxscore=$[$P3*$maxscore]
+    errortext=!record 55 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+maxscore=$[$maxscore*$score]
+
+!if $maxscore>0.8 
+    remark$n=$OK
+!else
+    !if $maxscore > 0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+
+# latex leerling-antwoord (heeeeel duur :)
+!if $showanswer=1
+    L=$empty
+    !for p=1 to $ai
+	L=!append word l to $L
+    !next p
+    reply$n=\left[ \begin{array}{$L}
+    !for p=1 to $ai
+	A=!item $p of $AAA
+	A=!texmath $A
+	reply$n=!append word $ x_{$p}=$A \\ $ to $(reply$n)
+    !next p
+    reply$n=!append word $ \end{array} \right. $ to $(reply$n)
+    math=1
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit

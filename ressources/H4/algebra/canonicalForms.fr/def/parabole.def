@@ -1,0 +1,201 @@
+!set title=Parabole et forme canonique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Véronique Royer
+email=royer.veronique@orange.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randitem -1,1
+
+val7=$[rint($(tmp0))]
+
+!ifval $val7=-1
+val8=$[rint(1)]
+!else
+val8=$[rint(-1)]
+!endif
+tmp0=!randitem 8,10
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, $val9-4
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 5, 25
+
+val11=$[rint($(tmp0)*$(tmp1))]
+val12=.
+val13=!rawmath $val7((x-$val10)^2+$val11)
+
+!ifval $val7=1
+t_=!rawmath 2
+val14=!exec pari print($t_)
+!else
+t_=!rawmath 1
+val14=!exec pari print($t_)
+!endif
+t_=!rawmath $val11
+val15=!exec pari print($t_)
+t_=!rawmath $val10
+val16=!exec pari print($t_)
+val13=!rawmath $val7(x-$val10)^2+$val11
+val17=!rawmath $val8(x-$val10)^2+$val11
+val18=!rawmath $val7(x-$val10)^2-$val11
+val19=!rawmath $val8(x-$val10)^2-$val11
+val20=!rawmath $val7(x+$val10)^2-$val11
+val21=!rawmath $val8(x+$val10)^2-$val11
+val22=!rawmath $val7(x+$val10)^2+$val11
+val23=!rawmath $val8(x+$val10)^2+$val11
+val24=\($val13),\($val17),\($val18),\($val19),\($val20),\($val21),\($val22),\($val23)
+!if $val7=1 
+t_=!replace internal \( by ( in floor($val11-2)
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+val26=$[rint($val25 + 20)]
+!else
+t_=!replace internal \( by ( in floor($val11+2)
+tmp0=!exec pari $t_
+
+val26=$[rint($(tmp0))]
+val25=$[rint($val26 - 20)]
+!endif
+val27=$[rint(($val25+$val26)/2)]
+t_=!replace internal \( by ( in 10*floor($val27/10)
+tmp0=!exec pari $t_
+
+val27=$[rint($(tmp0))]
+val28=text black , -1, -50, small , -50	text black , -1, -40, small , -40	text black , -1, -45, small , -45	text black , -1, -30, small , -30	text black , -1, -35, small , -35	text black , -1, -20, small , -20	text black , -1, -25, small , -25	text black , -1,-10,small , -10	text black , -1,-15,small , -15	text black , -1,-5,small , -5	text black , -1, 0,small , 0	text black , -1, 5,small , 5	text black , -1, 10, small , 10	text black , -1,15,small , 15	text black , -1, 30, small , 30	text black , -1, 35, small , 35	text black , -1, 20, small , 20	text black , -1, 25, small , 25	text black , -1, 40, small , 40	text black , -1, 45, small , 45	text black , -1, 50, small , 50	text black, -10, $val27-0.2, small , -10	text black, -5, $val27-0.2, small , -5	text black, 5, $val27-0.2,small , 5	text black, 10, $val27-0.2,small , 10	arrow 0,$val27,1,$val27,3,black	arrow 0,$val27,0,$val27+1,3,black	text black,0,$val27+1,small,j	text black,1,$val27,small,i	text red,0,$val27,medium,A	linewidth 3	point -10 ,$val27, black	point -5 ,$val27, black	point 5 , $val27, black	point 10 , $val27, black	point 0, $val27-5 , black	point 0, $val27-15 , black	point 0, $val27-10 , black	point 0, $val27 , black	point 0, $val27+5 , black	point 0, $val27+10 , black	point 0, $val27+15 , black
+replytype1=menu
+replyname1=
+replygood1=$val14;maximum,minimum
+replytype2=integer
+
+replyname2=
+replygood2=$val15
+replytype3=integer
+
+replyname3=
+replygood3=$val16
+replytype4=radio
+replyoption4=shuffle 
+replyname4=Formule pour \(f\):
+replygood4=1 ; $val24
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	  <div class="medium_size img_col">	 
+!read oef/draw.phtml 350,350 \
+	xrange -$val9,$val9	yrange $val25,$val26	parallel -$val9,$val25,-$val9,$val26,1,0, 2*$val9+1, grey	parallel -$val9,$val25,$val9,$val25,0,1, ($val26-$val25)+1, grey	hline 0,$val27,black	vline 0,$val27,black	arrow 0,$val27,1,$val27,8, black	arrow 0,$val27,0,$val27+1,8, black	text red, $val10, $val11-0.2, medium , S	$val28	linewidth 1.5	plot blue, $val13	linewidth 3	point $val10, $val11, red 
+$()	</div>	<div class="medium_size text_col">	Soit 
+!insmath f
+$() une fonction du second degré définie sur 
+!insmath \,\RR
+$().	On a représenté sa courbe 
+!insmath \mathcal{P}
+$() dans un repère 
+!insmath (O,\vec{i},\vec{j})
+$().	<p>	Les axes représentés	<span class="bold" style="color:red">se croisent au point A(0 ; $val27)</span>.	</p>	<ol><li> Déterminer graphiquement les coordonnées du sommet 
+!insmath S
+$() de la parabole	
+!insmath \mathcal{P}
+$() (on suppose qu'elles sont entières).	<br>	On en déduit que :	<div class="wimscenter">
+!insmath f
+$() admet un  
+!read oef/embed.phtml reply1 
+$()	<label for="reply2">égal à</label>  
+!read oef/embed.phtml reply2,5 
+$(),	 <label for="reply3">atteint en 
+!insmath x = 
+$()</label>  
+!read oef/embed.phtml reply3,5 
+$().</div>	</li><li>	En déduire, parmi les formes canoniques suivantes, celle	qui donne 
+!insmath f(x)
+$() en fonction de 
+!insmath x
+$() :	<div class="wimscenter">  
+!read oef/embed.phtml reply4 
+$()</div>	</li></ol></div>	</div>	
+$()
+!exit
+
+:hint
+$()Lorsque 
+!insmath x
+$() varie, le signe de 
+!insmath (x - $val10)^2
+$() reste positif ou nul, alors :	  <ul>	    <li>
+!insmath (x - $val10)^2+ C
+$() est toujours supérieur ou égal à 
+!insmath C
+$().</li>	    <li>
+!insmath -(x - $val10)^2 + C
+$() est toujours inférieur ou égal à 
+!insmath C
+$().</li>	  </ul>	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,13,25,26,27,28
+embedcnt=4

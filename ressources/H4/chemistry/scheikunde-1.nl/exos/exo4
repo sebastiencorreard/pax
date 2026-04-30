@@ -1,0 +1,106 @@
+# 2 versies: oud & nieuw [matchmol]
+n=$counter
+questiontype=7
+mathview=0
+image=0
+answer1=1
+make_tr=1
+viewlogo=1
+logotext=!record 52 of lang/remarks.$taal
+#@Periodiek Systeem de Elementen
+logo=<a onClick="window.open('$module_dir/docs/periodiek_systeem.html','$logotext','width=640,height=480,left=0,top=0,status=no,menubar=no,resizable=yes,toolbar=no')"><img src="$module_dir/gifs/periodiek.gif" "alt="periodiek systeem de elemenenten" /></a>  
+math=0
+# let op dit niet veranderen ivm verschillende lengtes datafiles n_alkanes.js.el,m_alkanes.js.el
+!if $level<2
+    R=1
+!else
+    R=2
+!endif
+keuze=!randint 0,1
+
+!if $keuze=1
+ javascript=js/exo4.popup.js
+!else
+ javascript=js/exo4.iframe.js
+!endif
+template_index_url=../templates/mol.idx
+wims_atoms=['O','H','C','N','Br','Cl']
+!if $subject=4
+    !if $R=1
+	file=n_alkanes 
+    !else
+	file=m_alkanes 
+    !endif
+!else
+    !if $subject=5
+    	template=no
+	!if $R=1
+	    file=n_alkenes 
+	!else	
+	    file=m_alkenes 
+	!endif
+    !else
+	!if $subject=6
+	    template=no
+    	    !if $R=1
+		file=n_alkynes 
+	    !else
+    		file=m_alkynes 
+	    !endif
+	!else
+	    !if $subject=7
+		template=no
+		!if $R=1
+		    file=n_alcohols 
+		!else
+		    file=m_alcohols 
+		!endif
+	    !else
+		!if $subject=8
+		    file=n_acids 
+		!else
+		    !if $subject=9
+			file=aromatics 
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+file=!nospace $file .molrecords
+checkfile=exos/checkfile4.proc
+inputs=0
+deffile=docs/$file
+# altijd een andere vraag
+!if $counter=1
+    max=!recordcnt $deffile
+    var9=$empty
+    # maak een lijst
+    !for p=1 to $max
+	var9=!append item $p to $var9
+    !next p
+    var9=!shuffle $var9
+!endif
+
+num=!item $counter of $var9
+this=!record $num of $deffile
+names=!line 1 of $this
+!if $taal=nl
+    naam=!word 2 of $names
+!else
+    # english
+    naam=!word 1 of $names
+!endif
+data=!line 2 to -1 of $this
+var1=answer.$counter.mol
+!filewrite getfile/$var1 $data
+# checklist: zie anstype/chemdraw.$taal
+var8=9,14,15,16,17,18,19,20,21,22,23,24,25,26,27,29,30,31,32,33,34,58
+ss=!record 70 of lang/remarks.$taal
+question$n=$ss 
+#@Teken in de onderstaande applet de structuur formule van: <font size=+1><kbd>$naam</kbd></font>
+#@!Draw the structure formula of: <font size=+1><kbd>$naam</kbd></font> 
+# the appletparams
+
+
+!exit

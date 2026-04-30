@@ -1,0 +1,159 @@
+n=$counter
+mathview=5
+questiontype=10
+mathviewpanel=$module_title:g(x)=:y=:x:^:*:+:-:/:sqrt()
+arglist=g(x),y
+var1=1
+# maxima checkt antwoord
+helptext=$empty
+checkfile=exos/checkfile1.proc
+# graphpaper
+xsize=400
+ysize=400
+image=0
+draw=0
+plot=0
+applet=1
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+pm=!randitem +,-
+mp=!randitem +,-
+blue=!record 10 of lang/remarks.$taal
+#@blauwe,blauwige,hemelsblauwe,marineblauwe
+red=!record 11 of lang/remarks.$taal
+#@rooie,rode,vuurrode,vurig rode
+green=!record 12 of lang/remarks.$taal
+#@groen,groenige,grasgroene,heldergroene
+orange=!record 13 of lang/remarks.$taal
+#@oranje,donkergele
+black=!record 14 of lang/remarks.$taal
+#@zwarte,aarde zwarte,zwarte,gitzwarte
+blue=!randitem $blue
+red=!randitem $red
+green=!randitem $green
+orange=!randitem $orange
+black=!randitem $black
+
+
+kleur=!randline blue,red,$blue,$red \
+red,blue,$red,$blue \
+green,red,$green,$red  \
+red,green,$red,$green \
+blue,green,$blue,$green \
+green,blue,$green,$blue \
+orange,blue,$orange,$blue \
+blue,orange,$blue,$orange \
+red,orange,$red,$orange \
+black,blue,$black,$blue \
+blue,black,$blue,$black \
+green,black,$green,$black \
+red,black,$red,$black \
+black,red,$black,$red
+
+c1=!item 1 of $kleur
+c2=!item 2 of $kleur
+k1=!item 3 of $kleur
+k2=!item 4 of $kleur
+
+mathviewpanel=$modulescore_title:g(x)=:y=:sqrt():log():^
+
+!if $R=1
+    a=!randitem 1,2,3,4,5,6,7
+    b=!randitem 1,2,3,4,5
+    c=!randitem -1,1
+    f=sqrt(x)
+    var2=$f
+    formula$n=\left[ \begin{array}{ccc} f(x) & = & \sqrt{x}\\  g(x) & = & [?] \end{array} \right. 
+    answer$n=$c*sqrt(x$pm$a) $mp $b
+    g=$(answer$n)
+    !if $c=-1
+	bewerken=!record 32 of lang/remarks.$taal
+	texanswer$n= g(x) \, = \,- \sqrt{x $pm $a} $mp $b
+	#@spiegelen in de <em>x-</em>as en te verschuiven in een horizontale en vertikale richting.
+    !else
+	bewerken=!record 33 of lang/remarks.$taal
+	texanswer$n= g(x) \, = \, \sqrt{x $pm $a} $mp $b
+	#@verschuiven in horizontale en vertikale richting.
+    !endif
+!endif
+
+!if $R=2
+    a=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    b=!randitem 1,2,3,4,5
+    d=!randitem 2,3,4,5,6,7
+    f=x^$d
+    var2=$f
+    formula$n=\left[ \begin{array}{ccc} f(x) & = & x^{$d}\\  g(x) & = & [?] \end{array} \right. 
+    answer$n=$a $pm (x $mp $b)^$d
+    texanswer$n= g(x) \, = \, $a $pm \left( x $mp $b)^{$d}
+    g=$(answer$n)
+    !if $pm=-
+	bewerken=!record 34 of lang/remarks.$taal
+	#@spiegelen in de <em>x-</em>as en te verschuiven in een horizontale en vertikale richting.
+    !else
+	bewerken=!record 35 of lang/remarks.$taal
+	#@verschuiven in horizontale en vertikale richting.
+    !endif
+!endif
+
+!if $R=3
+    a=!randitem 1,2,3,4,5
+    d=!randitem 1,2,3,4,5,6,7,8,9
+    f=log(x)/log(10)
+    var2=$f
+    formula$n=\left[ \begin{array}{ccc} f(x) & = & \log(x)\\  g(x) & = & [?] \end{array} \right. 
+    g=log($d-x)/log(10)$pm $a
+    answer$n=log($d-x) $pm $a
+    texanswer$n= g(x) \, = \, \log \left( $d - x \right)  $pm $a
+    bewerken=!record 36 of lang/remarks.$taal
+    #@spiegelen in de <em>y-</em>as en te verschuiven in een horizontale en vertikale richting.
+!endif
+
+!if $R>3
+    a=!randitem -,
+    d=!randitem 1,2,3,4,5,6,7
+    c=!randitem 1,2,3,4,5,6,7
+    f=log(x)/log(10)
+    var2=$f
+    g=$a log($c-x)/log(10) $pm $d
+    formula$n=\left[ \begin{array}{ccc} f(x) & = & \log(x)\\  g(x) & = & [?] \end{array} \right.
+    answer$n=$a log($c-x) $pm $d
+    texanswer$n= g(x) \, = \, $a \log \left( $c - x \right) $pm $d
+    !if $a=-
+	bewerken=!record 37 of lang/remarks.$taal
+	#@spiegelen in de <em>x-</em>as ,spiegelen in de <em>y-</em>as en te verschuiven in een horizontale en vertikale richting.
+    !else
+	bewerken=!record 38 of lang/remarks.$taal
+	#@spiegelen in de <em>y-</em>as en te verschuiven in horizontale en vertikale richting.
+    !endif
+!endif
+
+    
+ss=!record 15 of lang/remarks.$taal
+question$n=$ss
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -10,10\
+yrange -10,10\
+bgcolor white\
+opacity 155,255\
+fontfamily 12pt Ariel\
+precision 1\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,6,blue\
+linewidth 2\
+precision 100\
+opacity 255,255\
+curve $c1,$f\
+curve $c2,$g\
+mouse red,26\
+zoom blue
+
+!exit

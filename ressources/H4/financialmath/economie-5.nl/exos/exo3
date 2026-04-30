@@ -1,0 +1,60 @@
+# Permanentie I
+
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+make_tr=1
+rounding=1
+cols=8
+roundingtext=Geef je eindantwoord op in hele &euro;&rsquo;s
+var1=1
+var2=1
+# new_number.proc
+checkfile=exos/precheck2.proc
+nu=!date +%Y
+jaar1=!randint 1995,$[$nu-8]
+k=!randint 4,7
+jaar2=$[$jaar1+$k]
+perc=!randint 40,120
+perc=$[$perc/10]
+lening=!randint 50,90
+lening=$[$lening*10000]
+perc2=!randint 4,10
+aflossing=$[100*(round($lening*$perc2/10000))]
+aantal=!randint 1,6
+maand=!item $aantal of februari,maart,april,mei,juni,juli
+schuld=$[$lening - ($k-1)*$aflossing]
+#fffff0=#ccffcc
+bedrijf=!randitem Hadjema BV,Vriesekamp BV,Agio NV,Ritsma trading,Bergsma,HaGeBo,Molenkamp BV,VNZ supplies,Wienke trading
+interest=$[$perc*$schuld/100]
+ss1=Bedrijf $bedrijf verstrekt 1 $maand $jaar1 een $perc % onderhandse lening ter grootte van &euro; $lening.<br />Elk jaar ,te beginnen in $[$jaar1+1] , ontvangt $bedrijf op 1 $maand een aflossing van &euro; $aflossing.<br />De interestbetaling van de lening gebeurt achteraf op 1 $maand van elk jaar.<br />
+ex1=&euro;
+
+!if $R=1
+    ss2=Bereken het totale bedrag dat in verband met de $perc % onderhandse lening<br />op de <kbd>liquiditeitsbegroting</kbd> van $bedrijf voor het hele jaar $jaar2 moet worden opgenomen.<br />Geef je eindantwoord afgerond op hele &euro;'s
+    
+    description=Totaal bedrag op de liquiditeitsbegroting
+
+    answer$n=$[$aflossing + $schuld*$perc/100]
+
+    textanswer$n=<ul><li><kbd>liquiditeitsbegroting</kbd> verwijst naar de werkelijke ontvangsten en uitgaven</li><li>Er is sprake van &eacute;&eacute;n ontvangst, nl op 1 $maand $jaar2</li><li>Aflossing = &euro; $aflossing</li><li>Voor het berekenen van de interest moet eerst de omvang van de schuld worden bepaald.<br />Deze is &euro; $lening &minus; $[$k-1] &times; &euro; $aflossing = &euro; $schuld </li><li>Interest wordt betaald over het afgelopen jaar, dus : $[$perc/100] &times; &euro; $schuld = &euro; $interest</li><li>Totaal : &euro; $aflossing + &euro; $interest = &euro; $(answer$n) </li></ul>
+!else
+    ss2=Bereken het totale bedrag dat in verband met de $perc % onderhandse lening<br />op de <kbd>resultatenbegroting</kbd> van $bedrijf voor het het hele jaar $jaar2 moet worden opgenomen.<br />Geef je eindantwoord afgerond op hele &euro;'s
+
+    description=Totaal bedrag op de resultatenbegroting
+    
+    answer$n=$[($perc/100)*$schuld*$aantal/12 + ($perc/100)*($schuld - $aflossing)*(12-$aantal)/12]
+
+    ans=$[round($(answer$n))]
+
+    textanswer$n=<ul><li>Bij een <kbd>resultatenbegroting</kbd> wordt permanentie toegepast.<br />Dat wil zeggen, kosten en opbrengsten worden evenredig toegeschreven aan de periode waarop deze betrekking hebben.</li><li>Aflossingen zijn <b>GEEN</b> kosten!</li><li>Evenredig toeschrijven betekent in dit geval dat de schuld $aantal maanden op &euro; $schuld staat en 12&minus;$aantal=$[12-$aantal] maanden op &euro; $[$schuld - $aflossing]</li><li>Dus $[$perc/100] &times; $schuld &times; $aantal/12 + $[$perc/100] &times; $[$schuld - $aflossing] &times; $[12-$aantal]/12 &asymp; &euro; $ans</li></ul>
+!endif
+
+inputs=1.1
+question$n =<a onmouseover="return escape('$roundingtext')">$ss1</a><br />$ss2
+helptext=$roundingtext

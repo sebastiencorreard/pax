@@ -1,0 +1,180 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+inputs=-1
+make_tr=1
+questiontype=7
+javascript=js/exo16.js
+checkfile=exos/checkfile3.proc
+
+###### ACTIVA #########
+# afschrijving gebouwen
+gebouw=!randint 300,400
+#gebouw=300
+gebouw=$[1000*$gebouw]
+
+# inventatris
+inventaris=!randint 50,200
+#inventaris=50
+inventaris=$[1000*$inventaris]
+
+# transportmiddelen
+transport=!randint 50,90
+#transport=50
+transport=$[1000*$transport]
+# voorraad
+voorraad=!randint 400,600
+#voorraad=400
+voorraad=$[1000*$voorraad]
+
+# debiteuren
+debiteuren=!randint 100,300
+#debiteuren=100
+debiteuren=$[1000*$debiteuren]
+
+# Kas
+kas=!randint 10,30
+#kas=10
+kas=$[1000*$kas]
+
+# Rabobank
+rabobank=!randint 30,70
+#rabobank=30
+rabobank=$[1000*$rabobank]
+
+Atotaal=$[$gebouw + $inventaris + $transport + $voorraad + $debiteuren + $kas + $rabobank]
+Nactiva=!subst $gebouw,$inventaris,$transport,$voorraad,$debiteuren,$kas,$rabobank,&nbsp;,$Atotaal
+Tactiva=Gebouwen,Inventaris,Transportmiddelen,Voorraad,Debiteuren,Kas,Rabobank,&nbsp;,Totaal
+# minimum activa1=2650
+# maximum activa1=1100
+# minimum activa2=2750
+# maximum activa2=11500
+ 
+##### PASSIVA #######
+# eigenvermogen
+vermogen=!randint 350,600
+#vermogen=600
+vermogen=$[1000*$vermogen] 
+
+# hypotheek
+hypotheek=!randint 150,450
+#hypotheek=450
+hypotheek=$[1000*$hypotheek]
+
+# lening
+lening=!randint 75,150
+#lening=150
+lening=$[1000*$lening]
+
+# crediteuren
+crediteuren=!randint 130,250
+#crediteuren=250
+crediteuren=$[1000*$crediteuren]
+
+# belasting
+belasting=!randint 90,150
+#belasting=150
+belasting=$[1000*$belasting]
+
+# ING
+ing=!randint 400,600
+#ing=400
+ing=$[1000*$ing] 
+
+subPtotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting]
+ing=$[$Atotaal - $subPtotaal]
+# corrigeren om balans sluitend te maken
+!if $ing < 10000
+    ing=!randint 60,110
+    ing=$[$ing*100]
+    subPtotaal=$[$hypotheek + $lening + $crediteuren + $belasting + $ing]
+    vermogen=$[$Atotaal - $subPtotaal]
+    !if $vermogen < 30000
+	vermogen=!randint 20,30
+	vermogen=$[$vermogen*1000]
+	subPtotaal=$[ $vermogen + $lening + $crediteuren + $belasting + $ing]
+	hypotheek=$[$Atotaal - $subPtotaal]
+    !endif	
+!endif
+
+Ptotaal=$[$vermogen + $hypotheek + $lening + $crediteuren + $belasting + $ing]
+Tpassiva=Eigen vermogen,5% hypotheek,8% lening,Crediteuren,Te betalen belasting,ING,,,Totaal
+Npassiva=!subst $vermogen,$hypotheek,$lening,$crediteuren,$belasting,$ing,,,$Ptotaal
+
+myname=$counter.data
+head=Activa@$empty@Passiva$empty
+tsv=!translate '@' to '\t' in $head
+static_tabel=<table><tr><th>Activa</th><th>&nbsp;</th><th>Passiva</th><th>&nbsp;</th></tr>
+
+f1=!randint 40,80
+f2=!randint 4,10
+verkocht=!randint $[$voorraad/10],$[$voorraad/2]
+verkocht=$[1000*(round($verkocht/1000))]
+inkoop=$[$verkocht*$f1/100]
+inkoop=$[100*(round($inkoop/100))]
+over=$[$verkocht - $inkoop]
+
+contant=$[$verkocht*$f2/100]
+contant=$[100*(round($contant/100))]
+oprekening=$[$verkocht - $contant]
+
+corr_a=!subst $gebouw,$inventaris,$transport,$[$voorraad-$inkoop],$[$debiteuren+$oprekening],$[$kas+$contant],$rabobank,null,$[$Atotaal+$over]
+corr_p=!subst $[$vermogen+$over],$hypotheek,$lening,$crediteuren,$belasting,$ing,null,null,$[$Ptotaal+$over]
+!for p=1 to 9
+    ac=!item $p of $Nactiva
+    pc=!item $p of $Npassiva
+    AC=!item $p of $Tactiva
+    PC=!item $p of $Tpassiva
+    tsv=!append line $AC	$ac	$PC	$pc to  $tsv
+    ca=!item $p of $corr_a
+    cp=!item $p of $corr_p
+    ans=!append line $AC,$ca,$PC,$cp to $ans
+    static_tabel=!append word <tr><td bgcolor=lightgreen>$AC</td><td bgcolor=lightgreen>$ac</td><td bgcolor=orange>$PC</td><td bgcolor=orange>$pc</td></tr> to $static_tabel 
+!next p
+var1=8,18,22,26,36,40
+static_tabel=!append word </table> to $static_tabel
+# veranderd is:
+textanswer$n=<ul><li>Debiteuren wordt : $debiteuren + $oprekening = &euro; $[$debiteuren + $oprekening]</li><li> Kas wordt : $kas + $contant = &euro; $[$kas + $contant]</li><li>Voorraad wordt : $voorraad &minus; $inkoop = &euro; $[$voorraad - $inkoop] </li><li>Eigenvermogen wordt : $vermogen + $verkocht &minus; $inkoop = $vermogen + $over = &euro; $[$vermogen + $over]</li><li>Het totaal wordt : $Atotaal + $over = &euro; $[$Atotaal + $over]</li></ul>
+
+!filewrite getfile/$myname $tsv
+myfile=$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname
+total_exos=1
+
+answer$n=$ans
+checkfile=exos/checkfile4.proc
+make_tr=1
+image=0
+inputs=-1
+
+math=0
+exotext=\
+<object id="SharpTools" archive="$appletdir/SharpTools.jar" code="SharpTools/MainApplet" width="120" height="32">\
+<param name="file" value="$myfile"/>\
+<param name="language" value="$taal"/>\
+<param name="X_screen_location" value="100"/><!-- default 0-->\
+<param name="Y_screen_location" value="100"/><!-- default 0-->\
+<param name="window_width" value="640"/>\
+<param name="window_height" value="420"/>\
+<param name="replyurl" value="$wims_ref_name?session=$session&+module=$module&+cmd=reply&+reply$n="/>\
+<param name="reply_type" value="1"/>\
+<!-- 0 = matrix  ["1","2","3";"a","b","c"] note: "" string protection for pari evaluation -->\
+<!-- 1 = csv 1,2,3 \n a,b,c  note : no string protection -->\
+<!-- 2 = tsv 1 \t 2 \t 3 \n a \t b \t c  note : no string protection -->\
+<param name="convert_initial_tsv_to_matrix" value="0"/>\
+<param name="fontsize" value="18"/>\
+$nojava\
+</object>
+
+ss=Verwerk <span style="color:blue">deze</span> gegevens in het spreadsheet van de balans<br />:\
+<br /><br /><table summary="" ><tr><th>Verkochte goederen</th><th>&nbsp;</th></tr><tr><td>Op rekening</td>\
+<td>$oprekening</td></tr><tr><td>Contant</td><td>$contant</td></tr><tr><td>Inkoopwaarde</td><td>$inkoop</td></tr></table><hr />
+
+question$n =<a onmouseover="ttLeft=true ;return escape('$static_tabel')">$ss</a>
+
+ 
+!exit

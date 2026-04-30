@@ -1,0 +1,77 @@
+
+<div id="table_div" style="display:none;"></div>
+<iframe id="plinko" src="$module_dir/js/galton.css.html" style="width:640px;height:480px;display:block;" ></iframe>
+<script type="text/javascript">
+ "use strict";
+ /* P = var4  ; balls = var2 ; bins = var1 */
+ var plinko = document.getElementById('plinko').contentWindow;
+ var P = $var4;
+ var bins = $var1;
+ var maxballs = $var2;
+ var R;
+ if(P > 0.5){ R = (1 - P); } else { R = P; };
+ var bin_height = bins+parseInt(3*((maxballs) / bins)/(1/R));
+ var sigma = 0;
+ var sigma_r = 0;
+ var lang = make_description("bakje,ballen,start,stop,snel,langzaam,herstart,1 bal",8);
+ function sendanswer(){
+  var sum = plinko.sum;
+  if( sum < maxballs ){setAlarm("je moest teminste $var2 ballen laten vallen...");return;}
+  var reply = new Array();
+  var plinko_data =  plinko.read_galton();
+  var show="<ul>";var rep;
+  var vraagnummer=1;
+  var p = 0;
+  while( document.getElementById("myinput"+p) ){
+   rep = document.getElementById("myinput"+p).value;
+   if(rep.length == 0){setAlarm(r1+"&nbsp;"+vraagnummer);return 0;}
+   if(rep.indexOf(',') != -1){setAlarm(r25+" "+vraagnummer+"<br />"+r4);return};
+   rep = rep.toLowerCase();if(check_o(rep)!=1){setAlarm(r25 + " " + vraagnummer +"\n"+ r5);return;};
+   rep = prefix(rep);rep = science(rep);rep = rep.replace(/[a-z\~\`\""\''\@\#\%\_\=\:\;\$$\&\!]/g,'');
+   if(rep.length == 0){setAlarm(r2);return;};
+   show=show+"<li>"+description[p]+"&nbsp;=&nbsp;"+rep+"</li>";reply[p] = rep;
+   p++;vraagnummer++;
+  };
+  show=show+"</ul>";
+  !! let op : reply+","+plinko_data+'\n'+sigma.toFixed(1)
+  myConfirm(show,reply+","+plinko_data+'\n'+sigma.toFixed(1),'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+ };
+
+ function make_data_table(){;
+  var sum_ballen = plinko.sum;
+  if( sum_ballen < maxballs ){setAlarm("je moest teminste $var2 ballen laten vallen...");return;}
+  plinko.stop();
+  var plinko_data = plinko.read_galton();
+  var totaal = 0;
+  for( var p = 0; p < bins ; p++){
+   totaal = totaal + p*plinko_data[p];
+  };
+  var mean = totaal / sum_ballen;
+  var variantie = 0;
+  for( var p = 0; p < bins ; p++){
+   variantie = variantie + plinko_data[p]*( mean - p )*( mean - p);
+  };
+  sigma = Math.sqrt(variantie / sum_ballen);
+  sigma_r = sigma.toFixed(1);
+  var table_div = document.getElementById('table_div');
+  table_div.style.display = 'block';
+  var table="<table><tr><th style='background-color:#a6d4ff;'>aantal ballen = "+sum_ballen+"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&sigma; = "+sigma_r+"</th></tr><tr><td><table class='demospecial'><tr><th>"+lang[0]+"</th>";
+  var len = plinko_data.length;
+  for(var p = 0 ; p < len ;p++){
+    table+="<th>"+(p+1)+"</th>";
+  };
+  table+="</tr><tr><th>"+lang[1]+"</th>";
+  for(var p = 0 ; p < len ;p++){
+   table+="<th>"+plinko_data[p]+"</th>";
+  };
+  table+="</tr></table></td></tr></table>";
+  table_div.innerHTML = table;
+  
+  document.getElementById("plinko").setAttribute("style","display:none;");
+  document.getElementById("schaersvoorde_extra_button").setAttribute("style","display:none;");
+
+ };
+//]]>
+</script>
+<input type="button" id="schaersvoorde_extra_button" value="laat tabel zien" onclick="javascript:make_data_table()" />
+

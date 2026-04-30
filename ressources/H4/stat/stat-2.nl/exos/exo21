@@ -1,0 +1,141 @@
+# Hypothese toetsing II
+!if $counter=1
+    !if exam isin $session
+	viewlogo=0
+    !else
+	viewlogo=1
+	logo=<img src="$module_dir/gifs/sigarettenlogo.jpg" alt="vies he"/>
+	logotext=<img src=\'$module_dir/gifs/nosmoking.jpg\' alt=\'vies he\'/>
+    !endif
+    rounding=1000
+    !readproc $remarkdir/rounding.$taal
+    make_tr=1
+    cols=10
+    questiontype=0
+    math=0
+    mathview=0
+    image=0
+    #checkfile=$checkdir/number.proc
+    checkfile=exos/checkfile3.proc
+    helptext=<a href=\'$module_dir/docs/Virtuele_TI83.zip\' >Download (windows)<br/><kbd>TexasInstruments Ti83.zip</kbd><br /><img src=\'$module_dir/gifs/ti83.jpg\' alt=\'Ti83.zip\' /></a>
+    inputs=-1
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+txt=!record 115 of lang/remarks.$taal
+#@proefpersoon,Fumistop &reg;,placebo,wordt H0 verworpen,wordt H0 niet verworpen
+proefpersoon=!item 1 of $txt
+stoptablet=!item 2 of $txt
+placebo=!item 3 of $txt
+verworpen=!item 4 of $txt
+nietverworpen=!item 5 of $txt
+perc=!randint 1,5
+p=!randint 7,14
+# even aantal personen ivm kolommen tabel
+personen=$[$p*2]
+dagen=!randint 7,42
+ss=!record 116 of lang/remarks.$taal
+#@Onderzoekers vermoeden dat het gebruik van $stoptablet tabletten leidt tot het roken van minder sigaretten.<br />Om dit na te gaan, wordt van alle $personen proefpersonen bijgehouden hoeveel sigaretten hij/zij in totaal heeft gerookt<br />op $dagen dagen met een $stoptablet tablet en op $dagen dagen met een placebo.<br />Het resultaat vind je in de <span style="color:blue">deze</span> tabel.<br />Onderzoek met behulp van een <em>tekentoets</em> of het vermoeden van de onderzoekers correct is.<br />Neem hierbij als significantieniveau $perc % 
+
+head=<tr><th>$proefpersoon</th><th>$stoptablet</th><th>$placebo</th><th>$proefpersoon</th><th>$stoptablet</th><th>$placebo</th></tr>
+body=$empty
+helft=$[$personen/2]
+enen=0
+chk=$[$helft-2]
+corr=0
+!for p=1 to $helft
+    !if $p>=$chk
+	!if $enen < $helft
+	    pm1=1
+	    pm2=1
+	    corr=1
+	!endif
+    !endif
+    !if $corr=0
+	pm1=!randitem 1,-1,1
+        pm2=!randitem 1,-1,1
+    !endif
+    g1=!randint 10,25
+    s1=!randint 1,10
+    g2=$[$g1 + $pm1*$s1]
+    g3=!randint 10,25
+    s2=!randint 1,10
+    g4=$[$g3 + $pm2*$s2]
+    body=!append word $ <tr><td>$p</td><td>$[$dagen*$g1]</td><td>$[$dagen*$g2]</td><td>$[$p+$helft]</td><td>$[$dagen*$g3]</td><td>$[$dagen*$g4]</td></tr> $ to $body
+    !if $pm1=1
+	!increase enen
+    !endif
+    !if $pm2=1
+	!increase enen
+    !endif
+!next p
+tabel=<table class=\'grid_table\' >$head $body</table>
+#nieuwere octave & chroot
+#tussen=!exec octave binocdf($[$enen-1],$personen,1/2)
+# oude octave & chroot
+tussen=!exec octave binocdf($[$enen-1],$personen,1/2)
+
+P=1/2,1/4,3/4,1/5,4/5,$perc/100
+k=!shuffle 1,2,3,4,5,6
+select=$empty
+i=0
+w=0
+!for p in $k
+    d=!item $p of $P
+    H0=!append line <option value="$i">H0 : p &lt;  $d</option> to $H0
+    !increase i
+    !if $p=1
+	ans1=$i
+    !endif
+    H0=!append line <option value="$i">H0 : p = $d</option> to $H0
+    !increase i
+    H1=!append line <option value="$w">H1 : p &ne; $d</option> to $H1
+    !increase w
+    !if $p=1
+	ans2=$w
+    !endif
+    H1=!append line <option value="$w">H1 : p &gt; $d</option> to $H1
+    !increase w
+!next p
+
+
+intrap1=<select size="1" id="myselect0" class="schaersvoorde_textarea" >$H0</select>
+intrap2=<select size="1" id="myselect1" class="schaersvoorde_textarea" >$H1</select>
+intrap3=<select size="1" id="myselect2" class="schaersvoorde_textarea" ><option value="0">$verworpen</option><option value="1">$nietverworpen</option></select>
+
+welkmodel=!record 111 of lang/remarks.$taal
+#@Welk toetsmodel wordt gebruikt?
+de_overschrijdingskans=!record 112 of lang/remarks.$taal
+#@Bereken de overschrijdingskans
+bij_een_significantieniveau=!record 113 of lang/remarks.$taal
+#@Bij een significantieniveau van $perc % 
+
+exotext=<ol><li>$welkmodel $intrap1 $intrap2<br /></li><li>$de_overschrijdingskans :<br />P = <input id="myinput0" type="text" class="schaersvoorde_input" size="10" /><br /></li><li>$bij_een_significantieniveau  $intrap3<br /></li></ol>
+
+#var1=bool,bool,chance,bool
+var1=chance,bool,bool,bool
+var2=!record 117 of lang/remarks.$taal
+#@H0 hypothese,H1 hypothese,overschrijdingskans,conclusie
+
+ans3=$[1-$tussen]
+!if $ans3<$perc/100
+    ans4=0
+    kleiner=&le;
+    reject=$verworpen
+!else
+    ans4=1
+    kleiner=&ge;
+    reject=$nietverworpen
+!endif
+
+#answer$n=$ans1,$ans2,$ans3,$ans4
+answer$n=$ans3,$ans1,$ans2,$ans4
+question$n=<a onmouseover="return escape('$tabel')">$ss</a>
+rr=!record 118 of lang/remarks.$taal
+#@Het toetsmodel H<sub>0</sub>: p=1/2 en H<sub>1</sub>&gt; 1/2<br />Als een placebo net zo goed werkt als een Fumistop &reg; tablet<br />dan is de kans op een positief verschil even groot als een negatief verschil.<br />We tellen het aantal positieve verschillen tussen placebo &minus; stoptabletten.<br />In dit geval zijn er $enen personen, die meer sigaretten hebben gerookt met de placebo-tabletten.<br />P(X &ge; $enen | n=$personen, p=1/2) = 1 &minus; P(X &le; $[$enen-1] | n=$personen, p=1/2)<br />GRM 1-binomcdf($personen , 1/2 , $[$enen-1]) &asymp; $ans3 <br />$ans3 $kleiner $[$perc/100]<br />$reject
+textanswer$n=$rr

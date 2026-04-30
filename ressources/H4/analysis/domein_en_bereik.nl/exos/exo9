@@ -1,0 +1,98 @@
+
+# DHTML sleep sommetje
+# letop $a niet 1
+# line 1 is functie
+# line 2 is Domein string : voor nakijken
+# line 3 is latex1 Domein
+# line 4 is latex2 Domein
+# line 5 is Bereik string : voor nakijken
+# line 6 is latex1 Bereik
+# line 7 is latex2 Bereik
+inputs=yes
+n=$counter
+mathview=0
+# we need two inputfields
+# reply$n= "input1","input2"
+image=0
+checkfile=exos/checkfile1.proc
+make_tr=1
+rows=1
+math=0
+questiontype=7
+javascript=js/exo10.js
+a=!randitem 2,3,4,5,6,7,8,9
+b=!randitem 1,2,3,4,5,6,7,8,9
+lijst=lijst$subject.def
+
+
+aantal_records=!recordcnt exos/$lijst
+num=!randint 1,$aantal_records
+vraag=!record $num of exos/$lijst
+functie=!line 1 of $vraag
+
+dingen=!record 51 of lang/remarks.$taal
+#@ Domein ,Bereik
+keuze=!randitem 1,2
+ding=!item $keuze of $dingen
+!if $keuze=1
+    # ding = domein 
+    ds=!line 2 of $vraag
+    dl1=!line 4 of $vraag
+    dl2=!line 4 of $vraag
+    answer$n=$ds
+    img=<img src="$module_dir/gifs/Df.gif"/>
+    texanswer$n=$(formula$n) \rightarrow \left[\begin{array}{lll} D_f & : & $dl1 \\ \\ D_f & : & $dl2 \end{array} 
+!else
+    # ding = bereik
+    bs=!line 5 of $vraag
+    bl1=!line 6 of $vraag
+    bl2=!line 7 of $vraag
+    answer$n=$bs
+    img=<img src="$module_dir/gifs/Bf.gif"/>
+    texanswer$n=$(formula$n) \rightarrow \left[\begin{array}{lll} B_f & : & $bl1 \\ \\ B_f & : & $bl2 \end{array} 
+!endif
+formula$n=!texmath f(x) = $functie
+ss=!record 52 of lang/remarks.$taal
+sometext=!record 53 of lang/remarks.$taal
+
+question$n=$ss
+exotext=$empty
+helptext=<img src=\'$module_dir/gifs/help.exo$subject.jpg\' alt=\'noalt\' />
+
+plusinfty=<img src="$module_dir/gifs/plusinfty.gif" id="plusinfty" name="plusinfty" style="height:50px;width:60px" />
+mininfty=<img src="$module_dir/gifs/mininfty.gif" id="mininfty" name="mininfty" style="height:50px;width:60px" />
+langle=<img src="$module_dir/gifs/langle.gif" id="langle" name="langle" style="height:50px;width:20px" />
+rangle=<img src="$module_dir/gifs/rangle.gif" id="rangle" name="rangle" style="height:50px;width:20px" />
+lbracket=<img src="$module_dir/gifs/lbracket.gif" id= "lbracket" name="lbracket" style="height:50px;width:20px" />
+rbracket=<img src="$module_dir/gifs/rbracket.gif" id="rbracked" name="rbracket" style="height:50px;width:20px" />
+S=<img src="$module_dir/gifs/S.gif" id="S" name="S" style="height:50px;width:40px" />
+U=<img src="$module_dir/gifs/U.gif" is="U" name="U" style="height:50px;width:40px "/>
+invul1=<div id="div1" style="position:relative;height:45px;width:55px;border:5px solid lightblue"><input id="myinput0" style="text-align:center;font-size:40px;height:40px;width:50px;background-color:lightblue"  size="3" value=""/></div>
+invul2=<div id="div2" style="position:relative;height:45px;width:55px;border:5px solid lightblue"><input id="myinput1" style="text-align:center;font-size:40px;height:40px;width:50px;background-color:lightblue"  size="3" value=""/></div>
+invul3=<div id="div3" style="position:relative;height:45px;width:55px;border:5px solid lightblue"><input id="myinput2" style="text-align:center;font-size:40px;height:40px;width:50px;background-color:lightblue"  size="3" value=""/></div>
+invul4=<div id="div4" style="position:relative;height:45px;width:55px;border:5px solid lightblue"><input id="myinput3" style="text-align:center;font-size:40px;height:40px;width:50px;background-color:lightblue"  size="3" value=""/></div>
+DHTML=$empty
+options=4
+DHTML=!append item "mininfty" + COPY + $options  to $DHTML
+DHTML=!append item "plusinfty" + COPY + $options  to $DHTML
+DHTML=!append item "langle" + COPY + $options  to $DHTML
+DHTML=!append item "rangle" + COPY + $options  to $DHTML
+DHTML=!append item "lbracket" + COPY + $options  to $DHTML
+DHTML=!append item "rbracket" + COPY + $options  to $DHTML
+DHTML=!append item "S" + COPY + $options  to $DHTML
+DHTML=!append item "U" + COPY + $options  to $DHTML
+DHTML=!append item "div0" + NO_DRAG  to $DHTML
+DHTML=!append item "div1" to $DHTML
+DHTML=!append item "div2" to $DHTML
+DHTML=!append item "div3" to $DHTML
+DHTML=!append item "div4" to $DHTML
+
+dhtml=<script type="text/javascript">SET_DHTML( CURSOR_MOVE , $DHTML);</script>
+
+!if $subject=9
+    EXO10=&nbsp;
+!else
+    EXO10=$U
+!endif
+exotext=<table style="background-color:mistyrose"><tr><th>$img</th><th><div id="div0" name="div0" style="position:relative;height:55px;width:720px;background-color:lightblue"></div></th></tr><tr><th>&nbsp;</th><th><table><tr><th>$plusinfty</th><th>$mininfty</th><th>$langle</th><th>$rangle</th><th>$lbracket</th><th>$rbracket</th><th>$S</th><th>$EXO10</th><th>$invul1</th><th>$invul2</th><th>$invul3</th><th>$invul4</th></tr></table></th></tr></table>
+

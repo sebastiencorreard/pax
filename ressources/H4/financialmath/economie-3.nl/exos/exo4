@@ -1,0 +1,104 @@
+# Kruislingse elasticiteit II
+# steps
+n=$counter
+!if $counter=1
+    !if $total_exos>2
+	total_exos=2
+    !endif
+    mathview=0
+    questiontype=0
+    checkfile=exos/checkfile1.proc
+    make_tr=1
+    cols=8
+    rows=1
+    inputs=1.1
+    rounding=100
+    roundingtext=Rond je getalsmatige antwoord af op twee decimalen
+    producten=koffie,thee,suiker\
+    koffie,thee,suiker
+# rijst,aardappelen,zout
+# pruimenjam,aardbeienjam,margarine
+    
+    product=!randline $producten
+    product1=!item 1 of $product
+    product2=!item 2 of $product
+    product3=!item 3 of $product
+    
+    p11=!randint 80,140
+    plus=!randint 10,30
+    p12=$[$p11 - $plus]
+    p11=$[$p11/10]
+    p12=$[$p12/10]
+    
+    p21=!randint 20,50
+    p21=$[$p21/10]
+    p22=$p21
+
+    p31=!randint 30,60
+    p31=$[$p31/10]
+    p32=$p31
+
+    tot=!exec moneyprint $p11,$p12,$p21,$p22,$p31,$p32
+    p11=$(tot[1])
+    p12=$(tot[2])
+    p21=$(tot[3])
+    p22=$(tot[4])
+    p31=$(tot[5])
+    p32=$(tot[6])
+    
+    h11=!randint 8,15
+    plus=!randint 1,3
+    h12=$[$h11+$plus]
+    h11=$[$h11*100]
+    h12=$[$h12*100]
+
+    h21=!randint 10,25 
+    plus=!randint 1,5
+    h22=$[$h21+$plus]
+    h21=$[$h21*10]
+    h22=$[$h22*10]
+
+    h31=!randint 30,70
+    plus=!randint 1,8
+    h32=$[$h31-$plus]
+    h31=$[$h31*10]
+    h32=$[$h32*10]
+    
+    deltaq_s=$[100*($h32-$h31)/$h31]
+    deltap_k=$[100*($p12-$p11)/$p11]
+    deltaq_t=$[100*($h22-$h21)/$h21]
+    
+
+    kansen=!shuffle 1,2
+    kans=!item 1 of $kansen
+    kons=!item 2 of $kansen
+    description=De kruiselingse prijselasticiteit
+    answer$kans=$[$deltaq_s/$deltap_k]
+    ans$kans=$[(round(100*$(answer$kans)))/100]
+    answer$kans=!append item 1 to $(answer$kans)
+
+    answer$kons=$[$deltaq_t/$deltap_k]
+    ans$kons=$[(round(100*$(answer$kons)))/100]
+    answer$kons=!append item 0 to $(answer$kons)
+
+    texanswer$kans=\left[\begin{array}{l} \Delta Q_{\textrm{$product3}} = \frac{$h32 - $h31}{$h31} \times 100 \% \simeq $deltaq_s \\ \\ \Delta P_{\textrm{$product1}} = \frac{$p12 - $p11}{$p11} \times 100 \% \simeq $deltap_k \\ \\ E_{\textrm{k}} = \frac{\Delta Q}{\Delta P} \simeq \frac{$deltaq_s}{$deltap_k} \simeq $(ans$kans) \\ \\ \textrm{$product3 en $product1 zijn complementiare goederen} \end{array} \right.
+    texanswer$kons=\left[\begin{array}{l} \Delta Q_{\textrm{$product2}} = \frac{$h22 - $h21}{$h21} \times 100 \% \simeq $deltaq_t \\ \\ \Delta P_{\textrm{$product1}} = \frac{$p12 - $p11}{$p11} \times 100 \% \simeq $deltap_k \\ \\ E_{\textrm{k}} = \frac{\Delta Q}{\Delta P} \simeq \frac{$deltaq_t}{$deltap_k} \simeq $(ans$kons) \\ \\ \textrm{$product2 en $product1 zijn substitutie goederen}\end{array} \right.
+    exotext=$empty
+    helptext=$roundingtext
+    som$kans=!subst Bereken de kruiselingse prijselasticiteit van de gevraagde hoeveelheid $product3 tov de prijs van $product1.<br />Zijn $product3 &amp; $product1 substitutie of complementaire goederen ?
+    som$kons=!subst Bereken de kruiselingse prijselasticiteit van de gevraagde hoeveelheid $product2 tov de prijs van $product1.<br />Zijn $product2 &amp; $product1 substitutie of complementaire goederen ?
+    tabel=<table class=\'grid_table\'><tr><th>&nbsp;</th><th>$product1<hr/>oud&nbsp;&nbsp;---&nbsp;&nbsp;nieuw</th><th>$product2<hr/>oud&nbsp;&nbsp;---&nbsp;&nbsp;nieuw</th><th>$product3<hr/>oud&nbsp;&nbsp;---&nbsp;&nbsp;nieuw</th></tr><tr><th>Prijs (<em>p</em>)</th><th>$p11 &nbsp;&nbsp;---&nbsp;&nbsp; $p12</th><th>$p21 &nbsp;&nbsp;---&nbsp;&nbsp; $p22</th><th>$p31 &nbsp;&nbsp;---&nbsp;&nbsp; $p32</th></tr><tr><th>Hoeveelheid (<em>Q<sub>v</sub></em>)</th><th>$h11 &nbsp;&nbsp;---&nbsp;&nbsp; $h12</th><th>$h21 &nbsp;&nbsp;---&nbsp;&nbsp; $h22</th><th>$h31 &nbsp;&nbsp;---&nbsp;&nbsp; $h32</th></tr></table>
+    som=Gegeven is <span class="schaersvoorde_link">dit overzicht</span> van de prijzen en gevraagde hoeveelheden van $product1,$product2 en $product3.<br />Eerst is de oude prijs met de daarbij verkochte hoeveelheid vermeld <br />en dan de nieuwe prijs met corresponderende hoeveelheid.
+    exotext=En dit zijn <select id="myselect0" class="schaersvoorde_input"><option value="2">geen idee</option><option value="0">substitutie</option><option value="1">complementaire</option></select> goederen !
+    question1=<a onmouseover="return escape('$tabel')">$som<br />$(som$kans)</a>
+    question2=<a onmouseover="return escape('$tabel')">$som<br />$(som$kons)</a>
+!endif
+
+
+#!if $counter>1
+#    var5=!append word $ <span style="color:blue">$[$counter-1]) $youranswer : $(reply$[$counter-1])</span><br /> $ to $var5
+#    var5=!subst $var5
+#!endif
+
+
+!exit

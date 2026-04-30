@@ -1,0 +1,367 @@
+#	10=goniometisch
+#	9=goniometisch
+#	8=goniometisch
+#	7=machtsfuncties +/-
+#	6=hyperbolisch
+#	5=wortelfuncties
+#	4=nogmeer hyperbolen
+#	3=e-machten
+#	2= 3-de macht
+#	1=vanalles
+
+n=$counter
+image=0
+inputs=-1
+mathview=0
+rounding=100
+checkfile=exos/checkfile2.proc
+questiontype=0
+draw=0
+plot=0
+applet=1
+letters=f,g,h,k,m,p,w
+letter=!shuffle $letters
+mm=!shuffle +,-
+pm=!item 1 of $mm
+mp=!item 2 of $mm
+# javascript: 2 decimalen in coordinaten...
+roundingtext=$empty
+
+!if $subject=1
+    !if $counter=1
+	# nooit 2x zelfde functietype
+	var3=!shuffle 2,3,4,5,6,7,8,9,10
+    !endif
+    R=!item $counter of $var3
+!else
+    R=$subject
+!endif
+
+!if $R=2
+    # 3-de macht
+    a=!randitem 1,2,3,4,5
+    b=$[$a+1]
+    functies=$a+x^3,x^3 - $a\
+    $a-x^3,x^3 - $a\
+    $a+x^3,x^3 - $b\
+    $a-x^3,x^3 - $b\
+    $a+x^3,$b+x^3\
+    $a-x^3,$b-x^3\
+    x^3 - $a,x^3 - $b\
+    $a+x^3,$a-x^3\
+    $a-x^3,$b-x^3\
+    (x-$a)^3,(x+$a)^3\
+    (x-$a)^3,(x+$b)^3\
+    ($a-x)^3,($b-x)^3\
+    (x-$a)^3,(x-$b)^3
+
+    xmin=-5
+    xmax=5
+    ymin=-20
+    ymax=20
+    gridx=1
+    gridy=4
+ !goto KLAAR
+!endif
+
+!if $R=3
+    a=!randitem -4,-3,-2,1,2,3,4
+    b=$[$a+1]
+    c=$[-1*$a]
+    functies=$a+x^e,$b+x^e\
+    $a-x^e,$b-x^e\
+    $a*x^e,$b*x^e\
+    (1/$a)*x^e,(1/$c)*x^e\
+    $a/x^e,$c/x^e\
+    (1/$a)*x^e,(1/$b)*x^e\
+    $a/x^e,$b/x^e 
+
+    xmin=-3
+    xmax=3
+    ymin=-10
+    ymax=10
+    gridx=1
+    gridy=2
+
+    mytexsize=+4
+
+ !goto KLAAR
+!endif
+
+!if $R=4
+    a=!randitem 2,3,4
+    b=$[$a-1]
+    c=$[$a+1]
+    d=$[$a+2]
+    f=$[$a+3]
+    functies=1/(x-$a),1/(x+$a)\
+    1/($a-x),1/($a+x)\
+    1/($a-2*x),1/($a-3*x)\
+    1/(2*x-$a),1/(3*x-$a)\
+    1/(2*x+$a),1/(3*x+$a)\
+    $a/(x+$c),$a/(x-$d)\
+    $b/(x+$c),$a/(x-$d)\
+    $b/($c+x),$a/($d+x)\
+    $b/($c-x),$a/($d-x)\
+    x/($c+x),x/($d+x)\
+    x/($c+x),2*x/($c+x)\
+    x/($c-x),x/($d-x)\
+    (x-$a)/($c+x),(x-$a)/($d+x)\
+    (x-$f)/($c-x),(x-$f)/($d-x)\
+    (x-$a)/($d-x),(x-$a)/($c-x)\
+    1/x,$a/x^2\
+    1/x^$a,-1/x^$a\
+    $a/(x-$c),$f/(x-$c)\
+    $a/(x+$c),$f/(x+$c)\
+    $a/(x+$c),$f/(x+$d)\
+    $a/($c-x),$f/($c-x)\
+    $a/($c+x),$a/($c-x)\
+    $f/($c-x),$f/(x-$c)\
+    (x-$f)/($c-x),($f+x)/($c-x)\
+    $a - $f/($c-x),$a + $f/($c-x)\
+    ($c-x)/x,(x-$c)/x\
+    1/(x^2-$c),1/($c+x^2)\
+    1/(x^2+$c),$c/(x^2-$c)\
+    $a/(x^2-$c),$b/(x^2-$d)
+  
+    xmin=-7
+    xmax=7
+    ymin=-10
+    ymax=10
+    gridx=1
+    gridy=2
+
+ !goto KLAAR
+!endif
+
+!if $R=5
+    a=!randitem -4,-3,-2,1,2,3,4
+    b=$[$a+1]
+    e=$[-1*$a]
+    c=!randitem -4,-3,-2,-1,1,2,3,4
+    d=$[-1*$c]
+    f=!randitem 1,2,3,4
+    g=$[$f+1]
+    functies=$a+sqrt(x),$a-sqrt(x)\
+    $a+sqrt(x),$e+sqrt(x)\
+    $a*sqrt(x),$e*sqrt(x)\
+    $a+sqrt($f+x),$a-sqrt($f+x)\
+    $a+sqrt(x),$b+sqrt(x)\
+    $a-sqrt(x),$b-sqrt(x)\
+    sqrt(x),$a+sqrt(x)\
+    sqrt(x),$a*sqrt(x)\
+    sqrt($a*x),sqrt($b*x)\
+    $d-$a*sqrt(x+$f),$d-$a*sqrt(x)\
+    $d-sqrt($f-x),$d-sqrt($f+x)\
+    sqrt($f-x),sqrt($g-x)\
+    sqrt(x-$f),sqrt($g-x)\
+    sqrt(x*$g),sqrt(x*$f)\
+    $a*sqrt(x),$b*sqrt(x)\
+    sqrt($f-x),sqrt($g-x)\
+    $d+$a*sqrt(x),$c+$b*sqrt(x)\
+    $d+sqrt($f+x),$c+sqrt($g+x)\
+    $d-$a*sqrt(x),$c-$b*sqrt(x)\
+    $d+sqrt($f-x),$c+sqrt($g-x)\
+    $d-sqrt($f+x),$c-sqrt($g+x)\
+    $d+$a*sqrt(x),$c-$b*sqrt(x) 
+    
+    xmin=-6
+    xmax=6
+    ymin=-12
+    ymax=12
+    gridx=1
+    gridy=2
+
+ !goto KLAAR
+!endif
+!if $R=6
+    mytexsize=+4
+    a=!randitem 2,3,4
+    b=$[$a+1]
+    c=!randitem 2,3,4,5
+    d=!randint $[$c-1]
+    e=!randitem -3,-2,-1,1,2,3
+    f=$[-1*$e]
+    functies=$e/(x-$c),$f/(x-$c)\
+    $e/(x+$c),$f/(x+$c)\
+    $a + $c/x,$a - $c/x\
+    $a + $c/($d + x),$a - $c/($d + x)\
+    $a + $c/($d + x),$a - $c/($d - x)\
+    $a + $c/($d - x),$a - $c/($d - x)\
+    $e/($c + x),$f/($c - x)\
+    $e/($c - x),$f/($c - x)\
+    $e/($c + x),$e/($c - x)\
+    $e/($c - x),$e/(x - $c)\
+    $a - $f/($c - x),$a + $f/($c - x)\
+    ($c - x)/x,(x - $c)/x
+        
+    xmin=-7
+    xmax=7
+    ymin=-10
+    ymax=10
+    gridx=1
+    gridy=2
+
+
+ !goto KLAAR
+!endif
+!if $R=7
+    a=!randitem -5,-4,-3,-2,2,3,4,5
+    b=$[$a+1]
+    c=!randitem 2,3,4,5
+    d=$[-1*$c]
+    functies=$c+x^$b,$c-x^$b\
+    $d+x^$b,$c+x^$b\
+    $d-x^$b,$c+x^$b\
+    $a+x^$a,$a-x^$a\
+    $c*x^$a,$d*x^$b\
+    x^$a+$c,x^$b+$c\
+    x^$a-$c,x^$a+$c\
+    x^$a-$c,x^$b-$c\
+    $c*x^$a,$d*x^$a\
+    x^$a+$c,x^$a+$d\
+    -x^$a+$c,-x^$a+$d
+
+    xmin=-6
+    xmax=6
+    ymin=-10
+    ymax=10
+    gridx=1
+    gridy=2
+
+ !goto KLAAR
+!endif
+!if $R=8
+    a=!randint 2,4
+    b=!randint 2,4
+    c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+    d=!randitem -3/4,-4/5,-5/8,-3/5,-2/5,-5/6,-1/5,-5/4,-2/3,-1/2,1/2,2/3,5/4,3/4,4/5,5/8,7/5,2/5,5/6,6/5
+
+    functies=sin($d*x) , $a*sin($d*x) \
+    cos($d*x) , $c*cos($d*x) \
+    cos(x) , cos($d $pm x) \
+    $a*sin(x $pm $b) , sin($a*x $mp $b) \
+    $a $pm sin(x $pm $b) , sin(x $mp $a) \
+    $a $pm sin($d*x $pm $c) , sin($d*x $mp $a) \
+    $c*sin($d $pm x) , $c*sin(x $mp $a) \
+    $c*cos($a*x) , $d*cos($a $pm x) \
+    $d*cos($a*x) , $a $pm $c*cos(x*$a) \
+    $c*cos(x $mp $a) , cos($a*x $pm $b) \
+    $a $mp cos($a-x) , cos(x $pm $a)
+
+    xmin=-5
+    xmax=5
+    ymin=-5
+    ymax=5
+    gridx=1
+    gridy=1
+ !goto KLAAR
+!endif
+!if $R=9
+    a=!randitem -4,-3,-2,2,3,4
+    b=!randint 2,4
+    c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+    k=!randitem 1,3/2,2,5/2,3,7/2,4,9/2,7/4,5/4
+    d=!randitem -5/2,-4/5,-3/2,-2,-1,1,2,3,4,5
+    
+    functies= $a*sin($d*x) , $a*sin($d*x $pm $k)\
+    $a*cos($d*x) , $a*cos($d*x $pm $k) \
+    $a*sin(x $pm $b) , $a*sin(x $mp $k)\
+    $a*cos(x) , $a*cos(x $pm $k)
+
+    xmin=-5
+    xmax=5
+    ymin=-5
+    ymax=5
+    gridx=1
+    gridy=1
+ !goto KLAAR
+!endif
+!if $R=10
+    a=!randitem -5,-9/2,-4,-7/2,-3,-5/2,-2,-3/2,3/2,2,5/2,3,7/2,4,9/2,5
+    b=!randint 2,5
+    c=!randitem 3/2,5/3,7/4,7/5,5/3,5/2,2,3,4,5,9/5,9/4
+    d=!randitem -3/4,-4/5,-3/5,-2/5,-5/6,-1/5,-5/4,-2/3,-1/2,1/2,2/3,5/4,3/4,4/5,2/5,5/6,6/5
+    e=!randitem -2,-3/2,-3/4,-3/5,-2/5,-1/5,-5/4,-2/3,-1/2,1/2,2/3,5/4,3/4,4/5,2/5,6/5,3/2,2
+    
+    functies=sin(($d)*x) , ($a)*sin(($d)*x$pm$b)\
+    ($a)*cos(($d)*x) , ($a)*cos(($d)*x$pm$b) \
+    ($b)*cos(($a)*x) , ($a)*cos(($a)*x$pm$b)\
+    ($c)*cos(($d)*x) , ($a)*cos(($d)*x$pm$b) \
+    ($a)*sin(($a)*x) , ($a)*sin(x$pm$b)\
+    ($c)*sin(($d)*x) , ($a)*sin(($d)*x$pm$b) \
+    $b*sin(($d)*x) , ($e)*sin(($a)*x$pm$c)\
+    $b*sin(($d)*x) , ($e)*sin(($a)*x$pm$c)
+
+    xmin=-5
+    xmax=5
+    ymin=-5
+    ymax=5
+    gridx=1
+    gridy=1
+ !goto KLAAR
+!endif
+
+
+:KLAAR
+
+functie=!randline $functies
+keuze=!randitem 0,1
+f=!item 1 of $letters
+g=!item 2 of $letters
+!if $keuze=0
+ answer$n=1,0
+ f_ok=1
+ f_nok=2
+!else
+ f_ok=2
+ f_nok=1
+ answer$n=0,1
+!endif
+functie1=!item $f_ok of $functie
+functie2=!item $f_nok of $functie
+F1=!texmath $f(x)=$functie1
+F2=!texmath $g(x)=$functie2
+kleuren=!record 1 of lang/remarks.$taal
+#@rood,groen,oranje,blauw
+gegeven=!record 3 of lang/remarks.$taal
+#@Gegeven twee $type functies:
+klikop=!record 4 of lang/remarks.$taal
+#@Klik op een significant punt van de grafiek van:
+
+formula$n=\left[ \begin{array}{l} \textrm{$gegeven} \\ $F1 \\ $F2 \\ \\ \textrm{$klikop} \\ $F1 \end{array} \right.
+k=!shuffle 1,2,3,4
+colors=red,green,orange,blue
+a=!item 1 of $k
+b=!item 2 of $k
+kleur1=!item $a of $kleuren
+kleur2=!item $b of $kleuren
+color1=!item $a of $colors
+color2=!item $b of $colors
+var1=$xmin,$xmax,$ymin,$ymax
+rr=!record 5 of lang/remarks.$taal
+textanswer$n=$rr
+#@De in't <font color=$color1>$kleur1 getekende grafiek</font> is het goede antwoord
+xsize=400
+ysize=400
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+axis\
+axisnumbering\
+precision 1\
+grid 2,2,grey,2,2,6,black\
+linewidth 2\
+precision 100\
+onclick\
+curve $(color$f_ok),$(functie$f_ok)\
+onclick\
+curve $(color$f_nok),$(functie$f_nok)\
+mouse red,22\
+zoom red
+
+reply$n=0,0
+helptext=!record 15 of lang/remarks.$taal
+
+!exit

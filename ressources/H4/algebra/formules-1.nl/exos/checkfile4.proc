@@ -1,0 +1,142 @@
+# speciaal voor exo9 : antwoord is iets als a*x+b*y = c
+# answer$n=4x+5y=5
+n=$counter
+extra=$empty
+extra2=$empty
+goback=0
+errortext=$empty
+!if ? isin $(reply$n)
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+!if x notin $AAA
+ testvar=x
+ errortext=!record 32 of $remarkdir/commonremarks.$taal
+ #@ Je bent de variabele "<b>$testvar</b>" vergeten te gebruiken.<br />Even aanvullen.
+ goback=1
+ # heavy pentalty...
+ maxscore=$[$P6*$maxscore]
+ !exit
+!endif
+!if y notin $AAA
+ testvar=y
+ errortext=!record 32 of $remarkdir/commonremarks.$taal
+ #@ Je bent de variabele "<b>$testvar</b>" vergeten te gebruiken.<br />Even aanvullen.
+ goback=1
+ # heavy pentalty...
+ maxscore=$[$P6*$maxscore]
+ !exit
+!endif
+
+# Check is the answer is an equation: something like
+test=!replace internal = by , in $AAA
+t1=!itemcnt $test
+!if $t1<2
+    errortext=!record 33 of $remarkdir/commonremarks.$taal
+    #@ Je antwoord moest een vergelijking / functievoorschrift zijn.<br />Even verbeteren.
+    goback=1
+    maxscore=$[$maxscore*$P2]
+    !exit
+!endif
+!if $t1>2
+    errortext=!record 34 of $remarkdir/commonremarks.$taal
+    #@ Ik verwacht hier slechts 1 vergelijking (en dus niet $[$t1-1] vergelijkingen)
+    goback=1
+    maxscore=$[$maxscore*$P2]
+    !exit
+!endif
+A1=!item 1 of $test
+A2=!item 2 of $test
+!if x isin $A1 and y isin $A1
+    !if x isin $A2 or y isin $A2
+     errortext=!record 42 of lang/remarks.$taal
+     #@Je moet de vergelijking herschrijven in de vorm <em>ax + by = c</em>
+     maxscore=$[$maxscore*$P1]
+     !exit
+    !endif
+    # gewoon 4x+5y=5
+    AAA=$A1
+    Aconst=$A2
+!else   
+ # misschien 9 = 4x+5y ?
+    etxt=!record 42 of lang/remarks.$taal
+    #@Je moet de vergelijking herschrijven in de vorm <em>ax + by = c</em>
+    !if x isin $A2 and y isin $A2
+	AAA=$A2
+	Aconst=$A1
+	extra2=<br/>$etxt
+    !else
+     errortext=$etxt
+     maxscore=$[$maxscore*$P1]
+     !exit
+    !endif
+!endif
+wims_rawmath_variables=x,y
+AAA=!rawmath $AAA
+G=!replace internal = by , in $(answer$n)
+Gconst=!item 2 of $G
+GGG=!item 1 of $G
+tot=!exec pari x=10\
+f=$Aconst/$Gconst\
+A=$AAA - ($Aconst)\
+G=$GGG - ($Gconst)\
+if(1.0*(A) == 1.0*(G) || 1.0*(A) == -1.0*(G),1,0)\
+if(1.0*(A) == 1.0*(G*(f)) || 1.0*(A) == 1.0*(G*(-1*(f))) ,1,0)\
+if(1.0*($Aconst)==1.0*($Gconst),1,0)\
+y=10\
+if(1.0*($AAA) == 1.0*($GGG),1,0)
+
+t1=!line 5 of $tot
+t2=!line 6 of $tot
+t3=!line 7 of $tot
+t4=!line 9 of $tot
+t5=$[$t1+$t2]
+#exotext=t1=$t1<br />t2=$t2 <br />t3=$t3<br />t4=$t4 <br />t5=$t1+$t2=$t5<br /><br />AAA=$AAA== $Aconst<br /> GGG=$GGG == $Gconst
+#goback=1
+#!exit
+!if $t5=2
+ score=1
+ extra=!record 18 of lang/remarks.$taal
+ #@goed vereenvoudigd...!
+!else
+ !if $t5=1
+  score=0.9
+  extra=!record 19 of lang/remarks.$taal
+  #@je had het antwoord nog iets kunnen vereenvoudigen...
+ !else
+  !if $t3=1
+   extra=!record 20 of lang/remarks.$taal
+   #@Je hebt de contante wel goed...
+   score=0.3
+  !else
+   !if $t4=1
+    extra=!record 21 of lang/remarks.$taal
+    #@je hebt een klein rekenfoutje gemaakt in de contante...
+    score=0.6
+   !else
+    score=0
+    extra=$empty
+   !endif
+  !endif
+ !endif
+!endif
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK $extra $extra2
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK $extra $extra2
+    !else
+	remark$n=$NOK $extra $extra2
+    !endif
+!endif
+goback=0
+!exit
+
+

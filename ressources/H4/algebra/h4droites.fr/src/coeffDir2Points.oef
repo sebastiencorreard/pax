@@ -1,0 +1,145 @@
+\title{Coefficient directeur, deux points}
+\language{fr}
+\computeanswer{yes}
+\precision{1000}
+\author{Joachim Yaméogo}
+\email{yameogo@unice.fr}
+\format{html}
+
+## couleur des grilles
+\text{gridcolor=lightblue}
+
+### cadre générique ###
+\text{dimh=400}
+\text{dimv=400}
+
+\text{xmin=-4}
+\text{xmax=4}
+\text{ymin=-4}
+\text{ymax=4}
+
+\text{petitscarreaux=
+linewidth 1
+parallel 0,\ymin,0,\ymax,0.2,0,floor(5*(\xmax))+1,\gridcolor
+parallel 0,\ymin,0,\ymax,-0.2,0,floor(5*abs(\xmin))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,0.2,floor(5*(\ymax))+1,\gridcolor
+parallel \xmin,0,\xmax,0,0,-0.2,floor(5*abs(\ymin))+1,\gridcolor
+}
+
+\text{groscarreaux=
+linewidth 3
+parallel 0,\ymin,0,\ymax,1,0,floor(\xmax+1),\gridcolor
+parallel 0,\ymin,0,\ymax,-1,0,floor(abs(\xmin)+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,1,floor(\ymax+1),\gridcolor
+parallel \xmin,0,\xmax,0,0,-1,floor(abs(\ymin)+1),\gridcolor
+}
+
+\text{axes=
+linewidth 2
+vline 0,0,black
+hline 0,0,black
+arrow 0,0,1,0,10,magenta
+arrow 0,0,0,1,10,magenta
+text red,0.7,-0.1,medium,i
+text red,-0.2,0.7,medium,j
+text black,-0.2,-0.1,medium,O
+arrow \xmax-1,0,\xmax,0,10,black
+arrow 0,\ymax-1,0,\ymax,10,black
+text black,\xmax-0.2,-0.2,large,x
+text black,-0.2,\ymax-0.2,large,y
+}
+
+\text{cadre=
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+\petitscarreaux
+\groscarreaux
+\axes
+}
+## fin du cadre générique ##
+
+## fabrication des deux points de la droite ##
+\integer{x1=random(-1,1)*random(1..(\xmax-1))}
+\if{\x1>0}{
+  \integer{x2=random((\xmin+1)..(\x1-1))}
+  }
+  {
+  \integer{x2=random((\x1+1)..(\xmax-1))}
+  }
+\integer{y1=random(-1,1)*random(1..(\ymax-1))}
+\if{\y1>0}{
+  \integer{y2=random((\ymin+1)..(\y1-1))}
+  }
+  {
+  \integer{y2=random((\y1+1)..(\ymax-1))}
+  }
+\text{coeffDir=maxima((\y2-(\y1))/(\x2-(\x1));)}
+\text{f=\y1+(\coeffDir)*(x-(\x1))}
+\text{afRep=texmath(\coeffDir)}
+\integer{xBA=\x2-\x1}
+\integer{yBA=\y2-\y1}
+
+## marquage des points dans le cadre ##
+\text{vari=shuffle(3)}
+\text{couleurs=red,orange,green}
+\text{graph=
+\cadre
+linewidth 10
+points \couleurs[\vari[1]],\x1,\y1,\x2,\y2
+text \couleurs[\vari[1]],\x1,\y1-0.2,giant,A
+text \couleurs[\vari[1]],\x2,\y2-0.2,giant,B
+}
+
+####### enoncé de l'exo #######
+\statement{
+<div class="affiche_pres">
+  Le plan \(\RR^2) est muni d'un repère \((O,i,j)).
+  <br>
+  Dans le dessin ci-dessous, quel est le coefficient directeur de la droite
+  <b>(AB)</b>?
+</div>
+<br>
+<div class="affiche_pres" style="text-align:center;">
+  \draw{\dimh,\dimv}{
+	\graph
+	}
+</div>
+<div class="affiche_pres">
+  <b>Votre réponse.</b>
+  <span style="background-color:bisque;padding:4px;">
+    Le coefficient directeur de la droite <b>(AB)</b> ci-dessus est: \embed{reply 1,10}.
+  </span>
+</div>
+}
+##### collecte de la réponse de l'utilisateur #####
+\reply{}{\coeffDir}
+
+## Aide ou rappel ##
+\hint{
+  Vous pouvez utiliser le th&eacute;or&egrave;me suivant:
+  <p style="background-color:bisque;">
+  <b>Th&eacute;or&egrave;me:</b> Soient \(A(x_{A},y_{A}))&nbsp;  et &nbsp;
+  \(B(x_{B},y_{B})) &nbsp; deux points du plan.
+  <br>
+  Si \(x_{A}\neq x_{B}), alors la droite \((AB)) a pour coefficient directeur
+  &nbsp; \(m=\frac{y_B-y_A}{x_B-x_A}).
+  </p>
+}
+
+## Une solution rédigée si on n'a pas trouvé la bonne réponse ##
+\solution{
+  Voici un
+  <b><span style="color:darkcyan;">exemple de r&eacute;daction</span></b> de la solution:
+  <br>
+  Pour calculer le coefficient directeur de la droite <b>(AB)</b>, nous allons appliquer le
+  th&eacute;or&egrave;me suivant avec les points \(A(\x1,\y1)) et \(B(\x2,\y2)).
+  <p style="background-color:bisque;">
+  <b>Th&eacute;or&egrave;me:</b> Soient \(A(x_{A},y_{A}))&nbsp;  et &nbsp;
+  \(B(x_{B},y_{B})) &nbsp; deux points du plan.
+  <br>
+  Si \(x_{A}\neq x_{B}), alors la droite \((AB)) a pour coefficient directeur
+  &nbsp; \(m=\frac{y_B-y_A}{x_B-x_A}).
+  </p>
+  On trouve \(y_B-y_A=\yBA), \(x_B-x_A=\xBA), donc le coefficient directeur de la
+  droite en question est \(m=\afRep).
+}

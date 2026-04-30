@@ -1,0 +1,212 @@
+!set title=Molmassa II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=georgesk@ofset.org
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=27
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim kooldioxide,CO2	koolmonoxide,CO	ijzersulfide,FeS	ijzer(III)oxide,Fe2O3	aluminiumoxide,Al2O3	ijzer(II)sulfaat,FeSO4	ijzer(III)sulfaat,Fe2(SO4)3	aluminiumsulfaat,Al2(SO4)3	ammoniumsulfaat,(NH4)2SO4	natriumbicarbonaat [bakpoeder],NaHCO3	natriumcarbonaat [soda],Na2CO3	kaliumpermanganaat ,KMnO4	natriumthiosulfaat [thio],Na2(S2O3)	kwik(I)chloride [calomel],Hg2Cl2	kwik(II)chloride,HgCl2 	tin(II)chloride,SnCl2	molybdeendisulfide,MoS2	waterstof,H2	zuurstof,O2	stikstof,N2	argon,Ar	Helium,He	bicarbonaat ion,HCO3^-	fluoride ion, F^-	natrium ion, Na^+	cyanide ion, CN^-	sulfiet ion, SO3^2-	sulfaat ion, SO4^2-	sulfide ion, S^2-	ijzer(II) ion, Fe^2+	aluminium ion, Al^3+	ammonium ion, NH4^+	zwavel, S	calciumcarbonaat [krijt], CaCO3	
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=$[rint(2+$val2)]
+tmp0=!itemcnt $val6
+
+val8=$[rint($(tmp0)-1)]
+tmp0=!shuffle $val8
+
+tmp1=$(tmp0)
+
+val9=$(tmp1)
+val10=
+val11=
+val12=
+val13=
+val14=
+val15=
+val16=
+val17=$[rint(1)]
+!for val18 =1 to $val7 
+val19=$(val6[$(val9[$val18]);2])
+!readproc slib/chemistry/chemeq_tex $val19 
+tmp0=$slib_out
+val10=$val10 $(tmp0),
+!readproc slib/chemistry/chemeq_mass $val19 
+tmp0=$slib_out
+val20=$[$(tmp0)]
+val11=$val11 $val20,
+val16=$val16 r$val17,
+val17=$[rint($val17+1)]
+tmp0=!randint 7, 30
+
+val21=$[rint($(tmp0))]
+val22=$[$val21/$val20]
+val12=$val12 $val21,
+val13=$val13 $val22,
+val16=$val16 r$val17,
+val17=$[rint($val17+1)]
+tmp0=!randitem 10,20,30,50,70,90
+
+val23=$[$(tmp0)/100]
+val24=$[$val23*$val20]
+val14=$val14 $val24,
+val15=$val15 $val23,
+val16=$val16 r$val17,
+val17=$[rint($val17+1)]
+!next
+oefsteps=$val16 
+nextstep=!nosubst $val16 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$(val11[1])]
+replytype2=numeric
+replyname2=
+replygood2=$[$(val14[1])]
+replytype3=numeric
+replyname3=
+replygood3=$[$(val13[1])]
+replytype4=numeric
+replyname4=
+replygood4=$[$(val11[2])]
+replytype5=numeric
+replyname5=
+replygood5=$[$(val14[2])]
+replytype6=numeric
+replyname6=
+replygood6=$[$(val13[2])]
+replytype7=numeric
+replyname7=
+replygood7=$[$(val11[3])]
+replytype8=numeric
+replyname8=
+replygood8=$[$(val14[3])]
+replytype9=numeric
+replyname9=
+replygood9=$[$(val13[3])]
+replytype10=numeric
+replyname10=
+replygood10=$[$(val11[4])]
+replytype11=numeric
+replyname11=
+replygood11=$[$(val14[4])]
+replytype12=numeric
+replyname12=
+replygood12=$[$(val13[4])]
+replytype13=numeric
+replyname13=
+replygood13=$[$(val11[5])]
+replytype14=numeric
+replyname14=
+replygood14=$[$(val14[5])]
+replytype15=numeric
+replyname15=
+replygood15=$[$(val13[5])]
+replytype16=numeric
+replyname16=
+replygood16=$[$(val11[6])]
+replytype17=numeric
+replyname17=
+replygood17=$[$(val14[6])]
+replytype18=numeric
+replyname18=
+replygood18=$[$(val13[6])]
+replytype19=numeric
+replyname19=
+replygood19=$[$(val11[7])]
+replytype20=numeric
+replyname20=
+replygood20=$[$(val14[7])]
+replytype21=numeric
+replyname21=
+replygood21=$[$(val13[7])]
+replytype22=numeric
+replyname22=
+replygood22=$[$(val11[8])]
+replytype23=numeric
+replyname23=
+replygood23=$[$(val14[8])]
+replytype24=numeric
+replyname24=
+replygood24=$[$(val13[8])]
+replytype25=numeric
+replyname25=
+replygood25=$[$(val11[9])]
+replytype26=numeric
+replyname26=
+replygood26=$[$(val14[9])]
+replytype27=numeric
+replyname27=
+replygood27=$[$(val13[9])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Vul de onderstaande tabel verder in:<br>	<em><small>geef je antwoorden op minimaal 2 decimalen nauwkeurig</small></em>	<table border=1>	<tr><th>Chemische stof</th><th>molmassa</th><th>Massa</th><th>Hoeveelheid stof</th></tr>	 
+!for m_k=1 to $val7 
+$()	<tr>	<td>$(val6[$(val9[$m_k]);1]) (
+!insmath $(val10[$m_k])
+$())</td>	<td align=center> 
+!read oef/embed.phtml r\[3*\k-2],10 
+$() mol/gram</td>	<td>	 <table border=1 width=100%>	  <tr><td align=center bgcolor="lightgreen"><input style="text-align:right" size="10" value="$(val12[$m_k])" readonly> gram</td></tr>	  <tr><td align=center bgcolor="orange"> 
+!read oef/embed.phtml r\[3*\k-1],10 
+$() gram</td></tr>	 </table>	</td>	<td>	 <table border=1 width=100%>	  <tr><td align=center bgcolor="lightgreen"> 
+!read oef/embed.phtml r\[3*\k],10 
+$() mol</td></tr>	  <tr><td align=center bgcolor="orange"><input style="text-align:right"  size="10" value="$(val15[$m_k])" readonly> mol </td></tr>	 </table>	</td>	</tr>	 
+!next
+$()	</table>	<hr>	<a href="$val1/../m.html" target="_new">hier</a> staat het <tt>periodiek systeem de elementen</tt>.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,6,7,9,10,12,15
+embedcnt=3

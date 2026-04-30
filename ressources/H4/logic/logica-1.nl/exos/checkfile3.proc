@@ -1,0 +1,76 @@
+goback=0
+math=0
+errortext=$empty
+score=0
+extra=$empty
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ object$n=&nbsp;
+ !exit
+!endif
+
+AAA=!lower $(reply$n)
+AAA=!replace internal : by , in $AAA
+at=!itemcnt $AAA
+student=$empty
+sequence=$empty
+your_answer=$empty
+final=0
+found_it=$empty
+!for a=1 to $at step 2
+ x=!item $a of $AAA
+ y=!item $[$a+1] of $AAA
+ s=1
+ !for p=1 to $var1
+  xm=!item $s of $var2
+  ym=!item $[$s+1] of $var2
+  s=$[$s+2]
+  d$p=$[sqrt( ($x-$xm)*($x-$xm) + ($y-$ym)*($y-$ym))]
+ !next p
+# chk=!exec pari d1=$d1;d2=$d2;d3=$d3;$(answer$n)
+ chk=!exec pari $var4
+ !if 1 notin $chk
+  student=!append line point $x,$y,red to $student
+ !else
+  student=!append line point $x,$y,green to $student
+ !endif
+ sequence=!append item $chk to $sequence
+!next a
+
+sequence=!listuniq $sequence
+maxscore=1
+t=!itemcnt $sequence
+!if $t != $var3
+ maxscore=0
+!else
+ !for p=1 to $t
+  s=!item $p of $sequence
+  !if 1 notin $s
+   maxscore=0
+  !endif
+ !next p
+!endif
+!if $maxscore=1
+ remark$n=$OK
+!else
+ remark$n=$NOK
+!endif
+modulescore=$[$modulescore + $maxscore]
+
+!if $teaching=1
+ object$n=!exec canvasdraw \
+ size 240,240\
+ $var5 \
+ opacity 255,120\
+ linewidth 6\
+ $student
+
+!endif
+
+reply$n=zie plaatje...
+goback=0
+
+!exit

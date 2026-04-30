@@ -1,0 +1,81 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_title=Repr&eacute;sentation graphique des solutions d'une in&eacute;quation
+slib_parms=8\
+<,symbole (<,><=,>=)
+,borne
+500,taille horizontale du dessin (minimum 300)\
+80,taille verticale du dessin (minimum 80)\
+-5,abscisse minimale\
+5,abscisse maximale\
+black,couleur de l'axe\
+red,couleur des solutions
+
+slib_author=Fabrice Guerimand
+slib_out=Les donn&eacute;es pour insdraw</li></ol>
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+
+!distribute items $slib_input into s_symb,s_borne,s_xsize,s_ysize,s_xmin,s_xmax,s_colora,s_colorg
+slib_out=$slib_input
+
+s_borne=$[$s_borne]
+!if NaN isin $s_borne
+ !exit
+!endif
+!bound s_symb within <,>,<=,>=,=>,=< default <
+!default s_xsize=300
+!default s_ysize=100
+s_ysize=$[max(80,$s_ysize)]
+!default xmin=-5
+!default xmax=5
+!default s_colora=black
+!default s_colorg=red
+
+s_mincnt=!charcnt $s_xmin
+s_maxcnt=!charcnt $s_xmax
+s_borcnt=!charcnt $s_borne
+s_mincnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_mincnt]
+s_maxcnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_maxcnt]
+s_borcnt=$[3/$s_xsize*($s_xmax-$s_xmin+5)*$s_borcnt]
+
+slib_out=range $s_xmin-2,$s_xmax+2,-3,2\
+arrow $s_xmin-2,0,$s_xmax+2,0,20,$s_colora\
+linewidth 2\
+parallel $s_xmin,-0.3,$s_xmin,0.3,1,0,$s_xmax-$s_xmin+1,$s_colora\
+text $s_colora,$s_xmin-$s_mincnt,-0.4,medium,$s_xmin\
+text $s_colora,$s_xmax-$s_maxcnt,-0.4,medium,$s_xmax\
+segment $s_borne,-1,$s_borne,1,$s_colorg\
+text $s_colora,$s_borne-$s_borcnt,-1.2,medium,$s_borne
+
+!if $s_xmax*$s_xmin<0
+slib_out=$slib_out\
+text $s_colora,-0.15,-0.4,medium,0
+!endif
+s_inf=<
+s_ega==
+!if $s_inf isin $s_symb
+ !if $s_ega isin $s_symb
+  slib_out=$slib_out\
+segment $s_borne,0,$s_xmin-2,0,$s_colorg\
+parallel $s_borne,1,$s_borne-1,1,0,-2,2,$s_colorg
+ !else
+  slib_out=$slib_out\
+segment $s_borne,0,$s_xmin-2,0,$s_colorg\
+parallel $s_borne,1,$s_borne+1,1,0,-2,2,$s_colorg
+ !endif
+!else
+ !if $s_ega isin $s_symb
+  slib_out=$slib_out\
+segment $s_borne,0,$s_xmax+2,0,$s_colorg\
+parallel $s_borne,1,$s_borne+1,1,0,-2,2,$s_colorg
+ !else
+  slib_out=$slib_out\
+segment $s_borne,0,$s_xmax+2,0,$s_colorg\
+parallel $s_borne,1,$s_borne-1,1,0,-2,2,$s_colorg
+ !endif
+!endif

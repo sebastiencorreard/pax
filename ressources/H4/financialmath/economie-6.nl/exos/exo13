@@ -1,0 +1,170 @@
+#:12 Systeem nationale rekeningen (tabel)[ domein H ]
+# GEEN STEPS
+var1=$empty
+var2=$empty
+make_tr=1
+n=$counter
+mathview=0
+calculator=1
+total_exos=1
+inputs=-1
+cols=20
+checkfile=$checkdir/new_number.proc
+math=0
+xsize=600
+ysize=400
+helptext=<ul><li><b>BBP</b> = bruto binnenlands product</li><li><b>C</b> = particuliere consumptie</li> <li><b>B</b> = saldo belastingen</li><li><b>S</b> = besparing van de gezinnen</li><li><b>I</b> = netto investeringen van bedrijven</li><li><b>O</b> = overheidsbestedingen</li><li><b>E</b> = export</li><li><b>M</b> = import</li><li><b>Y</b> = nationaal inkomen</li></ul>
+
+ss=De geldkringloop is een weergave van de basiselementen<br />uit het systeem van de nationale rekeningen.<br />In het systeem van de nationale rekeningen wordt<br />het onderscheidt gemaakt tussen de sectoren<br /><b>gezinnen, ondernemingen, overheid</b> en <b>buitenland</b>.<hr />De genoemde bedragen zijn in <b>miljarden &euro;'s</b>.<br />Neem de data uit de kringloop over in de tabel. En bereken de onbekende waarden...
+
+p=!randint 20,40
+C=!randint 100,200
+C=$[$C*10]
+B=$[10*(round($p*$C/1000))]
+O=!randint $[$B+5],$[$B+50]
+M=!randint 5,25
+M=$[$M*10]
+E=!randint $[$M+5],$[$M+50]
+I=!randint 20,35
+I=$[$I*10]
+
+S=$[$I+($O - $B) + ( $E - $M)]
+EM=$[$E - $M]
+OB=$[$O - $B]
+Y=$[$C+$S+$B]
+SI=$[$S - $I]
+
+keuze=!randint 1,3
+keuze=1
+!if $keuze=1
+    intext1=Y = $Y
+    intext2=C = $C
+    intext3=S = ?
+    intext4=B = $B
+    intext5=O-B = $OB
+    intext6=I = ?
+    intext7=M = ?
+    intext8=E-M = $EM
+    intext9=E = $E
+    intext10=O = ?
+    arglist=S,I,M,E,O
+
+    textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = $C + S + $B $m_rightarrow  S = $Y &minus; $C &minus; $B = $S </li><li>O &minus; B = $OB en B = $B $m_rightarrow O = $OB + $B = $O</li><li>E &minus; M = $EM en E = $E $m_rightarrow M = $E &minus; $EM = $M</li><li>I + O &minus; B + E &minus; M = S $m_rightarrow I + $OB + $EM = $S $m_rightarrow I = $I</li></ul>
+!else
+    !if $keuze=2
+	intext1=Y = $Y
+	intext2=C = $C
+    	intext3=S = $S
+	intext4=B = ?
+    	intext5=O-B = $OB
+	intext6=I = ?
+	intext7=M = $M
+    	intext8=E-M = $EM
+	intext9=E = ?
+    	intext10=O = ?
+    	arglist=B,I,M,E,O
+	
+	textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = $C + $S + B $m_rightarrow  B = $Y &minus; $C &minus; $S = $B </li><li>O &minus; B = $OB  en B = $B $m_rightarrow O = $OB + $B = $O</li><li>E &minus; M = $EM en M = $M $m_rightarrow E = $M +  $EM = $E<li>S = I + E &minus; M + O &minus B $m_rightarrow $S = I + $EM + $OB $m_rightarrow I=$I</li></ul>
+    !else
+	intext1=Y = $Y
+	intext2=C = ?
+    	intext3=S = $S
+	intext4=B = $B
+    	intext5=O-B = ?
+	intext6=I = $I
+	intext7=M = $M
+    	intext8=E-M = ?
+	intext9=E = ?
+        intext10=O = $O
+    	arglist=O-B,E-M,E
+	
+	textanswer$n=<ul><li>Y = C + S + B $m_rightarrow $Y = C + $S + $B $m_rightarrow  C = $Y &minus; $S &minus; $B = $C </li><li>O &minus; B =  $O &minus; $B = $OB</li><li>Y + M = I + C + E + O $m_rightarrow $Y + $M = $I + $C + E + $O $m_rightarrow E = $E </li><li>S = I + E &minus; M + O &minus B $m_rightarrow S = $I + $EM + $OB = $S</li><li>E &minus; M = $E &minus; $M = $EM</li></ul>
+    !endif
+!endif
+
+answer$n=$Y\
+$C\
+$B\
+$S\
+$B\
+$O\
+$OB\
+$C\
+$Y\
+$I\
+$M\
+$O\
+$E\
+$M\
+$E\
+$EM
+
+description=Y,C,B,S,B,O,O&minus;B,C,Y,I,M,O,E,M,E,E&minus;M
+
+math=0
+
+plaatje=!exec canvasdraw\
+size $xsize,$ysize\
+xrange 0,100\
+yrange 0,100\
+bgcolor $wims_bgcolor\
+linewidth 3\
+fontfamily bold 14px Ariel\
+frect 0,55,14,47.5,lightgreen\
+frect 39.5,80,52.8,73,lightgreen,60\
+frect 73,55,87.5,47.5,lightgreen,60\
+frect 38.8,55,56.8,44.75,lightgreen,60\
+frect 38.5,30.75,55,21,lightgreen,60\
+string red,3,50,bedrijven\
+string red,40,25,buitenland\
+string red,40,51,financiele\
+string red,40,46,instellingen\
+string red,40,75,gezinnen\
+string red,75,50,overheid\
+#gezinnen <-> bedrijven\
+segment 5,55,5,78,blue\
+arrow 5,78,38,78,8,blue\
+string blue,10,82,$intext1\
+string blue,10,70,$intext2\
+arrow 7,75,7,55,8,blue\
+segment 7,75,38,75,blue\
+#gezinnen -> financiele instellingen\
+arrow 45,72,45,55,8,blue\
+string blue,46,67,$intext3\
+#gezinnen -> overheid\
+segment 53,76,80,76,blue\
+arrow 80,76,80,55,8,blue\
+string blue,60,80,$intext4\
+#financiele instellingen -> overheid\
+arrow 56,50,72,50,8,blue\
+string blue,58,54,$intext5\
+#financiele instellingen -> buitenland\
+arrow 45,44,45,30,8,blue\
+string blue,46,36,$intext8\
+#bedijven -> buitenland\
+arrow 5.5,22,5.5,47,8,blue\
+segment 5.5,22,38,22,blue\
+string blue,16,18,$intext9\
+#buitenland -> bedrijven\
+arrow 10,27,38,27,8,blue\
+segment 10,27,10,47,blue\
+string blue,16,28,$intext7\
+#financiele instellingen -> bedrijven\
+arrow 38.5,49,14.5,49,8,blue\
+string blue,20,53,$intext6\
+#overheid -> bedrijven\
+segment 80,47,80,15,blue\
+segment 80,15,1,15,blue\
+arrow 1,15,1,47,8,blue\
+string blue,60,10,$intext10\
+intooltip Klik voor de geldkrinloop <span class='schaersvoorde_link'>hier</span>
+
+exotext=<table><tr><th style="vertical-align:top"><table class="demospecial"><caption>GEZINNEN</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>Y = <input type="text" class="schaersvoorde_input" id="myinput0" value="?" size="3" /></td><td>C = <input type="text" class="schaersvoorde_input" id="myinput1" value="?" size="3" /></td></tr><tr><td>&nbsp;</td><td>B = <input type="text" class="schaersvoorde_input" id="myinput2" value="?" size="3" /></td></tr><tr><td>&nbsp;</td><td>S = <input type="text" class="schaersvoorde_input" id="myinput3" value="?" size="3" /></td></tr></table></th><th style="vertical-align:top"><table class="demospecial"><caption>OVERHEID</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>B = <input type="text" class="schaersvoorde_input" id="myinput4" value="?" size="3" /></td><td>O = <input type="text" class="schaersvoorde_input" id="myinput5" value="?" size="3" /></td></tr><tr><td>O &minus; B = <input type="text" class="schaersvoorde_input" id="myinput6" value="?" size="3" /></td><td>&nbsp;</td></tr></table></th><th style="vertical-align:top"><table class="demospecial"><caption>BEDRIJVEN</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>C = <input type="text" class="schaersvoorde_input" id="myinput7" value="?" size="3" /></td><td>Y = <input type="text" class="schaersvoorde_input" id="myinput8" value="?" size="3" /></td></tr><tr><td>I = <input type="text" class="schaersvoorde_input" id="myinput9" value="?" size="3" /></td><td>M = <input type="text" class="schaersvoorde_input" id="myinput10" value="?" size="3" /></td></tr><tr><td>O = <input type="text" class="schaersvoorde_input" id="myinput11" value="?" size="3" /></td><td>&nbsp;</td></tr><tr><td>E = <input type="text" class="schaersvoorde_input" id="myinput12" value="?" size="3" /></td><td>&nbsp;</td></tr></table></th><th style="vertical-align:top"><table class="demospecial"><caption>BUITENLAND</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>M = <input type="text" class="schaersvoorde_input" id="myinput13" value="?" size="3" /></td><td>E = <input type="text" class="schaersvoorde_input" id="myinput14" value="?" size="3" /></td></tr><tr><td>E &minus; M = <input type="text" class="schaersvoorde_input" id="myinput15" value="?" size="3" /></td><td>&nbsp;</td></tr></table></th></tr></table>
+
+textanswer$n=<table><tr><td style="vertical-align:top"><table class="demospecial"><caption>GEZINNEN</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>Y = $Y</td><td>C = $C</td></tr><tr><td>&nbsp;</td><td>B = $B</td></tr><tr><td>&nbsp;</td><td>S = $S</td></tr></table></td><td style="vertical-align:top"><table class="demospecial"><caption>OVERHEID</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>B = $B</td><td>O = $O</td></tr><tr><td>O &minus; B = $OB</td><td>&nbsp;</td></tr></table></td><td style="vertical-align:top"><table class="demospecial"><caption>BEDRIJVEN</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>C = $C</td><td>Y = $Y</td></tr><tr><td>I = $I</td><td>M = $M</td></tr><tr><td>O = $O</td><td>&nbsp;</td></tr><tr><td>E = $E</td><td>&nbsp;</td></tr></table></td><td style="vertical-align:top"><table class="demospecial"><caption>BUITENLAND</caption><tr><td>Middelen</td><td>Bestedingen</td></tr><tr><td>M = $M</td><td>E = $E</td></tr><tr><td>E &minus; M = $EM</td><td>&nbsp;</td></tr></table></td></tr></table>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a> $plaatje
+
+
+!exit
+

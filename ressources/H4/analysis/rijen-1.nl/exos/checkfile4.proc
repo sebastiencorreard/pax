@@ -1,0 +1,140 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# het goede antwoord is een  Rangnummer formule:Un=21+4(n-1) of U_n=21+4*(n-1)                                                                                                 
+n=$counter
+
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+extra=$empty
+wims_exec_error=$empty
+R1=!record 69 of lang/remarks.$taal
+
+# $voornaam , Kijk even in de help-pagina's over de schrijfwijze van Rangnummer formules.
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+test=!replace internal u(n) by @ in $AAA
+test=!replace internal u(1) by @ in $test
+
+!if @ isin $test
+    # verkeerde schrijfwijze ?
+    rem=!record 75 of lang/remarks.$taal
+    errortext=$rem <br /> $R1
+    # Je haalt de Rangnummer en Recursieve formule door mekaar<br />$R1
+    maxscore=$[$maxscore*$P2]
+    goback=1
+    !exit
+!endif
+
+AAA=!replace internal un by @ in $AAA
+AAA=!replace internal u_n by @ in $AAA
+!if @ notin $AAA
+    maxscore=$[$maxscore*$P2]
+    errortext=$R1
+    goback=1
+    !exit
+!endif
+
+AAA=!replace internal = by , in $AAA
+AAA=!replace internal is by , in $AAA
+t=!itemcnt $AAA
+!if $t != 2
+    maxscore=$[$maxscore*$P4]
+    testvar=$(reply$n)
+    errortext=!record 55 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+A1=!item 1 of $AAA
+A2=!item 2 of $AAA
+
+#   @ = un of u_n
+!if @ isin $A1 and @ notin $A2
+    AAA=$A2
+!else
+    !if @ isin $A2 and @ notin $A1
+	AAA=$A1
+	maxscore=$[$maxscore*$P1]
+	ex=!record 76 of lang/remarks.$taal
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br />$ex
+	!endif
+	# <br />een Rangnummer formule schrijven we meestal als:<br /> U<sub>n</sub>= 123 + 4*(n-1) of zoiets...
+    !else
+	testvar=$(reply$n)
+	maxscore=$[$maxscore*$P3]
+	errortext=!record 55 of $remarkdir/commonremarks.$taal
+	goback=1
+	!exit
+    !endif
+!endif
+
+!for i in sqrt,sin,cos,tan,log,pi,abs,ln,n
+    !if $i=n
+	# deze letter komt niet in't rijtje voor
+	I=D
+    !else
+	I=!toupper $i
+    !endif
+    AAA=!replace internal $i by $I in $AAA    
+!next p
+
+AAA=!replace [a-z\~\!\@\%\&\_\:\;] by $empty in $AAA
+AAA=!tolower $AAA
+AAA=!nospace $AAA
+wims_rawmath_variables=d
+AAA=!rawmath $AAA
+AAA=!replace internal d by 10 in $AAA
+
+AAA=$[1*($AAA)]
+!if NaN isin $AAA
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+    goback=1
+    maxscore=$[$maxscore*$P5]
+    !exit
+!endif
+    
+# er komt geen andere n voor in't goede antwoord !!! ?
+GGG=!replace internal n by 10 in $(answer$n)
+GGG=$[1*($GGG)]
+
+score=!exec pari if($AAA==$GGG,1,0)
+# pari if(7^n==7^n,1,0) ==> 0 daarom substitutie van n...
+
+!if $score=1
+    remark$n=$OK
+!else
+    !ifval $AAA=$GGG
+	ex=!record 63 of lang/remarks.$taal
+	extra=$extra<br />$ex
+	score=0.9
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $extra !=$empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+goback=0
+!exit
+
