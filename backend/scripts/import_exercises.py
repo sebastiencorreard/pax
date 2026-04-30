@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import select
 from config import settings
-from models.exercise import Exercise
+from models.exercise import Exercise, path_to_id
 from core.oef.engine import load_and_render
 from core.oef.parser import parse
 
@@ -66,9 +66,10 @@ async def import_exercises(level: str, domains: list[str], resources_root: str, 
             print(f"  domaine absent : {domain}")
             continue
         for root, _, files in os.walk(domain_path):
-            for f in files:
+            for f in sorted(files):
                 if f.endswith('.oef'):
                     oef_files.append((domain, os.path.join(root, f)))
+    oef_files.sort(key=lambda x: x[1])
 
     print(f"Fichiers trouvés : {len(oef_files)}")
 
@@ -102,6 +103,7 @@ async def import_exercises(level: str, domains: list[str], resources_root: str, 
                 continue
 
             exercise = Exercise(
+                id=path_to_id(path),
                 oef_path=path,
                 title=title,
                 level=level,

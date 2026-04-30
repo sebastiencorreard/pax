@@ -36,7 +36,7 @@ class SheetExercise(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     sheet_id: Mapped[int] = mapped_column(ForeignKey("sheets.id", ondelete="CASCADE"))
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+    exercise_id: Mapped[str] = mapped_column(String(600), ForeignKey("exercises.id"))
     position: Mapped[int] = mapped_column(Integer, default=0)
     weight: Mapped[float] = mapped_column(Numeric, default=1.0)  # poids dans la note finale
 
@@ -79,7 +79,7 @@ class HomeworkPoolExercise(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     pool_id: Mapped[int] = mapped_column(ForeignKey("homework_pools.id", ondelete="CASCADE"))
-    exercise_id: Mapped[int] = mapped_column(ForeignKey("exercises.id"))
+    exercise_id: Mapped[str] = mapped_column(String(600), ForeignKey("exercises.id"))
 
     pool: Mapped["HomeworkPool"] = relationship(back_populates="exercises")
     exercise: Mapped["Exercise"] = relationship()
