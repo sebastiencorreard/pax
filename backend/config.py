@@ -1,4 +1,7 @@
+import os
 from pydantic_settings import BaseSettings
+
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Settings(BaseSettings):
@@ -12,6 +15,9 @@ class Settings(BaseSettings):
     secret_key: str = "changeme"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+
+    # Ressources OEF
+    resources_root: str = os.path.join(_REPO_ROOT, "ressources")
 
     # WIMS
     wims_home: str = "/var/lib/wims"

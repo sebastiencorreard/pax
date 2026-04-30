@@ -49,11 +49,11 @@ def try_render(oef_path: str) -> bool:
         return False
 
 
-async def import_exercises(level: str, domains: list[str], wims_root: str, dry_run: bool):
+async def import_exercises(level: str, domains: list[str], resources_root: str, dry_run: bool):
     engine = create_async_engine(settings.database_url)
     async_session = async_sessionmaker(engine, expire_on_commit=False)
 
-    modules_path = os.path.join(wims_root, 'modules', level)
+    modules_path = os.path.join(resources_root, level)
     if not os.path.isdir(modules_path):
         print(f"Dossier introuvable : {modules_path}")
         return
@@ -91,7 +91,9 @@ async def import_exercises(level: str, domains: list[str], wims_root: str, dry_r
                 continue
 
             meta = extract_meta(path)
-            lang = meta.get('language', 'fr')
+            _lang_map = {'french': 'fr', 'dutch': 'nl', 'english': 'en', 'german': 'de', 'spanish': 'es'}
+            raw_lang = meta.get('language', 'fr').lower()
+            lang = _lang_map.get(raw_lang, raw_lang)[:5]
             title = meta.get('title', None)
 
             if dry_run:
@@ -121,10 +123,16 @@ async def import_exercises(level: str, domains: list[str], wims_root: str, dry_r
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--level', default='H4')
-    parser.add_argument('--domains', default='algebra,analysis,number,arithmetic')
-    parser.add_argument('--wims-root', default='/var/lib/wims/public_html')
+    parser.add_argument('--domains', default=None,
+                        help='Comma-separated list of domains, or omit to import all available')
+    parser.add_argument('--resources-root', default=settings.resources_root)
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
 
-    domains = [d.strip() for d in args.domains.split(',')]
-    asyncio.run(import_exercises(args.level, domains, args.wims_root, args.dry_run))
+    if args.domains:
+        domains = [d.strip() for d in args.domains.split(',')]
+    else:
+        level_path = os.path.join(args.resources_root, args.level)
+        domains = sorted(d for d in os.listdir(level_path) if os.path.isdir(os.path.join(level_path, d)))
+
+    asyncio.run(import_exercises(args.level, domains, args.resources_root, args.dry_run))
