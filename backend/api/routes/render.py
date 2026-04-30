@@ -22,7 +22,7 @@ class AnswerOut(BaseModel):
 
 
 class RenderOut(BaseModel):
-    exercise_id: int
+    exercise_id: str
     title: str
     lang: str
     statement_html: str
@@ -34,7 +34,7 @@ class RenderOut(BaseModel):
 
 @router.get("/{exercise_id}", response_model=RenderOut)
 async def render_exercise(
-    exercise_id: int,
+    exercise_id: str,
     seed: int | None = None,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),

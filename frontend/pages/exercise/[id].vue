@@ -16,5 +16,5 @@
 definePageMeta({ middleware: 'auth' })
 
 const route = useRoute()
-const exerciseId = computed(() => Number(route.params.id))
+const exerciseId = computed(() => route.params.id as string)
 </script>
