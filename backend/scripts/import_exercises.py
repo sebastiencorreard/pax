@@ -91,7 +91,9 @@ async def import_exercises(level: str, domains: list[str], resources_root: str, 
                 continue
 
             meta = extract_meta(path)
-            lang = meta.get('language', 'fr')
+            _lang_map = {'french': 'fr', 'dutch': 'nl', 'english': 'en', 'german': 'de', 'spanish': 'es'}
+            raw_lang = meta.get('language', 'fr').lower()
+            lang = _lang_map.get(raw_lang, raw_lang)[:5]
             title = meta.get('title', None)
 
             if dry_run:
