@@ -119,6 +119,12 @@ class OEFEvaluator:
         except Exception as e:
             cause = getattr(e, "orig_exc", None)
             if isinstance(cause, AbortAssignment): raise cause
+            # randitem(template1, template2, ...) used as a textual chooser
+            # (args contain literal LaTeX/template content the math grammar
+            # can't parse). Pick a random branch then substitute variables.
+            picked = _pick_randitem_template(expr_str.strip())
+            if picked is not None:
+                return self._substitute_vars(picked).strip()
             return self._substitute_vars(expr_str).strip()
 
     def _to_wims_string(self, val: Any) -> str:
@@ -323,6 +329,50 @@ class OEFExprEvaluator(Transformer):
 def _oef_cond_to_py(c: str) -> str:
     c = str(c).strip().replace("^", "**").replace("<>", "!=")
     return c.replace("=", "==").replace("====", "==").replace("<==", "<=").replace(">===", ">=")
+
+
+def _split_top_level_commas(s: str) -> list[str]:
+    """Découpe sur les virgules de profondeur 0, en respectant les parenthèses."""
+    parts: list[str] = []
+    depth = 0
+    last = 0
+    for i, ch in enumerate(s):
+        if ch == '(':
+            depth += 1
+        elif ch == ')':
+            depth -= 1
+        elif ch == ',' and depth == 0:
+            parts.append(s[last:i])
+            last = i + 1
+    parts.append(s[last:])
+    return [p.strip() for p in parts]
+
+
+def _pick_randitem_template(expr: str) -> str | None:
+    """
+    Si expr est de la forme `randitem(a, b, c)` au niveau top-level,
+    renvoie un des arguments choisi aléatoirement (sans substituer les variables).
+    Sinon renvoie None. Utilisé pour les randitem dont les arguments ne sont
+    pas des expressions parsables (templates contenant \\x, =, etc.).
+    """
+    if not expr.startswith("randitem(") or not expr.endswith(")"):
+        return None
+    # Vérifie que la parenthèse fermante finale clôt bien le randitem (pas une
+    # parenthèse interne suivie d'autre chose).
+    depth = 0
+    for i, ch in enumerate(expr):
+        if ch == '(':
+            depth += 1
+        elif ch == ')':
+            depth -= 1
+            if depth == 0 and i != len(expr) - 1:
+                return None
+    inner = expr[len("randitem("):-1]
+    items = _split_top_level_commas(inner)
+    items = [it for it in items if it]
+    if not items:
+        return None
+    return random.choice(items)
 
 def _pari_core(n: int) -> int:
     d = 2; res = n
