@@ -70,6 +70,7 @@ class OEFEvaluator:
             self.meta["seed"] = seed
             random.seed(seed)
         self._expr_parser = Lark(EXPR_GRAMMAR, parser='earley', maybe_placeholders=False)
+        self._pari_counter = 0
 
     def evaluate_ast(self, ast: OEFNode):
         if ast.type == "document" and isinstance(ast.content, list):
@@ -110,7 +111,53 @@ class OEFEvaluator:
             elif node.name in ["title", "author", "email", "language", "range", "keywords"]:
                 self.meta[node.name] = self.render_node(node.args)
 
+    def _preprocess_pari(self, expr: str) -> str:
+        """
+        Évalue les pari(...) à parenthèses imbriquées en arithmétique exacte
+        et les remplace par une référence à une variable temporaire (\\__pariN__)
+        ajoutée au contexte. La grammaire Lark gère bien les pari à paren plate
+        (via pari_call), mais retombe sur func_call générique dès qu'il y a
+        des parens internes — d'où ce pré-traitement ciblé.
+        """
+        out = []
+        i = 0
+        n = len(expr)
+        while i < n:
+            if expr[i:i+5] == 'pari(':
+                depth = 1
+                j = i + 5
+                while j < n and depth > 0:
+                    ch = expr[j]
+                    if ch == '(':
+                        depth += 1
+                    elif ch == ')':
+                        depth -= 1
+                    if depth > 0:
+                        j += 1
+                if depth != 0:
+                    out.append(expr[i])
+                    i += 1
+                    continue
+                inner = expr[i+5:j]
+                if '(' in inner:
+                    substituted = self._substitute_vars(inner)
+                    result = _eval_exact_arithmetic(substituted)
+                    if result is not None:
+                        name = f"__pari{self._pari_counter}__"
+                        self._pari_counter += 1
+                        self.ctx[name] = str(result)
+                        out.append(f"\\{name}")
+                        i = j + 1
+                        continue
+                out.append(expr[i:j+1])
+                i = j + 1
+            else:
+                out.append(expr[i])
+                i += 1
+        return "".join(out)
+
     def _eval_expr(self, expr_str: str, kind: str = "text") -> Any:
+        expr_str = self._preprocess_pari(expr_str)
         try:
             tree = self._expr_parser.parse(expr_str.strip())
             val = OEFExprEvaluator(self.ctx, self).transform(tree)
@@ -314,7 +361,11 @@ class OEFExprEvaluator(Transformer):
         if inner.startswith("core("):
             try: return float(_pari_core(int(re.search(r'\d+', inner).group())))
             except: pass
-        # Évalue l'expression arithmétique (ex: \v[1]+1 → "9+1" → 10)
+        # PARI fait de l'arithmétique exacte : on garde les fractions sous la
+        # forme 'a/b' réduite plutôt que de les convertir en flottants.
+        exact = _eval_exact_arithmetic(inner)
+        if exact is not None:
+            return exact
         try:
             return self.evaluator._eval_expr(inner)
         except:
@@ -346,6 +397,35 @@ def _split_top_level_commas(s: str) -> list[str]:
             last = i + 1
     parts.append(s[last:])
     return [p.strip() for p in parts]
+
+
+_ARITHMETIC_RE = re.compile(r'^[\d\s\+\-\*\/\(\)\.]+$')
+_NUMBER_RE = re.compile(r'(\d+(?:\.\d+)?)')
+
+
+def _eval_exact_arithmetic(expr: str) -> str | int | None:
+    """
+    Évalue une expression purement arithmétique en arithmétique exacte
+    (Fraction). Retourne :
+      - un int si le résultat est entier (ex. pari(8+1) → 9),
+      - une chaîne 'a/b' réduite si fractionnaire (ex. pari(4*5/3) → '20/3'),
+      - None si l'expression contient autre chose que des nombres et + - * / ( ).
+    """
+    expr = expr.strip()
+    if not expr or not _ARITHMETIC_RE.match(expr):
+        return None
+    try:
+        wrapped = _NUMBER_RE.sub(r'Fraction("\1")', expr)
+        result = eval(wrapped, {"__builtins__": {}, "Fraction": Fraction})
+    except Exception:
+        return None
+    if isinstance(result, Fraction):
+        if result.denominator == 1:
+            return result.numerator
+        return f"{result.numerator}/{result.denominator}"
+    if isinstance(result, int):
+        return result
+    return None
 
 
 def _pick_randitem_template(expr: str) -> str | None:
