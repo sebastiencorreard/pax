@@ -56,8 +56,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
-
 const { apiFetch } = useApi()
 
 let katexLib: any = null
