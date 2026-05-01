@@ -197,11 +197,18 @@ interface AnswerDef {
   logical_name: string
 }
 
+interface BackendSegment {
+  type: 'html' | 'input' | 'slot'
+  content?: string
+  name?: string
+  size?: number
+}
+
 interface Rendered {
   exercise_id: string
   title: string
   lang: string
-  statement_html: string
+  statement_segments: BackendSegment[]
   answers: AnswerDef[]
   hint_html: string
   seed: number
@@ -281,39 +288,26 @@ const clickfillChoicesHtml = ref<Array<{ raw: string; html: string }>>([])
 const pendingChoice = ref<string | null>(null)
 const draggingChoice = ref<string | null>(null)
 
-// Segments de l'énoncé : html statique, slot clickfill, ou input texte
+// Segments d'affichage : produits par le backend, le HTML statique passe par KaTeX.
 type Segment =
   | { type: 'html';  content: string }
   | { type: 'slot';  name: string }
   | { type: 'input'; name: string; width: number }
 const statementSegments = ref<Segment[]>([])
 
-function parseStatement(html: string): Segment[] {
-  // Convert block-level tags to <br> so inline flow is preserved while
-  // line breaks between logical sections are kept
-  html = html
-    .replace(/<div[^>]*>/gi, '<br>')
-    .replace(/<\/div>/gi, '')
-    .replace(/<p(?=[\s>])[^>]*>/gi, '<br>')   // <p> ou <p class=...> mais pas <path>
-    .replace(/<\/p>/gi, '')
-    .replace(/^(\s*<br\s*\/?>\s*)+/i, '')  // trim leading breaks
-
-  const segments: Segment[] = []
-  // Matches <cf-slot name="..."> et <oef-input name="..." width="...">
-  const regex = /<cf-slot name="([^"]+)"><\/cf-slot>|<oef-input name="([^"]+)" width="([^"]+)"><\/oef-input>/g
-  let last = 0
-  let m: RegExpExecArray | null
-  while ((m = regex.exec(html)) !== null) {
-    if (m.index > last) segments.push({ type: 'html', content: html.slice(last, m.index) })
-    if (m[1] !== undefined) {
-      segments.push({ type: 'slot', name: m[1].replace(/\s+/g, '') })
-    } else {
-      segments.push({ type: 'input', name: m[2].replace(/\s+/g, ''), width: Number(m[3]) || 100 })
+async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
+  const out: Segment[] = []
+  for (const s of backendSegments) {
+    if (s.type === 'html') {
+      out.push({ type: 'html', content: await renderMath(s.content ?? '') })
+    } else if (s.type === 'input') {
+      const size = s.size ?? 0
+      out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? size * 10 : 100 })
+    } else if (s.type === 'slot') {
+      out.push({ type: 'slot', name: s.name ?? '' })
     }
-    last = m.index + m[0].length
   }
-  if (last < html.length) segments.push({ type: 'html', content: html.slice(last) })
-  return segments
+  return out
 }
 
 async function load(seed?: number) {
@@ -354,8 +348,7 @@ async function load(seed?: number) {
       }
     }
 
-    const renderedHtml = await renderMath(rendered.value.statement_html)
-    statementSegments.value = parseStatement(renderedHtml)
+    statementSegments.value = await buildSegments(rendered.value.statement_segments)
 
     for (const ans of rendered.value.answers) {
       replies.value[ans.input_name] = ''

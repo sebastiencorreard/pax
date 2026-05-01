@@ -25,7 +25,7 @@ class RenderOut(BaseModel):
     exercise_id: str
     title: str
     lang: str
-    statement_html: str
+    statement_segments: list[dict]
     answers: list[AnswerOut]
     hint_html: str
     seed: int
@@ -55,7 +55,7 @@ async def render_exercise(
         exercise_id=exercise_id,
         title=rendered.title,
         lang=rendered.lang,
-        statement_html=rendered.statement_html,
+        statement_segments=rendered.statement_segments,
         answers=[
             AnswerOut(
                 input_name=a.input_name,

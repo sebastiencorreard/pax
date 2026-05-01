@@ -4,6 +4,7 @@ Charge un fichier .oef, l'évalue avec un seed, et retourne un ExerciseRender.
 """
 import os
 import random
+import re
 from dataclasses import dataclass, field
 
 from .parser import parse, Directive, get_directives_compat, OEFNode
@@ -25,7 +26,8 @@ class AnswerDef:
 class ExerciseRender:
     title: str
     lang: str
-    statement_html: str
+    statement_html: str                          # rendu brut, conservé pour tests/scripts/snapshots
+    statement_segments: list[dict]               # [{type:"html"|"input"|"slot", ...}] pour l'API
     answers: list[AnswerDef]
     hint_html: str
     solution_html: str
@@ -61,34 +63,20 @@ def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
     answers = _extract_answers(directives_ast, evaluator)
     condition = _extract_condition(directives_ast, evaluator)
     statement_html = _extract_statement(directives_ast, evaluator)
+    segments = _segment_statement(statement_html)
 
     # Filtre les réponses dont le champ n'apparaît pas dans le statement rendu,
-    # mais seulement si le statement contient des \embed (oef-input/cf-slot).
-    # Pour les \choice (radio), il n'y a pas d'embed : on garde tout.
-    if 'oef-input' in statement_html or 'cf-slot' in statement_html:
-        import re as _re
-        # Noms effectivement présents dans le HTML (name="r1", name="reply1", etc.)
-        html_names = set(_re.findall(r'name="([^"]+)"', statement_html))
-
-        def _answer_in_statement(input_name: str) -> bool:
-            name_nospace = input_name.replace(" ", "")
-            if name_nospace in html_names:
-                return True
-            name_spaced = _re.sub(r'(reply)(\d+)', r'\1 \2', name_nospace)
-            if name_spaced in html_names:
-                return True
-            # r1 est l'alias court de reply1
-            m = _re.match(r'^reply(\d+)$', name_nospace)
-            if m and f"r{m.group(1)}" in html_names:
-                return True
-            return False
-
-        answers = [a for a in answers if _answer_in_statement(a.input_name)]
+    # mais seulement si le statement contient des widgets (input/slot).
+    # Pour les \choice (radio), il n'y a pas de widget : on garde tout.
+    widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot")}
+    if widget_names:
+        answers = [a for a in answers if a.input_name.replace(" ", "") in widget_names]
 
     return ExerciseRender(
         title=evaluator.meta.get("title", ""),
         lang=evaluator.meta.get("language", "fr"),
         statement_html=statement_html,
+        statement_segments=segments,
         answers=answers,
         hint_html=_extract_block(directives_ast, "hint", evaluator),
         solution_html=_extract_block(directives_ast, "solution", evaluator),
@@ -97,6 +85,52 @@ def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
         condition=condition,
         ev_ctx=dict(evaluator.ctx),  # contexte complet pour évaluation de \condition
     )
+
+
+_SEGMENT_PATTERN = re.compile(
+    r'<cf-slot name="([^"]+)"></cf-slot>'
+    r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
+)
+_BLOCK_OPEN = re.compile(r'<(?:div|p)(?=[\s>])[^>]*>', re.I)
+_BLOCK_CLOSE = re.compile(r'</(?:div|p)>', re.I)
+_BR_RUN = re.compile(r'(?:\s*<br\s*/?>\s*){2,}', re.I)
+_BR_LEADING = re.compile(r'^(?:\s*<br\s*/?>\s*)+', re.I)
+
+
+def _segment_statement(html: str) -> list[dict]:
+    """
+    Découpe le HTML rendu en segments typés consommables tels quels par le front :
+      - {type: "html", content: "..."}
+      - {type: "input", name: "reply1", size: 10}
+      - {type: "slot",  name: "..."}
+    Normalise les blocs (<div>, <p>) en <br> et résout l'alias rN ↔ replyN.
+    """
+    html = _BLOCK_OPEN.sub('<br>', html)
+    html = _BLOCK_CLOSE.sub('<br>', html)
+    html = _BR_RUN.sub('<br>', html)
+    html = _BR_LEADING.sub('', html)
+
+    segments: list[dict] = []
+    last = 0
+    for m in _SEGMENT_PATTERN.finditer(html):
+        if m.start() > last:
+            segments.append({"type": "html", "content": html[last:m.start()]})
+        if m.group(1) is not None:
+            segments.append({"type": "slot", "name": m.group(1).strip()})
+        else:
+            name = m.group(2).strip()
+            alias = re.match(r'^r(\d+)$', name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            try:
+                size = int(m.group(3).strip())
+            except (TypeError, ValueError):
+                size = 10
+            segments.append({"type": "input", "name": name, "size": size})
+        last = m.end()
+    if last < len(html):
+        segments.append({"type": "html", "content": html[last:]})
+    return segments
 
 
 def _extract_statement(ast: OEFNode, ev: OEFEvaluator) -> str:
