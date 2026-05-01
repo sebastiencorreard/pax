@@ -156,8 +156,23 @@ class OEFEvaluator:
                 i += 1
         return "".join(out)
 
+    def _preprocess_ranges(self, expr: str) -> str:
+        """Replace random(a..b) with a concrete random integer before Lark parsing.
+
+        SIGNED_NUMBER in the grammar absorbs '2.' which prevents Lark from
+        lexing the '..' range operator inside function arguments.
+        """
+        def _pick(m: re.Match) -> str:
+            try:
+                a, b = int(m.group(1)), int(m.group(2))
+                return str(random.randint(a, b))
+            except ValueError:
+                return m.group(0)
+        return re.sub(r'\brandom\((\d+)\.\.(\d+)\)', _pick, expr)
+
     def _eval_expr(self, expr_str: str, kind: str = "text") -> Any:
         expr_str = self._preprocess_pari(expr_str)
+        expr_str = self._preprocess_ranges(expr_str)
         try:
             tree = self._expr_parser.parse(expr_str.strip())
             val = OEFExprEvaluator(self.ctx, self).transform(tree)
@@ -312,6 +327,11 @@ class OEFExprEvaluator(Transformer):
         args = items[1] if len(items) > 1 else []
         
         if name in ("random", "randitem"):
+            if isinstance(args, str) and '..' in args:
+                try:
+                    a, b = map(int, args.split('..'))
+                    return float(random.randint(a, b))
+                except: pass
             lst = args if isinstance(args, list) else [args]
             return random.choice(lst)
         if name == "randint":
