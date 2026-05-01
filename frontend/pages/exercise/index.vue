@@ -57,13 +57,6 @@
 
 <script setup lang="ts">
 const { apiFetch } = useApi()
-
-let katexLib: any = null
-async function loadKatex() {
-  if (!katexLib) katexLib = (await import('katex')).default
-  return katexLib
-}
-
 function decodeHtmlEntities(s: string): string {
   return s.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
           .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -71,19 +64,10 @@ function decodeHtmlEntities(s: string): string {
 
 const titlesHtml = ref<Record<string, string>>({})
 
-async function buildTitles(exList: Exercise[]) {
-  const katex = await loadKatex()
+function buildTitles(exList: Exercise[]) {
   const result: Record<string, string> = {}
   for (const ex of exList) {
-    const raw = ex.title || ex.oef_path
-    const decoded = decodeHtmlEntities(raw)
-    if (!decoded.includes('\\(') && !decoded.includes('\\[')) {
-      result[ex.id] = decoded
-    } else {
-      result[ex.id] = decoded
-        .replace(/\\\[([\s\S]*?)\\\]/g, (_, e) => katex.renderToString(e.trim(), { displayMode: true, throwOnError: false }))
-        .replace(/\\\(([\s\S]*?)\\\)/g, (_, e) => katex.renderToString(e.trim(), { displayMode: false, throwOnError: false }))
-    }
+    result[ex.id] = decodeHtmlEntities(ex.title || ex.oef_path)
   }
   titlesHtml.value = result
 }
@@ -112,7 +96,7 @@ async function fetchExercises() {
     if (filterLevel.value) params.set('level', filterLevel.value)
     if (filterDomain.value) params.set('domain', filterDomain.value)
     exercises.value = await apiFetch<Exercise[]>(`/api/exercises/?${params}`)
-    await buildTitles(exercises.value)
+    buildTitles(exercises.value)
   } finally {
     loading.value = false
   }

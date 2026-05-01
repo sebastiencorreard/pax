@@ -334,7 +334,7 @@ async function load(seed?: number) {
       const decodedTitle = rendered.value.title
         .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
         .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      titleHtml.value = await renderMath(decodedTitle)
+      titleHtml.value = decodedTitle
     }
     if (rendered.value.hint_html) {
       hintHtml.value = await renderMath(rendered.value.hint_html)
