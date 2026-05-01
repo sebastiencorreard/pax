@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Pre-commit hook: run ruff check + format on staged Python files.
+# Auto-fixes what it can and re-stages; fails if unfixable issues remain.
+
+RUFF=$(find "$(git rev-parse --show-toplevel)/backend/.venv" -name ruff -type f 2>/dev/null | head -1)
+RUFF=${RUFF:-$(command -v ruff)}
+
+if [ -z "$RUFF" ]; then
+  echo "ruff not found — skipping lint (run: pip install ruff)"
+  exit 0
+fi
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$')
+[ -z "$FILES" ] && exit 0
+
+"$RUFF" check --fix $FILES
+"$RUFF" format $FILES
+git add $FILES
+
+"$RUFF" check $FILES
