@@ -1,5 +1,5 @@
-import pytest
 from core.oef.parser import parse, OEFNode
+
 
 def test_parse_simple_command():
     src = r"\title{My Title}"
@@ -13,6 +13,7 @@ def test_parse_simple_command():
     # Arguments are lists of content per block
     assert node.args == [["My Title"]]
 
+
 def test_parse_variable():
     src = r"\text{a=1}\n\b"
     ast = parse(src)
@@ -21,6 +22,7 @@ def test_parse_variable():
     # \n and \b are both COMMAND_NAME tokens
     assert any(it.type == "variable" and it.name == "n" for it in items)
     assert any(it.type == "variable" and it.name == "b" for it in items)
+
 
 def test_nested_blocks():
     src = r"\if{1=1}{\text{true_branch}}{\text{false_branch}}"
@@ -32,16 +34,22 @@ def test_nested_blocks():
     assert len(node.args) == 3
     assert "true_branch" in str(node.args[1])
 
+
 def test_math_environment():
     src = r"Calcul: \(\n1 + 2 = \res\)"
     ast = parse(src)
-    math_nodes = [it for it in ast.content if isinstance(it, OEFNode) and it.type == "math"]
+    math_nodes = [
+        it for it in ast.content if isinstance(it, OEFNode) and it.type == "math"
+    ]
     assert len(math_nodes) == 1
     content = math_nodes[0].content
     # Check if variables inside math are recognized
-    vars_in_math = [it for it in content if isinstance(it, OEFNode) and it.type == "variable"]
+    vars_in_math = [
+        it for it in content if isinstance(it, OEFNode) and it.type == "variable"
+    ]
     assert any(v.name == "n1" for v in vars_in_math)
     assert any(v.name == "res" for v in vars_in_math)
+
 
 def test_escaped_chars():
     src = r"Braces: \{ \}"
@@ -50,10 +58,12 @@ def test_escaped_chars():
     assert "{" in ast.content
     assert "}" in ast.content
 
+
 def test_orphan_backslash():
     src = r"A single backslash \ here."
     ast = parse(src)
     assert "\\" in ast.content
+
 
 def test_complex_wims_name():
     src = r"\my_custom_var123"

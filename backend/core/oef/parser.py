@@ -1,8 +1,9 @@
 """
 OEF Parser Module (Lark-based).
 """
+
 from dataclasses import dataclass, field
-from typing import Union, List, Any
+from typing import List, Any
 from lark import Lark, Transformer, v_args, Token
 
 OEF_GRAMMAR = r"""
@@ -36,6 +37,7 @@ OEF_GRAMMAR = r"""
     comment: COMMENT
 """
 
+
 @dataclass
 class OEFNode:
     type: str
@@ -43,33 +45,44 @@ class OEFNode:
     args: List[Any] = field(default_factory=list)
     content: Any = None
 
+
 class OEFTransformer(Transformer):
     def _to_str(self, obj) -> str:
-        if isinstance(obj, Token): return str(obj.value)
-        if isinstance(obj, list): return "".join(self._to_str(i) for i in obj)
+        if isinstance(obj, Token):
+            return str(obj.value)
+        if isinstance(obj, list):
+            return "".join(self._to_str(i) for i in obj)
         if isinstance(obj, OEFNode):
-            if obj.type == "variable": return f"\\{obj.name}"
-            if obj.type == "math": return f"\\({self._to_str(obj.content)}\\)"
-            if obj.type == "braced_group": return f"{{{self._to_str(obj.content)}}}"
+            if obj.type == "variable":
+                return f"\\{obj.name}"
+            if obj.type == "math":
+                return f"\\({self._to_str(obj.content)}\\)"
+            if obj.type == "braced_group":
+                return f"{{{self._to_str(obj.content)}}}"
             if obj.type == "instruction":
                 res = f"\\{obj.name}"
-                for arg in obj.args: res += f"{{{self._to_str(arg)}}}"
+                for arg in obj.args:
+                    res += f"{{{self._to_str(arg)}}}"
                 return res
-            if obj.content: return self._to_str(obj.content)
+            if obj.content:
+                return self._to_str(obj.content)
         return str(obj) if obj is not None else ""
 
     def start(self, items):
         flat = []
         for it in items:
-            if isinstance(it, list): flat.extend(it)
-            else: flat.append(it)
+            if isinstance(it, list):
+                flat.extend(it)
+            else:
+                flat.append(it)
         return OEFNode(type="document", content=flat)
 
     def command(self, items):
         name = str(items[0].value)[1:].lower()
         args = []
         for it in items[1:]:
-            if it is None or (isinstance(it, Token) and it.type == "_WS"): continue
+            if it is None or (isinstance(it, Token) and it.type == "_WS"):
+                continue
             # On aplatit chaque bloc pour qu'il soit une liste simple d'items
             if isinstance(it, list):
                 args.append(it)
@@ -89,24 +102,30 @@ class OEFTransformer(Transformer):
     def braced_group(self, items):
         return OEFNode(type="braced_group", content=items[0])
 
-    def backslash_orphan(self, items): return "\\"
+    def backslash_orphan(self, items):
+        return "\\"
 
     @v_args(inline=True)
-    def escaped_char(self, t): 
+    def escaped_char(self, t):
         val = str(t.value) if hasattr(t, "value") else str(t)
         return val[1:]
 
     @v_args(inline=True)
-    def text_fragment(self, t): return str(t.value)
+    def text_fragment(self, t):
+        return str(t.value)
 
     @v_args(inline=True)
-    def text_block(self, t): return str(t.value)
+    def text_block(self, t):
+        return str(t.value)
 
     @v_args(inline=True)
-    def comment(self, t): return OEFNode(type="comment", content=str(t.value))
+    def comment(self, t):
+        return OEFNode(type="comment", content=str(t.value))
 
-_PARSER = Lark(OEF_GRAMMAR, parser='earley', maybe_placeholders=False)
+
+_PARSER = Lark(OEF_GRAMMAR, parser="earley", maybe_placeholders=False)
 _TRANSFORMER = OEFTransformer()
+
 
 def _reattach_braced_groups(nodes: list) -> list:
     """
@@ -116,10 +135,13 @@ def _reattach_braced_groups(nodes: list) -> list:
     """
     new_content = []
     for item in nodes:
-        if (isinstance(item, OEFNode) and item.type == "braced_group"
-                and new_content
-                and isinstance(new_content[-1], OEFNode)
-                and new_content[-1].type == "instruction"):
+        if (
+            isinstance(item, OEFNode)
+            and item.type == "braced_group"
+            and new_content
+            and isinstance(new_content[-1], OEFNode)
+            and new_content[-1].type == "instruction"
+        ):
             content = item.content if isinstance(item.content, list) else [item.content]
             new_content[-1].args.append(content)
         else:
@@ -134,6 +156,7 @@ def _reattach_braced_groups(nodes: list) -> list:
             new_content.append(item)
     return new_content
 
+
 def _normalize_math_delimiters(source: str) -> str:
     """Convert WIMS-style \(expr) to standard \(expr\).
 
@@ -145,22 +168,22 @@ def _normalize_math_delimiters(source: str) -> str:
     i = 0
     n = len(source)
     while i < n:
-        if source[i] == '\\' and i + 1 < n and source[i + 1] == '(':
-            result.append('\\(')
+        if source[i] == "\\" and i + 1 < n and source[i + 1] == "(":
+            result.append("\\(")
             i += 2
             depth = 1
             while i < n and depth > 0:
-                if source[i] == '\\' and i + 1 < n and source[i + 1] == ')':
-                    result.append('\\)')
+                if source[i] == "\\" and i + 1 < n and source[i + 1] == ")":
+                    result.append("\\)")
                     i += 2
                     depth = 0
-                elif source[i] == '(':
+                elif source[i] == "(":
                     depth += 1
-                    result.append('(')
+                    result.append("(")
                     i += 1
-                elif source[i] == ')':
+                elif source[i] == ")":
                     depth -= 1
-                    result.append('\\)' if depth == 0 else ')')
+                    result.append("\\)" if depth == 0 else ")")
                     i += 1
                 else:
                     result.append(source[i])
@@ -168,41 +191,58 @@ def _normalize_math_delimiters(source: str) -> str:
         else:
             result.append(source[i])
             i += 1
-    return ''.join(result)
+    return "".join(result)
 
 
 def parse(source: str) -> OEFNode:
-    source = source.replace('\r\n', '\n').replace('\r', '\n')
+    source = source.replace("\r\n", "\n").replace("\r", "\n")
     source = _normalize_math_delimiters(source)
     ast = _TRANSFORMER.transform(_PARSER.parse(source))
     if isinstance(ast.content, list):
         ast.content = _reattach_braced_groups(ast.content)
     return ast
 
+
 @dataclass
 class Directive:
     name: str
     content: str
 
+
 def _extract_braces(source: str, start: int) -> str:
-    assert source[start] == '{'
-    depth = 0; pos = start; n = len(source)
+    assert source[start] == "{"
+    depth = 0
+    pos = start
+    n = len(source)
     while pos < n:
-        if source[pos] == '{': depth += 1
-        elif source[pos] == '}':
+        if source[pos] == "{":
+            depth += 1
+        elif source[pos] == "}":
             depth -= 1
-            if depth == 0: return source[start:pos + 1]
+            if depth == 0:
+                return source[start : pos + 1]
         pos += 1
     return source[start:]
+
 
 def get_directives_compat(ast: OEFNode) -> List[Directive]:
     directives = []
     t = OEFTransformer()
+
     def _node_to_str(obj) -> str:
         return t._to_str(obj)
-        
+
     if ast.type == "document" and isinstance(ast.content, list):
         for item in ast.content:
-            if isinstance(item, OEFNode) and item.type == "instruction":
-                directives.append(Directive(name=item.name, content="".join(_node_to_str(arg) for arg in item.args)))
+            if (
+                isinstance(item, OEFNode)
+                and item.type == "instruction"
+                and item.name is not None
+            ):
+                directives.append(
+                    Directive(
+                        name=item.name,
+                        content="".join(_node_to_str(arg) for arg in item.args),
+                    )
+                )
     return directives

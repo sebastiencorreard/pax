@@ -2,13 +2,14 @@
 Évaluateur de variables OEF.
 Optimisé pour la résolution des fonctions WIMS et la clarté de l'affichage.
 """
+
 import re
 import math
 import random
-from typing import Any, List
+from typing import Any
 from fractions import Fraction
-from lark import Lark, Transformer, v_args, Token
-from .parser import Directive, OEFNode
+from lark import Lark, Transformer, v_args
+from .parser import OEFNode
 
 EXPR_GRAMMAR = r"""
     ?start: expression_list
@@ -60,7 +61,10 @@ EXPR_GRAMMAR = r"""
     %ignore WS
 """
 
-class AbortAssignment(Exception): pass
+
+class AbortAssignment(Exception):
+    pass
+
 
 class OEFEvaluator:
     def __init__(self, seed: int | None = None):
@@ -69,7 +73,9 @@ class OEFEvaluator:
         if seed is not None:
             self.meta["seed"] = seed
             random.seed(seed)
-        self._expr_parser = Lark(EXPR_GRAMMAR, parser='earley', maybe_placeholders=False)
+        self._expr_parser = Lark(
+            EXPR_GRAMMAR, parser="earley", maybe_placeholders=False
+        )
         self._pari_counter = 0
 
     def evaluate_ast(self, ast: OEFNode):
@@ -79,16 +85,26 @@ class OEFEvaluator:
 
     def evaluate_source(self, source: str) -> dict:
         from .parser import parse
+
         return self.evaluate_ast(parse(source))
 
     def _eval_nodes(self, nodes: list):
         for node in nodes:
-            if isinstance(node, OEFNode): self._eval_node(node)
-            elif isinstance(node, list): self._eval_nodes(node)
+            if isinstance(node, OEFNode):
+                self._eval_node(node)
+            elif isinstance(node, list):
+                self._eval_nodes(node)
 
     def _eval_node(self, node: OEFNode):
         if node.type == "instruction":
-            if node.name in ["integer", "real", "rational", "text", "function", "matrix"]:
+            if node.name in [
+                "integer",
+                "real",
+                "rational",
+                "text",
+                "function",
+                "matrix",
+            ]:
                 content = "".join(self._to_raw_string(arg) for arg in node.args)
                 if "=" in content:
                     varname, expr = content.split("=", 1)
@@ -96,19 +112,32 @@ class OEFEvaluator:
                     try:
                         val = self._eval_expr(expr)
                         self.ctx[varname] = self._to_wims_string(val)
-                    except AbortAssignment: pass
+                    except AbortAssignment:
+                        pass
             elif node.name == "if":
                 if len(node.args) >= 1:
-                    cond = self._eval_expr(self._to_raw_string(node.args[0]), kind="logic")
-                    if cond and len(node.args) >= 2: self._eval_nodes(node.args[1])
-                    elif not cond and len(node.args) >= 3: self._eval_nodes(node.args[2])
+                    cond = self._eval_expr(
+                        self._to_raw_string(node.args[0]), kind="logic"
+                    )
+                    if cond and len(node.args) >= 2:
+                        self._eval_nodes(node.args[1])
+                    elif not cond and len(node.args) >= 3:
+                        self._eval_nodes(node.args[2])
             elif node.name == "while":
                 if len(node.args) >= 2:
                     cond_raw = self._to_raw_string(node.args[0])
                     for _ in range(50):
-                        if not self._eval_expr(cond_raw, kind="logic"): break
+                        if not self._eval_expr(cond_raw, kind="logic"):
+                            break
                         self._eval_nodes(node.args[1])
-            elif node.name in ["title", "author", "email", "language", "range", "keywords"]:
+            elif node.name in [
+                "title",
+                "author",
+                "email",
+                "language",
+                "range",
+                "keywords",
+            ]:
                 self.meta[node.name] = self.render_node(node.args)
 
     def _preprocess_pari(self, expr: str) -> str:
@@ -123,14 +152,14 @@ class OEFEvaluator:
         i = 0
         n = len(expr)
         while i < n:
-            if expr[i:i+5] == 'pari(':
+            if expr[i : i + 5] == "pari(":
                 depth = 1
                 j = i + 5
                 while j < n and depth > 0:
                     ch = expr[j]
-                    if ch == '(':
+                    if ch == "(":
                         depth += 1
-                    elif ch == ')':
+                    elif ch == ")":
                         depth -= 1
                     if depth > 0:
                         j += 1
@@ -138,8 +167,8 @@ class OEFEvaluator:
                     out.append(expr[i])
                     i += 1
                     continue
-                inner = expr[i+5:j]
-                if '(' in inner:
+                inner = expr[i + 5 : j]
+                if "(" in inner:
                     substituted = self._substitute_vars(inner)
                     result = _eval_exact_arithmetic(substituted)
                     if result is not None:
@@ -149,7 +178,7 @@ class OEFEvaluator:
                         out.append(f"\\{name}")
                         i = j + 1
                         continue
-                out.append(expr[i:j+1])
+                out.append(expr[i : j + 1])
                 i = j + 1
             else:
                 out.append(expr[i])
@@ -162,13 +191,15 @@ class OEFEvaluator:
         SIGNED_NUMBER in the grammar absorbs '2.' which prevents Lark from
         lexing the '..' range operator inside function arguments.
         """
+
         def _pick(m: re.Match) -> str:
             try:
                 a, b = int(m.group(1)), int(m.group(2))
                 return str(random.randint(a, b))
             except ValueError:
                 return m.group(0)
-        return re.sub(r'\brandom\((\d+)\.\.(\d+)\)', _pick, expr)
+
+        return re.sub(r"\brandom\((\d+)\.\.(\d+)\)", _pick, expr)
 
     def _eval_expr(self, expr_str: str, kind: str = "text") -> Any:
         expr_str = self._preprocess_pari(expr_str)
@@ -176,11 +207,13 @@ class OEFEvaluator:
         try:
             tree = self._expr_parser.parse(expr_str.strip())
             val = OEFExprEvaluator(self.ctx, self).transform(tree)
-            if kind == "logic": return bool(val)
+            if kind == "logic":
+                return bool(val)
             return val
         except Exception as e:
             cause = getattr(e, "orig_exc", None)
-            if isinstance(cause, AbortAssignment): raise cause
+            if isinstance(cause, AbortAssignment):
+                raise cause
             # randitem(template1, template2, ...) used as a textual chooser
             # (args contain literal LaTeX/template content the math grammar
             # can't parse). Pick a random branch then substitute variables.
@@ -190,18 +223,27 @@ class OEFEvaluator:
             return self._substitute_vars(expr_str).strip()
 
     def _to_wims_string(self, val: Any) -> str:
-        if isinstance(val, list): return ",".join(self._to_wims_string(i) for i in val)
-        if isinstance(val, bool): return "1" if val else "0"
-        if isinstance(val, float) and val.is_integer(): return str(int(val))
+        if isinstance(val, list):
+            return ",".join(self._to_wims_string(i) for i in val)
+        if isinstance(val, bool):
+            return "1" if val else "0"
+        if isinstance(val, float) and val.is_integer():
+            return str(int(val))
         return str(val)
 
     def render_node(self, node: Any) -> str:
-        if isinstance(node, str): return self._substitute_vars(node)
-        if isinstance(node, list): return "".join(self.render_node(i) for i in node)
+        if isinstance(node, str):
+            return self._substitute_vars(node)
+        if isinstance(node, list):
+            return "".join(self.render_node(i) for i in node)
         if isinstance(node, OEFNode):
-            if node.type == "variable": return str(self.ctx.get(node.name, f"\\{node.name}"))
-            if node.type == "math": return f"\\({self.render_node(node.content)}\\)"
-            if node.type == "braced_group": return f"{self.render_node(node.content)}"
+            if node.type == "variable":
+                name = node.name or ""
+                return str(self.ctx.get(name, f"\\{name}"))
+            if node.type == "math":
+                return f"\\({self.render_node(node.content)}\\)"
+            if node.type == "braced_group":
+                return f"{self.render_node(node.content)}"
             if node.type == "instruction":
                 if node.name == "special" and len(node.args) >= 2:
                     stype = self._to_raw_string(node.args[0]).strip()
@@ -211,22 +253,37 @@ class OEFEvaluator:
                     raw_arg = self._to_raw_string(node.args[0]).strip()
                     parts = raw_arg.split(",", 1)
                     target = self._substitute_vars(parts[0].strip())
-                    size = self._substitute_vars(parts[1].strip()) if len(parts) > 1 else ""
+                    size = (
+                        self._substitute_vars(parts[1].strip())
+                        if len(parts) > 1
+                        else ""
+                    )
                     return f'<span class="oef-input" name="{target}" data-size="{size}"></span>'
-                return f"\\{node.name}" + "".join(f"{{{self.render_node(a)}}}" for a in node.args)
-            if node.content: return self.render_node(node.content)
+                return f"\\{node.name}" + "".join(
+                    f"{{{self.render_node(a)}}}" for a in node.args
+                )
+            if node.content:
+                return self.render_node(node.content)
         return ""
 
     def _to_raw_string(self, obj) -> str:
-        if isinstance(obj, str): return obj
-        if isinstance(obj, list): return "".join(self._to_raw_string(i) for i in obj)
+        if isinstance(obj, str):
+            return obj
+        if isinstance(obj, list):
+            return "".join(self._to_raw_string(i) for i in obj)
         if isinstance(obj, OEFNode):
-            if obj.type == "variable": return f"\\{obj.name}"
-            if obj.type == "math": return f"\\({self._to_raw_string(obj.content)}\\)"
-            if obj.type == "braced_group": return f"{{{self._to_raw_string(obj.content)}}}"
+            if obj.type == "variable":
+                return f"\\{obj.name}"
+            if obj.type == "math":
+                return f"\\({self._to_raw_string(obj.content)}\\)"
+            if obj.type == "braced_group":
+                return f"{{{self._to_raw_string(obj.content)}}}"
             if obj.type == "instruction":
-                return f"\\{obj.name}" + "".join(f"{{{self._to_raw_string(a)}}}" for a in obj.args)
-            if obj.content: return self._to_raw_string(obj.content)
+                return f"\\{obj.name}" + "".join(
+                    f"{{{self._to_raw_string(a)}}}" for a in obj.args
+                )
+            if obj.content:
+                return self._to_raw_string(obj.content)
         return str(obj)
 
     def _substitute_vars(self, text: str) -> str:
@@ -237,10 +294,17 @@ class OEFEvaluator:
                 idx = int(float(self._eval_expr(idx_str))) - 1
                 parts = [x.strip() for x in str(val).split(",")]
                 return parts[idx] if 0 <= idx < len(parts) else ""
-            except: return ""
-        text = re.sub(r'\\([a-zA-Z0-9_]+)\[([^\]]+)\]', replace_indexed, text)
-        text = re.sub(r'\\([a-zA-Z0-9_]+)', lambda m: str(self.ctx.get(m.group(1), m.group(0))), text)
+            except Exception:
+                return ""
+
+        text = re.sub(r"\\([a-zA-Z0-9_]+)\[([^\]]+)\]", replace_indexed, text)
+        text = re.sub(
+            r"\\([a-zA-Z0-9_]+)",
+            lambda m: str(self.ctx.get(m.group(1), m.group(0))),
+            text,
+        )
         return text
+
 
 class OEFExprEvaluator(Transformer):
     def __init__(self, ctx, evaluator):
@@ -252,64 +316,87 @@ class OEFExprEvaluator(Transformer):
         return items[0] if len(items) == 1 else items
 
     @v_args(inline=True)
-    def expression(self, item): return item
+    def expression(self, item):
+        return item
 
     @v_args(inline=True)
     def ternary(self, cond, true_val, false_val=None):
-        if cond: return true_val
-        if false_val is not None: return false_val
+        if cond:
+            return true_val
+        if false_val is not None:
+            return false_val
         raise AbortAssignment()
 
-    def logic_or(self, items): return any(items)
-    def logic_and(self, items): return all(items)
+    def logic_or(self, items):
+        return any(items)
+
+    def logic_and(self, items):
+        return all(items)
 
     def comparison(self, items):
         left = items[0]
         for i in range(1, len(items), 2):
-            op, right = str(items[i]), items[i+1]
-            if op in ("==", "=", "==="): left = (str(left) == str(right))
-            elif op == "!=": left = (str(left) != str(right))
+            op, right = str(items[i]), items[i + 1]
+            if op in ("==", "=", "==="):
+                left = str(left) == str(right)
+            elif op == "!=":
+                left = str(left) != str(right)
             else:
                 try:
-                    l, r = float(left), float(right)
-                    if op == ">": left = (l > r)
-                    elif op == "<": left = (l < r)
-                    elif op == ">=": left = (l >= r)
-                    elif op == "<=": left = (l <= r)
-                except: left = False
+                    lv, r = float(left), float(right)
+                    if op == ">":
+                        left = lv > r
+                    elif op == "<":
+                        left = lv < r
+                    elif op == ">=":
+                        left = lv >= r
+                    elif op == "<=":
+                        left = lv <= r
+                except Exception:
+                    left = False
         return left
 
     def math_expr(self, items):
         res = items[0]
         for i in range(1, len(items), 2):
-            op, val = str(items[i]), items[i+1]
-            try: res = float(res) + float(val) if op == "+" else float(res) - float(val)
-            except: pass
+            op, val = str(items[i]), items[i + 1]
+            try:
+                res = float(res) + float(val) if op == "+" else float(res) - float(val)
+            except Exception:
+                pass
         return res
 
     def product(self, items):
         res = items[0]
         for i in range(1, len(items), 2):
-            op, val = str(items[i]), items[i+1]
+            op, val = str(items[i]), items[i + 1]
             try:
-                if op == "*": res = float(res) * float(val)
-                elif op == "/": res = float(res) / float(val)
-                else: res = float(res) % float(val)
-            except: pass
+                if op == "*":
+                    res = float(res) * float(val)
+                elif op == "/":
+                    res = float(res) / float(val)
+                else:
+                    res = float(res) % float(val)
+            except Exception:
+                pass
         return res
 
     def power(self, items):
         res = items[0]
         for i in range(1, len(items)):
-            try: res = float(res) ** float(items[i])
-            except: pass
+            try:
+                res = float(res) ** float(items[i])
+            except Exception:
+                pass
         return res
 
     @v_args(inline=True)
-    def number(self, t): return float(t)
+    def number(self, t):
+        return float(t)
 
     @v_args(inline=True)
-    def string(self, t): return str(t).strip("'\"")
+    def string(self, t):
+        return str(t).strip("'\"")
 
     def variable(self, items):
         name = str(items[1].value)
@@ -319,40 +406,53 @@ class OEFExprEvaluator(Transformer):
                 idx_expr = self.evaluator._to_raw_string(items[2])
                 idx = int(float(self.evaluator._eval_expr(idx_expr))) - 1
                 return [x.strip() for x in str(val).split(",")][idx]
-            except: return ""
+            except Exception:
+                return ""
         return val
 
     def func_call(self, items):
         name = str(items[0])
         args = items[1] if len(items) > 1 else []
-        
+
         if name in ("random", "randitem"):
-            if isinstance(args, str) and '..' in args:
+            if isinstance(args, str) and ".." in args:
                 try:
-                    a, b = map(int, args.split('..'))
+                    a, b = map(int, args.split(".."))
                     return float(random.randint(a, b))
-                except: pass
+                except Exception:
+                    pass
             lst = args if isinstance(args, list) else [args]
             return random.choice(lst)
         if name == "randint":
             try:
-                if isinstance(args, str) and ".." in args: a, b = map(int, args.split('..'))
-                elif isinstance(args, list) and len(args) >= 2: a, b = int(float(args[0])), int(float(args[1]))
-                else: a, b = 0, 10
+                if isinstance(args, str) and ".." in args:
+                    a, b = map(int, args.split(".."))
+                elif isinstance(args, list) and len(args) >= 2:
+                    a, b = int(float(args[0])), int(float(args[1]))
+                else:
+                    a, b = 0, 10
                 return float(random.randint(a, b))
-            except: return 0.0
+            except Exception:
+                return 0.0
         if name == "item":
             try:
                 idx = int(float(args[0])) - 1
                 lst = args[1:] if len(args) > 2 else str(args[1]).split(",")
                 return lst[idx] if 0 <= idx < len(lst) else ""
-            except: return ""
+            except Exception:
+                return ""
         if name == "items":
             lst = args if isinstance(args, list) else str(args).split(",")
             return float(len([x for x in lst if str(x).strip()]))
         if name in ("abs", "sqrt", "floor", "ceil"):
-            try: return float(getattr(math, name)(float(args[0] if isinstance(args, list) else args)))
-            except: return 0.0
+            try:
+                return float(
+                    getattr(math, name)(
+                        float(args[0] if isinstance(args, list) else args)
+                    )
+                )
+            except Exception:
+                return 0.0
         if name == "shuffle":
             # args est [csv_string] après arg_list fix → on split le CSV
             if isinstance(args, list) and len(args) == 1 and isinstance(args[0], str):
@@ -369,18 +469,25 @@ class OEFExprEvaluator(Transformer):
     def wims_call(self, content):
         inner = self.evaluator._substitute_vars(str(content.value))
         if "values" in inner and "for" in inner:
-            m = re.search(r'values\s+(.+)\s+for\s+(\w+)\s*=\s*(\d+)\s+to\s+(\d+)', inner)
+            m = re.search(
+                r"values\s+(.+)\s+for\s+(\w+)\s*=\s*(\d+)\s+to\s+(\d+)", inner
+            )
             if m:
                 expr, var, start, end = m.groups()
-                return [expr.replace(var, str(i)) for i in range(int(start), int(end)+1)]
+                return [
+                    expr.replace(var, str(i)) for i in range(int(start), int(end) + 1)
+                ]
         return [inner]
 
     @v_args(inline=True)
     def pari_call(self, content):
         inner = self.evaluator._substitute_vars(str(content.value)).strip()
         if inner.startswith("core("):
-            try: return float(_pari_core(int(re.search(r'\d+', inner).group())))
-            except: pass
+            try:
+                m = re.search(r"\d+", inner)
+                return float(_pari_core(int(m.group() if m else "0")))
+            except Exception:
+                pass
         # PARI fait de l'arithmétique exacte : on garde les fractions sous la
         # forme 'a/b' réduite plutôt que de les convertir en flottants.
         exact = _eval_exact_arithmetic(inner)
@@ -388,18 +495,28 @@ class OEFExprEvaluator(Transformer):
             return exact
         try:
             return self.evaluator._eval_expr(inner)
-        except:
+        except Exception:
             return inner
 
-    def range(self, items): return f"{items[0]}..{items[1]}"
-    def index_list(self, items): return items
+    def range(self, items):
+        return f"{items[0]}..{items[1]}"
+
+    def index_list(self, items):
+        return items
+
     def arg_list(self, items):
         # expression_list produit déjà une liste — on évite le double-wrapping
         return items[0] if len(items) == 1 else items
 
+
 def _oef_cond_to_py(c: str) -> str:
     c = str(c).strip().replace("^", "**").replace("<>", "!=")
-    return c.replace("=", "==").replace("====", "==").replace("<==", "<=").replace(">===", ">=")
+    return (
+        c.replace("=", "==")
+        .replace("====", "==")
+        .replace("<==", "<=")
+        .replace(">===", ">=")
+    )
 
 
 def _split_top_level_commas(s: str) -> list[str]:
@@ -408,19 +525,19 @@ def _split_top_level_commas(s: str) -> list[str]:
     depth = 0
     last = 0
     for i, ch in enumerate(s):
-        if ch == '(':
+        if ch == "(":
             depth += 1
-        elif ch == ')':
+        elif ch == ")":
             depth -= 1
-        elif ch == ',' and depth == 0:
+        elif ch == "," and depth == 0:
             parts.append(s[last:i])
             last = i + 1
     parts.append(s[last:])
     return [p.strip() for p in parts]
 
 
-_ARITHMETIC_RE = re.compile(r'^[\d\s\+\-\*\/\(\)\.]+$')
-_NUMBER_RE = re.compile(r'(\d+(?:\.\d+)?)')
+_ARITHMETIC_RE = re.compile(r"^[\d\s\+\-\*\/\(\)\.]+$")
+_NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
 
 
 def _eval_exact_arithmetic(expr: str) -> str | int | None:
@@ -461,22 +578,26 @@ def _pick_randitem_template(expr: str) -> str | None:
     # parenthèse interne suivie d'autre chose).
     depth = 0
     for i, ch in enumerate(expr):
-        if ch == '(':
+        if ch == "(":
             depth += 1
-        elif ch == ')':
+        elif ch == ")":
             depth -= 1
             if depth == 0 and i != len(expr) - 1:
                 return None
-    inner = expr[len("randitem("):-1]
+    inner = expr[len("randitem(") : -1]
     items = _split_top_level_commas(inner)
     items = [it for it in items if it]
     if not items:
         return None
     return random.choice(items)
 
+
 def _pari_core(n: int) -> int:
-    d = 2; res = n
+    d = 2
+    res = n
     while d * d <= res:
-        if res % (d * d) == 0: res //= (d * d)
-        else: d += 1
+        if res % (d * d) == 0:
+            res //= d * d
+        else:
+            d += 1
     return res

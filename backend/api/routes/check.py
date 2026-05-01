@@ -1,4 +1,3 @@
-import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,12 +21,20 @@ def _pretty_expected(expected: str, answer_type: str) -> str:
         try:
             import sympy
             from sympy.parsing.sympy_parser import (
-                parse_expr, standard_transformations, implicit_multiplication_application
+                parse_expr,
+                standard_transformations,
+                implicit_multiplication_application,
             )
-            transformations = standard_transformations + (implicit_multiplication_application,)
+
+            transformations = standard_transformations + (
+                implicit_multiplication_application,
+            )
             local_dict = {"expand": sympy.expand, "factor": sympy.factor}
-            expr = parse_expr(_normalize_expr(expected), transformations=transformations,
-                              local_dict=local_dict)
+            expr = parse_expr(
+                _normalize_expr(expected),
+                transformations=transformations,
+                local_dict=local_dict,
+            )
             return str(sympy.expand(expr))
         except Exception:
             pass
@@ -35,8 +42,8 @@ def _pretty_expected(expected: str, answer_type: str) -> str:
 
 
 class ReplyItem(BaseModel):
-    input_name: str   # reply1, reply2, ...
-    value: str        # ce que l'élève a tapé
+    input_name: str  # reply1, reply2, ...
+    value: str  # ce que l'élève a tapé
 
 
 class CheckRequest(BaseModel):
@@ -50,13 +57,13 @@ class AnswerResult(BaseModel):
     correct: bool
     score: float
     method: str
-    reply: str | None = None      # réponse de l'élève
-    expected: str | None = None   # correction
+    reply: str | None = None  # réponse de l'élève
+    expected: str | None = None  # correction
 
 
 class CheckResponse(BaseModel):
     exercise_id: str
-    global_score: float           # moyenne pondérée
+    global_score: float  # moyenne pondérée
     results: list[AnswerResult]
     attempt_id: str
 
@@ -92,17 +99,19 @@ def _check_condition(
     results = []
     for ans in ans_defs:
         reply_val = replies_by_name.get(ans.input_name, "").strip()
-        results.append(AnswerResult(
-            input_name=ans.input_name,
-            correct=correct,
-            score=score,
-            method="condition",
-            reply=reply_val,
-            expected=ev.ctx.get(
-                ans.logical_name if ans.logical_name else ans.input_name,
-                ans.expected
-            ),
-        ))
+        results.append(
+            AnswerResult(
+                input_name=ans.input_name,
+                correct=correct,
+                score=score,
+                method="condition",
+                reply=reply_val,
+                expected=ev.ctx.get(
+                    ans.logical_name if ans.logical_name else ans.input_name,
+                    ans.expected,
+                ),
+            )
+        )
     return score, results
 
 
@@ -125,9 +134,6 @@ async def check_exercise(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
 
-    # Construit un index des réponses attendues par input_name
-    expected_by_name = {a.input_name: a for a in rendered.answers}
-
     # Vérifie chaque réponse
     results: list[AnswerResult] = []
     total_weight = 0.0
@@ -140,15 +146,18 @@ async def check_exercise(
         replies_by_name[name] = r.value
         # r1 est l'alias court de reply1 (convention WIMS \embed{r1,...})
         import re as _re2
-        m = _re2.match(r'^r(\d+)$', name)
+
+        m = _re2.match(r"^r(\d+)$", name)
         if m:
             replies_by_name[f"reply{m.group(1)}"] = r.value
-        m2 = _re2.match(r'^reply(\d+)$', name)
+        m2 = _re2.match(r"^reply(\d+)$", name)
         if m2:
             replies_by_name[f"r{m2.group(1)}"] = r.value
 
     # Si l'exercice a une \condition globale, l'évaluer
     if rendered.condition:
+        evaluator = OEFEvaluator(seed=body.seed)
+        evaluator.ctx.update(rendered.ev_ctx)
         global_score, results = _check_condition(
             rendered.condition["expr"], rendered.answers, replies_by_name, evaluator
         )
@@ -161,14 +170,16 @@ async def check_exercise(
                 expected=ans_def.expected,
                 options=ans_def.options,
             )
-            results.append(AnswerResult(
-                input_name=ans_def.input_name,
-                correct=check.correct,
-                score=check.score,
-                method=check.method,
-                reply=reply_value,
-                expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
-            ))
+            results.append(
+                AnswerResult(
+                    input_name=ans_def.input_name,
+                    correct=check.correct,
+                    score=check.score,
+                    method=check.method,
+                    reply=reply_value,
+                    expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
+                )
+            )
             weighted_score += check.score * ans_def.weight
             total_weight += ans_def.weight
 

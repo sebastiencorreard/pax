@@ -12,8 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 # Charge le .env
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 
-from db import Base
-import models  # noqa: F401 — importe tous les modèles pour qu'Alembic les détecte
+from db import Base  # noqa: E402
+import models  # noqa: F401,E402 — importe tous les modèles pour qu'Alembic les détecte
 
 config = context.config
 

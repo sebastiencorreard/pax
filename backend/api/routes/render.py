@@ -7,7 +7,7 @@ from db import get_db
 from models.exercise import Exercise
 from models.user import User
 from api.deps import get_current_user
-from core.oef.engine import load_and_render, AnswerDef
+from core.oef.engine import load_and_render
 
 router = APIRouter(prefix="/api/render", tags=["render"])
 
@@ -47,7 +47,9 @@ async def render_exercise(
     try:
         rendered = load_and_render(exercise.oef_path, seed=seed)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}")
+        raise HTTPException(
+            status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {str(e)}")
 
@@ -102,7 +104,9 @@ async def render_exercise_debug(
     try:
         rendered = load_and_render(exercise.oef_path, seed=seed)
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}")
+        raise HTTPException(
+            status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {str(e)}")
 
