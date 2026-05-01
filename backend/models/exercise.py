@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import String, DateTime, Integer, Text, ARRAY, ForeignKey, Numeric
+from sqlalchemy import String, DateTime, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
 def path_to_id(oef_path: str) -> str:
     """Convert an oef_path to a URL-safe id by replacing '/' with '~'."""
-    return oef_path.lstrip('/').replace('/', '~')
+    return oef_path.lstrip("/").replace("/", "~")
 
 
 def id_to_path(exercise_id: str) -> str:
     """Reverse of path_to_id."""
-    return '/' + exercise_id.replace('~', '/')
+    return "/" + exercise_id.replace("~", "/")
 
 
 class Exercise(Base):

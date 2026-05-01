@@ -1,20 +1,42 @@
 #!/usr/bin/env bash
-# Pre-commit hook: run ruff check + format on staged Python files.
-# Auto-fixes what it can and re-stages; fails if unfixable issues remain.
+# Pre-commit hook: run ruff + pyright on staged Python files.
+# ruff auto-fixes and re-stages; pyright fails on type errors.
 
-RUFF=$(find "$(git rev-parse --show-toplevel)/backend/.venv" -name ruff -type f 2>/dev/null | head -1)
+ROOT=$(git rev-parse --show-toplevel)
+VENV="$ROOT/backend/.venv/bin"
+
+RUFF=$(find "$ROOT/backend/.venv" -name ruff -type f 2>/dev/null | head -1)
 RUFF=${RUFF:-$(command -v ruff)}
 
-if [ -z "$RUFF" ]; then
-  echo "ruff not found — skipping lint (run: pip install ruff)"
-  exit 0
-fi
+PYRIGHT=$(find "$ROOT/backend/.venv" -name pyright -type f 2>/dev/null | head -1)
+PYRIGHT=${PYRIGHT:-$(command -v pyright)}
 
 FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.py$')
 [ -z "$FILES" ] && exit 0
 
-"$RUFF" check --fix $FILES
-"$RUFF" format $FILES
-git add $FILES
+if [ -n "$RUFF" ]; then
+  "$RUFF" check --fix $FILES
+  "$RUFF" format $FILES
+  git add $FILES
+  "$RUFF" check $FILES || exit 1
+else
+  echo "ruff not found — skipping lint (run: pip install ruff)"
+fi
 
-"$RUFF" check $FILES
+if [ -n "$PYRIGHT" ]; then
+  "$PYRIGHT" --project "$ROOT/backend" --outputjson 2>/dev/null \
+    | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+errs = [e for e in d['generalDiagnostics'] if e['severity'] == 'error']
+if errs:
+    for e in errs:
+        f = e['file'].split('backend/')[-1]
+        l = e['range']['start']['line'] + 1
+        print(f\"{f}:{l}: {e['message']}\")
+    print(f\"\n{len(errs)} pyright error(s) — commit blocked.\")
+    sys.exit(1)
+"
+else
+  echo "pyright not found — skipping type check (run: pip install pyright)"
+fi
