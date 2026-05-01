@@ -174,6 +174,57 @@ def check_set(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=False, score=score, method="set")
 
 
+def check_fset(reply: str, expected: str, precision: float = 1e-4) -> CheckResult:
+    """
+    Ensemble fini WIMS : ordre non significatif, équivalence numérique
+    ou symbolique sur chaque élément (donc -4 == -8/2 == -4.0).
+    """
+    def split_items(s: str) -> list[str]:
+        sep = ";" if ";" in s else ","
+        return [x.strip() for x in s.split(sep) if x.strip()]
+
+    r_items = split_items(reply)
+    e_items = split_items(expected)
+
+    if len(r_items) != len(e_items):
+        return CheckResult(correct=False, score=0.0, method="fset",
+                           detail=f"{len(r_items)} valeur(s), {len(e_items)} attendue(s)")
+
+    def equiv(a: str, b: str) -> bool:
+        try:
+            av = _parse_number(a)
+            bv = _parse_number(b)
+            return abs(av - bv) <= precision or abs(av - bv) / (abs(bv) + 1e-12) <= precision
+        except (ValueError, ZeroDivisionError, SyntaxError):
+            pass
+        try:
+            import sympy
+            from sympy.parsing.sympy_parser import (
+                parse_expr, standard_transformations, implicit_multiplication_application
+            )
+            transformations = standard_transformations + (implicit_multiplication_application,)
+            ra = parse_expr(_normalize_expr(a), transformations=transformations)
+            rb = parse_expr(_normalize_expr(b), transformations=transformations)
+            return sympy.simplify(ra - rb) == 0
+        except Exception:
+            return a.strip().lower() == b.strip().lower()
+
+    matched = [False] * len(r_items)
+    n_correct = 0
+    for e in e_items:
+        for i, r in enumerate(r_items):
+            if matched[i]:
+                continue
+            if equiv(r, e):
+                matched[i] = True
+                n_correct += 1
+                break
+
+    if n_correct == len(e_items):
+        return CheckResult(correct=True, score=1.0, method="fset")
+    return CheckResult(correct=False, score=n_correct / len(e_items), method="fset")
+
+
 # ------------------------------------------------------------------ #
 # Choix (radio, checkbox, clickfill)                                   #
 # ------------------------------------------------------------------ #
@@ -213,6 +264,8 @@ def check_answer(
             return check_numexp(reply, expected, precision)
         case "algexp" | "litexp" | "formal":
             return check_algexp(reply, expected)
+        case "fset":
+            return check_fset(reply, expected, precision)
         case "set":
             return check_set(reply, expected)
         case "radio" | "menu" | "clickfill":

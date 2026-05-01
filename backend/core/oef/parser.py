@@ -134,8 +134,46 @@ def _reattach_braced_groups(nodes: list) -> list:
             new_content.append(item)
     return new_content
 
+def _normalize_math_delimiters(source: str) -> str:
+    """Convert WIMS-style \(expr) to standard \(expr\).
+
+    In OEF files, math mode opened with \( is often closed by a bare )
+    instead of \). This function replaces the closing bare ) with \),
+    respecting nested parentheses inside the expression.
+    """
+    result = []
+    i = 0
+    n = len(source)
+    while i < n:
+        if source[i] == '\\' and i + 1 < n and source[i + 1] == '(':
+            result.append('\\(')
+            i += 2
+            depth = 1
+            while i < n and depth > 0:
+                if source[i] == '\\' and i + 1 < n and source[i + 1] == ')':
+                    result.append('\\)')
+                    i += 2
+                    depth = 0
+                elif source[i] == '(':
+                    depth += 1
+                    result.append('(')
+                    i += 1
+                elif source[i] == ')':
+                    depth -= 1
+                    result.append('\\)' if depth == 0 else ')')
+                    i += 1
+                else:
+                    result.append(source[i])
+                    i += 1
+        else:
+            result.append(source[i])
+            i += 1
+    return ''.join(result)
+
+
 def parse(source: str) -> OEFNode:
     source = source.replace('\r\n', '\n').replace('\r', '\n')
+    source = _normalize_math_delimiters(source)
     ast = _TRANSFORMER.transform(_PARSER.parse(source))
     if isinstance(ast.content, list):
         ast.content = _reattach_braced_groups(ast.content)

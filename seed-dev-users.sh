@@ -30,4 +30,7 @@ register "eleve@pax.fr (student)" \
 register "admin@pax.fr (admin)" \
   '{"email":"admin@pax.fr","password":"admin1234","first_name":"Admin","last_name":"PAX","role":"admin"}'
 
+register "guest@pax.fr (student)" \
+  '{"email":"guest@pax.fr","password":"guest1234","first_name":"Invité","last_name":"","role":"student"}'
+
 echo "Done."

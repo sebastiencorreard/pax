@@ -25,7 +25,7 @@ class RenderOut(BaseModel):
     exercise_id: str
     title: str
     lang: str
-    statement_html: str
+    statement_segments: list[dict]
     answers: list[AnswerOut]
     hint_html: str
     seed: int
@@ -55,7 +55,7 @@ async def render_exercise(
         exercise_id=exercise_id,
         title=rendered.title,
         lang=rendered.lang,
-        statement_html=rendered.statement_html,
+        statement_segments=rendered.statement_segments,
         answers=[
             AnswerOut(
                 input_name=a.input_name,
@@ -70,4 +70,53 @@ async def render_exercise(
         hint_html=rendered.hint_html,
         seed=rendered.seed,
         condition=rendered.condition,
+    )
+
+
+class DebugAnswerOut(BaseModel):
+    input_name: str
+    label: str
+    answer_type: str
+    expected: str
+
+
+class DebugOut(BaseModel):
+    exercise_id: str
+    seed: int
+    solution_html: str
+    answers: list[DebugAnswerOut]
+
+
+@router.get("/{exercise_id}/debug", response_model=DebugOut)
+async def render_exercise_debug(
+    exercise_id: str,
+    seed: int | None = None,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Renvoie la solution et les réponses attendues. Réservé au mode debug du front."""
+    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
+    exercise = result.scalar_one_or_none()
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercice introuvable")
+    try:
+        rendered = load_and_render(exercise.oef_path, seed=seed)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur de rendu : {str(e)}")
+
+    return DebugOut(
+        exercise_id=exercise_id,
+        seed=rendered.seed,
+        solution_html=rendered.solution_html,
+        answers=[
+            DebugAnswerOut(
+                input_name=a.input_name,
+                label=a.label,
+                answer_type=a.answer_type,
+                expected=a.expected,
+            )
+            for a in rendered.answers
+        ],
     )
