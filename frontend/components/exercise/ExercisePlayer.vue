@@ -184,6 +184,7 @@
 
 <script setup lang="ts">
 const props = defineProps<{ exerciseId: string }>()
+const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string }] }>()
 
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
@@ -353,6 +354,8 @@ async function load(seed?: number) {
     for (const ans of rendered.value.answers) {
       replies.value[ans.input_name] = ''
     }
+
+    emit('rendered', { seed: rendered.value.seed, exerciseId: props.exerciseId })
 
   } catch (e: any) {
     loadError.value = e?.message || e?.data?.detail || JSON.stringify(e)
