@@ -10,6 +10,7 @@ from models.attempt import Attempt
 from models.user import User
 from api.deps import get_current_user
 from core.oef.engine import load_and_render
+from core.oef.evaluator import OEFEvaluator
 from core.answer.checkers import check_answer, _normalize_expr
 
 router = APIRouter(prefix="/api/check", tags=["check"])
@@ -64,68 +65,28 @@ def _check_condition(
     condition_expr: str,
     ans_defs,
     replies_by_name: dict,
-    ev_ctx: dict,
+    ev: OEFEvaluator,
 ) -> tuple[float, list[AnswerResult]]:
     """
-    Évalue la \condition OEF avec les réponses élève + contexte de l'évaluateur.
+    Évalue la \condition OEF avec les réponses élève via l'OEFEvaluator (Lark).
     Retourne (global_score, results).
     """
-    import re as _re
-    from fractions import Fraction as _Fraction
-
-    # Réponses élève (indexed par logical_name)
-    student: dict[str, str] = {}
+    # 1. Injecter les réponses élève dans le contexte de l'évaluateur
+    # On supporte replyN, rN et les noms logiques si présents
     for ans in ans_defs:
+        val = replies_by_name.get(ans.input_name, "").strip()
+        # WIMS standard: \reply1, \reply2...
+        ev.ctx[ans.input_name] = val
+        # Alias court: \r1, \r2...
+        alias = ans.input_name.replace("reply", "r")
+        ev.ctx[alias] = val
+        # Nom logique
         if ans.logical_name:
-            student[ans.logical_name] = replies_by_name.get(ans.input_name, "").strip()
+            ev.ctx[ans.logical_name] = val
 
-    def resolve_var(name: str) -> str:
-        """Résout une variable : réponse élève ou variable OEF."""
-        name = name.lstrip("\\")
-        if name in student:
-            return student[name]
-        if name in ev_ctx:
-            return ev_ctx[name]
-        return name
-
-    expr = condition_expr.strip()
-
-    # issametext : comparaison de texte (pour les symboles LaTeX)
-    def resolve_issametext(m):
-        lv = resolve_var(m.group(1))
-        rv = resolve_var(m.group(2))
-        return "True" if lv.strip() == rv.strip() else "False"
-
-    expr = _re.sub(r'\\?(\w+)\s+issametext\s+\\?(\w+)', resolve_issametext, expr)
-
-    # Comparaisons numériques : \rx1=\x1  ou  \rx1<>\x1
-    def resolve_num_cmp(m):
-        lv_raw = resolve_var(m.group(1))
-        op = m.group(2)
-        rv_raw = resolve_var(m.group(3))
-        try:
-            lv = float(_Fraction(lv_raw))
-            rv = float(_Fraction(rv_raw))
-            if op == "=":
-                return "True" if abs(lv - rv) < 1e-9 else "False"
-            else:  # <>
-                return "True" if abs(lv - rv) > 1e-9 else "False"
-        except Exception:
-            if op == "=":
-                return "True" if lv_raw.strip() == rv_raw.strip() else "False"
-            else:
-                return "True" if lv_raw.strip() != rv_raw.strip() else "False"
-
-    expr = _re.sub(r'\\?(\w+)\s*(=|<>)\s*\\?(\w+)', resolve_num_cmp, expr)
-
-    # OEF and/or → Python
-    expr = _re.sub(r'\band\b', 'and', expr)
-    expr = _re.sub(r'\bor\b', 'or', expr)
-
-    try:
-        correct = bool(eval(expr, {"__builtins__": {}, "True": True, "False": False}))
-    except Exception:
-        correct = False
+    # 2. Évaluer l'expression via le parseur Lark
+    # On force le type 'logic' pour avoir un booléen
+    correct = bool(ev._eval_expr(condition_expr, kind="logic"))
 
     score = 1.0 if correct else 0.0
     results = []
@@ -137,10 +98,8 @@ def _check_condition(
             score=score,
             method="condition",
             reply=reply_val,
-            expected=ev_ctx.get(
-                # Pour les clickfill, l'expected est symb1/symb2 dans ev_ctx
-                # Pour les numexp, c'est x1/x2
-                ans.logical_name.replace("r", "", 1) if ans.logical_name.startswith("r") else ans.logical_name,
+            expected=ev.ctx.get(
+                ans.logical_name if ans.logical_name else ans.input_name,
                 ans.expected
             ),
         ))
@@ -191,7 +150,7 @@ async def check_exercise(
     # Si l'exercice a une \condition globale, l'évaluer
     if rendered.condition:
         global_score, results = _check_condition(
-            rendered.condition["expr"], rendered.answers, replies_by_name, rendered.ev_ctx
+            rendered.condition["expr"], rendered.answers, replies_by_name, evaluator
         )
     else:
         for ans_def in rendered.answers:
