@@ -14,9 +14,10 @@ from models.user import User
 from core.security import hash_password
 
 DEV_USERS = [
-    {"email": "prof@pax.fr",  "password": "prof1234",  "first_name": "Alice", "last_name": "Dupont",  "role": "teacher"},
-    {"email": "eleve@pax.fr", "password": "eleve1234", "first_name": "Bob",   "last_name": "Martin",  "role": "student"},
-    {"email": "admin@pax.fr", "password": "admin1234", "first_name": "Admin", "last_name": "PAX",     "role": "admin"},
+    {"email": "prof@pax.fr",  "password": "prof1234",  "first_name": "Alice",  "last_name": "Dupont", "role": "teacher"},
+    {"email": "eleve@pax.fr", "password": "eleve1234", "first_name": "Bob",    "last_name": "Martin", "role": "student"},
+    {"email": "admin@pax.fr", "password": "admin1234", "first_name": "Admin",  "last_name": "PAX",    "role": "admin"},
+    {"email": "guest@pax.fr", "password": "guest1234", "first_name": "Invité", "last_name": "",       "role": "student"},
 ]
 
 async def seed():

@@ -13,20 +13,15 @@ Clone de WIMS, rétro-compatible avec le format OEF, orienté mathématiques.
 
 ## Lancer le projet en développement
 
-```bash
-# Backend
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn main:app --reload
+Tout est dans des containers docker : backend, frontend et postgresql.
+Il suffit de lancer, la première fois, la commande suivante :
 
-# Frontend (dans un autre terminal)
-cd frontend
-npm install
-npm run dev
+```bash
+docker compose up --build
 ```
+
+Docker se charge de télécharger tous les composants (au premier lancement) et de construire les trois containers (~5 min en tout).
+Le site est ensuite accessible dans un navigateur à l'adresse localhost:3000
 
 ## Licence
 

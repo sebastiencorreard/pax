@@ -15,17 +15,17 @@ PAX est un clone moderne et performant de WIMS, conçu pour éliminer la dette t
 ## 🛠 Stack Technique
 
 ### Backend (Python)
-- **Framework :** FastAPI (pour l'API-First et la validation Pydantic).
-- **Parsing :** Lark (pour l'OEF historique).
-- **Calcul Formel :** SymPy.
-- **Sécurité :** Sandboxing pour l'exécution du code professeur.
-- **Qualité :** Ruff (lint/format), Mypy (typage), Pytest (tests).
+- [x] **Framework :** FastAPI (pour l'API-First et la validation Pydantic).
+- [x] **Parsing :** Lark (pour l'OEF historique).
+- [x] **Calcul Formel :** SymPy.
+- [ ] **Sécurité :** Sandboxing pour l'exécution du code professeur.
+- [x] **Qualité :** Ruff (lint/format), Mypy (typage), Pytest (tests).
 
 ### Frontend (Nuxt 3)
-- **Langage :** TypeScript.
-- **Styles :** Tailwind CSS (Themable, Dark Mode).
-- **State Management :** Pinia (pour la progression et gamification).
-- **Rendu Graphique :** D3.js / JSXGraph (vectoriel interactif).
+- [ ] **Langage :** TypeScript.
+- [ ] **Styles :** Tailwind CSS (Themable, Dark Mode).
+- [ ] **State Management :** Pinia (pour la progression et gamification).
+- [ ] **Rendu Graphique :** D3.js / JSXGraph (vectoriel interactif).
 
 ---
 
@@ -37,7 +37,9 @@ PAX est un clone moderne et performant de WIMS, conçu pour éliminer la dette t
 - **Documentation :** Docstrings format Google (uniquement pour le "pourquoi"). Le "comment" est porté par le typage.
 
 ### Architecture des Données
-- **Gélification :** Une fois un exercice inséré dans une feuille active, sa version est verrouillée.
+- **Versionnage Source :** Table `ExerciseVersion` stockant le code OEF indexé par son **Hash**.
+- **Persistance des Tentatives :** Table `Attempt` stockant uniquement le triplet `(User_ID, Version_Hash, Seed)`.
+- **Versioning Logic :** Logique de création de nouvelle version en DB lors de modifications profondes de l'OEF.
 - **Logs Bruts :** On stocke les réponses brutes des élèves. Les scores sont des "vues" calculées à la volée.
 
 ---
