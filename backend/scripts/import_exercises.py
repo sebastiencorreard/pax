@@ -1,6 +1,5 @@
 """
 Script d'import d'exercices OEF dans la base PAX.
-Tente de rendre chaque exercice et n'importe que ceux qui fonctionnent.
 
 Usage:
     python scripts/import_exercises.py --level H4 --domains algebra,analysis,number,arithmetic
@@ -18,7 +17,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
 from config import settings
 from models.exercise import Exercise, path_to_id
-from core.oef.engine import load_and_render
 from core.oef.parser import parse, get_directives_compat
 
 
@@ -39,15 +37,6 @@ def extract_meta(oef_path: str) -> dict:
         return meta
     except Exception:
         return {}
-
-
-def try_render(oef_path: str) -> bool:
-    """Retourne True si l'exercice peut être rendu sans erreur."""
-    try:
-        result = load_and_render(oef_path, seed=12345)
-        return bool(result.statement_html)
-    except Exception:
-        return False
 
 
 async def import_exercises(
@@ -78,7 +67,14 @@ async def import_exercises(
 
     ok = 0
     skip_exists = 0
-    skip_error = 0
+
+    _lang_map = {
+        "french": "fr",
+        "dutch": "nl",
+        "english": "en",
+        "german": "de",
+        "spanish": "es",
+    }
 
     async with async_session() as db:
         for domain, path in oef_files:
@@ -88,20 +84,7 @@ async def import_exercises(
                 skip_exists += 1
                 continue
 
-            # Tente le rendu
-            if not try_render(path):
-                skip_error += 1
-                print(f"  SKIP (erreur rendu) : {os.path.basename(path)}")
-                continue
-
             meta = extract_meta(path)
-            _lang_map = {
-                "french": "fr",
-                "dutch": "nl",
-                "english": "en",
-                "german": "de",
-                "spanish": "es",
-            }
             raw_lang = meta.get("language", "fr").lower()
             lang = str(_lang_map.get(raw_lang, raw_lang))[:5]
             title = meta.get("title", None)
@@ -121,16 +104,12 @@ async def import_exercises(
                 keywords=meta.get("keywords", None),
             )
             db.add(exercise)
+            await db.commit()
             ok += 1
             print(f"  + [{domain}] {title or os.path.basename(path)}")
 
-        if not dry_run:
-            await db.commit()
-
     await engine.dispose()
-    print(
-        f"\nRésultat : {ok} importés, {skip_exists} déjà en base, {skip_error} erreurs de rendu"
-    )
+    print(f"\nRésultat : {ok} importés, {skip_exists} déjà en base")
 
 
 if __name__ == "__main__":
