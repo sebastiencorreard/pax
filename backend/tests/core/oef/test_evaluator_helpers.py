@@ -159,6 +159,48 @@ def test_evaluator_falls_back_to_randitem_picker():
     assert out in {"v(4*v+5)=0", "(4*v+5)v=0"}
 
 
+# ---------- randint(a..b) preprocessing ---------- #
+
+
+def test_randint_range_evaluates_to_integer():
+    """Bug : randint(2..13) était stocké littéralement au lieu d'être évalué."""
+    import random as _random
+    _random.seed(0)
+    ev = OEFEvaluator(seed=0)
+    ev.evaluate_source(r"\integer{v=randint(2..13)}")
+    val = ev.ctx["v"]
+    assert val.lstrip("-").isdigit(), f"Expected integer string, got {val!r}"
+    assert 2 <= int(val) <= 13
+
+
+def test_randint_range_used_in_rep():
+    """Reproduction du bug equatcar3.oef : rep=\\v,-\\v ne doit pas contenir randint."""
+    ev = OEFEvaluator(seed=5)
+    ev.evaluate_source(r"\integer{v=randint(2..13)}" + "\n" + r"\text{rep=\v,-\v}")
+    assert "randint" not in ev.ctx["rep"]
+    parts = [p.strip() for p in ev.ctx["rep"].split(",")]
+    assert len(parts) == 2
+    assert int(parts[0]) == -int(parts[1])
+
+
+def test_text_with_equation_template():
+    """Bug equatcar3.oef : \\text{enonce=\\x^2=\\a} stockait '0' (bool False) au lieu
+    de la chaîne substituée."""
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["x"] = "x"
+    ev.ctx["a"] = "9"
+    ev.evaluate_source(r"\text{enonce=\x^2=\a}")
+    assert ev.ctx["enonce"] == "x^2=9"
+
+
+def test_text_arithmetic_still_works():
+    """La correction ne doit pas casser \\text{b=\\a * 2} qui fait de l'arithmétique."""
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "7"
+    ev.evaluate_source(r"\text{b=\a * 2}")
+    assert ev.ctx["b"] == "14"
+
+
 # ---------- arithmétique exacte (_to_exact, product, math_expr) ---------- #
 
 

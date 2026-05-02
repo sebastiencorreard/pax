@@ -92,13 +92,20 @@ def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
     )
 
 
+# Reconnaît les deux types de widgets dans le HTML rendu :
+#   groupe 1 — slot clickfill : <cf-slot name="…"></cf-slot>
+#   groupes 2-3 — champ texte : <span class="oef-input" name="…" data-size="…"></span>
 _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
 )
+# Balises de bloc (<div>, <p>) converties en <br> pour aplatir le HTML en une
+# seule ligne lisible par le front-end (qui n'attend pas de structure imbriquée).
 _BLOCK_OPEN = re.compile(r"<(?:div|p)(?=[\s>])[^>]*>", re.I)
 _BLOCK_CLOSE = re.compile(r"</(?:div|p)>", re.I)
+# Séquences de plusieurs <br> consécutifs (avec espaces) → un seul <br>.
 _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
+# <br> en tête de chaîne (artefacts de la conversion div/p → br).
 _BR_LEADING = re.compile(r"^(?:\s*<br\s*/?>\s*)+", re.I)
 
 
@@ -124,6 +131,7 @@ def _segment_statement(html: str) -> list[dict]:
             segments.append({"type": "slot", "name": m.group(1).strip()})
         else:
             name = m.group(2).strip()
+            # Les fichiers OEF utilisent souvent l'alias court "rN" au lieu de "replyN".
             alias = re.match(r"^r(\d+)$", name)
             if alias:
                 name = f"reply{alias.group(1)}"

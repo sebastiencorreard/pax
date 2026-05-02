@@ -37,6 +37,9 @@ EXPR_GRAMMAR = r"""
 
     func_call: "wims" "(" RAW_CONTENT ")" -> wims_call
              | "pari" "(" RAW_CONTENT ")" -> pari_call
+             | "random" "(" RAW_CONTENT ")" -> random_call
+             | "randint" "(" RAW_CONTENT ")" -> randint_call
+             | "texmath" "(" RAW_CONTENT ")" -> texmath_call
              | NAME "(" (arg_list)? ")"
              | "slib" "(" PATH (arg_list)? ")"
              | "items" "(" (arg_list)? ")"
@@ -111,6 +114,11 @@ class OEFEvaluator:
                     varname = varname.strip().lstrip("\\")
                     try:
                         val = self._eval_expr(expr)
+                        # Pour \text/\function/\matrix, un résultat booléen signifie
+                        # que Lark a interprété un "=" littéral (ex: \x^2=\a) comme
+                        # comparaison. On retombe sur la substitution de variables.
+                        if isinstance(val, bool) and node.name in ("text", "function", "matrix"):
+                            val = self._substitute_vars(expr)
                         self.ctx[varname] = self._to_wims_string(val)
                     except AbortAssignment:
                         pass
@@ -185,25 +193,8 @@ class OEFEvaluator:
                 i += 1
         return "".join(out)
 
-    def _preprocess_ranges(self, expr: str) -> str:
-        """Replace random(a..b) with a concrete random integer before Lark parsing.
-
-        SIGNED_NUMBER in the grammar absorbs '2.' which prevents Lark from
-        lexing the '..' range operator inside function arguments.
-        """
-
-        def _pick(m: re.Match) -> str:
-            try:
-                a, b = int(m.group(1)), int(m.group(2))
-                return str(random.randint(a, b))
-            except ValueError:
-                return m.group(0)
-
-        return re.sub(r"\brandom\((\d+)\.\.(\d+)\)", _pick, expr)
-
     def _eval_expr(self, expr_str: str, kind: str = "text") -> Any:
         expr_str = self._preprocess_pari(expr_str)
-        expr_str = self._preprocess_ranges(expr_str)
         try:
             tree = self._expr_parser.parse(expr_str.strip())
             val = OEFExprEvaluator(self.ctx, self).transform(tree)
@@ -301,7 +292,10 @@ class OEFEvaluator:
             except Exception:
                 return ""
 
+        # Passe 1 : variables indexées \name[expr] — doit précéder la passe 2
+        # pour éviter que \name soit substitué avant que [expr] soit évalué.
         text = re.sub(r"\\([a-zA-Z0-9_]+)\[([^\]]+)\]", replace_indexed, text)
+        # Passe 2 : variables simples \name → valeur du contexte (ou \name inchangé).
         text = re.sub(
             r"\\([a-zA-Z0-9_]+)",
             lambda m: str(self.ctx.get(m.group(1), m.group(0))),
@@ -445,26 +439,12 @@ class OEFExprEvaluator(Transformer):
         name = str(items[0])
         args = items[1] if len(items) > 1 else []
 
-        if name in ("random", "randitem"):
-            if isinstance(args, str) and ".." in args:
-                try:
-                    a, b = map(int, args.split(".."))
-                    return random.randint(a, b)
-                except Exception:
-                    pass
+        # random et randint ont leurs propres règles Lark (random_call / randint_call)
+        # qui contournent le conflit SIGNED_NUMBER / ".." — ils n'arrivent ici que
+        # s'ils sont appelés sans parenthèses, ce qui n'existe pas en pratique.
+        if name == "randitem":
             lst = args if isinstance(args, list) else [args]
             return random.choice(lst)
-        if name == "randint":
-            try:
-                if isinstance(args, str) and ".." in args:
-                    a, b = map(int, args.split(".."))
-                elif isinstance(args, list) and len(args) >= 2:
-                    a, b = int(float(args[0])), int(float(args[1]))
-                else:
-                    a, b = 0, 10
-                return random.randint(a, b)
-            except Exception:
-                return 0
         if name == "item":
             try:
                 idx = int(float(args[0])) - 1
@@ -499,12 +479,55 @@ class OEFExprEvaluator(Transformer):
                 lst = str(args).split(",")
             random.shuffle(lst)
             return lst  # retourné comme liste ; _to_wims_string join avec ","
+        # Fonctions WIMS dont l'argument est déjà évalué par l'arithmétique exacte
+        # avant d'arriver ici (simplify, expand, factor, …) : on retourne simplement
+        # la représentation chaîne du résultat, ce qui est sémantiquement correct
+        # pour des expressions numériques (ex : simplify(7-3) → "4").
         return self.evaluator._to_wims_string(args)
+
+    @v_args(inline=True)
+    def random_call(self, content):
+        # RAW_CONTENT évite le conflit SIGNED_NUMBER / ".." du tokeniseur Lark.
+        # Formes supportées : random(a..b) → entier aléatoire, random(x,y,z) → choix.
+        inner = self.evaluator._substitute_vars(str(content.value)).strip()
+        m = re.fullmatch(r"(-?\d+)\.\.(-?\d+)", inner)
+        if m:
+            return random.randint(int(m.group(1)), int(m.group(2)))
+        items = [x.strip() for x in inner.split(",") if x.strip()]
+        return random.choice(items) if items else ""
+
+    @v_args(inline=True)
+    def randint_call(self, content):
+        # RAW_CONTENT évite le conflit SIGNED_NUMBER / ".." du tokeniseur Lark.
+        # Formes supportées : randint(a..b) et randint(a, b).
+        inner = self.evaluator._substitute_vars(str(content.value)).strip()
+        m = re.fullmatch(r"(-?\d+)\.\.(-?\d+)", inner)
+        if m:
+            return random.randint(int(m.group(1)), int(m.group(2)))
+        parts = [x.strip() for x in inner.split(",") if x.strip()]
+        if len(parts) >= 2:
+            try:
+                return random.randint(int(float(parts[0])), int(float(parts[1])))
+            except (ValueError, TypeError):
+                pass
+        return 0
+
+    @v_args(inline=True)
+    def texmath_call(self, content):
+        # texmath(expr) est capturé via RAW_CONTENT pour éviter que le '='
+        # d'une équation (ex : texmath(\x+\v[1]=\v[2])) ne soit interprété
+        # par Lark comme opérateur de comparaison. On substitue les variables
+        # et on retourne la chaîne brute — suffisant pour afficher l'énoncé.
+        return self.evaluator._substitute_vars(str(content.value)).strip()
 
     @v_args(inline=True)
     def wims_call(self, content):
         inner = self.evaluator._substitute_vars(str(content.value))
         if "values" in inner and "for" in inner:
+            # Syntaxe WIMS : wims(values EXPR for VAR=START to END)
+            # Le .+ est greedy intentionnellement : en cas d'imbrication (ex :
+            # wims(values wims(...) for x=1 to 3)), on veut capturer jusqu'au
+            # DERNIER "for VAR=N to M", pas le premier.
             m = re.search(
                 r"values\s+(.+)\s+for\s+(\w+)\s*=\s*(\d+)\s+to\s+(\d+)", inner
             )
@@ -520,6 +543,7 @@ class OEFExprEvaluator(Transformer):
         inner = self.evaluator._substitute_vars(str(content.value)).strip()
         if inner.startswith("core("):
             try:
+                # Extrait le premier entier de "core(N)" pour calculer le radical.
                 m = re.search(r"\d+", inner)
                 return float(_pari_core(int(m.group() if m else "0")))
             except Exception:
@@ -572,10 +596,16 @@ def _split_top_level_commas(s: str) -> list[str]:
     return [p.strip() for p in parts]
 
 
+# Vérifie qu'une expression ne contient que des caractères arithmétiques purs
+# (chiffres, espaces, + - * / ( ) .) — condition préalable à _eval_exact_arithmetic.
 _ARITHMETIC_RE = re.compile(r"^[\d\s\+\-\*\/\(\)\.]+$")
+# Reconnaît les nombres entiers et décimaux dans une expression arithmétique,
+# pour les envelopper en Fraction("…") avant eval().
 _NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
 
+# Reconnaît une chaîne au format fraction réduite "-a/b" (ex : "2/3", "-11/6").
 _FRACTION_STR_RE = re.compile(r"^-?\d+/-?\d+$")
+# Reconnaît une chaîne entière signée (ex : "7", "-3").
 _INTEGER_STR_RE = re.compile(r"^-?\d+$")
 
 
