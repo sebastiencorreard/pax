@@ -11,7 +11,7 @@ class SheetCreate(BaseModel):
 
 
 class SheetExerciseAdd(BaseModel):
-    exercise_id: int
+    exercise_id: str
     position: int = 0
     weight: float = 1.0
 
