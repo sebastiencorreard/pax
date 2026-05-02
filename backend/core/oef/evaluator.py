@@ -81,6 +81,8 @@ class OEFEvaluator:
             EXPR_GRAMMAR, parser="earley", maybe_placeholders=False
         )
         self._pari_counter = 0
+        self._wims_counter = 0
+        self._item_counter = 0
 
     def evaluate_ast(self, ast: OEFNode):
         if ast.type == "document" and isinstance(ast.content, list):
@@ -118,7 +120,11 @@ class OEFEvaluator:
                         # Pour \text/\function/\matrix, un résultat booléen signifie
                         # que Lark a interprété un "=" littéral (ex: \x^2=\a) comme
                         # comparaison. On retombe sur la substitution de variables.
-                        if isinstance(val, bool) and node.name in ("text", "function", "matrix"):
+                        if isinstance(val, bool) and node.name in (
+                            "text",
+                            "function",
+                            "matrix",
+                        ):
                             val = self._substitute_vars(expr)
                         self.ctx[varname] = self._to_wims_string(val)
                     except AbortAssignment:
@@ -139,6 +145,20 @@ class OEFEvaluator:
                         if not self._eval_expr(cond_raw, kind="logic"):
                             break
                         self._eval_nodes(node.args[1])
+            elif node.name == "for":
+                if len(node.args) >= 2:
+                    spec = self._to_raw_string(node.args[0]).strip()
+                    m = re.match(r"(\w+)\s*=\s*(.+?)\s+to\s+(.+)", spec)
+                    if m:
+                        var, start_str, end_str = m.groups()
+                        try:
+                            start = int(float(self._eval_expr(start_str.strip())))
+                            end = int(float(self._eval_expr(end_str.strip())))
+                            for i in range(start, end + 1):
+                                self.ctx[var] = str(i)
+                                self._eval_nodes(node.args[1])
+                        except Exception:
+                            pass
             elif node.name in [
                 "title",
                 "author",
@@ -194,8 +214,133 @@ class OEFEvaluator:
                 i += 1
         return "".join(out)
 
+    def _eval_wims(self, inner: str):
+        """Evaluate the content of a wims(...) call."""
+        inner = inner.strip()
+        if inner.startswith("append item "):
+            rest = inner[len("append item ") :]
+            # " to " au milieu, ou " to" en toute fin de chaîne (quand la liste
+            # cible est vide et que le trailing space a été supprimé par strip()).
+            idx = rest.rfind(" to ")
+            if idx < 0 and rest.endswith(" to"):
+                idx = len(rest) - 3
+            if idx >= 0:
+                item = rest[:idx].strip()
+                existing = rest[idx + 3 :].lstrip()
+                parts = [x.strip() for x in existing.split(",") if x.strip()]
+                parts.append(item)
+                return parts
+        if "values" in inner and "for" in inner:
+            m = re.search(
+                r"values\s+(.+)\s+for\s+(\w+)\s*=\s*(\d+)\s+to\s+(\d+)", inner
+            )
+            if m:
+                expr_val, var, start, end = m.groups()
+                return [
+                    expr_val.replace(var, str(i))
+                    for i in range(int(start), int(end) + 1)
+                ]
+        return [inner]
+
+    def _preprocess_wims(self, expr: str) -> str:
+        """
+        Évalue les wims(...) à parenthèses imbriquées (ex : wims(append item \\(expr) to list))
+        avant que Lark parse l'expression. RAW_CONTENT s'arrête au premier ')' ce qui tronque
+        le contenu quand il contient \\(...) de mode mathématique.
+        """
+        out = []
+        i = 0
+        n = len(expr)
+        while i < n:
+            if expr[i : i + 5] == "wims(":
+                depth = 1
+                j = i + 5
+                while j < n and depth > 0:
+                    if expr[j] == "(":
+                        depth += 1
+                    elif expr[j] == ")":
+                        depth -= 1
+                    if depth > 0:
+                        j += 1
+                if depth != 0:
+                    out.append(expr[i])
+                    i += 1
+                    continue
+                inner_raw = expr[i + 5 : j]
+                if "(" in inner_raw:
+                    inner = self._substitute_vars(inner_raw)
+                    result = self._eval_wims(inner)
+                    name = f"__wims{self._wims_counter}__"
+                    self._wims_counter += 1
+                    self.ctx[name] = self._to_wims_string(result)
+                    out.append(f"\\{name}")
+                    i = j + 1
+                    continue
+                out.append(expr[i : j + 1])
+                i = j + 1
+            else:
+                out.append(expr[i])
+                i += 1
+        return "".join(out)
+
+    def _preprocess_item(self, expr: str) -> str:
+        """
+        Évalue les item(N, ...) dont les éléments contiennent des opérateurs de
+        comparaison (<, >, <=, >=) ou d'autres contenus non parsables par Lark.
+        Remplace le call par une référence à une variable temporaire __itemN__.
+        """
+        out = []
+        i = 0
+        n = len(expr)
+        while i < n:
+            # Ne reconnaît item( que comme appel autonome — pas dans randitem(, nthitem(, etc.
+            is_standalone = expr[i : i + 5] == "item(" and (
+                i == 0 or not (expr[i - 1].isalnum() or expr[i - 1] == "_")
+            )
+            if is_standalone:
+                depth = 1
+                j = i + 5
+                while j < n and depth > 0:
+                    if expr[j] == "(":
+                        depth += 1
+                    elif expr[j] == ")":
+                        depth -= 1
+                    if depth > 0:
+                        j += 1
+                if depth != 0:
+                    out.append(expr[i])
+                    i += 1
+                    continue
+                inner_raw = expr[i + 5 : j]
+                parts = _split_top_level_commas(inner_raw)
+                if len(parts) >= 2:
+                    idx_str = self._substitute_vars(parts[0].strip())
+                    try:
+                        idx = int(float(self._eval_expr(idx_str))) - 1
+                        result = (
+                            self._substitute_vars(parts[idx + 1].strip())
+                            if 0 <= idx < len(parts) - 1
+                            else ""
+                        )
+                    except Exception:
+                        result = inner_raw
+                    name = f"__item{self._item_counter}__"
+                    self._item_counter += 1
+                    self.ctx[name] = result
+                    out.append(f"\\{name}")
+                    i = j + 1
+                    continue
+                out.append(expr[i : j + 1])
+                i = j + 1
+            else:
+                out.append(expr[i])
+                i += 1
+        return "".join(out)
+
     def _eval_expr(self, expr_str: str, kind: str = "text") -> Any:
         expr_str = self._preprocess_pari(expr_str)
+        expr_str = self._preprocess_wims(expr_str)
+        expr_str = self._preprocess_item(expr_str)
         try:
             tree = self._expr_parser.parse(expr_str.strip())
             val = OEFExprEvaluator(self.ctx, self).transform(tree)
@@ -365,7 +510,11 @@ class OEFExprEvaluator(Transformer):
                 if lf is not None and rf is not None:
                     res = lf + rf if op == "+" else lf - rf
                 else:
-                    res = float(res) + float(val) if op == "+" else float(res) - float(val)
+                    res = (
+                        float(res) + float(val)
+                        if op == "+"
+                        else float(res) - float(val)
+                    )
             except Exception:
                 pass
         return res
@@ -403,7 +552,7 @@ class OEFExprEvaluator(Transformer):
                 base_f = _to_exact(res)
                 exp_f = _to_exact(exp)
                 if base_f is not None and exp_f is not None and exp_f.denominator == 1:
-                    res = base_f ** exp_f.numerator
+                    res = base_f**exp_f.numerator
                 else:
                     res = float(res) ** float(exp)
             except Exception:
@@ -485,6 +634,14 @@ class OEFExprEvaluator(Transformer):
                 return float(math.fabs(float(arg)))
             except Exception:
                 return 0
+        if name == "row":
+            try:
+                idx = int(float(args[0])) - 1
+                text = str(args[1]) if isinstance(args, list) and len(args) > 1 else ""
+                lines = text.splitlines()
+                return lines[idx].strip() if 0 <= idx < len(lines) else ""
+            except Exception:
+                return ""
         if name == "shuffle":
             # args est [csv_string] après arg_list fix → on split le CSV
             if isinstance(args, list) and len(args) == 1 and isinstance(args[0], str):
@@ -540,20 +697,7 @@ class OEFExprEvaluator(Transformer):
     @v_args(inline=True)
     def wims_call(self, content):
         inner = self.evaluator._substitute_vars(str(content.value))
-        if "values" in inner and "for" in inner:
-            # Syntaxe WIMS : wims(values EXPR for VAR=START to END)
-            # Le .+ est greedy intentionnellement : en cas d'imbrication (ex :
-            # wims(values wims(...) for x=1 to 3)), on veut capturer jusqu'au
-            # DERNIER "for VAR=N to M", pas le premier.
-            m = re.search(
-                r"values\s+(.+)\s+for\s+(\w+)\s*=\s*(\d+)\s+to\s+(\d+)", inner
-            )
-            if m:
-                expr, var, start, end = m.groups()
-                return [
-                    expr.replace(var, str(i)) for i in range(int(start), int(end) + 1)
-                ]
-        return [inner]
+        return self.evaluator._eval_wims(inner)
 
     @v_args(inline=True)
     def pari_call(self, content):
@@ -729,30 +873,35 @@ def _pari_core(n: int) -> int:
 
 
 def _expr_to_latex(expr: str) -> str:
-    """Convertit les fractions entières a/b en \\frac{a}{b} dans une expression OEF.
+    """Convertit une expression OEF en LaTeX pour rendu KaTeX (texmath).
 
-    Exemples :
-      '10/3*z+-8/9'   → '\\frac{10}{3}z-\\frac{8}{9}'
-      '7/-4*y+-10/9'  → '-\\frac{7}{4}y-\\frac{10}{9}'
-      '-5/-6*u+-4/5'  → '\\frac{5}{6}u-\\frac{4}{5}'
-
-    Règles appliquées dans l'ordre :
-      1. a/b (entiers signés) → \\frac{|a|}{|b|} avec le signe devant le \\frac
-      2. \\frac{}{} suivi de * puis d'une lettre → supprime le *
-      3. Double signe (+-  -+  --) → signe simplifié
+    Conversions appliquées dans l'ordre :
+      1. Opérateurs de comparaison : <= → \\leq, >= → \\geq, != / <> → \\neq
+      2. Fractions entières a/b → \\frac{a}{b}
+      3. \\frac{}{} suivi de * puis d'une lettre → supprime le *
+      4. N* lettre (coefficient × variable) → supprime le *
+      5. Double signe (+-  -+  --) → signe simplifié
     """
+    # Opérateurs d'inégalité (avant de toucher aux < > individuels).
+    result = expr
+    result = result.replace("<=", "\\leq ")
+    result = result.replace(">=", "\\geq ")
+    result = result.replace("<>", "\\neq ")
+    result = result.replace("!=", "\\neq ")
+
     def replace_frac(m: re.Match) -> str:
         num, den = int(m.group(1)), int(m.group(2))
-        # Signe toujours dans le numérateur : dénominateur toujours positif.
         if den < 0:
             num, den = -num, -den
         if num < 0:
             return rf"-\frac{{{-num}}}{{{den}}}"
         return rf"\frac{{{num}}}{{{den}}}"
 
-    result = _INT_FRAC_RE.sub(replace_frac, expr)
-    # Supprime le * de multiplication entre \frac{}{} et une variable (lettre).
+    result = _INT_FRAC_RE.sub(replace_frac, result)
+    # Supprime le * entre \frac{}{} et une variable.
     result = re.sub(r"(\\frac\{[^}]+\}\{[^}]+\})\*([a-zA-Z])", r"\1\2", result)
-    # Simplifie les doubles signes issus de la normalisation des fractions.
+    # Supprime le * entre un entier/décimal et une lettre (5*x → 5x).
+    result = re.sub(r"(\d)\*([a-zA-Z])", r"\1\2", result)
+    # Simplifie les doubles signes.
     result = result.replace("+-", "-").replace("-+", "-").replace("--", "+")
     return result

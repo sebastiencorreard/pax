@@ -5,7 +5,7 @@
     <!-- Pièces volantes -->
     <span v-for="c in flyingCoins" :key="c.id"
           class="flying-coin"
-          :style="{ left: c.x + 'px', top: c.y + 'px' }">🪙</span>
+          :style="{ left: c.x + 'px', top: c.y + 'px' }">⭐</span>
 
     <!-- En-tête -->
     <div class="px-6 py-4 border-b flex items-center justify-between"
@@ -15,9 +15,9 @@
         <span class="text-xs px-2 py-1 rounded font-semibold"
               style="background:var(--color-bg);color:#b45309"
               :title="$t('exercise.coins_title')">
-          🪙 {{ formatCoins(coins) }}
+          ⭐ {{ formatCoins(coins) }}
         </span>
-        <span class="text-xs px-2 py-1 rounded"
+        <span v-if="debugOef" class="text-xs px-2 py-1 rounded"
               style="background:var(--color-bg);color:var(--color-text-muted)">
           {{ $t('exercise.seed_label') }}: {{ rendered?.seed }}
         </span>
@@ -103,14 +103,14 @@
             {{ ans.label || $t('exercise.choose_answer') }}
           </p>
           <div class="space-y-2">
-            <label v-for="choice in ans.options.choices" :key="choice"
+            <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
                    class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
-                   :class="radioClass(ans.input_name, choice)"
+                   :class="radioClass(ans.input_name, choice.raw)"
                    style="border-color:var(--color-border)">
-              <input type="radio" :name="ans.input_name" :value="choice"
+              <input type="radio" :name="ans.input_name" :value="choice.raw"
                      v-model="replies[ans.input_name]"
                      :disabled="submitted" class="accent-blue-500" />
-              <span v-html="choice"></span>
+              <span v-html="choice.html"></span>
             </label>
           </div>
         </template>
@@ -188,6 +188,7 @@ const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string }] }>()
 
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
+const debugOef = useRuntimeConfig().public.debugOef
 
 interface AnswerDef {
   input_name: string
@@ -290,6 +291,10 @@ const clickfillChoicesHtml = ref<Array<{ raw: string; html: string }>>([])
 const pendingChoice = ref<string | null>(null)
 const draggingChoice = ref<string | null>(null)
 
+// Radio
+const radioChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>>>({})
+
+
 // Segments d'affichage : produits par le backend, le HTML statique passe par KaTeX.
 type Segment =
   | { type: 'html';  content: string }
@@ -325,6 +330,7 @@ async function load(seed?: number) {
   draggingChoice.value = null
   statementSegments.value = []
   clickfillChoicesHtml.value = []
+  radioChoicesHtml.value = {}
   try {
     const url = seed
       ? `/api/render/${props.exerciseId}?seed=${seed}`
@@ -346,7 +352,11 @@ async function load(seed?: number) {
         clickfillChoicesHtml.value = await Promise.all(
           ans.options.choices.map(async (c: string) => ({ raw: c, html: await renderMath(c) }))
         )
-        break
+      }
+      if (ans.answer_type === 'radio' && ans.options.choices?.length) {
+        radioChoicesHtml.value[ans.input_name] = await Promise.all(
+          ans.options.choices.map(async (c: string) => ({ raw: c, html: await renderMath(c) }))
+        )
       }
     }
 

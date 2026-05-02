@@ -211,6 +211,15 @@ def _extract_answers(ast: OEFNode, ev: OEFEvaluator) -> list[AnswerDef]:
                     _random.Random(f"{ev.meta.get('seed', 0)}_{reply_count}").shuffle(
                         all_items
                     )
+                    options_raw = blocks[3] if len(blocks) > 3 else ""
+                    if "noidontknow" not in options_raw:
+                        _dont_know = {
+                            "fr": "Je ne sais pas",
+                            "nl": "Ik weet het niet",
+                            "en": "I don't know",
+                        }
+                        lang = ev.meta.get("language", "fr")[:2].lower()
+                        all_items.append(_dont_know.get(lang, "Je ne sais pas"))
 
                     answers.append(
                         AnswerDef(
