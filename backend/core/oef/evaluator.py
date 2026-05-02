@@ -29,8 +29,9 @@ EXPR_GRAMMAR = r"""
     ?product: power (MULT_OP power)*
     ?power: atom ("^" atom)*
 
-    ?atom: number | string | variable | func_call | "(" expression_list ")" | range
+    ?atom: number | string | variable | func_call | "(" expression_list ")" | range | neg_atom
 
+    neg_atom: "-" atom
     range: atom ".." atom
     variable: BACKSLASH NAME ("[" index_list "]")?
     index_list: expression_list
@@ -409,6 +410,16 @@ class OEFExprEvaluator(Transformer):
                 pass
         return res
 
+    def neg_atom(self, items):
+        v = items[0]
+        exact = _to_exact(v)
+        if exact is not None:
+            return -exact
+        try:
+            return -float(v)
+        except (TypeError, ValueError):
+            return f"-{v}"
+
     @v_args(inline=True)
     def number(self, t):
         s = str(t)
@@ -459,7 +470,12 @@ class OEFExprEvaluator(Transformer):
             try:
                 arg = args[0] if isinstance(args, list) else args
                 if name == "sqrt":
-                    return float(math.sqrt(_to_numeric(arg)))
+                    result = math.sqrt(_to_numeric(arg))
+                    if result == int(result):
+                        return int(result)  # carré parfait : entier exact
+                    # Irrationnel : forme symbolique sqrt(n) plutôt que float.
+                    # neg_atom("-sqrt(n)") retombe sur f"-{v}" proprement.
+                    return f"sqrt({self.evaluator._to_wims_string(arg)})"
                 if name in ("floor", "ceil"):
                     return int(getattr(math, name)(_to_numeric(arg)))
                 # abs : garde l'exactitude
@@ -517,8 +533,9 @@ class OEFExprEvaluator(Transformer):
         # texmath(expr) est capturé via RAW_CONTENT pour éviter que le '='
         # d'une équation (ex : texmath(\x+\v[1]=\v[2])) ne soit interprété
         # par Lark comme opérateur de comparaison. On substitue les variables
-        # et on retourne la chaîne brute — suffisant pour afficher l'énoncé.
-        return self.evaluator._substitute_vars(str(content.value)).strip()
+        # puis on convertit les fractions entières en \frac{}{}.
+        inner = self.evaluator._substitute_vars(str(content.value)).strip()
+        return _expr_to_latex(inner)
 
     @v_args(inline=True)
     def wims_call(self, content):
@@ -595,6 +612,10 @@ def _split_top_level_commas(s: str) -> list[str]:
     parts.append(s[last:])
     return [p.strip() for p in parts]
 
+
+# Reconnaît un rapport entier/entier (éventuellement signés) dans une expression.
+# Utilisé par _expr_to_latex pour convertir a/b en \frac{a}{b}.
+_INT_FRAC_RE = re.compile(r"(-?\d+)/(-?\d+)")
 
 # Vérifie qu'une expression ne contient que des caractères arithmétiques purs
 # (chiffres, espaces, + - * / ( ) .) — condition préalable à _eval_exact_arithmetic.
@@ -705,3 +726,33 @@ def _pari_core(n: int) -> int:
         else:
             d += 1
     return res
+
+
+def _expr_to_latex(expr: str) -> str:
+    """Convertit les fractions entières a/b en \\frac{a}{b} dans une expression OEF.
+
+    Exemples :
+      '10/3*z+-8/9'   → '\\frac{10}{3}z-\\frac{8}{9}'
+      '7/-4*y+-10/9'  → '-\\frac{7}{4}y-\\frac{10}{9}'
+      '-5/-6*u+-4/5'  → '\\frac{5}{6}u-\\frac{4}{5}'
+
+    Règles appliquées dans l'ordre :
+      1. a/b (entiers signés) → \\frac{|a|}{|b|} avec le signe devant le \\frac
+      2. \\frac{}{} suivi de * puis d'une lettre → supprime le *
+      3. Double signe (+-  -+  --) → signe simplifié
+    """
+    def replace_frac(m: re.Match) -> str:
+        num, den = int(m.group(1)), int(m.group(2))
+        # Signe toujours dans le numérateur : dénominateur toujours positif.
+        if den < 0:
+            num, den = -num, -den
+        if num < 0:
+            return rf"-\frac{{{-num}}}{{{den}}}"
+        return rf"\frac{{{num}}}{{{den}}}"
+
+    result = _INT_FRAC_RE.sub(replace_frac, expr)
+    # Supprime le * de multiplication entre \frac{}{} et une variable (lettre).
+    result = re.sub(r"(\\frac\{[^}]+\}\{[^}]+\})\*([a-zA-Z])", r"\1\2", result)
+    # Simplifie les doubles signes issus de la normalisation des fractions.
+    result = result.replace("+-", "-").replace("-+", "-").replace("--", "+")
+    return result
