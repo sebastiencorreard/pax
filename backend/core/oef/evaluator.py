@@ -227,6 +227,10 @@ class OEFEvaluator:
             return ",".join(self._to_wims_string(i) for i in val)
         if isinstance(val, bool):
             return "1" if val else "0"
+        if isinstance(val, Fraction):
+            if val.denominator == 1:
+                return str(val.numerator)
+            return f"{val.numerator}/{val.denominator}"
         if isinstance(val, float) and val.is_integer():
             return str(int(val))
         return str(val)
@@ -343,7 +347,7 @@ class OEFExprEvaluator(Transformer):
                 left = str(left) != str(right)
             else:
                 try:
-                    lv, r = float(left), float(right)
+                    lv, r = _to_numeric(left), _to_numeric(right)
                     if op == ">":
                         left = lv > r
                     elif op == "<":
@@ -361,7 +365,12 @@ class OEFExprEvaluator(Transformer):
         for i in range(1, len(items), 2):
             op, val = str(items[i]), items[i + 1]
             try:
-                res = float(res) + float(val) if op == "+" else float(res) - float(val)
+                lf = _to_exact(res)
+                rf = _to_exact(val)
+                if lf is not None and rf is not None:
+                    res = lf + rf if op == "+" else lf - rf
+                else:
+                    res = float(res) + float(val) if op == "+" else float(res) - float(val)
             except Exception:
                 pass
         return res
@@ -371,12 +380,22 @@ class OEFExprEvaluator(Transformer):
         for i in range(1, len(items), 2):
             op, val = str(items[i]), items[i + 1]
             try:
-                if op == "*":
-                    res = float(res) * float(val)
-                elif op == "/":
-                    res = float(res) / float(val)
+                lf = _to_exact(res)
+                rf = _to_exact(val)
+                if lf is not None and rf is not None:
+                    if op == "*":
+                        res = lf * rf
+                    elif op == "/":
+                        res = lf / rf
+                    else:
+                        res = float(lf) % float(rf)
                 else:
-                    res = float(res) % float(val)
+                    if op == "*":
+                        res = float(res) * float(val)
+                    elif op == "/":
+                        res = float(res) / float(val)
+                    else:
+                        res = float(res) % float(val)
             except Exception:
                 pass
         return res
@@ -384,15 +403,27 @@ class OEFExprEvaluator(Transformer):
     def power(self, items):
         res = items[0]
         for i in range(1, len(items)):
+            exp = items[i]
             try:
-                res = float(res) ** float(items[i])
+                base_f = _to_exact(res)
+                exp_f = _to_exact(exp)
+                if base_f is not None and exp_f is not None and exp_f.denominator == 1:
+                    res = base_f ** exp_f.numerator
+                else:
+                    res = float(res) ** float(exp)
             except Exception:
                 pass
         return res
 
     @v_args(inline=True)
     def number(self, t):
-        return float(t)
+        s = str(t)
+        if "." not in s and "e" not in s.lower():
+            return int(s)
+        f = float(s)
+        if f == int(f) and abs(f) < 1e15:
+            return int(f)
+        return f
 
     @v_args(inline=True)
     def string(self, t):
@@ -418,7 +449,7 @@ class OEFExprEvaluator(Transformer):
             if isinstance(args, str) and ".." in args:
                 try:
                     a, b = map(int, args.split(".."))
-                    return float(random.randint(a, b))
+                    return random.randint(a, b)
                 except Exception:
                     pass
             lst = args if isinstance(args, list) else [args]
@@ -431,9 +462,9 @@ class OEFExprEvaluator(Transformer):
                     a, b = int(float(args[0])), int(float(args[1]))
                 else:
                     a, b = 0, 10
-                return float(random.randint(a, b))
+                return random.randint(a, b)
             except Exception:
-                return 0.0
+                return 0
         if name == "item":
             try:
                 idx = int(float(args[0])) - 1
@@ -443,16 +474,21 @@ class OEFExprEvaluator(Transformer):
                 return ""
         if name == "items":
             lst = args if isinstance(args, list) else str(args).split(",")
-            return float(len([x for x in lst if str(x).strip()]))
+            return len([x for x in lst if str(x).strip()])
         if name in ("abs", "sqrt", "floor", "ceil"):
             try:
-                return float(
-                    getattr(math, name)(
-                        float(args[0] if isinstance(args, list) else args)
-                    )
-                )
+                arg = args[0] if isinstance(args, list) else args
+                if name == "sqrt":
+                    return float(math.sqrt(_to_numeric(arg)))
+                if name in ("floor", "ceil"):
+                    return int(getattr(math, name)(_to_numeric(arg)))
+                # abs : garde l'exactitude
+                exact = _to_exact(arg)
+                if exact is not None:
+                    return abs(exact)
+                return float(math.fabs(float(arg)))
             except Exception:
-                return 0.0
+                return 0
         if name == "shuffle":
             # args est [csv_string] après arg_list fix → on split le CSV
             if isinstance(args, list) and len(args) == 1 and isinstance(args[0], str):
@@ -538,6 +574,44 @@ def _split_top_level_commas(s: str) -> list[str]:
 
 _ARITHMETIC_RE = re.compile(r"^[\d\s\+\-\*\/\(\)\.]+$")
 _NUMBER_RE = re.compile(r"(\d+(?:\.\d+)?)")
+
+_FRACTION_STR_RE = re.compile(r"^-?\d+/-?\d+$")
+_INTEGER_STR_RE = re.compile(r"^-?\d+$")
+
+
+def _to_exact(v) -> "Fraction | None":
+    """Tente de convertir v en Fraction exacte.
+    Retourne None pour les décimaux et les chaînes non parsables.
+    """
+    if isinstance(v, Fraction):
+        return v
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return Fraction(v)
+    s = str(v).strip()
+    if _INTEGER_STR_RE.fullmatch(s):
+        return Fraction(int(s))
+    if _FRACTION_STR_RE.fullmatch(s):
+        try:
+            return Fraction(s)
+        except (ValueError, ZeroDivisionError):
+            return None
+    try:
+        f = float(s)
+        if f == int(f) and abs(f) < 1e15:
+            return Fraction(int(f))
+    except (ValueError, TypeError):
+        pass
+    return None
+
+
+def _to_numeric(v) -> float:
+    """Convertit v en float, en gérant Fraction et chaînes 'a/b'."""
+    exact = _to_exact(v)
+    if exact is not None:
+        return float(exact)
+    return float(str(v))
 
 
 def _eval_exact_arithmetic(expr: str) -> str | int | None:

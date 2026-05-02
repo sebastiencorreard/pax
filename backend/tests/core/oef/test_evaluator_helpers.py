@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+from fractions import Fraction
 
 
 sys.path.insert(
@@ -14,6 +15,7 @@ from core.oef.evaluator import (
     _eval_exact_arithmetic,
     _pick_randitem_template,
     _split_top_level_commas,
+    _to_exact,
 )
 
 
@@ -155,3 +157,105 @@ def test_evaluator_falls_back_to_randitem_picker():
     assert "\\v" not in out
     # Une des deux formes attendues, avec v[3]=4, v[4]=5, x=v
     assert out in {"v(4*v+5)=0", "(4*v+5)v=0"}
+
+
+# ---------- arithmétique exacte (_to_exact, product, math_expr) ---------- #
+
+
+def test_to_exact_integer_string():
+    assert _to_exact("3") == Fraction(3)
+    assert _to_exact("-5") == Fraction(-5)
+
+
+def test_to_exact_fraction_string():
+    assert _to_exact("2/3") == Fraction(2, 3)
+    assert _to_exact("-7/4") == Fraction(-7, 4)
+
+
+def test_to_exact_int_object():
+    assert _to_exact(4) == Fraction(4)
+
+
+def test_to_exact_float_integer():
+    assert _to_exact(3.0) == Fraction(3)
+
+
+def test_to_exact_float_decimal_returns_none():
+    assert _to_exact(3.14) is None
+    assert _to_exact("3.14") is None
+
+
+def test_to_exact_fraction_object_passthrough():
+    f = Fraction(5, 7)
+    assert _to_exact(f) is f
+
+
+def test_division_of_context_integers_gives_fraction():
+    """Bug rapporté : \\v[2]/\\v[1] retournait 0.666... au lieu de 2/3."""
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "2"
+    ev.ctx["b"] = "3"
+    result = ev._eval_expr(r"\a/\b")
+    assert result == Fraction(2, 3)
+
+
+def test_wims_string_fraction():
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "2"
+    ev.ctx["b"] = "3"
+    ev.evaluate_source(r"\text{rep=\a/\b}")
+    assert ev.ctx["rep"] == "2/3"
+
+
+def test_fraction_addition_gives_exact():
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "1"
+    ev.ctx["b"] = "3"
+    ev.ctx["c"] = "1"
+    ev.ctx["d"] = "6"
+    ev.evaluate_source(r"\text{rep=\a/\b+\c/\d}")
+    assert ev.ctx["rep"] == "1/2"
+
+
+def test_fraction_addition_whole_result():
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "1"
+    ev.ctx["b"] = "3"
+    ev.ctx["c"] = "2"
+    ev.ctx["d"] = "3"
+    ev.evaluate_source(r"\text{rep=\a/\b+\c/\d}")
+    assert ev.ctx["rep"] == "1"
+
+
+def test_fraction_multiplication():
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "2"
+    ev.ctx["b"] = "3"
+    ev.ctx["c"] = "6"
+    ev.evaluate_source(r"\text{rep=\a/\b*\c}")
+    assert ev.ctx["rep"] == "4"
+
+
+def test_integer_power_of_fraction():
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["a"] = "2"
+    ev.ctx["b"] = "3"
+    ev.evaluate_source(r"\text{rep=(\a/\b)^2}")
+    assert ev.ctx["rep"] == "4/9"
+
+
+def test_comparison_with_fraction_context():
+    """\\if avec une variable fraction en contexte ne doit pas crasher."""
+    ev = OEFEvaluator(seed=1)
+    ev.ctx["x"] = "2/3"
+    ev.evaluate_source(r"\if{\x>0}{\text{sign=pos}}{\text{sign=neg}}")
+    assert ev.ctx.get("sign") == "pos"
+
+
+def test_equaprod4_rep_is_fraction():
+    """Reproduction du bug de l'exercice equaprod4.oef."""
+    ev = OEFEvaluator(seed=7)
+    ev.ctx["v"] = "3,2,5,4,7,6,9,8"
+    ev.ctx["x"] = "x"
+    ev.evaluate_source(r"\text{rep=\v[2]/\v[1]}")
+    assert ev.ctx["rep"] == "2/3"

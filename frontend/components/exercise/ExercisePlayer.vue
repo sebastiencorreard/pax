@@ -154,7 +154,7 @@
 
     <!-- Boutons -->
     <div class="px-6 pb-6 flex items-center gap-3">
-      <button @click="submit" :disabled="loading || submitted || !allFilled"
+      <button @click="submit" :disabled="loading || checking || submitted || !allFilled"
               class="px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-60"
               style="background:var(--color-primary);color:#fff">
         {{ submitted ? $t('exercise.corrected') : $t('exercise.verify') }}
@@ -266,6 +266,7 @@ const rendered = ref<Rendered | null>(null)
 const hintHtml = ref('')
 const titleHtml = ref('')
 const loading = ref(false)
+const checking = ref(false)
 const loadError = ref('')
 const submitted = ref(false)
 const showHint = ref(false)
@@ -371,7 +372,7 @@ function reload() {
 async function submit() {
   if (!rendered.value || submitted.value) return
 
-  loading.value = true
+  checking.value = true
   try {
     const replyList = Object.entries(replies.value)
       .map(([input_name, value]) => ({ input_name, value }))
@@ -399,7 +400,7 @@ async function submit() {
       setTimeout(() => document.documentElement.classList.remove('shake'), 300)
     }
   } finally {
-    loading.value = false
+    checking.value = false
   }
 }
 
