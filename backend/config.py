@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
+    # CORS
+    cors_origins: list[str] = ["http://localhost:3000"]
+
     # Ressources OEF
     resources_root: str = os.path.join(_REPO_ROOT, "ressources")
 
