@@ -176,7 +176,7 @@ test.describe('exercise player', () => {
   test('coins counter is visible', async ({ page }) => {
     await navigateToFirstExercise(page)
 
-    // The coins display (🪙 N) should appear in the exercise header
+    // The coins display (⭐ N) should appear in the exercise header
     await expect(page.locator('span[title]')).toBeVisible()
   })
 
