@@ -1,10 +1,7 @@
 services:
   db:
     image: postgres:14-alpine
-    environment:
-      POSTGRES_USER: pax
-      POSTGRES_PASSWORD: pax
-      POSTGRES_DB: pax
+    restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -15,14 +12,10 @@ services:
 
   backend:
     build: ./backend
-    ports:
-      - "8001:8001"
+    restart: unless-stopped
     volumes:
       - ./ressources:/ressources:ro
     environment:
-      DATABASE_URL: postgresql+asyncpg://pax:pax@db:5432/pax
-      # Change SECRET_KEY before deploying to production
-      SECRET_KEY: dev-only-change-in-production
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
       RESOURCES_ROOT: /ressources
@@ -32,12 +25,7 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - "3000:3000"
-    environment:
-      NUXT_PUBLIC_API_BASE: http://localhost:8001
-      # Set to "false" to hide the raw .oef source debug panel under each exercise
-      NUXT_PUBLIC_DEBUG_OEF: "true"
+    restart: unless-stopped
 
 volumes:
   pgdata:
