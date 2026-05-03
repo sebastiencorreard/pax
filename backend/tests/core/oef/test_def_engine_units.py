@@ -327,3 +327,255 @@ class TestEvalCondition:
     def test_ifval_zero_is_falsy(self):
         e = engine()
         assert e._eval_condition("ifval", "0") is False
+
+
+# ── !makelist ─────────────────────────────────────────────────────────────────
+
+
+class TestCmdMakelist:
+    def test_simple_tab_separated(self):
+        e = engine()
+        result = e._eval_cmd("makelist", "v for v=1 to 3")
+        assert result == "1\t2\t3"
+
+    def test_multi_column_row(self):
+        e = engine()
+        result = e._eval_cmd("makelist", "v,-v for v=1 to 3")
+        assert result == "1,-1\t2,-2\t3,-3"
+
+    def test_expression(self):
+        e = engine()
+        result = e._eval_cmd("makelist", "v*v for v=1 to 4")
+        assert result == "1\t4\t9\t16"
+
+    def test_row_access_after_makelist(self):
+        e = engine()
+        e.ctx["mat"] = e._eval_cmd("makelist", "v,-v for v=2 to 4")
+        assert e._subst("$(mat[2])") == "3,-3"
+
+    def test_loop_var_removed_after(self):
+        e = engine()
+        e._eval_cmd("makelist", "v for v=1 to 3")
+        assert "v" not in e.ctx
+
+
+# ── !positionof ───────────────────────────────────────────────────────────────
+
+
+class TestCmdPositionof:
+    def test_found_first(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item a in a,b,c") == "1"
+
+    def test_found_middle(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item b in a,b,c") == "2"
+
+    def test_not_found(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item z in a,b,c") == "0"
+
+    def test_tab_separated(self):
+        e = engine()
+        e.ctx["lst"] = "x\ty\tz"
+        assert e._eval_cmd("positionof", "item y in $lst") == "2"
+
+    def test_numeric_value(self):
+        e = engine()
+        e.ctx["lst"] = "1,2,3,4"
+        assert e._eval_cmd("positionof", "item 3 in $lst") == "3"
+
+
+# ── !randrow ──────────────────────────────────────────────────────────────────
+
+
+class TestCmdRandrow:
+    def test_returns_one_row(self):
+        e = engine(1)
+        e.ctx["mat"] = "a,1\tb,2\tc,3"
+        result = e._eval_cmd("randrow", "$mat")
+        assert result in ("a,1", "b,2", "c,3")
+
+    def test_deterministic(self):
+        e1, e2 = engine(42), engine(42)
+        e1.ctx["mat"] = e2.ctx["mat"] = "x\ty\tz"
+        assert e1._eval_cmd("randrow", "$mat") == e2._eval_cmd("randrow", "$mat")
+
+    def test_empty_returns_empty(self):
+        e = engine()
+        assert e._eval_cmd("randrow", "") == ""
+
+
+# ── !sort ─────────────────────────────────────────────────────────────────────
+
+
+class TestCmdSort:
+    def test_integers(self):
+        e = engine()
+        assert e._eval_cmd("sort", "numeric items 3,1,2") == "1,2,3"
+
+    def test_floats(self):
+        e = engine()
+        assert e._eval_cmd("sort", "numeric items 3.5,1.2,2.8") == "1.2,2.8,3.5"
+
+    def test_fractions(self):
+        e = engine()
+        e.ctx["v"] = "3/2,7/4,35/16,15/8"
+        result = e._eval_cmd("sort", "numeric items $v")
+        assert result == "3/2,7/4,15/8,35/16"
+
+    def test_negatives(self):
+        e = engine()
+        assert e._eval_cmd("sort", "numeric list -1,3,-2,0") == "-2,-1,0,3"
+
+    def test_range_slice_then_sort(self):
+        # $(v[1..4]) extracts "5,3,4,1", then sort → "1,3,4,5"
+        e = engine()
+        e.ctx["v"] = "5,3,4,1,2"
+        result = e._eval_cmd("sort", "numeric items $(v[1..4])")
+        assert result == "1,3,4,5"
+
+
+# ── !mathsubst ────────────────────────────────────────────────────────────────
+
+
+class TestCmdMathsubst:
+    def test_basic(self):
+        e = engine()
+        e.ctx["expr"] = "2*x+1"
+        assert e._eval_cmd("mathsubst", "x=(3) in $expr") == "2*(3)+1"
+
+    def test_already_has_parens(self):
+        e = engine()
+        e.ctx["expr"] = "x^2+x"
+        assert e._eval_cmd("mathsubst", "x=(a+b) in $expr") == "(a+b)^2+(a+b)"
+
+    def test_no_match(self):
+        e = engine()
+        e.ctx["expr"] = "y+1"
+        assert e._eval_cmd("mathsubst", "x=(3) in $expr") == "y+1"
+
+
+# ── !listuniq ─────────────────────────────────────────────────────────────────
+
+
+class TestCmdListuniq:
+    def test_removes_duplicates(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "a,b,a,c,b") == "a,b,c"
+
+    def test_preserves_order(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "c,a,b,c,a") == "c,a,b"
+
+    def test_no_duplicates_unchanged(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "x,y,z") == "x,y,z"
+
+    def test_tab_separated(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "a\tb\ta\tc") == "a\tb\tc"
+
+
+# ── !declosing ────────────────────────────────────────────────────────────────
+
+
+class TestCmdDeclosing:
+    def test_removes_parens(self):
+        e = engine()
+        assert e._eval_cmd("declosing", "(x+1)") == "x+1"
+
+    def test_removes_brackets(self):
+        e = engine()
+        assert e._eval_cmd("declosing", "[1,2,3]") == "1,2,3"
+
+    def test_removes_braces(self):
+        e = engine()
+        assert e._eval_cmd("declosing", "{a,b}") == "a,b"
+
+    def test_no_brackets_unchanged(self):
+        e = engine()
+        assert e._eval_cmd("declosing", "x+1") == "x+1"
+
+    def test_mismatched_unchanged(self):
+        e = engine()
+        assert e._eval_cmd("declosing", "(x+1]") == "(x+1]"
+
+
+# ── !nospace / !getopt / !word / !column / !charcnt ──────────────────────────
+
+
+class TestCmdMiscNew:
+    def test_nospace(self):
+        e = engine()
+        assert e._eval_cmd("nospace", "a b  c") == "abc"
+
+    def test_getopt_found(self):
+        e = engine()
+        e.ctx["opts"] = "audio=file.mp3 image=img.png"
+        assert e._eval_cmd("getopt", "audio in $opts") == "file.mp3"
+
+    def test_getopt_not_found(self):
+        e = engine()
+        assert e._eval_cmd("getopt", "missing in key=val") == ""
+
+    def test_getdef_same_as_getopt(self):
+        e = engine()
+        e.ctx["defs"] = "title=My Title size=3"
+        assert e._eval_cmd("getdef", "title in $defs") == "My"
+
+    def test_word_first(self):
+        e = engine()
+        assert e._eval_cmd("word", "1 of hello world foo") == "hello"
+
+    def test_word_second(self):
+        e = engine()
+        assert e._eval_cmd("word", "2 of hello world foo") == "world"
+
+    def test_word_out_of_range(self):
+        e = engine()
+        assert e._eval_cmd("word", "9 of hello") == ""
+
+    def test_column_first(self):
+        e = engine()
+        e.ctx["mat"] = "a;b;c\td;e;f"
+        assert e._eval_cmd("column", "1 of $mat") == "a,d"
+
+    def test_column_second(self):
+        e = engine()
+        e.ctx["mat"] = "a;b;c\td;e;f"
+        assert e._eval_cmd("column", "2 of $mat") == "b,e"
+
+    def test_charcnt(self):
+        e = engine()
+        assert e._eval_cmd("charcnt", "hello") == "5"
+
+    def test_charcnt_empty(self):
+        e = engine()
+        assert e._eval_cmd("charcnt", "") == "0"
+
+
+# ── $(var[n..m]) range slice ──────────────────────────────────────────────────
+
+
+class TestRangeSlice:
+    def test_full_range(self):
+        e = engine()
+        e.ctx["v"] = "a,b,c,d"
+        assert e._subst("$(v[1..4])") == "a,b,c,d"
+
+    def test_partial_range(self):
+        e = engine()
+        e.ctx["v"] = "a,b,c,d,e"
+        assert e._subst("$(v[2..4])") == "b,c,d"
+
+    def test_tab_separated(self):
+        # Range slice always returns comma-joined items regardless of source separator
+        e = engine()
+        e.ctx["v"] = "x\ty\tz"
+        assert e._subst("$(v[1..2])") == "x,y"
+
+    def test_single_element(self):
+        e = engine()
+        e.ctx["v"] = "a,b,c"
+        assert e._subst("$(v[2..2])") == "b"

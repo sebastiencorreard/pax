@@ -66,6 +66,7 @@ _MATH_NS: dict = {
 }
 
 # Patterns for variable substitution
+_RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
 _INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]+);([^\]]+)\]\)")  # $(var[n;m])
 _INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
@@ -248,27 +249,41 @@ class DefEngine:
             return s
         # 1. $[expr] blocks first
         s = self._eval_dollar_bracket(s)
-        # 2. $(var[n;m]) matrix access
+        # 2. $(var[n..m]) range slice
+        s = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), s)
+        # 3. $(var[n;m]) matrix access
         s = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), s)
-        # 3. $(var[n]) list access
+        # 4. $(var[n]) list access
         s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
-        # 4. $(var) simple reference
+        # 5. $(var) simple reference
         s = _PAREN_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), ""), s)
-        # 5. $var simple reference (skip $[ which was already handled)
+        # 6. $var simple reference (skip $[ which was already handled)
         s = _DOLLAR_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), m.group(0)), s)
         return s
 
     def _subst_for_arith(self, expr: str) -> str:
-        """Substitute variable references inside an arithmetic expression.
-        Preserves numeric types (wraps string values in quotes only when non-numeric)."""
+        """Substitute variable references inside an arithmetic expression."""
         if not expr or "$" not in expr:
             return expr
-        # Handle $(var[n;m]), $(var[n]), $(var), $var — but not $[...]
+        expr = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), expr)
         expr = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), expr)
         expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
         expr = _PAREN_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), "0"), expr)
         expr = _DOLLAR_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), "0"), expr)
         return expr
+
+    def _resolve_range_slice(self, m: re.Match) -> str:
+        """Resolve $(var[n..m]) — items n through m as a comma list."""
+        name, start_s, end_s = m.group(1), m.group(2), m.group(3)
+        value = self.ctx.get(name, "")
+        if not value:
+            return ""
+        try:
+            start, end = int(start_s), int(end_s)
+        except ValueError:
+            return ""
+        items = value.split("\t") if "\t" in value else value.split(",")
+        return ",".join(items[start - 1 : end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
         """Resolve $(var[n]) — 1-indexed item from tab-separated list."""
@@ -407,6 +422,45 @@ class DefEngine:
 
         if cmd == "values":
             return self._cmd_values(args)
+
+        if cmd == "makelist":
+            return self._cmd_makelist(args)
+
+        if cmd == "positionof":
+            return self._cmd_positionof(args)
+
+        if cmd in ("randrow", "randitem_row"):
+            return self._cmd_randrow(args)
+
+        if cmd == "sort":
+            return self._cmd_sort(args)
+
+        if cmd == "mathsubst":
+            return self._cmd_mathsubst(args)
+
+        if cmd == "listuniq":
+            return self._cmd_listuniq(args)
+
+        if cmd == "declosing":
+            return self._cmd_declosing(args)
+
+        if cmd == "nospace":
+            return re.sub(r"\s+", "", self._subst(args))
+
+        if cmd in ("getopt", "getdef"):
+            return self._cmd_getopt(args)
+
+        if cmd == "embraced":
+            return self._cmd_embraced(args)
+
+        if cmd == "word":
+            return self._cmd_word(args)
+
+        if cmd == "column":
+            return self._cmd_column(args)
+
+        if cmd == "charcnt":
+            return str(len(self._subst(args).strip()))
 
         if cmd in ("nosubst",):
             return args  # literal, no substitution
@@ -561,8 +615,32 @@ class DefEngine:
             return lst + "\t" + item
         return item
 
+    def _eval_loop_expr(self, expr: str) -> str:
+        """Evaluate a loop body expression supporting bare variable names from ctx.
+
+        Handles $var references via _subst, and bare identifiers (e.g. 'v', 'v*v')
+        by injecting the current ctx into the eval namespace.
+        """
+        ev = self._subst(expr)
+        if ev != expr or expr.startswith("$"):
+            return ev
+        ns = dict(_MATH_NS)
+        for k, v in self.ctx.items():
+            s = v.strip()
+            try:
+                ns[k] = int(s) if s.lstrip("-").isdigit() else float(s)
+            except (ValueError, AttributeError):
+                ns[k] = s
+        try:
+            res = eval(expr.replace("^", "**"), ns)  # noqa: S307
+            if isinstance(res, float) and res.is_integer():
+                return str(int(res))
+            return str(res)
+        except Exception:
+            return ev
+
     def _cmd_values(self, args: str) -> str:
-        """!values expr for var=start to end — build a comma-separated list."""
+        """!values expr for var=start to end — comma-separated list."""
         m = re.match(
             r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
         )
@@ -583,29 +661,7 @@ class DefEngine:
         results = []
         for i in range(start, end + 1):
             self.ctx[var] = str(i)
-            # Evaluate expression: handle $var, bare var (loop variable), or arithmetic
-            ev = self._subst(expr)  # resolves $-prefixed refs
-            # If unchanged (no $), try evaluating as arithmetic with ctx injected
-            if ev == expr and not expr.startswith("$"):
-                ns = dict(_MATH_NS)
-                ns.update(
-                    {
-                        k: float(v)
-                        if v.replace(".", "", 1).replace("-", "", 1).isdigit()
-                        else v
-                        for k, v in self.ctx.items()
-                    }
-                )
-                try:
-                    res = eval(expr.replace("^", "**"), ns)  # noqa: S307
-                    ev = (
-                        str(int(res))
-                        if isinstance(res, float) and res.is_integer()
-                        else str(res)
-                    )
-                except Exception:
-                    ev = expr
-            results.append(ev)
+            results.append(self._eval_loop_expr(expr))
         if saved is not None:
             self.ctx[var] = saved
         else:
@@ -624,6 +680,170 @@ class DefEngine:
         if engine == "pari":
             return _call_pari(expr)
         return ""
+
+    def _cmd_makelist(self, args: str) -> str:
+        """!makelist expr for var=start to end — tab-separated list (matrix rows)."""
+        m = re.match(
+            r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
+        )
+        if not m:
+            return ""
+        expr, var, start_s, end_s = (
+            m.group(1).strip(),
+            m.group(2),
+            m.group(3).strip(),
+            m.group(4).strip(),
+        )
+        try:
+            start = int(round(float(self._eval_arith(self._subst(start_s)))))
+            end = int(round(float(self._eval_arith(self._subst(end_s)))))
+        except (ValueError, TypeError):
+            return ""
+        saved = self.ctx.get(var)
+        results = []
+        for i in range(start, end + 1):
+            self.ctx[var] = str(i)
+            # Expression may contain commas (multi-column row): eval each part
+            parts = [self._eval_loop_expr(p.strip()) for p in expr.split(",")]
+            results.append(",".join(parts))
+        if saved is not None:
+            self.ctx[var] = saved
+        else:
+            self.ctx.pop(var, None)
+        return "\t".join(results)
+
+    def _cmd_positionof(self, args: str) -> str:
+        """!positionof item X in $list — 1-indexed position, 0 if absent."""
+        m = re.match(r"item\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return "0"
+        needle = self._subst(m.group(1).strip())
+        haystack = self._subst(m.group(2).strip())
+        items = haystack.split("\t") if "\t" in haystack else haystack.split(",")
+        for i, item in enumerate(items, 1):
+            if item.strip() == needle:
+                return str(i)
+        return "0"
+
+    def _cmd_randrow(self, args: str) -> str:
+        """!randrow $matrix — pick a random tab-separated row."""
+        val = self._subst(args.strip())
+        rows = [r for r in val.split("\t") if r.strip()]
+        if not rows:
+            return ""
+        return self.rng.choice(rows)
+
+    def _cmd_sort(self, args: str) -> str:
+        """!sort numeric items/list $val — sort items numerically."""
+        m = re.match(r"numeric\s+(?:items?|list|rows?)\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return self._subst(args)
+        data = self._subst(m.group(1).strip())
+        if "\t" in data:
+            sep, items = "\t", data.split("\t")
+        else:
+            sep, items = ",", data.split(",")
+        items = [x for x in items if x.strip()]
+        try:
+            items.sort(key=lambda x: _parse_numeric(x.strip()))
+        except (ValueError, ZeroDivisionError):
+            items.sort()
+        return sep.join(items)
+
+    def _cmd_mathsubst(self, args: str) -> str:
+        """!mathsubst var=(value) in $expr — substitute var with (value) in expression."""
+        m = re.match(r"(\w+)\s*=\s*(.+?)\s+in\s+(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return self._subst(args)
+        var = m.group(1)
+        val = self._subst(m.group(2).strip())
+        expr = self._subst(m.group(3).strip())
+        # Wrap val in parens if not already (preserves precedence in the result)
+        if not (val.startswith("(") and val.endswith(")")):
+            val = f"({val})"
+        return re.sub(r"\b" + re.escape(var) + r"\b", val, expr)
+
+    def _cmd_listuniq(self, args: str) -> str:
+        """!listuniq $list — remove duplicates, preserve order."""
+        val = self._subst(args.strip())
+        if "\t" in val:
+            sep, items = "\t", val.split("\t")
+        else:
+            sep, items = ",", val.split(",")
+        seen: set[str] = set()
+        result = []
+        for item in items:
+            key = item.strip()
+            if key and key not in seen:
+                seen.add(key)
+                result.append(item)
+        return sep.join(result)
+
+    def _cmd_declosing(self, args: str) -> str:
+        """!declosing $val — remove outermost matching brackets/parens/braces."""
+        val = self._subst(args.strip()).strip()
+        pairs = {"(": ")", "[": "]", "{": "}"}
+        if val and val[0] in pairs and val[-1] == pairs[val[0]]:
+            return val[1:-1]
+        return val
+
+    def _cmd_getopt(self, args: str) -> str:
+        """!getopt key in $var — extract value for 'key=value' from options string."""
+        m = re.match(r"(\S+)\s+in\s+(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return ""
+        key = re.escape(m.group(1).strip())
+        val = self._subst(m.group(2).strip())
+        found = re.search(r"\b" + key + r"\s*=\s*(\S+)", val)
+        return found.group(1) if found else ""
+
+    def _cmd_embraced(self, args: str) -> str:
+        """!embraced randitem $list — pick a random item, wrap in parens if needed."""
+        m = re.match(r"randitem\s+(.*)", args, re.DOTALL | re.I)
+        if m:
+            item = self._cmd_randitem(m.group(1).strip())
+        else:
+            item = self._subst(args)
+        # Wrap in parens if the item could cause sign/precedence issues embedded in math
+        needs_parens = bool(re.search(r"[+\-*/]", item.lstrip("-")))
+        return f"({item})" if needs_parens else item
+
+    def _cmd_word(self, args: str) -> str:
+        """!word n of $str — nth space-separated word (1-indexed)."""
+        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        text = self._subst(m.group(2).strip())
+        try:
+            idx = int(round(float(self._eval_arith(idx_s))))
+        except (ValueError, TypeError):
+            return ""
+        words = text.split()
+        return words[idx - 1] if 1 <= idx <= len(words) else ""
+
+    def _cmd_column(self, args: str) -> str:
+        """!column n of $matrix — extract column n from each tab-separated row."""
+        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        data = self._subst(m.group(2).strip())
+        # Handle "n to m" range (return items in those columns across all rows)
+        range_m = re.match(r"(\d+)\s+to\s+\S+", idx_s)
+        col_idx = int(range_m.group(1)) if range_m else None
+        if col_idx is None:
+            try:
+                col_idx = int(round(float(self._eval_arith(idx_s))))
+            except (ValueError, TypeError):
+                return ""
+        rows = data.split("\t")
+        result = []
+        for row in rows:
+            cols = re.split(r"[;,]", row)
+            if 1 <= col_idx <= len(cols):
+                result.append(cols[col_idx - 1].strip())
+        return ",".join(result)
 
     # ── Section rendering ─────────────────────────────────────────────────────
 
@@ -787,6 +1007,18 @@ def _call_pari(expr: str) -> str:
         return str(result)
     except Exception:
         return expr
+
+
+# ── Numeric helpers ───────────────────────────────────────────────────────────
+
+
+def _parse_numeric(s: str) -> float:
+    """Parse a numeric string that may be a fraction like '3/2' or '-7/4'."""
+    s = s.strip()
+    if "/" in s:
+        parts = s.split("/", 1)
+        return float(parts[0]) / float(parts[1])
+    return float(s)
 
 
 # ── Utility ───────────────────────────────────────────────────────────────────

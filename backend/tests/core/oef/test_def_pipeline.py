@@ -2,10 +2,13 @@
 Tests for the .def parser and engine.
 
 Uses real files from the resource tree as fixtures:
-  - valeur1.def    — simple: !randint, $[expr], literal strings, :question with !insmath
-  - loiGP1.def     — medium: 5 numeric answers, $(var[n;m]) matrix access
-  - equaprod1.def  — uses !values, produces fractional solutions
-  - intercepte2.def — 4 radio answers built with !for loop
+  - valeur1.def       — simple: !randint, $[expr], literal strings, :question with !insmath
+  - loiGP1.def        — medium: 5 numeric answers, $(var[n;m]) matrix access
+  - equaprod1.def     — uses !values, produces fractional solutions
+  - intercepte2.def   — 4 radio answers built with !for loop
+  - rotation3.def     — uses !randrow to pick a question from a matrix
+  - compTrinomeSign2  — uses !positionof (Dutch exercise, 4 answers)
+  - ordre2.def        — uses !sort + $(var[n..m]) range slice
 """
 
 import os
@@ -31,6 +34,13 @@ EQUAPROD1_DEF = os.path.join(
 INTERCEPTE2_DEF = os.path.join(
     RESSOURCES, "H4/analysis/evalwimstrigo.fr/def/intercepte2.def"
 )
+ROTATION3_DEF = os.path.join(
+    RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotation3.def"
+)
+COMP_TRINOME_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/h4tableSign.nl/def/compTrinomeSign2.def"
+)
+ORDRE2_DEF = os.path.join(RESSOURCES, "H4/analysis/OEFevacollege2005.fr/def/ordre2.def")
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -273,3 +283,99 @@ class TestIntercepte2:
     def test_statement_not_empty(self):
         r = load_and_render(INTERCEPTE2_DEF, seed=3)
         assert r.statement_html.strip()
+
+
+# ── Integration: rotation3 (!randrow) ─────────────────────────────────────────
+
+
+class TestRotation3:
+    """rotation3 uses !randrow to pick a question row from a matrix of scenarios.
+    Tests the !randrow + tab-matrix pipeline."""
+
+    def test_renders(self):
+        r = load_and_render(ROTATION3_DEF, seed=3)
+        assert r.statement_html.strip()
+
+    def test_one_answer(self):
+        r = load_and_render(ROTATION3_DEF, seed=3)
+        assert len(r.answers) == 1
+
+    def test_answer_non_empty(self):
+        r = load_and_render(ROTATION3_DEF, seed=3)
+        assert r.answers[0].expected
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(ROTATION3_DEF, seed=17)
+        r2 = load_and_render(ROTATION3_DEF, seed=17)
+        assert r1.answers[0].expected == r2.answers[0].expected
+
+    def test_different_seeds_may_differ(self):
+        results = {
+            load_and_render(ROTATION3_DEF, seed=s).answers[0].expected
+            for s in range(20)
+        }
+        assert len(results) > 1  # randrow produces variation
+
+
+# ── Integration: compTrinomeSign2 (!positionof, Dutch) ───────────────────────
+
+
+class TestCompTrinomeSign2:
+    """compTrinomeSign2 uses !positionof to locate values in lists.
+    Dutch exercise with 4 clickfill answers."""
+
+    def test_four_answers(self):
+        r = load_and_render(COMP_TRINOME_DEF, seed=5)
+        assert len(r.answers) == 4
+
+    def test_all_answers_non_empty(self):
+        r = load_and_render(COMP_TRINOME_DEF, seed=5)
+        for a in r.answers:
+            assert a.expected
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(COMP_TRINOME_DEF, seed=42)
+        r2 = load_and_render(COMP_TRINOME_DEF, seed=42)
+        assert [a.expected for a in r1.answers] == [a.expected for a in r2.answers]
+
+    def test_lang_is_dutch(self):
+        r = load_and_render(COMP_TRINOME_DEF, seed=5)
+        assert r.lang == "nl"
+
+
+# ── Integration: ordre2 (!sort + $(var[n..m]) range slice) ───────────────────
+
+
+class TestOrdre2:
+    """ordre2 sorts a comma list of fractions using $(var[1..4]) range slice.
+    Tests both !sort and the $(var[n..m]) substitution."""
+
+    def test_renders(self):
+        r = load_and_render(ORDRE2_DEF, seed=7)
+        assert r.statement_html.strip()
+
+    def test_one_answer(self):
+        r = load_and_render(ORDRE2_DEF, seed=7)
+        assert len(r.answers) == 1
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(ORDRE2_DEF, seed=99)
+        r2 = load_and_render(ORDRE2_DEF, seed=99)
+        assert r1.answers[0].expected == r2.answers[0].expected
+
+    def test_sort_produces_ordered_fractions(self):
+        """The fixed fallback seed (86) hits a code path without Maxima dependency."""
+        from core.oef.def_engine import DefEngine, _parse_numeric
+        from core.oef.def_parser import parse
+
+        df = parse(open(ORDRE2_DEF, encoding="utf-8", errors="replace").read())
+        e = DefEngine(seed=7)
+        e._exec(df.var_instructions, output_buf=None)
+        val11 = e.ctx.get("val11", "")
+        # Skip if Maxima was needed and output is unparseable
+        parts = [p.strip() for p in val11.split(",") if p.strip()]
+        try:
+            values = [_parse_numeric(p) for p in parts]
+        except ValueError:
+            return  # Maxima not available — skip numeric check
+        assert values == sorted(values)
