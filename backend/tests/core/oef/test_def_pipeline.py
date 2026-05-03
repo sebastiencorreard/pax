@@ -52,6 +52,9 @@ ROTANGLE3_DEF = os.path.join(
     RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotangle3.def"
 )
 MEDIANE4_DEF = os.path.join(RESSOURCES, "H4/stat/OEFevalwimsstat.fr/def/mediane4.def")
+VOCABAFF3_DEF = os.path.join(
+    RESSOURCES, "H4/analysis/OEFevalwimsfctref.fr/def/vocabaff3.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -556,3 +559,33 @@ class TestMediane4:
         # The expected value is one of the data values (between val11 and val12)
         # or the half-sum of two consecutive ones.
         assert r.answers[0].expected.replace(".", "").lstrip("-").isdigit()
+
+
+class TestVocabaff3:
+    """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate
+    plane with two plotted linear functions; covers ReadDraw + xrange/
+    yrange/vline/hline/plot/gridfill primitives."""
+
+    def test_renders(self):
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_inlines_an_svg(self):
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert "<svg" in r.statement_html
+
+    def test_two_plotted_curves(self):
+        # plot red,$val16 and plot green,$val20 — two polylines.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.count("<polyline") == 2
+
+    def test_axes_drawn(self):
+        # vline 0,0 + hline 0,0 (the central x and y axes) plus the
+        # surrounding gridlines and axis arrows.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.count("<line") >= 12
+
+    def test_grid_background(self):
+        # gridfill emits a backing <rect>.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert "<rect" in r.statement_html

@@ -888,11 +888,15 @@ class TestTexmath:
         result = e._eval_cmd("texmath", "$v")
         assert "n^{2}" in result
 
-    def test_rawmath_converts_to_latex(self):
+    def test_rawmath_keeps_python_form(self):
+        # `!rawmath` normalises but does NOT convert to LaTeX (that's
+        # `!texmath`). Result must stay Python/Pari-evaluable so downstream
+        # `!exec pari print(...)` and `plot` can use it.
         e = engine()
-        e.ctx["v"] = "3*x**2 - 1"
+        e.ctx["v"] = "1/3"
         result = e._eval_cmd("rawmath", "$v")
-        assert "x^{2}" in result
+        assert result == "1/3"
+        assert "\\frac" not in result
 
 
 # ── !translate (both with and without internal) ───────────────────────────────

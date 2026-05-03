@@ -19,6 +19,7 @@ from .def_parser import (
     IfBlock,
     Insmath,
     Output,
+    ReadDraw,
     ReadEmbed,
     ReadProc,
     parse as parse_def,
@@ -283,6 +284,14 @@ class DefEngine:
                 if output_buf is not None:
                     output_buf.append("")
 
+            elif isinstance(instr, ReadDraw):
+                # !read oef/draw.phtml ARGS — render a graph and inline it
+                # right where the directive sits in the question section.
+                self._cmd_readproc(f"oef/draw.phtml {instr.args}")
+                url = self.ctx.get("ins_url", "")
+                if output_buf is not None and url:
+                    output_buf.append(f'<img src="{url}" alt="">')
+
     def _exec_for(self, loop: ForLoop, output_buf: list | None) -> None:
         range_s = self._subst(loop.range_expr)
         m = re.match(r"(.+?)\s+to\s+(.+)", range_s, re.I)
@@ -544,7 +553,10 @@ class DefEngine:
             return self._cmd_exec(args)
 
         if cmd == "rawmath":
-            return _sympy_to_latex(self._subst(args))
+            # `!rawmath` normalises a math expression, keeping it in a form
+            # suitable for downstream evaluation (`pari print()`, plotting).
+            # NOT a LaTeX conversion — that's `!texmath`.
+            return self._subst(args)
 
         if cmd == "texmath":
             return _sympy_to_latex(self._subst(args))

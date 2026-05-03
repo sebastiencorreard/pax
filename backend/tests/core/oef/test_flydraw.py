@@ -130,6 +130,39 @@ class TestFlydrawPrimitives:
         assert svg.count("<polygon") == 1
         assert 'fill="#ff0000"' in svg
 
+    def test_xrange_yrange_set_viewport(self):
+        # x-range / y-range take effect for subsequent primitives.
+        svg = flydraw_to_svg(300, 200, "xrange -3,3\nyrange -2,2\nsegment 0,0,3,2,red")
+        # x=0 in [-3,3] → px=150; x=3 → px=300.
+        assert 'x1="150.00"' in svg and 'x2="300.00"' in svg
+
+    def test_hline_spans_x_range(self):
+        svg = flydraw_to_svg(300, 200, "xrange -5,5\nyrange -2,2\nhline 0,1,red")
+        assert 'x1="0.00"' in svg
+        assert 'x2="300.00"' in svg
+
+    def test_vline_spans_y_range(self):
+        svg = flydraw_to_svg(300, 200, "xrange -5,5\nyrange -2,2\nvline 0,0,red")
+        # y=ymin → py=200; y=ymax → py=0
+        assert 'y1="200.00"' in svg
+        assert 'y2="0.00"' in svg
+
+    def test_gridfill_emits_pattern_grid(self):
+        # `gridfill 0,0,nx,ny,color` emits an SVG <pattern> of thin grid
+        # lines (every `nx` × `ny` pixels) over the whole viewport.
+        svg = flydraw_to_svg(
+            300, 200, "xrange -5,5\nyrange -2,2\ngridfill 0,0,5,5,lightblue"
+        )
+        assert "<pattern" in svg
+        assert 'stroke="#add8e6"' in svg  # pattern stroke uses the colour
+        assert 'fill="url(#' in svg  # rect references the pattern
+
+    def test_plot_linear_function(self):
+        # Plot y=x in range -3..3; expect a polyline crossing the viewport.
+        svg = flydraw_to_svg(300, 200, "xrange -3,3\nyrange -3,3\nplot red,x")
+        assert "<polyline" in svg
+        assert 'stroke="#ff0000"' in svg
+
     def test_flood_polygon_renders_behind_grid_lines(self):
         # The polygon must be inserted BEFORE the line elements so that the
         # grid lines remain visible on top.
