@@ -8,10 +8,8 @@ question= text), extracts answer metadata, and returns an ExerciseRender.
 from __future__ import annotations
 
 import math
-import os
 import random
 import re
-import subprocess
 from typing import Any
 
 from .def_parser import (
@@ -410,12 +408,10 @@ class DefEngine:
             return self._cmd_exec(args)
 
         if cmd == "rawmath":
-            # Identity: the value is already computed (always follows !exec maxima)
-            return self._subst(args)
+            return _sympy_to_latex(self._subst(args))
 
         if cmd == "texmath":
-            # Best-effort: return the expression as-is (already LaTeX-like)
-            return self._subst(args)
+            return _sympy_to_latex(self._subst(args))
 
         if cmd == "insmath":
             return self._subst(args)
@@ -587,22 +583,33 @@ class DefEngine:
         return src.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """!translate internal X to Y in S — replace X with Y."""
-        # Same syntax as replace but uses "to" instead of "by"
-        m = re.match(
+        """!translate [internal] chars_from to chars_to in S — tr-style char translation."""
+        m_int = re.match(
             r"internal\s+(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I
         )
+        m_plain = (
+            re.match(r"(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I)
+            if not m_int
+            else None
+        )
+        m = m_int or m_plain
         if not m:
             return self._subst(args)
-        old = m.group(1).strip()
-        new = m.group(2).strip()
+
+        chars_from = m.group(1).strip()
+        chars_to_raw = m.group(2).strip()
         src = self._subst(m.group(3).strip())
-        # Handle $\t$ → tab character pattern used in .def files
-        old = old.replace("$\t$", "\t").replace("$\\t$", "\t")
-        new = new.replace(
-            ";;", "\t"
-        )  # translate internal \t to ;; means tab→;; or ;;→tab
-        return src.replace(old, new)
+
+        # Resolve tab shorthands
+        chars_from = chars_from.replace("$\t$", "\t").replace("$\\t$", "\t")
+        chars_to = chars_to_raw.replace(";;", "\t")
+
+        # Build tr-style character translation table
+        trans: dict[int, str | None] = {}
+        for i, c in enumerate(chars_from):
+            trans[ord(c)] = chars_to[i] if i < len(chars_to) else None
+
+        return src.translate(trans)
 
     def _cmd_append(self, args: str) -> str:
         """!append item X to list — append item to tab-separated list."""
@@ -959,45 +966,72 @@ class DefEngine:
 # ── CAS helpers ───────────────────────────────────────────────────────────────
 
 
+_MAXIMA_TO_SYMPY: dict[str, str] = {
+    "expand": "expand",
+    "factor": "factor",
+    "fullratsimp": "simplify",
+    "ratsimp": "simplify",
+    "simplify": "simplify",
+    "cancel": "cancel",
+    "radsimp": "radsimp",
+}
+
+
 def _call_maxima(expr: str) -> str:
-    """Call Maxima CAS with a single expression and return the result."""
-    # Resolve binary path: try config, then common locations
-    maxima_bin = "/usr/bin/maxima"
+    """Evaluate a Maxima CAS expression using SymPy as a drop-in replacement."""
+    import sympy  # noqa: PLC0415
+
+    clean = expr.strip().rstrip(";").strip()
+
+    # Match a single function call: funcname(args…)
+    m = re.match(r"^(\w+)\s*\((.+)\)$", clean, re.DOTALL)
+    if m:
+        func_name = m.group(1).lower()
+        arg_str = m.group(2).strip()
+
+        if func_name == "printtex":
+            try:
+                return sympy.latex(sympy.sympify(arg_str.replace("^", "**")))
+            except Exception:
+                return clean
+
+        sympy_func_name = _MAXIMA_TO_SYMPY.get(func_name)
+        if sympy_func_name:
+            try:
+                sympy_func = getattr(sympy, sympy_func_name)
+                result = sympy_func(sympy.sympify(arg_str.replace("^", "**")))
+                return str(result)
+            except Exception:
+                return clean
+
+    # Fallback: plain arithmetic / variable expression
     try:
-        from config import settings  # noqa: PLC0415 — relative to backend/
+        result = sympy.simplify(sympy.sympify(clean.replace("^", "**")))
+        if result.is_number and result.is_integer:
+            return str(int(result))
+        return str(result)
+    except Exception:
+        return expr
 
-        maxima_bin = getattr(settings, "maxima_bin", maxima_bin)
-    except ImportError:
-        pass
-    if not os.path.isfile(maxima_bin):
-        return expr  # Maxima not available — return expression as-is
 
-    # Ensure expression ends with ;
-    cmd = expr.strip()
-    if not cmd.endswith(";"):
-        cmd += ";"
+def _sympy_to_latex(expr: str) -> str:
+    """Convert a SymPy output string to LaTeX notation for display."""
+    import sympy  # noqa: PLC0415
 
     try:
-        result = subprocess.run(
-            [maxima_bin, "--very-quiet", "--batch-string", cmd],
-            capture_output=True,
-            text=True,
-            timeout=3,
-        )
-        # Maxima output: strip prompts and blank lines
-        lines = [
-            ln.strip()
-            for ln in result.stdout.splitlines()
-            if ln.strip() and not ln.strip().startswith("(%")
-        ]
-        return lines[-1] if lines else expr
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        return sympy.latex(sympy.sympify(expr.replace("^", "**")))
+    except Exception:
         return expr
 
 
 def _call_pari(expr: str) -> str:
     """Evaluate a PARI/GP-style arithmetic expression via Python."""
-    clean = expr.strip().rstrip(";").replace("^", "**")
+    clean = expr.strip().rstrip(";")
+    # PARI print(expr) outputs and returns the value — unwrap it
+    m = re.match(r"^print\s*\((.+)\)$", clean, re.DOTALL)
+    if m:
+        clean = m.group(1).strip()
+    clean = clean.replace("^", "**")
     try:
         result = eval(clean, _MATH_NS)  # noqa: S307
         if isinstance(result, float) and result.is_integer():

@@ -2,13 +2,13 @@
 Unit tests for def_engine internals.
 
 Covers individual commands, variable resolution helpers, condition evaluation,
-find_def_path, and _call_pari — all exercised below the integration level.
+find_def_path, _call_pari, _call_maxima (SymPy backend), and _sympy_to_latex.
 """
 
 import re
 
 
-from core.oef.def_engine import DefEngine, _call_pari
+from core.oef.def_engine import DefEngine, _call_maxima, _call_pari, _sympy_to_latex
 from core.oef.engine import find_def_path
 
 
@@ -579,3 +579,136 @@ class TestRangeSlice:
         e = engine()
         e.ctx["v"] = "a,b,c"
         assert e._subst("$(v[2..2])") == "b"
+
+
+# ── _call_maxima (SymPy backend) ──────────────────────────────────────────────
+
+
+class TestCallMaxima:
+    def test_expand_polynomial(self):
+        result = _call_maxima("expand((n + 2)*(n + 3))")
+        assert "n**2" in result or "n^2" in result or "5*n" in result
+
+    def test_expand_with_minus(self):
+        result = _call_maxima("expand(-(n + 2)*(n + 3))")
+        assert "n**2" in result or "n^2" in result
+        assert "-" in result
+
+    def test_factor_simple(self):
+        result = _call_maxima("factor(n**2 - 4)")
+        # SymPy factor: (n - 2)*(n + 2)
+        assert "n" in result
+
+    def test_fullratsimp_numeric(self):
+        result = _call_maxima("fullratsimp(-10*(-2+3))")
+        assert result.strip() == "-10"
+
+    def test_fullratsimp_fraction(self):
+        result = _call_maxima("fullratsimp(6/4)")
+        # SymPy simplify(Rational(6, 4)) = 3/2
+        assert "3" in result and "2" in result
+
+    def test_printtex(self):
+        result = _call_maxima("printtex(x**2 + 2*x + 1)")
+        assert "x^{2}" in result or "\\left" in result or "x" in result
+
+    def test_fallback_arithmetic(self):
+        result = _call_maxima("3 + 4")
+        assert result.strip() == "7"
+
+    def test_strips_semicolon(self):
+        result = _call_maxima("fullratsimp(-10*(-2+3));")
+        assert result.strip() == "-10"
+
+    def test_unknown_function_returns_expr(self):
+        result = _call_maxima("weirdunknownfunc(x + 1)")
+        assert "weirdunknownfunc" in result or "x" in result
+
+
+# ── _sympy_to_latex ───────────────────────────────────────────────────────────
+
+
+class TestSympyToLatex:
+    def test_polynomial(self):
+        result = _sympy_to_latex("n**2 + 2*n - 15")
+        assert "n^{2}" in result
+        assert "n" in result
+
+    def test_fraction(self):
+        result = _sympy_to_latex("3/2")
+        assert "frac" in result or "3" in result
+
+    def test_negative(self):
+        result = _sympy_to_latex("-10")
+        assert result.strip() == "-10"
+
+    def test_fallback_on_unparseable(self):
+        # Should return original string on parse failure
+        result = _sympy_to_latex("some random non-math text @#$")
+        assert result  # non-empty
+
+
+# ── !texmath command ──────────────────────────────────────────────────────────
+
+
+class TestTexmath:
+    def test_texmath_converts_to_latex(self):
+        e = engine()
+        e.ctx["v"] = "n**2 + 2*n - 15"
+        result = e._eval_cmd("texmath", "$v")
+        assert "n^{2}" in result
+
+    def test_rawmath_converts_to_latex(self):
+        e = engine()
+        e.ctx["v"] = "3*x**2 - 1"
+        result = e._eval_cmd("rawmath", "$v")
+        assert "x^{2}" in result
+
+
+# ── !translate (both with and without internal) ───────────────────────────────
+
+
+class TestTranslate:
+    def test_internal_tab_to_semicolon(self):
+        e = engine()
+        e.ctx["v"] = "a\tb\tc"
+        result = e._eval_cmd("translate", "internal $\t$ to ; in $v")
+        assert result == "a;b;c"
+
+    def test_plain_char_translation(self):
+        # WIMS pattern: chars_to has a trailing char to separate it from " in "
+        # ";" → "$", ":" → " ", "<" → ">"
+        e = engine()
+        result = e._eval_cmd("translate", '";: to $ _ in abc;def"ghi:jkl')
+        # " → $,  ; → space,  : → _
+        assert result == "abc def$ghi_jkl"
+
+    def test_plain_noop(self):
+        # No chars to translate → identity (arithmetic chars not in translation set)
+        e = engine()
+        result = e._eval_cmd("translate", "\";': to $     $ in -10*(-2+3)")
+        assert result == "-10*(-2+3)"
+
+    def test_plain_with_variable(self):
+        e = engine()
+        e.ctx["val"] = "1+2+3"
+        result = e._eval_cmd("translate", "\";': to $     $ in $val")
+        assert result == "1+2+3"
+
+
+# ── !exec pari print() unwrapping ─────────────────────────────────────────────
+
+
+class TestPariPrint:
+    def test_print_unwrapped(self):
+        assert _call_pari("print(6)") == "6"
+
+    def test_print_negative(self):
+        assert _call_pari("print(-6)") == "-6"
+
+    def test_print_expression(self):
+        result = _call_pari("print(3 + 4)")
+        assert result == "7"
+
+    def test_print_with_semicolon(self):
+        assert _call_pari("print(6);") == "6"

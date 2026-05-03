@@ -41,6 +41,10 @@ COMP_TRINOME_DEF = os.path.join(
     RESSOURCES, "H4/algebra/h4tableSign.nl/def/compTrinomeSign2.def"
 )
 ORDRE2_DEF = os.path.join(RESSOURCES, "H4/analysis/OEFevacollege2005.fr/def/ordre2.def")
+DEV1EXP_DEF = os.path.join(RESSOURCES, "H4/algebra/oefcalcullit.fr/def/dev1exp.def")
+FACTORB1_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/evalwimsdevfact.fr/def/factorB1.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -363,7 +367,7 @@ class TestOrdre2:
         r2 = load_and_render(ORDRE2_DEF, seed=99)
         assert r1.answers[0].expected == r2.answers[0].expected
 
-    def test_sort_produces_ordered_fractions(self):
+    def test_sort_produces_ordered_fractions_sympy(self):
         """The fixed fallback seed (86) hits a code path without Maxima dependency."""
         from core.oef.def_engine import DefEngine, _parse_numeric
         from core.oef.def_parser import parse
@@ -377,5 +381,69 @@ class TestOrdre2:
         try:
             values = [_parse_numeric(p) for p in parts]
         except ValueError:
-            return  # Maxima not available — skip numeric check
+            return  # Maxima unavailable — skip numeric check
         assert values == sorted(values)
+
+
+# ── Integration: dev1exp (!exec maxima expand + factor, SymPy backend) ───────
+
+
+class TestDev1Exp:
+    """dev1exp asks students to expand a product like (n-2)(n+3).
+    Uses !exec maxima expand() and factor() via the SymPy backend."""
+
+    def test_renders(self):
+        r = load_and_render(DEV1EXP_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_contains_latex_factor(self):
+        r = load_and_render(DEV1EXP_DEF, seed=42)
+        # The displayed form is the factored expression — must contain LaTeX
+        assert "\\(" in r.statement_html or "\\left" in r.statement_html
+
+    def test_one_answer(self):
+        r = load_and_render(DEV1EXP_DEF, seed=42)
+        assert len(r.answers) == 1
+
+    def test_answer_is_expanded_polynomial(self):
+        r = load_and_render(DEV1EXP_DEF, seed=42)
+        expected = r.answers[0].expected
+        # SymPy returns expanded form like -n**2 - 5*n - 6
+        assert "n" in expected
+        assert "**2" in expected or "^2" in expected
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(DEV1EXP_DEF, seed=7)
+        r2 = load_and_render(DEV1EXP_DEF, seed=7)
+        assert r1.answers[0].expected == r2.answers[0].expected
+
+    def test_no_raw_maxima_in_statement(self):
+        r = load_and_render(DEV1EXP_DEF, seed=42)
+        assert "expand(" not in r.statement_html
+        assert "factor(" not in r.statement_html
+        assert "fullratsimp(" not in r.statement_html
+
+
+# ── Integration: factorB1 (!exec maxima factor via SymPy) ────────────────────
+
+
+class TestFactorB1:
+    """factorB1 asks students to factor an expression.
+    Uses !exec maxima expand() to build the statement."""
+
+    def test_renders(self):
+        r = load_and_render(FACTORB1_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_one_answer(self):
+        r = load_and_render(FACTORB1_DEF, seed=42)
+        assert len(r.answers) == 1
+
+    def test_answer_non_empty(self):
+        r = load_and_render(FACTORB1_DEF, seed=42)
+        assert r.answers[0].expected.strip()
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(FACTORB1_DEF, seed=13)
+        r2 = load_and_render(FACTORB1_DEF, seed=13)
+        assert r1.answers[0].expected == r2.answers[0].expected
