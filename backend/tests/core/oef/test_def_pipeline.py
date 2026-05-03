@@ -589,3 +589,22 @@ class TestVocabaff3:
         # gridfill emits a backing <rect>.
         r = load_and_render(VOCABAFF3_DEF, seed=42)
         assert "<rect" in r.statement_html
+
+    def test_radio_answer_parsed_from_indexed_form(self):
+        # `replygood1=<idx>;<choice1>,<choice2>,…` — extract the choices
+        # and the 1-based correct index.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        ans = r.answers[0]
+        assert ans.answer_type == "radio"
+        choices = ans.options.get("choices", [])
+        assert len(choices) == 4
+        # Correct answer matches one of the four choices.
+        assert ans.expected in choices
+
+    def test_no_text_input_emitted_for_radio_embeds(self):
+        # `!read oef/embed.phtml reply1,N` for a radio reply must NOT
+        # produce <input>/<span> text widgets — the frontend renders the
+        # choices from options.choices instead.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        input_segments = [s for s in r.statement_segments if s["type"] == "input"]
+        assert input_segments == []

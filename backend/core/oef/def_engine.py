@@ -192,6 +192,17 @@ class DefEngine:
     # ── Top-level render ──────────────────────────────────────────────────────
 
     def render(self, df: DefFile) -> ExerciseRender:
+        # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
+        # df.reply_meta, not in var_instructions. Seed it into ctx so the
+        # statement rendering (specifically `_render_embed`) can see e.g.
+        # `replytype1` to decide whether to emit a text input.
+        for rm in df.reply_meta:
+            n = rm.get("n")
+            if n is None:
+                continue
+            for key in ("type", "name", "good", "option", "weight"):
+                if key in rm:
+                    self.ctx[f"reply{key}{n}"] = rm[key]
         self._exec(df.var_instructions, output_buf=None)
 
         # Render statement HTML
@@ -206,6 +217,11 @@ class DefEngine:
 
         html = _close_inline_math(html)
         html = inline_svg_imgs(html)
+        # Drop empty `<li>` / `<ul>` shells left behind when radio embeds
+        # are stripped (the frontend renders the radio buttons separately
+        # from `options.choices`).
+        html = re.sub(r"<li[^>]*>\s*</li>", "", html)
+        html = re.sub(r"<ul[^>]*>\s*</ul>", "", html)
         answers = self._extract_answers(df)
 
         # If the question text has no input/slot widget but the exercise
@@ -1475,12 +1491,26 @@ class DefEngine:
         return ""
 
     def _render_embed(self, args: str) -> str:
-        """Render an !read oef/embed.phtml marker as an input span."""
+        """Render an !read oef/embed.phtml marker as an input span.
+
+        If the target reply is a radio, the embed is a click-target for one
+        of the radio choices (the second arg is the choice index, not a
+        text-input size). The frontend renders radio buttons from
+        ``options.choices`` separately, so we emit an empty marker and let
+        the surrounding `<li>` / `<ul>` markup collapse to nothing visible.
+        """
         args = self._subst(args).strip()
         # Parse: "r1,10" or "reply1,$val10" or "r1" etc.
         parts = [p.strip() for p in args.split(",")]
         ref = parts[0] if parts else "reply1"
         size_str = parts[1] if len(parts) > 1 else "10"
+
+        # Skip text-input emission when the target reply is a radio.
+        nm = re.match(r"^r(?:eply)?(\d+)$", ref)
+        if nm:
+            n = nm.group(1)
+            if self.ctx.get(f"replytype{n}", "").strip().lower() == "radio":
+                return ""
 
         # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
         if ref.startswith("r") and not ref.startswith("reply"):
@@ -1513,12 +1543,31 @@ class DefEngine:
 
         for rm in df.reply_meta:
             n = rm["n"]
-            ans_type = self._subst(rm.get("type", "numeric"))
+            ans_type = self._subst(rm.get("type", "numeric")).strip()
             label = self._subst(rm.get("name", ""))
-            expected = self._subst(rm.get("good", ""))
+            good_raw = self._subst(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
-            options = {"option": option} if option else {}
+            options: dict = {"option": option} if option else {}
+
+            expected = good_raw
+            if ans_type.lower() == "radio":
+                # WIMS radio reply form: good = "<idx>;<c1>,<c2>,…" where
+                # `<idx>` is the 1-based correct choice. Surface choices on
+                # the answer so the frontend can render the radio buttons.
+                idx_str, sep, choices_str = good_raw.partition(";")
+                try:
+                    idx = int(idx_str.strip())
+                except ValueError:
+                    idx = 1
+                choices = [c.strip() for c in choices_str.split(",") if c.strip()]
+                if choices:
+                    expected = (
+                        choices[idx - 1] if 1 <= idx <= len(choices) else choices[0]
+                    )
+                    options["choices"] = choices
+                else:
+                    expected = good_raw
             answers.append(
                 AnswerDef(
                     label=label,
