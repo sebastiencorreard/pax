@@ -128,6 +128,15 @@ async def list_modules(
     )
 
 
+def _module_title(oef_path: str) -> str | None:
+    """Read the module's INDEX file and return its `title` field, if any."""
+    mod_dir = _module_dir_from_path(oef_path)
+    if not mod_dir:
+        return None
+    idx = _parse_index(os.path.join(mod_dir, "INDEX"))
+    return idx.get("title") or None
+
+
 @router.get("/{exercise_id}", response_model=ExerciseResponse)
 async def get_exercise(
     exercise_id: str,
@@ -138,7 +147,9 @@ async def get_exercise(
     exercise = result.scalar_one_or_none()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
-    return exercise
+    payload = ExerciseResponse.model_validate(exercise)
+    payload.module_title = _module_title(exercise.oef_path)
+    return payload
 
 
 @router.patch("/{exercise_id}/qa", response_model=ExerciseResponse)
