@@ -867,31 +867,49 @@ class DefEngine:
         return sep.join(items)
 
     def _cmd_item(self, args: str) -> str:
-        """!item n of list — 1-indexed item."""
+        """!item I of list — 1-indexed item, or list of items.
+
+        ``I`` may be a single index, a ``N to M`` range, or a comma-separated
+        list of indices (WIMS rotangle/rotation exercises use this form to
+        pick a permutation of colors out of a master colour list).
+        """
         m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
 
+        def split_items(s: str) -> list[str]:
+            if "\t" in s:
+                return s.split("\t")
+            return re.split(r",(?![^(]*\))", s)
+
         # Range: "2 to 5" → items 2 through 5
         range_m = re.match(r"(\d+)\s+to\s+(\d+)", idx_s)
         if range_m:
             a, b = int(range_m.group(1)), int(range_m.group(2))
-            if "\t" in data:
-                items = data.split("\t")
-            else:
-                items = data.split(",")
+            items = split_items(data)
             return ",".join(items[a - 1 : b])
+
+        # Comma-separated list of indices → pick each, join with commas
+        if "," in idx_s:
+            indices: list[int] = []
+            for p in idx_s.split(","):
+                p = p.strip()
+                try:
+                    indices.append(int(round(float(self._eval_arith(p)))))
+                except (ValueError, TypeError):
+                    pass
+            items = split_items(data)
+            return ",".join(
+                items[i - 1].strip() for i in indices if 1 <= i <= len(items)
+            )
 
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
         except (ValueError, TypeError):
             return ""
-        if "\t" in data:
-            items = data.split("\t")
-        else:
-            items = re.split(r",(?![^(]*\))", data)  # comma not inside parens
+        items = split_items(data)
         if 1 <= idx <= len(items):
             return items[idx - 1].strip()
         return ""
@@ -928,7 +946,19 @@ class DefEngine:
         return src.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """!translate [internal] chars_from to chars_to in S — tr-style char translation."""
+        """``!translate [internal] FROM to TO in S`` — tr-style char map.
+
+        Implements the WIMS algorithm from ``calc.c:calc_translate``:
+
+        1. After variable substitution, take the FROM and TO sets as raw
+           character sequences (no ``$X$`` shorthand expansion — they are
+           literal ``$`` + chars + ``$``).
+        2. Truncate FROM to ``len(TO)`` so that any extra from-chars are
+           dropped.
+        3. For each character in the input that appears in FROM, replace it
+           with the TO character at the same index (first occurrence wins
+           when FROM has duplicates).
+        """
         m_int = re.match(
             r"internal\s+(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I
         )
@@ -942,17 +972,16 @@ class DefEngine:
             return self._subst(args)
 
         chars_from = m.group(1).strip()
-        chars_to_raw = m.group(2).strip()
+        chars_to = m.group(2).strip()
         src = self._subst(m.group(3).strip())
 
-        # Resolve tab shorthands
-        chars_from = chars_from.replace("$\t$", "\t").replace("$\\t$", "\t")
-        chars_to = chars_to_raw.replace(";;", "\t")
+        if len(chars_to) < len(chars_from):
+            chars_from = chars_from[: len(chars_to)]
 
-        # Build tr-style character translation table
-        trans: dict[int, str | None] = {}
+        trans: dict[int, str] = {}
         for i, c in enumerate(chars_from):
-            trans[ord(c)] = chars_to[i] if i < len(chars_to) else None
+            if ord(c) not in trans:
+                trans[ord(c)] = chars_to[i]
 
         return src.translate(trans)
 

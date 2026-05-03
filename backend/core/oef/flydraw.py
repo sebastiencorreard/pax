@@ -23,25 +23,80 @@ from dataclasses import dataclass, field
 
 # ── Color table (subset of wims/src/Flydraw/colors actually used in corpus) ──
 
+# Subset of CSS / WIMS named colors covering what the corpus uses (full
+# WIMS table at wims/src/Flydraw/colors has 152 entries).
 _COLORS: dict[str, str] = {
+    "aliceblue": "#f0f8ff",
+    "aqua": "#00ffff",
+    "aquamarine": "#7fffd4",
+    "beige": "#f5f5dc",
     "black": "#000000",
-    "white": "#ffffff",
-    "red": "#ff0000",
-    "green": "#008000",
     "blue": "#0000ff",
-    "yellow": "#ffff00",
-    "orange": "#ffa500",
-    "purple": "#800080",
-    "magenta": "#ff00ff",
-    "cyan": "#00ffff",
-    "grey": "#808080",
-    "gray": "#808080",
-    "lightgrey": "#d3d3d3",
-    "lightgray": "#d3d3d3",
-    "darkgrey": "#404040",
-    "darkgray": "#404040",
-    "pink": "#ffc0cb",
+    "blueviolet": "#8a2be2",
     "brown": "#a52a2a",
+    "burlywood": "#deb887",
+    "chartreuse": "#7fff00",
+    "chocolate": "#d2691e",
+    "coral": "#ff7f50",
+    "crimson": "#dc143c",
+    "cyan": "#00ffff",
+    "darkblue": "#00008b",
+    "darkcyan": "#008b8b",
+    "darkgray": "#a9a9a9",
+    "darkgreen": "#006400",
+    "darkgrey": "#a9a9a9",
+    "darkmagenta": "#8b008b",
+    "darkorange": "#ff8c00",
+    "darkred": "#8b0000",
+    "deeppink": "#ff1493",
+    "fuchsia": "#ff00ff",
+    "gold": "#ffd700",
+    "gray": "#808080",
+    "green": "#008000",
+    "greenyellow": "#adff2f",
+    "grey": "#808080",
+    "indigo": "#4b0082",
+    "khaki": "#f0e68c",
+    "lavender": "#e6e6fa",
+    "lightblue": "#add8e6",
+    "lightcoral": "#f08080",
+    "lightgray": "#d3d3d3",
+    "lightgreen": "#90ee90",
+    "lightgrey": "#d3d3d3",
+    "lightpink": "#ffb6c1",
+    "lightyellow": "#ffffe0",
+    "lime": "#00ff00",
+    "magenta": "#ff00ff",
+    "maroon": "#800000",
+    "navy": "#000080",
+    "olive": "#808000",
+    "orange": "#ffa500",
+    "orangered": "#ff4500",
+    "orchid": "#da70d6",
+    "pink": "#ffc0cb",
+    "plum": "#dda0dd",
+    "purple": "#800080",
+    "red": "#ff0000",
+    "rosybrown": "#bc8f8f",
+    "royalblue": "#4169e1",
+    "salmon": "#fa8072",
+    "sandybrown": "#f4a460",
+    "seagreen": "#2e8b57",
+    "sienna": "#a0522d",
+    "silver": "#c0c0c0",
+    "skyblue": "#87ceeb",
+    "slateblue": "#6a5acd",
+    "slategray": "#708090",
+    "slategrey": "#708090",
+    "steelblue": "#4682b4",
+    "tan": "#d2b48c",
+    "teal": "#008080",
+    "tomato": "#ff6347",
+    "turquoise": "#40e0d0",
+    "violet": "#ee82ee",
+    "white": "#ffffff",
+    "yellow": "#ffff00",
+    "yellowgreen": "#9acd32",
 }
 
 _FONT_SIZES: dict[str, float] = {
@@ -71,15 +126,40 @@ def _font_size(s: str) -> float:
         return _FONT_SIZES["medium"]
 
 
-_ARITH_RE = re.compile(r"^[\d\s+\-*/.()e]+$")
+import math as _math  # noqa: E402
+
+_NUM_NS: dict = {
+    "__builtins__": {},
+    "sqrt": _math.sqrt,
+    "sin": _math.sin,
+    "cos": _math.cos,
+    "tan": _math.tan,
+    "asin": _math.asin,
+    "acos": _math.acos,
+    "atan": _math.atan,
+    "atan2": _math.atan2,
+    "exp": _math.exp,
+    "log": _math.log,
+    "abs": abs,
+    "min": min,
+    "max": max,
+    "pi": _math.pi,
+    "e": _math.e,
+}
+
+# Allow digits, whitespace, basic arithmetic, and identifier chars (for
+# the function names / constants in `_NUM_NS`). The eval still runs in a
+# restricted namespace, so identifier coverage is bounded by `_NUM_NS`.
+_ARITH_RE = re.compile(r"^[\w\s+\-*/.,()]+$")
 
 
 def _num(s: str) -> float:
     """Parse a flydraw numeric arg, evaluating simple arithmetic.
 
-    WIMS slib scripts emit args like ``-15-2`` (i.e. ``$s_xmin-2`` after
-    substitution); flydraw itself evaluates these. We do the same with a
-    restricted ``eval``.
+    WIMS slib scripts emit args like ``-15-2`` or ``10*sqrt(3)`` or
+    ``cos(60*pi/180)`` (after WIMS variable substitution); the C flydraw
+    binary evaluates these via its expression parser. We do the same in a
+    restricted ``eval`` namespace covering basic trig/exp + ``pi``.
     """
     s = s.strip()
     if not s:
@@ -90,13 +170,17 @@ def _num(s: str) -> float:
         pass
     if _ARITH_RE.match(s):
         try:
-            return float(eval(s, {"__builtins__": {}}))  # noqa: S307
+            return float(eval(s, _NUM_NS))  # noqa: S307
         except Exception:
             return 0.0
     return 0.0
 
 
 # ── Renderer state ────────────────────────────────────────────────────────────
+
+
+_Pt = tuple[float, float]
+_Seg = tuple[_Pt, _Pt]
 
 
 @dataclass
@@ -107,6 +191,9 @@ class _State:
     so that ``font-size``, arrow head sizes, and ``stroke-width`` stay in
     pixels regardless of the math range. Math coordinates are projected to
     pixels via :py:meth:`px` / :py:meth:`py`.
+
+    ``segments`` records every line emitted (in math coordinates) so that
+    ``flood`` can find the polygon enclosing its target point.
     """
 
     xmin: float = -5.0
@@ -115,6 +202,7 @@ class _State:
     ymax: float = 5.0
     linewidth: float = 1.0
     elements: list[str] = field(default_factory=list)
+    segments: list[_Seg] = field(default_factory=list)
     width: int = 300
     height: int = 80
 
@@ -152,6 +240,7 @@ def _cmd_segment(state: _State, args: list[str]) -> None:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
     color = _color(args[4]) if len(args) > 4 else "#000000"
+    state.segments.append(((x1, y1), (x2, y2)))
     state.elements.append(
         f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
         f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
@@ -192,6 +281,7 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
     color = _color(args[7]) if len(args) > 7 else "#000000"
     for i in range(n):
         ox, oy = i * dx, i * dy
+        state.segments.append(((x1 + ox, y1 + oy), (x2 + ox, y2 + oy)))
         state.elements.append(
             f'<line x1="{state.px(x1 + ox):.2f}" y1="{state.py(y1 + oy):.2f}" '
             f'x2="{state.px(x2 + ox):.2f}" y2="{state.py(y2 + oy):.2f}" '
@@ -222,6 +312,156 @@ def _cmd_line(state: _State, args: list[str]) -> None:
     _cmd_segment(state, args)
 
 
+def _cmd_circle(state: _State, args: list[str]) -> None:
+    # circle x,y,r,[color] — radius in pixels per flydraw spec.
+    if len(args) < 3:
+        return
+    x, y, r = _num(args[0]), _num(args[1]), _num(args[2])
+    color = _color(args[3]) if len(args) > 3 else "#000000"
+    state.elements.append(
+        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" r="{r}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" fill="none" />'
+    )
+
+
+def _segment_intersection(a: _Seg, b: _Seg, eps: float = 1e-7) -> _Pt | None:
+    """Intersection point of two segments, or None if they don't cross.
+
+    Both ``t`` and ``u`` parameters must lie in [0, 1] (with epsilon slack)
+    so that endpoints touching counts as an intersection.
+    """
+    (x1, y1), (x2, y2) = a
+    (x3, y3), (x4, y4) = b
+    denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(denom) < eps:
+        return None
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+    if -eps <= t <= 1 + eps and -eps <= u <= 1 + eps:
+        return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+    return None
+
+
+def _point_in_triangle(p: _Pt, a: _Pt, b: _Pt, c: _Pt, eps: float = 1e-7) -> bool:
+    def _sign(p1: _Pt, p2: _Pt, p3: _Pt) -> float:
+        return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+    d1, d2, d3 = _sign(p, a, b), _sign(p, b, c), _sign(p, c, a)
+    has_neg = (d1 < -eps) or (d2 < -eps) or (d3 < -eps)
+    has_pos = (d1 > eps) or (d2 > eps) or (d3 > eps)
+    return not (has_neg and has_pos)
+
+
+def _triangle_area(a: _Pt, b: _Pt, c: _Pt) -> float:
+    return 0.5 * abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]))
+
+
+def _line_intersection(a: _Pt, b: _Pt, c: _Pt, d: _Pt, eps: float = 1e-9) -> _Pt | None:
+    """Intersection of two infinite lines defined by points (a,b) and (c,d)."""
+    x1, y1 = a
+    x2, y2 = b
+    x3, y3 = c
+    x4, y4 = d
+    denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(denom) < eps:
+        return None
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+    return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
+
+
+def _cmd_flood(state: _State, args: list[str]) -> None:
+    """flood x,y,[color] — fill the grid cell containing (x,y).
+
+    Strategy: group recorded segments into families of parallel lines (one
+    family per direction). For each family, find the closest line ABOVE and
+    BELOW the flood point. With 3 families that's 6 candidate lines and
+    8 = 2³ ways to pick one from each side. For each combination, compute
+    the 3 pairwise intersections — they're the candidate triangle vertices.
+    Take the smallest valid triangle that contains (fx, fy). This guarantees
+    the polygon's edges lie on actual grid lines (not just on arbitrary
+    intersection points) so the fill aligns with the grid cell.
+    """
+    if len(args) < 2:
+        return
+    fx, fy = _num(args[0]), _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    if not state.segments:
+        return
+
+    # Group segments by direction. Each family entry is keyed by a rounded
+    # canonical normal so that segments with opposite orientation merge.
+    families: dict[tuple[int, int], list[tuple[float, _Seg]]] = {}
+    for seg in state.segments:
+        (x1, y1), (x2, y2) = seg
+        dx, dy = x2 - x1, y2 - y1
+        length = (dx * dx + dy * dy) ** 0.5
+        if length < 1e-9:
+            continue
+        # Unit normal (left of direction).
+        nx, ny = -dy / length, dx / length
+        # Canonicalise: force first non-zero component positive.
+        if nx < -1e-9 or (abs(nx) < 1e-9 and ny < 0):
+            nx, ny = -nx, -ny
+        c = nx * x1 + ny * y1  # n·p == c for any p on the line
+        key = (round(nx, 4), round(ny, 4))
+        families.setdefault(key, []).append((c, seg))
+
+    if len(families) < 3:
+        return
+
+    # For each family find the closest line above and below the flood point.
+    # Each candidate is (offset c, sample segment).
+    candidate_pairs: list[list[tuple[float, _Seg]]] = []
+    for key, lines in families.items():
+        nx, ny = key
+        c_p = nx * fx + ny * fy
+        # Dedupe by offset (multiple segments lie on the same line).
+        by_offset: dict[float, _Seg] = {}
+        for c, seg in lines:
+            by_offset.setdefault(round(c, 6), seg)
+        offsets = sorted(by_offset.keys())
+        below = [c for c in offsets if c < c_p]
+        above = [c for c in offsets if c >= c_p]
+        cands: list[tuple[float, _Seg]] = []
+        if below:
+            cands.append((below[-1], by_offset[below[-1]]))
+        if above:
+            cands.append((above[0], by_offset[above[0]]))
+        if not cands:
+            return
+        candidate_pairs.append(cands)
+
+    # We expect exactly 3 families; with more, take the 3 with members
+    # closest to the flood point.
+    if len(candidate_pairs) > 3:
+        candidate_pairs.sort(key=lambda fam: min(abs(c - 0) for c, _ in fam))
+        candidate_pairs = candidate_pairs[:3]
+
+    # Try every combination of one candidate per family.
+    import itertools  # noqa: PLC0415
+
+    best: tuple[_Pt, _Pt, _Pt] | None = None
+    best_area = float("inf")
+    for combo in itertools.product(*candidate_pairs):
+        segs = [seg for _, seg in combo]
+        v01 = _line_intersection(segs[0][0], segs[0][1], segs[1][0], segs[1][1])
+        v12 = _line_intersection(segs[1][0], segs[1][1], segs[2][0], segs[2][1])
+        v02 = _line_intersection(segs[0][0], segs[0][1], segs[2][0], segs[2][1])
+        if v01 is None or v12 is None or v02 is None:
+            continue
+        area = _triangle_area(v01, v12, v02)
+        if area <= 1e-9 or area >= best_area:
+            continue
+        if _point_in_triangle((fx, fy), v01, v12, v02):
+            best = (v01, v12, v02)
+            best_area = area
+    if best is None:
+        return
+
+    pts = " ".join(f"{state.px(p[0]):.2f},{state.py(p[1]):.2f}" for p in best)
+    state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
+
+
 def _xml_escape(s: str) -> str:
     return (
         s.replace("&", "&amp;")
@@ -239,6 +479,8 @@ _HANDLERS = {
     "parallel": _cmd_parallel,
     "text": _cmd_text,
     "line": _cmd_line,
+    "circle": _cmd_circle,
+    "flood": _cmd_flood,
 }
 
 
@@ -246,9 +488,15 @@ _HANDLERS = {
 
 
 def flydraw_to_svg(width: int, height: int, commands: str) -> str:
-    """Render a flydraw command list to an SVG string."""
+    """Render a flydraw command list to an SVG string.
+
+    Commands may be separated by newline, tab, or semicolon — matching
+    WIMS flydraw's ``ggetline`` (``flylines.c``), and matching how the
+    .def-baked WIMS-script packs multiple commands on one line via tabs.
+    """
     state = _State(width=int(width), height=int(height))
-    for raw in commands.splitlines():
+    raw_lines = re.split(r"[\n\t;]", commands)
+    for raw in raw_lines:
         line = raw.strip().rstrip("\\").strip()
         if not line or line.startswith("#"):
             continue

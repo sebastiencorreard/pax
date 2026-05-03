@@ -331,6 +331,13 @@ class TestCmdItemRow:
         e = engine()
         assert e._eval_cmd("item", "1 of a,b,c") == "a"
 
+    def test_item_index_list(self):
+        # WIMS `!item 4,7,8 of LIST` picks multiple items by index — used by
+        # rotation/colour-permutation exercises.
+        e = engine()
+        result = e._eval_cmd("item", "3,1,2 of red,blue,yellow")
+        assert result == "yellow,red,blue"
+
     def test_item_second(self):
         e = engine()
         assert e._eval_cmd("item", "2 of a,b,c") == "b"
@@ -836,11 +843,20 @@ class TestTexmath:
 
 
 class TestTranslate:
-    def test_internal_tab_to_semicolon(self):
+    def test_internal_truncates_from_set(self):
+        # WIMS (calc.c:calc_translate) truncates FROM to len(TO) before
+        # translating, so `$<tab>$` (3 chars) → `;` (1 char) collapses to
+        # `$` → `;`. Input has no `$`, so nothing changes.
         e = engine()
         e.ctx["v"] = "a\tb\tc"
         result = e._eval_cmd("translate", "internal $\t$ to ; in $v")
-        assert result == "a;b;c"
+        assert result == "a\tb\tc"
+
+    def test_internal_pairwise(self):
+        # Equal-length FROM and TO → straightforward char map.
+        e = engine()
+        result = e._eval_cmd("translate", "internal abc to xyz in apple+banana+chair")
+        assert result == "xpple+yxnxnx+zhxir"
 
     def test_plain_char_translation(self):
         # WIMS pattern: chars_to has a trailing char to separate it from " in "

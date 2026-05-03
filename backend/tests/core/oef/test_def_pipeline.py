@@ -48,6 +48,9 @@ FACTORB1_DEF = os.path.join(
 REPRESENTATION1_DEF = os.path.join(
     RESSOURCES, "H4/algebra/OEFevalwimsequ.fr/def/representation1.def"
 )
+ROTANGLE3_DEF = os.path.join(
+    RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotangle3.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -480,3 +483,30 @@ class TestRepresentation1:
         r = load_and_render(REPRESENTATION1_DEF, seed=42)
         expected = r.answers[0].expected
         assert expected in r.answers[0].options.get("choices", [])
+
+
+class TestRotangle3:
+    """rotangle3 packs flydraw commands with tabs and uses sqrt/cos/sin/pi
+    in args. Flood-fill is silently skipped (TODO), so we don't assert on
+    coloured triangles — only that the grid + center circle render."""
+
+    def test_renders(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_inlines_an_svg(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert "<svg" in r.statement_html
+        assert "</svg>" in r.statement_html
+
+    def test_grid_has_lines_and_center(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        # Triangular grid: three families of `parallel` × 15 + center circle.
+        # Stay loose: at least 30 grid lines and a circle for the centre.
+        assert r.statement_html.count("<line") >= 30
+        assert "<circle" in r.statement_html
+
+    def test_two_filled_triangles(self):
+        # `flood` should fill two triangles with the colours picked from val6.
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert r.statement_html.count("<polygon") == 2
