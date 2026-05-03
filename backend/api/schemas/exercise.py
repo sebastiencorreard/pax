@@ -13,6 +13,7 @@ class ExerciseResponse(BaseModel):
     statement_ok: bool | None = None
     answer_ok: bool | None = None
     check_ok: bool | None = None
+    module_title: str | None = None
 
     class Config:
         from_attributes = True

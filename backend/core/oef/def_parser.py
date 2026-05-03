@@ -76,7 +76,16 @@ class ReadProc:
     args: str
 
 
-Instruction = Union[Assign, IfBlock, ForLoop, Output, Insmath, ReadEmbed, ReadProc]
+@dataclass
+class ReadDraw:
+    """!read oef/draw.phtml args — runs the proc and emits an inline <img>."""
+
+    args: str
+
+
+Instruction = Union[
+    Assign, IfBlock, ForLoop, Output, Insmath, ReadEmbed, ReadProc, ReadDraw
+]
 
 
 # ── DefFile ───────────────────────────────────────────────────────────────────
@@ -394,6 +403,13 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
         if "oef/embed.phtml" in line:
             args = re.sub(r".*oef/embed\.phtml\s*", "", line).strip()
             instructions.append(ReadEmbed(args))
+            i += 1
+            continue
+
+        # !read oef/draw.phtml — inline graph rendering in the question section.
+        if line.startswith("!read ") and "oef/draw.phtml" in line:
+            args = re.sub(r".*oef/draw\.phtml\s*", "", line).strip()
+            instructions.append(ReadDraw(args))
             i += 1
             continue
 

@@ -312,6 +312,124 @@ def _cmd_line(state: _State, args: list[str]) -> None:
     _cmd_segment(state, args)
 
 
+def _cmd_xrange(state: _State, args: list[str]) -> None:
+    if len(args) >= 2:
+        state.xmin = _num(args[0])
+        state.xmax = _num(args[1])
+
+
+def _cmd_yrange(state: _State, args: list[str]) -> None:
+    if len(args) >= 2:
+        state.ymin = _num(args[0])
+        state.ymax = _num(args[1])
+
+
+def _cmd_hline(state: _State, args: list[str]) -> None:
+    # hline x,y,[color] — full-width horizontal line at math y.
+    if len(args) < 2:
+        return
+    y = _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.segments.append(((state.xmin, y), (state.xmax, y)))
+    state.elements.append(
+        f'<line x1="{state.px(state.xmin):.2f}" y1="{state.py(y):.2f}" '
+        f'x2="{state.px(state.xmax):.2f}" y2="{state.py(y):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_vline(state: _State, args: list[str]) -> None:
+    # vline x,y,[color] — full-height vertical line at math x.
+    if len(args) < 2:
+        return
+    x = _num(args[0])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.segments.append(((x, state.ymin), (x, state.ymax)))
+    state.elements.append(
+        f'<line x1="{state.px(x):.2f}" y1="{state.py(state.ymin):.2f}" '
+        f'x2="{state.px(x):.2f}" y2="{state.py(state.ymax):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_gridfill(state: _State, args: list[str]) -> None:
+    """``gridfill x,y,nx,ny,[color]``
+
+    Per WIMS flydraw: fill the region containing (x,y) with a grid of
+    horizontal and vertical lines spaced (nx, ny) pixels apart. We render
+    it as an SVG ``<pattern>`` covering the whole viewport — visually the
+    same effect as the WIMS flood-fill on an unbounded background, and
+    cheaper than emitting hundreds of explicit ``<line>`` elements.
+    """
+    if len(args) < 4:
+        return
+    try:
+        nx = float(args[2])
+        ny = float(args[3])
+    except ValueError:
+        return
+    if nx <= 0 or ny <= 0:
+        return
+    color = _color(args[4]) if len(args) > 4 else "#cccccc"
+    pid = f"gp{len(state.elements)}"
+    # Fine grid pattern; stroke 0.5 keeps the lines visually thin even at
+    # small spacings. The pattern unit is `userSpaceOnUse` so nx/ny are in
+    # pixels (matching flydraw's spec).
+    pattern = (
+        f'<defs><pattern id="{pid}" width="{nx}" height="{ny}" '
+        f'patternUnits="userSpaceOnUse">'
+        f'<path d="M {nx} 0 L 0 0 L 0 {ny}" fill="none" '
+        f'stroke="{color}" stroke-width="0.5" />'
+        f"</pattern></defs>"
+    )
+    rect = (
+        f'<rect x="0" y="0" width="{state.width}" height="{state.height}" '
+        f'fill="url(#{pid})" stroke="none" />'
+    )
+    # Prepend so the grid sits behind axes, plotted curves, and labels.
+    state.elements.insert(0, pattern + rect)
+
+
+def _cmd_plot(state: _State, args: list[str]) -> None:
+    # plot [color],[formula] — explicit function of x.
+    if len(args) < 2:
+        return
+    color = _color(args[0])
+    formula = ",".join(args[1:]).strip()
+    if not formula:
+        return
+    try:
+        import sympy  # noqa: PLC0415
+    except ImportError:
+        return
+    try:
+        x_sym = sympy.Symbol("x")
+        expr = sympy.sympify(formula.replace("^", "**"))
+        f = sympy.lambdify(x_sym, expr, modules=["math"])
+    except Exception:
+        return
+
+    # Sample the curve and emit a polyline, clipping to the y range.
+    n_samples = 200
+    step = (state.xmax - state.xmin) / n_samples
+    pts: list[str] = []
+    for i in range(n_samples + 1):
+        x = state.xmin + i * step
+        try:
+            y = float(f(x))
+        except Exception:
+            continue
+        if y != y or y < state.ymin - 1 or y > state.ymax + 1:
+            continue
+        pts.append(f"{state.px(x):.2f},{state.py(y):.2f}")
+    if len(pts) < 2:
+        return
+    state.elements.append(
+        f'<polyline points="{" ".join(pts)}" fill="none" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
 def _cmd_circle(state: _State, args: list[str]) -> None:
     # circle x,y,r,[color] — radius in pixels per flydraw spec.
     if len(args) < 3:
@@ -473,14 +591,20 @@ def _xml_escape(s: str) -> str:
 
 _HANDLERS = {
     "range": _cmd_range,
+    "xrange": _cmd_xrange,
+    "yrange": _cmd_yrange,
     "linewidth": _cmd_linewidth,
     "segment": _cmd_segment,
     "arrow": _cmd_arrow,
     "parallel": _cmd_parallel,
     "text": _cmd_text,
     "line": _cmd_line,
+    "hline": _cmd_hline,
+    "vline": _cmd_vline,
     "circle": _cmd_circle,
     "flood": _cmd_flood,
+    "gridfill": _cmd_gridfill,
+    "plot": _cmd_plot,
 }
 
 

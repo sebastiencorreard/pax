@@ -19,6 +19,7 @@ from .def_parser import (
     IfBlock,
     Insmath,
     Output,
+    ReadDraw,
     ReadEmbed,
     ReadProc,
     parse as parse_def,
@@ -181,7 +182,9 @@ class DefEngine:
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self.rng = random.Random(seed)
-        self.ctx: dict[str, str] = {}
+        # WIMS treats ``$empty`` as the predefined empty-string sentinel;
+        # exposing it as a regular ctx entry keeps `_subst` happy.
+        self.ctx: dict[str, str] = {"empty": ""}
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
@@ -189,6 +192,17 @@ class DefEngine:
     # ── Top-level render ──────────────────────────────────────────────────────
 
     def render(self, df: DefFile) -> ExerciseRender:
+        # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
+        # df.reply_meta, not in var_instructions. Seed it into ctx so the
+        # statement rendering (specifically `_render_embed`) can see e.g.
+        # `replytype1` to decide whether to emit a text input.
+        for rm in df.reply_meta:
+            n = rm.get("n")
+            if n is None:
+                continue
+            for key in ("type", "name", "good", "option", "weight"):
+                if key in rm:
+                    self.ctx[f"reply{key}{n}"] = rm[key]
         self._exec(df.var_instructions, output_buf=None)
 
         # Render statement HTML
@@ -203,11 +217,31 @@ class DefEngine:
 
         html = _close_inline_math(html)
         html = inline_svg_imgs(html)
-        segments = _segment_statement(html)
+        # Drop empty `<li>` / `<ul>` shells left behind when radio embeds
+        # are stripped (the frontend renders the radio buttons separately
+        # from `options.choices`).
+        html = re.sub(r"<li[^>]*>\s*</li>", "", html)
+        html = re.sub(r"<ul[^>]*>\s*</ul>", "", html)
         answers = self._extract_answers(df)
 
-        # Same widget-filter logic as OEF engine
+        # If the question text has no input/slot widget but the exercise
+        # declares replies, append a default input for each so the frontend
+        # has somewhere to type the answer (matches WIMS' fallback behaviour).
+        segments = _segment_statement(html)
         widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot")}
+        text_replies = [
+            a for a in answers if a.answer_type.lower() not in ("radio", "menu")
+        ]
+        if text_replies and not widget_names:
+            for a in text_replies:
+                html += (
+                    f'<br><span class="oef-input" name="{a.input_name}" '
+                    f'data-size="10"></span>'
+                )
+            segments = _segment_statement(html)
+            widget_names = {
+                s["name"] for s in segments if s["type"] in ("input", "slot")
+            }
         if widget_names:
             answers = [
                 a for a in answers if a.input_name.replace(" ", "") in widget_names
@@ -265,6 +299,14 @@ class DefEngine:
                 self._cmd_readproc(f"{instr.path} {instr.args}".strip())
                 if output_buf is not None:
                     output_buf.append("")
+
+            elif isinstance(instr, ReadDraw):
+                # !read oef/draw.phtml ARGS — render a graph and inline it
+                # right where the directive sits in the question section.
+                self._cmd_readproc(f"oef/draw.phtml {instr.args}")
+                url = self.ctx.get("ins_url", "")
+                if output_buf is not None and url:
+                    output_buf.append(f'<img src="{url}" alt="">')
 
     def _exec_for(self, loop: ForLoop, output_buf: list | None) -> None:
         range_s = self._subst(loop.range_expr)
@@ -527,7 +569,10 @@ class DefEngine:
             return self._cmd_exec(args)
 
         if cmd == "rawmath":
-            return _sympy_to_latex(self._subst(args))
+            # `!rawmath` normalises a math expression, keeping it in a form
+            # suitable for downstream evaluation (`pari print()`, plotting).
+            # NOT a LaTeX conversion — that's `!texmath`.
+            return self._subst(args)
 
         if cmd == "texmath":
             return _sympy_to_latex(self._subst(args))
@@ -613,12 +658,49 @@ class DefEngine:
             self._cmd_readproc(args)
             return ""
 
+        if cmd == "randrecord":
+            return self._cmd_randrecord(args)
+
         # Unknown command — return empty
         return ""
 
+    def _cmd_randrecord(self, args: str) -> str:
+        """``!randrecord <path>`` — pick a random record from a `.don` data file.
+
+        Mirrors WIMS ``calc.c:calc_randfile``: records are separated by lines
+        starting with ``:`` (WIMS' ``tag_string`` is ``"\\n:"``). Path is
+        resolved relative to the .def file's module directory.
+        """
+        import os  # noqa: PLC0415
+
+        if not self.def_path:
+            return ""
+        path = self._subst(args.strip().split()[0]) if args.strip() else ""
+        if not path:
+            return ""
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        full = os.path.join(module_dir, path)
+        if not os.path.exists(full):
+            return ""
+        try:
+            with open(full, encoding="utf-8") as f:
+                text = f.read()
+        except UnicodeDecodeError:
+            with open(full, encoding="iso-8859-1") as f:
+                text = f.read()
+
+        # Records are separated by lines starting with `:`. Split on `\n:`
+        # so the leading `:` of each record body is consumed.
+        chunks = re.split(r"(?:^|\n):", text)
+        # First chunk is whatever precedes the first `:` (often empty)
+        records = [c.strip("\n") for c in chunks if c.strip()]
+        if not records:
+            return ""
+        return self.rng.choice(records)
+
     def _cmd_distribute(self, args: str) -> None:
-        """!distribute items $LIST into a,b,c[,…] — split list, assign each."""
-        m = re.match(r"^\s*items\s+(.+?)\s+into\s+(.+)$", args, re.I | re.DOTALL)
+        """``!distribute item[s] $LIST into a,b,c[,…]`` — split, assign each."""
+        m = re.match(r"^\s*items?\s+(.+?)\s+into\s+(.+)$", args, re.I | re.DOTALL)
         if not m:
             return
         list_val = self._subst(m.group(1).strip())
@@ -628,18 +710,42 @@ class DefEngine:
             self.ctx[name] = items[i] if i < len(items) else ""
 
     def _cmd_bound(self, args: str) -> None:
-        """!bound var within v1,v2,…,vn default V — clamp $var to set, else V."""
-        m = re.match(
+        """``!bound var within v1,v2,…,vn default V`` — clamp to allowed set,
+        or ``!bound var between A and B default V`` — clamp to numeric range.
+        """
+        m_set = re.match(
             r"^\s*(\w+)\s+within\s+(.+?)\s+default\s+(.+)$", args, re.I | re.DOTALL
         )
-        if not m:
+        if m_set:
+            name = m_set.group(1)
+            allowed = [v.strip() for v in m_set.group(2).split(",")]
+            default = self._subst(m_set.group(3).strip())
+            cur = self.ctx.get(name, "").strip()
+            if cur not in allowed:
+                self.ctx[name] = default
             return
-        name = m.group(1)
-        allowed = [v.strip() for v in m.group(2).split(",")]
-        default = self._subst(m.group(3).strip())
-        cur = self.ctx.get(name, "").strip()
-        if cur not in allowed:
-            self.ctx[name] = default
+
+        m_range = re.match(
+            r"^\s*(\w+)\s+between\s+(\S+)\s+and\s+(\S+)\s+default\s+(.+)$",
+            args,
+            re.I | re.DOTALL,
+        )
+        if m_range:
+            name = m_range.group(1)
+            try:
+                lo = float(self._eval_arith(m_range.group(2)))
+                hi = float(self._eval_arith(m_range.group(3)))
+            except (ValueError, TypeError):
+                return
+            default = self._subst(m_range.group(4).strip())
+            cur_s = self.ctx.get(name, "").strip()
+            try:
+                cur = float(self._eval_arith(cur_s))
+            except (ValueError, TypeError):
+                self.ctx[name] = default
+                return
+            if cur < lo or cur > hi:
+                self.ctx[name] = default
 
     def _cmd_default(self, args: str) -> None:
         """!default var=value — set var only if currently unset/empty."""
@@ -670,6 +776,10 @@ class DefEngine:
         path = m.group(1).strip()
         proc_args = self._subst(m.group(2).strip())
 
+        if path == "slib/stat/median":
+            self.ctx["slib_out"] = self._compute_weighted_median(proc_args)
+            return
+
         if path == "oef/draw.phtml":
             # First line: "xsize,ysize"; remainder: flydraw commands
             head, _, body = proc_args.partition("\n")
@@ -690,18 +800,30 @@ class DefEngine:
         return
 
     def _run_slib(self, slib_path: str, params: str) -> None:
-        """Locate and execute a slib/<name> script in the module directory."""
+        """Locate and execute a ``slib/<name>`` script.
+
+        Resolution order:
+
+        1. ``<module>/<slib_path>`` — module-local slib (most common).
+        2. ``<module>/slib/local/<name>`` — module-local "local" namespace.
+        3. ``wims/public_html/scripts/<slib_path>`` — WIMS shared scripts,
+           used by exercises that delegate to library helpers like
+           ``slib/stat/median`` or ``slib/draw``.
+        """
         import os  # noqa: PLC0415
         from .def_parser import _merge_continuations  # noqa: PLC0415
 
         if not self.def_path:
             return
-        # Modules live at <module>/def/<file>.def or <module>/src/<file>.oef
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        # Walk up looking for the WIMS scripts dir bundled in the repo.
+        wims_scripts_dir = self._find_wims_scripts_dir()
         candidates = [
             os.path.join(module_dir, slib_path),
             os.path.join(module_dir, "slib", "local", slib_path[len("slib/") :]),
         ]
+        if wims_scripts_dir:
+            candidates.append(os.path.join(wims_scripts_dir, slib_path))
         script_path = next((p for p in candidates if os.path.exists(p)), None)
         if not script_path:
             return
@@ -724,6 +846,73 @@ class DefEngine:
             pass
         finally:
             self.ctx["wims_read_parm"] = saved_parm
+
+    def _compute_weighted_median(self, args: str) -> str:
+        """Compute the median for ``slib/stat/median`` argument forms.
+
+        Accepts the WIMS ``slib_example`` shapes:
+        - ``[v1,v2,...]`` — flat list, plain median
+        - ``[v1,v2,...; w1,w2,...]`` — values + weights
+        - ``[v1,v2,...],[w1,w2,...]`` — values, weights as separate lists
+        Median is computed by expanding values according to integer weights
+        (matching the WIMS slib implementation).
+        """
+        s = args.strip()
+        # Strip outer brackets to get the inner contents
+        if s.startswith("[") and s.endswith("]"):
+            s = s[1:-1]
+        elif s.startswith("[") and "],[" in s:
+            s = s[1:-1].replace("],[", ";")
+
+        if ";" in s:
+            v_str, w_str = s.split(";", 1)
+            values = [
+                self._eval_arith(x.strip()) for x in v_str.split(",") if x.strip()
+            ]
+            weights = [
+                self._eval_arith(x.strip()) for x in w_str.split(",") if x.strip()
+            ]
+        else:
+            values = [self._eval_arith(x.strip()) for x in s.split(",") if x.strip()]
+            weights = ["1"] * len(values)
+
+        try:
+            vals_f = [float(v) for v in values]
+            wts_i = [int(round(float(w))) for w in weights]
+        except (ValueError, TypeError):
+            return ""
+
+        expanded: list[float] = []
+        for v, w in zip(vals_f, wts_i):
+            if w > 0:
+                expanded.extend([v] * w)
+        if not expanded:
+            return "0"
+        expanded.sort()
+        n = len(expanded)
+        if n % 2 == 1:
+            med = expanded[n // 2]
+        else:
+            med = (expanded[n // 2 - 1] + expanded[n // 2]) / 2
+        if med == int(med):
+            return str(int(med))
+        return f"{med:g}"
+
+    def _find_wims_scripts_dir(self) -> str | None:
+        """Locate ``wims/public_html/scripts`` by walking up from ``def_path``."""
+        import os  # noqa: PLC0415
+
+        if not self.def_path:
+            return None
+        d = os.path.abspath(self.def_path)
+        for _ in range(10):  # bounded walk
+            d = os.path.dirname(d)
+            if not d or d == "/":
+                break
+            candidate = os.path.join(d, "wims", "public_html", "scripts")
+            if os.path.isdir(candidate):
+                return candidate
+        return None
 
     def _run_script_lines(self, lines: list[str]) -> None:
         """Execute a flat WIMS-script sequence (used for slib scripts).
@@ -790,6 +979,42 @@ class DefEngine:
                 continue
             if stripped == "!exit":
                 raise _SlibExit()
+            if stripped.startswith("!for "):
+                # !for var=start to end ... !next
+                m = re.match(r"^!for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)$", stripped)
+                # Find matching !next
+                depth = 1
+                j = i + 1
+                while j < n and depth > 0:
+                    s = lines[j].strip()
+                    if s.startswith("!for "):
+                        depth += 1
+                    elif s.startswith("!next"):
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    j += 1
+                if not m or depth != 0:
+                    i = (j + 1) if j < n else n
+                    continue
+                var = m.group(1)
+                try:
+                    start = int(round(float(self._eval_arith(self._subst(m.group(2))))))
+                    end = int(round(float(self._eval_arith(self._subst(m.group(3))))))
+                except (ValueError, TypeError):
+                    i = j + 1
+                    continue
+                body = lines[i + 1 : j]
+                saved = self.ctx.get(var)
+                for v in range(start, end + 1):
+                    self.ctx[var] = str(v)
+                    self._run_script_lines(body)
+                if saved is not None:
+                    self.ctx[var] = saved
+                else:
+                    self.ctx.pop(var, None)
+                i = j + 1
+                continue
             if stripped.startswith("!goto "):
                 target = stripped[len("!goto ") :].strip().lstrip(":")
                 tgt_idx = labels.get(target)
@@ -915,7 +1140,12 @@ class DefEngine:
         return ""
 
     def _cmd_row(self, args: str) -> str:
-        """!row n of matrix — 1-indexed tab-separated row."""
+        """``!row n of matrix`` — 1-indexed row.
+
+        Mirrors WIMS ``calc.c:calc_rowof`` semantics: split on newline; if
+        the data has no newlines but does contain semicolons, split on `;`;
+        otherwise (single tab-row blob) split on tab as a final fallback.
+        """
         m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
@@ -925,7 +1155,12 @@ class DefEngine:
             idx = int(round(float(self._eval_arith(idx_s))))
         except (ValueError, TypeError):
             return ""
-        rows = data.split("\t")
+        if "\n" in data:
+            rows = data.split("\n")
+        elif ";" in data:
+            rows = data.split(";")
+        else:
+            rows = data.split("\t")
         if 1 <= idx <= len(rows):
             return rows[idx - 1].strip()
         return ""
@@ -986,15 +1221,20 @@ class DefEngine:
         return src.translate(trans)
 
     def _cmd_append(self, args: str) -> str:
-        """!append item X to list — append item to tab-separated list."""
+        """``!append item X to list`` — append item using the list's separator.
+
+        Uses tab if the list already contains tabs, otherwise comma. WIMS
+        slib helpers (e.g. ``slib/generator``) expect comma-separated lists.
+        """
         m = re.match(r"item\s+(.*?)\s+to\s+(.*)", args, re.DOTALL | re.I)
         if not m:
             return self._subst(args)
         item = self._subst(m.group(1).strip())
         lst = self._subst(m.group(2).strip())
-        if lst:
-            return lst + "\t" + item
-        return item
+        if not lst:
+            return item
+        sep = "\t" if "\t" in lst else ","
+        return lst + sep + item
 
     def _eval_loop_expr(self, expr: str) -> str:
         """Evaluate a loop body expression supporting bare variable names from ctx.
@@ -1146,7 +1386,9 @@ class DefEngine:
         # Wrap val in parens if not already (preserves precedence in the result)
         if not (val.startswith("(") and val.endswith(")")):
             val = f"({val})"
-        return re.sub(r"\b" + re.escape(var) + r"\b", val, expr)
+        # Use a lambda for the replacement so backslashes etc. in `val` are
+        # treated literally (re.sub-as-string would interpret them as escapes).
+        return re.sub(r"\b" + re.escape(var) + r"\b", lambda _m: val, expr)
 
     def _cmd_listuniq(self, args: str) -> str:
         """!listuniq $list — remove duplicates, preserve order."""
@@ -1249,12 +1491,31 @@ class DefEngine:
         return ""
 
     def _render_embed(self, args: str) -> str:
-        """Render an !read oef/embed.phtml marker as an input span."""
+        """Render an !read oef/embed.phtml marker as an input span.
+
+        If the target reply is a radio, the embed is a click-target for one
+        of the radio choices (the second arg is the choice index, not a
+        text-input size). The frontend renders radio buttons from
+        ``options.choices`` separately, so we emit an empty marker and let
+        the surrounding `<li>` / `<ul>` markup collapse to nothing visible.
+        """
         args = self._subst(args).strip()
         # Parse: "r1,10" or "reply1,$val10" or "r1" etc.
         parts = [p.strip() for p in args.split(",")]
         ref = parts[0] if parts else "reply1"
         size_str = parts[1] if len(parts) > 1 else "10"
+
+        # Some .def files write `reply 1,30` (space between word and index)
+        # instead of `reply1,30`; collapse internal whitespace so the ref
+        # matches the answer's input_name.
+        ref = re.sub(r"\s+", "", ref)
+
+        # Skip text-input emission when the target reply is a radio.
+        nm = re.match(r"^r(?:eply)?(\d+)$", ref)
+        if nm:
+            n = nm.group(1)
+            if self.ctx.get(f"replytype{n}", "").strip().lower() == "radio":
+                return ""
 
         # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
         if ref.startswith("r") and not ref.startswith("reply"):
@@ -1287,12 +1548,31 @@ class DefEngine:
 
         for rm in df.reply_meta:
             n = rm["n"]
-            ans_type = self._subst(rm.get("type", "numeric"))
+            ans_type = self._subst(rm.get("type", "numeric")).strip()
             label = self._subst(rm.get("name", ""))
-            expected = self._subst(rm.get("good", ""))
+            good_raw = self._subst(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
-            options = {"option": option} if option else {}
+            options: dict = {"option": option} if option else {}
+
+            expected = good_raw
+            if ans_type.lower() == "radio":
+                # WIMS radio reply form: good = "<idx>;<c1>,<c2>,…" where
+                # `<idx>` is the 1-based correct choice. Surface choices on
+                # the answer so the frontend can render the radio buttons.
+                idx_str, sep, choices_str = good_raw.partition(";")
+                try:
+                    idx = int(idx_str.strip())
+                except ValueError:
+                    idx = 1
+                choices = [c.strip() for c in choices_str.split(",") if c.strip()]
+                if choices:
+                    expected = (
+                        choices[idx - 1] if 1 <= idx <= len(choices) else choices[0]
+                    )
+                    options["choices"] = choices
+                else:
+                    expected = good_raw
             answers.append(
                 AnswerDef(
                     label=label,

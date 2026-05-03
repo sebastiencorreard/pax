@@ -36,6 +36,20 @@
              style="background:var(--color-surface);border-color:var(--color-border)">
       <header class="px-4 py-2 border-b flex items-center justify-between text-xs"
               style="border-color:var(--color-border);color:var(--color-text-muted)">
+        <span class="font-mono">metadata</span>
+        <span>debug · NUXT_PUBLIC_DEBUG_OEF</span>
+      </header>
+      <dl class="px-4 py-3 text-sm grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1"
+          style="color:var(--color-text)">
+        <dt class="font-mono text-xs" style="color:var(--color-text-muted)">module</dt>
+        <dd class="font-mono text-xs">{{ moduleName || '—' }}</dd>
+      </dl>
+    </section>
+
+    <section v-if="debugOef" class="mt-6 rounded-xl border overflow-hidden"
+             style="background:var(--color-surface);border-color:var(--color-border)">
+      <header class="px-4 py-2 border-b flex items-center justify-between text-xs"
+              style="border-color:var(--color-border);color:var(--color-text-muted)">
         <span class="font-mono">solution · seed {{ debug?.seed ?? '…' }}</span>
         <span>debug · NUXT_PUBLIC_DEBUG_OEF</span>
       </header>
@@ -89,10 +103,24 @@ type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
 const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
 interface ExerciseMeta {
   id: string
+  oef_path: string
+  module: string | null
+  module_title: string | null
   statement_ok: boolean | null
   answer_ok: boolean | null
   check_ok: boolean | null
 }
+const exercise = ref<ExerciseMeta | null>(null)
+// Prefer the title from the module's INDEX file; fall back to the module
+// directory name (parts[len-3] of /ressources/.../<module>/src/<file>.oef)
+// if no INDEX is found.
+const moduleName = computed(() => {
+  if (exercise.value?.module_title) return exercise.value.module_title
+  if (exercise.value?.module) return exercise.value.module
+  const path = exercise.value?.oef_path || ''
+  const parts = path.split('/').filter(Boolean)
+  return parts.length >= 3 ? parts[parts.length - 3] : ''
+})
 const qa = ref<Record<QAFlag, boolean | null>>({
   statement_ok: null, answer_ok: null, check_ok: null,
 })
@@ -106,6 +134,7 @@ async function loadQa() {
   qaError.value = ''
   try {
     const ex = await apiFetch<ExerciseMeta>(`/api/exercises/${exerciseId.value}`)
+    exercise.value = ex
     qa.value = {
       statement_ok: ex.statement_ok,
       answer_ok: ex.answer_ok,

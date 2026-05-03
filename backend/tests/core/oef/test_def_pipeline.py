@@ -51,6 +51,10 @@ REPRESENTATION1_DEF = os.path.join(
 ROTANGLE3_DEF = os.path.join(
     RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotangle3.def"
 )
+MEDIANE4_DEF = os.path.join(RESSOURCES, "H4/stat/OEFevalwimsstat.fr/def/mediane4.def")
+VOCABAFF3_DEF = os.path.join(
+    RESSOURCES, "H4/analysis/OEFevalwimsfctref.fr/def/vocabaff3.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -510,3 +514,97 @@ class TestRotangle3:
         # `flood` should fill two triangles with the colours picked from val6.
         r = load_and_render(ROTANGLE3_DEF, seed=42)
         assert r.statement_html.count("<polygon") == 2
+
+
+class TestMediane4:
+    """mediane4 picks a random scenario from `src/stat2.don` and renders a
+    frequency table whose values come from `slib/generator`. Covers
+    `!randrecord`, `!row` newline-split, and slib execution with `!for`."""
+
+    def test_renders(self):
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_contains_data_table(self):
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert "<table" in r.statement_html
+        # Two rows: header (Nombre de … / values) and Effectifs / frequencies
+        assert r.statement_html.count("<tr") == 2
+
+    def test_frequency_table_has_values(self):
+        # Each <td> in the second row should be a numeric frequency, not
+        # a leftover `$empty` or other unresolved variable.
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        import re as _re
+
+        tds = _re.findall(r"<td[^>]*>\s*([^<]*?)\s*</td>", r.statement_html)
+        # Skip the leading "Effectifs" label cell; the rest must be numeric.
+        for cell in tds[1:]:
+            assert "$" not in cell  # no unresolved $vars
+            assert cell.lstrip("-").isdigit() or cell == ""
+
+    def test_input_segment_is_appended(self):
+        # The .def has no \embed in :question, but a numexp reply is
+        # declared — the engine appends a default input so the frontend
+        # has somewhere to render the answer field.
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        input_segments = [s for s in r.statement_segments if s.get("type") == "input"]
+        assert len(input_segments) == 1
+        assert input_segments[0]["name"] == "reply1"
+
+    def test_expected_answer_is_the_median(self):
+        # `slib/stat/median` is computed natively from [values; frequencies].
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert r.answers[0].expected.strip() != ""
+        # The expected value is one of the data values (between val11 and val12)
+        # or the half-sum of two consecutive ones.
+        assert r.answers[0].expected.replace(".", "").lstrip("-").isdigit()
+
+
+class TestVocabaff3:
+    """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate
+    plane with two plotted linear functions; covers ReadDraw + xrange/
+    yrange/vline/hline/plot/gridfill primitives."""
+
+    def test_renders(self):
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_inlines_an_svg(self):
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert "<svg" in r.statement_html
+
+    def test_two_plotted_curves(self):
+        # plot red,$val16 and plot green,$val20 — two polylines.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.count("<polyline") == 2
+
+    def test_axes_drawn(self):
+        # vline 0,0 + hline 0,0 (the central x and y axes) plus the
+        # surrounding gridlines and axis arrows.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert r.statement_html.count("<line") >= 12
+
+    def test_grid_background(self):
+        # gridfill emits a backing <rect>.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        assert "<rect" in r.statement_html
+
+    def test_radio_answer_parsed_from_indexed_form(self):
+        # `replygood1=<idx>;<choice1>,<choice2>,…` — extract the choices
+        # and the 1-based correct index.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        ans = r.answers[0]
+        assert ans.answer_type == "radio"
+        choices = ans.options.get("choices", [])
+        assert len(choices) == 4
+        # Correct answer matches one of the four choices.
+        assert ans.expected in choices
+
+    def test_no_text_input_emitted_for_radio_embeds(self):
+        # `!read oef/embed.phtml reply1,N` for a radio reply must NOT
+        # produce <input>/<span> text widgets — the frontend renders the
+        # choices from options.choices instead.
+        r = load_and_render(VOCABAFF3_DEF, seed=42)
+        input_segments = [s for s in r.statement_segments if s["type"] == "input"]
+        assert input_segments == []
