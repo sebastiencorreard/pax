@@ -8,7 +8,13 @@ find_def_path, _call_pari, _call_maxima (SymPy backend), and _sympy_to_latex.
 import re
 
 
-from core.oef.def_engine import DefEngine, _call_maxima, _call_pari, _sympy_to_latex
+from core.oef.def_engine import (
+    DefEngine,
+    _call_maxima,
+    _call_pari,
+    _close_inline_math,
+    _sympy_to_latex,
+)
 from core.oef.engine import find_def_path
 
 
@@ -58,6 +64,33 @@ class TestFindDefPath:
         same_dir_def.touch()
         sibling_def.touch()
         assert find_def_path(str(oef)) == str(same_dir_def)
+
+
+# ── _close_inline_math ─────────────────────────────────────────────────────────
+
+
+class TestCloseInlineMath:
+    def test_closes_plain_paren(self):
+        # WIMS authors close with `)` not `\)`.
+        assert _close_inline_math(r"\(-4) text") == r"\(-4\) text"
+
+    def test_normalizes_equation(self):
+        result = _close_inline_math(r"\(-3*x + 3 = -1*x+-5).")
+        assert result == r"\(3 - 3 x = - x - 5\)."
+
+    def test_preserves_already_closed_latex(self):
+        # `\frac{}{}` content has backslashes — left untouched.
+        assert (
+            _close_inline_math(r"Already \(\frac{1}{2}\) ok")
+            == r"Already \(\frac{1}{2}\) ok"
+        )
+
+    def test_no_math_unchanged(self):
+        assert _close_inline_math("Plain text no math") == "Plain text no math"
+
+    def test_handles_unparseable_content(self):
+        # Variable substitutions not resolved → fallback to plain close
+        assert _close_inline_math(r"\($x = $y\)") == r"\($x = $y\)"
 
 
 # ── _call_pari ─────────────────────────────────────────────────────────────────
