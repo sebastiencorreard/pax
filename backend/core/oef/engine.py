@@ -40,13 +40,43 @@ class ExerciseRender:
     ev_ctx: dict = field(default_factory=dict)  # contexte de l'évaluateur (variables)
 
 
+def find_def_path(oef_path: str) -> str | None:
+    """Return the compiled .def path for a given .oef path, or None if absent.
+
+    Checks two layouts used in the PAX resource tree:
+      1. Same directory: foo/exercise.oef → foo/exercise.def
+      2. Sibling def/ dir: foo/src/exercise.oef → foo/def/exercise.def
+    """
+    base = os.path.splitext(oef_path)[0]
+    candidate1 = base + ".def"
+    if os.path.isfile(candidate1):
+        return candidate1
+
+    src_dir = os.path.dirname(oef_path)
+    parent_dir = os.path.dirname(src_dir)
+    stem = os.path.basename(base)
+    candidate2 = os.path.join(parent_dir, "def", stem + ".def")
+    if os.path.isfile(candidate2):
+        return candidate2
+
+    return None
+
+
 def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
     """
     Point d'entrée principal.
-    Lit le fichier .oef, évalue les variables, retourne un ExerciseRender.
+    Essaie d'abord le pipeline .def compilé ; retombe sur le parser OEF si absent.
     """
     if not os.path.exists(oef_path):
         raise FileNotFoundError(f"Fichier OEF introuvable : {oef_path}")
+
+    def_path = find_def_path(oef_path)
+    if def_path:
+        from .def_engine import load_and_render as _def_render
+
+        return _def_render(def_path, seed=seed)
+
+    # Fallback: pipeline OEF original
 
     # Les fichiers OEF sont historiquement en ISO-8859-1 (latin-1)
     try:
