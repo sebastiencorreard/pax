@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from db import get_db
 from models.exercise import Exercise
-from api.schemas.exercise import ExerciseResponse
+from api.schemas.exercise import ExerciseResponse, ExerciseQAUpdate
 from api.deps import get_current_user
 from models.user import User
 
@@ -115,6 +115,9 @@ async def list_modules(
             {
                 "id": ex.id,
                 "title": ex.title or os.path.basename(ex.oef_path),
+                "statement_ok": ex.statement_ok,
+                "answer_ok": ex.answer_ok,
+                "check_ok": ex.check_ok,
             }
         )
 
@@ -135,6 +138,25 @@ async def get_exercise(
     exercise = result.scalar_one_or_none()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
+    return exercise
+
+
+@router.patch("/{exercise_id}/qa", response_model=ExerciseResponse)
+async def update_exercise_qa(
+    exercise_id: str,
+    payload: ExerciseQAUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
+    exercise = result.scalar_one_or_none()
+    if not exercise:
+        raise HTTPException(status_code=404, detail="Exercice introuvable")
+    data = payload.model_dump(exclude_unset=True)
+    for field, value in data.items():
+        setattr(exercise, field, value)
+    await db.commit()
+    await db.refresh(exercise)
     return exercise
 
 

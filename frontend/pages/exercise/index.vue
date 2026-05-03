@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold mb-6">{{ $t('nav.exercises') }}</h1>
 
     <!-- Filtres -->
-    <div class="flex gap-3 mb-6 flex-wrap">
+    <div class="flex gap-3 mb-6 flex-wrap items-center">
       <select v-model="filterLevel"
               class="px-3 py-2 rounded-lg border text-sm"
               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)">
@@ -17,6 +17,15 @@
         <option value="">{{ $t('exercise.all_domains') }}</option>
         <option v-for="d in availableDomains" :key="d" :value="d">{{ d }}</option>
       </select>
+
+      <div v-if="debugOef" class="ml-auto flex items-center gap-3 text-sm"
+           style="color:var(--color-text)">
+        <label v-for="flag in qaFlags" :key="flag"
+               class="inline-flex items-center gap-1.5 cursor-pointer">
+          <input type="checkbox" v-model="qaFilters[flag]" />
+          <span class="font-mono text-xs">{{ flag }}</span>
+        </label>
+      </div>
     </div>
 
     <!-- Skeleton loading -->
@@ -97,7 +106,13 @@
 interface ModuleExercise {
   id: string
   title: string | null
+  statement_ok: boolean | null
+  answer_ok: boolean | null
+  check_ok: boolean | null
 }
+
+type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
+const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
 
 interface Module {
   module: string
@@ -116,6 +131,7 @@ interface DomainGroup {
 }
 
 const { apiFetch } = useApi()
+const debugOef = useRuntimeConfig().public.debugOef
 
 function decodeEntities(s: string): string {
   return (s || '')
@@ -130,6 +146,9 @@ const modules = ref<Module[]>([])
 const loading = ref(true)
 const filterLevel = ref('')
 const filterDomain = ref('')
+const qaFilters = ref<Record<QAFlag, boolean>>({
+  statement_ok: false, answer_ok: false, check_ok: false,
+})
 const openModules = ref(new Set<string>())
 
 const levels = ['E1','E2','E3','E4','E5','E6','H1','H2','H3','H4','H5','H6','U1','U2','U3','U4']
@@ -138,12 +157,28 @@ const availableDomains = computed(() =>
   [...new Set(modules.value.map(m => m.domain))].sort()
 )
 
+const activeQaFlags = computed(() =>
+  qaFlags.filter(f => qaFilters.value[f]),
+)
+
+function exerciseMatchesQa(ex: ModuleExercise): boolean {
+  for (const f of activeQaFlags.value) {
+    if (ex[f] !== true) return false
+  }
+  return true
+}
+
 const filteredModules = computed(() => {
-  return modules.value.filter(m => {
-    if (filterLevel.value && m.level !== filterLevel.value) return false
-    if (filterDomain.value && m.domain !== filterDomain.value) return false
-    return true
-  })
+  return modules.value
+    .filter(m => {
+      if (filterLevel.value && m.level !== filterLevel.value) return false
+      if (filterDomain.value && m.domain !== filterDomain.value) return false
+      return true
+    })
+    .map(m => activeQaFlags.value.length === 0
+      ? m
+      : { ...m, exercises: m.exercises.filter(exerciseMatchesQa) })
+    .filter(m => m.exercises.length > 0)
 })
 
 const groupedModules = computed<DomainGroup[]>(() => {

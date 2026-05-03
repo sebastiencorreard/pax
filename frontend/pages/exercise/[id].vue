@@ -14,6 +14,28 @@
              style="background:var(--color-surface);border-color:var(--color-border)">
       <header class="px-4 py-2 border-b flex items-center justify-between text-xs"
               style="border-color:var(--color-border);color:var(--color-text-muted)">
+        <span class="font-mono">QA status</span>
+        <span>debug · NUXT_PUBLIC_DEBUG_OEF</span>
+      </header>
+      <div class="px-4 py-3 text-sm flex flex-wrap gap-4" style="color:var(--color-text)">
+        <label v-for="flag in qaFlags" :key="flag"
+               class="inline-flex items-center gap-2 cursor-pointer">
+          <input type="checkbox"
+                 :checked="qa[flag] === true"
+                 :disabled="qaSaving[flag]"
+                 @change="onQaToggle(flag, ($event.target as HTMLInputElement).checked)" />
+          <span class="font-mono text-xs">{{ flag }}</span>
+          <span v-if="qaSaving[flag]" class="text-xs"
+                style="color:var(--color-text-muted)">…</span>
+        </label>
+        <span v-if="qaError" class="text-xs text-red-500">{{ qaError }}</span>
+      </div>
+    </section>
+
+    <section v-if="debugOef" class="mt-6 rounded-xl border overflow-hidden"
+             style="background:var(--color-surface);border-color:var(--color-border)">
+      <header class="px-4 py-2 border-b flex items-center justify-between text-xs"
+              style="border-color:var(--color-border);color:var(--color-text-muted)">
         <span class="font-mono">solution · seed {{ debug?.seed ?? '…' }}</span>
         <span>debug · NUXT_PUBLIC_DEBUG_OEF</span>
       </header>
@@ -63,6 +85,56 @@ interface Source { oef_path: string; content: string }
 const source = ref<Source | null>(null)
 const sourceError = ref('')
 
+type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
+const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
+interface ExerciseMeta {
+  id: string
+  statement_ok: boolean | null
+  answer_ok: boolean | null
+  check_ok: boolean | null
+}
+const qa = ref<Record<QAFlag, boolean | null>>({
+  statement_ok: null, answer_ok: null, check_ok: null,
+})
+const qaSaving = ref<Record<QAFlag, boolean>>({
+  statement_ok: false, answer_ok: false, check_ok: false,
+})
+const qaError = ref('')
+
+async function loadQa() {
+  if (!debugOef) return
+  qaError.value = ''
+  try {
+    const ex = await apiFetch<ExerciseMeta>(`/api/exercises/${exerciseId.value}`)
+    qa.value = {
+      statement_ok: ex.statement_ok,
+      answer_ok: ex.answer_ok,
+      check_ok: ex.check_ok,
+    }
+  } catch (e: any) {
+    qaError.value = e?.data?.detail || e?.message || String(e)
+  }
+}
+
+async function onQaToggle(flag: QAFlag, checked: boolean) {
+  const prev = qa.value[flag]
+  qa.value[flag] = checked
+  qaSaving.value[flag] = true
+  qaError.value = ''
+  try {
+    const updated = await apiFetch<ExerciseMeta>(
+      `/api/exercises/${exerciseId.value}/qa`,
+      { method: 'PATCH', body: { [flag]: checked } },
+    )
+    qa.value[flag] = updated[flag]
+  } catch (e: any) {
+    qa.value[flag] = prev
+    qaError.value = e?.data?.detail || e?.message || String(e)
+  } finally {
+    qaSaving.value[flag] = false
+  }
+}
+
 interface DebugAnswer { input_name: string; label: string; answer_type: string; expected: string }
 interface Debug { exercise_id: string; seed: number; solution_html: string; answers: DebugAnswer[] }
 const debug = ref<Debug | null>(null)
@@ -109,5 +181,5 @@ async function onRendered(payload: { seed: number; exerciseId: string }) {
   }
 }
 
-watch(exerciseId, loadSource, { immediate: true })
+watch(exerciseId, () => { loadSource(); loadQa() }, { immediate: true })
 </script>
