@@ -1505,6 +1505,11 @@ class DefEngine:
         ref = parts[0] if parts else "reply1"
         size_str = parts[1] if len(parts) > 1 else "10"
 
+        # Some .def files write `reply 1,30` (space between word and index)
+        # instead of `reply1,30`; collapse internal whitespace so the ref
+        # matches the answer's input_name.
+        ref = re.sub(r"\s+", "", ref)
+
         # Skip text-input emission when the target reply is a radio.
         nm = re.match(r"^r(?:eply)?(\d+)$", ref)
         if nm:

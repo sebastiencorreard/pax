@@ -134,6 +134,14 @@ class TestSlibHelpers:
         e._eval_cmd("default", "x=42")
         assert e.ctx["x"] == "5"
 
+    def test_render_embed_collapses_whitespace_in_ref(self):
+        # `!read oef/embed.phtml reply 1,30` (with a space) should still
+        # produce a span named `reply1` so the input matches the answer.
+        e = engine()
+        out = e._render_embed("reply 1,30")
+        assert 'name="reply1"' in out
+        assert 'data-size="30"' in out
+
     def test_isin_substring(self):
         e = engine()
         assert e._eval_condition("if", "ab isin xabc")
