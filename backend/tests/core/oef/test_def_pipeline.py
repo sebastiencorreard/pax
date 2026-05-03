@@ -51,6 +51,7 @@ REPRESENTATION1_DEF = os.path.join(
 ROTANGLE3_DEF = os.path.join(
     RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotangle3.def"
 )
+MEDIANE4_DEF = os.path.join(RESSOURCES, "H4/stat/OEFevalwimsstat.fr/def/mediane4.def")
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -510,3 +511,48 @@ class TestRotangle3:
         # `flood` should fill two triangles with the colours picked from val6.
         r = load_and_render(ROTANGLE3_DEF, seed=42)
         assert r.statement_html.count("<polygon") == 2
+
+
+class TestMediane4:
+    """mediane4 picks a random scenario from `src/stat2.don` and renders a
+    frequency table whose values come from `slib/generator`. Covers
+    `!randrecord`, `!row` newline-split, and slib execution with `!for`."""
+
+    def test_renders(self):
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_contains_data_table(self):
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert "<table" in r.statement_html
+        # Two rows: header (Nombre de … / values) and Effectifs / frequencies
+        assert r.statement_html.count("<tr") == 2
+
+    def test_frequency_table_has_values(self):
+        # Each <td> in the second row should be a numeric frequency, not
+        # a leftover `$empty` or other unresolved variable.
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        import re as _re
+
+        tds = _re.findall(r"<td[^>]*>\s*([^<]*?)\s*</td>", r.statement_html)
+        # Skip the leading "Effectifs" label cell; the rest must be numeric.
+        for cell in tds[1:]:
+            assert "$" not in cell  # no unresolved $vars
+            assert cell.lstrip("-").isdigit() or cell == ""
+
+    def test_input_segment_is_appended(self):
+        # The .def has no \embed in :question, but a numexp reply is
+        # declared — the engine appends a default input so the frontend
+        # has somewhere to render the answer field.
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        input_segments = [s for s in r.statement_segments if s.get("type") == "input"]
+        assert len(input_segments) == 1
+        assert input_segments[0]["name"] == "reply1"
+
+    def test_expected_answer_is_the_median(self):
+        # `slib/stat/median` is computed natively from [values; frequencies].
+        r = load_and_render(MEDIANE4_DEF, seed=42)
+        assert r.answers[0].expected.strip() != ""
+        # The expected value is one of the data values (between val11 and val12)
+        # or the half-sum of two consecutive ones.
+        assert r.answers[0].expected.replace(".", "").lstrip("-").isdigit()

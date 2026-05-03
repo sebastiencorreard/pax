@@ -144,6 +144,55 @@ class TestSlibHelpers:
         assert e._eval_condition("if", "<,3 != slib_header")
         assert not e._eval_condition("if", "abc != abc")
 
+    def test_distribute_accepts_singular_item(self):
+        # `!distribute item` (singular, used by slib/generator) is accepted.
+        e = engine()
+        e.ctx["src"] = "5,100"
+        e._eval_cmd("distribute", "item $src into a,b")
+        assert e.ctx["a"] == "5"
+        assert e.ctx["b"] == "100"
+
+    def test_bound_between_clamps_out_of_range(self):
+        e = engine()
+        e.ctx["v"] = "12"
+        e._eval_cmd("bound", "v between 3 and 10 default 5")
+        assert e.ctx["v"] == "5"
+
+    def test_bound_between_keeps_in_range(self):
+        e = engine()
+        e.ctx["v"] = "7"
+        e._eval_cmd("bound", "v between 3 and 10 default 5")
+        assert e.ctx["v"] == "7"
+
+
+# ── !randrecord ──────────────────────────────────────────────────────────────
+
+
+class TestCmdRandrecord:
+    def test_picks_record_from_don_file(self, tmp_path):
+        # Records separated by lines starting with `:`. Set up a tiny .def
+        # so the engine can resolve a relative `src/<name>` path.
+        mod = tmp_path / "mod"
+        (mod / "def").mkdir(parents=True)
+        (mod / "src").mkdir()
+        (mod / "src" / "data.don").write_text(
+            ":alpha\nfirst-record-body\n:beta\nsecond-record-body\n"
+        )
+        def_path = mod / "def" / "x.def"
+        def_path.write_text("")
+        e = DefEngine(seed=1, def_path=str(def_path))
+        result = e._eval_cmd("randrecord", "src/data.don")
+        # Both candidates are valid; the seed determines which.
+        assert "alpha" in result or "beta" in result
+        assert "record-body" in result
+
+    def test_returns_empty_when_file_missing(self, tmp_path):
+        def_path = tmp_path / "def" / "x.def"
+        def_path.parent.mkdir()
+        def_path.write_text("")
+        e = DefEngine(seed=1, def_path=str(def_path))
+        assert e._eval_cmd("randrecord", "src/missing.don") == ""
+
 
 # ── _call_pari ─────────────────────────────────────────────────────────────────
 
@@ -371,10 +420,17 @@ class TestCmdStringOps:
         e = engine()
         assert e._eval_cmd("replace", "internal z by y in abc") == "abc"
 
-    def test_append_to_existing(self):
+    def test_append_to_comma_list(self):
+        # No tabs in the list → append with comma so slib helpers building
+        # comma-separated frequency lists (e.g. slib/generator) work.
         e = engine()
         e.ctx["mylist"] = "a,b"
-        assert e._eval_cmd("append", "item c to $mylist") == "a,b\tc"
+        assert e._eval_cmd("append", "item c to $mylist") == "a,b,c"
+
+    def test_append_to_tab_list(self):
+        e = engine()
+        e.ctx["mylist"] = "a\tb"
+        assert e._eval_cmd("append", "item c to $mylist") == "a\tb\tc"
 
     def test_append_to_empty_var(self):
         e = engine()
