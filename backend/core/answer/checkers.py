@@ -302,6 +302,21 @@ def check_text(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="text")
 
 
+def check_default(reply: str, expected: str) -> CheckResult:
+    """OEF `default`: algebraic comparison, fallback to plain text.
+
+    WIMS `anstype/default` runs through Maxima for symbolic equivalence; if
+    that fails (or expected is a non-math string), accept exact text match.
+    """
+    algexp = check_algexp(reply, expected)
+    if algexp.correct:
+        return CheckResult(correct=True, score=1.0, method="default_algexp")
+    text = check_text(reply, expected)
+    if text.correct:
+        return CheckResult(correct=True, score=1.0, method="default_text")
+    return CheckResult(correct=False, score=0.0, method="default")
+
+
 # ------------------------------------------------------------------ #
 # Dispatcher principal                                                  #
 # ------------------------------------------------------------------ #
@@ -332,5 +347,7 @@ def check_answer(
             return check_set(reply, expected)
         case "radio" | "menu" | "clickfill":
             return check_radio(reply, expected)
-        case "text" | "default" | _:
+        case "default":
+            return check_default(reply, expected)
+        case "text" | _:
             return check_text(reply, expected)
