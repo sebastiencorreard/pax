@@ -70,8 +70,12 @@ class TestCallPari:
     def test_power(self):
         assert _call_pari("3^2") == "9"
 
-    def test_float_result(self):
-        assert _call_pari("10/4") == "2.5"
+    def test_rational_division(self):
+        # PARI: integer / integer → Rational
+        assert _call_pari("10/4") == "5/2"
+
+    def test_float_division(self):
+        assert _call_pari("5.5/2") == "2.75"
 
     def test_integer_float(self):
         assert _call_pari("sqrt(9)") == "3"
@@ -83,6 +87,57 @@ class TestCallPari:
         result = _call_pari("not_an_expr!!!")
         assert result == "not_an_expr!!!"
 
+    # ── Pari helpers ──────────────────────────────────────────────────────
+    def test_concat_strings(self):
+        assert _call_pari('concat("a", "b", "c")') == "abc"
+
+    def test_expand(self):
+        assert _call_pari("expand((x+1)*(x-1))") == "x**2 - 1"
+
+    def test_polcoeff(self):
+        assert _call_pari("polcoeff(x^2 + 3*x + 2, 1)") == "3"
+
+    def test_poldegree(self):
+        assert _call_pari("poldegree(x^3 + 2*x)") == "3"
+
+    def test_divrem(self):
+        assert _call_pari("divrem(17, 5)") == "3,2"
+
+    def test_denominator(self):
+        assert _call_pari("denominator(3/4)") == "4"
+
+    def test_numerator(self):
+        assert _call_pari("numerator(3/4)") == "3"
+
+    def test_vecmax(self):
+        assert _call_pari("vecmax([3, 7, 2, 9, 1])") == "9"
+
+    def test_vecmin(self):
+        assert _call_pari("vecmin([3, 7, 2, 9, 1])") == "1"
+
+    def test_matdet_2x2(self):
+        assert _call_pari("matdet([[1,2],[3,4]])") == "-2"
+
+    def test_isprime_true(self):
+        assert _call_pari("isprime(7)") == "1"
+
+    def test_isprime_false(self):
+        assert _call_pari("isprime(8)") == "0"
+
+    def test_subst(self):
+        assert _call_pari("subst(x^2+1, x, 3)") == "10"
+
+    def test_core_squarefree(self):
+        # 12 = 2^2 * 3 → squarefree part is 3
+        assert _call_pari("core(12)") == "3"
+
+    def test_core_negative(self):
+        # -50 = -1 * 2 * 5^2 → squarefree part is -2 (sign preserved)
+        assert _call_pari("core(-50)") == "-2"
+
+    def test_print_unwraps(self):
+        assert _call_pari('print(concat("hi", "!"))') == "hi!"
+
 
 # ── !values ────────────────────────────────────────────────────────────────────
 
@@ -91,6 +146,12 @@ class TestCmdValues:
     def test_identity_loop(self):
         e = engine()
         assert e._eval_cmd("values", "v for v=2 to 5") == "2,3,4,5"
+
+    def test_comma_separated_expr_flat_list(self):
+        # `v,-v` per iteration must produce a flat list of pairs, not Python
+        # tuple repr `(2, -2),(3, -3),...`.
+        e = engine()
+        assert e._eval_cmd("values", "v,-v for v=2 to 4") == "2,-2,3,-3,4,-4"
 
     def test_expression_loop(self):
         e = engine()
@@ -623,6 +684,27 @@ class TestCallMaxima:
     def test_unknown_function_returns_expr(self):
         result = _call_maxima("weirdunknownfunc(x + 1)")
         assert "weirdunknownfunc" in result or "x" in result
+
+    # ── Multi-arg Maxima functions ────────────────────────────────────────
+    def test_diff_polynomial(self):
+        assert _call_maxima("diff(x^3, x)") == "3*x**2"
+
+    def test_diff_trig(self):
+        assert _call_maxima("diff(sin(x), x)") == "cos(x)"
+
+    def test_subst(self):
+        # Maxima: subst(val, var, expr) — replace var with val in expr
+        assert _call_maxima("subst(2, x, x^2 + 1)") == "5"
+
+    def test_coeff(self):
+        assert _call_maxima("coeff(3*x^2 + 5*x + 7, x, 2)") == "3"
+
+    def test_hipow(self):
+        assert _call_maxima("hipow(x^4 + x^2, x)") == "4"
+
+    def test_cardinality(self):
+        # Cardinality of a set with duplicates
+        assert _call_maxima("cardinality({1,2,3,2,1})") == "3"
 
 
 # ── _sympy_to_latex ───────────────────────────────────────────────────────────
