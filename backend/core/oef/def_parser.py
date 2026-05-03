@@ -191,12 +191,18 @@ def parse(text: str) -> DefFile:
 
 
 def _merge_continuations(lines: list[str]) -> list[str]:
-    """Merge lines ending with backslash into the next line."""
+    """Merge lines ending with backslash into the next line.
+
+    The newline is kept (turns into a literal ``\\n`` inside the joined line)
+    because WIMS-script values like ``slib_out=cmd1\\<nl>cmd2\\<nl>cmd3``
+    must preserve the line breaks: downstream consumers like flydraw require
+    one command per line.
+    """
     result: list[str] = []
     buf = ""
     for raw in lines:
         if raw.endswith("\\"):
-            buf += raw[:-1]
+            buf += raw[:-1] + "\n"
         else:
             result.append(buf + raw)
             buf = ""

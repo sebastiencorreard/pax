@@ -93,6 +93,58 @@ class TestCloseInlineMath:
         assert _close_inline_math(r"\($x = $y\)") == r"\($x = $y\)"
 
 
+# ── slib helper commands ─────────────────────────────────────────────────────
+
+
+class TestSlibHelpers:
+    def test_distribute_assigns_each_item(self):
+        e = engine()
+        e.ctx["src"] = "1,2,3"
+        e._eval_cmd("distribute", "items $src into a,b,c")
+        assert e.ctx["a"] == "1"
+        assert e.ctx["b"] == "2"
+        assert e.ctx["c"] == "3"
+
+    def test_distribute_pads_short_lists(self):
+        e = engine()
+        e.ctx["src"] = "x,y"
+        e._eval_cmd("distribute", "items $src into a,b,c")
+        assert e.ctx["c"] == ""
+
+    def test_bound_clamps_to_default(self):
+        e = engine()
+        e.ctx["v"] = "weird"
+        e._eval_cmd("bound", "v within <,>,<= default <")
+        assert e.ctx["v"] == "<"
+
+    def test_bound_keeps_valid_value(self):
+        e = engine()
+        e.ctx["v"] = ">="
+        e._eval_cmd("bound", "v within <,>,<=,>= default <")
+        assert e.ctx["v"] == ">="
+
+    def test_default_sets_when_missing(self):
+        e = engine()
+        e._eval_cmd("default", "x=42")
+        assert e.ctx["x"] == "42"
+
+    def test_default_skips_when_set(self):
+        e = engine()
+        e.ctx["x"] = "5"
+        e._eval_cmd("default", "x=42")
+        assert e.ctx["x"] == "5"
+
+    def test_isin_substring(self):
+        e = engine()
+        assert e._eval_condition("if", "ab isin xabc")
+        assert not e._eval_condition("if", "qq isin xabc")
+
+    def test_string_inequality(self):
+        e = engine()
+        assert e._eval_condition("if", "<,3 != slib_header")
+        assert not e._eval_condition("if", "abc != abc")
+
+
 # ── _call_pari ─────────────────────────────────────────────────────────────────
 
 
