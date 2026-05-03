@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import TYPE_CHECKING
-from sqlalchemy import String, DateTime, ARRAY
+from sqlalchemy import Boolean, String, DateTime, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Base
@@ -33,5 +33,10 @@ class Exercise(Base):
     lang: Mapped[str] = mapped_column(String(5), default="fr")
     keywords: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # QA status flags — set manually in debug mode
+    statement_ok: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    answer_ok: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    check_ok: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     sheet_items: Mapped[list["SheetExercise"]] = relationship(back_populates="exercise")
