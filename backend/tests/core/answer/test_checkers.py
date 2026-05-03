@@ -2,12 +2,18 @@ import os
 import sys
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from core.answer.checkers import check_answer, check_fset
+sys.path.insert(
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    ),
+)
+from core.answer.checkers import check_answer, check_default, check_fset
 
 
 # Bug fix : type "fset" tombait dans le case "text" (comparaison de chaînes),
 # donc -4 ne matchait pas -8/2.
+
 
 def test_fset_dispatcher_routes_to_fset():
     """fset doit être dispatché vers check_fset, pas vers check_text."""
@@ -81,3 +87,32 @@ def test_fset_falls_back_to_symbolic():
     """Quand le parseur numérique échoue, sympy doit prendre le relais."""
     # 2*x equivaut à x+x (forme symbolique, pas numérique)
     assert check_fset("2*x", "x+x").correct
+
+
+# Bug fix : type "default" tombait dans le case "text", donc une réponse
+# algébriquement équivalente mais formatée différemment était rejetée.
+
+
+def test_default_dispatcher_uses_algexp():
+    r = check_answer("default", "-x^2+8x+20", "-x**2 + 8*x + 20")
+    assert r.correct is True
+
+
+def test_default_implicit_multiplication():
+    assert check_default("-n^2-5n-6", "-n**2 - 5*n - 6").correct
+
+
+def test_default_unicode_superscripts():
+    assert check_default("-x²+8x+20", "-x**2 + 8*x + 20").correct
+
+
+def test_default_falls_back_to_text_for_non_math():
+    """Quand l'expected n'est pas mathématique, comparaison texte."""
+    assert check_default("Paris", "Paris").correct
+    assert check_default("paris", "Paris").correct  # case-insensitive text
+
+
+def test_default_wrong_answer():
+    r = check_default("x^2 + 1", "-x**2 + 8*x + 20")
+    assert r.correct is False
+    assert r.score == 0.0
