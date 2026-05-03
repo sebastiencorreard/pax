@@ -45,6 +45,12 @@ DEV1EXP_DEF = os.path.join(RESSOURCES, "H4/algebra/oefcalcullit.fr/def/dev1exp.d
 FACTORB1_DEF = os.path.join(
     RESSOURCES, "H4/algebra/evalwimsdevfact.fr/def/factorB1.def"
 )
+REPRESENTATION1_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/OEFevalwimsequ.fr/def/representation1.def"
+)
+ROTANGLE3_DEF = os.path.join(
+    RESSOURCES, "H4/geometry/OEFevalwimsrot.fr/def/rotangle3.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -447,3 +453,60 @@ class TestFactorB1:
         r1 = load_and_render(FACTORB1_DEF, seed=13)
         r2 = load_and_render(FACTORB1_DEF, seed=13)
         assert r1.answers[0].expected == r2.answers[0].expected
+
+
+class TestRepresentation1:
+    """representation1 renders inequality number-line graphs via slib +
+    oef/draw.phtml. Verifies the slib executor and flydraw → SVG pipeline."""
+
+    def test_renders(self):
+        r = load_and_render(REPRESENTATION1_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_inlines_four_svgs(self):
+        r = load_and_render(REPRESENTATION1_DEF, seed=42)
+        # Statement embeds four inline <svg> elements (one per number-line)
+        assert r.statement_html.count("<svg") == 4
+        assert r.statement_html.count("</svg>") == 4
+        # No leftover image-URL markers
+        assert "/api/render/svg/" not in r.statement_html
+
+    def test_choices_are_dedup_labels(self):
+        r = load_and_render(REPRESENTATION1_DEF, seed=42)
+        # Four "Graphique N" + "Je ne sais pas"
+        choices = r.answers[0].options.get("choices", [])
+        assert len(choices) == 5
+        graph_labels = [c for c in choices if c.startswith("Graphique ")]
+        assert len(graph_labels) == 4
+
+    def test_expected_matches_one_choice(self):
+        r = load_and_render(REPRESENTATION1_DEF, seed=42)
+        expected = r.answers[0].expected
+        assert expected in r.answers[0].options.get("choices", [])
+
+
+class TestRotangle3:
+    """rotangle3 packs flydraw commands with tabs and uses sqrt/cos/sin/pi
+    in args. Flood-fill is silently skipped (TODO), so we don't assert on
+    coloured triangles — only that the grid + center circle render."""
+
+    def test_renders(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert r.statement_html.strip()
+
+    def test_statement_inlines_an_svg(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert "<svg" in r.statement_html
+        assert "</svg>" in r.statement_html
+
+    def test_grid_has_lines_and_center(self):
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        # Triangular grid: three families of `parallel` × 15 + center circle.
+        # Stay loose: at least 30 grid lines and a circle for the centre.
+        assert r.statement_html.count("<line") >= 30
+        assert "<circle" in r.statement_html
+
+    def test_two_filled_triangles(self):
+        # `flood` should fill two triangles with the colours picked from val6.
+        r = load_and_render(ROTANGLE3_DEF, seed=42)
+        assert r.statement_html.count("<polygon") == 2

@@ -71,6 +71,85 @@ _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_]\w*)")  # $varname
 
 
+def _normalize_math_content(s: str) -> str:
+    """Best-effort cleanup of an inline math expression for KaTeX rendering.
+
+    Tries to render each side of an `=` via SymPy → LaTeX (drops `*`, fixes
+    `+-` → `-`, etc.). Falls back to the original on parse failure so that
+    pre-formatted LaTeX (`\\frac{}{}`, `\\sqrt{}`, …) is preserved.
+    """
+    import sympy  # noqa: PLC0415
+
+    if not s.strip() or "\\" in s:
+        return s
+
+    def _render_side(side: str) -> str:
+        side = side.strip()
+        if not side:
+            return side
+        try:
+            return sympy.latex(sympy.sympify(side.replace("^", "**")))
+        except Exception:
+            return side
+
+    parts = s.split("=")
+    if all(p.strip() for p in parts) and len(parts) > 1:
+        rendered = [_render_side(p) for p in parts]
+        if all(r != p.strip() for r, p in zip(rendered, parts)):
+            return " = ".join(rendered)
+    rendered = _render_side(s)
+    if rendered != s.strip():
+        return rendered
+    return s
+
+
+def _close_inline_math(text: str) -> str:
+    """Convert WIMS-style ``\\(...)`` to KaTeX ``\\(...\\)`` and clean content.
+
+    WIMS authors open inline math with ``\\(`` but close with a plain ``)``.
+    KaTeX requires ``\\)``. For each ``\\(`` that is not already followed by a
+    matching ``\\)``, find the balanced closing ``)`` and rewrite it. The
+    captured inner content is also passed through ``_normalize_math_content``
+    so raw expressions like ``-3*x + 3 = -1*x+-5`` render as ``3 - 3 x = - x - 5``.
+    """
+    out: list[str] = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if i + 1 < n and text[i] == "\\" and text[i + 1] == "(":
+            depth = 1
+            j = i + 2
+            closed_proper = False
+            while j < n:
+                if text[j] == "\\" and j + 1 < n and text[j + 1] == ")":
+                    closed_proper = True
+                    break
+                if text[j] == "(":
+                    depth += 1
+                elif text[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                j += 1
+            if j < n and not closed_proper and depth == 0:
+                content = text[i + 2 : j]
+                out.append("\\(")
+                out.append(_normalize_math_content(content))
+                out.append("\\)")
+                i = j + 1
+                continue
+            if closed_proper:
+                content = text[i + 2 : j]
+                out.append("\\(")
+                out.append(_normalize_math_content(content))
+                out.append("\\)")
+                i = j + 2
+                continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
+
+
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
@@ -87,18 +166,25 @@ def load_and_render(def_path: str, seed: int | None = None) -> ExerciseRender:
         seed = random.randint(0, 2**31)
 
     def_file = parse_def(text)
-    engine = DefEngine(seed=seed)
+    engine = DefEngine(seed=seed, def_path=def_path)
     return engine.render(def_file)
 
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 
 
+class _SlibExit(Exception):
+    """Sentinel raised by `!exit` inside a slib script to stop execution."""
+
+
 class DefEngine:
-    def __init__(self, seed: int):
+    def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self.rng = random.Random(seed)
         self.ctx: dict[str, str] = {}
+        # Path of the .def file being rendered. Used to resolve `!readproc
+        # slib/<name>` paths relative to the module directory.
+        self.def_path = def_path
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
@@ -113,6 +199,10 @@ class DefEngine:
         else:
             html = self._subst(stmt)
 
+        from .flydraw import inline_svg_imgs  # noqa: PLC0415
+
+        html = _close_inline_math(html)
+        html = inline_svg_imgs(html)
         segments = _segment_statement(html)
         answers = self._extract_answers(df)
 
@@ -170,8 +260,11 @@ class DefEngine:
                     output_buf.append(self._render_embed(instr.args))
 
             elif isinstance(instr, ReadProc):
+                # Run for its side effects (sets ctx['ins_url'], etc.) — the
+                # call's textual output is empty for our supported procs.
+                self._cmd_readproc(f"{instr.path} {instr.args}".strip())
                 if output_buf is not None:
-                    output_buf.append("")  # placeholder for unimplemented procs
+                    output_buf.append("")
 
     def _exec_for(self, loop: ForLoop, output_buf: list | None) -> None:
         range_s = self._subst(loop.range_expr)
@@ -326,6 +419,32 @@ class DefEngine:
         """Evaluate an !if or !ifval condition."""
         cond = self._subst(condition)
 
+        # WIMS string operators: `A isin B` (substring), `A notin B`,
+        # `A wordof B` (whole-word match), `A notwordof B`. Check these
+        # before falling through to numeric comparison so `=` inside the
+        # operands isn't misinterpreted.
+        m = re.match(r"^\s*(.+?)\s+(isin|notin|wordof|notwordof)\s+(.+?)\s*$", cond)
+        if m:
+            needle = m.group(1).strip()
+            op = m.group(2).lower()
+            haystack = m.group(3).strip()
+            if op == "isin":
+                return needle in haystack
+            if op == "notin":
+                return needle not in haystack
+            words = re.split(r"[,\s]+", haystack)
+            if op == "wordof":
+                return needle in words
+            return needle not in words
+
+        # WIMS string `!=` and `=`: handled BEFORE numeric comparison so
+        # that values like `<,3,…` (which aren't valid Python) don't trip
+        # the numeric branch.
+        if kind != "ifval":
+            m = re.match(r"^\s*(.+?)\s*!=\s*(.+?)\s*$", cond)
+            if m and not re.fullmatch(r"[\d\s\-+*/.()e]+", m.group(1)):
+                return m.group(1).strip() != m.group(2).strip()
+
         # Numeric comparison: !ifval $val10<4, $val8 issametext X,...
         if kind == "ifval" or re.search(r"[<>!=]=?", cond):
             try:
@@ -461,8 +580,234 @@ class DefEngine:
         if cmd in ("nosubst",):
             return args  # literal, no substitution
 
+        if cmd == "distribute":
+            self._cmd_distribute(args)
+            return ""
+
+        if cmd == "bound":
+            self._cmd_bound(args)
+            return ""
+
+        if cmd == "default":
+            self._cmd_default(args)
+            return ""
+
+        if cmd == "set":
+            # `!set var=value` — same as a plain assignment.
+            m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", args)
+            if m:
+                self.ctx[m.group(1)] = self._subst(m.group(2))
+            return ""
+
+        if cmd == "exit":
+            # Bubble up via a sentinel exception so sub-engines (slib) can
+            # stop execution cleanly without aborting the parent.
+            raise _SlibExit()
+
+        if cmd == "goto":
+            # `!goto <label>` is rare in slib; skip silently — the script's
+            # default fall-through usually produces the right value.
+            return ""
+
+        if cmd == "readproc":
+            self._cmd_readproc(args)
+            return ""
+
         # Unknown command — return empty
         return ""
+
+    def _cmd_distribute(self, args: str) -> None:
+        """!distribute items $LIST into a,b,c[,…] — split list, assign each."""
+        m = re.match(r"^\s*items\s+(.+?)\s+into\s+(.+)$", args, re.I | re.DOTALL)
+        if not m:
+            return
+        list_val = self._subst(m.group(1).strip())
+        names = [n.strip() for n in m.group(2).split(",") if n.strip()]
+        items = [x.strip() for x in list_val.split(",")]
+        for i, name in enumerate(names):
+            self.ctx[name] = items[i] if i < len(items) else ""
+
+    def _cmd_bound(self, args: str) -> None:
+        """!bound var within v1,v2,…,vn default V — clamp $var to set, else V."""
+        m = re.match(
+            r"^\s*(\w+)\s+within\s+(.+?)\s+default\s+(.+)$", args, re.I | re.DOTALL
+        )
+        if not m:
+            return
+        name = m.group(1)
+        allowed = [v.strip() for v in m.group(2).split(",")]
+        default = self._subst(m.group(3).strip())
+        cur = self.ctx.get(name, "").strip()
+        if cur not in allowed:
+            self.ctx[name] = default
+
+    def _cmd_default(self, args: str) -> None:
+        """!default var=value — set var only if currently unset/empty."""
+        m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", args, re.DOTALL)
+        if not m:
+            return
+        name = m.group(1)
+        if not self.ctx.get(name, "").strip():
+            self.ctx[name] = self._subst(m.group(2))
+
+    def _cmd_readproc(self, args: str) -> None:
+        """`!readproc <path> <args>` — execute a slib script or built-in proc.
+
+        Supports two destinations:
+        - ``oef/draw.phtml`` — built-in: render flydraw commands to an SVG
+          data URI, store it in ``ctx['ins_url']``.
+        - ``slib/<name>`` — read the script next to the .def file and run it
+          as a sub-engine sharing this engine's ctx.
+        """
+        from .flydraw import flydraw_to_url  # noqa: PLC0415
+
+        rest = args.strip()
+        # Path is the first whitespace-separated token; everything else is
+        # passed as `wims_read_parm` to the proc.
+        m = re.match(r"^(\S+)\s*(.*)$", rest, re.DOTALL)
+        if not m:
+            return
+        path = m.group(1).strip()
+        proc_args = self._subst(m.group(2).strip())
+
+        if path == "oef/draw.phtml":
+            # First line: "xsize,ysize"; remainder: flydraw commands
+            head, _, body = proc_args.partition("\n")
+            size_parts = [p.strip() for p in head.split(",")]
+            try:
+                xsize = int(float(size_parts[0])) if size_parts else 300
+                ysize = int(float(size_parts[1])) if len(size_parts) > 1 else 80
+            except ValueError:
+                xsize, ysize = 300, 80
+            self.ctx["ins_url"] = flydraw_to_url(xsize, ysize, body)
+            return
+
+        if path.startswith("slib/"):
+            self._run_slib(path, proc_args)
+            return
+
+        # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
+        return
+
+    def _run_slib(self, slib_path: str, params: str) -> None:
+        """Locate and execute a slib/<name> script in the module directory."""
+        import os  # noqa: PLC0415
+        from .def_parser import _merge_continuations  # noqa: PLC0415
+
+        if not self.def_path:
+            return
+        # Modules live at <module>/def/<file>.def or <module>/src/<file>.oef
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        candidates = [
+            os.path.join(module_dir, slib_path),
+            os.path.join(module_dir, "slib", "local", slib_path[len("slib/") :]),
+        ]
+        script_path = next((p for p in candidates if os.path.exists(p)), None)
+        if not script_path:
+            return
+        try:
+            with open(script_path, encoding="utf-8") as f:
+                text = f.read()
+        except UnicodeDecodeError:
+            with open(script_path, encoding="iso-8859-1") as f:
+                text = f.read()
+
+        # Save and set wims_read_parm for the sub-script's perspective
+        saved_parm = self.ctx.get("wims_read_parm", "")
+        self.ctx["wims_read_parm"] = params
+
+        # Execute the script line-by-line, sharing this engine's ctx.
+        lines = _merge_continuations(text.split("\n"))
+        try:
+            self._run_script_lines(lines)
+        except _SlibExit:
+            pass
+        finally:
+            self.ctx["wims_read_parm"] = saved_parm
+
+    def _run_script_lines(self, lines: list[str]) -> None:
+        """Execute a flat WIMS-script sequence (used for slib scripts).
+
+        Single-pointer interpreter: walks the line list once with branching
+        controlled by setting `i` directly. Supports ``!if/!else/!endif``,
+        ``!goto :label``, ``!exit``. Designed so a ``!goto`` nested inside
+        an ``!if`` body can still jump to a top-level ``:label`` marker —
+        which is the common slib idiom for the help/help_proc dispatch.
+        """
+        labels: dict[str, int] = {}
+        for idx, raw in enumerate(lines):
+            s = raw.strip()
+            if s.startswith(":") and len(s) > 1 and not s.startswith("::"):
+                labels[s[1:].strip()] = idx
+
+        # Stack of pending `!if` blocks: each entry is (endif_index,)
+        if_stack: list[int] = []
+        i = 0
+        n = len(lines)
+        while i < n:
+            line = lines[i]
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith(":"):
+                i += 1
+                continue
+            if stripped.startswith("!if "):
+                cond = stripped[len("!if ") :]
+                taken = self._eval_condition("if", cond)
+                depth = 1
+                j = i + 1
+                else_at = -1
+                while j < n and depth > 0:
+                    s = lines[j].strip()
+                    if s.startswith("!if "):
+                        depth += 1
+                    elif s == "!endif":
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    elif s == "!else" and depth == 1:
+                        else_at = j
+                    j += 1
+                if depth != 0:
+                    return
+                if_stack.append(j)
+                if taken:
+                    i += 1
+                else:
+                    i = (else_at + 1) if else_at != -1 else j
+                continue
+            if stripped == "!else":
+                # Reached the else marker while running the if-true body —
+                # skip ahead to the matching endif.
+                if if_stack:
+                    i = if_stack[-1]
+                    continue
+                i += 1
+                continue
+            if stripped == "!endif":
+                if if_stack:
+                    if_stack.pop()
+                i += 1
+                continue
+            if stripped == "!exit":
+                raise _SlibExit()
+            if stripped.startswith("!goto "):
+                target = stripped[len("!goto ") :].strip().lstrip(":")
+                tgt_idx = labels.get(target)
+                if tgt_idx is not None:
+                    if_stack.clear()  # crossing the label resets if-context
+                    i = tgt_idx + 1
+                else:
+                    i += 1
+                continue
+            if stripped.startswith("!"):
+                cmd_line = stripped[1:].strip()
+                cmd, _, cargs = cmd_line.partition(" ")
+                self._eval_cmd(cmd.lower(), cargs)
+            else:
+                m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", line, re.DOTALL)
+                if m:
+                    self.ctx[m.group(1)] = self._eval_value(m.group(2))
+            i += 1
 
     # ── Specific command implementations ─────────────────────────────────────
 
@@ -522,31 +867,49 @@ class DefEngine:
         return sep.join(items)
 
     def _cmd_item(self, args: str) -> str:
-        """!item n of list — 1-indexed item."""
+        """!item I of list — 1-indexed item, or list of items.
+
+        ``I`` may be a single index, a ``N to M`` range, or a comma-separated
+        list of indices (WIMS rotangle/rotation exercises use this form to
+        pick a permutation of colors out of a master colour list).
+        """
         m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
 
+        def split_items(s: str) -> list[str]:
+            if "\t" in s:
+                return s.split("\t")
+            return re.split(r",(?![^(]*\))", s)
+
         # Range: "2 to 5" → items 2 through 5
         range_m = re.match(r"(\d+)\s+to\s+(\d+)", idx_s)
         if range_m:
             a, b = int(range_m.group(1)), int(range_m.group(2))
-            if "\t" in data:
-                items = data.split("\t")
-            else:
-                items = data.split(",")
+            items = split_items(data)
             return ",".join(items[a - 1 : b])
+
+        # Comma-separated list of indices → pick each, join with commas
+        if "," in idx_s:
+            indices: list[int] = []
+            for p in idx_s.split(","):
+                p = p.strip()
+                try:
+                    indices.append(int(round(float(self._eval_arith(p)))))
+                except (ValueError, TypeError):
+                    pass
+            items = split_items(data)
+            return ",".join(
+                items[i - 1].strip() for i in indices if 1 <= i <= len(items)
+            )
 
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
         except (ValueError, TypeError):
             return ""
-        if "\t" in data:
-            items = data.split("\t")
-        else:
-            items = re.split(r",(?![^(]*\))", data)  # comma not inside parens
+        items = split_items(data)
         if 1 <= idx <= len(items):
             return items[idx - 1].strip()
         return ""
@@ -583,7 +946,19 @@ class DefEngine:
         return src.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """!translate [internal] chars_from to chars_to in S — tr-style char translation."""
+        """``!translate [internal] FROM to TO in S`` — tr-style char map.
+
+        Implements the WIMS algorithm from ``calc.c:calc_translate``:
+
+        1. After variable substitution, take the FROM and TO sets as raw
+           character sequences (no ``$X$`` shorthand expansion — they are
+           literal ``$`` + chars + ``$``).
+        2. Truncate FROM to ``len(TO)`` so that any extra from-chars are
+           dropped.
+        3. For each character in the input that appears in FROM, replace it
+           with the TO character at the same index (first occurrence wins
+           when FROM has duplicates).
+        """
         m_int = re.match(
             r"internal\s+(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I
         )
@@ -597,17 +972,16 @@ class DefEngine:
             return self._subst(args)
 
         chars_from = m.group(1).strip()
-        chars_to_raw = m.group(2).strip()
+        chars_to = m.group(2).strip()
         src = self._subst(m.group(3).strip())
 
-        # Resolve tab shorthands
-        chars_from = chars_from.replace("$\t$", "\t").replace("$\\t$", "\t")
-        chars_to = chars_to_raw.replace(";;", "\t")
+        if len(chars_to) < len(chars_from):
+            chars_from = chars_from[: len(chars_to)]
 
-        # Build tr-style character translation table
-        trans: dict[int, str | None] = {}
+        trans: dict[int, str] = {}
         for i, c in enumerate(chars_from):
-            trans[ord(c)] = chars_to[i] if i < len(chars_to) else None
+            if ord(c) not in trans:
+                trans[ord(c)] = chars_to[i]
 
         return src.translate(trans)
 
@@ -665,10 +1039,14 @@ class DefEngine:
         except (ValueError, TypeError):
             return ""
         saved = self.ctx.get(var)
+        # Comma-separated expression (e.g. `v,-v`) → evaluate each part per iter
+        # so the result is a flat list rather than Python tuple repr `(v, -v)`.
+        parts = _split_top_level_args(expr)
         results = []
         for i in range(start, end + 1):
             self.ctx[var] = str(i)
-            results.append(self._eval_loop_expr(expr))
+            for p in parts:
+                results.append(self._eval_loop_expr(p))
         if saved is not None:
             self.ctx[var] = saved
         else:
@@ -930,10 +1308,24 @@ class DefEngine:
         for cm in df.choice_meta:
             n = cm["n"]
             label = self._subst(cm.get("name", ""))
-            correct = self._subst(cm.get("good", ""))
-            bad_raw = self._subst(cm.get("bad", ""))
+            from .flydraw import inline_svg_imgs  # noqa: PLC0415
+
+            correct = inline_svg_imgs(
+                _close_inline_math(self._subst(cm.get("good", "")))
+            )
+            bad_raw = inline_svg_imgs(
+                _close_inline_math(self._subst(cm.get("bad", "")))
+            )
             wrong_items = [w.strip() for w in bad_raw.split(",") if w.strip()]
-            all_items = [correct] + wrong_items
+            # Dedup: WIMS-authored `bad` lists sometimes include the correct
+            # answer (e.g. `Graphique 1,…,Graphique 4` where one of those is
+            # `\good`). Keep the first occurrence; insert `correct` if missing.
+            seen: set[str] = set()
+            all_items: list[str] = []
+            for item in [correct, *wrong_items]:
+                if item not in seen:
+                    seen.add(item)
+                    all_items.append(item)
 
             import random as _random
 
@@ -977,6 +1369,35 @@ _MAXIMA_TO_SYMPY: dict[str, str] = {
 }
 
 
+def _split_top_level_args(arg_str: str) -> list[str]:
+    """Split a comma-separated argument list at top-level commas only."""
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in arg_str:
+        if ch in "([{":
+            depth += 1
+            current.append(ch)
+        elif ch in ")]}":
+            depth -= 1
+            current.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        parts.append("".join(current).strip())
+    return parts
+
+
+def _sympify_arg(s: str):
+    """sympify a Maxima/Pari arg, normalising `^` → `**`."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.sympify(s.replace("^", "**"))
+
+
 def _call_maxima(expr: str) -> str:
     """Evaluate a Maxima CAS expression using SymPy as a drop-in replacement."""
     import sympy  # noqa: PLC0415
@@ -988,25 +1409,60 @@ def _call_maxima(expr: str) -> str:
     if m:
         func_name = m.group(1).lower()
         arg_str = m.group(2).strip()
+        args = _split_top_level_args(arg_str)
 
         if func_name == "printtex":
             try:
-                return sympy.latex(sympy.sympify(arg_str.replace("^", "**")))
+                return sympy.latex(_sympify_arg(arg_str))
             except Exception:
                 return clean
+
+        # Multi-arg Maxima functions
+        try:
+            if func_name == "diff" and len(args) >= 2:
+                e = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                order = int(args[2]) if len(args) >= 3 else 1
+                return str(sympy.diff(e, var, order))
+            if func_name in ("subst", "ev") and len(args) >= 3:
+                # Maxima: subst(val, var, expr) — replace var by val in expr
+                val = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                e = _sympify_arg(args[2])
+                return str(e.subs(var, val))
+            if func_name == "coeff" and len(args) >= 2:
+                e = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                n = int(args[2]) if len(args) >= 3 else 1
+                return str(sympy.Poly(e, var).nth(n))  # pyright: ignore[reportCallIssue]
+            if func_name == "hipow" and len(args) >= 2:
+                e = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                return str(sympy.Poly(e, var).degree())  # pyright: ignore[reportCallIssue]
+            if func_name == "limit" and len(args) >= 3:
+                e = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                val = _sympify_arg(args[2])
+                return str(sympy.limit(e, var, val))
+            if func_name == "cardinality" and len(args) >= 1:
+                inner = args[0].strip().lstrip("{").rstrip("}")
+                items = {x.strip() for x in inner.split(",") if x.strip()}
+                return str(len(items))
+        except Exception:
+            pass
 
         sympy_func_name = _MAXIMA_TO_SYMPY.get(func_name)
         if sympy_func_name:
             try:
                 sympy_func = getattr(sympy, sympy_func_name)
-                result = sympy_func(sympy.sympify(arg_str.replace("^", "**")))
+                result = sympy_func(_sympify_arg(arg_str))
                 return str(result)
             except Exception:
                 return clean
 
     # Fallback: plain arithmetic / variable expression
     try:
-        result = sympy.simplify(sympy.sympify(clean.replace("^", "**")))
+        result = sympy.simplify(_sympify_arg(clean))
         if result.is_number and result.is_integer:
             return str(int(result))
         return str(result)
@@ -1024,21 +1480,214 @@ def _sympy_to_latex(expr: str) -> str:
         return expr
 
 
+def _pari_concat(*args) -> str:
+    return "".join(str(a) for a in args)
+
+
+def _pari_expand(p):
+    import sympy  # noqa: PLC0415
+
+    return sympy.expand(p)
+
+
+def _pari_denominator(x):
+    import sympy  # noqa: PLC0415
+
+    if isinstance(x, int) or (isinstance(x, float) and float(x).is_integer()):
+        return 1
+    return sympy.fraction(sympy.together(x))[1]
+
+
+def _pari_numerator(x):
+    import sympy  # noqa: PLC0415
+
+    if isinstance(x, int):
+        return x
+    if isinstance(x, float) and float(x).is_integer():
+        return int(x)
+    return sympy.fraction(sympy.together(x))[0]
+
+
+def _pari_vecmax(v):
+    if hasattr(v, "__iter__") and not isinstance(v, str):
+        return max(v)
+    return v
+
+
+def _pari_vecmin(v):
+    if hasattr(v, "__iter__") and not isinstance(v, str):
+        return min(v)
+    return v
+
+
+def _pari_divrem(a, b):
+    import sympy  # noqa: PLC0415
+
+    def _is_int_like(v) -> bool:
+        return isinstance(v, int) or getattr(v, "is_integer", False) is True
+
+    if _is_int_like(a) and _is_int_like(b):
+        q, r = divmod(int(a), int(b))
+        return [q, r]
+    q, r = sympy.div(a, b)  # pyright: ignore[reportCallIssue]
+    return [q, r]
+
+
+def _pari_polcoeff(p, n, var=None):
+    import sympy  # noqa: PLC0415
+
+    if var is None:
+        syms = list(p.free_symbols) if hasattr(p, "free_symbols") else []
+        var = syms[0] if syms else sympy.Symbol("x")
+    return sympy.Poly(p, var).nth(int(n))  # pyright: ignore[reportCallIssue]
+
+
+def _pari_poldegree(p, var=None):
+    import sympy  # noqa: PLC0415
+
+    if isinstance(p, (int, float)):
+        return 0
+    if var is None:
+        syms = list(p.free_symbols)
+        var = syms[0] if syms else sympy.Symbol("x")
+    return sympy.Poly(p, var).degree()  # pyright: ignore[reportCallIssue]
+
+
+def _pari_matdet(rows):
+    import sympy  # noqa: PLC0415
+
+    return sympy.Matrix(rows).det()
+
+
+def _pari_isprime(n):
+    import sympy  # noqa: PLC0415
+
+    return 1 if sympy.isprime(int(n)) else 0
+
+
+def _pari_subst(p, var, val):
+    if hasattr(p, "subs"):
+        return p.subs(var, val)
+    return p
+
+
+def _pari_matrix(rows):
+    import sympy  # noqa: PLC0415
+
+    return sympy.Matrix(rows)
+
+
+def _pari_vector(*args):
+    return list(args)
+
+
+def _pari_core(n):
+    """Squarefree part of an integer (sign-preserving)."""
+    import sympy  # noqa: PLC0415
+
+    n = int(n)
+    if n == 0:
+        return 0
+    sign = 1 if n > 0 else -1
+    n = abs(n)
+    result = 1
+    for p, e in sympy.factorint(n).items():
+        if e % 2 == 1:
+            result *= p
+    return sign * result
+
+
+_PARI_HELPERS: dict = {
+    "concat": _pari_concat,
+    "expand": _pari_expand,
+    "denominator": _pari_denominator,
+    "numerator": _pari_numerator,
+    "vecmax": _pari_vecmax,
+    "vecmin": _pari_vecmin,
+    "divrem": _pari_divrem,
+    "polcoeff": _pari_polcoeff,
+    "poldegree": _pari_poldegree,
+    "matdet": _pari_matdet,
+    "isprime": _pari_isprime,
+    "subst": _pari_subst,
+    "matrix": _pari_matrix,
+    "vector": _pari_vector,
+    "core": _pari_core,
+}
+
+_PYTHON_KEYWORDS: set = {
+    "True",
+    "False",
+    "None",
+    "and",
+    "or",
+    "not",
+    "if",
+    "else",
+    "elif",
+    "for",
+    "in",
+    "while",
+    "lambda",
+    "is",
+}
+
+
+def _format_pari_result(result) -> str:
+    import sympy  # noqa: PLC0415
+
+    if isinstance(result, bool):
+        return "1" if result else "0"
+    if isinstance(result, int):
+        return str(result)
+    if isinstance(result, float):
+        if result.is_integer():
+            return str(int(result))
+        return f"{result:.10g}"
+    if isinstance(result, sympy.Integer):
+        return str(int(result))
+    if isinstance(result, sympy.Float):
+        f = float(result)
+        if f.is_integer():
+            return str(int(f))
+        return f"{f:.10g}"
+    if isinstance(result, (list, tuple)):
+        return ",".join(_format_pari_result(x) for x in result)
+    return str(result)
+
+
+# Wraps standalone integer literals so `/` between them produces a Rational
+# (PARI semantics), not a float.
+_INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d|\w)")
+
+
 def _call_pari(expr: str) -> str:
-    """Evaluate a PARI/GP-style arithmetic expression via Python."""
-    clean = expr.strip().rstrip(";")
-    # PARI print(expr) outputs and returns the value — unwrap it
+    """Evaluate a PARI/GP-style expression via Python.
+
+    Unknown identifiers are auto-bound to SymPy symbols, so polynomial
+    expressions like ``polcoeff(x^2 + 3*x + 2, 1)`` evaluate symbolically.
+    Integer literals are wrapped as ``sympy.Integer`` so ``3/4`` becomes the
+    Rational 3/4 rather than the float 0.75.
+    """
+    import sympy  # noqa: PLC0415
+
+    clean = expr.strip().rstrip(";").strip()
     m = re.match(r"^print\s*\((.+)\)$", clean, re.DOTALL)
     if m:
         clean = m.group(1).strip()
     clean = clean.replace("^", "**")
+    clean = _INT_LITERAL_RE.sub(r"_I(\1)", clean)
+
+    ns: dict = dict(_MATH_NS)
+    ns.update(_PARI_HELPERS)
+    ns["_I"] = sympy.Integer
+    for ident in set(re.findall(r"[a-zA-Z_]\w*", clean)):
+        if ident not in ns and ident not in _PYTHON_KEYWORDS:
+            ns[ident] = sympy.Symbol(ident)
+
     try:
-        result = eval(clean, _MATH_NS)  # noqa: S307
-        if isinstance(result, float) and result.is_integer():
-            return str(int(result))
-        if isinstance(result, float):
-            return f"{result:.10g}"
-        return str(result)
+        result = eval(clean, ns)  # noqa: S307
+        return _format_pari_result(result)
     except Exception:
         return expr
 
