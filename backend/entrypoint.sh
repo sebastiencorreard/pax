@@ -27,4 +27,12 @@ python scripts/ensure_guest_user.py
 echo "Starting server (exercise import running in background)..."
 python scripts/import_exercises.py --level H4 &
 
-exec uvicorn main:app --host 0.0.0.0 --port 8001
+# Hot reload in dev: docker-compose.override.yml bind-mounts the source and
+# sets UVICORN_RELOAD=1. Production keeps the default (no --reload).
+RELOAD_ARGS=()
+if [ "${UVICORN_RELOAD:-0}" = "1" ]; then
+  echo "  hot reload enabled (UVICORN_RELOAD=1)"
+  RELOAD_ARGS=(--reload --reload-dir /app)
+fi
+
+exec uvicorn main:app --host 0.0.0.0 --port 8001 "${RELOAD_ARGS[@]}"
