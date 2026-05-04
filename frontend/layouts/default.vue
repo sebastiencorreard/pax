@@ -50,14 +50,6 @@
             ⎋
           </button>
         </template>
-
-        <template v-else>
-          <NuxtLink to="/auth/login"
-                    class="text-sm px-4 py-1.5 rounded font-medium"
-                    style="background:var(--color-primary);color:#fff">
-            {{ $t('home.login_cta') }}
-          </NuxtLink>
-        </template>
       </div>
     </nav>
 
