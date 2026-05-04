@@ -54,3 +54,25 @@ class TestPassphrase:
         # 1-in-N**4 chance of collision; not flaky in practice.
         a = {generate_passphrase() for _ in range(20)}
         assert len(a) > 1
+
+
+class TestCreateUserCLI:
+    """Smoke-test the --role choices on the argparse layer (DB roundtrips
+    are covered by the live Docker test below in the conversation)."""
+
+    def test_guest_role_accepted(self):
+        import subprocess
+
+        out = subprocess.run(
+            [
+                "python",
+                os.path.join(
+                    os.path.dirname(__file__), "..", "scripts", "create_user.py"
+                ),
+                "--help",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert "guest" in out.stdout

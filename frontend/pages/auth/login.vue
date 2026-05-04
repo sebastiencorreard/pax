@@ -35,6 +35,19 @@
           {{ loading ? $t('auth.submitting') : $t('auth.submit') }}
         </button>
       </form>
+
+      <div class="flex items-center my-5 gap-3" style="color:var(--color-text-muted)">
+        <div class="flex-1 h-px" style="background:var(--color-border)"></div>
+        <span class="text-xs uppercase tracking-wider">{{ $t('auth.or') }}</span>
+        <div class="flex-1 h-px" style="background:var(--color-border)"></div>
+      </div>
+
+      <button type="button" :disabled="loading"
+              @click="continueAsGuest"
+              class="w-full py-2.5 rounded-lg font-medium border transition disabled:opacity-60 hover:bg-black/5 dark:hover:bg-white/5"
+              style="border-color:var(--color-border);color:var(--color-text)">
+        {{ $t('auth.continue_as_guest') }}
+      </button>
     </div>
   </div>
 </template>
@@ -60,6 +73,20 @@ async function submit() {
     await navigateTo(redirect)
   } catch (e: any) {
     error.value = e?.data?.detail || t('auth.error_default')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function continueAsGuest() {
+  error.value = ''
+  loading.value = true
+  try {
+    await auth.loginAsGuest()
+    const redirect = (route.query.redirect as string) || '/'
+    await navigateTo(redirect)
+  } catch (e: any) {
+    error.value = e?.data?.detail || t('auth.guest_unavailable')
   } finally {
     loading.value = false
   }

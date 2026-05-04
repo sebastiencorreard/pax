@@ -14,7 +14,9 @@ class Academie(Base):
     name: Mapped[str] = mapped_column(String(100))
     code: Mapped[str] = mapped_column(String(10), unique=True)
 
-    etablissements: Mapped[list["Etablissement"]] = relationship(back_populates="academie")
+    etablissements: Mapped[list["Etablissement"]] = relationship(
+        back_populates="academie"
+    )
 
 
 class Etablissement(Base):
@@ -35,10 +37,21 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    etab_id: Mapped[int | None] = mapped_column(ForeignKey("etablissements.id"), nullable=True)
-    keycloak_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
+    etab_id: Mapped[int | None] = mapped_column(
+        ForeignKey("etablissements.id"), nullable=True
+    )
+    keycloak_id: Mapped[str | None] = mapped_column(
+        String(100), unique=True, nullable=True
+    )
     role: Mapped[str] = mapped_column(
-        SAEnum("student", "teacher", "admin", "inspector", name="user_role")
+        SAEnum(
+            "student",
+            "teacher",
+            "admin",
+            "inspector",
+            "guest",
+            name="user_role",
+        )
     )
     email: Mapped[str | None] = mapped_column(String(200), unique=True, nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
