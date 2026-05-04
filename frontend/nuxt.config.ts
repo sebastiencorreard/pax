@@ -1,6 +1,9 @@
 export default defineNuxtConfig({
   ssr: false,
-  devtools: { enabled: true },
+  // Devtools UI in dev only. The prod stage of the Dockerfile runs the
+  // built server, where Nuxt strips devtools regardless — this flag is
+  // a second line of defence in case someone runs `nuxt dev` in prod.
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',

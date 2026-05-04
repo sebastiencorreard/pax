@@ -16,8 +16,20 @@ services:
       # never reused in prod (docker-compose.prod.yml takes ${SECRET_KEY}
       # from the operator's .env).
       SECRET_KEY: dev-only-key-DO-NOT-USE-IN-PRODUCTION
+      # Hot reload via uvicorn --reload, watched against the bind-mount below.
+      UVICORN_RELOAD: "1"
+    volumes:
+      # Bind-mount the source so edits trigger uvicorn's reloader. The
+      # anonymous volumes below mask local artifacts (`.venv`, pycache)
+      # so the container keeps using its own system-installed packages.
+      - ./backend:/app
+      - /app/.venv
+      - /app/__pycache__
 
   frontend:
+    build:
+      context: ./frontend
+      target: dev
     ports:
       - "3000:3000"
     environment:
