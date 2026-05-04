@@ -1,6 +1,6 @@
 # PAX — Progrès en Automatismes par les eXercices
 
-Clone de WIMS, rétro-compatible avec le format OEF, orienté mathématiques.
+Clone de WIMS, rétro-compatible avec le format OEF / DEF, orienté mathématiques.
 
 ## Stack
 
@@ -9,7 +9,7 @@ Clone de WIMS, rétro-compatible avec le format OEF, orienté mathématiques.
 - **Base de données** : PostgreSQL
 - **Cache** : Redis
 - **Auth** : Keycloak (compatible GAR/ENT)
-- **CAS** : SymPy + Maxima
+- **CAS** : SymPy
 
 ## Lancer le projet en développement
 
