@@ -48,15 +48,11 @@ On first start, `entrypoint.sh` runs automatically:
 2. `python scripts/import_exercises.py --level H4` — imports all renderable OEF exercises
 3. `uvicorn main:app` — starts the API
 
-**Seed dev users** (run once after first `docker compose up`):
+**Create a user** (run after `docker compose up`):
 ```bash
-./seed-dev-users.sh
+./create_user.sh --email alice@example.com --first-name Alice --last-name Dupont --role teacher
 ```
-| Email | Password | Role |
-|---|---|---|
-| prof@pax.fr | prof1234 | teacher |
-| eleve@pax.fr | eleve1234 | student |
-| admin@pax.fr | admin1234 | admin |
+The script wraps `docker compose exec backend python scripts/create_user.py` and forwards arguments. It prints an XKCD-style French passphrase on stdout's last line; pass `--password XYZ` to set an explicit password instead. There is no public registration endpoint.
 
 ## Development Commands (without Docker)
 
