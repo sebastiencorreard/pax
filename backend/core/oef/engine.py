@@ -129,10 +129,16 @@ _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
 )
-# Balises de bloc (<div>, <p>) converties en <br> pour aplatir le HTML en une
-# seule ligne lisible par le front-end (qui n'attend pas de structure imbriquée).
-_BLOCK_OPEN = re.compile(r"<(?:div|p)(?=[\s>])[^>]*>", re.I)
+# Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
+# lisible par le front-end (qui n'attend pas de structure imbriquée).
+# <div>, <p>, <li>, <ul>, <ol> ouvrants → <br> (séparateur d'item).
+_BLOCK_OPEN = re.compile(r"<(?:div|p|li|ul|ol)(?=[\s>])[^>]*>", re.I)
+# </div>, </p> → <br> ; </li>, </ul>, </ol> → rien (supprimés).
+# Les fermetures de liste ne créent pas de saut : le <li> ouvrant du bloc
+# suivant y pourvoit, et le </li> prématuré des .def compilés (placé après
+# </label> mais avant les champs de saisie) disparaît proprement.
 _BLOCK_CLOSE = re.compile(r"</(?:div|p)>", re.I)
+_LIST_CLOSE = re.compile(r"</(?:li|ul|ol)>", re.I)
 # Séquences de plusieurs <br> consécutifs (avec espaces) → un seul <br>.
 _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
 # <br> en tête de chaîne (artefacts de la conversion div/p → br).
@@ -145,10 +151,12 @@ def _segment_statement(html: str) -> list[dict]:
       - {type: "html", content: "..."}
       - {type: "input", name: "reply1", size: 10}
       - {type: "slot",  name: "..."}
-    Normalise les blocs (<div>, <p>) en <br> et résout l'alias rN ↔ replyN.
+    Aplatit les balises de bloc (<div>, <p>, <li>, <ul>, <ol>) en <br> et
+    résout l'alias rN ↔ replyN.
     """
     html = _BLOCK_OPEN.sub("<br>", html)
     html = _BLOCK_CLOSE.sub("<br>", html)
+    html = _LIST_CLOSE.sub("", html)
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
 

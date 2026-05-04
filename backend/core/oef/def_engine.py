@@ -81,7 +81,7 @@ def _normalize_math_content(s: str) -> str:
     """
     import sympy  # noqa: PLC0415
 
-    if not s.strip() or "\\" in s:
+    if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
     def _render_side(side: str) -> str:
@@ -1550,7 +1550,7 @@ class DefEngine:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
             label = self._subst(rm.get("name", ""))
-            good_raw = self._subst(rm.get("good", ""))
+            good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
             options: dict = {"option": option} if option else {}

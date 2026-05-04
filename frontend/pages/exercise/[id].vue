@@ -10,6 +10,8 @@
 
     <ExercisePlayer :exercise-id="exerciseId" @rendered="onRendered" />
 
+    <TagEditor v-if="auth.isTeacher" :exercise-id="exerciseId" class="mt-6" />
+
     <section v-if="debugOef" class="mt-6 rounded-xl border overflow-hidden"
              style="background:var(--color-surface);border-color:var(--color-border)">
       <header class="px-4 py-2 border-b flex items-center justify-between text-xs"
@@ -91,6 +93,7 @@
 const route = useRoute()
 const exerciseId = computed(() => route.params.id as string)
 
+const auth = useAuthStore()
 const debugOef = useRuntimeConfig().public.debugOef
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()

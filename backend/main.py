@@ -4,7 +4,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, exercises, sheets, render, check
+from api.routes import auth, exercises, sheets, render, check, tags
 from config import settings
 
 logger = logging.getLogger("uvicorn")
@@ -47,3 +47,4 @@ app.include_router(exercises.router)
 app.include_router(sheets.router)
 app.include_router(render.router)
 app.include_router(check.router)
+app.include_router(tags.router)

@@ -8,6 +8,7 @@ from models.exercise import Exercise
 from api.schemas.exercise import ExerciseResponse, ExerciseQAUpdate
 from api.deps import get_current_user
 from models.user import User
+from core.oef.engine import find_def_path
 
 router = APIRouter(prefix="/api/exercises", tags=["exercises"])
 
@@ -49,6 +50,33 @@ def _module_dir_from_path(oef_path: str) -> str:
 def _format_author(raw: str) -> str:
     """Convert 'Firstname,Lastname' to 'Firstname Lastname'."""
     return raw.replace(",", " ").strip()
+
+
+def _parse_exfile(file_path: str) -> dict[str, str]:
+    """Parse a WIMS per-exercise metadata file (Extitles, Exkeywords, Exauthors).
+
+    Format: one ``stem:value`` line per exercise (ISO-8859-1 encoded).
+    Returns a dict mapping exercise stem → raw value string.
+    """
+    try:
+        with open(file_path, encoding="iso-8859-1") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        return {}
+    result: dict[str, str] = {}
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if ":" in line:
+            stem, _, value = line.partition(":")
+            result[stem.strip()] = value.strip()
+    return result
+
+
+def _split_csv(s: str) -> list[str]:
+    """Split a comma-separated string into a cleaned list, skipping blanks."""
+    return [item.strip() for item in s.split(",") if item.strip()]
 
 
 @router.get("/", response_model=list[ExerciseResponse])
@@ -93,6 +121,10 @@ async def list_modules(
 
     # Group by module directory
     modules: dict[str, dict] = {}
+    # Per-module cache of Exauthors / Exkeywords dicts (loaded once per module)
+    _ex_authors: dict[str, dict[str, str]] = {}
+    _ex_keywords: dict[str, dict[str, str]] = {}
+
     for ex in exercises:
         mod_name = _module_from_path(ex.oef_path)
         if not mod_name:
@@ -106,15 +138,23 @@ async def list_modules(
                 "title": idx.get("title") or mod_name,
                 "description": idx.get("description") or "",
                 "author": _format_author(raw_author),
+                "keywords": _split_csv(idx.get("keywords", "")),
                 "domain": ex.domain or "",
                 "level": ex.level or "",
                 "lang": ex.lang,
                 "exercises": [],
             }
+            _ex_authors[mod_name] = _parse_exfile(os.path.join(mod_dir, "Exauthors"))
+            _ex_keywords[mod_name] = _parse_exfile(os.path.join(mod_dir, "Exkeywords"))
+
+        stem = os.path.splitext(os.path.basename(ex.oef_path))[0]
         modules[mod_name]["exercises"].append(
             {
                 "id": ex.id,
                 "title": ex.title or os.path.basename(ex.oef_path),
+                "has_def": find_def_path(ex.oef_path) is not None,
+                "author": _format_author(_ex_authors[mod_name].get(stem, "")),
+                "keywords": _split_csv(_ex_keywords[mod_name].get(stem, "")),
                 "statement_ok": ex.statement_ok,
                 "answer_ok": ex.answer_ok,
                 "check_ok": ex.check_ok,

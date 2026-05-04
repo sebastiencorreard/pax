@@ -4,6 +4,17 @@
 
     <!-- Filtres -->
     <div class="flex gap-3 mb-6 flex-wrap items-center">
+      <!-- Recherche plein texte -->
+      <div class="relative flex-1 min-w-48">
+        <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none"
+              style="color:var(--color-text-muted)">🔍</span>
+        <input v-model="searchQuery"
+               type="search"
+               :placeholder="$t('exercise.search_placeholder')"
+               class="w-full pl-9 pr-3 py-2 rounded-lg border text-sm"
+               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)" />
+      </div>
+
       <select v-model="filterLevel"
               class="px-3 py-2 rounded-lg border text-sm"
               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)">
@@ -87,18 +98,34 @@
                         :key="ex.id"
                         :to="`/exercise/${ex.id}`"
                         class="flex items-center justify-between px-6 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition group border-b last:border-b-0"
-                        style="border-color:var(--color-border)">
+                        style="border-color:var(--color-border)"
+                        @contextmenu.prevent="auth.isTeacher && openContextMenu(ex, $event)">
                 <span class="text-sm group-hover:text-blue-500 transition truncate">
                   {{ decodeEntities(ex.title || ex.id) }}
                 </span>
-                <span class="ml-4 text-sm flex-shrink-0"
-                      style="color:var(--color-text-muted)">→</span>
+                <div class="ml-4 flex items-center gap-2 flex-shrink-0">
+                  <span v-if="!ex.has_def"
+                        class="text-xs font-bold px-1.5 py-0.5 rounded"
+                        style="background:#ef4444;color:#fff"
+                        title="Fichier .def absent — moteur OEF de secours">
+                    OEF
+                  </span>
+                  <span class="text-sm" style="color:var(--color-text-muted)">→</span>
+                </div>
               </NuxtLink>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Menu contextuel tags (clic droit, teachers/admins uniquement) -->
+    <TagContextMenu v-if="contextMenu"
+                    :exercise-id="contextMenu.exerciseId"
+                    :exercise-title="contextMenu.exerciseTitle"
+                    :raw-x="contextMenu.x"
+                    :raw-y="contextMenu.y"
+                    @close="contextMenu = null" />
   </div>
 </template>
 
@@ -106,6 +133,9 @@
 interface ModuleExercise {
   id: string
   title: string | null
+  has_def: boolean
+  author: string
+  keywords: string[]
   statement_ok: boolean | null
   answer_ok: boolean | null
   check_ok: boolean | null
@@ -119,6 +149,7 @@ interface Module {
   title: string
   description: string
   author: string
+  keywords: string[]
   domain: string
   level: string
   lang: string
@@ -130,8 +161,27 @@ interface DomainGroup {
   modules: Module[]
 }
 
+const auth = useAuthStore()
 const { apiFetch } = useApi()
 const debugOef = useRuntimeConfig().public.debugOef
+
+// Menu contextuel (clic droit) — tags
+interface ContextMenuState {
+  exerciseId: string
+  exerciseTitle: string
+  x: number
+  y: number
+}
+const contextMenu = ref<ContextMenuState | null>(null)
+
+function openContextMenu(ex: ModuleExercise, event: MouseEvent) {
+  contextMenu.value = {
+    exerciseId: ex.id,
+    exerciseTitle: decodeEntities(ex.title || ex.id),
+    x: event.clientX,
+    y: event.clientY,
+  }
+}
 
 function decodeEntities(s: string): string {
   return (s || '')
@@ -142,13 +192,28 @@ function decodeEntities(s: string): string {
     .replace(/&nbsp;/g, ' ')
 }
 
+const route = useRoute()
+const router = useRouter()
+
 const modules = ref<Module[]>([])
 const loading = ref(true)
-const filterLevel = ref('')
-const filterDomain = ref('')
+const filterLevel = ref((route.query.level as string) || '')
+const filterDomain = ref((route.query.domain as string) || '')
+const searchQuery = ref((route.query.q as string) || '')
 const qaFilters = ref<Record<QAFlag, boolean>>({
   statement_ok: false, answer_ok: false, check_ok: false,
 })
+
+// Synchronise les filtres dans l'URL sans créer d'entrée dans l'historique
+watch([filterLevel, filterDomain, searchQuery], ([level, domain, q]) => {
+  router.replace({
+    query: {
+      ...(level  ? { level }  : {}),
+      ...(domain ? { domain } : {}),
+      ...(q      ? { q }      : {}),
+    },
+  })
+}, { flush: 'sync' })
 const openModules = ref(new Set<string>())
 
 const levels = ['E1','E2','E3','E4','E5','E6','H1','H2','H3','H4','H5','H6','U1','U2','U3','U4']
@@ -168,16 +233,44 @@ function exerciseMatchesQa(ex: ModuleExercise): boolean {
   return true
 }
 
+function exerciseMatchesSearch(ex: ModuleExercise, q: string): boolean {
+  if ((ex.title || '').toLowerCase().includes(q)) return true
+  if (ex.author.toLowerCase().includes(q)) return true
+  return ex.keywords.some(k => k.toLowerCase().includes(q))
+}
+
+function moduleMatchesSearch(m: Module, q: string): boolean {
+  if (m.title.toLowerCase().includes(q)) return true
+  if (m.author.toLowerCase().includes(q)) return true
+  return m.keywords.some(k => k.toLowerCase().includes(q))
+}
+
 const filteredModules = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+
   return modules.value
     .filter(m => {
       if (filterLevel.value && m.level !== filterLevel.value) return false
       if (filterDomain.value && m.domain !== filterDomain.value) return false
       return true
     })
-    .map(m => activeQaFlags.value.length === 0
-      ? m
-      : { ...m, exercises: m.exercises.filter(exerciseMatchesQa) })
+    .map(m => {
+      let exercises = m.exercises
+
+      if (activeQaFlags.value.length > 0) {
+        exercises = exercises.filter(exerciseMatchesQa)
+      }
+
+      if (q) {
+        const modMatches = moduleMatchesSearch(m, q)
+        if (!modMatches) {
+          exercises = exercises.filter(ex => exerciseMatchesSearch(ex, q))
+        }
+        // If module itself matches, keep all its exercises visible
+      }
+
+      return { ...m, exercises }
+    })
     .filter(m => m.exercises.length > 0)
 })
 
@@ -200,6 +293,15 @@ function toggle(moduleId: string) {
     openModules.value.add(moduleId)
   }
 }
+
+// Auto-expand all modules when searching, collapse when query cleared
+watch(searchQuery, (q) => {
+  if (q.trim()) {
+    openModules.value = new Set(filteredModules.value.map(m => m.module))
+  } else {
+    openModules.value = new Set()
+  }
+})
 
 async function fetchModules() {
   loading.value = true

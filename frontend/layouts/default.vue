@@ -33,6 +33,12 @@
         </div>
 
         <template v-if="auth.isLoggedIn">
+          <NuxtLink v-if="auth.isTeacher"
+                    to="/library"
+                    class="text-sm hover:underline transition"
+                    style="color:var(--color-text-muted)">
+            {{ $t('nav.library') }}
+          </NuxtLink>
           <span class="text-sm" style="color:var(--color-text-muted)">
             {{ auth.fullName }}
             <span v-if="auth.user && !ROLES_HIDDEN.has(auth.user.role)"

@@ -341,6 +341,8 @@ def check_answer(
             return check_numexp(reply, expected, precision)
         case "algexp" | "litexp" | "formal":
             return check_algexp(reply, expected)
+        case "function":
+            return check_algexp(reply, expected)
         case "fset":
             return check_fset(reply, expected, precision)
         case "set":
