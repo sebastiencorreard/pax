@@ -5,7 +5,7 @@
          style="background:var(--color-surface);border-color:var(--color-border)">
 
       <NuxtLink to="/" class="inline-flex items-center" aria-label="PAX">
-        <img src="/pax.svg" alt="PAX" class="h-8 w-auto" />
+        <img src="/pax.svg" alt="PAX" class="h-6 w-auto" />
       </NuxtLink>
 
       <div class="flex items-center gap-4">
@@ -15,7 +15,7 @@
                   @click="langOpen = !langOpen"
                   :aria-label="$t('lang.choose')"
                   :title="$t('lang.choose')"
-                  class="text-2xl leading-none p-1 rounded hover:bg-black/5 dark:hover:bg-white/5">
+                  class="text-base leading-none p-1 rounded hover:bg-black/5 dark:hover:bg-white/5">
             {{ flagFor(String(locale)) }}
           </button>
           <div v-if="langOpen"
@@ -26,7 +26,7 @@
                     @click="pickLocale(loc.code)"
                     class="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/5"
                     :class="String(locale) === loc.code ? 'font-semibold' : ''">
-              <span class="text-lg">{{ flagFor(loc.code) }}</span>
+              <span class="text-base">{{ flagFor(loc.code) }}</span>
               <span>{{ loc.name }}</span>
             </button>
           </div>
