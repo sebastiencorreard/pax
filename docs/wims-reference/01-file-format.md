@@ -28,12 +28,12 @@ Grouped by category, with the internal type tag and argument count from `WIMS/sr
 | `\language{code}` | 1 | Exercise language; only stored when exactly 2 chars (`WIMS/src/OefMsg2wims/process.c:101-106`) |
 | `\range{a..b}` | 1 | Numeric range for the exercise; stored as `leftrange` / `rightrange` (`WIMS/src/OefMsg2wims/process.c:89-99`) |
 | `\precision{n}` | 1 | Default numeric precision (0–100000000) (`WIMS/src/OefMsg2wims/process.c:48-54`) |
-| `\computeanswer{yes|no}` | 1 | Whether to allow computed expressions in numeric answers (`WIMS/src/OefMsg2wims/process.c:39-46`) |
+| `\computeanswer{yes\|no}` | 1 | Whether to allow computed expressions in numeric answers (`WIMS/src/OefMsg2wims/process.c:39-46`) |
 | `\description{text}` | 1 | Exercise description; stored as `oefdescription` |
 | `\observation{text}` | 1 | Observation (shown to teachers); stored as `oefobservation` |
 | `\css{text}` | 1 | CSS injected into the page header; stored as `oefcss` |
 | `\credits{name}{value}` | 2 | Attribution credits |
-| `\format{html|tex}` | 1 | Output format (default `html`) |
+| `\format{html\|tex}` | 1 | Output format (default `html`) |
 
 ### Variable Definition Directives
 
