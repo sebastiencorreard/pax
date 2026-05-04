@@ -35,9 +35,10 @@
         <template v-if="auth.isLoggedIn">
           <span class="text-sm" style="color:var(--color-text-muted)">
             {{ auth.fullName }}
-            <span class="ml-1 px-1.5 py-0.5 rounded text-xs"
+            <span v-if="auth.user && !ROLES_HIDDEN.has(auth.user.role)"
+                  class="ml-1 px-1.5 py-0.5 rounded text-xs"
                   style="background:var(--color-primary);color:#fff">
-              {{ auth.user?.role }}
+              {{ auth.user.role }}
             </span>
           </span>
           <button type="button"
@@ -77,6 +78,10 @@
 const auth = useAuthStore()
 const { locale, locales, setLocale } = useI18n()
 const availableLocales = locales
+
+// Hide the role badge for these roles — they're the default user types
+// and don't add useful information in the header.
+const ROLES_HIDDEN = new Set(['guest', 'student'])
 
 const langOpen = ref(false)
 const langPicker = ref<HTMLElement | null>(null)
