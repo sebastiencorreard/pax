@@ -21,8 +21,8 @@ echo "  database is up."
 echo "Running database migrations..."
 alembic upgrade head
 
-echo "Seeding dev users..."
-python scripts/seed_dev_users.py
+echo "Ensuring guest user..."
+python scripts/ensure_guest_user.py
 
 echo "Starting server (exercise import running in background)..."
 python scripts/import_exercises.py --level H4 &
