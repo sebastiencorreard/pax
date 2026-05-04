@@ -1,14 +1,10 @@
+// Restore an existing session from localStorage on app start.
+// No silent guest auto-login: visitors are sent to /auth/login where they
+// can either authenticate or click "Continuer en tant qu'invité".
 export default defineNuxtPlugin(async () => {
   const auth = useAuthStore()
-  const token = localStorage.getItem('pax_token')
-  if (token) {
-    auth.token = token
-    await auth.fetchMe()
-    if (auth.isLoggedIn) return
-  }
-  try {
-    await auth.login('guest@pax.fr', 'guest1234')
-  } catch {
-    // Guest login failed (user not seeded?) — leave anonymous.
-  }
+  const token = import.meta.client ? localStorage.getItem('pax_token') : null
+  if (!token) return
+  auth.token = token
+  await auth.fetchMe()
 })

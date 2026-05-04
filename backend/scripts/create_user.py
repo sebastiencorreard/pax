@@ -37,7 +37,7 @@ sys.path.insert(0, "scripts")
 from _passphrase import generate_passphrase, wordlist_size  # noqa: E402
 
 
-_VALID_ROLES = {"student", "teacher", "admin"}
+_VALID_ROLES = {"student", "teacher", "admin", "guest"}
 
 
 def _parse_args() -> argparse.Namespace:
@@ -80,13 +80,23 @@ async def _create(args: argparse.Namespace) -> None:
             print(f"error: user already exists: {args.email}", file=sys.stderr)
             sys.exit(2)
 
-        password = args.password or generate_passphrase(n_words=args.words)
+        # Guests have no password — they can only sign in via the
+        # `/api/auth/guest` endpoint, which issues a token without
+        # credentials. For all other roles, generate or accept one.
+        is_guest = args.role == "guest"
+        if is_guest:
+            password = None
+            hashed: str | None = None
+        else:
+            password = args.password or generate_passphrase(n_words=args.words)
+            hashed = hash_password(password)
+
         user = User(
             email=args.email,
             first_name=args.first_name,
             last_name=args.last_name,
             role=args.role,
-            hashed_password=hash_password(password),
+            hashed_password=hashed,
         )
         session.add(user)
         await session.commit()
@@ -96,8 +106,9 @@ async def _create(args: argparse.Namespace) -> None:
             f"created user id={user.id} email={user.email} role={user.role}",
             file=sys.stderr,
         )
-        # Passphrase on stdout so it's captureable via shell pipelines.
-        print(password)
+        if password is not None:
+            # Passphrase on stdout so it's captureable via shell pipelines.
+            print(password)
 
 
 def main() -> None:

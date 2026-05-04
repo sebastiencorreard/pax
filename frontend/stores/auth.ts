@@ -37,6 +37,21 @@ export const useAuthStore = defineStore('auth', {
       await this.fetchMe()
     },
 
+    async loginAsGuest() {
+      // Issues a token for the singleton guest account (no password).
+      // Backend returns 503 if the operator hasn't seeded one yet.
+      const config = useRuntimeConfig()
+      const data = await $fetch<{ access_token: string }>(
+        `${config.public.apiBase}/api/auth/guest`,
+        { method: 'POST' }
+      )
+      this.token = data.access_token
+      if (import.meta.client) {
+        localStorage.setItem('pax_token', data.access_token)
+      }
+      await this.fetchMe()
+    },
+
     async fetchMe() {
       if (!this.token) return
       const config = useRuntimeConfig()
