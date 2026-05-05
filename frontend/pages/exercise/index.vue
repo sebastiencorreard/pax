@@ -4,15 +4,25 @@
 
     <!-- Filtres -->
     <div class="flex gap-3 mb-6 flex-wrap items-center">
-      <!-- Recherche plein texte -->
-      <div class="relative flex-1 min-w-48">
-        <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none"
-              style="color:var(--color-text-muted)">🔍</span>
-        <input v-model="searchQuery"
-               type="search"
-               :placeholder="$t('exercise.search_placeholder')"
-               class="w-full pl-9 pr-3 py-2 rounded-lg border text-sm"
-               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)" />
+      <!-- Recherche plein texte avec sélecteur de scope -->
+      <div class="flex flex-1 min-w-56 rounded-lg border overflow-hidden"
+           style="border-color:var(--color-border)">
+        <select v-model="searchScope"
+                class="py-2 pl-3 pr-1 border-r text-sm shrink-0 cursor-pointer"
+                style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text-muted)">
+          <option value="modules">{{ $t('exercise.scope_modules') }}</option>
+          <option value="exercises">{{ $t('exercise.scope_exercises') }}</option>
+          <option value="all">{{ $t('exercise.scope_all') }}</option>
+        </select>
+        <div class="relative flex-1">
+          <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none"
+                style="color:var(--color-text-muted)">🔍</span>
+          <input v-model="searchQuery"
+                 type="search"
+                 :placeholder="$t('exercise.search_placeholder')"
+                 class="w-full pl-9 pr-3 py-2 text-sm"
+                 style="background:var(--color-surface);color:var(--color-text)" />
+        </div>
       </div>
 
       <select v-model="filterLevel"
@@ -98,8 +108,7 @@
                         :key="ex.id"
                         :to="`/exercise/${ex.id}`"
                         class="flex items-center justify-between px-6 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition group border-b last:border-b-0"
-                        style="border-color:var(--color-border)"
-
+                        style="border-color:var(--color-border)">
                 <span class="text-sm group-hover:text-blue-500 transition truncate">
                   {{ decodeEntities(ex.title || ex.id) }}
                 </span>
@@ -169,22 +178,26 @@ function decodeEntities(s: string): string {
 const route = useRoute()
 const router = useRouter()
 
+type SearchScope = 'all' | 'modules' | 'exercises'
+
 const modules = ref<Module[]>([])
 const loading = ref(true)
 const filterLevel = ref((route.query.level as string) || '')
 const filterDomain = ref((route.query.domain as string) || '')
 const searchQuery = ref((route.query.q as string) || '')
+const searchScope = ref<SearchScope>((route.query.scope as SearchScope) || 'modules')
 const qaFilters = ref<Record<QAFlag, boolean>>({
   statement_ok: false, answer_ok: false, check_ok: false,
 })
 
 // Synchronise les filtres dans l'URL sans créer d'entrée dans l'historique
-watch([filterLevel, filterDomain, searchQuery], ([level, domain, q]) => {
+watch([filterLevel, filterDomain, searchQuery, searchScope], ([level, domain, q, scope]) => {
   router.replace({
     query: {
       ...(level  ? { level }  : {}),
       ...(domain ? { domain } : {}),
       ...(q      ? { q }      : {}),
+      ...(scope !== 'all' ? { scope } : {}),
     },
   })
 }, { flush: 'sync' })
@@ -216,11 +229,13 @@ function exerciseMatchesSearch(ex: ModuleExercise, q: string): boolean {
 function moduleMatchesSearch(m: Module, q: string): boolean {
   if (m.title.toLowerCase().includes(q)) return true
   if (m.author.toLowerCase().includes(q)) return true
+  if (m.description.toLowerCase().includes(q)) return true
   return m.keywords.some(k => k.toLowerCase().includes(q))
 }
 
 const filteredModules = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
+  const scope = searchScope.value
 
   return modules.value
     .filter(m => {
@@ -236,11 +251,18 @@ const filteredModules = computed(() => {
       }
 
       if (q) {
-        const modMatches = moduleMatchesSearch(m, q)
-        if (!modMatches) {
+        if (scope === 'modules') {
+          // Le module doit matcher ; si non, on masque tout
+          if (!moduleMatchesSearch(m, q)) return { ...m, exercises: [] }
+        } else if (scope === 'exercises') {
+          // On filtre uniquement sur les exercices, le module n'est pas critère
           exercises = exercises.filter(ex => exerciseMatchesSearch(ex, q))
+        } else {
+          // 'all' : module match → tous ses exercices ; sinon filtre par exercice
+          if (!moduleMatchesSearch(m, q)) {
+            exercises = exercises.filter(ex => exerciseMatchesSearch(ex, q))
+          }
         }
-        // If module itself matches, keep all its exercises visible
       }
 
       return { ...m, exercises }

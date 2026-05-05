@@ -58,6 +58,9 @@
       <pre v-if="debugError" class="px-4 py-3 text-sm text-red-500">{{ debugError }}</pre>
       <div v-else-if="debug" class="px-4 py-3 text-sm space-y-3" style="color:var(--color-text)">
         <div v-if="solutionHtml" v-html="solutionHtml"></div>
+        <pre v-if="debug.solution_html"
+             class="text-xs p-2 rounded overflow-auto whitespace-pre-wrap"
+             style="background:var(--color-bg);color:var(--color-text-muted)">{{ debug.solution_html }}</pre>
         <ul v-if="debug.answers.length" class="space-y-1">
           <li v-for="ans in debug.answers" :key="ans.input_name" class="flex items-baseline gap-2 flex-wrap">
             <span class="font-mono text-xs px-1.5 py-0.5 rounded"
