@@ -44,7 +44,7 @@
         <label v-for="flag in qaFlags" :key="flag"
                class="inline-flex items-center gap-1.5 cursor-pointer">
           <input type="checkbox" v-model="qaFilters[flag]" />
-          <span class="font-mono text-xs">{{ flag }}</span>
+          <span class="font-mono text-xs">{{ qaLabels[flag] }}</span>
         </label>
       </div>
     </div>
@@ -145,6 +145,7 @@ interface ModuleExercise {
 
 type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
 const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
+const qaLabels: Record<QAFlag, string> = { statement_ok: 'E', answer_ok: 'R', check_ok: 'V' }
 
 interface Module {
   module: string

@@ -26,7 +26,7 @@
                  :checked="qa[flag] === true"
                  :disabled="qaSaving[flag]"
                  @change="onQaToggle(flag, ($event.target as HTMLInputElement).checked)" />
-          <span class="font-mono text-xs">{{ flag }}</span>
+          <span class="font-mono text-xs">{{ qaLabels[flag] }}</span>
           <span v-if="qaSaving[flag]" class="text-xs"
                 style="color:var(--color-text-muted)">…</span>
         </label>
@@ -107,6 +107,7 @@ const sourceError = ref('')
 
 type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
 const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
+const qaLabels: Record<QAFlag, string> = { statement_ok: 'E', answer_ok: 'R', check_ok: 'V' }
 interface ExerciseMeta {
   id: string
   oef_path: string
