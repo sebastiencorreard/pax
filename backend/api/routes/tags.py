@@ -7,14 +7,21 @@ from db import get_db
 from models.tag import Tag, ExerciseTag
 from models.exercise import Exercise
 from models.user import User
-from api.schemas.tag import TagCreate, TagResponse, TagWithCountResponse, ExerciseTagsSet
+from api.schemas.tag import (
+    TagCreate,
+    TagResponse,
+    TagWithCountResponse,
+    ExerciseTagsSet,
+)
 from api.deps import require_role
 
 router = APIRouter(prefix="/api/tags", tags=["tags"])
 
 
 async def _get_user_tag(tag_id: int, user: User, db: AsyncSession) -> Tag:
-    result = await db.execute(select(Tag).where(Tag.id == tag_id, Tag.user_id == user.id))
+    result = await db.execute(
+        select(Tag).where(Tag.id == tag_id, Tag.user_id == user.id)
+    )
     tag = result.scalar_one_or_none()
     if not tag:
         raise HTTPException(status_code=404, detail="Tag introuvable")
@@ -62,7 +69,9 @@ async def create_tag(
         await db.refresh(tag)
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(status_code=409, detail=f"Le tag « {payload.name} » existe déjà")
+        raise HTTPException(
+            status_code=409, detail=f"Le tag « {payload.name} » existe déjà"
+        )
     return tag
 
 
@@ -84,7 +93,12 @@ async def get_tag_exercises(
     return {
         "tag": {"id": tag.id, "name": tag.name, "created_at": tag.created_at},
         "exercises": [
-            {"id": ex.id, "title": ex.title or ex.id, "domain": ex.domain, "level": ex.level}
+            {
+                "id": ex.id,
+                "title": ex.title or ex.id,
+                "domain": ex.domain,
+                "level": ex.level,
+            }
             for ex in exercises
         ],
     }
@@ -114,7 +128,7 @@ async def get_exercise_tags(
         .order_by(Tag.name)
     )
     result = await db.execute(query)
-    return result.scalars().all()
+    return list(result.scalars().all())
 
 
 @router.post("/exercise/{exercise_id}", response_model=list[TagResponse])
@@ -134,7 +148,9 @@ async def add_tag_to_exercise(
     elif payload.name:
         # get-or-create
         res = await db.execute(
-            select(Tag).where(Tag.user_id == current_user.id, Tag.name == payload.name.strip())
+            select(Tag).where(
+                Tag.user_id == current_user.id, Tag.name == payload.name.strip()
+            )
         )
         tag = res.scalar_one_or_none()
         if not tag:
@@ -191,13 +207,15 @@ async def get_library(
             .order_by(Exercise.title)
         )
         exercises = exs_q.scalars().all()
-        result.append({
-            "tag": {"id": tag.id, "name": tag.name, "created_at": tag.created_at},
-            "exercises": [
-                {"id": ex.id, "title": ex.title or ex.id, "domain": ex.domain}
-                for ex in exercises
-            ],
-        })
+        result.append(
+            {
+                "tag": {"id": tag.id, "name": tag.name, "created_at": tag.created_at},
+                "exercises": [
+                    {"id": ex.id, "title": ex.title or ex.id, "domain": ex.domain}
+                    for ex in exercises
+                ],
+            }
+        )
     return result
 
 
@@ -209,4 +227,4 @@ async def _exercise_tags(exercise_id: str, user: User, db: AsyncSession) -> list
         .order_by(Tag.name)
     )
     result = await db.execute(query)
-    return result.scalars().all()
+    return list(result.scalars().all())
