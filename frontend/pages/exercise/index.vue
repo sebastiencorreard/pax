@@ -99,7 +99,7 @@
                         :to="`/exercise/${ex.id}`"
                         class="flex items-center justify-between px-6 py-3 hover:bg-black/5 dark:hover:bg-white/5 transition group border-b last:border-b-0"
                         style="border-color:var(--color-border)"
-                        @contextmenu.prevent="auth.isTeacher && openContextMenu(ex, $event)">
+
                 <span class="text-sm group-hover:text-blue-500 transition truncate">
                   {{ decodeEntities(ex.title || ex.id) }}
                 </span>
@@ -119,13 +119,6 @@
       </div>
     </div>
 
-    <!-- Menu contextuel tags (clic droit, teachers/admins uniquement) -->
-    <TagContextMenu v-if="contextMenu"
-                    :exercise-id="contextMenu.exerciseId"
-                    :exercise-title="contextMenu.exerciseTitle"
-                    :raw-x="contextMenu.x"
-                    :raw-y="contextMenu.y"
-                    @close="contextMenu = null" />
   </div>
 </template>
 
@@ -161,27 +154,8 @@ interface DomainGroup {
   modules: Module[]
 }
 
-const auth = useAuthStore()
 const { apiFetch } = useApi()
 const debugOef = useRuntimeConfig().public.debugOef
-
-// Menu contextuel (clic droit) — tags
-interface ContextMenuState {
-  exerciseId: string
-  exerciseTitle: string
-  x: number
-  y: number
-}
-const contextMenu = ref<ContextMenuState | null>(null)
-
-function openContextMenu(ex: ModuleExercise, event: MouseEvent) {
-  contextMenu.value = {
-    exerciseId: ex.id,
-    exerciseTitle: decodeEntities(ex.title || ex.id),
-    x: event.clientX,
-    y: event.clientY,
-  }
-}
 
 function decodeEntities(s: string): string {
   return (s || '')
