@@ -1,10 +1,5 @@
 <template>
-  <div class="max-w-sm">
-    <div class="flex items-center gap-3 mb-6">
-      <NuxtLink to="/admin/users" class="text-sm hover:underline" style="color:var(--color-text-muted)">
-        ← {{ $t('admin.users_title') }}
-      </NuxtLink>
-    </div>
+  <div class="px-6 py-6 max-w-sm">
     <h1 class="text-2xl font-bold mb-6">{{ $t('admin.new_user') }}</h1>
 
     <form @submit.prevent="submit" class="space-y-4">
@@ -57,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: ['admin'] })
+definePageMeta({ layout: 'dashboard', middleware: ['admin'] })
 
 const { apiFetch } = useApi()
 

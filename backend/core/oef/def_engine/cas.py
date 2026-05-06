@@ -147,6 +147,40 @@ def _call_maxima(expr: str) -> str:
                 inner = args[0].strip().lstrip("{").rstrip("}")
                 items = {x.strip() for x in inner.split(",") if x.strip()}
                 return str(len(items))
+
+            if func_name == "op" and len(args) >= 1:
+                e = _sympify_arg(args[0])
+                if e.is_Atom:
+                    return ""
+                _OP_MAP = {
+                    sympy.Add: "+",
+                    sympy.Mul: "*",
+                    sympy.Pow: "^",
+                    sympy.Abs: "abs",
+                }
+                return _OP_MAP.get(type(e), e.func.__name__)
+
+            if func_name == "args" and len(args) >= 1:
+                e = _sympify_arg(args[0])
+                if e.is_Atom:
+                    return "[]"
+                return "[" + ",".join(str(a) for a in e.args) + "]"
+
+            if func_name == "ordergreat":
+                return ""
+
+            if func_name == "setdifference" and len(args) == 2:
+                def _parse_finite_set(s: str):
+                    s = s.strip().lstrip("{").rstrip("}")
+                    items = _split_top_level_args(s) if s.strip() else []
+                    elems = [_sympify_arg(x) for x in items if x.strip()]
+                    return sympy.FiniteSet(*elems) if elems else sympy.EmptySet
+
+                diff = _parse_finite_set(args[0]) - _parse_finite_set(args[1])
+                if diff == sympy.EmptySet:
+                    return "{}"
+                return "{" + ",".join(str(e) for e in diff) + "}"
+
         except Exception:
             pass
 

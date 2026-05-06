@@ -12,11 +12,6 @@
          style="border-color:var(--color-border)">
       <h2 class="font-semibold text-lg" v-html="titleHtml || rendered?.title || $t('exercise.loading')"></h2>
       <div class="flex items-center gap-2">
-        <span class="text-xs px-2 py-1 rounded font-semibold"
-              style="background:var(--color-bg);color:#b45309"
-              :title="$t('exercise.coins_title')">
-          ⭐ {{ formatCoins(coins) }}
-        </span>
         <span v-if="debugOef" class="text-xs px-2 py-1 rounded"
               style="background:var(--color-bg);color:var(--color-text-muted)">
           {{ $t('exercise.seed_label') }}: {{ rendered?.seed }}
@@ -164,7 +159,7 @@
               @click="fillAnswers(debugAnswers)"
               class="px-6 py-2.5 rounded-lg font-mono text-xs border border-dashed transition hover:opacity-80"
               style="border-color:var(--color-text-muted);color:var(--color-text-muted)">
-        Remplir
+        Réponse auto
       </button>
 
       <button v-if="submitted" @click="reload"
@@ -203,7 +198,7 @@ const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string }] }>()
 
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
-const debugOef = useRuntimeConfig().public.debugOef
+const { debugMode: debugOef } = useDebugMode()
 
 interface AnswerDef {
   input_name: string
@@ -249,14 +244,7 @@ const shaking = ref(false)
 const scoreEl = ref<HTMLElement | null>(null)
 
 // Système de pièces
-const coins = ref<number>(parseInt(localStorage.getItem('pax-coins') ?? '0'))
-watch(coins, v => localStorage.setItem('pax-coins', String(v)))
-
-function formatCoins(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
-  if (n >= 1_000)     return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'k'
-  return String(n)
-}
+const { coins, addCoins } = useCoins()
 
 interface FlyingCoin { id: number; x: number; y: number }
 const flyingCoins = ref<FlyingCoin[]>([])
@@ -411,13 +399,13 @@ async function submit() {
 
     const score = checkResult.value!.global_score
     if (score === 1) {
-      coins.value += 10
+      addCoins(10)
       spawnCoins(8)
     } else if (score >= 0.5) {
-      coins.value += 5
+      addCoins(5)
       spawnCoins(4)
     } else if (score > 0) {
-      coins.value += 1
+      addCoins(1)
       spawnCoins(1)
     }
     if (score < 1) {

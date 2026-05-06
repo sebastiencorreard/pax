@@ -23,8 +23,24 @@ docker compose up --build
 Docker se charge de télécharger tous les composants (au premier lancement) et de construire les trois containers (~5 min en tout).
 Le site est ensuite accessible dans un navigateur à l'adresse localhost:3000
 
+### Attention : premier lancement
 
-En cas de changement important dans le backend, le frontend ou bien la base de données, on peut relancer les 3 serveurs avec ces deux commandes
+Il faut peupler les base de données. Pour le moment, à la main :
+
+Tables des utilisateurs :
+./create_user.sh --email admin@pax.fr --first-name Jane --last-name Goodall --role admin
+
+Table des académies :
+docker compose exec backend python scripts/import_academies.py /ressources/a_integrer_dans_db/academies_france.csv
+
+Table des établissements (Aix-Marseille seulement, pour le moment) :
+docker compose exec backend python scripts/import_etablissements.py ac-aix-marseille.fr /ressources/a_integrer_dans_db/etablissements_aix_marseille.csv
+
+## Hot reload
+
+Normalement, tout changement dans le backend, frontend ou la base de données est répercuté "à chaud", càd sans commande particulière.
+
+Si ce "hot reload" ne fonctionne pas bien, on peut toujours relancer les 3 serveurs avec ces deux commandes
 ```bash
 docker compose down
 docker compose up --build

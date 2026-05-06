@@ -1,12 +1,5 @@
 <template>
   <div>
-    <div class="mb-4">
-      <NuxtLink to="/exercise"
-                class="text-sm hover:underline"
-                style="color:var(--color-text-muted)">
-        ← Retour aux exercices
-      </NuxtLink>
-    </div>
     <ExerciseDetail :exercise-id="exerciseId" />
   </div>
 </template>

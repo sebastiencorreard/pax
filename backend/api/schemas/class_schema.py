@@ -37,6 +37,15 @@ class ClassDetailResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class StudentClassResponse(BaseModel):
+    id: int
+    name: str
+    teacher_first_name: str | None
+    teacher_last_name: str | None
+
+    model_config = {"from_attributes": True}
+
+
 class UserCreate(BaseModel):
     email: str
     first_name: str

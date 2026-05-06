@@ -3,6 +3,7 @@ from .exercise import Exercise
 from .sheet import Sheet, SheetExercise, HomeworkAssignment, HomeworkPool, HomeworkPoolExercise
 from .attempt import Attempt, Grade
 from .tag import Tag, ExerciseTag
+from .class_model import Class, ClassStudent
 
 __all__ = [
     "Academie", "Etablissement", "User",
@@ -10,4 +11,5 @@ __all__ = [
     "Sheet", "SheetExercise", "HomeworkAssignment", "HomeworkPool", "HomeworkPoolExercise",
     "Attempt", "Grade",
     "Tag", "ExerciseTag",
+    "Class", "ClassStudent",
 ]

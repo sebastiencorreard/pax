@@ -30,35 +30,15 @@
       </div>
 
       <template v-if="auth.isLoggedIn">
-        <template v-if="auth.isTeacher">
-          <NuxtLink to="/exercise"
-                    class="text-sm hover:underline transition"
-                    style="color:var(--color-text-muted)">
-            {{ $t('nav.exercises') }}
-          </NuxtLink>
-          <NuxtLink to="/library"
-                    class="text-sm hover:underline transition"
-                    style="color:var(--color-text-muted)">
-            {{ $t('nav.library') }}
-          </NuxtLink>
-          <NuxtLink to="/sheets"
-                    class="text-sm hover:underline transition"
-                    style="color:var(--color-text-muted)">
-            {{ $t('nav.sheets') }}
-          </NuxtLink>
-          <NuxtLink :to="auth.user?.role === 'admin' ? '/admin' : '/classes'"
-                    class="text-sm hover:underline transition"
-                    style="color:var(--color-text-muted)">
-            {{ auth.user?.role === 'admin' ? $t('admin.title') : $t('classes.title') }}
-          </NuxtLink>
-        </template>
-        <span class="text-sm" style="color:var(--color-text-muted)">
+        <NuxtLink to="/account"
+                  class="text-sm hover:underline"
+                  style="color:var(--color-text-muted)">
           {{ auth.fullName }}
-          <span v-if="auth.user && !ROLES_HIDDEN.has(auth.user.role)"
-                class="ml-1 px-1.5 py-0.5 rounded text-xs"
-                style="background:var(--color-primary);color:#fff">
-            {{ auth.user.role }}
-          </span>
+        </NuxtLink>
+        <span v-if="auth.user && !ROLES_HIDDEN.has(auth.user.role)"
+              class="px-1.5 py-0.5 rounded text-xs"
+              style="background:var(--color-primary);color:#fff">
+          {{ auth.user.role }}
         </span>
         <button type="button"
                 @click="auth.logout(); navigateTo('/auth/login')"

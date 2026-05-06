@@ -1,13 +1,5 @@
 <template>
-  <div>
-    <div class="mb-6">
-      <NuxtLink to="/library"
-                class="text-sm hover:underline"
-                style="color:var(--color-text-muted)">
-        ← {{ $t('nav.library') }}
-      </NuxtLink>
-    </div>
-
+  <div class="px-6 py-6 px-6 py-6">
     <!-- Skeleton -->
     <div v-if="loading">
       <div class="h-8 w-48 rounded animate-pulse mb-6"
@@ -71,7 +63,7 @@
 <script setup lang="ts">
 import type { LibraryGroup, LibraryExercise } from '~/composables/useTags'
 
-definePageMeta({ middleware: ['teacher'] })
+definePageMeta({ layout: 'dashboard', middleware: ['teacher'] })
 
 const route = useRoute()
 const tagId = computed(() => Number(route.params.id))

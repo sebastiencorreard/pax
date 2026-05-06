@@ -53,3 +53,36 @@ WIMS plus large, mais sont rares ou absentes dans `ressources/` :
 - **2115/2173 exercices compilés rendent correctement** (97,3 %)
 - **Bloquant structurel** : `!read` — accès au système de fichiers WIMS
   (fichiers `.rec`, données tabulaires) non disponibles hors installation WIMS
+
+
+## Nécessaire d'implémenter `!read` ?
+
+`!read` est déjà partiellement implémenté — le moteur distingue trois variantes :
+
+
+| Variante | Classe | Statut |
+| :--- | :--- | :--- |
+| `!read oef/embed.phtml reply1,…` | ReadEmbed | ✅ rend les champs de saisie |
+| `!read oef/draw.phtml …` | ReadDraw | ✅ génère un graphique inline |
+| `!read oef/special.phtml …` | ReadProc | ✅ effets de bord (ins_url, etc.) |
+| `!read autrefichier.def` | — | ❌ non géré |
+| `!read primitives.phtml …` | — | ❌ ignoré |
+
+Répartition dans H4/ (les exercices importés)
+| Cible | Occurrences | Situation |
+| :--- | :--- | :--- |
+| `oef/embed.phtml` | 104 | ✅ déjà géré |
+| `primitives.phtml` | 2 | Module de doc (liens), pas un exercice — ignorable |
+| `listeprol.def` | 1 | Seul cas d'inclusion .def dans .def |
+
+Conclusion : 
+Non, ce n'est pas nécessaire pour faire tourner les exercices H4/. Les 104 !read oef/embed.phtml sont traités. Il resterait un seul cas d'inclusion .def→.def dans tout H4/ (espcube.fr/var.def qui charge listeprol.def).                  
+
+Plan si on voulait quand même l'implémenter
+Ce serait l'inclusion de fichier .def dans le contexte courant (même ctx, même état d'exécution) :
+1. Parser — reconnaître !read <path> quand la cible se termine par .def → nouveau type d'instruction ReadDef(path)
+2. Résolution de chemin — relatif au répertoire du .def en cours d'exécution (self._def_path.parent / path), avec garde contre les inclusions circulaires (set de chemins déjà chargés)
+3. Exécution — charger le fichier cible, le parser avec le même DefParser, puis passer ses instructions à _exec_block avec le ctx courant (les variables définies dans le fichier inclus sont visibles dans le parent, et vice-versa)
+4. Limites — les labels (!goto) ne traversent pas les frontières de fichiers ; les sections question:/hint:/solution: du fichier inclus sont ignorées (seuls les blocs d'initialisation sont utiles)
+
+Ça serait ~40 lignes dans __init__.py. Mais pour le corpus actuel, ça ne débloquerait qu'un seul exercice (espcube.fr), donc le rapport effort/impact est faible. Je recommande de ne l'implémenter que si tu constates que des exercices importants sont cassés à cause de ça.

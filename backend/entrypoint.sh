@@ -9,6 +9,7 @@ async def check():
         conn = await asyncpg.connect(os.environ["DATABASE_URL"].replace("+asyncpg", ""))
         await conn.close()
     except Exception as e:
+        print(f"  Connection error: {e}", file=sys.stderr)
         sys.exit(1)
 asyncio.run(check())
 EOF

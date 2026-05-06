@@ -1,4 +1,5 @@
 <template>
+  <div class="px-6 py-6">
   <div v-if="loading" class="space-y-3">
     <div v-for="i in 3" :key="i" class="h-12 rounded-xl animate-pulse"
          style="background:var(--color-surface)"></div>
@@ -9,12 +10,6 @@
   </div>
 
   <div v-else>
-    <div class="flex items-center gap-3 mb-6">
-      <NuxtLink to="/classes" class="text-sm hover:underline" style="color:var(--color-text-muted)">
-        ← {{ $t('classes.title') }}
-      </NuxtLink>
-    </div>
-
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">{{ cls.name }}</h1>
       <button type="button" @click="deleteClass"
@@ -80,10 +75,11 @@
 
     <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
   </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: ['teacher'] })
+definePageMeta({ layout: 'dashboard', middleware: ['teacher'] })
 
 const { apiFetch } = useApi()
 const { t } = useI18n()

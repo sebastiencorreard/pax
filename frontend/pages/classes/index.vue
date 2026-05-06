@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="px-6 py-6 px-6 py-6">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold">{{ $t('classes.title') }}</h1>
       <NuxtLink to="/classes/new"
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ middleware: ['teacher'] })
+definePageMeta({ layout: 'dashboard', middleware: ['teacher'] })
 
 const { apiFetch } = useApi()
 

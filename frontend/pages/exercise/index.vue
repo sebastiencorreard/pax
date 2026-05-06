@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="px-6 py-6">
     <h1 class="text-2xl font-bold mb-6">{{ $t('nav.exercises') }}</h1>
 
     <!-- Filtres (pleine largeur) -->
@@ -151,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'wide' })
+definePageMeta({ layout: 'dashboard' })
 interface ModuleExercise {
   id: string
   title: string | null
@@ -186,7 +186,7 @@ interface DomainGroup {
 }
 
 const { apiFetch } = useApi()
-const debugOef = useRuntimeConfig().public.debugOef
+const { debugMode: debugOef } = useDebugMode()
 
 function decodeEntities(s: string): string {
   return (s || '')

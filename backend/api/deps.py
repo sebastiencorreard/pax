@@ -37,8 +37,12 @@ async def get_current_user(
 
 
 def require_role(*roles: str):
+    """super_admin a accès à tout ce qu'un admin peut faire."""
     async def checker(current_user: User = Depends(get_current_user)) -> User:
-        if current_user.role not in roles:
+        allowed = set(roles)
+        if "admin" in allowed:
+            allowed.add("super_admin")
+        if current_user.role not in allowed:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Droits insuffisants",

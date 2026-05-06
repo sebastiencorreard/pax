@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="px-6 py-6 px-6 py-6">
     <h1 class="text-2xl font-bold mb-6">{{ $t('nav.library') }}</h1>
 
     <!-- Skeleton -->
@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import type { LibraryGroup, Tag } from '~/composables/useTags'
 
-definePageMeta({ middleware: ['teacher'] })
+definePageMeta({ layout: 'dashboard', middleware: ['teacher'] })
 
 const { fetchLibrary, deleteTag } = useTags()
 

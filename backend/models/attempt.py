@@ -16,7 +16,7 @@ class Attempt(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
     exercise_id: Mapped[str] = mapped_column(String(600), ForeignKey("exercises.id"))
     sheet_id: Mapped[int | None] = mapped_column(ForeignKey("sheets.id"), nullable=True)
@@ -39,7 +39,7 @@ class Grade(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     student_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id")
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
     sheet_id: Mapped[int] = mapped_column(ForeignKey("sheets.id"))
     score: Mapped[float | None] = mapped_column(Numeric, nullable=True)

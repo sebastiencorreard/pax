@@ -8,14 +8,14 @@ Inventaire des fonctions appelées via `!exec maxima` et `!exec pari` dans les 2
 |---|---|---|---|
 | `fullratsimp` | 990 | ✅ | `sympy.simplify` |
 | `expand` | 147 | ✅ | `sympy.expand` |
-| `op` | 48 | ❌ | retourne l'opérateur principal (`op(3*x^2)` → `*`) — pas d'équivalent direct |
-| `args` | 48 | ❌ | retourne les arguments (`args(3*x^2)` → `[3, x^2]`) — `expr.args` en SymPy |
+| `op` | 48 | ✅ | `expr.func` en SymPy — table de correspondance `{Add:"+", Mul:"*", Pow:"^"}`, sinon `func.__name__` |
+| `args` | 48 | ✅ | `expr.args` en SymPy — formaté `[a,b,c]` ; atome → `[]` |
 | `factor` | 19 | ✅ | `sympy.factor` |
 | `diff` | 18 | ✅ | `sympy.diff(expr, x[, order])` |
 | `subst` | 6 | ✅ | `expr.subs(var, val)` (Maxima ordre `subst(val, var, expr)`) |
-| `ordergreat` | 4 | ❌ | ordonnancement de variables — probablement ignorable |
+| `ordergreat` | 4 | ✅ | ordonnancement de variables — ignoré (retourne `""`) |
 | `cardinality` | 4 | ✅ | `len({…})` après dédoublonnage |
-| `setdifference` | 4 | ❌ | `sympy.FiniteSet` ou opération sur ensembles |
+| `setdifference` | 4 | ✅ | `FiniteSet(A) - FiniteSet(B)` — retourne `{a,b,…}` ou `{}` |
 | `hipow` | 1 | ✅ | `sympy.Poly(expr, x).degree()` |
 | `coeff` | 1 | ✅ | `sympy.Poly(expr, x).nth(n)` |
 | `limit` | 1 | ✅ | `sympy.limit(expr, x, val)` |
@@ -57,8 +57,8 @@ pour que `3/4` produise `Rational(3, 4)` (sémantique PARI), et les identifiants
 inconnus deviennent automatiquement des `sympy.Symbol`.
 
 ### Restant à implémenter
-- `op` / `args` (48 Maxima) — manipulation symbolique sans équivalent direct
+- `op` / `args` (48 Maxima) — ✅ implémentés
 - `forstep` (12 PARI) — boucle PARI avec pas
 - `heron` (6 PARI) — fonction custom (aire par Héron)
-- `setdifference` / `ordergreat` (4 Maxima) — rares
+- `setdifference` / `ordergreat` (4 Maxima) — rares ✅ setdifference implémenté, ordergreat ignoré
 - `ffp` / `matsize` (≤2 PARI) — très rares

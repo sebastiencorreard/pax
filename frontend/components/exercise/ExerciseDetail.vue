@@ -87,7 +87,7 @@
 const props = defineProps<{ exerciseId: string }>()
 
 const auth = useAuthStore()
-const debugOef = useRuntimeConfig().public.debugOef
+const { debugMode: debugOef } = useDebugMode()
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
 

@@ -7,7 +7,8 @@ from sqlalchemy.orm import selectinload
 from db import get_db
 from models.class_model import Class, ClassStudent
 from models.user import User
-from api.schemas.class_schema import ClassCreate, ClassResponse, ClassDetailResponse, UserBrief
+from sqlalchemy.orm import aliased
+from api.schemas.class_schema import ClassCreate, ClassResponse, ClassDetailResponse, UserBrief, StudentClassResponse
 from api.deps import get_current_user, require_role
 
 router = APIRouter(prefix="/api/classes", tags=["classes"])
@@ -16,6 +17,30 @@ router = APIRouter(prefix="/api/classes", tags=["classes"])
 def _check_ownership(cls: Class, current_user: User) -> None:
     if cls.teacher_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Classe appartenant à un autre enseignant")
+
+
+@router.get("/mine", response_model=list[StudentClassResponse])
+async def list_my_classes(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("student")),
+):
+    Teacher = aliased(User)
+    result = await db.execute(
+        select(Class, Teacher)
+        .join(ClassStudent, ClassStudent.class_id == Class.id)
+        .join(Teacher, Teacher.id == Class.teacher_id)
+        .where(ClassStudent.student_id == current_user.id)
+        .order_by(Class.name)
+    )
+    return [
+        StudentClassResponse(
+            id=cls.id,
+            name=cls.name,
+            teacher_first_name=teacher.first_name,
+            teacher_last_name=teacher.last_name,
+        )
+        for cls, teacher in result.all()
+    ]
 
 
 @router.get("/", response_model=list[ClassResponse])

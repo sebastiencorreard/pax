@@ -1,0 +1,238 @@
+<template>
+  <div class="max-w-md mx-auto mt-12">
+    <div class="rounded-xl p-8 shadow-sm border"
+         style="background:var(--color-surface);border-color:var(--color-border)">
+
+      <!-- Onglets -->
+      <div class="flex rounded-lg overflow-hidden border mb-6"
+           style="border-color:var(--color-border)">
+        <button type="button" @click="mode = 'login'"
+                class="flex-1 py-2 text-sm font-medium transition"
+                :style="mode === 'login'
+                  ? 'background:var(--color-primary);color:#fff'
+                  : 'color:var(--color-text-muted)'">
+          {{ $t('auth.title') }}
+        </button>
+        <button type="button" @click="mode = 'register'"
+                class="flex-1 py-2 text-sm font-medium transition"
+                :style="mode === 'register'
+                  ? 'background:var(--color-primary);color:#fff'
+                  : 'color:var(--color-text-muted)'">
+          {{ $t('register.title') }}
+        </button>
+      </div>
+
+      <!-- ── Formulaire de connexion ── -->
+      <form v-if="mode === 'login'" @submit.prevent="submit" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ $t('auth.email') }}</label>
+          <input v-model="email" type="email" required autocomplete="email"
+                 class="w-full px-3 py-2 rounded-lg border outline-none transition"
+                 style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
+                 placeholder="prof@ac-aix-marseille.fr" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ $t('auth.password') }}</label>
+          <div class="relative">
+            <input v-model="password" :type="showPassword ? 'text' : 'password'" required
+                   autocomplete="current-password"
+                   class="w-full px-3 py-2 pr-10 rounded-lg border outline-none transition"
+                   style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)" />
+            <button type="button" @click="showPassword = !showPassword" tabindex="-1"
+                    class="absolute inset-y-0 right-0 flex items-center px-3"
+                    style="color:var(--color-text-muted)">
+              <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-5 0-9-4-9-7s4-7 9-7a10.05 10.05 0 011.875.175M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div v-if="error" class="text-sm px-3 py-2 rounded-lg"
+             style="background:color-mix(in srgb,var(--color-error) 15%,transparent);color:var(--color-error)">
+          {{ error }}
+        </div>
+
+        <button type="submit" :disabled="loading"
+                class="w-full py-2.5 rounded-lg font-medium transition disabled:opacity-60"
+                style="background:var(--color-primary);color:#fff">
+          {{ loading ? $t('auth.submitting') : $t('auth.submit') }}
+        </button>
+
+        <div class="flex items-center gap-3" style="color:var(--color-text-muted)">
+          <div class="flex-1 h-px" style="background:var(--color-border)"></div>
+          <span class="text-xs uppercase tracking-wider">{{ $t('auth.or') }}</span>
+          <div class="flex-1 h-px" style="background:var(--color-border)"></div>
+        </div>
+
+        <button type="button" :disabled="loading" @click="continueAsGuest"
+                class="w-full py-2.5 rounded-lg font-medium border transition disabled:opacity-60 hover:bg-black/5 dark:hover:bg-white/5"
+                style="border-color:var(--color-border);color:var(--color-text)">
+          {{ $t('auth.continue_as_guest') }}
+        </button>
+      </form>
+
+      <!-- ── Formulaire d'inscription ── -->
+      <form v-else @submit.prevent="register" class="space-y-4">
+        <p class="text-xs mb-2" style="color:var(--color-text-muted)">
+          {{ $t('register.subtitle') }}
+        </p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium mb-1">{{ $t('admin.field_first_name') }} *</label>
+            <input v-model="reg.first_name" required type="text"
+                   class="w-full px-3 py-2 rounded-lg border outline-none transition"
+                   style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">{{ $t('admin.field_last_name') }} *</label>
+            <input v-model="reg.last_name" required type="text"
+                   class="w-full px-3 py-2 rounded-lg border outline-none transition"
+                   style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ $t('auth.email') }} *</label>
+          <input v-model="reg.email" required type="email"
+                 placeholder="prenom.nom@ac-aix-marseille.fr"
+                 class="w-full px-3 py-2 rounded-lg border outline-none transition"
+                 :style="emailError
+                   ? 'background:var(--color-bg);border-color:var(--color-error);color:var(--color-text)'
+                   : 'background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)'" />
+          <p v-if="emailError" class="mt-1 text-xs" style="color:var(--color-error)">{{ emailError }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ $t('auth.password') }} *</label>
+          <input v-model="reg.password" required type="password" minlength="8"
+                 class="w-full px-3 py-2 rounded-lg border outline-none transition"
+                 style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)" />
+          <p class="mt-1 text-xs" style="color:var(--color-text-muted)">
+            {{ $t('register.password_hint') }}
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">{{ $t('register.etab_label') }} *</label>
+          <EtabSearch v-model="reg.etab" />
+          <p v-if="etabError" class="mt-1 text-xs" style="color:var(--color-error)">{{ etabError }}</p>
+        </div>
+
+        <div v-if="regError" class="text-sm px-3 py-2 rounded-lg"
+             style="background:color-mix(in srgb,var(--color-error) 15%,transparent);color:var(--color-error)">
+          {{ regError }}
+        </div>
+
+        <div v-if="regSuccess" class="text-sm px-3 py-2 rounded-lg"
+             style="background:color-mix(in srgb,var(--color-success) 15%,transparent);color:var(--color-success)">
+          {{ $t('register.success') }}
+        </div>
+
+        <button type="submit" :disabled="regLoading || !!regSuccess"
+                class="w-full py-2.5 rounded-lg font-medium transition disabled:opacity-60"
+                style="background:var(--color-primary);color:#fff">
+          {{ regLoading ? '…' : $t('register.submit') }}
+        </button>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ layout: 'default' })
+
+const { t } = useI18n()
+const auth = useAuthStore()
+const route = useRoute()
+const config = useRuntimeConfig()
+
+// ── Login ──────────────────────────────────────────────────────────────────
+const mode = ref<'login' | 'register'>('login')
+const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
+const error = ref('')
+const loading = ref(false)
+
+async function submit() {
+  error.value = ''
+  loading.value = true
+  try {
+    await auth.login(email.value, password.value)
+    await navigateTo((route.query.redirect as string) || '/')
+  } catch (e: any) {
+    error.value = e?.data?.detail || t('auth.error_default')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function continueAsGuest() {
+  error.value = ''
+  loading.value = true
+  try {
+    await auth.loginAsGuest()
+    await navigateTo((route.query.redirect as string) || '/')
+  } catch (e: any) {
+    error.value = e?.data?.detail || t('auth.guest_unavailable')
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── Register ───────────────────────────────────────────────────────────────
+interface Etab { id: number; name: string; commune: string | null }
+
+const reg = reactive({ first_name: '', last_name: '', email: '', password: '', etab: null as Etab | null })
+const regLoading = ref(false)
+const regError = ref('')
+const regSuccess = ref(false)
+
+const emailError = computed(() => {
+  if (!reg.email) return ''
+  if (!reg.email.toLowerCase().endsWith('@ac-aix-marseille.fr'))
+    return t('register.email_domain_error')
+  return ''
+})
+
+const etabError = ref('')
+
+async function register() {
+  regError.value = ''
+  etabError.value = ''
+  if (!reg.etab) { etabError.value = t('register.etab_required'); return }
+  if (emailError.value) return
+
+  regLoading.value = true
+  try {
+    await $fetch(`${config.public.apiBase}/api/auth/register`, {
+      method: 'POST',
+      body: {
+        email: reg.email,
+        first_name: reg.first_name,
+        last_name: reg.last_name,
+        password: reg.password,
+        etab_id: reg.etab.id,
+      },
+    })
+    regSuccess.value = true
+  } catch (e: any) {
+    const detail = e?.data?.detail
+    if (Array.isArray(detail)) {
+      regError.value = detail.map((d: any) => d.msg).join(' — ')
+    } else {
+      regError.value = detail || String(e)
+    }
+  } finally {
+    regLoading.value = false
+  }
+}
+</script>

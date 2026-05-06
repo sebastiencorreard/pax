@@ -1,11 +1,21 @@
 import { defineStore } from 'pinia'
 
+interface Etablissement {
+  id: number
+  name: string
+  uai: string | null
+}
+
 interface User {
   id: string
   email: string
   first_name: string
   last_name: string
   role: string
+  must_change_password: boolean
+  coins: number
+  created_at: string | null
+  etablissement: Etablissement | null
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -25,7 +35,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email: string, password: string) {
       const config = useRuntimeConfig()
-      const data = await $fetch<{ access_token: string }>(
+      const data = await $fetch<{ access_token: string, must_change_password: boolean }>(
         `${config.public.apiBase}/api/auth/login`,
         { method: 'POST', body: { email, password } }
       )
@@ -35,6 +45,10 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('pax_token', data.access_token)
       }
       await this.fetchMe()
+      
+      if (data.must_change_password) {
+        await navigateTo('/auth/change-password')
+      }
     },
 
     async loginAsGuest() {
