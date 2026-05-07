@@ -30,7 +30,7 @@ const tiles = computed(() => {
     { icon: '📋', title: t('home.sheets_title'),    desc: t('home.sheets_desc'),    to: '/sheets'   },
     { icon: '👥', title: t('home.classes_title'),   desc: t('home.classes_desc'),   to: '/classes'  },
   ]
-  if (auth.user?.role === 'admin') {
+  if (auth.isAdmin) {
     base.push({ icon: '👤', title: t('home.users_title'), desc: t('home.users_desc'), to: '/admin/users' })
   }
   base.push({ icon: '🙍', title: t('nav.account'), desc: t('home.account_desc'), to: '/account' })

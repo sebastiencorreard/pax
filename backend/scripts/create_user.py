@@ -98,10 +98,18 @@ async def _create(args: argparse.Namespace) -> None:
             )
             etab = etab_result.scalar_one_or_none()
             if etab is None:
-                print(f"error: établissement introuvable pour UAI '{args.uai}'", file=sys.stderr)
-                sys.exit(3)
-            etab_id = etab.id
-            print(f"établissement : {etab.name} ({etab.uai})", file=sys.stderr)
+                if args.role in ("admin", "super_admin"):
+                    print(
+                        f"warning: établissement UAI '{args.uai}' introuvable — "
+                        "compte créé sans établissement.",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(f"error: établissement introuvable pour UAI '{args.uai}'", file=sys.stderr)
+                    sys.exit(3)
+            else:
+                etab_id = etab.id
+                print(f"établissement : {etab.name} ({etab.uai})", file=sys.stderr)
 
         # Guests have no password — they can only sign in via the
         # `/api/auth/guest` endpoint, which issues a token without

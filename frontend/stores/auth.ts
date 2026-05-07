@@ -26,7 +26,9 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isLoggedIn: (state) => !!state.token,
-    isTeacher: (state) => state.user?.role === 'teacher' || state.user?.role === 'admin',
+    isSuperAdmin: (state) => state.user?.role === 'super_admin',
+    isAdmin: (state) => state.user?.role === 'admin' || state.user?.role === 'super_admin',
+    isTeacher: (state) => state.user?.role === 'teacher' || state.user?.role === 'admin' || state.user?.role === 'super_admin',
     fullName: (state) => state.user
       ? `${state.user.first_name} ${state.user.last_name}`
       : '',

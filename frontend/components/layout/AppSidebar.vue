@@ -43,7 +43,7 @@
         <div class="my-2 mx-2 border-t" style="border-color:var(--color-border)" />
 
         <LayoutSidebarLink to="/classes" icon="👥" :label="$t('nav.classes')" @click="$emit('close')" />
-        <LayoutSidebarLink v-if="auth.user?.role === 'admin'"
+        <LayoutSidebarLink v-if="auth.isAdmin"
                      to="/admin/users" icon="👤" :label="$t('nav.users')" @click="$emit('close')" />
       </template>
 
