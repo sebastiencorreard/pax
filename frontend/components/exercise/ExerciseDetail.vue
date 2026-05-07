@@ -4,22 +4,6 @@
                     :exercise-id="exerciseId"
                     :debug-answers="autofillMap"
                     @rendered="onRendered">
-      <!-- Tags QA (E/R/V) intégrés en bas à droite du player -->
-      <template v-if="debugOef" #qa>
-        <div class="flex items-center gap-3">
-          <label v-for="flag in qaFlags" :key="flag"
-                 class="inline-flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox"
-                   :checked="qa[flag] === true"
-                   :disabled="qaSaving[flag]"
-                   @change="onQaToggle(flag, ($event.target as HTMLInputElement).checked)" />
-            <span class="font-mono text-xs" :title="qaTooltips[flag]"
-                  style="color:var(--color-text-muted)">{{ qaLabels[flag] }}</span>
-            <span v-if="qaSaving[flag]" class="text-xs" style="color:var(--color-text-muted)">…</span>
-          </label>
-          <span v-if="qaError" class="text-xs text-red-500">{{ qaError }}</span>
-        </div>
-      </template>
     </ExercisePlayer>
 
     <TagEditor v-if="auth.isTeacher" :exercise-id="exerciseId" class="mt-4" />
@@ -110,14 +94,8 @@ const autofillMap = computed<Record<string, string> | null>(() => {
   }))
 })
 
-type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
-const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
-const qaLabels: Record<QAFlag, string> = { statement_ok: 'E', answer_ok: 'R', check_ok: 'V' }
-const qaTooltips: Record<QAFlag, string> = { statement_ok: 'Énoncé ok', answer_ok: 'Réponse ok', check_ok: 'Vérification ok' }
-
 interface ExerciseMeta {
   id: string; oef_path: string; module: string | null; module_title: string | null
-  statement_ok: boolean | null; answer_ok: boolean | null; check_ok: boolean | null
 }
 interface Source { oef_path: string; content: string }
 interface DebugAnswer { input_name: string; label: string; answer_type: string; expected: string }
@@ -130,9 +108,6 @@ const debug = ref<Debug | null>(null)
 const debugError = ref('')
 const solutionHtml = ref('')
 const expectedHtml = ref<Record<string, string>>({})
-const qa = ref<Record<QAFlag, boolean | null>>({ statement_ok: null, answer_ok: null, check_ok: null })
-const qaSaving = ref<Record<QAFlag, boolean>>({ statement_ok: false, answer_ok: false, check_ok: false })
-const qaError = ref('')
 
 const moduleName = computed(() => {
   if (exercise.value?.module_title) return exercise.value.module_title
@@ -143,32 +118,11 @@ const moduleName = computed(() => {
 
 async function loadQa() {
   if (!debugOef) return
-  qaError.value = ''
   try {
     const ex = await apiFetch<ExerciseMeta>(`/api/exercises/${props.exerciseId}`)
     exercise.value = ex
-    qa.value = { statement_ok: ex.statement_ok, answer_ok: ex.answer_ok, check_ok: ex.check_ok }
   } catch (e: any) {
-    qaError.value = e?.data?.detail || e?.message || String(e)
-  }
-}
-
-async function onQaToggle(flag: QAFlag, checked: boolean) {
-  const prev = qa.value[flag]
-  qa.value[flag] = checked
-  qaSaving.value[flag] = true
-  qaError.value = ''
-  try {
-    const updated = await apiFetch<ExerciseMeta>(
-      `/api/exercises/${props.exerciseId}/qa`,
-      { method: 'PATCH', body: { [flag]: checked } },
-    )
-    qa.value[flag] = updated[flag]
-  } catch (e: any) {
-    qa.value[flag] = prev
-    qaError.value = e?.data?.detail || e?.message || String(e)
-  } finally {
-    qaSaving.value[flag] = false
+    // console.error(e)
   }
 }
 

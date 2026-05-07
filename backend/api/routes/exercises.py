@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from db import get_db
 from models.exercise import Exercise
-from api.schemas.exercise import ExerciseResponse, ExerciseQAUpdate
+from api.schemas.exercise import ExerciseResponse
 from api.deps import get_current_user
 from models.user import User
 from core.oef.engine import find_def_path
@@ -155,9 +155,6 @@ async def list_modules(
                 "has_def": find_def_path(ex.oef_path) is not None,
                 "author": _format_author(_ex_authors[mod_name].get(stem, "")),
                 "keywords": _split_csv(_ex_keywords[mod_name].get(stem, "")),
-                "statement_ok": ex.statement_ok,
-                "answer_ok": ex.answer_ok,
-                "check_ok": ex.check_ok,
             }
         )
 
@@ -190,25 +187,6 @@ async def get_exercise(
     payload = ExerciseResponse.model_validate(exercise)
     payload.module_title = _module_title(exercise.oef_path)
     return payload
-
-
-@router.patch("/{exercise_id}/qa", response_model=ExerciseResponse)
-async def update_exercise_qa(
-    exercise_id: str,
-    payload: ExerciseQAUpdate,
-    db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
-):
-    result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
-    exercise = result.scalar_one_or_none()
-    if not exercise:
-        raise HTTPException(status_code=404, detail="Exercice introuvable")
-    data = payload.model_dump(exclude_unset=True)
-    for field, value in data.items():
-        setattr(exercise, field, value)
-    await db.commit()
-    await db.refresh(exercise)
-    return exercise
 
 
 @router.get("/{exercise_id}/source")

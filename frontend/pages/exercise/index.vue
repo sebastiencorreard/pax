@@ -37,15 +37,6 @@
         <option value="">{{ $t('exercise.all_domains') }}</option>
         <option v-for="d in availableDomains" :key="d" :value="d">{{ d }}</option>
       </select>
-
-      <div v-if="debugOef" class="ml-auto flex items-center gap-3 text-sm"
-           style="color:var(--color-text)">
-        <label v-for="flag in qaFlags" :key="flag"
-               class="inline-flex items-center gap-1.5 cursor-pointer">
-          <input type="checkbox" v-model="qaFilters[flag]" />
-          <span class="font-mono text-xs" :title="qaTooltips[flag]">{{ qaLabels[flag] }}</span>
-        </label>
-      </div>
     </div>
 
     <!-- Layout : liste seule sur petit écran, liste + preview sur lg+ -->
@@ -158,15 +149,7 @@ interface ModuleExercise {
   has_def: boolean
   author: string
   keywords: string[]
-  statement_ok: boolean | null
-  answer_ok: boolean | null
-  check_ok: boolean | null
 }
-
-type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'
-const qaFlags: QAFlag[] = ['statement_ok', 'answer_ok', 'check_ok']
-const qaLabels: Record<QAFlag, string> = { statement_ok: 'E', answer_ok: 'R', check_ok: 'V' }
-const qaTooltips: Record<QAFlag, string> = { statement_ok: 'Énoncé ok', answer_ok: 'Réponse ok', check_ok: 'Vérification ok' }
 
 interface Module {
   module: string
@@ -210,9 +193,6 @@ const filterDomain = ref((route.query.domain as string) || '')
 const searchQuery = ref((route.query.q as string) || '')
 const searchScope = ref<SearchScope>((route.query.scope as SearchScope) || 'modules')
 const previewId = ref<string | null>((route.query.preview as string) || null)
-const qaFilters = ref<Record<QAFlag, boolean>>({
-  statement_ok: false, answer_ok: false, check_ok: false,
-})
 
 watch([filterLevel, filterDomain, searchQuery, searchScope, previewId], ([level, domain, q, scope, preview]) => {
   router.replace({
@@ -233,17 +213,6 @@ const levels = ['E1','E2','E3','E4','E5','E6','H1','H2','H3','H4','H5','H6','U1'
 const availableDomains = computed(() =>
   [...new Set(modules.value.map(m => m.domain))].sort()
 )
-
-const activeQaFlags = computed(() =>
-  qaFlags.filter(f => qaFilters.value[f]),
-)
-
-function exerciseMatchesQa(ex: ModuleExercise): boolean {
-  for (const f of activeQaFlags.value) {
-    if (ex[f] !== true) return false
-  }
-  return true
-}
 
 function exerciseMatchesSearch(ex: ModuleExercise, q: string): boolean {
   if ((ex.title || '').toLowerCase().includes(q)) return true
@@ -270,10 +239,6 @@ const filteredModules = computed(() => {
     })
     .map(m => {
       let exercises = m.exercises
-
-      if (activeQaFlags.value.length > 0) {
-        exercises = exercises.filter(exerciseMatchesQa)
-      }
 
       if (q) {
         if (scope === 'modules') {
