@@ -21,7 +21,16 @@ def upgrade() -> None:
     op.add_column("etablissements", sa.Column("type_etab", sa.String(100), nullable=True))
 
     # ── 2. Supprimer la contrainte unique globale (prénom, nom) sur users ───
-    op.drop_constraint("uq_user_names", "users", type_="unique")
+    op.execute("""
+        DO $$ BEGIN
+            IF EXISTS (
+                SELECT 1 FROM pg_constraint
+                WHERE conname = 'uq_user_names' AND conrelid = 'users'::regclass
+            ) THEN
+                ALTER TABLE users DROP CONSTRAINT uq_user_names;
+            END IF;
+        END $$
+    """)
 
     # ── 3. Rôle enum : supprimer inspector, ajouter super_admin ────────────
     # Convertit les eventuels inspectors en admin
