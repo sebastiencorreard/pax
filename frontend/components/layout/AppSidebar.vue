@@ -60,10 +60,10 @@ defineEmits<{ close: [] }>()
 
 const auth = useAuthStore()
 const { debugMode } = useDebugMode()
-const isDev = import.meta.dev
 </script>
 
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.15s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
+e>
