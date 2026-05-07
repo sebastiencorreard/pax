@@ -42,7 +42,7 @@ from ..engine import AnswerDef, ExerciseRender, _segment_statement
 
 # Patterns for variable substitution
 _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
-_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]+);([^\]]+)\]\)")  # $(var[n;m])
+_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]+);([^\]]*)\]\)")  # $(var[n;m]) or $(var[n;])
 _INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
@@ -368,37 +368,75 @@ class DefEngine(_SlibMixin):
         return ",".join(items[start - 1 : end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
-        """Resolve $(var[n]) — 1-indexed item from tab-separated list."""
+        """Resolve $(var[n]) — 1-indexed item from tab/comma-separated list.
+
+        If the index is itself a list (e.g., $val40='5,4'), return multiple
+        items separated by the same delimiter used in the source list.
+        """
         name, idx_expr = m.group(1), m.group(2)
         value = self.ctx.get(name, "")
         if not value:
             return ""
         idx_s = self._subst_for_arith(idx_expr)
+
+        # Determine list delimiter
+        delimiter = "\t" if "\t" in value else ","
+        items = value.split(delimiter)
+
+        # Try to parse as single integer first
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
-        except (ValueError, TypeError):
+            if 1 <= idx <= len(items):
+                return items[idx - 1].strip()
             return ""
-        items = value.split("\t") if "\t" in value else value.split(",")
-        if 1 <= idx <= len(items):
-            return items[idx - 1].strip()
-        return ""
+        except (ValueError, TypeError):
+            pass
+
+        # Handle list of indices (WIMS feature): $(var[$list]) where $list='5,4'
+        # Returns items 5 and 4, separated by same delimiter as source
+        idx_list_str = idx_s.strip()
+        idx_parts = idx_list_str.split(",") if "," in idx_list_str else idx_list_str.split("\t")
+        result_items = []
+        for idx_part in idx_parts:
+            try:
+                idx = int(round(float(self._eval_arith(idx_part.strip()))))
+                if 1 <= idx <= len(items):
+                    result_items.append(items[idx - 1].strip())
+            except (ValueError, TypeError):
+                continue
+        return delimiter.join(result_items) if result_items else ""
 
     def _resolve_indexed2(self, m: re.Match) -> str:
-        """Resolve $(var[n;m]) — row n, column m of a tab-row/semicolon-col matrix."""
+        """Resolve $(var[n;m]) — row n, column m of a tab-row/semicolon-col matrix.
+
+        If col_expr is empty (e.g., $(var[n;])), return the entire row.
+        """
         name, row_expr, col_expr = m.group(1), m.group(2), m.group(3)
         value = self.ctx.get(name, "")
         if not value:
             return ""
         row_s = self._subst_for_arith(row_expr)
-        col_s = self._subst_for_arith(col_expr)
+        col_s = self._subst_for_arith(col_expr).strip()
+
         try:
             row = int(round(float(self._eval_arith(row_s))))
+        except (ValueError, TypeError):
+            return ""
+
+        # Split by tab first (rows)
+        rows = value.split("\t") if "\t" in value else value.split(";")
+        if not (1 <= row <= len(rows)):
+            return ""
+
+        # If col_expr is empty, return entire row
+        if not col_s:
+            return rows[row - 1].strip()
+
+        try:
             col = int(round(float(self._eval_arith(col_s))))
         except (ValueError, TypeError):
             return ""
-        rows = value.split("\t")
-        if not (1 <= row <= len(rows)):
-            return ""
+
         cols = re.split(r"[;,]", rows[row - 1])
         if 1 <= col <= len(cols):
             return cols[col - 1].strip()
@@ -447,13 +485,19 @@ class DefEngine(_SlibMixin):
         if kind == "ifval" or re.search(r"[<>!=]=?", cond):
             try:
                 # Handle WIMS comparison operators
+                # Protect multi-char operators before replacing single `=`
                 cond_py = cond
                 cond_py = (
                     cond_py.replace("!=", "!__NE__")
-                    .replace(">=", ">=")
-                    .replace("<=", "<=")
+                    .replace(">=", "!__GE__")
+                    .replace("<=", "!__LE__")
                 )
-                cond_py = cond_py.replace("=", "==").replace("!__NE__", "!=")
+                cond_py = cond_py.replace("=", "==")
+                cond_py = (
+                    cond_py.replace("!__NE__", "!=")
+                    .replace("!__GE__", ">=")
+                    .replace("!__LE__", "<=")
+                )
                 cond_py = cond_py.replace("^", "**")
                 return bool(eval(cond_py, _MATH_NS))  # noqa: S307
             except Exception:
