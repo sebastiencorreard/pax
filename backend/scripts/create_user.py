@@ -37,7 +37,7 @@ sys.path.insert(0, "scripts")
 from _passphrase import generate_passphrase, wordlist_size  # noqa: E402
 
 
-_VALID_ROLES = {"student", "teacher", "admin", "guest"}
+_VALID_ROLES = {"student", "teacher", "admin", "super_admin", "guest"}
 _DEFAULT_UAI = "0132401P"
 
 
