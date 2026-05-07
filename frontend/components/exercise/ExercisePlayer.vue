@@ -63,7 +63,7 @@
             type="text"
             :name="seg.name"
             v-model="replies[seg.name]"
-            :style="{ width: seg.width + 'px', minWidth: '6ch' }"
+            :style="{ width: seg.width, minWidth: '6ch' }"
             :disabled="submitted"
             :class="inputClass(seg.name)"
             autocomplete="off"
@@ -141,7 +141,7 @@
     </div>
 
     <!-- Résultats -->
-    <div v-if="checkResult" class="px-6 pb-4">
+    <div v-if="checkResult && (!rendered?.is_dynsteps || stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0))" class="px-6 pb-4">
       <!-- Dynamic steps: show summary at the end, single step feedback during -->
       <div v-if="rendered?.is_dynsteps && (rendered.current_step || 0) >= (rendered.total_steps || 0)" class="space-y-3">
         <!-- Global summary -->
@@ -164,6 +164,10 @@
               <span v-if="step.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
               <template v-else>
                 <span style="color:var(--color-error)">{{ $t('feedback.bad') }}</span>
+                <span v-if="step.replyHtml" v-html="step.replyHtml"></span>
+                <span style="color:var(--color-text-muted)">{{ $t('feedback.expected') }}</span>
+                <span v-if="step.expectedHtml" v-html="step.expectedHtml"></span>
+                <span>.</span>
               </template>
             </div>
           </div>
@@ -172,14 +176,14 @@
 
       <!-- Normal exercise or single step feedback -->
       <div v-else class="rounded-lg px-4 py-3 border"
-           :style="checkResult.global_score === 1
+           :style="(checkResult.global_score === 1 && !rendered?.is_dynsteps)
              ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
-             : checkResult.global_score === 0
+             : (checkResult.global_score === 0 || (rendered?.is_dynsteps && stepFailed))
                ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
                : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
         <div class="font-semibold text-lg mb-2">
-          <template v-if="checkResult.global_score === 1">{{ $t('feedback.correct') }}</template>
-          <template v-else-if="checkResult.global_score === 0">{{ $t('feedback.incorrect') }}</template>
+          <template v-if="checkResult.global_score === 1 && !rendered?.is_dynsteps">{{ $t('feedback.correct') }}</template>
+          <template v-else-if="checkResult.global_score === 0 || (rendered?.is_dynsteps && stepFailed)">{{ $t('feedback.incorrect') }}</template>
           <template v-else>
             {{ checkResult.results.filter(r => !r.correct).length === 1 ? $t('feedback.one_error') : $t('feedback.many_errors') }}
           </template>
@@ -188,7 +192,7 @@
           </span>
         </div>
         <div class="text-sm space-y-1 mt-1">
-          <div v-for="(r, i) in checkResult.results" :key="r.input_name"
+          <div v-for="(r, i) in (rendered?.is_dynsteps ? checkResult.results.filter(res => res.input_name === currentStepFailedInputName) : checkResult.results)" :key="r.input_name"
                class="flex items-baseline gap-2 flex-wrap">
             <span v-if="!rendered?.is_dynsteps" style="color:var(--color-text-muted)">{{ $t('feedback.index', { n: i + 1 }) }}</span>
             <span v-html="feedbackHtml[r.input_name]?.reply"></span>
@@ -206,7 +210,13 @@
 
     <!-- Boutons -->
     <div class="px-6 pb-6 flex items-center gap-3 flex-wrap">
-      <button @click="submit" :disabled="loading || checking || submitted || !allFilled"
+      <button v-if="stepFailed"
+              @click="advanceFailedStep"
+              class="px-6 py-2.5 rounded-lg font-medium transition"
+              style="background:var(--color-primary);color:#fff">
+        {{ $t('exercise.next_step') }}
+      </button>
+      <button v-else @click="submit" :disabled="loading || checking || submitted || !allFilled"
               class="px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-60"
               style="background:var(--color-primary);color:#fff">
         {{ submitted ? $t('exercise.corrected') : $t('exercise.verify') }}
@@ -344,7 +354,10 @@ const statementEl = ref<HTMLElement | null>(null)
 
 // Dynamic steps tracking
 const currentMStep = ref<number>(1)
-const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string }>>([])
+const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string, input_name?: string, expectedHtml?: string, replyHtml?: string }>>([])
+const stepFailed = ref(false)
+const currentStepFailedExpected = ref('')
+const currentStepFailedInputName = ref('')
 
 const hasRadioAnswers = computed(() =>
   rendered.value?.answers.some(a => a.answer_type === 'radio') ?? false
@@ -354,9 +367,18 @@ const hasMenuAnswers = computed(() =>
   rendered.value?.answers.some(a => a.answer_type === 'menu') ?? false
 )
 
-const allFilled = computed(() =>
-  rendered.value?.answers.every(a => (replies.value[a.input_name] ?? '').trim() !== '') ?? false
-)
+const allFilled = computed(() => {
+  if (!rendered.value) return false
+  if (!rendered.value.is_dynsteps) {
+    return rendered.value.answers.every(a => (replies.value[a.input_name] ?? '').trim() !== '')
+  }
+  const activeNames = new Set(statementSegments.value.map(s => 'name' in s ? s.name : null).filter(Boolean))
+  const activeAnswers = rendered.value.answers.filter(a => activeNames.has(a.input_name))
+  if (activeAnswers.length > 0) {
+    return activeAnswers.every(a => (replies.value[a.input_name] ?? '').trim() !== '')
+  }
+  return true
+})
 const hasClickfill = computed(() =>
   rendered.value?.answers.some(a => a.answer_type === 'clickfill') ?? false
 )
@@ -377,7 +399,7 @@ const menuChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>>
 type Segment =
   | { type: 'html';     content: string }
   | { type: 'slot';     name: string }
-  | { type: 'input';    name: string; width: number }
+  | { type: 'input';    name: string; width: string }
   | { type: 'textarea'; name: string; rows: number; cols: number }
   | { type: 'menu';     name: string; label: string }
 const statementSegments = ref<Segment[]>([])
@@ -389,7 +411,7 @@ async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment
       out.push({ type: 'html', content: await renderMath(s.content ?? '') })
     } else if (s.type === 'input') {
       const size = s.size ?? 0
-      out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? size * 10 : 100 })
+      out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch' })
     } else if (s.type === 'textarea') {
       out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30 })
     } else if (s.type === 'slot') {
@@ -422,6 +444,7 @@ async function load(seed?: number, m_step?: number) {
     currentMStep.value = 1
     stepsHistory.value = []
   }
+  stepFailed.value = false
 
   try {
     const params = new URLSearchParams()
@@ -491,6 +514,38 @@ async function nextStep() {
   await load(rendered.value.seed, nextMStep)
 }
 
+async function advanceFailedStep() {
+  if (currentStepFailedInputName.value) {
+    // Replace with correct answer before moving on
+    replies.value[currentStepFailedInputName.value] = currentStepFailedExpected.value
+  }
+  stepFailed.value = false
+  const currentStep = rendered.value?.current_step || 1
+  const totalSteps = rendered.value?.total_steps || 1
+  
+  if (currentStep < totalSteps) {
+    await nextStep()
+  } else {
+    // End of exercise
+    const correctSteps = stepsHistory.value.filter(s => s.correct).length
+    const score = correctSteps / totalSteps
+    if (score === 1) {
+      addCoins(10)
+      spawnCoins(8)
+    } else if (score >= 0.5) {
+      addCoins(5)
+      spawnCoins(4)
+    } else if (score > 0) {
+      addCoins(1)
+      spawnCoins(1)
+    }
+    if (score < 1) {
+      document.documentElement.classList.add('shake')
+      setTimeout(() => document.documentElement.classList.remove('shake'), 300)
+    }
+  }
+}
+
 async function submit() {
   if (!rendered.value || submitted.value) return
 
@@ -501,7 +556,6 @@ async function submit() {
       const currentStep = rendered.value.current_step || 1
       const totalSteps = rendered.value.total_steps || 1
 
-      // Check only the current step's answer
       const replyList = Object.entries(replies.value)
         .map(([input_name, value]) => ({ input_name, value }))
 
@@ -512,25 +566,36 @@ async function submit() {
       submitted.value = true
       await buildFeedbackHtml()
 
-      // Store result for this step
-      const stepResult = checkResult.value.results[0] // Only one answer per step
+      const activeNames = new Set(statementSegments.value.map(s => 'name' in s ? s.name : null).filter(Boolean))
+      const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
+      const stepResult = activeResults.length > 0 ? activeResults[activeResults.length - 1] : checkResult.value.results[currentStep - 1]
+
       if (stepResult) {
         stepsHistory.value.push({
           step: currentStep,
           correct: stepResult.correct,
-          expected: stepResult.expected
+          expected: stepResult.expected,
+          input_name: stepResult.input_name,
+          expectedHtml: feedbackHtml.value[stepResult.input_name]?.expected,
+          replyHtml: feedbackHtml.value[stepResult.input_name]?.reply
         })
+
+        if (!stepResult.correct) {
+          stepFailed.value = true
+          currentStepFailedExpected.value = stepResult.expected
+          currentStepFailedInputName.value = stepResult.input_name
+        } else {
+          // Auto-advance to next step immediately if correct
+          if (currentStep < totalSteps) {
+            setTimeout(async () => {
+              await nextStep()
+            }, 0)
+          }
+        }
       }
 
-      // Auto-advance to next step immediately, unless this is the last step
-      if (currentStep < totalSteps) {
-        setTimeout(async () => {
-          await nextStep()
-        }, 0)
-      }
-
-      // If this is the last step, calculate global score
-      if (currentStep >= totalSteps) {
+      // If this is the last step and we didn't just fail, calculate global score
+      if (currentStep >= totalSteps && (!stepResult || stepResult.correct)) {
         const correctSteps = stepsHistory.value.filter(s => s.correct).length
         const score = correctSteps / totalSteps
 

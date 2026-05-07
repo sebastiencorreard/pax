@@ -102,7 +102,12 @@ function toInputValue(s: string): string {
 // Map {reply1: 'valeur brute', ...} transmise à ExercisePlayer pour le bouton fill
 const autofillMap = computed<Record<string, string> | null>(() => {
   if (!debug.value?.answers.length) return null
-  return Object.fromEntries(debug.value.answers.map(a => [a.input_name, toInputValue(a.expected)]))
+  return Object.fromEntries(debug.value.answers.map(a => {
+    if (['menu', 'radio', 'clickfill'].includes(a.answer_type)) {
+      return [a.input_name, a.expected]
+    }
+    return [a.input_name, toInputValue(a.expected)]
+  }))
 })
 
 type QAFlag = 'statement_ok' | 'answer_ok' | 'check_ok'

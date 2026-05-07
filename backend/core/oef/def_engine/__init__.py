@@ -150,7 +150,8 @@ class DefEngine(_SlibMixin):
             }
         # Filter answers to keep only those with widgets in the HTML.
         # Menus now have widgets (type="menu" segments), but radios don't.
-        if widget_names or is_dynsteps:
+        # For dynamic steps exercises, we keep all answers so the frontend knows them from the start.
+        if widget_names and not is_dynsteps:
             answers = [
                 a for a in answers
                 if a.input_name.replace(" ", "") in widget_names
@@ -1293,6 +1294,9 @@ class DefEngine(_SlibMixin):
                     expected = (
                         choices[idx - 1] if 1 <= idx <= len(choices) else choices[0]
                     )
+                    if "shuffle" in option.lower():
+                        import random as _random
+                        _random.Random(f"{self.seed}_{n}").shuffle(choices)
                     options["choices"] = choices
                 else:
                     expected = good_raw
