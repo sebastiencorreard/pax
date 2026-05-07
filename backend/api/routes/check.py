@@ -154,8 +154,37 @@ async def check_exercise(
         if m2:
             replies_by_name[f"r{m2.group(1)}"] = r.value
 
+    # Exercices avec réponses ?analyze (vérification via :postdef + :test)
+    if rendered.check_sections and any(a.answer_type == "analyze" for a in rendered.answers):
+        from core.oef.def_engine import check_analyze
+        from core.answer.checkers import _normalize_expr
+        analyze_replies = {
+            a.options["analyze_var"]: _normalize_expr(replies_by_name.get(a.input_name, "").strip())
+            for a in rendered.answers
+            if a.answer_type == "analyze" and "analyze_var" in a.options
+        }
+        condtest = check_analyze(
+            ev_ctx=rendered.check_sections["ctx"],
+            postdef_instructions=rendered.check_sections["postdef"],
+            test_instructions=rendered.check_sections["test"],
+            analyze_replies=analyze_replies,
+            seed=body.seed,
+        )
+        n_tests = len(condtest)
+        global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
+        for ans_def in rendered.answers:
+            reply_value = replies_by_name.get(ans_def.input_name, "").strip()
+            results.append(AnswerResult(
+                input_name=ans_def.input_name,
+                correct=bool(global_score == 1.0),
+                score=global_score,
+                method="analyze",
+                reply=reply_value,
+                expected=None,
+            ))
+
     # Si l'exercice a une \condition globale, l'évaluer
-    if rendered.condition:
+    elif rendered.condition:
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
         global_score, results = _check_condition(

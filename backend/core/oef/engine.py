@@ -38,6 +38,7 @@ class ExerciseRender:
         None  # \condition{label}{expr} pour la vérification globale
     )
     ev_ctx: dict = field(default_factory=dict)  # contexte de l'évaluateur (variables)
+    check_sections: dict | None = None  # sections :postdef + :test pour les réponses ?analyze
 
 
 def find_def_path(oef_path: str) -> str | None:
@@ -133,12 +134,12 @@ _SEGMENT_PATTERN = re.compile(
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
 # <div>, <p>, <li>, <ul>, <ol> ouvrants → <br> (séparateur d'item).
 _BLOCK_OPEN = re.compile(r"<(?:div|p|li|ul|ol)(?=[\s>])[^>]*>", re.I)
-# </div>, </p> → <br> ; </li>, </ul>, </ol> → rien (supprimés).
-# Les fermetures de liste ne créent pas de saut : le <li> ouvrant du bloc
-# suivant y pourvoit, et le </li> prématuré des .def compilés (placé après
-# </label> mais avant les champs de saisie) disparaît proprement.
-_BLOCK_CLOSE = re.compile(r"</(?:div|p)>", re.I)
-_LIST_CLOSE = re.compile(r"</(?:li|ul|ol)>", re.I)
+# </div>, </p>, </ul>, </ol> → <br> (fin de bloc) ; </li> → rien (supprimé).
+# </li> ne crée pas de saut car le <li> ouvrant suivant y pourvoit déjà via
+# _BLOCK_OPEN. En revanche </ul> et </ol> marquent la fin de la liste et
+# doivent séparer le dernier item du contenu qui suit (ex : label + champ).
+_BLOCK_CLOSE = re.compile(r"</(?:div|p|ul|ol)>", re.I)
+_LIST_CLOSE = re.compile(r"</li>", re.I)
 # Séquences de plusieurs <br> consécutifs (avec espaces) → un seul <br>.
 _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
 # <br> en tête de chaîne (artefacts de la conversion div/p → br).
@@ -173,11 +174,21 @@ def _segment_statement(html: str) -> list[dict]:
             alias = re.match(r"^r(\d+)$", name)
             if alias:
                 name = f"reply{alias.group(1)}"
-            try:
-                size = int(m.group(3).strip())
-            except (TypeError, ValueError):
-                size = 10
-            segments.append({"type": "input", "name": name, "size": size})
+            size_raw = (m.group(3) or "").strip()
+            textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
+            if textarea_m:
+                segments.append({
+                    "type": "textarea",
+                    "name": name,
+                    "rows": int(textarea_m.group(1)),
+                    "cols": int(textarea_m.group(2)),
+                })
+            else:
+                try:
+                    size = int(size_raw)
+                except (TypeError, ValueError):
+                    size = 10
+                segments.append({"type": "input", "name": name, "size": size})
         last = m.end()
     if last < len(html):
         segments.append({"type": "html", "content": html[last:]})

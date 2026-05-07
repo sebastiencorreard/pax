@@ -45,7 +45,7 @@ _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
 _INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]+);([^\]]+)\]\)")  # $(var[n;m])
 _INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
-_DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_]\w*)")  # $varname
+_DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
 
 # ── Public entry point ────────────────────────────────────────────────────────
@@ -145,6 +145,15 @@ class DefEngine(_SlibMixin):
             df.solution, df.sections.get("solution", [])
         )
 
+        has_analyze = any(a.answer_type == "analyze" for a in answers)
+        check_sections = None
+        if has_analyze:
+            check_sections = {
+                "postdef": df.sections.get("postdef", []),
+                "test": df.sections.get("test", []),
+                "ctx": dict(self.ctx),
+            }
+
         return ExerciseRender(
             title=self._subst(df.title),
             lang=df.meta.get("language", "fr"),
@@ -155,6 +164,8 @@ class DefEngine(_SlibMixin):
             solution_html=solution,
             seed=self.seed,
             meta={k: v for k, v in df.meta.items() if k not in ("language",)},
+            ev_ctx=dict(self.ctx),
+            check_sections=check_sections,
         )
 
     # ── Instruction execution ─────────────────────────────────────────────────
@@ -221,7 +232,8 @@ class DefEngine(_SlibMixin):
         """Evaluate the RHS of an assignment."""
         # !cmd — WIMS command
         if value.startswith("!"):
-            cmd_line = value[1:].strip()
+            # Substitute variables first (e.g. `!exec maxima $t_` -> `!exec maxima ...`)
+            cmd_line = self._subst(value[1:].strip())
             cmd, _, args = cmd_line.partition(" ")
             return self._eval_cmd(cmd.lower(), args)
 
@@ -355,10 +367,14 @@ class DefEngine(_SlibMixin):
         cond = self._subst(condition)
 
         # WIMS string operators: `A isin B` (substring), `A notin B`,
-        # `A wordof B` (whole-word match), `A notwordof B`. Check these
-        # before falling through to numeric comparison so `=` inside the
-        # operands isn't misinterpreted.
-        m = re.match(r"^\s*(.+?)\s+(isin|notin|wordof|notwordof)\s+(.+?)\s*$", cond)
+        # `A wordof B` (whole-word match), `A notwordof B`,
+        # `A issametext B`, `A isnotreexpanded B`.
+        # Check these before falling through to numeric comparison.
+        m = re.match(
+            r"^\s*(.+?)\s+(isin|notin|wordof|notwordof|issametext|isnotreexpanded)\s+(.+?)\s*$",
+            cond,
+            re.I,
+        )
         if m:
             needle = m.group(1).strip()
             op = m.group(2).lower()
@@ -367,6 +383,9 @@ class DefEngine(_SlibMixin):
                 return needle in haystack
             if op == "notin":
                 return needle not in haystack
+            if op in ("issametext", "isnotreexpanded"):
+                # Literal string comparison (re-expanded is for WIMS' internal CAS cache)
+                return needle == haystack
             words = re.split(r"[,\s]+", haystack)
             if op == "wordof":
                 return needle in words
@@ -662,8 +681,19 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(items)
 
     def _cmd_shuffle(self, args: str) -> str:
-        """!shuffle list — shuffle a comma-separated list."""
-        val = self._subst(args)
+        """!shuffle N  — permutation aléatoire de 1..N (forme entière WIMS).
+        !shuffle list — mélange d'une liste séparée par virgules."""
+        val = self._subst(args).strip()
+        # Forme entière : !shuffle 4 → "3,1,4,2"
+        try:
+            n = int(val)
+            if n > 0:
+                items = [str(i) for i in range(1, n + 1)]
+                self.rng.shuffle(items)
+                return ",".join(items)
+        except ValueError:
+            pass
+        # Forme liste
         if "\t" in val:
             sep = "\t"
             items = val.split("\t")
@@ -882,7 +912,7 @@ class DefEngine(_SlibMixin):
         if not m:
             return ""
         engine = m.group(1).lower()
-        expr = self._subst(m.group(2).strip())
+        expr = m.group(2).strip()
         if engine == "maxima":
             return _call_maxima(expr)
         if engine == "pari":
@@ -1117,8 +1147,12 @@ class DefEngine(_SlibMixin):
             except ValueError:
                 ref = f"reply{suffix}"
 
+        size_raw = self._subst(size_str).strip()
+        textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
+        if textarea_m:
+            return f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
         try:
-            size = int(self._subst(size_str))
+            size = int(size_raw)
         except ValueError:
             size = 10
 
@@ -1139,7 +1173,19 @@ class DefEngine(_SlibMixin):
             options: dict = {"option": option} if option else {}
 
             expected = good_raw
-            if ans_type.lower() == "radio":
+            # ?analyze N — réponse vérifiée via :postdef + :test, pas par comparaison directe
+            analyze_m = re.match(r"^\?analyze\s*(\d+)(?:;(.+))?", good_raw.strip(), re.I)
+            if analyze_m:
+                var_num = int(analyze_m.group(1))
+                options["analyze_var"] = var_num
+                ans_type = "analyze"
+                provided_expected = analyze_m.group(2)
+                if provided_expected:
+                    expected = self._subst(provided_expected.strip())
+                else:
+                    # For debug display, indicate it's procedurally verified
+                    expected = f"(Code :postdef, var {var_num})"
+            elif ans_type.lower() == "radio":
                 # WIMS radio reply form: good = "<idx>;<c1>,<c2>,…" where
                 # `<idx>` is the 1-based correct choice. Surface choices on
                 # the answer so the frontend can render the radio buttons.
@@ -1217,6 +1263,24 @@ class DefEngine(_SlibMixin):
 
         return answers
 
+
+def check_analyze(
+    ev_ctx: dict,
+    postdef_instructions: list,
+    test_instructions: list,
+    analyze_replies: dict,
+    seed: int,
+) -> dict:
+    """Exécute :postdef puis :test avec les réponses élève et retourne les condtestN."""
+    engine = DefEngine(seed=seed)
+    engine.ctx.update(ev_ctx)
+    for var_n, value in analyze_replies.items():
+        # Wrap in parentheses to ensure correct precedence in algebraic expressions
+        engine.ctx[f"val{var_n}"] = f"({value})"
+    engine._exec(postdef_instructions, output_buf=None)
+    engine._exec(test_instructions, output_buf=None)
+    return {k: int(v) for k, v in engine.ctx.items()
+            if k.startswith("condtest") and str(v).strip() in ("0", "1")}
 
 
 # ── Numeric helpers ───────────────────────────────────────────────────────────

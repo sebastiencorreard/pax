@@ -64,6 +64,15 @@
             @drop.prevent
             @keydown.enter.prevent="() => { if (!submitted && !loading) submit() }"
           />
+          <textarea v-else-if="seg.type === 'textarea'"
+            :name="seg.name"
+            v-model="replies[seg.name]"
+            :rows="seg.rows"
+            :cols="seg.cols"
+            :disabled="submitted"
+            class="rounded border px-2 py-1 text-sm font-mono resize"
+            style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
+          />
 
         </template>
       </div>
@@ -210,10 +219,12 @@ interface AnswerDef {
 }
 
 interface BackendSegment {
-  type: 'html' | 'input' | 'slot'
+  type: 'html' | 'input' | 'textarea' | 'slot'
   content?: string
   name?: string
   size?: number
+  rows?: number
+  cols?: number
 }
 
 interface Rendered {
@@ -300,9 +311,10 @@ const radioChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>
 
 // Segments d'affichage : produits par le backend, le HTML statique passe par KaTeX.
 type Segment =
-  | { type: 'html';  content: string }
-  | { type: 'slot';  name: string }
-  | { type: 'input'; name: string; width: number }
+  | { type: 'html';     content: string }
+  | { type: 'slot';     name: string }
+  | { type: 'input';    name: string; width: number }
+  | { type: 'textarea'; name: string; rows: number; cols: number }
 const statementSegments = ref<Segment[]>([])
 
 async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
@@ -313,6 +325,8 @@ async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment
     } else if (s.type === 'input') {
       const size = s.size ?? 0
       out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? size * 10 : 100 })
+    } else if (s.type === 'textarea') {
+      out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30 })
     } else if (s.type === 'slot') {
       out.push({ type: 'slot', name: s.name ?? '' })
     }

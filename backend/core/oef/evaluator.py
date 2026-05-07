@@ -317,11 +317,14 @@ class OEFEvaluator:
                     idx_str = self._substitute_vars(parts[0].strip())
                     try:
                         idx = int(float(self._eval_expr(idx_str))) - 1
-                        result = (
-                            self._substitute_vars(parts[idx + 1].strip())
-                            if 0 <= idx < len(parts) - 1
-                            else ""
+                        # Substitue toutes les args de la liste, les rejoint et
+                        # re-splittes — gère item(N,\var) où \var est une CSV
+                        # autant que item(N, a, b, c, d) avec args directs.
+                        expanded = ",".join(
+                            self._substitute_vars(p.strip()) for p in parts[1:]
                         )
+                        items = _split_top_level_commas(expanded)
+                        result = items[idx].strip() if 0 <= idx < len(items) else ""
                     except Exception:
                         result = inner_raw
                     name = f"__item{self._item_counter}__"

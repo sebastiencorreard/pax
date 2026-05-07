@@ -94,10 +94,19 @@ def _split_top_level_args(arg_str: str) -> list[str]:
 
 
 def _sympify_arg(s: str):
-    """sympify a Maxima/Pari arg, normalising `^` → `**`."""
+    """sympify a Maxima/Pari arg, normalising `^` → `**` and supporting implicit mult."""
     import sympy  # noqa: PLC0415
+    from sympy.parsing.sympy_parser import (
+        implicit_multiplication_application,
+        parse_expr,
+        standard_transformations,
+    )
 
-    return sympy.sympify(s.replace("^", "**"))
+    # Normalise WIMS-style artifacts (+-, --, etc.)
+    s = s.replace("+-", "-").replace("-+", "-").replace("--", "+").replace("++", "+")
+    
+    transformations = standard_transformations + (implicit_multiplication_application,)
+    return parse_expr(s.replace("^", "**"), transformations=transformations)
 
 
 def _call_maxima(expr: str) -> str:
@@ -405,23 +414,34 @@ def _call_pari(expr: str) -> str:
     Rational 3/4 rather than the float 0.75.
     """
     import sympy  # noqa: PLC0415
+    from sympy.parsing.sympy_parser import (
+        implicit_multiplication_application,
+        parse_expr,
+        standard_transformations,
+    )
 
     clean = expr.strip().rstrip(";").strip()
     m = re.match(r"^print\s*\((.+)\)$", clean, re.DOTALL)
     if m:
         clean = m.group(1).strip()
+
+    # Pre-process notation
     clean = clean.replace("^", "**")
     clean = _INT_LITERAL_RE.sub(r"_I(\1)", clean)
 
     ns: dict = dict(_MATH_NS)
     ns.update(_PARI_HELPERS)
     ns["_I"] = sympy.Integer
+    # Auto-bind symbols
     for ident in set(re.findall(r"[a-zA-Z_]\w*", clean)):
         if ident not in ns and ident not in _PYTHON_KEYWORDS:
             ns[ident] = sympy.Symbol(ident)
 
     try:
-        result = eval(clean, ns)  # noqa: S307
+        transformations = standard_transformations + (
+            implicit_multiplication_application,
+        )
+        result = parse_expr(clean, local_dict=ns, transformations=transformations)
         return _format_pari_result(result)
     except Exception:
         return expr
