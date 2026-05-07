@@ -51,7 +51,7 @@ _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
-def load_and_render(def_path: str, seed: int | None = None) -> ExerciseRender:
+def load_and_render(def_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
     """Parse and evaluate a .def file, returning an ExerciseRender."""
     try:
         with open(def_path, encoding="utf-8") as f:
@@ -65,6 +65,9 @@ def load_and_render(def_path: str, seed: int | None = None) -> ExerciseRender:
 
     def_file = parse_def(text)
     engine = DefEngine(seed=seed, def_path=def_path)
+    if m_step is not None:
+        engine.ctx["m_step"] = str(m_step)
+        engine.ctx["step"] = str(m_step)  # WIMS alias
     return engine.render(def_file)
 
 
@@ -77,7 +80,9 @@ class DefEngine(_SlibMixin):
         self.rng = random.Random(seed)
         # WIMS treats ``$empty`` as the predefined empty-string sentinel;
         # exposing it as a regular ctx entry keeps `_subst` happy.
-        self.ctx: dict[str, str] = {"empty": ""}
+        # Always initialize m_step to "1" so it's defined when var_instructions execute.
+        # Also set step as an alias for m_step (WIMS uses both \step and \m_step).
+        self.ctx: dict[str, str] = {"empty": "", "m_step": "1", "step": "1"}
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
@@ -85,6 +90,11 @@ class DefEngine(_SlibMixin):
     # ── Top-level render ──────────────────────────────────────────────────────
 
     def render(self, df: DefFile) -> ExerciseRender:
+        # m_step is now always initialized to "1" in __init__, and can be
+        # overridden by load_and_render before calling render(). This ensures
+        # m_step is defined when var_instructions execute, so conditions like
+        # !if $m_step=2 work correctly.
+
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the
         # statement rendering (specifically `_render_embed`) can see e.g.
@@ -96,6 +106,7 @@ class DefEngine(_SlibMixin):
             for key in ("type", "name", "good", "option", "weight"):
                 if key in rm:
                     self.ctx[f"reply{key}{n}"] = rm[key]
+
         self._exec(df.var_instructions, output_buf=None)
 
         # Render statement HTML
@@ -120,12 +131,14 @@ class DefEngine(_SlibMixin):
         # If the question text has no input/slot widget but the exercise
         # declares replies, append a default input for each so the frontend
         # has somewhere to type the answer (matches WIMS' fallback behaviour).
+        # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
-        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot")}
+        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
+        is_dynsteps = self.ctx.get("dynsteps", "").strip().lower() == "yes"
         text_replies = [
             a for a in answers if a.answer_type.lower() not in ("radio", "menu")
         ]
-        if text_replies and not widget_names:
+        if text_replies and not widget_names and not is_dynsteps:
             for a in text_replies:
                 html += (
                     f'<br><span class="oef-input" name="{a.input_name}" '
@@ -133,11 +146,15 @@ class DefEngine(_SlibMixin):
                 )
             segments = _segment_statement(html)
             widget_names = {
-                s["name"] for s in segments if s["type"] in ("input", "slot")
+                s["name"] for s in segments if s["type"] in ("input", "slot", "menu")
             }
-        if widget_names:
+        # Filter answers to keep only those with widgets in the HTML.
+        # Menus now have widgets (type="menu" segments), but radios don't.
+        if widget_names or is_dynsteps:
             answers = [
-                a for a in answers if a.input_name.replace(" ", "") in widget_names
+                a for a in answers
+                if a.input_name.replace(" ", "") in widget_names
+                or a.answer_type.lower() == "radio"
             ]
 
         hint = self._render_block_or_text(df.hint, df.sections.get("hint", []))
@@ -154,6 +171,30 @@ class DefEngine(_SlibMixin):
                 "ctx": dict(self.ctx),
             }
 
+        # Extract dynamic steps info
+        is_dynsteps = self.ctx.get("dynsteps", "").strip().lower() == "yes"
+        current_step = None
+        total_steps = None
+        if is_dynsteps:
+            try:
+                current_step = int(self.ctx.get("m_step", "1"))
+            except (ValueError, TypeError):
+                current_step = 1
+            # Try to extract total steps from common variable names.
+            # Try numeric variables first (val62, val71, cnt), then fall back
+            # to counting items in reply lists (val61, val70).
+            for var_name in ("val62", "val71", "cnt", "val61", "val70"):
+                val = self.ctx.get(var_name, "")
+                try:
+                    total_steps = int(val)
+                    break
+                except (ValueError, TypeError):
+                    # Try counting tab-separated items in the list
+                    if "\t" in val:
+                        total_steps = len(val.split("\t"))
+                        break
+                    continue
+
         return ExerciseRender(
             title=self._subst(df.title),
             lang=df.meta.get("language", "fr"),
@@ -166,6 +207,9 @@ class DefEngine(_SlibMixin):
             meta={k: v for k, v in df.meta.items() if k not in ("language",)},
             ev_ctx=dict(self.ctx),
             check_sections=check_sections,
+            is_dynsteps=is_dynsteps,
+            current_step=current_step,
+            total_steps=total_steps,
         )
 
     # ── Instruction execution ─────────────────────────────────────────────────
@@ -711,7 +755,7 @@ class DefEngine(_SlibMixin):
         list of indices (WIMS rotangle/rotation exercises use this form to
         pick a permutation of colors out of a master colour list).
         """
-        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
+        m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
@@ -759,7 +803,7 @@ class DefEngine(_SlibMixin):
         the data has no newlines but does contain semicolons, split on `;`;
         otherwise (single tab-row blob) split on tab as a final fallback.
         """
-        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
+        m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
@@ -839,7 +883,7 @@ class DefEngine(_SlibMixin):
         Uses tab if the list already contains tabs, otherwise comma. WIMS
         slib helpers (e.g. ``slib/generator``) expect comma-separated lists.
         """
-        m = re.match(r"item\s+(.*?)\s+to\s+(.*)", args, re.DOTALL | re.I)
+        m = re.match(r"item\s+(.*?)\s+to\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return self._subst(args)
         item = self._subst(m.group(1).strip())
@@ -952,7 +996,7 @@ class DefEngine(_SlibMixin):
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""
-        m = re.match(r"item\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I)
+        m = re.match(r"item\s+(.*?)\s+in\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return "0"
         needle = self._subst(m.group(1).strip())
@@ -1123,12 +1167,18 @@ class DefEngine(_SlibMixin):
         # matches the answer's input_name.
         ref = re.sub(r"\s+", "", ref)
 
-        # Skip text-input emission when the target reply is a radio.
+        # Handle radio and menu types specially.
         nm = re.match(r"^r(?:eply)?(\d+)$", ref)
         if nm:
             n = nm.group(1)
-            if self.ctx.get(f"replytype{n}", "").strip().lower() == "radio":
+            reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
+            if reply_type == "radio":
+                # Radios are rendered separately by the frontend
                 return ""
+            elif reply_type == "menu":
+                # Menus need a placeholder in the HTML for inline positioning
+                label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
+                return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
 
         # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
         if ref.startswith("r") and not ref.startswith("reply"):
@@ -1185,10 +1235,10 @@ class DefEngine(_SlibMixin):
                 else:
                     # For debug display, indicate it's procedurally verified
                     expected = f"(Code :postdef, var {var_num})"
-            elif ans_type.lower() == "radio":
-                # WIMS radio reply form: good = "<idx>;<c1>,<c2>,…" where
+            elif ans_type.lower() in ("radio", "menu"):
+                # WIMS radio/menu reply form: good = "<idx>;<c1>,<c2>,…" where
                 # `<idx>` is the 1-based correct choice. Surface choices on
-                # the answer so the frontend can render the radio buttons.
+                # the answer so the frontend can render radio buttons or a dropdown.
                 idx_str, sep, choices_str = good_raw.partition(";")
                 try:
                     idx = int(idx_str.strip())

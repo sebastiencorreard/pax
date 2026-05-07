@@ -339,9 +339,13 @@ class _SlibMixin:
             if stripped.startswith("!"):
                 cmd_line = stripped[1:].strip()
                 cmd, _, cargs = cmd_line.partition(" ")
-                self._eval_cmd(cmd.lower(), cargs)
+                # Command results in slib are either used for side effects
+                # or stored in slib_out.
+                self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
             else:
+                # Assign: key=value
                 m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", line, re.DOTALL)
                 if m:
-                    self.ctx[m.group(1)] = self._eval_value(m.group(2))
+                    name, val = m.group(1), m.group(2)
+                    self.ctx[name] = self._eval_value(val)
             i += 1

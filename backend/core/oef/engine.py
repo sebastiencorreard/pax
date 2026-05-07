@@ -39,6 +39,10 @@ class ExerciseRender:
     )
     ev_ctx: dict = field(default_factory=dict)  # contexte de l'évaluateur (variables)
     check_sections: dict | None = None  # sections :postdef + :test pour les réponses ?analyze
+    # Dynamic steps info
+    is_dynsteps: bool = False
+    current_step: int | None = None
+    total_steps: int | None = None
 
 
 def find_def_path(oef_path: str) -> str | None:
@@ -63,7 +67,7 @@ def find_def_path(oef_path: str) -> str | None:
     return None
 
 
-def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
+def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
     """
     Point d'entrée principal.
     Essaie d'abord le pipeline .def compilé ; retombe sur le parser OEF si absent.
@@ -75,7 +79,7 @@ def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
     if def_path:
         from .def_engine import load_and_render as _def_render
 
-        return _def_render(def_path, seed=seed)
+        return _def_render(def_path, seed=seed, m_step=m_step)
 
     # Fallback: pipeline OEF original
 
@@ -120,15 +124,20 @@ def load_and_render(oef_path: str, seed: int | None = None) -> ExerciseRender:
         },
         condition=condition,
         ev_ctx=dict(evaluator.ctx),  # contexte complet pour évaluation de \condition
+        is_dynsteps=False,  # OEF files don't support dynamic steps yet
+        current_step=None,
+        total_steps=None,
     )
 
 
-# Reconnaît les deux types de widgets dans le HTML rendu :
+# Reconnaît les trois types de widgets dans le HTML rendu :
 #   groupe 1 — slot clickfill : <cf-slot name="…"></cf-slot>
 #   groupes 2-3 — champ texte : <span class="oef-input" name="…" data-size="…"></span>
+#   groupes 4-5 — menu déroulant : <span class="oef-menu" name="…" data-label="…"></span>
 _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
+    r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
 )
 # Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
@@ -152,6 +161,7 @@ def _segment_statement(html: str) -> list[dict]:
       - {type: "html", content: "..."}
       - {type: "input", name: "reply1", size: 10}
       - {type: "slot",  name: "..."}
+      - {type: "menu",  name: "reply1", label: "Choix"}
     Aplatit les balises de bloc (<div>, <p>, <li>, <ul>, <ol>) en <br> et
     résout l'alias rN ↔ replyN.
     """
@@ -167,8 +177,18 @@ def _segment_statement(html: str) -> list[dict]:
         if m.start() > last:
             segments.append({"type": "html", "content": html[last : m.start()]})
         if m.group(1) is not None:
+            # Slot clickfill
             segments.append({"type": "slot", "name": m.group(1).strip()})
+        elif m.group(4) is not None:
+            # Menu déroulant
+            name = m.group(4).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            label = m.group(5).strip()
+            segments.append({"type": "menu", "name": name, "label": label})
         else:
+            # Input texte ou textarea
             name = m.group(2).strip()
             # Les fichiers OEF utilisent souvent l'alias court "rN" au lieu de "replyN".
             alias = re.match(r"^r(\d+)$", name)

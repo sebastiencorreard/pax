@@ -10,7 +10,14 @@
     <!-- En-tête -->
     <div class="px-6 py-4 border-b flex items-center justify-between"
          style="border-color:var(--color-border)">
-      <h2 class="font-semibold text-lg" v-html="titleHtml || rendered?.title || $t('exercise.loading')"></h2>
+      <div class="flex items-center gap-3">
+        <h2 class="font-semibold text-lg" v-html="titleHtml || rendered?.title || $t('exercise.loading')"></h2>
+        <span v-if="rendered?.is_dynsteps && rendered.current_step && rendered.total_steps"
+              class="text-sm px-2 py-1 rounded"
+              style="background:var(--color-bg);color:var(--color-text-muted)">
+          {{ $t('exercise.step_progress', { current: rendered.current_step, total: rendered.total_steps }) }}
+        </span>
+      </div>
       <div class="flex items-center gap-2">
         <span v-if="debugOef" class="text-xs px-2 py-1 rounded"
               style="background:var(--color-bg);color:var(--color-text-muted)">
@@ -73,6 +80,18 @@
             class="rounded border px-2 py-1 text-sm font-mono resize"
             style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
           />
+          <select v-else-if="seg.type === 'menu'"
+            v-model="replies[seg.name]"
+            :disabled="submitted"
+            class="inline-block px-3 py-1.5 rounded border mx-1 transition"
+            style="border-color:var(--color-border);background:var(--color-surface)">
+            <option value="">{{ seg.label }}</option>
+            <option v-for="choice in (menuChoicesHtml[seg.name] ?? [])"
+                    :key="choice.raw"
+                    :value="choice.raw"
+                    v-html="choice.html">
+            </option>
+          </select>
 
         </template>
       </div>
@@ -123,7 +142,36 @@
 
     <!-- Résultats -->
     <div v-if="checkResult" class="px-6 pb-4">
-      <div class="rounded-lg px-4 py-3 border"
+      <!-- Dynamic steps: show summary at the end, single step feedback during -->
+      <div v-if="rendered?.is_dynsteps && (rendered.current_step || 0) >= (rendered.total_steps || 0)" class="space-y-3">
+        <!-- Global summary -->
+        <div class="rounded-lg px-4 py-3 border"
+             :style="(stepsHistory.filter(s => s.correct).length / stepsHistory.length) === 1
+               ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
+               : (stepsHistory.filter(s => s.correct).length / stepsHistory.length) === 0
+                 ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
+                 : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
+          <div class="font-semibold text-lg mb-2">
+            {{ $t('exercise.steps_completed') }}
+            <span ref="scoreEl" class="font-normal text-sm ml-2">
+              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / stepsHistory.length) * 100) }) }}
+            </span>
+          </div>
+          <div class="text-sm space-y-1 mt-1">
+            <div v-for="(step, i) in stepsHistory" :key="i"
+                 class="flex items-baseline gap-2 flex-wrap">
+              <span style="color:var(--color-text-muted)">{{ $t('exercise.step_label', { n: step.step }) }}</span>
+              <span v-if="step.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
+              <template v-else>
+                <span style="color:var(--color-error)">{{ $t('feedback.bad') }}</span>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Normal exercise or single step feedback -->
+      <div v-else class="rounded-lg px-4 py-3 border"
            :style="checkResult.global_score === 1
              ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
              : checkResult.global_score === 0
@@ -135,14 +183,14 @@
           <template v-else>
             {{ checkResult.results.filter(r => !r.correct).length === 1 ? $t('feedback.one_error') : $t('feedback.many_errors') }}
           </template>
-          <span ref="scoreEl" class="font-normal text-sm ml-2">
+          <span v-if="!rendered?.is_dynsteps" ref="scoreEl" class="font-normal text-sm ml-2">
             {{ $t('feedback.score', { pct: Math.round(checkResult.global_score * 100) }) }}
           </span>
         </div>
         <div class="text-sm space-y-1 mt-1">
           <div v-for="(r, i) in checkResult.results" :key="r.input_name"
                class="flex items-baseline gap-2 flex-wrap">
-            <span style="color:var(--color-text-muted)">{{ $t('feedback.index', { n: i + 1 }) }}</span>
+            <span v-if="!rendered?.is_dynsteps" style="color:var(--color-text-muted)">{{ $t('feedback.index', { n: i + 1 }) }}</span>
             <span v-html="feedbackHtml[r.input_name]?.reply"></span>
             <span v-if="r.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
             <template v-else>
@@ -171,7 +219,8 @@
         Réponse auto
       </button>
 
-      <button v-if="submitted" @click="reload"
+      <button v-if="submitted && (!rendered?.is_dynsteps || (rendered.current_step || 0) >= (rendered.total_steps || 0))"
+              @click="reload"
               class="px-6 py-2.5 rounded-lg font-medium border transition"
               style="border-color:var(--color-border)">
         {{ $t('exercise.new_exercise') }}
@@ -203,7 +252,7 @@ const props = defineProps<{
   exerciseId: string
   debugAnswers?: Record<string, string> | null
 }>()
-const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string }] }>()
+const emit = defineEmits<{ rendered: [{ seed: number; exerciseId: string; currentStep?: number | null }] }>()
 
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
@@ -219,12 +268,13 @@ interface AnswerDef {
 }
 
 interface BackendSegment {
-  type: 'html' | 'input' | 'textarea' | 'slot'
+  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu'
   content?: string
   name?: string
   size?: number
   rows?: number
   cols?: number
+  label?: string
 }
 
 interface Rendered {
@@ -236,6 +286,9 @@ interface Rendered {
   hint_html: string
   seed: number
   condition: { label: string; expr: string } | null
+  is_dynsteps: boolean
+  current_step: number | null
+  total_steps: number | null
 }
 
 interface CheckResult {
@@ -289,8 +342,16 @@ const checkResult = ref<CheckResult | null>(null)
 const replies = ref<Record<string, string>>({})
 const statementEl = ref<HTMLElement | null>(null)
 
+// Dynamic steps tracking
+const currentMStep = ref<number>(1)
+const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string }>>([])
+
 const hasRadioAnswers = computed(() =>
   rendered.value?.answers.some(a => a.answer_type === 'radio') ?? false
+)
+
+const hasMenuAnswers = computed(() =>
+  rendered.value?.answers.some(a => a.answer_type === 'menu') ?? false
 )
 
 const allFilled = computed(() =>
@@ -308,6 +369,9 @@ const draggingChoice = ref<string | null>(null)
 // Radio
 const radioChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>>>({})
 
+// Menu
+const menuChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>>>({})
+
 
 // Segments d'affichage : produits par le backend, le HTML statique passe par KaTeX.
 type Segment =
@@ -315,6 +379,7 @@ type Segment =
   | { type: 'slot';     name: string }
   | { type: 'input';    name: string; width: number }
   | { type: 'textarea'; name: string; rows: number; cols: number }
+  | { type: 'menu';     name: string; label: string }
 const statementSegments = ref<Segment[]>([])
 
 async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
@@ -329,12 +394,14 @@ async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment
       out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30 })
     } else if (s.type === 'slot') {
       out.push({ type: 'slot', name: s.name ?? '' })
+    } else if (s.type === 'menu') {
+      out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '' })
     }
   }
   return out
 }
 
-async function load(seed?: number) {
+async function load(seed?: number, m_step?: number) {
   loading.value = true
   loadError.value = ''
   submitted.value = false
@@ -348,10 +415,19 @@ async function load(seed?: number) {
   statementSegments.value = []
   clickfillChoicesHtml.value = []
   radioChoicesHtml.value = {}
+  menuChoicesHtml.value = {}
+
+  // Reset step tracking only if loading a new exercise (no m_step provided)
+  if (!m_step) {
+    currentMStep.value = 1
+    stepsHistory.value = []
+  }
+
   try {
-    const url = seed
-      ? `/api/render/${props.exerciseId}?seed=${seed}`
-      : `/api/render/${props.exerciseId}`
+    const params = new URLSearchParams()
+    if (seed) params.append('seed', seed.toString())
+    if (m_step) params.append('m_step', m_step.toString())
+    const url = `/api/render/${props.exerciseId}${params.toString() ? '?' + params.toString() : ''}`
     rendered.value = await apiFetch<Rendered>(url)
 
     if (rendered.value.title) {
@@ -375,6 +451,11 @@ async function load(seed?: number) {
           ans.options.choices.map(async (c: string) => ({ raw: c, html: await renderMath(c) }))
         )
       }
+      if (ans.answer_type === 'menu' && ans.options.choices?.length) {
+        menuChoicesHtml.value[ans.input_name] = await Promise.all(
+          ans.options.choices.map(async (c: string) => ({ raw: c, html: await renderMath(c) }))
+        )
+      }
     }
 
     statementSegments.value = await buildSegments(rendered.value.statement_segments)
@@ -383,7 +464,11 @@ async function load(seed?: number) {
       replies.value[ans.input_name] = ''
     }
 
-    emit('rendered', { seed: rendered.value.seed, exerciseId: props.exerciseId })
+    emit('rendered', {
+      seed: rendered.value.seed,
+      exerciseId: props.exerciseId,
+      currentStep: rendered.value.current_step
+    })
 
   } catch (e: any) {
     loadError.value = e?.message || e?.data?.detail || JSON.stringify(e)
@@ -396,35 +481,101 @@ function reload() {
   load()
 }
 
+async function nextStep() {
+  if (!rendered.value?.is_dynsteps) return
+
+  const nextMStep = (rendered.value.current_step || 1) + 1
+  currentMStep.value = nextMStep
+
+  // Reload with the same seed but next step
+  await load(rendered.value.seed, nextMStep)
+}
+
 async function submit() {
   if (!rendered.value || submitted.value) return
 
   checking.value = true
   try {
-    const replyList = Object.entries(replies.value)
-      .map(([input_name, value]) => ({ input_name, value }))
+    // Dynamic steps mode
+    if (rendered.value.is_dynsteps) {
+      const currentStep = rendered.value.current_step || 1
+      const totalSteps = rendered.value.total_steps || 1
 
-    checkResult.value = await apiFetch<CheckResult>(`/api/check/${props.exerciseId}`, {
-      method: 'POST',
-      body: { seed: rendered.value.seed, replies: replyList },
-    })
-    submitted.value = true
-    await buildFeedbackHtml()
+      // Check only the current step's answer
+      const replyList = Object.entries(replies.value)
+        .map(([input_name, value]) => ({ input_name, value }))
 
-    const score = checkResult.value!.global_score
-    if (score === 1) {
-      addCoins(10)
-      spawnCoins(8)
-    } else if (score >= 0.5) {
-      addCoins(5)
-      spawnCoins(4)
-    } else if (score > 0) {
-      addCoins(1)
-      spawnCoins(1)
-    }
-    if (score < 1) {
-      document.documentElement.classList.add('shake')
-      setTimeout(() => document.documentElement.classList.remove('shake'), 300)
+      checkResult.value = await apiFetch<CheckResult>(`/api/check/${props.exerciseId}`, {
+        method: 'POST',
+        body: { seed: rendered.value.seed, replies: replyList },
+      })
+      submitted.value = true
+      await buildFeedbackHtml()
+
+      // Store result for this step
+      const stepResult = checkResult.value.results[0] // Only one answer per step
+      if (stepResult) {
+        stepsHistory.value.push({
+          step: currentStep,
+          correct: stepResult.correct,
+          expected: stepResult.expected
+        })
+      }
+
+      // Auto-advance to next step immediately, unless this is the last step
+      if (currentStep < totalSteps) {
+        setTimeout(async () => {
+          await nextStep()
+        }, 0)
+      }
+
+      // If this is the last step, calculate global score
+      if (currentStep >= totalSteps) {
+        const correctSteps = stepsHistory.value.filter(s => s.correct).length
+        const score = correctSteps / totalSteps
+
+        if (score === 1) {
+          addCoins(10)
+          spawnCoins(8)
+        } else if (score >= 0.5) {
+          addCoins(5)
+          spawnCoins(4)
+        } else if (score > 0) {
+          addCoins(1)
+          spawnCoins(1)
+        }
+        if (score < 1) {
+          document.documentElement.classList.add('shake')
+          setTimeout(() => document.documentElement.classList.remove('shake'), 300)
+        }
+      }
+    } else {
+      // Normal mode (non-dynsteps)
+      const replyList = Object.entries(replies.value)
+        .map(([input_name, value]) => ({ input_name, value }))
+
+      checkResult.value = await apiFetch<CheckResult>(`/api/check/${props.exerciseId}`, {
+        method: 'POST',
+        body: { seed: rendered.value.seed, replies: replyList },
+      })
+      submitted.value = true
+      await buildFeedbackHtml()
+
+      const score = checkResult.value!.global_score
+      if (score === 1) {
+        addCoins(10)
+        spawnCoins(8)
+      } else if (score >= 0.5) {
+        addCoins(5)
+        spawnCoins(4)
+      } else if (score > 0) {
+        addCoins(1)
+        spawnCoins(1)
+      }
+      if (score < 1) {
+        document.documentElement.classList.add('shake')
+        setTimeout(() => document.documentElement.classList.remove('shake'), 300)
+      }
     }
   } finally {
     checking.value = false

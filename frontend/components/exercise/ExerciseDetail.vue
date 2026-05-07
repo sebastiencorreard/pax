@@ -184,14 +184,17 @@ function expectedToLatex(s: string): string {
   return `\\(${s.replace(/\*\*/g, '^').replace(/\*/g, '')}\\)`
 }
 
-async function onRendered(payload: { seed: number; exerciseId: string }) {
+async function onRendered(payload: { seed: number; exerciseId: string; currentStep?: number | null }) {
   if (!debugOef) return
   debug.value = null
   debugError.value = ''
   solutionHtml.value = ''
   expectedHtml.value = {}
   try {
-    const data = await apiFetch<Debug>(`/api/render/${payload.exerciseId}/debug?seed=${payload.seed}`)
+    const params = new URLSearchParams()
+    params.append('seed', payload.seed.toString())
+    if (payload.currentStep) params.append('m_step', payload.currentStep.toString())
+    const data = await apiFetch<Debug>(`/api/render/${payload.exerciseId}/debug?${params.toString()}`)
     debug.value = data
     if (data.solution_html) solutionHtml.value = await renderMath(data.solution_html)
     const map: Record<string, string> = {}

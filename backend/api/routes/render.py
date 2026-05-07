@@ -30,12 +30,16 @@ class RenderOut(BaseModel):
     hint_html: str
     seed: int
     condition: dict | None = None
+    is_dynsteps: bool = False
+    current_step: int | None = None
+    total_steps: int | None = None
 
 
 @router.get("/{exercise_id}", response_model=RenderOut)
 async def render_exercise(
     exercise_id: str,
     seed: int | None = None,
+    m_step: int | None = None,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -45,7 +49,7 @@ async def render_exercise(
         raise HTTPException(status_code=404, detail="Exercice introuvable")
 
     try:
-        rendered = load_and_render(exercise.oef_path, seed=seed)
+        rendered = load_and_render(exercise.oef_path, seed=seed, m_step=m_step)
     except FileNotFoundError:
         raise HTTPException(
             status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
@@ -72,6 +76,9 @@ async def render_exercise(
         hint_html=rendered.hint_html,
         seed=rendered.seed,
         condition=rendered.condition,
+        is_dynsteps=rendered.is_dynsteps,
+        current_step=rendered.current_step,
+        total_steps=rendered.total_steps,
     )
 
 
@@ -93,6 +100,7 @@ class DebugOut(BaseModel):
 async def render_exercise_debug(
     exercise_id: str,
     seed: int | None = None,
+    m_step: int | None = None,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -102,7 +110,7 @@ async def render_exercise_debug(
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
     try:
-        rendered = load_and_render(exercise.oef_path, seed=seed)
+        rendered = load_and_render(exercise.oef_path, seed=seed, m_step=m_step)
     except FileNotFoundError:
         raise HTTPException(
             status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
