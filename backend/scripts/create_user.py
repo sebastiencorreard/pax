@@ -29,7 +29,7 @@ sys.path.insert(0, ".")
 
 from core.security import hash_password  # noqa: E402
 from db import AsyncSessionLocal  # noqa: E402
-from models.user import User  # noqa: E402
+from models.user import User, Etablissement  # noqa: E402
 
 # Local sibling import (avoids package-init complications when running
 # this file as a script).
@@ -38,6 +38,7 @@ from _passphrase import generate_passphrase, wordlist_size  # noqa: E402
 
 
 _VALID_ROLES = {"student", "teacher", "admin", "guest"}
+_DEFAULT_UAI = "0132401P"
 
 
 def _parse_args() -> argparse.Namespace:
@@ -61,6 +62,14 @@ def _parse_args() -> argparse.Namespace:
         ),
     )
     p.add_argument(
+        "--uai",
+        default=_DEFAULT_UAI,
+        help=(
+            f"UAI de l'établissement à associer (défaut : {_DEFAULT_UAI}). "
+            "Ignoré pour le rôle guest."
+        ),
+    )
+    p.add_argument(
         "--words",
         type=int,
         default=4,
@@ -80,10 +89,23 @@ async def _create(args: argparse.Namespace) -> None:
             print(f"error: user already exists: {args.email}", file=sys.stderr)
             sys.exit(2)
 
+        # Resolve UAI → etab_id (guests n'ont pas d'établissement).
+        is_guest = args.role == "guest"
+        etab_id: int | None = None
+        if not is_guest:
+            etab_result = await session.execute(
+                select(Etablissement).where(Etablissement.uai == args.uai.upper())
+            )
+            etab = etab_result.scalar_one_or_none()
+            if etab is None:
+                print(f"error: établissement introuvable pour UAI '{args.uai}'", file=sys.stderr)
+                sys.exit(3)
+            etab_id = etab.id
+            print(f"établissement : {etab.name} ({etab.uai})", file=sys.stderr)
+
         # Guests have no password — they can only sign in via the
         # `/api/auth/guest` endpoint, which issues a token without
         # credentials. For all other roles, generate or accept one.
-        is_guest = args.role == "guest"
         if is_guest:
             password = None
             hashed: str | None = None
@@ -97,6 +119,7 @@ async def _create(args: argparse.Namespace) -> None:
             last_name=args.last_name,
             role=args.role,
             hashed_password=hashed,
+            etab_id=etab_id,
         )
         session.add(user)
         await session.commit()
