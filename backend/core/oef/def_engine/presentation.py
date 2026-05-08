@@ -82,12 +82,12 @@ def _close_inline_math(text: str) -> str:
                     if depth == 0:
                         break
                 j += 1
-            if j < n and not closed_proper and depth == 0:
+            if (j < n and not closed_proper and depth == 0) or (j == n and not closed_proper):
                 content = text[i + 2 : j]
                 out.append("\\(")
                 out.append(_normalize_math_content(content))
                 out.append("\\)")
-                i = j + 1
+                i = j + 1 if j < n else n
                 continue
             if closed_proper:
                 content = text[i + 2 : j]

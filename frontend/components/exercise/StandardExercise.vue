@@ -58,6 +58,7 @@
             <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'">
             </span>
             <span v-if="!checkResult.noanalyzeprint" v-html="feedbackHtml[r.input_name]?.reply"></span>
+            <span v-if="checkResult.noanalyzeprint" class="mx-1" style="color:var(--color-text-muted)">-</span>
             <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">
               {{ $t('feedback.good') }}
             </span>
@@ -227,6 +228,10 @@ async function submit() {
 
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
+    
+    if (checkResult.value.feedback_html) {
+      checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
+    }
 
     const score = checkResult.value!.global_score
     if (score === 1) {

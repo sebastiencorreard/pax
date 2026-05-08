@@ -1101,7 +1101,7 @@ class DefEngine(_SlibMixin):
         for rm in df.reply_meta:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
-            label = self._subst(rm.get("name", ""))
+            label = _close_inline_math(self._subst(rm.get("name", "")))
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
@@ -1186,21 +1186,35 @@ def check_analyze(
 
 def render_feedback(
     ev_ctx: dict,
+    postdef_instructions: list,
+    test_instructions: list,
     feedback_instructions: list,
     replies_by_name: dict,
+    results: list,  # list of AnswerResult
     seed: int,
 ) -> str:
-    """Exécute :feedback avec les réponses élève et retourne le HTML."""
+    """Exécute :postdef, :test puis :feedback avec les réponses élève et retourne le HTML."""
     engine = DefEngine(seed=seed)
     engine.ctx.update(ev_ctx)
-    # Inject student replies into context
+    # Inject student replies and scores into context
     for name, value in replies_by_name.items():
         engine.ctx[name] = value
+        engine.ctx[f"m_{name}"] = value
         # Also alias to short names r1, r2 etc. if it's reply1, reply2
         import re
         m = re.match(r"^reply(\d+)$", name)
         if m:
             engine.ctx[f"r{m.group(1)}"] = value
+            engine.ctx[f"m_r{m.group(1)}"] = value
+            
+    for res in results:
+        engine.ctx[f"m_sc_{res.input_name}"] = str(res.score)
+        m = re.match(r"^reply(\d+)$", res.input_name)
+        if m:
+            engine.ctx[f"m_sc_r{m.group(1)}"] = str(res.score)
+
+    engine._exec(postdef_instructions, output_buf=None)
+    engine._exec(test_instructions, output_buf=None)
     
     html = engine._render_section(feedback_instructions)
     from .presentation import _close_inline_math

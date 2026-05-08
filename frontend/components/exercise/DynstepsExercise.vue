@@ -55,6 +55,7 @@
                  class="flex items-baseline gap-2 flex-wrap">
               <span class="font-medium" style="color:var(--color-text)" v-html="step.labelHtml || step.label || $t('exercise.step_label', { n: step.step }) + ' :'"></span>
               <span v-if="step.replyHtml && !checkResult?.noanalyzeprint" v-html="step.replyHtml"></span>
+              <span v-if="checkResult?.noanalyzeprint" class="mx-1" style="color:var(--color-text-muted)">-</span>
               <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
                 {{ $t('feedback.good') }}
               </span>
@@ -282,6 +283,10 @@ async function submit() {
 
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
+    
+    if (checkResult.value.feedback_html) {
+      checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
+    }
 
     const activeNames = new Set(statementSegments.value.map(s => {
       if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
