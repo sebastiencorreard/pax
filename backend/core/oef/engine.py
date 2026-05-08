@@ -40,9 +40,8 @@ class ExerciseRender:
     ev_ctx: dict = field(default_factory=dict)  # contexte de l'évaluateur (variables)
     check_sections: dict | None = None  # sections :postdef + :test pour les réponses ?analyze
     # Dynamic steps info
-    is_dynsteps: bool = False
-    current_step: int | None = None
-    total_steps: int | None = None
+    exercise_type: str = "standard"
+    type_meta: dict = field(default_factory=dict)
     css: str | None = None
 
 
@@ -125,9 +124,8 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
         },
         condition=condition,
         ev_ctx=dict(evaluator.ctx),  # contexte complet pour évaluation de \condition
-        is_dynsteps=False,  # OEF files don't support dynamic steps yet
-        current_step=None,
-        total_steps=None,
+        exercise_type="standard",
+        type_meta={},
     )
 
 

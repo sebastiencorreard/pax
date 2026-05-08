@@ -30,9 +30,8 @@ class RenderOut(BaseModel):
     hint_html: str
     seed: int
     condition: dict | None = None
-    is_dynsteps: bool = False
-    current_step: int | None = None
-    total_steps: int | None = None
+    exercise_type: str = "standard"
+    type_meta: dict = {}
     css: str | None = None
 
 
@@ -77,9 +76,8 @@ async def render_exercise(
         hint_html=rendered.hint_html,
         seed=rendered.seed,
         condition=rendered.condition,
-        is_dynsteps=rendered.is_dynsteps,
-        current_step=rendered.current_step,
-        total_steps=rendered.total_steps,
+        exercise_type=rendered.exercise_type,
+        type_meta=rendered.type_meta,
         css=rendered.css,
     )
 

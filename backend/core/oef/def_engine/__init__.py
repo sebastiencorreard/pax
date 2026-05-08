@@ -134,11 +134,11 @@ class DefEngine(_SlibMixin):
         # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
         widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
-        is_dynsteps = self.ctx.get("dynsteps", "").strip().lower() == "yes"
+        is_dynsteps_flag = self.ctx.get("dynsteps", "").strip().lower() == "yes"
         text_replies = [
             a for a in answers if a.answer_type.lower() not in ("radio", "menu")
         ]
-        if text_replies and not widget_names and not is_dynsteps:
+        if text_replies and not widget_names and not is_dynsteps_flag:
             for a in text_replies:
                 html += (
                     f'<br><span class="oef-input" name="{a.input_name}" '
@@ -151,7 +151,7 @@ class DefEngine(_SlibMixin):
         # Filter answers to keep only those with widgets in the HTML.
         # Menus now have widgets (type="menu" segments), but radios don't.
         # For dynamic steps exercises, we keep all answers so the frontend knows them from the start.
-        if widget_names and not is_dynsteps:
+        if widget_names and not is_dynsteps_flag:
             answers = [
                 a for a in answers
                 if a.input_name.replace(" ", "") in widget_names
@@ -173,26 +173,26 @@ class DefEngine(_SlibMixin):
             }
 
         # Extract dynamic steps info
-        is_dynsteps = self.ctx.get("dynsteps", "").strip().lower() == "yes"
-        current_step = None
-        total_steps = None
-        if is_dynsteps:
+        is_dynsteps_var = self.ctx.get("dynsteps", "").strip().lower() == "yes"
+        exercise_type = "dynsteps" if is_dynsteps_var else "standard"
+        type_meta = {}
+        if is_dynsteps_var:
             try:
-                current_step = int(self.ctx.get("m_step", "1"))
+                type_meta["current_step"] = int(self.ctx.get("m_step", "1"))
             except (ValueError, TypeError):
-                current_step = 1
+                type_meta["current_step"] = 1
             # Try to extract total steps from common variable names.
             # Try numeric variables first (val62, val71, cnt), then fall back
             # to counting items in reply lists (val61, val70).
             for var_name in ("val62", "val71", "cnt", "val61", "val70"):
                 val = self.ctx.get(var_name, "")
                 try:
-                    total_steps = int(val)
+                    type_meta["total_steps"] = int(val)
                     break
                 except (ValueError, TypeError):
                     # Try counting tab-separated items in the list
                     if "\t" in val:
-                        total_steps = len(val.split("\t"))
+                        type_meta["total_steps"] = len(val.split("\t"))
                         break
                     continue
 
@@ -213,9 +213,8 @@ class DefEngine(_SlibMixin):
             meta={k: v for k, v in df.meta.items() if k not in ("language",)},
             ev_ctx=dict(self.ctx),
             check_sections=check_sections,
-            is_dynsteps=is_dynsteps,
-            current_step=current_step,
-            total_steps=total_steps,
+            exercise_type=exercise_type,
+            type_meta=type_meta,
             css=css,
         )
 
