@@ -17,7 +17,7 @@
       <NuxtLink to="/" aria-label="PAX" class="flex-1">
         <img src="/pax.svg" alt="PAX" class="h-6 w-auto" />
       </NuxtLink>
-      <button v-if="auth.isAdmin"
+      <button v-if="canDebug"
               type="button"
               @click="debugMode = !debugMode"
               :title="debugMode ? 'Masquer le debug' : 'Afficher le debug'"
@@ -60,10 +60,11 @@ defineEmits<{ close: [] }>()
 
 const auth = useAuthStore()
 const { debugMode } = useDebugMode()
+const config = useRuntimeConfig()
+const canDebug = String(config.public.debugOef) !== 'false'
 </script>
 
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.15s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
-e>
