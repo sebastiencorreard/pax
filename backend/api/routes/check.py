@@ -50,6 +50,7 @@ class CheckRequest(BaseModel):
     seed: int
     replies: list[ReplyItem]
     sheet_id: int | None = None
+    m_step: int | None = None
 
 
 class AnswerResult(BaseModel):
@@ -161,8 +162,11 @@ async def check_exercise(
     if rendered.check_sections and any(a.answer_type == "analyze" for a in rendered.answers):
         from core.oef.def_engine import check_analyze
         from core.answer.checkers import _normalize_expr
+
         analyze_replies = {
-            a.options["analyze_var"]: _normalize_expr(replies_by_name.get(a.input_name, "").strip())
+            a.options["analyze_var"]: _normalize_expr(
+                replies_by_name.get(a.input_name, "").strip()
+            )
             for a in rendered.answers
             if a.answer_type == "analyze" and "analyze_var" in a.options
         }
@@ -177,14 +181,16 @@ async def check_exercise(
         global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
         for ans_def in rendered.answers:
             reply_value = replies_by_name.get(ans_def.input_name, "").strip()
-            results.append(AnswerResult(
-                input_name=ans_def.input_name,
-                correct=bool(global_score == 1.0),
-                score=global_score,
-                method="analyze",
-                reply=reply_value,
-                expected=None,
-            ))
+            results.append(
+                AnswerResult(
+                    input_name=ans_def.input_name,
+                    correct=bool(global_score == 1.0),
+                    score=global_score,
+                    method="analyze",
+                    reply=reply_value,
+                    expected=None,
+                )
+            )
 
     # Si l'exercice a une \condition globale, l'évaluer
     elif rendered.condition:
@@ -244,6 +250,4 @@ async def check_exercise(
         results=results,
         attempt_id=attempt_id,
         has_invalid_format=has_invalid,
-    )
-id,
     )

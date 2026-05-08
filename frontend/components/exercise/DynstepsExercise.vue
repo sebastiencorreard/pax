@@ -285,6 +285,7 @@ async function submit() {
       }
       return null
     }).filter(Boolean))
+    
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // Update history for each active input in this step

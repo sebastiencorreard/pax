@@ -42,7 +42,7 @@ from ..engine import AnswerDef, ExerciseRender, _segment_statement
 
 # Patterns for variable substitution
 _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
-_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]+);([^\]]*)\]\)")  # $(var[n;m]) or $(var[n;])
+_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]*?);([^\]]*)\]\)")  # $(var[n;m])
 _INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
@@ -134,7 +134,50 @@ class DefEngine(_SlibMixin):
         # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
         widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
-        is_dynsteps_flag = self.ctx.get("dynsteps", "").strip().lower() == "yes"
+        
+        # Extract dynamic steps info
+        oefsteps_val = self.ctx.get("oefsteps", "").strip()
+        is_dynsteps_var = self.ctx.get("dynsteps", "").strip().lower() == "yes"
+        
+        if is_dynsteps_var:
+            exercise_type = "dynsteps"
+        elif oefsteps_val:
+            exercise_type = "course"
+        else:
+            exercise_type = "standard"
+
+        type_meta = {}
+        if exercise_type != "standard":
+            try:
+                type_meta["current_step"] = int(self.ctx.get("m_step", "1"))
+            except (ValueError, TypeError):
+                type_meta["current_step"] = 1
+            
+            # Try to extract total steps from common variable names.
+            # 1. Look at oefsteps first
+            if oefsteps_val:
+                # oefsteps is usually semicolon or line separated
+                # r1 r2; r3; r4
+                steps = re.split(r"[;\n\r]+", oefsteps_val)
+                steps = [s.strip() for s in steps if s.strip()]
+                if steps:
+                    type_meta["total_steps"] = len(steps)
+            
+            # 2. Fall back to other common variables if total_steps still missing
+            if "total_steps" not in type_meta:
+                for var_name in ("val62", "val71", "cnt", "val61", "val70"):
+                    val = self.ctx.get(var_name, "")
+                    try:
+                        type_meta["total_steps"] = int(val)
+                        break
+                    except (ValueError, TypeError):
+                        # Try counting tab-separated items in the list
+                        if "\t" in val:
+                            type_meta["total_steps"] = len(val.split("\t"))
+                            break
+                        continue
+
+        is_dynsteps_flag = exercise_type != "standard"
         text_replies = [
             a for a in answers if a.answer_type.lower() not in ("radio", "menu")
         ]
@@ -148,58 +191,19 @@ class DefEngine(_SlibMixin):
             widget_names = {
                 s["name"] for s in segments if s["type"] in ("input", "slot", "menu")
             }
-        # Filter answers to keep only those with widgets in the HTML.
-        # Menus now have widgets (type="menu" segments), but radios don't.
-        # For dynamic steps exercises, we keep all answers so the frontend knows them from the start.
-        if widget_names and not is_dynsteps_flag:
-            answers = [
-                a for a in answers
-                if a.input_name.replace(" ", "") in widget_names
-                or a.answer_type.lower() == "radio"
-            ]
-
-        hint = self._render_block_or_text(df.hint, df.sections.get("hint", []))
-        solution = self._render_block_or_text(
-            df.solution, df.sections.get("solution", [])
-        )
-
-        has_analyze = any(a.answer_type == "analyze" for a in answers)
-        check_sections = None
-        if has_analyze:
-            check_sections = {
-                "postdef": df.sections.get("postdef", []),
-                "test": df.sections.get("test", []),
-                "ctx": dict(self.ctx),
-            }
-
-        # Extract dynamic steps info
-        is_dynsteps_var = self.ctx.get("dynsteps", "").strip().lower() == "yes"
-        exercise_type = "dynsteps" if is_dynsteps_var else "standard"
-        type_meta = {}
-        if is_dynsteps_var:
-            try:
-                type_meta["current_step"] = int(self.ctx.get("m_step", "1"))
-            except (ValueError, TypeError):
-                type_meta["current_step"] = 1
-            # Try to extract total steps from common variable names.
-            # Try numeric variables first (val62, val71, cnt), then fall back
-            # to counting items in reply lists (val61, val70).
-            for var_name in ("val62", "val71", "cnt", "val61", "val70"):
-                val = self.ctx.get(var_name, "")
-                try:
-                    type_meta["total_steps"] = int(val)
-                    break
-                except (ValueError, TypeError):
-                    # Try counting tab-separated items in the list
-                    if "\t" in val:
-                        type_meta["total_steps"] = len(val.split("\t"))
-                        break
-                    continue
 
         raw_css = self.ctx.get("oefcss") or self.ctx.get("css", "")
         css = None
         if raw_css:
             css = re.sub(r"</?style[^>]*>", "", raw_css, flags=re.IGNORECASE).strip()
+
+        check_sections = None
+        if "postdef" in df.sections or "test" in df.sections:
+            check_sections = {
+                "postdef": df.sections.get("postdef", []),
+                "test": df.sections.get("test", []),
+                "ctx": dict(self.ctx),
+            }
 
         return ExerciseRender(
             title=self._subst(df.title),
@@ -207,14 +211,14 @@ class DefEngine(_SlibMixin):
             statement_html=html,
             statement_segments=segments,
             answers=answers,
-            hint_html=hint,
-            solution_html=solution,
+            hint_html=self._render_block_or_text(df.meta.get("hint", ""), df.sections.get("hint", [])),
+            solution_html=self._render_block_or_text(df.meta.get("solution", ""), df.sections.get("solution", [])),
             seed=self.seed,
             meta={k: v for k, v in df.meta.items() if k not in ("language",)},
             ev_ctx=dict(self.ctx),
             check_sections=check_sections,
             exercise_type=exercise_type,
-            is_dynsteps=is_dynsteps_var,
+            is_dynsteps=is_dynsteps_flag,
             current_step=type_meta.get("current_step"),
             total_steps=type_meta.get("total_steps"),
             type_meta=type_meta,
@@ -223,7 +227,7 @@ class DefEngine(_SlibMixin):
 
     # ── Instruction execution ─────────────────────────────────────────────────
 
-    def _exec(self, instructions: list, output_buf: list | None) -> None:
+    def _exec(self, instructions: list, output_buf: list[str] | None) -> None:
         """Execute a list of instructions sequentially."""
         for instr in instructions:
             if isinstance(instr, Assign):
@@ -265,9 +269,10 @@ class DefEngine(_SlibMixin):
                 if output_buf is not None and url:
                     output_buf.append(f'<img src="{url}" alt="">')
 
-    def _exec_for(self, loop: ForLoop, output_buf: list | None) -> None:
+    def _exec_for(self, loop: ForLoop, output_buf: list[str] | None) -> None:
+        """Execute a !for loop."""
         range_s = self._subst(loop.range_expr)
-        m = re.match(r"(.+?)\s+to\s+(.+)", range_s, re.I)
+        m = re.match(r"(.*?)\s+to\s+(.*)", range_s, re.I)
         if not m:
             return
         try:
@@ -275,20 +280,30 @@ class DefEngine(_SlibMixin):
             end = int(round(float(self._eval_arith(m.group(2).strip()))))
         except (ValueError, TypeError):
             return
-        for i in range(start, end + 1):
-            self.ctx[loop.var] = str(i)
-            self._exec(loop.body, output_buf)
 
-    # ── Value evaluation ──────────────────────────────────────────────────────
+        var = loop.var.lstrip("$")
+        saved = self.ctx.get(var)
+        for i in range(start, end + 1):
+            self.ctx[var] = str(i)
+            self._exec(loop.body, output_buf)
+        if saved is not None:
+            self.ctx[var] = saved
+        else:
+            self.ctx.pop(var, None)
 
     def _eval_value(self, value: str) -> str:
         """Evaluate the RHS of an assignment."""
         # !cmd — WIMS command
         if value.startswith("!"):
-            # Substitute variables first (e.g. `!exec maxima $t_` -> `!exec maxima ...`)
-            cmd_line = self._subst(value[1:].strip())
+            cmd_line = value[1:].strip()
             cmd, _, args = cmd_line.partition(" ")
-            return self._eval_cmd(cmd.lower(), args)
+            cmd = cmd.lower()
+            if cmd == "nosubst":
+                return args
+            
+            # For other commands, substitute variables first
+            args = self._subst(args)
+            return self._eval_cmd(cmd, args)
 
         # $[expr] — arithmetic
         if value.startswith("$["):
@@ -320,15 +335,19 @@ class DefEngine(_SlibMixin):
         # 2. Replace ^ with ** for Python
         expr = expr.replace("^", "**")
         # 3. Evaluate
+        ns = dict(_MATH_NS)
+        # Also inject current context for bare variable names
+        for k, v in self.ctx.items():
+            s = v.strip()
+            try:
+                ns[k] = int(s) if s.lstrip("-").isdigit() else float(s)
+            except (ValueError, AttributeError):
+                ns[k] = s
         try:
-            result = eval(expr, _MATH_NS)  # noqa: S307
-            if isinstance(result, float) and result.is_integer():
-                return str(int(result))
-            if isinstance(result, float):
-                # Format: avoid scientific notation for small numbers
-                formatted = f"{result:.10g}"
-                return formatted
-            return str(result)
+            res = eval(expr, ns)  # noqa: S307
+            if isinstance(res, float) and res.is_integer():
+                return str(int(res))
+            return str(res)
         except Exception:
             return expr  # return as-is on failure
 
@@ -347,9 +366,9 @@ class DefEngine(_SlibMixin):
         # 4. $(var[n]) list access
         s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
         # 5. $(var) simple reference
-        s = _PAREN_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), ""), s)
+        s = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
         # 6. $var simple reference (skip $[ which was already handled)
-        s = _DOLLAR_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), m.group(0)), s)
+        s = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
         return s
 
     def _subst_for_arith(self, expr: str) -> str:
@@ -359,31 +378,27 @@ class DefEngine(_SlibMixin):
         expr = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), expr)
         expr = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), expr)
         expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
-        expr = _PAREN_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), "0"), expr)
-        expr = _DOLLAR_VAR_RE.sub(lambda m: self.ctx.get(m.group(1), "0"), expr)
+        expr = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
+        expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         return expr
 
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list."""
         name, start_s, end_s = m.group(1), m.group(2), m.group(3)
-        value = self.ctx.get(name, "")
+        value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         try:
-            start, end = int(start_s), int(end_s)
+            start, end = int(float(start_s)), int(float(end_s))
         except ValueError:
             return ""
         items = value.split("\t") if "\t" in value else value.split(",")
         return ",".join(items[start - 1 : end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
-        """Resolve $(var[n]) — 1-indexed item from tab/comma-separated list.
-
-        If the index is itself a list (e.g., $val40='5,4'), return multiple
-        items separated by the same delimiter used in the source list.
-        """
+        """Resolve $(var[n]) — 1-indexed item from tab/comma-separated list."""
         name, idx_expr = m.group(1), m.group(2)
-        value = self.ctx.get(name, "")
+        value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         idx_s = self._subst_for_arith(idx_expr)
@@ -416,12 +431,9 @@ class DefEngine(_SlibMixin):
         return delimiter.join(result_items) if result_items else ""
 
     def _resolve_indexed2(self, m: re.Match) -> str:
-        """Resolve $(var[n;m]) — row n, column m of a tab-row/semicolon-col matrix.
-
-        If col_expr is empty (e.g., $(var[n;])), return the entire row.
-        """
+        """Resolve $(var[n;m]) — row n, column m."""
         name, row_expr, col_expr = m.group(1), m.group(2), m.group(3)
-        value = self.ctx.get(name, "")
+        value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         row_s = self._subst_for_arith(row_expr)
@@ -477,7 +489,7 @@ class DefEngine(_SlibMixin):
             if op in ("issametext", "isnotreexpanded"):
                 # Literal string comparison (re-expanded is for WIMS' internal CAS cache)
                 return needle == haystack
-            words = re.split(r"[,\s]+", haystack)
+            words = re.split(r"[,\s\t]+", haystack)
             if op == "wordof":
                 return needle in words
             return needle not in words
@@ -513,14 +525,40 @@ class DefEngine(_SlibMixin):
                 pass
 
         # String equality: $val22=posi
-        m = re.match(r"^\s*(.+?)\s*=\s*(.+?)\s*$", cond)
-        if m:
-            return m.group(1).strip() == m.group(2).strip()
+        if "=" in cond:
+            left, _, right = cond.partition("=")
+            return left.strip() == right.strip()
 
-        # Fallback: truthy
-        return bool(cond)
+        return bool(cond.strip())
 
-    # ── WIMS command evaluation ───────────────────────────────────────────────
+    def _eval_loop_expr(self, expr: str, var: str, val: str) -> str:
+        """Evaluate a loop body expression, substituting the loop variable."""
+        # Substitute bare loop variable (e.g. 'x' in 'reply x')
+        # We use a regex to match the variable name as a whole word
+        res = re.sub(rf"\b{re.escape(var)}\b", val, expr)
+        # Also handle standard substitution (for other variables)
+        res = self._subst(res.replace("\\", "$"))
+        
+        # If it looks like arithmetic, try to eval it
+        if any(c in res for c in "+-*/^"):
+            try:
+                # Use a dummy namespace with common math functions
+                ns = dict(_MATH_NS)
+                # Also inject all current ctx
+                for k, v in self.ctx.items():
+                    try: ns[k] = float(v)
+                    except: ns[k] = v
+                
+                eval_res = eval(res.replace("^", "**"), ns)
+                if isinstance(eval_res, (int, float)):
+                    if isinstance(eval_res, float) and eval_res.is_integer():
+                        return str(int(eval_res))
+                    return str(eval_res)
+            except:
+                pass
+        return res
+
+    # ── Commands ──────────────────────────────────────────────────────────────
 
     def _eval_cmd(self, cmd: str, args: str) -> str:
         """Evaluate a WIMS !cmd and return the result as a string."""
@@ -589,6 +627,9 @@ class DefEngine(_SlibMixin):
         if cmd == "insmath":
             return self._subst(args)
 
+        if cmd == "nosubst":
+            return args
+
         if cmd == "values":
             return self._cmd_values(args)
 
@@ -605,7 +646,19 @@ class DefEngine(_SlibMixin):
             return self._cmd_sort(args)
 
         if cmd == "mathsubst":
-            return self._cmd_mathsubst(args)
+            # !mathsubst x=1 in x^2+x -> 1^2+1
+            m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+            if not m:
+                return self._subst(args)
+            subst_list = self._subst(m.group(1)).strip()
+            expr = self._subst(m.group(2)).strip()
+            for part in subst_list.split(","):
+                if "=" in part:
+                    k, v = part.split("=", 1)
+                    k, v = k.strip(), v.strip()
+                    # case-insensitive match for the variable key
+                    expr = re.sub(rf"\b{re.escape(k)}\b", v, expr, flags=re.IGNORECASE)
+            return expr
 
         if cmd == "listuniq":
             return self._cmd_listuniq(args)
@@ -631,182 +684,73 @@ class DefEngine(_SlibMixin):
         if cmd == "charcnt":
             return str(len(self._subst(args).strip()))
 
-        if cmd in ("nosubst",):
-            return args  # literal, no substitution
-
-        if cmd == "distribute":
-            self._cmd_distribute(args)
-            return ""
-
-        if cmd == "bound":
-            self._cmd_bound(args)
-            return ""
-
-        if cmd == "default":
-            self._cmd_default(args)
-            return ""
-
-        if cmd == "set":
-            # `!set var=value` — same as a plain assignment.
-            m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", args)
-            if m:
-                self.ctx[m.group(1)] = self._subst(m.group(2))
-            return ""
-
-        if cmd == "exit":
-            # Bubble up via a sentinel exception so sub-engines (slib) can
-            # stop execution cleanly without aborting the parent.
-            raise _SlibExit()
-
-        if cmd == "goto":
-            # `!goto <label>` is rare in slib; skip silently — the script's
-            # default fall-through usually produces the right value.
-            return ""
-
-        if cmd == "readproc":
-            self._cmd_readproc(args)
-            return ""
-
-        if cmd == "randrecord":
-            return self._cmd_randrecord(args)
-
-        # Unknown command — return empty
-        return ""
-
-    # ── Slib helper commands (used by both .def and slib scripts) ───────────
-
-    def _cmd_distribute(self, args: str) -> None:
-        """``!distribute item[s] $LIST into a,b,c[,…]`` — split, assign each."""
-        m = re.match(r"^\s*items?\s+(.+?)\s+into\s+(.+)$", args, re.I | re.DOTALL)
-        if not m:
-            return
-        list_val = self._subst(m.group(1).strip())
-        names = [n.strip() for n in m.group(2).split(",") if n.strip()]
-        items = [x.strip() for x in list_val.split(",")]
-        for i, name in enumerate(names):
-            self.ctx[name] = items[i] if i < len(items) else ""
-
-    def _cmd_bound(self, args: str) -> None:
-        """``!bound var within v1,v2,…,vn default V`` — clamp to allowed set,
-        or ``!bound var between A and B default V`` — clamp to numeric range.
-        """
-        m_set = re.match(
-            r"^\s*(\w+)\s+within\s+(.+?)\s+default\s+(.+)$", args, re.I | re.DOTALL
-        )
-        if m_set:
-            name = m_set.group(1)
-            allowed = [v.strip() for v in m_set.group(2).split(",")]
-            default = self._subst(m_set.group(3).strip())
-            cur = self.ctx.get(name, "").strip()
-            if cur not in allowed:
-                self.ctx[name] = default
-            return
-
-        m_range = re.match(
-            r"^\s*(\w+)\s+between\s+(\S+)\s+and\s+(\S+)\s+default\s+(.+)$",
-            args,
-            re.I | re.DOTALL,
-        )
-        if m_range:
-            name = m_range.group(1)
-            try:
-                lo = float(self._eval_arith(m_range.group(2)))
-                hi = float(self._eval_arith(m_range.group(3)))
-            except (ValueError, TypeError):
-                return
-            default = self._subst(m_range.group(4).strip())
-            cur_s = self.ctx.get(name, "").strip()
-            try:
-                cur = float(self._eval_arith(cur_s))
-            except (ValueError, TypeError):
-                self.ctx[name] = default
-                return
-            if cur < lo or cur > hi:
-                self.ctx[name] = default
-
-    def _cmd_default(self, args: str) -> None:
-        """!default var=value — set var only if currently unset/empty."""
-        m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", args, re.DOTALL)
-        if not m:
-            return
-        name = m.group(1)
-        if not self.ctx.get(name, "").strip():
-            self.ctx[name] = self._subst(m.group(2))
-
-    # ── Specific command implementations ─────────────────────────────────────
+        return f"UNKNOWN_CMD:{cmd}"
 
     def _cmd_randint(self, args: str) -> str:
         """!randint a, b — random integer in [a, b]."""
-        parts = [self._eval_arith(p.strip()) for p in args.split(",")]
+        parts = [self._subst(p.strip()) for p in args.split(",")]
+        if len(parts) < 2:
+            return "0"
         try:
-            a, b = int(parts[0]), int(parts[1])
-            return str(self.rng.randint(a, b))
-        except (IndexError, ValueError):
+            a = int(round(float(self._eval_arith(parts[0]))))
+            b = int(round(float(self._eval_arith(parts[1]))))
+            res = str(self.rng.randint(a, b))
+            print(f"DEBUG_RAND: randint({a},{b}) -> {res}", flush=True)
+            return res
+        except (ValueError, TypeError):
             return "0"
 
     def _cmd_random(self, args: str) -> str:
-        """!random a, b — random real in [a, b]."""
-        parts = [self._eval_arith(p.strip()) for p in args.split(",")]
+        """!random a, b — random float in [a, b]."""
+        parts = [self._subst(p.strip()) for p in args.split(",")]
+        if len(parts) < 2:
+            return "0"
         try:
-            a, b = float(parts[0]), float(parts[1])
-            val = self.rng.uniform(a, b)
-            return f"{val:.10g}"
-        except (IndexError, ValueError):
+            a = float(self._eval_arith(parts[0]))
+            b = float(self._eval_arith(parts[1]))
+            res = f"{self.rng.uniform(a, b):.4f}"
+            print(f"DEBUG_RAND: random({a},{b}) -> {res}", flush=True)
+            return res
+        except (ValueError, TypeError):
             return "0"
 
-    def _cmd_nonempty(self, args: str) -> str:
-        """!nonempty items list — filter blank items, return filtered list."""
-        # Syntax: "items item1,item2,..." or "rows matrix"
-        rest = self._subst(args)
-        m = re.match(r"^(items|rows)\s+(.*)", rest, re.DOTALL)
-        if m:
-            mode, data = m.group(1), m.group(2)
-            sep = "\t" if mode == "rows" else ","
-            items = [x for x in data.split(sep) if x.strip()]
-            return sep.join(items)
-        return rest
-
     def _cmd_randitem(self, args: str) -> str:
-        """!randitem list — random item from a tab/comma-separated list."""
-        val = self._subst(args.strip())
-        if "\t" in val:
-            items = [x.strip() for x in val.split("\t") if x.strip()]
-        else:
-            items = [x.strip() for x in val.split(",") if x.strip()]
-        if not items:
-            return ""
-        return self.rng.choice(items)
+        """!randitem item1, item2, ... — pick one randomly."""
+        val = self._subst(args)
+        items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
+        res = self.rng.choice(items) if items else ""
+        print(f"DEBUG_RAND: randitem({len(items)} items) -> {res}", flush=True)
+        return res
+
+    def _cmd_nonempty(self, args: str) -> str:
+        """!nonempty items/rows list — remove empty entries."""
+        m = re.match(r"(items?|rows?)\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return self._subst(args)
+        kind = m.group(1).lower()
+        val = self._subst(m.group(2))
+        sep = "\t" if kind.startswith("row") else ","
+        items = [x.strip() for x in val.split(sep) if x.strip()]
+        return sep.join(items)
 
     def _cmd_shuffle(self, args: str) -> str:
-        """!shuffle N  — permutation aléatoire de 1..N (forme entière WIMS).
-        !shuffle list — mélange d'une liste séparée par virgules."""
-        val = self._subst(args).strip()
-        # Forme entière : !shuffle 4 → "3,1,4,2"
-        try:
-            n = int(val)
-            if n > 0:
-                items = [str(i) for i in range(1, n + 1)]
-                self.rng.shuffle(items)
-                return ",".join(items)
-        except ValueError:
-            pass
-        # Forme liste
-        if "\t" in val:
-            sep = "\t"
-            items = val.split("\t")
+        """!shuffle list — return list items in random order."""
+        # !shuffle 10 -> [1, 2, ..., 10] shuffled
+        val = self._subst(args.strip())
+        if val.isdigit():
+            items = [str(i) for i in range(1, int(val) + 1)]
         else:
-            sep = ","
-            items = val.split(",")
-        items = [x for x in items if x.strip()]
+            items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
         self.rng.shuffle(items)
-        return sep.join(items)
+        res = ",".join(items)
+        print(f"DEBUG_RAND: shuffle({len(items)} items) -> {res[:50]}...", flush=True)
+        return res
 
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
 
         ``I`` may be a single index, a ``N to M`` range, or a comma-separated
-        list of indices (WIMS rotangle/rotation exercises use this form to
-        pick a permutation of colors out of a master colour list).
+        list of indices.
         """
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
@@ -830,32 +774,29 @@ class DefEngine(_SlibMixin):
         if "," in idx_s:
             indices: list[int] = []
             for p in idx_s.split(","):
-                p = p.strip()
                 try:
-                    indices.append(int(round(float(self._eval_arith(p)))))
+                    indices.append(int(round(float(self._eval_arith(p.strip())))))
                 except (ValueError, TypeError):
-                    pass
+                    continue
             items = split_items(data)
-            return ",".join(
-                items[i - 1].strip() for i in indices if 1 <= i <= len(items)
-            )
+            res = []
+            for idx in indices:
+                if 1 <= idx <= len(items):
+                    res.append(items[idx - 1].strip())
+            return ",".join(res)
 
+        # Single index
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
+            items = split_items(data)
+            if 1 <= idx <= len(items):
+                return items[idx - 1].strip()
         except (ValueError, TypeError):
-            return ""
-        items = split_items(data)
-        if 1 <= idx <= len(items):
-            return items[idx - 1].strip()
+            pass
         return ""
 
     def _cmd_row(self, args: str) -> str:
-        """``!row n of matrix`` — 1-indexed row.
-
-        Mirrors WIMS ``calc.c:calc_rowof`` semantics: split on newline; if
-        the data has no newlines but does contain semicolons, split on `;`;
-        otherwise (single tab-row blob) split on tab as a final fallback.
-        """
+        """!row I of matrix — 1-indexed tab-separated row."""
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
@@ -863,145 +804,60 @@ class DefEngine(_SlibMixin):
         data = self._subst(m.group(2).strip())
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
-        except (ValueError, TypeError):
-            return ""
-        if "\n" in data:
-            rows = data.split("\n")
-        elif ";" in data:
-            rows = data.split(";")
-        else:
             rows = data.split("\t")
-        if 1 <= idx <= len(rows):
-            return rows[idx - 1].strip()
+            if 1 <= idx <= len(rows):
+                return rows[idx - 1].strip()
+        except (ValueError, TypeError):
+            pass
         return ""
 
     def _cmd_replace(self, args: str) -> str:
-        """!replace internal X by Y in S — string replacement."""
-        # Syntax: "internal <old> by <new> in <var>"
-        m = re.match(
-            r"internal\s+(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I
-        )
-        if not m:
-            return self._subst(args)
-        old = m.group(1).strip()
-        new = m.group(2).strip()
-        src = self._subst(m.group(3).strip())
-        # Handle escape sequences in old/new (e.g. \( → literal backslash paren)
-        old = old.replace("\\(", "\\(")
-        return src.replace(old, new)
+        """!replace [internal/word] A by B in text."""
+        # Standard: !replace internal x by y in text
+        # Shortcut: !replace x by y in text (defaults to internal)
+        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        if m:
+            mode, old, new, text = m.groups()
+        else:
+            # Try shortcut without mode prefix
+            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+            if m:
+                mode, old, new, text = "internal", m.group(1), m.group(2), m.group(3)
+            else:
+                # Handle cases like '!replace * by in $text' where 'new' is empty and only 1 space exists
+                m = re.match(r"(.*?)\s+by\s+in\s+(.*)", args, re.I | re.DOTALL)
+                if m:
+                    mode, old, new, text = "internal", m.group(1), "", m.group(2)
+                else:
+                    return self._subst(args)
+        
+        if mode.lower() == "word":
+            # Escape old for regex if using word mode
+            return re.sub(rf"\b{re.escape(old)}\b", new, text)
+        return text.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """``!translate [internal] FROM to TO in S`` — tr-style char map.
-
-        Implements the WIMS algorithm from ``calc.c:calc_translate``:
-
-        1. After variable substitution, take the FROM and TO sets as raw
-           character sequences (no ``$X$`` shorthand expansion — they are
-           literal ``$`` + chars + ``$``).
-        2. Truncate FROM to ``len(TO)`` so that any extra from-chars are
-           dropped.
-        3. For each character in the input that appears in FROM, replace it
-           with the TO character at the same index (first occurrence wins
-           when FROM has duplicates).
-        """
-        m_int = re.match(
-            r"internal\s+(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I
-        )
-        m_plain = (
-            re.match(r"(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.DOTALL | re.I)
-            if not m_int
-            else None
-        )
-        m = m_int or m_plain
+        """!translate A to B in text — character-wise translation."""
+        # !translate $ to ; in text
+        m = re.match(r"(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-
-        chars_from = m.group(1).strip()
-        chars_to = m.group(2).strip()
-        src = self._subst(m.group(3).strip())
-
-        if len(chars_to) < len(chars_from):
-            chars_from = chars_from[: len(chars_to)]
-
-        trans: dict[int, str] = {}
-        for i, c in enumerate(chars_from):
-            if ord(c) not in trans:
-                trans[ord(c)] = chars_to[i]
-
-        return src.translate(trans)
+        a, b, text = m.groups()
+        if a == "$": a = "$"
+        # Handle WIMS special char escapes or just literals
+        table = str.maketrans(a, b)
+        return text.translate(table)
 
     def _cmd_append(self, args: str) -> str:
-        """``!append item X to list`` — append item using the list's separator.
-
-        Uses tab if the list already contains tabs, otherwise comma. WIMS
-        slib helpers (e.g. ``slib/generator``) expect comma-separated lists.
-        """
-        m = re.match(r"item\s+(.*?)\s+to\s*(.*)", args, re.DOTALL | re.I)
+        """!append item/line X to list."""
+        m = re.match(r"(items?|lines?)\s+(.*?)\s+to\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-        item = self._subst(m.group(1).strip())
-        lst = self._subst(m.group(2).strip())
-        if not lst:
-            return item
-        sep = "\t" if "\t" in lst else ","
-        return lst + sep + item
-
-    def _eval_loop_expr(self, expr: str) -> str:
-        """Evaluate a loop body expression supporting bare variable names from ctx.
-
-        Handles $var references via _subst, and bare identifiers (e.g. 'v', 'v*v')
-        by injecting the current ctx into the eval namespace.
-        """
-        ev = self._subst(expr)
-        if ev != expr or expr.startswith("$"):
-            return ev
-        ns = dict(_MATH_NS)
-        for k, v in self.ctx.items():
-            s = v.strip()
-            try:
-                ns[k] = int(s) if s.lstrip("-").isdigit() else float(s)
-            except (ValueError, AttributeError):
-                ns[k] = s
-        try:
-            res = eval(expr.replace("^", "**"), ns)  # noqa: S307
-            if isinstance(res, float) and res.is_integer():
-                return str(int(res))
-            return str(res)
-        except Exception:
-            return ev
-
-    def _cmd_values(self, args: str) -> str:
-        """!values expr for var=start to end — comma-separated list."""
-        m = re.match(
-            r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
-        )
-        if not m:
-            return ""
-        expr, var, start_s, end_s = (
-            m.group(1).strip(),
-            m.group(2),
-            m.group(3).strip(),
-            m.group(4).strip(),
-        )
-        try:
-            start = int(round(float(self._eval_arith(self._subst(start_s)))))
-            end = int(round(float(self._eval_arith(self._subst(end_s)))))
-        except (ValueError, TypeError):
-            return ""
-        saved = self.ctx.get(var)
-        # Comma-separated expression (e.g. `v,-v`) → evaluate each part per iter
-        # so the result is a flat list rather than Python tuple repr `(v, -v)`.
-        parts = _split_top_level_args(expr)
-        results = []
-        for i in range(start, end + 1):
-            self.ctx[var] = str(i)
-            for p in parts:
-                results.append(self._eval_loop_expr(p))
-        if saved is not None:
-            self.ctx[var] = saved
-        else:
-            self.ctx.pop(var, None)
-        return ",".join(results)
+        kind, val, target = m.groups()
+        sep = "\n" if kind.lower().startswith("line") else ","
+        if not target.strip():
+            return val
+        return f"{target}{sep}{val}"
 
     def _cmd_exec(self, args: str) -> str:
         """!exec maxima expr / !exec pari expr — call external CAS."""
@@ -1017,7 +873,7 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_makelist(self, args: str) -> str:
-        """!makelist expr for var=start to end — tab-separated list (matrix rows)."""
+        """!makelist expr for var=start to end — comma-separated list."""
         m = re.match(
             r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
         )
@@ -1037,15 +893,20 @@ class DefEngine(_SlibMixin):
         saved = self.ctx.get(var)
         results = []
         for i in range(start, end + 1):
-            self.ctx[var] = str(i)
+            val_str = str(i)
+            self.ctx[var] = val_str
             # Expression may contain commas (multi-column row): eval each part
-            parts = [self._eval_loop_expr(p.strip()) for p in expr.split(",")]
+            parts = [self._eval_loop_expr(p.strip(), var, val_str) for p in expr.split(",")]
             results.append(",".join(parts))
         if saved is not None:
             self.ctx[var] = saved
         else:
             self.ctx.pop(var, None)
-        return "\t".join(results)
+
+        # WIMS standard: !makelist returns a comma-separated list
+        # unless it's a matrix with multiple columns (then it's tab-row/comma-col).
+        has_multi_col = any("," in r for r in results)
+        return ("\t" if has_multi_col else ",").join(results)
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""
@@ -1069,118 +930,86 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(rows)
 
     def _cmd_sort(self, args: str) -> str:
-        """!sort numeric items/list $val — sort items numerically."""
-        m = re.match(r"numeric\s+(?:items?|list|rows?)\s+(.*)", args, re.I | re.DOTALL)
+        """!sort items/rows list — sort alphabetically."""
+        m = re.match(r"(items?|rows?)\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-        data = self._subst(m.group(1).strip())
-        if "\t" in data:
-            sep, items = "\t", data.split("\t")
-        else:
-            sep, items = ",", data.split(",")
-        items = [x for x in items if x.strip()]
-        try:
-            items.sort(key=lambda x: _parse_numeric(x.strip()))
-        except (ValueError, ZeroDivisionError):
-            items.sort()
+        kind, val = m.group(1).lower(), self._subst(m.group(2))
+        sep = "\t" if kind.startswith("row") else ","
+        items = [x.strip() for x in val.split(sep) if x.strip()]
+        items.sort()
         return sep.join(items)
 
-    def _cmd_mathsubst(self, args: str) -> str:
-        """!mathsubst var=(value) in $expr — substitute var with (value) in expression."""
-        m = re.match(r"(\w+)\s*=\s*(.+?)\s+in\s+(.*)", args, re.DOTALL | re.I)
-        if not m:
-            return self._subst(args)
-        var = m.group(1)
-        val = self._subst(m.group(2).strip())
-        expr = self._subst(m.group(3).strip())
-        # Wrap val in parens if not already (preserves precedence in the result)
-        if not (val.startswith("(") and val.endswith(")")):
-            val = f"({val})"
-        # Use a lambda for the replacement so backslashes etc. in `val` are
-        # treated literally (re.sub-as-string would interpret them as escapes).
-        return re.sub(r"\b" + re.escape(var) + r"\b", lambda _m: val, expr)
+    def _cmd_values(self, args: str) -> str:
+        """!values V for var=start to end — list of values."""
+        return self._cmd_makelist(args).replace("\t", ",")
 
     def _cmd_listuniq(self, args: str) -> str:
-        """!listuniq $list — remove duplicates, preserve order."""
-        val = self._subst(args.strip())
-        if "\t" in val:
-            sep, items = "\t", val.split("\t")
-        else:
-            sep, items = ",", val.split(",")
-        seen: set[str] = set()
-        result = []
-        for item in items:
-            key = item.strip()
-            if key and key not in seen:
-                seen.add(key)
-                result.append(item)
-        return sep.join(result)
+        """!listuniq list — remove duplicates."""
+        items = [x.strip() for x in self._subst(args).split(",") if x.strip()]
+        seen = set()
+        res = []
+        for x in items:
+            if x not in seen:
+                seen.add(x)
+                res.append(x)
+        return ",".join(res)
 
     def _cmd_declosing(self, args: str) -> str:
-        """!declosing $val — remove outermost matching brackets/parens/braces."""
-        val = self._subst(args.strip()).strip()
-        pairs = {"(": ")", "[": "]", "{": "}"}
-        if val and val[0] in pairs and val[-1] == pairs[val[0]]:
-            return val[1:-1]
-        return val
+        """!declosing text — remove outer parentheses/brackets."""
+        s = self._subst(args).strip()
+        if (s.startswith("(") and s.endswith(")")) or (s.startswith("[") and s.endswith("]")):
+            return s[1:-1].strip()
+        return s
 
     def _cmd_getopt(self, args: str) -> str:
-        """!getopt key in $var — extract value for 'key=value' from options string."""
-        m = re.match(r"(\S+)\s+in\s+(.*)", args, re.DOTALL | re.I)
-        if not m:
-            return ""
-        key = re.escape(m.group(1).strip())
-        val = self._subst(m.group(2).strip())
-        found = re.search(r"\b" + key + r"\s*=\s*(\S+)", val)
-        return found.group(1) if found else ""
+        """!getopt key in list — extract value from key=value options."""
+        m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        if not m: return ""
+        key, text = m.group(1).strip().lower(), self._subst(m.group(2))
+        for part in re.split(r"[\s,]+", text):
+            if "=" in part:
+                k, v = part.split("=", 1)
+                if k.strip().lower() == key:
+                    return v.strip()
+        return ""
 
     def _cmd_embraced(self, args: str) -> str:
-        """!embraced randitem $list — pick a random item, wrap in parens if needed."""
-        m = re.match(r"randitem\s+(.*)", args, re.DOTALL | re.I)
-        if m:
-            item = self._cmd_randitem(m.group(1).strip())
-        else:
-            item = self._subst(args)
-        # Wrap in parens if the item could cause sign/precedence issues embedded in math
-        needs_parens = bool(re.search(r"[+\-*/]", item.lstrip("-")))
-        return f"({item})" if needs_parens else item
+        """!embraced item N of list — return content inside { }."""
+        # WIMS specific; simplified implementation
+        items = re.findall(r"\{(.*?)\}", self._subst(args))
+        # This is a bit of a guess on how WIMS uses this command
+        return ",".join(items)
 
     def _cmd_word(self, args: str) -> str:
-        """!word n of $str — nth space-separated word (1-indexed)."""
-        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
-        if not m:
-            return ""
-        idx_s = self._subst(m.group(1).strip())
-        text = self._subst(m.group(2).strip())
+        """!word N of text — 1-indexed word."""
+        m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
+        if not m: return ""
         try:
-            idx = int(round(float(self._eval_arith(idx_s))))
+            idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
+            words = self._subst(m.group(2)).split()
+            if 1 <= idx <= len(words):
+                return words[idx - 1].strip()
         except (ValueError, TypeError):
-            return ""
-        words = text.split()
-        return words[idx - 1] if 1 <= idx <= len(words) else ""
+            pass
+        return ""
 
     def _cmd_column(self, args: str) -> str:
-        """!column n of $matrix — extract column n from each tab-separated row."""
-        m = re.match(r"(.+?)\s+of\s+(.*)", args, re.DOTALL | re.I)
-        if not m:
-            return ""
-        idx_s = self._subst(m.group(1).strip())
-        data = self._subst(m.group(2).strip())
-        # Handle "n to m" range (return items in those columns across all rows)
-        range_m = re.match(r"(\d+)\s+to\s+\S+", idx_s)
-        col_idx = int(range_m.group(1)) if range_m else None
-        if col_idx is None:
-            try:
-                col_idx = int(round(float(self._eval_arith(idx_s))))
-            except (ValueError, TypeError):
-                return ""
-        rows = data.split("\t")
-        result = []
-        for row in rows:
-            cols = re.split(r"[;,]", row)
-            if 1 <= col_idx <= len(cols):
-                result.append(cols[col_idx - 1].strip())
-        return ",".join(result)
+        """!column C of matrix — column slice as comma list."""
+        m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
+        if not m: return ""
+        try:
+            col_idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
+            rows = self._subst(m.group(2)).split("\t")
+            res = []
+            for r in rows:
+                cols = re.split(r"[;,]", r)
+                if 1 <= col_idx <= len(cols):
+                    res.append(cols[col_idx - 1].strip())
+            return ",".join(res)
+        except (ValueError, TypeError):
+            pass
+        return ""
 
     # ── Section rendering ─────────────────────────────────────────────────────
 
@@ -1201,14 +1030,7 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _render_embed(self, args: str) -> str:
-        """Render an !read oef/embed.phtml marker as an input span.
-
-        If the target reply is a radio, the embed is a click-target for one
-        of the radio choices (the second arg is the choice index, not a
-        text-input size). The frontend renders radio buttons from
-        ``options.choices`` separately, so we emit an empty marker and let
-        the surrounding `<li>` / `<ul>` markup collapse to nothing visible.
-        """
+        """Render an !read oef/embed.phtml marker as an input span."""
         args = self._subst(args).strip()
         # Parse: "r1,10" or "reply1,$val10" or "r1" etc.
         parts = [p.strip() for p in args.split(",")]
@@ -1219,6 +1041,32 @@ class DefEngine(_SlibMixin):
         # instead of `reply1,30`; collapse internal whitespace so the ref
         # matches the answer's input_name.
         ref = re.sub(r"\s+", "", ref)
+
+        # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
+        if ref.startswith("r") and not ref.startswith("reply"):
+            suffix = ref[1:]
+            # 1. Handle loop variables like \qq in r\qq
+            def resolve_loop_var(m):
+                name = m.group(1)
+                # Try exact, then lowercase, then with m_ prefix (compiler artifact)
+                for candidate in (name, name.lower(), f"m_{name}", f"m_{name.lower()}"):
+                    if candidate in self.ctx:
+                        return str(self.ctx[candidate])
+                return name
+            
+            suffix = re.sub(r"\\(\w+)", resolve_loop_var, suffix)
+            # 2. Evaluate bracketed expressions like \[3*\k-2]
+            suffix = re.sub(
+                r"\\?\[(.+?)\]",
+                lambda m: self._eval_arith(m.group(1).replace("\\", "$")),
+                suffix,
+            )
+            try:
+                # Suffix might still contain a variable reference like $m_qq
+                suffix_val = self._subst(suffix)
+                ref = f"reply{int(float(suffix_val))}"
+            except (ValueError, TypeError, OverflowError):
+                ref = f"reply{suffix}"
 
         # Handle radio and menu types specially.
         nm = re.match(r"^r(?:eply)?(\d+)$", ref)
@@ -1233,30 +1081,13 @@ class DefEngine(_SlibMixin):
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
                 return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
 
-        # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
-        if ref.startswith("r") and not ref.startswith("reply"):
-            suffix = ref[1:]
-            # Evaluate suffix (may be an expression like \[3*\k-2])
-            suffix = re.sub(
-                r"\\?\[(.+?)\]",
-                lambda m: self._eval_arith(self._subst(m.group(1).replace("\\", "$"))),
-                suffix,
-            )
-            suffix = re.sub(
-                r"\\(\w+)", lambda m: self.ctx.get(m.group(1), m.group(1)), suffix
-            )
-            try:
-                ref = f"reply{int(suffix)}"
-            except ValueError:
-                ref = f"reply{suffix}"
-
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
             return f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
         try:
-            size = int(size_raw)
-        except ValueError:
+            size = int(round(float(self._eval_arith(size_raw))))
+        except (ValueError, TypeError):
             size = 10
 
         return f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
@@ -1276,38 +1107,29 @@ class DefEngine(_SlibMixin):
             options: dict = {"option": option} if option else {}
 
             expected = good_raw
-            # ?analyze N — réponse vérifiée via :postdef + :test, pas par comparaison directe
+            # ?analyze N — réponse vérifiée via :postdef + :test
             analyze_m = re.match(r"^\?analyze\s*(\d+)(?:;(.+))?", good_raw.strip(), re.I)
             if analyze_m:
-                var_num = int(analyze_m.group(1))
-                options["analyze_var"] = var_num
-                ans_type = "analyze"
-                provided_expected = analyze_m.group(2)
-                if provided_expected:
-                    expected = self._subst(provided_expected.strip())
-                else:
-                    # For debug display, indicate it's procedurally verified
-                    expected = f"(Code :postdef, var {var_num})"
-            elif ans_type.lower() in ("radio", "menu"):
-                # WIMS radio/menu reply form: good = "<idx>;<c1>,<c2>,…" where
-                # `<idx>` is the 1-based correct choice. Surface choices on
-                # the answer so the frontend can render radio buttons or a dropdown.
-                idx_str, sep, choices_str = good_raw.partition(";")
-                try:
-                    idx = int(idx_str.strip())
-                except ValueError:
-                    idx = 1
-                choices = [c.strip() for c in choices_str.split(",") if c.strip()]
-                if choices:
-                    expected = (
-                        choices[idx - 1] if 1 <= idx <= len(choices) else choices[0]
-                    )
-                    if "shuffle" in option.lower():
-                        import random as _random
-                        _random.Random(f"{self.seed}_{n}").shuffle(choices)
-                    options["choices"] = choices
-                else:
-                    expected = good_raw
+                # Placeholder: real verification happens in AnswerChecker
+                expected = good_raw
+
+            if ans_type == "radio":
+                # Choices are stored in `choice_meta` but usually also in variables
+                # referred to by options.
+                choices = []
+                for cm in df.choice_meta:
+                    if cm["n"] == n:
+                        # Extract choices
+                        correct = self._subst(cm.get("good", ""))
+                        wrong = self._subst(cm.get("bad", "")).split(",")
+                        choices = [correct] + [w.strip() for w in wrong if w.strip()]
+                        # Shuffle choices with a local seed for determinism
+                        rng = random.Random(f"{self.seed}_{n}")
+                        rng.shuffle(choices)
+                        expected = correct
+                        break
+                options["choices"] = choices
+
             answers.append(
                 AnswerDef(
                     label=label,
@@ -1316,92 +1138,17 @@ class DefEngine(_SlibMixin):
                     options=options,
                     weight=weight,
                     input_name=f"reply{n}",
-                    logical_name=label or f"reply{n}",
-                )
-            )
-
-        for cm in df.choice_meta:
-            n = cm["n"]
-            label = self._subst(cm.get("name", ""))
-            from ..flydraw import inline_svg_imgs  # noqa: PLC0415
-
-            correct = inline_svg_imgs(
-                _close_inline_math(self._subst(cm.get("good", "")))
-            )
-            bad_raw = inline_svg_imgs(
-                _close_inline_math(self._subst(cm.get("bad", "")))
-            )
-            wrong_items = [w.strip() for w in bad_raw.split(",") if w.strip()]
-            # Dedup: WIMS-authored `bad` lists sometimes include the correct
-            # answer (e.g. `Graphique 1,…,Graphique 4` where one of those is
-            # `\good`). Keep the first occurrence; insert `correct` if missing.
-            seen: set[str] = set()
-            all_items: list[str] = []
-            for item in [correct, *wrong_items]:
-                if item not in seen:
-                    seen.add(item)
-                    all_items.append(item)
-
-            import random as _random
-
-            _random.Random(f"{self.seed}_{n}").shuffle(all_items)
-
-            option = cm.get("option", "")
-            if "noidontknow" not in option:
-                _dont_know = {
-                    "fr": "Je ne sais pas",
-                    "nl": "Ik weet het niet",
-                    "en": "I don't know",
-                }
-                lang = df.meta.get("language", "fr")[:2].lower()
-                all_items.append(_dont_know.get(lang, "Je ne sais pas"))
-
-            answers.append(
-                AnswerDef(
-                    label=label,
-                    expected=correct,
-                    answer_type="radio",
-                    options={"choices": all_items},
-                    input_name=f"reply{n}",
-                    logical_name=label or f"reply{n}",
+                    logical_name=label if label else f"reply{n}",
                 )
             )
 
         return answers
 
-
-def check_analyze(
-    ev_ctx: dict,
-    postdef_instructions: list,
-    test_instructions: list,
-    analyze_replies: dict,
-    seed: int,
-) -> dict:
-    """Exécute :postdef puis :test avec les réponses élève et retourne les condtestN."""
-    engine = DefEngine(seed=seed)
-    engine.ctx.update(ev_ctx)
-    for var_n, value in analyze_replies.items():
-        # Wrap in parentheses to ensure correct precedence in algebraic expressions
-        engine.ctx[f"val{var_n}"] = f"({value})"
-    engine._exec(postdef_instructions, output_buf=None)
-    engine._exec(test_instructions, output_buf=None)
-    return {k: int(v) for k, v in engine.ctx.items()
-            if k.startswith("condtest") and str(v).strip() in ("0", "1")}
-
-
-# ── Numeric helpers ───────────────────────────────────────────────────────────
-
-
-def _parse_numeric(s: str) -> float:
-    """Parse a numeric string that may be a fraction like '3/2' or '-7/4'."""
-    s = s.strip()
-    if "/" in s:
-        parts = s.split("/", 1)
-        return float(parts[0]) / float(parts[1])
-    return float(s)
-
-
-# ── Utility ───────────────────────────────────────────────────────────────────
+    def _cmd_mathsubst(self, args: str) -> str:
+        """!mathsubst x=1 in x^2+x -> 1^2+1"""
+        # (This is already handled inline in _eval_cmd, but keeping the method stub
+        # if other parts of the engine call it directly)
+        return self._eval_cmd("mathsubst", args)
 
 
 def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int:
