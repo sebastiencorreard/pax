@@ -52,24 +52,26 @@
 
           <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
 
-          <div v-if="!checkResult?.noanalyzeprint" class="text-sm space-y-1 mt-1">
+          <div class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
               <span class="font-medium" style="color:var(--color-text)">
                 {{ step.label || $t('exercise.step_label', { n: step.step }) }} :
               </span>
-              <span v-if="step.replyHtml" v-html="step.replyHtml"></span>
+              <span v-if="step.replyHtml && !checkResult?.noanalyzeprint" v-html="step.replyHtml"></span>
               <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
                 {{ $t('feedback.good') }}
               </span>
               <template v-else>
                 <span style="color:var(--color-error)" class="font-medium">
-                  {{ $t('feedback.bad') }},
+                  {{ $t('feedback.bad') }}<template v-if="!checkResult?.noanalyzeprint">,</template>
                 </span>
-                <span style="color:var(--color-text)">
-                  {{ $t('feedback.expected') }}
-                </span>
-                <span v-if="step.expectedHtml" v-html="step.expectedHtml" style="color:var(--color-text)"></span>
+                <template v-if="!checkResult?.noanalyzeprint">
+                  <span style="color:var(--color-text)">
+                    {{ $t('feedback.expected') }}
+                  </span>
+                  <span v-if="step.expectedHtml" v-html="step.expectedHtml" style="color:var(--color-text)"></span>
+                </template>
               </template>
             </div>
           </div>

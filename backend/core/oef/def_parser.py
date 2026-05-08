@@ -427,11 +427,17 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
         if "=" in line and not line.startswith("!"):
             eq = line.index("=")
             name = line[:eq].strip()
-            # Value is taken from the raw line to preserve spacing/tabs in value
-            raw_eq = raw.index("=")
-            value = raw[raw_eq + 1 :].rstrip("\n")
-            if name:
+            if re.match(r"^[a-zA-Z0-9_]+$", name):
+                # Value is taken from the raw line to preserve spacing/tabs in value
+                raw_eq = raw.index("=")
+                value = raw[raw_eq + 1 :].rstrip("\n")
                 instructions.append(Assign(name=name, value=value))
+                i += 1
+                continue
+
+        # If it's not a command and not an assignment, it's raw text/HTML to be output
+        if not line.startswith("!") and line:
+            instructions.append(Output(raw.rstrip("\n")))
             i += 1
             continue
 
