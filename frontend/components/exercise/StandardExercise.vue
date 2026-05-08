@@ -8,7 +8,8 @@
     <BaseExerciseStatement
       :rendered="rendered"
       :statement-segments="statementSegments"
-      v-model:replies="replies"
+      :replies="replies"
+      @update:replies="val => replies = val"
       :clickfill-choices-html="clickfillChoicesHtml"
       :radio-choices-html="radioChoicesHtml"
       :menu-choices-html="menuChoicesHtml"
@@ -41,14 +42,21 @@
         <div class="text-sm space-y-1 mt-1">
           <div v-for="(r, i) in checkResult.results" :key="r.input_name"
                class="flex items-baseline gap-2 flex-wrap">
-            <span style="color:var(--color-text-muted)">{{ $t('feedback.index', { n: i + 1 }) }}</span>
+            <span class="font-medium" style="color:var(--color-text)">
+              {{ rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) }} :
+            </span>
             <span v-html="feedbackHtml[r.input_name]?.reply"></span>
-            <span v-if="r.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
+            <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">
+              {{ $t('feedback.good') }}
+            </span>
             <template v-else>
-              <span style="color:var(--color-error)">{{ $t('feedback.bad') }}</span>
-              <span style="color:var(--color-text-muted)">{{ $t('feedback.expected') }}</span>
-              <span v-html="feedbackHtml[r.input_name]?.expected"></span>
-              <span>.</span>
+              <span style="color:var(--color-error)" class="font-medium">
+                {{ $t('feedback.bad') }},
+              </span>
+              <span style="color:var(--color-text)">
+                {{ $t('feedback.expected') }}
+              </span>
+              <span v-html="feedbackHtml[r.input_name]?.expected" style="color:var(--color-text)"></span>
             </template>
           </div>
         </div>

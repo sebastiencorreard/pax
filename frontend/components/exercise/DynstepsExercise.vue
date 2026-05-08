@@ -8,7 +8,8 @@
     <BaseExerciseStatement
       :rendered="rendered"
       :statement-segments="statementSegments"
-      v-model:replies="replies"
+      :replies="replies"
+      @update:replies="val => replies = val"
       :clickfill-choices-html="clickfillChoicesHtml"
       :radio-choices-html="radioChoicesHtml"
       :menu-choices-html="menuChoicesHtml"
@@ -25,7 +26,7 @@
       <!-- Bilan Global (à la fin) -->
       <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0)" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
-             :style="(stepsHistory.filter(s => s.correct).length / stepsHistory.length) === 1
+             :style="(stepsHistory.filter(s => s.correct).length / stepsHistory.length) >= 0.9
                ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
                : (stepsHistory.filter(s => s.correct).length / stepsHistory.length) === 0
                  ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
@@ -33,20 +34,27 @@
           <div class="font-semibold text-lg mb-2">
             {{ $t('exercise.steps_completed') }}
             <span ref="scoreEl" class="font-normal text-sm ml-2">
-              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / stepsHistory.length) * 100) }) }}
+              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (stepsHistory.length || 1)) * 100) }) }}
             </span>
           </div>
           <div class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
-              <span style="color:var(--color-text-muted)">{{ step.label ? step.label + ' :' : $t('exercise.step_label', { n: step.step }) + ' :' }}</span>
+              <span class="font-medium" style="color:var(--color-text)">
+                {{ step.label || $t('exercise.step_label', { n: step.step }) }} :
+              </span>
               <span v-if="step.replyHtml" v-html="step.replyHtml"></span>
-              <span v-if="step.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
+              <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
+                {{ $t('feedback.good') }}
+              </span>
               <template v-else>
-                <span style="color:var(--color-error)">{{ $t('feedback.bad') }}</span>
-                <span style="color:var(--color-text-muted)">{{ $t('feedback.expected') }}</span>
-                <span v-if="step.expectedHtml" v-html="step.expectedHtml"></span>
-                <span>.</span>
+                <span style="color:var(--color-error)" class="font-medium">
+                  {{ $t('feedback.bad') }},
+                </span>
+                <span style="color:var(--color-text)">
+                  {{ $t('feedback.expected') }}
+                </span>
+                <span v-if="step.expectedHtml" v-html="step.expectedHtml" style="color:var(--color-text)"></span>
               </template>
             </div>
           </div>
@@ -144,7 +152,13 @@ const hasRadioAnswers = computed(() =>
 
 const allFilled = computed(() => {
   if (!props.rendered) return false
-  const activeNames = new Set(statementSegments.value.map(s => 'name' in s ? s.name : null).filter(Boolean))
+  const activeNames = new Set(statementSegments.value.map(s => {
+    if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
+      return s.name
+    }
+    return null
+  }).filter(Boolean))
+  
   const activeAnswers = props.rendered.answers.filter(a => activeNames.has(a.input_name))
   if (activeAnswers.length > 0) {
     return activeAnswers.every(a => (replies.value[a.input_name] ?? '').trim() !== '')
@@ -160,6 +174,7 @@ async function init() {
   if (props.rendered.current_step === 1 || !props.rendered.current_step) {
     currentMStep.value = 1
     stepsHistory.value = []
+    replies.value = {}
   }
   stepFailed.value = false
   currentStepFailedInputName.value = ''
@@ -230,7 +245,12 @@ async function submit() {
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
 
-    const activeNames = new Set(statementSegments.value.map(s => 'name' in s ? s.name : null).filter(Boolean))
+    const activeNames = new Set(statementSegments.value.map(s => {
+      if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
+        return s.name
+      }
+      return null
+    }).filter(Boolean))
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // We look for the result that matches the active input(s) on screen
