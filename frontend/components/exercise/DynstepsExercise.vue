@@ -49,7 +49,10 @@
               {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) * 100) }) }}
             </span>
           </div>
-          <div class="text-sm space-y-1 mt-1">
+
+          <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
+
+          <div v-if="!checkResult?.noanalyzeprint" class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
               <span class="font-medium" style="color:var(--color-text)">

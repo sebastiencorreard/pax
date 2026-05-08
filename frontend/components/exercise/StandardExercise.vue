@@ -51,7 +51,10 @@
             {{ $t('feedback.score', { pct: Math.round(checkResult.global_score * 100) }) }}
           </span>
         </div>
-        <div class="text-sm space-y-1 mt-1">
+        
+        <div v-if="checkResult.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
+
+        <div v-if="!checkResult.noanalyzeprint" class="text-sm space-y-1 mt-1">
           <div v-for="(r, i) in checkResult.results" :key="r.input_name"
                class="flex items-baseline gap-2 flex-wrap">
             <span class="font-medium" style="color:var(--color-text)">

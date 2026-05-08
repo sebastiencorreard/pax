@@ -50,6 +50,8 @@ export interface CheckResult {
   }>
   attempt_id: string
   has_invalid_format?: boolean
+  noanalyzeprint?: boolean
+  feedback_html?: string | null
 }
 
 export type Segment =

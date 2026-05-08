@@ -198,10 +198,11 @@ class DefEngine(_SlibMixin):
             css = re.sub(r"</?style[^>]*>", "", raw_css, flags=re.IGNORECASE).strip()
 
         check_sections = None
-        if "postdef" in df.sections or "test" in df.sections:
+        if "postdef" in df.sections or "test" in df.sections or "feedback" in df.sections:
             check_sections = {
                 "postdef": df.sections.get("postdef", []),
                 "test": df.sections.get("test", []),
+                "feedback": df.sections.get("feedback", []),
                 "ctx": dict(self.ctx),
             }
 
@@ -1162,3 +1163,57 @@ def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int
             if depth == 0:
                 return i
     return len(s) - 1
+
+
+def check_analyze(
+    ev_ctx: dict,
+    postdef_instructions: list,
+    test_instructions: list,
+    analyze_replies: dict,
+    seed: int,
+) -> dict:
+    """Exécute :postdef puis :test avec les réponses élève et retourne les condtestN."""
+    engine = DefEngine(seed=seed)
+    engine.ctx.update(ev_ctx)
+    for var_n, value in analyze_replies.items():
+        # Wrap in parentheses to ensure correct precedence in algebraic expressions
+        engine.ctx[f"val{var_n}"] = f"({value})"
+    engine._exec(postdef_instructions, output_buf=None)
+    engine._exec(test_instructions, output_buf=None)
+    return {k: int(v) for k, v in engine.ctx.items()
+            if k.startswith("condtest") and str(v).strip() in ("0", "1")}
+
+
+def render_feedback(
+    ev_ctx: dict,
+    feedback_instructions: list,
+    replies_by_name: dict,
+    seed: int,
+) -> str:
+    """Exécute :feedback avec les réponses élève et retourne le HTML."""
+    engine = DefEngine(seed=seed)
+    engine.ctx.update(ev_ctx)
+    # Inject student replies into context
+    for name, value in replies_by_name.items():
+        engine.ctx[name] = value
+        # Also alias to short names r1, r2 etc. if it's reply1, reply2
+        import re
+        m = re.match(r"^reply(\d+)$", name)
+        if m:
+            engine.ctx[f"r{m.group(1)}"] = value
+    
+    html = engine._render_section(feedback_instructions)
+    from .presentation import _close_inline_math
+    from .flydraw import inline_svg_imgs
+    html = _close_inline_math(html)
+    html = inline_svg_imgs(html)
+    return html
+
+
+def _parse_numeric(s: str) -> float:
+    """Parse a numeric string that may be a fraction like '3/2' or '-7/4'."""
+    s = s.strip()
+    if "/" in s:
+        parts = s.split("/", 1)
+        return float(parts[0]) / float(parts[1])
+    return float(s)

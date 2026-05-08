@@ -70,6 +70,8 @@ class CheckResponse(BaseModel):
     results: list[AnswerResult]
     attempt_id: str
     has_invalid_format: bool = False
+    noanalyzeprint: bool = False
+    feedback_html: str | None = None
 
 
 def _check_condition(
@@ -227,6 +229,22 @@ async def check_exercise(
 
     has_invalid = any(r.status == "invalid_format" for r in results)
 
+    noanalyzeprint = False
+    for a in rendered.answers:
+        if "noanalyzeprint" in str(a.options.get("option", "")).lower():
+            noanalyzeprint = True
+            break
+
+    feedback_html = None
+    if rendered.check_sections and "feedback" in rendered.check_sections:
+        from core.oef.def_engine import render_feedback
+        feedback_html = render_feedback(
+            ev_ctx=rendered.check_sections["ctx"],
+            feedback_instructions=rendered.check_sections["feedback"],
+            replies_by_name=replies_by_name,
+            seed=body.seed,
+        )
+
     # Sauvegarde la tentative seulement si tout est au bon format
     attempt_id = "00000000-0000-0000-0000-000000000000"
     if not has_invalid:
@@ -250,4 +268,6 @@ async def check_exercise(
         results=results,
         attempt_id=attempt_id,
         has_invalid_format=has_invalid,
+        noanalyzeprint=noanalyzeprint,
+        feedback_html=feedback_html,
     )
