@@ -508,38 +508,6 @@ async function nextStep() {
   await load(rendered.value.seed, nextMStep)
 }
 
-async function advanceFailedStep() {
-  if (currentStepFailedInputName.value) {
-    // Replace with correct answer before moving on
-    replies.value[currentStepFailedInputName.value] = currentStepFailedExpected.value
-  }
-  stepFailed.value = false
-  const currentStep = rendered.value?.current_step || 1
-  const totalSteps = rendered.value?.total_steps || 1
-  
-  if (currentStep < totalSteps) {
-    await nextStep()
-  } else {
-    // End of exercise
-    const correctSteps = stepsHistory.value.filter(s => s.correct).length
-    const score = correctSteps / totalSteps
-    if (score === 1) {
-      addCoins(10)
-      spawnCoins(8)
-    } else if (score >= 0.5) {
-      addCoins(5)
-      spawnCoins(4)
-    } else if (score > 0) {
-      addCoins(1)
-      spawnCoins(1)
-    }
-    if (score < 1) {
-      document.documentElement.classList.add('shake')
-      setTimeout(() => document.documentElement.classList.remove('shake'), 300)
-    }
-  }
-}
-
 async function submit() {
   if (!rendered.value || submitted.value) return
 
@@ -582,26 +550,19 @@ async function submit() {
         }
 
         if (!stepResult.correct) {
-          stepFailed.value = true
-          currentStepFailedExpected.value = stepResult.expected
-          currentStepFailedInputName.value = stepResult.input_name
-          
-          // Auto-advance to next step after a short delay so user can see the correction
+          replies.value[stepResult.input_name] = stepResult.expected
+        }
+
+        // Auto-advance to next step immediately
+        if (currentStep < totalSteps) {
           setTimeout(async () => {
-            await advanceFailedStep()
-          }, 1500)
-        } else {
-          // Auto-advance to next step immediately if correct
-          if (currentStep < totalSteps) {
-            setTimeout(async () => {
-              await nextStep()
-            }, 0)
-          }
+            await nextStep()
+          }, 0)
         }
       }
 
-      // If this is the last step and we didn't just fail (which handles its own end-of-exercise score logic), calculate global score
-      if (currentStep >= totalSteps && (!stepResult || stepResult.correct)) {
+      // Calculate global score if we reached the last step
+      if (currentStep >= totalSteps) {
         const correctSteps = stepsHistory.value.filter(s => s.correct).length
         const score = correctSteps / totalSteps
 
