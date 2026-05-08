@@ -1,14 +1,12 @@
 # PAX - OEF & WIMS Engine Context
 
-## Current Status (May 4th, 2026)
-- **Unified Parsing**: Replaced manual OEF parsing with a robust **Lark-based AST parser (V9)** in `backend/core/oef/parser.py`.
-- **AST Evaluation**: `OEFEvaluator` now traverses the AST directly, supporting nested structures, complex logic, and math expressions.
-- **DefEngine (New Core)**: Introduced a sophisticated engine for compiled WIMS `.def` scripts (`backend/core/oef/def_engine.py`).
-    - Full interpreter for WIMS script commands (`!if`, `!for`, `!readproc`, etc.).
-    - CAS integration: Uses **SymPy** as a drop-in replacement for Maxima/Pari/GP operations.
-    - Slib support: Executing shared WIMS library scripts.
-- **Flydraw Renderer**: Re-implemented WIMS' vector drawing language in `backend/core/oef/flydraw.py`, producing high-quality inline SVGs.
-- **Robust Answer Checking**: `backend/core/answer/checkers.py` uses SymPy for symbolic, algebraic, and formal equivalence verification.
+## Current Status (May 8th, 2026)
+- **Frontend Refactoring**: Split `ExercisePlayer.vue` into `BaseExerciseStatement`, `StandardExercise`, and `DynstepsExercise` for better maintainability.
+- **Unified Parsing**: Lark-based AST parser (V9) in `backend/core/oef/parser.py`.
+- **AST Evaluation**: `OEFEvaluator` supports complex logic and math expressions.
+- **DefEngine**: Full interpreter for WIMS script commands (`!if`, `!for`, `!readproc`, etc.).
+- **Flydraw Renderer**: SVG generation for WIMS vector drawing language.
+- **Answer Checking**: SymPy-based symbolic equivalence verification.
 
 ## Key Components
 - **`parser.py` / `evaluator.py`**: EBNF grammar and recursive evaluator for `.oef` source files.
