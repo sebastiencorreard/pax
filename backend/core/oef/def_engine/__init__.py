@@ -214,6 +214,9 @@ class DefEngine(_SlibMixin):
             ev_ctx=dict(self.ctx),
             check_sections=check_sections,
             exercise_type=exercise_type,
+            is_dynsteps=is_dynsteps_var,
+            current_step=type_meta.get("current_step"),
+            total_steps=type_meta.get("total_steps"),
             type_meta=type_meta,
             css=css,
         )

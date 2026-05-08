@@ -315,9 +315,11 @@ async function submit() {
 }
 
 function fillAnswers(answers: Record<string, string>) {
+  const newReplies = { ...replies.value }
   for (const [name, value] of Object.entries(answers)) {
-    if (name in replies.value) replies.value[name] = value
+    if (name in newReplies) newReplies[name] = value
   }
+  replies.value = newReplies
 }
 
 defineExpose({ fillAnswers })

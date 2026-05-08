@@ -162,7 +162,15 @@ onMounted(() => load())
 
 function fillAnswers(answers: Record<string, string>) {
   if (exerciseComponent.value && exerciseComponent.value.fillAnswers) {
-    exerciseComponent.value.fillAnswers(answers)
+    // Filter answers to only fill those currently visible on screen
+    const activeNames = new Set(rendered.value?.statement_segments
+      .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
+      .filter(Boolean)
+    )
+    const filteredAnswers = Object.fromEntries(
+      Object.entries(answers).filter(([name]) => activeNames.has(name))
+    )
+    exerciseComponent.value.fillAnswers(filteredAnswers)
   }
 }
 

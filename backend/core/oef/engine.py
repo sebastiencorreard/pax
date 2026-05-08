@@ -33,14 +33,15 @@ class ExerciseRender:
     hint_html: str
     solution_html: str
     seed: int
-    meta: dict  # author, email, etc.
-    condition: dict | None = (
-        None  # \condition{label}{expr} pour la vérification globale
-    )
-    ev_ctx: dict = field(default_factory=dict)  # contexte de l'évaluateur (variables)
-    check_sections: dict | None = None  # sections :postdef + :test pour les réponses ?analyze
+    meta: dict
+    condition: dict | None = None
+    ev_ctx: dict = field(default_factory=dict)
+    check_sections: dict | None = None
     # Dynamic steps info
     exercise_type: str = "standard"
+    is_dynsteps: bool = False
+    current_step: int | None = None
+    total_steps: int | None = None
     type_meta: dict = field(default_factory=dict)
     css: str | None = None
 
