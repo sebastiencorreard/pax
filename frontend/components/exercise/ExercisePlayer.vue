@@ -28,41 +28,44 @@
       </div>
     </div>
 
-    <!-- Erreur ou chargement -->
+    <!-- Erreur -->
     <div v-if="loadError" class="px-6 py-6">
       <div class="text-red-500 text-sm p-2 border border-red-300 rounded">
         Erreur : {{ loadError }}
       </div>
     </div>
 
-    <div v-else-if="loading" class="px-6 py-6">
-      <div class="animate-pulse space-y-3">
-        <div class="h-4 rounded" style="background:var(--color-border);width:80%"></div>
-        <div class="h-4 rounded" style="background:var(--color-border);width:60%"></div>
-        <div class="h-8 rounded" style="background:var(--color-border);width:40%"></div>
+    <!-- Contenu Principal -->
+    <div class="relative min-h-[10rem]">
+      <!-- Chargement (overlay) -->
+      <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-gray-900/60 backdrop-blur-[1px] transition-opacity">
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-8 h-8 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+          <span class="text-xs font-medium text-gray-500">{{ $t('exercise.loading') }}</span>
+        </div>
       </div>
-    </div>
 
-    <!-- Router -->
-    <template v-else-if="rendered">
-      <DynstepsExercise
-        v-if="rendered.exercise_type === 'dynsteps'"
-        ref="exerciseComponent"
-        :rendered="rendered"
-        :exercise-id="exerciseId"
-        :debug-answers="debugAnswers"
-        @reload="reload"
-        @load-step="(m_step) => load(rendered?.seed, m_step)"
-      />
-      <StandardExercise
-        v-else
-        ref="exerciseComponent"
-        :rendered="rendered"
-        :exercise-id="exerciseId"
-        :debug-answers="debugAnswers"
-        @reload="reload"
-      />
-    </template>
+      <!-- Router -->
+      <template v-if="rendered">
+        <DynstepsExercise
+          v-if="rendered.exercise_type === 'dynsteps'"
+          ref="exerciseComponent"
+          :rendered="rendered"
+          :exercise-id="exerciseId"
+          :debug-answers="debugAnswers"
+          @reload="reload"
+          @load-step="(m_step) => load(rendered?.seed, m_step)"
+        />
+        <StandardExercise
+          v-else
+          ref="exerciseComponent"
+          :rendered="rendered"
+          :exercise-id="exerciseId"
+          :debug-answers="debugAnswers"
+          @reload="reload"
+        />
+      </template>
+    </div>
 
     <!-- Indice -->
     <div v-if="rendered?.hint_html" class="px-6 pb-6 pt-2">

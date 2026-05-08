@@ -256,19 +256,17 @@ async function submit() {
     }).filter(Boolean))
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
-    // We look for the result that matches the active input(s) on screen
-    const stepResult = activeResults.length > 0 ? activeResults[activeResults.length - 1] : null
-
-    if (stepResult) {
-      const existingIdx = stepsHistory.value.findIndex(s => s.step === currentStep)
+    // Update history for each active input in this step
+    for (const res of activeResults) {
+      const existingIdx = stepsHistory.value.findIndex(s => s.input_name === res.input_name)
       const newItem = {
         step: currentStep,
-        correct: stepResult.correct,
-        expected: stepResult.expected,
-        input_name: stepResult.input_name,
-        label: props.rendered.answers.find(a => a.input_name === stepResult.input_name)?.label,
-        expectedHtml: feedbackHtml.value[stepResult.input_name]?.expected,
-        replyHtml: feedbackHtml.value[stepResult.input_name]?.reply
+        correct: res.correct,
+        expected: res.expected,
+        input_name: res.input_name,
+        label: props.rendered.answers.find(a => a.input_name === res.input_name)?.label,
+        expectedHtml: feedbackHtml.value[res.input_name]?.expected,
+        replyHtml: feedbackHtml.value[res.input_name]?.reply
       }
       if (existingIdx >= 0) {
         stepsHistory.value[existingIdx] = newItem
@@ -276,24 +274,25 @@ async function submit() {
         stepsHistory.value.push(newItem)
       }
 
-      if (!stepResult.correct) {
+      if (!res.correct) {
         stepFailed.value = true
-        currentStepFailedInputName.value = stepResult.input_name
-        replies.value[stepResult.input_name] = stepResult.expected
+        currentStepFailedInputName.value = res.input_name
+        // For dynsteps, we often fill the correct answer on failure to allow moving forward
+        replies.value[res.input_name] = res.expected
       }
+    }
 
-      // Auto-advance to next step immediately
-      if (currentStep < totalSteps) {
-        setTimeout(async () => {
-          await nextStep()
-        }, 0)
-      }
+    // Auto-advance to next step immediately if at least one input was processed
+    if (activeResults.length > 0 && currentStep < totalSteps) {
+      setTimeout(async () => {
+        await nextStep()
+      }, 0)
     }
 
     // Only finalize score and show results at the end
     if (currentStep >= totalSteps) {
       const correctSteps = stepsHistory.value.filter(s => s.correct).length
-      const score = correctSteps / totalSteps
+      const score = stepsHistory.value.length > 0 ? correctSteps / stepsHistory.value.length : 0
 
       if (score === 1) {
         addCoins(10)
