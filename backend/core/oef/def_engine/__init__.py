@@ -196,6 +196,11 @@ class DefEngine(_SlibMixin):
                         break
                     continue
 
+        raw_css = self.ctx.get("oefcss") or self.ctx.get("css", "")
+        css = None
+        if raw_css:
+            css = re.sub(r"</?style[^>]*>", "", raw_css, flags=re.IGNORECASE).strip()
+
         return ExerciseRender(
             title=self._subst(df.title),
             lang=df.meta.get("language", "fr"),
@@ -211,6 +216,7 @@ class DefEngine(_SlibMixin):
             is_dynsteps=is_dynsteps,
             current_step=current_step,
             total_steps=total_steps,
+            css=css,
         )
 
     # ── Instruction execution ─────────────────────────────────────────────────

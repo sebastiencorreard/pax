@@ -1,6 +1,7 @@
 <template>
   <div class="rounded-xl border shadow-sm overflow-hidden"
        style="background:var(--color-surface);border-color:var(--color-border)">
+    <component :is="'style'" v-if="rendered?.css" scoped>{{ rendered.css }}</component>
 
     <!-- Pièces volantes -->
     <span v-for="c in flyingCoins" :key="c.id"
@@ -293,6 +294,7 @@ interface Rendered {
   is_dynsteps: boolean
   current_step: number | null
   total_steps: number | null
+  css: string | null
 }
 
 interface CheckResult {

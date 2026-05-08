@@ -33,6 +33,7 @@ class RenderOut(BaseModel):
     is_dynsteps: bool = False
     current_step: int | None = None
     total_steps: int | None = None
+    css: str | None = None
 
 
 @router.get("/{exercise_id}", response_model=RenderOut)
@@ -79,6 +80,7 @@ async def render_exercise(
         is_dynsteps=rendered.is_dynsteps,
         current_step=rendered.current_step,
         total_steps=rendered.total_steps,
+        css=rendered.css,
     )
 
 

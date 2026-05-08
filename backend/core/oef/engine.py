@@ -43,6 +43,7 @@ class ExerciseRender:
     is_dynsteps: bool = False
     current_step: int | None = None
     total_steps: int | None = None
+    css: str | None = None
 
 
 def find_def_path(oef_path: str) -> str | None:
