@@ -171,14 +171,17 @@ async function init() {
   checkResult.value = null
   feedbackHtml.value = {}
   
+  // Only reset history if we are back at step 1
   if (props.rendered.current_step === 1 || !props.rendered.current_step) {
     currentMStep.value = 1
     stepsHistory.value = []
     replies.value = {}
   }
+  
   stepFailed.value = false
   currentStepFailedInputName.value = ''
 
+  // Initialize new inputs for this step without wiping existing ones
   for (const ans of props.rendered.answers) {
     if (!(ans.input_name in replies.value)) {
       replies.value[ans.input_name] = ''
