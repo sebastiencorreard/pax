@@ -12,8 +12,8 @@ from api.deps import get_current_user, require_role
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 _TEACHER_CREATABLE = {"student"}
-_ADMIN_CREATABLE   = {"student", "teacher", "admin"}
-_SUPERADMIN_CREATABLE = {"student", "teacher", "admin", "super_admin"}
+_ADMIN_CREATABLE   = {"student", "teacher"}
+_SUPERADMIN_CREATABLE = {"student", "teacher"}
 
 
 def _etab_filter(q, current_user: User):
