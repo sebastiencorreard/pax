@@ -16,6 +16,66 @@ class CheckResult:
     score: float  # 0.0 à 1.0
     method: str  # "numeric", "sympy", "exact", ...
     detail: str = ""  # message optionnel pour le feedback
+    status: str = "ok"  # "ok", "invalid_format"
+
+
+def is_polexpand(s: str) -> bool:
+    """Vérifie si une expression est sous forme développée et réduite."""
+    try:
+        import sympy
+        from sympy.parsing.sympy_parser import (
+            parse_expr,
+            standard_transformations,
+            implicit_multiplication_application,
+        )
+
+        transformations = standard_transformations + (
+            implicit_multiplication_application,
+        )
+        expr = parse_expr(
+            s.replace("^", "**"), transformations=transformations, evaluate=False
+        )
+
+        def is_monomial(e):
+            if e.is_Number or e.is_Symbol:
+                return True
+            if e.is_Pow:
+                return e.base.is_Symbol and e.exp.is_Number
+            if e.is_Mul:
+                return all(
+                    arg.is_Number
+                    or arg.is_Symbol
+                    or (arg.is_Pow and arg.base.is_Symbol and arg.exp.is_Number)
+                    for arg in e.args
+                )
+            return False
+
+        if expr.is_Add:
+            if not all(is_monomial(arg) for arg in expr.args):
+                return False
+
+            def get_signature(m):
+                if m.is_Number:
+                    return "1"
+                if m.is_Symbol:
+                    return str(m)
+                if m.is_Pow:
+                    return f"{m.base}^{m.exp}"
+                if m.is_Mul:
+                    non_nums = [
+                        get_signature(arg) for arg in m.args if not arg.is_Number
+                    ]
+                    return "*".join(sorted(non_nums)) if non_nums else "1"
+                return str(m)
+
+            sigs = [get_signature(arg) for arg in expr.args]
+            if len(sigs) != len(set(sigs)):
+                return False
+            return True
+
+        return is_monomial(expr)
+    except Exception:
+        return True  # En cas d'erreur de parsing, on laisse passer au checker normal
 
 
 # ------------------------------------------------------------------ #
@@ -333,6 +393,18 @@ def check_answer(
     """
     options = options or {}
     precision = float(options.get("precision", 1e-4))
+    
+    # Pre-check polexpand if requested
+    opt_str = str(options.get("option", "")).lower()
+    if "polexpand" in opt_str or "expand" in opt_str:
+        if reply.strip() and not is_polexpand(reply):
+            return CheckResult(
+                correct=False,
+                score=0.0,
+                method="polexpand",
+                status="invalid_format",
+                detail=f"La réponse {reply} que vous avez donnée n'est pas écrite comme il faut. Veuillez la réécrire correctement."
+            )
 
     match answer_type.lower():
         case "numeric":

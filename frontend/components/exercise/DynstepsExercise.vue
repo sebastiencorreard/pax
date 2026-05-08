@@ -21,20 +21,32 @@
       @submit="submit"
     />
 
+    <!-- Erreurs de format -->
+    <div v-if="checkResult?.has_invalid_format" class="px-6 pb-4">
+      <div v-for="r in checkResult.results.filter(res => res.status === 'invalid_format')" :key="r.input_name"
+           class="rounded-lg px-4 py-3 border flex gap-3"
+           style="border-color:#fbbf24;background:color-mix(in srgb, #fbbf24 10%, transparent);color:#92400e">
+        <span class="text-lg">⚠️</span>
+        <div class="py-0.5">
+          <p class="font-medium">{{ r.detail }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Résultats Dynsteps -->
-    <div v-if="checkResult && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0))" class="px-6 pb-4">
-      <!-- Bilan Global (à la fin) -->
-      <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0)" class="space-y-3">
+    <div v-if="checkResult && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
+      <!-- Bilan Global (à la fin ou arrêt course) -->
+      <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
-             :style="(stepsHistory.filter(s => s.correct).length / stepsHistory.length) >= 0.9
+             :style="(stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) >= 0.9
                ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
-               : (stepsHistory.filter(s => s.correct).length / stepsHistory.length) === 0
+               : (stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) === 0
                  ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
                  : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
           <div class="font-semibold text-lg mb-2">
             {{ $t('exercise.steps_completed') }}
             <span ref="scoreEl" class="font-normal text-sm ml-2">
-              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (stepsHistory.length || 1)) * 100) }) }}
+              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) * 100) }) }}
             </span>
           </div>
           <div class="text-sm space-y-1 mt-1">
@@ -95,7 +107,7 @@
         Réponse auto
       </button>
 
-      <button v-if="submitted && ((rendered.current_step || 0) >= (rendered.total_steps || 0))"
+      <button v-if="submitted && ((rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)"
               @click="$emit('reload')"
               class="px-6 py-2.5 rounded-lg font-medium border transition"
               style="border-color:var(--color-border)">
@@ -150,8 +162,11 @@ const hasRadioAnswers = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
 )
 
+const isCourse = computed(() => props.rendered?.exercise_type === 'course')
+const courseStopped = ref(false)
+
 const allFilled = computed(() => {
-  if (!props.rendered) return false
+  if (!props.rendered || courseStopped.value) return false
   const activeNames = new Set(statementSegments.value.map(s => {
     if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
       return s.name
@@ -176,6 +191,7 @@ async function init() {
     currentMStep.value = 1
     stepsHistory.value = []
     replies.value = {}
+    courseStopped.value = false
   }
   
   stepFailed.value = false
@@ -195,6 +211,12 @@ async function init() {
   radioChoicesHtml.value = choices.radioChoicesHtml
   menuChoicesHtml.value = choices.menuChoicesHtml
 }
+
+watch(replies, () => {
+  if (checkResult.value?.has_invalid_format) {
+    checkResult.value = null
+  }
+}, { deep: true })
 
 watch(() => props.rendered, () => init(), { deep: true })
 onMounted(() => init())
@@ -242,9 +264,18 @@ async function submit() {
 
     checkResult.value = await apiFetch<CheckResult>(`/api/check/${props.exerciseId}`, {
       method: 'POST',
-      body: { seed: props.rendered.seed, replies: replyList },
+      body: { 
+        seed: props.rendered.seed, 
+        replies: replyList,
+        m_step: currentStep
+      },
     })
     
+    if (checkResult.value.has_invalid_format) {
+      checking.value = false
+      return
+    }
+
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
 
@@ -257,6 +288,7 @@ async function submit() {
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // Update history for each active input in this step
+    let stepHasError = false
     for (const res of activeResults) {
       const existingIdx = stepsHistory.value.findIndex(s => s.input_name === res.input_name)
       const newItem = {
@@ -275,24 +307,33 @@ async function submit() {
       }
 
       if (!res.correct) {
+        stepHasError = true
         stepFailed.value = true
         currentStepFailedInputName.value = res.input_name
         // For dynsteps, we often fill the correct answer on failure to allow moving forward
-        replies.value[res.input_name] = res.expected
+        // BUT for courses, we stop.
+        if (!isCourse.value) {
+          replies.value[res.input_name] = res.expected
+        }
       }
     }
 
+    if (isCourse.value && stepHasError) {
+      courseStopped.value = true
+    }
+
     // Auto-advance to next step immediately if at least one input was processed
-    if (activeResults.length > 0 && currentStep < totalSteps) {
+    // and there was no error in a course
+    if (activeResults.length > 0 && currentStep < totalSteps && !courseStopped.value) {
       setTimeout(async () => {
         await nextStep()
       }, 0)
     }
 
-    // Only finalize score and show results at the end
-    if (currentStep >= totalSteps) {
+    // Only finalize score and show results at the end or if course stopped
+    if (currentStep >= totalSteps || courseStopped.value) {
       const correctSteps = stepsHistory.value.filter(s => s.correct).length
-      const score = stepsHistory.value.length > 0 ? correctSteps / stepsHistory.value.length : 0
+      const score = totalSteps > 0 ? correctSteps / totalSteps : 0
 
       if (score === 1) {
         addCoins(10)

@@ -21,8 +21,20 @@
       @submit="submit"
     />
 
+    <!-- Erreurs de format -->
+    <div v-if="checkResult?.has_invalid_format" class="px-6 pb-4">
+      <div v-for="r in checkResult.results.filter(res => res.status === 'invalid_format')" :key="r.input_name"
+           class="rounded-lg px-4 py-3 border flex gap-3"
+           style="border-color:#fbbf24;background:color-mix(in srgb, #fbbf24 10%, transparent);color:#92400e">
+        <span class="text-lg">⚠️</span>
+        <div class="py-0.5">
+          <p class="font-medium">{{ r.detail }}</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Résultats Standard -->
-    <div v-if="checkResult" class="px-6 pb-4">
+    <div v-if="checkResult && !checkResult.has_invalid_format" class="px-6 pb-4">
       <div class="rounded-lg px-4 py-3 border"
            :style="checkResult.global_score === 1
              ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
@@ -150,6 +162,12 @@ async function init() {
   menuChoicesHtml.value = choices.menuChoicesHtml
 }
 
+watch(replies, () => {
+  if (checkResult.value?.has_invalid_format) {
+    checkResult.value = null
+  }
+}, { deep: true })
+
 watch(() => props.rendered, () => init(), { deep: true })
 onMounted(() => init())
 
@@ -185,9 +203,18 @@ async function submit() {
 
     checkResult.value = await apiFetch<CheckResult>(`/api/check/${props.exerciseId}`, {
       method: 'POST',
-      body: { seed: props.rendered.seed, replies: replyList },
+      body: { 
+        seed: props.rendered.seed, 
+        replies: replyList,
+        m_step: props.rendered.current_step
+      },
     })
     
+    if (checkResult.value.has_invalid_format) {
+      checking.value = false
+      return
+    }
+
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
 

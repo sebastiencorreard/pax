@@ -59,6 +59,8 @@ class AnswerResult(BaseModel):
     method: str
     reply: str | None = None  # réponse de l'élève
     expected: str | None = None  # correction
+    status: str = "ok"
+    detail: str | None = None
 
 
 class CheckResponse(BaseModel):
@@ -66,6 +68,7 @@ class CheckResponse(BaseModel):
     global_score: float  # moyenne pondérée
     results: list[AnswerResult]
     attempt_id: str
+    has_invalid_format: bool = False
 
 
 def _check_condition(
@@ -130,7 +133,7 @@ async def check_exercise(
 
     # Re-rend l'exercice avec le même seed → mêmes valeurs attendues
     try:
-        rendered = load_and_render(exercise.oef_path, seed=body.seed)
+        rendered = load_and_render(exercise.oef_path, seed=body.seed, m_step=body.m_step)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
 
@@ -207,6 +210,8 @@ async def check_exercise(
                     method=check.method,
                     reply=reply_value,
                     expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
+                    status=check.status,
+                    detail=check.detail,
                 )
             )
             weighted_score += check.score * ans_def.weight
@@ -214,23 +219,31 @@ async def check_exercise(
 
         global_score = weighted_score / total_weight if total_weight > 0 else 0.0
 
-    # Sauvegarde la tentative
-    attempt = Attempt(
-        student_id=current_user.id,
-        exercise_id=exercise_id,
-        sheet_id=body.sheet_id,
-        score=global_score,
-        answers={r.input_name: r.value for r in body.replies},
-        seed=body.seed,
-        is_graded=body.sheet_id is not None,
-    )
-    db.add(attempt)
-    await db.commit()
-    await db.refresh(attempt)
+    has_invalid = any(r.status == "invalid_format" for r in results)
+
+    # Sauvegarde la tentative seulement si tout est au bon format
+    attempt_id = "00000000-0000-0000-0000-000000000000"
+    if not has_invalid:
+        attempt = Attempt(
+            student_id=current_user.id,
+            exercise_id=exercise_id,
+            sheet_id=body.sheet_id,
+            score=global_score,
+            answers={r.input_name: r.value for r in body.replies},
+            seed=body.seed,
+            is_graded=body.sheet_id is not None,
+        )
+        db.add(attempt)
+        await db.commit()
+        await db.refresh(attempt)
+        attempt_id = str(attempt.id)
 
     return CheckResponse(
         exercise_id=exercise_id,
         global_score=global_score,
         results=results,
-        attempt_id=str(attempt.id),
+        attempt_id=attempt_id,
+        has_invalid_format=has_invalid,
+    )
+id,
     )
