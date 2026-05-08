@@ -48,7 +48,7 @@
       <!-- Router -->
       <template v-if="rendered">
         <DynstepsExercise
-          v-if="rendered.exercise_type === 'dynsteps'"
+          v-if="rendered.exercise_type === 'dynsteps' || rendered.exercise_type === 'course'"
           ref="exerciseComponent"
           :rendered="rendered"
           :exercise-id="exerciseId"

@@ -45,8 +45,11 @@ export interface CheckResult {
     method: string
     reply: string
     expected: string
+    status: string
+    detail?: string
   }>
   attempt_id: string
+  has_invalid_format?: boolean
 }
 
 export type Segment =
