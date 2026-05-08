@@ -27,14 +27,14 @@ Le site est ensuite accessible dans un navigateur à l'adresse localhost:3000
 
 Il faut peupler les base de données. Pour le moment, à la main :
 
-Tables des utilisateurs :
-./create_user.sh --email admin@pax.fr --first-name Jane --last-name Goodall --role admin
-
 Table des académies :
 docker compose exec backend python scripts/import_academies.py /ressources/a_integrer_dans_db/academies_france.csv
 
 Table des établissements (Aix-Marseille seulement, pour le moment) :
 docker compose exec backend python scripts/import_etablissements.py ac-aix-marseille.fr /ressources/a_integrer_dans_db/etablissements_aix_marseille.csv
+
+Tables des utilisateurs :
+./create_user.sh --email admin@pax.fr --first-name Jane --last-name Goodall --role admin
 
 ## Hot reload
 

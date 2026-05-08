@@ -17,7 +17,7 @@
       <NuxtLink to="/" aria-label="PAX" class="flex-1">
         <img src="/pax.svg" alt="PAX" class="h-6 w-auto" />
       </NuxtLink>
-      <button v-if="isDev"
+      <button v-if="auth.isAdmin"
               type="button"
               @click="debugMode = !debugMode"
               :title="debugMode ? 'Masquer le debug' : 'Afficher le debug'"
