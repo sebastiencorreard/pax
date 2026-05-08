@@ -50,14 +50,10 @@
             </span>
           </div>
 
-          <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
-
           <div class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
-              <span class="font-medium" style="color:var(--color-text)">
-                {{ step.label || $t('exercise.step_label', { n: step.step }) }} :
-              </span>
+              <span class="font-medium" style="color:var(--color-text)" v-html="step.labelHtml || step.label || $t('exercise.step_label', { n: step.step }) + ' :'"></span>
               <span v-if="step.replyHtml && !checkResult?.noanalyzeprint" v-html="step.replyHtml"></span>
               <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
                 {{ $t('feedback.good') }}
@@ -75,6 +71,8 @@
               </template>
             </div>
           </div>
+
+          <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
         </div>
       </div>
 
@@ -143,6 +141,7 @@ const { apiFetch } = useApi()
 const { debugMode: debugOef } = useDebugMode()
 const { addCoins } = useCoins()
 const { buildSegments, buildFeedbackHtml, prepareChoicesHtml } = useExerciseLogic()
+const { renderMath } = useKatex()
 
 const replies = ref<Record<string, string>>({})
 const statementSegments = ref<Segment[]>([])
@@ -297,12 +296,15 @@ async function submit() {
     let stepHasError = false
     for (const res of activeResults) {
       const existingIdx = stepsHistory.value.findIndex(s => s.input_name === res.input_name)
+      const rawLabel = props.rendered.answers.find(a => a.input_name === res.input_name)?.label || ''
+      const labelHtml = rawLabel ? await renderMath(rawLabel) : ''
       const newItem = {
         step: currentStep,
         correct: res.correct,
         expected: res.expected,
         input_name: res.input_name,
-        label: props.rendered.answers.find(a => a.input_name === res.input_name)?.label,
+        label: rawLabel,
+        labelHtml: labelHtml,
         expectedHtml: feedbackHtml.value[res.input_name]?.expected,
         replyHtml: feedbackHtml.value[res.input_name]?.reply
       }

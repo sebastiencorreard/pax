@@ -52,13 +52,10 @@
           </span>
         </div>
         
-        <div v-if="checkResult.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
-
         <div class="text-sm space-y-1 mt-1">
           <div v-for="(r, i) in checkResult.results" :key="r.input_name"
                class="flex items-baseline gap-2 flex-wrap">
-            <span class="font-medium" style="color:var(--color-text)">
-              {{ rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) }} :
+            <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'">
             </span>
             <span v-if="!checkResult.noanalyzeprint" v-html="feedbackHtml[r.input_name]?.reply"></span>
             <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">
@@ -77,6 +74,8 @@
             </template>
           </div>
         </div>
+
+        <div v-if="checkResult.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
       </div>
     </div>
 
@@ -125,8 +124,10 @@ const { apiFetch } = useApi()
 const { debugMode: debugOef } = useDebugMode()
 const { addCoins } = useCoins()
 const { buildSegments, buildFeedbackHtml, prepareChoicesHtml } = useExerciseLogic()
+const { renderMath } = useKatex()
 
 const replies = ref<Record<string, string>>({})
+const labelsHtml = ref<Record<string, string>>({})
 const statementSegments = ref<Segment[]>([])
 const clickfillChoicesHtml = ref<Array<{ raw: string; html: string }>>([])
 const radioChoicesHtml = ref<Record<string, Array<{ raw: string; html: string }>>>({})
@@ -154,9 +155,13 @@ async function init() {
   checkResult.value = null
   feedbackHtml.value = {}
   replies.value = {}
+  labelsHtml.value = {}
   
   for (const ans of props.rendered.answers) {
     replies.value[ans.input_name] = ''
+    if (ans.label) {
+      labelsHtml.value[ans.input_name] = await renderMath(ans.label)
+    }
   }
 
   statementSegments.value = await buildSegments(props.rendered.statement_segments)
