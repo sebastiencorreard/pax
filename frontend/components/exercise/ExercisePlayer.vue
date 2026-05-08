@@ -210,13 +210,7 @@
 
     <!-- Boutons -->
     <div class="px-6 pb-6 flex items-center gap-3 flex-wrap">
-      <button v-if="stepFailed"
-              @click="advanceFailedStep"
-              class="px-6 py-2.5 rounded-lg font-medium transition"
-              style="background:var(--color-primary);color:#fff">
-        {{ $t('exercise.next_step') }}
-      </button>
-      <button v-else @click="submit" :disabled="loading || checking || submitted || !allFilled"
+      <button @click="submit" :disabled="loading || checking || submitted || !allFilled"
               class="px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-60"
               style="background:var(--color-primary);color:#fff">
         {{ submitted ? $t('exercise.corrected') : $t('exercise.verify') }}
@@ -591,6 +585,11 @@ async function submit() {
           stepFailed.value = true
           currentStepFailedExpected.value = stepResult.expected
           currentStepFailedInputName.value = stepResult.input_name
+          
+          // Auto-advance to next step after a short delay so user can see the correction
+          setTimeout(async () => {
+            await advanceFailedStep()
+          }, 1500)
         } else {
           // Auto-advance to next step immediately if correct
           if (currentStep < totalSteps) {
@@ -601,7 +600,7 @@ async function submit() {
         }
       }
 
-      // If this is the last step and we didn't just fail, calculate global score
+      // If this is the last step and we didn't just fail (which handles its own end-of-exercise score logic), calculate global score
       if (currentStep >= totalSteps && (!stepResult || stepResult.correct)) {
         const correctSteps = stepsHistory.value.filter(s => s.correct).length
         const score = correctSteps / totalSteps
