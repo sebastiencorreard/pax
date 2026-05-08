@@ -1204,7 +1204,7 @@ def render_feedback(
     
     html = engine._render_section(feedback_instructions)
     from .presentation import _close_inline_math
-    from .flydraw import inline_svg_imgs
+    from ..flydraw import inline_svg_imgs
     html = _close_inline_math(html)
     html = inline_svg_imgs(html)
     return html
