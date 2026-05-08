@@ -215,8 +215,25 @@ def _sympy_to_latex(expr: str) -> str:
     """Convert a SymPy output string to LaTeX notation for display."""
     import sympy  # noqa: PLC0415
 
+    expr_strip = expr.strip()
+    wrapped = False
+    if expr_strip.startswith("(") and expr_strip.endswith(")"):
+        depth = 0
+        is_single_group = True
+        for i, c in enumerate(expr_strip):
+            if c == "(": depth += 1
+            elif c == ")": depth -= 1
+            if depth == 0 and i < len(expr_strip) - 1:
+                is_single_group = False
+                break
+        if is_single_group:
+            wrapped = True
+
     try:
-        return sympy.latex(sympy.sympify(expr.replace("^", "**")))
+        res = sympy.latex(sympy.sympify(expr_strip.replace("^", "**")))
+        if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
+            res = f"\\left({res}\\right)"
+        return res
     except Exception:
         return expr
 

@@ -28,8 +28,25 @@ def _normalize_math_content(s: str) -> str:
         side = side.strip()
         if not side:
             return side
+            
+        wrapped = False
+        if side.startswith("(") and side.endswith(")"):
+            depth = 0
+            is_single_group = True
+            for i, c in enumerate(side):
+                if c == "(": depth += 1
+                elif c == ")": depth -= 1
+                if depth == 0 and i < len(side) - 1:
+                    is_single_group = False
+                    break
+            if is_single_group:
+                wrapped = True
+
         try:
-            return sympy.latex(sympy.sympify(side.replace("^", "**")))
+            res = sympy.latex(sympy.sympify(side.replace("^", "**")))
+            if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
+                res = f"\\left({res}\\right)"
+            return res
         except Exception:
             return side
 

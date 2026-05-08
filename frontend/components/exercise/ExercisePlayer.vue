@@ -160,11 +160,11 @@
           <div class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
-              <span style="color:var(--color-text-muted)">{{ $t('exercise.step_label', { n: step.step }) }}</span>
+              <span style="color:var(--color-text-muted)">{{ step.label ? step.label + ' :' : $t('exercise.step_label', { n: step.step }) + ' :' }}</span>
+              <span v-if="step.replyHtml" v-html="step.replyHtml"></span>
               <span v-if="step.correct" style="color:var(--color-success)">{{ $t('feedback.good') }}</span>
               <template v-else>
                 <span style="color:var(--color-error)">{{ $t('feedback.bad') }}</span>
-                <span v-if="step.replyHtml" v-html="step.replyHtml"></span>
                 <span style="color:var(--color-text-muted)">{{ $t('feedback.expected') }}</span>
                 <span v-if="step.expectedHtml" v-html="step.expectedHtml"></span>
                 <span>.</span>
@@ -354,7 +354,7 @@ const statementEl = ref<HTMLElement | null>(null)
 
 // Dynamic steps tracking
 const currentMStep = ref<number>(1)
-const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string, input_name?: string, expectedHtml?: string, replyHtml?: string }>>([])
+const stepsHistory = ref<Array<{ step: number; correct: boolean; expected: string, input_name?: string, expectedHtml?: string, replyHtml?: string, label?: string }>>([])
 const stepFailed = ref(false)
 const currentStepFailedExpected = ref('')
 const currentStepFailedInputName = ref('')
@@ -571,14 +571,21 @@ async function submit() {
       const stepResult = activeResults.length > 0 ? activeResults[activeResults.length - 1] : checkResult.value.results[currentStep - 1]
 
       if (stepResult) {
-        stepsHistory.value.push({
+        const existingIdx = stepsHistory.value.findIndex(s => s.step === currentStep)
+        const newItem = {
           step: currentStep,
           correct: stepResult.correct,
           expected: stepResult.expected,
           input_name: stepResult.input_name,
+          label: rendered.value.answers.find(a => a.input_name === stepResult.input_name)?.label,
           expectedHtml: feedbackHtml.value[stepResult.input_name]?.expected,
           replyHtml: feedbackHtml.value[stepResult.input_name]?.reply
-        })
+        }
+        if (existingIdx >= 0) {
+          stepsHistory.value[existingIdx] = newItem
+        } else {
+          stepsHistory.value.push(newItem)
+        }
 
         if (!stepResult.correct) {
           stepFailed.value = true
