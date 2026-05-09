@@ -156,9 +156,8 @@ class DefEngine(_SlibMixin):
             # Try to extract total steps from common variable names.
             # 1. Look at oefsteps first
             if oefsteps_val:
-                # oefsteps is usually semicolon or line separated
-                # r1 r2; r3; r4
-                steps = re.split(r"[;\n\r]+", oefsteps_val)
+                # oefsteps may be tab-, semicolon-, or newline-separated (e.g. "r1\tr2\tr3\tr4")
+                steps = re.split(r"[;\n\r\t]+", oefsteps_val)
                 steps = [s.strip() for s in steps if s.strip()]
                 if steps:
                     type_meta["total_steps"] = len(steps)
@@ -490,13 +489,7 @@ class DefEngine(_SlibMixin):
                 return needle not in haystack
             if op in ("issametext", "isnotreexpanded"):
                 # Literal string comparison (re-expanded is for WIMS' internal CAS cache)
-                n = needle.replace(" ", "")
-                h = haystack.replace(" ", "")
-                # If they look like math (contain *, ^, x, y, z), also ignore * for robustness
-                if any(c in n for c in "*^xyz") or any(c in h for c in "*^xyz"):
-                    n = n.replace("*", "").replace("**", "^")
-                    h = h.replace("*", "").replace("**", "^")
-                return n == h
+                return needle == haystack
             words = re.split(r"[,\s\t]+", haystack)
             if op == "wordof":
                 return needle in words
@@ -1162,6 +1155,22 @@ class DefEngine(_SlibMixin):
                         break
                 options["choices"] = choices
 
+            elif ans_type == "menu":
+                # WIMS menu format: "correct_index;choice1,choice2,..."
+                if ";" in good_raw:
+                    idx_str, choices_str = good_raw.split(";", 1)
+                    try:
+                        correct_idx = int(idx_str.strip())
+                        choices = [c.strip() for c in choices_str.split(",") if c.strip()]
+                        if 1 <= correct_idx <= len(choices):
+                            expected = choices[correct_idx - 1]
+                        if "shuffle" in option.lower():
+                            rng = random.Random(f"{self.seed}_{n}")
+                            rng.shuffle(choices)
+                        options["choices"] = choices
+                    except (ValueError, IndexError):
+                        pass
+
             answers.append(
                 AnswerDef(
                     label=label,
@@ -1207,7 +1216,7 @@ def check_analyze(
     engine = DefEngine(seed=seed)
     engine.ctx.update(ev_ctx)
     for var_n, value in analyze_replies.items():
-        # Wrap in parentheses to ensure correct precedence in algebraic expressions
+        # var_n is a number (e.g. 64); set the matching valN variable
         engine.ctx[f"val{var_n}"] = f"({value})"
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)

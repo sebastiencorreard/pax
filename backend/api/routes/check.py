@@ -149,10 +149,22 @@ async def check_exercise(
         if m2:
             replies_by_name[f"r{m2.group(1)}"] = value
 
-    # Filter out fields that should be completely ignored (default=vide)
+    # For dynsteps exercises, only validate the reply(ies) visible at the current step.
+    # The rendered statement_segments tell us which inputs are on screen right now.
+    visible_input_names: set[str] | None = None
+    if rendered.is_dynsteps:
+        visible_input_names = {
+            s["name"]
+            for s in rendered.statement_segments
+            if s.get("type") in ("input", "slot", "menu")
+        }
+
+    # Filter out fields that should be completely ignored (default=vide),
+    # and for dynsteps restrict to the visible step's inputs.
     active_ans_defs = [
-        a for a in rendered.answers 
+        a for a in rendered.answers
         if "default=vide" not in str(a.options.get("option", "")).lower()
+        and (visible_input_names is None or a.input_name in visible_input_names)
     ]
 
     # Exercices avec réponses ?analyze (vérification via :postdef + :test)
@@ -161,7 +173,7 @@ async def check_exercise(
         from core.answer.checkers import _normalize_expr
 
         analyze_replies = {
-            a.options["analyze_var"]: f"({_normalize_expr(replies_by_name.get(a.input_name, '').strip())})"
+            int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
             for a in active_ans_defs
             if a.answer_type == "analyze" and "analyze_var" in a.options
         }
