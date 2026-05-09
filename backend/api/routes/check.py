@@ -161,9 +161,7 @@ async def check_exercise(
         from core.answer.checkers import _normalize_expr
 
         analyze_replies = {
-            a.options["analyze_var"]: _normalize_expr(
-                replies_by_name.get(a.input_name, "").strip()
-            )
+            a.options["analyze_var"]: f"({_normalize_expr(replies_by_name.get(a.input_name, '').strip())})"
             for a in active_ans_defs
             if a.answer_type == "analyze" and "analyze_var" in a.options
         }
