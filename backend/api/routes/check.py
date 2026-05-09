@@ -171,6 +171,11 @@ async def check_exercise(
         global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
         for ans_def in rendered.answers:
             reply_value = replies_by_name.get(ans_def.input_name, "").strip()
+            
+            # Skip optional empty fields
+            if not reply_value and "default=vide" in str(ans_def.options.get("option", "")).lower():
+                continue
+
             results.append(
                 AnswerResult(
                     input_name=ans_def.input_name,
@@ -185,8 +190,17 @@ async def check_exercise(
     elif rendered.condition:
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
+        
+        # Determine which answers to include in condition evaluation
+        # Exclude fields with default=vide if they are empty
+        filtered_ans_defs = [
+            a for a in rendered.answers
+            if replies_by_name.get(a.input_name.replace(" ", ""), "").strip() 
+            or "default=vide" not in str(a.options.get("option", "")).lower()
+        ]
+        
         global_score, results = _check_condition(
-            rendered.condition["expr"], rendered.answers, replies_by_name, evaluator
+            rendered.condition["expr"], filtered_ans_defs, replies_by_name, evaluator
         )
     else:
         for ans_def in rendered.answers:
@@ -197,6 +211,11 @@ async def check_exercise(
                 expected=ans_def.expected,
                 options=ans_def.options,
             )
+            
+            # Skip optional empty fields from both results and weight
+            if check.method == "default_vide":
+                continue
+
             results.append(
                 AnswerResult(
                     input_name=ans_def.input_name,
