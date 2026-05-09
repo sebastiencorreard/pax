@@ -1132,8 +1132,12 @@ class DefEngine(_SlibMixin):
             # ?analyze N — réponse vérifiée via :postdef + :test
             analyze_m = re.match(r"^\?analyze\s*(\d+)(?:;(.+))?", good_raw.strip(), re.I)
             if analyze_m:
-                # Placeholder: real verification happens in AnswerChecker
-                expected = good_raw
+                ans_type = "analyze"
+                options["analyze_var"] = f"val{analyze_m.group(1)}"
+                if analyze_m.group(2):
+                    expected = analyze_m.group(2)
+                else:
+                    expected = good_raw
 
             if ans_type == "radio":
                 # Choices are stored in `choice_meta` but usually also in variables

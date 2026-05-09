@@ -171,6 +171,8 @@ def check_algexp(reply: str, expected: str) -> CheckResult:
 def _normalize_expr(expr: str) -> str:
     """Normalise une expression OEF/élève pour SymPy."""
     expr = expr.strip()
+    # Exposants LaTeX ^{n} -> ^n
+    expr = re.sub(r"\^\{(.*?)\}", r"^\1", expr)
     # Exposants Unicode → notation ^
     superscripts = {
         "⁰": "0",
