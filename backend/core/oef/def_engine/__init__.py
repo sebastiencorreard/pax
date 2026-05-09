@@ -490,7 +490,13 @@ class DefEngine(_SlibMixin):
                 return needle not in haystack
             if op in ("issametext", "isnotreexpanded"):
                 # Literal string comparison (re-expanded is for WIMS' internal CAS cache)
-                return needle == haystack
+                n = needle.replace(" ", "")
+                h = haystack.replace(" ", "")
+                # If they look like math (contain *, ^, x, y, z), also ignore * for robustness
+                if any(c in n for c in "*^xyz") or any(c in h for c in "*^xyz"):
+                    n = n.replace("*", "").replace("**", "^")
+                    h = h.replace("*", "").replace("**", "^")
+                return n == h
             words = re.split(r"[,\s\t]+", haystack)
             if op == "wordof":
                 return needle in words

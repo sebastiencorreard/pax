@@ -183,7 +183,7 @@ async def check_exercise(
                     score=global_score,
                     method="analyze",
                     reply=reply_value,
-                    expected=None,
+                    expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
                 )
             )
 
