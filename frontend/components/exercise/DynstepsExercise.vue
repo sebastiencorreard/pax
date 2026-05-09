@@ -48,7 +48,9 @@
             <span ref="scoreEl" class="font-normal text-sm ml-2">
               {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) * 100) }) }}
             </span>
-          </div>
+            </div>
+
+
 
           <div class="text-sm space-y-1 mt-1">
             <div v-for="(step, i) in stepsHistory" :key="i"

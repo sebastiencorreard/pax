@@ -52,6 +52,7 @@ export interface CheckResult {
   has_invalid_format?: boolean
   noanalyzeprint?: boolean
   feedback_html?: string | null
+  debug_vars?: Record<string, string>
 }
 
 export type Segment =

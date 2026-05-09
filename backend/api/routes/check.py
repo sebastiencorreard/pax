@@ -84,21 +84,14 @@ def _check_condition(
     Évalue la \condition OEF avec les réponses élève via l'OEFEvaluator (Lark).
     Retourne (global_score, results).
     """
-    # 1. Injecter les réponses élève dans le contexte de l'évaluateur
-    # On supporte replyN, rN et les noms logiques si présents
     for ans in ans_defs:
         val = replies_by_name.get(ans.input_name, "").strip()
-        # WIMS standard: \reply1, \reply2...
         ev.ctx[ans.input_name] = val
-        # Alias court: \r1, \r2...
         alias = ans.input_name.replace("reply", "r")
         ev.ctx[alias] = val
-        # Nom logique
         if ans.logical_name:
             ev.ctx[ans.logical_name] = val
 
-    # 2. Évaluer l'expression via le parseur Lark
-    # On force le type 'logic' pour avoir un booléen
     correct = bool(ev._eval_expr(condition_expr, kind="logic"))
 
     score = 1.0 if correct else 0.0
@@ -128,39 +121,34 @@ async def check_exercise(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Charge l'exercice
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
 
-    # Re-rend l'exercice avec le même seed → mêmes valeurs attendues
     try:
         rendered = load_and_render(exercise.oef_path, seed=body.seed, m_step=body.m_step)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
 
-    # Vérifie chaque réponse
     results: list[AnswerResult] = []
     total_weight = 0.0
     weighted_score = 0.0
 
-    # Normalise les noms : "reply 1" → "reply1", et ajoute l'alias r1 ↔ reply1
     replies_by_name: dict[str, str] = {}
     for r in body.replies:
         name = r.input_name.replace(" ", "")
         replies_by_name[name] = r.value
-        # r1 est l'alias court de reply1 (convention WIMS \embed{r1,...})
-        import re as _re2
 
+    import re as _re2
+    for name, value in list(replies_by_name.items()):
         m = _re2.match(r"^r(\d+)$", name)
         if m:
-            replies_by_name[f"reply{m.group(1)}"] = r.value
+            replies_by_name[f"reply{m.group(1)}"] = value
         m2 = _re2.match(r"^reply(\d+)$", name)
         if m2:
-            replies_by_name[f"r{m2.group(1)}"] = r.value
+            replies_by_name[f"r{m2.group(1)}"] = value
 
-    # Exercices avec réponses ?analyze (vérification via :postdef + :test)
     if rendered.check_sections and any(a.answer_type == "analyze" for a in rendered.answers):
         from core.oef.def_engine import check_analyze
         from core.answer.checkers import _normalize_expr
@@ -194,7 +182,6 @@ async def check_exercise(
                 )
             )
 
-    # Si l'exercice a une \condition globale, l'évaluer
     elif rendered.condition:
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
@@ -240,12 +227,14 @@ async def check_exercise(
         from core.oef.def_engine import render_feedback
         feedback_html = render_feedback(
             ev_ctx=rendered.check_sections["ctx"],
+            postdef_instructions=rendered.check_sections["postdef"],
+            test_instructions=rendered.check_sections["test"],
             feedback_instructions=rendered.check_sections["feedback"],
             replies_by_name=replies_by_name,
+            results=results,
             seed=body.seed,
         )
 
-    # Sauvegarde la tentative seulement si tout est au bon format
     attempt_id = "00000000-0000-0000-0000-000000000000"
     if not has_invalid:
         attempt = Attempt(

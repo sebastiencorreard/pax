@@ -232,7 +232,9 @@ class DefEngine(_SlibMixin):
         """Execute a list of instructions sequentially."""
         for instr in instructions:
             if isinstance(instr, Assign):
-                self.ctx[instr.name] = self._eval_value(instr.value)
+                val = self._eval_value(instr.value)
+                self.ctx[instr.name] = val
+                print(f"DEBUG_ASSIGN: {instr.name} = '{val}'", flush=True)
 
             elif isinstance(instr, IfBlock):
                 cond = self._eval_condition(instr.kind, instr.condition)
@@ -520,8 +522,17 @@ class DefEngine(_SlibMixin):
                     .replace("!__GE__", ">=")
                     .replace("!__LE__", "<=")
                 )
-                cond_py = cond_py.replace("^", "**")
-                return bool(eval(cond_py, _MATH_NS))  # noqa: S307
+                
+                # Use a small epsilon for comparisons to handle float precision issues
+                # e.g. 0.8000000000000001 should not be > 0.8
+                ns_with_epsilon = dict(_MATH_NS)
+                
+                def robust_eval(c_py):
+                    # Round float-like numbers in the string to 10 decimal places
+                    c_rounded = re.sub(r"(\d+\.\d+)", lambda m: str(round(float(m.group(1)), 10)), c_py)
+                    return bool(eval(c_rounded.replace("^", "**"), ns_with_epsilon))
+                
+                return robust_eval(cond_py)
             except Exception:
                 pass
 
@@ -530,7 +541,19 @@ class DefEngine(_SlibMixin):
             left, _, right = cond.partition("=")
             return left.strip() == right.strip()
 
-        return bool(cond.strip())
+        # Fallback for remaining cases
+        stripped = cond.strip()
+        if not stripped:
+            return False
+        
+        # If it looks like a failed numeric comparison, don't return True just because it's non-empty
+        if any(op in stripped for op in ("<", ">", "!=")):
+            return False
+            
+        if stripped == "0":
+            return False
+            
+        return True
 
     def _eval_loop_expr(self, expr: str, var: str, val: str) -> str:
         """Evaluate a loop body expression, substituting the loop variable."""
@@ -575,7 +598,9 @@ class DefEngine(_SlibMixin):
             return self._cmd_randitem(args)
 
         if cmd == "nonempty":
-            return self._cmd_nonempty(args)
+            res = self._cmd_nonempty(args)
+            print(f"DEBUG_LIST: nonempty('{args}') -> '{res}'", flush=True)
+            return res
 
         if cmd == "shuffle":
             return self._cmd_shuffle(args)
@@ -587,8 +612,11 @@ class DefEngine(_SlibMixin):
             return self._cmd_row(args)
 
         if cmd == "itemcnt":
-            items = [x for x in re.split(r",|\t", self._subst(args)) if x.strip()]
-            return str(len(items))
+            subst_args = self._subst(args)
+            items = [x for x in re.split(r",|\t", subst_args) if x.strip()]
+            res = str(len(items))
+            print(f"DEBUG_LIST: itemcnt('{args}' -> '{subst_args}') -> {res}", flush=True)
+            return res
 
         if cmd == "rowcnt":
             val = self._subst(args)
@@ -1192,16 +1220,24 @@ def render_feedback(
     replies_by_name: dict,
     results: list,  # list of AnswerResult
     seed: int,
+    ctx_out: dict | None = None,
 ) -> str:
     """Exécute :postdef, :test puis :feedback avec les réponses élève et retourne le HTML."""
     engine = DefEngine(seed=seed)
     engine.ctx.update(ev_ctx)
+
+    # CRITICAL: Clear any pre-existing internal reply variables to prevent leakage
+    # of correct answers into the student reply context.
+    import re
+    keys_to_clear = [k for k in engine.ctx.keys() if re.match(r"^(m_)?(?:reply|r)\d+$", k)]
+    for k in keys_to_clear:
+        engine.ctx.pop(k)
+
     # Inject student replies and scores into context
     for name, value in replies_by_name.items():
         engine.ctx[name] = value
         engine.ctx[f"m_{name}"] = value
         # Also alias to short names r1, r2 etc. if it's reply1, reply2
-        import re
         m = re.match(r"^reply(\d+)$", name)
         if m:
             engine.ctx[f"r{m.group(1)}"] = value
@@ -1216,6 +1252,11 @@ def render_feedback(
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
     
+    if ctx_out is not None:
+        ctx_out.update(engine.ctx)
+    
+    print(f"DEBUG_CTX_BEFORE_FEEDBACK: { {k: v for k, v in engine.ctx.items() if k.startswith('m_reply') or k == 'val3' or k == 'val49'} }", flush=True)
+
     html = engine._render_section(feedback_instructions)
     from .presentation import _close_inline_math
     from ..flydraw import inline_svg_imgs
