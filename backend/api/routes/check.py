@@ -149,7 +149,14 @@ async def check_exercise(
         if m2:
             replies_by_name[f"r{m2.group(1)}"] = value
 
-    if rendered.check_sections and any(a.answer_type == "analyze" for a in rendered.answers):
+    # Filter out fields that should be completely ignored (default=vide)
+    active_ans_defs = [
+        a for a in rendered.answers 
+        if "default=vide" not in str(a.options.get("option", "")).lower()
+    ]
+
+    # Exercices avec réponses ?analyze (vérification via :postdef + :test)
+    if rendered.check_sections and any(a.answer_type == "analyze" for a in active_ans_defs):
         from core.oef.def_engine import check_analyze
         from core.answer.checkers import _normalize_expr
 
@@ -157,7 +164,7 @@ async def check_exercise(
             a.options["analyze_var"]: _normalize_expr(
                 replies_by_name.get(a.input_name, "").strip()
             )
-            for a in rendered.answers
+            for a in active_ans_defs
             if a.answer_type == "analyze" and "analyze_var" in a.options
         }
         condtest = check_analyze(
@@ -169,13 +176,8 @@ async def check_exercise(
         )
         n_tests = len(condtest)
         global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
-        for ans_def in rendered.answers:
+        for ans_def in active_ans_defs:
             reply_value = replies_by_name.get(ans_def.input_name, "").strip()
-            
-            # Skip optional empty fields
-            if not reply_value and "default=vide" in str(ans_def.options.get("option", "")).lower():
-                continue
-
             results.append(
                 AnswerResult(
                     input_name=ans_def.input_name,
@@ -191,19 +193,11 @@ async def check_exercise(
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
         
-        # Determine which answers to include in condition evaluation
-        # Exclude fields with default=vide if they are empty
-        filtered_ans_defs = [
-            a for a in rendered.answers
-            if replies_by_name.get(a.input_name.replace(" ", ""), "").strip() 
-            or "default=vide" not in str(a.options.get("option", "")).lower()
-        ]
-        
         global_score, results = _check_condition(
-            rendered.condition["expr"], filtered_ans_defs, replies_by_name, evaluator
+            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator
         )
     else:
-        for ans_def in rendered.answers:
+        for ans_def in active_ans_defs:
             reply_value = replies_by_name.get(ans_def.input_name, "").strip()
             check = check_answer(
                 answer_type=ans_def.answer_type,
@@ -211,11 +205,6 @@ async def check_exercise(
                 expected=ans_def.expected,
                 options=ans_def.options,
             )
-            
-            # Skip optional empty fields from both results and weight
-            if check.method == "default_vide":
-                continue
-
             results.append(
                 AnswerResult(
                     input_name=ans_def.input_name,
