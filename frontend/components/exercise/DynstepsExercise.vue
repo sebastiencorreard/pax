@@ -183,7 +183,12 @@ const allFilled = computed(() => {
   
   const activeAnswers = props.rendered.answers.filter(a => activeNames.has(a.input_name))
   if (activeAnswers.length > 0) {
-    return activeAnswers.every(a => (replies.value[a.input_name] ?? '').trim() !== '')
+    return activeAnswers.every(a => {
+      const val = (replies.value[a.input_name] ?? '').trim()
+      if (val !== '') return true
+      const opt = (a.options?.option || '').toLowerCase()
+      return opt.includes('default=vide')
+    })
   }
   return true
 })

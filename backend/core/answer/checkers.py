@@ -394,6 +394,12 @@ def check_answer(
     options = options or {}
     precision = float(options.get("precision", 1e-4))
     
+    # Handle default value if reply is empty
+    if not reply.strip():
+        opt_str = str(options.get("option", "")).lower()
+        if "default=vide" in opt_str:
+            return CheckResult(correct=True, score=1.0, method="default_vide")
+
     # Pre-check polexpand if requested
     opt_str = str(options.get("option", "")).lower()
     if "polexpand" in opt_str or "expand" in opt_str:

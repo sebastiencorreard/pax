@@ -148,7 +148,12 @@ const hasRadioAnswers = computed(() =>
 
 const allFilled = computed(() => {
   if (!props.rendered) return false
-  return props.rendered.answers.every(a => (replies.value[a.input_name] ?? '').trim() !== '')
+  return props.rendered.answers.every(a => {
+    const val = (replies.value[a.input_name] ?? '').trim()
+    if (val !== '') return true
+    const opt = (a.options?.option || '').toLowerCase()
+    return opt.includes('default=vide')
+  })
 })
 
 async function init() {
