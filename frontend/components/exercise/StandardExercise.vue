@@ -254,9 +254,19 @@ async function submit() {
 }
 
 function fillAnswers(answers: Record<string, string>) {
+  // Filter answers to only fill those currently visible on screen
+  const activeNames = new Set(statementSegments.value
+    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
+    .filter(Boolean) as string[]
+  )
+  
+  const filteredAnswers = Object.fromEntries(
+    Object.entries(answers).filter(([name]) => activeNames.has(name))
+  )
+  
   const newReplies = { ...replies.value }
-  for (const [name, value] of Object.entries(answers)) {
-    if (name in newReplies) newReplies[name] = value
+  for (const [name, value] of Object.entries(filteredAnswers)) {
+    newReplies[name] = value
   }
   replies.value = newReplies
 }

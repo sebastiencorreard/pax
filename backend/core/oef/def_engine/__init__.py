@@ -234,7 +234,6 @@ class DefEngine(_SlibMixin):
             if isinstance(instr, Assign):
                 val = self._eval_value(instr.value)
                 self.ctx[instr.name] = val
-                print(f"DEBUG_ASSIGN: {instr.name} = '{val}'", flush=True)
 
             elif isinstance(instr, IfBlock):
                 cond = self._eval_condition(instr.kind, instr.condition)
@@ -598,9 +597,7 @@ class DefEngine(_SlibMixin):
             return self._cmd_randitem(args)
 
         if cmd == "nonempty":
-            res = self._cmd_nonempty(args)
-            print(f"DEBUG_LIST: nonempty('{args}') -> '{res}'", flush=True)
-            return res
+            return self._cmd_nonempty(args)
 
         if cmd == "shuffle":
             return self._cmd_shuffle(args)
@@ -614,9 +611,7 @@ class DefEngine(_SlibMixin):
         if cmd == "itemcnt":
             subst_args = self._subst(args)
             items = [x for x in re.split(r",|\t", subst_args) if x.strip()]
-            res = str(len(items))
-            print(f"DEBUG_LIST: itemcnt('{args}' -> '{subst_args}') -> {res}", flush=True)
-            return res
+            return str(len(items))
 
         if cmd == "rowcnt":
             val = self._subst(args)
@@ -723,9 +718,7 @@ class DefEngine(_SlibMixin):
         try:
             a = int(round(float(self._eval_arith(parts[0]))))
             b = int(round(float(self._eval_arith(parts[1]))))
-            res = str(self.rng.randint(a, b))
-            print(f"DEBUG_RAND: randint({a},{b}) -> {res}", flush=True)
-            return res
+            return str(self.rng.randint(a, b))
         except (ValueError, TypeError):
             return "0"
 
@@ -737,9 +730,7 @@ class DefEngine(_SlibMixin):
         try:
             a = float(self._eval_arith(parts[0]))
             b = float(self._eval_arith(parts[1]))
-            res = f"{self.rng.uniform(a, b):.4f}"
-            print(f"DEBUG_RAND: random({a},{b}) -> {res}", flush=True)
-            return res
+            return f"{self.rng.uniform(a, b):.4f}"
         except (ValueError, TypeError):
             return "0"
 
@@ -747,9 +738,7 @@ class DefEngine(_SlibMixin):
         """!randitem item1, item2, ... — pick one randomly."""
         val = self._subst(args)
         items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
-        res = self.rng.choice(items) if items else ""
-        print(f"DEBUG_RAND: randitem({len(items)} items) -> {res}", flush=True)
-        return res
+        return self.rng.choice(items) if items else ""
 
     def _cmd_nonempty(self, args: str) -> str:
         """!nonempty items/rows list — remove empty entries."""
@@ -1220,7 +1209,6 @@ def render_feedback(
     replies_by_name: dict,
     results: list,  # list of AnswerResult
     seed: int,
-    ctx_out: dict | None = None,
 ) -> str:
     """Exécute :postdef, :test puis :feedback avec les réponses élève et retourne le HTML."""
     engine = DefEngine(seed=seed)
@@ -1228,35 +1216,40 @@ def render_feedback(
 
     # CRITICAL: Clear any pre-existing internal reply variables to prevent leakage
     # of correct answers into the student reply context.
-    import re
-    keys_to_clear = [k for k in engine.ctx.keys() if re.match(r"^(m_)?(?:reply|r)\d+$", k)]
+    keys_to_clear = [
+        k for k in engine.ctx.keys() 
+        if re.match(r"^(m_)?(?:reply|r)\d+$", k, re.I) 
+        or re.match(r"^reply(good|name|type|option|weight)\d+$", k, re.I)
+    ]
     for k in keys_to_clear:
         engine.ctx.pop(k)
 
     # Inject student replies and scores into context
+    # First, ensure all possible reply variables are at least an empty string
+    for i in range(1, 101): # OEF typically has at most 100 replies
+        engine.ctx[f"reply{i}"] = ""
+        engine.ctx[f"m_reply{i}"] = ""
+        engine.ctx[f"r{i}"] = ""
+        engine.ctx[f"m_r{i}"] = ""
+
     for name, value in replies_by_name.items():
         engine.ctx[name] = value
         engine.ctx[f"m_{name}"] = value
         # Also alias to short names r1, r2 etc. if it's reply1, reply2
-        m = re.match(r"^reply(\d+)$", name)
+        m = re.match(r"^reply(\d+)$", name, re.I)
         if m:
             engine.ctx[f"r{m.group(1)}"] = value
             engine.ctx[f"m_r{m.group(1)}"] = value
             
     for res in results:
         engine.ctx[f"m_sc_{res.input_name}"] = str(res.score)
-        m = re.match(r"^reply(\d+)$", res.input_name)
+        m = re.match(r"^reply(\d+)$", res.input_name, re.I)
         if m:
             engine.ctx[f"m_sc_r{m.group(1)}"] = str(res.score)
 
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
     
-    if ctx_out is not None:
-        ctx_out.update(engine.ctx)
-    
-    print(f"DEBUG_CTX_BEFORE_FEEDBACK: { {k: v for k, v in engine.ctx.items() if k.startswith('m_reply') or k == 'val3' or k == 'val49'} }", flush=True)
-
     html = engine._render_section(feedback_instructions)
     from .presentation import _close_inline_math
     from ..flydraw import inline_svg_imgs

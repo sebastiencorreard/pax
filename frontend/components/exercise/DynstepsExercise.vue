@@ -48,7 +48,7 @@
             <span ref="scoreEl" class="font-normal text-sm ml-2">
               {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) * 100) }) }}
             </span>
-            </div>
+          </div>
 
 
 
@@ -204,15 +204,15 @@ async function init() {
   stepFailed.value = false
   currentStepFailedInputName.value = ''
 
-  // Initialize new inputs for this step without wiping existing ones
-  for (const ans of props.rendered.answers) {
-    if (!(ans.input_name in replies.value)) {
-      replies.value[ans.input_name] = ''
+  statementSegments.value = await buildSegments(props.rendered.statement_segments)
+  
+  // Initialize only VISIBLE inputs for this step if not already present
+  for (const seg of statementSegments.value) {
+    if ('name' in seg && seg.name && !(seg.name in replies.value)) {
+      replies.value[seg.name] = ''
     }
   }
 
-  statementSegments.value = await buildSegments(props.rendered.statement_segments)
-  
   const choices = await prepareChoicesHtml(props.rendered)
   clickfillChoicesHtml.value = choices.clickfillChoicesHtml
   radioChoicesHtml.value = choices.radioChoicesHtml
@@ -371,11 +371,17 @@ async function submit() {
 }
 
 function fillAnswers(answers: Record<string, string>) {
-  const newReplies = { ...replies.value }
-  for (const [name, value] of Object.entries(answers)) {
-    if (name in newReplies) newReplies[name] = value
-  }
-  replies.value = newReplies
+  // Filter answers to only fill those currently visible on screen
+  const activeNames = new Set(statementSegments.value
+    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
+    .filter(Boolean) as string[]
+  )
+  
+  const filteredAnswers = Object.fromEntries(
+    Object.entries(answers).filter(([name]) => activeNames.has(name))
+  )
+  
+  replies.value = { ...replies.value, ...filteredAnswers }
 }
 
 defineExpose({ fillAnswers })
