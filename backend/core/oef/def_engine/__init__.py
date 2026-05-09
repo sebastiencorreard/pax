@@ -760,9 +760,7 @@ class DefEngine(_SlibMixin):
         else:
             items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
         self.rng.shuffle(items)
-        res = ",".join(items)
-        print(f"DEBUG_RAND: shuffle({len(items)} items) -> {res[:50]}...", flush=True)
-        return res
+        return ",".join(items)
 
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
@@ -856,14 +854,20 @@ class DefEngine(_SlibMixin):
 
     def _cmd_translate(self, args: str) -> str:
         """!translate A to B in text — character-wise translation."""
-        # !translate $ to ; in text
-        m = re.match(r"(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        # !translate internal $ to ; in text
+        m = re.match(r"(?:internal\s+)?(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         a, b, text = m.groups()
-        if a == "$": a = "$"
-        # Handle WIMS special char escapes or just literals
-        table = str.maketrans(a, b)
+        
+        # WIMS translation: if len(b) < len(a), extra chars in a are deleted
+        if len(b) < len(a):
+            table = str.maketrans(a[:len(b)], b, a[len(b):])
+        elif len(b) > len(a):
+            table = str.maketrans(a, b[:len(a)])
+        else:
+            table = str.maketrans(a, b)
+            
         return text.translate(table)
 
     def _cmd_append(self, args: str) -> str:
