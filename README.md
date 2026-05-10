@@ -53,6 +53,21 @@ docker compose down
 docker compose up --build
 ```
 
+## Utilisateurs
+
+Il existe 4 roles :
+- student
+- teacher
+- admin
+- super_admin
+
+1. On peut créer des utilisateurs *dans* le docker :
+`exec docker compose exec backend python scripts/create_user.py  --email EMAIL@pax.fr --first-name PRENOM --last-name NOM --role ROLE`
+
+2. On peut aussi faire un reset du mot de passe *dans* le docker :
+`docker compose exec backend python scripts/reset_password.py --email VOTRE_EMAIL@pax.fr --password VOTRE_NOUVEAU_MOT_DE_PASSE`
+
+
 ## Licence
 
 AGPL-3.0
