@@ -173,12 +173,18 @@ def _segment_statement(html: str) -> list[dict]:
 
     segments: list[dict] = []
     last = 0
+    in_sup = 0
     for m in _SEGMENT_PATTERN.finditer(html):
         if m.start() > last:
-            segments.append({"type": "html", "content": html[last : m.start()]})
+            content = html[last : m.start()]
+            segments.append({"type": "html", "content": content})
+            in_sup += content.lower().count("<sup") - content.lower().count("</sup")
+            
+        is_sup = in_sup > 0
+
         if m.group(1) is not None:
             # Slot clickfill
-            segments.append({"type": "slot", "name": m.group(1).strip()})
+            segments.append({"type": "slot", "name": m.group(1).strip(), "is_sup": is_sup})
         elif m.group(4) is not None:
             # Menu déroulant
             name = m.group(4).strip()
@@ -186,7 +192,7 @@ def _segment_statement(html: str) -> list[dict]:
             if alias:
                 name = f"reply{alias.group(1)}"
             label = m.group(5).strip()
-            segments.append({"type": "menu", "name": name, "label": label})
+            segments.append({"type": "menu", "name": name, "label": label, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
@@ -202,13 +208,14 @@ def _segment_statement(html: str) -> list[dict]:
                     "name": name,
                     "rows": int(textarea_m.group(1)),
                     "cols": int(textarea_m.group(2)),
+                    "is_sup": is_sup
                 })
             else:
                 try:
                     size = int(size_raw)
                 except (TypeError, ValueError):
                     size = 10
-                segments.append({"type": "input", "name": name, "size": size})
+                segments.append({"type": "input", "name": name, "size": size, "is_sup": is_sup})
         last = m.end()
     if last < len(html):
         segments.append({"type": "html", "content": html[last:]})

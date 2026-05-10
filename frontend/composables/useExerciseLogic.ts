@@ -17,6 +17,7 @@ export interface BackendSegment {
   rows?: number
   cols?: number
   label?: string
+  is_sup?: boolean
 }
 
 export interface Rendered {
@@ -57,10 +58,10 @@ export interface CheckResult {
 
 export type Segment =
   | { type: 'html';     content: string }
-  | { type: 'slot';     name: string }
-  | { type: 'input';    name: string; width: string }
-  | { type: 'textarea'; name: string; rows: number; cols: number }
-  | { type: 'menu';     name: string; label: string }
+  | { type: 'slot';     name: string; is_sup?: boolean }
+  | { type: 'input';    name: string; width: string; is_sup?: boolean }
+  | { type: 'textarea'; name: string; rows: number; cols: number; is_sup?: boolean }
+  | { type: 'menu';     name: string; label: string; is_sup?: boolean }
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
@@ -72,13 +73,13 @@ export function useExerciseLogic() {
         out.push({ type: 'html', content: await renderMath(s.content ?? '') })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
-        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch' })
+        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })
       } else if (s.type === 'textarea') {
-        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30 })
+        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup })
       } else if (s.type === 'slot') {
-        out.push({ type: 'slot', name: s.name ?? '' })
+        out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup })
       } else if (s.type === 'menu') {
-        out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '' })
+        out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       }
     }
     return out

@@ -20,7 +20,7 @@ class CheckResult:
 
 
 def is_polexpand(s: str) -> bool:
-    """Vérifie si une expression est sous forme développée et réduite."""
+    """Vérifie si une expression est sous forme développée (mais pas nécessairement réduite)."""
     try:
         import sympy
         from sympy.parsing.sympy_parser import (
@@ -42,36 +42,11 @@ def is_polexpand(s: str) -> bool:
             if e.is_Pow:
                 return e.base.is_Symbol and e.exp.is_Number
             if e.is_Mul:
-                return all(
-                    arg.is_Number
-                    or arg.is_Symbol
-                    or (arg.is_Pow and arg.base.is_Symbol and arg.exp.is_Number)
-                    for arg in e.args
-                )
+                return all(is_monomial(arg) for arg in e.args)
             return False
 
         if expr.is_Add:
-            if not all(is_monomial(arg) for arg in expr.args):
-                return False
-
-            def get_signature(m):
-                if m.is_Number:
-                    return "1"
-                if m.is_Symbol:
-                    return str(m)
-                if m.is_Pow:
-                    return f"{m.base}^{m.exp}"
-                if m.is_Mul:
-                    non_nums = [
-                        get_signature(arg) for arg in m.args if not arg.is_Number
-                    ]
-                    return "*".join(sorted(non_nums)) if non_nums else "1"
-                return str(m)
-
-            sigs = [get_signature(arg) for arg in expr.args]
-            if len(sigs) != len(set(sigs)):
-                return False
-            return True
+            return all(is_monomial(arg) for arg in expr.args)
 
         return is_monomial(expr)
     except Exception:
@@ -402,16 +377,24 @@ def check_answer(
         if "default=vide" in opt_str:
             return CheckResult(correct=True, score=1.0, method="default_vide")
 
-    # Pre-check polexpand if requested
     opt_str = str(options.get("option", "")).lower()
-    if "polexpand" in opt_str or "expand" in opt_str:
+    
+    # Auto-detect if expected is a developed polynomial (with at least one variable)
+    # This enforces expanded form if the author used maxima(expand(...))
+    requires_expand = "polexpand" in opt_str or "expand" in opt_str
+    if not requires_expand and answer_type.lower() in ("algexp", "default"):
+        if any(c.isalpha() for c in expected) and is_polexpand(expected):
+            requires_expand = True
+
+    # Pre-check polexpand if requested
+    if requires_expand:
         if reply.strip() and not is_polexpand(reply):
             return CheckResult(
                 correct=False,
                 score=0.0,
                 method="polexpand",
                 status="invalid_format",
-                detail=f"La réponse {reply} que vous avez donnée n'est pas écrite comme il faut. Veuillez la réécrire correctement."
+                detail="La réponse que vous avez donnée n'est pas écrite sous forme développée."
             )
 
     match answer_type.lower():

@@ -24,7 +24,7 @@
             @input="e => updateReply(seg.name, (e.target as HTMLInputElement).value)"
             :style="{ width: seg.width, minWidth: '6ch' }"
             :disabled="submitted"
-            :class="inputClass(seg.name)"
+            :class="[inputClass(seg.name), { 'is-sup': seg.is_sup }]"
             autocomplete="off"
             @dragover.prevent
             @drop.prevent

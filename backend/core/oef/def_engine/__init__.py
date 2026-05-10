@@ -82,7 +82,16 @@ class DefEngine(_SlibMixin):
         # exposing it as a regular ctx entry keeps `_subst` happy.
         # Always initialize m_step to "1" so it's defined when var_instructions execute.
         # Also set step as an alias for m_step (WIMS uses both \step and \m_step).
-        self.ctx: dict[str, str] = {"empty": "", "m_step": "1", "step": "1"}
+        self.ctx: dict[str, str] = {
+            "empty": "", 
+            "m_step": "1", 
+            "step": "1",
+            "m_times": "×",
+            "m_div": "÷",
+            "m_le": "≤",
+            "m_ge": "≥",
+            "m_neq": "≠",
+        }
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
@@ -642,7 +651,9 @@ class DefEngine(_SlibMixin):
             # `!rawmath` normalises a math expression, keeping it in a form
             # suitable for downstream evaluation (`pari print()`, plotting).
             # NOT a LaTeX conversion — that's `!texmath`.
-            return self._subst(args)
+            expr = self._subst(args)
+            expr = expr.replace("+-", "-").replace("-+", "-").replace("--", "+").replace("++", "+")
+            return expr
 
         if cmd == "texmath":
             return _sympy_to_latex(self._subst(args))
