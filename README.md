@@ -8,8 +8,7 @@ Clone de WIMS, rétro-compatible avec le format OEF / DEF, orienté mathématiqu
 - **Frontend** : Nuxt.js (Vue 3)
 - **Base de données** : PostgreSQL
 - **Cache** : Redis
-- **Auth** : Keycloak (compatible GAR/ENT)
-- **CAS** : SymPy
+- **Calcul symbolique** : SymPy
 
 ## Lancer le projet en développement
 
@@ -23,18 +22,26 @@ docker compose up --build
 Docker se charge de télécharger tous les composants (au premier lancement) et de construire les trois containers (~5 min en tout).
 Le site est ensuite accessible dans un navigateur à l'adresse localhost:3000
 
-### Attention : premier lancement
+### Attention : à faire au premier lancement
 
-Il faut peupler les base de données. Pour le moment, à la main :
+1. Installer et configurer docker
 
-Table des académies :
-docker compose exec backend python scripts/import_academies.py /ressources/a_integrer_dans_db/academies_france.csv
+- Packages à installer : `sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin` (pour Ubuntu/Debian/Mint)
 
-Table des établissements (Aix-Marseille seulement, pour le moment) :
-docker compose exec backend python scripts/import_etablissements.py ac-aix-marseille.fr /ressources/a_integrer_dans_db/etablissements_aix_marseille.csv
+- Créer le groupe docker : `sudo groupadd docker` 
 
-Tables des utilisateurs :
-./create_user.sh --email admin@pax.fr --first-name Jane --last-name Goodall --role admin
+- Ajouter son utilisateur au groupe docker `sudo usermod -aG docker $USER`
+
+- Appliquer les changements (ou redémarrer le terminal) `newgrp docker`
+
+2. Peupler les base de données. Pour le moment, à la main :
+
+- Table des académies : `docker compose exec backend python scripts/import_academies.py /ressources/a_integrer_dans_db/academies_france.csv`
+
+- Table des établissements (Aix-Marseille seulement, pour le moment) : `docker compose exec backend python scripts/import_etablissements.py 
+ac-aix-marseille.fr /ressources/a_integrer_dans_db/etablissements_aix_marseille.csv`
+
+- Tables des utilisateurs : `./create_user.sh --email admin@pax.fr --first-name Jane --last-name Goodall --role admin`
 
 ## Hot reload
 
