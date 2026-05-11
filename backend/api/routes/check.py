@@ -243,6 +243,13 @@ async def check_exercise(
     feedback_html = None
     if rendered.check_sections and "feedback" in rendered.check_sections:
         from core.oef.def_engine import render_feedback
+        # analyze_replies may have been computed above (analyze path); if not,
+        # build it now so render_feedback can inject valN into the engine ctx.
+        _fb_analyze = {
+            int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
+            for a in active_ans_defs
+            if a.answer_type == "analyze" and "analyze_var" in a.options
+        } or None
         feedback_html = render_feedback(
             ev_ctx=rendered.check_sections["ctx"],
             postdef_instructions=rendered.check_sections["postdef"],
@@ -251,6 +258,7 @@ async def check_exercise(
             replies_by_name=replies_by_name,
             results=results,
             seed=body.seed,
+            analyze_replies=_fb_analyze,
         )
 
     attempt_id = "00000000-0000-0000-0000-000000000000"

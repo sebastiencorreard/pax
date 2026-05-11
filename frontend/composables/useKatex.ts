@@ -8,6 +8,10 @@ export function useKatex() {
   // est implicite : 5*v → 5v, )*( → )(, mais 2*3 → 2 \times 3.
   function normalizeMath(expr: string): string {
     expr = expr.replace(/\*\*/g, '^')
+    // Remove spurious sign combinations produced by WIMS string concatenation
+    expr = expr.replace(/\+-/g, '-').replace(/-\+/g, '-')
+    // Strip a leading '+' that may appear when the first term is positive
+    expr = expr.replace(/^\s*\+\s*/, '')
     expr = expr.replace(/\s*\*\s*(?=[a-zA-Z(])/g, '')
     expr = expr.replace(/\s*\*\s*/g, ' \\times ')
     return expr

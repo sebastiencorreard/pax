@@ -479,6 +479,17 @@ class DefEngine(_SlibMixin):
         """Evaluate an !if or !ifval condition."""
         cond = self._subst(condition)
 
+        # Handle top-level 'and'/'or' compound conditions, e.g.
+        # ($val47=1) and ($val58=+)
+        for logical_op in ("and", "or"):
+            parts = _split_compound(cond, logical_op)
+            if parts:
+                results = [self._eval_condition(kind, p) for p in parts]
+                return all(results) if logical_op == "and" else any(results)
+
+        # Strip balanced outer parentheses so that (A=B) evaluates like A=B.
+        cond = _strip_outer_parens(cond)
+
         # WIMS string operators: `A isin B` (substring), `A notin B`,
         # `A wordof B` (whole-word match), `A notwordof B`,
         # `A issametext B`, `A isnotreexpanded B`.
@@ -1256,6 +1267,52 @@ def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int
     return len(s) - 1
 
 
+def _strip_outer_parens(s: str) -> str:
+    """Remove a single layer of balanced outer parentheses, e.g. (A=B) → A=B."""
+    s = s.strip()
+    if not (s.startswith("(") and s.endswith(")")):
+        return s
+    depth = 0
+    for i, ch in enumerate(s):
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+        if depth == 0 and i < len(s) - 1:
+            return s  # outer parens don't match — keep as-is
+    return s[1:-1].strip()
+
+
+def _split_compound(cond: str, op: str) -> list[str] | None:
+    """Split a condition on top-level ' op ' (e.g. 'and'/'or').
+
+    Returns a list of parts if the operator is found at depth 0, else None.
+    """
+    pattern = f" {op} "
+    parts: list[str] = []
+    depth = 0
+    last = 0
+    i = 0
+    found = False
+    while i < len(cond):
+        ch = cond[i]
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif depth == 0 and cond[i : i + len(pattern)].lower() == pattern:
+            parts.append(cond[last:i].strip())
+            last = i + len(pattern)
+            i = last
+            found = True
+            continue
+        i += 1
+    if found:
+        parts.append(cond[last:].strip())
+        return parts
+    return None
+
+
 def _analyze_wrap(value: str) -> str:
     """Wrap a student answer in parentheses for safe :postdef use, unless it
     is a comma-separated list (set-valued answer like "0,1").  A top-level
@@ -1302,6 +1359,7 @@ def render_feedback(
     replies_by_name: dict,
     results: list,  # list of AnswerResult
     seed: int,
+    analyze_replies: dict | None = None,
 ) -> str:
     """Exécute :postdef, :test puis :feedback avec les réponses élève et retourne le HTML."""
     engine = DefEngine(seed=seed)
@@ -1339,6 +1397,12 @@ def render_feedback(
         m = re.match(r"^reply(\d+)$", res.input_name, re.I)
         if m:
             engine.ctx[f"m_sc_r{m.group(1)}"] = str(res.score)
+
+    # For ?analyze exercises, inject the student's answer into the valN
+    # variable that :postdef expects (e.g. val66 for replygood1=?analyze 66).
+    if analyze_replies:
+        for var_n, value in analyze_replies.items():
+            engine.ctx[f"val{var_n}"] = _analyze_wrap(value)
 
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
