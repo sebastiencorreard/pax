@@ -490,6 +490,9 @@ class DefEngine(_SlibMixin):
         # Strip balanced outer parentheses so that (A=B) evaluates like A=B.
         cond = _strip_outer_parens(cond)
 
+        # Normalise WIMS not-equal operator (<> → !=).
+        cond = cond.replace("<>", "!=")
+
         # WIMS string operators: `A isin B` (substring), `A notin B`,
         # `A wordof B` (whole-word match), `A notwordof B`,
         # `A issametext B`, `A isnotreexpanded B`.
