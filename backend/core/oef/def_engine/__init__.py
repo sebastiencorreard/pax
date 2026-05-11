@@ -697,6 +697,9 @@ class DefEngine(_SlibMixin):
         if cmd == "listuniq":
             return self._cmd_listuniq(args)
 
+        if cmd == "listintersect":
+            return self._cmd_listintersect(args)
+
         if cmd == "declosing":
             return self._cmd_declosing(args)
 
@@ -988,6 +991,20 @@ class DefEngine(_SlibMixin):
                 seen.add(x)
                 res.append(x)
         return ",".join(res)
+
+    def _cmd_listintersect(self, args: str) -> str:
+        """!listintersect list1 and list2 — items of list1 that appear in list2."""
+        m = re.match(r"(.*?)\s+and\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        list1_str = m.group(1).strip()
+        list2_str = m.group(2).strip()
+        if not list1_str or not list2_str:
+            return ""
+        sep = "\t" if "\t" in list1_str else ","
+        items1 = [x.strip() for x in list1_str.split(sep) if x.strip()]
+        items2 = {x.strip() for x in re.split(r"[,\t]", list2_str) if x.strip()}
+        return ",".join(x for x in items1 if x in items2)
 
     def _cmd_declosing(self, args: str) -> str:
         """!declosing text — remove outer parentheses/brackets."""
