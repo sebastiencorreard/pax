@@ -46,6 +46,7 @@ class User(Base):
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     hashed_password: Mapped[str | None] = mapped_column(String(200), nullable=True)
     language: Mapped[str] = mapped_column(String(5), default="fr")
+    theme: Mapped[str] = mapped_column(String(10), default="system")
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=False)
     coins: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

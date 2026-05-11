@@ -56,6 +56,11 @@ class UserResponse(BaseModel):
     coins: int = 0
     created_at: datetime | None = None
     etablissement: EtabBrief | None = None
+    theme: str = "system"
 
     class Config:
         from_attributes = True
+
+
+class UserPrefsUpdate(BaseModel):
+    theme: str | None = None

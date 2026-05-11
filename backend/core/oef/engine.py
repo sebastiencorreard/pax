@@ -102,6 +102,21 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     answers = _extract_answers(directives_ast, evaluator)
     condition = _extract_condition(directives_ast, evaluator)
     statement_html = _extract_statement(directives_ast, evaluator)
+
+    # For clickfill answers: replace oef-input spans with cf-slot markers so
+    # the segmenter and frontend treat them as drop targets, not text fields.
+    for ans in answers:
+        if ans.answer_type != "clickfill":
+            continue
+        n_match = re.match(r"^reply(\d+)$", ans.input_name)
+        refs = [ans.input_name] + ([f"r{n_match.group(1)}"] if n_match else [])
+        for ref in refs:
+            statement_html = re.sub(
+                r'<span\s+class="oef-input"\s+name="' + re.escape(ref) + r'"[^>]*></span>',
+                f'<cf-slot name="{ans.input_name}"></cf-slot>',
+                statement_html,
+            )
+
     segments = _segment_statement(statement_html)
 
     # Filtre les réponses dont le champ n'apparaît pas dans le statement rendu,
@@ -335,6 +350,26 @@ def _extract_answers(ast: OEFNode, ev: OEFEvaluator) -> list[AnswerDef]:
                                 options["option"] = b  # 4ème bloc = option
                             elif i == 2:
                                 options["weight"] = b  # 5ème bloc = weight
+
+                    if ans_type == "clickfill":
+                        # Format: "correct_answer;wrong1,wrong2,..."
+                        if ";" in expected:
+                            correct_part, wrongs_str = expected.split(";", 1)
+                            correct_part = correct_part.strip()
+                            wrong_items = [w.strip() for w in wrongs_str.split(",") if w.strip()]
+                        else:
+                            correct_part = expected.strip()
+                            wrong_items = []
+                        if correct_part:
+                            from .def_engine.presentation import _close_inline_math as _cf_close  # noqa: PLC0415
+                            correct_part = _cf_close(correct_part)
+                            wrong_items = [_cf_close(w) for w in wrong_items]
+                            choices = [correct_part] + wrong_items
+                            seen_cf: set[str] = set()
+                            choices = [c for c in choices if not (c in seen_cf or seen_cf.add(c))]  # type: ignore[func-returns-value]
+                            _random.Random(f"{ev.meta.get('seed', 0)}_{reply_count}").shuffle(choices)
+                            expected = correct_part
+                            options["choices"] = choices
 
                     answers.append(
                         AnswerDef(

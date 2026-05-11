@@ -114,18 +114,38 @@
     <section class="rounded-xl border p-6"
              style="background:var(--color-surface);border-color:var(--color-border)">
       <h2 class="text-base font-semibold mb-4">{{ $t('account.section_settings') }}</h2>
-      <div class="flex items-center gap-3 text-sm">
-        <span class="text-xs uppercase tracking-wide" style="color:var(--color-text-muted)">
-          {{ $t('account.language') }}
-        </span>
-        <select :value="String(locale)"
-                @change="setLocale(($event.target as HTMLSelectElement).value as 'fr'|'nl'|'en')"
-                class="px-3 py-1.5 rounded-lg border text-sm outline-none"
-                style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)">
-          <option v-for="loc in availableLocales" :key="loc.code" :value="loc.code">
-            {{ FLAGS[loc.code] ?? '🌐' }} {{ loc.name }}
-          </option>
-        </select>
+      <div class="space-y-4">
+        <!-- Langue -->
+        <div class="flex items-center gap-3 text-sm">
+          <span class="text-xs uppercase tracking-wide w-20 shrink-0" style="color:var(--color-text-muted)">
+            {{ $t('account.language') }}
+          </span>
+          <select :value="String(locale)"
+                  @change="setLocale(($event.target as HTMLSelectElement).value as 'fr'|'nl'|'en')"
+                  class="px-3 py-1.5 rounded-lg border text-sm outline-none"
+                  style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)">
+            <option v-for="loc in availableLocales" :key="loc.code" :value="loc.code">
+              {{ FLAGS[loc.code] ?? '🌐' }} {{ loc.name }}
+            </option>
+          </select>
+        </div>
+        <!-- Thème -->
+        <div class="flex items-center gap-3 text-sm">
+          <span class="text-xs uppercase tracking-wide w-20 shrink-0" style="color:var(--color-text-muted)">
+            {{ $t('account.theme') }}
+          </span>
+          <div class="flex gap-2">
+            <button v-for="opt in themeOptions" :key="opt.value"
+                    @click="applyTheme(opt.value)"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm transition"
+                    :style="currentTheme === opt.value
+                      ? 'border-color:var(--color-primary);background:color-mix(in srgb,var(--color-primary) 12%,transparent);color:var(--color-primary)'
+                      : 'border-color:var(--color-border);color:var(--color-text)'">
+              <span>{{ opt.icon }}</span>
+              <span>{{ $t(opt.label) }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -146,8 +166,19 @@ const auth = useAuthStore()
 const config = useRuntimeConfig()
 const { t, locale, locales, setLocale } = useI18n()
 const availableLocales = locales
+const { theme: currentTheme, setTheme } = useTheme()
 
 const FLAGS: Record<string, string> = { fr: '🇫🇷', nl: '🇳🇱', en: '🇬🇧' }
+
+const themeOptions = [
+  { value: 'light' as const, label: 'account.theme_light', icon: '☀️' },
+  { value: 'dark'  as const, label: 'account.theme_dark',  icon: '🌙' },
+  { value: 'system' as const, label: 'account.theme_system', icon: '💻' },
+]
+
+function applyTheme(v: 'light' | 'dark' | 'system') {
+  setTheme(v)
+}
 
 interface TeacherClass {
   id: number

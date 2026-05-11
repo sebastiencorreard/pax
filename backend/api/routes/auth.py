@@ -7,7 +7,7 @@ from db import get_db
 from models.user import User, Etablissement
 from core.security import verify_password, create_access_token, hash_password
 from pydantic import BaseModel
-from api.schemas.auth import LoginRequest, TokenResponse, UserResponse, TeacherRegister
+from api.schemas.auth import LoginRequest, TokenResponse, UserResponse, TeacherRegister, UserPrefsUpdate
 from api.schemas.user_admin import PasswordChangeRequest
 
 
@@ -122,5 +122,20 @@ async def me(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await db.refresh(current_user, attribute_names=["etablissement"])
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    data: UserPrefsUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if data.theme is not None:
+        if data.theme not in ("light", "dark", "system"):
+            raise HTTPException(status_code=400, detail="Thème invalide (light, dark ou system)")
+        current_user.theme = data.theme
+    await db.commit()
     await db.refresh(current_user, attribute_names=["etablissement"])
     return current_user

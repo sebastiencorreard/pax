@@ -1,25 +1,18 @@
 <template>
-  <div :class="{ dark: isDark }">
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </div>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-const isDark = ref(false)
+const auth = useAuthStore()
+const { init, watchSystem } = useTheme()
 
-// Respecte la préférence système
 onMounted(() => {
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const stored = localStorage.getItem('pax_theme')
-  if (stored) isDark.value = stored === 'dark'
+  init()
+  watchSystem()
 })
 
-// Expose le toggle pour les composants enfants
-provide('toggleDark', () => {
-  isDark.value = !isDark.value
-  localStorage.setItem('pax_theme', isDark.value ? 'dark' : 'light')
-})
-provide('isDark', isDark)
+// Réapplique le thème dès que le profil utilisateur est chargé (après login / restore)
+watch(() => auth.user?.theme, () => init())
 </script>

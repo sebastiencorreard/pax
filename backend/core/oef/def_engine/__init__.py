@@ -1112,6 +1112,8 @@ class DefEngine(_SlibMixin):
                 # Menus need a placeholder in the HTML for inline positioning
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
                 return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
+            elif reply_type == "clickfill":
+                return f'<cf-slot name="{ref}"></cf-slot>'
 
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
@@ -1181,6 +1183,25 @@ class DefEngine(_SlibMixin):
                         options["choices"] = choices
                     except (ValueError, IndexError):
                         pass
+
+            elif ans_type == "clickfill":
+                # Format: "correct_answer;wrong1,wrong2,..."
+                if ";" in good_raw:
+                    correct_part, wrongs_str = good_raw.split(";", 1)
+                    correct_part = correct_part.strip()
+                    wrong_items = [w.strip() for w in wrongs_str.split(",") if w.strip()]
+                else:
+                    correct_part = good_raw.strip()
+                    wrong_items = []
+                if correct_part:
+                    correct_part = _close_inline_math(correct_part)
+                    wrong_items = [_close_inline_math(w) for w in wrong_items]
+                    choices = [correct_part] + wrong_items
+                    seen: set[str] = set()
+                    choices = [c for c in choices if not (c in seen or seen.add(c))]  # type: ignore[func-returns-value]
+                    random.Random(f"{self.seed}_{n}").shuffle(choices)
+                    expected = correct_part
+                    options["choices"] = choices
 
             answers.append(
                 AnswerDef(

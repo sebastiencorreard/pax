@@ -55,6 +55,9 @@ MEDIANE4_DEF = os.path.join(RESSOURCES, "H4/stat/OEFevalwimsstat.fr/def/mediane4
 VOCABAFF3_DEF = os.path.join(
     RESSOURCES, "H4/analysis/OEFevalwimsfctref.fr/def/vocabaff3.def"
 )
+FORMULE1_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/evalwimsdevfact.fr/def/formule1.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -608,3 +611,52 @@ class TestVocabaff3:
         r = load_and_render(VOCABAFF3_DEF, seed=42)
         input_segments = [s for s in r.statement_segments if s["type"] == "input"]
         assert input_segments == []
+
+
+# ── Integration: formule1 (clickfill drag-and-drop) ──────────────────────────
+
+
+class TestFormule1:
+    """formule1 is a clickfill exercise: the student drags a card to a slot.
+    Verifies that the backend emits a cf-slot segment, populates choices, and
+    sets the correct expected value."""
+
+    def test_slot_segment_emitted(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        slot_segs = [s for s in r.statement_segments if s["type"] == "slot"]
+        assert len(slot_segs) == 1
+        assert slot_segs[0]["name"] == "reply1"
+
+    def test_no_text_input_for_clickfill(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        input_segs = [s for s in r.statement_segments if s["type"] == "input"]
+        assert input_segs == []
+
+    def test_answer_type_is_clickfill(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        assert r.answers[0].answer_type == "clickfill"
+
+    def test_choices_populated(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        choices = r.answers[0].options.get("choices", [])
+        assert len(choices) == 4
+
+    def test_correct_answer_in_choices(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        ans = r.answers[0]
+        assert ans.expected in ans.options["choices"]
+
+    def test_choices_no_duplicates(self):
+        r = load_and_render(FORMULE1_DEF, seed=42)
+        choices = r.answers[0].options["choices"]
+        assert len(choices) == len(set(choices))
+
+    def test_seed_deterministic(self):
+        r1 = load_and_render(FORMULE1_DEF, seed=7)
+        r2 = load_and_render(FORMULE1_DEF, seed=7)
+        assert r1.answers[0].expected == r2.answers[0].expected
+        assert r1.answers[0].options["choices"] == r2.answers[0].options["choices"]
+
+    def test_different_seeds_vary_sign(self):
+        results = {load_and_render(FORMULE1_DEF, seed=s).answers[0].expected for s in range(1, 20)}
+        assert len(results) > 1  # both + and - variants must appear

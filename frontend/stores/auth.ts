@@ -16,6 +16,7 @@ interface User {
   coins: number
   created_at: string | null
   etablissement: Etablissement | null
+  theme: string
 }
 
 export const useAuthStore = defineStore('auth', {
