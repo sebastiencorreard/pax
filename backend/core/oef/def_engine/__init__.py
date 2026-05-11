@@ -1256,6 +1256,22 @@ def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int
     return len(s) - 1
 
 
+def _analyze_wrap(value: str) -> str:
+    """Wrap a student answer in parentheses for safe :postdef use, unless it
+    is a comma-separated list (set-valued answer like "0,1").  A top-level
+    comma signals a set; wrapping would turn "0,1" into Maxima tuple (0,1)
+    which breaks set-equality checks like is({A}={0,1})."""
+    depth = 0
+    for ch in value:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            return value  # set-like → no wrap
+    return f"({value})"
+
+
 def check_analyze(
     ev_ctx: dict,
     postdef_instructions: list,
@@ -1267,8 +1283,11 @@ def check_analyze(
     engine = DefEngine(seed=seed)
     engine.ctx.update(ev_ctx)
     for var_n, value in analyze_replies.items():
-        # var_n is a number (e.g. 64); set the matching valN variable
-        engine.ctx[f"val{var_n}"] = f"({value})"
+        # Wrap algebraic expressions in parens so they group correctly in
+        # :postdef formulas like expand($valN * $factor).
+        # Do NOT wrap comma-separated values (set answers like "0,1") because
+        # wrapping "(0,1)" changes a set-element list into a Maxima tuple.
+        engine.ctx[f"val{var_n}"] = _analyze_wrap(value)
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
     return {k: int(v) for k, v in engine.ctx.items()

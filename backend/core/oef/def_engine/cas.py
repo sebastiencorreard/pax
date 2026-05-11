@@ -152,10 +152,66 @@ def _call_maxima(expr: str) -> str:
                 var = _sympify_arg(args[1])
                 val = _sympify_arg(args[2])
                 return str(sympy.limit(e, var, val))
+            if func_name == "is" and len(args) == 1:
+                # is(A=B) — checks equality of two expressions or sets.
+                # Split the single argument on the first top-level '='.
+                arg = args[0].strip()
+                eq_pos = None
+                depth_is = 0
+                for i, ch in enumerate(arg):
+                    if ch in "([{":
+                        depth_is += 1
+                    elif ch in ")]}":
+                        depth_is -= 1
+                    elif ch == "=" and depth_is == 0:
+                        eq_pos = i
+                        break
+                if eq_pos is not None:
+                    lhs_s = arg[:eq_pos].strip()
+                    rhs_s = arg[eq_pos + 1:].strip()
+
+                    def _set_from_literal(s: str):
+                        """Parse a Maxima set literal {a,b,...} into a frozenset of sympified elements."""
+                        s = s.strip()
+                        if not (s.startswith("{") and s.endswith("}")):
+                            return None
+                        content = s[1:-1].strip()
+                        if not content:
+                            return frozenset()
+                        try:
+                            return frozenset(
+                                _sympify_arg(x.strip())
+                                for x in _split_top_level_args(content)
+                                if x.strip()
+                            )
+                        except Exception:
+                            return None
+
+                    lhs_set = _set_from_literal(lhs_s)
+                    rhs_set = _set_from_literal(rhs_s)
+                    if lhs_set is not None and rhs_set is not None:
+                        return "true" if lhs_set == rhs_set else "false"
+                    # Fallback: numeric/algebraic equality
+                    try:
+                        diff = sympy.simplify(_sympify_arg(lhs_s) - _sympify_arg(rhs_s))
+                        return "true" if diff == 0 else "false"
+                    except Exception:
+                        pass
+                return clean  # cannot evaluate
+
             if func_name == "cardinality" and len(args) >= 1:
-                inner = args[0].strip().lstrip("{").rstrip("}")
-                items = {x.strip() for x in inner.split(",") if x.strip()}
-                return str(len(items))
+                inner_s = args[0].strip()
+                # If the inner expression is not a plain set literal, evaluate it first.
+                if not (inner_s.startswith("{") and inner_s.endswith("}")):
+                    inner_s = _call_maxima(inner_s)
+                if inner_s.startswith("{") and inner_s.endswith("}"):
+                    content = inner_s[1:-1].strip()
+                    if not content:
+                        return "0"
+                    # Deduplicate (sets have unique elements).
+                    items = list(dict.fromkeys(x.strip() for x in _split_top_level_args(content) if x.strip()))
+                    return str(len(items))
+                return clean  # cannot evaluate
 
             if func_name == "op" and len(args) >= 1:
                 e = _sympify_arg(args[0])
