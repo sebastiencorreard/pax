@@ -882,12 +882,14 @@ class DefEngine(_SlibMixin):
 
     def _cmd_append(self, args: str) -> str:
         """!append item/line X to list."""
-        m = re.match(r"(items?|lines?)\s+(.*?)\s+to\s+(.*)", args, re.I | re.DOTALL)
+        # \s* after 'to' (not \s+) so that an empty target variable
+        # ("!append item X to $empty_var") still matches correctly.
+        m = re.match(r"(items?|lines?)\s+(.*?)\s+to\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-        kind, val, target = m.groups()
+        kind, val, target = m.group(1), m.group(2), (m.group(3) or "").strip()
         sep = "\n" if kind.lower().startswith("line") else ","
-        if not target.strip():
+        if not target:
             return val
         return f"{target}{sep}{val}"
 
