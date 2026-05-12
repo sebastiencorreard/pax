@@ -636,8 +636,158 @@ class DefEngine(_SlibMixin):
         if cmd == "column":
             return self._cmd_column(args)
 
-        if cmd == "charcnt":
+        if cmd in ("charcnt", "charcount", "charno", "charnum", "lengthof"):
             return str(len(self._subst(args).strip()))
+
+        # ── Missing aliases for already-implemented commands ──────────────────
+        if cmd in ("tolower", "lowercase"):
+            return self._subst(args).lower()
+
+        if cmd in ("toupper", "uppercase"):
+            return self._subst(args).upper()
+
+        if cmd in ("randperm", "randpermute"):
+            return self._cmd_shuffle(args)
+
+        # ── Line-based access (like !item but for newline-separated data) ─────
+        if cmd in ("line", "lines"):
+            return self._cmd_line(args)
+
+        if cmd in ("linecnt", "linecount", "lineno", "linenum"):
+            s = self._subst(args)
+            n = len([l for l in s.splitlines() if l.strip()])
+            return str(n) if n else "0"
+
+        # ── Character access ──────────────────────────────────────────────────
+        if cmd in ("char", "chars"):
+            return self._cmd_char(args)
+
+        # ── Word count ────────────────────────────────────────────────────────
+        if cmd in ("wordcnt", "wordcount", "wordno", "wordnum"):
+            return str(len(self._subst(args).split()))
+
+        # ── Arithmetic aggregate ──────────────────────────────────────────────
+        if cmd in ("add", "sum"):
+            return self._cmd_sum(args)
+
+        if cmd in ("multiply", "prod", "product"):
+            return self._cmd_product(args)
+
+        # ── List set operations ───────────────────────────────────────────────
+        if cmd in ("listunion",):
+            return self._cmd_listunion(args)
+
+        if cmd in ("listcomplement",):
+            return self._cmd_listcomplement(args)
+
+        # ── Conversion: items ↔ lines ↔ words ────────────────────────────────
+        if cmd in ("items2lines", "itemstolines", "list2lines", "listtolines"):
+            s = self._subst(args)
+            return "\n".join(x.strip() for x in s.split(",") if x.strip())
+
+        if cmd in ("lines2items", "linestoitems", "lines2list", "linestolist"):
+            s = self._subst(args)
+            return ",".join(x.strip() for x in s.splitlines() if x.strip())
+
+        if cmd in ("words2items", "wordstoitems", "words2list", "wordstolist"):
+            s = self._subst(args)
+            return ",".join(s.split())
+
+        if cmd in ("items2words", "itemstowords", "list2words", "listtowords"):
+            s = self._subst(args)
+            return " ".join(x.strip() for x in s.split(",") if x.strip())
+
+        if cmd in ("lines2words", "linestowords"):
+            s = self._subst(args)
+            return " ".join(x.strip() for x in s.splitlines() if x.strip())
+
+        if cmd in ("words2lines", "wordstolines"):
+            s = self._subst(args)
+            return "\n".join(s.split())
+
+        if cmd in ("rows2lines",):
+            s = self._subst(args)
+            if "\n" not in s and ";" in s:
+                return "\n".join(x.strip() for x in s.split(";"))
+            return "\n".join(x.strip() for x in s.split("\t") if x.strip())
+
+        if cmd in ("lines2rows",):
+            s = self._subst(args)
+            return "\t".join(x.strip() for x in s.splitlines() if x.strip())
+
+        # ── String normalisation ──────────────────────────────────────────────
+        if cmd in ("singlespace",):
+            return re.sub(r"\s+", " ", self._subst(args)).strip()
+
+        if cmd in ("detag",):
+            return re.sub(r"<[^>]*>", "", self._subst(args))
+
+        if cmd in ("deaccent",):
+            import unicodedata
+            s = self._subst(args)
+            return "".join(
+                c for c in unicodedata.normalize("NFD", s)
+                if unicodedata.category(c) != "Mn"
+            )
+
+        # ── Random variants ───────────────────────────────────────────────────
+        if cmd in ("randword",):
+            return self._cmd_randword(args)
+
+        if cmd in ("randline",):
+            return self._cmd_randline(args)
+
+        if cmd in ("randchar",):
+            s = self._subst(args)
+            return self.rng.choice(list(s)) if s else ""
+
+        # ── Arithmetic evaluation ─────────────────────────────────────────────
+        if cmd in ("evalue", "eval"):
+            try:
+                result = self._eval_arith(self._subst(args))
+                v = float(result)
+                if v == int(v):
+                    return str(int(v))
+                return f"{v:.6g}"
+            except Exception:
+                return "0"
+
+        # ── Explicit substitution (no-op: subst already done by caller) ───────
+        if cmd in ("subst", "substit", "substitute"):
+            return self._subst(args)
+
+        # ── Row/record access (PAX has no datafiles, return empty) ────────────
+        if cmd in ("record", "records", "recordcnt", "recordcount", "recordno",
+                   "recordnum", "randfile"):
+            return ""
+
+        if cmd in ("randrecord",):
+            return self._cmd_randrecord(args)
+
+        # ── Slib helper commands (mutate self.ctx, return empty string) ────────
+        if cmd in ("distribute",):
+            self._cmd_distribute(args)
+            return ""
+
+        if cmd in ("bound",):
+            self._cmd_bound(args)
+            return ""
+
+        if cmd in ("default",):
+            self._cmd_default(args)
+            return ""
+
+        if cmd in ("advance",):
+            self._cmd_advance(args)
+            return ""
+
+        if cmd in ("reset",):
+            self._cmd_reset(args)
+            return ""
+
+        # ── Select rows by condition ──────────────────────────────────────────
+        if cmd in ("select",):
+            return self._cmd_select(args)
 
         return f"UNKNOWN_CMD:{cmd}"
 
@@ -784,32 +934,51 @@ class DefEngine(_SlibMixin):
         return text.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """!translate A to B in text — character-wise translation."""
-        # !translate internal $ to ; in text
+        """!translate A to B in text — character-wise translation (port of calc.c calc_translate)."""
         m = re.match(r"(?:internal\s+)?(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-        a, b, text = m.groups()
-        
-        # WIMS translation: if len(b) < len(a), extra chars in a are deleted
+        a_raw, b_raw, text_raw = m.groups()
+        # Substitute all three parts (C code does substit on each)
+        a = self._subst(a_raw)
+        b = self._subst(b_raw)
+        text = self._subst(text_raw)
+
+        # C: if len(b) < len(a), truncate a to len(b) (extra chars in a are IGNORED, not deleted)
         if len(b) < len(a):
-            table = str.maketrans(a[:len(b)], b, a[len(b):])
+            a = a[:len(b)]
         elif len(b) > len(a):
-            table = str.maketrans(a, b[:len(a)])
-        else:
-            table = str.maketrans(a, b)
-            
+            b = b[:len(a)]
+
+        if not a:
+            return text
+
+        table = str.maketrans(a, b)
         return text.translate(table)
 
     def _cmd_append(self, args: str) -> str:
-        """!append item/line X to list."""
-        # \s* after 'to' (not \s+) so that an empty target variable
-        # ("!append item X to $empty_var") still matches correctly.
-        m = re.match(r"(items?|lines?)\s+(.*?)\s+to\s*(.*)", args, re.I | re.DOTALL)
+        """!append item/line/word/semicolon X to list — append with appropriate separator."""
+        # Also accepts 'word' (→ space), 'semicolon' (→ ;), 'colon' (→ :).
+        m = re.match(r"(items?|lines?|words?|semicolons?|colons?)\s+(.*?)\s+to\s*(.*)",
+                     args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
-        kind, val, target = m.group(1), m.group(2), (m.group(3) or "").strip()
-        sep = "\n" if kind.lower().startswith("line") else ","
+        kind_raw = m.group(1).lower()
+        val = self._subst(m.group(2))
+        target = self._subst((m.group(3) or "").strip())
+
+        if kind_raw.startswith("line"):
+            sep = "\n"
+        elif kind_raw.startswith("word"):
+            sep = " "
+        elif kind_raw.startswith("semi"):
+            sep = ";"
+        elif kind_raw.startswith("colon"):
+            sep = ":"
+        else:
+            # item: auto-detect separator from existing target content
+            sep = "\t" if "\t" in target else ","
+
         if not target:
             return val
         return f"{target}{sep}{val}"
@@ -858,10 +1027,9 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-        # WIMS standard: !makelist returns a comma-separated list
-        # unless it's a matrix with multiple columns (then it's tab-row/comma-col).
-        has_multi_col = any("," in r for r in results)
-        return ("\t" if has_multi_col else ",").join(results)
+        # WIMS: !makelist always returns tab-separated rows (each iteration is a row).
+        # Within each row, comma-separated columns are preserved as-is.
+        return "\t".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""
@@ -885,14 +1053,41 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(rows)
 
     def _cmd_sort(self, args: str) -> str:
-        """!sort items/rows list — sort alphabetically."""
-        m = re.match(r"(items?|rows?)\s+(.*)", args, re.I | re.DOTALL)
-        if not m:
-            return self._subst(args)
-        kind, val = m.group(1).lower(), self._subst(m.group(2))
+        """!sort [numeric|reverse] [items|rows|list] LIST — sort."""
+        # Strip optional modifiers: numeric, alphabetic, alpha, reverse, down
+        numeric = False
+        reverse = False
+        rest = args
+        while True:
+            m = re.match(r"(numeric|alphabetic|alpha|reverse|down)\s+(.*)", rest, re.I | re.DOTALL)
+            if not m:
+                break
+            modifier = m.group(1).lower()
+            rest = m.group(2)
+            if modifier in ("numeric",):
+                numeric = True
+            if modifier in ("reverse", "down"):
+                reverse = True
+
+        m = re.match(r"(items?|rows?|list)\s+(.*)", rest, re.I | re.DOTALL)
+        if m:
+            kind, val = m.group(1).lower(), self._subst(m.group(2))
+        else:
+            kind, val = "items", self._subst(rest)
+
         sep = "\t" if kind.startswith("row") else ","
         items = [x.strip() for x in val.split(sep) if x.strip()]
-        items.sort()
+
+        if numeric:
+            def _num_key(s: str) -> float:
+                try:
+                    return float(self._eval_arith(s))
+                except Exception:
+                    return 0.0
+            items.sort(key=_num_key, reverse=reverse)
+        else:
+            items.sort(reverse=reverse)
+
         return sep.join(items)
 
     def _cmd_values(self, args: str) -> str:
@@ -900,15 +1095,17 @@ class DefEngine(_SlibMixin):
         return self._cmd_makelist(args).replace("\t", ",")
 
     def _cmd_listuniq(self, args: str) -> str:
-        """!listuniq list — remove duplicates."""
-        items = [x.strip() for x in self._subst(args).split(",") if x.strip()]
-        seen = set()
+        """!listuniq list — remove duplicates (preserves separator style)."""
+        s = self._subst(args)
+        sep = "\t" if "\t" in s else ","
+        items = [x.strip() for x in s.split(sep) if x.strip()]
+        seen: dict = {}
         res = []
         for x in items:
             if x not in seen:
-                seen.add(x)
+                seen[x] = True
                 res.append(x)
-        return ",".join(res)
+        return sep.join(res)
 
     def _cmd_listintersect(self, args: str) -> str:
         """!listintersect list1 and list2 — items of list1 that appear in list2."""
@@ -925,10 +1122,12 @@ class DefEngine(_SlibMixin):
         return ",".join(x for x in items1 if x in items2)
 
     def _cmd_declosing(self, args: str) -> str:
-        """!declosing text — remove outer parentheses/brackets."""
+        """!declosing text — remove outer parentheses/brackets/braces."""
         s = self._subst(args).strip()
-        if (s.startswith("(") and s.endswith(")")) or (s.startswith("[") and s.endswith("]")):
-            return s[1:-1].strip()
+        pairs = [("(", ")"), ("[", "]"), ("{", "}")]
+        for open_, close_ in pairs:
+            if s.startswith(open_) and s.endswith(close_):
+                return s[1:-1].strip()
         return s
 
     def _cmd_getopt(self, args: str) -> str:
@@ -979,6 +1178,259 @@ class DefEngine(_SlibMixin):
         except (ValueError, TypeError):
             pass
         return ""
+
+    # ── Slib helper command implementations ──────────────────────────────────
+
+    def _cmd_distribute(self, args: str) -> None:
+        """!distribute items $src into a,b,c — assign each item to a variable."""
+        m = re.match(r"items?\s+(.*?)\s+into\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return
+        src = self._subst(m.group(1).strip())
+        targets = [t.strip() for t in self._subst(m.group(2)).split(",")]
+        items = [x.strip() for x in src.split(",")]
+        for i, t in enumerate(targets):
+            self.ctx[t] = items[i] if i < len(items) else ""
+
+    def _cmd_bound(self, args: str) -> None:
+        """!bound VAR within LIST default DEF — clamp to allowed values.
+        !bound VAR between MIN and MAX default DEF — numeric range clamp."""
+        # Form 1: "VAR between MIN and MAX default DEF"
+        m = re.match(
+            r"(\w+)\s+between\s+(.*?)\s+and\s+(.*?)\s+default\s+(.*)",
+            args, re.I | re.DOTALL,
+        )
+        if m:
+            var = m.group(1).strip()
+            lo_s = self._subst(m.group(2).strip())
+            hi_s = self._subst(m.group(3).strip())
+            default_s = self._subst(m.group(4).strip())
+            try:
+                val = float(self._eval_arith(self.ctx.get(var, "")))
+                lo = float(self._eval_arith(lo_s))
+                hi = float(self._eval_arith(hi_s))
+                if lo <= val <= hi:
+                    return  # in range, keep
+            except (ValueError, TypeError):
+                pass
+            self.ctx[var] = default_s
+            return
+
+        # Form 2: "VAR within LIST default DEF"
+        m = re.match(
+            r"(\w+)\s+within\s+(.*?)\s+default\s+(.*)",
+            args, re.I | re.DOTALL,
+        )
+        if m:
+            var = m.group(1).strip()
+            allowed = [x.strip() for x in self._subst(m.group(2).strip()).split(",")]
+            default_s = self._subst(m.group(3).strip())
+            if self.ctx.get(var, "") in allowed:
+                return  # valid, keep
+            self.ctx[var] = default_s
+
+    def _cmd_default(self, args: str) -> None:
+        """!default VAR=VALUE — set VAR to VALUE only if VAR is currently empty/unset."""
+        m = re.match(r"(\w+)\s*=\s*(.*)", args, re.DOTALL)
+        if not m:
+            return
+        var, value = m.group(1).strip(), self._subst(m.group(2).strip())
+        if not self.ctx.get(var, "").strip():
+            self.ctx[var] = value
+
+    def _cmd_advance(self, args: str) -> None:
+        """!advance VAR [step] — increment a counter variable."""
+        parts = args.split()
+        if not parts:
+            return
+        var = parts[0].strip()
+        step = 1
+        if len(parts) >= 2:
+            try:
+                step = int(self._eval_arith(self._subst(parts[1])))
+            except (ValueError, TypeError):
+                pass
+        try:
+            self.ctx[var] = str(int(self.ctx.get(var, "0")) + step)
+        except (ValueError, TypeError):
+            self.ctx[var] = str(step)
+
+    def _cmd_reset(self, args: str) -> None:
+        """!reset VAR — reset a variable to empty string."""
+        var = self._subst(args.strip())
+        self.ctx[var] = ""
+
+    def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:
+        """Generic N-of-LIST picker (port of _blockof in calc.c).
+
+        split_fn(s) -> list[str]; sep is joined between multiple results.
+        idx_s may be a single int, 'A to B' range, or comma-separated indices.
+        Negative indices are Python-style from end (-1 = last).
+        """
+        parts = split_fn(data)
+        n = len(parts)
+
+        def resolve(i: int) -> int:
+            if i < 0:
+                return n + i + 1
+            return i
+
+        # Range: "2 to 5" or "2..5"
+        range_m = re.match(r"(-?\d+)\s+to\s+(-?\d+)", idx_s) or \
+                  re.match(r"(-?\d+)\.\.(-?\d+)", idx_s)
+        if range_m:
+            a = resolve(int(range_m.group(1)))
+            b = resolve(int(range_m.group(2)))
+            a = max(1, a); b = min(n, b)
+            return sep.join(parts[i - 1] for i in range(a, b + 1))
+
+        # Multiple indices
+        raw_indices = [s.strip() for s in idx_s.split(",") if s.strip()]
+        if len(raw_indices) > 1:
+            res = []
+            for s in raw_indices:
+                try:
+                    i = resolve(int(round(float(self._eval_arith(s)))))
+                    if 1 <= i <= n:
+                        res.append(parts[i - 1])
+                except (ValueError, TypeError):
+                    pass
+            return sep.join(res)
+
+        # Single index
+        try:
+            i = resolve(int(round(float(self._eval_arith(idx_s)))))
+            if 1 <= i <= n:
+                return parts[i - 1]
+        except (ValueError, TypeError):
+            pass
+        return ""
+
+    def _cmd_line(self, args: str) -> str:
+        """!line N of text — Nth newline-separated line (1-indexed)."""
+        m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        data = self._subst(m.group(2).strip())
+        return self._blockof(data, lambda s: [l.strip() for l in s.splitlines() if l.strip()], "\n", idx_s)
+
+    def _cmd_char(self, args: str) -> str:
+        """!char N of text — Nth character (1-indexed)."""
+        m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        data = self._subst(m.group(2).strip())
+        return self._blockof(data, list, "", idx_s)
+
+    def _cmd_randword(self, args: str) -> str:
+        """!randword list — random word from space-separated list."""
+        data = self._subst(args)
+        words = data.split()
+        return self.rng.choice(words) if words else ""
+
+    def _cmd_randline(self, args: str) -> str:
+        """!randline text — random newline-separated line."""
+        data = self._subst(args)
+        lines = [l.strip() for l in data.splitlines() if l.strip()]
+        return self.rng.choice(lines) if lines else ""
+
+    def _cmd_sum(self, args: str) -> str:
+        """!add / !sum list — arithmetic sum of comma-separated values."""
+        parts = [self._subst(p.strip()) for p in args.split(",")]
+        total = 0.0
+        for p in parts:
+            try:
+                total += float(self._eval_arith(p))
+            except (ValueError, TypeError):
+                pass
+        if total == int(total):
+            return str(int(total))
+        return f"{total:g}"
+
+    def _cmd_product(self, args: str) -> str:
+        """!multiply / !product — arithmetic product of comma-separated values."""
+        parts = [self._subst(p.strip()) for p in args.split(",")]
+        result = 1.0
+        for p in parts:
+            try:
+                result *= float(self._eval_arith(p))
+            except (ValueError, TypeError):
+                pass
+        if result == int(result):
+            return str(int(result))
+        return f"{result:g}"
+
+    def _cmd_listunion(self, args: str) -> str:
+        """!listunion L1 and L2 — union of two comma-separated lists (no duplicates)."""
+        m = re.match(r"(.*?)\s+and\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        l1 = [x.strip() for x in self._subst(m.group(1)).split(",") if x.strip()]
+        l2 = [x.strip() for x in self._subst(m.group(2)).split(",") if x.strip()]
+        seen: dict = {}
+        result = []
+        for item in l1 + l2:
+            if item not in seen:
+                seen[item] = True
+                result.append(item)
+        return ",".join(result)
+
+    def _cmd_listcomplement(self, args: str) -> str:
+        """!listcomplement L1 in L2 — items of L2 NOT in L1."""
+        m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        l1 = {x.strip() for x in self._subst(m.group(1)).split(",") if x.strip()}
+        l2 = [x.strip() for x in self._subst(m.group(2)).split(",") if x.strip()]
+        seen: dict = {}
+        result = []
+        for item in l2:
+            if item not in l1 and item not in seen:
+                seen[item] = True
+                result.append(item)
+        return ",".join(result)
+
+    def _cmd_select(self, args: str) -> str:
+        """!select DATA where CONDITION — filter rows matching condition.
+
+        Supports 'column N' references in CONDITION (replaced by the Nth
+        comma-separated column of each row, then evaluated via _eval_condition).
+        """
+        m = re.match(r"(.*?)\s+where\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        data_raw = self._subst(m.group(1).strip())
+        cond_template = m.group(2).strip()
+
+        # Normalise rows to newline-separated
+        if "\n" not in data_raw and ";" in data_raw:
+            rows = [r.strip() for r in data_raw.split(";") if r.strip()]
+        elif "\t" in data_raw:
+            rows = [r.strip() for r in data_raw.split("\t") if r.strip()]
+        else:
+            rows = [r.strip() for r in data_raw.splitlines() if r.strip()]
+
+        selected = []
+        for row in rows:
+            cols = [c.strip() for c in row.split(",")]
+
+            def inject_columns(cond: str, cols: list[str]) -> str:
+                def replace_col(mo: re.Match) -> str:
+                    try:
+                        ci = int(mo.group(1)) - 1
+                        return cols[ci] if 0 <= ci < len(cols) else ""
+                    except (ValueError, IndexError):
+                        return ""
+                return re.sub(r"\bcolumn\s+(\d+)\b", replace_col, cond, flags=re.I)
+
+            cond = inject_columns(cond_template, cols)
+            cond = self._subst(cond)
+            if _wims_compare(cond, numeric=False):
+                selected.append(row)
+
+        return "\n".join(selected)
 
     # ── Section rendering ─────────────────────────────────────────────────────
 
