@@ -372,8 +372,10 @@ class TestOrdre2:
         assert r.statement_html.strip()
 
     def test_one_answer(self):
+        # ordre2 has 4 clickfill slots (one per fraction position), each using
+        # ?analyze; all 4 are extracted as separate analyze-type answers.
         r = load_and_render(ORDRE2_DEF, seed=7)
-        assert len(r.answers) == 1
+        assert len(r.answers) == 4
 
     def test_seed_deterministic(self):
         r1 = load_and_render(ORDRE2_DEF, seed=99)

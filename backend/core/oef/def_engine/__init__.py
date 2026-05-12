@@ -1520,6 +1520,38 @@ class DefEngine(_SlibMixin):
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
 
+        # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from
+        # choice_meta (WIMS creates an implicit reply slot in this case).
+        if not df.reply_meta and df.choice_meta:
+            for cm in df.choice_meta:
+                n = cm["n"]
+                correct = self._subst(cm.get("good", ""))
+                wrong_raw = self._subst(cm.get("bad", ""))
+                wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
+                seen_set: set[str] = set()
+                choices: list[str] = []
+                for c in [correct] + wrong:
+                    if c not in seen_set:
+                        seen_set.add(c)
+                        choices.append(c)
+                jnsp = "Je ne sais pas"
+                if jnsp not in seen_set:
+                    choices.append(jnsp)
+                rng = random.Random(f"{self.seed}_{n}")
+                rng.shuffle(choices)
+                answers.append(
+                    AnswerDef(
+                        label=_close_inline_math(self._subst(cm.get("name", ""))),
+                        expected=correct,
+                        answer_type="radio",
+                        options={"choices": choices},
+                        weight=1.0,
+                        input_name=f"reply{n}",
+                        logical_name=f"reply{n}",
+                    )
+                )
+            return answers
+
         for rm in df.reply_meta:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
@@ -1541,20 +1573,41 @@ class DefEngine(_SlibMixin):
                     expected = good_raw
 
             if ans_type == "radio":
-                # Choices are stored in `choice_meta` but usually also in variables
-                # referred to by options.
-                choices = []
+                choices: list[str] = []
                 for cm in df.choice_meta:
                     if cm["n"] == n:
-                        # Extract choices
                         correct = self._subst(cm.get("good", ""))
-                        wrong = self._subst(cm.get("bad", "")).split(",")
-                        choices = [correct] + [w.strip() for w in wrong if w.strip()]
-                        # Shuffle choices with a local seed for determinism
+                        wrong_raw = self._subst(cm.get("bad", ""))
+                        wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
+                        # Dedup: remove duplicates (correct may already be in wrong)
+                        seen_set: set[str] = set()
+                        choices = []
+                        for c in [correct] + wrong:
+                            if c not in seen_set:
+                                seen_set.add(c)
+                                choices.append(c)
+                        # WIMS always appends "Je ne sais pas" as last option
+                        jnsp = "Je ne sais pas"
+                        if jnsp not in seen_set:
+                            choices.append(jnsp)
                         rng = random.Random(f"{self.seed}_{n}")
                         rng.shuffle(choices)
                         expected = correct
                         break
+
+                if not choices and ";" in good_raw:
+                    # Indexed format: "correct_idx;choice1,choice2,..." (like !menu)
+                    idx_str, choices_str = good_raw.split(";", 1)
+                    try:
+                        correct_idx = int(idx_str.strip())
+                        choices = [c.strip() for c in choices_str.split(",") if c.strip()]
+                        if 1 <= correct_idx <= len(choices):
+                            expected = choices[correct_idx - 1]
+                        rng = random.Random(f"{self.seed}_{n}")
+                        rng.shuffle(choices)
+                    except (ValueError, IndexError):
+                        pass
+
                 options["choices"] = choices
 
             elif ans_type == "menu":
