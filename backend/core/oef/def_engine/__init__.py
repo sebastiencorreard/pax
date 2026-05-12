@@ -476,105 +476,9 @@ class DefEngine(_SlibMixin):
     # ── Condition evaluation ──────────────────────────────────────────────────
 
     def _eval_condition(self, kind: str, condition: str) -> bool:
-        """Evaluate an !if or !ifval condition."""
+        """Evaluate a !if or !ifval condition (port of WIMS compare.c)."""
         cond = self._subst(condition)
-
-        # Handle top-level 'and'/'or' compound conditions, e.g.
-        # ($val47=1) and ($val58=+)
-        for logical_op in ("and", "or"):
-            parts = _split_compound(cond, logical_op)
-            if parts:
-                results = [self._eval_condition(kind, p) for p in parts]
-                return all(results) if logical_op == "and" else any(results)
-
-        # Strip balanced outer parentheses so that (A=B) evaluates like A=B.
-        cond = _strip_outer_parens(cond)
-
-        # Normalise WIMS not-equal operator (<> → !=).
-        cond = cond.replace("<>", "!=")
-
-        # WIMS string operators: `A isin B` (substring), `A notin B`,
-        # `A wordof B` (whole-word match), `A notwordof B`,
-        # `A issametext B`, `A isnotreexpanded B`.
-        # Check these before falling through to numeric comparison.
-        m = re.match(
-            r"^\s*(.+?)\s+(isin|notin|wordof|notwordof|issametext|isnotreexpanded)\s+(.+?)\s*$",
-            cond,
-            re.I,
-        )
-        if m:
-            needle = m.group(1).strip()
-            op = m.group(2).lower()
-            haystack = m.group(3).strip()
-            if op == "isin":
-                return needle in haystack
-            if op == "notin":
-                return needle not in haystack
-            if op in ("issametext", "isnotreexpanded"):
-                # Literal string comparison (re-expanded is for WIMS' internal CAS cache)
-                return needle == haystack
-            words = re.split(r"[,\s\t]+", haystack)
-            if op == "wordof":
-                return needle in words
-            return needle not in words
-
-        # WIMS string `!=` and `=`: handled BEFORE numeric comparison so
-        # that values like `<,3,…` (which aren't valid Python) don't trip
-        # the numeric branch.
-        if kind != "ifval":
-            m = re.match(r"^\s*(.+?)\s*!=\s*(.+?)\s*$", cond)
-            if m and not re.fullmatch(r"[\d\s\-+*/.()e]+", m.group(1)):
-                return m.group(1).strip() != m.group(2).strip()
-
-        # Numeric comparison: !ifval $val10<4, $val8 issametext X,...
-        if kind == "ifval" or re.search(r"[<>!=]=?", cond):
-            try:
-                # Handle WIMS comparison operators
-                # Protect multi-char operators before replacing single `=`
-                cond_py = cond
-                cond_py = (
-                    cond_py.replace("!=", "!__NE__")
-                    .replace(">=", "!__GE__")
-                    .replace("<=", "!__LE__")
-                )
-                cond_py = cond_py.replace("=", "==")
-                cond_py = (
-                    cond_py.replace("!__NE__", "!=")
-                    .replace("!__GE__", ">=")
-                    .replace("!__LE__", "<=")
-                )
-                
-                # Use a small epsilon for comparisons to handle float precision issues
-                # e.g. 0.8000000000000001 should not be > 0.8
-                ns_with_epsilon = dict(_MATH_NS)
-                
-                def robust_eval(c_py):
-                    # Round float-like numbers in the string to 10 decimal places
-                    c_rounded = re.sub(r"(\d+\.\d+)", lambda m: str(round(float(m.group(1)), 10)), c_py)
-                    return bool(eval(c_rounded.replace("^", "**"), ns_with_epsilon))
-                
-                return robust_eval(cond_py)
-            except Exception:
-                pass
-
-        # String equality: $val22=posi
-        if "=" in cond:
-            left, _, right = cond.partition("=")
-            return left.strip() == right.strip()
-
-        # Fallback for remaining cases
-        stripped = cond.strip()
-        if not stripped:
-            return False
-        
-        # If it looks like a failed numeric comparison, don't return True just because it's non-empty
-        if any(op in stripped for op in ("<", ">", "!=")):
-            return False
-            
-        if stripped == "0":
-            return False
-            
-        return True
+        return _wims_compare(cond, numeric=(kind == "ifval"))
 
     def _eval_loop_expr(self, expr: str, var: str, val: str) -> str:
         """Evaluate a loop body expression, substituting the loop variable."""
@@ -1314,6 +1218,283 @@ def _split_compound(cond: str, op: str) -> list[str] | None:
         parts.append(cond[last:].strip())
         return parts
     return None
+
+
+# ── compare.c port ────────────────────────────────────────────────────────────
+# Faithful Python port of WIMS compare.c (WIMS 4.28).
+# The original C function is a single left-to-right scan that finds the
+# lowest-precedence operator: or < and < relational/semantic.
+
+_WIMS_RELATION_TYPES = [
+    "sametext", "samecase",
+    "in", "wordof", "itemof", "lineof", "varof", "variableof",
+]
+# which indices (1-based, matching compare.c r values) need the 'is'/'not' prefix
+_WIMS_PREFIX_CHARS = frozenset("siwlv")
+
+
+def _wims_bufprep(s: str) -> str:
+    """Normalize whitespace: trim + collapse to single spaces (bufprep in compare.c)."""
+    return " ".join(s.split())
+
+
+def _wims_strip_all_parens(s: str) -> str:
+    """Strip every layer of balanced outer parens (the while loop in compare.c)."""
+    while True:
+        s = s.strip()
+        if len(s) < 2 or s[0] != "(" or s[-1] != ")":
+            break
+        depth = 0
+        fully_wrapped = True
+        for i, ch in enumerate(s):
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            if depth == 0 and i < len(s) - 1:
+                fully_wrapped = False
+                break
+        if not fully_wrapped:
+            break
+        s = s[1:-1]
+    return s.strip()
+
+
+def _wims_find_top_logic(s: str, op: str) -> tuple[str, str] | None:
+    """Return (lhs, rhs) for the FIRST occurrence of word-boundary *op* at depth 0, or None."""
+    n = len(s)
+    depth = 0
+    op_len = len(op)
+    i = 0
+    while i < n:
+        ch = s[i]
+        if ch == "(":
+            depth += 1; i += 1; continue
+        elif ch == ")":
+            depth -= 1; i += 1; continue
+        if depth != 0:
+            i += 1; continue
+        if ch.isspace():
+            j = i + 1
+            while j < n and s[j].isspace():
+                j += 1
+            if s[j:j + op_len].lower() == op:
+                end = j + op_len
+                if end >= n or not (s[end].isalnum() or s[end] == "_"):
+                    k = end
+                    while k < n and s[k].isspace():
+                        k += 1
+                    return s[:i].strip(), s[k:].strip()
+        i += 1
+    return None
+
+
+def _wims_numeric_eq(d1: float, d2: float, prec: float = 10000.0) -> bool:
+    """WIMS precision formula: |d1-d2|*prec <= |d1+d2| + 1/prec (from compare.c)."""
+    diff = abs(d1 - d2) * prec
+    total = abs(d1 + d2)
+    if 0 < prec < 1e10:
+        total += 1.0 / prec
+    return total >= diff
+
+
+def _wims_eval_num(expr: str) -> float | None:
+    """Try to evaluate expr as a float; return None on any failure."""
+    try:
+        result = eval(expr.strip().replace("^", "**"), {"__builtins__": {}}, _MATH_NS)
+        return float(result)
+    except Exception:
+        return None
+
+
+def _wims_semantic_op(lhs: str, r: int, neg: bool, rhs: str) -> bool:
+    """Evaluate a semantic operator (r = compare.c relation_type index + 1)."""
+    b1 = lhs.strip()
+    b2 = rhs.strip()
+    if r == 1:    # sametext: deaccent + bufprep + case-insensitive
+        result = _wims_bufprep(b1).lower() == _wims_bufprep(b2).lower()
+    elif r == 2:  # samecase: bufprep + case-sensitive
+        result = _wims_bufprep(b1) == _wims_bufprep(b2)
+    elif r == 3:  # in: substring
+        result = b1 in b2
+    elif r == 4:  # wordof: whole word in space/comma-separated list
+        words = [w.strip() for w in re.split(r"[\s,]+", b2) if w.strip()]
+        result = b1 in words
+    elif r == 5:  # itemof: comma-separated item
+        result = b1 in [x.strip() for x in b2.split(",")]
+    elif r == 6:  # lineof: newline-separated
+        result = b1 in [x.strip() for x in b2.splitlines()]
+    elif r in (7, 8):  # varof / variableof: space-separated variable list
+        result = b1 in [x.strip() for x in re.split(r"\s+", b2)]
+    else:
+        result = False
+    return result ^ neg
+
+
+def _wims_relational(lhs: str, rhs: str, op_code: int, neg: bool, numeric: bool) -> bool:
+    """Evaluate one relational comparison (op_code = compare.c r values)."""
+    if op_code == 0:
+        # String equality (= in !if context)
+        return (lhs == rhs) ^ neg
+
+    # Numeric comparison
+    d1 = _wims_eval_num(lhs)
+    d2 = _wims_eval_num(rhs)
+    if d1 is None or d2 is None:
+        if op_code == 101:
+            # Fall back to string equality when numbers can't be parsed
+            return (lhs == rhs) ^ neg
+        return False
+
+    if op_code == 101:
+        r = _wims_numeric_eq(d1, d2)
+    elif op_code == 102:  # < (or >= via neg=True)
+        r = d1 < d2
+    elif op_code == 103:  # > (or <= via neg=True)
+        r = d1 > d2
+    else:
+        return False
+    return r ^ neg
+
+
+def _wims_compare_atomic(s: str, numeric: bool) -> bool:
+    """
+    Evaluate one atomic WIMS condition (no top-level and/or).
+    Handles semantic ops (issametext, iswordof, …) and relational ops (<, >, =, !=, <>).
+    Mirrors the gotl=3 branch of compare.c.
+    """
+    n = len(s)
+    depth = 0
+    i = 0
+    rel: dict | None = None  # first relational op found (mirrors gotl=3 in C)
+
+    while i < n:
+        ch = s[i]
+        if ch == "(":
+            depth += 1; i += 1; continue
+        elif ch == ")":
+            depth -= 1; i += 1; continue
+        if depth != 0:
+            i += 1; continue
+
+        if not ch.isspace():
+            # Process relational op chars only if none found yet (gotl>3 in C)
+            if rel is None and ch in "<>=!":
+                if ch == "<":
+                    # Skip bare < or > when LHS is empty — the char is part of a
+                    # string value (e.g. "<,3" from a menu answer).  A later !=
+                    # or = will be picked up as the actual operator.
+                    if not s[:i].strip():
+                        i += 1; continue
+                    if i + 1 < n and s[i + 1] == "=":
+                        rel = {"lhs_end": i, "rhs_start": i + 2, "op": 103, "neg": True}
+                        i += 2
+                    elif i + 1 < n and s[i + 1] == ">":
+                        op = 101 if numeric else 0
+                        rel = {"lhs_end": i, "rhs_start": i + 2, "op": op, "neg": True}
+                        i += 2
+                    else:
+                        rel = {"lhs_end": i, "rhs_start": i + 1, "op": 102, "neg": False}
+                        i += 1
+                    continue
+                elif ch == ">":
+                    if not s[:i].strip():
+                        i += 1; continue
+                    if i + 1 < n and s[i + 1] == "=":
+                        rel = {"lhs_end": i, "rhs_start": i + 2, "op": 102, "neg": True}
+                        i += 2
+                    else:
+                        rel = {"lhs_end": i, "rhs_start": i + 1, "op": 103, "neg": False}
+                        i += 1
+                    continue
+                elif ch == "=":
+                    end = i + 2 if (i + 1 < n and s[i + 1] == "=") else i + 1
+                    op = 101 if numeric else 0
+                    rel = {"lhs_end": i, "rhs_start": end, "op": op, "neg": False}
+                    i = end
+                    continue
+                elif ch == "!" and i + 1 < n and s[i + 1] == "=":
+                    op = 101 if numeric else 0
+                    rel = {"lhs_end": i, "rhs_start": i + 2, "op": op, "neg": True}
+                    i += 2
+                    continue
+            i += 1
+            continue
+
+        # Space at depth 0 — check next word for semantic op (only if none found yet)
+        j = i + 1
+        while j < n and s[j].isspace():
+            j += 1
+        if j >= n:
+            i += 1; continue
+
+        word = s[j:]
+
+        if rel is None:
+            # isnotreexpanded: WIMS-internal pseudo-op, treated as sametext (r=1)
+            # Must be checked before the is/not prefix logic since 'n' (from "not")
+            # is not in _WIMS_PREFIX_CHARS and would short-circuit incorrectly.
+            _INR = "isnotreexpanded"   # len=15
+            if word[:15].lower() == _INR:
+                after = 15
+                if after >= len(word) or not (word[after].isalnum() or word[after] == "_"):
+                    lhs = s[:i].strip()
+                    rhs = word[15:].strip()
+                    return _wims_semantic_op(lhs, 1, False, rhs)
+
+            # is… prefix (k=2) or not… prefix (k=3)
+            if word[:2].lower() == "is":
+                k, neg = 2, False
+            elif word[:3].lower() == "not":
+                k, neg = 3, True
+            else:
+                i += 1; continue
+
+            if k >= len(word) or word[k].lower() not in _WIMS_PREFIX_CHARS:
+                i += 1; continue
+
+            for ri, rt in enumerate(_WIMS_RELATION_TYPES):
+                rt_len = len(rt)
+                if word[k:k + rt_len].lower() == rt:
+                    after = k + rt_len
+                    if after >= len(word) or not (word[after].isalnum() or word[after] == "_"):
+                        lhs = s[:i].strip()
+                        rhs = word[k + rt_len:].strip()
+                        return _wims_semantic_op(lhs, ri + 1, neg, rhs)
+
+        i += 1
+
+    if rel is not None:
+        lhs = s[:rel["lhs_end"]].strip()
+        rhs = s[rel["rhs_start"]:].strip()
+        return _wims_relational(lhs, rhs, rel["op"], rel["neg"], numeric)
+
+    return False
+
+
+def _wims_compare(cond: str, numeric: bool) -> bool:
+    """
+    Faithful Python port of WIMS compare.c compare().
+    numeric=True for !ifval (= uses numeric precision), False for !if (= is string equality).
+    """
+    cond = _wims_strip_all_parens(cond)
+    if not cond:
+        return False
+
+    # or (lowest precedence) — first occurrence wins, short-circuits
+    split = _wims_find_top_logic(cond, "or") or _wims_find_top_logic(cond, "||")
+    if split is not None:
+        lhs, rhs = split
+        return _wims_compare(lhs, numeric) or _wims_compare(rhs, numeric)
+
+    # and (medium precedence) — first occurrence wins
+    split = _wims_find_top_logic(cond, "and") or _wims_find_top_logic(cond, "&&")
+    if split is not None:
+        lhs, rhs = split
+        return _wims_compare(lhs, numeric) and _wims_compare(rhs, numeric)
+
+    # atomic comparison (relational or semantic op)
+    return _wims_compare_atomic(cond, numeric)
 
 
 def _analyze_wrap(value: str) -> str:
