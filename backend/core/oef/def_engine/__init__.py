@@ -7,6 +7,7 @@ question= text), extracts answer metadata, and returns an ExerciseRender.
 
 from __future__ import annotations
 
+import os
 import random
 import re
 
@@ -789,6 +790,34 @@ class DefEngine(_SlibMixin):
         if cmd in ("select",):
             return self._cmd_select(args)
 
+        # ── Remaining calc.c commands ─────────────────────────────────────────
+        if cmd in ("listintersection",):
+            return self._cmd_listintersect(args)
+
+        if cmd in ("date",):
+            import datetime
+            fmt = self._subst(args).strip() or "+%Y-%m-%d"
+            fmt = fmt.lstrip("+")
+            try:
+                return datetime.datetime.now().strftime(fmt)
+            except Exception:
+                return datetime.datetime.now().strftime("%Y-%m-%d")
+
+        if cmd in ("htmlmath", "math2html"):
+            # PAX uses KaTeX on the frontend; return the LaTeX expression wrapped
+            # in \(...\) so the frontend can render it.
+            expr = self._subst(args)
+            return f"\\({expr}\\)"
+
+        if cmd in ("lookup",):
+            return self._cmd_lookup(args)
+
+        if cmd in ("text",):
+            return self._cmd_text(args)
+
+        if cmd in ("solve", "rootof"):
+            return self._cmd_solve(args)
+
         return f"UNKNOWN_CMD:{cmd}"
 
     def _cmd_randint(self, args: str) -> str:
@@ -1431,6 +1460,152 @@ class DefEngine(_SlibMixin):
                 selected.append(row)
 
         return "\n".join(selected)
+
+    def _cmd_lookup(self, args: str) -> str:
+        """!lookup KEY in DATAFILE — look up KEY in a key:value data file.
+
+        Format of data file:
+            key1: value line 1 (may be comma-separated list)
+            key2: value line 2
+        Lookup is case-insensitive; KEY is trimmed.
+        Resolves DATAFILE relative to the module directory (two levels above def).
+        """
+        m = re.match(r"(.*?)\s+in\s+(\S+)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        key = self._subst(m.group(1)).strip()
+        filename = self._subst(m.group(2)).strip()
+        if not self.def_path or not key:
+            return ""
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        full_path = os.path.join(module_dir, filename)
+        if not os.path.exists(full_path):
+            return ""
+        try:
+            try:
+                text = open(full_path, encoding="utf-8").read()
+            except UnicodeDecodeError:
+                text = open(full_path, encoding="iso-8859-1").read()
+        except OSError:
+            return ""
+        # Search for "KEY:" at the start of a line (case-insensitive)
+        needle = key.lower() + ":"
+        for line in text.splitlines():
+            if line.lower().startswith(needle):
+                return line[len(needle):].strip()
+        return ""
+
+    def _cmd_text(self, args: str) -> str:
+        """!text SUBCOMMAND ... — WIMS string manipulation for structured text.
+
+        Supported sub-commands (from calc.c `text`):
+          select CHARS in STRING  — keep only chars of STRING present in CHARS
+          copy   STRING mask MASK — keep chars where MASK digit is '1'
+          expand STRING using MASK — replicate chars where MASK digit is '1'
+          insert SRC into DST mask MASK — insert SRC chars into DST at '1' positions
+        """
+        s = self._subst(args)
+
+        # select CHARS in STRING
+        m = re.match(r"select\s+(.*?)\s+in\s+(.*)", s, re.I | re.DOTALL)
+        if m:
+            charset = set(m.group(1).strip())
+            text = m.group(2).strip()
+            return "".join(c for c in text if c in charset)
+
+        # copy STRING mask MASK
+        m = re.match(r"copy\s+(.*?)\s+mask\s+(\S+)", s, re.I | re.DOTALL)
+        if m:
+            src = m.group(1).strip()
+            mask = m.group(2).strip()
+            return "".join(c for c, bit in zip(src, mask) if bit == "1")
+
+        # expand STRING using MASK
+        m = re.match(r"expand\s+(.*?)\s+using\s+(\S+)", s, re.I | re.DOTALL)
+        if m:
+            src = m.group(1).strip()
+            mask = m.group(2).strip()
+            src_iter = iter(src)
+            result = []
+            for bit in mask:
+                if bit == "1":
+                    try:
+                        result.append(next(src_iter))
+                    except StopIteration:
+                        break
+                else:
+                    result.append("-")
+            return "".join(result)
+
+        # insert SRC into DST mask MASK
+        m = re.match(r"insert\s+(.*?)\s+into\s+(.*?)\s+mask\s+(\S+)", s, re.I | re.DOTALL)
+        if m:
+            src = m.group(1).strip()
+            dst = list(m.group(2).strip())
+            mask = m.group(3).strip()
+            src_iter = iter(src)
+            for i, bit in enumerate(mask):
+                if bit == "1" and i < len(dst):
+                    try:
+                        dst[i] = next(src_iter)
+                    except StopIteration:
+                        break
+            return "".join(dst)
+
+        return s
+
+    def _cmd_solve(self, args: str) -> str:
+        """!solve EXPR for VAR = START to END — find root of EXPR=0 in [START,END].
+
+        Uses bisection. Returns the root as a decimal string, or '' if not found.
+        EXPR may contain '=' (treated as LHS-RHS=0).
+        """
+        m = re.match(r"(.*?)\s+for\s+(\w+)\s*=\s*(.*?)\s+to\s+(.*)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        expr_raw = self._subst(m.group(1)).strip()
+        var = m.group(2).strip()
+        try:
+            start = float(self._eval_arith(self._subst(m.group(3).strip())))
+            stop = float(self._eval_arith(self._subst(m.group(4).strip())))
+        except (ValueError, TypeError):
+            return ""
+
+        # If expr contains '=', turn it into LHS - RHS
+        if "=" in expr_raw and "==" not in expr_raw:
+            lhs, _, rhs = expr_raw.partition("=")
+            expr_py = f"({lhs.strip()}) - ({rhs.strip()})".replace("^", "**")
+        else:
+            expr_py = expr_raw.replace("^", "**")
+
+        ns = dict(_MATH_NS)
+
+        def f(v: float) -> float:
+            ns[var] = v
+            try:
+                return float(eval(expr_py, ns))
+            except Exception:
+                return float("nan")
+
+        # Bisection with 50 steps
+        fa, fb = f(start), f(stop)
+        if fa != fa or fb != fb:  # NaN check
+            return ""
+        if fa * fb > 0:
+            return ""  # no sign change
+        for _ in range(50):
+            mid = (start + stop) / 2
+            fm = f(mid)
+            if fm != fm or abs(stop - start) < 1e-12:
+                break
+            if fa * fm <= 0:
+                stop, fb = mid, fm
+            else:
+                start, fa = mid, fm
+        result = (start + stop) / 2
+        if result == int(result):
+            return str(int(result))
+        return f"{result:.6g}"
 
     # ── Section rendering ─────────────────────────────────────────────────────
 
