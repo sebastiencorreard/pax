@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import random
 import re
+from functools import lru_cache
 
 from .cas import (
     _MATH_NS,
@@ -52,19 +53,29 @@ _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
-def load_and_render(def_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
-    """Parse and evaluate a .def file, returning an ExerciseRender."""
+@lru_cache(maxsize=2048)
+def _parse_def_cached(def_path: str) -> DefFile:
+    """Parse a .def file into an AST and cache the result by path.
+
+    The AST (DefFile) is read-only: DefEngine re-evaluates it for each seed.
+    Files are static during a process lifetime, so no TTL is needed.
+    maxsize=2048 covers the full H4 corpus (2270 files) with some headroom.
+    """
     try:
         with open(def_path, encoding="utf-8") as f:
             text = f.read()
     except UnicodeDecodeError:
         with open(def_path, encoding="iso-8859-1") as f:
             text = f.read()
+    return parse_def(text)
 
+
+def load_and_render(def_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
+    """Parse (cached) and evaluate a .def file, returning an ExerciseRender."""
     if seed is None:
         seed = random.randint(0, 2**31)
 
-    def_file = parse_def(text)
+    def_file = _parse_def_cached(def_path)
     engine = DefEngine(seed=seed, def_path=def_path)
     if m_step is not None:
         engine.ctx["m_step"] = str(m_step)
