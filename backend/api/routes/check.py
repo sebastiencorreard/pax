@@ -10,40 +10,19 @@ from models.user import User
 from api.deps import get_current_user
 from core.oef.engine import load_and_render
 from core.oef.evaluator import OEFEvaluator
-from core.answer.checkers import check_answer, _normalize_expr
+from core.answer.schemas import AnswerResult
+from core.answer.strategies.standard import run_standard
+from core.answer.strategies.condition import run_condition
+from core.answer.strategies.analyze import run_analyze, run_feedback
 
 router = APIRouter(prefix="/api/check", tags=["check"])
 
 
-def _pretty_expected(expected: str, answer_type: str) -> str:
-    """Retourne la correction sous forme lisible (développée pour algexp)."""
-    if answer_type.lower() in ("algexp", "litexp", "formal"):
-        try:
-            import sympy
-            from sympy.parsing.sympy_parser import (
-                parse_expr,
-                standard_transformations,
-                implicit_multiplication_application,
-            )
-
-            transformations = standard_transformations + (
-                implicit_multiplication_application,
-            )
-            local_dict = {"expand": sympy.expand, "factor": sympy.factor}
-            expr = parse_expr(
-                _normalize_expr(expected),
-                transformations=transformations,
-                local_dict=local_dict,
-            )
-            return str(sympy.expand(expr))
-        except Exception:
-            pass
-    return expected
-
+# ── Modèles HTTP ──────────────────────────────────────────────────────────────
 
 class ReplyItem(BaseModel):
-    input_name: str  # reply1, reply2, ...
-    value: str  # ce que l'élève a tapé
+    input_name: str
+    value: str
 
 
 class CheckRequest(BaseModel):
@@ -53,20 +32,9 @@ class CheckRequest(BaseModel):
     m_step: int | None = None
 
 
-class AnswerResult(BaseModel):
-    input_name: str
-    correct: bool
-    score: float
-    method: str
-    reply: str | None = None  # réponse de l'élève
-    expected: str | None = None  # correction
-    status: str = "ok"
-    detail: str | None = None
-
-
 class CheckResponse(BaseModel):
     exercise_id: str
-    global_score: float  # moyenne pondérée
+    global_score: float
     results: list[AnswerResult]
     attempt_id: str
     has_invalid_format: bool = False
@@ -74,45 +42,7 @@ class CheckResponse(BaseModel):
     feedback_html: str | None = None
 
 
-def _check_condition(
-    condition_expr: str,
-    ans_defs,
-    replies_by_name: dict,
-    ev: OEFEvaluator,
-) -> tuple[float, list[AnswerResult]]:
-    """
-    Évalue la \condition OEF avec les réponses élève via l'OEFEvaluator (Lark).
-    Retourne (global_score, results).
-    """
-    for ans in ans_defs:
-        val = replies_by_name.get(ans.input_name, "").strip()
-        ev.ctx[ans.input_name] = val
-        alias = ans.input_name.replace("reply", "r")
-        ev.ctx[alias] = val
-        if ans.logical_name:
-            ev.ctx[ans.logical_name] = val
-
-    correct = bool(ev._eval_expr(condition_expr, kind="logic"))
-
-    score = 1.0 if correct else 0.0
-    results = []
-    for ans in ans_defs:
-        reply_val = replies_by_name.get(ans.input_name, "").strip()
-        results.append(
-            AnswerResult(
-                input_name=ans.input_name,
-                correct=correct,
-                score=score,
-                method="condition",
-                reply=reply_val,
-                expected=ev.ctx.get(
-                    ans.logical_name if ans.logical_name else ans.input_name,
-                    ans.expected,
-                ),
-            )
-        )
-    return score, results
-
+# ── Route ─────────────────────────────────────────────────────────────────────
 
 @router.post("/{exercise_id}", response_model=CheckResponse)
 async def check_exercise(
@@ -131,26 +61,19 @@ async def check_exercise(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {e}")
 
-    results: list[AnswerResult] = []
-    total_weight = 0.0
-    weighted_score = 0.0
-
+    # ── Normalisation des réponses ────────────────────────────────────────────
+    import re as _re
     replies_by_name: dict[str, str] = {}
     for r in body.replies:
         name = r.input_name.replace(" ", "")
         replies_by_name[name] = r.value
-
-    import re as _re2
     for name, value in list(replies_by_name.items()):
-        m = _re2.match(r"^r(\d+)$", name)
-        if m:
+        if m := _re.match(r"^r(\d+)$", name):
             replies_by_name[f"reply{m.group(1)}"] = value
-        m2 = _re2.match(r"^reply(\d+)$", name)
-        if m2:
-            replies_by_name[f"r{m2.group(1)}"] = value
+        if m := _re.match(r"^reply(\d+)$", name):
+            replies_by_name[f"r{m.group(1)}"] = value
 
-    # For dynsteps exercises, only validate the reply(ies) visible at the current step.
-    # The rendered statement_segments tell us which inputs are on screen right now.
+    # ── Filtrage des réponses actives ─────────────────────────────────────────
     visible_input_names: set[str] | None = None
     if rendered.is_dynsteps:
         visible_input_names = {
@@ -159,108 +82,39 @@ async def check_exercise(
             if s.get("type") in ("input", "slot", "menu")
         }
 
-    # Filter out fields that should be completely ignored (default=vide),
-    # and for dynsteps restrict to the visible step's inputs.
     active_ans_defs = [
         a for a in rendered.answers
         if "default=vide" not in str(a.options.get("option", "")).lower()
         and (visible_input_names is None or a.input_name in visible_input_names)
     ]
 
-    # Exercices avec réponses ?analyze (vérification via :postdef + :test)
-    if rendered.check_sections and any(a.answer_type == "analyze" for a in active_ans_defs):
-        from core.oef.def_engine import check_analyze
-        from core.answer.checkers import _normalize_expr
+    # ── Dispatch vers la bonne stratégie ─────────────────────────────────────
+    feedback_html: str | None = None
 
-        analyze_replies = {
-            int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
-            for a in active_ans_defs
-            if a.answer_type == "analyze" and "analyze_var" in a.options
-        }
-        condtest = check_analyze(
-            ev_ctx=rendered.check_sections["ctx"],
-            postdef_instructions=rendered.check_sections["postdef"],
-            test_instructions=rendered.check_sections["test"],
-            analyze_replies=analyze_replies,
-            seed=body.seed,
-        )
-        n_tests = len(condtest)
-        global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
-        for ans_def in active_ans_defs:
-            reply_value = replies_by_name.get(ans_def.input_name, "").strip()
-            results.append(
-                AnswerResult(
-                    input_name=ans_def.input_name,
-                    correct=bool(global_score == 1.0),
-                    score=global_score,
-                    method="analyze",
-                    reply=reply_value,
-                    expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
-                )
-            )
+    if rendered.check_sections and any(a.answer_type == "analyze" for a in active_ans_defs):
+        global_score, results = run_analyze(rendered, active_ans_defs, replies_by_name, body.seed)
+        feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
 
     elif rendered.condition:
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
-        
-        global_score, results = _check_condition(
+        global_score, results = run_condition(
             rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator
         )
+
     else:
-        for ans_def in active_ans_defs:
-            reply_value = replies_by_name.get(ans_def.input_name, "").strip()
-            check = check_answer(
-                answer_type=ans_def.answer_type,
-                reply=reply_value,
-                expected=ans_def.expected,
-                options=ans_def.options,
-            )
-            results.append(
-                AnswerResult(
-                    input_name=ans_def.input_name,
-                    correct=check.correct,
-                    score=check.score,
-                    method=check.method,
-                    reply=reply_value,
-                    expected=_pretty_expected(ans_def.expected, ans_def.answer_type),
-                    status=check.status,
-                    detail=check.detail,
-                )
-            )
-            weighted_score += check.score * ans_def.weight
-            total_weight += ans_def.weight
+        global_score, results = run_standard(active_ans_defs, replies_by_name)
+        feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
 
-        global_score = weighted_score / total_weight if total_weight > 0 else 0.0
-
+    # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)
 
-    noanalyzeprint = False
-    for a in rendered.answers:
-        if "noanalyzeprint" in str(a.options.get("option", "")).lower():
-            noanalyzeprint = True
-            break
+    noanalyzeprint = any(
+        "noanalyzeprint" in str(a.options.get("option", "")).lower()
+        for a in rendered.answers
+    )
 
-    feedback_html = None
-    if rendered.check_sections and "feedback" in rendered.check_sections:
-        from core.oef.def_engine import render_feedback
-        # analyze_replies may have been computed above (analyze path); if not,
-        # build it now so render_feedback can inject valN into the engine ctx.
-        _fb_analyze = {
-            int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
-            for a in active_ans_defs
-            if a.answer_type == "analyze" and "analyze_var" in a.options
-        } or None
-        feedback_html = render_feedback(
-            ev_ctx=rendered.check_sections["ctx"],
-            postdef_instructions=rendered.check_sections["postdef"],
-            test_instructions=rendered.check_sections["test"],
-            feedback_instructions=rendered.check_sections["feedback"],
-            replies_by_name=replies_by_name,
-            results=results,
-            seed=body.seed,
-            analyze_replies=_fb_analyze,
-        )
-
+    # ── Enregistrement de la tentative ───────────────────────────────────────
     attempt_id = "00000000-0000-0000-0000-000000000000"
     if not has_invalid:
         attempt = Attempt(

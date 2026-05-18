@@ -111,7 +111,7 @@ async def render_exercise_debug(
     _: User = Depends(get_current_user),
 ):
     """Renvoie la solution et les réponses attendues. Réservé au mode debug du front."""
-    from .check import _pretty_expected
+    from core.answer.strategies.standard import pretty_expected as _pretty_expected
 
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
