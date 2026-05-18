@@ -72,15 +72,32 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     """
     Point d'entrée principal.
     Essaie d'abord le pipeline .def compilé ; retombe sur le parser OEF si absent.
+    Les résultats sont mis en cache Redis (TTL 10 min) pour éviter le double
+    rendu render→check qui serait sinon systématique.
     """
     if not os.path.exists(oef_path):
         raise FileNotFoundError(f"Fichier OEF introuvable : {oef_path}")
 
     def_path = find_def_path(oef_path)
+    effective_path = def_path or oef_path
+
+    # Le seed doit être fixé avant la mise en cache pour que la clé soit stable.
+    # On l'attribue ici si absent ; le moteur .def l'utilisera tel quel.
+    if seed is None:
+        seed = random.randint(0, 2**31)
+
+    from . import render_cache
+    key = render_cache.cache_key(effective_path, seed, m_step)
+    cached = render_cache.get(key)
+    if cached is not None:
+        return cached
+
     if def_path:
         from .def_engine import load_and_render as _def_render
 
-        return _def_render(def_path, seed=seed, m_step=m_step)
+        rendered = _def_render(def_path, seed=seed, m_step=m_step)
+        render_cache.set(key, rendered)
+        return rendered
 
     # Fallback: pipeline OEF original
 
@@ -91,9 +108,6 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     except UnicodeDecodeError:
         with open(oef_path, encoding="iso-8859-1") as f:
             source = f.read()
-
-    if seed is None:
-        seed = random.randint(0, 2**31)
 
     directives_ast = parse(source)
     evaluator = OEFEvaluator(seed=seed)
@@ -126,7 +140,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     if widget_names:
         answers = [a for a in answers if a.input_name.replace(" ", "") in widget_names]
 
-    return ExerciseRender(
+    rendered = ExerciseRender(
         title=evaluator.meta.get("title", ""),
         lang=evaluator.meta.get("language", "fr"),
         statement_html=statement_html,
@@ -143,6 +157,8 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
         exercise_type="standard",
         type_meta={},
     )
+    render_cache.set(key, rendered)
+    return rendered
 
 
 # Reconnaît les trois types de widgets dans le HTML rendu :
