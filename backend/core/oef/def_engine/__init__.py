@@ -204,7 +204,7 @@ class DefEngine(_SlibMixin):
 
         is_dynsteps_flag = exercise_type != "standard"
         text_replies = [
-            a for a in answers if a.answer_type.lower() not in ("radio", "menu")
+            a for a in answers if a.answer_type.lower() not in ("radio", "menu", "mark")
         ]
         if text_replies and not widget_names and not is_dynsteps_flag:
             for a in text_replies:

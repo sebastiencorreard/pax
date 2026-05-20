@@ -7,7 +7,10 @@
            @click="handleMarkClick"
            @keydown.enter.prevent="() => { if (!submitted && !loading) emit('submit') }">
         <template v-for="(seg, i) in statementSegments" :key="i">
-          <span v-if="seg.type === 'html'" v-html="seg.content"></span>
+          <!-- Segments containing <table> must use <div> — <span> can't contain block elements -->
+          <div v-if="seg.type === 'html' && seg.content.includes('<table')"
+               v-html="seg.content"></div>
+          <span v-else-if="seg.type === 'html'" v-html="seg.content"></span>
           <ExerciseCfSlot v-else-if="seg.type === 'slot'"
             :name="seg.name"
             :value="replies[seg.name] || ''"
