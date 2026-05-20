@@ -4,9 +4,11 @@
     <div class="px-6 py-6">
       <div ref="statementEl"
            class="oef-statement"
+           @click="handleMarkClick"
            @keydown.enter.prevent="() => { if (!submitted && !loading) emit('submit') }">
         <template v-for="(seg, i) in statementSegments" :key="i">
-          <span v-if="seg.type === 'html'" v-html="seg.content"></span>
+          <!-- display:contents makes the wrapper transparent — preserves table/block structure -->
+          <div v-if="seg.type === 'html'" v-html="seg.content" style="display:contents"></div>
           <ExerciseCfSlot v-else-if="seg.type === 'slot'"
             :name="seg.name"
             :value="replies[seg.name] || ''"
@@ -39,14 +41,6 @@
             :disabled="submitted"
             class="rounded border px-2 py-1 text-sm font-mono resize"
             style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
-          />
-          <button v-else-if="seg.type === 'mark'"
-            type="button"
-            class="oef-mark-btn inline-block px-3 py-1 mx-0.5 rounded border transition-colors text-sm font-medium"
-            :class="markClass(seg.name, seg.pos)"
-            :disabled="submitted"
-            @click="!submitted && updateReply(seg.name, String(seg.pos))"
-            v-html="seg.content"
           />
           <select v-else-if="seg.type === 'menu'"
             :value="replies[seg.name]"
@@ -112,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 
 const props = defineProps<{
@@ -149,19 +143,42 @@ function inputClass(name: string) {
   return r.correct ? 'correct' : 'incorrect'
 }
 
-function markClass(name: string, pos: number) {
-  const selected = props.replies[name] === String(pos)
-  if (!props.submitted) {
-    return selected
-      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30 cursor-pointer'
-      : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer'
-  }
-  const result = props.checkResult?.results.find(r => r.input_name === name)
-  if (!result) return selected ? 'border-blue-400' : 'border-gray-300 dark:border-gray-600'
-  if (selected && result.correct) return 'border-green-500 bg-green-100 dark:bg-green-900/30'
-  if (selected && !result.correct) return 'border-red-500 bg-red-100 dark:bg-red-900/30'
-  return 'border-gray-300 dark:border-gray-600 opacity-60'
+// ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────
+
+function handleMarkClick(event: MouseEvent) {
+  if (props.submitted) return
+  const target = (event.target as Element)?.closest('.oef-mark-choice')
+  if (!target) return
+  const name = target.getAttribute('name')
+  const pos = target.getAttribute('data-pos')
+  if (name && pos) updateReply(name, pos)
 }
+
+function syncMarkChoices() {
+  const el = statementEl.value
+  if (!el) return
+  el.querySelectorAll<HTMLElement>('.oef-mark-choice').forEach(span => {
+    const name = span.getAttribute('name') ?? ''
+    const pos = span.getAttribute('data-pos') ?? ''
+    const selected = props.replies[name] === pos
+    span.classList.toggle('mark-selected', selected && !props.submitted)
+    span.classList.remove('mark-correct', 'mark-incorrect')
+    if (props.submitted && props.checkResult) {
+      const result = props.checkResult.results.find(r => r.input_name === name)
+      if (result && selected) {
+        span.classList.add(result.correct ? 'mark-correct' : 'mark-incorrect')
+      }
+    }
+  })
+}
+
+watch(
+  [() => props.replies, () => props.submitted, () => props.checkResult, () => props.statementSegments],
+  syncMarkChoices,
+  { deep: true, flush: 'post' }
+)
+
+onMounted(syncMarkChoices)
 
 function radioClass(inputName: string, choice: string) {
   if (!props.submitted) {
@@ -182,3 +199,37 @@ watch(() => props.statementSegments, () => {
 }, { flush: 'post' })
 
 </script>
+
+<style scoped>
+:deep(.oef-mark-choice) {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #d1d5db);
+  margin: 1px 2px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: var(--color-bg, #fff);
+  color: var(--color-text, #111);
+}
+:deep(.oef-mark-choice:hover) {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+:deep(.oef-mark-choice.mark-selected) {
+  border-color: #3b82f6;
+  background: #dbeafe;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+:deep(.oef-mark-choice.mark-correct) {
+  border-color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
+}
+:deep(.oef-mark-choice.mark-incorrect) {
+  border-color: #dc2626;
+  background: #fee2e2;
+  color: #dc2626;
+}
+</style>

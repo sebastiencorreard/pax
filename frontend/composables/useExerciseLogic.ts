@@ -10,14 +10,13 @@ export interface AnswerDef {
 }
 
 export interface BackendSegment {
-  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'mark'
+  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu'
   content?: string
   name?: string
   size?: number
   rows?: number
   cols?: number
   label?: string
-  pos?: number
   is_sup?: boolean
 }
 
@@ -63,7 +62,6 @@ export type Segment =
   | { type: 'input';    name: string; width: string; is_sup?: boolean }
   | { type: 'textarea'; name: string; rows: number; cols: number; is_sup?: boolean }
   | { type: 'menu';     name: string; label: string; is_sup?: boolean }
-  | { type: 'mark';     name: string; pos: number; content: string; is_sup?: boolean }
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
@@ -82,8 +80,6 @@ export function useExerciseLogic() {
         out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup })
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
-      } else if (s.type === 'mark') {
-        out.push({ type: 'mark', name: s.name ?? '', pos: s.pos ?? 1, content: await renderMath(s.content ?? ''), is_sup: s.is_sup })
       }
     }
     return out
