@@ -1003,7 +1003,7 @@ class DefEngine(_SlibMixin):
         newline to a semicolon.  The surrounding ``$`` are delimiters, not
         characters to translate.
         """
-        m = re.match(r"(?:internal\s+)?(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        m = re.match(r"(?:internal\s+)?(.*?)\s+to\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         a_raw, b_raw, text_raw = m.groups()
@@ -1779,6 +1779,36 @@ class DefEngine(_SlibMixin):
             if reply_type == "radio":
                 # Radios are rendered separately by the frontend
                 return ""
+            elif reply_type == "mark":
+                # mark: each embed call is one choice column (size_str = column index).
+                # replygood = "correct_pos;choice1,choice2,..." — extract choice text.
+                # size_str may be a loop variable like "\r" — resolve \varname patterns.
+                size_resolved = re.sub(
+                    r"\\(\w+)",
+                    lambda m: str(
+                        self.ctx.get(m.group(1),
+                        self.ctx.get(f"m_{m.group(1)}", m.group(0)))
+                    ),
+                    self._subst(size_str).strip(),
+                )
+                try:
+                    col = int(float(size_resolved))
+                except (ValueError, TypeError):
+                    col = 1
+                # Evaluate replygoodN — may still contain $var refs if seeded raw
+                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+                # Format: "pos;choice1,choice2,..." (semicolon separates pos from choices)
+                if ";" in good_raw:
+                    _pos_part, _, choices_part = good_raw.partition(";")
+                else:
+                    choices_part = good_raw
+                choices = [c.strip() for c in choices_part.split(",") if c.strip()]
+                label = choices[col - 1] if 1 <= col <= len(choices) else ""
+                label = self._subst(label)
+                return (
+                    f'<span class="oef-mark-choice" name="{ref}" '
+                    f'data-pos="{col}">{label}</span>'
+                )
             elif reply_type == "menu":
                 # Menus need a placeholder in the HTML for inline positioning
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
@@ -1842,6 +1872,10 @@ class DefEngine(_SlibMixin):
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
             options: dict = {"option": option} if option else {}
+
+            # Expose to ctx so _render_embed can access them during statement rendering
+            self.ctx[f"replygood{n}"] = good_raw
+            self.ctx[f"replytype{n}"] = ans_type
 
             expected = good_raw
             # ?analyze N — réponse vérifiée via :postdef + :test
