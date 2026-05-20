@@ -40,6 +40,14 @@
             class="rounded border px-2 py-1 text-sm font-mono resize"
             style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
           />
+          <button v-else-if="seg.type === 'mark'"
+            type="button"
+            class="oef-mark-btn inline-block px-3 py-1 mx-0.5 rounded border transition-colors text-sm font-medium"
+            :class="markClass(seg.name, seg.pos)"
+            :disabled="submitted"
+            @click="!submitted && updateReply(seg.name, String(seg.pos))"
+            v-html="seg.content"
+          />
           <select v-else-if="seg.type === 'menu'"
             :value="replies[seg.name]"
             @change="e => updateReply(seg.name, (e.target as HTMLSelectElement).value)"
@@ -139,6 +147,20 @@ function inputClass(name: string) {
   const r = props.checkResult.results.find(r => r.input_name === name)
   if (!r) return ''
   return r.correct ? 'correct' : 'incorrect'
+}
+
+function markClass(name: string, pos: number) {
+  const selected = props.replies[name] === String(pos)
+  if (!props.submitted) {
+    return selected
+      ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30 cursor-pointer'
+      : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 cursor-pointer'
+  }
+  const result = props.checkResult?.results.find(r => r.input_name === name)
+  if (!result) return selected ? 'border-blue-400' : 'border-gray-300 dark:border-gray-600'
+  if (selected && result.correct) return 'border-green-500 bg-green-100 dark:bg-green-900/30'
+  if (selected && !result.correct) return 'border-red-500 bg-red-100 dark:bg-red-900/30'
+  return 'border-gray-300 dark:border-gray-600 opacity-60'
 }
 
 function radioClass(inputName: string, choice: string) {

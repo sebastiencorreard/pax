@@ -261,7 +261,7 @@ async function submit() {
 function fillAnswers(answers: Record<string, string>) {
   // Filter answers to only fill those currently visible on screen
   const activeNames = new Set(statementSegments.value
-    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
+    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu' || s.type === 'mark') ? s.name : null)
     .filter(Boolean) as string[]
   )
   

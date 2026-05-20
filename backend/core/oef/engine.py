@@ -169,6 +169,7 @@ _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
+    r'|<span\s+class="oef-mark-choice"\s+name="([^"]+)"\s+data-pos="([^"]+)">(.*?)</span>'
 )
 # Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
@@ -224,6 +225,15 @@ def _segment_statement(html: str) -> list[dict]:
                 name = f"reply{alias.group(1)}"
             label = m.group(5).strip()
             segments.append({"type": "menu", "name": name, "label": label, "is_sup": is_sup})
+        elif m.group(6) is not None:
+            # Choix QCM de type mark (replytype=mark)
+            name = m.group(6).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            pos = int(m.group(7).strip())
+            content = m.group(8) or ""
+            segments.append({"type": "mark", "name": name, "pos": pos, "content": content, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
