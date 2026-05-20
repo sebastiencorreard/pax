@@ -394,8 +394,138 @@ def _pari_matrix(rows):
     return sympy.Matrix(rows)
 
 
-def _pari_vector(*args):
-    return list(args)
+def _pari_mat(v):
+    """Pari Mat(v): convert vector/list to a matrix (row vector → 1×n matrix)."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(v, sympy.Matrix):
+        return v
+    if isinstance(v, (list, tuple)):
+        if v and isinstance(v[0], (list, tuple, sympy.Matrix)):
+            return sympy.Matrix(v)
+        return sympy.Matrix([list(v)])
+    return sympy.Matrix([[v]])
+
+
+def _pari_mattranspose(m):
+    """Pari mattranspose(m): transpose a matrix or row vector."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(m, sympy.Matrix):
+        return m.T
+    if isinstance(m, (list, tuple)):
+        if m and isinstance(m[0], (list, tuple)):
+            return sympy.Matrix(m).T
+        return sympy.Matrix([list(m)]).T
+    return m
+
+
+def _pari_matsize(m):
+    """Pari matsize(m): return [rows, cols]."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(m, sympy.Matrix):
+        return [m.rows, m.cols]
+    if isinstance(m, (list, tuple)):
+        if m and isinstance(m[0], (list, tuple)):
+            return [len(m), len(m[0]) if m else 0]
+        return [1, len(m)]
+    return [1, 1]
+
+
+def _parse_pari_range(r, n: int) -> list[int]:
+    """Convert a Pari range string like '1..3' or '-1..-2' to a list of 0-based indices."""
+    r = str(r).strip().strip("\"'")
+    m = re.match(r"^(-?\d+)\.\.(-?\d+)$", r)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        if a < 0:
+            a = n + a + 1
+        if b < 0:
+            b = n + b + 1
+        step = 1 if a <= b else -1
+        return [i - 1 for i in range(a, b + step, step) if 1 <= i <= n]
+    try:
+        idx = int(r)
+        if idx < 0:
+            idx = n + idx + 1
+        return [idx - 1] if 1 <= idx <= n else []
+    except Exception:
+        return list(range(n))
+
+
+def _pari_vecextract(v, row_range, col_range=None):
+    """Pari vecextract(v, range) or vecextract(mat, row_range, col_range)."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(v, sympy.Matrix):
+        mat = v
+    elif isinstance(v, (list, tuple)):
+        if v and isinstance(v[0], (list, tuple)):
+            mat = sympy.Matrix(v)
+        else:
+            mat = sympy.Matrix([list(v)])
+    else:
+        return v
+
+    if col_range is None:
+        flat = [mat[i, j] for i in range(mat.rows) for j in range(mat.cols)]
+        indices = _parse_pari_range(row_range, len(flat))
+        return [flat[i] for i in indices]
+
+    row_indices = _parse_pari_range(row_range, mat.rows)
+    col_indices = _parse_pari_range(col_range, mat.cols)
+    result_rows = [
+        [mat[ri, ci] for ci in col_indices]
+        for ri in row_indices
+    ]
+    if len(result_rows) == 1:
+        return result_rows[0]
+    return sympy.Matrix(result_rows) if result_rows else []
+
+
+def _pari_polrev(*args):
+    """Pari Polrev(v): polynomial from coefficient list (index 0 = constant term)."""
+    import sympy  # noqa: PLC0415
+
+    if len(args) == 1 and hasattr(args[0], "__iter__") and not isinstance(args[0], str):
+        coeffs = list(args[0])
+    else:
+        coeffs = list(args)
+    x = sympy.Symbol("x")
+    return sympy.expand(sum(c * x**i for i, c in enumerate(coeffs)))
+
+
+def _pari_vector(n_or_list=None, var=None, body=None):
+    """Pari vector(n) → zero list; vector(n, i, expr) → list comprehension."""
+    import sympy  # noqa: PLC0415
+
+    if var is None or body is None:
+        try:
+            n = int(n_or_list)
+            return [sympy.Integer(0)] * n
+        except Exception:
+            return list(n_or_list) if hasattr(n_or_list, "__iter__") else []
+    n = int(n_or_list)
+    result = []
+    for k in range(1, n + 1):
+        val = body.subs(var, sympy.Integer(k))
+        try:
+            fval = float(sympy.N(val))
+            result.append(int(fval) if fval == int(fval) else fval)
+        except Exception:
+            result.append(val)
+    return result
+
+
+def _pari_round(x):
+    """Pari round(): works on SymPy expressions by numeric evaluation."""
+    import sympy  # noqa: PLC0415
+
+    try:
+        return sympy.Integer(round(float(sympy.N(x))))
+    except Exception:
+        return x
 
 
 def _pari_core(n):
@@ -425,10 +555,16 @@ _PARI_HELPERS: dict = {
     "polcoeff": _pari_polcoeff,
     "poldegree": _pari_poldegree,
     "matdet": _pari_matdet,
+    "mattranspose": _pari_mattranspose,
+    "matsize": _pari_matsize,
+    "Mat": _pari_mat,
+    "vecextract": _pari_vecextract,
+    "Polrev": _pari_polrev,
     "isprime": _pari_isprime,
     "subst": _pari_subst,
     "matrix": _pari_matrix,
     "vector": _pari_vector,
+    "round": _pari_round,
     "core": _pari_core,
 }
 
@@ -468,6 +604,16 @@ def _format_pari_result(result) -> str:
         if f.is_integer():
             return str(int(f))
         return f"{f:.10g}"
+    if isinstance(result, sympy.Matrix):
+        if result.rows == 1:
+            return ",".join(_format_pari_result(result[0, j]) for j in range(result.cols))
+        if result.cols == 1:
+            return ",".join(_format_pari_result(result[i, 0]) for i in range(result.rows))
+        rows = [
+            ",".join(_format_pari_result(result[i, j]) for j in range(result.cols))
+            for i in range(result.rows)
+        ]
+        return ";".join(rows)
     if isinstance(result, (list, tuple)):
         return ",".join(_format_pari_result(x) for x in result)
     return str(result)
@@ -475,7 +621,9 @@ def _format_pari_result(result) -> str:
 
 # Wraps standalone integer literals so `/` between them produces a Rational
 # (PARI semantics), not a float.
-_INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d|\w)")
+# The negative lookahead (?!\.\d?|\w) avoids wrapping in float literals (10., 10.5)
+# or identifiers (10x would be unusual, but guards against partial matches).
+_INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d?|\w)")
 
 
 def _call_pari(expr: str) -> str:
@@ -498,9 +646,19 @@ def _call_pari(expr: str) -> str:
     if m:
         clean = m.group(1).strip()
 
-    # Pre-process notation
+    # Pre-process notation — preserve quoted string literals before integer wrapping
     clean = clean.replace("^", "**")
+    _string_cache: dict[str, str] = {}
+
+    def _stash_string(sm) -> str:
+        key = f"\x00S{len(_string_cache)}\x00"
+        _string_cache[key] = sm.group(0)
+        return key
+
+    clean = re.sub(r'"[^"]*"', _stash_string, clean)
     clean = _INT_LITERAL_RE.sub(r"_I(\1)", clean)
+    for key, val in _string_cache.items():
+        clean = clean.replace(key, val)
 
     ns: dict = dict(_MATH_NS)
     ns.update(_PARI_HELPERS)

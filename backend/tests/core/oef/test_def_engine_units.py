@@ -911,14 +911,21 @@ class TestTexmath:
 
 
 class TestTranslate:
-    def test_internal_truncates_from_set(self):
-        # WIMS (calc.c:calc_translate) truncates FROM to len(TO) before
-        # translating, so `$<tab>$` (3 chars) → `;` (1 char) collapses to
-        # `$` → `;`. Input has no `$`, so nothing changes.
+    def test_internal_dollar_delimited_charset(self):
+        # WIMS syntax: $CHARS$ delimits the character set.
+        # $<tab>$ means {tab}, so each tab in the source → ';'.
         e = engine()
         e.ctx["v"] = "a\tb\tc"
         result = e._eval_cmd("translate", "internal $\t$ to ; in $v")
-        assert result == "a\tb\tc"
+        assert result == "a;b;c"
+
+    def test_internal_dollar_tab_newline_to_double_semicolon(self):
+        # $<tab><newline>$ → char set {tab, newline}; both map to the
+        # corresponding char in ";;" (tab→';', newline→';').
+        e = engine()
+        e.ctx["v"] = "Q1\n0|A\n0|B\n1|C"
+        result = e._eval_cmd("translate", "internal $\t\n$ to ;; in $v")
+        assert result == "Q1;0|A;0|B;1|C"
 
     def test_internal_pairwise(self):
         # Equal-length FROM and TO → straightforward char map.

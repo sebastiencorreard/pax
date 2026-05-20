@@ -996,13 +996,25 @@ class DefEngine(_SlibMixin):
         return text.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:
-        """!translate A to B in text — character-wise translation (port of calc.c calc_translate)."""
+        """!translate A to B in text — character-wise translation (port of calc.c calc_translate).
+
+        WIMS allows $CHARS$ as a dollar-delimited character set, e.g.
+        ``!translate internal $\\t\\n$ to ;; in $src`` translates each tab or
+        newline to a semicolon.  The surrounding ``$`` are delimiters, not
+        characters to translate.
+        """
         m = re.match(r"(?:internal\s+)?(.*?)\s+to\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         a_raw, b_raw, text_raw = m.groups()
-        # Substitute all three parts (C code does substit on each)
-        a = self._subst(a_raw)
+
+        # Strip $...$ delimiters from character set (WIMS quoting for whitespace/special chars)
+        a_stripped = a_raw.strip()
+        if a_stripped.startswith("$") and a_stripped.endswith("$") and len(a_stripped) >= 2:
+            a = a_stripped[1:-1]  # Literal chars between the $ delimiters
+        else:
+            a = self._subst(a_raw)
+
         b = self._subst(b_raw)
         text = self._subst(text_raw)
 
