@@ -548,7 +548,7 @@ class DefEngine(_SlibMixin):
         if cmd == "item":
             return self._cmd_item(args)
 
-        if cmd == "row":
+        if cmd in ("row", "rows"):
             return self._cmd_row(args)
 
         if cmd == "itemcnt":
@@ -556,10 +556,9 @@ class DefEngine(_SlibMixin):
             items = [x for x in re.split(r",|\t", subst_args) if x.strip()]
             return str(len(items))
 
-        if cmd == "rowcnt":
+        if cmd in ("rowcnt", "rowcount", "rowno", "rownum"):
             val = self._subst(args)
-            rows = [r for r in val.split("\t") if r.strip()]
-            return str(len(rows))
+            return str(len(self._split_rows(val)))
 
         if cmd == "trim":
             return self._subst(args).strip()
@@ -773,9 +772,14 @@ class DefEngine(_SlibMixin):
         if cmd in ("subst", "substit", "substitute"):
             return self._subst(args)
 
-        # ── Row/record access (PAX has no datafiles, return empty) ────────────
-        if cmd in ("record", "records", "recordcnt", "recordcount", "recordno",
-                   "recordnum", "randfile"):
+        # ── Record access (WIMS datafiles : records séparés par \n:) ─────────
+        if cmd in ("record", "records"):
+            return self._cmd_record(args)
+
+        if cmd in ("recordcnt", "recordcount", "recordno", "recordnum"):
+            return self._cmd_recordcnt(args)
+
+        if cmd in ("randfile",):
             return ""
 
         if cmd in ("randrecord",):
@@ -937,8 +941,21 @@ class DefEngine(_SlibMixin):
             pass
         return ""
 
+    @staticmethod
+    def _split_rows(data: str) -> list[str]:
+        """Sépare les lignes d'une matrice WIMS.
+
+        Priorité : \\n (enregistrements/slib) > \\; > \\t (makelist).
+        Correspond à la logique de calc_rowof() dans calc.c.
+        """
+        if "\n" in data:
+            return [r for r in data.split("\n") if r.strip()]
+        if ";" in data:
+            return [r.strip() for r in data.split(";") if r.strip()]
+        return [r for r in data.split("\t") if r.strip()]
+
     def _cmd_row(self, args: str) -> str:
-        """!row I of matrix — 1-indexed tab-separated row."""
+        """!row I of matrix — ligne I (1-indexée), séparateur auto."""
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
@@ -946,7 +963,7 @@ class DefEngine(_SlibMixin):
         data = self._subst(m.group(2).strip())
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
-            rows = data.split("\t")
+            rows = self._split_rows(data)
             if 1 <= idx <= len(rows):
                 return rows[idx - 1].strip()
         except (ValueError, TypeError):
@@ -1090,12 +1107,10 @@ class DefEngine(_SlibMixin):
         return "0"
 
     def _cmd_randrow(self, args: str) -> str:
-        """!randrow $matrix — pick a random tab-separated row."""
+        """!randrow $matrix — ligne aléatoire (séparateur auto)."""
         val = self._subst(args.strip())
-        rows = [r for r in val.split("\t") if r.strip()]
-        if not rows:
-            return ""
-        return self.rng.choice(rows)
+        rows = self._split_rows(val)
+        return self.rng.choice(rows) if rows else ""
 
     def _cmd_sort(self, args: str) -> str:
         """!sort [numeric|reverse] [items|rows|list] LIST — sort."""
@@ -1476,6 +1491,70 @@ class DefEngine(_SlibMixin):
                 selected.append(row)
 
         return "\n".join(selected)
+
+    def _read_module_file(self, filename: str) -> str | None:
+        """Lit un fichier relatif au répertoire module ; None si absent."""
+        if not self.def_path:
+            return None
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        full = os.path.join(module_dir, filename)
+        if not os.path.exists(full):
+            return None
+        try:
+            return open(full, encoding="utf-8").read()
+        except UnicodeDecodeError:
+            return open(full, encoding="iso-8859-1").read()
+        except OSError:
+            return None
+
+    @staticmethod
+    def _split_records(text: str) -> list[str]:
+        """Découpe un fichier WIMS en enregistrements séparés par \\n:.
+
+        Chaque enregistrement inclut son nom comme première ligne
+        (sans le ':' initial), conformément au comportement de
+        datafile_fnd_record() dans WIMS calc.c.
+        """
+        chunks = re.split(r"(?:^|\n):", text)
+        return [c.rstrip("\n") for c in chunks if c.strip()]
+
+    def _cmd_record(self, args: str) -> str:
+        """!record N of FILE — Nième enregistrement d'un fichier données WIMS.
+
+        Format du fichier :
+            :nom_enregistrement1
+            ligne1
+            ligne2
+            :nom_enregistrement2
+            ...
+
+        Retourne l'enregistrement avec son nom comme première ligne
+        (les lignes suivantes sont accessibles via !row 2, !row 3, …).
+        """
+        m = re.match(r"(.+?)\s+of\s+(\S+)", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        filename = self._subst(m.group(2).strip())
+        text = self._read_module_file(filename)
+        if text is None:
+            return ""
+        records = self._split_records(text)
+        try:
+            idx = int(round(float(self._eval_arith(idx_s))))
+            if 1 <= idx <= len(records):
+                return records[idx - 1]
+        except (ValueError, TypeError):
+            pass
+        return ""
+
+    def _cmd_recordcnt(self, args: str) -> str:
+        """!recordcnt FILE — nombre d'enregistrements dans un fichier données."""
+        filename = self._subst(args.strip())
+        text = self._read_module_file(filename)
+        if text is None:
+            return "0"
+        return str(len(self._split_records(text)))
 
     def _cmd_lookup(self, args: str) -> str:
         """!lookup KEY in DATAFILE — look up KEY in a key:value data file.
