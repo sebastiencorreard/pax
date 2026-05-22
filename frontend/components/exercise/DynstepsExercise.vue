@@ -170,8 +170,10 @@ const currentStepFailedInputName = ref('')
 const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
 )
+// Use statementSegments so only the active step's radio anchor is detected,
+// not all radio answers across all steps.
 const hasRadioAnswers = computed(() =>
-  props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
+  statementSegments.value.some(s => s.type === 'radio-anchor')
 )
 
 const isCourse = computed(() => props.rendered?.exercise_type === 'course')
@@ -180,7 +182,7 @@ const courseStopped = ref(false)
 const allFilled = computed(() => {
   if (!props.rendered || courseStopped.value) return false
   const activeNames = new Set(statementSegments.value.map(s => {
-    if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
+    if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu' || s.type === 'radio-anchor') {
       return s.name
     }
     return null
@@ -304,12 +306,12 @@ async function submit() {
     }
 
     const activeNames = new Set(statementSegments.value.map(s => {
-      if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') {
+      if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu' || s.type === 'radio-anchor') {
         return s.name
       }
       return null
     }).filter(Boolean))
-    
+
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // Update history for each active input in this step

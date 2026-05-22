@@ -162,7 +162,7 @@ class DefEngine(_SlibMixin):
         # has somewhere to type the answer (matches WIMS' fallback behaviour).
         # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
-        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
+        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu", "radio-anchor")}
         
         # Extract dynamic steps info
         oefsteps_val = self.ctx.get("oefsteps", "").strip()
@@ -1115,29 +1115,42 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_makelist(self, args: str) -> str:
-        """!makelist expr for var=start to end — comma-separated list."""
-        m = re.match(
+        """!makelist expr for var=start to end — or — for var in list."""
+        # "for var in list" form: iterate over a comma/tab-separated list
+        in_m = re.match(r"(.*?)\s+for\s+(\w+)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        range_m = re.match(
             r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
         )
-        if not m:
+        if in_m:
+            expr = in_m.group(1).strip()
+            var = in_m.group(2)
+            list_raw = self._subst(in_m.group(3).strip())
+            # Split list by tab, semicolon, or comma
+            if "\t" in list_raw:
+                items = list_raw.split("\t")
+            elif ";" in list_raw:
+                items = list_raw.split(";")
+            else:
+                items = re.split(r",(?![^(]*\))", list_raw)
+            items = [x.strip() for x in items if x.strip()]
+        elif range_m:
+            expr = range_m.group(1).strip()
+            var = range_m.group(2)
+            start_s = range_m.group(3).strip()
+            end_s = range_m.group(4).strip()
+            try:
+                start = int(round(float(self._eval_arith(self._subst(start_s)))))
+                end = int(round(float(self._eval_arith(self._subst(end_s)))))
+            except (ValueError, TypeError):
+                return ""
+            items = [str(i) for i in range(start, end + 1)]
+        else:
             return ""
-        expr, var, start_s, end_s = (
-            m.group(1).strip(),
-            m.group(2),
-            m.group(3).strip(),
-            m.group(4).strip(),
-        )
-        try:
-            start = int(round(float(self._eval_arith(self._subst(start_s)))))
-            end = int(round(float(self._eval_arith(self._subst(end_s)))))
-        except (ValueError, TypeError):
-            return ""
+
         saved = self.ctx.get(var)
         results = []
-        for i in range(start, end + 1):
-            val_str = str(i)
+        for val_str in items:
             self.ctx[var] = val_str
-            # Expression may contain commas (multi-column row): eval each part
             parts = [self._eval_loop_expr(p.strip(), var, val_str) for p in expr.split(",")]
             results.append(",".join(parts))
         if saved is not None:
@@ -1145,8 +1158,7 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-        # WIMS: !makelist always returns tab-separated rows (each iteration is a row).
-        # Within each row, comma-separated columns are preserved as-is.
+        # WIMS: !makelist returns tab-separated rows; columns within each row keep commas.
         return "\t".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
@@ -1821,8 +1833,11 @@ class DefEngine(_SlibMixin):
             n = nm.group(1)
             reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
             if reply_type == "radio":
-                # Radios are rendered separately by the frontend
-                return ""
+                # Radio choices are shown below the statement by the frontend.
+                # Emit an invisible anchor so the step's active answer is
+                # detectable via statement_segments (used by the check route
+                # and the DEF engine's answer-filtering logic).
+                return f'<span class="oef-radio-anchor" name="{ref}"></span>'
             elif reply_type == "mark":
                 # mark: each embed call is one choice column (size_str = column index).
                 # replygood = "correct_pos;choice1,choice2,..." — extract choice text.

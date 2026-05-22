@@ -80,7 +80,7 @@ async def check_exercise(
         visible_input_names = {
             s["name"]
             for s in rendered.statement_segments
-            if s.get("type") in ("input", "slot", "menu")
+            if s.get("type") in ("input", "slot", "menu", "radio-anchor")
         }
 
     active_ans_defs = [
