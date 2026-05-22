@@ -76,6 +76,11 @@
           </div>
 
           <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
+          <div v-if="checkResult?.solution_html" class="mt-3 text-sm border-t pt-3"
+               style="border-color:var(--color-border)">
+            <p class="font-medium mb-1" style="color:var(--color-text-muted)">{{ $t('exercise.solution') }}</p>
+            <div v-html="checkResult.solution_html" style="color:var(--color-text)"></div>
+          </div>
         </div>
       </div>
 
@@ -293,6 +298,9 @@ async function submit() {
     
     if (checkResult.value.feedback_html) {
       checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
+    }
+    if (checkResult.value.solution_html) {
+      checkResult.value.solution_html = await renderMath(checkResult.value.solution_html)
     }
 
     const activeNames = new Set(statementSegments.value.map(s => {

@@ -40,6 +40,7 @@ class CheckResponse(BaseModel):
     has_invalid_format: bool = False
     noanalyzeprint: bool = False
     feedback_html: str | None = None
+    solution_html: str | None = None
 
 
 # ── Route ─────────────────────────────────────────────────────────────────────
@@ -131,6 +132,8 @@ async def check_exercise(
         await db.refresh(attempt)
         attempt_id = str(attempt.id)
 
+    solution_html = rendered.solution_html.strip() or None
+
     return CheckResponse(
         exercise_id=exercise_id,
         global_score=global_score,
@@ -139,4 +142,5 @@ async def check_exercise(
         has_invalid_format=has_invalid,
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,
+        solution_html=solution_html,
     )

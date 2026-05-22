@@ -50,7 +50,10 @@ from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numer
 # Patterns for variable substitution
 _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
 _INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]*?);([^\]]*)\]\)")  # $(var[n;m])
-_INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]]+)\]\)")  # $(var[n])
+# Subscript excludes "(" so that nested $(outer[$(inner[i])]) resolves
+# inner-first: the outer's "[^(]+" fails at the "(" of "$(inner…", letting the
+# inner match first in re.sub's left-to-right scan.
+_INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]\(]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
@@ -390,7 +393,9 @@ class DefEngine(_SlibMixin):
         s = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), s)
         # 3. $(var[n;m]) matrix access
         s = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), s)
-        # 4. $(var[n]) list access
+        # 4. $(var[n]) list access — two passes so nested subscripts like
+        #    $(outer[$(inner[$i])]) are resolved inner-first then outer.
+        s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
         s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
         # 5. $(var) simple reference
         s = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
@@ -404,6 +409,7 @@ class DefEngine(_SlibMixin):
             return expr
         expr = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), expr)
         expr = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), expr)
+        expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
         expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
         expr = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
@@ -423,16 +429,22 @@ class DefEngine(_SlibMixin):
         return ",".join(items[start - 1 : end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
-        """Resolve $(var[n]) — 1-indexed item from tab/comma-separated list."""
+        """Resolve $(var[n]) — 1-indexed item from tab/semicolon/comma-separated list."""
         name, idx_expr = m.group(1), m.group(2)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         idx_s = self._subst_for_arith(idx_expr)
 
-        # Determine list delimiter
-        delimiter = "\t" if "\t" in value else ","
-        items = value.split(delimiter)
+        # Detect delimiter: tab first; otherwise smart comma split.
+        # Do NOT treat ";" as a delimiter for single-subscript access — items
+        # may legitimately contain ";" inside HTML entities like &#44; (comma).
+        if "\t" in value:
+            delimiter = "\t"
+            items = value.split("\t")
+        else:
+            delimiter = ","
+            items = re.split(r",(?![^(]*\))", value)
 
         # Try to parse as single integer first
         try:
@@ -457,6 +469,21 @@ class DefEngine(_SlibMixin):
                 continue
         return delimiter.join(result_items) if result_items else ""
 
+    @staticmethod
+    def _split_rows_by_semi(value: str) -> list[str]:
+        """Split by ';' while preserving ';' that closes an HTML entity (&#40; &amp; …).
+
+        WIMS data files may contain HTML-encoded characters like &#40; (left paren)
+        whose closing ';' would otherwise be mistaken for a row separator.
+        """
+        _PH = "\x01"
+        protected = re.sub(
+            r"(&(?:#x?[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*));",
+            lambda mm: mm.group(1) + _PH,
+            value,
+        )
+        return [p.replace(_PH, ";") for p in protected.split(";")]
+
     def _resolve_indexed2(self, m: re.Match) -> str:
         """Resolve $(var[n;m]) — row n, column m."""
         name, row_expr, col_expr = m.group(1), m.group(2), m.group(3)
@@ -471,8 +498,11 @@ class DefEngine(_SlibMixin):
         except (ValueError, TypeError):
             return ""
 
-        # Split by tab first (rows)
-        rows = value.split("\t") if "\t" in value else value.split(";")
+        # Split by tab first (rows); fall back to ';' with HTML-entity protection
+        if "\t" in value:
+            rows = value.split("\t")
+        else:
+            rows = self._split_rows_by_semi(value)
         if not (1 <= row <= len(rows)):
             return ""
 
@@ -872,25 +902,39 @@ class DefEngine(_SlibMixin):
 
     def _cmd_nonempty(self, args: str) -> str:
         """!nonempty items/rows list — remove empty entries."""
-        m = re.match(r"(items?|rows?)\s+(.*)", args, re.I | re.DOTALL)
+        m = re.match(r"(items?|rows?)\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind = m.group(1).lower()
         val = self._subst(m.group(2))
-        sep = "\t" if kind.startswith("row") else ","
-        items = [x.strip() for x in val.split(sep) if x.strip()]
+        # Same separator logic as _cmd_shuffle: tab first, then smart comma.
+        # Do NOT detect ";" — items may contain ";" inside HTML entities.
+        if kind.startswith("row") or "\t" in val:
+            sep = "\t"
+            items = [x.strip() for x in val.split(sep) if x.strip()]
+        else:
+            sep = ","
+            items = [x.strip() for x in re.split(r",(?![^(]*\))", val) if x.strip()]
         return sep.join(items)
 
     def _cmd_shuffle(self, args: str) -> str:
         """!shuffle list — return list items in random order."""
-        # !shuffle 10 -> [1, 2, ..., 10] shuffled
         val = self._subst(args.strip())
         if val.isdigit():
             items = [str(i) for i in range(1, int(val) + 1)]
+            self.rng.shuffle(items)
+            return ",".join(items)
+        # Detect separator: tab first; otherwise smart comma split.
+        # Do NOT use ";" as a separator: items may contain ";" inside HTML
+        # entities like &#44; (comma) or &#40; (open paren).
+        if "\t" in val:
+            sep, items = "\t", val.split("\t")
         else:
-            items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
+            sep = ","
+            items = re.split(r",(?![^(]*\))", val)
+        items = [x.strip() for x in items if x.strip()]
         self.rng.shuffle(items)
-        return ",".join(items)
+        return sep.join(items)
 
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
@@ -1050,7 +1094,7 @@ class DefEngine(_SlibMixin):
         elif kind_raw.startswith("colon"):
             sep = ":"
         else:
-            # item: auto-detect separator from existing target content
+            # item: auto-detect separator from existing target content (WIMS behaviour)
             sep = "\t" if "\t" in target else ","
 
         if not target:
@@ -1797,12 +1841,17 @@ class DefEngine(_SlibMixin):
                     col = 1
                 # Evaluate replygoodN — may still contain $var refs if seeded raw
                 good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-                # Format: "pos;choice1,choice2,..." (semicolon separates pos from choices)
+                # Format: "pos;choice1,choice2,..." or "pos;choice1;choice2;..."
                 if ";" in good_raw:
                     _pos_part, _, choices_part = good_raw.partition(";")
                 else:
                     choices_part = good_raw
-                choices = [c.strip() for c in choices_part.split(",") if c.strip()]
+                # Choices may be ";"-joined (translate chain) or ","-joined.
+                # For comma-separated lists use a smart split that avoids breaking
+                # commas inside LaTeX \(...) expressions (e.g. "2,5 × 10^19").
+                # Always use smart comma split — choices_part may contain ";"
+                # inside HTML entities (e.g. &#44; = comma) that must NOT split.
+                choices = [c.strip() for c in re.split(r",(?![^(]*\))", choices_part) if c.strip()]
                 label = choices[col - 1] if 1 <= col <= len(choices) else ""
                 label = self._subst(label)
                 return (
@@ -1941,6 +1990,22 @@ class DefEngine(_SlibMixin):
                         options["choices"] = choices
                     except (ValueError, IndexError):
                         pass
+
+            elif ans_type == "mark":
+                # Format: "correct_pos;choice1,choice2,..." (WIMS mark / click-in-table)
+                # The student's reply is the 1-based column they clicked.
+                # expected = that column index as a string.
+                if ";" in good_raw:
+                    pos_str, _, choices_str = good_raw.partition(";")
+                    expected = pos_str.strip()
+                    choices = [
+                        c.strip()
+                        for c in re.split(r",(?![^(]*\))", choices_str)
+                        if c.strip()
+                    ]
+                    options["choices"] = choices
+                else:
+                    expected = good_raw.strip()
 
             elif ans_type == "clickfill":
                 # Format: "correct_answer;wrong1,wrong2,..."

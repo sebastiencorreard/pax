@@ -80,6 +80,15 @@
       </div>
     </div>
 
+    <!-- Solution -->
+    <div v-if="submitted && checkResult?.solution_html" class="px-6 pb-4">
+      <div class="rounded-lg px-4 py-3 border text-sm"
+           style="border-color:var(--color-border);background:color-mix(in srgb, var(--color-primary) 5%, transparent)">
+        <p class="font-medium mb-1" style="color:var(--color-text-muted)">{{ $t('exercise.solution') }}</p>
+        <div v-html="checkResult.solution_html" style="color:var(--color-text)"></div>
+      </div>
+    </div>
+
     <!-- Boutons -->
     <div class="px-6 pb-6 flex items-center gap-3 flex-wrap">
       <button @click="submit" :disabled="checking || submitted || !allFilled"
@@ -233,9 +242,12 @@ async function submit() {
 
     submitted.value = true
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
-    
+
     if (checkResult.value.feedback_html) {
       checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
+    }
+    if (checkResult.value.solution_html) {
+      checkResult.value.solution_html = await renderMath(checkResult.value.solution_html)
     }
 
     const score = checkResult.value!.global_score

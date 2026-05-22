@@ -410,7 +410,7 @@ def check_answer(
             return check_fset(reply, expected, precision)
         case "set":
             return check_set(reply, expected)
-        case "radio" | "menu" | "clickfill":
+        case "radio" | "menu" | "clickfill" | "mark":
             return check_radio(reply, expected)
         case "default":
             return check_default(reply, expected)
