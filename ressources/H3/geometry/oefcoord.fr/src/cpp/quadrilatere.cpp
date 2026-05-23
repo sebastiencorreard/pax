@@ -1,0 +1,67 @@
+target=quadrilatere
+\title{Nature d'un quadrilatère}
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+\keywords{quadrilateral}
+\matrix{choix=A,B,C,D
+E,F,G,H
+I,J,K,L
+M,N,O,P}
+\text{choix=randrow(\choix)}
+\text{choix=shuffle(\choix)}
+\text{A=item(1,\choix)}
+\text{B=item(2,\choix)}
+\text{C=item(3,\choix)}
+\text{D=item(4,\choix)}
+
+\text{liste=parallèlogramme,rectangle,losange,carré,quadrilatère quelconque}
+\integer{ch=random(1..5)}
+
+\integer{a1=random(1,-1)*random(1..10)}
+\integer{a2=random(1,-1)*random(1..10)}
+\text{don=slib(matrix/invertible 2,6)}
+\text{don1=row(1,\don)}
+\text{don2=row(2,\don)}
+\integer{b1=item(1,\don1)}
+\integer{b2=item(2,\don1)}
+\integer{c1=item(1,\don2)}
+\integer{c2=item(2,\don2)}
+\integer{d=random(2,3,4)}
+
+\matrix{coord=\a1,\a2,\a1+\b1,\a2+\b2,\a1+\c1+\b1,\a2+\c2+\b2,\a1+\c1,\a2+\c2
+\a1,\a2,\a1+\b1,\a2+\b2,\a1+\b1-\d*\b2,\a2+\b2+\d*\b1,\a1-\d*\b2,\a2+\d*\b1
+\a1,\a2,\a1+\b1/2+\d*\b2,\a2+\b2/2-\d*\b1,\a1+\b1,\a2+\b2,\a1+\b1/2-\d*\b2,\a2+\b2/2+\d*\b1
+\a1,\a2,\a1+\b1,\a2+\b2,\a1+\b1-\b2,\a2+\b2+\b1,\a1-\b2,\a2+\b1
+\a1,\a2,\a1+\b1,\a2+\b2,\a1+\d*\b1+\c1,\a2+\d*\b2+\c2,\a1+\c1,\a2+\c2}
+
+\text{don=row(\ch,\coord)}
+
+\text{XA=simplify(item(1,\don))}
+\text{YA=simplify(item(2,\don))}
+\text{XB=simplify(item(3,\don))}
+\text{YB=simplify(item(4,\don))}
+\text{XC=simplify(item(5,\don))}
+\text{YC=simplify(item(6,\don))}
+\text{XD=simplify(item(7,\don))}
+\text{YD=simplify(item(8,\don))}
+
+\ifval{\XB-(\XA)=\XC-(\XD) and \YB-(\YA)=\YC-(\YD)}{
+   \integer{ch=1}
+   \ifval{(\XB-\XA)*(\XD-\XA)+(\YB-\YA)*(\YD-\YA)=0}{
+      \integer{ch=2}
+      \ifval{(\XC-\XA)*(\XB-\XD)+(\YC-\YA)*(\YB-\YD)=0}{\integer{ch=4}}
+   }{
+      \ifval{(\XC-(\XA))*(\XB-(\XD))+(\YC-(\YA))*(\YB-(\YD))=0}{\integer{ch=3}}
+}}
+{\integer{ch=5}}
+
+\text{good=item(\ch,\liste)}
+
+\statement{Dans le plan muni d'un repère, on considère les points
+\(\A), \(\B), \(\C) et \(\D) de coordonnées  respectives \((\XA,\YA)), \((\XB,\YB)), \((\XC,\YC)) et \((\XD,\YD)). Quelle est la nature du quadrilatère \(\A \B \C \D) ?}
+
+\choice{Réponse}{\good}{\liste}

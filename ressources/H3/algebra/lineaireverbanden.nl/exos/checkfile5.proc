@@ -1,0 +1,173 @@
+# answer: functie...  a*x+b
+# reply :y,y,y,y....,(x1:y1),(x2:y2)
+# var7 = y,y,y,y.... (items = $options)
+# var8 = x,x,x,x.... (items = $options)
+# var7+var8 == tabel
+# var9 = plaatje in canvasdraw script
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    object$n=!exec canvasdraw\
+    $var9\
+    bgcolor orange\
+    linewidth 3\
+    plot green,$(answer$n)
+    
+    !exit
+!endif
+
+reply$n=!nospace $(reply$n)
+reply$n=!lower $(reply$n)
+
+chk=!itemcnt $var8
+!if $chk!=$options
+    ex=!record 38 of $remarkdir/commonremarks.$taal
+    remark$n=$NOK<br />$ex
+    maxscore=0
+    goback=0
+    !exit
+!endif
+pnts_a=!item 1 to $options of $(reply$n)
+# eerst de tabel
+score1=0
+your_reply=<ul>
+your_points=$empty
+good_points=$empty
+!for p=1 to $options
+    a=!item $p of $pnts_a
+    g=!item $p of $var8
+    o=!item $p of $var7
+    chk=$[1*$a]
+    check=1
+    ex=$empty
+    !if NaN isin $chk
+	a=!replace [a-z\&\%\$\@\!\~\`\"\'\:\;\?\,\.\_\] by $empty in $a
+	!if NaN isin $[1*$a]
+	    check=0
+	    testvar=!item $p of $pnts_a
+	    ex=!record 55 of $remarkdir/commonremarks.$taal
+	!endif
+    !endif
+    c1=!exec toascii $chk
+    c2=!exec toascii $a
+    !if $c1 != $c2
+	ex=!record 74 of $remarkdir/commonremarks.$taal
+    !endif
+    k=red
+    # uitrekenen moet/kan exact
+    !if $check=1
+	!if $[abs($a - $g)] < 0.0001
+	    !increase score1
+	    k=green
+	!endif
+	your_points=!append line point $o,$[$a],$k to $your_points
+    !endif
+    your_reply=!append word $ <li>$o : <span style="color:$k">$a $ex</span></li> $ to $your_reply
+    good_points=!append item $o,$g to $good_points
+!next p
+
+# de 2 punten van de lijn uit de grafiek --> (x1:y1),(x2:y2)
+score2=0
+score3=0
+score4=0
+pt1=!item -2 of $(reply$n)
+pt2=!item -1 of $(reply$n)
+pt1=!declosing $pt1
+pt2=!declosing $pt2
+pt1=!replace internal : by , in $pt1
+pt2=!replace internal : by , in $pt2
+xa1=!item 1 of $pt1
+ya1=!item 2 of $pt1
+xa2=!item 1 of $pt2
+ya2=!item 2 of $pt2
+# de x-waarde in de correcte formule...
+yc1=!evalsubst x=$xa1 in $(answer$n)
+yc2=!evalsubst x=$xa2 in $(answer$n)
+
+!if $yc2 > 10
+    prec=10
+!else
+    prec=1
+!endif
+!if $[abs($ya1 - $yc1)] < $[0.1*$prec]
+    score2=1
+    k2=green
+!else
+    !if $[abs($ya1 - $yc1)] < $[0.5*$prec]
+	score2=0.7
+	k2=orange
+    !else
+	!if $[abs($ya1 - $yc1)] < $prec
+	    score2=0.3
+	    k2=orange
+	!else
+	    k2=red
+	!endif
+    !endif
+!endif
+
+!if $[abs($ya2 - $yc2)] < $[0.1*$prec]
+    score3=1
+    k3=green
+!else
+    !if $[abs($ya2 - $yc2)] < $[0.5*$prec]
+	score3=0.7
+	k3=orange
+    !else
+	!if $[abs($ya2 - $yc2)] < $prec
+	    score3=0.3
+	    k3=orange
+	!else
+	    k3=red
+	!endif
+    !endif
+!endif
+
+!if $[$score2+$score3]>1
+    score4=1
+!endif
+math=0
+#exotext=$maxscore*((7*$score1/$options) + $score2 + $score3 + $score4)/10<br />xa1=$xa1 xa2=$xa2 ya1=$ya1 ya2=$ya2 === yc1=$yc1 yc2=$yc2
+#goback=1
+#!exit
+maxscore=$[$maxscore*((7*$score1/$options) + $score2 + $score3 + $score4)/10]
+
+!if $maxscore > 0.8
+    remark$n=$OK
+    k4=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k4=orange
+    !else
+	remark$n=$NOK
+	k4=red
+    !endif
+!endif
+
+your_reply=!append word $ <li><span style="color:$k2">($xa1 : $ya1)</span></li><li><span style="color:$k3">($xa2 : $ya2)</span></li></ul> $ to $your_reply
+reply$n=!append line $your_reply to $29$(reply$n)
+
+modulescore=$[$modulescore + $maxscore]
+!if $check=0
+    ya1=1000
+    ya2=1000
+!endif
+
+object$n=!exec canvasdraw\
+$var9\
+plot green,$(answer$n)\
+line $xa1,$ya1,$xa2,$ya2,$k4\
+linewidth 2\
+crosshairsize 5\
+crosshairs green,$good_points\
+linewidth 3\
+$your_points
+
+goback=0
+!exit

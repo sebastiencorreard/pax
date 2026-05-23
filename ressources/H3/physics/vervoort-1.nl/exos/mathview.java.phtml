@@ -1,0 +1,74 @@
+<script type="text/javascript">
+//<![CDATA[
+<!-- no validator  -->	
+    <!-- do not use "' in description -->
+    function sendanswer(){
+	var input;
+	var reply = new Array();
+	input=document.getElementById("MathView").getLinear();input = input+'';
+	var show=input;
+	if( show.indexOf('>') != 0 || show.indexOf('>') ){
+	    show=show.replace(/\>=/g,'&ge;');
+	    show=show.replace(/\<=/g,'&le;');
+	    show=show.replace(/\>/g,'&gt;');
+	    show=show.replace(/\</g,'&lt;');
+	} 
+	if( input.length == 0){setAlarm(r1+"\ 1");return;}
+	if( input.length > 100){setAlarm(r2); return;}
+	if(input.indexOf('error')!=-1){setAlarm(input);return;}
+	if(input.indexOf(',') != -1){setAlarm(r4);return;}
+	if(check_f(input) == 0){return;}if(check_o(input) == 0){return;}
+	if(check_log_NaN(input) == 0){return;}if(check_sqrt_NaN(input) == 0){return;}
+	input = science(input);if(input == "error"){return;}
+	if(check_x(input) == 0){return;}
+	if(input.indexOf("[") !=- 1){
+	    if(input.indexOf("sqrt[")!=-1){input=specialroot(input);if(input=="error"){return;}}
+	    if(input.indexOf("log[")!=-1){input=speciallog(input);if(input=="error"){return;}}
+	    if( input.indexOf("[") !=-1){setAlarm(r13);return;}
+	}
+	input = input.replace(/#/g,' ');
+	reply[0] = input;
+	if(reply[0].length == 0 ){setAlarm(r1);return;}
+	myConfirm(show,reply,'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+    }
+//]]>
+</script>
+!default smallfont=16
+!default largefont=22
+!default special_fraction=0
+!default varlist=x
+<object classid="java:MathView.class" id="MathView" width="580" height="280" type="application/x-java-applet;jpi-version=1.4" >
+    <param name="java_codebase" value="$appletdir" />
+    <param name="java_archive" value="MathView.jar" />
+    <param name="java_code" value="MathView" />
+    <param name="mayscript" value="true" />
+    <script type="text/javascript" />
+	//<![CDATA[
+	if(document.body.style.background){var obj="\<param name=\"bgcolor\" value=\""+document.body.style.background+"\" />"}else{var obj="\<param name=\"bgcolor\" value=\"#ffffff\" />"} document.write(obj.toString());
+	//]]>
+    </script>
+    <param name="largefont" value="$largefont">
+    !if $wims_user=supervisor
+	<param name="oldreply" value="
+	!nospace $(answer$counter)
+	"/>
+    !else
+	<param name="oldreply" value="
+	!nospace $(reply$n)
+	"/>
+    !endif
+    <param name="smallfont" value="$smallfont" />
+    <param name="helptext" value="$applettext" />
+    <param name="wimsvars" value="$varlist" />
+    <param name="special_fraction" value="$special_fraction" />
+    !! declare varlist=x,y,z,s    or varlist=x y z s
+!if $mathviewpanel=$empty
+    <param name="my_panel" value="$module_title:and:or:sqrt():+:-:*:/">
+!else
+    <param name="my_panel" value="$mathviewpanel" />
+!endif
+    <a onmouseover="return escape('<img src=\'$gifdir/java.jpg\' alt=\'Get JAVA\' />');" href="http://www.java.com/$lang/download/manual.jsp?locale=$lang" >
+	$nojava
+    </a>
+</object>
+!exit

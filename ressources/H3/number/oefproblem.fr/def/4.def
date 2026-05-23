@@ -1,0 +1,106 @@
+!set title=Petit problème 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items girl,boy
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=ils,elles
+!readproc slib/lang/fname ,$val6,2 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!randint 25, 30
+
+val9=$(tmp0)
+tmp0=!randint 14, 23
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in ($val10-$val9)%2
+tmp0=!exec pari $t_
+
+
+!ifval $(tmp0)=1
+val10=$[rint($val10+1)]
+!endif
+val11=$[rint(($val9+$val10)/2)]
+tmp0=!randint 1, 2
+
+val12=$(tmp0)
+val13=Les réponses doivent être séparées par une virgule
+tmp=!trim Mon père,il	  Ma mère, elle
+val14=!translate internal $	\
+$ to ;; in $tmp
+val15=$(val14[$val12;1]) a $val9 ans de plus que moi. Dans $val10 ans, $(val14[$val12;2]) aura le triple	  de l'âge que j'ai aujourd'hui.	  Quel est mon âge
+replytype1=numexp
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <label for="reply1">$val15?</label>	  <div class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15
+embedcnt=1

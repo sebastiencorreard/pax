@@ -1,0 +1,202 @@
+# checkt op segmenten en er kunnen ook $inputs aantal open antwoorden bij zitten
+# answer$n=0:0:$t1:$V1 , $t1:$V1:$t2:$V1 , $t2:$V1:$t3:0 , $ac , $dc 
+# schema= x1:y1:x2:y2 , x2:y2:x3:y3 , x3:y3:x4:y4 , openantwoord , openantwoord
+# scheme= segment , segment , segment , openantwoord , openantwoord
+
+# student reply schema
+#   segment=l4:x=4.977777777777778:y=4.0:x=5.003174603174603:y=2.019047619047619:length=1.9811151744260465,
+#   point=p5:x=4.977777777777778:y=4.0
+#   ,segment=l3:x=5.003174603174603:y=2.019047619047619:x=4.012698412698413:y=0.03809523809523796:length=2.2147720919997917
+#   ,point=p4:x=5.003174603174603:y=2.019047619047619
+#   ,segment=l2:x=4.012698412698413:y=0.03809523809523796:x=1.980952380952381:y=2.0444444444444443:length=2.85542099791499
+#   ,point=p3:x=4.012698412698413:y=0.03809523809523796
+#   ,segment=l1:x=1.980952380952381:y=2.0444444444444443:x=-0.025396825396825307:y=0.06349206349206327:length=2.8195051823713673
+#   ,point=p2:x=1.980952380952381:y=2.0444444444444443
+#   ,point=p1:x=-0.025396825396825307:y=0.06349206349206327
+#   ,,first free answer,2 free answer,3d free answer,fourth free answer
+n=$counter
+
+# TE DOEN : PLAATJE /wimsplotapplet ? LEERLING TEKENING EN CORRTE ANTWOORD
+!if $(reply$n)=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+ !exit
+!endif
+
+
+cc=!itemcnt $(answer$n)
+correct_aantal_segmenten=$[$cc - $inputs]
+# correct_aantal_segmenten is aantal segmenten
+reply$n=!nospace $(reply$n)
+at=!itemcnt $(reply$n)
+points=$empty
+extra=$empty
+segmentcnt=0
+dataset2=$empty
+!for p=1 to $at
+    a=!item $p of $(reply$n)
+    !if $a != $empty
+	!if segment isin $a
+	    a=!replace internal : by , in $a
+	    x1=!item 2 of $a
+	    y1=!item 3 of $a
+	    x2=!item 4 of $a
+	    y2=!item 5 of $a
+	    length=!item 6 of $a
+	    length=!replace internal length= by $empty in $length
+	    !if $length != 0
+		!increase segmentcnt
+		x1=!replace internal x= by $empty in $x1
+	        x2=!replace internal x= by $empty in $x2
+	        y1=!replace internal y= by $empty in $y1
+	        y2=!replace internal y= by $empty in $y2
+		points=!append item $x1,$y1,$x2,$y2 to $points
+		dataset2=!append word $x1,$y1;$x2,$y2; to $dataset2
+	    !endif
+	!endif
+    !endif
+!next p
+tekening=1
+corr_factor=1
+!if $segmentcnt != $correct_aantal_segmenten
+    !if $segmentcnt=0
+	extra=je hebt geen geldige tekening in geleverd !
+	score1=0
+	maxscore=$[$maxscore*$P5]
+	tekening=0
+	rep1=<ul><li>geen tekening</li></ul>
+	!goto DEEL2
+    !else
+	telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+        c1=!item $correct_aantal_segmenten of $telwoorden
+	a1=!item $segmentcnt of $telwoorden
+        !if $correct_aantal_segmenten < $segmentcnt
+	    extra=je hebt te veel segmenten getekend !  $a1 ipv $c1
+	    corr_factor=$[$correct_aantal_segmenten/$segmentcnt]
+	!else
+	    extra=je hebt te weinig segmenten getekend ! $a1 ipv $c1
+	    corr_factor=$[$segmentcnt/$correct_aantal_segmenten]
+	!endif
+    !endif
+!endif
+
+checked=0
+score1=0
+rep1=$empty
+t=1
+!for s=1 to $segmentcnt
+    ax1=!item $t of $points
+    ay1=!item $[$t+1] of $points
+    ax2=!item $[$t+2] of $points
+    ay2=!item $[$t+3] of $points
+    # 0.1 nauwkeurig
+    ax1=$[(round(10*$ax1))/10]
+    ax2=$[(round(10*$ax2))/10]
+    ay1=$[(round(10*$ay1))/10]
+    ay2=$[(round(10*$ay2))/10]
+    found=0
+    r_ex1=$empty
+    !for p=1 to $correct_aantal_segmenten
+	!if $p notin $checked
+	    !if $found=0
+		g=!item $p of $(answer$n)
+	        g=!replace internal : by , in $g
+		gx1=!item 1 of $g
+		gy1=!item 2 of $g
+		gx2=!item 3 of $g
+	        gy2=!item 4 of $g
+		!if $s=1
+		    dataset1=!append word $gx1,$gy1;$gx2,$gy2; to $dataset1
+		!endif
+		gx1=$[(round(10*$gx1))/10]
+	        gx2=$[(round(10*$gx2))/10]
+		gy1=$[(round(10*$gy1))/10]
+		gy2=$[(round(10*$gy2))/10]
+		!if ($ax1 isin $gx1,$gx2) and ($ax2 isin $gx1,$gx2) and ($ay1 isin $gy1,$gy2) and ($ay2 isin $gy1,$gy2)   
+		#($gx1=$ax1 and $gx2=$ax2 and $gy1=$ay1 and $gy2=$gy2) or ($gx1=$ax2 and $gx2=$ax1 and $gy1=$ay2 and $gy2=$gy1)
+		    !increase score1
+		    checked=!append item $p to $checked
+		    found=1
+		    k=green
+		!else
+		    # hmmm y-waarde negatief...
+		    !ifval ($ax1 isin $gx1,$gx2) and ($ax2 isin $gx1,$gx2)
+		    #($gx1=$ax1 and $gx2=$ax2) or ($gx1=$ax2 and $gx2=$ax1)
+			score1=$[$score1+$P5]
+			checked=!append item $p to $checked
+			r_ex1=De y-waarde is niet goed
+			found=1
+			k=orange
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next p
+    !if $found=0
+	k=red
+    !endif
+    rep1=!append line $ <li><span style="color:$k"><Segment $s : ($ax2:$ay2) --- ($ax1:$ay1) $r_ex1</span></li> $ to $rep1
+    t=$[$t+4]
+!next s
+
+score1=$[$corr_factor*$score1/$correct_aantal_segmenten]
+rep1=<ul>$rep1</ul>
+
+:DEEL2
+
+!if $inputs>0
+    cnt=1
+    AAA=$empty
+    GGG=$empty
+    !for p=$inputs to 1 step -1
+	A=!item $[-1*$p] of $(reply$n)
+	G=!item $[-1*$p] of $(answer$n)
+	AAA=!append item $A to $AAA
+	GGG=!append item $G to $GGG
+    !next p
+    errortext=$empty
+    goback=0
+    !readproc exos/checkunit.proc
+    !if $goback=1
+	errortext=$errortext
+	# inputfield(s) will be refilled with these reply's...and not the zirkel construction
+	reply$n=$AAA
+	!exit
+    !endif
+    # we rekenen de openantwoorden 2x zwaarder dan de tekening
+    reply$n=$rep1 $rep2
+    maxscore=$[$maxscore*(( $score1 + 2*$score2 )/3)]
+!else
+    reply$n=$rep1
+    maxscore=$[$maxscore*($score1)]
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK $extra
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK $extra
+    !else
+	remark$n=$NOK $extra
+    !endif
+!endif
+
+!if $showanswer=1
+    !if $score1>0
+	k1=blue
+	k2=green
+    !else
+	k1=green
+	k2=red
+    !endif
+    tx=!item 1 of $var2
+    ty=!item 2 of $var2  
+    dataset=!nospace Dataset:correct;color:$k1;$dataset1 Dataset:$youranswer;color:$k2;$dataset2
+    object$n=<object id="wimsplot" width="300" height="300" classid="java:ptolemy.plot.PlotApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="Plot.jar" /><param name="java_code" value="ptolemy.plot.PlotApplet" /><param name = "progressbar" value = "true" /><param name = "scriptable" value = "false"/><param name = "background" value = "#ffffff"/><param name = "name" value = "WIMS PlotApplet"/><param name = "data" value="TitleText:$module_title;numsets:2;color:on;lines:on;marks:various;xlabel:$tx;ylabel:$ty;grid:on;$dataset"/>$nojava</object>
+
+!endif
+
+!exit

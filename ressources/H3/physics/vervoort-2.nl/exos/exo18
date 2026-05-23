@@ -1,0 +1,116 @@
+#hfst2
+#exo18(hfst2) Omrekenen van snelheid [ naar diverse eenheden ]
+n=$counter
+math=0
+cols=18
+rounding=-1
+mathview=0
+applet=0
+image=0
+mathview=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+
+
+list1=cm,m,0.01\
+m,cm,100\
+km,m,1000\
+m,km,0.001\
+dm,cm,10\
+cm,dm,0.1\
+mm,cm,0.1\
+cm,mm,10\
+mm,m,0.001\
+m,mm,1000\
+km,mm,1000000\
+mm,km,0.000001
+
+list2=h,min,60\
+min,h,1/60\
+min,sec,60\
+sec,min,1/60\
+h,sec,3600\
+sec,h,1/3600\
+dag,h,24\
+h,dag,1/24\
+dag,min,24*60\
+min,dag,1/(24*60)\
+dag,sec,24*3600\
+sec,dag,1/(24*3600)
+
+
+K1=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12
+K2=!shuffle 1,2,3,4,5,6,7,8,9,10,11,12
+textanswer$n=<ol>
+!if $options < 2
+    options=2
+!endif
+inputs=$options
+getallen=$empty
+answers=$empty
+description=$empty
+!for p=1 to $inputs
+    k1=!item $p of $K1
+    k2=!item $p of $K2
+    lengte=!line $k1 of $list1
+    tijd=!line $k2 of $list2
+    L1=!item 1 of $lengte
+    L2=!item 2 of $lengte
+    FL=!item 3 of $lengte
+    T1=!item 1 of $tijd
+    T2=!item 2 of $tijd
+    FT=!item 3 of $tijd
+    e1=!randint 1,4
+    getal=!randint 10^$e1,10^$[$e1+1]
+    !if $e1 < 3
+	nullen=!randitem 0,00,000,0000
+	getal=!nospace $getal . $nullen
+    !endif
+    F=($FL)/($FT)
+    getallen=!append word $getal to $getallen
+    answers=!append item $[$getal*$F] to $answers    
+    description=!append item $getal <kbd>$L1/$T1</kbd> to $description
+    ex$p=&nbsp;<kbd>$L2/$T2</kbd>
+!next p
+
+sigdigits=!exec sigdigits $getallen
+h_science=$empty
+c_science=$empty
+digits=$empty
+!for p=1 to $inputs
+    G=!item $p of $answers
+    S=!line $p of $sigdigits
+    sig=$[$(S[2])+$(S[3])]
+    digits=!append item $sig to $digits
+    h_science=!append word $G,$sig,1 to $h_science
+    c_science=!append word $G,$sig,0 to $c_science
+!next p
+
+tot=!exec scienceprint $c_science $h_science
+var1=$empty
+var2=$empty
+!for p=1 to $inputs
+    G=!item $p of $answers
+    c_ans=!item $p of $tot
+    h_ans=!item $[$p+$inputs] of $tot
+    answer$n=!append item $c_ans to $(answer$n)
+    var1=!append item $[abs($G-$c_ans)] to $var1
+    var2=!append item 0 to $var2
+    sig=!item $p of $digits
+    textanswer$n=!append word <li>$(description[$p]) = $h_ans in $sig significante cijfers</li> to $(textanswer$n)
+!next p
+
+textanswer$n=!append word $ </ol> $ to $(textanswer$n) 
+
+ss=Reken in de onderstaande $inputs sommetjes de snelheid<br />van de ene naar de andere eenheid om.<br />Je mag de getallen natuurlijk ook in wetenschappelijke notatie invoeren.<br />Noteer je antwoord in hetzelfde aantal significante cijfers als de vraag...
+
+helptext=<ul><li><kbd>mm</kbd>&nbsp;=&nbsp; millimeter</li><li><kbd>cm</kbd>&nbsp;=&nbsp; centimeter</li><li><kbd>dm</kbd>&nbsp;=&nbsp; decimeter</li><li><kbd>m</kbd>&nbsp;=&nbsp; meter</li><li><kbd>km</kbd>&nbsp;=&nbsp; kilometer</li><li><kbd>sec</kbd>&nbsp;=&nbsp; seconde</li><li><kbd>min</kbd>&nbsp;=&nbsp; minuut</li><li><kbd>h</kbd>&nbsp;=&nbsp; uur</li><li><kbd>dag</kbd>&nbsp;=&nbsp; dag...</li></ul>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+
+

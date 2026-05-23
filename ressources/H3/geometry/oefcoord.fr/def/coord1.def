@@ -1,0 +1,131 @@
+!set title=Placer un point comme intersection
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=coordinates
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+precision=100
+
+ansorder=r
+varcnt=16
+prevarcnt=12
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=-10,10
+val7=-10,10
+val8=300,300
+tmp0=!randint 1, 2
+
+tmp=!nonempty items 1,-1
+
+tmp1=!randitem $tmp
+tmp2=!randint 1, 2
+
+tmp=!nonempty items 1,-1
+
+tmp3=!randitem $tmp
+val9=$(tmp0)*$(tmp1), $(tmp2)*$(tmp3)
+t_=!replace internal \( by ( in [$val9]
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+val10=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[$(val6[1]),$(val7[2]),$(val6[2]),$(val7[1])],axis:true,keepaspectratio:true,grid:true});	   var l1=brd.create('line',[[0,0],[0,$(val7[2])]],{strokeColor:'black',fixed:true,visible:false});	   var sl1=brd.create('glider',[l1],{fillColor:'green',strokeColor:'black',name:'',snapToGrid:true});	   var l2=brd.create('line',[[0,0],[$(val6[2]),0]],{strokeColor:'black',fixed:true,visible:false});	   var sl2=brd.create('glider',[l2],{fillColor:'green',strokeColor:'black',name:'',snapToGrid:true});	   var l3=brd.create('line',[[0,function(){return sl1.Y()}],[$(val6[2]),function(){return sl1.Y()}]],{strokeColor:'green'});	   var l4=brd.create('line',[[function(){return sl2.X()},0],[function(){return sl2.X()},$(val7[2])]],{strokeColor:'green'});	
+val11=jxgbox_var1=[function(){return sl2.X()},function(){return sl1.Y()}];
+val12=$val9
+val13=Déplacer les 2 droites vertes pour que leur intersection soit le point	 \(A = ($val9) \).
+val14=Déplacer le point horizontalement, puis le point qui apparait verticalement.
+!readproc slib/geo2D/jsxgraph jxgbox,$(val8[1])x $(val8[2]),$val10 
+tmp0=$slib_out
+val15=$(tmp0)
+val10=$val10	jxgbox_rep1 = brd.create('point',jxgbox_var1,{strokeColor:'transparent',fillColor:'transparent',name:''}); 
+replytype1=jsxgraph
+
+replyname1=
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val13	<div class="wimscenter">	  
+!read oef/embed.phtml r1,400x400	jxgbox brd	$val10	$val11	  
+$()	 </div>	 
+!if $val14!= 
+$()	 <div class="wims_instruction">	 $val14	 </div>	  
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val16=$m_reply1
+
+!ifval $m_sc_reply1=1
+val17=green
+!else
+val17=red
+!endif
+
+!ifval $m_sc_reply1<1 
+val11=	   l5=brd.create('line',[[0,$(val9[2])],[$(val6[2]),$(val9[2])]],{strokeColor:'green',fixed:true,visible:true});	   l6=brd.create('line',[[$(val9[1]),0],[$(val9[1]),$(val7[2])]],{strokeColor:'green',fixed:true,visible:true});	
+!endif
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	<script>	/*<![CDATA[*/	   sl2.setProperty('visible:false');sl1.setProperty('visible:false');	   l3=brd.create('line',[[0,$(val16[2])],[$(val6[2]),$(val16[2])]],{strokeColor:'$val17',fixed:true,visible:true});	   l4=brd.create('line',[[$(val16[1]),0],[$(val16[1]),$(val7[2])]],{strokeColor:'$val17',fixed:true,visible:true});	   $val11	/*]]>*/	</script>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,13,14
+embedcnt=1

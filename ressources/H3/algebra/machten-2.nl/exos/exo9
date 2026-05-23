@@ -1,0 +1,124 @@
+# :standaardvorm: werken met variabelen delen
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[n]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+# produceerd een <tr>
+make_tr=1
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+
+#@Schrijf in de standaardvorm <img src=$module_dir/gifs/exo1.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo9.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+question$n=!record 37 of lang/remarks.$taal
+checkfile=exos/checkfile4.proc
+v1=b
+varlist=$v1,s
+wims_rawmath_variables=$v1
+!if $R=1
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    a=!randitem 2,3,4,5,6,7,8,9
+    b=$[$a*$a]
+    !if $keuze=1
+	formula$n=\frac{$a}{\sqrt{$v1}} \,=\,[?]
+	applettext=!nospace $a/(sqrt($v1))=
+	texanswer$n=\frac{$a}{\sqrt{$v1}} \,=\, \frac{$a}{\sqrt{$v1}}\cdot \frac{\sqrt{$v1}}{\sqrt{$v1}} = \frac{$a}{$v1}\cdot \sqrt{$v1}  
+	var2=$empty
+	# var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+    !else
+	formula$n=\sqrt{\frac{$b}{$v1}} \,=\,[?]
+	applettext=!nospace sqrt($b/$v1)=
+	texanswer$n= \sqrt{\frac{$b}{$v1}}  = \frac{$a}{\sqrt{$v1}}\,=\, \frac{$a}{\sqrt{$v1}}\cdot \frac{\sqrt{$v1}}{\sqrt{$v1}} = \frac{$a}{$v1}\cdot \sqrt{$v1}  
+	var2=$b/$v1
+	# var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+    !endif
+    answer$n=$a/$v1,sqrt($v1),2
+ !exit
+!endif
+
+
+!if $R=2
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    a=!randitem 2,3,4,5,6,7,8,9
+    b=$[$a*$a]
+    p=!randitem 3,4,5,6,7,8,9
+    c=$[$p-1]
+    !if $keuze=1
+	formula$n=\frac{$a}{\root{\textstyle $p} \of {$v1}} \,=\,[?]
+	applettext=$a/(sqrt[$p]($v1))=
+	answer$n=$a/$v1,sqrt($v1^($c)),$p
+	var2=$v1
+	# var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+	texanswer$n=\frac{$a}{\root{\textstyle $p} \of {$v1}} \,=\,\frac{$a}{\root{\textstyle $p} \of {$v1}} \cdot \frac{\root{\textstyle $p} \of {$v1^{$[$p-1]}}}{ \root{\textstyle $p} \of{$v1^{$[$p-1]}}}\,=\,\frac{$a}{$v1}\cdot \root{\textstyle $p} \of{$v1^{$c}}
+    !else
+	formula$n=\frac{$v1}{\root{\textstyle $p} \of {$v1}} \,=\,[?]
+	applettext=!nospace $v1/(sqrt[$p]($v1))=
+	answer$n=1,sqrt($v1^($c)),$p
+	texanswer$n=\frac{$v1}{\root{\textstyle $p} \of {$v1}} \,=\,\frac{$v1}{\root{\textstyle $p} \of {$v1}} \cdot \frac{\root{\textstyle $p} \of {$v1^{$[$p-1]}}}{ \root{\textstyle $p} \of{$v1^{$[$p-1]}}}\,=\, \root{\textstyle $p} \of{$v1^{$c}}
+	var2=$v1
+	# var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+    !endif
+ !exit
+!endif
+
+
+!if $R=3
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    a=!randitem 2,3,4,5,6,7,8,9
+    p=!randitem 3,4,5,6,7,8,9
+    c=$[$p-1]
+    q=!randint 2,$c
+    d=$[$p-$q]
+    !if $d=$q
+	q=$[$q+1]
+        d=$[$p-$q]
+    !endif
+    formula$n=\frac{$a}{\root{\textstyle $p} \of {$v1^{$q}}} \,=\,[?]
+    applettext=!nospace $a/(sqrt[$p]($v1^$q))=
+    var2=$v1^$q
+    # var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+    answer$n=$a/$v1,sqrt($v1^($d)),$p
+    texanswer$n=\frac{$a}{\root{\textstyle $p} \of {$v1^{$q}}} \,=\,\frac{$a}{\root{\textstyle $p} \of {$v1}} \cdot \frac{\root{\textstyle $p} \of {$v1^{$d}}}{ \root{\textstyle $p} \of{$v1^{$d}}}\,=\,\frac{$a}{$v1}\cdot \root{\textstyle $p} \of{$v1^{$d}}
+ !exit
+!endif
+
+!if $R>3
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    p=!randitem 3,4,5,6,7,8,9
+    c=$[$p-1]
+    a=!randint 2,$c
+    b=$[$a-1]
+    d=$[$p-$b]
+    formula$n=\frac{\root{\textstyle $p} \of {$v1}}{\root{\textstyle $p} \of {$v1^{$a}}} \,=\,[?]
+    applettext=!nospace sqrt[$p]($v1)/(sqrt[$p]($v1^$a))=
+    # var2 is de letterlijke som ONDER wortelteken: 4*sqrt[3]($var2)
+    var2=$v1^$a
+    answer$n=1/$v1,sqrt($v1^($d)),$p
+    texanswer$n=\frac{\root{\textstyle $p} \of {$v1}}{\root{\textstyle $p} \of {$v1^{$a}}} \,=\, \root{\textstyle $p} \of{\frac{1}{$v1^{$b}}} = \frac {1}{\root{\textstyle $p} \of {$v1^{$b}}} \cdot \frac{\root{\textstyle $p} \of{$v1^{$d}}}{\root{\textstyle $p} \of{$v1^{$d}}} = \frac{1}{$v1}\cdot \root{\textstyle $p} \of{$v1^{$d}}
+ !exit
+!endif

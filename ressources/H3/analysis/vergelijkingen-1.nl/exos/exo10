@@ -1,0 +1,258 @@
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+impossible=0
+questiontype=0
+embed=1
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+exotext=$empty
+sometext=!record 6 of lang/remarks.$taal
+stext=!record 24 of lang/remarks.$taal
+raaklijn=!item 1 of $sometext
+raken=!item 2 of $sometext
+image=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $subject=10
+    mathviewpanel=$module_title:x1=:and:x2=:x3=:sqrt()
+    checkfile=$checkdir/number.proc
+    arglist=x
+    cols=20
+    rows=2
+    ss=!record 2 of lang/remarks.$taal
+    helptext=!record 23 of lang/remarks.$taal
+!else
+    R=$[$R+1]
+    checkfile=exos/checkfile2.proc
+    math=1
+    var1=5
+    # max number of arrows ->
+    cols=40
+    rows=3
+    varlist=x
+    ss=!record 25 of lang/remarks.$taal
+    helptext=!record 26 of lang/remarks.$taal
+    mathviewpanel=$module_title:->:x1=:x2=:x3=:and
+!endif
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+    #x(x+a)(x+b)=0
+    a=!randitem -6,-5,-4,-3,-2,-1,2,3,4,5,6
+    b=!randitem -6,-5,-4,-3,-2,-1,2,3,4,5,6
+    c=!randitem -4,-3,-2,-1,2,3,4
+    !if $a=$b
+	a=$[$a-1]
+    !endif
+    curve1=x*(x+($a))*(x+($b))
+    fac1=!rawmath x+$a
+    fac2=!rawmath x+$b
+    tot=!exec pari A=($curve1) \
+    printtex(A)\
+    printtex(($fac1)*($fac2))
+    f1=!line 1 of $tot
+    ftex1=!line 2 of $tot
+    tussen=!line 3 of $tot 
+    
+    formula$n= $ftex1 \,=\, 0
+    applettext=!nospace $f1 = 0 ->
+    x1=$[-1*$a]
+    x2=$[-1*$b]
+    x3=0
+    y1=0
+    y2=0
+    y3=0
+    texanswer$n=\left[ \begin{array}{l}  $ftex1 = 0 \\ x \cdot \left( $tussen \right) = 0 \\ x \cdot \left( $fac1 \right)\left( $fac2 \right) = 0 \\ x = 0 \bigvee $fac1 = 0 \bigvee $fac2 = 0 \\ x_{1} = $x1 \\ x_{2} = $x2 \\ x_{3} = $x3  \end{array}\right.
+    answer$n=$x1,$x2,$x3
+    !if $teaching=1
+	XRANGE=-10,10
+	YRANGE=-80,80
+	curve1=curve $color1,$curve1
+	curve2=hline 0,0,$color2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif
+
+!if $R=2
+    keuze=!randitem 1,2
+    #x(x+a)(x+b)=0
+    a=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    !if $a=$b
+	a=$[$a-1]
+    !endif
+    d=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    fac1=!rawmath x+$a
+    fac2=!rawmath x+$b
+    !if $keuze=1
+	c=$[$a*$b+$d]
+        curve1=!rawmath x^3+$[$a+$b]*x^2+$c*x
+        curve2=$d*x
+        tot=!exec pari printtex($curve1)\
+        printtex($curve1 - ($d*x))\
+        printtex(($fac1)*($fac2))
+
+        form1=!line 1 of $tot
+        tussen1=!line 2 of $tot
+        tussen2=!line 3 of $tot
+        formula$n= $form1 \,=\, $d x
+    !else
+        c=$[$a+$b+$d]
+        curve1=!rawmath x^3+$c*x^2+$[$a*$b]*x
+        curve2=$d*x^2
+        tot=!exec pari printtex($curve1)\
+        printtex($curve1 - ($d*x^2))\
+        printtex(($fac1)*($fac2))
+
+        form1=!line 1 of $tot
+        tussen1=!line 2 of $tot
+        tussen2=!line 3 of $tot
+        formula$n= $form1 \,=\, $d x^{2}
+    !endif
+    x1=$[-1*$a]
+    x2=$[-1*$b]
+    x3=0
+    y1=0
+    y2=0
+    y3=0
+    texanswer$n=\left[ \begin{array}{l}  $form1 = $d x^{2} \\ $form1 - $d x^{2} = 0 \\ $tussen1 = 0 \\ x \cdot \left( $tussen2 \right) = 0 \\ x \cdot \left( $fac1 \right)\left( $fac2 \right) = 0 \\ x = 0 \bigvee $fac1 = 0 \bigvee $fac2 = 0 \\ x_{1} = $x1 \\ x_{2} = $x2 \\ x_{3} = $x3  \end{array}\right.
+    answer$n=$x1,$x2,$x3
+    !if $teaching=1
+	XRANGE=-10,10
+	YRANGE=-80,80
+	curve1=curve $color1,$curve1
+	curve2=curve $color2,$curve2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif
+
+!if $R=3
+    keuze=!randitem 1,2
+    #x(x+a)(x+b)=0
+    a=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    !if $a=$b
+	a=$[$a-1]
+    !endif
+    d=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    e=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    !if $keuze=1
+        c=$[$a+$b+$d]
+	f=$[$a*$b+$e]
+	g=!randitem -5,-4,-3,-2,2,3,4,5,6
+        curve1=!rawmath x^3+$c*x^2+$f*x+$g
+        curve2=!rawmath $d*x^2+$e*x+$g
+    !else
+        c=$[$a+$b+$d]
+	f=$[$a*$b+$e]
+        curve1=!rawmath x^3+$c*x^2+$f*x
+        curve2=!rawmath $d*x^2+$e*x
+    !endif
+    fac1=!rawmath x+$a
+    fac2=!rawmath x+$b
+    tot=!exec pari A=($curve1)\
+    printtex(A)\
+    B=($curve2)\
+    printtex(B)\
+    printtex(A - B)\
+    printtex(($fac1)*($fac2))
+    
+    f1=!line 1 of $tot
+    ftex1=!line 2 of $tot 
+    f2=!line 3 of $tot
+    ftex2=!line 4 of $tot
+    tussen1=!line 5 of $tot
+    tussen2=!line 6 of $tot
+    
+    applettex=!nospace $f1 = $f2 ->
+    formula$n= $ftex1 \,=\, $ftex2
+    x1=$[-1*$a]
+    x2=$[-1*$b]
+    x3=0
+    y1=0
+    y2=0
+    y3=0
+    texanswer$n=\left[ \begin{array}{l}  $ftex1 = $ftex2 \\ $ftex1 - \left( $ftex2 \right) = 0 \\ $tussen1 = 0 \\ x \cdot \left( $tussen2 \right) = 0 \\ x \cdot \left( $fac1 \right)\left( $fac2 \right) = 0 \\ x = 0 \bigvee $fac1 = 0 \bigvee $fac2 = 0 \\ x_{1} = $x1 \\ x_{2} = $x2 \\ x_{3} = $x3  \end{array}\right.
+    answer$n=$x1,$x2,$x3
+    !if $image=1 or $teaching=1
+	XRANGE=-15,15
+	YRANGE=-50,50
+	curve1=curve $color1,$curve1
+	curve2=curve $color2,$curve2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif
+
+!if $R>3
+    keuze=!randitem 1,2
+    #x(x+a)(x+b)=0
+    a=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    !if $a=$b
+	a=$[$a-1]
+    !endif
+    d=!randitem -1/4,-3/4,-1/3,-2/3,-1/2,1/2,1/3,2/3,1/4,3/4,1/5
+    e=!randitem -1/4,-3/4,-1/3,-2/3,-1/2,1/2,1/3,2/3,1/4,3/4,1/5
+
+    !if $keuze=1
+        c=!exec pari ($a)+($b)+($d)
+	f=!exec pari ($a*($b))+($e)
+	g=!randitem -5,-4,-3,-2,2,3,4,5,6
+        curve1=x^3+($c)*x^2+($f)*x+($g)
+        curve2=($d)*x^2+($e)*x+($g)
+    !else
+        c=!exec pari ($a)+($b)+($d)
+	f=!exec pari ($a*($b))+($e)
+        curve1=x^3+($c)*x^2+($f)*x
+        curve2=($d)*x^2+($e)*x
+    !endif
+    
+    fac1=!rawmath x+$a
+    fac2=!rawmath x+$b
+    
+    tot=!exec pari A=($curve1)\
+    printtex(A)\
+    B=($curve2)\
+    printtex(B)\
+    printtex(A - B)\
+    printtex(($fac1)*($fac2))
+
+    f1=!line 1 of $tot
+    ftex1=!line 2 of $tot
+    f2=!line 3 of $tot
+    ftex2=!line 4 of $tot
+    tussen1=!line 5 of $tot
+    tussen2=!line 6 of $tot
+
+    applettex=!nospace $f1 = $f2 ->
+    formula$n= $ftex1 \,=\, $ftex2
+    x1=$[-1*$a]
+    x2=$[-1*$b]
+    x3=0
+    y1=0
+    y2=0
+    y3=0
+    texanswer$n=\left[ \begin{array}{l} $ftex1 = $ftex2 \\ $ftex1 - \left( $ftex2 \right) = 0 \\ $tussen1 = 0 \\ x \cdot \left( $tussen2 \right) = 0 \\ x \cdot \left( $fac1 \right)\left( $fac2 \right) = 0 \\ x = 0 \bigvee $fac1 = 0 \bigvee $fac2 = 0 \\ x_{1} = $x1 \\ x_{2} = $x2 \\ x_{3} = $x3  \end{array}\right.
+    answer$n=$x1,$x2,$x3
+    !if $teaching=1
+	XRANGE=-15,15
+	YRANGE=-100,100
+	curve1=curve $color1,$curve1
+	curve2=curve $color2,$curve2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif

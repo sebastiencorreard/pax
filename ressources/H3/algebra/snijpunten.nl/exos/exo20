@@ -1,0 +1,212 @@
+# exponentiele functies ongelijkheden via inklemmen
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=7
+javascript=js/kladblaadje.js
+make_tr=1
+cols=20
+rows=1
+embed=1
+math=0
+inputs=yes
+mathview=1
+checkfile=$checkdir/ineq.proc
+varlist=x
+dec=2
+htxt=!record 1 of lang/remarks.$taal
+expl=!record 4 of lang/remarks.$taal
+rounding=100
+roundingtext=!record 10 of lang/remarks.$taal
+xas=!item 1 of $htxt
+yas=!item 2 of $htxt
+typefunctie=!item 17 of $htxt
+lijn=!item 4 of $htxt
+snijpunten=!item 5 of $htxt
+invullen=!item 8 of $htxt
+uitrekenen=!item 9 of $htxt 
+afronden=!item 10 of $htxt
+zie_tabel=!item 11 of $htxt
+actievemuis=!item 12 of $htxt
+
+ligging=!randint 0,1
+!if $ligging=1
+    boven=!item 6 of $htxt
+!else
+    boven=!item 7 of $htxt
+!endif
+ss=!record 3 of lang/remarks.$taal
+xmin=-2
+xmax=4
+ymin=-2
+ymax=20
+!if $R=1
+    a=!randint 12,40
+    a=$[$a/10]
+    b=!randint 2,12
+    c=!randint 1,5
+    f=!rawmath $b*$a^x 
+    g=$[$b+$c]
+    f1=$b*($a)^x
+    F1=$b \cdot $a^{x}
+    f2=$g
+    F2=$g
+    xs=$[(log($g/$b))/(log($a))]
+    xs=$[(round($rounding*$xs))/$rounding]
+    ys=$g
+    ans=$xs
+    point=$xs,$ys
+    tex=x \simeq $xs
+    tt=1
+    !if $ligging=1
+	# boven de lijn
+        answer$n=x>$xs
+        latex_ligging=f>g
+    !else
+	answer$n=x<$xs
+	latex_ligging=f<g
+    !endif
+    tex2=$(answer$n)
+!else
+    !if $R=2
+	a=!randitem 1.2,1.3,1.4,1.5,1.6,1.7,1.8,2,2.5,3,4
+        b=!randint 2,12
+	c=!randint 3,10	
+        d=!randint 1,10
+        d=$[$d/2]
+        e=$[$b+$c]
+        f1=!rawmath $b*$a^x
+        f1=!nospace $f1
+        F1=!texmath $f1
+        f2=!rawmath $e-$d*x
+        F2=!texmath $f2
+        #pari bedankt
+        tussen=!exec pari P=solve(x=0,7,$f2-$f1)\
+	Q=subst($f2,x,P);round($rounding*Q)\
+	round($rounding*P)
+	ys=!line 2 of $tussen
+	ys=$[$ys/$rounding]
+	xs=!line 3 of $tussen
+	xs=$[$xs/$rounding]
+	ans=$xs
+	point=$xs,$ys
+	tex=x \simeq $xs
+	tt=1
+	!if $ligging=1
+	    # boven de lijn
+	    answer$n=x>$xs
+	    latex_ligging=f>g
+	!else
+	    answer$n=x<$xs
+	    latex_ligging=f<g
+	!endif
+	tex2=$(answer$n)
+    !else
+	a=!randitem 0.25,0.3,0.4,0.5,0.6,0.7,0.75
+	b=!randint 5,20
+	c=$[floor(abs($b*log($a)))]
+	!if $c=1 or $c=0
+	    d=0.5
+	!else
+	    d=!randint 1,$[$c-1]
+	!endif
+	f1=!rawmath $b*$a^x
+	F1=!texmath $f1
+	f2=!rawmath $b-$d*x
+	F2=!texmath $f2
+	rechterlimiet=$[ceil($b/$d)+1]
+	#pari bedankt
+	tussen=!exec pari P=solve(x=0.1,$rechterlimiet,$f2-$f1)\
+	Q=subst($f2,x,P)
+	ys=!line 2 of $tussen
+	ys=$[(round($rounding*$ys))/$rounding]
+	xs=!line 1 of $tussen
+	xs=$[(round($rounding*$xs))/$rounding]
+	ans=$xs,0
+	point=$xs,$ys,0,$b
+	tex=x_{1} = 0 \wedge x_{2} \simeq $xs
+	tt=2
+	!if $ligging=1
+	    # onder de lijn
+	    answer$n=x<0&&x>$xs
+	    tex2=x<0 \wedge x>$xs
+	    latex_ligging=f>g
+	!else
+	    answer$n=0<x&&x<$xs
+	    tex2=0<x<$xs
+	    latex_ligging=f<g
+	!endif
+    !endif
+!endif
+
+!if $ys>$ymax
+    ymax=$[$ys+10]
+!endif
+!if $xs >$xmax
+    xmax=$[$xmax+10]
+!endif
+
+diff1=0.8,0.9,0.95,0.99,1.00,1.01,1.05,1.1
+diff2=0.95,0.99,1.00,1.01,1.15,1.3,2,3
+
+
+!for r=1 to $tt
+    xs1=!item $r of $ans
+    tablebody=$empty
+    begin=$[$xs1-1]
+    !for p=1 to 8
+	d=!item $p of $(diff$r)
+        s=$[$begin+$d]
+        yl=!evalsubst x=($s) in $f1
+        yr=!evalsubst x=($s) in $f2
+        yl=$[(round(100*$yl))/100]
+        yr=$[(round(100*$yr))/100]
+	!if $s != $xs1
+	    tablebody=!append line <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> to $tablebody
+	!else
+	    tablebody=!append line <tr><td style="background-color:lightgreen;color:red;font-size:120%">$s</td><td style="background-color:lightgreen;color:red;font-size:120%">$yl</td><td style="background-color:lightgreen;color:red;font-size:120%">$yr</td></tr> to $tablebody
+	!endif
+    !next p
+    t$r=<table class="zebra_table_v2"><tr><th >x</th><th><i>f(x)</i></th><th><i>g(x)</i></td></tr>$tablebody</table>
+!next r
+!if $tt=2
+    textanswer$n=<table style="text-align:center"><tr><th>x<sub>1</sub></th><th>x<sub>2</sub></th></tr><th>$t1</th><th>$t2</th></tr></table>
+!else
+    textanswer$n=$t1
+!endif
+
+data=debug no\
+coordinates yes\
+precision 1\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+text 0.6*$xmax,-0.5,ariel,14,$xas,black\
+textup -0.5,0.6*$ymax,-90,ariel,14,$yas,black\
+linewidth 2\
+vline 0,0,blue,120\
+hline 0,0,blue,120\
+linewidth 2\
+curve $f1,red,160\
+curve $f2,green,160\
+linewidth 8\
+points $point,blue
+    
+xsize=300
+ysize=300
+myname=$counter.data
+!filewrite getfile/$myname $data
+
+formula$n=\left[ \begin{array}{l} \textrm{$typefunctie } & f(x) = $F1 \\ \textrm{$lijn} & g(x) = $F2 \\ & $latex_ligging\\ \textrm{$afronden}\end{array} \right.
+
+texanswer$n=\left[ \begin{array}{l} \textrm{$snijpunten : $typefunctie = $lijn } \\ f(x) = g(x) \\ $F1 = $F2 \\ $tex \\ \textrm{$zie_tabel} \\ $tex2  \end{array} \right.
+
+question$n=<a onmouseover="return escape('<table><tr><td><object id=\'FlyApplet\' width=\'$xsize\' height=\'$ysize\' classid=\'java:FlyApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\'><param name = \'java_codebase\' value = \'$appletdir\' /><param name = \'java_archive\' value = \'FlyApplet.jar\' /><param name = \'java_code\' value = \'FlyApplet.class\' /><param name=\'file\' value=\'$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname\'/>$nojava</object></td><td>$actievemuis<p>$expl</td></tr></table>')">$ss</a>
+helptext=<img src=\'$module_dir/gifs/inklemmen.jpg\' alt=\'inklemmen\'/><hr />$expl
+
+
+
+
+

@@ -1,0 +1,283 @@
+!set title=Calculer une longueur 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand;Thomas,Wareth
+author=Fabrice,Guerimand;Thomas,Wareth
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=c,r,r,r,r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=4
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2 notitemof 0,1
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp=!trim A,B,C	T,I,R	E,F,G	D,E,F
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+val10=$[rint(240)]
+val11=$[rint(140)]
+tmp=!trim $val7,$val9	$val9,$val7
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+tmp0=!item 2 of $val12
+
+val14=$(tmp0)
+val15=segment 20,20,20,120,black	segment 20,120,220,120,black	segment 20,20,220,120,black	text black,10,115,medium,$val8	text black,10,10,medium,$val13	text black,230,115,medium,$val14	segments red, 21,110,30,110,30,110,30,119
+tmp0=!randint 2, 6
+
+val16=$[rint($(tmp0))]
+tmp0=!randint 1, $val16-1
+
+val17=$[rint($(tmp0))]
+val18=$[rint(max($val16^2-$val17^2,2*$val16*$val17))]
+val19=$[rint(min($val16^2-$val17^2,2*$val16*$val17))]
+val20=$[rint(($val19^2+$val18^2)^(1/2))]
+tmp0=!randint 15, 25
+
+val21=$[$(tmp0)/10]
+val22=$[$val18*$val21]
+val23=$[$val20*$val21]
+val24=$[$val19*$val21]
+val25=$[rint(2)]
+tmp0=!randitem 1,2
+
+val26=$[rint($(tmp0))]
+!if $val26=1 
+val27=$val8$val9
+val28=\($val7$val8 = $val22),\($val7$val9 = $val23)
+val29=$[$val24]
+!else
+val27=$val7$val8
+val28=\($val8$val9 = $val24),\($val7$val9 = $val23)
+val29=$[$val22]
+!endif
+val30=$[$val29^2]
+tmp0=!shuffle $val28
+
+val28=$(tmp0)
+tmp0=!replace internal , by &nbsp;&nbsp; in $val28
+
+val31=$(tmp0)
+tmp=!nonempty items Le triangle \($val7$val8$val9) est rectangle en \($val8),L'angle \(\widehat{$val7$val8$val9}) est droit
+
+tmp0=!randitem $tmp
+val32=$(tmp0)
+val33=$val32.<br> Les longueurs suivantes sont connues : <div class="wimscenter">$val31</div> Calculer la longueur du segment \([$val27]).
+val34=la réciproque du théorème de Pythagore,le théorème de Pythagore
+tmp0=!item 2 of $val34
+
+val35=$(tmp0)
+val36=\($val7$val8),\($val7$val9),\($val8$val9),\($val7$val8^2),\($val7$val9^2),\($val8$val9^2),+
+tmp0=!item 5 of $val36
+
+val37=$(tmp0)
+tmp0=!item 4 of $val36
+
+tmp1=!item 7 of $val36
+
+tmp2=!item 6 of $val36
+
+tmp3=!item 6 of $val36
+
+tmp4=!item 7 of $val36
+
+tmp5=!item 4 of $val36
+
+val38=$(tmp0),$(tmp1),$(tmp2)|$(tmp3),$(tmp4),$(tmp5)
+!if $val3=1 
+val39=c1,r1,r2,r3,r4
+!else
+val39=r4
+!endif
+oefsteps=$val39 
+nextstep=!nosubst $val39 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyweight1=1.5 
+replyname1=Membre de gauche
+replygood1=$val37;$val36
+replytype2=clickfill
+replyweight2=1.5 
+replyname2=Membre de droite
+replygood2=$val38;$val36
+replytype3=numexp
+replyweight3=2 
+replyname3=\($val27^2 = )
+replygood3=$val30
+replytype4=numexp
+replyweight4=3 
+replyname4=\($val27 = )
+replygood4=$val29
+choiceweight1=2 
+choicename1=Théorème
+choicegood1=$val35
+choicebad1=$val34
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!if $val2=1 
+$()	$val33	<div class="wimscenter">	 
+!read oef/draw.phtml $val10,$val11 \
+$val15 
+$()</div>	<div class="wims_instruction">Le dessin n'est pas à l'échelle.</div>	 
+!else
+$() 	$val33 
+!endif
+$()	<div><b>Votre réponse</b> :	
+!if $val3=1 
+$()	   Dans le triangle 
+!insmath $val7$val8$val9
+$() rectangle en 
+!insmath $val8
+$(), d'après  
+!read oef/embed.phtml c1 
+$() on obtient :	<div class="wimscenter"> 
+!read oef/embed.phtml r1,40x35x1 
+$() =  
+!read oef/embed.phtml r2,40x35x3 
+$()</div>	   Donc : <label for="reply3">
+!insmath $val27^2 = 
+$()</label> 
+!read oef/embed.phtml r3,7 
+$()<br>	   Donc : <label for="reply4">
+!insmath $val27 = 
+$()</label> 
+!read oef/embed.phtml r4,7 
+$()	 
+!else
+$() 	  <label for="reply4">
+!insmath $val27 = 
+$()</label> 
+!read oef/embed.phtml r4,7 
+$().	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	   Le triangle 
+!insmath $val7$val8$val9
+$() est rectangle en 
+!insmath $val8
+$(). On a donc selon <strong>$val35</strong> :	<div class="wimscenter">
+!insmath $val7$val9^2 = $val7$val8^2 + $val8$val9^2
+$()</div>	
+!if $val26=1 
+$()	   On sait que 
+!insmath $val7$val8 = $val22
+$() et que 
+!insmath $val7$val9 = $val23
+$().<p>	   On a donc : </p>	<div class="wimscenter"> 
+!insmath $val27^2 = $val23^2 - $val22^2 = $val30
+$()</div>	<div class="wimscenter"> 
+!insmath $val27 = \sqrt{$val30} = $val29
+$()</div>	 
+!else
+$() 	   On sait que 
+!insmath $val8$val9 = $val24
+$() et que 
+!insmath $val7$val9 = $val23
+$().<p>	   On a donc : </p>	<div class="wimscenter"> 
+!insmath $val27^2 = $val23^2 - $val24^2 = $val30
+$()</div>	<div class="wimscenter"> 
+!insmath $val27 = \sqrt{$val30} = $val29
+$()</div>	 
+!endif
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,3,7,8,9,10,11,15,22,23,24,26,27,29,30,33,35
+embedcnt=6

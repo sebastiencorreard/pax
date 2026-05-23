@@ -1,0 +1,184 @@
+!set title=Question 106&#8718; Repérer une fraction sur la ligne numérique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Sévan,Polteau
+email=sevan.polteau@ac-aix-marseille.fr
+keywords=quizz,fraction,number_line
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+computeanswer=no
+precision=10000000
+oefobservation=Question du sujet zéro sujet-zero-dnb-serie-generale-a-mathematiques.pdf du DNB publié sur éduscol en décembre 2025 
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+val8=A,B,C,E,F,G,H,I,J,K,L,M,N,P,R,S,T,U,V,W,X,Y,Z
+tmp0=!itemcnt $val8
+
+tmp1=!shuffle $(tmp0)
+
+val9=$(tmp1)
+val10=$(val8[$(val9[1])])
+tmp0=!randint 2, 6
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 1, ($val11-1)
+
+tmp1=!randint ($val11+1), (2*$val11-1)
+
+tmp2=!randitem $(tmp0),$(tmp1)
+
+val12=$[rint($(tmp2))]
+val13=\($val12/$val11)
+!if $val12<$val11 
+val14=$[rint($val11-$val12)]
+val15=\($val12.$val14),\($val12/$val14),\($val11/$val12),\(0.$val12)
+!if $val14!=$val12 
+val15=$val15,\($val14/$val11),\($val14/$val12),\($val11/$val14)
+!endif
+!endif
+!if $val12>$val11 
+val14=$[rint($val12-$val11)]
+val15=\(1/$val11),\($val11.$val14),\($val12/$val12),\($val11/$val12),\($val14/$val12)
+!if $val14!=1 
+val15=$val15,\($val14/$val11)
+!endif
+!endif
+tmp0=!itemcnt $val15
+
+val16=$[rint($(tmp0))]
+tmp0=!shuffle $val16
+
+val17=$(tmp0)
+tmp0=!item 1 to 3 of $val17
+
+val17=$(tmp0)
+val15=$(val15[$(val17[1])]),$(val15[$(val17[2])]),$(val15[$(val17[3])])
+val18=$val13
+val19=$val15
+!if $val11=2 
+tmp0=!randint 40, 60
+
+val20=$[rint($(tmp0))]
+!endif
+!if $val11=3 
+tmp0=!randint 30, 45
+
+val20=$[rint($(tmp0))]
+!endif
+!if $val11=4 
+tmp0=!randint 25, 40
+
+val20=$[rint($(tmp0))]
+!endif
+!if $val11>4 
+tmp0=!randint 20, 30
+
+val20=$[rint($(tmp0))]
+!endif
+val21=$[rint(25)]
+val22=$[-1.5]
+val23=$[max($val11,$val12)+1.5]
+val24=$[-1]
+val25=$[1]
+val26=$[4/$val20]
+val27=$[-8/$val21]
+val28=
+!for val29 =ceil($val22) to floor($val23) 
+val28=$val28	    segment $val29,$val24,$val29,$val25,grey
+!next
+val30=$[rint(($val23-$val22)*$val20)]
+val31=$[rint(($val25-$val24)*$val21)]
+!readproc oef/draw.phtml $val30,$val31 \
+xrange $val22,$val23	yrange $val24,$val25	$val28	line 0,0,10,0,black	crosshairs black, 0,0, $val11,0, $val12,0	text black, 0-$val26, $val27,giant,0	text black, $val11-$val26, $val27,giant,1	text black, $val12-$val26, $val27,giant,$val10	 
+tmp0=$ins_url
+val32=$(tmp0)
+val33=<div class="wimscenter"><img src="$val32" alt=""><br> Quelle est l'abscisse du point $val10&nbsp;&#63;</div> 
+val34=
+val35=unités,demis,tiers,quarts,cinquièmes,sixièmes,septièmes,huitièmes,neuvièmes,dixièmes
+val35=$(val35[$val11])
+val36=L'unité est partagée en $val11 morceaux de la même taille&#44; ce sont donc des $val35.	<br>Il y a $val12 morceaux jusqu'au point $val10. 	<br>	<br>Le point $val10 a donc pour abscisse \($val12/$val11).	
+val37=$val18,$val19
+tmp0=!shuffle 4
+
+val38=$(tmp0)
+val37=$(val37[$(val38[1])]),$(val37[$(val38[2])]),$(val37[$(val38[3])]),$(val37[$(val38[4])])
+tmp0=!positionof item 1 in $val38
+
+val39=$[rint($(tmp0))]
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val39;Réponse A, Réponse B, Réponse C, Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val33	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder">	<tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val37[1]) </td><td>$(val37[2]) </td><td>$(val37[3]) </td><td>$(val37[4]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val36!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val36</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,33,36,37
+embedcnt=1

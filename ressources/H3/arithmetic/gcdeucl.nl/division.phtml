@@ -1,0 +1,73 @@
+!! fichier de gestion de la division entière.
+
+<u><b>Een deling met rest doen:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+Ik bereken het quotient en de rest van de gehele deling van  
+<input type=text name=repexo1 size=5 value=$(repexo1)> door <input type=text name=repexo2 size=5 value=$(repexo2)>.<p>
+Het quotient is <input type=text name=repexo3 size=5 value=$(repexo3)>.<p>
+De rest is <input type=text name=repexo4 size=5 value=$(repexo4)>.<p>
+<input type=hidden name=status value=3>
+<center><input type=submit value="Versturen"></center>
+</form>
+!exit
+
+:analyse
+tmp=$repexo1,$repexo2,$repexo3,$repexo4
+tmp=!nonempty item $tmp
+tmp=!itemcnt $tmp
+!if $tmp!=4
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+
+erreur=$empty
+test=$empty
+i=0
+goodreply0=0
+!for j=1 to 4
+   reply0=$(repexo$[$j])
+   !read anstype/numeric 
+   !if NaN isin $test
+      erreur=$meserreur
+      status=2
+      !break
+   !endif
+!next j
+!if $erreur!=$empty
+   !exit
+!endif
+ 
+AA$[$nbetape+1]=$[max($(BB$[$nbetape]),$(RR$[$nbetape]))]
+BB$[$nbetape+1]=$[min($(BB$[$nbetape]),$(RR$[$nbetape]))]
+
+!if $repexo1!=$(AA$[$nbetape+1]) or $repexo2!=$(BB$[$nbetape+1]) 
+   erreur=Dit is niet de juiste deling.<p>
+   !increase nbreerrrais
+   status=2
+   !exit
+!endif
+
+!if $repexo2=0
+   erreur=Door nul delen kan niet.<p>
+   !increase nbreerrrais
+   status=2
+   !exit
+!endif
+
+QQ$[$nbetape+1]=!exec maxima QUOTIENT($(AA$[$nbetape+1]),$(BB$[$nbetape+1]))
+RR$[$nbetape+1]=$[$(AA$[$nbetape+1])-$(QQ$[$nbetape+1])*$(BB$[$nbetape+1])]
+!if $repexo3!=$(QQ$[$nbetape+1]) or $repexo4!=$(RR$[$nbetape+1])
+   erreur=Je hebt een rekenfout gemaakt. Je kunt hem verbeteren.<p>
+   !increase nbreerrcalc
+   status=2
+   !exit
+!endif
+
+!increase nbetape
+status=1
+!exit

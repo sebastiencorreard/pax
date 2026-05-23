@@ -1,0 +1,235 @@
+!set title=Effectifs et pourcentages
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Aantal en percentages
+
+ansorder=r,r,r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=rouge, bleu,orange,gris, vert, violet
+val8=Effectifs
+val9=Voici la représentation graphique (diagramme circulaire) de,	  caractères sur une population de,individus&nbsp;
+val10=Remplir le tableau des effectifs correspondant	  (en arrondissant à l'entier le plus proche)
+!if $val6=nl 
+val7=rood, blauw,oranje,grijs, groen, paar
+val8=Aantallen
+val9=Hieronder zie je een cirkeldiagram die een populatie van,	  individuen met,eigenschappen weergeeft
+val10=Vul de onderstaande tabel in	  (rond je uitkomsten af op gehele getallen)
+!endif
+val11=6
+val12=100
+!for val13 =1 to $val11-1 
+tmp0=!randint 8, 20
+
+val14=$(tmp0)
+!if $val13=1 
+val15=$val14
+!else
+val15=$val15,$val14
+!endif
+val12=$[$val12-$val14]
+!next
+val15=$val15,$val12
+tmp0=!shuffle 6
+
+val16=$(tmp0)
+val17=red,skyblue,orange,grey,green,purple
+val18=A,B,C,D,E,F
+tmp0=!randint 1, $val11
+
+val19=$(tmp0)
+tmp0=!item $val19 of $val16
+
+tmp1=!item $(tmp0) of  $val7
+
+val20=$(tmp1)
+tmp0=!item $val19 of $val16
+
+tmp1=!item $(tmp0) of  $val18
+
+val21=$(tmp1)
+tmp0=!randint 10, 30
+
+val22=$[rint($(tmp0)*100)]
+tmp0=!item $val19 of $val15
+
+val23=$[round($(tmp0)/100*$val22)]
+val24=ellipse 0,0,2,2,black	segment 0,0,1,0,black
+val25=0
+tmp0=!randint 1, $val11
+
+val19=$(tmp0)
+!for val13 =1 to $val11 
+tmp0=!item $val13 of $val15
+
+val26=$[$(tmp0)*2*pi/100]
+val27=$[$val25+$val26/2]
+tmp0=!item $val13 of $val16
+
+tmp1=!item $(tmp0) of $val17
+
+val20=$(tmp1)
+tmp0=!item $val13 of $val16
+
+tmp1=!item $(tmp0) of  $val18
+
+val21=$(tmp1)
+val25=$[$val25+$val26]
+val24=$val24	segment 0,0,cos($val25),sin($val25),black	fill cos($val27)/2,sin($val27)/2, $val20	  text black, 1.2*cos($val27),1.2*sin($val27),medium, $val21
+!if $val13 = $val19 
+!else
+tmp0=!item $val13 of $val15
+
+val24=$val24	text black, 2*cos($val27)/3,2*sin($val27)/3, medium, $(tmp0)%	
+!endif
+!next
+tmp0=!item $val19 of $val16
+
+tmp1=!item $(tmp0) of  $val7
+
+val20=$(tmp1)
+tmp0=!item $val19 of $val16
+
+tmp1=!item $(tmp0) of  $val18
+
+val21=$(tmp1)
+tmp0=!randint 10, 30
+
+val22=$[rint($(tmp0)*100)]
+tmp0=!positionof item 1 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val28=$[round($(tmp1)/100*$val22)]
+tmp0=!positionof item 2 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val29=$[round($(tmp1)/100*$val22)]
+tmp0=!positionof item 3 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val30=$[round($(tmp1)/100*$val22)]
+tmp0=!positionof item 4 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val31=$[round($(tmp1)/100*$val22)]
+tmp0=!positionof item 5 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val32=$[round($(tmp1)/100*$val22)]
+tmp0=!positionof item 6 in $val16
+
+tmp1=!item $(tmp0) of $val15
+
+val33=$[round($(tmp1)/100*$val22)]
+replytype1=numeric
+replyname1=$(val7[1])
+replygood1=$[$val28]
+replytype2=numeric
+replyname2=$(val7[2])
+replygood2=$[$val29]
+replytype3=numeric
+replyname3=$(val7[3])
+replygood3=$[$val30]
+replytype4=numeric
+replyname4=$(val7[4])
+replygood4=$[$val31]
+replytype5=numeric
+replyname5=$(val7[5])
+replygood5=$[$val32]
+replytype6=numeric
+replyname6=$(val7[6])
+replygood6=$[$val33]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val9[1]) $val11 $(val9[2]) $val22 $(val9[3]):	  <div class="wimscenter">	    
+!read oef/draw.phtml 200,200 \
+xrange -1.5,1.5	  yrange -1.5,1.5	  $val24 
+$()	  </div>	  <div class="wims_question">	 $val10	 <table class="wimscenter wimsborder">	  <tr><th></th>	  <th><label for="reply1">$(val7[1]) (A)</label></th>	  <th><label for="reply2">$(val7[2]) (B)</label></th>	  <th><label for="reply3">$(val7[3]) (C)</label></th>	  <th><label for="reply4">$(val7[4]) (D)</label></th>	  <th><label for="reply5">$(val7[5]) (E)</label></th>	  <th><label for="reply6">$(val7[5]) (F)</label></th></tr>	  <tr><th>$val8</th><td> 
+!read oef/embed.phtml reply 1, 5 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 2, 5 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 3, 5 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 4, 5 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 5, 5 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 6, 5 
+$()</td></tr>	  </table>	  </div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,22,24
+embedcnt=6

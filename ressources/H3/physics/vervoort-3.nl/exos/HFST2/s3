@@ -1,0 +1,92 @@
+n=$counter
+embed=0
+choice=!randint 1,5
+questiontype=0
+calculator=0
+mathview=0
+rounding=0
+math=0
+checkfile=$checkdir/new_number.proc
+# geen eenheid
+var1=0
+var2=0
+wims_print_precision=12
+x=!randitem a,b,x,z,y
+arglist=$x
+mathml=!char 2 of $useropts
+!if $choice=1
+    g=!randint 2,6
+    b=!randint 2,9
+    a=$[$b^$g]
+    vraag=$x = \displaystyle{ \root{$g} \of{$a} }
+    answer$n=$b
+    texanswer$n=\left[ \begin{array}{l} $x = \root{$g} \of{$a} \\ $x = \root{$g} \of{$b^{$g}} \\ $x = $b \end{array} \right.
+!else
+    !if $choice=2
+	a=!randint 2,26
+	b=!randint 2,9
+	c=$[$b^2]
+	answer$n=$[$c - $a]
+	vraag=\sqrt{$x + $a } = $b
+	texanswer$n=\left[ \begin{array}{l} \sqrt{$x + $a } = $b \\ \left( \sqrt{$x + $a } \right)^{2} = $b^{2} \\ $x + $a = $c \rightarrow $x = $c - $a \\ $x = $(answer$n) \end{array} \right.
+    !else
+	!if $choice=3
+	    a=!randint 2,26
+	    b=!randint 2,9
+	    a1=$[$a^2]
+	    b1=$[$b^2]
+	    tot=!exec pari A=$b1/($a1)\
+	    printtex(A)
+	    answer$n=!line 1 of $tot
+	    !if $b1/$a1 != $(answer$n)
+		tex=!line 2 of $tot
+		texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$x} = $b \\ \left( $a \cdot \sqrt{$x } \right)^{2} = $b^{2} \\ $a1 \cdot $x = $b1 \rightarrow $x = \frac{$b1}{$a1} = $tex \end{array} \right.
+	    !else
+	        texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$x} = $b \\ \left( $a \cdot \sqrt{$x } \right)^{2} = $b^{2} \\ $a1 \cdot $x = $b1 \rightarrow $x = \frac{$b1}{$a1} \end{array} \right.
+	    !endif
+	    vraag=$a \cdot \sqrt{$x} = $b
+	!else
+	    !if $choice=4
+		a=!randint 2,9
+		b=!randint 2,26
+		b1=$[$b*$b]
+		tot=!exec pari A=$b1/($a)\
+		printtex(A)
+		answer$n=!line 1 of $tot
+		vraag=\sqrt{$a \cdot $x} = $b
+		!if $b1/$a != $(answer$n)
+		    tex=!line 2 of $tot
+		    texanswer$n=\left[ \begin{array}{l} \sqrt{$a \cdot $x} = $b \\ \left( \sqrt{$a \cdot $x} \right)^{2} = $b^{2} \\ $a \cdot $x = $b1 \\ $x = \frac{$b1}{$a} = $tex \end{array} \right.
+		!else
+		    texanswer$n=\left[ \begin{array}{l} \sqrt{$a \cdot $x} = $b \\ \left( \sqrt{$a \cdot $x} \right)^{2} = $b^{2} \\ $a \cdot $x = $b1 \\ $x = \frac{$b1}{$a} \end{array} \right.
+		!endif
+	    !else
+		a=!randint 2,12
+		a1=$[$a*$a]
+		vraag=$x^{2} = $a1
+		answer$n=$a,$[-1*$a]
+		texanswer$n= \begin{array}{l} $x^{2} = $a1 \\ \sqrt{$x^{2}} = \sqrt{$a1} \\ $x = \sqrt{$a^{2}} \\ $x= $a \wedge $x = -$a \end{array} \right.
+	    !endif
+	!endif
+    !endif
+!endif
+
+mathml=!char 2 of $useropts
+!if $mathml=2
+    formula$n=$vraag \rightarrow $x  = \input{20}{0}{font-size:18px;background:orange}{}{0}
+    inputs=-1
+!else
+    embed=1
+    inputs=1
+    cols=20
+    rows=3
+    formula$n= $vraag  \rightarrow $x = [?]
+#    m_rightarrow=&nbsp;
+!endif
+
+helptext=<ul><li>Geef je antwoord wiskundig nauwkeurig op  (dus niet afronden)</li><li>Bij meerdere antwoorden invullen : x=2 en x=5 </li><li>Bij geen re&euml;ele oplossingen , invullen: geen oplossingen in R (of zo iets )</li></ul>
+
+ss=Bereken de <span class="schaersvoorde_link">waarde</span> van de lettervariabele.
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!exit
+

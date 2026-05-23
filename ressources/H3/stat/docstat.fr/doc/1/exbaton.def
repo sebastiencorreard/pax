@@ -1,0 +1,156 @@
+!set titb=Exemple de diagramme en bâton
+!set keyw=
+!set datm=20031228
+!set prev=
+!set next=
+!set upbl=diagramme
+!set dat1=19000101
+!set dat2=24000101
+
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+!exit
+
+:content
+<a name="baton"></a>
+!set tmp0=!randint 1, 3
+
+!set m_p=$[rint($(tmp0))]
+
+
+!set tmp0=!randint 3+2*$m_p, 5+2*$m_p-1
+
+!set m_v=$[rint($(tmp0))]
+
+
+!set m_m=$[rint(5*$m_v)]
+
+
+!set tmp0=!randitem 40,45,50,55,60,65,70
+
+!set m_n=$(tmp0)
+
+
+
+!readproc slib/stat/random $m_n,0,$m_m 
+!set tmp0=$slib_out
+!set m_a=$(tmp0)
+
+
+
+!set tmp0=!item 1 to $m_v of 0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75
+
+!set m_liste=$(tmp0)
+
+
+
+!set tmp0=!itemcnt $m_liste
+
+!set m_cnt=$[rint($(tmp0))]
+
+
+!set tmp0=!shuffle $m_cnt
+
+!set m_liste2=$(tmp0)
+
+
+
+!set tmp0=!sort numeric item of $m_liste2
+
+!set m_liste2=$(tmp0)
+
+
+
+!set tmp0=!item -1 of $m_liste2
+
+!set m_rangex=$[$(tmp0)+2]
+
+
+!set tmp=!nonempty items [A,B,C,D,E,F,G,H,K,L],[1,2,3,4,5,6,7,8,9,10],	[x1,x2,x3,x4,x5,x6,x7,x8,x9,x10]	
+
+!set tmp0=!randitem $tmp
+!set m_U=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_U
+
+!set m_U=$(tmp0)
+
+
+<br/>
+!set tmp0=!item 1 to $m_v of $m_U
+
+!set m_U=$(tmp0)
+
+
+<br/>
+!read primitives.phtml 1, comment, \def{text d=slib(stat/freq [\a],[\liste])}	\def{text d=item(1,\d)} 
+
+
+!readproc slib/stat/effectif [$m_a],[$m_liste] 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 to $m_cnt of $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!sort numeric reverse item of $m_c
+
+!set m_cc=$(tmp0)
+
+
+
+!set tmp0=!randitem 1,2,1,3,1
+
+!set m_s=$(tmp0)
+
+
+
+!ifval $m_s=2 
+!set tmp0=!sort numeric item of $m_c
+
+!set m_c= $(tmp0)
+
+!endif
+
+
+!ifval $m_s=3 
+!set m_c= $m_cc
+
+!endif
+
+
+!readproc slib/stat/histo [$m_c],,ytics 10,xtics [$m_U],color blue,baton 
+!set tmp0=$slib_out
+!set m_histo=$(tmp0)
+
+
+<div class="exemple">
+
+!read primitives.phtml 2, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" />, baton 
+<div class="wimscenter">
+
+!read primitives.phtml 3, draw, 300,150, \histo 
+
+</div>
+</div>
+

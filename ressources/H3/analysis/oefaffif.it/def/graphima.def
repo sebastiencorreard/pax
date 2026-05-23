@@ -1,0 +1,161 @@
+!set title=Grafico -> immagine
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem f,g,h
+
+val6=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 50
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 50
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val7=$[$val7/10]
+val8=$[$val8/10]
+val9=$[($val8-($val7))/10]
+val10=$[$val7+5*($val9)]
+val11=!rawmath -($val9*(x)+($val10))*50+250
+evaltmp=$val11
+
+evaltmp=!mathsubst x=(-5) in $evaltmp
+tmp0=($evaltmp)
+val12=$[rint($(tmp0))]
+evaltmp=$val11
+
+evaltmp=!mathsubst x=(5) in $evaltmp
+tmp0=($evaltmp)
+val13=$[rint($(tmp0))]
+tmp0=!record 1 of src/graph.don
+
+val14=$(tmp0)
+val14=$val14	line 0,$val12,500,$val13,red
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 45
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val15=$[$val15/10]
+val16=$[$val9*($val15)+($val10)]
+val17=$[rint($val16*10)]
+val17=$[$val17/10]
+val18=$[rint(-($val17)*50+250)]
+!if $val15>0 
+val19=text green,220,$val18-10,medium,$val17
+!else
+val19=text green,255,$val18-10,medium,$val17
+!endif
+!if $val17>0 
+val20=text green,240+($val15)*50,260,medium,$val15
+!else
+val20=text green,240+($val15)*50,230,medium,$val15
+!endif
+val21=$val14	arrow 250+($val15)*50,250,250+($val15)*50,$val18,10,green	$val20	arrow 250+($val15)*50,$val18,250,$val18,10,green	$val19
+replytype1=auto
+
+replyname1=$val6($val15)
+replygood1=?analyze 22
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	La rappresentazione grafica della funzione affine 
+!insmath $val6
+$() è la seguente:	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val14 
+$()	</div>	Qual è l'immagine di 
+!insmath $val15
+$() rispettoa a 
+!insmath $val6
+$()?	<div class="spacer">	<b>La tua risposta:</b>	L'immagine di 
+!insmath $val15
+$() rispetto alla funzione 
+!insmath $val6
+$() è  
+!read oef/embed.phtml r1,5 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'immagine di $val15 rispetto alla funzione $val6 è, per definizione, <b>l'ordinata</b> del punto sulla retta la cui ascissa è $val15.<br/>	Si prende quindi il punto della retta la cui acissa è $val15, poi si legge la sua ordinata.	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val21 
+$()	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs($val16-($val22))<0.1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Immagine
+
+!exit
+
+:stat
+vsavelist=6,14,15,16,21,22
+embedcnt=1

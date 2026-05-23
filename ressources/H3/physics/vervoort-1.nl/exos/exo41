@@ -1,0 +1,74 @@
+n=$counter
+#hfst3                                                                                                                                     
+#exo36(hfst3)Opwarmtijd van water 
+# 3 stappen
+questiontype=3
+math=0
+cols=14
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/units.proc
+inputs=1.1
+v=!randint 22,99
+d=!randitem 15,16,18,22,28,32
+tot=!exec moneyprint $[$v/10],$[$d/10] 1
+# m/s
+v=!item 1 of $tot
+# dm
+V=$[10*$v]
+# cm
+d=!item 2 of $tot
+# dm
+D=$[$d*0.1]
+# dm^2
+A=$[0.25*pi*$D*$D]
+
+sig=2
+
+T1=!randint 5,24
+
+# KW afh van leiden
+f=!randint 20,35
+P=$[10*(round($f*$d*$v/10))]
+Pw=$[$P*1000]
+c=4180
+# dm^2
+A=$[0.25*pi*$D*$D]
+# dm^2/s
+debiet=$[$V*$A]
+dT=$[$Pw/($debiet*$c)]
+ans=$[$dT + $T1]
+tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+c_ans=!item 1 of $tot
+h_ans=!item 2 of $tot
+answer$n=$c_ans
+var1=0
+var2=$[abs($ans-$c_ans)]
+
+!if $ans>100
+    # zal niet gebeuren... v=22 d=15 T1=24 -> 90 grC
+    verwarmingsketel=stoomketel
+!else
+    verwarmingsketel=heater
+!endif
+
+ss=Door een leiding van een <span style="color:blue">$verwarmingsketel</span> ( diameter $d cm) stroomt water met een snelheid van $v m/s.<br />Dit water wordt verwarmd met een vermogen van $P kW.<br />Als het water de heater instroomt is de temperatuur $T1 &deg;C.<br />Bereken de uitgaande temperatuur van het water.
+
+
+rr=<ul><li>Volume debiet : &Phi;<sub>v</sub>  = v &sdot; A <hr />&Phi; in dm<sup>3</sup>/s , v  in dm/s , A in dm<sup>2</sup></li><li>Gegeven:<br />&rho;<sub>water</sub> = 1 kg / dm<sup>3</sup><br />c = $c  J/(kg &deg;C)<br />d = $d cm = $D dm<br />A = &pi; r<sup>2</sup> = 1/4 &sdot; &pi; d<sup>2</sup> = 1/4*pi*$D^2 = $A dm<sup>2</sup><br />v = $v m/s = $V dm/s<br />P = $P kW = $Pw Watt (J/s)</li><li>&Phi;<sub>v</sub> = $V &sdot; $A = $debiet dm<sup>3</sup>/s<br />1 dm<sup>3</sup> water weegt 1 kg<br />&Phi;<sub>v</sub> = $debiet kg/s </li><li>Q (per sec)= m (per sec)  &sdot; c &sdot; &Delta;T <br />&Delta;T = Q /(m &sdot; c)</li>&Delta;T = $Pw / ($debiet &sdot; $c) = $dT &deg;C<br />eenheid controleren:<br />( J/s )/( kg/s * J/(kg * &deg;C) )<br />( J/s )/( J*kg/(s*kg s*&deg;C) )<br /><span style="text-decoration:line-through">&nbsp;&nbsp;s*kg*J&nbsp;&nbsp;</span>&deg;C / (<span style="text-decoration:line-through">&nbsp;&nbsp;s*kg*J&nbsp;&nbsp;</span>) = &deg;C </li><li>De uitgaande water temperatuur : $T1 + $dT = $ans &deg;C<br />    </li><li>De uitgaande water temperatuur is $h_ans &deg;C (op $sig significante cijfers)</li></ul>
+
+textanswer$n=$rr
+
+helptext=<img src=$module_dir/gifs/exo41.jpg alt=dompelaar /> <br /><ul><li>Dichtheid van water : &rho;=1000 kg/m<sup>3</sup></li><li>Soortelijke warmte van water : c = $c  J/(kg &deg;C)</li></ul>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+m_rightarrow=&nbsp;=&nbsp;
+description=Uitgaande water temperatuur
+ex1=&nbsp;&deg;C
+
+!exit
+
+
+

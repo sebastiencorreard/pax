@@ -1,0 +1,81 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# ER ZIJN GEEN SNIJPUNTEN dus $(answer$n)=nil
+# als de leerling een paar coordinaten inlevert is dat dus fout...
+
+n=$counter
+wims_exec_error=$empty
+wims_compare_precision=10000
+errortext=$empty
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+test=!replace internal ( by @ in $(reply$n)
+test=!replace internal : by # in $test
+test=!replace internal ; by # in $test
+test=!replace internal , by # in $test
+!if (# isin $test) or (@ isin $test)
+    ex=!record 18 of lang/remarks.$taal
+    remark$n=$NOK<br />$ex
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+AAA=!singlespace $(reply$n)
+AAA=$ $ $AAA
+AAA=!lower $AAA
+nothing=!record 13 of lang/remarks.$taal
+#@ 0,nul,zero,zip,nop,niks,nada,geen,niente
+A=1
+!for p in $nothing
+    !if $A !=0
+	!if $p isin $AAA
+	    A=0
+	!endif
+    !endif
+!next p
+!if $A!=0
+    AAA=!replace [a-z\~\!\@\#\$\%\_\=\+\-\(\)] by $empty in $AAA
+    AAA=!replace internal : by , in $AAA
+    AAA=!replace internal ; by , in $AAA
+    !for p=1 to 4
+	AAA=!replace internal ,, by , in $AAA
+    !next p
+    t=!itemcnt $AAA
+    !if $t=0
+	# geen antwoord of niks vlgs de syntax:terug geven
+	errortext=!record 17 of lang/remarks.$taal
+	goback=1
+	!exit
+	# ok?
+    !endif
+    !for p=1 to $t
+	AA=!item $p of $AAA
+	!if NaN isin $[$1*$AA]
+	    errortext=!record 39 of $remarkdir/commonremarks.$taal
+	    maxscore=$[$maxscore*$P4]
+	    goback=1
+	    !exit
+	!endif
+    !next p
+    remark$n=$NOK
+    maxscore=0
+!else
+    remark$n=$OK
+!endif
+
+
+modulescore=$[$modulescore + $maxscore]

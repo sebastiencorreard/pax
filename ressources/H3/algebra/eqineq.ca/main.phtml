@@ -1,0 +1,110 @@
+!header
+!!for i=40 to 45
+!!$i : $(val$i)<br>
+!!next i
+<u><b>Exercici $noexo.</b></u>
+$enonce <br>
+<center>
+!read affsys.phtml 0
+</center>
+!if $nocalcul=1
+Nota: L'objectiu de l'exercici és avaluar el procés de resolució. L'ordinador farà els càlculs per tu. 
+!endif
+<p><hr><p>
+
+!! ------------   affichage des calculs.
+
+!if $nbetape>0
+<u><b>Les vostres etapes de càlcul:</b></u>
+<table>
+!for ii=0 to $nbetape
+   <tr>
+   <td>
+      !read affsys.phtml $ii
+   </td>
+   <td> 
+      !if $ii<$nbetape and $status!=5 
+         !href cmd=resume&status=1&nbetape=$ii repetir aquesta etapa.
+      !endif
+   </td>
+!next ii
+</table>
+<p><hr><p>
+!endif
+
+!! ----------- corps d'action
+
+!if $status=1
+   !if $nbetape<50
+      !read form.phtml
+   !else
+    En aquest exercici el nombre d'etapes està limitat. Ja n'has utilitzat $nbetape. <p>
+No coneixes pas el mètode de resolució o no has acabat d'entendre'l.<p>
+Repasa els mètodes o demana al professor que t'ho aclareixi.<p>
+     !href cmd=resume&status=1&nbetape=0 tornar a començar
+     el mateix exercici després del debut.
+   !endif
+!endif
+!if $status=2
+   $erreur
+   !let erreur=$empty
+   !let tmp=!item $action of $listaction
+   !read $tmp question
+   <p>
+   !href cmd=resume&status=1 tornar
+!endif
+!if $status=3
+   !let tmp=!item $action of $listaction
+   !read $tmp reponse
+!endif
+!if $status=4
+   !read src/conclure.phtml reponse2
+!endif
+!if $status!=5
+   <p><hr><p>
+!endif
+<u><b>Informacions: </b></u>
+<table>
+  <tr>
+    <td>Nombre d'etapes:</td>
+    <td>$nbetape</td>
+  </tr>
+!if $nocalcul!=1
+  <tr>
+    <td>Nombre d'errors de càlcul:</td>
+    <td>$nbreerrcalc</td>
+  </tr>
+!endif
+  <tr>
+    <td>Nombre d'errors de raonament:</td>
+    <td>$nbreerrrais</td>
+  </tr>
+!!  <tr>
+!!    <td>Nombre d'accesos a l'ajuda:</td>
+!!    <td>$nbreaide</td>
+!!  </tr>
+</table>
+
+!if $status=5
+   <font color=green>Has resolt correctament aquest exercici en $nbetape etapes.</font><br>
+   !if $noexo<$nbreexo
+      Aquest és l'exercici $noexo d'una sessió que en conté $nbreexo.
+      !increase noexo
+      !href cmd=resume&status=0 Continuar la sessió 
+      .
+      !href $renewlink Nova sessió
+      .<p>
+      (Has d'arribar fins al final d'una sessió per obtenir una nota.)
+   !else
+      Has obtingut una nota de $module_score sobre 10.<p>
+      !href $renewlink Nova sessió
+      .
+   !endif
+!else
+   Aquest és l'exercici $noexo d'una sessió que en conté $nbreexo.
+   !href $renewlink Nova sessió
+   .<p> (Has d'arribar fins al final d'una sessió per obtenir una nota.)
+!endif
+:lab1
+:end
+!tail

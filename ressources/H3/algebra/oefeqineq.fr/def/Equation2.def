@@ -1,0 +1,276 @@
+!set title=Équation ax+b&#61;cx+d#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=42
+prevarcnt=41
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Résoudre l'équation
+val7=Donner votre résultat sous une forme aussi simplifiée que possible.
+val8=On vous propose de résoudre l'exercice en vous guidant.	  Complétez les différentes étapes de calcul qui vous sont proposées
+val9=En ajoutant, à chacun des membres de l'égalité puis en réduisant on obtient 
+val10=Réponse
+val11=En ajoutant, à chacun des membres de l'égalité puis en réduisant on obtient
+val12=En divisant chacun des membres de l'égalité par, on obtient
+val13=On termine en simplifiant le résultat 
+val14=$[rint(8)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp0=!item 3 of $val16
+
+val18=$(tmp0)
+!if $val17= 
+tmp0=!item 1 of $val16
+
+val19=$(tmp0)
+tmp0=!item 2 of $val16
+
+val20=$(tmp0)
+!if $val18<0 
+tmp0=!values $val18*v,-($val18)*v for v=$val19 to $val20
+
+val21=$(tmp0)
+!else
+tmp0=!values $val18*v for v=$val19 to $val20
+
+val21=$(tmp0)
+!endif
+!else
+val21=$val17
+!if $val18<0 
+tmp0=!replace internal , by ,- in $val21
+
+val22=$(tmp0)
+tmp0=!listunion $val21 and $val22
+
+val21=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val21
+
+val21=$(tmp0)
+tmp0=!shuffle $val21
+
+val21=$(tmp0)
+tmp0=!item 1 of $val21
+
+val19=$(tmp0)
+tmp0=!item 2 of $val21
+
+val20=$(tmp0)
+tmp0=!item 3 of $val21
+
+val18=$(tmp0)
+tmp0=!item 4 of $val21
+
+val23=$(tmp0)
+
+!ifval ($val19=$val18 or $val19=$val18+1)
+val18=18
+!endif
+tmp=!translate ";': to $     $ in -$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+tmp=!translate ";': to $     $ in -$val18
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val25=$(tmp0)
+tmp0=!randitem x,y,z,a,b
+
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in ($val23-($val20))/($val19-($val18))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=$(tmp0)
+t_=!replace internal \( by ( in ($val18)*$val26+($val23)-($val20);
+tmp0=!exec maxima $t_
+
+val28=$(tmp0)
+t_=!replace internal \( by ( in ($val19)*$val26-($val18*$val26);
+tmp0=!exec maxima $t_
+
+val29=$(tmp0)
+tmp=!translate ";': to $     $ in $val23-($val20)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $val19-($val18)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+val32=($val19)*$val26+($val20)=($val18)*$val26+($val23),($val20)+($val19)*$val26=($val18)*$val26+($val23),($val19)*$val26+($val20)=($val23)+($val18)*$val26,($val20)+($val19)*$val26=($val23)+($val18)*$val26
+tmp=!nonempty items $val32
+
+tmp0=!randitem $tmp
+tmp1=!texmath $(tmp0)
+
+val32=$(tmp1)
+!if $val3=1 
+tmp=!trim r1	r2	r3	r4
+val33=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r4
+val33=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val33 
+nextstep=!nosubst $val33 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=$val10 1
+replygood1=$val28
+replytype2=algexp
+replyname2=$val10 2
+replygood2=$val29
+replytype3=algexp
+replyname3=$val10 3
+replygood3=$val31
+replytype4=numexp
+replyname4=\($val26\)
+replygood4=$val27
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6 
+!insmath $val32
+$().	<div class="wims_instruction">$val7</div>	
+!if $val3=1 
+$()$val8:	  <ul><li>	    $(val9[1]) 
+!insmath $val24
+$() $(val9[2]):	
+!if $m_step=1 
+$()
+!insmath $val19 $val26=
+$()  
+!read oef/embed.phtml r1,$val14 
+$() </li></ul> 
+!else
+$()	 
+!insmath $val19 $val26=$val18$val26+$val30
+$().</li>	<li>$(val11[1]) 
+!insmath $val25$val26
+$() $(val11[2]):	
+!if $m_step=2 
+$()	   
+!read oef/embed.phtml r2,$val14 
+$() 
+!insmath =$val30
+$().</li></ul> 
+!else
+$()	 
+!insmath $val31$val26=$val30
+$().</li>	<li> $(val12[1]) 
+!insmath $val31
+$() $(val12[2]) :	
+!if $m_step=3 
+$()	<div class="wimscenter">	     
+!read oef/special.phtml mathmlinput [$val26= \frac{$val30}{reply3}],5,noanswer	    reply 3 
+$()	  </div>	</li></ul> 
+!else
+$()	 
+!insmath $val26=\frac{$val30}{$val31}
+$().</li>	<li> $val13 :	<label for="reply4">
+!insmath $val26 =
+$()</label>  
+!read oef/embed.phtml reply 4,$val14 
+$()</li></ul>	 
+!endif
+$()	 
+!endif
+$()	 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,7,8,9,11,12,13,14,18,19,24,25,26,30,31,32
+embedcnt=4

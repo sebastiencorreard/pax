@@ -1,0 +1,163 @@
+!set title=Factoriser a²-b²
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val2=$[rint($val2)]
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+val6=$[rint(6)]
+val7=40x25x1
+tmp0=!randint 2, 15
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val9=$[rint($(tmp0))]
+
+!ifval $val8=$val9
+val9=$[rint(17)]
+!endif
+tmp0=!randitem x,y
+
+val10=$(tmp0)
+tmp0=!values v for v=0 to $val2
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item 2 of $val11
+
+val13=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val8*$val10^$val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+tmp=!translate ";': to $     $ in $val9*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!shuffle +,-
+
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val17=$(tmp0)
+tmp0=!item 2 of $val16
+
+val18=$(tmp0)
+val19=\rep
+tmp=!translate internal $	$ to ; in \don
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp0=!rawmath ($val14$val17$val15)($val14$val18$val15)
+
+val21=$(tmp0)
+!readproc slib/commutesom $val21,$val10 
+tmp0=$slib_out
+val22=$(tmp0)
+tmp0=!texmath $val14
+
+val23=$(tmp0)
+tmp0=!texmath $val15
+
+val24=$(tmp0)
+val25=$val23,$val24
+tmp=!nonempty items $val22
+
+tmp0=!randitem $tmp
+val26=$(tmp0)
+replytype1=algexp
+replyname1=Réponse
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Factoriser l'expression : 
+!insmath $val26
+$().	<p><b>Je factorise :</b></p>		<div class="wimscenter">
+!insmath $val26 = 
+$() 
+!read oef/embed.phtml r1,4*$val6 
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,26
+embedcnt=1

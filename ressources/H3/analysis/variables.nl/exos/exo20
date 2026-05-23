@@ -1,0 +1,67 @@
+n=$counter
+cols=16
+rows=1
+image=0
+math=0
+embed=1
+questiontype=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+helptext=$empty
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+letters=x,y,q,a,b,c,d,e,f,g,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+a=!item 4 of $letters
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+c=!item 2 of $getallen
+d=!item 3 of $getallen
+e=!item 4 of $getallen
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+!if $R=1
+    var1=($x^$a/($x^($b*$a)))*($x/($x^($b*$a)))
+    applettext=!nospace $var1 =
+    answer$n=!exec maxima ratsimp($var1);
+    texanswer$n=!texmath $(answer$n)
+    texanswer$n=\,\,=\,\, $(texanswer$n)
+    formula$n=\frac{$x^{\textsize $a}}{$x^{\textsize $b\cdot $a}} \,\, \times \,\, \frac{$x}{$x^{\textsize $b\cdot $a}}
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    var1=($c*$x^($a)/($x^($b)))*($d*$x^($a)/($x^($b)))
+    applettext=!nospace $var1 =
+    answer$n=!exec maxima ratsimp($var1);
+    texanswer$n=!texmath $(answer$n)
+    texanswer$n=\,\,=\,\, $(texanswer$n)
+    formula$n=\frac{$c \cdot $x^{\textsize $a}}{$x^{\textsize $b}} \,\, \times \,\, \frac{$d \cdot $x^{\textsize $a}}{$x^{\textsize $b}}
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R>2
+    var1=($d*$x^($a)/($x^($b)))*($c*$x^($a)/($x^($b)))
+    applettext=!nospace $var1 =
+    answer$n=!exec maxima ratsimp($var1);
+    texanswer$n=!texmath $(answer$n)
+    texanswer$n=\,\,=\,\, $(texanswer$n)
+    formula$n=\frac{$d \cdot $x^{\textsize $a}}{$x^{\textsize $b}} \,\, \times \,\, \frac{$c \cdot $x^{\textsize $a}}{$x^{\textsize $b}}
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+

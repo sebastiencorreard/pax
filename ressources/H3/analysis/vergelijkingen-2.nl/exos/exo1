@@ -1,0 +1,181 @@
+# :type a(bx-c)=d
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $usage=2
+    image=0
+!endif
+embed=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+math=0
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:and
+!if $subject=1
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=10
+    rows=1
+    # berekeniningen laten zien
+    var3=0
+    questiontype=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=2
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    make_tr=1
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+# applettext is a "ascii rawmath echo" of formula$n
+
+!if $R=1
+    x=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    b=!randint 2,12
+    c=!randint 1,15
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    !if $keuze=1
+	d=$[$a*($b*$x-$c)]
+	formula$n=$a \cdot \left( $b x - $c \right) = $d 
+	applettext=!nospace $a*( $b*x - $c ) = $d ->
+	tex=$b x - $c = \frac{$d}{$a} \\ x = $x 
+    !else
+	d=$[$a*($b*$x+$c)]
+	formula$n=$a \cdot \left( $b x + $c \right) = $d
+	applettext=!nospace $a*( $b*x + $c ) = $d ->
+	tex=$b x + $c = \frac{$d}{$a} \\ x = $x 
+    !endif
+    texanswer$n=\left[ \begin{array}{l}  $(formula$n) \\ $tex \end{array} \right.
+    answer$n=$x
+ !exit
+!endif
+
+!if $R=2
+    p=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    d=$[$p*$a]
+    b=!randint 2,12
+    c=!randint 1,15
+    !if $keuze=1
+	tot=!exec pari A=($c+($p))/($b)\
+	printtex(A)
+	formula$n=$a \cdot \left( $b x - $c \right) = $d
+	applettext=!nospace $a*($b*x - $c) = $d ->
+	tex=$b x - $c = $p \\ $b x = $[$c+$p]  
+    !else
+	tot=!exec pari A=($p-($c))/($b)\
+	printtex(A)
+	formula$n=$a \cdot \left( $b x + $c \right) = $d 
+	applettext=!nospace $a*($b*x + $c) = $d ->
+	tex=$b x + $c = $p \\ $b x = $[$p-$c]
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l}  $(formula$n) \\ $tex  \\ x = $t \end{array} \right.
+ !exit
+!endif
+
+!if $R=3
+    p=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    a=!randitem 1/10,1/9,1/8,1/7,1/6,1/5,1/4,1/3,1/2,-1/10,-1/9,-1/8,-1/7,-1/6,-1/5,-1/4,-1/3,-1/2
+    d=$p*($a)
+    b=!randint 2,12
+    c=!randint 1,15
+    !if $keuze=1
+	tot=!exec pari A=(($c)+($p))/($b)\
+	printtex(A)\
+	printtex($d)\
+	printtex($a)
+	dtex=!line 3 of $tot
+	atex=!line 4 of $tot	
+	formula$n=$atex \cdot \left( $b x - $c \right) = $dtex 
+	applettext=!nospace $a*($b*x - $c) = $d ->
+	tex=$b x - $c = $p  \\  $b x = $[$c+$p]  
+    !else
+	tot=!exec pari A=(($p)-($c))/($b)\
+	printtex(A)\
+	printtex($d)\
+	printtex($a)
+	
+	dtex=!line 3 of $tot
+	atex=!line 4 of $tot
+	formula$n=$atex \cdot \left( $b x + $c \right) = $dtex 
+	applettext=!nospace $a*($b*x + $c) = $d ->
+	tex=$b x + $c = $p  \\  $b x = $[$p-$c]
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l}  $(formula$n) \\ $tex  \\ x = $t \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    a=!randitem 1/10,1/9,1/8,1/7,1/6,1/5,1/4,1/3,1/2,-1/10,-1/9,-1/8,-1/7,-1/6,-1/5,-1/4,-1/3,-1/2
+    d=!randitem 1/10,1/9,1/8,1/7,1/6,1/5,1/4,1/3,1/2,-1/10,-1/9,-1/8,-1/7,-1/6,-1/5,-1/4,-1/3,-1/2
+    b=!randint 2,12
+    c=!randint 1,15
+    p=($d/$a)
+    !if $keuze=1
+	tot=!exec pari A=((($d) + ($a)*($c))/(($a)*($b)))\
+	printtex(A)\
+	printtex($d)\
+	printtex($a)\
+	printtex($p)\
+	printtex($p + ($c))
+	
+	dtex=!line 3 of $tot
+	atex=!line 4 of $tot
+	ptex=!line 5 of $tot
+	pctex=!line 6 of $tot
+	formula$n=$atex \cdot \left( $b x - $c \right) = $dtex 
+	applettext=!nospace $a*($b*x - $c) = $d ->
+	tex=$b x - $c = $ptex  \\  $b x = $pctex 
+    !else
+	tot=!exec pari A=((($d) - ($a)*($c))/(($a)*($b)))\
+	printtex(A)\
+	printtex($d)\
+	printtex($a)\
+	printtex($p)\
+	printtex($p - ($c))
+	
+	dtex=!line 3 of $tot
+	atex=!line 4 of $tot
+	ptex=!line 5 of $tot
+	pctex=!line 6 of $tot
+	formula$n=$atex \cdot \left( $b x + $c \right) = $dtex 
+	applettext=!nospace $a*($b*x + $c) = $d ->
+	tex=$b x + $c = $ptex  \\  $b x = $pctex  
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l}  $(formula$n) \\ $tex  \\ x = $t \end{array} \right.
+ !exit
+!endif

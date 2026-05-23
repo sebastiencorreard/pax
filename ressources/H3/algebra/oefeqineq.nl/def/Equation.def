@@ -1,0 +1,216 @@
+!set title=ax+b&#61;0#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(4)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp0=!item 3 of $val8
+
+val10=$(tmp0)
+!if $val9= 
+tmp0=!item 1 of $val8
+
+val11=$(tmp0)
+tmp0=!item 2 of $val8
+
+val12=$(tmp0)
+!if $val10<0 
+tmp0=!values $val10*v,-($val10)*v for v=$val11 to $val12
+
+val13=$(tmp0)
+!else
+tmp0=!values $val10*v for v=$val11 to $val12
+
+val13=$(tmp0)
+!endif
+!else
+val13=$val9
+!if $val10<0 
+tmp0=!replace internal , by ,- in $val13
+
+val14=$(tmp0)
+tmp0=!listunion $val13 and $val14
+
+val13=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val13
+
+val13=$(tmp0)
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val11=$(tmp0)
+tmp0=!item 2 of $val13
+
+val12=$(tmp0)
+tmp=!translate ";': to $     $ in -($val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val10=$(tmp0)
+tmp=!translate ";': to $     $ in ($val10)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!randitem x,y,z,a,b
+
+val16=$(tmp0)
+tmp0=!texmath $val11*$val16+($val12)=0
+
+val17=$(tmp0)
+!if $val3=1 
+tmp=!trim r1	r2	r3
+val18=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r3
+val18=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val18 
+nextstep=!nosubst $val18 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Antwoord 1
+replygood1=-$val12
+replytype2=algexp
+replyname2=Antwoord 2
+replygood2=$val11
+replytype3=algexp
+replyname3=Antwoord
+replygood3=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Los de vergelijking 
+!insmath $val17
+$() op. <p>Geef het resultaat in de vorm van een vereenvoudigde breuk. <p>	 
+!if $val3=1 
+$()We stellen voor om deze oefening met begeleiding te maken. Vul de voorgestelde stappen in: <p>	<ul>	<li> Door bij ieder lid van de gelijkheid 
+!insmath $val10
+$() op te tellen en te vereenvoudigen krijgt men:  <p> 	 
+!if $m_step=1 
+$()
+!insmath $val11 $val16=
+$()  
+!read oef/embed.phtml r1,$val6 
+$() </li></ul> 
+!else
+$()	 
+!insmath $val11 $val16=$val10
+$() </li>	<li>  Door ieder lid van de gelijkheid door 
+!insmath $val11
+$() te delen en te vereenvoudigen  krijgt men:<p>	 
+!if $m_step=2 
+$()	<center>	  <table border=0>	    <tr> 	      <td align=center rowspan=3>
+!insmath $val16
+$()$m_big1 = $m_big2</td>	      <td align=center> 
+!insmath $val10
+$()</td>	    </tr>	    <tr> 	      <td align=center width=$m_size> 	        <hr noshade size=2>	      </td>	    </tr>	    <tr> 	      <td align=center>  
+!read oef/embed.phtml reply 2,$val6 
+$()</td>	    </tr>	  </table>	</center>	</li></ul> 
+!else
+$()	 
+!insmath $val16=\frac{$val10}{$val11}
+$() </li>	<li> We maken het af door het resultaat als vereenvoudigde breuk op te schrijven: <p>	
+!insmath $val16 =
+$()  
+!read oef/embed.phtml reply 3,$val6 
+$()</li></ul>	 
+!endif
+$()	 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,10,11,16,17
+embedcnt=3

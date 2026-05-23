@@ -1,0 +1,99 @@
+target=impot
+#include "lang_titles.inc"
+\language{fr}
+#include "author.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+#include "lang.inc"
+\integer{an=random(2002..2004)}
+\integer{E=random(0..4)}
+\integer{S=random(1..2)}
+\text{etat=\S=1 ? \name_etat[1]:\name_etat[2]}
+\if{\an=2004}{
+  \text{A=0,0.0683,0.1914,0.2826,0.3738,0.4262,0.4809,0}
+  \text{C=4334,8524,15004,24294,39529,48747,55000}
+}
+\if{\an=2003}{
+  \text{A=0,0.0683,0.1914,0.2826,0.3738,0.4262,0.4809,0}
+  \text{C=4262,8382,14753,23888,38868,47932,55000}
+}
+\if{\an=2002}{
+  \text{A=0,0.0705,0.1974,0.2914,0.3854,0.4394,0.4958,0}
+  \text{C=4191, 8242,14506,23489,38218,47131,55000}
+}
+
+\text{n=items(\C)}
+\text{B=}
+\for{i=1 to \n-1}{\text{B=\B, ((\A[\i+1])-(\A[\i]))/2}}
+\text{B = \B, ((\A[\n])-(\A[\n+1]))/2}
+\text{B=wims(nonempty items \B)}
+\real{N2=(0.25*abs(\E-2))+(0.75*\E+1.5)}
+\real{N1=(-0.25*abs(\E-1))+(0.25*abs(\E-2))+(0.75+\E)}
+\real{k=((\B[1])*(\C[1])+(\B[2])*(\C[2])+(\B[3])*(\C[3])+(\B[4])*(\C[4])+(\B[5])*(\C[5])+(\B[6])*(\C[6]))}
+\if{\S=1}{\real{N=\N1}}
+\if{\S=2}{\real{N=\N2}}
+\function{g=\N*((\B[\n])*x/\N-(\k))}
+\for{i=1 to \n-1}{ \function{g= \g + \N*(\B[\i])*abs(x/\N-(\C[\i]))} }
+
+\integer{r=random(8000..50000*\N)}
+\real{im=evalue(\g,x=\r)}
+\real{im=floor(100*\im)}
+\real{im=\im/100}
+
+\text{IM=}
+\for{i= 1 to \n}{
+  \real{im1=evalue(\g,x=\N*\C[\i])}
+  \integer{im1=max(0,floor(100*\im1))}
+  \real{im1=\im1/100}
+  \text{IM = \IM,\im1}
+}
+\text{IM=wims(nonempty items \IM)}
+\text{L=A,B,C,D,E,F,G,H}
+
+\text{dessin=}
+\for{i=1 to \n}{
+  \text{dessin =\dessin
+  circle \N*\C[\i],\IM[\i],6,black
+text black,\N*\C[\i],\IM[\i],medium,\L[\i]}
+}
+\statement{\name_enonce[1] \etat \if{\E=0}{\name_enonce[2] }
+{\name_enonce[3] \E \name_enonce[4]} \name_enonce[5], \name_enonce[6]
+\N \if{\N=1}{\name_enonce[7].}{\name_enonce[8].}
+\name_question[1] \(r = \r) \name_question[2] \an \name_question[3]
+\([AB]), \([BC]) ... \([EF]) \name_question[4] \(F\).
+\name_question[5]:
+<p class="wimscenter">
+\for{s = 1 to \n}{
+\(\L[\s])\([(\N*\C[\s]);\IM[\s]])}
+</p>
+
+\draw{800,300}
+{xrange -1500,60000*\N
+yrange -3500,\IM[\n]
+linewidth 1
+hline 0,0,black
+vline 0,0,black
+polyline red,\r,0,\r,\im,\0,\im
+text red,-1500,\im*1.1,medium,i=?
+text red,\r,0,medium,r=\r
+linewidth 2
+circle 0,\0,6,black
+text black,0,0,medium,O
+\dessin
+circle \r,\im,6,red
+text red,\r,\im*1.1,medium,M
+text black ,50000*\N,3500,medium,revenu \an
+text black ,0,\IM[\n],medium,impot
+plot green,\g}}
+
+\hint{\name_hint
+\if{\r>\N*\C[1] and \r<\N*\C[2]}{\((AB)) et \(i = coeff*(r - x_A) + y_A)}
+\if{\r<\N*\C[3] and \r>\N*\C[2]}{\((BC)) et \(i = coeff*(r - x_B) + y_B)}
+\if{\r<\N*\C[4] and \r>\N*\C[3]}{\((CD)) et \(i = coeff*(r - x_C) + y_C)}
+\if{\r<\N*\C[5] and \r>\N*\C[4]}{\((DE)) et \(i = coeff*(r - x_D) + y_D)}
+\if{\r<\N*\C[6] and \r>\N*\C[5]}{\((EF)) et \(i = coeff*(r - x_E) + y_E)}
+\if{\r>\N*\C[6]}{\((FG)) et \(i = coeff*(r - x_F) + y_F)}}
+
+\answer{\name_answer}{\im}{type=numeric}
+?? type=range ??

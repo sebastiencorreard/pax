@@ -1,0 +1,351 @@
+!set title=10. Paramètres fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r,r
+varcnt=71
+prevarcnt=66
+postvarcnt=4
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+tmp0=!shuffle 1,2,3,4,5,6,7,8,9,10
+
+val6=$(tmp0)
+val7=$[rint(gcd($(val6[1]),$(val6[2])))]
+val8=$[rint($(val6[1])/$val7)]
+val9=$[rint($(val6[2])/$val7)]
+val10=$[rint(gcd($(val6[3]),$val9))]
+val9=$[rint($val9/$val10)]
+val11=$[rint($(val6[3])/$val10)]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0)*$val8)]
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val11=$[rint($(tmp0)*$val11)]
+tmp0=!randint 11, 20
+
+val12=$[rint($(tmp0))]
+!if $val9=1 
+t_=!replace internal \( by ( in nextprime($val12)
+tmp0=!exec pari $t_
+
+val9=$(tmp0)
+!endif
+
+!ifval $val8>0
+val13=$val8
+!else
+val13=($val8)
+!endif
+
+!ifval $val8>0
+val14=\plus $val8
+!else
+val14=$val8
+!endif
+
+!ifval $val8>0
+val15=\plus $val8
+!else
+val15=\plus ($val8)
+!endif
+val16=$[rint($val8*($val8))]
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+
+!ifval $val11>0
+val18= \plus $val11
+!else
+val18=$val11
+!endif
+
+!ifval $val9>0
+val19= \plus $val9
+!else
+val19=$val9
+!endif
+
+!ifval $val11<0
+val20= ($val11)
+!else
+val20=$val11
+!endif
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+!if $val2=2 
+!if 1 isitemof $val3 
+!if $val8=1 
+tmp=!trim x,1,1 \times x
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8=-1 
+tmp=!trim -x,-1,-1 \times x	                                              x \times (-1),-1,-1 \times x
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8<>1 and $val8<>-1 
+tmp=!trim $val8 x,$val8,$val8 \times x	                                                        x \times $val13,$val8,$val8 \times x
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+!if 2 isitemof $val3 
+!if $val8=1 
+tmp=!trim \frac{1}{$val9} x,1/$val9,\frac{1}{$val9} \times x	                                            \frac{x}{$val9},1/$val9,\frac{1}{$val9} \times x
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8=-1 
+tmp=!trim \frac{-1}{$val9} x,-1/$val9,\frac{-1}{$val9} \times x	                                             \frac{-x}{$val9},-1/$val9,\frac{-1 \times x}{$val9},\frac{-1}{$val9} \times x
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8<>1 and $val8<>-1 
+tmp=!trim \frac{$val8}{$val9} x,$val8/$val9,\frac{$val8}{$val9} \times x	                                                        \frac{$val8 x}{$val9},$val8/$val9,\frac{$val8 \times x}{$val9},\frac{$val8}{$val9} \times x	                                                        \frac{x \times $val13}{$val9},$val8/$val9,\frac{$val13 \times x}{$val9},\frac{$val8}{$val9} \times x
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+!endif
+!if $val2=1 
+!if 1 isitemof $val3 
+!if $val8=1 
+tmp=!trim x $val18,1,$val11,1 \times x +$val20	                                            $val11 + x,1,$val11,1 \times x +$val20
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8=-1 
+tmp=!trim -x $val18,-1,$val11,-1 \times x +$val20	                                              $val11 - x,-1,$val11,-1 \times x +$val20
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8<>1 and $val8<>-1 
+tmp=!trim $val8 x $val18,$val8,$val11,$val8 \times x + $val20	                                                        $val11 + $val8 x,$val8,$val11,$val8 \times x + $val20	                                                        x \times $val13 $val18,$val8,$val11,$val8 \times x + $val20	                                                        $val11 + x \times $val13,$val8,$val11,$val8 \times x + $val20	                                                        $val13^2 x $val18,$val16,$val11,$val16 \times x + $val20	                                                        $val11 \plus $val13^2 x,$val16,$val11,$val16 \times x + $val20	                                                        -$val13^2 x $val18,-$val16,$val11,-$val16 \times x + $val20	                                                        $val11 \minus $val13^2 x,-$val16,$val11,-$val16 \times x + $val20
+val21=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+!if 2 isitemof $val3 
+!if $val8=1 
+tmp=!trim \frac{1}{$val9} x $val18,1/$val9,$val11,\frac{1}{$val9} \times x +$val20	                                            $val11 + \frac{1}{$val9} x,1/$val9,$val11,\frac{1}{$val9} \times x +$val20	                                            \frac{x}{$val9} $val18,1/$val9,$val11,\frac{1 \times x}{$val9} +$val20,\frac{1}{$val9} \times x +$val20	                                            $val11 + \frac{x}{$val9},1/$val9,$val11,\frac{1 \times x}{$val9} +$val20,\frac{1}{$val9} \times x +$val20	                                            \frac{x $val18}{$val9},1/$val9,$val11/$val9,\frac{1 \times x + $val20}{$val9},\frac{1 \times x}{$val9} + \frac{$val11}{$val9},\frac{1}{$val9} \times x + \frac{$val11}{$val9}	                                            \frac{$val11 + x}{$val9},1/$val9,$val11/$val9,\frac{1 \times x + $val20}{$val9},\frac{1 \times x}{$val9} + \frac{$val11}{$val9},\frac{1}{$val9} \times x + \frac{$val11}{$val9}
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8=-1 
+tmp=!trim \frac{-1}{$val9} x $val18,-1/$val9,$val11,- \frac{1}{$val9} \times x +$val20	                                             $val11 + \frac{-1}{$val9} x,-1/$val9,$val11,- \frac{1}{$val9} \times x +$val20	                                             \frac{-x}{$val9} $val18,-1/$val9,$val11,\frac{-1 \times x}{$val9} +$val20,-\frac{1}{$val9}\times x + $val20	                                             $val11 + \frac{-x}{$val9},-1/$val9,$val11,\frac{-1 \times x}{$val9} +$val20,-\frac{1}{$val9}\times x + $val20	                                             \frac{x \times (-1)}{$val9} $val18,-1/$val9,$val11,\frac{-1 \times x}{$val9} + $val20,-\frac{1}{$val9} \times x +$val20	                                             $val11 + \frac{x \times (-1)}{$val9},-1/$val9,$val11,\frac{-1 \times x}{$val9} + $val20,-\frac{1}{$val9} \times x +$val20	                                             \frac{-x $val18}{$val9},-1/$val9,$val11/$val9,\frac{-1 \times x + $val20}{$val9},\frac{-1 \times x}{$val9} + \frac{$val11}{$val9}, - \frac{1}{$val9} \times x + \frac{$val11}{$val9}	                                             \frac{$val11 -x}{$val9},-1/$val9,$val11/$val9,\frac{-1 \times x + $val20}{$val9},\frac{-1 \times x}{$val9} + \frac{$val11}{$val9}, - \frac{1}{$val9} \times x + \frac{$val11}{$val9}
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val8<>1 and $val8<>-1 
+tmp=!trim \frac{$val8}{$val9} x $val18,$val8/$val9,$val11,\frac{$val8}{$val9} \times x + $val20	                                                        $val11 + \frac{$val8}{$val9} x,$val8/$val9,$val11,\frac{$val8}{$val9} \times x + $val20	                                                        \frac{$val8 x}{$val9} $val18,$val8/$val9,$val11,\frac{$val8 \times x}{$val9}+ $val20,\frac{$val8}{$val9} \times x + $val20	                                                        $val11 + \frac{$val8 x}{$val9},$val8/$val9,$val11,\frac{$val8 \times x}{$val9}+ $val20,\frac{$val8}{$val9} \times x + $val20	                                                        \frac{x \times $val13}{$val9} $val18,$val8/$val9,$val11,\frac{$val8 \times x}{$val9} + $val20,\frac{$val8}{$val9} \times x + $val20	                                                        $val11 + \frac{x \times $val13}{$val9},$val8/$val9,$val11,\frac{$val8 \times x}{$val9} + $val20,\frac{$val8}{$val9} \times x + $val20	                                                        \frac{$val8 x $val18}{$val9},$val8/$val9,$val11/$val9,\frac{$val8 \times x + $val20}{$val9},\frac{$val8 \times x}{$val9} + \frac{$val11}{$val9},\frac{$val8}{$val9} \times x + \frac{$val11}{$val9}	                                                        \frac{$val11 $val14 x}{$val9},$val8/$val9,$val11/$val9,\frac{$val8 \times x + $val20}{$val9},\frac{$val8 \times x}{$val9} + \frac{$val11}{$val9},\frac{$val8}{$val9} \times x + \frac{$val11}{$val9}
+val22=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!endif
+!endif
+!if $val3=1 
+tmp=!trim $val21
+val23=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val3=2 
+tmp=!trim $val22
+val23=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp=!trim $val21,$val22
+val23=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val23
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+tmp0=!itemcnt $val23
+
+val24=$[rint($(tmp0))]
+val25=Vous donnerez la réponse sous la forme d'un nombre entier si possible ou d'une fraction irréductible de dénominateur positif.
+val26=Donner le coefficient de la fonction linéaire \($val17\) définie pour tout nombre \(x\) par <span class="nowrap">\($val17(x)=$(val23[1])\).</span>
+val27=Le coefficient de la fonction linéaire \($val17\) est égal à
+val28=Une fonction linéaire \($val17\) est définie pour tout nombre \(x\) par \($val17(x)= a \times x\) où \(a\) désigne le coefficient de la fonction linéaire <span class="nowrap">\($val17\).</span>
+val29=Une fonction affine \($val17\) est définie pour tout nombre \(x\) par \($val17(x)= a \times x + b\) où \(a\) et \(b\) sont les coefficients de la fonction affine mais également pour \(a\) le coefficient directeur	et pour \(b\) l'ordonnée à l'origine de la droite représentant la fonction affine.
+val30=<p>Retrouver le coefficient directeur et l'ordonnée à l'origine de la droite représentant la fonction affine \($val17\) définie pour tout nombre \(x\) par <span class="nowrap">\($val17(x)=$(val23[1])\).</span></p>
+val31=Le coefficient directeur de la droite est égal à 
+val32=L'ordonnée à l'origine de la droite est égale à 
+val33=Le coefficient directeur de la droite est égal à <span class="nowrap">\($(val23[2])\).</span>	                 <p>L'ordonnée à l'origine de la droite est égale à <span class="nowrap">\($(val23[3])\).</span></p>
+
+!ifval $val2=2
+val34=$val28
+!else
+val34=$val29
+!endif
+val35=\($val17(x)=$(val23[1])\)
+!if $val2=2 
+val36=$val26
+val37=$val27
+val38=\($val17(x)=$(val23[3])\)
+!if $val24=4 
+val38=$val38	                                            <p>\($val17(x)=$(val23[4])\)	                                      
+!endif
+val39=$val37 <span class="nowrap">\($(val23[2])\).</span>
+!else
+val36=$val30
+val37=$val31
+val40=$val32
+val38=\($val17(x)=$(val23[4])\)
+!if $val24>4 
+val38=$val38	                                             <p>\($val17(x)=$(val23[5])\)</p>
+!endif
+!if $val24>5 
+val38=$val38	                                             <p>\($val17(x)=$(val23[6])\)</p>	                                       
+!endif
+val39=$val33
+!endif
+
+!ifval $val2=2
+val41=r1
+!else
+val41=r1,r2
+!endif
+val42=euler_answer_nobg
+val43=euler_answer_nobg
+oefsteps=$val41 
+nextstep=!nosubst $val41 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=
+replygood1=$(val23[2])
+replytype2=numexp
+replyname2=
+replygood2=$(val23[3])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val34
+
+solution=!nosubst $val35 <p>$val34</p> $val38 <p>$val39</p> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest_nobg">$val36</div>	<div class="$val42">	    <label for="reply1">$val37</label><span class="nowrap">  
+!read oef/embed.phtml reply1,6 
+$().</span>	</div>	
+!if $val2=1 
+$()	    <div class="$val43">	      <label for="reply2">$val40</label><span class="nowrap">  
+!read oef/embed.phtml reply2,6 
+$().</span>	    </div>	                  
+!endif
+$()	<div class="wims_instruction">$val25</div>	
+$()
+!exit
+
+:hint
+$()$val34
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val35 <p>$val34</p> $val38 <p>$val39</p> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1<1 
+val42=euler_rep_bad_nobg cross
+!else
+val42=euler_rep_good_nobg tick
+!endif
+!if $m_sc_reply2<1 
+val43=euler_rep_bad_nobg cross
+!else
+val43=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+!ifval $m_reply1=$(val23[3]) and $m_reply2=$(val23[2])
+ <div class='oef_feedbacks'><div class="highlight">Vous avez inversé coefficient directeur et ordonnée à l'origine.</div>
+$()</div>
+!endif
+!ifval $m_reply1=-1*$(val23[2]) and $m_reply1<>$(val23[3])
+ <div class='oef_feedbacks'><div class="highlight spacer">Vous vous êtes trompé dans le signe du coefficient directeur.</div>
+$()</div>
+!endif
+!ifval $m_reply2=-1*$(val23[3]) and $m_reply2<>$(val23[2])
+ <div class='oef_feedbacks'><div class="highlight spacer">Vous vous êtes trompé dans le signe de l'ordonnée à l'origine.</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,23,25,34,35,36,37,38,39,40,42,43
+embedcnt=2

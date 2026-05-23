@@ -1,0 +1,105 @@
+# vergelijkinen met wortels II
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml to modify sqrt[3](2) into 2^(1/3)
+convert_root=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathviewpanel=$module_title:x=:and:sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[n]()
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=5
+math=0
+image=0
+questiontype=0
+embed=0
+# produceerd een <tr>
+make_tr=1
+#### checkfile
+checkfile=$checkdir/number.proc
+arglist=x
+question$n=!record 43 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><em>geef je antwoord in de vorm: x=123</em>
+helptext=<img src=\'$module_dir/gifs/exo15.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+keuze=!randitem 1,0
+
+!if $R=1
+    b=!randint 2,20
+    !if $keuze=0
+        a=!randitem 2,4,6
+	answer$n=$b^(1/$a),-$b^(1/$a)
+	ans=x=\root{\textstyle $a} \of{$b} \wedge x= -\root{\textstyle $a} \of{$b}
+    !else
+        a=!randitem 3,5,7
+	answer$n=$b^(1/$a)
+	ans=x=\root{\textstyle $a} \of{$b}
+    !endif
+    formula$n=x^{-$a}\,=\, \frac{1}{$b} \rightarrow x = [?]
+    applettext=!nospace x^(-$a)=1/$b->
+    texanswer$n=x^{$a} = $b \rightarrow $ans
+ !exit
+!endif
+
+!if $R=2
+    d=!randitem 2,3,4,5
+    c=!randitem 2,3,4,5
+    b=$[$c*$d]
+    keuze=0
+    !if $keuze=0
+        a=!randitem 2,4,6
+	answer$n=$b^(1/$a),-$b^(1/$a)
+	ans=x=\root{\textstyle $a} \of{$b} \wedge x= -\root{\textstyle $a} \of{$b}
+    !else
+        a=!randitem 3,5,7
+	answer$n=$b^(1/$a)
+	ans=x=\root{\textstyle $a} \of{$b}
+    !endif
+    formula$n=$c x^{-$a}\,=\, \frac{1}{$d} \rightarrow x = [?]
+    applettext=!nospace $c*x^(-$a)=1/$d->
+    texanswer$n=\left[ \begin{array}{l} x^{-$a}\,=\, \frac{1}{$b} \\ x^{$a} = $b \\ $ans \end{array} \right.
+ !exit
+!endif
+
+!if $R>2
+    b=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    !if $keuze=0
+        a=!randitem 4,6,8
+	test=$[$b^(1/$a)]
+	!if . notin $test
+	    t1=$[$test-$c]
+	    t2=$[-1*$test-$c]
+	    answer$n=$t1,$t2
+	    ans=x=$t1 \wedge x=$t2
+	!else
+	    answer$n=$b^(1/$a)-$c,-$b^(1/$a)-$c
+	    ans=x=\root{\textstyle $a} \of{$b} - $c \wedge x= -\root{\textstyle $a} \of{$b} - $c
+	!endif
+    !else
+        a=!randitem 3,5,7
+	test=$[$b^(1/$a)-$c]
+	!if . notin $test
+	    answer$n=$test
+	    ans=$test
+	!else
+	    answer$n=$b^(1/$a)-$c
+	    ans=x=\root{\textstyle $a} \of{$b} - $c
+	!endif
+    !endif
+    formula$n=\left( x + $c \right) ^{-$a}\,=\, \frac{1}{$b} \rightarrow x =  [?]
+    applettext=!nospace (x+$c)^(-$a)=1/$b->
+    texanswer$n=\left[ \begin{array}{l} \left( x + $c \right) ^{$a}\,=\,$b \\ $ans \end{array} \right.
+ !exit
+!endif
+
+

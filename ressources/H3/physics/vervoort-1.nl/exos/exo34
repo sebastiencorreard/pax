@@ -1,0 +1,69 @@
+# hfst3
+#exo34(hfst3) Ijken doseerpipet dmv weging
+n=$counter
+questiontype=3
+math=0
+cols=10
+rounding=0
+mathview=0
+image=0
+plot=0
+make_tr=1
+inputs=1.1
+description=Het doseervolume van deze pipet
+m_rightarrow=&nbsp;&asymp;&nbsp;
+ex1=&nbsp;킠
+checkfile=$checkdir/units.proc
+
+v=!randint 2,8
+
+# microliter (10^-6 liter = 10^-3 ml)
+v=$[$v*5]
+num=!randitem 50,100,150,200
+dichtheid=!randint 997500,1000000
+# kg*m^-3 = 1000 gr / 1000 l = gr/l =mg/ml
+dichtheid=!exec moneyprint $[$dichtheid*0.001] 3
+
+factor=!randint 99000,101000
+factor=$[$factor/100000]
+# liter gepipeteerd
+vol=$[$num*$v*10^-6]
+vol_ml=$[1000*$vol]
+# dit weegt mg
+massa=!exec moneyprint $[$factor*$vol_ml*$dichtheid] 1
+totaal_pipet_volume=$[1000*$massa/$dichtheid]
+pipet_volume_mu=$[$totaal_pipet_volume/$num]
+sg=$[$dichtheid*0.001]
+# precisie
+c1=!charcnt $dichtheid
+c2=!charcnt $massa
+!if $c1 <  $c2
+    sig=$c1
+    afkomstig=$dichtheid
+!else
+    sig=$c2
+    afkomstig=$massa
+!endif
+# punt eraf
+sig=$[$sig-1]
+tot=!exec scienceprint $pipet_volume_mu,$sig,0 $pipet_volume_mu,$sig,1
+ans=!item 1 of $tot
+h_ans=!item 2 of $tot
+var1=0
+var2=$[abs($ans - $pipet_volume_mu)]
+# answer$n is fysich correct...niet wiskundig precies
+answer$n=$ans
+
+ss=Een micropipet staat ingesteld op $v 킠.<br />Om deze te ijken wordt $num &times; $v 킠 in een weegflesje gedaan.<br />In het weegflesje zit $massa mg.<br />De dichtheid van water is bij de heersende temperatuur $dichtheid kg/m<sup>3</sup>.<br />Bereken het doseervolume in 킠 van deze micropipet<br />Geef je antwoord in de juiste precisie.
+
+#Bereken de procentuele afwijking in 2 decimalen
+
+textanswer$n=<ul><li>1 kg = 1000 gr = 1000 &times; 1000 mg = 10<sup>6</sup> mg</li><li>1 liter  = 1000 ml = 1000 &times; 1000 킠 = 10<sup>6</sup> 킠</li><li>De dichtheid van water is bij deze temperatuur:<br />$dichtheid kg/m<sup>3</sup> = $dichtheid g/l = $dichtheid mg/ml = $dichtheid&times;0.001 mg/킠  = $sg mg/킠 </li><li>Er wordt $massa mg water gemeten = $massa / $sg 킠 = $totaal_pipet_volume 킠</li><li>Per dosering: $totaal_pipet_volume / $num = $pipet_volume_mu 킠</li><li>Het aantal significante cijfers moet zijn: $sig (afkomstig van $afkomstig)</li><li>Het doseervolume van deze pipet is  $h_ans 킠</li></ul>
+
+
+helptext=<img src=\'$module_dir/gifs/exo34.jpg\' alt=\'hmmm\' /><br />Geef je antwoord in de juiste precisie
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+    

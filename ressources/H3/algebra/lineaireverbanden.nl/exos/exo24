@@ -1,0 +1,121 @@
+#:applet , tabel & lijn [H1/H2]
+n=$counter
+questiontype=0
+image=0
+cols=15
+math=0
+inputs=-1
+mathview=0
+checkfile=$checkdir/number.proc
+var1=yes
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+rc=!record 2 of lang/remarks.$taal
+#@ de richtingsco&euml;fficient(=hellingsgetal), het hellingsgetal
+#@! slope,inclination
+#@!~ Ð±ÂÊ,Ð±ÂÊ
+rc=!randitem $rc
+rise_fall=!record 3 of lang/remarks.$taal
+#@stijgend,dalend
+#@!increasing,decreasing
+#@!~ µÝÔö , µÝ¼õ
+s1=!item 1 of $rise_fall
+s2=!item 2 of $rise_fall 
+m=!randitem 2,3,1,1/2,1/4,1/5,1/8,1/10,1/16
+
+!if $R=1
+    step=1
+    pm=+
+    q=0
+    xmin=0
+    letter2=y
+    letter1=x
+    htmllijn=!htmlmath $letter2=$m*$letter1
+!else
+    !if $R=2
+	step=!randitem 2,4,6
+	mp=!randitem -1,1
+	m=$[$mp*$m]
+	xmin=!randitem -5,-4,-3,-2,-1,0
+	letter2=y
+	letter1=x
+	htmllijn=!htmlmath $letter2=$m*$letter1
+    !else
+	mp=!randitem -1,1
+	step=!randitem 3,5,7,9
+	m=$[$mp*$m]
+	pm=!randitem +,-
+	q=!randint 1,10
+	xmin=!randint -20,-5
+	!if $R=3
+	    letter2=y
+	    letter1=x
+	!else
+	    letter2=!randitem f,g,h,k
+	    letter1=!randitem a,b,c,d
+	!endif
+	htmllijn=!htmlmath $letter2=$m*$letter1 $pm $q
+    !endif
+!endif
+    
+exotext=$empty
+make_tr=0
+rise_fall=!record 3 of lang/remarks.$taal
+#@stijgend,dalend
+#@!increasing,decreasing
+#@!~ µÝÔö , µÝ¼õ
+!if $m>0
+    stijgend=$s1
+    a1=1
+!else
+    stijgend=$s2
+    a1=-1
+!endif
+# answer$n --> $option+1 items
+xmax=$[$xmin + $step*$options]
+ymin=$[abs($m*$xmin $pm $q)]
+ymax=$[abs($m*$xmax $pm $q)]
+!if $ymax > $ymin
+    ymin=$[-1*$ymax]
+!else
+    ymax=$ymin
+    ymin=$[-1*$ymin]
+!endif
+!for s=$[$xmin] to $[$xmax] step $step
+    getallen=!append item $s to $getallen
+!next s
+s=0
+i=0
+!for p=1 to $[$step*$options] step $step
+    !increase s
+    getal=!item $s of $getallen
+    ant=$[$m*$getal $pm $q] 
+    answer$n=!append item $ant to $(answer$n)
+    TD=!append word $ <tr><td>$getal</td><td><input id="myinput$i" class="schaersvoorde_input" size="5" value="" /></td></tr> $ to $TD
+    TDD=!append word $ <tr><td>$getal</td><td><input id="myinput$i" class="schaersvoorde_input" size="5" value="$ant"/></td></tr> $ to $TDD
+    !increase i
+!next p
+answer$n=!append item $a1 to $(answer$n)
+ss=!record 6 of lang/remarks.$taal
+rr=!record 7 of lang/remarks.$taal
+ttext=!record 32 of lang/remarks.$taal
+s0=!record 34 of lang/remarks.$taal
+exotext=<table class="demospecial"><tr><th><em>$letter1</em></th><th><em>$letter2</em></th></tr><tr>$TD</tr></table><br />$s0 <select id="myselect0" ><option value="1">$s1</option><option value="-1">$s2</option></select>
+image=0
+applet=1
+
+object$n=<object width="400" height="300" classid="java:SimpleGraph.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="jcm1.0-config.jar" /><param name="java_code" value="SimpleGraph.class" /><param name="BackgroundColor" value="176 160 240" /><param name="Limits" value="-20,20,-20,20" /><param name="PanelBackground" value="176 160 240" /><param name="CanvasColor" value="255, 255, 200" /><param name="UseMouseZoom" value="no" /><param name="UsePanner" value = "yes" /><param name="UseRestoreButton" value="yes" /><param name="UseFunctionInput" value="no" /><param name-"ShowPoint" value="yes" /><param name="OptionalStars" value="yes" /><param name="GraphColor" value="180 0 0" /><param name="UseGrid" value="yes" /><param name="LineColor" value="black" /><param name="Xlabel" value="$letter1 -axis" /><param name="Ylabel" value="$letter2 -axis" /><param name="Function" value="$m*x $pm $q" />$nojava</object>
+
+textanswer$n=$rr<table class="zebra_table_h2"><tr><th><em>$letter1</em></th><th><em>$letter2</em></th></tr><tr>$TDD</tr></table>
+question$n=<a onmouseover="return escape('$ttext')">$ss</a>
+
+helptext=$ttext
+
+!exit
+
+ 
+ 

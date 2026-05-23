@@ -1,0 +1,180 @@
+!set title=Additionner deux fractions 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1,2,3,4,1,2,3,1,2,1,2,1
+val7=2,3,5,7,11,13,17,19,23
+val8=2,3,5,7,11
+val9=2,3,5
+val10=2,3
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+!if $val6=1 
+tmp0=!item 3 to 9 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+val11=$(tmp1)
+!endif
+!if $val6=2 
+tmp0=!item 1 to 5 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+tmp2=!item 1 to 3 of $val8
+
+tmp=!nonempty items $(tmp2)
+
+tmp3=!randitem $tmp
+val11=$(tmp1),$(tmp3)
+!endif
+!if $val6=3 
+tmp0=!item 1 to 4 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+tmp2=!item 1 to 2 of $val8
+
+tmp=!nonempty items $(tmp2)
+
+tmp3=!randitem $tmp
+tmp4=!item 1 to 2 of $val9
+
+tmp=!nonempty items $(tmp4)
+
+tmp5=!randitem $tmp
+val11=$(tmp1),$(tmp3),$(tmp5)
+!endif
+!if $val6=4 
+tmp0=!item 1 to 3 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+tmp2=!item 1 to 2 of $val8
+
+tmp=!nonempty items $(tmp2)
+
+tmp3=!randitem $tmp
+tmp4=!item 1 to 2 of $val9
+
+tmp=!nonempty items $(tmp4)
+
+tmp5=!randitem $tmp
+tmp6=!item 1 to 1 of $val10
+
+tmp=!nonempty items $(tmp6)
+
+tmp7=!randitem $tmp
+val11=$(tmp1),$(tmp3),$(tmp5),$(tmp7)
+!endif
+val12=$[rint($(val11[1]))]
+!for val13 =2 to $val6 
+val12=$[rint($val12*$(val11[$val13]))]
+!next
+tmp0=!randint 4, $val12*2-1
+
+val14=$[rint($(tmp0))]
+val15=$[rint(gcd($val14,$val12))]
+!while $val15<>1 
+val14=$[rint($val14+1)]
+val15=$[rint(gcd($val14,$val12))]
+!endwhile
+tmp0=!randint 1, $val14-1
+
+val16=$[rint($(tmp0))]
+val17=$[rint($val14 - $val16)]
+replytype1=numeric
+replyname1=
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=
+replygood2=$[$val16]
+replytype3=numeric
+replyname3=
+replygood3=$[$val14]
+replytype4=numeric
+replyname4=
+replygood4=$[$val12]
+replytype5=numeric
+replyname5=
+replygood5=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calcule la somme ci-dessous :	<div class="wimscenter larger">	 
+!read oef/special.phtml mathmlinput [\frac{$val17}{$val12}+\frac{$val16}{$val12} = \frac{reply1 + reply2}{reply4}	=	\frac{reply3}{reply5}], 3	reply1	reply2	reply3	reply4	reply5 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,16,17
+embedcnt=1

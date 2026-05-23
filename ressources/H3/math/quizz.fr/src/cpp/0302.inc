@@ -1,0 +1,45 @@
+\title{Question 0302 Repérage sur une droite graduée}
+\keywords{number_line}
+%%%%%%%%%%%%%%% question 2 %%%%%
+
+\integer{a2=randint(170,270,370)}
+\integer{a20=\a2+10}
+\integer{a21=\a20+10}
+\integer{b2=simplify(\a2+50)}
+\integer{temp20=random(35,45)}
+\integer{rep=\a2+\temp20}
+%%%%%jusqu'où graduer ?
+\integer{par1=\temp20=45?6:5}
+\integer{par2=\temp20=45?10:8}
+\integer{par3=\temp20=45?50:40}
+%%%
+\real{n21=\a2-10}
+\real{n22=\rep+6}
+\integer{align2=-2}
+\integer{temp2=3}
+\integer{x2=simplify(\a2-\temp2)}
+\integer{y2=simplify(\a20-\temp2)}
+\integer{z2=simplify(\a21-\temp2)}
+
+\integer{rangexMax=\n22+10}
+%%%%% longueur axe
+\text{fig2=draw(350,100
+xrange \n21,\rangexMax
+yrange -30,15
+arrow \n21,0,\rangexMax,0,10,black
+arrow \rep,-20,\rep,-5,10,black
+segment \a2,-3,\a2,3,black
+
+parallel \a2,-2,\a2,10,10,0,\par1,black
+parallel \a2,-2,\a2,6,5,0,\par2,black
+parallel \a2,-2,\a2,2,1,0,\par3,black
+text black,\x2,-5,large, \a2
+text black,\y2,-5,large, \a20
+text black,\z2,-5,large, \a21
+
+)}
+\text{fig2=<div class="wimscenter"><img src="\fig2" alt=""></div>}
+\text{enonce=\fig2 Complète }
+\text{enonceb=}
+%%% rq : pas possible de mettre un champ réponse intégré dans l'image à cause d'un bug sur la slib
+\text{feedback=}

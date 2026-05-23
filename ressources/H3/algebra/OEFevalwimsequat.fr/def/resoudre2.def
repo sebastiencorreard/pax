@@ -1,0 +1,144 @@
+!set title=Résoudre 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!shuffle $val6,$val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10<3
+tmp0=!shuffle Pierre,Paul,Olivier
+
+val9=$(tmp0)
+!endif
+tmp=!nonempty items x,y,z
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp0=!randint 10, 20
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 31, 50
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 10, 20
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 20, 40
+
+val15=$[rint($val14+$(tmp0))]
+!readproc oef/draw.phtml 220,170 \
+dsegment 50,10,50,100,black	dsegment 100,10,100,50,black	dsegment 140,30,140,150,black	dsegment 200,10,200,50,black	dsegment 10,50,100,50,black	dsegment 10,100,50,100,black	dsegment 10,150,50,150,black	segment 50,15,200,15,black	segment 140,35,200,35,black	ftriangle 50,15,55,12,55,18,black	ftriangle 140,35,145,32,145,38,black	ftriangle 100,15,105,12,105,18,black	ftriangle 100,15,95,12,95,18,black	ftriangle 200,15,195,12,195,18,black	ftriangle 200,35,195,32,195,38,black	polygon black,100,50,200,50,200,150,50,150,50,100	segment 25,50,25,150,black	ftriangle 25,50,22,55,28,55,black	ftriangle 25,100,22,105,28,105,black	ftriangle 25,100,22,95,28,95,black	ftriangle 25,150,22,145,28,145,black	text black,170,24,medium,$val11	text black,28,125,medium,$val12	text black,28,75,medium,$val13	text black,70,2,medium,$val14	text black,135,2,medium,$val15 
+tmp0=$ins_url
+val16=$(tmp0)
+tmp0=!randint 10, 20
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 5, 12
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 5, 15
+
+val20=$[rint($(tmp0))]
+val21=$[rint($val18+$val17-$val19+$val20)]
+val22=$val6 et $val7 doivent se partager le terrain ci-dessous	 (<i>Les mesures sont en mètres.</i>):	 <div class="wimscenter"><img src="$val16" alt=""></div>	
+val23=Quelle doit être la mesure de $val11 pour que le partage soit équitable
+val24=m
+tmp=!translate ";': to $     $ in ($val15*($val12+$val13)+$val14*(2*$val12+$val13)/2)/(2*$val12+2*$val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val22	<div>	$val23 ?	</div>	<label for="reply1"><b>Votre réponse :</b></label>  
+!read oef/embed.phtml r1,8 
+$() $val24.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=22,23,24
+embedcnt=1

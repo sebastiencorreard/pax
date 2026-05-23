@@ -38,15 +38,15 @@
       <!-- Bilan Global (à la fin ou arrêt course) -->
       <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
-             :style="(stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) >= 0.9
+             :style="scoreRatio >= 0.9
                ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
-               : (stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) === 0
+               : scoreRatio === 0
                  ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
                  : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
           <div class="font-semibold text-lg mb-2">
             {{ $t('exercise.steps_completed') }}
             <span ref="scoreEl" class="font-normal text-sm ml-2">
-              {{ $t('feedback.score', { pct: Math.round((stepsHistory.filter(s => s.correct).length / (isCourse ? rendered.total_steps || 1 : stepsHistory.length || 1)) * 100) }) }}
+              {{ $t('feedback.score', { pct: scorePct }) }}
             </span>
           </div>
 
@@ -178,6 +178,28 @@ const hasRadioAnswers = computed(() =>
 
 const isCourse = computed(() => props.rendered?.exercise_type === 'course')
 const courseStopped = ref(false)
+
+// Score helpers — a "step" may contain several inputs (e.g. csgb Q200 lays
+// out a Thales ratio as 4 fields reply10..reply13 inside one step). We must
+// dedup by step number so the denominator stays at total_steps and the
+// percentage caps at 100 %.
+const correctStepsCount = computed(() => {
+  const byStep = new Map<number, boolean>()
+  for (const entry of stepsHistory.value) {
+    const prev = byStep.get(entry.step)
+    byStep.set(entry.step, prev === undefined ? entry.correct : prev && entry.correct)
+  }
+  return Array.from(byStep.values()).filter(Boolean).length
+})
+
+const totalStepsForScore = computed(() => {
+  if (isCourse.value) return props.rendered?.total_steps || 1
+  // dynsteps: number of distinct steps attempted
+  return new Set(stepsHistory.value.map(s => s.step)).size || 1
+})
+
+const scoreRatio = computed(() => correctStepsCount.value / totalStepsForScore.value)
+const scorePct = computed(() => Math.round(scoreRatio.value * 100))
 
 const allFilled = computed(() => {
   if (!props.rendered || courseStopped.value) return false
@@ -347,8 +369,9 @@ async function submit() {
 
     // Only finalize score and show results at the end or if course stopped
     if (currentStep >= totalSteps || courseStopped.value) {
-      const correctSteps = stepsHistory.value.filter(s => s.correct).length
-      const score = totalSteps > 0 ? correctSteps / totalSteps : 0
+      // Use the same dedup-by-step ratio as the displayed bilan (correctStepsCount
+      // counts each step at most once, even when it has multiple input fields).
+      const score = scoreRatio.value
 
       if (score === 1) {
         addCoins(10)

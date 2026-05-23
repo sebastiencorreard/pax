@@ -1,0 +1,99 @@
+n=$counter
+mathview=0
+calculator=2
+questiontype=7
+javascript=js/DHTMLseq.js
+!if $options<4
+    options=4
+!endif
+checkfile=exos/groter.kleiner.proc
+texalign=!char 2 of $useropts
+!if $texalign=2
+    height=50
+    width=60
+!else
+    height=60
+    width=70
+!endif
+make_tr=1
+inputs=yes
+list=$empty
+helptext=<img src=\'$module_dir/gifs/exo10.jpg\' alt=\'noalt\' />
+keuze=!randint 0,1
+!if $keuze=0
+    ss=Zet de onderstaande getallen in volgorde van klein naar groot
+    var1=1
+!else
+    ss=Zet de onderstaande getallen in volgorde van groot naar klein
+    var1=2
+!endif
+var2=$empty
+
+#grondtallen
+grnd=!shuffle 2,3,4,5,6,7,8,9,10,11,12
+#exponenten
+exp=!shuffle 2,3,4,5,6,2,3,4
+
+!for p=1 to $options
+    k=!randint 1,5
+    ee=!item $p of $exp
+    gg=!item $p of $grnd
+    !if $k=1
+	pm=!randitem -1,1
+	mp=!randitem -1,1
+	ee=$[$pm*$ee]
+        gg=$[$mp*$gg]
+    	ex$p=$gg^{$ee}
+    	var2=!append item $gg^$ee to $var2
+    !else
+	# keuze=2 ee/gg beiden positief
+	!if $k=3
+	    ee=$[-1*$ee]
+	!else
+	    !if $k=4
+		gg=$[-1*$gg]
+	    !else
+		!if $k=5
+		    ee=$[-1*$ee]
+		    gg=$[-1*$gg]
+		!endif
+    	    !endif
+    	!endif
+    	var2=!append item 1/($gg^$ee) to $var2
+    	ex$p=\frac{1}{$gg^{$ee}}
+    !endif
+!next p
+
+
+!if $keuze=0
+    #klein naar groot
+    answer$n=!sort numeric item $var2
+    thing=$ < $
+!else
+    answer$n=!sort reverse numeric item $var2
+    thing=$ > $
+!endif
+!for p=1 to $options
+    ans=!item $p of $(answer$n)
+    t_ans=!texmath $ans
+    !if $p != $options
+	tex1=!append line $ $t_ans $thing $ to $tex1
+    !else
+	tex1=!append line $ $t_ans $ to $tex1
+    !endif
+!next p
+
+!for p=1 to $options
+    ans=!item $p of $(answer$n)
+    t_ans=$[$ans]
+    !if $p != $options
+	tex2=!append line $ $t_ans $thing $ to $tex2
+    !else
+	tex2=!append line $ $t_ans $ to $tex2
+    !endif
+!next p
+math=0
+
+texanswer$n=$ \left[ \begin{array}{l} $tex1 \\ $tex2 \end{array} \right. $
+
+question$n=<a onmouseover="javascript:ttAbove=true; return escape('<img src=\'$module_dir/gifs/exo10.jpg\' alt=\'help\'/>')">$ss</a>

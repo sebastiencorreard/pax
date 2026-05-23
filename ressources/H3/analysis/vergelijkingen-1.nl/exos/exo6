@@ -1,0 +1,269 @@
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+embed=1
+mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+questiontype=0
+checkfile=$checkdir/number.proc
+arglist=x
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+exotext=$empty
+cols=20
+rows=2
+ss=!record 2 of lang/remarks.$taal
+sometext=!record 6 of lang/remarks.$taal
+helptext=!record 23 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+raaklijn=!item 1 of $sometext
+ruaken=!item 2 of $sometext
+
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+a=!randitem -3,-2,-1,2,3,4
+b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+c=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+d=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+e=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+f=!randitem -3,-2,1,-1,2,3
+#type: ax^2+bx+c=0
+D=$[($b)*($b) - 4*($a)*($c)]
+!if $D<0
+    answer$n=nil
+    textanswer$n=!record 8 of lang/remarks.$taal
+    texanswer$n=x \,\, \notin \,\, \Bf{R}
+    impossible=1
+    !if $R=1
+	tot=!exec pari A=(($a)*x^2 + ($b)*x+ ($c))\
+	printtex(A)
+	f=!line 1 of $tot
+	ftex=!line 2 of $tot
+	formula$n= $ftex \,\,=\,\,0
+	applettext=!nospace $f = 0 ->
+	!exit
+    !endif
+    !if $R=2
+	p=$[$b+$d]
+	q=$[$c+$e]
+	curve1=($a)*x^2 + ($p)*x + ($q)
+	curve2=($d)*x+($e)
+	tot=!exec pari A=($curve1)\
+	printtex(A)\
+	B=($curve2)\
+	printtex(B)
+
+	f1=!line 1 of $tot
+	ftex1=!line 2 of $tot
+	f2=!line 3 of $tot
+	ftex2=!line 4 of $tot
+	formula$n= $ftex1 \,\,=\,\, $ftex2
+	applettext=!nospace $f1 = $f2 ->
+     !exit
+    !endif
+    !if $R=3
+	r=$[$a+$f]
+	p=$[$b+$d]
+	q=$[$c+$e]
+	curve1=($q) + ($p)*x + ($r)*x^2
+	curve2=($f)*x^2+($d)*x+($e)
+	tot=!exec pari A=($curve1)\
+	printtex(A)\
+	B=($curve2)\
+	printtex(B)
+
+	f1=!line 1 of $tot
+	ftex1=!line 2 of $tot
+	f2=!line 3 of $tot
+	ftex2=!line 4 of $tot
+	formula$n= $ftex1 \,\,=\,\, $ftex2
+	applettext=!nospace $f1 = $f2 ->
+     !exit
+    !endif
+    !if $R >3
+	d=!randitem 2,3,4,5,6,7,8,9
+	!if $b=$[-1*$d] 
+	    d=$[$d+1]
+	!endif	
+	tot=!exec pari e=((($d)^2)/2)\
+	q=$c+e\
+	p=$b+$d\
+	r=$a+1/2\
+	printtex(e)\
+	printtex(q)\
+	printtex(p)\
+	r/p*x\
+	printtex( (r/p)*x)
+	
+	e=!line 1 of $tot
+	q=!line 2 of $tot
+	p=!line 3 of $tot
+	r=!line 4 of $tot
+	ee=!line 5 of $tot
+	qq=!line 6 of $tot
+	pp=!line 7 of $tot
+	br=!line 8 of $tot
+	breuk=!line 9 of $tot
+	
+	f1=$q + $p*x*( 1 + $br )
+	f2=(x+$d)^2/2
+	applettext=!nospace $f1 = $f2 ->
+	ftex1=$qq + $pp \cdot x \left( 1 + $breuk \right)
+	ftex2=\frac{\left( x + $d \right)^{2}}{2}    
+	formula$n= $ftex1 \,\,=\,\, $ftex2
+	formula$n=!replace internal + - by - in $(formula$n)
+	formula$n=!replace internal - - by + in $(formula$n)
+	applettext=!replace internal +- by - in $applettext
+	applettext=!replace internal -- by + in $applettext
+    !endif
+ !exit
+!endif
+
+# determinant >=0    
+DD=$[sqrt($D)]
+x1=(-1*($b) - sqrt($D))/($[2*($a)])
+x2=(-1*($b) + sqrt($D))/($[2*($a)])
+
+tot=!exec maxima $x1;\
+$x2;
+x1=!line 1 of $tot
+x2=!line 2 of $tot
+tex_x1=!texmath $x1
+tex_x2=!texmath $x2
+        
+!if $R=1
+    curve1=$a*x^2 + $b*x+ $c
+    tot=!exec pari A=($curve1)\
+    printtex(A)
+    f=!line 1 of $tot
+    ftex=!line 2 of $tot
+    formula$n= $ftex \,\,=\,\,0
+    applettext=!nospace $f = 0 ->
+    curve1=curve $color1,$f
+    curve2=hline 0,0,$color2
+    y1=0
+    y2=0
+    !goto READY
+!endif
+!if $R=2
+    p=$[$b+$d]
+    q=$[$c+$e]
+    curve1=($a)*x^2 + ($p)*x + ($q)
+    curve2=($d)*x+($e)
+    tot=!exec pari A=($curve1)\
+    printtex(A)\
+    B=($curve2)\
+    printtex(B)
+    
+    f1=!line 1 of $tot
+    ftex1=!line 2 of $tot
+    f2=!line 3 of $tot
+    ftex2=!line 4 of $tot
+    formula$n= $ftex1 \,\,=\,\, $ftex2
+    applettext=!nospace $f1 = $f2 ->
+    y1=$[$d*$x1+$e]
+    y2=$[$d*$x2+$e]
+    curve1=curve $color1,$f1
+    curve2=curve $color2,$f2
+    !goto READY
+!endif
+!if $R=3
+    r=$[$a+$f]
+    p=$[$b+$d]
+    q=$[$c+$e]
+    tst=$f*x^2+$d*x+$e
+    curve1=($q) + ($p)*x + ($r)*x^2
+    curve2=$f*x^2+$d*x+$e
+    tot=!exec pari A=($curve1)\
+    printtex(A)\
+    B=($curve2)\
+    printtex(B)
+    
+    f1=!line 1 of $tot
+    ftex1=!line 2 of $tot
+    f2=!line 3 of $tot
+    ftex2=!line 4 of $tot
+    formula$n= $ftex1 \,\,=\,\, $ftex2
+    applettext=!nospace $f1 = $f2 ->
+    y1=$[$q + $p*$x1 + $r*$x1*$x1]
+    y2=$[$q + $p*$x2 + $r*$x2*$x2]
+    curve1=curve $color1,$f1
+    curve2=curve $color2,$f2
+    !goto READY
+!endif
+!if $R >3
+    d=!randitem 2,3,4,5,6,7,8,9
+    !if $b=$[-1*$d] 
+	d=$[$d+1]
+    !endif
+    tot=!exec pari e=((($d)^2)/2)\
+    q=($c)+e\
+    p=($b)+($d)\
+    r=($a)+(1/2)\
+    printtex(e)\
+    printtex(q)\
+    printtex(p)\
+    (r/p)*x\
+    printtex((r/p)*x)
+    
+    e=!line 1 of $tot
+    q=!line 2 of $tot
+    p=!line 3 of $tot
+    r=!line 4 of $tot
+    ee=!line 5 of $tot
+    qq=!line 6 of $tot
+    pp=!line 7 of $tot
+    br=!line 8 of $tot
+    breuk=!line 9 of $tot
+    
+	
+    f1=$q + $p*x*( 1 + $br )
+    f2=(x+$d)^2/2
+    applettext=!nospace $f1 = $f2 ->
+    curve1=curve $color1,$f1
+    curve2=curve $color2,$f2
+    form1=$qq + $pp \cdot x \left( 1 + $breuk \right)
+    form2=\frac{\left( x + $d \right)^{2}}{2}
+    formula$n= $form1 \,\,=\,\, $form2
+    formula$n=!replace internal + - by - in $(formula$n)
+    formula$n=!replace internal - - by + in $(formula$n)
+    applettext=!replace internal +- by - in $applettext
+    applettext=!replace internal -- by + in $applettext
+    y1=$[$q + $p*$x1 + $r*$x1*$x1]
+    y2=$[$q + $p*$x2 + $r*$x2*$x2]
+!endif
+
+:READY
+
+#type: ax^2+bx+c=0
+!if $[$D]=0
+    answer$n=$x1
+    texanswer$n=\textrm{$raken} x_{1} = $tex_x1
+    punten=point $x1,$y1,red
+    impossible=0
+!else
+    !if $[$D]>0
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{c} x_{1} = $tex_x1 \\ x_{2} = $tex_x2  \end{array}\right.
+    	punten=points red,$x1,$y1,$x2,$y2
+	impossible=0
+    !else
+	texanswer$n=\rightarrow \, x_{1} \in \varnothing
+	punten=$empty
+	impossible=1
+    !endif
+!endif
+
+!if $teaching=1
+    !readproc exos/image1.proc
+!endif
+

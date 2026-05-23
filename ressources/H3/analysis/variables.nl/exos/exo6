@@ -1,0 +1,173 @@
+n=$counter
+image=0
+make_tr=1
+math=0
+question$n=!record 28 of lang/remarks.$taal
+helptext=<img src='\$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+checkfile=exos/checkfile1.proc
+cols=16
+rows=1
+mathview=0
+# afblijven van rows=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $options<2 or $options>8
+    options=3
+!endif
+inputs=-1
+textanswer=$empty
+answer=$empty
+var1=!randitem x,t,a,x,x
+var2=!randitem y,h,k,y,y
+var4=0
+var5=$empty
+var7=1
+var6=0
+# var1 = letter1                                                                                               
+# var2 = letter2                                                                                               
+# var3 = varcount  varcnt                                                                                      
+# var4 = letterlijk                                                                                            
+# var5 = controle 
+textanswer$n=<table class="zebra_table_h2">
+exotext=<table class="zebra_table_h2">
+description=$empty
+
+!if $R=1
+    wims_rawmath_variables=$var1 $var2
+    var3=2
+    getal=2,4,6,8
+    getal=!shuffle $getal
+    getallen=2,3,4,5
+    getallen=!shuffle $getallen
+    i=0
+    var8=2
+    !for p=1 to $options
+        k=!randitem 1,3,5,7
+	keuze=!randitem 1,2
+	getal1=!item $p of $getal
+	getal2=$[$getal1+$k]
+	pm=!randitem +,-
+	!if $keuze=1
+	    answer=$var1*$var2*($getal1*$var1 $pm $getal2)
+	!else
+	    getal3=!item $p of $getallen
+	    answer=$var1^$getal3*($getal1*$var1 $pm $getal2*$var2)
+	!endif
+	vraag=!exec pari $answer
+	vraag_html=!htmlmath $vraag
+	vraag_html=!replace internal - by &minus; in $vraag_html
+        description=!append item $vraag_html to $description
+	var5=!append item $vraag to $var5
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath  $answer
+	textanswer$n=!append word $ <tr><td>$vraag_html </td><td>=</td><td>$htmlgoed</td></tr> $ to $(textanswer$n)
+	exotext=!append word $ <tr><td>$vraag_html</td><td>=</td><td><input type="text" id="myinput$i" class="schaersvoorde_input" size="$cols" value="" /></td></tr> to $exotext
+	!increase i
+    !next p
+    textanswer$n=!append word $ </table> $ to $(textanswer$n)
+    exotext=!append word $ </table> $ to $exotext
+ !exit
+!endif
+!if $R=2
+    wims_rawmath_variables=$var1 $var2
+    var3=2
+    getal=2,4,6,8
+    getal=!shuffle $getal
+    getallen=2,3,4,5
+    getallen=!shuffle $getallen
+    i=0
+    var8=2
+    !for p=1 to $options
+	k=!randitem 1,3,5,7
+	getal1=!item $p of $getal
+	getal2=$[$getal1+$k]
+	keuze=!randitem 1,2
+	pm=!randitem +,-
+	mp=!randitem +,-
+	!if $keuze=1
+	    answer=$var1*$var2*($getal1*$var1 $pm $var2)
+	!else
+	    getal3=!item $p of $getallen
+	    answer=$var1^$getal3*$var2*($getal1*$var1 $pm $getal2*$var2)
+	!endif
+	vraag=!exec pari $answer
+	var5=!append item $vraag to $var5
+	vraag_html=!htmlmath $vraag
+	vraag_html=!replace internal - by &minus; in $vraag_html
+        description=!append item $vraag_html to $description
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath  $answer
+	textanswer$n=!append word $ <tr><td>$vraag_html </td><td>=</td><td>$htmlgoed</td></tr> $ to $(textanswer$n)
+	exotext=!append word $ <tr><td>$vraag_html</td><td>=</td><td><input type="text" id="myinput$i" class="schaersvoorde_input" size="$cols" value="" /></td></tr> to $exotext
+	!increase i
+    !next p
+    textanswer$n=!append word $ </table> $ to $(textanswer$n)
+    exotext=!append word $ </table> $ to $exotext
+ !exit
+!endif
+!if $R=3
+    keuze=!randitem 1,2
+    getallen=1,2,2,3,4
+    getallen=!shuffle $getallen
+    wims_rawmath_variables=$var1 $var2
+    var3=2
+    i=0
+    var8=4
+    !for p=1  to $options
+	pm=!randitem +,-
+	mp=!randitem +,-
+	getal1=!item $p of $getallen
+	getal2=!item $[$p + 1] of $getallen
+	!if $keuze=1 
+	    answer=($var1 + $getal1)*($var2 + $getal2)
+	!else
+	    answer=($var1 + $getal1)*($var2 $pm $getal2)
+	!endif
+	vraag=!exec pari $answer
+	vraag_html=!rawmath $vraag
+	vraag_html=!replace internal - by &minus; in $vraag_html
+	vraag_html=!replace internal * by &sdot; in $vraag_html
+        description=!append item $vraag_html to $description
+	var5=!append item $vraag to $var5
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath $answer
+	textanswer$n=!append word $ <tr><td>$vraag_html </td><td>=</td><td>$htmlgoed</td></tr> $ to $(textanswer$n)
+	exotext=!append word $ <tr><td>$vraag_html</td><td>=</td><td><input type="text" id="myinput$i" class="schaersvoorde_input" size="$cols" value="" /></td></tr> to $exotext
+	!increase i
+    !next p
+    textanswer$n=!append word $ </table> $ to $(textanswer$n)
+    exotext=!append word $ </table> $ to $exotext
+ !exit
+!endif
+!if $R>3
+    getallen=1,2,3,4,5,6,7,8,9
+    getallen=!shuffle $getallen
+    wims_rawmath_variables=$var1 $var2
+    var3=2
+    i=0
+    var8=4
+    !for p=1  to $options
+	pm=!randitem +,-
+	mp=!randitem +,-
+	getal1=!item $p of $getallen
+	getal2=!item $[$p + 1] of $getallen
+	answer=($var1 $pm $getal1)*($var2 $mp $getal2)
+	vraag=!exec pari $answer
+	vraag_html=!htmlmath $vraag
+	vraag_html=!replace internal - by &minus; in $vraag_html
+        description=!append item $vraag_html to $description
+	var5=!append item $vraag to $var5
+	answer$n=!append item $answer to $(answer$n)
+	htmlgoed=!htmlmath  $answer
+	textanswer$n=!append word $ <tr><td>$vraag_html </td><td>=</td><td>$htmlgoed</td></tr> $ to $(textanswer$n)
+	exotext=!append word $ <tr><td>$vraag_html</td><td>=</td><td><input type="text" id="myinput$i" class="schaersvoorde_input" size="$cols" value="" /></td></tr> to $exotext
+	!increase i
+    !next p
+    textanswer$n=!append word $ </table> $ to $(textanswer$n)
+    exotext=!append word $ </table> $ to $exotext
+ !exit
+!endif
+

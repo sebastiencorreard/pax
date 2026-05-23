@@ -1,0 +1,63 @@
+
+!if $status=waiting
+
+这里有一幅剪成$level片的照片， 它的次序已被打乱,
+你能把它复原吗?
+<p><center>
+<table cellspacing=1 cellpadding=0 border=0>
+<tr><td>
+!for x=0 to $nx-1
+ <th>
+ !href cmd=reply&job=up&k=$x <img border=0 src="gifs/arrows/up1.32.gif" alt="Shift up the column">
+</th>
+!next x
+!for y=0 to $ny-1
+ <tr><td>
+ !href cmd=reply&job=left&k=$y <img border=0 src="gifs/arrows/left1.32.gif" alt="Shift left the row">
+</td>
+ !for x=0 to $nx-1
+ !set t_=!item $x+$y*$nx+1 of $scramble
+ !set x_=$[($t_-1)%$nx]
+ !set y_=$[floor(($t_-1)/$nx)]
+  <td><img border=0 src="scripts/data/spuzzle/pieces/$phname/$level/p.$x_.$y_.gif" alt=""></td>
+ !next x
+ <td>
+ !href cmd=reply&job=right&k=$y <img border=0 src="gifs/arrows/right1.32.gif" alt="Shift right the row">
+</tr>
+!next y
+<tr><td>
+!for x=0 to $nx-1
+ <th>
+ !href cmd=reply&job=down&k=$x <img border=0 src="gifs/arrows/down1.32.gif" alt="Shift down the column">
+</th>
+!next x
+</table></center> <p>
+
+点击箭头将使碎片按箭头指示的方向整行或整列滑动。
+<p>
+
+!if $showorigin>0
+ 这是原图。点击以使其隐藏。<p>
+ <center>
+ !href cmd=reply&job=hide <img border=0 src="scripts/data/photos/$phname.gif" alt="Original photo">
+ </center> <p>
+!endif
+
+!else # status!=waiting
+
+<p><center>
+<table cellspacing=0 cellpadding=0 border=0>
+!for y=0 to $ny-1
+ <tr>
+ !for x=0 to $nx-1
+  !set t_=!item $x+$y*$nx+1 of $scramble
+  !set x_=$[($t_-1)%$nx]
+  !set y_=$[floor(($t_-1)/$nx)]
+  <td><img border=0 src="scripts/data/spuzzle/pieces/$phname/$level/p.$x_.$y_.gif" alt=""></td>
+ !next x
+</tr>
+!next y
+</table></center> <p>
+
+!endif # status=waiting?
+

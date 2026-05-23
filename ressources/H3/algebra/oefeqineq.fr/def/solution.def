@@ -1,0 +1,172 @@
+!set title=Solution(s) d'équations 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Pour chacune des équations ci-dessous,	  cochez les nombres qui sont solution dans la liste proposée.
+val7=Équation,Solution(s)
+val8=Aucune
+tmp0=!randint 2, 9
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val9*$val10)]
+val12=$[rint($val9^2)]
+tmp=!nonempty items x,y,a,b,c,z
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+val14=($val10*$val13+$val11=0,2),($val13^2-1/$val12=0,3,4),(($val13-$val9)*($val13+$val9)=0,2,5),($val13^2+$val12=0,6),(	($val13-1/$val9)^2=0,4),(($val13+1/$val9)^2=0,3),($val13^2-$val12=0,2,5)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+val15=
+val16=
+!for val17 =1 to 5 
+tmp0=!item $val17 of $val14
+
+val18=$(tmp0)
+tmp0=!declosing $val18
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$(tmp0)
+tmp0=!texmath $val19
+
+val19=$(tmp0)
+val19=\($val19)
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+tmp0=!item 2 to -1 of $val18
+
+val19=$(tmp0)
+tmp0=!append line $val19 to $val16
+
+val16=$(tmp0)
+!next
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val24=$(tmp0)
+val25=-$val12,-$val9,\(-\frac{1}{$val9}),\(\frac{1}{$val9}),$val9,$val8
+replytype1=checkbox
+replyname1=question 1
+replygood1=$val20;$val25
+replytype2=checkbox
+replyname2=question 2
+replygood2=$val21;$val25
+replytype3=checkbox
+replyname3=question 3
+replygood3=$val22;$val25
+replytype4=checkbox
+replyname4=question 4
+replygood4=$val23;$val25
+replytype5=checkbox
+replyname5=question 5
+replygood5=$val24;$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6	<table class="wimscenter wimsborder">	<tr>	<th>$(val7[1])</th>	<th>$(val7[2])</th>	</tr>	 
+!for m_j=1 to 5 
+$()	 <tr>	  <td><label for="reply$m_j">$(val15[$m_j])</label></td>	  <td> 
+!read oef/embed.phtml r \j 
+$()</td>	 </tr>	 
+!next
+$()	 </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,15
+embedcnt=1

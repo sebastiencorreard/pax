@@ -1,0 +1,245 @@
+#:Boerderij [ Oppervlak bepalen ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+questiontype=0
+cols=16
+rows=1
+mathview=0
+embed=1
+applet=1
+inputs=1
+#m_rightarrow=&nbsp;=
+x=!randint 18,30
+d=!randitem 2,2.5,3,3.5,4
+b=$[$x-2*$d]
+z=!randitem 3,4,5
+p=!randitem 1,2,3
+e=$[$z+$p]
+h=$[$z+$e]
+c=!randitem 10,10.5,11,11.5,12,12.5,13,13.5,14
+a=$[round(sqrt($d^2+$e^2+($c/2)^2))]
+
+helptext=img src=\'$module_dir/gifs/huis.jpg\' alt=\'noalt\' />
+Oppervlak=!record 24 of lang/remarks.$taal
+checkfile=$checkdir/number.proc
+#A(-2.66,-4.69) B(5.63,-3.31) C(-0.10,-1.50) D(-8.54,-2.75)                                                             
+#E(-2.66,0.75) F(5.63,2.19) G(-0.10,4.06) H(-8.54,2.69)                                                                 
+#R(0.65,8.25) Q(-3.52,7.56)
+!if $R=1
+    EHQ=STRQ
+    answer$n=$[0.5*$e*($x+$b)]
+    ss=!record 32 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array} {ll} h= H - AE = $h - $z = $e \\ \textrm{$Oppervlak $EHQ = $Oppervlak } \Delta  \textrm{STR} + \textrm{$Oppervlak } \Delta  \textrm{QRS} \\ \textrm{$Oppervlak $EHQ }= \frac{1}{2} \cdot $x \cdot $e + \frac{1}{2} \cdot $b \cdot $e\\ \textrm{$Oppervlak $EHQ} = $[0.5*$e*($x+$b)] \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak:
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+    linewidth 2\
+    point,-5.6,1.72,black\
+    point,2.77,3.13,black\
+    string black,-5.6,1.72,S\
+    string black,2.77,3.13,T\
+    opacity 255,100\
+    fillcolor yellow\
+    fpoly yellow,-5.6,1.72,2.77,3.13,0.65,8.25,-3.52,7.56\
+    linewidth 3\
+    mouse red,18\
+    dashed\
+    dashtype 4,2\
+    #userdraw segment,red\
+    opacity 255,30\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly4,red  
+    
+    textanswer$n=<img src="$module_dir/gifs/boerderij-doorsnede.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+!if $R=2
+    setje=H,G,R,Q F,E,Q,R
+    k=!randitem 1,2
+    set=!word $k of $setje
+    H=!item 1 of $set
+    G=!item 2 of $set
+    R=!item 3 of $set
+    Q=!item 4 of $set
+    HG=!nospace $H $G
+    GR=!nospace $G $R
+    RQ=!nospace $R $Q
+    HQ=!nospace $H $Q
+    EHQ=!nospace $H $G $R $Q
+    HGR=!nospace $H $G $R
+    RQH=!nospace $R $Q $H
+#A(-2.66,-4.69) B(5.63,-3.31) C(-0.10,-1.50) D(-8.54,-2.75)                                                             
+#E(-2.66,0.75) F(5.63,2.19) G(-0.10,4.06) H(-8.54,2.69)                                                                 
+#R(0.65,8.25) Q(-3.52,7.56)
+    coord=-8.54,2.69,-0.10,4.06\
+    -2.66,0.75,5.63,2.19
+    
+    lijn=!line $k of $coord
+    lijn=!nospace $lijn
+    
+    punt1=!item 1 of $lijn
+    punt2=!item 2 of $lijn
+    punt3=!item 3 of $lijn
+    punt4=!item 4 of $lijn
+
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+    linewidth 2\
+    point,-5.6,1.72,black\
+    point,2.77,3.13,black\
+    string black,-5.6,1.72,S\
+    string black,2.77,3.13,T\
+    opacity 255,100\
+    fillcolor yellow\
+    fpoly yellow,$punt1,$punt2,$punt3,$punt4,0.65,8.25,-3.52,7.56\
+    linewidth 3\
+    mouse red,18\
+    dashed\
+    dashtype 4,2\
+    #userdraw segment,red\
+    opacity 255,30\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly4,red  
+
+    f=$[$a^2-$d^2]
+    !if . isin $[sqrt($f)]
+	g=sqrt($f)
+	g_tex=\sqrt{$f}
+        answer$n=$[0.5*($x+$b)]*$g
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !else
+	g=$[sqrt($f)]
+	g_tex=$g
+	answer$n=$[0.5*($x+$b)*$g]
+        ans=$(answer$n)
+    !endif
+    ss=!record 30 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array}{l} 2d= $x-$b \rightarrow d=$d \\ h=\sqrt{$a^{2}-$d^{2}}=$g_tex \\ \textrm{ $Oppervlak $EHQ }= \textrm{ $Oppervlak }  \Delta \textrm {$HGR} + \textrm{$Oppervlak }  \Delta \textrm{$RQH }\\ \textrm{$Oppervlak $EHQ } = \frac{1}{2} \cdot $x \cdot $g_tex + \frac{1}{2} \cdot $b \cdot $g_tex\\ \textrm{$Oppervlak $EHQ }= $[0.5*($x+$b)]*$g_tex $ans \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak: 
+    
+    
+    textanswer$n=<img src="$module_dir/gifs/boerderij-dak.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+
+
+!if $R>2
+    setje=E,H,Q F,G,R
+    k=!randitem 1,2
+    set=!word $k of $setje
+    E=!item 1 of $set
+    H=!item 2 of $set
+    Q=!item 3 of $set
+    EH=!nospace $E $H
+    HQ=!nospace $H $Q
+    EQ=!nospace $E $Q
+    EHQ=!nospace $E $H $Q
+
+#A(-2.66,-4.69) B(5.63,-3.31) C(-0.10,-1.50) D(-8.54,-2.75)                                                             
+#E(-2.66,0.75) F(5.63,2.19) G(-0.10,4.06) H(-8.54,2.69)                                                                 
+#R(0.65,8.25) Q(-3.52,7.56)
+    coord=-2.66,0.75,-8.54,2.69,-3.52,7.56\
+    5.63,2.19,-0.10,4.06,0.65,8.25
+    
+    lijn=!line $k of $coord
+    lijn=!nospace $lijn
+    
+    punt1=!item 1 of $lijn
+    punt2=!item 2 of $lijn
+    punt3=!item 3 of $lijn
+    punt4=!item 4 of $lijn
+    punt5=!item 5 of $lijn
+    punt6=!item 6 of $lijn
+
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+    linewidth 2\
+    point,-5.6,1.72,black\
+    point,2.77,3.13,black\
+    string black,-5.6,1.72,S\
+    string black,2.77,3.13,T\
+    opacity 255,100\
+    fillcolor yellow\
+    fpoly yellow,$punt1,$punt2,$punt3,$punt4,$punt5,$punt6\
+    linewidth 3\
+    mouse red,18\
+    dashed\
+    dashtype 4,2\
+    #userdraw segment,red\
+    opacity 255,30\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly4,red  
+
+    f=$[$e^2+$d^2]
+    k=$[$a^2-$f]
+    !if . isin $[sqrt($f)]
+	g=sqrt($f)
+	g_tex=\sqrt{$f}
+    !else
+	g=$[sqrt($f)]
+	g_tex=$g
+    !endif
+    !if . isin $[sqrt($k)]
+	m=sqrt($k)
+	m_tex=\sqrt{$k}
+    !else
+	m=$[sqrt($k)]
+	m_tex=$m
+    !endif
+    answer$n=$m*$g
+    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    ss=!record 30 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array}{l} h=$h - $z = $e \\ 2x= $x-$b \rightarrow x=$d \\ \textrm{ $latex } : \sqrt{$e^{2}+$d^{2}} = $g_tex \\ \textrm { $EH } = 2 \cdot \sqrt{$a^{2} - $f} \\ \textrm{$Oppervlak } \Delta \textrm{$EHQ}  = $m_tex \cdot $g_tex $ans \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak: 
+    
+    
+
+    textanswer$n=<img src="$module_dir/gifs/boerderij.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+
+   

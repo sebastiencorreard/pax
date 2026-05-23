@@ -1,0 +1,137 @@
+!set title=Horizon 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+precision=1
+title_it=Horizon 3
+title_nl=Horizon 3
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Le mont A est à l'altitude HHHH m.	  Sachant que le rayon de la terre est à peu près RRRR m,	  calculer l'altitude minimum du sommet du mont B pour qu'on puisse le	  voir du mont A sachant qu'il est à une distance de YYYY m à vol d'oiseau du mont B.
+val9=Altitude de B,Altitude
+!if $val6=it 
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Le mont A est à l'altitude HHHH m.	  Sachant que le rayon de la terre est à peu près RRRR m,	  calculer l'altitude minimum du sommet du mont B pour qu'on puisse le	  voir du mont A sachant qu'il est à une distance de YYYY m à vol d'oiseau du mont B.
+val9=Altitude de B,Altitude
+!endif
+!if $val6=nl 
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Le mont A est à l'altitude HHHH m.	  Sachant que le rayon de la terre est à peu près RRRR m,	  calculer l'altitude minimum du sommet du mont B pour qu'on puisse le	  voir du mont A sachant qu'il est à une distance de YYYY m à vol d'oiseau du mont B.
+val9=Altitude de B,Altitude
+!endif
+val10=10
+val11=2
+val12=$[acos($val10/($val10+$val11))]
+tmp0=!randint 2, 5
+
+val13=$[$(tmp0)*pi/30]
+val14=$[$val10/cos($val13)-$val10]
+val15=xrange -2*$val10,2*$val10	yrange -2*$val10,2*$val10	circles black,0,0,$val10	fcircles orange,0,0,$val10	dashed	polygon red,0,0,$val10*sin($val12),$val10*cos($val12),0,$val10+$val11	arrows2 blue,5,0,$val10,0,$val10+$val11	text blue,-2,$val10+$val11/2,large,h	text blue,$val10/2*sin($val12),$val10/2*cos($val12),large,R	halfline 0,$val10+$val11,$val10*sin($val12),$val10*cos($val12),black	
+val16=dashed	segments blue,0,0,($val10+10)*cos($val13),($val10+10)*sin($val13)	text blue,0,$val10+$val11,large,A	text blue,($val10+1)*cos($val13),($val10+1)*sin($val13),large,B	
+val15=$val15	$val16
+tmp0=!randint 1000, 3000
+
+val17=$[$(tmp0)]
+tmp0=!randint 1000, 3000
+
+val18=$[$(tmp0)]
+val19=6371000
+tmp0=!randint 1000, 3000
+
+val17=$[$(tmp0)]
+val20=$[sqrt(2*$val17*$val19 + $val17^2)]
+tmp0=!randint 1000, 3000
+
+val18=$[$(tmp0)]
+val21=$[sqrt(2*$val18*$val19 + $val18^2)]
+val22=$[round($val20+$val21)]
+tmp0=!replace internal RRRR by $val19 in $val8
+
+val23=$(tmp0)
+tmp0=!replace internal YYYY by $val22 in $val23
+
+val23=$(tmp0)
+tmp0=!replace internal HHHH by $val17 in $val23
+
+val23=$(tmp0)
+val24=$val18
+replytype1=numeric
+replyoption1=absolute 
+replyname1=name_answer[2]
+replygood1=$[$val24]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	  <div class="medium_size img_col"> 
+!read oef/canvasdraw.phtml 400,400 \
+$val15 
+$()</div>	  <div class="medium_size text_col">	  $val23	  <br><label for="reply1">$(val9[1]):</label> 
+!read oef/embed.phtml r1 
+$() m	  <div class="wims_instruction">$val7</div>	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,15,23
+embedcnt=1

@@ -1,0 +1,134 @@
+!set title=Tableau d'effectifs 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r,r
+varcnt=16
+prevarcnt=15
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 25, 35
+
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 5,10,20
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint(5)]
+val9=Notes
+!readproc slib/generator $val8,$val6 
+tmp0=$slib_out
+val10=$(tmp0)
+val11=
+!for val12 =1 to $val8 
+val13=$[rint($val12*$val7/5)]
+tmp0=!append item $val13,$(val10[$val12]) to $val11
+
+val11=$(tmp0)
+!next
+!readproc slib/histo Notes,Effectifs,$val11 
+tmp0=$slib_out
+val11=$(tmp0)
+!readproc oef/draw.phtml 300,300 \
+$val11 
+tmp0=$ins_url
+val14=$(tmp0)
+val14=<img src="$val14" alt="">
+tmp0=!values $val7/5*v for v=0 to 5
+
+val15=$(tmp0)
+tmp0=!item 2 to -1 of $val15
+
+val16=$(tmp0)
+val17=r1,r2,r3,r4,r5
+replytype1=numexp
+replyname1=Effectif 1
+replygood1=$(val10[1])
+replytype2=numexp
+replyname2=Effectif 2
+replygood2=$(val10[2])
+replytype3=numexp
+replyname3=Effectif 3
+replygood3=$(val10[3])
+replytype4=numexp
+replyname4=Effectif 4
+replygood4=$(val10[4])
+replytype5=numexp
+replyname5=Effectif 5
+replygood5=$(val10[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	 <div class="wims_columns">	 <div class="medium_size img_col">$val14</div>	 <div class="medium_size text_col">	  Un enseignant a relevé les notes obtenues par ses élèves lors d'une interrogation notée sur $val7.<br>	  À l'aide de l'histogramme ci-contre, compléter le tableau ci-dessous.	  <table class="wimscenter wimsborder">	   <tr>	    <th>$val9 (N)</th>	     
+!for m_l=1 to $val8 
+$()<td>
+!insmath $(val15[$m_l]) \leq N < $(val16[$m_l])
+$() </td> 
+!next
+$()	   </tr><tr>	    <th>Effectifs</th>	     
+!for m_l=1 to $val8 
+$()<td> 
+!read oef/embed.phtml $(val17[$m_l]),5 
+$()</td> 
+!next
+$()	   </tr>	  </table>	   </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,14,15,16,17
+embedcnt=1

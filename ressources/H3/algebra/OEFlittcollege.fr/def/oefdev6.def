@@ -1,0 +1,235 @@
+!set title=Développer (a-b)(a+b)#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand; Jean-Luc, Donadoni
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=41
+prevarcnt=40
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val2=$[rint($val2)]
+val3=$[rint($val3)]
+
+!ifval $val3= or NaN isin $val3
+val3=$[rint(2)]
+!endif
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+val6=$[rint(6)]
+val7=40x25x1
+tmp0=!randint 2, 15
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val9=$[rint($(tmp0))]
+
+!ifval $val8=$val9
+val9=$[rint(17)]
+!endif
+tmp0=!randitem x,y
+
+val10=$(tmp0)
+tmp0=!values v for v=0 to $val2
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item 2 of $val11
+
+val13=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val8*$val10^$val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+tmp=!translate ";': to $     $ in $val9*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!shuffle +,-
+
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val17=$(tmp0)
+tmp0=!item 2 of $val16
+
+val18=$(tmp0)
+tmp=!translate internal $	$ to ; in \don
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+tmp0=!rawmath ($val14$val17$val15)($val14$val18$val15)
+
+val20=$(tmp0)
+!readproc slib/commutesom $val20,$val10 
+tmp0=$slib_out
+val21=$(tmp0)
+tmp0=!texmath $val14
+
+val22=$(tmp0)
+tmp0=!texmath $val15
+
+val23=$(tmp0)
+val24=$val22,$val23
+val25=$val20
+val26=red,green,blue,purple
+tmp0=!shuffle $val26
+
+val26=$(tmp0)
+val27=\special{color=$(val26[1])}
+val28=\special{color=black}
+val29=\special{color=$(val26[2])}
+val30=\special{color=$(val26[3])}
+val31=\special{color=$(val26[4])}
+tmp0=!char 1 of ()
+
+val32=$(tmp0)
+tmp0=!char 2 of ()
+
+val33=$(tmp0)
+val34=($val27 $(val24[1]) $val28 + $val29 $(val24[2]) $val28)($val27 $(val24[1])$val28 - $val29 $(val24[2]) $val28 )
+val35=<td>\($val34)</td>	<td>=</td>	<td>\($val27$val32 $(val24[1]) $val33$val28^2 - $val29$val32 $(val24[2]) $val33$val28^2) </td>
+!if $val3=1 
+tmp=!trim r1,r2	r3
+val36=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r3
+val36=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!item 1 of $val21
+
+val37=$(tmp0)
+oefsteps=$val36 
+nextstep=!nosubst $val36 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=Réponse 1
+replygood1=$(val24[1]);$val24
+replytype2=clickfill
+replyname2=Réponse 2
+replygood2=$(val24[2]);$val24
+replytype3=litexp
+replyname3=Réponse
+replygood3=$val21
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Développer et réduire l'expression : 
+!insmath $val25
+$().	<p><b>Je développe :</b></p>		
+!if $val3=1 
+$()	On vous propose de résoudre l'exercice en vous guidant.	Complétez les différentes étapes de calcul qui vous sont proposées en respectant les couleurs	et en utilisant l'identité 
+!insmath (a+b)(a-b)=a^2-b^2
+$()	
+!if $m_step=1 
+$()<div class="wims_instruction">Utiliser les étiquettes pour compléter le calcul.</div>	<div class="wimscenter">	   
+!insmath $val34 = $val27$val32
+$()  
+!read oef/embed.phtml r1,$val7 
+$() 
+!insmath $val27$val33$val28^2- $val29$val32
+$()  
+!read oef/embed.phtml r2,$val7 
+$() 
+!insmath $val29$val33$val28^2
+$()	   </div>	 
+!else
+$() 	<table class="wimscenter">	<tr>$val35</tr>	<tr>	
+!if $m_step=2 
+$()	<td></td>	<td>=</td>	<td colspan="2">  
+!read oef/embed.phtml r3,4*$val6 
+$()</td>	</tr>	 
+!endif
+$()	</table>	 
+!endif
+$()	 
+!else
+$() 	<div class="wimscenter">	
+!insmath $val25 = 
+$() 
+!read oef/embed.phtml r3,4*$val6 
+$().	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<table border=0>	<tr>$val35</tr>	<tr>	   <td></td>	   <td>=</td>	   <td> 
+!insmath $val37
+$()</td>	</tr>	</table></center>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,7,25,27,28,29,32,33,34,35,37
+embedcnt=4

@@ -1,0 +1,115 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=20
+rows=2
+embed=1
+mathviewpanel=$module_title:(x;y):and:sqrt()
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+checkfile=$checkdir/coord.proc
+question$n=!record 5 of lang/remarks.$taal
+#@ Bepaal de co&ouml;rdinaten van de Top 
+de_top=!record 6 of lang/remarks.$taal
+#@ het toppunt is
+exotext=!record 20 of lang/remarks.$taal
+exotext=<small>$exotext</small>
+
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+
+F=!randitem f,g,h,k,p,w
+!if $R = 1
+    A=!randitem 1,2,3,-1,-2,-3
+    B=!randitem 1,2,3,-1,-2,-3
+    C=!randitem 1,-1
+!else
+    !if $R = 2
+	A=!randitem 4,5,6,7,8,-1,-2,-3
+	B=!randitem 1,2,3,-4,-5,-6,-7,-8
+	C=!randitem 1,-1
+    !else
+	kans=!randint 0,1
+	!if $kans = 0
+	    A=!randitem -1,-2,-3,-4,-5,-6,-7,-8,1,2,3,4,5,6,7,8
+	    B=!randitem -1,-2,-3,-4,-5,-6,-7,-8,1,2,3,4,5,6,7,8
+	    C=!randitem -2,-3,-4,2,3,4
+	!else
+    	    A=!randitem -1,-2,-3,-4,-5,-6,-7,-8,1,2,3,4,5,6,7,8
+	    B=!randitem -1,-2,-3,-4,-5,-6,-7,-8,1,2,3,4,5,6,7,8
+	    C=!randitem -1,-2,-3,-4,-5,-6,-7,-8,1,2,3,4,5,6,7,8
+	!endif
+    !endif
+!endif
+a=$C
+b=$[($C)*($B) - ($A)]
+c=$[-1*($A)*($B)]
+S=-1*($b)/(2*$a)
+functie=(($C)*x - ($A))*(x + ($B))
+
+tot=!exec pari F=$functie\
+top=$S\
+subst(F,x,top)\
+printtex(F)\
+printtex(top)\
+printtex(subst(F,x,top))\
+printtex(($C)*x - ($A))\
+printtex((x + ($B)))
+
+raw=!line 1 of $tot
+X=!line 2 of $tot
+Y=!line 3 of $tot
+expand=!line 4 of $tot
+Xtex=!line 5 of $tot
+Ytex=!line 6 of $tot
+L1=!line 7 of $tot
+L2=!line 8 of $tot
+
+answer$n=$X,$Y
+textanswer$n= $de_top  ($X:$Y)
+keuze=!randitem 1,2
+!if $keuze=1
+    formula$n=y \,\, = $expand
+    applettext=!nospace y = $raw ->
+    anders=$empty
+    is=$empty
+!else
+    anders= \left( $L1 \right)\left( $L2 \right)
+    is= \,=\,
+    formula$n=$F\left( x \right) = $anders
+    applettext=!nospace $F (x) = $raw ->
+!endif
+
+texanswer$n=\left[ \begin{array}{l} a \cdot x^{2} + b \cdot x + c \\ \textrm{$de_top : }\, \left( x_{s} : y_{s} \right) \\ x_{s} = \frac{-b}{2 \cdot a} \\ $anders $is $expand \\ a=$a \\ b=$b \\ \textrm{$de_top :}\,\, x_{s} = \frac{-1 \cdot $b}{2 \cdot $a} = $Xtex \\ y_{s} = $a \cdot \left($Xtex\right)^{2} + $b \cdot $Xtex + $c = $Ytex \\ \textrm{$de_top }\, = \, \left( $Xtex : $Ytex \right) \end{array} \right.
+
+!if $image=1 or $teaching=1
+    make_tr=0
+    xsize=120
+    ysize=120
+    image_settings$n=200,200
+    plot=0
+    draw=1
+    svg=0
+    image$n=\
+    transparent white\
+    xrange -10,10\
+    yrange -100,100\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 2\
+    dvline $S,0,red\
+    curve green,$functie\
+    linewidth 6\
+    point $(answer$n),red
+    
+    insdraw_size=$xsize,$ysize
+    !insdraw $(image$n)
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' /><br><textarea class=\'schaersvoorde_textarea\' cols=\'15\' rows=\'2\'>(x : y)\n(13 : 56) </textarea>
+!endif

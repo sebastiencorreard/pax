@@ -1,0 +1,155 @@
+!set title=Côté d'un triangle (plus difficile).
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.fr
+precision=100
+
+ansorder=r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+tmp0=!randitem $val7$val8$val9,$val8$val7$val9,$val9$val7$val8
+
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in 60,1,1,1,2	60,3,4,-12,3	30,2,4,0,1	30,1,2,0,1	30,2,2,12,2	30,1,3,-5,3	45,3,4,4,2	45,2,3,-2,3
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item 2 of $val11
+
+val13=$[$(tmp0)]
+tmp0=!item 3 of $val11
+
+val14=$[$(tmp0)]
+tmp0=!item 4 of $val11
+
+val15=$[$(tmp0)]
+tmp0=!item 5 of $val11
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=3 
+val17= reply1 
+!endif
+
+!ifval $val16=1 
+val17= reply1 	reply2 
+!endif
+
+!ifval $val16=2
+val17= reply1 	reply3
+!endif
+val18=$[(2*$val14*cos($val12/180*Pi)+sqrt($val15))/2]
+val19=$[(2*$val14*cos($val12/180*Pi)-sqrt($val15))/2]
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=Nombre de solutions :
+replygood1=$val16;il y a une seule possibilité, il existe deux possibilités, c'est impossible !
+replytype2=numeric
+replyoption2=absolute 
+replyname2=Longueur du 3e côté arr. au centième
+replygood2=$[$val18]
+replytype3=aset
+replyoption3=absolute 
+replyname3=Les 2 possibilités sép. par 1 virg.
+replygood3=$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On veut construire un triangle $val10 tel que :	<ul><li>$val7$val8 = $val14 cm</li><li>$val7$val9 = $val13 cm</li><li>
+!insmath \widehat{$val7$val8$val9} = $val12
+$()°</li></ul>	
+!if $m_step=1 
+$()En utilisant le théorème d'Al Kashi, on peut voir si un tel triangle existe ou non. Choisissez la bonne réponse :  
+!read oef/embed.phtml r1 
+$(). 
+!endif
+$()	
+!if $m_step=2 
+$()Calculer la longueur du côté $val8$val9 (arrondir au centième).	
+!if $val16=2 
+$()Donner les deux possibilités, séparées par une virgule. 
+!endif
+$() 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,12,13,14,16
+embedcnt=1

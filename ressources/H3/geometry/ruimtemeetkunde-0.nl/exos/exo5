@@ -1,0 +1,341 @@
+#:[HTML5] Kubus-Balk [ Hoeken bepalen ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+mathview=0
+questiontype=0
+cols=20
+rows=2
+embed=1
+applet=1
+inputs=1
+m_rightarrow=&nbsp;=
+hoogte=35
+breedte=0
+diepte=0
+keuze=!randitem 1,2
+# kubus
+sometext=!record 13 of lang/remarks.$taal
+helptext=$empty
+checkfile=$checkdir/number.proc
+
+!if $R=1
+    !if $keuze=1
+        setje=A,G,C B,H,D C,E,A D,F,B
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        BAC=!nospace $B $A $C
+        x=!randint 4,14
+        
+    #A(-2.06,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00) 
+    
+	coord=-2.06,-3.12,2.34,3.69,2.29,-8.06\
+	-6.66,-6.31,6.96,7.00,6.91,-4.81\
+	2.29,-8.06,-2.04,8.69,-2.06,-3.12\
+	6.91,-4.81,-6.56,5.44,-6.66,-6.31
+	
+	lijn=!line $keus of $coord
+	lijn=!nospace $lijn
+	
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+	punt3=!item 3 of $lijn
+	punt4=!item 4 of $lijn
+	punt5=!item 5 of $lijn
+	punt6=!item 6 of $lijn
+	
+        object$n=!exec canvasdraw\
+        size 398,320\
+        xrange -10,10\
+        yrange -10,10\
+        fontfamily 18px Ariel\
+        copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+        linewidth 3\
+        string black,7.36,0.60,$x\
+        string black,4.75,-7.19,$x\
+        linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt3,$punt4 ,darkred\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt5,$punt6 ,darkred\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+        
+        #@We hebben een kubus ABCD.EFGH met een ribbe van $x .<br />Bereken de hoek tussen de lijnen $AB en $AC. 
+        ss=!record 11 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        
+        formula$n=\angle $BAC
+        an=$[atan(1/sqrt(2))]
+        
+        answer$n=$[180/pi*$an]
+        
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $AC=$x \sqrt(2)\\ tan( \angle $BAC)=\frac{$x}{$x \sqrt{2}}\\ \angle $BAC $ans \end{array} \right.
+        
+    !else
+        setje=B,C,D,H A,B,D,H A,B,C,G C,D,A,E C,D,B,F A,D,B,F
+        keus=!randint 1,6
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        G=!item 4 of $set
+        AB=!nospace $A $B
+        RG=!nospace R $G
+        RC=!nospace R $C
+        CG=!nospace $C $G
+        GRC=!nospace $G R $C
+        x=!randint 4,14
+
+    #A(-2.06,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00) 
+    
+	coord=-2.19,-7.19,6.91,-4.81,6.96,7.00\
+	-4.36,-4.72,6.91,-4.81,6.96,7.00\
+	-4.36,-4.72,2.29,-8.06,2.34,3.69\
+	4.60,-6.44,-2.06,-3.12,-2.04,8.69\
+	4.60,-6.44,-6.66,-6.31,-6.56,5.44\
+	2.43,-3.97,-6.66,-6.31,-6.56,5.44
+	
+	lijn=!line $keus of $coord
+	lijn=!nospace $lijn
+	
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+	punt3=!item 3 of $lijn
+	punt4=!item 4 of $lijn
+	punt5=!item 5 of $lijn
+	punt6=!item 6 of $lijn
+	
+        object$n=!exec canvasdraw\
+        size 398,320\
+        xrange -10,10\
+        yrange -10,10\
+        fontfamily 18px Ariel\
+        copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+        linewidth 3\
+        point $punt1,$punt2,darkblue\
+        string black,7.36,0.60,$x\
+        string black,4.75,-7.19,$x\
+        string black,$[$punt1 -0.5],$[$punt2 -1.1],R\
+        linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt3,$punt4 ,darkred\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt5,$punt6 ,darkred\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+
+#: We hebben een kubus ABCD.EFGH met een ribbe van $x .<br />R is het midden van $AB.<br />                              
+#Bereken de hoek tussen de lijnen $RG en $RC.
+        ss=!record 12 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $GRC
+        an=$[atan(2/5*sqrt(5))]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $RC=$[0.5*$x] \sqrt{5} \\ \tan( \angle $GRC)=\frac{$x}{$[0.5*$x] \sqrt{5}}\\ \angle $GRC $ans \end{array} \right.
+        
+    
+    !endif
+ !exit
+!endif
+
+
+!if $R>1
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    !if $keuze=1
+        setje=A,G,C B,H,D C,E,A D,F,B
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        BAC=!nospace $B $A $C
+	a=$[$y^2+$z^2]
+	a_tex=$y^{2}+$z^{2}
+	
+	#A(-3.39,-7.25) B(4.50,-5.06) C(1.23,-3.37) D(-6.71,-5.50)............................................................. 
+# E(-3.39,5.69) F(4.50,7.88) G(1.23,9.50) H(-6.66,7.25).................................................................
+# AB (0.33,-6.75) BC (2.49,-3.56) BF (5.25,0.88) 
+
+	coord=-3.39,-7.25,1.23,9.50,1.23,-3.37\
+	4.50,-5.06,-6.66,7.25,-6.71,-5.50\
+	1.23,-3.37,-3.39,5.69,-3.39,-7.25\
+	-6.71,-5.50,4.50,7.88,4.50,-5.06
+	
+	lijn=!line $keus of $coord
+	lijn=!nospace $lijn
+	
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+	punt3=!item 3 of $lijn
+	punt4=!item 4 of $lijn
+	punt5=!item 5 of $lijn
+	punt6=!item 6 of $lijn
+	
+	object$n=!exec canvasdraw\
+        size 398,320\
+        xrange -10,10\
+        yrange -10,10\
+        fontfamily 18px Ariel\
+        copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo2.jpg\
+        #points red,0,0,1,1,2,2,3,3,4,4\
+        linewidth 3\
+        string black,4.87,0.88,$x\
+        string black,0.23,-7.09,$y\
+        string black,2.49,-3.66,$z\
+        linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt3,$punt4 ,darkred\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt5,$punt6 ,darkred\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+
+        ss=!record 13 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $BAC
+        an=$[atan($x/sqrt($a))]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $AC=\sqrt{$a_tex} \\ \tan( \angle $BAC)=\frac{$x}{\sqrt{$a}}\\ \angle $BAC $ans \end{array} \right. 
+        
+    !else
+        setje=E,C,G F,D,H H,B,F G,A,E
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        ABC=!nospace $A $B $C
+	a=$[$y^2+$z^2]
+	a_tex=$y^{2}+$z^{2}
+
+	#A(-3.39,-7.25) B(4.50,-5.06) C(1.23,-3.37) D(-6.71,-5.50)............................................................. 
+# E(-3.39,5.69) F(4.50,7.88) G(1.23,9.50) H(-6.66,7.25).................................................................
+# AB (0.33,-6.75) BC (2.49,-3.56) BF (5.25,0.88) 
+
+	coord=-3.39,5.69,1.23,-3.37,1.23,9.50\
+	4.50,7.88,-6.71,-5.50,-6.66,7.25\
+	-6.66,7.25,4.50,-5.06,4.50,7.88\
+	1.23,9.50,-3.39,-7.25,-3.39,5.69
+	
+	lijn=!line $keus of $coord
+	lijn=!nospace $lijn
+	
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+	punt3=!item 3 of $lijn
+	punt4=!item 4 of $lijn
+	punt5=!item 5 of $lijn
+	punt6=!item 6 of $lijn
+	
+	!if $keus<2
+	    seg=dashed\
+	    dashtype 5,2\
+	    segment $punt3,$punt4,$punt5,$punt6 ,red
+	!else
+	    seg=segment $punt3,$punt4,$punt5,$punt6 ,red
+	!endif
+	
+	object$n=!exec canvasdraw\
+        size 398,320\
+        xrange -10,10\
+        yrange -10,10\
+        fontfamily 18px Ariel\
+        copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo2.jpg\
+        #points red,0,0,1,1,2,2,3,3,4,4\
+        linewidth 3\
+        string black,4.87,0.88,$x\
+        string black,0.23,-7.09,$y\
+        string black,2.49,-3.66,$z\
+        linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $punt1,$punt2,$punt3,$punt4 ,red\
+        linewidth 3\
+        $seg\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+        
+#@Van een balk ABCD.EFGH is<br />AB=$y, BC=$z en BF=$x .<br />Bereken de hoek tussen de lijnen $AB en $BC.<br />
+        ss=!record 14 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $ABC
+        an=$[atan(sqrt($a)/$x)]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        texanswer$n=\left[ \begin{array}{l}$BC=$x \\  $AC=\sqrt{$a_tex}\\ \tan( \angle $ABC)= \frac {\sqrt{$a}}{$x}\\ \angle $ABC $ans \end{array} \right.
+
+    
+    !endif
+ !exit
+!endif

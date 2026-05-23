@@ -1,0 +1,387 @@
+!set title=Développer (a+b)(c+d)#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+computeanswer=no
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=72
+prevarcnt=71
+postvarcnt=0
+replycnt=13
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Réponse
+val7=Développer et réduire l'expression
+val8=On vous propose de résoudre l'exercice en vous guidant.	  Complétez les différentes étapes de calcul qui vous sont proposées.	
+val9=Utiliser les étiquettes pour compléter le calcul.
+val10=en respectant les couleurs proposées,	  utiliser l'identité,	  pour développer l'expression.
+val11=simplifier chacun des termes de la somme
+val12=réécrire l'expression en la simplifiant si possible.
+val13=Étape
+val14=+
+val2=$[rint($val2)]
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+val3=$[rint($val3)]
+
+!ifval $val3= or NaN isin $val3
+val3=$[rint(2)]
+!endif
+val15=$[rint(4)]
+val16=40x25x1
+tmp0=!randitem x,y,z,a,b
+
+val17=$(tmp0)
+tmp0=!values v,-v for v=2 to 15
+
+val18=$(tmp0)
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$[rint($(tmp0))]
+tmp0=!item 2 of $val18
+
+val20=$[rint($(tmp0))]
+tmp0=!item 3 of $val18
+
+val21=$[rint($(tmp0))]
+tmp0=!item 4 of $val18
+
+val22=$[rint($(tmp0))]
+tmp0=!values v for v=0 to $val2
+
+val18=$(tmp0)
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val23=$(tmp0)
+tmp0=!item 2 of $val18
+
+val24=$(tmp0)
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val25=$(tmp0)
+tmp0=!item 2 of $val18
+
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in $val19*$val17^$val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=$(tmp0)
+tmp=!translate ";': to $     $ in $val20*$val17^$val24
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28=$(tmp0)
+tmp=!translate ";': to $     $ in $val21*$val17^$val25
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$(tmp0)
+tmp=!translate ";': to $     $ in $val22*$val17^$val26
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+tmp0=!rawmath ($val27+$val28)*($val29+$val30)
+
+val31=$(tmp0)
+t_=!replace internal \( by ( in expand($val31);
+tmp0=!exec maxima $t_
+
+val32=$(tmp0)
+tmp0=!texmath $val27
+
+val33=$(tmp0)
+tmp0=!texmath $val28
+
+val34=$(tmp0)
+tmp0=!texmath $val29
+
+val35=$(tmp0)
+tmp0=!texmath $val30
+
+val36=$(tmp0)
+val37=$val33,$val34,$val35,$val36
+tmp0=!texmath $val31
+
+val38=$(tmp0)
+val39=red,green,blue,gray
+tmp0=!shuffle $val39
+
+val39=$(tmp0)
+val40=\special{color=$(val39[1])}
+val41=\special{color=black}
+val42=\special{color=$(val39[2])}
+val43=\special{color=$(val39[3])}
+val44=\special{color=$(val39[4])}
+val45=()
+tmp0=!char 1 of $val45
+
+val46=$(tmp0)
+tmp0=!char 2 of $val45
+
+val47=$(tmp0)
+tmp0=!char 1 of $(val37[4])
+
+val48=$(tmp0)
+
+!ifval $val48=-
+val48=
+!else
+val48=+
+!endif
+tmp0=!char 1 of $(val37[2])
+
+val49=$(tmp0)
+
+!ifval $val49=-
+val49=
+!else
+val49=+
+!endif
+val50=($val40 $(val37[1]) $val42 $val49 $(val37[2]) $val41)($val43 $(val37[3]) $val44 $val48$(val37[4]) $val41)
+val45=$(val37[1])*($(val37[3])),$(val37[1])*($(val37[4])),$(val37[2])*($(val37[3])),$(val37[2])*($(val37[4])),$(val37[1])*($(val37[3]))+($(val37[1])*($(val37[4])))+($(val37[2])*($(val37[3])))+($(val37[2])*($(val37[4])))
+tmp0=!replace internal $val17 by *$val17 in $val45
+
+val45=$(tmp0)
+val51=
+!for val52 =1 to 4 
+tmp=!translate ";': to $     $ in $(val45[$val52])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val53=$(tmp0)
+tmp0=!append item $val53 to $val51
+
+val51=$(tmp0)
+!next
+t_=!replace internal \( by ( in $(val45[5]);
+tmp0=!exec maxima $t_
+
+val53=$(tmp0)
+val51=$val51,$val53
+val54=<td>\($val50)</td>	<td>=</td>	<td>\($val40$val46 $(val37[1]) $val47$val41\times $val43$val46 $(val37[3]) $val47) </td>	<td>+</td>	<td>\($val40$val46 $(val37[1]) $val47$val41 \times $val44$val46 $(val37[4]) $val47) </td>	<td>+</td>	<td>\($val42$val46 $(val37[2]) $val47$val41 \times $val43$val46 $(val37[3]) $val47) </td>	<td>+</td>	<td>\($val42$val46 $(val37[2]) $val47$val41 \times $val44$val46 $(val37[4]) $val47) </td>
+
+!ifval - isin $(val51[2])
+val55=($(val51[2]))
+!else
+val55=$(val51[2])
+!endif
+
+!ifval - isin $(val51[3])
+val56=($(val51[3]))
+!else
+val56=$(val51[3])
+!endif
+
+!ifval - isin $(val51[4])
+val57=($(val51[4]))
+!else
+val57=$(val51[4])
+!endif
+val58=<td></td>	<td>=</td>	<td> \($(val51[1]))</td>	<td>$val14</td>	<td> \($val55\) </td>	<td>+</td>	<td> \($val56\) </td>	<td>+</td>	<td> \($val57\) </td>	
+!if $val3=1 
+tmp=!trim r1,r2,r3,r4,r5,r7,r8	  r9,r10,r11,r12	  r13
+val59=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r13
+val59=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val59 
+nextstep=!nosubst $val59 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=$val6 1
+replygood1=$(val37[1]);$val37
+replytype2=clickfill
+replyname2=$val6 2
+replygood2=$(val37[3]);$val37
+replytype3=clickfill
+replyname3=$val6 3
+replygood3=$(val37[1]);$val37
+replytype4=clickfill
+replyname4=$val6 4
+replygood4=$(val37[4]);$val37
+replytype5=clickfill
+replyname5=$val6 5
+replygood5=$(val37[2]);$val37
+replytype6=clickfill
+replyname6=$val6 6
+replygood6=$(val37[3]);$val37
+replytype7=clickfill
+replyname7=$val6 7
+replygood7=$(val37[2]);$val37
+replytype8=clickfill
+replyname8=$val6 8
+replygood8=$(val37[4]);$val37
+replytype9=litexp
+replyoption9=polexpand 
+replyname9=$val6 9
+replygood9=$(val51[1])
+replytype10=litexp
+replyoption10=polexpand 
+replyname10=$val6 10
+replygood10=$(val51[2])
+replytype11=litexp
+replyoption11=polexpand 
+replyname11=$val6 11
+replygood11=$(val51[3])
+replytype12=litexp
+replyoption12=polexpand 
+replyname12=$val6 12
+replygood12=$(val51[4])
+replytype13=litexp
+replyoption13=polexpand 
+replyname13=\($val38)
+replygood13=$val32
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7 
+!insmath $val38
+$().	  <div class="spacer">	  
+!if $val3=1 
+$()	    $val8	    
+!if $m_step=1 
+$()	      <b>$val13 1 :</b> $(val10[1]),	      $(val10[2])	      
+!insmath (a+b)(c+d)=a c+a d+b c+b d
+$()	      $(val10[3]).	      <div class="wimscenter">	       
+!insmath $val50= $val40$val46
+$()  
+!read oef/embed.phtml r1,$val16 
+$() 
+!insmath $val40$val47$val41\times $val43$val46
+$()  
+!read oef/embed.phtml r2,$val16 
+$()	       
+!insmath $val43$val47$val41 + $val40$val46
+$()  
+!read oef/embed.phtml r3,$val16 
+$() 
+!insmath $val40$val47$val41 \times $val44$val46
+$()	        
+!read oef/embed.phtml r4,$val16 
+$() 
+!insmath $val44$val47$val41 + $val42$val46
+$()  
+!read oef/embed.phtml r5,$val16 
+$() 
+!insmath $val42$val47$val41 \times $val43$val46
+$()	        
+!read oef/embed.phtml r6,$val16 
+$() 
+!insmath $val43$val47$val41 + $val42$val46
+$()  
+!read oef/embed.phtml r7,$val16 
+$() 
+!insmath $val42$val47$val41 \times $val44$val46
+$()	        
+!read oef/embed.phtml r8,$val16 
+$() 
+!insmath $val44$val47
+$()	      </div>	      <div class="wims_instruction">$val9</div>	     
+!else
+$() 	      
+!if $m_step=2 
+$()	        <b>$val13 2 :</b> $val11.	        <table class="wimscenter wimsnoborder">	        <tr>$val54</tr>	        <tr>	        <td></td>	        <td>=</td>	        <td>  
+!read oef/embed.phtml r9,4*$val15 
+$()</td>	        <td>+</td>	        <td>  
+!read oef/embed.phtml r10,4*$val15 
+$() </td>	        <td>+</td>	        <td>  
+!read oef/embed.phtml r11,4*$val15 
+$() </td>	        <td>+</td>	        <td>  
+!read oef/embed.phtml r12,4*$val15 
+$() </td>	        </tr>	       
+!else
+$() 	        <b>$val13 3 :</b> $val12	        <table class="wimscenter wimsnoborder">	        <tr>$val54</tr>	        <tr>	        $val58	        </tr>	        <tr>	        <td></td>	        <td>=</td>	        <td colspan="7">  
+!read oef/embed.phtml r13,8*$val15 
+$() </td>	        </tr>	       
+!endif
+$()	      </table>	      </div>	     
+!endif
+$()	   
+!else
+$() 	    <div class="wimscenter">	    <label for="reply13">
+!insmath $val38 = 
+$()</label> 
+!read oef/embed.phtml r13,8*$val15 
+$().	  </div>	   
+!endif
+$()	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class="wims_scrollable"><table class="wimsnoborder">	<tr>$val54</tr>	<tr>$val58</tr>	<tr>	   <td></td>	   <td>=</td>	   <td colspan="7"> 
+!insmath $(val51[5])
+$()</td>	</tr>	</table></div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,7,8,9,10,11,12,13,15,16,38,40,41,42,43,44,46,47,50,51,54,58
+embedcnt=14

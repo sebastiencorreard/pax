@@ -1,0 +1,52 @@
+n=$counter
+mathview=0
+inputs=$options
+embed=0
+make_tr=1
+questiontype=0
+checkfile=exos/precheck1.proc
+#$checkdir/new_number.proc
+helptext=Als er geen grondtal wordt vermeld...veronderstellen we grondtal 10<br />log(a) == <sup>10</sup>log(a)
+ss=Schrijf de volgende getallen als een macht met het gegeven grondtal.<br />Geef de exponent in het gewenste aantal significante cijfers
+grondtallen=!shuffle 2,3,4,5,6,7,8,9,2,3
+factors=!shuffle 350,300,250,200,100,75,50,20,10,5
+texanswer$n=\left[ \begin{array}{llllllllll} 
+var2=$empty
+var1=$empty
+!for p=1 to $options
+    sig=!randint 2,5
+    g=!item $p of $grondtallen
+    getal=!randint 11,99
+    f=!item $p of $factors
+    k=!randint 0,1
+    !if $k=0
+	getal=$[$getal/$f]
+    !else
+	getal=$[$getal*$f]
+    !endif
+    ex$p=(in <b>$sig</b> significante cijfers)
+    description=!append item $p) Schrijf <b>$getal</b> als macht met grondtal <b>$g</b> to $description
+    tt=$[log($getal)/log(10)]
+    nn=$[log($g)/log(10)]
+    exp=$[$tt/$nn]
+    tot=!exec scienceprint $exp,$sig,0 $exp,$sig,2
+    answer$n=!append line $g^($(tot[1])) to $(answer$n)
+    exp3=$(tot[2])
+    texanswer$n=!append word $ $p) & ^{$g} \log \left( $getal \right) & = & \frac{ \log \left( $getal \right) }{\log \left( $g \right) } & \approx & \frac{$tt}{$nn} & \approx & $exp \; \textrm{In $sig significante cijfers :} \; $exp3 & \rightarrow & $getal = $g^{$exp3} \\ $ to $(texanswer$n)
+    var1=!append item $[round(abs($g^($exp) - $g^($(tot[1]))))] to $var1
+
+!next p
+texanswer$n=!append word $ \end{array} \right. $ to $(texanswer$n)
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/hfst2.s131.jpg\' alt=\'logaritme\' />')">$ss</a>
+
+# help ^{a}\log(b) = \frac{\log(b)}{\log(a)} \rightarrow b = a^{^{a}\log(b)}
+
+
+
+
+
+
+
+
+

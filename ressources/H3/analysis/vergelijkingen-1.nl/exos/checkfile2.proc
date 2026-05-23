@@ -1,0 +1,329 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+# aantal pijlen
+!set n=$counter
+!set wims_compare_precision=10000
+
+leeg=!wordcnt $(reply$n)
+!if $leeg = 0
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+!if $leeg >25
+    maxscore=$[$P1*$maxscore]
+    errortext=!record 48 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+AAA=!lower $(reply$n)
+wims_rawmath_variables=$varlist
+AAA=!nospace $AAA
+!for p in $varlist
+    !if $p notin $AAA
+	testvar=$p 
+	maxscore=$[$P2*$maxscore]
+	errortext=!record 27 of lang/remarks.$taal
+	#@Je bent de variabele $p vergeten...
+	goback=1
+	!exit
+    !endif
+!next p   
+
+pijlen=->,-->,<->,<-->,=>,==>,<=>,<==>,thus,so,dus,ergo,geldt,alors
+# test op pijlen -> => etc etc
+test=$AAA
+!for p in $pijlen
+    test=!replace internal $p by @ in $test
+!next p
+t=!positionof char @ in $test
+pijlcnt=!itemcnt $t
+!if $pijlcnt <1
+    errortext=!record 28 of lang/remarks.$taal
+    #@Het is de bedoeling dat je in elkgeval 1 tussenstap produceerd...<br />en wel de belangrijkste stap: het "nul" maken van de vergelijking
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!endif
+!if $pijlcnt > $var1
+    errortext=!record 29 of lang/remarks.$taal
+    #@Nou nou ,het mag wel wat korter/bondiger
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!endif
+
+AAA=!replace internal @ by , in $test
+!for p=1 to 4
+    AAA=!replace internal ,, by , in $AAA
+!next p
+# testen op -> x=5-2-->x=3--> wordt ,x=5-1,x=3,
+test=!char 1 of $AAA
+!if $test=,
+    AAA=!char 2 to -1 of $AAA
+!endif
+test=!char -1 of $AAA
+!if $test=,
+    AAA=!char 1 to -2 of $AAA
+!endif
+!for p in $varlist
+    X=!upper $p
+    AAA=!replace internal $p by $X in $AAA
+!next p
+!for p in sqrt,sin,cos,tan,abs
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+
+AAA=!replace [a-z\~\!\@\>\<\#\$\%\&\_\;] by $empty in $AAA
+AAA=!lower $AAA
+leeg=!wordcnt $AAA
+!if $leeg=0
+    errortext=!record 33 of lang/remarks.$taal
+    goback=1
+    maxscore=$[$P4*$maxscore]
+    !exit
+!endif
+    
+eindantwoord=!item -1 of $AAA
+# dus het eindantwoord is x=1 en x2=-1 enz
+AAA=!item 1 to -2 of $AAA
+num_steps=!itemcnt $AAA
+!if $num_steps < 1
+    maxscore=$[$P2*$maxscore]
+    errortext=!record 33 of lang/remarks.$taal
+    goback=1
+    !exit
+!else
+    !if $num_steps > $var1
+	maxscore=$[$P2*$maxscore]
+	errortext=!record 30 of lang/remarks.$taal
+	#@Je gebruikt wel erg veel tussenstappen...
+	goback=1
+	!exit
+    !endif
+!endif
+
+!for p in $varlist
+    eindantwoord=!replace $p[_0-9]*= by @ in $eindantwoord
+!next p
+
+!if @ notin $eindantwoord
+    errortext=!record 31 of lang/remarks.$taal
+    #@ik verwacht natuurlijk wel een (eind)antwoord als <b>x1=2 en x2=4</b>
+    maxscore=$[$P5*$maxscore]
+    goback=1
+    !exit
+!endif
+
+eindantwoord=!replace internal @ by , in $eindantwoord
+eindantwoord=!replace internal ,, by , in $eindantwoord
+c=!char 1 of $eindantwoord
+!if $c=,
+    eindantwoord=!char 2 to -1 of $eindantwoord
+!endif
+c=!char -1 of $eindantwoord
+!if $c=,
+    eindantwoord=!char 1 to -2 of $eindantwoord
+!endif
+ss=!itemcnt $eindantwoord
+!if $ss=0
+    errortext=!record 31 of lang/remarks.$taal
+    #@ik verwacht natuurlijk wel een (eind)antwoord als <b>x1=2 en x2=4</b>
+    maxscore=$[$P5*$maxscore]
+    goback=1
+    !exit
+!endif
+
+roots=!itemcnt $(answer$n)
+straf=1
+!if $roots != $ss
+    testvar1=$roots
+    testvar2=$ss
+    extra=!record 65 of $remarkdir/commonremarks.$taal
+    #@Het aantal wortels is: $testvar1<br /> en niet zoals in jouw antwoord: $testvar2 
+    !if $roots > $ss
+	straf=$[$ss/$roots]
+    !else
+	straf=$[$roots/$ss]
+    !endif
+!endif
+score1=0
+t=0
+!if $rounding<1
+    rounding=100000
+!endif
+!for p in $(answer$n)
+    !increase t
+    # letop: ronde antwoorden !!!!! dit is niet goed genoeg...eigenlijk moet dit via pari
+    klaar=0
+    !for s in $eindantwoord
+	!if $klaar=0
+	    !if NaN isin $[1*($s)]
+		errortext=!record 26 of $remarkdir/commonremarks.$taal
+		goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit
+	    !endif
+	    !ifval $[(round($rounding*$s))/$rounding] = $[(round($rounding*$p))/$rounding] 
+		!increase score1
+		klaar=1
+	    !endif
+	!endif
+    !next s
+!next p
+score1=$[$straf*$score1/$t]
+herleid=0
+rem=$empty
+check=0
+duplicate=0
+old=@
+# num_steps is het num_steps stappen (pijlen) in't leerling antwoord
+!for p=1 to $num_steps
+    org=!item $p of $AAA
+    !if $org=$old
+	!increase duplicate
+    !endif
+    # is-teken ??
+    # AAA= x^2-2x-63=0,(x-9)(x+7)=0
+    i=!replace internal = by , in $org
+    tst=!itemcnt $i
+    !if $tst !=2
+	errortext=!record 33 of lang/remarks.$taal
+	#@Je hebt de schrijfwijze niet helemaal begrepen, geloof ik<br />Kijk even in de "mouse_tooltip" of in de help-pagina
+	goback=1
+	!if $teaching=1
+	    maxscore=$[$maxscore*$P3]
+	!else
+	    maxscore=$[$maxscore*$P6]
+	!endif
+	!exit
+    !endif
+    i1=!item 1 of $i
+    i2=!item 2 of $i
+    !if $i2 = 0
+	i1=!rawmath $i1
+	!for s in $(answer$n)
+	    ck=!replace internal x by ($s) in $i1
+	    #ck=!evalsubst x=$s in $i1
+	    ck=$[(round(100*($ck)))/100]
+	    !if NaN isin $ck
+		errortext=!record 26 of $remarkdir/commonremarks.$taal
+		goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit
+	    !endif
+	    !ifval $ck=0
+		!increase check
+	    !endif
+	!next s
+	!increase herleid
+    !else
+	!if $i1 = 0
+	    i2=!rawmath $i2
+	    !for s in $(answer$n)
+		ck=!replace internal x by ($s) in $i2
+		!if NaN isin $ck
+		    errortext=!record 26 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    maxscore=$[$P3*$maxscore]
+		    !exit
+		!endif
+		#ck=!evalsubst x=$s in $i1
+		ck=$[(round(100*($ck)))/100]
+		!ifval $ck=0
+		    !increase check
+		!endif
+	    !next s
+	    !increase herleid
+	!else
+	    i=!rawmath ($i1) - ($i2)
+	    !for s in $(answer$n)
+		ck=!replace internal x by ($s) in $i
+		!if NaN isin $ck
+		    errortext=!record 26 of $remarkdir/commonremarks.$taal
+		    goback=1
+		    maxscore=$[$P3*$maxscore]
+		    !exit
+		!endif
+		#ck=!evalsubst x=$s in $i1
+		ck=$[(round(100*($ck)))/100]
+		!ifval $ck=0
+		    !increase check
+		!endif
+	    !next s
+	!endif
+    !endif
+    old=$org
+!next p
+
+# ss=!itemcnt $eindantwoord
+score2=$[$check/($straf*$ss*$num_steps)]
+
+!if $duplicate !=0
+    ex=!record 39 of lang/remarks.$taal
+    extra=$extra $ex
+!endif
+
+!if $herleid=0
+    errortext=!record 33 of lang/remarks.$taal
+    #@Je hebt de schrijfwijze niet helemaal begrepen, geloof ik<br />Kijk even in de "mouse_tooltip" of in de help-pagina
+    goback=1
+    !if $teaching=1
+	maxscore=$[$maxscore*$P3]
+    !else
+	maxscore=$[$maxscore*$P6]
+    !endif
+ !exit
+!endif
+
+!if $herleid>2 and $score2>0
+    ex=!record 34 of lang/remarks.$taal
+    #@en zelfs $steps tussenstappen....<br />
+    extra=$extra $ex
+!endif
+
+!if $score2 >0 and $score2<1
+    ex=!record 35 of lang/remarks.$taal
+    #@je hebt een tiep-foutje? gemaakt in je redenering...<br />
+    extra=$extra $ex
+!endif
+
+!if $score1 >0 and $score1<1
+    ex=!record 36 of lang/remarks.$taal
+    #@je hebt niet alle eindantwoorden goed...<br />
+    extra=$extra $ex
+!endif
+
+# wortels 75% van't cijfer...herleiding 25%
+maxscore=$[$maxscore*($score1 + $score2)/2]
+
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+
+!exit

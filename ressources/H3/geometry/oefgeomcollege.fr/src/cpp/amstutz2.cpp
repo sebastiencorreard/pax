@@ -1,0 +1,103 @@
+target=amstutz2
+
+
+\author{Jérome, Amstutz}
+\email{jeromeamstutz@yahoo.fr}
+#include "author.inc"
+#include "lang_color.inc"
+
+\text{p=randitem(1,2,3,4)}
+\text{size=200}
+\real{a=randint(1..50)}
+\text{k=-1}
+\text{ce=black,grey,green,blue}
+
+\text{num=shuffle(4)}
+\text{ce=item(\num,\ce)}
+\text{cf=item(\num,\cf)}
+\text{dilatation=150}
+\text{b=randint(100..150)}
+
+
+Point permettant de tracer deux droites perpendiculaires.
+\text{x1=-50}
+\real{y1=\a*\x1}
+\text{x2=\size}
+\text{y2=simplify(\a*\x2)}
+\real{x3=-50}
+\real{y3=((-1/\a)*\x3)+\b}
+\real{x4=\size}
+\real{y4=((-1/\a)*\x4) +\b}
+
+Codage de l'angle droit.
+\real{xi=(\a*(\b -10))/(1+(\a*\a))}
+\real{yi=(\a*\a*(\b -10))/(1+(\a*\a))}
+\real{x5=0}
+\real{y5=\b -10}
+\real{x6=\size}
+\real{y6=((-1/\a)*\x4) +\b -10}
+\real{xc1=\xi +10}
+\real{yc1=((-1/\a)*\xc1) +\b -10}
+\real{b1=\yc1-(\a*\xc1)}
+\real{xc2=((\a*\b)-(\a*\b1))/((\a*\a)+1)}
+\real{yc2=(\b1-\b)/((\a*\a)+1) +\b}
+
+#include "lang_amstutz2.inc"
+\title{TITLE}
+\title_en{TITLE_en}
+\if{\p=1}{
+\real{x7=-50}
+\real{y7=(\a*\x7)+\a*-\dilatation}
+\text{x8=\size}
+\real{y8=(\a*\x8)-(\a*\dilatation)}
+\text{bn=\name_prop[2]}
+\text{mp=\name_prop[1]}
+\text{en=\name_instruction1 ?}
+}
+{
+  \if{\p=2}{
+  \real{x7=-50}
+  \real{y7=((-1/\a)*\x7)+20+\a}
+  \real{x8=\size}
+  \real{y8=((-1/\a)*\x8) +\a+20}
+  \text{bn=\name_prop[2]}
+  \text{mp=\name_prop[1]}
+  \text{en=\name_instruction2 ?}
+  }
+  {
+    \if{\p>2}{
+    \text{c=150}
+    \real{x7=-50}
+    \real{y7=20+\a}
+    \real{x8=\size}
+    \real{y8=((\a/\c)*\x8) +\a+20}
+    \text{bn=\name_prop[3]}
+    \text{mp=\name_prop[1],\name_prop[2]}
+    \text{en=\name_instruction3 ?}
+    }
+  }
+}
+
+
+\text{droites=
+segment \x1,\y1,\x2,\y2,\ce[1]
+segment \x3,\y3,\x4,\y4,\ce[2]
+segment \x7,\y7,\x8,\y8,\ce[3]
+segment \xi,\yi,\xc1,\yc1,red
+segment \xc1,\yc1,\xc2,\yc2,red
+}
+
+\text{dessin=draw(\size+50,\size
+range -50,\size,0,\size
+linewidth 2
+\droites)}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\dessin" alt=""></div>
+ <div class="medium_size text_col">
+\en
+</div></div>
+}
+
+\choice{}{\bn}{\mp}

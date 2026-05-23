@@ -1,0 +1,127 @@
+!set title=Grafiek -> x gegeven f(x)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint ($val7+1), 5
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in $val8/$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+val10=$[rint(5*$val9*50+250)]
+val11=$[rint(-5*$val9*50+250)]
+tmp0=!record 1 of src/graph.don
+
+val12=$(tmp0)
+val12=$val12	line 0,$val10,500,$val11,red
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 4
+
+val13=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in $val13/($val9)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$[rint($(tmp0)*10)]
+val14=$[$val14/10]
+!if $val14>0 
+val15=text green,220,-($val13*50)+245,medium,$val13
+!else
+val15=text green,255,-($val13*50)+245,medium,$val13
+!endif
+!if $val13>0 
+val16=text green,245+50*($val14),260,medium,$val14
+!else
+val16=text green,245+50*($val14),230,medium,$val14
+!endif
+val17=$val12	arrow 250,-($val13*50)+250,250+50*($val14),-($val13*50)+250,10,green	$val16	arrow 250+50*($val14),-($val13*50)+250,250+50*($val14),250,10,green	$val15
+replyname1=Antwoord
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()De grafiek van lineaire functie $val6 is als volgt:	<center>	 
+!read oef/draw.phtml 500,500 \
+$val12 
+$()	</center>	Los x op uit $val6(x)=$val13?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Het getal x met  $val6(x)=$val13 is, per 	definitie, <b>het x-coordinaat</b> van het punt op de lijn waarvan het 	y-coordinaat $val13 is.<p>	Vind dus het punt op de lijn met y-coordinaat $val13 en lees het 	x-coordinaat af.	<center>	 
+!read oef/draw.phtml 500,500 \
+$val17 
+$()	</center>
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,17
+embedcnt=0

@@ -1,0 +1,143 @@
+# tabel en lijn [HTML5]
+n=$counter
+applet=1
+# object$n === HTML5 applet
+make_tr=0
+inputs=-1
+mathview=0
+checkfile=exos/checkfile5.proc
+math=0
+image=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $options<4 or $options>8
+    options=5
+!endif
+sometext=!record 40 of lang/remarks.$taal
+#@uitkomst:getal,bedrag:tijd,afstand:tijd,hoogte:tijd
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+ylabel=!item 1 of $ding
+xlabel=!item 2 of $ding
+keuze=!randitem 1,0
+var8=$empty
+var7=$empty
+!if $R=1
+    c=!randint 1,9
+    const=1
+    a=1
+    !if $keuze=1
+	pm=+
+	start=0
+    !else
+	pm=-
+	start=$c
+    !endif
+    formule=!mathmlmath \begin{array}{l} \textrm{ $ylabel } \,=\, \textrm{ $xlabel } $pm $c  \end{array}
+    func=!rawmath $a*x $pm $c
+!else
+    !if $R=2
+	const=1
+	a=!randint 2,9
+	start=0
+	formule=!mathmlmath \begin{array}{l} \textrm{ $ylabel } \,=\, $a \times \textrm{ $xlabel }  \end{array}
+	func=!rawmath $a*x
+    !else
+	!if $R=3
+	    const=1
+	    a=!randint 2,9
+	    c=!randint 1,5
+	    !if $keuze=1
+	        pm=+
+	        start=0
+	    !else
+	        pm=-
+	        start=$c
+	    !endif
+	    formule=!mathmlmath \begin{array}{l} \textrm{ $ylabel } \,=\, $a \times \textrm{ $xlabel } $pm $c  \end{array}
+	    func=!rawmath $a*x $pm $c
+	!else
+	    const=1
+	    a=!randint 2,7
+	    pm=!randitem +,-
+	    y=y
+	    x=x
+	    !if $keuze=1
+		c=!randint 1,5
+	        start=0
+		formule=!mathmlmath \begin{array}{l} \textrm{ y } \,=\, $a \cdot \textrm{ x } $pm $c  \end{array}
+		func=!rawmath $a*x $pm $c
+	    !else
+		c=!randint 5,15
+	        start=0
+		formule=!mathmlmath \begin{array}{l} \textrm{ y } \,=\, $c - $a \cdot \textrm{ x }  \end{array}
+		func=!rawmath $c - $a*x
+            !endif
+	!endif
+    !endif
+!endif
+
+header=<th>$xlabel</th>
+body=<th>$ylabel</th>
+answer_body=<th>$ylabel</th>
+answer$n=!nospace $func
+i=0
+xmin=$[$start-2]
+!if $xmin > -2
+    xmin=-2
+!endif
+!for p=1 to $options
+    ans=!evalsubst x=$start in $func
+    var7=!append item $start to $var7
+    var8=!append item $ans to $var8
+    header=!append word $ <td>$start</td> $ to $header
+    answer_body=!append word <td><input type="text" class="schaersvoorde_input" size="2" id="myinput$i" value="$ans" readonly="readonly"/></td> $ to $answer_body
+    body=!append word <td><input type="text" class="schaersvoorde_input" size="4" id="myinput$i" value="" /></td> $ to $body
+    start=$[$start + $const]
+    !increase i
+!next p
+xmax=$[$start+2]
+ymin=!evalsubst x=$xmin in $func
+ymax=!evalsubst x=$xmax in $func
+
+!if $ymin > $ymax
+    tmp=$ymax
+    ymax=$ymin
+    ymin=$tmp
+!endif
+!if $ymin > -2
+    ymin=-2
+!endif
+
+exotext=<table class="demospecial"><caption>$formule</caption><tr>$header</tr><tr>$body</tr></table>
+textanswer$n=<table class="demospecial"><caption>$formule</caption><tr>$header</tr><tr>$answer_body</tr></table>
+
+helptext=<img src=\'$module_dir/gifs/exo10.$taal.jpg\' alt=\'noalt\' />
+
+question$n=!record 44 of lang/remarks.$taal
+#@Vul de tabel in bij de formule en teken de lijn in de GeoGebra applet.<br />
+var9=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+opacity 180,180\
+precision 100\
+xlabel $xlabel\
+ylabel $ylabel\
+axis\
+axisnumbering\
+grid 2,2,grey,2,2,5,blue\
+mathml $[$xmax/2],$ymax,$xmax,$ymin,$formule
+
+object$n=!exec canvasdraw\
+$var9\
+replyformat 21\
+userdraw line,red\
+zoom black\
+mouse red,22
+
+
+!exit
+

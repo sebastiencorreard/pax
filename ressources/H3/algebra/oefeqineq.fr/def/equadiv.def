@@ -1,0 +1,188 @@
+!set title=Équation avec division
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul-marcel-rog.byache@ac-aix-marseille.fr
+language=fr
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Voici une équation, Quelle doit être la valeur de,	  pour que l'égalité soit vraie
+val7=$[rint(4)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!item 3 of $val9
+
+val11=$(tmp0)
+!if $val10= 
+tmp0=!item 1 of $val9
+
+val12=$(tmp0)
+tmp0=!item 2 of $val9
+
+val13=$(tmp0)
+!if $val11<0 
+tmp0=!values $val11*v,-($val11)*v for v=$val12 to $val13
+
+val14=$(tmp0)
+!else
+tmp0=!values $val11*v for v=$val12 to $val13
+
+val14=$(tmp0)
+!endif
+!else
+val14=$val10
+!if $val11<0 
+tmp0=!replace internal , by ,- in $val14
+
+val15=$(tmp0)
+tmp0=!listunion $val14 and $val15
+
+val14=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val14
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val12=$(tmp0)
+tmp0=!item 2 of $val14
+
+val13=$(tmp0)
+tmp0=!randitem x,y,z,a,b
+
+val16=$(tmp0)
+!if $val2>4 
+val17=$[rint(($val12)*100)]
+val18=$[rint(($val13)*100)]
+val19=$[rint($val17*$val18)]
+!readproc slib/decimal $val19,4 
+tmp0=$slib_out
+val11=$(tmp0)
+!else
+tmp=!translate ";': to $     $ in ($val12)*($val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+!endif
+tmp=!trim $val12,$val13,$val11
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items 2,3
+
+tmp0=!randitem $tmp
+val20=$[rint($(tmp0))]
+val21=$(val9[$val20])
+t_=!replace internal \( by ( in A = Mat([$val9]); A[1,$val20]=$val16; A
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!texmath $(val10[3])
+
+tmp1=!texmath $(val10[2])
+
+tmp2=!texmath $(val10[1])
+
+val22=\frac{$(tmp0)}{$(tmp1)} = $(tmp2)
+replytype1=numexp
+replyname1=
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val6[1]) 
+!insmath $val22
+$(). $(val6[2]) 
+!insmath $val16
+$()	<label for="reply1">$(val6[3])</label> ?  
+!read oef/embed.phtml r1,5 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,16,22
+embedcnt=1

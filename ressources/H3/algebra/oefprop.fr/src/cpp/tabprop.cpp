@@ -1,0 +1,46 @@
+target=tabprop
+\language{fr}
+\range{-5..5}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\integer{prop= randint(2..9)}
+\text{T=shuffle(1,2,3,4,5,6,7,8,9)}
+\integer{a=\T[1]}
+\integer{b=\T[2]}
+\integer{c=\T[3]}
+\integer{d=\T[4]}
+\integer{e=\T[5]}
+\integer{f=\T[6]}
+\integer{aa=\a*\prop}
+\integer{bb=\b*\prop}
+\integer{cc=\c*\prop}
+\integer{dd=\d*\prop}
+\integer{ee=\e*\prop}
+\integer{ff=\f*\prop}
+\text{choix=random(1,2)}
+\text{prem=item(\choix,\premsec)}
+\text{sec=item(3-\choix,\premsec)}
+\text{pr=\choix=1 ? \prop:1/\prop}
+\statement{\name_question:
+<table class="wimscenter wimsborder">
+<tr><td>\a</td><td>\b</td><td>\c</td>
+<td>\embed{reply 1,6}</td><td>\embed{reply 2,6}</td><td>\f</td>
+</tr><tr>
+<td>\aa</td><td>\bb</td><td>\embed{reply 3,6}</td>
+<td>\dd</td><td>\ee</td><td>\embed{reply 4,6}</td>
+</tr>
+</table>
+<div><label for="reply5">
+\name_question2[1] \prem \name_question2[2] \sec \name_question2[3]</label>
+\embed{reply 5,6}.</div>
+}
+\answer{}{\d}{type=numeric}
+\answer{}{\e}{type=numeric}
+\answer{}{\cc}{type=numeric}
+\answer{}{\ff}{type=numeric}
+\answer{}{\pr}{type=numexp}

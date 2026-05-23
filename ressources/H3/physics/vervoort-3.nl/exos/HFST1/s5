@@ -1,0 +1,75 @@
+n=$counter
+math=0
+embed=0
+cols=18
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+#checkfile=$checkdir/new_number.proc
+science_calc=$empty
+science_html=$empty
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+smtxt=$empty
+!if $options<2
+    options=2
+!endif
+inputs=$options
+k=!randint 0,1
+description=$empty
+!for p=1 to $options
+    !if $k=1
+	k=0
+	p1=!randint 3,6
+	m1=!randint 100,10^$p1
+	m2=!randint 1,999
+	nullen=!randitem 00,000,0000,00000
+	m2=$m2$nullen
+    !else
+	k=1
+	m1=0
+	m2=!randint 101,999
+	nullen=!randitem 00,000,0000,00000
+	m2=$nullen$m2
+    !endif
+    in=!nospace $m1 . $m2
+    description=!append item $in to $description
+    sigdigits_calc=!append word $in to $sigdigits_calc
+!next p
+# calculate real significance of generated numbers
+tot=!exec sigdigits $sigdigits_calc
+
+!for p=1 to $options
+    c=!line $p of $tot
+    sig=!item 1 of $c
+    signi=!item $sig of $telwoorden
+    !if $sig=1
+	smtxt$p=$(description[$p]) heeft <b>$signi</b> significant cijfer
+    !else
+	smtxt$p=$(description[$p]) heeft <b>$signi</b> significante cijfers
+    !endif
+    # rewrite $(inputtext$p) with real amount significant digits
+    science_calc=!append word $(description[$p]),$sig,0 to $science_calc
+    science_html=!append word $(description[$p]),$sig,1 to $science_html
+!next p
+
+total=!exec scienceprint $science_calc $science_html
+textanswer$n=<ol>
+!for p=1 to $options
+    h=$[$p+$options]
+    answer$n=!append item $(total[$p]) to $(answer$n)
+    textanswer$n=!append line $ <li><span style="color:green">$(description[$p]) = $(total[$h])</span><br />[<em>$(smtxt$p)</em>]</li> $ to $(textanswer$n)
+!next p
+
+textanswer$n=!append line $ </ol> $ to $(textanswer$n) 
+
+ss=Schrijf de onderstaande getallen in de wetenschappelijke notatie<br />en met <b>dezelfde significantie</b>.
+
+helptext=Regels voor significante cijfers :<ul><li>Deze regels zijn alleen van interesse bij resultaten uit experimenten, waarbij dus meetnauwkeurigheid een rol speelt.</li><li>Nullen voor de cijfers 1 - 9 zijn nooit significant.<br />bijv.: 0.0000000082 alleen de &rsquo;8&rsquo; en de &rsquo;2&rsquo; zijn significante cijfers </li><li>Eindstandige nullen in decimale getallen zijn significant: 1.1000 [5 sig. cijfers]</li><li>Eindstandige nullen in niet-decimale getallen zijn niet eenduidig zonder verder beschrijving. Bijvoorbeeld: voor 3500 kan natuurlijk gelden <br />2499 &le; meting &le; 3501<br />3400 &le; meting &le; 3600<br />Geef daarom de voorkeur aan SCI notatie: 3.500&times;10<sup>3</sup> is wel eenduidig.</li><li>Alle andere cijfers zijn altijd significant</li></ul><hr /><ul><li>Bij berekeningen: altijd rekenen tot het eindantwoord met onafgeronde getallen.</li><li>Bij vermenigvuldiging en deling wordt het resultaat uitgedrukt in het laagste aantal significante cijfers van de gebruikte getallen.<br />Bijvoorbeeld:<br />A = 2 &times; &pi; &times; R &amp; R = 12.3 : A = 2 &times; 3.1415... &times; 12.3 = 77.28317...<br />A = 77.3 : We moeten dit getal uitdrukken in 3 significante cijfers, afkomstig van R.<br />De factor 2 is een wiskundig factor zonder invloed op significantie.<br />De factor &pi; is eveneens een wiskundig factor zonder invloed op significantie.</li><li>Bij optellen en aftrekken kan als vuistregel het aantal significante cijfers uit het getal met het laagste aantal decimalen worden genomen.<br />Bijvoorbeeld : 100.0 + 1.123456789 = 101.1 </li></ul>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+

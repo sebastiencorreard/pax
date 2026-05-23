@@ -1,0 +1,116 @@
+!set title=Calcul d'expression
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrielle, Danel; Antoine, Rousseau;Marie-Claude,David
+email=Marie-Claude.David@math.u-psud.fr
+language=fr
+
+ansorder=r
+varcnt=8
+prevarcnt=7
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 10
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val7=$[rint($(tmp0))]
+val8=x² + $val6 x + $val7
+tmp0=!randitem 2,3,5,7,11,13,17,19
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 10
+
+val10=$[rint($(tmp0))]
+val11=$val10\sqrt{$val9}
+tmp=!translate ";': to $     $ in $val10*$val10*$val9+$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val6*$val10
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val12=$(tmp0)+$(tmp1)*sqrt($val9)
+replytype1=formal
+replyname1=A
+replygood1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calculer 
+!insmath A=$val8
+$() pour 
+!insmath x=$val11
+$().	<div class="wimscenter"> A =  
+!read oef/embed.phtml r1,15 
+$()</div>	<div class="wims_instruction">	Pour entrer "racine carrée de x", écrire	<span class="tt">sqrt(x)</span>.</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1 
+ <div class='oef_feedbacks'>La valeur de 
+!insmath $val8
+$() pour 
+!insmath x=$val11
+$() est 
+!insmath $val12
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,11,12
+embedcnt=1

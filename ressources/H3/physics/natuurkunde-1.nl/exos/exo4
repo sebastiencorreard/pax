@@ -1,0 +1,120 @@
+n=$counter
+R=1
+mathview=0
+# var1 is voor myzirkel.phtml en geeft appletparams !!
+# var2 is type antwoord point line circle,point etc
+questiontype=5
+#myname=$wims_nowseconds.zir
+#!filewrite getfile/$myname $data
+#<param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname" />\
+
+g=!randint 10,200
+num=$[$g/100]
+
+question$n=Gegeven het onderstaande verband tussen afgelegde weg<br />en de daarvoor benodigde tijd van een eenparig bewegend object.<br /><br />
+
+rounding=100
+answer$n=$empty
+inputs=-1
+xsize=400
+ysize=400
+math=0
+helptext=$empty
+!if $R=1
+    # type=1 ; teken punten
+    checkfile=exos/checkfile1.proc
+    tools=<param name="tools" value="point move undo" />
+    !if $R=1
+	formula$n=x\left(t\right)\,=\, $num \cdot t
+        fun1=$num*x
+        fun2=x/$num
+    !else
+	const=!randint 10,100
+        const=$[$const/10]
+	pm=!randitem +,-
+        formula$n=x\left(t\right)\,=\, $num \cdot t $pm $const
+        fun1=$num*x $pm $const
+	fun2=x/$num $pm $const
+    !endif	
+    
+    tablebody=$empty
+    answerbody=$empty
+    punten=!randint 3,5
+    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+    aantal=!item $punten of $telwoorden
+    helptext=Zie ook de help-pagina<br />Handig is :<br />teken gewoon $aantal willekeurige punten in de applet<br />En verander dan -via rechtermuisknop- de X en Y-waarden...<br />Met de rechtermuisknop op het venster<br />kun het assenstelsel verschuiven.<br />Met + of &minus; of scrollwiel hun je in/uit-zoomen.
+    XT=$empty
+    T=$empty
+    !for p=1 to $[3*$punten]
+	y=!randint 10,100
+        y=$[$y/10]
+        XT=!append item $y to $XT
+        x=!randint 10,100
+        x=$[$x/10]
+        T=!append item $x to $T
+    !next p
+    
+    XT=!sort numeric item $XT
+    T=!sort numeric item $XT
+    keuze=!randitem 0,1
+    !for p=1 to $punten
+	!if $keuze=1
+	    keuze=0
+	    y=!item $p of $XT
+	    t=!replace internal x by $y in $fun2
+	    t=$[$t]
+	    tablebody=!append word <tr><td>$y meter</td><td>&minus;</td></tr> to $tablebody
+	    answerbody=!append word <tr><td>$y meter</td><td>$[(round($rounding*$t))/$rounding] seconden</td></tr> to $answerbody
+	!else
+	    keuze=1
+	    t=!item $p of $T
+	    y=!replace internal x by $t in $fun1
+	    y=$[$y]
+	    tablebody=!append word <tr><td>&minus;</td><td>$t seconden</td></tr> to $tablebody
+	    answerbody=!append word <tr><td>$[(round($rounding*$y))/$rounding] meter</td><td>$t seconden</td></tr> to $answerbody
+	!endif
+	answer$n=!append line $t,$y to $(answer$n)
+    !next p
+    
+    table=<table class="grid_table"><tr><th>afgelegde weg</th><th>tijd</th></tr>$tablehead $tablebody </table>
+    textanswer$n=<table class="grid_table"><tr><th>afgelegde weg</th><th>tijd</th></tr>$tablehead $answerbody </table>
+    !if $wims_user!=supervisor
+	table=$(textanswer$n)
+    !endif
+    exotext=<br />Teken de volgende $aantal punten in de applet.$table
+!else
+    # teken lijn
+    # rekening houden met equation.proc als checkfile...
+    arglist=y
+    # f(x) x(t)
+    varlist=x
+    
+    checkfile=exos/checkfile2.proc
+    tools=<param name="tools" value="function line move undo" />
+    !if $R=1
+	formula$n=x\left(t\right)\,=\, $num \cdot t
+        answer$n=$num*x
+    !else
+	const=!randint 10,100
+        const=$[$const/10]
+	pm=!randitem +,-
+        formula$n=x\left(t\right)\,=\, $num \cdot t $pm $const
+        answer$n=$num*x $pm $const
+    !endif
+    exotext=<br />Teken dit verband in de applet.
+!else
+    
+list_of_things=$empty
+#list_of_things=["line,l1","point,p1,p2"]
+#object$n=<object id="zirkel" codebase="java/zirkel" archive="zirkel.jar" code="rene.zirkel.ZirkelApplet.class" WIDTH="$xsize" HEIGHT="$ysize" ALIGN="CENTER">\
+
+var1=<param name="color" value="255,255,255" /><param name="x_axis_text" value="t in seconden &#8594;" /><param name="y_axis_text" value="x(t) in meters&#8593;" /><param name="grid" value="true" /><param name="snap" value="false" /><param name="y_axis_text_vertical" value="false" /><param name="minfontsize" value="14" /><param name="decimals" value="6" /><param name="editdigits" value="6" /><param name="displaydigits" value="6" /> $tools <param name="options" value="back zoom" /><param name="style" value="full" />
+
+#<param name="style" value="full" />
+#<param name="options" value="back delete" />\
+#<param name="tools" value="move undo point segment line" />\
+#<param name="grid" value="true" />\
+#<param name="editdigits" value="2" />
+#<param name="displaydigits" value="2" />
+#<param name="grid" value="true" />\
+#<param name="snap" value="false" />\

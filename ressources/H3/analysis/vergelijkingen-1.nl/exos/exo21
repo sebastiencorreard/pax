@@ -1,0 +1,55 @@
+mathview=5
+rounding=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+checkfile=$checkdir/equation.proc
+arglist=y,f(x)
+math=0
+varlist=x
+#varcnt=1
+n=$counter
+embed=1
+cols=25
+rows=2
+xt=!randint -5,5
+!if $xt=0
+ xt=6
+!endif
+yt=!randint -10,10
+!if $yt=0
+ yt=12
+!endif
+dx=!randint 3,10
+dy=!randint 5,15
+pm=!randitem 1,-1
+mp=!randitem 1,-1
+xp=$[$xt + ($pm * $dx) ]
+yp=$[$yt + ($pm * $dy) ]
+tot=!exec pari A=($yp - ($yt))/(($xp - ($xt))^2)\
+printtex(A)\
+printtex(A*(x-($xt))^2+($yt))
+
+a=!line 1 of $tot
+atex=!line 2 of $tot
+tex_ans2=!line 3 of $tot
+ss=De grafiek van de tweedegraads functie f heeft als top ($xt;$yt)<br />en gaat door het punt P ($xp;$yp)<br />Bepaal de formule van f
+mathviewpanel=minimaal:f(x)=:y=:x:^:/:*:+:-
+helptext=
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+answer$n=!rawmath $a*(x-$xt)^2+$yt
+var1=000
+tex_ans1=!texmath $(answer$n)
+#tex_ans1=$atex \cdot \left( x - $yt \right)^{2} + $yt
+teller=$[$yp - $yt]
+noemer=$[ ($xp - $xt)*($xp - $xt)]
+v1=!texmath  a*( x - $xt)^2 + $yt
+v2=!texmath a*( $xp - $xt)^2 + $yt
+v3=!texmath a*$[( $xp - $xt)^2] + $yt
+texanswer$n=\left\{ \begin{array}{l} \textrm{de Top is : }\: ($xt : $yt) \\ \textrm{de formule heeft dan de vorm : }\: y = $v1 \\ \textrm{we bereken a door het punt P in te vullen...} \\ $yp = $v2 \rightarrow \\ $yp = $v3 \rightarrow \\ a = \frac{$teller}{$noemer} = $atex \\ \textrm{de formule is nu : }\: y = $tex_ans1 \\ \textrm{de formule in abc vorm: }\: y = $tex_ans2 \end{array}\right.
+#texanswer$n=\left\{ \begin{array}{l} \textrm{de Top is : }\: ($xt : $yt) \\ \textrm{de formule heeft dan de vorm : }\: y = a \cdot \left( x - $xt \right)^{2} + ($yt) \\ \textrm{we bereken a door het punt P in te vullen...} \\ $yp = a \cdot ( $xp - $xt)^{2} + ($yt) \rightarrow \\ a = \frac{$yp - ($yt)}{ ($xp - $xt)^{2} } = \frac{$teller}{$noemer} = $atex \\ \textrm{de formule is nu : }\: y = $tex_ans1 \\ \textrm{de formule in abc vorm: }\: y = $tex_ans2 \end{array}\right.
+
+!endif
+!exit

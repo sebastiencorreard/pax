@@ -1,0 +1,223 @@
+!set prev=mainS2
+!set next=mainS4
+!set upbl=main
+!set titb=III Effectif et fréquence
+!set datm=2024-04-02 22:12:1
+!if $wims_read_parm!=$empty
+  !goto $wims_read_parm
+!endif
+!exit
+
+:content
+<div class="doc_latex2wimsl"><ul id="left_toc" class="left_toc">
+<li class="no_selected">
+!read primitives.phtml 1, link, mainS1, I Indicateurs de position	     
+<ul><li>
+!read primitives.phtml 2, link, mainS1S1, I-1 Moyenne d'une série à valeurs individuelles 
+</li><li>
+!read primitives.phtml 3, link, mainS1S2, I-2 Moyenne d'une série à valeurs affectées d'un coefficient 
+</li><li>
+!read primitives.phtml 4, link, mainS1S3, I-3 Médiane 
+</li></ul> </li>
+<li class="no_selected">
+!read primitives.phtml 5, link, mainS2, II Indicateur de dispersion	     
+<ul><li>
+!read primitives.phtml 6, link, mainS2S1, II-1 Étendue 
+</li></ul> </li>
+<li class="left_selection">
+!read primitives.phtml 7, link, mainS3, III Effectif et fréquence	     
+ </li>
+<li class="no_selected">
+!read primitives.phtml 8, link, mainS4, IV Diagrammes	     
+<ul><li>
+!read primitives.phtml 9, link, mainS4S1, IV-1 Diagrammes en bâtons 
+</li><li>
+!read primitives.phtml 10, link, mainS4S2, IV-2 Diagrammes circulaires 
+</li><li>
+!read primitives.phtml 11, link, mainS4S3, IV-3 Histogrammes 
+</li></ul> </li>
+<li class="no_selected">
+!read primitives.phtml 12, link, mainS5, V Exercices	     
+ </li></ul><div class="wimsdoc"> 
+<a id="seceffectif_et_frequence"></a>
+<div class="frame"><h3 class="l2w_content defn">Définition &#58; $m_titdefinition [Effectif]</h3><div class="l2w_content defn">
+	On appelle effectif d'une valeur du caractère (ce que l'on est en train d'étudier), le nombre de fois qu'apparaît cette valeur.
+</div><br class="spacer">Voici une série statistique &#58;<br class="spacer">On peut alors dresser le tableau des effectifs des valeurs de cette série &#58;<br class="spacer">
+	
+!set tmp0=!randint 15, 20
+
+!set m_n=$[rint($(tmp0))]
+
+	
+!set tmp0=!randint 5, 7
+
+!set m_m=$[rint($(tmp0))]
+
+	
+!readproc slib/stat/random $m_n,0,$m_m 
+!set tmp0=$slib_out
+!set m_serie=$(tmp0)
+
+	
+	
+!set tmp0=!sort numeric item $m_serie
+
+!set m_serie2=$(tmp0)
+
+	
+!set tmp0=!item 1 of $m_serie2
+
+!set m_min=$(tmp0)
+
+	
+!set tmp0=!item -1 of $m_serie2
+
+!set m_max=$(tmp0)
+
+	
+	
+	
+!set m_ligne1=<td class="tabular_cell" >Série</td>
+
+	
+!set m_ligne2=<td class="tabular_cell" >Effectifs </td>
+
+	
+!set m_ligne0=<td class="tabular_cell" >Valeurs </td>
+
+	
+!set m_lignef=<td class="tabular_cell" > Fréquences </td>
+
+	
+!set m_lignepour=<td class="tabular_cell" > Pourcentages </td>
+
+	
+	
+!set tmp0=!shuffle 8
+
+!set m_liste=$(tmp0)
+
+	
+	
+!set tmp0=!sort numeric item $m_liste
+
+!set m_liste=0,$(tmp0)
+
+	
+	
+!readproc slib/stat/effectif [$m_serie],[$m_liste] 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+<br class="spacer">	
+!set tmp0=!item 1 of $m_c
+
+!set tmp1=!declosing $(tmp0)
+
+!set m_c=$(tmp1)
+
+	
+	 
+!for m_i=1 to $m_n 
+
+	
+!set tmp0=!item $m_i of $m_serie
+
+!set m_a=$[$(tmp0)]
+
+	
+!set tmp0=!item $m_i of $m_c
+
+!set m_b=$[$(tmp0)]
+
+	
+!set m_l=$[$m_i-1]
+
+	
+!set m_f=$[rint(1000*$m_b/$m_n)]
+
+	
+!set m_f=$[$m_f/1000]
+
+	
+!set m_p=$[$m_f*100]
+
+	
+!set m_ligne1=$m_ligne1 <td class="tabular_cell" >$m_a</td>
+
+	
+!ifval $m_max >= $m_l 
+!set m_ligne2= $m_ligne2 <td class="tabular_cell" >$m_b</td>
+
+!endif
+
+	
+!ifval $m_max >= $m_l 
+!set m_ligne0= $m_ligne0 <td class="tabular_cell" >$m_l</td>
+
+!endif
+
+	
+!ifval $m_max >= $m_l 
+!set m_lignef= $m_lignef <td class="tabular_cell" >$m_f</td>
+
+!endif
+
+	
+!ifval $m_max >= $m_l 
+!set m_lignepour= $m_lignepour <td class="tabular_cell" >$m_p</td>
+
+!endif
+
+	
+!next
+
+	
+!read primitives.phtml 13, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" /> 
+ 
+	Voici une série statistique &#58;
+	<div class="center" ><table class="tabular" >
+		<tr class="tabular_row" > $m_ligne1 <tr/>
+	 <table>
+	 </div>
+<br/>
+	 
+	 et les effectifs des valeurs &#58; 
+	 <div class="center" ><table class="tabular" >
+		<tr class="tabular_row" > $m_ligne0 </tr>
+		<tr class="tabular_row" > $m_ligne2 </tr>
+	</table>
+	</div></div>
+<div class="frame"><h3 class="l2w_content defn">Définition &#58; $m_titdefinition [Fréquence]</h3><div class="l2w_content defn">
+	On appelle fréquence d'une valeur du caractère (ce que l'on est en train d'étudier), le quotient de l'effectif de cette valeur par l'effectif total.
+</div><br class="spacer">La fréquence est un nombre, elle vérifie &#58; 
+!insmath  0 \leq f \leq 1 
+, et on a &#58; <p class="math">
+!insmath \mbox{fréquence}= \dfrac{\mbox{effectif partiel}}{\mbox{effectif total}}
+</p><br class="spacer">		
+On utilise aussi la fréquence en pourcentage, ou pourcentage &#58;
+<p class="math">
+!insmath  \mbox{pourcentage}=\mbox{fréquence} \times 100
+</p><br class="spacer"><h3 class="l2w_content rqm">Remarque &#58; $m_titremarque</h3><div class="l2w_content rqm">
+	Les lignes "Effectifs" et "Fréquence" du tableau des effectifs des valeurs, sont proportionnelles. On peut calculer le total des effectifs, et on sait que le total des fréquences est égal à 1 (ou à 100 si la fréquence est exprimée en pourcentage.) puis on complète le tableau en utilisant les propriétés des tableaux de proportionnalité.
+</div>
+<div class="center" ><br class="spacer">	On peut alors compléter le tableau des effectifs des valeurs de cette série &#58;
+	<div class="center" ><table class="tabular" >
+		<tr class="tabular_row" > $m_ligne0 <td class="tabular_cell" > Total </td></tr>
+		<tr class="tabular_row" > $m_ligne2 <td class="tabular_cell" > $m_n </td> </tr>
+		<tr class="tabular_row" > $m_lignef <td class="tabular_cell" > $m_approx 1 </td></tr>
+		<tr class="tabular_row" > $m_lignepour <td class="tabular_cell" > $m_approx 100 </td></tr>
+	</table>
+	</div></div>
+<div class="frame"><h3 class="l2w_content exercice">Exercice &#58; $m_titexercice</h3><div class="l2w_content exercice"><ul class="itemize"><li>  
+!read primitives.phtml 14, exercise, module=H3/stat/oefstat.fr&cmd=new&exo=repartition&qnum=1&qcmlevel=3&scoredelay=, Répartition et fréquences - Cliquer 
+
+		 </li><li>  
+!read primitives.phtml 15, exercise, module=H3/stat/oefstat.fr&cmd=new&exo=repartition2&qnum=1&qcmlevel=3&scoredelay=, Répartition, fréquences et regroupement - Cliquer 
+
+	 </li></ul>
+</div></div></div><div id="down_toc"><div class="wims_chemin">
+!read primitives.phtml 16, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" style="width:20px;height:20px;"> 
+  
+!read primitives.phtml 17, link, main, Éléments de statistiques 
+ &#8594; III Effectif et fréquence</div></div></div>

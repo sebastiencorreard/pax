@@ -1,0 +1,124 @@
+target=adpoA adpoB adpoC adpoD sopoA sopoB sopoC sopoD mupoA mupoB mupoC mupoD dipoA dipoB dipoC dipoD
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+#include "lang_titles.inc"
+#include "lang.inc"
+#if defined TARGET_adpoA || defined TARGET_adpoB || defined TARGET_adpoC || defined TARGET_adpoD
+ \text{ope=+}
+#endif
+#if defined TARGET_sopoA || defined TARGET_sopoB || defined TARGET_sopoC || defined TARGET_sopoD
+ \text{ope=-}
+#endif
+#if defined TARGET_mupoA || defined TARGET_mupoB || defined TARGET_mupoC || defined TARGET_mupoD
+ \text{ope=*}
+#endif
+#if defined TARGET_dipoA || defined TARGET_dipoB || defined TARGET_dipoC || defined TARGET_dipoD
+\text{ope=/}
+#endif
+\text{type=NUM}
+
+\integer{confparm1=\confparm1=?1}
+\integer{confparm3=\confparm3=?0}
+\text{option=\confparm3=0?:noreduction}
+\integer{confparm2=\confparm2=?2}
+\text{sg=\confparm2=1?1:1,1,-1}
+
+\text{listnombre=2,3,5,7,9,8,11,13}
+
+\text{lteno=}
+\text{ltsol=}
+\text{st=}
+\for{i=1 to \confparm1}{
+ \text{listnombre=shuffle(\listnombre)}
+ \integer{a=randitem(\sg)*item(1,\listnombre)}
+ \integer{b=randitem(\sg)*item(2,\listnombre)}
+ \integer{c=randitem(\sg)*item(3,\listnombre)}
+ \integer{d=randitem(\sg)*item(4,\listnombre)}
+ \integer{n=item(5,\listnombre)}
+ \text{opetex=wims(replace internal * by \times in \ope)}
+ \text{opetex=wims(replace internal / by : in \opetex)}
+ \if{\type=A}{
+  \integer{g1=maxima(gcd(\a,\b);)}
+  \integer{d=\n*\b}
+  \integer{g2=maxima(gcd(\c,\d);)}
+  \integer{t=abs(\g1*\g2)}
+  \ifval{\t!=1}{
+   \integer{a=randitem(\sg)*2}
+   \integer{b=3}
+   \integer{c=randitem(\sg)*5}
+   \integer{d=6}
+   }
+ }{
+  \if{\type=B}{
+   \integer{g1=maxima(gcd(\a,\b);)}
+   \integer{g2=maxima(gcd(\c,\d);)}
+   \integer{g3=maxima(gcd(\b,\d);)}
+   \integer{t=abs(\g1*\g2*\g3)}
+   \ifval{\t!=1}{
+    \integer{a=randitem(\sg)*5}
+    \integer{b=9}
+    \integer{c=randitem(\sg)*3}
+    \integer{d=7}
+   }
+  }{
+   \if{\type=C}{
+    \integer{b=\n*\b}
+    \integer{d=\n*\d}
+    \integer{g1=maxima(gcd(\a,\b);)}
+    \integer{g2=maxima(gcd(\c,\d);)}
+    \integer{t=abs(\g1*\g2)}
+    \if{\t!=1}{
+     \integer{a=randitem(\sg)*5}
+     \integer{b=18}
+     \integer{c=randitem(\sg)*3}
+     \integer{d=14}
+    }
+   }{
+    \integer{d=\b}
+    \integer{g1=maxima(gcd(\a,\b);)}
+    \integer{g2=maxima(gcd(\c,\d);)}
+    \integer{t=abs(\g1*\g2)}
+    \ifval{\t!=1}{
+     \integer{a=randitem(\sg)*2}
+     \integer{b=randitem(3,7,9,11)}
+     \integer{c=randitem(\sg)*5}
+     \integer{d=\b}
+    }
+   }
+  }
+ }
+ \text{eno=\frac{\a}{\b} \opetex \frac{\c}{\d} }
+ \text{sol=maxima(((\a)/(\b))\ope((\c)/(\d));)}
+ \text{lteno=wims(append item \eno to \lteno)}
+ \text{ltsol=wims(append item \sol to \ltsol)}
+ \text{st=wims(append item r\i to \st)}
+}
+
+\steps{\st}
+\statement{
+\if{\confparm1=1}{\name_statement[1]:
+<div class="wimscenter">\(\lteno = \) \embed{r1,9}.</div>
+\if{\confparm3=0}{<div class="wims_instruction">
+  \name_inst[1]</div>}
+}{
+\name_statement[2]:
+<ul>
+ \for{k=1 to \confparm1}{
+  <li>\(\lteno[\k] = ) \embed{r\k,9}.</li>
+  }
+</ul>
+\if{\confparm3=0}{
+<div class="wims_instruction">\\name_inst[2]</div>}}
+}
+
+
+\answer{\(\lteno[1])}{\ltsol[1]}{type=numexp}{option=\option}
+\answer{\(\lteno[2])}{\ltsol[2]}{type=numexp}{option=\option}
+\answer{\(\lteno[3])}{\ltsol[3]}{type=numexp}{option=\option}
+\answer{\(\lteno[4])}{\ltsol[4]}{type=numexp}{option=\option}
+\answer{\(\lteno[5])}{\ltsol[5]}{type=numexp}{option=\option}

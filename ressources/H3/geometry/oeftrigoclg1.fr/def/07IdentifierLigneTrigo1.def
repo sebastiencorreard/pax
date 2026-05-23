@@ -1,0 +1,422 @@
+!set title=07. Vers une méthode pour calculer un angle avec la trigonométrie (1)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Euler,Versailles
+email=euler.wims@ac-versailles.fr
+keywords=cosinus,sinus,tangent
+computeanswer=no
+oefdescription=Vous devez identifier les côtés dont les longueurs sont connues et déterminer la ligne trigonométrique à utiliser.
+oefobservation=Dans cette ressource, un triangle rectangle et sa représentation graphique sont donnés. Un QCM demande pour chaque côté du triangle rectangle dont on connait la longueur, de préciser s’il est l’hypoténuse, le côté adjacent ou opposé d’un des angles aigus du triangle rectangle puis d'indiquer à quelle ligne trigonométrique correspondent les deux longueurs données.
+oefcss= <style> .indication{ font-weight:bold;color:#009999; margin-bottom: 0.8em; margin-top: 0.8em; } .quest{ color:blue; font-weight:bold; margin:0; } </style> 
+
+ansorder=r,r
+varcnt=106
+prevarcnt=98
+postvarcnt=7
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+!if $val6=fr 
+credits=Figure(s) réalisée(s) avec JSXGraph
+!endif
+val7=
+val8=
+val9=AIL,AIR,AME,AMI,ARC,ART,BAC,BAL,BAM,BAS,BEC,BIP,BIS,BLE,BOA,BOL,BON,BUS,BUT,BZH,CAP,CAR,CIL,	CLE,COL,COR,COU,CRI,CRU,DIX,DON,DOS,DRU,DUO,DUR,EAU,EST,FAC,FAR,FAT,FER,FEU,FIL,FIN,FOL,FOU,FUT,GAI,GEL,	GUI,ILE,INF,IRE,JET,JEU,JUS,LAC,LET,LIN,LIT,LOI,LOT,LUI,LYS,MAI,MAL,MAT,MER,MIE,MIL,MOI,MON,MOT,MOU,MUR,	NEF,NEZ,OUI,PAF,PAS,PEU,PIC,PIE,PIN,PLI,POC,POF,PRO,PUR,RAP,RAS,RAZ,RIA,RIO,RIZ,ROC,ROI,RUE,SAC,SEC,SEL,	SET,SIX,SOC,SOL,SON,SOU,SPI,SUD,SUP,SUR,TAC,TAS,TER,THE,TIC,TIR,TOC,TOI,TON,TRI,UNE,UNI,VAL,VAN,VER,VIE,	VIS,VUE,YEN,ZEN	
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp0=!char 1 of $val10
+
+val11=$(tmp0)
+tmp0=!char 2 of $val10
+
+val12=$(tmp0)
+tmp0=!char 3 of $val10
+
+val13=$(tmp0)
+val14=$val11,$val12,$val13
+tmp0=!randint 1, 3
+
+val15=$[rint($(tmp0))]
+val16=$(val14[$val15])
+tmp0=!listcomplement $val16 in $val14
+
+val17=$(tmp0)
+tmp0=!randint 0, 255
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 0, 255
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 0, 255
+
+val20=$[rint($(tmp0))]
+val21=rgb($val18,$val19,$val20)
+tmp0=!randint 10, 90
+
+val22=$[$(tmp0)/10]
+tmp0=!randint 10, 90
+
+val23=$[$(tmp0)/10]
+tmp0=!random 0, 6.28
+
+val24=$[$(tmp0)]
+val25=$[Pi/2+$val24]
+val26=$[$val22*cos($val24)]
+val27=$[$val22*sin($val24)]
+val28=$[$val23*cos($val25)]
+val29=$[$val23*sin($val25)]
+val30=$[min(1,min($val22/6,$val23/6))]
+val31=$[round(10*sqrt($val22^2+$val23^2))/10]
+tmp0=!replace internal . by , in $val22
+
+val32=$(tmp0)
+tmp0=!replace internal . by , in $val23
+
+val33=$(tmp0)
+val34=$[min(min(0,$val26),$val28)-1.5]
+val35=$[max(max(0,$val26),$val28)+1.5]
+val36=$[min(min(0,$val27),$val29)-1.5]
+val37=$[max(max(0,$val27),$val29)+1.5]
+val38=$[rint(250)]
+
+!ifval $val35-$val34 > $val37-$val36
+val39=$[$val38/($val35-$val34)]
+!else
+val39=$[$val38/($val37-$val36)]
+!endif
+val40=$[rint((($val35-$val34)*$val39))]
+val41=$[rint((($val37-$val36)*$val39))]
+tmp0=!randitem 1,2
+
+
+!ifval $(tmp0)=1
+val42=$val16$(val17[1])$(val17[2])
+!else
+val42=$(val17[2])$(val17[1])$val16
+!endif
+tmp0=!randitem 1,2
+
+
+!ifval $(tmp0)=1
+val43=$val16$(val17[2])$(val17[1])
+!else
+val43=$(val17[1])$(val17[2])$val16
+!endif
+val44=hypoténuse
+val45=côté adjacent
+val46=côté opposé
+val47=à
+val48=le sinus,le cosinus,la tangente
+val49=du côté opposé,du côté opposé à l'angle,du côté adjacent,du côté adjacent à l'angle,de l'hypoténuse
+val50=Vous avez répondu&nbsp;:
+val51=Nous avons&nbsp;:
+val52=Votre réponse est exacte.
+val53=Votre réponse est fausse.
+val54=Votre réponse est incomplète.
+val55=Votre réponse est partiellement exacte.
+val56=Réponse exacte&nbsp;:
+!readproc slib/numeration/ecriturenombre [$val31], comma 
+tmp0=$slib_out
+val57=$(tmp0)
+!readproc slib/numeration/ecriturenombre [$val22], comma 
+tmp0=$slib_out
+val58=$(tmp0)
+!readproc slib/numeration/ecriturenombre [$val23], comma 
+tmp0=$slib_out
+val59=$(tmp0)
+tmp=!trim $(val48[1]),$(val48[2]),$(val48[3])	sin,cos,tan	opp,$val16,$(val17[2]) , $val23,$(val49[1]),$(val49[2])	adj,$val16,$(val17[1]) , $val22,$(val49[3]),$(val49[4])	hyp,$(val17[1]),$(val17[2]) , $val31,$(val49[5]),$(val49[5])	
+val60=!translate internal $	\
+$ to ;; in $tmp
+!if $val3= 
+tmp0=!randint 1, 3
+
+val61=$(tmp0)
+!else
+tmp=!nonempty items $val3
+
+tmp0=!randitem $tmp
+val61=$(tmp0)
+!endif
+
+!ifval $val61=2
+tmp=!trim  $(val60[4;])
+val62=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $(val60[3;])
+val62=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval $val61=3
+tmp=!trim  $(val60[4;])
+val63=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim $(val60[5;])
+val63=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+
+!ifval $(tmp0)=1
+val64=$(val62[2])$(val62[3])
+!else
+val64=$(val62[3])$(val62[2])
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+
+!ifval $(tmp0)=1
+val65=$(val63[2])$(val63[3])
+!else
+val65=$(val63[3])$(val63[2])
+!endif
+val66=$[$(val62[4])]
+val67=$[$(val63[4])]
+tmp0=!replace internal . by , in $val66
+
+val68=$(tmp0)
+tmp0=!replace internal . by , in $val67
+
+val69=$(tmp0)
+tmp=!trim $(val60[3;6]) \(\widehat{$val42}\),	$(val60[4;6]) \(\widehat{$val42}\),	$(val60[5;6])
+val70=!translate internal $	\
+$ to ;; in $tmp
+!if $val61=1 
+val71=1,3
+!endif
+!if $val61=2 
+val71=2,3
+!endif
+!if $val61=3 
+val71=1,2
+!endif
+val72=$val64 = $val68
+val73=$val65 = $val69
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+
+!ifval $(tmp0)=1
+val74=$val72;$val73
+!else
+val74=$val73;$val72
+!endif
+tmp0=!shuffle 3
+
+val75=$(tmp0)
+val76=$(val70[$val75;1])
+tmp0=!positionof item $(val71[1]) in $val75
+
+tmp1=!positionof item $(val71[2]) in $val75
+
+val77=$(tmp0),$(tmp1)
+val78=
+val79=Une unité de longueur est donnée.	<br class="spacer">	$val11$val12$val13 est un triangle rectangle en $val16 tel que <span class="nowrap">$(val74[1;])</span> et <span class="nowrap">$(val74[2;]).</span>
+val80=longueur
+val81=L'énoncé donne la longueur <span class="oef_indgood">$(val63[5])</span> et la longueur <span class="oef_indgood">$(val62[5])</span>	à l'angle dont on cherche une mesure.
+val82=On exprime alors la ligne trigonométrique qui fait intervenir ces deux longueurs&nbsp;:	c'est <span class="oef_indgood">$(val60[1;$val61])</span> de l'angle dont on cherche une mesure.
+val83=On considère l'angle <span class="nowrap">\(\widehat{$val42}\).</span>
+val84=Pour évaluer une mesure de l'angle <span class="nowrap">\(\widehat{$val42}\),</span> la méthode la plus directe consiste à utiliser 
+val85=de l'angle <span class="nowrap">\(\widehat{$val42}\).</span>
+val86=Sélectionner la ou les propositions qui conviennent dans chacun des DEUX cadres.
+val87=Les deux longueurs données par l'énoncé sont celles&nbsp;:
+val88=Quelles sont les longueurs données par l'énoncé&nbsp;?
+val89=Quelle relation trigonométrique fait intervenir les deux longueurs données par l'énoncé&nbsp;?
+val90=var brd = JXG.JSXGraph.initBoard('jsxenonce', {showCopyright : false,axis:false,boundingbox: [$val34,$val37,$val35,$val36],grid:false});
+val91=var brd = JXG.JSXGraph.initBoard('jsxsol', {showCopyright : false,axis:false, boundingbox: [$val34,$val37,$val35,$val36],grid:false});
+val92=A=brd.create('point',[0,0],{name:'$val16',face:'x',size:3,color:'$val21',fixed:true,showInfobox:false,label:{fixed: false}});	B=brd.create('point',[$val26,$val27],{name:'$(val17[1])',face:'x',size:3,color:'$val21',fixed:true,showInfobox:false,label:{fixed: false}});	C=brd.create('point',[$val28,$val29],{name:'$(val17[2])',face:'x',size:3,color:'$val21',fixed:true,showInfobox:false,label:{fixed: false}});	brd.create('angle',[B,A,C],{name:' ',radius:$val30,strokeColor:'black',fillColor:'red',fillOpacity:0.8});	brd.create('polygon',[A,B,C],{strokeColor: 'black',fillColor: '$val21',highlightfillColor:'$val21'});	hypo=brd.create('segment',[B,C]);	cat1=brd.create('segment',[A,B]);	cat2=brd.create('segment',[A,C]);		brd.create('angle',[C,B,A],{name:' ',radius:$val30,strokeColor:'black',fillColor:'$val21',fillOpacity:1});		
+!readproc slib/geo2D/jsxgraph jsxenonce,$val40 x $val41,$val90 $val92 
+tmp0=$slib_out
+val93=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxsol,$val40 x $val41,$val91 $val92 
+tmp0=$slib_out
+val94=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxhint,$val38 x $val38,	var brd500 = JXG.JSXGraph.initBoard('jsxhint', {showCopyright:false,showNavigation:false,axis:false,	 boundingbox: [-6,8,4,-2],grid:false});	A=brd500.create('point',[0,0],{name:'A',face:'x',size:3,color:'red',fixed:true,showInfobox:false,	label:{offset:[4,-8],color:'red'}});	B=brd500.create('point',[1.1557766,6.7010582],{name:'B',face:'x',size:3,color:'#0000FF',fixed:true,showInfobox:false,	label:{offset:[4,4],color:'#0000FF'}});	C=brd500.create('point',[-4.9272486,0.84983571],{name:'C',face:'x',size:3,color:'#993300',fixed:true,showInfobox:false,	label:{offset:[-12,-10],color:'#993300'}});	Hyp=brd500.create('point',[-3.2,5],{name:'$val44',face:'x',size:0,color:'white',fixed:true,showInfobox:false,	label:{offset:[-15,-15],color:'#FF0000'}});	AdjB1=brd500.create('point',[1.5,5.1],{name:'$val45',face:'x',size:0,color:'white',fixed:true,showInfobox:false,	label:{offset:[-15,-15],color:'#0000FF'}});	AdjB2=brd500.create('point',[1.5,4.4],{name:'$val47 \(\widehat{ABC}\)',face:'x',size:0,color:'white',fixed:true,showInfobox:false,	label:{offset:[-15,-15],color:'#0000FF'}});	OppB1=brd500.create('point',[-4.2,0.4],{name:'$val46 $val47 \(\widehat{ABC}\)',face:'x',size:0,color:'white',	fixed:true,showInfobox:false,label:{offset:[-15,-15],color:'#0000FF'}});	OppC1=brd500.create('point',[1.2,2.8],{name:'$val46',face:'x',size:0,color:'white',fixed:true,	showInfobox:false,label:{offset:[-15,-15],color:'#993300'}});	OppC2=brd500.create('point',[1.2,2.1],{name:'$val47 \(\widehat{ACB}\)',face:'x',size:0,color:'white',fixed:true,	showInfobox:false,label:{offset:[-15,-15],color:'#993300'}});	AdjC1=brd500.create('point',[-4.2,-0.5],{name:'$val45 $val47 \(\widehat{ACB}\)',face:'x',size:0,color:'white',	fixed:true,showInfobox:false,label:{offset:[-15,-15],color:'#993300'}});		brd500.create('angle',[B,A,C],{name:' ',radius:0.5,strokeColor:'red',fillColor:'red',fillOpacity:0.8});	brd500.create('angle',[C,B,A],{name:' ',radius:0.7,strokeColor:'black',fillColor:'#0000FF',fillOpacity:1});	brd500.create('angle',[A,C,B],{name:' ',radius:0.7,strokeColor:'black',fillColor:'#993300',fillOpacity:1});	brd500.create('polygon',[A,B,C],{strokeColor: 'black',fillColor: 'white',highlightfillColor:'grey'});	 
+tmp0=$slib_out
+val95=$(tmp0)
+val96=Trigonométrie dans le triangle rectangle
+val97=<p>Soit ABC un triangle rectangle en A. Considérons l'angle aigu <span class="insecable">\(\widehat{ABC}\).</span></p>	<p>Par définition, nous avons&nbsp;:</p>	<div class="unbreakable" style="overflow-y:hidden;">	\(sin(\widehat{ABC})=\frac{\text{longueur du côté opposé à l'angle}\; \widehat{ABC}}{\text{longueur de l'hypoténuse}}\)	</div>	<div class="unbreakable" style="overflow-y:hidden;">	\(cos(\widehat{ABC})=\frac{\text{longueur du côté adjacent à l'angle}\; \widehat{ABC}}{\text{longueur de l'hypoténuse}}\)	</div>	<div class="unbreakable" style="overflow-y:hidden;">	\(tan(\widehat{ABC})=\frac{\text{longueur du côté opposé à l'angle}\; \widehat{ABC}}{\text{longueur du côté adjacent à l'angle}\; \widehat{ABC}}\)	</div>	<div class="spacer"></div>	
+val98=Les questions à se poser
+val99=Quelles sont les deux longueurs données par l'énoncé&nbsp;?	<br>Quelle relation trigonométrique fait intervenir ces deux longueurs et l'angle étudié&nbsp;?	
+replytype1=checkbox
+replyoption1=split 
+replyname1=
+replygood1=$val77;$val75
+replytype2=menu
+replyoption2=shuffle 
+replyname2=
+replygood2=$val61;$(val60[1;])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  <div class="grid-x grid-margin-x"> <div class="cell small-12 medium-12 large-8"> <div class="indication">$val98</div> $val99 <div class="indication">$val96</div> <div>$val97</div> </div> <div class="cell small-12 medium-12 large-4"> $val95 </div> </div> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest">	
+!if 1 notin $val2 
+$()	 <div class="grid-x grid-margin-x">	  <div class="cell small-12 large-6 medium-6">	   <div>		    <p>$val79</p>	    <p>$val83</p>	   </div>	  </div>	  <div class="cell small-12 large-6 medium-6">	   $val93	  </div>	  <div class="cell small-12 large-12 medium-12">		    <p class="quest">$val86</p>		  </div>	 </div>	 
+!else
+$()	 	 <div>		  <p>$val79</p>	  <p>$val83</p>		    <p class="quest">$val86</p>		 </div>	 
+!endif
+$()	</div>		<div class=
+!if $m_sc_reply1= 
+$()"euler_answer" 
+!else
+$() 
+!if $m_sc_reply1=1 
+$()"euler_rep_good" 
+!else
+$() 
+!if $m_sc_reply1=0 
+$()"euler_rep_bad" 
+!else
+$() "euler_rep_prec" 
+!endif
+$() 
+!endif
+$() 
+!endif
+$()>	  
+!if $m_sc_reply1!= 
+$()<p>$val50</p> 
+!endif
+$()	  <fieldset class="euler_field">	   <legend>$val87</legend>	    <ul class="wims_nopuce euler_ul_check">	      
+!for m_n=1 to 3 
+$()<li 
+!if $m_sc_reply1 != 
+$()
+!if $(val78[$m_n])=1 
+$()class="euler_box_checked" 
+!else
+$() class="euler_box_nochecked" 
+!endif
+$() 
+!endif
+$()>  
+!read oef/embed.phtml reply1,\n,$(val76[$m_n]) 
+$()</li> 
+!next
+$()	    </ul>	  </fieldset>	</div>	<div class=
+!if $m_sc_reply2= 
+$()"euler_answer" 
+!else
+$() 
+!if $m_sc_reply2=1 
+$()"euler_rep_good" 
+!else
+$() "euler_rep_bad" 
+!endif
+$() 
+!endif
+$()>	 <label for="reply2">$val84</label>  
+!read oef/embed.phtml reply2 
+$() $val85	</div>		
+$()
+!exit
+
+:hint
+$() <div class="grid-x grid-margin-x"> <div class="cell small-12 medium-12 large-8"> <div class="indication">$val98</div> $val99 <div class="indication">$val96</div> <div>$val97</div> </div> <div class="cell small-12 medium-12 large-4"> $val95 </div> </div> 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<div class ="euler_quest_nobg">	 <div class="grid-x grid-margin-x">	  <div class="cell small-12 
+!if 2 notin $val2 
+$()medium-7 large-8 
+!else
+$() medium-12 large-12 
+!endif
+$()">	   <p>$val79</p>	   <p>$val88</p>		   <p> $val89</p>		  </div>	  
+!if 2 notin $val2 
+$()	  <div class="cell small-12 medium-5 large-4">	    $val94	  </div> 
+!endif
+$()	 </div>	</div>	<div class ="euler_rep_good_nobg">	  <p>$val81</p>	  <p>$val82</p>	  <p>
+!if $val61=3 
+$()	      
+!insmath $(val60[2;$val61])(\widehat{$val42})=	      \frac{\text{$val80 $(val62[6])}\;\widehat{\text{$val42}}}{\text{$val80 $(val63[6])}\;\widehat{\text{$val42}}}
+$() 
+!else
+$()	       
+!insmath $(val60[2;$val61])(\widehat{$val42})=	      \frac{\text{$val80 $(val62[6])}\;\widehat{\text{$val42}}}{\text{$val80 $(val63[6])}}
+$() 
+!endif
+$()</p>	  <p>
+!insmath $(val60[2;$val61])(\widehat{$val42})=\frac{$val64}{$val65}
+$()</p>	  <p>
+!insmath $(val60[2;$val61])(\widehat{$val42})=\frac{$val68}{$val69}
+$()</p>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val100=$m_reply1
+tmp0=!itemcnt $val75
+
+val101=$[rint($(tmp0))]
+val78=
+!for val102 =1 to $val101 
+!if $(val75[$val102]) isitemof $val100 
+val103=1
+!else
+val103=0
+!endif
+tmp0=!append item $val103 to $val78
+
+val78=$(tmp0)
+!next
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,42,50,60,61,62,63,64,65,68,69,75,76,78,79,80,81,82,83,84,85,86,87,88,89,93,94,95,96,97,98,99
+embedcnt=2

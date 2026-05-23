@@ -1,0 +1,217 @@
+!set xsize=300
+!set ysize=300
+!set size_X=!nospace $xsize px
+!set size_Y=!nospace $ysize px
+<div id="canvas_div" style="display:block;position:relative;width:$size_X;height:$size_Y;margin-left:auto;margin-right:auto;">
+ <canvas id="wims_canvas1" width="$size_X" height="$size_Y"></canvas>
+</div>
+ <input type="button" onclick="javascript:change_speed(1);" value="+" style="font-size:14pt;color:white;background-color:red;"/>
+ <input type="button" onclick="javascript:change_speed(0);" value="&minus;" style="font-size:14pt;color:white;background-color:red;" />
+<script type="text/javascript">
+"use strict";
+function sendanswer(){
+ var reply=document.getElementById('myinput0').value;
+ if(reply.length == 0 ){setAlarm(r1+" $counter");return;}
+ myConfirm(reply,reply,'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+}
+var point_name="$(var9[1])";
+var point_name_1="$(var9[2])";
+var point_name_11="$(var9[3])";
+var graden = parseInt($(var9[4]) + 90);
+var speed=50;
+if( point_name == "" ){ point_name="P";point_name_1="P'";point_name_11="P\"";}
+var xsize=$xsize;
+var ysize=$ysize;
+var xmin=-1.2;
+var xmax=1.2;
+var ymin=-1.2;
+var ymax=1.2;
+var radius =xsize/(xmax - xmin);
+var mouse_font="16px Ariel";
+var mouse_font_color="rgba(255,0,0,0.8)";
+var xminor=5;
+var yminor=5;
+var x_points=new Array();
+var y_points=new Array();
+var rad = new Array();
+var x0 = 0.5*xsize;
+var y0 = 0.5*ysize;;
+var xscale = xsize/(xmax - xmin);
+var yscale = ysize/(xmax - xmin);
+var len = 0;
+for(var p = 90; p < graden; p++){
+ rad[len] = p * Math.PI/180;
+ x_points[len] = x0 + xscale * Math.sin( rad[len] );
+ y_points[len] = y0 + yscale * Math.cos( rad[len] );
+ len++;
+}
+len = len - 1;
+var canvas_div = document.getElementById('canvas_div');
+var trace_button = document.getElementById('trace_button');
+var show_button = document.getElementById('show_button');
+var canvas  = document.getElementById("wims_canvas1");
+canvas.style.top = 0+'px';
+canvas.style.left = 0+'px';
+canvas.style.position = "absolute";
+var ctx = canvas.getContext('2d');
+ctx.strokeStyle = "rgba(0,0,255,0.9)";
+ctx.lineWidth = 1;
+
+var create_canvas = function(id){
+ canvas_div = document.getElementById("canvas_div");
+ var cnv = document.createElement("canvas");
+ cnv.id = "wims_canvas"+id;
+ canvas_div.appendChild(cnv);
+ cnv.width = xsize;cnv.height = ysize;
+ cnv.style.top = 0+'px';
+ cnv.style.left = 0+'px';
+ cnv.style.position = "absolute";
+ return cnv;
+}; 
+
+var trace_canvas  = create_canvas(2);
+var trace_ctx = trace_canvas.getContext('2d');
+var grid_canvas  = create_canvas(3);
+var grid_ctx = grid_canvas.getContext('2d');
+
+var anim_pos = 0;
+var left = 0;
+function trace(){
+  trace_ctx.fillStyle = "rgba(255,0,0,0.6)";
+  trace_ctx.strokeStyle = "rgba(255,0,0.8)";
+  trace_ctx.lineWidth = 1;
+  trace_ctx.font = "22px Ariel";
+  trace_ctx.clearRect(0,0,xsize,ysize);
+  trace_ctx.beginPath();
+  trace_ctx.moveTo(x0,y0);
+  trace_ctx.lineTo(x_points[anim_pos], y_points[anim_pos]);
+  trace_ctx.closePath();
+  trace_ctx.stroke();
+  trace_ctx.arc(x0,y0,0.2*xsize,0,Math.PI/2-rad[anim_pos],true);
+  trace_ctx.fill();
+  trace_ctx.beginPath();
+  trace_ctx.arc(x_points[anim_pos], y_points[anim_pos],4,0,2*Math.PI,false);
+  trace_ctx.closePath();
+  trace_ctx.fill();
+  trace_ctx.beginPath();
+  trace_ctx.arc(x0, y_points[anim_pos],4,0,2*Math.PI,false);
+  trace_ctx.closePath();
+  trace_ctx.fill();
+  trace_ctx.beginPath();
+  trace_ctx.arc(x_points[anim_pos],y0,4,0,2*Math.PI,false);
+  trace_ctx.closePath();
+  trace_ctx.fill();
+  trace_ctx.fillStyle = "rgba(0,0,255,0.9)";
+  trace_ctx.fillText(anim_pos+"\u00B0",10,50);
+  trace_ctx.fillText(point_name,x_points[anim_pos],y_points[anim_pos]);
+  trace_ctx.fillText(point_name_1,x_points[anim_pos],y0);
+  trace_ctx.fillText(point_name_11,x0,y_points[anim_pos]);
+  trace_ctx.lineWidth = 0.5;
+  trace_ctx.beginPath();
+  trace_ctx.moveTo(x_points[anim_pos],0);
+  trace_ctx.lineTo(x_points[anim_pos],ysize);
+  trace_ctx.moveTo(0,y_points[anim_pos]);
+  trace_ctx.lineTo(xsize,y_points[anim_pos]);
+  trace_ctx.closePath();
+  trace_ctx.stroke();
+  if(anim_pos == len ){ left = 1;};
+  if(anim_pos < 1 ){ left = 0 };
+  setTimeout(function(){ requestAnimationFrame(trace);if(left == 0 ){anim_pos++; }else{ anim_pos--;};}, speed );
+};
+
+function px2x(px){return parseFloat(px*(xmax - xmin)/xsize + xmin);}
+function px2y(py){return parseFloat(ymax - py*(ymax - ymin)/ysize);}
+
+function change_speed(e){
+ if(e == 0){
+  speed = 1.2*speed;
+ }
+ else
+ {
+  speed = 0.8*speed;
+ }
+}
+
+function draw_grid(){
+ grid_ctx.strokeStyle = "rgba(255,0,0,0.5)";
+ grid_ctx.lineWidth=2;
+ grid_ctx.beginPath();
+ grid_ctx.arc(x0,y0,radius,0,2*Math.PI,false)
+ grid_ctx.closePath();
+ grid_ctx.stroke();
+ grid_ctx.lineWidth=1;
+ var xstep=xsize/(xmax-xmin);
+ var ystep=ysize/(ymax-ymin);
+ var xmstep=xstep/xminor;
+ var ymstep=ystep/yminor;
+ grid_ctx.strokeStyle = "rgba(0,0,0,0.5)";
+ grid_ctx.lineWidth = 0.5;
+ grid_ctx.font = "italic 12px Ariel";
+ var xt=0;
+ grid_ctx.beginPath();
+ for(var p=x0; p<xsize;p=p+xstep){
+  grid_ctx.moveTo(p,0);
+  grid_ctx.lineTo(p,ysize);
+  grid_ctx.fillText(xt,p,y0+10);
+  xt++;
+ }
+ xt=0;
+ for(var p=x0; p>0;p=p-xstep){
+  grid_ctx.moveTo(p,0);
+  grid_ctx.lineTo(p,ysize);
+  grid_ctx.fillText(xt,p,y0+10);
+  xt--;
+ }
+ xt=0;
+ for(var p=y0; p<ysize;p=p+ystep){
+  grid_ctx.moveTo(0,p);
+  grid_ctx.lineTo(xsize,p);
+  grid_ctx.fillText(xt,x0-10,p);
+  xt--;
+ }
+ xt=0;
+ for(var p=y0; p>0;p=p-ystep){
+  grid_ctx.moveTo(0,p);
+  grid_ctx.lineTo(xsize,p);
+  grid_ctx.fillText(xt,x0-10,p);
+  xt++;
+ }
+ grid_ctx.closePath();
+ grid_ctx.stroke();
+ 
+ grid_ctx.strokeStyle = "rgba(0,0,0,0.3)";
+ grid_ctx.beginPath();
+ for(var p=x0; p<xsize;p=p+xmstep){
+  grid_ctx.moveTo(p,0);
+  grid_ctx.lineTo(p,ysize);
+ }
+ for(var p=x0; p>0;p=p-xmstep){
+  grid_ctx.moveTo(p,0);
+  grid_ctx.lineTo(p,ysize);
+ }
+ for(var p=y0; p<ysize;p=p+ymstep){
+  grid_ctx.moveTo(0,p);
+  grid_ctx.lineTo(xsize,p);
+ }
+ for(var p=y0; p>0;p=p-ymstep){
+  grid_ctx.moveTo(0,p);
+  grid_ctx.lineTo(xsize,p);
+ }
+ grid_ctx.closePath();
+ grid_ctx.stroke();
+
+ grid_ctx.strokeStyle = "rgba(0,0,0,0.9)";
+ grid_ctx.beginPath();
+ grid_ctx.moveTo(0,y0);
+ grid_ctx.lineTo(xsize,y0);
+ grid_ctx.moveTo(x0,0);
+ grid_ctx.lineTo(x0,ysize);
+ grid_ctx.closePath();
+ grid_ctx.stroke();
+
+}
+draw_grid();
+trace();
+</script>
+
+ 

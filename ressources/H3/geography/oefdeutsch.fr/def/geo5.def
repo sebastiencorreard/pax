@@ -1,0 +1,212 @@
+!set title=Pays limitrophes de l'Allemagne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Carré, Delafraye
+email=josiane-an.carre@ac-amiens.fr
+
+ansorder=r
+varcnt=59
+prevarcnt=58
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+val6=$[rint(15)]
+val7=$[rint(9)]
+val8=$[rint(6)]
+val9=Deutschlands Nachbarländer
+tmp=!trim Polen, Deutschlands Nachbarländer	Dänemark, Deutschlands Nachbarländer	Schweden, Norwegens Nachbarländer	die Schweiz, Deutschlands Nachbarländer	Norwegen, Schwedens Nachbarländer	Österreich, Deutschlands Nachbarländer	Frankreich, Deutschlands Nachbarländer	Italien, Österreichs Nachbarländer	Luxemburg, Deutschlands Nachbarländer	die Niederlande, Deutschlands Nachbarländer	Belgien, Deutschlands Nachbarländer	Ungarn, Österreichs Nachbarländer	Tschechien, Deutschlands Nachbarländer	Slowakei, Tschechiens Nachbarländer	Slowenien, Ungarns Nachbarländer
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=split
+val12=
+tmp0=!item 1 of 1. oui, 2. non
+
+val13=$(tmp0)
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp0=!nonempty rows $val10
+
+val10=$(tmp0)
+tmp0=!select $val10 where column 2 issametext $val9
+
+val14=$(tmp0)
+tmp0=!select $val10 where column 2 notsametext $val9
+
+val15=$(tmp0)
+tmp0=!nonempty item $(val14[;1])
+
+tmp1=!shuffle $(tmp0)
+
+val14=$(tmp1)
+tmp0=!nonempty item $(val15[;1])
+
+tmp1=!shuffle $(tmp0)
+
+val15=$(tmp1)
+tmp0=!itemcnt $val14
+
+val16=$[rint($(tmp0))]
+tmp0=!itemcnt $val15
+
+val17=$[rint($(tmp0))]
+val6=$[rint(min($val6,$val16+$val17))]
+val7=$[rint(min($val7,$val6-1))]
+val8=$[rint(min($val8,$val6-$val7-1))]
+tmp0=!randint min($val7,$val16), min($val6-$val8,$val16)
+
+val18=$[rint($(tmp0))]
+val19=$[rint(min($val6-$val18,$val17))]
+val6=$[rint($val18+$val19)]
+tmp0=!makelist 1 for x=1 to $val18
+
+tmp1=!makelist 0 for x=1 to $val19
+
+val20=$(tmp0),$(tmp1)
+tmp0=!item 1 to $val18 of $val14
+
+tmp1=!item 1 to $val19 of $val15
+
+val21=$(tmp0),$(tmp1)
+tmp0=!values x for x=1 to $val6
+
+val22=$(tmp0)
+tmp0=!shuffle $val22
+
+val23=$(tmp0)
+tmp0=!item $val23 of $val21
+
+val21=$(tmp0)
+tmp0=!item $val23 of $val20
+
+val20=$(tmp0)
+tmp0=!positionof item 1 in $val20
+
+val24=$(tmp0)
+tmp0=!itemcnt $val24
+
+val25=$[rint($(tmp0))]
+!if liste iswordof $val12 
+val26=<ul>
+val27=<li>
+val28=</li>
+val29=</ul>
+!else
+val26=<div>
+val27=<span>
+val28=</span>
+val29=</div>
+!endif
+val30=Cochez les pays limitrophes de l'Allemagne.
+tmp0=!word 1 of $val13
+
+val13=$(tmp0)
+
+!ifval $val13=1. 
+tmp0=!embraced randitem $val30
+
+val30=$(tmp0)
+!endif
+!if liste iswordof $val12 
+val31=\begin{checkbox}
+!for val32 =1 to $val6 
+val31=$val31	    \item $(val21[$val32]) 
+!next
+val31=$val31 \end{checkbox}
+!else
+val31=\begin{quote}
+!for val32 =1 to $val6-1 
+val31=$val31 $(val21[$val32]), 
+!next
+val31=$val31 $(val21[$val6]).	        \end{quote} 
+!endif
+!if liste iswordof $val12 
+val33=\begin{itemize}
+!for val34 =1 to $val25 
+val33=$val33	    \item $(val21[$(val24[$val34])]) 
+!next
+val33=$val33	        \end{itemize}
+!else
+val33=\begin{quote}
+!for val35 =1 to $val25-1 
+val33=$val33 $(val21[$(val24[$val35])]), 
+!next
+val33=$val33 $(val21[$(val24[$val35])]).	        \end{quote} 
+!endif
+replytype1=mark
+replyoption1=$val11 
+replyname1=Le marquage
+replygood1=$val24;$val21
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val30 $val31 \end{statement} \begin{answer}\ $val33 \end{answer} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <p class="wims_question">$val30</p>	  $val26	   
+!for m_k=1 to $val6-1 
+$()$val27  
+!read oef/embed.phtml r1,\k 
+$(), $val28  
+!next
+$()	  $val27  
+!read oef/embed.phtml r1,$val6 
+$().$val28	  $val29
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val30 $val31 $m_end{statement} $m_begin{answer}\ $val33 $m_end{answer} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,26,27,28,29,30,31,33
+embedcnt=2

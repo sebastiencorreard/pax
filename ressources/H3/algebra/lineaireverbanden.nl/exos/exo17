@@ -1,0 +1,103 @@
+# :bepaal de lijn door twee punten 
+n=$counter
+questiontype=0
+image=0
+cols=15
+math=0
+embed=1
+mathview=0
+checkfile=$checkdir/equation.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+A=!randitem A,B
+B=!randitem C,D
+pm=!randitem +,-
+p=!randitem 1,2,3,4
+letter1=x
+letter2=y
+letter3=!randitem f,g
+
+!if $R=1
+    m=!randitem 1,2,3,-3,-2,-1
+    q=!randitem 1,2,3,4
+    x1=!randitem -4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5
+!else
+    !if $R=2
+	m=!randitem 1,2,3,-3,-2,-1
+	q=!randitem 1,2,3,4
+	x1=!randitem -6,-5,-4,-3,-2,-1
+	x2=!randitem 1,2,3,4,5,6
+    !else
+	m=!randitem 1,1/2,1/4,1/10,3/2,2,-1,-1/2,-1/4,-1/10,-3/2,-2
+	q=!randitem 1,2,3,4,5,6,7
+	x1=!randitem -6,-5,-4,-3,-2,-1
+	x2=!randitem 1,2,3,4,5,6
+    !endif
+!endif
+
+tot=!exec pari A=($m)*($x1) $pm $q\
+B= ($m)*($x2) $pm $q\
+printtex(A)\
+printtex(B)\
+printtex($m)
+
+y1=!line 1 of $tot
+y2=!line 2 of $tot
+y1_tex=!line 3 of $tot
+y2_tex=!line 4 of $tot
+rc_tex=!line 5 of $tot
+
+ss=!record 47 of lang/remarks.$taal
+#@ Stel de formule op van de rechte lijn tussen twee punten<p>Geef de <em>exacte</em> formule van de lijn <em>$letter3</em> door de twee punten. <br /><ul><li>Punt $A met <em>$letter1,$letter2</em>-co&ouml;rdinaten ($x1:$y1)</ll><li>Punt $B met <em>$letter1,$letter2</em>-co&ouml;rdinaten ($x2:$y2)</li></ul> 
+#@! Determine the formula of the line between two given points<p>Give the <em>exact</em> formula of the line <em>$letter3</em><br />in a <em>$letter1,$letter2-plane</em> through the next points: <br /><ul><li>Point $A with <em>$letter1,$letter2</em>-co&ouml;rdinates ($x1:$y1)</li><li>Point $B with <em>$letter1,$letter2</em>-co&ouml;rdinates ($x2:$y2)</li></ul>
+#@!~ 确定通过 2 个已知点的直线 <p>确定在 <em>$letter1,$letter2 平面</em>内通过以下两点<br />的直线 <em>$letter3</em> 的<em>精确</em>公式:<br /><ul><li>点 $A 的 <em>$letter1,$letter2</em> 坐标为 ($x1:$y1)</li><li>点 $B 的 <em>$letter1,$letter2</em> 坐标为 ($x2:$y2)</li></ul>
+
+lijn=$m*x $pm $q
+answer$n= $m*$letter1 $pm $q
+ggg=!htmlmath $letter2 = $(answer$n)
+
+rr=!record 48 of lang/remarks.$taal
+#@ De lijn door $A ($x1:$y1) en $B ($x2:$y2) heeft de vergelijking: <br />$ggg 
+#@! The line through $A ($x1:$y1) and $B ($x2:$y2) is:<br />$ggg 
+#@!~ 通过 $A ($x1:$y1) 和 $B ($x2:$y2) 的直线公式是:<br />$ggg 
+
+
+formula$n=\left[ \begin{array}{l} y= a \cdot $letter1 + b \\ \\  $A \left($x1 : $y1_tex \right)  \\  \\ $B \left( $x2 : $y2_tex \right)  \end{array} \right.
+applettext=!nospace (vlist( y = a*$letter1 + b , $A ($x1 : $y1) ,  $B ($x2 : $y2) )) ->
+
+lijn=!rawmath $m*x $pm $q
+answer$n=$lijn
+arglist=$letter3($letter1),$letter2
+varlist=$letter1
+ggg=!htmlmath y = $(answer$n)
+
+image=0
+#!if $teaching=1
+#    plot=0
+#    draw=0
+#    # symmetrisch plaatje
+#    xmin=$x1
+#    xmax=$[-1*$x1]
+#    ymax=$[(abs(max($[$xmin*$m] , $[$xmax*$m])))]
+#    ymax=$[$ymax+10]
+#    ymin=$[-1*($ymax)]
+#
+#    insplot_data=$x1 $y1 \
+#    $x2 $y2
+#    #"(0,0) first"at first0, first0
+#    insplot_set=noautoscale;size 0.6,0.6;label "$A ($x1:$y1)" at first $x1,first $y1 ;label "$B ($x2:$y2)" at first $x2,first $y2 ;grid ;pointsize 1; zeroaxis linetype 3 lw 3; xlabel "<$letter1 -axis>";ylabel"<$letter2 -axis>" ;border
+#    etext=!record 1 of lang/remarks.$taal
+#    #@ Hier staat een klein grafiekje van de functie</a>
+#    exotext=<a onmouseover="this.T_OPACITY=80;this.T_PADDING=10;this.T_WIDTH=220;return escape('<img src=$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif/>')">$etext</a>
+#    !insplot [$ymin : $ymax] [$ymin : $ymax] $lijn notitle lt 1 ,"insplot_data" notitle with points
+#!endif    
+helptext=<textarea class=\'schaersvoorde_textarea\' readonly=\'readonly\' cols=\'25\' rows=\'2\'>$letter2 = 1/2*$letter1 - 5</textarea><br /><textarea class=\'schaersvoorde_textarea\' readonly=\'readonly\' cols=\'25\' rows=\'2\'>$letter2 = -3$letter1 + 1/3</textarea>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+textanswer$n=$rr
+texanswer$n=\left[ \begin{array}{llll} I : &  $letter2 = a \cdot $letter1 + b  &  & \\II : &  $A ( $x1 : $y1_tex )  & & \\ III : & $B ( $x2 : $y2_tex ) & &  \\ a = [?] : & a = \frac{$y2_tex - $y1_tex}{$x2 - $x1} & \rightarrow  a = $rc_tex \\ b = [?] : & $letter2 _{$B} = a \cdot $letter1 _{$B} + b & \rightarrow $y2_tex = $rc_tex \cdot $x2 + b \\  b  = $y2_tex-$rc_tex \cdot $x2 & \rightarrow  & b = $[$y2-$m*$x2]  \end{array}\right] \rightarrow y =$rc_tex\cdot $letter1 $pm $q
+

@@ -1,0 +1,261 @@
+!set title=Statistiques : variance
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Bergamo
+email=jbcube@hotmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=c,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=12
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Décembre, Janvier, Fevrier
+tmp0=!shuffle $val6
+
+val7=$(tmp0)
+tmp0=!item 1 of $val7
+
+val8=$(tmp0)
+val9=Paris,Lilles,Lens,Reims,Dijon
+tmp0=!shuffle $val9
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!randint 15, 25
+
+val12=$[rint($(tmp0))]
+tmp0=!randint (-6), 9
+
+val13=$[rint($(tmp0))]
+val14=$[rint($val13+4)]
+!readproc slib/stat/random $val12, $val13,$val14 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!values x for x= $val13 to $val14+1
+
+val16=$(tmp0)
+!readproc slib/stat/effectif [$val15],[$val16] 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val17=$(tmp0)
+tmp0=!declosing $val17
+
+val17=$(tmp0)
+!readproc slib/stat/arithmean [$val15] 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val18=$(tmp0)
+val18=$[rint($val18*10)/10]
+!readproc slib/stat/variance [$val15] 
+tmp0=$slib_out
+val19=$(tmp0)
+tmp0=!item 1 of $val19
+
+val19=$(tmp0)
+val19=$[rint($val19*10)/10]
+!readproc slib/stat/freq [$val15],[$val16] 
+tmp0=$slib_out
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val20=$(tmp0)
+tmp0=!declosing $val20
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 2 of $val20
+
+val22=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 3 of $val20
+
+val23=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 4 of $val20
+
+val24=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 5 of $val20
+
+val25=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 1 of $val17
+
+val26=$(tmp0)
+tmp0=!item 2 of $val17
+
+val27=$(tmp0)
+tmp0=!item 3 of $val17
+
+val28=$(tmp0)
+tmp0=!item 4 of $val17
+
+val29=$(tmp0)
+tmp0=!item 5 of $val17
+
+val30=$(tmp0)
+val31=<table class="wimscenter wimsborder">
+val32=$[rint(ceil($val12/10))]
+!for val33 =0 to $val32-1 
+val31=$val31<tr>
+!for val34 =1 to 10 
+tmp0=!item $val33*10+$val34 of $val15
+
+val35=$(tmp0)
+val31=$val31<td>$val35</td>
+!next
+val31=$val31</tr>
+!next
+val31=$val31</table>
+tmp0=!item 1 of $val16
+
+val36=$[$(tmp0)]
+tmp0=!item 2 of $val16
+
+val37=$[$(tmp0)]
+tmp0=!item 3 of $val16
+
+val38=$[$(tmp0)]
+tmp0=!item 4 of $val16
+
+val39=$[$(tmp0)]
+tmp0=!item 5 of $val16
+
+val40=$[$(tmp0)]
+val41=<table class="wimscenter wimsborder">
+val41=$val41<tr><th>Températures</th>	<td>$val36</td>	<td>$val37</td>	<td>$val38</td>	<td>$val39</td>	<td>$val40</td>	
+val41=$val41</tr>
+replytype1=numexp
+replyname1=Effectif 1
+replygood1=$val26
+replytype2=numexp
+replyname2=Effectif 2
+replygood2=$val27
+replytype3=numexp
+replyname3=Effectif 3
+replygood3=$val28
+replytype4=numexp
+replyname4=Effectif 4
+replygood4=$val29
+replytype5=numexp
+replyname5=Effectif 5
+replygood5=$val30
+replytype6=numexp
+replyname6=Fréquence 1
+replygood6=$val21
+replytype7=numexp
+replyname7=Fréquence 2
+replygood7=$val22
+replytype8=numexp
+replyname8=Fréquence 3
+replygood8=$val23
+replytype9=numexp
+replyname9=Fréquence 4
+replygood9=$val24
+replytype10=numexp
+replyname10=Fréquence 5
+replygood10=$val25
+replytype11=numexp
+replyname11=moyenne
+replygood11=$val18
+replytype12=numexp
+replyname12=variance
+replygood12=$val19
+choicename1=Qu'est-ce que la variance?
+choicegood1=la moyenne des carrés des écarts par rapport à la moyenne ,la dispersion des valeurs par rapport à la moyenne
+choicebad1=le carré de la moyenne des écarts de la moyenne, la médiane des écarts
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici les températures(°C) relevées à $val11 durant le mois de $val8:	$val31	<p>	Compléter le tableau suivant	</p>	$val41	<tr><th>Effectif</th>	<td> 
+!read oef/embed.phtml reply 1,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 2,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 3,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 4,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 5,8 
+$()</td>	</tr>	<tr><th>Fréquence(%)</th>	<td> 
+!read oef/embed.phtml reply 6,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 7,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 8,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 9,8 
+$()</td>	<td> 
+!read oef/embed.phtml reply 10,8 
+$()</td>	</tr>	</table>	<ul><li>La température moyenne sur $val11 en $val8 est de: 
+!read oef/embed.phtml reply 11 
+$().</li>	<li>La variance est de:  
+!read oef/embed.phtml reply 12 
+$().</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,11,31,41
+embedcnt=12

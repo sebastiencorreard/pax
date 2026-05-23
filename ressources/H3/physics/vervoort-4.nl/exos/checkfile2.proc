@@ -1,0 +1,75 @@
+# antwoord enkel logpapier; $options punten x1,y1,x2,y2...
+# y-waarde +/- 0.05 %
+
+n=$counter
+!if $(reply$n) = ?
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+
+# xmin = 0
+# xmax = 10
+# ymin = 0
+# ymax = 5
+dx=0.1
+dy=0.05
+found=$empty
+rep=<ul>
+score=0
+gotit=0
+points=$empty
+!for p=1 to $[2*$options] step 2
+    xa=!item $p of $(reply$n)
+    ya=!item $[$p+1] of $(reply$n)
+    y_a=$[(log($ya)/log(10))]
+    found=0
+    !for s=1 to $[2*$options] step 2
+	!if $s notitemof $gotit
+	    xg=!item $s of $(answer$n)
+	    !if $xa > $[$xg-$dx] and $xa < $[$xg+$dx]
+	        yg=!item $[$s+1] of $(answer$n)
+	        y_g=$[(log($yg)/log(10))]
+		!if $y_a > $[$y_g-$dy] and $y_a < $[$y_g+$dy]
+		    rep=!append word $ <li> <span style="color:green">( $xa : $ya )</span> </li> $ to $rep
+		    gotit=!append item $s to $gotit
+		    !increase score
+		    found=1
+		    points=!append line point $xa,$y_a,green,150,10 to $points
+		!else
+		    !if $y_a > $[$y_g-2*$dy] and $y_a < $[$y_g+2*$dy]
+			rep=!append word $ <li> <span style="color:orange">( $xa : $ya )</span> </li> $ to $rep
+		        gotit=!append item $s to $gotit
+		        score=$[$score + $P3]
+		        found=1
+			points=!append line point $xa,$y_a,orange,150,10 to $points
+		    !endif
+		!endif 
+	    !endif
+	!endif
+    !next s
+    !if $found=0
+	points=!append line point $xa,$y_a,red,150,10 to $points
+	rep=!append word $ <li> <span style="color:red">( $xa : $ya )</span> </li> $ to $rep
+    !endif
+!next p
+rep=!append word $ </ul> $ to $rep
+reply$n=!append line $rep to $(reply$n)
+maxscore=$[$maxscore*$score/$options]
+modulescore=$[ $modulescore + $maxscore ]
+
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+	k=orange
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!fileappend getfile/ansdata.$counter linewidth 10\
+$points

@@ -1,0 +1,178 @@
+!set title=correspondència funció-representació 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=ca
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=39
+prevarcnt=38
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+val7=$[rint(5)]
+!if $val6=1 
+val8=Relaciona cada funció amb el color de la seua representació gràfica.
+val9=f(x)
+val10=40x150x75
+!else
+val8=Relaciona cada equació amb el color de la recta corresponent.
+val9=y
+val10=40x100x75
+!endif
+val11=1,2,3,4
+tmp0=!item 1 of $val11
+
+val12=$[rint($(tmp0))]
+tmp0=!item 2 of $val11
+
+val11=$[rint($(tmp0))]
+val13=$val11;#;$val12,$val11;#;-$val12,-$val11;#;$val12,-$val11;#;-$val12,$val12;#;$val11,-$val12;#;$val11,$val12;#;-$val11,-$val12;#;-$val11
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+val14=red;#;roig,green;#;verd,yellow;#;groc,purple;#;violeta,blue;#;blau,black;#;negre
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!item 1 to $val7 of $val14
+
+val14=$(tmp0)
+tmp0=!items2lines $val14
+
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal ;#; by , in $val15
+
+tmp=!trim $(tmp0)
+val15=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val15
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp0=!record 2 of src/graph.don
+
+val17=$(tmp0)
+val18=
+!for val19 =1 to $val7 
+tmp0=!item $val19 of $val13
+
+val20=$(tmp0)
+val15=$val20
+tmp0=!replace internal ;#; by , in $val20
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$[rint($(tmp0))]
+tmp0=!item 2 of $val20
+
+val22=$[rint($(tmp0))]
+val23=$[rint(150+(-5*30))]
+val24=$[rint(150+(5*30))]
+val25=!rawmath -($val21*(x)+($val22))*30+150
+evaltmp=$val25
+
+evaltmp=!mathsubst x=(-5) in $evaltmp
+tmp0=($evaltmp)
+val26=$[rint($(tmp0))]
+evaltmp=$val25
+
+evaltmp=!mathsubst x=(5) in $evaltmp
+tmp0=($evaltmp)
+val27=$[rint($(tmp0))]
+val17=$val17	line $val23,$val26,$val24,$val27,$(val14[$val19])
+tmp0=!texmath $val21*x+($val22)
+
+val28=$(tmp0)
+
+!ifval $val6=1
+val15=\(x \mapsto $val28)
+!else
+val15=\(y=$val28)
+!endif
+tmp0=!append item $val15 to $val18
+
+val18=$(tmp0)
+!next
+val17=$val17	text black,290,150,medium,x	text black,155,2,medium,$val9
+replytype1=correspond
+replyname1=R?onse
+replygood1=$val18;$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8 	<center><table width=100%>	<tr><td><div align="center">	 
+!read oef/embed.phtml r1,$val10 
+$() </div>	</td><td>	 
+!read oef/draw.phtml 301,301 \
+$val17 
+$()	</td></tr>	</table></center>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,10,17
+embedcnt=1

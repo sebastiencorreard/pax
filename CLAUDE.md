@@ -101,6 +101,10 @@ Two helper functions in `models/exercise.py`:
 
 This makes IDs deterministic across fresh DB setups and URL-safe (`~` is RFC 3986 unreserved). All routes (`/api/exercises/{id}`, `/api/render/{id}`, `/api/check/{id}`) and frontend types use `str`, not `int`.
 
+## Image / static assets
+
+Exercise images are served by the backend via `/api/static` (mounted on `ressources/`) — see [`docs/static-assets.md`](docs/static-assets.md). To add a new module image, drop it in `ressources/<level>/<domain>/<module>.<lang>/images/`; it's picked up automatically.
+
 ## Key Configuration
 
 Backend settings are Pydantic-based (`backend/config.py`), sourced from `.env`:
@@ -140,3 +144,17 @@ When editing or adding exercises under `ressources/`:
 - Syllogism `.txt` exercises use the format `A -> B` / `nietA -> B` for logical notation, with Dutch labels (`Vraag #N`)
 - OEF `.phtml` templates use WIMS variable syntax
 - `\language{}` values in OEF files may be full names (`french`, `dutch`) — the import script normalizes these to ISO codes (`fr`, `nl`) before inserting
+
+## Documentation index (`docs/`)
+
+In-depth references and dev guides:
+
+- [`def-engine-commands.md`](docs/def-engine-commands.md) — WIMS `!cmd` reference
+- [`def-engine-cas-functions.md`](docs/def-engine-cas-functions.md) — Maxima / Pari → Python mapping
+- [`def-engine-workflow.md`](docs/def-engine-workflow.md) — dev workflow when adding new `.def` files
+- [`slib.md`](docs/slib.md) — shared library scripts (`!readproc slib/…`)
+- [`types-exercices-reponses.md`](docs/types-exercices-reponses.md) — catalogue of exercise + answer types
+- [`exercises-course.md`](docs/exercises-course.md) — deep dive on `course` (sequential) exercises
+- [`exercise-parameters.md`](docs/exercise-parameters.md) — WIMS session variables (`$imagedir`, `$confparm*`, `$m_step`, …)
+- [`static-assets.md`](docs/static-assets.md) — `/api/static` endpoint, image serving, `$imagedir` resolution
+- [`wims-c-to-python-port.md`](docs/wims-c-to-python-port.md) — porting decisions vs the WIMS C source

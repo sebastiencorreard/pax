@@ -1,0 +1,335 @@
+# var9 is het maximum aantal breukstrepen in het eindantwoord 
+# var8=1 tussenstappen mogen
+# stappen worden altij nagekeken [ $stappen !=0] 
+# maar er wordt alleen bij var8=1 een cijfer aan gekoppeld...
+# als var8=1 en er zijn geen stappen gebruikt volgt geen puntenaftrek of opmerking
+# deze file is identiek aan E6/number/breuken.nl
+
+n=$counter
+
+!if ? isin $(reply$n)
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+AAA=!replace internal = by , in $AAA
+t=!itemcnt $AAA
+stappen=0
+
+!if $t>1
+    !for p=1 to $t
+	A=!item $p of $AAA
+	!if $A != $empty
+	    !increase stappen
+	    A$stappen=!rawmath $A
+	!endif
+    !next p
+    AAA=!item -1 of $AAA
+    !if $var8 != 1
+	ex=Je hoeft hier geen berekeningen te laten zien...<br />Dus van je antwoord <kbd>"$(reply$n)"</kbd> kijk ik voor het eindcijfer<br />alleen het laatste stukje ($AAA) maar na.
+	extra=!subst $ex
+    !endif
+!endif
+
+!if x isin $AAA or * isin $AAA
+    !if $teaching=1
+	errortext=Je moet de zaak natuurlijk wel uitrekenen...<br />Ik trof een vermenigvuldigings_teken (* of &times;) aan in je antwoord
+	maxscore=$[$P5*$maxscore]
+	goback=1
+	!exit
+    !else
+	maxscore=0
+	ex=Je moest de zaak wel zelf uitrekenen.
+	remark$n=$NOK <br />$ex
+	goback=0
+	!exit
+    !endif
+!endif
+
+!if NaN isin $[1*($AAA)]
+    errortext=Maar wat heeft <kbd>"$(reply$n)"</kbd> met de som te maken ?
+    maxscore=$[$P5*$maxscore]
+    goback=1
+    !exit
+!endif
+
+AAA=!replace [a-z\~!@#$%_:;] by $empty in $AAA
+
+AAA=!rawmath $AAA
+# +1+1/6 -> 1+1/6
+
+!if $var9 != $empty
+    # niet meer dat 1 breukstreep ;misschien moet dit anders?
+    test=!positionof char / in $AAA
+    test=!itemcnt $test
+    !if $test>$var9
+	!if $var9=0
+	    ex=Je antwoord zou toch <b>geen</b> breuk zijn ?
+	!else
+	    ex=Je zou de breuk vereenvoudigen...
+	!endif
+	!if $teaching=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	    goback=1
+	!else
+    	    remark$n=$NOK<br />$ex
+	    maxscore=0
+	    goback=0
+	!endif
+	!exit
+    !endif
+!endif
+score=0
+    
+!ifval $[$AAA] = $[-1*($(answer$n))] && $[$AAA] != 0
+    # +/- verwisseld
+    ex=<br />Je hebt wat plussen en minnen verwisseld:<kbd>"-1&times;$AAA"</kbd> was wel goed geweest.
+    extra=!append line $ex to $extra
+    maxscore=$[$P7*$maxscore]
+!endif
+
+!ifval ($[$AAA] = $[1/($(answer$n))]) and ($[abs($AAA)] !=1)
+    # teller en noemer omgekeerd
+    ex=Je hebt teller en noemer verwisseld <kbd>"1&divide;$AAA"</kbd> was wel goed geweest.
+    extra=!append line $ex to $extra
+    maxscore=$[$P8*$maxscore]
+!endif
+
+!ifval $[$AAA] = $[$(answer$n)]
+    # antwoord in principe goed
+    !if / isin $AAA and  / isin $(answer$n)
+	# 2+1/9 of 19/9 ...
+	!if + isin $AAA and + isin $(answer$n)
+	    ta=!replace internal + by , in $AAA
+	    # answer$n is altijd in vorm 2+1/3
+	    tg=!replace internal + by , in $(answer$n)
+	    tt=!itemcnt $ta
+	    !if $tt > 2
+		ex=Je antwoord <kbd>"$(reply$n)"</kbd> moet je toch wat netter noteren...
+		!if $teaching=1
+		    maxscore=$[$P6*$maxscore]
+		    goback=1
+		    errortext=$ex
+		!else
+		    maxscore=0
+		    goback=0
+		    remark$n=$NOK<br />$ex
+		!endif
+		!exit
+	    !endif
+	    # 2+1/9 of 1/9+2 ? : 
+	    ta1=!item 1 of $ta
+	    ta2=!item 2 of $ta
+	    #tg1=!item 1 of $tg
+	    tg2=!item 2 of $tg
+	    !if / isin $ta1
+		# dus 1/9,2 -> breuk is item 1
+		br=$ta1
+	    !else
+		br=$ta2
+	    !endif
+	    br=!replace internal / by , in $br
+	    tg2=!replace internal / by , in $tg2
+	    teller_a=!item 1 of $br
+	    noemer_a=!item 2 of $br
+	    teller_g=!item 1 of $tg2
+	    noemer_g=!item 2 of $tg2
+	    !ifval $[abs($teller_a)] = $[abs($teller_g)] and  $[abs($noemer_a)] = $[abs($noemer_g)]
+		score=1
+		ex=<br />De breuk goed vereenvoudigd !
+	    !else
+		score=$P5
+		ex=<br />Je kunt $teller_a/$noemer_a vereenvoudigen tot $teller_g/$noemer_g 
+	    !endif
+	    extra=!append line $ex to $extra
+	!else
+	    !if + isin $AAA
+		# dus AAA=2+1/9 ipv answer$n=19/9
+		ta=!replace internal + by , in $AAA
+		tt=!itemcnt $ta
+		!if $tt > 2
+		    ex=Je antwoord <kbd>"$(reply$n)"</kbd> moet je toch wat netter noteren...
+		    !if $teaching=1
+			maxscore=$[$P6*$maxscore]
+		        goback=1
+			errortext=$ex
+		    !else
+			maxscore=0
+		        goback=0
+			remark$n=$NOK<br />$ex
+		    !endif
+		!endif
+		ta1=!item 1 of $ta
+		ta2=!item 2 of $ta
+		!if / isin $ta1
+		    # dus 1/9+2
+		    br=$ta1
+		!else
+		    # dus 2+1/9
+		    br=$ta2
+		!endif
+		ta1=!rawmath $br
+		# -1/-9 -> 1/9
+		test=!exec pari $ta1
+		!if $test = $ta1
+		    score=1
+		    ex=<br />De breuk goed vereenvoudigd !<br />Maar je kon <kbd>"$AAA"</kbd> ook schrijven als <kbd>"$(answer$n)"</kbd>  
+		!else
+		    score=0.1
+		    ex=<br />Je kunt <kbd>"$br"</kbd> vereenvoudigen tot <kbd>"$test"</kbd>   
+		!endif
+		extra=!append line $ex to $extra
+	    !else
+		# hehe gewoon twee breuken 1/3 of 3/9?
+		ta=!replace internal / by , in $AAA
+		tg=!replace internal / by , in $(answer$n)
+		teller_a=!item 1 of $ta
+		noemer_a=!item 2 of $ta
+		teller_g=!item 1 of $tg
+		noemer_g=!item 2 of $tg
+		!ifval $[abs($teller_a)] = $[abs($teller_g)] and  $[abs($noemer_a)] = $[abs($noemer_g)]
+		    !if . isin $AAA
+			ex=$empty
+			!if . isin $teller_a
+			    ex=<br />...waarom een decimaal getal in de teller ? ($teller_a)
+			!endif
+			!if . isin $noemer_a
+			    ex=$ex<br />en een decimaal getal in de noemer ? ($noemer_a)
+			!endif
+			score=0.8
+		    !else
+			score=1
+			ex=<br />De breuk goed vereenvoudigd !
+		    !endif
+		!else
+	    	    score=0.1
+		    ex=<br />Je kunt $teller_a/$noemer_a vereenvoudigen tot $teller_g/$noemer_g <br />dat is de bedoeling van dit sommetje...
+		!endif
+		extra=!append line $ex to $extra
+	    !endif
+	!endif
+    !else
+    # eind : !if / isin $AAA and / isin $(answer$n)
+	!if / isin $AAA
+	    # dus $AAA is breuk maar  answer$n is getal
+	    !if + isin $AAA
+		# 1+4/4 == 2 ...
+		tt=!replace internal + by , in $AAA
+		t1=!item 1 of $tt
+		t2=!item 2 of $tt
+		!if / isin $t1
+		    br=$t1
+		!else
+		    br=$t2
+		!endif
+		ta=!replace internal / by , in $br
+		teller_a=!item 1 of $ta
+		noemer_a=!item 2 of $ta
+		!ifval $teller_a = $noemer_a
+		    ex=<br />Maar <kbd>"$teller_a/$noemer_a"</kbd> is toch gewoon 1
+		    score=0.9
+		!else
+		    test=!exec pari $br
+		    !if $test = $br
+			score=1
+		        ex=<br />De breuk goed vereenvoudigd !<br />Maar je kon <kbd>"$AAA"</kbd> ook schrijven als <kbd>"$(answer$n)"</kbd>  
+		    !else
+			score=0.1
+		        ex=<br />Je kunt <kbd>"$br"</kbd> vereenvoudigen tot <kbd>"$test"</kbd>   
+		    !endif
+		!endif
+		extra=!append line $ex to $extra
+	    !else
+		ta=!replace internal / by , in $AAA
+		teller_a=!item 1 of $ta
+		noemer_a=!item 2 of $ta
+		score=$P3
+		ex=<br />Je mag <kbd>"$teller_a/$noemer_a"</kbd> gewoon noteren als <kbd>"$(answer$n)"</kbd> ... 
+		extra=!append line $ex to $extra
+	    !endif
+	!else
+	    #  AAA is geen breuk
+	    !if / isin $(answer$n)
+		# er zit een / in het goede antwoord
+		ex=Je antwoord zou een breuk moeten zijn
+		score=0
+	    !else
+		# answer$n is geen breuk
+		!if . notin $AAA
+		    score=1
+		    ex=Heel goed uitgerekend !
+		!else
+		    # AAA bevat een decimale punt
+		    !if . notin $(answer$n)
+			score=$P4
+			ex=<br />Maar waarom een decimaal getal ervan gemaakt?<br /><kbd>"$(answer$n)"</kbd> was het betere antwoord...
+		    !else
+			score=1
+		    !endif
+		!endif
+	    !endif
+	    extra=!append line $ex to $extra
+	!endif
+    !endif
+!else
+    # gewoon foutief antwoord : nog checken op een factor ?
+    score=0
+!endif
+
+!if $stappen != 0
+    reply$n=$empty
+    stapscore=0
+    cnt=0
+    !for p=1 to $[$stappen-1]
+	!increase cnt
+	!ifval $[1*($(A$p))] = $[1*($(A$[$p+1]))]
+	    k1=green
+	    !increase stapscore
+	!else
+	    k1=red
+	!endif
+	!if $p = $[$stappen-1]
+	    !if $score>0
+		k2=green
+	    !else
+		k2=red
+	    !endif
+	    reply$n=!append line $ <span style="color:$k1">$(A$p)</span>&nbsp;<b>=</b>&nbsp;<span style="color:$k2"><b>$(A$[$p+1])</b></span> $ to $(reply$n)
+	!else
+    	    reply$n=!append line $ <span style="color:$k1">$(A$p)&nbsp;<b>=</b>&nbsp;$(A$[$p+1])</span><br /> $ to $(reply$n)
+	!endif
+    !next p
+    !if $var8=1
+	score=$[($score + $stapscore)/$stappen]
+    !endif
+    !if $stapscore = $cnt
+	ex=<br />en alle tussenstappen zijn prima
+    !else
+	ex=<br />niet alle tussenstappen zijn goed...
+    !endif
+    reply$n=!append line $ex to $(reply$n)
+!endif
+
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+!exit

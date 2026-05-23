@@ -1,0 +1,38 @@
+target=cercle5
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\computeanswer{no}
+\format{html}
+\precision{100}
+
+\text{name1=slib(lang/fname fr,boy)}
+\text{name2=slib(lang/fname fr,girl)}
+\text{name3=slib(lang/fname fr,girl)}
+\text{name=shuffle(\name1,\name2,\name3)}
+\text{name=wims(listuniq \name)}
+\integer{nb=items(\name)}
+\text{name=\nb<3?shuffle(Pierre,Paul,Olivier)}
+\text{choix=randitem(1,2)}
+\text{rep=\choix=1? \name[3]:\name[1]}
+\text{namerep=shuffle(\name)}
+\text{name_question1=On peut toujours tracer une droite passant par deux points distincts. Et bien moi,
+  je te parie que j'arrive toujours à faire passer un cercle par trois points distincts}
+\text{question1=\choix=1?\name_question1. : \name_question1 non alignés.}
+\statement{
+\name[1] dit à \name[2]&nbsp;:
+<div style="font-style:italic">\question1</div>
+\name[2] répond:
+<div style="font-style:italic">
+C'est impossible on ne peut jamais faire cela.</div>
+\name[3] qui écoutait leur conversation ajoute :
+<div style="font-style:italic">
+Cela dépend de la position des points.</div>
+<p>
+Qui a raison ?
+</p>}
+
+\choice{}{\rep}{\namerep}

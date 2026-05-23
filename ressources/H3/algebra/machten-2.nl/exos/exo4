@@ -1,0 +1,162 @@
+#standaardvorm: a&radic;(b) &times; c&radic;(d) 
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+math=0
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+#font settings in input applet
+smallfont=16
+largefont=24
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+checkfile=exos/checkfile1.proc
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 41 of lang/remarks.$taal
+#@Bereken en schrijf indien nodig in de standaardvorm <img src=$module_dir/gifs/exo$subject.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+helptext=<img src=\'$module_dir/gifs/exo4.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+!if $R=1
+    a=!randitem 2,3,4
+    b=!randitem 2,3,5
+    c=!randitem 2,3,5,6
+    d=$[$a*$a*$b]
+    tot=!exec maxima sqrtdispflag:true;\
+    sqrt($[$b*$c]);
+        
+    tot=!line 2 of $tot
+    tot=!nospace $a*$tot
+    # tot 6*sqrt(3)
+    !if sqrt isin $tot
+	!if * isin $tot
+	    t=!replace internal *sqrt(  by , in $tot
+	!else
+	    t=!replace internal sqrt(  by , in $tot	
+	!endif
+	t1=!item 1 of $t
+	t2=!item 2 of $t
+	answer$n=$[$t1],sqrt($t2,2
+	tex=$[$t1] \cdot \sqrt{($t2}
+	checkfile=exos/checkfile1.proc
+	# antwoord is een wortel
+	var1=1
+    !else
+	# antwoord een getal
+	var1=0
+	answer$n=$[$tot]
+	tex=$[$tot]
+	checkfile=exos/checkfile2.proc
+    !endif
+    texanswer$n=\left[ \begin{array}{l} \sqrt{$d} \cdot \sqrt{$c} \,=\, \sqrt{$a^{2} \cdot $b } \cdot \sqrt{$c}  \,=\, \\  $a\sqrt{$b \cdot $c} \,=\, $tex \end{array} \right.
+    applettext=sqrt($d)*sqrt($c)=
+    formula$n=\sqrt{$d} \cdot \sqrt{$c} \,=\,[?]
+ !exit
+!endif
+
+
+!if $R=2
+    a=!randitem 2,3,4
+    b=!randitem 2,3,5
+    c=!randitem 2,3,5,6
+    pm=!randitem -1,1
+    e=!randitem 2,3,4,5,6,7,8
+    e=$[$pm*$e]
+    d=$[$a*$a*$b]
+    factor=$[$e*$a]
+#    tot=!exec maxima sqrtdispflag:true;\
+#    $[($e)*($a)]*(sqrt($[$b*$c]));
+    tot=!exec maxima sqrtdispflag:true;\
+    sqrt($[$b*$c]);
+    
+    tot=!line 2 of $tot
+    tot=!nospace $tot
+    tot=$factor*$tot
+    # tot 6*2*sqrt(3)
+    !if sqrt isin $tot
+	!if *s isin $tot
+	    t=!replace internal *sqrt(  by , in $tot
+	!else
+	    t=!replace internal sqrt(  by , in $tot	
+	!endif
+	t1=!item 1 of $t
+	t2=!item 2 of $t
+	answer$n=$[$t1],sqrt($t2,2
+	tex=$[$t1] \cdot \sqrt{($t2}
+	checkfile=exos/checkfile1.proc
+	# antwoord is een wortel
+	var1=1
+    !else
+	# antwoord een getal
+	var1=0
+	answer$n=$[$tot]
+	tex=$[$tot]
+	checkfile=exos/checkfile2.proc
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $e \sqrt{$d} \cdot \sqrt{$c} \,=\, $e \sqrt{$a^{2} \cdot $b } \cdot \sqrt{$c}  \,=\, \\  $a\cdot $e \sqrt{$b \cdot $c} \,=\, $tex \end{array} \right.
+    applettext=$e*sqrt($d)*sqrt($c)=
+    formula$n=$e \sqrt{$d} \cdot \sqrt{$c} \,=\,[?]
+ !exit
+!endif
+
+!if $R>2
+    a=!randitem 2,3,4
+    b=!randitem 3,5,6,7
+    c=!randitem 2,3,5,6,7
+    pm=!randitem -1,1
+    mp=!randitem -1,1
+    e=!randitem 2,3,4,5,6,7,8
+    f=!randitem 2,3,4,5,6,7,8
+    e=$[$pm*$e]
+    f=$[$mp*$f]
+    d=$[$a*$a*$b]
+    factor=$[($e)*($a)*($f)]
+    tot=!exec maxima sqrtdispflag:true;\
+    sqrt($[$b*$c]);
+    tot=!line 2 of $tot
+    tot=!nospace $factor*$tot
+    # tot 6*sqrt(3)
+    !if sqrt isin $tot
+	!if * isin $tot
+	    t=!replace internal *sqrt(  by , in $tot
+	!else
+	    t=!replace internal sqrt(  by , in $tot
+	!endif
+	t1=!item 1 of $t
+	t2=!item 2 of $t
+	answer$n=$[$t1],sqrt($t2,2
+	tex=$[$t1] \cdot \sqrt{($t2}
+	checkfile=exos/checkfile1.proc
+	# antwoord is een wortel
+	var1=1
+    !else
+	# antwoord een getal
+	var1=0
+	answer$n=$[$tot]
+	tex=$[$tot]
+	checkfile=exos/checkfile2.proc
+    !endif
+    texanswer$n=\left[ \begin{array}{l} $e \sqrt{$d} \times $f \sqrt{$c} \,=\, $e \cdot $f \sqrt{$a^{2} \cdot $b } \cdot \sqrt{$c}  \,=\, \\ $e \cdot $f \cdot  $a \sqrt{$b \cdot $c} \,=\, $tex \end{array} \right.
+    applettext=!nospace ($e*sqrt($d)) cdot ($f*sqrt($c)) =
+    formula$n=\left($e \sqrt{$d}\right) \cdot \left( $f\sqrt{$c}\right) \,=\, [?]
+ !exit
+!endif
+
+
+
+
+
+

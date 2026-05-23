@@ -1,0 +1,131 @@
+# var1=f(x) , var2=g(x)
+n=$counter
+errortext=$empty
+goback=0
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+ta=!itemcnt $(reply$n)
+AAA=!nospace $(reply$n)
+!for p in sqrt,sin,cos,ln,log,abs,pi
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+AAA=!replace [a-z\~\!\@\#\$\%\&\_\=\:\;] by $empty in $AAA
+AAA=!tolower $AAA
+tg=!itemcnt $(answer$n)
+score1=0
+score2=0
+score3=0
+table=$empty
+checked=$empty
+duplicate=!record 9 of lang/remarks.$taal
+diffs=$empty
+!for p=1 to $ta step 3
+    k1=white
+    A1=!item $p of $AAA
+    !if $A1 isitemof $checked
+	A1=$duplicate [x=$A1]
+	A2=xxxx
+	A3=xxxx
+	k1=orange
+	k2=red
+	k3=red
+    !else
+	checked=!append item $A1 to $checked
+	A2=!item $[$p+1] of $AAA
+	A3=!item $[$p+2] of $AAA
+	A1=$[(round($rounding*$A1))/$rounding]
+	A2=$[(round($rounding*$A2))/$rounding]
+        A3=$[(round($rounding*$A3))/$rounding]
+	!if NaN isin $A1$A2$A3
+	    k1=orange
+	    k2=red
+	    k3=red
+	    A1=<span style="text-decoration:line-through">$A1</span>
+	    A2=<span style="text-decoration:line-through">$A2</span>
+	    A3=<span style="text-decoration:line-through">$A3</span>
+	!else
+	    !if $org != $empty
+		diffs=!append item $[abs($A1 - $org)] to $diffs
+	    !endif
+	    org=$A1
+	    !for s in $(answer$n)
+		!ifval $A1 = $[(round($rounding*$s))/$rounding]
+		    # snijpunt gevonden
+		    !increase score1
+		    k1=lightgreen
+		!endif
+	    !next s
+	    c2=!evalsubst x=($A1) in $var1
+	    c3=!evalsubst x=($A1) in $var2
+	    c2=$[(round($rounding*($c2)))/$rounding]
+	    c3=$[(round($rounding*($c3)))/$rounding]
+	    !if NaN isin $c2 or NaN isin $c1
+		k1=orange
+		k2=red
+		k3=red
+	    !else
+		!ifval $c2 = $A2
+		    !increase score2
+		    k2=green
+		!else
+		    k2=red
+		!endif
+		!ifval $c3 = $A3
+		    !increase score3
+		    k3=green
+		!else
+		    k3=red
+		!endif
+	    !endif
+	!endif
+    !endif
+    table=!append word $ <tr><td style="background-color:$k1">$A1</td><td><span style="color:$k2"><b>$A2</b></span></td><td><span style="color:$k3"><b>$A3</b></span></td></tr> $ to $table
+!next p
+
+cc=$[$ta/3]
+maxscore=$[$maxscore*(2*$score1/$tg + $score2/$cc + $score3/$cc)/4]
+
+!if $maxscore>0.4
+    t=!itemcnt $diffs
+    extra=$empty
+    !if $t>1
+	# tg is aantal snijpunten in correcte antwoord
+        pr=!positionof item 0.01 in $diffs
+	pr=!itemcnt $pr
+	!ifval $pr < $[$tg*2]
+	    maxscore=$[$maxscore*0.6]
+	    extra=!record 12 of lang/remarks.$taal
+	    #@<br />Je stapgrootte [ $diffs ] is niet nauwkeurig genoeg !<br />Bij 2 decimalen nauwkeurig moet je voor en na het verwachtte snijpunt<br />een maximale stapgrootte van <b>0.01</b> in de x-waarden hebben...
+	!else
+	    extra=!record 13 of lang/remarks.$taal
+	    #@<br />Je hebt de goede stapgroote gekozen
+	!endif
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK 
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!if $extra!=$empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+math=0
+goback=0
+reply$n=<table class="zebra_table_v3"><tr><th>x</th><th>f(x)</th><th>g(x)</th></tr>$table</table>
+
+!exit

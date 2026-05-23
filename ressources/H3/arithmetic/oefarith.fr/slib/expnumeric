@@ -1,0 +1,64 @@
+slib_input=$wims_read_parm
+slib_type=!item 1 of $slib_input
+slib_input=!item 2 to -1 of $slib_input
+!goto $slib_type
+
+!! -------------  generation d'un calcul avec des fractions niveau 1
+
+:fraction1
+listnombre=2,3,4,5,6,7,9,11
+listnombre=!shuffle $listnombre
+!distribute items $listnombre into a,b,c,d,e,f
+sg1=!randitem +,-
+sg2=!randitem +,-
+calculs=$a/$b $sg1 $c/$b /( $[$c*$d]/$[$c*$e]),\frac{$a}{$b} $sg1 \frac{$c}{$b} : \frac{$[$c*$d]}{$[$c*$e]}\
+1-(1/$a $sg1 $d/$b * $b/$c),1-(\frac{1}{$a}$sg1\frac{$d}{$b}\times \frac{$b}{$c})\
+$e/$[$a*$b]-$c/$b * $d,\frac{$e}{$[$a*$b]}-\frac{$c}{$b} \times $d\
+$a-($b/$c $sg1 $d/$e),$a-(\frac{$b}{$c}$sg1\frac{$d}{$e})\
+($a $sg1 $a/$b)/($c/$d $sg2 $e/$f),($a $sg1 \frac{$a}{$b}):(\frac{$c}{$d} $sg2 \frac{$e}{$f})\
+($b/$c $sg1 $d/$e)/($a/$f),(\frac{$b}{$c}$sg1\frac{$d}{$e}):\frac{$a}{$f}\
+$b/$c $sg1 (($d/$e)/($a/$f)),\frac{$b}{$c}$sg1\frac{$d}{$e}:\frac{$a}{$f}\
+$b/$c $sg1 (($d/$e)*($a/$f)),\frac{$b}{$c}$sg1\frac{$d}{$e}*\frac{$a}{$f}\
+($b/$c $sg1 $d/$e)*($a/$f),(\frac{$b}{$c}$sg1\frac{$d}{$e})\times\frac{$a}{$f}\
+($a/$f)/($b/$c $sg1 $d/$e),\frac{$a}{$f}:(\frac{$b}{$c}$sg1\frac{$d}{$e})\
+(($a/$f)/($b/$c)) $sg1 $d/$e,\frac{$a}{$f}:\frac{$b}{$c}$sg1\frac{$d}{$e}\
+($a/$f)*($b/$c $sg1 $d/$e),\frac{$a}{$f}\times(\frac{$b}{$c}$sg1\frac{$d}{$e})\
+(($a/$f)*($b/$c)) $sg1 $d/$e,\frac{$a}{$f}\times\frac{$b}{$c}$sg1\frac{$d}{$e}
+
+slib_out=!randline $calculs
+test=!item 1 of $slib_out
+test=$[$test]
+!if NaN isin $test
+ !goto fraction1
+!endif
+
+!exit
+
+!! -------------  generation d'un calcul avec des fractions niveau 2
+
+:fraction2
+listnombre=2,3,4,5,6,7,9,11
+listnombre=!shuffle $listnombre
+!distribute items $listnombre into a,b,c,d,e,f
+sg1=!randitem +,-
+sg2=!randitem +,-
+sg3=!randitem +,-
+calculs=($a $sg1 $c/$d)/(1 $sg2 1/$b),\frac{$a $sg1 \frac{$c}{$d}}{1 $sg2 \frac{1}{$b}}\
+(($a $sg2 $b)^2 $sg1($c $sg3 $d)^2)/($e + $f)^2,\frac{($a $sg2 $b)^2 $sg1($c $sg3 $d)^2}{($e + $f)^2}\
+($a * ($b/$c))/(($d/$e) $sg1 $f),\frac{$a \times \frac{$b}{$c}}{\frac{$d}{$e} $sg1 $f}\
+(($d/$e) $sg1 $f)/($a * ($b/$c)),\frac{\frac{$d}{$e} $sg1 $f}{$a \times \frac{$b}{$c}}\
+($a $sg1 ($b/$c))/(($d/$e)^2),\frac{$a $sg1 \frac{$b}{$c}}{(\frac{$d}{$e})^2}\
+(($d/$e)^2)/($a $sg1 ($b/$c)),\frac{(\frac{$d}{$e})^2}{$a $sg1 \frac{$b}{$c}}
+
+slib_out=!randline $calculs
+test=!item 1 of $slib_out
+test=$[$test]
+!if NaN isin $test
+ !goto fraction2
+!endif
+
+!exit
+
+!! fin du fichier
+
+:end

@@ -1,0 +1,67 @@
+# hfst2
+#exo21(hfst2) Eenheden prefix , wetenschappelijke notatie en significante getallen
+n=$counter
+math=0
+cols=12
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+#checkfile=$checkdir/new_number.proc
+
+inputs=!randint 4,8
+
+science_calc=$empty
+science_html=$empty
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+units=!shuffle cm,m,W,J,mol,g,sec,min,ml,ohm
+description=$empty
+!for p=1 to $inputs
+    u=!item $p of $units
+    getal1=!randint 11,99
+    f1=!randitem 1,100,1000,10000
+    getal1=$[$getal1*$f1]
+    getal2=!randint 111,999
+    f2=!randitem 100,1000,10000,100000
+    getal2=$[$getal2*$f2]
+    sig=!randint 1,$[$c-2]
+    description=!append item $getal1 $u + $getal2 $u to $description
+    ans=$[$getal1 + $getal2]
+    c=!charcnt $ans
+    sig=!randint 1,$[$c-1]
+    signi=!item $sig of $telwoorden
+    !if $sig=1
+	ex$p=$u&nbsp; (in <b>$signi</b> significant cijfer)
+    !else
+	ex$p=$u&nbsp; (in <b>$signi</b> significante cijfers)
+    !endif
+    science_calc=!append word $ans,$sig,0 to $science_calc
+    science_html=!append word $ans,$sig,1 to $science_html
+!next p
+
+tot=!exec scienceprint $science_calc $science_html
+m_rightarrow=&nbsp;=&nbsp;
+textanswer$n=<ol>
+!for p=1 to $inputs
+    a=!item $p of $tot
+    h=!item $[$p+$inputs] of $tot
+    answer$n=!append item $a to $(answer$n)
+    textanswer$n=!append line $ <li><span style="color:green">$(description[$p]) = $h <em>$(ex$p)</em></span></li> $ to $(textanswer$n)
+!next p
+textanswer$n=!append line $ </ol> $ to $(textanswer$n) 
+
+ss=Reken uit en schrijf je antwoord in wetenschappelijke notatie<br /><b>en</b> in de aangegeven hoeveelheid significante cijfers.
+
+helptext=Het getal 1.23 heeft 3 significante cijfers<br />Het getal 0.00000123 heeft ook 3 significante cijfers
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+
+
+
+    

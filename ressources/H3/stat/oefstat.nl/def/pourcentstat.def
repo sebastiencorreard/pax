@@ -1,0 +1,131 @@
+!set title=Cirkeldiagram en aantallen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 6
+
+val6=$(tmp0)
+val7=100
+!for val8 =1 to $val6-1 
+tmp0=!randint 8, 20
+
+val9=$(tmp0)
+!if $val8=1 
+val10=$val9
+!else
+val10=$val10,$val9
+!endif
+val7=$[$val7-$val9]
+!next
+val10=$val10,$val7
+tmp0=!shuffle 6
+
+val11=$(tmp0)
+val12=red,skyblue,orange,grey,green,purple
+val13=rood,blauw,oranje,grijs, groen, paars
+val14=ellipse 0,0,2,2,black	line 0,0,1,0,black
+val15=0
+!for val8 =1 to $val6 
+tmp0=!item $val8 of $val10
+
+val16=$[$(tmp0)*2*pi/100]
+val17=$[$val15+$val16/2]
+tmp0=!item $val8 of $val11
+
+tmp1=!item $(tmp0) of $val12
+
+val18=$(tmp1)
+val15=$[$val15+$val16]
+tmp0=!item $val8 of $val10
+
+val14=$val14	line 0,0,cos($val15),sin($val15),black	fill  cos($val17)/2,sin($val17)/2, $val18	text black, 2*cos($val17)/3,2*sin($val17)/3, medium, $(tmp0)%	
+!next
+tmp0=!randint 1, $val6
+
+val19=$(tmp0)
+tmp0=!item $val19 of $val11
+
+tmp1=!item $(tmp0) of  $val13
+
+val18=$(tmp1)
+tmp0=!randint 10, 30
+
+val20=$[rint($(tmp0)*100)]
+tmp0=!item $val19 of $val10
+
+val21=$[round($(tmp0)/100*$val20)]
+replytype1=numeric
+replyname1=Aantal individuen:
+replygood1=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Hier zie je een cirkeldiagram met $val6 eigenschappen uit een populatie van $val20 individuen:	<center>	  
+!read oef/draw.phtml 300,300 \
+transparent white	xrange -1.5,1.5	yrange -1.5,1.5	$val14 
+$()	</center>	Geef het aantal  individuen voorgesteld door de kleur $val18	(rond je getal af op "helen"). 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,14,18,20
+embedcnt=0

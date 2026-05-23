@@ -1,0 +1,115 @@
+!set title=Calcul de distance 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=Si nécessaire arrondir votre résultat au dixième.
+val8=rouge,bleue,verte,violette,marron
+val9=Chaque carreau fait 0.5 cm.	  Quelle est la distance entre le point AAAA et la droite&nbsp;
+tmp=!nonempty items A,B,C,E,F,G
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in 3,4,5	6,8,10	4,3,5	8,6,10	5,12,13	12,5,13	5,12,13	12,5,13
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+val12=arctan($(val11[1])/$(val11[2]))
+tmp=!nonempty items 0,pi/2,pi,3*pi/2
+
+tmp0=!randitem $tmp
+val13=$[$(tmp0)+$val12]
+val14=$[rint($(val11[3]))]
+val15=$[rint(-$val14-2)]
+val16=$[rint($val14+2)]
+val17=
+val18=$[0.8]
+val17=range $val15,$val16,$val15,$val16	parallel $val15,$val15,$val15,$val16,1,0,2*$val14+5,grey	parallel $val15,$val15,$val16,$val15,0,1,2*$val14+5,grey	fcircle 0,0,5,black	text black,0,0,medium,$val10	fpoly red,$val14*cos($val13),$val14*sin($val13),$val14*cos($val13)+$val18*sin($val13),$val14*sin($val13)-$val18*cos($val13),($val14-$val18)*cos($val13)+$val18*sin($val13),($val14-$val18)*sin($val13)-$val18*cos($val13),($val14-$val18)*cos($val13),($val14-$val18)*sin($val13)	linewidth 2	dsegment 0,0,$val14*cos($val13),$val14*sin($val13),black	line $val14*cos($val13)+20*sin($val13),$val14*sin($val13)-20*cos($val13),$val14*cos($val13)-20*sin($val13),$val14*sin($val13)+20*cos($val13),black
+!readproc oef/draw.phtml 500,500 \
+$val17 
+tmp0=$ins_url
+val19=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val20=$(tmp0)
+val14=$[$val14*0.5]
+tmp0=!replace internal AAAA by $val10 in $val9
+
+val21=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val21?	<div class="wimscenter"><img src="$val19" alt=""></div>	<b>$val6:</b> 
+!read oef/embed.phtml r1,5 
+$() cm
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,19,21
+embedcnt=1

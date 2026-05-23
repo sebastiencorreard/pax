@@ -1,0 +1,247 @@
+!set title=Vergelijking met product 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!item 3 of $val7
+
+val9=$(tmp0)
+!if $val8= 
+tmp0=!item 1 of $val7
+
+val10=$(tmp0)
+tmp0=!item 2 of $val7
+
+val11=$(tmp0)
+!if $val9<0 
+tmp0=!values $val9*v,-($val9)*v for v=$val10 to $val11
+
+val12=$(tmp0)
+!else
+tmp0=!values $val9*v for v=$val10 to $val11
+
+val12=$(tmp0)
+!endif
+!else
+val12=$val8
+!if $val9<0 
+tmp0=!replace internal , by ,- in $val12
+
+val13=$(tmp0)
+tmp0=!listunion $val12 and $val13
+
+val12=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val12
+
+val12=$(tmp0)
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp0=!item 2 of $val12
+
+val11=$(tmp0)
+tmp0=!item 3 of $val12
+
+val9=$(tmp0)
+tmp0=!item 4 of $val12
+
+val14=$(tmp0)
+tmp0=!item 6 of $val12
+
+val15=$(tmp0)
+tmp0=!randitem -1,1
+
+val10=$(tmp0)*($val11)
+tmp=!translate ";': to $     $ in $val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val10=$(tmp0)
+tmp0=!randitem -1,1
+
+val16=$(tmp0)*($val9)
+tmp=!translate ";': to $     $ in $val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp=!nonempty items x,y,z,a,b
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+tmp=!nonempty items A,B,F,E,C
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp=!translate ";': to $     $ in ($val11)^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+tmp=!translate ";': to $     $ in ($val9)^2
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$(tmp0)
+tmp0=!texmath $val18*$val17^2-($val19)
+
+val20=$(tmp0)
+tmp=!nonempty items +1,-1
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+val22=($val18)*$val17^2-($val19)+($val21)*(($val10)*$val17+($val16))*(($val14)*$val17+($val15))
+tmp0=!texmath $val22
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in expand($val22);
+tmp0=!exec maxima $t_
+
+val24=$(tmp0)
+t_=!replace internal \( by ( in factor( ($val18)*$val17^2-($val19) );
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in factor($val22);
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in ($val10)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=$(tmp0)
+tmp=!translate ";': to $     $ in ($val16)/($val9)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28=$(tmp0)
+tmp=!translate ";': to $     $ in -($val28)*($val27)*($val9)/($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$(tmp0)
+tmp=!translate ";': to $     $ in (($val27)*($val28)*($val9)-($val27)*($val21)*($val15))/(($val11)+($val27)*($val21)*($val14))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+replytype1=algexp
+replyname1=Antwoord 1
+replygood1=$val24
+replytype2=algexp
+replyname2=Antwoord 2
+replygood2=$val25
+replytype3=algexp
+replyname3=Antwoord 3
+replygood3=$val26
+replytype4=set
+replyname4=Antwoord 4
+replygood4=$val29,$val30
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath $val7=$val23
+$()<br>	Vraag 1 : Ontwikkel en vereenvoudig de uitdrukking 
+!insmath $val7
+$().<br>	Vraag 2 : Factoriseer de uitdrukking 
+!insmath $val20
+$().<br>	Vraag 3 : Factoriseer 
+!insmath $val7
+$().<br>	Vraag 4 : Wat zijn de oplossinggen van gelijkheid 
+!insmath $val7=0
+$() ?<br>	<small>Schrijf de getallen als vereenvoudigde breuken.</small>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,20,23
+embedcnt=0

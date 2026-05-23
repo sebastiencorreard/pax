@@ -1,0 +1,228 @@
+!set title=Trovare la formula (guidato 2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 7
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 7
+
+val8=$[rint($(tmp0)*$(tmp1))]
+val9=!rawmath $val7*(x)+($val8)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 10
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 10
+
+val11=$[rint($(tmp0)*$(tmp1))]
+!if $val10=$val11 
+val10=$[rint(7)]
+val11=$[rint(-3)]
+!endif
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val10) in $evaltmp
+tmp0=($evaltmp)
+val12=$[rint($(tmp0))]
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val11) in $evaltmp
+tmp0=($evaltmp)
+val13=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val12=$val10*($val7)+b
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+tmp=!translate ";': to $     $ in $val13=$val11*($val7)+b
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp=!trim L'immagine rispetto a \($val6) di \($val10) è \($val12),$val14	L'immagine rispetto a \($val6) di \($val11) è \($val13),$val15
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val16
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val17=$(tmp0)
+tmp0=!item 2 of $val16
+
+val18=$(tmp0)
+oefsteps=r1	r2	r3 
+nextstep=!nosubst r1	r2	r3 
+!readproc oef/steps.proc
+replytype1=auto
+
+replyname1=a
+replygood1=$val7
+replytype2=auto
+
+replyname2=Equazione
+replygood2=$val18
+replytype3=auto
+
+replyname3=b
+replygood3=$val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath $val6
+$() è una funzione affine tale che l'immagine di 
+!insmath $val10
+$() è 
+!insmath $val12
+$() e l'immagine di 
+!insmath $val11
+$() è 
+!insmath $val13
+$().	L'obiettivo è trovare la formula della funzione 
+!insmath $val6
+$().	La funzione è affine, si devono quindi trovare due numeri 
+!insmath a
+$() e 
+!insmath b
+$() tali che 
+!insmath $val6(x)=a x+b
+$() per ogni numero 
+!insmath x
+$().	<p>	Per risolvere questo esercizio, rispondi alle domande seguenti:</p>	<div class="spacer">	<strong>Domanda 1</strong>: Per una funzione affine 
+!insmath $val6
+$(), il quoziente 
+!insmath \frac{$val6(u)-$val6(v)}{u-v}
+$(), per 
+!insmath u
+$() e 
+!insmath v
+$() due numeri qualunque ma differenti, è uguale al coefficiente angolare della funzione 
+!insmath $val6
+$().	Dedurne il valore di 
+!insmath a
+$().	 <div class="spacer">	 La tua risposta:	
+!if $m_step=1 
+$()	
+!insmath a =
+$()  
+!read oef/embed.phtml r1 
+$()</div>	 
+!else
+$() 	
+!insmath \special{color=green}a = $val7
+$().</div>	<strong>Domanda 2</strong>: Si deduce dunque che la formula della funzione 
+!insmath $val6
+$() è della forma 
+!insmath $val6(x)=$val7 x+b
+$().	<p>	Dedurre un'equazione di primo grado di incognita 
+!insmath b
+$() dall'affermazione</p>	<div class="wimscenter" style="font-style:italic">$val17.</div>	<div class="spacer">La tua risposta: 	
+!if $m_step=2 
+$() 
+!read oef/embed.phtml r2 
+$()</div>	 
+!else
+$() 	
+!if $m_step=3 
+$()	
+!insmath \special{color=green}$val18
+$().</div>	<strong>Domanda 3</strong>: Trova il valore di 
+!insmath b
+$() risolvendo l'equazione della domanda 2 .	<div class="wimscenter">
+!insmath b=
+$() 
+!read oef/embed.phtml r3 
+$()</div>	 
+!endif
+$() 
+!endif
+$() 
+!endif
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,10,11,12,13,17,18
+embedcnt=3

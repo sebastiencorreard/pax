@@ -1,0 +1,22 @@
+#! /bin/sh
+
+cat {af,am,as,eu,oc}.inc | grep , | cut -d, -f1 | sort >already
+cut -d, -f1 countrycodes >all
+comm -2 -3 all already >remain
+join -1 1 -t, remain countrycodes | grep -v Ocean >rest
+
+rm -f all
+for c in af am as eu oc
+do
+ grep , $c.inc | awk '{print $0",\\'$c'"}' >>all
+done
+
+cat {af,am,as,eu,oc}.inc | grep , | cut -d, -f2 | tr '|-' ', ' | tr '\n' ',' >pays.inc
+echo >>pays.inc
+
+echo "\matrix{data=" >all.inc
+sort all >>all.inc
+echo "}" >>all.inc
+
+rm -f all already remain
+

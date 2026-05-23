@@ -1,0 +1,51 @@
+#hfst2
+#exo13(hfst2) Isoleren van variabelen [ type a*x = b*y + c*c -> y = ? ]
+n=$counter
+display=1
+checkfile=$checkdir/equation.proc
+rounding=-1
+mathview=5
+r=!randint 2,20
+s=!randint 2,20
+t=!randint 2,20
+pm=!randitem -1,1
+mp=!randitem -1,1
+
+r=$[($pm)*($r)]
+
+s=$[($mp)*($s)]
+
+
+varlist=x,z
+arglist=y
+keuze=!randint 0,1
+
+!if $keuze=1
+    applettext=!nospace $r cdot x = $s cdot y + $t cdot z -> 
+    formula$n=$r \cdot x = $s \cdot y + $t \cdot z \rightarrow y =  [?]
+    tot=!exec pari A=(($r)*x - ($t)*z)/($s)\
+    printtex(A)
+    
+    answer$n=!line 1 of $tot
+    texans=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{cccc}$r \cdot x & = & $s \cdot y + $t \cdot z & \Leftrightarrow \\ \\  $r \cdot x - $t \cdot z & = & $s \cdot y &  \Leftrightarrow \\ \\ $s \cdot y & = & $r \cdot x - $t \cdot z &  \Leftrightarrow \\ \\ y & = & \displaystyle $texans & \end{array} \right.		
+
+!else
+    applettext=!nospace $r cdot x = $s cdot y - $t cdot z ->  
+    formula$n=$r \cdot x = $s \cdot y - $t \cdot z \rightarrow y =  [?]
+    tot=!exec pari A= (($r)*x + ($t)*z)/($s)\
+    printtex(A)
+    
+    answer$n=!line 1 of $tot
+    texans=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{cccc}$r \cdot x & = & $s \cdot y - $t \cdot z & \Leftrightarrow \\ \\ $r \cdot x + $t \cdot z & = & $s \cdot y &  \Leftrightarrow \\ \\ $s \cdot y & = & $r \cdot x + $t \cdot z &  \Leftrightarrow \\ \\ y & = & \displaystyle $texans & \end{array} \right.		
+
+!endif
+
+helptext=Geef je antwoord op als : <kbd>y = je_antwoord</kbd>
+question$n=Isoleer de uitdrukking voor <kbd>y</kbd><br />
+mathviewpanel=$module_title:y=:x:z:*:+:-:/
+myanswer=!nospace y = $(answer$n)
+!exit
+
+    

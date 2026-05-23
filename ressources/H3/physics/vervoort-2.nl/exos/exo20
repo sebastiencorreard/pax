@@ -1,0 +1,69 @@
+#hfst2
+#exo20(hfst2) Wetenschappelijke notatie en significante getallen
+n=$counter
+math=0
+cols=18
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+#checkfile=$checkdir/new_number.proc
+
+inputs=!randint 4,8
+
+science_calc=$empty
+science_html=$empty
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+description=$empty
+!for p=1 to $inputs
+    kans=!randitem 1,1,0
+    
+    !if $kans=1
+	p1=!randint 2,8
+        p2=!randint 4,9
+	m1=!randint 0,10^$p1
+	m2=!randint 100,10^$p2
+    !else
+	m1=0
+	m2=!randint 101,999
+	nullen=!randitem 00,000,0000,00000
+	m2=$nullen$m2
+    !endif
+    getal=$m1.$m2
+    c=!charcnt $m1$m2
+    sig=!randint 1,$[$c-2]
+    description=!append item $getal to $description
+    signi=!item $sig of $telwoorden
+    !if $sig=1
+	ex$p=&nbsp; in <b>$signi</b> significant cijfer
+    !else
+	ex$p=&nbsp; in <b>$signi</b> significante cijfers
+    !endif
+    science_calc=!append word $getal,$sig,0 to $science_calc
+    science_html=!append word $getal,$sig,1 to $science_html
+!next p
+
+tot=!exec scienceprint $science_calc $science_html
+m_rightarrow=&nbsp;=&nbsp;
+textanswer$n=<ol>
+!for p=1 to $inputs
+    a=!item $p of $tot
+    h=!item $[$p+$inputs] of $tot
+    answer$n=!append item $a to $(answer$n)
+    textanswer$n=!append line $ <li><span style="color:green">$(description[$p]) = $h <em>$(ex$p)</em></span></li> $ to $(textanswer$n)
+!next p
+
+textanswer$n=!append line $ </ol> $ to $(textanswer$n) 
+
+ss=Schrijf de onderstaande getallen in de wetenschappelijke notatie<br />...en met het juiste aantal significante cijfers.
+
+helptext=Het getal 1.23 heeft 3 significante cijfers<br />Het getal 0.00000123 heeft ook 3 significante cijfers
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+    

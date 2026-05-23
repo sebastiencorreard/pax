@@ -1,0 +1,160 @@
+n=$counter
+math=0
+rounding=0
+!readproc $remarkdir/rounding.$taal
+inputs=-1
+mathview=4
+mathviewpanel=$module_title:y=:/
+varlist=x
+arglist=y,l(x),l:y
+arg_rnd=!randitem $arglist
+questiontype=0
+embed=1
+cols=15
+rows=1
+checkfile=$checkdir/equation.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+#een willekeurig punt $A 
+X1=!randitem -5,-3,-2,-1,1,2,4
+Y1=!randitem 4,5,6,7,8,9
+dx=!randitem 4,6,8,10,12
+dy=!randitem -8,-6,-4,-2,2,4,6,8,10
+    
+#nog een willekeurig net punt
+X2=$[$X1+($dx)]
+Y2=$[$Y1+($dy)]
+
+#helling AB en middelloodlijn
+X_ml=$[($X1+$X2)/2]
+Y_ml=$[($Y1+$Y2)/2]
+
+tussen=!exec pari A=($Y2-($Y1))/($X2-($X1))\
+    B=-1/(A)\
+    C=($Y_ml)-((B)*($X_ml))\
+    printtex(A)\
+    printtex(B)\
+    printtex(C)
+
+rc1=!line 1 of $tussen
+rc2=!line 2 of $tussen
+b=!line 3 of $tussen
+rc1_tex=!line 4 of $tussen
+rc2_tex=!line 5 of $tussen
+b_tex=!line 6 of $tussen
+
+    
+########PLAATJE############
+keuze=!randitem 1,4
+A=!item $keuze of  A,D,K,P
+B=!item $keuze of  B,E,L,Q
+
+AB=!nospace $A $B
+
+Punt1=$A ($X1;$Y1)
+Punt2=$B ($X2;$Y2)
+
+lengte=$AB
+punt=$B
+
+min=$[min($Y1,$Y2)]
+max=$[max($Y1,$Y2)]
+xmin=$[$X1-4]
+xmax=$[$X2+4]
+ymin=$[$min-4]
+ymax=$[$max+4]
+!if $xmax <2
+    xmax=4
+!endif
+!if $ymin > -2
+    ymin=-4
+!endif
+!if $ymax < 2
+    ymax=4
+!endif
+
+pmin=$[min($xmin,$ymin)]
+pmax=$[max($xmax,$ymax)]
+
+
+answer$n=$rc2*x+$b
+!if $b<0
+ ans=$rc2_tex x $b_tex
+!else
+ ans=$rc2_tex x + $b_tex
+!endif
+ss=!record 84 of lang/remarks.$taal
+
+question$n=$ss
+!if $X1<0
+ Xt=$[-1*$X1]
+ tus1=x+$Xt
+ k1=x^{2}+$[2*$Xt]x+$[$X1*$X1]+y^{2}-$[2*$Y1]y+$[$Y1*$Y1]
+!else
+ tus1=x-$X1
+ k1=x^{2}-$[2*$X1]x+$[$X1*$X1]+y^{2}-$[2*$Y1]y+$[$Y1*$Y1]
+!endif
+!if $Y2<0
+ Yt=$[-1*$Y2]
+ tus2=y+$Yt
+ k2=x^{2}-$[2*$X2]x+$[$X2*$X2]+y^{2}+$[2*$Yt]y+$[$Y2*$Y2]
+!else
+ tus2=y-$Y2
+ k2=x^{2}-$[2*$X2]x+$[$X2*$X2]+y^{2}-$[2*$Y2]y+$[$Y2*$Y2]
+!endif
+tus3=$[$X2*$X2+$Y2*$Y2-$X1*$X1-$Y1*$Y1]
+!if $tus3 < 0
+ tus3=$tus3
+!else
+ tus3= +$tus3
+!endif
+
+of=!record 83 of lang/remarks.$taal
+mm=!record 85 of lang/remarks.$taal
+txt1=!record 86 of lang/remarks.$taal
+#@de vergelijking voor de middelloodlijn l wordt
+helling=!item 1 of $mm
+middelloodlijn=!item 2 of $mm
+Punt_m=!item 3 of $mm
+invullen=!item 4 of $mm
+formula$n=\left\{ \begin{array}{l} $A  \left( $X1 : $Y1 \right) \\ $B  \left( $X2 : $Y2 \right) \\ l \perp $A $B \\ \textrm{ $txt1 } \\ \input{20}{0}{background-color:lightgreen;color:red;text-align:center}{ $arg_rnd = }{0} \end{array} \right.
+
+texanswer$n=\begin{array}{l}\sqrt{(x-$X1)^{2}+(y-$Y1)^{2}}=\sqrt{(x-$X2)^{2}+(y-$Y2)^{2}} \\ ($tus1)^{2}+(y-$Y1)^{2}=(x-$X2)^{2}+($tus2)^{2} \\ $k1=$k2 \\ $[-2*$Y1+2*$Y2]y=$[-2*$X2+2*$X1]x $tus3 \\ y=$ans \\\textrm{$of} \\ \textrm{$helling} \,  $AB=\frac{$Y2-$Y1}{$X2-$X1}=$rc1_tex\\ \textrm{$helling $middelloodlijn } \, \times $rc1_tex=-1 \Rightarrow \, \textrm{$helling $middelloodlijn} \, =$rc2_tex \\ \textrm{$Punt_m } \, $AB = \left(\frac{$X1+$X2}{2};\frac{$Y1+$Y2}{2} \right) = ($X_ml;$Y_ml) \\($X_ml;$Y_ml) \, \textrm{$invullen } \, y=$rc2_tex x +b \\$Y_ml=$rc2_tex \cdot $X_ml +b \Rightarrow b=$b_tex \\ y=$ans \end{array}
+applet=1
+draw=0
+plot=0
+make_tr=0
+	
+xrange= $xmin,$xmax
+yrange= $ymin,$ymax
+	
+object$n=!exec canvasdraw\
+size 300,300\
+xrange=$pmin,$pmax\
+yrange=$pmin,$pmax \
+fontfamily 12px Ariel\
+precision 1\
+axis\
+axisnumbering\
+opacity 180,140\
+grid 2,2,grey,1,1,4,blue\
+#linewidth 2\
+#opacity 200,30\
+#ftriangle $X1,$Y1,$X2,$Y2,red\
+precision 1000\
+linewidth 2\
+curve green,$rc2*x+$b\
+dline $X1,$Y1,$X2,$Y2,green\
+linewidth 3\
+points red,$X1,$Y1,$X2,$Y2\
+fontfamily 22px Ariel\
+string black,$X1,$[$Y1+0.5],$A\
+string black,$X2,$[$Y2+0.5],$B\
+#string black,$X3,$[$Y3+1],$B\
+precision 1\
+mouse blue,22
+#zoom black

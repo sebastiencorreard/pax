@@ -1,0 +1,256 @@
+!set title=Rette parallele +
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=42
+prevarcnt=34
+postvarcnt=7
+replycnt=4
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=35x25x1
+val7=$[rint(50)]
+val8=$[rint(1)]
+val9=$[rint(2)]
+val10=$[rint(2)]
+val11=A,B,C,D,E,F,G,H,I,J,K,L,M,N
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!recordcnt data/parallele-mod.don
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 1, $val12
+
+val12=$[rint($(tmp0))]
+tmp0=!record $val12 of data/parallele-mod.don
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$[rint($(tmp0))]
+!for val15 =1 to $val14 
+tmp0=!replace X$val15 by $(val11[$val15]) in $val13
+
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp0=!item 3 of $val18
+
+val19=$(tmp0)
+tmp0=!replace internal / by , in $val19
+
+val19=$(tmp0)
+tmp0=!replace internal / by , in $val18
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+val22=$val22,$val20
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+tmp0=!item 1 of $val23
+
+val24=$(tmp0)
+tmp0=!item 2 of $val23
+
+val25=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 7 to -1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val26=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rows2lines $val26
+
+val26=$(tmp0)
+val27=$val18
+val28=$(val20[2])/$(val20[1]),$(val20[4])/$(val20[3]),$(val20[6])/$(val20[5])
+tmp0=!replace internal , by = in $val27
+
+val29=$(tmp0)
+tmp0=!texmath $val29
+
+val29=$(tmp0)
+tmp0=!replace internal , by = in $val28
+
+val30=$(tmp0)
+tmp0=!texmath $val30
+
+val30=$(tmp0)
+tmp0=!randint 1, 2
+
+val31=$[rint($(tmp0))]
+replytype1=clickfill
+replyname1=numérateur1
+replygood1=?analyze 32;$val22
+replytype2=clickfill
+replyname2=dénominateur1
+replygood2=?analyze 33;$val22
+replytype3=clickfill
+replyname3=numérateur2
+replygood3=?analyze 34;$val22
+replytype4=clickfill
+replyname4=dénominateur1
+replygood4=?analyze 35;$val22
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<table>	 <tr>	  <td>Scrivere due rapporti per mostrare che le rette 
+!insmath $(val19[1])
+$() e 
+!insmath $(val19[2])
+$() 
+!if choixtheo=1 
+$()sono parallele utilizzando l'inverso del teorema di Talete. 
+!else
+$() non sono parallele utilizzando il teorema di Talete. 
+!endif
+$()	  <br />	<b>Risposta:</b>	<table class="wimscenter">	<tr>	<td> 
+!read oef/embed.phtml reply 1,$val6 
+$()</td>	<td rowspan="3"> e </td>	<td>  
+!read oef/embed.phtml reply 3,$val6 
+$()</td>	</tr><tr>	<td><hr/></td>	<td><hr/></td>	</tr><tr>	<td>  
+!read oef/embed.phtml reply 2,$val6 
+$()</td>	<td>  
+!read oef/embed.phtml reply 4,$val6 
+$()</td>	</tr></table>	<div class="wims_instruction">Trascinare col mouse le etichette in basso per completare l'uguaglianza.</div>	  </td>	  <td>	   <div class="wimscenter"> 
+!read oef/draw.phtml $val24,$val25 \
+$val26 
+$()</div>	  </td>	 </tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()I rapporti corretti sono: 
+!insmath $val29
+$() oppure 
+!insmath $val30
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val36=$val32/$val33,$val34/$val35
+tmp0=!listuniq $val36
+
+val36=$(tmp0)
+tmp0=!listintersect $val27 and $val36
+
+val37=$(tmp0)
+tmp0=!listintersect $val28 and $val36
+
+val38=$(tmp0)
+tmp0=!itemcnt $val36
+
+val39=$[rint($(tmp0))]
+tmp0=!itemcnt $val37
+
+val40=$[rint($(tmp0))]
+tmp0=!itemcnt $val38
+
+val41=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val39=$val10 and ($val40=$val10 or $val41=$val10)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Rapporti corretti
+
+!exit
+
+:stat
+vsavelist=6,10,19,24,25,26,27,28,29,30,32,33,34,35
+embedcnt=4

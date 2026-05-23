@@ -1,0 +1,48 @@
+!distribute item $wims_read_parm into quest,rep
+
+!bound quest within H,M,S,HM,HS,MS,HMS default HMS
+!bound rep within H,M,S,HM,HS,MS,HMS default HMS
+quest=!nospace $quest
+rep=!nospace $rep
+
+H=!randint 1,23
+M=!randint 1,19
+M=$[$M*3]
+S=!randint 1,6
+S=$[$S*9]
+
+list=H,M,S
+lname=h,min,s
+lconv=3600,60,1
+enonce=$empty
+val=$empty
+
+nb=!charcnt $quest
+!for i=1 to $nb
+ it=!char $i of $quest
+ no=!positionof item $it in $list
+ name=!item $no of $lname
+ conv=!item $no of $lconv
+ enonce=!append item $($it) to $enonce
+ val=$[$val+$conv*$($it)]
+!next i
+
+reste=$val
+sol=$empty
+nb=!charcnt $rep
+!for i=1 to $nb
+ it=!char $i of $rep
+ no=!positionof item $it in $list
+ conv=!item $no of $lconv
+ !if $i=$nb
+  tmp=$[$reste/$conv]
+ !else
+  tmp=$[floor($reste/$conv)]
+  reste=$[$reste-$tmp*$conv]
+ !endif
+ sol=!append item $tmp to $sol
+!next i
+
+slib_out=$enonce\
+$sol
+

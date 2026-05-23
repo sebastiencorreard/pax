@@ -1,0 +1,75 @@
+!distribute item $wims_read_parm into type,coef,value
+
+!bound type between 1 and 8 default 1
+!bound coef between 1 and 5 default 5
+!if $coef=5
+ coef=!randint 1,4
+!endif
+!bound value between 1 and 5 default 5
+!if $value=5
+ value=!randint 1,4
+!endif
+
+x=!randitem x,y,z,a,b
+
+!! -----------------------    generation des coefficients et du polynome
+
+champ=!record $coef of src/generateur
+A=!row 2 of $champ
+B=!row 3 of $champ
+c=!item 3 of $A
+!if $B=$empty 
+ a=!item 1 of $A
+ b=!item 2 of $A
+ !if $c<0
+  valeurs=!values $c*v,-($c)*v for v=$a to $b
+ !else
+  valeurs=!values $c*v for v=$a to $b
+ !endif
+!else
+ valeurs=$B
+ !if $c<0
+  tmp=!replace internal , by ,- in $valeurs
+  valeurs=!listunion $valeurs and $tmp
+ !endif
+!endif
+valeurs=!listuniq $valeurs
+valeurs=!shuffle $valeurs
+valeurs=!item 1,2,3,4 of $valeurs
+!distribute items $valeurs into a,b,c,d
+
+donnees=$x+($a)\
+-$x+$a\
+$a*$x+($b)\
+-$x^2+($a)*$x+($b)\
+$x^2+($a)*$x+($b)\
+$c*$x^2+($a)*$x+($b)\
+($a*$x+$b)/($c*$x+$d)\
+($a*$x+$b)*($c*$x+$d)
+
+enonce=!line $type of $donnees
+
+!! -----------------------    generation des coefficients et du polynome
+
+champ=!record $value of src/generateur
+A=!row 2 of $champ
+B=!row 3 of $champ
+c=!item 3 of $A
+!if $B=$empty 
+ a=!item 1 of $A
+ b=!item 2 of $A
+ !if $c<0
+  valeurs=!values $c*v,-($c)*v for v=$a to $b
+ !else
+  valeurs=!values $c*v for v=$a to $b
+ !endif
+!else
+ valeurs=$B
+ !if $c<0
+  tmp=!replace internal , by ,- in $valeurs
+  valeurs=!listunion $valeurs and $tmp
+ !endif
+!endif
+valeur=!randitem $valeurs
+
+slib_out=$x,$enonce,$valeur

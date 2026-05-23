@@ -1,0 +1,99 @@
+# Pythagoras I
+n=$counter
+math=0
+mathview=0
+questiontype=7
+javascript=js/exo11.js
+inputs=yes
+!if $rounding<0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+checkfile=exos/checkfile2.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $R=1
+    g1=5,3,20,12,15,6,9,18,21,10,15,20,25,30,24,27
+    g2=12,4,48,16,20,8,12,24,28,24,36,48,60,72,32,36
+    k=!randint 1,16
+    #max=!itemcnt $g1
+    l1=!item $k of $g1
+    l2=!item $k of $g2
+!else
+    !if $R=2
+	l1=!randint 2,30
+	l2=!randint 2,30
+    !else
+	l1=!randint 21,60
+	l2=!randint 21,60
+    !endif
+!endif
+
+!if $l1>$l2
+    AC=$l1
+    AB=$l2
+!else
+    !if $l1<$l2
+	AC=$l2
+	AB=$l1
+    !else
+	AC=$[$l1+4]
+	AB=$l1
+    !endif
+!endif
+
+test=$[sqrt(($AB)^2 + ($AC)^2)]
+!if . isin $test
+    BC=sqrt($[($AB)^2 + ($AC)^2])
+    !if $rounding!=0
+	last=$[(round($rounding*(sqrt($AB^2 + $AC^2))))/$rounding]
+	last = \simeq $last
+    !endif
+!else
+    BC=$test
+    last = \,=\,$BC
+!endif
+
+texanswer$n=\textrm{BC}\, = \, \sqrt{AB^{2} + AC^{2}} = \sqrt{$AB^{2} + $AC^{2}} = \sqrt{$[$AB^2 + $AC^2]} $last
+
+helptext=<img src=\'$module_dir/gifs/exo11.jpg\' alt=\'noalt\' />
+ss=!record 69 of lang/remarks.$taal
+#@ $m_Delta ABC heeft een rechte hoek [<em>dus 90<sup>o</sup></em>] in A.<br />Vul het onderstaande schema in <br />en bereken de lengte BC [<em>de hypothenusa</em>]
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+answer$n=AB:BA:$AB:$[$AB^2],AC:CA:$AC:$[$AC^2],BC:CB:$BC:$[$BC^2]
+
+plot=0
+draw=0
+applet=1
+
+make_tr=0
+object$n=!exec canvasdraw\
+size 260,260\
+xrange 0,1\
+yrange 0,1\
+fontfamily 18px bold Ariel\
+copy 0,1,-1,-1,-1,-1,$module_dir/gifs/driehoekABC.gif\
+string blue,0.5,0.8,??\
+string blue,0.5,0.45,$AC\
+string blue,0.87,0.73,$AB
+
+
+sometxt=!record 68 of lang/remarks.$taal
+#@ Kwadraat,Wortel,korte zijde,lange zijde
+k1=!item 1 of $sometxt
+k2=!item 2 of $sometxt
+k3=!item 3 of $sometxt
+k4=!item 4 of $sometxt
+
+!if $wims_user=supervisor
+    exotext=<table><tr><td></td><td></td><td> </td><td><img src="$module_dir/gifs/R1.gif" alt="noalt" /><b>$k1</b></td><td><img src="$module_dir/gifs/R2.gif" alt=noalt" /></td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput0" value="AB" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput1" value="$AB" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput2" value="$[($AB)^2]" /></td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput3" value="AC" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput4" value="$AC" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput5" value="$[($AC)^2]" /></td></tr><tr><td><b>$k4</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput6" value="BC" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput7" value="$BC" /></td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput8" value="$[($BC)^2]" /></td></tr><tr><td> </td><td>     </td><td> </td><td><img src="$module_dir/gifs/L1.gif" alt="noalt" /> <b>$k2</b>   </td><td><img src="$module_dir/gifs/L2.gif" alt=noalt" /></td></tr></table>
+!else
+    exotext=<table><tr><td></td><td></td><td> </td><td><img src="$module_dir/gifs/R1.gif" alt="noalt" /><b>$k1</b> </td><td><img src="$module_dir/gifs/R2.gif" alt=noalt" /> </td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput0" value="" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput1" value="" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput2" value="" /></td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput3" value="" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput4" value="" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput5" value="" /></td></tr><tr><td><b>$k4</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput6" value="" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput7" value="" /></td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput8" value="" /></td></tr><tr><td></td><td></td><td> </td><td><img src="$module_dir/gifs/L1.gif" alt="noalt" /> <b>$k2</b> </td><td><img src="$module_dir/gifs/L2.gif" alt=noalt" /></td></tr></table>
+!endif
+textanswer$n=<table><tr><td> </td><td> </td><td> </td><td><img src="$module_dir/gifs/R1.gif" alt="noalt" /><b>$k1</b> </td><td><img src="$module_dir/gifs/R2.gif" alt=noalt" /> </td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput0" value="AB" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput1" value="$AB" readonly="readonly" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput2" value="$[($AB)^2]" readonly="readonly" /></td></tr><tr><td><b>$k3</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput3" value="AC" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput4" value="$AC" readonly="readonly" /></td><td><input style="text-align:center;font-size:18px;background-color:#e8ffff;border:1px solid #ff0000" size="6" id="myinput5" value="$[($AC)^2]" readonly="readonly" /></td></tr><tr><td><b>$k4</b></td><td><input style="text-align:center;font-size:18px;background-color:orange;border:1px solid #ff0000" size="2" id="myinput6" value="BC" alt="noalt" /></td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput7" value="$BC" readonly="readonly" /></td><td><input style="text-align:center;font-size:18px;background-color:#38ff33;border:1px solid #ff0000" size="6" id="myinput8" value="$[($BC)^2]" readonly="readonly" /></td></tr><tr><td> </td><td> </td><td> </td><td><img src="$module_dir/gifs/L1.gif" alt="noalt" /><b>$k2</b></td><td><img src="$module_dir/gifs/L2.gif" alt=noalt" /></td></tr></table>

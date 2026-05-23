@@ -1,0 +1,61 @@
+n=$counter
+#hfst3                                                                                                                                     
+#exo35(hfst3) Luchtvochtgehalte berekenen
+math=0
+cols=14
+rounding=10000
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/units.proc
+inputs=1.1
+description=De hoeveelheid water in deze ruimte is
+ex1=&nbsp;<kbd>gram</kbd>
+m_rightarrow=&nbsp;&asymp;&nbsp;
+#windows werkt niet mee : extra_grafiek=Klik <a onClick="window.open('$module_dir/gifs/rh.html','Maximale absolute luchtvochtigheid in gr/m3','width=720,height=550,left=0,top=0')"><span style="color:blue">hier</span> voor de grafiek</a> van <kbd>temperatuur &amp; absolute vochtgehaltes</kbd> bij RH=100%.
+extra_grafiek=Klik <a target="_blank" href="$module_dir/gifs/rh.html" onclick="window.open(this.href, 'Maximale absolute luchtvochtigheid', 'resizable=no,scrollbars=no,menubar=no,toolbar=no,location=no,height=550,width=720,left=0,top=0'); return false;">hier voor de grafiek</a> van <kbd>temperatuur &amp; absolute vochtgehaltes</kbd> bij RH=100%.
+
+temp=!randint 1,39
+rv=!randint 10,80
+t_abs=$[273+$temp]
+p_max=$[e^(77.34+0.0057*($t_abs) - 7235/($t_abs))/($t_abs)^(8.2)]
+d_max=$[(round(10*($p_max*1000)/(461.5*$t_abs)))/10]
+d_max_round=$[round($d_max)]
+
+water_per_cuub= $[($rv/100)*($d_max)]
+
+round_water_per_cuub=$[round($water_per_cuub)]
+lengte=!randint 40,160
+breedte=!randint 40,160
+hoogte=!randint 220,360
+
+tt=!exec moneyprint $[$lengte/10],$[$breedte/10],$[$hoogte/100]
+lengte=!item 1 of $tt
+breedte=!item 2 of $tt
+hoogte=!item 3 of $tt
+sig=2
+inhoud=$[$lengte*$breedte*$hoogte]
+ans=$[$inhoud*$water_per_cuub]
+rans=$[round($inhoud*$water_per_cuub)]
+tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+answer$n=!item 1 of $tot
+h_ans=!item 2 of $tot
+var1=0
+# +/- 0.8 aflezen in grafiek... 
+var2=$[abs($ans - ($inhoud*(($rv/100)*($d_max - 0.8))))]
+
+ss=In een ruimte van $lengte meter bij $breedte meter en $hoogte meter hoog<br />meten we met een hygrometer een relatieve luchtvocht gehalte (RH) van $rv %.<br />De luchttemperatuur in de ruimte is $temp &deg;C.<hr />Wat is de totale hoeveelheid water (in gram) in de lucht van deze ruimte?
+
+helptext=
+
+textanswer$n=<ul><li>We kunnen in de grafiek aflezen dat bij $temp &deg;C lucht (ongeveer) maximaal $d_max_round g/m<sup>3</sup> water kan bevatten</li><li>We hebben geen relatieve luchtvochtgehalte van 100 % maar we hebben een <kbd>RH</kbd> = $rv %</li><li>Er is in deze ruimte per cuub lucht dus ongeveer  $[$rv/100]&times;$d_max_round &asymp; $round_water_per_cuub gram water aanwezig</li><li>De ruimte heeft een inhoud van $lengte&times;$breedte&times;$hoogte m<sup>3</sup> = $inhoud m<sup>3</sup></li><li>Dus totaal $inhoud &times; $round_water_per_cuub m<sup>3</sup>g/m<sup>3</sup> &asymp; $rans gram </li><li>En in $sig significante cijfers: $h_ans g</li></ul>
+
+question$n=$ss<br />$extra_grafiek
+
+
+!exit
+    
+
+
+

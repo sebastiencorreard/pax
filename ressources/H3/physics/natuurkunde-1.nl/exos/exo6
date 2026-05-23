@@ -1,0 +1,183 @@
+# gemiddelde snelheid en afstand II
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $counter=1
+    cols=20
+    rows=1
+    mathview=0
+    math=0
+    viewlogo=1
+    checkfile=$checkdir/units.proc
+
+    helptext=Gebruik altijd SI eenheden !<br />De SI eenheid voor lengte is <kbd>meter</kbd> [ afgekort m ]<br />De SI eenheid voor tijd is de <kbd>seconde</kbd> [ afgekort s ]<br />De SI eenheid voor snelheid is <kbd>meter per seconde</kbd> [afgekort m/s]<br />De SI eenheid voor versnelling is <kbd>meter per seconde per seconde</kbd> [afgekort m/s^2]<br />Je mag natuurlijk altijd de SI prefixen [zoals milliseconde of ms] gebruiken voor hele grote of kleine getallen
+    inputs=1.1
+    make_tr=1
+!endif
+# slechts 2 vragen
+!if $R=1
+    # tegen elkaar in of zelfde richting
+    keuze=!randint 1,2
+    t=!randint 1,6
+    logotext=...
+    logo=<img src="$module_dir/gifs/fiets$t.jpg" alt="fietsers"/>
+    rounding=10
+    V1=!randint 16,60
+    V2=!randint 11,$[$V1-1]
+    # m/s
+    V1=$[$V1/10]
+    V2=$[$V2/10]
+    # km/h
+    v1=$[3.6*$V1]
+    v2=$[3.6*$V2]
+    # in meter
+    afstand=!randint 100,1000
+    afstand=$[$afstand*10]
+    afstand_km=$[$afstand/1000]
+# hoeveel significante cijfers?
+    sig=10
+    !for p in $v1,$v2,$afstand_km
+	c=!charcnt $p
+	!if . isin $p
+	    c=$[$c-1]
+	!endif
+	!if $c<$sig
+	    sig=$c
+	    afkomstig=$p
+	!endif
+    !next p
+    !if $sig>1
+	sig=$[$sig-1]
+    !endif
+    
+    sometext=Let op: de gegevens $v1 km/h ,$v2 km/h en $afstand m zijn afkomstig van een meting.<br />Geef je antwoord <b>daarom</b> op in het juiste aantal significante cijfers.<br />Niet vergeten een SI eenheid te vermelden...
+
+    !if $keuze=1
+	Vdiff=$[$V1-$V2]
+	vdiff=$[$v1-$v2]
+	ss=Je fiets met een <span style="color:blue">eenparige snelheid</span> van $v1 km/h <br />achter iemand aan die eenparig met $v2 km/h rijd.<br />De onderlinge afstand op t=0 is $afstand_km kilometer...<br />Na hoeveel tijd heb je deze fietser ingehaald ?<br />
+    !else
+	Vdiff=$[$V1+$V2]
+	vdiff=$[$v1+$v2]
+	ss=Je fiets met een <span style="color:blue">eenparige snelheid</span> van $v1 km/h <br />iemand tegemoet die eenparig met $v2 km/h rijd.<br />De onderlinge afstand op t=0 is $afstand_km kilometer...<br />Na hoeveel tijd ontmoeten jullie elkaar ?
+    !endif
+    description=tijd
+    ex1=$empty
+    m_rightarrow=&nbsp;=&nbsp;
+    ans1=$[$afstand/$Vdiff]
+    tot=!exec scienceprint $ans1,$sig,0 $ans1,$sig,1 $[$ans1/60],$sig,0
+    c_ans1=!item 1 of $tot
+    h_ans1=!item 2 of $tot
+    h_m_ans1=!item 3 of $tot
+    var1=1
+    var2=$[abs($ans1-$c_ans1)]
+    answer$n=$c_ans1 s
+    
+    !if $keuze=1
+	textanswer$n=De afstand op t=0  was $afstand_km km = $afstand meter.<br />Jullie relatieve snelheid is $v1 &minus; $v2 = $vdiff km/h<br />Omrekenen naar m/s : $vdiff km/h = $vdiff&sdot;1000/3600 m/s = $Vdiff m/s.<br />Over de afstand $afstand meter doe je dan $afstand/$Vdiff m/(m/s) = $ans1 seconden<br />We geven ons antwoord op $sig significante cijfers op.(afkomstig van $afkomstig)<br />Dus de tijd &asymp; $h_ans1 sec. ($h_m_ans1 min.)
+    !else
+	textanswer$n=De afstand op t=0  was $afstand_km km = $afstand meter.<br />Jullie relatieve snelheid is $v1 + $v2 = $vdiff km/h<br />Omrekenen naar m/s : $vdiff km/h = $vdiff&sdot;1000/3600 m/s = $Vdiff m/s.<br />Over de afstand $afstand meter doe je dan $afstand/$Vdiff m/(m/s) = $ans1 seconden<br />We geven ons antwoord op $sig significante cijfers op.(afkomstig van $afkomstig)<br />Dus de tijd &asymp; $h_ans1 sec. ($h_m_ans1 min.)
+    !endif
+    question$n=<a onmouseover="return escape('$sometext')">$ss</a>
+
+!else
+    logotext=...
+    t=!randint 1,3
+    logo=<img src="$module_dir/gifs/boot$t.gif" alt="boot"/>
+    # 1 antwoord met een eenheid
+    var1=1
+    # geen range
+    var2=$empty
+    k=!randitem 1,2
+    richting1=stroomopwaarts,stroomafwaarts
+    richting2=-,+
+    richting3=&minus;,+
+    stroom=!item $k of $richting1
+    sign=!item $k of $richting2
+    Sign=!item $k of $richting3
+    # lengte schip
+    lengte=!randint 25,75
+    lengte=$[$lengte/2]
+    # snelheid schip
+    Vs=!randint 20,70
+    Vs=$[$Vs/10]
+    # snelheid water
+    Vw=!randint 10,30
+    Vw=!exec moneyprint $[$Vw/10] 1
+    # snelheid fietser	
+    Vf=!randint 10,50
+    Vf=$[$Vf/10]
+    tot=!exec moneyprint $lengte,$Vs,$Vw,$Vf 1
+    lengte=!item 1 of $tot
+    Vs=!item 2 of $tot
+    Vw=!item 3 of $tot
+    Vf=!item 4 of $tot
+    kiezen=!shuffle 0,1,0,1
+    es=!item 1 of $kiezen
+    ew=!item 2 of $kiezen
+    ef=!item 3 of $kiezen
+    # snelheids eenheid schip
+    !if $es=0
+	Es=m/s
+	Ves=$Vs
+    !else
+	Es=km/h
+	Ves=$[$Vs*3.6]
+    !endif
+	# snelheids eenheid water
+    !if $ew=0
+	Ew=m/s
+	Vew=$Vw
+    !else
+	Ew=km/h
+	Vew=$[$Vw*3.6]
+    !endif
+    # snelheids eenheid fietser
+    !if $ef=0
+	Ef=m/s
+	Vef=$Vf
+    !else
+        Ef=km/h
+	Vef=$[$Vf*3.6]
+    !endif
+    sig=100
+    !for p in $lengte,$stroom,$Ves,$Vew,$Vef
+	c=!charcnt $p
+	!if . isin $p
+	    c=$[$c-1]
+	!endif
+	!if $c < $sig
+	    sig=$c
+	    afkomstig=$p
+	!endif
+    !next p
+    
+    sometext=Let op: De data $lengte, $stroom, $Ves, $Vew en $Vef  zijn afkomstig van een meting.<br />Geef je antwoord <b>daarom</b> op in het juiste aantal significante cijfers.<br />Niet vergeten een SI eenheid te vermelden...
+    
+    ss=Een schip van $lengte meter vaart $stroom met een <span style="color:blue">eenparige snelheid</span> van $Ves $Es tov het water.<br />Het water stroomt met een snelheid van $Vew $Ew.<br />Een fietser rijdt langs de oever het schip tegemoet.<br />De fietser fietst met een eenparige snelheid van $Vef $Ef<br />Hoe lang heeft de fietser het schip naast zich ?
+	
+    # de snelheid van de boot tov de wal m/s
+    Veff=$[$Vs $sign $Vw]
+    # de relatieve snelheid tov de fietser m/s
+    Vrel=$[abs($Veff - $Vf)]
+    # hoeveel seconden met de relatieve snelheid "duurt" de lengte van het schip $lengte
+    ans=$[$lengte/$Vrel]
+    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    answer$n=$c_ans s
+    var2=$[abs($ans - $c_ans)]	
+
+    textanswer$n=We rekenen eerst alle snelheden om naar de gebruikelijke SI eenheden...<br /><ul><li>V<sub>schip</sub>=$Ves km/h = $Ves &sdot; 1000/3600 m/s = $Vs m/s</li><li>V<sub>rivier</sub>=$sign $Vew km/h = $Vew &sdot; 1000/3600 m/s = $sign $Vw m/s</li><li>V<sub>fietser</sub>= $Vef km/h = $Vef &sdot; 1000/3600 m/s = $Vf m/s</li></ul>De echte snelheid van het schip tov de wal [fietspad] :<br />V<sub>real</sub> = $Vs m/s $Sign $Vw m/s  = $Veff m/s [$stroom : $Sign]<br />De relatieve snelheid tussen schip en fietser:<br />V<sub>relatief</sub>= V<sub>schip</sub> &minus; V<sub>fietser</sub> = $Veff &minus; $Vf =  $Vrel m/s <br />Hoeveel seconden heb je met snelheid $Vrel m/s nodig om de lengte van het schip [$lengte m] te overbruggen?<br />tijdsduur = $lengte m &divide; $Vrel m/s = $ans seconden.<br />We geven ons antwoord op $sig significante cijfers op, afkomstig van $afkomstig<br />tijdsduur &asymp; $h_ans sec. 
+    
+    question$n=<a onmouseover="return escape('$sometext')">$ss</a>
+    
+    ex1=$empty
+    description=tijdsduur
+    m_rightarrow=&nbsp;=&nbsp;
+!endif	
+
+

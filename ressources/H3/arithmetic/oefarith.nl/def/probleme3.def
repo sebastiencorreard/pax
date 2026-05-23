@@ -1,0 +1,114 @@
+!set title=Kist
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 25
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 5, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd(gcd($val7,$val8),$val9);
+tmp0=!exec maxima $t_
+
+val10=$[rint($(tmp0))]
+val7=$[rint($val7/$val10)]
+val8=$[rint($val8/$val10)]
+val9=$[rint($val9/$val10)]
+!if $val7=$val8 or $val8=$val9 or $val7=$val9 
+val7=$[rint(7)]
+val8=$[rint(9)]
+val9=$[rint(5)]
+!endif
+val11=$[rint($val6*$val7)]
+val12=$[rint($val6*$val8)]
+val13=$[rint($val6*$val9)]
+t_=!replace internal \( by ( in gcd($val11,$val12);
+tmp0=!exec maxima $t_
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val7*$val8*$val9)]
+replytype1=units
+replyname1=Lengte van de zijden
+replygood1=$val6 cm
+replytype2=numeric
+replyname2=Aantal kubussen
+replygood2=$[$val15]
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Een rechthoekige kist wordt gevuld met identieke kubussen. 	De zijde van zo'n kubus is een geheel aantal centimeters. De kubussen 	moeten de kist geheel vullen en zo groot mogelijk zijn. <br>	De afmetingen van de kist zijn  $val11 cm, $val12 cm en $val13 cm.	<blockquote>	<p>Vraag 1 : Wat is de lengte van de zijden van de kubussen?</p>	<p>Vraag 2 : Hoeveel kubussen kunnen in de kist?</p>	</blockquote>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<u>Vraag 1 :</u><br>De kubussen moeten de kist geheel vullen en 	zijden van een 	geheel aantal centimeters hebben. De lengte van een zijde van de kubus moet 	dus een deler zijn van de afmetingen van de kubus, dwz van  $val11, $val12 en $val13.<br>	Als de kubussen ook nog zo groot mogelijk moeten zijn,  moet de lengte 	van de zijden de ggd van de drie getallen zijn.<br>	Met het algoritme van Euclides berekent men eerst de ggd van $val11 en $val12. 	Die is $val14.<br>	Nogmaals met het algoritme van Euclides berekent men de ggd van $val13 en $val14. Die 	is $val6.<br>	De ggd van $val11,  $val12 en $val13 is dus $val6.<br>	<u>Vraag 2 :</u><br>	Het aantal kubussen dat nodig is om de kist te vullen is:<br>	
+!insmath \frac{$val11}{$val6}\times \frac{$val12}{$val6}\times \frac{$val13}{$val6}
+$() oftewel $val15 kubussen.
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,12,13,14,15
+embedcnt=0

@@ -1,0 +1,182 @@
+!! fichier de gestion de l'action additionner/soustraire à gauche
+<u><b>Soustraire/ ajouter dans le plateau de gauche:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+!if $nbreesscalc=0
+   !formselect repexo1 from 1 to 2 prompt Je soustrais,J'ajoute
+   au contenu du plateau de gauche
+   !if $mode=2
+      !formselect repexo2 from 1 to 2
+   !endif
+   le nombre <input type=text autocomplete=off name=repexo3 size=5 value=$repexo3>.
+!else
+   !let tmp=!item $repexo1 of Je soustrais,J'ajoute
+   $tmp au contenu du plateau de gauche le nombre \($repexo3).
+!endif
+!if $nocalcul!=1
+   !read calcligne.phtml question
+!endif
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:reponse
+<p>
+   <blockquote>
+   <p>$(comment$[$nbetape+1])</p>
+   !let tmp=!item $repexo5 of $symboleaff
+   <p>La nouvelle $nom sera \($repexo4 $tmp $repexo6).</p>
+   !if $erreur!=calcul
+    <font color=red><p>$erreur .</p></font>
+    <p>vous pouvez:</p>
+    <ul>
+    <li>
+    !href cmd=resume&status=2 saisir
+    une autre soustraction ou une autre addition.
+    </li>
+    <li>
+    !href cmd=resume&status=1 retourner
+    au menu général.
+    </li>
+    </ul>
+!else
+   !read erreurcalc.phtml
+!endif
+</blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!if $repexo1=$empty or $repexo3=$empty or ($repexo2=$empty and $mode=2)
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validité de l'expression donnée.
+i=0
+replygood0=0
+test=$empty
+reply0=$repexo3
+!read anstype/numeric
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $repexo3=0
+   erreur=Soustraire ou ajouter 0, cela ne change rien ! Je ne compte pas cela comme une erreur, mais revenez à l'étape précédente !
+   !exit
+!endif
+!readproc script/rightexpression.proc $repexo3
+!if $erreur!=$empty
+ status=2
+ !exit
+!endif
+!bound repexo1 within 1,2 default 1
+!bound repexo2 within 1,2 default 1
+!readproc script/testnbdec.proc $repexo3
+!if $erreur!=$empty
+ erreur=Il n'est pas utile d'utiliser des nombres d&eacute;cimaux.
+ !exit
+!endif
+!! ------------- calcul de la nouvelle equation/inequation
+!if $evitecalc=0
+   !!evitecalc=1
+   !if $mode!=2 
+      repexo2=1
+   !endif
+   tmp=!line $repexo2 of $(sys$nbetape)
+   tmp0=!item $repexo1 of -,+
+   tmp5=!rawmath $repexo3
+   tmp1=!exec maxima ($(tmp[1]))$tmp0($tmp5);\
+($(tmp[3]));
+   t=!lines2items $tmp1
+   !readproc script/testnbdec.proc $t
+   !if $erreur!=$empty
+    !reset erreur
+    !readproc script/transfofrac.proc $tmp
+    tmp1=$sortie
+    !readproc script/transfofrac.proc $tmp5
+    tmp1=!exec maxima ($(tmp1[1]))$tmp0($sortie);\
+($(tmp1[3]));
+   !endif
+
+
+!distribute lines $tmp1 into tmp1,tmp3
+
+   tmp2=2
+   !if $repexo1=1 and $repexo3<0 or $repexo1=2 and $repexo3>0
+     penche$[$nbetape+1]=1
+      tmp2=3
+   !else
+     penche$[$nbetape+1]=-1
+      tmp2=2
+   !endif
+   
+!!---test pour voir s'il n'y a pas de masse négatives...
+!let prov1=!exec pari deriv($tmp1,$listinc)
+!let prov1=!exec pari ($tmp1-$prov1*$listinc)
+!if $prov1<0
+ prov2=!item $repexo1 of soustraire,ajouter
+ erreur=On ne peut pas $prov2 $repexo3 car on aurait besoin d'une masse <b>négative</b> !<br> Choisissez un autre nombre...
+   !increase nbreerrrais 
+status=2
+ !exit
+!endif
+!!---fin du test
+
+
+   tmp4=$tmp1,$tmp2,$tmp3
+   sys$[$nbetape+1]=!replace line number $repexo2 by $tmp4 in $(sys$nbetape)
+val40=$sys1
+!endif
+
+!! --------------- construction de la phrase de commentaire
+!let tmp=!item $repexo1 of Je soustrais,J'ajoute
+!if $mode=2
+   tmp1=$repexo2
+!else
+   tmp1=$empty
+!endif
+t=!texmath $tmp5
+comment$[$nbetape+1]=$tmp au contenu du plateau de gauche le nombre \($t).<br> J'obtiens :
+
+!! ------------ verification de l'exactitude des calculs
+!if $nocalcul!=1
+!if $mode!=2 
+   repexo2=1
+!endif
+!if $mode<3
+   repexo5=1
+!endif
+tmp1=!line $repexo2 of $(sys$[$nbetape+1])
+repexo4=!rawmath $repexo4
+repexo6=!rawmath $repexo6
+!read verifequ.calc $tmp1,$repexo4,$repexo5,$repexo6
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $test!=$empty
+   erreur=$test
+   !exit
+!endif
+!if $mode=2
+   !replace line number $repexo2 of $(sys$[$nbetape+1]) by $repexo4,$repexo5,$repexo6
+!else
+   sys$[$nbetape+1]=$repexo4,$repexo5,$repexo6
+!endif
+!endif
+!increase nbetape
+status=1
+evitecalc=0
+
+blablabla
+status=10

@@ -1,0 +1,33 @@
+insmath_rawmath=yes
+wims_backslash_insmath=yes
+
+!if $error!=$empty
+ !set wims_module_error=error : $error
+!endif
+
+!if $status=0
+   nbreerrcalc=0
+   nbreerrrais=0
+   nbreesscalc=0
+   nbreaide=0
+   !for i=0 to 30
+      sys$i=$empty
+   !next i
+   !read syst.ini
+   status=1
+!endif
+!if $status=3
+   !let tmp=!item $action of $listaction
+   !read $tmp analyse
+!endif
+!if $status=4
+   !read src/conclure.phtml analyse2
+!endif
+!if $status=5
+   tmp=!replace char C by $nbreerrcalc in $bareme
+   tmp=!replace char R by $nbreerrrais in $tmp
+   noteinter=$[$noteinter+$tmp/$nbreexo]
+   !if $noexo=$nbreexo
+      module_score=$[min(10,max(0,$noteinter))]
+   !endif
+!endif

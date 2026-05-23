@@ -1,0 +1,139 @@
+!set title=Effectifs cumulés 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord src/stat2.don
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val8=$[rint($(tmp0))]
+val9=$[rint(1)]
+val10=$[rint(6)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+val13=Compléter le tableau suivant.
+tmp0=!values v for v=$val9 to $val10
+
+val14=$(tmp0)
+val15=$[rint(6)]
+!readproc slib/generator $val15,$val8 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=$[rint(0)]
+val18=$[rint($val8)]
+val19=$val17
+val20=$val18
+!for val21 =1 to $val15 
+val17=$[rint($val17+$(val16[$val21]))]
+val18=$[rint($val18-$(val16[$val21]))]
+val19=$val19,$val17
+val20=$val20,$val18
+!next
+tmp0=!item 2 to -1 of $val19
+
+val19=$(tmp0)
+replytype1=numexp
+replyname1=Effectifs cumulés croisants
+replygood1=$(val19[4])
+replytype2=numexp
+replyname2=Effectifs
+replygood2=$(val16[2])
+replytype3=numexp
+replyname3=Effectifs cumulés décroissants
+replygood3=$(val20[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val11<br>	$val13	  <table class="wimscenter wimsborder">	   <tr>	    <th>$val12</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val14[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Effectifs</th>	    <td>$(val16[1])</td>	    <td> 
+!read oef/embed.phtml r2,5 
+$()</td>	    <td>$(val16[3])</td>	    <td>$(val16[4])</td>	    <td>$(val16[5])</td>	    <td>$(val16[6])</td>	   </tr><tr>	    <th>Effectifs cumulés croissants</th>	    <td>$(val19[1])</td>	    <td>$(val19[2])</td>	    <td>$(val19[3])</td>	    <td> 
+!read oef/embed.phtml r1,5 
+$()</td>	    <td>$(val19[5])</td>	    <td>$(val19[6])</td>	   </tr><tr>	    <th>Effectifs cumulés décroissants</th>	    <td>$(val20[1])</td>	    <td>$(val20[2])</td>	    <td>$(val20[3])</td>	    <td>$(val20[4])</td>	    <td> 
+!read oef/embed.phtml r3,5 
+$()</td>	    <td>$(val20[6])</td>	   </tr>	  </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,13,14,15,16,19,20
+embedcnt=3

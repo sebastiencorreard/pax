@@ -1,0 +1,97 @@
+status=waiting
+newstyle=1
+!bound mytexsize between -5 and 5 default 0
+#!bound options between 2 and 10 default 4
+options=4
+!bound minimal_score between 1 and 10 default 6
+!bound level between 1 and 4 default 2
+!bound total_exos between 2 and 120 default 27
+!bound maxtime between 1 and 90 default 60
+!bound retryexo between 0 and 1 default 1
+!bound options between 1 and 10 default 4
+!bound taal within nl,en,it,fr,cn default nl
+!default showquitbutton=1
+
+P1=0.95
+P2=0.9
+P3=0.85
+P4=0.8
+P5=0.7
+P6=0.6
+P7=0.5
+P8=0.3
+P9=0.2
+P10=0.1
+jsdir=scripts/authors/jm.evers/js
+remarkdir=authors/jm.evers/lang
+appletdir=scripts/authors/jm.evers/applets
+gifdir=scripts/authors/jm.evers/gifs
+htmldir=scripts/authors/jm.evers/html
+checkdir=authors/jm.evers/checkfiles
+
+sometext=!record 4 of lang/remarks.$taal
+timeinfo=!record 6 of lang/remarks.$taal
+no_calculator_text=!record 30 of lang/remarks.$taal
+herkansing=&nbsp;
+#herkansing=!item 1 of $sometext
+retry=!item 2 of $sometext
+noretry=!item 3 of $sometext
+scorename=!item 4 of $sometext
+timeup=!item 5 of $sometext
+need_cookie=!item 6 of $sometext
+quit=!item 7 of $sometext
+dontknow=!record 9 of $remarkdir/commonremarks.$taal
+send=!record 4 of $remarkdir/commonremarks.$taal
+helptext=!record 5 of $remarkdir/commonremarks.$taal
+nojava=!record 7 of $remarkdir/commonremarks.$taal
+questionnumber=!record 10 of $remarkdir/commonremarks.$taal
+youranswer=!record 43 of $remarkdir/commonremarks.$taal
+no_back_button=!record 86 of $remarkdir/commonremarks.$taal
+
+OK=<img src=$gifdir/ok.gif alt=ok>
+NOK=<img src=$gifdir/nok.gif alt=nok>
+BOK=<img src=$gifdir/bok.gif alt=bok>
+
+hfst1=1,2,3,4,5,6,7,8,9,10,11,12
+hfst2=13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29
+hfst3=30,31,32,33,34,35
+hfst4=40,41,42,43,44,45
+
+!if $exolist = $empty
+    nums=!shuffle $hfst1,$hfst2,$hfst3,$hfst4
+!else
+    nums=$empty
+    !for p in $exolist
+	nums=!append item $p to $nums
+    !next p
+    nums=!shuffle $nums
+    chk=!itemcnt $nums
+    !if $total_exos > $chk
+	total_exos=$chk
+    !endif
+    !if $chk=0
+	nums=!shuffle $hfst1,$hfst2,$hfst3,$hfst4
+    !endif
+!endif
+vragen=$empty
+!for p=1 to $total_exos
+    P=!item $p of $nums
+    vragen=!append item $P to $vragen
+!next p
+exo_max=$total_exos
+vragenlijst=$vragen
+not_ready=$empty
+start=$wims_nowseconds
+total_count=1
+score_limit=10
+total_score=0
+maxscore=1
+try=0
+maxtry=10
+exo_cnt=1
+counter=!item $exo_cnt of $vragen
+retried_once=0
+!readproc exos/exo$counter
+
+
+

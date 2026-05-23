@@ -1,0 +1,170 @@
+!set title=Vitesse et compteur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_nl=Snelheid en teller
+
+ansorder=r,r,r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=h,km,km/h
+val8=Un automobiliste part de son domicile à XXXX $(val7[1]) 00,	  son compteur indique YYYY $(val7[2]).	 Il revient à ZZZZ $(val7[1]) 00, son compteur marque TTTT $(val7[2]).
+val9=Quelle distance a-t-il parcourue,	  Pendant combien de temps a-t-il roulé
+tmp=!trim En effet, il a parcouru	  et a roulé pendant	  Quelle a été sa vitesse moyenne horaire
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Consigne : les unités sont demandées.
+val12=La distance parcourue est de,	  Il a roulé pendant,	  Sa vitesse moyenne horaire est de
+val13=La distance parcourue est la différence entre ce	  qu'indique son compteur à l'arrivée et ce qu'il indique  au départ.
+val14=Le temps de parcours est la différence entre l'heure	  d'arrivée et l'heure de départ.
+val15=La vitesse moyenne horaire est égale à la distance parcourue	  divisée par le temps pendant lequel il a roulé.
+!if $val6=nl 
+val7=uur,km,km/uur
+val8=Een automobilist vertrek van zijn huis om XXXX $(val7[1]), zijn	kilometerteller geeft YYYY $(val7[2]) aan. Hij komt om ZZZZ $(val7[1]) terug, de teller	staat dan op TTTT $(val7[2]).
+val9=Welke afstand heeft hij gereden,	  PHoe lang heeft hij gereden
+tmp=!trim Inderdaad, hij heeft	  gereden, in	  Wat was zijn gemiddelde snelheid, per uur
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Afspraak : geef de eenheden aan.
+val12=De afgelegde afstand is,	  Hij heeft,	  Zijn gemiddelde snelheid is
+val13=De afgelegde afstand is het verschil tussen wat de teller	  bij aankomst aangeeft en wat hij bij vertrek aangaf.
+val14=De duur van het traject is het verschil tussen de tijd van	  aankomst en de tijd van vertrek.
+val15=De gemiddelde snelheid per uur is de afgelegde afstand gedeeld	  door de tijd die hij gereden heeft
+!endif
+tmp0=!randint 0, 24
+
+val16=$[$(tmp0)*5]
+tmp0=!randint 0, 10
+
+val17=$[rint($(tmp0))]
+tmp0=!randint $val17+3, $val17+7
+
+val18=$[rint($(tmp0))]
+val19=$[rint($val18-$val17)]
+val20=$[rint($val16*$val19)]
+tmp0=!randint 10000, 10500
+
+val21=$[rint($(tmp0))]
+val22=$[rint($val21+$val20)]
+tmp0=!replace internal XXXX by $val17 in $val8
+
+val23=$(tmp0)
+tmp0=!replace internal YYYY by $val21 in $val23
+
+val23=$(tmp0)
+tmp0=!replace internal ZZZZ by $val18 in $val23
+
+val23=$(tmp0)
+tmp0=!replace internal TTTT by $val22 in $val23
+
+val23=$(tmp0)
+oefsteps=reply1	reply2	reply3 
+nextstep=!nosubst reply1	reply2	reply3 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=$(val12[1])
+replygood1=$val20 km
+replytype2=units
+replyname2=$(val12[2])
+replygood2=$val19 h
+replytype3=units
+replyname3=$(val12[3])
+replygood3=$val16 km/h
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val23 <div>	
+!if $m_step=1 
+$()$(val9[1])?  
+!endif
+$()	
+!if $m_step=2 
+$()$(val9[2])? 
+!endif
+$()	
+!if $m_step=3 
+$()$(val10[1;]) $val20 km $(val10[2;]) $val19 $(val7[1]).	  $(val10[3;])? 
+!endif
+$()	</div>	<div class="wims_instruction">$val11</div>
+$()
+!exit
+
+:hint
+$()
+!if $m_step=1 
+$()$val13 
+!endif
+$()	  
+!if $m_step=2 
+$()$val14 
+!endif
+$()	  
+!if $m_step=3 
+$()$val15 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10,11,13,14,15,19,20,23
+embedcnt=0

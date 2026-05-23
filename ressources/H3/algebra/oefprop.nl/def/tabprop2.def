@@ -1,0 +1,192 @@
+!set title=Verhoudingstabel II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=c,r
+varcnt=21
+prevarcnt=17
+postvarcnt=3
+replycnt=1
+choicecnt=1
+conditioncnt=1
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 3, 6
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 3, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 9
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7*$val6)]
+val11=$[rint($val8*$val6)]
+val12=$[rint($val9*$val6)]
+val13=$[rint(\d*$val6)]
+val14=$[rint(\e*$val6)]
+val15=$[rint(\f*$val6)]
+tmp0=!randitem 0,0,1,2,3
+
+val16=$[rint($(tmp0))]
+
+!ifval $val16=1 
+val10=$[rint( 2*$val10)]
+!endif
+
+!ifval $val16=2 
+val11=$[rint( $val11+2)]
+!endif
+
+!ifval $val16=3
+val12=$[rint( 2*$val11-2)]
+!endif
+val17=ja
+val18=nee
+
+!ifval $val16=0
+val19= $val17
+!else
+val19=$val18
+!endif
+oefsteps=choice 1	reply 1 
+nextstep=!nosubst choice 1	reply 1 
+!readproc oef/steps.proc
+replytype1=nocase
+replyname1=
+replygood1=?analyze 20
+choicename1=
+choicegood1=$val19
+choicebad1=$val17,$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!if $m_step=1 
+$()Is deze tabel een verhoudingstabel? 
+!endif
+$()	<table align="center" border=1>	<tr align="center"><td>$val7</td><td>$val8</td><td>$val9</td></tr>	<tr align="center"><td>$val10</td><td>$val11</td>	<td>$val12</td>	</tr>	</table>	<p> 
+!if $m_step=2 
+$()
+!if $val16=0 
+$()Juist, het is een verhoudingstabel.<br>	Met welke factor moet een getal uit de bovenste rij worden vermenigvuldigd<br>	om het bijhorende getal uit de onderste rij te krijgen? 
+!else
+$()	 Inderdaad, het is geen verhoudingstabel !<br>	Aan welke twee kolommen kun je zien dat dit geen verhoudingstabel is.<br>	Geef je antwoord bijvoorbeeld als : <b>2&nbsp;,&nbsp;3</b>   
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!items2words $val20
+
+val21=$(tmp0)
+tmp0=!nospace $val21
+
+val21=$(tmp0)
+tmp0=!charcnt $val21
+
+val22=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val22=1 and $val16<>0
+ <div class='oef_feedbacks'>Je moet de nummers van twee kolommen geven. Een 	enkele bewijst niets.
+$()</div>
+!endif
+!ifval $val22=3 and $val16<>0
+ <div class='oef_feedbacks'>Je moest nummers van twee kolommen geven, geen 	drie! .
+$()</div>
+!endif
+!ifval $val22=2 and $val16<>0 and $val16 notin $val20
+ <div class='oef_feedbacks'>Controleer! We hebben 	
+!if $val16=1 
+$() 
+!insmath \frac{$val11}{$val8}=\frac{$val12}{$val9}
+$(). 
+!endif
+$()	
+!if $val16=2 
+$() 
+!insmath \frac{$val10}{$val7}=\frac{$val12}{$val9}
+$(). 
+!endif
+$()	
+!if $val16=3 
+$() 
+!insmath \frac{$val10}{$val7}=\frac{$val11}{$val8}
+$(). 
+!endif
+$() Dus het is niet aan de hand	van deze kolommen dat je hebt kunnen zien dat het geen verhoudingstabel is.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval ($val16=0 and $val20=$val6) or ($val16<>0 and $val16 isin $val20	and $val22=2)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,16,20
+embedcnt=0

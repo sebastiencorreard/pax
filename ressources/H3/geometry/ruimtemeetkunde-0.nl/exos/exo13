@@ -1,0 +1,101 @@
+#:Piramide [ Pythagoras ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+origin=0
+applet=1
+embed=1
+make_tr=0
+inputs=1
+questiontype=0
+cols=20
+rows=1
+m_rightarrow=&nbsp;=
+checkfile=$checkdir/number.proc
+helptext=$empty
+!if $R=1
+    !if $rounding<0
+	rounding=100
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    setje=A,B B,C C,D A,D
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    x=!randitem 6,8,10,12
+    a=!randitem -3,-2,-1,1,2,3
+    z=$[$x+($a)]
+    b=$[$x/2]
+    d=$[$b^2+$z^2]
+    d_tex=$b^{2}+$z^{2}
+    answer$n=sqrt($d)
+    test=$[$(answer$n)]
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    !if . isin $test
+        tex=\sqrt{$d} $ans
+    !else
+        tex=\sqrt{$d} = $test
+    !endif
+    ss=!record 6 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br />R is het midden van $AB<br />Bereken de lengte van TR
+    question$n=$ss 
+    description=d(TR)
+    texanswer$n= \bf{SR} =$b \rightarrow \bf{TR} = \sqrt{$d_tex} = $tex
+    
+    construction=<Midpoint name="R" n="2000" showname="true" bold="true" large="true"  first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="A" second="C" shape="circle"></Midpoint><Segment type="thin" name="TS" alias="TS" color="5" n="1000" from="T" to="S"></Segment><Segment type="bold" name="TR" alias="TR" color="5" n="1000" from="T" to="R"></Segment>
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+
+!if $R>1
+    !if $rounding<0
+	rounding=100
+	!readproc $remarkdir/rounding.$taal
+    !endif
+    A=!randitem A,B,C,D
+    AT=!nospace $A T
+    AS=!nospace $A S
+    x=!randint 6,8,10,12,14
+    a=!randitem -3,-2,-1,1,2,3
+    z=$[$x+($a)]
+    b=$[$x/2]
+    c=$[$b^2+$b^2]
+    c_tex=$b^{2}+$b^{2}
+    d=$[$c+$z^2]
+    d_tex=$c+$z^{2}
+    answer$n=sqrt($d)
+    test=$[$(answer$n)]
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    !if . isin $test
+        tex=\sqrt{$d} $ans
+    !else
+        tex=\sqrt{$d} = $test
+    !endif
+    ss=!record 7 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br /><br />Bereken de lengte van $AT
+    question$n=$ss
+    description=d($AT)
+    texanswer$n=\left[ \begin{array} {l} $AS=\sqrt{$c_tex} = \sqrt{$c} \rightarrow \\ $AT=\sqrt{$d_tex} = $tex \end{array} \right.
+    
+    construction=<Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="A" second="C" shape="circle"></Midpoint><Segment type="thin" name="TS" alias="TS" color="5" n="1000" from="T" to="S"></Segment><Segment type="thick" name="$AT" alias="$AT" color="5" n="1000" from="$A" to="T"></Segment>
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+    

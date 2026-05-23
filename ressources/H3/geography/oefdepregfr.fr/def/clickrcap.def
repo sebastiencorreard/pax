@@ -1,0 +1,173 @@
+!set title=Chef-lieu cliqué régions
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r
+varcnt=23
+prevarcnt=19
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=region.gif
+tmp=!trim 13,Bouches-du-Rhône,Marseille,Provence-Alpes-Côte-d'Azur,Marseille,342,353, '	14,Calvados,Caen,Basse-Normandie,Caen,148,102,	2A,Corse-du-Sud,Ajaccio,Corse,Ajaccio,487,422,	21,Côte-d'Or,Dijon,Bourgogne,Dijon,312,178,    '	25,Doubs,Besançon,Franche-Comté,Besançon,364,179,	31,Haute-Garonne,Toulouse,Midi-Pyrénées,Toulouse,209,364,	33,Gironde,Bordeaux,Aquitaine,Bordeaux,143,300,	34,Hérault,Montpellier,Languedoc-Roussillon,Montpellier,280,357,	35,Ille-et-Vilaine,Rennes,Bretagne,Rennes,113,143,	44,Loire-Atlantique,Nantes,Pays-de-la-Loire,Nantes,108,181,	45,Loiret,Orléans,Centre,Orléans,234,158,	51,Marne,Châlons-sur-Marne,Champagne-Ardenne,Châlons-sur-Marne,292,102,	57,Moselle,Metz,Lorraine,Metz,361,96,	59,Nord,Lille,Nord-Pas-de-Calais,Lille,262,44,	63,Puy-de-Dôme,Clermont-Ferrand,Auvergne,Clermont-Ferrand,267,258,	67,Bas-Rhin,Strasbourg,Alsace,Strasbourg,392,105,	69,Rhône,Lyon,Rhône-Alpes,Lyon,313,251,	76,Seine-Maritime,Rouen,Haute-Normandie,Rouen,195,77,	80,Somme,Amiens,Picardie,Amiens,230,66,	86,Vienne,Poitiers,Poitou-Charentes,Poitiers,176,223,	87,Haute-Vienne,Limoges,Limousin,Limoges,202,254,	95,Val-d'Oise,Pontoise,Ile-de-France,Paris,229,103,   '	
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!column 6,7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal ; by ;b,$val6, in b,$val6,$val13
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp0=!rowcnt $tmp
+val15=$[rint($(tmp0))]
+tmp0=!randint 1, $val15
+
+val16=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row $val16 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 3 of $val17
+
+val19=$(tmp0)
+tmp0=!item 5 of $val17
+
+val20=$(tmp0)
+tmp0=!item 6 of $val17
+
+val21=$(tmp0)
+tmp0=!item 7 of $val17
+
+val22=$(tmp0)
+val23=régions
+tmp0=!item 4 of $val17
+
+val24=$(tmp0)
+replytype1=coord
+replyname1=$val24
+replygood1=$val1/$val6;b,$val6,$val21,$val22;$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici une carte des $val23 de la France. Veuillez cliquer sur								   celle dont le chef-lieu est <b>$val20</b>.						<div class="wimscenter">	 
+!read oef/embed.phtml reply 1 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!item $m_result1-1 of $val8
+
+val25=$(tmp0)
+tmp0=!item $m_result1-1 of $val11
+
+val26=$(tmp0)
+tmp0=!item $m_result1-1 of $val9
+
+val27=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $m_result1>1
+ <div class='oef_feedbacks'>					    Vous avez cliqué sur <span class="oef_indbad">$val26</span> au lieu de	    <em>$val24</em>.		
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,20,23,24
+embedcnt=1

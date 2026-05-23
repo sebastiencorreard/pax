@@ -1,0 +1,139 @@
+!set title=Probabilités 2 : Comparaisons de probabilités
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Delphine, Dailly
+computeanswer=no
+precision=10000
+
+ansorder=c
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F,G,F,G,H,J,K,L
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp=!nonempty items M,N,P,Q,R,S,T,V,W,X,Y,Z
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val9=rouge,verte,jaune,blanche,noire,bleue
+val10=rouges,vertes,jaunes,blanches,noires,bleues
+tmp0=!shuffle 6
+
+val11=$(tmp0)
+tmp0=!randint 2, 10
+
+val12=$(tmp0)
+tmp0=!randint 4, 10
+
+val13=$(tmp0)
+tmp0=!randint 2, 10
+
+val14=$(tmp0)
+tmp=!nonempty items 1,2,3
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!translate ";': to $     $ in $val13+$val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val13-$val15
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!nonempty items $(tmp0),$(tmp1)
+
+tmp2=!randitem $tmp
+val16=$(tmp2)
+t_=!rawmath $val13/($val12+$val13)
+val17=!exec pari print($t_)
+t_=!rawmath $val16/($val14+$val16)
+val18=!exec pari print($t_)
+!if $val17=$val18 
+val16=$[rint($val16+1)]
+t_=!rawmath $val16/($val14+$val16)
+val18=!exec pari print($t_)
+!endif
+!if $val17-$val18<0 
+val19=$val8
+!else
+val19=$val7
+!endif
+choicename1=
+choicegood1=$val19
+choicebad1=$val7,$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Mettre les fractions sur le même dénominateur pour pouvoir les comparer.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<ul><li>	Dans le sac $val7, il y a $val12 boules $(val10[$(val11[1])]) et $val13 boules $(val10[$(val11[2])]).	</li><li>	Dans le sac $val8, il y a $val14 boules $(val10[$(val11[1])]) et $val16 boules $(val10[$(val11[2])]).	</li></ul>	<p>	$val6 a le choix : tirer une boule dans le sac $val7 ou dans le sac $val8.	</p><p>	Il gagne s'il tire une boule $(val9[$(val11[2])]).	</p>	<div class="spacer bold">	Quel sac doit-il choisir pour avoir le plus de chances de gagner ?</div>
+$()
+!exit
+
+:hint
+$()Mettre les fractions sur le même dénominateur pour pouvoir les comparer.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Pour le sac $val7, la probabilité d'avoir une boule $(val9[$(val11[2])]) est de 
+!insmath $val17
+$().	Pour le sac $val8, la probabilité d'avoir une boule $(val9[$(val11[2])]) est de 
+!insmath $val18
+$().	Donc il vaut mieux choisir le sac $val19.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12,13,14,16,17,18,19
+embedcnt=0

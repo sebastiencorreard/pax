@@ -1,0 +1,125 @@
+!set title=Moyennes et coefficients
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=xiao@unice.fr
+author=XIAO Dingyu
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Gemiddelden en co&euml;fficienten
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=NNNN a eu,	  de moyenne en mathématique (coefficient XXXX),	  de moyenne en français (coefficient YYYY) et,	  de moyenne en physique (coefficient ZZZZ). Quelle est sa moyenne totale (arrondie	  au premier chiffre après la virgule)&nbsp;
+val8=Moyenne totale
+!if $val6=nl 
+val7=NNNN heeft gemiddeld een,	  gehaald voor wiskunde (het aantal toetsen was XXXX)<br>	  Voor frans heeft NNNN een,	  gemiddeld gescoord (het aantal toetsen was  YYYY) en<br>	  voor natuurkunde heeft NNNN  een,	  gemiddeld (het aantal toetsen was  ZZZZ).	  Wat is het totale gemiddelde van NNNN	    (Rond je antwoord af op 1 cijfer achter de komma nauwkeurig)
+val8=Totaal gemiddelde
+!endif
+!readproc slib/lang/fname $val6 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!randint 2, 18
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 3, 17
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 3, 17
+
+val12=$[rint($(tmp0))]
+tmp0=!randitem 3, 4
+
+val13=$[rint($(tmp0))]
+tmp0=!randitem 3, 4
+
+val14=$[rint($(tmp0))]
+tmp0=!randitem 2, 3
+
+val15=$[rint($(tmp0))]
+val16=$[rint(10*($val10*$val13+$val11*$val14+$val12*$val15)/($val13+$val14+$val15))/10]
+tmp0=!replace internal XXXX by $val13 in $val7
+
+val17=$(tmp0)
+tmp0=!replace internal YYYY by $val14 in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal ZZZZ by $val15 in $val17
+
+val17=$(tmp0)
+tmp0=!replace internal NNNN by $val9 in $val17
+
+val17=$(tmp0)
+replytype1=default
+replyname1=$val8
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val17[1]) $val10 $(val17[2]), $val11 $(val17[3]) $val12 $(val17[4]) ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,17
+embedcnt=0

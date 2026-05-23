@@ -1,0 +1,71 @@
+#hfst1
+#exo9(hfst1) Rekenen aan verhoudingen
+n=$counter
+questiontype=3
+checkfile=$checkdir/units.proc
+rounding=0
+mathview=0
+inputs=1.1
+cols=8
+rows=1
+make_tr=0
+formula$n=$empty
+
+factor=!randint 1,33
+keuze=!randint 0,3
+flessen=A,B\
+B,A\
+I,II\
+II,I\
+#1,#2\
+#2,#1
+
+k=!randint 1,6
+fles=!line $k of $flessen
+A=!item 1 of $fles
+B=!item 2 of $fles
+
+!if $keuze=1
+    liter=l
+    vol_A=!randitem 0.250,0.400,0.500,0.750,0.800,0.100,0.150
+    fz=1000
+!else
+    !if $keuze=2
+	liter=dl
+	fz=100
+	vol_A=!randitem 2.50,4.00,5.00,7.50,8.00
+    !else
+	liter=cl
+	fz=10
+	vol_A=!randitem 250,400,500,750,800
+    !endif
+!endif
+factor=!exec moneyprint $[$factor/10] 1
+ans=$[$fz*$vol_A/$factor]
+rans=$[round($ans)]
+ml=$[$vol_A*$fz]
+formula$n=$empty
+
+textanswer$n=Gevraagd wordt naar een inhoud in milliliter.<br />$vol_A $liter = $vol_A &times; $fz ml = $ml ml.<br /><kbd>Fles $B</kbd> heeft dus een inhoud van $ml / $factor = $ans &asymp; $rans ml.<br />
+
+sometext=<ul><li>l : liter</li><li>dl : deciliter</li><li>cl : centiliter</li><li>ml : milliliter</li></ul>
+
+helptext=$sometext<hr />Geef je antwoord de juiste eenheid en <a target=\'new\' href=\'http://nl.wikipedia.org/wiki/Significant_cijfer\' >precisie</a>
+
+ss=Het volume van <kbd>fles $A</kbd> is $factor &times; zo groot als het volume van <kbd>fles $B</kbd>.<br /><kbd>Fles $A</kbd> heeft een volume van $vol_A $liter.<br />Bereken volume van <kbd>fles $B</kbd>.<br />Rond je antwoord af op hele milliliters.
+
+var1=0
+answer$n=$rans
+var2=$[abs($ans-$rans)]
+
+ex1=&nbsp;<kbd>ml</kbd>
+m_rightarrow=&nbsp;&asymp;&nbsp;
+description=De inhoud van <kbd>fles $B</kbd>
+question$n=<a onmouseover="return escape('$sometext')">$ss</a>
+
+
+!exit
+
+    
+
+    

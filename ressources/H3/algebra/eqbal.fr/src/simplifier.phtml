@@ -1,0 +1,129 @@
+!! pour simplifier l'écriture d'une équation.
+
+<u><b>Simplifier:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+   !if $mode=2
+      Je simplifie l'écriture membre à membre de l'équation 
+      !formselect repexo1 from 1 to 2
+      du système d'équations.
+   !endif
+   Chacun des deux membres de l'$nom devient :
+   !if $mode=2
+   <ul>
+      <li>Membre de gauche : <input type=text autocomplete=off name=repexo2 size=10 value=$repexo2>.</li>
+      <li>Membre de droite : <input type=text autocomplete=off name=repexo3 size=10 value=$repexo3>.</li>
+   </ul>
+   !else
+     !distribute items $(sys$[$nbetape]) into tmp1,tmp2,tmp3
+ !let tmp1=!texmath $tmp1
+   !let tmp3=!texmath $tmp3
+  
+    <ul>
+      <li>\($tmp1) = <input type=text autocomplete=off name=repexo2 size=10 value=$repexo2>.</li>
+      <li>\($tmp3)= <input type=text autocomplete=off name=repexo3 size=10 value=$repexo3>.</li>
+   </ul>
+   !endif
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:reponse
+<blockquote>
+!if $mode=2
+   tmp=!line $repexo1 of $(sys$[$nbetape])
+   !distribute items $tmp into tmp1,tmp2,tmp3
+   Je simplifie l'écriture membre à membre de l'équation $(repexo1) du système d'équations. 
+!else
+   !distribute items $(sys$[$nbetape]) into tmp1,tmp2,tmp3
+!endif
+Chacun des deux membres de l'$nom devient :
+<ul>
+   !let tmp1=!texmath $tmp1=$repexo2
+   !let tmp3=!texmath $tmp3=$repexo3
+   <li>\($tmp1)</li>
+   <li>\($tmp3)</li>
+</ul>
+<font color=red><p>Vous avez fait une erreur de calcul.</p></font>
+   <p>vous pouvez:</p>
+   <ul>
+   <li>
+   !href cmd=resume&status=2 saisir
+   une autre simplification.
+   </li>
+      <li>
+   !href cmd=resume&status=1 retourner
+   au menu général.
+   </li>
+   </ul>
+   </blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!if $repexo2=$empty or $repexo3=$empty or ($repexo1=$empty and $mode=2)
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validité de l'expression donnée.
+i=0
+replygood0=tt
+!for j=2 to 3
+   test=$empty
+   reply0=$(repexo$[$j])
+   !read anstype/algexp
+   !if NaN isin $test
+      !break
+   !endif
+!next j
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+
+comment$[$nbetape+1]=Simplification des expressions.
+
+!! ------------- Vérification des égalités.
+!if $mode!=2
+   repexo1=1
+!endif
+tmp=!line $repexo1 of $(sys$[$nbetape])
+!distribute items $tmp into tmp1,tmp2,tmp3
+repexo2=!rawmath $repexo2
+repexo3=!rawmath $repexo3
+tmp=!exec maxima expand($tmp1-($repexo2));\
+expand($tmp3-($repexo3));
+tmp=!lines2items $tmp
+!if $nbreinc=1
+ tmp=!exec maxima sqrt((coeff($(tmp[1]),$(listinc[1]),1))^2+(coeff($(tmp[1]),$(listinc[1]),0))^2);\
+sqrt((coeff($(tmp[2]),$(listinc[1]),1))^2+(coeff($(tmp[2]),$(listinc[1]),0))^2);
+!else
+ tmp=!exec maxima sqrt((coeff($(tmp[1]),$(listinc[1]),1))^2+(coeff(coeff($(tmp[1]),$(listinc[1]),0),$(listinc[2]),0))^2+(coeff($(tmp[1]),$(listinc[2]),1))^2);\
+sqrt((coeff($(tmp[2]),$(listinc[1]),1))^2+(coeff(coeff($(tmp[2]),$(listinc[1]),0),$(listinc[2]),0))^2+(coeff($(tmp[2]),$(listinc[2]),1))^2);
+!endif
+tmp=!lines2items $tmp
+!if $(tmp[1])>10^(-10) or $(tmp[2])>10^(-10)
+   !increase nbreerrcalc
+   !exit
+!endif
+
+!! ------------- calcul de la nouvelle equation/inequation
+tmp=$repexo2,$tmp2,$repexo3
+!if $mode=2
+   sys$[$nbetape+1]=!replace line number $repexo1 by $tmp in $(sys$[$nbetape])
+!else
+val41=$tmp
+   sys$[$nbetape+1]=$tmp
+!endif 
+!increase nbetape
+status=1
+evitecalc=0
+!exit

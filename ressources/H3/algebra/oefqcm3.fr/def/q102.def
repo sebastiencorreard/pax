@@ -1,0 +1,178 @@
+!set title=Question 102 Lecture d'abscisse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=quizz,fraction,number_line
+author=Sébastien, Corréard
+email=sebastien.correard@ac-aix-marseille.fr
+oefcss=<style>.feedmutu { border: 1px solid; border-radius: 5px; padding: .5em;} </style>
+computeanswer=no
+precision=10000000
+oefobservation=Question du sujet zéro sujet-zero-dnb-serie-generale-a-mathematiques.pdf du DNB publié sur éduscol en décembre 2025 
+language=fr
+
+ansorder=r
+varcnt=55
+prevarcnt=54
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée.</strong>
+val7=Félicitations toutes les réponses sont justes !
+val8=$[rint(2)]
+val9=$[rint(10)]
+val10=$[rint(20)]
+val11=$[rint(10)]
+tmp0=!randint 3, 6
+
+val12=$[rint($(tmp0))]
+tmp0=!randint $val12+1, 2*$val12-1
+
+val13=$[rint($(tmp0))]
+t_=!rawmath 1/$val12
+val14=!exec pari print($t_)
+val15=$[1/$val12]
+t_=!rawmath 0-$val14
+val16=!exec pari print($t_)
+val17=$[0-$val15]
+val18=$[rint(2)]
+t_=!rawmath $val13/$val12
+val19=!exec pari print($t_)
+val20=\(\frac{$val13}{$val12}\)
+val21=$[rint($val12-1)]
+
+!ifval $val12<6
+val22=$[rint($val12+1)]
+!else
+tmp0=!randint 3, 5
+
+val22=$[rint($(tmp0))]
+!endif
+tmp0=!randint 3, 5
+
+val23=$[rint($(tmp0))]
+val24=$[rint($val13+1)]
+val25=$[rint($val13-1)]
+val26=\(\frac{$val13}{$val21}\)
+val27=\(\frac{$val25}{$val22}\)
+val28=\(\frac{$val24}{$val21}\)
+val29=$val26,$val27,$val28
+val30=La bonne réponse est $val20.
+val30=$val30 <br>L'unité est partagé en $val12 parties&#44; chaque intervalle vaut donc \(\frac{1}{$val12}\).
+val30=$val30 <br>L'abscisse du point E et à $val13 intervalles de l'origine&#44; son abscisse vaut donc \($val13\times\frac{1}{$val12}=\frac{$val13}{$val12}\).
+val31=
+val32=$[rint($val12*($val18-$val16))]
+!for val33 =1 to $val32-1 
+t_=!rawmath $val16+$val33*$val14
+val34=!exec pari print($t_)
+val35=$[rint(floor($val34))]
+t_=!rawmath $val34-$val35
+val36=!exec pari print($t_)
+!if $val36!=0 
+val31=$val31 s_$val33=Segment(($val34,-0.1),($val34,0.1));
+!else
+!endif
+!next
+val37=gp0=Segment((0,-0.2),(0,0.2));gp1=Segment((1,-0.2),(1,0.2));t0=Text("0",(0,-0.4));t1=Text("1",(1,-0.4))
+val38=ax=Segment(($val17,0),($val18,0))
+!readproc slib/geo2D/geogebra	%% E=($val19,0)	%% ShowLabel(E,true)	%% width=500	%% height=100	%% SetPerspective("G")	%% setAxesVisible(false,false)	%% setGridVisible	%% setCoordSystem($val17,$val18,-0.5,0.5)	%% $val38	%% $val31	%% $val37	%% enableShiftDragZoom=false	%%  
+tmp0=$slib_out
+val39=$(tmp0)
+val40=$[(500*$val15)/(2+$val15)]
+val41=$[rint(floor($val40))]
+val42=
+!for val33 =2 to 2*$val12 
+val36=$[rint($val33-$val12)]
+!if $val36 = 1 
+!else
+val43=$[rint($val33*$val41)]
+val42=$val42 segment $val43,50-$val11,$val43,50+$val11,black;
+!endif
+!next
+val44=segment $val41,50-$val10,$val41,50+$val10,black;
+val43=$[rint(($val12+1)*$val41)]
+val44=$val44 segment $val43,50-$val10,$val43,50+$val10,black
+!readproc oef/canvasdraw.phtml 500,100 \
+linewidth 2	segment 0,50,500,50,black	text black,$val41*0.92,10,large,0	text black,$val41*($val12+0.92),10,large,1	text blue,$val41*($val13+0.9),65,large,E	linewidth 1	$val42	linewidth 2	$val44	crosshair $val41*($val13+1),50,blue	 
+tmp0=$canvasdraw_out
+val45=$(tmp0)
+val46=$val45	Sur cette droite graduée, l'abscisse du point E est :	
+val47=
+val48=$val20,$val29
+tmp0=!shuffle 4
+
+val49=$(tmp0)
+val48=$(val48[$(val49[1])]),$(val48[$(val49[2])]),$(val48[$(val49[3])]),$(val48[$(val49[4])])
+tmp0=!positionof item 1 in $val49
+
+val50=$[rint($(tmp0))]
+replytype1=radio
+replyoption1=nolegend noanalyzeprint 
+replyname1=
+replygood1=$val50;Réponse A, Réponse B, Réponse C, Réponse D
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_instruction">$val6</div>	<div class="wims_question">	  $val46	  <div class="wimscenter wims_scrollable">	  <table class="wimsborder">	<tr><th>	  A. </th><th>B. </th><th> C.</th><th> D.	  </th></tr>	  <tr><td>$(val48[1]) </td><td>$(val48[2]) </td><td>$(val48[3]) </td><td>$(val48[4]) </td></tr>	  </table>	  </div>	  <div class="wimscenter">	  <b>  
+!read oef/embed.phtml r1 
+$() </b>	  </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val30!=)
+ <div class='oef_feedbacks'>	  <div class="feedmutu">$val30</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,30,46,48
+embedcnt=1

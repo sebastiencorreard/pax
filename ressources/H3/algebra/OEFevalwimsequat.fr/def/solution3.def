@@ -1,0 +1,169 @@
+!set title=Solution d'une équation 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=x
+tmp0=!values v,-v for v=2 to 5
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!nonempty items $(val7[1])*$val6+$(val7[2]),$(val7[2])+$(val7[1])*$val6
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!values v for v=1 to 3*$val10
+
+val11=$(tmp0)
+tmp0=!values v*$val10 for v=1 to 3
+
+val12=$(tmp0)
+tmp0=!listcomplement $val12 in $val11
+
+val13=$(tmp0)
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val14=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val14*$(val13[1])/$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp=!translate ";': to $     $ in $val14*$(val13[2])/$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+
+!ifval $val9=1
+val17=$val15
+!else
+val17=$val16
+!endif
+evaltmp=$val8
+
+evaltmp=!mathsubst $val6=($val17) in $evaltmp
+tmp0=($evaltmp)
+val17=$(tmp0)
+tmp=!translate ";': to $     $ in $val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp0=!replace internal / by , in $val17
+
+val18=$(tmp0)
+tmp0=!itemcnt $val18
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=2
+val20=$(val18[2])
+!else
+val20=1
+!endif
+val21=$[rint($(val7[1])*$val20)]
+val22=$[rint($(val7[2])*$val20)]
+tmp=!nonempty items $val21*$val6+$val22,$val22+$val21*$val6
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+val17=$[rint($(val18[1]))]
+tmp0=!texmath $val15
+
+val15=$(tmp0)
+val15=\($val15)
+tmp0=!texmath $val8
+
+val8=$(tmp0)
+val23=$val8 = $val17
+val24=Oui&#44; $val15 est solution de l'équation,Non&#44; $val15 n'est pas solution de l'équation
+replytype1=radio
+replyname1=Réponse
+replygood1=$val9;$val24
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val15 est-il solution de l'équation :	<div class="wimscenter">
+!insmath $val23
+$()</div>	<b>Votre réponse :</b>	<blockquote>	 <div> 
+!read oef/embed.phtml r1,1 
+$()</div>	 <div> 
+!read oef/embed.phtml r1,2 
+$()</div>	</blockquote>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,23
+embedcnt=2

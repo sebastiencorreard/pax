@@ -1,0 +1,31 @@
+#wims_bgcolor=#c0c0c0
+
+!if $cmd=reply and $status!=waiting
+ error=double_reply
+ !exit
+!endif
+
+!if $cmd=reply and $status=waiting
+ !if $job iswordof up down left right
+  !read data/spuzzle/move.proc
+  !advance replycnt
+ !endif
+ !if $job=restart
+  scramble=!nospace $oscramble
+  replycnt=0
+  !exit
+ !endif
+ !if $job=show
+  showorigin=1
+  !exit
+ !endif
+ !if $job=hide
+  showorigin=0
+  !exit
+ !endif
+ !if $scramble=$goodorder
+  status=done
+  wims_module_log=Done after $replycnt clicks
+ !endif
+!endif
+

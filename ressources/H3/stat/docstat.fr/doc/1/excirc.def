@@ -1,0 +1,143 @@
+!set titb=Exemple de diagramme circulaire
+!set keyw=
+!set datm=20031228
+!set prev=
+!set next=
+!set upbl=diagramme
+!set dat1=19000101
+!set dat2=24000101
+
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+!exit
+
+:content
+<a name="camembert"></a>
+!set tmp0=!randint 4, 6
+
+!set m_n=$(tmp0)
+
+
+
+!set m_ss=100
+
+
+ 
+!for m_i=1 to $m_n-1 
+
+
+!set tmp0=!randint 8, 20
+
+!set m_u=$(tmp0)
+
+
+ 
+!if $m_i=1 
+
+!set m_s=$m_u
+
+
+!else
+ 
+!set m_s=$m_s,$m_u
+
+
+!endif
+
+
+!set m_ss=$[$m_ss-$m_u]
+
+!next
+
+
+!set m_s=$m_s,$m_ss
+
+
+
+!set tmp0=!shuffle 6
+
+!set m_shu=$(tmp0)
+
+
+
+!set m_listecouleur=red,skyblue,orange,grey,green,purple
+
+
+
+!set m_listefr=rouge, bleu,orange,gris, vert, violet
+
+
+
+!set m_dessin=ellipse 0,0,2,2,black	line 0,0,1,0,black
+
+
+
+!set m_anglet=0
+
+
+ 
+!for m_i=1 to $m_n 
+
+
+!set tmp0=!item $m_i of $m_s
+
+!set m_angle=$[$(tmp0)*2*pi/100]
+
+
+!set m_point=$[$m_anglet+$m_angle/2]
+
+
+!set tmp0=!item $m_i of $m_shu
+
+!set tmp1=!item $(tmp0) of $m_listecouleur
+
+!set m_couleur=$(tmp1)
+
+
+
+!set m_anglet=$[$m_anglet+$m_angle]
+
+
+!set tmp0=!item $m_i of $m_s
+
+!set m_dessin=$m_dessin	line 0,0,cos($m_anglet),sin($m_anglet),black	fill cos($m_point)/2,sin($m_point)/2, $m_couleur	text black, 2*cos($m_point)/3,2*sin($m_point)/3, medium, $(tmp0)%	
+
+
+!next
+
+<br/>
+!set tmp0=!randint 1, $m_n
+
+!set m_pos=$(tmp0)
+
+
+
+!set tmp0=!item $m_pos of $m_shu
+
+!set tmp1=!item $(tmp0) of  $m_listefr
+
+!set m_couleur=$(tmp1)
+
+
+
+!set tmp0=!randint 10, 30
+
+!set m_ind=$[rint($(tmp0)*100)]
+
+
+!set tmp0=!item $m_pos of $m_s
+
+!set m_rep=$[round($(tmp0)/100*$m_ind)]
+
+<div class="exemple">
+
+!read primitives.phtml 1, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" />, camembert 
+
+<div class="wimscenter">
+
+!read primitives.phtml 2, draw, 200,200, xrange -1.5,1.5	yrange -1.5,1.5	\dessin 
+
+</div>
+</div>
+

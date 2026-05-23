@@ -1,0 +1,44 @@
+n=$counter
+mathview=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+inputs=1.1
+ph=!randint -50,100
+ph=!exec moneyprint $[$ph/100]
+sig=!exec sigdigits $ph
+sig=$(sig[1])
+M=98.1
+!if $ph < 0
+    PH=!replace internal - by &minus; in $ph
+!else
+    PH=$ph
+!endif
+ss=Hoeveel gram zwavelzuur H<sub>2</sub>SO<sub>4</sub> (M = $M g/mol) moet je oplossen per liter water<br />\
+om een oplossing te maken van pH = $PH ?
+
+c=$[10^(-1*$ph)]
+c2=$[$c/2]
+gc=$[$M*$c2]
+tot=!exec scienceprint $gc,$sig,0 $gc,$sig,2 $c2,-1,2
+c_gc=$(tot[1])
+t_gc=$(tot[2])
+t_c2=$(tot[3])
+answer$n=$gc
+var1=$[abs($gc - $c_gc)]
+var1=0
+helptext=<img src=\'$module_dir/gifs/ph.jpg\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+ex1=gram
+description=De hoeveelheid H<sub>2</sub>SO<sub>4</sub>
+texanswer$n=\begin{array}{l} H_{2}SO_{4} + 2H_{2}O \rightarrow 2H_{3}O^{+} + 2SO_{4}^{2-} \\ \textrm{ 1 mol zwavelzuur levert bij oplossen 2 mol } \;H^{+} \\ pH = $ph \rightarrow \left[ H_{3}O^{+} \right] = 10^{-$ph} \approx $c \; mol/L \\ \textrm{Dus op te lossen :}\; \frac{$c}{2} \approx $t_c2 mol/L \\ M_{H_{2}SO_{4}} = $M \;g/mol \\ \textrm{Dus op te lossen :}\;  $t_c2\;mol/L \times $M\;g/mol \approx $gc \; gram/L \\ \textrm{Op $sig significante cijfers : } $t_gc \; \textrm{gram zwavelzuur per liter water } \end{array}
+
+math=0
+!exit
+#formula$n=\size[200]{ c_{1} \cdot V_{1} + c_{2} \cdot V_{2} = c_{3} \cdot V_{3}}
+
+
+
+
+
+
+

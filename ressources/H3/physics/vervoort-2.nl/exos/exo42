@@ -1,0 +1,58 @@
+n=$counter
+mathview=0
+make_tr=1
+math=0
+#hfst4 ??
+#exo42(hfst4) Verdunnen van oplossingen [zout in water] 
+checkfile=$checkdir/units.proc
+inputs=2
+cols=10
+rows=1
+formula$n=$empty
+description=De benodigde hoeveelheid zoutopl.,De benodigde hoeveelheid water
+ex1=&nbsp;ml
+ex2=&nbsp;ml
+m_rightarrow=&nbsp;&nbsp;=&nbsp;&nbsp;
+
+# conc1 = gr/l
+conc1=!randint 1000,2500
+conc1=$[20*(floor($conc1/20))]
+# conc2 = gr/l
+conc2=!randint 500,$[$conc1 - 100]
+conc1=!exec moneyprint $[$conc1/1000] 3
+conc2=$[20*(floor($conc2/20))]
+conc2=!exec moneyprint $[$conc2/1000] 3
+c2=$[1000*$conc2]
+# vol2 in ml
+vol2=!randitem 250,500,750,1000,1500,2000
+#v2 in liter
+v2=$[$vol2/1000]
+#vol1*$conc1 = vol2*$conc2
+#v1 in liter
+v1=$[$v2*$conc2/$conc1]
+# vol1 in ml
+vol1=$[$v1*1000]
+# ml
+aanvullen=$[$vol2 - $vol1]
+
+tot=!exec moneyprint $vol1,$aanvullen
+r_vol1=!item 1 of $tot
+r_aanvullen=!item 2 of $tot
+
+textanswer$n=<ul><li>c<sub>1</sub>&times;V<sub>1</sub>=c<sub>2</sub>&times;V<sub>2</sub></li><li>V<sub>1</sub>=c<sub>2</sub>&times;V<sub>2</sub><b>/</b>c<sub>1</sub></li><li>V1 = ? <br />c1 = $conc1 g/l<br />V2 = $vol2 ml = $v2 l<br />c2 = $c2 mg/l = $conc2 gr/l</li><li>V<sub>1</sub> = $conc2 &times;$v2 <b>/</b> $conc1 &nbsp;=&nbsp; $v1 liter</li><li>Dus ca $vol1 ml stamoplossing zout <br />en aanvullen met $vol2&minus;$vol1 &nbsp;=&nbsp; $aanvullen ml water</li><li>Of realistischer: $r_vol1 ml stamoplossing in een maatkolf van $vol2 ml <br />aanvullen tot de streep met water...</li></ul>
+
+helptext=<img src=\'$module_dir/gifs/exo42.jpg\' alt=\'maatkolf\' /><br />Zorg er wel voor dat beide volumina opgeteld $vol2 ml opleveren...
+
+ss=We hebben een stamoplossing van een zout met een concentratie van $conc1 g/l<br />Bereken hoeveel milliliter van deze zoutoplossing en hoeveel ml water je moet mengen<br />om $vol2 ml zoutoplossing te maken met een concentratie van $c2 mg/l.
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+answer$n=$vol1,$aanvullen
+rounding=-1
+var1=0,0
+var2=0.01,0.01
+
+!exit
+
+
+

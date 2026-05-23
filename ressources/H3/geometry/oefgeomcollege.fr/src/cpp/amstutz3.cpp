@@ -1,0 +1,150 @@
+target=amstutz3
+
+
+\author{Jérome, Amstutz}
+\email{jeromeamstutz@yahoo.fr}
+
+#include "author.inc"
+#include "lang_color.inc"
+
+\text{e=randitem(-3,-2,-1)}
+\text{p=randitem(1,2)}
+\text{size=200}
+\real{a=randint(1..50)}
+\text{k=-1}
+\text{ce=black,grey,green,blue}
+\text{num=shuffle(4)}
+\text{ce=item(\num,\ce)}
+\text{cf=item(\num,\cf)}
+\text{dilatation=150}
+\text{b=randint(100..150)}
+
+
+\text{x1=-50}
+\real{y1=\a*\x1}
+\text{x2=\size}
+\text{y2=simplify(\a*\x2)}
+\real{x3=-50}
+\real{y3=((-1/\a)*\x3)+\b}
+\real{x4=\size}
+\real{y4=((-1/\a)*\x4) +\b}
+
+
+\real{xi=(\a*(\b -10))/(1+(\a*\a))}
+\real{yi=(\a*\a*(\b -10))/(1+(\a*\a))}
+
+\real{xc1=\xi +10}
+\real{yc1=((-1/\a)*\xc1) +\b -10}
+\real{b1=\yc1-(\a*\xc1)}
+\real{xc2=((\a*\b)-(\a*\b1))/((\a*\a)+1)}
+\real{yc2=(\b1-\b)/((\a*\a)+1) +\b}
+#include "lang_amstutz3.inc"
+\title{TITLE}
+\title_en{TITLE_en}
+
+\if{\e=-1}
+{\if{\p=1}{
+\real{x7=-50}
+\real{y7=(\a*\x7)+\a*(-\dilatation)}
+\text{x8=\size}
+\real{y8=(\a*\x8)-(\a*\dilatation)}
+
+\real{xi11=((\a*(\b -10))+(\a*\a*\dilatation))/((\a*\a)+1)}
+\real{yi11=((-(\b-10)-(\a*\dilatation))/((\a*\a)+1))+(\b-10)}
+\real{xc11=\xi11 +10}
+\real{yc11=((-1/\a)*\xc11) +\b -10}
+\real{b11=\yc11-(\a*\xc11)}
+\real{xc21=((\a*\b)-(\a*\b11))/((\a*\a)+1)}
+\real{yc21=(\b11-\b)/((\a*\a)+1) +\b}
+
+\text{bn=\name_prop[1]}
+\text{mp=\name_prop[2],\name_prop[3]}
+\text{en=\name_instruction1 ?}
+}
+{
+  \real{x7=-50}
+  \real{y7=((-1/\a)*\x7) +20+\a}
+  \real{x8=\size}
+  \real{y8=((-1/\a)*\x8) +\a+20}
+
+  \real{xi11=(\a*(\a +20 -10))/((\a*\a)+1)}
+  \real{yi11=((-1*(\a +20 -10))/((\a*\a)+1))+(\a +20 -10)}
+  \real{xc11=\xi11 +10}
+  \real{yc11=((-1/\a)*\xc11) +(\a+20) -10}
+  \real{b11=\yc11-(\a*\xc11)}
+  \real{xc21=((\a*(\a+20))-(\a*\b11))/((\a*\a)+1)}
+  \real{yc21=(\b11-(\a+20))/((\a*\a)+1) +(\a+20)}
+
+  \text{bn=\name_prop[1]}
+  \text{mp=\name_prop[2],\name_prop[3]}
+  \text{en=\name_instruction2 ?}
+}
+\text{droites=
+segment \x1,\y1,\x2,\y2,\ce[1]
+segment \x3,\y3,\x4,\y4,\ce[2]
+segment \x7,\y7,\x8,\y8,\ce[3]
+segment \xi,\yi,\xc1,\yc1,red
+segment \xc1,\yc1,\xc2,\yc2,red
+segment \xi11,\yi11,\xc11,\yc11,red
+segment \xc11,\yc11,\xc21,\yc21,red
+}
+}
+{\if{\e=-2}
+{\if{\p=1}{
+\real{x7=-50}
+\real{y7=(\a*\x7)+\a*-\dilatation}
+\text{x8=\size}
+\real{y8=(\a*\x8)-(\a*\dilatation)}
+\text{bn=\name_prop[2]}
+\text{mp=\name_prop[1]}
+\text{en=\name_instruction3 ?}
+}
+{
+\real{x7=-50}
+  \real{y7=((-1/\a)*\x7)+20+\a}
+  \real{x8=\size}
+  \real{y8=((-1/\a)*\x8) +\a+20}
+  \text{bn=\name_prop[2]}
+  \text{mp=\name_prop[1]}
+  \text{en=\name_instruction4 ?}
+}
+\text{droites=
+segment \x1,\y1,\x2,\y2,\ce[1]
+segment \x3,\y3,\x4,\y4,\ce[2]
+segment \x7,\y7,\x8,\y8,\ce[3]
+segment \xi,\yi,\xc1,\yc1,red
+segment \xc1,\yc1,\xc2,\yc2,red
+}
+}
+{
+\text{c=150}
+    \real{x7=-50}
+    \real{y7=((\a/\c)*\x7) +20+\a}
+    \real{x8=\size}
+    \real{y8=((\a/\c)*\x8) +\a+20}
+    \text{bn=\name_prop[3]}
+    \text{mp=\name_prop[1],\name_prop[2]}
+    \text{en=\name_instruction5 ?}
+\text{droites=
+segment \x1,\y1,\x2,\y2,\ce[1]
+segment \x3,\y3,\x4,\y4,\ce[2]
+segment \x7,\y7,\x8,\y8,\ce[3]
+segment \xi,\yi,\xc1,\yc1,red
+segment \xc1,\yc1,\xc2,\yc2,red
+}
+}}
+
+\text{dessin=draw(\size+50,\size
+range -50,\size,0,\size
+linewidth 2
+\droites)}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col"><img src="\dessin" alt=""></div>
+ <div class="medium_size text_col">
+\en
+</div></div>
+}
+
+\choice{}{\bn}{\mp}

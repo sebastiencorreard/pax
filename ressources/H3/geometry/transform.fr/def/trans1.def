@@ -1,0 +1,158 @@
+!set title=Translation 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Traslazione 1
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=trans1.png
+val8=A,B,C,D,E,F,G,H
+tmp=!trim A,B	E,F	H,G	D,C
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim A,D	B,C	F,G	E,H
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim A,E	B,F	C,G	D,H
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 3
+
+val12=$[rint($(tmp0))]
+!if $val12=1 
+tmp=!trim $val9
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val12=2 
+tmp=!trim $val10
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val12=3 
+tmp=!trim $val11
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!readproc slib/data/random 2,row,$val13 
+tmp0=$slib_out
+tmp=!trim $(tmp0)
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 2
+
+val12=$[rint($(tmp0))]
+!if $val12=2 
+tmp=!trim $(val13[1;2]),$(val13[1;1])	$(val13[2;2]),$(val13[2;1])
+val13=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val14=On considère le parallélépipède rectangle suivant,Quelle est l'image du point,par la translation qui transforme,en
+val15=Le quadrilatère,forme un parallélogramme,La translation qui transforme,en,transforme le point
+!if $val6=it 
+val14=Si consideri il parallelepipedo rettangolo seguente,Qual è l'immagine del punto,tramite la traslazione che trasforma,in
+val15=Il quadrilatero,forma un parallelogramma,La traslazione che trasforma,in,trasforma il punto
+!endif
+val16=Une translation est une transformation géométrique qui correspond à l'idée intuitive de « glissement » d'un objet,	sans rotation, ni retournement, ni déformation de cet objet.	<p>Par exemple, la figure bleue est l'image de la figure rouge par la translation qui transforme le point \(A\) en <span class="nowrap">\(A^{'}\).</span></p>	<div class="wimscenter"><img src="$val1/hinttrans2.png" alt="Translaté de cocotte"></div>	<p>L'image de \(A\) est \(A^{'}\), l'image de \(C\) est \(C^{'}\), l'image de \(H\) est \(H^{'}\).</p>	Les quadrilatères \(A A^{'}C^{'}C\) et \(A A^{'}H^{'}H\) sont des parallélogrammes.
+!if $val6=it 
+val16=Una traslazione è una trasformazione geometrica che corrisponde all'idea intuitiva di «scivolamento» di un oggetto,	senza rotazione, né ribaltamento, né deformazione di tale oggetto.	<p>Per esempio, la figura blu è l'immagine della figura rossa tramite la traslazione che trasforma il punto \(A\) in <span class="nowrap">\(A^{'}\).</span></p>	<div class="wimscenter"><img src="$val1/hinttrans2.png" alt="Traslato di cocotte"></div>	<p>L'immagine di \(A\) è \(A^{'}\), l'immagine di \(C\) è \(C^{'}\), l'immagine di \(H\) è \(H^{'}\).</p>	I quadrilateri \(A A^{'}C^{'}C\) e \(A A^{'}H^{'}H\) sono parallelogrammi.
+!endif
+replytype1=case
+replyname1=
+replygood1=$(val13[2;2])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val16
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val14[1]).	<p class="wimscenter"><img src="$val1/$val7" alt="parallélépipède"></p>	<label for="reply1">$(val14[2]) 
+!insmath $(val13[2;1])
+$() $(val14[3]) 
+!insmath $(val13[1;1])
+$() $(val14[4]) <span class="nowrap">
+!insmath $(val13[1;2])
+$() ?</span></label> 
+!read oef/embed.phtml r1,3 
+$()
+$()
+!exit
+
+:hint
+$()$val16
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val15[1]) 
+!insmath $(val13[1;1])$(val13[1;2])$(val13[2;2])$(val13[2;1])
+$() $(val15[2]).	<p>$(val15[3]) 
+!insmath $(val13[1;1])
+$() $(val15[4]) 
+!insmath $(val13[1;2])
+$() $(val15[5]) 
+!insmath $(val13[2;1])
+$() $(val15[4]) 
+!insmath $(val13[2;2])
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,13,14,15,16
+embedcnt=1

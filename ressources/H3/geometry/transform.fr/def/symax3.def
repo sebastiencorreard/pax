@@ -1,0 +1,134 @@
+!set title=Symétrie axiale 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Simmetria assiale 3
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=transfo3.png
+val8=AE,FG,CG
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+!if $(val8[1])=AE 
+tmp=!trim 1,8,	2,9,	3,10,	4,11,	5,12,	6,13,	8,1,	9,2,	10,3,	11,4,	12,5,	13,6
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $(val8[1])=FG 
+tmp=!trim 7,14,	8,15,	9,16,	10,17,	11,18,	12,19,	13,20,	14,7,	15,8,	16,9,	17,10,	18,11,	19,12,	20,13
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $(val8[1])=CG 
+tmp=!trim 1,6	2,5	3,4	4,3	5,2	6,1	8,13,	9,12,	10,11,	11,10,	12,9,	13,8,	15,20,	16,19,	17,18,	18,17,	19,16,	20,15
+val9=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+val11=Le motif
+val12=Conclusion&nbsp;
+val13=Quelle est l'image du motif,par la symétrie d'axe
+val14=On considère le pavage suivant constitué d'un même motif
+val15=pavage
+!if $val6=it 
+val11=Il modulo
+val12=Conclusione
+val13=Qual è l'immagine del modulo,tramite la simmetria di asse
+val14=Si consideri il pavimento seguente costituito da moduli identici
+val15=pavimento
+!endif
+val16=Par pliage le long de la droite <span class="nowrap">\(($(val8[1]))\),</span> le motif \($(val10[1])\) se superpose au motif <span class="nowrap">\($(val10[2])\).</span>	<p>$val12: Le symétrique du motif \($(val10[1])\) par rapport à la droite \(($(val8[1]))\) est le motif <span class="nowrap">\($(val10[2])\).</span></p>
+!if $val6=it 
+val16=Applicando la riflessione rispetto alla retta <span class="nowrap">\(($(val8[1]))\),</span> il modulo \($(val10[1])\) si sovrappone al modulo <span class="nowrap">\($(val10[2])\).</span>	<p>$val12: Il simmetrico del modulo \($(val10[1])\) rispetto alla retta \(($(val8[1]))\) è il modulo <span class="nowrap">\($(val10[2])\).</span></p>
+!endif
+replytype1=numexp
+replyname1=$val11
+replygood1=$(val10[2])
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val16
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val14.	<p class="wimscenter"><img src="$val1/$val7" alt="$val15"></p>	$(val13[1]) 
+!insmath $(val10[1])
+$() $(val13[2])	<span class="nowrap">
+!insmath ($(val8[1]))
+$() ?</span>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val16
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,10,13,14,15,16
+embedcnt=0

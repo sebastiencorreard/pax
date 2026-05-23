@@ -1,0 +1,144 @@
+!set title=Symétrie axiale 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss= <style> .macss{ background-color : yellow; } </style> 
+title_it=Simmetria assiale 6
+
+ansorder=r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=transfo6.png
+val8=Quelle est l'image du segment,par la symétrie d'axe
+val9=Par la symétrie d'axe,l'image du segment,est le segment
+val10=On considère l'hexagone ABCDEF de centre O représenté ci-dessous.
+!if $val6=it 
+val8=Qual è l'immagine del segmento,tramite la simmetria di asse
+val9=tramite la simmetria di asse,l'immagine del segmento,è il segmento
+val10=Si consideri l'esagono ABCDEF di centro O rappresentato qui sotto.
+!endif
+tmp0=!randitem CF,AD,BE
+
+val11=$(tmp0)
+tmp0=!randint 10
+
+val12=$[rint($(tmp0))]
+!if $val11=CF 
+val13=AB,BC,CD,DE,EF,FA,OA,OB,OD,OE
+val14=ED,CD,CB,BA,AF,FE,OE,OD,OB,OA
+!endif
+!if $val11=AD 
+val13=AB,BC,CD,DE,EF,FA,OB,OC,OE,OF
+val14=AF,FE,ED,DC,CB,BA,OF,OE,OC,OB
+!endif
+!if $val11=BE 
+val13=AB,BC,CD,DE,EF,FA,OA,OC,OD,OF
+val14=CB,BA,AF,FE,ED,DC,OC,OA,OF,OD
+!endif
+tmp0=!text expand $(val13[$val12]) using 01
+
+val15=$(tmp0)
+tmp0=!words2items $val15
+
+val15=$(tmp0)
+val16=$(val15[1])$(val15[2]),$(val15[2])$(val15[1])
+val17=[$(val15[1])$(val15[2])],[$(val15[2])$(val15[1])]
+tmp0=!text expand $(val14[$val12]) using 01
+
+val18=$(tmp0)
+tmp0=!words2items $val18
+
+val18=$(tmp0)
+val19=$(val18[1])$(val18[2]),$(val18[2])$(val18[1])
+val20=[$(val18[1])$(val18[2])],[$(val18[2])$(val18[1])]
+val21=$(val8[1]) \($(val17[1])\) $(val8[2])
+val22=Par la symétrie d'axe <span class="nowrap">\(($val11)\),</span>	<p>le point \($(val15[1])\) a pour image le point <span class="nowrap">\($(val18[1])\),</span></p>	<p>le point \($(val15[2])\) a pour image le point <span class="nowrap">\($(val18[2])\),</span></p>	<p>donc l'image du segment \([$(val15[1])$(val15[2])]\) est le segment <span class="nowrap">\([$(val18[1])$(val18[2])]\).</span></p>
+!if $val6=it 
+val22=Applicando la simmetria di asse <span class="nowrap">\(($val11)\),</span>	<p>il punto \($(val15[1])\) ha per immagine il punto <span class="nowrap">\($(val18[1])\),</span></p>	<p>il punto \($(val15[2])\) ha per immagine il punto <span class="nowrap">\($(val18[2])\),</span></p>	<p>quindi l'immagine del segmento \([$(val15[1])$(val15[2])]\) è il segmento <span class="nowrap">\([$(val18[1])$(val18[2])]\).</span></p>
+!endif
+replytype1=case
+replyname1=
+replygood1=$(val18[1])$(val18[2])|$(val18[2])$(val18[1])
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val22
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val10	<p class="wimscenter"><img src="$val1/$val7" alt="hexagone"></p>	$val21	 <span class="nowrap">
+!insmath ($val11)
+$() ?</span>	<p><label for="reply1">$(val9[1]) 
+!insmath ($val11)
+$(), $(val9[2]) 
+!insmath [$(val15[1])$(val15[2])]
+$() $(val9[3])</label> [ 
+!read oef/embed.phtml reply1,5 
+$()].</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val22
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,9,10,11,15,21,22
+embedcnt=1

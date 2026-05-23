@@ -1,0 +1,108 @@
+n=$counter
+cols=12
+image=0
+embed=1
+math=1
+rows=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+checkfile=exos/checkfile3.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+arglist=$empty
+letters=x,y,a,c,d,f,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+pm=!randitem 1,-1
+keuze=!randitem 1,2
+question$n=!record 24 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+#var2=1 --> GEEN HAAKJES    
+var2=1
+mathviewpanel=$module_title:$x:$y:$z
+!if $R=1
+    getallen=!shuffle 2,3,4,5,6,7
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    var1=($x^($a))^$b
+    tot=!exec pari $var1\
+    printtex($var1)
+    formula$n=\left($x^{$a} \right)^{$b}
+    applettext=!nospace $var1 =
+    answer$n=!line 1 of $tot
+    texanswer$n=!line 2 of $tot
+    texanswer$n= $(formula$n) \,\,=\,\, $(texanswer$n)
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    getallen=!shuffle 2,3,4,5,6,7
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!item 3 of $getallen
+    c=$[$pm*$c]
+    !if $keuze=1
+        var1=($c*$x^($a))^$b
+	tot=!exec pari $var1\
+	printtex($var1)
+	formula$n=\left($c $x^{$a} \right)^{$b}
+	applettext=!nospace $var1 =
+	answer$n=!line 1 of $tot
+	texanswer$n=!line 2 of $tot
+	varlist=!varlist $(answer$n)
+    !else
+	var1=(-1*$x^($a))^$b
+	tot=!exec pari $var1\
+	printtex($var1)
+	formula$n=\left(-$x^{$a} \right)^{$b}
+	applettext=!nospace $var1 =
+	answer$n=!line 1 of $tot
+	texanswer$n=!line 2 of $tot
+	varlist=!varlist $(answer$n)
+    !endif
+    texanswer$n= $(formula$n) \,\,=\,\, $(texanswer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R>2
+    getallen=!shuffle 2,3,4,5,6,7
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!randitem 2,3,4,5
+    c=$[$pm*$c]
+    !if $keuze=1
+        var1=($c*$y*$x^($a))^$b
+	tot=!exec pari $var1\
+	printtex($var1)
+	formula$n=\left($c $y $x^{$a} \right)^{$b}
+	applettext=!nospace $var1 =
+	answer$n=!line 1 of $tot
+	texanswer$n=!line 2 of $tot
+	varlist=!varlist $(answer$n)
+    !else
+	var1=(-1*$y*$x^($a))^$b
+	tot=!exec pari $var1\
+	printtex($var1)
+	formula$n=\left(-$y $x^{$a} \right)^{$b}
+	applettext=!nospace $var1 =
+	answer$n=!line 1 of $tot
+	texanswer$n=!line 2 of $tot
+	varlist=!varlist $(answer$n)
+    !endif
+    texanswer$n= $(formula$n) \,\,=\,\, $(texanswer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+

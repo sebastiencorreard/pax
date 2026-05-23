@@ -1,0 +1,276 @@
+!set titb=Taille des joueurs de foot
+!set keyw=
+!set datm=20030521
+!set prev=tele
+!set next=exercice
+!set upbl=tocex
+!set dat1=19000101
+!set dat2=24000101
+
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+!exit
+
+:content
+
+!set tmp0=!randitem 40,50,60,70
+
+!set m_n=$(tmp0)
+
+
+
+!readproc slib/stat/binomial $m_n,30,1/2 
+!set tmp0=$slib_out
+!set m_a=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_a
+
+!set m_a=$(tmp0)
+
+
+ 
+!for m_i=1 to $m_n 
+!set tmp0=!item $m_i of $m_a
+
+ 
+!if $(tmp0)>30 
+$m_text{a=wims(replace item number $m_i by 25 in $m_a)}
+!endif
+
+!next
+
+
+!set m_tableau=<table class="tabledocstat wimscenter wimsborder">
+
+
+ 
+!for m_i=0 to ceil($m_n/10) 
+
+ 
+!if  10*$m_i+1 <=$m_n  
+
+
+!set m_tableau=$m_tableau <tr>
+
+
+	 
+!for m_j=1 to 10 
+
+	 
+!if  10*$m_i+$m_j <=$m_n  
+
+!set tmp0=!item 10*$m_i+$m_j of  $m_a
+
+!set m_u=$[$(tmp0)+160]
+
+
+!set m_tableau=$m_tableau <td> &nbsp;&nbsp; $m_u &nbsp; &nbsp; </td>
+
+
+	
+!endif
+
+!next
+
+
+!set m_tableau=$m_tableau </tr>
+
+
+
+!endif
+
+
+!next
+
+
+!set m_liste=[0,5,10,15,20,25,30]
+
+
+
+!set m_liste2=[160,165,170,175,180,185,190]
+
+
+
+!set m_tableau=$m_tableau </table>
+
+
+
+!readproc slib/stat/freq [$m_a],$m_liste 
+!set tmp0=$slib_out
+!set m_d=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_d
+
+!set m_d=$(tmp0)
+
+
+
+!readproc slib/stat/effectif [$m_a],$m_liste 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set t_=!replace internal \( by ( in print($m_c/$m_n)
+!set tmp0=!exec pari $t_
+
+!set m_b=$(tmp0)
+
+
+<br/>
+!set t_=!replace internal \( by ( in print(5*$m_c)
+!set tmp0=!exec pari $t_
+
+!set m_cc=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_b
+
+!set m_b=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_b
+
+!set m_freq1=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 2 of $m_b
+
+!set m_freq2=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 3 of $m_b
+
+!set m_freq3=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 4 of $m_b
+
+!set m_freq4=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 5 of $m_b
+
+!set m_freq5=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 6 of $m_b
+
+!set m_freq6=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_eff1=$(tmp0)
+
+
+
+!set tmp0=!item 2 of $m_c
+
+!set m_eff2=$(tmp0)
+
+
+
+!set tmp0=!item 3 of $m_c
+
+!set m_eff3=$(tmp0)
+
+
+
+!set tmp0=!item 4 of $m_c
+
+!set m_eff4=$(tmp0)
+
+
+
+!set tmp0=!item 5 of $m_c
+
+!set m_eff5=$(tmp0)
+
+
+
+!set tmp0=!item 6 of $m_c
+
+!set m_eff6=$(tmp0)
+
+
+
+!readproc slib/stat/histo [$m_cc],$m_liste2,ytics 5,xtics 
+!set tmp0=$slib_out
+!set m_histo=$(tmp0)
+
+
+
+!read primitives.phtml 1, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" />  
+
+Les tailles arrondies à un nombre entier de centimètres
+des $m_n garçons d'un club de football sont les suivantes &#58;
+<br/>
+$m_tableau
+<br/>
+L'analyse statistique de ces données permet de remplir le tableau suivant &#58;
+<table class="tabledocstat wimscenter wimsborder">
+<tr><th>Tailles</th>
+<td>
+!insmath \lbrack 160,165 \lbrack
+</td>
+<td>
+!insmath \lbrack 165,170 \lbrack
+</td>
+<td>
+!insmath \lbrack 170,175 \lbrack
+</td>
+<td>
+!insmath \lbrack 175,180 \lbrack
+</td>
+<td>
+!insmath \lbrack 180,185 \lbrack
+</td>
+<td>
+!insmath \lbrack 185,190 \lbrack
+</td>
+</tr>
+<tr><th>Effectif</th>
+<td>$m_eff1</td>
+<td>$m_eff2 </td>
+<td>$m_eff3 </td>
+<td>$m_eff4 </td>
+<td>$m_eff5 </td>
+<td>$m_eff6</td>
+</tr>
+<tr><th>Fréquence (%)</th>
+<td>$m_freq1 </td>
+<td>$m_freq2 </td>
+<td>$m_freq3 </td>
+<td>$m_freq4 </td>
+<td>$m_freq5 </td>
+<td>$m_freq6 </td>
+</tr>
+</table>
+et voici l'histogramme des effectifs
+
+!read primitives.phtml 2, draw, 400,200, \histo 
+
+<br/>
+!read primitives.phtml 3, comment, \def{text centre= 162.5,167.5,172.5,177.5,182.5,187.5}	<span class="defn">L'amplitude des classes </span> est de 5.	Les centres des classes sont \centre.	 
+
+

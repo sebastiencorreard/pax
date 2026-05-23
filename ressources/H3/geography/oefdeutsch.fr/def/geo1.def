@@ -1,0 +1,170 @@
+!set title=Correspondance entre &#34; Land &#34;  &#40; région &#41; et sa capitale
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Carré, Delafraye
+email=josiane-an.carre@ac-amiens.fr
+
+ansorder=r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!random 1, 4
+
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+val6=$[rint(3*$val2)]
+val7=$[rint(50)]
+val8=$[rint(350)]
+val9=$[rint(350)]
+val10=
+val11=Établissez la correspondance entre chaque "Land" et sa capitale.
+tmp=!trim Baden-Württemberg,  Stuttgart	Bayern, München	Brandenburg, Potsdam	Hessen, Wiesbaden	Mecklenburg-Vorpommern, Schwerin	Niedersachsen, Hannover	Nordrhein-Westfalen, Düsseldorf	Rheinland-Pfalz, Mainz	Saarland, Saarbrücken	Sachsen, Dresden	Sachsen-Anhalt, Magdeburg	Schleswig-Holstein, Kiel	Thüringen, Erfurt
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!item 1 of 1 oui, 2 non
+
+val13=$(tmp0)
+tmp0=!word 1 of $val13
+
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val14=$[rint($(tmp0))]
+
+!ifval $val6>$val14
+val6=$[rint($val14)]
+!endif
+tmp0=!shuffle $val14
+
+tmp1=!item 1 to $val6 of $(tmp0)
+
+val15=$(tmp1)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!row $val15 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+
+!ifval $val13=1
+tmp0=!embraced randitem $val12
+
+val12= $(tmp0)
+!endif
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+val18=$(val7[])x$(val8[])x$val9
+
+!ifval $val13=1
+tmp0=!embraced randitem $val11
+
+val11= $(tmp0)
+!endif
+tmp0=!shuffle $val6
+
+val19=$(tmp0)
+val20=$(val17[$val19])
+val21=$[max(1,min(floor($val8/5)/10,6))]
+val22=$[max(1,min(floor($val9/5)/10,6))]
+val23=\begin{tabular}{p{$val21 cm}lp{1cm}lp{$val22 cm}}
+!for val24 =1 to $val6 
+val23=$val23 $(val16[$val24]) &\(\bullet\) &&\(\bullet\) & $(val20[$val24])\\ [1.5ex]  
+!next
+val23=$val23 \\	\end{tabular}
+val25=\begin{tabular}{p{$val21 cm}lp{$val22 cm}}
+!for val24 =1 to $val6 
+val25=$val25 $(val16[$val24]) &\(\longleftrightarrow \)& $(val17[$val24])\\ [1.5ex] 
+!next
+val25=$val25\\	\end{tabular}
+replytype1=correspond
+replyname1=La réponse
+replygood1=$val16;$val17
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val11 \begin{center} $val23 \end{center} \end{statement} \begin{solution}\ \begin{center} $val25 \end{center} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wims_question">$val11</div>	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,$val18 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val11 $m_begin{center} $val23 $m_end{center} $m_end{statement} $m_begin{solution}\ $m_begin{center} $val25 $m_end{center} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval $val10 notsametext 
+ <div class='oef_feedbacks'><p class="feedback">$val10</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,18,23,25
+embedcnt=1

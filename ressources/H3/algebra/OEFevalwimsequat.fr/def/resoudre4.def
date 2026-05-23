@@ -1,0 +1,142 @@
+!set title=Résoudre 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!shuffle $val6,$val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10<3
+tmp0=!shuffle Pierre,Paul,Olivier
+
+val9=$(tmp0)
+!endif
+tmp=!nonempty items x,y,z
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp0=!shuffle 4,6,8
+
+val12=$(tmp0)
+tmp0=!randint 5, 10
+
+val13=$[rint(10*$(tmp0))]
+tmp0=!randitem 2,4
+
+val14=$[rint($val13+10*$(tmp0))]
+tmp=!translate ";': to $     $ in $val14/($val14-$val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!replace internal / by , in $val15
+
+val16=$(tmp0)
+tmp0=!itemcnt $val16
+
+val12=$[rint($(tmp0))]
+
+!ifval $val12=1
+val16=1
+!else
+tmp0=!item 2 of $val16
+
+val16=$(tmp0)
+!endif
+tmp0=!randint 1, 3
+
+val17=$[rint(2*$(tmp0))]
+val18=$(val9[1]) a roulé à $val13 Km/h. S'il avait roulé à $val14 Km/h, il aurait mis $val17 heures de moins pour effectuer son trajet.
+val19=Combien de temps $(val9[1]) a-t-il mis pour terminer son parcours
+val20=heures
+val21=$[rint($val17*$val15)]
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val18	<div>	$val19 ?	</div>	<label for="reply1"><b>Votre réponse :</b></label>  
+!read oef/embed.phtml r1,8 
+$() $val20.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,20
+embedcnt=1

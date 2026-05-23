@@ -1,0 +1,243 @@
+!set title=Vitesse
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Karine, Maurice; Bernadette, Perrin-Riou
+email=kreen.maurice@free.fr,bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_nl=Snelheid
+
+ansorder=r,r,r,c
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=3
+choicecnt=1
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=h,km,km/h
+val8=oui,non
+val9=pendant, à une vitesse de,durant
+val10=Monsieur Rapide part de Paris à , et roule d'abord, puis, et enfin
+val11=Combien de kilomètres a-t-il parcouru (par excès à 0.01 près),	  Il a parcouru XXXX $(val7[2]),	  Combien de temps son trajet a-t-il duré,	  Son trajet a duré YYYY,	  Quelle est sa vitesse moyenne sur la totalité du parcours,	  Sa vitesse moyenne sur la totalité du parcours est,	  Il a rendez-vous à ZZZZ h. Sera-t-il à l'heure
+val12=Consigne : mettre les unités, par exemple
+val13=laisser des espaces
+val14=On calcule la distance à partir du temps de parcours	(en heures) et de la vitesse par la relation suivante
+val15=Le fait qu'il soit ou non à l'heure dépend de son heure d'arrivée	  et donc de son temps de trajet
+val16=Distance parcourue,Temps de parcours,Vitesse moyenne
+val17=Son temps de trajet est de,	  Il arrive donc à,	  ce qui est bien,avant, après,son heure de rendez-vous
+!if $val6=nl 
+val7=uur,km,km/uur
+val8=ja, nee
+val9=gedurende, met een snelheid van, gedurende
+val10=Meneer Snel vertrekt van Amsterdam om, uur en rijdt eerst,	  vervlogens, en daarna
+val11=Hoeveel kilometers heeft hij afgelegd (naar boven afgerond tot op een nauwkeurigheid van 0.01),	  Hij heeft XXXX km een afgelegd.,	  Hoeveel tijd heeft hij over het traject gedaan,	  Zijn traject heeft YYYY geduurd.,	  Wat was zijn gemiddelde snelheid over de hele rit,	  Zijn gemiddelde snelheid over de hele rit is,	  Hij heeft om ZZZZ uur een afspraak. Zal hij op tijd zijn
+val12=Afspraak: geef de eenheden aan: bijvoorbeeld 3 km, 5 km/h , 1h 32min
+val13=laat een spatie tussen de uren en de minuten
+val14=We berekenen de afstand vanaf de tijd voor het traject	  (in uren) en de snelheid met behulp van de relatie \(a=s*t\)
+val15=Of hij wel of niet op tijd aankomt hangt van zijn	  aankomsttijd af, en dus van de tijd die hij over het traject doet
+val16=Afgelegde afstand,Duur van het traject,Gemiddelde snelheid
+val17=De duur van zijn traject is,	  Hij komt dus om, ann wat,	  ,vor, na,het tijdstip van zijn afspraak is
+!endif
+tmp0=!randint 7, 11
+
+val18=$[rint($(tmp0))]
+tmp0=!randint $val18+1, $val18+4
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val20=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val21=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val22=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val23=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val24=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val25=$[rint($(tmp0))]
+val26=$[ceil($val21*$val20/60*100)/100]
+val27=$[ceil($val23*$val22/60*100)/100]
+val28=$[ceil($val25*$val24/60*100)/100]
+val29=$[ceil(($val26+$val27+$val28)*100)/100]
+val30=$[$val20+$val22+$val24]
+val31=$[rint(floor($val30/60))]
+val32=$[rint(floor($val31))]
+val33=$[rint($val30-60*$val32)]
+val34=$[rint($val32+$val18)]
+val35=$[ceil(($val29/($val30/60))*100)/100]
+
+!ifval $val19>$val18+$val31
+tmp0=!item 1 of $val8
+
+val36=$(tmp0)
+!else
+tmp1=!item 2 of $val8
+
+val36=$(tmp1)
+!endif
+val37=$(val9[1]) $val20 min $(val9[2]) $val21 $(val7[3]), $(val9[1]) $val20	 min $(val9[3]) $val26 km, $(val9[1]) $val26 km $(val9[2]) $val21 $(val7[3])
+val38=$(val9[1]) $val22 min $(val9[2]) $val23 $(val7[3]), $(val9[1]) $val22	 min $(val9[3]) $val27 km, $(val9[1]) $val27 km $(val9[2]) $val23 $(val7[3])
+val39=$(val9[1]) $val24 min $(val9[2]) $val25 $(val7[3]), $(val9[1]) $val24	 min $(val9[3]) $val28 km, $(val9[1]) $val28 km $(val9[2]) $val25 $(val7[3])
+tmp=!nonempty items $val37
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+tmp=!nonempty items $val38
+
+tmp0=!randitem $tmp
+val41=$(tmp0)
+tmp=!nonempty items $val39
+
+tmp0=!randitem $tmp
+val42=$(tmp0)
+tmp0=!replace internal XXXX by $val29 in $val11
+
+val11=$(tmp0)
+tmp0=!replace internal YYYY by $val32 $(val7[1]) $val33 min in $val11
+
+val11=$(tmp0)
+tmp0=!replace internal ZZZZ by $val19 in $val11
+
+val11=$(tmp0)
+oefsteps=reply1	reply2	reply3	choice1 
+nextstep=!nosubst reply1	reply2	reply3	choice1 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=$(val16[1])
+replygood1=$val29 km
+replytype2=units
+replyname2=$(val16[2])
+replygood2=$val32 h $val33 min
+replytype3=units
+replyname3=$(val16[3])
+replygood3=$val35 km/h
+choicename1=
+choicegood1=$val36
+choicebad1=$val8
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val10[1]) $val18 h 00 $(val10[2]) $val40,	$(val10[3]) $val41, $(val10[4]) $val42.	
+!if $m_step=1 
+$()<p>$(val11[1])?</p>  
+!endif
+$()	
+!if $m_step>=2 
+$()<p>$(val11[2]).</p> 
+!endif
+$()	
+!if $m_step=2 
+$()<p>$(val11[3])?</p> 
+!endif
+$()	
+!if $m_step>=3 
+$()<p>$(val11[4])</p> 
+!endif
+$()	
+!if $m_step=3 
+$()<p>$(val11[5])?</p> 
+!endif
+$()	
+!if $m_step>=4 
+$()<p>$(val11[6]) $val35 $(val7[3]).</p> 
+!endif
+$()	
+!if $m_step=4 
+$()<div>$(val11[7]) $val19 $(val7[1]) 00. $(val11[8])?	 
+!read oef/embed.phtml choice1 
+$()</div> 
+!endif
+$()	<div class="wims_instruction">$val12	  <span class="tt">3 km, 5 km/h, 1 h 32 min </span> ($val13).	</div>	
+$()
+!exit
+
+:hint
+$()	  
+!if $m_step=1 
+$()$val14: 
+!insmath d=v*t
+$() 
+!endif
+$()	  
+!if $m_step=2 
+$()name_hint2. 
+!endif
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!if $m_step>=4 and $m_choice1 notsametext $val36
+ <div class='oef_feedbacks'>	$(val17[1]) $val32 $(val7[1]) $val33 min. $(val17[2]) $val34 $(val7[1]) $val33 min,	  $(val17[3])
+!if $val19>=$val18+$val31 
+$()$(val17[4]) 
+!else
+$() $(val17[5]) 
+!endif
+$() $(val17[6])
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,10,11,12,13,14,17,18,19,31,32,33,34,35,36,40,41,42
+embedcnt=1

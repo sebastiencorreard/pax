@@ -1,0 +1,55 @@
+!if $click_x$click_y!=$empty and $status=waiting and $click_cnt <$nbproj
+  click_x=$[$click_x]
+  click_y=$[$click_y]
+  !advance click_cnt
+  xc=!eval $xx_size*($click_x-$border)/$inssize+$xsize1
+  yc=!eval $yy_size*(-$click_y+$border)/$inssize+$ysize2
+
+
+  dessin1=$dessin1\
+  arrow 0,0, $xc,$yc,7,black
+
+  liste_c=!append item $click_x,$click_y to $liste_c
+  liste=!append line $xc,$yc to $liste
+  dessin2=$dessin2\
+  arrow 0,0,$xc,$yc,7,black \
+  dline $V1,$V2,$xc,$yc,  $color2
+
+  et=10000
+
+  !for j=1 to $nbproj
+    ee=$[sqrt(($click_x-$(X$j))^2+($click_y-$(Y$j))^2)]
+    !if $ee<$et
+      !distribute item $ee,$j into et, en
+    !endif
+  !next  j
+
+  !if $et<$(e$en)
+    !distribute item $et , $click_x-$(X$en), $click_y-$(Y$en) into e$en,nx$en,ny$en
+
+  !endif
+  click_x=
+  click_y=
+!endif
+
+!if $click_cnt=$nbproj
+  status=done
+  miss=0
+  !for i = 1 to $nbproj
+    !if $(e$i) < $[$ring_size^2]
+      erreur=$[$erreur+ $(e$i)]
+    !else
+      !advance miss
+    !endif
+  !next i
+  click_x=
+  click_y=
+
+  !if $miss<$nbproj
+    mean=$[rint($erreur/($nbproj-$miss))/10]
+  !else
+    mean=1000
+  !endif
+
+  module_score=$[max(min(10,round(max((100-15*$mean)*($nbproj-$miss)/$nbproj,0))/10),0)]
+!endif

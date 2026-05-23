@@ -1,0 +1,71 @@
+n=$counter
+make_tr=1
+mathview=0
+questiontype=1
+question$n=!record 9 of lang/remarks.$taal
+checkfile=$checkdir/multiplechoice.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+image=0
+multiimage=1
+plot=0
+draw=1
+!if $options < 3 or $options>8 
+    options = 4
+!endif
+answer$n=!randint 1,$options
+!if $R=1
+    xrange=-6,6
+    yrange=-6,6
+    scale=1,1
+    curves=x^2,x^2+1,x^2-1,x^2-2,x^2-3,x^2+2,x^2+3,x^2-4,x^2+4,x^2+5,x^2-5
+    curves=!shuffle $curves
+ !goto READY
+!endif
+!if $R=2
+    xrange=-6,6
+    yrange=-6,6
+    scale=1,1
+    curves=-x^2,-x^2+1,-x^2-1,-x^2-2,-x^2-3,-x^2+2,-x^2+3,-x^2+4,-x^2-4,-x^2+5,-x^2-5
+    curves=!shuffle $curves
+ !goto READY
+!endif
+!if $R=3
+    xrange=-5,5
+    yrange=-5,5
+    scale=1,1
+    curves=x^2,x^2+1,x^2-1,x^2-2,x^2-3,x^2+2,x^2+3,-x^2,-x^2+1,-x^2-1,-x^2-2,-x^2-3,-x^2+2,-x^2+3
+    curves=!shuffle $curves
+ !goto READY
+!endif
+!if $R>3
+#bolleboosjes
+    xrange=-5,5
+    yrange=-50,50
+    scale=1,10
+    curves=x^3,-x^3,x^3+3,-x^3+3,x*(x^2-4),-x*(x^2-4),x*(x^2-16),-x*(x^2-16),x*(x^2-9),-x*(x^2-9)
+    curves=!shuffle $curves
+!endif
+
+:READY
+xsize=200
+ysize=200
+transparent=NEE
+display=1
+!readproc $checkdir/graphpaper.proc
+image_settings$n=160,160
+!for p=1 to $options
+    curve=!item $p of $curves
+    ex$p=$graphpaper\
+    linewidth 2\
+    curve red,$curve
+    !if $p=$(answer$n)
+	image$n=$(ex$p)
+	formula$n=!texmath f(x)=$curve 
+    !endif
+!next
+

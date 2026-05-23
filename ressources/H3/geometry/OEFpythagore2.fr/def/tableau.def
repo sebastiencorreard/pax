@@ -1,0 +1,166 @@
+!set title=Tableau de valeurs
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!values v^2 for v=2 to 20
+
+val7=$(tmp0)
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 100
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 100, 1000
+
+val10=$[$(tmp0)/10]
+tmp0=!randint 1000, 10000
+
+val11=$[$(tmp0)/100]
+tmp0=!randint 2, 20
+
+tmp1=!randint 2, 20
+
+tmp=!translate ";': to $     $ in $(tmp0)/$(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val12=$(tmp2)
+val7=$val8,$val9,$val10,$val11,$val12
+tmp0=!texmath $val12
+
+val12=$(tmp0)
+tmp0=!randint 1, 3
+
+val13=$[rint($(tmp0))]
+val14=dixième,centième,millième
+tmp0=!randitem 1,2
+
+val6=$[rint($(tmp0))]
+!if $val6=1 
+tmp0=!item $val13 of $val14
+
+val15=$(tmp0)
+val15=au $val15
+!else
+val15=$[1/10^$val13]
+val15=à $val15
+!endif
+val16=
+!for val17 =1 to 5 
+tmp0=!item $val17 of $val7
+
+val18=$[$(tmp0)]
+val18=$[rint(sqrt($val18)*10^$val13)]
+val18=$[$val18/10^$val13]
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+!next
+replytype1=numexp
+replyname1=\(\sqrt{$val8})
+replygood1=$(val16[1])
+replytype2=numexp
+replyname2=\(\sqrt{$val9})
+replygood2=$(val16[2])
+replytype3=numexp
+replyname3=\(\sqrt{$val10})
+replygood3=$(val16[3])
+replytype4=numexp
+replyname4=\(\sqrt{$val11})
+replygood4=$(val16[4])
+replytype5=numexp
+replyname5=\(\sqrt{$val12})
+replygood5=$(val16[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()En utilisant votre calculatrice, complétez le tableau suivant.	<div class="wims_instruction">Les résultats seront donnés $val15 près.</div>	<table class="wimscenter wimsborder">	  <tr>	    <td>
+!insmath x
+$()</td>	    <td><label for="reply1">$val8</label></td>	    <td><label for="reply2">$val9</label></td>	    <td><label for="reply3">$val10</label></td>	    <td><label for="reply4">$val11</label></td>	    <td><label for="reply5">
+!insmath $val12
+$()</label></td>	  </tr><tr>	    <td>
+!insmath \sqrt{x}
+$()</td>	    <td> 
+!read oef/embed.phtml r1,7 
+$()</td>	    <td> 
+!read oef/embed.phtml r2,7 
+$()</td>	    <td> 
+!read oef/embed.phtml r3,7 
+$()</td>	    <td> 
+!read oef/embed.phtml r4,7 
+$()</td>	    <td> 
+!read oef/embed.phtml r5,7 
+$()</td>	  </tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,15
+embedcnt=5

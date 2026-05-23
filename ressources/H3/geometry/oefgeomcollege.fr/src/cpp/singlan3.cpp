@@ -1,0 +1,213 @@
+target=singlan3
+
+\author{Gaëlle, Singlan}
+\email{gaelle.singlan@orange.fr}
+#include "author.inc"
+\computeanswer{no}
+\range{-5..5}
+\precision{10000}
+
+#include "lang_singlan3.inc"
+
+\title{TITLE}
+\title_en{TITLE_en}
+
+\text{l=shuffle(A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z)}
+\integer{size=200}
+\integer{n=randint(60..(\size-20))}
+
+\integer{tr=randitem(1,2,3,4)}
+\integer{n1=randint(30..(\size-20))}
+\integer{n1= \n1=\n? \n1+5}
+\integer{alpha1=arctan((\n1-20)/(\n-20))*180/pi}
+\integer{alpha2=arctan((\n-20)/(\n1-20))*180/ pi }
+\integer{n2=randint(30..(\n-10))}
+\integer{n2= \n2=(20+\n)/2? \n2+5}
+\real{n3=sqrt((\n-\n2)*(\n2-20))+20}
+\integer{beta1=arctan((\n3-20)/(\n2-20))*180/ pi }
+\integer{beta2=90-\beta1}
+\text{desstr=
+fcircle 20,20,5,black
+text blue,10,20,medium,\l[1]
+fcircle \n,20,5,black
+text blue,\n+10,20,medium,\l[2]
+segment 20,20,\n,20,black
+}
+\if{\tr=1}{
+  \text{f1=draw(\size,\size
+    \desstr
+    fcircle 20,\n1,5,black
+    text blue,20,\n1+10,medium,\l[3]
+    segment 20,20,20,\n1,black
+    segment \n,20,20,\n1,black
+    fsquare 20,20,5,red
+  )}
+}{
+ \if{\tr=2}{
+   \text{f1=draw(\size,\size
+     \desstr
+     fcircle 20,\n1,5,black
+     text blue,20,\n1+10,medium,\l[3]
+     segment 20,20,20,\n1,black
+     segment \n,20,20,\n1,black
+    )}
+   \text{t1=\(\widehat{\l[1]\l[2]\l[3]}= \alpha1)° &nbsp;  \(\widehat{\l[2]\l[3]\l[1]}= \alpha2)°}
+ }{
+  \if{\tr=3}{
+    \text{f1=draw(\size,\size
+     \desstr
+     fcircle \n2,\n3,5,black
+     text blue,\n2,\n3+10,medium,\l[3]
+     segment 20,20,\n2,\n3,black
+     segment \n,20,\n2,\n3,black
+    )}
+   \text{t1=\(\widehat{\l[1]\l[3]\l[2]}=90)°}
+   }{
+     \text{f1=draw(\size,\size
+      \desstr
+      fcircle \n2,\n3,5,black
+      text blue,\n2,\n3+10,medium,\l[3]
+      segment 20,20,\n2,\n3,black
+      segment \n,20,\n2,\n3,black
+     )}
+     \text{t1=\(\widehat{\l[3]\l[1]\l[2]}= \beta1)° &nbsp;  \(\widehat{\l[1]\l[2]\l[3]}= \beta2)°}
+  }
+ }
+}
+
+\integer{te=randitem(1,2,3)}
+\text{desste=
+fcircle 20,20,5,black
+text blue,10,20,medium,\l[4]
+fcircle \n,20,5,black
+text blue,\n+10,20,medium,\l[5]
+segment 20,20,\n,20,black
+}
+\if{\te=1}{
+  \text{f2=draw(\size,\size
+    \desste
+    fcircle (\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,5,black
+    text blue,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+30,medium,\l[6]
+    segment 20,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+    segment \n,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+    circle (\n+20)/2,20,10,red
+    circle (\n/4+15),sqrt((\n/2-10)*(3*\n/2-30))/2+20,10,red
+    circle (3*\n/4+5),sqrt((\n/2-10)*(3*\n/2-30))/2+20,10,red
+  )}
+}{
+ \if{\te=2}{
+  \text{f2=draw(\size,\size
+    \desste
+    fcircle (\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,5,black
+    text blue,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+30,medium,\l[6]
+    segment 20,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+    segment \n,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+  )}
+  \text{t2=\(\widehat{\l[4]\l[5]\l[6]}= 60)° &nbsp; \(\widehat{\l[5]\l[6]\l[4]}= 60)° &nbsp; \(\widehat{\l[6]\l[4]\l[5]}= 60)°}
+ }{
+   \text{f2=draw(\size,\size
+    \desste
+    fcircle (\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,5,black
+    text blue,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+30,medium,\l[6]
+    segment 20,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+    segment \n,20,(\n+20)/2,sqrt((\n/2-10)*(3*\n/2-30))+20,black
+  )}
+  \text{t2=randitem(\(\widehat{\l[5]\l[4]\l[6]}= 60)° &nbsp; \(\widehat{\l[6]\l[5]\l[4]}= 60)°,\(\widehat{\l[5]\l[4]\l[6]}= 60)° &nbsp; \(\widehat{\l[5]\l[6]\l[4]}= 60)°,\(\widehat{\l[4]\l[5]\l[6]}= 60)° &nbsp; \(\widehat{\l[5]\l[6]\l[4]}= 60)°)}
+ }
+}
+
+\integer{ti=randitem(1,2,3,4)}
+\integer{t=randitem(1,2)}
+\text{dessti=
+fcircle 20,20,5,black
+text blue,10,20,medium,\l[7]
+fcircle \n,20,5,black
+text blue,\n+10,20,medium,\l[8]
+segment 20,20,\n,20,black
+}
+\integer{n4=randint(40..(\size-20))}
+\integer{n4= \n4=sqrt((\n/2-10)*(3*\n/2-30))+20? \n4+5}
+\integer{gamma1=arctan((\n/2-10)/(\n4-20))*180/ pi }
+\integer{gamma2=180-(2*\gamma1)}
+\if{\ti=1}{
+  \text{f3=draw(\size,\size
+    \dessti
+    fcircle (\n+20)/2,\n4,5,black
+    text blue,(\n+20)/2,\n4+10,medium,\l[9]
+    segment 20,20,(\n+20)/2,\n4,black
+    segment \n,20,(\n+20)/2,\n4,black
+    circle \n/4+15,(\n4+20)/2,10,red
+    circle 3*\n/4+5,(\n4+20)/2,10,red
+  )}
+}{
+ \if{\ti=2}{
+   \text{f3=draw(\size,\size
+    \dessti
+    fcircle (\n+20)/2,\n4,5,black
+    text blue,(\n+20)/2,\n4+10,medium,\l[9]
+    segment 20,20,(\n+20)/2,\n4,black
+    segment \n,20,(\n+20)/2,\n4,black
+  )}
+  \text{t3=randitem(\(\widehat{\l[7]\l[8]\l[9]}= \gamma1)° &nbsp; \(\widehat{\l[8]\l[7]\l[9]}= \gamma1)°,\(\widehat{\l[7]\l[8]\l[9]}= \gamma1)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \gamma2)° ,\(\widehat{\l[8]\l[7]\l[9]}= \gamma1)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \gamma2)° )}
+ }{
+  \if{\ti=3}{
+     \if{\t=1}{
+       \text{f3=draw(\size,\size
+         \dessti
+         fcircle \n2,sqrt((\n-\n2)*(\n+\n2-40))+20,5,black
+         text blue,\n2,sqrt((\n-\n2)*(\n+\n2-40))+30,medium,\l[9]
+         segment 20,20,\n2,sqrt((\n-\n2)*(\n+\n2-40))+20,black
+         segment \n,20,\n2,sqrt((\n-\n2)*(\n+\n2-40))+20,black
+         circle (\n+20)/2,20,10,red
+         circle (\n2+20)/2,sqrt((\n-\n2)*(\n+\n2-40))/2+20,10,red
+       )}
+     }{
+       \text{f3=draw(\size,\size
+         \dessti
+         fcircle \n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,5,black
+         text blue,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+30,medium,\l[9]
+         segment 20,20,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,black
+         segment \n,20,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,black
+         circle (\n+20)/2,20,10,red
+         circle (\n2+\n)/2,sqrt((2*\n-\n2-20)*(\n2-20))/2+20,10,red
+       )}
+     }
+  }{
+     \if{\t=1}{
+       \text{f3=draw(\size,\size
+         \dessti
+         fcircle \n2,sqrt((\n-\n2)*(\n+\n2-40))+20,5,black
+         text blue,\n2,sqrt((\n-\n2)*(\n+\n2-40))+30,medium,\l[9]
+         segment 20,20,\n2,sqrt((\n-\n2)*(\n+\n2-40))+20,black
+         segment \n,20,\n2,sqrt((\n-\n2)*(\n+\n2-40))+20,black
+       )}
+       \integer{delta1=arctan((sqrt((\n-\n2)*(\n+\n2-40)))/(\n2-20))*180/ pi }
+       \integer{delta2=(180-\delta1)/2}
+       \text{t3=randitem(\(\widehat{\l[8]\l[7]\l[9]}= \delta1)° &nbsp; \(\widehat{\l[7]\l[8]\l[9]}= \delta2)°,\(\widehat{\l[8]\l[7]\l[9]}= \delta1)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \delta2)° ,\(\widehat{\l[7]\l[8]\l[9]}= \delta2)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \delta2)° )}
+     }{
+       \text{f3=draw(\size,\size
+         \dessti
+         fcircle \n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,5,black
+         text blue,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+30,medium,\l[9]
+         segment 20,20,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,black
+         segment \n,20,\n2,sqrt((2*\n-\n2-20)*(\n2-20))+20,black
+       )}
+       \integer{delta1=arctan((sqrt((2*\n-\n2-20)*(\n2-20)))/(\n2-20))*180/ pi }
+       \integer{delta2=(180-\delta1)/2}
+       \text{t3=randitem(\(\widehat{\l[8]\l[7]\l[9]}= \delta1)° &nbsp; \(\widehat{\l[7]\l[8]\l[9]}= \delta2)°,\(\widehat{\l[8]\l[7]\l[9]}= \delta1)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \delta1)° ,\(\widehat{\l[7]\l[8]\l[9]}= \delta2)° &nbsp; \(\widehat{\l[8]\l[9]\l[7]}= \delta1)° )}
+  }}
+ }
+}
+
+\text{T=shuffle(\t1,\t2,\t3)}
+\text{dessin=<img src="\f1" alt="">,<img src="\f2" alt="">,<img src="\f3" alt="">}
+
+\statement{\name_instruction :
+<br> \T[1]
+<br> \T[2]
+<br> \T[3]
+<div class="wimscenter">
+\embed{r1,\size x \size}
+</div>
+}
+\answer{}{\nom;\dessin}{type=correspond}

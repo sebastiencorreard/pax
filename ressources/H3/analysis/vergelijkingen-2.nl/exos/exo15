@@ -1,0 +1,119 @@
+# type a/sqrt(bx^2+c)=d
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $usage=2
+    image=0
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# NEEE  we willen NIET checken op vereenvoudigde breuken 
+var5=0
+math=0
+embed=1
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:and
+!if $subject=15
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=20
+    rows=2
+    # berekeniningen laten zien
+    var3=0
+    questiontype=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=3
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    cols=30
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    make_tr=1
+    helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'noalt\' />
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+
+!if $R=1
+    # type a/sqrt(bx^2-c)=d
+    # b=1
+    d=!randitem 1,2,3,4,5
+    p=!randitem 2,3,4
+    a=$[$p*$d]
+    c=!randitem 1,2,3,4,5,6,7,8
+    pm=!randitem 1,-1
+    a=$[$pm*$a]
+    d=$[$pm*$d]
+    x=$[$p^2+$c]
+    test=$[sqrt($x)]
+    !if . isin $test
+	x1=sqrt($x)
+	x2=-1*sqrt($x)
+	x1_tex=\sqrt{$x}
+	x2_tex=-\sqrt{$x}
+    !else
+	x1=$test
+	x2=$[-1*$test]
+	x1_tex=$x1
+	x2_tex=$x2
+    !endif
+    formula$n=\frac{$a}{\sqrt{x^{2}-$c}}=$d
+    applettext=!nospace $a/(sqrt(x^2 - $c)) = $d ->
+    tex=$a\,=\,$d \cdot \sqrt{x^{2} - $c}  \\ $p=\sqrt{x^{2} - $c}  \\ $[$p*$p]=x^{2} - $c  \\ $[$p*$p + $c]=x^{2} 
+    answer$n=$x1,$x2 
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\ $tex  \\  x_{1}=$x1_tex \wedge x_{2}=$x2_tex \end{array} \right.
+ !exit
+!endif
+
+!if $R>1
+    # type a/sqrt(bx^2-c)=e/d
+    d=!randitem 2,3,4,5,6,7,8,9
+    p=!randitem 2,3,4
+    e=!randitem 1,2,3,4,5,6,7,8,9
+    !if $d=$e
+	d=$[$d+1]
+    !endif
+    a=$[$p*$e]
+    c=!randitem 1,2,3,4,5,6,7,8
+    b=!randitem 2,3,4,5
+    pm=!randitem 1,-1
+    a=$[$pm*$a]
+    e=$[$pm*$e]
+    tot=!exec pari A=((($p)*($d))^2+ ($c))/($b)\
+    printtex(A)
+    x1=!line 1 of $tot
+    x1=sqrt($x1)
+    x2=-$x1
+    x1_tex=!line 2 of $tot
+    x1_tex=\sqrt{$x1_tex}
+    x2_tex=-$x1_tex
+    formula$n=\frac{$a}{\sqrt{$b x^{2}-$c}}= \frac{$e}{$d}
+    applettext=!nospace $a/(sqrt($b*x^2)-$c)=$e/($d) ->
+    tex=!texmath $[$a*$d] = $e*sqrt($b*x^2 - $c) -> $[$p*$d] = sqrt($b*x^2 - $c) -> $[$p*$d]^2 = $b*x^2 - $c  
+    tex=!replace internal \to by $ \rightarrow \\ $ in $tex
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\ $tex  \\  x_{1}=$x1_tex \wedge x_{2}=$x2_tex \end{array} \right.
+    answer$n=$x1,$x2
+ !exit
+!endif

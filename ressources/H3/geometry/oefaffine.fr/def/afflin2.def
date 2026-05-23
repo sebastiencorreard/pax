@@ -1,0 +1,142 @@
+!set title=Fonction affine ou linéaire ?
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_nl=Fonction affine ou linéaire ?
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Soit \(f\) une fonction affine vérifiant,	  et, Elle est&nbsp;
+val8=Il faut donner tous les choix possibles.
+val9=linéaire, constante, ni linéaire ni constante
+!if $val6=nl 
+val7=Soit \(f\) une fonction affine vérifiant,	  et, Elle est&nbsp;
+val8=Il faut donner tous les choix possibles.
+val9=linéaire, constante, ni linéaire ni constante
+!endif
+tmp0=!shuffle 6
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$[rint($(tmp0))]
+tmp0=!randint -2, 2
+
+val12=$[rint($(tmp0))]
+val13=$[rint($val12*($val11))]
+tmp0=!item 2 of $val10
+
+tmp1=!randitem 1,-1
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint -1, 1
+
+tmp1=!randint -1, 1
+
+tmp=!nonempty items $(tmp0),$(tmp1),-($val12)*($val14)+($val12)*($val11)
+
+tmp2=!randitem $tmp
+val15=$[rint($(tmp2))]
+val16=$[rint($val12*($val14) +($val15))]
+val17=$val9
+
+!ifval $val15=0
+val18=$[rint( 1)]
+!else
+val18=$[rint(3)]
+!endif
+
+!ifval $val13=$val16
+val18=$[rint( 2)]
+!endif
+
+!ifval $val13=0 and $val15=0
+val18= 1,2
+!endif
+replytype1=checkbox
+replyname1=$(val7[3])
+replygood1=$val18;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) 
+!insmath f($val11) = $val13
+$() $(val7[2]) 
+!insmath f($val14) = $val16
+$().	$(val7[3]):	<ul><li> 
+!read oef/embed.phtml reply 1,1 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,2 
+$()</li>	<li> 
+!read oef/embed.phtml reply 1,3 
+$()</li>	</ul>	<div class="wims_instruction">$m_name_instruction</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,11,13,14,16
+embedcnt=3

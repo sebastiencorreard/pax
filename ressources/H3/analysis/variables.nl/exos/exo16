@@ -1,0 +1,118 @@
+n=$counter
+image=0
+cols=12
+rows=1
+math=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+arglist=$empty
+letters=x,y,a,b,c,f,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+getallen=!shuffle 2,3,4,5,6
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+keuze=!randitem 1,2
+pm=!randitem 1,-1,-1,-1
+mp=!randitem 1,-1
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+!if $R=1
+    !if $keuze=1
+	b=$[$pm*$b]
+	var1=$x^$a/($x^($b))
+	formula$n=\frac{$x^{$a}}{$x^{$b}}
+    !else
+	a=$[$pm*$a]
+	var1=$x^($a)/$x^$b
+	formula$n=\frac{$x^{$a}}{$x^{$b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n)\,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    c=!randitem 2,3,4
+    f=!randitem 2,3,4
+    !if $keuze=1
+	d=$[$mp*$f*$c]
+	a=$[$pm*$a]
+	var1=($d*$x^($a))/($c*$x^$b)
+	formula$n=\frac{$d\cdot $x^{$a}}{$c\cdot $x^{$b}}
+    !else
+	b=$[$pm*$b]
+	d=$[$f*$c]
+	c=$[$mp*$c]
+	var1=($c*$x^$a)/($d*$x^($b))
+	formula$n=\frac{$c\cdot $x^{$a}}{$d\cdot $x^{$b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n)\,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R=3
+    c=!randitem -4,-3,-2,2,3,4
+    !if $keuze=1
+	a=$[$pm*$a]
+	var1=($c*$x)^($a)/$x^$b
+	tot=!exec pari (($c*$x)^$a)/($x^$b)\
+	printtex((($c*$x)^$a)/($x^$b))
+	formula$n=\frac{\left($c \cdot $x \right)^{$a}}{$x^{$b}}
+    !else
+	b=$[$pm*$b]
+	var1=($c*$x)^$a/$x^($b)
+	tot=!exec pari (($c*$x)^$a)/($x^$b)\
+	printtex((($c*$x)^$a)/($x^$b))
+	formula$n=\frac{\left($c \cdot $x \right)^{$a}}{$x^{$b}}
+    !endif
+    applettext=!nospace $var1 =
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R>3
+    a=$[$pm*$a]
+    b=$[$pm*$b]
+    c=!randitem -4,-3,-2,2,3,4
+    d=!randitem -4,-3,-2,2,3,4
+    var1=($c*$x)^($a)/($d*$x)^($b) 
+    tot=!exec pari (($c*$x)^$a)/(($d*$x)^$b)\
+    printtex((($c*$x)^$a)/(($d*$x)^$b))
+    formula$n=\frac{\left($c\cdot $x\right)^{$a}}{\left($d\cdot $x\right)^{$b}}
+    applettext=!nospace $var1 =
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif

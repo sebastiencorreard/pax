@@ -1,0 +1,102 @@
+n=$counter
+mathview=0
+cols=10
+rows=1
+applet=0
+make_tr=1
+image=0
+math=0
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# units.proc
+# correct antwoordformat: number1 unit1,number2 unit2... number_n unit_n                                                                   
+# var1=1,1,1...1 : we must have a unit in all answers                                                                                      
+# var1=0,1,1,0 : number1,number2 unit2,number3 unit3,number4                                                                               
+# var2=min1:max1,min2:max2,min3:max3,min4:max4  var2 is the range for the correct answer or $empty
+# alle 4 antwoorden moeten een eenheid hebben.
+var1=$empty
+var2=$empty
+checkfile=$checkdir/new_number.proc
+rounding=10
+helptext=$empty
+#dataset=$dataset;dataset:$(artikel$s);$(xydata$s) 
+R=1
+dataset=$empty
+!if $R=1
+    tmax=!randint 8,20
+    break1=!randint 2,$[$tmax - 4]
+    break2=!randint $[$break1 + 1],$[$tmax-1]
+    factor=!randint 1,5
+    afstand=0
+    afstand1=0
+    afstand2=0
+    # gebied tussen $break1 en $break2 is de snelheid 0 m/s
+    !for t=1 to $tmax
+	!if $t<=$break1
+	    weg=$[$weg + $factor]
+	    afstand=$[$afstand + $factor]
+	    afstand1=$[$afstand1+$factor]
+	!else
+	    !if $t>$break2
+		weg=$[$weg-$factor]
+		afstand=$[$afstand + $factor]
+		afstand2=$[$afstand2 + $factor]
+	  !else
+		weg=$weg
+	  !endif
+	!endif
+    dataset=!append word $t,$weg; to $dataset
+  !next t
+!endif
+
+dataset=!nospace dataset;0,0;$dataset
+
+tot=!exec pari A=$afstand1/$break1\
+$afstand1/$break2\
+$afstand/$tmax
+
+V1=!line 1 of $tot
+V2=!line 2 of $tot
+V3=!line 3 of $tot
+S1=$afstand
+answer$n=$V1\
+$V2\
+$V3\
+$S1
+
+Vgem=<img src="$module_dir/gifs/Vgem.gif" alt="Vgem" />
+
+
+description=De gemiddelde snelheid na de eerste $break1 seconden,De gemiddelde snelheid na $break2 seconden,De gemiddelde snelheid na $tmax seconden,De totaal afgelegde weg na $tmax seconden
+inputs=4
+xlabel=t (seconden)
+ylabel=x (meter)
+ex1=m/s
+ex2=m/s
+ex3=m/s
+ex4=m
+# let op: 1 regel ... de applet zit in een "onmouseover"
+rs=<object id=\'wimsplot\' width=\'680\' height=\'320\' classid=\'java:ptolemy.plot.PlotApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\' ><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'Plot.jar\' /><param name=\'java_code\' value=\'ptolemy.plot.PlotApplet\' /><param name=\'progressbar\' value=\'true\' /><param name=\'scriptable\' value=\'false\' /><param name=\'background\' value=\'#ffffff;\' /><param name=\'name\' value=\'WIMS_Plot_Applet\' /><param name=\'data\' value=\'TitleText:$module_title;numsets:1;color:on;lines:on;marks:various;xrange:0,$[$tmax+1];xlabel:$xlabel;ylabel:$ylabel;grid:on;$dataset\' />$nojava</object>
+
+textanswer$n=<table class="zebra_table_h2"><tr><td>a)&nbsp;$(description[1]) :</td><td>$Vgem<sub>$break1</sub>&nbsp;=&nbsp;$V1 m/s</td></tr><tr><td>b)&nbsp;$(description[2]) </td><td>$Vgem<sub>$break2</sub>&nbsp;=&nbsp;$V2 m/s</td></tr><tr><td>c)&nbsp;$(description[3]) :</td><td>$Vgem<sub>$tmax</sub>&nbsp;=&nbsp;$V3 m/s</td></tr><tr><td>d)&nbsp;$(description[4]) </td><td><b>S</b><sub>$tmax</sub>&nbsp;=&nbsp;$S1 m</td></tr></table>
+
+
+ss=Bekijk de grafiek van een <span style="color:blue">kleine wandeling</span> ,en beantwoord de vragen.
+question$n=<a onmouseover="return escape('$rs')">$ss</a>
+!exit
+
+
+#barchart
+#object$n=<object id="wimsplot" width="680" height="320" codebase="$appletdir" archive="Plot.jar" code="ptolemy.plot.PlotApplet">\
+#<param name = "progressbar" value = "true" />\
+#<param name = "scriptable" value = "false" />\
+#<param name = "background" value = "#ffffff" />\
+#<param name = "name" value = "WIMS PlotApplet" />\
+#<param name = "data" value="TitleText:$eiland: $dingen;numsets:$m;color:on;lines:off;bars:$dist,0.2;xticks:$xtics;xlabel:$year ;ylabel:$aantal ;grid :on;$dataset" />\
+#$nojava</object>
+
+# let op: 1 regel ... de applet zit in een "onmouseover"

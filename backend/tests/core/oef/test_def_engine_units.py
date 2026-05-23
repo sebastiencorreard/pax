@@ -234,7 +234,13 @@ class TestCallPari:
         assert _call_pari('concat("a", "b", "c")') == "abc"
 
     def test_expand(self):
-        assert _call_pari("expand((x+1)*(x-1))") == "x**2 - 1"
+        assert _call_pari("expand((x+1)*(x-1))") == "x^2 - 1"
+
+    def test_polynomial_is_auto_expanded(self):
+        # PARI canonicalises polynomial expressions to expanded form.
+        assert _call_pari("(x-3)*(x+3)") == "x^2 - 9"
+        assert _call_pari("3*(x-7)*(x+7)") == "3*x^2 - 147"
+        assert _call_pari("(x-5)^2") == "x^2 - 10*x + 25"
 
     def test_polcoeff(self):
         assert _call_pari("polcoeff(x^2 + 3*x + 2, 1)") == "3"

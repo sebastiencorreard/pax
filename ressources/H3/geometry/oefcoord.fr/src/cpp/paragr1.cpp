@@ -1,0 +1,118 @@
+target=paragr1
+
+\title{Parallélogramme (4ième sommet graphique 2)}
+\language{fr}
+\range{-5..5}
+\author{Bernadette, Perrin-Riou}
+\email{bernadette.m.riou@orange.fr}
+\keywords{parallelogram}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+\integer{xrange=400}
+\integer{yrange=400}
+\matrix{nom=A,B,C,D
+E,F,G,H
+M,N,R,P}
+\text{don=randrow(\nom)}
+\text{don=shuffle(\don)}
+\text{A=item(1,\don)}
+\text{B=item(2,\don)}
+\text{C=item(3,\don)}
+\text{D=item(4,\don)}
+\integer{xa=random(-4..4)}
+\integer{ya=random(-4..4)}
+\integer{xb=random(-4..4)}
+\integer{yb=random(-4..4)}
+\integer{xc=random(-4..4)}
+\integer{yc=random(-4..4)}
+\integer{tmp=(\xb-(\xa))*(\yc-(\ya))-(\yb-(\ya))*(\xc-(\xa))}
+\if{\tmp=0}{
+ \integer{xa=1}
+ \integer{ya=-1}
+ \integer{xb=3}
+ \integer{yb=5}
+ \integer{xc=-2}
+ \integer{yc=-2}
+}
+\matrix{don=\overrightarrow{\A \B},\xb-(\xa),\yb-(\ya),\A \B \D \C
+\overrightarrow{\B \A},\xa-(\xb),\ya-(\yb),\A \B \C \D}
+\text{don=randrow(\don)}
+\text{vect=item(1,\don)}
+\integer{Vx=item(2,\don)}
+\integer{Vy=item(3,\don)}
+\integer{xd=\xc+(\Vx)}
+\integer{yd=\yc+(\Vy)}
+\text{para=item(4,\don)}
+\integer{Mx=pari(vecmax([\xa,\xb,\xc,\xd,0])+1)}
+\integer{mx=pari(vecmin([\xa,\xb,\xc,\xd,0])-1)}
+\integer{My=pari(vecmax([\ya,\yb,\yc,\yd,0])+1)}
+\integer{my=pari(vecmin([\ya,\yb,\yc,\yd,0])-1)}
+\integer{Mx=ceil(\Mx/2)*2}
+\integer{mx=floor(\mx/2)*2}
+\integer{My=ceil(\My/2)*2}
+\integer{my=floor(\my/2)*2}
+
+\text{enonce=Sur la figure, on représente 3 points \(\A), \(\B) et \(\C) du plan muni du repère orthogonal \((O, I, J)).}
+\text{P1=wims(word 3 of \para)}
+\text{P2=wims(word 4 of \para)}
+\text{pt=\D}
+
+
+\text{size=\xrange,\yrange}
+\text{rangex=\mx,\Mx}
+\text{rangey=\my,\My}
+
+\text{script=var brd = JXG.JSXGraph.initBoard('jxgbox', {boundingbox:[\rangex[1],\rangey[2],\rangex[2],\rangey[1]],axis:true,keepaspectratio:true,grid:true});
+   var I=brd.create('point',[1,0],{strokeColor:'black',fixed:true,visible:true,name:'I',size:0});
+   var J=brd.create('point',[0,1],{strokeColor:'black',fixed:true,visible:true,name:'J',size:0});
+   var \A=brd.create('point',[\xa,\ya],{strokeColor:'black',fixed:true,visible:true,name:'\A'});
+   var \B=brd.create('point',[\xb,\yb],{strokeColor:'black',fixed:true,visible:true,name:'\B'});
+   var \C=brd.create('point',[\xc,\yc],{strokeColor:'black',fixed:true,visible:true,name:'\C'});
+   var \D=brd.create('point',[0,0],{strokeColor:'black',visible:true,snapToGrid:true,name:'\D'});
+   var pol=brd.create('polygon',[\A,\B,\P1,\P2]);
+}
+\text{jsxgraph=slib(geo2D/jsxgraph jxgbox,\size[1] x \size[2],\script)}
+\text{script2=jxgbox_var1=[function(){return \D.X()},function(){return \D.Y()}];}
+\text{script=\script
+jxgbox_rep1 = brd.create('point',jxgbox_var1,{strokeColor:'transparent',fillColor:'transparent',name:''});
+}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col">
+\embed{r1,\size[1]x\size[2]
+jxgbox brd
+\script
+\script2}
+</div>
+<div class="medium_size text_col">
+\enonce
+<div class="spacer">
+  Déplacer le point \(\pt) de manière à ce que \(\para) soit un parallélogramme.
+</div>
+ </div>
+</div>
+}
+\answer{\pt}{\xd,\yd}{type=jsxgraph}
+\text{P11=\P1 issametext \D? D2:\C}
+\text{P21=\P2 issametext \D? D2:\C}
+
+\text{z=\reply1}
+\text{color=\sc_reply1=1?green:red}
+\text{script2=\sc_reply1<1 ?
+   D2=brd.create('point',[\xd,\yd],{strokeColor:'green',fixed:true,visible:true,name:'\D'});
+   pol2=brd.create('polygon',[\A,\B,\P11,\P21],{fillColor:'green'});
+}
+\text{P1=\P1 issametext \D? D1:\C}
+\text{P2=\P2 issametext \D? D1:\C}
+\feedback{1=1}{
+<script>
+/*<![CDATA[*/
+   pol.setProperty('visible:false');\D.setProperty('visible:false');
+   D1=brd.create('point',[\z[1],\z[2]],{strokeColor:'\color',fixed:true,visible:true,name:''});
+   pol1=brd.create('polygon',[\A,\B,\P1,\P2],{fillColor:'\color'});
+   \script2
+/*]]>*/
+</script>
+}

@@ -1,0 +1,297 @@
+!set title=Verschillende stappen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=100000
+
+ansorder=r,c,c,r
+varcnt=78
+prevarcnt=76
+postvarcnt=1
+replycnt=2
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2 notitemof 0,1
+val2=$[rint(1)]
+!endif
+tmp=!trim A,B,C,D	T,I,R,J	E,F,G,H	D,E,F,G
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+tmp0=!item 4 of $val6
+
+val10=$(tmp0)
+val11=$[rint(240)]
+val12=$[rint(140)]
+tmp0=!randint 80, 160
+
+val13=$[rint($(tmp0))]
+val14=line 20,20,20,120,black	line 20,120,220,120,black	line 20,20,220,120,black	line 20,20,$val13,120,black	line 21,110,30,110,red	line 30,110,30,119,red	text black,10,125,medium,$val8	text black,10,10,medium,$val7	text black,225,125,medium,$val9	text black,$val13,125,medium,$val10
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val17=$[rint($(tmp0))]
+!if $val15=1 
+tmp0=!randint 2, 6
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, $val18-1
+
+val19=$[rint($(tmp0))]
+val20=$[rint(max($val18^2-$val19^2,2*$val18*$val19))]
+val21=$[rint(min($val18^2-$val19^2,2*$val18*$val19))]
+val22=$[rint(($val21^2+$val20^2)^(1/2))]
+tmp0=!randint 15, 25
+
+val23=$[$(tmp0)]
+val24=$[$val20*$val23]
+val25=$[$val22*$val23]
+val26=$[$val21*$val23]
+val27==,\(\neq)
+!else
+tmp0=!randint 20, 1900
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 20, 1900
+
+val24=$[rint($(tmp0))]
+val28=$[rint(max($val25-$val24,$val24-$val25))]
+tmp0=!randint $val28+20, $val25+$val24
+
+val26=$[rint($(tmp0))]
+!if ($val25^2+$val24^2-$val26^2)*($val25^2+$val26^2-$val24^2)*($val26^2+$val24^2-$val25^2)=0 
+val25=$[rint(50)]
+val24=$[rint(20)]
+val26=$[rint(30)]
+!endif
+val27=\(\neq),=
+!endif
+val25=$[$val25/10]
+val24=$[$val24/10]
+val26=$[$val26/10]
+val29=\($val7$val10^2),\($val8$val10^2)
+val30=\($val7$val9^2),\($val8$val9^2)
+!if $val16=1 
+val31=\($val7$val10 = $val25),\($val8$val10 = $val24),\($val7$val8 = $val26)
+val32=\($val7$val8$val10)
+val27=$val27,\($val7$val8^2),$val29,$val30
+!if $val17=1 
+val33=$val7$val9
+tmp0=!randint 10*$val24+1, 15*$val24
+
+val34=$[$(tmp0)/10]
+val31=$val31,\($val8$val9 = $val34)
+val35=($val26^2+$val34^2)^(1/2)
+!else
+val33=$val8$val9
+tmp0=!randint 10*$val25+1, 15*$val25
+
+val34=$[$(tmp0)/10]
+val31=$val31,\($val7$val9 = $val34)
+val35=($val34^2-$val26^2)^(1/2)
+!endif
+!else
+val31=\($val7$val9 = $val25),\($val8$val9 = $val24),\($val7$val8 = $val26)
+val32=\($val7$val8$val9)
+val27=$val27,\($val7$val8^2),$val30,$val29
+!if $val17=1 
+val33=$val7$val10
+tmp0=!randint 10, 10*$val24-10
+
+val34=$[$(tmp0)/10]
+val31=$val31,\($val8$val10 = $val34)
+val35=($val26^2+$val34^2)^(1/2)
+!else
+val33=$val8$val10
+tmp0=!randint 10*$val26+1, 10*$val25-10
+
+val34=$[$(tmp0)/10]
+val31=$val31,\($val7$val10 = $val34)
+val35=($val34^2-$val26^2)^(1/2)
+!endif
+!endif
+val27=$val27,+,\($val7$val8),\($val7$val9),\($val8$val9),\($val8$val10),\($val7$val10)
+tmp0=!item 4,1,3,8,5 of $val27
+
+tmp1=!item 4,1,5,8,3 of $val27
+
+tmp2=!item 3,8,5,1,4 of $val27
+
+tmp3=!item 5,8,3,1,4 of $val27
+
+val36=$(tmp0)|$(tmp1)|$(tmp2)|$(tmp3)
+tmp0=!shuffle $val31
+
+val31=$(tmp0)
+tmp0=!replace internal , by &nbsp;&nbsp; in $val31
+
+val31=$(tmp0)
+val37=is rechthoekig,is niet rechthoekig
+val38=het omgekeerde van de stelling van Pythagoras,de stelling van Pythagoras
+tmp0=!item $val15 of $val37
+
+val39=$(tmp0)
+tmp0=!item $val15 of $val38
+
+val40=$(tmp0)
+tmp=!nonempty items cm,m,dm,dam
+
+tmp0=!randitem $tmp
+val41=$(tmp0)
+val42=decimeters,centimeters,millimeters
+val43=$val35
+tmp0=!randint 1, 3
+
+val44=$[rint($(tmp0))]
+val35=$[rint($val35*10^$val44)]
+val35=$[$val35/10^$val44]
+tmp0=!item $val44 of $val42
+
+val45=$(tmp0)
+val46=c1,c2,r1
+dynsteps=yes
+oefsteps=$val46 
+nextstep=!nosubst $val46 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyweight1=3 
+replyname1=Formule
+replygood1=$val36;$val27
+replytype2=numexp
+replyweight2=4 
+replyname2=\($val33)
+replygood2=$val35
+choiceweight1=1 
+choicename1=Driehoek
+choicegood1=$val39
+choicebad1=$val37
+choiceweight2=2 
+choicename2=Stelling
+choicegood2=$val40
+choicebad2=$val38
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<table>	<tr>	   <td>
+!insmath $val7$val8$val9
+$() is een driehoek en 
+!insmath $val10
+$() is een punt op zijde 
+!insmath $val8$val9
+$().&nbsp;&nbsp;&nbsp;&nbsp;<br>	   De lengte van de volgende zijdes ( in $val41) zijn bekend :<br>	<center>$val31</center></td>	   <td> 
+!read oef/draw.phtml $val11,$val12 \
+$val14 
+$()<center>(de driehoek is niet op schaal getekend)<center></td>	</tr>	</table>	 
+!if $m_step=1 
+$()	 Is de driehoek $val32 rechthoekig ?<br>	 <b>Jouw antwoord</b> : <br>	 
+!read oef/embed.phtml r1,40x35x5 
+$()<br> Dus, volgens  
+!read oef/embed.phtml c2 
+$(), de driehoek 
+!insmath $val7$val8$val9
+$()  
+!read oef/embed.phtml c1 
+$().	 
+!else
+$() 	<ol>	 <li> Is de driehoek $val32 rechthoekig ?<br>	 <b>Jouw antwoord</b> : volgens $val40, de driehoek 
+!insmath $val7$val8$val9
+$() $val39.</li>	 <li> Wat is de lengte van de zijde 
+!insmath [$val33]
+$() ? Je moet je antwoord geven in $val45 nauwkeurig.</li>	</ol>	 <b>Jouw antwoord</b> 
+!insmath $val33 =
+$()  
+!read oef/embed.phtml r2,5 
+$() $val41.</li>	</ol>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val15=1 and $m_step=2
+val46=r2
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,14,15,31,32,33,39,40,41,45
+embedcnt=4

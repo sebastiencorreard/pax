@@ -1,0 +1,112 @@
+!set title=Rechthoekig park
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 15, 80
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 15, 80
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8);
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7/$val9)]
+val11=$[rint($val8/$val9)]
+!if $val10=$val11 
+val10=$[rint(17)]
+val11=$[rint(35)]
+!endif
+val7=$[rint(max($val10,$val11))]
+val8=$[rint(min($val10,$val11))]
+val12=$[rint($val6*$val7)]
+val13=$[rint($val6*$val8)]
+val14=$[rint(2*($val12+$val13)/$val6)]
+val15=$[rint($val12*$val13/$val6^2)]
+replytype1=units
+replyname1=Afstand
+replygood1=$val6 m
+replytype2=default
+replyname2=Aantal struiken
+replygood2=$val14
+replytype3=default
+replyname3=Aantal grasmatten
+replygood3=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Rondom een rechthoekig park van $val12 m lang en $val13 m breed moeten  	struiken komen. De tuinier wil dat de struiken op een regelmatige 	afstand van elkaar staan, met op iedere hoek van het park een struik. Verder 	moet de afstand tussen twee struiken een geheel aantal meters zijn.<br>	Vraag 1: Om economische redenen besluit de tuinier zo weinig mogelijk 	struiken te kopen. Hoe ver moet hij de struiken van elkaar zetten?<br>	Vraag 2: Hoeveel struiken moet hij kopen?<br>	Vraag 3: Hij wil de binnenkant van het park vullen met vierkante 	grasmatten. Ook hier wil hij zo weinig mogelijk matten kopen. Hoeveel heeft 	hij er nodig?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<u>Vraag 1 :</u>Op iedere hoek van het park staat en struik, 	verder rondom het park. De afstand tussen de struiken is een geheel 	aantal meters. De afstand tussen twee opeenvolgende struiken moet dus een 	deler zijn van de lengte en van de breedte van het park. Het moet dus een 	deler van $val12 en van $val13 zijn.<br>	Om zo weinig mogelijk struiken nodig te hebben, moet de afstand ertussen 	zo groot mogelijk zijn. 	De gezochte afstand is dus de ggd van $val12 en $val13. Met het algoritme van 	Euclides vindt men de ggd van $val12 en $val13, dat is $val6. <br>	<u>Vraag 2 :</u>Het aantal struiken is gelijk aan de omtrek van het park 	gedeeld door de afstand tussen twee opeenvolgende struiken, oftwel:<br>	<center>
+!insmath \frac{2\times($val12+$val13)}{$val6}=$val14
+$().</center>	<u>Vraag 3:</u>Het aantal grasmatten is gelijk aan het oppervlak van het 	park gedeeld door het oppervlak van een mat, oftwel:<br>	<center>
+!insmath \frac{$val12\times$val13}{$val6^2}=$val15
+$().</center>
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,14,15
+embedcnt=0

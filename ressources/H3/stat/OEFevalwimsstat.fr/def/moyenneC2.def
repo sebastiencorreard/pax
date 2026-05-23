@@ -1,0 +1,181 @@
+!set title=Moyenne C2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord src/stat3.don
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val8=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val10=$[rint($(tmp0)*$val9)]
+tmp0=!randint 4, 5
+
+val11=$[rint($val10+$(tmp0)*$val9)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+val15=$[rint(($val11-$val10+1)/$val9)]
+val16=
+val17=
+val18=$[rint(0)]
+!readproc slib/generator $val15,$val8 
+tmp0=$slib_out
+val19=$(tmp0)
+!for val20 =1 to $val15 
+val21=$[rint($val10+($val20-1)*$val9)]
+val22=$[rint($val10+$val20*$val9)]
+tmp0=!append item \($val21 \leq $val14 < $val22) to $val16
+
+val16=$(tmp0)
+val7=$[($val21+$val22)/2]
+tmp0=!append item $val7 to $val17
+
+val17=$(tmp0)
+val18=$[$val18+$(val19[$val20])*$val7]
+!next
+val18=$[rint($val18/$val8*10)/10]
+tmp0=!item 1 to $val15 of r1,r2,r3,r4,r5
+
+val23=$(tmp0)
+oefsteps=$val23,r6 
+nextstep=!nosubst $val23,r6 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=1
+replygood1=$(val17[1])
+replytype2=numexp
+replyname2=2
+replygood2=$(val17[2])
+replytype3=numexp
+replyname3=3
+replygood3=$(val17[3])
+replytype4=numexp
+replyname4=4
+replygood4=$(val17[4])
+replytype5=numexp
+replyname5=5
+replygood5=$(val17[5])
+replytype6=numexp
+replyname6=Moyenne
+replygood6=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12	<table class="wimscenter wimsborder">	   <tr>	    <th>$val13</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val16[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Effectifs</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val19[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Centres de classe</th>	     
+!for m_l=1 to $val15 
+$()<td> 
+!read oef/embed.phtml $(val23[$m_l]),5 
+$()</td> 
+!next
+$()	   </tr>	  </table>	<p>	Calculer les centres de classe et la moyenne de cette série statistique.</p>	<div class="spacer"><b>Votre réponse</b> :	La moyenne est de  
+!read oef/embed.phtml r6,7 
+$().	</div>	<div class="wims_instruction">Vous donnerez l'arrondi au dixième.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,15,16,19,23
+embedcnt=2

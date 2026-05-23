@@ -1,0 +1,204 @@
+!set title=Définition de la tangente 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=tangent
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=54
+prevarcnt=53
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Elles sont perpendiculaires,Elles ne sont pas perpendiculaires,Elles peuvent être perpendiculaires cela dépend,Elles sont parallèles,Elles ne sont pas parallèles,Elles peuvent être parallèles cela dépend
+val7=bleue,verte,violette,marron
+val8=La droite XXXX et la droite YYYY se coupent en un point du cercle de centre AAAA. La droite XXXX est la tangente au cercle en ce point.
+tmp0=!random -pi/4, 7*pi/4
+
+val9=$[$(tmp0)]
+tmp0=!random 40, 75
+
+val10=$[$(tmp0)]
+tmp0=!shuffle 1,2,3,4
+
+val11=$(tmp0)
+tmp0=!item $val11 of blue,green,purple,brown
+
+val12=$(tmp0)
+tmp0=!item $val11 of $val7
+
+val13=$(tmp0)
+tmp0=!shuffle A,B,C,E,F,G
+
+val14=$(tmp0)
+val15=$(val14[1])
+val16=$(val14[2])
+val17=$(val14[3])
+tmp0=!replace internal XXXX by $(val13[1]) in $val8
+
+val18=$(tmp0)
+tmp0=!replace internal YYYY by $(val13[2]) in $val18
+
+val18=$(tmp0)
+tmp0=!replace internal AAAA by $val15 in $val18
+
+val18=$(tmp0)
+val19=1,5
+val20=$[rint($val10)]
+val21=$[0]
+val22=checkbox
+val23=range -150,150,-150,150	circle 0,0,2*$val10,black	linewidth 2	line $val20*cos($val9)+200*sin($val9+$val21),$val20*sin($val9)-200*cos($val9+$val21),$val20*cos($val9)-200*sin($val9+$val21),$val20*sin($val9)+200*cos($val9+$val21),$(val12[1])
+val23=$val23	circle 0,0,5,black	text red,0,0,large,$val15
+val23=$val23	line -200*cos($val9),-200*sin($val9),200*cos($val9),200*sin($val9),$(val12[2])
+val24=$[rint(0)]
+val25=$[rint(0)]
+
+!ifval $val9<=pi/4
+val24=$[-1]
+!else
+val24=$[$val24]
+!endif
+
+!ifval $val9>3*pi/4 and $val9<5*pi/4
+val24=$[+0.2]
+!else
+val24=$[$val24]
+!endif
+
+!ifval $val9>=5*pi/4
+val25=$[1]
+!else
+val25=$[$val25]
+!endif
+
+!ifval $val9>pi/4 and $val9<3*pi/4
+val25=$[-0.1]
+!else
+val25=$[$val25]
+!endif
+val26=$[rint(0)]
+val27=$[rint(0)]
+
+!ifval $val9<=pi/4
+val26=$[0.2]
+!else
+val26=$[$val26]
+!endif
+
+!ifval $val9>3*pi/4 and $val9<5*pi/4
+val26=$[-1]
+!else
+val26=$[$val26]
+!endif
+
+!ifval $val9>=5*pi/4
+val27=$[-0.1]
+!else
+val27=$[$val27]
+!endif
+
+!ifval $val9>pi/4 and $val9<3*pi/4
+val27=$[1]
+!else
+val27=$[$val27]
+!endif
+val10=$[rint($val10*100)/100]
+tmp0=!randint 3, 7
+
+val28=$(tmp0)
+tmp0=!shuffle 1,-1
+
+val11=$(tmp0)
+val29=$[$val10*cos($val9)-$(val11[1])*$val28*sin($val9)]
+val30=$[$val10*sin($val9)+$(val11[1])*$val28*cos($val9)]
+val31=$[$val10*cos($val9)+$(val11[1])*$val28*sin($val9)]
+val32=$[$val10*sin($val9)-$(val11[1])*$val28*cos($val9)]
+val33=$[min($val31,$val29)]
+val34=$[min($val32,$val30)]
+val35=$[max($val31,$val29)]
+val36=$[max($val32,$val30)]
+val37=$[rint(sqrt(($val29)^2+($val30)^2)*10)/10]
+val38=$[rint(arctan($val10/$val28)/pi*180)]
+val39=$[rint($val37*cos((90-$val38)/180*pi)*10)/10]
+val40=$[min($val33,$val34)-2]
+val41=$[max($val35,$val36)+2]
+val42=$[0.5]
+!readproc oef/draw.phtml 300,300 \
+$val23 
+tmp0=$ins_url
+val43=$(tmp0)
+tmp0=!itemcnt $val6
+
+val44=$[rint($(tmp0))]
+replytype1=$val22
+
+replyname1=
+replygood1=$val19;$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left"><img src="$val43" alt=""></div>	<div class="float_left">	   $val18	<ul>	     
+!for m_k=1 to $val44 
+$()<li> 
+!read oef/embed.phtml r1,\k 
+$()</li> 
+!next
+$()	</ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,43,44
+embedcnt=1

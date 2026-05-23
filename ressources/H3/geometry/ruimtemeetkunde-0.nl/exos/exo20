@@ -1,0 +1,146 @@
+#:Boerderij [ Oppervlak bepalen ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+questiontype=0
+cols=16
+rows=1
+mathview=0
+embed=1
+applet=1
+inputs=1
+#m_rightarrow=&nbsp;=
+x=!randint 18,30
+d=!randitem 2,2.5,3,3.5,4
+b=$[$x-2*$d]
+z=!randitem 3,4,5
+p=!randitem 1,2,3
+e=$[$z+$p]
+h=$[$z+$e]
+c=!randitem 10,10.5,11,11.5,12,12.5,13,13.5,14
+a=$[round(sqrt($d^2+$e^2+($c/2)^2))]
+
+helptext=img src=\'$module_dir/gifs/huis.jpg\' alt=\'noalt\' />
+Oppervlak=!record 24 of lang/remarks.$taal
+checkfile=$checkdir/number.proc
+
+!if $R=1
+    EHQ=STRQ
+    answer$n=$[0.5*$e*($x+$b)]
+    ss=!record 32 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array} {ll} h= H - AE = $h - $z = $e \\ \textrm{$Oppervlak $EHQ = $Oppervlak } \Delta  \textrm{STR} + \textrm{$Oppervlak } \Delta  \textrm{QRS} \\ \textrm{$Oppervlak $EHQ }= \frac{1}{2} \cdot $x \cdot $e + \frac{1}{2} \cdot $b \cdot $e\\ \textrm{$Oppervlak $EHQ} = $[0.5*$e*($x+$b)] \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak: 
+    
+    construction=<Segment type="bold" name="EH" n="2000" alias="EH" from="E" to="H"></Segment><Midpoint name="S" n="2001" showname="true" bold="true" large="true"  first="E" second="H" shape="circle"></Midpoint><Segment type="bold" name="FG" n="2002" alias="FG" from="F" to="G"></Segment><Midpoint name="T" n="2003" showname="true" bold="true" large="true"  first="F" second="G" shape="circle"></Midpoint><Segment type="thick" name="QR" n="2004" alias="QR" color="5" from="Q" to="R"></Segment><Segment type="thick" name="RT" n="2004" alias="RT" color="5" from="R" to="T"></Segment><Segment type="thick" name="QS" n="2004" alias="QS" color="5" from="Q" to="S"></Segment><Segment type="thick" name="ST" n="2004" alias="ST" color="5" from="S" to="T"></Segment><Polygon name="STRQ" n="2005" color="5" background="true" filled="true" solid="true" point1="S" point2="T" point3="R" point4="Q"/>
+    
+    !readproc exos/huisxml.proc
+    
+    textanswer$n=<img src="$module_dir/gifs/boerderij-doorsnede.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+!if $R=2
+    setje=H,G,R,Q F,E,Q,R
+    k=!randitem 1,2
+    set=!word $k of $setje
+    H=!item 1 of $set
+    G=!item 2 of $set
+    R=!item 3 of $set
+    Q=!item 4 of $set
+    HG=!nospace $H $G
+    GR=!nospace $G $R
+    RQ=!nospace $R $Q
+    HQ=!nospace $H $Q
+    EHQ=!nospace $H $G $R $Q
+    HGR=!nospace $H $G $R
+    RQH=!nospace $R $Q $H
+    f=$[$a^2-$d^2]
+    !if . isin $[sqrt($f)]
+	g=sqrt($f)
+	g_tex=\sqrt{$f}
+        answer$n=$[0.5*($x+$b)]*$g
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !else
+	g=$[sqrt($f)]
+	g_tex=$g
+	answer$n=$[0.5*($x+$b)*$g]
+        ans=$(answer$n)
+    !endif
+    ss=!record 30 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array}{l} 2d= $x-$b \rightarrow d=$d \\ h=\sqrt{$a^{2}-$d^{2}}=$g_tex \\ \textrm{ $Oppervlak $EHQ }= \textrm{ $Oppervlak }  \Delta \textrm {$HGR} + \textrm{$Oppervlak }  \Delta \textrm{$RQH }\\ \textrm{$Oppervlak $EHQ } = \frac{1}{2} \cdot $x \cdot $g_tex + \frac{1}{2} \cdot $b \cdot $g_tex\\ \textrm{$Oppervlak $EHQ }= $[0.5*($x+$b)]*$g_tex $ans \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak: 
+    
+    construction=<Segment type="thick" name="$GH" n="2002" alias="$GH" color="1" from="$G" to="$H"></Segment><Segment type="thick" name="$GR" n="2003" alias="$GR" color="1" from="$G" to="$R"></Segment><Segment type="thick" name="$RQ" n="2004" alias="$RQ" color="1" from="$R" to="$Q"></Segment><Segment type="thick" name="$HQ" n="2005" alias="$HQ" color="1" from="$H" to="$Q"></Segment><Polygon name="$EHQ" n="2005" color="1" background="true" filled="true" solid="true" point1="$H" point2="$G" point3="$R" point4="$Q"/>
+    
+    !readproc exos/huisxml.proc
+    
+    textanswer$n=<img src="$module_dir/gifs/boerderij-dak.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+
+
+!if $R>2
+    setje=E,H,Q F,G,R
+    k=!randitem 1,2
+    set=!word $k of $setje
+    E=!item 1 of $set
+    H=!item 2 of $set
+    Q=!item 3 of $set
+    EH=!nospace $E $H
+    HQ=!nospace $H $Q
+    EQ=!nospace $E $Q
+    EHQ=!nospace $E $H $Q
+    f=$[$e^2+$d^2]
+    k=$[$a^2-$f]
+    !if . isin $[sqrt($f)]
+	g=sqrt($f)
+	g_tex=\sqrt{$f}
+    !else
+	g=$[sqrt($f)]
+	g_tex=$g
+    !endif
+    !if . isin $[sqrt($k)]
+	m=sqrt($k)
+	m_tex=\sqrt{$k}
+    !else
+	m=$[sqrt($k)]
+	m_tex=$m
+    !endif
+    answer$n=$m*$g
+    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    ss=!record 30 of lang/remarks.$taal
+    #@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken het oppervlak van $EHQ
+    latex=!record 31 of lang/remarks.$taal
+    #Afstand van $Q tot $EH
+    texanswer$n=\left[ \begin{array}{l} h=$h - $z = $e \\ 2x= $x-$b \rightarrow x=$d \\ \textrm{ $latex } : \sqrt{$e^{2}+$d^{2}} = $g_tex \\ \textrm { $EH } = 2 \cdot \sqrt{$a^{2} - $f} \\ \textrm{$Oppervlak } \Delta \textrm{$EHQ}  = $m_tex \cdot $g_tex $ans \end{array} \right.
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=$Oppervlak: 
+    
+    construction=<Segment type="thick" name="$EH" n="2002" alias="$EH" color="1" from="$E" to="$H"></Segment><Segment type="thick" name="$HQ" n="2003" alias="$HQ" color="1" from="$H" to="$Q"></Segment><Segment type="thick" name="$EQ" n="2004" alias="$EQ" color="1" from="$E" to="$Q"></Segment><Polygon name="$EHQ" n="2005" color="1" background="true" filled="true" solid="true" point1="$E" point2="$H" point3="$Q"/>
+    
+    !readproc exos/huisxml.proc
+
+    textanswer$n=<img src="$module_dir/gifs/boerderij.gif" alt="geen plaatje?"/>
+ !exit
+!endif
+
+
+   

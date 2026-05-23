@@ -1,0 +1,302 @@
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+embed=1
+mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+questiontype=0
+impossible=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+cols=20
+rows=2
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+exotext=$empty
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+keuze=!randitem 1,2
+ss=!record 2 of lang/remarks.$taal
+#@ Los de onderstaande vergelijking op:<br>
+helptext=!record 23 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+# type x^2 + 3 = 6
+    a=!randitem 1,2,3,4,5,6,7,8,9,-1,-2,-3,-4,-5,-6,-7,-8,-9
+    b=!randitem 1,2,3,4,5,6,7,8,9,-1,-2,-3,-4,-5,-6,-7,-8,-9
+    form=!rawmath x^2 + $a
+    formula$n=$form \,\,=\,\, $b
+    applettext=!nospace $form = $b ->
+    !if $[($b) - ($a)] < 0
+	impossible=1
+	answer$n=nil
+	textanswer$n=!record 8 of lang/remarks.$taal
+    !else
+	!if $[($b) - ($a)] = 0
+	    x1=$b
+	    answer$n=$x1
+	    punten=point 0,$b,red
+	!else
+	    x1=sqrt($[$b - $a])
+	    test=$[$x1]
+	    !if . notin $test
+		x1=$[$x1]
+		x2=-$x1
+		tex_x1=$x1
+		tex_x2=-$x2
+	    !else
+		x1=$x1
+		x2=-$x1
+		tex_x1=\sqrt{$[$b - $a]}
+		tex_x2=-\sqrt{$[$b - $a]}
+	    !endif	
+	    answer$n=$x1,$x2
+	    texanswer$n=\left[ \begin{array}{l} x_1 = $tex_x1\\ x_2 = $tex_x2  \end{array}\right.
+	    punten=points red,$x1,$b,$x2,$b
+    	!endif
+	!if $teaching=1
+	    curve1=curve $color1,x^2 + $a
+	    curve2=curve $color2,$b
+	    !readproc exos/image1.proc
+	!endif
+    !endif
+ !exit
+!endif
+
+!if $R=2
+#type 5x^2 -4 = 3
+    pm=!randitem 1,-1
+    a=!randitem 1,2,3,4,5,6,7,8,-1,-2,-3,-4,-5,-6,-7
+    b=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15
+    c=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,14
+    c=!randitem $[$pm*$c]
+    !if $a=1
+	tex_a=$empty
+	applettext=!nospace x^2+$b=$c ->
+    !else
+	tex_a=$a\cdot    
+	applettext=!nospace $a*x^2+$b=$c ->
+    !endif
+    formula$n=$tex_a x^{2} + $b \,\,=\,\, $c
+    # ax^2 + b = c
+    D=$[-4*($a)*($b - $c)]
+    !if $D<0
+	answer$n=nil
+	impossible=1
+	answer$n=nil
+	textanswer$n=!record 8 of lang/remarks.$taal
+	!exit
+    !endif
+    !if $D=0
+	answer$n=0
+	texanswer$n=x\,\,=\,\,0
+	punten=point $x1,$c,red
+    !else
+	tot=!exec pari A=(($c)-$b)/$a\
+	printtex(A)
+	bb=!line 1 of $tot
+	tex_bb=!line 2 of $tot
+	x1=sqrt($bb)
+	x2=-1*sqrt($bb)
+	test=$[1000*$x1]
+	!if . isin $test
+	    tex_x1=$tex_bb
+	    tex_x2=-$tex_bb
+	!else
+	    x1=$[$x1]
+	    x2=$[$x2]
+	    tex_x1=$x1
+	    tex_x2=-$x2
+	!endif
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{l} x_{1} = $tex_x1\\ x_{2} = $tex_x2  \end{array}\right.
+	punten=points red,$x1,$c,$x2,$c
+    !endif
+    !if $teaching=1
+	curve1=curve $color1,$a*x^2 + $b
+	curve2=dhline 0,$c,$color2
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif
+!if $R=3
+    impossible=!randitem 1,0,0,0,0,1
+    #type 3(x-6)^2 +5 = 8 
+    #   A(x-B)^2 + C = D 
+    #==> A(x^2 -2Bx+B^2)+C =D => Ax^2 -2ABx + AB^2 + C - D =0 
+    #(cx-a)(x+b)=0 <=> cx^2 + bcx -ax -ab=0
+    #Dus: Ax^2 -2ABx + AB^2 + C - D =cx^2 + bcx - ax - ab
+    #--> AB^2 + C - D = -ab 
+    #-2ABx= bcx -ax = x(bc-a) => -2AB = bc-a 
+    #--> Ax^2 = cx^2 => A=c
+    #--> -2cB =bc-a => B = (bc-a)(-2c)
+    #-->C-D = -ab -AB^2 <=> C-D = -ab -c((a-bc)/2c)^2
+    #type 3(x-6)^2 +5 = 8 
+    #   A(x-B)^2 + C = D 
+    #==> A(x^2 -2Bx+B^2)+C =D => Ax^2 -2ABx + AB^2 + C - D =0 
+    #(cx-a)(x+b)=0 <=> cx^2 + bcx -ax -ab=0
+    #Dus: Ax^2 -2ABx + AB^2 + C - D =cx^2 + bcx - ax - ab
+    #--> AB^2 + C - D = -ab 
+    #-2ABx= bcx -ax = x(bc-a) => -2AB = bc-a 
+    #--> Ax^2 = cx^2 => A=c
+    #--> -2cB =bc-a => B = (bc-a)(-2c)
+    #-->C-D = -ab -AB^2 <=> C-D = -ab -c((a-bc)/2c)^2
+    a=!randitem 2,4,6,8,10,-2,-4,-6,-8,-10
+    b=!randitem 2,3,4,5,-2,-3,-4,-5
+    c=!randitem 2,3,4,-2,-3,-4
+    !if $a=$[$b*$c]
+	a=$[$a+1]
+    !endif
+    x1=$[-1*$b]
+    x2=!exec pari $a/$c
+    A=$c
+    B=$[($b*$c - $a)/(-2*$c)]
+    C=$[(-1*$a)*($b)/2]
+    DD=!exec pari printtex(($a)^2/(4*$c) + ($b)^2*$c/4)
+    D=$[($a)^2/(4*$c) + ($b)^2*$c/4 ]
+    !if $impossible=1
+	p=!randitem 2,3,4,5
+	!if $A>0
+	    D=$[round($C - $p)]
+	    DD=$D
+	!else
+	    C=$[round($D - $p)]	
+	!endif
+	answer$n=nil
+	#alleen voor TeX	
+	!if $B<0
+	    pm=+
+	    B=$[-1*$B]
+	    BB=!exec pari printtex(($b*$c - ($a))/(2*$c))
+	!else
+	    pm=-
+	    BB=!exec pari printtex(($b*$c - ($a))/(-2*$c))
+	!endif
+	!if $C<0
+	    mp=-
+	    C=$[-1*$C]
+	    CC=$C
+	!else
+	    mp=+
+	    CC=$C
+	!endif
+	image=0
+	impossible=1
+	formula$n= $A\cdot \left(x $pm $BB\right)^{2} $mp $CC = $DD
+	curve1=curve $color1,$A*(x $pm $B)^2 $mp $C
+	curve2=dhline 0,$D,$color2
+	textanswer$n=!record 8 of lang/remarks.$taal
+    !else
+	#alleen voor Tex
+	!if $B<0
+	    pm=+
+	    B=$[-1*$B]
+	    BB=!exec pari printtex((($b)*($c) - ($a))/(2*($c)))
+	!else
+	    pm=-
+	    BB=!exec pari printtex((($b)*($c) - ($a))/(-2*($c)))
+	!endif
+	!if $C<0
+	    mp=-
+	    C=$[-1*$C]
+	    CC=!exec pari ($a)*($b)/2
+	!else
+	    mp=+
+	    CC=!exec pari (-1*($a)*($b)/2)
+	!endif
+	formula$n= $A\cdot \left(x $pm $BB\right)^{2} $mp $C = $DD
+	!ifval $x1 = $x2
+	    texanswer$n=\left[ \begin{array}{l} x_{1} = $x1\\  \end{array}\right.
+	    punten=point $x1,$D,red
+	    answer$n=$x1
+	!else
+	    texanswer$n=\left[ \begin{array}{l} x_{1} = $x1\\ x_{2} = $x2 \end{array}\right.
+	    answer$n=$x1,$x2
+	    punten=points red,$x1,$D,$x2,$D
+	!endif	
+    !endif
+    !if $teaching=1
+	curve1=curve $color1,$A*(x $pm $B)^2 $mp $C
+	curve2=dhline 0,$D,$color2
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif
+!if $R>3
+        #(cx-a)(x-b)=0 <=>  cx^2 - ax -bcx +ab =0 <=> cx^2 -ax + d = bcx - ab + d
+	# C(x-A)^2 -R <=> Cx^2 -2ACx +A^2C -R
+	#Cx^2 -2ACx +A^2C -R = cx^2 -ax +d
+	# ==> C=c 
+	#-2ACx +A^2C -R = -ax + d
+	# ==> -2AC == -a => -2Ac ==-a => A= a/2c	
+	# d =A^2C - R <=> d = c(a/2c)^2 - R
+	# R = a^2/4c - d
+        #vraag= c*(x- a/2c)^2 - (a^2/4c -d) = bcx - ab + d 
+        a=!randitem 2,4,6,8,10
+        b=!randitem 2,3,4,5,6,7,8
+        c=!randitem 2,3,4,5,6,8,9
+        d=!randitem 2,3,4,5,6,7
+        e=!randitem 5,6,7,8,9,10,11
+        r=$[($a^2)/(4*$c) -$d]
+        tot=!exec pari A=($a/(2*$c))\
+	printtex(A)
+	
+	A=!line 1 of $tot
+	Atex=!line 2 of $tot
+        !if $r<0	
+	    pm =+
+    	    tot=!exec pari S=(-1*(($a^2)/(4*($c)) - ($d)))\
+	    printtex(S)
+	!else
+    	    pm=-
+	    tot=!exec pari S=(($a^2)/(4*($c)) - ($d))\
+	    printtex(S)
+	!endif
+	S=!line 1 of $tot
+	Stex=!line 2 of $tot
+	formula$n=$c\cdot \left( x- $Atex \right)^{2} $pm $Stex =$b \cdot \left( $c\cdot x - $a \right) + $d
+	applettext=!nospace $c*(x-$A)^2 $pm $S = $b*($c*x - $a) + $d -> 
+	c1=$c*x^2 -$a*x + $d
+	c2=$b*$c*x - $a*$b + $d
+	extra=!exec pari printtex(($c1) - ($c2))
+	#$b*$c*x - $a*$b + $d
+	!if $b=$[$a/$c]
+	    x1=$b
+	    y1=$[$b*$c*$x1 -$a*$b+$d]
+	    answer$n=$b
+	    texanswer$n=x\,\,=\,\,$x1
+	    punten=points red,$x1,$y1,$x1,$y1
+	!else
+	    x1=$b
+	    tex_x1=$x1
+    	    XX=!exec pari $a/$c\
+    	    printtex($a/$c)
+	    
+    	    x2=!line 1 of $XX
+    	    tex_x2=!line 2 of $XX
+    	    y1=$[$b*$c*$x1 -$a*$b+$d]
+    	    y2=$[$b*$c*$x2 -$a*$b+$d]	
+	    texanswer$n=\left[ \begin{array}{l} x_{1} = $tex_x1 \\ x_{2} = $tex_x2 \end{array}\right.
+	    answer$n=$b,$x2
+	    punten=points red,$x1,$y1,$x2,$y2
+	!endif
+	texanswer$n=$extra = 0 \rightarrow $(texanswer$n)
+	!if $teaching=1
+    	    curve1=curve $color1,$c1
+	    #$c*x^2 -$a*x + $d 
+	    curve2=curve $color2,$c2
+	    !readproc exos/image1.proc
+	!endif
+     !exit
+!endif
+
+

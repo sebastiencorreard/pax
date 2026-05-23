@@ -1,0 +1,183 @@
+#type: ax^2+bx+c=0
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+embed=1
+mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+cols=20
+rows=2
+impossible=0
+questiontype=0
+checkfile=$checkdir/number.proc
+arglist=x
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+exotext=$empty
+
+a=!randitem -3,-2,-1,2,3,4
+b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+c=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+d=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+e=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+f=!randitem -3,-2,1,-1,2,3
+#type: ax^2+bx+c=0
+D=$[($b)*($b) - 4*($a)*($c)]
+!if $D<0
+    c=$[-1*($c)]
+    D=$[($b)*($b) - 4*($a)*($c)]
+!endif
+
+DD=$[sqrt($D)]
+!if . isin $DD
+    x1=(-1*($b) - sqrt($D))/($[2*($a)])
+    x2=(-1*($b) + sqrt($D))/($[2*($a)])
+    !if $rounding >0
+	tex_x1=$[(round(($x1)*$rounding))/$rounding]
+	tex_x2=$[(round(($x2)*$rounding))/$rounding]
+	x1=$tex_x1
+	x2=$tex_x2
+    !else
+	XX=!exec maxima $x1;\
+	$x2;
+	x1=!line 1 of $XX
+	x2=!line 2 of $XX
+	tex_x1=!texmath $x1
+	tex_x2=!texmath $x2
+    !endif
+!else
+    XX=!exec pari (-1*($b)-(sqrt($D)))/(2*($a))\
+    (-1*($b)+(sqrt($D)))/(2*($a))\
+    printtex( (-1*$b - sqrt($D))/(2*$a))\
+    printtex( (-1*$b + sqrt($D))/(2*$a))
+    x1=!line 1 of $XX
+    x2=!line 2 of $XX
+    tex_x1=!line 3 of $XX
+    tex_x2=!line 4 of $XX
+!endif
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+        
+!if $R=1
+    curve1=!rawmath $a*x^2 + $b*x+ $c
+    curve2=0
+    form1=!exec pari printtex($curve1)
+    form2=0
+    formula$n= $form1 \,\,=\,\,$form2
+    y1=0
+    y2=0
+    !goto READY
+!endif
+!if $R=2
+    p=$[$b+$d]
+    q=$[$c+$e]
+    curve1=!rawmath $a*x^2 + $p*x + $q
+    curve2=!rawmath $d*x+$e
+    tst=$d*x+$e
+    tot=!exec pari printtex($curve1)\
+    printtex(($d)*x+($e))
+    form1=!line 1 of $tot
+    form2=!line 2 of $tot
+    formula$n= $form1 \,\,=\,\, $form2
+    y1=$[$d*$x1+$e]
+    y2=$[$d*$x2+$e]
+    !goto READY
+!endif
+!if $R=3
+    r=$[$a+$f]
+    p=$[$b+$d]
+    q=$[$c+$e]
+    curve1=!rawmath $q + $p*x + $r*x^2
+    curve2=!rawmath $f*x^2+$d*x+$e
+    tst=$f*x^2+$d*x+$e
+    tot=!exec pari printtex($curve1)\
+    printtex($f*x^2+$d*x+$e)
+    form1=!line 1 of $tot
+    form2=!line 2 of $tot
+    formula$n= $form1 \,\,=\,\, $form2
+    y1=$[$q + $p*$x1 + $r*$x1*$x1]
+    y2=$[$q + $p*$x2 + $r*$x2*$x2]
+    !goto READY
+!endif
+!if $R >3
+    d=!randitem 2,3,4,5,6,7,8,9
+    !if $b=$[-1*$d] 
+	d=$[$d+1]
+    !endif
+    tot=!exec pari e=((($d)^2)/2)\
+    q=$c+e\
+    p=$b+$d\
+    r=$a+1/2\
+    printtex(e)\
+    printtex(q)\
+    printtex(p)\
+    printtex( (r/p)*x)
+    
+    e=!line 1 of $tot
+    q=!line 2 of $tot
+    p=!line 3 of $tot
+    r=!line 4 of $tot
+    ee=!line 5 of $tot
+    qq=!line 6 of $tot
+    pp=!line 7 of $tot
+    breuk=!line 8 of $tot
+    curve1=!rawmath $q + $p*x + $r*x^2
+    curve2=!rawmath 0.5*x^2 + $d*x +$e
+    tst=0.5*x^2 + $d*x +$e
+    form1=$qq + $pp \cdot x \left( 1 + $breuk \right)
+    form2=\frac{\left( x + $d \right)^{2}}{2}
+    formula$n= $form1 \,\,=\,\, $form2
+    formula$n=!replace internal + - by - in $(formula$n)
+    formula$n=!replace internal - - by + in $(formula$n)
+    y1=$[$q + $p*$x1 + $r*$x1*$x1]
+    y2=$[$q + $p*$x2 + $r*$x2*$x2]
+!endif
+
+:READY
+
+applettext=!nospace $curve1 = $curve2 ->
+sometext=!record 6 of lang/remarks.$taal
+raaklijn=!item 1 of $sometext
+raken=!item 2 of $sometext
+ss=!record 2 of lang/remarks.$taal
+helptext=!record 23 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+!if $[$D]=0
+    answer$n=$x1
+    #texanswer$n=\textrm{$raken} x_1 = $tex_x1
+    texanswer$n=\left[ \begin{array}{l} $form1 - \left( $form2 \right) = 0 \\ $a \cdot x^2 + $b \cdot x + $c = 0 \\  a \cdot x^{2} + b \cdot x + c = 0 \\ a = $a \\ b = $b \\ c = $c  \\ x_{1} =\frac{ -1\cdot($b) + \sqrt{($b)^{2} - 4 \cdot ($a) \cdot ($c)}}{2 \cdot ($a)} = \frac{$[-1*$b] + \sqrt{$D}}{$[2*($a)]} \\ \\ x_{2} =\frac{ -1\cdot($b) + \sqrt{($b)^{2} - 4 \cdot ($a) \cdot ($c)}}{2 \cdot ($a)} = \frac{$[-1*$b] - \sqrt{$D}}{$[2*($a)]}\\ \\ x_{1} = $tex_x1 \\ D = b^{2} - 4 \cdot a \cdot c =0 \textrm{$raken}\end{array} \right.
+    !if $teaching=1
+	punten=point $x1,$y1,red
+	curve1=curve $color1,$curve1
+	curve2=curve $color2,$curve2
+	!readproc exos/image1.proc
+    !endif
+!else
+    !if $[$D]>0
+	answer$n=$x1,$x2
+	#texanswer$n=\left[ \begin{array}{l} x_{1} = $tex_x1\\ x_{2} = $tex_x2  \end{array}\right.
+	texanswer$n=\left[ \begin{array}{l} $form1 - \left( $form2 \right) = 0 \\ $a \cdot x^2 + $b \cdot x + $c = 0 \\ a \cdot x^{2} + b \cdot x + c = 0 \\ a = $a \\ b = $b \\ c = $c  \\ \\ x_{1} =\frac{ -1\cdot($b) + \sqrt{($b)^{2} - 4 \cdot ($a) \cdot ($c)}}{2 \cdot ($a)} = \frac{$[-1*$b] + \sqrt{$D}}{$[2*($a)]} \\ \\ x_{2} =\frac{ -1\cdot($b) + \sqrt{($b)^{2} - 4 \cdot ($a) \cdot ($c)}}{2 \cdot ($a)} = \frac{$[-1*$b] - \sqrt{$D}}{$[2*($a)]}\\ \\ x_{1} = $tex_x1 \\ x_{2} = $tex_x2 \end{array} \right.
+	!if $teaching=1
+    	    punten=points red,$x1,$y1,$x2,$y2
+    	    curve1=curve $color1,$curve1
+	    curve2=curve $color2,$curve2
+	    !readproc exos/image1.proc
+	!endif
+    !else
+	answer$n=nil
+	image=0
+	exotext=$empty
+	texanswer$n=\left[ \begin{array}{l} $form1 - \left( $form2 \right) = 0 \\ $a \cdot x^2 + $b \cdot x + $c = 0 \\ a \cdot x^{2} + b \cdot x + c = 0 \\ a = $a \\ b = $b \\ c = $c \\ \bf{D} = b^{2} - 4 \cdot a \cdot c  = ($b)^{2} - 4 \cdot ($a) \cdot ($c) = $DD \\ x_{1} \in \varnothing  \end{array} \right.
+    !endif
+!endif
+

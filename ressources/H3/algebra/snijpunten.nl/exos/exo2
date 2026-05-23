@@ -1,0 +1,210 @@
+# ongelijkheden inklemmen snijpunten
+n=$counter
+!if $n=1
+    var3=!shuffle -5,-4,-3,-2,-1,1/2,2,3,4,5
+!endif
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+inputs=yes
+mathview=0
+math=0
+cols=20
+rows=1
+embed=1
+rounding=100
+dec=2
+make_tr=1
+roundingtext=!record 10 of lang/remarks.$taal
+questiontype=7
+javascript=js/kladblaadje.js
+checkfile=$checkdir/ineq.proc
+varlist=x
+htxt=!record 1 of lang/remarks.$taal
+expl=!record 4 of lang/remarks.$taal
+xas=!item 1 of $htxt
+yas=!item 2 of $htxt
+typefunctie=!item 3 of $htxt
+lijn=!item 4 of $htxt
+snijpunten=!item 5 of $htxt
+invullen=!item 8 of $htxt
+uitrekenen=!item 9 of $htxt
+afgerond=!item 10 of $htxt
+zie_tabel=!item 11 of $htxt
+actievemuis=!item 12 of $htxt
+ligging=!randint 0,1
+!if $ligging=1
+    boven=!item 6 of $htxt
+    latex_ligging=f>g
+!else
+    boven=!item 7 of $htxt
+    latex_ligging=f<g
+!endif
+
+keuze=!randint 0,1
+pm=!randitem -1,1
+a=!item $n of $var3
+!if $R=1
+    f2=!randint 1,7
+    e=!randint 1,9
+    d=!randint 1,6
+    f2=$[$pm*($f2+$e/10)]
+    ## ax^2 + $c = $f2 -> x = sqrt(((f2) - (c))/a)
+    !if $a>0
+	#  c < f2
+	c=$[$f2-$d]
+    !else
+	# c > f2
+	c=$[$f2+$d]
+    !endif
+    f1=!rawmath $a*x^2 + $c
+    x1 =$[(round($rounding*(sqrt((($f2) - ($c))/($a)))))/$rounding]
+    x2 =$[-1*(round($rounding*(sqrt((($f2) - ($c))/($a)))))/$rounding]
+    ytop=$c
+!else
+    b=!randitem -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+    !if $R=2
+	f1=!rawmath $a*x^2 + $b*x
+        ## ax^2 + $bx = $f2 -> ax^2 + $bx + (-1*$f2) = 0 : c= -1*f2
+	## D = b^2 - 4ac >0 -> D = b^2 - 4a(-f2) >0 ->  4a(-f2)<b^2 : -1*f2 < b^2/4a : f2 > -b^2/(4a)
+        gr=$[$b*$b/(4*$a)]
+	f2=!randint $[round($gr+2)],$[round($gr+20)]
+        !if $a<0
+	    f2=$[-1*$f2]
+	!endif
+	c=$[-1*$f2]
+    !else
+	d=!randitem -4,-3,-2,-1,1,2,3,4
+	f1=!rawmath $a*x^2 + $b*x + $d
+        ## ax^2 + $bx + $d = $f2 -> ax^2 + bx + (d + -1*f2) = 0 : c= d + -1*f2
+	## D = b^2 - 4ac >0 -> D = b^2 - 4a(d -f2) >0 ->  4a(d -f2)<b^2 : d-f2 < b^2/4a : -f2 < b^2/4a -d  : f2 > -1*(b^2/(4a) - d)
+        gr=$[$b*$b/(4*$a) - ($d)]
+	f2=!randint $[round($gr+2)],$[round($gr+20)]
+        !if $a<0
+	    f2=$[-1*$f2]
+	!endif
+	c=$[($d) + (-1*$f2)]
+    !endif
+    x1=$[(round($rounding*((-1*$b+sqrt($b*$b - 4*$a*$c))/(2*$a))))/$rounding]
+    x2=$[(round($rounding*((-1*$b-sqrt($b*$b - 4*$a*$c))/(2*$a))))/$rounding]
+    ytop=!evalsubst x=$[-1*$b/(2*$a)] in $f1
+!endif
+f1=!nospace $f1
+F1=!texmath $f1
+!if $ligging=1
+    #parabbol boven de lijn
+    !if $a>0
+	# dal
+	answer$n=x<$x1&&x>$x2
+	tex=x<$x1 \wedge x>$x2
+    !else
+	#berg
+	answer$n=$x1<x&&x<$x2
+	tex=$x1<x<$x2
+    !endif
+!else
+    #parabool onder de lijn
+    !if $a>0
+	#dal
+	answer$n=$x1<x&&x<$x2
+	tex=$x1<x<$x2
+    !else
+	#rechts
+	answer$n=x<$x1&&x>$x2
+	tex=x<$x1 \wedge x>$x2
+    !endif
+!endif    
+
+y1=$f2
+y2=$f2
+xmin=$[min(1.2*$x1,1.2*$x2)]
+xmax=$[max(1.2*$x1,1.2*$x2)]
+!if $a<0
+    ymax=$[ceil($ytop+5)]
+    ymin=$[$y1-10]
+!else
+    ymax=$[floor($ytop-5)]
+    ymin=$[$y1+10]
+!endif
+ss=!record 3 of lang/remarks.$taal
+#@Gegeven de $functie <font color=$color1>f</font> en de lijn <font color=$color2>g</font>.<br />Bepaal via inklemming voor welke x-waarden<br />waar de grafiek van f $boven de lijn g ligt. 
+
+diff1=0.8,0.9,0.95,0.99,1.00,1.01,1.05
+diff2=0.7,0.94,0.99,1.00,1.01,1.1,1.2
+r=1
+!for xx in $x1,$x2
+    tablebody=$empty
+    begin=$[$xx-1]
+    !for p=1 to 8
+	d=!item $p of $(diff$r)
+	s=$[$begin+$d]
+	yl=!evalsubst x=($s) in $f1
+	yl=$[(round($rounding*$yl))/$rounding]
+	yr=$f2
+	!if $s != $xx
+	    tablebody=!append word $ <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> $ to $tablebody
+	!else
+	    k=lightgreen
+	    tablebody=!append word $ <tr><td style="background-color:$k;color:red;font-size:120%">$s</td><td style="background-color:$k;color:red;font-size:120%">$yl</td><td style="background-color:$k;color:red;font-size:120%"">$yr</td></tr> $ to $tablebody
+	!endif
+    !next p
+    t$r=<table class="zebra_table_v2"><tr><th >x</th><th><i>f(x)</i></th><th><i>g(x)</i></th></tr>$tablebody</table>
+    !increase r
+!next xx
+textanswer$n=<table style="text-align:center"><tr><th bgcolor="lightgreen">x<sub>1</sub></th><th bgcolor="lightgreen">x<sub>2</sub></th></tr><tr><td>$t1</td><td>$t2</td></tr></table>
+
+formula$n=\left[ \begin{array}{ll} \textrm{$typefunctie} & f(x) = $F1 \\  \textrm{$lijn} & g(x)=$f2 \\ & $latex_ligging \\ \textrm{$afgerond}\end{array} \right. \rightarrow    
+rr = \left[ \begin{array}{l} \textrm{$snijpunten : $typefunctie = $lijn} \\ $F1 = $f2 \\ x_{1} \simeq $x1 \\ x_{2} \simeq $x2 \\ $tex \\ \textrm{$zie_tabel} \end{array} \right.
+var1=$f1
+var2=$f2
+question$n=<a onmouseover="return escape('$actievemuis<hr />$expl')">$ss</a>
+texanswer$n=$rr
+helptext=<img src=\'$module_dir/gifs/inklemmen2.jpg\' alt=\'noalt\' /><br />$expl
+
+
+!if $teaching=1
+xsize=300
+ysize=300
+tiptxt=!record 63 of $remarkdir/commonremarks.$taal
+!if $ymin>$ymax
+ tmp=$ymin
+ ymin=$ymax
+ ymax=$tmp
+!endif
+!if $f2 > $ymax
+    ymax=$[$f2+4]
+!endif
+!if $f2 < $ymin
+    ymin=$[$f2-4]
+!endif
+xstep=$[abs(($xmax-$xmin)/10)]
+ystep=$[abs(($ymax-$ymin)/10)]
+tip=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $[2*$xmin],$[2*$xmax]\
+yrange $ymin,$ymax\
+bgcolor $wims_bgcolor\
+xlabel    $xas\
+ylabel    $yas\
+axis\
+grid $xstep,$ystep,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$f1\
+dashed\
+dashtype 6,6\
+hline 0,$f2,green\
+fontfamily italic 14px Ariel\
+string green,$xmin,$[$f2+0.5],y = $f2\
+linewidth 3\
+points blue,$x1,$y1,$x2,$y2\
+intooltip $tiptxt\
+zoom black\
+precision 10\
+mouse blue,22\
+precision 1000
+
+exotext=<span class="schaersvoorde_link">$tip</span><br />
+
+!endif

@@ -1,0 +1,114 @@
+# grontal
+n=$counter
+embed=1
+questiontype=0
+mathview=3
+make_tr=1
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+smallfont=18
+largefont=24
+checkfile=exos/multiple.is.proc
+helptext=<img src=\'$module_dir/gifs/exo4.jpg\' alt=\'noalt\' />
+getallen=!shuffle 2,3,4,5,6,7,8,9,10
+x=!item 1 of $getallen
+y=!item 2 of $getallen
+g=!shuffle 2,3,4,5,6,7,8,9
+a1=!item 1 of $g
+a2=!item 2 of $g
+b1=!item 3 of $g
+b2=!item 4 of $g
+keuze=!randint 0,2
+
+!if $keuze=0
+    var1=!nospace $x^$a1 * $y^$b1 * $x^$a2 / $y^$b2 
+    tot=!exec pari \p{15}\
+    A = 1.0*(($x)^($a1+$a2))*(($y)^($b1-$b2))\
+    B = 1.0*((round($rounding*(A)))/$rounding)\
+    if(A == B,1,0)
+
+    answer$n=!line 2 of $tot
+    rans=!line 3 of $tot
+    !if E isin $(answer$n)
+	answer$n=!replace internal E by ^( in $(answer$n)
+	answer$n=!append word $ )$ to $(answer$n)
+    !endif
+    !if E isin $rans
+	rans=!replace internal E by ^{ in $rans)
+	rans=!append word $ }$ to $rans
+    !endif
+    chk=!line 4 of $tot
+    !if $chk=1
+	tex_ans=$(answer$n)
+	tex_ans=!replace internal .0 by , in $tex_ans
+	tex_ans=!item 1 of $tex_ans
+    !else
+	tex_ans=$(answer$n) \approx $rans
+    !endif
+    texanswer$n=\frac{$x^{$a1} \cdot $y^{$b1} \cdot $x^{$a2}}{$y^{$b2}} =  $x^{$a1 + $a2} \cdot \frac{$y^{$b1}}{$y^{$b2}} = $x^{$[$a1+$a2]} \cdot $y^{$b1} \cdot $y^{-$b2} = $x^{$[$a1+$a2]} \cdot $y^{$b1-$b2} = $x^{$[$a1+$a2]} \cdot $y^{$[$b1-$b2]} = $tex_ans
+!else
+    !if $keuze=1
+	var1=!nospace $y^$b1 * $x^$a1  / ( $x^$a2 * $y^$b2) 
+	tot=!exec pari \p{15}\
+	A = 1.0*($x^($a1-$a2)*$y^($b1-$b2))\
+	B = 1.0*((round($rounding*(A)))/$rounding)\
+	if(A == B,1,0)
+
+	answer$n=!line 2 of $tot
+	rans=!line 3 of $tot
+	!if E isin $(answer$n)
+	    answer$n=!replace internal E by ^( in $(answer$n)
+	    answer$n=!append word $ )$ to $(answer$n)
+	!endif
+	!if E isin $rans
+	    rans=!replace internal E by ^{ in $rans)
+	    rans=!append word $ }$ to $rans
+	!endif
+	chk=!line 4 of $tot
+	!if $chk=1
+	    tex_ans=$(answer$n)
+	    tex_ans=!replace internal .0 by , in $tex_ans
+	    tex_ans=!item 1 of $tex_ans
+	!else
+	    tex_ans=$(answer$n) \approx $rans
+	!endif
+
+	texanswer$n=\frac{$y^{$b1} \cdot $x^{$a1}}{$x^{$a2} \cdot $y^{$b2}} = $y^{$b1} \cdot $x^{$a1} \cdot $x^{-$a2} \cdot $y^{-$b2} = $y^{$b1 - $b2} \cdot $x^{$a1 - $a2}  = $y^{$[$b1 - $b2]} \cdot $x^{$[$a1 - $a2]} = $tex_ans
+
+    !else
+	var1=!nospace $x^$a1 / $y^$b1 * $y^$b2 / $x^$a2 
+	tot=!exec pari \p{15}\
+	A = 1.0*($x^($a1-$a2)*$y^($b2-$b1))\
+	B = 1.0*((round($rounding*(A)))/$rounding)\
+	if(A == B,1,0)
+
+	answer$n=!line 2 of $tot
+	rans=!line 3 of $tot
+	!if E isin $(answer$n)
+	    answer$n=!replace internal E by ^( in $(answer$n)
+	    answer$n=!append word $ )$ to $(answer$n)
+	!endif
+        !if E isin $rans
+	    rans=!replace internal E by ^{ in $rans
+	    rans=!append word $ }$ to $rans
+	!endif
+	chk=!line 4 of $tot
+	!if $chk=1
+	    tex_ans=$(answer$n)
+	    tex_ans=!replace internal .0 by , in $tex_ans
+	    tex_ans=!item 1 of $tex_ans
+	!else
+	    tex_ans=$(answer$n) \approx $rans
+	!endif
+	texanswer$n= \frac{$x^{$a1}}{$y^{$b1}} \cdot \frac{ $y^{$b2}}{ $x^{$a2}} = \frac{$x^{$a1}}{$x^{$a2}} \cdot \frac{ $y^{$b2}}{ $y^{$b1}} = $x^{$a1} \cdot $x^{-$a2} \cdot $y^{$b2} \cdot $y^{-$b1} = $x^{$a1 - $a2} \cdot $y^{$b2 - $b1} = $x^{$[$a1 - $a2]} \cdot $y^{$[$b2 - $b1]} = $tex_ans
+    !endif
+!endif
+applettext=!nospace $var1 = 
+mathviewpanel=$module_title:^:+:-:/:
+rndtxt=Bij gebroken getallen mag je het eindantwoord afronden op $[log($rounding)/log(10)] decimalen achter de komma (punt).
+ss=Herleid de onderstaande uitdrukking tot een <span style="color:blue">simpeler vorm</span>en bereken.<br />$rndtxt
+
+question$n=<a onmouseover="return escape('$helptext<hr />$rndtxt')">$ss</a>
+!exit

@@ -1,0 +1,136 @@
+!set title=Question 0306 Nombre inconnu
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=mental_calculation,decimals
+oefobservation=Le numéro de la question s'interprête comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=17
+prevarcnt=8
+postvarcnt=8
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" >	<strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong>	<br><u>Aide à la saisie :</u> saisir 3/4 pour \(3/4)
+val7=Félicitations toutes les réponses sont justes !
+tmp0=!randitem 1,2,3
+
+val8=$(tmp0)
+val9=$val8$val8$val8$val8,$val8$val8$val8$val8
+tmp0=!randitem $(val9[1]),$(val9[2])
+
+val10=$[rint($(tmp0))]
+val11=En utilisant uniquement le chiffre $val8, écris un nombre plus grand que 999. 
+val12=
+val13=Par exemple : \($val10 \) conviendrait.
+replytype1=numeric
+replyoption1=defaut=0 
+replyname1=
+replygood1=?analyze 14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val11  
+!read oef/embed.phtml r1,10	    autofocus 
+$() $val12</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!text expand $val14 using 01
+
+val15=$(tmp0)
+tmp0=!words2items $val15
+
+val15=$(tmp0)
+tmp0=!words2items $val15
+
+val16=$(tmp0)
+tmp0=!itemcnt $val16
+
+val17=$(tmp0)
+val18=$[rint(0)]
+!for val19 =1 to $val17 
+val18=$[rint($val18+$(val16[$val19]))]
+!next
+val20=$[rint($val17*$val8)]
+
+!exit
+
+:feedback
+!ifval $m_sc_reply1 < 1 and $val13!=
+ <div class='oef_feedbacks'>	  <style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val13</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val14>999
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Le nombre est plus grand que 999 ?
+
+!ifval $val20 issametext $val18
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=Le nombre s'écrit qu'avec des $val8 ?
+
+!exit
+
+:stat
+vsavelist=6,8,11,12,13,14
+embedcnt=1

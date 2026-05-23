@@ -1,0 +1,126 @@
+n=$counter
+!if $counter=1
+    var6=!shuffle 1,2,3,4,5,6
+    cols=12
+    rows=1
+    embed=0
+    total_exos=6
+    questiontype=0
+    calculator=0
+    mathview=0
+    rounding=0
+    checkfile=exos/precheck1.proc
+    arglist=$empty
+!endif
+R=!item $counter of $var6
+mathml=!char 2 of $useropts
+!if $R=1
+    var1=0
+    var2=0
+    # exact
+    vraag=1
+    g=!randint 2,20
+    !for p=1 to $g
+	vraag=!append word 0 to $vraag
+    !next p
+    vraag=!nospace $vraag
+    sig=3
+    texanswer$n=\log($vraag) = $g \rightarrow $vraag = 10^{$g}
+    answer$n=10^$g
+!else
+    !if $R=2
+	sig=3
+	var2=0
+	vraag=!randint 11,999
+	log=$[log($vraag)/log(10)]
+	tot=!exec scienceprint $log,3,0 $log,3,2
+	log1=!item 1 of $tot
+	log2=!item 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} \log\left( $vraag \right) \approx $log  \rightarrow $vraag = 10^{$log} \\ \textrm{Op $sig significante cijfers : }\: $vraag = 10^{$log2} \end{array} \right.
+	answer$n=10^($log)
+	var1=$[abs(10^($log) - 10^($log1))]
+    !else
+	!if $R=3
+	    sig=3
+	    var1=0
+	    var2=0
+	    # exact
+	    vraag=0.
+	    g=!randint 2,20
+	    !for p=1 to $[$g-2]
+		vraag=!append word 0 to $vraag
+	    !next p
+	    vraag=!append word 1 to $vraag
+	    texanswer$n=\log($vraag) = -$g \rightarrow $vraag = 10^{-$g}
+	    answer$n=10^(-$g)
+	!else
+	    !if $R=4
+		t=!randint 111111,999999
+		r=!randint 1,6
+		t=!exec moneyprint $[$t*10^(-5)] $r
+		g=!randint 2,23
+		getal=$t*10^$g
+		tot=!exec sigdigits $getal
+		sig=$(tot[1])
+		log=$[log($getal)/log(10)]
+		tot=!exec scienceprint $log,3,0 $log,3,2
+		log1=!item 1 of $tot
+		log2=!item 2 of $tot
+		vraag=$t\cdot 10^{$g}
+		texanswer$n=\left[ \begin{array}{l} \log\left( $vraag \right) \approx $log  \rightarrow $vraag = 10^{$log} \\ \textrm{Op $sig significante cijfers : }\: $vraag = 10^{$log2} \end{array} \right.
+		answer$n=10^($log)
+		var1=$[abs(10^($log) - 10^($log1))]
+		var2=0
+	    !else
+		!if $R=5
+		    t=!randint 111111,999999
+		    r=!randint 1,6
+		    t=!exec moneyprint $[$t*10^(-5)] $r
+		    g=!randint 2,23
+		    g=$[-1*$g]
+		    getal=$t*10^($g)
+		    tot=!exec sigdigits $getal
+		    sig=$(tot[1])
+		    log=$[log($getal)/log(10)]
+		    tot=!exec scienceprint $log,$sig,0 $log,$sig,2
+		    log1=!item 1 of $tot
+		    log2=!item 2 of $tot
+		    vraag=$t\cdot 10^{$g}
+		    texanswer$n=\left[ \begin{array}{l} \log\left( $vraag \right) \approx $log  \rightarrow $vraag = 10^{$log} \\ \textrm{Op $sig significante cijfers : }\: $vraag = 10^{$log2} \end{array} \right.
+		    answer$n=10^($log)
+		    var1=$[abs(10^($log) - 10^($log1))]
+		    var2=0
+		!else
+		    sig=3
+		    g=!randint 2,9
+		    pow=!randint 4,15
+		    pm=!randitem -1,1
+		    pow=$[$pm*$pow]
+		    vraag=$g^{$pow}
+		    log=$[log($g^($pow))/log(10)]
+		    tot=!exec scienceprint $log,$sig,0 $log,$sig,2
+		    answer$n=10^($log)
+		    log1=!item 1 of $tot
+		    log2=!item 2 of $tot
+		    var1=$[abs(10^($log) - 10^($log1))]
+		    var2=0
+		    texanswer$n=\left[ \begin{array}{l} $vraag = 10^{\log \left( $vraag \right) } = 10^{$log} \\ \textrm{Op $sig significante cijfers :  } $vraag = 10^{$log2} \end{array} \right.
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if $mathml = 2
+    formula$n=\begin{array}{lll} $vraag & = & \input{12}{0}{font-size:18px;background:orange}{}{0} \end{array}
+    inputs=-1
+!else
+    embed=1
+    formula$n= $vraag 
+!endif
+helptext=kijk in de helppagina
+m_rightarrow=&nbsp;=&nbsp;
+question$n=Schrijf het onderstaande getal als een macht met grondtal 10.<br />Rond indien nodig de exponent af op $sig significante cijfers
+
+!exit
+

@@ -1,0 +1,134 @@
+!set title=Paquets de crayons
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 25
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 15, 100
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 15, 100
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8)	
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val7=$[rint($val7/$val9)]
+val8=$[rint($val8/$val9)]
+!if $val7=$val8 
+val7=$[rint(37)]
+val8=$[rint(17)]
+!endif
+val10=$[rint($val6*$val7)]
+val11=$[rint($val6*$val8)]
+val12=crayons,ballons,verres,stylos,feutres
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=bleus,rouges,verts,noirs,blancs,jaunes
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val13
+
+val13=$(tmp0)
+val15=$[rint($val10/$val6)]
+val16=$[rint($val11/$val6)]
+val17=$[rint($val15+$val16)]
+replytype1=numexp
+replyname1=nombre de $val12 par lot
+replygood1=$val6
+replytype2=numexp
+replyname2=nombre de lots
+replygood2=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Le nombre de $val12 par lot doit être un diviseur du nombre de $val12 $val13 et du nombre de $val12 $val14
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On regroupe en lots $val10 $val12 $val13 et $val11 $val12 $val14 de façon que tous les $val12 d'un lot	soient de la même couleur et que tous les lots contiennent le même nombre de $val12.	De plus, les lots doivent contenir le plus de $val12 possible et tous les $val12 doivent être utilisés.	<ol>	 <li>Combien faut-il mettre de $val12 par lot ?</li>	 <li>Combien de lots peut-on réaliser ?</li>	</ol>	<b>Vos réponses :</b>	<ol>	 <li><label for="reply1">Il faut mettre</label>  
+!read oef/embed.phtml r1,5 
+$() $val12 par lot.</li>	 <li><label for="reply2">On peut réaliser</label>  
+!read oef/embed.phtml r2,5 
+$() lots.</li>	</ol>	
+$()
+!exit
+
+:hint
+$()Le nombre de $val12 par lot doit être un diviseur du nombre de $val12 $val13 et du nombre de $val12 $val14
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ol>	<li>Le nombre de $val12 par lot doit être un diviseur du nombre de $val12 $val13 et du nombre de $val12 $val14. On calcule donc le plus grand diviseur commun de $val10 et $val11. On obtient $val6.</li>	<li>Le nombre de $val12 par lot est donc $val6. Le nombre de lots réalisables avec des $val12 $val13 est 
+!insmath \frac{$val10}{$val6}
+$() soit $val15 lots. De même, le nombre de lots réalisables avec des $val12 $val14 est 
+!insmath \frac{$val11}{$val6}
+$() soit $val16 lots.<br/>	Le nombre total de lots est donc $val17.</li>	</ol>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,13,14,15,16,17
+embedcnt=2

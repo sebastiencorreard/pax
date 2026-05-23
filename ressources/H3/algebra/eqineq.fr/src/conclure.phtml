@@ -1,0 +1,69 @@
+!! fichier de gestion de l'action conclure.
+
+!! fichier de gestion des actions de combinaison lineaire
+!goto $wims_read_parm
+!exit
+
+:question
+Erreur de l'exercice. Désolé vous devez abandonner et signaler ce problème à l'auteur.
+!exit
+
+:reponse
+<p class="oef_indbad">Vous n'avez pas terminé la résolution de l'exercice.</p>
+Le résultat doit être rendu sous le format suivant : <br />
+!distribute items $listinc into tmp1,tmp2
+!let tmp=\($tmp1=c) où \(c) est un nombre.,<table><tr><td rowspan="2"> $(m_leftbrace2)</td><td>\($tmp1=c)</td></tr><tr><td>\($tmp2=d)</td></tr></table> où \(c) et \(d) sont des nombres, \($tmp1 symb c) où \(c) est un nombre et \(symb) l'un des quatre symboles d'inégalité
+
+<blockquote><p>
+!item $mode of $tmp
+</p></blockquote>
+Les résultats doivent être simplifié le plus possible.<br />
+!href cmd=resume&status=1 retourner
+   au menu général.
+!exit
+
+:analyse
+!distribute items $listinc into tmp1,tmp2
+tmp3=!line 1 of $(sys$nbetape)
+!distribute items $tmp3 into tmp3,tmp4,tmp5
+!if $tmp5=$tmp1 and $mode=1
+ tmp=$tmp5
+ tmp5=$tmp3
+ tmp3=$tmp
+!endif
+!if $tmp3!=$tmp1
+   !exit
+!endif
+i=0
+replygood0=0
+test=$empty
+reply0=$tmp5
+!read anstype/numeric
+!if NaN isin $test
+   !exit
+!endif
+tmp6=!exec pari $tmp5
+!if $tmp5 notsametext $tmp6
+   !exit
+!endif
+!if $mode=2
+   tmp3=!line 2 of $(sys$nbetape)
+   !distribute items $tmp3 into tmp3,tmp4,tmp5
+   !if $tmp3!=$tmp2
+      !exit
+   !endif
+   i=0
+   replygood0=0
+   test=$empty
+   reply0=$tmp5
+   !read anstype/numeric
+   !if NaN isin $test
+      !exit
+   !endif
+   tmp6=!exec pari $tmp5
+   !if $tmp5 notsametext $tmp6
+      !exit
+   !endif
+!endif
+status=5
+!exit

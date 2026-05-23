@@ -1,0 +1,94 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=10
+make_tr=1
+rows=3
+mathview=0
+math=0
+inputs=1.1
+viewlogo=1
+checkfile=$checkdir/units.proc
+
+helptext=<img src=$module_dir/gifs/slingerwet.png/><hr />Met daarin<ul><li><b>T<sub>o</sub></b> de slingertijd of periode </li><li><b>l</b> de lengte van de slinger</li><li><b>g</b> in de formule is de valversnelling<br />g<sub>Nederland</sub> &asymp; 9.81 m/s<sup>2</sup></li><li>&pi; is het getal <kbd>pi</kbd></li></ul>
+logotext=<img src=\'$module_dir/gifs/Huygens.gif\' alt=\'Huygens\' />
+logo=<img src="$module_dir/gifs/pendule.gif" alt="pendule" />
+
+!if $R=1
+    p=!randint 1,4
+    keuze=!randint 1,3
+    !if $keuze=1
+	e1=9
+	e2=!randint 0,9
+	e3=!randint 1,9
+	lengte=!nospace $e1 $e2 . $e3
+    !else
+	!if $keuze=2
+	    e1=!randint 1,5
+	    e2=!randint 0,5
+	    e3=!randint 0,9
+	    e4=!randint 1,9
+	    lengte=!nospace $e1 $e2 $e3 . $e4
+	!else
+	    e1=!randint 1,5
+	    e2=!randint 0,9
+	    e3=!randint 0,5
+	    e5=!randint 0,9
+	    e5=!randint 1,9
+	    lengte=!nospace $e1 $e2 $e3 . $e4 $e5
+	!endif
+    !endif
+    l_m=$[$lengte/100]
+    f=$[$l_m/9.81]
+    sqrt_f=$[sqrt($f)]
+    var1=1
+    ans=$[2*pi*$sqrt_f]
+    tot=!exec scienceprint $ans,3,0 $ans,3,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    var2=$[abs($ans - $c_ans)]
+    answer$n=$c_ans s
+    description=De slingertijd
+    ex1=$empty
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+    
+    ss=Gegeven is de <span style="color:blue">slingerformule</span> van Huygens.<br />Bereken voor een slinger met lengte <b>l</b> = $lengte cm<br /> de waarde voor de slingertijd T<br /><em>Geef je antwoord in een SI eenheid en het juiste aantal significante cijfers</em>
+    
+    rr=<ul><li>De zwaartekrachtsversnelling g &asymp; 9.81 m/s<sup>2</sup></li><li>De lengte van onze slinger is $lengte cm = $lengte/100 meter = $l_m m</li><li>T = 2&sdot;&pi;&sdot;&radic;(l/g)<br />= 2*pi*sqrt($l_m  m <b>/</b> 9.81 m/s<sup>2</sup>)<br />= 2*pi*sqrt($f s<sup>2</sup><br />= 2*pi*$sqrt_f s<br />= $ans s</li><li>Het antwoord moet op 3 significante cijfers worden genoteerd. (afkomstig van 9.81)</li><li>T = $h_ans seconden</li></ul>
+
+
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+ !exit
+!endif
+
+!if $R>1
+    tijd=!randint 1,15
+    tijd=$[$tijd*5]
+    tijd=!exec moneyprint $[$tijd/10] 2
+    ans=$[(9.81*$tijd^2)/(4*pi*pi)]
+    tot=!exec scienceprint $ans,3,0 $ans,3,1 $[$ans*100],3,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    c_ans_cm=!item 3 of $tot
+    answer$n=$c_ans m
+    var2=$[abs($ans - $c_ans)]
+    var1=1
+    ss=Gegeven is de <span style="color:blue">slingerformule</span> van Huygens.<br />\
+    Bereken hoe lang een slinger moet zijn om een slingertijd van $tijd seconden te hebben.\
+    <br /><em>Geef je antwoord in een SI eenheid en het juiste aantal significante cijfers</em>
+    
+    rr=<ul><li>De zwaartekrachtsversnelling g &asymp; 9.81 m/s<sup>2</sup></li><li>De gewenste slingertijd is $tijd seconden</li><li>T = 2&sdot;&pi;&sdot;&radic;(l/g)<br />&radic;(l/g) = T / (2&sdot;&pi;)<br />(l/g) = (T / (2&sdot;&pi;))<sup>2</sup><br />l = g &sdot; (T / (2&sdot;&pi;))<sup>2</sup> = g &sdot; T<sup>2</sup> / (4&sdot;&pi;&sdot;&pi;)</li><li>l = 9.81*$tijd^2/(4*pi*pi)  eenheid: (m/s^2)*s^2 = m <br />l = $[9.81*$tijd^2]/$[(4*pi*pi)] m <br />l = $ans meter</li><li>Het antwoord op 3 significante cijfers (afkomstig van 9.81)</li><li>De slingerlengte &asymp; $c_ans m &asymp; $c_ans_cm cm</li></ul>
+
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+    description=De slinger lengte
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+     
+ !exit
+!endif
+
+

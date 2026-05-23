@@ -84,7 +84,7 @@ class _SlibMixin:
             with open(full, encoding="utf-8") as f:
                 text = f.read()
         except UnicodeDecodeError:
-            with open(full, encoding="iso-8859-1") as f:
+            with open(full, encoding="cp1252") as f:
                 text = f.read()
 
         chunks = re.split(r"(?:^|\n):", text)
@@ -115,7 +115,7 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._compute_weighted_median(proc_args)
             return
 
-        if path == "oef/draw.phtml":
+        if path in ("oef/draw.phtml", "oef/canvasdraw.phtml"):
             head, _, body = proc_args.partition("\n")
             size_parts = [p.strip() for p in head.split(",")]
             try:
@@ -123,7 +123,12 @@ class _SlibMixin:
                 ysize = int(float(size_parts[1])) if len(size_parts) > 1 else 80
             except ValueError:
                 xsize, ysize = 300, 80
-            self.ctx["ins_url"] = flydraw_to_url(xsize, ysize, body)
+            url = flydraw_to_url(xsize, ysize, body)
+            # $ins_url stays a bare URL — WIMS callers wrap it explicitly in <img>.
+            # $canvasdraw_out is used inline in question text without an explicit
+            # <img>, so we store it as a ready-to-render <img> tag.
+            self.ctx["ins_url"] = url
+            self.ctx["canvasdraw_out"] = f'<img src="{url}" alt="">'
             return
 
         if path.startswith("slib/"):
@@ -154,7 +159,7 @@ class _SlibMixin:
             with open(script_path, encoding="utf-8") as f:
                 text = f.read()
         except UnicodeDecodeError:
-            with open(script_path, encoding="iso-8859-1") as f:
+            with open(script_path, encoding="cp1252") as f:
                 text = f.read()
 
         saved_parm = self.ctx.get("wims_read_parm", "")

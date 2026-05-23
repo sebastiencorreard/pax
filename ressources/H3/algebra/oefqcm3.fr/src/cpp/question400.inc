@@ -1,0 +1,51 @@
+\title{Question 400 Lecture graphique}
+\keywords{graphing,quizz,functions}
+\observation{Question du sujet zéro sujet-zero-dnb-serie-generale-b-mathematiques.pdf du DNB publié sur éduscol en décembre 2025}
+%%% MB%%%
+\integer{a=randomitem(2,4,6,8)}
+\integer{a1=\a+randomitem(2,4)}
+\integer{a2=\a1+randomitem(2,4)}
+\integer{y=randomitem(5,10,15)}
+\text{q=shuffle(2.5,7.5,12.5)}
+\real{y1=\y+\q[1]}
+\real{y2=\y1+\q[2]}
+\text{dessin=canvasdraw(300,200
+xrange -5,23
+yrange -10,40
+parallel 0,0,18,0,0,5,8,grey
+parallel 0,0,0,35,2,0,10,grey
+fontfamily 15px Arial
+stringup black,-2,5,270,Température (en °C)
+stringup black,3,-7,0,Horaire (en heures)
+fontfamily 10px Arial
+string black,-1,-1,0
+string black,-1,4,5
+string black,-1.5,9,10
+string black,-1.5,14,15
+string black,-1.5,19,20
+string black,-1.5,24,25
+string black,-1.5,29,30
+string black,-1.5,34,35
+string black,-0.3,-3,0
+string black,1.7,-3,2
+string black,3.7,-3,4
+string black,5.7,-3,6
+string black,7.7,-3,8
+string black,9.6,-3,10
+string black,11.6,-3,12
+string black,13.6,-3,14
+string black,15.6,-3,16
+string black,17.6,-3,18
+fcircle \a,\y,8,grey
+fcircle \a1,\y1,8,grey
+fcircle \a2,\y2,8,grey
+polyline blue,\a,\y,\a1,\y1,\a2,\y2
+)}
+
+
+\text{enonce=Le graphique ci-dessous donne l’évolution de la température (en degrés Celsius) en fonction de l’horaire (en heures).
+<div class="wimscenter">\dessin</div>Entre \a h et \a2 h&#44; de combien de degrés la température a-t-elle augmenté&nbsp;&#63;}
+\text{enonceb=°C}
+\integer{rep=\y2-\y}
+\text{endfeed=randomitem(\y+\rep=\y2,\y2-\y=\rep)}
+\text{feedback=La bonne réponse est \rep. <br>En effet &nbsp;&#58; <ul class="wims_nopuce"><li>A \a h elle était de \y °C</li><li>A \a2 h elle était de \y2 °C</li><li>\y+\rep=\y2</li></ul>}

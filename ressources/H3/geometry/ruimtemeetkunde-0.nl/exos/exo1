@@ -1,0 +1,303 @@
+#:HTML5 Kubus  [ pythagoras ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+mathview=0
+questiontype=0
+cols=14
+rows=1
+embed=1
+inputs=1
+applet=1
+hoogte=35
+breedte=0
+diepte=0
+helptext=$empty
+checkfile=$checkdir/number.proc
+#A(-1.98,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00)
+m_rightarrow=&nbsp;=
+!if $R=1
+    setje=A,F A,H A,C B,D B,E D,E B,G C,F C,H D,G E,G F,H
+    keuze=!randint 1,12
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    x=!randint 1,14
+    
+    coord=-1.98,-3.12,-6.56,5.44\
+    -1.98,-3.12,6.96,7.00\
+    -1.98,-3.12,2.29,-8.06\
+    -6.66,-6.31,6.91,-4.81\
+    -6.66,-6.31,-2.04,8.69\
+    6.91,-4.81,-2.04,8.69\
+    -6.66,-6.31,2.34,3.69\
+    2.29,-8.06,-6.56,5.44\
+    2.29,-8.06,6.96,7.00\
+    6.91,-4.81,2.34,3.69\
+    -2.04,8.69,2.34,3.69\
+    -6.56,5.44,6.96,7.00
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    !if $keuze<7
+    seg=dashed\
+    dashtype 6,3\
+    segment $lijn,darkred
+    !else
+    seg=segment $lijn,darkred
+    !endif
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    string black,7.36,0.60,$x\
+    string black,4.75,-7.19,$x\
+    linewidth 2\
+    $seg\
+    #segment $lijn,darkred\
+    #userdraw segment,red\
+#    mouse red,18\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    userdraw poly3,red  
+    
+    ss=!record 1 of lang/remarks.$taal
+    #@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Bereken de afstand van punt $A tot punt $B .
+    textanswer$n=!record 2 of lang/remarks.$taal
+    #@Met de stelling van Pythagoras.
+    question$n=$ss
+    description=d($AB)
+    answer$n=$x*sqrt(2)
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    texanswer$n=\sqrt{$x^{2} + $x^{2}} = $x \sqrt{2} $ans
+ !exit
+!endif
+
+#A(-1.98,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00)
+
+!if $R=2
+    setje=A,G B,H C,E D,F
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    x=!randint 1,14
+    
+    coord=-1.98,-3.12,2.34,3.69\
+    -6.66,-6.31,6.96,7.00\
+    2.29,-8.06,-2.04,8.69\
+    6.91,-4.81,-6.56,5.44
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    string black,7.36,0.60,$x\
+    string black,4.75,-7.19,$x\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment $lijn,darkred\
+    mouse red,18\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+      
+    ss=!record 1 of lang/remarks.$taal
+    textanswer$n=!record 2 of lang/remarks.$taal
+    question$n=$ss
+    description=d($A$B)
+    answer$n=$x*sqrt(3)
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif 
+    texanswer$n=\sqrt{$x^{2} + $x^{2} + $x^{2}} = $x \sqrt{3} $ans
+ !exit
+!endif
+
+!if $R>2
+    kans=!randint 0,1
+    kans=1
+    !if $kans=1
+	setje=C,G,A D,H,B A,E,C B,F,D E,A,G F,B,H G,C,E H,D,F
+	keuze=!randint 1,8
+	set=!word $keuze of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+	C=!item 3 of $set
+	AB=!nospace $A $B
+	CQ=!nospace $C Q
+	AQ=!nospace $A Q
+	x=!randitem 4,8,12,16,20,24,28,32,36,40
+        k=!randitem 1,2,3
+	y=!item $k of 1/4,1/2,3/4
+	lengte=$[$x*$y]
+	
+#A(-1.98,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00)
+
+	coord=$[2.29+$y*0.05],$[-8.06+$y*11.75],-1.98,-3.12\
+	$[6.91+$y*0.05],$[-4.81+$y*11.81],-6.66,-6.31\
+	$[-1.98-$y*0.06],$[-3.12+$y*11.81],2.29,-8.06\
+	$[-6.66+$y*0.1],$[-6.31+$y*11.75],6.91,-4.81\
+	$[-2.04+$y*0.06],$[8.69-$y*11.81],2.34,3.69\
+	$[-6.56-$y*0.1],$[5.44-$y*11.75],6.96,7.00\
+	$[2.34-$y*0.05],$[3.69-$y*11.75],-2.04,8.69\
+	$[6.96-$y*0.05],$[7.00-$y*11.81],-6.56,5.44
+    
+	lijn=!line $keuze of $coord
+	lijn=!nospace $lijn
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+
+	object$n=!exec canvasdraw\
+	size 398,320\
+	xrange -10,10\
+	yrange -10,10\
+	fontfamily 18px Ariel\
+	copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+	#points red,0,0,1,1,2,2,3,3,4,4\
+	linewidth 3\
+	point $punt1,$punt2,darkblue\
+	string black,7.36,0.60,$x\
+	string black,4.75,-7.19,$x\
+	string black,$punt1,$punt2,Q\
+	linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $lijn,darkred\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+
+
+	answer$n=!item $k of $[$x/4]*sqrt(33),$[$x*3/2],$lengte*sqrt(41)
+	!if $rounding=0
+	    ans=$empty
+	!else
+	    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	!endif 
+	tex=!item $k of $[$x/4]\sqrt{33},$[$x*3/2],$lengte\sqrt{41}
+	ss=!record 3 of lang/remarks.$taal
+	#@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Het punt Q ligt op ribbe $AB<br /> en de afstand tussen de punten $A en Q is $lengte<br />Bereken afstand tussen de punten $C en Q
+	question$n=$ss
+	description=d($CQ)
+	texanswer$n=\sqrt{$lengte^{2} + $x^{2}  + $x^{2} } = $tex $ans
+    !else
+	setje=A,B,G B,C,H A,D,G C,D,E E,F,C F,G,D E,H,C G,H,A
+	keuze=!randint 1,8
+	set=!word $keuze of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+	C=!item 3 of $set
+	AB=!nospace $A $B
+	CQ=!nospace $C Q
+	AQ=!nospace $A Q
+	x=!randitem 4,8,12,16,20,24,28,32,36,40
+	k=!randitem 1,2,3
+	y=!item $k of 1/4,1/2,3/4
+	!if $keuze=3
+	    k=!randitem 1,2
+	    y=!item $k of 1/4,3/4
+	!endif
+	
+#A(-1.98,-3.12):B(-6.66,-6.31):C(2.29,-8.06):D(6.91,-4.81):E(-2.04,8.69):F(-6.56,5.44):G(2.34,3.69):H(6.96,7.00)
+	coord=$[-1.98-$y*4.68],$[-3.12-$y*3.19],2.34,3.69\
+	$[-6.66+$y*8.95],$[-6.31-$y*1.75],6.96,7.00\
+	$[-1.98+$y*8.89],$[-3.12-$y*1.69],2.34,3.69\
+	$[2.29+$y*4.62],$[-8.06+$y*3.25],-2.04,8.69\
+	$[-2.04-$y*4.52],$[8.69-$y*3.25],2.29,-8.06\
+	$[-6.56+$y*8.9],$[5.44-$y*1.75],6.91,-4.81\
+	$[-2.04+$y*9.0],$[8.69-$y*1.69],2.29,-8.06\
+	$[2.34+$y*4.62],$[3.69+$y*3.31],-1.98,-3.12
+    
+	lijn=!line $keuze of $coord
+	lijn=!nospace $lijn
+	
+	punt1=!item 1 of $lijn
+	punt2=!item 2 of $lijn
+	
+	object$n=!exec canvasdraw\
+	size 398,320\
+	xrange -10,10\
+	yrange -10,10\
+	fontfamily 18px Ariel\
+	copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo1.jpg\
+	#points red,0,0,1,1,2,2,3,3,4,4\
+	linewidth 3\
+	point $punt1,$punt2,darkblue\
+	string black,7.36,0.60,$x\
+	string black,4.75,-7.19,$x\
+	string black,$punt1,$punt2,Q\
+	linewidth 2\
+        dashed\
+        dashtype 6,3\
+        segment $lijn,darkred\
+        #userdraw segment,red\
+        #mouse red,18\
+        dashed\
+        dashtype 6,3\
+        opacity 255,50\
+        filled\
+        fillcolor orange\
+        replyformat -1\
+        userdraw poly3,red
+        
+	lengte=$[$x*$y]
+	answer$n=!item $k of $lengte*sqrt(41),$[$x*3/2],$[$x/4]*sqrt(33)
+	!if $rounding=0
+	    ans=$empty
+	!else
+	    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	!endif 
+	tex=!item $k of $lengte\sqrt{41},$[$x*3/2],$[$x/4]\sqrt{33}
+	ss=!record 3 of lang/remarks.$taal
+	#@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Het punt Q ligt op ribbe $AB
+	<br /> en de afstand tussen de punten $A en Q is $lengte<br />Bereken afstand tussen de punten $C en Q
+	question$n=$ss
+	description=d($CQ)
+	
+	texanswer$n=\sqrt{$[$x-$lengte]^{2} + $x^{2}  + $x^{2} } = $tex $ans
+    !endif
+!endif
+!exit

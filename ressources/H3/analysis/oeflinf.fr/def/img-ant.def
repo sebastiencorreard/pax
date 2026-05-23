@@ -1,0 +1,199 @@
+!set title=image-antécédent d'une fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 2, 35
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+val8=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val7/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val7=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 35
+
+val9=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+val8=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val9/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+val10=Quelle est l'image du nombre \($val9),Quel nombre a pour image \($val9)
+tmp=!translate ";': to $     $ in $val9*$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $val9/($val7)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val11=$(tmp0),$(tmp1)
+tmp0=!randitem 1,2
+
+val12=$[rint($(tmp0))]
+tmp0=!item $val12 of $val11
+
+val11=$(tmp0)
+tmp0=!item $val12 of $val10
+
+val10=$(tmp0)
+replytype1=numexp
+replyname1=réponse:
+replygood1=?analyze 13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Soit 
+!insmath $val6
+$() la fonction linéaire de coefficient 
+!insmath $val7
+$().	<p> $val10 par la fonction 
+!insmath $val6
+$() ?</p>	<div>Votre réponse :  
+!read oef/embed.phtml r1 
+$() </div>	<div class="wims_instruction">	Vous devez écrire le résultat sous la forme d'un entier ou d'une fraction la plus simple possible.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()On peut résoudre l'exercice de deux façons:	<ul>	<li><b>Méthode 1 :</b> faire un tableau de proportionnalité:<p>	<table class="wims_center wimsborder">	  <tr>	    <th>x</th>	    <td>	
+!if $val12=1 
+$()
+!insmath $val9
+$() 
+!else
+$() ? 
+!endif
+$()	   </td>	  </tr><tr>	    <th>$val6 (x)	    </td><td>	
+!if $val12=1 
+$()? 
+!else
+$() 
+!insmath $val9
+$() 
+!endif
+$()	  </td>	  </tr>	</table>	Le coefficient de proportionnalité du tableau est le coefficient de la fonction.	On utilise donc ce coefficient pour calculer la valeur du point d'interrogation.<p>	Dans notre cas le nombre qu'il faut mettre à la place du point d'interrogation est donc :	
+!if $val12=1 
+$()
+!insmath $val7\times$val9=$val11
+$() 
+!else
+$() 
+!insmath \frac{$val9}{$val7}=$val11
+$() 
+!endif
+$(). </p></li>	<li><b>Méthode 2 :</b> on résout une équation:<p>	La notation fonctionnelle est 
+!insmath $val6(x)=$val7\times x
+$().	
+!if $val12=1 
+$()On sait que x vaut $val9 donc 
+!insmath $val6($val9)=$val7\times$val9=$val11
+$() 
+!else
+$() 	On sait que $val6(x)=$val9 donc on obtient que 
+!insmath $val9=$val7\times x
+$().	On déduit alors que la valeur de x est 
+!insmath $val11
+$().	Donc, le nombre qui a pour image $val9 par la fonction linéaire $val6 est $val11 
+!endif
+$().	</p></li></ul>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val13=$val11 and ($val13 notsamecase $val11)
+ <div class='oef_feedbacks'>	<span class="oef_indbad">Votre réponse n'est pas une fraction irréductible,	vous perdez des points.</span> La bonne réponse est 
+!insmath $val11
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val13=$val11
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=bonne réponse
+
+!ifval $val13 issamecase $val11
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=écriture irréductible?
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,13
+embedcnt=1

@@ -1,0 +1,114 @@
+!set title=Solution d'une équation 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=x
+tmp0=!values v,-v for v=2 to 5
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp=!nonempty items $(val7[1])*$val6+$(val7[2]),$(val7[2])+$(val7[1])*$val6
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+val10=$[rint(-abs($(val7[3])))]
+val11=$[rint($val10+$(val7[4]))]
+
+!ifval $val9=1
+val12=$val10
+!else
+val12=$val11
+!endif
+evaltmp=$val8
+
+evaltmp=!mathsubst $val6=($val12) in $evaltmp
+tmp0=($evaltmp)
+val12=$[rint($(tmp0))]
+tmp0=!texmath $val8
+
+val8=$(tmp0)
+val13=$val8 = $val12
+val14=Oui&#44; $val10 est solution de l'équation,Non&#44; $val10 n'est pas solution de l'équation
+replytype1=radio
+replyname1=Réponse
+replygood1=$val9;$val14
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10 est-il solution de l'équation :	<div class="wimscenter">
+!insmath $val13
+$()</div>	<b>Votre réponse :</b>	<blockquote>	 <div> 
+!read oef/embed.phtml r1,1 
+$()</div>	 <div> 
+!read oef/embed.phtml r1,2 
+$()</div>	</blockquote>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,13
+embedcnt=2

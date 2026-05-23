@@ -1,0 +1,144 @@
+!set title=Statistiques : effectifs et médiane
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Aurélien,Tutucci
+email=obie_trice06@hotmail.com
+language=fr
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=
+val7=
+tmp0=!randint 17, 18
+
+val8=$(tmp0)
+val9=
+!for val10 =1 to 8 
+tmp0=!randint 1, 5
+
+val6=$val6,$(tmp0)
+val11=$[rint($(val7[-1])+$(val6[-1]))]
+val7=$val7,$val11
+tmp0=!randint 1, 3
+
+val12=$[rint($(val8[-1])+$(tmp0))]
+val8=$val8,$val12
+tmp0=!values $val12 for v=1 to $(val6[-1])
+
+val9=$val9,$(tmp0)
+!next
+val6=$(val6[2 to -1])
+val7=$(val7[2 to -1])
+val9=$(val9[2 to -1])
+val8=$(val8[2 to -1])
+tmp0=!sort numeric item $val9
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+val14=$[rint($(tmp0))]
+val15=$[$val14/2]
+!if . isin $val15 
+val16=$[rint($val15)]
+val17=$[$(val13[$val16])]
+!else
+val17=$[($(val13[$val15])+$(val13[$val15+1]))/2]
+!endif
+replytype1=numeric
+replyname1=effectif 1
+replygood1=$[$(val7[1])]
+replytype2=numeric
+replyname2=effectif 2
+replygood2=$[$(val7[2])]
+replytype3=numeric
+replyname3=effectif 3
+replygood3=$[$(val7[3])]
+replytype4=numeric
+replyname4=effectif 4
+replygood4=$[$(val7[4])]
+replytype5=numeric
+replyname5=effectif 5
+replygood5=$[$(val7[5])]
+replytype6=numeric
+replyname6=effectif 6
+replygood6=$[$(val7[6])]
+replytype7=numeric
+replyname7=effectif 7
+replygood7=$[$(val7[7])]
+replytype8=numeric
+replyname8=effectif 8
+replygood8=$[$(val7[8])]
+replyname9=la médiane est
+replygood9=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On étudie une série statistique sur l'âge des joueurs d'une équipe de football.	Compléter le tableau suivant :	<table class="wimscenter wimsborder">	<tr><th>âges</th><th>effectifs</th>	<th>effectifs cumulés croissants </th>	</tr>	 
+!for m_j=1 to 8 
+$()	 <tr><td>$(val8[$m_j])</td><td>$(val6[$m_j])</td><td> 
+!read oef/embed.phtml r\j,30 
+$()</td></tr>	 
+!next
+$()	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8
+embedcnt=1

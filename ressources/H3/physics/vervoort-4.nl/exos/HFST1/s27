@@ -1,0 +1,57 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+inputs=2
+
+description=1) Het totale oppervlak van een bloedcel,2) Het volume van een bloedcel
+
+ex1=&nbsp;m<sup>2</sup>
+ex2=&nbsp;m<sup>3</sup>
+m_rightarrow=&nbsp;=&nbsp;
+d=!randint 70,80
+h=!randint 18,22
+tot=!exec moneyprint $[$d/10],$[$h/10],$[0.5*$d/10] 1
+d=!item 1 of $tot
+h=!item 2 of $tot
+r=!item 3 of $tot
+# in meter
+# a = opp cirkel pi*r^2
+a=$[pi*($r*10^(-6))^2]
+# a_tot = A_boven+A_onder+A_wand = 2*(pi*r^2) + h*2*pi*r
+a_tot=$[2*$a+2*pi*($h*10^(-6))*($r*10^(-6))]
+v=$[$a*($h*10^-6)]
+sig=2
+tot2=!exec scienceprint $a_tot,$sig,0 $a_tot,$sig,2 $v,$sig,0 $v,$sig,2
+
+ans1=!item 1 of $tot2
+A_tot=!item 2 of $tot2
+ans2=!item 3 of $tot2
+V=!item 4 of $tot2
+diff1=$[abs($a_tot - $ans1)]
+diff2=$[abs($v - $ans2)]
+checkfile=$checkdir/units.proc
+var1=0,0
+var2=$diff1,$diff2
+
+answer$n=$ans1,$ans2
+
+
+ss=De rode bloedcel bij de mens is een rond schijfje met een diameter van circa $d micrometer (&mu;m)<br />en een dikte van circa $h &mu;m.<br />Bereken het <kbd>totale</kbd> oppervlak (in m<sup>2</sup>)en het volume van een rode bloedcel (in m<sup>3</sup>).<br />(Beschouw de bloedcel als een schijfje.)
+
+texanswer$n=\left[ \begin{array}{l} 1)\textrm{Totale oppervlak }\\ r = \frac{1}{2} \cdot $d \;\mu\;m = $r \times 10^{-6} m \\ h = $h \;\mu\;m = $h \times 10^{-6} m \\ A_{totaal} = 2 \times \left( \pi \cdot r^{2}\right) + h \cdot \left(2 \times \pi \cdot r\right) \\ A_{totaal} = 2 \times \left( \pi \cdot \left($r\times10^{-6}\right)^{2}\right) + $h \times 10^{-6} \cdot \left( 2 \times \pi \cdot $r \times 10^{-6}\right)  = $a_tot m^{2} \\ \textrm{We geven dit getal in $sig significante cijfers : } A_{totaal} = $A_tot \;\mu\;m \\ \\ 2)\textrm{Inhoud}\\ \\ A = \pi \cdot r^{2}  \\  A =  \pi \cdot \left($r \times 10^{-6}\right)^{2} = $a m^{2} \\ \\ V = A \cdot h \\ h = $h \;\mu\;m = $h \times 10^{-6} m \\ V = $a \cdot $h \times 10^{-6} = $v m^{3} \\ \textrm{We geven dit getal op in $sig significante cijfers : } V = $V m^{3} \end{array} \right.
+
+helptext=Beschouw een rode bloedcel als een cylinder met diameter $d&mu;m en hoogte $h&mu;m...
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/bloed.jpg\' alt=\'bloed\'/>')">$ss</a>
+
+!exit
+
+
+
+

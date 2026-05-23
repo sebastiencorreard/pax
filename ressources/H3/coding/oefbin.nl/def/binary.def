@@ -1,0 +1,153 @@
+!set title=Binaire getallen I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+t_=!replace internal \( by ( in k=3;n=0;nbin=0; for(i=1,k, n1=RANDOM(2); n=n+n1*2^(i-1);	nbin=nbin+n1*10^(i-1)); print(n","nbin)
+tmp0=!exec pari $t_
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+val9=$[rint(5)]
+val7=$[rint(0)]
+val8=$[rint(0)]
+val10=2
+!for val11 =1 to $val9 
+tmp0=!randitem 1,0
+
+val12=$[rint($(tmp0))]
+val7=$[rint($val7+$val12*2^($val11-1))]
+val8=$[rint($val8+$val12*10^($val11-1))]
+val10=$val10, $val12
+!next
+t_=!replace internal \( by ( in $val8
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+tmp0=!item $val9+1 of $val10
+
+val13=$(tmp0)
+tmp0=!item $val9 of $val10
+
+val14=$(tmp0)
+tmp0=!item $val9-1 of $val10
+
+val15=$(tmp0)
+tmp0=!item $val9-2 of $val10
+
+val16=$(tmp0)
+tmp0=!item $val9-3 of $val10
+
+val17=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val13]
+replytype2=numeric
+replyname2=
+replygood2=$[$val14]
+replytype3=numeric
+replyname3=
+replygood3=$[$val15]
+replytype4=numeric
+replyname4=
+replygood4=$[$val16]
+replytype5=numeric
+replyname5=
+replygood5=$[$val17]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() Schrijf het getal $val7 in de binaire notatie.		<table align="center" border=1>	 <tr>	 <td>de machten van 2</td> 	 <td> 
+!insmath 2^4
+$()</td>	 <td> 
+!insmath 2^3
+$()</td>	 <td> 
+!insmath 2^2
+$()</td>	 <td>
+!insmath 2^1
+$()</td>	 <td>
+!insmath 2^0
+$() </td> 	</tr> 	<tr>	 <td>&nbsp;</td>	 <td>16</td> 	 <td>8</td>	 <td>4</td>	 <td>2</td>	 <td>1</td>	</tr> 	<tr>	  <td> $val7</td>	 <td> 
+!read oef/embed.phtml reply 1,4 
+$()</td>	 <td> 
+!read oef/embed.phtml reply 2,4 
+$()</td>	 <td> 
+!read oef/embed.phtml reply 3,4 
+$()</td>	 <td> 
+!read oef/embed.phtml reply 4,4 
+$()</td>	 <td> 
+!read oef/embed.phtml reply 5,4 
+$()</td>	</tr>  	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <p>$val7 geschreven als binair getal is $val8
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8
+embedcnt=5

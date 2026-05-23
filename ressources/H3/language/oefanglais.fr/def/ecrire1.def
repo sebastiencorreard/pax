@@ -1,0 +1,153 @@
+!set title=Dictée I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+title_nl=Dictée I
+
+ansorder=r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env rename 
+tmp0=$slib_out
+val6=$(tmp0)
+
+!ifval $val3=2 
+val6= 
+!endif
+!readproc slib/oef/env list_error 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/oef/env user 
+tmp0=$slib_out
+val8=$(tmp0)
+
+!ifval $val8 issametext supervisor and $val7 notsametext 
+tmp0=!nosubst <em>\name_msg[1]? </em> \name_msg[2]:	<div class="wims_warning">	  \name_msg[3]:
+
+val9=	$(tmp0)	$val7	\name_msg[4]</div>
+!endif
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val10=$(tmp0)
+val11=Vous êtes en train de préparer une feuille d'exercices&nbsp;,	  attention,	  Les mots suivants n'ont pas été trouvés&nbsp;,	  Il vous est conseillé de reconfigurer l'exercice.
+val12=Écoutez le verbe
+val13=Écrivez-le.,À quelle forme est-il
+!if $val10=nl 
+val11=Vous êtes en train de préparer une feuille d'exercices&nbsp;,	  attention,	  Les mots suivants n'ont pas été trouvés&nbsp;,	  Il vous est conseillé de reconfigurer l'exercice.
+val12=Écoutez le verbe
+val13=Écrivez-le.,À quelle forme est-il
+!endif
+val14=$val2
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp0=!lookup $val14 in swac_baseform_keys
+
+val14=$(tmp0)
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+
+!ifval $val14 issametext or confparm1 isin $val14 
+tmp0=!randrecord verbes.keys
+
+val14= $(tmp0)
+!endif
+!readproc slib/lang/swac $val14,eng-balm-verbs 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=$(val15[2..-1])
+val15=$(val15[1;1])
+tmp0=!getopt swac_text in $val16
+
+val17=$(tmp0)
+tmp0=!getopt swac_title in $val16
+
+val18=$(tmp0)
+tmp0=!getopt swac_baseform in $val16
+
+val19=$(tmp0)
+tmp0=!getopt swac_form_name in $val16
+
+val20=$(tmp0)
+tmp0=!replace internal Simple Past by Preterite in $val20
+
+val20=$(tmp0)
+val21=Infinitive,Present Perfect,Preterite
+replytype1=case
+replyname1=
+replygood1=$val17
+replytype2=clickfill
+replyname2=
+replygood2=$val20;$val21
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $(val12[1]) $val15 .	<p>$(val13[1])</p>	<div class="wimscenter"> 
+!read oef/embed.phtml r1,20 
+$()</div>	<div>$(val13[2])?  
+!read oef/embed.phtml r2,100 x 40 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,15
+embedcnt=2

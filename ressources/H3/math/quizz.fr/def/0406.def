@@ -1,0 +1,143 @@
+!set title=Question 0406 Repérage
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=coordinates,mental_calculation
+oefobservation=Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong>	<br><u>Aide à la saisie :</u> saisir 3/4 pour \(3/4) et de préférence saisir 1.3 pour 1,3. 
+val7=Félicitations toutes les réponses sont justes !
+tmp0=!randint 5, 8
+
+val8=$[rint($(tmp0))]
+val9=$[rint($val8+1)]
+val10=$[rint($val9+1)]
+tmp=!translate ";': to $     $ in $val8+0.5
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$[rint($(tmp0))]
+tmp0=!randitem 2,3,4,6,7,8,9
+
+tmp1=!randitem 1,0
+
+val12=$[0.1*$(tmp0)+$(tmp1)]
+val13=$[$val8+$val12]
+val14=$[rint(3)]
+val15=$[rint(6)]
+val16=$[rint(30)]
+val17=$[$val8-0.5]
+val18=$[$val13+1]
+val19=$[rint(-2)]
+val20=$[rint(0.2)]
+tmp=!translate ";': to $     $ in $val8-$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val9-$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val10-$val20
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$[rint($(tmp0))]
+val24=$[rint($val8+3.25)]
+!readproc oef/draw.phtml 350,100 \
+xrange $val17,$val24	yrange -30,15	arrow $val17,0,$val24,0,10,black	arrow $val13,-20,$val13,-5,10,black	segment $val8,-3,$val8,3,black	parallel $val8,-2,$val8,10,1,0,$val14,black	parallel $val8,-2,$val8,6,0.5,0,$val15,black	parallel $val8,-2,$val8,2,0.1,0,$val16,black	text black,$val21,-5,large, $val8	text black,$val22,-5,large, $val9	text black,$val23,-5,large, $val10	 
+tmp0=$ins_url
+val25=$(tmp0)
+val25=<div class="wimscenter"><img src="$val25" alt=""></div>
+val26=$val25 Complète 
+val27=
+val28=Les plus petites graduations sont des dixièmes.
+val29=\begin{enumerate}
+val29=$val29	    \item	    $val26	    \dots $val27	  
+val29=$val29 \end{enumerate}
+replytype1=numeric
+replyoption1=comma default=0 
+replyname1=
+replygood1=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val29 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val26  
+!read oef/embed.phtml r1,10	    autofocus 
+$() $val27	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val29 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val28!=)
+ <div class='oef_feedbacks'><div class="feedback">$val28</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,26,27,28,29
+embedcnt=1

@@ -1,0 +1,174 @@
+goback=0
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    ans1=!line 1 of $(answer$n)
+    t_droog=!item 1 of $ans1
+    rv=!item 2 of $ans1
+    
+    maxscore=0
+    remark$n=$NOK
+    
+    # correcte antwoord
+    data=linewidth 2\
+    vline $t_droog,-10,green\
+    hline -10,$rv,green\
+    point $t_droog,$rv,blue,255,10
+    
+    !appendfile getfile/$counter.data $data
+ !exit
+!endif
+
+# reply$n :RH % \n abs gehalte gr/m^3 \n  x1,y1,x2,y2,x3,y3,x4,y4 \
+ # answer$n : rh
+#ans1=$t_droog,$rv                                                                                                                          
+#ans2=$rv                                                                                                                                   
+#ans3=$[(round(10*($rv*$d_max/100)))/10]                                                                                                    
+#answer$n=$ans1\                                                                                                                            
+#$ans2\                                                                                                                                     
+#$ans3 
+
+rep2=!line 1 of $(reply$n)
+rep3=!line 2 of $(reply$n)
+rep1=!line 3 of $(reply$n)
+ans1=!line 1 of $(answer$n)
+
+ans2=!line 2 of $(answer$n)
+ans3=!line 3 of $(answer$n)
+score1=0
+score2=0
+score3=0
+
+# eerst de applet 
+t_droog=!item 1 of $ans1
+rv=!item 2 of $ans1
+found_vertical=0
+found_horizontal_a=0
+found_horizontal_b=0
+found_horizontal_c=0
+!for p=1 to 8 step 2
+    x=!item $p of $rep1
+    y=!item $[$p+1] of $rep1
+    !if $x > $[$t_droog - 0.5] and $x < $[$t_droog + 0.5]
+	found_vertical=1
+    !endif
+    !if $y > $[$rv - 0.5] and $y < $[$rv + 0.5]
+	!increase found_horizontal_a
+    !endif
+    !if $y > $[$rv - 0.6] and $y < $[$rv + 0.6]
+	!increase found_horizontal_b
+    !endif
+    !if $y > $[$rv - 0.8] and $y < $[$rv + 0.8]
+	!increase found_horizontal_c
+    !endif
+    # leerling antwoord tekenen in lijnen
+!next p
+
+!if $[$found_vertical+$found_horizontal_a] >=3
+    score1=1
+    extra1=Goed getekend !
+    k1=green
+!else
+    !if $[$found_vertical+$found_horizontal_b] >=3
+	score1=0.7
+	extra1=Hmmm, een beetje onnauwkeurig getekend...
+	k1=lightgreen
+    !else
+	!if $[$found_vertical+$found_horizontal_c] >=3
+	    score1=0.4
+	    k1=orange
+	    extra1=Hmmm, een beetje erg onnauwkeurig getekend...
+	!else
+	    k1=red
+	    extra1=Nee, dat tekenen in de grafiek gaat niet echt goed...
+	!endif
+    !endif
+!endif
+
+# RH % afgelezem +/- 0.5
+!if $rep2 > $[$ans2-0.5] and $rep2 < $[$ans2+0.5]
+    score2=1
+    k2=green
+    extra2=Het RH % heb je goed afgelezen
+!else
+    !if $rep2 > $[$ans2-0.6] and $rep2 < $[$ans2+0.6]
+	score2=0.7
+	k2=lightgreen
+	extra2=Het RH % heb je redelijk goed afgelezen
+    !else
+        !if $rep2 > $[$ans2-0.7] and $rep2 < $[$ans2+0.7]
+	    score2=0.6
+	    k2=orange
+	    extra2=Het RH % heb je iets te onnauwkeurig afgelezen
+	!else
+	    k2=red
+	    !if $rep2 > $[$ans2-0.9] and $rep2 < $[$ans2+0.9]
+		score2=0.3
+		extra2=Het RH % heb je wel erg onnauwkeurig afgelezen
+	    !else
+		extra2=Het RH % heb je niet goed afgelezen...
+	    !endif
+	!endif
+    !endif
+!endif
+
+# get absolute vocht gehalte
+
+!if $rep3 > $[$ans3-1] and $rep3 < $[$ans3+1]
+    score3=1
+    k3=green
+    extra3=Het absolute vochtgehalte heb je goed afgelezen
+!else
+    !if $rep3 > $[$ans3-1.2] and $rep3 < $[$ans3+1.2]
+	score3=0.7
+	k3=lightgreen
+	extra3=Het absolute vochtgehalte heb je redelijk goed afgelezen
+    !else
+        !if $rep3 > $[$ans3-1.4] and $rep3 < $[$ans3+1.4]
+	    score3=0.6
+	    k3=orange
+	    extra3=Het absolute vochtgehalte heb je iets te onnauwkeurig afgelezen
+	!else
+	    k3=red
+	    !if $rep3 > $[$ans3-1.6] and $rep3 < $[$ans3+1.6]
+		score3=0.3
+		extra3=Het absolute vochtgehalte heb je wel erg onnauwkeurig afgelezen
+	    !else
+		extra3=Het absolute vochtgehalte heb je niet goed afgelezen...
+	    !endif
+	!endif
+    !endif
+!endif
+
+reply$n=<ol><li><span style="color:$k1">$extra1</span></li><li><span style="color:$k2">$rep2 $extra2</span></li><li><span style="color:$k3">$rep3 $extra3</span></li></ol>
+
+maxscore=$[$maxscore*($score1 + $score2 + $score3)/3]
+
+modulescore=$[$modulescore + $maxscore]
+
+!ifval $maxscore = 1
+    remark$n=$OK
+    k=blue
+!else
+    !if $maxscore>0.5
+	k=orange
+	remark$n=$BOK
+    !else
+	k=red
+    	remark$n=$NOK
+    !endif	
+!endif
+
+# leerling  + correcte antwoord
+data=linewidth 2\
+vline $t_droog,-10,green\
+hline -10,$rv,green\
+point $t_droog,$rv,blue,255,10\
+linewidth 6\
+line $(rep1[1]),$(rep1[2]),$(rep1[3]),$(rep1[4]),$k\
+line $(rep1[5]),$(rep1[6]),$(rep1[7]),$(rep1[8]),$k
+
+!appendfile getfile/$counter.data $data
+
+goback=0
+!exit

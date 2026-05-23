@@ -1,0 +1,186 @@
+# Pythagoras IV
+
+n=$counter
+math=0
+mathview=0
+#questiontype=7
+#javascript=js/exo14.js
+#inputs=yes
+questiontype=0
+inputs=-1
+image=0
+plot=0
+draw=0
+applet=1
+make_tr=0
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+checkfile=exos/checkfile3.proc
+
+f1=!randitem 1,2,3
+keuze=!randitem 1,0
+var1=AB,BC,AC,BD,CD
+# 2 invulvelden.
+var2=2
+!if $keuze=1
+    f2=$[3*$f1]
+    AC=$[$f2*3]
+    BC=$[$f2*4]
+!else
+    f2=$[4*$f1]
+    AC=$[$f2*4]
+    BC=$[$f2*3]
+!endif
+AB=$[$f2*5]
+CD=$[$f1*5]
+BD=$[$f1*13]
+
+!if $R=1
+    k=1
+!else
+    !if $R=2
+	k=10
+    !else
+	k=100
+    !endif
+!endif
+AC=$[$AC/$k]
+BC=$[$BC/$k]
+AB=$[$AB/$k]
+CD=$[$CD/$k]
+BD=$[$BD/$k]
+
+keuze=!randitem 1,2,3
+kans=!randitem 1,0
+##################
+#                #
+#     B          #
+#                #
+# A   C       D  #
+#                #
+##################
+
+!if $keuze=1
+    ab=?
+    bc=$BC
+    ac=$AC
+    r1=$empty
+    r2=readonly="readonly"
+    r3=readonly="readonly"
+    k1=lightgreen
+    k2=orange
+    k3=orange
+    !if $kans=1
+	bd=$BD
+	cd=?
+	r4=readonly="readonly"
+	r5=$empty
+	k4=orange
+	k5=lightgreen
+	texanswer$n=\left[ \begin{array}{l} AC^{2} + BC^{2} = \,? \rightarrow \,?\, = AB = \sqrt{$AC^{2} + $BC^{2}} = $AB \\ ?\, + BC^{2} = BD^{2} \rightarrow \,? \,= CD = \sqrt{$BD^{2} - $BC^{2}} = $CD \end{array}
+    !else
+	bd=?
+	cd=$CD
+	r4=$empty
+	r5=readonly="readonly"
+	k4=lightgreen
+	k5=orange
+	texanswer$n=\left[ \begin{array}{l} AC^{2} + BC^{2} = \,?\rightarrow \,?\, =  AB = \sqrt{$AC^{2} + $BC^{2}} = $AB \\ CD^{2} + BC^{2} = \,? \rightarrow \,?\, = BD = \sqrt{$CD^{2} + $BC^{2}} = $BD \end{array}
+    !endif
+    
+!else
+    !if $keuze=2
+	ab=$AB
+	bc=$BC
+	ac=?
+	r1=readonly="readonly"
+	r2=readonly="readonly"
+	r3=$empty
+	k1=orange
+        k2=orange
+        k3=lightgreen
+	!if $kans=1
+	    bd=$BD
+	    cd=?
+	    r4=readonly="readonly"
+	    r5=$empty
+	    k4=orange
+	    k5=lightgreen
+	    texanswer$n=\left[ \begin{array}{l} \,?\, + BC^{2} = AB^{2} \rightarrow  \,?\, = AC = \sqrt{$AB^{2} - $BC^{2}} = $AC \\ ?\, + BC^{2} = BD^{2} \rightarrow \,? \,= CD = \sqrt{$BD^{2} - $BC^{2}} = $CD \end{array}
+	!else
+	    bd=?
+	    cd=$CD
+	    r4=$empty
+	    r5=readonly="readonly"
+	    k4=lightgreen
+	    k5=orange
+	    texanswer$n=\left[ \begin{array}{l} \,?\, + BC^{2} = AB^{2} \rightarrow  \,?\, = AC = \sqrt{$AB^{2} - $BC^{2}} = $AC \\ CD^{2} + BC^{2} = \,? \rightarrow \,?\, = BD = \sqrt{$CD^{2} + $BC^{2}} = $BD \end{array}
+        !endif
+    !else
+	ab=$AB
+	bc=?
+	ac=$AC
+	r1=readonly="readonly"
+	r2=$empty
+	r3=readonly="readonly"
+	k1=orange
+        k2=lightgreen
+	k3=orange
+	!if $kans=1
+	    bd=$BD
+	    cd=?
+	    r4=readonly="readonly"
+	    r5=$empty
+	    k4=orange
+	    k5=lightgreen
+	    texanswer$n=\left[ \begin{array}{l} AC^{2} + \,?\, = AB^{2} \rightarrow  \,?\, = BC = \sqrt{$AB^{2} - $AC^{2}} = $BC \\ ?\, + BC^{2} = BD^{2} \rightarrow \,? \,= CD = \sqrt{$BD^{2} - $BC^{2}} = $CD \end{array}
+	!else
+	    bd=?
+	    cd=$CD
+	    r4=$empty
+	    r5=readonly="readonly"
+	    k4=lightgreen
+	    k5=orange
+	    texanswer$n=\left[ \begin{array}{l} AC^{2} + \,?\, = AB^{2} \rightarrow  \,?\, = BC = \sqrt{$AB^{2} - $AC^{2}} = $BC \\ CD^{2} + BC^{2} = \,? \rightarrow \,?\, = BD = \sqrt{$CD^{2} + $BC^{2}} = $BD \end{array}
+	!endif
+    !endif
+!endif
+xsize=280
+ysize=120
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange 0,1\
+yrange 0,1\
+copy 0,1,-1,-1,-1,-1,$module_dir/gifs/ABCD.gif\
+fontfamily bold 16px Ariel\
+string black,0.25,0.5,$ab\
+string black,0.30,0.05,$ac \
+string black,0.5,0.4,$bc \
+string black,0.65,0.5,$bd \
+string black,0.6,0.05,$cd 
+
+     
+
+
+question$n=!record 76 of lang/remarks.$taal
+#@ De figuur hiernaast heeft een rechte hoek [<em>dus 90<sup>o</sup></em>] in C.<br />Bereken de ontbrekende lengtes en vul de tabel in.
+
+answer$n=$AB,$BC,$AC,$BD,$CD
+exotext=<table><tr><td>AB</td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:$k1;border:1px solid #ff0000" size="4" id="myinput0" value="$ab" $r1/></td></tr><tr><td>BC</td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:$k2;border:1px solid #ff0000" size="4" id="myinput1" value="$bc" $r2/></td></tr><tr><td>AC</td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:$k3;border:1px solid #ff0000" size="4" id="myinput2" value="$ac" $r3/></td></tr><tr><td>BD</td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:$k4;border:1px solid #ff0000" size="4" id="myinput3" value="$bd" $r4/></td></tr><tr><td>CD</td><td>=</td><td><input style="text-align:center;font-size:18px;background-color:$k5;border:1px solid #ff0000" size="4" id="myinput4" value="$cd" $r5/></td></tr></table>
+
+textanswer$n=<ul>
+!for p=1 to 5
+    zijde=!item $p of $var1
+    getal=!item $p of $(answer$n)
+    textanswer$n=!append line $ <li>$zijde = $getal</li> $ to $(textanswer$n)
+!next p
+
+textanswer$n=!append line </ul> to $(textanswer$n)

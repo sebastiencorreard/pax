@@ -1,0 +1,67 @@
+target=quotient10,produit10,inverse10,quprin10
+
+#if #TARGET(quotient10)
+ \title{Quotient van machten van 10}
+ \text{type=quotient}
+#endif
+
+#if #TARGET(quprin10)
+ \title{Bewerkingen en machten van 10}
+ \text{type=quotient,inverse,produit}
+#endif
+
+#if #TARGET(produit10)
+ \title{Product van machten van 10}
+ \text{type=produit}
+#endif
+
+#if #TARGET(inverse10)
+ \title{Inversen van machten van 10}
+ \text{type=inverse}
+#endif
+
+\language{nl}
+\range{-5..5}
+\author{Guerimand Fabrice}
+\email{fwguerima@free.fr}
+\translator{Reinie Erne}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{confparm1=\confparm1=?1}
+\integer{confparm1>5?5}
+
+\text{lteno=}
+\text{ltsol=}
+\text{st=}
+\for{i=1 to \confparm1}{
+ \text{choix=randitem(\type)}
+ \text{don=slib(calcpuis \choix,8)}
+ \text{enonce=item(1,\don)}
+ \text{rep=item(2,\don)}
+ \text{lteno=wims(append item \enonce to \lteno)}
+ \text{ltsol=wims(append item \rep to \ltsol)}
+ \text{st=wims(append item r\i to \st)} 
+}
+
+\steps{\st}
+
+\statement{<br>
+\if{\confparm1=1}
+{Bereken de volgende uitdrukking: <br>
+<center>\(\lteno = 10)<sup><sup>\embed{r1,2}</sup></sup>.</center>}
+{Bereken de volgende uitdrukkingen: 
+<center><table><tr><td width=300><ul>
+ \for{k=1 to \confparm1}{
+  <li>\(\lteno[\k] = 10)<sup><sup>\embed{r\k,2}</sup></sup>.</li>
+  }
+</ul></td></tr></table></center>}
+}
+
+
+\answer{\(\lteno[1])}{\ltsol[1]}{type=numexp}
+\answer{\(\lteno[2])}{\ltsol[2]}{type=numexp}
+\answer{\(\lteno[3])}{\ltsol[3]}{type=numexp}
+\answer{\(\lteno[4])}{\ltsol[4]}{type=numexp}
+\answer{\(\lteno[5])}{\ltsol[5]}{type=numexp}

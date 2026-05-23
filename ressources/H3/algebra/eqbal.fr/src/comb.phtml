@@ -1,0 +1,109 @@
+!! fichier de gestion des actions de combinaison lineaire
+<u><b>Combinaison linéaire:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+!if $nbreesscalc=0
+Je remplace l'équation
+!formselect repexo1 from 1 to 2
+par l'équation obtenue en calculant
+!formselect repexo7 list -1,1 prompt la différence,la somme
+membres à membres entre l'équation 
+!formselect repexo2 from 1 to 2
+et l'équation
+!formselect repexo3 from 1 to 2
+.
+!else
+$(comment$[$nbetape+1])
+!endif
+!if $nocalcul!=1
+   !read calcligne.phtml question
+!endif
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:reponse
+<p>
+   <blockquote>
+   <p>
+   Je remplace l'équation $repexo1 par l'équation obtenue en calculant 
+!if $repexo7=-1
+   la différence
+!else
+   la somme
+!endif
+membres à membres entre l'équation $repexo2 et l'équation $repexo3 .</p>
+!if $erreur!=calcul
+   <font color=red><p>$erreur .</p></font>
+   <p>vous pouvez:</p>
+   <ul>
+   <li>
+   !href cmd=resume&status=2 saisir
+   une autre somme ou différence.
+   </li>
+      <li>
+   !href cmd=resume&status=1 retourner
+   au menu général.
+   </li>
+   </ul>
+!else
+   !read erreurcalc.phtml
+!endif
+</blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!if $repexo1=$empty or $repexo3=$empty or $repexo2=$empty
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validité de l'expression donnée.
+!if $repexo2=$repexo3  
+   !increase $nbreerrrais
+   erreur=Vous devez choisir deux équations différentes.
+   !exit
+!endif
+
+!! ------------- calcul de la nouvelle equation/inequation
+!if $evitecalc=0
+   evitecalc=1
+   tmp1=!line $repexo2 of $(sys$nbetape)
+   tmp2=!line $repexo3 of $(sys$nbetape)
+   !distribute items $tmp1 into tmp3,tmp4,tmp5
+   !distribute items $tmp2 into tmp6,tmp4,tmp7
+   tmp=!exec maxima $tmp3+($repexo7)*($tmp6);\
+$tmp5+($repexo7)*($tmp7);
+   !distribute lines $tmp into tmp1,tmp2
+   tmp4=$tmp1,$tmp4,$tmp2
+   sys$[$nbetape+1]=!replace line number $repexo1 by $tmp4 in $(sys$nbetape)
+!endif
+comment$[$nbetape+1]=Je remplace l'équation $repexo1 par l'équation obtenue en calculant la différence membres à membres entre l'équation $repexo2 et l'équation $repexo3.
+!! ------------ verification de l'exactitude des calculs
+!if $nocalcul!=1
+tmp1=!line $repexo1 of $(sys$[$nbetape+1])
+repexo4=!rawmath $repexo4
+repexo6=!rawmath $repexo6
+!read verifequ.calc $tmp1,$repexo4,1,$repexo6
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $test!=$empty
+   erreur=calcul
+   !exit
+!endif
+!replace line number $repexo1 of $(sys$[$nbetape+1]) by $repexo4,1,$repexo6
+!endif
+!increase nbetape
+status=1
+evitecalc=0
+!exit

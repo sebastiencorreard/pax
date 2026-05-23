@@ -1,0 +1,96 @@
+# hfst2
+#exo24(hfst2) Algemene SI voorvoegsels [prefix notatie]
+n=$counter
+math=0
+cols=12
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+inputs=!randint 4,7
+science_calc=$empty
+science_html=$empty
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+unit=g,A,mol,&Omega;,m,F,S,V,W
+unitnaam=Gram,Ampere,Mol,Ohm,Meter,Farad,Siemens,Volt,Watt
+descr=massa,stroomsterkte,hoeveelheid stof,electrische weerstand,lengte,electrische capaciteit,electrische geleidbaarheid,electrische spanning,vermogen
+prefix=T,G,M,k,m,&mu;,n,p
+prefixnaam=tera,giga,mega,kilo,milli,micro,nano,pico
+factor=10^12,10^9,10^6,10^3,10^-3,10^-6,10^-9,10^-12
+factor_html=10<sup>12</sup>,10<sup>9</sup>,10<sup>6</sup>,10<sup>3</sup>,10<sup>-3</sup>,10<sup>-6</sup>,10<sup>-9</sup>,10<sup>-12</sup>
+num1=!shuffle 1,2,3,4,5,6,7,8,9
+num2=!shuffle 1,2,3,4,5,6,7,8,4,5,6,7
+
+keuze=1
+m_rightarrow=&nbsp;=&nbsp;
+sometext=<ul>
+c_scienceprint=$empty
+h_scienceprint=$empty
+expl=$empty
+textanswer$n=<ol>
+description=$empty
+!for p=1 to $inputs
+    k=!item $p of $num1
+    u=!item $k of $unit
+    naam=!item $k of $unitnaam
+    t=!item $p of $num2
+
+    pre=!item $t of $prefix
+    pre_naam=!item $t of $prefixnaam
+    pre_fac=!item $t of $factor
+    pre_fac_html=!item $t of $factor_html
+    getal=!randint 111,999
+    kans=!randint 0,1
+    !if $kans=1
+	p1=!randitem 10,100,1000
+	getal=$[$getal*$p1]
+	sig=!charcnt $getal
+    !else
+	p1=!randitem 0.1,0.01,0.001,0.0001
+	getal=$[$getal*$p1]
+	sig=3
+    !endif
+    si_unit=!nospace $pre $u
+    desc=!item $k of $descr
+    sometext=!append word <li>$si_unit = <em>$pre_naam</em> $naam ($desc)</li> to $sometext
+    expl=!append item <kbd>$pre = $pre_naam = $pre_fac_html</kbd> to $expl
+    !if $keuze=1
+	description=!append item $getal <kbd>$si_unit</kbd> to $description
+	ans=$[$getal*$pre_fac]
+	ex$p=&nbsp;$u
+	keuze=0
+    !else
+	keuze=1
+	description=!append item $getal $u to $description
+	ex$p=&nbsp;&nbsp;<kbd>$si_unit</kbd>
+	ans=$[$getal/($pre_fac)]
+    !endif
+    c_scienceprint=!append word $ans,$sig to $c_scienceprint  
+    h_scienceprint=!append word $ans,$sig,1 to $h_scienceprint  
+!next p
+tot=!exec scienceprint $c_scienceprint $h_scienceprint
+
+!for p=1 to $inputs
+    c=!item $p of $tot
+    h=!item $[$p+$inputs] of $tot
+    answer$n=!append line $c to $(answer$n)
+    textanswer$n=!append word <li>$(description[$p]) = $h $(ex$p) <br />( <em>$(expl[$p])</em> )</li> to $(textanswer$n)
+!next p
+
+textanswer$n=!append word </ol> to $(textanswer$n)
+
+sometext=!append word </ul> to $sometext
+
+ss=Algemene SI <span style="color:blue">voorvoegsels</span>.<br />Schrijf je antwoord bijvoorkeur in wetenschappelijke notatie.
+
+extext=Let op: niet alle voorbeelden zijn realistisch...
+question$n=<a onmouseover="return escape('$sometext')">$ss</a>
+
+helptext=$sometext<hr />$extext
+
+!exit
+
+
+

@@ -1,0 +1,178 @@
+!set title=Rotation 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss= <style> .macss{ background-color : yellow; } </style> 
+title_it=Rotazione 2
+
+ansorder=r
+varcnt=50
+prevarcnt=49
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=transfo2.png
+tmp0=!makelist x for x=1 to 20
+
+val8=$(tmp0)
+val9=Le motif
+val10=Conclusion&nbsp;
+val11=dans le sens des aiguilles d'une montre,dans le sens inverse des aiguilles d'une montre
+val12=Quelle est l'image du motif,par la rotation de centre,d'angle
+val13=motif,sauts
+val14=Attention, vous vous êtes trompé de sens de rotation.
+val15=On considère la figure suivante composée de vingt motifs numérotés de 1 à 20 dans laquelle l'angle \(\widehat{AOB}\) vérifie
+!if $val6=it 
+val9=Il modulo
+val10=Conclusione
+val11=in senso orario,in senso antiorario
+val12=Qual è l'immagine del modulo,tramite la rotazione di centro, di angolo
+val13=salto,salti
+val14=Attenzione, hai sbagliato il senso di rotazione.
+val15=Si consideri la figura seguente composta da venti moduli numerati da 1 a 20 nella quale l'angolo \(\widehat{AOB}\) soddisfa la condizione
+!endif
+val16=36,72,108,144
+tmp0=!randint 4
+
+val17=$[rint($(tmp0))]
+val18=$[rint($(val16[$val17]))]
+tmp0=!randint 2
+
+val19=$[rint($(tmp0))]
+tmp0=!randint 20
+
+val20=$[rint($(tmp0))]
+val21=1,2,3,4,5,6,7,8,9,10
+val22=11,12,13,14,15,16,17,18,19,20
+tmp0=!makelist x for x=1 to $val17
+
+val23=$(tmp0)
+tmp0=!listcomplement $val23 in $val21
+
+val24=$(tmp0)
+val25=$val24,$val23
+tmp0=!makelist x for x=11 to 10+$val17
+
+val26=$(tmp0)
+tmp0=!listcomplement $val26 in $val22
+
+val27=$(tmp0)
+val28=$val27,$val26
+tmp0=!makelist x for x=1 to 10-$val17
+
+val29=$(tmp0)
+tmp0=!listcomplement $val29 in $val21
+
+val30=$(tmp0)
+val31=$val30,$val29
+tmp0=!makelist x for x=11 to 20-$val17
+
+val32=$(tmp0)
+tmp0=!listcomplement $val32 in $val22
+
+val33=$(tmp0)
+val34=$val33,$val32
+!if $val19=1 
+val35=$val25,$val28
+val36=$(val35[$val20])
+val37=$val31,$val34
+val38=$(val37[$val20])
+!endif
+!if $val19=2 
+val35=$val31,$val34
+val36=$(val35[$val20])
+val37=$val25,$val28
+val38=$(val37[$val20])
+!endif
+val39=$(val12[1]) $val20 $(val12[2]) \(O\), $(val12[3]) \($(val16[$val17])^{\circ}\) $(val11[$val19])&nbsp;?
+!if $val17=1 
+val40=$(val13[1])
+!else
+val40=$(val13[2])
+!endif
+val41=<p>Il y a $val17 $val40 à faire $(val11[$val19]) entre le motif de départ $val20 et celui d'arrivée.<p>	On compte $val17 $val40 $(val11[$val19]) à partir du motif $val20. On obtient le motif $val36.	<p>$val10: L'image du motif $val20 par la rotation de centre \(O\), d'angle \($(val16[$val17])^{\circ}\) $(val11[$val19]) est le motif $val36.</p>
+!if $val6=it 
+val41=<p>Dobbiamo quindi contare $val17 $val40 $(val11[$val19]) tra il modulo di partenza $val20 e quello di arrivo.<p>	Contiamo perciò $val17 $val40 $(val11[$val19]) a partire dal modulo $val20. Si ottiene il modulo $val36.	<p>$val10: L'immagine del modulo $val20 tramite la rotazione di centro \(O\), di angolo \($(val16[$val17])^{\circ}\) $(val11[$val19]) è il modulo $val36.</p>
+!endif
+replytype1=menu
+replyname1=$val9
+replygood1=$val36;$val8
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val15 <span class="nowrap">
+!insmath \widehat{AOB}=36^{\circ}
+$().</span>	<p class="wimscenter"><img src="$val1/$val7" alt="motif"></p>	$val39	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<span class="nowrap">
+!insmath $(val16[$val17])^{\circ}=$val17 \times 36^{\circ}
+$().</span>	$val41
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val38=$m_reply1
+ <div class='oef_feedbacks'><div class="macss">$val14</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,14,15,16,17,38,39,41
+embedcnt=0

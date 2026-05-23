@@ -1,0 +1,95 @@
+# answer$n is 1,2,3,4,5 getallen
+# replay is 1,2,3,4,5 getallen waarvan slechts $var2 door de leerling zijn bepaald
+n=$counter
+goback=0
+!if $(reply$n)=?
+    goback=0
+    maxscore=0
+    module_score=$[$module_score+0.1]
+    remark$n=$NOK
+    !exit
+!endif
+
+ta=!itemcnt $(reply$n)
+tg=!itemcnt $(answer$n)
+
+!if $ta != $tg
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    #Zit je met de adresbalk te knoeien ? 
+    maxscore=$[$P6*$maxscore]
+    reply$n=!replace internal : by , in $(reply$n)
+    goback=1
+    !exit
+!endif
+
+yourreply=$empty
+extra=$empty
+#var1=AB,BC,AD,BD,CD
+score=0
+!for s=1 to $ta
+    zijde=!item $s of $var1
+    ex=$empty
+    org=!item $s of $(reply$n)
+    !if ? isin $org
+	k=red
+    !else
+	ans=!item $s of $(answer$n)
+	!if NaN isin $[1*($org)]
+	    testvar=$org
+	    errortext=!record 70 of lang/remarks.$taal
+	    reply$n=!replace internal : by , in $(reply$n)
+	    goback=1
+	    !exit
+	!endif
+	!if $rounding != 0
+	    AAA=$[(round($rounding*($org)))/$rounding]
+	    GGG=$[(round($rounding*($ans)))/$rounding]
+	!else
+	    AAA=$org
+	    GGG=$ans
+	!endif
+    
+	!ifval $AAA = $GGG
+	    !increase score
+	    k=green
+	!else
+	    !ifval $AAA = $[$GGG*$GGG]
+		ex=!record 75 of lang/remarks.$taal
+		score=$[$score + $P1]
+		k=orange
+	    !else
+		AAA=$[(round(100*($org)))]
+		GGG=$[(round(100*($ans)))]
+		!ifval $AAA = $GGG
+		    k=orange
+		    ex=!record 29 of $remarkdir/commonremarks.$taal
+		!else
+		    k=red
+		!endif
+	    !endif
+	!endif
+    !endif
+    yourreply=!append line <li><span style="color:$k"> $zijde = $org  $ex </span></li> to $yourreply
+!next s
+
+maxscore=$[$maxscore*($score - ($tg-$var2))/$var2]
+
+modulescore=$[$modulescore+$maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif 
+
+goback=0
+reply$n=<ul>$yourreply</ul>($(reply$n))
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+!exit

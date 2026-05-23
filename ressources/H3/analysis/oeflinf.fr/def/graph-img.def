@@ -1,0 +1,136 @@
+!set title=Graphique -> image
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem f,g,h
+
+val6=$(tmp0)
+tmp0=!randint 1, 5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, ($val7-1)
+
+val8=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val8=0
+val8=$[rint(1)]
+!endif
+tmp=!translate ";': to $     $ in $val8/$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+val10=$[rint(5*$val9*50+250)]
+val11=$[rint(-5*$val9*50+250)]
+tmp0=!record 1 of src/graph.don
+
+val12=$(tmp0)
+val12=$val12	segment 0,$val10,500,$val11,red
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 4
+
+val13=$[rint($(tmp0)*$(tmp1))]
+val14=$[rint($val9*$val13*10)]
+val14=$[$val14/10]
+!if $val13>0 
+val15=text green,220,-($val14*50)+245,medium,$val14
+!else
+val15=text green,255,-($val14*50)+245,medium,$val14
+!endif
+!if $val14>0 
+val16=text green,245+50*($val13),260,medium,$val13
+!else
+val16=text green,245+50*($val13),230,medium,$val13
+!endif
+val17=$val12	arrow 250+50*($val13),250,250+50*($val13),-($val14*50)+250,10,green	$val16	arrow 250+50*($val13),-($val14*50)+250,250,-($val14*50)+250,10,green	$val15
+val18=$[$val14+0.1]
+val19=$[$val14-0.1]
+replytype1=range
+replyname1=$val6($val13)
+replygood1=!rawmath $val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()La représentation graphique de la fonction linéaire $val6 est la suivante :	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val12 
+$()	</div>	<p>Quelle est l'image de $val13 par $val6?</p>	Votre réponse :  
+!read oef/embed.phtml r1 
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()L'image de $val13 par la fonction $val6 est, par définition,	<b>l'ordonnée</b> du point sur la droite dont l'abscisse est $val13.<p>	On place donc le point de la droite dont l'abscisse est $val13 puis, on lit son ordonnée.	</p>	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val17 
+$()	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,17
+embedcnt=1

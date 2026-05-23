@@ -1,0 +1,169 @@
+!set title=Fréquences 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord src/stat3.don
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint 2, 5
+
+val8=$[rint($(tmp0)*100)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val10=$[rint($(tmp0)*$val9)]
+val11=$[rint($val10+4*$val9)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!values v for v=$val10 to $val11
+
+val15=$(tmp0)
+val16=$[rint(4)]
+val17=
+val15=
+!for val18 =1 to $val16 
+val19=$[rint($val10+($val18-1)*$val9)]
+val20=$[rint($val10+$val18*$val9)]
+tmp0=!append item \($val19 \leq $val14 < $val20) to $val15
+
+val15=$(tmp0)
+!next
+!readproc slib/generator $val16,100 
+tmp0=$slib_out
+val21=$(tmp0)
+val22=
+!for val18 =1 to $val16 
+val7=$[rint($(val21[$val18])*$val8/100)]
+tmp0=!append item $val7 to $val22
+
+val22=$(tmp0)
+!next
+val23=r1,r2,r3,r4
+replytype1=numexp
+replyname1=1
+replygood1=$(val21[1])
+replytype2=numexp
+replyname2=2
+replygood2=$(val21[2])
+replytype3=numexp
+replyname3=3
+replygood3=$(val21[3])
+replytype4=numexp
+replyname4=4
+replygood4=$(val21[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val12.<br>	$val17	<p>Calculer les fréquences.</p>	  <table class="wimscenter wimsborder">	   <tr>	    <th>$val13</th>	     
+!for m_l=1 to $val16 
+$()<td>$(val15[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Effectifs</th>	     
+!for m_l=1 to $val16 
+$()<td>$(val22[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Fréquences</th>	     
+!for m_l=1 to $val16 
+$()<td> 
+!read oef/embed.phtml $(val23[$m_l]),5 
+$()%</td> 
+!next
+$()	   </tr>	  </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,13,15,16,17,22,23
+embedcnt=1

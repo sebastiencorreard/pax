@@ -1,0 +1,131 @@
+#standaardvorm: a&radic;(b) &divide; c&radic;(d)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+math=0
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+#font settings in input applet
+smallfont=16
+largefont=18
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 41 of lang/remarks.$taal
+#@Bereken en schrijf indien nodig in de standaardvorm <img src=$module_dir/gifs/exo$subject.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+helptext=<img src=\'$module_dir/gifs/exo5.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+
+!if $R=1
+    !if $keuze=1
+	e=!randitem 2,3,5,6,7
+	d=!randitem 2,3,4,5,6,7,8,9,10
+	b=$[$e*$d]
+	answer$n=1,sqrt($e),2
+	applettext=!nospace sqrt($b)/sqrt($d)=
+	# antwoord is een wortel
+	var1=1
+	checkfile=exos/checkfile1.proc
+	texanswer$n=\frac{\sqrt{$b}}{\sqrt{$d}} = \sqrt{\frac{$b}{$d}} = \sqrt{$e}
+	formula$n=\frac{\sqrt{$b}}{\sqrt{$d}} \,=\,[?] 
+    !else
+	a=!randitem 2,3,4,5,6,7,8
+	b=!randitem 2,3,4,5,6,7
+	c=$[$a*$a*$b]
+	answer$n=$a
+	applettext=!nospace sqrt($c)/sqrt($b)=
+	# antwoord een getal
+	var1=0
+	checkfile=exos/checkfile2.proc
+	texanswer$n=\frac{\sqrt{$c}}{\sqrt{$b}} = \sqrt{\frac{$c}{$b}} = $a
+	formula$n=\frac{\sqrt{$c}}{\sqrt{$b}}\,=\,[?]
+    !endif    
+ !exit
+!endif
+
+!if $R=2
+    f=!randitem 2,3,4,5,6,7
+    g=!randitem 2,3,4,5,6,7
+    pm=!randitem 1,-1
+    mp=!randitem 1,-1
+    f=$[$f*$pm]
+    g=$[$g*$mp]
+    !if $keuze=1
+	e=!randitem 2,3,5,6,7
+	d=!randitem 2,3,4,5,6,7,8,9,10
+	b=$[$e*$d]
+	applettext=!nospace ($f*sqrt($b))/($g*sqrt($d))=
+	# antwoord is een wortel
+	var1=1
+	tot=!exec pari A=($f)/($g)\
+	printtex(A)
+	h=!line 1 of $tot
+	htex=!line 2 of $tot
+	checkfile=exos/checkfile1.proc
+	texanswer$n=\frac{$f \sqrt{$b}}{$g \sqrt{$d}} = $htex \cdot \sqrt{\frac{$b}{$d}} = $htex \cdot \sqrt{$e}
+	formula$n=\frac{$f \sqrt{$b}}{$g \sqrt{$d}} \,=\,[?]
+	answer$n=$h,sqrt($e),2
+    !else
+	a=!randitem 2,3,4,5,6,7,8
+	b=!randitem 2,3,4,5,6,7
+	c=$[$a*$a*$b]
+	applettext=!nospace ($f*sqrt($c))/($g*sqrt($b))=
+	# antwoord een getal
+	var1=0
+	tot=!exec pari A=($a)*($f)/($g)\
+	printtex(A)
+	h=!line 1 of $tot
+	htex=!line 2 of $tot
+	answer$n=$h
+	checkfile=exos/checkfile2.proc
+	texanswer$n=\frac{$f \sqrt{$c}}{$g \sqrt{$b}} = \frac{$f}{$g} \cdot \sqrt{\frac{$c}{$b}} = \frac{$f}{$g} \cdot $a = $htex
+	formula$n=\frac{$f \sqrt{$c}}{$g \sqrt{$b}} \,=\,[?]
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    !if $keuze=1
+	e=!randitem 2,3,5,6,7
+	d=!randitem 2,3,4,5,6,7,8,9,10
+	b=$[$e*$d]
+	answer$n=1/$e,sqrt($e),2
+	applettext=!nospace sqrt($d)/sqrt($b)=
+	# antwoord is een wortel
+	var1=1
+	checkfile=exos/checkfile1.proc
+	texanswer$n=\frac{\sqrt{$d}}{\sqrt{$b}} = \sqrt{\frac{$d}{$b}} = \frac{1}{\sqrt{$e}} = \frac{1}{$e}\sqrt{$e}
+	formula$n=\frac{\sqrt{$d}}{\sqrt{$b}}\,=\,[?] 
+    !else
+	e=!randitem 2,3,5,6,7
+	d=!randitem 2,3,4,5,6,7,8,9,10
+	f=!randitem -2,-3,-4,-5,2,3,4,5
+	b=$[$e*$d]
+	applettext=!nospace $f*sqrt($d)/sqrt($b)=
+	# antwoord is een wortel
+	var1=1
+	checkfile=exos/checkfile1.proc
+	tot=!exec pari A=($f)/($e)\
+	printtex(A)
+	h=!line 1 of $tot
+	htex=!line 2 of $tot
+	answer$n=$h,sqrt($e),2
+	texanswer$n=$f\cdot \frac{\sqrt{$d}}{\sqrt{$b}} =$f\cdot  \sqrt{\frac{$d}{$b}} = \frac{$f}{\sqrt{$e}} = \frac{$f}{$e}\sqrt{$e} = $htex \cdot \sqrt{$e}
+	formula$n=$f\cdot \frac{\sqrt{$d}}{\sqrt{$b}} \,=\,[?]
+    !endif
+ !exit
+!endif

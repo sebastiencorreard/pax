@@ -1,0 +1,123 @@
+#a+sqrt(x)=x+b
+math=0
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+exotitle=!record 6 of lang/remarks.$taal
+#@ Vergelijkingen met Wortels
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:<=>:and
+!if $subject=23
+    questiontype=0
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=15
+    rows=2
+    # berekeniningen laten zien
+    var3=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=1
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    questiontype=7
+    javascript=js/exo1.js
+    embed=1
+    make_tr=1
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+keuze=!randitem 1,0
+!if $R>0
+    g=!randint 1,13
+    discr=1/4,1/9,1/16,16/9,9/16,4/9,4,9,16,25,49,9/25,16/25,1/25
+    dd=1/2,1/3,1/4,4/3,3/4,2/3,2,3,4,5,7,3/5,4/5,1/5
+    dis=!item $g of $discr
+    d=!item $g of $dd
+    a=!randint 1,10
+    b=$[-1/4*($dis-1)+$a]
+    !if $b=0
+	a=$[$a+1]
+    !endif
+    tot=!exec pari C=-1/4*($dis-1)\
+    printtex(C)\
+    B=C+$a\
+    printtex(B)\
+    D=$d\
+    printtex(D)\
+    X1=1/4*($dis-1)+1/2-1/2*$d\
+    printtex(X1)\
+    X2=1/4*($dis-1)+1/2+1/2*$d\
+    printtex(X2)\
+    TUS=2*(C)-1\
+    printtex(TUS)\
+    printtex((C)*(C))
+    c=!line 1 of $tot
+    c_tex=!line 2 of $tot
+    b=!line 3 of $tot
+    b_tex=!line 4 of $tot
+    d=!line 5 of $tot
+    d_tex=!line 6 of $tot
+    x1=!line 7 of $tot
+    x1_tex=!line 8 of $tot
+    x2=!line 9 of $tot
+    x2_tex=!line 10 of $tot
+    tus=!line 11 of $tot
+    tus2=!line 12 of $tot
+    tus3=!line 13 of $tot
+    
+    !if $b<0
+	formula$n=$a+\sqrt{x} = x $b_tex 
+    !else
+	formula$n=$a+\sqrt{x} = x+$b_tex
+    !endif
+    applettext=!nospace $a + sqrt(x) = x+$b ->
+    controle1=$[$a+sqrt($x1)-$x1-($b)]
+    !if $controle1 != 0
+	answer$n=$x2
+    !else
+	answer$n=$x1,$x2
+    !endif
+    !if $c<0
+	tussen1=x $c_tex
+    !else
+	tussen1=x+$c_tex
+    !endif
+    !if $tus<0
+	tussen2=x^{2} $tus2 x + $tus3=0
+    !else
+	tussen2=x^{2} + $tus2 x + $tus3=0
+    !endif
+    voldoet=!record 29 of lang/remarks.$taal
+    !if $controle1 != 0
+    texanswer$n=\left[ \begin{array}{l}$(formula$n) \\ \displaystyle \sqrt{x} = $tussen1 \rightarrow x = \left($tussen1 \right)^{2} \;\;\ast \\ \\ \displaystyle x = x^{2} + 2 \cdot $c_tex x + \left( $c_tex \right)^{2} \\ \\ \displaystyle $tussen2 \\ \textrm{abc-formule : }\\  a\cdot x^{2}+b\cdot x +c = 0 \\  a = 1 \: ; \: b = $tus2 \: ; \: c = $tus3 \\ \\ \displaystyle x_{1}=$x1_tex \;\;( \textrm{ $voldoet } )\\ \\ \displaystyle x_{2}=$x2_tex  \end{array} \right.
+    !else
+    texanswer$n=\left[ \begin{array}{l}$(formula$n) \\ \displaystyle \sqrt{x} = $tussen1 \rightarrow x = \left($tussen1 \right)^{2} \;\;\ast  \\ \\ \displaystyle x = x^{2} + 2 \cdot $c_tex x + \left( $c_tex \right)^{2} \\ \\ \displaystyle $tussen2 \\ \textrm{abc-formule : }\\  a\cdot x^{2}+b\cdot x +c = 0 \\  a = 1 \: ; \: b = $tus2 \: ; \: c = $tus3 \\ \\ \displaystyle x_{1}=$x1_tex \\ \\ \displaystyle x_{2}=$x2_tex \end{array} \right.
+    !endif
+    textanswer$n=!record 8 of lang/remarks.$taal
+    #@Let op : je kunt bij deze stap (het kwadrateren) een niet bestaande oplossing introduceren
+ !exit
+!endif 
+
+
+

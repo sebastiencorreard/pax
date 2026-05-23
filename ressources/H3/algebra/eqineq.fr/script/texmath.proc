@@ -1,0 +1,102 @@
+!!
+!! transforme la fraction principale (A)/(B) ou (A)/B de telle sorte à la laisser sous la forme {A over B} au lieu de {1 over A}B (transformation effectuée par la commande texmath standard)
+!! le processus ne donne un résultat correct que pour des expressions A et B algébriquement valide.
+
+!if / notin $wims_read_parm
+ !goto end
+!endif
+l_=()
+f_=!char 2 of $l_
+o_=!char 1 of $l_
+t1_=!replace internal $f_/ by , in $wims_read_parm
+n_=!itemcnt $t1_
+!if $n_=1
+ !goto end
+!endif
+
+!! ----- recherche de l'expression A
+nbopen_=1
+nbchar_=!charcnt $wims_read_parm
+n_=1
+!while $nbopen_>0 and $n_<$nbchar_
+ !increase n_
+ c_=!char $n_ of $wims_read_parm
+ !if $c_=$o_
+  !increase nbopen_
+ !else
+  !if $c_=$f_
+   nbopen_=$[$nbopen_-1]
+  !endif
+ !endif
+!endwhile
+!if $nbopen_!=0
+ !goto end
+!endif
+A_=!char 2 to $n_-1 of $wims_read_parm
+!increase n_
+c_=!char $n_ of $wims_read_parm
+
+!! ----- verification de la présence d'un /
+!if $c_!=/
+ !goto end
+!endif
+
+!! ----- recherche de l'expression (B) ou B
+!increase n_
+c_=!char $n_ of $wims_read_parm
+!if $c_=$o_
+!! ---- cas de la forme (A)/(B)+r
+ n0_=$n_+1
+ nbopen_=1
+ !while $nbopen_>0 and $n_<$nbchar_
+  !increase n_
+  c_=!char $n_ of $wims_read_parm
+  !if $c_=$o_
+   !increase nbopen_
+  !else
+   !if $c_=$f_
+    nbopen_=$[$nbopen_-1]
+   !endif
+  !endif
+ !endwhile
+ !if $nbopen_!=0
+  !goto end
+ !endif
+ B_=!char $n0_ to $[$n_-1] of $wims_read_parm
+ R_=!char $[$n_+1] to -1 of $wims_read_parm
+!else
+!! ---- cas de la forme (A)/B+r
+ n0_=$n_
+ !while $c_ notitemof *,-,+,/ and $n_<$nbchar_
+  !increase n_
+  c_=!char $n_ of $wims_read_parm
+ !endwhile
+ !if $n_=$nbchar_
+  B_=!char $n0_ to -1 of $wims_read_parm
+ !else
+  B_=!char $n0_ to $[$n_-1] of $wims_read_parm
+  R_=!char $n_ to -1 of $wims_read_parm
+ !else
+  R_=$empty
+ !endif
+!endif
+A_=!texmath $A_
+B_=!texmath $B_
+!if $R_!=$empty
+ R_=!texmath $R_
+!endif
+c_=!char 1 of $R_
+!if $c_ isin */
+ !goto end
+!else
+ !if $c_= - 
+  sortie=\frac{$A_}{$B_} $R_
+ !else
+  sortie=\frac{$A_}{$B_}+$R_
+ !endif
+!endif
+
+!exit
+:end
+sortie=!texmath $wims_read_parm
+sortie=$sortie \;

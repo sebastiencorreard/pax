@@ -1,0 +1,150 @@
+#:Getallen
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+inputs=-1
+n=$counter
+mathview=0
+math=0
+calculator=0
+checkfile=exos/invulgrid1.proc
+plaatje=$module_dir/gifs/exo1.jpg
+helptext=<img src=\'$plaatje\' alt=\'voorbeeld\' />
+questiontype=0
+embed=0
+make_tr=1
+
+eental=een,twee,drie,vier,vijf,zes,zeven,acht,negen
+tiental=tien,twintig,dertig,veertig,vijftig,zestig,zeventig,tachtig,negentig
+meer=honderd,duizend,miljoen,miljard,biljoen
+
+g1=!randint 1,9
+g2=!randint 2,9
+g3=!randint 2,9
+g41=!randint 2,9
+g42=!randint 2,9
+g51=!randint 2,9
+g52=!randint 2,9
+g61=!randint 2,9
+g62=!randint 2,9
+g71=!randint 2,9
+g72=!randint 2,9
+G1=!item $g1 of $eental
+G2=!item $g2 of $tiental
+G3=!item 1 of $meer
+G4=!item 2 of $meer
+a=!randitem 3,4
+b=10^6,10^9
+factor=!item $[$a-2] of $b
+G5=!item $a of $meer
+G41=!item $g41 of $eental
+G42=!item $g42 of $tiental
+G33=!item $g3 of $eental
+G51=!item $g51 of $eental
+G52=!item $g52 of $tiental
+
+keuze=!randint 0,1
+!if $taal=nl
+    !if $R=1
+	getal1=!nospace $G41 $G4
+	getal2=!nospace $G33 $G3
+	getal3=!nospace $G1 en $G2
+	getal=!nospace $getal1 - $getal2 - $getal3
+	# vierduizend vijfhonderd drie  en twintig
+	answer$n=$[$g41*1000 + $g3*100 + 10*$g2 + $g1]
+    !else
+	!if $R=2
+	    !if $keuze=1
+		getal1=!nospace $G42 $G4
+		getal2=!nospace $G33 $G3
+		getal3=!nospace $G1 en $G2
+		getal=!nospace $getal1 - $getal2 - $getal3
+		# twintig duizend vijf honderd vier en dertig
+		answer$n=$[$g42*10000 + $g3*100 + 10*$g2 + $g1]
+	    !else
+		getal1=!nospace $G41 en $G42 $G4
+		getal2=!nospace $G33 $G3
+		getal3=!nospace $G1 en $G2
+		getal=!nospace $getal1 - $getal2 - $getal3
+		# twee en twintig duizend vijf honderd vier en dertig
+		answer$n=$[$g42*10000 + $g41*1000  + $g3*100 + 10*$g2 + $g1]
+	    !endif
+	!else
+	    !if $keuze=1
+		getal1=!nospace $G51 $G5
+		getal2=!nospace $G41 en $G42 $G4
+		getal3=!nospace $G33 $G3
+		getal4=!nospace $G2
+		getal=!nospace $getal1 - $getal2 - $getal3 - $getal4
+		# 
+		answer$n=!exec pari $g51*$factor + $g42*10000 +  $g41*1000 + $g3*100 + 10*$g2
+	    !else
+		getal1=!nospace $G51 en $G52 $G5
+		getal2=!nospace $G42 $G4
+		getal3=!nospace $G33 $G3
+		getal4=!nospace $G2
+		getal=!nospace $getal1 - $getal2 - $getal3 - $getal4
+		# twee en twintig duizend vijf honderd vier en dertig
+		answer$n=!exec pari ($g52*10+$g51)*$factor + $g42*10000  + $g3*100 + 10*$g2
+	    !endif
+	!endif
+    !endif
+!else
+    !if $R=1
+	getal1=!singlespace $G41 $G4
+	getal2=!singlespace $G33 $G3
+	getal3=!singlespace $G2 $G1
+	getal=!singlespace $getal1 $getal2 $getal3
+	# fourthousand fivehundred twenty three
+	answer$n=$[$g41*1000 + $g3*100 + 10*$g2 + $g1]
+    !else
+	!if $R=2
+	    !if $keuze=1
+		getal1=!singlespace $G42 $G4
+		getal2=!singlespace $G33 $G3
+		getal3=!singlespace $G2 $G1
+		getal=!singlespace $getal1 $getal2 $getal3
+		# twintig duizend vijf honderd vier en dertig
+		answer$n=$[$g42*10000 + $g3*100 + 10*$g2 + $g1]
+    		getal=!singlespace $G2 $G1 $G3
+		answer$n=$[($g1 + 10*$g2)*100]
+	    !else
+		getal1=!singlespace $G42  $G41 $G4
+		getal2=!singlespace $G33 $G3
+		getal3=!singlespace $G2 $G1
+		getal=!singlespace $getal1 $getal2 $getal3
+		# twee en twintig duizend vijf honderd vier en dertig
+		answer$n=$[$g42*10000 + $g41*1000  + $g3*100 + 10*$g2 + $g1]
+	    !endif
+	!else
+	    getal1=!singlespace $G51 $G5
+	    getal2=!singlespace $G42  $G41 $G4
+	    getal3=!singlespace $G33 $G3
+	    getal4=!singlespace $G2
+	    getal=!singlespace $getal1 $getal2 $getal3 $getal4
+	    answer$n=!exec pari $g51*$factor + $g42*10000 +  $g41*1000 + $g3*100 + 10*$g2
+	!endif
+    !endif
+!endif
+answer$n=!nospace $(answer$n)
+t=!charcnt $(answer$n)
+ss=Schrijf het getal <span style="font-weight:1.6em"><kbd>$getal</kbd></span> in cijfers.
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+# mooi antwoord
+textanswer$n=<table><tr>
+!for p=1 to $t
+    g=!char $p of $(answer$n)
+    textanswer$n=!append word $ <th><input type="text" maxlength="1" size="1" style="width:28;height:28;text-align:center;font-size:20px;background-color:lightgreen;border:1px solid #ff0000" type="text" name="left" value="$g" readonly="readonly"/></th> $ to $(textanswer$n)
+!next p
+textanswer$n=!append word </tr></table> to $(textanswer$n)
+
+xlines=$[$t+3]
+ylines=1
+xsize=380
+ysize=80
+exotext=<object id="InvulGrid0" width="$xsize" height="$ysize" classid="java:InvulGrid.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="InvulGrid.jar" /><param name="java_code=" valye="InvulGrid.class" /><param name="fontsize" value="80"/><param name="pencolor" value="120,20,255,180"/><param name="bgcolor" value="245,240,240"/><param name="markcolor" value="10,255,10,50"/><param name="linecolor" value="5,200,120,180"/><param name="linewidth" value="3"/><param name="pointsize" value="5"/><param name="xlines" value="$xlines"/><param name="ylines" value="$ylines"/><param name="showgrid" value="true"/><param name="gridcolor" value="0,0,255,100"/><param name="language" value="$taal"/><param name="exercise" value="$som"/><param name="reverse" value="no"/><param name="exercisecolor" value="255,0,0,160"/><param name="buttons" value=""/><param name="scribling_row" value="no"/><param name="scribling_pencolor" value="255,200,50,200"/>$nojava</object>
+
+!exit

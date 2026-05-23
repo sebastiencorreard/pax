@@ -1,0 +1,129 @@
+#:bepaal de lijn door punt & oorsprong
+n=$counter
+questiontype=0
+image=0
+cols=15
+rows=1
+math=0
+embed=1
+mathview=4
+checkfile=$checkdir/equation.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $printexo=0
+    white=white
+    image=0
+!else
+    image=1
+    white=magenta
+!endif
+
+!if $R=1
+    m=!randint 2,10
+    mp=1
+    pm=1
+    x1=!randint 1,10
+!else
+    !if $R=2
+	m=!randint 2,10
+	pm=!randitem -1,1
+	mp=!randitem -1,1
+	x1=!randint 1,10
+    !else
+	m=!randitem 1/2,1/4,1/6,1/8,1/10,3/4,4/5,5/4,1/5,2/5,3/5,4/5,5/6,7/6
+	mp=!randitem -1,1
+	x1=!randint 3,35
+	pm=!randitem -1,1
+    !endif
+    m=($pm*$m)
+!endif
+
+x1=$[$mp*$x1] 
+tot=!exec pari A=($m)*($x1)\
+printtex(A)\
+M=$m\
+printtex(M)
+
+y1=!line 1 of $tot
+y1tex=!line 2 of $tot
+m=!line 3 of $tot
+mtex=!line 4 of $tot
+
+make_tr=1
+A=!randitem A,B,C,D,E,F,G,H
+letter1=x
+letter2=y
+wims_rawmath_variables=$letter1
+answer$n=$m*$letter1
+lijn=$m*x
+arglist=$letter2
+varlist=$letter1
+ss=!record 8 of lang/remarks.$taal
+
+formula$n=\left[ \begin{array}{l} O (0:0) \\ $A ( $x1 : $y1tex ) \\ $letter2=a\cdot $letter1 + b \end{array} \right.
+
+ggg=!htmlmath $letter2 = $(answer$n)
+
+rr=!record 10 of lang/remarks.$taal
+#@ De vergelijking van de lijn door $A en de Oorsprong is:<br /> $ggg 
+#@! The equation of the line through $A and the Origin is:<br /> $ggg 
+#@!~ 通过 $A 及原点的直线方程是:<br /> $ggg 
+
+image=0
+!if $teaching=1
+    plot=0
+    draw=0
+    # symmetrisch plaatje
+    !if $mp=-1
+	xmin=$[4*$x1]
+	xmax=$[-4*$x1]
+    !else
+	xmin=$[-4*$x1]
+	xmax=$[4*$x1]
+    !endif
+    ymax=$[(abs(max($[$x1*$m] , $[$x1*$m])))]
+    ymax=$[$ymax+10]
+    ymin=$[-1*($ymax)]
+
+#    insplot_data=$x1 $y1 \
+#    0 0
+#    #"(0,0) first"at first0, first0
+#    insplot_set=noautoscale;size 0.6,0.6;label "$A ($x1:$y1)" at first $x1,first $y1 ;label "O (0:0)" at first 0,first 0 ;grid ;pointsize 1; zeroaxis linetype 3 lw 3; xlabel "<$letter1 -axis>";ylabel"<$letter2 -axis>" ;border
+    etext=!record 1 of lang/remarks.$taal
+#    #@ Hier staat een klein grafiekje van de functie</a>
+#    exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' />')">$etext</a>
+#    !insplot [$ymin : $ymax] [$ymin : $ymax] $lijn notitle lt 1 ,"insplot_data" notitle with points
+    
+    tooltip=!exec canvasdraw \
+    size 320,320\
+    bgcolor $wims_bgcolor\
+    xrange $xmin,$xmax\
+    yrange $ymin,$ymax\
+    precision 1\
+    axis\
+    axisnumbering\
+    xlabel x-axis\
+    ylabel y-axis\
+    grid 10,10,grey,2,2,5,blue\
+    linewidth 2\
+    curve red,$lijn\
+    crosshairsize 4\
+    crosshair $x1,$y1,black\
+    fontfamily bold 16px Ariel\
+    string black,$[$x1+1],$y1,  $A ($x1:$y1)\
+    intooltip $etext
+    
+    exotext=$tooltip <br />
+    
+!endif
+helptext=<textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>$letter2 = 1/2*$letter1 - 5</textarea><hr /><textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>$letter2 = -3$letter1 + 1/3</textarea>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+textanswer$n=$rr
+texanswer$n=\left[ \begin{array}{l} $letter2 = a \cdot $letter1 + b \\  O (0:0) \\ $A \left( $x1 : $y1tex \right)   \end{array}\right] a=\frac{$y1tex}{$x1} = $mtex \rightarrow $letter2 = $mtex \cdot x \right.
+applettext=!nospace (vlist($A ($x1 : $y1) ,O (0 : 0), $letter2 = a*$letter1 + b )) ->
+mathviewpanel=$module_title:$letter2=:$letter1:+:-:*:/

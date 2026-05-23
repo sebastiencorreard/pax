@@ -1,0 +1,57 @@
+n=$counter
+cols=16
+rows=1
+image=0
+math=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+checkfile=$checkdir/simplify.proc
+arglist=$empty
+letters=x,y,z,p,w,a,b,c
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+a=!item 4 of $letters
+getallen=!shuffle 2,3,4,5,6,7,8,-2,-3,-4,-5,-6,-7,-8
+b=!item 1 of $getallen
+c=!item 2 of $getallen
+d=!item 3 of $getallen
+e=!item 4 of $getallen
+pm=!randitem +,-
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+!if $R=1
+    var1=!rawmath $x^$a/($x^($b*$a)) $pm $x/($x^($b*$a))
+    applettext=!nospace $var1 = 
+    answer$n=!exec maxima ratsimp($var1);
+    tex=!texmath $(answer$n)
+    formula$n=\frac{$x^{\textsize $a}}{$x^{\textsize $b\cdot $a}} \,\, $pm \,\, \frac{$x}{$x^{\textsize $b\cdot $a}}
+    texanswer$n= $(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R>1
+    var1=!rawmath $x^($a)/($d*$x^($b)) $pm $c*$x^($a)/($x^($b))
+    applettext=!nospace $var1 = 
+    answer$n=!exec maxima ratsimp($var1);
+    tex=!texmath $(answer$n)
+    formula$n=\frac{$x^{\textsize $a}}{$d \cdot $x^{\textsize $b}} \,\, $pm \,\, \frac{$c \cdot $x^{\textsize $a}}{$x^{\textsize $b}}
+    texanswer$n= $(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+

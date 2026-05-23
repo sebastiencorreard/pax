@@ -1,0 +1,108 @@
+target=deftangente1 deftangente2 deftangente3 deftangente4 deftangente5
+
+\keywords{tangent}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\real{th=random(-pi/4..7*pi/4)}
+\real{r=random(40..75)}
+\text{ch=shuffle(1,2,3,4)}
+\text{color=wims(item \ch of blue,green,purple,brown)}
+\text{colorname=wims(item \ch of \name_color)}
+\text{let=shuffle(A,B,C,E,F,G)}
+\text{A=\let[1]}
+\text{B=\let[2]}
+\text{C=\let[3]}
+\text{enonce=wims(replace internal XXXX by \colorname[1] in \name_enonce)}
+\text{enonce=wims(replace internal YYYY by \colorname[2] in \enonce)}
+\text{enonce=wims(replace internal AAAA by \A in \enonce)}
+
+#if defined TARGET_deftangente1
+\text{good=1}
+\integer{r2=\r}
+\text{v=0}
+#endif
+#if defined TARGET_deftangente2
+\text{good=2}
+\integer{r2=randint(\r/3..2*\r/3)}
+\text{v=0}
+#endif
+#if defined TARGET_deftangente3
+\text{good=2}
+\integer{r2=0}
+\text{v=0}
+#endif
+#if defined TARGET_deftangente4
+\text{good=1,5}
+\integer{r2=\r}
+\real{v=0}
+#endif
+#if defined TARGET_deftangente5
+\text{good=2,5}
+\integer{r2=\r}
+\real{v=0.3}
+#endif
+#if defined TARGET_deftangente1 || defined TARGET_deftangente2 || defined TARGET_deftangente3
+ \text{type=radio}
+#endif
+#if defined TARGET_deftangente4 || defined TARGET_deftangente5
+\text{type=checkbox}
+#endif
+\text{dessin=range -150,150,-150,150
+circle 0,0,2*\r,black
+linewidth 2
+line \r2*cos(\th)+200*sin(\th+\v),\r2*sin(\th)-200*cos(\th+\v),\r2*cos(\th)-200*sin(\th+\v),\r2*sin(\th)+200*cos(\th+\v),\color[1]}
+#if defined TARGET_deftangente3 || defined TARGET_deftangente4 || defined TARGET_deftangente5
+\text{dessin=\dessin
+circle 0,0,5,black
+text red,0,0,large,\A}
+#endif
+#if defined TARGET_deftangente4 || defined TARGET_deftangente5
+\text{dessin=\dessin
+line -200*cos(\th),-200*sin(\th),200*cos(\th),200*sin(\th),\color[2]}
+#endif
+
+\integer{xA=0}
+\integer{yA=0}
+\real{xA=\th<=pi/4?-1:\xA}
+\real{xA=\th>3*pi/4 and \th<5*pi/4?+0.2:\xA}
+\real{yA=\th>=5*pi/4?1:\yA}
+\real{yA=\th>pi/4 and \th<3*pi/4?-0.1:\yA}
+\integer{xB=0}
+\integer{yB=0}
+\real{xB=\th<=pi/4?0.2:\xB}
+\real{xB=\th>3*pi/4 and \th<5*pi/4?-1:\xB}
+\real{yB=\th>=5*pi/4?-0.1:\yB}
+\real{yB=\th>pi/4 and \th<3*pi/4?1:\yB}
+\real{r=rint(\r*100)/100}
+\text{a=randint(3..7)}
+\text{ch=shuffle(1,-1)}
+\real{x1=\r*cos(\th)-\ch[1]*\a*sin(\th)}
+\real{y1=\r*sin(\th)+\ch[1]*\a*cos(\th)}
+\real{x2=\r*cos(\th)+\ch[1]*\a*sin(\th)}
+\real{y2=\r*sin(\th)-\ch[1]*\a*cos(\th)}
+\real{xmin=min(\x2,\x1)}
+\real{ymin=min(\y2,\y1)}
+\real{xmax=max(\x2,\x1)}
+\real{ymax=max(\y2,\y1)}
+\real{d=rint(sqrt((\x1)^2+(\y1)^2)*10)/10}
+\integer{angle=arctan(\r/\a)/pi*180}
+\real{rep=rint(\d*cos((90-\angle)/180*pi)*10)/10}
+\real{min=min(\xmin,\ymin)-2}
+\real{max=max(\xmax,\ymax)+2}
+\real{b=0.5}
+\text{image=draw(300,300
+\dessin)}
+\integer{nbbad=items(\bad)}
+\statement{
+<div class="float_left"><img src="\image" alt=""></div>
+<div class="float_left">
+   \enonce
+<ul>
+    \for{k=1 to \nbbad}{<li>\embed{r1,\k}</li>}
+</ul>
+</div>
+}
+\answer{}{\good;\bad}{type=\type}
+

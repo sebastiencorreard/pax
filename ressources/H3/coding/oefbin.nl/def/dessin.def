@@ -1,0 +1,129 @@
+!set title=Codering en Bits
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2
+
+val6=$(tmp0)
+t_=!replace internal \( by ( in A=matrix(4,4,i,j,RANDOM(2));	B=matrix(4,4,i,j,A[i,5-j]); C=matrix(4,4,i,j,A[5-i,j]);	D=matrix(4,4,i,j,A[5-i,5-j]); U=concat(A,B);	V=concat(C,D); print(concat(mattranspose(U),mattranspose(V)))
+tmp0=!exec pari $t_
+
+val7=$(tmp0)
+t_=!replace internal \( by ( in A=print(matrix(8,8,i,j,RANDOM(2)))
+tmp0=!exec pari $t_
+
+val8=$(tmp0)
+
+!ifval $val6=1 
+val9= $val7
+!else
+val9=$val8
+!endif
+tmp0=!declosing $val9
+
+val9=$(tmp0)
+val10=
+val11=2
+!for val12 =1 to 8 
+val13=
+!for val14 =1 to 8 
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val14 of $(tmp0)
+
+!if 1 isin $(tmp1) 
+val10=$val10	fill $val14-1/2,9-$val12-1/2,blue
+val13=$val13,1
+!else
+val13=$val13,0
+!endif
+!next
+tmp0=!items2words $val13
+
+val13=$(tmp0)
+tmp0=!nospace $val13
+
+val13=$(tmp0)
+val11=$val11,$val13
+!next
+tmp0=!item 2 to 9 of $val11
+
+val11=$(tmp0)
+replytype1=atext
+replyname1=geef de binaire code :
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Geef de binaire code: 	<center>	 
+!read oef/draw.phtml 200,200 \
+xrange 0,8.2	yrange -0.2,8	parallel 0,0,0,8,1,0,9,black	parallel 0,0,8,0,0,1,9,black	$val10 
+$()	</center>	Elke rij van links naar rechts stelt 8 bits voor.	We lezen dus van links boven naar rechts beneden, en 	hebben we dus nu 8 "woorden" van 8 bits.		Geef de binaire representatie van de voorgestelde code, 	de "woorden" gescheiden door komma's.	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10
+embedcnt=0

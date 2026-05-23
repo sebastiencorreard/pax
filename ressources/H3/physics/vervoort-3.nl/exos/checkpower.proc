@@ -1,0 +1,31 @@
+n=$counter
+
+
+!if $(reply$n)=?
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+t=!itemcnt $(reply$n)
+!if $t!=$options
+    errortext=Niet met de adresbalk prutsen...
+!endif
+
+!for p=1 to $t
+    P=!item $p of $(reply$n)
+    !if ^ notin $P
+	errortext=Je moest $P (sommetje $p) als een macht noteren...<br />weet je nog wel?
+	goback=1
+	maxscore=$[$P1*$maxscore]
+	!exit
+    !endif
+!next p
+
+!readproc $checkdir/new_number.proc
+
+!if $goback=0
+    formula$n=$empty
+!endif
+!exit

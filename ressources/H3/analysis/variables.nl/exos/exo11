@@ -1,0 +1,188 @@
+questiontype=0
+math=0
+cols=15
+rows=2
+embed=1
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+wims_rawmath_variables=x
+color1=!randitem red,blue,green,orange,purple
+soort=!randitem 1,2
+!if $soort=1
+    checkfile=$checkdir/number.proc
+    varlist=$empty
+    arglist=x
+    mathviewpanel=$module_title:x=:and:or   
+!else
+    checkfile=$checkdir/coord.proc
+    mathviewpanel=$module_title:(x;y):and:or   
+!endif
+#soort=2 (1:0)
+keuze=!randitem 1,2
+a=!randitem 1,2,3,4,5
+q=!randitem 2,3,4
+b=$[$a+$q]
+
+y1=0
+y2=0
+y3=0
+
+!if $R=1
+    !if $keuze=1
+	vraag=(x + $a)(x - $b)
+	curve=(x + $a)*(x - $b)
+	x1=$[-1*$a]
+	x2=$b
+	tex= (x + $a)\cdot(x - $b) = 0 \\ (x + $a) = 0 \vee (x - $b) = 0 
+    !else
+	vraag=($a - x)($b + x)
+	curve=($a - x)*($b + x)
+	x1=$a
+	x2=$[-1*$b]
+	tex= ($a - x)\cdot($b + x) = 0 \\ ($a - x) = 0 \vee ($b + x) = 0 
+    !endif
+    !if $soort=1
+	answer$n=$x1,$x2
+    !else
+	answer$n=$x1,$y1,$x2,$y2
+    !endif
+    punten=points red,$x1,$y1,$x2,$y2
+    rr=!record 12 of lang/remarks.$taal
+    #@ De waarden zijn <em>x=$x1</em> en <em>x=$x2</em><br />en dus de snijpunten met de x-as zijn ($x1:0) en ($x2:0)
+    textanswer$n=$rr
+    texanswer$n= \left[ \begin{array}{l} $tex \\ x_1 = $x1 \\ x_2 = $x2 \end{array}\right.
+!goto PLAATJE
+!endif
+
+!if $R=2
+    !if $keuze=1
+	curve=!exec pari (x + $a)*(x - $b)
+	vraag=!replace internal * by $empty in $curve
+	x1=$[-1*$a]
+	x2=$b
+	tex= (x + $a)\cdot(x - $b) = 0 \\ (x + $a) = 0 \vee (x - $b) = 0 
+    !else
+	curve=!exec pari ($a - x)*(x + $b)
+	vraag=!replace internal * by  in $curve
+	vraag=!replace internal x by x in $vraag
+	x1=$a
+	x2=$[-1*$b]
+	tex= ($a - x)\cdot(x + $b) = 0 \\ ($a - x) = 0 \vee  (x + $b ) = 0 
+    !endif
+    !if $soort=1
+	answer$n=$x1,$x2
+    !else
+	answer$n=$x1,$y1,$x2,$y2
+    !endif
+    punten=points red,$x1,$y1,$x2,$y2
+    rr=!record 12 of lang/remarks.$taal
+    #@ De waarden zijn <em>x=$x1</em> en <em>x=$x2</em><br />en dus de snijpunten met de x-as zijn ($x1:0) en ($x2:0)
+    textanswer$n=$rr
+    texanswer$n= \left[ \begin{array}{l} $tex \\  x_1 = $x1 \\ x_2 = $x2 \end{array}\right.
+!goto PLAATJE
+!endif
+
+!if $R=3
+    !if $keuze=1
+	curve=x*(x + $a)*(x - $b)
+	vraag=x\cdot(x + $a)(x - $b)
+	x1=$[-1*$a]
+	x2=$b
+	x3=0
+	tex= x\cdot(x + $a)(x - $b) = 0 \\ x = 0 \vee (x + $a) = 0 \vee (x - $b) = 0
+    !else
+	curve=x*($a - x)*(x + $b)
+	vraag=x\cdot($a - x)(x + $b)
+	x1=$[-1*$b]
+	x2=$a
+	x3=0
+	tex= x \cdot ($a - x)\cdot(x + $b ) = 0 \\ x = 0 \vee ($a - x) = 0 \vee (x + $b ) = 0 
+    !endif
+    !if $soort=1
+	answer$n=$x1,$x2,$x3
+    !else
+	answer$n=$x1,$y1,$x2,$y2,$x3,$y3
+    !endif
+    punten=points red,$x1,$y1,$x2,$y2,$x3,$y3
+    rr=!record 13 of lang/remarks.$taal
+    #@ De waarden zijn <em>x=0</em> ,<em>x=$b</em> en <em>x=$[-1*$a]</em><br /> dus de punten (0:0) en ($b:0) en ($[-1*$a]:0)
+    textanswer$n=$rr
+    texanswer$n= \left[ \begin{array}{l} $tex \\ x_1 = $x1 \\ x_2 = $x2 \\ x_3 = $y3 \end{array}\right.
+!goto PLAATJE
+!endif
+!if $R>3
+    !if $keuze=1
+        curve=!exec pari x*(x + $a)*(x - $b)
+	vraag=!replace internal * by  in $curve
+	x1=$[-1*$a]
+	x2=$b
+	x3=0
+        tex = $vraag = 0 \\ x \cdot (x + $a)*(x - $b) = 0 \\ x = 0 \vee (x + $a) = 0 \vee (x - $b) = 0
+    !else
+        curve=!exec pari x*($a - x)*(x + $b)
+	vraag=!replace internal * by  in $curve
+	vraag=!replace internal x by $ x $ in $vraag
+	x1=$[-1*$b]
+	x2=$a
+	x3=0
+        tex = $vraag = 0 \\ x \cdot ($a - x )*(x + $b) = 0 \\ x = 0 \vee ($a - x ) = 0 \vee (x + $b) = 0
+    !endif
+    !if $soort=1
+	answer$n=$x1,$x2,$x3
+    !else
+	answer$n=$x1,$y1,$x2,$y2,$x3,$y3
+    !endif
+    punten=points red,$x1,$y1,$x2,$y2,$x3,$y3
+    rr=!record 13 of lang/remarks.$taal
+    #@  De waarden zijn <em>x=0</em> ,<em>x=$b</em> en <em>x=$[-1*$a]</em><br /> dus de punten (0:0) en ($b:0) en ($[-1*$a]:0)
+    textanswer$n=$rr
+    texanswer$n= \left[ \begin{array}{l} $tex \\ x_1 = $x1 \\ x_2 = $x2 \\ x_3 = $y3 \end{array}\right.
+!endif
+
+:PLAATJE
+!if $soort=1
+    #formula$n=\left[ \begin{array}{l}y=$vraag\\\\y=0\end{array}\right.
+    formula$n=\, y\,\,=\,\,$vraag
+    applettext=!nospace y = $vraag ->
+    ss=!record 10 of lang/remarks.$taal
+    #@ Los de onderstaande vergelijking op:<br />(Bereken dus x=.....)<br />
+!else
+    formula$n= f:\, y \,\,=\,\, $vraag
+    applettex=!nospace f(y)= $vraag ->
+    ss=!record 11 of lang/remarks.$taal
+    #@ Determine the co&ouml;rdinates of the intersection points of the $parabool<br /> with the <em>x-axis</em>:<br />
+!endif
+
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $teaching=1
+image=1
+make_tr=0
+xsize=140
+ysize=140
+image_settings$n=200,200
+image$n=\
+transparent white\
+xrange -10,10\
+yrange -50,50\
+linewidth 1\
+vline 0,0,blue\
+hline 0,0,blue\
+linewidth 2\
+curve $color1,$curve\
+linewidth 6\
+$punten
+
+plot=0
+draw=1
+svg=0
+
+!endif
+
+!exit

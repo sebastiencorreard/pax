@@ -1,0 +1,121 @@
+!set title=3 - Moyenne
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=jbfrondas@gmail.com
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem girl,boy
+
+val6=$(tmp0)
+!readproc slib/lang/fname  $val6  
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!randint 4, 7
+
+val8=$[rint($(tmp0))]
+val9=
+val10=$[0]
+!for val11 =1 to $val8 
+tmp0=!randint 0, 40
+
+val12=$[rint($(tmp0))]
+val13=$[$val12/2]
+tmp0=!append item $val13 to $val9
+
+val9=$(tmp0)
+val10=$[$val10+$val13]
+!next
+val14=$[($val10)/$val8]
+val15=$[rint($val8-1)]
+tmp0=!replace item number $val8 by in $val9
+
+val16=$(tmp0)
+tmp0=!nonempty items $val16
+
+val16=$(tmp0)
+val17=TIT
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val18=$(tmp0)
+!if $val6=boy 
+val19=Il
+!else
+val19=Elle
+!endif
+val20=$val7 a déjà $val15 notes en mathématiques, qui sont : $val16. Quelle devra être sa prochaine note pour que sa moyenne soit de $val14 ?
+val21=Dernière note
+val22=La prochaine note devra être $(val9[$val8]).
+replyname1=$val21
+replygood1=$(val9[$val8]) 
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val20 \end{statement} \begin{solution} $val22 \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val20	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val20 $m_end{statement} $m_begin{solution} $val22 $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=20,22
+embedcnt=0

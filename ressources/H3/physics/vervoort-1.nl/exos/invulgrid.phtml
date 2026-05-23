@@ -1,0 +1,32 @@
+!set n=$counter
+<script type="text/javascript">
+    function sendanswer(){
+	var p = 0;
+	var show = "";
+	var reply = "";
+	var latexreply = "";
+	!if $decimals=0
+	    var decimals=false;
+	!else
+	    var decimals=true;
+	!endif
+	while( document.getElementById('InvulGrid'+p )){
+	    var tmp_reply = document.getElementById('InvulGrid'+p).ReadApplet('0');
+	    var tmp_htmlreply = document.getElementById('InvulGrid'+p).ReadApplet('2');
+	    var tmp_latexreply = document.getElementById('InvulGrid'+p).ReadApplet('3');
+	    if(tmp_reply.indexOf('error')!= -1){setAlarm(r26+"<br>applet "+eval(p+1));return;}
+	    if(tmp_reply.indexOf("?") != -1){dontknow();return;}
+	    reply =reply+ tmp_reply+"\n"+tmp_htmlreply+"\n"+tmp_latexreply+"\n";
+	    show = show+"$questionnumber "+eval(p+1)+")<br />"+tmp_htmlreply+"<br />"
+	    p++;
+	}
+	if(!decimals){ 
+	    reply = reply.replace(/\./g,'');
+	    show = show.replace(/\./g,'');
+	}
+	myConfirm(show,reply,'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+    }
+</script>
+<div id="applet" class="embedded_central">
+    $exotext
+</div>

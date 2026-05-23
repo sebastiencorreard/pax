@@ -1,0 +1,123 @@
+!set title=Signe d'un produit 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=G.,Bayle;Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 3, 6
+
+val6=$[rint($(tmp0))]
+tmp0=!values v for v=2 to 23
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!randint 1, $val6-1
+
+val8=$[rint($(tmp0))]
+tmp0=!values -1 for v=1 to $val8
+
+val9=$(tmp0)
+tmp0=!values 1 for v=$val8+1 to $val6
+
+val10=$(tmp0)
+tmp0=!shuffle $val9,$val10
+
+val9=$(tmp0)
+val11=\(\ +\ ),\(\ -\ )
+val12=$[$val8/2]
+
+!ifval . isin $val12
+val13=$(val11[2])
+!else
+val13=$(val11[1])
+!endif
+val14=$[rint($(val9[1])*$(val7[1]))]
+val15=($val14)
+val16=$[rint($(val7[1]))]
+!for val17 =2 to $val6 
+val14=$[rint($(val9[$val17])*$(val7[$val17]))]
+val16=$[rint($val16*$(val7[$val17]))]
+
+!ifval $val14>0
+val14=+$val14
+!endif
+val15=$val15\times($val14)
+!next
+replytype1=dragfill
+replyname1=Réponse
+replygood1=$val13;$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Compléter l'égalité suivante :	<div class="wimscenter">	 
+!insmath $val15 = 
+$()  
+!read oef/embed.phtml r1,20x20x1 
+$() 
+!insmath $val16
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16
+embedcnt=1

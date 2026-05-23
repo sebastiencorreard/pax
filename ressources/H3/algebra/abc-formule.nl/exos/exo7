@@ -1,0 +1,118 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+embed=1
+cols=20
+rows=2
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+#rotzakken....
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+text=!record 9 of lang/remarks.$taal
+#@ Bepaal de nulpunten,er zijn geen wortels ,de twee wortels zijn,en,de ene wortel is
+exotext=!record 19 of lang/remarks.$taal
+exotext=<small>$exotext</small>
+ss=!item 1 of $text
+geen=!item 2 of $text
+twee=!item 3 of $text
+en=!item 4 of $text
+ene=!item 5 of $text
+
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+
+
+!if $R = 1
+    a=!randitem -1,1
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+!else
+    !if $R = 2
+	a=!randitem -1,1
+	b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+        c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+    !else
+	!if $R = 3
+	    a=!randitem -1,1
+    	    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+	    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+	!else
+	    a=!randitem -1,1
+	    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+	    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+	!endif
+    !endif
+!endif
+functie=($a)*x^2 + ($b)*x + ($c)
+D=$[$b*$b - 4*($a)*($c)]
+!if $D  >= 0
+    x1=(-1*$b + sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    x2=(-1*$b - sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    tot=!exec maxima expand($x1);\
+    expand($x2);
+    !if $D > 0
+	var1=2
+    !else
+	var1=1
+    !endif
+!else
+    textanswer$n=$geen
+    answer$n=nil
+    var1=0
+!endif
+
+
+!if $var1>0
+    x1=!line 1 of $tot
+    x2=!line 2 of $tot
+    x1_tex=!texmath $x1
+    x2_tex=!texmath $x2
+    !if $var1=2
+	answer$n=$x1,$x2
+	punten=points red,$[$x1],0,$[$x2],0
+	textanswer$n=$twee  x1=$x1 $en x2=$x2
+    !else
+	answer$n=$x1
+	punten=point $[$x1],0,red
+	textanswer$n=$ene x=$x1
+    !endif
+!else
+    # $var1=0
+    punten=$empty
+!endif
+
+tot=!exec pari A= $functie\
+printtex(A)
+
+raw=!line 1 of $tot
+tex_fun=!line 2 of $tot
+
+F=!randitem f,g,h,k,p,w
+
+formula$n=$F \left( x \right)\,\,=\,\,$tex_fun
+applettext=!nospace $F (x) = $raw ->
+mathviewpanel=$module_title:x_1=:and:x_2=:sqrt()
+
+!if $D<0
+    texanswer$n=  \left[ \begin{array}{l} a\cdot x^{2} + b \cdot x + c = 0 \\ x_{1} = \frac{-b + \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \,\,\, x_{2} = \frac{-b - \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \\ $tex_fun = 0 \\ a = $a \\ b = $b \\ c = $c \\ D = b^{2} - 4 \cdot a \cdot c = \left( $b \right)^{2} - 4 \cdot $a \cdot $c = $D  < 0  \\ \textrm{$geen} \end{array} \right.
+!else
+    !if $D=0
+	texanswer$n=  \left[ \begin{array}{l} a\cdot x^{2} + b \cdot x + c = 0 \\ x_{1} = \frac{-b + \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \,\,\, x_{2} = \frac{-b - \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \\ $tex_fun = 0 \\ a = $a \\ b = $b \\ c = $c \\ D = b^{2} - 4 \cdot a \cdot c = \left( $b \right)^{2} - 4 \cdot $a \cdot $c = $D  = 0 \\ x_{1} = \frac{-1 \cdot $b + \sqrt{\left( $b \right)^{2} - 4 \cdot $a \cdot $c }}{2 \cdot $a} = $x1_tex \\ x_{1}= $x1_tex \end{array}\right.
+    !else
+	texanswer$n=  \left[ \begin{array}{l} a\cdot x^{2} + b \cdot x + c = 0 \\ x_{1} = \frac{-b + \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \,\,\, x_{2} = \frac{-b - \sqrt{b^{2} - 4 \cdot a \cdot c }}{2 \cdot a} \\ $tex_fun = 0 \\ a = $a \\ b = $b \\ c = $c \\ D = b^{2} - 4 \cdot a \cdot c = \left( $b \right)^{2} - 4 \cdot $a \cdot $c = $D  > 0 \\ x_{1} = \frac{-1 \cdot $b + \sqrt{\left( $b \right)^{2} - 4 \cdot $a \cdot $c }}{2 \cdot $a} = $x1_tex \\ x_{2} = \frac{-1 \cdot $b - \sqrt{\left( $b \right)^{2} - 4 \cdot $a \cdot $c }}{2 \cdot $a} = $x2_tex \\ x_{1}= $x1_tex \\ x_{2}= $x2_tex  \end{array}\right.
+    !endif
+!endif
+
+rr=!record 17 of lang/remarks.$taal
+helptext=$rr
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>

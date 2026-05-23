@@ -1,0 +1,205 @@
+type=order
+textarea="instruction data1 data2 data3 data4 data5"
+iEdit="instruction"
+:Faire un mot avec des lettres
+<p>Jusqu'à 5 listes de mots peuvent être entrées.
+Un mot au hasard dans chaque liste est pris à chaque fois.
+Une indication peut être mise pour chaque mot.</p>
+<p><span class="wims_warning"></span>. Vous devez vérifier
+que d'autres mots ne sont pas faisables avec les mêmes lettres
+ou mettre une indication qui permette de différencier.</p>
+<p class="wims_credits">Auteur du modèle : <a href="mailto:bernadette.m.riou@orange.fr">Bernadette Perrin-Riou</a></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Noms de villes allemandes}
+:\author{Carré, Delafraye}
+:\email{josiane-an.carre@ac-amiens.fr}
+:\credits{}
+
+\text{confparm1= items(\confparm1)=0 ? random(1..4):\confparm1}
+
+:Consigne
+
+\text{instruction=Remettez les lettres dans l'ordre pour retrouver le nom d'une ville allemande !}
+
+:Nombre de mots (au maximum 5)
+Le nombre de mots doit être inférieur à 5 et inférieur au nombre de listes
+remplies ci-dessous.
+\integer{N=1+\confparm1}
+
+:Première liste de mots
+Mettre un mot (ou groupe de mots) par ligne, suivi éventuellement d'une indication. S'il s'agit
+d'un groupe de mots, remplacer l'espace par <span class="tt">_</span>.
+\text{data1=München
+Hamburg
+Erfurt
+Trier
+Köln}
+
+:Seconde liste de mots
+
+\text{data2=Nürnberg
+Bonn
+Magdeburg
+Dresden
+Leipzig}
+
+:Troisième liste de mots
+
+\text{data3=Aachen
+Karlsruhe
+Tübingen
+Ulm
+Frankfurt}
+
+:Quatrième liste de mots
+
+\text{data4=Mainz
+Essen
+Dortmund
+Hannover
+Regensburg}
+
+:Cinquième liste de mots
+
+\text{data5=Bremen
+Berlin
+Münster
+Weimar
+Stuttgart}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\css{<style>
+  .word_jumble{
+    font-size:large;
+    padding:6px;
+    margin-left:10px;
+    border: 1px solid #555;
+  }</style>}
+
+\matrix{data1=\data1}
+\text{mot1=wims(nonempty items \data1[;1])}
+\text{mot1=items(\mot1)>=2 ? shuffle(\mot1)}
+\text{mot1=\mot1[1]}
+\text{indication1=wims(select \data1 where column 1 issametext \mot1)}
+\text{indication1=\indication1[2]}
+\text{indication1=\indication1 issametext ? xxx}
+\text{mot=\mot1}
+\matrix{indication=\indication1}
+
+\matrix{data2=\data2}
+\text{mot2=wims(nonempty items \data2[;1])}
+\text{mot2=items(\mot2)>=2 ? shuffle(\mot2)}
+\text{mot2=\mot2[1]}
+\if{\mot2!=}{
+  \text{indication2=wims(select \data2 where column 1 issametext \mot2)}
+  \text{indication2=\indication2[2]}
+  \text{indication2=\indication2 issametext ? xxx}
+  \text{mot=wims(append item \mot2 to \mot)}
+  \matrix{indication=wims(append line \indication2 to \indication)}
+}
+
+\matrix{data3=\data3}
+\text{mot3=wims(nonempty items \data3[;1])}
+\text{mot3=items(\mot3)>=2 ? shuffle(\mot3)}
+\text{mot3=\mot3[1]}
+\if{\mot3!=}{
+  \text{indication3=wims(select \data3 where column 1 issametext \mot3)}
+  \text{indication3=\indication3[2]}
+  \text{indication3=\indication3 issametext ? xxx}
+  \text{mot=wims(append item \mot3 to \mot)}
+  \matrix{indication=wims(append line \indication3 to \indication)}
+}
+
+\matrix{data4=\data4}
+\text{mot4=wims(nonempty items \data4[;1])}
+\text{mot4=items(\mot4)>=2 ? shuffle(\mot4)}
+\text{mot4=\mot4[1]}
+\if{\mot4!=}{
+  \text{indication4=wims(select \data4 where column 1 issametext \mot4)}
+  \text{indication4=\indication4[2]}
+  \text{indication4=\indication4 issametext ? xxx}
+  \text{mot=wims(append item \mot4 to \mot)}
+  \matrix{indication=wims(append line \indication4 to \indication)}
+}
+
+\matrix{data5=\data5}
+\text{mot5=wims(nonempty items \data5[;1])}
+\text{mot5=items(\mot5)>=2 ? shuffle(\mot5)}
+\text{mot5=\mot5[1]}
+\if{\mot5!=}{
+  \text{indication5=wims(select \data5 where column 1 issametext \mot5)}
+  \text{indication5=\indication5[2]}
+  \text{indication5=\indication5 issametext ? xxx}
+  \text{mot=wims(append item \mot5 to \mot)}
+  \matrix{indication=wims(append line \indication5 to \indication)}
+}
+
+\integer{N1=items(\mot)}
+\text{bat=shuffle(\N1)}
+\integer{N=min(\N1,\N)}
+
+\text{mot=\mot[\bat]}
+\matrix{indication=\indication[\bat;]}
+\text{mot1=wims(text expand \mot[1] using 01)}
+\text{mot1=wims(words2items \mot1)}
+\text{mot1=wims(replace internal _ by &nbsp; in \mot1)}
+
+\text{mot2=wims(text expand \mot[2] using 01)}
+\text{mot2=wims(words2items \mot2)}
+\text{mot2=wims(replace internal _ by &nbsp; in \mot2)}
+
+\text{mot3=wims(text expand \mot[3] using 01)}
+\text{mot3=wims(words2items \mot3)}
+\text{mot3=wims(replace internal _ by &nbsp; in \mot3)}
+
+\text{mot4=wims(text expand \mot[4] using 01)}
+\text{mot4=wims(words2items \mot4)}
+\text{mot4=wims(replace internal _ by &nbsp; in \mot4)}
+
+\text{mot5=wims(text expand \mot[5] using 01)}
+\text{mot5=wims(words2items \mot5)}
+\text{mot5=wims(replace internal _ by &nbsp; in \mot5)}
+
+\text{Mot=}
+\text{STEP=wims(makelist r x for x=1 to \N)}
+\text{STEP=r1}
+\nextstep{\STEP}
+
+\statement{
+  \for{a=1 to \step-1}{
+    \if{\a <= \N}{
+      <div class="word_jumble">\Mot[\a;]
+      \if{ \indication[\a;] notsametext xxx }{<em class="indication">(\indication[\a;])</em>}</div>
+    }
+  }
+  \if{\step <= \N}{
+    <p class="wims_question">\instruction</p>
+    <div class="wimscenter">
+      \embed{r \step,50 x 50}
+      \if{ \indication[\step;] notsametext xxx }{
+      <span class="indication">(\indication[\step;])</span> }
+    </div>
+  }
+}
+\answer{}{\mot1}{type=dragfill}{option=nonstop}
+\answer{}{\mot2}{type=dragfill}{option=nonstop}
+\answer{}{\mot3}{type=dragfill}{option=nonstop}
+\answer{}{\mot4}{type=dragfill}{option=nonstop}
+\answer{}{\mot5}{type=dragfill}{option=nonstop}
+
+\text{Mot=\reply1
+\reply2
+\reply3
+\reply4
+\reply5}
+\text{Mot=wims(replace , by in \Mot)}
+\matrix{Mot=\Mot}
+\text{STEP=\step <= \N ? r \step:}

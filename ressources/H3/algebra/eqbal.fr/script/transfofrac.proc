@@ -1,0 +1,36 @@
+# transforme coefficient decimaux de chaque item en fractions
+!if . notin $wims_read_parm
+ sortie=$wims_read_parm
+ !exit
+!else
+ !reset sortie
+!endif
+nbc_=!charcnt $wims_read_parm
+!reset num_,sortie_,last_
+!for k_=1 to $(nbc_)+1
+!! attention l'espace après $wims_read_parm est nécessaire !!!!
+ c_=!char $k_ of $wims_read_parm 
+ !if $c_ notin 0123456789.
+  !if $num_=$empty
+   sortie=$(sortie)$c_
+   last_=$c_
+  !else
+   !if . isin $num_
+    tmp_=!replace internal . by , in $num_
+    tmpc_=!charcnt $(tmp_[2])
+    dec_=$(tmp_[2])
+    !default dec_=0
+    dec_=!exec pari ($(tmp_[1])+$(dec_)/10^$tmpc_)
+    !if $last_ isin */ and / isin $dec_
+     dec_=($dec_)
+    !endif
+    sortie=$(sortie)$(dec_)$c_
+   !else
+    sortie=$(sortie)$(num_)$c_
+   !endif
+   !reset num_,last_
+  !endif
+ !else
+  num_=$(num_)$c_
+ !endif
+!next k_

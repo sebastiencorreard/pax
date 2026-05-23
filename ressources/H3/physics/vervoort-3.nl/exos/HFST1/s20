@@ -1,0 +1,111 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+
+k=!randint 1,26
+
+voorbeelden=aceton,0.80\
+Natriumhydroxide 25%,1.30\
+alcohol,0.79\
+benzine,0.72\
+benzeen,0.88\
+bier,1.02\
+chloroform,1.48\
+ether,0.72\
+dieselolie,0.84\
+glycerine,1.26\
+kwik,13.596\
+melk,1.03\
+lijnolie,0.94\
+olijfolie,0.92\
+raapolie,0.91\
+terpentijnolie,0.84\
+n-pentaan,0.63\
+petroleum,0.80\
+salpeterzuur (100%),1.50\
+tetrachloorkoolstof,1.63\
+tolueen,0.88\
+water,0.998\
+zeewater,1.024\
+zoutzuur (100%),1.18\
+zwavelzuur (100%),1.84
+
+K=!line $k of $voorbeelden
+vloeistof=!item 1 of $K
+sg=!item 2 of $K
+SG=$[1000*$sg]
+inputs=1.1
+description=De vloeistof druk op de bodem
+ex1=&nbsp;N/m<sup>2</sup>
+m_rightarrow=&nbsp;=&nbsp;
+Hoogte=!randint 200,1500
+hoogte=!exec moneyprint $[$Hoogte/100] 2
+
+ss=Hoe hoger de <span style="color:blue">vloeistofkolom</span> hoe groter de druk op de bodem.<br />We vullen de kolom met <span style="color:blue">$vloeistof</span>.<br />Bereken de vloeistofdruk op de bodem bij een hoogte van $hoogte cm<br />Gegeven is <em>g</em>=9.81 N/kg.
+
+tot=!exec sigdigits $sg $hoogte
+sig=3
+w=3
+tst=soortelijke massa,hoogte,g
+!for p=1 to 2
+    t=!line 1 of $tot
+    t=!item 1 of $t
+    !if $t<$sig
+	sig=$t
+	w=$p
+    !endif
+!next p
+welke=!item $w of $tst
+druk=$[$sg*10^3*9.81*$hoogte*10^(-2)]
+tot=!exec scienceprint $druk,$sig,0 $druk,$sig,2
+ans=!item 1 of $tot
+t_ans=!item 2 of $tot
+checkfile=$checkdir/units.proc
+# hoeft geen eenheid
+var1=0
+var2=$[abs(ans-$druk)]
+answer$n=$ans
+
+#textanswer$n=<ul><li>soortelijke massa $vloeistof is vlgs de tabel $sg g/mL</li>\
+#<li>p(<em>bodem</em>) = &rho; &sdot; g &sdot; h</li>\
+#<li>p(<em>bodem</em>) = $sg g/mL &times; 9.81 N/kg &times; $hoogte cm</li>\
+#<li> g/mL:<br />1 g =10<sup>-3</sup> kg<br />1 mL = 10<sup>-6</sup> m<sup>3</sup><br />\
+#1 g/ml = 10<sup>-3</sup>/10<sup>-6</sup> = 10<sup>3</sup> kg/m<sup>3</sup></li>\
+#<li>p(<em>bodem</em>) = $sg &times; 10<sup>3</sup> kg/m<sup>3</sup> &times; 9.81 N/kg &times; $hoogte &times; 10<sup>-2</sup> m</li>\
+#<li>p(<em>bodem</em>) = $druk N/m<sup>2</sup></li>\
+#<li>We noteren dit antwoord in $sig significante cijfers (afkomstig van "$welke")</li>\
+#<li>p(<em>bodem</em>) = $h_ans N</li></ul>
+
+helptext=<table class=\'grid_table\'><tr><th>vloeistof</th><th>&rho; in g/mL</th><th>vloeistof</th><th>&rho; in g/mL</th></tr><tr><td>aceton</td><td>0.80</td><td>Natriumhydroxide 25%</td><td>1.30</td></tr><tr><td>alcohol</td><td>0.79</td><td>benzine</td><td>0.72</td></tr><tr><td>benzeen</td><td>0.88</td><td>bier</td><td>1.02</td></tr><tr><td>chloroform</td><td>1.48</td><td>ether</td><td>0.72</td></tr><tr><td>dieselolie</td><td>0.84</td><td>glycerine</td><td>1.26</td></tr><tr><td>kwik</td><td>13.596</td><td>melk</td><td>1.03</td></tr><tr><td>lijnolie</td><td>0.94</td><td>olijfolie</td><td>0.92</td></tr><tr><td>raapolie</td><td>0.91</td><td>terpentijnolie</td><td>0.84</td></tr><tr><td>n-pentaan</td><td>0.63</td><td>petroleum</td><td>0.80</td></tr><tr><td>salpeterzuur (100%)</td><td>1.50</td><td>tetrachloorkoolstof</td><td>1.63</td></tr><tr><td>tolueen</td><td>0.88</td><td>water</td><td>0.998</td></tr><tr><td>zeewater</td><td>1.024</td><td>zoutzuur (100%)</td><td>1.18</td></tr><tr><td>zwavelzuur (100%)</td><td>1.84</td><td></td><td></td></tr></table>
+
+
+texanswer$n=\left[ \begin{array}{l}p = \rho_{vl} \cdot g \cdot h  \rightarrow \\ p = $SG \;kg/m^{3} \times 9.81\; N/kg \times $Hoogte\; m = $druk \;N/m^{2} \\ p = $t_ans\; N/m^{2} \;(of\;Pa) \end{array} \right.
+
+question$n=<a onmouseover="return escape('<table summaty=\'\'><tr><th>$helptext</th><th><img src=\'$module_dir/gifs/waterkolom.jpg\' alt=\'waterkolom\'/></th></tr></table>')">$ss</a>
+
+!exit
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+    

@@ -1,0 +1,161 @@
+!set title=Médiane
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul, Byache
+email=paul-marcel-rog.byache@ac-aix-marseille.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+computeanswer=no
+title_nl=TITRE_nl
+
+ansorder=r
+varcnt=33
+prevarcnt=31
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Les tailles arrondies à un nombre entier de centimètres de,	  garçons d'un club de football sont les suivantes&nbsp;
+val8=Calculer la médiane de cette série statistique.
+val9=La médiane est égale à,Médiane
+tmp=!trim Attention : ne pas oublier de ranger les tailles par ordre croissant.,	  Ensuite, la médiane est la valeur centrale (ou la moyenne des deux valeurs centrales).
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Attention : ne pas oublier de ranger les tailles	  par ordre croissant.
+val12=Attention : vous confondez la moyenne et la médiane.
+val13=Attention : La médiane se trouve parmi un des	  nombres de la série, ou de la moyenne de deux d'entre eux.
+!if $val6=nl 
+val7=Les tailles arrondies à un nombre entier de centimètres de,	  garçons d'un club de football sont les suivantes&nbsp;
+val8=Calculer la médiane de cette série statistique.
+val9=La médiane est égale à,Médiane
+tmp=!trim Attention : ne pas oublier de ranger les tailles par ordre croissant.,	  Ensuite, la médiane est la valeur centrale (ou la moyenne des deux valeurs centrales).
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Attention : ne pas oublier de ranger les tailles	  par ordre croissant.
+val12=Attention : vous confondez la moyenne et la médiane.
+val13=Attention : La médiane se trouve parmi un des	  nombres de la série, ou de la moyenne de deux d'entre eux.
+!endif
+tmp0=!randitem 8,9,10,11,12,13
+
+val14=$(tmp0)
+!readproc slib/stat/random $val14,0,30 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!declosing [$val15]
+
+val15=$(tmp0)
+val16=
+!for val17  = 1 to $val14 
+!for val18  = 1 to $val14 
+val19=$[160+ ($(val15[$val17])+$(val15[$val18]))/2]
+val16=$val16,$val19
+!next
+!next
+tmp0=!nonempty items $val16
+
+val16=$(tmp0)
+val20=<table class="wimscenter wimsborder" style="background-color:skyblue"><tr>
+!for val17 =1 to $val14 
+tmp0=!item $val17 of  $val15
+
+val21=$[$(tmp0)+160]
+val20=$val20 <td>$val21</td>
+!next
+val20=$val20 </tr></table>
+!readproc slib/stat/median [$val15] 
+tmp0=$slib_out
+val22=$[$(tmp0)+160]
+!readproc slib/stat/arithmean [$val15] 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0) 
+
+val23=$[$(tmp1)+ 160]
+replytype1=algexp
+replyname1=$(val9[2])
+replygood1=$val22
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <span class="wims_warning"> $(val10[1;]) <br> $(val10[2;])</span>
+
+
+!goto stat
+
+!exit
+
+:question
+$()<p>$(val7[1]) $val14 $(val7[2]):	</p>	$val20	<div class="wims_question">	$val8	<div class="wimscenter">	<label for="reply1">$(val9[1]):</label>  
+!read oef/embed.phtml reply1,5 
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()<span class="wims_warning"> $(val10[1;]) <br> $(val10[2;])</span>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val24=$[160+($(val15[rint($val14/2)])+$(val15[rint(($val14+1)/2)]))/2]
+
+!exit
+
+:feedback
+!ifval $m_reply1 <> $val22 and $m_reply1 = $val24
+ <div class='oef_feedbacks'>	<p style="color:purple">$val11! </p>
+$()</div>
+!endif
+!ifval $m_reply1 = $val23 and $m_reply1 <> $val22
+ <div class='oef_feedbacks'><p style="color:purple">	$val12</p>
+$()</div>
+!endif
+!ifval $m_reply1 <> $val22 and $m_reply1 <> $val23 and $m_reply1 notitemof $val16
+ <div class='oef_feedbacks'>	<p style="color:purple">$val13.</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,16,20,22,23
+embedcnt=1

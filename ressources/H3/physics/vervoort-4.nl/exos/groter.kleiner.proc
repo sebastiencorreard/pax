@@ -1,0 +1,76 @@
+#1,<,2,<,3,<,4,<,5  
+# 1<2 && 2<3 && 3<4 && 4<5
+# 123 && 345 && 567 && 789
+
+n=$counter
+
+!if $(reply$n)=?
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+
+
+t=!itemcnt $(reply$n)
+!if $t != $[2*$options-1]
+    maxscore=$[$P7*$maxscore]
+    goback=1
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+AAA=$empty
+r=1
+!for p=1 to $options
+    a=!item $r of $(reply$n)
+    b=!item $[$r+1] of $(reply$n)
+    c=!item $[$r+2] of $(reply$n)
+    !if $p<$options
+	AAA=!append line if($a$b$c ,1,0) to $AAA
+	show$p=$a$b$c
+    !endif
+    r=$[$r+2]
+!next p
+
+AAA=!replace internal = by == in $AAA
+
+tot=!exec pari $AAA
+
+!if $wims_exec_error != $empty
+    maxscore=$[$P4*$maxscore]
+    goback=1
+    errortext=!record 36 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+score=0
+reply$n=<ul>
+!for p=1 to $[$options-1]
+    rep=!line $p of $tot
+    show$p=!replace internal > by &gt; in $(show$p)
+    show$p=!replace internal < by &lt; in $(show$p)
+    !if $rep=1
+	k=green
+    !else
+	k=red
+    !endif
+    score=$[$score + $rep]
+    reply$n=!append line <li><span style="color:$k">$(show$p)</span></li> to $(reply$n)
+!next p
+reply$n=!append line $ </ul> $ to $(reply$n)
+math=0
+maxscore=$[$maxscore*$score/($options-1)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+!exit

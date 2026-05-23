@@ -1,0 +1,181 @@
+type=select
+textarea="data explain"
+iEdit="explain"
+:Sélectionner les objets selon leur catégorie.
+
+On présente une liste d'objets et il faut marquer ceux qui possèdent une certaine propriété
+selon la demande de l'exercice.<br/>
+Pour construire un exercice avec ce modèle, il suffit de donner la liste d'objets et leurs propriétés. La question
+portera sur une propriété tirée au hasard parmi les propriétés des objets.<br/>
+<p class="wims_credits">Auteur du modèle : <a href="mailto:qualite@wimsedu.info">Gang Xiao</a></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Pays limitrophes de l'Allemagne}
+:\author{Carré, Delafraye}
+:\email{josiane-an.carre@ac-amiens.fr}
+:\credits{}
+:Nombre d'objets à marquer par exercice. Jusqu'à 100.
+Il faut avoir défini suffisamment d'objets dans les données principales !
+\integer{tot=15}
+
+:Le nombre minimal de bons objets à marquer. Au moins 1.
+
+\integer{mingood=9}
+
+:Le nombre minimal de mauvais objets à ne pas marquer. Au moins 1.
+
+\integer{minbad=6}
+
+:Liste de propriétés. La propriété à marquer sera tirée au hasard.
+
+\text{prop=Deutschlands Nachbarländer}
+
+:Données principales.
+<p>Écrire les objets à classer, puis leur catégorie, séparés par une virgule (un seul objet suivi de sa catégorie par ligne).</p>
+L'objet peut être un mot ou une phrase (la virgule servant à séparer les objets, si la phrase doit contenir des virgules,
+les remplacer par le code html de la virgule. Voir alors "Option de présentation" pour faire
+apparaitre un objet par ligne). Il vaut mieux définir beaucoup de données pour chaque propriété.
+\matrix{data=Polen, Deutschlands Nachbarländer
+Dänemark, Deutschlands Nachbarländer
+Schweden, Norwegens Nachbarländer
+die Schweiz, Deutschlands Nachbarländer
+Norwegen, Schwedens Nachbarländer
+Österreich, Deutschlands Nachbarländer
+Frankreich, Deutschlands Nachbarländer
+Italien, Österreichs Nachbarländer
+Luxemburg, Deutschlands Nachbarländer
+die Niederlande, Deutschlands Nachbarländer
+Belgien, Deutschlands Nachbarländer
+Ungarn, Österreichs Nachbarländer
+Tschechien, Deutschlands Nachbarländer
+Slowakei, Tschechiens Nachbarländer
+Slowenien, Ungarns Nachbarländer}
+
+:Mots d'option.
+Ajoutez le mot <span class="tt wims_code_words">split</span> à la définition si vous voulez
+donner une note partielle pour des réponses partiellement correctes.
+\text{option=split}
+
+:Options de présentation.
+Par défaut, les objets apparaissent séparés par une virgule. Ajoutez ici le mot "liste"
+si vous voulez que les objets apparaissent les uns en dessous des autres
+comme une liste html à puces.
+\text{presentation=}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1. oui, 2. non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+
+\text{prop=randitem(\prop)}
+
+\text{data=wims(nonempty rows \data)}
+\text{good=wims(select \data where column 2 issametext \prop)}
+\text{bad=wims(select \data where column 2 notsametext \prop)}
+\text{good=shuffle(wims(nonempty item \good[;1]))}
+\text{bad=shuffle(wims(nonempty item \bad[;1]))}
+\integer{goodcnt=items(\good)}
+\integer{badcnt=items(\bad)}
+\integer{tot=min(\tot,\goodcnt+\badcnt)}
+\integer{mingood=min(\mingood,\tot-1)}
+\integer{minbad=min(\minbad,\tot-\mingood-1)}
+\integer{pickgood=randint(min(\mingood,\goodcnt)..min(\tot-\minbad,\goodcnt))}
+\integer{pickbad=min(\tot-\pickgood,\badcnt)}
+\integer{tot=\pickgood+\pickbad}
+\text{ind=wims(makelist 1 for x=1 to \pickgood),wims(makelist 0 for x=1 to \pickbad)}
+\text{all=item(1..\pickgood,\good),item(1..\pickbad,\bad)}
+\text{list=wims(values x for x=1 to \tot)}
+\text{sh=shuffle(\list)}
+\text{all=item(\sh,\all)}
+\text{ind=item(\sh,\ind)}
+\text{tomark=positionof(1,\ind)}
+\integer{nbtomark=items(\tomark)}
+
+:%% Choix de la presentation : sous forme lineaire par defaut, ou sous forme de liste à puces.
+\if{liste iswordof \presentation}
+{
+  \text{pre=<ul>}
+  \text{separatorL=<li>}
+  \text{separatorR=</li>}
+  \text{post=</ul>}
+}{
+  \text{pre=<div>}
+  \text{separatorL=<span>}
+  \text{separatorR=</span>}
+  \text{post=</div>}
+}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+:Le texte pour expliquer ce qu'il faut faire.
+Pour désigner la propriété sur laquelle porte la question, écrire tel quel <span class="tt">\prop</span> dans le texte de l'énoncé.
+help
+\text{explain=Cochez les pays limitrophes de l'Allemagne.}
+
+:%% Calculs à ne pas modifier
+\text{accolade=wims(word 1 of \accolade)}
+
+\text{explain=\accolade=1. ?wims(embraced randitem \explain)}
+
+:%% Pour la version latex de l'énonce
+\if{liste iswordof \presentation}{
+  \text{latextext=\begin{checkbox}}
+  \for{ll=1 to \tot}{
+    \text{latextext=\latextext
+    \item \all[\ll] }
+  }
+  \text{latextext=\latextext \end{checkbox}}
+}{
+  \text{latextext=\begin{quote}}
+  \for{ll=1 to \tot-1}{
+    \text{latextext=\latextext \all[\ll], }
+  }
+  \text{latextext=\latextext \all[\tot].
+        \end{quote} }
+}
+\if{liste iswordof \presentation}{
+  \text{latexans=\begin{itemize}}
+  \for{kls=1 to \nbtomark}{
+    \text{latexans=\latexans
+    \item \all[\tomark[\kls]] }
+  }
+  \text{latexans=\latexans
+        \end{itemize}}
+}{
+  \text{latexans=\begin{quote}}
+  \for{lls=1 to \nbtomark-1}{
+    \text{latexans=\latexans \all[\tomark[\lls]], }
+  }
+  \text{latexans=\latexans \all[\tomark[\lls]].
+        \end{quote} }
+}
+
+::On n'a pas besoin de modifier l'énoncé directement en général.
+\statement{
+  <p class="wims_question">\explain</p>
+  \pre
+  \for{k=1 to \tot-1}{\separatorL \embed{r1,\k}, \separatorR }
+  \separatorL \embed{r1,\tot}.\separatorR
+  \post}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%
+
+\answer{Le marquage}{\tomark;\all}{type=mark}{option=\option}
+
+\latex{
+\begin{statement}
+\explain
+\latextext
+\end{statement}
+\begin{answer}\
+\latexans
+\end{answer}
+}

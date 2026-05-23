@@ -1,0 +1,265 @@
+!set title=Séries statistiques: taille
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_nl=Statistiek
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=garçons,garçons
+val8=Les tailles arrondies à un nombre entier de centimètres des,	   d'un club de football sont les suivantes&nbsp;
+val9=Compléter le tableau correspondant&nbsp;
+val10=Tailles,Effectif,Fréquence
+val11=On donnera les fréquences en arrondissant par excès à 0.1 près.
+val12=Voici l'histogramme
+!if $val6=nl 
+val7=jongens,meisjes
+val8=De lengte van de,	  garçons van het plaatselijke jeugdvoetbal elftal is
+val9=Maak de onderstaande tabel verder af
+val10=Lengte,Aantal,Frequentie
+val11=Rond de frequenties af op 0.1% nauwkeurig.
+val12=Hier zie je het Histogram
+!endif
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp0=!randitem 40,50,60,70
+
+val14=$(tmp0)
+!readproc slib/stat/random $val14,0,30 
+tmp0=$slib_out
+val15=$(tmp0)
+tmp0=!declosing $val15
+
+val15=$(tmp0)
+val16=<table class="wimscenter wimsborder" style="background-color:skyblue">
+!for val17 =0 to ceil($val14/10)-1 
+val16=$val16 <tr>
+!for val18 =1 to 10 
+!if 10*$val17+$val18 <=$val14  
+tmp0=!item 10*$val17+$val18 of  $val15
+
+val19=$[$(tmp0)+160]
+val16=$val16 <td> $val19 </td>
+!else
+val16=$val16 <td></td>
+!endif
+!next
+val16=$val16 </tr>
+!next
+val20=[0,5,10,15,20,25,30]
+val21=[160,165,170,175,180,185,190]
+val16=$val16</table>
+!readproc slib/stat/effectif [$val15],$val20 
+tmp0=$slib_out
+val22=$(tmp0)
+tmp0=!item 1 of $val22
+
+val22=$(tmp0)
+t_=!replace internal \( by ( in print($val22/$val14)
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+tmp0=!declosing $val22
+
+val22=$(tmp0)
+tmp0=!declosing $val23
+
+val23=$(tmp0)
+tmp0=!item 1 of $val23
+
+val24=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 2 of $val23
+
+val25=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 3 of $val23
+
+val26=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 4 of $val23
+
+val27=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 5 of $val23
+
+val28=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 6 of $val23
+
+val29=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 1 of $val22
+
+val30=$(tmp0)
+tmp0=!item 2 of $val22
+
+val31=$(tmp0)
+tmp0=!item 3 of $val22
+
+val32=$(tmp0)
+tmp0=!item 4 of $val22
+
+val33=$(tmp0)
+tmp0=!item 5 of $val22
+
+val34=$(tmp0)
+tmp0=!item 6 of $val22
+
+val35=$(tmp0)
+!readproc slib/stat/histo [$val22],$val21,ytics 10,xtics 
+tmp0=$slib_out
+val36=$(tmp0)
+replytype1=numeric
+replyname1=$(val10[2]) 1
+replygood1=$[$val30]
+replytype2=numeric
+replyname2=$(val10[2]) 2
+replygood2=$[$val31]
+replytype3=numeric
+replyname3=$(val10[2]) 3
+replygood3=$[$val32]
+replytype4=numeric
+replyname4=$(val10[2]) 4
+replygood4=$[$val33]
+replytype5=numeric
+replyname5=$(val10[2]) 5
+replygood5=$[$val34]
+replytype6=numeric
+replyname6=$(val10[2]) 6
+replygood6=$[$val35]
+replytype7=numeric
+replyname7=$(val10[3]) 1
+replygood7=$[$val24]
+replytype8=numeric
+replyname8=$(val10[3]) 2
+replygood8=$[$val25]
+replytype9=numeric
+replyname9=$(val10[3]) 3
+replygood9=$[$val26]
+replytype10=numeric
+replyname10=$(val10[3]) 4
+replygood10=$[$val27]
+replytype11=numeric
+replyname11=$(val10[3]) 5
+replygood11=$[$val28]
+replytype12=numeric
+replyname12=$(val10[3]) 6
+replygood12=$[$val29]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>	$(val8[1]) $val14 $val13 $(val8[2]):	</p>	$val16	<div class="wims_question">	$val9:	<table class="wimscenter wimsborder">	<tr><th>$(val10[1])</th>	<td>
+!insmath \lbrack 160,165 \lbrack
+$()</td>	<td>
+!insmath \lbrack 165,170 \lbrack
+$()</td>	<td>
+!insmath \lbrack 170,175 \lbrack
+$()</td>	<td>
+!insmath \lbrack 175,180 \lbrack
+$()</td>	<td>
+!insmath \lbrack 180,185 \lbrack
+$()</td>	<td>
+!insmath \lbrack 185,190 \rbrack
+$()</td>	</tr>	<tr><th>$(val10[2])</th>	<td> 
+!read oef/embed.phtml reply 1,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 2,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 3,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 4,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 5,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 6,5 
+$() </td>	</tr>	<tr><th>$(val10[3]) (%)</th>	<td> 
+!read oef/embed.phtml reply 7,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 8,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 9,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 10,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 11,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 12,5 
+$() </td>	</tr>	</table>	</div>	<div class="wims_instruction">$val11</div>	
+$()
+!exit
+
+:hint
+$()$val12	 
+!read oef/draw.phtml 400,200 \
+$val36 
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$val12	 
+!read oef/draw.phtml 400,200 \
+$val36 
+$()	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,16,36
+embedcnt=12

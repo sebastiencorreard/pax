@@ -1,0 +1,263 @@
+!set title=Quadrilatères
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r
+varcnt=53
+prevarcnt=48
+postvarcnt=4
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=0
+!while $val6=0 
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 6
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 6
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 6
+
+val9=$[rint($(tmp0)*$(tmp1))]
+val6=$[rint($val7+($val8)+($val9))]
+!endwhile
+val10=$val7,$val8,$val9
+tmp=!nonempty items convexe,concave,croisé,croisé
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+
+!ifval $val11 issametext convexe 
+val12= 1,-0.25, 0.25
+!endif
+
+!ifval $val11 issametext concave 
+tmp=!trim  -0.25, 1,-0.25	 1,-0.25,-0.25	 -0.25,-0.25, 1	 1, 1, 1
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+
+!ifval $val11 issametext croisé 
+tmp=!trim  -0.2, 1, 0.3	1, 0.3,-0.3
+val12=!translate internal $	\
+$ to ;; in $tmp
+!endif
+t_=!replace internal \( by ( in S = [$val7,$val8,$val9]/($val7+$val8+$val9); S
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+t_=!replace internal \( by ( in [sign(S[1]), sign(S[2]), sign(S[3])]
+tmp0=!exec pari $t_
+
+val14=$(tmp0)
+tmp=!trim 1, 1, 1	 1, 1,-1	 1,-1, 1	-1, 1, 1	 2,-0.5,-0.5	-0.5,-0.5, 2	-0.5, 2,-0.5	
+val15=!translate internal $	\
+$ to ;; in $tmp
+t_=!replace internal \( by ( in T = Mat([$val15]) ; R = matrix(7,3,i,j,sign(T[i,j])) ;	    u=1 ; while(R[u,] != [$val14] , u = u+1) ; u
+tmp0=!exec pari $t_
+
+val16=$(tmp0)
+tmp=!nonempty items 0.5,1,1.5
+
+tmp0=!randitem $tmp
+tmp=!nonempty items 0.5,1,1.5
+
+tmp1=!randitem $tmp
+tmp=!nonempty items 0.5,1,1.5
+
+tmp2=!randitem $tmp
+tmp=!nonempty items 0.5,1,1.5
+
+tmp3=!randitem $tmp
+tmp=!trim -$(tmp0),0	 $(tmp1),$(tmp2)	0,-$(tmp3)
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 3
+
+val18=$(tmp0)
+tmp=!trim $(val17[$val18;])
+val17=!translate internal $	\
+$ to ;; in $tmp
+val19=$(val17[1;])
+val20=$(val17[2;])
+val21=$(val17[3;])
+t_=!replace internal \( by ( in t*[$val19] + (1-t)*[$val20]
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+t_=!replace internal \( by ( in t*[$val20] + (1-t)*[$val21]
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+t_=!replace internal \( by ( in t*[$val21] + (1-t)*[$val19]
+tmp0=!exec pari $t_
+
+val24=$(tmp0)
+val25=-3,3
+val26=xrange $val25	yrange $val25	trange $val25	plot blue, $(val22[1]),$(val22[2])	plot blue, $(val23[1]),$(val23[2])	plot blue, $(val24[1]),$(val24[2])	rectangle $(val25[1]),$(val25[1]),$(val25[2]),$(val25[2]),black	
+tmp0=!shuffle 3
+
+val27=$(tmp0)
+val27=1,2,3
+tmp0=!positionof item 1 in $val27
+
+tmp1=!positionof item 2 in $val27
+
+tmp2=!positionof item 3 in $val27
+
+val28=$(tmp0), $(tmp1), $(tmp2)
+val29=A,B,C
+val30=$(val29[$val27])
+val31=$(val10[$val28])
+val32=300,250
+tmp0=!declosing \reply1
+
+val33=$(tmp0)
+val34=xrange $val25	yrange $val25	text black,$val19, large, $(val30[1])	text black,$val20, large, $(val30[2])	text black,$val21, large, $(val30[3])	text black,$val33,large,D	disk $val19, 5,blue	disk $val20, 5,blue	disk $val21, 5,blue	disk $val33, 5,blue	
+!readproc oef/draw.phtml $val32 \
+$val26 
+tmp0=$ins_url
+val35=$(tmp0)
+!readproc slib/oef/insfilename 
+tmp0=$slib_out
+val36=$(tmp0)
+!readproc oef/draw.phtml $val32 \
+$val34 
+tmp0=$ins_url
+val37=$(tmp0)
+val38=
+tmp=!translate internal $	$ to ; in $val12
+
+tmp0=!rowcnt $tmp
+val39=$(tmp0)
+val40=
+!for val41  = 1 to $val39 
+val42=$(val12[$val41;])
+t_=!replace internal \( by ( in H = [$val42] ; (H[1]+H[2]+H[3])^(-1)*(H[1]*[$val19] + H[2]*[$val20]	     + H[3]*[$val21])
+tmp0=!exec pari $t_
+
+val43=$(tmp0)
+!readproc slib/draw/convpixel $val43,$val32,$val25,$val25,0,pixels 
+tmp0=$slib_out
+val44=$(tmp0)
+val45=$[$(val44[1])]
+val46=$[$(val44[2])]
+
+!ifval $val41 > 1 
+val38= $val38 |
+!endif
+val38=$val38 (bound,$val36,$val45,$val46)
+!next
+replytype1=coord
+replyname1=
+replygood1=$val37; $val38
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">Cliquez sur un point 
+!insmath D
+$() de manière à ce que le	quadrilatère 
+!insmath ($(val30[1])$(val30[2])$(val30[3])D)
+$() soit $val11 :	</div>	<div class="wimscenter">  
+!read oef/embed.phtml reply1 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!declosing $m_reply1
+
+val33=$(tmp0)
+!readproc slib/draw/convpixel $val33,$val32,$val25,$val25,0 
+tmp0=$slib_out
+val47=$(tmp0)
+
+!ifval $m_result1=-1
+val48= red
+!else
+val48=green
+!endif
+val49=$val34	text $val48,$val47,large,D	polyline blue,$val19,$val20,$val21	polyline $val48,$val21,$val47,$val19	
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>	Voici le quadrilatère que vous avez choisi :	
+!if $m_result1=-1 
+$()il n'est pas $val11&nbsp; 
+!else
+$()  il est bien $val11&nbsp; 
+!endif
+$():	<div class="wimscenter">	 
+!read oef/draw.phtml $val32 \
+$val49 
+$()</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,19,20,21,25,30,32,33,34
+embedcnt=1

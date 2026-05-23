@@ -1,0 +1,92 @@
+target=Equation2
+#include "author.inc"
+#define NUM ax+b&#61;cx+d#
+#include "lang_titles.inc"
+#include "lang.inc"
+\precision{10000}
+
+\integer{sizef=8}
+\integer{confparm1=\confparm1=?1}
+\integer{confparm2=\confparm2=?1}
+
+\text{champ=wims(record \confparm1 of src/generateur)}
+\text{A=row(2,\champ)}
+\text{B=row(3,\champ)}
+\text{c=item(3,\A)}
+\if{\B=}{
+\text{a=item(1,\A)}
+\text{b=item(2,\A)}
+\if{\c<0}{
+\text{valeurs=wims(values \c*v,-(\c)*v for v=\a to \b)}
+}{
+\text{valeurs=wims(values \c*v for v=\a to \b)}
+}
+}{
+\text{valeurs=\B}
+\if{\c<0}
+{\text{tmp=wims(replace internal , by ,- in \valeurs)}
+\text{valeurs=wims(listunion \valeurs and \tmp)}
+}
+}
+\text{valeurs=wims(listuniq \valeurs)}
+\text{valeurs=shuffle(\valeurs)}
+\text{a=item(1,\valeurs)}
+\text{b=item(2,\valeurs)}
+\text{c=item(3,\valeurs)}
+\text{d=item(4,\valeurs)}
+
+\text{c=(\a=\c or \a=\c+1)?18}
+\text{e=simplify(-\b)}
+\text{f=simplify(-\c)}
+
+\text{x=random(x,y,z,a,b)}
+
+\text{rep=simplify((\d-(\b))/(\a-(\c)))}
+\text{rep1=maxima((\c)*\x+(\d)-(\b);)}
+\text{rep2=maxima((\a)*\x-(\c*\x);)}
+\text{rep3=simplify(\d-(\b))}
+\text{rep4=simplify(\a-(\c))}
+
+
+\text{enonce=(\a)*\x+(\b)=(\c)*\x+(\d),(\b)+(\a)*\x=(\c)*\x+(\d),(\a)*\x+(\b)=(\d)+(\c)*\x,(\b)+(\a)*\x=(\d)+(\c)*\x}
+\text{enonce=texmath(randitem(\enonce))}
+
+\if{\confparm2=1}{
+\matrix{type=r1
+r2
+r3
+r4}
+}{
+\matrix{type=r4}
+}
+\steps{\type}
+\statement{\name_question \(\enonce\).
+<div class="wims_instruction">\name_instruction</div>
+\if{\confparm2=1}{\name_guide:
+  <ul><li>
+    \name_question2[1] \(\e\) \name_question2[2]:
+\if{\step=1}{\(\a \x=\) \embed{r1,\sizef} </li></ul>}
+{\(\a \x=\c\x+\rep3\).</li>
+<li>\name_question3[1] \(\f\x\) \name_question3[2]:
+\if{\step=2}{
+  \embed{r2,\sizef} \(=\rep3\).</li></ul>}
+{\(\rep4\x=\rep3).</li>
+<li> \name_question4[1] \(\rep4) \name_question4[2] :
+\if{\step=3}{
+<div class="wimscenter">
+    \special{mathmlinput [\x= \frac{\rep3}{reply3}],5,noanswer
+    reply 3}
+  </div>
+</li></ul>}
+{\(\x=\frac{\rep3}{\rep4}\).</li>
+<li> \name_question5 :
+<label for="reply4">\(\x =\)</label> \embed{reply 4,\sizef}</li></ul>
+}
+}
+}
+}
+}
+\answer{\name_answer 1}{\rep1}{type=algexp}
+\answer{\name_answer 2}{\rep2}{type=algexp}
+\answer{\name_answer 3}{\rep4}{type=algexp}
+\answer{\(\x\)}{\rep}{type=numexp}

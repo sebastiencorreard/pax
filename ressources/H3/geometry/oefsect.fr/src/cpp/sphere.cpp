@@ -1,0 +1,65 @@
+target=sphere1 sphere2 sphere3
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+\computeanswer{no}
+\format{html}
+\precision{1000}
+\matrix{noms=R,r,C,O
+a,b,I,J
+r,d,O,K}
+\text{noms=randrow(\noms)}
+\text{R=item(1,\noms)}
+\text{r=item(2,\noms)}
+\text{C=item(3,\noms)}
+\text{O=item(4,\noms)}
+
+\integer{u=random(2..6)}
+\integer{v=random(1..\u-1)}
+\integer{sm=max(\u^2-\v^2,2*\u*\v)}
+\integer{mn=min(\u^2-\v^2,2*\u*\v)}
+\integer{sn=(\mn^2+\sm^2)^(1/2)}
+\real{k=randint(15..25)/10}
+\real{valr=\sm*\k}
+\real{valR=\sn*\k}
+\real{valh=\mn*\k}
+
+#if defined TARGET_sphere1
+ \title{Section d'une sphère (rayon section)}
+ \text{enonce=Sachant que \(\R = \valR cm) et \(\O\C = \valh cm) calculer \(\r)}
+ \real{rep=\valr}>
+#endif
+
+#if defined TARGET_sphere2
+ \title{Section d'une sphère (rayon sphère)}
+ \text{enonce=Sachant que \(\r = \valr cm) et \(\O\C = \valh cm) calculer \(\R)}
+ \real{rep=\valR}
+#endif
+#if defined TARGET_sphere3
+ \title{Section d'une sphère (section-centre)}
+ \text{enonce=Sachant que \(\r = \valr cm) et \(\R = \valR cm), calculer \(\O\C)}
+ \real{rep=\valh}
+#endif
+\text{dessin=circle 170,170,300,black
+dsegment 170,170,320,170,black
+dsegment 170,170,170,20,black
+text black,231,155,medium,\R
+text black,156,163,medium,\O
+arc 170,170,300,75,0,180,black
+arc 170,170,300,75,180,360,green
+dsegment 170,70,282,70,black
+text black,226,55,medium,\r
+arc 170,70,224,40,0,180,black
+arc 170,70,224,40,180,360,green
+text black,156,63,medium,\C}
+
+\statement{
+\(\mathcal{S}) est une sphère de centre \(\O) et de rayon \(\R).<br>
+On coupe cette sphère par un plan. La section plane obtenue est un cercle de centre \(\C)
+et de rayon \(\r).<br>
+\enonce.
+<div class="wimscenter">\draw{340,340}{\dessin}</div>
+}
+
+\answer{Reponse}{\rep cm}{type=units}

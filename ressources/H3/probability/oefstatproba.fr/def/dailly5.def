@@ -1,0 +1,167 @@
+!set title=Probabilités 5 : Evénement contraire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Delphine, Dailly
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=rouge,verte,jaune,blanche,noire,bleue
+val7=rouges,vertes,jaunes,blanches,noires,bleues
+tmp0=!shuffle 6
+
+val8=$(tmp0)
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 10
+
+val10=$(tmp0)
+tmp0=!randint 1, 10
+
+val11=$(tmp0)
+tmp0=!randint 1, 10
+
+val12=$(tmp0)
+tmp0=!randint 1, 10
+
+val13=$(tmp0)
+tmp=!translate ";': to $     $ in $val10/($val10+$val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val14=$(tmp1)
+tmp=!translate ";': to $     $ in $val12/($val12+$val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val15=$(tmp1)
+tmp=!translate ";': to $     $ in $val11/($val10+$val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp=!translate ";': to $     $ in 1-$val12/($val12+$val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+!if $val9=1 
+val18=$val16
+val19=$val16
+!else
+val18=non
+val19=$val17
+!endif
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 20
+replytype2=auto
+
+replyname2=
+replygood2=?analyze 21
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Attention, il faut écrire le résultat sous la forme d'une fraction irréductible ! Si on ne peut pas calculer la probabilité, écrire "non" dans la zone de réponse. 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val9=1 
+$()	Dans un sac, il y a des boules $(val7[$(val8[1])]) et des boules $(val7[$(val8[2])]).	On sait que la probabilité de tirer une boule $(val6[$(val8[1])]) est 
+!insmath $val14
+$().		<ol type="a">	<li><b>Calculer, si possible, la probabilité de tirer une boule $(val6[$(val8[2])]) </b>	(sinon écrire "non" en minuscules) :  
+!read oef/embed.phtml r1,10 
+$().</li>	<li><b>Calculer, si possible, la probabilité de ne pas tirer une boule	$(val6[$(val8[1])]) </b> (sinon écrire "non" en minuscules) :  
+!read oef/embed.phtml r2,10 
+$().</li>	</ol>	 
+!else
+$() 	Dans une urne, il y a des boules $(val7[$(val8[2])]), $(val7[$(val8[3])]) et $(val7[$(val8[1])]).	On sait que la probabilité de tirer une boule $(val6[$(val8[2])]) est 
+!insmath $val15
+$().	<ol>	<li><b>Calculer, si possible, la probabilité que la boule soit $(val6[$(val8[3])])</b> (sinon écrire "non" en minuscules) :  
+!read oef/embed.phtml r1,10 
+$(). </li>	<li><b>Calculer, si possible, la probabilité que la boule ne soit pas $(val6[$(val8[2])])</b> (sinon écrire "non" en minuscules) : 
+!read oef/embed.phtml r2,10 
+$().</li>	</ol> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()Attention, il faut écrire le résultat sous la forme d'une fraction irréductible ! Si on ne peut pas calculer la probabilité, écrire "non" dans la zone de réponse. 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val18 issametext $val20 or $val18=$val20
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La réponse à la question 1 est correcte
+
+!ifval $val19=$val21
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=La réponse à la question 2 est correcte
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,14,15,18,19,20,21
+embedcnt=4

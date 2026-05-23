@@ -1,0 +1,223 @@
+# machtsfuncties snijpunten via inklemmen
+n=$counter
+!if $total_exos>4
+    total_exos=4
+!endif
+!if $counter=1
+    var8=!shuffle 3,5,7,9
+    var9=!shuffle 2,4,6,8
+!endif
+questiontype=7
+javascript=js/inklemmen.js
+cols=4
+math=0
+inputs=yes
+mathview=0
+checkfile=exos/checkfile1.proc
+dec=2
+htxt=!record 1 of lang/remarks.$taal
+#x-as,y-as,parabool,lijn,snijpunten,boven,onder,invullen in,uitrekenen,afgerond op $dec decimalen,Zie tabel,Dit plaatje heeft een actieve muis,linker,rechter,wortel functie,machts functie,exponenti&euml;le functie
+
+rounding=100
+roundingtext=!record 10 of lang/remarks.$taal
+#Bepaal je antwoord via inklemming<br />en geef je antwoord op 2 decimalen nauwkeurig
+attentie=!record 11 of lang/remarks.$taal
+
+xas=!item 1 of $htxt
+yas=!item 2 of $htxt
+typefunctie=!item 16 of $htxt
+lijn=!item 4 of $htxt
+snijpunten=!item 5 of $htxt
+invullen=!item 8 of $htxt
+uitrekenen=!item 9 of $htxt 
+afronden=!item 10 of $htxt
+zie_tabel=!item 11 of $htxt
+actievemuis=!item 12 of $htxt
+
+xmin=-4
+xmax=4
+ymin=-10
+ymax=10
+
+keuze=!randint 1,2
+b=!randitem 2,3,4,5,6,7,8,9,10,11,12
+c=!randitem 1,2,3,4,5
+pm=!randitem +,-
+f2=!nospace $b $pm $c*x
+curve2=curve $f2,green,160
+!if $keuze=1
+    a=!item $n of $var8
+    #!randitem 3,5,7,9
+    f1=(x)^$a
+    tot=!exec pari P=solve(x=0,10,$f2-$f1)\
+    Q=subst($f2,x,P);round($rounding*Q)\
+    round($rounding*P)
+	
+    xs1=!line 3 of $tot
+    ys1=!line 2 of $tot
+    ys1=$[$ys1/$rounding]
+    xs1=$[$xs1/$rounding]
+    answer$n=$xs1
+    tex=x \simeq $xs1
+    point=$xs1,$ys1
+    xm=$xs1
+    ym=$ys1
+    tablebody=$empty
+    diff=0.8,0.9,0.95,0.99,1.00,1.01,1.05,1.1
+    begin=$[$xs1-1]
+    !for p=1 to 8
+	d=!item $p of $diff
+        s=$[$begin+$d]
+        yl=!evalsubst x=($s) in $f1
+        yr=!evalsubst x=($s) in $f2
+        yl=$[(round(100*$yl))/100]
+        yr=$[(round(100*$yr))/100]
+	!if $s != $xs1
+	    tablebody=!append word $ <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> $ to $tablebody
+	!else
+	    tablebody=!append word $ <tr><td style="background-color:lightgreen;color:red;font-size:120%">$s</td><td style="background-color:lightgreen;color:red;font-size:120%">$yl</td><td style="background-color:lightgreen;color:red;font-size:120%">$yr</td></tr> $ to $tablebody
+	!endif
+    !next p
+    t1=<table class="zebra_table_v3"><tr><th >x</th><th><i>f(x)</i></th><th><i>g(x)</i></th></tr>$tablebody</table>
+    textanswer$n=$t1
+    linker=$empty
+!else
+    a=!item $n of $var9
+    #!randitem 2,4,6,8
+    f1=(x)^$a
+    tot=!exec pari P1=solve(x=-10,-0.1,$f2-$f1)\
+    Q1=subst($f2,x,P1);round($rounding*Q1)\
+    round($rounding*P1)\
+    P2=solve(x=0.1,10,$f2-$f1)\
+    Q2=subst($f2,x,P2);round($rounding*Q2)\
+    round($rounding*P2)
+    
+    ys1=!line 2 of $tot
+    xs1=!line 3 of $tot
+    ys2=!line 5 of $tot
+    xs2=!line 6 of $tot
+
+    xs1=$[$xs1/$rounding]
+    ys1=$[$ys1/$rounding]
+    xs2=$[$xs2/$rounding]
+    ys2=$[$ys2/$rounding]
+    answer$n=$xs1,$xs2
+    tex=x \simeq $xs1 \wedge x \simeq $xs2
+    xm1=$[max($xs1,$xs2)]
+    ym1=$[max($ys1,$ys2)]
+    xm2=$[min($xs1,$xs2)]
+    ym2=$[min($ys1,$ys2)]
+    xm=$[max($xm1,$xm2)]
+    ym=$[max($ym1,$ym2)]
+    diff1=0.8,0.9,0.95,0.99,1.00,1.01,1.05
+    diff2=0.85,0.95,0.99,1.00,1.01,1.1,1.25
+    !for i=1 to 2
+	tablebody$i=$empty
+	begin=$[$(xs$i)-1]
+	!for p=1 to 7
+	    d=!item $p of $(diff$i)
+	    s=$[$begin+$d]
+	    yl=!evalsubst x=($s) in $f1
+	    yr=!evalsubst x=($s) in $f2
+	    yl=$[(round(100*$yl))/100]
+	    yr=$[(round(100*$yr))/100]
+	    !if $s != $(xs$i)
+		k=orange
+		tablebody$i=!append line <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> to $(tablebody$i)
+	    !else
+		tablebody$i=!append line <tr><td style="background-color:lightgreen;color:red;font-size:120%">$s</td><td style="background-color:lightgreen;color:red;font-size:120%">$yl</td><td style="background-color:lightgreen;color:red;font-size:120%">$yr</td></tr> to $(tablebody$i)
+	    !endif
+	!next p
+    !next i
+    t1=<table class="zebra_table_v3"><tr><th >x</th><th><em>f(x)</em></th><th><em>g(x)</em></th></tr>$tablebody1</table>
+    t2=<table class="zebra_table_v3"><tr><th >x</th><th><em>f(x)</em></th><th><em>g(x)</em></th></tr>$tablebody2</table>
+    textanswer$n=<table style="text-align:center"><tr><th>x<sub>1</sub></th><th>x<sub>2</sub></th></tr><tr><th>$t1</th><th>$t2</th></tr></table>
+    welksnijpunt=!randitem 13,14
+    linker=!item $welksnijpunt of $htxt
+    !if $welksnijpunt=13
+	# linker
+	!if $xs1<$xs2
+	    answer$n=$xs1
+	    point=$xs1,$ys1
+	!else
+	    answer$n=$xs2
+	    point=$xs2,$ys2
+	!endif
+    !else
+	# rechter
+	!if $xs1>$xs2
+	    answer$n=$xs1
+	    point=$xs1,$ys1
+	!else
+	    answer$n=$xs2
+	    point=$xs2,$ys2
+	!endif
+    !endif
+!endif
+
+
+F1=x^{$a}
+F2=!texmath $f2
+# voor checkfile
+var1=$f1
+var2=$f2
+
+ss=!record 2 of lang/remarks.$taal
+
+formula$n=\left[ \begin{array}{ll} \textrm{$typefunctie : } &  f(x) = $F1 \\ \textrm{$lijn : } &  g(x) = $F2  \\ \textrm{$afronden} & \end{array} \right.
+
+texanswer$n=\left[ \begin{array}{l} \textrm{$snijpunten } \\ f(x) = g(x) \\ $F1 = $F2 \\ $tex \\ \textrm{$zie_tabel} \end{array} \right.
+    
+question$n=<a onmouseover="return escape('$actievemuis<ht />$attentie')">$ss</a>
+
+helptext=<img src=\'$module_dir/gifs/inklemmen.jpg\' alt=\'inklemmen\' /><hr />$attentie
+
+
+!if $teaching=1
+xsize=300
+ysize=300
+tiptxt=!record 63 of $remarkdir/commonremarks.$taal
+!if $xm > $xmax
+    xmax = $[$xm + 4]
+!else
+    !if $xm<$xmin
+	xmin=$[$xm-4]
+    !endif
+!endif
+!if $ym > $ymax
+    ymax = $[$ym+10]
+!else
+    !if $ym<$ymin
+	ymin=$[$my-10]
+    !endif
+!endif
+
+xstep=$[abs(($xmax-$xmin)/10)]
+ystep=$[abs(($ymax-$ymin)/10)]
+
+tip=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+bgcolor $wims_bgcolor\
+xlabel    $xas\
+ylabel    $yas\
+axis\
+grid $xstep,$ystep,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$f1\
+jscurve green,$f2\
+linewidth 3\
+point $point,blue\
+intooltip $tiptxt\
+zoom black\
+precision 10\
+mouse blue,22\
+precision 1000
+
+exotext=<span class="schaersvoorde_link">$tip</span><br />
+
+!endif
+
+
+

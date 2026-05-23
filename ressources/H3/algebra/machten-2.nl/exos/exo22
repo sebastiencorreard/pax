@@ -1,0 +1,166 @@
+# delen van machten
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:^:+:-:/:*
+rounding=0
+mathview=5
+math=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 38 of lang/remarks.$taal
+#@Bereken en schrijf als &eacute;&eacute;n macht:
+sometext=!record 2 of lang/remarks.$taal
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo11.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+v1=!randitem a,b,x,y
+varlist=$v1
+wims_rawmath_variables=$v1
+!if $R=1
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    a=!randitem 2,3,4
+    b=!randitem 2,3,4
+    c=!randitem 2,3
+    d=!randint 2,6
+    e=$[$a-$b*$c]
+    !if $e=0
+	a=$[$a+2]
+	e=$[$a-$b*$c]
+    !endif
+    !if $keuze=1
+	# var1 is verbatim question
+	var1=$v1^$a/($d*($v1^$b)^$c)
+	applettext=!nospace ($v1^$a) / ($d*($v1^$b) ^$c) =
+	answer$n=1/$d*$v1^($e)
+	formula$n=\frac{\textsize $v1^{$a}}{\textsize $d \left($v1^{$b}\right)^{$c}} \,=\,[?]
+	texanswer$n=\frac{$v1^{$a}}{$d $v1^{$[$b*$c]}} \,=\,\frac{1}{$d} \cdot\frac{$v1^{$a}}{$v1^{$[$b*$c]}} \,=\, \frac{1}{$d} \cdot $v1^{$a-$[$b*$c]} = \frac{1}{$d} $v1^{$e} 
+    !else
+	f=$[$d^$c]
+	var1=$v1^$a/(($d*$v1^$b))^$c
+	applettext=!nospace ($v1^$a) / (($d $v1^$b )^$c) =
+	answer$n=1/$f*$v1^($e)
+	formula$n=\frac{\textsize $v1^{$a}}{\textsize \left( $d $v1^{$b}\right)^{$c}} \,=\,[?]
+	texanswer$n=\frac{$v1^{$a}}{$d^{$c}\cdot  $v1^{$b \cdot $c}} \,=\, \frac{$v1^{$a}}{$f\cdot  $v1^{$[$b*$c]}} = \frac{1}{$f} \cdot $v1^{$a-$[$b*$c]} = \frac{1}{$f}\cdot x^{$e}     
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    !if $keuze=1
+	a=!randint 2,8
+	b=!randint 2,8
+	c=!randint 2,6
+	d=!randint 2,6
+        g=!randint 2,15
+        k=$[$d*$g]
+        e=$[$a-$b-$c]
+	# var1 is verbatim question
+	var1=$v1^$a/($d*$v1^$b*$g*$v1^$c)
+	applettext=!nospace ($v1^$a) / ($d*$v1^$b* $g*$v1^$c) =
+	answer$n=1/$k*$v1^($e)
+	formula$n=\frac{\textsize $v1^{$a}}{\textsize $d $v1^{$b} \cdot  $g $v1^{$c}} \,=\,[?]
+	texanswer$n=\frac{$v1^{$a}}{$k $v1^{$b+$c}} \,=\, \frac{1}{$k} \cdot \frac{$v1^{$a}}{$v1^{$[$b+$c]}} \,=\, \frac{1}{$k} \cdot $v1^{$a-$[$b+$c]} = \frac{1}{$k} $v1^{$e} 
+    !else
+        a=!randitem 2,3,4
+        b=!randitem 2,3,4
+        c=!randitem 2,3
+        d=!randint 2,6
+        h=$[$b*$c]
+        e=$[$a-$h]
+        pm=!randitem +,-
+        g=!randint 2,15
+        k=$[$d $pm $g]
+        !if $k =0 
+    	    g=$[$g+2]
+    	    k=$[$d $pm $g]
+        !endif
+        !if $e=0
+	    a=$[$a+2]
+	    e=$[$a-$h]
+        !endif
+	m=!randint 2,15
+	pp=!randitem 1,-1
+	m=$[$pp*$m]
+	tot=!exec pari A=$m/$k\
+	printtex(A)
+	breuk=!line 1 of $tot
+	breuk_tex=!line 2 of $tot
+	
+	var1=$m*$v1^$a/($d*($v1^$b)^$c $pm $g*$v1^$h)
+	applettext=!nospace ($m*$v1^$a) / ($d*($v1^$b) ^$c $pm $g*$v1^$h) =
+	answer$n=$breuk*$v1^($e)
+	formula$n=\frac{\textsize $m $v1^{$a}}{\textsize $d \left($v1^{$b}\right)^{$c} $pm $g $v1^{$h}} \,=\,[?]
+	texanswer$n=\frac{$m $v1^{$a}}{$d $v1^{$h} $pm $g $v1^{$h}} \,=\, \frac{$m $v1^{$a}}{$k $v1^{$h}} \,=\, \frac{$m}{$k} \cdot \frac{$v1^{$a}}{ $v1^{$h}} \,=\, $breuk_tex \cdot $v1^{$a-$h} = $breuk_tex $v1^{$e} 
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    !if $keuze=1
+	a=!randint 2,6
+	b=!randitem 2,3,4
+	c=!randitem 2,3,4
+	d=!randint 2,4
+	p=!randitem 2,3
+	f=$[$p*$d]
+        !if $d=2
+	    root_tex=\sqrt{$v1^{$c}}
+	    root=sqrt($v1^$c)
+        !else
+	    root_tex=\root{$d}\of{$v1^{$c}}
+	    root=sqrt[$d]($v1^$c)
+	!endif
+	# var1 is verbatim question
+	var1=$v1^$a/($v1^($b/$f)*$v1^($c/$d))
+	applettext=!nospace ($v1^$a) / (sqrt[$f]($v1^$b)*$root) =
+	tot=!exec pari A=$a-($b+$c*$p)/$f\
+	printtex(A)
+	exp=!line 1 of $tot
+	exp_tex=!line 2 of $tot
+	answer$n=$v1^($exp)
+	formula$n=\frac{$v1^{$a}}{\root{$f} \of{$v1^{$b}} \cdot $root_tex }\,=\,[?]
+	texanswer$n=\frac{$v1^{$a}}{$v1^{\frac{$b}{$f}}\cdot $v1^{\frac{$c}{$d}}} \,=\, \frac{$v1^{$a}}{$v1^{\frac{$[$b+$c*$p]}{$f}}} \,=\, $v1^{$a-\frac{$[$b+$c*$p]}{$f}} \,=\, $v1^{$exp_tex}
+    !else
+	a=!randint 2,9
+	b=!randint 2,9
+	!if $a=$b
+	    a=$[$a+2]
+	!endif
+	d=!randitem 3,4,5,6
+	tot=!exec pari A=($a-$b)/$d\
+	printtex(A)
+	exp=!line 1 of $tot
+	exp_tex=!line 2 of $tot
+	answer$n=$v1^($exp)
+	formula$n=\frac{\root{$d} \of{$v1^{$a}}}{\left(\root{$d} \of{$v1} \right)^{$b} }\,=\,[?]
+	var1=$v1^($a/$d)/$v1^($b/$d)
+	applettext=!nospace (sqrt[$d]($v1^$a))/((sqrt[$d]($v1))^$b) =
+	texanswer$n=\frac{$v1^{\frac{$a}{$d}}}{\left($v1^{\frac{1}{$d}}\right)^$b}\,=\, \frac{$v1^{\frac{$a}{$d}}}{$v1^{\frac{$b}{$d}}}\,=\, $v1^{\frac{$a}{$d}-\frac{$b}{$d}}\,=\, $v1^{$exp_tex}
+    !endif
+ !exit
+!endif
+

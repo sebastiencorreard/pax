@@ -1,0 +1,68 @@
+n=$counter
+math=0
+cols=12
+rounding=-1
+mathview=0
+applet=0
+image=0
+plot=0
+inputs=2
+make_tr=1
+viewlogo=1
+logo=<img src="$module_dir/gifs/petrischaal.jpg" alt="petrischaal" />
+logotext=petrischaal met bacteri&euml;n
+checkfile=$checkdir/units.proc
+v=!randint 3,9
+verdunning=10^$v
+h_verdunning=10<sup>$v</sup>
+Tvol=!randint 300,999
+Tvol=!exec moneyprint $[$Tvol/100]
+sig1=!exec sigdigits $Tvol
+sig1=!item 1 of $sig1
+
+kve1=!randint 11,99
+f1=$[$kve1/$Tvol]
+f2=$[($f1)*10^6]
+C=$[($verdunning)*$f2]
+diff=!randint 1,6
+verschil=$[$diff/$kve1*100]
+# percentage $verschil op 2 sig cijfers
+sig2=2
+tot=!exec scienceprint $C,$sig1,0 $C,$sig1,1 $verschil,$sig2,0
+ans1=!item 1 of $tot
+h_ans1=!item 2 of $tot
+ans2=!item 3 of $tot
+
+# beide antwoorden geen eenheid
+var1=0,0
+# een precisie opgegeven
+var2=$[abs($C-$ans1)],$[abs($verschil-$ans2)]
+answer$n=$ans1,$ans2
+keuze=!randint 0,1
+namen=!randitem 78,79
+namen=!record $namen of $remarkdir/commonremarks.$taal
+naam=!randitem $namen
+!if $keuze=0
+    meer=meer
+!else
+    meer=minder
+!endif
+ss=Om de bacteriegroei te bepalen wordt het aantal <b>k</b>olonie <b>v</b>ormende <b>e</b>enheden (KVE) geteld.<br />Om het aantal KVE's per liter vloeistof te bepalen wordt $h_verdunning &times; verdund.<br />Vervolgens wordt in een telkamer van $Tvol mm<sup>3</sup> het aantal KVE geteld.<br />Er worden $kve1 KVE's geteld.<br />Bereken het aantal KVE per liter in de te onderzoeken vloeistof.<br />Laborant $naam heeft $diff KVE $meer geteld dan zou moeten.<br />Bereken hoeveel procent het aantal KVE daardoor af zal wijken.
+
+description=<b>a</b>) het aantal KVE,<b>b</b>) Procentuele verschil
+m_rightarrow=&nbsp;:&nbsp;
+ex1=&nbsp;aantal KVE/liter
+ex2=&nbsp;%
+
+textanswer$n=<ol><li><em>c</em> = $kve1 KVE / $Tvol mm<sup>3</sup> = $f1 KVE/mm<sup>3</sup> = $f1&times;10<sup>6</sup> KVE/L<br /><em>c(onverdund)</em>= $verdunning &times; $f1&times;10<sup>6</sup> KVE/L = $C KVE/L<br />Dus een concentratie van $h_ans1 KVE/L (op $sig1 significante cijfers)<li>De procentuele afwijking door $diff KVE $meer te tellen is: $diff/$kve1 = $verschil %<br />Dus een afwijking van $ans2 % (op $sig2 significante cijfers)</li></ol>
+
+helptext=<table class=\'zebra_table_h2\'><tr><td>1 liter </td><td>=</td><td> 1 dm<sup>3</sup></td><td></td><td></td></tr><tr><td>1 dm </td><td>=</td><td> 10 cm </td><td>=</td><td> 100 mm</td></tr><tr><td>1 dm<sup>3</sup></td><td> = </td><td>10*10*10 cm<sup>3</sup></td><td> =</td><td> 100*100*100 mm<sup>3</sup></td></tr><tr><td>1 dm<sup>3</sup></td><td> = </td><td>10<sup>3</sup> cm<sup>3</sup></td><td> =</td><td> 10<sup>6</sup> mm<sup>3</sup></td></tr></table>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+
+
+

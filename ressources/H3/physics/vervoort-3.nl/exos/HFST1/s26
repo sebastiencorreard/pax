@@ -1,0 +1,113 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+
+keuze=!randint 1,6
+keuze=5
+!if $keuze=1
+    vol=21
+    gas=zuurstof
+    t_gas=O_{2}
+    h_gas=O<sub>2</sub>
+    M_gas=32
+    sig=2
+!else
+    !if $keuze=2
+	vol=78
+	gas=stikstof
+        t_gas=N_{2}
+	h_gas=N<sub>2</sub>
+        M_gas=28
+	sig=2
+    !else
+	!if $keuze=3
+	    vol=0.04
+	    gas=koolzuur
+	    t_gas=CO_{2}
+	    h_gas=CO<sub>2</sub>
+	    M_gas=44
+	    sig=2
+	!else
+	    !if $keuze=4
+		vol=0.93
+		gas=argon
+	        t_gas=Ar
+		h_gas=Ar
+	        M_gas=39.95
+		sig=2
+	    !else
+		!if $keuze=5
+		    vol=0.0018
+		    gas=neon
+	    	    t_gas=Ne
+		    h_gas=Ne
+		    M_gas=20.18
+		    sig=2
+		!else
+		    vol=0.00052
+		    gas=helium
+	    	    t_gas=He
+		    h_gas=He
+		    M_gas=4.00
+		    sig=2
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+inputs=3
+description=<b>a</b>) Gasconstante $h_gas,<b>b</b>) Aantal mol $h_gas per m<sup>3</sup>,<b>c</b>) Massa $gas in 1 m<sup>3</sup>
+#,<b>d</b>) De druk van $gas in lucht
+ex1=&nbsp;J/K (of Nm/K)
+ex2=&nbsp;mol
+ex3=&nbsp;gram
+ex4=&nbsp;Pa
+m_rightarrow=&nbsp;=&nbsp;
+
+
+ss=Droge lucht is een mengsel van verschillende gassen.<br />De dichtheid van een gas wordt bepaald door het aantal deeltjes in een bepaald volume.<br />Meestal wordt 1 m<sup>3</sup> bij 20 &deg;C en 1 bar genomen.<br /><br />Voor lucht geldt dat $vol % van de moleculen bestaat uit $gas.<br />Gegeven de molmassa van $gas : M<sub>($h_gas)</sub> = $M_gas g/mol.<hr />a) Bereken de gasconstante C voor de $gas moleculen.<br />b) Bereken het aantal mol $gas gas in 1 m<sup>3</sup> lucht.<br />c) Bereken de massa van $gas in 1 m<sup>3</sup> lucht.
+#<br />d) Bereken de druk van de $gas in lucht.
+
+C=$[$vol*10^3/293]
+mol_gas=$[$C/8.314]
+n_gas=$[0.01*$vol*$mol_gas]
+m_gas=$[$n_gas*$M_gas]
+p_gas=$[$vol*10^3]
+
+tot=!exec scienceprint $C,$sig,0 $C,$sig,2 $mol_gas,$sig,0 $mol_gas,$sig,2 $m_gas,$sig,0 $m_gas,$sig,2 $p_gas,$sig,0 $p_gas,$sig,2
+
+checkfile=$checkdir/units.proc
+var1=$empty
+var2=$empty
+f=1
+stuff=$C,$n_gas,$m_gas,$p_gas
+
+#!for p=1 to 8 step 2
+!for p=1 to 6 step 2
+    ans$f=!item $p of $tot
+    t_ans$f=!item $[$p+1] of $tot
+    answer$n=!append item $(ans$f) to $(answer$n)
+    in=!item $f of $stuff
+    var2=!append item $[abs($in - $(ans$f))] to $var2
+    var1=!append item 0 to $var1
+    !increase f
+!next p
+
+#texanswer$n= \begin{array}{l} a) \\ \left[ \begin{array}{l} \frac{p \cdot V}{T} = n \cdot R = C \\ \\ V = 1\;m^{3} \\ T = 22 + 273 = 293\;K \\ p = 1.0\;\textrm{atm} = 10^{5}\;\textrm{Pa} \\ C = \frac{10^{5} \cdot 1}{293}\;\;\frac{N/m^{2} \cdot m^{3}}{K}= $C\; Nm/K = $C\;J/K \\ \textrm{Opgeven in $sig significante cijfers :} \; C = $t_ans1 \;J/K \end{array} \right. \\ b) \\ \left[ \begin{array}{l} n \cdot R = C \rightarrow n = \frac{C}{R} \\ \\ R = 8.314 \; J \cdot K^{-1} \cdot \textrm{mol}^{-1} \;\textrm{( gasconstante )} \\ n = \frac{$C}{8.314}\;\; \frac{J/K}{JK^{-1}mol^{-1})}= $mol_gas \;\textrm{mol}\\ \textrm{Opgeven in $sig significante cijfers :} \; n = $t_ans2 \;\textrm{mol} \end{array} \right. \\ c) \\ \left[ \begin{array}{l} n_{$t_gas} = $vol / 100 \times $mol_gas = $[$vol/100] \times $mol_gas = $n_gas \; \textrm{mol} \\ m_{$t_gas} = $n_gas \times M_{$t_gas} = $n_gas \times $M_gas = $m_gas \;g\; $t_gas \\ \textrm{Opgeven in $sig significante cijfers :} \; m_{$t_gas} = $t_ans3 \;g\; $t_gas \end{array} \right. \\ d) \\ \left[ \begin{array}{l} p_{$t_gas} = $vol / 100 \times 10^{5} \; \textrm{Pa} =$[$vol / 100] \times 10^{5} \; \textrm{Pa} = $p_gas \; \textrm{Pa} \\ \textrm{Opgeven in $sig significante cijfers :} \; p = $t_ans4 \;\textrm{Pa} \end{array} \right. \end{array}
+texanswer$n= \begin{array}{l} a) \\ \left[ \begin{array}{l} C_{$t_gas} = \frac{p_{$t_gas} \cdot V}{T} \\ p_{$t_gas} = $vol\; \% \;van\; 10^{5} = $[$vol/100] \times 10^{5} = $p_gas \;Pa \\ C_{$t_gas} = \frac{$p_gas \times 1}{293} \frac{N/m^{2}\cdot m^{3}}{K} = $t_ans1 Nm/K \;of\;J/K \end{array} \right. \\  b) \\ \left[ \begin{array}{l} n \cdot R = C \rightarrow n = \frac{C}{R} \\ R = 8.314 \; J \cdot K^{-1} \cdot \textrm{mol}^{-1} \;\textrm{( gasconstante )} \\ n = \frac{$C}{8.314}\;\; \frac{J/K}{JK^{-1}mol^{-1})}= $mol_gas \;\textrm{mol}\\ \textrm{Opgeven in $sig significante cijfers :} \; n = $t_ans2 \;\textrm{mol} \end{array} \right. \\ c) \\ \left[ \begin{array}{l} n_{$t_gas} = $vol / 100 \times $mol_gas = $[$vol/100] \times $mol_gas = $n_gas \; \textrm{mol} \\ m_{$t_gas} = $n_gas \times M_{$t_gas} = $n_gas \times $M_gas = $m_gas \;g\; $t_gas \\ \textrm{Opgeven in $sig significante cijfers :} \; m_{$t_gas} = $t_ans3 \;g\; $t_gas \end{array} \right. \end{array} \right. \end{array}
+
+helptext=<font size=+2><kbd>p&#8901;V&nbsp;=&nbsp;n&#8901;R&#8901;T</kbd></font><ul><li> p de druk in Pa (N/m<sup>2</sup>)</li><li> V het volume in m<sup>3</sup></li><li> n de hoeveelheid gas in mol (= aantal moleculen gedeeld door de constante van Avogadro)</li><li> R de gasconstante ($Rb J·K<sup>-1</sup>mol<sup>-1</sup>)</li><li> T de absolute temperatuur in K</li><li>N = 6.022&times; 10<sup>23</sup> : getal van Avogadro</li></ul>
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/lucht.jpg\' alt=\'lucht\'/>')">$ss</a>
+
+!exit
+
+
+
+

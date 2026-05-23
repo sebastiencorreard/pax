@@ -1,0 +1,51 @@
+!if $status=waiting
+
+!set wims_html_header=$wims_html_header\
+<script language=javascript type="text/javascript">\
+<!-- hide/\
+var rtick;\
+rtick=$remain;\
+function clock() {\
+ document.chrono.clock.value=rtick; rtick--;\
+ if(rtick<0) rtick=0;\
+ Timer= setTimeout("clock()",1000);\
+}\
+// -->\
+</script>
+!set wims_html_onload=onload=clock();
+!! <HTML><HEAD>
+!! $wims_html_header
+!! </HEAD><BODY $wims_htmlbody onload=clock();>
+!! !headmenu
+!! <p><center><h1>$module_title</h1></center> <p>
+!header
+ !if $error!=$empty
+  !read msg.phtml
+  <p><hr width="50%"> <p>
+ !endif
+ !read form.phtml
+ <p>
+ !href cmd=reply&abandon=yes 放弃和查看解答
+.&nbsp;
+ !href exo_Renew
+.
+!else
+ !header
+ !if $error!=$empty
+  !read msg.phtml
+  <p><hr width="50%"> <p>
+ !endif
+ !! L'analyse de r閜onse
+ !read answer.phtml
+ <p>
+ !href exo_Again
+.
+ !if $worksheet=$empty
+  !href exo_Intro
+.
+ !endif
+!endif
+
+!tail
+
+!reset abandon

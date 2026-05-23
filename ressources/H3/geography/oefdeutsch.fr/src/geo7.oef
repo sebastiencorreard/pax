@@ -1,0 +1,139 @@
+type=classify
+textarea="data explain"
+iEdit="explain"
+:Établir la correspondance entre paires d'objets.
+
+On présente des paires d'objets dans un tableau à deux colonnes. Il faut
+rétablir la bonne correspondance dans les paires en modifiant la colonne à
+droite, par glisser-déposer avec la souris.
+<p>
+Pour construire un exercice avec ce modèle, il suffit de taper la liste de
+paires d'objets.
+</p><p>
+Avec une légère modification, une variante de cet exercice peut accepter des
+objets en image.
+</p>
+<p class="wims_credits">Auteur du modèle : <a href="mailto:qualite@wimsedu.info">Gang Xiao</a></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Des villes et des curiosités touristiques}
+:\author{Carré, Delafraye}
+:\email{josiane-an.carre@ac-amiens.fr}
+:\credits{}
+
+
+\integer{confparm1= items(\confparm1)=0 ? random(1..4):\confparm1}
+:Nombre de (paires) d'objets à faire correspondre
+
+\integer{tot=3*\confparm1}
+
+:La taille verticale des cases en pixels
+Pensez aux gens qui augmentent la taille de polices de leur navigateur !
+Ne mettez pas les cases trop petites.
+\integer{sizev=50}
+
+:La taille horizontale des cases à gauche en pixels
+
+\integer{sizel=250}
+
+:La taille horizontale des cases à droite en pixels
+
+\integer{sizer=250}
+
+:Feedback affiché dans tous les cas après la réponse de l'apprenant.
+
+\text{feedback_general=}
+
+:Consigne pour les apprenants
+help
+\text{explain=<p>Établissez la correspondance entre une ville et un lieu. Wo ist das zu sehen &#63;</p>}
+
+:Données principales
+Définir une paire d'objets correspondants par ligne, séparés par une virgule.
+help
+\matrix{data=Berlin, das Brandenburger Tor
+Hamburg, die Elbphilarmonie
+München, der Marienplatz
+Köln, das Schokoladenmuseum
+Frankfurt am Main, der Sitz der Europäischen Zentralbank
+Stuttgart, das Mercedes-Benz-Museum
+Aachen, der Thron Karls des Großen
+Dresden, die Semperoper
+Essen, die Zeche Zollverein
+Trier, die Porta Nigra
+Bremen, die Statue der Stadtmusikanten
+Bonn, das Geburtshaus Goethes
+Freiburg, das Ökoviertel Vauban
+Konstanz, der Bodensee
+Mainz, das Gutenberg-Museum}
+
+:Mise en aléatoire par des accolades emboitables
+help
+\text{accolade=item(1,1 oui, 2 non)}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{accolade=wims(word 1 of \accolade)}
+\integer{datacnt=rows(\data)}
+\integer{tot=\tot>\datacnt?\datacnt}
+
+\text{shuf=item(1..\tot,shuffle(\datacnt))}
+\text{data=row(\shuf,\data)}
+\text{data=\accolade=1? wims(embraced randitem \data)}
+\text{datal=column(1,\data)}
+\text{datar=column(2,\data)}
+\text{size=\sizev[]x\sizel[]x\sizer}
+\text{explain=\accolade=1? wims(embraced randitem \explain)}
+
+# Pour la version Latex
+\text{shuf2=shuffle(\tot)}
+\text{latexdatar=\datar[\shuf2]}
+\real{latexsizel=max(1,min(floor(\sizel/5)/10,6))}
+\real{latexsizer=max(1,min(floor(\sizer/5)/10,6))}
+\text{latexsrc=\begin{tabular}{p{\latexsizel cm}lp{1cm}lp{\latexsizer cm}}}
+\for{lk=1 to \tot}{
+  \text{latexsrc=\latexsrc \datal[\lk] &\(\bullet\) &&\(\bullet\) & \latexdatar[\lk]\\ [1.5ex]}
+}
+\text{latexsrc=\latexsrc \\
+\end{tabular}}
+\text{latexsol=\begin{tabular}{p{\latexsizel cm}lp{\latexsizer cm}}}
+\for{lk=1 to \tot}{
+  \text{latexsol=\latexsol \datal[\lk] &\(\longleftrightarrow \)& \datar[\lk]\\ [1.5ex] }
+}
+\text{latexsol=\latexsol\\
+\end{tabular}}
+
+:%%%%%%%%%%%%% Maintenant l'énoncé en code html. %%%%%%%%%%%%%%%%%%%%
+
+::Vous n'avez pas besoin de modifier ceci en général.
+La commande pour afficher le tableau de correspondance,
+c'est \embed{reply 1,\size}
+\statement{<div class="wims_question">\explain</div>
+<div class="wimscenter">
+\embed{reply 1,\size}
+</div>}
+
+:%%%%%%%%%%%%% Rien à modifier ci-après. %%%%%%%%%%%%%%%%%5
+\answer{La réponse}{\datal;\datar}{type=correspond}
+\feedback{\feedback_general notsametext }{<p class="feedback">\feedback_general</p>}
+
+# version Latex
+\latex{
+\begin{statement}
+\explain
+\begin{center}
+\latexsrc
+\end{center}
+\end{statement}
+\begin{solution}\
+\begin{center}
+\latexsol
+\end{center}
+\end{solution}
+}

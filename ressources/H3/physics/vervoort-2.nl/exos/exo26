@@ -1,0 +1,57 @@
+#hfst2
+#exo26(hfst2) Bereken de afstand [afstanden meetwiel]
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+checkfile=$checkdir/units.proc
+# hoeft geen eenheid
+var1=0
+var2=0
+inputs=1.1
+description=De stand van het meetwiel
+ex1=&nbsp;km
+
+diameter=!randint 3500,6500
+# liever geen 55.0
+diameter=!exec moneyprint $[$diameter/100] 1
+# diameter 35.0...65.0 -> 3 significante cijfers
+sig=3
+omtrek=$[pi*$diameter]
+rotaties=!randint 100000,999999
+afstand_cm=$[$omtrek*$rotaties]
+afstand_km=$[$afstand_cm*10^-5]
+tot=!exec scienceprint $afstand_km,$sig $afstand_km,$sig,1
+answer$n=!item 1 of $tot
+ans=!item 2 of $tot
+rot=$empty
+!for p=1 to 6
+    c=!char $p of $rotaties
+    rot=!append word $c to $rot
+!next p
+
+ss=Met <span style="color:blue">dit apparaat</span> worden afstanden gemeten.<br />De teller staat op $rotaties<br />Het wiel heeft een diameter van $diameter cm<hr />Bereken de stand van het meetwiel in km.<br />Geef het antwoord in juiste nauwkeurigheid.
+m_rightarrow=&nbsp;&nbsp;=&nbsp;&nbsp;
+textanswer$n=<ul><li>De omtrek van een cirkel = 2 &times; &pi; &times; straal = &pi; &times; diameter cm</ll><li>De omtrek is : $omtrek cm</li><li>De totale afstand van het meetwiel is dus: $omtrek &times; $rotaties = $afstand_cm cm</li><li>1 cm = 10^-2 m = 10^-5 km</li><li>De totale afstand : $afstand_cm &times; 10^-5 km</li><li>Het aantal siginificante cijfers is $sig : afkomstig van de diameter van het meetwiel ($diameter)</li><li>Het aantal rotaties is een telling en heeft geen aflees nauwkeurigheid (...)<br />en draagt derhalve niet bij tot het aantal significante cijfers</li><li>De totale afstand = $ans km (In $sig significante cijfers)</li></ul>
+
+image$n=200,200\
+xrange 0,10\
+yrange 0,10\
+copy 0,10,-1,-1,-1,-1,gifs/meetwiel.jpg\
+text black,3.8,8.8,large,$rot
+
+!insdraw $(image$n)
+helptext=Geef antwoord in juiste nauwkeurigheid.
+question$n=<a onmouseover="return escape('$helptext <hr /><img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'plaatje\' />')">$ss</a>
+
+!exit
+
+
+
+
+    

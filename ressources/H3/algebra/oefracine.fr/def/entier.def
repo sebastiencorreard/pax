@@ -1,0 +1,148 @@
+!set title=Tableau d'entiers. 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 3
+
+val6=$[rint($(tmp0))]
+val7=50x50x1
+tmp0=!shuffle 1,2,3,5,6,7,10,11
+
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+tmp1=!item 2 of $val8
+
+tmp2=!item 3 of $val8
+
+val8=$(tmp0),$(tmp1),$(tmp2)
+tmp0=!values (x)^2 for x in $val8
+
+val9=$(tmp0)
+tmp0=!values (x)^4 for x in $val8
+
+val10=$(tmp0)
+val11=
+!for val12  in $val8 
+tmp0=!append item \(\sqrt{$val12}) to $val11
+
+val11=$(tmp0)
+!next
+!if $(val8[$val6])<>1 
+tmp0=!replace item number $val6 by \($(val9[$val6])) in $val10
+
+val10=$(tmp0)
+tmp0=!replace item number $val6 by \($(val8[$val6])) in $val9
+
+val9=$(tmp0)
+tmp0=!replace item number $val6 by \(\sqrt{$(val8[$val6])}) in $val8
+
+val8=$(tmp0)
+!endif
+replytype1=clickfill
+replyname1=x2
+replygood1=$(val9[2])|$val9,$val8,$val10,$val11
+replytype2=clickfill
+replyname2=x3
+replygood2=$(val9[3])|$val9,$val8,$val10,$val11
+replytype3=clickfill
+replyname3=\(\sqrt{x1})
+replygood3=$(val8[1])|$val9,$val8,$val10,$val11
+replytype4=clickfill
+replyname4=\(\sqrt{x3})
+replygood4=$(val8[3])|$val9,$val8,$val10,$val11
+replytype5=clickfill
+replyname5=\(x1^2)
+replygood5=$(val10[1])|$val9,$val8,$val10,$val11
+replytype6=clickfill
+replyname6=\(x2^2)
+replygood6=$(val10[2])|$val9,$val8,$val10,$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Compléter le tableau à l'aide des réponses proposées.	<table class="wimsborder wimscenter">	  <tr>	    <td>
+!insmath x
+$()</td>	    <td>$(val9[1])</td>	    <td> 
+!read oef/embed.phtml reply 1,$val7 
+$()</td>	    <td> 
+!read oef/embed.phtml reply 2,$val7 
+$()</td>	  </tr><tr>	    <td>
+!insmath \sqrt{x}
+$()</td>	    <td> 
+!read oef/embed.phtml reply 3,$val7 
+$()</td>	    <td>$(val8[2])</td>	    <td> 
+!read oef/embed.phtml reply 4,$val7 
+$()</td>	  </tr><tr>	    <td>
+!insmath x^2
+$()</td>	    <td> 
+!read oef/embed.phtml reply 5,$val7 
+$()</td>	    <td> 
+!read oef/embed.phtml reply 6,$val7 
+$()</td>	    <td>$(val10[3])</td>	  </tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10
+embedcnt=6

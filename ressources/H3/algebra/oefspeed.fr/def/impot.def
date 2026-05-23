@@ -1,0 +1,262 @@
+!set title=Impôt célibataire/marié
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jp, Besnard
+email=jp.besnard@laposte.net.fr
+language=fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Impôt célibataire/marié
+
+ansorder=r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=h,km,km/h
+val8=Vous êtes, sans enfant,avec, enfants, à charge, vous avez donc droit à,	  part,parts
+val9=Calculez l'impôt pour un revenu,en,	  en utilisant le graphique de la fonction impôt qui est formé de segments,	  et d'une demi-droite à partir du point,Les coordonnées sont les suivantes
+val10=Il faut calculer le coefficient directeur \(coeff\) de la droite
+val11=impôt arrondi à 0.01 près
+val12=célibataire,marié
+!if $val6=nl 
+val7=uur,km,km/uur
+val8=Vous êtes, sans enfant,avec, enfants, à charge, vous avez donc droit à,	  part,parts
+val9=Calculez l'impôt pour un revenu,en,	  en utilisant le graphique de la fonction impôt qui est formé de segments,	  et d'une demi-droite à partir du point,Les coordonnées sont les suivantes
+val10=Il faut calculer le coefficient directeur \(coeff\) de la droite
+val11=impôt arrondi à 0.01 près
+val12=célibataire,marié
+!endif
+tmp0=!randint 2002, 2004
+
+val13=$[rint($(tmp0))]
+tmp0=!randint 0, 4
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15=1 
+val16= $(val12[1])
+!else
+val16=$(val12[2])
+!endif
+!if $val13=2004 
+val17=0,0.0683,0.1914,0.2826,0.3738,0.4262,0.4809,0
+val18=4334,8524,15004,24294,39529,48747,55000
+!endif
+!if $val13=2003 
+val17=0,0.0683,0.1914,0.2826,0.3738,0.4262,0.4809,0
+val18=4262,8382,14753,23888,38868,47932,55000
+!endif
+!if $val13=2002 
+val17=0,0.0705,0.1974,0.2914,0.3854,0.4394,0.4958,0
+val18=4191, 8242,14506,23489,38218,47131,55000
+!endif
+tmp0=!itemcnt $val18
+
+val19=$(tmp0)
+val20=
+!for val21 =1 to $val19-1 
+val20=$val20, (($(val17[$val21+1]))-($(val17[$val21])))/2
+!next
+val20=$val20, (($(val17[$val19]))-($(val17[$val19+1])))/2
+tmp0=!nonempty items $val20
+
+val20=$(tmp0)
+val22=$[(0.25*abs($val14-2))+(0.75*$val14+1.5)]
+val23=$[(-0.25*abs($val14-1))+(0.25*abs($val14-2))+(0.75+$val14)]
+val24=$[(($(val20[1]))*($(val18[1]))+($(val20[2]))*($(val18[2]))+($(val20[3]))*($(val18[3]))+($(val20[4]))*($(val18[4]))+($(val20[5]))*($(val18[5]))+($(val20[6]))*($(val18[6])))]
+!if $val15=1 
+val25=$[$val23]
+!endif
+!if $val15=2 
+val25=$[$val22]
+!endif
+val26=!rawmath $val25*(($(val20[$val19]))*x/$val25-($val24))
+!for val21 =1 to $val19-1 
+val26=!rawmath $val26 + $val25*($(val20[$val21]))*abs(x/$val25-($(val18[$val21])))
+!next
+tmp0=!randint 8000, 50000*$val25
+
+val27=$[rint($(tmp0))]
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val27) in $evaltmp
+tmp0=($evaltmp)
+val28=$[$(tmp0)]
+val28=$[floor(100*$val28)]
+val28=$[$val28/100]
+val29=
+!for val21 = 1 to $val19 
+evaltmp=$val26
+
+evaltmp=!mathsubst x=($val25*$(val18[$val21])) in $evaltmp
+tmp0=($evaltmp)
+val30=$[$(tmp0)]
+val30=$[rint(max(0,floor(100*$val30)))]
+val30=$[$val30/100]
+val29=$val29,$val30
+!next
+tmp0=!nonempty items $val29
+
+val29=$(tmp0)
+val31=A,B,C,D,E,F,G,H
+val32=
+!for val21 =1 to $val19 
+val32=$val32	  circle $val25*$(val18[$val21]),$(val29[$val21]),6,black	text black,$val25*$(val18[$val21]),$(val29[$val21]),medium,$(val31[$val21])
+!next
+replytype1=numeric
+replyname1=$val11
+replygood1=$[$val28]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val8[1]) $val16 
+!if $val14=0 
+$()$(val8[2])  
+!else
+$()	 $(val8[3]) $val14 $(val8[4]) 
+!endif
+$() $(val8[5]), $(val8[6])	$val25 
+!if $val25=1 
+$()$(val8[7]). 
+!else
+$() $(val8[8]). 
+!endif
+$()	$(val9[1]) 
+!insmath r = $val27
+$() $(val9[2]) $val13 $(val9[3])	
+!insmath [AB]
+$(), 
+!insmath [BC]
+$() ... 
+!insmath [EF]
+$() $(val9[4]) 
+!insmath F
+$().	$(val9[5]):	<p class="wimscenter">	 
+!for m_s = 1 to $val19 
+$()	
+!insmath $(val31[$m_s])
+$()
+!insmath [($val25*$(val18[$m_s]));$(val29[$m_s])]
+$() 
+!next
+$()	</p>	 
+!read oef/draw.phtml 800,300 \
+xrange -1500,60000*$val25	yrange -3500,$(val29[$val19])	linewidth 1	hline 0,0,black	vline 0,0,black	polyline red,$val27,0,$val27,$val28,\0,$val28	text red,-1500,$val28*1.1,medium,i=?	text red,$val27,0,medium,r=$val27	linewidth 2	circle 0,\0,6,black	text black,0,0,medium,O	$val32	circle $val27,$val28,6,red	text red,$val27,$val28*1.1,medium,M	text black ,50000*$val25,3500,medium,revenu $val13	text black ,0,$(val29[$val19]),medium,impot	plot green,$val26 
+$()
+$()
+!exit
+
+:hint
+$()$val10	
+!if $val27>$val25*$(val18[1]) and $val27<$val25*$(val18[2]) 
+$()
+!insmath (AB)
+$() et 
+!insmath i = coeff*(r - x_A) + y_A
+$() 
+!endif
+$()	
+!if $val27<$val25*$(val18[3]) and $val27>$val25*$(val18[2]) 
+$()
+!insmath (BC)
+$() et 
+!insmath i = coeff*(r - x_B) + y_B
+$() 
+!endif
+$()	
+!if $val27<$val25*$(val18[4]) and $val27>$val25*$(val18[3]) 
+$()
+!insmath (CD)
+$() et 
+!insmath i = coeff*(r - x_C) + y_C
+$() 
+!endif
+$()	
+!if $val27<$val25*$(val18[5]) and $val27>$val25*$(val18[4]) 
+$()
+!insmath (DE)
+$() et 
+!insmath i = coeff*(r - x_D) + y_D
+$() 
+!endif
+$()	
+!if $val27<$val25*$(val18[6]) and $val27>$val25*$(val18[5]) 
+$()
+!insmath (EF)
+$() et 
+!insmath i = coeff*(r - x_E) + y_E
+$() 
+!endif
+$()	
+!if $val27>$val25*$(val18[6]) 
+$()
+!insmath (FG)
+$() et 
+!insmath i = coeff*(r - x_F) + y_F
+$() 
+!endif
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,13,14,16,18,19,25,26,27,28,29,31,32
+embedcnt=0

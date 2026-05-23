@@ -1,0 +1,147 @@
+# :19 Variabelen, Wortels en haakjes
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+make_tr=1
+hulptext=!record 3 of lang/remarks.$taal
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo19.jpg\' alt=\'noalt\' />
+#font settings in input applet
+smallfont=18
+largefont=26
+#var1 = letterlijke som
+ss=!record 57 of lang/remarks.$taal
+#@Werk de haakjes uit en schrijf zo kort mogelijk...
+question$n=$ss
+# letop geen variabele "t" gebruiken...gaat mis vermoedelijk via de "t" in "sqrt" -> sqrT() -> sqr() -> ()
+checkfile=$checkdir/simplify.proc
+
+!if $R=1
+    v=!randitem x,y,z,v,w
+    varlist=$v
+    wims_rawmath_variables=$v
+    mathviewpanel=$module_title:$v:sqrt():+:-:*:/
+    keuze=!randitem 1,0
+    b=!randint 1,15
+    pm=!randitem +,-
+    !if $keuze=1
+	formula$n=\sqrt{$v} \cdot \left(\sqrt{$v} $pm $b\right) = [?]
+	answer$n=$v $pm $b*sqrt($v)
+        texanswer$n=\left[ \begin{array}{l} \sqrt{$v}\cdot\sqrt{$v} $pm $b \cdot \sqrt{$v} = \\ $v $pm $b\cdot\sqrt{$v} \end{array} \right. 
+	var1=sqrt($v)*(sqrt($v) $pm $b)
+    !else
+	formula$n=\left($b $pm \sqrt{$v}\right) \cdot \sqrt{$v} = [?]
+	answer$n=$b*sqrt($v) $pm $v
+        texanswer$n=\left[ \begin{array}{l} $b \cdot \sqrt{$v} $pm \sqrt{$v} \cdot \sqrt{$v} = \\ $b \cdot \sqrt{$v} $pm $v  \end{array} \right. 
+	var1=($b $pm sqrt($v))*sqrt($v)
+    !endif
+    applettext=!nospace $var1 =
+ !exit
+!endif
+
+!if $R=2
+    v=!randitem x,y,z,v,w
+    varlist=$v
+    wims_rawmath_variables=$v
+    mathviewpanel=$module_title:$v:sqrt():+:-:*:/
+    keuze=!randitem 1,0
+    pm=!randitem +,-
+    mp=!randitem +,-
+    a=!randint 2,9
+    c=!randint 1,9
+    !if $keuze=1
+	d=!randint 2,9
+        e=!randint 2,9
+	kans=!randint 1,3
+	!if $kans=1
+	    f=$[$a $mp $d]
+	    !if $f=0
+		a=$[$a+1]
+		f=1
+	    !endif
+	    var1=$a*(sqrt($v) $pm $c) + $d*($e $mp sqrt($v))
+	    formula$n=$a \cdot \left( \sqrt{$v} $pm $c \right) + $d \cdot \left( $e $mp \sqrt{$v} \right) = [?]
+	    answer$n=!rawmath $f*sqrt($v) + $[$d*$e $pm $a*$c]
+	    texans=!texmath $(answer$n)
+	    texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$v} $pm $[$a*$c] + $[$d*$e] $mp  $d \cdot \sqrt{$v} = \\ $a \sqrt{$v} $mp $d \sqrt{$v} $pm $[$a*$c] + $[$d*$e] = \\ $texans \end{array} \right. 
+	!else
+	    !if $kans=2
+		var1=$a*(sqrt($v) + $c) - $d*($e - sqrt($v))
+	        formula$n=$a \cdot \left( \sqrt{$v} + $c \right) - $d \cdot \left( $e - \sqrt{$v} \right) = [?]
+		answer$n=!rawmath $[$a+$d]*sqrt($v) + $[$a*$c - $d*$e]
+	        texans=!texmath $(answer$n)
+		texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$v} + $[$a*$c] - $[$d*$e] +  $d \cdot \sqrt{$v} = \\ $a \sqrt{$v} + $d \sqrt{$v} + $[$a*$c] - $[$d*$e] = \\ $texans \end{array} \right. 
+	    !else
+		!if $a=$d
+		    a=$[$a+1]
+		!endif
+		var1=$a*(sqrt($v) - $c) - $d*($e + sqrt($v))
+	        formula$n=$a \cdot \left( \sqrt{$v} - $c \right) - $d \cdot \left( $e + \sqrt{$v} \right) = [?]
+		answer$n=!rawmath $[$a-$d]*sqrt($v) - $[$a*$c + $d*$e]
+	        texans=!texmath $(answer$n)
+		texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$v} - $[$a*$c] - $[$d*$e] -  $d \cdot \sqrt{$v} = \\ $a \sqrt{$v} - $d \sqrt{$v} - $[$a*$c] - $[$d*$e] = \\ $texans \end{array} \right. 
+	    !endif
+	!endif
+    !else
+	var1=($a*sqrt($v) $pm $c)^2
+	formula$n=\left($a \sqrt{$v} $pm $c \right)^{2} = [?]
+	answer$n=!rawmath $pm $[2*$a*$c]*sqrt($v)+$[$a^2]*$v + $[$c^2]
+	texans=!texmath $(answer$n)
+	texanswer$n=\left[ \begin{array}{l} \left($a \sqrt{$v} $pm $c \right) \cdot \left($a \sqrt{$v} $pm $c \right) = \\ $a \sqrt{$v} \cdot $a \sqrt{$v} $pm $c \cdot $a \cdot \sqrt{$v} $pm $c \cdot $a \cdot \sqrt{$v} + $c \cdot $c = \\ $[$a^2] \cdot $v $pm $[$a*$c] \sqrt{$v} $pm $[$a*$c]\sqrt{$v}+ $[$c^2] = \\ $texans \end{array} \right. 
+    !endif
+    applettext=!nospace $var1 =
+ !exit
+!endif
+
+!if $R>2
+    l=!shuffle x,y,z,v,w
+    v=!item 1 of $l
+    w=!item 2 of $l 
+    varlist=$v,$w
+    wims_rawmath_variables=$v,$w
+    mathviewpanel=$module_title:$v:$w:sqrt():+:-:*:/
+    c=!randint 2,9
+    kans=!randint 1,4
+    !if $kans=1
+	var1=(sqrt($v) + sqrt($w))*(sqrt($v) + $c*sqrt($w))
+	formula$n=\left( \sqrt{$v} + \sqrt{$w} \right)\left( \sqrt{$v} + $c\sqrt{$w} \right) = [?]
+	answer$n=$v+ $c*$w +$[$c+1]*sqrt($v*$w)
+	texanswer$n=\left[ \begin{array}{l} \sqrt{$v}\cdot \sqrt{$v} + \sqrt{$v}\cdot\sqrt{$w} + $c\sqrt{$v}\cdot\sqrt{$w} + $c\sqrt{$w}\cdot\sqrt{$w} = \\ $v + \sqrt{$v \cdot $w} + $c \sqrt{$v \cdot $w} + $c\cdot$b = \\ $v+$c$w+$[$c+1]\sqrt{$v$w} \end{array} \right. 
+    !else
+	!if $kans=2
+	    var1=(sqrt($v) - sqrt($w))*(sqrt($v) - $c*sqrt($w))
+	    formula$n=\left( \sqrt{$v} - \sqrt{$w} \right)\left( \sqrt{$v} - $c\sqrt{$w} \right) = [?]
+	    answer$n=$v+$c*$w - $[$c+1]*sqrt($v*$w)
+	    texanswer$n=\left[ \begin{array}{l} \sqrt{$v}\cdot \sqrt{$v} - \sqrt{$v}\cdot\sqrt{$w} - $c\sqrt{$v}\cdot\sqrt{$w} + $c\sqrt{$w}\cdot\sqrt{$w} = \\ $v - \sqrt{$v \cdot $w} - $c \sqrt{$v \cdot $w} + $c\cdot $w = \\ $v+$c$w - $[$c+1]\sqrt{$v$w} \end{array} \right. 
+	!else
+	    !if $kans=3
+		var1=(sqrt($v) + sqrt($w))*(sqrt($v) - $c*sqrt($w))
+		formula$n=\left( \sqrt{$v} + \sqrt{$w} \right)\left( \sqrt{$v} - $c\sqrt{$w} \right) = [?]
+		answer$n=$v-$c*$w - $[$c - 1 ]*sqrt($v*$w)
+		texanswer$n=\left[ \begin{array}{l} \sqrt{$v}\cdot \sqrt{$v} + \sqrt{$v}\cdot\sqrt{$w} - $c\sqrt{$v}\cdot\sqrt{$w} - $c\sqrt{$w}\cdot\sqrt{$w} = \\ $v + \sqrt{$v \cdot $w} - $c \sqrt{$v \cdot $w} - $c \cdot $w = \\ $v - $c$w - $[$c-1]\sqrt{$v$w} \end{array} \right. 
+	    !else
+	    	var1=(sqrt($v) - sqrt($w))*(sqrt($v) + $c*sqrt($w))
+		formula$n=\left( \sqrt{$v} - \sqrt{$w} \right)\left( \sqrt{$v} + $c\sqrt{$w} \right) = [?]
+		answer$n=$v-$c*$w + $[$c - 1 ]*sqrt($v*$w)
+		texanswer$n=\left[ \begin{array}{l} \sqrt{$v}\cdot \sqrt{$v} - \sqrt{$v}\cdot\sqrt{$w} + $c\sqrt{$v}\cdot\sqrt{$w} - $c\sqrt{$w}\cdot\sqrt{$w} = \\ $v - \sqrt{$v \cdot $w} + $c \sqrt{$v \cdot $w} - $c\cdot $w = \\ $v - $c$w + $[$c-1]\sqrt{$v$w} \end{array} \right. 
+	    !endif
+	!endif
+    !endif
+    applettext=!nospace $var1 =
+ !exit
+!endif

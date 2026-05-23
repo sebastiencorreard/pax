@@ -1,0 +1,114 @@
+# :standaardvorm: werken met variabelen vermenigvuldigen
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[n]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+# produceerd een <tr>
+make_tr=1
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo8.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+
+checkfile=exos/checkfile4.proc
+letters=!shuffle a,b,x,y,z
+v1=!item 1 of $letters
+v2=!item 2 of $letters
+!if $R=1
+    # s is the "s in sqrt" in applet
+    varlist=$v1,s
+    wims_rawmath_variables=$v1
+    ss=!record 35 of lang/remarks.$taal
+    question$n=$ss
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    p=!randitem 2,3,4,5,6,7
+    a=!randint 1,$[$p-1]
+    b=$[$p+$a]
+    formula$n=\root{\textstyle $p} \of{$v1^{$b}}\,=\,[?]
+    var2=$v1^$b
+    # var2 is letterlijke vraag onder wortel sqrt[$p]($var2)
+    answer$n=$v1,sqrt($v1^($a)),$p
+    !if $a!=1
+	texanswer$n=\root{\textstyle $p} \of{$v1^{$b}} = \root{\textstyle $p} \of{$v1^{$p} \cdot $v1^{$a} } = $v1 \cdot \root{\textstyle $p} \of{$v1^{$a}} 
+    !else
+	texanswer$n=\root{\textstyle $p} \of{$v1^{$b}} = \root{\textstyle $p} \of{$v1^{$p} \cdot $v1 } = $v1 \cdot \root{\textstyle $p} \of{$v1} 
+    !endif
+    applettext=!nospace sqrt[$p]($v1^$b)=
+ !exit
+!endif
+
+!if $R=2
+    varlist=$v1,s
+    wims_rawmath_variables=$v1
+    ss=!record 35 of lang/remarks.$taal
+    question$n=$ss
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    p=!randitem 2,3,4,5
+    a=!randitem 2,3
+    b=$[$p*$a]
+    d=!randitem 2,3,5,6,7,10,11
+    
+    formula$n=\root{\textstyle $p} \of{$d \cdot $v1^{$b}}\,=\,[?]
+    var2=$d*$v1^$b
+    # var2 is letterlijke vraag onder wortel sqrt[$p]($var2)
+    answer$n=$v1^($a),sqrt($d),$p
+    texanswer$n=\root{\textstyle $p} \of{$d \cdot $v1^{$b}} = \root{\textstyle $p} \of{$d \cdot $v1^{$p \cdot $a }} = $v1^{$a} \cdot \root{\textstyle $p} \of{$d} 
+    applettext=!nospace sqrt[$p]($d*$v1^$b) =
+ !exit
+!endif
+
+
+!if $R>2
+    varlist=$v1,$v2,s
+    wims_rawmath_variables=$v1,$v2
+    ss=!record 36 of lang/remarks.$taal
+    question$n=$ss
+    # var1=1 er zit een wortel in antwoord
+    var1=1
+    p=!randitem 2,3,4,5,6
+    a=!randint 1,$[$p-1]
+    b=!randint 1,$[$p-1]
+    c=$[$a+$p]
+    d=$[$b+$p]
+    formula$n=\root{\textstyle $p} \of{$v1^{$c} \cdot $v2^{$d}}\,=\,[?]
+    var2=($v1^$c)*($v2^$d)    
+    # var2 is letterlijke vraag onder wortel sqrt[$p]($var2)
+    answer$n=$v1*$v2,sqrt(($v1^($a))*($v2^($b))),$p
+    !if $a!=1
+	!if $b!=1
+	    texanswer$n=\root{\textstyle $p} \of{$v1^{$c} \cdot $v2^{$d}}\,=\,\root{\textstyle $p} \of{$v1^{$p}\cdot $v1^{$a} \cdot $v2^{$p}\cdot $v2^{$b}} = $v1 \cdot $v2 \cdot \root{\textstyle $p} \of{$v1^{$a} \cdot $v2^{$b}}
+	!else
+	    texanswer$n=\root{\textstyle $p} \of{$v1^{$c} \cdot $v2^{$d}}\,=\,\root{\textstyle $p} \of{$v1^{$p}\cdot $v1^{$a} \cdot $v2 \cdot $v2^{$p}} = $v1 \cdot $v2 \cdot \root{\textstyle $p} \of{$v2 \cdot $v1^{$a}}
+	!endif
+    !else
+	!if $b!=1
+	    texanswer$n=\root{\textstyle $p} \of{$v1^{$c} \cdot $v2^{$d}}\,=\,\root{\textstyle $p} \of{$v1^{$p}\cdot $v1 \cdot $v2^{$p}\cdot $v2^{$b}} = $v1 \cdot $v2 \cdot \root{\textstyle $p} \of{$v1 \cdot $v2^{$b}}
+	!else
+	    texanswer$n=\root{\textstyle $p} \of{$v1^{$c} \cdot $v2^{$d}}\,=\,\root{\textstyle $p} \of{$v1^{$p}\cdot $v1 \cdot $v2^{$p}\cdot $v2} = $v1 \cdot $v2 \cdot \root{\textstyle $p} \of{$v1 \cdot $v2}
+	!endif
+    !endif
+    applettext=!nospace sqrt[$p]($v1^$c cdot $v2^$d)=
+ !exit
+!endif

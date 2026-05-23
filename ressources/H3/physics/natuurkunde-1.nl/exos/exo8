@@ -1,0 +1,102 @@
+n=$counter
+cols=10
+rows=1
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+lst1=!shuffle 1,2,3
+lst2=!shuffle 1,2,3
+var9=$lst1,$lst2,$lst1,$lst2
+
+mathview=0
+viewlogo=1
+keuze=!item $counter of $var9
+math=0
+checkfile=$checkdir/units.proc
+logo=<img src="$module_dir/gifs/lamp.gif" alt="lampje"/>
+make_tr=1
+R=1
+!if $R=1
+    inputs=1.1
+    g=!randint 20,150
+    tot=!exec moneyprint $[$g/10] 1
+    g=!item 1 of $tot
+    helptext=Let op: de data zijn afkomstig van een meting.<br />Geef je antwoord <b>daarom</b> op in het juiste aantal significante cijfers
+    !if $keuze=1
+        s1=!randint 1,9
+	s2=!randint 1,9
+        s=!nospace $s1 . $s2
+	sig=2
+	# geen eenheid
+	var1=0
+	v=$[$g*$s]
+	ans=$[3.6*$v]
+	tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+	c_ans=!item 1 of $tot
+	h_ans=!item 2 of $tot
+	answer$n=$c_ans
+	var2=$[abs($ans-$c_ans)]
+	# eenheid m/s -> km/h
+	ss=Een planeet (zonder dampkring) heeft een geschatte zwaartekrachtversnelling van $g m/s<sup>2</sup><br />Als we op deze planeet een object konden laten vallen,<br />wat zou dan de snelheid in km/h van het object $s seconden na het loslaten zijn ?
+	
+	description=V<sub>$s seconden</sub>
+	m_rightarrow=&nbsp;=&nbsp;
+	ex1=&nbsp;<kbd>km / h</kbd>
+	
+	rr=Het object bereikt in vacuum een snelheid van: $g &times; $s = $v m/s<br />[eenheid controle:  m/s<sup>2</sup> &sdot; s = m/s ]<br />De snelheid in km/h wordt dan 3600 &sdot; $v / 1000 = 3.6 &sdot; $v = $ans km/h<br />We geven dit antwoord op in $sig significante cijfers (afkomstig van $s)<br />De snelheid = $h_ans km/h
+    !else
+	!if $keuze=2
+    	    s1=!randint 1,9
+	    s2=!randint 1,9
+    	    s=!nospace $s1 . $s2
+	    sig=2
+	    var1=0
+	    ans=$[0.5*$g*$s*$s]
+	    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+	    c_ans=!item 1 of $tot
+	    h_ans=!item 2 of $tot
+	    answer$n=$c_ans
+	    var2=$[abs($ans-$c_ans)]
+
+	    # eenheid m/s -> km/h
+	    ss=Een planeet (zonder dampkring) heeft een geschatte zwaartekrachtversnelling van $g m/s<sup>2</sup><br />Als we op deze planeet een object konden laten vallen,<br />welke afstand (in meter) zou het object $s seconden na het loslaten hebben afgelegd ?
+	
+	    description=S<sub>$s seconden</sub>
+	    m_rightarrow=&nbsp;=&nbsp;
+	    ex1=&nbsp;<kbd>m</kbd>
+	
+	    rr=Het object bereikt in vacuum na $s seconden een afstand van:1/2&sdot;$g&sdot;$s<sup>2</sup> = 1/2 &sdot; $g &sdot; $[$s*$s] = $ans meter<br />[eenheid controle:  m/s<sup>2</sup> &sdot; s<sup>2</sup> = m ]<br />Dit antwoord moeten we opgeven in $sig significante cijfers (afkomstig van $s)<br />De afstand &asymp; $h_ans m
+    
+	!else
+	    var1=0
+	    h1=!randint 4,9
+	    h2=!randint 1,9
+	    hoogte=!nospace $h1 $h2
+	    sig=2
+	    ans=$[sqrt(2*$hoogte/$g)]
+	    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+	    c_ans=!item 1 of $tot
+	    h_ans=!item 2 of $tot
+	    var2=$[abs($ans - $c_ans)]
+	    answer$n=$c_ans
+	    
+	    ss=Een planeet (zonder dampkring) heeft een geschatte zwaartekrachtversnelling van $g m/s<sup>2</sup><br />Als we op deze planeet een object van $hoogte meter hoogte konden laten vallen,<br />hoe lang (in seconden) duurt het dan voor het object de "grond" raakt ?
+	    
+	    rr=S = 1/2 &sdot; g &sdot; t<sup>2</sup><br />t<sup>2</sup> = 2 &sdot; S / g<br />t = &radic;(2 &sdot; S / g) <br />S in meter ; g in m/s<sup>2</sup> ; t in seconden<br />[eenheid kontroleren : sqrt( m / (m/s^2) )  == sqrt( s^2) == s ]<br />t = sqrt( 2 * $hoogte / $g)  = sqrt($[2*$hoogte/$g]) = $ans seconden<br />We gaan dit antwoord in $sig significante cijfers noteren (afkomstig van $hoogte)<br />valtijd &asymp; $h_ans s
+	    
+	    description=valtijd
+	    m_rightarrow=&nbsp;=&nbsp;
+	    ex1=&nbsp;<kbd>s</kbd>
+	
+	!endif
+    !endif
+    
+    question$n=<a onmouseover=" return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+!exit
+!endif
+

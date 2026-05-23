@@ -1,0 +1,196 @@
+!set title=Traject met de auto
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette PERRIN-RIOU
+email=bpr@math.u-psud.fr
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=0
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 1, 2
+
+tmp1=!randitem 2,4
+
+val7=$[$(tmp0)/$(tmp1)]
+tmp0=!randint 1, 2
+
+val8=$[$(tmp0)]
+tmp0=!randint 1, 2
+
+tmp1=!randitem 2,4
+
+val9=$[$(tmp0)/$(tmp1)]
+tmp0=!randint 1, 2
+
+val10=$[$(tmp0)]
+tmp0=!randint 7, 9
+
+val11=$[$(tmp0)]
+val12=$[$val11+$val6]
+val13=$[$val12+$val7]
+val14=$[$val13+$val8]
+val15=$[$val14+$val9]
+val16=$[$val15+$val10]
+tmp0=!randint 9, 12
+
+val17=$[rint(10*$(tmp0))]
+tmp0=!randint 6, 9
+
+val18=$[rint(10*$(tmp0))]
+tmp0=!randint 9, 12
+
+val19=$[rint(10*$(tmp0))]
+val20=$[$val17*$val6]
+val21=
+!for val22 =0 to 20 
+val23=$[rint($val22+$val11)]
+val24=$[rint($val22*100)]
+val21=$val21	text  black, $val11+$val22,-0.5,medium,\h u	text black,$val11-1.5,$val22*100,medium,$val24 km	
+!next
+val25=$[$val17*$val6+$val18*$val8]
+val26=$[$val25+$val19*$val10]
+val27=$[$val6+$val7+$val8+$val9+$val10]
+val28=$[ceil($val26/$val27)]
+val29=$[$val26+2]
+val30=$[$val7+$val9]
+tmp0=!randitem 1,2
+
+val31=$(tmp0)
+tmp=!nonempty items eerste, tweede
+
+tmp0=!randitem $tmp
+val32=$(tmp0)
+
+!ifval p isin $val32
+val33=$[ $val6]
+!else
+val33=$[$val6+$val7+$val8]
+!endif
+
+!ifval p isin $val32
+val34= $val20
+!else
+val34=$val25
+!endif
+
+!ifval $val31=1 
+val35=$[ $val16]
+!else
+val35=$[$val19]
+!endif
+
+!ifval $val31=1 
+val36= h
+!else
+val36=km/u
+!endif
+val37=$[$val28]
+
+!ifval $val31=1
+val38= Tijd
+!else
+val38= Snelheid
+!endif
+oefsteps=reply1,reply2, reply3	reply4	reply5 
+nextstep=!nosubst reply1,reply2, reply3	reply4	reply5 
+!readproc oef/steps.proc
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() Anne moet de afstand van $val26 km doorlopen volgens het 	volgende grafiek: 	<center>  
+!read oef/draw.phtml 500,250 \
+	xrange $val11-2,$val16+1	yrange -40,$val29+1	$val21	hline  $val11,0, black	vline  $val11,0, black	parallel $val11-0.1,0,$val11+0.1,0,0,10,100,blue	parallel $val11-0.5,0,$val11+0.5,0,0,100,10,black	parallel $val11,-1,$val11,1,1,0,10,black	parallel $val11,-12,$val11,12,1,0,20,black	parallel $val11,-5,$val11,5,0.25,0,80,blue	linewidth 2	lines red, $val11,0,$val12,$val20,$val13,$val20,$val14,$val25, $val15,$val25, $val15+$val10, $val26	arrow $val15,$val25,$val15+$val10, $val26,10, red	linewidth 1	dline $val12,$val20,$val12,0,black	dline $val13,$val20,$val13,0,black	dline $val14,$val25,$val14,0,black	dline $val15,$val25,$val15,0,black	dline $val12,$val20,$val11,$val20,black	dline $val14,$val25,$val11,$val25,black	 
+$()</center>	<p>	
+!if $m_step=1 
+$()Lees het diagram :	<ul><li>	Hoe lang stopt zij onderweg?  
+!read oef/embed.phtml reply 1,8 
+$()	</li><li> Hoe lang na haar vertrek neemt zij haar eerste pauze?	 
+!read oef/embed.phtml reply 2,8 
+$() 	</li><li>	Hoeveel km heeft ze dan gereden?	 
+!read oef/embed.phtml reply 3,8 
+$() 	</li></ul> 
+!endif
+$()	
+!if $m_step=2 
+$()	
+!if $val31=1 
+$()Het einde van het traject (na de tweede pauze) heeft ze gereden 	met een gemiddelde snelheid gehad van $val19 km/u. Hoe laat komt ze aan?{Ze komt om $val16 uur aan. Met welke gemiddelde snelheid heeft ze het einde van het 	traject (na de tweede pauze) gereden?}	  
+!read oef/embed.phtml reply 4, 8 
+$() 
+!endif
+$()	
+!if $m_step=3 
+$()Ze komt dus om $val16 uur aan met een gemiddelde snelheid voor 	laatste stuk van $val19 km/u.  Wat is haar gemiddelde snelheid voor het hele 	traject?  
+!read oef/embed.phtml reply 5,8 
+$() 
+!endif
+$()		<p> Rond de snelheden naar boven af op de eenheid (in km/u). Schrijf de tijden 	als uren en minuten, bijvoorbeeld als 120 min of 2u 30 min.   
+!endif
+$()	$m_answer{Duur van de pauze :}{$val30 u}{type=units}	$m_answer{$val32 pauze  }{$val33 u}{type =units}	$m_answer{Aantal km}{$val34 km}{type=units}	$m_answer{$val38}{$val35 $m_hu}{type=units}	$m_answer{ }{$val37 km/u}{type=units}	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,15,16,19,20,21,25,26,29,30,31,32,33,34,35,37,38
+embedcnt=5

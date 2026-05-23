@@ -1,0 +1,113 @@
+!set title=Question T1110 Calcul d'un pourcentage
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=mental_calculation,percentage,proportionality 
+oefobservation=Course 1er Technologique. Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<ul class="wims_nopuce"><li><img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong></li>	<li><u>Aide à la saisie : </u>saisir 1.25 pour 1,25, saisir 3/4 pour \(3/4\), saisir 2^3 pour \(2^3) et saisir sqrt(3) pour \(\sqrt{ 3}\).</li></ul>
+val7=Félicitations toutes les réponses sont justes !
+val8=$[rint(10)]
+tmp0=!randint 2, 9
+
+val9=$[rint($(tmp0)*10)]
+tmp0=!randint 2, 9
+
+val10=$[rint($(tmp0)*10)]
+tmp=!translate ";': to $     $ in $val10*$val9/100
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$[rint($(tmp0))]
+val12=\($val9 \%\) de \($val10\) : 
+val13=
+val14=$[rint($val11)]
+val15=$[$val9/100]
+val16=Rappel : Il faut effectuer l'opération \( $val15 \times $val10 = $val11 \) pour obtenir \($val9 \%\) de \($val10 \). 
+val8=$[rint(6)]
+val17=\begin{enumerate}
+val17=$val17 \end{enumerate}
+replytype1=litexp
+replyoption1=polfactor default=0 
+replyname1=
+replygood1=$val14
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val17 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val12  
+!read oef/embed.phtml r1,$val8	    autofocus 
+$() $val13	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val17 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val16!=)
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val16</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,12,13,16,17
+embedcnt=1

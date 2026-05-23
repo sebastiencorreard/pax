@@ -15,20 +15,35 @@ import re
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _analyze_wrap(value: str) -> str:
-    """Entoure une réponse d'élève de parenthèses pour :postdef, sauf si c'est
-    une liste séparée par des virgules (réponse ensembliste comme "0,1").
-    Une virgule de premier niveau signale un ensemble ; wrapper "(0,1)" le
-    transformerait en tuple Maxima, cassant is({A}={0,1}).
+    """Entoure une réponse d'élève de parenthèses pour :postdef, mais seulement
+    quand c'est nécessaire pour la précédence arithmétique (la valeur contient
+    un opérateur top-level autre que parenthèses).
+
+    Évite de wrapper :
+    - une liste comma-séparée (réponse ensembliste comme "0,1") — wrapper "(0,1)"
+      la transformerait en tuple Maxima, cassant is({A}={0,1}).
+    - une chaîne plain text ("DB", "MQ") — wrapper "(DB)" casse les comparaisons
+      ``issametext`` qui font une égalité de chaînes strict.
+    - un nombre atomique ("3", "-5", "3/4") — pas besoin pour la précédence.
     """
+    stripped = value.strip()
+    if not stripped:
+        return value
     depth = 0
-    for ch in value:
+    has_top_op = False
+    for i, ch in enumerate(stripped):
         if ch in "([{":
             depth += 1
         elif ch in ")]}":
             depth -= 1
-        elif ch == "," and depth == 0:
-            return value
-    return f"({value})"
+        elif depth == 0:
+            if ch == ",":
+                return value  # set-style, no wrap
+            # Top-level + - * / ^ → arithmetic needs guarding.
+            # Skip a leading "+" or "-" (unary sign, no op binding).
+            if ch in "+-*/^" and i > 0:
+                has_top_op = True
+    return f"({stripped})" if has_top_op else stripped
 
 
 def _parse_numeric(s: str) -> float:

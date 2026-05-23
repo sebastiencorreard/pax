@@ -1,0 +1,247 @@
+!set title=Statistiek
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 40,50,60,70
+
+val6=$(tmp0)
+!readproc slib/stat/random $val6,0,30 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!declosing $val7
+
+val7=$(tmp0)
+val8=<table bgcolor="skyblue"	 align="center">
+!for val9 =0 to ceil($val6/10) 
+val8=$val8 <tr align="center">
+!for val10 =1 to 10 
+!if 10*$val9+$val10 <=$val6  
+tmp0=!item 10*$val9+$val10 of  $val7
+
+val11=$[$(tmp0)+160]
+val8=$val8 <td> &nbsp;&nbsp;  $val11 &nbsp; &nbsp; </td>
+!else
+val8=$val8 <td> &nbsp;&nbsp;  &nbsp; &nbsp; </td>
+!endif
+!next
+val8=$val8 </tr>
+!next
+val12=[0,5,10,15,20,25,30]
+val13=[160,165,170,175,180,185,190]
+val8=$val8</table>
+!readproc slib/stat/effectif [$val7],$val12 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in print($val14/$val6)
+tmp0=!exec pari $t_
+
+val15=$(tmp0)
+tmp0=!declosing $val14
+
+val14=$(tmp0)
+tmp0=!declosing $val15
+
+val15=$(tmp0)
+tmp0=!item 1 of $val15
+
+val16=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 2 of $val15
+
+val17=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 3 of $val15
+
+val18=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 4 of $val15
+
+val19=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 5 of $val15
+
+val20=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 6 of $val15
+
+val21=$[ceil($(tmp0)*1000)/10]
+tmp0=!item 1 of $val14
+
+val22=$(tmp0)
+tmp0=!item 2 of $val14
+
+val23=$(tmp0)
+tmp0=!item 3 of $val14
+
+val24=$(tmp0)
+tmp0=!item 4 of $val14
+
+val25=$(tmp0)
+tmp0=!item 5 of $val14
+
+val26=$(tmp0)
+tmp0=!item 6 of $val14
+
+val27=$(tmp0)
+tmp=!nonempty items jongens,meisjes
+
+tmp0=!randitem $tmp
+val28=$(tmp0)
+!readproc slib/stat/histo [$val14],$val13,ytics 10,xtics 
+tmp0=$slib_out
+val29=$(tmp0)
+replytype1=numeric
+replyname1=Aantal 1
+replygood1=$[$val22]
+replytype2=numeric
+replyname2=Aantal 2
+replygood2=$[$val23]
+replytype3=numeric
+replyname3=Aantal 3
+replygood3=$[$val24]
+replytype4=numeric
+replyname4=Aantal 4
+replygood4=$[$val25]
+replytype5=numeric
+replyname5=Aantal 5
+replygood5=$[$val26]
+replytype6=numeric
+replyname6=Aantal 6
+replygood6=$[$val27]
+replytype7=numeric
+replyname7=Frequentie 1
+replygood7=$[$val16]
+replytype8=numeric
+replyname8=Frequentie 2
+replygood8=$[$val17]
+replytype9=numeric
+replyname9=Frequentie 3
+replygood9=$[$val18]
+replytype10=numeric
+replyname10=Frequentie 4
+replygood10=$[$val19]
+replytype11=numeric
+replyname11=Frequentie 5
+replygood11=$[$val20]
+replytype12=numeric
+replyname12=Frequentie 6
+replygood12=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()De lengte van de $val6 $val28 van het plaatselijke jeugdvoetbal elftal	is:		<p>	$val8	Maak de onderstaande tabel verder af:	<table align="center" border=1>		<tr align="center"><th>Lengte</th>	<td>
+!insmath \lbrack 160,165 \lbrack
+$()</td>	<td>
+!insmath \lbrack 165,170 \lbrack
+$()</td>	<td>
+!insmath \lbrack 170,175 \lbrack
+$()</td>	<td>
+!insmath \lbrack 175,180 \lbrack
+$()</td>	<td>
+!insmath \lbrack 180,185 \lbrack
+$()</td>	<td>
+!insmath \lbrack 185,190 \rbrack
+$()</td>	</tr>		<tr align="center"><th>Aantal</th>	<td> 
+!read oef/embed.phtml reply 1,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 2,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 3,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 4,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 5,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 6,5 
+$() </td>	</tr>		<tr align="center"><th>Frequentie (%)</th>	<td> 
+!read oef/embed.phtml reply 7,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 8,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 9,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 10,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 11,5 
+$() </td>	<td> 
+!read oef/embed.phtml reply 12,5 
+$() </td>	</tr>		</table>	<p> 	Rond de frequenties af op 0.1% nauwkeurig	
+$()
+!exit
+
+:hint
+$()Hier zie je het Histogram	 
+!read oef/draw.phtml 400,200 \
+$val29 
+$()	
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <p>hier zie je het Histogram	 
+!read oef/draw.phtml 400,200 \
+$val29 
+$()	
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,28,29
+embedcnt=12

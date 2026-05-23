@@ -1,0 +1,270 @@
+!set title=ax+b&#61;cx+d#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(8)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp0=!item 3 of $val8
+
+val10=$(tmp0)
+!if $val9= 
+tmp0=!item 1 of $val8
+
+val11=$(tmp0)
+tmp0=!item 2 of $val8
+
+val12=$(tmp0)
+!if $val10<0 
+tmp0=!values $val10*v,-($val10)*v for v=$val11 to $val12
+
+val13=$(tmp0)
+!else
+tmp0=!values $val10*v for v=$val11 to $val12
+
+val13=$(tmp0)
+!endif
+!else
+val13=$val9
+!if $val10<0 
+tmp0=!replace internal , by ,- in $val13
+
+val14=$(tmp0)
+tmp0=!listunion $val13 and $val14
+
+val13=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val13
+
+val13=$(tmp0)
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val11=$(tmp0)
+tmp0=!item 2 of $val13
+
+val12=$(tmp0)
+tmp0=!item 3 of $val13
+
+val10=$(tmp0)
+tmp0=!item 4 of $val13
+
+val15=$(tmp0)
+
+!ifval ($val11=$val10 or $val11=$val10+1)
+val10=18
+!endif
+tmp=!translate ";': to $     $ in -$val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+tmp=!translate ";': to $     $ in -$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp0=!randitem x,y,z,a,b
+
+val18=$(tmp0)
+tmp=!translate ";': to $     $ in ($val15-($val12))/($val11-($val10))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val19=$(tmp0)
+t_=!replace internal \( by ( in ($val10)*$val18+($val15)-($val12);
+tmp0=!exec maxima $t_
+
+val20=$(tmp0)
+t_=!replace internal \( by ( in ($val11)*$val18-($val10*$val18);
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+tmp=!translate ";': to $     $ in $val15-($val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+tmp=!translate ";': to $     $ in $val11-($val10)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$(tmp0)
+val24=($val11)*$val18+($val12)=($val10)*$val18+($val15),($val12)+($val11)*$val18=($val10)*$val18+($val15),($val11)*$val18+($val12)=($val15)+($val10)*$val18,($val12)+($val11)*$val18=($val15)+($val10)*$val18
+tmp=!nonempty items $val24
+
+tmp0=!randitem $tmp
+tmp1=!texmath $(tmp0)
+
+val24=$(tmp1)
+!if $val3=1 
+tmp=!trim r1	r2	r3	r4
+val25=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r4
+val25=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val25 
+nextstep=!nosubst $val25 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=Antwoord 1
+replygood1=$val20
+replytype2=algexp
+replyname2=Antwoord 2
+replygood2=$val21
+replytype3=algexp
+replyname3=Antwoord 3
+replygood3=$val23
+replytype4=algexp
+replyname4=Antwoord
+replygood4=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Los de vergelijking 
+!insmath $val24
+$() op. <p>Geef het resultaat in de vorm van een vereenvoudigde breuk. <p>	 
+!if $val3=1 
+$()We stellen voor om deze oefening met begeleiding te maken. Vul de voorgestelde stappen in:<p>	<ul>	<li> Door bij ieder lid van de gelijkheid 
+!insmath $val16
+$() op te tellen en te vereenvoudigen krijgt men: <p> 	 
+!if $m_step=1 
+$()	
+!insmath $val11 $val18=
+$()  
+!read oef/embed.phtml r1,$val6 
+$() </li></ul> 
+!else
+$()	 
+!insmath $val11 $val18=$val10$val18+$val22
+$() </li>	<li> Door bij ieder lid van de gelijkheid 
+!insmath $val17$val18
+$() op te tellen en te vereenvoudigen krijgt men: <p> 	 
+!if $m_step=2 
+$()	 
+!read oef/embed.phtml r2,$val6 
+$() 
+!insmath =$val22
+$()</li></ul> 
+!else
+$()	 
+!insmath $val23$val18=$val22
+$() </li>	<li> Door ieder lid van de gelijkheid door 
+!insmath $val23
+$() te delen en te vereenvoudigen krijgt men: <p>	 
+!if $m_step=3 
+$()	<center>	  <table border=0>	    <tr> 	      <td align=center rowspan=3>
+!insmath $val18
+$()$m_big1 = $m_big2</td>	      <td align=center> 
+!insmath $val22
+$()</td>	    </tr>	    <tr> 	      <td align=center width=$m_size> 	        <hr noshade size=2>	      </td>	    </tr>	    <tr> 	      <td align=center>  
+!read oef/embed.phtml r3,$val6 
+$()</td>	    </tr>	  </table>	</center>	</li></ul> 
+!else
+$()	 
+!insmath $val18=\frac{$val22}{$val23}
+$() </li>	<li> We maken het af door het resultaat als vereenvoudigde breuk op te schrijven: <p>	
+!insmath $val18 =
+$()  
+!read oef/embed.phtml reply 4,$val6 
+$()</li></ul>	 
+!endif
+$()	 
+!endif
+$() 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,10,11,16,17,18,22,23,24
+embedcnt=4

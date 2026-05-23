@@ -1,0 +1,141 @@
+# exo20 HTML5  lijn en formule
+n=$counter
+mathview=0
+embed=0
+checkfile=exos/checkfile4.proc
+math=0
+cols=20
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+inputs=1.1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+stext=!record 2 of lang/remarks.$taal
+helling=!item 2 of $stext
+desc=!record 53 of lang/remarks.$taal
+description=$desc ,&nbsp;
+#formula$n=\textrm{$helling} = \input{6}{0}{font-size:16pt;background-color:orange;color:blue;text-align:center}{?}{0}
+sometext=!record 40 of lang/remarks.$taal
+#@uitkomst:getal,bedrag:tijd,afstand:tijd,hoogte:tijd
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+ylabel=!item 1 of $ding
+xlabel=!item 2 of $ding
+var8=$ylabel,$xlabel
+keuze=!randitem 1,0
+
+# x1 is altijd positief --> xmin is -5
+
+!if $R=1
+    !if $keuze=1
+	a=1
+	x1=!randint 0,3
+	c=!randint 1,5
+	func=$a*x + $c
+    !else
+	a=!randint 2,5
+	x1=!randitem 0,1,2
+	c=0
+	func=$a*x
+    !endif
+    f=!randitem 1,2,3
+    var3=$a
+!else
+    !if $R=2
+	a=!randint 2,6
+	c=!randint 1,5
+	!if $keuze=1
+	    pm=+
+	    x1=!randitem 0,1,2
+	!else
+	    pm=-
+	    x1=!randitem 2,3,4
+	!endif
+	func=$a*x $pm $c
+	f=!randitem 2,3,4
+    !else
+	a=!randitem 0.5,1.5,2,2.5,3,3.5,4
+	mp=!randitem 1,-1
+	a=$[$mp*$a]
+	pm=!randitem +,-
+	f=!randitem 2,4
+	!if $mp=1
+	    c=!randint 1,5
+	    x1=!randitem 0,2,4
+	    func=$a*x $pm $c
+	!else
+	    c=!randint 5,15
+	    x1=!randitem 0,2,4
+	    func=$a*x+$c
+        !endif
+    !endif
+!endif
+
+
+answer$n=$func
+helptext=<input class=\'schaersvoorde_input\' value=\'$ylabel = 123 * $xlabel &minus; 456\' />
+x2=$[$x1+$f]
+y1=!evalsubst x=$x1 in $func 
+y2=!evalsubst x=$x2 in $func 
+ymax1=$[10*(ceil($y1/10))+4]
+ymax2=$[10*(ceil($y2/10))+4]
+ymax=$[max($ymax1,$ymax2)]
+ymin1=$[10*(floor($y1/10))-4]
+ymin2=$[10*(floor($y2/10))-4]
+ymin=$[max($ymin1,$ymin2)]
+
+xmax1=$[10*(ceil($x1/10))+4]
+xmax2=$[10*(ceil($x2/10))+4]
+xmax=$[max($xmax1,$xmax2)]
+xmin1=$[10*(floor($x1/10))-4]
+xmin2=$[10*(floor($x2/10))-4]
+xmin=$[max($xmin1,$xmin2)]
+!if $xmax<1
+    xmax=4
+!endif
+!if $xmin>-1
+    xmin=-4
+!endif
+!if $ymin>-1
+    ymin=-4
+!endif
+!if $ymax<1
+    ymax=4
+!endif
+
+texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } = a \cdot \textrm{ $xlabel } + b \\ \textrm{$ylabel} = y \;\;\ \textrm{$xlabel} = x \rightarrow  y = a \cdot x + b \\ \textrm{ $helling } = a = \frac{\Delta y}{\Delta x} = \frac{y_{2} - y_{1}}{x_{2} - x_{1}}= \frac{$y2 - $y1}{$x2 - $x1} = \frac{$[$y2-$y1]}{$[$x2-$x1]} = $a \\ y_{1} = a \cdot x_{1} + b \\  y_{2} = a \cdot x_{2} + b \\ \\  ($x1 : $y1 ) \rightarrow $y1 = $a \cdot $x1 + b \rightarrow b = $y1 - $a \cdot $x1 = $c \\  ($x2 : $y2 ) \rightarrow $y2 = $a \cdot $x2 + b \rightarrow b = $y2 - $a \cdot $x2 = $c \\  \textrm{ $ylabel } = $a \cdot \textrm{ $xlabel } + $c \end{array} \right.
+
+var9=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+precision 10\
+fontsize 16\
+axis\
+axisnumbering\
+xlabel $xlabel\
+ylabel $ylabel\
+grid 2,2,grey,2,2,6,blue\
+linewidth 1\
+replyformat 21\
+userdraw line,red\
+precision 100\
+mouse blue,22\
+zoom blue
+
+applet=1
+object$n=!exec canvasdraw \
+$var9
+
+ss=!record 52 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+

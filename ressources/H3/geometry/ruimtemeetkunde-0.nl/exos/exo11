@@ -1,0 +1,155 @@
+#:Kubus  [ pythagoras ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<0
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+mathview=0
+questiontype=0
+cols=14
+rows=1
+embed=1
+inputs=1
+applet=1
+hoogte=35
+breedte=0
+diepte=0
+helptext=$empty
+checkfile=$checkdir/number.proc
+#A(-2.09,-3.10):B(-6.61,-6.35):C(2.34,-7.98):D(6.91,-4.73):E(-2.04,8.71):F(-6.56,5.46):G(2.29,3.83):H(6.86,7.02)
+m_rightarrow=&nbsp;=
+!if $R=1
+    setje=A,F A,H A,C B,D B,E B,G C,F C,H D,E D,G E,G F,H
+    keuze=!randint 1,12
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    x=!randint 1,14
+    ss=!record 1 of lang/remarks.$taal
+    #@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Bereken de afstand van punt $A tot punt $B .
+    textanswer$n=!record 2 of lang/remarks.$taal
+    #@Met de stelling van Pythagoras.
+    question$n=$ss
+    description=d($AB)
+    answer$n=$x*sqrt(2)
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    texanswer$n=\sqrt{$x^{2} + $x^{2}} = $x \sqrt{2} $ans
+    construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment>
+    !readproc exos/balkxml.proc
+ !exit
+!endif
+
+!if $R=2
+    setje=A,G B,H C,E D,F
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    x=!randint 1,14
+    ss=!record 1 of lang/remarks.$taal
+    textanswer$n=!record 2 of lang/remarks.$taal
+    question$n=$ss
+    description=d($A$B)
+    answer$n=$x*sqrt(3)
+    !if $rounding=0
+	ans=$empty
+    !else
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif 
+    texanswer$n=\sqrt{$x^{2} + $x^{2} + $x^{2}} = $x \sqrt{3} $ans
+    construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment>
+    !readproc exos/balkxml.proc
+ !exit
+!endif
+
+!if $R>2
+    kans=!randint 0,1
+    !if $kans=1
+	setje=C,G,A D,H,B A,E,C B,F,D E,A,G F,B,H G,C,E H,D,F
+	keuze=!randint 1,8
+	set=!word $keuze of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+	C=!item 3 of $set
+	AB=!nospace $A $B
+	CQ=!nospace $C Q
+	AQ=!nospace $A Q
+	x=!randitem 4,8,12,16,20,24,28,32,36,40
+        k=!randitem 1,2,3
+	y=!item $k of 1/4,1/2,3/4
+	lengte=$[$x*$y]
+	answer$n=!item $k of $[$x/4]*sqrt(33),$[$x*3/2],$lengte*sqrt(41)
+	!if $rounding=0
+	    ans=$empty
+	!else
+	    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	!endif 
+	tex=!item $k of $[$x/4]\sqrt{33},$[$x*3/2],$lengte\sqrt{41}
+	ss=!record 3 of lang/remarks.$taal
+	#@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Het punt Q ligt op ribbe $AB<br /> en de afstand tussen de punten $A en Q is $lengte<br />Bereken afstand tussen de punten $C en Q
+	question$n=$ss
+	description=d($CQ)
+	!if $k=2
+	    construction=<Midpoint name="Q" n="1000" showname="true" first="$A" second="$B" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	!else
+	    !if $k=1
+		construction=<Midpoint name="QQ" n="1000" showname="false" hidden="true" first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="Q" n="1000" showname="true" bold="true" large="true" shape="circle" first="$A" second="QQ" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	    !else
+		construction=<Midpoint name="QQ" n="1000" showname="false" hidden="true" first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="Q" n="1000" showname="true" bold="true" large="true" first="$B" second="QQ" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	    !endif
+	!endif
+	!readproc exos/balkxml.proc
+    
+	texanswer$n=\sqrt{$lengte^{2} + $x^{2}  + $x^{2} } = $tex $ans
+    !else
+	setje=A,B,G B,C,H A,D,G C,D,E E,F,C F,G,D E,H,C G,H,A
+	keuze=!randint 1,8
+	set=!word $keuze of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+	C=!item 3 of $set
+	AB=!nospace $A $B
+	CQ=!nospace $C Q
+	x=!randitem 4,8,12,16,20,24,28,32,36,40
+	k=!randitem 1,2,3
+	y=!item $k of 1/4,1/2,3/4
+	lengte=$[$x*$y]
+	answer$n=!item $k of $lengte*sqrt(41),$[$x*3/2],$[$x/4]*sqrt(33)
+	!if $rounding=0
+	    ans=$empty
+	!else
+	    ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	!endif 
+	tex=!item $k of $lengte\sqrt{41},$[$x*3/2],$[$x/4]\sqrt{33}
+	ss=!record 3 of lang/remarks.$taal
+	#@We hebben een kubus ABCD.EFGH met een ribbe van $x<br />Het punt Q ligt op ribbe $AB<br /> en de afstand tussen de punten $A en Q is $lengte<br />Bereken afstand tussen de punten $C en Q
+	question$n=$ss
+	description=d($CQ)
+	!if $k=2
+	    construction=<Midpoint name="Q" n="1000" showname="true" first="$A" second="$B" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	!else
+	    !if $k=1
+		construction=<Midpoint name="QQ" n="1000" showname="false" hidden="true" first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="Q" n="1000" showname="true" bold="true" large="true" shape="circle" first="$A" second="QQ" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	    !else
+		construction=<Midpoint name="QQ" n="1000" showname="false" hidden="true" first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="Q" n="1000" showname="true" bold="true" large="true" first="$B" second="QQ" shape="circle"></Midpoint><Segment name="$CQ" alias="$CQ" color="5" n="1001" from="$C" to="Q"></Segment>
+	    !endif
+	!endif
+	!readproc exos/balkxml.proc
+	
+	texanswer$n=\sqrt{$[$x-$lengte]^{2} + $x^{2}  + $x^{2} } = $tex $ans
+    !endif
+!endif
+!exit

@@ -1,0 +1,95 @@
+# grontal
+n=$counter
+embed=1
+questiontype=0
+mathview=0
+make_tr=1
+rounding=0
+var1=$empty
+var2=$empty
+cols=8
+rows=1
+!if $options>8
+    options=8
+!endif
+choice=!randint 1,2
+R=!item $n of $var9
+checkfile=exos/checkpower.proc
+formula$n=\begin{array}{llr}
+texanswer$n=\left[ \begin{array}{lcl}
+m_rightarrow=$empty
+inputs=$options
+
+!if $choice=1
+    k=!randint 1,4
+    gt=2
+    pow1=!shuffle 0,1,2,3,4,5,6,7,8,9,10
+    pow2=!shuffle 1,2,3,4,5,6,7,8,9,10
+    pow3=!shuffle 1,2,3,4,1,2,3,4,2,4
+    !for p=1 to $options
+	!if $k=1
+	    k=2
+	    pw=!item $p of $pow1
+	    formula$n=!append word $  $[$gt^$pw] & = & [?] \\ $ to $(formula$n)
+	    answer$n=!append line $gt^$pw to $(answer$n)
+	    texanswer$n=!append word  $[$gt^$pw] & = & $gt^{$pw} \\ $ to $(texanswer$n)
+	!else
+	    !if $k=2
+		k=3
+	        pw=!item $p of $pow2
+		formula$n=!append word $  \frac{1}{$[$gt^$pw]} & = & [?] \\ $ to $(formula$n)
+	        answer$n=!append line $gt^(-$pw) to $(answer$n)
+		texanswer$n=!append word  \frac{1}{$[$gt^$pw]}  & = & $gt^{-$pw} \\ $ to $(texanswer$n)
+	    !else
+		!if $k=3
+		    k=4
+		    pw=!item $p of $pow3
+		    formula$n=!append word $  $[1/($gt^$pw)] & = & [?] \\  $ to $(formula$n)
+		    answer$n=!append line $gt^(-$pw) to $(answer$n)
+		    texanswer$n=!append word  $[1/($gt^$pw)]  & = & $gt^{-$pw} \\ $ to $(texanswer$n)
+		!else
+		    k=1
+		    pw=!item $p of $pow2
+		    formula$n=!append word $  \frac{1}{ \displaystyle $gt^{-$pw}} & = & [?] \\  $ to $(formula$n)
+		    answer$n=!append line $gt^$pw to $(answer$n)
+		    texanswer$n=!append word  \frac{1}{ \displaystyle $gt^{-$pw}}  & = & \displaystyle{ \frac{1 \cdot $gt^{$pw}}{$gt^{-$pw} \cdot $gt^{$pw} } } = $gt^{$pw} \\ $ to $(texanswer$n)
+		!endif
+	    !endif
+	!endif
+    !next p
+!else
+    k=!randint 1,3
+    gt=3
+    pow1=!shuffle 0,1,2,3,4,1,2,3,4
+    pow2=!shuffle 1,2,3,4,1,2,3,4,2
+    !for p=1 to $options
+	!if $k=1
+	    k=2
+	    pw=!item $p of $pow1
+	    formula$n=!append word $   $[$gt^$pw] & = & [?] \\ $ to $(formula$n)
+	    answer$n=!append line $gt^$pw to $(answer$n)
+	    texanswer$n=!append word  $[$gt^$pw] & = & $gt^{$pw} \\ $ to $(texanswer$n)
+	!else
+	    !if $k=2
+		k=3
+	        pw=!item $p of $pow2
+		formula$n=!append word $  \frac{1}{$[$gt^$pw]} & = & [?] \\ $ to $(formula$n)
+	        answer$n=!append line $gt^(-$pw) to $(answer$n)
+		texanswer$n=!append word  \frac{1}{$[$gt^$pw]}  & = & $gt^{-$pw} \\ $ to $(texanswer$n)
+	    !else
+		k=1
+		pw=!item $p of $pow2
+		formula$n=!append word $  \frac{1}{ \displaystyle $gt^{-$pw}} & = & [?] \\  $ to $(formula$n)
+		answer$n=!append line $gt^$pw to $(answer$n)
+		texanswer$n=!append word  \frac{1}{ \displaystyle $gt^{-$pw}}  & = & \displaystyle{ \frac{1 \cdot $gt^{$pw}}{$gt^{-$pw} \cdot $gt^{$pw} } } = $gt^{$pw} \\ $ to $(texanswer$n)
+	    !endif
+	!endif
+    !next p
+!endif
+formula$n=!append word $ \end{array} \;\; \right\{ $ to $(formula$n)
+    
+texanswer$n=!append word $ \end{array} \right. $ to $(texanswer$n)
+    
+question$n=Schrijf het getal als een macht met <kbd>grondtal $gt</kbd>
+description=$empty
+!exit

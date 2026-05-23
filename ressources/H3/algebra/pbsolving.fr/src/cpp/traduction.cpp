@@ -1,0 +1,124 @@
+target=traduction
+
+\language{fr}
+\author{Jean-Baptiste, Frondas}
+\email{jbfrondas@gmail.com}
+\format{html}
+\precision{10000}
+\computeanswer{no}
+# define NUM 1
+#include "lang_titles.inc"
+#include "lang.inc"
+
+%Matrice "nombres" de la forme "1, un, unième" dans le fichier langue pour traduction éventuelle.
+
+% Mélange des nombres
+\text{mix=shuffle(rows(\nombres))}
+\text{nombresmix=\nombres[\mix;]}
+
+\matrix{operation=\quotient,/
+\produit,*
+\somme,+
+\difference,-}
+
+% Mélange des expressions
+\text{mix=shuffle(rows(\operation))}
+\text{operationmix=\operation[\mix;]}
+
+% premiere question
+% dans fichier langue \text{enonce1=\operationmix[1;1] de \nombresmix[1;2] \nombresmix[2;3] par \nombresmix[3;2] \nombresmix[4;3]}
+
+\text{expression1=  (\nombresmix[1;1]/\nombresmix[2;1]) \operationmix[1;2] (\nombresmix[3;1]/\nombresmix[4;1])}
+\rational{solution1=(\nombresmix[1;1]/\nombresmix[2;1]) \operationmix[1;2] (\nombresmix[3;1]/\nombresmix[4;1])}
+
+\text{Expression1=texmath(\expression1)}
+\text{Solution1=texmath(\solution1)}
+
+% deuxième question
+% Dans lang_fr.inc \text{enonce2=\operationmix[2;1] de \nombresmix[5;2] \nombresmix[6;3] par \nombresmix[7;2] \nombresmix[8;3]}
+
+\text{expression2= (\nombresmix[5;1]/\nombresmix[6;1])  \operationmix[2;2] (\nombresmix[7;1]/\nombresmix[8;1])}
+\rational{solution2=(\nombresmix[5;1]/\nombresmix[6;1]) \operationmix[2;2] (\nombresmix[7;1]/\nombresmix[8;1])}
+
+\text{Expression2=texmath(\expression2)}
+\text{Solution2=texmath(\solution2)}
+
+% troisieme question
+% Dans lang_fr.inc \text{enonce3=\operationmix[3;1] de \nombresmix[9;2] \nombresmix[10;3] par \nombresmix[11;2] \nombresmix[12;3]}
+
+\text{expression3= (\nombresmix[9;1]/\nombresmix[10;1]) \operationmix[3;2] (\nombresmix[11;1]/\nombresmix[12;1])}
+\rational{solution3=(\nombresmix[9;1]/\nombresmix[10;1]) \operationmix[3;2] (\nombresmix[11;1]/\nombresmix[12;1])}
+
+\text{Expression3=texmath(\expression3)}
+\text{Solution3=texmath(\solution3)}
+
+% quatrieme question
+% Dans lang_fr.inc \text{enonce4=\operationmix[4;1] de \nombresmix[13;2] \nombresmix[14;3] par \nombresmix[15;2] \nombresmix[16;3]}
+
+\text{expression4= (\nombresmix[13;1]/\nombresmix[14;1])  \operationmix[4;2] (\nombresmix[15;1]/\nombresmix[16;1])}
+\rational{solution4=(\nombresmix[13;1]/\nombresmix[14;1]) \operationmix[4;2] (\nombresmix[15;1]/\nombresmix[16;1])}
+
+\text{Expression4=texmath(\expression4)}
+\text{Solution4=texmath(\solution4)}
+
+
+\statement{ \enonce <br>
+
+\enonce1
+<ul>
+<li><label for="reply1">\expression</label> : \embed{r1,15} </li>
+<li><label for="reply2">\resultat</label> : \embed{r2,4} </li>
+</ul>
+
+\enonce2
+<ul>
+<li><label for="reply3">\expression</label> : \embed{r3,15} </li>
+<li><label for="reply4">\resultat</label> : \embed{r4,4} </li>
+</ul>
+
+\enonce3
+
+<ul>
+<li><label for="reply5">\expression</label> : \embed{r5,15} </li>
+<li><label for="reply6">\resultat</label> : \embed{r6,4} </li>
+</ul>
+
+\enonce4
+<ul>
+<li><label for="reply7">\expression</label> : \embed{r7,15} </li>
+<li><label for="reply8">\resultat</label> : \embed{r8,4} </li>
+</ul>
+}
+
+\answer { \expression }{ \expression1 }{ type = text}
+\answer { \resultat }{ \solution1 }
+
+\answer { \expression }{ \expression2 }{ type = text}
+\answer { \resultat }{ \solution2 }
+
+\answer { \expression }{ \expression3 }{ type = text}
+\answer { \resultat }{ \solution3 }
+
+\answer { \expression }{ \expression4 }{ type = text}
+\answer { \resultat }{ \solution4 }
+
+\latex{
+\begin{statement}
+\enonce
+\begin{enumerate}
+	\item \enonce1
+	\item \enonce2
+	\item \enonce3
+	\item \enonce4
+\end{enumerate}
+\end{statement}
+
+\begin{solution}
+\begin{enumerate}
+	\item \solution1
+	\item \solution2
+	\item \solution3
+	\item \solution4
+\end{enumerate}
+\end{solution}
+}

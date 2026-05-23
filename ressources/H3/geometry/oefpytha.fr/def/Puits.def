@@ -1,0 +1,131 @@
+!set title=Puits 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Dingyu,XIAO
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Pozzo 
+title_nl=Put 
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=,mesure , le puits a une profondeur de ,et un diamètre de
+val8=À quelle distance le ballon se trouve-t-il de ,, en \(cm\)	  et arrondi à l'unité
+val9=La distance
+!if $val6=it 
+val7=L'altezzza di,è , il pozzo ha una profondità di ,e un diametro di
+val8=A quale distanza da, si trova il pallone, in \(cm\)	  arrotondando all'unità
+val9=Distanza
+!endif
+!if $val6=nl 
+val7=,is ,lang &#44; de put is, diep en heeft een doorsnede van ,
+val8=Hoe ver is de bal van (het punt van het hoofd van),, in \(cm\)	  afgerond op een geheel getal
+val9=De afstand
+!endif
+!readproc slib/lang/fname  
+tmp0=$slib_out
+val10=$(tmp0)
+tmp=!trim 120,135,40	125,140,44	130,145,47	135,150,51	140,155,54	145,160,57	150,170,60	155,175,65	160,180,70	165,185,75	170,190,80	175,195,85	180,200,90
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+tmp0=!item 2 of $val12
+
+val14=$(tmp0)
+tmp0=!item 3 of $val12
+
+val15=$(tmp0)
+val16=$[rint(sqrt(($val13+$val14)^2+$val15^2))]
+replytype1=default
+replyname1=$val9
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wimscenter">	 
+!read oef/draw.phtml 200,250 \
+	xrange -20,20	yrange -25,25	polyline black,-20,0,0,0,0,-20,10,-20,10,0,20,0	circle 8,-18,20,black	filledcircle 8,-18,18,red	polyline black,-4.5,8,-6,8,-6,14,-5,15,1,15,2,14,2,8,0.5,8	segment -4.5,13.5,-4.5,0,black	segment 0.3,13.5,0.3,0,black	polyline black,-2.25,0,-2.25,9,-1.75,9,-1.75,0	circle -2,17,20,black	dsegment 0,17,7,-16,black	text black,5,0,medium,?	 
+$()	</div>	$(val7[1]) $val10 $(val7[2]) 
+!insmath $val13 \ cm
+$(), $(val7[3]) 
+!insmath $val14\ cm
+$() $(val7[4]) 
+!insmath $val15 \ cm
+$().	$(val8[1]) $val10 $(val8[2]) ($(val8[3]))?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,13,14,15
+embedcnt=0

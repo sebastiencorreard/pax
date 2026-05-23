@@ -1,0 +1,121 @@
+!set title=Simplifier un produit 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Simplifier le produit de facteurs suivant&nbsp;
+val7=&nbsp;
+tmp0=!values v for v=2 to 9
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp=!nonempty items x,y,z,a,b,u,v
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F,G
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp0=!shuffle ,-
+
+val10=$(tmp0)
+val13=(-$(val8[1])*$val9)*($(val8[2])*$val9)
+val14=($(val10[1])$(val8[1])$val9)\times($(val10[2])$(val8[2])$val9)
+tmp=!translate ";': to $     $ in $val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+replytype1=litexp
+replyoption1=polexpand 
+replyname1=\($val12\)
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst \begin{statement} $val6: \begin{center}\($val12 = $val14\). \end{center}\end{statement}
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val6:	<div class="wimscenter"> 
+!insmath $val12 = $val14
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()$m_begin{statement} $val6: $m_begin{center}
+!insmath $val12 = $val14
+$(). $m_end{center}$m_end{statement}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,14
+embedcnt=0

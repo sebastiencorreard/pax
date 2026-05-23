@@ -1,0 +1,141 @@
+!set title=Trouver l'équation réduite 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabien, Sommier
+email=sommierf@sfr.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Trova l'equazione esplicita 
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!trim La droite \(d\) passe par les points, et	Puisque, la droite \(d\) a une équation de la forme
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Compléter l'équation de
+val9=Expression
+!if $val6=it 
+tmp=!trim La retta \(d) passa per i punti,e	Essendo, la retta \(d\) ammette una equazione della forma
+val7=!translate internal $	\
+$ to ;; in $tmp
+val8=Completa l'equazione di
+val9=Espressione
+!endif
+tmp0=!values v,-v for v=1 to 15
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+val11=$[rint($(val10[1]))]
+val12=$[rint($(val10[2]))]
+val13=$[rint($(val10[3]))]
+val14=$[rint($(val10[4]))]
+tmp=!translate ";': to $     $ in ($val12-$val14)/($val11-$val13)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp=!translate ";': to $     $ in $val12-($val15)*$val11
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+!if $val16=0 
+val17=$val15*x
+!else
+
+!ifval $val16>0
+val17=$val15*x+$val16
+!else
+val17=$val15*x$val16
+!endif
+!endif
+replytype1=litexp
+replyname1=$val9
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val7[1;1]) 
+!insmath A($val11 ; $val12)
+$() $(val7[1;2]) 
+!insmath B($val13 ; $val14)
+$().	<p>	$(val7[2;1]) 
+!insmath  $val11\neq $val13
+$(), $(val7[2;2]) 
+!insmath y=a x+b
+$().</p>	$val8 
+!insmath d
+$() :	<div class="wimscenter">	<label for="reply1">
+!insmath y = 
+$()</label> 
+!read oef/embed.phtml reply1 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,11,12,13,14
+embedcnt=1

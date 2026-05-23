@@ -1,0 +1,43 @@
+target=pourcent1
+#include "lang_titles.inc"
+#include "author.inc"
+#include "lang.inc"
+
+\precision{10000}
+
+\integer{size=8}
+
+\text{enonce=}
+\text{rep=}
+\for{i=1 to 5}{
+ \integer{pourcent=randint(15..85)}
+ \integer{val=randint(25..950)}
+ \real{sol=\val*\pourcent/100}
+ \text{en=\pourcent % de \val}
+ \text{enonce=wims(append item \en to \enonce)}
+ \text{rep=wims(append item \sol to \rep)}
+}
+
+\statement{
+\name_enonce:
+<table class="wimscenter wimsborder">
+ <tr>
+  <th>\name_head[1]</th>
+  <th>\name_head[2]</th>
+ </tr>
+ \for{j=1 to 5}{
+  <tr>
+   <td><label for="reply\j">\enonce[\j]</label></td>
+   <td>\embed{r\j,\size}</td>
+  </tr>
+ }
+</table>
+}
+
+
+
+\answer{\name_answer 1}{\rep[1]}{type=numexp}
+\answer{\name_answer 2}{\rep[2]}{type=numexp}
+\answer{\name_answer 3}{\rep[3]}{type=numexp}
+\answer{\name_answer 4}{\rep[4]}{type=numexp}
+\answer{\name_answer 5}{\rep[5]}{type=numexp}

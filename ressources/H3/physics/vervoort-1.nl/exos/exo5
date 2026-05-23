@@ -1,0 +1,68 @@
+#hfst1
+#exo5(hfst1) Temperatuurverschil &Delta;T
+n=$counter
+questiontype=3
+checkfile=$checkdir/new_number.proc
+inputs=2
+mathview=0
+math=0
+make_tr=1
+# let op var1 en var2 zijn misschien niet leeg !!!
+var1=$empty
+var2=$empty
+cols=8
+rows=1
+formula$n=$empty
+
+rnd=!randint 1,2
+keuze=!randint 0,1
+t_begin=!randint -12000,12000
+t_begin=!exec moneyprint $[$t_begin/99] $rnd
+diff=!randint 5000,15000
+diff=!exec moneyprint $[$diff/99] $rnd
+tijd=!randint 2,120
+!if $t_begin < 0
+    t_begin_text=!replace internal - by &minus; in $t_begin
+!else
+    t_begin_text=+$t_begin
+!endif
+
+!if $keuze=1
+    t_eind=!exec moneyprint $[$t_begin + $diff] $rnd
+    !if $t_eind < 0
+	t_eind_text=!replace internal - by &minus; in $t_eind
+    !else
+	t_eind_text=+$t_eind
+    !endif
+    ss=De temperatuur in een reactorvat loopt in $tijd minuten op van $t_begin_text &deg;C tot $t_eind_text &deg;C.
+
+    answer$n=$diff\
+    $diff
+
+    textanswer$n=$m_Delta<b>T</b> = <b>T</b><sub>eind</sub> &minus; <b>T</b><sub>begin</sub> = $t_eind &minus; $t_begin &asymp;  $diff &deg;C<br />$m_Delta<b>T</b> = <b>T</b><sub>eind</sub> &minus; <b>T</b><sub>begin</sub> &asymp; $diff <b>K</b><br/>En de tijdsduur van $tijd min heeft hier even niets mee te maken...
+!else
+    t_eind=!exec moneyprint $[$t_begin - $diff] $rnd
+    !if $t_eind < 0
+	t_eind_text=!replace internal - by &minus; in $t_eind
+    !else
+	t_eind_text=+$t_eind
+    !endif
+    
+    ss=De temperatuur in een reactorvat daalt in $tijd minuten van $t_begin_text &deg;C tot $t_eind_text &deg;C.
+    
+    answer$n=-$diff\
+    -$diff
+    textanswer$n=$m_Delta<b>T</b> = <b>T</b><sub>eind</sub> &minus; <b>T</b><sub>begin</sub> &asymp; $t_eind &minus; $t_begin &asymp; &minus;$diff &deg;C<br />$m_Delta<b>T</b> = <b>T</b><sub>eind</sub> &minus; <b>T</b><sub>begin</sub> &asymp; &minus;$diff <b>K</b><br/>En de tijdsduur van $tijd min heeft hier even niets mee te maken...
+     
+!endif
+
+ex1=&nbsp;&deg;C
+ex2=&nbsp;<b>K</b>
+m_rightarrow=&nbsp;&asymp;&nbsp;
+description=&Delta; <b>T</b>,&Delta; <b>T</b> 
+question$n=$ss
+helptext=Geef je antwoorden in je juiste precisie. 
+
+!exit
+
+    

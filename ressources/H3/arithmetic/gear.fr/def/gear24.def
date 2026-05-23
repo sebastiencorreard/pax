@@ -1,0 +1,226 @@
+!set title=06. 2 roues séparées 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel Verbecq
+email=lionel.verbecq@ac-versailles.fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000000
+language=fr
+oefcss=<style> .macss{background-color: #FAFAD2;} </style>
+
+ansorder=r
+varcnt=51
+prevarcnt=50
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Le segment bleu,Le segment marron,secteurs,il,segments,ils,le segment bleu,le segment marron,Il
+tmp0=!shuffle 3,4,5
+
+val7=$(tmp0)
+tmp0=!randint 2, 5
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 5
+
+val9=$[rint($val8*$(tmp0))]
+tmp0=!shuffle $val8,$val9
+
+val10=$(tmp0)
+val11=$[rint($(val10[1])*$(val7[1]))]
+val12=$[rint($(val10[2])*$(val7[2]))]
+val13=$[0.5*($val11+$val12)]
+val14=$[rint($val11+$val12+40)]
+val15=$[rint((max($val11,$val12)+$val14)/2)]
+val16=JXG.Options.elements.highlight=false;	JXG.Options.elements.tabindex=-1;	var board = JXG.JSXGraph.initBoard('jsxbox', {	    boundingbox: [-$val14,$val14,$val14,-$val14],	    showCopyright:false,	    keepAspectRatio:true,	    axis: false});	var z1 = $val11;	var z2 = $val12;	var r1 = z1;	var r2 = z2;	var xc1 = -r2-10;	var xc2 = r1;	var wheel1 = board.create('circle', [[xc1,0],r1], {fillColor:'Lightblue',strokeColor: 'blue', strokeWidth: 2,fixed: true});	var wheel2 = board.create('circle', [[xc2,0],r2], {fillColor:'#C4A484',strokeColor: 'brown', strokeWidth: 2,fixed: true});	var pA = board.create('point', [xc1+r1, 0], {name: '', size: 2, color: 'blue',labelColor:'blue',fixed:true});	var pB = board.create('point', [xc2+r2, 0], {name: '', size: 2, color: 'brown',labelColor:'brown',fixed:true});	var slider = board.create('slider', [[-$val14+1,$val15], [$val14-1,$val15], [0, 0, 50000]],{snapWidth:$val11,tabindex:10,withLabel: false});	var seg1 = board.create('segment', [[xc1,0],pA],{visible: true, label: false, fixed: true,color: 'blue',strokeWidth:6,showInfobox: false});	var seg2 = board.create('segment', [[xc2,0],pB],{visible: true, label: false, fixed: true,color: 'brown',strokeWidth:6,showInfobox: false});	var t1=board.create('text', [-$val14+20,$val15+10,"Déplacer le curseur pour faire tourner les  segments"],{fixed: true});	var t2 = board.create('text',[xc2+r2+2.5,0,"Départ"],{fixed: true});	var teeth1 = [], teeth2 = [];	for (var i=0;i<z1;i++) {	    var angle=i*2*Math.PI/z1;	    teeth1.push(board.create('point', [xc1+r1* Math.cos(angle),r1*(Math.sin(angle))],{fixed:true,name:'',size:1,color:'black',visible:false}));	    var seg = board.create('segment', [[xc1,0],[xc1+r1*Math.cos(angle),r1*(Math.sin(angle))]],{visible:true,label:false,fixed:true,color:'black',size:1,showInfobox:false});	}	for (var i=0;i<z2;i++) {	    var angle=i*2*Math.PI/z2;	    teeth2.push(board.create('point',[xc2+r2*Math.cos(angle), r2*(Math.sin(angle))],{size:1,color:'black',fixed: true,name:'',visible:false}));	    var seg=board.create('segment',[[xc2,0],[xc2+r2*Math.cos(angle),r2*(Math.sin(angle))]],{visible:true,label:false,fixed:true,color:'black',size:1,showInfobox:false});	}	board.on('update', function() {	    var angle1=-slider.Value()*Math.PI/180/z1 ;	    var angle2=angle1*z1/z2;	    pA.moveTo([xc1+r1* Math.cos(angle1),r1* Math.sin(angle1)]);	    pB.moveTo([xc2+r2*Math.cos(angle2), r2*Math.sin(angle2)]);	});	board.update();	
+!readproc slib/geo2D/jsxgraph jsxbox board,[250x250, min=250px max=350px left],$val16 
+tmp0=$slib_out
+val17=$(tmp0)
+val18=$[rint(lcm($val11,$val12))]
+val19=$[$val18/$val11]
+val20=$[$val18/$val12]
+tmp0=!makelist x for x=$val11 to ($val19+2)*$val11 step $val11
+
+val21=$(tmp0)
+tmp0=!makelist x for x=$val12 to ($val20+2)*$val12 step $val12
+
+val22=$(tmp0)
+tmp0=!makelist x for x=$val11 to 5*$val11 step $val11
+
+val23=$(tmp0)
+tmp0=!makelist x for x=$val12 to 5*$val12 step $val12
+
+val24=$(tmp0)
+val25=<span style="color:red">$val18</span>
+tmp0=!replace item number $val19 by $val25 in $val21
+
+val21=$(tmp0)
+tmp0=!replace item number $val20 by $val25 in $val22
+
+val22=$(tmp0)
+!if $val19=1 
+val26=tour
+!else
+val26=tours
+!endif
+!if $val20=1 
+val27=tour
+!else
+val27=tours
+!endif
+t_=!replace internal \( by ( in factor($val11)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val28=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val28
+
+tmp0=!rowcnt $tmp
+val29=$[rint($(tmp0))]
+val30=$(val28[1;1])^{$(val28[1;2])}
+!for val31 =2 to $val29 
+val32=$(val28[$val31;1])^{$(val28[$val31;2])}
+tmp0=!append item $val32 to $val30
+
+val30=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val30
+
+val30=$(tmp0)
+tmp0=!texmath $val30
+
+val30=$(tmp0)
+t_=!replace internal \( by ( in factor($val12)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val33=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val33
+
+tmp0=!rowcnt $tmp
+val34=$[rint($(tmp0))]
+val35=$(val33[1;1])^{$(val33[1;2])}
+!for val36 =2 to $val34 
+val32=$(val33[$val36;1])^{$(val33[$val36;2])}
+tmp0=!append item $val32 to $val35
+
+val35=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val35
+
+val35=$(tmp0)
+tmp0=!texmath $val35
+
+val35=$(tmp0)
+t_=!replace internal \( by ( in factor($val18)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val37=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val37
+
+tmp0=!rowcnt $tmp
+val38=$[rint($(tmp0))]
+val39=$(val37[1;1])^{$(val37[1;2])}
+!for val40 =2 to $val38 
+val32=$(val37[$val40;1])^{$(val37[$val40;2])}
+tmp0=!append item $val32 to $val39
+
+val39=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val39
+
+val39=$(tmp0)
+tmp0=!texmath $val39
+
+val39=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val17	<span style="color:blue">Le disque bleu est partagé en <b>
+!insmath $val11
+$()</b> secteurs égaux</span> et <span style="color:brown">le disque marron est partagé en <b>
+!insmath $val12
+$()</b> secteurs égaux.</span>.	<p>Les segments avancent à la même vitesse.</p>	<span style="color:blue">$(val6[1])</span> tourne de 
+!insmath $val19
+$() $val26.	<p>Combien de tour(s) effectue <span style="color:brown">$(val6[8])</span>&nbsp;?</p>	<div><label for="reply1"><span style="color:brown">$(val6[2])</span> a effectué</label>  
+!read oef/embed.phtml reply1,5 
+$() tour(s).</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<span style="color:blue">$(val6[1])</span> tourne de 
+!insmath $val19
+$() $val26.	<p><span style="color:bleu">$(val6[9])</span> tourne au total de 
+!insmath $val19 \times $val11 = $val18
+$() $(val6[3]).</p>	<span style="color:brown">$(val6[2])</span> a également tourné de 
+!insmath $val18
+$() secteurs sur une roue composée de 
+!insmath $val12
+$() $(val6[3]),	<p>
+!insmath $val18 \div $val12 = $val20
+$()</p>	<span style="color:brown">$(val6[2])</span> a effectué 
+!insmath $val20
+$() $val27.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,12,17,18,19,20,26,27
+embedcnt=1

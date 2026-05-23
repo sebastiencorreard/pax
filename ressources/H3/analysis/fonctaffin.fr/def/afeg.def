@@ -1,0 +1,222 @@
+!set title=03. Fonction&lt;-&gt;Égalité
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=50
+prevarcnt=49
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val3= 
+val3=1
+!endif
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+val6=
+!for val7 =1 to 4 
+!if $val2=2 
+val8=$[rint(0)]
+!else
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 5
+
+val8=$[rint($(tmp0)*($(tmp1)))]
+!endif
+tmp0=!append item $val8 to $val6
+
+val6=$(tmp0)
+!next
+val9=1,2,3,4,5,-1,-2,-3,-4,-5
+val10=1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+!if $val3=1 
+!readproc slib/data/random 4 item $val9 
+tmp0=$slib_out
+tmp1=!shuffle $(tmp0)
+
+val11=$(tmp1)
+!endif
+!if $val3=2 
+!readproc slib/data/random 4 item $val10 
+tmp0=$slib_out
+tmp1=!shuffle $(tmp0)
+
+val11=$(tmp1)
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+!readproc slib/data/random 4 item $val10,$val9 
+tmp0=$slib_out
+tmp1=!shuffle $(tmp0)
+
+val11=$(tmp1)
+!endif
+val12=
+!for val13 =1 to 4 
+!for val7 =$val13+1 to 4 
+val8=$[-1*($(val6[$val7])-$(val6[$val13]))/($(val11[$val7])-$(val11[$val13]))]
+tmp0=!append item $val8 to $val12
+
+val12=$(tmp0)
+!next
+!next
+val14=-5,-4,-3,-2,-1,0,1,2,3,4,5,$val12
+tmp0=!listcomplement $val12 in $val14
+
+val14=$(tmp0)
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val17=$[rint($(tmp0))]
+tmp=!nonempty items $val14
+
+tmp0=!randitem $tmp
+val18=$[rint($(tmp0))]
+val19=$val15,$val16,$val17,$val18
+val20=
+val21=
+val22=
+!for val7 =1 to 4 
+!if $(val6[$val7])=0 
+val23=
+!endif
+!if $(val6[$val7])<0 
+val23=$(val6[$val7])
+!endif
+!if $(val6[$val7])>0 
+val23=\plus $(val6[$val7])
+!endif
+!if $(val11[$val7])=-1 
+val24=-x $val23
+!endif
+!if $(val11[$val7])=1 
+val24=x $val23
+!endif
+!if $(val11[$val7])<>1 and $(val11[$val7])<>-1 and $(val11[$val7]) isitemof $val10 
+t_=!replace internal \( by ( in numerator($(val11[$val7]))
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+t_=!replace internal \( by ( in denominator($(val11[$val7]))
+tmp0=!exec pari $t_
+
+val26=$[rint($(tmp0))]
+!if $val25<0 
+val27=$[rint(abs($val25))]
+!endif
+!if $val25<0 
+val24=-\frac{$val27}{$val26} x $val23
+!else
+val24=\frac{$val25}{$val26}x$val23
+!endif
+!endif
+!if $(val11[$val7])<>1 and $(val11[$val7])<>-1 and $(val11[$val7]) isitemof $val9 
+val24=$(val11[$val7]) x $val23
+!endif
+val28=\(f:x \mapsto $val24\)
+tmp0=!append item $val24 to $val21
+
+val21=$(tmp0)
+tmp0=!append item $val28 to $val20
+
+val20=$(tmp0)
+t_=!rawmath $(val11[$val7])*$(val19[$val7])+$(val6[$val7])
+val29=!exec pari print($t_)
+tmp0=!append item $val29 to $val22
+
+val22=$(tmp0)
+!next
+val30=
+val31=
+val32=\(f($(val19[1]))=$(val22[1])\),\(f($(val19[2]))=$(val22[2])\),\(f($(val19[3]))=$(val22[3])\),\(f($(val19[4]))=$(val22[4])\)
+val33=Associer l'égalité de gauche à la fonction qui lui correspond.
+replytype1=correspond
+replyoption1=shuffle 
+replyname1=
+replygood1=$val32;$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest_nobg spacer">$val33</div>	<div> 
+!read oef/embed.phtml reply1,65x170x170 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=33
+embedcnt=1

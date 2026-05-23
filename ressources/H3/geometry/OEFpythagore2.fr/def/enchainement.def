@@ -1,0 +1,291 @@
+!set title=Enchaînement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,c,c,r
+varcnt=72
+prevarcnt=70
+postvarcnt=1
+replycnt=2
+choicecnt=2
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2 notitemof 0,1
+val2=$[rint(1)]
+!endif
+tmp=!trim A,B,C,D	T,I,R,J	E,F,G,H	D,E,F,G
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+tmp0=!item 4 of $val6
+
+val10=$(tmp0)
+val11=$[rint(240)]
+val12=$[rint(140)]
+tmp0=!randint 80, 160
+
+val13=$[rint($(tmp0))]
+val14=segment 20,20,20,120,black	segment 20,120,220,120,black	segment 20,20,220,120,black	segment 20,20,$val13,120,black	text black,10,125,medium,$val8	text black,10,10,medium,$val7	text black,225,125,medium,$val9	text black,$val13,125,medium,$val10
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val16=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val17=$[rint($(tmp0))]
+tmp0=!randint 2, 6
+
+val18=$[rint($(tmp0))]
+tmp0=!randint 1, $val18-1
+
+val19=$[rint($(tmp0))]
+val20=$[rint(max($val18^2-$val19^2,2*$val18*$val19))]
+val21=$[rint(min($val18^2-$val19^2,2*$val18*$val19))]
+val22=$[rint(($val21^2+$val20^2)^(1/2))]
+tmp0=!randint 15, 25
+
+val23=$[$(tmp0)]
+val24=$[$val20*$val23]
+val25=$[$val22*$val23]
+val26=$[$val21*$val23]
+val27==,\(\neq)
+!if $val15!=1 
+tmp0=!randint 5, 15
+
+val25=$[$val25+$(tmp0)]
+val27=\(\neq),=
+!endif
+val25=$[$val25/10]
+val24=$[$val24/10]
+val26=$[$val26/10]
+val28=\($val7$val10^2),\($val8$val10^2)
+val29=\($val7$val9^2),\($val8$val9^2)
+!if $val16=1 
+val30=\($val7$val10 = $val25),\($val8$val10 = $val24),\($val7$val8 = $val26)
+val31=\($val7$val8$val10)
+val27=$val27,\($val7$val8^2),$val28,$val29
+!if $val17=1 
+val32=$val7$val9
+tmp0=!randint 10*$val24+1, 15*$val24
+
+val33=$[$(tmp0)/10]
+val30=$val30,\($val8$val9 = $val33)
+val34=($val26^2+$val33^2)^(1/2)
+!else
+val32=$val8$val9
+tmp0=!randint 20*$val25, 25*$val25
+
+val33=$[$(tmp0)/10]
+val30=$val30,\($val7$val9 = $val33)
+val34=($val33^2-$val26^2)^(1/2)
+!endif
+!else
+val30=\($val7$val9 = $val25),\($val8$val9 = $val24),\($val7$val8 = $val26)
+val31=\($val7$val8$val9)
+val27=$val27,\($val7$val8^2),$val29,$val28
+!if $val17=1 
+val32=$val7$val10
+tmp0=!randint 10, 10*$val24-10
+
+val33=$[$(tmp0)/10]
+val30=$val30,\($val8$val10 = $val33)
+val34=($val26^2+$val33^2)^(1/2)
+!else
+val32=$val8$val10
+tmp0=!randint 10*$val26+1, 10*$val25-10
+
+val33=$[$(tmp0)/10]
+val30=$val30,\($val7$val10 = $val33)
+val34=($val33^2-$val26^2)^(1/2)
+!endif
+!endif
+val27=$val27,+,\($val7$val8),\($val7$val9),\($val8$val9),\($val8$val10),\($val7$val10)
+tmp0=!item 4,1,3,8,5 of $val27
+
+tmp1=!item 4,1,5,8,3 of $val27
+
+tmp2=!item 3,8,5,1,4 of $val27
+
+tmp3=!item 5,8,3,1,4 of $val27
+
+val35=$(tmp0)|$(tmp1)|$(tmp2)|$(tmp3)
+tmp0=!shuffle $val30
+
+val30=$(tmp0)
+tmp0=!replace internal , by &nbsp;&nbsp; in $val30
+
+val30=$(tmp0)
+val36=est rectangle,n'est pas rectangle
+val37=la réciproque du théorème de Pythagore,le théorème de Pythagore
+tmp0=!item $val15 of $val36
+
+val38=$(tmp0)
+tmp0=!item $val15 of $val37
+
+val39=$(tmp0)
+tmp=!nonempty items cm,m,dm,dam
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+val41=dixième,centième,millième
+val42=$val34
+tmp0=!randint 1, 3
+
+val43=$[rint($(tmp0))]
+val34=$[rint($val34*10^$val43)]
+val34=$[$val34/10^$val43]
+tmp0=!item $val43 of $val41
+
+val44=$(tmp0)
+val45=c1,c2,r1
+dynsteps=yes
+oefsteps=$val45 
+nextstep=!nosubst $val45 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyweight1=3 
+replyname1=Formule
+replygood1=$val35;$val27
+replytype2=numexp
+replyweight2=4 
+replyname2=\($val32)
+replygood2=$val34
+choiceweight1=1 
+choicename1=Nature
+choicegood1=$val38
+choicebad1=$val36
+choiceweight2=2 
+choicename2=Théorème
+choicegood2=$val39
+choicebad2=$val37
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml $val11,$val12 \
+$val14 
+$()	  <div class="wims_instruction">Ce dessin est un croquis, il ne respecte aucune proportion.</div>	</div>	 <div class="medium_size text_col">	
+!insmath $val7$val8$val9
+$() est un triangle et 
+!insmath $val10
+$() est un point du segment 
+!insmath [$val8$val9]
+$().	Les longueurs suivantes (en $val40) sont connues :	<div class="wimscenter">$val30</div>	
+!if $m_step=1 
+$()	 <p>Le triangle $val31 est-il rectangle en $val8 ?</p>	 <b>Votre réponse</b> :  
+!read oef/embed.phtml r1,40x35x5 
+$()<br>	  Donc, d'après  
+!read oef/embed.phtml c2 
+$(), le triangle $val31  
+!read oef/embed.phtml c1 
+$().	 
+!else
+$() 	
+!if $val15=1 
+$()	<ol>	 <li> <p>Le triangle $val31 est-il rectangle en $val8 ?</p>	 <b>Votre réponse</b> : D'après $val39, le triangle $val31 $val38.</li>	 <li> Quelle est la longueur du segment 
+!insmath [$val32]
+$() ?	 <div class="wims_instruction">Vous donnerez votre résultat arrondi au $val44.</div>	 <b>Votre réponse</b> 
+!insmath $val32 =
+$()  
+!read oef/embed.phtml r2,5 
+$() $val40.</li>	 </ol>	 
+!else
+$() 	 Le triangle $val31 est-il rectangle en $val8 ?	 
+!endif
+$()	 
+!endif
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val15=1 and $m_step=2
+val45=r2
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,14,15,30,31,32,38,39,40,44
+embedcnt=4

@@ -1,0 +1,90 @@
+#type sqrt(a-bx)*sqrt(cx+d)=0 
+math=0
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif 
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:<=>:and
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+!if $subject=25
+    questiontype=0
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=20
+    rows=2
+    # berekeniningen laten zien
+    var3=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=1
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    make_tr=1
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+keuze=!randitem 1,0
+!if $R=1
+    a=!randint 1,15
+    b=!randint 2,15
+    c=!randint 2,20
+    d=!randint 1,15
+    tot=!exec pari A=$a/$b\
+    printtex(A)\
+    B=-1*$d/$c\
+    printtex(B)
+    x1=!line 1 of $tot
+    x1_tex=!line 2 of $tot
+    x2=!line 3 of $tot
+    x2_tex=!line 4 of $tot
+    formula$n=\sqrt{$a - $b x} \cdot \sqrt{$c x + $d} = 0
+    applettext=!nospace sqrt($a - $b x)*sqrt($c*x+$d)=0 ->
+    texanswer$n=\left[ \begin{array}{l}    \textrm{type:} \: a \cdot b = 0 \rightarrow a = 0 \:\:\bigvee\:\: b = 0 \\ \\ $(formula$n) \\ \sqrt{$a - $b x}=0 \;\bigvee\;  \sqrt{$c x + $d}=0 \\ \\$a -$b x=0 \;\bigvee\; $c x+$d=0 \\ \\ x_{1}=\displaystyle $x1_tex \\ \\ x_{2}=\displaystyle $x2_tex \end{array} \right.
+    answer$n=$x1,$x2
+ !exit
+!endif 
+
+!if $R>1
+    a=!randint 2,15
+    b=!randint 2,15
+    c=!randint 2,20
+    d=!randint 1,15
+    tot=!exec pari A=$b*$b/($a*$a)\
+    printtex(A)\
+    B=$c/$d\
+    printtex(B)
+    x1=!line 1 of $tot
+    x1_tex=!line 2 of $tot
+    x2=!line 3 of $tot
+    x2_tex=!line 4 of $tot
+    formula$n=\left( $a \sqrt{x}-$b \right) \cdot \sqrt{$c - $d x} = 0
+    applettext=!nospace ($a sqrt(x)-$b)*sqrt($c-$d x)=0 ->
+    texanswer$n=\left[ \begin{array}{l}\textrm{type:} \: a \cdot b = 0 \rightarrow a = 0 \:\:\bigvee\:\: b = 0 \\ \\
+     $(formula$n) \\ $a \sqrt{x} - $b=0 \;\bigvee\; \cdot \sqrt{$c - $d x}=0 \\ \\ \sqrt{x}=\displaystyle \frac{$b}{$a} \;\bigvee\; $c - $d x=0 \\ \\ x_{1}=\displaystyle $x1_tex \\ \\ x_{2}=\displaystyle $x2_tex \end{array} \right.
+    answer$n=$x1,$x2
+ !exit
+!endif 
+
+

@@ -1,0 +1,108 @@
+!set title=Vergelijking van een  lijn
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=6
+prevarcnt=5
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint -4, 4
+
+val6=$[rint($(tmp0))]
+tmp0=!randint -4, 4
+
+val7=$[rint($(tmp0))]
+
+!ifval $val6=0 and $val7=0
+tmp0=!randint 1, 4
+
+tmp1=!randitem 1,-1
+
+val6=$[rint( $(tmp0)*$(tmp1))]
+!endif
+tmp=!translate ";': to $     $ in $val6*x+($val7)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val8=!rawmath $(tmp0)
+val9=xrange -5.2, 5.2	     yrange -5.2, 5.2	     hline 0,0, black	     vline 0,0, black	     parallel -5,-5,5,-5,0,1,10, grey	     parallel -5,-5,-5,5,1,0,10, grey	     arrow 0,0,1,0,10, black	     arrow 0,0,0,1,10, black	     plot blue, $val8
+replytype1=function
+replyname1=\(y = )
+replygood1=!rawmath $val8,x
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Geef de vergelijking van de getrokken lijn: 		<p class="wimscenter">  
+!read oef/draw.phtml 200,200 \
+$val9 
+$()</p>	<p class="wimscenter">
+!insmath y = 
+$()  
+!read oef/embed.phtml reply 1,15 
+$()</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9
+embedcnt=1

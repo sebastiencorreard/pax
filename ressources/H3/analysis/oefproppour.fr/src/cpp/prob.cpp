@@ -1,0 +1,95 @@
+target=Problme
+#include "lang_titles.inc"
+#include "author.inc"
+\keywords{pbsolving}
+\steps{r1
+r2,r3}
+
+\integer{e=random(50..80)}
+\integer{f=random(1,3,5)}
+\integer{g=random(7,8,11)}
+\integer{m=random(2..9)}
+\integer{h=\g*\e*\m}
+\integer{l=\h*\f/\g}
+\integer{k=\h-\l}
+\integer{n=\k/\m}
+\integer{res=\h*\f}
+\integer{res1=\res/\g}
+\text{prenom=slib(lang/fname fr,boy)}
+\text{name_enonce=\prenom achète un ordinateur portable à,
+  il paye d'abord un acompte correspondant à,
+  du prix de l'ordinateur.,
+  À combien se monte l'acompte&nbsp;,
+  Combien lui reste-t-il à payer&nbsp;,
+  Il paye le reste en,
+  mensualités.,
+  Quel est le montant d'une mensualité&nbsp;
+}
+\statement{
+  <ol><li>
+  \name_enonce[1] \h &euro;, \name_enonce[2]
+  \(\frac{\f}{\g}\) \name_enonce[3]
+   <div class="spacer">\name_enonce[4]?
+   \if{\step=1}{
+   \embed{r1,5} &euro;. </div></li>
+   }{
+  <span class="oef_indgood"> \l &euro;</span>
+  </li><li>
+  <label for="reply2">\name_enonce[5]?</label> \embed{r2,5} &euro;</li>
+  </li><li>
+  \name_enonce[6] \m \name_enonce[7]
+  <div>
+  <label for="reply3">
+  \name_enonce[8]?</label> \embed{r3,5} &euro;</div>
+  </li>
+}
+</ol>}
+\answer{r1}{\l}{type=numexp}
+\answer{r2}{\k}{type=numexp}
+\answer{r3}{\n}{type=numexp}
+
+\latex{
+\begin{statement}
+\begin{itemize}
+  \item \name_enonce[1] \h euros, \name_enonce[2]
+  \(\frac{\f}{\g}\) \name_enonce[3]
+\item
+  \name_enonce[4]? ------- euros
+\item
+  \name_enonce[5]? ------ euros
+\item
+  \name_enonce[6] \m \name_enonce[7] \name_enonce[8]? ----- euros
+ \end{itemize}
+\end{statement}
+}
+
+\solution{
+<strong>Erme achète un ordinateur portable à \h &euro;,
+il paye d'abord un acompte correspondant à
+\(\frac{\f}{\g}\) du prix de l'ordinateur.
+<br> Quel est le prix de l'acompte ? </strong>
+<ul class="wims_nopuce"><li>
+Quand on prend la fraction d'un nombre, on multiplie ce nombre par le numérateur.
+Puis on divise le résultat par dénominateur.
+</li><li> Ici le calcul était :
+<div class="wimscenter">\h \times \f = \res
+<br> \res \div \g = \res1</div>
+Le prix de l'acompte est de \res &euro;.
+</li></ul>
+<strong>Combien lui reste-t-il à payer ?</strong>
+<ul class="wims_nopuce"><li>Pour cela on soustrait le prix de l'acompte au prix initial de l'ordinateur.
+</li><li>Il fallait donc calculer :
+<div class="wimscenter">\h - \l = \k </div>
+</li><li> Il lui reste donc à payer \k &euro;.
+</li></ul>
+<strong>Il paye le reste en \m mensualités.
+Quel est le montant d'une mensualité ?</strong>
+<ul class="wims_nopuce"><li>
+Pour calculer le prix d'un mensualité il suffit de diviser ce qu'il lui
+reste à payer par le nombre de mensualité.
+</li><li>
+Soit <div class="wimscenter">\(\frac{\k}{\m}\) = \n .</div>
+</li><li> Le prix d'un mensualité est de \n &euro;.
+</li></ul>
+}
+

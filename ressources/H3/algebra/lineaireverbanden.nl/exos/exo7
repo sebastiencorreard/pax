@@ -1,0 +1,138 @@
+#:bepaal het snijpunt van twee lijnen
+n=$counter
+questiontype=0
+image=0
+cols=15
+rows=1
+math=0
+embed=1
+mathview=4
+checkfile=$checkdir/coord.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $printexo=0
+    white=white
+    image=0
+!else
+    image=1
+    white=magenta
+!endif
+
+letter1=x
+letter2=y
+letter3=f
+letter4=g
+A=!randitem A,B,C,D,E,F
+kleuren=!record 15 of lang/remarks.$taal
+#@ red@rooie,blue@blauwe,green@groene,orange@oranje,purple@paarse
+#@! red@red,blue@blue,green@geenish,orange@orange,purple@purple
+#@!~ red@红色,blue@蓝色,green@绿色,orange@橙色,purple@紫色
+kleuren=!shuffle $kleuren
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1	
+k2=!replace internal @ by , in $k2
+lang_color1=!item 2 of $k1
+color1=!item 1 of $k1
+lang_color2=!item 2 of $k2
+color2=!item 1 of $k2
+
+x=!randint 1,10
+y=!randint 1,10
+pm=!randitem -1,1
+pp=!randitem -1,1
+mp=!randitem 1,-1
+
+!if $R=1
+    m=!randitem 1,2,3
+ !goto KLAAR
+!endif
+
+!if $R=2
+    m=!randitem 1,2,3,-1,-2,-3
+    x=$[$pm*$x]
+    y=$[$pp*$x]
+ !goto KLAAR
+!endif
+
+!if $R>2
+    m=!randitem 3/2,5/2,5/3,7/4,4/7,3/7,7/3,4/5,5/4,3/4,4/3,7/2,2/7,2/9,9/2,8/3,3/8,5/9,9/5
+    m=($mp*$m)
+    x=$[$pm*$x]
+    y=$[$pp*$x]
+!endif
+
+
+:KLAAR
+
+answer$n=$x,$y
+
+tot=!exec pari  A=($m)*$letter1 + $y - ($m)*$x\
+printtex(A)\
+B=$letter1/(-1*($m)) + $y + $x/($m)\
+printtex(B)\
+C=($m)*$letter1-$letter1/(-1*($m))\
+printtex(C)\
+D=$y + $x/($m) -($y - ($m)*$x)\
+printtex(D) 
+    
+lijn1=!line 1 of $tot
+L1tex=!line 2 of $tot
+lijn2=!line 3 of $tot
+L2tex=!line 4 of $tot
+tussen1=!line 6 of $tot
+tussen2=!line 8 of $tot
+!if $[abs($m)]=1
+    calc=!replace internal $letter by $ $x $ in $L1tex
+!else
+    calc=!replace internal $letter by $ \cdot$x $ in $L1tex
+!endif
+L1=$letter3($letter1)=$L1tex
+L2=$letter4($letter1)=$L2tex
+formula$n=\left[ \begin{array}{l}$L1 \\ \\ $L2 \end{array}\right.
+texanswer$n=\left[ \begin{array}{ll} $letter3($letter1) = $letter4($letter1) & \\ $L1tex = $L2tex  & \\ $tussen1 = $tussen2 \rightarrow x_{$A} = $x \\ y_{$A} = $y \end{array}\right] \rightarrow $A \left( $x : $y \right) 
+applettext=!nospace ( vlist( $letter3($letter1)=$lijn1 ,., $letter4($letter1)=$lijn2 , $A ( x_$A ; y_$A ) ) ) ->
+ss=!record 18 of lang/remarks.$taal
+
+rr=!record 19 of lang/remarks.$taal
+#@ De coordinaten van het snijpunt $A zijn ($x:$y)
+#@! The co&ouml;rdinates of the intersection point $A are ($x:$y).
+#@!~ 交点 $A 的坐标是 ($x:$y).
+    
+!if $teaching=1
+    etext=!record 1 of lang/remarks.$taal
+    image=0
+    tooltip=!exec canvasdraw\
+    size 320,320\
+    bgcolor $wims_bgcolor\
+    xrange -20,20\
+    yrange -20,20\
+    axis\
+    xlabel x-axis\
+    ylabel y-axis\
+    grid 100,100,white,1,1,0,black\
+    linewidth 2\
+    curve $color1,$lijn1\
+    curve $color2,$lijn2\
+    linewidth 3\
+    point $x,$y,green\
+    string black,$x,$y,  $A\
+    intooltip $etext
+    
+    #insdraw_size=200,200
+    #!insdraw $(image$n)
+    #image_settings$n=200,200
+    #exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$etext</a>
+    
+    exotext=$tooltip <br />
+!endif
+
+helptext=<textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>( 4 : 1/5 )</textarea>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+textanswer$n=$rr

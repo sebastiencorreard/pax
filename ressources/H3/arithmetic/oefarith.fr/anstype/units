@@ -1,0 +1,66 @@
+
+dd=!deaccent $(reply$i)
+dd=!exec units-filter $dd
+dt=!word 1 of $dd
+d1=$[$dt]
+d2=!word 2 to -1 of $dd
+
+m_reply$i=$dd
+!if $wims_read_parm=nocompare
+ !if NaN isin $d1 or Inf isin $d1 or ERROR isin $d1 or $dt=$empty
+  test=NaN 
+ !endif
+ !exit
+!endif
+
+gg=!deaccent $(replygood$i)
+gg=!exec units-filter $gg
+good=!word 1 of $gg
+good1=$[$good]
+good2=!word 2 to -1 of $gg
+!if NaN isin $good or Inf isin $good or ERROR isin $good or $good=$empty
+ Test=bad $i
+ !exit
+!endif
+
+!if NaN isin $d1 or Inf isin $d1 or ERROR isin $d1 or $dt=$empty
+ test=NaN 
+ !exit
+!endif
+
+emptyunit=0 0 0 0 0 0 0 0 0
+!if $good2!=$emptyunit and $d2=$emptyunit
+ test=NaN notunit
+ !exit
+!endif
+
+tot=$[abs($good1)+abs($d1)]
+dif=$[abs($d1-($good1))]
+
+!if exact iswordof $(replyoption$i)
+ d1=!word 1 of $dd
+ good1=$good
+ dif=!exec maxima is(equal($d1,$good1));
+ !if $dif=true and $good2=$d2
+  diareply$i=good
+  !advance freegot
+ !else
+  !if sqrt($precision)*$dif<=$tot and $good2=$d2
+   !advance precgood
+   precreply$i=yes
+  !endif
+  diareply$i=bad
+ !endif 
+!else
+ !if $good2=$d2 and \
+ 	(($good1=0 and $d1=0) or ($good1!=0 and $d1!=0 and $dif*$precision<$tot))
+  diareply$i=good
+  !advance freegot
+ !else
+  !if sqrt($precision)*$dif<=$tot and $good2=$d2
+   !advance precgood
+   precreply$i=yes
+  !endif
+  diareply$i=bad
+ !endif
+!endif

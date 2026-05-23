@@ -1,0 +1,108 @@
+!set title=Aire latérale de solide 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+keywords=area, measurement
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items m,cm,dm
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val6=\mathrm{$val6}
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val7=$(tmp0)
+val8=Votre réponse
+val9=à l'unité,au dixième,au centième
+val10=Si nécessaire, donner l'arrondi
+val11=Quelle est la mesure de l'aire de la surface totale d'un prisme droit dont	  la base est un triangle équilatéral de côté,	  et dont la hauteur mesure
+tmp0=!randint 3, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 11, 19
+
+val13=$[rint($(tmp0))]
+val14=$(val11[1]) $val12 \($val6\) $(val11[2]) $val13 \($val6\)&nbsp;
+val15=sqrt(3)*$val12^2/2+3*$val13*$val12
+tmp0=!randint 1, 3
+
+val16=$[rint($(tmp0))]
+tmp0=!item $val16 of $val9
+
+val17=$(tmp0)
+val15=$[rint(($val15)*10^($val16-1))/10^($val16-1)]
+replytype1=numexp
+replyname1=
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val14?	<div class="spacer">	<label for="reply1"><b>$val8</b></label> :  
+!read oef/embed.phtml r1,5 
+$() 
+!insmath $val6^2
+$().	</div>	<div class="wims_instruction">$(val10[1]), $(val10[2]) $val17.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,10,14,17
+embedcnt=1

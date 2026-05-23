@@ -1,0 +1,90 @@
+\title{Oplossen van een stelsel vergelijkingen}
+\language{nl}
+\range{-5..5}
+\author{Guerimand Fabrice}
+\email{fwguerima@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{sizef=8}
+\integer{confparm1=\confparm1=?1}
+\integer{confparm2=\confparm2=?1}
+
+\text{champ=wims(record \confparm1 of src/generateur)}
+\text{A=row(2,\champ)}
+\text{B=row(3,\champ)}
+\text{c=item(3,\A)}
+\if{\B=}{
+ \text{a=item(1,\A)}
+ \text{b=item(2,\A)}
+ \if{\c<0}{
+  \text{valeurs=wims(values \c*v,-(\c)*v for v=\a to \b)}
+ }{
+  \text{valeurs=wims(values \c*v for v=\a to \b)}
+ }
+}{
+ \text{valeurs=\B}
+ \if{\c<0}{
+  \text{tmp=wims(replace internal , by ,- in \valeurs)}
+  \text{valeurs=wims(listunion \valeurs and \tmp)}
+ }
+}
+
+\text{valeurs=wims(listuniq \valeurs)}
+\text{valeurs=shuffle(\valeurs)}
+\text{a=item(1,\valeurs)}
+\text{b=item(2,\valeurs)}
+\text{c=item(3,\valeurs)}
+\text{d=item(4,\valeurs)}
+\text{e=item(5,\valeurs)}
+\text{f=item(6,\valeurs)}
+
+\ifval{\a*\d-\b*\c=0}{
+ \text{a=2}
+ \text{b=-1}
+ \text{c=3}
+ \text{d=4}
+}
+
+\text{g=simplify(\a*(\e)+(\b*(\f)))}
+\text{h=simplify(\c*(\e)+(\d*(\f)))}
+
+\matrix{var=x,y
+a,b
+u,v
+y,z
+r,s}
+\text{x=randrow(\var)}
+
+\text{good=( \e ; \f )}
+
+\text{tmp=(1,-1),(-1,1),(-1,-1),(1/2,1/2),(3,5),(-7,8),(-1/2,1),(1,-1/2),(2,3),(1,2),(-1,2),(-2,1)}
+\text{bad=}
+\integer{nb=12}
+\for{i=1 to \nb}{
+ \text{tmp0=item(\i,\tmp)}
+ \text{tmp1=wims(declosing \tmp0)}
+ \text{tmp2=simplify(\tmp1[1]*\e)}
+ \text{tmp3=simplify(\tmp1[2]*\f)}
+ \text{tmp4=( \tmp2 ; \tmp3 )}
+ \text{bad=wims(append item \tmp4 to \bad)}
+}
+
+\text{A=texmath(\a*\x[1])}
+\text{sB=\b<0?-:+}
+\text{b=simplify(abs(\b))}
+\text{B=texmath(\b*\x[2])}
+\text{C=texmath(\c*\x[1])}
+\text{sD=\d<0?-:+}
+\text{d=simplify(abs(\d))}
+\text{D=texmath(\d*\x[2])}
+\text{G=texmath(\g)}
+\text{H=texmath(\h)}
+
+\text{enonce=\begin{array}{rclcl}\A & \sB & \B & = & \G\\ &&&&\\ \C & \sD & \D & = & \H\end{array}}
+
+\statement{<br>
+Gegeven zijn de variabelen, \(( \x[1] ; \x[2] ))<br>Los het volgende stelsel vergelijkingen op. <center> \(\enonce)</center>}
+
+\choice{Antwoord}{\good}{\bad}

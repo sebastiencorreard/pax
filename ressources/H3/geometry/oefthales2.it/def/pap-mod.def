@@ -1,0 +1,239 @@
+!set title=Lunghezza nodo +
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r
+varcnt=54
+prevarcnt=53
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(50)]
+
+!ifval $val3=
+val3=$[rint(2)]
+!endif
+
+!ifval $val4=
+val4=$[rint(1)]
+!endif
+tmp0=!randint 1, 2
+
+val7=$[rint($(tmp0))]
+!if $val4=1 
+tmp0=!randint 2, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 10, 15
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 7, 19
+
+val10=$[rint($(tmp0))]
+!else
+tmp0=!randint 20, 90
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 100, 150
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 70, 190
+
+val10=$[rint($(tmp0))]
+val9=$[$val9/10]
+val8=$[$val8/10]
+val10=$[$val10/10]
+!endif
+val11=$[rint(1)]
+tmp=!trim A,B,C,D,E	E,F,G,H,I	M,N,O,P,Q
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val12
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+tmp0=!item 2 of $val12
+
+val14=$(tmp0)
+tmp0=!item 3 of $val12
+
+val15=$(tmp0)
+tmp0=!item 4 of $val12
+
+val16=$(tmp0)
+tmp0=!item 5 of $val12
+
+val17=$(tmp0)
+val18=$[rint(200)]
+val19=$[rint(200)]
+val20=line 20,80,180,120,black	line 90,30,110,170,black	line 20,80,90,30,red	line 180,120,110,170,red	text black,110,90,medium,$val13	text black,5,70,medium,$val15	text black,100,25,medium,$val14	text black,95,170,medium,$val16	text black,185,120,medium,$val17
+val21=$[$val8+$val9]
+tmp0=!randint 1, 2
+
+val22=$[rint($(tmp0))]
+val23=$val13$val16,$val16$val17
+val24=$val13$val14,$val14$val15
+tmp0=!item $val22 of $val23
+
+val25=$(tmp0)
+tmp0=!item $val22 of $val24
+
+val26=$(tmp0)
+!if $val7=1 
+val27=$[$val10]
+val28=$[$val9/$val8*$val27]
+val29=$[$val28]
+val30=$val25
+val31=$val30 = $val27
+val32=$val26
+val33=$val13$val15
+val34=$val13$val17
+!else
+val28=$[$val10]
+val27=$[$val8/$val9*$val28]
+val29=$[$val27]
+val30=$val26
+val31=$val30 = $val28
+val32=$val25
+val33=$val13$val17
+val34=$val13$val15
+!endif
+val35=$[rint($val29*10)]
+val29=$[$val35/10]
+val36=$val13$val17,$val13$val15,$val23,$val24,$val16$val14,$val17$val15
+
+!ifval $val11=1
+val37=$val13$val17 = $val8 
+!else
+val37=$val15$val17 = $val21 
+!endif
+!if $val3=1 
+tmp=!trim r1,r2,r3,r4
+val38=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r4
+val38=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val38 
+nextstep=!nosubst $val38 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=den1
+replygood1=$val30;$val36
+replytype2=clickfill
+replyname2=num1
+replygood2=$val33;$val36
+replytype3=clickfill
+replyname3=den2
+replygood3=$val34;$val36
+replytype4=units
+replyname4=lunghezza
+replygood4=$val29 cm
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<table>	<tr><td>	Le rette 
+!insmath $val17$val15
+$() e 
+!insmath $val16$val14
+$() si intersecano nel punto 
+!insmath $val13
+$(). Le rette 
+!insmath $val14$val15
+$() e 
+!insmath $val16$val17
+$() sono parallele. Lo scopo è calcolare la lunghezza del segmento $val32 conoscendo le seguenti lunghezze:	<ul>	<li>$val37 cm </li>	<li>$val13$val15 = $val9 cm </li>	<li>$val31 cm </li>	</ul>	</td>	<td><div class="wimscenter"> 
+!read oef/draw.phtml $val18,$val19 \
+$val20 
+$()</div>	<div class="wims_instruction">	Il disegno è indicativo e non rispetta la lunghezza dell'enunciato-	</div>	</td></tr></table>	
+!if $val3=1 
+$()	<b>Domanda 1</b>: Utilizzando il teorema di Talete, scrivere la proporzione che permette di trovare la lunghezza di 
+!insmath $val32
+$().	<table class="wimscenter wimsnoborder">	<tr><td>$val32</td><td></td><td> 
+!read oef/embed.phtml reply 2,$val6 
+$()</td>	</tr><tr>	<td><hr /></td><td>=</td>	<td><hr /></td>	</tr><tr>	<td> 
+!read oef/embed.phtml reply 1,$val6 
+$()</td><td></td><td>  
+!read oef/embed.phtml reply 3,$val6 
+$()</td>	</tr></table>	<b>Domanda 2</b>: Qual è la lunghezza, a meno di un millimetro, di $val32? <br/>	Risposta :  
+!read oef/embed.phtml reply 4, 10 
+$() 
+!else
+$()	 Qual è la lunghezza, a meno di un millimetro, di $val32? 
+!endif
+$()	<div class="wims_instruction">	Come separatore per i decimali utilizza il punto.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,9,13,14,15,16,17,18,19,20,31,32,37
+embedcnt=4

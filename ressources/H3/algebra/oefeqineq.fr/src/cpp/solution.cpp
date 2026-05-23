@@ -1,0 +1,58 @@
+target=solution
+#include "author.inc"
+#define NUM
+#include "lang_titles.inc"
+#include "lang.inc"
+\precision{10000}
+
+\integer{a=random(2..9)}
+\integer{b=random(2..9)}
+\integer{ab=\a*\b}
+\integer{a2=\a^2}
+
+\text{x=randitem(x,y,a,b,c,z)}
+
+\text{don=(\b*\x+\ab=0,2),(\x^2-1/\a2=0,3,4),((\x-\a)*(\x+\a)=0,2,5),(\x^2+\a2=0,6),(
+(\x-1/\a)^2=0,4),((\x+1/\a)^2=0,3),(\x^2-\a2=0,2,5)}
+
+\text{don=shuffle(\don)}
+\text{aff=}
+\text{good=}
+\for{i=1 to 5}{
+ \text{tmp=item(\i,\don)}
+ \text{tmp=wims(declosing \tmp)}
+ \text{tmp1=item(1,\tmp)}
+ \text{tmp1=texmath(\tmp1)}
+ \text{tmp1=\(\tmp1)}
+ \text{aff=wims(append item \tmp1 to \aff)}
+ \text{tmp1=wims(item 2 to -1 of \tmp)}
+ \text{good=wims(append line \tmp1 to \good)}
+}
+
+\text{good1=row(1,\good)}
+\text{good2=row(2,\good)}
+\text{good3=row(3,\good)}
+\text{good4=row(4,\good)}
+\text{good5=row(5,\good)}
+
+\text{affligne=-\a2,-\a,\(-\frac{1}{\a}),\(\frac{1}{\a}),\a,\name_none}
+\statement{\name_question
+<table class="wimscenter wimsborder">
+<tr>
+<th>\name_header[1]</th>
+<th>\name_header[2]</th>
+</tr>
+\for{j=1 to 5}{
+ <tr>
+  <td><label for="reply\j">\aff[\j]</label></td>
+  <td>\embed{r \j}</td>
+ </tr>
+}
+ </table>
+}
+
+\answer{question 1}{\good1;\affligne}{type=checkbox}
+\answer{question 2}{\good2;\affligne}{type=checkbox}
+\answer{question 3}{\good3;\affligne}{type=checkbox}
+\answer{question 4}{\good4;\affligne}{type=checkbox}
+\answer{question 5}{\good5;\affligne}{type=checkbox}

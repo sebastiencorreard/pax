@@ -1,0 +1,142 @@
+# exo20 HTML5  lijn en hellingsgetal
+n=$counter
+mathview=0
+embed=0
+checkfile=exos/checkfile3.proc
+math=0
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+inputs=1.1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+m_rightarrow=&nbsp;=&nbsp;
+inputtext=!record 2 of lang/remarks.$taal
+helling=!item 2 of $inputtext
+description=$helling &nbsp;:&nbsp;,&nbsp;
+#formula$n=\textrm{$helling} = \input{6}{0}{font-size:16pt;background-color:orange;color:blue;text-align:center}{?}{0}
+sometext=!record 40 of lang/remarks.$taal
+#@uitkomst:getal,bedrag:tijd,afstand:tijd,hoogte:tijd
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+ylabel=!item 1 of $ding
+xlabel=!item 2 of $ding
+keuze=!randitem 1,0
+
+!if $R=1
+    c=!randint 1,5
+    !if $keuze=1
+	a=1
+	x1=!randint 0,3
+	func=$a*x + $c
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } \,=\, \textrm{ $xlabel } + $c  \\ \textrm{ $helling } = $a \end{array} \right.
+    !else
+	a=!randint 2,5
+	x1=!randitem 0,1,2
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } \,=\, $a \times  \textrm{$x } \\  \textrm{ $helling } = $a   \end{array} \right.
+	func=$a*x
+    !endif
+    f=!randitem 1,2,3
+    var3=$a
+!else
+    !if $R=2
+	a=!randint 2,6
+	c=!randint 1,5
+	!if $keuze=1
+	    pm=+
+	    x1=!randitem 0,1,2
+	!else
+	    pm=-
+	    x1=!randitem 2,3,4
+	!endif
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } \,=\, $a \times \textrm{ $xlabel } $pm $c \\  \textrm{ $helling } = $a  \end{array} \right.
+	func=$a*x $pm $c
+	f=!randitem 2,3,4
+    !else
+	a=!randitem 0.5,1.5,2,2.5,3,3.5,4
+	mp=!randitem 1,-1
+	a=$[$mp*$a]
+	pm=!randitem +,-
+	f=!randitem 2,4
+	y=y
+	x=x
+	!if $mp=1
+	    c=!randint 1,5
+	    x1=!randitem 0,2,4
+	    texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } \,=\, $a \cdot \textrm{ $xlabel } $pm $c \\  \textrm{ $helling } = $a  \end{array} \right.
+	    func=$a*x $pm $c
+	!else
+	    c=!randint 5,15
+	    x1=!randitem 0,2,4
+	    texanswer$n=\left[ \begin{array}{l} \textrm{ $ylabel } \,=\, $a \cdot \textrm{ $xlabel } + $c \\  \textrm{ $helling } = $a \end{array} \right.
+	    func=$a*x+$c
+        !endif
+    !endif
+!endif
+
+# x1 is altijd positief --> xmin is -5
+x2=$[$x1+$f]
+y1=!evalsubst x=$x1 in $func 
+y2=!evalsubst x=$x2 in $func 
+
+ymax1=$[10*(ceil($y1/10))+4]
+ymax2=$[10*(ceil($y2/10))+4]
+ymax=$[max($ymax1,$ymax2)]
+ymin1=$[10*(floor($y1/10))-4]
+ymin2=$[10*(floor($y2/10))-4]
+ymin=$[max($ymin1,$ymin2)]
+
+xmax1=$[10*(ceil($x1/10))+4]
+xmax2=$[10*(ceil($x2/10))+4]
+xmax=$[max($xmax1,$xmax2)]
+xmin1=$[10*(floor($x1/10))-4]
+xmin2=$[10*(floor($x2/10))-4]
+xmin=$[max($xmin1,$xmin2)]
+!if $xmax<1
+    xmax=4
+!endif
+!if $xmin>-1
+    xmin=-4
+!endif
+!if $ymin>-1
+    ymin=-4
+!endif
+!if $ymax<1
+    ymax=4
+!endif
+
+answer$n=$func,$a
+helptext=$empty
+ss=!record 51 of lang/remarks.$taal
+#@Teken de lijn in de GeoGebra applet door de gegeven punten en bepaal het daarbij horende hellingsgetal.<br />
+question$n=$ss
+# x1=$x1 x2=$x2 y1=$y1 y2=$y2 xmax=$xmax ymax=$ymax
+var9=size 400,400\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+precision 10\
+axis\
+axisnumbering\
+xlabel $xlabel\
+ylabel $ylabel\
+grid 2,2,grey,2,2,6,blue\
+linewidth 1\
+replyformat 21\
+userdraw line,red\
+precision 100\
+mouse blue,22\
+zoom blue
+
+applet=1
+object$n=!exec canvasdraw \
+$var9
+
+!exit
+

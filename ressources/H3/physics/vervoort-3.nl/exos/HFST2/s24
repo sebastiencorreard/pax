@@ -1,0 +1,47 @@
+n=$counter
+mathview=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+inputs=1.1
+#varieer in 100 mL met pH = 2 100 in waardes van 100 tot 500 en pH van 1 tot 2 met stapjes 0
+#varieer in 100 mL met pH = 3 100 in waardes van 100 tot 500 pH van 2 tot 3 met stapjes 0,1
+ph1=!randint 10,20
+ph2=!randint 21,30
+sig=3
+tot=!exec moneyprint $[$ph1/10],$[$ph2/10] 2
+ph1=$(tot[1])
+ph2=$(tot[2])
+v1=!randint 10,50
+mv1=$[$v1*10]
+v1=$[$v1/100]
+ss=$mv1 mL van een zuur met pH=$ph1 wordt verdund met water tot de pH=$ph2<br />\
+Bereken hoeveel liter water je toe moet voeren.<br />De H<sub>3</sub>O<sup>+</sup> in het water mag je verwaarlozen .
+
+
+#<br />Het aantal H<sub>3</sub>O<sup>+</sup>-ionen in het water mag je verwaarlozen.
+v2=$[$v1*10^($ph2-$ph1)]
+v3=$[$v2-$v1]
+tot=!exec scienceprint $v2,-1,2 $v3,$sig,0 $v3,$sig,2
+t_v2=$(tot[1])
+c_v3=$(tot[2])
+t_v3=$(tot[3])
+answer$n=$v3
+var1=$[abs($v3 - $c_v3)]
+var2=100
+helptext=<img src=\'$module_dir/gifs/hfst2.s24.jpg\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+ex1=Liter
+description=Het toe te voeren volume
+texanswer$n=\left[ \begin{array}{l} $v1 \times 10^{-$ph1} \rightarrow V_{2} \times 10^{-$ph2}  \\ V_{2} = \frac{$v1 \times 10^{-$ph1} }{ 10^{-$ph2}} = $v1 \times 10^{$ph2-$ph1} = $t_v2 \;L \\ \textrm{toegevoegd :} $t_v2 - $v1 = $t_v3 \;L \end{array}
+
+#\begin{array}{l}\textrm{Het aantal mol }\;H_{3}O^{+} \; \textrm{blijft gelijk} \\ \textrm{We passen toe: } \\ V_{1} \cdot c_{1} + V_{2} \cdot c_{2} = (V_{1}+V_{2}) \cdot c_{3} \\ V_{1} \cdot c_{1} + V_{2} \cdot c_{2} = V_{1} \cdot c_{3} + V_{2} \cdot c_{3} \\ V_{2} \cdot c_{2} - V_{2} \cdot c_{3} = V_{1} \cdot c_{3} - V_{1} \cdot c_{1} \\ V_{2} \cdot ( c_{2} - c_{3})  = V_{1} \cdot (c_{3} - c_{1}) \\ \special{color=red}V_{2} = V_{1} \cdot \frac{(c_{3} - c_{1})}{(c_{2} - c_{3})} \\ V_{1} = $v1 \; L \\ V_{2} = [?] \\ c_{1} : pH = $ph1 \rightarrow \left[ H_{3}O^{+} \right] = c_{1} = 10^{-$ph1} \; mol / L \\ c_{2} : \textrm{de pH van verdunningswater} \; c_{2}= 10^{-7} mol/L \; H^{+} \\ c_{3} : pH = $ph2 \rightarrow \left[ H_{3}O^{+} \right] = c_{3}= 10^{-$ph2} \; mol / L \\ V_2 = $v1 \cdot \frac{10^{-$ph2} - 10^{-$ph1}}{ 10^{-7} - 10^{-$ph2}} \approx $v2 \;L \\ \textrm{Dit antwoord op $sig significante cijfers : } $t_v2 L  \end{array}
+
+!exit
+#formula$n=\size[200]{ c_{1} \cdot V_{1} + c_{2} \cdot V_{2} = c_{3} \cdot V_{3}}
+
+
+
+
+
+
+

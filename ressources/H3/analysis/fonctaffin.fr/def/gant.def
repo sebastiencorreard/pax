@@ -1,0 +1,259 @@
+!set title=12. Antécédent (graph)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> <script> jQuery(function(){ jQuery(".accordion").accordion({ collapsible: true, active: false, }); } ); function animateBoundingBox(board,targetBbox,duration) { var startBbox=board.getBoundingBox().slice(); var fps=60, totalFrames=Math.ceil(duration*fps/1000), frame=0; function step() { frame++; var t=frame/totalFrames; if (t>1) t=1; var interpBbox=startBbox.map(function(startVal,i) { var endVal=targetBbox[i]; return startVal+(endVal-startVal)*t; }); board.setBoundingBox(interpBbox); board.update(); if (t<1) { requestAnimationFrame(step); } } requestAnimationFrame(step); } function blink(node, duration, interval) { var visible = false; var blinkId = setInterval(function() { if (visible === true) { visible = false; } else { visible = true; } node.setAttribute({ visible: visible }); board2.update(); }, interval); setTimeout(function() { clearInterval(blinkId); node.setAttribute({ visible: true }); board2.update(); }, duration); } </script> 
+
+ansorder=r
+varcnt=80
+prevarcnt=74
+postvarcnt=5
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+val7=0.5,1.5,2,2.5,-0.5,-1.5,-2,-2.5
+val8=1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+!if $val3=1 
+tmp0=!shuffle $val7
+
+val9=$(tmp0)
+!endif
+!if $val3=2 
+tmp0=!shuffle $val8
+
+val9=$(tmp0)
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp0=!shuffle $val7,$val8
+
+val9=$(tmp0)
+!endif
+val9=$[$(val9[1])]
+!if $val2=1 
+tmp0=!shuffle -4,-3.5,-3,-2.5,-2,-1.5,-1,-0.5,0.5,1,1.5,2,2.5,3,3.5,4
+
+val10=$(tmp0)
+val11=$[$(val10[1])]
+val12=affine
+!else
+val11=$[rint(0)]
+val12=linéaire
+!endif
+val13=$[rint((-5-$val11)/$val9)]
+val14=$[rint((5-$val11)/$val9)]
+!if $val9>0 or $val9=0 
+val15=$[rint($val13)]
+val16=$[rint($val15-2)]
+val17=$[rint($val14)]
+val18=$[rint($val17+1)]
+!else
+val15=$[rint($val14)]
+val16=$[rint($val15-2)]
+val17=$[rint($val13)]
+val18=$[rint($val17+1)]
+!endif
+tmp0=!makelist x for x=$val15 to $val17 step 0.5
+
+tmp1=!shuffle $(tmp0)
+
+val19=$(tmp1)
+val20=$(val19[1])
+val21=$[$val11/(1-$val9)]
+!if $val20=$val21 and $val11<>0 
+val20=$[$val20*(-1)]
+!endif
+val22=$val9*x+$val11
+val23=$[$val9*($val20)+($val11)]
+!readproc slib/numeration/ecriturenombre $val23,comma 
+tmp0=$slib_out
+val24=$(tmp0)
+!readproc slib/numeration/ecriturenombre $val20,comma 
+tmp0=$slib_out
+val25=$(tmp0)
+val26=$[rint(max($val17-2,1))]
+val27=$[rint(min($val15+2,-1))]
+!if $val20<0 
+tmp0=!randint $val26, $val17
+
+val28=$[$(tmp0)]
+!endif
+!if $val20>0 or $val20=0 
+tmp0=!randint $val15, $val27
+
+val28=$[$(tmp0)]
+!endif
+val29=$[rint(max(5,$val9*($val28)+$val11+1))]
+val30=$[rint(min(-5,$val9*($val28)+$val11-1))]
+val31=$val16,$val29,$val18,$val30
+val32=$[$val9+$val11]
+val33=image
+val34=antécédent
+val35=$[$val9*($val23)+$val11+0.1]
+val36=$[$val9*($val23)+$val11-0.1]
+val37=$[$val20+0.1]
+val38=$[$val20-0.1]
+val39=$val24
+val40=$[(round($val20*100))/100]
+!readproc slib/numeration/ecriturenombre $val40,comma 
+tmp0=$slib_out
+val41=$(tmp0)
+val42=var deuxlignes=antv + '<br>$val34'
+val43=var uneligne=imgv
+val44=defaultAxes: {	    x: {ticks:{insertTicks:false,ticksDistance:2,drawLabels:true,minorTicks:0}},	    y:{ticks:{insertTicks:false,ticksDistance: 2,drawLabels:true,minorTicks:0}}	    },	    grid:{drawGrid:true,gridX:1,gridY:1,}	
+val33=image
+val34=antécédent
+val45=JXG.Options.label.autoPosition = true;	JXG.Options.elements.highlight = false;	var board=JXG.JSXGraph.initBoard('jsxbox',{boundingbox: [$(val31[1]),$(val31[2]),$(val31[3]),$(val31[4])], showCopyright:false, showNavigation:true,axis:true,keepAspectRatio:false,	$val44});	var sx = sessionStorage.getItem('A_x');	var sy = sessionStorage.getItem('A_y');	var initX;	if (sx == null || isNaN(sx) === true) {	  initX = $val28;	} else {	  initX = parseFloat(sx);	}	var initY;	if (sy == null || isNaN(sy) === true) {	  initY = 0;	} else {	  initY = parseFloat(sy);	}	var graph = board.create('line',[[0,$val11],[1,$val32]],{strokeWidth:2,strokeColor:'red',fixed:true});	var point = board.create('glider', [initX,initY,graph], {face:'cross',name:'A',label:{fontSize:18},size:8,color:'black',showInfobox:false});	var ptx = board.create('point', [function(){return point.X()},0], {face:'cross',name:'',size:4,color:'brown',showInfobox:false,visible:false});	var tx=board.create('text',[function(){return point.X();},function(){return point.Y()>0?-0.5:0.7;},function(){var x=Number(JXG.toFixed(point.X(),2));	                                                                       return x.toLocaleString('fr-FR');}]	                          ,{fontSize:14,StrokeColor:'blue',anchorX: 'middle',anchorY:function(){return point.Y() > 0 ? 'top' : 'top';}});	var segx=board.create('segment',[point,ptx],{color:'blue',dash:2,strokeWidth:2});	var pty = board.create('point', [0,function(){return point.Y()}], {face:'cross',name:'',size:4,color:'brown',showInfobox:false,visible:false});	var ty=board.create('text',[function(){return point.X()>0?-0.5:0.5;},function(){return point.Y()},function(){var y=Number(JXG.toFixed(pty.Y(),2));	                                                                      return y.toLocaleString('fr-FR');}]	                             ,{fontSize:14,StrokeColor:'green',anchorY: 'middle',anchorX:function(){return point.X() > 0 ? 'right' : 'left';}});	var segy=board.create('segment',[point,pty],{color:'green',dash:2,fontSize:4,strokeWidth:2});	point.on('drag', function() {	var x = Number(JXG.toFixed(this.X(), 2));	var y = Number(JXG.toFixed(this.Y(), 2));	sessionStorage.setItem('A_x', x);	sessionStorage.setItem('A_y', y);	});	
+!readproc slib/geo2D/jsxgraph jsxbox board,[350x350, min=250px max=350px left],$val45 
+tmp0=$slib_out
+val46=$(tmp0)
+val47=JXG.Options.label.autoPosition = true;	var board2 = JXG.JSXGraph.initBoard('jsxbox2', {	  boundingbox: [-6,6,6,-6],axis:true,	  showCopyright: false,	  showNavigation: true,	  axis: true,	  keepAspectRatio: false,	$val44});	var graph = board2.create('line',[[0,$val11],[1,$val32]],{strokeWidth:2,strokeColor:'red'});	var pMid = board2.create('point', [$val20, $val23], {	  name: '',	  fixed: true,	  face: 'cross',	  size: 8,	  color: 'black',	  showInfobox: false,	  visible: false,	});	var pant = board2.create('point', [$val20,0], {	  name: '',	  fixed: true,	  face: '',	  size: 4,	  color: 'brown',	  showInfobox: false,	  visible: false,	});	var pimg = board2.create('point', [0,$val23], {	  name: '',	  fixed: true,	  face: '',	  size: 4,	  color: 'brown',	  showInfobox: false,	  visible: false,	});	var ant=Number($val20);	var antv=ant.toLocaleString('fr-FR');	$val42;	var tant = board2.create('text', [$val20,function() { return $val23 > 0 ?-0.3:0.2;},deuxlignes], {	  fontSize: 14,	  strokeColor:'blue',	  visible: false,	  anchorX: 'middle',	  anchorY: function() { return $val23 > 0 ? 'top' : 'bottom'; },	});	var img=Number($val23);	var imgv=img.toLocaleString('fr-FR');	$val43;	var timg = board2.create('text', [function() { return $val20 > 0 ? -0.2:0.2;}, $val23,uneligne], {	  fontSize: 14,	  strokeColor:'green',	  visible: false,	  anchorY: 'middle',	  anchorX: function() { return $val20 > 0 ? 'right' : 'left'; }});	var xA = pMid.X(), yA = pMid.Y();	var xA = pMid.X(), yA = pMid.Y();	var targetBbox2;	if (yA > 0 && xA > 0) {targetBbox2=[-1.5,yA*1.3,xA*1.3,-1.5];}	else if (yA > 0 && xA < 0) {targetBbox2 = [xA*1.3,yA*1.3,1.5,-1.5];}	else if (yA < 0 && xA > 0) {targetBbox2 = [-1.5,1.5,xA*1.3,yA*1.3];}	else if (yA < 0 && xA < 0) {targetBbox2 = [xA*1.3,1.5,1.5,yA*1.3];}	else targetBbox2 = board2.getBoundingBox();	
+val47=$val47	function startAnimation(){	  timg.setAttribute({size:10,color:'green',visible:false});	  blink(timg,3000,100);	  pMid.setAttribute({visible:false});	  timg.setAttribute({visible:true});	  tant.setAttribute({visible:false});	  var arrow1 = board2.create('arrow',[[0,$val23],[0,$val23]],{strokeColor:'green',lastArrow:1,dash:2});	  var t1 = 0;	  var interval1 = setInterval(function(){	    t1+= 0.02;	    arrow1.point2.moveTo([t1*$val20, $val23], 0);	    if(t1>=1){	      clearInterval(interval1);	      pMid.setAttribute({visible:true});	      arrow1.setAttribute({lastArrow:0});	      setTimeout(startArrow2,500);	           }	    },30);	    function startArrow2(){	      var arrow2=board2.create('arrow',[[$val20,$val23],[$val20,$val23]],{strokeColor:'blue',lastArrow:1,dash:2});	      var t2=0;	      var interval2=setInterval(function(){	      t2+=0.02;	      var yEnd=$val23*(1-t2);	      arrow2.point2.moveTo([$val20,yEnd],0);	      if(t2>=1){	        clearInterval(interval2);	        arrow1.setAttribute({visible:true});	        tant.setAttribute({visible:true});	        arrow2.setAttribute({lastArrow:0});	        blink(tant,3000,100);	        setTimeout(function(){	          board2.removeObject(arrow1);	          board2.removeObject(arrow2);	          tant.setAttribute({visible:false});	          pMid.setAttribute({visible:false});	          startAnimation();	          },3000);	        }	    },30);	  }	  }	var btnExt = document.getElementById('startBtn2');	  btnExt.addEventListener('click', function() {	    btnExt.disabled = true;	    blink(timg,3000,100);	    setTimeout(animateBoundingBox(board2, targetBbox2, 1200),6000);	    setTimeout(startAnimation, 1250);	  });	
+!readproc slib/geo2D/jsxgraph jsxbox2 board2,[350x350, min=250px max=350px left],$val47 
+tmp0=$slib_out
+val48=$(tmp0)
+val49=On considère la représentation graphique d'une fonction affine
+val50=On considère la représentation graphique d'une fonction linéaire
+val51=Compléter la phrase (vous pouvez déplacer le point <span class="nowrap">\(\mathrm{A}\))&nbsp;:</span>
+val52=Réponse
+val53=Vous donnerez la réponse la plus précise possible.<p>Une marge d'erreur inférieure à 0&#44;1 est acceptée.</p>
+val54=Dans un repère, la représentation graphique d'une fonction \($val6\) est l'ensemble des points de coordonnées <span class="nowrap">\((x \, ; \, y)\) avec \(y=$val6(x)\).</span>
+val55=Vous semblez confondre image et antécédent.
+val56=Bonne réponse
+val57=par la fonction \($val6\) est égal à
+val58=Par lecture graphique, l'antécédent de
+val59=<b><span style="color: red;">L'antécédent</span></b> du nombre \($val24\) par la fonction \($val6\) est, par définition,	<b><span style="color: red;">l'abscisse</span></b> du point de la droite dont l'ordonnée est <span class="nowrap">\($val24\).</span><p>	On se place sur le point de la droite dont l'ordonnée est \($val24\) puis, on lit son abscisse.
+val60=Par lecture graphique, \($val24\) a pour antécédent \($val41\) par la fonction
+
+!ifval $val2=1
+val61=$val49
+!else
+val61=$val50
+!endif
+val62=euler_answer_nobg
+replytype1=auto
+
+replyname1=$val56
+replygood1=?analyze 63
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val54
+
+help=!nosubst <b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val61 <span class="nowrap">
+!insmath $val6
+$().</span>	<div class="container">	  $val46	  <div>	    <div class="euler_quest_nobg spacer">$val51</div>	    <div class="$val62"><label for="reply1">$val58 
+!insmath $val39
+$() $val57 </label>  
+!read oef/embed.phtml r1,5 
+$().</div>	<div class="wims_instruction spacer">$val53</div>	</div>	</div>
+$()
+!exit
+
+:hint
+$()$val54
+$()
+!exit
+
+:help
+$()<b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+$()
+!exit
+
+:solution
+$()	<div class="container">	   <div class="image-block">	     <button id="startBtn2" style="background-color: #ddd;border: 1px solid #bbb;border-radius: 6px;padding: 8px 14px;font-size: 1rem;cursor: pointer;transition: background 0.2s;margin-bottom: 8px;">Démarrer l’animation</button>	     <div class="image-wrapper">$val48</div>	   </div>	   <div class="table-wrapper">$val59	    <p>$val60 <span class="nowrap">
+!insmath $val6
+$().</span></p>	   </div>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal , by . in $val63
+
+val64=$(tmp0)
+!if $val64>$val38 and $val64<$val37 
+val65=$[rint(1)]
+!else
+val65=$[rint(0)]
+!endif
+!if $val65<1 
+val62=euler_rep_bad_nobg cross
+!else
+val62=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+!ifval $val64<$val35 and $val64>$val36 and $val11<>0
+ <div class='oef_feedbacks'><div class="highlight">$val55</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val65=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val56
+
+!exit
+
+:stat
+vsavelist=6,11,35,36,37,38,39,46,48,51,53,54,55,56,57,58,59,60,61,62,63
+embedcnt=1

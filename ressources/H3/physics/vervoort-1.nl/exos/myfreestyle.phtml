@@ -1,0 +1,124 @@
+!! 7 types of input are possible with this page , single or in any combination
+!! 1) mathview inputapplet via id="MathView" ; 
+!! 2) inputfields via id="myinput0" ... id="myselect100"
+!! 3) selectboxes via id="myselect0" ... id="myselect100"
+!! 4) mathml inputfields via id="mathml0" ... id="mathml100"
+!! 5) svg answer (via draw or inputfields/textarea [ read_svg();]
+!! 6) FlyApplet drawing via ReadDrawing() : coordinates/points/lines x1:y1,x2:y2,x3:y3....x_n:y_n (wordmax (=20) is adjustable upperlimit ; wordmin (=1) is adjustable underlimit) from FlyApplet0...FlyApplet100
+!! 7) InvulGrid applet via ReadApplet(0,1,2,3) ; carefull applet produces large strings (html/latex)
+
+<script type="text/javascript">
+!if $my_arrows=$empty
+    !set my_arrows=2
+!endif
+//<![CDATA[
+<!-- no validator  -->
+    <!-- do not use "' in description -->
+    var descr_list="$description";
+    var descr_cnt = 30;
+    var description = make_description(descr_list,descr_cnt);
+
+    function sendanswer(){
+	var input;
+	var show="<ol>";
+	var tmp_show;
+	var inputfieldnumber = 0;
+	var reply = new Array();
+	if(document.getElementById("myinput0")){
+	    var p=0;
+	    while(document.getElementById("myinput"+p)){
+		input = document.getElementById("myinput"+p).value;
+		if(input.length == 0){setAlarm(r1+"\ "+parseInt(p+1));return;}
+		input = nthroot(input);if(input == "error"){return;}
+		if(input.indexOf(',') != -1){setAlarm(r4);return;}
+		!if $use_ineq!=1
+		    // all arrows will be converted to "->" or only last answer will be stored 
+		    input = arrows(input,$my_arrows,"","");if(input == "error"){return;}
+		!endif
+		if(check_f(input) == 0){return;}
+		if(check_o(input) == 0){return;}
+		if(check_log_NaN(input) == 0){return;}
+		if(check_sqrt_NaN(input)==0){return;}
+		input = science(input);if(input == "error"){return;}
+		if(check_x(input) == 0){return;}
+		tmp_show = input;
+		if( input.indexOf("[") !=- 1 ){
+		    if(input.indexOf("sqrt[")!=-1){input=specialroot(input);if(input=="error"){return;}}
+		    if(input.indexOf("log[")!=-1){input=speciallog(input);if(input=="error"){return;}}
+		    if(input.indexOf("[") != -1){setAlarm(r13);return;}
+		}
+		input=input.replace(/#/g,' ');
+		reply[inputfieldnumber] = input;
+		if( tmp_show.indexOf('<') != -1 || tmp_show.indexOf('>') != -1 ){
+		    //  no interferance with arrows : "->"
+		    if( input.indexOf('=>') != -1){setAlarm("<span style=\'color:red;size:300%\'>x&nbsp;=&gt;&nbsp;2</span><br /><span style=\'color:green;size:300%\'>x&nbsp;&gt;= &nbsp;2&nbsp;&nbsp;&nbsp;[x&nbsp;&ge;&nbsp;2]</span>");return;}
+		    if( input.indexOf('=<') != -1){setAlarm("<span style=\'color:red;size:300%\'>x&nbsp;=&lt;&nbsp;2</span><br /><span style=\'color:green;size:300%\'>x&nbsp;&lt;= &nbsp;2&nbsp;&nbsp;&nbsp;[x&nbsp;&le;&nbsp;2]</span>");return;}
+		    tmp_show=tmp_show.replace(/\>=/g,'&ge;');
+		    tmp_show=tmp_show.replace(/\<=/g,'&le;');
+		    tmp_show=tmp_show.replace(/\>/g,'&gt;');
+		    tmp_show=tmp_show.replace(/\</g,'&lt;');
+		}
+		show = show + "<li>"+description[inputfieldnumber] + "&nbsp;:&nbsp;" + tmp_show + "</li>";
+		inputfieldnumber++;
+		p++;
+		if(p>100){setAlarm(r2);dontknow();}
+	    }
+	    if(reply[0].length == 0 ){setAlarm(r1);}
+	    myConfirm(show,reply,'$wims_ref_name','$session','$module','$counter','$ok_send_color');
+	}
+    }
+//]]>
+</script>
+<table id="exercise" class="exercise" ><!-- begin table id=exercise -->
+    <tr>
+!if $embed = 1
+    <td class="exercise_m">
+	!insmath $(formula$n)
+    </td>
+    <td class="exercise_m" id="use_inputs">
+    !set ans=!lines2items $(answer$n)
+    !for p=1 to $inputs
+    	<input type="text" id="myinput$[$p-1]" class="schaersvoorde_input" size="$cols" value="">&nbsp;$ex1
+    	<br />
+    !next p
+    </td>
+!else
+    <td class="execise_t">
+	<table class="zebra_table_h2">
+	!set c=1
+	!for p=1 to $inputs
+	    <tr>
+	    <td class="execise_t">
+		$(description[$p])
+	    </td>
+	    <td>
+		$m_rightarrow
+	    </td>
+	    <td class="execise_t">
+		<input id="myinput$[$p-1]" class="schaersvoorde_input" type="text" size="$cols" value="" />	    
+	    </td>
+	    <td class="execise_t">
+		$(ex$p)
+	    </td>
+	    </tr>
+	!next p
+	</table>
+    </td>
+!endif
+    </tr>
+</table>
+<script type="text/javascript">
+//<![CDATA[
+<!-- no validator  -->
+<!-- do not use "' in description -->
+!if $wims_user=supervisor
+    !set ans=!lines2items $(answer$n)
+    var answers = make_description("$ans",$inputs);
+    var p=0;
+    while(document.getElementById('myinput'+p)){
+	document.getElementById('myinput'+p).value = answers[p];
+	p++;
+    }
+!endif
+//]]>
+</script>

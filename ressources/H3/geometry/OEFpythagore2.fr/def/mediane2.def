@@ -1,0 +1,193 @@
+!set title=Propriétés de la médiane 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=P, Olivetti
+language=fr
+precision=1000
+
+ansorder=r,r
+varcnt=48
+prevarcnt=47
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+val10=$(val6[4])
+tmp0=!randint 80, 85
+
+val11=$[rint($(tmp0))]
+tmp0=!random 1, 359
+
+val12=$[$(tmp0)/180*pi]
+tmp0=!random 60, 120
+
+val13=$[$(tmp0)/180*pi]
+val14=$[100+($val11*cos($val12))]
+val15=$[100+($val11*sin($val12))]
+val16=$[100-($val11*cos($val12))]
+val17=$[100-($val11*sin($val12))]
+val18=$[100+($val11*cos($val13+$val12))]
+val19=$[100+($val11*sin($val13+$val12))]
+val20=$[($val14+$val16)/2]
+val21=$[($val15+$val17)/2]
+val22=$[$val14-($val18)]
+val23=$[$val15-($val19)]
+val24=$[$val16-($val18)]
+val25=$[$val17-($val19)]
+val26=$[sqrt(($val22)^2+($val23)^2)]
+val27=$[sqrt(($val24)^2+($val25)^2)]
+val28=$[rint(10)]
+val29=$val18 + ($val22)/($val26)*$val28
+val30=$val19 + ($val23)/($val26)*$val28
+val31=$val18 + ($val24)/($val27)*$val28
+val32=$val19 + ($val25)/($val27)*$val28
+val33=$[$val31 + ($val22)/($val26)*$val28]
+val34=$[$val32 + ($val23)/($val26)*$val28]
+!if cos($val12)>0 
+
+!ifval sin($val12)<0
+val35=$[7]
+!else
+val35=$[14]
+!endif
+
+!ifval sin($val12)<0
+val36=$[-12]
+!else
+val36=$[0]
+!endif
+val37=$[-4]
+
+!ifval sin($val12)<0
+val38=$[+2]
+!else
+val38=$[-14]
+!endif
+!else
+val35=$[0]
+
+!ifval sin($val12)>0
+val36=$[3]
+!else
+val36=$[-8]
+!endif
+
+!ifval sin($val12)>0
+val37=$[-8]
+!else
+val37=$[+3]
+!endif
+val38=$[-7]
+!endif
+!readproc oef/draw.phtml 215,215 \
+text black,$val14+$val36,$val15-$val35,medium, $val7	text black,$val16+$val36,$val17-$val35,medium,$val8	text black,$val18+$val37,$val19-$val38,medium,$val9	polygon blue,$val18,$val19,$val29,$val30,$val33,$val34,$val31,$val32	polygon blue,$val14,$val15,$val16,$val17,$val18,$val19	text black,$val20+$val36,$val21-$val35,medium,$val10	segment $val18,$val19,$val20,$val21,blue 
+tmp0=$ins_url
+val39=$(tmp0)
+tmp0=!randint 5, 55
+
+val40=$[rint($(tmp0))]
+val41=$[$val40/2]
+val42=$[$val40-3]
+tmp0=!randint 1, 9
+
+val43=$[rint($(tmp0))]
+val44=$[$val41+ 0.5]
+val45=$[$val41+ $val43]
+val46=$[$val42/2]
+val47=$val41 cm,$val44 cm,$val45 cm,$val46 cm, $val40 cm
+val48=Propriété de la médiane, Réciproque de la médiane, Théorème de Pythagore
+replytype1=radio
+replyweight1=8 
+replyname1=Question 1
+replygood1=1;$val47
+replytype2=checkbox
+replyweight2=2 
+replyname2=Question 2
+replygood2=1;$val48
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst Une médiane est une demi-droite qui passe par un sommet et qui coupe le côté relatif en son milieu.
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Le triangle 
+!insmath $val7$val8$val9
+$() est rectangle en 
+!insmath $val9
+$() comme le montre la figure ci-dessous.	<div class="wimscenter"><img src="$val39" alt=""> </div>		On sait que 
+!insmath $val7$val8 = $val40
+$() cm et 
+!insmath $val8$val9 = $val42
+$() cm.		<ol>		    <li><b> Quelle est la longueur de la médiane 
+!insmath ($val9$val10)
+$() issue de l'angle droit ? </b>  
+!read oef/embed.phtml r1 
+$() </li>	    <li><b> Quelle propriété utilisez-vous ? </b>  
+!read oef/embed.phtml r2 
+$()</li>		</ol>	
+$()
+!exit
+
+:hint
+$()Une médiane est une demi-droite qui passe par un sommet et qui coupe le côté relatif en son milieu.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()		<ol>	<li>	 Pour calculer la longueur de la médiane, on divise la longueur de l'hypoténuse par 2.	On a donc 
+!insmath $val9$val10=\frac{$val7$val8}{2}
+$()	</li><li>	 On utilise la propriété de la médiane car on nous dit dans l'énoncé que le triangle	 
+!insmath $val7$val8$val9
+$() est rectangle.	</li>	</ol>		
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,39,40,42
+embedcnt=2

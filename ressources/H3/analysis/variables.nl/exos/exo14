@@ -1,0 +1,149 @@
+n=$counter
+cols=16
+rows=1
+image=0
+math=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+#checkfile=$checkdir/simplify.proc
+checkfile=exos/checkfile3.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+arglist=$empty
+letters=x,y,a,c,d,f,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+pm=!randitem +,-
+mp=!randitem +,-
+mmp=!randitem +,-
+ppm=!randitem 1,-1
+keuze=!randitem 1,2,3
+question$n=!record 24 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+# var2=1 --> GEEN HAAKJES    
+var2=1
+
+!if $R=1
+    getallen=!shuffle 2,3,4,5,6,7
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!randitem 2,3,4,5,6,7,8,9,10
+    !if $keuze=1
+	var1=!rawmath $a*($x $pm $b*$y) $mp $c*$y
+	applettext=!nospace $var1 =
+	formula$n=$a \left($x $pm $b $y \right) $mp $c $y
+        tot=!exec pari A=$var1\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	tex=!line 2 of $tot
+    !else
+	!if $keuze=2
+	    var1=!rawmath $c*$y $mp $a*($x $pm $b*$y)
+	    applettext=!nospace $var1 =
+	    formula$n=$c $y $mp $a \left($x $pm $b $y \right)
+	    tot=!exec pari $var1\
+	    printtex($var1)
+	    answer$n=!line 1 of $tot
+	    tex=!line 2 of $tot
+	!else
+	    d=!randitem 1,2,3,4,5,6,7,8,9
+	    f=$[-1*$a $mp $c]
+	    var1=!rawmath -1*($a*$x - $b*$y) $mp $c*$x $pm $d
+	    applettext=!nospace $var1 =
+	    formula$n=-\left($a $x - $b $y \right) $mp $c $x $pm $d
+	    !if $f=0
+		answer$n=$b*$y $pm $d
+		tex=$b $y $pm $d
+	    !else
+		answer$n=$f*$x + $b*$y $pm $d
+		tex=$f $x \, + \, $b $y $pm $d
+	    !endif
+	!endif
+    !endif
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    getallen=!shuffle 2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    d=!randitem 2,3,4
+    c=!randitem 2,3,4,5,6,7,8,9,10
+    !if $keuze=1
+	a=$[$ppm*$a]
+	var1=!rawmath $a*($x^$d $pm $b*$y) $mp $c*$x^$d
+	applettext=!nospace $var1 =
+	formula$n=$a \left($x^{$d} $pm $b $y \right) $mp $c $x^{$d}
+    !else
+	!if $keuze=2
+	    c=$[$ppm*$c]
+	    var1=!rawmath $c*$y^$d $mp $a*($x $pm $b*$y^$d)
+	    applettext=!nospace $var1 =
+	    formula$n=$c $y^{$d} $mp $a \left($x $pm $b $y^{$d} \right)
+	!else
+	    c=$[$ppm*$c]
+	    var1=!rawmath $c*$y^$d - ($x $pm $b*$y^$d)
+	    applettext=!nospace $var1 =
+	    formula$n=$c $y^{$d} - \left($x $pm $b $y^{$d} \right)
+	!endif
+    !endif
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R>2
+    getallen=!shuffle 2,3,4,5,6,7,8,9
+    a=!item 1 of $getallen
+    b=!item 2 of $getallen
+    c=!item 3 of $getallen
+    d=!randitem 2,3,4
+    !if $keuze=1
+	a=$[$ppm*$a]
+	var1=!rawmath $a*($x $pm $b*$y) - $c*($x - $d)
+	formula$n=$a \left($x $pm $b $y \right) - $c \left( $x - $d \right)
+	answer$n=$[$a-$c]*$x $pm $[$a*$b]*$y + $[$c*$d]
+	texanswer$n=$(formula$n) \,\,=\,\, $[$a-$c] $x \,$pm\, $[$a*$b] $y \,+\, $[$c*$d]
+    !else
+	!if $keuze=2
+	    c=$[$ppm*$c]
+	    var1=!rawmath $c*($y^$d $mmp $x) $mp $a*($x $pm $b*$y^$d)
+	    formula$n=$c \left($y^{$d} $mmp $x) $mp $a \left($x $pm $b $y^{$d} \right)
+	    tot=!exec pari $var1\
+	    printtex($var1)
+	    answer$n=!line 1 of $tot
+	    tex=!line 2 of $tot
+	    texanswer$n=$(formula$n) \,\,=\,\, $tex
+	!else
+	    c=$[$ppm*$c]
+	    var1=!rawmath $c*$y^$d - 1*($x $pm $b*$y^$d) $mp $x $mmp $y
+	    formula$n=$c $y^{$d} - \left($x $pm $b $y^{$d} \right) $mp $x $mmp $y
+	    tot=!exec pari $var1\
+	    printtex($var1)
+	    answer$n=!line 1 of $tot
+	    tex=!line 2 of $tot
+	    texanswer$n=$(formula$n) \,\,=\,\, $tex
+	!endif
+    !endif
+    applettext=!nospace $var1 =
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+

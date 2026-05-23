@@ -1,0 +1,145 @@
+!set title=Ranger des nombres A1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=50x25x1
+tmp0=!shuffle 2,3,4,5,6,1,7,8,9
+
+val7=$(tmp0)
+tmp0=!randint 1, 9
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 1, 6
+
+val9=$[rint($(tmp0))]
+tmp0=!shuffle -1,-1,1,1
+
+val10=$(tmp0)
+val11=$[$(val10[1])*($val8+$val9/10)]
+val12=$[$(val10[2])*($val8+($val9+1)/10)]
+val13=$[$(val10[3])*($val8+($val9+2)/10)]
+val14=$[$(val10[4])*($val8+($val9+3)/10)]
+val15=$val11,$val12,$val13,$val14
+val16=$[min(min($(val15[1]),$(val15[2])),min($(val15[3]),$(val15[4])))]
+val17=$[max(max($(val15[1]),$(val15[2])),max($(val15[3]),$(val15[4])))]
+tmp0=!listcomplement $val16,$val17 in $val15
+
+val18=$(tmp0)
+val19=$[min($val18)]
+val20=$[max($val18)]
+tmp0=!randint 1, 2
+
+val21=$[rint($(tmp0))]
+tmp0=!item $val21 of <,>
+
+val22=$(tmp0)
+tmp0=!item $val21 of croissant,décroissant
+
+val23=$(tmp0)
+
+!ifval $val21=2
+val24=$val17,$val20,$val19,$val16
+!else
+val24=$val16,$val19,$val20,$val17
+!endif
+replytype1=dragfill
+replyname1=Premier champ
+replygood1=?analyze 25;$val24
+replytype2=dragfill
+replyname2=Deuxième champ
+replygood2=?analyze 26
+replytype3=dragfill
+replyname3=Troisième champ
+replygood3=?analyze 27
+replytype4=dragfill
+replyname4=Quatrième champ
+replygood4=?analyze 28
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Ranger les nombres suivants dans l'ordre $val23.	<table class="wimscenter"><tr>	 <td> 
+!read oef/embed.phtml r1,$val6 
+$()</td>	 <td>$val22</td>	 <td> 
+!read oef/embed.phtml r2,$val6 
+$()</td>	 <td>$val22</td>	 <td> 
+!read oef/embed.phtml r3,$val6 
+$()</td>	 <td>$val22</td>	 <td> 
+!read oef/embed.phtml r4,$val6 
+$()</td>	 </tr></table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval ($val25 isin $(val24[1]) and $val26 isin $(val24[2])) and ($val27 isin $(val24[3]) and $val28 isin $(val24[4]))
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Ordre correct
+
+!exit
+
+:stat
+vsavelist=6,22,23,24,25,26,27,28
+embedcnt=4

@@ -1,0 +1,26 @@
+n=$counter
+t=!itemcnt $(reply$n)
+aaa=$empty
+
+!for p=1 to $t
+    A1=!item $p of $(reply$n)
+    A2=!replace [a-z\A-Z] by $empty in $A1
+    a1=!charcnt $A1
+    a2=!charcnt $A2
+    !if $a1 != $a2
+	A1=!exec units-filter $A1
+	!if ERROR isin $A1
+	    errortext=Niet na te kijken
+	    goback=1
+	    !exit
+	!else
+	    A1=!word 1 of $A1
+	!endif
+    !endif
+    aaa=!append item $A1 to $aaa
+!next p
+
+reply$n=$aaa
+var1=yes
+!changeto $checkdir/number.proc
+

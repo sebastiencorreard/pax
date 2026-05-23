@@ -1,8 +1,10 @@
 import logging
+import os
 import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.routes import auth, exercises, sheets, render, check, tags, classes, admin, etablissements
 from config import settings
@@ -51,3 +53,11 @@ app.include_router(tags.router)
 app.include_router(classes.router)
 app.include_router(admin.router)
 app.include_router(etablissements.router)
+
+# Serve exercise resources (images, audio, etc.) under /api/static.
+# Public (no auth) — corpus content is not sensitive.
+_RESSOURCES_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "ressources")
+)
+if os.path.isdir(_RESSOURCES_DIR):
+    app.mount("/api/static", StaticFiles(directory=_RESSOURCES_DIR), name="static")

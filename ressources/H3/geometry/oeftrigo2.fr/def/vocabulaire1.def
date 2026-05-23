@@ -1,0 +1,160 @@
+!set title=Vocabulaire 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=90x35x1
+
+!ifval $val2 notwordof 0 1
+val2=$[rint(1)]
+!endif
+
+!ifval $val3 notwordof 1 2
+val3=$[rint(1)]
+!endif
+tmp=!trim A,B,C	T,I,R	E,F,G	D,E,F
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!item 1 of $val7
+
+val8=$(tmp0)
+tmp0=!item 2 of $val7
+
+val9=$(tmp0)
+tmp0=!item 3 of $val7
+
+val10=$(tmp0)
+val11=$[rint(240)]
+val12=$[rint(140)]
+tmp0=!shuffle $val9,$val10
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val13
+
+val15=$(tmp0)
+val16=segment 20,20,20,120,black	segment 20,120,220,120,black	segment 20,20,220,120,black	segment 21,110,30,110,red	segment 30,110,30,119,red	text black,10,115,medium,$val8	text black,10,10,medium,$val14	text black,230,115,medium,$val15
+val17=\([$val9$val10]\)
+val18=\([$val8$val10]\)
+val19=\([$val8$val9]\)
+val20=$val17,$val18,$val19
+val21=Le triangle \($val8$val9$val10\) est rectangle en \($val8\).	  Complétez le tableau suivant en utilisant les étiquettes.
+replytype1=clickfill
+replyname1=Hypoténuse
+replygood1=$val17|$val20
+replytype2=clickfill
+replyname2=Côté adjacent
+replygood2=$val18|$val20
+replytype3=clickfill
+replyname3=Côté opposé
+replygood3=$val19|$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()	<div class="wims_columns">	 <div class="medium_size img_col">	 
+!read oef/draw.phtml $val11,$val12 \
+$val16 
+$()</div>	<div class="medium_size text_col">$val21	 
+!else
+$() 	$val21 
+!endif
+$()	<table class="wimscenter wimsborder">	<tr>	 <td>Hypoténuse du triangle 
+!insmath $val8$val9$val10
+$()</td>	 <td> 
+!read oef/embed.phtml r1,$val6 
+$()</td>	</tr><tr>	 <td>Côté adjacent à l'angle 
+!insmath \widehat{$val8$val10$val9}
+$()</td>	 <td> 
+!read oef/embed.phtml r2,$val6 
+$()</td>	</tr><tr>	 <td>Côté opposé à l'angle 
+!insmath \widehat{$val8$val10$val9}
+$()</td>	 <td> 
+!read oef/embed.phtml r3,$val6 
+$()</td>	</tr>	</table>	
+!if $val2=1 
+$()</div></div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,6,8,9,10,11,12,16,21
+embedcnt=3

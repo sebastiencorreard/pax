@@ -1,0 +1,57 @@
+target=oefrelsignadd oefrelsignsoust oefrelsignmult
+
+\langage{fr}
+\author{Jean-Luc, Donadoni}
+\email{jluc.donadoni@laposte.net}
+\format{html}
+\text{sign=-,+}
+\text{s1=randint(1,2)}
+\text{s2=randint(1,2)}
+\text{ecrsg=&#150;,+}
+
+#if defined TARGET_oefrelsignadd
+\title{Signe addition}
+\integer{nb1=randint(1..49)}
+\integer{nb2=randint(1..49)}
+\if{\nb1=\nb2}{\integer{nb2=\nb1+randint(1..9)}}
+\text{op1=+}
+\real{res=\sign[\s1]\nb1+\sign[\s2]\nb2}
+\integer{rep=(3+sign(\res))/2}
+\matrix{rep2=\ecrsg[\rep]}
+#endif
+
+#if defined TARGET_oefrelsignsoust
+\title{Signe différence}
+\integer{nb1=randint(1..49)}
+\integer{nb2=randint(1..49)}
+\if{\nb1=\nb2}{\integer{nb2=\nb1+randint(1..9)}}
+\text{op1=&#150;}
+\real{res=\sign[\s1]\nb1-\sign[\s2]\nb2}
+\integer{rep=(3+sign(\res))/2}
+\matrix{rep2=\ecrsg[\rep]}
+#endif
+
+#if defined TARGET_oefrelsignmult
+\title{Signe multiplication}
+\integer{nb1=randint(1..49)}
+\integer{nb2=randint(1..49)}
+\if{\nb1=\nb2}{\integer{nb2=\nb1+randint(1..9)}}
+\text{op1=\(times)}
+\real{res=\sign[\s1]\nb1*\sign[\s2]\nb2}
+\integer{rep=(3+sign(\res))/2}
+\matrix{rep2=\ecrsg[\rep]}
+#endif
+
+\statement{<p>Nous avons le calcul suivant :</p>
+<div class="wimscenter">
+ ( \ecrsg[\s1] \nb1 ) \op1 ( \ecrsg[\s2] \nb2 )
+</div>
+<ul><li>
+Le résultat est \embed{r1}
+</li><li>
+Le signe du résultat est \embed{r2}
+</li></ul>
+}
+
+\answer{}{\rep;négatif,positif}{type=menu}
+\answer{}{\rep2;\ecrsg}{type=clickfill}

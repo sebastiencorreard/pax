@@ -1,0 +1,81 @@
+#hfst2
+#exo27(hfst2) Hoeveel afbeeldingen op een usbstick ? [Digitale opslagcapaciteit MB,GB,TB]
+n=$counter
+math=0
+cols=8
+rounding=1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+# hoeft geen eenheid
+var1=1
+var2=$empty
+inputs=1.1
+k=!randint 1,6
+media=CD schijfje,DVD,BlueRay disk,usbstick,memorycard,harddisk
+medium=!item $k of $media
+!if $k=1
+    unit=MB
+    factor=10^6
+    capp=!randitem 650,720,800
+!else
+    !if $k=2
+	unit=GB
+	capp=!randitem 3.6,4.2,4.5,4.7
+	factor=10^9
+    !else
+	!if $k=3
+	    unit=GB
+	    capp=!randitem 22,25
+	    factor=10^9
+	!else
+	    !if $k=4
+		unit=GB
+		capp=!randitem 3.2,8.4,16,32,64,128,256,512
+		factor=10^9
+	    !else
+		!if $k=5
+		    unit=MB
+		    capp=!randitem 3.2,8.4,16,32,64,128,256,512,1024,2048
+		    factor=10^6
+		!else
+		    unit=TB
+		    capp=!randitem 0.76,1.2,1.3,1.4,1.5,1.6,1.7,1.8,2.1
+		    factor=10^12
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+capp_B=$[$capp*$factor]
+#Modifiable palettes are sometimes referred to as pseudocolor palettes.
+B=!randitem 3,4,5,6,8,12,13,14,15,16
+t=!randint 1,9
+XX=320,640,800,1024,1280,1920,3872,2896,1936  
+YY=240,480,600,768,1024,1080,2592,1944,1296 
+
+X=!item $t of $XX
+Y=!item $t of $YY
+pixels=$[$X*$Y]
+foto_pixel=$[$pixels*$B]
+ans=$[$capp_B/$foto_pixel]
+answer$n=$[floor($ans)]
+ss=Een <span style="color:blue">$medium</span> heeft een opslagcapaciteit van $capp $unit.<br />Een afbeelding is opgebouwd uit $X &times; $Y pixels.<br />Voor iedere pixel is bij deze kleurdiepte $B B geheugen nodig.<br />Bereken het aantal afbeeldingen dat je maximaal op deze $medium kunt opslaan.
+
+textanswer$n=<ul><li>1 afbeelding van $X &times; $Y = $pixels pixels </li><li>1 pixel heeft $B B geheugenruimte nodig (ter info: 2^$B = $[2^$B] kleuren)</li><li>Geheugenruimte voor 1 afbeelding: $pixels &times; $B = $foto_pixel Bytes </li><li>$medium heeft een opslag van $capp $unit = $capp &times; $factor = $capp_B Bytes </li><li>Er passen dus $capp_B / $foto_pixel = $ans afbeeldingen op deze $medium</li><li>Dus maximaal $(answer$n) complete afbeeldingen</li></ul>
+
+helptext=<a target=\'new_win\' href=\'http://nl.wikipedia.org/wiki/Megabyte\' ><b>Let op</b></a> het verschil tussen de SI voorvoegselen en de Binaire voorvoegselen.<br />\Deze som gaat over SI voorvoegselen... dus MB / GB  en geen MiB / GiB<hr />Ga er van uit dat de gehele oplagcapaciteit kan worden benut...<br />In werkelijkheid ben je natuurlijk altijd een paar procent geheugenruimte kwijt aan bestandsysteem (inode) informatie.
+
+question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/exo27/$k.jpg alt=geheugen/><br />$sometext')">$ss</a>
+
+description=Aantal complete afbeeldingen van $X&times;$Y pixels
+ex1=&nbsp;stuks
+m_rightarrow=&nbsp;&nbsp;=&nbsp;&nbsp;
+!exit
+
+
+
+
+    

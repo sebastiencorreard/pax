@@ -1,0 +1,134 @@
+#:standaardvorm:&radic;(b) ofwel a&middot;sqrt(b)
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+math=0
+rounding=0
+mathview=5
+display=1
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+checkfile=exos/checkfile1.proc
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 1 of lang/remarks.$taal
+#@Schrijf in de standaardvorm <img src=$module_dir/gifs/exo1.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+sometext=!record 2 of lang/remarks.$taal
+#hulptext=!record 3 of lang/remarks.$taal
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo1.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+# var1=1 er zit een wortel in't antwoord
+var1=1
+#
+smallfont=16
+largefont=22
+# applettext => letterlijke 
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+!if $R=1
+    a=!randitem 2,3,4,5
+    b=!randitem 2,3,5,6
+    c=$[$a*$a*$b]
+    answer$n=$a,sqrt($b)
+    texanswer$n=\sqrt{$c} \,=\, \sqrt{$a^{2} \cdot $b} = \sqrt{$a^{2}} \cdot \sqrt{$b} = $a\sqrt{$b}
+    applettext=!nospace sqrt($c)=
+    formula$n=\sqrt{$c}\,=\,[?] 
+ !exit
+!endif
+
+!if $R=2
+    a=!randitem 6,7,8,9,10,11,12,13
+    b=!randitem 2,3,5,6,7,10,11
+    c=$[$a*$a*$b]
+    answer$n=$a,sqrt($b)
+    texanswer$n=\sqrt{$c} \,=\, \sqrt{$a^{2} \cdot $b} = \sqrt{$a^{2}} \cdot \sqrt{$b} = $a\sqrt{$b}
+    applettext=!nospace sqrt($c)=
+    formula$n=\sqrt{$c}\,=\,[?] 
+ !exit
+!endif
+
+!if $R=3
+    !if $keuze=1
+	b=!randitem 2,3,5,6,7
+	#formula$n= 
+	applettext=!nospace 1/sqrt($b)=
+        formula$n=\frac{1}{\textstyle \sqrt{$b}}\,=\,[?] 
+	texanswer$n=\frac{1}{\sqrt{$b}} \,=\, \frac{1}{\sqrt{$b}} \cdot \frac{\sqrt{$b}}{\sqrt{$b}} = \frac{1}{$b} \cdot \sqrt{$b} 
+    !else
+	b=!randitem 2,3,5,6,7
+	applettext=!nospace sqrt(1/$b)=
+        formula$n=\sqrt{\frac{1}{$b}}\,=\,[?]
+	texanswer$n=\sqrt{\frac{1}{$b}} \,=\,  \frac{1}{\sqrt{$b}} = \frac{1}{\sqrt{$b}} \cdot \frac{\sqrt{$b}}{\sqrt{$b}} = \frac{1}{$b} \cdot \sqrt{$b} 
+    !endif
+    answer$n=(1/$b),sqrt($b)
+ !exit
+!endif
+
+!if $R>3
+    !if $keuze=1
+	a=!randitem 2,3,4,5
+	b=!randitem 2,3,5,6,7,10,11,13,14
+	tot=!exec pari A=$a/$b\
+	printtex(A)
+	c=!line 1 of $tot
+	ctex=!line 2 of $tot
+	#formula$n= 
+	applettext=!nospace $a/sqrt($b)=
+	formula$n=\frac{$a}{\sqrt{$b}}\,=\,[?] 
+	!if $c=1
+	    ctex=$empty
+	!endif
+	texanswer$n=\frac{$a}{\sqrt{$b}} \,=\, \frac{$a}{\sqrt{$b}} \cdot \frac{\sqrt{$b}}{\sqrt{$b}} = \frac{$a}{$b} \cdot  \sqrt{$b} = $ctex\sqrt{$b} 
+    !else
+	a=!randitem 2,3,4,5,6,7,8,9
+	d=$[$a*$a]
+	b=!randitem 2,3,5,6,7,10,11,13,14
+	#formula$n= 
+	applettext=!nospace sqrt($d/$b)=
+	formula$n=\sqrt{\frac{$d}{$b}} \,=\,[?]
+	tot=!exec pari A=($a/$b)\
+	printtex(A)
+	c=!line 1 of $tot
+	ctex=!line 2 of $tot
+	!if $c=1
+	    ctex=$empty
+	!endif
+	texanswer$n=\sqrt{\frac{$d}{$b}} \,=\, \frac{\sqrt{$d}}{\sqrt{$b}} \cdot \frac{\sqrt{$b}}{\sqrt{$b}} = $ctex \sqrt{$b}
+    !endif
+    answer$n=$c,sqrt($b)
+ !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

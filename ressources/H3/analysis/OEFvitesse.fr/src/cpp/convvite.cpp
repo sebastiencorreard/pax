@@ -1,0 +1,48 @@
+target =convvit1 convvit2 convvit3
+#define TITRE Conversion vitesse
+#if defined TARGET_convvit1
+ \title{TITRE 2}
+ \matrix{ltype=km/h,km/min,km/s
+m/h,m/s,m/min}
+#endif
+
+#if defined TARGET_convvit2
+ \title{TITRE 1}
+ \matrix{ltype=km/h,m/h
+km/s,m/s
+km/min,m/min}
+#endif
+
+#if defined TARGET_convvit3
+ \title{TITRE 3}
+ \matrix{ltype=km/h,km/min,km/s,m/h,m/s,m/min}
+#endif
+
+\language{fr}
+\range{-5..5}
+\author{Fabrice, Guerimand}
+\email{fwguerima@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\text{don=randrow(\ltype)}
+\text{don=shuffle(\don)}
+\text{quest=item(1,\don)}
+\text{rep=item(2,\don)}
+\text{unite=km/h,km/min,km/s,m/h,m/s,m/min}
+\text{coef=3600,60,1,3600000,1000,60000}
+\real{init=randint(100..500)/100}
+
+\integer{posquest=positionof(\quest,\unite)}
+\integer{posrep=positionof(\rep,\unite)}
+\real{valquest=\init*item(\posquest,\coef)}
+\real{valrep=\init*item(\posrep,\coef)}
+
+\statement{
+  Convertir \valquest \quest en \rep.
+<div class="spacer">
+<b>Votre réponse</b>: \valquest \quest =\embed{r1,9} \rep.
+</div>}
+
+\answer{\(\valquest \quest)}{\valrep}{type=numexp}

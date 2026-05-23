@@ -1,0 +1,344 @@
+!set title=Remplacer
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni;Fabrice,Guerimand
+email=jluc.donadoni@gmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=69
+prevarcnt=68
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val2=$[rint($val2)]
+val3=$[rint($val3)]
+
+!ifval $val3= or NaN isin $val3
+val3=$[rint(2)]
+!endif
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val4=
+val4=$[rint(1)]
+!endif
+tmp0=!record $val4 of src/generateur
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!item 3 of $val7
+
+val8=$(tmp0)
+tmp0=!item 1 of $val7
+
+val9=$(tmp0)
+tmp0=!item 2 of $val7
+
+val10=$(tmp0)
+tmp0=!values $val8*v for v=$val9 to $val10
+
+val11=$(tmp0)
+tmp0=!listuniq $val11
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=$[$(tmp0)]
+tmp0=!randint 2, 10
+
+val9=$[rint($(tmp0))]
+
+!ifval $val9=1
+val13=
+!else
+val13=$val9
+!endif
+
+!ifval $val9=-1
+val13=-
+!else
+val13=$val9
+!endif
+tmp0=!randint 2, 15
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10=1
+val14=
+!else
+val14=$val10
+!endif
+
+!ifval $val10=-1
+val14=-
+!else
+val14=$val10
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 15
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val15=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val16=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+val17=$[rint($(tmp0))]
+!if $val17=1= 
+
+!ifval $val8<0
+val18=($val14 x $val8)
+!else
+val18=($val14 x +$val8)
+!endif
+
+!ifval $val15<0
+val19=($val13 x $val15)
+!else
+val19=($val13 x +$val15)
+!endif
+val20=$val16 $val18 $val19
+t_=!replace internal \( by ( in expand($val16*($val9*x+($val15))*($val10*x+($val8)));
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+!else
+!if $val17=2 
+tmp0=!randint 2, 10
+
+val22=$[rint($(tmp0))]
+
+!ifval $val16>0
+val23=+$val16 x
+!else
+val23= $val16 x
+!endif
+
+!ifval $val22>0
+val23=$val23 +$val22
+!else
+val23=$val23 $val22
+!endif
+tmp0=!randint 1, 3
+
+val24=$[rint($(tmp0))]
+!if $val24=1 
+
+!ifval $val8<0
+val18=($val13 x $val8)
+!else
+val18=($val13 x +$val8)
+!endif
+val15=$[rint(-$val8)]
+
+!ifval $val15<0
+val19=($val13 x $val15)
+!else
+val19=($val13 x +$val15)
+!endif
+val20=$val18 $val19
+val25=($val9*x+($val15))*($val9*x+($val8))
+!endif
+!if $val24=2 
+
+!ifval $val8<0
+val20=($val13 x $val8)^2
+!else
+val20=($val13 x +$val8)^2
+!endif
+val25=($val9 *x+($val8))^2
+!endif
+!if $val24=3 
+
+!ifval $val8<0
+val20=(x $val8)^2
+!else
+val20=(x +$val8)^2
+!endif
+val25=(x+($val8))^2
+!endif
+val20=$val20 $val23
+t_=!replace internal \( by ( in expand($val25+($val16)*x+($val22));
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+!else
+
+!ifval $val8<0
+val18=($val13 x $val8)
+!else
+val18=($val13 x +$val8)
+!endif
+val26=$[rint(-$val8)]
+
+!ifval $val26<0
+val19=($val13 x $val26)
+!else
+val19=($val13 x +$val26)
+!endif
+val27=$val18 $val19
+val28=($val9*x+($val26))*($val9*x-($val26))
+
+!ifval $val15<0
+val29=($val14 x $val15)^2
+!else
+val29=($val14 x +$val15)^2
+!endif
+val30=($val10 *x+($val15))^2
+
+!ifval $val16<0
+val31=(x $val16)^2
+!else
+val31=(x +$val16)^2
+!endif
+val32=(x+($val16))^2
+val33=$val27,$val29,$val31
+val34=$val28,$val30,$val32
+val24=1,2,3
+tmp0=!shuffle $val24
+
+val24=$(tmp0)
+tmp0=!item 1 of $val24
+
+tmp1=!item $(tmp0) of $val33
+
+val35=$(tmp1)
+tmp0=!item 2 of $val24
+
+tmp1=!item $(tmp0) of $val33
+
+val36=$(tmp1)
+tmp0=!item 1 of $val24
+
+tmp1=!item $(tmp0) of $val34
+
+val37=$(tmp1)
+tmp0=!item 2 of $val24
+
+tmp1=!item $(tmp0) of $val34
+
+val38=$(tmp1)
+val20=$val35 + $val36
+t_=!replace internal \( by ( in expand($val37+$val38);
+tmp0=!exec maxima $t_
+
+val21=$(tmp0)
+!endif
+!endif
+!readproc slib/commutesom $val21,\x 
+tmp0=$slib_out
+val21=$(tmp0)
+tmp0=!itemcnt $val21
+
+val39=$(tmp0)
+!if $val39=6 
+tmp0=!item 6 of $val21
+
+val39=$(tmp0)
+!else
+tmp0=!item 1 of $val21
+
+val39=$(tmp0)
+!endif
+tmp0=!replace internal x by ($val12) in $val39
+
+val40=$(tmp0)
+val40=$[$val40]
+replytype1=numeric
+replyname1=
+replygood1=$[$val40]
+replytype2=numeric
+replyname2=
+replygood2=$[$val40]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<p>Calculer l'expression E = 
+!insmath $val20
+$() avec la valeur $m_x = $val12.</p>	<div class="wimscenter">	Pour $m_x = $val12 , nous avons E = 
+!read oef/embed.phtml r1,10 
+$().	</div>		<p>Calculer l'expression F = 
+!insmath $val39
+$() avec la valeur $m_x = $val12.</p>	<div class="wimscenter">	Pour $m_x = $val12 , nous avons F = 
+!read oef/embed.phtml r2,10 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=12,20,39
+embedcnt=2

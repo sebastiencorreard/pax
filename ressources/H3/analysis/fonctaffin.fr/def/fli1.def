@@ -1,0 +1,218 @@
+!set title=14. Coef fonct linéaire (calcul)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=46
+prevarcnt=40
+postvarcnt=5
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!shuffle -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+
+val7=$(tmp0)
+val8=$[rint($(val7[1]))]
+val9=$[rint($(val7[2]))]
+val10=$[rint(-1*$val8)]
+val11=$val8,$val10
+tmp0=!listcomplement $val11 in $val7
+
+val7=$(tmp0)
+val12=$[rint($(val7[3]))]
+
+!ifval $val12<0
+val13=($val12)
+!else
+val13=$val12
+!endif
+
+!ifval $val8<0
+val14=($val8)
+!else
+val14=$val8
+!endif
+tmp=!translate ";': to $     $ in $val9/$val8
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+t_=!rawmath $(tmp0)
+val15=!exec pari print($t_)
+t_=!replace internal \( by ( in numerator($val15)
+tmp0=!exec pari $t_
+
+val16=$[rint($(tmp0))]
+t_=!replace internal \( by ( in denominator($val15)
+tmp0=!exec pari $t_
+
+val17=$[rint($(tmp0))]
+t_=!rawmath $val17/$val16
+val18=!exec pari print($t_)
+val19=$[rint(abs($val16))]
+!if $val8=$val17 and $val17<>1 and $val16<0  
+val20=\(a=\frac{$val9}{$val8}=-\frac{$val19}{$val17}\)
+!endif
+!if $val8=$val17 and $val17=1 and $val16<0 
+val20=\(a=\frac{$val9}{$val8}=-$val19\)
+!endif
+!if $val8<>$val17 and $val17<>1 and $val16<0 
+val20=\(a=\frac{$val9}{$val8}=\frac{$val16}{$val17}=-\frac{$val19}{$val17}\)
+!endif
+!if $val8<>$val17 and $val17=1 and $val16<0 
+val20=\(a=\frac{$val9}{$val8}=-$val19\)
+!endif
+!if $val8=$val17 and $val17<>1 and $val16>0 
+val20=\(a=\frac{$val9}{$val8}\)
+!endif
+!if $val8=$val17 and $val17=1 and $val16>0 
+val20=\(a=\frac{$val9}{$val8}=$val16\)
+!endif
+!if $val8<>$val17 and $val17<>1 and $val16>0 
+val20=\(a=\frac{$val9}{$val8}=\frac{$val16}{$val17}\)
+!endif
+!if $val8<>$val17 and $val17=1 and $val16>0 
+val20=\(a=\frac{$val9}{$val8}=$val16\)
+!endif
+val21=$[rint(2)]
+val22=$[rint(2)]
+tmp0=!randint 3, 6
+
+val23=$[rint($(tmp0))]
+val24=Vous donnerez la réponse sous la forme d'un nombre entier si possible ou d'une fraction irréductible de dénominateur positif.
+val25=Bonne réponse
+val26=Bonne réponse en écriture fractionnaire irréductible ou entière
+val27=Votre réponse n'est pas une fraction irréductible.
+val28=On considère une fonction linéaire <span class="nowrap">\($val6\).</span>
+val29=Vous semblez avoir mal effectué votre calcul.,Vous avez effectué,au lieu de
+val30=Calculer le coefficient de la fonction linéaire \($val6\) sachant que,par cette fonction., l'image de \($val8) est égal à \($val9\),	\($val8) est l'antécédent de \($val9\),\($val9) est l'image de \($val8\),\($val9\) a pour antécédent \($val8\)
+val31=Le coefficient de la fonction linéaire \($val6\) est égal à 
+val32=Une fonction linéaire \($val6\) de coefficient \(a\) est définie pour tout nombre \(x\) par <span class="nowrap">\($val6 (x)=a \times x\).</span>
+val33=Ainsi, pour tout nombre \(x\) non nul, <span class="nowrap">\(a=\frac{$val6 (x)}{x}\).</span>
+val34=D'après l'énoncé, $(val30[$val23]) c'est à dire <span class="nowrap">\($val6 ($val8)=$val9\).</span> 
+val35=On déduit alors que
+val29=Vous avez inversé dans votre calcul l'image et l'antécédent.
+val36=euler_answer_nobg
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=?analyze 37
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val32
+
+solution=!nosubst $val32 <p>$val33</p> $val34 <p>$val35 <span class="nowrap">$val20.</span></p>
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val28	<div class="euler_quest_nobg spacer">	  $(val30[1]) $(val30[$val23]) $(val30[2])	</div>	<div class="spacer">	  <div class="$val36">	    <label for="reply1">$val31</label> 
+!read oef/embed.phtml r1,4 
+$().	  </div>	</div>	<div class="wims_instruction spacer">$val24</div>	
+$()
+!exit
+
+:hint
+$()$val32
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val32 <p>$val33</p> $val34 <p>$val35 <span class="nowrap">$val20.</span></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $val37=$val15 
+val21=$[rint(1)]
+!else
+val21=$[rint(0)]
+!endif
+
+!ifval $val37 issamecase $val15
+val22=$[rint(1)]
+!else
+val22=$[rint(0)]
+!endif
+!if $val21<1 or $val22<1 
+val36=euler_rep_bad_nobg cross
+!else
+val36=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+!ifval $val37=$val15 and ($val37 notsamecase $val15)
+ <div class='oef_feedbacks'><div class="highlight">$val27</div>
+$()</div>
+!endif
+!ifval $val37=$val18
+ <div class='oef_feedbacks'><div class="highlight">$val29</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val37=$val15
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val25
+
+!ifval $val37 issamecase $val15
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val26
+
+!exit
+
+:stat
+vsavelist=15,18,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37
+embedcnt=1

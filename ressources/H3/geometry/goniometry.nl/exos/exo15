@@ -1,0 +1,101 @@
+# Pythagoras V
+n=$counter
+math=0
+mathview=0
+questiontype=0
+inputs=2
+cols=10
+rows=1
+image=0
+!if $rounding<0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+# 
+# var2 is de range: min1:max1,min2:max2,min3:max3...
+checkfile=$checkdir/units.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+k=!randint 1,4
+
+ac=13,13,5,5
+ab=5,12,3,4
+bc=12,5,4,3
+AC=!item $k of $ac
+AB=!item $k of $ab
+BC=!item $k of $bc
+
+!if $R=1
+    f=!randint 1,5
+!else
+    !if $R=2
+	f=!randint 10,50
+	f=$[$f/10]
+    !else
+	f=!randint 100,500
+	f=$[$f/100]
+    !endif
+!endif
+AC=$[$f*$AC]
+AB=$[$f*$AB]
+BC=$[$f*$BC]
+
+#        C
+#
+# A      B      A
+#
+# D	        D
+
+hoogte=!randint 30,80
+hoogte=$[$hoogte/10]
+
+breedte=$[2*$AB]
+AC=$[sqrt(($AB)^2 + ($BC)^2)]
+
+description=!record 77 of lang/remarks.$taal
+#@nokhoogte,oppervlak
+ss=!record 78 of lang/remarks.$taal
+#@ Hiernaast zie je een schematische voorstelling van een gevel...<br /><ul><li>De breedte van de gevel in $breedte meter.<li>De hoogte van een zijmuur is $hoogte meter.<li>De lengte van een dakspoor is $AC meter.</ul>Bereken de hoogte van de nok en het oppervlak van deze gevel.<br /><small>niet vergeten een correcte eenheid te vermelden</small>
+
+
+opp=$[$breedte*$hoogte + $AB*$BC]
+answer$n=$[$hoogte+$BC] m,$opp m^2
+# alle twee antwoorden moeten een eenheid hebben
+var1=1,1
+var2=$empty
+plot=0
+draw=1
+
+make_tr=0
+xsize=256
+ysize=160
+image_settings$n=256,160
+insdraw_size=256,160
+
+image$n=\
+xrange 0,1\
+yrange 0,1\
+transparent white\
+copy 0,1,-1,-1,-1,-1,gifs/gevel.gif\
+text black,0,0.5,huge,$hoogte m\
+text white,0.75,0.5,huge,$hoogte m\
+text black,0.4,0.2,huge,$breedte m \
+text black,0.1,0.8,huge,$AC m\
+text white,0.55,0.8,huge,$AC m
+
+ex1=&nbsp;[?]
+ex2=&nbsp;[?]
+!insdraw $(image$n)
+helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+tussen2=$[(0.5*$breedte)^2]
+tussen1=$[$AC*$AC]
+texanswer$n=\left[ \begin{array}{l} $AC^{2} =  ?^{2} + \left( \frac{1}{2} \times $breedte\right )^{2} \\ ? = \sqrt{$tussen1 -  $tussen2} = \sqrt{$[$tussen1 - $tussen2]} = $BC \\ \\ \textrm{$inputtext1} = $hoogte + ? = $hoogte + $BC = $[$hoogte+$BC] \textrm{m} \\ \\ \textrm{$inputtext2} = $breedte \times $hoogte + 2 \times \left( \frac{1}{2} \times $AB\times $BC\right) = $opp \textrm{m}^{2} \end{array}
+
+textanswer$n=<ul><li>$[$hoogte+$BC] m</li><li>$opp m<sup>2</sup></li></ul>
+
+

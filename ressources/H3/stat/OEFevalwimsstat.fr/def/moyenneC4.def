@@ -1,0 +1,116 @@
+!set title=Moyenne C4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 25, 35
+
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint(5)]
+val9=Notes
+!readproc slib/generator $val8,$val6 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!values $val7*(1+2*v) for v=0 to $val8-1
+
+val11=$(tmp0)
+val7=$[rint(10*$val7)]
+val12=
+val13=$[0]
+!for val14 =1 to $val8 
+val15=$[rint($val14*$val7/5)]
+tmp0=!append item $val15,$(val10[$val14]) to $val12
+
+val12=$(tmp0)
+val13=$[$val13+$(val10[$val14])*$(val11[$val14])]
+!next
+val13=$[rint($val13/$val6*10)/10]
+!readproc slib/histo Notes,Effectifs,$val12 
+tmp0=$slib_out
+val12=$(tmp0)
+!readproc oef/draw.phtml 300,300 \
+$val12 
+tmp0=$ins_url
+val16=$(tmp0)
+val16=<img src="$val16" alt="">
+tmp0=!values $val7/5*v for v=0 to 5
+
+val17=$(tmp0)
+tmp0=!item 2 to -1 of $val17
+
+val18=$(tmp0)
+replytype1=numexp
+replyname1=Moyenne
+replygood1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col">$val16</div>	 <div class="medium_size text_col">	  Un enseignant a relevé les notes obtenues par ses élèves lors d'une interrogation	  notée sur $val7 et a tracé l'histogramme ci-contre.	<p>	  Quelle est la moyenne de la classe ?	</p>	<div class="wims_instruction">Vous arrondirez votre résultat au dixième.</div>	 </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,16
+embedcnt=0

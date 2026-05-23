@@ -1,0 +1,153 @@
+!set title=Équation du type ax+b&#61;c décimal
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+precision=1000000
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=et
+val7=Résoudre l'équation
+val8=La solution est
+val9=Donner votre résultat sous une forme aussi simplifiée que possible.
+val10=$[rint(4)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp0=!item 3 of $val12
+
+val14=$(tmp0)
+!if $val13= 
+tmp0=!item 1 of $val12
+
+val15=$(tmp0)
+tmp0=!item 2 of $val12
+
+val16=$(tmp0)
+tmp0=!values $val14*v for v=$val15 to $val16
+
+val17=$(tmp0)
+!else
+val17=$val13
+!if $val14<0 
+tmp0=!replace internal , by ,- in $val17
+
+val17=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val17
+
+val17=$(tmp0)
+tmp0=!shuffle $val17
+
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!randint 20, 90
+
+val15=$[$(tmp0)/10]
+tmp0=!randint 20, 199
+
+val16=$[$(tmp0)/10]
+val14=$[$val18*$val15+$val16]
+val19=$[$val18]
+val20=$val15
+!if $val16<0 
+val21=$val16 = $val14
+!else
+val21=+ $val16 = $val14
+!endif
+replytype1=numeric
+replyname1=
+replygood1=$[$val19]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val7 \($val20 x $val21.\) \par \(x = \cdots\) \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7	<span class="larger">		
+!insmath $val20 x $val21
+$().		</span>	<div class="wims_question"><label for="reply1">$val8:</label> <span class="larger">	   
+!read oef/embed.phtml r1,$val10 
+$().</span>	</div>	<div class="wims_instruction">$val9</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val7 
+!insmath $val20 x $val21.
+$() $m_par 
+!insmath x = \cdots
+$() $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,20,21
+embedcnt=1

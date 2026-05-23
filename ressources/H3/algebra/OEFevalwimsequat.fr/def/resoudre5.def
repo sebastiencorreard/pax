@@ -1,0 +1,132 @@
+!set title=Résoudre 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!shuffle $val6,$val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10<3
+tmp0=!shuffle Pierre,Paul,Olivier
+
+val9=$(tmp0)
+!endif
+tmp=!nonempty items x,y,z
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items 2,3
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp=!nonempty items 4,5
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+val14=,double,triple,quadruple,quintuple
+val15=$(val14[$val12])
+val16=$(val14[$val13])
+tmp0=!randint 5, 20
+
+val17=$[rint($(tmp0))]
+val18=$[rint(6-($val17-floor($val17/6)))]
+tmp0=!randint 10, 20
+
+val19=$[rint($val18+6*$(tmp0))]
+tmp=!translate ";': to $     $ in ($val17+$val19)/($val13-$val12)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+val21=En ajoutant $val17 au $val15 d'un nombre, $(val9[1]) trouve le même résultat qu'en retranchant $val19 au $val16 de ce nombre.
+val22=Quel est ce nombre
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val21	<div>	$val22 ?	</div>	<label for="reply1"><b>Votre réponse :</b></label>  
+!read oef/embed.phtml r1,8 
+$() $m_comp.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21,22
+embedcnt=1

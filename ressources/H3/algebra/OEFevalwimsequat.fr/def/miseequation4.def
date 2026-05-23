@@ -1,0 +1,136 @@
+!set title=Mettre en équation 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=fwguerima@free.fr
+author=Fabrice, Guerimand
+keywords=pbsolving
+
+ansorder=r
+varcnt=17
+prevarcnt=13
+postvarcnt=3
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val7=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!shuffle $val6,$val7,$val8
+
+val9=$(tmp0)
+tmp0=!listuniq $val9
+
+val9=$(tmp0)
+tmp0=!itemcnt $val9
+
+val10=$[rint($(tmp0))]
+
+!ifval $val10<3
+tmp0=!shuffle Pierre,Paul,Olivier
+
+val9=$(tmp0)
+!endif
+tmp=!nonempty items x,y,z
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp0=!randint 5, 15
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 25, 50
+
+val13=$[rint($(tmp0))]
+val14=$[rint(2*($val12+$val13))]
+val15=ABCD est un rectangle de largeur $val12 cm. Son périmètre mesure $val14 cm. Quelle est sa longueur &#63;
+val16=Soit \($val11\) la longueur, en cm, du rectangle. Quelle équation doit vérifier \($val11\)
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici un problème :	<p class="bold">$val15</p>	<p>$val16 ?</p>	<div class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+t_=!replace internal \( by ( in SOLVE($val17,$val11);
+tmp0=!exec maxima $t_
+
+val18=$(tmp0)
+tmp0=!replace internal = by , in $val18
+
+val18=$(tmp0)
+val18=$(val18[2])
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val13=$val18
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Equation correcte
+
+!exit
+
+:stat
+vsavelist=11,13,15,16,17
+embedcnt=1

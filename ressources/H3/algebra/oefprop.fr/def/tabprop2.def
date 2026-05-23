@@ -1,0 +1,241 @@
+!set title=Tableau de proportionnalité II
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+title_nl=Verhoudingstabel II
+
+ansorder=c,r
+varcnt=40
+prevarcnt=27
+postvarcnt=12
+replycnt=1
+choicecnt=1
+conditioncnt=1
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=oui,non
+val8=Le tableau suivant est-il un tableau de proportionnalité&nbsp;
+tmp=!trim Oui, c'est un tableau de proportionnalité.	  Quel est le coefficient de proportionnalité&nbsp;	  En effet, ce n'est pas un tableau de proportionnalité&nbsp;	  donne deux numéros de colonnes qui permettent de conclure à la non proportionnalité.
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Il faut donner deux numéros de colonnes. Un seul ne prouve rien.	  Il faut donner deux numéros de colonnes, pas trois	  Vérifie. On a bien
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Donc, ce n'est pas avec ces deux colonnes que vous allez	  pouvoir montrer que le tableau n'est pas un tableau de proportionnalité.
+!if $val6=nl 
+val7=ja,nee
+val8=Is deze tabel een verhoudingstabel
+tmp=!trim Juist, het is een verhoudingstabel.	  Met welke factor moet een getal uit de bovenste rij worden vermenigvuldigd	  Inderdaad, het is geen verhoudingstabel.	  Aan welke twee kolommen kun je zien dat dit geen verhoudingstabel is. Geef je antwoord bijvoorbeeld als
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim Je moet de nummers van twee kolommen geven. Een enkele bewijst niets.	  Je moest nummers van twee kolommen geven, geen drie.	  Controleer. We hebben 
+val10=!translate internal $	\
+$ to ;; in $tmp
+val11=Dus het is niet aan de hand van deze kolommen	  dat je hebt kunnen zien dat het geen verhoudingstabel is.
+!endif
+tmp0=!randint 2, 9
+
+val12=$[rint($(tmp0))]
+tmp0=!shuffle 1,2,3,4,5,6,7,8,9
+
+val13=$(tmp0)
+val14=$[rint($(val13[1]))]
+val15=$[rint($(val13[2]))]
+val16=$[rint($(val13[3]))]
+val17=$[rint($val14*$val12)]
+val18=$[rint($val15*$val12)]
+val19=$[rint($val16*$val12)]
+val20=$[rint(\d*$val12)]
+val21=$[rint(\e*$val12)]
+val22=$[rint(\f*$val12)]
+tmp0=!randitem 0,0,1,2,3
+
+val23=$[rint($(tmp0))]
+
+!ifval $val23=1 
+val17=$[rint( 2*$val17)]
+!endif
+
+!ifval $val23=2 
+val18=$[rint( $val18+2)]
+!endif
+
+!ifval $val23=3
+val19=$[rint( 2*$val18-2)]
+!endif
+
+!ifval $val23=0
+val24= $(val7[1])
+!else
+val24=$(val7[2])
+!endif
+oefsteps=choice 1	reply 1 
+nextstep=!nosubst choice 1	reply 1 
+!readproc oef/steps.proc
+replytype1=nocase
+replyname1=
+replygood1=?analyze 25
+choicename1=
+choicegood1=$val24
+choicebad1=$(val7[1]),$(val7[2])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!if $m_step=1 
+$()$val8? 
+!endif
+$()	<table class="wimscenter wimsborder">	<tr><td>$val14</td><td>$val15</td><td>$val16</td></tr>	<tr><td>$val17</td><td>$val18</td>	<td>$val19</td>	</tr>	</table>	
+!if $m_step=2 
+$()
+!if $val23=0 
+$()$(val9[1;]) $(val9[2;])?  
+!else
+$()	   $(val9[3;]): $(val9[4;]) 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal et by &#36; &#36; in $val25
+
+val26=$(tmp0)
+tmp0=!replace internal	 by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal er by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal ère by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal ere by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal eme by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal ème by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal - by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!replace internal & by &#36; &#36; in $val26
+
+val26=$(tmp0)
+tmp0=!items2words $val26
+
+val26=$(tmp0)
+tmp0=!nospace $val26
+
+val26=$(tmp0)
+tmp0=!charcnt $val26
+
+val27=$(tmp0)
+
+!exit
+
+:feedback
+!ifval $val27=1 and $val23<>0
+ <div class='oef_feedbacks'>$(val10[1;]) 
+$()</div>
+!endif
+!ifval $val27=3 and $val23<>0
+ <div class='oef_feedbacks'>$(val10[2;])
+$()</div>
+!endif
+!ifval $val27=2 and $val23<>0 and $val23 notin $val25
+ <div class='oef_feedbacks'>$(val10[3;])	
+!if $val23=1 
+$() 
+!insmath \frac{$val18}{$val15}=\frac{$val19}{$val16}
+$(). 
+!endif
+$()	
+!if $val23=2 
+$() 
+!insmath \frac{$val17}{$val14}=\frac{$val19}{$val16}
+$(). 
+!endif
+$()	
+!if $val23=3 
+$() 
+!insmath \frac{$val17}{$val14}=\frac{$val18}{$val15}
+$(). 
+!endif
+$()	$val11 
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval ($val23=0 and $val25=$val12) or ($val23<>0 and $val23 isin $val25	and $val27=2)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,14,15,16,17,18,19,23,25
+embedcnt=0

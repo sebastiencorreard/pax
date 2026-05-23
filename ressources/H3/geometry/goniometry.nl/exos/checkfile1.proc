@@ -1,0 +1,85 @@
+n=$counter
+goback=0
+
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ object$n=&nbsp;
+ !exit
+!endif
+
+rnd=100
+a=$[(round($rnd*$(reply$n)))/$rnd]
+g=$[(round($rnd*$(answer$n)))/$rnd]
+diff=$[abs($a - $g)]
+graad=0.0175
+
+!if $diff<$[2*$graad]
+    maxscore=1
+    remark$n=$OK
+!else
+    !if $diff<$[3*$graad]
+	maxscore=0.8
+	remark$n=$BOK
+    !else
+	!if $diff<$[4*$graad]
+	    maxscore=0.4
+	    remark$n=$BOK
+	!else
+	    !if $diff<$[5*$graad]
+		maxscore=0.2
+		remark$n=$NOK
+	    !else
+		maxscore=0
+		remark$n=$NOK
+	    !endif
+	!endif
+    !endif
+!endif
+modulescore=$[$modulescore+$maxscore]
+!if $showanswer=1
+ !for q=0 to 360 step 15
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.9*$x],$[0.9*$y],blue to $SCALE
+ !next q
+ !for q=0 to 360 step 45
+    x=$[cos($q*pi/180)]
+    y=$[sin($q*pi/180)]
+    SCALE=!append line segment $x,$y,$[0.7*$x],$[0.7*$y],red to $SCALE
+ !next q
+ Xgoed=$[cos($(answer$n))]
+ Ygoed=$[sin($(answer$n))]
+ xclick=$[cos($(reply$n))]
+ yclick=$[sin($(reply$n))]
+
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange -1.4,1.4\
+yrange -1.4,1.4\
+linewidth 2\
+vline 0,0,blue\
+hline 0,0,blue\
+linewidth 1\
+vline -1,0,blue\
+vline 1,0,blue\
+hline 0,-1,blue\
+hline 0,1,blue\
+ellipse 0,0,2,2,blue\
+linewidth 2\
+$SCALE \
+linewidth 5\
+arrow 0,0,$Xgoed,$Ygoed,16,red\
+text  black,$[$Xgoed+0.1],$[$Ygoed+0.1],normal,correct answer\
+linewidth 2\
+arrow 0,0,$xclick,$yclick,10,blue\
+text  black,$xclick,$yclick,normal,your answer
+
+!endif
+
+r_graden=$[$(reply$n)*180/pi]
+
+reply$n=$(reply$n) rad<br />$r_graden &deg;
+!exit
+

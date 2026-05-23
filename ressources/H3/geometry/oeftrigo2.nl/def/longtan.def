@@ -1,0 +1,275 @@
+!set title=Bepaal een lengte 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=54
+prevarcnt=53
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=90x35x1
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!randint 25, 100
+
+val7=$[rint($(tmp0))]
+val7=$[$val7/10]
+tmp0=!randint 30, 60
+
+val8=$[rint($(tmp0))]
+val9=$val8*pi/180
+tmp0=!randint 1, 2
+
+val10=$[rint($(tmp0))]
+tmp=!trim A,B,C	T,I,R	E,F,G	D,E,F
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val12=$(tmp0)
+tmp0=!item 2 of $val11
+
+val13=$(tmp0)
+tmp0=!item 3 of $val11
+
+val14=$(tmp0)
+val15=$[rint(240)]
+val16=$[rint(140)]
+tmp=!trim $val12,$val14	$val14,$val12
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 2 of $val17
+
+val19=$(tmp0)
+val20=line 20,20,20,120,black	line 20,120,220,120,black	line 20,20,220,120,black	line 21,110,30,110,red	line 30,110,30,119,red	text black,10,115,medium,$val13	text black,10,10,medium,$val18	text black,230,115,medium,$val19
+val21=\widehat{$val13$val12$val14}
+val22=\(\cos($val21)),\(\sin($val21)),\(\tan($val21)),\($val12$val13),\($val12$val14),\($val13$val14)
+val21=\($val21)
+!if $val10=1 
+val23=\($val13$val14)
+val24=$val12$val13
+!else
+val23=\($val12$val13)
+val24=$val13$val14
+!endif
+val25=tan
+tmp0=!item 3 of $val22
+
+val26=$(tmp0)
+tmp0=!item 6 of $val22
+
+val27=$(tmp0)
+tmp0=!item 4 of $val22
+
+val28=$(tmp0)
+val29=\(\tan($val8))
+val30=de tangens
+!if $val10=1 
+val31=$[$val7/$val25($val9)]
+val32=$val7/$val25($val8)
+val33=\frac{$val7}{$val25($val8)}
+!else
+val31=$[$val25($val9)*$val7]
+val32=$val7*$val25($val8)
+val33=$val7\times $val25($val8)
+!endif
+tmp0=!randint 1, 3
+
+val34=$[rint($(tmp0))]
+val35=tiende,honderdste,duizendste
+tmp0=!item $val34 of $val35
+
+val35=$(tmp0)
+val36=$[rint($val31*10^$val34)]
+val37=$[$val36/10^$val34]
+!if $val10=1 
+val38=$val7
+val39=\($val24)
+!else
+val39=$val7
+val38=\($val24)
+!endif
+val40=$val26,$val27,$val28,$val29,$val7
+val41=Driehoek \($val12$val13$val14) heeft een rechte hoek in \($val13). Hoek $val21 is $val8 graden en zijde $val23 is $val7 cm. Wat is de lengte van zijde\($val24) op de $val35 centimeter precies
+!if $val3=1 
+tmp=!trim r1,r2,r3	r4,r5,r6	r7	r8
+val42=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r8
+val42=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val42 
+nextstep=!nosubst $val42 
+!readproc oef/steps.proc
+replytype1=clickfill
+replyname1=Relatie
+replygood1=$val26|$val22
+replytype2=clickfill
+replyname2=Teller
+replygood2=$val27|$val22
+replytype3=clickfill
+replyname3=Noemer
+replygood3=$val28|$val22
+replytype4=clickfill
+replyname4=Relatie
+replygood4=$val29|$val40
+replytype5=clickfill
+replyname5=Teller
+replygood5=$val38|$val40
+replytype6=clickfill
+replyname6=Noemer
+replygood6=$val39|$val40
+replytype7=algexp
+replyname7=$val24
+replygood7=$val32
+replytype8=units
+replyname8=Antwoord
+replygood8=$val37 cm
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() 
+!if $val2=1 
+$()	<table>	<tr>	   <td>$val41 ?</td>	   <td> 
+!read oef/draw.phtml $val15,$val16 \
+$val20 
+$()<center>(de tekening is niet op schaal getekend)<center></td>	</tr>	</table>	 
+!else
+$() 	$val41 ?<p> 
+!endif
+$()	 
+!if $val3=1 
+$()	Beantwoord eerst de volgende vragen:<p>	<u>Question 1 :</u> Vindt in driehoek 
+!insmath $val12$val13$val14
+$() een relatie tussen hoek $m_angl en de lengtes van zijden 
+!insmath $val24
+$() en $val23.	 
+!if $m_step=1 
+$()	<center><table border=0 cellpadding=3>	  <tr>	  <td rowspan=3 align=center> 
+!read oef/embed.phtml reply1,$val6 
+$()</td>	  <td rowspan=3> $m_big1=$m_big2 </td>	  <td align=center> 
+!read oef/embed.phtml reply2,$val6 
+$()</td>	  </tr>	  <tr><td><hr></td></tr>	  <tr>	  <td align=center> 
+!read oef/embed.phtml reply3,$val6 
+$()</td>	  </tr>	 </table></center> 
+!else
+$()	 <center><table border=0 cellpadding=3>	  <tr>	  <td rowspan=3 align=center>$val26</td>	  <td rowspan=3> $m_big1=$m_big2 </td>	  <td align=center>$val27</td>	  </tr>	  <tr><td><hr></td></tr>	  <tr>	  <td align=center>$val28</td>	  </tr>	 </table></center>	<u>Vraag 2 :</u> Vul in de relatie van vraag 1 de waarden in die bekend zijn.	 
+!if $m_step=2 
+$()	<center><table border=0 cellpadding=3>	  <tr>	  <td rowspan=3 align=center> 
+!read oef/embed.phtml reply 4,$val6 
+$()</td>	  <td rowspan=3> $m_big1=$m_big2 </td>	  <td align=center> 
+!read oef/embed.phtml reply 5,$val6 
+$()</td>	  </tr>	  <tr><td><hr></td></tr>	  <tr>	  <td align=center> 
+!read oef/embed.phtml reply 6,$val6 
+$()</td>	  </tr>	 </table></center> 
+!else
+$()	 <center><table border=0 cellpadding=3>	  <tr>	  <td rowspan=3 align=center>$val29</td>	  <td rowspan=3> $m_big1=$m_big2 </td>	  <td align=center>$val38</td>	  </tr>	  <tr><td><hr></td></tr>	  <tr>	  <td align=center>$val39</td>	  </tr>	 </table></center>	<u>Vraag 3 :</u> Schrijf de lengte van 
+!insmath $val24
+$() op zonder berekeningen.	 
+!if $m_step=3 
+$()<p>	
+!insmath $val24 =
+$()  
+!read oef/embed.phtml reply 7 
+$() 
+!else
+$()	 <center>
+!insmath $val24=$val33
+$() </center>	<u>Vraag 4 :</u> Beantwoord de vraag van de oefening.	 
+!endif
+$() 
+!endif
+$() 
+!endif
+$()	 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()Gebruik de $val30 van hoek $val21.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,3,6,12,13,14,15,16,20,21,23,24,26,27,28,29,30,33,38,39,41
+embedcnt=7

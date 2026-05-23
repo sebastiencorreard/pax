@@ -1,0 +1,132 @@
+!set title=Écriture réduite d'une somme 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=50x50x50
+val7=$[rint(4)]
+tmp0=!randitem 2,3,5,6,7,10
+
+val8=$[rint($(tmp0))]
+tmp0=!values v for v=2 to 15
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp0=!values v,-v for v=2 to 15
+
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp=!nonempty items A,B,C
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=
+val13=$[rint(0)]
+!for val14 =1 to $val7 
+val15=$[rint(($(val9[$val14]))^2*$val8)]
+val16=$[rint($(val10[$val14]))]
+
+!ifval $val16>0 and $val14>1
+val17=+
+!else
+val17=
+!endif
+val12=$val12 $val17 $val16\sqrt{$val15}
+val13=$[rint($val13+($val16)*($(val9[$val14])))]
+!next
+!if $val13>0 
+val18=$val13*sqrt($val8),sqrt($val8)*$val13
+!else
+val15=$[rint(-($val13))]
+val18=$val13*sqrt($val8),sqrt($val8)*($val13),-sqrt($val8)*$val15
+!endif
+replytype1=litexp
+replyname1=$val11
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter">
+!insmath $val11 = $val12
+$()</div>	Écrire 
+!insmath $val11
+$() sous la forme 
+!insmath a\sqrt{b}
+$() où 
+!insmath b
+$() est un entier positif	le plus petit possible.	<div class="wims_instruction">	Vous devez taper <span class="tt">sqrt(2)</span> pour 
+!insmath \sqrt{2}
+$().	</div>
+$()
+!exit
+
+:hint
+$()Faire apparaitre 
+!insmath \sqrt{$val8}
+$() dans chacun des termes de la somme.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,11,12
+embedcnt=0

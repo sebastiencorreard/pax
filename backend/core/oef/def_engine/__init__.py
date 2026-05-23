@@ -80,7 +80,7 @@ def _parse_def_cached(def_path: str) -> DefFile:
         with open(def_path, encoding="utf-8") as f:
             text = f.read()
     except UnicodeDecodeError:
-        with open(def_path, encoding="iso-8859-1") as f:
+        with open(def_path, encoding="cp1252") as f:
             text = f.read()
     return parse_def(text)
 
@@ -109,15 +109,20 @@ class DefEngine(_SlibMixin):
         # exposing it as a regular ctx entry keeps `_subst` happy.
         # Always initialize m_step to "1" so it's defined when var_instructions execute.
         # Also set step as an alias for m_step (WIMS uses both \step and \m_step).
+        # ``imagedir`` is a sentinel "pax-img:_" — the trailing "_" is a dummy
+        # path element so ``$imagedir/../<file>`` (the common WIMS pattern)
+        # normalises to ``pax-img:<file>`` after path resolution. The actual
+        # file lookup happens in inline_pax_images() during post-render.
         self.ctx: dict[str, str] = {
-            "empty": "", 
-            "m_step": "1", 
+            "empty": "",
+            "m_step": "1",
             "step": "1",
             "m_times": "×",
             "m_div": "÷",
             "m_le": "≤",
             "m_ge": "≥",
             "m_neq": "≠",
+            "imagedir": "pax-img:_",
         }
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
@@ -157,11 +162,14 @@ class DefEngine(_SlibMixin):
         else:
             html = self._subst(stmt)
 
-        from ..flydraw import inline_svg_imgs, inline_wims_gifs  # noqa: PLC0415
+        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images  # noqa: PLC0415
 
         html = _close_inline_math(html)
         html = inline_svg_imgs(html)
         html = inline_wims_gifs(html)
+        if self.def_path:
+            module_dir = os.path.dirname(os.path.dirname(self.def_path))
+            html = inline_pax_images(html, module_dir)
         # Drop empty `<li>` / `<ul>` shells left behind when radio embeds
         # are stripped (the frontend renders the radio buttons separately
         # from `options.choices`).
@@ -678,8 +686,15 @@ class DefEngine(_SlibMixin):
             # `!rawmath` normalises a math expression, keeping it in a form
             # suitable for downstream evaluation (`pari print()`, plotting).
             # NOT a LaTeX conversion — that's `!texmath`.
+            # Mirrors WIMS' __replace_plusminus (rawmath.c) which collapses
+            # any run of +/- (possibly separated by whitespace) into a
+            # single sign. Without this, substituting a negative variable
+            # into `$a - $b` produces `3 - -6` instead of `3 + 6`.
             expr = self._subst(args)
-            expr = expr.replace("+-", "-").replace("-+", "-").replace("--", "+").replace("++", "+")
+            def _collapse(m: re.Match) -> str:
+                signs = re.findall(r"[+-]", m.group(0))
+                return "-" if signs.count("-") % 2 == 1 else "+"
+            expr = re.sub(r"[+-](\s*[+-])+", _collapse, expr)
             return expr
 
         if cmd == "texmath":
@@ -1637,7 +1652,7 @@ class DefEngine(_SlibMixin):
         try:
             return open(full, encoding="utf-8").read()
         except UnicodeDecodeError:
-            return open(full, encoding="iso-8859-1").read()
+            return open(full, encoding="cp1252").read()
         except OSError:
             return None
 
@@ -1714,7 +1729,7 @@ class DefEngine(_SlibMixin):
             try:
                 text = open(full_path, encoding="utf-8").read()
             except UnicodeDecodeError:
-                text = open(full_path, encoding="iso-8859-1").read()
+                text = open(full_path, encoding="cp1252").read()
         except OSError:
             return ""
         # Search for "KEY:" at the start of a line (case-insensitive)
@@ -2044,14 +2059,15 @@ class DefEngine(_SlibMixin):
 
                 if not choices and ";" in good_raw:
                     # Indexed format: "correct_idx;choice1,choice2,..." (like !menu)
+                    # Display order = order in the .def. Authors who want
+                    # randomisation do it explicitly (e.g. !shuffle on the valN
+                    # used for the choices). Re-shuffling here would double up.
                     idx_str, choices_str = good_raw.split(";", 1)
                     try:
                         correct_idx = int(idx_str.strip())
                         choices = [c.strip() for c in choices_str.split(",") if c.strip()]
                         if 1 <= correct_idx <= len(choices):
                             expected = choices[correct_idx - 1]
-                        rng = random.Random(f"{self.seed}_{n}")
-                        rng.shuffle(choices)
                     except (ValueError, IndexError):
                         pass
 

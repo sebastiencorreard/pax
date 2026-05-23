@@ -1,0 +1,148 @@
+#:Kubus-Balk [ Hoeken bepalen ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+mathview=0
+questiontype=0
+cols=20
+rows=2
+embed=1
+applet=1
+inputs=1
+m_rightarrow=&nbsp;=
+hoogte=35
+breedte=0
+diepte=0
+keuze=!randitem 1,2
+# kubus
+sometext=!record 13 of lang/remarks.$taal
+helptext=$empty
+checkfile=$checkdir/number.proc
+
+!if $R=1
+    !if $keuze=1
+        setje=A,G,C B,H,D C,E,A D,F,B
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        BAC=!nospace $B $A $C
+        x=!randint 4,14
+        ss=!record 11 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        
+        formula$n=\angle $BAC
+        an=$[atan(1/sqrt(2))]
+        
+        answer$n=$[180/pi*$an]
+        
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $AC=$x \sqrt(2)\\ tan( \angle $BAC)=\frac{$x}{$x \sqrt{2}}\\ \angle $BAC $ans \end{array} \right.
+        
+        construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment><Segment name="$AC" alias="$AC" color="5" n="1000" from="$A" to="$C"></Segment>
+    !else
+        setje=B,C,D,H B,C,A,E A,B,D,H A,B,C,G C,D,A,E C,D,B,F A,D,B,F A,D,C,G
+        keus=!randint 1,8
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        G=!item 4 of $set
+        AB=!nospace $A $B
+        RG=!nospace R $G
+        RC=!nospace R $C
+        CG=!nospace $C $G
+        GRC=!nospace $G R $C
+        x=!randint 4,14
+        ss=!record 12 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $GRC
+        an=$[atan(2/5*sqrt(5))]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $RC=$[0.5*$x] \sqrt{5} \\ \tan( \angle $GRC)=\frac{$x}{$[0.5*$x] \sqrt{5}}\\ \angle $GRC $ans \end{array} \right.
+        
+        construction=<Midpoint name="R" n="2000" showname="true" bold="true" large="true"  first="$A" second="$B" shape="circle"></Midpoint><Segment name="$RG" alias="$RG" color="5" n="1000" from="R" to="$G"></Segment><Segment name="$RC" alias="$RC" color="5" n="1000" from="R" to="$C"></Segment>
+    
+    !endif
+    !readproc exos/balkxml.proc
+ !exit
+!endif
+
+
+!if $R>1
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    !if $keuze=1
+        setje=A,G,C B,H,D C,E,A D,F,B
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        BAC=!nospace $B $A $C
+	a=$[$y^2+$z^2]
+	a_tex=$y^{2}+$z^{2}
+        ss=!record 13 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $BAC
+        an=$[atan($x/sqrt($a))]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        texanswer$n=\left[ \begin{array}{l}$BC=$x\\ $AC=\sqrt{$a_tex} \\ \tan( \angle $BAC)=\frac{$x}{\sqrt{$a}}\\ \angle $BAC $ans \end{array} \right. 
+        
+        construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment><Segment name="$AC" alias="$AC" color="5" n="1000" from="$A" to="$C"></Segment>
+    !else
+        setje=E,C,G F,D,H H,B,F G,A,E
+        keus=!randint 1,4
+        set=!word $keus of $setje
+        A=!item 1 of $set
+        B=!item 2 of $set
+        C=!item 3 of $set
+        AB=!nospace $A $B
+        AC=!nospace $A $C
+        BC=!nospace $B $C
+        ABC=!nospace $A $B $C
+	a=$[$y^2+$z^2]
+	a_tex=$y^{2}+$z^{2}
+        ss=!record 14 of lang/remarks.$taal
+        textanswer$n=$empty
+        question$n=$ss
+        formula$n=\angle $ABC
+        an=$[atan(sqrt($a)/$x)]
+        answer$n=$[180/pi*$an]
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+        texanswer$n=\left[ \begin{array}{l}$BC=$x \\  $AC=\sqrt{$a_tex}\\ \tan( \angle $ABC)= \frac {\sqrt{$a}}{$x}\\ \angle $ABC $ans \end{array} \right.
+
+        construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment><Segment name="$AC" alias="$AC" color="5" n="1000" from="$A" to="$C"></Segment>
+    
+    !endif
+    !readproc exos/balkxml.proc
+ !exit
+!endif

@@ -1,0 +1,72 @@
+!read language lang/names
+
+!header
+
+$name_present
+
+!if $status=wait
+  <p>$name_consigne</p>
+   !form reply
+   !distribute item alt="Click",1,form click into ins_attr,ins_border,ins_tag
+!else
+  <p>$name_answer</p>
+  !set ins_attr=alt="Result"
+!endif
+<div class="wimscenter">
+!insdraw fill 1,1,255,255,255\
+transparent 255,255,255\
+$ins_src
+ <div class="float_right">
+ <ul class="wims_nopuce">
+ <li>
+ <span style="color:red">$(name_red[1])</span> : $(name_red[2])
+ </li><li>
+ <span style="color:#00a000">$(name_green[1])</span> : $(name_green[2])
+  </li>
+!if $status!=wait
+  <li>
+  <img src="$module_dir/gifs/cross.gif" alt="cross" /> : $(name_answer2[1])
+  </li><li>
+  <img src="$module_dir/gifs/circle.gif" alt="circle" /> : $(name_answer2[2])
+  </li>
+!endif
+  </ul>
+  </div>
+</div>
+!if $status=wait
+  !formend
+  <p><b>$wims_name_help</b>. $name_help</p>
+!endif
+
+!if $status!=wait
+  <p>
+  $name_ecart: $[rint($error*2)/10] mm.
+  </p>
+  !if $reply_cnt<$shoots
+    $name_ecart2: $mean mm.
+    <p>
+    !set wims_ref_class=wims_button
+    !href cmd=next $name_next
+    </p>
+  !else
+    <p>$name_end = $mean mm, $name_score = $module_score/10.</p>
+    <div>$name_resume
+     <div class="wimscenter">
+      !set insdraw_size=$[$ring_size*20],$[$ring_size*20]
+      !insdraw fill 1,1,255,255,255\
+        transparent 255,255,255\
+        $rings\
+        $target
+      </div>
+    </div>
+    !set wims_ref_class=wims_button
+    !href cmd=renew&worksheet=$wims_sheet&$module_init_parm $name_again
+    !if $worksheet=$empty
+      !set wims_ref_class=wims_button
+      !href module=$module $name_configure
+    !endif
+  !endif
+!endif
+
+:end
+!tail

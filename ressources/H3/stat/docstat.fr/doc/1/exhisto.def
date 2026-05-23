@@ -1,0 +1,119 @@
+!set titb=Exemple d'histogrammes
+!set keyw=
+!set datm=20170608
+!set prev=
+!set next=
+!set upbl=diagramme
+!set dat1=19000101
+!set dat2=24000101
+
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+
+!exit
+
+:content
+<div class="exemple" id="histo">
+<br/>
+
+!set tmp0=!randitem 100,70
+
+!set m_n=$(tmp0)
+
+
+
+!set tmp0=!randint 6, 9
+
+!set m_m=$[rint($(tmp0))]
+
+
+!set tmp0=!randint 2, 10
+
+!set m_u=$[rint($(tmp0))]
+
+
+!set tmp0=!randint 1, 10
+
+!set m_v=$[rint($(tmp0))]
+
+
+!readproc slib/stat/random $m_n,0,$m_v*($m_m-1) 
+!set tmp0=$slib_out
+!set m_a=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_a
+
+!set m_a=$(tmp0)
+
+
+
+!set m_liste=[0,5,10,15,20,25,30]
+
+
+<br/>
+ 
+!for m_i=0 to $m_m-1 
+
+!set m_s=$[rint($m_u+$m_v*$m_i)]
+
+
+!set m_s1=$[rint($m_i*$m_v)]
+
+ 
+!if $m_i=0 
+
+!set m_liste2=$m_s
+
+
+!set m_liste=$m_s1
+
+
+!else
+ 
+!set m_liste2=$m_liste2,$m_s
+
+
+
+!set m_liste=$m_liste,$m_s1
+
+
+!endif
+
+!next
+
+
+!set m_liste=[$m_liste]
+
+
+
+!set m_liste2=[$m_liste2]
+
+
+
+!readproc slib/stat/effectif [$m_a],$m_liste 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!readproc slib/stat/histo $m_c,$m_liste2,ytics 10,xtics,color blue 
+!set tmp0=$slib_out
+!set m_histo=$(tmp0)
+
+
+
+!read primitives.phtml 1, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20"  />, histo 
+
+<div class="wimscenter">
+!read primitives.phtml 2, draw, 400,200, \histo 
+</div>
+</div>

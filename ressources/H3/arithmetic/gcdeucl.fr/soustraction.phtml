@@ -1,0 +1,67 @@
+!! fichier de gestion de la soustraction.
+!if $algo!=soustraction
+ erreur=incoherent
+ !exit
+!endif
+
+<u><b>Effectuer une soustraction :</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+Je calcule la différence de <input type=text name=repexo1 size=5 value=$(repexo1)> et de <input type=text name=repexo2 size=5 value=$(repexo2)>.<p>
+Le résultat est <input type=text name=repexo3 size=5 value=$(repexo3)>.<p>
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:analyse
+tmp=$repexo1,$repexo2,$repexo3
+tmp=!nonempty item $tmp
+tmp=!itemcnt $tmp
+!if $tmp!=3
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+
+erreur=$empty
+test=$empty
+i=0
+goodreply0=0
+!for j=1 to 3
+   reply0=$(repexo$[$j])
+   !read anstype/numeric 
+   !if NaN isin $test
+      erreur=$meserreur
+      status=2
+      !break
+   !endif
+!next j
+!if $erreur!=$empty
+   !exit
+!endif
+ 
+AA$[$nbetape+1]=$[max($(BB$[$nbetape]),$(RR$[$nbetape]))]
+BB$[$nbetape+1]=$[min($(BB$[$nbetape]),$(RR$[$nbetape]))]
+
+!if $repexo1!=$(AA$[$nbetape+1]) or $repexo2!=$(BB$[$nbetape+1]) 
+   erreur=Ce n'est pas la bonne soustraction.<p>
+   !increase nbreerrrais
+   status=2
+   !exit
+!endif
+
+RR$[$nbetape+1]=$[$(AA$[$nbetape+1])-$(BB$[$nbetape+1])]
+!if $repexo3!=$(RR$[$nbetape+1])
+   erreur=Vous avez fait une erreur de calcul. Vous pouvez corriger.<p>
+   !increase nbreerrcalc
+   status=2
+   !exit
+!endif
+
+!increase nbetape
+status=1
+!exit

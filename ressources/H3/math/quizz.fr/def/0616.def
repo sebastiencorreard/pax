@@ -1,0 +1,150 @@
+!set title=Question 0616 Billes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=pbsolving,multiplication
+oefobservation=Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong>	<br><u>Aide à la saisie :</u> saisir 3/4 pour \(3/4) et de préférence saisir 1.3 pour 1,3. 
+val7=Félicitations toutes les réponses sont justes !
+val8=$[rint(6)]
+val9=Yann,Tom,Karim,Julien,Léo,Gabin,Inès,Lou,Sarah,Léa
+tmp0=!shuffle 10
+
+val10=$(tmp0)
+
+!ifval ($(val10[1])<=6)
+val11= Il
+!else
+val11=Elle
+!endif
+tmp=!nonempty items 1,1,1,2,2,3,4
+
+tmp0=!randitem $tmp
+val12=$[rint($(tmp0))]
+
+!ifval ($val12==1)
+tmp0=!randitem 2,3
+
+val13=$[rint( $(tmp0))]
+!else
+tmp1=!randint 3, 9
+
+val13=$[rint($(tmp1))]
+!endif
+
+!ifval ($val12==1)
+tmp0=!randint 4, 9
+
+val14=$[rint( $val13*$(tmp0))]
+!else
+tmp1=!randint ($val13+2), 18
+
+val14=$[rint($(tmp1))]
+!endif
+!if $val12==1 
+val15=\($val13\) fois plus de billes
+val16=$[rint($val14/$val13)]
+!endif
+!if $val12==2 
+val15=\($val13\) fois moins de billes
+val16=$[rint($val14*$val13)]
+!endif
+!if $val12==3 
+val15=\($val13\) billes de plus
+val16=$[rint($val14-$val13)]
+!endif
+!if $val12==4 
+val15=\($val13\) billes de moins
+val16=$[rint($val14+$val13)]
+!endif
+val17=$(val9[$(val10[1])]) a \($val14\) billes. $val11 a $val15 que $(val9[$(val10[2])]). $(val9[$(val10[2])]) a 
+val18=billes.
+val19=
+val20=\begin{enumerate}
+val20=$val20	    \item	    $val17	    \dots $val18	  
+val20=$val20 \end{enumerate}
+replytype1=numeric
+replyoption1=comma default=0 
+replyname1=
+replygood1=$[$val16]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val20 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val17  
+!read oef/embed.phtml r1,$val8	    autofocus 
+$() $val18	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val20 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val19!=)
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val19</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,17,18,19,20
+embedcnt=1

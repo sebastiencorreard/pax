@@ -1,0 +1,466 @@
+#6/2010 corrected "simpler"
+goback=0
+errortext=$empty
+n=$counter
+math=0
+# ivm problemen: math=0
+wims_rawmath_variables=$varlist
+test=!wordcnt $(reply$n)
+!if $test=0
+    goback=1
+    maxscore=$[$P9*$maxscore]
+    errortext=!record 37 of $remarkdir/commonremarks.$taal
+    !exit
+!endif
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    formula$n=$empty
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+!if $var1=1
+    # we willen precies 1 breukstreep in't antwoord
+    # grove voorcheck
+    # we willen maar 1 breuksteep in het antwoord (schrijf als 1 breuk)
+    # nadeel 0.75 moet worden geschreven als 3/4 ..
+    ta=!positionof char / in $(reply$n)
+    tg=!positionof char / in $(answer$n)
+    # 1/3 + 1/r => ta=2,6 -> itemcnt=2
+    ta=!itemcnt $ta
+    tg=!itemcnt $tg
+    !if $ta !=1 and $tg=1
+	# dus in't goede antwoord zit 1 breukstreep....
+	# in't leerlingantwoord zitten er meer of minder 
+	ex=Nee ,we willen maar 1 breuk in het antwoord..
+	!if $teaching=1
+	    errortext=$ex
+	    goback=1
+    	    maxscore=$[$P2*$maxscore]
+	!else
+	    #in exam : no consideration
+	    maxscore=0
+	    goback=0
+	    remark$n=$NOK $ex
+	!endif
+	!exit
+    !endif
+!endif
+
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+AAA=!rawmath $AAA
+test=!replace internal = by @ in $AAA
+test=!replace internal is by @ in $test
+!if @ isin $test
+    errortext=Je hoeft hier geen berekeneningen te laten zien ...
+    maxscore=$[$P1*$maxscore]
+    goback=1
+    !exit
+!endif
+var=!lower $varlist
+va=!varlist $AAA
+testvar=$empty
+
+!for i in $va
+    # leerling ziet variabele die niet -meer- in goede antwoord voorkomt
+    !if $i notin $var
+	testvar=!append line <b>$i</b> to $testvar
+    !endif
+!next i
+
+!if $testvar!=$empty
+    ex=!record 77 of $remarkdir/commonremarks.$taal
+    !if $teaching=1
+	maxscore=$[$P9*$maxscore]
+	goback=1
+	errortext=$ex
+    !else
+	# in exam : no consideration
+	remark$n=$NOK<br>$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+
+!for i in $var
+    !if $i notin $AAA 
+	testvar=$i
+	ex=!record 32 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    errortext=$ex
+	    # heavy pentalty...
+	    maxscore=$[$P9*$maxscore]
+    	!else
+	    # in exam : no consideration
+	    goback=0
+	    maxscore=0
+	    remark$n=$NOK<br>$ex
+	!endif
+      !exit
+    !else
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA 
+    !endif
+!next i
+
+# check on scientific notation 3e+12 3*10^12
+AAA=!nospace $AAA
+!if x10 isin $AAA
+    ex=!record 68 of $remarkdir/commonremarks.$taal
+    maxscore=$[$P1*$maxscore]
+    !if $teaching=1
+	goback=1
+	errortext=$ex
+      !exit
+    !else
+	AAA=!replace internal x10 by *10 in $AAA
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+    !endif
+!endif
+test=!replace [0-9]e[0-9] by @ in $AAA
+!if @ isin $test
+    maxscore=$[$P1*$maxscore]
+    testvar1=!replace internal e by e+ in $AAA
+    testvar1=<span style="color:green">$testvar1</span>
+    testvar2=<br><span style="color:red">$AAA</span>
+    errortext=!record 16 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+AAA=!replace internal ** by ^ in $AAA
+AAA=!replace internal e+ by *10^ in $AAA
+AAA=!replace internal e- by *10^- in $AAA
+    
+!for p=1 to 3
+    AAA=!replace internal ** by * in $AAA
+!endif
+    
+t=!char 1 of $AAA
+!if $t=*
+    AAA=!char 2 to -1 of $AAA
+!endif
+
+
+#check for sin etc
+!for i in sqrt,log,sin,ln,cos,tan,sec,abs,*i,i*,+i,i+,-i,i-
+    !if $i isin $AAA
+	I=!toupper $i
+	AAA=!replace internal $i by $I in $AAA
+    !endif
+!next i
+AAA=!replace [a-z\~\!\@\#\$\%\&\_\|\=\"\'\:\;] by $empty in $AAA
+AAA=!lower $AAA
+AAA=!nospace $AAA
+AAA=!rawmath $AAA
+
+# check for 4*11*n^3  instead of 44*n^3 and x*x*x
+# attention to 6*4*10^3 --> 6@4#3 --> 6@4 meaning can be simplified further
+# and 4*10^ will be ignored
+test=!replace [\*][0-9]*[\^] by # in $AAA
+test=!replace internal * by @ in $test
+!if @ isin $test
+    things=0,1,2,3,4,5,6,7,8,9
+    t=!positionof char @ in $test
+    !if $t != $empty
+	!for p in $t
+	    d1=!char $[$p-1] of $test
+	    d2=!char $[$p+1] of $test
+	    !if ($d1 isin $things) and ($d2 isin $things)
+		testvar=$AAA
+		errortext=!record 74 of $remarkdir/commonremarks.$taal
+		!if $teaching=1
+		    maxscore=$[$P4*$maxscore]
+		!else
+		    maxscore=$[$P8*$maxscore]
+		!endif
+		goback=1
+		!exit
+	    !endif
+	!next p
+	!for p in $t
+	    d1=!char $[$p-1] of $test
+	    d2=!char $[$p+1] of $test
+	    !if $d1=$d2
+		!if ($d1 isin $varlist) and ($d2 isin $varlist)
+		    testvar=$AAA
+		    errortext=!record 74 of $remarkdir/commonremarks.$taal
+		    !if $teaching=1
+			maxscore=$[$P4*$maxscore]
+		    !else
+			maxscore=$[$P8*$maxscore]
+		    !endif
+		    goback=1
+		 !exit
+		!endif
+	    !endif
+	!next p
+    !endif
+!endif
+
+# check on literal copying of the exo, this is important because 
+# we use pari to check if the reply is the same as the answer
+a1=$AAA
+o1=!lower $var1
+o1=!rawmath $o1
+o1=!nospace $o1
+c1=!lower $(answer$n)
+c1=!rawmath $c1
+c1=!nospace $c1
+
+!if $c1!=$o1
+    !if $o1 issametext $a1
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    # in exam : no consideration
+	    remark$n=$NOK<br>$ex
+	    goback=0
+	    maxscore=0
+	!endif
+     !exit
+    !endif
+!endif
+
+
+c2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\"\'\:\;\?\-] by $empty in $c1
+o2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\"\'\:\;\?\-] by $empty in $o1
+o2=!nospace $o2
+c2=!nospace $c2
+!if $o2!=$c2
+    a2=!replace [\(\)\~\`\!\@\#\$\%\&\_\|\=\+\-\"\'\:\;\?] by $empty in $a1
+    a2=!nospace $a2
+    !if $o2 issametext $a2
+	ex=!record 73 of $remarkdir/commonremarks.$taal
+	!if $teaching=1
+	    goback=1
+	    errortext=$ex
+	    maxscore=$[$P5*$maxscore]
+	!else
+	    # this answer will be wrong !!! no consideration
+	    # in exam : no consideration
+	    remark$n=$NOK<br>$ex
+	    goback=0
+	    maxscore=0
+	!endif
+     !exit
+    !endif
+!endif
+
+# now AAA=y^5/3
+A=!lower $AAA
+A=!rawmath $A
+G=!lower $(answer$n)
+var=!lower $varlist
+!for p in $varlist
+    A=!replace internal $p by (pi) in $A
+    G=!replace internal $p by (pi) in $G
+!next p
+A=$[round($A)]
+G=$[round($G)]
+
+# very expensive but te only way to compare "variables in powers" like x^a
+tot=!exec maxima if rationalize(expand($AAA)) = rationalize(expand($(answer$n))) then 1 else 0 ;\
+if $A=$G then 1 else 0 ;\
+ratsimp($AAA);\
+if $AAA = $(answer$n) then 1 else 0 ;\
+ratsimp($(answer$n));
+
+!if $wims_exec_error != $empty
+    testvar=$(reply$n)
+    maxscore=$[$P4*$maxscore]
+    goback=1
+    errortext=!record 26 of $remarkdir/commonremarks.$taal
+ !exit
+!endif
+
+t1=!line 1 of $tot
+t2=!line 2 of $tot
+aaa=!line 3 of $tot
+t4=!line 4 of $tot
+ggg=!line 5 of $tot
+
+!if $subject != 6 and $var1=1
+    !if $t1=1 and $t4=0
+	ex=Je antwoord kan echt nog iets netter &amp; simpeler worden genoteerd<br>of gebruik je onnodig een decimale punt notatie  ?<br>of teller en noemer beiden negatief ?
+	!if $extra=$empty
+	    extra=<span style="color:orange">$ex</span>
+	!else
+	    extra=$extra <br><span style="color:orange">$ex</span>
+	!endif
+    !endif
+!endif
+# check if the answer can be simplified further on variable level?
+simpler=0
+!for p in $varlist
+    c1=!positionof char $p in $AAA
+    c2=!positionof char $p in $aaa
+    # aaa is maxima's ratsimp($AAA)
+    c2=!itemcnt $c2
+    c1=!itemcnt $c1
+    !if $c2<$c1
+	!increase simpler
+    !endif
+!next p
+
+!ifval $simpler>0
+    # can the answer be further simplified on variable level?
+    ex=!record 74 of $remarkdir/commonremarks.$taal
+    testvar=<em>$AAA</em>
+    !if $teaching=1
+	goback=1
+	errortext=$ex
+	maxscore=$[$P5*$maxscore]
+    !else
+	# in exam this answer will be wrong !!! no consideration
+	remark$n=$NOK<br>$ex
+	goback=0
+	maxscore=0
+    !endif
+ !exit
+!endif
+
+!if $t1=1
+    # this won't work with negative exponents 3/(4x^3) .... 3/4*x^(-3)
+    test=!replace internal ^(- by @ in $AAA
+    test=!replace internal ^- by @ in $test
+    !if @ notin $test
+	# in some cases we can "check" if the correct student answer (a fraction) can be written simpler...
+	!if / isin $AAA and / isin $(answer$n)
+	    a=!replace internal / by , in $AAA
+	    at=!itemcnt $a
+	    g=!replace internal / by , in $(answer$n)
+	    gt=!itemcnt $g
+	    
+	    !if $at=2 and $gt=2
+	    #a1 is teller a2 noemer
+		a1=!item 1 of $a
+		a2=!item 2 of $a
+		g1=!item 1 of $g
+		g2=!item 2 of $g
+	        rep1=0
+		rep2=0
+		chk=!exec pari if( ($a1)/$a2==$a1/$a2,1,0 )
+		# alleen verder als geldt ($a1)/$a2 = $a1/$a2 == $AAA
+		!if $chk=1
+		    !for p in $varlist
+			!if $p isin $a1 and $p isin $g1
+			    a1=!replace internal $p by (10) in $a1
+			    g1=!replace internal $p by (10) in $g1
+			    rep1=1
+			!else
+			    !if $p notin $a1 and $p notin $g1
+				rep1=1
+			    !endif
+			!endif
+		        !if $p isin $a2 and $p isin $g2
+		    	    rep2=1
+			    a2=!replace internal $p by (11) in $a2
+			    g2=!replace internal $p by (11) in $g2
+			!else
+			    !if $p notin $a2 and $p notin $g2
+				rep2=1
+			    !endif
+			!endif
+		    !next p
+		    !if $a1<0 and $a2<0
+			ex=Teller en noemer zijn negatief...je had de breuk dus eenvoudiger kunnen noteren...
+			maxscore=$[$P2*$maxscore]
+			!if $teaching=1
+			    errortext=$ex
+			    goback=1
+			    !exit
+			!else
+			    !if $extra=$empty
+				extra=$ex
+			    !else
+				extra=$extra<br>$ex
+			    !endif
+			!endif    
+		    !endif
+		    a1=$[abs($a1)]
+		    a2=$[abs($a2)]
+		    g1=$[abs($g1)]
+		    g2=$[abs($g2)]
+		    !if $rep1=1 and $rep2=1
+			!ifval $a1 != $g1 or $a2 != $g2
+			    ex=Je kunt het antwoord nog verder vereenvoudigen !
+			    maxscore=$[$P3*$maxscore]
+			    !if $extra=$empty
+				extra=$ex
+			    !else
+				extra=$extra<br>$ex
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!else
+	    !if / isin $AAA and / notin $aaa
+		ex=Je kunt het antwoord nog verder vereenvoudigen !
+		maxscore=$[$P2*$maxscore]
+		!if $extra=$empty
+		    extra=$ex
+		!else
+		    extra=$extra<br>$ex
+		!endif
+	    !endif
+	!endif
+    !else
+	ex=Heel mooi, een negatieve exponent !
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+    !endif
+!else
+    # t1=0 : cijfer is maximaal 5
+    !if $t2=1
+	# $A = $G
+	ex=Je antwoord kan nog wel wat beter...
+	#!record 15 of lang/remarks.$taal
+	!if $extra=$empty
+	    extra=$ex
+	!else
+	    extra=$extra<br>$ex
+	!endif
+    !else
+	maxscore=0
+    !endif
+!endif
+
+maxscore=$[$maxscore*((4*$t1+$t2)/5)]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore > 0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=!append line $ $extra $ to $(remark$n) 
+!endif
+
+# geen herhaling in answer.phtml
+formula$n=$empty
+goback=0
+
+!exit

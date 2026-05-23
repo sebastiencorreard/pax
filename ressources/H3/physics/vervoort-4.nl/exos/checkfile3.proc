@@ -1,0 +1,57 @@
+# antwoord enkel logpapier; $options punten x1,y1,x2,y2...
+# y-waarde +/- 0.05 %
+
+n=$counter
+!if $(reply$n) = ?
+    goback=0
+    remark$n=$NOK
+    maxscore=0
+    !exit
+!endif
+x=!item 1 of $(reply$n)
+f=$[10^(floor($x - 1))]
+xa=$[$f*(round((10^$x)/$f))]
+diff=0.03
+!if $x > $[$(answer$n)-$diff] and $x < $[$(answer$n)+$diff]
+    score=1
+    k=green
+!else
+    !if $x > $[$(answer$n)-2*$diff] and $x < $[$(answer$n)+2*$diff]
+	k=lightgreen
+	score=$P3
+    !else
+	!if $x > $[$(answer$n)-3*$diff] and $x < $[$(answer$n)+3*$diff]
+	    k=orange
+	    score=$P5
+	!else
+	    !if $x > $[$(answer$n)-4*$diff] and $x < $[$(answer$n)+4*$diff]
+		k=red
+		score=$P8
+	    !else
+		k=red
+	    !endif
+	!endif
+    !endif
+!endif
+
+reply$n=$x : 10<sup>$x</sup> &asymp; $xa <br />
+maxscore=$[$maxscore*$score]
+modulescore=$[ $modulescore + $maxscore ]
+
+!if $maxscore>0.9
+    remark$n=$OK
+    k=green
+!else
+    !if $maxscore>0.4
+	k=orange
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+math=0
+data=linewidth 1\
+arrow $x,10,$x,0,10,$k\
+arrow $(answer$n),-10,$(answer$n),0,10,blue
+
+image$n=!append line $data to $(image$n)

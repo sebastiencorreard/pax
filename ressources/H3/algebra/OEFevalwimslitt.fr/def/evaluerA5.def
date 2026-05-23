@@ -1,0 +1,152 @@
+!set title=Évaluer une expression A5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Évaluer l'expression,pour
+val7=&nbsp;
+tmp0=!values v for v=2 to 9
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp=!nonempty items x,y,z,a,b,u,v
+
+tmp0=!randitem $tmp
+val9=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F,G
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp=!nonempty items 1/2,1/3,1/4,2/3,1/5,2/5
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+tmp0=!replace internal / by , in $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val14
+
+val14=$(tmp0)
+tmp=!nonempty items 7,11,13
+
+tmp0=!randitem $tmp
+val15=$[rint($(tmp0))]
+val16=$(val8[1])*$val9$val10 $val15/$val14
+tmp0=!texmath $val16
+
+val17=$(tmp0)
+tmp0=!replace internal $val9 by ($val9) in $val16
+
+val16=$(tmp0)
+evaltmp=$val16
+
+evaltmp=!mathsubst $val9=($val13) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val18=$(tmp1)
+tmp0=!texmath $val13
+
+val19=$(tmp0)
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=\($val12\)
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst \begin{statement} $(val6[1]) \($val12\) $(val6[2]) \($val9 = $val19\): \begin{center}\($val12 = $val17\).\end{center} \end{statement}
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  $(val6[1]) 
+!insmath $val12
+$() $(val6[2]) 
+!insmath $val9 = $val19
+$()$val7:	<div class="wimscenter"> 
+!insmath $val12 = $val17
+$().</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()$m_begin{statement} $(val6[1]) 
+!insmath $val12
+$() $(val6[2]) 
+!insmath $val9 = $val19
+$(): $m_begin{center}
+!insmath $val12 = $val17
+$().$m_end{center} $m_end{statement}
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,12,17,19
+embedcnt=0

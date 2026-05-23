@@ -1,0 +1,23 @@
+# make decimal writing
+# input a integer,n non zero integer
+# output a/10^n with not infinite number of digit
+
+slib_input=$wims_read_parm
+!distribute item $slib_input into slib_a,slib_n
+!bound slib_n between 0 and 10 default 0
+!if $slib_a<0
+  slib_a=$[-($slib_a)]
+  slib_neg=1
+!else
+  slib_neg=0
+!endif
+slib_tmp2=$[$slib_a%(10^$slib_n)]
+slib_out=$[($slib_a-$slib_tmp2)/(10^$slib_n)]
+!if $slib_tmp2!=0
+  slib_nb=!charcnt $slib_tmp2
+  slib_z=!char 1 to $[$slib_n-$slib_nb] of 0000000000
+  slib_out=$[$slib_out.$slib_z$slib_tmp2]
+!endif
+!if $slib_neg=1
+  slib_out=-$slib_out
+!endif

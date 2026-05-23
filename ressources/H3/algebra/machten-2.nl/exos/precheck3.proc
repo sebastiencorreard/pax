@@ -1,0 +1,46 @@
+n=$counter
+!if ? isin $(reply$n)
+ goback=0
+ maxscore=0
+ remark$n=$NOK
+ !exit
+!endif
+return=-1
+a=$(reply$n)
+g=$(answer$n)
+!readproc exos/copy_of_question.proc
+!if $return !=-1
+    goback=$return
+    !exit
+!endif
+# eerst check op aantal wordtel tekens: niet gelijk aan answer$n dan dus fout !
+reply$n=!rawmath $(reply$n)
+a1=!replace internal sqrt by @ in $(answer$n)
+g1=!replace internal sqrt by @ in $(reply$n)
+a2=!positionof char @ in $a1
+g2=!positionof char @ in $g1
+a3=!itemcnt $a2
+g3=!itemcnt $g2
+!if $a3 != $g3
+    !ifval $(answer$n) = $(reply$n)
+	rem1=!record 50 of lang/remarks.$taal
+	#@je antwoord is getalsmatig wel goed, maar...
+    !else
+	rem1=...
+    !endif
+    !if $a3<$g3
+	rem2=!record 51 of lang/remarks.$taal
+	#@het goede antwoord heeft slechts $a3 worteltekens...
+    !else
+	rem2=!record 52 of lang/remarks.$taal
+	#@Nee, het correcte antwoord heeft $a3 worteltekens en geen $g3 !
+    !endif
+    maxscore=0
+    remark$n=$NOK<br />$rem1 $rem2
+    goback=0
+    !exit
+!endif
+
+!readproc $checkdir/new_number.proc
+
+!exit

@@ -1,0 +1,55 @@
+n=$counter
+mathview=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+inputs=3
+diff=!randint 11,30
+db=!randint 80,99
+d1=!randint 6,9
+d2=!randint 1,9
+d=!nospace $d1 . $d2
+#d=!exec moneyprint $[$d/10] 1
+db=!randint 70,90
+num=!randint 2,9
+sig=!exec sigdigits $db
+sig=$(sig[1])
+ex1=W/m<sup>2</sup>
+ex2=W
+ex3=dB
+
+ss=Een bolvormige geluidsbron zorgt ervoor dat op $d m van de bron het geluidsniveau L = $db dB.<br />Het geluid verspreidt zich bolvormig.<br />a) Bepaal de geluidsintensiteit I in W/m<sup>2</sup> op deze afstand.<br />b) Bereken het vermogen van de geluidsbron?<br />c) Bereken het geluidsniveau op $d m als er $num geluidsbronnen met hetzelfde vermogen geplaatst worden?<br />
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/hfst2.s15.jpg\' alt=\'noalt\' />')">$ss</a>
+description=Geluidsintensiteit op $d meter,Vermogen van de geluidsbron,Geluidsniveu by $num bronnen op $d meter
+
+p1=$[0.1*$db - 12]
+A=$[4*pi*$d*$d]
+P=$[$A*10^($p1)]
+Lc=$[10*log(($num*(10^$p1))/(10^(-12)))/(log(10))]
+
+tot=!exec scienceprint $P,$sig,0 $P,$sig,2 $Lc,$sig,0 $Lc,$sig,2
+Pn=!item 1 of $tot
+Pt=!item 2 of $tot
+Ln=!item 3 of $tot
+Lt=!item 4 of $tot
+
+var1=0.01,$[abs($P - $Pn)],$[abs($Lc - $Ln)]
+var2=100,100,100
+
+#exotext=$var1
+
+answer$n=$[10^($p1)]\
+$P\
+$Lc
+
+texanswer$n=\left[ \begin{array}{ll} a) & I = 10^{0.1\cdot L - 12} \\   & L = $db \; dB  \rightarrow I = 10^{0.1\cdot $db - 12} = 10^{$p1} \; W/m^{2} \\ b) & P = I \cdot A \\   & A_{bol} = 4 \cdot \pi \cdot r^{2} = 4 \cdot \pi \cdot $d^{2} = $A m^{2} \\  & P = 10^{$p1} \cdot $A  \;\; \frac{W}{m^{2}} \cdot m^{2} = $P \; W  \\  & \textrm{In $sig significante cijfers : } \\ & P = $Pt \;\; W \\ c) & I_{c} = $num \times I_{a}  = $num \times 10^{$p1} \; W/m^{2} \\   & L_{c} = 10 \cdot \log\left( \frac{ $num \times 10^{$p1} }{10^{-12} } \right) \\  & L_{c} = $Lc \\  & \textrm{In $sig significante cijfers : } \\ & L_{c} = $Lt \;\; dB \end{array} \right.
+
+
+
+
+
+
+
+
+
+

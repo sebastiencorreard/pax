@@ -1,0 +1,92 @@
+#:formule en tabel I [H1]
+n=$counter
+questiontype=0
+display=1
+image=0
+math=0
+inputs=-1
+mathview=0
+checkfile=$checkdir/number.proc
+var1=yes
+# sequence matters...
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $options<4 or $options>8
+    options=5
+!endif
+
+sometext=!record 40 of lang/remarks.$taal
+#uitkomst:getal,bedrag:tijd,afstand:tijd,hoogte:tijd
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+y=!item 1 of $ding
+x=!item 2 of $ding
+keuze=!randitem 1,0
+
+!if $R=1
+    c=!randint 1,9
+    const=1
+    a=1
+    !if $keuze=1
+	pm=+
+	start=!randitem 0,1,2
+    !else
+	pm=-
+	start=$c
+    !endif
+    formula$n=\begin{array}{l} \textrm{ $y } \,=\, \textrm{ $x } $pm $c \end{array}
+    func=$a*x $pm $c
+!else
+    !if $R=2
+	const=1
+	a=!randint 2,9
+	start=!randitem 0,1,2
+	formula$n=\begin{array}{l} \textrm{ $y } \,=\, $a \times \textrm{ $x } \end{array}
+	func=$a*x
+    !else
+	const=1
+	a=!randint 2,9
+	c=!randint 1,5
+	!if $keuze=1
+	    pm=+
+	    start=!randitem 0,1,2    
+	!else
+	    pm=-
+	    start=$c
+        !endif
+	formula$n=\begin{array}{l} \textrm{ $y } \,=\, $a \times \textrm{ $x } $pm $c \end{array}
+	func=$a*x $pm $c
+    !endif
+!endif
+
+header=<th>$x</th>
+body=<th>$y</th>
+answer_header=<th>$x</th>
+i=0
+!for p=1 to $options
+    ans=!evalsubst x=$start in $func
+    answer$n=!append item $start to $(answer$n)
+    answer_header=!append word $ <td><input type="text" class="schaersvoorde_input" size="4" id="myinput$i" value="$start" readonly="readonly" /></td> $ to $answer_header
+    header=!append word $ <td><input type="text" class="schaersvoorde_input" size="4" id="myinput$i" value="" /></td> $ to $header
+    body=!append word <td>$ans</td> to $body
+    start=$[$start + $const]
+    !increase i
+!next p
+
+exotext=<table class="demospecial"><tr>$body</tr><tr>$header</tr></table>
+textanswer$n=<table class="demospecial" ><tr>$body</tr><tr>$answer_header</tr></table>
+
+helptext=<img src=\'$module_dir/gifs/exo10.$taal.jpg\' alt=\'noalt\' />
+
+
+question$n=!record 41 of lang/remarks.$taal
+#@Vul de tabel in bij de formule:<br />
+
+
+!exit
+

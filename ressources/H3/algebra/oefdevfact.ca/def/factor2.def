@@ -1,0 +1,212 @@
+!set title=Factoritzar ka+kb 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=ca
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=45
+prevarcnt=44
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 15
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8);
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val7=$[rint($val7/$val9)]
+val8=$[rint($val8/$val9)]
+!if $val7=$val8 
+val7=$[rint(2)]
+val8=$[rint(3)]
+!endif
+tmp0=!randint 2, 15
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 15
+
+val12=$[rint($(tmp0))]
+tmp=!nonempty items x,y,a,b
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+val2=$[rint($val2)]
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+t_=!replace internal \( by ( in gcd($val10,$val6);
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val10/$val9)]
+val6=$[rint($val6/$val9)]
+tmp=!nonempty items ,-
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!nonempty items ,-
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+tmp=!nonempty items ,-
+
+tmp0=!randitem $tmp
+val18=$(tmp0)
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+t_=!replace internal \( by ( in gcd($val11,$val12);
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val12=$[rint($val12/$val9)]
+val11=$[rint($val11/$val9)]
+tmp=!nonempty items +,-
+
+tmp0=!randitem $tmp
+val20=$(tmp0)
+tmp=!trim $val14$val10*$val13*($val16$val7*$val13$val15$val8)$val17$val6*($val16$val7*$val13$val15$val8)	$val14$val11*$val13*($val16$val7*$val13$val15$val8)$val17($val18$val6*$val13$val19$val10)*($val16$val7*$val13$val15$val8)	($val14$val11*$val13+$val20$val12)*($val16$val7*$val13$val15$val8)$val17($val18$val6*$val13$val19$val10)*($val16$val7*$val13$val15$val8)
+val21=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val21
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+t_=!replace internal \( by ( in factor($val22);
+tmp0=!exec maxima $t_
+
+val23=$(tmp0)
+tmp0=!texmath $val22
+
+val22=$(tmp0)
+tmp0=!char 1 of $val23
+
+val24=$(tmp0)
+!if $val24=- 
+tmp0=!char 2 to -1 of $val23
+
+val23=$(tmp0)
+tmp0=!char 1 to -2 of *()
+
+val24=$(tmp0)
+tmp0=!char 1 to -2 of ,()
+
+val25=$(tmp0)
+tmp0=!replace internal $val24 by $val25 in $val23
+
+val26=$(tmp0)
+tmp0=!itemcnt $val26
+
+val27=$[rint($(tmp0))]
+val23=
+!for val28 =1 to $val27 
+tmp0=!item $val28 of $val26
+
+val24=$(tmp0)
+tmp0=!listcomplement $val24 in $val26
+
+val25=$(tmp0)
+tmp0=!replace , by * in $val25
+
+val25=$(tmp0)
+val25=-$val24*$val25
+tmp0=!append item $val25 to $val23
+
+val23=$(tmp0)
+!next
+!endif
+replytype1=algexp
+replyname1=Resposta
+replygood1=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<br>	Factoritzar l'expressió 
+!insmath $val22
+$().	<br>	<center><hr width=50%></center>	<table class=reply>	<tr><td>	<u><b>La teua resposta :</b></u><br>	
+!insmath $val22 = 
+$() 
+!read oef/embed.phtml r1,20 
+$().	</td></tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=22
+embedcnt=1

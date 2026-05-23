@@ -159,6 +159,19 @@ def _wims_relational(lhs: str, rhs: str, op_code: int, neg: bool, numeric: bool)
 def _wims_compare_atomic(s: str, numeric: bool) -> bool:
     """Évalue une condition atomique WIMS (sans and/or au niveau supérieur)."""
     n = len(s)
+    # Cas LHS vide : si la condition commence directement par ``is…`` / ``not…``
+    # (sans LHS), évaluer avec lhs="" — utile pour le pattern WIMS
+    # ``!if $var notwordof a b c`` quand $var est vide.
+    if n > 0 and not s[0].isspace():
+        for prefix, neg, k_start in (("not", True, 3), ("is", False, 2)):
+            if s[:k_start].lower() == prefix and k_start < n and s[k_start].lower() in _WIMS_PREFIX_CHARS:
+                for ri, rt in enumerate(_WIMS_RELATION_TYPES):
+                    rt_len = len(rt)
+                    if s[k_start:k_start + rt_len].lower() == rt:
+                        after = k_start + rt_len
+                        if after >= n or not (s[after].isalnum() or s[after] == "_"):
+                            return _wims_semantic_op("", ri + 1, neg, s[after:].strip())
+                break  # matched is/not but no relation type
     depth = 0
     i = 0
     rel: dict | None = None

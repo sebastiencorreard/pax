@@ -1,0 +1,185 @@
+# :type a(bx-c)=d
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+math=0
+!if $usage=2
+    image=0
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:<=>:and
+!if $subject=3
+    questiontype=0
+    varlist=x
+    question$n=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=12
+    rows=1
+    # berekeniningen laten zien
+    var3=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=1
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    embed=1
+    make_tr=1
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!endif
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+# applettext is a "ascii rawmath echo" of formula$n
+
+
+!if $R=1
+    a=!randitem -5,-4,-3,-2,-1,2,3,4,5
+    p=!randitem 2,3,4,5
+    x=$[$p*$a]
+    c=!randint 2,10
+    d=!randitem -8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8
+    !if $keuze=1
+	!if $[-1*$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[($a*$c+($d))*$p]
+	formula$n=$a \cdot \left( $b - $c x \right) = $d x
+	applettext=!nospace $a*($b - $c*x)=$d*x ->
+	tex=$[$a*$b] - $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) + ($a)*($c)] \cdot x \\ x = \frac{$[$a*$b]}{$[($d) + ($a)*($c)]} \\ x = $x 
+    !else
+	!if $[$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[(-1*$a*$c+($d))*$p]
+	formula$n=$a \cdot \left( $b  + $c x \right) = $d x
+	applettext=!nospace $a*($b + $c*x)=$d*x ->
+	tex=$[$a*$b] + $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) - ($a)*($c)] \cdot x  \\ x = \frac{$[$a*$b]}{$[($d) - ($a)*($c)]} \\ x = $x 
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex \end{array} \right.
+ !exit
+!endif
+
+!if $R=2
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    b=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    d=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+    c=!randint 2,10
+    !if $keuze=1
+	!if $[($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=($a*($b))/(($a)*$c+($d))\
+	printtex(A)
+	formula$n=$a \cdot \left( $b - $c x \right) = $d x
+	applettext=!nospace $a*($b - $c*x)=$d*x ->
+	tex=$[$a*$b] - $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) + ($a)*($c)] \cdot x  \\ x = \frac{$[$a*$b]}{$[($d) + ($a)*($c)]}
+    !else
+	!if $[-1*($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=($a*($b))/(-1*($a)*($c)+($d))\
+	printtex(A)
+	formula$n=$a \cdot \left( $b + $c x\right) = $d x
+	applettext=!nospace $a*($b + $c*x)=$d*x ->
+	tex=$[$a*$b] + $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) - ($a)*($c)] \cdot x \\ x = \frac{$[$a*$b]}{$[($d) - ($a)*($c)]}
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex \\ x = $t \end{array} \right.
+ !exit
+!endif
+
+!if $R=3
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    b=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    d=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+    c=!randint 2,10
+    e=!randint 2,20
+    !if $keuze=1
+	!if $[($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=(($a)*($b)-($e))/(($a)*($c)+($d))\
+	printtex(A)
+	formula$n=$a \cdot \left( $b - $c x \right) = $d x + $e
+	applettext=!nospace $a*($b - $c*x)=$d*x + $e->
+	tex=$[$a*$b] - $[$a*$c] \cdot x = $d x + $e \\  $[$a*$b-$e] = $[($d) + ($a)*($c)] \cdot x \\ x=\frac{$[$a*$b-$e]}{$[($d) + ($a)*($c)]}
+    !else
+	!if $[-1*($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=(($a)*($b)-($e))/(-1*($a)*($c)+($d))\
+	printtex(A)
+	formula$n=$a \cdot \left( $b + $c x\right) = $d x + $e 
+	applettext=!nospace $a*($b + $c*x)=$d*x + $e->
+	tex=$[$a*$b] + $[$a*$c] \cdot x = $d x +$e \\  $[$a*$b-$e] = $[($d) - ($a)*($c)] \cdot x \\ x = \frac{$[$a*$b-$e]}{$[($d) - ($a)*($c)]}
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex  \\ x = $t \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    a=!randitem 1/8,1/7,1/6,1/5,1/4,2/3,1/3,1/2,-1/8,-1/7,-1/6,-1/5,-1/4,-1/3,-2/3,-1/2
+    b=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    d=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,2,3,4,5,6,7,8,9,10
+    c=!randint 2,10
+    e=!randint 2,20
+    f=$[1/($a)]
+    !if $keuze=1
+	!if $[($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=(($a)*($b)-($e))/(($a)*($c)+($d))\
+	printtex(A)\
+	printtex($a)
+	atex=!line 3 of $tot
+	formula$n=$atex \cdot \left( $b - $c \cdot x \right) = $d x + $e 
+	applettext=!nospace $a*($b - $c*x)=$d*x + $e->
+	tex=$b - $c \cdot x = $f \cdot \left( $d x + $e \right) \\ $b - $c \cdot x = $[$f*$d] \cdot x + $[$f*$e] \\ $b - $[$f*$e] = $[$f*$d + ($c)] \cdot x \\ x = \frac{$[($b) - ($f)*($e)]}{$[$f*$d + ($c)]}
+    !else
+	!if $[-1*($a)*$c+($d)]=0
+	    c=$[$c+1]
+	!endif
+	tot=!exec pari A=($a*($b)-($e))/(-1*($a)*($c)+($d))\
+	printtex(A)\
+	printtex($a)
+	atex=!line 3 of $tot
+	formula$n=$atex \cdot \left( $b + $c \cdot x\right) = $d x + $e 
+	applettext=!nospace $a*($b + $c*x)=$d*x + $e -> 
+	tex=$b + $c \cdot x = $f \cdot \left( $d x + $e \right) \\ $b + $c \cdot x = $[$f*$d] \cdot x + $[$f*$e] \\ $b - $[$f*$e] = $[$f*$d - $c] \cdot x \\ x = \frac{$[($b)-($f)*($e)]}{$[$f*$d - ($c)]}
+    !endif
+    answer$n=!line 1 of $tot
+    t=!line 2 of $tot
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex  \\ x = $t \end{array} \right.
+ !exit
+!endif

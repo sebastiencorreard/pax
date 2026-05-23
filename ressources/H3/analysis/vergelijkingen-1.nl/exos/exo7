@@ -1,0 +1,154 @@
+# DHTML sleep sommetje
+n=$counter
+helptext=$empty
+!if $rounding=-1
+    rounding=0
+    !read $remarkdir/rounding.$taal
+!endif
+javascript=js/exo7.js
+mathview=0
+questiontype=7
+inputs=yes
+image=0
+cols=30
+make_tr=1
+rows=1
+math=0
+checkfile=exos/checkfile1.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+F=!randitem f,g,h,k,p,w
+ss=!record 9 of lang/remarks.$taal
+#@Bepaal het tekenverloop en de nulpunten in $m_RR (mits aanwezig...)<br />van de onderstaande functie <em>$F</em><br /><em><small>sleep de plaatjes en invulveldjes naar de goede plek</small></em><p>
+helptext=<img src=\'$module_dir/gifs/help.exo7.jpg\' alt=\'noalt\' />
+question$n=$ss <a onmouseover="return escape('$helptext')"><small>$sometext</small></a>
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+!if $R = 1
+    a=!randitem -1,1
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10
+!else
+    !if $R = 2
+	a=!randitem -1,-2,-3,1,2,3
+	b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+	c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10
+    !else
+        !if $R = 3
+	    a=!randitem -1,-2,-3,1,2,3
+	    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+	    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10
+	!else
+	    a=!randitem -1,-2,-3,1,2,3
+	    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+	    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10
+	!endif
+    !endif
+!endif
+plus=<img src="$module_dir/gifs/plus.gif" id="img1" name="img1" style="height:58px;width:58px;border:0px" alt="+" />
+min=<img src="$module_dir/gifs/min.gif" id="img2" name="img2" style="height:58px;width:58px;border:0px" alt="&minus;"/>
+nul=<img src="$module_dir/gifs/nul.gif" id="img0" name="img0" style="height:58px;width:58px;border:0px" alt="0" />
+functie=($a)*x^2 + ($b)*x + ($c)
+D=$[$b*$b - 4*($a)*($c)]
+!if $D >= 0
+    x1=(-1*$b + sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    x2=(-1*$b - sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    tot=!exec maxima expand($x1);\
+    expand($x2);
+    x11=!line 1 of $tot
+    x22=!line 2 of $tot
+    !ifval $x11 < $x22
+	x1=$x11
+	x2=$x22
+    !else
+	x2=$x11
+	x1=$x22
+    !endif     
+    X1tex=!texmath $x1
+    X2tex=!texmath $x2
+    !if $D > 0
+	texanswer$n= \left[ \begin{array}{l} x_{1} \,=\, $X1tex \\ x_{2} \,=\, $X2tex \end{array}\right.
+	!if $a>0
+	    answer$n=$x1,$x2,+,x,-,x,+
+	    textanswer$n=<table><tr><th>$F(x)</th><th>$plus</th><th>$nul</th><th>$min</th><th>$nul</th><th>$plus</th></tr></table>
+	!else
+	    answer$n=$x1,$x2,-,x,+,x,-
+	    textanswer$n=<table><tr><th>$F(x)</th><th>$min</th><th>$nul</th><th>$plus</th><th>$nul</th><th>$min</th></tr></table>
+	!endif
+    !else
+	# D=0
+	texanswer$n= x_{1} \,=\, $X1tex
+	!if $a>0
+	    answer$n=$x1,+,x,+
+	    textanswer$n=<table><tr><th>$F(x)</th><th>$plus</th><th>$nul</th><th>$plus</th></tr></table>
+	!else
+	    answer$n=$x1,-,x,-
+	    textanswer$n=<table><tr><th>$F(x)</th><th>$min</th><th>$nul</th><th>$min</th></tr></table>
+	!endif
+    !endif
+!else
+    !if $a>0
+	answer$n=+
+	textanswer$n=<table><th>$F(x)</th><th>$plus</th><th>$plus</th><th>$plus</th><th>$plus</th></tr></table>
+    !else
+	answer$n=-
+	textanswer$n=<table><th>$F(x)</th><th>$min</th><th>$min</th><th>$min</th><th>$min</th></tr></table>
+    !endif
+    texanswer$n=x \,\, \notin \,\, \Bf{R}
+!endif	
+ 
+formula$n=!texmath $functie
+formula$n=$F\left( x \right)\,\,=\,\,$(formula$n)
+DHTML=$empty
+invul=$empty
+exotext=$empty
+nulpunten=5
+options=10
+DHTML=!append item "img1" + COPY + $options  to $DHTML
+DHTML=!append item "img2" + COPY + $options  to $DHTML
+i=0
+!if $wims_user=supervisor
+    !for p=1 to $nulpunten
+	m=$[$p+1]
+	!if $p=1 or $p=2
+	    !if $D>0
+		ant=!item $p of $(answer$n)
+		invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><small>$p</small></sub>=<input type="text" size="3" id="myinput$i" value="$ant" class="schaersvoorde_input" /></div></td> to $invul
+	    !else
+		!if $D=0
+		    !if $p=1
+			ant=!item 1 of $(answer$n)
+			invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><small>$p</small></sub>=<input type="text" size="3" id="myinput$i" value="$ant" class="schaersvoorde_input" /></div></td> to $invul
+		    !endif
+		!else
+		    invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><small>$p</small></sub>=<input type="text" size="3" id="myinput$i" value="" class="schaersvoorde_input" /></div></td> to $invul
+		!endif
+	    !endif
+	!else
+	    invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><small>$p</small></sub>=<input type="text" size="3" id="myinput$i" value="" class="schaersvoorde_input" /></div></td> to $invul
+	!endif
+	!increase i
+    	DHTML=!append item "div$m" to $DHTML
+    !next p
+!else
+    !for p=1 to $nulpunten
+	m=$[$p+1]
+	invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><small>$p</small></sub>=<input type="text" size="3" id="myinput$i" value="" class="schaersvoorde_input" /></div></td> to $invul
+	DHTML=!append item "div$m" to $DHTML
+	!increase i
+    !next p
+!endif
+options=$[$nulpunten+2]
+DHTML=!append item "div0" + NO_DRAG  to $DHTML
+DHTML=!append item "div1" + NO_DRAG  to $DHTML
+
+dhtml=<script type="text/javascript">SET_DHTML( CURSOR_MOVE , $DHTML);</script>
+
+exotext=<table ><tr><th><em>x</em></th><th><table style="background-color:lightblue"><tr><td><img src="$module_dir/gifs/min_oneindig.gif" alt="-inf" /></td><td><div id="div1" name="div1" style="position:relative;height:60px;width:680px;background-color:lightblue">&nbsp;</div></td><td><img src="$module_dir/gifs/plus_oneindig.gif" alt="+inf" /></td></tr></table></th></tr><tr><th>$F(<em>x</em>)</th><th><table style="background-color:lightblue"><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr><tr><td><div id="div0" name="div0" style="position:relative;height:60px;width:680px;background-color:lightblue">&nbsp;</div></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr></table></th></tr></table><table><tr><th>$plus</th><th>$min</th><th><table><tr>$invul</tr></table></th></tr></table>
+

@@ -1,0 +1,136 @@
+!set title=Statistisch gemiddelde
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 15, 20
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 20, 30
+
+val7=$[rint($(tmp0))]
+!readproc slib/stat/random $val6-1, 0,$val7 
+tmp0=$slib_out
+val8=$(tmp0)
+tmp0=!values x*0.5 for x in $val8
+
+val8=$(tmp0)
+!readproc slib/stat/arithmean $val8 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val9=$(tmp1)
+tmp0=!sort  numeric item $val8
+
+val10=$(tmp0)
+tmp0=!item -1 of  $val10
+
+val11=$(tmp0)
+tmp0=!item 1 of  $val10
+
+val12=$(tmp0)
+val13=$[$val11-$val12]
+val14=<th>Waarden </th>
+!for val15 =1 to $val6 
+tmp0=!item $val15 of $val8
+
+val16=$(tmp0)
+val14=$val14 <td> $val16 </td>
+!next
+replytype1=numeric
+replyname1=Gemiddelde
+replygood1=$[$val9]
+replytype2=numeric
+replyname2=Maximium
+replygood2=$[$val11]
+replytype3=numeric
+replyname3=Minimum
+replygood3=$[$val12]
+replytype4=numeric
+replyname4=Spreidingsbreedte
+replygood4=$[$val13]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Zie hier een statistische reeks; 	 <p> 	 <table align="center" border="1">	  <tr align ="center">$val14 </tr>	  </table>	  	<p>	Bereken van deze statistische reeks 	<ul><li>het gemiddelde  :  
+!read oef/embed.phtml reply 1, 6 
+$()	</li>	<li>de maximale waarde :  
+!read oef/embed.phtml reply 2, 6 
+$()	</li> 	<li>de minimale waarde :  
+!read oef/embed.phtml reply 3, 6 
+$()	</li>	<li>de spreidingsbreedte:  
+!read oef/embed.phtml reply 4, 6 
+$()	</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply4-$m_reply2+$m_reply3 !=0
+ <p>	 <font color="red">De spreidingsbreedte is het maximum - het minimum.	 </font>	
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14
+embedcnt=4

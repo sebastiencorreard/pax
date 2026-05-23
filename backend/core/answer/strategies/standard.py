@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from core.answer.checkers import check_answer, _normalize_expr
+from core.answer.checkers import check_answer, is_polexpand, _normalize_expr
 from core.answer.schemas import AnswerResult
 
 
 def pretty_expected(expected: str, answer_type: str) -> str:
-    """Retourne la correction sous forme lisible (développée pour algexp)."""
+    """Retourne la correction sous forme lisible, en préservant la forme
+    voulue par l'auteur : développée si l'expected était développé,
+    factorisée sinon."""
     if answer_type.lower() in ("algexp", "litexp", "formal"):
         try:
             import sympy
@@ -22,7 +24,12 @@ def pretty_expected(expected: str, answer_type: str) -> str:
                 transformations=transformations,
                 local_dict={"expand": sympy.expand, "factor": sympy.factor},
             )
-            return str(sympy.expand(expr))
+            # Only expand if the stored expected was itself developed.
+            # Otherwise (factored form expected), keep it as-is so the
+            # debug "Réponse auto" fills a form that passes polfactor.
+            if is_polexpand(expected):
+                return str(sympy.expand(expr))
+            return str(expr)
         except Exception:
             pass
     return expected

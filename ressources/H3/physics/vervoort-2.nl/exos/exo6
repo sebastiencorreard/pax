@@ -1,0 +1,94 @@
+#hfst1
+#exo6(hfst1) Procentrekenen [hoeveel duurder / goedkoper]
+make_tr=1
+n=$counter
+inputs=yes
+mathview=0
+inputs=1.1
+cols=14
+checkfile=$checkdir/new_number.proc
+math=0
+    
+num=!randint 1,10
+viewlogo=1
+image=0
+keuze=!randint 0,1
+!if $keuze=1
+    zijn=zijn
+    hij=hij
+    Hij=Hij
+    hem=hem
+    kinderen=!record 78 of $remarkdir/commonremarks.$taal
+!else
+    Hij=Zij
+    zijn=haar
+    hij=zij
+    hem=haar
+    kinderen=!record 79 of $remarkdir/commonremarks.$taal
+!endif
+naam=!randitem $kinderen
+gadgets=!line $num of Laptop,30,110\
+Nintendo,15,35\
+Nintendo Wii,20,35\
+IPod,15,35\
+IPhone,20,40\
+Smartphone,40,80\
+Playstation,20,40\
+PDA,15,40\
+mini laptop,15,38\
+BlackBerry,25,40
+    
+logo=<img src=$module_dir/gifs/gadget$num.jpg alt=noalt />
+
+gadget=!item 1 of $gadgets
+logotext=$gadget
+min=!item 2 of $gadgets
+max=!item 3 of $gadgets
+prijs1=!randint $min,$max
+prijs1=!exec float_calc scale=2\
+10.00*$prijs1
+
+percent1=!randint 2,15
+percent1=$[$percent1*2]
+percent2=$[100-$percent1]
+
+prijs2=!exec moneyprint $[$percent2/100*$prijs1] 2
+
+kans=!randint 1,3
+
+!if $kans=1
+    answer$n=$prijs2
+    
+    ss=$naam wil graag een nieuwe $gadget kopen.<br />Deze $gadget kost &euro;$prijs1  bij winkel <b>A</b>.<br />Bij winkel <b>B</b> is dit produkt $percent1 % goedkoper.<br />Bereken hoeveel &euro; de $gadget kost bij winkel <b>B</b> 
+    
+    textanswer$n=$percent1 % goedkoper betekent 100 &minus; $percent1 = $percent2 betalen.<br />Bij winkel <b>B</b> kost de $gadget : $percent2/100 &times; $prijs1  = &euro; $(answer$n) 
+
+    description=Prijs bij winkel <b>B</b>
+    ex1=&nbsp;&euro;
+!else
+    !if $kans=2
+	ss=$naam wil graag een nieuwe $gadget kopen.<br />Deze kost &euro;$prijs1 bij winkel <b>A</b><br />Bij winkel <b>B</b> kost de $gadget &euro; $prijs2<br />Bereken hoeveel procent de $gadget goedkoper is bij winkel <b>B</b> in vergelijking met winkel <b>A</b>
+	
+	answer$n=$percent1
+	d=$[$prijs2 - $prijs1]
+	textanswer$n=$prijs2 &minus; $prijs1 = $d <br />$d / $prijs1 &times; 100 = $(answer$n) % 
+	
+	description=Hoeveel procent goedkoper?
+	ex1=&nbsp;%
+    
+    !else
+	answer$n=$prijs1
+	ss=$naam wil graag een nieuwe $gadget kopen.<br />Bij winkel <b>B</b> is de $gadget $percent1 % goedkoper dan bij winkel <b>A</b>.<br />Bij winkel <b>B</b> kost dit artikel &euro; $prijs2<br />Bereken hoeveel de $gadget kost bij winkel <b>A</b>?
+	
+	description=De prijs bij winkel <b>A</b>?
+	ex1=&nbsp;&euro;
+	textanswer$n=<table class="default_table"><tr><th></th><th>Winkel A</th><th>Winkel B</th></tr><tr><td>Prijs</td><td><span style="color:red"><b>?</b></span></td><td>&euro;$prijs2</td></tr><tr><td>Procent</td><td>100 %</span></td><td>$percent2 %</td></tr></table><br />De prijs bij winkel A: $prijs2/$percent2 &times; 100 = &euro;$(answer$n)
+	
+    !endif
+!endif
+
+question$n=<a onmouseover="return escape('$logo')">$ss</a>
+helptext=$logo
+    
+
+    

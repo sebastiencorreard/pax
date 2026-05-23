@@ -1,0 +1,118 @@
+# lijn en hellingsgetal [GeoGebra]
+n=$counter
+inputs=yes
+mathview=0
+embed=1
+checkfile=exos/checkfile1.proc
+questiontype=7
+javascript=js/exo15.js
+math=0
+make_tr=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# geen tabel , slechts 1 invulveld
+options=1
+showToolBar=true
+showMenuBar=false
+framePossible=true
+list_of_things=['line']; 
+ggb=ggb/rooster.ggb
+#letop: 0 decimalen , snap-to-grid
+height=480
+width=600
+formula$n=
+customToolBar=" 1 | 2 | 6 | 40 | 41 | 42 "
+image=0
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+inputtext=!record 2 of lang/remarks.$taal
+inputtext=!item 2 of $inputtext
+sometext=!record 40 of lang/remarks.$taal
+#@uitkomst:getal,bedrag:tijd,afstand:tijd,hoogte:tijd
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+y=!item 1 of $ding
+x=!item 2 of $ding
+keuze=!randitem 1,0
+
+!if $R=1
+    c=!randint 1,5
+    !if $keuze=1
+	a=1
+	x1=!randint 0,3
+	func=$a*x + $c
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $y } \,=\, \textrm{ $x } + $c  \\ \textrm{$inputtext} = $a \end{array} \right.
+    !else
+	a=!randint 2,5
+	x1=!randitem 0,1,2
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $y } \,=\, $a \times  \textrm{$x } \\  \textrm{$inputtext} = $a   \end{array} \right.
+	func=$a*x
+    !endif
+    f=!randitem 1,2,3
+    var3=$a
+!else
+    !if $R=2
+	a=!randint 2,6
+	c=!randint 1,5
+	!if $keuze=1
+	    pm=+
+	    x1=!randitem 0,1,2
+	!else
+	    pm=-
+	    x1=!randitem 2,3,4
+	!endif
+	texanswer$n=\left[ \begin{array}{l} \textrm{ $y } \,=\, $a \times \textrm{ $x } $pm $c \\  \textrm{$inputtext} = $a  \end{array} \right.
+	func=$a*x $pm $c
+	f=!randitem 2,3,4
+    !else
+	a=!randitem 0.5,1.5,2,2.5,3,3.5,4
+	mp=!randitem 1,-1
+	a=$[$mp*$a]
+	pm=!randitem +,-
+	f=!randitem 2,4
+	y=y
+	x=x
+	!if $mp=1
+	    c=!randint 1,5
+	    x1=!randitem 0,2,4
+	    texanswer$n=\left[ \begin{array}{l} \textrm{ y } \,=\, $a \cdot \textrm{ x } $pm $c \\  \textrm{$inputtext} = $a  \end{array} \right.
+	    func=$a*x $pm $c
+	!else
+	    c=!randint 5,15
+	    x1=!randitem 0,2,4
+	    texanswer$n=\left[ \begin{array}{l} \textrm{ y } \,=\, $a \cdot \textrm{ x } + $c \\  \textrm{$inputtext} = $a \end{array} \right.
+	    func=$a*x+$c
+        !endif
+    !endif
+!endif
+var1=$x
+var2=$y
+x2=$[$x1+$f]
+y1=!evalsubst x=$x1 in $func 
+y2=!evalsubst x=$x2 in $func 
+answer$n=$func,$a
+
+
+helptext=<img src=\'$module_dir/gifs/help1.jpg\' alt=\'noalt\' />
+
+
+ss=!record 51 of lang/remarks.$taal
+#@Teken de lijn in de GeoGebra applet door de gegeven punten en bepaal het daarbij horende hellingsgetal.<br />
+question$n=$ss
+
+
+!if $wims_user=supervisor
+    exotext=<table><tr><td>$inputtext</td><td>=</td><td><input type="text" class="schaersvoorde_input" size="5" id="myinput0" value="$a" /></td></tr></table>
+!else
+    exotext=<table><tr><td>$inputtext</td><td>=</td><td><input type="text" class="schaersvoorde_input" size="5" id="myinput0" value=""/></td></tr></table>
+!endif
+!exit
+

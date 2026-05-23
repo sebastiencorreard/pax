@@ -1,0 +1,207 @@
+!set title=Remplacer x dans -x^2+bx+c
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand 
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(10)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(5)]
+!endif
+
+!ifval $val4=
+val4=$[rint(5)]
+!endif
+val7=4
+val8=
+val9=
+val10=
+val11=
+val12=
+!for val13 =1 to $val2 
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val14=$(tmp0)
+tmp=!nonempty items $val3
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp=!nonempty items $val4
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+!readproc slib/polynome $val14,$val16,$val15 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!append item $val18 to $val12
+
+val12=$(tmp0)
+tmp0=!item 2 of $val17
+
+val19=$(tmp0)
+tmp0=!item 3 of $val17
+
+val20=$(tmp0)
+tmp0=!replace internal $val18 by ($val20) in $val19
+
+val21=$(tmp0)
+tmp=!translate ";': to $     $ in $val21
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+tmp0=!texmath $val19
+
+val19=$(tmp0)
+tmp0=!append item $val19 to $val8
+
+val8=$(tmp0)
+tmp0=!append item $val21 to $val9
+
+val9=$(tmp0)
+tmp0=!texmath $val20
+
+val20=$(tmp0)
+tmp0=!append item $val20 to $val10
+
+val10=$(tmp0)
+tmp0=!append item r$val13 to $val11
+
+val11=$(tmp0)
+!next
+val22=A,B,C,D,E
+oefsteps=$val11 
+nextstep=!nosubst $val11 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=\($(val22[1]))
+replygood1=$(val9[1])
+replytype2=numexp
+replyname2=\($(val22[2]))
+replygood2=$(val9[2])
+replytype3=numexp
+replyname3=\($(val22[3]))
+replygood3=$(val9[3])
+replytype4=numexp
+replyname4=\($(val22[4]))
+replygood4=$(val9[4])
+replytype5=numexp
+replyname5=\($(val22[5]))
+replygood5=$(val9[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()Quelle est la valeur de l'expression suivante pour 
+!insmath $(val12[1]) = $(val10[1])
+$() ?	<div class="wimscenter">
+!insmath $(val22[1]) = $(val8[1])
+$().</div> 
+!else
+$()	 Calculer les expressions suivantes pour les valeurs données :	<ul>	  
+!for m_k=1 to $val2 
+$()<li>
+!insmath $(val22[$m_k]) = $(val8[$m_k])
+$() pour 
+!insmath $(val12[$m_k]) = $(val10[$m_k])
+$().</li> 
+!next
+$()	</ul>	 
+!endif
+$()	<div class="wims_instruction">	Donner vos réponses sous une forme aussi simple que possible.</div>	<div class="spacer">	
+!if $val2=1 
+$()	<b>Votre réponse</b> : 
+!insmath $(val22[1]) = 
+$() 
+!read oef/embed.phtml r1,$val6 
+$()	 
+!else
+$() 	<b>Vos réponses</b> :	<ul>	  
+!for m_k=1 to $val2 
+$()<li>
+!insmath $(val22[$m_k]) = 
+$() 
+!read oef/embed.phtml r\k,$val6 
+$()</li> 
+!next
+$()	</ul>	 
+!endif
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,6,8,10,12,22
+embedcnt=2

@@ -1,0 +1,151 @@
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ remark$n=$NOK
+ goback=0
+ !exit
+!endif
+
+!if y notin $(reply$n)
+ errortext=Je bent de variabele <em>y</em> ergens kwijt geraakt...
+ maxscore=$[0.95*$maxscore]
+ goback=1
+ !exit
+!endif
+
+!if x notin $(reply$n)
+ errortext=Schrijf je antwoord netjes op... iets als <em>x = 5 </em>
+ maxscore=$[0.95*$maxscore]
+ goback=1
+ !exit
+!endif
+
+chk=!replace internal = by @ in $(reply$n)
+!if @ notin $chk
+ errortext=Schrijf je antwoord netjes op... iets als <em>x = 5 </em>
+ maxscore=$[0.95*$maxscore]
+ goback=1
+ !exit
+!endif
+
+chk=!replace internal or by , in $(reply$n)
+chk=!replace internal and by , in $chk
+gg=!itemcnt $(answer$n)
+aa=!itemcnt $chk
+
+score=0
+!if $gg=2
+ g1=!item 1 of $(answer$n)
+ g2=!item 2 of $(answer$n)
+ g1=!evalsubst y=10 in $g1
+ g2=!evalsubst y=10 in $g2
+ !if $aa=2
+  chk_1=!item 1 of $chk
+  chk_2=!item 2 of $chk
+  chk1=!replace internal = by , in $chk_1
+  chk2=!replace internal = by , in $chk_2
+  chk1_1=!item 1 of $chk1
+  chk1_2=!item 2 of $chk1
+  chk2_1=!item 1 of $chk2
+  chk2_2=!item 2 of $chk2
+  !if x isin $chk1_1
+   a1=$chk1_2
+   # x = 5y
+  !else
+   # 5y= x
+   a1=$chk1_1
+  !endif 
+  !if x isin $chk2_1
+   a2=$chk2_2
+   # y = 5x
+  !else
+   # 5x = y
+   a2=$chk2_1
+  !endif 
+  a1=!rawmath $a1
+  a2=!rawmath $a2
+  a1=!evalsubst y=10 in $a1
+  a2=!evalsubst y=10 in $a2
+  k=red
+  !ifval ($a1=$g1 and $a2=$g2) or ($a1=$g2 and $a2=$g1)
+   !increase score
+   k=green
+  !else
+   !ifval $a1=$g1 or $a2=$g2 or $a1=$g2 or $a2=$g1
+    score=$[$score+0.5]
+    k=orange
+    extratext=Je hebt 1 van de twee oplossingen fout
+   !endif
+  !endif
+ !else
+  #aa != 2
+  !if $aa=1
+   extratext=Je bent een oplossing vergeten...
+   chk1=!replace internal = by , in $chk_1
+   chk1_1=!item 1 of $chk1
+   chk1_2=!item 2 of $chk1
+   !if x isin $chk1_1
+    a1=$chk1_2
+    # y = 5x
+   !else
+    # 5x = y
+    a1=$chk1_1
+   !endif
+   a1=!rawmath $a1
+   a1=!evalsubst y=10 in $a1
+   k=red
+   !ifval $a1=$g1 or $a1=$g2
+    score=$[$score+0.5]
+    k=orange
+   !endif
+  !else
+   extratext=Man, wat een antwoord...
+   k=red
+  !endif
+ !endif
+!else
+ # gg=1 correct antwoord
+ k=red
+ g1=!evalsubst y=10 in $(answer$n)
+ !if $aa=1
+  chk1=!replace internal = by , in $chk
+  chk1_1=!item 1 of $chk1
+  chk1_2=!item 2 of $chk1
+  !if x isin $chk1_1
+   a1=$chk1_2
+  !else
+   a1=$chk1_1
+  !endif 
+  a1=!rawmath $a1
+  a1=!evalsubst y=10 in $a1
+  !ifval $a1=$g1
+   !increase score
+    k=green
+  !endif
+ !else
+  extratext=Man, wat een antwoord...
+  k=red
+ !endif
+!endif
+
+maxscore=$[$maxscore*$score]
+modulescore=$[$modulescore + $maxscore]
+exotext=a1=$a1 a2=$a2 g1=$g1 g2=$g2 scpre=$score
+goback=1
+!exit
+!if $maxscore>0.9
+ remark$n=$OK
+!else
+ !if $maxscore>0.4
+  remark$n=$BOK
+ !else
+  remark$n=$NOK
+ !endif
+!endif
+
+!if $extratext != $empty
+    remark$n=!append line $extratext to $(remark$n)
+!endif
+
+
+!exit

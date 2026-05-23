@@ -1,0 +1,163 @@
+#: [java] Balk [ Pythagoras ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+questiontype=0
+embed=1
+cols=20
+rows=1
+# 35 is kubus bij breedte=0 diepte=0
+applet=1
+make_tr=0
+m_rightarrow=&nbsp;=
+checkfile=$checkdir/number.proc
+helptext=$empty
+!if $R=1
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    k=!randitem 1,2,3
+
+    !if $k=1
+        setje=A,F B,E C,H D,G
+        d=$[$x^2+$y^2]
+        d_tex=$x^{2}+$y^{2}
+    !else
+        !if $k=2
+            setje=E,G F,H A,C B,D
+	    d=$[$y^2+$z^2]
+	    d_tex=$y^{2}+$z^{2}
+        !else
+            setje=B,G C,F D,E A,H
+	    d=$[$x^2+$z^2]
+	    d_tex=$x^{2}+$z^{2}
+        !endif
+    !endif
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B 
+    ss=!record 4 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is <br />AB=$y, BC=$z en BF=$x<br />Bereken de lengte van $AB.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($AB)
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    texanswer$n=\sqrt{$d_tex } = $tex 
+    construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment>
+
+    !readproc exos/balkxml.proc 
+ !exit
+!endif
+
+!if $R=2
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    d=$[$x^2+$y^2+$z^2]
+    setje=A,G D,F B,H C,E
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    ss=!record 4 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is <br />AB=$y, BC=$z en BF=$x<br />Bereken de lengte van $AB.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($AB)
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    texanswer$n=\sqrt{$x^{2} + $y^{2}  + $z^{2} } = $tex
+    construction=<Segment name="$AB" alias="$AB" color="5" n="1000" from="$A" to="$B"></Segment>
+    !readproc exos/balkxml.proc 
+ !exit
+!endif
+
+!if $R>2
+    setje=B,D,H A,C,G C,A,E D,B,F
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    B=!item 1 of $set
+    C=!item 2 of $set
+    D=!item 3 of $set
+    BQ=!nospace $B Q
+    CQ=!nospace $C Q
+    CD=!nospace $C $D
+    x=!randitem 4,8,12,16,20,24,28
+    y=!randitem 2,3,4,5,6,7,8,9
+    z=!randitem 2,4,6,8,10
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    #AB=$y, BC=$z en BF=$x.
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+
+    k=!randitem 1,2,3
+    m=!item $k of 1/4,1/2,3/4
+    lengte=$[$x*$m]
+    d=$[$y^2+$z^2+$lengte^2]
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    ss=!record 5 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is<br />AB=$y, BC=$z en BF=$x .<br />Het punt Q ligt op ribbe $CD, zodat de afstand tussen de punten $C en Q $lengte is. <br />Bereken de afstand QR.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($BQ)
+    texanswer$n=\sqrt{$y^{2} + $z^{2} + $lengte^{2}} = $tex
+
+    construction=<Circle name="C1"  n="2001" color="4" hidden="false" fixed="$m*$CD" midpoint="$C"></Circle><Intersection name="Q" showname="true" bold="true" large="true" shape="circle" n="2002" first="$CD" second="C1" which="first"></Intersection><Segment n=2005 name="$BQ" from="$B" to="Q" color="5"></Segment>
+
+    !readproc exos/balkxml.proc 
+ !exit
+!endif
+
+

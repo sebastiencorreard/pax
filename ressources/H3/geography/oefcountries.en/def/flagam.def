@@ -1,0 +1,127 @@
+!set title=Flags of America
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=en
+author=XIAO, Gang
+email=xiao@unice.fr
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim ar,Argentina	bb,Barbados	bf,Bahamas	bh,Belize	bl,Bolivia	br,Brazil	ca,Canada	ci,Chile	co,Colombia	cs,Costa Rica	cu,Cuba	do,Dominica	dr,Dominican Republic	ec,Ecuador	es,El Salvador	gj,Grenada	gt,Guatemala	gy,Guyana	ha,Haiti	ho,Honduras	jm,Jamaica	mx,Mexico	ns,Suriname	nu,Nicaragua	pa,Paraguay	pe,Peru	pm,Panama	sc,Saint Kitts and Nevis	st,Saint Lucia	td,Trinidad and Tobago	us,United States | United States of America | US | USA	uy,Uruguay	ve,Venezuela	
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val7=$[rint($(tmp0))]
+tmp0=!shuffle $val7
+
+tmp1=!item 1 to 5 of $(tmp0)
+
+val8=$(tmp1)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val8 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!translate internal | to , in $val6
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+val11=
+!for val12 =1 to 5 
+tmp0=!item $val12 of $val9
+
+val13=$(tmp0)
+tmp0=!rename gifs/flags/$val13-lgflag.gif
+
+val13=$(tmp0)
+tmp0=!append item $val13 to $val11
+
+val11=$(tmp0)
+!next
+val14=<center><img height=46 src=
+val15=></center>
+tmp0=!replace internal , by $val15,$val14 in	 $val14$val11$val15
+
+val11=$(tmp0)
+val6=$val11 ; $val10
+replytype1=correspond
+replyname1=The correspondance
+replygood1=$val6
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Establish the correspondance between the flags and the countries:	<p><center> 
+!read oef/embed.phtml reply 1,50x120x150 
+$()</center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=
+embedcnt=1

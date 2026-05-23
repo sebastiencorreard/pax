@@ -1,0 +1,297 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# standaard vorm
+# checkt met maxima
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+extra=$empty
+AAA=!nospace $(reply$n)
+AAA=!lower $AAA
+
+!if sqrt notin $AAA
+    rem=!record 30 of lang/remarks.$taal
+    !if $teaching=1
+	maxscore=$[$P6*$maxscore]
+	errortext=$rem
+	goback=1
+    !else
+	remark$n=$NOK<br />$rem
+	#@<br />en je hebt niet eens een wortel in je antwoord...
+	maxscore=0
+	goback=0
+    !endif
+ !exit
+!endif
+
+test=!replace internal = by , in $AAA
+t0=!itemcnt $test
+!if $t0=2
+    test=!replace internal @ by , in $test
+    t1=!item 1 of $test
+    t2=!item 2 of $test
+    AAA=$t2
+    extra=!record 7 of lang/remarks.$taal
+    #@Je eindantwoord lees ik voor het gemak als $t2<br />en dus niet als $t1 ...<br />
+!else
+    !if $t0>2
+	errortext=!record 8 of lang/remarks.$taal
+	#@Je hoeft hier alleen een eindantwoord in te vullen, hoor
+	goback=1
+	!exit
+    !endif
+!endif
+
+# determine the "power of the root"
+test=!replace internal sqrt[ by @ in $AAA
+!if @ isin $test
+    # ook syntax sqrt[]()
+    test=!replace internal ] by @ in $test
+    t=!positionof char @ in $test
+    t1=!item 1 of $t
+    t2=!item 2 of $t
+    power=!char $[$t1+1] to $[$t2-1] of $test
+    tt=!nospace  sqrt [ $power ]
+    AAA=!replace internal $tt by sqrt in $AAA
+!else
+    power=2
+    # dus 2 == 1/2 (ofwel gewone wortel)
+!endif
+
+
+test=!replace internal sqrt( by @ in $AAA
+!if @ notin $test
+    !if $teaching=1
+	!if $var1=1
+	    maxscore=0
+	    ex=!record 9 of lang/remarks.$taal
+	    #@Nee, het goede antwoord is een wortel...
+	    remark$n=$NOK<br />$ex
+	    goback=0
+	    !exit
+	!else
+	    goback=1
+	    maxscore=$[$maxscore*$P6]
+	    errortext=!record 10 of lang/remarks.$taal
+	    #@ik verwacht natuurlijk een wortel in je antwoord...
+	    !exit
+	!endif
+    !else
+	remark$n=!record 11 of lang/remarks.$taal
+	#@Je antwoord is natuurlijk niet goed:<br />er moet een wortel in staan
+	maxscore=0
+	goback=0
+	!exit
+    !endif
+!endif
+
+# we willen maar 1 wortel in het leerling antwoord
+t0=!positionof sqrt in $AAA
+t0=!itemcnt $t0
+!if $t0>1
+    !if $teaching=1
+	maxscore=$[$P6*$maxscore]
+	errortext=!record 12 of lang/remarks.$taal
+	#@Nee hoor , het goede antwoord is een enkele wortel... en geen $t0
+	goback=1
+    !else
+	maxscore=0
+	rem=!record 13 of lang/remarks.$taal
+	#@Nee, het goede antwoord is een enkele wortel... en geen $t0
+	remark$n=$NOK<br />$rem
+	goback=0
+    !endif
+ !exit
+!endif
+# DE STANDAARD VORM
+t1=!positionof @ in $test
+t2=!positionof ) in $test
+t3=!charcnt $test
+t3=$[$t3-1]
+
+laatstehaakje=!item -1 of $t2
+!if $t3 != $laatstehaakje
+    value3=!char $[$laatstehaakje+2] to $[$t3+1] of $test
+    t4=!char 1 of $value3
+    !if $t4 isin *,1,2,3,4,5,6,7,8,9,0
+	rem=!record 14 of lang/remarks.$taal
+	extra=$extra <br />$rem
+	#@de standaardvorm is: a*sqrt(b) en geen sqrt(b)*a<br />
+	!if $t4=*
+	    value3=!char $[$laatstehaakje+3] to $[$t3+1] of $test
+	    # anders straks (value1)*(*value3) === value1^(value2) 
+	!else
+	    value3=$value3
+	!endif
+    !else
+	!if $t4=/
+	    value3=!nospace (1 $value3 )
+	    maxscore=$[$P2*$maxscore]
+	    rem=!record 15 of lang/remarks.$taal
+	    extra=$extra<br />$rem 
+	    #@hmmm, sqrt(b)/a is niet wat ik onder de standaardvorm a*sqrt(b) versta<br /> 
+	!else
+	    # dus t4 =+ -
+	    errortext=!record 16 of lang/remarks.$taal
+	    #@onvolledige berekenigen... niet de standaard vorm<br />
+	    maxscore=$[$P6*$maxscore]
+	    value3=$[1*($value3)]
+	!endif
+    !endif
+!endif
+
+# reply$n= 3/4sqrt(7) => value1=3/4 value2=7
+value2=!char $[$t1+2] to $laatstehaakje of $test
+value1=!char 1 to $t1 of $test
+t=!char -1 of $value1
+!if $t=*
+    value1=!char 1 to -2 of $value1
+!endif
+!if $value1=-
+    value1=-1
+!endif
+!if $value2=$empty
+    value2=1
+    rem=!record 17 of lang/remarks.$taal
+    extra=$extra<br />$rem 
+    #@en zelfs zonder wortelteken...geen standaard vorm, dus <br />
+!endif
+!if $value3=$empty
+    value3=1
+!endif
+value2=($value2)
+non=0
+!if $value1=$empty
+    value1=1
+!else
+    # probleem 5/sqrt(15)
+    t5=!char -1 of $value1
+    !if $t5=/
+	value2=(1/($value2))
+	value1=!char 1 to -2 of $value1
+	rem=!record 18 of lang/remarks.$taal
+	extra=$extra<br />$rem
+	#@Wortel onder de breukstreep...'t antwoord is niet in de standaard vorm genoteerd<br />
+	non=1
+	# dus value2 --> sqrt(value2)
+	maxscore=0
+    !endif    
+!endif
+klaar=0
+# value2 --> sqrt($value2)
+!if $non=0
+    # antwoord kan/mag zijn sqrt(3y)
+    !for p in +,-,.
+	!if $klaar=0
+	    !if $p isin $value2
+		klaar=1
+		rem=!record 19 of lang/remarks.$taal
+	        extra=$extra <br />$rem
+		#@berekeningen onder wortelteken...niet de standaardvorm<br />
+		maxscore=$[$P6*$maxscore]
+	    !endif
+	!endif
+    !next p
+!endif
+
+value1=!nospace ($value1) * ($value3)
+value1=!rawmath $value1
+# converting root-syntax to powersyntax
+test=!replace internal sqrt( by @# in $AAA
+test=!replace internal ( by # in $test
+test=!replace internal ) by % in $test
+begin=!positionof char @ in $test
+tot=!charcnt $test
+wait=0
+got=0
+end=0
+!for s=$begin to $tot
+    !if $end=0
+	ch=!char $s of $test
+	!if $ch=#
+	    !increase wait
+	!endif
+	!if $ch=%
+	    !increase got
+	!endif
+	!if $got !=0
+	    !if $wait=$got
+		end=$s
+	    !endif
+	!endif
+    !endif
+!next s
+sqrt=!char $[$begin+2] to $[$end-1] of $test
+sqrt=!replace internal # by ( in $sqrt
+sqrt=!replace internal % by ) in $sqrt
+aaa=!replace internal sqrt($sqrt) by ($sqrt)^(1/$power) in $AAA
+
+AAA=!rawmath $AAA
+aaa=!rawmath $aaa
+# answer$n=$v1,sqrt($v1^($a)),$p
+g1=!item 1 of $(answer$n)
+g2=!item 2 of $(answer$n)
+g3=!item 3 of $(answer$n)
+gg2=!replace internal sqrt by $empty in $g2
+ggg=$g1*($gg2)^(1/$g3)
+
+!if $var2=$empty
+    var2=1234
+!endif
+# var2 is letterlijke some ONDER wortelteken: a*sqrt[5]($var2)
+test=!exec maxima if ( rationalize($AAA)=rationalize($g1*$g2) ) then 1 else 0;\
+if ( rationalize($AAA)=rationalize($g1*$g2) and $power=$g3 ) then 1 else 0;\
+if ( rationalize($aaa)=rationalize($ggg) ) then 1 else 0;\
+if ( rationalize($value2)=rationalize($var2) ) then 1 else 0;
+
+!if $wims_exec_error != $empty
+    goback=1
+    errortext=!record 20 of lang/remarks.$taal
+    !exit
+!endif
+
+t1=!line 1 of $test
+t2=!line 2 of $test
+t3=!line 3 of $test
+t4=!line 4 of $test
+
+!ifval $t4=1
+    rem=!record 48 of lang/remarks.$taal
+    #@Heb je de som letterlijk overgetikt ?<br />
+    extra=$extra $rem
+    t3=0
+    t2=0
+!endif
+
+!ifval $g3!=$power
+    rem=!record 21 of lang/remarks.$taal
+    extra=$extra $rem
+    t2=0
+!endif
+
+t2=$[max($t2,$t3)]
+maxscore=$[$maxscore*($t2)]
+
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit
+

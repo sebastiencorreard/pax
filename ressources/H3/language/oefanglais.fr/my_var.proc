@@ -1,0 +1,46 @@
+!!no more used
+##################
+mod=$confparm5
+!default mod=eng-balm-verbs
+control=SWAC_TEXT_keys
+!! !read choix.proc
+:check
+check=!record 0 of data/$mod/version
+check=!line 1 of $check
+!! check=!record 0 of datamodule/language/$mod/INDEX
+
+!if $check!=
+  oefenv_index=data/$mod
+  !if $check=1
+    oefenv_site=scripts/data/$mod/mp3
+    !! oefenv_site=modules/data/language/$mod/mp3
+    oefenv_rename=rename
+  !else
+    oefenv_site=packs.shtooka.net/$mod/mp3/
+    oefenv_rename=
+  !endif
+!else
+  oefenv_site=packs.shtooka.net/$mod/mp3/
+  oefenv_rename=
+  oefenv_index=
+!endif
+
+cparm1=!lines2items  $confparm1
+cparm1=!singlespace $cparm1
+cparm1=!nonempty items $cparm1
+confparm1=
+!set s_cnt=!itemcnt $cparm1
+!for s_a=1 to $s_cnt
+  t_= !lookup $(cparm1[$s_a]) in $oefenv_index/$control
+   !if $t_ =
+     list_error=!append item $(cparm1[$s_a]) to $list_error
+   !else
+     confparm1=!append item $(cparm1[$s_a]) to $confparm1
+   !endif
+  !next
+!if $wims_user=supervisor
+  oefenv_list_error=$list_error
+  oefenv_user=$wims_user
+!endif
+
+###########

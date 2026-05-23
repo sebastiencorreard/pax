@@ -1,0 +1,124 @@
+# delen van machten
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:^:+:-:/:*
+rounding=0
+mathview=5
+math=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 38 of lang/remarks.$taal
+#@Bereken en schrijf als &eacute;&eacute;n macht:
+sometext=!record 2 of lang/remarks.$taal
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo11.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+v1=!randitem a,b,x,y
+varlist=$v1
+wims_rawmath_variables=$v1
+
+!if $R=1
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    a=!randitem 2,3,4
+    b=!randitem 2,3,4
+    c=$[$a*$b]
+    d=!randitem 2,3,4,5,6
+    e=!randitem 2,3,4
+    f=$[$d+$e]
+    !if $keuze=1
+	# var1 is verbatim question
+	var1=$c*$v1^$f/($a*$v1^$d)
+	applettext=!nospace ($c $v1^$f) / ($a $v1^$d ) =
+	answer$n=$b*$v1^$e
+	formula$n=\frac{\textsize $c $v1^{$f}}{\textsize $a $v1^{$d}} \,=\,[?]
+	texanswer$n=\frac{$c $v1^{$f}}{$a $v1^{$d}} \,=\, \frac{$c}{$a} \cdot $v1^{$f-$d} = $b $v1^{$e} 
+    !else
+	var1=$c*$v1^$d/($a*$v1^$f)
+	applettext=!nospace ($c $v1^$d) / ($a $v1^$f ) =
+	answer$n=$b/($v1^$e)
+	formula$n=\frac{\textsize $c $v1^{$d}}{\textsize $a $v1^{$f}} \,=\,[?]
+	texanswer$n=\frac{$c $v1^{$d}}{$a $v1^{$f}} \,=\, \frac{$c}{$a} \cdot $v1^{$d-$f} = $b $v1^{-$e} = \frac{$b}{$v1^{$e}}     
+    !endif
+ !exit
+!endif
+
+!if $R=2
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    a=!randitem 2,3,4,5,6,-2,-3,-4,-5,-6
+    b=!randitem 2,3,4,5,6,7,8,9
+    c=!randitem 2,3,4,5
+    # var1 is verbatim question
+    var1=($a*$v1^$b)^$c
+    applettext=!nospace ($a $v1^$b)^$c = 
+    answer$n=$[($a)^$c]*$v1^$[($b*$c)]
+    formula$n=\left($a $v1^{\textsize $b}\right)^{\textsize $c}\,=\,[?]
+    texanswer$n=\left($a $v1^{$b}\right)^{$c}\,=\, ($a)^{$c} \cdot $v1^{$b \cdot $c} = $[($a)^$c]\cdot $v1^{$[($b*$c)]} 
+ !exit
+!endif
+
+!if $R=3
+    formula$n=$empty
+    checkfile=$checkdir/simplify.proc
+    a=!randitem 2,3,4,5
+    b=!randitem 2,3,4
+    c=$[$a*$b]
+    d=!randitem -2,-3,-4,-5,-6
+    e=!randitem 2,3,4,5
+    f=$[$e-($d)]
+    # var1 is verbatim question
+    var1=$c*$v1^$e/($a*$v1^($d))
+    applettext=!nospace $c $v1^$e / ($a $v1^($d) ) =
+    answer$n=$b*$v1^$f
+    formula$n=\frac{$c $v1^{\textsize $e}}{$a $v1^{\textsize $d}} \,=\, [?]
+    texanswer$n=\frac{$c $v1^{$e}}{$a $v1^{$d}} \,=\, \frac{$c}{$a} \cdot $v1^{$e \,-\,$d} = $b $v1^{$f} 
+ !exit
+!endif
+
+!if $R>3
+    checkfile=$checkdir/simplify.proc
+    a=!randitem 2,3,4,-2,-3,-4
+    b=!randitem 1,2
+    c=$[$a*$b]
+    d=!randitem -2,-3,-4,-5,-6
+    e=!randitem 2,3,4
+    f=$[$e-($d)]
+    g=$[(($a)^($e))/($c)]
+    !if $g=1
+	tex=$empty
+    !else
+	tex=$g
+    !endif
+    # var1 is verbatim question
+    var1=($a*$v1)^$e/($c*$v1^($d))
+    applettext=!nospace ($a*$v1)^($e) div ($c*$v1^($d)) =
+    formula$n=\left( $a $v1 \right)^{$e} \div \left( $c $v1^{$d} \right) \,=\,[?]
+    answer$n=$g*$v1^$f
+    !if $a<0
+	tex=($a)
+    !else
+	tex=$a
+    !endif
+    texanswer$n=\frac{($a $v1)^{$e}}{$c $v1^{$d}} \,=\, \frac{$tex^{$e}}{$c} \cdot \frac{$v1^{$e}}{$v1^{$d}} =  \frac{$[$tex^($e)]}{$c} \cdot $v1^{$e \,-\,$d} = $g \cdot $v1^{$f} 
+ !exit
+!endif

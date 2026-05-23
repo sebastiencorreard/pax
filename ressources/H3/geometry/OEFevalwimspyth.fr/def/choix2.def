@@ -1,0 +1,135 @@
+!set title=Choisir la bonne propriété 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+
+ansorder=c
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G,H
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val10=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val11=$(tmp0)
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!shuffle $val10,$val11,$val12
+
+val13=$(tmp0)
+tmp0=!listuniq $val13
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+val14=$[rint($(tmp0))]
+
+!ifval $val14<3
+tmp0=!shuffle Pierre,Paul,Olivier
+
+val13=$(tmp0)
+!endif
+tmp0=!randint 1, 2
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 25, 65
+
+val16=$[rint($(tmp0))]
+
+!ifval $val15=1
+val17=$[rint(90-$val16)]
+!else
+tmp0=!randint 25, 55
+
+val17=$[rint($(tmp0))]
+!endif
+
+!ifval $val16+$val17=90
+val15=$[rint(1)]
+!endif
+!if $val15=1 
+val18=Le triangle est rectangle en $val7
+!else
+val18=Le triangle n'est pas rectangle en $val7
+!endif
+tmp0=!shuffle la réciproque du théorème de Pythagore,le théorème de Pythagore
+
+val19=$(tmp0)
+choicename1=
+choicegood1=$(val13[3])
+choicebad1=$val13
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!insmath $val7$val8$val9
+$() est un triangle tel que :	<div class="wimscenter">
+!insmath \widehat{$val8} = $val16^\circ \quad\quad;\quad\quad \widehat{$val9} = $val17^\circ
+$()</div>	$val18.	<p>	Le professeur demande à ses élèves de justifier la réponse.	</p>	<ul>	 <li> $(val13[1]) répond :<span style="font-style:italic">C'est simple, il faut utiliser $(val19[1]).</span></li>	 <li> $(val13[2]) répond :<span style="font-style:italic">Mais non, il faut utiliser $(val19[2]).</span></li>	 <li> $(val13[3]) répond :<span style="font-style:italic">Vous avez tort tous les deux !! Il ne faut utiliser aucune de ces deux propriétés, c'est la propriété.</span></li>	</ul>	Qui a raison ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,13,16,17,18,19
+embedcnt=0

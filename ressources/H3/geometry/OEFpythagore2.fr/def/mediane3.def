@@ -1,0 +1,169 @@
+!set title=Réciproque de la propriété de la médiane
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=P, Olivetti
+language=fr
+precision=1000
+
+ansorder=r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!shuffle A,B,C,D,E,F,G
+
+val6=$(tmp0)
+val7=$(val6[1])
+val8=$(val6[2])
+val9=$(val6[3])
+val10=$(val6[4])
+tmp0=!randint 60, 120
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 100, 150
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 70, 80
+
+val13=$[rint($val11+$(tmp0))]
+tmp0=!randint 80, 100
+
+val14=$[rint($val12-$(tmp0))]
+tmp0=!randint 20, 50
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 65, 70
+
+val16=$[rint($(tmp0))]
+tmp=!nonempty items 1,2,4,5
+
+tmp0=!randitem $tmp
+val17=$[rint($(tmp0))]
+!readproc oef/draw.phtml 200,200 \
+triangle $val11,$val12,$val13,$val14,$val15,$val15+$val16, blue	text black,$val11+5,$val12-6,medium,$val7	text black,$val13+2,$val14+2,medium,$val8	text black,$val15+2,$val15+$val16+2,medium,$val9	point ($val11+$val13)/2,($val12+$val14)/2,black	text black, ($val11+$val13)/2 +5,($val12+$val14)/2 -4,medium,$val10	segment $val15,$val15+$val16,($val11+$val13)/2,($val12+$val14)/2,blue	 
+tmp0=$ins_url
+val18=$(tmp0)
+val19=Propriété de la médiane,Réciproque	 de la propriété de la médiane, Contraposée de la propriété
+tmp0=!randint 1, 20
+
+val20=$[rint($(tmp0))]
+val21=Oui &#44; le triangle est rectangle,Non &#44; le triangle n'est pas rectangle
+!if $val20/$val17=$val20/2 
+val22=1
+!else
+val22=2
+!endif
+!if $val20/$val17=$val20/2 
+val23=2
+!else
+val23=3
+!endif
+tmp=!translate ";': to $     $ in $val20/$val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$[$(tmp0)]
+replytype1=radio
+replyweight1=9 
+replyname1=Question 1
+replygood1=$val22;$val21
+replytype2=checkbox
+replyweight2=1 
+replyname2=Question 2
+replygood2=$val23;$val19
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici ci-dessous le triangle 
+!insmath $val7$val8$val9
+$().	<div class="wimscenter"><img src="$val18" alt=""> </div>	On sait que [$val9$val10] est la médiane issue du sommet $val9.	On a les données suivantes: <div class="wimscenter">	  
+!insmath $val7$val8 = $val20
+$() cm et 
+!insmath $val9$val10 = $val24
+$() cm	</div>	<ol>	    <li> Le triangle 
+!insmath $val7$val8$val9
+$() est-il rectangle en $val9 ?  
+!read oef/embed.phtml r1 
+$()</li>	    <li> Quelle propriété utilisez-vous pour démontrer cela ?  
+!read oef/embed.phtml r2 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()La médiane issue du sommet 
+!insmath $val9
+$() est la demi-droite passant par 
+!insmath $val9
+$()	et qui coupe le côté opposé [$val7$val8] en son milieu.
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ol>	<li>	 Pour vérifier si le triangle est rectangle, on calcule la fraction 
+!insmath \frac{$val7$val8}{2}
+$()	 et on vérifie si c'est égale à la longueur de la médiane 
+!insmath $val9$val10
+$().	</li><li>	
+!if $val20/$val17=$val20/2 
+$()	 Si la médiane issue du point 
+!insmath $val9
+$() mesure la moitié du côté relatif, alors on utilise	la propriété réciproque de la médiane.	 
+!else
+$() 	 On a montré que la médiane 
+!insmath $val9$val10
+$() ne mesure pas la moitié du côté relatif, on utilise donc la	contraposée de la propriété de la médiane.	En effet, si l'on souhaite utiliser la réciproque, il faut avoir l'égalité	
+!insmath \frac{$val7$val8}{2}=$val9$val10
+$() ce qui n'est pas le cas. Si l'on souhaite utiliser la propriété, on doit	savoir que le triangle est rectangle ce que l'on ne sait pas. 
+!endif
+$()	 </li>	</ul>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,17,18,20,24
+embedcnt=2

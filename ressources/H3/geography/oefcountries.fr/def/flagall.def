@@ -1,0 +1,173 @@
+!set title=Drapeaux des pays
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+title_en=Flags of countries
+
+ansorder=r
+varcnt=33
+prevarcnt=32
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Établir la correspondance correcte entre les drapeaux et les	  pays&nbsp;
+val8=La correspondance
+!if $val6=en 
+val7=Establish the correspondance between the flags and	  the countries
+val8=The correspondance
+!endif
+tmp=!trim af,\as	ag,\af	aj,\as	al,\eu	am,\as	an,\eu	ao,\af	ar,\am	as,\oc	au,\eu	ba,\as	bb,\am	bc,\af	be,\eu	bf,\am	bg,\as	bh,\am	bl,\am	bm,\as	bn,\af	bo,\eu	bp,\oc	br,\am	bt,\as	bu,\eu	bx,\as	by,\af	ca,\am	cb,\as	cd,\af	ce,\as	ch,\as	ci,\am	cm,\af	cn,\af	co,\am	cs,\am	ct,\af	cu,\am	cv,\af	cy,\as	da,\eu	dj,\af	do,\am	dr,\am	ec,\am	eg,\af	ei,\eu	ek,\af	en,\eu	er,\af	es,\am	et,\af	ez,\eu	fi,\eu	fj,\oc	fm,\oc	fr,\eu	ga,\af	gb,\af	gg,\eu	gh,\af	gj,\am	gm,\eu	gr,\eu	gt,\am	gv,\af	gy,\am	ha,\am	ho,\am	hr,\eu	hu,\eu	ic,\eu	id,\as	in,\as	ir,\as	is,\as	it,\eu	iv,\af	iz,\as	ja,\as	jm,\am	jo,\as	ke,\af	kg,\as	kn,\as	kr,\oc	ks,\as	ku,\as	kz,\as	la,\as	le,\as	lg,\eu	lh,\eu	li,\af	lo,\eu	ls,\eu	lt,\af	lu,\eu	ly,\af	ma,\af	md,\eu	mg,\as	mi,\af	mk,\eu	ml,\af	mn,\eu	mo,\af	mp,\af	mr,\af	mt,\eu	mu,\as	mv,\as	mx,\am	my,\as	mz,\af	ng,\af	nh,\oc	ni,\af	nl,\eu	no,\eu	np,\as	nr,\oc	ns,\am	nu,\am	nz,\oc	pa,\am	pe,\am	pk,\as	pl,\eu	pm,\am	po,\eu	pp,\oc	ps,\oc	pu,\af	qa,\as	rm,\oc	ro,\eu	rp,\as	rs,\eu	rw,\af	sa,\as	sc,\am	se,\af	sf,\af	sg,\af	si,\eu	sl,\af	sn,\as	so,\af	sp,\eu	st,\am	su,\af	sw,\eu	sy,\as	sz,\eu	tc,\as	td,\am	th,\as	ti,\as	tn,\oc	to,\af	ts,\af	tu,\as	tv,\oc	tx,\as	tz,\af	ug,\af	uk,\eu	up,\eu	us,\am	uv,\af	uy,\am	uz,\as	ve,\am	vm,\as	vt,\eu	wa,\af	ws,\oc	wz,\af	ym,\as	za,\af	zi,\af	
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!nospace all _fr
+
+val11=$(tmp0)
+!if $val6=en 
+tmp0=!nospace all _en
+
+val11=$(tmp0)
+!endif
+tmp0=!lookup $val10 in data/$val11
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp0=!rowcnt $tmp
+val13=$[rint($(tmp0))]
+tmp0=!shuffle $val13
+
+tmp1=!item 1 to 5 of $(tmp0)
+
+val14=$(tmp1)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row $val14 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!translate internal | to , in $val9
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+val16=
+!for val17 =1 to 5 
+tmp0=!lookup $(val9[$val17;1]) in data/$val11
+
+val12=$(tmp0)
+tmp=!trim $val16	  $val12
+val16=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp0=!translate internal | to , in $val16
+
+val16=$(tmp0)
+val16=$(val16[;1])
+tmp0=!replace internal ; by , in $(val16[1;])
+
+val16=$(tmp0)
+val18=
+!for val19 =1 to 5 
+tmp0=!item $val19 of $val15
+
+val20=$(tmp0)
+tmp0=!rename gifs/flags/$val20-lgflag.gif
+
+val20=$(tmp0)
+tmp0=!append item $val20 to $val18
+
+val18=$(tmp0)
+!next
+tmp0=!nospace $val15
+
+val15=$(tmp0)
+val21=<img style="height:46px" src="
+val22=" alt="">
+tmp0=!replace internal , by $val22,$val21 in	 $val21$val18$val22
+
+val18=$(tmp0)
+val9=$val18 ; $val16
+replytype1=correspond
+replyname1=$val8
+replygood1=$val9
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val7:	<div class="wimscenter"> 
+!read oef/embed.phtml reply 1,80x120x150 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7
+embedcnt=1

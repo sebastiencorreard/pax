@@ -1,0 +1,111 @@
+!set title=Cosinus
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Dingyu, XIAO 
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Cosinus
+
+ansorder=r
+varcnt=9
+prevarcnt=8
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=est un triangle rectangle en, mesure,	l'angle, Calculer, à l'unité près
+val8=Longueur de , en
+!if $val6=nl 
+val7=is een rechthoekige driehoek in, is,	De hoek, Bereken hiermee de lengte ,in centimeters, à l'unité près
+val8=De lengte, in
+!endif
+tmp0=!randint 15, 50
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 30,45,50,60,20,15,40,35,55,65,75,80
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val9*cos($val10*pi/180))]
+replytype1=default
+replyname1=$(val8[1]) \(B C\) $(val8[2]) cm
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="wimscenter">	 
+!read oef/draw.phtml 200,200 \
+	xrange -20,20	yrange -20,20	triangle 15,15,15,-15,-15,-15,black	text black,14.5,17.5,medium,A	text black,16,-15,medium,B	text black,-16.5,-15,medium,C	 
+$()	</div>	
+!insmath A B C
+$() $(val7[1]) 
+!insmath B
+$(), 
+!insmath [A\ C]
+$() $(val7[2]) $val9 cm, $(val7[3])	
+!insmath \widehat{C}
+$() $(val7[2]) $val10&deg;. $(val7[4]) 
+!insmath B C
+$() $(val7[5]).
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,10
+embedcnt=0

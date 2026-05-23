@@ -1,0 +1,70 @@
+\title{Molécules simples}
+\language{fr}
+\range{-5..5}
+\author{Bernadette, Perrin-Riou}
+\email{bpr@math.u-psud.fr}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+
+\matrix{liste= de dioxygène,0,0,0,2,\(O_2)
+ de diazote,0,0,2,0,\(N_2)
+ de dihydrogène, 0,2,0,0,\(H_2)
+ de dioxyde de carbone, 1,0,0,2, \(CO_2)
+ d'eau, 0,2,0,1,\(H_2O)
+ de méthane,1,4,0,0,\(CH_4)
+ de monoxyde de carbone, 1,0,0,1,\(CO)
+}
+
+\text{atome=du carbone, de l'hydrogène,de l'azote,de l'oxygène}
+\text{atomes=de carbone, d'hydrogène,d'azote,d'oxygène}
+\text{mol=randint(1..7)}
+\text{molecule=row(\mol,\liste)}
+\text{nom=item(1,\molecule)}
+\text{type=item([2,3,4,5],\molecule)}
+\text{mix=shuffle(1,2,3,4)}
+\text{atome1=item(item(1,\mix),\atome)}
+\text{atome2=item(item(2,\mix),\atome)}
+\text{atome3=item(item(3,\mix),\atome)}
+\text{atome4=item(item(4,\mix),\atome)}
+\text{oui=oui}
+\text{non=non}
+\text{rep1=item(item(1,\mix),\type)=0 ? \non:\oui}
+\text{rep2=item(item(2,\mix),\type)=0 ? \non:\oui}
+\text{rep3=item(item(3,\mix),\type)=0 ? \non:\oui}
+\text{rep4=item(item(4,\mix),\type)=0 ? \non:\oui}
+\text{listerep=}
+\for{i=1 to 4}{
+\if{ item(\i,\type)<>0}{
+\text{listerep=\listerep
+\i,item(\i,\type)}}
+}
+\text{rep5=item(2,row(2,\listerep))}
+\text{mol1=item(item(1,row(2,\listerep)),\atomes)}
+\text{rep6=item(2,row(3,\listerep))}
+\text{mol2=item(item(1,row(3,\listerep)),\atomes)}
+
+\matrix{STEP= \mol<=3? choice1,choice2,choice3,choice4
+reply1
+:choice1,choice2,choice3,choice4
+reply1,reply2}
+\steps{\STEP}
+
+\statement{\if{\step=1}{Dans une molécule \nom, y-a-t-il ?
+<table class="wimscenter">
+<tr><td> \atome1 </td><td></td><td>\embed{choice 1} </td></tr>
+<tr><td> \atome2 </td><td></td><td>\embed{choice 2} </td></tr>
+<tr><td> \atome3 </td><td></td><td>\embed{choice 3} </td></tr>
+<tr><td> \atome4 </td><td></td><td>\embed{choice 4} </td></tr>
+</table>
+}
+\if{\step=2}{Une molécule \nom est formée de
+\embed{reply 1, 5} atome(s) \mol1
+\if{\mol>3}{et de \embed{reply 2, 5} atome(s) \mol2. }}
+}
+\choice{atome \atome1}{\rep1}{\oui,\non}
+\choice{atome \atome2}{\rep2}{\oui,\non}
+\choice{atome \atome3}{\rep3}{\oui,\non}
+\choice{atome \atome4}{\rep4}{\oui,\non}
+\answer{molecule \mol1}{\rep5}{type=numeric}
+\answer{\mol2}{\rep6}{type=numeric}

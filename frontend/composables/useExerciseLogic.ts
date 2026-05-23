@@ -66,12 +66,19 @@ export type Segment =
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
+  const apiBase = useRuntimeConfig().public.apiBase
+
+  // Rewrite backend-relative /api/static URLs so images load from the
+  // backend (not the frontend dev server) without needing a proxy.
+  function prefixStaticUrls(html: string): string {
+    return html.replaceAll(' src="/api/static/', ` src="${apiBase}/api/static/`)
+  }
 
   async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
     const out: Segment[] = []
     for (const s of backendSegments) {
       if (s.type === 'html') {
-        out.push({ type: 'html', content: await renderMath(s.content ?? '') })
+        out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '')) })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
         out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })

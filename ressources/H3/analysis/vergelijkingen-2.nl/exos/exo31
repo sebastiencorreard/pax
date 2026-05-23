@@ -1,0 +1,138 @@
+# :type a(bx-c)=d
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+math=0
+!if $usage=2
+    image=0
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:<=>:and
+!if $subject=31
+    questiontype=0
+    varlist=x
+    question$n=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=18
+    rows=1
+    # berekeniningen laten zien
+    var3=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=1
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    embed=1
+    make_tr=1
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!endif
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+# applettext is a "ascii rawmath echo" of formula$n
+
+
+!if $R=1
+    a=!randint 1,50
+    a=$[$a/10]
+    p=!randitem 2,3,4,5
+    x=$[$p*$a]
+    c=!randint 2,10
+    d=!randitem -80,88
+    !if $d=0
+	d=$[$d+14]
+    !endif
+    d=$[$d/100]
+    
+    
+    !if $keuze=1
+	!if $[-1*$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[($a*$c+($d))*$p]
+	m=!randint 2,60
+	m=$[$m/100]
+	k=$[$m+$a*$b]
+	l=$[$a*$c]
+	formula$n=$k - $l x  = $d x + $m 
+	applettext=!nospace $k - $l*x=$dx + $m ->
+	tex=$[$a*$b] - $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) + ($a)*($c)] \cdot x \\ x = \frac{$[$a*$b]}{$[($d) + ($a)*($c)]} \\ x = $x 
+    !else
+	!if $[$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[(-1*$a*$c+($d))*$p]
+	m=!randint 2,60
+	m=$[$m/100]
+	k=$[$m + $a*$b]
+	l=$[$a*$c]
+	formula$n=$k  + $l x  = $d x +$m
+	applettext=!nospace $k + $l *x=$d*x + $m->
+	tex=$[$a*$b] + $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) - ($a)*($c)] \cdot x  \\ x = \frac{$[$a*$b]}{$[($d) - ($a)*($c)]} \\ x = $x 
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex \end{array} \right.
+ !exit
+!endif
+
+!if $R>1
+    a=!randint 1,50
+    a=$[$a/10]
+    p=!randitem 2,3,4,5
+    x=$[$p*$a]
+    c=!randint 2,10
+    d=!randitem -80,88
+    !if $d=0
+	d=$[$d+14]
+    !endif
+    d=$[$d/100]
+    !if $keuze=1
+	!if $[-1*$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[($a*$c+($d))*$p]
+	formula$n=$a \cdot \left( $b - $c x \right) = $d x
+	applettext=!nospace $a*($b - $c*x)=$d*x ->
+	tex=$[$a*$b] - $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) + ($a)*($c)] \cdot x \\ x = \frac{$[$a*$b]}{$[($d) + ($a)*($c)]} 
+	\\ x = $x 
+    !else
+	!if $[$a*$c]=$d
+	    c=$[$c+1]
+	!endif
+	b=$[(-1*$a*$c+($d))*$p]
+	formula$n=$a \cdot \left( $b  + $c x \right) = $d x
+	applettext=!nospace $a*($b + $c*x)=$d*x ->
+	tex=$[$a*$b] + $[$a*$c] \cdot x = $d x \\  $[$a*$b] = $[($d) - ($a)*($c)] \cdot x  \\ x = \frac{$[$a*$b]}{$[($d) - ($a)*($c)]} \\ x = $x 
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} $(formula$n) \\  $tex \end{array} \right.
+ !exit
+!endif
+

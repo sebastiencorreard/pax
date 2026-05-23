@@ -1,0 +1,143 @@
+!set title=Produit 2*
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Produit 2*
+
+ansorder=r,r
+varcnt=18
+prevarcnt=15
+postvarcnt=2
+replycnt=2
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calculer l'expression suivante&nbsp;
+val8=Partie décimale,Exposant
+val9=Calcul effectué correctement
+!if $val6=nl 
+val7=Bereken de volgende uitdrukking
+val8=Partie décimale,Exposant
+val9=Calcul effectué correctement
+!endif
+val10=produitcp
+val11=$[rint(3)]
+val12=$[rint(0)]
+tmp=!nonempty items $val10
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+!readproc slib/calcpuis $val13,8,10,100,$val11,$val12 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val16=$(tmp0)
+tmp0=!item 3 of $val14
+
+val17=$(tmp0)
+replytype1=numexp
+replyname1=$(val8[1])
+replygood1=?analyze 18
+replytype2=numexp
+replyname2=name_answer[2]
+replygood2=?analyze 19
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7:	<div class="wimscenter"><label for="reply1">
+!insmath $val15 = 
+$()</label>	   
+!read oef/embed.phtml r1,10 
+$() <label for="reply2">
+!insmath \times 10
+$()</label><sup> 
+!read oef/embed.phtml r2,4 
+$()</sup></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+!insmath $val15 = $val16 \times 10^{$val17}
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val20=$[($val16)*10^(($val17)-($val19))-($val18)]
+
+!ifval / isin $val18 or * isin $val18 or + isin $val18
+val21=yes
+!else
+val21=no
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val20=0 and $val21 issametext no
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val9
+
+!exit
+
+:stat
+vsavelist=7,9,15,16,17,18,19
+embedcnt=2

@@ -1,0 +1,131 @@
+!set title=Oiseau 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Dingyu,XIAO
+email=xiao@unice.fr
+title_it=Oiseau 
+title_nl=Oiseau 
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Un oiseau posé au sol veut aller manger une cerise en haut	  d'un arbre. Le pied de l'arbre est à XXXX mètres de lui	  et l'arbre mesure YYYY mètres de haut.
+val8=Quelle distance l'oiseau doit-il parcourir&nbsp;
+!if $val6=it 
+val7=Un oiseau posé au sol veut aller manger une cerise en haut	  d'un arbre. Le pied de l'arbre est à XXXX mètres de lui	  et l'arbre mesure YYYY mètres de haut.
+val8=Quelle distance l'oiseau doit-il parcourir&nbsp;
+!endif
+!if $val6=nl 
+val7=Un oiseau posé au sol veut aller manger une cerise en haut	  d'un arbre. Le pied de l'arbre est à XXXX mètres de lui	  et l'arbre mesure YYYY mètres de haut.
+val8=Quelle distance l'oiseau doit-il parcourir&nbsp;
+!endif
+tmp0=!randint 20, 30
+
+val9=$(tmp0)
+tmp0=!randint 20, 40
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in pyth(A,B,lim)={for(a=A+B,A+lim+B, for(b=a,a+lim,N=sqrt(a^2+b^2); if(floor(N)==N, return([a,b,floor(N)]))))}
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in lim=25; pyth($val9,$val10,lim)
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+
+!ifval $(val12[1])==0
+t_=!replace internal \( by ( in lim1=100; pyth($val9,$val10+lim,lim1)
+tmp0=!exec pari $t_
+
+val12= $(tmp0)
+!endif
+
+!ifval $(val12[1])==0
+val12= erreur
+!endif
+tmp0=!sort item $val12
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in [$val11]/10.
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+tmp0=!replace internal XXXX by $(val11[2]) in $val7
+
+val13=$(tmp0)
+tmp0=!replace internal YYYY by $(val11[1]) in $val13
+
+val13=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$(val11[3])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val13	<div class="question">	<label for="reply1">$val8?</label>  
+!read oef/embed.phtml r1,5 
+$() m	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,13
+embedcnt=1

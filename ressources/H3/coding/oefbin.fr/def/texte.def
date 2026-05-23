@@ -1,0 +1,226 @@
+!set title=Déchiffrage d'un mot
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Ontcijfering van een woord
+
+ansorder=r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Quel est le mot codé en binaire dans ce dessin,	  il y a une lettre par ligne ; on doit donc lire le mot verticalement
+val8=Chaque lettre a un code appelé code ASCII qui est	  un nombre décimal compris entre 0 et 256. On écrit ensuite ce nombre en	  binaire et on le représente par une case noire pour 1 et une case blanche	  pour un 0. Pour les lettres majuscules qui sont utilisées ici,	  les codes sont donnés par le tableau suivant	
+!if $val6=nl 
+val7=Wat is het woord dat hier binair wordt weergegeven.	  Elke (hoofd)letter van het gezochte woord heeft een eigen regel;	  je moet het woord dus vertikaal lezen!.	  <br><small>kijk even in de help-pagina voor nader uitleg</small>
+val8=Op een computer heeft elke letter een decimale ASCII code	  van 0 tot 256. We schrijven hier een de binaire 1 als een zwart vlakje	  en de 0 als een wit vlakje	  Hier onder zie je de ASCII tabel van de hoofdletters waaruit ons	  geheime woord is opgebouwd
+!endif
+val9=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z	65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,89,81,82,83,84,85,86,87,88,89,90	0 1 0 0 0 0 0 1,0 1 0 0 0 0 1 0 ,0 1 0 0 0 0 1 1 ,0 1 0 0 0 1 0 0 ,0 1 0 0 0 1 0 1 ,0 1 0 0 0 1 1 0 ,0 1 0 0 0 1 1 1 ,0 1 0 0 1 0 0 0 ,0 1 0 0 1 0 0 1 ,0 1 0 0 1 0 1 0 ,0 1 0 0 1 0 1 1 ,0 1 0 0 1 1 0 0 ,0 1 0 0 1 1 0 1 ,0 1 0 0 1 1 1 0 ,0 1 0 0 1 1 1 1 ,0 1 0 1 0 0 0 0 ,0 1 0 1 0 0 0 1 ,0 1 0 1 0 0 1 0 ,0 1 0 1 0 0 1 1 ,0 1 0 1 0 1 0 0 ,0 1 0 1 0 1 0 1 ,0 1 0 1 0 1 1 0 ,0 1 0 1 0 1 1 1 ,0 1 0 1 1 0 0 0 ,0 1 0 1 1 0 0 1 ,0 1 0 1 1 0 1 0 
+val10=P,A,P,I,L,L,O,N	M,O,N,T,A,G,N,E	F,R,O,M,A,G,E	T,A,B,L,E,A,U	F,O,N,T,A,I,N,E	T,R,A,I,N,E,A,U	P,A,N,T,A,L,O,N	C,H,A,M,O,I,S	T,O,N,N,E,R,R,E	A,L,L,U,M,E,T,T,E	C,H,E,M,I,N	V,O,I,T,U,R,E	M,O,T,E,U,R	A,B,R,I,C,O,T	G,R,A,N,D,I,R	J,A,R,D,I,N,I,E,R	J,A,V,E,L,O,T	M,E,R,C,U,R,E	R,O,M,A,R,I,N	R,I,Z,I,ÈR,E	R,O,B,I,N,E,T	R,O,B,U,S,T,E	C,L,A,V,E,C,I,N	C,R,E,V,A,S,S,E	E,S,P,A,G,N,O,L	F,O,U,R,R,U,R,E	M,A,R,M,O,T,T,E	M,A,R,S,O,U,I,N	M,A,R,T,E,A,U	M,E,R,I,N,G,U,E	N,A,U,F,R,A,G,E	P,A,P,I,L,L,O,N	P,A,Q,U,E,B,O,T	P,A,R,A,B,O,L,E	
+val11=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
+!for val12 =1 to 26 
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+val13=$(tmp1)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+val14=$(tmp1)
+tmp0=!replace internal $val13 by $val14 in $val11
+
+val11=$(tmp0)
+!next
+tmp0=!items2lines $val11
+
+val11=$(tmp0)
+val15=
+!for val12 =1 to 26 
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!words2items $(tmp0)
+
+val16=$(tmp1)
+tmp=!trim $val15	  $val16
+val15=!translate internal $	\
+$ to ;; in $tmp
+!next
+val11=$val15
+val17=
+!for val12 =1 to 8 
+!for val18 =1 to 26 
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row $val18 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+!if 1 isin $(tmp1) 
+val17=$val17	fill $val12-1/2,26-$val18+1/2,black
+!endif
+!next
+!next
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+val20=$val19
+tmp0=!itemcnt $val19
+
+val21=$(tmp0)
+tmp0=!items2words $val19
+
+val19=$(tmp0)
+!for val12 =1 to 26 
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+val13=$(tmp1)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+val14=$(tmp1)
+tmp0=!replace internal $val13 by $val14 in $val20
+
+val20=$(tmp0)
+!next
+tmp0=!items2lines $val20
+
+val20=$(tmp0)
+val22=
+!for val12 =1 to $val21 
+tmp=!translate internal $	$ to ; in $val20
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!words2items $(tmp0)
+
+val23=$(tmp1)
+tmp=!trim $val22	$val23
+val22=!translate internal $	\
+$ to ;; in $tmp
+!next
+val20=$val22
+val24=
+!for val12 =1 to 8 
+!for val18 =1 to $val21 
+tmp=!translate internal $	$ to ; in $val20
+
+tmp=!row $val18 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val12 of $(tmp0)
+
+!if 1 isin $(tmp1) 
+val24=$val24	fill $val12-1/2,$val21-$val18+1/2,black
+!endif
+!next
+!next
+val25=$val21/8*200
+val26=26/8*200
+tmp0=!nospace $val19
+
+val19=$(tmp0)
+replytype1=atext
+replyname1=
+replygood1=$val19
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst $val8: <table class="blockcenter"> <tr><td rowspan="26"> <img src="$val1/ascii.gif" alt="" width="200" height="650"></td> <td>A</td><td>65</td><td>0 1 0 0 0 0 0 1</td> </tr> <tr><td>B</td><td>66</td><td>0 1 0 0 0 0 1 0</td></tr> <tr><td>C</td><td>67</td><td>0 1 0 0 0 0 1 1</td></tr> <tr><td>D</td><td>68</td><td>0 1 0 0 0 1 0 0</td></tr> <tr><td>E</td><td>69</td><td>0 1 0 0 0 1 0 1</td></tr> <tr><td>F</td><td>70</td><td>0 1 0 0 0 1 1 0</td></tr> <tr><td>G</td><td>71</td><td>0 1 0 0 0 1 1 1</td></tr> <tr><td>H</td><td>72</td><td>0 1 0 0 1 0 0 0</td></tr> <tr><td>I</td><td>73</td><td>0 1 0 0 1 0 0 1</td></tr> <tr><td>J</td><td>74</td><td>0 1 0 0 1 0 1 0</td></tr> <tr><td>K</td><td>75</td><td>0 1 0 0 1 0 1 1</td></tr> <tr><td>L</td><td>76</td><td>0 1 0 0 1 1 0 0</td></tr> <tr><td>M</td><td>77</td><td>0 1 0 0 1 1 0 1</td></tr> <tr><td>N</td><td>78</td><td>0 1 0 0 1 1 1 0</td></tr> <tr><td>O</td><td>79</td><td>0 1 0 0 1 1 1 1 </td></tr> <tr><td>P</td><td>80</td><td>0 1 0 1 0 0 0 0</td></tr> <tr><td>Q</td><td>81</td><td>0 1 0 1 0 0 0 1</td></tr> <tr><td>R</td><td>82</td><td>0 1 0 1 0 0 1 0</td></tr> <tr><td>S</td><td>83</td><td>0 1 0 1 0 0 1 1</td></tr> <tr><td>T</td><td>84</td><td>0 1 0 1 0 1 0 0</td></tr> <tr><td>U</td><td>85</td><td>0 1 0 1 0 1 0 1</td></tr> <tr><td>V</td><td>86</td><td>0 1 0 1 0 1 1 0</td></tr> <tr><td>W</td><td>87</td><td>0 1 0 1 0 1 1 1</td></tr> <tr><td>X</td><td>88</td><td>0 1 0 1 1 0 0 0</td></tr> <tr><td>Y</td><td>89</td><td>0 1 0 1 1 0 0 1</td></tr> <tr><td>Z</td><td>96</td><td>0 1 0 1 1 0 1 0</td></tr> </table>
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val7[1]) ($(val7[2])).	<div class="wimscenter">	 
+!read oef/draw.phtml 200,$val25 \
+	  xrange 0,8.2	  yrange -0.2,$val21	  parallel 0,0,0,$val21,1,0,9,black	  parallel 0,0,8,0,0,1,$val21+1,black	  $val24 
+$()	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()$val8: <table class="blockcenter"> <tr><td rowspan="26"> <img src="$val1/ascii.gif" alt="" width="200" height="650"></td> <td>A</td><td>65</td><td>0 1 0 0 0 0 0 1</td> </tr> <tr><td>B</td><td>66</td><td>0 1 0 0 0 0 1 0</td></tr> <tr><td>C</td><td>67</td><td>0 1 0 0 0 0 1 1</td></tr> <tr><td>D</td><td>68</td><td>0 1 0 0 0 1 0 0</td></tr> <tr><td>E</td><td>69</td><td>0 1 0 0 0 1 0 1</td></tr> <tr><td>F</td><td>70</td><td>0 1 0 0 0 1 1 0</td></tr> <tr><td>G</td><td>71</td><td>0 1 0 0 0 1 1 1</td></tr> <tr><td>H</td><td>72</td><td>0 1 0 0 1 0 0 0</td></tr> <tr><td>I</td><td>73</td><td>0 1 0 0 1 0 0 1</td></tr> <tr><td>J</td><td>74</td><td>0 1 0 0 1 0 1 0</td></tr> <tr><td>K</td><td>75</td><td>0 1 0 0 1 0 1 1</td></tr> <tr><td>L</td><td>76</td><td>0 1 0 0 1 1 0 0</td></tr> <tr><td>M</td><td>77</td><td>0 1 0 0 1 1 0 1</td></tr> <tr><td>N</td><td>78</td><td>0 1 0 0 1 1 1 0</td></tr> <tr><td>O</td><td>79</td><td>0 1 0 0 1 1 1 1 </td></tr> <tr><td>P</td><td>80</td><td>0 1 0 1 0 0 0 0</td></tr> <tr><td>Q</td><td>81</td><td>0 1 0 1 0 0 0 1</td></tr> <tr><td>R</td><td>82</td><td>0 1 0 1 0 0 1 0</td></tr> <tr><td>S</td><td>83</td><td>0 1 0 1 0 0 1 1</td></tr> <tr><td>T</td><td>84</td><td>0 1 0 1 0 1 0 0</td></tr> <tr><td>U</td><td>85</td><td>0 1 0 1 0 1 0 1</td></tr> <tr><td>V</td><td>86</td><td>0 1 0 1 0 1 1 0</td></tr> <tr><td>W</td><td>87</td><td>0 1 0 1 0 1 1 1</td></tr> <tr><td>X</td><td>88</td><td>0 1 0 1 1 0 0 0</td></tr> <tr><td>Y</td><td>89</td><td>0 1 0 1 1 0 0 1</td></tr> <tr><td>Z</td><td>96</td><td>0 1 0 1 1 0 1 0</td></tr> </table>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,21,24,25
+embedcnt=0

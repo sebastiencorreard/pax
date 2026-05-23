@@ -1,0 +1,78 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+
+inputs=1.1
+description=De druk van het waterstofgas
+ex1=&nbsp;Pa
+m_rightarrow=&nbsp;=&nbsp;
+keuze=!randint 1,3
+hoogte=!randint 100,250
+!if $keuze=1
+    hoogte=!exec moneyprint $[$hoogte/10] 2
+!else
+    !if $keuze=2
+	hoogte=!exec moneyprint $[$hoogte/10] 1
+    !else
+	hoogte=!exec moneyprint $[$hoogte/10] 0    
+    !endif
+!endif
+Hoogte=$[$hoogte/100]
+ss=In een <span style="color:blue">erlenmeyer</span> vindt een reactie <br />tussen een zuur en Magnesium plaats ,waarbij waterstofgas vrijkomt.<br />De U-buis is gevuld met water dat in het begin links en rechts even hoog staat.<br />De lucht in de erlenmeyer heeft dan dezelfde druk als de buitenlucht.<br />De druk van het gevormde waterstofgas kan bepaald worden door het verschil<br />te meten in <span style="color:blue">water</span>hoogte tussen links en rechts.<br />Bereken de druk van het waterstofgas in Pa als h = $hoogte cm.
+
+SG=!randint 995,1005
+sg=$[$SG/1000]
+
+tot=!exec sigdigits $sg $hoogte
+sig=3
+w=3
+tst=soortelijke massa water,hoogte water,g
+!for p=1 to 2
+    t=!line $p of $tot
+    t=!item 1 of $t
+    !if $t<$sig
+	sig=$t
+	w=$p
+    !endif
+!next p
+welke=!item $w of $tst
+druk=$[998*9.81*$hoogte*10^(-2)]
+tot=!exec scienceprint $druk,$sig,0 $druk,$sig,2
+ans=!item 1 of $tot
+t_ans=!item 2 of $tot
+checkfile=$checkdir/units.proc
+# hoeft geen eenheid
+var1=0
+var2=$[abs(ans-$druk)]
+answer$n=$ans
+
+#textanswer$n=<ul><li>p(<em>gas</em>) = &rho;<sub>water</sub> &sdot; g &sdot; h</li>\
+#<li>p(<em>gas</em>) = $sg g/mL &sdot; 9.81 N/kg&sdot; $hoogte cm</li>\
+#<li> g/mL:<br />1 g = 10<sup>-3</sup> kg<br />1 mL = 10<sup>-6</sup> m<sup>3</sup><br />\
+#1 g/ml = 10<sup>-3</sup>/10<sup>-6</sup> = 10<sup>3</sup> kg/m<sup>3</sup></li>\
+#<li>p(<em>gas</em>) = $sg&times;10<sup>3</sup> km/m<sup>3</sup> &sdot; 9.81 N/kg  &sdot; $hoogte &times; 10<sup>-2</sup> m</li><\
+#li>p(<em>gas</em>) = $druk N/m<sup>2</sup></li><li>Dit antwoord geven we op in $sig significante cijfers<br />\
+#afkomstig van "$welke"</li><li>p(<em>gas</em>) = $h_ans N/m<sup>2</sup></li><li>p(<em>gas</em>) = $h_ans Pa</li></ul>
+
+helptext=Het soortelijk gewicht van het gebruikte water is $sg g/mL
+
+question$n=<a onmouseover="return escape('<table><tr><th>$helptext</th><th><img src=\'$module_dir/gifs/erlenmeyer.jpg\' alt=\'erlenmeyer\'/></th></tr></table>')">$ss</a>
+
+texanswer$n=\left[ \begin{array}{l}p = \rho_{vl} \cdot g \cdot h  \rightarrow \\ p = $SG \;kg/m^{3} \times 9.81\; N/kg \times $Hoogte\; m = $druk \;N/m^{2} \\ p = $t_ans\; N/m^{2} \;(of\;Pa) \end{array} \right.
+!exit
+
+
+
+
+
+
+
+
+
+    

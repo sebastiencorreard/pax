@@ -1,0 +1,48 @@
+%%  CREE le 13/01/2026 par LSD
+\title{Question 301 Calcul d’une moyenne}
+\keywords{quizz,mean} %à compléter (fait MB)
+\observation{Question du sujet zéro sujet-zero-dnb-serie-generale-b-mathematiques.pdf du DNB publié sur éduscol en décembre 2025}
+
+\text{nbnotes=randomitem(trois,quatre,cinq)}     %% définit le nombre de notes 
+\integer{x=0}                                    %% condition d'arrêt boucle while
+   
+\while{\x==0}{
+    \integer{moy=randint(5..15)}
+    \integer{n1=randint(5..15)}
+    \integer{n2=randint(5..15)}
+    \integer{n3=randint(5..15)}
+    \integer{n4=randint(5..15)}
+    \integer{n5=randint(5..15)}
+ 
+    \if{\nbnotes issametext trois}{
+         \integer{n3=3*\moy-\n2-\n1}
+         \if{(\n3<=20) and (\n3>=0)}{\integer{x=1}}
+         \text{enonce=Voici une série de \nbnotes notes&nbsp;&#58; \n1 ; \n2 ; \n3.<br>Quelle est la moyenne de cette série&nbsp;&#63;}
+         \text{enonceb=}
+         \text{feedback=La moyenne est la somme des notes divisée par le nombre de notes &nbsp;&#58; \((\n1+\n2+\n3) \div 3 = \moy).} 
+    }
+    
+    \if{\nbnotes issametext quatre}{
+         \integer{n4=4*\moy-\n3-\n2-\n1}
+         \if{(\n4<=20) and (\n4>=0)}{\integer{x=1}}
+         \text{enonce=Voici une série de \nbnotes notes&nbsp;&#58; \n1 ; \n2 ; \n3 ; \n4.<br>Quelle est la moyenne de cette série&nbsp;&#63;}
+         \text{enonceb=}
+         \text{feedback=La moyenne est la somme des notes divisée par le nombre de notes &nbsp;&#58; \((\n1+\n2+\n3+\n4) \div 4 = \moy).}
+    }
+    
+    \if{\nbnotes issametext cinq}{
+         \integer{n5=5*\moy-\n4-\n3-\n2-\n1}
+         \if{(\n5<=20) and (\n5>=0)}{\integer{x=1}}
+         \text{enonce=Voici une série de \nbnotes notes&nbsp;&#58; \n1 ; \n2 ; \n3 ; \n4 ; \n5.<br>Quelle est la moyenne de cette série&nbsp;&#63;}
+         \text{enonceb=}
+         \text{feedback=La moyenne est la somme des notes divisée par le nombre de notes &nbsp;&#58; \((\n1+\n2+\n3+\n4+\n5) \div 5 = \moy).}
+    }    
+}
+
+
+\integer{bad1=\moy+randitem(-2,2)}
+\integer{bad2=\moy+randitem(-1,1)}
+\real{bad3=\moy+randint(-1/2,1/2)}
+\text{good=\moy} 
+\text{bads=\bad1,\bad2,\bad3}
+\text{rep=\moy}

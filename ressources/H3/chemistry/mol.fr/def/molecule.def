@@ -1,0 +1,264 @@
+!set title=Molécules simples
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+precision=10000
+
+ansorder=c,c,c,c,r,r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=2
+choicecnt=4
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim de dioxygène,0,0,0,2,\(O_2)	 de diazote,0,0,2,0,\(N_2)	 de dihydrogène, 0,2,0,0,\(H_2)	 de dioxyde de carbone, 1,0,0,2, \(CO_2)	 d'eau, 0,2,0,1,\(H_2O)	 de méthane,1,4,0,0,\(CH_4)	 de monoxyde de carbone, 1,0,0,1,\(CO)	
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=du carbone, de l'hydrogène,de l'azote,de l'oxygène
+val8=de carbone, d'hydrogène,d'azote,d'oxygène
+tmp0=!randint 1, 7
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!item 2,3,4,5 of $val10
+
+val12=$(tmp0)
+tmp0=!shuffle 1,2,3,4
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+tmp1=!item $(tmp0) of $val7
+
+val14=$(tmp1)
+tmp0=!item 2 of $val13
+
+tmp1=!item $(tmp0) of $val7
+
+val15=$(tmp1)
+tmp0=!item 3 of $val13
+
+tmp1=!item $(tmp0) of $val7
+
+val16=$(tmp1)
+tmp0=!item 4 of $val13
+
+tmp1=!item $(tmp0) of $val7
+
+val17=$(tmp1)
+val18=oui
+val19=non
+tmp0=!item 1 of $val13
+
+tmp1=!item $(tmp0) of $val12
+
+
+!ifval $(tmp1)=0 
+val20= $val19
+!else
+val20=$val18
+!endif
+tmp0=!item 2 of $val13
+
+tmp1=!item $(tmp0) of $val12
+
+
+!ifval $(tmp1)=0 
+val21= $val19
+!else
+val21=$val18
+!endif
+tmp0=!item 3 of $val13
+
+tmp1=!item $(tmp0) of $val12
+
+
+!ifval $(tmp1)=0 
+val22= $val19
+!else
+val22=$val18
+!endif
+tmp0=!item 4 of $val13
+
+tmp1=!item $(tmp0) of $val12
+
+
+!ifval $(tmp1)=0 
+val23= $val19
+!else
+val23=$val18
+!endif
+val24=
+!for val25 =1 to 4 
+tmp0=!item $val25 of $val12
+
+!if  $(tmp0)<>0 
+tmp0=!item $val25 of $val12
+
+val24=$val24	$val25,$(tmp0)
+!endif
+!next
+tmp=!translate internal $	$ to ; in $val24
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val26=$(tmp1)
+tmp=!translate internal $	$ to ; in $val24
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 1 of $(tmp0)
+
+tmp2=!item $(tmp1) of $val8
+
+val27=$(tmp2)
+tmp=!translate internal $	$ to ; in $val24
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 2 of $(tmp0)
+
+val28=$(tmp1)
+tmp=!translate internal $	$ to ; in $val24
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item 1 of $(tmp0)
+
+tmp2=!item $(tmp1) of $val8
+
+val29=$(tmp2)
+
+!ifval $val9<=3
+tmp=!trim  choice1,choice2,choice3,choice4	reply1	
+val30=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim choice1,choice2,choice3,choice4	reply1,reply2
+val30=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val30 
+nextstep=!nosubst $val30 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=molecule $val27
+replygood1=$[$val26]
+replytype2=numeric
+replyname2=$val29
+replygood2=$[$val28]
+choicename1=atome $val14
+choicegood1=$val20
+choicebad1=$val18,$val19
+choicename2=atome $val15
+choicegood2=$val21
+choicebad2=$val18,$val19
+choicename3=atome $val16
+choicegood3=$val22
+choicebad3=$val18,$val19
+choicename4=atome $val17
+choicegood4=$val23
+choicebad4=$val18,$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!if $m_step=1 
+$()Dans une molécule $val11, y-a-t-il ?	<table class="wimscenter">	<tr><td> $val14 </td><td></td><td> 
+!read oef/embed.phtml choice 1 
+$() </td></tr>	<tr><td> $val15 </td><td></td><td> 
+!read oef/embed.phtml choice 2 
+$() </td></tr>	<tr><td> $val16 </td><td></td><td> 
+!read oef/embed.phtml choice 3 
+$() </td></tr>	<tr><td> $val17 </td><td></td><td> 
+!read oef/embed.phtml choice 4 
+$() </td></tr>	</table>	 
+!endif
+$()	
+!if $m_step=2 
+$()Une molécule $val11 est formée de	 
+!read oef/embed.phtml reply 1, 5 
+$() atome(s) $val27	
+!if $val9>3 
+$()et de  
+!read oef/embed.phtml reply 2, 5 
+$() atome(s) $val29.  
+!endif
+$() 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,11,14,15,16,17,27,29
+embedcnt=6

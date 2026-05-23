@@ -1,0 +1,120 @@
+n=$counter
+math=0
+inputs=1.1
+mathview=0
+questiontype=0
+embed=1
+cols=15
+rows=1
+checkfile=$checkdir/number.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+#een willekeurig punt $A 
+X1=!randitem -4,-3,-2,-1,0,1,2
+Y1=!randitem -6,-4,-2,2,4,6
+dx=!randitem 4,5,6,7,8
+dy=!randitem -5,-4,-3,-2,2,3,4
+    
+#nog een willekeurig net punt
+X2=$[$X1+($dx)]
+Y2=$[$Y1+($dy)]
+    
+########PLAATJE############
+keuze=!randitem 1,1
+A=!item $keuze of  A,D,K,P
+B=!item $keuze of  B,E,L,Q
+
+AB=$A$B
+
+Punt1=$A ($X1;$Y1)
+Punt2=$B (p;$Y2)
+
+lengte=$AB
+punt=$B
+
+min=$[min($Y1,$Y2)]
+max=$[max($Y1,$Y2)]
+ymin=$[$min-4]
+ymax=$[$max+4]
+!if $ymin > -2
+    ymin=-4
+!endif
+!if $ymax < 2
+    ymax=4
+!endif
+
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+!if $rounding=-1
+    rounding=1
+    !readproc $remarkdir/rounding.$taal
+!else
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+twee=!item 2 of $telwoorden
+
+tus=!randint 3,10
+tussen=$[$tus*$tus]
+dist=$[$tussen+($Y1-($Y2))*($Y1-($Y2))]
+distance=$[sqrt($dist)]
+!if . isin $distance
+    distance=&radic;($dist)
+    distance_tex=\sqrt{$dist}
+!else
+    distance=$distance
+    distance_tex=$distance
+!endif
+
+formula$n=p
+p1=$[$X1-$tus]
+p2=$[$X1+$tus]
+
+rr=!record 83 of lang/remarks.$taal
+
+of=$rr  
+ 
+!if $p1=$p2
+    answer$n=$p1
+    texanswer$n=\begin{array}{l}\sqrt{\left($X1-p\right)^{2}+\left($Y1-$Y2\right)^{2}}=$distance_tex\\ \left($X1-p\right)^{2}+\left($Y1-$Y2\right)^{2}=$dist\\ \left($X1-p\right)^{2}+$[($Y1-($Y2))*($Y1-($Y2))]=$dist\\ \left($X1-p\right)^{2}=$tussen \\ p=$p1 \end{array}
+!else
+    answer$n=$p1,$p2
+    texanswer$n=\begin{array}{l}\sqrt{\left($X1-p\right)^{2}+\left($Y1-$Y2\right)^{2}}=$distance_tex\\ \left($X1-p\right)^{2}+\left($Y1-$Y2\right)^{2}=$dist\\ \left($X1-p\right)^{2}+$[($Y1-($Y2))*($Y1-($Y2))]=$dist\\ \left($X1-p\right)^{2}=$tussen\\ $X1-p=$tus \, \textrm{ $of } \, $X1-p=-$tus\\p=$p1 \, \textrm{ $of } \, p=$p2 \end{array}
+$endif
+ss=!record 82 of lang/remarks.$taal
+#%Gegeven is het punt $Punt1 en $Punt2<br />De afstand tussen deze twee punten is $distance.<br />Bereken de mogelijke waarden van p.
+question$n=$ss
+applet=1
+draw=0
+plot=0
+make_tr=0
+	
+xrange= -6,8
+yrange= $ymin,$ymax
+	
+object$n=!exec canvasdraw\
+size 300,300\
+xrange=$xrange\
+yrange=$yrange\
+fontfamily 12px Ariel\
+precision 1\
+axis\
+axisnumbering\
+opacity 180,150\
+grid 2,2,grey,1,1,7,blue\
+#linewidth 2\
+#opacity 200,30\
+#ftriangle $X1,$Y1,$X2,$Y2,red\
+linewidth 4\
+point $X1,$Y1,red\
+linewidth 3\
+points red,-5,$Y2,-4,$Y2,-3,$Y2,-2,$Y2,-1,$Y2,0,$Y2,1,$Y2,2,$Y2,3,$Y2,4,$Y2,5,$Y2,6,$Y2,7,$Y2\
+fontfamily 16px Ariel\
+string black,$X1,$[$Y1+0.4],$A\
+#string black,$X2,$[$Y2+1],$C\
+#string black,$X3,$[$Y3+1],$B\
+mouse blue,22\
+zoom black

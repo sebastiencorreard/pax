@@ -1,0 +1,135 @@
+!header
+
+<u><b>Exercice $noexo.</b></u>
+Voici une balance équilibrée. Toutes les masses marquées "$listinc " sont 
+identiques. Vous devez réussir à peser une seule masse $listinc ...<br>Quand vous
+avez réussi, pensez à cliquer sur "Déclarer que l'exercice est terminé" !<br>
+!if $nbetape=0
+<center>
+!read affsys.phtml 0
+</center>
+!endif
+<hr><p>
+!! ------------   affichage des calculs.
+
+!if $nbetape>0
+<u><b>Vos étapes de calcul :</b></u>
+<table>
+!for ii=0 to $nbetape
+   <tr><td><u>Etape $ii :</u></td>
+    <td>
+      !read affsys.phtml $ii
+    </td>
+    <td> 
+      !if $ii<$nbetape and $status!=5 
+         !href cmd=resume&status=1&nbetape=$ii retour à cette étape.
+      !endif
+    </td>
+!next ii
+</table>
+<p><hr><p>
+!endif
+
+!! ----------- corps d'action
+
+!if $status=1
+   !if $nbetape<10
+      !read form.phtml
+   !else
+    Dans cet exercice le nombre d'étapes est limité. Vous avez déjà utilisé $nbetape. <p>
+Vous ne connaissez pas de méthode de résolution ou vous n'arrivez pas à l'appliquer.<p>
+Étudiez votre cours ou appelez votre enseignant pour obtenir des explications.<p>
+     !href cmd=resume&status=1&nbetape=0 Recommencer
+     le même exercice depuis le début.
+   !endif
+!endif
+!if $status=2
+   !if $erreur!=$empty
+    <font color=red>$erreur</font>
+    !let erreur=$empty
+    <br>
+   !endif
+   !let tmp=!item $action of $listaction
+   !read $tmp question
+   <p>
+   !href cmd=resume&status=1 retour
+!endif
+!if $status=10
+   !increase nbreerrrais
+<font color=red>Vous avez déséquilibré la balance : il est impossible de continuer les pesées, la seule solution est de revenir à une étape précédente !</font>
+!endif
+!if $status=3
+   !let tmp=!item $action of $listaction
+   !read $tmp reponse
+!endif
+!if $status=4
+   !read src/conclure.phtml reponse2
+!endif
+!if $status!=5
+   <p><hr><p>
+!endif
+<u><b>Informations: </b></u>
+<table>
+  <tr>
+    <td>Nombre d'étapes:</td>
+    <td>$nbetape</td>
+  </tr>
+  <tr>
+    <td>Nombre d'erreurs de calcul:</td>
+    <td>$nbreerrcalc</td>
+  </tr>
+  <tr>
+    <td>Nombre d'erreurs de raisonnement:</td>
+    <td>$nbreerrrais</td>
+  </tr>
+!!  <tr>
+!!    <td>Nombre d'acces à l'aide:</td>
+!!    <td>$nbreaide</td>
+!!  </tr>
+</table>
+
+!if $status=5
+   <font color=green>Vous avez correctement résolu cet exercice en $nbetape étapes.</font><br>
+   !if $noexo<$nbreexo
+      Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+      !increase noexo
+      !href cmd=resume&status=0 Continuer la séance 
+      .
+      !href $renewlink Nouvelle séance
+      .<p>
+      (Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.)
+   !else
+      Vous avez obtenu une note de $module_score sur 10.
+
+!if $noexo=1
+!if $nbetape > $[$difficulte+1] and $sanctetape = 1
+<br>(Votre score a été diminué parce que vous avez utilisé plus d'étapes que nécessaire : il était possible de finir cet exercice en $[$difficulte+1] étapes...)
+!endif
+!if $nbreerrcalc = 1
+<br>(Votre score a été diminué parce que vous avez fait une erreur de calcul.)
+!else
+  !if $nbreerrcalc > 1
+     <br>(Votre score a été diminué parce que vous avez fait des erreurs de calcul.)
+  !endif
+!endif
+!if $nbreerrrais = 1
+<br>(Votre score a été diminué parce que vous avez fait une erreur de raisonnement.)
+!else
+  !if $nbreerrrais > 1
+     <br>(Votre score a été diminué parce que vous avez fait des erreurs de raisonnement.)
+  !endif
+!endif
+!endif
+
+<p>
+      !href $renewlink Nouvelle séance
+      .
+   !endif
+!else
+   Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+   !href $renewlink Nouvelle séance
+   .<p> (Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.)
+!endif
+:lab1
+:end
+!tail

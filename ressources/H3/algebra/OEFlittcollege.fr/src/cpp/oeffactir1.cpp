@@ -1,0 +1,72 @@
+target= oeffac3b oeffac4b
+#define TITRE Factoriser
+#if defined TARGET_oeffac3b
+   \title{TITRE a²+2ab+b²}
+   \text{signe=+}
+#endif
+
+#if defined TARGET_oeffac4b
+   \title{TITRE a²-2ab+b²}
+   \text{signe=-}
+#endif
+
+\language{fr}
+\range{-5..5}
+\author{Jean-Luc,Donadoni}
+\email{jluc.donadoni@gmail.com}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{confparm1=\confparm1}
+\integer{confparm1=NaN isin \confparm1 or \confparm1=?1}
+
+\integer{size=8}
+\text{size2=40x25x1}
+
+\text{a=random(1,1)*randint(2..15)}
+\text{a=simplify(\a)}
+\text{b=randint(2..15)}
+\text{x=random(x,y)}
+
+\text{lt=wims(values v for v=0 to \confparm1)}
+\text{lt=shuffle(\lt)}
+\integer{p1=item(1,\lt)}
+\integer{p2=item(2,\lt)}
+\text{m1=\a*\x^\p1}
+\text{m1=simplify(\m1)}
+\text{rep1=texmath(\m1)}
+\text{m2=\b*\x^\p2}
+\text{m2=simplify(\m2)}
+\text{rep2=texmath(\m2)}
+
+\text{rep=(\m1 \signe \m2)^2}
+\text{rep8=slib(commutesom \rep,\x)}
+
+\text{tmp1=texmath(\m1)}
+\text{tmp2=texmath(\m2)}
+\text{A=\tmp1,\tmp2}
+\text{enonce=(\A[1] \signe \A[2])^2}
+
+\text{repf=texmath(randomitem(\rep8))}
+
+\statement{
+Factoriser l'expression \(\repf).
+
+<div class="spacer"><b>Je factorise</b> :</div>
+<div class="wimscenter">
+\(\repf = )\embed{r1,2*\size}.
+</div>}
+
+\answer{}{\enonce}{type=algexp}
+
+\solution{
+<table border=0>
+<tr>\ligne1</tr>
+<tr>\ligne2</tr>
+<tr>
+   <td></td>
+   <td>=</td>
+   <td colspan=5> \(\repf)</td>
+</tr>
+</table>}

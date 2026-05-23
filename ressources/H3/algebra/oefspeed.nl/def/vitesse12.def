@@ -1,0 +1,204 @@
+!set title=Snelheid
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Karine MAURICE et Bernadette PERRIN-RIOU
+email=kreen.maurice@free.fr,bpr@math.u-psud.fr
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,c
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=3
+choicecnt=1
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 11
+
+val6=$[rint($(tmp0))]
+tmp0=!randint $val6+1, $val6+4
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 5, 58
+
+val12=$[rint($(tmp0))]
+tmp0=!randint 45, 100
+
+val13=$[rint($(tmp0))]
+val14=$[ceil($val9*$val8/60*100)/100]
+val15=$[ceil($val11*$val10/60*100)/100]
+val16=$[ceil($val13*$val12/60*100)/100]
+val17=$[ceil(($val14+$val15+$val16)*100)/100]
+val18=$[$val8+$val10+$val12]
+val19=$[rint(floor($val18/60))]
+val20=$[rint(floor($val19))]
+val21=$[rint($val18-60*$val20)]
+val22=$[rint($val20+$val6)]
+val23=$[ceil(($val17/($val18/60))*100)/100]
+val24=ja, nee
+
+!ifval $val7>$val6+$val19
+tmp0=!item 1 of $val24
+
+val25=$(tmp0)
+!else
+tmp1=!item 2 of $val24
+
+val25=$(tmp1)
+!endif
+val26=gedurende $val8 minuten met een snelheid van $val9 km/u, 	$val14 km in $val8 minuten, gedurende $val14 km met een snelheid 	van $val9 km/u
+val27=gedurende $val10 minuten met een snelheid van $val11 km/u, $val15 km in  	$val10 minuten, gedurende $val15 km met een snelheid van $val11 km/u
+val28=gedurende $val12 minuten met een snelheid van $val13 km/u, $val16 km in  	$val12 minuten, gedurende $val16 km met een snelheid van $val13 km/u
+tmp=!nonempty items $val26
+
+tmp0=!randitem $tmp
+val29=$(tmp0)
+tmp=!nonempty items $val27
+
+tmp0=!randitem $tmp
+val30=$(tmp0)
+tmp=!nonempty items $val28
+
+tmp0=!randitem $tmp
+val31=$(tmp0)
+oefsteps=reply1	reply2	reply3	choice1 
+nextstep=!nosubst reply1	reply2	reply3	choice1 
+!readproc oef/steps.proc
+replytype1=units
+replyname1=Afgelegde afstand
+replygood1=$val17 km
+replytype2=units
+replyname2=Duur van het traject
+replygood2=$val20 u $val21 min
+replytype3=units
+replyname3=Gemiddelde snelheid
+replygood3=$val23 km/u
+choicename1=
+choicegood1=$val25
+choicebad1=$val24
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Meneer Snel vertrekt van Amsterdam om $val6 uur en rijdt eerst $val29, 	vervlogens $val30, en daarna $val31. 	<p>	
+!if $m_step=1 
+$()Hoeveel kilometers heeft hij afgelegd (naar boven afgerond 	tot op een nauwkeurigheid van 0.01)? 
+!endif
+$()	
+!if $m_step>=2 
+$()Hij heeft $val17 km afgelegd. 
+!endif
+$()	
+!if $m_step=2 
+$()<p>Hoeveel tijd heeft hij over het traject gedaan? 
+!endif
+$()	
+!if $m_step>=3 
+$()Zijn traject heeft $val20 u $val21 min geduurd. 
+!endif
+$()	
+!if $m_step=3 
+$()<p>Wat was zijn gemiddelde snelheid over de hele rit? 
+!endif
+$()	
+!if $m_step>=4 
+$()Zijn gemiddelde snelheid over de hele rit is $val23 km/u. 
+!endif
+$()	
+!if $m_step=4 
+$()<p>Hij heeft om $val7 uur een afspraak. Zal hij op tijd zijn?	 
+!read oef/embed.phtml choice1 
+$() 
+!endif
+$()	<p><b><font color="purple">Afspraak: geef de eenheden aan: bijvoorbeeld 3  km, 5 km/u , 1u 32min (laat een spatie tussen de uren en de minuten).	</font></b>
+$()
+!exit
+
+:hint
+$()	
+!if $m_step=1 
+$()We berekenen de afstand vanaf de tijd voor het traject 	(in uren) en de snelheid met behulp van de relatie 
+!insmath a=s*t
+$() 
+!endif
+$()	
+!if $m_step=2 
+$()Of hij wel of niet op tijd aankomt hangt van zijn 	aankomsttijd af, en dus van de tijd die hij over het traject doet 
+!endif
+$()	$val17 - $val20 u $val21 min
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!if $m_step>=4 $m_choice1 notsametext $val25
+ <div class='oef_feedbacks'>De duur van zijn traject is 	$val20 uur $val21 min. Hij komt dus om $val22 u $val21 min aan, wat 	
+!if $val7>=$val6+$val19 
+$()voor 
+!else
+$() na 
+!endif
+$() het tijdstip van zijn afspraak is.
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,17,19,20,21,22,23,25,29,30,31
+embedcnt=1

@@ -1,0 +1,138 @@
+!! fichier de gestion de l'action multipier
+<u><b>Multiplicar:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+!if $nbreesscalc=0
+   !formselect repexo1 from 1 to 2 prompt He de multiplicar,He de dividir
+   cadascun dels membres de l'$nom
+   !if $mode=2
+      !formselect repexo2 from 1 to 2
+   !endif
+   pel nombre <input type=text name=repexo3 size=5 value=$repexo3>.
+!else
+   !let tmp=!item $repexo1 of He de multiplicar,He de dividir
+   $tmp cadascun dels membres de l'$nom $repexo2 pel nombre \($repexo3).
+!endif
+!if $nocalcul!=1
+   !read calcligne.phtml question
+!endif
+<input type=hidden name=status value=3>
+<center><input type=submit value="Enviar"></center>
+</form>
+!exit
+
+:reponse
+<p>
+   <blockquote>
+   <p>$(comment$[$nbetape+1])</p>
+   !let tmp=!item $repexo5 of $symboleaff
+   <p>La nova $nom serà \($repexo4 $tmp $repexo6).</p>
+   !if $erreur!=calcul
+    <font color=red><p>$erreur .</p></font>
+    <p>pots:</p>
+    <ul>
+    <li>
+    !href cmd=resume&status=2 fer
+    una altra multiplicació o una altra divisió.
+    </li>
+    <li>
+    !href cmd=resume&status=1 tornar
+    al menú general.
+    </li>
+    </ul>
+!else
+   !read erreurcalc.phtml
+!endif
+</blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!if $repexo1=$empty or $repexo3=$empty or ($repexo2=$empty and $mode=2)
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validit?de l'expression donn?.
+i=0
+replygood0=0
+test=$empty
+reply0=$repexo3
+!read anstype/numeric
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $repexo3=0
+   erreur=No es pot pas multiplicar o dividir l'$nom per zero
+   !increase nbreerrrais
+   !exit
+!endif
+!! ------------- calcul de la nouvelle equation/inequation
+!if $evitecalc=0
+   evitecalc=1
+   !if $mode!=2 
+      repexo2=1
+   !endif
+   tmp=!line $repexo2 of $(sys$nbetape)
+   tmp0=!item $repexo1 of *,/
+   tmp1=!item 1 of $tmp
+   tmp3=!item 3 of $tmp
+   tmp1=!exec maxima expand(($tmp1)$tmp0($repexo3));\
+expand(($tmp3)$tmp0($repexo3));
+   tmp2=!item 2 of $tmp
+   !if $tmp2!=1 and $repexo3<0
+      tmp2=!item $tmp2 of 1,3,2,5,4
+   !endif
+   !distribute lines $tmp1 into tmp1,tmp3
+   tmp4=$tmp1,$tmp2,$tmp3
+   sys$[$nbetape+1]=!replace line number $repexo2 by $tmp4 in $(sys$nbetape)
+val40=$sys1
+!endif
+
+!! --------------- construction de la phrase de commentaire
+!let tmp=!item $repexo1 of He multiplicat,He dividit
+!if $mode=2
+   tmp1=$repexo2
+!else
+   tmp1=$empty
+!endif
+comment$[$nbetape+1]=$tmp cadascun dels membres de l'$nom $tmp1 per \($repexo3).
+
+!! ------------ verification de l'exactitude des calculs
+!if $nocalcul!=1
+!if $mode!=2 
+   repexo2=1
+!endif
+!if $mode<3
+   repexo5=1
+!endif
+tmp1=!line $repexo2 of $(sys$[$nbetape+1])
+repexo4=!rawmath $repexo4
+repexo6=!rawmath $repexo6
+!read verifequ.calc $tmp1,$repexo4,$repexo5,$repexo6
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $test!=$empty
+   erreur=$test
+   !exit
+!endif
+!if $mode=2
+   !replace line number $repexo2 of $(sys$[$nbetape+1]) by $repexo4,$repexo5,$repexo6
+!else
+   sys$[$nbetape+1]=$repexo4,$repexo5,$repexo6
+!endif
+!endif
+!increase nbetape
+status=1
+evitecalc=0
+!exit

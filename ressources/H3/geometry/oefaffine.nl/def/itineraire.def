@@ -1,0 +1,136 @@
+!set title=Route op een kaart
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette, Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 7, 10
+
+val6=$[rint($(tmp0))]
+val7=-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6
+tmp0=!shuffle A,B,C,D,E,F,G,H,J,K
+
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+val9=$(tmp0)
+tmp0=!item $val6 of $val8
+
+val10=$(tmp0)
+tmp0=!item 2 to $val6-1 of $val8
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val12=$(tmp0)
+tmp0=!shuffle $val7
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+val15=xrange -7.2,7.2	yrange -7.2,7.2	parallel -7,-7,7,-7,0,1,16, grey	parallel -7,-7,-7,7,1,0,16, grey	hline 0,0,black	arrow 0,0,1,0,8, black	arrow 0,0,0,1,8, black	vline 0,0,black	
+!for val16 =1 to $val6 
+val17=$[rint($val16%2)]
+!if $val17=0 
+tmp0=!item $val16+1 of $val13
+
+val14=$(tmp0)
+!else
+tmp0=!item $val16+1 of $val13
+
+val18=$(tmp0)
+!endif
+tmp0=!item $val16 of $val8
+
+val19=$(tmp0)
+val15=$val15	disk  $val14,$val18,8,blue	text black,$val14,$val18-0.2,medium,$val19
+!next
+replytype1=atext
+replyname1=Route
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Wij willen van punt 
+!insmath $val9
+$() naar punt 
+!insmath $val10
+$(), waarbij we door alle 	punten van het grafiek gaan en zodanig dat twee opeenvolgende punten altijd 	een coordinaat hetzelfde hebben. Geef een route door de volgorde van de punten 	te geven zoals je er langsgaat:		<p class="wimscenter">  
+!read oef/draw.phtml 300,300 \
+$val15	 
+$()	</p>		De route is	<p class="wimscenter"> 
+!insmath $val9
+$() ,  
+!read oef/embed.phtml reply 1,20 
+$() , 
+!insmath $val10
+$() </p>	(Schrijf de namen van de punten met kommas ertussen.)	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,15
+embedcnt=1

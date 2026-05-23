@@ -1,0 +1,188 @@
+!set title=Angle et pourcentages
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Cirkeldiagram en hoek
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=rouge, bleu,orange,gris, vert, violet
+val8=Effectifs
+val9=Voici la représentation graphique (diagramme circulaire) de,	  caractères sur une population de,individus&nbsp;
+val10=Quel est l'angle en degrés correspondant aux individus possédant	  le caractère
+val11=On arrondira au degré le plus proche.
+val12=Angle
+!if $val6=nl 
+val7=rood, blauw,oranje,grijs, groen, paar
+val8=Aantallen
+val9=Hieronder zie je een cirkeldiagram die een populatie van,	  individuen met,eigenschappen weergeeft
+val10=Wat is de hoek in graden die hoort bij het aantal individuen	  met de eigenschap
+val11=Rond je getal af op hele graden nauwkeurig.
+val12=Hoek
+!endif
+tmp0=!randint 4, 6
+
+val13=$(tmp0)
+val14=100
+!for val15 =1 to $val13-1 
+tmp0=!randint 8, 20
+
+val16=$(tmp0)
+!if $val15=1 
+val17=$val16
+!else
+val17=$val17,$val16
+!endif
+val14=$[$val14-$val16]
+!next
+val17=$val17,$val14
+tmp0=!shuffle 6
+
+val18=$(tmp0)
+val19=red,skyblue,orange,grey,green,purple
+val7=rouge, bleu,orange,gris, vert, violet
+val20=A,B,C,D,E,F
+tmp0=!randint 1, $val13
+
+val21=$(tmp0)
+tmp0=!item $val21 of $val18
+
+tmp1=!item $(tmp0) of  $val20
+
+val22=$(tmp1)
+tmp0=!item $val21 of $val18
+
+tmp1=!item $(tmp0) of  $val7
+
+val23=$(tmp1)
+tmp0=!randint 10, 30
+
+val24=$[rint($(tmp0)*100)]
+tmp0=!item $val21 of $val17
+
+val25=$[round($(tmp0)/100*$val24)]
+val26=ellipse 0,0,2,2,black	segment 0,0,1,0,black
+val27=0
+tmp0=!randint 1, $val13
+
+val21=$(tmp0)
+!for val15 =1 to $val13 
+tmp0=!item $val15 of $val17
+
+val28=$[$(tmp0)*2*pi/100]
+val29=$[$val27+$val28/2]
+tmp0=!item $val15 of $val18
+
+tmp1=!item $(tmp0) of $val19
+
+val23=$(tmp1)
+tmp0=!item $val15 of $val18
+
+tmp1=!item $(tmp0) of  $val20
+
+val22=$(tmp1)
+val27=$[$val27+$val28]
+val26=$val26	segment 0,0,cos($val27),sin($val27),black	fill cos($val29)/2,sin($val29)/2, $val23	text black, 1.2*cos($val29),1.2*sin($val29),medium, $val22	
+!if $val15 = $val21 
+!else
+tmp0=!item $val15 of $val17
+
+val26=$val26	text black, 2*cos($val29)/3,2*sin($val29)/3, medium, $(tmp0)%	
+!endif
+!next
+tmp0=!item $val21 of $val18
+
+tmp1=!item $(tmp0) of  $val7
+
+val23=$(tmp1)
+tmp0=!item $val21 of $val18
+
+tmp1=!item $(tmp0) of  $val20
+
+val22=$(tmp1)
+tmp0=!randint 10, 30
+
+val24=$[rint($(tmp0)*100)]
+tmp0=!item $val21 of $val17
+
+val25=$[round($(tmp0)/100*360)]
+replytype1=numeric
+replyname1=$val12
+replygood1=$[$val25]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$(val9[1]) $val13 $(val9[2]) $val24 $(val9[3]):	<div class="wimscenter">	  
+!read oef/draw.phtml 200,200 \
+xrange -1.5,1.5	yrange -1.5,1.5	$val26 
+$()	</div>	$val10 $val23 ($val22) ?	<div class="wims_instruction">	$val11	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,13,22,23,24,26
+embedcnt=0

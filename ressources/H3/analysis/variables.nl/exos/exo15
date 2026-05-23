@@ -1,0 +1,102 @@
+n=$counter
+cols=12
+rows=1
+image=0
+math=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile4.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+arglist=$empty
+letters=x,y,a,c,f,h,k,m,p,z
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+getallen=!shuffle 2,3,4,5,6,7,8,9
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+keuze=!randitem 1,2
+!if $R=1
+    var1=($x^$a)/($x^$b)
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    formula$n=\frac{$x^{\textsize $a}}{$x^{\textsize $b}}
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    c=!randitem 2,3,4
+    f=!randitem -4,-3,-2,2,3,4
+    d=$[$f*$c]
+    !if $keuze=1
+	var1=($d*$x^$a)/($c*$x^$b)
+	formula$n=\frac{$d\cdot $x^{\textsize $a}}{$c\cdot $x^{\textsize $b}}
+    !else
+	var1=($c*$x^$a)/($d*$x^$b)
+	formula$n=\frac{$c\cdot $x^{\textsize $a}}{$d\cdot $x^{\textsize $b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R=3
+    keuze=!randitem 1,1,1,2
+    c=!randitem -3,-2,2,3,4
+    !if $keuze=1
+	var1=($c*$x)^$a/($x^$b)
+	formula$n=\frac{\left($c \cdot $x \right)^{\textsize $a}}{$x^{\textsize $b}}
+    !else
+	var1=(-1*$x)^$a/($x^$b)
+	formula$n=\frac{\left(- $x \right)^{\textsize $a}}{$x^{\textsize $b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R>3
+    d=!randitem -4,-3,-2,2,3,4
+    f=!randint 1,4
+    c=$[$f*$d]
+    var1=(($c*$x)^$a)/(($d*$x)^$b)
+    applettext=!nospace $var1
+    tot=!exec pari ($var1)\
+    printtex($var1)
+    formula$n=\frac{\left($c\cdot $x\right)^{\textsize $a}}{\left($d\cdot $x\right)^{\textsize $b}}
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+

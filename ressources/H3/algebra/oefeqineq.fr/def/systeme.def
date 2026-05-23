@@ -1,0 +1,258 @@
+!set title=Solution d'un système d'équations 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=c
+varcnt=56
+prevarcnt=55
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Parmi les couples de nombres,lequel est solution du système d'équations suivant
+val7=Réponse
+val8=$[rint(8)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val9
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp0=!item 3 of $val10
+
+val12=$(tmp0)
+!if $val11= 
+tmp0=!item 1 of $val10
+
+val13=$(tmp0)
+tmp0=!item 2 of $val10
+
+val14=$(tmp0)
+!if $val12<0 
+tmp0=!values $val12*v,-($val12)*v for v=$val13 to $val14
+
+val15=$(tmp0)
+!else
+tmp0=!values $val12*v for v=$val13 to $val14
+
+val15=$(tmp0)
+!endif
+!else
+val15=$val11
+!if $val12<0 
+tmp0=!replace internal , by ,- in $val15
+
+val16=$(tmp0)
+tmp0=!listunion $val15 and $val16
+
+val15=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val15
+
+val15=$(tmp0)
+tmp0=!shuffle $val15
+
+val15=$(tmp0)
+tmp0=!item 1 of $val15
+
+val13=$(tmp0)
+tmp0=!item 2 of $val15
+
+val14=$(tmp0)
+tmp0=!item 3 of $val15
+
+val12=$(tmp0)
+tmp0=!item 4 of $val15
+
+val17=$(tmp0)
+tmp0=!item 5 of $val15
+
+val18=$(tmp0)
+tmp0=!item 6 of $val15
+
+val19=$(tmp0)
+!ifval $val13*$val17-$val14*$val12=0 
+val13=2
+val14=-1
+val12=3
+val17=4
+!endif
+tmp=!translate ";': to $     $ in $val13*($val18)+($val14*($val19))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val20=$(tmp0)
+tmp=!translate ";': to $     $ in $val12*($val18)+($val17*($val19))
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+tmp=!trim x,y	a,b	u,v	y,z	r,s
+val22=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val22
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val23=$(tmp0)
+val24=( $val18 ; $val19 )
+val16=(1,-1),(-1,1),(-1,-1),(1/2,1/2),(3,5),(-7,8),(-1/2,1),(1,-1/2),(2,3),(1,2),(-1,2),(-2,1)
+val25=
+val26=$[rint(12)]
+!for val27 =1 to $val26 
+tmp0=!item $val27 of $val16
+
+val28=$(tmp0)
+tmp0=!declosing $val28
+
+val29=$(tmp0)
+tmp=!translate ";': to $     $ in $(val29[1])*$val18
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val30=$(tmp0)
+tmp=!translate ";': to $     $ in $(val29[2])*$val19
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val31=$(tmp0)
+val32=( $val30 ; $val31 )
+tmp0=!append item $val32 to $val25
+
+val25=$(tmp0)
+!next
+tmp0=!texmath $val13*$(val23[1])
+
+val10=$(tmp0)
+
+!ifval $val14<0
+val33=-
+!else
+val33=+
+!endif
+tmp=!translate ";': to $     $ in abs($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+tmp0=!texmath $val14*$(val23[2])
+
+val11=$(tmp0)
+tmp0=!texmath $val12*$(val23[1])
+
+val34=$(tmp0)
+
+!ifval $val17<0
+val35=-
+!else
+val35=+
+!endif
+tmp=!translate ";': to $     $ in abs($val17)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp0=!texmath $val17*$(val23[2])
+
+val36=$(tmp0)
+tmp0=!texmath $val20
+
+val37=$(tmp0)
+tmp0=!texmath $val21
+
+val38=$(tmp0)
+val39=\begin{array}{rclcl}$val10 & $val33 & $val11 & = & $val37\\ &&&&\\ $val34 & $val35 & $val36 & = & $val38\end{array}
+tmp0=!char 1 to 2 of \{}
+
+val40=$(tmp0)
+choicename1=$val7
+choicegood1=$val24
+choicebad1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val6[1]) 
+!insmath ( $(val23[1]) ; $(val23[2]) )
+$(), $(val6[2]) ?	<div class="wimscenter">
+!insmath \left$val40$val39\right.
+$()</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,23,39,40
+embedcnt=0

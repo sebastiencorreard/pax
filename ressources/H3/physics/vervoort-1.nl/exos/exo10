@@ -1,0 +1,72 @@
+#hfst1
+#exo10(hfst1) Procentrekenen II [hoeveel alcohol gedronken ?]
+questiontype=3
+n=$counter
+checkfile=$checkdir/units.proc
+rounding=0
+mathview=0
+inputs=1.1
+cols=12
+rows=1
+make_tr=1
+formula$n=$empty
+
+M=!randint 550,1150
+k=!randint 0.1
+!if $k=1
+    vrouw=vrouw
+    vrouwen=vrouwen
+    zij=Zij
+    haar=haar
+    f=0.762 
+!else
+    vrouw=man
+    haar=zijn
+    vrouwen=mannen
+    zij=Hij
+    f=0.721
+!endif
+M=!exec moneyprint $[$M/10] 1
+# factor 0.722:
+keuze=!randint 1,2
+!if $keuze=1
+    sig=3
+    promille=!randint 100,500
+    promille=!exec moneyprint $[$promille/100] 2
+!else
+    sig=2
+    promille=!randint 11,99
+    promille=!exec moneyprint $[$promille/100] 2
+!endif
+water=$[$f*$M]
+alc_kg=$[($promille/1000)*$water]
+alc_gr=$[$alc_kg*10^3]
+alc_mg=$[$alc_kg*10^6]
+tot=!exec scienceprint $alc_gr,$sig,0 $alc_kg,$sig,1 $alc_gr,$sig,1 $alc_mg,$sig,1 
+r_ans_gr=!item 1 of $tot
+h_ans_kg=!item 2 of $tot
+h_ans_gr=!item 3 of $tot
+h_ans_mg=!item 4 of $tot
+
+textanswer$n=De hoeveelheid water in een persoon van $M kg is volgens onze formule<br /><kbd>m<sub>&nbsp;water</sub> = $f &times; $M </kbd> kg = $water kg<br />De hoeveelheid alcohol is dan $promille / 1000 &times; $water kg = $alc_kg kg = $alc_gr gr = $alc_mg mg.<br />Het aantal significante cijfers in het eindantwoord is $sig (afkomstig van $promille).<br />De hoeveelheid alcohol is dan ongeveer : $h_ans_kg kg &asymp; $h_ans_gr g &asymp; $h_ans_mg mg.
+
+ss=Iemand heeft $promille &permil; alcohol in $haar bloed.<br />$zij heeft een massa van $M kg.<br />Voor het berekenen van de massa van het water in $haar lichaam geldt de formule:<br /><br /><kbd>m<sub>&nbsp;water</sub> = $f &times; m<sub>&nbsp;lichaam</sub></kbd><br />Hoeveel alcohol heeft deze persoon gedronken?<br />Geef je antwoord de juiste SI eenheid en precisie.
+
+# eenheid vermelden...
+var1=1
+# answer$n is fysiek juist...niet wiskundig precies
+answer$n=$r_ans_gr gr
+var2=$[abs($alc_gr - $r_ans_gr)]
+
+ex1=$empty
+m_rightarrow=&nbsp;=&nbsp;
+description=Hoeveelheid pure alcohol 
+
+helptext=Geef je antwoord de juiste eenheid en <a target=\'new\' href=\'http://nl.wikipedia.org/wiki/Significant_cijfer\' ><b>precisie</b></a>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+!exit
+
+
+    

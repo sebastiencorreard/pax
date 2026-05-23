@@ -1,0 +1,123 @@
+!set title=Parc rectangulaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 2, 7
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 15, 80
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 15, 80
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8)	
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val7/$val9)]
+val11=$[rint($val8/$val9)]
+!if $val10=$val11 
+val10=$[rint(17)]
+val11=$[rint(35)]
+!endif
+val7=$[rint(max($val10,$val11))]
+val8=$[rint(min($val10,$val11))]
+val12=$[rint($val6*$val7)]
+val13=$[rint($val6*$val8)]
+val14=$[rint(2*($val12+$val13)/$val6)]
+val15=$[rint($val12*$val13/$val6^2)]
+replytype1=units
+replyname1=espacement
+replygood1=$val6 m
+replytype2=numexp
+replyname2=nombre d'arbres
+replygood2=$val14
+replytype3=numexp
+replyname3=nombre de plaques
+replygood3=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Un parc rectangulaire de $val12 m de long et de $val13 m de large doit être bordé d'arbustes. Le jardinier souhaite que tous les arbustes soient espacés régulièrement avec un arbuste à chaque coin du parc. De plus, la distance séparant deux arbustes doit être un nombre entier de mètres.	<ol>	<li>Pour des raisons d'économie, le jardinier décide d'acheter le moins d'arbres possible. A quelle distance doit-il les placer les uns des autres ? </li>	<li>Combien doit-il acheter d'arbres?</li>	<li>Il décide de recouvrir l'intérieur du terrain de rouleaux de gazon carrés dont les côtés mesurent un nombre entier de mètres. Sachant qu'il veut acheter le moins de rouleaux possible, combien lui en faut-il ?</li>	</ol>		<b>Vos réponses :</b>	<ol>	 <li><label for="reply1">Il doit placer les arbres à une distance de</label>  
+!read oef/embed.phtml r1,8 
+$().</li>	 <li><label for="reply2">Il doit acheter</label>  
+!read oef/embed.phtml r2,5 
+$() arbres.</li>	 <li><label for="reply3">Il lui faut acheter</label>  
+!read oef/embed.phtml r3,5 
+$() rouleaux de gazon.</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ol>	<li>Il y a un arbuste à chaque coin du parc et sur tout le périmétre.	De plus l'espace entre chaque arbuste	doit être un nombre entier de mètre. Donc, l'espace entre chaque arbuste doit être un	diviseur de la largeur et de la longueur du parc. C'est à dire un diviseur de $val12 et $val13.<br>	Pour avoir le moins d'arbres possible, il faut que l'espacement des arbres soit le	plus grand possible. L'espacement recherché est donc le PGCD de $val12 et $val13.	En utilisant l'algorithme d'Euclide on obtient que le pgcd de $val12 et $val13 est $val6.<br>	Il doit donc placer les arbres à une distance de $val6 m les uns des autres.</li>	<li>Le nombre d'arbustes nécessaire est égal au périmétre du parc divisé par	l'espace entre chaque arbuste soit :	<div class="wimscenter">
+!insmath \frac{2\times($val12+$val13)}{$val6}=$val14
+$().</div></li>	<li>Le nombre de rouleaux de gazon nécessaire est égal à l'aire du parc	divisé par l'aire d'un rouleau soit :	<div class="wimscenter">
+!insmath \frac{$val12\times$val13}{$val6^2}=$val15
+$().</div></li>	</ol>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,13,14,15
+embedcnt=3

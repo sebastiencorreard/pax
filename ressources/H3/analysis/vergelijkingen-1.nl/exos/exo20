@@ -1,0 +1,147 @@
+mathview=0
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+image=0
+questiontype=0
+checkfile=exos/precheck1.proc
+#checkfile=$checkdir/simplify.proc
+arglist=y
+varlist=x
+#varcnt=1
+n=$counter
+embed=1
+cols=25
+rows=2
+exotext=$empty
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+keuze=!randitem 1,2
+vorm=!mathmlmath y=a\left(x+p\right)^{2}+q
+ss=!record 40 of lang/remarks.$taal
+#@Herschrijf in de vorm $vorm
+helptext=<em>(x + <b>1</b>)<sup>2</sup> = x<sup>2</sup> + <b>2</b>x + 1</br>(x + <b>2</b>)<sup>2</sup> = x<sup>2</sup> + <b>4</b>x + 4</br>(x + <b>3</b>)<sup>2</sup> = x<sup>2</sup> + <b>6</b>x + 9</br>(x + <b>4</b>)<sup>2</sup> = x<sup>2</sup> + <b>8</b>x + 16</em>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+inputs=-1
+!if $R=1
+ p=!randint 1,5
+ pm=!randitem 1,-1
+ p=$[$pm*$p]
+ q=!randint 1,10
+ mp=!randitem 1,-1
+ q=$[$mp*$p]
+ !if $[$p*$p+$q] = 0
+  q=!randint 1,10
+ !endif
+ b=$[2*$p]
+ c=$[$p*$p+$q]
+ 
+ !if $pm=-1
+  !if $c<0
+    formula$n= x^{2}  $b \cdot x  $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+    applettext=!nospace  x^2  $b*x  $c
+    tex1=y & = & x^{2}  $b \cdot x  $c \\ y & = & (x $p)\cdot (x $p) - $[$p*$p]  $c \\ y & = & (x $p)^{2} - $[$p*$p]  $c 
+  !else
+    formula$n= x^{2}  $b \cdot x + $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+    applettext=!nospace  x^2  $b*x + $c
+    tex1=y & = & x^{2}  $b \cdot x + $c \\ y & = & (x $p)\cdot (x $p) - $[$p*$p] + $c \\ y & = & (x $p)^{2} - $[$p*$p] + $c 
+  !endif
+ !else
+   !if $c<0
+    formula$n= x^{2} + $b \cdot x  $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+    applettext=!nospace  x^2 + $b*x  $c
+    tex1=y & = & x^{2} + $b \cdot x  $c \\ y & = & (x+$p)(x + $p) - $[$p*$p]  $c \\ y & = & (x+$p)^{2} - $[$p*$p]  $c 
+   !else
+    formula$n= x^{2} + $b \cdot x + $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+    applettext=!nospace  x^2 + $b*x + $c
+    tex1=y & = & x^{2} + $b \cdot x + $c \\ y & = & (x+$p)(x + $p) - $[$p*$p] + $c \\ y & = & (x+$p)^{2} - $[$p*$p] + $c 
+   !endif
+ !endif
+
+ !if $pm=-1
+  !if $q<0
+    tex2=y & = & (x $p)^{2}  $q
+  !else
+    tex2=y & = & (x $p)^{2} + $q 
+  !endif
+ !else
+   !if $q<0
+    tex2=y & = & (x+$p)^{2} $q 
+   !else
+    tex2=y & = & (x+$p)^{2} + $q 
+   !endif
+ !endif
+
+texanswer$n=\left[ \begin{array}{lll} $tex1 \\ $tex2 \end{array}\right.
+
+
+ answer$n=!rawmath (x+$p)^2+$q
+ var1=$applettext
+!else
+ # a(x+p)^2+q
+    a=!randint 2,5
+    p=!randint 1,5
+    pm=!randitem 1,-1
+    p=$[$pm*$p]
+    q=!randint 1,10
+    mp=!randitem 1,-1
+    q=$[$mp*$p]
+    !if $[$p*$p+$q] = 0
+     q=!randint 1,10
+    !endif
+    b=$[2*$a*$p]
+    d=$[2*$p]
+    c=$[$p*$p*$a+$q]
+ 
+    !if $pm=-1
+     !if $c<0
+      formula$n= $a x^{2}  $b \cdot x  $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+      applettext=!nospace  $a*x^2  $b*x  $c	
+      tex1=y & = & $a x^{2}  $b \cdot x  $c \\ y & = & $a ( x^{2}  $d \cdot x)  $c \\ y & = & $a (x $p)\cdot (x $p) - $[$a*$p*$p]  $c \\ y & = & $a (x $p)^{2} - $[$a*$p*$p]  $c 
+    !else
+     formula$n= $a x^{2}  $b \cdot x + $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+     applettext=!nospace  $a*x^2  $b*x + $c
+     tex1=y & = & $a x^{2}  $b \cdot x + $c \\ y & = & $a (x^{2}  $d \cdot x) + $c \\ y & = & $a (x $p)\cdot (x $p) - $[$a*$p*$p] + $c \\ y & = & $a (x $p)^{2} - $[$a*$p*$p] + $c 
+    !endif
+   !else
+    !if $c<0
+     formula$n= $a x^{2} + $b \cdot x  $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+     applettext=!nospace  $a*x^2 + $b*x  $c
+     tex1=y & = & $a x^{2} + $b \cdot x  $c \\ y & = & $a (x^{2} + $d \cdot x)  $c \\ y & = & $a (x+$p)(x + $p) - $[$a*$p*$p]  $c \\ y & = & $a (x+$p)^{2} - $[$a*$p*$p]  $c 
+    !else
+     formula$n= $a x^{2} + $b \cdot x + $c \rightarrow y = \input{16}{0}{font-size:1.2em;color:red;background-color:lightgreen;}{?}{0}
+     applettext=!nospace  $a*x^2 + $b*x + $c
+     tex1=y & = & $a x^{2} + $b \cdot x + $c \\ y & = & $a (x^{2} + $d  \cdot x) + $c \\ y & = & $a (x+$p)(x + $p) - $[$a*$p*$p] + $c \\ y & = & $a (x+$p)^{2} - $[$a*$p*$p] + $c 
+   !endif
+ !endif
+
+ !if $pm=-1
+  !if $q<0
+    tex2=y & = & $a (x $p)^{2}  $q
+  !else
+    tex2=y & = & $a (x $p)^{2} + $q 
+  !endif
+ !else
+   !if $q<0
+    tex2=y & = & $a (x+$p)^{2} $q 
+   !else
+    tex2=y & = & $a (x+$p)^{2} + $q 
+   !endif
+ !endif
+
+texanswer$n=\left[ \begin{array}{lll} $tex1 \\ $tex2 \end{array}\right.
+
+
+ answer$n=!rawmath $a*(x+$p)^2+$q
+ var1=$applettext
+ 
+!endif
+!exit

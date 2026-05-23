@@ -1,0 +1,105 @@
+n=$counter
+math=0
+mathview=0
+questiontyp=0
+embed=0
+inputs=1.1
+make_tr=1
+cols=12
+rows=3
+image=0
+checkfile=$checkdir/number.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+k=!randitem 78,79
+kinderen=!record $k of $remarkdir/commonremarks.$taal
+kind=!randitem $kinderen
+kind=<span style="color:blue"><u>$kind</u></span>
+gebouwen=!record 32 of lang/remarks.$taal
+#@1:de enig echte Goliath:4:12,2:het kantoor:20:45,3:de flat:40:100,4:het flatgebouw:40:100,5:de boom:10:60,6:het huis:8:12,7:het houtenhuis:8:16,8:de lantarenpaal:4:14,9:de kerktoren:45:65,10:de fabriek:20:30
+#!@1:the giant:4:12,2:the office:20:45,3:the flatappartment:40:100,4:the office building:40:100,5:the tree:10:606:the house:8:12,7:the wooden house:8:16,8:the lamp-post:4:14,9:the church tower:45:65,10:the factory:20:30
+
+gebouwen=!randitem $gebouwen
+gebouwen=!replace internal :  by , in $gebouwen
+
+
+img=!item 1 of $gebouwen
+img=!nospace $img . gif
+gebouw=!item 2 of $gebouwen
+
+min=!item 3 of $gebouwen
+max=!item 4 of $gebouwen
+
+helptext=<img src=\'$module_dir/gifs/$img\' style=\'width:380px;height:280px\' alt=\'noalt\' />
+sometext=!record 43 of lang/remarks.$taal
+AB=!randint 10,50
+BC=!randint $min,$max
+grond=$[$BC+1.5]
+hoek=$[(round(100*(atan($BC/$AB))*180/pi))/100]
+AC=$[(round(100*sqrt(($AB)^2+($BC)^2)))/100]
+ex1=&nbsp;m
+
+!if $R=1
+    rounding=1
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$BC
+    ss=!record 33 of lang/remarks.$taal
+    #@$kind kijkt naar een $gebouw onder een hoek van $hoek<sup>o</sup>.<br />(gemeten vanaf ooghoogte)<br />$kind staat $AB meter van $gebouw af.<br />Bepaal de lengte van BC.<br /><span size="-1">Rond je antwoord af op een geheel getal.</span>
+    rr=!record 34 of lang/remarks.$taal
+    #@Het goede antwoord is: $BC meter
+    #!@$kind looks at an angle of $hoek<sup>o</sup> at $de $gebouw.<br />(measured from eye level)<br />$kind stands $AB metre from $de $gebouw .<br />Calculate the length of  BC.<br /><span size="-1">Round off to the nearest integer</span>
+    #!@The correct answer is: $BC metre
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a> 
+    textanswer$n=$rr
+ !exit
+!endif
+
+!if $R=2 
+    rounding=1
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$AB
+    ss=!record 35 of lang/remarks.$taal
+    #@$kind kijkt naar een $gebouw onder een hoek van $hoek<sup>o</sup><br />(gemeten vanaf ooghoogte)<br />BC is $BC meter.<br />Bereken hoever <small>in meters</small> $kind van $de $gebouw afstaat.<br /><span size="-1">Rond je antwoord af op een geheel getal.</span>
+    rr=!record 36 of lang/remarks.$taal
+    #@Het goede antwoord is: $AB meter
+    #!@$kind looks at an angle of $hoek<sup>o</sup> at $de $gebouw.<br />(measured from eye level)<br />BC is $BC metre.<br />Calculate the distance from  $kind to $de $gebouw <small>in metre</small>.<br /><span size="-1">Round off to the nearest integer.</span>
+    #!@The correct answer is: $AB metre
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a> 
+    textanswer$n=$rr
+ !exit
+!endif
+ 
+
+!if $R>2
+    kans=!randint 0,2
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+    !if $kans=0
+	answer$n=$AC
+        ss=!record 37 of lang/remarks.$taal
+        rr=!record 38 of lang/remarks.$taal
+    !else
+	!if $kans=1
+	    rounding=100
+	    !readproc $remarkdir/rounding.$taal
+	    answer$n=$hoek
+	    ss=!record 39 of lang/remarks.$taal
+	    rr=!record 40 of lang/remarks.$taal
+	!else
+	    rounding=100
+	    !readproc $remarkdir/commonremarks.$taal
+	    answer$n=$AC
+	    ss=!record 41 of lang/remarks.$taal
+	    rr=!record 42 of lang/remarks.$taal
+	!endif
+    !endif
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+!endif
+
+!exit
+
+

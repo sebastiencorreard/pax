@@ -1,0 +1,72 @@
+!header
+
+这里有两个不同颜色的图形, 其中一个图形是另一个图形经过
+平面旋转而得到的。请找出这个旋转的中心。
+
+!if $status=wait
+ <p>给出你的解答: 在图形中点击你认为
+ 最合适的位置（旋转中心的位置）。
+ !form reply
+ <table cellpadding=10>
+ <tr>
+ <td>
+ !distribute item alt=Click,1,form click into ins_attr,ins_border,ins_tag
+!else
+ <p>这里标出了你的解答以及真正的旋转中心。
+ <table cellpadding=10>
+ <tr>
+ <td>
+ !set ins_attr=alt=Result
+!endif
+!insdraw fill 1,1,255,255,255\
+transparent 255,255,255\
+$ins_src
+<td>&nbsp;&nbsp;&nbsp;<td>
+ <font color=red>红色</font> = 原图形<br>
+ <font color="#00a000">绿色</font> = 旋转后图形<br>
+!if $status!=wait
+ <img src="$module_dir/gifs/cross.gif" alt="cross"> = 你点击的位置<br>
+ <img src="$module_dir/gifs/circle.gif" alt="circle"> = 真正的旋转中心
+!endif
+
+</table>
+!if $status=wait
+ </form>
+ <p><b>提示</b>. 旋转中心是这样的点: 它到一个点
+ 和到这个点的映像的距离相等。
+!endif
+<p>
+
+!if $status!=wait
+ 解答精确度 (第 $shoots 轮中第 $reply_cnt 次): $[rint($error*2)/10] mm.
+ !if $reply_cnt<$shoots
+  这轮的平均精确度: $mean mm.
+  <p>
+  !href cmd=next 换个新靶继续游戏
+  .
+ !else
+  <p>结束包含 $reply_cnt 次射击的一轮游戏. 平均精度 = $mean mm,
+  得分 = $module_score/10. <p>
+  <table border=0>
+  <tr>
+  <td>本轮射击的纪录.&nbsp;&nbsp;
+  <td>
+  !set insdraw_size=$[$ring_size*20],$[$ring_size*20]
+  !insdraw fill 1,1,255,255,255\
+   transparent 255,255,255\
+   $rings\
+   $target
+  </td>
+  </table> <p>
+  !href cmd=renew&worksheet=$wims_sheet&$module_init_parm 开始新一轮游戏
+  .
+  !if $worksheet=$empty
+   !href module=$module 重新配置游戏
+.
+  !endif
+ !endif
+!endif
+
+:end
+!tail
+

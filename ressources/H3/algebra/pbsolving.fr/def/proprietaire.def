@@ -1,0 +1,115 @@
+!set title=6 - Propriétaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=jbfrondas@gmail.com
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1/2 , 1/3, 1/4, 1/5, 2/3, 2/5, 3/4, 3/5, 4/5, 5/6, 5/7, 5/8, 6/7, 7/8,
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+t_=!rawmath $(val6[1])
+val7=!exec pari print($t_)
+t_=!rawmath $(val6[2])
+val8=!exec pari print($t_)
+t_=!rawmath (1-$val7)*(1-$val8)
+val9=!exec pari print($t_)
+tmp0=!randint 1, 10
+
+val10=$[rint($(tmp0)*10)]
+val11=$[$val10*$val9*100]
+val12=$[rint($val11)]
+val13=$[$val12/100]
+val14=TIT
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=Reste
+val17=en hectares
+val18=Un propriétaire terrien a vendu \($val7\) de sa propriété une année, et \($val8\) de ce qui lui restait l'année suivante.
+val19=Quelle fraction de sa propriété lui reste-t-il aujourd'hui ?
+val20=Quelle est la superficie actuelle de sa propriété sachant qu'au départ elle était de \($val10\) hectares ? Précision attendue : deux chiffres après la virgule.
+val21=Il reste $val9, soit $val13 hectares.
+replytype1=litexp
+replyname1=$val16
+replygood1=$val9 
+replyname2=$val17
+replygood2=$val13 
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val21
+
+latex=!nosubst  \begin{statement} $val18 \begin{enumerate} \item $val19 \item $val20 \end{enumerate} \end{statement} \begin{solution} $val21 \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val18	<ol>	<li><label for="reply1">$val19</label>  
+!read oef/embed.phtml reply1,5 
+$()</li>	<li><label for="reply2">$val20</label>  
+!read oef/embed.phtml reply2,5 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val21
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val18 $m_begin{enumerate} $m_item $val19 $m_item $val20 $m_end{enumerate} $m_end{statement} $m_begin{solution} $val21 $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=18,19,20,21
+embedcnt=2

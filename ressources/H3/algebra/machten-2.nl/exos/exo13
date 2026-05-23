@@ -1,0 +1,166 @@
+# wortels en variabelen exo13
+# syntax sqrt[2](a)  != sqrt(2) !!!!!!!
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+# er zit een wortel in !!
+var8=1
+checkfile=exos/checkfile7.proc
+math=0
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+
+letters=!shuffle a,b,x,y,z
+v1=!item 1 of $letters
+
+question$n=!record 4 of lang/remarks.$taal
+#@:Vereenvoudig zover mogelijk.<br />Laat de wortel in je antwoord staan
+sometext=!record 2 of lang/remarks.$taal
+helptext=<img src=\'$module_dir/gifs/exo13.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=18
+largefont=24
+
+!if $R=1
+    varlist=$v1,s
+    pm=!randitem 1,-1
+    mp=!randitem +,-
+    a=!randitem 1,2,3,4,5,6
+    a=$[$pm*$a]
+    b=!randitem 1,2,3,4,5,6,7,8,9
+    c=$[$a $mp $b]
+    !if c=0
+	c=$[$c+1]
+    !endif
+    answer$n=$c*sqrt($v1)
+    applettext=!nospace $a*sqrt($v1) $mp $b*sqrt($v1) =
+    formula$n=$a\sqrt{$v1} $mp $b\sqrt{$v1} \,=\,[?] 
+    texanswer$n=$a\sqrt{$v1} $mp $b\sqrt{$v1} = ($a $mp $b)\sqrt{$v1} = $c\sqrt{$v1}
+ !exit
+!endif
+
+!if $R=2
+    varlist=$v1,s
+    pm=!randitem 1,-1
+    mp=!randitem 1,-1
+    mm=!randitem 1,-1
+    a=!randitem 2,3,4,5,6,7
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randitem 1,2,3,4,5,6,7,8,9
+    d=!randitem 1,2,3,4,5,6,7,8,9,10
+    e=!randitem 1,2,3,4,5,6,7,8,9,10
+    a=$[$pm*$a]
+    c=$[$mp*$c]
+    e=$[$mm*$e]
+    !if $[($a) + ($c)]=0
+	c=$[$c+1]
+    !endif
+    !if $[($d)+($e)]=0
+	d=$[$d+1]
+    !endif
+    !if $keuze=0
+        tussen=!rawmath $d + $a*sqrt($v1) + $e + $c*sqrt($v1)
+        tussen2=!rawmath $d + $e + $a*sqrt($v1) + $c*sqrt($v1)
+        #answer$n=$[$d + $e],$[$a + $c],sqrt($b),2
+        applettext=!nospace $tussen =
+        formula$n=!texmath $tussen
+        formula$n=$(formula$n) \,=\,[?]
+        texanswer$n=!texmath $tussen = $tussen2 = $[$d+$e] + $[$a+$c]*sqrt($v1)
+        answer$n=$[$d+$e]+ $[$a+$c]*sqrt($v1)
+    !else
+        tussen=!rawmath $d*$v1 + $a*sqrt($v1) + $e*$v1 + $c*sqrt($v1)
+        tussen2=!rawmath $d*$v1 + $e*$v1 + $a*sqrt($v1) + $c*sqrt($v1)
+        #answer$n=$[$d + $e],$[$a + $c],sqrt($b),2
+        applettext=!nospace $tussen =
+        formula$n=!texmath $tussen
+        formula$n=$(formula$n) \,=\,[?]
+        texanswer$n=!texmath $tussen = $tussen2 = $[$d+$e]*$v1 + $[$a+$c]*sqrt($v1)
+        answer$n=$[$d+$e]*$v1+ $[$a+$c]*sqrt($v1)
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    v2=!item 2 of $letters
+    varlist=$v1,$v2
+    pm=!randitem +,-
+    mp=!randitem +,-
+    mmp=!randitem +,-
+    a=!randitem 2,3,4,5,6
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randitem 2,3,4,5,6,7,8,9
+    d=!randitem 2,3,4,5,6,7,8,9
+    !if $[$a $pm $c]=0
+	c=$[$c+1]
+    !endif
+    !if $[$mp $b $mmp $d]=0
+	d=$[$d+1]
+    !endif
+    tussen=$[$mp $b $mmp $d]
+    !if $tussen > 0
+	tussen=+ $tussen
+    !endif
+    answer$n=$[$a $pm $c]*sqrt($v1) $tussen*sqrt($v2)
+    applettext=!nospace $a*sqrt($v1) $mp $b*sqrt($v2) $pm $c*sqrt($v1) $mmp $d*sqrt($v2) =
+    formula$n=$a \sqrt{$v1} $mp $b\sqrt{$v2} $pm $c \sqrt{$v1} $mmp $d \sqrt{$v2} \,=\, [?]
+    texanswer$n=\left[ \begin{array}{l} $a \sqrt{$v1} $mp $b \sqrt{$v2} $pm $c \sqrt{$v1} $mmp $d \sqrt{$v2} = \\ $a \sqrt{$v1} $pm $c \sqrt{$v1} $mp $b \sqrt{$v2} $mmp $d \sqrt{$v2} = \\ $[$a $pm $c] \sqrt{$v1} $tussen \sqrt{$v2}  \end{array} \right.
+ !exit
+!endif
+
+##### nog geen variabelen...
+##!if $R>3
+##    pm=!randitem +,-
+##    mp=!randitem +,-
+##    a=!randitem 2,3,4,5,6
+##    b=!randitem 2,3,5,6,7,10,11
+##    c=!randitem 2,3,4,5,6,7,8,9
+##    f=!randitem 2,3,4,5,6,7,8,9
+##    e=!randitem 2,3,5,6,7,10,11
+##    d=$[$a*$a*$b]
+##    !if $[$a $mp $c]=0
+##	c=$[$c+1]
+##    !endif
+##    !if $b=$e
+##	e=$[$e+1]
+##    !endif
+##    answer$n=$[$a $mp $c]*sqrt($b) $pm $f*sqrt($e)
+##    !if $keuze=1
+##        applettext=!nospace sqrt($d) $pm $f*sqrt($e) $mp $c*sqrt($b)=
+##	formula$n=\sqrt{$d} $pm $f \sqrt{$e} $mp $c\sqrt{$b} \,=\,[?] 
+##        texanswer$n=\left[ \begin{array}{l}  \sqrt{$d} $pm $f \sqrt{$e} $mp $c\sqrt{$b} = \\  \sqrt{$a^{2} \cdot $b} $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\ $a \sqrt{$b} $mp $c \sqrt{$b} $pm $f \sqrt{$e} = \\ $[$a $mp $c]\sqrt{$b} $pm $f \sqrt{$e} \end{array}
+##    !else
+##        applettext=!nospace sqrt($d) $mp $c*sqrt($b) $pm $f*sqrt($e)=
+##	formula$n=\sqrt{$d}  $mp $c\sqrt{$b} $pm $f \sqrt{$e}\,=\,[?] 
+##        texanswer$n=\left[ \begin{array}{l}  \sqrt{$d}  $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\  \sqrt{$a^{2} \cdot $b} $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\ $a \sqrt{$b} $mp $c \sqrt{$b} $pm $f \sqrt{$e} = \\ $[$a $mp $c]\sqrt{$b} $pm $f \sqrt{$e} \end{array}
+##    !endif
+## !exit
+##!endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

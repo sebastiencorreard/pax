@@ -1,0 +1,375 @@
+!set title=Noms de villes allemandes
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Carré, Delafraye
+email=josiane-an.carre@ac-amiens.fr
+oefcss=<style> .word_jumble{ font-size:large; padding:6px; margin-left:10px; border: 1px solid #555; }</style>
+
+ansorder=r,r,r,r,r
+varcnt=82
+prevarcnt=77
+postvarcnt=4
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!random 1, 4
+
+val2= $(tmp1)
+!else
+val2=$val2
+!endif
+val6=Remettez les lettres dans l'ordre pour retrouver le nom d'une ville allemande !
+val7=$[rint(1+$val2)]
+val8=München	Hamburg	Erfurt	Trier	Köln
+val9=Nürnberg	Bonn	Magdeburg	Dresden	Leipzig
+val10=Aachen	Karlsruhe	Tübingen	Ulm	Frankfurt
+val11=Mainz	Essen	Dortmund	Hannover	Regensburg
+val12=Bremen	Berlin	Münster	Weimar	Stuttgart
+tmp=!trim $val8
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nonempty items $(val8[;1])
+
+val13=$(tmp0)
+tmp0=!itemcnt $val13
+
+
+!ifval $(tmp0)>=2 
+tmp1=!shuffle $val13
+
+val13= $(tmp1)
+!endif
+val13=$(val13[1])
+tmp0=!select $val8 where column 1 issametext $val13
+
+val14=$(tmp0)
+val14=$(val14[2])
+
+!ifval $val14 issametext 
+val14= xxx
+!endif
+val15=$val13
+tmp=!trim $val14
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $val9
+val9=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nonempty items $(val9[;1])
+
+val17=$(tmp0)
+tmp0=!itemcnt $val17
+
+
+!ifval $(tmp0)>=2 
+tmp1=!shuffle $val17
+
+val17= $(tmp1)
+!endif
+val17=$(val17[1])
+!if $val17!= 
+tmp0=!select $val9 where column 1 issametext $val17
+
+val18=$(tmp0)
+val18=$(val18[2])
+
+!ifval $val18 issametext 
+val18= xxx
+!endif
+tmp0=!append item $val17 to $val15
+
+val15=$(tmp0)
+tmp0=!append line $val18 to $val16
+
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!trim $val10
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nonempty items $(val10[;1])
+
+val19=$(tmp0)
+tmp0=!itemcnt $val19
+
+
+!ifval $(tmp0)>=2 
+tmp1=!shuffle $val19
+
+val19= $(tmp1)
+!endif
+val19=$(val19[1])
+!if $val19!= 
+tmp0=!select $val10 where column 1 issametext $val19
+
+val20=$(tmp0)
+val20=$(val20[2])
+
+!ifval $val20 issametext 
+val20= xxx
+!endif
+tmp0=!append item $val19 to $val15
+
+val15=$(tmp0)
+tmp0=!append line $val20 to $val16
+
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!trim $val11
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nonempty items $(val11[;1])
+
+val21=$(tmp0)
+tmp0=!itemcnt $val21
+
+
+!ifval $(tmp0)>=2 
+tmp1=!shuffle $val21
+
+val21= $(tmp1)
+!endif
+val21=$(val21[1])
+!if $val21!= 
+tmp0=!select $val11 where column 1 issametext $val21
+
+val22=$(tmp0)
+val22=$(val22[2])
+
+!ifval $val22 issametext 
+val22= xxx
+!endif
+tmp0=!append item $val21 to $val15
+
+val15=$(tmp0)
+tmp0=!append line $val22 to $val16
+
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!trim $val12
+val12=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!nonempty items $(val12[;1])
+
+val23=$(tmp0)
+tmp0=!itemcnt $val23
+
+
+!ifval $(tmp0)>=2 
+tmp1=!shuffle $val23
+
+val23= $(tmp1)
+!endif
+val23=$(val23[1])
+!if $val23!= 
+tmp0=!select $val12 where column 1 issametext $val23
+
+val24=$(tmp0)
+val24=$(val24[2])
+
+!ifval $val24 issametext 
+val24= xxx
+!endif
+tmp0=!append item $val23 to $val15
+
+val15=$(tmp0)
+tmp0=!append line $val24 to $val16
+
+tmp=!trim $(tmp0)
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!itemcnt $val15
+
+val25=$[rint($(tmp0))]
+tmp0=!shuffle $val25
+
+val26=$(tmp0)
+val7=$[rint(min($val25,$val7))]
+val15=$(val15[$val26])
+tmp=!trim $(val16[$val26;])
+val16=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!text expand $(val15[1]) using 01
+
+val13=$(tmp0)
+tmp0=!words2items $val13
+
+val13=$(tmp0)
+tmp0=!replace internal _ by &nbsp; in $val13
+
+val13=$(tmp0)
+tmp0=!text expand $(val15[2]) using 01
+
+val17=$(tmp0)
+tmp0=!words2items $val17
+
+val17=$(tmp0)
+tmp0=!replace internal _ by &nbsp; in $val17
+
+val17=$(tmp0)
+tmp0=!text expand $(val15[3]) using 01
+
+val19=$(tmp0)
+tmp0=!words2items $val19
+
+val19=$(tmp0)
+tmp0=!replace internal _ by &nbsp; in $val19
+
+val19=$(tmp0)
+tmp0=!text expand $(val15[4]) using 01
+
+val21=$(tmp0)
+tmp0=!words2items $val21
+
+val21=$(tmp0)
+tmp0=!replace internal _ by &nbsp; in $val21
+
+val21=$(tmp0)
+tmp0=!text expand $(val15[5]) using 01
+
+val23=$(tmp0)
+tmp0=!words2items $val23
+
+val23=$(tmp0)
+tmp0=!replace internal _ by &nbsp; in $val23
+
+val23=$(tmp0)
+val27=
+tmp0=!makelist r x for x=1 to $val7
+
+val28=$(tmp0)
+val28=r1
+dynsteps=yes
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyoption1=nonstop 
+replyname1=
+replygood1=$val13
+replytype2=dragfill
+replyoption2=nonstop 
+replyname2=
+replygood2=$val17
+replytype3=dragfill
+replyoption3=nonstop 
+replyname3=
+replygood3=$val19
+replytype4=dragfill
+replyoption4=nonstop 
+replyname4=
+replygood4=$val21
+replytype5=dragfill
+replyoption5=nonstop 
+replyname5=
+replygood5=$val23
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   
+!for m_a=1 to $m_step-1 
+$()	    
+!if $m_a <= $val7 
+$()	      <div class="word_jumble">$(val27[$m_a;])	      
+!if  $(val16[$m_a;]) notsametext xxx  
+$()<em class="indication">($(val16[$m_a;]))</em> 
+!endif
+$()</div>	     
+!endif
+$()	   
+!next
+$()	  
+!if $m_step <= $val7 
+$()	    <p class="wims_question">$val6</p>	    <div class="wimscenter">	       
+!read oef/embed.phtml r \step,50 x 50 
+$()	      
+!if  $(val16[$m_step;]) notsametext xxx  
+$()	      <span class="indication">($(val16[$m_step;]))</span>  
+!endif
+$()	    </div>	   
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val27=$m_reply1	$m_reply2	$m_reply3	$m_reply4	$m_reply5
+tmp0=!replace , by in $val27
+
+val27=$(tmp0)
+tmp=!trim $val27
+val27=!translate internal $	\
+$ to ;; in $tmp
+
+!ifval $m_step <= $val7 
+val28= r $m_step
+!else
+val28=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,16,27
+embedcnt=1

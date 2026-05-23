@@ -1,0 +1,163 @@
+# vereenvoudig: a&radic;(b) + c&radic;(b)
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+math=0
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 4 of lang/remarks.$taal
+#@Schrijf in de standaardvorm <img src=$module_dir/gifs/exo1.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo3.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+# wortel in antwoord
+var1=1
+#font settings in input applet
+smallfont=18
+largefont=24
+# applettext => letterlijke 
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+
+!if $R=1
+    checkfile=exos/checkfile1.proc
+    pm=!randitem +,-
+    mp=!randitem +,-
+    a=!randitem 1,2,3,4,5,6
+    a=$[$pm$a]
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randitem 1,2,3,4,5,6,7,8,9
+    !if $[$a $mp $c]=0
+	c=$[$c+1]
+    !endif
+    answer$n=$[$a $mp $c],sqrt($b),2
+    applettext=$a*sqrt($b)$mp$c*sqrt($b)=
+    formula$n=$a\sqrt{$b} $mp $c\sqrt{$b} \,=\,[?] 
+    texanswer$n=\left[ \begin{array}{l} $a\sqrt{$b} $mp $c\sqrt{$b} = \\ ($a $mp $c)\sqrt{$b} = \\ $[$a $mp $c]\sqrt{$b} \end{array} \right.
+ !exit
+!endif
+
+!if $R=2
+# NIEUWE CHECK-FILE
+# c +/- a*sqrt(b)
+    # 1 wortel
+    var1=1
+    checkfile=exos/checkfile3.proc
+    pm=!randitem 1,-1
+    mp=!randitem 1,-1
+    mm=!randitem 1,-1
+    a=!randitem 2,3,4,5,6,7
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randitem 1,2,3,4,5,6,7,8,9
+    d=!randitem 1,2,3,4,5,6,7,8,9,10
+    e=!randitem 1,2,3,4,5,6,7,8,9,10
+    a=$[$pm*$a]
+    c=$[$mp*$c]
+    e=$[$mm*$e]
+    !if $[($a) + ($c)]=0
+	c=$[$c+1]
+    !endif
+    !if $[($d)+($e)]=0
+	d=$[$d+1]
+    !endif
+    tussen1=!rawmath $d + $a*sqrt($b) + $e + $c*sqrt($b)
+    tussen2=!rawmath $d + $e + $a*sqrt($b) + $c*sqrt($b)
+    #answer$n=$[$d + $e],$[$a + $c],sqrt($b),2
+    applettext=!nospace $tussen1 =
+    tex1=!texmath $tussen1
+    formula$n=$tex1 \,=\,[?]
+    tex2=!texmath $tussen2 
+    tex3=!texmath $[$d+$e] + $[$a+$c]*sqrt($b) 
+    texanswer$n=\left[ \begin{array}{l} $tex1 =  \\ $tex2 = \\ $tex3 \end{array} \right.
+    answer$n=$[$d+$e] + $[$a+$c]*sqrt($b)
+ !exit
+!endif
+
+!if $R=3
+    checkfile=exos/checkfile1.proc
+    pm=!randitem +,-
+    mp=!randitem +,-
+    a=!randitem 2,3,4,5,6
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randitem 2,3,4,5,6,7,8,9
+    d=$[$a*$a*$b]
+    !if $[$a $mp $c]=0
+	c=$[$c+1]
+    !endif
+    answer$n=$[$a $mp $c],sqrt($b),2
+    applettext=sqrt($d)$mp$c*sqrt($b)=
+    formula$n=\sqrt{$d} $mp $c\sqrt{$b} \,=\, [?]
+    texanswer$n=\left[ \begin{array}{l} \sqrt{$d} $mp $c\sqrt{$b} = \\ \sqrt{$a^{2} \cdot $b} $mp $c\sqrt{$b} = \\ $a \sqrt{$b} $mp $c \sqrt{$b} = \\ $[$a $mp $c]\sqrt{$b} \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    # NIEUWE CHECK-FILE
+    #   (a*c)*sqrt(b) +/- f*sqrt(e)
+    var1=2
+    # 2 wortels 
+    checkfile=exos/checkfile3.proc
+    pm=!randitem +,-
+    mp=!randitem +,-
+    a=!randitem 2,3,4,5,6
+    b=!randitem 2,3,5,6,7,10,11
+    c=!randitem 2,3,4,5,6,7,8,9
+    f=!randitem 2,3,4,5,6,7,8,9
+    e=!randitem 2,3,5,6,7,10,11
+    d=$[$a*$a*$b]
+    !if $[$a $mp $c]=0
+	c=$[$c+1]
+    !endif
+    !if $b=$e
+	e=$[$e+1]
+    !endif
+    answer$n=$[$a $mp $c]*sqrt($b) $pm $f*sqrt($e)
+    !if $keuze=1
+        applettext=sqrt($d)$pm$f*sqrt($e)$mp$c*sqrt($b)=
+	formula$n=\sqrt{$d} $pm $f \sqrt{$e} $mp $c\sqrt{$b} \,=\,[?] 
+        texanswer$n=\left[ \begin{array}{l} \sqrt{$d} $pm $f \sqrt{$e} $mp $c\sqrt{$b} = \\\sqrt{$a^{2} \cdot $b} $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\ $a \sqrt{$b} $mp $c \sqrt{$b} $pm $f \sqrt{$e} = \\ $[$a $mp $c]\sqrt{$b} $pm $f \sqrt{$e} \end{array} \right.
+    !else
+        applettext=sqrt($d)$mp$c*sqrt($b)$pm$f*sqrt($e)=
+	formula$n=\sqrt{$d}  $mp $c\sqrt{$b} $pm $f \sqrt{$e}\,=\,[?] 
+        texanswer$n=\left[ \begin{array}{l} \sqrt{$d}  $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\ \sqrt{$a^{2} \cdot $b} $mp $c\sqrt{$b} $pm $f \sqrt{$e} = \\ $a \sqrt{$b} $mp $c \sqrt{$b} $pm $f \sqrt{$e} = \\ $[$a $mp $c]\sqrt{$b} $pm $f \sqrt{$e} \end{array} \right.
+    !endif
+ !exit
+!endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,17 @@
+!if $wims_read_parm=0 or . notin $wims_read_parm
+ !exit
+!endif
+!distribute item $listinc into tmp1_,tmp2_
+input_=$wims_read_parm
+!for k_ in $listinc,(,),*,+,-,/
+ input_=!replace internal $k_ by , in $input_
+!next k_
+input_=!nonempty item $input_
+!for n_ in $input_
+ tmp_=!replace internal . by , in $n_
+ tmp_=!charcnt $(tmp_[2])
+ !if $tmp_>$maxdecimale
+  erreur=yes
+  !break
+ !endif
+!next n_

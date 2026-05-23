@@ -1,0 +1,87 @@
+!if $title!=$empty
+ !set module_title=$title
+ !set module_author=$author
+ !set module_address=$email
+!endif
+
+!header
+
+<u><b>Som $noexo.</b></u>
+Bereken (met het algoritme van Euclides) de GGD van $AA0 en $BB0.<p>
+<p><hr><p>
+
+!if $nbetape>0
+<u><b>Berekeningen:</b></u>
+!read affetape.phtml
+<p><hr><p>
+!endif
+
+!if $status=1
+   !read form.phtml
+!endif
+
+!if $status=2
+!if $erreur!=$empty
+   <font color=red>
+   $erreur
+   </font>
+!endif
+   !let erreur=$empty
+   !let tmp=!item $action of $listaction
+   !read $tmp question
+   <p>
+   !href cmd=resume&status=1 retour
+!endif
+
+!if $status=3
+   !read conclure.phtml reponse
+!endif
+
+!if $status=5
+   <u><b>Het antwoord: </b></u>
+   De grootste gemene deler van $AA0 en $BB0 is $repexo1
+!endif
+<p><hr><p>
+<u><b>Informatie: </b></u>
+<table>
+  <tr>
+    <td>Aantal stappen:</td>
+    <td>$nbetape</td>
+  </tr>
+!if $nocalcul!=1
+  <tr>
+    <td>Aantal rekenfouten:</td>
+    <td>$nbreerrcalc</td>
+  </tr>
+!endif
+  <tr>
+    <td>Aantal redeneerfouten:</td>
+    <td>$nbreerrrais</td>
+  </tr>
+!!  <tr>
+!!    <td>Aantal keer de hulp gebruikt:</td>
+!!    <td>$nbreaide</td>
+!!  </tr>
+</table>
+
+!if $status=5
+   !if $noexo<$nbreexo
+      Dit is som $noexo van de $nbreexo in deze set. 
+      !increase noexo
+      !href cmd=resume&status=0 Ga door
+      .
+      !href $renewlink Nieuwe set sommen.<p>
+   (Om een cijfer te krijgen moet je de hele set sommen afmaken.)
+   !else
+      Je hebt een cijfer van $module_score op 10.<p>
+      !href $renewlink Nieuwe set sommen.
+      
+   !endif
+!else
+   Dit is som $noexo van de $nbreexo in deze set. 
+   !href $renewlink Nieuwe set sommen.<p> 
+   (Om een cijfer te krijgen moet je de hele set sommen afmaken.)
+!endif
+:lab1
+:end
+!tail

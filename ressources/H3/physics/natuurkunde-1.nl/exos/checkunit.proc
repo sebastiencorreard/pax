@@ -1,0 +1,398 @@
+# locale versie van units.proc !
+# let op var3,var4 ipv var1,var2
+# correct antwoordformat: number1 unit1,number2 unit2... number_n unit_n
+# var3=1,1,1...1 : we must have a unit in all answers 
+# var3=0,1,1,0 : number1,number2 unit2,number3 unit3,number4
+# var4=min1:max1,min2:max2,min3:max3,min4:max4  var2 is the range for the correct answer.
+# var4 may be assymetrical , or empty eg correct answer=2 min=1.9,max=3.5
+# 19/3/2009
+
+n=$counter
+score2=0
+AAA=!lower $AAA
+!for p in sin,cos,tan,sqrt,log,ln,pi
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+# not complete !!
+# convert common? mistakes into correct abreviations 
+# attention: sequence matters !!!
+nonsi=(s*s),(m*m),seconden,secondes,seconde,sec,minuten,minutes,minuut,minute,mins,meters,meter,metre,metres,joulen,joules,watts,grammen,grams,grm,hz
+si=s^2,m^2,s,s,s,s,min,min,min,min,min,m,m,m,m,j,j,w,gr,gr,gr,s^-1
+abbrev=!itemcnt $si
+
+# exclude important mathfunctions
+!for p in ln,log,sin,cos,tan,sqrt,pi
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+
+# translate common SI "prefixes" into number notation...
+# this is also present in "precheck.js" [called prefix()]
+PREFIX=10^-1,10^1,10^6,10^12,10^15,10^18,10^15,10^12,10^9,10^6,10^3,10^2,10^1,10^-1,10^-2,10^-3,10^-6,10^-9,10^-12,10^-15,10^-18
+prefix=déci,déca,méga,téra,péta,exa,peta,tera,giga,mega,kilo,hecto,deca,deci,centi,milli,micro,nano,pico,femto,atto 
+
+!if $var4 != $empty
+    range=1
+!else
+    # use conventional rounding "system"
+    range=0
+!endif
+
+!if $rounding<1
+    # precise answer. precision 0.01 ? need to specify?
+    # if( abs( My_answer - Your_answer) < $prec1, 1,0)
+    # if( abs( My_answer - Your_answer) < $prec2, 1,0)
+    prec1=10^(-15)
+    prec2=10^-6
+    prec3=10^-4
+    decimals=10
+!else
+    prec1=$[1/$rounding]
+    prec2=$[10/$rounding]
+    !if $rounding>1000
+	prec3=$[100/$rounding]
+    !else
+	prec3=$prec2
+    !endif
+    decimals=$[log($rounding)/log(10)]	
+!endif
+
+score2=0
+!for p=1 to $inputs
+    score21=1
+    r_ex1=$empty
+    r_ex2=$empty
+    r_ex3=$empty
+    r_ex4=$empty
+    r_ex5=$empty
+    k=$empty    
+    found=0
+    correct_unit=1
+    unit=!item $p of $var3
+    !if $unit != 1
+	unit=0
+    !endif
+    org=!item $p of $AAA
+    ans=!item $p of $GGG
+    
+    !if ? isin $org
+	rep2=!append line <li><span style="color:red">$dontknow</span></li> to $rep2
+    !else	
+	!if $unit=1
+	    ans=!words2items $ans
+	    number_a=!item 1 of $ans 
+	    unit_a=!item 2 of $ans
+	    rep=$org
+	    !for q=1 to 21
+		# 26.0 centimeter/milliseconde -> (1/10^-3)* 26.0 *10^-2 m/s
+		o=!item $q of $prefix
+		r=!nospace / $o
+		!if $o isin $rep
+		    u1=1
+		!else
+		    u1=0
+		!endif
+		!if $r isin $rep
+		    u2=1
+		!else
+		    u2=0
+		!endif
+		!if $[$u1+$u2]>0
+		    O=!item $q of $PREFIX
+		    !if $[$u1+$u2]=2
+			# 1234 millimeter/milliseconde -> 1234 meter/seconde
+			rep=!replace internal $o by $empty in $rep
+		    !else
+			!if $u1=1
+			    # 1234 millimeter/seconde -> 1234 *10^-3meter/seconde
+			    rep=!replace internal $o by *$O in $rep
+			    rep=!nospace $AAA
+			!else
+			    # 1234 meter/milliseconde -> (1/10^-3)*1234 meter/seconde
+			    rep=!replace internal $o by $empty in $rep
+			    rep=(1/$O)*$rep
+			!endif
+		    !endif
+		!endif
+	    !next q
+	    
+	    !for q=1 to $abbrev
+		# convert common? mistakes into correct abreviations 
+		o=!item $q of $nonsi
+		O=!item $q of $si
+		rep=!replace internal $o by $O in $rep
+	    !next q
+	    # 1234 m/sec^2  or 1234 m / sec^2
+	    rep=!words2items $rep
+	    # 1234,m/sec^2  or 1234,m,/,sec^2
+	    t=!itemcnt $rep
+	    number_r=$empty
+	    unit_r=$empty
+	    !if $t=1
+		# 1234m/sec^2 
+	        # always assume: number unit
+	        rep3=!replace [a-z] by @ in $rep
+		# 1234@/@@@^2
+	        t1=!positionof char @ in $rep3
+		t1=!item 1 of $t1
+	        number_r=!char 1 to $[$t1-1] of $rep
+		unit_r=!char $t1 to -1 of $rep
+	    !else
+		# blah blah number unit -> blah,blah,number,unit
+		got=1
+		fnd=0
+		!for h=1 to $t
+		    thing=!item $h of $rep
+		    !for num in 0,1,2,3,4,5,6,7,8,9
+			!if $fnd=0
+			    !if $num isin $thing
+				got=$h
+				fnd=1
+			    !endif
+			!endif
+		    !next num
+		!next h
+		rep=!item $got to -1 of $rep
+		
+		# blah,blah,1.2345,unit -> 1.2345,unit
+		t=!itemcnt $rep
+		# 1234 mmol/gr or 1234mmol /gr  or 1234 mmol/ gr 
+	        !if $t=2
+	    	    number_r=!item 1 of $rep
+		    unit_r=!item 2 of $rep
+		    # 1234mmol /gr 
+		    rep3=!replace [a-z] by @ in $number_r
+		    !if @ isin $rep3
+			t1=!positionof char @ in $rep3
+			t1=!item 1 of $t1
+			rest_unit=!char $t1 to -1 of $number_r
+			unit_r=!nospace $rest_unit $unit_r
+			number_r=!char 1 to $[$t1-1] of $number_r
+		    !endif
+		!else
+		    # hmmm 1234 mmol / gr  of 1234 m mol / gr 
+		    number_r=!item 1 of $rep
+		    unit_r=!item 2 to $t of $rep
+		    unit_r=!replace internal , by $empty in $unit_r
+		!endif
+	    !endif
+	    
+	    number_r=!nospace $number_r
+	    number_r=!replace internal , by $empty in $number_r
+	    # SQRT(12) -> sqrt(12)
+	    number_r=!lower $number_r
+	    unit_r=!nospace $unit_r
+	    !if $unit_r=$number_r
+	        # we need a unit in the answer
+		errortext=!record 91 of $remarkdir/commonremarks.$taal
+		goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit
+	    !endif
+	    number_r=!rawmath $number_r
+	    !if $rounding>0
+		!if . isin $number_r
+		    # check the number of decimals
+		    dec=!replace internal . by , in $number_r
+		    dec=!item 2 of $dec
+		    dec=!charcnt $dec
+		    !if $dec>$decimals
+			score21=$[$score21*0.95]
+			r_ex4=!record 94 of $remarkdir/commonremarks.$taal
+		    !endif
+		!endif
+		number_r=$[(round($rounding*($number_r)))/$rounding]
+		number_a=$[(round($rounding*($number_a)))/$rounding]
+	    !else
+		number_r=$[1.0*($number_r)]
+		number_a=$[1.0*($number_a)]
+    	    !endif
+	    !if NaN isin $number_r
+		errortext=!record 89 of $remarkdir/commonremarks.$taal
+	        goback=1
+		maxscore=$[$P3*$maxscore]
+		!exit
+	    !else
+		# problems with rpm [or Hz]  --> s^-1
+		!if $unit_r=rpm
+		    unit_r=s^-1
+		    number_r=$[$number_r/60]
+		!endif
+    		A=!exec units-filter $number_r $unit_r
+		!if ERROR isin $A
+		    errortext=!record 89 of $remarkdir/commonremarks.$taal
+		    #@Ik kan je antwoord <b>$rep</b> niet kontroleren<br />Geef je antwoord in een geldige <b>SI</b> eenheid...<br />Je "eenheid" <b>$unit ...</b> geeft natuurlijk problemen met nakijken.
+    	    	    maxscore=$[$P6*$maxscore]
+    		    goback=1
+		    !exit
+		!endif
+	    !endif
+	    G=!exec units-filter $[$number_a] $unit_a
+	    !if ERROR isin $G
+		errortext=Error in this exercise<br />The correct answer has a non SI unit $unit_a
+		goback=1
+		!exit
+	    !endif
+	    A1=!word 1 of $A
+    	    G1=!word 1 of $G
+	    !if e isin $A1
+		A1=!replace internal e+ by *10^ in $A1
+		A1=!replace internal e- by *10^- in $A1
+		G1=!replace internal e+ by *10^ in $G1
+		G1=!replace internal e- by *10^- in $G12
+	    !endif
+	!else
+########### no units required [unit=0] 
+########### $ans is !item $p of $GGG
+########### $org is !item $p of $AAA
+	    A1=$[1.0*($org)]
+	    !if NaN isin $A1
+		testvar=$org
+		errortext=!record 26 of $remarkdir/commonremarks.$taal
+		maxscore=$[$P4*$maxscore]
+		goback=1
+		!exit
+	    !endif
+	    !if $rounding>0
+		!if . isin $A1
+		    # check the number of decimals
+		    dec=!replace internal . by , in $A1
+		    dec=!item 2 of $dec
+		    dec=!charcnt $dec
+		    !if $dec>$decimals
+			score21=$[$score21*$P1]
+			r_ex4=!record 94 of $remarkdir/commonremarks.$taal
+		    !endif
+		!endif
+		A1=$[(round($rounding*($A1)))/$rouding]
+		G1=$[(round($rounding*($ans)))/$rouding]
+	    !else
+		G1=$[1.0*($ans)]
+    	    !endif
+	    unit_r=$empty
+	    number_r=$org
+	!endif
+	# end !if $unit=1
+	# now test the answer...
+	!if $range=1
+	    # var2 is range... min1:max1,min2:max2
+	    !ifval $A1 = $G1
+		k=green
+	    !else
+		ra=!item $p of $var2
+		ra=!replace internal : by , in $ra
+		ra1=!item 1 of $ra
+		ra2=!item 2 of $ra
+		!ifval $ra1 <= $A1 and $A1 <= $ra2
+		    r_ex1=!record 29 of $remarkdir/commonremarks.$taal
+		    #@je hebt een afrondingsfoutje gemaakt...
+		    k=#7cff00
+		    score21=$[$score21*$P3]
+		!else
+		    !ifval $[$ra1-$prec1] <= $A1 and $A1 <= $[$ra2+$prec1]
+			r_ex1=!record 29 of $remarkdir/commonremarks.$taal
+		        #@je hebt een afrondingsfoutje gemaakt...
+			k=#ffc900
+			score21=$[$score21*$P5]
+		    !else
+			!ifval $[$ra1-$prec2] <= $A1 and $A1 <= $[$ra2+$prec2]
+			    r_ex1=!record 29 of $remarkdir/commonremarks.$taal
+			    #@je hebt een afrondingsfoutje gemaakt...
+			    k=#ff7c00
+			    score21=$[$score21*$P7]
+			!else
+			    !ifval $[$ra1-$prec3] <= $A1 and $A1 <= $[$ra2+$prec3]
+				r_ex1=!record 30 of $remarkdir/commonremarks.$taal
+				#@je hebt een afrondingsfoutje gemaakt...
+				k=#ff3e00
+				score21=$[$score21*$P9]
+			    !else
+				k=red
+				score21=0
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!else
+	    # no range given.
+	    tot=!exec pari if(abs($A1 - $G1) < $prec1,1,0)\
+	    if(abs($A1 - $G1) < $prec2,1,0)\
+	    if(abs($A1 - $G1) < $prec3,1,0)
+	
+	    r1=!line 1 of $tot
+	    r2=!line 2 of $tot
+	    r3=!line 3 of $tot
+	    !if $r1=1 
+		k=green
+	    !else
+		!if $r2=1
+		    r_ex1=!record 29 of $remarkdir/commonremarks.$taal
+		    #@je hebt een afrondingsfoutje gemaakt...
+		    score21=$[$score21*$P5]
+		    k=orange
+		!else
+		    !if $r3=1
+			score21=$[$score21*$P8]		    
+		        r_ex1=!record 30 of $remarkdir/commonremarks.$taal
+			#@je hebt een grote afrondingsfout gemaakt !
+		        k=orange
+		    !else
+			k=red
+			score21=0
+		    !endif
+		!endif
+	    !endif
+	!endif
+	!if $unit=1
+	    t1=!wordcnt $G
+	    !for p=2 to $t1
+		a=!word $p of $A
+		g=!word $p of $G
+		!if $a != $g
+		    correct_unit=0
+		!endif
+	    !next p
+	    !if $correct_unit=0
+		r_ex2=!record 92 of $remarkdir/commonremarks.$taal
+		#@<br />je hebt een verkeerde eenheid gebruikt !<br /><em>$unit_r</em> ipv <span style="color:green"><em>$unit_a</em></span>
+		# geen punten!
+		k=red
+		score21=0
+	    !else
+		!if $unit_a != $unit_r
+		    !if $k=green
+			r_ex5=<span style="color:blue"><br />Je hebt de eenheid $unit_r gebruikt i.p.v. de voorgeschreven eenheid $unit_a...ook goed !</span>
+		    !endif
+		!endif
+	    !endif
+	!endif
+	
+	!if $teaching=1 and $k=red
+	    #found=0
+	    !if $A1=$[-1*($G1)] and $correct_unit=1
+		r_ex3=!record 27 of $remarkdir/commonremarks.$taal
+		score21=$P8
+		k=orange
+	    !else
+		!for factor in 1/10000,1/1000,1/100,1/10,10,100,1000,10000,60,3600,1/60,1/3600
+		    !if $found=0
+			!ifval $[1.0*($A1)]=$[($factor)*($G1)]
+			    f=$factor
+			    r_ex3=!record 90 of $remarkdir/commonremarks.$taal
+			    #@<br />je zit er een factor <b>$f</b> naast !!
+			    found=1
+			!endif
+		    !endif
+		!next factor
+	    !endif
+	!endif
+	#rep=!htmlmath $number_r $unit_r
+	score2=$[$score2+$score21]
+	rep2=!append line <li><span style="color:$k">$org <em>$r_ex1 $r_ex2 $r_ex3 $r_ex4</em></span>$r_ex5 </li> to $rep2
+    !endif
+!next p
+score2=$[$score2/$inputs]
+rep2=<ul>$rep2</ul>
+

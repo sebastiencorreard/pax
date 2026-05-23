@@ -1,0 +1,124 @@
+!set title=Dozen
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 5, 25
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 15, 100
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 15, 100
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8);
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val7=$[rint($val7/$val9)]
+val8=$[rint($val8/$val9)]
+!if $val7=$val8 
+val7=$[rint(37)]
+val8=$[rint(17)]
+!endif
+val10=$[rint($val6*$val7)]
+val11=$[rint($val6*$val8)]
+val12=potloden, ballonnen, glazen, pennen, stiften
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+val13=blauwe,groene,zwarte,witte,gele
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp0=!item 1 of $val13
+
+val14=$(tmp0)
+tmp0=!item 2 of $val13
+
+val13=$(tmp0)
+val15=$[rint($val10/$val6)]
+val16=$[rint($val11/$val6)]
+val17=$[rint($val15+$val16)]
+replytype1=default
+replyname1=Aantal $val12 per doos
+replygood1=$val6
+replytype2=default
+replyname2=Aantal dozen
+replygood2=$val17
+question=__EXECUTED_1692754_EXERCISE__
+hint=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()We zoeken $val10 $val13 $val12 en $val11 $val14 $val12 bij elkaar in dozen 	zodat alle $val12 in een doos van dezelfde kleur zijn en alle dozen	evenveel $val12 bevatten. Verder moeten de dozen zoveel mogelijk $val12 bevatten. 	<blockquote>	<p>Vraag 1 : Hoeveel $val12 moeten er in een doos?</p>	<p>Vraag 2 : Hoeveel dozen zijn er nodig?</p>	</blockquote>
+$()
+!exit
+
+:hint
+$()Het aantal $val12 per doos moet een deler zijn van het aantal $val13 $val12 	en van het aantal $val14 $val12
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Het aantal $val12 per doos moet een deler zijn van het aantal 	$val13 $val12 en van het aantal $val14 $val12. Bereken dus de ggd van $val10 en $val11. 	Dit geeft $val6.<p>	Het aantal $val12 per doos is dus $val6. Het aantal dozen 	met $val13 $val12 is 
+!insmath \frac{$val10}{$val6}
+$() oftewel $val15 dozen. Net zo is het aantal 	dozen met $val14 $val12 gelijk aan 
+!insmath \frac{$val11}{$val6}
+$() oftewel $val16 dozen.<p>	Het totaal aantal dozen is dus $val17 .
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,10,11,12,13,14,15,16,17
+embedcnt=0

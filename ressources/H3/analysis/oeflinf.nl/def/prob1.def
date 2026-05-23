@@ -1,0 +1,115 @@
+!set title=Verhoudingen 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=10000000
+
+ansorder=r,r,r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 50, 100
+
+val6=$[rint($(tmp0))]
+val6=$[$val6/10]
+tmp=!nonempty items ham, appels, peren, perzikken, pasta, wortels
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 50
+
+val8=$[rint($(tmp0))]
+val8=$[$val8/10]
+tmp0=!randint 1, 5000
+
+val9=$[rint($(tmp0))]
+val9=$[$val9/100]
+val10=x*$val6
+val11=$[$val6*$val8]
+val12=$[rint($val6*$val8*100)]
+val12=$[$val12/100]
+val13=$[$val9/$val6]
+val14=$[rint($val9/$val6*1000)]
+val14=$[$val14/1000]
+oefsteps=reply 1	reply 2	reply 3 
+nextstep=!nosubst reply 1	reply 2	reply 3 
+!readproc oef/steps.proc
+replytype1=algexp
+replyname1=P(x)
+replygood1=$val10
+replyname2=prijs
+replygood2=$val12
+replytype3=units
+replyname3=gewicht
+replygood3=$val14 kg
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Een kilo $val7 kost $val6 euro.<p>	<u>Vraag 1:</u> Geef de prijs P die in euros betaald moet worden als functie 	van het gewicht x.<p>	 
+!if $m_step>=2 
+$()Antwoord: <font color=green>P(x)=$val10</font><p>	<u>Vraag 2:</u> Hoeveel kost $val8 kg $val7? Geef het resultaat op de 	cent nauwkeurig.<p> 
+!endif
+$()	 
+!if $m_step>=3 
+$()Antwoord: <font color=green>$val12 euro</font><p>	<u>Vraag 3:</u>Hoeveel $val7 kan gekocht worden met $val9 euro? Geef het 	resultaat op de gram nauwkeurig. 
+!endif
+$() 
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,12
+embedcnt=0

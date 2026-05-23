@@ -1,0 +1,300 @@
+!set title=Développer 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+computeanswer=no
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+precision=10000
+
+ansorder=r
+varcnt=61
+prevarcnt=60
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Réponse
+val7=Développer et réduire l'expression
+val8=On vous propose de résoudre l'exercice en vous guidant.	  Complétez les différentes étapes de calcul qui vous sont proposées.	
+val9=Utiliser les étiquettes pour compléter le calcul.
+val10=en respectant les couleurs proposées,	  utiliser l'identité,	  pour développer l'expression.
+val11=simplifier chacun des termes de la somme
+val12=réécrire l'expression en la simplifiant si possible.
+val13=Étape
+val2=$[rint($val2)]
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+val3=$[rint($val3)]
+
+!ifval $val3= or NaN isin $val3
+val3=$[rint(2)]
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 15
+
+val15=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val14=1
+val16=
+!else
+val16=$val14
+!endif
+
+!ifval $val14=-1
+val16=-
+!else
+val16=$val14
+!endif
+
+!ifval $val15=1
+val17=
+!else
+val17=$val15
+!endif
+
+!ifval $val15=-1
+val17=-
+!else
+val17=$val15
+!endif
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 15
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 2, 10
+
+val20=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 1, 3
+
+val21=$[rint($(tmp0))]
+!if $val21=1= 
+
+!ifval $val18<0
+val22=($val17 x $val18)
+!else
+val22=($val17 x +$val18)
+!endif
+
+!ifval $val19<0
+val23=($val16 x $val19)
+!else
+val23=($val16 x +$val19)
+!endif
+val24=$val20 $val22 $val23
+t_=!replace internal \( by ( in expand($val20*($val14*x+($val19))*($val15*x+($val18)));
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+!else
+!if $val21=2 
+tmp0=!randitem 1,-1
+
+tmp1=!randint 2, 10
+
+val26=$[rint($(tmp0)*$(tmp1))]
+
+!ifval $val20>0
+val27=+$val20 x
+!else
+val27= $val20 x
+!endif
+
+!ifval $val26>0
+val27=$val27 +$val26
+!else
+val27=$val27 $val26
+!endif
+tmp0=!randint 1, 3
+
+val28=$[rint($(tmp0))]
+!if $val28=1 
+
+!ifval $val18<0
+val22=($val16 x $val18)
+!else
+val22=($val16 x +$val18)
+!endif
+val19=$[rint(-$val18)]
+
+!ifval $val19<0
+val23=($val16 x $val19)
+!else
+val23=($val16 x +$val19)
+!endif
+val24=$val22 $val23
+val29=($val14*x+($val19))*($val14*x+($val18))
+!endif
+!if $val28=2 
+
+!ifval $val18<0
+val24=($val16 x $val18)^2
+!else
+val24=($val16 x +$val18)^2
+!endif
+val29=($val14 *x+($val18))^2
+!endif
+!if $val28=3 
+
+!ifval $val18<0
+val24=(x $val18)^2
+!else
+val24=(x +$val18)^2
+!endif
+val29=(x+($val18))^2
+!endif
+val24=$val24 $val27
+t_=!replace internal \( by ( in expand($val29+($val20)*x+($val26));
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+!else
+
+!ifval $val18<0
+val22=($val16 x $val18)
+!else
+val22=($val16 x +$val18)
+!endif
+val30=$[rint(-$val18)]
+
+!ifval $val30<0
+val23=($val16 x $val30)
+!else
+val23=($val16 x +$val30)
+!endif
+val31=$val22 $val23
+val32=($val14*x+($val30))*($val14*x-($val30))
+
+!ifval $val19<0
+val33=($val17 x $val19)^2
+!else
+val33=($val17 x +$val19)^2
+!endif
+val34=($val15 *x+($val19))^2
+
+!ifval $val20<0
+val35=(x $val20)^2
+!else
+val35=(x +$val20)^2
+!endif
+val36=(x+($val20))^2
+val37=$val31,$val33,$val35
+val38=$val32,$val34,$val36
+val28=1,2,3
+tmp0=!shuffle $val28
+
+val28=$(tmp0)
+tmp0=!item 1 of $val28
+
+tmp1=!item $(tmp0) of $val37
+
+val39=$(tmp1)
+tmp0=!item 2 of $val28
+
+tmp1=!item $(tmp0) of $val37
+
+val40=$(tmp1)
+tmp0=!item 1 of $val28
+
+tmp1=!item $(tmp0) of $val38
+
+val41=$(tmp1)
+tmp0=!item 2 of $val28
+
+tmp1=!item $(tmp0) of $val38
+
+val42=$(tmp1)
+val24=$val39 + $val40
+t_=!replace internal \( by ( in expand($val41+$val42);
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+!endif
+!endif
+replytype1=litexp
+replyoption1=polexpand 
+replyname1=$val6
+replygood1=$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  $val7 
+!insmath $val24
+$().	  <div class="wimscenter"><label for="reply1">
+!insmath $val24 =
+$()</label>	     
+!read oef/embed.phtml r1,20 
+$().</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,24
+embedcnt=1

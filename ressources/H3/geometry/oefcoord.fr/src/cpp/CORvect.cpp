@@ -1,0 +1,75 @@
+target=CORvect3 CORvect4 CORvect5
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+\keywords{vectors, coordinates}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+\text{size=25x60x60}
+\text{name_enonce=Mettre en relation chaque vecteur avec ses coordonnées.}
+#define TITRE Correspondance vecteurs-coordonnées
+#if defined TARGET_CORvect3
+\title{TITRE  3}
+\integer{number=3}
+#endif
+#if defined TARGET_CORvect4
+\title{TITRE  4}
+\integer{number=4}
+#endif
+#if defined TARGET_CORvect5
+\title{TITRE  5}
+\integer{number=5}
+#endif
+
+\text{a=1,2,3}
+\text{a=shuffle(\a)}
+\integer{b=item(1,\a)}
+\integer{a=item(2,\a)}
+
+\text{choix=\a;#;\b,\a;#;-\b,-\a;#;\b,-\a;#;-\b,\b;#;\a,-\b;#;\a,\b;#;-\a,-\b;#;-\a}
+\text{choix=shuffle(\choix)}
+\text{co=red;#;rouge,green;#;vert,yellow;#;jaune,purple;#;violet,blue;#;bleu,black;#;noir}
+\text{co=shuffle(\co)}
+\text{co=wims(item 1 to \number of \co)}
+\matrix{tmp=wims(items2lines \co)}
+\matrix{tmp=wims(replace internal ;#; by , in \tmp)}
+\text{co=column(1,\tmp)}
+\text{nom=column(2,\tmp)}
+
+\text{dessin=wims(record 2 of src/graph.don)}
+\text{coord=}
+\for{i=1 to \number}{
+\text{don=item(\i,\choix)}
+\text{tmp=\don}
+\text{don=wims(replace internal ;#; by , in \don)}
+\integer{XA=random(-2..2)}
+\integer{Vx=item(1,\don)}
+\integer{XB=\XA+(\Vx)}
+\integer{YA=random(-2..2)}
+\integer{Vy=item(2,\don)}
+\integer{YB=\YA+(\Vy)}
+\integer{xpt1=150+(\XA*30)}
+\integer{ypt1=150-(\YA*30)}
+\integer{xpt2=150+(\XB*30)}
+\integer{ypt2=150-(\YB*30)}
+\text{dessin=\dessin
+arrow \xpt1,\ypt1,\xpt2,\ypt2,10,\co[\i]}
+\text{tmp=(\Vx,\Vy)}
+\text{coord=wims(append item \tmp to \coord)}
+}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col">\draw{300,300}{\dessin}</div>
+ <div class="medium_size text_col">
+  \name_enonce
+<div class="wimscenter">
+\embed{r1,\size}
+</div>
+ </div>
+</div>
+}
+
+\answer{Réponses}{\nom;\coord}{type=correspond}

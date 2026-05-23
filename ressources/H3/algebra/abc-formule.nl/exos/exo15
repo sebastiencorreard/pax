@@ -1,0 +1,117 @@
+#:parameters I (H4)
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+cols=20
+rows=1
+inputs=1.1
+embed=1
+
+a=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+b=!randint 1,10
+!if $a=1
+    a_t=$empty
+!else
+    !if $a=-1
+	a_t=-
+    !else
+	a_t=$a
+    !endif
+!endif	
+!if $b=1
+    b_t=$empty
+!else
+    b_t=$b
+!endif
+
+!if $R = 1
+    checkfile=$checkdir/new_number.proc
+    tot=!exec pari A=$b^2/(4*($a))\
+    printtex(A)
+    
+
+    answer$n=!line 1 of $tot
+    tex_ans=!line 2 of $tot
+    
+    formula$n= \begin{array}{l}f(x)_{p} = $a_t  x^{2} + $b_t  x + \textrm{p} \end{array}
+
+    ss=!record 43 of lang/remarks.$taal
+    #@Bereken voor welke waarde van <em>p</em> de top van de grafiek van <em>f</em><sub>p</sub> op de <em>x</em>-as ligt.
+
+    texanswer$n= \left[ \begin{array}{l} y = 0 \\ f(x)_{p} = $a_t  x^{2} + $b_t  x + \textrm{p} = 0 \\ \\ \bf{D} = \textrm{b}^{2} \textrm{- 4 a c } = 0 \\ \\  a = $a \\ b = $b \\ c = p \\ $b^{2} - 4 \cdot $a \cdot p = 0 \\  p = \frac{$[$b^2]}{$[4*$a]} \\ p = $tex_ans \end{array}\right.
+
+    arglist=p
+    example=<textarea cols=\'20\' rows=\'1\' class=\'schaersvoorde_textarea\' readonly=\'readonly\'>p = 1.23456</textarea>
+    applettext=!nospace {vlist(f(x)=$a*x^2+$b*x + p ,y=0,p=?)}->
+!else
+
+    c=!randint 1,5
+    pm=!randitem 1,-1
+    c=$[$pm*$c]
+    !if $c=1
+	c_t=$empty
+    !else
+	!if $c=-1
+	    c_t=-
+	!else
+	    c_t=$c
+	!endif
+    !endif
+
+    d=!randint 1,12
+    
+    ss=!record 44 of lang/remarks.$taal
+    #@Daarnaast is gegeven de functie <em>g(x)</em>.<br />Bepaal de waarden van p waarvoor de beide functies <b>geen</b> punten gemeenschappelijk hebben.
+    
+    formula$n= \left[ \begin{array}{l}f(x)_{p} = $a_t  x^{2} + $b_t  x + \textrm{p} \\ \\ g(x) = $c_t x + $d \end{array} \right.
+
+    tot=!exec pari D=($b - ($c))^2/( 4*($a)) + $d\
+    printtex(D)
+    
+    ans=!line 1 of $tot
+    tex_ans=!line 2 of $tot
+    !if $a>0
+	answer$n=p>$ans
+	tex=p>$tex_ans
+    !else
+	answer$n=p<$ans
+	tex=p<$tex_ans
+    !endif
+    bc=$[$b-$c]
+    bc_tex=!rawmath x^2 + $bc
+    BC=$[$bc*$bc]
+    DD1=!rawmath $BC - $[4*$a] 
+    DD2=!rawmath p + $[4*$a*$d]
+    texanswer$n=\left[ \begin{array}{l} f_{p}(x)  = $a_t  x^{2} + $b_t  x + p \\ g(x) = $c_t x + $d \\ f_{p}(x) = g(x) \\ \\ $a_t  x^{2} + $b_t  x + p = $c_t x + $d \\ $a_t  x^{2} + $b_t  x - $c_t x + p - $d = 0 \\ $a_t $bc_tex \cdot x + p - $d = 0 \\ \bf{D} = \textrm{b}^{2} - 4\textrm{ac} < 0 \\ a = $a \\ b=$bc \\ c = p - $d \\ \bf{D} = 0 \\ \bf{D} = $BC - 4 \cdot $a \cdot (p - $d) = 0 \\ \bf{D} = $DD1 $DD2  = 0 \\ p = $tex_ans \\ \bf{D} < 0 \rightarrow $tex\end{array} \right.
+
+    varlist=p
+    example=<textarea cols=\'20\' rows=\'1\' class=\'schaersvoorde_textarea\' readonly=\'readonly\'>p > 6</textarea>	
+    checkfile=$checkdir/ineq.proc
+    applettext=!nospace {vlist(f(x)=$a*x^2+$b*x + p ,g(x)=$c*x+$d,p=?)}->
+
+!endif
+
+mathviewpanel=$module_title:p=:>:<:>=:<=
+
+!if $teaching=1
+    insplot_set=size 0.4,0.4;zeroaxis
+    !if $R=1
+	!insplot $a*x**2+$b*x +10  notitle ,$a*x**2+$b*x + 40  notitle ,$a*x**2+$b*x + 70  notitle ,$a*x**2+$b*x + 100  notitle 
+    !else
+	!insplot $a*x**2+$b*x +10  notitle ,$a*x**2+$b*x + 40  notitle ,$a*x**2+$b*x + 70  notitle ,$a*x**2+$b*x + 100  notitle , $c*x+$d notitle
+    !endif
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' /><hr />$example
+!endif
+
+ss2=!record 45 of lang/remarks.$taal
+#@Gegeven is de familie van kwadratische functies <em>f<sub>p</sub></em>.<br />
+question$n=<a onmouseover="return escape('$example')">$ss2</a><br />$ss
+

@@ -1,0 +1,89 @@
+target=vocabulaire3
+
+#include "author.inc"
+# define NUM 3
+#include "lang_titles.inc"
+\integer{l=250}
+\real{alpha=random(0..7)}
+\real{R=\l/2*0.8}
+\real{dev=randitem(pi/2,pi/3,pi/4,pi/5,2*pi/3,3*pi/4,2*pi/5,4*pi/5)}
+
+\integer{xa=\R*cos(\alpha)}
+\integer{ya=\R*sin(\alpha)}
+\integer{xb=\R*cos(\alpha+pi)}
+\integer{yb=\R*sin(\alpha+pi)}
+\integer{xc=\R*cos(\alpha+\dev)}
+\integer{yc=\R*sin(\alpha+\dev)}
+
+\integer{c=sqrt((\xa-\xc)^2+(\ya-\yc)^2)}
+\integer{b=sqrt((\xc-\xb)^2+(\yc-\yb)^2)}
+\integer{a=max(\b,\c)}
+
+\integer{xc1=\a/(10*\c)*(\xa-\xc)+\xc}
+\integer{yc1=\a/(10*\c)*(\ya-\yc)+\yc}
+\integer{xc2=\a/(\b*10)*(\xb-\xc)+\xc1}
+\integer{yc2=\a/(\b*10)*(\yb-\yc)+\yc1}
+\integer{xc3=\a/(\b*10)*(\xb-\xc)+\xc}
+\integer{yc3=\a/(\b*10)*(\yb-\yc)+\yc}
+
+\text{sommets=\xa,\ya,\xb,\yb,\xc,\yc}
+
+\integer{min=-0.5*\l}
+\integer{max=0.5*\l}
+
+\integer{xea=(\xa+\xc)/2+\max-15}
+\integer{yea=-(\ya+\yc)/2-\min-10}
+\integer{xeh=(\xa+\xb)/2+\max-15}
+\integer{yeh=-(\ya+\yb)/2-\min-10}
+\integer{xeo=(\xb+\xc)/2+\max-15}
+\integer{yeo=-(\yb+\yc)/2-\min-10}
+
+\integer{a1=(2*\alpha+pi+\dev)/2*180/pi}
+\integer{a2=(\alpha+pi)*180/pi}
+
+\integer{xm=0.95*\xa}
+\integer{ym=0.95*\ya}
+\integer{xn=0.08*(\xc-\xa)+\xa}
+\integer{yn=0.08*(\yc-\ya)+\ya}
+
+\text{lettres=shuffle(A,B,C)}
+\text{A=\lettres[1]}
+\text{B=\lettres[2]}
+\text{C=\lettres[3]}
+
+
+\text{dessin=draw(\l,\l
+xrange \min,\max
+yrange \min,\max
+poly red,\xc,\yc,\xc1,\yc1,\xc2,\yc2,\xc3,\yc3,\xc,\yc
+triangle \sommets,green
+fill (\xc1+\xc3)/2,(\yc1+\yc3)/2,red
+arc \xa,\ya,30,30,\a1,\a2,green
+fill (\xm+\xn)/2,(\ym+\yn)/2,green
+text black,\xa+\xa/abs(\xa)*10,\ya+\ya/abs(\ya)*10,medium,\A
+text black,\xb+\xb/abs(\xb)*10,\yb+\yb/abs(\yb)*10,medium,\B
+text black,\xc+\xc/abs(\xc)*10,\yc+\yc/abs(\yc)*10,medium,\C)}
+
+\statement{
+<div class="wims_columns">
+ <div class="medium_size img_col">\special{imagefill \dessin,\l x \l,40x27
+r1,\xea x \yea
+r2,\xeo x \yeo
+r3,\xeh x \yeh}</div>
+ <div class="medium_size text_col">
+Trouvez l'hypoténuse de ce triangle rectangle et
+les côtés adjacent et opposé à \(\widehat{\lettres[3]\lettres[1]\lettres[2]}\) :
+placez les étiquettes au bon endroit.
+<div class="wims_instruction">
+<b>Consigne</b> : L'étiquette <span style="color:green">Hypo</span> représente
+l'hypoténuse du triangle rectangle \(ABC\) et les étiquettes
+<span style="color:green">Adj</span> et <span style="color:green">Opp</span> représentent
+respectivement les côtés adjacent et opposé à \(\widehat{\lettres[3]\lettres[1]\lettres[2]}\).
+</div>
+ </div>
+</div>
+}
+
+\answer{}{Adj}{type=dragfill}
+\answer{}{Opp}{type=dragfill}
+\answer{}{Hypo}{type=dragfill}

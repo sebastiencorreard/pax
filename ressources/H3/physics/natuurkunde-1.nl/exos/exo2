@@ -1,0 +1,103 @@
+n=$counter
+# TE DOEN:alle R's ook vragen naar PERIODE = 1/freq.
+
+# alle sommen zijn even moeilijk.
+# dus we leggen een random volgorde vast als $counter=1
+# nemen var9 hiervoor als varname
+!if $n=1
+    !if $total_exos>3
+	total_exos=3
+    !endif
+    var9=!shuffle 1,2,3
+    # er kunnen nooit meer dan 10 vragen worden gesteld
+    inputs=1.1
+    cols=10
+    rows=1
+    mathview=0
+    math=0
+    viewlogo=1
+    make_tr=1
+    checkfile=$checkdir/new_number.proc
+    var1=$empty
+    var2=$empty
+    helptext=Geef een exact antwoord<hr /><ul><li>rpm = rotaties per minuut</li><li>rph = rotaties per uur</li></ul>
+    logotext=<img src=\'$module_dir/gifs/strob.gif\' alt=\'stroboscoop\' />
+    logo=<img src="$module_dir/gifs/stroboscoop.gif" alt="stroboscoop"/>
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+R=!item $n of $var9
+m_rightarrow=&nbsp;=&nbsp;
+
+!if $R=1
+    f1=!randint 100,300
+    n1=!randint 3,16
+	
+    var2=$empty
+    tot=!exec pari $f1/$n1
+    Hz=!line 1 of $tot
+    description=Met welk toerental draait deze schijf rond
+    answer$n=$Hz
+    ex1=&nbsp;s<sup>&minus;1</sup>
+    
+    ss=We hebben een rond draaiende schijf. Op deze deze schijf staat &eacute;&eacute;n stip.<br />We belichten deze schijf met een stroboscoop...<br />Bij een flitsfrequentie van precies $f1 Hz zien we $n1 stippen netjes verdeeld over 360&deg; stilstaan <br />$description<br /><small>Geef een exact antwoord</small>
+                                                                                                        
+    rr=Als de stroboscoop zou flitsen met precies dezelfde frequentie<br />als de rotatie van de schijf, zien we bij elke flits die ene punt...<br />en deze blijft dan op dezelfde plek stilstaan.<br />Flitsen we precies twee keer zo snel, zien we de stip 2 keer...<br />In dit geval flitsen we met $f1 Hz blijkbaar $n1 keer sneller dan de schijf rond draait,<br />want we zien $n1 stippen in plaats van 1<br />Het toerental van de schijf is dan $Hz s<sup>-1</sup> ($rpm rpm)<br />\
+
+    question$n=$ss
+    #<a onmouseover="return escape('$sometext')">$ss</a>
+    textanswer$n=$rr
+    
+ !exit
+!endif
+
+!if $R=2
+    k=!randint 1,2
+    timeunit=minuut,uur
+    factoren=60,3600
+    unit=rpm,rph
+    time_unit=!item $k of $timeunit
+    factor=!item $k of $factoren
+    u=!item $k of $unit
+    Hz=!randint 60,400
+    rotaties=$[$Hz*$factor]
+    answer$n=$Hz
+    ss=We hebben een rond draaiende schijf.<br />De schijf heeft een constant toerental van $rotaties $u.<br />We belichten deze schijf met een stroboscoop.<br />Op welke flitsfrequentie (in Hz) moeten we de stroboscoop instellen, zodat deze schijf lijkt stil te staan?
+    
+    rr=Het antwoord moet in Hz worden vermeld. Hz = s<sup>-1</sup>.<br />Het toerental van de schijf is $rotaties $u = $rotaties/$factor s<sup>-1</sup> = $Hz Hz
+    
+    description=De flitsfrequentie
+    ex1=&nbsp;Hz
+    question$n=$ss
+    textanswer$n=$rr
+ !exit
+!endif
+
+
+!if $R=3
+    !readproc $remarkdir/rounding.$taal
+    k=!randint 1,2
+    timeunit=minuut,uur
+    unit=rpm,rph
+    factoren=60,3600
+    n1=!randint 2,12
+    time_unit=!item $k of $timeunit
+    factor=!item $k of $factoren
+    u=!item $k of $unit    
+    Hz=!randint 60,400
+    rotaties=$[$Hz*$factor]
+    ans=$[$Hz*$n1]
+    answer$n=$ans
+
+    ss=We hebben een rond draaiende schijf met &eacute;&eacute;n stip.<br />De schijf heeft een constant toerental van $rotaties $u .<br />We belichten deze schijf met een stroboscoop.<br />Op welke flitsfrequentie in Hz moeten we een stroboscoop instellen,<br />zodat er op deze schijf $n1 stippen lijken stil te staan?<br /><small>Geef een exact antwoord</small>
+    
+    rr=Het antwoord moet in Hz worden vermeld. Hz = s<sup>-1</sup>.<br />Het toerental van de schijf is $rotaties $u = $rotaties/$factor s<sup>-1</sup> = $Hz Hz<br />We zien de stilstaande stip precies $n1 keer: de flitsfrequentie is blijkbaar $n1 keer groter dan het toerental.<br />De flitsfrequentie is $Hz&times;$n1 = $ans Hz
+    
+    description=De flitsfrequentie
+    ex1=&nbsp;Hz
+    question$n=$ss
+    textanswer$n=$rr
+ !exit
+!endif
+

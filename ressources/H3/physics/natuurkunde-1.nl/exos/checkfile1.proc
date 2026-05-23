@@ -1,0 +1,130 @@
+# checkt alleen punten.
+n=$counter
+!if ? isin $(reply$n)
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+ !exit
+!endif
+errortext=$empty
+goback=0
+# reply: items
+# point=p5:x=3.377777777777778:y=3.06031746031746
+# ,point=p4:x=2.209523809523809:y=2.3492063492063497
+# ,point=p3:x=1.117460317460317:y=1.7904761904761903
+# ,point=p2:x=-0.5587301587301585:y=1.1047619047619053
+# ,point=p1:x=-1.6761904761904765:y=0.7492063492063492,
+# last item may be empty
+
+# answer: lines
+# x1,y1
+# x2,y2
+
+
+gt=!linecnt $(answer$n)
+reply$n=!nospace $(reply$n)
+at=!itemcnt $(reply$n)
+ax=$empty
+ay=$empty
+!for p=1 to $at
+    a=!item $p of $(reply$n)
+    !if $a != $empty
+	a=!replace internal : by , in $a
+	a1=!item 2 of $a
+	a2=!item 3 of $a
+	a1=!replace internal x= by $empty in $a1
+	a2=!replace internal y= by $empty in $a2
+	ax=!append item $a1 to $ax
+	ay=!append item $a2 to $ay
+    !endif
+!next p
+
+at=!itemcnt $ax
+!if $at!=$gt
+    !if $at > $gt
+	errortext=je hebt $[$at-$gt] punt(en) te veel getekend .<br />Er wordt gevraagt naar $gt punten !
+    !else
+	errortext=je hebt $[$gt-$at] punt(en) te weinig getekend.<br />Er wordt gevraagt naar $gt punten !
+    !endif
+    
+    maxscore=$[$P5*$maxscore]
+    goback=1
+    !exit
+!endif
+
+# check op correcte antwoorden
+!if $rounding <1
+    # exact or not_defined
+    rnd1=100
+    rnd2=10
+!else
+    rnd1=$rounding
+    rnd2=$[$rounding/10]
+!endif
+
+checked=$empty
+score=0
+reply=$empty
+extra1=niet op $[log($rnd1)/log(10)] decimalen nauwkeurig getekend...
+extra2=Je hebt de x-as en y-as verwisseld...
+!for s=1 to $at
+    x=!item $s of $ax
+    y=!item $s of $ay
+    ax1=$[(round($rnd1*$x))/$rnd1]
+    ax2=$[(round($rnd2*$x))/$rnd2]
+    ay1=$[(round($rnd1*$y))/$rnd1]
+    ay2=$[(round($rnd2*$y))/$rnd2]
+    ex=$empty
+    k=red
+    found=0
+    !for p=1 to $gt
+	!if $p notin $checked
+	    !if $found=0
+		pt=!line $p of $(answer$n)
+    	        gx=!item 1 of $pt
+		gy=!item 2 of $pt
+    	        gx1=$[(round($rnd1*$gx))/$rnd1]
+    		gy1=$[(round($rnd1*$gy))/$rnd1]
+	        !ifval $gx1=$ax1 and $gy1=$ay1
+		    !increase score
+	    	    checked=!append item $p to $checked
+		    k=green
+		    found=1
+		!else
+    		    gx2=$[(round($rnd2*$gx))/$rnd2]
+    		    gy2=$[(round($rnd2*$gy))/$rnd2]
+		    !ifval $gx2=$ax2 and $gy2=$ay2
+			score=$[$score + $P5]
+		        ex=$extra1
+			k=orange
+		        checked=!append item $p to $checked
+			found=1
+		    !else
+	    		!ifval $gx1=$ay1 and $gy1=$ax1
+			    score=$[$score+$P9]
+	    		    checked=!append item $p to $checked
+			    k=orange
+			    ex=$extra2
+			    found=1
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+    !next p
+    reply=!append line <li><span style="color:$k">($ax1:$ay1) $ex</font></li> to $reply
+!next s
+
+reply$n=<ul>$reply</ul>$chk
+maxscore=$[$maxscore*$score/$gt]
+modulescore=$[$modulescore + $maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif

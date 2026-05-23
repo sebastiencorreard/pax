@@ -1,0 +1,126 @@
+!set title=En voiture ! (2)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=paul@byache.fr
+author=Paul, Byache
+keywords=velocity
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 1,2,3
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 50, 120
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 0, 3
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 0, 9
+
+val9=$[rint($(tmp0)*6)]
+val10=$[$val8+($val9/60)]
+
+!ifval $val8!=0 
+val11= $val8 h
+!endif
+
+!ifval $val9!=0 
+val11= $val11 $val9 min
+!endif
+val12=$[$val7*$val10]
+
+!ifval $val6=1 
+val13= 2,3 
+!else
+val13= 1,2
+!endif
+
+!ifval $val6=2 
+val13= 1,3
+!endif
+tmp0=!item $val13 of J'ai roulé pendant $val11 ($val10 heure).,J'ai parcouru une distance de $val12 km.,Ma vitesse moyenne a été de $val7 km/h.
+
+val14=$(tmp0)
+tmp0=!item $val6 of Quelle a été la durée totale <b>(en heure)</b> de mon parcours en voiture,Quelle distance ai-je parcouru (en km),Quelle a été ma vitesse moyenne (en km/h)
+
+val15=$(tmp0)
+tmp0=!item $val6 of $val10 h,$val12 km,$val7 km/h
+
+val16=$(tmp0)
+tmp0=!item $val6 of La durée totale de mon parcours a été :,La distance que j'ai parcourue a été de :,J'ai roulé à une vitesse moyenne de :
+
+val17=$(tmp0)
+replytype1=units
+replyname1=
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_right"><img src="$val1/voiture_001.gif" style="width:250px" alt="" />	</div>	Aujourd'hui, j'ai utilisé ma voiture.	<br/>$(val14[1])<br/>$(val14[2])	<p>$val15 ?</p>	<div>$val17  
+!read oef/embed.phtml r1,8 
+$().</div><br/>	<div class="wims_instruction">Préciser l'unité.</div>.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,14,15,17
+embedcnt=1

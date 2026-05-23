@@ -1,0 +1,246 @@
+!set title=Tableau de valeurs (cas linéaire)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Par lecture graphique, compléter le tableau des coordonnées	  des points&nbsp;
+val7=Abscisse de,Ordonnée de
+tmp0=!randint 1, 3
+
+val8=$[rint($(tmp0))]
+val8=3
+val9=$val8*x
+val10=$[0]
+val11=$[min(10/$val8,10)]
+val12=6
+!readproc slib/draw/repere 500,500,20,0,10,0,10,0.2,0.2,black,grey 
+tmp0=$slib_out
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val17=$(tmp0)
+tmp0=!item 2 of $val14
+
+val18=$(tmp0)
+tmp0=!line 3 to -1 of $val13
+
+val13=$(tmp0)
+val13=$val13	text black,$val15-10,$val16+2,medium,O	text black,$val15+$val17-5,$val16+2,medium,1	text black,$val15-10,$val16+$val18-5,medium,1
+val19=!rawmath (x-($val15))/$val17
+val20=!rawmath x*($val18)+($val16)
+evaltmp=\f
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+evaltmp=$val20
+
+evaltmp=!mathsubst x=($(tmp0)) in $evaltmp
+tmp1=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp2)
+tmp=!translate internal $	$ to ; in \donnees
+
+tmp=!row \ordre[\i] of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($val19) in $evaltmp
+tmp0=($evaltmp)
+evaltmp=$val20
+
+evaltmp=!mathsubst x=($(tmp0)) in $evaltmp
+tmp1=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp1)
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+val21=!rawmath $(tmp2)
+val10=$[rint(ceil($val10))]
+val11=$[rint(floor($val11-1))]
+tmp0=!values v for v=$val10 to $val11
+
+val23=$(tmp0)
+tmp0=!itemcnt $val23
+
+val24=$(tmp0)
+!if $val24<3 
+val23=$val23,$val23,$val23
+!endif
+tmp0=!shuffle $val23
+
+val23=$(tmp0)
+tmp0=!shuffle 1,2,3,4
+
+val25=$(tmp0)
+val26=$[$(val23[2])+0.2*$(val25[1])]
+val27=$[$(val23[3])+0.2*$(val25[2])]
+tmp=!translate ";': to $     $ in max($(val23[1]),1)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28=$(tmp0),$val26,$val27
+val29=
+val30=
+val31=A,B,C
+!for val32 =1 to 3 
+evaltmp=$val9
+
+evaltmp=!mathsubst x=($(val28[$val32])) in $evaltmp
+tmp0=($evaltmp)
+val14=$[$(tmp0)]
+val33=$[rint($val15+$val17*$(val28[$val32]))]
+val34=$[rint($val16+$val18*$val14)]
+val35=$[floor($val14*5)/5]
+tmp0=!append item $val35 to $val29
+
+val29=$(tmp0)
+
+!ifval $val35=$val14
+val36=$[$val35]
+!else
+val36=$[$val35+0.2]
+!endif
+tmp0=!append item $val36 to $val30
+
+val30=$(tmp0)
+val13=$val13	linewidth=1	segment $val33-4,$val34+4,$val33+4,$val34-4,red	segment $val33+4,$val34+4,$val33-4,$val34-4,red	text red,$val33-10,$val34-10,medium,$(val31[$val32])
+!next
+!readproc oef/draw.phtml 500,500 \
+$val13	plot blue,$val21 
+tmp0=$ins_url
+val37=$(tmp0)
+replytype1=numexp
+replyname1=$(val7[1]) \(\A\)
+replygood1=$(val28[1])
+replytype2=range
+replyname2=$(val7[2]) \(\A\)
+replygood2=!rawmath $(val29[1]),$(val30[1])
+replytype3=numexp
+replyname3=$(val7[1]) \(\B\)
+replygood3=$(val28[2])
+replytype4=range
+replyname4=$(val7[2]) \(\B\)
+replygood4=!rawmath $(val29[2]),$(val30[2])
+replytype5=numexp
+replyname5=$(val7[1]) \(\C\)
+replygood5=$(val28[3])
+replytype6=range
+replyname6=$(val7[2]) \(\C\)
+replygood6=!rawmath $(val29[3]),$(val30[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   $val6:	   <table class="wimscenter wimsborder">	    <tr>	     <td></td>	     <td>
+!insmath A
+$()</td>	     <td>
+!insmath B
+$()</td>	     <td>
+!insmath C
+$()</td>	    </tr><tr>	     <td>
+!insmath x
+$()</td>	     <td> 
+!read oef/embed.phtml r1,$val12 
+$()</td>	     <td> 
+!read oef/embed.phtml r3,$val12 
+$()</td>	     <td> 
+!read oef/embed.phtml r5,$val12 
+$()</td>	    </tr><tr>	     <td>
+!insmath y
+$()</td>	     <td> 
+!read oef/embed.phtml r2,$val12 
+$()</td>	     <td> 
+!read oef/embed.phtml r4,$val12 
+$()</td>	     <td> 
+!read oef/embed.phtml r6,$val12 
+$()</td>	    </tr>	   </table>	<div class="wimscenter"><img src="$val37" alt=""></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,12,37
+embedcnt=6

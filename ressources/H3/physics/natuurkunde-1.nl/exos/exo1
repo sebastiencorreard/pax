@@ -1,0 +1,193 @@
+n=$counter
+inputs=1.1
+# alle sommen zijn even moeilijk.
+# dus we leggen een random volgorde vast als $counter=1
+# nemen var9 hiervoor als varname
+!if $n=1
+    !if $total_exos>4
+	total_exos=4
+    !endif
+    var9=!shuffle 1,2,3,4
+
+    make_tr=1
+    cols=14
+    rows=3
+    mathview=0
+    roundingtext=$empty
+    math=0
+    viewlogo=1
+    checkfile=$checkdir/units.proc
+!endif
+R=!item $n of $var9
+####
+v_sound=343
+#m/s
+v_light=2.99792458*10^8
+h_v_light=2.99792458&times;10<sup>8</sup>
+v_sound_sea=1491
+
+helptext=Gegeven<ul><li>de snelheid van het geluid in lucht 343 m/s</li><li>de snelheid van het geluid in zeewater 1491 m/s <br />bij T=10 °C, 1000 m diepte en 0.35% zoutgehalte</li><li>de lichtsnelheid 2.99792458&times;10<sup>8</sup> m/s</li></ul>
+
+!if $R=1
+    description=De afstand 
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+    logotext=...21..22...21...22...21...22..
+    logo=<img src="$module_dir/gifs/bliksem.gif" alt="bliksem"/>
+    rounding=1
+    vertraging=!randint 1,30
+    vertraging=!exec moneyprint $[$vertraging/2] 1
+    ans=$[$vertraging*$v_sound]
+    sig=!exec sigdigits $vertraging
+    sig=!item 1 of $sig
+    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1 $[$ans/($v_light)],$sig,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    licht_tijd=!item 3 of $tot
+    answer$n=$c_ans m
+    var2=$[abs($ans - $c_ans)]
+    var1=1
+    ss=Het onweert. Je ziet de bliksemschicht inslaan.<br />En $vertraging seconden later hoor je de donder.<br /><span style="color:blue">Bereken</span> hoever je van deze inslag afstaat.<br /><small>Geef je antwoord in de juiste precisie en SI eenheid</small>.
+    
+    rr=<kbd>S = v &times; t (m/s &sdot s)</kbd> = $vertraging &times; $v_sound m &asymp; $ans m.<br />Het antwoord op $sig significante cijfers (afkomstig van $vertraging) : $h_ans meter<br /><br />De tijd die het licht van de inslag nodig heeft om bij je te komen is verwaarloosbaar klein<br />tov de tijd die het geluid van de donder er voor nodig heeft:<br />het licht heeft voor die afstand  $h_ans <span size="+1">&divide;</span> $h_v_light &asymp; $licht_tijd <em>sec</em> nodig versus $vertraging <em>sec</em> voor het geluid .<br />Dus $licht_tijd seconden is te verwaarlozen t.o.v. $vertraging sec, en hoeft dus niet in de berekening te worden betrokken.
+
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+    
+ !exit
+!endif
+
+!if $R=2
+    plaats=Moskou,Madrid,Boekarest,Teheran,Oslo,Chicago,New York,Seattle,Guatemala,Amsterdam,Amsterdam,Paramaribo,Leningrad,Rome,Odessa,Bagdad,Reykjavik,Detroit,Philadelphia,Berkeley,Mexico City,Berlijn,Parijs,Trinidad
+    t=!randint 1,24
+    city=!item $t of $plaats
+    sig=!randitem 3,5
+    !if $sig=3
+	v1=!randint 1,9
+	v2=!randint 0,9
+	v3=!randint 1,9
+	vertraging=!nospace $v1 . $v2 $v3
+    !else
+	!if $sig=4
+	    v1=!randint 1,9
+	    v2=!randint 0,9
+	    v3=!randint 0,9
+	    v4=!randint 1,9
+	    vertraging=!nospace $v1 . $v2 $v3 $v4
+	
+	!else
+	    v1=!randint 1,9
+	    v2=!randint 0,9
+	    v3=!randint 0,9
+	    v4=!randint 0,9
+	    v5=!randint 1,9
+	    vertraging=!nospace $v1 . $v2 $v3 $v4 $v5
+	!endif
+    !endif
+    ans=$[0.5*$vertraging*$v_light]
+    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1 $[$ans/1000],$sig,1 $ans,9,1 
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    km_ans=!item 3 of $tot
+    p_ans=!item 4 of $tot
+    answer$n=$c_ans m
+    var1=1
+    var2=$[abs($ans - $c_ans)]
+    rounding=-1
+    logotext=...ping...ping...
+    logo=<img src="$module_dir/gifs/satellite.gif" alt="satelliet"/>
+    
+    ss=Een omroeptechnicus in $city test de vertraging van de verbinding met een sateliet...<br />Hij meet in een ping test een <span style="color:blue">vertraging</span> van $vertraging seconden .<br />Bereken hoever volgens deze meting de sateliet van de omroep zender afstaat.<br />Geef je antwoord in een SI eenheid en juiste precisie.
+
+    rr=Radiostralen gaan met ongeveer $h_v_light m/s (de lichtsnelheid).<br />Bij een vertraging van $vertraging seconden legt het licht dus een afstand $vertraging &sdot; $h_v_light meter af.<br />Het signaal moet echter in deze tijd ook weer terug.<br />De afstand van de zendmast tot aan de sateliet is dan: 1/2 &sdot; $vertraging &sdot; $h_v_light &asymp; $p_tot meter<br />Dit antwoord op $sig significante cijfers (afkomstig van $vertraging) : $h_ans meter = $km_ans km.
+    
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    
+    textanswer$n=$rr
+    description=De afstand 
+    ex1=$empty
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+ !exit
+!endif
+
+!if $R>2
+ kans=!randint 0,1
+ !if $kans=1
+    logotext=...hallo...hallo...vlucht 737 geef antwoord...
+    logo=<img src="$module_dir/gifs/raket.jpg" alt="raket"/>
+    rounding=10
+    #De afstand tussen de Aarde en Mars varieert van 60 miljoen tot 380 miljoen kilometer
+    dist=!randint 10,380
+    sig=!charcnt $dist
+    #2.99792458*10^8 m/s
+    # sec
+    time=$[6.671281904*$dist]
+    tot=!exec scienceprint $time,$sig,0 $time,$sig,1 $[$dist*10^6],$sig,1 $[2*$dist*10^6],$sig,1 $[2*$dist*10^9],$sig,1 $[$time/60],$sig,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    # km
+    h_dist=!item 3 of $tot
+    real_h_dist=!item 4 of $tot
+    # m
+    real_h_dist_meter=!item 5 of $tot
+    time_min=!item 6 of $tot
+    answer$n=$c_ans s
+    var1=1
+    var2=$[abs($time - $c_ans)]
+    ss=Houston heeft radiocontact met het bemande ruimteschip naar de planeet Mars...<br />Als het ruimteschip $h_dist kilometer van de aarde [Houston] is verwijderd,<br />hoelang moet Houston dan minstens wachten voor er antwoord komt op een vraag ?<br />Geef je antwoord op in een SI eenheid en met de juiste precisie.
+    
+    rr=Houston moeten ca $h_ans seconden wachten op een antwoord.<br />De afstand is $h_dist kilometer.<br />Voor een antwoord moet het signaal deze afstand 2 keer afleggen...<br />Dus het signaal legt 2&times;$h_dist = $real_h_dist kilometer = $real_h_dist_meter meter af.<br />De lichtsnelheid is $h_v_light m/s.<br />De tijd wordt dan:  $real_h_dist_meter m <b>/</b> $h_v_light m/s &asymp; $time sec<br />Het antwoord of $sig significante cijfers (afkomstig van $h_dist)<br />De tijdsduur &asymp; $h_ans sec &asymp; $time_min min. 
+
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    description=De tijdsduur
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+    ex1=$empty
+    textanswer$n=$rr
+!else
+    rounding=1
+    logotext=...ping...ping...
+    logo=<img src="$module_dir/gifs/sonar.jpg" alt="sonar"/>
+    sig=!randitem 3,5
+    !if $sig=3
+	t1=!randint 1,9
+	t2=!randint 0,9
+	t3=!randint 1,9
+	tijd=!nospace $t1 . $t2 $t3
+    !else
+	!if $sig=4
+	    t1=!randint 1,9
+	    t2=!randint 0,9
+	    t3=!randint 0,9
+	    t4=!randint 1,9
+	    tijd=!nospace $t1 . $t2 $t3 $t4
+	
+	!else
+	    t1=!randint 1,9
+	    t2=!randint 0,9
+	    t3=!randint 0,9
+	    t4=!randint 0,9
+	    t5=!randint 1,9
+	    tijd=!nospace $t1 . $t2 $t3 $t4 $t5
+	!endif
+    !endif
+    dist=$[$v_sound_sea*$tijd]
+    r_dist=$[0.5*$dist]
+    tot=!exec scienceprint $r_dist,$sig,0 $r_dist,$sig,1 $[$r_dist/1000],$sig,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot
+    h_km_ans=!item 3 of $tot
+    answer$n=$c_ans m
+    var1=1
+    var2=$[abs($r_dist - $c_ans)]
+
+    ss=Een onderzee&euml;r gebruikt SONAR [Sound Navigation And Ranging] techniek<br /> voor het detecteren van onderwater objecten.<br />Bij actieve SONAR wordt o.a. de tijd gemeten die een geluidsgolf (<em>echo ping</em>)<br />nodig heeft om na weerkaatsting op een reflecterend object<br />...zoals een andere boot of een ijsberg...weer te worden ontvangen door <br />het onderwater microfoon systeem.<br /><hr width="50%"/>Als ze een echo_tijd meten van $tijd seconden , hoever is dit object dan van de duikboot verwijderd ?<br />Geef je antwoord op met een SI eenheid en met de juiste precisie.
+    
+    rr=Het object is dan $h_ans meter verwijdert van de duikboot.<br />De gegeven geluidsnelheid in zeewater is $v_sound_sea m/s.<br />De complete echo-ping duurde $tijd seconden .<br />De afgelegde weg in deze tijdsduur is: $tijd s &times; $v_sound_sea m/s = $dist meter<br />Dit is dus de afstand "heen en weer" naar het object.<br />De werkelijke afstand is dus 1/2 &times; $dist = $r_dist meter.<br />Het antwoord moet worden genoteerd in $sig significante cijfers (afkomstig van $tijd)<br />De afstand &asymp; $h_ans meter &asymp; $h_km_ans km.
+
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+    description=De afstand
+    m_rightarrow=&nbsp;&asymp;&nbsp;
+    ex1=$empty
+    !endif
+!endif
+!exit

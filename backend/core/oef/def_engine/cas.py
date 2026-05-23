@@ -616,7 +616,10 @@ def _format_pari_result(result) -> str:
         return ";".join(rows)
     if isinstance(result, (list, tuple)):
         return ",".join(_format_pari_result(x) for x in result)
-    return str(result)
+    # PARI uses `^` for exponentiation; SymPy's str() emits `**`. The downstream
+    # WIMS pipeline (e.g. `!replace * by`) treats `*` literally, so leaving `**`
+    # would corrupt powers like `x**2` into `x2`.
+    return str(result).replace("**", "^")
 
 
 # Wraps standalone integer literals so `/` between them produces a Rational
@@ -673,6 +676,10 @@ def _call_pari(expr: str) -> str:
             implicit_multiplication_application,
         )
         result = parse_expr(clean, local_dict=ns, transformations=transformations)
+        # PARI's internal representation of polynomials is always expanded;
+        # mirror that so e.g. `pari (x-3)*(x+3)` returns `x^2 - 9`.
+        if isinstance(result, sympy.Expr):
+            result = sympy.expand(result)
         return _format_pari_result(result)
     except Exception:
         return expr

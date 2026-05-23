@@ -5,7 +5,8 @@
       <div ref="statementEl"
            class="oef-statement"
            @click="handleMarkClick"
-           @keydown.enter.prevent="() => { if (!submitted && !loading) emit('submit') }">
+           @input="handleInlineInput"
+           @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
         <template v-for="(seg, i) in statementSegments" :key="i">
           <!-- Segments containing <table> must use <div> — <span> can't contain block elements -->
           <div v-if="seg.type === 'html' && seg.content.includes('<table')"
@@ -89,7 +90,11 @@
           <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
             {{ ans.label || $t('exercise.choose_answer') }}
           </p>
-          <div class="space-y-2">
+          <!-- 1 col < sm, 2 cols sm–lg, N cols ≥ lg (one per choice, capped at 4).
+               inline-grid: shrinks the group to content width; 1fr columns make
+               siblings equal-width (sized to the largest choice). -->
+          <div class="inline-grid gap-2 grid-cols-1 sm:grid-cols-2"
+               :class="radioGridLgClass(radioChoicesHtml[ans.input_name] ?? [])">
             <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
                    class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
                    :class="radioClass(ans.input_name, choice.raw)"
@@ -145,6 +150,13 @@ function inputClass(name: string) {
   return r.correct ? 'correct' : 'incorrect'
 }
 
+// Tailwind-safe map: dynamic class names (`lg:grid-cols-${n}`) aren't picked
+// up by JIT, so we materialise them as static strings.
+function radioGridLgClass(choices: { raw: string }[]): string {
+  const n = Math.max(1, Math.min(choices.length, 4))
+  return ['lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4'][n - 1]
+}
+
 // ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────
 
 function handleMarkClick(event: MouseEvent) {
@@ -181,6 +193,44 @@ watch(
 )
 
 onMounted(syncMarkChoices)
+
+// ── Inline native inputs (replytype text fields placed inside <table> for
+//    fraction-like layouts, e.g. csgb Q200) — bound via event delegation ─────
+
+function handleInlineInput(event: Event) {
+  if (props.submitted) return
+  const target = event.target as HTMLElement | null
+  if (!target || !target.classList?.contains('oef-input')) return
+  const name = target.getAttribute('name')
+  if (!name) return
+  const value = (target as HTMLInputElement | HTMLTextAreaElement).value
+  updateReply(name, value)
+}
+
+function syncInlineInputs() {
+  const el = statementEl.value
+  if (!el) return
+  el.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.oef-input').forEach(input => {
+    const name = input.getAttribute('name') ?? ''
+    const expected = props.replies[name] ?? ''
+    if (input.value !== expected) input.value = expected
+    input.disabled = props.submitted
+    // Visual feedback after submission
+    input.classList.remove('correct', 'incorrect')
+    if (props.submitted && props.checkResult) {
+      const r = props.checkResult.results.find(r => r.input_name === name)
+      if (r) input.classList.add(r.correct ? 'correct' : 'incorrect')
+    }
+  })
+}
+
+watch(
+  [() => props.replies, () => props.submitted, () => props.checkResult, () => props.statementSegments],
+  syncInlineInputs,
+  { deep: true, flush: 'post' }
+)
+
+onMounted(syncInlineInputs)
 
 function radioClass(inputName: string, choice: string) {
   if (!props.submitted) {

@@ -1,0 +1,118 @@
+!set title=3 - Rebond
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Frondas
+email=jbfrondas@gmail.com
+language=fr
+precision=10000
+computeanswer=no
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem girl,boy
+
+val6=$(tmp0)
+!readproc slib/lang/fname  $val6  
+tmp0=$slib_out
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in \nombres
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val8=$(tmp1)
+val9=\expression[$val8;]
+tmp0=!randint 70, 90
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 70, 150
+
+val11=$[rint($(tmp0))]
+tmp0=!randint 2, 6
+
+val12=$[rint($(tmp0))]
+val13=$[$val11*(($val10/100)^($val12))]
+val14=$[rint($val13)]
+val15=TIT
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val16=$(tmp0)
+!if $val6=boy 
+val17=S'il
+!else
+val17=Si elle
+!endif
+val18=hauteur
+val19=$val7 lance une balle sur le sol ; elle rebondit aux \($val10 \) pour-cent de la hauteur de lancée. $val17 la lance d'une hauteur de \($val11\) centimètres, à quelle hauteur rebondit-elle après le rebond numéro $val12 ? On arrondira à l'unité la plus proche.
+val20=La balle rebondit de \($val14\) centimètres après \( $val12 \) rebonds. Valeur non arrondie $val13
+replyname1=$val18
+replygood1=$val14 
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val20
+
+latex=!nosubst  \begin{statement} $val19 \end{statement} \begin{solution} $val20 \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val19
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val20
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val19 $m_end{statement} $m_begin{solution} $val20 $m_end{solution} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=19,20
+embedcnt=0

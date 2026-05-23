@@ -1,0 +1,176 @@
+target=transgr2 egalitegr transgr1 egalitegr2
+
+\language{fr}
+\range{-5..5}
+#include "author.inc"
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+#include "css.inc"
+
+\integer{xrange=400}
+\integer{yrange=400}
+
+\matrix{nom=A,B,C,D
+E,F,G,H
+M,N,R,P}
+\text{don=randrow(\nom)}
+\text{don=shuffle(\don)}
+\text{A=item(1,\don)}
+\text{B=item(2,\don)}
+\text{C=item(3,\don)}
+\text{D=item(4,\don)}
+
+
+\integer{xa=random(-4..4)}
+\integer{ya=random(-4..4)}
+\integer{xb=random(-4..4)}
+\integer{yb=random(-4..4)}
+\integer{xc=random(-4..4)}
+\integer{yc=random(-4..4)}
+
+\integer{tmp=(\xb-(\xa))*(\yc-(\ya))-(\yb-(\ya))*(\xc-(\xa))}
+
+\if{\tmp=0}{
+ \integer{xa=1}
+ \integer{ya=-1}
+ \integer{xb=3}
+ \integer{yb=5}
+ \integer{xc=-2}
+ \integer{yc=-2}
+}
+
+\matrix{don=\overrightarrow{\A \B},\xb-(\xa),\yb-(\ya),\A \B \D \C
+\overrightarrow{\B \A},\xa-(\xb),\ya-(\yb),\A \B \C \D}
+\text{don=randrow(\don)}
+\text{vect=item(1,\don)}
+\integer{Vx=item(2,\don)}
+\integer{Vy=item(3,\don)}
+\integer{xd=\xc+(\Vx)}
+\integer{yd=\yc+(\Vy)}
+\integer{badx1=\xc-(\Vx)}
+\integer{bady1=\yc-(\Vy)}
+\integer{badx2=\xc+2*(\Vx)}
+\integer{bady2=\yc+2*(\Vy)}
+
+\text{para=item(4,\don)}
+
+\integer{Mx=maxima(max(\xa,\xb,\xc,\xd,\badx1,\badx2,0);)+1}
+\integer{mx=maxima(min(\xa,\xb,\xc,\xd,\badx1,\badx2,0);)-1}
+\integer{My=maxima(max(\ya,\yb,\yc,\yd,\bady1,\bady2,0);)+1}
+\integer{my=maxima(min(\ya,\yb,\yc,\yd,\bady1,\bady2,0);)-1}
+
+\text{graph=slib(draw/repere \xrange,\yrange,20,\mx,\Mx,\my,\My,1,1,black,grey)}
+\text{ligne=row(1,\graph)}
+\integer{x0=item(1,\ligne)}
+\integer{y0=item(2,\ligne)}
+\text{ligne=row(2,\graph)}
+\real{ex=item(1,\ligne)}
+\real{ey=item(2,\ligne)}
+\text{repere=wims(line 3 to -1 of \graph)}
+\text{repere=\repere
+text black,\x0-10,\y0+4,small,O
+text black,\x0+\ex-4,\y0+4,small,I
+text black,\x0-12,\y0+\ey-4,small,J}
+
+\integer{Ax=\ex*(\xa)+(\x0)}
+\integer{Ay=\ey*(\ya)+(\y0)}
+\integer{Bx=\ex*(\xb)+(\x0)}
+\integer{By=\ey*(\yb)+(\y0)}
+\integer{Cx=\ex*(\xc)+(\x0)}
+\integer{Cy=\ey*(\yc)+(\y0)}
+\integer{Dx=\ex*(\xd)+(\x0)}
+\integer{Dy=\ey*(\yd)+(\y0)}
+
+\text{color=red}
+\text{dessin1=\repere
+fcircle \Ax,\Ay,4,\color
+text \color,\Ax+4,\Ay+4,medium,\A
+fcircle \Bx,\By,4,\color
+text \color,\Bx+4,\By+4,medium,\B}
+
+#if defined TARGET_transgr1
+\title{Translation image (graphique)}
+\text{enonce=les trois points \(\A), \(\B), \(\C) représentés ci-dessous.<br>
+  En cliquant sur la figure, placez le point \(\D) image du point \(\C)
+  par la translation de vecteur \(\vect).}
+
+\text{dessin1=\dessin1
+fcircle \Cx,\Cy,4,\color
+text \color,\Cx+4,\Cy+4,medium,\C}
+
+\text{pt=\D}
+\integer{X=\Dx}
+\integer{Y=\Dy}
+#endif
+#if defined TARGET_transgr2
+\title{Translation antécédent (graphique)}
+\keywords{translation}
+\text{enonce=les trois points \(\A), \(\B), \(\D) représentés ci-dessous.<br>
+  En cliquant sur la figure, placez le point \(\C) dont le point \(\D)
+  est l'image par la translation de vecteur \(\vect).}
+
+\text{dessin1=\dessin1
+fcircle \Dx,\Dy,4,\color
+text \color,\Dx+4,\Dy+4,medium,\D}
+
+\text{pt=\C}
+\integer{X=\Cx}
+\integer{Y=\Cy}
+#endif
+#if defined TARGET_egalitegr
+\title{Égalité vectorielle (graphique)}
+\keywords{vectors}
+\matrix{choix=\D,\C,\Dx,\Dy,\Cx,\Cy
+\C,\D,\Cx,\Cy,\Dx,\Dy}
+\text{choix=randrow(\choix)}
+\text{pt=item(1,\choix)}
+\text{pt2=item(2,\choix)}
+\integer{X=item(3,\choix)}
+\integer{Y=item(4,\choix)}
+\integer{Xpt2=item(5,\choix)}
+\integer{Ypt2=item(6,\choix)}
+\text{dessin1=\dessin1
+fcircle \Xpt2,\Ypt2,4,\color
+text \color,\Xpt2+4,\Ypt2+4,medium,\pt2}
+
+\text{enonce=les trois points \(\A), \(\B) et \(\pt2) représentés ci-dessous.<br>
+  Quelles sont les coordonnées du point \(\pt) tels que
+  \(\overrightarrow{\C \D}=\vect) &#63;
+Cliquer sur la figure pour placer le point \(\pt).}
+#endif
+#if defined TARGET_egalitegr2
+\title{Égalité vectorielle (graphique) 2}
+!! Ajouté par Marie-Claude David : variante de egalitegr sans utiliser le mot coordonnées
+\matrix{choix=\D,\C,\Dx,\Dy,\Cx,\Cy
+\C,\D,\Cx,\Cy,\Dx,\Dy}
+\text{choix=randrow(\choix)}
+\text{pt=item(1,\choix)}
+\text{pt2=item(2,\choix)}
+\integer{X=item(3,\choix)}
+\integer{Y=item(4,\choix)}
+\integer{Xpt2=item(5,\choix)}
+\integer{Ypt2=item(6,\choix)}
+\text{dessin1=\dessin1
+fcircle \Xpt2,\Ypt2,4,\color
+text \color,\Xpt2+4,\Ypt2+4,medium,\pt2}
+
+\text{enonce=les trois points \(\A), \(\B) et \(\pt2) représentés ci-dessous.
+  Cliquer sur la figure pour placer le point \(\pt) tel que
+  \(\overrightarrow{\C \D}=\vect).
+  }
+#endif
+\text{enonce0=Dans le plan muni d'un repère orthogonal \((O, I, J)), on considère}
+\text{dessin1=draw(\xrange,\yrange,
+\dessin1)}
+\integer{R=maxima(max(abs(\ex)/5,abs(\ey)/5);)}
+
+\statement{
+\enonce0 \enonce
+<div class="wimscenter">
+  \embed{r1}
+</div>
+}
+
+\answer{\pt}{\dessin1;circle,\X,\Y,\R}{type=coord}

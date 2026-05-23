@@ -1,0 +1,179 @@
+!set title=Graphique -> image 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+title_it=Grafico -> immagine 
+
+ansorder=r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=La représentation graphique de la fonction affine,	  est la suivante&nbsp;
+val8=Votre réponse
+val9=Quelle est l'image de,par
+val10=L'image de,par la fonction,est
+val11=L'image de, par la fonction, est par définition	  <b>l'ordonnée</b> du point sur la droite dont l'abscisse est
+val12=On place donc le point de la droite dont l'abscisse est,	  puis on lit son ordonnée.
+!if $val6=it 
+val7=La rappresentazione grafica della funzione affine,	  è la seguente
+val8=La tua risposta
+val9=Quale numero è l'immagine di,tramite
+val10=L'immagine di,tramite la funzione,è
+val11=L'immagine di,tramite la funzione,è per definizione	  <b>l'ordinata</b> del punto sulla retta la cui ascissa è
+val12=Si prende quindi il punto della retta la cua ascissa è,	  quindi si legge la sua ordinata.
+!endif
+tmp0=!randitem f,g,h
+
+val13=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 50
+
+val14=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 50
+
+val15=$[rint($(tmp0)*$(tmp1))]
+val14=$[$val14/10]
+val15=$[$val15/10]
+val16=$[($val15-($val14))/10]
+val17=$[$val14+5*($val16)]
+val18=!rawmath -($val16*(x)+($val17))*50+250
+evaltmp=$val18
+
+evaltmp=!mathsubst x=(-5) in $evaltmp
+tmp0=($evaltmp)
+val19=$[rint($(tmp0))]
+evaltmp=$val18
+
+evaltmp=!mathsubst x=(5) in $evaltmp
+tmp0=($evaltmp)
+val20=$[rint($(tmp0))]
+tmp0=!record 1 of src/graph.don
+
+val21=$(tmp0)
+val21=$val21	segment 0,$val19,500,$val20,red
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 45
+
+val22=$[rint($(tmp0)*$(tmp1))]
+val22=$[$val22/10]
+val23=$[$val16*($val22)+($val17)]
+val24=$[rint($val23*10)]
+val24=$[$val24/10]
+val25=$[rint(-($val24)*50+250)]
+!if $val22>0 
+val26=text green,220,$val25-10,medium,$val24
+!else
+val26=text green,255,$val25-10,medium,$val24
+!endif
+!if $val24>0 
+val27=text green,240+($val22)*50,260,medium,$val22
+!else
+val27=text green,240+($val22)*50,230,medium,$val22
+!endif
+val28=$val21	arrow 250+($val22)*50,250,250+($val22)*50,$val25,10,green	$val27	arrow 250+($val22)*50,$val25,250,$val25,10,green	$val26
+replytype1=auto
+
+replyname1=$val13($val22)
+replygood1=?analyze 29
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$(val7[1]) 
+!insmath $val13
+$() $(val7[2]):	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val21 
+$()	</div>	$(val9[1])
+!insmath $val22
+$() $(val9[2]) 
+!insmath $val13
+$() ?	<div class="spacer">	<b>$val8 :</b>	<label for="reply1">	$(val10[1]) 
+!insmath $val22
+$() $(val10[2]) 
+!insmath $val13
+$() $(val10[3])</label>  
+!read oef/embed.phtml r1,5 
+$().	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$(val11[1]) $val22 $(val11[2]) $val13 $(val11[3]) $val22.	<p>	$(val12[1]) $val22 $(val12[2])	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val28 
+$()	</div>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval abs($val23-($val29))<0.1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=\name_cond
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,21,22,23,28,29
+embedcnt=1

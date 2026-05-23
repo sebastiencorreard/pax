@@ -1,0 +1,190 @@
+!set title=Additionner deux fractions 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni
+email=jluc.donadoni@laposte.net
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=1,2,3,1,2,3,1,2,1,2
+val7=2,3,5,7,11,13,17,19,23
+val8=2,3,5,7,11
+val9=2,3,5
+val10=2,3
+tmp=!nonempty items $val6
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+!if $val6=1 
+tmp0=!item 3 to 7 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+val11=$(tmp1)
+!endif
+!if $val6=2 
+tmp0=!item 1 to 4 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+tmp2=!item 1 to 3 of $val9
+
+tmp=!nonempty items $(tmp2)
+
+tmp3=!randitem $tmp
+val11=$(tmp1),$(tmp3)
+!endif
+!if $val6=3 
+tmp0=!item 1 to 4 of $val7
+
+tmp=!nonempty items $(tmp0)
+
+tmp1=!randitem $tmp
+tmp2=!item 1 to 2 of $val9
+
+tmp=!nonempty items $(tmp2)
+
+tmp3=!randitem $tmp
+tmp4=!item 1 to 2 of $val10
+
+tmp=!nonempty items $(tmp4)
+
+tmp5=!randitem $tmp
+val11=$(tmp1),$(tmp3),$(tmp5)
+!endif
+val12=$[rint($(val11[1]))]
+!for val13 =2 to $val6 
+val12=$[rint($val12*$(val11[$val13]))]
+!next
+tmp0=!randint 4, $val12*2-3
+
+val14=$[rint($(tmp0))]
+val15=$[rint(gcd($val14,$val12))]
+!while $val15<>1 
+val14=$[rint($val14+1)]
+val15=$[rint(gcd($val14,$val12))]
+!endwhile
+tmp0=!randint 2, 130/$val12
+
+val16=$[rint($(tmp0))]
+!if $val16>9 
+tmp0=!randint 2, 9
+
+val16=$[rint($(tmp0))]
+!endif
+tmp0=!randint 1, $val14-1
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val14 - $val17)]
+val19=$[rint($val17*$val16)]
+val20=$[rint($val12*$val16)]
+replytype1=numeric
+replyname1=
+replygood1=?analyze 21
+replytype2=numeric
+replyname2=
+replygood2=?analyze 22
+replytype3=numeric
+replyname3=
+replygood3=$[$val17]
+replytype4=numeric
+replyname4=
+replygood4=$[$val14]
+replytype5=numeric
+replyname5=
+replygood5=?analyze 23
+replytype6=numeric
+replyname6=
+replygood6=?analyze 24
+replytype7=numeric
+replyname7=
+replygood7=$[$val12]
+replytype8=numeric
+replyname8=
+replygood8=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Calcule la somme ci-dessous :	 
+!read oef/special.phtml mathmlinput [\frac{$val18}{$val12} +\frac{$val19}{$val20} =	\frac{$val18}{$val12} + \frac{reply1 \times reply2}{reply5 \times reply6}	=	\frac{$val18}{$val12} + \frac{reply3}{reply7}=\frac{reply4}{reply8}], 3,noanswer	reply1	reply2	reply3	reply4	reply5	reply6	reply7	reply8	 
+$()		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val19=$val21*$val22
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=simplification du numérateur
+
+!ifval $val20=$val23*$val24
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=simplification du dénominateur
+
+!exit
+
+:stat
+vsavelist=12,18,19,20,21,22,23,24
+embedcnt=1

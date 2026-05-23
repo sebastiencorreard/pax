@@ -1,0 +1,209 @@
+# gebruik NU MAXIMA voor checkfile [ 14-01-2008 ]
+# type dx^a+b=c (H4)   
+math=0
+mathview=5
+mathviewpanel=$module_title:x=:and:sqrt():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]()
+
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $usage=2
+    image=0
+!endif
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding > 0
+    ss=!record 25 of lang/remarks.$taal
+!else
+    ss1=!record 25 of lang/remarks.$taal
+    ss2=!record 30 of lang/remarks.$taal
+    ss=$ss1 $ss2
+!endif
+#@ Los de volgende vergelijking op:<br />
+keuze=!randitem 1,2
+cols=25
+rows=3
+pm=!randitem -1,1
+embed=1
+make_tr=1
+applettext=$empty
+!if $subject=20
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=2
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    cols=30
+    rows=5
+    questiontype=7
+    javascript=js/exo1.js
+    embed=1
+    make_tr=1
+    helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'noalt\' />
+    checkfile=exos/checkfile1.proc
+!else
+    questiontype=0
+    checkfile=exos/checkfile2.proc
+    helptext=!record 26 of lang/remarks.$taal
+!endif
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+arglist=x
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+!if $R=1
+    c=!randint 1,50
+    !if $keuze=1
+	a=!randitem 3,5,7,9
+	c=$[$pm*$c]
+	answer$n=$c^(1/$a)
+	!if $rounding>0
+	    ans=$[round($rounding*$(answer$n))/$rounding]
+	    texanswer$n= x = \root{\textstyle $a} \of {$c} = $c^{\textstyle \frac{1}{$a}} \approx $ans
+	!else
+	    texanswer$n= x = \root{\textstyle $a} \of {$c} = $c^{\textstyle \frac{1}{$a}} 
+	!endif
+    !else
+	a=!randitem 2,4,6,8
+	answer$n=$c^(1/$a),-1*$c^(1/$a)
+	!if $rounding>0
+	    ans1=$[round($rounding*($c^(1/$a)))/$rounding]
+	    ans2=-$ans1
+	    texanswer$n= \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$c} = $c^{\textstyle \frac{1}{$a}} \approx $ans1 \\  x_{2} = -\root{\textstyle $a} \of {$c} = -$c^{\textstyle \frac{1}{$a}} \approx $ans2 \end{array}   
+	!else
+	    texanswer$n= \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$c} = $c^{\textstyle \frac{1}{$a}} \\  x_{2} = -\root{\textstyle $a} \of {$c} = -$c^{\textstyle \frac{1}{$a}} \end{array}   
+	!endif
+    !endif
+    formula$n=x^{$a} \,\, = \,\, $c
+    applettext=!nospace x^$a = $c -> 
+ !exit
+!endif
+
+!if $R=2
+    # x^a + b  = c
+    c=!randint 1,50
+    b=!randint 1,25
+    !if $b=$c
+	t=!randitem 2,10
+	b=$[$b+$t]
+    !endif
+    mp=!randitem 1,-1
+    !if $keuze=1
+	a=!randitem 3,5,7,9
+	b=$[$mp*$b]
+	tussen=!texmath x^$a + $b
+	c=$[$pm*$c]
+	d=$[$c - ($b)]
+	answer$n=$d^(1/$a)
+	!if $rounding>0
+	    ans=$[round($rounding*($d^(1/$a)))/$rounding]
+	    texanswer$n= x^{$a}= $d \rightarrow x = \root{\textstyle $a} \of {$d} = $d^{\textstyle \frac{1}{$a}} \approx $ans
+	!else
+	    texanswer$n= x^{$a}= $d \rightarrow x = \root{\textstyle $a} \of {$d} = $d^{\textstyle \frac{1}{$a}}
+	!endif
+	formula$n= $tussen \,\, = \,\, $c
+	applettext=!nospace $tussen = $c -> 
+    !else
+	a=!randitem 2,4,6,8
+	d=$[$c + ($b)]
+	formula$n= x^{$a} - $b = $c
+	applettext=!nospace x^$a - $b = $c -> 
+	answer$n=$d^(1/$a),-1*$d^(1/$a)
+	!if $rounding>0
+	    ans1=$[round($rounding*($d^(1/$a)))/$rounding]
+	    ans2=-$ans1
+	    texanswer$n= x^{$a} = $c + $b = $d  \rightarrow \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$d} = $d^{\textstyle \frac{1}{$a}} \approx $ans1 \\  x_{2} = -\root{\textstyle $a} \of {$d} = -$d^{\textstyle \frac{1}{$a}} \approx $ans2 \end{array}
+	!else
+	    texanswer$n= x^{$a} = $c + $b = $d  \rightarrow \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$d} = $d^{\textstyle \frac{1}{$a}} \\  x_{2} = -\root{\textstyle $a} \of {$d} = -$d^{\textstyle \frac{1}{$a}} \end{array}
+	!endif
+    !endif
+ !exit
+!endif
+
+!if $R=3
+    # d*x^a = c
+    c=!randint 1,50
+    d=!randint 2,15
+    tot=!exec pari A=($c)/($d)\
+    printtex(A)
+    e=!line 1 of $tot
+    e_tex=!line 2 of $tot
+    !if $keuze=1
+	a=!randitem 3,5,7,9
+	answer$n=($e)^(1/$a)
+	!if $rounding>0
+	    ans=$[round($rounding*(($e)^(1/($a))))/$rounding]
+	    texanswer$n= x^{$a}= \frac{$c}{$d} \rightarrow x = \root{\textstyle $a} \of {$e_tex} =\left( $e_tex \right)^{\textstyle \frac{1}{$a}} \approx $ans
+	!else
+	    texanswer$n= x^{$a}= \frac{$c}{$d} \rightarrow x = \root{\textstyle $a} \of {$e_tex} =\left( $e_tex \right)^{\textstyle \frac{1}{$a}}
+	!endif
+    !else
+	a=!randitem 2,4,6,8
+	answer$n=($e)^(1/$a),-1*($e)^(1/$a)
+	!if $rounding>0
+	    ans1=$[round($rounding*(($e)^(1/($a))))/$rounding]
+	    ans2=-$ans1
+	    texanswer$n= x^{$a}= \frac{$c}{$d} \rightarrow  \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$e_tex} = \left( $e_tex \right)^{\textstyle \frac{1}{$a}} \approx $ans1 \\ x_{2} = -\root{\textstyle $a} \of {$e_tex} = -\left( $e_tex \right)^{\textstyle \frac{1}{$a}} \approx $ans2 \end{array}
+	!else
+	    texanswer$n= x^{$a}= \frac{$c}{$d} \rightarrow  \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {$e_tex} = \left( $e_tex \right)^{\textstyle \frac{1}{$a}} \\ x_{2} = -\root{\textstyle $a} \of {$e_tex} = -\left( $e_tex \right)^{\textstyle \frac{1}{$a}} \end{array}   	
+	!endif
+    !endif
+    c=$[$pm*$c]
+    d=$[$pm*$d]
+    formula$n= $d \cdot x ^{$a}  \,\, = \,\, $c 
+    applettext=!nospace $d*x^$a = $c ->
+ !exit
+!endif
+
+!if $R>3
+    # b - d*x^a  = c
+    c=!randint -50,-1
+    d=!randint 2,15
+    b=!randint 1,15
+    !if $keuze=1
+	a=!randitem 3,5,7,9
+	c=$[$pm*$c]
+	f=$[$b-($c)]
+	!if $f<0
+	    ff=$[-1*$f]
+	    answer$n=-(($ff)/($d))^(1/($a))
+	    ans=$[round($rounding*(-1*($ff/$d)^(1/($a))))/$rounding]
+	    texanswer$n= $d x^{$a}= $f \rightarrow x^{$a}= \frac{$f}{$d} = -\frac{$ff}{$d} \rightarrow x = - \root{\textstyle $a} \of {\frac{$ff}{$d}} = - \left( \frac{$ff}{$d} \right)^{\textstyle \frac{1}{$a}}
+	!else
+	    ff=$f
+	    answer$n=(($ff)/($d))^(1/($a))
+	    ans=$[round($rounding*(($ff/$d)^(1/($a))))/$rounding]
+	    texanswer$n= $d x^{$a}= $f \rightarrow x^{$a}= \frac{$f}{$d} \rightarrow x = \root{\textstyle $a} \of {\frac{$f}{$d}} = \left( \frac{$f}{$d} \right)^{\textstyle \frac{1}{$a}}
+	!endif
+	!if $rounding>0
+	    texanswer$n= $(texanswer$n) \approx $ans
+	!endif
+    !else
+	f=$[$b-($c)]
+	a=!randitem 2,4,6,8
+	answer$n=(($f)/$d)^(1/($a)),-1*(($f)/($d))^(1/($a))
+	!if $rounding>0
+	    ans1=$[round($rounding*(($f/$d)^(1/($a))))/$rounding]
+	    ans2=-$ans1
+	    texanswer$n= $d x^{$a}= $f \rightarrow  \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {\frac{$f}{$d}} = \left( \frac{$f}{$d} \right)^{\textstyle \frac{1}{$a}} \approx $ans1 \\ x_{2} = -\root{\textstyle $a} \of {\frac{$f}{$d}} = -\left( \frac{$f}{$d} \right)^{\textstyle \frac{1}{$a}} \approx $ans2 \end{array} 
+	!else
+	    texanswer$n= $d x^{$a}= $f \rightarrow  \left[ \begin{array}{l} x_{1} = \root{\textstyle $a} \of {\frac{$f}{$d}} = \left( \frac{$f}{$d} \right)^{\textstyle \frac{1}{$a}} \\ x_{2} = -\root{\textstyle $a} \of {\frac{$f}{$d}} = -\left( \frac{$f}{$d} \right)^{\textstyle \frac{1}{$a}} \end{array} 
+	!endif  	
+    !endif
+    formula$n= $b - $d \cdot x ^{$a} \,\, = \,\, $c
+    applettext=!nospace $b - $d*x^$a = $c ->
+ !exit
+!endif

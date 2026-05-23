@@ -1,0 +1,109 @@
+!set title=Distance d'un point à une droite 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Chaque carreau fait 0.5 cm. Quelle est la distance entre le point \A et	la droite&nbsp;
+val7=Votre réponse&nbsp;
+val6=Chaque carreau fait 0.5 cm.	  Quelle est la distance entre le point AAAA et la droite&nbsp;
+tmp=!nonempty items A,B,C,E,F,G
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp=!nonempty items 1,2,3,4
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0))]
+tmp0=!item $val9 of 0,pi/2,pi,3*pi/2
+
+val10=$[$(tmp0)]
+tmp0=!randint 3, 7
+
+val11=$[rint($(tmp0))]
+val12=$[rint(-$val11-2)]
+val13=$[rint($val11+2)]
+val14=range $val12,$val13,$val12,$val13	parallel $val12,$val12,$val12,$val13,1,0,2*$val11+5,grey	parallel $val12,$val12,$val13,$val12,0,1,2*$val11+5,grey	fcircle 0,0,5,black	text black,0,0,medium,$val8	linewidth 2	line $val11*cos($val10)+20*sin($val10),$val11*sin($val10)-20*cos($val10),$val11*cos($val10)-20*sin($val10),$val11*sin($val10)+20*cos($val10),black
+!readproc oef/draw.phtml 300,300 \
+$val14 
+tmp0=$ins_url
+val15=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val16=$(tmp0)
+val11=$[$val11*0.5]
+tmp0=!replace internal AAAA by $val8 in $val6
+
+val17=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val11
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val17?	<div class="wimscenter"><img src="$val15" alt=""></div>	<b>$val7: </b>  
+!read oef/embed.phtml r1,5 
+$() cm
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,15,17
+embedcnt=1

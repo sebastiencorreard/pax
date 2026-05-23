@@ -1,0 +1,123 @@
+#hoofdstuk 2 machten heleiden
+n=$counter
+embed=0
+mathview=0
+!if $counter=1
+    var6=!shuffle 1,2,3,4,5,6
+    total_exos=6
+    questiontype=0
+    calculator=2
+    mathview=0
+    rounding=0
+!endif
+checkfile=$checkdir/units.proc
+# geen eenheid
+var1=0
+cols=8
+rows=1
+wims_print_precision=12
+x=!randitem a,b,x,z,y
+arglist=$x
+mathml=!char 2 of $useropts
+sig=!randint 2,6
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+significant=!item $sig of $telwoorden
+R=!item $counter of $var6
+!if $R=1
+    a=!randint 2,50
+    b=!randint 4,50
+    !if $a = $b
+	a=13
+	b=31
+    !endif
+    ans=$[sqrt($b/$a)]
+    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,2
+    answer$n=!item 1 of $tot
+    t_ans=!item 2 of $tot
+    var2=$[abs($ans - $(answer$n))]
+    vraag=$a \cdot $x^{2} = $b
+    texanswer$n=\left[ \begin{array}{l} $a \cdot $x^{2} = $b \rightarrow $x^{2} = \frac{$b}{$a} \rightarrow $x = \sqrt{\frac{$b}{$a}} \\ \sqrt{\frac{$b}{$a}} \approx $ans \\ \textrm{Op $significant significante cijfers : } \, $x = $t_ans \end{array} \right.
+!else
+    !if $R=2
+	a=!randint 2,30
+	b=!randint 1,25
+	c=!randint 1,25
+	ans=$[sqrt(($c+$b)/$a)]
+	vraag=$a \cdot $x^{2} - $b = $c
+	tot=!exec scienceprint $ans,$sig,0 $ans,$sig,2
+	answer$n=!item 1 of $tot
+	t_ans=!item 2 of $tot
+	var2=$[abs($ans - $(answer$n))]
+	texanswer$n=\left[ \begin{array}{l} $a \cdot $x^{2} - $b = $c \rightarrow $a \cdot $x^{2} = $c + $b \rightarrow $x^{2} = \frac{$[$c + $b]}{$a} \\ $x = \sqrt{ \frac{$[$c+$b]}{$a}} \approx $ans \\ \textrm{Op $significant significante cijfers : } \, $x = $t_ans \end{array} \right.
+    !else
+	!if $R=3
+	    x=r
+	    arglist=$x
+	    a=!randint 5,155
+	    vraag=\pi \cdot r^{2} = $a
+	    ans=$[sqrt($a/pi)]
+	    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,2
+	    answer$n=!item 1 of $tot
+	    t_ans=!item 2 of $tot
+	    var2=$[abs($ans - $(answer$n))]
+	    texanswer$n=\left[ \begin{array}{l} \pi \cdot r^{2} = $a \rightarrow r^{2} = \frac{$a}{\pi} \rightarrow r = \sqrt{ \frac{$a}{\pi} } \\ r = \sqrt{ \frac{$a}{$[1*pi]}} \approx $ans \\ \textrm{Op $significant significante cijfers : } \, r = $t_ans \end{array} \right.
+	!else
+	    !if $R=4
+		checkfile=exos/checkfile1.proc
+		a=!randint -20,-2
+		b=!randint 2,20
+		vraag=$a \cdot $x^{2} = $b
+		texanswer$n=\left[ \begin{array}{l} $a \cdot $x^{2} = $b \rightarrow $x^{2} = \frac{$b}{$a} \\ $x=\sqrt{ \frac{$b}{$a} } \\ x \notin \R \end{array}\right.
+		answer$n=nan
+	    !else
+		!if $R=5
+		    checkfile=$checkdir/new_number.proc
+		    b=!randint 2,25
+		    a=!randint 2,20
+		    a=$[-1*$a]
+		    c=$[($a)^2]
+		    ans1=$[sqrt($b/$c)]
+		    ans2=$[-1*$ans1]
+		    tot=!exec scienceprint $ans1,$sig,0 $ans2,$sig,0 $ans1,$sig,2
+		    a_ans1=!item 1 of $tot
+		    a_ans2=!item 2 of $tot
+		    t_ans=!item 3 of $tot
+		    dif=$[abs($ans1 - $a_ans1)]
+		    var1=$dif
+		    var2=$[10^($sig)]
+		    answer$n=$a_ans1,$a_ans2
+		    vraag=\left($a \cdot $x \right)^{2} = $b
+		    texanswer$n=\left[ \begin{array}{l} \left($a \cdot $x \right)^{2} = $b \rightarrow $c \cdot $x^{2} = $b \rightarrow $x^{2} = \frac{$b}{$c} \rightarrow $x = \sqrt{ \frac{$b}{$c} } \wedge  -\sqrt{ \frac{$b}{$c} }  \\ $x \approx $ans1 \wedge $x \approx $ans2 \\ \textrm{Op $significant significante cijfers :}\, $x = $t_ans \wedge $x=-$t_ans \end{array}\right.
+		!else
+		    f=!randint 2,6
+		    a=!randint 2,6
+		    b=$[$f*$a]
+		    checkfile=$checkdir/new_number.proc
+		    var1=0
+		    var2=$[10^$sig]
+		    vraag=$a \cdot $x^{2} = $b \cdot $x
+		    texanswer$n=\left[ \begin{array}{l} $a \cdot $x^{2} = $b \cdot $x \\ $a \cdot $x^{2} - $b \cdot $x = 0 \\ $a \cdot $x \left( $x - $f ) =  0 \\ $x = 0 \wedge $x = $f \end{array} \right.
+		    answer$n=0,$f
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+!if $use_mathml=2
+    formula$n=$vraag \rightarrow $x  = \input{20}{0}{font-size:18px;background:orange}{}{0}
+    inputs=-1
+!else
+    embed=1
+    inputs=1
+    cols=20
+    rows=3
+    formula$n= $vraag  \rightarrow $x = [?]
+#    m_rightarrow=&nbsp;
+!endif
+
+helptext=<ul><li>Geef je antwoord op in <b>$significant</b> significante cijfers </li><li>waar mogelijk in wetenschappelijke  notatie.</li><li>Bij meerdere antwoorden invullen : x=1.23 en x=3.45 </li><li>Bij geen re&euml;ele oplossingen invullen: geen oplossingen in R (of zo iets )</li></ul>
+
+ss=Bereken de <span class="schaersvoorde_link">waarde</span> van de lettervariabele<br />Bij gebroken getallen de waarde opgeven in $significant significante cijfers.
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!exit

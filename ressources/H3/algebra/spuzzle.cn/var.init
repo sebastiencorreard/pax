@@ -1,0 +1,30 @@
+
+!read data/spuzzle/photindex
+
+!bound level within $levels default 2x3
+
+nx=!char 3 of $level
+ny=!char 1 of $level
+!ifval ($nx*$ny)%2=1
+ shoption=even
+!endif
+
+n=!wordcnt $photos
+n=!randint 1,$n
+phname=!word $n of $photos
+!if $phname=small
+  phname=suzhou
+!endif
+
+:rescramble
+oscramble=!shuffle $shoption $nx*$ny
+scramble=!nospace $oscramble
+goodorder=!sort numeric item $scramble
+goodorder=!nospace $goodorder
+!if $goodorder=$scramble
+ !goto rescramble
+!endif
+
+!distribute item waiting,0,0 into status,replycnt,showorigin
+wims_module_log=$cmd: $level
+

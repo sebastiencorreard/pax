@@ -1,0 +1,144 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:31:23 UTC 2008
+ 
+#nulpunten aantal 0,1,2
+n=$counter
+wims_exec_error=$empty
+wims_compare_precision=10000
+errortext=$empty
+goback=0
+# questionmark escape
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+!if $(reply$n)=$empty
+    errortext=!record 62 of $remarkdir/commonremarks.$taal
+    goback=1
+    !exit
+!endif
+
+AAA=!singlespace $(reply$n)
+AAA=$ $ $AAA
+AAA=!lower $AAA
+
+text1=!record 12 of lang/remarks.$taal
+#@ text1=De discriminant is kleiner dan nul<br />er zijn g&eacute;&eacute;n nulpunten,
+#@ De discriminant is nul<br />er is &eacute;&eacute;n nulpunt,
+#@ De discriminant is groter dan nul<br />er zijn twee nulpunten,
+#@ maximaal 2 nul ...,
+nothing=!record 13 of lang/remarks.$taal
+#@ 0,nul,zero,zip,nop,niks,nada,geen,niente
+one=!record 14 of lang/remarks.$taal
+#@  1,een,enkel
+two=!record 15 of lang/remarks.$taal
+#@  2,twee,II
+g0=!item 1 of $text1
+g1=!item 2 of $text1
+g2=!item 3 of $text1
+testvar=!item 4 of $text1
+
+s0=0
+s1=0
+s2=0
+A=3
+!for p in $nothing
+    !if $p isin $AAA
+	!increase s0
+	A=0
+    !endif
+!next p
+!for p in $one
+    !if $p isin $AAA
+	!increase s1
+	A=1
+    !endif
+!next p
+!for p in $two
+    !if $p isin $AAA
+	!increase s2
+	A=2
+    !endif
+!next p
+!if $[$s0+$s1+$s2]>1
+    ex=!record 16 of lang/remarks.$taal
+    !if $teaching=1
+	maxscore=$[$maxscore*$P4]
+	errortext=$ex
+	goback=1
+    !else
+	remark$n=$NOK<br />$ex
+	maxscore=0
+	goback=0
+    !endif
+    !exit
+!endif
+!if $A=3
+    AAA=!replace [a-z\~\!\@\#\$\%\_\=\+\-\:\;] by $empty in $AAA
+    !if NaN isin $[$1*$AAA]
+	errortext=!record 16 of lang/remarks.$taal
+	maxscore=$[$maxscore*$P1]
+	goback=1
+	!exit
+    !endif
+    !if $[1*$AAA] > 2
+	!if $teaching=1
+	    maxscore=$[$maxscore*$P4]
+	    errortext=$testvar
+	    goback=1
+	!else
+	    remark$n=$NOK<br />$testvar
+	    maxscore=0
+	    goback=0
+	!endif
+	!exit
+    !endif
+!endif
+!if $A=$(answer$n)
+    remark$n=$OK
+    maxscore=1
+!else
+    maxscore=0
+    !if $teaching=1
+	!if $A=0
+	    !if $(answer$n)=1
+		ex=$g1
+	    !else
+		!if $(answer$n)=2
+		    ex=$g2
+		!endif
+	    !endif
+	    !goto READY
+	!endif
+	!if $A=1
+	    !if $(answer$n)=0
+		ex=$g0
+	    !else
+		!if $(answer$n)=2
+		    ex=$g2
+	        !endif
+	    !endif
+	    !goto READY
+	!endif
+	!if $A=2
+	    !if $(answer$n)=0
+		ex=$g0
+	    !else
+		!if $(answer$n)=1
+		    ex=$g1
+		!endif
+	    !endif
+	!endif
+    :READY
+    remark$n=$NOK<br />$ex
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

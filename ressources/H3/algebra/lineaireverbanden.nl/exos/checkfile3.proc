@@ -1,0 +1,122 @@
+# answer$n=$func,$a
+# reply :rc,(x1:y1),(x2:y2)
+# var9 = plaatje in canvasdraw script
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+reply$n=!nospace $(reply$n)
+reply$n=!lower $(reply$n)
+rc_a=!item 1 of $(reply$n)
+rc_g=!item 2 of $(answer$n)
+fun=!item 1 of $(answer$n)
+# gewoon uitrekenen
+!if $[abs($rc_a - $rc_g)] < 0.01
+    score1=1
+    k1=green
+!else
+    !if $[abs($rc_a - $rc_g)] < 0.05
+	score1=0.8
+        k1=orange
+    !else
+	!if $[abs($rc_a - $rc_g)] < 0.1 
+	    score1=0.4
+    	    k1=orange
+	!else
+	    score1=0
+	    k1=red
+	!endif
+    !endif
+!endif
+
+pt1=!item 2 of $(reply$n)
+pt2=!item 3 of $(reply$n)
+pt1=!declosing $pt1
+pt2=!declosing $pt2
+pt1=!replace internal : by , in $pt1
+pt2=!replace internal : by , in $pt2
+xa1=!item 1 of $pt1
+ya1=!item 2 of $pt1
+xa2=!item 1 of $pt2
+ya2=!item 2 of $pt2
+
+yc1=!evalsubst x=$xa1 in $fun
+yc2=!evalsubst x=$xa2 in $fun
+
+!if $[abs($ya1 - $yc1)] < 0.1
+    score2=1
+    k2=green
+!else
+    !if $[abs($ya1 - $yc1)] < 0.5
+	score2=0.7
+	k2=orange
+    !else
+	!if $[abs($ya1 - $yc1)] < 1
+	    score2=0.3
+	    k2=orange
+	!else
+	    score2=0
+	    k2=red
+	!endif
+    !endif
+!endif
+
+!if $[abs($ya2 - $yc2)] < 0.1
+    score3=1
+    k3=green
+!else
+    !if $[abs($ya2 - $yc2)] < 0.5
+	score3=0.7
+	k3=orange
+    !else
+	!if $[abs($ya2 - $yc2)] < 1
+	    score3=0.3
+	    k3=orange
+	!else
+	    score3=0
+	    k3=red
+	!endif
+    !endif
+!endif
+
+!if $[$score2+$score3]>1
+    score4=1
+!else
+    score4=0
+!endif
+math=0
+maxscore=$[$maxscore*(7*$score1 + $score2 + $score3 + $score4)/10]
+!if $maxscore > 0.8
+    remark$n=$OK
+    k4=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k4=orange
+    !else
+	remark$n=$NOK
+	k4=red
+    !endif
+!endif
+
+reply$n=<ul><li><span style="color:$k1">$rc_a</span></li><li><span style="color:$k2">($xa1 : $ya1)</span></li><li><span style="color:$k3">($xa2 : $ya2)</span></li></ul>
+
+modulescore=$[$modulescore + $maxscore]
+
+yg1=!evalsubst x=0 in $fun
+yg2=!evalsubst x=10 in $fun
+
+object$n=!exec canvasdraw\
+$var9\
+linewidth 3\
+line $xa1,$ya1,$xa2,$ya2,$k4\
+line 0,$yg1,10,$yg2,green
+
+goback=0
+!exit

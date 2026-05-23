@@ -1,0 +1,144 @@
+!header
+!set abs_max=41
+!set taal=nl
+<script type="text/javascript"> 
+    var schakelaar=0;
+    function showList(){
+        if(schakelaar == 0){
+            schakelaar = 1;
+            document.getElementById('menuList').style.display = "block";
+            document.getElementById('switch1').style.display = "none";
+            document.getElementById('switch2').style.display = "none";
+        }
+        else
+        {
+            schakelaar=0;
+            document.getElementById('menuList').style.display = "none";
+            document.getElementById('switch1').style.display = "block";
+            document.getElementById('switch2').style.display = "block";
+        }
+    }
+    function start(){	
+	document.getElementById("mybutton").setAttribute('style', "color:#0000ff;background-color:#ffbb00;font-weight:normal;font-size:16px;border:1px #0000ff solid");
+	var maxtime=document.getElementById("maxtime").value;
+	maxtime=Math.abs(Math.round(maxtime));
+	if(maxtime > 90){maxtime=90;}
+	if(maxtime < 5){maxtime=90;}
+
+	var minimal_score=document.getElementById("minimal_score").value;
+	minimal_score=Math.abs((Math.round(10*minimal_score))/10);
+	if(minimal_score > 10){minimal_score=10;}
+	if(minimal_score < 0){minimal_score=0;}
+	
+	var total_exos=document.getElementById("total_exos").value;
+	total_exos=Math.abs(Math.round(total_exos));
+	if(total_exos > $abs_max){total_exos=$abs_max;}
+	if(total_exos < 2){total_exos=$abs_max;}
+	
+	var options=document.getElementById("options").value;
+	options=Math.abs(Math.round(options));
+	if(options > 10){options=10;}
+	if(options < 2){options=2;}
+
+	var mytexsize=document.getElementById("mytexsize").value;
+	if(mytexsize > 5){mytexsize=5;}
+	if(mytexsize < -5){mytexsize=5;}
+
+	var showquitbutton=document.getElementById("quitbuttonselect").value;
+
+	var idx=0;var p = 1;var first=0;var exolist=""
+	while(document.getElementById("exolist"+idx)){
+	    if(document.getElementById("exolist"+idx).checked == true){
+		p = eval(idx+1);
+		if(first == 0){first = 1; exolist = p; } else { exolist = exolist + "," + p;}
+	    }
+	    idx++;
+	}
+	var URL = '$wims_ref_name?session=$session&module=$module&cmd=new&taal=$taal&total_exos='+total_exos+'&minimal_score='+minimal_score+'&maxtime='+maxtime+"&options="+options+"&mytexsize="+mytexsize+"&showquitbutton="+showquitbutton+"&exolist="+exolist ;
+	document.location.href = URL;
+    }
+</script>
+<table summary="controls" style="margin-left:auto;margin-right:auto;border-collapse:collapse;">
+    <tr>
+    <td>
+	!set txt=Als een leerling langer dan de ingestelde tijd nodig heeft,<br />wordt de toets bee&iuml;ndigd en de resterende opdrachten gewaardeerd met score 0.<br />De maximale tijdsduur is 90 minuten...
+	<a onmouseover="return escape('$txt')">
+	    Deze vaardigheidstoets duurt <input size="2" id="maxtime" value="60"> minuten.
+	</a>
+    </td>
+    </tr>
+    <tr>
+    <td>
+!set ready=0
+!set list=$empty
+!for p=1 to 100
+    !if $ready=0
+	!set competence=!record $[-1*$p] of lang/remarks.$taal
+	!if $competence=$empty
+	    !set ready=1
+	!else    
+	    !set list=!append word <input id="exolist$[$p-1]" type="checkbox" name="exolist" value="$p">$competence<br/> to $list
+	!endif
+    !endif
+!next p
+	!set txt=Met deze optie kan elke som over een onderwerp individueel worden ingebonden in de test<br />De standaard instelling  is dat WIMS zelf het <b>ingestelde aantal sommen</b> random kiest uit <b>alle</b> aanwezige onderwerpen...
+	<a onmouseover="return escape('$txt')">
+		Optioneel: kies zelf de onderwerpen uit een lijst...
+	</a>
+	<div id="switch1" style="display:block;">
+	    <a onClick="javascript:showList();">
+		<span style="color:blue">laat lijst met onderwerpen zien</span>
+    	    </a>
+	</div>
+	<div id="menuList" style="display:none;">
+    	    <a onClick="javascript:showList();">
+		<span style="color:blue"><b>verberg lijst met onderwerpen</b></span><br />
+    	    </a>
+	    <span style="color:green">
+		$list
+	    </span>
+	</div>
+    </td>
+    </tr>
+    <tr>
+    <td>
+	!set txt=<br />leerlingen mogen -onder punten aftrek- bij een lagere eindscore de foute opdrachten herkansen.
+	<a onmouseover="return escape('$txt')">
+	    De vereiste minimum eindscore is <input size="2" id="minimal_score" value="6.5">
+	</a>
+    </td>
+    </tr>
+    <tr>
+    <td id="switch2" style="display:block;">
+    <a onmouseover="return escape('(2 &le; x &le; $abs_max)')">
+	Aantal opdrachten is <input size="2" id="total_exos" value="$abs_max">
+    </a>
+    </td>
+    </tr>
+    <tr>
+    <td>
+	<a onmouseover="return escape('(2 &le; x &le; 10)')">
+	    Bij een multiplechoice vraag zijn er <input size="2" id="options" value="4"> keuze mogelijkheden 
+	</a>
+    </td>
+    </tr>
+    <tr>
+    <td>
+	<a onmouseover="return escape('<ul><li><img src=scripts/authors/jm.evers/gifs/4.gif>+4</li><li><img src=scripts/authors/jm.evers/gifs/3.gif>+3</li><li><img src=scripts/authors/jm.evers/gifs/2.gif>+2</li><li><img src=scripts/authors/jm.evers/gifs/1.gif>+1</li><li><img src=scripts/authors/jm.evers/gifs/0.gif>0</li><li><img src=scripts/authors/jm.evers/gifs/-1.gif>-1</li><li><img src=scripts/authors/jm.evers/gifs/-2.gif>-2</li><li><img src=scripts/authors/jm.evers/gifs/-3.gif>-3</li><li><img src=scripts/authors/jm.evers/gifs/-4.gif>-4</li></ul>')"> 
+	    LateX plaatjes grootte : <input size="2" id="mytexsize" value="+1"
+	</a>
+    </td>
+    </tr>
+    <tr>
+    <td>
+	Mogen leerlingen de toets vroegtijdig bee&iuml;ndigen, via een "exit" knop? <select id="quitbuttonselect"><option value="1">Ja</option><option value="0">Nee</option></select>
+    </td>
+    </tr>
+</table>
+<p style="text-align:center">
+!set send=!record 4 of authors/jm.evers/lang/commonremarks.$taal
+<a id="mybutton" onClick="javascript:start();" style="color:#000000;background-color:#57ff7f;font-weight:normal;font-size:16px;border:1px #0000ff solid">$send</a>
+</p>
+<script type="text/javascript" src="scripts/authors/jm.evers/js/wz_tooltip.js"></script>
+
+!tail

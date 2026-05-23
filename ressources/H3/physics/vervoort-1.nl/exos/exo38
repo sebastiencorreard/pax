@@ -1,0 +1,69 @@
+n=$counter
+#hfst3
+#exo36(hfst3)Toerental van tandwielen
+# 3 stappen
+questiontype=3
+math=0
+cols=14
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/units.proc
+inputs=2
+
+letters=A,B\
+I,II\
+T1,T2
+
+k=!randint 1,3
+letter=!line $k of $letters
+letter=!shuffle $letter
+A=!item 1 of $letter
+B=!item 2 of $letter
+
+num=!randint 2,15
+# cm
+diaB=!randint 300,999
+diaB=!exec moneyprint $[$diaB/100] 2
+sig=3
+# cm
+diaA=$[$num*$diaB]
+OmtrekA=$[pi*$diaA]
+# meter
+OmtrekA_m=$[$OmtrekA/100]
+# m/min
+v1=1
+v2=!randint 0,9
+v3=!randint 1,9
+v=!nospace $v1 $v2 $v3
+
+rpm=$[$v/$OmtrekA_m]
+# ms
+omlooptijd=$[60000/$rpm]
+
+tot=!exec scienceprint $rpm,3,0 $rpm,3,1 $omlooptijd,3,0 $omlooptijd,3,1
+c_ans1=!item 1 of $tot
+h_ans1=!item 2 of $tot
+c_ans2=!item 3 of $tot
+h_ans2=!item 4 of $tot
+
+answer$n=$c_ans1,$c_ans2
+diff1=$[abs($rpm - $c_ans1)]
+diff2=$[abs($omlooptijd - $c_ans2)]
+var1=0,0
+var2=$diff1,$diff2
+
+
+ss=Een tweetal tandwielen : <span style="color:blue">tandwiel $A</span> heeft $num &times; zoveel tanden als tandwiel $B.<br />Punt P op tandwiel $A heeft snelheid van $v m/min.<br />Tandwiel $B heeft een diameter van $diaB cm.<br />&minus; Bereken het toerental van tandwiel $A<br />&minus; Bereken de omlooptijd van P in ms.
+
+description=n<sub>$A</sub>,Omlooptijd P
+ex1=&nbsp;<kbd>rpm</kbd>
+ex2=&nbsp;ms
+m_rightarrow=&nbsp;=&nbsp;
+
+textanswer$n=<ol><li>$num &times; zoveel tanden wil zeggen dat de omtrek verhouding $num:1 is<br />En dus geldt ook dat de diameter verhouding tussen de tandwielen $num:1 is.<li>Toerental tandwiel $A in omwentelingen per minuut (rpm)<ul><li>diameter tandwiel $A : d<sub>$A</sub> = $num &sdot; d<sub>$B</sub> = $diaA cm</li><li>Omtrek tandwiel $A : O<sub>$A</sub> = &pi;&sdot;d<sub>$A</sub> = &pi;&sdot;$diaA cm = $OmtrekA_m m</li><li>Toerental tandwiel $A : n<sub>$A</sub> =  v / O  (m/min)/m = v / O 1/min = v / O rpm</li><li>n<sub>$A</sub> = $v / $omtrekA_m = $rpm rpm</li><li>n<sub>$A</sub> = $h_ans1 rpm (in $sig signficante cijfers)</li></ul></li><li>Omlooptijd punt P in milliseconden (ms)<ul><li>Tandwiel $A:<br />1 minuut : $rpm omwentelingen <br />1 omwenteling duurt 1/$rpm minuten = 60/$rpm seconden = 1000&times;60/$rpm ms</li><li>De omlooptijd van P = $omlooptijd ms<br />Omlooptijd P = $h_ans2 ms (in $sig significante cijfers)</li></ul></li></ol>
+
+helptext=<img src=$module_dir/gifs/exo38.jpg alt=micrometer /><br /><b>TEKENING IS ALLEEN TER ILLUSTRATIE</b>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+

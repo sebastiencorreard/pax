@@ -1,0 +1,76 @@
+#hfst1
+#exo8(hfst1) Procentrekenen I [hoeveel alcohol gedronken ?]
+n=$counter
+checkfile=$checkdir/units.proc
+mathview=0
+inputs=1.1
+make_tr=1
+# let op var1 en var2 zijn misschien niet leeg !!!
+var1=$empty
+var2=$empty
+cols=8
+rows=1
+formula$n=$empty
+W=!randint 55,115
+k=!randint 0.1
+!if $k=1
+    vrouw=vrouw
+    vrouwen=vrouwen
+    zij=zij
+    haar=haar
+    M=55
+    
+!else
+    vrouw=man
+    haar=zijn
+    vrouwen=mannen
+    zij=hij
+    M=60
+!endif
+
+
+perc1=!randint 10,100
+perc1=!exec moneyprint $[$perc1/100]
+
+water=$[$W*$M/100]
+alc_kg=$[$water*$perc1/1000]
+alc_gr=$[$alc_kg*1000]
+alc_mg=$[$alc_kg*1000000]
+# precisie 2 afkomstig van 50 %
+tot=!exec scienceprint $alc_kg,2,0 $alc_kg,2,1 $alc_gr,2,0 $alc_gr,2,1 $alc_mg,2,0 $alc_mg,2,1
+
+r_alc_kg=!item 1 of $tot
+h_alc_kg=!item 2 of $tot
+r_alc_gr=!item 3 of $tot
+h_alc_gr=!item 4 of $tot
+r_alc_mg=!item 5 of $tot
+h_alc_mg=!item 6 of $tot
+# units.proc
+
+diff_kg=$[abs($alc_kg - $r_alc_kg)]
+diff_gr=$[abs($alc_gr - $r_alc_gr)]
+diff_mg=$[abs($alc_mg - $r_alc_mg)]
+
+var2=$diff_gr
+formula$n=$empty
+##\begin{array}{l} \textrm{alcohol promillage = }\displaystyle \frac{a \cdot 10}{ g \cdot  r} - (u - 0.5) \times (g \cdot 0.002) \\ \textrm{ Verklaring:} \\ \textrm{a = aantal glazen} \\ \textrm{g = lichaamsgewicht} \\ \textrm{r = bij mannen 0.7 en bij vrouwen 0.5 } \\ \textrm{u = het aantal uren vanaf het eerste glas} \end{array}
+
+textanswer$n=Een $vrouw bestaat uit $M massa % water.<br />Een $vrouw van $W kg bestaat dus ongeveer uit $M / 100 &times; $W &asymp; $water kg water.<br />De hoeveelheid alcohol is dus $perc1/1000 &times; $water &asymp; $alc_kg &asymp; $h_alc_kg kg pure alcohol.<br />(de 2 significante cijfers zijn afkomstig van "$M" <br />Dus ongeveer $h_alc_gr gram ($h_alc_mg mg) pure alcohol.
+
+ss=Een $vrouw met een gewicht van $W kg heeft $perc1 &permil;  alcohol in $haar bloed.<br />Voor $vrouwen geldt dat het lichaam voor $M massa % (m%) uit water bestaat.<br />Bereken hoeveel gram alcohol die $zij gedronken heeft.
+
+# answer$n is fysisch correcte antwoord : niet het wiskundig precise antwoord...
+answer$n=$r_alc_gr
+var1=0
+var2=$diff_gr
+ex1=&nbsp;gram pure alcohol
+m_rightarrow=&nbsp;=&nbsp;
+description=Hoeveelheid 
+
+helptext=Geef je antwoord de juiste <a target=\'new\' href=\'http://nl.wikipedia.org/wiki/Significant_cijfer\' ><b>precisie</b></a>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+!exit
+
+    

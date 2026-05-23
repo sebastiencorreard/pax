@@ -1,0 +1,130 @@
+# DHTML sleep sommetje
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !read $remarkdir/rounding.$taal
+!endif
+helptext=$empty
+javascript=js/exo9.js
+mathview=0
+questiontype=7
+image=0
+cols=30
+make_tr=1
+rows=1
+math=0
+inputs=yes
+checkfile=exos/checkfile3.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+helptext=<img src=\'$module_dir/gifs/help.exo9.jpg\' alt=\'noalt\' />
+
+F=!randitem f,g,h,k,p,w
+ss=!record 33 of lang/remarks.$taal
+#@Bepaal het tekenverloop en de nulpunten in $m_RR (mits aanwezig...)<br />van de onderstaande functie <em>$F</em><br /><em><small>sleep de plaatjes en invulveldjes naar de goede plek</small></em><p>
+how=!record 34 of lang/remarks.$taal
+question$n=$ss<a onmouseover="return escape('$helptext')"><small>$how</small></a>
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+!if $R = 1
+    a=!randitem -1,1
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+!endif
+!if $R = 2
+    a=!randitem -1,-2,-3,1,2,3
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+!endif
+!if $R = 3
+    a=!randitem -1,-2,-3,1,2,3
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+!endif
+!if $R >3
+    a=!randitem -1,-2,-3,1,2,3
+    b=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    c=!randitem -10,-8,-6,-4,-2,-1,1,2,4,6,8,10 
+!endif
+    
+plus=<img src="$module_dir/gifs/plus.gif" name="img1" style="height:58px;width:58px" id="img1" />
+min=<img src="$module_dir/gifs/min.gif" name="img2" style="height:58px;width:58px" id="img1" />
+nul=<img src="$module_dir/gifs/nul.gif" style="height:58px;width:58px" id="img1" />
+functie=($a)*x^2 + ($b)*x + ($c)
+D=$[$b*$b - 4*($a)*($c)]
+!if $D >= 0
+    x1=(-1*$b + sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    x2=(-1*$b - sqrt($b*$b - 4*($a)*($c)))/(2*($a))
+    tot=!exec maxima expand($x1);\
+    expand($x2);
+    x11=!line 1 of $tot
+    x22=!line 2 of $tot
+    !ifval $x11 < $x22
+	x1=$x11
+	x2=$x22
+    !else
+	x2=$x11
+	x1=$x22
+    !endif
+    X1tex=!texmath $x1
+    X2tex=!texmath $x2
+    !if $D > 0
+	texanswer$n= \left[ \begin{array}{l} x_{1} \,=\, $X1tex \\ x_{2} \,=\, $X2tex \end{array}\right.
+	!if $a>0
+	    answer$n=$x1,$x2,+,x,-,x,+
+	    textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$plus</th><th>$nul</th><th>$min</th><th>$nul</th><th>$plus</th></tr></table>
+	!else
+	    answer$n=$x1,$x2,-,x,+,x,-
+	    textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$min</th><th>$nul</th><th>$plus</th><th>$nul</th><th>$min</th></tr></table>
+	!endif
+    !else
+	# D=0
+	texanswer$n= x_{1} \,=\, $X1tex
+	!if $a>0
+	    answer$n=$x1,+,x,+
+	    textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$plus</th><th>$nul</th><th>$plus</th></tr></table>
+	!else
+	    answer$n=$x1,-,x,-
+	    textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$min</th><th>$nul</th><th>$min</th></tr></table>
+	!endif
+    !endif    
+!else
+    !if $a>0
+	answer$n=+
+	textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$plus</th><th>$plus</th><th>$plus</th><th>$plus</th></tr></table>
+    !else
+	answer$n=-
+	textanswer$n=<table style="background-color:lightblue"><th>$F(x)</th><th>$min</th><th>$min</th><th>$min</th><th>$min</th></tr></table>
+    !endif
+    texanswer$n=x \,\, \notin \,\, \Bf{R}
+!endif	
+ 
+formula$n=!texmath $functie
+formula$n=$F\left( x \right)\,\,=\,\,$(formula$n)
+DHTML=$empty
+invul=$empty
+exotext=$empty
+nulpunten=5
+options=10
+DHTML=!append item "img1" + COPY + $options  to $DHTML
+DHTML=!append item "img2" + COPY + $options  to $DHTML
+i=0
+!for p=1 to $nulpunten
+    m=$[$p+1]
+    invul=!append line <td><div id="div$m" name="div$m" style="position:relative;height:60px;border:1px solid #ff0000"><br /><em>x</em><sub><span size=-2>$p</span></sub>=<input size="3" id="myinput$i" value="" type="text" /></div></td> to $invul
+    DHTML=!append item "div$m" to $DHTML
+    !increase i
+!next p
+options=$[$nulpunten+2]
+DHTML=!append item "div0" + NO_DRAG  to $DHTML
+DHTML=!append item "div1" + NO_DRAG  to $DHTML
+
+dhtml=<script type="text/javascript">SET_DHTML( CURSOR_MOVE , $DHTML);</script>
+
+exotext=<table style="background-color:lightblue"><tr><th style="background-color:#ffffff"><em>x</em></th><th><table><tr><td><img src="$module_dir/gifs/min_oneindig.gif" alt="-infinity" /></td><td><div id="div1" name="div1" style="position:relative;height:60px;width:680px;background-color:lightblue">&nbsp;</div></td><td><img src="$module_dir/gifs/plus_oneindig.gif" alt="+infinity" /></td></tr></table></th></tr><tr><th style="background-color:#ffffff">$F(<em>x</em>)</th><th><table><tr><td>&nbsp;</td><td><hr /><div id="div0" name="div0" style="position:relative;height:60px;width:680px;background-color:lightblue">&nbsp;</div></td><td>&nbsp;</td></tr></table></th></tr></table><hr /><table style="background-color:lightgreen"><tr><th>$plus</th><th>$min</th><th><table style="background-color:lightgreen"><tr>$invul</tr></table></th></tr></table>
+

@@ -1,0 +1,68 @@
+#hfst2
+#exo28(hfst2) Omrekenen inhoudsmaten [bak water]
+n=$counter
+math=0
+cols=8
+rounding=10
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=$checkdir/units.proc
+inputs=2
+keuze=!randint 0,1
+!if $keuze=1
+    breedte=!randint 40,99
+    lengte=!randint 40,99
+    hoogte=!randint 10,50
+    sig=2
+!else
+    sig=3
+    breedte=!randint 101,199
+    lengte=!randint 101,199
+    hoogte=!randint 10,50
+!endif
+
+tot=!exec moneyprint $[$breedte/10],$[$lengte/10]  1
+B=!item 1 of $tot
+L=!item 2 of $tot
+H=!exec moneyprint $[$hoogte/100] $sig
+inh=$[$H*$L*$B]
+
+tot1=!exec scienceprint $inh,$sig,0 $inh,$sig,1
+ans1=!item 1 of $tot1
+h_ans1=!item 2 of $tot1
+
+d1=!randint 1,9
+d2=!randint 1,9
+debiet=$[$d1*10+$d2]
+# liter/min
+Vpomp=$[$debiet*60/1000]
+# min
+Tpomp=$[$inh/$Vpomp]
+
+tot2=!exec scienceprint $Tpomp,2,0 $Tpomp,2,1
+ans2=!item 1 of $tot2
+h_ans2=!item 2 of $tot2
+
+var1=0,0
+var2=$[abs($inh - $ans1)],$[abs($Tpomp- $ans2)]
+# answer$n=fysisch correct...niet wiskundig precies
+answer$n=$ans1,$ans2
+
+ss=Een bak heeft een rechthoekige doorsnede van $breedte &times; $lengte cm.<br />Na een aantal regenbuien staat er een laagje water van $hoogte mm in de bak.<br />Bereken de hoeveelheid water in de bak in liter.<br />De bak wordt vervolgens leeggepompt met een volumedebiet van $debiet ml/s.<br />Bereken na hoeveel minuten de bak leeg is.
+
+textanswer$n=<ol><li><ul><li>1 liter = 1 dm<sup>3</sup></li><li>De bak is $breedte &times; $lengte cm = $B &times; $L dm</li><li>Het laagje water is $hoogte mm = $hoogte/10 cm = $hoogte/100 dm = $H dm </li><li>De hoeveelheid water is : $B &times; $L &times; $H dm<sup>3</sup> = $inh dm<sup>3</sup></li><li>Hoeveelheid water = $h_ans1 dm<sup>3</sup> = $h_ans1 liter <em>(in $sig significante cijfers)</em></li></ul></li><li><ul><li>Er zit $inh liter water in de bak (altijd doorrekenen met onafgeronde getallen)</li><li>Pompsnelheid is $debiet ml/sec = $debiet/1000 l/sec = $debiet &times; 60 / 1000 l/min</li><li>Pompsnelheid = $Vpomp liter/min</li><li>Pomptijd : $inh / $Vpomp &nbsp;=&nbsp; $Tpomp minuten</li><li>De pomptijd = $h_ans2 min <em>(in 2 significante cijfers)</em></li></ul></li></ol>
+
+helptext=Geef je antwoord op met in juiste aantal significante cijfers...
+
+question$n=<a onmouseover="return escape('$helptext ')">$ss</a>
+
+description=Hoeveelheid water in de bak,Pomptijd
+ex1=&nbsp; liter
+ex2=&nbsp; minuten
+m_rightarrow=&nbsp;&nbsp;=&nbsp;&nbsp;
+
+!exit
+
+    

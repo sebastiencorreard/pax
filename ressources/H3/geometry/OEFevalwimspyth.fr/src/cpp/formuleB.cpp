@@ -1,0 +1,86 @@
+target=formuleB1 formuleB2 formuleB3
+#define TITRE Relation de Pythagore dans un contexte
+\keywords{pbsolving}
+#include "author.inc"
+
+\integer{xmax=randint(300..350)}
+\integer{ymax=200}
+
+#if defined TARGET_formuleB1
+ \title{TITRE 1}
+#include "triangle1.inc"
+ \text{bad=\(\B\C = \A\B + \A\C),\(\A\B^2 = \B\C^2 + \A\C^2),\(\A\C^2 = \B\C^2 + \A\B^2) , \(\A\B = \B\C + \A\C),\(\A\C = \B\C + \A\B)}
+ \text{good=\(\B\C^2 = \A\B^2 + \A\C^2)}
+ \text{bad=shuffle(\bad,\good)}
+ \integer{good=position(\good,\bad)}
+ \text{type=radio}
+ \integer{N1=randint(5..15)}
+ \integer{N2=randint(25..35)}
+ \text{long=shuffle(\A\B,\A\C)}
+ \text{mesure=\(\long[1]=\N1 \textrm{ cm} \quad ; \quad \B\C = \N2 \textrm{ cm})}
+ \text{long=\long[2]}
+#endif
+#if defined TARGET_formuleB2
+ \title{TITRE 2}
+ \text{lettres=shuffle(A,B,C,D,E,F,G,H,J,K)}
+ \text{A=\lettres[1]}
+ \text{B=\lettres[2]}
+ \text{C=\lettres[3]}
+ \text{bad=\(\B\C = \A\B + \A\C),\(\A\B^2 = \B\C^2 + \A\C^2),\(\A\C^2 = \B\C^2 + \A\B^2) , \(\A\B = \B\C + \A\C),\(\A\C = \B\C + \A\B)}
+ \text{good=\(\B\C^2 = \A\B^2 + \A\C^2)}
+ \text{bad=shuffle(\bad,\good)}
+ \integer{good=position(\good,\bad)}
+ \text{type=radio}
+ \integer{N1=randint(5..15)}
+ \integer{N2=randint(25..35)}
+ \text{long=shuffle(\A\B,\A\C)}
+ \text{mesure=\(\long[1]=\N1 \textrm{ cm} \quad ; \quad \B\C = \N2 \textrm{ cm})}
+ \text{long=\long[2]}
+#endif
+#if defined TARGET_formuleB3
+ \title{TITRE 3}
+ \text{lettres=shuffle(A,B,C,D,E,F,G,H,J,K)}
+ \text{A=\lettres[1]}
+ \text{B=\lettres[2]}
+ \text{C=\lettres[3]}
+ \text{bad=\(\B\C = \A\B + \A\C),\(\A\B^2 = \B\C^2 + \A\C^2),\(\A\C^2 = \B\C^2 + \A\B^2) , \(\A\B = \B\C + \A\C),\(\A\C = \B\C + \A\B)}
+ \text{good=\(\B\C^2 = \A\B^2 + \A\C^2)}
+ \text{bad=shuffle(\bad,\good)}
+ \integer{good=position(\good,\bad)}
+ \text{type=radio}
+ \integer{N1=randint(5..15)}
+ \integer{N2=randint(25..35)}
+ \text{long=shuffle(\A\B,\A\C)}
+ \text{mesure=\(\long[1]=\N1 \textrm{ cm} \quad ; \quad \long[2] = \N2 \textrm{ cm})}
+ \text{long=\B\C}
+#endif
+
+\if{\dessin!=}{
+ \text{figure=draw(\xmax,\ymax
+\dessin)}
+}
+
+\integer{nbbad=items(\bad)}
+
+\statement{
+\if{\dessin!=}{
+  <div class="wims_columns">
+ <div class="medium_size img_col"><img src="\figure" alt=""></div>
+ <div class="medium_size text_col">
+}
+   \A\B\C est un triangle rectangle en \A tel que :
+   <div class="wimscenter"> \mesure</div>
+   Parmi les égalités suivantes, laquelle permettra de calculer la longueur \long ?
+   <blockquote><ul>
+   \for{l=1 to \nbbad}{
+    <li>\embed{r1,\l}</li>
+   }
+   </ul>
+   </blockquote>
+\if{\dessin!=}{
+ </div>
+</div>
+}
+}
+
+\answer{Réponse}{\good;\bad}{type=\type}

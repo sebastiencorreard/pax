@@ -1,0 +1,123 @@
+# Variable initialisation file.
+# This file is read by wims for new sessions.
+
+# content of the file: initialisation of the problem.
+
+!default mode=$liste
+!default diff=1
+mode= !randitem $mode
+!default proj=1,2
+proj=!randitem $proj
+dessin1=$empty
+dessin2=$empty
+liste=$empty
+border=1
+ring_size=5
+click_cnt=0
+!if $diff=1
+centre=0
+!else
+centre=!randint 1,10
+centre=$[$centre/5]
+!endif
+
+!!On se donne  un  vecteur
+
+a11=!randint 1,4
+a12=!randint 1,5
+e1=!randitem 1,-1
+e2=!randitem 1,-1
+a11=$[$e1*$a11]
+a12=$[$e2*$a12]
+A1=$a11,$a12
+
+!if $mode issametext orth
+the=90
+thet=pi/2
+!else
+the=!randint 45,135
+thet=$[$the*pi/180]
+!endif
+u=!randint 1,2
+e=!randitem 1,-1
+a21=$[(cos($thet)*($a11)-sin($thet)*($a12))*($u)]
+a22=$[(sin($thet)*($a11)+cos($thet)*($a12))*($u)]
+A2=$a21,$a22
+
+!if $diff>=3
+listangle= !shuffle 30,40,70, 90,110,140,155
+listangle=!replace internal item $the by 170 in $listangle
+
+!for i=3 to $[$diff]
+the=!item $i of $listangle
+the=$[$the*pi/180]
+u=!randint 1,2
+e=!randitem 1,-1
+a$(i)1=$[(cos($the)*($a11)-sin($the)*($a12))*($u)]
+a$(i)2=$[(sin($the)*($a11)+cos($the)*($a12))*($u)]
+!next i
+!endif
+
+V1=$[($a11)+($a21)]
+V2=$[($a12)+($a22)]
+
+liste=!sort numeric item of $[abs($a11)],$[abs($a12)],$[abs($a22)],$[abs($a21)],$[abs($V1)],$[abs($V2)]
+xsize2=!item -1 of $liste
+xsize2=$[$xsize2*1.5]
+xsize1=$[-$xsize2]
+x_size=$xsize1, $xsize2
+xx_size=$[$xsize2- ($xsize1)]
+y_size=$x_size
+yy_size=$xx_size
+ysize2=$xsize2
+
+
+insdraw_size=300,300
+inssize=!item 1 of $insdraw_size
+step_size=$[round($xsize2)/5]
+incert= 0.1
+dessin=xrange $x_size\
+yrange $y_size\
+parallel $[$xsize1-$centre],$[$xsize1-$centre],$[$xsize1-$centre],$[$xsize2+$centre],$step_size/2,0, 100, grey\
+parallel $[$xsize1-$centre],$[$xsize1-$centre],$[$xsize1-$centre],$[$xsize2+$centre],$step_size,0, 25, blue\
+parallel $[$xsize1-$centre],$[$xsize1-$centre],$[$xsize2+$centre],$[$xsize1-$centre],0,$step_size/2, 100, grey\
+parallel $[$xsize1-$centre],$[$xsize1-$centre],$[$xsize2+$centre],$[$xsize1-$centre],0,$step_size, 25, blue
+
+colors=blue,orange,red,green,green,green,green
+couleurs=À¶É«,½Û»ÆÉ«,ºìÉ«
+
+!for i=0 to $[max(2,$diff )]
+color$i=!item $[$i+1] of $colors 
+couleur$i=!item  $[$i+1] of $couleurs 
+ !next i
+ dessin= $dessin\
+linewidth 2\
+arrow 0,0,$V1,$V2,  10, $color0
+
+!for i=1 to $[max(2,$diff)]
+equation$i=!exec pari  ($(a$(i)2))*x-($(a$(i)1))*y
+!if $i<= $proj or $mode issametext paral or $i>2
+dessin= $dessin\
+linewidth 2\
+trange $x_size\
+levelcurve $(color$i), $(equation$i)\
+linewidth 1
+
+X$(i)= $[rint($inssize*($(a$(i)1)-$xsize1)/($xx_size)+$border)]
+Y$(i)= $[rint($inssize*(-($(a$(i)2))+$ysize2)/($yy_size)+$border)]
+e$(i)=10000
+!endif 
+!next i
+!for i=1 to $proj
+dessin2=$dessin2\
+arrow 0,0,$(a$(i)1),$(a$(i)2),  15, $color0\
+dline $V1,$V2,$(a$(i)1),$(a$(i)2), $color0
+
+!next i
+
+click_x=
+click_y=
+erreur=0
+miss=0
+status=waiting
+wims_module_log=$cmd : mode $mode

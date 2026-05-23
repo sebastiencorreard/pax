@@ -1,0 +1,48 @@
+!distribute item $wims_read_parm into slib_quest,slib_rep
+
+!bound slib_quest within H,M,S,HM,HS,MS,HMS default HMS
+!bound slib_rep within H,M,S,HM,HS,MS,HMS default HMS
+slib_quest=!nospace $slib_quest
+slib_rep=!nospace $slib_rep
+
+slib_H=!randint 1,23
+slib_M=!randint 1,19
+slib_M=$[$slib_M*3]
+slib_S=!randint 1,6
+slib_S=$[$slib_S*9]
+
+slib_list=H,M,S
+slib_lname=h,min,s
+slib_lconv=3600,60,1
+slib_enonce=$empty
+slib_val=$empty
+
+slib_nb=!charcnt $slib_quest
+!for slib_i=1 to $slib_nb
+ slib_it=!char $slib_i of $slib_quest
+ slib_no=!positionof item $slib_it in $slib_list
+ slib_name=!item $slib_no of $slib_lname
+ slib_conv=!item $slib_no of $slib_lconv
+ slib_enonce=!append item $(slib_$(slib_it)) to $slib_enonce
+ slib_val=$[$slib_val+$slib_conv*$(slib_$(slib_it))]
+!next slib_i
+
+slib_reste=$slib_val
+slib_sol=$empty
+slib_nb=!charcnt $slib_rep
+!for slib_i=1 to $slib_nb
+ slib_it=!char $slib_i of $slib_rep
+ slib_no=!positionof item $slib_it in $slib_list
+ slib_conv=!item $slib_no of $slib_lconv
+ !if $slib_i=$slib_nb
+  slib_tmp=$[$slib_reste/$slib_conv]
+ !else
+  slib_tmp=$[floor($slib_reste/$slib_conv)]
+  slib_reste=$[$slib_reste-$slib_tmp*$slib_conv]
+ !endif
+ slib_sol=!append item $slib_tmp to $slib_sol
+!next slib_i
+
+slib_out=$slib_enonce\
+$slib_sol
+

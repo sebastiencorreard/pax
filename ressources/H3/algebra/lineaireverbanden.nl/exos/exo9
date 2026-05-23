@@ -1,0 +1,285 @@
+n=$counter
+questiontype=0
+image=0
+applet=0
+cols=25
+rows=2
+math=0
+embed=1
+mathview=4
+use_ineq=1
+checkfile=$checkdir/ineq.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+letter1=x
+letter2=y
+letter3=f
+letter4=g
+letter5=h
+varlist=$letter1
+A=!randitem A,B,C,D
+pm =!randitem +,-
+    
+# geen rood...
+kleuren=!record 26 of lang/remarks.$taal
+#@ blue@blauwe,green@groene,orange@oranje,purple@paarse
+#@! blue@bleu,green@greenish,orange@orange,purple@purple
+#@!~blue@蓝色,green@绿色,orange@橙色,purple@紫色
+lang_color3=!record 27 of lang/remarks.$taal
+#@ helder rode
+#@! bright red
+#@!~ 红色
+
+kleuren=!shuffle $kleuren
+k1=!item 1 of $kleuren	
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1
+k2=!replace internal @ by , in $k2
+lang_color1=!item 2 of $k1
+color1=!item 1 of $k1
+lang_color2=!item 2 of $k2
+color2=!item 1 of $k2
+color3=red
+keuze=!randitem 1,2
+teken=!item $keuze of &lt;,&gt;
+lteken=!item $keuze of <,>
+
+!if $R < 3
+    !if $R=1
+	m=!randitem 1,2,3,-1,-2,-3
+        q=!randitem 1,2,3,4,5,6,7,8
+	r=!randitem 1,2,3,4,5,6,7,8
+        lijn1=$m*$letter1 + $q
+	lijn2=$r
+        Ltex1=$m\cdot $letter1 + $q
+        Ltex2=$r
+        x=!exec pari ($r-$q)/$m
+	y=$r
+        !if $m > 0
+	    !if $keuze=1
+		glt=\,<\,
+    		answer$n= x<$x
+		htmlgoed=x&lt;$x
+	    !else
+		glt=\,>\,
+		answer$n= x>$x
+		htmlgoed=x&gt;$x
+	    !endif 
+	!else
+	    !if $keuze=1
+		glt=\,>\,
+    		answer$n= x>$x
+		htmlgoed=x&gt;$x
+	    !else
+		glt=\,<\,
+		answer$n= x<$x
+		htmlgoed=x&lt;$x
+	    !endif 
+	!endif
+	var1=$x
+    !else
+	m1=!randitem 1/2,1/3,2/3,1,2,3,-1,-2,-3,-1/2,-1/3,-2/3
+	m2=!exec pari -1*$m1
+	q=!randitem 1,2,3,4,5,6,7,8
+	r=!randitem 1,2,3,4,5,6,7,8
+	lijn1=$m1*$letter1 + $q
+	lijn2=$m2*$letter1 + $r
+        Ltex1=$m1 \cdot $letter1 + $q
+	Ltex2=$m2 \cdot $letter1 + $r
+    
+	#snijpunt" m1*x+q=m2*x+r <=> x(m1-m2)=r-q <=>x=(r-q)/(m1-m2)
+	#  y=$m1*$x+$q 
+	x=!exec pari ($r-($q))/($m1 - ($m2))
+	y=!exec pari $m1*($x) + $q
+	!if $m1 > 0
+	    !if $keuze=1
+		glt=\,<\,
+		answer$n= x<$x
+		htmlgoed=x&lt;$x
+	    !else
+		glt=\,>\,
+		answer$n= x>$x
+		htmlgoed=x&gt;$x
+	    !endif
+	!else
+	    !if $keuze=1
+		glt=\,>\,
+    		answer$n= x>$x
+		htmlgoed=x&gt;$x
+	    !else
+		glt=\,<\,
+		answer$n= x<$x
+		htmlgoed=x&lt;$x
+	    !endif 
+	!endif
+	var1=$x
+    !endif
+    
+    helptext=<textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>x < 5</textarea><br /><br /><textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>x > 3</textarea>
+    L1=!htmlmath $letter3(x) = $lijn1
+    L2=!htmlmath $letter4(x) = $lijn2
+    ss=!record 28 of lang/remarks.$taal
+    
+    #@ Onderzoek de ongelijkheid<p>In het <em>x,y</em> -vlak zijn twee lijnen<span size=+1 color=$color1> $letter3 </span>  , en <span size=+1 color=$color2> $letter4 </span> with equations<br /> <ul><li>de lijn $L1 <span color=$color1>(de $lang_color1 lijn)</span></li><li>de lijn $L2 <span color=$color2>(de $lang_color2 lijn)</span></li></ul>Bepaal voor welke <em>x</em> de ongelijkheid <p align="center"><span size=+1> $letter3 $teken $letter4 </span><br /> waar is</p>
+
+    #@! Investigate the Inequality.<p>  In the <em>x,y</em>-plane are two lines <span size=+1 color=$color1> $letter3 </span>   , and <span size=+1 color=$color2> $letter4 </span> with equations<br />  <ul>  <li>the line $L1 <span color=$color1>(the $lang_color1 line)</span></li> <li>the line $L2 <span color=$color2>(the $lang_color2 line)</span></li> </ul> Determine for which <em>x</em> the inequality <p align="center"><span size=+1> $letter3 $teken $letter4 </span><br /> is true</p>
+
+    #@!~ 考察不等式<p>  在 <em>x,y</em> 平面内有两条直线 <span size=+1 color=$color1><em>$letter3</em></span>   , 和 <span size=+1 color=$color2> $letter4 </span> 其方程为<br />  <ul>  <li>直线 $L1 <span color=$color1>($lang_color1 直线)</span></li>  <li>直线 $L2 <span color=$color2>($lang_color2 直线)</span></li> </ul> 确定怎样的 <em>x</em> 能使不等式 <p align="center"><span size=+1> $letter3 $teken $letter4 </span><br /> 成立</p>
+
+    rr=!record 29 of lang/remarks.$taal
+    #@ Het goede antwoord :<em>$htmlgoed</em> 
+    #@! The correct answer: <em>$htmlgoed</em> 
+    #@!~ 正确回答: <em>$htmlgoed</em> 
+    !if $teaching=1
+	etext=!record 1 of lang/remarks.$taal
+	tooltip=!exec canvasdraw\
+	size 320,320\
+	bgcolor $wims_bgcolor\
+	xrange -20,20\
+	yrange -20,20\
+	axis\
+	xlabel x-as\
+	ylabel y-as\
+	grid 100,100,grey,1,1,0,black\
+	linewidth 1\
+	vline 0,0,blue\
+	hline 0,0,blue\
+	linewidth 2\
+	curve $color1,$lijn1\
+	curve $color2,$lijn2\
+	point $x,$y,green\
+	string black,$x,$y,  $A\
+	intooltip $etext
+	
+	exotext=$tooltip <br />
+	
+    !else
+	exotext=$empty
+	applet=0
+	# alleen plaatje in answer.phtml
+	object$n=!exec canvasdraw\
+	size 320,320\
+	bgcolor $wims_bgcolor\
+	xrange -20,20\
+	yrange -20,20\
+	axis\
+	xlabel x-as\
+	ylabel y-as\
+	grid 100,100,grey,1,1,0,black\
+	linewidth 1\
+	vline 0,0,blue\
+	hline 0,0,blue\
+	linewidth 2\
+	curve $color1,$lijn1\
+	curve $color2,$lijn2\
+	point $x,$y,green\
+	string black,$x,$y,  $A
+
+	
+    !endif
+    formula$n=\left[\begin{array}{l} $letter3($letter1) = $Ltex1 \\ $letter4($letter1) = $Ltex2 \\ $letter3  $lteken  $letter4 \end{array} \right.
+    texanswer$n=\begin{array}{l} $letter3 = $letter4 \\ $Ltex1 = $Ltex2 \\ x_{s}=$x \\ \\ \\ y_{$letter3} \, $lteken \, y_{$letter4} \rightarrow x $glt $x \end{array}
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+    applettext=!nospace ( vlist($letter3($letter1)=$lijn1 , $letter4($letter1)=$lijn2 ,$letter3 $lteken $letter4 ) )->
+ !exit
+!endif
+!if $R>2
+    m1=!randitem 1,2,3
+    m2=$[-1*$m1]
+    q=!randitem 1,2,3,4,5
+    r=!randitem 1,2,3,4,5
+    lijn1=$m1*$letter1 + $q
+    lijn2=$m2*$letter1 + $r
+    ltex1=$m1\cdot $letter1 + $q
+    ltex2=$m2\cdot $letter1 + $r
+    
+    #snijpunt" m1*x+q=m2*x+r <=> x(m1-m2)=r-q <=>x=(r-q)/(m1-m2)
+    x1=!exec pari ($r-$q)/($m1 - ($m2))
+    y1=!exec pari $m1*$x1+$q
+    #een horizontale lijn boven/onder x1:y1
+    m3=!exec pari $y1+10
+    lijn3=$m3
+    #snijpunt met lijn1
+    # m3=m1*x+q <=>x=(m3-q)/m1
+    x2=!exec pari ($m3 - $q)/$m1
+    y2=$m3
+    #snijpunt met lijn2
+    # m3=m2*x+r <=>x=(m3-r)/m2
+    x3=!exec pari ($m3-$r)/$m2
+    y3=$m3
+    teken=&lt;
+    answer$n=$x3<x&&x<$x2
+    tex=$x3 \, < \, x \, < \, $x2
+    var1=$x3,$x2
+    htmlgoed=$x3&lt;x&lt;$x2
+    L1=!htmlmath $letter3($letter1) = $lijn1
+    L2=!htmlmath $letter4($letter1) = $lijn2
+    L3=!htmlmath $letter5($letter1) = $lijn3
+    
+    ss=!record 30 of lang/remarks.$taal
+    #@ Onderzoek de ongelijkheid<p>In het <em>x,y</em>-vlak hebben we drie lijnen <span size=+1 color=$color1><em>$letter3</em></span> , <span size=+1 color=$color2><em>$letter4</em></span> en <span size=+1 color=$color3><em>$letter5</em></span> met vergelijkingen<br /><ul><li>de lijn $L1 <span color=$color1>(de $lang_color1 lijn)</span></li><li>de lijn $L2 <span color=$color2>(de $lang_color2 lijn)</span></li><li>de lijn $L3 <span color=$color3>(de $lang_color3 lijn)</span></li></ul>Bepaal voor welke <em>x</em> het onderstaande geldt:<p align="center"><span size=+1 color=$color3> $lang_color3 lijn </span> &gt; <span size=+1 color=$color1> $lang_color1 lijn</span><br />en<br /><span size=+1 color=$color3> $lang_color3 lijn </span> &gt; <span size=+1 color=$color2> $lang_color2 lijn </span></p> Of anders gesteld:<p align="center"><span size=+1><em> $letter5 &gt; $letter3 </em> and <em> $letter5 &gt; $letter4 </em></span></p>
+    #@! Investigate the Inequality<p>In the <em>x,y</em>-plane are three lines <span size=+1 color=$color1><em>$letter3</em></span> , <span size=+1 color=$color2><em>$letter4</em></span> and <span size=+1 color=$color3><em>$letter5</em></span> with equations<br /><ul><li>the line $L1 <span color=$color1>(the $lang_color1 line)</span></li><li>the line $L2 <span color=$color2>(the $lang_color2 line)</span></li><li>the line $L3 <span color=$color3>(the $lang_color3 line)</span></li></ul>Determine for which <em>x</em> the folowing is true:<p align="center"><span size=+1 color=$color3> $lang_color3 lijn </span> &gt; <span size=+1 color=$color1> $lang_color1 line</span><br />and<br /><span size=+1 color=$color3> $lang_color3 line </span> &gt; <span size=+1 color=$color2> $lang_color2 line </span></p>Or in other words:<p align="center"><span size=+1><em> $letter5 &gt; $letter3 </em> and <em> $letter5 &gt; $letter4 </em></span></p>
+    #@!~ 考察不等式<p>在 <em>x,y</em> 平面内有 3 条直线 <span size=+1 color=$color1><em>$letter3</em></span> , <span size=+1 color=$color2><em>$letter4</em></span> 和 <span size=+1 color=$color3><em>$letter5</em></span> 其方程为<br /><ul><li>直线 $L1<span color=$color1>($lang_color1 直线)</span></li><li>直线 $L2 <span color=$color2>($lang_color2 直线)</span></li><li>直线 $L3 <span color=$color3>($lang_color3 直线)</span></li></ul>确定对怎样的 <em>x</em> 下式成立:<p align="center"> <span size=+1 color=$color3>$lang_color3 直线 </span> &gt; <span size=+1 color=$color1> $lang_color1 直线 </span><br />以及<br /><span size=+1 color=$color3> $lang_color3 直线 </span> &gt; <span size=+1 color=$color2> $lang_color2 直线 </span></p>换句话说 <em>x</em> 满足:<p align="center"><span size=+1> $letter5 &gt; $letter3  以及  $letter5 &gt; $letter4 </span></p>
+
+    rr=!record 31 of lang/remarks.$taal
+    #@ Het goede antwoord :<em>$htmlgoed</em> 
+    #@! The correct answer:<em>$htmlgoed</em> 
+    #@!~ 正确回答: <em>$htmlgoed</em> 
+    formula$n=\left[ \begin{array}{l} $letter3($letter1) = $ltex1 \\ $letter4($letter1) = $ltex2 \\ $letter5($letter1) = $lijn3 \\ $letter5 > $letter3 \wedge $letter5 > $letter4 \end{array} \right.
+    
+    applettext=!nospace ( vlist($letter3($letter1)=$lijn1 , $letter4($letter1)=$lijn2 , $letter5($letter1)=$lijn3 , $letter5 > $letter3 and  $letter5 > $letter4  ) )->
+    
+    !if $teaching=1
+	etext=!record 1 of lang/remarks.$taal
+	helptext=<textarea readonly=\'readonly\' cols=\'25\' rows=\'2\'>1< x < 3 </textarea>
+	tooltip=!exec canvasdraw\
+	size 320,320\
+	bgcolor $wims_bgcolor\
+	xrange -30,30\
+	yrange -30,30\
+	axis\
+	xlabel x-as\
+	ylabel y-as\
+	grid 100,100,grey,1,1,0,black\
+	linewidth 2\
+	curve $color1,$lijn1\
+	curve $color2,$lijn2\
+	curve $color3,$lijn3\
+	point $x1,$y1,green\
+	point $x2,$y2,green\
+	point $x3,$y3,green\
+	intooltip $etext
+	
+	exotext=$tooltip <br />
+    !else
+	exotext=$empty
+	applet=0
+	object$n=!exec canvasdraw\
+	size 320,320\
+	bgcolor $wims_bgcolor\
+	xrange -30,30\
+	yrange -30,30\
+	axis\
+	xlabel x-as\
+	ylabel y-as\
+	grid 100,100,grey,1,1,0,black\
+	linewidth 2\
+	curve $color1,$lijn1\
+	curve $color2,$lijn2\
+	curve $color3,$lijn3\
+	point $x1,$y1,green\
+	point $x2,$y2,green\
+	point $x3,$y3,green\
+	opacity 255,100\
+	ftriangle $x1,$y1,$x2,$y2,$x3,$y3,green
+	
+    !endif
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+    textanswer$n=$rr
+!endif
+

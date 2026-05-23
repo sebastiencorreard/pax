@@ -1,0 +1,113 @@
+# BIJWERKEN: formula$n
+# :standaardvorm: a&sup3;&radic;(b) ofwel  a&middot;sqrt[3](b)
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[8]():sqrt[9]()
+rounding=0
+mathview=5
+math=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+checkfile=exos/checkfile1.proc
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 1 of lang/remarks.$taal
+#@Schrijf in de standaardvorm <img src=$module_dir/gifs/exo1.gif/> ,<br />waarbij <em>b</em> een zo klein mogelijk getal is
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo2.jpg\' alt=\'noalt\' />
+# var1=1 er zit een wortel in antwoord
+var1=1
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=18
+largefont=24
+# applettext => letterlijke 
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+!if $R=1
+    a=!randitem 2,3,4
+    b=!randitem 2,3,4,5
+    c=$[$b*$a^(3)]
+    answer$n=$a,sqrt($b),3
+    texanswer$n=\left[ \begin{array}{l}\root{\textstyle 3} \of {$c} = \\ \root{\textstyle 3} \of {$a^{3} \cdot $b} = \\ \root{\textstyle 3} \of {$a^{3}}\cdot \root{\textstyle 3} \of {$b} = \\ $a\cdot \root{\textstyle 3} \of{$b} \end{array} \right.
+    applettext=!nospace sqrt[3]($c)=
+    formula$n=\root{\textstyle 3} \of {$c} \,=\,[?]
+ !exit
+!endif
+
+!if $R=2
+    b=!randitem 2,3,4,5,6,7,9,10
+    !if $b=4 or $b=9
+    d=$[sqrt($b)]
+	tex=\frac{1}{$b} \cdot \root{\textstyle 3} \of{$[$b*$b]} = \\ \frac{1}{$b} \cdot \root{\textstyle 3} \of{$d^{4}}=\frac{1}{$b} \cdot \root{\textstyle 3} \of{$d^{3} \cdot $d} = \\ \frac{1}{$d} \cdot \root{\textstyle 3} \of{$d}
+	answer$n=1/$d,sqrt($d),3
+    !else
+	tex=\frac{1}{$b} \cdot \root{\textstyle 3} \of{$[$b*$b]}
+        answer$n=1/$b,sqrt($b^2),3
+    !endif 
+    !if $keuze=1
+	applettext=!nospace sqrt[3](1/$b)=
+	formula$n=\root{\textstyle 3} \of {\frac{1}{$b}} \,=\, [?] 
+	texanswer$n=\left[ \begin{array}{l}\root{\textstyle 3} \of {\frac{1}{$b}} = \\ \frac{1}{\root{\textstyle 3} \of {$b}} = \\ \frac{1}{\root{\textstyle 3} \of {$b}} \cdot \frac{\root{\textstyle 3} \of{$b^{2}}}{\root{\textstyle 3} \of{$b^{2}}} = \\ \frac{1}{$b} \cdot \root{\textstyle 3} \of{$b^{2}} = \\ $tex  \end{array} \right.
+    !else
+	applettext=!nospace 1/(sqrt[3]($b))=
+	formula$n=\frac{1}{\textstyle \root{\textstyle 3} \of {$b}}\,=\,[?]
+	texanswer$n=\left[ \begin{array}{l}\frac{1}{\root{\textstyle 3} \of {$b}} = \\ \frac{1}{\root{\textstyle 3} \of {$b}} \cdot \frac{\root{\textstyle 3} \of{$b^{2}}}{\root{\textstyle 3} \of{$b^{2}}} = \\  \frac{1}{$b} \cdot \root{\textstyle 3} \of{$b^{2}}  = \\ $tex \end{array} \right.
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    a=!randitem -5,-4,-3,-2,2,3,4,5
+    b=!randitem 2,3,4,5,6,7,9,10 
+    b=10
+    !if $b=4 or $b=9
+        d=$[sqrt($b)]
+	tot=!exec pari A=($a)/($b)\
+	printtex(A)\
+	B=($a)/($d)\
+	printtex(B)
+	c=!line 1 of $tot
+	c_tex=!line 2 of $tot
+	f=!line 3 of $tot
+	f_tex=!line 4 of $tot
+	tex=$c_tex \cdot \root{\textstyle 3} \of{$[$b*$b]}=$c_tex \cdot \root{\textstyle 3} \of{$d^{4}} = \\ $c_tex \cdot \root{\textstyle 3} \of{$d^{3} \cdot $d} = \\ $f_tex \cdot \root{\textstyle 3} \of{$d}
+	answer$n=$f,sqrt($d),3
+    !else
+        tot=!exec pari A=($a)/($b)\
+	printtex(A)
+	
+	c=!line 1 of $tot
+        c_tex=!line 2 of $tot
+	tex=$c_tex \cdot \root{\textstyle 3} \of{$[$b*$b]}
+        answer$n=$c,sqrt($b^2),3
+    !endif 
+    applettext=!nospace $a/(sqrt[3]($b))=
+    formula$n=\frac{$a}{\textstyle \root{\textstyle 3} \of {$b}}\,=\,[?] 
+    texanswer$n=\left[ \begin{array}{l}\frac{$a}{\root{\textstyle 3} \of {$b}} = \\ \frac{$a}{\root{\textstyle 3} \of {$b}} \cdot \frac{\root{\textstyle 3} \of{$b^{2}}}{\root{\textstyle 3} \of{$b^{2}}} = \\ \frac{$a}{$b} \cdot \root{\textstyle 3} \of{$b^{2}} = \\ $tex \end{array} \right.
+ !exit
+!endif
+
+
+
+
+
+

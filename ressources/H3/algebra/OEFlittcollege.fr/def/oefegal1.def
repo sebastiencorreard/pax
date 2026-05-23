@@ -1,0 +1,212 @@
+!set title=Compléter 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc,Donadoni
+email=jluc.donadoni@gmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=35
+prevarcnt=34
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=+
+val2=$[rint($val2)]
+
+!ifval NaN isin $val2 or $val2=
+val2=$[rint(1)]
+!endif
+val7=$[rint(4)]
+val8=40x25x1
+tmp0=!randitem 1,1
+
+tmp1=!randint 2, 15
+
+val9=$(tmp0)*$(tmp1)
+tmp=!translate ";': to $     $ in $val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+tmp0=!randint 2, 15
+
+val10=$(tmp0)
+tmp0=!randitem x,y
+
+val11=$(tmp0)
+tmp0=!values v for v=0 to $val2
+
+val12=$(tmp0)
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$[rint($(tmp0))]
+tmp0=!item 2 of $val12
+
+val14=$[rint($(tmp0))]
+val15=$val9*$val11^$val13
+tmp=!translate ";': to $     $ in $val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!texmath $val15
+
+val16=$(tmp0)
+val17=$val10*$val11^$val14
+tmp=!translate ";': to $     $ in $val17
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+val19=($val15)^2,2*($val15)*($val17),($val17)^2
+val20=
+val21=
+!for val22 =1 to 3 
+tmp=!translate ";': to $     $ in $(val19[$val22])
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$(tmp0)
+tmp0=!append item $val23 to $val20
+
+val20=$(tmp0)
+tmp0=!texmath $val23
+
+val23=$(tmp0)
+tmp0=!append item $val23 to $val21
+
+val21=$(tmp0)
+!next
+
+!ifval $(val21[2])<0
+val24=($(val21[2]))
+!else
+val24=$(val21[2])
+!endif
+
+!ifval $(val21[3])<0
+val25=($(val21[3]))
+!else
+val25=$(val21[3])
+!endif
+val26=($val15 $val6 $val17)^2
+val27=\($(val21[1]))$val6 \($val24) + \($val25)
+tmp0=!randint 1, 2
+
+val28=$[rint($(tmp0))]
+!if $val28=1 
+val20=$val15,$val24,$val25
+!else
+val20=$val17,$(val21[1]),$val24
+!endif
+replytype1=algexp
+replyname1=
+replygood1=$(val20[1])
+replytype2=algexp
+replyname2=
+replygood2=$(val20[2])
+replytype3=algexp
+replyname3=
+replygood3=$(val20[3])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Compléter l'égalité :	<div class="spacer">Je complète :	<div class="wimscenter">	
+!if $val28=1 
+$()( 
+!read oef/embed.phtml r1,$val7 
+$() $val6 
+!insmath $val17
+$())
+!insmath ^2
+$() =	
+!insmath $(val21[1])
+$() $val6  
+!read oef/embed.phtml r2,$val7 
+$() +  
+!read oef/embed.phtml r3,$val7 
+$() 
+!else
+$()	 (
+!insmath $val15
+$() $val6  
+!read oef/embed.phtml r1,$val7 
+$())
+!insmath ^2
+$() =	 
+!read oef/embed.phtml r2,$val7 
+$() $val6  
+!read oef/embed.phtml r3,$val7 
+$() + 
+!insmath $val25
+$() 
+!endif
+$()	</div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,15,17,21,25,28
+embedcnt=6

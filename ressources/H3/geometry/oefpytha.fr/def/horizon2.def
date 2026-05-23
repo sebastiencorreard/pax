@@ -1,0 +1,127 @@
+!set title=Horizon 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+precision=1
+title_it=Horizon 2
+title_nl=Horizon 2
+
+ansorder=r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Calculer le rayon d'une planète imaginaire sachant que	  la distance en m à l'horizon pour un observateur	  situé à une altitude \(h\) de HHHH m est de YYYY m.
+val9=Rayon de la planète,Rayon
+!if $val6=it 
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Calculer le rayon d'une planète imaginaire sachant que	  la distance en m à l'horizon pour un observateur	  situé à une altitude \(h\) de HHHH m est de YYYY m.
+val9=Rayon de la planète,Rayon
+!endif
+!if $val6=nl 
+val7=Le dessin n'est pas à l'échelle et représente symboliquement	  la situation.
+val8=Calculer le rayon d'une planète imaginaire sachant que	  la distance en m à l'horizon pour un observateur	  situé à une altitude \(h\) de HHHH m est de YYYY m.
+val9=Rayon de la planète,Rayon
+!endif
+val10=10
+val11=2
+val12=$[acos($val10/($val10+$val11))]
+tmp0=!randint 2, 5
+
+val13=$[$(tmp0)*pi/30]
+val14=$[$val10/cos($val13)-$val10]
+val15=xrange -2*$val10,2*$val10	yrange -2*$val10,2*$val10	circles black,0,0,$val10	fcircles orange,0,0,$val10	dashed	polygon red,0,0,$val10*sin($val12),$val10*cos($val12),0,$val10+$val11	arrows2 blue,5,0,$val10,0,$val10+$val11	text blue,-2,$val10+$val11/2,large,h	text blue,$val10/2*sin($val12),$val10/2*cos($val12),large,R	halfline 0,$val10+$val11,$val10*sin($val12),$val10*cos($val12),black	
+val16=dashed	segments blue,0,0,($val10+10)*cos($val13),($val10+10)*sin($val13)	text blue,0,$val10+$val11,large,A	text blue,($val10+1)*cos($val13),($val10+1)*sin($val13),large,B	
+tmp0=!randint 1000, 3000
+
+val17=$[$(tmp0)]
+tmp0=!randint 160, 200
+
+val18=$[$(tmp0)*1000]
+t_=!replace internal \( by ( in round(($val18^2-$val17^2)/(2*$val17))
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+tmp0=!replace internal YYYY by $val18 in $val8
+
+val20=$(tmp0)
+tmp0=!replace internal HHHH by $val17 in $val20
+
+val20=$(tmp0)
+val21=$val19
+replytype1=numeric
+replyoption1=absolute 
+replyname1=name_answer[2]
+replygood1=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	  <div class="medium_size img_col"> 
+!read oef/canvasdraw.phtml 400,400 \
+$val15 
+$()</div>	  <div class="medium_size text_col">	  $val20	  <br><label for="reply1">$(val9[1]):</label> 
+!read oef/embed.phtml r1 
+$() m	  <div class="wims_instruction">$val7</div>	  </div></div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,9,15,20
+embedcnt=1

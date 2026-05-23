@@ -1,0 +1,171 @@
+!set title=Regroupement en classes 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerimafree.fr
+
+ansorder=r,r,r,r,r,r,r
+varcnt=29
+prevarcnt=28
+postvarcnt=0
+replycnt=7
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 0, 5
+
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 16,17,18,19,21,22,23,24,26,27,28,29
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+val8=$[rint(26)]
+val9=$[rint(ceil($val7/5)-floor($val6/5)+1)]
+tmp0=!randint 5, $val8-5
+
+val10=$[rint($(tmp0))]
+val11=x*(x-$val8)*($val7-$val6)/($val10*($val10-$val8))+$val6
+val12=
+val13=
+!for val14 =1 to $val8 
+evaltmp=$val11
+
+evaltmp=!mathsubst x=($val14) in $evaltmp
+tmp0=($evaltmp)
+val15=$[rint($(tmp0))]
+tmp0=!randint max(1,$val15-5), $val15+5
+
+val15=$[rint($(tmp0))]
+tmp0=!append item $val15 to $val12
+
+val12=$(tmp0)
+tmp0=!append item $val14,$val15 to $val13
+
+val13=$(tmp0)
+!next
+val16=
+val17=
+val18=$[rint(floor($val6/5))]
+!for val19 =1 to $val9 
+val20=$[rint(floor($val6/5)*5+5*($val19-1))]
+val21=$[rint($val20+5)]
+tmp0=!append item &#91;$val20;$val21&#91; to $val16
+
+val16=$(tmp0)
+tmp0=!append item $val21 to $val18
+
+val18=$(tmp0)
+val17=$val17	text black,-1,$val21+0.3,medium,$val21
+!next
+!readproc slib/lgbrisee Semaine,Temperature,$val13 
+tmp0=$slib_out
+val22=$(tmp0)
+!readproc oef/draw.phtml 500,500 \
+$val22	$val17 
+tmp0=$ins_url
+val23=$(tmp0)
+!readproc slib/stat/effectif [$val12],[$val18] 
+tmp0=$slib_out
+val24=$(tmp0)
+tmp0=!item 1 of $val24
+
+val25=$(tmp0)
+tmp0=!char 2 to -2 of $val25
+
+val25=$(tmp0)
+tmp0=!item 1 to $val9 of r1,r2,r3,r4,r5,r6,r7
+
+val26=$(tmp0)
+oefsteps=$val26 
+nextstep=!nosubst $val26 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=$(val16[1])
+replygood1=$(val25[1])
+replytype2=numexp
+replyname2=$(val16[2])
+replygood2=$(val25[2])
+replytype3=numexp
+replyname3=$(val16[3])
+replygood3=$(val25[3])
+replytype4=numexp
+replyname4=$(val16[4])
+replygood4=$(val25[4])
+replytype5=numexp
+replyname5=$(val16[5])
+replygood5=$(val25[5])
+replytype6=numexp
+replyname6=$(val16[6])
+replygood6=$(val25[6])
+replytype7=numexp
+replyname7=$(val16[7])
+replygood7=$(val25[7])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici le graphique des températures moyennes par semaine relevées dans une même ville sur un semestre :	<div class="wimscenter">	<img src="$val23" alt="">	</div>	Complète le tableau donnant les effectifs en fonction des classes de températures définies :	<table class="wimscenter wimsborder">	 <tr><th>Classes</th> 
+!for m_k=1 to $val9 
+$()<td><b>$(val16[$m_k])</b></td> 
+!next
+$()</tr>	 <tr><th>Effectifs</th> 
+!for m_L=1 to $val9 
+$()<td> 
+!read oef/embed.phtml $(val26[$m_L]),5 
+$()</td> 
+!next
+$()</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,16,23,26
+embedcnt=1

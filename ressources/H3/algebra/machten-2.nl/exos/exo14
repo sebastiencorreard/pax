@@ -1,0 +1,108 @@
+# vergelijkingen met wortels
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml to modify sqrt[3](2) into 2^(1/3)
+convert_root=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathviewpanel=$module_title:x=:and:sqrt[3]():sqrt[4]():sqrt[5]():sqrt[n]()
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=5
+math=0
+image=0
+questiontype=0
+embed=0
+#### checkfile
+checkfile=$checkdir/number.proc
+arglist=x
+####
+# produceerd een <tr>
+make_tr=1
+question$n=!record 43 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><em>geef je antwoord in de vorm: x=123</em>
+helptext=<img src=\'$module_dir/gifs/exo14.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+keuze=!randitem 1,0
+!if $R=1
+    a=!randint 2,9
+    b=!randint 2,9
+    c=!randitem 2,3,4,5,6
+    !if $keuze=0
+	t=!exec maxima expand(($a/$b)^(1/2))
+	tex=!texmath $t
+	d=$[$c+2]
+	answer$n=0,$t,-$t
+	ans= x=0 \wedge x=$tex \wedge x= -$tex
+    !else
+	t=!exec maxima expand(($a/$b)^(1/3))
+	tex=!texmath $t
+	d=$[$c+3]
+	answer$n=0,$t
+	ans=x=0 \wedge x=$tex
+    !endif
+    p=$[$d-$c]
+    formula$n=$a x^{$c}\,=\,$b x^{$d}  \rightarrow x = [?]
+    applettext=!nospace $a*x^$c=$b*x^$d->
+    texanswer$n=\left[ \begin{array}{l} $b x^{$d} - $a x^{$c} = 0 \\ x^{$c} \left( $b x^{$p} - $a \right) = 0 \\ x^{$c} = 0 \wedge x^{$p} = \frac{$a}{$b} \\ $ans  \end{array} \right.
+
+ !exit
+!endif
+
+!if $R=2
+    a=!randint 2,12
+    b=!randint 2,14
+    c=!randitem 2,3,4,5
+
+    !if $keuze=0
+	p=!randitem 2,4,6
+	t=!exec maxima expand(($a/$b)^(1/$p))
+	tt=!texmath $t
+	d=$[$c+$p]
+	answer$n=0,$t,-$t
+	ans=x=0 \wedge x=$tt \wedge x=-$tt 
+    !else
+	p=!randitem 3,5,7
+	t=!exec maxima expand(($a/$b)^(1/$p))
+	tt=!texmath $t
+	d=$[$c+$p]
+	answer$n=0,$t
+	ans=x=0 \wedge x=$tt
+    !endif
+    formula$n=$a x^{$c}\,=\,$b x^{$d} \rightarrow x = [?]
+    applettext=!nospace $a*x^$c=$b*x^$d->
+    texanswer$n= \left[ \begin{array}{l} $b x^{$d} - $a x^{$c} = 0 \\ x^{$c} \left( $b x^{$p} - $a \right) = 0 \\ x^{$c}=0 \wedge x^{$p}= \frac{$a}{$b} \\ \\  $ans  \end{array} \right.
+
+ !exit
+!endif
+
+!if $R>2
+    a=!randitem 2,3,4,5,6
+    p=!randitem 1/2,2,3,4,5
+    b=$[$a*$p]
+    !if $b=1
+	btex=$empty
+    !else
+	btex=$b
+    !endif
+    c=!randitem 2,3,4,5,6,7
+    formula$n=$a x \root{\textstyle $c} \of{x} \,=\,$btex x  \rightarrow x = [?]
+    applettext=!nospace $a*x*sqrt[$c](x)=$b*x->
+    
+    answer$n=0,$p^($c)
+
+    texanswer$n= \left[ \begin{array}{l} $a x \root{\textstyle $c} \of{x} - $btex x =0 \\ x \left( $a \root{\textstyle $c} \of{x}  - $b \right) = 0 \\ x_{1}=0 \wedge \root{\textstyle $c} \of{x} = \frac{$b}{$a} \\  \\ x=0 \wedge x=$p^{$c} = $[$p^$c] \end{array} \right.
+
+ !exit
+!endif
+
+

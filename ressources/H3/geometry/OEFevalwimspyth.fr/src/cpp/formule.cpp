@@ -1,0 +1,55 @@
+target=formule1 formule2
+#define TITRE Relation de Pythagore
+#include "author.inc"
+
+\integer{xmax=randint(300..350)}
+\integer{ymax=200}
+
+#if defined TARGET_formule1
+ \title{TITRE 1}
+#include "triangle1.inc"
+ \text{bad=\(\B\C = \A\B + \A\C),\(\A\B^2 = \B\C^2 + \A\C^2),\(\A\C^2 = \B\C^2 + \A\B^2) , \(\A\B = \B\C + \A\C),\(\A\C = \B\C + \A\B)}
+ \text{good=\(\B\C^2 = \A\B^2 + \A\C^2)}
+ \text{bad=shuffle(\bad,\good)}
+ \integer{good=position(\good,\bad)}
+ \text{type=radio}
+#endif
+#if defined TARGET_formule2
+ \title{TITRE 2}
+ \text{lettres=shuffle(A,B,C,D,E,F,G,H,J,K)}
+ \text{A=\lettres[1]}
+ \text{B=\lettres[2]}
+ \text{C=\lettres[3]}
+ \text{bad=\(\B\C = \A\B + \A\C),\(\A\B^2 = \B\C^2 + \A\C^2),\(\A\C^2 = \B\C^2 + \A\B^2) , \(\A\B = \B\C + \A\C),\(\A\C = \B\C + \A\B)}
+ \text{good=\(\B\C^2 = \A\B^2 + \A\C^2)}
+ \text{bad=shuffle(\bad,\good)}
+ \integer{good=position(\good,\bad)}
+ \text{type=radio}
+#endif
+
+\if{\dessin!=}{
+ \text{figure=draw(\xmax,\ymax
+\dessin)}
+}
+
+\integer{nbbad=items(\bad)}
+
+\statement{
+\if{\dessin!=}{
+  <div class="wims_columns">
+ <div class="medium_size img_col"><img src="\figure" alt=""></div>
+ <div class="medium_size text_col">
+}
+   \A\B\C est un triangle rectangle en \A.<p>
+   Parmi les égalités suivantes, laquelle est vraie ?</p>
+   <blockquote>
+   <ul>
+   \for{l=1 to \nbbad}{
+    <li>\embed{r1,\l}</li>
+   }
+   </ul>
+   </blockquote>
+\if{\dessin!=}{</div></div>}
+}
+
+\answer{Réponse}{\good;\bad}{type=\type}

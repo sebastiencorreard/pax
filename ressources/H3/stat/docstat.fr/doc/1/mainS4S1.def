@@ -1,0 +1,232 @@
+!set prev=mainS3
+!set next=mainS4S2
+!set upbl=mainS4
+!set titb=IV-1 Diagrammes en bâtons
+!set datm=2024-04-02 22:12:1
+!if $wims_read_parm!=$empty
+  !goto $wims_read_parm
+!endif
+!exit
+
+:content
+<div class="doc_latex2wimsl"><ul id="left_toc" class="left_toc">
+<li class="no_selected">
+!read primitives.phtml 1, link, mainS1, I Indicateurs de position	     
+<ul><li>
+!read primitives.phtml 2, link, mainS1S1, I-1 Moyenne d'une série à valeurs individuelles 
+</li><li>
+!read primitives.phtml 3, link, mainS1S2, I-2 Moyenne d'une série à valeurs affectées d'un coefficient 
+</li><li>
+!read primitives.phtml 4, link, mainS1S3, I-3 Médiane 
+</li></ul> </li>
+<li class="no_selected">
+!read primitives.phtml 5, link, mainS2, II Indicateur de dispersion	     
+<ul><li>
+!read primitives.phtml 6, link, mainS2S1, II-1 Étendue 
+</li></ul> </li>
+<li class="no_selected">
+!read primitives.phtml 7, link, mainS3, III Effectif et fréquence	     
+ </li>
+<li class="left_selection">
+!read primitives.phtml 8, link, mainS4, IV Diagrammes	     
+<ul><li>
+!read primitives.phtml 9, link, mainS4S1, IV-1 Diagrammes en bâtons 
+</li><li>
+!read primitives.phtml 10, link, mainS4S2, IV-2 Diagrammes circulaires 
+</li><li>
+!read primitives.phtml 11, link, mainS4S3, IV-3 Histogrammes 
+</li></ul> </li>
+<li class="no_selected">
+!read primitives.phtml 12, link, mainS5, V Exercices	     
+ </li></ul><div class="wimsdoc"> 
+<a id="subdiagrammes_en_batons"></a>
+<div class="frame">   
+Les diagrammes en bâtons, dits aussi diagrammes en barres si on donne une largeur aux bâtons, utilisent les valeurs du caractère (les notes) en abscisse et les valeurs de l'effectif (ou du coefficient) en ordonnée.
+</div>
+<div class="frame">   <br class="spacer">	
+!set tmp0=!randint 15, 20
+
+!set m_n=$[rint($(tmp0))]
+
+	
+!set tmp0=!randint 5, 7
+
+!set m_m=$[rint($(tmp0))]
+
+	
+!readproc slib/stat/random $m_n,0,$m_m 
+!set tmp0=$slib_out
+!set m_serie=$(tmp0)
+
+	
+	
+!set tmp0=!sort numeric item $m_serie
+
+!set m_serie2=$(tmp0)
+
+	
+!set tmp0=!item 1 of $m_serie2
+
+!set m_min=$(tmp0)
+
+	
+!set tmp0=!item -1 of $m_serie2
+
+!set m_max=$(tmp0)
+
+	
+	
+	
+!set m_ligne1=<td class="tabular_cell" >Série</td>
+
+	
+!set m_ligne2=<td class="tabular_cell" >Effectifs </td>
+
+	
+!set m_ligne0=<td class="tabular_cell" >Valeurs </td>
+
+	
+!set m_lignef=<td class="tabular_cell" > Fréquences </td>
+
+	
+!set m_lignepour=<td class="tabular_cell" > Pourcentages </td>
+
+	
+	
+!set tmp0=!shuffle 8
+
+!set m_liste=$(tmp0)
+
+	
+	
+!set tmp0=!sort numeric item $m_liste
+
+!set m_liste=0,$(tmp0)
+
+	
+	
+!readproc slib/stat/effectif [$m_serie],[$m_liste] 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+<br class="spacer">	
+!set tmp0=!item 1 of $m_c
+
+!set tmp1=!declosing $(tmp0)
+
+!set m_c=$(tmp1)
+
+	
+	
+!set m_valeur_his=
+
+	
+!set m_caract_his=
+
+	  
+!for m_i=1 to $m_n 
+
+	    
+!set tmp0=!item $m_i of $m_serie
+
+!set m_a=$[$(tmp0)]
+
+	    
+!set tmp0=!item $m_i of $m_c
+
+!set m_b=$[$(tmp0)]
+
+	    
+!set m_l=$[$m_i-1]
+
+		
+!set m_f=$[rint(1000*$m_b/$m_n)]
+
+		
+!set m_f=$[$m_f/1000]
+
+		
+!set m_p=$[$m_f*100]
+
+	    
+!set m_ligne1=$m_ligne1 <td class="tabular_cell" >$m_a</td>
+
+	    
+!ifval $m_max >= $m_l 
+!set m_ligne2= $m_ligne2 <td class="tabular_cell" >$m_b</td>
+
+!endif
+
+	    
+!ifval $m_max >= $m_l 
+!set m_ligne0= $m_ligne0 <td class="tabular_cell" >$m_l</td>
+
+!endif
+
+	    
+!ifval $m_max >= $m_l 
+!set m_lignef= $m_lignef <td class="tabular_cell" >$m_f</td>
+
+!endif
+
+	    
+!ifval $m_max >= $m_l 
+!set m_lignepour= $m_lignepour <td class="tabular_cell" >$m_p</td>
+
+!endif
+
+		
+!ifval $m_max >= $m_l 
+!set tmp0=!append item $m_l to $m_caract_his
+
+!set m_caract_his= $(tmp0)
+
+!endif
+
+		
+!ifval $m_max >= $m_l 
+!set tmp0=!append item $m_b to $m_valeur_his
+
+!set m_valeur_his= $(tmp0)
+
+!endif
+
+		
+	 
+!next
+
+	
+	
+	
+!read primitives.phtml 13, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" /> 
+ 
+	
+	Voici une série statistique &#58;
+	<div class="center" ><table class="tabular" >
+		<tr class="tabular_row" > $m_ligne1 <tr/>
+	 <table>
+	 </div>
+<br/>
+	 
+	 et les effectifs des valeurs &#58; 
+	 <div class="center" ><table class="tabular" >
+		<tr class="tabular_row" > $m_ligne0 </tr>
+		<tr class="tabular_row" > $m_ligne2 </tr>
+	</table>
+	</div>
+	
+	On peut tracer un diagramme en bâtons &#58;
+	<div class="center" >
+	
+!readproc slib/stat/histo [$m_valeur_his],[$m_caract_his],xtics,ytics [$m_valeur_his],stem,color blue,html 
+!set tmp0=$slib_out
+!set m_A=$(tmp0)
+
+	$m_A
+	<div/></div></div><div id="down_toc"><div class="wims_chemin">
+!read primitives.phtml 14, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" style="width:20px;height:20px;"> 
+  
+!read primitives.phtml 15, link, main, Éléments de statistiques 
+ &#8594; 
+!read primitives.phtml 16, link, mainS4, IV Diagrammes 
+ &#8594; IV-1 Diagrammes en bâtons</div></div></div>

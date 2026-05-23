@@ -1,0 +1,56 @@
+n=$counter
+image=1
+draw=1
+plot=0
+mathview=0
+checkfile=$checkdir/new_number.proc
+xsize=600
+ysize=150
+make_tr=1
+inputs=1.1
+
+ex1=mol/L
+insdraw_size=600,150
+image_settings$n=600,150
+ph=!randint 20,100
+ph=$[$ph/10]
+answer$n=$[10^(-1*$ph)]
+tot=!exec scienceprint $(answer$n),-1,2 $(answer$n),2,2
+ans=$(tot[1])
+t_ans=$(tot[2])
+
+# aflees nauwkeurigheid  10^(-0.15)
+var1=0.7
+!for d=0 to 14
+    millenia=!append line line $d,-4,$d,4,blue to $millenia
+    mtext=!append line text blue,$d,-8,normal,$d to $mtext
+    mtext=!append line text blue,$d,8,normal,$d to $mtext
+!next d
+!for d=0 to 14 step 0.5
+    half_millenia=!append line line $d,-3,$d,3,green to $half_millenia
+!next d
+!for d=0 to 14 step 0.1
+    decennia=!append line line $d,-2,$d,2,red to $decennia
+!next d
+#<img id="myimage" src="$module_dir/gifs/balk.gif" alt="somethings horribly wrong here..."/>
+
+image$n=xrange -1,15\
+yrange -10,10\
+hline black,0,0\
+linewidth 1\
+arrow $ph,10,$ph,2,10,black\
+linewidth 1\
+$decennia\
+$half_millenia\
+$millenia\
+$mtext
+
+description=[H<sub>3</sub>O<sup>+</sup>]
+
+question$n=De grootheid pH is uitgezet op een logaritmische schaal.<br />\
+Bereken de waarde van de H<sub>3</sub>O<sup>+</sup>-ionenconcentratie (in mol·L<sup>-1</sup>) die door de pijl wordt aangegeven (in SCI-notatie).
+
+#Aan de onderkant staat de concentratie (c) van de H<sub>3</sub>O<sup>+</sup>-ionen.<br />\
+
+texanswer$n=\begin{array}{l} \textrm{De pH-waarde in op de schaal was ca}\; $ph \pm 0.1  \\ pH = -\log \left[ H_{3}O^{+} \right] \\ \left[ H_{3}O^{+} \right] \approx 10^{-$ph} \approx $ans \; mol/L \\ \textrm{op 2 significante cijfers :} \left[ H_{3}O^{+} \right] = $t_ans \; mol/L \end{array}
+math=0

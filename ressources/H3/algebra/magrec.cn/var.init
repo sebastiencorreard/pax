@@ -1,0 +1,35 @@
+!bound cols between integer 2 and 8 default 3
+!bound rows between integer 2 and 8 default 2
+!bound kind within sum,product default sum
+!bound allow between 10 and 3000
+
+wims_print_precision=16
+tot=$[$cols*$rows]
+list=!shuffle $tot
+!if $kind=sum
+ !distribute item +,0 into sign,beg
+!else
+ !distribute item *,1 into sign,beg
+!endif
+
+!for i=1 to $rows
+ rowsum$i=$beg
+ !for j=1 to $cols
+  t_=!item $j+$cols*($i-1) of $list
+  rowsum$i=$[$(rowsum$i)$sign$t_]
+ !next j
+!next i
+
+!for i=1 to $cols
+ colsum$i=$beg
+ !for j=1 to $rows
+  t_=!item $i+$cols*($j-1) of $list
+  colsum$i=$[$(colsum$i)$sign$t_]
+ !next j
+!next i
+
+status=waiting
+badrep=0
+wims_module_log=$cmd
+start=$wims_nowseconds
+

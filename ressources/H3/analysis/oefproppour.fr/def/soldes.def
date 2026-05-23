@@ -1,0 +1,128 @@
+!set title=Diminution
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 5,10,15,20,25,30,35
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!randint 10, 999
+
+val7=$[$(tmp0)]
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val8=$(tmp0)
+!readproc slib/life/frcommodity $val7 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!item 1 of $val9
+
+val10=$(tmp0)
+tmp0=!item 2 of $val9
+
+val9=$(tmp0)
+val11=$[$val7*$val6/100]
+val12=$[$val7-$val11]
+tmp=!trim $val8 achète $val10 $val9 à $val7 euros dans une boutique. Le vendeur décide de lui faire une remise de $val6 %	Un magasin propose une remise de $val6 % sur tous ses articles. $val8 achète $val10 $val9 à $val7 euros
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp0=!randint 1, 2
+
+val14=$[rint($(tmp0))]
+!if $val14=1 
+val15=Quel sera le montant de la remise&nbsp;
+val16=$[$val11]
+!else
+val15=Quel sera le prix payé par $val8
+val16=$[$val12]
+!endif
+tmp0=!replace internal % by \% in $val13
+
+val17=$(tmp0)
+replytype1=numexp
+replyname1=Réponse
+replygood1=$val16
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val17. $val15? \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val13.	$val15?	<div class="spacer">	<label for="reply1"><b>Votre réponse</b> :</label>  
+!read oef/embed.phtml r1 
+$() euro.</div>	<div class="wims_instruction">Arrondir si nécessaire le résultat au centième d'euros.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val17. $val15? $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,17
+embedcnt=1

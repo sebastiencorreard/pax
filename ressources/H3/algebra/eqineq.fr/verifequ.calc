@@ -1,0 +1,43 @@
+!! verifie si deux equations sont équivalentes
+i=0
+replygood0=0
+!for j in 1,3
+   test=$empty
+   reply0=!item $[$j+3] of $wims_read_parm
+   !read anstype/algexp
+   !if NaN isin $test
+      !break
+   !endif
+!next j
+
+!if NaN isin $test
+   !exit
+!endif
+!distribute items $wims_read_parm into tmp1,tmp2,tmp3,tmp4,tmp5,tmp6
+tmp=!exec pari ($tmp1)-($tmp4)\
+($tmp3)-($tmp6)\
+($tmp1)-($tmp6)\
+($tmp3)-($tmp4)
+!distribute lines $tmp into tmp7,tmp8,tmp9,tmp10
+!distribute lines $tmp into val43,val44,val45,val46
+tmp11=!item $tmp2 of 1,3,2,5,4
+!if ($tmp7=0 and $tmp8=0 and $tmp2=$tmp5) or ($tmp9=0 and $tmp10=0 and $tmp5=$tmp11) 
+   test=$empty
+!else
+   test=calcul
+   !increase nbreerrcalc
+!endif
+!if $test=calcul and $mode=3
+   !if ($tmp7=0 and $tmp8=0 and $tmp5=$tmp11) or ($tmp9=0 and $tmp10=0 and $tmp5=$tmp2)
+      !if $repexo2<0
+         test=Erreur : lorsque vous multipliez une inégalité par un nombre négatif non nul cela change son sens.
+      !else
+         test=Erreur : lorsque vous multipliez une inégalité par un nombre positif non nul cela ne change pas son sens.
+      !endif
+      !increase nbreerrrais
+      !exit
+   !endif
+   !if ($tmp7=0 and $tmp8=0) or ($tmp9=0 and $tmp10=0)
+      erreur=Erreur de symbole.
+   !endif
+!endif

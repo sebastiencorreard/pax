@@ -1,0 +1,157 @@
+!set title=Opérations et puissance de 10
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Bewerkingen en machten van 10
+
+ansorder=r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calculer l'expression suivante&nbsp;,	  Calculer les expressions suivantes&nbsp;
+!if $val6=nl 
+val7=Bereken de volgende uitdrukking,	 Bereken de volgende uitdrukkingen
+!endif
+val8=quotient,inverse,produit
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val2>5
+val2=$[rint(5)]
+!endif
+val9=
+val10=
+val11=
+!for val12 =1 to $val2 
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+val13=$(tmp0)
+!readproc slib/calcpuis $val13,8 
+tmp0=$slib_out
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val16=$(tmp0)
+tmp0=!append item $val15 to $val9
+
+val9=$(tmp0)
+tmp0=!append item $val16 to $val10
+
+val10=$(tmp0)
+tmp0=!append item r$val12 to $val11
+
+val11=$(tmp0)
+!next
+oefsteps=$val11 
+nextstep=!nosubst $val11 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=\($(val9[1])\)
+replygood1=$(val10[1])
+replytype2=numexp
+replyname2=\($(val9[2])\)
+replygood2=$(val10[2])
+replytype3=numexp
+replyname3=\($(val9[3])\)
+replygood3=$(val10[3])
+replytype4=numexp
+replyname4=\($(val9[4])\)
+replygood4=$(val10[4])
+replytype5=numexp
+replyname5=\($(val9[5])\)
+replygood5=$(val10[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()	 $(val7[1]):	  <div class="wimscenter">	  <label for="reply1">
+!insmath $val9 = 10
+$()</label><sup> 
+!read oef/embed.phtml r1,2 
+$()</sup>.</div>	   
+!else
+$() 	  $(val7[2]):	<ul>	  
+!for m_k=1 to $val2 
+$()	  <li><label for="reply$m_k">
+!insmath $(val9[$m_k]) = 10
+$()</label><sup> 
+!read oef/embed.phtml r\k,3 
+$()</sup>.</li>	   
+!next
+$()	</ul> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,7,9
+embedcnt=2

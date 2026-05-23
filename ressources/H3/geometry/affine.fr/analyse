@@ -1,0 +1,68 @@
+!if $click_x$click_y!=$empty and $status=waiting
+click_x=$[$click_x]
+click_y=$[$click_y]
+!advance click_cnt
+xc=!eval $xx_size*($click_x-$border)/$inssize+$xsize1
+yc=!eval $yy_size*(-$click_y+$border)/$inssize+$ysize2
+
+u=!item 1 of $liste_c
+v=!item 2 of $liste_c
+
+!if $click_cnt=2 and $[(($click_x)-($u))^2+(($click_y)-($v))^2]<400
+  error=pres
+  click_cnt =$[$click_cnt-1]
+!else
+  error=$empty
+  dessin1=$dessin1\
+  disk $xc,$yc,7,black
+  liste_c=!append item $click_x,$click_y to $liste_c
+  liste=!append item $xc,$yc to $liste
+!endif
+
+!ifval $[($xc)^2+($yc)^2]<0.01
+  err= abs($b)
+!else
+  err=$[abs($yc-($a)*($xc)-($b))/((1+($a)^2))^(1/2)]
+!endif
+!if $err<$incert
+  color=orange
+!else
+  color=red
+  !advance miss
+!endif
+erreur=$[$err+$erreur]
+
+dessin2=$dessin2\
+disk $xc,$yc,7,$color
+!endif
+click_x=
+click_y=
+
+!if $click_cnt=2
+  status=done
+  module_score=$[min(10-min(10,floor(40*$erreur)/10),10)]
+
+  !distribute item $liste into x1,y1,x2,y2
+  pente=$[($y2-$y1)/($x2-$x1)]
+  ord=$[-($pente)*($x1)+$y1]
+  dessin2=$dessin2\
+linewidth 2\
+plot red, $pente*x+($ord)\
+linewidth 1
+
+  !if $module_score <7
+    bonus=$[2-$miss]
+    !if abs($pente- $a)<0.15
+      bonus=$[$bonus+2]
+    !endif
+    !if abs($ord-$b)<0.15
+      bonus=$[$bonus+2]
+    !endif
+    module_score=$[min($module_score+$bonus,10)]
+ !endif
+  !if $module_score >= 9.8
+    module_score=10
+  !endif
+!endif
+
+module_score=$[max($module_score,0)]

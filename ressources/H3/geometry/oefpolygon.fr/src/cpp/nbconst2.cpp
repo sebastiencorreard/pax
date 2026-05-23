@@ -1,0 +1,44 @@
+target=nbconst2
+#include "lang_titles.inc"
+#include "author.inc"
+\computeanswer{yes}
+
+\matrix{M = La quadrature du cercle,2,\sqrt{\pi}
+La duplication du carré,1,\sqrt{2}
+La construction à la règle et au compas de l'heptagone,2,\cos(\frac{2\pi}{7})
+La construction à la règle et au compas du pentagone,1,\cos(\frac{2\pi}{5})
+La trisection de l'angle \(\frac{\pi}{3}),2,\cos(\frac{\pi}{9})
+La trisection de l'angle \(\frac{\pi}{2}),1,\cos(\frac{\pi}{6})
+La duplication du cube,2,\displaystyle{\sqrt[3]{2}}
+}
+
+\text{choix1=possible,impossible}
+\text{choix2=est,n'est pas}
+
+\integer{n=randint(1..rows(\M))}
+
+\if{\n=1}{\real{y=sqrt(pi)}}
+\if{\n=2}{\real{y=sqrt(2)}}
+\if{\n=3}{\real{y= evalue(cos(x),x=2*pi/7)}}
+\if{\n=4}{\real{y= evalue(cos(x),x=2*pi/5)}}
+\if{\n=5}{\real{y=evalue(cos(x),x=pi/9)}}
+\if{\n=6}{\real{y=0.5}}
+\if{\n=7}{\real{y=evalue(exp(ln(x)/3),x=2)}}
+
+\statement{<p>Compléter la phrase :</p>
+
+\M[\n;1] est \embed{reply1} parce que <label for="reply2">le nombre</label>
+\embed{reply2, 6}
+\embed{reply3} constructible à la règle et au compas.
+
+<div class="wims_instruction">
+On écrit <span class="tt">sqrt(pi)</span> pour \(\sqrt{\pi}\). On peut aussi donner
+une valeur approchée.
+</div>
+}
+
+\answer{}{\M[\n;2]; \choix1}{type=menu}
+\answer{}{\y}{type=numeric}
+\answer{}{\M[\n;2]; \choix2}{type=menu}
+\feedback{1=1}{Traditionnellement, le nombre associé à ce problème
+de construction est \(\M[\n;3]\).}

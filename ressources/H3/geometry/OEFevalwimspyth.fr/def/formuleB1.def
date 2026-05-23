@@ -1,0 +1,187 @@
+!set title=Relation de Pythagore dans un contexte 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=pbsolving
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 300, 350
+
+val6=$[rint($(tmp0))]
+val7=$[rint(200)]
+tmp0=!shuffle A,B,C,D,E,F,G,H,J,K,L,M,O,P,R,S
+
+val8=$(tmp0)
+tmp0=!item 1 of $val8
+
+val9=$(tmp0)
+tmp0=!item 2 of $val8
+
+val10=$(tmp0)
+tmp0=!item 3 of $val8
+
+val11=$(tmp0)
+tmp0=!item 4 of $val8
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in 20,20,$val6-20,20,20,$val7-20	$val6-20,20,$val6-20,$val7-20,20,20	$val6-20,$val7-20,20,$val7-20,$val6-20,20	20,$val7-20,20,20,$val6-20,$val7-20
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+val14=
+val15=$val6,$val7,$val6,$val7,$val6,$val7
+val16=(m-25)/(m-40)*(x)+(10-20*(m-25)/(m-40))
+!for val17 =1 to 6 
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($(val13[$val17])) in $evaltmp
+evaltmp=!mathsubst m=($(val15[$val17])) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val18=$(tmp1)
+tmp0=!append item $val18 to $val14
+
+val14=$(tmp0)
+!next
+val16=(m-60)/(m-40)*(x)+(30-20*(m-60)/(m-40))
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($(val13[1])) in $evaltmp
+evaltmp=!mathsubst m=($val6) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val19=$(tmp1)
+evaltmp=$val16
+
+evaltmp=!mathsubst x=($(val13[2])) in $evaltmp
+evaltmp=!mathsubst m=($val7) in $evaltmp
+tmp0=($evaltmp)
+tmp=!translate ";': to $     $ in $(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+val20=$(tmp1)
+val21=triangle $val13,black	text black,$(val14[1]),$(val14[2]),medium,$val9	text black,$(val14[3]),$(val14[4]),medium,$val10	text black,$(val14[5]),$(val14[6]),medium,$val11	segment $(val13[1]),$val20,$val19,$val20,red	segment $val19,$val20,$val19,$(val13[2]),red
+val22=\($val10$val11 = $val9$val10 + $val9$val11),\($val9$val10^2 = $val10$val11^2 + $val9$val11^2),\($val9$val11^2 = $val10$val11^2 + $val9$val10^2) , \($val9$val10 = $val10$val11 + $val9$val11),\($val9$val11 = $val10$val11 + $val9$val10)
+val23=\($val10$val11^2 = $val9$val10^2 + $val9$val11^2)
+tmp0=!shuffle $val22,$val23
+
+val22=$(tmp0)
+tmp0=!positionof item $val23 in $val22
+
+val23=$[rint($(tmp0))]
+val24=radio
+tmp0=!randint 5, 15
+
+val25=$[rint($(tmp0))]
+tmp0=!randint 25, 35
+
+val26=$[rint($(tmp0))]
+tmp0=!shuffle $val9$val10,$val9$val11
+
+val27=$(tmp0)
+val28=\($(val27[1])=$val25 \textrm{ cm} \quad ; \quad $val10$val11 = $val26 \textrm{ cm})
+val27=$(val27[2])
+!if $val21!= 
+!readproc oef/draw.phtml $val6,$val7 \
+$val21 
+tmp0=$ins_url
+val29=$(tmp0)
+!endif
+tmp0=!itemcnt $val22
+
+val30=$[rint($(tmp0))]
+replytype1=$val24
+
+replyname1=Réponse
+replygood1=$val23;$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val21!= 
+$()	  <div class="wims_columns">	 <div class="medium_size img_col"><img src="$val29" alt=""></div>	 <div class="medium_size text_col">	 
+!endif
+$()	   $val9$val10$val11 est un triangle rectangle en $val9 tel que :	   <div class="wimscenter"> $val28</div>	   Parmi les égalités suivantes, laquelle permettra de calculer la longueur $val27 ?	   <blockquote><ul>	    
+!for m_l=1 to $val30 
+$()	    <li> 
+!read oef/embed.phtml r1,\l 
+$()</li>	    
+!next
+$()	   </ul>	   </blockquote>	
+!if $val21!= 
+$()	 </div>	</div>	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,21,27,28,29,30
+embedcnt=1

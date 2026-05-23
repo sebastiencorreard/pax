@@ -1,0 +1,334 @@
+!set title=07. De la fonction au graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=113
+prevarcnt=110
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+val6=1,2,3,4,5,-1,-2,-3,-4,-5
+val7=1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+!if $val3=1 
+tmp0=!shuffle $val6
+
+val8=$(tmp0)
+!endif
+!if $val3=2 
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp0=!shuffle $val6,$val7
+
+val8=$(tmp0)
+!endif
+val9=$(val8[1]),$(val8[2]),$(val8[3]),$(val8[4])
+!if $val2=2 
+val10=0,0,0,0
+!else
+val11=-5,-4,-3,-2,-1,1,2,3,4,5
+!readproc slib/data/random 2,item, $val11 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!shuffle $(val10[1]),$(val10[2]),$(val10[1]),$(val10[2])
+
+val10=$(tmp0)
+!endif
+tmp0=!shuffle f,g,h,i
+
+val12=$(tmp0)
+val13=
+val14=
+val15=
+val16=
+val17=
+val18=
+val19=
+!for val20 =1 to 4 
+val21=$[rint($(val10[$val20]))]
+!if $(val9[$val20]) isitemof $val7 
+t_=!rawmath $(val9[$val20])
+val22=!exec pari print($t_)
+val23=($val22)*x+($val21)
+tmp=!translate ";': to $     $ in $val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val24)
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+tmp0=!texmath $val25
+
+val26=$(tmp0)
+val27=\($(val12[$val20]) : x \mapsto $val26\)
+val28=\($(val12[$val20]) (x)=$val26\)
+t_=!replace internal \( by ( in numerator($val22)
+tmp0=!exec pari $t_
+
+val29=$[rint($(tmp0))]
+t_=!replace internal \( by ( in denominator($val22)
+tmp0=!exec pari $t_
+
+val30=$[rint($(tmp0))]
+val31=$[rint($val30)]
+val32=$[$val29+($val21)]
+!if $val21>0 
+val33=\($(val12[$val20]) ($val31)= \frac{$val29}{$val30} \times $val31 + $val21 = $val32\)
+val34=\($(val12[$val20]) (0)= \frac{$val29}{$val30} \times 0 + $val21 = $val21\)
+!endif
+!if $val21=0 
+val33=\($(val12[$val20]) ($val31)= \frac{$val29}{$val30} \times $val31 = $val32\)
+val34=\($(val12[$val20]) (0)= \frac{$val29}{$val30} \times 0 = $val21\)
+!endif
+!if $val21<0 
+val33=\($(val12[$val20]) ($val31)= \frac{$val29}{$val30} \times $val31 $val21 = $val32\)
+val34=\($(val12[$val20]) (0)= \frac{$val29}{$val30} \times 0 $val21 = $val21\)
+!endif
+!else
+val22=$[rint($(val9[$val20]))]
+val23=($val22)*x+($val21)
+tmp=!translate ";': to $     $ in $val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val24)
+tmp0=!exec pari $t_
+
+val25=$(tmp0)
+tmp0=!texmath $val25
+
+val26=$(tmp0)
+val27=\($(val12[$val20]) : x \mapsto $val26\)
+val28=\($(val12[$val20]) (x)=$val26\)
+val31=$[rint(1)]
+val32=$[$val22+$val21]
+!if $val21>0 
+val33=\($(val12[$val20]) ($val31)= $val22 \times $val31 + $val21 = $val32\)
+val34=\($(val12[$val20]) (0)= $val22 \times 0 + $val21 = $val21\)
+!endif
+!if $val21=0 
+val33=\($(val12[$val20]) ($val31)= $val22 \times $val31 = $val32\)
+val34=\($(val12[$val20]) (0)= $val22 \times 0 = 0\)	                                                
+!endif
+!if $val21<0 
+val33=\($(val12[$val20]) ($val31)= $val22 \times $val31 $val21 = $val32\)
+val34=\($(val12[$val20]) (0)= $val22 \times 0 $val21 = $val21\)
+!endif
+!endif
+tmp0=!append item $val32 to $val13
+
+val13=$(tmp0)
+tmp0=!append item $val34 to $val19
+
+val19=$(tmp0)
+tmp0=!append item $val27 to $val17
+
+val17=$(tmp0)
+tmp0=!append item $val28 to $val16
+
+val16=$(tmp0)
+tmp0=!append item $val33 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val31 to $val15
+
+val15=$(tmp0)
+tmp0=!append item $val23 to $val18
+
+val18=$(tmp0)
+!next
+val35=showCopyright:false,	    keepAspectRatio:true,	    pan:{enabled:false},	    axis:true,	    grid: {	    drawGrid: true,	    gridX: 1,	    gridY: 1,	  }	  
+val36=JXG.Options.elements.highlight = false;	var board1 = JXG.JSXGraph.initBoard('jsxbox1', {	    boundingbox:[-10,10,10,-10],	    $val35	    });	var graph = board1.create('functiongraph',[function(x){ return $(val18[1]);},-50,50]);
+val37=JXG.Options.elements.highlight = false;	var board2 = JXG.JSXGraph.initBoard('jsxbox2', {	    boundingbox:[-10,10,10,-10],	    $val35	    });	var graph = board2.create('functiongraph',[function(x){ return $(val18[2]);},-50,50]);
+val38=JXG.Options.elements.highlight = false;	var board3 = JXG.JSXGraph.initBoard('jsxbox3', {	    boundingbox:[-10,10,10,-10],	    $val35	    });	var graph = board3.create('functiongraph',[function(x){ return $(val18[3]);},-50,50]);
+val39=JXG.Options.elements.highlight = false;	var board4 = JXG.JSXGraph.initBoard('jsxbox4', {	    boundingbox:[-10,10,10,-10],	    $val35	    });	var graph = board4.create('functiongraph',[function(x){ return $(val18[4]);},-50,50]);
+!readproc slib/geo2D/jsxgraph jsxbox1 board1,[400x400, min=200px max=400px center],$val36 
+tmp0=$slib_out
+val40=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox2 board2,[400x400, min=200px max=400px center],$val37 
+tmp0=$slib_out
+val41=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox3 board3,[400x400, min=200px max=400px center],$val38 
+tmp0=$slib_out
+val42=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox4 board4,[400x400, min=200px max=400px center],$val39 
+tmp0=$slib_out
+val43=$(tmp0)
+val44=$val40,$val41,$val42,$val43
+tmp0=!shuffle 4
+
+val45=$(tmp0)
+val46=$(val44[$val45])
+val47=$(val12[$val45])
+val48=$(val18[$val45])
+val49=$(val15[$val45])
+val50=$(val13[$val45])
+val51=$(val14[$val45])
+val52=$(val17[$val45])
+val53=$(val16[$val45])
+val54=$(val19[$val45])
+val55=$(val10[$val45])
+tmp0=!positionof item 1 in $val45
+
+val56=$(tmp0)
+val57=$[rint(max(0,$(val49[$val56]))+2)]
+val58=$[rint(-2)]
+!if $val2=1 
+t_=!replace internal \( by ( in vecmax([0,$(val55[$val56]),$(val50[$val56])])
+tmp0=!exec pari $t_
+
+val59=$[rint($(tmp0)+2)]
+t_=!replace internal \( by ( in vecmin([0,$(val55[$val56]),$(val50[$val56])])
+tmp0=!exec pari $t_
+
+val60=$[rint($(tmp0)-2)]
+val61=var board5 = JXG.JSXGraph.initBoard('jsxbox5', {	                      boundingbox:[$val58,$val59,$val57,$val60],	                      $val35	                      });	                  var graph = board5.create('functiongraph',[function(x){ return $(val48[$val56]);},-50,50]);	                  var p1 = board5.create('point', [$(val49[$val56]),$(val50[$val56])], {face:'plus',size : 4,name:'N',color:'black',showInfobox:false,fixed:true,withLabel: true,label:{autoPosition:true,fontSize:25}});	                  var p2 = board5.create('point', [0,$(val55[$val56])], {face:'plus',name:'M',size:4,color:'black',showInfobox:false,fixed:true,withLabel: true,label:{autoPosition:true,fontSize:25}});	                  var txB = board5.create('text', [$(val49[$val56])-0.2,-0.5,$(val49[$val56])], {fontSize : 25,strokeColor:'blue',showInfobox:false,fixed:true,});	                  var tyB = board5.create('text', [-1,$(val50[$val56]),$(val50[$val56])], {fontSize:25,color:'green',showInfobox:false,fixed:true});	                  var txA = board5.create('text', [0,-0.4,0], {fontSize : 25,color:'blue',showInfobox:false,fixed:true});	                  var tyA = board5.create('text', [-1,$(val55[$val56]),$(val55[$val56])],{fontSize:25,color:'green',showInfobox:false,fixed:true});	                  var segx=board5.create('segment',[[function(){return p1.X()},0],p1],{dash:2,color:'blue',fixed:true});	                  var segy=board5.create('segment',[[0,function(){return p1.Y()}],p1],{dash:2,color:'green',fixed:true});	                  var segAy=board5.create('segment',[[0,0],[0,function(){return p2.Y()}]],{dash:2,color:'blue',fixed:true});	                  
+!else
+t_=!replace internal \( by ( in vecmax([0,$(val50[$val56]),$(val55[$val56])])
+tmp0=!exec pari $t_
+
+val59=$[rint($(tmp0)+2)]
+t_=!replace internal \( by ( in vecmin([0,$(val50[$val56]),$(val55[$val56])])
+tmp0=!exec pari $t_
+
+val60=$[rint($(tmp0)-2)]
+val61=var board5 = JXG.JSXGraph.initBoard('jsxbox5', {	                        boundingbox:[$val58,$val59,$val57,$val60],	                        $val35	                      });	                    var graph = board5.create('functiongraph',[function(x){ return $(val48[$val56]);},-50,50]);	                    var p1 = board5.create('point', [$(val49[$val56]),$(val50[$val56])], {face:'plus',name:'M',size:4,color:'black',showInfobox:false,fixed:true,withLabel: true,label:{autoPosition:true,fontSize:25}});	                    var txA = board5.create('text', [$(val49[$val56])-0.2,-0.5,$(val49[$val56])], {fontSize : 25,strokeColor:'blue',showInfobox:false,fixed:true,});	                    var tyA = board5.create('text', [-1,$(val50[$val56]),$(val50[$val56])], {fontSize:25,color:'green',showInfobox:false,fixed:true});	                    var segx=board5.create('segment',[[function(){return p1.X()},0],p1],{dash:2,color:'blue',fixed:true});	                    var segy=board5.create('segment',[[0,function(){return p1.Y()}],p1],{dash:2,color:'green',fixed:true});	                         
+!endif
+!readproc slib/geo2D/jsxgraph jsxbox5 board5,[350x350, min=250px max=350px left],$val61 
+tmp0=$slib_out
+val62=$(tmp0)
+val63=Parmi les courbes ci-dessous, quelle est celle qui représente la fonction linéaire \($(val47[$val56])\) définie pour tout nombre \(x\) par <span class="nowrap">$(val53[$val56])&nbsp;&#63;</span>
+val64=Parmi les courbes ci-dessous, quelle est celle qui représente la fonction affine \($(val47[$val56])\) définie pour tout nombre \(x\) par <span class="nowrap">$(val53[$val56])&nbsp;&#63;</span>
+!if $val2=1 
+val65=affine
+!else
+val65=linéaire
+val66=passant par l'origine
+!endif
+val67=La fonction $val65 \($(val47[$val56])\) est définie pour tout nombre \(x\) par <span class="nowrap">$(val53[$val56]).</span>
+val68=<p>La courbe représentant la fonction $val65 \($(val47[$val56])\) est une droite $val66 composée de l'ensemble des points de coordonnées \((x \, ; \, y)\) avec \(y=$(val47[$val56]) (x)\).</p>
+val69=Comme <span class="nowrap">$(val51[$val56]),</span> la droite cherchée passe par le point \(\mathrm{M}\) de coordonnées <span class="nowrap">\(($(val49[$val56]) \, ; \, $(val50[$val56]))\).</span>
+val70=Comme $(val54[$val56])	                 <p>et <span class="nowrap">$(val51[$val56]),</span></p>	                 la droite cherchée passe par les points de coordonnées \(\mathrm{M}(0 \, ; \, $(val55[$val56]))\) et <span class="nowrap">\(\mathrm{N}($(val49[$val56]) \, ; \, $(val50[$val56]))\).</span>
+val71=Courbe A,Courbe B,Courbe C,Courbe D
+val72=courbe A.,courbe B.,courbe C.,courbe D.
+val73=Il s'agit de la <span class="nowrap">$(val72[$val56])</span>
+!if $val2=1 
+val74=$val64
+val75=$val70
+!else
+val74=$val63
+val75=$val69
+!endif
+val76=euler_answer_nobg
+replytype1=radio
+replyoption1=noanalyzeprint 
+replyname1=
+replygood1=$val56;$val45
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst <b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+
+solution=!nosubst <div class="container"> <div class="image-wrapper">$val62</div> <div class="table-wrapper">$val67 $val68 <p>$val75</p> $val73 </div> </div> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest_nobg spacer">$val74</div>	<div class="$val76">	  <ul class="inline">	    <li> 
+!read oef/embed.phtml reply1,1,$(val71[1]) 
+$()$(val46[1])</li>	    <li> 
+!read oef/embed.phtml reply1,2,$(val71[2]) 
+$()$(val46[2])</li>	    <li> 
+!read oef/embed.phtml reply1,3,$(val71[3]) 
+$()$(val46[3])</li>	    <li> 
+!read oef/embed.phtml reply1,4,$(val71[4]) 
+$()$(val46[4])</li>	  </ul>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+$()
+!exit
+
+:solution
+$()<div class="container"> <div class="image-wrapper">$val62</div> <div class="table-wrapper">$val67 $val68 <p>$val75</p> $val73 </div> </div> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1<1 
+val76=euler_rep_bad_nobg cross
+!else
+val76=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=46,62,67,68,71,73,74,75,76
+embedcnt=4

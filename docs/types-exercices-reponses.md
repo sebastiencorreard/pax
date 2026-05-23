@@ -1,0 +1,93 @@
+# Types d'Exercices et de Réponses dans PAX
+
+Ce document répertorie les types d'exercices, les analyseurs de réponses et les widgets visuels supportés ou identifiés dans le corpus OEF/WIMS de PAX.
+
+## 1. Structure des Exercices (`exercise_type`)
+
+Le moteur PAX classifie les exercices selon leur logique de progression et de rendu :
+
+### Types Supportés ✅
+| Type | Description |
+| :--- | :--- |
+| **`standard`** | Exercice classique en une seule étape. Toutes les questions sont posées simultanément. |
+| **`dynsteps`** | Exercice à étapes dynamiques (utilisant `\steps` ou `\nextstep`). L'énoncé évolue selon la réussite de l'élève. |
+| **`course`** | Exercice séquentiel de type "parcours" (défini via `oefsteps`). Suite de questions indépendantes. |
+
+### Types Identifiés (Non encore supportés) ❌
+*   **`deductio`** : Exercice de déduction logique ou démonstration géométrique guidée (très présent en géométrie).
+*   **`polymorphe`** : Exercice dont le type de réponse change dynamiquement selon le tirage (ex: bascule `numeric` / `radio`).
+*   **`document` / `tool`** : Modules de contenu interactif ou outils de calcul (ex: `adm/tool/any/...`).
+*   **`shooting`** : Mode d'interaction de type "tir" ou précision (nécessite `js2wims`).
+
+## 2. Analyseurs de Réponses (`answer_type`)
+
+PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de l'analyse du code source officiel de WIMS (`scripts/help/fr/reply.phtml`).
+
+### Analyseurs Implémentés ✅
+*   **`numeric`**, **`numexp`** : Valeurs numériques et expressions calculables.
+*   **`algexp`**, **`litexp`**, **`formal`** : Équivalence algébrique (SymPy).
+*   **`function`**, **`fset`** : Fonctions et ensembles de fonctions.
+*   **`set`**, **`aset`** : Ensembles d'éléments (ordre indifférent).
+*   **`radio`**, **`menu`**, **`clickfill`** : Choix unique et drag & drop simple.
+*   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
+*   **`default`** : Redirection vers `algexp` ou `text`.
+
+### Analyseurs Identifiés (Non encore supportés) ❌
+*   **Sciences** : 
+    *   `units`, `sigunits` : Gestion des unités physiques et chiffres significatifs.
+    *   `chemformula`, `chemdraw`, `chemclick`, `chemeq` : Chimie (formules, équilibres).
+*   **Géométrie** : 
+    *   `coord` : Clic sur zone d'image.
+    *   `vector` : Comparaison de vecteurs.
+    *   `jsxgraph`, `geogebra` : Géométrie dynamique.
+*   **Avancé** : 
+    *   `matrix` : Matrices mathématiques (comparaison coeff par coeff).
+    *   `equation` : Équations numériques.
+    *   `symtext` : Outil avancé d'identification de textes (synonymes).
+    *   `runcode` : Validation par exécution de code (Python).
+    *   `reorder`, `puzzle`, `crossword`, `chessgame` : Jeux et mises en ordre.
+
+## 3. Typage Dynamique (Variables)
+
+Dans le corpus OEF, le type de réponse peut être résolu récursivement. PAX doit supporter :
+*   **Variables imbriquées** : `type=\var1` où `\var1=\var2` qui vaut `numeric`.
+*   **Tests ternaires** : `(\q2==3)?case:numeric`.
+*   **Logique de chaîne** : `checkbox iswordof \option?checkbox:radio`.
+*   **Indexation** : `\anstype[\m_step]` (types différents par étape).
+
+## 4. Composants de Saisie (Frontend)
+
+*   **`input`** : Champ de texte classique (support de l'option `is_sup` pour les exposants).
+*   **`textarea`** : Zone multi-ligne.
+*   **`menu`** : Liste déroulante.
+*   **`slot`** : Zone de réception "clickfill".
+*   **`radio`** : Boutons de sélection (support de l'insertion individuelle via `!embed reply N, M`).
+
+## 5. Options de Réponses (`option=`)
+
+### Options Globales
+*   **`nonstop`** ❌ : Ne s'arrête pas à la première erreur dans les exercices à étapes.
+*   **`noanalyzeprint`** ✅ : Masque l'analyse détaillée de l'erreur.
+*   **`nospace`** ✅ : Ignore les espaces dans la saisie.
+*   **`nocheck`** ❌ : Désactive les vérifications syntaxiques automatiques.
+*   **`split`** (ou `partialscore`) ❌ : Accorde des points partiels pour les réponses multiples.
+*   **`eqweight`** ❌ : Poids égal pour chaque élément.
+
+### Options Spécifiques aux Analyseurs
+*   **Maths** : 
+    *   `absolute` ❌ : Tolérance absolue.
+    *   `comma` ❌ : Virgule comme séparateur décimal.
+    *   `noreduction` ❌ : N'exige pas de simplification (type `numexp`).
+    *   `symbols=[...]` ❌ : Variables autorisées (type `formal`).
+    *   `vector_left`, `vector_right` ❌ : Délimiteurs de vecteurs.
+*   **QCM** : 
+    *   `shuffle` ❌ : Mélange l'ordre des choix.
+    *   `sort` ❌ : Tri alphabétique.
+    *   `multiple` ❌ : Choix multiples dans un `menu`.
+*   **Interactivité** : 
+    *   `noorder` / `keeporder` ❌ : Gestion de l'ordre dans `clickfill`.
+    *   `transparent` ✅ : Fond de widget transparent.
+    *   `align=left/right` ❌ : Alignement des étiquettes.
+*   **Texte** : 
+    *   `noreaccent` ❌ : Ne normalise pas les accents.
+    *   `symtext` ❌ : Utilise l'analyseur symtext.

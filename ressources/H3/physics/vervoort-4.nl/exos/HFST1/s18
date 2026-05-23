@@ -1,0 +1,87 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=0
+plot=0
+make_tr=1
+inputs=2
+description=De druk van het liggende groene boek,De druk van het staande blauwe boek
+ex1=&nbsp;Pa
+ex2=&nbsp;Pa
+m_rightarrow=&nbsp;=&nbsp;
+breedte=!randint 155,235
+dikte=!randint 35,80
+hoogte=!randint 270,370
+tot=!exec moneyprint $[$breedte/10],$[$dikte/10],$[$hoogte/10] 1
+breedte=!item 1 of $tot
+dikte=!item 2 of $tot
+hoogte=!item 3 of $tot
+
+massa=!randint 140,225
+massa=$[$massa*10]
+kg=$[$massa/1000]
+Ftafel=$[9.81*$massa/1000]
+Pblauw_cm=$[$Ftafel/($breedte*$dikte)]
+Pblauw=$[10^4*$Ftafel/($breedte*$dikte)]
+Pgroen_cm=$[$Ftafel/($breedte*$hoogte)]
+Pgroen=$[10^4*$Ftafel/($breedte*$hoogte)]
+
+list=massa,hoogte,breedte,dikte,zwaartekracht
+tot=!exec sigdigits $massa $hoogte $breedte $dikte
+# zwaartekrachtsversnelling = 9.81 =3 sign.cijfers
+sig=3
+w=5
+!for p=1 to $tot
+    t$p=!line $p of $tot
+    t$p=!item 1 of $(t$p)
+    !if $(t$p)<$sig
+	sig=$(t$p)
+	w=$p
+    !endif
+!next p
+welke=!item $w of $list
+
+tot=!exec scienceprint $Pblauw,$sig,0 $Pblauw,$sig,2 $Pgroen,$sig,0 $Pgroen,$sig,2
+ans1=!item 1 of $tot
+t_ans1=!item 2 of $tot
+ans2=!item 3 of $tot
+t_ans2=!item 4 of $tot
+answer$n=$ans1,$ans2
+checkfile=$checkdir/units.proc
+# hoeft geen eenheid
+var1=0,0
+var2=$[abs(ans1-$Pblauw)],$[abs($ans2-$Pgroen)]
+
+ss=Twee <span style="color:blue">even grote boeken</span> hebben dezelfde massa van $massa g.<br />De druk op <span style="color:blue">de tafel</span> t.g.v. de boeken is verschillend doordat<br />de kracht op tafel verdeeld wordt over een verschillend oppervlak.<br />Bereken de druk van beide boeken in Pa.<br />Geef antwoord in SCI-mode en met juiste significantie.
+
+##textanswer$n=<ul><li>F(tafel) = m &sdot; g = $massa g &sdot; 8.91 N/kg = $kg kg &sdot; 9.81 N/kg =$Ftafel N</li><li>
+##Het blauwe staande boek:<br />p(blauw) = F/A = $Ftafel N  / ($breedte &times; $dikte) cm<sup>2</sup> = $Pblauw_cm N/cm<sup>2</sup>
+##<br />p(blauw) = $Pblauw_cm N/cm<sup>2</sup> = $Pblauw_cm &sdot; 10<sup>4</sup> N/m<sup>2</sup></li><li>
+##Het groene liggende boek:<br />p(groen) = F/A = $Ftafel N  / ($breedte &times; $dikte) cm<sup>2</sup> = $Pgroen_cm N/cm<sup>2</sup><br />p(groen) = $Pgroen_cm N/cm<sup>2</sup> = $Pgroen_cm &sdot; 10<sup>4</sup> N/m<sup>2</sup></li><li>De antwoorden moeten we opgeven in $sig significante cijfers<br />afkomstig van "$welke".</li><li>1 pA == 1 kg/m<sup>2</sup></li><li>p(blauw)=$h_ans1 N/m<sup>2</sup> = $h_ans1 pA</li><li>p(groen)=$h_ans2 N/m<sup>2</sup> = $h_ans2 pA</li></ul>
+
+texanswer$n= \left[ \begin{array}{l} F = mg = $kg \;kg \times 9.81 \; N/kg = $Ftafel \;N \\ p_{blauw} =  \frac{F}{A} = \frac{$Ftafel \;N}{ $breedte \times $dikte \; cm^{2}} = $Pblauw_cm \; N/cm^{2} = $t_ans1 \; N/m^2 \textrm{of Pa} \\ p_{groen} =  \frac{F}{A} = \frac{$Ftafel \;N}{ $breedte \times $hoogte \; cm^{2}} = $Pgroen_cm \; N/cm^{2} = $t_ans2 \; N/m^2 \textrm{of Pa} \end{array} \right.
+
+
+image=200,200\
+xrange 0,100\
+yrange 0,100\
+copy 0,100,-1,-1,-1,-1,gifs/boeken.jpg\
+text black,5,98,large,$breedte cm\
+text black,70,98,large,$dikte cm\
+text black,74,79,large,$hoogte cm
+
+!insdraw $image
+
+helptext=Afmetingen van de boeken<ul><li>breedte is $breedte cm</li><li>hoogte is $hoogte cm</li><li>dikte is $dikte cm</li></ul>De zwaartekracht  g = 9.81 N/kg<br />Geef antwoord in juiste nauwkeurigheid.
+
+question$n=<a onmouseover="return escape('$helptext <hr /><img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'plaatje\' />')">$ss</a>
+
+!exit
+
+
+
+
+    

@@ -1,0 +1,300 @@
+!set title=Correspondance inéquations 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=67
+prevarcnt=66
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Mettez en relation les inéquations équivalentes	  (c'est-à-dire ayant le même ensemble de solutions).
+val7=La correspondance
+val8=45x150x100
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+val9=$[rint(6)]
+tmp0=!record $val2 of src/generateur
+
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!item 3 of $val11
+
+val13=$(tmp0)
+!if $val12= 
+tmp0=!item 1 of $val11
+
+val14=$(tmp0)
+tmp0=!item 2 of $val11
+
+val15=$(tmp0)
+!if $val13<0 
+tmp0=!values $val13*v,-($val13)*v for v=$val14 to $val15
+
+val16=$(tmp0)
+!else
+tmp0=!values $val13*v for v=$val14 to $val15
+
+val16=$(tmp0)
+!endif
+!else
+val16=$val12
+!if $val13<0 
+tmp0=!replace internal , by ,- in $val16
+
+val17=$(tmp0)
+tmp0=!listunion $val16 and $val17
+
+val16=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val16
+
+val16=$(tmp0)
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+
+!ifval $val2 /2=0
+val2=$[rint($val2-1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val10
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!item 3 of $val11
+
+val13=$(tmp0)
+!if $val12= 
+tmp0=!item 1 of $val11
+
+val18=$(tmp0)
+tmp0=!item 2 of $val11
+
+val19=$(tmp0)
+tmp0=!values v for v=$val18 to $val19
+
+val16=$(tmp0)
+!else
+val16=$val12
+!endif
+tmp0=!listuniq $val16
+
+val16=$(tmp0)
+tmp0=!shuffle $val16
+
+val16=$(tmp0)
+tmp0=!item 1 of $val16
+
+val14=$(tmp0)
+tmp0=!item 2 of $val16
+
+val15=$(tmp0)
+!if $val13<0 
+tmp=!nonempty items -,
+
+tmp0=!randitem $tmp
+val15=$(tmp0)$val15
+!endif
+tmp=!nonempty items x,y,a,b
+
+tmp0=!randitem $tmp
+val20=$(tmp0)
+val21=<,>
+tmp0=!item 1 of $val21
+
+val22=$(tmp0)
+tmp0=!item 2 of $val21
+
+val23=$(tmp0)
+!if $val2>4 
+val24=$[rint(100*$val14)]
+val25=$[rint(100*$val15)]
+tmp=!translate ";': to $     $ in ($val25)/($val24)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+val27=$[rint($val25-$val24)]
+!readproc slib/decimal $val27,2 
+tmp0=$slib_out
+val27=$(tmp0)
+
+!ifval $val27>0
+val28=-$val27
+!else
+tmp0=!char 2 to -1 of $val27
+
+val28=$(tmp0)
+!endif
+!else
+tmp=!translate ";': to $     $ in ($val15)/($val14)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val26=$(tmp0)
+tmp=!translate ";': to $     $ in $val15-$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val27=$(tmp0)
+tmp=!translate ";': to $     $ in -$val27
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val28=$(tmp0)
+!endif
+val29=($val20 $val22 $val26,-$val14*$val20 $val23 -$val15,$val14*$val20-$val15 $val22 0,$val14*$val20 $val22 $val15),($val20 $val22 -$val26,-$val14*$val20 $val23 $val15,$val14*$val20+$val15 $val22 0,$val14*$val20 $val22 -$val15),($val20 $val23 $val26,-$val14*$val20 $val22 -$val15,$val14*$val20-$val15 $val23 0,$val14*$val20 $val23 $val15),($val20 $val23 -$val26,-$val14*$val20 $val22 $val15,$val14*$val20+$val15 $val23 0,$val14*$val20 $val23 -$val15),($val20 $val23 $val27,$val20+$val14 $val23 $val15),	($val20 $val23 $val28,$val20-$val14 $val23 -$val15)
+tmp0=!shuffle $val29
+
+val29=$(tmp0)
+tmp0=!item 1 to $val9 of $val29
+
+val29=$(tmp0)
+val30=
+val31=
+!for val32 =1 to $val9 
+tmp0=!item $val32 of $val29
+
+val33=$(tmp0)
+tmp0=!declosing $val33
+
+val33=$(tmp0)
+tmp0=!item 1 of $val33
+
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val17=$(tmp0)
+tmp0=!append item \($val17) to $val30
+
+val30=$(tmp0)
+tmp0=!item 2 to -1 of $val33
+
+val17=$(tmp0)
+tmp=!nonempty items $val17
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val17=$(tmp0)
+tmp0=!append item \($val17) to $val31
+
+val31=$(tmp0)
+!next
+tmp0=!randint 1, 2
+
+val34=$[rint($(tmp0))]
+!if $val34=2 
+tmp0=!replace internal < by \leq in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal < by \leq in $val30
+
+val30=$(tmp0)
+tmp0=!replace internal > by \geq in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal > by \geq in $val30
+
+val30=$(tmp0)
+!endif
+replytype1=correspond
+replyname1=$val7
+replygood1=$val31;$val30
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6	  <div class="wimscenter">	   
+!read oef/embed.phtml reply 1,$val8 
+$()	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8
+embedcnt=1

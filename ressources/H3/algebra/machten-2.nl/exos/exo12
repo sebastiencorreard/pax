@@ -1,0 +1,152 @@
+# vermenigvuldigen hogere machts wortels 
+# het goede antwoord is: $a,sqrt($b)
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=1
+mathviewpanel=$module_title:sqrt():sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[7]():sqrt[n]()
+rounding=0
+mathview=5
+math=0
+!readproc $remarkdir/rounding.$taal
+image=0
+questiontype=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# produceerd een <tr>
+make_tr=1
+varlist=s
+# dus 4s ->4*s en 4sqrt => 4*sqrt 
+arglist=$empty
+question$n=!record 39 of lang/remarks.$taal
+#@Bereken en schrijf je antwoord in de "wortel-vorm"&nbsp;&nbsp;&nbsp;&nbsp;<img src=$module_dir/gifs/exo$subject.gif/><p>
+sometext=!record 2 of lang/remarks.$taal
+#hulptext=!record 3 of lang/remarks.$taal
+cols=15
+rows=1
+helptext=<img src=\'$module_dir/gifs/exo12.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+v1=!randitem a,b,x,y
+varlist=$v1
+wims_rawmath_variables=$v1
+var2=$empty
+
+!if $R=1
+    dingen=9,2,4,5,7\
+    8,3,5,7,3\
+    7,2,3,4,5\
+    6,5,5,5,5\
+    5,2,3,4,2\
+    4,3,3,3,3\
+    3,2,2,2,2
+
+    ding=!randline $dingen
+    a=!item 1 of $ding
+    s=!randitem 2,3,4,5
+    b=!item $s of $ding
+    var1=($v1^(1/$a))^$b
+    formula$n=\left(\displaystyle $v1^{ \frac{1}{$a}} \right)^{$b}\,=\,[?]
+    applettext=!nospace ($v1^(1/$a))^$b=
+    texanswer$n=\left( $v1^{\displaystyle \frac{1}{$a}} \right)^{$b}\,=\, $v1^{\displaystyle \frac{$b}{$a}} = \root{$a} \of{$v1^{$b}} 
+    answer$n=1,sqrt($v1^$b),$a
+    checkfile=exos/checkfile4.proc
+    # var1=1 er zit een wortel in antwoord
+ !exit
+!endif
+
+!if $R=2
+    n1=!randitem 3,5,7
+    t1=!randint 1,$[$n1-1]
+    t2=!randint 1,$[$n1-1]
+    c=!randitem 2,3,4,5,6,7,8
+    pm=!randitem -1,1
+    c=$[$pm*$c]
+    d=!randitem 2,3,4,5,6,7,8
+    e=$[$t1+$t2]
+    f=$[$c*$d]
+    h=$[$e-$n1]
+    formula$n=$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}\,=\,[?]
+    applettext=!nospace ($c*$v1^($t1/$n1)) cdot ($d*$v1^($t2/$n1))=
+    checkfile=exos/checkfile4.proc
+    # var1=1 er zit een wortel in antwoord
+    !if $e<$n1
+	var1=1
+	corr=$f*sqrt[$n1]($v1^$e)
+	answer$n=$f,sqrt($v1^$e),$n1
+	texanswer$n=$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}\,=\,$c \cdot $d \cdot $v1^{\textstyle \frac{$t1}{$n1} + \frac{$t2}{$n1}} = $f \root{\textstyle $n1} \of{$v1^{$e}}
+    !else
+	!if $e>$n1
+	    var=1
+	    corr=$f*$v1*sqrt[$n1]($v1^($h))
+	    answer$n=$f*$v1,sqrt($v1^($h)),$n1
+	    texanswer$n=$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}\,=\, $c \cdot $d \cdot $v1^{\textstyle \frac{$t1}{$n1} + \frac{$t2}{$n1}} = $f \cdot $v1^{\textstyle \frac{$[$t1+$t2]}{$n1}} =  $f \cdot $v1^{1+ \textstyle \frac{$h}{$n1}} = $f \cdot $v1 \cdot \root{\textstyle $n1} \of{$v1^{$h}}
+	!else
+	    var1=$c1*$v1^($t1/$n1)*$d*$v1^($t2/$n2)
+	    checkfile=$checkdir/simplify.proc
+	    corr=$f*$v1
+	    answer$n=$corr
+	    texanswer$n=$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}\,=\,$c \cdot $d \cdot $v1^{\textstyle \frac{$t1+$t2}{$n1}} = $f \cdot $v1^{1} = $f $v1
+	!endif
+    !endif
+ !exit
+!endif
+
+!if $R>2
+    n1=!randitem 5,7,5,7,5,7,3
+    tt1=!randint 1,$[$n1-1]
+    tt2=!randint 1,$[$n1-1]
+    tt3=!randint 1,$[$n1-1]
+    list=$tt3,$tt2,$tt1
+    list=!sort numeric list of $list
+    t3=!item 1 of $list
+    t2=!item 2 of $list
+    t1=!item 3 of $list
+    # ivm geen negatieve exponent in eindantwoord
+    c=!randitem 2,3,4,5,6,7,8
+    pm=!randitem -1,1
+    !if $pm=1
+	c=$[$pm*$c]
+    !else
+	c=($[$pm*$c])
+    !endif
+    k=!randitem 2,3,4,5,6
+    l=!randitem 2,3,4
+    d=$[$k*$l]
+    e=$[$t1+$t2-$t3]
+    f=$[$c*$l]
+    h=$[$e-$n1]
+    
+    formula$n=\frac{$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}}{\textstyle $k $v1^{\textstyle \frac{$t3}{$n1}}}\,=\,[?]
+    applettext=!nospace ($c*$v1^($t1/$n1) cdot $d*$v1^($t2/$n1)) / ( $k*$v1^($t3/$n1)) = 
+    checkfile=exos/checkfile4.proc
+    # var1=1 er zit een wortel in antwoord
+    !if $e<$n1
+	var1=1
+	corr=$f*sqrt[$n1]($v1^$e)
+	answer$n=$f,sqrt($v1^$e),$n1
+	texanswer$n=\frac{$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}} {\textstyle $k $v1^{\textstyle \frac{$t3}{$n1}}}\,=\, \frac{$c \cdot $d}{$k} \cdot $v1^{\textstyle \frac{$t1+$t2-$t3}{$n1}} = $f \cdot \root{\textstyle $n1} \of {$v1^{$e}}
+    !else
+	!if $e>$n1
+	    var=1
+	    corr=$f*$v1*sqrt[$n1]($v1^($h))
+	    answer$n=$f*$v1,sqrt($v1^($h)),$n1
+	    texanswer$n=\frac{$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}} {\textstyle $k $v1^{\textstyle \frac{$t3}{$n1}}}\,=\, \frac{$c \cdot $d}{$k} \cdot $v1^{\textstyle \frac{$t1+$t2-$t3}{$n1}} = $f \cdot $v1 \cdot \root{\textstyle $n1} \of {$v1^{$h}}
+	!else
+	    var1=($c*$v1^($t1/$n1)*$v1^($t2/$n1))/($k*$v1^($t3/$n1))
+	    checkfile=$checkdir/simplify.proc
+	    corr=$f*$v1
+	    answer$n=$corr
+	    texanswer$n=\frac{$c $v1^{\textstyle \frac{$t1}{$n1}} \cdot $d $v1^{\textstyle \frac{$t2}{$n1}}} {\textstyle $k $v1^{\textstyle \frac{$t3}{$n1}}}\,=\, \frac{$c \cdot $d}{$k} \cdot $v1^{\textstyle \frac{$t1+$t2-$t3}{$n1}} = $f \cdot $v1
+	!endif
+    !endif
+ !exit
+!endif
+

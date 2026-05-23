@@ -1,0 +1,74 @@
+option:noorder eqweight split
+
+reply=$(reply$i)
+replygood=$(replygood$i[1;])
+
+script=!item 2 to -1 of $(oef_answer_option$i)
+script1=$script
+!set your_brd=!item 1 of $(oef_answer_option$i)
+
+!readproc slib/geo2D/jsxgraph  $(script) $(your_brd).suspendUpdate();
+
+reply_$i=$slib_out
+!! bonne reponse
+!!!readproc slib/geo2D/jsxgraph $script1; $(your_brd).suspendUpdate() ;
+!!reply_$i=$(reply_$i) $slib_out
+
+!if noorder isin $(replyoption$i)
+  noo=1
+!endif
+!default noo=0
+
+!! if empty, take the value of reply_$i
+!! enlever le ; de la fin
+reply$i=!nonempty lines $(reply$i)
+reply$i=!nonempty rows $(reply$i)
+reply$i=!replace internal free= by in $(reply$i)
+m_reply$i=$(reply$i)
+reply__$i=&nbsp;
+
+!if $wims_read_parm=nocompare
+  !exit
+!endif
+
+
+!reset cnt_r cnt_rg
+!set cnt_r=!itemcnt $(reply)
+!set cnt_rg=!itemcnt $(replygood)
+
+!! on analyse numeriquement la reponse
+
+!if $(replygood)==$(reply$i) and $(noo)==0
+  score=1
+  freegot=1
+!endif
+
+!if $(cnt_rg)==$(cnt_r) and $(noo)==1
+  !for gg in $(replygood)
+    !if $(gg) isin $(reply$i)
+      sc=$sc 1/$(cnt_r)
+    !else
+      sc=$sc 0
+    !endif
+  sc=$sc,
+  !next
+sc=!nonempty items $sc
+score=!replace internal , by + in $sc
+score=$[($score)]
+freegot=$[$freegot+$score]
+!endif
+
+!if $(cnt_rg)=!$(cnt_r)
+  score=0
+!endif
+
+!if $score=1
+ diareply$i=good
+!else
+  !if $score > 0.3
+    partialgood$i=yes
+    diareply$i=good
+  !else
+    diareply$i=bad
+  !endif
+!endif

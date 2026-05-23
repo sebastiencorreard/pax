@@ -1,0 +1,95 @@
+#:tabel en formule [H1]
+n=$counter
+display=1
+questiontype=0
+image=0
+math=0
+embed=1
+cols=25
+rows=1
+mathview=0
+checkfile=$checkdir/equation.proc
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $options<4 or $options>8
+    options=5
+!endif
+# let op met woorden met 2 o's zoals hoogte .... javascript zegt "o vervangen door 0"
+sometext=!record 40 of lang/remarks.$taal
+#@uitkomst:getal,bedrag:tijd,afstand:tijd,inhoud:tijd,omzet:jaar,winst:jaar
+ding=!randitem $sometext
+ding=!replace internal : by , in $ding
+y=!item 1 of $ding
+x=!item 2 of $ding
+keuze=!randitem 1,0
+arglist=$y
+varlist=$x
+
+!if $R=1
+    c=!randint 1,9
+    const=1
+    a=1
+    !if $keuze=1
+	pm=+
+	start=0
+    !else
+	pm=-
+	start=$c
+    !endif
+    texanswer$n=\begin{array}{l} \textrm{ $y } \,=\, \textrm{ $x } $pm $c \end{array}
+    func=$a*x $pm $c
+    answer$n=$a*$x $pm $c
+!else
+    !if $R=2
+	const=1
+	a=!randint 2,9
+	start=0
+	texanswer$n=\begin{array}{l} \textrm{ $y } \,=\, $a \times \textrm{ $x } \end{array}
+	func=$a*x
+	answer$n=$a*$x
+    !else
+	const=1
+	a=!randint 2,9
+	c=!randint 1,5
+	!if $keuze=1
+	    pm=+
+	    start=0
+	!else
+	    pm=-
+	    start=$c
+        !endif
+	texanswer$n=\begin{array}{l} \textrm{ $y } \,=\, $a \times \textrm{ $x } $pm $c \end{array}
+	func=$a*x $pm $c
+	answer$n=$a*$x $pm $c
+    !endif
+!endif
+
+header=<th>&nbsp;&nbsp;$x&nbsp;&nbsp;</th>
+body=<th>&nbsp;&nbsp;$y&nbsp;&nbsp;</th>
+answer_body=<th>&nbsp;&nbsp;$y&nbsp;&nbsp;</th>
+
+formula$n=\begin{array}{l} \textrm{ $y } = \textrm{ a } \times \textrm{ $x } + \textrm{ b } \end{array}
+
+!for p=1 to $options
+    ans=!evalsubst x=$start in $func
+    header=!append word <td>&nbsp;&nbsp;$start&nbsp;&nbsp;</td> to $header
+    body=!append word <td>&nbsp;&nbsp;$ans&nbsp;&nbsp;</td> to $body
+    start=$[$start + $const]
+!next p
+
+extratext=!record 42 of lang/remarks.$taal
+#@Gebruik hiervoor de algemene formule: $y=a*$x + b
+vraag_tabel=<table class=\'demospecial\'><tr>$body</tr><tr>$header</tr></table><hr />$extratext
+helptext=<img src=\'$module_dir/gifs/exo14.$taal.jpg\' alt=\'noalt\' />
+
+ss=!record 43 of lang/remarks.$taal
+#@Maak de formule bij <u><span style="color:blue">deze tabel</span></u>
+question$n=<a onmouseover="return escape('$vraag_tabel')">$ss</a>:<br />
+
+!exit
+

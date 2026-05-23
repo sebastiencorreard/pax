@@ -1,0 +1,97 @@
+checkfile=$checkdir/number.proc
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+arglist=x
+varlist=$empty
+cols=10
+rows=2
+inputs=1
+questiontype=0
+embed=1
+mathview=4
+mathviewpanel=$module_title:x=:and:sqrt()
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+question$n=!record 3 of lang/remarks.$taal
+lijn=!record 4 of lang/remarks.$taal
+sometext=!record 19 of lang/remarks.$taal
+question$n=$(question$n)<br /><small>$sometext</small>
+
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+pm=!randitem 1,-1
+keuze=!randitem 0,1
+!if $R = 1 
+    a=!randint 2,7
+    b=!randint 2,7
+    mp=!randitem +,-
+    a=$[$pm*$a]
+    functie=$a*x^2 $mp $b
+    answer$n=0
+    textanswer$n=$lijn x = $(answer$n)
+!else
+    !if $R = 2
+	a=!randint 2,7
+	!if $keuze=0
+	    functie=$pm*(x + $a)^2
+	    answer$n=$[-1*$a]
+	!else
+	    functie=$pm*(x - $a)^2
+	    answer$n=$a
+	!endif
+	textanswer$n=$lijn x = $(answer$n)
+    !else
+	b=!randint 2,5
+	c=!randint 1,5
+	a=$[$b*$c]
+	!if $keuze=0
+	    functie=$pm*($b*x + $a)^2
+	    answer$n=$[-1*$c]
+	    ex_1=!nospace $b x+$a=0
+	    ex_2=x=-$a/$b
+	!else
+	    functie=$pm*($b*x - $a)^2
+	    answer$n=$c
+	    ex_1=!nospace $b x-$a=0
+	    ex_2=x=$a/$b
+	!endif
+	textanswer$n=<ul><li>$ex_1</li><li>$ex_2</li><li>$lijn x = $(answer$n)</li></ul>
+    !endif
+!endif
+latex=!texmath $functie
+formula$n= y\,\,=\,$latex
+#\left( $c \cdot x - $a \right)\left( x + $b \right)
+applettext=!nospace  y=$functie ->
+    
+
+!if $image=1 or $teaching=1
+    make_tr=0
+    xsize=120
+    ysize=120
+    image_settings$n=160,160
+    image$n=transparent white\
+    xrange $[$(answer$n) - 3],$[$(answer$n) + 3]\
+    yrange -40,40\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 2\
+    dvline $(answer$n),0,red\
+    curve green,$functie
+    
+    svg=0
+    draw=1
+    plot=0
+    insdraw_size=$xsize,$ysize
+    !insdraw $(image$n)
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+!endif
+
+

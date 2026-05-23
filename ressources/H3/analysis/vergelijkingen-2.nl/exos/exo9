@@ -1,0 +1,195 @@
+#type a sqrt(bx+c)=sqrt(dx) 
+math=0
+image=0
+!set n=$counter
+!if $level =0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:<=>:and
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+!if $subject=9
+    questiontype=0
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=12
+    rows=1
+    # berekeniningen laten zien
+    var3=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=1
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    make_tr=1
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+keuze=!randitem 1,0
+!if $R=1
+    # sqrt(ax+b)=sqrt(c) => ax+b=c => ax=c-b =>  x=(c-b)/a 
+    x=!randint -10,10
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    d=!randint 1,25
+    b=$[$d-$a*$x]
+    !if $b=0
+	d=$[$d+5]
+        b=$[$d-$a*$x]
+    !endif
+    c=$[$a*$x + $b]
+    tus=!rawmath x+$b
+    formula$n=\sqrt{$a \cdot $tus} = \sqrt{$c}
+    applettext=!nospace sqrt($a * $tus)= sqrt($c) ->
+    texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(\sqrt{c}\right)^{2} \rightarrow ax+b = c \\ \\ $(formula$n) \\ $a \cdot $tus = $c  \\  $a \cdot x = $[$c - $b]   \\  x=$x \end{array} \right.
+    answer$n=$x
+ !exit
+!endif 
+
+!if $R=2
+    # sqrt(ax+b)=sqrt(cx) => ax-cx=-b => (a-c)x=-b =>  x=-b/(a-c) 
+    # sqrt(ax+b)=sqrt(cx+d) => ax-cx=d-b => (a-c)x=d-b =>  x=(d-b)/(a-c) 
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    b=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    c=!randint 2,10
+    !if $a=$c
+	c=$[$c+1]
+    !endif
+    d=!randitem -8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8
+    tus=!rawmath x+$b
+    tussen=!rawmath x+$d
+    
+    !if $keuze=1
+        formula$n=\sqrt{$a \cdot $tus} = \sqrt{$c x}
+	applettext=!nospace sqrt($a * $tus) = sqrt($c*x) ->
+	tot=!exec pari A=($b)/(($c)-($a))\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+        texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(\sqrt{c}\right)^{2}  \rightarrow ax+b = c \\ \\ $(formula$n) \\$a \cdot $tus = $c x  \\  $a \cdot x -$c x= -$b  \\  x=$xtex  \end{array} \right.
+    !else
+        formula$n=\sqrt{$a \cdot $tus} = \sqrt{$c $tussen}
+	applettext=!nospace sqrt($a * $tus) = sqrt($c*$tussen) ->
+	tot=!exec pari A=(($d)-($b))/(($a)-($c))\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(\sqrt{c}\right)^{2}  \rightarrow ax+b = c \\ \\ $(formula$n) \\ $a \cdot $tus = $c $tussen  \\  $[$a-$c] x= $[$d-$b]  \\  x=$xtex \end{array} \right.
+    !endif
+ !exit
+!endif 
+
+!if $R=3
+    # sqrt(ax+b)=esqrt(cx) => ax+b=e^2*cx => ax-e^2cx=-b => (a-e^2c)x=-b =>  x=-b/(e^2c-a) 
+    # sqrt(ax+b)=esqrt(cx+d) => ax+b=e^2*cx+e^2d => ax-e^2cx=e^2d-b =>  x=(e^2d-b)/(a-e^2c) 
+    a=!randitem -7,-6,-5,-4,-3,-2,-1
+    b=!randitem 2,3,4,5,6,7
+    c=!randint 2,7
+    e=!randitem -4,-3,-2,-1,2,3,4
+    !if $e<0
+	pm=-
+	pp=-1
+    !else
+	pm=$empty
+	pp=1
+    !endif
+    f=$[$a-($e)^2*$c]
+    !if $f=0
+	c=$[$c+1]
+	f=$[$a-($e)^2*$c]
+    !endif
+    d=!randitem 1,2,3,4,5,6,7
+    tus=!rawmath x+$b
+    tussen=!rawmath x+$d
+    
+    !if $keuze=1
+        formula$n=$pm \sqrt{$a \cdot $tus} = $e \cdot \sqrt{$c x}
+	applettext=!nospace $pp*sqrt($a * $tus) = $e * sqrt($c * x) ->
+	tot=!exec pari A=($b)/(((($e)^2)*($c))-($a))\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+        texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= d \cdot \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(d \cdot \sqrt{c}\right)^{2}  \rightarrow \left( \sqrt{ax+b}\right)^{2} = d \cdot \left(\sqrt{c}\right)^{2}  \rightarrow ax+b =d^{2} \cdot c \\ \\ $(formula$n) \\ $a \cdot $tus = $[$e*$e] \cdot $c x  \\  $f x= $[-1*$b]  \\  x=$xtex \end{array} \right.
+    !else
+        formula$n=$pm \sqrt{$a \cdot $tus} = $e \cdot \sqrt{$c $tussen}
+	applettext=!nospace $pp*sqrt($a * $tus) = $e * sqrt($c * $tussen) ->
+	tot=!exec pari A=(($e)^2*($d)-($b))/(($a)-(($e)^2)*($c))\
+	printtex(A)
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+	texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= d \cdot \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(d \cdot \sqrt{c}\right)^{2}  \rightarrow ax+b = d^{2} \cdot c \\ \\ $(formula$n) \\ $a \cdot $tus = $[$e*$e] \cdot \left($c $tussen \right)  \\  $f x= $[$e*$e*$d-$b]  \\  x=$xtex \end{array} \right.
+    !endif
+ !exit
+!endif
+
+
+!if $R>3
+    # sqrt(ax+b)=esqrt(cx) => ax+b=e^2*cx => ax-e^2cx=-b => (a-e^2c)x=-b =>  x=-b/(e^2c-a) 
+    # sqrt(ax+b)=esqrt(cx+d) => ax+b=e^2*cx+e^2d => ax-e^2cx=e^2d-b =>  x=(e^2d-b)/(a-e^2c) 
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    b=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    c=!randint 2,7
+    e=!randitem -1/4,-2/3,-1/3,-1/2,1/2,1/3,1/4,2/3
+    !if $e<0
+	pm=-
+	pp=-1
+    !else
+	pm=$empty
+	pp=1
+    !endif
+    f=$[$a-($e)^2*$c]
+    !if $f=0
+	c=$[$c+1]
+	f=$[$a-($e)^2*$c]
+    !endif
+    d=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    tus=!rawmath x+$b
+    tussen=!rawmath x+$d
+    
+    !if $keuze=1
+	tot=!exec pari A=(-1*$b)/(($a)-(($e)^2*$c))\
+	printtex(A)\
+	printtex($e)\
+	printtex($e*$e)\
+	printtex($a-($e)^2*($c))
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+	etex=!line 3 of $tot
+	ektex=!line 4 of $tot
+	ftex=!line 5 of $tot
+        formula$n=$pm \sqrt{$a \cdot $tus} = $etex \cdot \sqrt{$c x}
+	applettext=!nospace $pp*sqrt($a*$tus) = $e*sqrt($c*x) ->
+        texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= d \cdot \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(d \cdot \sqrt{c}\right)^{2}  \rightarrow ax+b = d^{2} \cdot c \\ \\ $(formula$n) $a \cdot $tus = $ektex \cdot $c x  \\  $ftex x= $[-1*$b]  \\  x=$xtex \end{array} \right.
+    !else
+	tot=!exec pari A=(($e)^2*($d)-($b))/(($a)-(($e)^2)*($c))\
+	printtex(A)\
+	printtex($e)\
+	printtex($e*$e)\
+	printtex($a-($e)^2*($c))
+	answer$n=!line 1 of $tot
+	xtex=!line 2 of $tot
+	etex=!line 3 of $tot
+	ektex=!line 4 of $tot
+	ftex=!line 5 of $tott
+        formula$n=$pm \sqrt{$a \cdot $tus} = $etex \cdot \sqrt{$c $tussen}
+	applettext=!nospace $pp*sqrt($a*$tus) = $e*sqrt($c*$tussen) ->
+	texanswer$n=\left[ \begin{array}{l} \textrm{type :} \sqrt{ax+b}= d \cdot \sqrt{c} \rightarrow \left( \sqrt{ax+b}\right)^{2} = \left(d \cdot \sqrt{c}\right)^{2}  \rightarrow ax+b = d^{2} \cdot c \\ \\ $(formula$n) \\ $a \cdot $tus = $ektex \cdot \left($c $tussen \right)  \\  x=$xtex \end{array} \right.
+    !endif
+ !exit
+!endif
+

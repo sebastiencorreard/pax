@@ -1,0 +1,114 @@
+!set title=Moyenne A4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp0=!randint 1, 3
+
+val7=$[rint($(tmp0))]
+tmp0=!item $val7 of 400,800,1500
+
+val8=$[rint($(tmp0))]
+tmp0=!item $val7 of 1,3,5
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 3, 5
+
+val10=$[rint($(tmp0))]
+val11=
+val12=$[rint(0)]
+!for val13 =1 to $val10 
+tmp0=!randint 10, 40
+
+val14=$[rint($(tmp0))]
+tmp0=!append item $val14 to $val11
+
+val11=$(tmp0)
+val12=$[rint($val12+$val14)]
+!next
+val15=$[rint($val12/$val10)]
+replytype1=numexp
+replyname1=Minute
+replygood1=$val9
+replytype2=numexp
+replyname2=Seconde
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val6 a mesuré le temps qu'il met pour courir le $val8 mètres. Il a reporté les résultats	dans le tableau ci-dessous :	<table class="wimscenter wimsborder">	<tr>	 <th>Essais</th>	 <th>Temps</th>	</tr>	  
+!for m_l=1 to $val10 
+$()<tr><td>$m_l</td><td>$val9 min $(val11[$m_l]) s</td></tr> 
+!next
+$()	</table>	Quel a été le temps moyen de $val6 ?	<div class="spacer">	<b>Votre réponse</b> :  
+!read oef/embed.phtml r1,5 
+$() min  
+!read oef/embed.phtml r2,5 
+$()s.	</div>	<div class="wims_instruction">Vous donnerez le résultat à la seconde près.</div>.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,9,10,11
+embedcnt=2

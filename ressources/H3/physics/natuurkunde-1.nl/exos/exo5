@@ -1,0 +1,138 @@
+# gemiddelde snelheid en afstand I
+n=$counter
+#logotext=<img src=$module_dir/gifs/Huygens.gif alt=Huygens/>
+#logo=<img src="$module_dir/gifs/pendule.gif" alt="pendule"/>
+!if $counter=1
+    !if $total_exos>3
+	# meer vragen hebben we niet; we gebruiken steps
+	total_exos=3
+    !endif
+    make_tr=1
+    cols=15
+    rows=1
+    mathview=0
+    math=0
+    viewlogo=1
+    inputs=1.1
+    m_rightarrow=&nbsp;=&nbsp;
+    ex1=&nbsp;meter
+    # var1 is eenheden : 1,1,0,1 betekend answer1+eenheid,answer2+eenheid,answer3,answer4+eenheid
+    # var2 is range min1:max1,min2:max2,min3:max3...
+    checkfile=$checkdir/new_number.proc
+    var2=$empty
+    var1=$empty
+    helptext=Gebruik altijd SI eenheden !<br />De SI eenheid voor lengte is <kbd>meter</kbd> [ afgekort m ]<br />De SI eenheid voor tijd is de <kbd>seconde</kbd> [ afgekort s ]<br />De SI eenheid voor snelheid is <kbd>meter per seconde</kbd> [afgekort m/s]<br />De SI eenheid voor versnelling is <kbd>meter per seconde per seconde</kbd> [afgekort m/s^2]<br />Je mag natuurlijk altijd de SI prefixen [zoals milliseconde of ms] gebruiken voor hele grote of kleine getallen
+    tmax=!randint 10,40
+    f=!randitem 2,3,4,5
+    tmax=$[$tmax*$f]
+    c=0
+    ymax=!randint 4,10
+    s=!randitem -1,1
+    y=!randint 1,$ymax
+    y=$[$s*$y]
+    d=!randint 2,5
+    dataset=Dataset:;
+    xpunten=0
+    ypunten=$y
+    steps=0
+    !for t=0 to $tmax step $f
+	!if $t=$tmax
+	    !increase steps
+	    xpunten=!append item $t to $xpunten
+	    ypunten=!append item $y to $ypunten
+	    dataset=!append word $t,$y; to $dataset
+	    dataset=!append word $t,0; to $dataset
+	!else
+	    !if $c<$d
+		dataset=!append word $t,$y; to $dataset
+	    !else    
+		prevy=$y
+		prevt=$[$t-$f]
+		d=!randint 2,5
+		c=0
+		s=!randitem 1,-1,1
+		y=!randint 1,$ymax
+		y=$[$s*$y]
+		!if $y=$prevy
+		    # nooit 2 keer dezelfde y-waarde
+		    pm =!randitem +,-
+		    y=$[$y $pm 1]
+		!endif
+		!increase steps
+		xpunten=!append item $prevt,$prevt to $xpunten
+		ypunten=!append item $prevy,$y to $ypunten
+		dataset=!append word $prevt,$prevy;$prevt,$y; to $dataset
+	    !endif
+	!endif
+	!increase c
+    !next t
+
+    afgelegdeweg=0
+    c=0
+        
+    st=!randint 1,$steps
+
+    !for p=1 to $[2*$steps] step 2
+	!increase c
+	t1=!item $p of $xpunten
+	t2=!item $[$p+1] of $xpunten
+	v1=!item $p of $ypunten
+	stuk$c=$[(abs($t2-$t1))*($v1)]
+	!if $p=$st or $st=$[$p+1]
+	    deltaT=$[abs($t2-$t1)]
+	    snelheidT=$v1
+	!endif
+	!if $(stuk$c)<0
+	    k=red
+	!else
+	    k=black
+	!endif
+	verbatim=!append item <span style="color:$k">$(stuk$c)</span> to $verbatim
+	afgelegdeweg=$[$afgelegdeweg + $(stuk$c)] 
+    !next p
+    
+    verbatim=!replace internal , by &nbsp;+&nbsp; in $verbatim
+    gemiddelde_snelheid=$[$afgelegdeweg/$tmax]
+    dataset=!nospace $dataset
+    xlabel=t (in s)
+    ylabel=V (in m/s)
+
+    # let op: 1 regel ... de applet zit in een "onmouseover"
+    applet=<object id=\'wimsplot\' width=\'680\' height=\'320\' classid=\'java:ptolemy.plot.PlotApplet.class\' type=\'application/x-java-applet;jpi-version=1.4\' ><param name=\'java_codebase\' value=\'$appletdir\' /><param name=\'java_archive\' value=\'Plot.jar\' /><param name=\'java_code\' value=\'ptolemy.plot.PlotApplet\' /><param name=\'progressbar\' value=\'true\' /><param name=\'scriptable\' value=\'false\' /><param name=\'background\' value=\'#ffffff;\' /><param name=\'name\' value=\'WIMS_Plot_Applet\' /><param name=\'data\' value=\'TitleText:$module_title;numsets:1;color:#ff0000;lines:on;marks:none;yrange:$[$ymin-1];$ymax+1];xrange:0,$[$tmax+1];xlabel:$xlabel;ylabel:$ylabel;grid:on;$dataset\' />$nojava</object> 
+    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+    rangwoorden=!record 60 of $remarkdir/commonremarks.$taal
+    aantal_stukken=!item $steps of $telwoorden
+
+    algemeen=<span style="color:blue">Hier</span> zie je de <kbd>v(t)</kbd> grafiek van een wandeling.<br />Op de verticale as staat de snelheid in meters/seconde [m/s]<br />Op de horizontale as de tijd in seconden.<br />Deze wandeling bestaat uit $aantal_stukken <kbd>eenparige stukken</kbd>.
+    
+    #vraag1
+    stt=!item $st of $rangwoorden
+    v1=Hoeveel meter wordt in het $stt stuk (S<sub>$st</sub>) van deze wandeling afgelegd ?
+    question1=<a onmouseover="return escape('$applet')">$algemeen<br />$v1</a> 
+    answer1=$(stuk$st)
+    v2=Hoeveel meter wordt er in't totaal afgelegd ?
+    question2=<a onmouseover="return escape('$applet')">$algemeen<br />$v2</a> 
+    answer2=$afgelegdeweg
+    v3=En wat is de gemiddelde snelheid ?
+    question3=<a onmouseover="return escape('$applet')">$algemeen<br />$v3</a> 
+    answer3=$gemiddelde_snelheid
+    
+    description=<kbd>S<sub>$st</sup></kbd>
+    
+    textanswer1=Je kunt in de grafiek aflezen dat het $stt horizontale traject $deltaT seconden duurde en dat -verticale as- de eenparig snelheid $snelheidT m/s was.<br />De afstand is dan: $snelheidT m/s &times; $deltaT s = $answer1 
+    textanswer2=Als je alle $aantal_stukken uitrekent op de manier van vraag 1 <br />en deze vervolgens optelt krijg je: $verbatim = $answer2
+    textanswer3=De gemiddelde snelheid is per definitie : afgelegde weg &divide; benodigde tijd = $afgelegdeweg m <span size=+2>/</span> $tmax s = $answer3 
+    
+!endif
+
+!if $counter=1
+    ex1=&nbsp;<kbd>meter</kbd>
+!else
+    !if $counter=2
+	ex1=&nbsp;<kbd>meter</kbd>
+	description=<kbd>S<sup>tot</sup></kbd>
+    !else
+	ex1=&nbsp;<kbd>m/s</kbd>
+	description=<kbd>V<sup>gemiddeld</sup></kbd>
+    !endif
+!endif	

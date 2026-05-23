@@ -1,0 +1,269 @@
+!set title=Rapporti di Talete +
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=it
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r
+varcnt=42
+prevarcnt=34
+postvarcnt=7
+replycnt=6
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=35x25x1
+val7=$[rint(50)]
+val8=$[rint(3)]
+tmp0=!randint 1, 2
+
+val9=$[rint($(tmp0))]
+!if $val9=1 
+tmp0=!recordcnt data/raptriangle-mod.don
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, $val10
+
+val10=$[rint($(tmp0))]
+tmp0=!record $val10 of data/raptriangle-mod.don
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp0=!recordcnt data/rappapillon-mod.don
+
+val10=$[rint($(tmp0))]
+tmp0=!randint 1, $val10
+
+val10=$[rint($(tmp0))]
+tmp0=!record $val10 of data/rappapillon-mod.don
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!endif
+val12=A,B,C,D,E,F,G,H,I,J,K,L,M,N
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$[rint($(tmp0))]
+!for val14 =1 to $val13 
+tmp0=!replace X$val14 by $(val12[$val14]) in $val11
+
+tmp=!trim $(tmp0)
+val11=!translate internal $	\
+$ to ;; in $tmp
+!next
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+tmp0=!shuffle $val17
+
+val17=$(tmp0)
+tmp0=!replace internal / by , in $val17
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+val20=$val20,$val18
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp0=!item 1 of $val21
+
+val22=$(tmp0)
+tmp0=!item 2 of $val21
+
+val23=$(tmp0)
+tmp=!translate internal $	$ to ; in $val11
+
+tmp=!row 7 to -1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp=!trim $(tmp0)
+val24=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!rows2lines $val24
+
+val24=$(tmp0)
+val25=$val17
+val26=$(val18[2])/$(val18[1]),$(val18[4])/$(val18[3]),$(val18[6])/$(val18[5])
+tmp0=!replace internal , by = in $val25
+
+val27=$(tmp0)
+tmp0=!texmath $val27
+
+val27=$(tmp0)
+tmp0=!replace internal , by = in $val26
+
+val28=$(tmp0)
+tmp0=!texmath $val28
+
+val28=$(tmp0)
+replytype1=clickfill
+replyname1=numérateur1
+replygood1=?analyze 29;$val20
+replytype2=clickfill
+replyname2=dénominateur1
+replygood2=?analyze 30;$val20
+replytype3=clickfill
+replyname3=numérateur2
+replygood3=?analyze 31;$val20
+replytype4=clickfill
+replyname4=dénominateur1
+replygood4=?analyze 32;$val20
+replytype5=clickfill
+replyname5=numérateur3
+replygood5=?analyze 33;$val20
+replytype6=clickfill
+replyname6=dénominateur3
+replygood6=?analyze 34;$val20
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<table>	 <tr>	  <td>$val15<br />	  Quale eguaglianza di rapporti si può dedurre utilizzando il teorema di Talete	  <b>sui triangoli 
+!insmath $(val16[1])
+$() e 
+!insmath $(val16[2])
+$()</b>?<br />	<b>Risposta:</b>	<table border=0 class="wimscenter">	<tr>	<td> 
+!read oef/embed.phtml reply 1,$val6 
+$()</td>	<td rowspan="3"> =</td>	<td>  
+!read oef/embed.phtml reply 3,$val6 
+$()</td>	<td rowspan="3"> = </td>	<td>  
+!read oef/embed.phtml reply 5,$val6 
+$()</td>	</tr><tr>	<td><hr/></td>	<td><hr/></td>	<td><hr/></td>	</tr><tr>	<td>  
+!read oef/embed.phtml reply 2,$val6 
+$()</td>	<td>  
+!read oef/embed.phtml reply 4,$val6 
+$()</td>	<td>  
+!read oef/embed.phtml reply 6,$val6 
+$()</td>	</tr></table>	<div class="wims_instruction">Trascinare col mouse le etichette in basso per completare le uguaglianze.</div>	  </td>	  <td>	   <div class="wimscenter"> 
+!read oef/draw.phtml $val22,$val23 \
+$val24 
+$()</div>	  </td>	 </tr>	</table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()I rapporti corretti sono: 
+!insmath $val27
+$() oppure 
+!insmath $val28
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val35=$val29/$val30,$val31/$val32,$val33/$val34
+tmp0=!listuniq $val35
+
+val35=$(tmp0)
+tmp0=!listintersect $val25 and $val35
+
+val36=$(tmp0)
+tmp0=!listintersect $val26 and $val35
+
+val37=$(tmp0)
+tmp0=!itemcnt $val35
+
+val38=$[rint($(tmp0))]
+tmp0=!itemcnt $val36
+
+val39=$[rint($(tmp0))]
+tmp0=!itemcnt $val37
+
+val40=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val38=$val8 and ($val39=$val8 or $val40=$val8)
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Rapporti corretti
+
+!exit
+
+:stat
+vsavelist=6,8,15,16,22,23,24,25,26,27,28,29,30,31,32,33,34
+embedcnt=6

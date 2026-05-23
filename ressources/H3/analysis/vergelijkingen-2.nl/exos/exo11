@@ -1,0 +1,187 @@
+# :type (ax+b)/(cx+d)=e/f
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $usage=2
+    image=0
+!endif
+questiontype=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+# ja we willen checken op vereenvoudigde breuken 
+var5=1
+embed=1
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:and
+!if $subject=11
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=14
+    rows=1
+    # berekeniningen laten zien
+    var3=0
+    questiontype=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=3
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 5 of lang/remarks.$taal
+    cols=25
+    rows=5
+    inputs=1
+    questiontype=7
+    javascript=js/exo1.js
+    make_tr=1
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+!if $R=1
+    a=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    c=!randint 1,10
+    d=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    !if $keuze=1
+        b=!randitem -8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8
+	formula$n=\frac{$a}{ $b x + $c} = $d 
+	applettext=!nospace $a/($b*x+$c) = $d -> 
+	tot=!exec pari A=(($a)-($d)*($c))/(($d)*($b))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$d*$c]
+	tex=$d \left( $b x + $c \right) = $a \\ $[($d)*($b)] $tussen = $a \\ $[($d)*($b)] x = $[$a-$d*$c]
+    !else
+        b=!randitem 2,3,4,5,6,7,8
+	formula$n=\frac{$a}{ $c - $b x} = $d 
+	applettext=!nospace $a/($c - $b*x) = $d -> 
+	tot=!exec pari A=(($d)*($c)-($a))/(($d)*($b))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$d*$c]
+	tex=$d \left( $c - $b x \right) = $a \\ $[-1*($d)*($b)] $tussen = $a \\ $[-1*($d)*($b)] x = $[$a-$d*$c]
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} \textrm{type :} \frac{a}{x} = c \rightarrow x \cdot c = a \rightarrow x = \frac{a}{c} \\ \\ $(formula$n) \\ $tex \\ x=$xtex \end{array} \right.
+ !exit
+!endif
+\textrm{type :} \frac{a}{b} = \frac{c}{d} \rightarrow a \cdot d = b \cdot c \\ \\
+!if $R=2
+    a=!randitem -10,-9,-8,-7,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,7,8,9,10
+    b=!randitem -8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8
+    c=!randint 1,10
+    d=!randitem -7,-6,-5,-4,-3,-2,2,3,4,5,6,7
+    !if $[$b-$a*$d]=0
+	d=$[$d+1]
+    !endif
+    !if $keuze=1
+	formula$n=\frac{$a}{ $b x + $c} = \frac{1}{$d x}
+	applettext=!nospace $a/($b*x+$c) = 1/($d*x) ->
+	tot=!exec pari A=((-1*($c))/(($b) -($a)*($d)))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tex=$b x + $c = $[$a*$d] x \\ $[$b - ($a)*($d)] x = -$c 
+    !else
+	formula$n=\frac{$a}{$b x - $c} = \frac{1}{$d x} 
+	applettext=!nospace $a/($b*x - $c) = 1/($d*x) ->
+	tot=!exec pari A=(($c)/(($b) -($a)*($d)))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tex=$b x - $c = $[$a*$d] x \\ $[$b - ($a)*($d)] x = $c 
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l}\textrm{type :} \frac{a}{b} = \frac{c}{d} \rightarrow a \cdot d = b \cdot c \\ \\ $(formula$n) \\ $tex \\ x=$xtex \end{array} \right.
+ !exit
+!endif
+
+!if $R=3
+    a=!randint 1,8
+    b=!randint 1,8
+    c=!randitem -8,-7,-5,-4,-2,-1,1,2,4,5,7,8
+    d=!randitem 3,6,9
+    !if $keuze=1
+	!if $a=$b
+	    b=$[$b+1]
+	!endif
+	formula$n=\frac{x + $a}{ x + $b} = \frac{$c}{$d} 
+	applettext=!nospace (x+$a)/(x+$b) = $c/($d) ->
+	tot=!exec pari A=(($b)*($c)-($a)*($d))/(($d)-($c))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$a*$d]
+	tus=!rawmath x+$[$b*$c]
+	tex=$d \left(x + $a \right) = $c \left(x + $b \right) \\ $d $tussen = $c $tus \\ $[$d-$c] x = $[$b*$c-$a*$d]
+    !else
+	formula$n=\frac{x + $a}{ x - $b} = \frac{$c}{$d} 
+	applettext=!nospace (x+$a)/(x-$b) = $c/($d) ->
+	tot=!exec pari A=(-1*($b)*($c)-($a)*($d))/(($d)-($c))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$a*$d]
+	tus=!rawmath x-$[$b*$c]
+	tex=$d \left(x + $a \right) = $c \left(x - $b \right) \\ $d $tussen = $c $tus \\ $[$d-$c] x = $[-1*$b*$c-$a*$d]
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} \textrm{type :} \frac{a}{b} = \frac{c}{d} \rightarrow a \cdot d = b \cdot c \\ \\ $(formula$n) \\ $tex \\ x=$xtex \end{array} \right.
+ !exit
+!endif
+
+!if $R>3
+    a=!randint 1,8
+    b=!randint 1,8
+    c=!randitem -8,-7,-5,-4,-2,-1,1,2,4,5,7,8
+    d=!randitem 3,6,9
+    e=!randitem -5,-4,-3,-2,2,3,4,5
+    f=!randitem -5,-4,-3,-2,-1,2,3,4,5
+    !if $[$e*$d-$f*$c]=0
+	e=$[$e+1]
+    !endif
+    !if $keuze=1
+	formula$n=\frac{$e x + $a}{$f x + $b} = \frac{$c}{$d} 
+	applettext=!nospace ($e*x+$a)/($f*x+$b) = $c/($d) ->
+	tot=!exec pari A=(($b)*($c)-($a)*($d))/(($e)*($d)-($f)*($c))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$a*$d]
+	tus=!rawmath x+$[$b*$c]
+	tex=$d \left($e x + $a \right) = $c \left($f x + $b \right) \\ $[$e*$d] $tussen = $[$f*$c] $tus \\ $[$e*$d-$f*$c] x = $[$b*$c-$a*$d]
+    !else
+	formula$n=\frac{$e x + $a}{$f x - $b} = \frac{$c}{$d}
+	applettext=!nospace ($e*x+$a)/($f*x - $b) = $c/($d) ->
+	tot=!exec pari A=(-1*($b)*($c)-($a)*($d))/(($e)*($d)-($f)*($c))\
+	printtex(A)
+	x=!line 1 of $tot
+	xtex=!line 2 of $tot
+	tussen=!rawmath x+$[$a*$d]
+	tus=!rawmath x-$[$b*$c]
+	tex=$d \left($e x + $a \right) = $c \left($f x - $b \right) \\ $[$e*$d] $tussen = $[$f*$c] $tus \\ $[$e*$d-$f*$c] x = $[-1*$b*$c-$a*$d]
+    !endif
+    answer$n=$x
+    texanswer$n=\left[ \begin{array}{l} \textrm{type :} \frac{a}{b} = \frac{c}{d} \rightarrow a \cdot d = b \cdot c \\ \\ $(formula$n) \\ $tex \\ x=$xtex \end{array} \right.
+ !exit
+!endif

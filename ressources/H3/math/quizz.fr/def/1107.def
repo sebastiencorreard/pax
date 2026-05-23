@@ -1,0 +1,144 @@
+!set title=Question 1107 Calcul de fréquence
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno,Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=mental_calculation,descriptive_statistics
+oefobservation=Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<ul class="wims_nopuce"><li><img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong></li>	<li><u>Aide à la saisie : </u>saisir 1.25 pour 1,25, saisir 3/4 pour \(3/4\), saisir 2^3 pour \(2^3) et saisir sqrt(3) pour \(\sqrt{ 3}\).</li></ul>
+val7=Félicitations toutes les réponses sont justes !
+val8=$[rint(7)]
+tmp0=!randint 3, $val8
+
+val9=$[rint($(tmp0)-2)]
+val10=$[rint($val8-$val9)]
+val11=black
+!for val12 =2 to $val10 
+val11=$val11,black
+!next
+!for val12 =1 to $val9 
+val11=$val11,white
+!next
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+val13=$[rint(20)]
+val14=$[rint($val8*20+10)]
+
+!ifval $(val11[1]) issametext black 
+val15= fcircle 5,0,$val13,black
+!else
+val15=circle 5,0,$val13,black
+!endif
+!for val12 =1 to $val8-1 
+val16=$[rint(5+10*$val12)]
+val17=fcircle $val16,0,$val13,black
+val18=circle $val16,0,$val13,black
+
+!ifval $(val11[$val12+1]) issametext black 
+val19=$val17
+!else
+val19=$val18
+!endif
+val15=$val15	$val19
+!next
+!readproc oef/draw.phtml 300,$val13 \
+xrange 0,$val14	yrange -15,15	$val15	 
+tmp0=$ins_url
+val20=$(tmp0)
+tmp0=!randitem noires,blanches
+
+val21=$(tmp0)
+
+!ifval $val21 issametext noires 
+t_=!rawmath $val10/$val8
+val22=!exec pari print($t_)
+!else
+t_=!rawmath $val9/$val8
+val22=!exec pari print($t_)
+!endif
+val23=Calculer la fréquence de boules $val21 parmi ces boules &#58; <br> <img src="$val20" alt=""><br>Réponse : 
+val24=
+val25=Attention, on vous demande la fréquence des boules <STRONG> $val21</STRONG>.
+replytype1=numeric
+replyoption1=comma default=0 
+replyname1=
+replygood1=$[$val22]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val23  
+!read oef/embed.phtml r1,10	    autofocus 
+$() $val24	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val25!=)
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val25</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,23,24,25
+embedcnt=1

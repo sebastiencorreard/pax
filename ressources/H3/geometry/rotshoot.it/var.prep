@@ -1,0 +1,63 @@
+
+shape=!randint 1,4
+!read shape$shape.phtml
+nc=!itemcnt $cc
+nc=$[floor($nc/2)]
+
+ratio1=!item $level of 0.9,0.7,0.3
+ratio2=!item $level of 1,0.9,0.8
+rrange=!item $level of 0.7,1.2,2
+angle=!random $ratio1*pi,$ratio2*pi
+angle=!randitem -$angle,$angle
+sa1=$[cos($angle)]
+sa2=$[-sin($angle)]
+sa3=$[sin($angle)]
+sa4=$sa1
+sax=!random -$rrange,$rrange
+say=!random -$rrange,$rrange
+thickness=!random 0,$rrange/3
+
+xmin=$[$sax-$thickness]
+xmax=$[$sax+$thickness]
+ymin=$[$say-$thickness]
+ymax=$[$say+$thickness]
+
+!distribute item $ into s1,s2
+!for i=1 to $nc
+  x=!item 2*$i-1 of $cc
+  y=!item 2*$i of $cc
+  s1=!append line $x,$y to $s1
+  xx=$[$sa1*($x-($sax))+$sa2*($y-($say))+$sax]
+  yy=$[$sa3*($x-($sax))+$sa4*($y-($say))+$say]
+  s2=!append line $xx,$yy to $s2
+  !distribute line $[min($xmin,min($x,$xx))]\
+  	$[max($xmax,max($x,$xx))]\
+ 	  $[min($ymin,min($y,$yy))]\
+ 	  $[max($ymax,max($y,$yy))]\
+ 	 into xmin,xmax,ymin,ymax
+!next i
+
+!distribute line $[max(($xmax-$xmin),($ymax-$ymin))/2]\
+	$[($xmax+$xmin)/2]\
+	$[($ymax+$ymin)/2] into drange,cx,cy
+!distribute item $[$cx-$drange],$[$cx+$drange],$[$cy-$drange],$[$cy+$drange]\
+	into xmin,xmax,ymin,ymax
+
+!for i=1 to 2
+	script$i=$script
+	script$i=!replace * by $(color$i) in $(script$i)
+	!for j=$nc to 1 step -1
+		l=!line $j of $(s$i)
+		!distribute item $l into xx,yy
+		xxx=$[rint(($xx-$xmin)*$xsize/($xmax-$xmin))+$border]
+		yyy=$[rint(($ymax-$yy)*$ysize/($ymax-$ymin))+$border]
+		script$i=!replace #$j by $xxx,$yyy in $(script$i)
+		test=$test,$j,($l),$xxx,$yyy
+	!next j
+!next i
+
+drawsrc=$script1 \
+$script2
+
+!distribute item $sax,$say into xc,yc
+!distribute item wait,, into status,click_x,click_y

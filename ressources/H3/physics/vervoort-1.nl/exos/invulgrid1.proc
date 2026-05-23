@@ -1,0 +1,195 @@
+# InvulVeld applet
+# answer$n itemlist; last item is correct answer
+# reply$n  2 lines : 
+# line 1 is itemlist; last item is final answer
+# line 2 is html-representation of reply
+
+goback=0
+errortext=$empty
+n=$counter
+extra=$empty
+AAA=!line 1 of $(reply$n)
+AAA=!lower $AAA
+!if $AAA=?
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+finreply=!item -1 of $AAA
+finans=!item -1 of $(answer$n)
+
+#html
+htmlreply=!line 2 of $(reply$n)
+#latexreply=!line 3 of $(reply$n)
+ta=!itemcnt $AAA
+tg=!itemcnt $(answer$n)
+score=0
+wrong_number=0
+using_calculator=0
+ready=0
+!if $var1!=$empty
+    test_reverse=1
+!else
+    test_reverse=0
+!endif
+r=1
+corr_steps=1
+checked_steps=1
+!for s=1 to $tg
+    !if $ready=0
+	ex=$empty
+	k=green
+	A=!item $r of $AAA
+	!if ? isin $A
+	    A=$dontknow
+	    k=red
+	!else
+    	    G=!item $s of $(answer$n)
+    	    !if $test_reverse=1
+    		Gr=!item $s of $var1
+    	    !else
+    		Gr=$G
+    	    !endif
+    	    !if NaN isin $[1*$A] and $A != $empty
+		ex=<br />je "antwoord" $A slaat nergens op...
+		ex=!subst $ex
+		score=0
+		k=red
+	    !else
+		!if $s != $tg
+		    # not the final answer
+		    !increase checked_steps
+		    !ifval $G=0 or $Gr=0
+			!ifval $A = 0
+			    k=green
+			    !increase corr_steps
+			!else
+			    r=$[$r - 1]
+			    # skip this line : pupil did not write 00000
+			!endif
+		    !else		
+			!ifval $A!=$G and $A!=$Gr 
+			    !if $A = $finreply
+				k=red
+				# in 1 keer uitgerekend...= rekenmachien
+				ready=1
+				score=0.1
+				ex=<br />Nee, dit is niet de bedoeling...<br />Kijk in de help- of onmousover-pagina's !
+				!ifval $A = $finans
+				    ex2=<br />maar je hebt het antwoord wel knap uitgerekend met een rekenmachientje...
+				!else
+				    ex2=<br />en je hebt het antwoord nog fout ook...
+				!endif
+				ex=!subst $ex $ex2
+			    !else
+				ex=!subst <br />nee, dit had moeten zijn : $G 
+				k=red
+				wrong_number=1
+	    		    !endif
+			!else
+			    k=green
+			    !increase corr_steps
+			!endif
+		    !endif
+		!else
+		    # finalanswer
+		    !if $A=$empty
+			A=$dontknow
+	    		ex=<br />je hebt geen eindantwoord ingevuld...
+	    		score=0
+			k=red
+		    !else
+			# checkfinal reply
+	    		!if $A != $finreply
+			    ex=hmmm ?
+			    using_calculator=1
+			    k=red
+			    # meer antwoorden dan noodzakeijk
+			    !for r=$tg to $[$ta - 1]
+				your_reply=!append word <li><span style="color:$k">$A</span>$ex</li> to $your_reply
+				maxscore=$[$maxscore*$P7]
+			    !next r
+			    A=$finreply
+			!endif
+			!if NaN isin $[1*$A]
+			    ex=<br />je "eindantwoord" $A slaat nergens op...
+	    		    score=0
+			    k=red
+			!else
+			    !ifval $A = $G
+				score=1
+				k=green
+				!if $using_calculator=1
+				    k=red
+				    ex=<br />je antwoord is goed<br />maar je hebt wel een rekenmachientje gebruikt...
+				!else
+				    !if $wrong_number=1
+					k=red
+					ex=<br />hmmm,maar je eindantwoord is goed...
+				    !endif 
+				!endif
+			    !else
+				found=0
+				k=red
+				!for p in 1,10,100,1000,10000,100000
+				    !if $found=0
+					!ifval $A = $[$p*$G]
+					    ex=<br />Je eindantwoord is een factor $p te groot
+					    ex=!subst $ex
+					    score=0.2
+					    k=orange
+					    found=1
+					!else
+					    !ifval $[$p*$A] = $G
+						ex=<br />Je eindantwoord is een factor $p te klein
+						ex=!subst $ex
+						score=0.2
+						k=orange
+						found=1
+		    			    !else
+						!ifval $A = $[$G + $p] or $A = $[$G - $p]
+						    ex=<br />het $[log($p)/(log(10))]-de cijfertje van rechts (de $p -tallen) zit er eentje naast...
+						    ex=!subst $ex
+						    score=0.25
+						    k=orange
+						    found=1
+						!endif
+					    !endif
+					!endif
+				    !endif
+				!next p
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+	your_reply=!append word <li><span style="color:$k">$A</span>$ex</li> to $your_reply
+    !endif
+    r=$[$r + 1]
+!next s
+
+reply$n=$htmlreply<ul>$your_reply</ul>
+math=0
+maxscore=$[$maxscore*(2*$score+($corr_steps/$checked_steps))/3]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore >0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+    
+modulescore=$[$modulescore+$maxscore]
+    
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+goback=0
+!exit
+

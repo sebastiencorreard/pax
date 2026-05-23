@@ -1,0 +1,129 @@
+!set title=Nommer un polygone
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=20
+prevarcnt=19
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=triangle,carré,pentagone,hexagone,heptagone,	  octogone, nonagone,décagone,hendécagone,dodécagone, quindécagone,	  icosagone
+val7=3,4,5,6,7,8,9,10,11,12,15,20
+tmp0=!itemcnt $val7
+
+val8=$(tmp0)
+tmp0=!shuffle $val8
+
+val9=$(tmp0)
+val10=
+!for val11 =1 to 3 
+val12=$[rint($(val7[$(val9[$val11])]))]
+val13=1,0
+!for val14 =1 to $val12 
+tmp=!trim $val13	     cos(2*$val14*pi/$val12),sin(2*$val14*pi/$val12)
+val13=!translate internal $	\
+$ to ;; in $tmp
+!next
+!readproc slib/matrix/invertible 2,3 
+tmp0=$slib_out
+val15=$(tmp0)
+val15=1,0;0,1
+tmp0=!replace internal ; by , in $val15
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in ([$val15]*[$val13]~)~
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+tmp0=!replace internal ; by , in $val17
+
+val18=$(tmp0)
+!readproc slib/draw/range $val18 
+tmp0=$slib_out
+val19=$(tmp0)
+t_=!replace internal \( by ( in 1.3*[$val19]
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+!readproc oef/draw.phtml 200,200 \
+     xrange $(val19[1,2])	yrange $(val19[3,4])	polyline black,$val18 
+tmp0=$ins_url
+val10=$val10,<img src="$(tmp0)" alt="">
+!next
+tmp0=!nonempty items $val10
+
+val10=$(tmp0)
+replytype1=correspond
+replyname1=
+replygood1=$(val6[$(val9[1..3])]);$val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wimscenter">	 
+!read oef/embed.phtml reply1, 200 x200x200 
+$()	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=
+embedcnt=1

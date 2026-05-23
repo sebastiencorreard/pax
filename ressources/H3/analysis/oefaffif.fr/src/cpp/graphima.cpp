@@ -1,0 +1,66 @@
+target=graphima
+\language{fr}
+\range{-5..5}
+\computeanswer{no}
+\format{html}
+\precision{100000}
+#include "author.inc"
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\text{nom=random(f,g,h)}
+\integer{nb1=random(1,-1)*random(1..50)}
+\integer{nb2=random(1,-1)*random(1..50)}
+\real{nb1=\nb1/10}
+\real{nb2=\nb2/10}
+
+\real{a=(\nb2-(\nb1))/10}
+\real{b=\nb1+5*(\a)}
+\function{dg=-(\a*(x)+(\b))*50+250}
+\integer{pt1=evalue(\dg,x=-5)}
+\integer{pt2=evalue(\dg,x=5)}
+
+\text{dessin=wims(record 1 of src/graph.don)}
+\text{dessin=\dessin
+segment 0,\pt1,500,\pt2,red}
+
+\integer{abs=random(1,-1)*random(1..45)}
+\real{abs=\abs/10}
+\real{ord=\a*(\abs)+(\b)}
+\integer{ord2=\ord*10}
+\real{ord2=\ord2/10}
+
+\integer{tmp=-(\ord2)*50+250}
+\if{\abs>0}{\text{texte1=text green,220,\tmp-10,medium,\ord2}}
+{\text{texte1=text green,255,\tmp-10,medium,\ord2}}
+
+\if{\ord2>0}{\text{texte2=text green,240+(\abs)*50,260,medium,\abs}}
+{\text{texte2=text green,240+(\abs)*50,230,medium,\abs}}
+
+\text{dessin2=\dessin
+arrow 250+(\abs)*50,250,250+(\abs)*50,\tmp,10,green
+\texte2
+arrow 250+(\abs)*50,\tmp,250,\tmp,10,green
+\texte1}
+\statement{
+\name_enonce[1] \(\nom) \name_enonce[2]:
+<div class="wimscenter">
+\draw{500,500}{\dessin}
+</div>
+\name_question[1]\(\abs) \name_question[2] \(\nom) ?
+<div class="spacer">
+<b>\name_answer :</b>
+<label for="reply1">
+\name_ans[1] \(\abs) \name_ans[2] \(\nom\) \name_ans[3]</label> \embed{r1,5}.
+</div>}
+
+\answer{\nom(\abs)}{\rep}{type=auto}
+
+\condition{\name_cond}{abs(\ord-(\rep))<0.1}
+
+\solution{\name_sol1[1] \abs \name_sol1[2] \nom \name_sol1[3] \abs.
+<p>
+\name_sol2[1] \abs \name_sol2[2]
+<div class="wimscenter">
+\draw{500,500}{\dessin2}
+</div>}

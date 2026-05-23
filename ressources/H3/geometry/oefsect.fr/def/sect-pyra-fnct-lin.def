@@ -1,0 +1,213 @@
+!set title=Pyramide et fonction linéaire 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r,r,r,r,r,r
+varcnt=38
+prevarcnt=37
+postvarcnt=0
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(.8)]
+tmp0=!randint 80, 130
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 150, 250
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 150, 250
+
+val9=$[rint($(tmp0))]
+val10=$[.5]
+val11=$[rint(max($val9,$val7))]
+val12=$[rint($val8+max($val7*$val10,$val9*$val10))]
+val13=segment 20,20,20,20+$val8*$val6,black	segment 20,20+$val8*$val6,20+$val7*$val6,20+($val8+$val7*$val10)*$val6,black	dsegment 20,20+$val8*$val6,20+$val9*$val6,20+($val8-$val9*$val10)*$val6,black	segment 20+$val7*$val6,20+($val8+$val7*$val10)*$val6,20+$val9*$val6,20+($val8-$val9*$val10)*$val6,black	segment 20,20,20+$val7*$val6,20+($val8+$val7*$val10)*$val6,black	segment 20,20,20+$val9*$val6,20+($val8-$val9*$val10)*$val6,black	text black,5,15,medium,A	text black,5,15+$val8*$val6,medium,B	text black,20+$val7*$val6,20+($val8+$val7*$val10)*$val6,medium,C	text black,20+$val9*$val6,20+($val8-$val9*$val10)*$val6,medium,D
+tmp0=!randint $val8/5, 2*$val8/5
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 3*$val8/5, 4*$val8/5
+
+val15=$[rint($(tmp0))]
+val16=$[rint($val14/$val8*$val7)]
+val17=$[rint($val14/$val8*$val9)]
+val13=$val13	segment 20,20+$val14*$val6,20+$val16*$val6,20+($val14+$val16*$val10)*$val6,red	dsegment 20,20+$val14*$val6,20+$val17*$val6,20+($val14-$val17*$val10)*$val6,red	segment 20+$val16*$val6,20+($val14+$val16*$val10)*$val6,20+$val17*$val6,20+($val14-$val17*$val10)*$val6,red	text black,5,15+$val14*$val6,medium,E	text black,20+$val17*$val6,($val14-$val17*$val10)*$val6,medium,F	text black,10+$val16*$val6,20+($val14+$val16*$val10)*$val6,medium,G
+val18=$val7/$val8
+tmp=!translate ";': to $     $ in $val18
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val18=$(tmp0)
+!if $val18=1 
+val19=1
+!else
+tmp0=!replace internal / by , in $val18
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$(tmp0)
+tmp0=!item 2 of $val20
+
+val22=$(tmp0)
+val19=$val18*x,x*$val18,$val21*x/$val22,x*$val21/$val22
+!endif
+tmp0=!item 1 of $val19
+
+val23=$(tmp0)
+val24=$val9/$val8
+tmp=!translate ";': to $     $ in $val24
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+!if $val24=1 
+val25=1
+!else
+tmp0=!replace internal / by , in $val24
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val21=$(tmp0)
+tmp0=!item 2 of $val20
+
+val22=$(tmp0)
+val25=$val24*x,x*$val24,$val21*x/$val22,x*$val21/$val22
+!endif
+tmp0=!item 1 of $val25
+
+val26=$(tmp0)
+val27=$[rint($val18*$val14*10)]
+val27=$[$val27/10]
+val28=$[rint($val24*$val14*10)]
+val28=$[$val28/10]
+val29=$[rint($val18*$val15*10)]
+val29=$[$val29/10]
+val30=$[rint($val24*$val15*10)]
+val30=$[$val30/10]
+oefsteps=reply 1, reply 2	reply 3,reply 4,reply 5,reply 6 
+nextstep=!nosubst reply 1, reply 2	reply 3,reply 4,reply 5,reply 6 
+!readproc oef/steps.proc
+replytype1=litexp
+replyname1=EG
+replygood1=$val25
+replytype2=litexp
+replyname2=EF
+replygood2=$val19
+replytype3=units
+replyname3=EF
+replygood3=$val27 cm
+replytype4=units
+replyname4=EG
+replygood4=$val28 cm
+replytype5=units
+replyname5=EF
+replygood5=$val29 cm
+replytype6=units
+replyname6=EG
+replygood6=$val30 cm
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> 
+!read oef/draw.phtml 40+$val6*$val11,40+$val6*$val12 \
+$val13 
+$()</div>	 <div class="medium_size text_col">	Un meuble dont la forme est une pyramide se trouve dans l'angle	d'une pièce dont les murs forment un angle droit. La base du meuble	est un triangle rectangle en B. Les dimensions du meuble sont les suivantes:	<ul>	<li> AB=$val8 cm.</li>	<li> BC=$val7 cm.</li>	<li> BD=$val9 cm.</li>	</ul>	On décide de placer plusieurs étagères dans ce meuble. Chacune de ces étagères	est un triangle rectangle telle que les points A, G et C sont alignés et	les points A, F et D le sont aussi. Les étagères sont placées à angles droits	avec les côtés du meuble.	<br>	<b>Question 1.</b> On pose 
+!insmath x=AE
+$().	Calculer la longueur exacte du côté [EG] en fonction de x.	
+!if $m_step=1 
+$()<p><label for="reply1">EG=</label> 
+!read oef/embed.phtml r1,15 
+$()</p> 
+!endif
+$()	Calculer la longueur exacte du côté [EF] en fonction de x.	
+!if $m_step=1 
+$()<p><label for="reply2">EF=</label> 
+!read oef/embed.phtml r2,15 
+$()</p> 
+!endif
+$()	<div class="wims_instruction">Ecrire les résultats sous la forme la plus simple possible.</div>	
+!if $m_step=2 
+$()<br><span class="oef_indgood">Réponses:</span> 
+!insmath EG= $val23
+$() et 
+!insmath EF=$val26
+$(). 
+!endif
+$()		
+!if $m_step=2 
+$()<b>Question 2.</b> On décide de placer deux étagères. Calculer leurs dimensions.	<ul>	<li> Etagère 1: à une distance de $val14 cm du sommet	<blockquote>	<p><label for="reply3">EG=</label> 
+!read oef/embed.phtml reply 3 
+$()</p>	<p><label for="reply4">EF=</label> 
+!read oef/embed.phtml reply 4 
+$()</p>	</blockquote></li>	<li> Étagère 2: à une distance de $val15 cm du sommet	<blockquote>	<p><label for="reply5">EG=</label> 
+!read oef/embed.phtml reply 5 
+$()</p>	<p><label for="reply6">EF=</label> 
+!read oef/embed.phtml reply 6 
+$()</p>	</blockquote></li>	</ul>	<div class="wims_instruction">Donner les résultats au millimètre près.</div>	 
+!endif
+$()	 </div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,11,12,13,14,15,23,26
+embedcnt=6

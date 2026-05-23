@@ -1,0 +1,248 @@
+!set title=Développer par étapes (a+b)(c+d)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+computeanswer=no
+leftrange=-5.000000
+rightrange=5.000000
+language=fr
+precision=10000
+
+ansorder=r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Réponse
+val7=Simplifier les expressions suivantes&nbsp;
+val8=Développer et réduire l'expression suivante&nbsp;
+val9=Bonne réponse
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val2<1 or $val2>6
+val2=$[rint(1)]
+!endif
+tmp=!nonempty items x,y,z,t,u,v,a,b
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+tmp0=!values v,-v for v=1 to 9
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+tmp0=!values v for v=0 to $val2
+
+val12=$(tmp0)
+tmp0=!shuffle $val12
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+tmp0=!item 2 of $val12
+
+val14=$(tmp0)
+val15=$val13
+val16=$val14
+tmp=!translate ";': to $     $ in $(val11[1])*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val11[2])*$val10^$val14
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val11[3])*$val10^$val15
+
+tmp=!lower $tmp
+tmp2=!exec maxima fullratsimp($tmp);
+tmp=!translate ";': to $     $ in $(val11[4])*$val10^$val16
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+val17=($(tmp0)+$(tmp1))*($(tmp2)+$(tmp3))
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+t_=!replace internal \( by ( in expand($val17);
+tmp0=!exec maxima $t_
+
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in $(val11[3])*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val20=$(tmp1)
+
+!ifval $(val11[3])<0
+val20=($val20)
+!endif
+tmp=!translate ";': to $     $ in $(val11[1])*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val21=$(tmp1)
+val22=$val21\times $val20
+tmp=!translate ";': to $     $ in $(val11[1])*$(val11[3])*$val10^($val13+$val15)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val23=$(tmp0)
+tmp=!translate ";': to $     $ in $(val11[4])*$val10^$val16
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val21=$(tmp1)
+
+!ifval $(val11[4])<0
+val21=($val21)
+!endif
+tmp=!translate ";': to $     $ in $(val11[3])*$val10^$val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val24=$(tmp1)
+
+!ifval $(val11[3])>=0
+val24=+$val24
+!endif
+tmp=!translate ";': to $     $ in $(val11[2])*$val10^$val14
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val20=$(tmp1)
+
+!ifval $(val11[2])<0
+val20=($val20)
+!endif
+tmp=!translate ";': to $     $ in $(val11[1])*$val10^$val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+tmp1=!texmath $(tmp0)
+
+val25=$(tmp1)\times $val21 $val24\times $val20
+t_=!replace internal \( by ( in expand($(val11[1])*$(val11[4])*$val10^($val13+$val16)+$(val11[2])*$(val11[3])*$val10^($val14+$val15));
+tmp0=!exec maxima $t_
+
+val26=$(tmp0)
+oefsteps=r1,r2	r3 
+nextstep=!nosubst r1,r2	r3 
+!readproc oef/steps.proc
+replytype1=litexp
+replyoption1=polexpand 
+replyname1=A
+replygood1=$val23
+replytype2=litexp
+replyoption2=polexpand 
+replyname2=B
+replygood2=$val26
+replytype3=algexp
+replyoption3=polexpand 
+replyname3=C
+replygood3=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	  <ol>	  
+!if $m_step=1 
+$()	    <li>$val7:	     <ul>	      <li><label for="reply1">
+!insmath A = $val22 =
+$()</label>  
+!read oef/embed.phtml r1 
+$()</li>	      <li><label for="reply2">
+!insmath B = $val25 =
+$()</label>  
+!read oef/embed.phtml r2 
+$()</li>	     </ul>	    </li>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <li>$val7:	      <ul>	       <li>
+!insmath A = $val22 =
+$() <span class="oef_indgood">
+!insmath $val23
+$() &nbsp; $val9</span></li>	       <li>
+!insmath B = $val25 =
+$() <span class="oef_indgood">
+!insmath $val26
+$() &nbsp; $val9</span></li>	      </ul>	     </li>	     <li>$val8:	      <blockquote>	       <label for="reply3">
+!insmath C = $val18 = 
+$()</label>  
+!read oef/embed.phtml r3 
+$().	      </blockquote>	     </li>	   
+!endif
+$()	  </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,18,22,23,25,26
+embedcnt=3

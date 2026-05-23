@@ -1,0 +1,146 @@
+#:Piramide [ Oppervlak ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+origin=0
+applet=1
+embed=1
+mathview=0
+make_tr=0
+questiontype=0
+cols=16
+rows=2
+checkfile=$checkdir/number.proc
+extratext=!record 12 of lang/remarks.$taal
+helptext=$empty
+x=!randitem 6,8,10,12,14
+a=!randitem -3,-2,-1,1,2,3
+z=$[$x+($a)]
+b=$[$x/2]
+c=$[ceil(sqrt($b^2+$b^2))]
+d=!randint $c,$[$c+4]
+Oppervlak=!record 24 of lang/remarks.$taal
+hoogte=!record 27 of lang/remarks.$taal
+!if $R=1
+    setje=A,B B,C C,D A,D
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    AT=!nospace $A T
+    BT=!nospace $B T
+    ABT=!nospace $A $B T
+    e=$[$d^2-$b^2]
+    !if . isin $[sqrt($e)]
+	h=sqrt($e)
+	h_tex=\sqrt{$e}
+        answer$n=$b*$h
+        ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    !else
+	h=$[sqrt($e)]
+	h_tex=$h
+        answer$n=$[$b*$h]
+	ans= = $(answer$n)
+    !endif
+    ss=!record 28 of lang/remarks.$taal
+    #@:Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en $AT=$d<br />Bepaal de oppervlakte van &Delta; $ABT .
+    question$n=$ss 
+    description=$Oppervlak: 
+    texanswer$n=\left[ \begin{array}{l} \textrm{$hoogte} \ \Delta $ABT = \sqrt{$d^{2}-$b^{2}}=$h_tex \\ \textrm{$Oppervlak} = \frac{1}{2} \cdot $x \cdot $h_tex $ans \end{array} \right.
+    
+    construction=<Segment type="thick" name="$AT" n="2003" alias="$AT" color="1" from="$A" to="T"></Segment><Segment type="thick" name="$BT" n="2004" alias="$BT" color="1" from="$B" to="T"></Segment><Segment type="thick" name="$AB" n="2005" alias="$AB" color="1" from="$A" to="$B"></Segment><Polygon name="$ABT" n="2006" color="1" background="true" filled="true" solid="true" point1="$A" point2="$B" point3="T"/>                
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+!if $R=2
+    setje=A,C B,D 
+    keuze=!randitem 1,2
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    AT=!nospace $A T
+    BT=!nospace $B T
+    AR=!nospace $A R
+    ABT=!nospace $A $B T
+    e=$[$b^2+$b^2]
+    h=$[$d^2-$e]
+    !if . isin $[sqrt($h)]
+	h_tex=\sqrt{$h}
+        answer$n=sqrt($e)*sqrt($h)
+        ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    !else
+	h_tex=$[sqrt($h)]
+        answer$n=$h_tex*sqrt($e)
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    ss=!record 28 of lang/remarks.$taal
+    #@:Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en $AT=$d<br />Bepaal de oppervlakte van &Delta; $ABT .
+    question$n=$ss 
+    description=$Oppervlak:
+    texanswer$n=\left[ \begin{array}{l} $AR=\sqrt{$b^{2}+$b^{2}}=\sqrt{$e} \\ TR=\sqrt{$d^{2}-$e}=\sqrt{$h} \\ \textrm{$Oppervlak} = \frac{1}{2} \cdot 2 \cdot \sqrt{$e} \cdot $h_tex $ans \end{array} \right.
+     
+    construction=<Segment type="thick" name="$AT" n="2003" alias="$AT" color="1" from="$A" to="T"></Segment><Midpoint name="R" n="2000" showname="true" bold="true" large="true"  first="$A" second="$B" shape="circle"></Midpoint><Segment type="bold" name="TR" alias="TR" color="5" n="1000" from="T" to="R"></Segment><Segment type="thick" name="$BT" n="2004" alias="$BT" color="1" from="$B" to="T"></Segment><Segment type="thick" name="$AB" n="2005" alias="$AB" color="1" from="$A" to="$B"></Segment><Polygon name="$ABT" n="2006" color="1" background="true" filled="true" solid="true" point1="$A" point2="$B" point3="T"/>                
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+
+!if $R>2
+    setje=A,B,C,D B,C,A,D 
+    keuze=!randitem 1,2
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    C=!item 3 of $set
+    D=!item 4 of $set
+    AB=!nospace $A $B
+    AT=!nospace $A T
+    CD=!nospace $C $D
+    ABT=QRT
+    e=$[$d^2-$b^2]
+    h=$[$e-$b^2]
+    !if . isin $[sqrt($e)]
+	tr=sqrt($e)
+	tr_tex=\sqrt{$e}
+    !else
+	tr=$[sqrt($e)]
+	tr_tex=$tr
+    !endif
+    !if . isin $[sqrt($h)]
+	ts=sqrt($h)
+	ts_tex=\sqrt{$h}
+	answer$n=$b*$ts
+	ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    !else
+	ts=$[sqrt($h)]
+	ts_tex=$ts
+	answer$n=$b*$ts
+	ans= =$[$b*$ts]
+    !endif
+    ss=!record 29 of lang/remarks.$taal
+    #@:Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en $AT=$d<br />R is het midden van $AB . Q is het midden van $CD .<br />Bepaal de oppervlakte van &Delta; $ABT .  
+    question$n=$ss
+    description=$Oppervlak:
+    
+    texanswer$n=\left[ \begin{array}{l} TR = \sqrt{$d^{2}-$b^{2}}=$tr_tex \\ TS = \sqrt{$e - $b^{2}}=$ts_tex \\ \textrm{$Oppervlak} = \frac{1}{2} \cdot $x \cdot $ts_tex $ans \end{array} \right.
+    
+    construction=<Segment type="bold" name="$AB" n="2003" alias="$AB" from="$A" to="$B"></Segment><Midpoint name="R" n="2000" showname="true" bold="true" large="true"  first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="Q" n="2000" showname="true" bold="true" large="true"  first="$C" second="$D" shape="circle"></Midpoint><Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="R" second="Q" shape="circle"></Midpoint><Segment type="bold" name="TS" alias="TS" color="5" n="1000" from="T" to="S"></Segment><Segment type="thick" name="TR" alias="TR" color="1" n="1000" from="T" to="R"></Segment><Segment type="thick" name="TQ" alias="TQ" color="1" n="1000" from="T" to="Q"></Segment><Segment type="thick" name="RQ" alias="RQ" color="1" n="1000" from="R" to="Q"></Segment><Segment type="bold" name="$CD" n="2004" alias="$CD" from="$C" to="$D"></Segment><Polygon name="$ABT" n="2006" color="1" background="true" filled="true" solid="true" point1="R" point2="Q" point3="T" />
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+# hidden="false" 

@@ -1,0 +1,144 @@
+!set title=Trasformazione nel rugby
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David; Guillaume, Wuthrich
+email=marie-claude.david@math.u-psud.fr
+language=fr
+precision=2
+computeanswer=no
+leftrange=-5.000000
+rightrange=5.000000
+
+ansorder=r
+varcnt=12
+prevarcnt=10
+postvarcnt=1
+replycnt=1
+choicecnt=0
+conditioncnt=3
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 24
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 8
+
+val7=$[rint(22+$(tmp0))]
+val8=$[sqrt($val7*$val7+(35-$val6)*(35-$val6))]
+val9=$[sqrt((50-$val7)*(50-$val7)+(35-$val6)*(35-$val6))]
+val10=$[sqrt((50-$val7)*(50-$val7)+(70-$val6)*(70-$val6))]
+tmp=!trim A che distanza dal centro dei pali si trova la palla, $val8	A che distanza dal centro del campo si trova la palla, $val9	L'allenatore vuole dare consigli al giocatore. Qual è la distanza tra il giocatore e l'allenatore, $val10
+val11=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val11
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val12=$(tmp1)
+val13=$(val11[$val12;1])
+val14=$[$(val11[$val12;2])]
+val15=$[rint(round($val14))]
+replytype1=numeric
+replyoption1=absolute 
+replyname1=La distance en mètre est d'environ
+replygood1=?analyze 16
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p class="wimscenter">	<img src="$val1/rugby.png" alt="rugby" /></p>	<p>	Il calcio piazzato di trasformazione viene assegnato a una distanza di 
+!insmath c=$val6
+$() metri dal bordo del campo. <br />	Il giocatore decide di posizionarsi a una distanza di 
+!insmath b=$val7
+$() metri dalla linea di meta. <br />	$val13 ?</p>	<p class="wimscenter"> 
+!read oef/embed.phtml r1 
+$()</p>	<p style="font-style:italic">Dare la risposta (in metri) approssimando all'intero più vicino.</p>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val17=$[$m_reply1-$val15]
+
+!exit
+
+:feedback
+!ifval  1=1
+ <div class='oef_feedbacks'>La risposta corretta è 
+!insmath $val15
+$() metri.
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=6 
+
+!ifval abs($val17) <= 0.5
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=La risposta data è approssimata a 0.5 metri 
+condweight2=4 
+
+!ifval abs($val17)=0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=La risposta data è corretta e nel margine di approssimazione richiesto 
+condweight3=1 
+
+!ifval (. notin $m_reply1) and (/ notin $m_reply1)
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=La risposta data è effettivamente un'approssimazione come richiesto 
+
+!exit
+
+:stat
+vsavelist=1,6,7,13,15,16
+embedcnt=1

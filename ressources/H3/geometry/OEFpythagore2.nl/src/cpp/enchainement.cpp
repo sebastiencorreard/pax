@@ -1,0 +1,131 @@
+target= enchainement
+
+\title{Verschillende stappen}
+
+\language{nl}
+\range{-5..5}
+\author{Guerimand Fabrice}
+\email{fwguerima@free.fr}
+\computeanswer{no}
+\format{html}
+\precision{100000}
+
+\integer{confparm1=\confparm1 notitemof 0,1?1}
+#include "2triangles.inc"
+
+\integer{rect=randitem(1,2)}
+\integer{type=randitem(1,2)}
+\integer{choix=randitem(1,2)}
+
+\if{\rect=1}{
+ \integer{u=random(2..6)}
+ \integer{v=random(1..\u-1)}
+ \integer{sm=max(\u^2-\v^2,2*\u*\v)}
+ \integer{mn=min(\u^2-\v^2,2*\u*\v)}
+ \integer{sn=(\mn^2+\sm^2)^(1/2)}
+ \real{k=randint(15..25)}
+ \real{l2=\sm*\k}
+ \real{l1=\sn*\k}
+ \real{l3=\mn*\k}
+ \text{listchoix==,\(\neq)}
+}{
+ \integer{l1=randint(20..1900)}
+ \integer{l2=randint(20..1900)}
+ \integer{m=max(\l1-\l2,\l2-\l1)}
+ \integer{l3=randint(\m+20..\l1+\l2)}
+ \if{(\l1^2+\l2^2-\l3^2)*(\l1^2+\l3^2-\l2^2)*(\l3^2+\l2^2-\l1^2)=0}{
+  \integer{l1=50}
+  \integer{l2=20}
+  \integer{l3=30}
+ }
+ \text{listchoix=\(\neq),=}
+}
+\real{l1=\l1/10}
+\real{l2=\l2/10}
+\real{l3=\l3/10}
+
+\text{listp=\(\X1\X4^2),\(\X2\X4^2)}
+\text{listg=\(\X1\X3^2),\(\X2\X3^2)}
+\if{\type=1}{
+ \text{longueur=\(\X1\X4 = \l1),\(\X2\X4 = \l2),\(\X1\X2 = \l3)}
+ \text{triname=\(\X1\X2\X4)}
+ \text{listchoix=\listchoix,\(\X1\X2^2),\listp,\listg}
+ \if{\choix=1}{
+  \text{inc=\X1\X3}
+  \real{l4=randint(10*\l2+1..15*\l2)/10}
+  \text{longueur=\longueur,\(\X2\X3 = \l4)}
+  \text{rep3=(\l3^2+\l4^2)^(1/2)}
+ }{
+  \text{inc=\X2\X3}
+  \real{l4=randint(10*\l1+1..15*\l1)/10}
+  \text{longueur=\longueur,\(\X1\X3 = \l4)}
+  \text{rep3=(\l4^2-\l3^2)^(1/2)}
+ }
+}{
+ \text{longueur=\(\X1\X3 = \l1),\(\X2\X3 = \l2),\(\X1\X2 = \l3)}
+ \text{triname=\(\X1\X2\X3)}
+ \text{listchoix=\listchoix,\(\X1\X2^2),\listg,\listp}
+ \if{\choix=1}{
+  \text{inc=\X1\X4}
+  \real{l4=randint(10..10*\l2-10)/10}
+  \text{longueur=\longueur,\(\X2\X4 = \l4)}
+  \text{rep3=(\l3^2+\l4^2)^(1/2)}
+ }{
+  \text{inc=\X2\X4}
+  \real{l4=randint(10*\l3+1..10*\l1-10)/10}
+  \text{longueur=\longueur,\(\X1\X4 = \l4)}
+  \text{rep3=(\l4^2-\l3^2)^(1/2)}
+ }
+}
+\text{listchoix=\listchoix,+,\(\X1\X2),\(\X1\X3),\(\X2\X3),\(\X2\X4),\(\X1\X4)}
+
+\text{solegal=wims(item 4,1,3,8,5 of \listchoix)|wims(item 4,1,5,8,3 of \listchoix)|wims(item 3,8,5,1,4 of \listchoix)|wims(item 5,8,3,1,4 of \listchoix)}
+
+\text{longueur=shuffle(\longueur)}
+\text{longueur=wims(replace internal , by &nbsp;&nbsp; in \longueur)}
+
+\text{choix1=is rechthoekig,is niet rechthoekig}
+\text{choix2=het omgekeerde van de stelling van Pythagoras,de stelling van Pythagoras}
+\text{rep1=item(\rect,\choix1)}
+\text{rep2=item(\rect,\choix2)}
+
+\text{unit=randitem(cm,m,dm,dam)}
+\text{listpreci=decimeters,centimeters,millimeters}
+\text{tmp=\rep3}
+\integer{chprec=randint(1..3)}
+\integer{rep3=\rep3*10^\chprec}
+\real{rep3=\rep3/10^\chprec}
+\text{precision=item(\chprec,\listpreci)}
+
+\text{mstep=c1,c2,r1}
+\nextstep{\mstep}
+\statement{<table>
+<tr>
+   <td>\(\X1\X2\X3) is een driehoek en \(\X4) is een punt op zijde \(\X2\X3).&nbsp;&nbsp;&nbsp;&nbsp;<br>
+   De lengte van de volgende zijdes  ( in \unit) zijn bekend :<br>
+<center>\longueur</center></td>
+   <td>\draw{\xrange,\yrange}{\dessin}<center>(de driehoek is niet op schaal getekend)<center></td>
+</tr>
+</table>
+\if{\step=1}{
+ Is de driehoek \triname rechthoekig ?<br>
+
+ <b>Jouw antwoord</b> : <br>
+\embed{r1,40x35x5}<br> Dus, volgens \embed{c2}, de driehoek \(\X1\X2\X3) \embed{c1}.
+}{
+<ol>
+ <li> Is de driehoek \triname rechthoekig ?<br>
+ <b>Jouw antwoord</b> : volgens \rep2, de driehoek \(\X1\X2\X3) \rep1.</li>
+ <li> Wat is de lengte van de zijde \([\inc]) ? Je moet je antwoord geven in  \precision nauwkeurig.</li>
+</ol>
+ <b>Jouw antwoord</b> \(\inc =) \embed{r2,5} \unit.</li>
+</ol>
+}
+}
+
+\text{mstep=\rect=1 and \step=2?r2}
+
+\answer{Formule}{\solegal;\listchoix}{type=clickfill}{weight=3}
+\choice{Driehoek}{\rep1}{\choix1}{weight=1}
+\choice{Stelling}{\rep2}{\choix2}{weight=2}
+\answer{\(\inc)}{\rep3}{type=numexp}{weight=4}

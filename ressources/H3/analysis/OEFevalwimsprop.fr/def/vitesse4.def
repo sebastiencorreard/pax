@@ -1,0 +1,123 @@
+!set title=Calcul de vitesse moyenne 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in kilomètres,heures,km/h	  mètres,secondes,m/s
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!item 3 of $val7
+
+val8=$(tmp0)
+tmp0=!item 1 of $val7
+
+val9=$(tmp0)
+tmp0=!item 2 of $val7
+
+val10=$(tmp0)
+tmp0=!values v*2 for v=10 to 30
+
+val11=$(tmp0)
+tmp0=!shuffle $val11
+
+val11=$(tmp0)
+val12=$[rint($(val11[1]))]
+val13=$[rint($(val11[2]))]
+
+!ifval h isin $val8
+tmp0=!randint 2, 4
+
+val14=$[$(tmp0)]
+!else
+tmp1=!randint 25, 55
+
+val14=$[$(tmp1)]
+!endif
+val15=$[$val14*$val12]
+val16=$[$val14*$val13]
+val17=$val6 se déplace à $val12 $val8 pendant $val14 $val10 puis à la vitesse de $val13 $val8 pendant la même durée
+val18=$[rint(($val15+$val16)/(2*$val14))]
+replytype1=numexp
+replyname1=
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val17.	<p>	  Quelle est sa vitesse moyenne durant ce trajet&nbsp;?	</p>	<label for="reply1"><b>Votre réponse :</b></label>  
+!read oef/embed.phtml r1,5 
+$() $val8.	<div class="wims_instruction">Donner l'arrondi entier si nécessaire.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,17
+embedcnt=1

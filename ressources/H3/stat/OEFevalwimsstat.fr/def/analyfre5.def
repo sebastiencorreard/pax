@@ -1,0 +1,205 @@
+!set title=Interprétation des fréquences 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r
+varcnt=37
+prevarcnt=36
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord src/stat3.don
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!randint $(val8[1]), $(val8[2])
+
+val9=$[rint($(tmp0)*$val7)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val8=$(tmp0)
+tmp0=!randint $(val8[1]), $(val8[2])
+
+val10=$[rint($(tmp0)*$val7)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 6 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 7 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+val15=$[rint(($val10-$val9+1)/$val7)]
+val16=
+!for val17 =1 to $val15 
+val18=$[rint($val9+($val17-1)*$val7)]
+val19=$[rint($val9+$val17*$val7)]
+tmp0=!append item \($val18 \leq $val13 < $val19) to $val16
+
+val16=$(tmp0)
+!next
+val20=$[rint(1)]
+val21=r3
+!readproc slib/generator $val15,100 
+tmp0=$slib_out
+val22=$(tmp0)
+val23=$[rint(0)]
+val24=$[rint(100)]
+val25=$val23
+val26=$val24
+!for val27 =1 to $val15 
+val23=$[rint($val23+$(val22[$val27]))]
+val24=$[rint($val24-$(val22[$val27]))]
+val25=$val25,$val23
+val26=$val26,$val24
+!next
+tmp0=!item 2 to -1 of $val25
+
+val25=$(tmp0)
+tmp0=!randint 2, $val15
+
+val28=$[rint($(tmp0))]
+!if $val20=0 
+
+!ifval $(val16[$val28])=1
+val28=$[rint($val28+1)]
+!endif
+tmp0=!replace internal NNNN by $(val16[$val28]) in $val14
+
+val14=$(tmp0)
+!else
+
+!ifval r2 isin $val21
+val29=$[rint($val9+$val28*$val7)]
+!else
+val29=$[rint($val9+($val28-1)*$val7)]
+!endif
+tmp0=!replace internal NNNN by $val29 in $val14
+
+val14=$(tmp0)
+!endif
+val8=Quel pourcentage
+tmp0=!replace internal Combien by $val8 in $val14
+
+val14=$(tmp0)
+oefsteps=$val21 
+nextstep=!nosubst $val21 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Réponse
+replygood1=$(val22[$val28])
+replytype2=numexp
+replyname2=Réponse
+replygood2=$(val25[$val28])
+replytype3=numexp
+replyname3=Réponse
+replygood3=$(val26[$val28])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val11.	<p>$val14 ?</p>	  <table class="wimscenter wimsborder">	   <tr>	    <th>$val12</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val16[$m_l])</td> 
+!next
+$()	   </tr><tr>	    <th>Fréquences</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val22[$m_l]) %</td> 
+!next
+$()	   </tr><tr>	    <th>Fréquences cumulées croissantes</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val25[$m_l]) %</td> 
+!next
+$()	   </tr><tr>	    <th>Fréquences cumulées décroissantes</th>	     
+!for m_l=1 to $val15 
+$()<td>$(val26[$m_l]) %</td> 
+!next
+$()	   </tr>	  </table>	<b>Votre réponse</b> :  
+!read oef/embed.phtml $val21,5 
+$() %.
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,12,14,15,16,21,22,25,26
+embedcnt=1

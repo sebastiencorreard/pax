@@ -1,0 +1,232 @@
+!set title=Équation ax+b&#61;0#
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Résoudre l'équation
+val7=Donner votre résultat sous une forme aussi simplifiée que possible.
+val8=On vous propose de résoudre l'exercice en vous guidant.	  Complétez les différentes étapes de calcul qui vous sont proposées
+val9=En ajoutant, à chacun des membres de l'égalité puis en réduisant on obtient 
+val10=Réponse
+val9=En ajoutant, à chacun des membres de l'égalité puis en réduisant on obtient 
+val11=En divisant chacun des membres de l'égalité par , on obtient
+val12=On termine en simplifiant le résultat 
+val13=$[rint(4)]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!record $val2 of src/generateur
+
+val14=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+tmp0=!item 3 of $val15
+
+val17=$(tmp0)
+!if $val16= 
+tmp0=!item 1 of $val15
+
+val18=$(tmp0)
+tmp0=!item 2 of $val15
+
+val19=$(tmp0)
+!if $val17<0 
+tmp0=!values $val17*v,-($val17)*v for v=$val18 to $val19
+
+val20=$(tmp0)
+!else
+tmp0=!values $val17*v for v=$val18 to $val19
+
+val20=$(tmp0)
+!endif
+!else
+val20=$val16
+!if $val17<0 
+tmp0=!replace internal , by ,- in $val20
+
+val21=$(tmp0)
+tmp0=!listunion $val20 and $val21
+
+val20=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val20
+
+val20=$(tmp0)
+tmp0=!shuffle $val20
+
+val20=$(tmp0)
+tmp0=!item 1 of $val20
+
+val18=$(tmp0)
+tmp0=!item 2 of $val20
+
+val19=$(tmp0)
+tmp=!translate ";': to $     $ in -($val19)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=$(tmp0)
+!if $val2>4 
+val22=$[rint(($val17)*100)]
+val23=$[rint(($val18)*100)]
+tmp=!translate ";': to $     $ in $val22/$val23
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+!else
+tmp=!translate ";': to $     $ in ($val17)/($val18)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val24=$(tmp0)
+!endif
+tmp0=!randitem x,y,z,a,b
+
+val25=$(tmp0)
+tmp0=!texmath $val18*$val25+($val19)=0
+
+val26=$(tmp0)
+!if $val3=1 
+tmp=!trim r1	r2	r3
+val27=!translate internal $	\
+$ to ;; in $tmp
+!else
+tmp=!trim r3
+val27=!translate internal $	\
+$ to ;; in $tmp
+!endif
+oefsteps=$val27 
+nextstep=!nosubst $val27 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=$val10 1
+replygood1=$val17
+replytype2=numexp
+replyname2=$val10 2
+replygood2=$val18
+replytype3=numexp
+replyname3=\($val25\)
+replygood3=$val24
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val6 
+!insmath $val26
+$().	<div class="wims_instruction">$val7</div>	
+!if $val3=1 
+$()$val8:	  <ul><li>	    $(val9[1]) 
+!insmath $val17
+$() $(val9[2]):	
+!if $m_step=1 
+$()
+!insmath $val18 $val25=
+$()  
+!read oef/embed.phtml r1,$val13 
+$() </li></ul> 
+!else
+$()	 
+!insmath $val18 $val25=$val17
+$().</li>	<li>$(val11[1]) 
+!insmath $val18
+$() $(val11[2]):	
+!if $m_step=2 
+$()	  <div class="wimscenter">	     
+!read oef/special.phtml mathmlinput [$val25= \frac{$val17}{reply2}],5,noanswer	    reply 2 
+$()	  </div>	</li></ul> 
+!else
+$()	 
+!insmath $val25=\frac{$val17}{$val18}
+$().</li>	<li>$val12 :	<label for="reply3">
+!insmath $val25 =
+$()</label>  
+!read oef/embed.phtml reply 3,$val13 
+$()</li></ul>	 
+!endif
+$()	 
+!endif
+$()	 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=3,6,7,8,9,11,12,13,17,18,25,26
+embedcnt=3

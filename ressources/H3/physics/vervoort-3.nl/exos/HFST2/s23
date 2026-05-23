@@ -1,0 +1,48 @@
+n=$counter
+mathview=0
+make_tr=1
+checkfile=$checkdir/new_number.proc
+inputs=1.1
+#varieer in 100 mL met pH = 2 100 in waardes van 100 tot 500 en pH van 1 tot 2 met stapjes 0
+#varieer in 100 mL met pH = 3 100 in waardes van 100 tot 500 pH van 2 tot 3 met stapjes 0,1
+ph1=!randint 10,20
+ph2=!randint 21,30
+sig=2
+tot=!exec moneyprint $[$ph1/10],$[$ph2/10] 1
+ph1=$(tot[1])
+ph2=$(tot[2])
+v1=!randint 10,50
+v2=!randint 10,50
+!if $v1=$v2
+    v1=$[$v1+1]
+!endif
+mv1=$[$v1*10]
+mv2=$[$v2*10]
+v1=$[$v1/100]
+v2=$[$v2/100]
+v3=$[$v1+$v2]
+c3=$[($v1*10^(-1*$ph1) + $v2*10^(-1*$ph2))/$v3]
+ss=Je mengt $mv1 mL van een zuur met pH = $ph1 met $mv2 mL van hetzelfde soort zuur met pH = $ph2.<br />Bereken de pH van het mengsel.
+#<br />De H<sub>3</sub>O<sup>+</sup>in het water mag je verwaarlozen.
+ph3=$[-1*log($c3)/(log(10))]
+answer$n=$ph3
+tot=!exec scienceprint $c3,-1,2 $ph3,$sig,0 $ph3,$sig,2
+t_c3=$(tot[1])
+c_ph3=$(tot[2])
+t_ph3=$(tot[3])
+var1=$[abs($ph3 - $c_ph3)]
+var2=100
+
+helptext=<img src=\'$module_dir/gifs/ph2.jpg\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+ex1=$empty
+description=De pH-waarde van het mengsel
+texanswer$n=\begin{array}{l}\textrm{het totaal aantal mol}\; H^{+}\;\textrm{ blijft gelijk.} \\ \special{color=red} V_{1} \cdot c_{1} + V_{2} \cdot c_{2} = V_{totaal} \cdot c_{onbekend} \\ \\ pH = $ph1 \rightarrow \left[ H_{3}O^{+}\right] = 10^{-$ph1} \; mol/L \\ pH = $ph2 \rightarrow \left[ H_{3}O^{+}\right] = 10^{-$ph2} \; mol/L \\ $mv1\; mL = $v1\; L \\ $mv2\; mL = $v2\; L \\ $v1 \times 10^{-$ph1} + $v2 \times 10^{-$ph2} = $v3 \times \left[ H_{3}O^{+}\right]_{mengsel} \\ \left[ H_{3}O^{+}\right]_{mengsel} = \frac{$v1 \times 10^{-$ph1} + $v2 \times 10^{-$ph2}}{$v3} \\ \left[ H_{3}O^{+}\right]_{mengsel} \approx $t_c3 \\ pH_{mengsel} = - \log\left[ H_{3}O^{+}\right]_{mengsel} \approx -\log\left($t_c3\right) \approx $ph3 \\ \textrm{Op $sig significante cijfers : } \; pH_{mengsel} = $t_ph3 \end{array}
+!exit
+
+#formula$n=\Large  \begin{array}{l}\textrm{per definitie :} \\ \color{red} pH = - \log \left[ H^{+} \right] = - \log \left[ H_{3}O^{+} \right] \\ \color{blue} pOH = - \log \left[ OH^{-} \right] = - \log \left[ OH^{-} \right] \\ \color{red} pH \color{black} + \color{blue}{ pOH }\color{black} = 14 \end{array}
+
+
+
+
+

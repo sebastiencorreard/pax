@@ -1,0 +1,158 @@
+# staartdeling met applet
+# answer$n= 123/3424\finalans,item,item,item...
+goback=0
+errortext=$empty
+!set wims_compare_precision=1000
+n=$counter
+extra=$empty
+AAA=!line 1 of $(reply$n)
+
+!if ? isin $AAA
+    maxscore=0
+    remark$n=$NOK
+    goback=0
+    !exit
+!endif
+
+#html=!line 2 of $(reply$n)
+#latex=!line 3 of $(reply$n)
+
+AAA=!nospace $AAA
+test=!replace internal / by @ in $AAA
+test=!replace internal \ by # in $test
+!if @ notin $test or # notin $test
+    ex=Je hebt geen staartdeling zoals: <br /> 12 / 1234 \ <br /> gemaakt...
+    maxscore=0
+    goback=0
+    remark$n=$NOK <br />$ex
+    !exit 
+!endif
+AAA=!replace internal / by , in $AAA
+AAA=!replace internal \ by , in $AAA
+GGG=!nospace $(answer$n)
+GGG=!replace internal / by , in $GGG
+GGG=!replace internal \ by , in $GGG
+
+noemer_a =!item 1 of $AAA
+teller_a =!item 2 of $AAA
+final_a  =!item 3 of $AAA
+noemer_g =!item 1 of $GGG
+teller_g =!item 2 of $GGG
+final_g  =!item 3 of $GGG
+incorrect=0
+
+#errortext=GGG=$GGG<br />noemer_a=$noemer_a == noemer_g=$noemer_g <br />teller_a=$teller_a == teller_g=$teller_g <br />final_a=$final_a == final_g=$final_g
+#goback=1
+#!exit
+
+!ifval $noemer_a != $noemer_g
+    k1=red
+    extra=Je hebt te noemer van de deling niet goed overgetiept...
+    incorrect=1
+!else
+    k1=green
+!endif
+!ifval $teller_a != $teller_g
+    k2=red
+    ex=Je hebt de teller van de deling niet goed overgetiept...
+    extra=!append line $ex to $extra
+    incorrect=1
+!else
+    k2=green
+!endif
+
+score1=0
+!if NaN isin $[1*($final_a)]
+    incorrect=1
+    k3=red
+    ex=Je "antwoord" <b>$final_a</b> slaat echt nergens op...
+    extra=!append line $ex to $extra
+!else 
+    !if $final_a = $final_g
+	!if $incorrect=1
+	    ex=<br />vreemd , je eindantwoord is desondanks goed ?
+	    extra=!append line $ex to $extra
+	!else
+	    score1=1
+	!endif
+	k3=green
+    !else
+	!if $[$teller_a/$noemer_a] = $final_a
+	    ex=Maar je deling $teller_a : $noemer_a = $final_a klopt...
+	    extra=!append line $ex to $extra
+	    score1=0.2
+	!else
+	    !if $incorrect=1
+		ex=<br />en dus is je eindantwoord is fout...
+		extra=!append line $ex to $extra
+	        score1=0.1
+	    !endif
+	!endif
+	k3=red
+    !endif
+!endif
+
+studentreply=<tr><td style="text-align:center"><span style="color:$k1">$noemer_a</span>&nbsp;/&nbsp;<span style="color:$k2">$teller_a</span>&nbsp;\&nbsp;<span style="color:$k3">$final_a</span></td></tr>
+ta=!itemcnt $AAA
+tg=!itemcnt $GGG
+
+score2=0
+!if $ta <= 3
+    # geen staart...
+    ex=Je bent de staart van de deling vergeten...
+    extra=!append line $ex to $extra
+!else
+    cnt=1
+    !for p=4 to $tg
+	g1=!item $p of $GGG
+	found=0
+	!for s=4 to $ta
+	    a1=!item $s of $AAA
+	    !if $found=0
+		!if $g1 = $[1.0*($a1)]
+		    !increase score2
+		    found=1
+		    studentreply=!append line $ <tr><td style="text-align:center"><span style="color:green">$g1</span></td></tr> $ to $studentreply
+		    !increase cnt
+		!endif
+	    !endif
+	!next s
+	!if $found=0
+	    tp=!item $p of $AAA
+	    !if NaN isin $[1.0*($tp)]
+		studentreply=!append line $ <tr><td style="text-align:center"><span style="color:red">$tp</span><b>...?</b></td></tr> $ to $studentreply
+	    !else
+		studentreply=!append line $ <tr><td style="text-align:center"><span style="color:red">$tp</span></td></tr> $ to $studentreply
+	    !endif
+	    !increase cnt
+	!endif
+	!if $cnt = 2
+	    studentreply=!append line $ <tr><td style="text-align:center"><hr width="20%" style="background-color:black; height:3px" /></td></tr> $ to $studentreply
+	    cnt=0
+	!endif
+    !next p
+    score2=$[$score2/($tg-3)] 
+!endif
+reply$n=<table>$studentreply</table>
+
+maxscore=$[$maxscore*(4*$score2+$score1)/5]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore >0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+    
+modulescore=$[$modulescore+$maxscore]
+    
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+goback=0
+!exit
+
+

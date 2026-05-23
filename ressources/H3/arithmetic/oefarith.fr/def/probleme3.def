@@ -1,0 +1,123 @@
+!set title=Coffre 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 25
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 4, 8
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 5, 10
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 5, 7
+
+val9=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd(gcd($val7,$val8),$val9)	
+tmp0=!exec maxima $t_
+
+val10=$[rint($(tmp0))]
+val7=$[rint($val7/$val10)]
+val8=$[rint($val8/$val10)]
+val9=$[rint($val9/$val10)]
+!if $val7=$val8 or $val8=$val9 or $val7=$val9 
+val7=$[rint(7)]
+val8=$[rint(9)]
+val9=$[rint(5)]
+!endif
+val11=$[rint($val6*$val7)]
+val12=$[rint($val6*$val8)]
+val13=$[rint($val6*$val9)]
+t_=!replace internal \( by ( in gcd($val11,$val12)	
+tmp0=!exec maxima $t_
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val7*$val8*$val9)]
+replytype1=units
+replyname1=Longueur des côtés
+replygood1=$val6 cm
+replytype2=numexp
+replyname2=Nombre de cubes
+replygood2=$val15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Un coffre dont la forme est un parallélépipède rectangle doit contenir des cubes identiques. L'arête des cubes mesure un nombre entier de centimètres. Les cubes doivent occuper la totalité du volume intérieur du coffre. On veut rentrer des cubes les plus grands possibles.<br>	Les dimensions des côtés du coffre sont $val11 cm, $val12 cm et $val13 cm.	<ol>	<li>Quelle est la longueur des côtés de ces cubes?</li>	<li>Combien de cubes peut-on entrer?</li>	</ol>		<b>Vos réponses :</b>	<ol>	 <li><label for="reply1">La longueur des côtés des cubes doit être de</label>  
+!read oef/embed.phtml r1,8 
+$().</li>	 <li><label for="reply2">On peut rentrer</label>  
+!read oef/embed.phtml r2,5 
+$() cubes.</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ol>	<li>Les cubes doivent occuper la totalité du volume intérieur du coffre et mesurer un nombre entier de centimètres. Donc, la longueur des côtés des cubes doit être un diviseur des dimensions du coffre, c'est-à-dire un diviseur de $val11, $val12 et $val13.<br>	Pour que les cubes soient les plus grands possibles, la longueur des côtés doit être le pgcd des trois nombres.<br>	En utilisant l'algorithme d'Euclide, on obtient que le pgcd de $val11 et $val12 est $val14.<br>	Puis, toujours en utilisant l'algorithme d'Euclide, on obtient que le pgcd de $val13 et $val14 est $val6.<br>	Le pgcd des trois nombres $val11, $val12 et $val13 est donc $val6.</li>	<li>Le nombre de cubes nécessaires pour remplir le coffre est:<br>	
+!insmath \frac{$val11}{$val6}\times \frac{$val12}{$val6}\times \frac{$val13}{$val6}
+$() soit $val15 cubes.</li>	</ol>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,11,12,13,14,15
+embedcnt=2

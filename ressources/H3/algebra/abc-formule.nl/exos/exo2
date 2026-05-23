@@ -1,0 +1,111 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+questiontype=0
+embed=1
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+cols=15
+rows=2
+question$n=!record 3 of lang/remarks.$taal
+sometext=!record 19 of lang/remarks.$taal
+question$n=$(question$n)<br /><small>$sometext</small>
+lijn=!record 4 of lang/remarks.$taal
+mathviewpanel=$module_title:x=:and:sqrt()
+!if $R = 1
+    a=!randitem 2,3,4,5,6,7,8,9,10
+    b=!randitem 0,1,2,3,4,5,6,7,8,9,10
+    c=!randitem 0,1,2,3,4,5,6,7,8,9,10
+!else
+    !if $R = 2
+	a=!randitem 2,3,4,5,6,7,8,9,10
+	b=!randitem 0,1,2,3,4,5,6,7,8,9,10
+        c=!randitem 0,1,2,3,4,5,6,7,8,9,10
+	pm1=!randitem -1,1
+        pm2=!randitem -1,1
+	pm3=!randitem -1,1
+        a=$[$pm1*$a]
+	b=$[$pm2*$b]
+        c=$[$pm3*$c]
+    !else
+	!if $R = 3
+	    a1=!randitem 2,3,4,5,6,7,8,9,10
+	    b1=!randitem 0,1,2,3,4,5,6,7,8,9,10
+	    c1=!randitem 0,1,2,3,4,5,6,7,8,9,10
+	    a2=!randitem 2,3,4,5,6,7,8,9,10
+	    b2=!randitem 1,2,3,4,5,6,7,8,9,10    
+	    c2=!randitem 1,2,3,4,5,6,7,8,9,10
+	    a=$a1/$a2
+	    b=$c1/$c2
+	    c=$c1/$c2
+	!else
+	    a1=!randitem 2,3,4,5,6,7,8,9,10
+	    b1=!randitem 0,1,2,3,4,5,6,7,8,9,10
+	    c1=!randitem 0,1,2,3,4,5,6,7,8,9,10
+	    a2=!randitem 2,3,4,5,6,7,8,9,10
+	    b2=!randitem 1,2,3,4,5,6,7,8,9,10
+	    c2=!randitem 1,2,3,4,5,6,7,8,9,10
+	    pm1=!randitem -1,1
+	    pm2=!randitem -1,1
+	    pm3=!randitem -1,1
+	    a=$pm1*$a1/$a2
+	    b=$pm1*$c1/$c2
+	    c=$pm1*$c1/$c2
+	!endif
+    !endif
+!endif
+functie=($a)*x^2 + ($b)*x + ($c)
+S=-1*($b)/(2*$a)
+tot=!exec pari $functie \
+printtex($functie)\
+$S\
+printtex($S)
+
+raw=!line 1 of $tot
+formula$n=!line 2 of $tot
+answer$n=!line 3 of $tot
+tex=!line 4 of $tot
+keuze=!randitem 1,0
+!if $keuze=1
+    F=!randitem f,g,h,k,p,w
+    formula$n=$F\left( x \right)\,\,\,=\,\,\, $(formula$n)
+    applettext=!nospace $F (x)=$raw ->
+!else
+    formula$n=y\,\,\,=\,\,\, $(formula$n)
+    applettext=!nospace y=$raw ->
+!endif
+textanswer$n=$lijn :  x = $(answer$n)
+texanswer$n=\left[ \begin{array}{l} a\cdot x^{2} + b \cdot x + c \\ \textrm{$lijn :}\, x = \frac{-1 \cdot b}{2 \cdot a} \\  $a\cdot x^{2} + $b \cdot x + $c \\ a = $a \\ b = $b \\ \textrm{$lijn :}\, x  = \frac{-1 \cdot $b}{2 \cdot $a} =  $tex \end{array} \right.
+
+!if $teaching=1
+    draw=1
+    plot=0
+    make_tr=0
+    xsize=120
+    ysize=120
+    image_settings$n=200,200
+    image$n=\
+    transparent white\
+    xrange $[$(answer$n) - 6],$[$(answer$n) + 6]\
+    yrange -40,40\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 2\
+    dvline $(answer$n),0,red\
+    curve green,$functie
+
+    insdraw_size=$xsize,$ysize
+    !insdraw $(image$n)
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\noalt\' />
+!endif
+
+
+

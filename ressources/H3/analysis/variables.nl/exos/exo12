@@ -1,0 +1,210 @@
+n=$counter
+math=0
+plot=0
+draw=1
+embed=1
+questiontype=0
+rows=2
+cols=15
+checkfile=$checkdir/coord.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+var1=x
+var2=!randitem f,g,h,k
+var3=!randitem j,m,n,s,t,v,w
+wims_rawmath_variables=$var1
+
+kleuren=red@rooie,blue@blauwe,green@groene,orange@oranje,purple@paarse
+kleuren=!shuffle $kleuren
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1
+k2=!replace internal @ by , in $k2
+kleur1=!item 2 of $k1
+color1=!item 1 of $k1
+kleur2=!item 2 of $k2
+color2=!item 1 of $k2
+
+!if $R=1
+    xmin=-5
+    xmax=5
+    ymin=-80
+    Ymax=80
+#snijpunt met de simpelste horziontale lijn 
+    a=!randitem -3,-2,2,3
+    b=!randitem 2,3,4,6,8,10
+    pm=!randitem +,-
+    x1=!randitem -4,-3,-2,-1
+    x2=$[-1*$x1]
+    y1=$[$a*$x1*$x1 $pm $b ]
+    y2=$y1
+    d=$[$y1 - ($pm $b)]
+    e=$[$x1*$x1]
+    parabool=$a\cdot x^{2}  $pm $b
+    curve1=$a*x^2 $pm $b
+    punten=points red,$x1,$y1,$x2,$y2
+    curve2=$y1
+    lijn=$y1
+    answer$n=$x1,$y1,$x2,$y2
+    texanswer$n=\left[ \begin{array}{l} $var2 \left( $var1 \right )\,\,=\,\, $var3 \left( $var1 \right) \\ $a \cdot x^{2} $pm $b  = $y1 \\ $a \cdot x^{2} = $d \\ x^{2} = \frac{$d}{$a}  = $e \\  x_{1} = -\sqrt{$e} \\ x_{2} = \sqrt{$e} \\ ($x1 : $y1 ) \wedge ($x2 : $y1 )\end{array}\right.
+!goto READY
+
+!endif
+!if $R=2 
+    xmin=-10
+    xmax=10
+    ymin=-100
+    Ymax=100
+    b=!randitem 2,3,4,5
+    pm=!randitem +,-
+    x1=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5,6,7,8,9
+    y1=$[$x1*$x1 $pm $b*$x1 ]
+    y2=$[$x2*$x2 $pm $b*$x2 ]
+    parabool=x^{2} $pm $b\cdot x
+    curve1=x^2 $pm $b*x
+    punten=points red,$x1,$y1,$x2,$y2
+    tussen=!exec pari A=((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+    printtex(A)\
+    B=($curve1) - (A)\
+    printtex(B)\
+    M=factor(B)\
+    M[1,1]\
+    M[2,1]
+
+    curve2=!line 1 of $tussen
+    lijn=!line 2 of $tussen
+    inter1=!line 4 of $tussen
+    fac2=!line 6 of $tussen
+    fac1=!line 7 of $tussen
+    answer$n=$x1,$y1,$x2,$y2
+    
+    texanswer$n=\left[ \begin{array}{l} $var2 \left( $var1 \right )\,\,=\,\, $var3 \left( $var1 \right) \\ $parabool = $lijn \\ $parabool - ($lijn) = 0 \\ $inter1 = 0   \\ \left( $fac1 \right) \cdot \left( $fac2 \right) = 0 \\ x_{1}= $x1 \wedge x_{2} = $x2 \\ y_{1}= $x1^{2} $pm $b \cdot $x1 = $y1 \\ y_{2}= $x2^{2} $pm $b \cdot $x2 = $y2 \\ ($x1 : $y1) \wedge ($x2 : $y2) \end{array} \right.
+ !goto READY
+!endif
+
+!if $R=3 
+    xmin=-10
+    xmax=10
+    ymin=-100
+    Ymax=100
+    b=!randitem 2,3,4,5
+    c=!randitem 2,3,4
+    d=$[$b+$c]
+    pm=!randitem +,-
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    x1=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5,6,7,8,9
+    y1=$[$x1*$x1 $pm $b*$x1 ]
+    y2=$[$x2*$x2 $pm $b*$x2 ]
+    parabool=x \cdot \left(x $pm $d \right) $mp $c \cdot x
+    curve1=x^2 $pm $b*x
+    punten=points red,$x1,$y1,$x2,$y2
+    tussen=!exec pari A=((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+    printtex(A)\
+    B=($curve1) - (A)\
+    printtex(B)\
+    M=factor(B)\
+    M[1,1]\
+    M[2,1]
+
+    curve2=!line 1 of $tussen
+    lijn=!line 2 of $tussen
+    inter1=!line 4 of $tussen
+    fac2=!line 6 of $tussen
+    fac1=!line 7 of $tussen
+    answer$n=$x1,$y1,$x2,$y2
+    texanswer$n=\left[ \begin{array}{l} $var2 \left( $var1 \right )\,\,=\,\, $var3 \left( $var1 \right) \\ $parabool = $lijn \\ $parabool - ($lijn) = 0 \\ $inter1 = 0   \\ \left( $fac1 \right) \cdot \left( $fac2 \right) = 0 \\ x_{1}= $x1 \wedge x_{2} = $x2 \\ y_{1}= $x1^{2} $pm $b \cdot $x1 = $y1 \\ y_{2}= $x2^{2} $pm $b \cdot $x2 = $y2 \\ ($x1 : $y1) \wedge ($x2 : $y2) \end{array} \right.
+
+ !goto READY
+!endif
+!if $R>3
+#bolleboosjes
+    xmin=-7
+    xmax=7
+    ymin=-300
+    Ymax=300
+    b=!randitem 2,3,4,5
+    d=!randitem 2,3,4
+    f=$[$b+$d]
+    a=!randitem 2,3,4,5,-2,-3,-4,-5
+    c=!randitem 4,6,8,10,12
+    pm=!randitem +,-
+    !if $pm=+
+	mp=-
+    !else
+	mp=+
+    !endif
+    x1=!randitem -6,-5,-4,-3,-2,-1
+    x2=!randitem 1,2,3,4,5,6
+    y1=$[$a*$x1*$x1 $pm $b*$x1 - $c ]
+    y2=$[$a*$x2*$x2 $pm $b*$x2 -$c ]
+    parabool=x \left( $a x  $pm $f \right) $mp $d x - $c
+    curve1=$a*x^2 $pm $b*x - $c
+    punten=points red,$x1,$y1,$x2,$y2
+    tussen=!exec pari A=((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+    printtex(A)\
+    B=($curve1) - (A)\
+    printtex(B)\
+    M=factor(B)\
+    M[1,1]\
+    M[2,1]
+
+    curve2=!line 1 of $tussen
+    lijn=!line 2 of $tussen
+    inter1=!line 4 of $tussen
+    fac2=!line 6 of $tussen
+    fac1=!line 7 of $tussen
+    answer$n=$x1,$y1,$x2,$y2
+    texanswer$n=\left[ \begin{array}{l} $var2 \left( $var1 \right )\,\,=\,\, $var3 \left( $var1 \right) \\ $parabool = $lijn \\ $parabool - ($lijn) = 0 \\ $inter1 = 0   \\ \left( $fac1 \right) \cdot \left( $fac2 \right) = 0 \\ x_{1}= $x1 \wedge x_{2} = $x2 \\ y_{1}= $x1^{2} $pm $b \cdot $x1 = $y1 \\ y_{2}= $x2^{2} $pm $b \cdot $x2 = $y2 \\ ($x1 : $y1) \wedge ($x2 : $y2) \end{array} \right.
+
+!endif
+
+:READY
+teaching=1
+!if $teaching=1
+image=1
+    make_tr=0
+    xsize=140
+    ysize=140
+    image_settings$n=200,200
+    image$n=transparent white\
+    xrange $xmin,$xmax\
+    yrange $ymin,$Ymax\
+    linewidth 1\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 2\
+    curve $color1,$curve1\
+    curve $color2,$curve2\
+    linewidth 8\
+    $punten\
+    text black,$[0.8*$xmax],$[0.05*$ymin],normal,$var1-axis\
+    textup black,$[0.1*$xmin],$[0.8*$Ymax],normal,y-axis
+    
+    !if $printexo=1
+	draw=1
+	plot=0
+	helptext=$empty
+	exotext=$empty
+    !endif
+!endif
+
+formula$n=\left[ \begin{array}{l}$var2 \left( $var1 \right )\,\,=\,\, $parabool \\ \\ $var3 \left( $var1 \right) \,\,=\,\, $lijn \end{array} \right.
+applettext=!nospace $var2($var1)=$curve1 and $var3($var1)=$curve2 ->
+mathviewpanel=$module_title:(x;y):and:or
+ss=!record 19 of lang/remarks.$taal
+question$n=$ss
+rr=!record 20 of lang/remarks.$taal
+textanswer$n=$rr
+!exit
+

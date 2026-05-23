@@ -1,0 +1,84 @@
+# enkel logpapier: y-as logarithmisch
+n=$counter
+math=0
+applet=0
+inputs=yes
+mathview=0
+questiontype=7
+javascript=js/flyapplet.js
+make_tr=1
+#xmin=0
+#xmax=10
+#ymin=0
+#ymax=5
+xmin=0
+xmax=10
+ymin=0
+ymax=!randint 4,9
+!for p=$xmin to $xmax
+    x_schaal=!append line text $[$p-0.1],$[$ymin-0.25],Helvetica,14,$p,blue to $x_schaal
+    x_tick=!append line line $p,$[$ymin-0.05],$p,$[$ymin+0.12],black,255,2 to $x_tick
+#    vlines=!append line vline $p,$ymin,lightblue to $vlines
+!next p
+!for p=$xmin to $xmax step 0.5
+    x_tick=!append line line $p,$[$ymin-0.05],$p,$[$ymin+0.06],black,255,2 to $x_tick
+    vlines=!append line vline $p,$ymin,lightblue to $vlines
+!next p
+!for p=$ymin to $ymax
+    y_schaal=!append line text $[$xmin+0.05],$[$p-0.1],Helvetica,14,$[10^$p],red to $y_schaal
+    y_tick=!append line line $[$xmin-0.25],$p,$[$xmin+0.05],$p,black,255,2 to $y_tick
+!next p
+
+punten=$empty
+ans_plaatje=$empty
+!for p=1 to $options
+    x=!randint 0,19
+    x=$[$x/2+0.5]
+    # 0.5 - 9.6
+    k=!randint 1,$[$ymax-1]
+    y=!randint 1,9
+    y=$[$y*10^$k]
+    yl=$[log($y)/log(10)]
+    ans_plaatje=!append item $x,$yl to $ans_plaatje
+    punten=!append word $ ( $x : $y ) $ to $punten
+    answer$n=!append item $x,$y to $(answer$n)
+!next p
+
+checkfile=exos/checkfile2.proc
+
+data=debug yes\
+mouse yes\
+usecontrols no\
+coordinates yes\
+precision 100\
+userdraw point\
+clickcolor blue,200\
+xrange $[$xmin-0.2],$[$xmax+0.5]\
+yrange $[$ymin-0.3],$[$ymax+0.3]\
+linewidth 1\
+logbase 10\
+ylogscale 0,$ymax,lightblue\
+$vlines\
+$y_tick\
+$x_tick\
+linewidth 2\
+vline $xmin,$ymin,black\
+hline $xmin,$ymin,black\
+xlabel x-as,14,Helvetica\
+ylabel y-as,14,Helvetica\
+$x_schaal\
+$y_schaal\
+linewidth 1
+
+!filewrite getfile/data.$counter $data
+
+!filewrite getfile/ansdata.$counter $data\
+points $ans_plaatje,blue,100,10
+    
+
+flyapplet=<object id="FlyApplet" width="640" height="480" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=data.$counter"/>$nojava</object>
+#flyapplet=<object id="FlyApplet" width="480" height="420" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=data.$counter"/>$nojava</object>
+object$n=<object id="FlyApplet" width="480" height="420" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=ansdata.$counter"/>$nojava</object>
+mousetext=Met een rechter_muis_knop_klik kun je punten weer verwijderen...
+ss=Teken de volgende $options punten in de applet:<br /><b>$punten</b>
+question$n=<a onmouseover="return escape('$mousetext')">$ss</a>

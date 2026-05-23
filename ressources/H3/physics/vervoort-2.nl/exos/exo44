@@ -1,0 +1,115 @@
+#hfst3
+#exo44(hfst4) Relatieve en absolute luchtvochtigheid berekenen
+n=$counter
+math=0
+cols=8
+rounding=10000
+mathview=0
+applet=0
+questiontype=7
+javascript=js/flyapplet.js
+image=0
+plot=0
+make_tr=1
+#invoervelden 2
+var9=2
+checkfile=exos/applet.proc
+inputs=yes
+description=De relatieve luchtvochtigheid,De absolute luchtvochtigheid
+ex1=&nbsp;<kbd>%</kbd>
+ex2=&nbsp;<kbd>g/m<sup>3</sup></kbd>
+m_rightarrow=&nbsp;&asymp;&nbsp;
+server=!replace internal /wims.cgi by $empty in $wims_ref_name 
+
+diff=!randint 1,10
+t_droog=!randint $[15+$diff+2],33
+t_nat=$[$t_droog-$diff]
+t_abs=$[$t_droog + 273]
+
+p_max=$[e^(77.34+0.0057*($t_abs) - 7235/($t_abs))/($t_abs)^(8.2)]
+#p_max=$[e^((77.34+0.0057*($t_abs) - 7235/($t_abs))/(($t_abs)^(8.2)))]
+d_max=$[(round(10*($p_max*1000)/(461.5*$t_abs)))/10]
+
+#Td_droog:dt=1:dt=2
+#      1    2    3
+# +/- 0.6 gr
+Td_15=89.7,79.9,71.2,62.4,53.4,43.5,36.0,28.5,21.5,31.1
+Td_16=89.9,80.6,71.5,63.2,54.1,45.1,37,9,29.9,22.9,15.2
+Td_17=90.3,81.3,72.2,64.0,55.4,47.0,40.0,31.8,25.3,18.7
+Td_18=90.5,81.5,72.9,64.9,56.8,48.6,42.1,33.9,27.1,20.5
+Td_19=90.6,82.2,73.5,66.3,57.7,50.2,43.7,35.8,29.0,22.7
+Td_20=90.5,82.7,74.5,67.3,58.9,51.9,45.3,38.1,31.0,25.3
+Td_21=91.1,83.1,75.0,67.5,60.0,53.0,46.3,39.3,33.0,26.8
+Td_22=91.5,83.6,75.9,78.0,61.0,54.0,47.2,40.9,34.8,28.1
+Td_23=91.7,84.2,76.4,68.8,62.1,54.9,48.6,42.1,36.0,30.2
+Td_24=91.8,84.5,76.8,69.1,62.8,55.8,49.5,43.7,37.6,31.8
+Td_25=91.9,84.8,76.6,69.6,63.8,56.8,50.7,44.9,38.8,33.2
+Td_26=92.0,84.9,77.5,70.3,64.2,57.9,52.0,46.0,40.0,34.8
+Td_27=92.0,85.0,77.8,71.0,64.5,58.9,52.6,47.2,41.1,35.8
+Td_28=92.0,85.3,78.2,71.5,65.2,59.7,53.5,48.1,42.5,37.4
+Td_29=92.0,85.5,78.5,72.4,65.9,60.0,54.2,49.1,43.9,39.0
+Td_30=92.5,85.7,78.7,72.9,66.3,60.7,54.9,49.8,44.9,40.0
+Td_31=92.5,85.9,79.4,73.3,67.5,61.4,56.1,50.9,45.8,41.1
+Td_32=92.5,86.4,79.5,73.8,68.0,62.1,56.8,51.9,47.0,41.8
+Td_33=92.5,86.9,80.0,73.8,68.9,62.6,57.7,52.8,47.9,42.8
+
+
+rv=!item $diff of $(Td_$t_droog)
+# x/y
+
+ans1=$t_droog,$rv
+ans2=$rv
+ans3=$[(round(10*($rv*$d_max/100)))/10]
+rounding=1
+answer$n=$ans1\
+$ans2\
+$ans3
+
+tot=!exec scienceprint $rv,2,1 $ans3,2,1
+h_rv=!item 1 of $tot
+h_ans3=!item 2 of $tot
+
+ss=Je kunt de relatieve en absolute vochtigheid bepalen met twee thermometers ,<br />waarvan er &eacute;&eacute;n met een kousje natgehouden wordt.<br />Bepaal de absolute vochtigheid als de droge thermometer $t_droog &deg;C  en de natte thermometer $t_nat &deg;C aangeeft.<br />Laat in onderstaand diagram zien <span style="color:blue">hoe</span> je dit bepaald hebt.<br /><em>Laat de te tekenen hulplijntjes dus staan in de applet ! deze worden ook nagekeken</em>
+
+
+#extra_grafiek=Klik <a onClick="window.open('$module_dir/gifs/rh.html','Maximale absolute luchtvochtigheid in gr/m3','width=720,height=550,left=0,top=0')"><span style="color:blue">hier</span> voor de grafiek</a> van <kbd>temperatuur &amp; absolute vochtgehaltes</kbd> bij RH=100%.
+
+extra_grafiek=Klik <a target="_blank" href="$module_dir/gifs/rh.html" onclick="window.open(this.href, 'Maximale absolute luchtvochtigheid', 'resizable=no,scrollbars=no,menubar=no,toolbar=no,location=no,height=550,width=720,left=0,top=0'); return false;">hier voor de grafiek</a> van <kbd>temperatuur &amp; absolute vochtgehaltes</kbd> bij RH=100%.
+
+textanswer$n=<ul><li>Het gemeten temperaruursverschil tussen de droge en de natte thermometer was:<br />$t_droog &minus; $t_nat = $diff &deg;C</li><li>In de grafiek moeten we dus lijn nummer $diff gebruiken.<ul><li>Teken een verticale lijn bij T=$t_droog</li><li>Zoeken het snijpunt van deze lijn met "lijn nummer $diff"</li><li>Teken een horizontale lijn van af het snijpunt naar de vertikale schaalverdeling</li><li>Lees RH &asymp; $rv % af.</li><li>Op 2 significante cijfers : $h_rv %</li></ul></li><li>Om het absolute gehalte aan water in de lucht te bepalen, <br />moeten we eerst weten hoeveel water er bij deze temperatuur $t_droog &deg;C maximaal in lucht kan zitten.<br />Hiertoe gebruiken we de andere grafiek.<br />We lezen af dat bij $t_droog &deg;C het maximale watergehalte (RH=100%) ongeveer $d_max gr/m<sup>3</sup> is.</li><li>Onze lucht heeft een relatief watergehalte van RH &asymp; $rv %<br />Dus het absolute watergehalte in de lucht is ongeveer : $[$rv/100] &times; $d_max &asymp; $ans3 g/m<sup>3</sup> </li><li>Op 2 significante cijfers : $h_ans3 g/m<sup>3</sup></li></ul>
+
+helptext=Er staat links boven in het plaatje (als je muis in het venster is) de x/y-coordinaten van je muis.<br />Een lijnstuk wordt getekend door een tweetal punten<br />Verwijderen kan dmv de rechtermuis knop
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><br />$extra_grafiek
+
+
+data=debug yes\
+coordinates yes\
+clickcolor red,190\
+mouse yes\
+precision 10\
+userdraw mlines\
+pointstyle dot\
+# oppassen xrang/yrange horen bij xsize=640 ysize=480\
+xrange 11.6,34.3\
+yrange -6,106\
+image 11.6,106,$server/$module_dir/gifs/humidity.gif\
+linewidth 4
+
+xsize=640
+ysize=480
+myname=$counter.data
+!filewrite getfile/$myname $data
+
+object$n=<object id="FlyApplet" width="$xsize" height="$ysize" classid="java:FlyApplet.class" type="application/x-java-applet;jpi-version=1.4"><param name = "java_codebase" value = "$appletdir" /><param name = "java_archive" value = "FlyApplet.jar" /><param name = "java_code" value = "FlyApplet.class" /><param name="transparent" value="white"/><param name="file" value="$wims_ref_name?session=$session&cmd=getfile&special_parm=$myname"/>$nojava</object>
+
+ 
+
+!exit
+    
+
+
+
+
+
+    

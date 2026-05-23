@@ -1,0 +1,123 @@
+# reply$n is een GeoGebra antwoord met als laatste $options items de getallen uit de tabel.
+# answer$n is de functie met als laatste $options items de correcte getallen uit de tabel
+# var3=rc correcte antwoord
+# var4=constante correcte antwoord
+
+errortext=Deze som is nog niet klaar !!!
+goback=1
+!exit
+
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+linecnt=!item 4 of $(reply$n)
+!if $linecnt = 0
+    errortext=Je bent vergeten de lijn te tekenen...<br />Even opnieuw :(
+    goback=1
+    maxscore=$[$P1*$maxscore]
+    reply$n=!item $[-1*$options] to -1 of $(reply$n)
+    !exit
+!endif
+!if $linecnt != 1
+    telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+    zoveel=!item $linecnt of $telwoorden
+    errortext=Erg goed !<br />maar je hoeft hier maar &eacute;&eacute;n lijn te tekenen<br />en geen $zoveel !
+    goback=1
+    reply$n=!item $[-1*$options] to -1 of $(reply$n)
+    maxscore=$[$P4*$maxscore]
+    !exit
+!endif
+AAA=!item 15 of $(reply$n)
+aaa=!item $[-1*$options] to -1 of $(reply$n)
+AAA=!replace internal @ by , in $AAA
+rc=!item 3 of $AAA
+const=!item 4 of $AAA
+yourline=1.0*($rc)*x + (1.0*($const))
+myline=!item 1 of $(answer$n)
+ggg=!item 2 to -1 of $(answer$n)
+
+
+test1=!evalsubst x=100 in $yourline
+test2=!evalsubst x=100 in $myline
+extra=$empty
+!ifval $test1=$test2
+    score1=1
+    k=green
+!else
+    !ifval $var4 = $[1*($const)]
+	extra=maar je hebt de constante van de lijn wel goed...
+	score1=$P7
+	k=orange
+    !else
+	!ifval $var3 = $[1*($rc)]
+	    extra=maar je hebt het hellingsgetal wel goed...
+	    score1=$P6
+	    k=orange
+	!else
+	    !ifval $var3 = $[-1*($rc)] and $var4 = $[1*($const)] 
+		extra=maar je lijn loopt precies de verkeerde kant op...
+		score1=$P5
+		k=orange
+	    !else
+		score1=0
+		k=red
+	    !endif
+	!endif
+    !endif
+!endif
+
+your_reply=<ul><li><span style="color:$k"$var2 = $[$rc] &times; $var1 + $[$const]</span>$extra</li>
+
+score2=0
+extra=$empty
+!for p=1 to $options
+    g=!item $p of $ggg
+    a=!item $p of $aaa
+    !ifval $a = $g
+	!increase score2
+	k=green
+    !else
+	extra=$empty
+	!ifval $[round($a)] = $[round($g)]
+	    score2=$[$score2+$P4]
+	    extra=!record 29 of $remarkdir/commonremarks.$taal
+	    k=orange
+	!else    
+	    !ifval $a = $[-1*$g]
+		extra=!record 27 of $remarkdir/commonremarks.$taal 
+		score2=$[$score2+$P6]
+		k=red
+	    !else
+		k=red
+	    !endif
+	!endif
+    !endif
+    your_reply=!append line <li><span style="color:$k"$a $extra</span></li> to $your_reply
+!next p
+
+your_reply=!append line </ul> to $your_reply
+
+maxscore=$[$maxscore*($score1 + $score2/$options)/2]
+!if $maxscore > 0.8
+    remark$n=$OK
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+
+reply$n=$your_reply
+modulescore=$[$modulescore + $maxscore]
+
+goback=0
+!exit

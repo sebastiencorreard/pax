@@ -1,0 +1,181 @@
+!set title=Partages
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Dingyu
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Delen
+
+ansorder=r
+varcnt=44
+prevarcnt=43
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=il,elle
+val8=le quart,le tiers,la moitié, deux tiers, deux cinquième
+val9=biscuits, bonbons
+val10=Des enfants se partagent des
+val11=XXXX en a eu YYYY, ZZZZ en a eu TTTT et NNNN en a eu QQQQ.
+val12=Combien XXXX a-t-YYYY eu de ZZZZ
+val13=en a eu
+!if $val6=nl 
+val7=
+val8=een kwart,een derde, de helft, twee derde,twee vijfde
+val9=koekjes, snoepjes
+val10=Kinderen verdelen onderling
+val11=XXXX heeft er YYYY gehad, ZZZZ TTTT en NNNN QQQQ.
+val12=Hoeveel heeft XXXX er gehad
+val13=heeft er
+!endif
+val14=Fabien, Carole, Elodie, Louis, Catherine, George, Olivier, Dominique, Charles, Victor, Simon, Hélène, Pierre, Joséphine, Juliette
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val16=$(tmp0)
+tmp0=!item 3 of $val14
+
+val17=$(tmp0)
+
+!ifval $val17 isitemof Fabien, Louis, George, Olivier, Charles, Victor, Simon, Pierre
+val18= $(val7[1])
+!else
+val18=$(val7[2])
+!endif
+tmp=!trim $(val8[1]), 1, 4	$(val8[2]), 1, 3	$(val8[3]), 1, 2	$(val8[4]), 2, 3	$(val8[5]), 2, 5
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp=!nonempty items $val9
+
+tmp0=!randitem $tmp
+val20=$(tmp0)
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val21=$(tmp0)
+tmp0=!item 1 of $val21
+
+val22=$(tmp0)
+tmp0=!item 2 of $val21
+
+val23=$(tmp0)
+tmp0=!item 3 of $val21
+
+val24=$(tmp0)
+tmp0=!randint 2, 9
+
+val25=$[rint($(tmp0))]
+val26=$[rint($val25*$val23)]
+val27=$[rint($val25*$val24)]
+val28=$[rint($val27-$val26)]
+tmp0=!randint 1, $val28-1
+
+val29=$[rint($(tmp0))]
+val30=$[rint($val28-$val29)]
+val31=$val11
+tmp0=!replace internal XXXX by $val15 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal YYYY by $val29 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal ZZZZ by $val16 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal TTTT by $val30 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal NNNN by $val17 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal QQQQ by $val22 in $val31
+
+val31=$(tmp0)
+tmp0=!replace internal XXXX by $val17 in $val12
+
+val32=$(tmp0)
+tmp0=!replace internal YYYY by $val18 in $val32
+
+val32=$(tmp0)
+tmp0=!replace internal ZZZZ by $val20 in $val32
+
+val32=$(tmp0)
+replytype1=default
+replyname1=$val17 $val13
+replygood1=$val26
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10 $val20 : $val31	$val32?	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,20,31,32
+embedcnt=0

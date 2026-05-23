@@ -1,0 +1,159 @@
+!set title=Regroupement en classes 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerimafree.fr
+
+ansorder=r,r,r,r,r,r,r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=9
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(500)]
+val7=$[rint(3999)]
+tmp0=!randint 25, 30
+
+val8=$[rint($(tmp0))]
+val9=$[rint(ceil($val7/500)-floor($val6/500))]
+val10=
+!for val11 =1 to $val8 
+tmp0=!randint $val6/10, $val7/10
+
+val12=$[rint($(tmp0)*10)]
+tmp0=!append item $val12 to $val10
+
+val10=$(tmp0)
+!next
+val13=$[rint(floor($val6/500)*500)]
+val14=
+!for val15 =1 to $val9 
+val16=$[rint(floor($val6/500)*500+500*($val15-1))]
+val17=$[rint($val16+500)]
+tmp0=!append item &#91;$val16;$val17&#91; to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val17 to $val13
+
+val13=$(tmp0)
+!next
+!readproc slib/stat/effectif [$val10],[$val13] 
+tmp0=$slib_out
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+val19=$(tmp0)
+tmp0=!char 2 to -2 of $val19
+
+val19=$(tmp0)
+tmp0=!item 1 to $val9 of r1,r2,r3,r4,r5,r6,r7,r8,r9
+
+val20=$(tmp0)
+tmp0=!replace internal , by &nbsp;;&nbsp; in $val10
+
+val21=$(tmp0)
+oefsteps=$val20 
+nextstep=!nosubst $val20 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=$(val14[1])
+replygood1=$(val19[1])
+replytype2=numexp
+replyname2=$(val14[2])
+replygood2=$(val19[2])
+replytype3=numexp
+replyname3=$(val14[3])
+replygood3=$(val19[3])
+replytype4=numexp
+replyname4=$(val14[4])
+replygood4=$(val19[4])
+replytype5=numexp
+replyname5=$(val14[5])
+replygood5=$(val19[5])
+replytype6=numexp
+replyname6=$(val14[6])
+replygood6=$(val19[6])
+replytype7=numexp
+replyname7=$(val14[7])
+replygood7=$(val19[7])
+replytype8=numexp
+replyname8=$(val14[8])
+replygood8=$(val19[8])
+replytype9=numexp
+replyname9=$(val14[9])
+replygood9=$(val19[9])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Le maire d'un petit village a fait réaliser une étude pour connaître	la superficie des terrains de chacune des $val8 maisons du village. Les superficies sont données en 
+!insmath m^2
+$().	<div class="wimscenter">	$val21	</div>	Pour pouvoir présenter clairement les informations lors du conseil municipal,	il décide de réaliser un tableau.	<p>	Complète le tableau pour le Maire.	</p>	<table class="wimscenter wimsborder">	 <tr><th>Superficie (en 
+!insmath m^2
+$())</th> 
+!for m_k=1 to $val9 
+$()<td><b>$(val14[$m_k])</b></td> 
+!next
+$()</tr>	 <tr><th>Effectifs</th> 
+!for m_L=1 to $val9 
+$()<td> 
+!read oef/embed.phtml $(val20[$m_L]),5 
+$()</td> 
+!next
+$()</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,14,20,21
+embedcnt=1

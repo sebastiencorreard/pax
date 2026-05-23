@@ -1,0 +1,145 @@
+!set title=Rotation 6
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss= <style> .macss{ background-color : yellow; } </style> 
+title_it=Rotazione 6
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=transfo6.png
+val8=Quelle est l'image du triangle,par la rotation de centre O qui transforme le triangle,en triangle
+val9=On considère l'hexagone ABCDEF de centre O représenté ci-dessous.
+val10=Le triangle
+!if $val6=it 
+val8=Qual è l'immagine del triangolo, tramite la rotazione di centro O che trasforma il triangolo, nel triangolo
+val9=Si consideri l'esagono ABCDEF di centro O rappresentato qui sotto.
+val10=Il triangolo
+!endif
+val11=ABO,FAO,EFO,DEO,CDO,BCO
+!readproc slib/data/random 3,item, $val11 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!positionof item $(val12[1]) in $val11
+
+val13=$[rint($(tmp0))]
+tmp0=!positionof item $(val12[2]) in $val11
+
+val14=$[rint($(tmp0))]
+tmp0=!positionof item $(val12[3]) in $val11
+
+val15=$[rint($(tmp0))]
+tmp0=!text expand $val12 using 01
+
+val16=$(tmp0)
+tmp0=!words2items $val16
+
+val16=$(tmp0)
+val17=$[rint($val13+$val15-$val14)]
+t_=!replace internal \( by ( in lift(Mod($val17,6))
+tmp0=!exec pari $t_
+
+val18=$[rint($(tmp0))]
+!if $val18=0 
+val18=$[rint(6)]
+!endif
+val19=$(val11[$val18])
+tmp0=!text expand $val19 using 01
+
+val20=$(tmp0)
+tmp0=!words2items $val20
+
+val20=$(tmp0)
+val19=$(val20[1])$(val20[2])$(val20[3]),$(val20[1])$(val20[3])$(val20[2]),$(val20[2])$(val20[1])$(val20[3]),$(val20[2])$(val20[3])$(val20[1]),$(val20[3])$(val20[1])$(val20[2]),$(val20[3])$(val20[2])$(val20[1])
+val21=$(val8[1]) \($(val12[1])\) $(val8[2]) \($(val12[2])\) $(val8[3]) 
+val22=Par la rotation de centre O qui transforme le triangle \($(val12[2])\) en triangle <span class="nowrap">\($(val12[3])\),</span>	<p>l'image du point \($(val16[1])\) est <span class="nowrap">\($(val20[1])\),</span></p>	<p>l'image du point \($(val16[2])\) est <span class="nowrap">\($(val20[2])\),</span></p>	<p>l'image du point \($(val16[3])\) est <span class="nowrap">\($(val20[3])\),</span></p>	donc l'image du triangle \($(val12[1])\) est le triangle <span class="nowrap">\($(val19[1])\).</span>
+!if $val6=it 
+val22=Applicando la rotazione di centro O che trasforma il triangolo \($(val12[2])\) nel triangolo <span class="nowrap">\($(val12[3])\),</span>	<p>l'immagine del punto \($(val16[1])\) è <span class="nowrap">\($(val20[1])\),</span></p>	<p>l'immagine del punto \($(val16[2])\) è <span class="nowrap">\($(val20[2])\),</span></p>	<p>l'immagine del punto \($(val16[3])\) è <span class="nowrap">\($(val20[3])\),</span></p>	quindi l'immagine del triangolo \($(val12[1])\) è il triangolo <span class="nowrap">\($(val19[1])\).</span>
+!endif
+replyname1=$val10
+replygood1=?analyze 23
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val22
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val9	<p class="wimscenter"><img src="$val1/$val7" alt="hexagone"></p>	$val21	<span class="nowrap">
+!insmath $(val12[3])
+$() ?</span>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val22
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val23 isitemof $val19
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=
+
+!exit
+
+:stat
+vsavelist=1,7,9,12,19,21,22,23
+embedcnt=0

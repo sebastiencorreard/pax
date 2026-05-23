@@ -1,0 +1,129 @@
+#bepaal het snijpunt een lijn met een horizontale lijn
+n=$counter
+questiontype=0
+image=0
+cols=15
+rows=1
+math=0
+mathview=4
+embed=1
+checkfile=$checkdir/coord.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+!if $printexo=0
+    white=white
+    image=0
+!else
+    image=1
+    white=magenta
+!endif
+
+letter1=x
+letter2=y
+letter3=!randitem f,g
+letter4=!randitem k,h
+A=!randitem A,B,C,D,E,F
+pm =!randitem +,-
+
+kleuren=!record 15 of lang/remarks.$taal
+#@ red@rooie,blue@blauwe,green@groene,orange@oranje,purple@paarse
+#@! red@red,blue@blue,green@geenish,orange@orange,purple@purple
+#@!~ red@红色,blue@蓝色,green@绿色,orange@橙色,purple@紫色
+kleuren=!shuffle $kleuren
+k1=!item 1 of $kleuren
+k2=!item 2 of $kleuren
+k1=!replace internal @ by , in $k1	
+k2=!replace internal @ by , in $k2
+lang_color1=!item 2 of $k1
+color1=!item 1 of $k1
+lang_color2=!item 2 of $k2
+color2=!item 1 of $k2
+    
+#het snijpunt (een mooi punt)
+x=!randint 1,10
+y=!randint 1,10
+pm=!randitem -1,1
+mp=!randitem -1,1
+!if $R=1
+    m=!randitem 1,2,3
+    lijn1=$y
+!else
+    !if $R=2
+	m=!randitem 1,2,3,-1,-2,-3
+	x=$[$mp*$x]
+        y=$[$pm*$y]
+        lijn1=$y
+    !else
+	m=!randitem 3/2,5/4,1/2,4/3,5/4,5/3,7/3,3/5,2/5,3/5,4/5,5/6,7/6,9/7,3/7,4/7,5/7,7/8
+	pp=!randitem 1,-1
+        m=$pp*$m
+	x=$[$mp*$x]
+        y=$[$pm*$y]
+	lijn1=$y
+    !endif
+!endif
+
+L1=!texmath $letter3 ($letter1) = $lijn1
+tot=!exec pari A=$letter1/(-1*($m)) + $y + $x/($m)\
+printtex(A)\
+B=$letter1/(-1*$m) + $x/($m)\
+printtex(B)
+    
+lijn2=!line 1 of $tot
+lijn2_tex=!line 2 of $tot
+tussen=!line 4 of $tot
+L2=$letter4($letter1) = $lijn2_tex
+
+answer$n=$x,$y
+formula$n=\left[ \begin{array}{l}$L1 \\ \\ $L2\end{array} \right.
+texanswer$n=\left[\begin{array}{ll}$letter3($letter1) = $letter4($letter1) & \rightarrow \\ $lijn1 = $lijn2_tex  & \rightarrow \\ $lijn1 - ( $lijn2_tex ) = 0 & \rightarrow \\ $tussen = 0  & \rightarrow\\ $letter1=$x \wedge $letter2=$y & \end{array} \right] \rightarrow $A \,\left($x : $y\right) 
+applettext=!nospace (vlist( $letter3($letter1) = $lijn1 , $letter4($letter1) = $lijn2  )) ->
+
+ss=!record 16 of lang/remarks.$taal
+#@ Bepaal het snijpunt van twee rechte lijnen.<p>Gegeven twee rechte lijnen in het <em>$letter1,$letter2</em>-vlak . <ul><li><span color=$color1>de lijn $letter3</span></li><li><span color=$color2>de lijn $letter4</span></ul>Het snijpunt is $A .<br />Bereken de co&ouml;rdinaten  van snijpunt $A.
+#@! Determine the intersection points of two lines<p>Given is the <em>$letter1,$letter2</em>-plane are twe straight lines. <ul><li><span color=$color1>the line $letter3</span></li><li> and <span color=$color2>the line $letter4</span></ul>They intersect in point $A .<br />Calculate the co&ouml;rdinates of this intersection point $A.
+#@!~ 确定两条直线的交点<p>在 <em>$letter1,$letter2</em> 平面上有两条直线.<ul><li><span color=$color1>直线 $letter3</span></li><li> 以及 <span color=$color2>直线 $letter4</span></ul>它们交于点 $A .<br />计算此交点 $A 的坐标.
+
+rr=!record 17 of lang/remarks.$taal
+#@ De co&ouml;rdinaten van snijpunt $A zijn: ($x:$y)
+#@! The co&ouml;rdinates of the intersection point $A are ($x:$y).
+#@!~ 交点 $A 的坐标是 ($x:$y).
+
+!if $teaching=1
+    etext=!record 1 of lang/remarks.$taal
+    tooltip=!exec canvasdraw\
+    size 320,320\
+    xrange -20,20\
+    yrange -20,20\
+    bgcolor $wims_bgcolor\
+    linewidth 1\
+    axis\
+    xlabel x-axis\
+    ylabel y-axis\
+    grid 100,100,white,1,1,0,black\
+    linewidth 2\
+    curve $color1,$lijn1\
+    curve $color2,$lijn2\
+    linewidth 2\
+    point $x,$y,green\
+    string black,$x,$y,  $A\
+    intooltip $etext
+    
+    
+    #insdraw_size=200,200
+    #image_settings$n=200,200
+    #!insdraw $(image$n)
+    #exotext=<a onmouseover="return escape('<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />')">$etext</a>
+    exotext=$tooltip <br />
+!endif
+
+helptext=<textarea readonly=\'readonly\' cols=\'25\' rows=\'2\' class=\'schaersvoorde_textarea\'>( 4 : 1/5 )</textarea>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+textanswer$n=$rr
+

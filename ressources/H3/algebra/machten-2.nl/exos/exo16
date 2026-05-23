@@ -1,0 +1,96 @@
+# vergelijkingen met wortels III
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml not to modify sqrt[3](2) into 2^(1/3)
+convert_root=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+mathviewpanel=$module_title:and:x=:sqrt[3]():sqrt[4]():sqrt[5]():sqrt[6]():sqrt[n]()
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=5
+math=0
+image=0
+questiontype=0
+embed=0
+# produceerd een <tr>
+make_tr=1
+#### checkfile
+checkfile=$checkdir/number.proc
+arglist=x
+question$n=!record 43 of lang/remarks.$taal
+#@Los de onderstaande vergelijking op in $m_RR<br /><em>geef je antwoord in de vorm: x=123</em>
+helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'noalt\' />
+keuze=!randitem 1,0
+#font settings in input applet
+smallfont=16
+largefont=24
+keuze=!randitem 1,0
+pm=!randitem -1,1
+mp=!randitem -1,1
+
+!if $R=1 or $R=2
+    b=!randint 1,20
+    b=$[$pm*$b]
+    c=!randitem 2,3,4,5,6
+    !if $R=1
+	d=1
+    !else
+	d=!randitem 2,3,4,5
+    !endif
+    tussen=!rawmath x + $b
+    !if $keuze=0
+	answer$n=$[$d^($c)-$b]
+	formula$n=\left( $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d \rightarrow x = [?]
+	applettext=!nospace ($tussen)^(1/$c)=$d ->
+        texanswer$n=\left[ \begin{array}{l} \left( $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d \\ $tussen = $d^{$c} \\ x=$(answer$n) \end{array}\right.
+    !else
+	answer$n=$[$b-$d^($c)]
+	formula$n=\left( - $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d \rightarrow x = [?]
+	applettext=!nospace ( - $tussen)^(1/$c)=$d ->
+        texanswer$n=\left[ \begin{array}{l}\left( - $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d \\ - $tussen = $d^{$c} \\ x=$(answer$n) \end{array} \right.
+    !endif
+ !exit
+!endif
+
+!if $R=3
+    a=!randitem -5,-4,-3,-2,2,3,4,5
+    b=!randint 1,20
+    b=$[$pm*$b]
+    c=!randitem 2,3,4,5,6,7,8,9,10
+    d=!randitem 2,3,4,5
+    tussen=!rawmath x + $b
+    tot=!exec pari A=($d^($c)-($b))/($a)\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    ans=!line 2 of $tot
+    formula$n=\left($a $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d \rightarrow x = [?]
+    applettext=!nospace ($a $tussen)^(1/$c)=$d ->
+    texanswer$n= \left[ \begin{array}{l} \left($a $tussen \right)^{\textstyle \frac{1}{$c}} \,=\,$d  \\ $a $tussen = $d^{$c} \\ x=$ans \end{array}\right.
+ !exit
+!endif
+
+!if $R>3
+    breuken=2,3 3,4 2,5 3,5 4,5 5,6 2,7 3,7 4,7 5,7 6,7 3,8 5,8 7,8
+    breuk=!randword $breuken
+    t1=!item 1 of $breuk
+    n1=!item 2 of $breuk
+    a=!randitem -5,-4,-3,-2,2,3,4,5
+    b=!randint 1,20
+    b=$[$pm*$b]
+    d=!randitem 2,3,4,5
+    tussen=!rawmath x + $b
+    answer$n=($d^($n1/$t1)-($b))/($a)
+    ans=!texmath $(answer$n)
+    formula$n=\left($a $tussen \right)^{\textstyle \frac{$t1}{$n1}} \,=\,$d \rightarrow x = [?]
+    applettext=!nospace ($a $tussen)^($t1/$n1)=$d ->
+    texanswer$n=\left[  \begin{array}{l} \left($a $tussen \right)^{\textstyle \frac{$t1}{$n1}} \,=\,$d \\ $a $tussen = $d^{\textstyle \frac{$n1}{$t1}} \\ x=$ans \end{array}\right.
+ !exit
+!endif
+

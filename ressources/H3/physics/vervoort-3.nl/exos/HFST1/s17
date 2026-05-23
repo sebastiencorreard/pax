@@ -1,0 +1,121 @@
+#hfst1
+#exo1(hfst1) Bereken de druk in diverse eenheden [Algemene gaswet] 
+n=$counter
+checkfile=$checkdir/new_number.proc
+rounding=-1
+cols=12
+mathview=0
+rows=1
+var1=$empty
+var2=$empty
+
+inputs=4
+
+d1=!randint 500,1500
+d1=!exec moneyprint $[$d1/100]
+V1=!randint 100,400
+V1=!exec moneyprint $[$V1/100]
+keuze=!randitem 0,1
+!if $keuze=1
+    koelen=koelen
+    t1=!randint 60,160
+    t2=!randint 10,40
+!else
+    koelen=verwarmen
+    t1=!randint 5,40
+    t2=!randint 120,280
+!endif
+tot=!exec moneyprint $t1,$t2 1
+t1=$(tot[1])
+t2=$(tot[2])
+sig=3
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+Sig=!item $sig of $telwoorden
+JK=$[($d1*$V1*10^2)/(273+$t1)]
+t_JK=!exec scienceprint $JK,-1,2
+P2=$[$JK*(273+$t2)/($V1*10^-3)]
+P2_kpa=$[$P2*10^-3]
+P2_bar=$[$P2*10^-5]
+P2_psi=$[$P2_bar*1450.38]
+tot=!exec scienceprint $P2,$sig,0 $P2,$sig,2 $P2_bar,$sig,0 $P2_bar,$sig,2 $P2_kpa,$sig,0 $P2_kpa,$sig,2 $P2_psi,$sig,0 $P2_psi,$sig,2
+ans1=$(tot[1])
+t_ans1=$(tot[2])
+ans2=$(tot[3])
+t_ans2=$(tot[4])
+ans3=$(tot[5])
+t_ans3=$(tot[6])
+ans4=$(tot[7])
+t_ans4=$(tot[8])
+
+
+ex1=N/m<sup>2</sup>
+ex2=bar
+ex3=kPa
+ex4=psi
+description=De druk wordt:,De druk wordt:,De druk wordt:,De druk wordt:
+# +/-
+var1=$[abs($ans1-$P2)],$[abs($ans2-$P2_bar)],$[abs($ans3-$P2_kpa)],$[abs($ans4-$P2_psi)]
+answer$n=$ans1\
+$ans2\
+$ans3\
+$ans4
+
+
+ss=De algemene gaswet, ook wel ideale gaswet of Wet van Boyle en Gay-Lussac genoemd,<br />\
+beschrijft het gedrag van ideale gassen onder invloed van druk, volume, temperatuur en aantal deeltjes. <br />\
+De <span style="color:blue">wet</span> luidt:<span size="+1"><kbd>p&#8901;V&nbsp;=&nbsp;n&#8901;R&#8901;T</kbd></span><hr />\
+We hebben een gesloten (ideaal) vat van $V1 liter met een (ideaal) gas gevuld tot een druk van $d1 bar.<br />\
+De temperatuur van het gas is $t1&deg;C. We $koelen nu het gas tot $t2&deg;C.<br />\
+Wat wordt nu de druk in het vat ? <br />Geef je antwoord op in $sig significante cijfers.<br />(er treden overigens verder geen storende effecten of explosies op...)
+
+helptext=<kbd>p&#8901;V&nbsp;=&nbsp;n&#8901;R&#8901;T</kbd><ul><li> p de druk in Pa (N/m<sup>2</sup>)</li><li> V het volume in m<sup>3</sup></li><li> n de hoeveelheid gas in mol (= aantal moleculen gedeeld door de constante van Avogadro)</li><li> R de gasconstante (8,314472 J·K<sup>-1</sup>mol<sup>-1</sup>)</li><li> T de absolute temperatuur in K</li></ul><ul><li>1 bar = 10^5 Pa </li><li> 1 psi = 6.89476*10^3 Pa</li></ul>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+texanswer$n=\left[ \begin{array}{l}pV = nRT \rightarrow nR = \frac{pV}{T} = \frac{$d1\cdot 10^{5} \times $V1\cdot 10^{-3}}{273 + $t1 } = $t_JK \; J/K \\ p_{2} = \frac{nR \cdot T_{2}}{V} = \frac{$t_JK \cdot (273 + $t2)}{$V1\cdot 10^{-3}} = $P2 Pa  \\\textrm{Op $sig significante cijfers : } \\ p_{2} = $t_ans1 Pa = $t_ans2 bar = $t_ans3 kPa = $t_ans4 psi \end{array}\right.
+
+!exit
+
+
+# 11/11/2011...
+# incompatible met oude number.proc !!!
+# answer: x=123 --> arglist=x
+# reply$n: x1=3 en x2=sqrt(e^ pi),x3=4 en x4=sqrt(e/ pi),x5=5 en x6=5 + sqrt(e + pi),x7=6 en x8=1 - sqrt(e - pi)
+# bewerken van antwoord:
+# invulveld 1: x1=3 en x2=sqrt(e^ pi)
+# invulveld 2: x3=4 en x4=sqrt(e/ pi)
+# invulveld 3: x5=5 en x6=5 + sqrt(e + pi)
+# invulveld 4: x7=6 en x8=1 - sqrt(e - pi)
+#
+# filtered_rep wordt dan
+# 3,sqrt(e^ pi)\
+# 4,sqrt(e/pi)\
+# 5,5+sqrt(e+pi)
+# 6,1-sqrt(e-pi)
+
+# meerdere antwoorden in 3 invulvelden:(lines per invulveld)
+# answer$n=ans1,ans2,ans3\
+# ans4\
+# ans5,ans6
+
+# binnen een regel / invulveld is volgorde onbelangrijk <---
+# tussen invulvelden / regels is volgorde wel belangrijk <---
+
+# getallen kunnen per invulveld / antwoordregel een range hebben
+# var1=range1,0,0,range5,0,range6 .... dus 6 invulvelden...
+# answer - range1 <= reply <= answer + range1
+# bijv: 
+# var1=0,0,0.01,0.5
+# answer1=123\ # geen range
+# 456, 7899,4534535\ # geen range
+# 0.789 0.324\ # wel range +/- 0.01
+# 12.5  # wel range +/- 0.5
+
+# var2 --> rounding per invulveld...analoog aan var1...meerdere antwoorden in 1 invulveld gelijke afronding
+# var2=-1,-1,100,100000,0
+
+# Let op: 
+# bij complexe getallen i=10 ... 
+# vervang i door 10 in answer$n !!! anders problemen met nakijken...
+
+    

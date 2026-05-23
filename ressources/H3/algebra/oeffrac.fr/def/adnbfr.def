@@ -1,0 +1,226 @@
+!set title=Addition entier et fraction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r,r
+varcnt=32
+prevarcnt=31
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Calculer l'expression suivante&nbsp;,	Calculer les expressions suivantes&nbsp;
+val8=Vous donnerez le résultat sous forme simplifiée.,	  Vous donnerez les résultats sous forme simplifiée
+val9=+
+val10=+
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(2)]
+!endif
+
+!ifval $val4=
+val4=$[rint(0)]
+!endif
+
+!ifval $val4=0
+val11=
+!else
+val11=noreduction
+!endif
+
+!ifval $val3=1
+val12=1
+!else
+val12=1,1,-1
+!endif
+val13=2,3,5,7,9,8,11,13
+val14=
+val15=
+val16=
+!for val17 =1 to $val2 
+tmp0=!shuffle $val13
+
+val13=$(tmp0)
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+tmp1=!randint 2, 20
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+tmp1=!item 2 of $val13
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp=!nonempty items $val12
+
+tmp0=!randitem $tmp
+tmp1=!item 3 of $val13
+
+val20=$[rint($(tmp0)*$(tmp1))]
+t_=!replace internal \( by ( in gcd($val19,$val20);
+tmp0=!exec maxima $t_
+
+val21=$[rint($(tmp0))]
+!if $val21!=1 
+val19=$[rint(7)]
+val20=$[rint(9)]
+!endif
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val22=$[rint($(tmp0))]
+!if $val22=1 
+val23=$val18 $val10 \frac{$val19}{$val20},($val18)$val9(($val19)/($val20))
+!else
+
+!ifval $val18<0
+val23=\frac{$val19}{$val20} $val10 ($val18),(($val19)/($val20)) $val9 ($val18)
+!else
+val23=\frac{$val19}{$val20} $val10 $val18,(($val19)/($val20)) $val9 ($val18)
+!endif
+!endif
+tmp0=!item 1 of $val23
+
+val24=$(tmp0)
+tmp0=!item 2 of $val23
+
+val25=$(tmp0)
+t_=!replace internal \( by ( in $val25;
+tmp0=!exec maxima $t_
+
+val25=$(tmp0)
+tmp0=!append item $val24 to $val14
+
+val14=$(tmp0)
+tmp0=!append item $val25 to $val15
+
+val15=$(tmp0)
+tmp0=!append item r$val17 to $val16
+
+val16=$(tmp0)
+!next
+oefsteps=$val16 
+nextstep=!nosubst $val16 
+!readproc oef/steps.proc
+replytype1=numexp
+replyoption1=$val11 
+replyname1=\($(val14[1]))
+replygood1=$(val15[1])
+replytype2=numexp
+replyoption2=$val11 
+replyname2=\($(val14[2]))
+replygood2=$(val15[2])
+replytype3=numexp
+replyoption3=$val11 
+replyname3=\($(val14[3]))
+replygood3=$(val15[3])
+replytype4=numexp
+replyoption4=$val11 
+replyname4=\($(val14[4]))
+replygood4=$(val15[4])
+replytype5=numexp
+replyoption5=$val11 
+replyname5=\($(val14[5]))
+replygood5=$(val15[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()	 $(val7[1]):	 <div class="wimscenter">
+!insmath $val14 = 
+$()  
+!read oef/embed.phtml r1,9 
+$().</div>	 
+!if $val4=0 
+$()	  <div class="wims_instruction">$(val8[1])</div>	  
+!endif
+$()	 
+!else
+$() 	 $(val7[2]):	 <ul>	  
+!for m_k=1 to $val2 
+$()	  <li>
+!insmath $(val14[$m_k]) = 
+$()  
+!read oef/embed.phtml r\k,9 
+$().</li>	  
+!next
+$()	 </ul>	 
+!if $val4=0 
+$()	  <div class="wims_instruction">$(val8[2])</div>	  
+!endif
+$()	 
+!endif
+$()
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,4,7,8,14
+embedcnt=2

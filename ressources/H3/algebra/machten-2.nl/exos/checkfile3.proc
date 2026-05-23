@@ -1,0 +1,108 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# checkt a+bsqrt(c)
+# vervangt sqrt door x en vraagt pari
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+extra=$empty
+AAA=!nospace $(reply$n)
+AAA=!lower $(reply$n)
+
+!if sqrt notin $AAA
+    !ifval $[$AAA] = $[$(answer$n)]
+	rem=!record 27 of lang/remarks.$taal
+	remark$n=$NOK<br />$rem
+	#@Je antwoord is getalsmatig wel redelijk goed...<br />maar het is niet het goede antwoord :)
+	maxscore=0.1
+	modulescore=$[$modulescore + $maxscore]
+    !else
+	rem=!record 30 of lang/remarks.$taal
+	remark$n=$NOK<br />$rem
+	#@<br />en je hebt niet eens een wortel in je antwoord...
+	maxscore=0
+    !endif
+    goback=0
+    !exit
+!endif
+
+# "hogere macht-wortels" ingevuld via 'evers-syntax' sqrt[3](123)
+test=!replace internal sqrt[ by @ in $AAA
+!if @ isin $AAA
+    rem=!record 33 of lang/remarks.$taal
+    !if $teaching=1
+	errortext=$rem
+	maxscore=$[$P6*$maxscore]
+	goback=1
+    !else
+	remark$n=$NOK <br />$rem   
+        maxscore=0
+	goback=0
+    !endif
+ !exit
+!endif
+
+AAA=!rawmath $AAA
+    
+!ifval $[$AAA] = $[$(answer$n)]
+    test1=1
+!else
+    !ifval $[-1*($AAA)]=$[$(answer$n)]
+	test1=0.4
+    !else
+	test1=0
+    !endif
+!endif
+
+t=!positionof sqrt in $AAA
+t=!itemcnt $t
+#var1 is het aantal wortels in het goede antwoord
+!if $t>$var1
+    maxscore=$[$P5*$maxscore]
+    !if $test1>0
+	!if $test1=1
+	    extra=!record 31 of lang/remarks.$taal
+	    #@Je antwoord is getalmatig wel redelijk inorde<br />Maar waarom $t wortels ??<br /> Dat is zeker niet de standaardvorm: a+b&radic;(c)
+	!else
+	    extra=!record 34 of lang/remarks.$taal
+	    #@Je hebt wat plussen en minnen verwisseld... 
+	!endif
+    !else
+	extra=!record 32 of lang/remarks.$taal
+	#@Hmmm $t wortels is zeker niet de standaardvorm: a+b&radic;(c) 
+    !endif
+!endif
+
+ta=!replace internal sqrt by x* in $AAA
+tg=!replace internal sqrt by x* in $(answer$n)
+ta=!rawmath $ta
+tg=!rawmath $tg
+test2=!exec pari if( 1.0*($ta) == 1.0*($tg)  ,1,0)
+
+#exotext=test1=$test1 test2=$test2 ta=$ta tg=$tg AAA=$AAA answer$n=$(answer$n) <br/> $[$AAA] =?= $[$(answer$n)]
+#goback=1
+#!exit
+maxscore=$[$maxscore*($test2+$test1)/2]
+
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit

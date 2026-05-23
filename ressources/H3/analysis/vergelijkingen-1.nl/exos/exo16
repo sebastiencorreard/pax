@@ -1,0 +1,208 @@
+mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+questiontype=0
+impossible=0
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+n=$counter
+embed=1
+cols=20
+rows=2
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+exotext=$empty
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+keuze=!randitem 1,2
+ss=!record 39 of lang/remarks.$taal
+#@ Los de onderstaande vergelijking op:<br />
+helptext=!record 23 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+# type 3*x^2 = 6
+    a=!randitem 2,3,4,5,6
+    pm=!randitem 1,-1
+    a=$[$a*$pm]
+    c=!randitem 1,2,3,4,5
+    b=$[$a*$c]
+    formula$n=$a x^{2} = $b
+    applettext=!nospace $a x^2 = $b ->
+    x1=sqrt($c)
+    x2=-1*sqrt($c)
+    test=$[$x1]
+    !if . isin $test
+	tex_x1=\sqrt{$c}
+	tex_x2=-\sqrt{$c}
+    !else
+	x1=$[$x1]
+	x2=$[$x2]
+	tex_x1=$x1
+	tex_x2=$x2
+    !endif
+    answer$n=$x1,$x2
+    texanswer$n=x^{2}=$c \rightarrow \left[ \begin{array}{l} x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    !if $image=1 or $teaching=1
+	curve1=curve $color1,$a*x^2
+	curve2= dhline 0,$b,$color2
+	punten=points red,$x1,$b,-$x1,$b    
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif
+
+!if $R=2
+# type 3*x^2 + 5= 2x^2+8
+    keuze=!randitem 1,2
+    !if $keuze=1
+	b=!randint 2,6
+	f=!randint 1,5
+	a=$[$b+$f]
+	c=!randint 1,10
+	g=!randint 1,6
+	d=$[$c+$g*$f]
+	formula$n=$a x^{2} + $c = $b x^{2} + $d
+	tex=$[$a-$b] x^{2} = $[$d-$c] \rightarrow x^{2}=$g
+	applettext=!nospace $a x^2 + $c = $b x^{2} + $d->
+	curve1=curve $color1,$a*x^2 + $c
+	curve2=curve $color2,$b*x^2 + $d
+    !else
+	a=!randint 2,6
+	a=$[-1*$a]
+	b=!randint 2,7
+	g=!randint 2,9
+	d=!randint 2,7
+	c=$[$g*($b-($a))-$d]
+	formula$n=$a x^{2} + $c = $b x^{2} - $d
+	tex=$[$c+$d] = $[$b-($a)] x^{2} \rightarrow x^{2}=$g
+	applettext=!nospace $a x^2 + $c = $b x^{2} - $d->
+	curve1=curve $color1,$a*x^2 + $c
+	curve2=curve $color2,$b*x^2 - $d
+    !endif
+    x1=sqrt($g)
+    x2=-1*sqrt($g)
+    y1=$[$a*($x1)^2 + $c]
+    y2=$y1
+    test=$[$x1]
+    !if . isin $test
+	tex_x1=\sqrt{$g}
+	tex_x2=-\sqrt{$g}
+    !else
+	x1=$[$x1]
+	x2=$[$x2]
+	tex_x1=$x1
+	tex_x2=$x2
+    !endif
+    answer$n=$x1,$x2
+    texanswer$n=$tex \rightarrow \left[ \begin{array}{l} x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    !if $image=1 or $teaching=1
+	curve1=$curve1
+	curve2=$curve2
+	punten=points red,$x1,$y1,-$x1,$y2  
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif
+
+!if $R=3
+# type 3*(x-5)^2 = 6
+    keuze=!randitem 1,2
+    a=!randitem 2,3,4,5,6
+    pm=!randitem 1,-1
+    a=$[$a*$pm]
+    c=!randint 2,6
+    d=$[$c*$c]
+    b=$[$a*$d]
+    f=!randint 1,10
+    !if $keuze=1
+	formula$n=$a \left(x - $f \right)^{2} = $b
+	applettext=!nospace $a (x-$f)^2 = $b ->
+	x1=$[-1*$c+$f]
+	x2=$[$c+$f]
+	curve1=curve $color1,$a*(x-$f)^2
+	tex=\left(x - $f \right)^{2} = $d \rightarrow x - $f = $c \wedge x - $f = $[-1*$c]
+    !else
+	formula$n=$a \left(x + $f \right)^{2} = $b
+	applettext=!nospace $a (x+$f)^2 = $b ->
+	x1=$[-1*$c-$f]
+	x2=$[$c-$f]
+	curve1=curve $color1,$a*(x+$f)^2
+	tex=\left(x + $f \right)^{2} = $d \rightarrow x + $f = $c \wedge x + $f = $[-1*$c]
+    !endif
+    xmin=$[$x1-4]
+    xmax=$[$x2+4]
+    ymin=$[$b-100]
+    ymax=$[$b+100]
+    XRANGE=$xmin,$xmax
+    YRANGE=$ymin,$ymax
+    tex_x1=$x1
+    tex_x2=$x2
+    answer$n=$x1,$x2
+    texanswer$n=$tex \rightarrow \left[ \begin{array}{l} x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    !if $image=1 or $teaching=1
+	XRANGE=$XRANGE
+	YRANGE=$YRANGE
+	curve1=$curve1
+	curve2= dhline 0,$b,$color2
+	punten=points red,$x1,$b,$x2,$b    
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif
+
+!if $R>3
+# type 3*(x-5)^2 + 2 = 8
+    keuze=!randitem 1,2
+    a=!randitem 2,3,4,5,6
+    pm=!randitem 1,-1
+    a=$[$a*$pm]
+    c=!randint 2,6
+    d=$[$c*$c]
+    b=$[$a*$d]
+    f=!randint 1,10
+    g=!randitem 1,15
+    !if $keuze=1
+	formula$n=$a \left(x - $f \right)^{2} + $g = $[$b+$g]
+	applettext=!nospace $a (x-$f)^2 + $g = $[$b+$g] ->
+	x1=$[-1*$c+$f]
+	x2=$[$c+$f]
+	curve1=curve $color1,$a*(x-$f)^2
+	tex=$a \left(x - $f \right)^{2}=$b \rightarrow \left(x - $f \right)^{2} = $d \rightarrow x - $f = $c \wedge x - $f = $[-1*$c]
+    !else
+	formula$n=$a \left(x + $f \right)^{2} -$g = $[$b-$g]
+	applettext=!nospace $a (x+$f)^2 - $g = $[$b-$g] ->
+	x1=$[-1*$c-$f]
+	x2=$[$c-$f]
+	curve1=curve $color1,$a*(x+$f)^2
+	tex=$a \left(x + $f \right)^{2}=$b \rightarrow \left(x + $f \right)^{2} = $d \rightarrow x + $f = $c \wedge x + $f = $[-1*$c]
+    !endif
+    xmin=$[$x1-4]
+    xmax=$[$x2+4]
+    ymin=$[$b-100]
+    ymax=$[$b+100]
+    XRANGE=$xmin,$xmax
+    YRANGE=$ymin,$ymax
+    tex_x1=$x1
+    tex_x2=$x2
+    answer$n=$x1,$x2
+    texanswer$n=$tex \rightarrow \left[ \begin{array}{l} x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    !if $image=1 or $teaching=1
+	XRANGE=$XRANGE
+	YRANGE=$YRANGE
+	curve1=$curve1
+	curve2= dhline 0,$b,$color2
+	punten=points red,$x1,$b,$x2,$b
+	!readproc exos/image1.proc
+    !endif
+ !exit
+!endif

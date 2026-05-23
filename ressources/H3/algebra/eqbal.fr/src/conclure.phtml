@@ -1,0 +1,52 @@
+!! fichier de gestion de l'action conclure.
+
+!! fichier de gestion des actions de combinaison lineaire
+!goto $wims_read_parm
+!exit
+
+:question
+Erreur de l'exercice. Désolé vous devez abandonner et signaler ce problème à l'auteur.
+!exit
+
+:reponse
+<font color=red>Vous n'avez pas terminé la résolution de l'exercice.</font><br>
+Vous devez parvenir à une équation du type <i> $listinc = "un nombre" </i>ou<i> "un nombre" = $listinc </i>. Pensez à simplifier l'écriture des équations.<br>
+!href cmd=resume&status=1 Retournez
+   au menu général pour continuer !
+   !increase nbreerrrais
+!exit
+
+:analyse
+!distribute items $listinc into tmp1,tmp2
+tmp3=!line 1 of $(sys$nbetape)
+!distribute items $tmp3 into tmp3,tmp4,tmp5
+!if $tmp5=$tmp1 and $mode=1
+ tmp=$tmp5
+ tmp5=$tmp3
+ tmp3=$tmp
+!endif
+!if $tmp3!=$tmp1
+   prov=$tmp3
+   tmp3=$tmp5
+   tmp5=$prov 
+   !if $tmp3!=$tmp1
+      !exit
+   !endif
+!endif
+i=0
+replygood0=0
+test=$empty
+reply0=$tmp5
+!read anstype/numeric
+!if NaN isin $test
+   !exit
+!endif
+tmp6=!exec pari $tmp5
+
+
+!if $tmp5 notsametext $tmp6
+   !exit
+!endif
+
+status=5
+!exit

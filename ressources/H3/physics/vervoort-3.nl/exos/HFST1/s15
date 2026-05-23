@@ -1,0 +1,86 @@
+n=$counter
+mathview=0
+math=0
+make_tr=1
+checkfile=$checkdir/units.proc
+var2=$empty
+# scheme      data3.def                                                                                                                             
+# line 1 English name                                                                                                                      
+# line 2 items:dutch,french,italian,chinese,swahily name                                                                                   
+# line 3 LaTeX formula                                                                                                                     
+# line 4 brutto formula                                                                                                                    
+# line 5 molair mass                                                                                                                       
+# line 6 bruto formula of oxidation question...                                                                                            
+# line 7 bruto formula of correct oxidation reaction                                                                                       
+# line 8 latex formula of oxidation question...                                                                                            
+# line 9 latex formula of correct oxidation reaction                                                                                       
+# line 10 chemeq correct formula of oxidation reaction                                                                                     
+# line 11 positive_ion :negative_ion [1:3] 1 Mn^3 :3 Ha^-
+rounding=-1
+inputs=2
+cols=12
+rows=1
+conc=!randint 111,999
+conc=!exec moneyprint $[$conc/100]
+prec=!charcnt $conc
+prec=$[$prec -1]
+nums=!recordcnt exos/data3.def
+k=!randint 1,$nums
+descr=!record $k of exos/data3.def
+zout=!line 2 of $descr
+zout=!item 1 of $zout
+pos_ion=!word 1 of $zout
+neg_ion=!word 2 of $zout
+zout=!nospace $zout
+formula=!line 9 of $descr
+molmassa=!line 5 of $descr
+verhouding=!line 11 of $descr
+show_verhpos=!item 1 of $verhouding
+show_verhneg=!item 2 of $verhouding
+keuze=!randint 0,1
+keuze=0
+mol=$[$conc/$molmassa]
+!if $keuze=1
+    ion=$pos_ion
+    per_ml=$[$mol*$show_verhpos/1000]
+    show_verh=$show_verhpos
+!else
+    ion=$neg_ion
+    per_ml=$[$mol*$show_verhneg/1000]
+    show_verh=$show_verhneg
+!endif
+
+formula=!replace internal -> by $ \rightarrow $ in $formula
+formula$n=\left[ \begin{array}{l} \textrm{$zout}  \\ \textrm{oplossen in water} \\ $formula  \end{array} \right. 
+m_rightarrow=&nbsp;=&nbsp;
+
+ans=$[(6.02214*10^23)*$per_ml]
+a1=!replace internal + by , in $ans
+exp=!item 2 of $a1
+exp=!nospace $exp
+wims_compare_precision=10^23
+precision=$[0.001*10^$exp]
+var1=$precision
+tot=!exec scienceprint $ans,$prec,0 $ans,$prec,1
+ans_r=!item 1 of $tot
+ans_h=!item 2 of $tot
+var1=0,0
+var2=$[abs($ans - $ans_r)],0.1
+answer$n=$molmassa,$ans_r
+description=De molmassa van $zout,De hoeveelheid <kbd>$ion</kbd> ionen
+
+ex1=<kbd>g/mol</kbd>
+ex2=<kbd>$ion</kbd> ionen
+
+helptext=Klik <a target=\'new\' href=\'$module_dir/gifs/periodiek_systeem.html\'>hier</a> voor het <em>periodiek systeem de elementen</em><hr />Opmerking: De concentratie van het zout in water kan onrealistisch zijn<br />Er wordt geen rekening gehouden met de oplosbaarheid ,temperatuur en druk<br />Maar dat maakt nu even voor de berekeningen niks uit<br /><hr />Het getal van Avogadro : 6.02214 &times; 10<sup>23</sup> mol<sup>&minus;1</sup><br />De <a target=\'new\' href=\'http://www.lenntech.nl/calculators/molecular/molecular-weight-calculator.htm\'>molmassa calculator</a>
+
+
+textanswer$n=<ul><li>De molmassa van $zout : $show_verhpos &times;M<sub>$pos_ion</sub> + $show_verhneg &times;M<sub>$neg_ion</sub> = $molmassa gr/mol</li><li>$conc gram <kbd>$zout</kbd> = $conc / $molmassa mol <kbd>$zout</kbd> = $mol mol <kbd>$zout</kbd></li><li>Het zout lost op in de molaire verhouding <kbd>$show_verhpos : $show_verhneg</kbd></li><li>In de oplossing zitten dus $mol &times; $show_verh mol $ion ionen per liter</li><li>In de oplossing zitten dus $[$mol*$show_verh] mol $ion ionen per liter</li><li>In een milliliter zitten dan $[$mol*$show_verh]/1000 mol $ion ionen per milliliter =$per_ml mol $ion ionen /ml </li><li>1 mol chemische stof = 6.02214 &times; 10<sup>23</sup> deeltjes</li><li>In 1 ml zitten dus: 6.02214 &times; 10<sup>23</sup> &times; $per_ml = $ans $ion ionen</li><li>We moeten het eindantwoord opgeven in $prec significante cijfers (afkomstig van $conc)</li><li>Dus: $ans_h $ion ionen</li></ul>
+
+ss=Een oplossing van <kbd>$zout</kbd> in gedestilleerd water heeft een concentratie van $conc g/l.<br />Bereken het aantal (N) <kbd>$ion</kbd> ionen per ml.
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><br />Geef je antwoord op in de juiste <a target=new href=http://nl.wikipedia.org/wiki/Significant_cijfer><b>precisie</b></a>.<hr />
+
+!exit
+
+

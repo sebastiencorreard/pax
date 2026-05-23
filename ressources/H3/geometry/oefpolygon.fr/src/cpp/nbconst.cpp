@@ -1,0 +1,120 @@
+target=nbconst
+#include "lang_titles.inc"
+#include "author.inc"
+\computeanswer{no}
+\precision{1000}
+
+justifications
+\text{R=les nombres rationnels sont constructibles}
+\text{C=l'ensemble des nombres constructibles est un sous-corps de \(\mathbb{R}\) (partie stable par les quatre opérations)}
+\text{S= la racine carrée d'un nombre constructible est constructible}
+\text{Q= on sait que la quadrature du cercle est impossible}
+\text{D=on sait que la duplication du cube est impossible}
+
+
+\text{liste=\R,\C,\S,\Q,\D}
+\text{r=position(\R,\liste)}
+\text{c=position(\C,\liste)}
+\text{s=position(\S,\liste)}
+\text{q=position(\Q,\liste)}
+\text{d=position(\D,\liste)}
+
+choix du polygone nombre de côtés du polygone
+\integer{n=random(3,4,5,6,8,10,12,15,16,17,20)}
+\integer{m=random(7,9,11,13,14,18,19)}
+\text{Pc= le polygone régulier à \(\n) côtés est constructible}
+\text{Pn=le polygone régulier à \(\m) côtés n'est pas constructible}
+
+\text{liste=\R,\C,\S,shuffle(\Q,\D,\Pc,\Pn)}
+\text{r=position(\R,\liste)}
+\text{c=position(\C,\liste)}
+\text{s=position(\S,\liste)}
+\text{q=position(\Q,\liste)}
+\text{d=position(\D,\liste)}
+\text{pc=position(\Pc,\liste)}
+\text{pn=position(\Pn,\liste)}
+
+
+choix de la question
+\integer{j=random(1..7)}
+integer{j=4}
+\integer{k=random(0,1)}
+
+nombre étudié
+\text{yr=\frac{randint(7,11,13,17,19)}{randint(2..6)}}
+\real{yd=randint(101..250)/100}
+\integer{ye=randint(2,3,5,6,7,10)}
+\text{y=random(\yr,\yd)}
+
+\if{\j=1}{
+  \text{x=\y}
+  \text{bc=1}
+  \text{rep=\r}
+}
+\if{\j=2}{
+  \text{x=random(\sqrt{\ye}+\y, \sqrt{\sqrt{\ye}+\y})}
+  \text{bc=1}
+  \text{rep=\r,\c,\s}
+}
+\if{\j=3}{
+  \text{x=\y+\pi }
+  \text{bc=2}
+  \text{rep=\r,\c,\q,\s}
+}
+\if{\j=4}{
+  \text{x=\y \displaystyle{\sqrt[3]{2}}-\ye}
+  \text{bc=2}
+  \text{rep=\r,\c,\d}
+}
+\if{\j=5}{
+  \text{x=\sqrt{\y}}
+  \text{bc=1}
+  \text{rep=\r,\s}
+}
+\if{\j=6}{
+  \text{x=\yr \sqrt{\pi}}
+  \text{bc=2}
+  \text{rep=\r,\c,\q}
+}
+
+\if{\j=7}{
+  \integer{nm=random(\n,\m)}
+  \text{x=\frac{2 \pi}{\nm}}
+  \text{bc=2}
+  \text{rep=\r,\c,\q,\s}
+}
+
+\text{choix=oui,non}
+\hint{On rappelle que
+<ul>
+<li>la duplication du cube est impossible signifie que le nombre \(\displaystyle{\sqrt[3]{2}}\) n'est pas constructible</li>
+<li>la quadrature du cercle est impossible signifie que le nombre \(\sqrt{\pi}\) n'est pas constructible</li>
+<li>la constructibilité d'un polygone régulier à \(n\) côtés est équivalente à celle du nombre \(\cos(2\pi/n)\)</li>
+<ul>}
+
+
+\statement{Le nombre \(\x) est-il constructible ? \embed{reply1}.
+<p>
+Cochez les affirmations qui justifient votre réponse et seulement celles-là.
+</p>
+<ul>
+<li>\embed{reply2,1}</li>
+<li>\embed{reply2,2}</li>
+<li>\embed{reply2,3}</li>
+<li>\embed{reply2,4}</li>
+<li>\embed{reply2,5}</li>
+<li>\embed{reply2,6}</li>
+<li>\embed{reply2,7}</li>
+</ul>
+}
+
+\answer{} {\bc;\choix}{type=radio}
+\answer{} {\rep;\liste}{type=checkbox}
+\text{rep2=wims(replace internal \\ by \ in \reply2)}
+
+feedback{1=1}{\Pc,\reply2,\rep2}
+\feedback{(\j=7) and (((\reply1 issametext oui) and (\Pc isitemof \rep2)) or ((\reply1 issametext non) and (\Pn isitemof \rep2)))}
+{La question concerne la longueur \(\x) et non l'angle \(\x) !}
+
+\feedback{(\reply1 issametext oui) and ((\Q isitemof \rep2) or (\D isitemof \rep2))}
+{Vous justifiez la constructibilité d'un nombre par un résultat de non-constructibilité !}

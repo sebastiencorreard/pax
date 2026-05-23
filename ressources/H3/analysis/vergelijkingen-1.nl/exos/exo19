@@ -1,0 +1,147 @@
+mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+questiontype=0
+impossible=0
+checkfile=$checkdir/new_number.proc
+arglist=x
+varlist=$empty
+n=$counter
+embed=1
+cols=25
+rows=2
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+exotext=$empty
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+keuze=!randitem 1,2
+ss=!record 2 of lang/remarks.$taal
+#@ Los de onderstaande vergelijking op:<br />
+helptext=!record 23 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!if $R=1
+# type (x-5)^2 + 3 = 6
+    a=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    b=!randitem 1,2,3,4,5,6,7,8,9,10,11,12
+    !if $a=$b
+	b=$[$b+1]
+    !endif
+    d=!randint 1,9
+    !if $b>$a
+	pm=+
+	mp=-
+    !else
+	pm=-
+	mp=+
+    !endif    
+    formula$n=\left(x-$d\right)^{2} $pm $a = $b
+    applettext=!nospace (x-$d)^2 $pm $a = $b ->
+    c=$[$b $mp $a]
+    x1=$d+sqrt($c)
+    x2=$d-sqrt($c)
+    test=$[$x1]
+    !if . isin $test
+	tex_x1=$d+\sqrt{$c}
+	tex_x2=$d-\sqrt{$c}
+    !else
+	x1=$[$x1]
+	x2=$[$x2]
+	tex_x1=$x1
+	tex_x2=$x2
+    !endif
+    answer$n=$x1,$x2
+    texanswer$n=\left[ \begin{array}{l} \left(x-$d\right)^{2}=$c \rightarrow \\ x-$d=\sqrt{$c} \vee x-$d=-\sqrt{$c}\\ x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+ !exit
+!endif
+
+!if $R=2
+    #type 5(x-2)^2 -4 = 3
+    a=!randitem 2,3,4,5,6,7,8,9,10,11,12,13,14,15,-1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15
+    b=!randitem 7,8,9,10,11,12,13,14,15
+    c=!randitem 2,3,4,5,6
+    d=!randint 1,9
+    !if $a>0
+	pm=-
+	mp=+
+    !else
+	pm=+
+	mp=-
+    !endif
+    T=$[$c $mp $b]
+    tot=!exec pari ($T)/($a)
+    test=$[sqrt($tot)]
+    !if . isin $test
+	tex_x1=$d+\sqrt{$tot}
+	tex_x2=$d-\sqrt{$tot}
+	x1=$d+sqrt($tot)
+	x2=$d-sqrt($tot)
+    !else
+	x1=$[$d+sqrt($tot)]
+	x2=$[$d-sqrt($tot)]
+	tex_x1=$x1
+	tex_x2=$x2
+    !endif
+    answer$n=$x1,$x2
+    texanswer$n=\left[ \begin{array}{l} $a \left(x-$d\right)^{2}=$T \rightarrow \\ \left(x-$d\right)^{2}=\frac{$T}{$a} \rightarrow \\ x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    formula$n=$a\cdot \left(x-$d\right)^{2} $pm  $b = $c
+    applettext=!nospace $a*(x-$d)^2 $pm $b = $c ->
+ !exit
+!endif
+
+!if $R>2
+    #type 5(5x-2)^2 -4 = 3
+    a=!randitem 2,3,4,5,6,7,8,9,-1,-2,-3,-4,-5,-6,-7,-8,-9
+    b=!randitem 7,8,9,10,11,12,13,14,15
+    c=!randitem 2,3,4,5,6
+    d=!randint 1,9
+    e=!randint 2,9
+    f=!randint 1,10
+    !if $a>0
+	pm=-
+	mp=+
+    !else
+	pm=+
+	mp=-
+    !endif
+    T=$[$f*$a]
+    c=$[$T $pm $b]
+    test=$[sqrt($f)]
+    !if . isin $test
+	tot=!exec pari A=-1*$d/$e\
+	printtex(A)
+	tussen1=!line 1 of $tot
+	tussen1_tex=!line 2 of $tot
+	tex_x1=$tussen1_tex+\frac{1}{$e} \sqrt{$f}
+	tex_x2=$tussen1_tex -\frac{1}{$e} \sqrt{$f}
+	x1=$tussen1+1/$e*sqrt($f)
+	x2=$tussen1 -1/$e*sqrt($f)
+    !else
+	tot=!exec pari A=-1*$d/$e\
+	printtex(A)\
+	B=($test-$d)/$e\
+	printtex(B)\
+	C=(-1*$d-$test)/$e
+	tussen1=!line 1 of $tot
+	tussen1_tex=!line 2 of $tot
+	x1=!line 3 of $tot
+	tex_x1=!line 4 of $tot
+	x2=!line 5 of $tot
+	tex_x2=!line 6 of $tot
+    !endif
+    answer$n=$x1,$x2
+    texanswer$n=\left[ \begin{array}{l} $a \left($e x+$d\right)^{2}=$T \rightarrow \\ \left($e x+$d\right)^{2}=$f \rightarrow \\ $e x+$d=\sqrt{$f} \vee $e x+$d=-\sqrt{$f} \rightarrow \\ $e x=-$d+\sqrt{$f} \vee $e x=-$d -\sqrt{$f} \rightarrow \\ x_1 = $tex_x1\\ x_2 = $tex_x2 \end{array}\right.
+    formula$n=$a\cdot \left($e x+$d\right)^{2} $pm  $b = $c
+    applettext=!nospace $a*($e*x+$d)^2 $pm $b = $c ->
+ !exit
+!endif
+

@@ -1,0 +1,81 @@
+n=$counter
+mathview=3
+display=1
+choice=!randint 1,4
+make_tr=1
+checkfile=$checkdir/simplify.proc
+ss=Schrijf wiskundig exact als een enkele macht.
+x=!randitem x,y,z
+varlist=$x
+mathviewpanel=vervoort boeken (hoofdstuk 2):^:+:-:*:/
+arglist=$empty
+smallfont=16
+largfont=26
+!if $choice=1
+    g=!randint 2,20
+    q=!randint 1,30
+    q=$[$q/10]
+    r=$[$q*$g]
+    answer$n=$x^$r
+    formula$n= \left( $x^{$q}\right)^{$g} = [?]
+    var1=($x^$q)^$g
+    texanswer$n=\left( $x^{$q}\right)^{$g} = $x^{$q \cdot $g} = $x^{$r}
+!else
+    !if $choice=2
+	g=!randint 2,20
+	var1=(sqrt($x))^$g
+	formula$n=\left( \sqrt{$x} \right)^{$g} = [?]
+	r=$[0.5*$g]
+	answer$n=$x^$r
+	texanswer$n=\left( \sqrt{$x} \right)^{$g}  = \left( $x^{0.5} \right)^{$g} = $x^{0.5 \cdot $g} = $x^{$r}
+    !else
+	!if $choice=3
+    	    g=!randint 2,20
+	    q=!randint 2,9
+	    var1=(sqrt[$q]($x))^$g
+	    formula$n=\left( \root{$q} \of{$x} \right)^{$g} = [?]
+	    tot=!exec pari A=$g/$q\
+	    printtex(A)
+	    r=!line 1 of $tot
+	    answer$n=$x^($r)
+	    !if $g/$q=$r
+		texanswer$n=\left( \root{$q} \of{$x} \right)^{$g}=\left( $x^{1/$q}\right)^{$g}  = $x^{\frac{$g}{$q}}
+	    !else
+	        r_tex=!line 2 of $tot
+		texanswer$n=\left( \root{$q} \of{$x} \right)^{$g}=\left( $x^{1/$q}\right)^{$g}  = $x^{\frac{$g}{$q}} = $x^{$r_tex}
+	    !endif
+	!else
+    	    g=!randint 2,20
+	    q=!randint 2,9
+	    p=!randint 2,5
+	    !if $p=$q
+		p=$[$p+1]
+	    !endif
+	    var1=(sqrt[$q]($x^$p))^$g
+	    formula$n=\left( \root{$q} \of{$x^{$p}} \right)^{$g} = [?]
+	    tot=!exec pari A=$g*$p/$q\
+	    printtex(A)
+	    r=!line 1 of $tot
+	    answer$n=$x^($r)
+	    !if $[$p*$g]/$q=$r
+		texanswer$n=\left( \root{$q} \of{$x^{$p}} \right)^{$g}=\left( $x^{$p/$q}\right)^{$g} = $x^{ \frac{$[$p*$g]}{$q} }
+	    !else
+		r_tex=!line 2 of $tot
+		texanswer$n=\left( \root{$q} \of{$x^{$p}} \right)^{$g}=\left( $x^{$p/$q}\right)^{$g} = $x^{ \frac{$[$p*$g]}{$q} } = $x^{$r_tex}
+	    !endif
+	!endif
+    !endif
+!endif
+applettext=!nospace $var1 =
+helptext=<img src=\'$module_dir/gifs/hfst2.s7.jpg\' alt=\'noalt\' />
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+
+
+
+
+
+
+
+
+

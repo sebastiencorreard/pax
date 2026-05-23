@@ -1,0 +1,62 @@
+#hfst1
+#exo12(hfst1) Breuken vereenvoudigen
+n=$counter
+questiontype=1
+math=0
+mathview=5
+smallfont=20
+largefont=32
+special_fraction=1
+mathviewpanel=$module_title:/:+:-:* 
+checkfile=exos/breuken.proc
+ss=Tel de volgende breuken bij elkaar op<br />en vereenvoudig de uitkomst (een breuk) zo ver mogelijk:
+#@!Add up the fractions<br />and reduce the outcome:<br />
+getallen1=!shuffle 2,3,4,5,6,-1,-2,-3,-4,-5,-6
+getallen2=!shuffle 4,5,6,7,8,9,10,11
+getallen3=!shuffle 2,3,4,-1,-2,-3,-4,-5
+getallen4=!shuffle 7,8,9,10,11,12,13,15
+pm=!randitem 1,-1
+mp=!randitem 1,-1
+keuze=!randint 1,3
+k=!randint 1,8
+!if $keuze=1
+    b=!randitem 6,7,8,9,10,12,14
+    d=$[2*$b]
+    a=!item $k of $getallen1
+    c=!item $k of $getallen3
+!else
+    !if $keuze=2
+    	a=!item $k of $getallen1
+	b=!item $k of $getallen2
+        c=!item $k of $getallen3
+        d=!item $k of $getallen4
+    !else    
+    	a=!item $k of $getallen1
+	b=!item $k of $getallen2
+	b=$[$pm*$b]
+        c=!item $k of $getallen3
+        d=!item $k of $getallen4
+	d=$[$mp*$d]	
+    !endif
+!endif
+t=$[gcd($b,$d)]
+t1=$[$b/$t]
+t2=$[$d/$t]
+intermediate=\frac{$a \cdot $t2}{$b \cdot $t2} + \frac{$c \cdot $t1}{$d \cdot $t1} = \frac{$[$a*$t2] +$[$c*$t1]}{$[$b*$t2]}
+
+# var9 is maximum aantal breukstrepen in eindantwoord, meer is niet goed!
+var9=1
+# meerdere stappen mogen
+var8=1
+helptext=<img src=\'$module_dir/gifs/exo27.jpg\' alt=\'help\' />
+
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/exo27.jpg\' alt=\'help\' />')">$ss</a>
+applettext=!nospace ($a)/($b) + ($c)/($d) =
+tot=!exec pari A=($a)/($b) + ($c)/($d)\
+printtex(A)
+answer$n=!line 1 of $tot
+tex=!line 2 of $tot
+formula$n=\frac{$a}{$b} + \frac{$c}{$d} = [?]
+texanswer$n= \frac{$a}{$b} + \frac{$c}{$d} \:=\:$intermediate \:=\: $tex
+!exit

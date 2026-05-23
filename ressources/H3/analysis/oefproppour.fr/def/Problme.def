@@ -1,0 +1,130 @@
+!set title=Problème de paiement
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=D., Berthelot
+keywords=pbsolving
+
+ansorder=r,r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 50, 80
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,3,5
+
+val7=$[rint($(tmp0))]
+tmp0=!randitem 7,8,11
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 2, 9
+
+val9=$[rint($(tmp0))]
+val10=$[rint($val8*$val6*$val9)]
+val11=$[rint($val10*$val7/$val8)]
+val12=$[rint($val10-$val11)]
+val13=$[rint($val12/$val9)]
+val14=$[rint($val10*$val7)]
+val15=$[rint($val14/$val8)]
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val16=$(tmp0)
+val17=$val16 achète un ordinateur portable à,	  il paye d'abord un acompte correspondant à,	  du prix de l'ordinateur.,	  À combien se monte l'acompte&nbsp;,	  Combien lui reste-t-il à payer&nbsp;,	  Il paye le reste en,	  mensualités.,	  Quel est le montant d'une mensualité&nbsp;	
+oefsteps=r1	r2,r3 
+nextstep=!nosubst r1	r2,r3 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=r1
+replygood1=$val11
+replytype2=numexp
+replyname2=r2
+replygood2=$val12
+replytype3=numexp
+replyname3=r3
+replygood3=$val13
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} \begin{itemize} \item $(val17[1]) $val10 euros, $(val17[2]) \(\frac{$val7}{$val8}\) $(val17[3]) \item $(val17[4])? ------- euros \item $(val17[5])? ------ euros \item $(val17[6]) $val9 $(val17[7]) $(val17[8])? ----- euros \end{itemize} \end{statement} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	  <ol><li>	  $(val17[1]) $val10 &euro;, $(val17[2])	  
+!insmath \frac{$val7}{$val8}
+$() $(val17[3])	   <div class="spacer">$(val17[4])?	   
+!if $m_step=1 
+$()	    
+!read oef/embed.phtml r1,5 
+$() &euro;. </div></li>	    
+!else
+$() 	  <span class="oef_indgood"> $val11 &euro;</span>	  </li><li>	  <label for="reply2">$(val17[5])?</label>  
+!read oef/embed.phtml r2,5 
+$() &euro;</li>	  </li><li>	  $(val17[6]) $val9 $(val17[7])	  <div>	  <label for="reply3">	  $(val17[8])?</label>  
+!read oef/embed.phtml r3,5 
+$() &euro;</div>	  </li>	 
+!endif
+$()	</ol>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	<strong>Erme achète un ordinateur portable à $val10 &euro;,	il paye d'abord un acompte correspondant à	
+!insmath \frac{$val7}{$val8}
+$() du prix de l'ordinateur.	<br> Quel est le prix de l'acompte ? </strong>	<ul class="wims_nopuce"><li>	Quand on prend la fraction d'un nombre, on multiplie ce nombre par le numérateur.	Puis on divise le résultat par dénominateur.	</li><li> Ici le calcul était :	<div class="wimscenter">$val10 $m_times $val7 = $val14	<br> $val14 $m_div $val8 = $val15</div>	Le prix de l'acompte est de $val14 &euro;.	</li></ul>	<strong>Combien lui reste-t-il à payer ?</strong>	<ul class="wims_nopuce"><li>Pour cela on soustrait le prix de l'acompte au prix initial de l'ordinateur.	</li><li>Il fallait donc calculer :	<div class="wimscenter">$val10 - $val11 = $val12 </div>	</li><li> Il lui reste donc à payer $val12 &euro;.	</li></ul>	<strong>Il paye le reste en $val9 mensualités.	Quel est le montant d'une mensualité ?</strong>	<ul class="wims_nopuce"><li>	Pour calculer le prix d'un mensualité il suffit de diviser ce qu'il lui	reste à payer par le nombre de mensualité.	</li><li>	Soit <div class="wimscenter">
+!insmath \frac{$val12}{$val9}
+$() = $val13 .</div>	</li><li> Le prix d'un mensualité est de $val13 &euro;.	</li></ul>	
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $m_begin{itemize} $m_item $(val17[1]) $val10 euros, $(val17[2]) 
+!insmath \frac{$val7}{$val8}
+$() $(val17[3]) $m_item $(val17[4])? ------- euros $m_item $(val17[5])? ------ euros $m_item $(val17[6]) $val9 $(val17[7]) $(val17[8])? ----- euros $m_end{itemize} $m_end{statement} 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,13,14,15,17
+embedcnt=3

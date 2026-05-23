@@ -1,0 +1,83 @@
+n=$counter
+questiontype=0
+image=0
+embed=1
+cols=15
+rows=1
+math=0
+mathview=0
+checkfile=exos/checkfile1.proc
+question$n=!record 1 of lang/remarks.$taal
+nulpunten=!record 2 of lang/remarks.$taal
+#@ er zijn dus geen nulpunten,er is nu slechts &eacute;&eacute;n nulpunt,dus twee nulpunten
+nul=!item 1 of $nulpunten
+een=!item 2 of $nulpunten
+twee=!item 3 of $nulpunten
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+a=!randitem 2,3,4,5,6,7,8,9,10
+b=!randitem 0,1,2,3,4,5,6,7,8,9,10
+c=!randitem 0,1,2,3,4,5,6,7,8,9,10
+a1=!randitem -1,1
+b1=!randitem -1,1
+c1=!randitem -1,1
+a=$[$a1*$a]
+b=$[$b1*$b]
+c=$[$c1*$c]
+
+!if $R=1
+    functie=($a)*x^2 + ($c)
+    D=$[-4*$a*$c]
+    b=0
+!else
+    !if $R=2
+	functie=($a)*x^2 + ($b)*x
+        D=$[$b*$b]
+        c=0
+    !else
+	functie=($a)*x^2 + ($b)*x + $c
+        D=$[$b*$b - 4*$a*$c]
+    !endif
+!endif
+!if $D > 0
+    !if $a>0
+	thumbnail=dal2.gif
+    !else
+	thumbnail=berg2.gif
+    !endif
+    answer$n=2
+    tt=$twee
+!else
+    !if $$D < 0
+	!if $a>0
+	    thumbnail=dal0.gif
+	!else
+	    thumbnail=berg0.gif	
+	!endif
+	answer$n=0
+	tt=$nul
+    !else
+	!if $a>0
+	    thumbnail=dal1.gif
+	!else
+	    thumbnail=berg1.gif
+	!endif
+	answer$n=1
+	tt=$een
+    !endif
+!endif
+display=1
+textanswer$n=<table><tr><td>$tt</td></tr><tr><td><img name="insert$n" id="insert$n" src="$module_dir/gifs/$thumbnail" alt="$thumnail" /></td></tr></table>
+texanswer$n=\left[ \begin{array}{l} a\cdot x^{2} + b \cdot x + c \rightarrow \bf{D} = b^{2}  - 4 \cdot a \cdot c \\ a = $a \\ b = $b \\ c = $c \\  \bf{D}\,\,=\,\, ($b)^{2} - 4\cdot $a \cdot $c  = $D  \end{array}\right.
+formula$n=!exec pari printtex($functie)
+keuze=!randitem 1,2
+!if $keuze=1
+    F=!randitem f,g,h,k,p,w
+    formula$n=$F\left( x \right)\,\,\,=\,\,\, $(formula$n)
+!else
+    formula$n=y\,\,\,=\,\,\, $(formula$n)
+!endif

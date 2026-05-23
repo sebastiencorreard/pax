@@ -1,0 +1,135 @@
+#:tabel,vergelijking & lijn [H1/H2]
+n=$counter
+questiontype=0
+image=0
+cols=15
+math=0
+inputs=-1
+mathview=0
+display=1
+checkfile=$checkdir/number.proc
+var1=yes
+# sequence matters...
+
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+rc=!record 2 of lang/remarks.$taal
+#@ de richtingsco&euml;fficient(=hellingsgetal), het hellingsgetal
+#@! slope,inclination
+#@!~ Ð±ÂÊ,Ð±ÂÊ
+rc=!randitem $rc
+rise_fall=!record 3 of lang/remarks.$taal
+#@stijgend,dalend
+#@!increasing,decreasing
+#@!~ µÝÔö , µÝ¼õ
+s1=!item 1 of $rise_fall
+s2=!item 2 of $rise_fall 
+!if $printexo=0
+    white=white
+    image=0
+!else
+    image=1
+    white=magenta
+!endif
+!if $R=1
+    step=1
+    letter2=y
+    letter1=x
+    q=0
+    m=!randint 1,9
+    m=$[$m/10]
+    pm=+
+    lijn=$m*x
+    htmllijn=!mathmlmath $letter2 \,=\, $m \cdot $letter1
+!else
+    !if $R=2
+	step=!randitem 2,4,6,8
+        m=!randint -1,-9
+	m=$[$m/10]
+	letter2=y
+	letter1=x
+	q=0
+	pm=+
+	lijn=$m*x
+	htmllijn=!mathmlmath $letter2 \,=\, $m \cdot $letter1
+    !else
+	step=!randitem 3,5,7,9
+	m=!randint 1,30
+	mp=!randitem -1,1
+	m=$[$mp*$m/10]
+	q=!randint 1,20
+	pm=!randitem +,-
+	!if $R=3
+	    letter2=y
+	    letter1=x
+	    q=!randint 1,20
+	!else
+	    letter2=!randitem f,g,h,k
+	    letter1=!randitem a,b,c,d
+	!endif
+	lijn=$m*x $pm $q
+	htmllijn=!mathmlmath $letter2 \,=\, $m \cdot $letter1 $pm $q
+    !endif
+!endif
+formula$n=$empty
+X=!randint -10,10
+i=0
+!for p=1 to $options
+    ant=$[$m*$X $pm $q]
+    answer$n=!append item $ant to $(answer$n)
+    TD=!append word $ <td>&nbsp;&nbsp;$X&nbsp;&nbsp;</td><td><input id="myinput$i" class="schaersvoorde_input" size="4" value=""/></td><tr> $ to $TD
+    TDD=!append word $ <td>&nbsp;&nbsp;$X&nbsp;&nbsp;</td><td>$m &lowast; $X $pm $q = $ant</td><tr> $ to $TDD
+    X=$[$X + $step]
+    !increase i
+!next
+!if $m>0
+    stijgend=$s1
+    gk= (&gt;0)
+    a1=1
+!else
+    stijgend=$s2
+    a1=-1
+    gk= (&lt;0)
+!endif
+    
+answer$n=!append item $a1 to $(answer$n)
+# answer$n --> $option+1 items
+!if $teaching=1
+    # no image in form.phtml...only in answer.phtml
+    y1=!evalsubst x=-40 in $lijn
+    y2=!evalsubst x=40 in $lijn
+    canvasimage=!exec canvasdraw \
+    size 300,300\
+    xrange -40,40\
+    yrange -40,40\
+    opacity 150,180\
+    bgcolor $wims_bgcolor\
+    precision 1\
+    axis\
+    axisnumbering\
+    xlabel $letter1 -axis\
+    ylabel $letter2 -axis\
+    grid 5,5,grey,2,2,5,blue\
+    linewidth 2\
+    line -40,$y1,40,$y2,red\
+    intooltip <img src='$gifdir/canvas.png' alt='plaatje' />\
+    opacity 255,255\
+    mouse blue,16
+    
+!endif
+helptext=$empty
+
+question$n=!record 4 of lang/remarks.$taal
+
+exotext=<table class="demospecial"><caption>$htmllijn</caption><tr><th><em>$letter1</em></th><th><em>$letter2</em></th></tr><tr>$TD</tr><tr><td>&nbsp;&nbsp;&nbsp;</td><td><select id="myselect0" ><option value="1">$s1</option><option value="-1">$s2</option></select></td></tr></table>
+
+rr=!record 5 of lang/remarks.$taal
+
+textanswer$n=$htmllijn<br />$rr <table class="demospecial"><tr><th><em>$letter1</em></th><th><em>$letter2 </em></th></tr><tr>$TDD</tr></table>
+
+!exit
+

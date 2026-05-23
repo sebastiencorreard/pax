@@ -1,0 +1,62 @@
+n=$counter
+cols=10
+rows=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+mathview=0
+viewlogo=1
+math=0
+k=!randint 1,11
+motor=!item $k of Ducati 750SS,MV Agusta 750,Moto Guzzi V7 sport,Laverda 750 SF,Münch Mammut,Moto Morini 3 1/2,Triumph Trident,Norton Commander,BSA Goldstar,BMW R90S,Benelli Tornado 650
+logo=<img src="$module_dir/gifs/m$k.jpg" alt="$motor"/>
+logotext=$motor
+checkfile=$checkdir/units.proc
+var1=0
+inputs=1.1
+make_tr=1
+R=1
+
+!if $R=1
+    var1=0
+    k=!randitem 1,1,2
+    eind=!item $k of 100,160
+    t1=!item $k of 30,60
+    t2=!item $k of 70,110
+    t=!randint $t1,$t2
+    t=$[$t/10]
+    v=$[$eind*1000/3600]
+    a=$[$v/$t]
+    ans=$[0.5*$a*$t^2]
+    sig=!charcnt $t
+    sig=$[$sig-1]
+    tot=!exec scienceprint $ans,$sig,0 $ans,$sig,1
+    c_ans=!item 1 of $tot
+    h_ans=!item 2 of $tot 
+    answer$n=$c_ans
+    var2=$[abs($ns - $c_ans)]
+
+    question$n=En <kbd>$motor</kbd> trekt van 0 tot $eind km/h in $t seconden.<br />\
+    We veronderstellen de acceleratie eenparig<br />\
+    Hoeveel meter heeft ie dan afgelegd ?
+    
+    description=S<sub>$t</sub>
+    m_rightarrow=&nbsp;=&nbsp;
+    ex1=&nbsp;<kbd>m</kbd>
+
+    textanswer$n=We rekenen altijd eerst om naar SI eenheden:<br />\
+    $eind km/h  = $eind &sdot; 1000 / 3600 = $v m/s<br />\
+    De versnelling van de $motor is:  a = V / t = $v / $t = $a m/s<sup>2</sup><br />\
+    [ eenheid kontroleren: (m/s)/s = m/s^2 ]<br />\
+    De afstand S = 1/2 &sdot; a &sdot; t<sup>2</sup><br />\
+    S = 0.5*$a*$t^2 = $ans m <br />\
+    [ eenheid kontroleren:  m/s^2 * s^2 = m ]<br />\
+    We geven dit antwoord in $sig significante cijfers.<br />\
+    S = $h_ans m
+     
+
+!exit
+!endif

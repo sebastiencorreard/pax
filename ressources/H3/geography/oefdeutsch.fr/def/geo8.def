@@ -1,0 +1,292 @@
+!set title=Localisation des villes dans leur &#34; Land &#34; &#40;région&#41;
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Carré, Delafraye
+email=josiane-an.carre@ac-amiens.fr
+oefcss=<style> .big_check{text-align: center} .cross{color:black; font-size:20pt;} @supports (zoom:2){ .big_check>input{zoom: 1.4;} } @supports not (zoom:2){ .big_check>input{transform: scale(1.4);} } .big_check>label{color:transparent;width:1px;height:1px;position: absolute;} </style>
+
+ansorder=r
+varcnt=81
+prevarcnt=59
+postvarcnt=21
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+credits=
+tmp0=!itemcnt $val2
+
+
+!ifval $(tmp0)=0 
+tmp1=!randint 1, 4
+
+val2=$[rint( $(tmp1))]
+!else
+val2=$[rint($val2)]
+!endif
+val6=Dans quelle région (Land) se trouvent ces villes &#63; Cochez les bonnes réponses !
+val7=$[rint(3*$val2)]
+val8=
+val9=Bayern,Nordrhein-Westfalen,Baden-Württemberg
+val10=Nürnberg,1,0,0	München,1,0,0	Ingolstadt,1,0,0	Augsburg,1,0,0	Bayreuth,1,0,0	Bonn,0,1,0	Köln,0,1,0	Düsseldorf,0,1,0	Essen,0,1,0	Aachen,0,1,0	Stuttgart,0,0,1	Freiburg,0,0,1	Ulm,0,0,1	Heidelberg,0,0,1	Karlsruhe,0,0,1
+val11=
+val12=Ligne(s) du tableau non remplie(s) correctement
+val13=50,50
+val14=$[rint($(val13[1])+10)]
+
+!ifval $val11 issametext 
+val11= <img src="scripts/authors/jm.evers/gifs/ok.gif" width="15" alt="Bonne réponse"/>,<img src="scripts/authors/jm.evers/gifs/nok.gif" width="15" alt="Mauvaise réponse"/>
+!endif
+!if $val8 notsametext 
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+tmp0=!record 0 of $val8
+
+val9=$(tmp0)
+tmp0=!recordcnt $val8
+
+val15=$[rint($(tmp0))]
+val7=$[rint(min($val7,$val15))]
+tmp0=!shuffle $val15
+
+val16=$(tmp0)
+val16=$(val16[1..$val7])
+val10=
+!for val17  in $val16 
+tmp0=!record $val17 of $val8
+
+val10=$val10	$(tmp0)
+!next
+tmp=!trim $val10
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal ;; by ; in $val10
+
+val10=$(tmp0)
+!else
+tmp=!translate internal $	$ to ; in $val10
+
+tmp0=!rowcnt $tmp
+val18=$(tmp0)
+val7=$[rint(min($val7,$val18))]
+tmp0=!shuffle $val18
+
+val19=$(tmp0)
+val19=$(val19[1..$val7])
+tmp=!trim $val10
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim $(val10[$val19;])
+val10=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp0=!itemcnt $val9
+
+val20=$[rint($(tmp0))]
+val21=
+val22=
+!for val23 =1 to $val7 
+!for val24 =2 to $val20+1 
+val25=$[rint(($val23-1)*$val20 + $val24 -1)]
+
+!ifval $(val10[$val23;$val24])=1
+tmp0=!append item $val25 to $val21
+
+val21= $(tmp0)
+!endif
+!next
+!next
+tmp0=!makelist x for x=1 to $val7*$val20
+
+val26=$(tmp0)
+tmp0=!makelist x for x=1 to $val7*$val20
+
+val27=$(tmp0)
+val28=r1
+tmp0=!makelist c for x=1 to $val20+1
+
+val29=$(tmp0)
+tmp0=!replace internal , by | in |$val29|
+
+val29=$(tmp0)
+val30=\begin{tabular}{$val29}\hline
+!for val31 =1 to $val20 
+val30=$val30&$(val9[$val31])
+!next
+val30=$val30 \\\hline
+val32=$val30
+!for val33 =1 to $val7 
+val30=$val30	  $(val10[$val33;1])
+val32=$val32	  $(val10[$val33;1])
+!for val34 =1 to $val20 
+val35=$[rint(($val33-1)*$val20 + $val34)]
+val30=$val30 &
+val32=$val32 &
+!if $val35 isitemof $val21 
+val32=$val32 \(\times\) 
+!endif
+!next
+val30=$val30 \\\hline
+val32=$val32 \\\hline
+!next
+val30=$val30	\end{tabular}
+val32=$val32	\end{tabular}
+val36=
+dynsteps=yes
+oefsteps=$val28 
+nextstep=!nosubst $val28 
+!readproc oef/steps.proc
+replytype1=checkbox
+replyoption1=split noanalyzeprint nonstop 
+replyname1=
+replygood1=$val21;$val27
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val6 \newline $val30 \end{statement} \begin{solution}\ \begin{center} $val32 \end{center} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_question">$val6</div>	  <table class="wimstable">	    <thead>	    <tr>	      <td></td>	       
+!for m_k=1 to $val20 
+$()<th scope="col">$(val9[$m_k])</th> 
+!next
+$()	    </tr>	    </thead>	    <tbody>	     
+!for m_j=1 to $val7 
+$()	      <tr>	        <th scope="row">$(val10[$m_j;1])</th>	         
+!for m_k=1 to $val20 
+$()	          
+!if $m_step=1 
+$()	            <td class="big_check"> 
+!read oef/embed.phtml r1,$(val26[($val20)*($m_j-1)+$m_k]) 
+$()</td>	           
+!else
+$() 	            <td class="big_check">$(val26[($val20)*($m_j-1)+$m_k])</td>	           
+!endif
+$()	         
+!next
+$()	      </tr>	     
+!next
+$()	    </tbody>	  </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val6 $m_newline $val30 $m_end{statement} $m_begin{solution}\ $m_begin{center} $val32 $m_end{center} $m_end{solution} 
+$()
+!exit
+
+:postdef
+!readproc slib/oef/env presentgood 
+tmp0=$slib_out
+val36=$(tmp0)
+val28=
+val26=
+!if $val36=0 
+val37=
+val38=
+!else
+val37=<span class="oef_indgood">$(val11[1])</span>
+val38=<span class="oef_indbad">$(val11[2])</span>
+!endif
+val39=<span class="cross">&#9745;</span>
+val40=<span class="cross">&#9744;</span>
+val41=
+!for val23 =1 to $val7 
+!for val24 =2 to $val20+1 
+val25=$[rint(($val23-1)*$val20 + $val24 -1)]
+
+!ifval $val25 isitemof $m_reply1 and $val25 isitemof $val21 
+tmp0=!append item $val39 $val37 to $val26
+
+val26= $(tmp0)
+!endif
+!if $val25 isitemof $m_reply1 and $val25 notitemof $val21 
+tmp0=!append item $val39 $val38 to $val26
+
+val26=$(tmp0)
+tmp0=!append item $val23 to $val41
+
+val41=$(tmp0)
+!else
+!if $val25 notitemof $m_reply1 and $val25 isitemof $val21 
+tmp0=!append item $val40 $val38 to $val26
+
+val26=$(tmp0)
+tmp0=!append item $val23 to $val41
+
+val41=$(tmp0)
+!endif
+!endif
+
+!ifval $val25 notitemof $m_reply1 and $val25 notitemof $val21 
+tmp0=!append item $val40 $val37 to $val26
+
+val26= $(tmp0)
+!endif
+!next
+!next
+tmp0=!listuniq $val41
+
+val41=$(tmp0)
+tmp0=!itemcnt $val41
+
+val42=$[rint($(tmp0))]
+
+!exit
+
+:feedback
+!ifval $val36>0
+ <div class='oef_feedbacks'>$(val11[1]) : votre réponse est correcte, $(val11[2]) : votre réponse n'est pas correcte.	
+$()</div>
+!endif
+!ifval $val36=0 and $val42>0
+ <div class='oef_feedbacks'>	  <div class="feedback oef_indbad">	  $val12 : $val41.	  </div>	
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,10,11,12,20,21,23,24,25,26,30,32,36
+embedcnt=1

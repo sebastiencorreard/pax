@@ -1,0 +1,101 @@
+#: bepaal de lijn door punt & richtingsco&euml;fficient
+n=$counter
+questiontype=0
+image=0
+cols=20
+rows=1
+math=0
+embed=1
+mathview=4
+checkfile=$checkdir/equation.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+A=!randitem A,B,C,D,E,F,G,S,W
+B=!randitem H,K,L,M,N,P,R,T,V
+keuze=!randitem 1,0
+!if $keuze=0
+    pm=+
+    ptex=$empty
+!else
+    pm=-
+    ptex=-
+!endif
+letter1=x
+letter2=y
+letter3=f
+    
+x1=!randitem -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+!if $R=1
+    m=!randitem 1,2,3,-3,-2,-1
+    q=0
+!else
+    !if $R=2
+	m=!randitem 1,2,3,-3,-2,-1
+	q=!randitem 1,2,3,4
+    !else
+	q=!randitem 1,2,3,4,5,6,7
+    	!if $R=3
+    	    m=!randitem 2,1,1/2,1/4,1/8,1/10,3/2,2,-1,-1/2,-1/4,-1/8,-1/10,-3/2,-2
+	!else
+    	    T=!randint 1,20
+	    N=!randint 40,100
+	    mp=!randitem -1,1
+    	    N=$[$mp*$N]
+	    m=$T/$N
+	!endif
+    !endif
+!endif
+tot=!exec pari A=(($m)*($x1) $pm ($q))\
+printtex(A)\
+$m\
+printtex($m)
+
+y1=!line 1 of $tot
+y1_tex=!line 2 of $tot
+rc=!line 3 of $tot
+rc_tex=!line 4 of $tot
+ss=!record 45 of lang/remarks.$taal
+
+formula$n=\left[ \begin{array}{l} y=a\cdot $letter1 + b \\ a = $rc_tex \\  $A \left($x1 : $y1_tex\right) \end{array}\right.
+applettext=!nospace (vlist( $letter3($letter1) = a*$letter1 + b , $A ($x1 : $y1) , a = $rc )) ->
+
+lijn=!rawmath $m*x $pm $q
+answer$n=$lijn
+arglist=$letter3($letter1),$letter2
+varlist=$letter1
+ggg=!htmlmath y = $(answer$n)
+
+rr=!record 46 of lang/remarks.$taal
+#@ De rechte lijn met hellingsgetal [richtingsco&euml;fficient] $m en door het punt $A <br />heeft de vergelijking : <br /> $ggg 
+#@! The line through point $A and slope=$m ,has the formula:<br /> $ggg 
+#@!~ 通过点 $A 具有斜率=$m 的直线方程为:<br /> $ggg 
+    
+image=0
+#!if $teaching=1
+#    plot=0
+#    draw=0
+#
+#    insplot_data=$x1 $y1 \
+#    0 0
+#    #"(0,0) first"at first0, first0
+#    insplot_set=noautoscale;size 0.6,0.6;label "$A ($x1:$y1)" at first $x1,first $y1 ;grid ;pointsize 1; zeroaxis linetype 3 lw 3; xlabel "<$letter1 -axis>";ylabel"<$letter2 -axis>" ;border
+#    etext=!record 1 of lang/remarks.$taal
+#    #@ Hier staat een klein grafiekje van de functie</a>
+#    exotext=<a onmouseover="this.T_OPACITY=80;this.T_PADDING=10;this.T_WIDTH=220;return escape('<img src=$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif/>')">$etext</a>
+#    !insplot [$ymin : $ymax] [$ymin : $ymax] $lijn notitle lt 1 ,"insplot_data" notitle with points
+#!endif    
+helptext=<textarea class=\'schaersvoorde_textaarea\' readonly=\'readonly\' cols=\'25\' rows=\'2\'>$letter2 = 1/2*$letter1 - 5</textarea><br /><textarea class=\'schaersvoorde_textaarea\' readonly=\'readonly\' cols=\'25\' rows=\'2\'>$letter2 = -3$letter1 + 1/3</textarea>
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+textanswer$n=$rr
+texanswer$n=\left[ \begin{array}{ll} I: &  $letter2 = a \cdot $letter1 + b \\ II : &  a = $rc_tex \\ III : & $A ( $x1 : $y1_tex )  \\   b = [?] &  \\ I+II : & $letter2 = $rc_tex \cdot $letter1 + b \\ I+II+III  : & $letter2 _{$A} = $rc_tex \cdot $letter1 _{$A} + b  \\ \rightarrow  $y1_tex = $rc_tex \cdot $x1 + b & \rightarrow  b = $y1_tex - \left( $rc_tex \cdot $x1 \right) = $ptex $q \end{array}\right]  \rightarrow y = $rc_tex \cdot x $pm $q
+
+
+
+
+
+
+

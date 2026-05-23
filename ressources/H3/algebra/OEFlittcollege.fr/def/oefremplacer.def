@@ -1,0 +1,177 @@
+!set title=Remplacer une lettre par une valeur
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Luc, Donadoni; Christophe, Caillet
+email=jluc.donadoni@laposte.net
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100000
+
+ansorder=r
+varcnt=27
+prevarcnt=24
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items x,y,a,b,c
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp=!nonempty items A,B,C,D,E,F
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+tmp0=!randint 1, 100
+
+val8=$[$(tmp0)/10]
+tmp0=!randint 1, 4
+
+val9=$[rint($(tmp0))]
+val10=
+tmp0=!randint 1, 100
+
+val11=$[$(tmp0)/10]
+tmp0=!randint 2, 19
+
+val12=$[rint($(tmp0))]
+tmp0=!translate . to , in $val11
+
+val13=$(tmp0)
+val14=$[0]
+!if $val9==1 
+tmp0=!randint 0, 1
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15=1
+val10=$val12 \times $val6 + $val13
+!else
+val10=$val13 + $val12 \times $val6
+!endif
+val14=$[$val12 * $val8+$val11]
+!endif
+!if $val9==2 
+!if $val8>\constante 
+val10=$val12 \times $val6 - $val13
+val14=$[$val12 * $val8-$val11]
+!else
+val10=$val13 - $val12 \times $val6
+val14=$[$val11 - $val12 * $val8]
+!endif
+!endif
+!if $val9==3 
+tmp0=!randint 0, 1
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15=1
+val10=$val12 \times ($val6 + $val13)
+!else
+val10=($val13 + $val6) \times $val12
+!endif
+val14=$[($val8+$val11)*$val12]
+!endif
+!if $val9==4 
+tmp0=!randint 0, 1
+
+val15=$[rint($(tmp0))]
+
+!ifval $val15=1
+val10=$val12 \times $val6 + $val12 \times $val13 
+!else
+val10=$val12 \times $val13 + $val6 \times $val12
+!endif
+val14=$[($val8+$val11)*$val12]
+!endif
+tmp0=!translate . to , in $val8
+
+val16=$(tmp0)
+tmp0=!translate . to , in $val14
+
+val17=$(tmp0)
+replyname1=
+replygood1=?analyze 18
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst La réponse est $val17
+
+
+!goto stat
+
+!exit
+
+:question
+$()	On donne l'expression :	<div class="wimscenter larger">
+!insmath $val7 = $val10
+$()</div>		Que vaut $val7 lorsque $val6 vaut $val16 ?	<div class="wimscenter larger">  
+!read oef/embed.phtml reply 1,6 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()La réponse est $val17
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!translate , to . in $val18
+
+val18=$(tmp0)
+val19=$[$val18]
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val19=$val14
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Bonne Réponse
+
+!exit
+
+:stat
+vsavelist=6,7,10,14,16,17,18
+embedcnt=1

@@ -1,0 +1,105 @@
+#:Piramide [ Hoeken bepalen ] 
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+origin=0
+applet=1
+embed=1
+mathview=0
+make_tr=0
+questiontype=0
+cols=20
+rows=1
+m_rightarrow=&nbsp;=
+checkfile=$checkdir/number.proc
+extratext=!record 12 of lang/remarks.$taal
+helptext=$empty
+x=!randitem 6,8,10,12,14
+a=!randitem -3,-2,-1,1,2,3
+z=$[$x+($a)]
+b=$[$x/2]
+!if $R=1
+    setje=A,B B,C C,D A,D
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    an=$[atan($z/$b)]
+    answer$n=$[180/pi*$an]
+    ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 15 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br />R is het midden van $AB<br />Bereken de lengte van TR
+    question$n=$ss
+
+    formula$n=\angle TRS
+    
+    texanswer$n=\left[ \begin{array}{l} $AB=$x \rightarrow SR=$b \\ \tan( \angle TRS) = \frac{ST}{SR}\\ \tan( \angle TRS) = \frac{$z}{$b} \\ \angle SRT $ans \end{array} \right.
+    
+    construction=<Midpoint name="R" n="2000" showname="true" bold="true" large="true"  first="$A" second="$B" shape="circle"></Midpoint><Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="A" second="C" shape="circle"></Midpoint><Segment type="thin" name="TS" alias="TS" color="5" n="1000" from="T" to="S"></Segment><Segment type="thin" name="RS" alias="RS" color="5" n="1000" from="R" to="S"></Segment><Segment type="bold" name="TR" alias="TR" color="5" n="1000" from="T" to="R"></Segment>
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+!if $R=2
+    H=!randitem A,B,C,D
+    TH=!nospace T $H
+    SH=!nospace S $H
+    SHT=!nospace S $H T
+    c=$[2*$b^2]
+    c_tex=$b^{2}+$b^{2}
+    an=$[atan($z/sqrt($c))]
+    answer$n=$[180/pi*$an]
+    ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 16 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br />R is het midden van $AB<br />Bereken de lengte van TR
+    question$n=$ss 
+    formula$n=\angle $SHT
+    texanswer$n=\left[ \begin{array}{l} $AB=$x \rightarrow $SH=\sqrt{$c_tex}  \\ \tan( \angle $SHT) = \frac{TS}{$SH}\\ \\ \tan( \angle $SHT) = \frac{$z}{\sqrt{$c}} \\ \angle $SHT $ans \end{array} \right.
+    
+    construction=<Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="A" second="C" shape="circle"></Midpoint><Segment type="thin" name="TS" alias="TS" color="5" n="1000" from="T" to="S"></Segment><Segment type="thin" name="SH" alias="SH" color="5" n="1000" from="S" to="$H"></Segment>
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+
+!if $R>2
+    setje=A,C B,D
+    keuze=!randitem 1,2
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    C=!item 2 of $set
+    AC=!nospace $A $C
+    AT=!nospace $A T
+    AS=!nospace $A S
+    CT=!nospace $C T
+    ATC=!nospace $A T $C
+    ATS=!nospace $A T S
+    c=$[$b^2+$b^2]
+    c_tex=$b^{2}+$b^{2}
+    an=$[atan(sqrt($c)/$z)]
+    ans=$[180/pi*$an]
+    answer$n=$[2*$ans]
+    tex=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 17 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br /><br />Bereken de hoek tussen de lijnen $AT en $CT
+    question$n=$ss 
+    formula$n=\angle $ATC
+    texanswer$n=\left[ \begin{array} {l} $AS=\sqrt{$c_tex} = \sqrt{$c} \\ \tan(\angle $ATS) = \frac{$AS}{TS} \\ \tan(\angle $ATS) = \frac{\sqrt{$c}}{$z} \\ \angle $ATS \approx $ans \rightarrow \angle $ATC $tex \end{array} \right.
+    
+    construction=<Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="A" second="C" shape="circle"></Midpoint><Segment type="thick" name="$AT" alias="$AT" color="5" n="1000" from="$A" to="T"></Segment><Segment type="thick" name="$CT" alias="$CT" color="5" n="1000" from="$C" to="T"></Segment><Segment type="thin" name="$AC" alias="$AC" color="5" n="1000" from="$A" to="$C"></Segment>
+    
+    !readproc exos/piramide4xml.proc
+ !exit
+!endif
+
+    

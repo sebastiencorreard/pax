@@ -1,0 +1,176 @@
+!set title=Rectangle et racine carrée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+author=Philippe,Buffet;Fabrice,Guerimand
+email=fwguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim A,B,C,D	E,F,G,H	I,J,K,L
+val6=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+val6=A,B,C,D
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+val8=$(tmp0)
+tmp0=!item 3 of $val6
+
+val9=$(tmp0)
+tmp0=!item 4 of $val6
+
+val10=$(tmp0)
+tmp0=!randint 2, 30
+
+val11=$[rint($(tmp0))]
+val12=$[rint(floor(sqrt($val11)))]
+tmp0=!randint 1, $val12
+
+val12=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in 4*sqrt($val11)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val13=$(tmp0)
+!if sqrt isin $val13 
+tmp0=!replace internal * by , in $val13
+
+val14=$(tmp0)
+val13=$(val14[1])*$(val14[2]),$(val14[2])*$(val14[1])
+!endif
+val15=$[rint($val11-$val12^2)]
+tmp=!translate ";': to $     $ in sqrt(2*$val11+2*$val12^2)
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val16=$(tmp0)
+!if * isin $val16 
+tmp0=!replace internal * by , in $val16
+
+val14=$(tmp0)
+val16=$(val14[1])*$(val14[2]),$(val14[2])*$(val14[1])
+!endif
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+!if $val17=1 
+val18=$val8$val7$val9
+val19=$[rint(arctan((sqrt($val11)-$val12)/(sqrt($val11)+$val12))*180/pi)]
+!else
+val18=$val8$val9$val7
+val19=$[rint(arctan((sqrt($val11)+$val12)/(sqrt($val11)-$val12))*180/pi)]
+!endif
+replytype1=litexp
+replyname1=Périmètre
+replygood1=$val13
+replytype2=litexp
+replyname2=Aire
+replygood2=$val15
+replytype3=litexp
+replyname3=Diagonale \($val7$val9)
+replygood3=$val16
+replytype4=litexp
+replyname4=\(\widehat{$val18})
+replygood4=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath $val7$val8$val9$val10
+$() est un rectangle tel que 
+!insmath $val7$val8=\sqrt{$val11}+$val12
+$() et 
+!insmath $val8$val9=\sqrt{$val11}-$val12
+$().	<ul>	<li>Calculer la valeur exacte de son périmètre.<br>	Réponse :  
+!read oef/embed.phtml r1,15 
+$()</li>	<li>Calculer la valeur exacte de son aire.<br>	Réponse :  
+!read oef/embed.phtml r2,15 
+$()</li>	<li>Calculer la longueur exacte de la diagonale 
+!insmath $val7$val9
+$().<br>	Réponse :  
+!read oef/embed.phtml r3,15 
+$()</li>	<li>Calculer la mesure de l'angle 
+!insmath \widehat{$val18}
+$() à un degré près.<br>	Réponse :  
+!read oef/embed.phtml r4,15 
+$()</li>	</ul>	<b>Attention</b> :	<ul>	<li>Les résultats doivent être le plus simplifiés possibles.</li>	<li>Pour écrire 
+!insmath \sqrt{2}
+$() tapez sqrt(2).</li>	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,9,10,11,12,18
+embedcnt=4

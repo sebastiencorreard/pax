@@ -1,0 +1,197 @@
+# ongelijkheden & inklemmen
+n=$counter
+!if $total_exos>4
+    total_exos=4
+!endif
+!if $n=1
+    # nooit 2x zelfde sommetje
+    var3=!shuffle -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+!endif
+make_tr=1
+cols=20
+rows=1
+embed=1
+rounding=100
+roundingtext=!record 10 of lang/remarks.$taal
+#Bepaal je antwoord via inklemming<br />en geef je antwoord op 2 decimalen nauwkeurig
+dec=2
+questiontype=7
+javascript=js/kladblaadje.js
+inputs=yes
+checkfile=$checkdir/ineq.proc
+varlist=x
+htxt=!record 1 of lang/remarks.$taal
+expl=!record 4 of lang/remarks.$taal
+xas=!item 1 of $htxt
+yas=!item 2 of $htxt
+typefunctie=!item 15 of $htxt
+lijn=!item 4 of $htxt
+snijpunten=!item 5 of $htxt
+invullen=!item 8 of $htxt
+uitrekenen=!item 9 of $htxt
+afgerond=!item 10 of $htxt
+zie_tabel=!item 11 of $htxt
+actievemuis=!item 12 of $htxt
+
+ligging=!randint 0,1
+!if $ligging=1
+    boven=!item 6 of $htxt
+    latex_ligging=f>g
+!else
+    boven=!item 7 of $htxt
+    latex_ligging=f<g
+!endif
+
+ss=!record 3 of lang/remarks.$taal
+#@Gegeven de $functie <font color=$color1>f</font> en de lijn <font color=$color2>g</font>.<br />Bepaal via inklemming voor welke x-waarden<br />waar de grafiek van f $boven de lijn g ligt.
+
+xmin=-10
+xmax=10
+ymin=-10
+ymax=10
+
+a=!item $n of $var3
+b=!randitem 1,2,4,5,8,10
+c=!randitem 1,5/2,3/2,2,4
+e=!randitem 1,5/2,3/2,2
+!if $a>0
+    c=$[ceil(-1*$b/$a)]
+    d=!randitem -8,$c
+!else
+    c=$[floor(-1*$b/$a)]
+    d=!randitem $c,8
+!endif
+p=!exec pari $e*$d
+!if $p=0
+    f2=$e*x
+!else
+    f2=!rawmath $e*x + $p
+!endif
+f1=!rawmath sqrt($a*x + $b)
+F1=\sqrt{$a \cdot x + $b}
+x0=$[-1*$b/$a]
+# ax+b =0 -> ax = -b x = -b/a
+f1=!nospace $f1
+f2=!nospace $f2
+F2=!texmath $f2
+formula$n=\left[ \begin{array}{ll} \textrm{$typefunctie : } &  f(x) = $F1 \\ & \\ \textrm{$lijn : } &  g(x) = $F2 \\ & $latex_ligging \\ \textrm{$afgerond} &\end{array} \right.
+A=$[$e*$e]
+B=$[2*$e*$p-$a]
+C=$[$p*$p-$b]
+x1=$[(round($rounding*((-1*$B-sqrt($B*$B-4*$A*$C))/(2*$A))))/$rounding]
+x2=$[(round($rounding*((-1*$B+sqrt($B*$B-4*$A*$C))/(2*$A))))/$rounding]
+y1=$[(round($rounding*($e*$x1+$p)))/$rounding]
+y2=$[(round($rounding*($e*$x2+$p)))/$rounding]
+!if $y1>0
+    xs=$x1
+    ys=$y1
+!else
+    xs=$x2
+    ys=$y2
+!endif
+
+!if $ligging=1
+    #sqrt boven de lijn
+    !if $a>0
+	# links
+	answer$n=$x0<x&&x<$xs
+	tex=$x0<x<$xs
+    !else
+	#rechts
+	answer$n=x<$xs
+	tex=x<$xs
+    !endif
+!else
+    #sqrt onder de lijn
+    !if $a>0
+	# links
+	answer$n=x>$xs
+	tex=x>$xs
+    !else
+	#rechts
+	answer$n=$xs<x&&x<$x0
+	tex=$xs<x<$x0
+    !endif
+!endif    
+curve2=curve $f2,$color2,160
+applettext=!nospace vlist(f(x)=$f1 , g(x) = $f2) ->
+
+rr=\left[ \begin{array}{l} \textrm{$snijpunten : $typefunctie = $lijn } \\ $F1 = $F2 \\ \textrm{$afgerond} \\ x_{s} \simeq $xs \\ \textrm{f $boven g  : } $tex \\ \textrm{$zie_tabel}\end{array} \right.
+texanswer$n=$rr
+applettext=!nospace $f1 = $f2 ->
+
+tablebody=$empty
+diff=0.95,0.98,0.99,1.00,1.01,1.02
+begin=$[$xs-1]
+!for p=1 to 6
+    d=!item $p of $diff
+    s=$[$begin+$d]
+    yl=!evalsubst x=($s) in $f1
+    yr=!evalsubst x=($s) in $f2
+    yl=$[(round(100*$yl))/100]
+    yr=$[(round(100*$yr))/100]
+    !if $s != $xs
+	tablebody=!append line <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> to $tablebody
+    !else
+	tablebody=!append line <tr><td style="background-color:lightgreen;color:red;font-size:120%">$s</td><td style="background-color:lightgreen;color:red;font-size:120%">$yl</td><td style="background-color:lightgreen;color:red;font-size:120%">$yr</td></tr> to $tablebody
+    !endif
+!next p
+tt=<table style="zebra_table_v3"><tr><th >x</th><th><i>f(x)</i></th><th><i>g(x)<i></th></tr>$tablebody</table>
+textanswer$n=$tt
+
+question$n=<a onmouseover="return escape('$actievemuis<hr />$expl')">$ss</a>
+
+helptext=<img src=\'$module_dir/gifs/inklemmen.jpg\' alt=\'inklemmen\'/>
+
+
+
+
+!if $teaching=1
+xsize=300
+ysize=300
+tiptxt=!record 63 of $remarkdir/commonremarks.$taal
+
+!if $xs>$xmax
+    xmax=$[$xs+6]
+!else
+    !if $xs<$xmin
+	xmin=$[$xs-6]
+    !endif
+!endif
+!if $ys>$ymax
+    ymax=$[$ys+6]
+!else
+    !if $ys<$ymin
+	ymin=$[$ys-6]
+    !endif
+!endif
+
+xstep=$[abs(($xmax-$xmin)/10)]
+ystep=$[abs(($ymax-$ymin)/10)]
+tip=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+bgcolor $wims_bgcolor\
+xlabel    $xas\
+ylabel    $yas\
+axis\
+grid $xstep,$ystep,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$f1\
+jscurve green,$f2\
+linewidth 3\
+point $xs,$ys,blue\
+intooltip $tiptxt\
+zoom black\
+precision 10\
+mouse blue,22\
+precision 1000
+
+exotext=<span class="schaersvoorde_link">$tip</span><br />
+
+!endif
+
+
+
+

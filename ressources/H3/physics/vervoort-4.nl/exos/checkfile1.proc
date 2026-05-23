@@ -1,0 +1,41 @@
+n=$counter
+
+!if ? isin $(reply$n)
+    goback=0
+    maxscore=0
+    remark$n=$NOK
+    !exit
+!endif
+
+!if NaN notin $[1*($(reply$n))]
+    remark$n=$NOK<br />Nee, er zijn geen oplossingen / wortels in R
+    maxscore=0
+    goback=1
+    !exit
+!endif
+score=0
+keywords=geen,element,is,not,no,niet,wortel,oplossing,!=,nan
+AAA=!singlespace $(reply$n)
+AAA=!lower $AAA
+found=0
+!for p in $keywords
+    !if $p isin $AAA
+	!increase found
+    !endif
+!next p
+
+!if $found>1
+    maxscore=1
+    remark$n=$OK
+!else
+    !if $found=1
+	maxscore=0.7
+        extra=Je antwoord had iets duidelijker gekund...<br />iets als : <em>er zijn geen oplossingen in R</em>
+	remark$n=$BOK<br />$extra
+    !else
+	extra=Er zijn geen wortels in R...
+	remark$n=$NOK<br />$extra
+    !endif
+!endif
+
+modulescore=$[ $modulescore + $maxscore ]

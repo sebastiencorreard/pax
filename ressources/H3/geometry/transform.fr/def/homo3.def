@@ -1,0 +1,151 @@
+!set title=Homothétie 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Omotetia 3
+
+ansorder=r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=triangles homothétiques
+val8=En appliquant à la figure A des homothéties de centre O et de rapports différents, on a ensuite obtenu d'autres figures.
+val9=On exprimera le rapport cherché sous la forme d'un nombre entier ou d'une fraction irréductible.
+val10=Quel est le rapport d'homothétie de centre O qui permet d'obtenir la figure,à partir de la figure A&nbsp;
+val11=On applique l'homothétie de centre O et de rapport,à la figure,Quelle figure obtient-on&nbsp;
+!if $val6=it 
+val7=triangoli omotetici
+val8=Applicando alla figura A delle omotetie di centro O e di rapporti diversi si sono ottenute altre figure.
+val9=Esprimere il rapporto cercato sotto forma di un numero intero o di una frazione irriducibile.
+val10=Qual è il rapporto dell'omotetia con centro O che permette di ottenere la figura, dalla figura A
+val11=Applichiamo l'omotetia con centro O e rapporto, alla figura, Otteniamo così la figura
+!endif
+val12=homo3.png
+tmp=!trim B,2	C,3	D,4	E,5
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!trim A,B,2	A,C,3	A,D,4	A,E,5	B,A,1/2	B,C,3/2	B,D,2	B,E,5/2	C,A,1/3	C,B,2/3	C,D,4/3	C,E,5/3	D,A,1/4	D,B,1/2	D,C,3/4	D,E,5/4	E,A,1/5	E,B,2/5	E,C,3/5	E,D,4/5
+val14=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val15=$(tmp0)
+tmp=!translate internal $	$ to ; in $val14
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val16=$(tmp0)
+t_=!replace internal \( by ( in numerator($(val16[3]))
+tmp0=!exec pari $t_
+
+val17=$[rint($(tmp0))]
+t_=!replace internal \( by ( in denominator($(val16[3]))
+tmp0=!exec pari $t_
+
+val18=$[rint($(tmp0))]
+val19=A,B,C,D,E
+!for val20 =1 to 5 
+!if $(val16[2])=$(val19[$val20]) 
+val21=$[rint($val20)]
+!endif
+!next
+val22=numexp
+val23=menu
+val24=1. Il n'y a pas inversion de figures, le rapport cherché est positif.	<p>De plus, \(O$(val15[1])=$(val15[2])\times OA\) donc le rapport de l'homothétie de centre \(O\) qui permet de passer de la figure \(A\) à la figure \($(val15[1])\) vaut <span class="nowrap">\($(val15[2])\).</span></p>	<p>2. \(\frac{$val17}{$val18} \times O$(val16[1])=O$(val16[2])\) donc l'homothétie de centre O et de rapport \(\frac{$val17}{$val18}\) permet de passer de la figure \($(val16[1])\) à la figure <span class="nowrap">\($(val16[2])\).</span></p>
+!if $val6=it 
+val24=1. Non c'è inversione, il rapporto cercato è positivo.	<p>Inoltre, \(O$(val15[1])=$(val15[2])\times OA\), quindi il rapporto dell'omotetia di centro \(O\) che permette di passare dalla figura \(A\) alla figura \($(val15[1])\) vale <span class="nowrap">\($(val15[2])\).</span></p>	<p>2. \(\frac{$val17}{$val18} \times O$(val16[1])=O$(val16[2])\), quindi l'omotetia di centro \(O\) e di rapporto \(\frac{$val17}{$val18}\) permette di passare dalla figura \($(val16[1])\) alla figura <span class="nowrap">\($(val16[2])\).</span></p>
+!endif
+replytype1=$val22
+
+replyname1=
+replygood1=$(val15[2])
+replytype2=$val23
+
+replyname2=
+replygood2=$val21;$val19
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val24
+
+
+!goto stat
+
+!exit
+
+:question
+$()	$val8	<div class="wimscenter"><img src="$val1/$val12" alt="$val7"></div>	<div class="wims_instruction">$val9</div>	<ol><li><label for="reply1"> $(val10[1]) $(val15[1]) $(val10[2])? </label> 
+!read oef/embed.phtml reply1,5 
+$()</li>	<li>$(val11[1]) 
+!insmath $(val16[3])
+$() $(val11[2]) $(val16[1]). $(val11[3])? 
+!read oef/embed.phtml reply2 
+$()</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val24
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,9,10,11,12,15,16,24
+embedcnt=2

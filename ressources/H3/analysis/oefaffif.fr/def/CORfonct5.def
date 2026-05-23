@@ -1,0 +1,196 @@
+!set title=Correspondance fonction-représentation 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Corrispondenza funzione-rappresentazione 5
+
+ansorder=r
+varcnt=47
+prevarcnt=46
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=red;#;rouge,green;#;vert,yellow;#;jaune,purple;#;violet,blue;#;bleu,black;#;noir
+val8=Mettre en correspondance chaque fonction avec la couleur de sa représentation graphique dans le repère ci-contre.
+val9=Mettre en relation chaque équation avec la couleur de la droite correspondante dans le repère ci-contre.
+val10=Réponse
+!if $val6=it 
+val7=red;#;rosso,green;#;verde,yellow;#;giallo,purple;#;viola,blue;#;blu,black;#;nero
+val8=Metti in corrispondenza ogni funzione con il colore della sua rappresentazione grafica nel disegno a fianco.
+val9=Metti in relazione ogni equazione con il colore della retta corrispondente nel disegno a fianco.
+val10=Risposta
+!endif
+val11=$[rint(1)]
+val12=$[rint(5)]
+!if $val11=1 
+val13=$val8
+val14=f(x)
+val15=40x150x75
+!else
+val13=$val9
+val14=y
+val15=40x140x75
+!endif
+val16=1,2,3,4
+tmp0=!item 1 of $val16
+
+val17=$[rint($(tmp0))]
+tmp0=!item 2 of $val16
+
+val16=$[rint($(tmp0))]
+val18=$val16;#;$val17,$val16;#;-$val17,-$val16;#;$val17,-$val16;#;-$val17,$val17;#;$val16,-$val17;#;$val16,$val17;#;-$val16,-$val17;#;-$val16
+tmp0=!shuffle $val18
+
+val18=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!item 1 to $val12 of $val7
+
+val7=$(tmp0)
+tmp0=!items2lines $val7
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal ;#; by , in $val19
+
+tmp=!trim $(tmp0)
+val19=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp=!translate internal $	$ to ; in $val19
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val20=$(tmp0)
+tmp0=!record 2 of src/graph.don
+
+val21=$(tmp0)
+val22=
+!for val23 =1 to $val12 
+tmp0=!item $val23 of $val18
+
+val24=$(tmp0)
+val19=$val24
+tmp0=!replace internal ;#; by , in $val24
+
+val24=$(tmp0)
+tmp0=!item 1 of $val24
+
+val25=$[rint($(tmp0))]
+tmp0=!item 2 of $val24
+
+val26=$[rint($(tmp0))]
+val27=$[rint(150+(-5*30))]
+val28=$[rint(150+(5*30))]
+val29=!rawmath -($val25*(x)+($val26))*30+150
+evaltmp=$val29
+
+evaltmp=!mathsubst x=(-5) in $evaltmp
+tmp0=($evaltmp)
+val30=$[rint($(tmp0))]
+evaltmp=$val29
+
+evaltmp=!mathsubst x=(5) in $evaltmp
+tmp0=($evaltmp)
+val31=$[rint($(tmp0))]
+val21=$val21	segment $val27,$val30,$val28,$val31,$(val7[$val23])
+tmp0=!texmath $val25*x+($val26)
+
+val32=$(tmp0)
+
+!ifval $val11=1
+val19=\(x \mapsto $val32)
+!else
+val19=\(y=$val32)
+!endif
+tmp0=!append item $val19 to $val22
+
+val22=$(tmp0)
+!next
+val21=$val21	text black,290,150,medium,x	text black,155,2,medium,$val14
+replytype1=correspond
+replyname1=$val10
+replygood1=$val22;$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="wims_columns">	  <div class="medium_size img_col"> 
+!read oef/draw.phtml 301,301 \
+$val21 
+$()</div>	  <div class="medium_size text_col">$val13	    <div class="wimscenter"> 
+!read oef/embed.phtml r1,$val15 
+$()</div>	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=13,15,21
+embedcnt=1

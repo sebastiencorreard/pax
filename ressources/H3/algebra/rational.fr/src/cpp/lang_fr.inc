@@ -1,0 +1,3 @@
+#if defined TARGET_sommesimple1 || defined TARGET_sommedouble1 || defined TARGET_sommepriorite1 || defined TARGET_sommeproduit1 || defined TARGET_produit1 || defined TARGET_quotient1 || defined TARGET_quotientfrac1 || defined TARGET_sommesimple2 || defined TARGET_sommedouble2 || defined TARGET_sommepriorite2 || defined TARGET_sommeproduit2 || defined TARGET_produit2 || defined TARGET_quotient2 || defined TARGET_quotientfrac2 || defined TARGET_sommesimple3 || defined TARGET_sommedouble3 || defined TARGET_sommepriorite3 || defined TARGET_sommeproduit3 || defined TARGET_produit3 || defined TARGET_quotient3 || defined TARGET_quotientfrac3
+\text{enonce=Calculer chacune des expressions données.}
+#endif

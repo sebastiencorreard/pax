@@ -7,7 +7,24 @@ et retourne un CheckResult.
 from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
+import logging
 import re
+import sys
+
+_log = logging.getLogger("pax.answer")
+_logged_unhandled_types: set[str] = set()
+
+
+def _log_unhandled_answer_type(answer_type: str) -> None:
+    """Log an answer type that falls through to text-match (likely unsupported).
+    Deduped by name across the process lifetime so the log stays readable."""
+    key = answer_type.lower()
+    if key in _logged_unhandled_types:
+        return
+    _logged_unhandled_types.add(key)
+    msg = f"[ANSWER-FALLBACK] type={answer_type!r} → check_text"
+    _log.warning(msg)
+    print(msg, file=sys.stderr, flush=True)
 
 
 @dataclass
@@ -20,7 +37,8 @@ class CheckResult:
 
 
 def is_polexpand(s: str) -> bool:
-    """Vérifie si une expression est sous forme développée (mais pas nécessairement réduite)."""
+    """Vérifie si une expression est sous forme développée ET réduite
+    (somme de monômes distincts par degré/symbole)."""
     try:
         import sympy
         from sympy.parsing.sympy_parser import (
@@ -45,10 +63,23 @@ def is_polexpand(s: str) -> bool:
                 return all(is_monomial(arg) for arg in e.args)
             return False
 
+        # 1. Structurellement développé : somme de monômes
         if expr.is_Add:
-            return all(is_monomial(arg) for arg in expr.args)
+            if not all(is_monomial(arg) for arg in expr.args):
+                return False
+        elif not is_monomial(expr):
+            return False
 
-        return is_monomial(expr)
+        # 2. Réduit : la forme canonique a le même nombre de termes
+        # (sinon il restait des monômes de même degré à regrouper, ou
+        # des termes qui s'annulent comme 5*x - 5*x).
+        # `simplify` est nécessaire ici plutôt que `expand` car `expand` ne
+        # combine pas les termes similaires d'un Add construit avec
+        # evaluate=False (parse_expr garde la structure littérale).
+        def term_count(e):
+            return len(e.args) if e.is_Add else 1
+
+        return term_count(expr) == term_count(sympy.simplify(expr))
     except Exception:
         return True  # En cas d'erreur de parsing, on laisse passer au checker normal
 
@@ -388,12 +419,21 @@ def check_answer(
 
     opt_str = str(options.get("option", "")).lower()
     
-    # Auto-detect if expected is a developed polynomial (with at least one variable)
-    # This enforces expanded form if the author used maxima(expand(...))
+    # Auto-detect whether the expected answer constrains the form (developed
+    # vs factored). Mirrors WIMS' litexp/algexp checkers, which reject a
+    # mathematically-equal reply that doesn't match the form the author stored.
     requires_expand = "polexpand" in opt_str or "expand" in opt_str
-    if not requires_expand and answer_type.lower() in ("algexp", "default"):
-        if any(c.isalpha() for c in expected) and is_polexpand(expected):
+    requires_factor = "polfactor" in opt_str
+    if (
+        not requires_expand
+        and not requires_factor
+        and answer_type.lower() in ("algexp", "default", "litexp", "formal")
+        and any(c.isalpha() for c in expected)
+    ):
+        if is_polexpand(expected):
             requires_expand = True
+        else:
+            requires_factor = True
 
     # Pre-check polexpand if requested
     if requires_expand:
@@ -404,6 +444,17 @@ def check_answer(
                 method="polexpand",
                 status="invalid_format",
                 detail="La réponse que vous avez donnée n'est pas écrite sous forme développée."
+            )
+
+    # Pre-check polfactor if requested
+    if requires_factor:
+        if reply.strip() and is_polexpand(reply):
+            return CheckResult(
+                correct=False,
+                score=0.0,
+                method="polfactor",
+                status="invalid_format",
+                detail="La réponse que vous avez donnée n'est pas écrite sous forme factorisée."
             )
 
     match answer_type.lower():
@@ -425,5 +476,8 @@ def check_answer(
             return check_case(reply, expected)
         case "default":
             return check_default(reply, expected)
-        case "text" | _:
+        case "text":
+            return check_text(reply, expected)
+        case _:
+            _log_unhandled_answer_type(answer_type)
             return check_text(reply, expected)

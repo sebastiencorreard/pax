@@ -1,0 +1,125 @@
+!set title=Correspondance région/chef-lieu
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim 13,Bouches-du-Rhône,Marseille,Provence-Alpes-Côte-d'Azur,Marseille,342,353, '	14,Calvados,Caen,Basse-Normandie,Caen,148,102,	2A,Corse-du-Sud,Ajaccio,Corse,Ajaccio,487,422,	21,Côte-d'Or,Dijon,Bourgogne,Dijon,312,178,    '	25,Doubs,Besançon,Franche-Comté,Besançon,364,179,	31,Haute-Garonne,Toulouse,Midi-Pyrénées,Toulouse,209,364,	33,Gironde,Bordeaux,Aquitaine,Bordeaux,143,300,	34,Hérault,Montpellier,Languedoc-Roussillon,Montpellier,280,357,	35,Ille-et-Vilaine,Rennes,Bretagne,Rennes,113,143,	44,Loire-Atlantique,Nantes,Pays-de-la-Loire,Nantes,108,181,	45,Loiret,Orléans,Centre,Orléans,234,158,	51,Marne,Châlons-sur-Marne,Champagne-Ardenne,Châlons-sur-Marne,292,102,	57,Moselle,Metz,Lorraine,Metz,361,96,	59,Nord,Lille,Nord-Pas-de-Calais,Lille,262,44,	63,Puy-de-Dôme,Clermont-Ferrand,Auvergne,Clermont-Ferrand,267,258,	67,Bas-Rhin,Strasbourg,Alsace,Strasbourg,392,105,	69,Rhône,Lyon,Rhône-Alpes,Lyon,313,251,	76,Seine-Maritime,Rouen,Haute-Normandie,Rouen,195,77,	80,Somme,Amiens,Picardie,Amiens,230,66,	86,Vienne,Poitiers,Poitou-Charentes,Poitiers,176,223,	87,Haute-Vienne,Limoges,Limousin,Limoges,202,254,	95,Val-d'Oise,Pontoise,Ile-de-France,Paris,229,103,   '	
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=une région
+val8=son chef-lieu
+val9=$[rint(4)]
+val10=$[rint(5)]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+val11=$[rint($(tmp0))]
+tmp0=!shuffle $val11
+
+tmp1=!item 1 to 6 of $(tmp0)
+
+val12=$(tmp1)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row $val12 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val13=$(tmp0)
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!column $val9 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+!if $val9=1 
+tmp0=!replace internal , by </div>,<div class="wims_center"> in <div class="wims_center">$val14</div>
+
+val14=$(tmp0)	 
+!endif
+tmp0=!item $val9 of 30,250,250,250,250
+
+val15=$[rint($(tmp0))]
+tmp0=!item $val10 of 30,250,250,250,250
+
+val16=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!column $val10 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val17=$(tmp0)
+val18=$val14 ; $val17
+replytype1=correspond
+replyname1=La correspondance
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Etablissez une correspondance correcte, en cliquant sur $val7	puis sur $val8.	<div class="wimscenter">	 
+!read oef/embed.phtml reply 1,30 $val15 $val16 
+$()</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,15,16
+embedcnt=1

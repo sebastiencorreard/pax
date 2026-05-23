@@ -1,0 +1,228 @@
+!set title=Gelijkheden 4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+author=Guerimand Fabrice
+email=wguerima@free.fr
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=46
+prevarcnt=45
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+!if $val2>2 
+val6=50x120x75
+!else
+val6=50x75x75
+!endif
+val7=$[rint(4)]
+tmp0=!record $val2 of src/generateur
+
+val8=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!item 3 of $val9
+
+val11=$(tmp0)
+!if $val10= 
+tmp0=!item 1 of $val9
+
+val12=$(tmp0)
+tmp0=!item 2 of $val9
+
+val13=$(tmp0)
+!if $val11<0 
+tmp0=!values $val11*v,-($val11)*v for v=$val12 to $val13
+
+val14=$(tmp0)
+!else
+tmp0=!values $val11*v for v=$val12 to $val13
+
+val14=$(tmp0)
+!endif
+!else
+val14=$val10
+!if $val11<0 
+tmp0=!replace internal , by ,- in $val14
+
+val15=$(tmp0)
+tmp0=!listunion $val14 and $val15
+
+val14=$(tmp0)
+!endif
+!endif
+tmp0=!listuniq $val14
+
+val14=$(tmp0)
+tmp0=!shuffle $val14
+
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val12=$(tmp0)
+tmp0=!item 2 of $val14
+
+val13=$(tmp0)
+tmp=!nonempty items x,y,a,b
+
+tmp0=!randitem $tmp
+val16=$(tmp0)
+val17=$val12*$val16+$val13=0;#;-($val13)/($val12),$val12*$val16-$val13=0;#;($val13)/($val12),$val13*$val16+$val12=0;#;-($val12)/($val13),$val13*$val16-$val12=0;#;($val12)/($val13),$val16+$val13=$val12;#;($val12)-($val13),$val16-$val13=$val12;#;($val12)+($val13)
+tmp0=!shuffle $val17
+
+val17=$(tmp0)
+tmp0=!item 1 to $val7 of $val17
+
+val17=$(tmp0)
+tmp0=!items2lines $val17
+
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!replace internal ;#; by , in $val17
+
+tmp=!trim $(tmp0)
+val17=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!column 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val18=$(tmp0)
+tmp=!translate internal $	$ to ; in $val17
+
+tmp=!column 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+val20=
+val21=
+!for val22 =1 to $val7 
+tmp0=!item $val22 of $val19
+
+val15=$(tmp0)
+!if $val2>4 
+tmp0=!replace internal / by , in $val15
+
+val15=$(tmp0)
+tmp0=!itemcnt $val15
+
+val23=$(tmp0)
+!if $val23=2 
+tmp0=!item 1 of $val15
+
+val23=$[rint($(tmp0)*100)]
+tmp0=!item 2 of $val15
+
+val24=$[rint($(tmp0)*100)]
+val15=$val23/$val24
+!endif
+!endif
+tmp=!translate ";': to $     $ in $val15
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+tmp0=!texmath $val15
+
+val15=$(tmp0)
+tmp0=!append item \($val15) to $val20
+
+val20=$(tmp0)
+tmp0=!item $val22 of $val18
+
+val15=$(tmp0)
+tmp0=!texmath $val15
+
+val15=$(tmp0)
+tmp0=!append item \($val15) to $val21
+
+val21=$(tmp0)
+!next
+val19=$val20
+val18=$val21
+replytype1=correspond
+replyname1=Overeenkomst
+replygood1=$val18;$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Geef aan welke oplossing bij welke vergelijking met onbekende 
+!insmath $val16
+$() hoort.	<p><center>	 
+!read oef/embed.phtml reply 1,$val6 
+$()	</center>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,16
+embedcnt=1

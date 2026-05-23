@@ -1,0 +1,105 @@
+!set title=Moyenne B4
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=6
+prevarcnt=5
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 100, 500
+
+tmp=!nonempty items 1,1,-1
+
+tmp1=!randitem $tmp
+tmp2=!randint 100, 500
+
+tmp=!translate ";': to $     $ in $(tmp1)*$(tmp2)
+
+tmp=!lower $tmp
+tmp3=!exec maxima fullratsimp($tmp);
+tmp=!nonempty items 1,1,-1
+
+tmp4=!randitem $tmp
+tmp5=!randint 50, 300
+
+tmp=!translate ";': to $     $ in $(tmp4)*$(tmp5)
+
+tmp=!lower $tmp
+tmp6=!exec maxima fullratsimp($tmp);
+val6=-$(tmp0),$(tmp3),$(tmp6)
+tmp0=!values v for v=3 to 10
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+val9=$[rint($(val8[1])+$(val8[2])+$(val8[3]))]
+val10=$[rint(($(val8[1])*$(val6[1])+$(val8[2])*$(val6[2])+$(val8[3])*$(val6[3]))/$val9*10)/10]
+replytype1=numexp
+replyname1=Moyenne
+replygood1=$val10
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Calculer la moyenne pondérée des nombres $(val6[1]), $(val6[2]) et $(val6[3])	affectés respectivement des coefficients $(val8[1]), $(val8[2]) et $(val8[3]).		<div class="wims_instruction">Arrondir le résultat au dixième.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8
+embedcnt=0

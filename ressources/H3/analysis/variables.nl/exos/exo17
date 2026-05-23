@@ -1,0 +1,120 @@
+n=$counter
+image=0
+cols=12
+rows=1
+math=1
+questiontype=0
+embed=1
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+checkfile=$checkdir/simplify.proc
+helptext=<img src=\'$module_dir/gifs/exo$subject.jpg\' alt=\'noalt\' />
+arglist=$empty
+letters=x,y,z,a,p,s,w
+letters=!shuffle $letters
+x=!item 1 of $letters
+y=!item 2 of $letters
+z=!item 3 of $letters
+getallen=!shuffle 2,3,4,5,6
+a=!item 1 of $getallen
+b=!item 2 of $getallen
+br=!randitem 1@2@1/2,1@3@1/3,2@3@2/3,1@4@1/4,1@5@1/5,2@5@2/5
+g=!replace internal @ by , in $br
+g1=!item 1 of $g
+g2=!item 2 of $g
+g3=!item 3 of $g
+keuze=!randitem 1,2
+pm=!randitem 1,-1
+mp=!randitem 1,-1
+question$n=!record 8 of lang/remarks.$taal
+#@ herleid de volgende macht <br /><font size=-1>dus schrijf anders</font>
+# var1 is used for checking  "literal typing" of question
+!if $R=1
+    !if $keuze=1
+	b=$[$pm*$b]
+	var1=$g3*$x^$a/($x^($b))
+	formula$n=\frac{\frac{$g1}{$g2} $x^{\textsize $a}}{$x^{\textsize $b}}
+    !else
+	a=$[$pm*$a]
+	var1=$x^($a)/($g3*$x^$b)
+	formula$n=\frac{  $x^{\textsize $a}}{\frac{$g1}{$g2}$x^{\textsize $b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari $var1\
+    printtex($var1)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R=2
+    c=!randitem 2,3,4,5,6,7,8
+    c=$[$mp*$c]
+    !if $keuze=1
+	var1=($c*$x^$a)/($g3*$x^$b)
+	formula$n=\frac{$c \cdot $x^{\textsize $a}}{\frac{$g1}{$g2}\cdot $x^{\textsize $b}}
+    !else
+	c=$[$mp*$c]
+	var1=($g3*$x^$a)/($c*$x^$b)
+	formula$n=\frac{\frac{$g1}{$g2}\cdot $x^{\textsize $a}}{$c \cdot $x^{\textsize $b}}
+    !endif
+    applettext=!nospace $var1 =
+    tot=!exec pari A=$var1\
+    printtex(A)
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+
+!if $R=3
+    c=!randitem -4,-3,-2,2,3,4
+    !if $keuze=1
+	a=$[$pm*$a]
+	var1=($c*$x)^($a)/($g3*$x^$b)
+	tot=!exec pari A=$var1\
+	printtex(A)
+	formula$n=\frac{\left($c \cdot $x \right)^{\textsize $a}}{\frac{$g1}{$g2} $x^{\textsize $b}}
+    !else
+	b=$[$pm*$b]
+	var1=$g3*($c*$x)^$a/($x^($b))
+	formula$n=\frac{$g1}{$g2} \cdot \frac{\left($c \cdot $x \right)^{\textsize $a}}{$x^{\textsize $b}}
+    !endif
+	
+    tot=!exec pari A=$var1 \
+    printtex(A)
+    applettext=!nospace $var1 =
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif
+
+!if $R>3
+    a=$[$pm*$a]
+    b=$[$pm*$b]
+    c=!randitem -4,-3,-2,2,3,4
+    #d=!randitem -4,-3,-2,2,3,4
+    var1=($c*$x)^($a)/(($g3*$x)^($b)) 
+    applettext=!nospace $var1 =
+    tot=!exec pari A=$var1\
+    printtex(A)
+    formula$n=\frac{\left($c\cdot $x\right)^{\textsize $a}}{\left(\frac{$g1}{$g2}\cdot $x\right)^{\textsize $b}}
+    answer$n=!line 1 of $tot
+    tex=!line 2 of $tot
+    texanswer$n=$(formula$n) \,\,=\,\, $tex
+    varlist=!varlist $(answer$n)
+    wims_rawmath_variables=$varlist
+ !exit
+!endif

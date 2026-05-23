@@ -1,0 +1,48 @@
+!set n=$counter
+!! multiplechoice=1 choose from $options possibilities
+!! each possibility is called ex1,ex2,ex3...ex10 etc
+<table class="exercise"><!-- begin table with click stuff -->
+    <tr>
+!if $[$options*$xsize]>840
+    !set one_row=2
+!else
+    !set one_row=1
+!endif
+!set t=0
+!for p=1 to $options
+    !increase t
+    <td style="vertical-align:top;background-color:lightblue;padding:10px;border-spacing:5px" onmouseover="this.style.backgroundColor='yellow';" onmouseout="this.style.backgroundColor='lightblue';">
+	<a style="cursor:pointer" onclick="javascript:myConfirm('<br />$send : no. $p ?<br />','$p','$wims_ref_name','$session','$module','$counter','$ok_send_color');">
+    !if $multiimage=1
+	!if $draw=1
+	    !set insdraw_size=$xsize,$ysize
+		!insdraw $(ex$p)
+	    !else
+		!if $plot=1
+		    !set insplot_set=$(image_settings$n)
+		    !insplot $(ex$p)
+		!else
+		    !if $svg=1
+			$(ex$p) 
+		    !else
+			<span class="schaersvoorde_alarm">error:define draw,plot or sgv mode </span>
+		    !endif
+		!endif
+	    !endif
+	!else
+	    !if $math=0
+		<span class="schaersvoorde_link">$(ex$p)</span>
+	    !else
+		!insmath $(ex$p)
+	    !endif
+	!endif
+	</a>
+    </td>
+    !if $t=2 and $one_row=2
+	</tr>
+	<tr>
+	!set t=0
+    !endif
+    !next p
+    </tr>
+</table>

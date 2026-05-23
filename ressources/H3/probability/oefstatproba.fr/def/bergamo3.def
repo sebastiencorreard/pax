@@ -1,0 +1,249 @@
+!set title=Statistiques : effectifs et fréquences
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Bergamo
+email=jbcube@hotmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=43
+prevarcnt=42
+postvarcnt=0
+replycnt=15
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 20, 30
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 0, 25
+
+val7=$[rint($(tmp0))]
+val8=$[rint($val7+4)]
+!readproc slib/stat/random $val6, $val7,$val8 
+tmp0=$slib_out
+val9=$(tmp0)
+tmp0=!values x for x= $val7 to $val8+1
+
+val10=$(tmp0)
+!readproc slib/stat/effectif [$val9],[$val10] 
+tmp0=$slib_out
+val11=$(tmp0)
+tmp0=!item 1 of $val11
+
+val11=$(tmp0)
+tmp0=!declosing $val11
+
+val11=$(tmp0)
+!readproc slib/stat/freq [$val9],[$val10] 
+tmp0=$slib_out
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val12=$(tmp0)
+tmp0=!declosing $val12
+
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$[ceil($(tmp0)*1000)/1000]
+tmp0=!item 2 of $val12
+
+val14=$[ceil($(tmp0)*1000)/1000]
+tmp0=!item 3 of $val12
+
+val15=$[ceil($(tmp0)*1000)/1000]
+tmp0=!item 4 of $val12
+
+val16=$[ceil($(tmp0)*1000)/1000]
+tmp0=!item 5 of $val12
+
+val17=$[ceil($(tmp0)*1000)/1000]
+val18=$[100*$val13]
+val19=$[100*$val14]
+val20=$[100*$val15]
+val21=$[100*$val16]
+val22=$[100*$val17]
+tmp0=!item 1 of $val11
+
+val23=$(tmp0)
+tmp0=!item 2 of $val11
+
+val24=$(tmp0)
+tmp0=!item 3 of $val11
+
+val25=$(tmp0)
+tmp0=!item 4 of $val11
+
+val26=$(tmp0)
+tmp0=!item 5 of $val11
+
+val27=$(tmp0)
+val28=<table class="wimscenter wimsborder">
+val29=$[rint(ceil($val6/10))]
+!for val30 =0 to $val29-1 
+val28=$val28 <tr>
+!for val31 =1 to 10 
+tmp0=!item $val30*10+$val31 of $val9
+
+val32=$(tmp0)
+val28=$val28 <td>$val32</td>
+!next
+val28=$val28 </tr>
+!next
+val28=$val28 </table>
+tmp0=!item 1 of $val10
+
+val33=$[$(tmp0)]
+tmp0=!item 2 of $val10
+
+val34=$[$(tmp0)]
+tmp0=!item 3 of $val10
+
+val35=$[$(tmp0)]
+tmp0=!item 4 of $val10
+
+val36=$[$(tmp0)]
+tmp0=!item 5 of $val10
+
+val37=$[$(tmp0)]
+val38=<table class="wimscenter wimsborder">
+val38=$val38<tr><th>Températures (°C)</th>	<td>$val33</td>	<td>$val34</td>	<td>$val35</td>	<td>$val36</td>	<td>$val37</td>	</tr>
+replytype1=numeric
+replyname1=Effectif 1
+replygood1=$[$val23]
+replytype2=numeric
+replyname2=Effectif 2
+replygood2=$[$val24]
+replytype3=numeric
+replyname3=Effectif 3
+replygood3=$[$val25]
+replytype4=numeric
+replyname4=Effectif 4
+replygood4=$[$val26]
+replytype5=numeric
+replyname5=Effectif 5
+replygood5=$[$val27]
+replytype6=numeric
+replyname6=Fréquence 1
+replygood6=$[$val13]
+replytype7=numeric
+replyname7=Fréquence 2
+replygood7=$[$val14]
+replytype8=numeric
+replyname8=Fréquence 3
+replygood8=$[$val15]
+replytype9=numeric
+replyname9=Fréquence 4
+replygood9=$[$val16]
+replytype10=numeric
+replyname10=Fréquence 5
+replygood10=$[$val17]
+replytype11=numeric
+replyname11=Fréquence 6
+replygood11=$[$val18]
+replytype12=numeric
+replyname12=Fréquence 7
+replygood12=$[$val19]
+replytype13=numeric
+replyname13=Fréquence 8
+replygood13=$[$val20]
+replytype14=numeric
+replyname14=Fréquence 9
+replygood14=$[$val21]
+replytype15=numeric
+replyname15=Fréquence 10
+replygood15=$[$val22]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()Voici les températures de différentes communes d'une région de France à la suite d'une étude :	$val28	<p>Compléter le tableau suivant au millième près par excès pour	les fréquences et au dixième pour les fréquences en poucentage :	</p>	$val38	<tr><th>Effectif (nb de communes)</th>	<td> 
+!read oef/embed.phtml reply 1,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 2,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 3,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 4,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 5,10 
+$()</td>	</tr>	<tr><th>Fréquence</th>	<td> 
+!read oef/embed.phtml reply 6,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 7,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 8,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 9,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 10,10 
+$()</td>	</tr>	<tr><th>Fréquence en %</th>	<td> 
+!read oef/embed.phtml reply 11,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 12,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 13,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 14,10 
+$()</td>	<td> 
+!read oef/embed.phtml reply 15,10 
+$()</td>	</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=28,38
+embedcnt=15

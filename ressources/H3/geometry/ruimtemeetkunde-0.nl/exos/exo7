@@ -1,0 +1,274 @@
+#:[HTML5] Boerderij [ Hoeken bepalen ] 
+#A(-2.66,-4.69) B(5.63,-3.31) C(-0.10,-1.50) D(-8.54,-2.75)
+#E(-2.66,0.75) F(5.63,2.19) G(-0.10,4.06) H(-8.54,2.69)
+#R(0.65,8.25) Q(-3.52,7.56)
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+questiontype=0
+cols=20
+rows=1
+mathview=0
+embed=1
+applet=1
+inputs=1
+m_rightarrow=&nbsp;=
+x=!randint 18,30
+d=!randitem 2,2.5,3,3.5,4
+b=$[$x-2*$d]
+z=!randitem 3,4,5
+p=!randitem 1,2,3
+e=$[$z+$p]
+h=$[$z+$e]
+c=!randitem 10,10.5,11,11.5,12,12.5,13,13.5,14
+a=$[round(sqrt($d^2+$e^2+($c/2)^2))]
+helptext=<img src=\'$module_dir/gifs/huis.jpg\' alt=\'noalt\' />
+
+object$n=!exec canvasdraw\
+size 398,320\
+xrange -10,10\
+yrange -10,10\
+fontfamily 18px Ariel\
+copy -10,10,-1,-1,-1,-1,$module_dir/gifs/test.jpg\
+linewidth 3\
+#point $punt1,$punt2,darkblue\
+#point $punt3,$punt4,darkblue\
+#string black,-4.10,-7.40,$x\
+#string black,$punt1,$punt2,M\
+linewidth 2\
+dashed\
+htype 6,3\
+mouse red,18\
+#segment $lijn,darkred\
+#userdraw segment,red\
+opacity 255,30\
+filled\
+fillcolor orange\
+replyformat -1\
+userdraw poly4,red
+
+checkfile=$checkdir/number.proc
+ex1=&deg;
+!if $R=1
+    keuze=!randitem 1,0
+    keuze=0
+    !if $keuze=1
+	setje=Q,H,G R,G,H Q,E,F R,F,E
+	k=!randitem 1,2,3,4
+	k=4
+	set=!word $k of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+        C=!item 3 of $set
+	AB=!nospace $A $B
+        BC=!nospace $B $C
+	ABC=!nospace $A $B $C
+	coord=-3.52,7.56,-8.54,2.69,-0.10,4.06\
+	0.65,8.25,-0.10,4.06,-8.54,2.69\
+	-3.52,7.56,-2.66,0.75,5.63,2.19\
+	0.65,8.25,5.63,2.19,-2.66,0.75
+	
+	
+
+	#an=$[atan($e/$d)]
+	answer$n=$[180/pi*acos($d/$a)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 20 of lang/remarks.$taal
+	#@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken de hoek tussen de lijnen $AB en $BC
+	texanswer$n=\left[ \begin{array} {l} $x-$b=$[2*$d] \\  \cos \left(\angle TSR \right) =\frac{$d}{$a} \rightarrow \angle TSR $ans \end{array} \right.
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle $ABC
+
+    !else
+	setje=R,F,G R,G,F Q,E,H Q,H,E
+	k=!randitem 1,2,3,4
+	set=!word $k of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+        C=!item 3 of $set
+	AB=!nospace $A $B
+        BC=!nospace $B $C
+	ABC=!nospace $A $B $C
+	#an=$[atan($e/$d)]
+	coord=0.65,8.25,5.63,2.19,-0.10,4.06\
+	0.65,8.25,-0.10,4.06,5.63,2.19\
+	-3.52,7.56,-2.66,0.75,-8.54,2.69\
+	-3.52,7.56,-8.54,2.69,-2.66,0.75
+	
+	answer$n=$[180/pi*acos($c/(2*$a))]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 21 of lang/remarks.$taal
+	#@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x BC=$c <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken de hoek tussen de lijnen $AB en $BC
+	texanswer$n=\left[ \begin{array} {l} $x-$b=$[2*$d] \\  \cos \left(\angle TSR \right) =\frac{$d}{$a} \rightarrow \angle TSR $ans \end{array} \right.
+	
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle $ABC
+	
+    !endif
+    lijn=!line $k of $coord
+    lijn=!nospace $lijn
+    punt1=!item 1 of $lijn
+    punt2=!item 2 of $lijn
+    punt3=!item 3 of $lijn
+    punt4=!item 4 of $lijn
+    punt5=!item 5 of $lijn
+    punt6=!item 6 of $lijn
+    !if $k=1
+	seg=segment $punt1,$punt2,$punt3,$punt4,darkred\
+	dashed\
+	dashtype 6,3\
+	segment $punt3,$punt4,$punt5,$punt6,darkred
+    !else
+	!if $k=2
+	    seg=dashed\
+	    dashtype 6,3\
+	    segment $punt1,$punt2,$punt3,$punt4,darkred\
+	    dashed\
+	    dashtype 6,3\
+	    segment $punt3,$punt4,$punt5,$punt6,darkred
+	!else
+	    seg=segment $punt1,$punt2,$punt3,$punt4,darkred\
+	    segment $punt3,$punt4,$punt5,$punt6,darkred
+	!endif
+    !endif
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+    linewidth 3\
+    mouse red,18\
+    $seg\
+    #userdraw segment,red\
+    opacity 255,30\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly4,red
+ !exit
+!endif
+
+
+!if $R>1
+    keuze=!randitem 1,0
+    !if $keuze=1
+	setje=F,G,E,H,R E,H,F,G,Q
+	k=!randitem 1,2
+	set=!word $k of $setje
+	F=!item 1 of $set
+	G=!item 2 of $set
+        E=!item 3 of $set
+        H=!item 4 of $set
+        R=!item 5 of $set
+        FG=!nospace $F $G
+        EH=!nospace $E $H
+        RS=!nospace $R S
+        QST=!nospace $R S T
+        
+        coord=2.77,3.13,-5.6,1.72\
+        -5.6,1.72,2.77,3.13
+        
+        lijn=!line $k of $coord
+        lijn=!nospace $lijn
+        punt1=!item 1 of $lijn
+        punt2=!item 2 of $lijn
+        punt3=!item 3 of $lijn
+        punt4=!item 4 of $lijn
+        
+        !if $k=1
+        seg=dashed\
+        dashtype 5,2\
+        segment 0.65,8.25,$punt1,$punt2,darkred\
+        dashed\
+        dashtype 5,2\
+        segment $punt1,$punt2,$punt3,$punt4,darkred
+        !else
+        seg=segment -3.52,7.56,$punt1,$punt2,darkred\
+        dashed\
+        dashtype 5,2\
+        segment $punt1,$punt2,$punt3,$punt4,darkred
+        !endif
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+    linewidth 2\
+    point,$punt1,$punt2,red\
+    point,$punt3,$punt4,red\
+    string black,$punt1,$punt2,S\
+    string black,$punt3,$punt4,T\
+    linewidth 3\
+    mouse red,18\
+    $seg\
+    #userdraw segment,red\
+    opacity 255,30\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly4,red
+    
+	answer$n=$[180/pi*atan($e/$d)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 18 of lang/remarks.$taal
+	#@Het hiernaast gegeven <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.<li>S is het midden van $FG<li>T is het midden van $EH</ul><br />Bereken de hoek tussen de lijnen RS en TS
+	texanswer$n= \tan \left(\angle TSR \right) =\frac{$e}{$d} \rightarrow \angle $QST $ans
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	formula$n=\angle $QST
+    !else
+	#an=$[atan($e/$d)]
+	answer$n=$[180/pi*atan(2*$e/$c)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	object$n=!exec canvasdraw\
+	size 398,320\
+	xrange -10,10\
+	yrange -10,10\
+	fontfamily 18px Ariel\
+	copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo7.jpg\
+	linewidth 2\
+	point,-1.44,7.91,red\
+	point,1.49,1.47,red\
+	point,-4.32,3.38,red\
+	string black,-1.44,7.91,S\
+	string black,1.49,1.47,T\
+	string black,-4.32,3.38,V\
+	linewidth 3\
+	mouse red,18\
+	segment -1.44,7.91,1.49,1.47,darkred\
+	dashed\
+	dashtype 4,2\
+	segment 1.49,1.47,-4.32,3.38,darkred\
+	#userdraw segment,red\
+	opacity 255,30\
+	filled\
+	fillcolor orange\
+	replyformat -1\
+	userdraw poly4,red
+    
+	ss=!record 19 of lang/remarks.$taal
+	#@Het hiernaast gegeven <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>  met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>BC=$c <li>AE=$z <li>de nok QR=$b <li>FR=GR=EQ=HQ<li>de hoogte is $h .<li>Verder is gegeven dat S het midden is van QR <li>En T is het midden van EF<li>En V is het midden van GH</ul>Bereken de hoek tussen de lijnen ST en TV.
+	
+	texanswer$n= \tan \left(\angle STV \right) =\frac{$e}{0.5  \cdot $c}  = \frac{$e}{$[0.5*$c]} \simeq $[2*$e/$c] \rightarrow \angle TSR $ans
+	
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle STV
+	
+    !endif
+ !exit
+!endif
+
+

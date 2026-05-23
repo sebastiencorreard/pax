@@ -1,0 +1,140 @@
+target=produit,quotient,quoprod,produit2,somme1,somme2,somme3,somme4,somquo1,somquo2
+
+#if #TARGET(produit)
+ \title{Product}
+ \text{type=produitcp}
+ \integer{nbfact=2}
+ \integer{div=0}
+#endif
+
+#if #TARGET(somme1)
+ \title{Macht van 10 en som 1}
+ \text{type=somme}
+ \integer{nbfact=2}
+ \integer{div=0}
+#endif
+
+#if #TARGET(somme3)
+ \title{Macht van 10 en som 2}
+ \text{type=somme}
+ \integer{nbfact=2}
+ \integer{div=2}
+#endif
+
+#if #TARGET(somme4)
+ \title{Macht van 10 en som 3}
+ \text{type=somme}
+ \integer{nbfact=3}
+ \integer{div=0}
+#endif
+
+#if #TARGET(somme2)
+ \title{Macht van 10 en som 4}
+ \text{type=somme}
+ \integer{nbfact=3}
+ \integer{div=2}
+#endif
+
+#if #TARGET(produit2)
+ \title{Product 2}
+ \text{type=produitcp}
+ \integer{nbfact=3}
+ \integer{div=0}
+#endif
+
+
+#if #TARGET(quotient)
+ \title{Quotient}
+ \text{type=quotientcp}
+ \integer{nbfact=2}
+ \integer{div=0}
+#endif
+
+#if #TARGET(quoprod)
+ \title{Quotient en product}
+ \text{type=quotientcp,produitcp}
+ \integer{nbfact=2}
+ \integer{div=0}
+#endif
+
+#if #TARGET(somquo1)
+ \title{Som quotient en macht 1}
+ \text{type=somquo}
+ \integer{nbfact=2}
+ \integer{div=0}
+#endif
+
+#if #TARGET(somquo2)
+ \title{Som quotient en macht 2}
+ \text{type=somquo}
+ \integer{nbfact=2}
+ \integer{div=2}
+#endif
+
+
+
+\language{nl}
+\range{-5..5}
+\author{Guerimand Fabrice}
+\email{fwguerima@free.fr}
+\translator{Reinie Erne}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{confparm1=\confparm1=?1}
+\integer{confparm1>5?5}
+
+\text{lteno=}
+\text{ltsol=}
+\text{ltpuis=}
+\text{st=}
+\text{st2=}
+\for{i=1 to \confparm1}{
+ \text{choix=randitem(\type)}
+ \text{don=slib(calcpuis \choix,8,10,100,\nbfact,\div)}
+ \text{enonce=item(1,\don)}
+ \text{rep=item(2,\don)}
+ \text{puis=item(3,\don)}
+ \text{lteno=wims(append item \enonce to \lteno)}
+ \text{ltsol=wims(append item \rep to \ltsol)}
+ \text{ltpuis=wims(append item \puis to \ltpuis)}
+ \text{st=wims(append item r\i to \st)}
+ \integer{k=\i+5}
+ \text{st2=wims(append item r\k to \st2)}
+}
+
+\steps{\st,\st2}
+
+\statement{<br>
+\if{\confparm1=1}
+ {Bereken de volgende uitdrukking en geef het antwoord in wetenschappelijke notatie:<br>
+<center>\(\lteno[1] = ) \embed{r1,10} \(\times 10)<sup><sup>\embed{r6,4}</sup></sup></center>}
+{Bereken de volgende uitdrukkingen en geef de antwoorden in wetenschappelijke notatie: 
+<center><table><tr><td width=600><ul>
+  <li>\(\lteno[1] = ) \embed{r1,10} \(\times 10)<sup><sup>\embed{r6,4}</sup></sup>.</li>
+<li>\(\lteno[2] = ) \embed{r2,10} \(\times 10)<sup><sup> 
+\embed{r7,4}</sup></sup>.</li>
+\if{\confparm1>2}{
+<li>\(\lteno[3] = ) \embed{r3,10} \(\times 10)<sup><sup> 
+\embed{r8,4}</sup></sup>.</li>}
+\if{\confparm1>3}{
+<li>\(\lteno[4] = ) \embed{r4,10} \(\times 10)<sup><sup> 
+\embed{r9,4}</sup></sup>.</li>}
+\if{\confparm1>4}{
+<li>\(\lteno[5] = ) \embed{r5,10} \(\times 10)<sup><sup> 
+\embed{r10,4}</sup></sup>.</li>}
+</ul></td></tr></table></center>}
+}
+
+
+\answer{1}{\ltsol[1]}{type=numexp}
+\answer{2}{\ltsol[2]}{type=numexp}
+\answer{3}{\ltsol[3]}{type=numexp}
+\answer{4}{\ltsol[4]}{type=numexp}
+\answer{5}{\ltsol[5]}{type=numexp}
+\answer{1}{\ltpuis[1]}{type=numexp}
+\answer{2}{\ltpuis[2]}{type=numexp}
+\answer{3}{\ltpuis[3]}{type=numexp}
+\answer{4}{\ltpuis[4]}{type=numexp}
+\answer{5}{\ltpuis[5]}{type=numexp}

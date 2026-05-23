@@ -1,0 +1,156 @@
+!set title=Course à pieds (lecture chronomètre)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=23
+prevarcnt=22
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(1)]
+tmp=!trim 100,12,20	200,24,45	1000,180,360	10000,2100,3599
+val7=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val7
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!item 1 of $val7
+
+val8=$[rint($(tmp0))]
+tmp0=!item 2 of $val7
+
+val9=$[rint($(tmp0))]
+tmp0=!item 3 of $val7
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val9, $val10
+
+val11=$[rint($(tmp0))]
+val12=$[rint(floor($val11/60))]
+val13=$[rint($val11-$val12*60)]
+
+!ifval $val12!=0
+val14=$val12 mn
+!endif
+
+!ifval $val13!=0
+val14=$val14 $val13 s
+!endif
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=dixième,centième
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+val18=$[1/10^$val17]
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=1
+tmp0=!item $val17 of $val16
+
+val20=au $(tmp0)
+!else
+val20=à $val18
+!endif
+val21=$[rint($val8/$val11*10^$val17)]
+val21=$[$val21/10^$val17]
+val22=$[rint(3.6*$val8/$val11*10^$val17)]
+val22=$[$val22/10^$val17]
+!readproc slib/draw/clock 0:$val12:$val13 
+tmp0=$slib_out
+val23=$(tmp0)
+replytype1=numexp
+replyname1=Vitesse moyenne en m/s
+replygood1=$val21
+replytype2=numexp
+replyname2=Vitesse moyenne en km/h
+replygood2=$val22
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val15 effectue une course à pieds de $val8 m.	
+!if $val6=1 
+$()Le chronomètre indique le temps suivant : <div class="wimscenter">	 
+!read oef/draw.phtml 200,200 \
+$val23 
+$()	</div>	 
+!else
+$() Le chronomètre indique $val14. 
+!endif
+$()	<p>	  Donner sa vitesse moyenne en m/s puis en km/h. Les résultats seront arrondis $val20 près.	</p><div>	<b>Vos réponses : </b>	  Vitesse moyenne :  
+!read oef/embed.phtml r1,8 
+$() m/s soit  
+!read oef/embed.phtml r2,8 
+$() km/h.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,14,15,20,23
+embedcnt=2

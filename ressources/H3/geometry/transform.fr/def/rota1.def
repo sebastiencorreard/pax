@@ -1,0 +1,158 @@
+!set title=Rotation 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Rotazione 1
+
+ansorder=r
+varcnt=36
+prevarcnt=35
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=dans le sens des aiguilles d'une montre,dans le sens inverse des aiguilles d'une montre
+val8=saut,sauts
+val9=Quelle est l'image du carré,par la rotation de centre,qui transforme le carré,en carré
+val10=On considère la figure suivante composée de carrés identiques numérotés de 1 à 8 et dans laquelle les angles de deux carrés contigus sont égaux deux à deux.	<p>Le point \(O\) est le milieu du segment <span class="nowrap">\([DH]\).</span></p>
+val11=Le carré
+!if $val6=it 
+val7=in senso orario,in senso antiorario
+val8=salto,salti
+val9=Qual è l'immagine del quadrato,tramite la rotazione di centro,che trasforma il quadrato,nel quadrato
+val10=Si consideri la figura seguente composta da quadrati identici numerati da 1 a 8 e nella quale gli angoli tra due quadrati contigui sono uguali a due a due.	<p>Il punto \(O\) è il punto medio del segmento <span class="nowrap">\([DH]\).</span></p>
+val11=È il quadrato
+!endif
+val12=1,2,3,4,5,6,7,8
+val13=transfo1.png
+tmp0=!randint 2, 8
+
+val14=$[rint($(tmp0))]
+tmp0=!makelist x for x=1 to $val14-1
+
+val15=$(tmp0)
+tmp0=!listcomplement $val15 in $val12
+
+val16=$(tmp0)
+val17=$val16,$val15
+tmp=!trim 1,$(val17[1])	2,$(val17[2])	3,$(val17[3])	4,$(val17[4])	5,$(val17[5])	6,$(val17[6])	7,$(val17[7])	8,$(val17[8])
+val18=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val18
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val19=$(tmp0)
+tmp0=!listcomplement $(val19[1]) in $val12
+
+val20=$(tmp0)
+tmp=!nonempty items $val20
+
+tmp0=!randitem $tmp
+val21=$[rint($(tmp0))]
+val21=$val21,$(val18[$val21;2])
+val22=$(val9[1]) \($(val19[1])\) $(val9[2]) \(O\) $(val9[3]) \($(val21[1])\) $(val9[4]) 
+val23=$[rint($(val21[1])-$(val21[2]))]
+val24=$[rint(abs($val23))]
+!if $val23>0 
+val25=$(val7[2])
+!else
+val25=$(val7[1])
+!endif
+!if $val24>4 and $val23>0 
+val24=$[rint(8-$val24)]
+val25=$(val7[1])
+!endif
+!if $val24>4 and $val23<0 
+val24=$[rint(8-$val24)]
+val25=$(val7[2])
+!endif
+!if $val24=1 
+val26=$(val8[1])
+!else
+val26=$(val8[2])
+!endif
+val27=Il y a $val24 $val26 $val25 pour aller du carré $(val21[1]) au carré $(val21[2]).	<p> On compte $val24 $val26, dans le même sens, à partir du carré <span class="nowrap">\($(val19[1])\).</span> On obtient le carré <span class="nowrap">\($(val19[2])\).</span></p>	La rotation de centre <span class="nowrap">\(O\),</span> qui transforme le carré \($(val21[1])\) en carré <span class="nowrap">\($(val21[2])\),</span> transforme le carré \($(val19[1])\) en carré <span class="nowrap">\($(val19[2])\).</span>
+!if $val6=it 
+val27=Contiamo $val24 $val26 $val25 per andare dal quadrato $(val21[1]) al quadrato $(val21[2]).	<p>Dobbiamo quindi contare $val24 $val26 nello stesso senso a partire dal quadrato <span class="nowrap">\($(val19[1])\).</span> Si ottiene il quadrato <span class="nowrap">\($(val19[2])\).</span></p>	La rotazione di centro <span class="nowrap">\(O\) </span>che trasforma il quadrato \($(val21[1])\) nel quadrato <span class="nowrap">\($(val21[2])\) </span>trasforma il quadrato \($(val19[1])\) nel quadrato <span class="nowrap">\($(val19[2])\).</span>
+!endif
+replytype1=menu
+replyname1=
+replygood1=$(val19[2]);$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=!nosubst $val27
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val10	<p class="wimscenter"><img src="$val1/$val13" alt="carrés"></p>	$val22	 <span class="nowrap">
+!insmath $(val21[2])
+$() ?</span>	  $val11  
+!read oef/embed.phtml reply1 
+$().	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val27
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,10,11,13,21,22,27
+embedcnt=1

@@ -1,0 +1,123 @@
+!header
+
+
+<u><b>Exercice $noexo.</b></u>
+$enonce <br />
+<div class="wimscenter">
+!read affsys.phtml 0
+</div>
+!if $nocalcul=1
+<div class="wims_instruction">
+Remarque : Le but de l'exercice est de tester la démarche de résolution. La machine va effectuer les calculs pour vous.
+</div>
+!endif
+<hr />
+
+!! ------------   affichage des calculs.
+
+!if $nbetape>0
+<u><b>Vos étapes de calcul :</b></u>
+<table>
+!for ii=0 to $nbetape
+   <tr>
+    <td>
+      !read affsys.phtml $ii
+    </td>
+    <td>
+      !if $ii<$nbetape and $status!=5
+       !set wims_ref_class=wims_button wims_secondary_button
+         !href cmd=resume&status=1&nbetape=$ii Retour à cette étape.
+      !endif
+    </td>
+  </tr>
+!next ii
+</table>
+<hr />
+!endif
+
+!! ----------- corps d'action
+
+!if $status=1
+   !if $nbetape<50
+      !read form.phtml
+   !else
+    Dans cet exercice le nombre d'étapes est limité. Vous en avez déjà utilisée $nbetape. <p>
+Vous ne connaissez pas la méthode de résolution ou vous n'arrivez pas à l'appliquer : </p><p>
+étudiez votre cours ou appellez votre enseignant pour obtenir des explications.<p>
+     !href cmd=resume&status=1&nbetape=0 recommencer
+     le même exercice depuis le début.
+   !endif
+!endif
+!if $status=2
+   !if $erreur!=$empty
+    <span class="oef_indbad">$erreur</span>
+    !let erreur=$empty
+    <br />
+   !endif
+   !let tmp=!item $action of $listaction
+   !read $tmp question
+   <p>
+!set wims_ref_class=wims_button wims_secondary_button
+   !href cmd=resume&status=1 Retour
+   </p>
+!endif
+!if $status=3
+   !let tmp=!item $action of $listaction
+   !read $tmp reponse
+!endif
+!if $status=4
+   !read src/conclure.phtml reponse2
+!endif
+!if $status!=5
+   <hr />
+!endif
+<u><b>Informations: </b></u>
+<table>
+  <tr>
+    <th>Nombre d'étapes:</th>
+    <td>$nbetape</td>
+  </tr>
+!if $nocalcul!=1
+  <tr>
+    <th>Nombre d'erreurs de calcul:</th>
+    <td>$nbreerrcalc</td>
+  </tr>
+!endif
+  <tr>
+    <th>Nombre d'erreurs de raisonnement:</th>
+    <td>$nbreerrrais</td>
+  </tr>
+!!  <tr>
+!!    <td>Nombre d'acces à l'aide:</td>
+!!    <td>$nbreaide</td>
+!!  </tr>
+</table>
+
+!if $status=5
+   <span class="oef_indgood">Vous avez correctement résolu cet exercice en $nbetape étapes.</span><br />
+   !if $noexo<$nbreexo
+      Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+      !increase noexo
+      !set wims_ref_class=wims_button
+      !href cmd=resume&status=0 Continuer la séance
+      .
+      !set wims_ref_class=wims_button wims_secondary_button
+      !href $renewlink Nouvelle séance
+      .<div class="wims_instruction">
+      Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.
+      </div>
+   !else
+      Vous avez obtenu une note de $module_score sur 10.<p>
+      !set wims_ref_class=wims_button wims_secondary_button
+      !href $renewlink Nouvelle séance
+      </p>
+   !endif
+!else
+   Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+   !set wims_ref_class=wims_button wims_secondary_button
+   !href $renewlink Nouvelle séance
+   <div class="wims_instruction">Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.</div>
+!endif
+:lab1
+:end
+!tail

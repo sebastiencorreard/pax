@@ -1,0 +1,146 @@
+!set title=Codage de dessin
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Codering en Bits
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Codez le dessin suivant
+val8=Chaque ligne lue de gauche à droite correspond à 8 bits,	  on lit les lignes de haut en bas,	  vous devez donc rentrer 8 nombres de 8 bits, séparés par des virgules.
+val9=Codage du dessin
+!if $val6=nl 
+val7=Geef de binaire code
+val8=Elke rij van links naar rechts stelt 8 bits voor.	  We lezen dus van links boven naar rechts beneden, en	  hebben we dus nu 8 "woorden" van 8 bits.	  Geef de binaire representatie van de voorgestelde code,	  de "woorden" gescheiden door komma's.
+val9=geef de binaire code
+!endif
+tmp0=!randitem 1,2
+
+val10=$(tmp0)
+t_=!replace internal \( by ( in A=matrix(4,4,i,j,RANDOM(2));	B=matrix(4,4,i,j,A[i,5-j]); C=matrix(4,4,i,j,A[5-i,j]);	D=matrix(4,4,i,j,A[5-i,5-j]); U=concat(A,B);	V=concat(C,D); print(concat(mattranspose(U),mattranspose(V)))
+tmp0=!exec pari $t_
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in A=print(matrix(8,8,i,j,RANDOM(2)))
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+
+!ifval $val10=1 
+val13= $val11
+!else
+val13=$val12
+!endif
+tmp0=!declosing $val13
+
+val13=$(tmp0)
+val14=
+val15=2
+!for val16 =1 to 8 
+val17=
+!for val18 =1 to 8 
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!row $val16 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!item $val18 of $(tmp0)
+
+!if 1 isin $(tmp1) 
+val14=$val14	fill $val18-1/2,9-$val16-1/2,blue
+val17=$val17,1
+!else
+val17=$val17,0
+!endif
+!next
+tmp0=!items2words $val17
+
+val17=$(tmp0)
+tmp0=!nospace $val17
+
+val17=$(tmp0)
+val15=$val15,$val17
+!next
+tmp0=!item 2 to 9 of $val15
+
+val15=$(tmp0)
+replytype1=atext
+replyname1=$val9
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val7:	<div class="wimscenter">	 
+!read oef/draw.phtml 200,200 \
+	  xrange 0,8.2	  yrange -0.2,8	  parallel 0,0,0,8,1,0,9,black	  parallel 0,0,8,0,0,1,9,black	  $val14 
+$()	</div>	<div class="wims_instruction">	$val8</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,14
+embedcnt=0

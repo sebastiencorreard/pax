@@ -78,21 +78,19 @@ class TestDefParser:
     def test_var_instructions(self):
         df = parse(open(VALEUR1_DEF, encoding="utf-8").read())
         names = [i.name for i in df.var_instructions if isinstance(i, Assign)]
-        assert names == ["tmp0", "val6", "val7", "val8", "val9", "val10"]
+        # val1-val5 are now kept so that "val1=$imagedir" et al. evaluate;
+        # see csga which dereferences $val1 as the imagedir URL.
+        assert names == ["val1", "val2", "val3", "val4", "val5",
+                          "tmp0", "val6", "val7", "val8", "val9", "val10"]
 
-    def test_boilerplate_stripped(self):
-        """val1-val5 and wims_read_parm/testcondition/status blocks are not in var_instructions."""
+    def test_session_var_assignments_kept(self):
+        """val1-val5 (WIMS session vars: $imagedir, $confparm*) are now kept in
+        var_instructions because they're referenced as $val1 etc. by some
+        exercises (e.g. csga: val247=$val1/../q502_e2.png)."""
         df = parse(open(VALEUR1_DEF, encoding="utf-8").read())
-        for instr in df.var_instructions:
-            if isinstance(instr, Assign):
-                assert instr.name.lower() not in (
-                    "val1",
-                    "val2",
-                    "val3",
-                    "val4",
-                    "val5",
-                )
-        # No boilerplate IfBlock should remain
+        names = [i.name for i in df.var_instructions if isinstance(i, Assign)]
+        assert "val1" in names
+        # The wims_read_parm/testcondition/status IfBlocks must still be stripped
         for instr in df.var_instructions:
             if isinstance(instr, IfBlock):
                 assert "wims_read_parm" not in instr.condition

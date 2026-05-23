@@ -1,0 +1,121 @@
+n=$counter
+questiontype=0
+image=0
+cols=20
+rows=2
+math=0
+embed=1
+mathview=4
+checkfile=$checkdir/equation.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+letter1=x
+letter2=y
+letter3=f
+letter4=g
+
+A=!randitem A,B,C,D
+pm =!randitem +,-
+!if $R=1
+    m1=!randitem 0.5,1,1.5,2,-0.5,-1,-1.5,-2,-3,3,-4,4
+    q1=!randitem 1,2,3,4,5
+    b=!randitem 10,12,14,15,16,18,20
+!else
+    m1=!randitem -8,-7,-6,-5,-4,-3,3,4,5,6,7,8
+    q1=!randint 5,20
+    b=!randitem 20,22,24,26,28,30,32,34,36,38,40,42,44,45
+!endif
+    
+lijn1=$m1*x + $q1
+#punt $A niet op de lijn
+x1=!randitem -5,-4,-3,-2,-1,2,3,4,5
+y1=$[round(($m1)*$x1 + $q1)]
+b=!randitem 10,12,14,15,16,18,20
+y1=$[$y1 $pm $b]
+xrange=xrange -40,40
+yrange=yrange -40,$[$y1+$b]
+l1=!texmath $lijn1
+ll1=!htmlmath y=$lijn1
+color1=!randitem red,blue
+!if $color1=blue
+    color2=red
+!else
+    color2 =blue
+!endif
+
+helptext=<textarea class=\'schaersvoorde_textarea\' readonly=\'readonly\' cols=\'25\' rows=\'2\'>$letter2 = 0.5*$letter1 - 5</textarea>
+arglist=$letter4($letter1),$letter2
+varlist=$letter1
+#parallel  aan  y=$m1*x + q1 ==> punt $A op de || lijn
+#lijn2 y1=m1*x1+q2 => q2=$y1 - ($m1*$x1) 	
+tot=!exec pari A=($m1)*x + ($y1) - (($m1)*($x1))\
+printtex(A)\
+printtex($m1)
+    
+lijn2=!line 1 of $tot
+l2=!line 2 of $tot
+rc=!line 3 of $tot
+
+answer$n=$lijn2 
+ll2=!htmlmath y=$lijn2
+    
+ss=!record 49 of lang/remarks.$taal
+#@ Bepaal de vergelijking van de lijn <span size="+1" color=$color2><em>g</em></span>parallel (||) aan de lijn <span size="+1" color=$color1><em>f</em></span>en <br /> door het punt <span size="+1" color=$color2><em>$A</em></span>
+#@! Determine the equation of the line <span size="+1" color=$color2><em>g</em></span>parallel (||) to the line <span size="+1" color=$color1><em>f</em></span>and<br /> through point <span size="+1" color=$color2><em>$A</em></span>
+#@!~ 已知 直线 <span size="+1" color=$color2><em>f</em></span>与点 $A<br /> 确定 直线 <span color=$color1 size="+1"><em>g</em></span> 的方程, 它垂直于直线 <span size="+1" color=$color2><em>f</em></span> 且<br />通过点 $A
+    
+formula$n=\left[ \begin{array}{l}$A ($x1;$y1) \\ \\ f: y  = $l1 \\ \\ g: y  = [?] \\ f || g \end{array} \right.
+    
+texanswer$n=\left[ \begin{array}{l} f || g \\ f: y = $l1 \\ g: y = $rc \cdot x + b && \\ b = [?] \\ $A ($x1;$y1) \rightarrow $y1 = $rc \cdot $x1 + b \\  b = $y1 - \left( $rc \cdot $x1 \right) \\ b = $y1 - $[$m1*$x1] = $[$y1 - ($m1*$x1) ]   \end{array}\right] \rightarrow g: y = $l2 
+    
+rr=!record 50 of lang/remarks.$taal
+#@ De gezochte lijn g : <br /> $A ($x1:$y1) || $ll1 $m_rightarrow $ll2
+#@! The line g:<br /> $A ($x1:$y1) || $ll1 $m_rightarrow $ll2
+#@!~ 直线 g:<br /> $A ($x1:$y1) || $ll1 $m_rightarrow $ll2
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+textanswer$n=$rr
+    
+!if $teaching=1
+    image=0
+    etext=!record 1 of lang/remarks.$taal
+    y11=!evalsubst x=-10 in $lijn1
+    y12=!evalsubst x=10 in $lijn1
+    y21=!evalsubst x=-10 in $lijn2
+    y22=!evalsubst x=10 in $lijn2
+    
+    tooltip=!exec canvasdraw\
+    size 320,320\
+    $xrange \
+    $yrange \
+    bgcolor $wims_bgcolor\
+    axis\
+    xlabel x-as\
+    ylabel y-as\
+    grid 100,100,grey,1,1,0,grey\
+    linewidth 2\
+    line -10,$y11,10,$y12,$color1\
+    line -10,$y21,10,$y22,$color2\
+    linewidth 3\
+    point $x1,$y1,green\
+    string black,$x1,$y1,  $A ($x1:$y1)\
+    intooltip $etext\
+    precision 1\
+    mouse red,18
+    
+    exotext=$tooltip<br />
+	
+!endif
+    
+
+!exit
+
+
+
+    
+

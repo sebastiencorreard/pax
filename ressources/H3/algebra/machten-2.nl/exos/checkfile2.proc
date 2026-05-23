@@ -1,0 +1,107 @@
+goback=0
+errortext=$empty
+# edited on : Fri Mar 7 13:44:28 CET 2008
+ 
+# het goede antwoord is gewoon een getal zonder sqrt()
+errortext=$empty
+n=$counter
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+
+extra=$empty
+math=0
+AAA=!nospace $(reply$n)
+test=!replace internal = by , in $AAA
+t0=!itemcnt $test
+!if $t0=2
+    AAA=!item 2 of $test
+    rem=!record 7 of lang/remarks.$taal
+    extra=$rem
+    #@ Je eindantwoord lees ik voor het gemak als $t2<br />en dus niet als $t1 ...<br />
+!else
+    !if $t0>2
+	errortext=!record 8 of lang/remarks.$taal
+	#@Je hoeft hier alleen een eindantwoord in te vullen, hoor
+	goback=1
+	!exit
+    !endif
+!endif
+
+test=!replace internal sqrt by @ in $AAA
+# er zit geen sqrt() in't goede antwoord...
+# als var1=2 was de vraag herschrijf de wortel in een macht. 
+!if @ isin $test
+    !ifval $AAA=$(answer$n)
+	!if $teaching=1
+	    !if $var1=2
+		remark$n=!record 47 of lang/remarks.$taal
+		#@Nee, je zou de wortel herschrijven in een macht...
+	    !else
+		errortext=!record 27 of lang/remarks.$taal
+		#@Je antwoord is getalsmatig goed....<br />maar het is niet het goede antwoord :)<br />Dat is n.l. geen wortel...
+	    !endif
+	    maxscore=$P6
+	    goback=1
+	    !exit
+	!else
+	    goback=0
+	    maxscore=0
+	    !if $var1=2
+		remark$n=!record 47 of lang/remarks.$taal
+		#@Nee, je zou de wortel herschrijven in een macht...
+	    !else
+		remark$n=!record 27 of lang/remarks.$taal
+		#@Je antwoord is getalsmatig goed....<br />maar het is niet het goede antwoord :)<br />Dat is n.l. geen wortel...
+	    !endif
+	    !exit
+	!endif
+    !else
+	goback=0
+	maxscore=0
+	rem=!record 28 of lang/remarks.$taal
+	remark$n=$NOK<br />$rem
+	#@Nee, het goede antwoord is geen wortel...
+	!exit
+    !endif
+!endif
+
+AAA=!replace [a-z\~\!\@\#\$\%\_\=\:\;\"] by $empty in $AAA
+!if NaN isin $[1*($AAA)]
+    goback=1
+    errortext=!record 29 of lang/remarks.$taal
+    #@Je antwoord is in deze vorm niet na te kijken...
+    maxscore=$[$P4*$maxscore]
+    !exit
+!endif
+
+!ifval $AAA=$(answer$n)
+    score=1
+!else
+    !ifval $AAA=$[-1*$(answer$n)]
+	rem=!record 34 of lang/remarks.$taal
+	extra=$extra<br />$rem
+	score=0.4
+    !else
+	score=0
+    !endif
+!endif
+maxscore=$[$maxscore*$score]
+
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit

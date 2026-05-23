@@ -1,0 +1,341 @@
+\title{Question 203 Angles complémentaires}
+\keywords{quizz,angles}%%%MB  que des mots clefs officiels
+\observation{Question du sujet zéro sujet-zero-dnb-serie-generale-a-mathematiques.pdf du DNB publié sur éduscol en décembre 2025  }
+%%% SP %%%
+
+%%Tirage lettres
+\text{lettres=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+\text{sh=shuffle(26)}
+\text{A=\lettres[\sh[1]]}
+\text{B=\lettres[\sh[2]]}
+\text{C=\lettres[\sh[3]]}
+
+%%Tirage triangle, rectangle en A
+\integer{ordre_lettres=randint(3)}
+\if{\ordre_lettres=1}{\text{triangle=\A\B\C}}
+\if{\ordre_lettres=2}{\text{triangle=\B\C\A}}
+\if{\ordre_lettres=3}{\text{triangle=\C\A\B}}
+
+%%Choix de l'angle
+\text{types_angle=aigu,obtus}
+\text{type_angle=types_angle[randint(2)]}
+
+%%#%%#%%Dessin triangle
+#Tailles côtés
+\integer{b=randint(5..8)}
+\integer{c=randint(3..7)}
+
+%% \integer{rotation=randint(0..30)-15}
+\integer{rotation=0}
+\real{t=\rotation*pi/180}
+
+# Points A(0,0), B(b,0), C(0,c) transformés par la rotation
+\real{xA=0*cos(\t)-0*sin(\t)}
+\real{yA=0*sin(\t)+0*cos(\t)}
+
+\real{xB=\b*cos(\t)-0*sin(\t)}
+\real{yB=\b*sin(\t)+0*cos(\t)}
+
+\real{xC=0*cos(\t)-\c*sin(\t)}
+\real{yC=0*sin(\t)+\c*cos(\t)}
+
+%%Codage de l'angle droit
+#Vecteurs unitaires sur AB et AC
+\real{uABx=(\xB-\xA)/\b}
+\real{uABy=(\yB-\yA)/\b}
+
+\real{uACx=(\xC-\xA)/\c}
+\real{uACy=(\yC-\yA)/\c}
+
+#Taille codage
+\real{d=0.6}
+
+#Points du petit carré pour le codage
+\real{D1x=\xA+\d*\uABx}
+\real{D1y=\yA+\d*\uABy}
+
+\real{D2x=\D1x+\d*\uACx}
+\real{D2y=\D1y+\d*\uACy}
+
+\real{D3x=\xA+\d*\uACx}
+\real{D3y=\yA+\d*\uACy}
+
+%%Codages autres angles
+#Diamètre des arcs de cercle
+\real{diam=2}
+
+#arguments des vecteurs BA et BC
+\real{dxBA=\xA-\xB}
+\real{dyBA=\yA-\yB}
+
+\real{dxBC=\xC-\xB}
+\real{dyBC=\yC-\yB}
+
+# angle BA
+\if{\dxBA!=0}{
+  \real{thetaBA=atan(\dyBA/\dxBA)*180/pi}
+  \if{\dxBA<0}{\real{thetaBA=\thetaBA+180}}
+}{
+  \if{\dyBA>0}{\real{thetaBA=90}}
+  \if{\dyBA<0}{\real{thetaBA=-90}}
+}
+
+# angle BC
+\if{\dxBC!=0}{
+  \real{thetaBC=atan(\dyBC/\dxBC)*180/pi}
+  \if{\dxBC<0}{\real{thetaBC=\thetaBC+180}}
+}{
+  \if{\dyBC>0}{\real{thetaBC=90}}
+  \if{\dyBC<0}{\real{thetaBC=-90}}
+}
+
+# Rangés dans l'ordre croissant
+\real{thetaBmin=min(\thetaBA,\thetaBC)}
+\real{thetaBmax=max(\thetaBA,\thetaBC)}
+
+\if{\thetaBmax-\thetaBmin>180}{
+\real{theta_temp=\thetaBmax}  
+\real{thetaBmax=\thetaBmin} 
+\real{thetaBmin=\theta_temp}
+} 
+
+\text{angle_B=arc \xB,\yB,\diam,\diam,\thetaBmin,\thetaBmax,red}
+
+# arguments des vecteurs CA et CB
+\real{dxCA=\xA-\xC}
+\real{dyCA=\yA-\yC}
+
+\real{dxCB=\xB-\xC}
+\real{dyCB=\yB-\yC}
+
+# angle du vecteur CA
+\if{\dxCA!=0}{
+  \real{thetaCA=atan(\dyCA/\dxCA)*180/pi}
+  \if{\dxCA<0}{\real{thetaCA=\thetaCA+180}}
+}{
+  \if{\dyCA>0}{\real{thetaCA=90}}
+  \if{\dyCA<0}{\real{thetaCA=-90}}
+}
+
+# angle du vecteur CB
+\if{\dxCB!=0}{
+  \real{thetaCB=atan(\dyCB/\dxCB)*180/pi}
+  \if{\dxCB<0}{\real{thetaCB=\thetaCB+180}}
+}{
+  \if{\dyCB>0}{\real{thetaCB=90}}
+  \if{\dyCB<0}{\real{thetaCB=-90}}
+}
+
+# Rangés dans l'ordre croissant
+\real{thetaCmin=min(\thetaCA,\thetaCB)}
+\real{thetaCmax=max(\thetaCA,\thetaCB)}
+
+\if{\thetaCmax-\thetaCmin>180}{
+\real{theta_temp=\thetaCmax}  
+\real{thetaCmax=\thetaCmin} 
+\real{thetaCmin=\theta_temp}
+} 
+
+\text{angle_C=arc \xC,\yC,\diam,\diam,\thetaCmin,\thetaCmax,red}
+
+\integer{size=randint(20..30)}
+
+%% Placement des noms des sommets
+# Barycentre
+\real{Gx=(\xA+\xB+\xC)/3}
+\real{Gy=(\yA+\yB+\yC)/3}
+
+\real{d_label=0.6}
+
+\integer{correction_x=5}
+\integer{correction_y=-8}
+
+\real{vAx=\xA-\Gx}
+\real{vAy=\yA-\Gy}
+\real{normA=sqrt(\vAx*\vAx+\vAy*\vAy)}
+
+\real{Ax_label=\xA-\correction_x/\size+\d_label*\vAx/\normA}
+\real{Ay_label=\yA-\correction_y/\size+\d_label*\vAy/\normA}
+
+\real{vBx=\xB-\Gx}
+\real{vBy=\yB-\Gy}
+\real{normB=sqrt(\vBx*\vBx+\vBy*\vBy)}
+
+\real{Bx_label=\xB-\correction_x/\size+\d_label*\vBx/\normB}
+\real{By_label=\yB-\correction_y/\size+\d_label*\vBy/\normB}
+
+\real{vCx=\xC-\Gx}
+\real{vCy=\yC-\Gy}
+\real{normC=sqrt(\vCx*\vCx+\vCy*\vCy)}
+
+\real{Cx_label=\xC-\correction_x/\size+\d_label*\vCx/\normC}
+\real{Cy_label=\yC-\correction_y/\size+\d_label*\vCy/\normC}
+
+
+%% Range
+\real{xmin=min(min(\xA,\xB),\xC)-1}
+\real{xmax=max(max(\xA,\xB),\xC)+1}
+\real{ymin=min(min(\yA,\yB),\yC)-1}
+\real{ymax=max(max(\yA,\yB),\yC)+1}
+
+\integer{size_x=(\xmax-\xmin)*\size}
+\integer{size_y=(\ymax-\ymin)*\size}
+
+
+
+%% Tirage fonction trigo
+\text{fonction=cosinus,sinus,tangente}
+\integer{n_fonction=randint(3)}
+\text{fonction=\fonction[\n_fonction]}
+\text{la=le,le,la}
+\text{la=\la[\n_fonction]}
+\text{dela=du,du,de la}
+\text{dela=\dela[\n_fonction]}
+
+%% Tirage angle
+\text{angles=\B,\C}
+\integer{n_angle=randint(1..2)}
+\real{angleB=atan(\c/\b)*180/pi}
+\real{angleC=atan(\b/\c)*180/pi}
+\integer{angleBi=round(\angleB/5)*5}
+\integer{angleCi=round(\angleC/5)*5}
+\text{angle=\angles[\n_angle]}
+\text{angle2=\angle issametext \B?\C:\B}
+\if{n_angle=1}
+{
+  \integer{valangle=\angleBi}
+  \integer{valangle2=\angleCi}
+  \text{color_B=black}
+  \text{color_C=red}
+  \text{lib_angle_B=\valangle°}
+  \text{lib_angle_C=?}
+}
+{
+  \integer{valangle=\angleCi}
+  \integer{valangle2=\angleBi}
+  \text{color_B=red}
+  \text{color_C=black}
+  \text{lib_angle_B=?}
+  \text{lib_angle_C=\valangle°}
+}
+\text{angle_B=arc \xB,\yB,\diam,\diam,\thetaBmin,\thetaBmax,\color_B}
+\text{angle_C=arc \xC,\yC,\diam,\diam,\thetaCmin,\thetaCmax,\color_C}
+\real{x_texte_angle_B=\xB+0.8*\diam*cos((\thetaBmax+\thetaBmin)*pi/360)}
+\real{y_texte_angle_B=\yB+1.2*\diam*sin((\thetaBmax+\thetaBmin)*pi/360)}
+\real{x_texte_angle_C=\xC+0.6*cos((\thetaCmax+\thetaCmin)*pi/360)}
+\real{y_texte_angle_C=\yC+1.2*sin((\thetaCmax+\thetaCmin)*pi/360)}
+\text{texte_angle_B=text \color_B,\x_texte_angle_B,\y_texte_angle_B,large,\lib_angle_B}
+\text{texte_angle_C=text \color_C,\x_texte_angle_C,\y_texte_angle_C,large,\lib_angle_C}
+
+\integer{num_angle=\n_angle%2}
+
+%% \if{\num_angle=1}{\text{angle_draw=\angle_B}}
+%% \if{\num_angle=0}{\text{angle_draw=\angle_C}}
+\text{angle_draw=\angle_B;\angle_C}
+
+\if{\n_fonction=1}{
+\text{debug1=test1}
+  \if{\num_angle=0}{\text{rep=\A\C/\C\B|\C\A/\C\B|\A\C/\B\C|\C\A/\B\C}  
+                    \text{rep_feedback=\A\C/\C\B}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xC,\yC,blue}
+          \text{segment_denominateur=dsegment \xB,\yB,\xC,\yC,green}}
+  \if{\num_angle=1}{\text{rep=\A\B/\C\B|\B\A/\C\B|\A\B/\B\C|\B\A/\B\C}  
+                    \text{rep_feedback=\A\B/\C\B}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xB,\yB,blue}
+          \text{segment_denominateur=dsegment \xB,\yB,\xC,\yC,green}}
+}
+\if{\n_fonction=2}{
+\text{debug1=test1}
+  \if{\num_angle=0}{\text{rep=\A\B/\C\B|\B\A/\C\B|\A\B/\B\C|\B\A/\B\C}  
+                    \text{rep_feedback=\A\B/\C\B}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xB,\yB,blue}
+          \text{segment_denominateur=dsegment \xB,\yB,\xC,\yC,green}}
+  \if{\num_angle=1}{\text{rep=\A\C/\C\B|\C\A/\C\B|\A\C/\B\C|\C\A/\B\C}  
+                    \text{rep_feedback=\A\C/\C\B}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xC,\yC,blue}
+          \text{segment_denominateur=dsegment \xB,\yB,\xC,\yC,green}}
+}
+\if{\n_fonction=3}{
+\text{debug1=test1}
+  \if{\num_angle=0}{\text{rep=\A\B/\A\C|\B\A/\A\C|\A\B/\C\A|\B\A/\C\A}  
+                    \text{rep_feedback=\A\B/\A\C}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xB,\yB,blue}
+          \text{segment_denominateur=dsegment \xC,\yC,\xA,\yA,green}}
+  \if{\num_angle=1}{\text{rep=\A\C/\A\B|\C\A/\A\B|\A\C/\B\A|\C\A/\B\A}  
+                    \text{rep_feedback=\A\C/\A\B}  
+          \text{segment_numerateur=dsegment \xA,\yA,\xC,\yC,blue}
+          \text{segment_denominateur=dsegment \xB,\yB,\xA,\yA,green}}
+}
+
+
+
+%% Dessin
+\text{dessin_triangle=draw(\size_x,\size_y
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+triangle \xA,\yA,\xB,\yB,\xC,\yC,black
+polyline darkred, \D1x,\D1y,\D2x,\D2y,\D3x,\D3y
+text black, \Ax_label,\Ay_label,giant,\A
+text black, \Bx_label,\By_label,giant,\B
+text black, \Cx_label,\Cy_label,giant,\C
+\angle_draw
+\texte_angle_B
+\texte_angle_C
+)}
+
+
+%% Dessin correction (avec angle demandé)
+
+\text{dessin_triangle_corr=draw(\size_x,\size_y
+xrange \xmin,\xmax
+yrange \ymin,\ymax
+triangle \xA,\yA,\xB,\yB,\xC,\yC,black
+polyline darkred, \D1x,\D1y,\D2x,\D2y,\D3x,\D3y
+text black, \Ax_label,\Ay_label,giant,\A
+text black, \Bx_label,\By_label,giant,\B
+text black, \Cx_label,\Cy_label,giant,\C
+linewidth 2
+\angle_draw
+\segment_numerateur
+\segment_denominateur
+)}
+
+
+
+%% Préparation feedback
+
+\if{\n_fonction=1}{
+\text{formule=\({\text{côté adjacent}}/{\text{hypoténuse}})}
+\text{cote1=le côté adjacent}
+\text{cote2=l'hypoténuse}
+}
+\if{\n_fonction=2}{\text{formule=\({\text{côté opposé}}/{\text{hypoténuse}})}
+\text{cote1=le côté opposé}
+\text{cote2=l'hypoténuse}
+}
+\if{\n_fonction=3}{\text{formule=\({\text{côté opposé}}/{\text{côté adjacent}})}
+\text{cote1=le côté opposé}
+\text{cote2=son côté adjacent}
+}
+
+
+\text{enonce=
+Dans le triangle \(\triangle\)&#44; rectangle en \(\A\)&#44; on sait que \(\widehat{\angle}\) = \valangle°. Calculer \(\widehat{\angle2}\).
+<div class="wimscenter"><img src="\dessin_triangle" alt=""></div>
+
+}
+\text{enonceb=°}
+
+\text{rep=\valangle2}
+\text{typerep=numeric}
+
+\text{feedback=La bonne réponse est \valangle2°. <br>En effet comme la somme des angles d'un triangle vaut 180°&nbsp;&#58; 
+<ul class="wims_nopuce"><li>
+\(\widehat{\angle2}\) + \(\widehat{\angle}\) + \(\widehat{\A}\) = 180°</li><li>
+\(\widehat{\angle2}\) + \(\widehat{\angle}\) + 90° = 180°</li><li>
+\(\widehat{\angle2}\) + \(\widehat{\angle}\) = 90°</li><li>
+\(\widehat{\angle2}\) = 90° - \(\widehat{\angle}\)</li><li>
+\(\widehat{\angle2}\) = 90° - \valangle°</li><li>
+\(\widehat{\angle2}\) = \valangle2°</li><li>
+</ul>
+}

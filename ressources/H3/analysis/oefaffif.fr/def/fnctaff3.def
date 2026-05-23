@@ -1,0 +1,226 @@
+!set title=Trouver la formule (guidé 1) 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_it=Trova l'equazione (guidato 1) 
+
+ansorder=r,r,r,r
+varcnt=34
+prevarcnt=33
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=L'image par, de, est
+val8=est une fonction affine telle que l'image de,	  est, et l'image de, est
+val9=Le but est de trouver l'expression de la fonction,	  La fonction est affine, il faut donc trouver deux nombres \(a\) et	  \(b\) tels que,pour tous nombres
+val10=Vous pouvez vous aider de la solveuse	  en cliquant sur son lien en bas de cette page.
+val11=Pour résoudre cet exercice, répondez aux questions suivantes
+val12=et
+val13=Question,Votre réponse,Traduire la phrase,	  par une équation faisant intervenir
+val14=L'image par, de, est
+val15=Résoudre le système d'équations d'inconnues \(a\) et \(b\)	  formé par les deux équations des questions précédentes.
+val16=Première équation,Deuxième équation
+!if $val6=it 
+val7=L'immagine tramite,di,è
+val8=è una funzione affine tale che l'immagine di,	  è, e l'immagine di, è
+val9=L'obiettivo è trovare l'espressione della funzione,	  La funzione è affine, si devono quindi trovare due numeri \(a\) e	  \(b\) tali che,per ogni numero
+val10=Puoi utilizzare la calcolatrice cliccando sul link in	  fondo a questa pagina.
+val11=Per risolvere questo esercizio, rispondi alle domande seguenti
+val12=e
+val13=Domanda,La tua risposta,Traduci la frase,	  in una equazione che coinvolge
+val14=L'immagine tramite, di, è
+val15=Risolvi il sistema di equazioni, di incognite \(a\)	  e \(b\), formato dalle due equazioni precedenti.
+val16=Prima equazione,Seconda equazione
+!endif
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val17=$(tmp0)
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 7
+
+val18=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem -1,1
+
+tmp1=!randint 1, 7
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!values v,-v for v=1 to 10
+
+val20=$(tmp0)
+tmp0=!shuffle $val20
+
+val20=$(tmp0)
+val21=$[rint($(val20[1]))]
+val22=$[rint($(val20[2]))]
+val23=!rawmath $val18*(x)+($val19)
+evaltmp=$val23
+
+evaltmp=!mathsubst x=($val21) in $evaltmp
+tmp0=($evaltmp)
+val24=$[rint($(tmp0))]
+evaltmp=$val23
+
+evaltmp=!mathsubst x=($val22) in $evaltmp
+tmp0=($evaltmp)
+val25=$[rint($(tmp0))]
+val26=$val24=$val21*a+b
+val27=$val25=$val22*a+b
+oefsteps=r1	r2	r3,r4 
+nextstep=!nosubst r1	r2	r3,r4 
+!readproc oef/steps.proc
+replytype1=auto
+
+replyname1=$(val16[1])
+replygood1=$val26
+replytype2=auto
+
+replyname2=$(val16[2])
+replygood2=$val27
+replytype3=auto
+
+replyname3=a
+replygood3=$val18
+replytype4=auto
+
+replyname4=b
+replygood4=$val19
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath $val17
+$() $(val8[1]) 
+!insmath $val21
+$() $(val8[2]) 
+!insmath $val24
+$()	  $(val8[3]) 
+!insmath $val22
+$() $(val8[4]) 
+!insmath $val25
+$().	<p>$(val9[1]) 
+!insmath $val17
+$(). $(val9[2]), $(val9[3])	  
+!insmath $val17(x)=a x+b
+$() $(val9[4]) 
+!insmath x
+$(). </p>	$val11.	<div class="spacer">	<strong>$(val13[1]) 1</strong> : $(val13[3])	<div class="wimscenter" style="font-style:italic">	$(val14[1]) 
+!insmath $val17
+$() $(val14[2]) 
+!insmath $val21
+$() $(val14[3])	  
+!insmath $val24
+$().</div>	$(val13[4]) 
+!insmath a
+$() $val12 
+!insmath b
+$().</div>	<div>$(val13[2]) :	
+!if $m_step=1 
+$()	 
+!read oef/embed.phtml r1 
+$()</div>	 
+!else
+$() 	
+!insmath \special{color=green}$val26
+$().	</div>	<strong>$(val13[1]) 2</strong> : $(val13[3])	<div class="wimscenter" style="font-style:italic">	$(val14[1]) 
+!insmath $val17
+$() $(val14[2]) 
+!insmath $val22
+$() $(val14[3])	
+!insmath $val25
+$().</div>	$(val13[4]) 
+!insmath a
+$() $val12 
+!insmath b
+$().	<div>$(val13[2]) :	
+!if $m_step=2 
+$() 
+!read oef/embed.phtml r2 
+$()</div>	 
+!else
+$() 	
+!if $m_step=3 
+$()	
+!insmath \special{color=green}$val27
+$().</div>	<strong>$(val13[1]) 3</strong> :	$val15	<div class="wims_instruction">$val10</div>	<div class="wimscenter">
+!insmath a=
+$() 
+!read oef/embed.phtml r3 
+$()<br/>	<label for="reply4">
+!insmath b=
+$()</label> 
+!read oef/embed.phtml r4 
+$()	</div>	 
+!endif
+$() 
+!endif
+$() 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,15,17,21,22,24,25,26,27
+embedcnt=4

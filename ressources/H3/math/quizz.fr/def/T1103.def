@@ -1,0 +1,128 @@
+!set title=Question T1103 Développer et simplifier
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Cyrille,Douriez
+email=cyrille.douriez@ac-amiens.fr
+keywords=mental_calculation,literal_calculation
+oefobservation=Course 1er Technologique. Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<ul class="wims_nopuce"><li><img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong></li>	<li><u>Aide à la saisie : </u>saisir 1.25 pour 1,25, saisir 3/4 pour \(3/4\), saisir 2^3 pour \(2^3) et saisir sqrt(3) pour \(\sqrt{ 3}\).</li></ul>
+val7=Félicitations toutes les réponses sont justes !
+val8=$[rint(10)]
+tmp0=!shuffle 2,3,5
+
+val9=$(tmp0)
+val10=$[rint($(val9[1]))]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11<0 
+val12= 
+!else
+val12= +
+!endif
+val13=$[rint($(val9[2]))]
+tmp0=!randitem a,x,y,n,b,m,p
+
+val14=$(tmp0)
+t_=!replace internal \( by ( in expand(($val10*$val14+$val11)*($val13*$val14+$val10))
+tmp0=!exec maxima $t_
+
+val15=$(tmp0)
+
+!ifval $val11<0
+val16=($val11)
+!else
+val16=$val11
+!endif
+val17=$val15 
+val18=Développe et simplifie : \( ($val10 $val14 $val12 $val11)($val13 $val14 +$val10)={} \) 
+val19=
+val20=Rappel : \( ($val10 $val14+$val16)($val13 $val14+$val10){}\)	<br>\({}=$val10 \times $val13 $val14^2+$val10 \times $val10 \times $val14+$val16 \times $val13 \times $val14+$val16 \times$val10 \). <br>Il suffit de réduire.
+val8=$[rint(10)]
+val21=\begin{enumerate}
+val21=$val21 \end{enumerate}
+replytype1=algexp
+replyoption1=comma default=0 
+replyname1=
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val21 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val18  
+!read oef/embed.phtml r1,$val8	    autofocus 
+$() $val19	  </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val21 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val20!=)
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val20</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,8,18,19,20,21
+embedcnt=1

@@ -1,0 +1,1 @@
+#include "langjsx_fr.inc"

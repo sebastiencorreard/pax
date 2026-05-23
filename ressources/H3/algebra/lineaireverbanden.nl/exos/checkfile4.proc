@@ -1,0 +1,151 @@
+# answer: fun
+# reply :formule,(x1:y1),(x2:y2)
+# var8 = $ylabel,$xlabel
+# var9 = plaatje in canvasdraw script
+goback=0
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    object$n=!exec canvasdraw\
+    $var9\
+    bgcolor orange\
+    linewidth 3\
+    plot green,$(answer$n)
+    
+    !exit
+!endif
+reply$n=!nospace $(reply$n)
+reply$n=!lower $(reply$n)
+
+fun_a=!item 1 of $(reply$n)
+fun_a=!lower $fun_a
+fun_a=!replace internal = by , in $fun_a
+fun1=!item 1 of $fun_a
+fun2=!item 2 of $fun_a
+var8=!lower $var8
+ylabel=!item 1 of $var8
+xlabel=!item 2 of $var8
+
+check=1
+!if $ylabel isin $fun1
+    # inkomsten = 4*tijd - 3
+    fun=!replace internal $xlabel by x in $fun2
+!else
+    !if $ylabel isin $fun2
+	fun=!replace internal $xlabel by x in $fun1
+    !else
+	check=0
+    !endif
+!endif
+fun=!rawmath $fun
+# de formule
+yg1=!evalsubst x=0 in $(answer$n)
+yg2=!evalsubst x=100 in $(answer$n)
+score1=0
+score2=0
+score3=0
+score4=0
+k1=red
+!if $check=0
+    fun_a=$fun_a&nbsp;? hmmmmm...
+!else
+    ya1=!evalsubst x=0 in $fun
+    ya2=!evalsubst x=100 in $fun
+    !if $[abs($ya1 - $yg1)] <  0.01
+	!if $[abs($ya2 - $yg2)] <  0.01
+	    score1=1
+	    k1=green
+	    # lijn is ok
+	!endif
+    !endif
+!endif
+
+# getekende punten in de html5 applet
+pt1=!item 2 of $(reply$n)
+pt2=!item 3 of $(reply$n)
+pt1=!declosing $pt1
+pt2=!declosing $pt2
+pt1=!replace internal : by , in $pt1
+pt2=!replace internal : by , in $pt2
+xa1=!item 1 of $pt1
+ya1=!item 2 of $pt1
+xa2=!item 1 of $pt2
+ya2=!item 2 of $pt2
+# de x-waarde in de correcte formule...
+yc1=!evalsubst x=$xa1 in $(answer$n)
+yc2=!evalsubst x=$xa2 in $(answer$n)
+
+!if $[abs($ya1 - $yc1)] < 0.1
+    score2=1
+    k2=green
+!else
+    !if $[abs($ya1 - $yc1)] < 0.5
+	score2=0.7
+	k2=orange
+    !else
+	!if $[abs($ya1 - $yc1)] < 1
+	    score2=0.3
+	    k2=orange
+	!else
+	    k2=red
+	!endif
+    !endif
+!endif
+
+!if $[abs($ya2 - $yc2)] < 0.1
+    score3=1
+    k3=green
+!else
+    !if $[abs($ya2 - $yc2)] < 0.5
+	score3=0.7
+	k3=orange
+    !else
+	!if $[abs($ya2 - $yc2)] < 1
+	    score3=0.3
+	    k3=orange
+	!else
+	    k3=red
+	!endif
+    !endif
+!endif
+
+!if $[$score2+$score3]>1
+    score4=1
+!endif
+math=0
+maxscore=$[$maxscore*(7*$score1 + $score2 + $score3 + $score4)/10]
+
+!if $maxscore > 0.8
+    remark$n=$OK
+    k4=green
+!else
+    !if $maxscore>0.4
+	remark$n=$BOK
+	k4=orange
+    !else
+	remark$n=$NOK
+	k4=red
+    !endif
+!endif
+
+reply$n=$(reply$n)<ul><li><span style="color:$k1">$fun1 =  $fun2</span></li><li><span style="color:$k2">($xa1 : $ya1)</span></li><li><span style="color:$k3">($xa2 : $ya2)</span></li></ul>
+
+modulescore=$[$modulescore + $maxscore]
+!if $check=0
+    ya1=1000
+    ya2=1000
+!endif
+
+object$n=!exec canvasdraw\
+$var9\
+linewidth 3\
+plot $k4,$fun\
+plot green,$(answer$n)\
+points $k4,$xa1,$ya1,$xa2,$ya2
+
+goback=0
+!exit

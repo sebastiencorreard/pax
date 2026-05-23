@@ -1,0 +1,172 @@
+!! fichier de gestion de l'action multipier
+<u><b>Diviser/Multiplier :</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+!if $nbreesscalc=0
+   !formselect repexo1 list 2,1 prompt Je divise,Je multiplie
+   les contenus des deux plateaux
+   !if $mode=2
+      !formselect repexo2 from 1 to 2
+   !endif
+   par <input type=text autocomplete=off name=repexo3 size=5 value=$repexo3 >.
+!else
+   !let tmp=!item $repexo1 of Je multiplie,Je divise
+   $tmp les contenus des deux plateaux par \($repexo3).
+!endif
+!if $nocalcul!=1
+   !read calcligne.phtml question
+!endif
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:reponse
+<p>
+   <blockquote>
+  !if $erreur!=calcul
+    <font color=red><p>$erreur .</p></font>
+    <p>vous pouvez:</p>
+    <ul>
+    <li>
+    !href cmd=resume&status=2 saisir
+    une autre multiplication ou une autre division.
+    </li>
+    <li>
+    !href cmd=resume&status=1 retourner
+    au menu général.
+    </li>
+    </ul>
+!else
+   <p>$(comment$[$nbetape+1])</p>
+   !read erreurcalc.phtml
+!endif
+</blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!if $repexo1=$empty or $repexo3=$empty or ($repexo2=$empty and $mode=2)
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validité de l'expression donnée.
+i=0
+replygood0=0
+test=$empty
+reply0=$repexo3
+!read anstype/numeric
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $repexo3=0
+   erreur=On ne peut pas multiplier ou diviser par zéro.<br>(Multiplier par zéro n'a pas de sens ici et diviser par zéero n'a <b>jamais</b> de sens !)
+   !increase nbreerrrais
+   !exit
+!endif
+!readproc script/rightexpression.proc $repexo3
+!if $erreur!=$empty
+ status=2
+ !exit
+!endif
+!bound repexo1 within 1,2 default 1
+!bound repexo2 within 1,2 default 1
+!readproc script/testnbdec.proc $repexo3
+!if $erreur!=$empty
+ erreur=Il n'est pas utile d'utiliser des nombres d&eacute;cimaux.
+ status=2
+ !exit
+!endif
+!!!il y a encore un test ci-dessous (le coef devant "x" est-il encore entier ?)
+!! ------------- calcul de la nouvelle equation/inequation
+!if $evitecalc=0
+   !!evitecalc=1
+   !if $mode!=2 
+      repexo2=1
+   !endif
+   tmp=!line $repexo2 of $(sys$nbetape)
+   tmp0=!item $repexo1 of *,/
+   tmp5=!rawmath $repexo3
+   tmp1=!exec maxima ($(tmp[1]))$tmp0($tmp5);\
+($(tmp[3]))$tmp0($tmp5);
+   t=!lines2items $tmp1
+   !readproc script/testnbdec.proc $t
+   !if $erreur!=$empty
+    !reset erreur
+    !readproc script/transfofrac.proc $tmp
+    tmp1=$sortie
+    !readproc script/transfofrac.proc $tmp5
+    tmp1=!exec maxima ($(tmp1[1]))$tmp0($sortie);\
+($(tmp1[3]))$tmp0($sortie);
+   !endif
+   tmp2=!item 2 of $tmp
+   !if $tmp2!=1 and $repexo3<0
+      tmp2=!item $tmp2 of 1,3,2,5,4
+   !endif
+   !distribute lines $tmp1 into tmp1,tmp3
+!!!test validité!!!
+coef=!exec pari deriv($tmp1,$listinc)
+coeff=!exec pari floor($coef)
+coef2=!exec pari deriv($tmp3,$listinc)
+coeff2=!exec pari floor($coef2)
+!if $coef<>$coeff or $coef2<>$coeff2
+   mot=!item $repexo1 of multiplication,division
+   erreur=Cette $mot n'a pas de sens ici.
+   !increase nbreerrrais
+   !exit
+!endif
+
+   tmp4=$tmp1,$tmp2,$tmp3
+   sys$[$nbetape+1]=!replace line number $repexo2 by $tmp4 in $(sys$nbetape)
+val40=$sys1
+!endif
+
+!! --------------- construction de la phrase de commentaire
+!let tmp=!item $repexo1 of Je multiplie,Je divise
+!if $mode=2
+   tmp1=$repexo2
+!else
+   tmp1=$empty
+!endif
+t=!texmath $tmp5
+penche$[$nbetape+1]=0
+comment$[$nbetape+1]=$tmp les contenus des plateaux de la balance par \($t).<br> J'obtiens :
+
+!! ------------ verification de l'exactitude des calculs
+!if $nocalcul!=1
+!if $mode!=2 
+   repexo2=1
+!endif
+!if $mode<3
+   repexo5=1
+!endif
+tmp1=!line $repexo2 of $(sys$[$nbetape+1])
+repexo4=!rawmath $repexo4
+repexo6=!rawmath $repexo6
+!read verifequ.calc $tmp1,$repexo4,$repexo5,$repexo6
+!if NaN isin $test  
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $test!=$empty
+   erreur=$test
+   !exit
+!endif
+!if $mode=2
+   !replace line number $repexo2 of $(sys$[$nbetape+1]) by $repexo4,$repexo5,$repexo6
+!else
+   sys$[$nbetape+1]=$repexo4,$repexo5,$repexo6
+!endif
+!endif
+!increase nbetape
+status=1
+evitecalc=0

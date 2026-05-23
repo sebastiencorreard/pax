@@ -1,0 +1,241 @@
+type=classify
+textarea="data instruction"
+iEdit="instruction"
+:Classer les objets selon leurs propriétés dans un tableau.
+
+On présente une liste d'objets et une liste d'attributs (propriétés). Il faut remplir
+un tableau selon que les objets vérifient ou non les propriétés en cochant ou non dans la case.
+
+<p>
+Pour construire un exercice avec ce modèle, il suffit d'entrer la liste
+des attributs et une liste d'objets en indiquant s'ils vérifient ou non
+les propriétés dans le même ordre que les attributs (avec un 0 ou un 1)
+</p><p>
+Cet exercice peut facilement être transformé pour être inclus dans un module OEF
+si l'on désire mettre les données dans un fichier auxiliaire.
+</p><p class="wims_credits">
+  Auteur du modèle : <a href="mailto:bernadette.m.riou@orange.fr">Bernadette Perrin-Riou</a></p>
+
+:%%%%%%%%%%%%%%%%%      ATTENTION      %%%%%%%%%%%%%%%%%%%%
+
+Enlevez l'en-tête ci-dessus si vous détruisez les balises pour le modèle !
+(Ce sont les lignes qui commencent par un ':'.)
+Sinon l'exercice risque de ne pas pouvoir repasser sous Createxo.
+
+:%%%%%%%% Paramètres d'exemples à redéfinir %%%%%%%%%%%%%%%%%
+
+:\title{Localisation des villes dans leur &#34; Land &#34; &#40;région&#41;}
+:\author{Carré, Delafraye}
+:\email{josiane-an.carre@ac-amiens.fr}
+:\credits{}
+
+\integer{confparm1= items(\confparm1)=0 ? random(1..4):\confparm1}
+
+:Instruction
+
+\text{instruction=Dans quelle région (Land) se trouvent ces villes &#63; Cochez les bonnes réponses !}
+
+:Nombre d'objets tirés au sort
+
+\integer{N=3*\confparm1}
+
+:Nom du fichier
+ne remplir que si vous désirez utiliser un fichier de données (dans un module OEF).
+\text{file=}
+du type
+<pre>
+ poils,plumes,quatre pattes,ailes
+ :pie,0,1,0,1
+ :boeuf,1,0,1,0
+</pre>
+Dans ce cas, les données suivantes ne seront pas prises en compte.
+Sinon, remplissez les données.
+
+:Liste des attributs
+
+\text{attribut=Bayern,Nordrhein-Westfalen,Baden-Württemberg}
+
+:Données une ligne par objet.
+\text{data=Nürnberg,1,0,0
+München,1,0,0
+Ingolstadt,1,0,0
+Augsburg,1,0,0
+Bayreuth,1,0,0
+Bonn,0,1,0
+Köln,0,1,0
+Düsseldorf,0,1,0
+Essen,0,1,0
+Aachen,0,1,0
+Stuttgart,0,0,1
+Freiburg,0,0,1
+Ulm,0,0,1
+Heidelberg,0,0,1
+Karlsruhe,0,0,1}
+
+:Texte ou images pour indiquer une bonne ou mauvaise réponse
+<p>Par défaut, des images apparaissent pour indiquer les bonnes/mauvaises réponses.</p>
+<p>À la place, vous pouvez tapez ici 2 textes, séparés par une virgule, qui appraitront
+(le premier pour les bonnes réponses, le second pour les mauvaises)</p>
+<p>Exemple : <span class="wims_code_words">Bravo !, À revoir...</span></p>
+<p>nb : vous pouvez aussi ne mettre qu'un seul élément</p>
+\text{nonoui=}
+
+:%%%%%%%%%%%%%% Rien à modifier avant l'énoncé %%%%%%%%%%%%%%%%
+\text{name_feedback=Ligne(s) du tableau non remplie(s) correctement}
+\text{size=50,50}
+\integer{w=\size[1]+10}
+\css{<style>
+  .big_check{text-align: center}
+  .cross{color:black; font-size:20pt;}
+  @supports (zoom:2){
+    .big_check>input{zoom: 1.4;}
+  }
+  @supports not (zoom:2){
+    .big_check>input{transform: scale(1.4);}
+  }
+  .big_check>label{color:transparent;width:1px;height:1px;position: absolute;}
+</style>}
+\text{nonoui=\nonoui issametext ? <img src="scripts/authors/jm.evers/gifs/ok.gif" width="15" alt="Bonne réponse"/>,<img src="scripts/authors/jm.evers/gifs/nok.gif" width="15" alt="Mauvaise réponse"/>}
+\if{\file notsametext}{
+  \text{file=randitem(\file)}
+  \text{attribut=wims(record 0 of \file)}
+  \integer{datacnt=wims(recordcnt \file)}
+  \integer{N=min(\N,\datacnt)}
+  \text{choix=shuffle(\datacnt)}
+  \text{choix=\choix[1..\N]}
+  \text{data=}
+  \for{s in \choix}{
+    \text{data=\data
+wims(record \s of \file)}
+  }
+  \matrix{data=\data}
+  \text{data=wims(replace internal ;; by ; in \data)}
+}{
+  \text{objet_cnt=rows(\data)}
+  \integer{N=min(\N,\objet_cnt)}
+  \text{bat=shuffle(\objet_cnt)}
+  \text{bat=\bat[1..\N]}
+  \matrix{data=\data}
+  \matrix{data=\data[\bat;]}
+}
+\integer{attribut_cnt=items(\attribut)}
+\text{Data=}
+\text{R=}
+\for{u=1 to \N}{
+  \for{v=2 to \attribut_cnt+1}{
+    \integer{uu=(\u-1)*\attribut_cnt + \v -1}
+    \text{Data=\data[\u;\v]=1? wims(append item \uu to \Data)}
+  }
+}
+\text{C=wims(makelist x for x=1 to \N*\attribut_cnt)}
+\text{C1=wims(makelist x for x=1 to \N*\attribut_cnt)}
+\text{nstep=r1}
+\nextstep{\nstep}
+\text{tab=wims(makelist c for x=1 to \attribut_cnt+1)}
+\text{tab=wims(replace internal , by | in |\tab|)}
+\text{latexsrc=\begin{tabular}{\tab}\hline}
+\for{lk=1 to \attribut_cnt}{
+  \text{latexsrc=\latexsrc&\attribut[\lk]}
+}
+\text{latexsrc=\latexsrc \\\hline}
+\text{latexsol=\latexsrc}
+\for{jl=1 to \N}{
+  \text{latexsrc=\latexsrc
+  \data[\jl;1]}
+  \text{latexsol=\latexsol
+  \data[\jl;1]}
+  \for{kl=1 to \attribut_cnt}{
+    \integer{lkk=(\jl-1)*\attribut_cnt + \kl}
+    \text{latexsrc=\latexsrc &}
+    \text{latexsol=\latexsol &}
+    \if{\lkk isitemof \Data}{\text{latexsol=\latexsol \(\times\) }}
+  }
+  \text{latexsrc=\latexsrc \\\hline}
+  \text{latexsol=\latexsol \\\hline}
+}
+\text{latexsrc=\latexsrc
+\end{tabular}}
+\text{latexsol=\latexsol
+\end{tabular}}
+
+\text{presentgood=}
+\statement{
+<div class="wims_question">\instruction</div>
+  <table class="wimstable">
+    <thead>
+    <tr>
+      <td></td>
+      \for{k=1 to \attribut_cnt}{<th scope="col">\attribut[\k]</th>}
+    </tr>
+    </thead>
+    <tbody>
+    \for{j=1 to \N}{
+      <tr>
+        <th scope="row">\data[\j;1]</th>
+        \for{k=1 to \attribut_cnt}{
+          \if{\step=1}{
+            <td class="big_check">\embed{r1,\C[(\attribut_cnt)*(\j-1)+\k]}</td>
+          }{
+            <td class="big_check">\C[(\attribut_cnt)*(\j-1)+\k]</td>
+          }
+        }
+      </tr>
+    }
+    </tbody>
+  </table>
+}
+
+\answer{}{\Data;\C1}{type=checkbox}{option=split noanalyzeprint nonstop}
+\text{presentgood=slib(oef/env presentgood)}
+\text{nstep=}
+\text{C=}
+\if{\presentgood=0}{
+  \text{feedbackbon=}
+  \text{feedbackfaux=}
+}
+{
+  \text{feedbackbon=<span class="oef_indgood">\nonoui[1]</span>}
+  \text{feedbackfaux=<span class="oef_indbad">\nonoui[2]</span>}
+}
+\text{croix=<span class="cross">&#9745;</span>}
+\text{nocroix=<span class="cross">&#9744;</span>}
+\text{lignef=}
+\for{u=1 to \N}{
+  \for{v=2 to \attribut_cnt+1}{
+    \integer{uu=(\u-1)*\attribut_cnt + \v -1}
+    \text{C=\uu isitemof \reply1 and \uu isitemof \Data ? wims(append item \croix \feedbackbon to \C)}
+    \if{\uu isitemof \reply1 and \uu notitemof \Data}{
+      \text{C= wims(append item \croix \feedbackfaux to \C)}
+      \text{lignef=wims(append item \u to \lignef)}
+      }
+      {\if{\uu notitemof \reply1 and \uu isitemof \Data}{
+         \text{C= wims(append item \nocroix \feedbackfaux to \C)}
+         \text{lignef=wims(append item \u to \lignef)}
+         }
+      }
+    \text{C=\uu notitemof \reply1 and \uu notitemof \Data ? wims(append item \nocroix \feedbackbon to \C)}
+  }
+}
+
+\feedback{\presentgood>0}{\nonoui[1] : votre réponse est correcte, \nonoui[2] : votre réponse n'est pas correcte.
+}
+\text{lignef=wims(listuniq \lignef)}
+\integer{nblignef=items(\lignef)}
+\feedback{\presentgood=0 and \nblignef>0}{
+  <div class="feedback oef_indbad">
+  \name_feedback : \lignef.
+  </div>
+}
+
+\latex{
+\begin{statement}
+\instruction
+\newline
+\latexsrc
+\end{statement}
+\begin{solution}\
+\begin{center}
+\latexsol
+\end{center}
+\end{solution}
+}

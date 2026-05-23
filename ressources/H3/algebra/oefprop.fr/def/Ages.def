@@ -1,0 +1,140 @@
+!set title=Âges
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO Dingyu
+email=xiao@unice.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Leeftijden
+
+ansorder=r
+varcnt=25
+prevarcnt=24
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=XXXX et YYYY ont ZZZZ ans à eux deux. Sachant que l'âge de	  YYYY est TTTT celui de XXXX, quel est l'âge de XXXX&nbsp;
+val8=Âge de
+val9=le double de,le triple de,quatre fois,la moitié de,le tiers de
+!if $val6=nl 
+val7=XXXX en YYYY zijn samen ZZZZ jaar oud. Als bekend is dat de leeftijd van	YYYY die van XXXX wat is dan de leeftijd van XXXX
+val8=De leeftijd van
+val9=twee keer, drie keer,vier keer,de helft van,een derde van
+!endif
+val10=Maurice, Christophe, Laure, Carine, Michel, Céline, Joseph,	Nicolas, Renaud, Lucas, Marie, Claire, Suzanne, Henri
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!item 2 of $val10
+
+val12=$(tmp0)
+tmp=!trim $(val9[1]), 3, 1	$(val9[2]), 4, 1	$(val9[3]), 5, 1	$(val9[4]), 3, 2	$(val9[5]), 4, 3
+val13=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val13
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val14=$(tmp0)
+tmp0=!item 1 of $val14
+
+val15=$(tmp0)
+tmp0=!item 2 of $val14
+
+val16=$[rint($(tmp0))]
+tmp0=!item 3 of $val14
+
+val17=$[rint($(tmp0))]
+tmp0=!randint 5, 30
+
+val18=$[rint($(tmp0))]
+val19=$[rint($val18*$val16)]
+val20=$[rint($val18*$val17)]
+val21=$val7
+tmp0=!replace internal XXXX by $val11 in $val21
+
+val21=$(tmp0)
+tmp0=!replace internal YYYY by $val12 in $val21
+
+val21=$(tmp0)
+tmp0=!replace internal ZZZZ by $val19 in $val21
+
+val21=$(tmp0)
+tmp0=!replace internal TTTT by $val15 in $val21
+
+val21=$(tmp0)
+replytype1=default
+replyname1=$val8 $val11
+replygood1=$val20
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val21?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=21
+embedcnt=0

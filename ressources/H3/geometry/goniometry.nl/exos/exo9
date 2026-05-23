@@ -1,0 +1,58 @@
+n=$counter
+math=0
+mathview=0
+make_tr=1
+checkfile=$checkdir/multiplechoice.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=1
+multiimage=1
+draw=0
+plot=1
+image=0
+answer$n=!randint 1,$options
+!if $R=1
+    begin=0
+    beginrad=0
+    uur=3
+    variatie=!shuffle pi,pi/3,pi/4,2*pi/5,3*pi/5,2*pi/3,pi/5,pi/2
+!endif
+!if $R>1
+    # geen !else ivm uitlezen voor lang/modules.nl.phtml
+    aantal_beeldjes=10
+    #k=30:2,60:1,90:12,120:11,150:10,180:9,210:8,240:7,270:6,300:5,330:4
+    k=30:2:pi/6,60:1:pi/3,90:12:pi/2,120:11:2*pi/3,150:10:5*pi/6,180:9:pi,210:8:7*pi/6,240:7:4*pi/3,270:6:3*pi/2,300:5:5*pi/3,330:4:11*pi/6
+    k=!randitem $k
+    k=!replace internal : by , in $k
+    begin=!item 1 of $k
+    uur=!item 2 of $k 
+    beginrad=!item 3 of $k
+    answer$n=!randint 1,$options
+    variatie=!shuffle pi,pi/2,pi/3,pi/4,pi/5,pi/6,pi/7,2*pi/7,3*pi/4,4*pi/5
+!endif
+
+thistext=!record 64 of lang/remarks.$taal
+sometext=!item 1 of $thistext
+xtext=!item 2 of $thistext
+ytext=!item 3 of $thistext
+
+ss=!record 65 of lang/remarks.$taal
+textanswer$n=!record 66 of lang/remarks.$taal
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/cirkel.gif\' alt=\'noalt\' />')">$ss</a>
+
+!for p=1 to $options
+    image_settings$n=size 1.0,0.4;xtics ("0" 0 , "30" pi/6 , "60" pi/3, "90" pi/2 , "120" 2*pi/3 , "150" 5*pi/6 ,"180" pi,"210" 7*pi/6 , "240" 4*pi/3 , "270" 3*pi/2 , "300" 5*pi/3 , "330" 11*pi/6 , "360" 2*pi , "390" 13*pi/6 , "420" 7*pi/3 , "450" 5*pi/2, "480" 8*pi/3 , "510" 17*pi/6 , "540" 3*pi ,"570" 19*pi/6,"600" 10*pi/3 , "630" 7*pi/2 , "660" 11*pi/3 , "690" 23*pi/6 , "720" 4*pi) ;grid ;xlabel "$xtext" ;ylabel "$ytext"
+    # noborder ; zeroaxis linetype 3 ; tmargin 1 ; rmargin 1 ; grid ; xtics 0,0.5*pi,2*pi ytics mxtics 
+    !if $p=$(answer$n)
+	ex$p=[$beginrad:$[2*pi+$beginrad]] sin(x) notitle
+	image$n=$(ex$p)
+    !else
+	dx=!item $p of $variatie
+	ex$p=[$beginrad:$[2*pi+$beginrad]] sin(x+$dx) notitle
+    !endif
+!next p
+
+!exit

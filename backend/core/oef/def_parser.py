@@ -142,9 +142,6 @@ _CHOICE_PREFIXES = (
     "choiceweight",
 )
 
-_VAL_BOILERPLATE_RE = re.compile(r"^val[1-5]$", re.IGNORECASE)
-
-
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
@@ -280,8 +277,6 @@ def _parse_main(lines: list[str]):
             help_text = val
         elif key == "solution":
             solution = val
-        elif _VAL_BOILERPLATE_RE.match(key):
-            pass  # skip val1-val5 (WIMS session variables)
         elif any(key.startswith(p) for p in _REPLY_PREFIXES):
             _collect_indexed_field(reply_fields, key, val, _REPLY_PREFIXES)
         elif any(key.startswith(p) for p in _CHOICE_PREFIXES):

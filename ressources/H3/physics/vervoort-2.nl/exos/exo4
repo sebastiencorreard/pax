@@ -1,0 +1,114 @@
+#hfst1
+#exo4(hfst1) Staartdeling [ruitjes papier]
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+questiontype=0
+n=$counter
+calculator=0
+math=0
+mathview=0
+inputs=-1
+checkfile=exos/invulgrid2.proc
+embed=0
+make_tr=1
+keuze=!randint 1,2
+!if $keuze=1
+    noemer=!randitem 4,8,12,16,20,24,28,32,36
+    c=!randitem 0.25,0.75
+    cc=!randint 3,9
+!else
+    noemer=!randitem 20,40,60,80
+    c=!randitem 0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95
+    cc=!randint 2,18
+!endif
+finans=$[$c + $cc]
+teller=$[$noemer*$finans]
+answer$n=$noemer/$teller\$finans
+ans=!replace internal . by , in $finans
+a1=!item 1 of $ans
+a2=!item 2 of $ans
+
+t1=!charcnt $a1
+!for p=1 to $t1
+    C=!char $p of $a1
+    answer$n=!append item $[$noemer*$C] to $(answer$n)
+!next p
+
+t2=!charcnt $a2
+!for p=1 to $t2
+    C=!char $p of $a2
+    answer$n=!append item $[$noemer*$C*10^(0)] to $(answer$n)
+!next p
+
+
+## latex ##################
+
+show=$ \begin{array}{cclcc} $noemer & \diagup & $teller & \diagdown & $finans $
+t=!charcnt $finans
+c=1
+#som
+!if . isin $finans
+    break=!positionof char . in $finans
+!else
+    break=$[$t+20]
+!endif
+m=!charcnt $teller
+space1=$empty
+space2=$empty
+!for p=1 to $t
+    !if $p != $break
+	a1=!char $p of $finans
+	space1=$ $space2 $
+        g1=$[$a1*$noemer]
+        !if $p=1
+    	    t1=!charcnt $g1
+    	    g2=!char 1 to $t1 of $teller
+	!else
+	    g2=$g3
+	!endif
+	diff=$[$g2-$g1]
+	cd2=!charcnt $diff
+	cd1=!charcnt $g1
+	!if $cd1>$cd2
+	    !for s=1 to $[$cd1-$cd2 +1]
+		space2=!append word $ \: $ to $space2
+	    !next s
+	!endif
+	!if $p > $break
+	    d=0
+	!else
+	    num=$[$t1+$c]
+	    d=!char $num of $teller
+	!endif
+	!if $p=$t
+	    g3=0
+	!else
+	    !if $diff=0
+		g3=0
+	    !else
+		g3=!nospace $diff $d
+		g3=$[1*$g3]
+	    !endif
+	!endif
+	!increase c
+	!if $p=$[$break-1]
+	    g3=!nospace $g3 0
+	!endif
+	show=!append word $ \\ & \: & \underline{ $space1 $g1} & \: &  $ to $show
+	show=!append word $ \\ & \: & $space2 $g3 & \: &  $ to $show
+    !endif
+!next p
+decimals=1
+texanswer$n=$  $show \end{array} $
+question$n=Bereken met een staartdeling :
+xsize=380
+ysize=360
+xlines=!charcnt $noemer/$teller\$finans
+xlines=$[$xlines + 3]
+ylines=$[2*$t+3]
+exotext=<object id="InvulGrid0" width="$xsize" height="$ysize" classid="java:InvulGrid.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="InvulGrid.jar" /><param name="java_code=" valye="InvulGrid.class" /><param name="fontsize" value="50"/><param name="pencolor" value="120,20,255,180"/><param name="bgcolor" value="245,240,240"/><param name="markcolor" value="10,255,10,50"/><param name="linecolor" value="0,0,255"/><param name="linewidth" value="4"/><param name="pointsize" value="5"/><param name="xlines" value="$xlines"/><param name="ylines" value="$ylines"/><param name="showgrid" value="true"/><param name="gridcolor" value="0,0,255,100"/><param name="language" value="$taal"/><param name="exercise" value="$noemer/$teller\"/><param name="reverse" value="yes"/><param name="exercisecolor" value="255,0,0,160"/><param name="buttons" value="-"/><param name="scribling_pencolor" value="255,200,50,200"/>$nojava</object>
+
+helptext=<img src=\'$module_dir/gifs/exo17.jpg\' alt=\'voorbeeld\' />

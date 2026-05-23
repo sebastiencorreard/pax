@@ -1,0 +1,83 @@
+n=$counter
+math=0
+cols=18
+inputs=1.1
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+#checkfile=$checkdir/new_number.proc
+embed=1
+science_calc=$empty
+science_html=$empty
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+sig=!randint 2,5
+sigtxt=!item $sig of $telwoorden
+g1=!randint 1,9
+!for s=2 to 6
+    !if s<6
+	g$s=!randint 0,9
+    !else
+	g$s=!randint 1,9
+    !endif
+!next s
+!if $sig=2
+    getal1=!nospace $g1 . $g2
+!else
+    !if $sig=3
+    	getal1=!nospace $g1 . $g2 $g3
+    !else
+	!if $sig=4
+    	    getal1=!nospace $g1 . $g2 $g3 $g4
+	!else
+    	    getal1=!nospace $g1 . $g2 $g3 $g4 $g5	
+	!endif
+    !endif
+!endif
+h=!randint 1,9
+getal2=$h .
+t=!randint $sig,6
+!for s=1 to $t
+    !if s<$t
+	h=!randint 0,9
+    !else
+	h=!randint 1,9
+    !endif
+    getal2=!append word $h to $getal2
+!next s
+    
+getal2=!nospace $getal2
+
+e1=!randint 2,15
+e2=!randint 2,15
+p1=!randitem -1,1
+p2=!randitem -1,1
+e1=$[$e1*$p1]
+e2=$[$e2*$p2]
+k=!randint 0,1
+!if $k=0
+    formula$n=$ \displaystyle{ \frac{$getal1 \times 10^{$e1}}{$getal2 \times 10^{$e2}} } 
+    ans=$[($getal1*10^($e1))/($getal2*10^($e2))]
+!else
+    formula$n=$ \displaystyle{ \frac{$getal2 \times 10^{$e2}}{$getal1 \times 10^{$e1}} } 
+    ans=$[($getal2*10^($e2))/($getal1*10^($e1))]
+!endif
+
+tot=!exec scienceprint $ans,$sig,0 $ans,$sig,2
+answer$n=!item 1 of $tot
+tex=!item 2 of $tot
+texanswer$n=\begin{array}{l} $(formula$n) = $tex \\ \\ \textrm{in $sigtxt significante cijfers afkomstig van $getal1 } \end{array} 
+
+ss=Bereken en geef het antwoord in SCI-mode met de juiste significantie.
+
+helptext=Regels voor significante cijfers :<ul><li>Deze regels zijn alleen van interesse bij resultaten uit experimenten, waarbij dus meetnauwkeurigheid een rol speelt.</li><li>Nullen voor de cijfers 1 - 9 zijn nooit significant.<br />bijv.: 0.0000000082 alleen de &rsquo;8&rsquo; en de &rsquo;2&rsquo; zijn significante cijfers </li><li>Eindstandige nullen in decimale getallen zijn significant: 1.1000 [5 sig. cijfers]</li><li>Eindstandige nullen in niet-decimale getallen zijn niet eenduidig zonder verder beschrijving. Bijvoorbeeld: voor 3500 kan natuurlijk gelden <br />2499 &le; meting &le; 3501<br />3400 &le; meting &le; 3600<br />Geef daarom de voorkeur aan SCI notatie: 3.500&times;10<sup>3</sup> is wel eenduidig.</li><li>Alle andere cijfers zijn altijd significant</li></ul><hr /><ul><li>Bij berekeningen: altijd rekenen tot het eindantwoord met onafgeronde getallen.</li><li>Bij vermenigvuldiging en deling wordt het resultaat uitgedrukt in het laagste aantal significante cijfers van de gebruikte getallen.<br />Bijvoorbeeld:<br />A = 2 &times; &pi; &times; R &amp; R = 12.3 : A = 2 &times; 3.1415... &times; 12.3 = 77.28317...<br />A = 77.3 : We moeten dit getal uitdrukken in 3 significante cijfers, afkomstig van R.<br />De factor 2 is een wiskundig factor zonder invloed op significantie.<br />De factor &pi; is eveneens een wiskundig factor zonder invloed op significantie.</li><li>Bij optellen en aftrekken kan als vuistregel het aantal significante cijfers uit het getal met het laagste aantal decimalen worden genomen.<br />Bijvoorbeeld : 100.0 + 1.123456789 = 101.1 </li></ul>
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a><br />$getallen1<br />$getallen2
+
+m_rightarrow=&nbsp;=&nbsp;
+!exit
+
+
+    

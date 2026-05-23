@@ -1,0 +1,75 @@
+target=oefrelsignsomme oefrelsignexp1 oefrelsignexp2
+
+\langage{fr}
+\author{Jean-Luc, Donadoni}
+\email{jluc.donadoni@laposte.net}
+\format{html}
+\text{sign=-,+}
+\text{s1=randint(1,2)}
+\text{s2=randint(1,2)}
+\text{s3=randint(1,2)}
+
+#if defined TARGET_oefrelsignsomme
+\title{Signe d'une somme algébrique}
+\text{ecrsg=&#150;,+,&#177;}
+\text{ops=\sign}
+\integer{nb1=randint(1..29)}
+\integer{nb2=randint(1..29)}
+\integer{nb3=randint(1..19)}
+\text{op1=randint(1,2)}
+\text{op2=randint(1,2)}
+\real{res=\sign[\s1]\nb1\ops[\op1]\sign[\s2]\nb2\ops[\op2]\sign[\s3]\nb3}
+\integer{rep=(3+sign(\res))/2}
+\if{\res=0}{\integer{rep=3}}
+\matrix{rep2=\ecrsg[\rep]}
+\text{ch=\ecrsg}
+#endif
+
+#if defined TARGET_oefrelsignexp1
+\title{Signe d'une expression numérique 1}
+\text{ecrsg=&#150;,+,\(times),&#177;}
+\text{ops=-,+,*}
+\integer{nb1=randint(1..19)}
+\integer{nb2=randint(1..9)}
+\integer{nb3=randint(1..19)}
+\text{a=shuffle(2)}
+\text{op1=\a[1]+1}
+\text{op2=\a[2]+1}
+\real{res=\sign[\s1]\nb1\ops[\op1]\sign[\s2]\nb2\ops[\op2]\sign[\s3]\nb3}
+\integer{rep=(3+sign(\res))/2}
+\if{\res=0}{\integer{rep=4}}
+\matrix{rep2=\ecrsg[\rep]}
+\text{ch=item(1..2,\ecrsg)}
+#endif
+
+#if defined TARGET_oefrelsignexp2
+\title{Signe d'une expression numérique 2}
+\text{ecrsg=+,&#150;,\(times),&#177;}
+\text{ops=+,-,*}
+\integer{nb1=randint(1..19)}
+\integer{nb2=randint(1..9)}
+\integer{nb3=randint(1..19)}
+\text{a=shuffle(2)}
+\text{op1=\a[1]+1}
+\text{op2=\a[2]+1}
+\real{res=\sign[3-\s1]\nb1\ops[\op1]\sign[3-\s2]\nb2\ops[\op2]\sign[3-\s3]\nb3}
+\integer{rep=(3+sign(\res))/2}
+\if{\res=0}{\integer{rep=4}}
+\matrix{rep2=\ecrsg[3-\rep]}
+\text{ch=item(1..2,\ecrsg)}
+#endif
+
+
+\statement{<p>Nous avons le calcul suivant :</p>
+<div class="wimscenter">
+ ( \ecrsg[\s1] \nb1 ) \ecrsg[\op1] ( \ecrsg[\s2] \nb2 ) \ecrsg[\op2] ( \ecrsg[\s3] \nb3 )
+</div>
+<ul><li>
+Le résultat est \embed{r1}
+</li><li>
+Le signe du résultat est \embed{r2}
+</li></ul>
+}
+
+\answer{}{\rep;négatif,positif,positif et négatif}{type=menu}
+\answer{}{\rep2;\ch}{type=clickfill}

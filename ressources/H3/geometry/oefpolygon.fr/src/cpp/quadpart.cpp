@@ -1,0 +1,41 @@
+target=quadpart
+#include "lang_titles.inc"
+#include "author.inc"
+\computeanswer{no}
+\precision{1000}
+
+\text{liste=parallélogramme, rectangle, losange, carré, on ne peut rien dire}
+
+\matrix{M= quadrilatère convexe,1,Les diagonales \([AC]) et \([BD]) se coupent en leur milieu
+quadrilatère convexe,1,Les droites \((AB)) et \((CD)) sont parallèles et les longueurs \(AB) et \(CD) égales
+quadrilatère convexe,1,Les droites \((BC)) et \((AD)) sont parallèles et les longueurs \(BC) et \(AD) égales
+quadrilatère convexe,1,Les côtés opposés sont parallèles
+quadrilatère convexe,1,Les côtés opposés sont de même longueur
+quadrilatère convexe,2,Le quadrilatère est inscrit dans un cercle de centre \(O)&#44; point d'intersection des diagonales \([AC]) et \([BD])
+parallélogramme,2,Les longueurs \(AC) et \(BD) égales
+parallélogramme,2,Les droites \((AB)) et \((BC)) sont perpendiculaires
+quadrilatère convexe,3,Les quatre côtés ont même longueur
+parallélogramme,3,Les longueurs \(AB) et \(BC) égales
+parallélogramme,3,Les droites \((AC)) et \((BD)) sont perpendiculaires
+parallélogramme,4,Les droites \((AB)) et \((BC)) sont perpendiculaires et les longueurs \(AB) et \(BC) égales
+parallélogramme,4,Les longueurs \(AB) et \(BC) égales ainsi que les longueurs \(AC) et \(BD)
+quadrilatère convexe,4,Le quadrilatère est conservé par la rotation d'angle \(\pi/2) et de centre \(O)&#44; point d'intersection des diagonales \([AC]) et \([BD])
+quadrilatère convexe,5,Les longueurs \(AB) et \(BC) égales
+quadrilatère convexe,5,Le quadrilatère est inscrit dans un cercle de centre \(O)&#44; point d'intersection des diagonales \([AC]) et \([BD])
+quadrilatère convexe,5,Les droites \((AC)) et \((BD)) sont perpendiculaires}
+
+\integer{n=random(1..rows(\M))}
+
+\statement{Dans le plan affine euclidien, on considère un \M[\n;1] \(ABCD).
+\M[\n;3].
+<div class="spacer">Le quadrilatère \(ABCD) est un
+<ul><li>\embed{reply1,1}</li>
+<li>\embed{reply1,2}</li>
+<li>\embed{reply1,3}</li>
+<li>\embed{reply1,4}</li>
+<li>\embed{reply1,5}</li>
+</ul>
+</div>
+<div class="wims_instruction">Cliquez sur la réponse la plus précise.</div>}
+
+\answer{}{\M[\n;2];\liste}{type=click}

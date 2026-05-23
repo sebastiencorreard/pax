@@ -1,0 +1,159 @@
+goback=0
+errortext=$empty 
+# het goede antwoord is met sqrt() en met variabelen 6/2011
+errortext=$empty
+n=$counter
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    goback=0
+    maxscore=0
+    !exit
+!endif
+wims_compare_precision=100000
+
+extra=$empty
+math=0
+AAA=!nospace $(reply$n)
+test=!replace internal = by , in $AAA
+t0=!itemcnt $test
+!if $t0>1
+    AAA=!item -1 of $test
+    extra=!record 95 of $remarkdir/commonremarks.$taal
+    #@ Je eindantwoord lees ik voor het gemak als $t2<br />en dus niet als $t1 ...<br />
+!endif
+
+test=!replace internal sqrt by @ in $AAA
+# er zit WEL een sqrt() in't goede antwoord...
+!if $var8=1
+    !if @ notin $test 
+	rem=!record 9 of lang/remarks.$taal
+        #@Nee, het goede antwoord is een wortel...
+	!if $teaching=1
+	    errortext=$rem
+	    maxscore=$[$maxscore*$P5]
+	    goback=1
+	!else
+	    goback=0
+	    maxscore=0
+	    remark$n=$NOK<br />$rem
+	!endif
+        !exit
+    !endif
+!else
+# er zit GEEN wortel in't goede antwoord
+    !if @ isin $test
+	rem=!record 28 of lang/remarks.$taal
+	#@Nee, het goede antwoord is geen wortel...
+	!if $teaching=1
+	    errortext=$rem
+	    maxscore=$[$maxscore*$P5]
+	    goback=1
+	!else
+	    goback=0
+	    maxscore=0
+	    remark$n=$NOK<br />$rem
+	!endif
+	!exit
+    !endif
+!endif
+# check op variabelen en filter rest tekst weg...
+AAA=!lower $AAA
+AAA=!rawmath $AAA
+va=!varlist $AAA
+vg=!varlist $(answer$n)
+# letop !varlist geeft ook "sqrt"
+!for p in $va
+    !if $p != sqrt
+	!if $p notin $vg
+	    ex=<br />$p ???
+	    extra=!append line $ex to $extra
+	!endif
+	P=!toupper $p
+	AAA=!replace internal $p by $P in $AAA
+    !endif
+!next p
+!for p in sin,cos,tan,log,ln,pi,sqrt
+    P=!toupper $p
+    AAA=!replace internal $p by $P in $AAA
+!next p
+
+AAA=!replace [a-z\~\!\@\#\$\%\_\=\:\;\"] by $empty in $AAA
+AAA=!tolower $AAA
+AAA=!rawmath $AAA
+A_backup=$AAA
+GGG=!rawmath $(answer$n)
+!for p in $varlist
+    # letop "s" is ook in varlis ivm applet "4 sqrt(x) -> 4*sqrt(x)"
+    !if $p != s
+	# evalsubst kan niet overweg met twee varaiabelen in vergelijking -> NaN
+        AAA=!replace internal $p by pi in $AAA
+	GGG=!replace internal $p by pi in $GGG
+    !endif
+!next p
+AAA=$[1*($AAA)]
+GGG=$[1*($GGG)]
+!if NaN isin $GGG
+    errortext=ERROR IN EXERCISE : $(answer$n) 
+    goback=1
+    !exit
+!endif
+
+!if NaN isin $AAA
+    # hier gaat iets mis met het vervangen van de variabelen sqrt(-pi) ofzo
+    # dus moet maxima van stal worden gehaald
+    score=!exec maxima if $A_backup = $(answer$n) then 1 else 0;
+!else
+    score=0
+    !if $AAA=$GGG 
+	score=1
+    !else
+	!if $teaching=1
+	    cmp=$[1/($wims_compare_precision)]
+	    !if $AAA != 0
+		!if $[abs(1/($AAA) - $GGG)] < $cmp 
+		    score=0.2
+		    ex=!record 53 of lang/remarks.$taal
+		    #@<br />Pity, the reciprocal answer would have been correct...
+		    #@<br />Jammer, de reciproke van je antwoord was wel goed geweest...
+		!else
+		    !if $[abs(-1*($AAA) - $GGG)] < $cmp
+			score=0.2
+	    		ex=!record 54 of lang/remarks.$taal
+	    		#@<br />Jammer, -1 &times; ($AAA) was wel goed geweest...
+		    !else
+			!if $AAA>0 and $[abs(sqrt($AAA) - $GGG)] < $cmp
+			    score=0.2
+	    		    ex=!record 55 of lang/remarks.$taal
+			    #@<br />Jammer, &radic;($AAA) was wel goed geweest...
+			!else
+			    !if $[abs(($AAA)^2 - $GGG)] < $cmp
+				score=0.2
+				ex=!record 56 of lang/remarks.$taal
+	    			#@<br />Jammer, ($AAA)<sup>2</sup> was wel goed geweest...
+			    !endif
+			!endif
+		    !endif
+		!endif
+	    !endif
+	    extra=!append word $ $ex $ to $extra
+	!endif
+    !endif
+!endif
+maxscore=$[$maxscore*$score]
+
+modulescore=$[$modulescore + $maxscore]
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.45
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+!if $extra != $empty
+    remark$n=$(remark$n)<br />$extra
+!endif
+!exit
+

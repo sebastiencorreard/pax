@@ -1,0 +1,235 @@
+!set titb=Télévisions
+!set keyw=
+!set datm=20030530
+!set prev=
+!set next=foot
+!set upbl=tocex
+!set dat1=19000101
+!set dat2=24000101
+
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+!exit
+
+:content
+
+!set tmp0=!randint 40, 70
+
+!set m_n=$(tmp0)
+
+
+
+!readproc slib/stat/binomial $m_n,5,1/4 
+!set tmp0=$slib_out
+!set m_a=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_a
+
+!set m_a=$(tmp0)
+
+
+
+!read primitives.phtml 1, comment, \for{i=5 to 10}{	\def{text a=wims(replace internal \i by 2 in \a)}	}	 
+
+
+!set m_tableau=<table class="tabledocstat wimscenter wimsborder">
+
+
+ 
+!for m_i=0 to ceil($m_n/10) 
+
+ 
+!if  10*$m_i+1 <=$m_n  
+
+
+!set m_tableau=$m_tableau <tr>
+
+
+	 
+!for m_j=1 to 10 
+
+	 
+!if  10*$m_i+$m_j <=$m_n  
+
+!set tmp0=!item 10*$m_i+$m_j of  $m_a
+
+!set m_u=$[$(tmp0)]
+
+
+!set m_tableau=$m_tableau <td>$m_u</td>
+
+
+	
+!endif
+
+!next
+
+
+!set m_tableau=$m_tableau </tr>
+
+
+
+!endif
+
+
+!next
+
+
+!set m_liste=[0,1,2,3,4,5,6]
+
+
+
+!set m_liste1=[0,1,2,3,4,5]
+
+
+
+!set m_tableau=$m_tableau </table>
+
+
+
+!readproc slib/stat/effectif [$m_a],$m_liste 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_c=$(tmp0)
+
+
+<br/>
+!set t_=!replace internal \( by ( in print($m_c/$m_n)
+!set tmp0=!exec pari $t_
+
+!set m_b=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_c
+
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!declosing $m_b
+
+!set m_b=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_b
+
+!set m_freq1=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 2 of $m_b
+
+!set m_freq2=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 3 of $m_b
+
+!set m_freq3=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 4 of $m_b
+
+!set m_freq4=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 5 of $m_b
+
+!set m_freq5=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 6 of $m_b
+
+!set m_freq6=$[ceil($(tmp0)*1000)/10]
+
+
+!set tmp0=!item 1 of $m_c
+
+!set m_eff1=$(tmp0)
+
+
+
+!set tmp0=!item 2 of $m_c
+
+!set m_eff2=$(tmp0)
+
+
+
+!set tmp0=!item 3 of $m_c
+
+!set m_eff3=$(tmp0)
+
+
+
+!set tmp0=!item 4 of $m_c
+
+!set m_eff4=$(tmp0)
+
+
+
+!set tmp0=!item 5 of $m_c
+
+!set m_eff5=$(tmp0)
+
+
+
+!set tmp0=!item 6 of $m_c
+
+!set m_eff6=$(tmp0)
+
+
+
+!readproc slib/stat/histo [$m_c],$m_liste1,ytics 5,xtics,baton 
+!set tmp0=$slib_out
+!set m_histo=$(tmp0)
+
+
+<br/>
+!read primitives.phtml 2, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" />  
+
+Lors d'une enquête, on a posé à $m_n familles la question
+suivante&nbsp;&#58; <strong>"De combien de téléviseurs dispose votre foyer&nbsp;?"</strong> On a
+obtenu les résultats suivants&nbsp;&#58;
+<br/>
+$m_tableau
+<br/>
+L'analyse statistique de ces données permet de remplir le tableau suivant &#58;
+<table class="tabledocstat wimscenter wimsborder">
+<tr><th>Télévision</th>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr><th>Effectif</th>
+<td>$m_eff1</td>
+<td>$m_eff2 </td>
+<td>$m_eff3 </td>
+<td>$m_eff4 </td>
+<td>$m_eff5 </td>
+<td>$m_eff6 </td>
+</tr>
+<tr><th>Fréquence (%)</th>
+<td>$m_freq1 </td>
+<td>$m_freq2 </td>
+<td>$m_freq3 </td>
+<td>$m_freq4 </td>
+<td>$m_freq5 </td>
+<td>$m_freq6 </td>
+</tr>
+</table>
+et voici l'histogramme des effectifs
+
+!read primitives.phtml 3, draw, 400,200, \histo 
+
+

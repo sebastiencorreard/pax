@@ -1,0 +1,178 @@
+# ongelijkheden & inklemmen
+n=$counter
+!if $total_exos>4
+    total_exos=4
+!endif
+!if $n=1
+    # nooit 2x zelfde sommetje
+    var3=!shuffle -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+!endif
+make_tr=1
+cols=16
+rows=1
+embed=1
+math=0
+mathview=0
+rounding=100
+roundingtext=!record 10 of lang/remarks.$taal
+#Bepaal je antwoord via inklemming<br />en geef je antwoord op 2 decimalen nauwkeurig
+dec=2
+questiontype=7
+javascript=js/kladblaadje.js
+inputs=yes
+checkfile=$checkdir/ineq.proc
+varlist=x
+htxt=!record 1 of lang/remarks.$taal
+expl=!record 4 of lang/remarks.$taal
+xas=!item 1 of $htxt
+yas=!item 2 of $htxt
+typefunctie=!item 3 of $htxt
+lijn=!item 4 of $htxt
+snijpunten=!item 5 of $htxt
+invullen=!item 8 of $htxt
+uitrekenen=!item 9 of $htxt
+afgerond=!item 10 of $htxt
+zie_tabel=!item 11 of $htxt
+actievemuis=!item 12 of $htxt
+
+keuze=!randint 0,1
+
+ligging=!randint 0,1
+!if $ligging=1
+    boven=!item 6 of $htxt
+    symbol= >
+    latex_ligging=f>g
+!else
+    boven=!item 7 of $htxt
+    symbol= <
+    latex_ligging=f<g
+!endif
+        
+b=!randitem 2,3,4,5
+a=!randitem 2,3,4,5,-2,-3,-4,-5
+c=!randitem 4,6,8,10,12
+pm=!randitem +,-
+x1=!randint -10,-60
+x2=!randint 10,60
+x1=$[$x1/10]
+x2=$[$x2/10]
+y1=$[$a*$x1*$x1 $pm $b*$x1 - $c ]
+y2=$[$a*$x2*$x2 $pm $b*$x2 -$c ]
+f1=!nospace $a*x^2 $pm $b*x - $c
+F1=$a\cdot x^2 $pm $b\cdot x - $c
+tot=!exec pari A = ((($y1)-($y2))/(($x1)-($x2)))*x + ($y1) -($x1)*(($y1)-($y2))/(($x1)-($x2))\
+printtex(A)
+
+f2=!line 1 of $tot
+f2=!nospace $f2
+F2=!line 2 of $tot
+
+!if $ligging=1
+    #parabool boven lijn
+    !if $a>0
+	# dalparabool
+	answer$n=x<$x1&&x>$x2
+	tex=x<$x1 \wedge x>$x2
+    !else
+	# bergparabool
+	answer$n=$x1<x&&x<$x2
+	tex=$x1 < x < $x2
+    !endif
+!else
+    #parabool onder lijn
+    !if $a>0
+	# dalparabool
+	answer$n=$x1<x&&x<$x2
+	tex=$x1 < x < $x2
+    !else
+	# bergparabool
+	answer$n=x<$x1&&x>$x2
+	tex=x<$x1 \wedge x>$x2
+    !endif
+!endif
+
+diff1=0.8,0.9,0.95,0.99,1.00,1.01,1.05
+diff2=0.7,0.94,0.99,1.00,1.01,1.1,1.2
+r=1
+!for xx in $x1,$x2
+    tablebody=$empty
+    begin=$[$xx-1]
+    !for p=1 to 8
+	d=!item $p of $(diff$r)
+	s=$[$begin+$d]
+	yl=!evalsubst x=($s) in $f1
+	yr=!evalsubst x=($s) in $f2
+	yl=$[(round(100*$yl))/100]
+	yr=$[(round(100*$yr))/100]
+	!if $s != $xx
+	    k=orange
+	    tablebody=!append word $ <tr><td>$s</td><td>$yl</td><td>$yr</td></tr> $ to $tablebody
+	!else
+	    k=lightgreen
+	    tablebody=!append word $ <tr><td style="background-color:$k;color:red;font-size:120%">$s</td><td style="background-color:$k;color:red;font-size:120%">$yl</td><td style="background-color:$k;color:red;font-size:120%">$yr</td></tr> $ to $tablebody
+	!endif
+    !next p
+    t$r=<table class="zebra_table_v2"><tr><th >x</th><th><i>f(x)</i></th><th><i>g(x)</i></td></tr>$tablebody</table>
+    !increase r
+!next xx
+textanswer$n=<table style="text-align:center"><tr><th>x<sub>1</sub></th><th>x<sub>2</sub></th></tr><tr><td>$t1</td><td>$t2</td></tr></table>
+formula$n=\left[\begin{array}{ll}\textrm{$typefunctie : } & f(x) = $F1 \\ \textrm{$lijn : } & g(x) = $F2 \\ & $latex_ligging\\ \textrm{$afgerond} & \end{array} \right. \rightarrow 
+ss=!record 3 of lang/remarks.$taal
+
+ty1=!replace internal x by $x1 in $f2
+ty2=!replace internal x by $x2 in $f2
+
+rr=\left[ \begin{array}{l}\textrm{ $typefunctie $boven  $lijn } \\ f(x) $symbol g(x) \\ $F1 $symbol $F2 \\  x_{1} \simeq $x1 \wedge x_{2} \simeq $x2 \\ $tex \\ \textrm{$zie_tabel} \end{array} \right.
+    
+question$n=<a onmouseover="return escape('$actievemuis<hr />$expl')">$ss</a>
+texanswer$n=$rr
+helptext=<img src=\'$module_dir/gifs/inklemmen.jpg\' alt=\'inklemmen\'/><hr/>$expl
+
+
+
+!if $teaching=1
+xsize=300
+ysize=300
+tiptxt=!record 63 of $remarkdir/commonremarks.$taal
+xmin=$[(min($x2,$x1)) - 4]
+ymin=$[(min($y2,$y1)) - 4]
+xmax=$[(max($x2,$x1)) + 10]
+ymax=$[(max($y2,$y1)) + 10]
+!if $ymin>0
+    ymin=-5
+!endif
+!if $ymax<0
+    ymax=5
+!endif
+!if $xmin>0
+    xmin=-4
+!endif
+!if $xmax<0
+    xmax=4
+!endif
+
+xstep=$[abs(($xmax-$xmin)/10)]
+ystep=$[abs(($ymax-$ymin)/10)]
+tip=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $xmin,$xmax\
+yrange $ymin,$ymax\
+bgcolor $wims_bgcolor\
+xlabel    $xas\
+ylabel    $yas\
+axis\
+grid $xstep,$ystep,grey,2,2,6,black\
+linewidth 2\
+jscurve red,$f1\
+jscurve green,$f2\
+linewidth 3\
+points blue,$x1,$y1,$x2,$y2\
+intooltip $tiptxt\
+zoom black\
+precision 10\
+mouse blue,22\
+precision 1000
+
+exotext=<span class="schaersvoorde_link">$tip</span><br />
+
+!endif

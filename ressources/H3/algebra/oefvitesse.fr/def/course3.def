@@ -1,0 +1,140 @@
+!set title=Course à pieds 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+email=paul@byache.fr
+author=Fabrice,Guerimand; Paul, Byache
+keywords=velocity
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=10000,2100,3599
+tmp0=!randint 100, 200
+
+val7=$[$(tmp0)/100]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!item 1 of $val6
+
+val8=$[rint($val7*$(tmp0))]
+tmp0=!item 2 of $val6
+
+val9=$[rint($(tmp0))]
+tmp0=!item 3 of $val6
+
+val10=$[rint($(tmp0))]
+tmp0=!randint $val9, $val10
+
+val11=$[rint($val7*$(tmp0))]
+val12=$[rint(floor($val11/60))]
+val13=$[rint($val11-$val12*60)]
+
+!ifval $val12!=0
+val14=$val12 mn
+!endif
+
+!ifval $val13!=0
+val14=$val14 $val13 s
+!endif
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val15=$(tmp0)
+val16=dixième,centième
+tmp0=!randint 1, 2
+
+val17=$[rint($(tmp0))]
+val18=$[1/10^$val17]
+tmp0=!randint 1, 2
+
+val19=$[rint($(tmp0))]
+
+!ifval $val19=1
+tmp0=!item $val17 of $val16
+
+val20=au $(tmp0)
+!else
+val20=à $val18
+!endif
+val21=$[rint($val8/$val11*10^$val17)]
+val21=$[$val21/10^$val17]
+val22=$[rint(3.6*$val8/$val11*10^$val17)]
+val22=$[$val22/10^$val17]
+replytype1=units
+replyname1=Vitesse moyenne :
+replygood1=$val22 km/h
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val15 effectue une course à pieds de $val8 m. Le chronomètre indique : $val11 s.	<p>	Donner sa vitesse moyenne <b>en km/h</b> (attention aux conversions !).	</p>	<div>	<b>Votre réponse</b> :	Vitesse moyenne :  
+!read oef/embed.phtml r1,8 
+$().	</div><br/>	<div class="wims_instruction">	Les résultats seront arrondis $val20 près. Préciser l'unité.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,11,15,20
+embedcnt=1

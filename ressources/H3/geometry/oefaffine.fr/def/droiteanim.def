@@ -1,0 +1,122 @@
+!set title=Droite animée
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Geanimeerde lijn
+
+ansorder=c
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=uniquement le coefficient directeur,	  uniquement l'ordonnée à l'origine, le coefficient directeur et	  l'ordonnée à l'origine
+val8=Voici une droite animée d'équation
+val9=Qu'est-ce qui varie : le coefficient directeur \(a\),	l'ordonnée à l'origine \(b\) ou les deux&nbsp;
+val10=Ce qui varie
+!if $val6=nl 
+val7=alleen de helling,	  alleen het y-coordinaat van de oorsprong,	  de helling en het y-coordinaat van de oorsprong
+val8=Hier is de geanimeerde lijn met vergelijking
+val9=Wat varieert er: de helling \(a\),	  het y-coordinaat van de oorsprong \(b\) of allebei
+val10=Hetgene dat varieert
+!endif
+tmp0=!randitem 1,1,2,2,3
+
+val11=$(tmp0)
+
+!ifval $val11=1 or $val11=3
+val12= 1-4*s
+!else
+tmp0=!randint -4, 4
+
+val12= $(tmp0)
+!endif
+
+!ifval $val11=2 or $val11=3
+val13= 2-3*s
+!else
+tmp0=!randint -4, 4
+
+val13= $(tmp0)
+!endif
+tmp0=!item $val11 of $val7
+
+val14=$(tmp0)
+choicename1=$val10
+choicegood1=$val14
+choicebad1=$val7
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8 
+!insmath y = a*x + b
+$().	$val9?	<p class="wimscenter">  
+!read oef/draw.phtml 200,200 \
+	animate 15,0.2,0	xrange -5.2,5.2	yrange -5.2,5.2	parallel -5,-5,5,-5,0,1,10, grey	parallel -5,-5,-5,5,1,0,10, grey	hline 0,0,black	vline 0,0,black	linewidth 2	plot blue,$val12*x+$val13	linewidth 1	 
+$()	</p>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,12,13
+embedcnt=0

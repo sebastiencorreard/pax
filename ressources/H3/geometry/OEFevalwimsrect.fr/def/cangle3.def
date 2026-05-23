@@ -1,0 +1,139 @@
+!set title=Mesure d'un angle 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=est un triangle rectangle en
+val8=à l'unité,au dixième,au centième
+val9=Calculer la mesure de l'angle, arrondie 
+tmp=!translate internal $	$ to ; in A,B,C	T,R,I	S,V,T	R,S,T	E,F,G
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!item 2 of $val10
+
+val12=$(tmp0)
+tmp0=!item 3 of $val10
+
+val13=$(tmp0)
+tmp0=!randint 5, 10
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 11, 20
+
+val15=$[rint($(tmp0))]
+val16=<li>$val12$val13 = $val15 cm</li><li> $val11$val12 = $val14 cm</li>
+val17=180/pi*arccos($val14/$val15)
+tmp0=!randint 0, 2
+
+val18=$[rint($(tmp0))]
+tmp0=!item $val18+1 of $val8
+
+val19=$(tmp0)
+val17=$[rint(($val17)*10^$val18)/10^$val18]
+!if \dessin!= 
+!readproc oef/draw.phtml 240,140 \
+\dessin 
+tmp0=$ins_url
+val20=$(tmp0)
+!endif
+replytype1=numexp
+replyname1=\(\widehat{$val11$val12$val13}\)
+replygood1=$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $m_dessin!= 
+$()	<div class="wims_columns">	 <div class="medium_size img_col"> <img src="$val20" alt=""></div>	 <div class="medium_size text_col">	 
+!endif
+$()	 $val11$val12$val13 $val7 $val11.	<ul>$val16</ul>	$(val9[1]) 
+!insmath \widehat{$val11$val12$val13}
+$() $(val9[2]) $val19.	<div class="spacer">	<b>$val6</b>:	<label for="reply1">
+!insmath \widehat{$val11$val12$val13} \simeq
+$()</label>  
+!read oef/embed.phtml r1,5 
+$()°.	</div>	
+!if $m_dessin!= 
+$()</div></div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,12,13,16,19,20
+embedcnt=1

@@ -1,0 +1,286 @@
+#:[HTML5] Balk [ Pythagoras ]
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<0
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+mathview=0
+questiontype=0
+embed=1
+cols=20
+rows=1
+# 35 is kubus bij breedte=0 diepte=0
+applet=1
+make_tr=0
+m_rightarrow=&nbsp;=
+checkfile=$checkdir/number.proc
+helptext=$empty
+!if $R=1
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    k=!randitem 1,2,3
+
+    !if $k=1
+        setje=A,F B,E C,H D,G
+        d=$[$x^2+$y^2]
+        d_tex=$x^{2}+$y^{2}
+        coord=-3.39,-7.25,4.50,7.88\
+        4.50,-5.06,-3.39,5.69\
+        1.23,-3.37,-6.66,7.25\
+        -6.71,-5.50,1.23,9.50
+    !else
+        !if $k=2
+            setje=E,G F,H A,C B,D
+	    d=$[$y^2+$z^2]
+	    d_tex=$y^{2}+$z^{2}
+	    coord=-3.39,5.69,1.23,9.50\
+	    4.50,7.88,-6.66,7.25\
+	    -3.39,-7.25,1.23,-3.37\
+	    4.50,-5.06,-6.71,-5.50
+        !else
+            setje=D,E A,H B,G C,F 
+	    d=$[$x^2+$z^2]
+	    d_tex=$x^{2}+$z^{2}
+	    coord=-6.71,-5.50,-3.39,5.69\
+	    -3.39,-7.25,-6.66,7.25\
+	    4.50,-5.06,1.23,9.50\
+	    1.23,-3.37,4.50,7.88
+        !endif
+    !endif
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    !if $keuze<3
+	seg=segment $lijn,darkred
+    !else
+	seg=dashed\
+	dashtype 6,3\
+	segment $lijn,darkred
+    !endif
+    
+#A(-3.39,-7.25) B(4.50,-5.06) C(1.23,-3.37) D(-6.71,-5.50).                                                            
+# E(-3.39,5.69) F(4.50,7.88) G(1.23,9.50) H(-6.66,7.25)                                                                 
+# AB (0.33,-6.75) BC (2.49,-3.56) BF (5.25,0.88)
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo2.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    string black,5.25,0.88,$x\
+    string black,0.33,-7.09,$y\
+    string black,2.49,-3.66,$z\
+    linewidth 2\
+    $seg\
+    #segment $lijn,darkred\
+    #userdraw segment,red\
+    #mouse red,18\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+    
+    ss=!record 4 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is <br />AB=$y, BC=$z en BF=$x<br />Bereken de lengte van $AB.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($AB)
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    texanswer$n=\sqrt{$d_tex } = $tex 
+ !exit
+!endif
+
+!if $R=2
+    x=!randint 8,15
+    y=!randint 2,$[$x-1]
+    z=!randitem 4,5,6,7,8
+    AB=$y, BC=$z en BF=$x
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+    d=$[$x^2+$y^2+$z^2]
+    setje=A,G D,F B,H C,E
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    
+#A(-3.39,-7.25) B(4.50,-5.06) C(1.23,-3.37) D(-6.71,-5.50).                                                            
+# E(-3.39,5.69) F(4.50,7.88) G(1.23,9.50) H(-6.66,7.25)                                                                 
+# AB (0.33,-6.75) BC (2.49,-3.56) BF (5.25,0.88)
+    coord=-3.39,-7.25,1.23,9.50\
+    -6.71,-5.50,4.50,7.88\
+    4.50,-5.06,-6.66,7.25\
+    1.23,-3.37,-3.39,5.69
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo2.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    string black,5.25,0.88,$x\
+    string black,0.33,-7.09,$y\
+    string black,2.49,-3.66,$z\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment $lijn,darkred\
+    #userdraw segment,red\
+    #mouse red,18\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+    
+    ss=!record 4 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is <br />AB=$y, BC=$z en BF=$x<br />Bereken de lengte van $AB.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($AB)
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    texanswer$n=\sqrt{$x^{2} + $y^{2}  + $z^{2} } = $tex
+ !exit
+!endif
+
+!if $R>2
+    setje=B,D,H A,C,G C,A,E D,B,F
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    B=!item 1 of $set
+    C=!item 2 of $set
+    D=!item 3 of $set
+    BQ=!nospace $B Q
+    CQ=!nospace $C Q
+    CD=!nospace $C $D
+    x=!randitem 4,8,12,16,20,24,28
+    y=!randitem 2,3,4,5,6,7,8,9
+    z=!randitem 2,4,6,8,10
+    # arbitraire onzin...verhoudingen kloppen NIET ECHT !!!!!
+    #AB=$y, BC=$z en BF=$x.
+    hoogte=$[35+$x]
+    breedte=$[$y*4.5]
+    diepte=$[$y*4.5]
+
+    k=!randitem 1,2,3
+    m=!item $k of 1/4,1/2,3/4
+    lengte=$[$x*$m]
+    d=$[$y^2+$z^2+$lengte^2]
+
+#A(-3.39,-7.25) B(4.50,-5.06) C(1.23,-3.37) D(-6.71,-5.50).                                                            
+# E(-3.39,5.69) F(4.50,7.88) G(1.23,9.50) H(-6.66,7.25)                                                                 
+# AB (0.33,-6.75) BC (2.49,-3.56) BF (5.25,0.88)
+
+    coord=$[-6.71+$m*0.05],$[-5.50+$m*12.75],4.50,-5.06\
+    1.23,$[-3.37+$m*12.87],-3.39,-7.25\
+    -3.39,$[-7.25+$m*12.94],1.23,-3.37\
+    4.50,$[-5.06+$m*12.94],-6.71,-5.50
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    punt1=!item 1 of $lijn
+    punt2=!item 2 of $lijn
+                              
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo2.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    string black,5.25,0.88,$x\
+    string black,0.33,-7.09,$y\
+    string black,2.49,-3.66,$z\
+    string black,$punt1,$punt2,Q\
+    linewidth 2\
+    point $punt1,$punt2,darkblue\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment $lijn,darkred\
+    #userdraw segment,red\
+    #mouse red,18\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+
+    answer$n=sqrt($d)
+    !if $rounding=0
+	ans=$empty
+    !else
+        ans=\approx $[round($rounding*$(answer$n))/$rounding]
+    !endif
+    test=$[$(answer$n)]
+    !if . isin $test
+	tex=\sqrt{$d} $ans
+    !else
+	tex=\sqrt{$d} = $test
+    !endif
+    ss=!record 5 of lang/remarks.$taal
+    #@Van een balk ABCD.EFGH is<br />AB=$y, BC=$z en BF=$x .<br />Het punt Q ligt op ribbe $CD, zodat de afstand tussen de punten $C en Q $lengte is. <br />Bereken de afstand QR.<br /><small>Zie de <em>3D-schets</em> in de applet</small>
+    question$n=$ss
+    description=d($BQ)
+    texanswer$n=\sqrt{$y^{2} + $z^{2} + $lengte^{2}} = $tex
+
+ !exit
+!endif
+
+

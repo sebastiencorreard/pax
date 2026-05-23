@@ -1,0 +1,161 @@
+# firm anti-back-button-policy
+!if exam notin $session
+    # because of strange behaviour of "help_in_exam bug_fix" the help-page starts a copy of the exam-page...
+    !if $cmd=reply
+	session_done=!append item $session to $session_done
+        t=!positionof item $session in $session_done
+	t=!itemcnt $t
+        !if $t!=1
+	    status=done
+	    !for p=$exo_cnt to $total_exos
+		v=!item $p of $vragen
+		reply$v=<b>$no_back_button</b>
+		subscores$v=0
+    		remark$v=$NOK
+	    !next p
+	    module_score=$[(round(100*$total_score/($total_exos)))/10]
+	 !exit
+	!endif
+    !endif
+!endif
+
+# javascript tijd klok
+!if $cmd=reply and $(reply$counter)=timeup 
+    status=done
+    module_score=$[(round(100*$total_score/($total_exos)))/10]
+    out_of_time=!record 1 of lang/remarks.$taal
+    #@ingestelde tijd ($maxtime min) overschreden
+    !for p=$exo_cnt to $total_exos
+	v=!item $p of $vragen
+	reply$v=<b>$out_of_time</b>
+	subscores$v=0
+    	remark$v=$NOK
+    !next p
+ !exit
+!endif
+
+!if $cmd=reply and $(reply$counter)=quit
+    status=done
+    module_score=$[(round(100*$total_score/($total_exos)))/10]
+    !for p=$exo_cnt to $total_exos
+	v=!item $p of $vragen
+	reply$v=$quit
+	subscores$v=0
+    	remark$v=$NOK
+    !next p
+ !exit
+!endif
+
+!if $status=retry and $cmd=reply
+    !if $retryexo=1 and $retried_once=0
+	# 1 keertje herkansen
+	retried_once=1
+	status=waiting
+	exo_max=!itemcnt $not_ready
+	vragen=$not_ready
+	# reset list not_ready
+	not_ready=$empty
+	!for p in $vragen
+	    reply$p=$empty
+	!next p
+	!for r=1 to 10
+	    ex$r=$empty
+	    inputtext$r=$empty
+	    var$r=$empty
+	!next r
+	varlist=$empty
+	varcnt=$empty
+	arglist=$empty
+	helptext=$empty
+	exo_cnt=1
+	maxscore=1
+	counter=!item $exo_cnt of $vragen
+	# herhaal de vragen met een score <= 5
+	!readproc exos/exo$counter
+    !else
+	status=done
+	module_score=$[(round(100*$total_score/($total_counter)))/10]
+	#module_score=$[(round($score_limit*100*$total_score/(10*$total_counter)))/10]
+    !endif
+ !exit
+!endif
+
+!if $cmd=reply and $status!=waiting
+    error=double_reply
+    !exit
+!endif
+
+!if $status=waiting and $cmd=reply
+    !readproc $checkfile
+
+    !if $goback=1
+	!increase try
+	!if $try>$score_limit
+	    status=done
+	    module_score=0
+	    final_remark=!record 2 of lang/remarks.$taal
+	    #@Je hebt $score_limit aantal keer de som ter correctie terug gekregen !!
+	!else
+	    maxscore=1
+	!endif
+	!exit
+    !else
+	# de vorige vraag
+	counter=!item $exo_cnt of $vragen
+	!if $maxscore <= $[$minimal_score/10]
+	    # exo$v moet opnieuw
+    	    not_ready=!append item $counter to $not_ready
+	    sign=$herkansing
+	!else
+	    sign=$empty
+	!endif
+	subscores$counter=$[10*$maxscore]
+	total_score=$[$total_score + $maxscore]
+	remark$counter=!append line $sign to $(remark$counter)
+	# volgende vraag
+	# counter kan worden gereset bij een herkansing
+	!increase exo_cnt
+	# deze telt alle vragen+herkansingen
+	!increase total_counter
+	!if $exo_cnt <= $exo_max
+	    # dus niet klaar: reset variabelen
+	    !for r=1 to 10
+		ex$r=$empty
+		inputtext$r=$empty
+		var$r=$empty
+	    !next r
+	    varlist=$empty
+	    varcnt=$empty
+	    arglist=$empty
+	    helptext=$empty
+	    status=waiting
+	    maxscore=1
+	    embed=0
+	    counter=!item $exo_cnt of $vragen
+	    !readproc exos/exo$counter
+	!else
+	    # we zijn klaar
+	    !if $score_limit < 0
+		# tevaak geherkanst
+		remark$counter=!record 3 of lang/remarks.$taal
+		#@Je hebt $score_limit aantal herkansingen gehad !!
+		score_limit=0
+		status=done
+		module_score=0
+	    !else
+		# is -ongeveer- de vereiste score bereikt?
+		tmpscore=$[(round(100*$total_score/$total_exos))/10]
+		!if $tmpscore > $minimal_score or $retried_once=1
+		    # ja: we berekenen nu "exact" het cijfer; rekening houdend met herkansingen
+		    status=done
+		    module_score=$[(round(100*$total_score/($total_counter)))/10]
+		!else
+		    tmpscore=$[(round(100*$total_score/($total_counter)))/10]
+		    status=retry
+		!endif
+	    !endif
+	!endif
+    !endif
+!endif
+
+!exit

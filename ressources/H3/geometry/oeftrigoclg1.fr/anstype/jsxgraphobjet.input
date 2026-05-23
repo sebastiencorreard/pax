@@ -1,0 +1,59 @@
+!set ans_require=jsxgraph
+!set wims_form_method=post
+!set anstype=yes
+!set anstyle=dprompt
+
+!if $wims_read_parm=def
+ !exit
+!endif
+
+!set oef_answer_option$i=!replace internal $	$ by $\
+$  in $inputsize
+
+!set oef_answer_option$i=!line 1 to -1 of $(oef_answer_option$i)
+!set oef_answer_option$i=!nonempty lines $(oef_answer_option$i)
+!set Inputsize=!line 1 of $(oef_answer_option$i)
+!set test=!text remove 0123456789x in $Inputsize
+!if $test issametext $empty
+ !set Inputsize=!replace internal x by , in $Inputsize
+ !set oef_answer_option$i=!line 2 to -1 of $(oef_answer_option$i)
+ !set oef_answer_option$i=!declosing $(oef_answer_option$i)
+ !distribute items $Inputsize into xsize,ysize
+!endif
+
+!set jbox=!line 1 of $(oef_answer_option$i)
+!set your_brd=!word 2 of $jbox
+!set jbox=!word 1 of $jbox
+!default your_brd=brd$i
+
+!set script$i=!line 2 to -1 of $(oef_answer_option$i)
+
+!reset listeobjet$i
+!set listeobjet$i=!replace internal ; by , in $(replygood$i)
+!set listeobjet$i=!replace internal & by , in $(listeobjet$i)
+!set listeobjet$i=!replace internal | by , in $(listeobjet$i)
+!set listeobjet$i=!listuniq $(listeobjet$i)
+!for jj in $(listeobjet$i)
+  !set tt=$jj.on('up',function(e){if($jj.getAttribute("strokeWidth")!=5){jsxbox_objet.push('$jj');$jj.setAttribute({strokeWidth: 5});}\
+else{$jj.setAttribute({strokeWidth: 2});jsxbox_objet.splice(jsxbox_objet.indexOf("$jj"),1);}});
+  !set llisteobjet$i=!append line $(tt) to $(llisteobjet$i)
+!next
+
+!set oef_answer_option$i=$your_brd,$jbox,$xsize x $ysize,$(oef_answer_option$i)
+
+!set script$i=$(script$i)\
+var jsxbox_objet=[];\
+$(llisteobjet$i)
+
+!readproc slib/geo2D/jsxgraph $jbox,$xsize x $ysize,$(script$i)
+$slib_out\
+
+<script>
+/*<![CDATA[*/
+var capture$i = function() {document.getElementById('jsreply$i').value= jsxbox_objet.toString();}
+/*]]>*/
+</script>
+
+<input type="hidden" name="reply$i" id="jsreply$i" value="">
+!set oef_js_submit=$oef_js_submit capture$i();
+!reset your_brd jbox

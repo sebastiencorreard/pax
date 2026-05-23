@@ -1,0 +1,240 @@
+!set wims_texsize=$mytexsize
+<!-- mathtest.nl/exos/form.phtml -->
+<table id="myheader">
+    <tr>
+    <td id="header1">
+	<a onmouseover="return escape('$timeinfo <br /><hr />$helptext')"><img src="$gifdir/tip.jpg" alt="tip"/></a>
+	    !!#@De toets heeft $total_exos opgaven,<br /> duurt $maxtime minuten en is afgelopen op: 
+	!if $showquitbutton=1
+	    <a onclick="javascript:stop_toets();"><img src="$module_dir/gifs/stop.jpg" alt="QUIT"/></a>
+	    !!#@De toets heeft $total_exos opgaven,<br /> duurt $maxtime minuten en is afgelopen op: 
+	!endif
+    </td>
+    <td class="header2">
+	<textarea id="stickit_area" cols="40" rows="3" style="display:none;background-color:yellow;font-size:12pt;border:1px solid red;"></textarea>
+    </td><!-- end td class=header2 -->
+    <td class="header3">
+	<a onclick="javascrip:showScribble();" onmouseover="return escape('Post-It Memo')" >
+	    <img src="$gifdir/pencil.png" style="width:50;height:70;border:0px;vertical-align:top" alt="scribling" />
+	</a>
+	<a onmouseover="return escape('$no_calculator_text')">
+	    <img src="$module_dir/gifs/no_calculator.jpg" alt="no calculator" />
+	</a>
+    </td>
+    <td style="text-align:right;vertical-align:top;line-height:1px;width:110px;height:64px;">
+	<input id="klok" style="text-align:center;background-color:#ff0000;color:#ffffff;font-size:16px" type="text" name="einddtijd" size="9" value="" readonly="readonly"/>
+	<br />
+	<form name="clock" action="">
+	    <input style="text-align:center;background-color:#00ff00;color:#0000ff;font-size:16px;" type="text" name="time" size="9" readonly="readonly"/>
+	</form>
+    </td>
+    </tr>
+</table>
+<br />
+!if $try = $maxtry
+    !set alarm=!record 52 of $remarkdir/commonremarks.$taal
+!endif
+
+<div id="alarmtext" style="white-space:wrap;text-align:center;margin-left:auto;margin-right:auto;max-width:460px;min-width:120px;min-height:50px;display:none;top:0px;left:0px;background-color:#daf6a4;font-style:italic;border:solid 2px red">
+!if $goback = 1
+    $errortext
+!else
+    !set v=!item $[$exo_cnt-1] of $vragen
+    !if $(remark$v) != $empty
+	$(remark$v)
+	!set goback=1
+    !endif
+!endif
+$alarm
+</div>
+!if $goback=1
+    !set goback=0
+    <script type="text/javascript">
+    //<![CDATA[
+    <!-- no validator -->
+	var h = parseInt( (document.documentElement.clientHeight)/2);
+        var w = parseInt( (document.documentElement.clientWidth)/2 - 200);
+        document.getElementById('alarmtext').style.top = h+'px';
+        document.getElementById('alarmtext').style.left = w+'px';
+        document.getElementById('alarmtext').style.display = "block";
+        !if $try=$maxtry
+	    document.getElementById('alarmtext').style.backgroundColor = "#ffafdd";
+	!else
+	    document.getElementById('alarmtext').style.backgroundColor = "#ffc093";
+	!endif
+        window.scrollTo(w,h-120);
+        setTimeout('resetAlarm()',6000);
+        document.getElementById('alarmtext').style.backgroundColor = "#daf6a4";
+    //]]>
+    </script>
+!endif
+
+<kbd>$questionnumber $exo_cnt)</kbd>
+
+<table id="exercise" class="exercise" >
+    <tr>
+    <td class="exercise_t">
+	$(question$n)
+	!if $embed != 1
+	    !if $(formula$n) != $empty
+		<br />
+		!if $display=1
+		    !insmath $$$$ $(formula$n) $$$$
+		!else
+		    !insmath $(formula$n)
+		!endif
+	    !endif
+	!endif
+    </td>
+    </tr>
+    <tr>
+    <td class="exercise_m">
+	!if $questiontype=1
+	    !read exos/mathview.phtml
+	!else
+	    !if $questiontype=2
+		!read exos/multiplechoice.phtml
+	    !else
+		!if $questiontype=3
+		    !read exos/myfreestyle.phtml
+		!else
+		    !if $questiontype=4
+			!read exos/flyapplet.phtml
+		    !else
+			!if $questiontype=5
+			    !read exos/invulgrid.phtml
+			!else
+			    ERROR $$questiontype missing
+			!endif
+		    !endif
+		!endif
+	    !endif
+	!endif
+    </td>
+    <tr>
+</table>
+<div id="send_buttons" class="embedded_central">
+!if $inputs != 0
+    <input type="button" id="schaersvoorde_ok_button" onclick="javascript:sendanswer();" value="$send" />
+!endif
+    <input type="button" id="schaersvoorde_nok_button" onclick="javascript:dontknow();"  value="$dontknow" />
+</div>
+
+
+<script type="text/javascript">
+//<![CDATA[
+<!-- no validator -->
+    
+    function dontknow(){
+	myConfirm('$dontknow','?','$wims_ref_name','$session','$module','$counter','$nok_send_color');
+    }
+
+    var stickit=0;
+    function showimage() {MijnVenster1=window.open("$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif", "", "scrollbars=1,width=640,height=480,left=0,top=0");MijnVenster1.focus();}
+    
+    function showScribble(){if(stickit == 0){stickit=1;document.getElementById('stickit_area').style.display = "block";}else{stickit=0;document.getElementById('stickit_area').style.display = "none";}}
+
+    var end_hours;
+    var end_minutes;
+    !if $exo_cnt=1
+	function Set_Cookie( name, value, expires, path, domain, secure ){
+	    // set time, it's in milliseconds
+	    var today = new Date();
+	    today.setTime( today.getTime() );
+	    var expires_date = new Date( today.getTime() + 3800000 ); // ca 1 hr
+	    document.cookie = name + "=" +escape( value ) +
+	    ( ( expires ) ? ";expires=" + expires_date.toGMTString() : "" ) +
+	    ( ( path ) ? ";path=" + path : "" ) +
+	    ( ( domain ) ? ";domain=" + domain : "" ) +
+	    ( ( secure ) ? ";secure" : "" );
+	}
+			
+	var t = new Date();
+	end_hours = t.getHours();
+	end_minutes = t.getMinutes() + $maxtime;
+	if(end_minutes>59){ end_minutes = end_minutes - 60; end_hours++;if(end_hours>23){end_hours=0;}}
+	if( end_hours < 10 ){ end_hours = '0'+end_hours; }
+	if( end_minutes < 10 ){ end_minutes = '0'+end_minutes; }
+	Set_Cookie("wims.init.hours",end_hours,"","","");
+	Set_Cookie("wims.init.minutes",end_minutes,"","","");
+	document.getElementById('klok').value = end_hours+":"+end_minutes+":00";
+    !else
+	 function get_cookie(Name){
+            var search = Name + "=";
+            var returnvalue = "";var end;var offset;
+            if (document.cookie.length > 0) {
+                offset = document.cookie.indexOf(search);
+                if (offset != -1) {
+                    offset += search.length;
+                    end = document.cookie.indexOf(";", offset);
+                    if (end == -1) end = document.cookie.length;
+                    returnvalue=unescape(document.cookie.substring(offset, end))
+                } 
+            }
+	    if(returnvalue == ""){setAlarm("$need_cookie");}
+            return returnvalue;
+        }
+	end_hours = get_cookie("wims.init.hours");
+	if(end_hours == ""){
+	    document.getElementById('klok').value = "--:--:--";	    
+	}
+	else
+	{
+	    end_minutes = get_cookie("wims.init.minutes");
+	    document.getElementById('klok').value = end_hours+":"+end_minutes+":00";
+	}
+    !endif
+    var clps = 0;
+    
+    function stop_toets(){
+	myConfirm('$quit ?','quit','$wims_ref_name','$session','$module','$counter','$nok_send_color');
+    }
+
+    function update(){
+	var t = new Date();
+	h = t.getHours();
+	m = t.getMinutes();
+	s = t.getSeconds();
+	if( h < 10 ){ h = '0'+h; }
+	if( s < 10 ){ s = '0'+s; }
+	if( m < 10 ){ m = '0'+m; }
+	if( h == end_hours && m == end_minutes){
+	    if( s > 20 ){
+		URL = '$wims_ref_name?session=$session&module=$module&cmd=reply&reply$counter=timeup' ;
+		document.location.href = URL;
+	    }
+	    else
+	    {
+		setAlarm("$timeup")
+		document.getElementById('klok').style.backgroundColor = "#ff0000";
+		document.getElementById('klok').style.color = "#ffffff";
+	    }
+	}
+	if(clps){
+	    clearTimeout(clps);
+	    clps  = 0;
+	}
+	document.clock.time.value = ""  + h + ":"  + m + ":" + s;
+	clps = setTimeout("update()", 1000);
+    }
+    
+    function startclock(){
+	clps = setTimeout("update()", 500);
+    } 
+    startclock();
+		    
+    var schakelaar=0;
+    function showScribble(){
+	if(schakelaar == 0){
+	    schakelaar=1;
+	    document.getElementById('stickit_area').style.display = "block";
+	}
+    	else
+	{
+	    schakelaar=0;
+	    document.getElementById('stickit_area').style.display = "none";
+	}
+    }
+//]]>
+</script>
+<!-- end mathtest.nl/exos/form.phtml -->

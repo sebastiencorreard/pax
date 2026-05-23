@@ -1,0 +1,128 @@
+#:Boerderij [ Hoeken bepalen ] 
+n=$counter
+R=$level
+!if $level=0
+    R=$counter
+!endif
+
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+make_tr=0
+questiontype=0
+cols=20
+rows=1
+mathview=0
+embed=1
+applet=1
+inputs=1
+m_rightarrow=&nbsp;=
+x=!randint 18,30
+d=!randitem 2,2.5,3,3.5,4
+b=$[$x-2*$d]
+z=!randitem 3,4,5
+p=!randitem 1,2,3
+e=$[$z+$p]
+h=$[$z+$e]
+c=!randitem 10,10.5,11,11.5,12,12.5,13,13.5,14
+a=$[round(sqrt($d^2+$e^2+($c/2)^2))]
+helptext=<img src=\'$module_dir/gifs/huis.jpg\' alt=\'noalt\' />
+
+checkfile=$checkdir/number.proc
+ex1=&deg;
+
+!if $R=1
+    keuze=!randitem 1,0
+    !if $keuze=1
+	setje=Q,H,G R,G,H Q,E,F R,F,E
+	k=!randitem 1,2,3,4
+	set=!word $k of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+        C=!item 3 of $set
+	AB=!nospace $A $B
+        BC=!nospace $B $C
+	ABC=!nospace $A $B $C
+	#an=$[atan($e/$d)]
+	answer$n=$[180/pi*acos($d/$a)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 20 of lang/remarks.$taal
+	#@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken de hoek tussen de lijnen $AB en $BC
+	texanswer$n=\left[ \begin{array} {l} $x-$b=$[2*$d] \\  \cos \left(\angle TSR \right) =\frac{$d}{$a} \rightarrow \angle TSR $ans \end{array} \right.
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle $ABC
+	
+	construction=<Segment type="thick" name="$AB" n="2002" alias="$AB" color="5" from="$A" to="$B"></Segment><Segment type="thick" name="$BC" n="2003" alias="$BC" color="5" from="$B" to="$C"></Segment>
+
+    !else
+	setje=R,G,F R,F,G Q,E,H Q,H,E
+	k=!randitem 1,2,3,4
+	set=!word $k of $setje
+	A=!item 1 of $set
+	B=!item 2 of $set
+        C=!item 3 of $set
+	AB=!nospace $A $B
+        BC=!nospace $B $C
+	ABC=!nospace $A $B $C
+	#an=$[atan($e/$d)]
+	answer$n=$[180/pi*acos($c/(2*$a))]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 21 of lang/remarks.$taal
+	#@Gegeven is een <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x BC=$c <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.</ul><br />Bereken de hoek tussen de lijnen $AB en $BC
+	texanswer$n=\left[ \begin{array} {l} $x-$b=$[2*$d] \\  \cos \left(\angle TSR \right) =\frac{$d}{$a} \rightarrow \angle TSR $ans \end{array} \right.
+	
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle $ABC
+	
+	construction=<Segment type="thick" name="$AB" n="2002" alias="$AB" color="5" from="$A" to="$B"></Segment><Segment type="thick" name="$BC" n="2003" alias="$BC" color="5" from="$B" to="$C"></Segment>
+    !endif
+    !readproc exos/huisxml.proc
+ !exit
+!endif
+
+
+!if $R>1
+    keuze=!randitem 1,0
+    !if $keuze=1
+	setje=F,G,E,H,R E,H,F,G,Q
+	k=!randitem 1,2
+	set=!word $k of $setje
+	F=!item 1 of $set
+	G=!item 2 of $set
+        E=!item 3 of $set
+        H=!item 4 of $set
+        R=!item 5 of $set
+        FG=!nospace $F $G
+        EH=!nospace $E $H
+        RS=!nospace $R S
+	answer$n=$[180/pi*atan($e/$d)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 18 of lang/remarks.$taal
+	#@Het hiernaast gegeven <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a> met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>AE=$z <li>FR=GR=EQ=HQ=$a <li>de nok QR=$b <li>de hoogte is $h.<li>S is het midden van $FG<li>T is het midden van $EH</ul><br />Bereken de hoek tussen de lijnen RS en TS
+	texanswer$n= \tan \left(\angle TSR \right) =\frac{$e}{$d} \rightarrow \angle TSR $ans
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	formula$n=\angle TSR
+	construction=<Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="$F" second="$G" shape="circle"></Midpoint><Midpoint name="T" n="2001" showname="true" bold="true" large="true"  first="$E" second="$H" shape="circle"></Midpoint><Segment name="$RS" n="2002" alias="$RS" color="5" from="$R" to="S"></Segment><Segment name="TS" n="2003" alias="TS" color="5" from="T" to="S"></Segment>
+    !else
+	#an=$[atan($e/$d)]
+	answer$n=$[180/pi*atan(2*$e/$c)]
+	ans=\approx $[round($rounding*$(answer$n))/$rounding]
+	ss=!record 19 of lang/remarks.$taal
+	#@Het hiernaast gegeven <a onmouseover="return escape('<img src=$module_dir/gifs/huis.jpg alt=noalt />')"><u>Achterhoekse boerderij</u></a>  met een "schilddak"<br />Deze boerderij heeft de volgende maten.<br /><ul><li>AB=$x <li>BC=$c <li>AE=$z <li>de nok QR=$b <li>FR=GR=EQ=HQ<li>de hoogte is $h .<li>Verder is gegeven dat S het midden is van QR <li>En T is het midden van EF<li>En V is het midden van GH</ul>Bereken de hoek tussen de lijnen ST en TV.
+	
+	texanswer$n= \tan \left(\angle STV \right) =\frac{$e}{0.5  \cdot $c}  = \frac{$e}{$[0.5*$c]} \simeq $[2*$e/$c] \rightarrow \angle TSR $ans
+	
+	question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+	
+	formula$n=\angle STV
+	
+	construction=<Midpoint name="S" n="2000" showname="true" bold="true" large="true"  first="Q" second="R" shape="circle"></Midpoint><Midpoint name="T" n="2001" showname="true" bold="true" large="true"  first="E" second="F" shape="circle"></Midpoint><Midpoint name="V" n="2001" showname="true" bold="true" large="true"  first="G" second="H" shape="circle"></Midpoint><Segment name="TV" n="2002" alias="TV" color="5" from="T" to="V"></Segment><Segment name="TS" n="2003" alias="TS" color="5" from="T" to="S"></Segment>
+    !endif
+    !readproc exos/huisxml.proc
+ !exit
+!endif
+
+

@@ -1,0 +1,47 @@
+# voor som 20
+# er moet ^(2) in antwoord
+# em moet 1 x in staan
+n=$counter
+!if ? isin $(reply$n)
+ maxscore=0
+ goback=0
+ remark$n=$NOK
+ !exit
+!endif
+
+chk1=!positionof char ^ in $(reply$n)
+chk2=!itemcnt $chk1
+!if $chk2 > 1
+ errortext=!record 41 of lang/remarks.$taal
+ #@let op dat je maar 1 keer een "^" hoeft te gebruiken bij een kwadraat !!
+ goback=1
+ !exit
+!else
+ !if $chk2=0
+  errortext=!record 42 of lang/remarks.$taal
+  #@bij kwadraat afsplitsen verwacht ik natuurlijk wel een kwadraat (^)<br />je antwoord is niet in de vereiste vorm: <em>y = a(x+p)^2 + q</em>
+  maxscore=$[$P8*$maxscore]
+  goback=1
+  !exit
+ !else
+  chk1=!positionof char x in $(reply$n)
+  chk2=!itemcnt $chk1
+  !if $chk2=0
+   errortext=!record 43 of lang/remarks.$taal
+   #@je bent variabele <em>x</em> vergeten...
+   maxscore=$[$P4*$maxscore]
+   goback=1
+   !exit
+  !else
+   !if $chk2 > 1
+    errortext=!record 44 of lang/remarks.$taal
+    #@je antwoord <br /><b>y = $(reply$n)</b><br />is geen kwadraat afsplitsen !!
+    maxscore=$[$P8*$maxscore]
+    goback=1
+    !exit
+   !else
+    !readproc $checkdir/simplify.proc
+    !exit
+   !endif
+ !endif
+!endif

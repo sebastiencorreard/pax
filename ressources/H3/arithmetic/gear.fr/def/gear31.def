@@ -1,0 +1,329 @@
+!set title=03. Engrenage 3 roues 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel Verbecq
+email=lionel.verbecq@ac-versailles.fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=1000000
+language=fr
+oefcss=<style> .macss{background-color: #FAFAD2;} </style>
+
+ansorder=r,r,r
+varcnt=65
+prevarcnt=64
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+val6=La roue bleue,La roue marron,dents,elle,roues,elles,la roue bleue,la roue marron,La roue noire,la roue noire,Elle
+tmp0=!shuffle 3,4,5,4
+
+val7=$(tmp0)
+val8=$[rint($(val7[1]))]
+tmp0=!randint 1, 3
+
+val9=$[rint(2*$(tmp0)+1)]
+!if $val8=$val9 
+tmp0=!randint 1, 3
+
+val9=$[rint($val9+2*$(tmp0))]
+!endif
+tmp0=!randint 1, 3
+
+val10=$[rint(2*$(tmp0)+1)]
+!if $val9=$val10 
+tmp0=!randint 1, 3
+
+val10=$[rint($val10+2*$(tmp0))]
+!endif
+tmp0=!shuffle 1,3,5
+
+val11=$(tmp0)
+val12=$[rint($(val11[1]))]
+val8=$[rint($val12*$val8)]
+val9=$[rint($val12*$val9)]
+val10=$[rint($val12*$val10)]
+val13=$[rint(lcm(lcm($val8,$val9),$val10))]
+val14=$[rint($val13/$val8)]
+val15=$[rint($val13/$val9)]
+val16=$[rint($val13/$val10)]
+tmp0=!makelist x for x=$val8 to ($val14+2)*$val8 step $val8
+
+val17=$(tmp0)
+tmp0=!makelist x for x=$val9 to ($val15+2)*$val9 step $val9
+
+val18=$(tmp0)
+tmp0=!makelist x for x=$val8 to 5*$val8 step $val8
+
+val19=$(tmp0)
+tmp0=!makelist x for x=$val9 to 5*$val9 step $val9
+
+val20=$(tmp0)
+tmp0=!makelist x for x=$val10 to ($val16+2)*$val10 step $val10
+
+val21=$(tmp0)
+tmp0=!makelist x for x=$val10 to 5*$val10 step $val10
+
+val22=$(tmp0)
+val23=<span style="color:red">$val13</span>
+tmp0=!replace item number $val14 by $val23 in $val17
+
+val17=$(tmp0)
+tmp0=!replace item number $val15 by $val23 in $val18
+
+val18=$(tmp0)
+tmp0=!replace item number $val16 by $val23 in $val21
+
+val21=$(tmp0)
+val24=$[rint(($val8+$val9+$val10+7.5)+15)]
+val25=$[0.5*($val8+$val10)+$val9]
+val26=$[rint((max($val8,$val9)+$val24)/2)]
+t_=!replace internal \( by ( in factor($val8)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val27=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val27
+
+tmp0=!rowcnt $tmp
+val28=$[rint($(tmp0))]
+val29=$(val27[1;1])^{$(val27[1;2])}
+!for val30 =2 to $val28 
+val31=$(val27[$val30;1])^{$(val27[$val30;2])}
+tmp0=!append item $val31 to $val29
+
+val29=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val29
+
+val29=$(tmp0)
+tmp0=!texmath $val29
+
+val29=$(tmp0)
+t_=!replace internal \( by ( in factor($val9)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val32=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val32
+
+tmp0=!rowcnt $tmp
+val33=$[rint($(tmp0))]
+val34=$(val32[1;1])^{$(val32[1;2])}
+!for val35 =2 to $val33 
+val31=$(val32[$val35;1])^{$(val32[$val35;2])}
+tmp0=!append item $val31 to $val34
+
+val34=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val34
+
+val34=$(tmp0)
+tmp0=!texmath $val34
+
+val34=$(tmp0)
+t_=!replace internal \( by ( in factor($val10)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val36=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val36
+
+tmp0=!rowcnt $tmp
+val37=$[rint($(tmp0))]
+val38=$(val36[1;1])^{$(val36[1;2])}
+!for val39 =2 to $val37 
+val31=$(val36[$val39;1])^{$(val36[$val39;2])}
+tmp0=!append item $val31 to $val38
+
+val38=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val38
+
+val38=$(tmp0)
+tmp0=!texmath $val38
+
+val38=$(tmp0)
+t_=!replace internal \( by ( in factor($val13)
+tmp0=!exec pari $t_
+
+tmp=!trim $(tmp0)
+val40=!translate internal $	\
+$ to ;; in $tmp
+tmp=!translate internal $	$ to ; in $val40
+
+tmp0=!rowcnt $tmp
+val41=$[rint($(tmp0))]
+val42=$(val40[1;1])^{$(val40[1;2])}
+!for val39 =2 to $val41 
+val31=$(val40[$val39;1])^{$(val40[$val39;2])}
+tmp0=!append item $val31 to $val42
+
+val42=$(tmp0)
+!next
+tmp0=!replace internal , by \times in $val42
+
+val42=$(tmp0)
+tmp0=!texmath $val42
+
+val42=$(tmp0)
+val43=JXG.Options.elements.highlight=false;	JXG.Options.elements.tabindex=-1;	var board = JXG.JSXGraph.initBoard('jsxbox', {	    boundingbox: [-$val24,$val24,$val24,-$val24],	    showCopyright:false,	    keepAspectRatio:true,	    axis: false});	var z1 = $val8;	var z2 = $val9;	var z3 = $val10;	var p1 = board.create('point', [-$val25, 0], {visible: false,fixed:true});	var p2 = board.create('point', [-$val25+z1+z2, 0], {visible: false,fixed:true});	var p3 = board.create('point', [$val25, 0], {visible: false,fixed:true});	var slider = board.create('slider', [[-$val24+7,$val26], [$val24-7,$val26], [0, 0, 10000]],{snapWidth:$val8,tabindex:10,withLabel: false});	var x1=function(t) { return (z1 + 1.25*Math.cos(z1*t + slider.Value()*Math.PI / 180))*Math.cos(t) -$val25 ; } ;	var y1=function(t) { return (z1 + 1.25*Math.cos(z1*t + slider.Value()*Math.PI / 180))*Math.sin(t) ; } ;	var gear1 = board.create('curve', [x1,y1,0,2*Math.PI], {strokeWidth:2, strokeColor:'blue'});	var dep1 = board.create('point', [-$val25+z1+1.25,0],{visible: false, fixed: true,color: 'black', name: '',size: 3,showInfobox: false});	var seg1 = board.create('segment', [p1,dep1],{visible: true, label: false, fixed: true,color: 'blue',strokeWidth: 3,showInfobox: false});	var x2=function(t) { return (z2 + 1.25*Math.cos(z2*t - slider.Value()*Math.PI / 180))*Math.cos(t) -$val25+z1+z2 ; } ;	var y2=function(t) { return (z2 + 1.25*Math.cos(z2*t - slider.Value()*Math.PI / 180))*Math.sin(t) ; } ;	var gear2 = board.create('curve', [x2,y2,0,2*Math.PI], {strokeWidth:2, strokeColor:'brown'});	var dep2 = board.create('point', [-$val25+z1+2*z2+1.25,0], {visible: false, fixed: true, color: 'black',name: '',size:3,showInfobox: false});	var seg2 = board.create('segment', [p2,dep2],{visible: true, label: false, fixed: true,color: 'brown',strokeWidth:3,showInfobox: false});	var x3=function(t) { return (z3 + 1.25*Math.cos(z3*t + slider.Value()*Math.PI / 180))*Math.cos(t) +$val25 ; } ;	var y3=function(t) { return (z3 + 1.25*Math.cos(z3*t + slider.Value()*Math.PI / 180))*Math.sin(t) ; } ;	var gear3 = board.create('curve', [x3,y3,0,2*Math.PI], {strokeWidth:2, strokeColor:'black'});	var dep3 = board.create('point', [$val25+z3+1.25,0], {visible: false, fixed: true, color: 'black',name: '',size:3,showInfobox: false});	var seg3 = board.create('segment', [p3,dep3],{visible: true, label: false, fixed: true,color: 'black',strokeWidth: 3,showInfobox: false});	board.on('update', function() {	    var angle1 = -slider.Value()*Math.PI/180/z1;	    var angle2 = -angle1*z1/z2;	    var angle3 = angle1*z1/z3;	    dep1.moveTo([-$val25+(z1+1.25)* Math.cos(angle1), (z1+1.25)* Math.sin(angle1)]);	    dep2.moveTo([-$val25+z1+z2+(z2+1.25)* Math.cos(angle2), (z2+1.25)* Math.sin(angle2)]);	    dep3.moveTo([$val25+(z3+1.25)* Math.cos(angle3), (z3+1.25)* Math.sin(angle3)]);	});	var t1=board.create('text', [-$val24+9,$val26+5,"Déplacer le curseur pour faire tourner l'engrenage"],{fixed: true});	var t2=board.create('text', [$val25+z3+3,0,"Départ"],{fixed: true});	board.update();	
+!readproc slib/geo2D/jsxgraph jsxbox board,[250x250, min=250px max=350px left],$val43 
+tmp0=$slib_out
+val44=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val14
+replytype2=numexp
+replyname2=
+replygood2=$val15
+replytype3=numexp
+replyname3=
+replygood3=$val16
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  <p><span style="color:blue">$(val6[1])</span> atteint sa position initiale toutes les $val8 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val19, ...$(val6[3]).</p> <span style="color:brown">$(val6[2])</span> atteint sa position initiale toutes les $val9 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val20, ...$(val6[3]). <p>$(val6[9]) atteint sa position initiale toutes les $val10 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val22, ...$(val6[3]).</p> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val44	<span style="color:blue">$(val6[1]) a <b>
+!insmath $val8
+$()</b> dents</span>, <span style="color:brown">$(val6[8]) a <b>
+!insmath $val9
+$()</b> dents</span> et <span style="color:black">$(val6[10]) a 
+!insmath $val10
+$() dents</span>.	<p>On fait tourner l'engrenage.</p>	Combien de tours complets doit effectuer chacune des roues pour qu'elles se retrouvent en même temps, de nouveau, et pour la première fois, dans la position de départ&nbsp;?	<p>L'ensemble sera, <b>pour la première fois</b>, à nouveau dans la position de départ lorsque&nbsp;:</p>	<ul><li><label for="reply1"><span style="color:blue">$(val6[7])</span> aura fait</label> 
+!read oef/embed.phtml reply1,5 
+$() tour(s),	<li><label for="reply2"><span style="color:brown">$(val6[8])</span> aura fait</label> 
+!read oef/embed.phtml reply2,5 
+$() tour(s),	<li><label for="reply3"><span style="color:black">$(val6[10])</span> aura fait</label> 
+!read oef/embed.phtml reply3,5 
+$() tour(s).</ul>	
+$()
+!exit
+
+:hint
+$() <p><span style="color:blue">$(val6[1])</span> atteint sa position initiale toutes les $val8 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val19, ...$(val6[3]).</p> <span style="color:brown">$(val6[2])</span> atteint sa position initiale toutes les $val9 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val20, ...$(val6[3]). <p>$(val6[9]) atteint sa position initiale toutes les $val10 $(val6[3]), c'est-à-dire lorsqu'$(val6[4]) aura tourné de $val22, ...$(val6[3]).</p> 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<span style="color:blue">$(val6[1])</span> retrouve sa position initiale lorsqu'$(val6[4]) a tourné d'un multiple de 
+!insmath $val8
+$() $(val6[3]).	<p><span style="color:brown">$(val6[2])</span> retrouve sa position initiale lorsqu'$(val6[4]) a tourné d'un multiple de 
+!insmath $val9
+$() $(val6[3]).</p>	$(val6[9]) retrouve sa position initiale lorsqu'$(val6[4]) a tourné d'un multiple de 
+!insmath $val10
+$() $(val6[3]).	<p>Les trois $(val6[5]) retrouvent leur position de départ, en même temps et pour la première fois, lorsqu'$(val6[6]) ont tourné d'un nombre de $(val6[3]) égal au 
+!insmath 1^er
+$() multiple commun à 
+!insmath $val8
+$(), 
+!insmath $val9
+$() et <span class="nowrap">
+!insmath $val10
+$().</span></p>	
+!if $val2=1 
+$()<div style="overflow:auto">Multiples de $val8&nbsp;: $val17 ...</div>	                  <div style="overflow:auto">Multiples de $val9&nbsp;: $val18 ...</div>	                  <div style="overflow:auto">Multiples de $val10&nbsp;: $val21 ...</div>	                  Le <b><span style="color:red">plus petit multiple commun</span></b> à 
+!insmath $val8
+$(),
+!insmath $val9
+$() et 
+!insmath $val10
+$() est <span class="nowrap">
+!insmath $val13
+$().</span></p>	                  
+!else
+$() La décomposition en facteurs premiers de 
+!insmath $val8
+$() est <span class="nowrap">
+!insmath $val8=$val29
+$().	                  <p>La décomposition en facteurs premiers de 
+!insmath $val9
+$() est <span class="nowrap">
+!insmath $val9=$val34
+$().</span></p>	                  La décomposition en facteurs premiers de 
+!insmath $val10
+$() est <span class="nowrap">
+!insmath $val10=$val38
+$().</span>	                  <p>Le <b><span style="color:red">plus petit multiple commun</span></b> à 
+!insmath $val8
+$(),
+!insmath $val9
+$() et 
+!insmath $val10
+$() est <span class="nowrap">
+!insmath $val42=$val13
+$().</span></p>	                   
+!endif
+$()	                  
+!insmath $val13=$val8 \times $val14
+$(), 
+!insmath $val13=$val9 \times $val15
+$() et <span class="nowrap">
+!insmath $val13=$val10 \times $val16
+$().</span>	                  <p><span style="color:blue">$(val6[1])</span> a fait 
+!insmath $val14
+$() tours,<span style="color:brown">$(val6[8])</span> a fait 
+!insmath $val15
+$() tours et $(val6[10]) a fait 
+!insmath $val16
+$() tours.</p>	                  
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply1*$val8-$m_reply2*$val9=0 and $m_reply1<>$val14 and $m_reply2<>$val15 and $m_reply3<>$val16
+ <div class='oef_feedbacks'>	<span class="macss">Votre réponse permet à l'ensemble de retrouver leur position initiale <b>mais ce n'est pas pour la première fois</b>.</span>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,6,8,9,10,13,14,15,16,17,18,19,20,21,22,29,34,38,42,44
+embedcnt=3

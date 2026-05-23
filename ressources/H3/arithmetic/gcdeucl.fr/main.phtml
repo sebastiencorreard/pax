@@ -1,0 +1,90 @@
+!if $title!=$empty
+ !set module_title=$title
+ !set module_author=$author
+ !set module_address=$email
+!endif
+
+!header
+
+<u><b>Exercice $noexo.</b></u>
+Calculer par l'algorithme $algoname le PGCD de $AA0 et $BB0.<p>
+<p><hr><p>
+
+!if $nbetape>0
+<u><b>Vos étapes de calcul:</b></u>
+!read affetape.phtml
+<p><hr><p>
+!endif
+
+!if $status=1
+   !read form.phtml
+!endif
+
+!if $status=2
+!if $erreur!=$empty
+   <font color=red>
+   $erreur
+!let wims_module_error=error : $erreur
+   </font>
+!endif
+   !let erreur=$empty
+   !let tmp=!item $action of $listaction
+   !read $tmp question
+   <p>
+   !href cmd=resume&status=1 retour
+!endif
+
+!if $status=3
+   !read conclure.phtml reponse
+!endif
+
+!if $status=5
+   <u><b>Votre réponse: </b></u>
+   Le plus grand diviseur commun à $AA0 et $BB0 est $repexo1.<p>
+   <font color=green><b>Bonne réponse.</b></font>
+!endif
+<p><hr><p>
+<u><b>Informations: </b></u>
+<table>
+  <tr>
+    <td>Nombre d'étape:</td>
+    <td>$nbetape</td>
+  </tr>
+!if $nocalcul!=1
+  <tr>
+    <td>Nombre d'erreur de calcul:</td>
+    <td>$nbreerrcalc</td>
+  </tr>
+!endif
+  <tr>
+    <td>Nombre d'erreur de raisonnement:</td>
+    <td>$nbreerrrais</td>
+  </tr>
+!!  <tr>
+!!    <td>Nombre d'acces à l'aide:</td>
+!!    <td>$nbreaide</td>
+!!  </tr>
+</table>
+
+!if $status=5
+   !if $noexo<$nbreexo
+      Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+      !increase noexo
+      !href cmd=resume&status=0 Continuer la séance 
+      .
+      !href $renewlink Nouvelle séance
+      .<p>
+      (Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.)
+   !else
+      Vous avez obtenu une note de $module_score sur 10.<p>
+      !href $renewlink Nouvelle séance
+      .
+   !endif
+!else
+   Ceci est l'exercice $noexo dans une séance qui en compte $nbreexo.
+   !href $renewlink Nouvelle séance
+   .<p> (Vous devez arriver jusqu'à la fin d'une séance pour avoir une note.)
+!endif
+:lab1
+:end
+!tail

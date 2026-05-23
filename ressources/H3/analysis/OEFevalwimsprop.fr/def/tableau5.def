@@ -1,0 +1,179 @@
+!set title=Compléter un tableau 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Non,Oui
+tmp=!nonempty items 45,46,47,49,51,52,53,54
+
+tmp0=!randitem $tmp
+val7=$[$(tmp0)]
+tmp=!trim 0,0,0,1	0,0,1,0	0,1,0,0	1,0,0,0
+val8=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!shuffle 1,2,3,4
+
+val9=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row $(val9[1]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val8
+
+tmp=!row $(val9[2]) of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp0=!values v for v=2 to 20
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+tmp0=!item 1 to 4 of $val9
+
+val12=$(tmp0)
+val13=
+val14=
+!for val15 =1 to 4 
+val16=$[$(val12[$val15])*$val7]
+tmp0=!append item $val16 to $val13
+
+val13=$(tmp0)
+
+!ifval $(val10[$val15])=1
+tmp0=!append item r$val15 to $val14
+
+val14=$(tmp0)
+!endif
+val17=$[rint(4+$val15)]
+
+!ifval $(val11[$val15])=1
+tmp0=!append item r$val17 to $val14
+
+val14=$(tmp0)
+!endif
+!next
+!readproc slib/lang/fname fr,girl 
+tmp0=$slib_out
+val18=$(tmp0)
+oefsteps=$val14 
+nextstep=!nosubst $val14 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Première ligne, première colonne
+replygood1=$(val12[1])
+replytype2=numexp
+replyname2=Première ligne, deuxième colonne
+replygood2=$(val12[2])
+replytype3=numexp
+replyname3=Première ligne, troisième colonne
+replygood3=$(val12[3])
+replytype4=numexp
+replyname4=Première ligne, quatrième colonne
+replygood4=$(val12[4])
+replytype5=numexp
+replyname5=Deuxième ligne, première colonne
+replygood5=$(val13[1])
+replytype6=numexp
+replyname6=Deuxième ligne, deuxième colonne
+replygood6=$(val13[2])
+replytype7=numexp
+replyname7=Deuxième ligne, troisième colonne
+replygood7=$(val13[3])
+replytype8=numexp
+replyname8=Deuxième ligne, quatrième colonne
+replygood8=$(val13[4])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val18 part en vacances, elle a relevé le prix à payer en fonction de la durée (en jours) du séjour.	Certaines cases se sont effacées. Peux-tu compléter ce qui manque ?	<table class="wimscenter wimsborder">	 <tr>	  <th>durée (en jours)</th>	   
+!for m_m=1 to 4 
+$()<td>
+!if $(val10[$m_m])=1 
+$() 
+!read oef/embed.phtml r\m,5 
+$() 
+!else
+$() $(val12[$m_m]) 
+!endif
+$()</td> 
+!next
+$()	 </tr>	 <tr>	  <th>Prix (en euros)</th>	   
+!for m_n=5 to 8 
+$()<td>
+!if $(val11[$m_n-4])=1 
+$() 
+!read oef/embed.phtml r\n,5 
+$() 
+!else
+$() $(val13[$m_n-4]) 
+!endif
+$()</td> 
+!next
+$()	 </tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,18
+embedcnt=2

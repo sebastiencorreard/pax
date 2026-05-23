@@ -1,0 +1,73 @@
+# hfst1
+#exo11(hfst1) Wetenschappelijke notatie
+n=$counter
+questiontype=3
+math=0
+cols=18
+rounding=-1
+mathview=0
+image=0
+plot=0
+make_tr=1
+checkfile=exos/science.proc
+#checkfile=$checkdir/new_number.proc
+
+inputs=!randint 4,8
+tot1=$empty
+tot2=$empty
+description=$empty
+!for p=1 to $inputs
+    kans=!randint 0,3
+    keuze=!randint 0,1
+    nul=!randint 2,8
+    nullen=$empty
+    !for s=1 to $nul
+	nullen=!append word 0 to $nullen
+    !next s
+    !if $kans=1
+	g=!randint 11,99
+    !else
+	!if $kans=2
+	    g=!randint 111,999
+	!else
+	    g=!randint 1111,9999
+	!endif
+    !endif
+    !if $keuze=1
+	getal=!nospace $g $nullen
+        prec=!charcnt $getal
+    !else
+	getal=!nospace 0.$nullen $g
+	prec=!charcnt $getal
+	prec=$[$prec-2]
+    !endif
+       prec=!charcnt $g
+    description=!append item $getal to $description
+    tot1=!append word $getal,$prec,0 to $tot1
+    tot2=!append word $getal,$prec,1 to $tot2
+    tot3=!append word $getal,$prec,3 to $tot3
+!next p
+tot=!exec scienceprint $tot1 $tot2 $tot3
+
+textanswer$n=<ol>
+!for p=1 to $inputs
+    a=!item $p of $tot
+    h=!item $[$p+$inputs] of $tot
+    pr=!item $[$p+$inputs+$inputs] of $tot
+    answer$n=!append item $a to $(answer$n)
+    textanswer$n=!append line $ <li><span style="color:green">$(description[$p]) = <b>$h</b> (of met prefix : <b>$pr</b>)</span></li>$ to $(textanswer$n)
+!next p
+textanswer$n=!append line $ </ol> $ to $(textanswer$n) 
+
+ss=Schrijf de onderstaande getallen in de wetenschappelijke notatie.
+
+helptext= 100 = 10^2 = 10<sup>2</sup><br />1000 = 10^3 = 10<sup>3</sup><br /> 125000 =  1.25*10^5 = 1.25 &times; 10^<sup>5</sup><br />etc
+
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+!exit
+
+
+
+
+    

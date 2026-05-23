@@ -1,0 +1,140 @@
+!set title=Statistiques : médiane
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Jean-Baptiste, Bergamo
+email=jbcube@hotmail.com
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+precision=1000
+computeanswer=no
+
+ansorder=r,c
+varcnt=18
+prevarcnt=16
+postvarcnt=1
+replycnt=1
+choicecnt=1
+conditioncnt=0
+feedbackcnt=3
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randitem 8,9,10,11,12,13
+
+val6=$(tmp0)
+!readproc slib/stat/random $val6,0,30 
+tmp0=$slib_out
+val7=$(tmp0)
+tmp0=!declosing [$val7]
+
+val7=$(tmp0)
+val8=
+!for val9  = 1 to $val6 
+!for val10  = 1 to $val6 
+val11=$[($(val7[$val9])+$(val7[$val10]))/2]
+val8=$val8,$val11
+!next
+!next
+tmp0=!nonempty items $val8
+
+val8=$(tmp0)
+val12=<table class="wimscenter wimsborder"><tr>
+!for val9 =1 to $val6 
+tmp0=!item $val9 of  $val7
+
+val13=$[$(tmp0)]
+val12=$val12 <td> &nbsp;&nbsp;  $val13  &nbsp;&nbsp; </td>
+!next
+val12=$val12 </tr></table>
+!readproc slib/stat/median [$val7] 
+tmp0=$slib_out
+val14=$[$(tmp0)]
+!readproc slib/stat/arithmean [$val7] 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0) 
+
+val15=$[$(tmp1)]
+replytype1=algexp
+replyname1=Médiane
+replygood1=$val14
+choicename1=Qu'est-ce que la médiane?
+choicegood1=c'est le nombre qui sépare la série en deux groupes de même effectif
+choicebad1=c'est la moyenne des valeurs extrêmes, c'est la moyenne de la population qui sépare la série en deux groupes de même effectif, c'est la moyenne des effectifs, c'est le nombre qui sépare la série en deux groupes de même population
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst <span style="color:purple">Attention : ne pas oublier de ranger les températures par ordre croissant ! La médiane est la valeur centrale (ou la moyenne des deux valeurs centrales).</span>
+
+
+!goto stat
+
+!exit
+
+:question
+$()Durant l'automne, $val6 températures ont été relevé dans le centre de  Paris :	$val12	<p>	Calculer la médiane de cette série statistique.	</p><div class="wimscenter">	La médiane est égale à :  
+!read oef/embed.phtml reply1,5 
+$()</div>	
+$()
+!exit
+
+:hint
+$()<span style="color:purple">Attention : ne pas oublier de ranger les températures par ordre croissant ! La médiane est la valeur centrale (ou la moyenne des deux valeurs centrales).</span>
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val16=$[($(val7[rint($val6/2)])+$(val7[rint(($val6+1)/2)]))/2]
+
+!exit
+
+:feedback
+!ifval $m_reply1 <> $val14 and $m_reply1 = $val16
+ <div class='oef_feedbacks'><p>	<span class="wims_warning">Attention</span> : ne pas oublier de ranger les températures par ordre croissant !	</p>
+$()</div>
+!endif
+!ifval $m_reply1 = $val15 and $m_reply1 <> $val14
+ <div class='oef_feedbacks'><p><span class="wims_warning">	Attention</span> : vous confondez la moyenne et la médiane ! </p>
+$()</div>
+!endif
+!ifval $m_reply1 <> $val14 and $m_reply1 <> $val15 and $m_reply1 notitemof $val8
+ <div class='oef_feedbacks'>	<p><span class="wims_warning">Attention</span>: La médiane se trouve parmi un des	nombres de la série, ou de la moyenne de deux d'entre eux.</p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,12,14,15
+embedcnt=1

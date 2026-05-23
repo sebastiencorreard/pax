@@ -1,0 +1,112 @@
+#:goniometrie en de eenheidscirkel
+n=$counter
+math=0
+mathview=0
+embed=1
+cols=20
+rows=1
+inputs=1.1
+questiontyp=0
+checkfile=$checkdir/number.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+
+punt=!randitem P,Q,R,S,T
+rounding=1000
+!readproc $remarkdir/rounding.$taal
+
+!if $R=1
+    !if $counter !=1
+	graden=!randint 5,355
+    !else
+	graden=!randint 15,170
+	!if $graden=90
+	    graden=45
+	!endif
+    !endif
+    begin=0
+    sintype=thick
+    costype=thin
+    rad=$[$graden*pi/180]
+    PP=$[sin($rad)]
+    PP=$[(round($rounding*$PP))/$rounding]
+    PP=$[abs($PP)]
+    answer$n=$PP
+    formula$n=!nospace \bf{d}\left( $punt $punt ' \right)
+    ss=!record 44 of lang/remarks.$taal
+    rr=!record 45 of lang/remarks.$taal
+ !goto KLAAR
+!endif
+
+!if $R=2
+    sintype=thin
+    costype=thick
+    !if $counter !=1
+	graden=!randint 5,355
+    !else
+	graden=!randint 15,170
+	!if $graden=90
+	    graden=45
+	!endif
+    !endif
+    begin=0
+    rad=$[$graden*pi/180]
+    OP= $[abs(cos($rad))]
+    OP=$[(round($rounding*$OP))/$rounding]
+    answer$n=$OP
+    formula$n=!nospace \bf{d}\left( O $punt ' \right)	
+    ss=!record 46 of lang/remarks.$taal
+    rr=!record 47 of lang/remarks.$taal
+ !goto KLAAR
+!endif
+
+!if $R>2
+    checkfile=$checkdir/coord.proc
+    graden=!randint 0,360
+    begin=0
+    rad=$[$graden*pi/180]
+    y= $[sin($rad)]
+    x= $[cos($rad)]
+    y=$[(round($rounding*$y))/$rounding]
+    x=$[(round($rounding*$x))/$rounding]
+    answer$n=$x,$y
+    formula$n=!nospace \bf{$punt}\left( x : y )
+    texanswer$n=\bf{$punt}\left( x : y \right)  = \bf{$punt}\left( \cos\left($graden^{o}\right) : \sin\left($graden^{o}\right) \right)
+    ss=!record 48 of lang/remarks.$taal
+    rr=!record 49 of lang/remarks.$taal
+!endif
+
+
+:KLAAR
+question$n=$ss
+textanswer$n=$rr
+
+!if $subject=7
+    image=0
+    make_tr=0
+    xsize=240
+    ysize=240
+    image_settings=$xsize,$ysize
+    XRANGE=-1.5,1.5
+    YRANGE=-1.5,1.5
+    aantal_beeldjes=14
+    K1=red
+    K2=cyan
+    K3=blue
+    K4=green
+    TRANSPARENT=ifsdgz
+    !readproc exos/eenheidscirkel.proc
+    !insdraw $eenheidscirkel
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+    question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!else
+    make_tr=0
+    questiontype=7
+    javascript=js/circle.phtml
+    var9=!nospace $punt,$punt ', $punt \",$graden
+    inputs=yes
+
+!endif

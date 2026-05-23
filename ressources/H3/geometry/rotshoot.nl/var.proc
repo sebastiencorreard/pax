@@ -1,0 +1,75 @@
+# Variable calculations should be done in this file.
+# It is read and interpreted by wims for all valid working calls to the module.
+
+size=200
+insdraw_size=$size,$size
+xsize=$size
+ysize=$size
+
+border=10
+ring_size=5
+insdraw_size=$[$size+$border*2],$[$size+$border*2]
+color0=0,0,0
+color1=255,0,0
+color2=0,160,0
+color3=0,0,255
+color4=155,0,155
+color5=0,155,155
+gcolor=0,0,0
+
+!if $status!=wait
+  !read var.prep
+!endif
+
+xcc=$[rint($xsize*($xc-$xmin)/($xmax-$xmin)+$border)]
+ycc=$[rint($ysize*($ymax-$yc)/($ymax-$ymin)+$border)]
+crosize=6
+ins_src=$drawsrc
+
+!if $click_x$click_y!=$empty and $status=wait
+  click_x=$[$click_x]
+  click_y=$[$click_y]
+  xc1=!eval $click_x-$crosize
+  xc2=!eval $click_x+$crosize
+  yc1=!eval $click_y-$crosize
+  yc2=!eval $click_y+$crosize
+  ss=!eval $size+$border*2-1
+  ins_src=$ins_src\
+   line $xc1,$yc1,$xc2,$yc2,$color0\
+   line $xc1,$yc2,$xc2,$yc1,$color0\
+   fcircle $xcc,$ycc,2,$gcolor\
+   circle $xcc,$ycc,$[$crosize*3],$gcolor\
+   line 0,0,$ss,0,255,255,0\
+   line 0,0,0,$ss,255,255,0\
+   line 0,$ss,$ss,$ss,255,255,0\
+   line $ss,0,$ss,$ss,255,255,0
+  xe=$[$click_x-$xcc]
+  ye=$[$click_y-$ycc]
+  error=$[sqrt(($xe)^2+($ye)^2)]
+  reply_cnt=$[$reply_cnt+1]
+  !if $reply_cnt>$shoots
+    reply_cnt=1
+    tot_error=$error
+    target=
+  !else
+    tot_error=$[$tot_error+$error]
+  !endif
+  !if $error<$ring_size*10
+    target=$target\
+      fcircle $[rint($xe+$ring_size*10)],$[rint($ye+$ring_size*10)],5,$color0
+  !endif
+  mean=$[rint(2*$tot_error/$reply_cnt)/10]
+  !if $reply_cnt>=$shoots
+    module_score=!eval 10-floor($mean)
+    !if $module_score<0 or NaN isin $module_score
+      module_score=0
+    !endif
+    wims_module_log=error=$mean mm, $module_score/10
+    rings=
+    !for i=0 to 10
+      rings=$rings\
+        circle $[$ring_size*10],$[$ring_size*10],$[2*$i*$ring_size],160,160,160
+    !next i
+  !endif
+  !distribute item $ into status,click_x,click_y
+!endif

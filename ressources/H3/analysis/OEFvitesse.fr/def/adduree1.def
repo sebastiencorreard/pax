@@ -1,0 +1,137 @@
+!set title=Ajouter des durées (sans retenue)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r,r
+varcnt=21
+prevarcnt=20
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=$[rint(29)]
+tmp0=!values v for v=5 to $val6
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+tmp0=!item 1 of $val7
+
+val8=$[rint($(tmp0))]
+tmp0=!item 2 of $val7
+
+val9=$[rint($(tmp0))]
+tmp0=!item 3 of $val7
+
+val10=$[rint($(tmp0))]
+tmp0=!item 4 of $val7
+
+val11=$[rint($(tmp0))]
+val12=$[rint(max($val8,$val9))]
+val13=$[rint(min($val8,$val9))]
+val14=$[rint(floor(($val12+$val13)/60))]
+val15=$[rint(floor(($val10+$val11)/60))]
+val16=$[rint($val10+$val11-60*$val15)]
+val15=$[rint($val15+$val12+$val13-60*$val14)]
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val17=$(tmp0)
+val18=$[rint($val10+$val11)]
+val19=$[rint($val18-floor(($val18)/60)*60)]
+val20=$[rint(floor(($val18)/60))]
+val21=$[rint($val12+$val13+$val20)]
+val22=$[rint($val21-floor(($val21)/60)*60)]
+val23=$[rint(floor(($val21)/60))]
+replytype1=numexp
+replyname1=Heure
+replygood1=$val14
+replytype2=numexp
+replyname2=Minutes
+replygood2=$val15
+replytype3=numexp
+replyname3=Secondes
+replygood3=$val16
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val17 fait une course d'endurance. Il court pendant $val12 minutes $val10 secondes puis	étant fatigué se met à marcher pendant $val13 minutes $val11 secondes.	<p>	Quelle est la durée de sa course ?	</p>	<div>	<b>Votre réponse : </b>  
+!read oef/embed.phtml r1,5 
+$() H  
+!read oef/embed.phtml r2,5 
+$() min  
+!read oef/embed.phtml r3,5 
+$() s.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()	Par addition :	<br \>On commence par les secondes :	<br \>$val10 secondes + $val11 secondes = $val18 secondes	
+!if $val20<>0 
+$() = <b>$val20 minutes</b> + $val19 secondes 
+!endif
+$()	<br \> Puis les minutes 
+!if $val20<>0 
+$()sans oublier les $val20 minutes de	l'étape précédente  
+!endif
+$() :	<br \>$val12 minutes + $val13 minutes 
+!if $val20<>0 
+$()+ <b>$val20 minutes</b>  
+!endif
+$()	= $val21 minutes 
+!if $val23<>0 
+$()= $val23 heures + $val22 minutes 
+!endif
+$()	<br \> Bilan : $val14 H $val15 min $val16 s.
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,11,12,13,14,15,16,17,18,19,20,21,22,23
+embedcnt=3

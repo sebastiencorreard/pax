@@ -1,0 +1,64 @@
+!set eind=$wims_nowseconds
+!set duration=$[round(($eind-$start)/60)]
+!set scorecolors=#ff0000,#ff0000,#ff5a22,#ff4f00,#ff7f00,#ffb800,#ffa700,#66d400,#38d400,#57ff00,#00ff00
+<table  id="answer" class="answer">
+    !set r=1
+    !for p in $vragenlijst
+    <tr>
+    <td class="answer_t">
+	$questionnumber $r)<br />
+	<tt>$(question$p)</tt><br /> 
+	!if $(texanswer$p)!=$empty
+	    !insmath $(texanswer$p)
+	!endif
+	!if $(textanswer$p) != $empty 
+	    $(textanswer$p)
+	!endif
+    </td>
+    <td class="answer_t">
+	&nbsp;
+	$(reply$p)
+	!if $(subscores$p)!=$empty
+	<hr />
+	    !set k=!item $[round($(subscores$p))+1] of $scorecolors
+	    <span style="color:$k">$scorename: $(subscores$p)</span>
+	    $(remark$p)
+	!endif
+    </td>
+    </tr>
+!increase r
+!next p
+</table>
+<p style="text-align:left">
+!set k=!item $[round($module_score+1)] of $scorecolors
+!if $total_counter < 2
+    !record 18 of lang/remarks.$taal
+    !!#@Je hebt de toets niet gemaakt. Je cijfer is dus een 0.
+!else
+    !set rem=!record 7 of lang/remarks.$taal
+    !!#@Je hebt deze toets gemaakt in $duration minuten.<br />Je eindcijfer is een $module_score
+    $rem
+    !if $total_counter != $total_exos
+	<br />
+	!set un_answered=$[$total_exos - $total_counter ]
+	!set virtual_score=$[(round($score_limit*100*$total_score/(10*$total_counter)))/10]
+	!set rem2=!record 19 of lang/remarks.$taal
+	!!#@Je hebt $un_answered vragen niet beantwoord binnen de vereiste $duration minuten.<br />Voor de vragen die je wel hebt beantwoord zou je -virtueel- een $virtual_score hebben gekregen.
+    !endif
+!endif
+!if $module_score < $minimal_score and $total_counter>1
+    !record 17 of lang/remarks.$taal
+    !!#@Let op!<br />Je moet extra aandacht geven aan:
+    <ul>
+    !for p in $vragenlijst
+    	!if $(subscores$p)<$minimal_score
+	    <li>
+	    !if $(subscores$p)<2
+		!record $[-1*$p] of lang/remarks.$taal
+	    !endif
+	    </li>
+	!endif
+    !next p
+    </ul>
+!endif
+</p>

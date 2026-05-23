@@ -1,0 +1,178 @@
+!set title=Inverse de puissance
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Inverse de puissance
+
+ansorder=r,r,r,r,r
+varcnt=24
+prevarcnt=23
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Compléter l'égalité suivante&nbsp;,	   Compléter les égalités suivantes&nbsp;
+!if $val6=nl 
+val7=Bereken de volgende uitdrukking,	  Bereken de volgende uitdrukkingen
+!endif
+val8=inverse
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val2>5
+val2=$[rint(5)]
+!endif
+tmp0=!values v,-v for v=2 to 9
+
+val9=$(tmp0)
+tmp0=!shuffle $val9
+
+val9=$(tmp0)
+val10=
+val11=
+val12=
+val13=
+!for val14 =1 to $val2 
+tmp=!nonempty items $val8
+
+tmp0=!randitem $tmp
+val15=$(tmp0)
+tmp0=!item $val14 of $val9
+
+val16=$[rint($(tmp0))]
+!readproc slib/calcpuis $val15,8,$val16 
+tmp0=$slib_out
+val17=$(tmp0)
+tmp0=!item 1 of $val17
+
+val18=$(tmp0)
+tmp0=!item 2 of $val17
+
+val19=$(tmp0)
+tmp0=!append item $val18 to $val10
+
+val10=$(tmp0)
+tmp0=!append item $val19 to $val11
+
+val11=$(tmp0)
+
+!ifval $val16<0
+val16=($val16)
+!endif
+tmp0=!append item $val16 to $val12
+
+val12=$(tmp0)
+tmp0=!append item r$val14 to $val13
+
+val13=$(tmp0)
+!next
+oefsteps=$val13 
+nextstep=!nosubst $val13 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=\($(val10[1]))
+replygood1=$(val11[1])
+replytype2=numexp
+replyname2=\($(val10[2]))
+replygood2=$(val11[2])
+replytype3=numexp
+replyname3=\($(val10[3]))
+replygood3=$(val11[3])
+replytype4=numexp
+replyname4=\($(val10[4]))
+replygood4=$(val11[4])
+replytype5=numexp
+replyname5=\($(val10[5]))
+replygood5=$(val11[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val2=1 
+$()$(val7[1]):	<div class="wimscenter"><label for="reply1">	
+!insmath $val10
+$()</label> = 
+!insmath $val12
+$()<sup> 
+!read oef/embed.phtml r1,3 
+$()</sup>.</div> 
+!else
+$() 	  $(val7[2]):	<ul>	  
+!for m_k=1 to $val2 
+$()	  <li><label for="reply$m_k">
+!insmath $(val10[$m_k])
+$()</label> =	    
+!insmath $(val12[$m_k])
+$()<sup> 
+!read oef/embed.phtml r\k,3 
+$()</sup>.</li>	   
+!next
+$()	</ul> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=2,7,10,12
+embedcnt=2

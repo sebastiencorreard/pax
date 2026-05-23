@@ -1,0 +1,170 @@
+!set title=Conversion en binaire
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+title_nl=Binaire getallen
+
+ansorder=r,r,r,r,r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Puissances de 
+val8=Écrire le nombre,en binaire.
+val9=L'écriture de,en binaire est
+!if $val6=nl 
+val7=Machten van 
+val8=Schrijf het getal,in de binaire notatie.
+val9=, geschreven als binair getal is
+!endif
+t_=!replace internal \( by ( in k=3;n=0;nbin=0; for(i=1,k, n1=RANDOM(2); n=n+n1*2^(i-1);	nbin=nbin+n1*10^(i-1)); [n,nbin]
+tmp0=!exec pari $t_
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!item 2 of $val10
+
+val12=$(tmp0)
+val13=$[rint(5)]
+val11=$[rint(0)]
+val12=$[rint(0)]
+val14=2
+!for val15 =1 to $val13 
+tmp0=!randitem 1,0
+
+val16=$[rint($(tmp0))]
+val11=$[rint($val11+$val16*2^($val15-1))]
+val12=$[rint($val12+$val16*10^($val15-1))]
+val14=$val14, $val16
+!next
+t_=!replace internal \( by ( in $val12
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+tmp0=!item $val13+1 of $val14
+
+val17=$(tmp0)
+tmp0=!item $val13 of $val14
+
+val18=$(tmp0)
+tmp0=!item $val13-1 of $val14
+
+val19=$(tmp0)
+tmp0=!item $val13-2 of $val14
+
+val20=$(tmp0)
+tmp0=!item $val13-3 of $val14
+
+val21=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$val17]
+replytype2=numeric
+replyname2=
+replygood2=$[$val18]
+replytype3=numeric
+replyname3=
+replygood3=$[$val19]
+replytype4=numeric
+replyname4=
+replygood4=$[$val20]
+replytype5=numeric
+replyname5=
+replygood5=$[$val21]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$() $(val8[1]) $val11 $(val8[2])	<table class="wimscenter wimsborder">	 <tr>	  <th>$m_name_power 2</th>	  <th> 
+!insmath 2^4
+$()</th>	  <th> 
+!insmath 2^3
+$()</th>	  <th> 
+!insmath 2^2
+$()</th>	  <th>
+!insmath 2^1
+$()</th>	  <th>
+!insmath 2^0
+$() </th>	</tr><tr>	  <td></td>	  <td>16</td>	  <td>8</td>	  <td>4</td>	  <td>2</td>	  <td>1</td>	</tr><tr>	   <td>$val11</td>	  <td> 
+!read oef/embed.phtml reply 1,4 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 2,4 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 3,4 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 4,4 
+$()</td>	  <td> 
+!read oef/embed.phtml reply 5,4 
+$()</td>	</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>$(val9[1]) $val11 $(val9[2]) $val12
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,11,12
+embedcnt=5

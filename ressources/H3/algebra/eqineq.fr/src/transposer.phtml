@@ -1,0 +1,157 @@
+!! transposer dans une équation ou une inéquation
+<u><b>Ajouter/Soustraire:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+!if $nbreesscalc=0
+   !formselect repexo1 from 1 to 2 prompt J'ajoute,Je soustrais
+   à chacun des membres de l'$nom
+   !if $mode=2
+      !formselect repexo2 from 1 to 2
+   !endif
+   l'expression <input type="text" name="repexo3" size="5" value="$repexo3" />.
+!else
+   !let tmp=!item $repexo1 of J'ajoute,Je soustrais
+   $tmp à chacun des membres de l'$nom $repexo2 l'expression \($repexo3).
+!endif
+!if $nocalcul!=1
+   <br>L'$nom devient :
+   <input type="text" name="repexo4" size="5" value="$repexo4" />
+   !if $mode=3
+      !let tmp=1,2,3,4,5
+      !formselect repexo5 list $tmp prompt $symbole
+   !else
+      =
+   !endif
+   <input type="text" name="repexo6" size="5" value="$repexo6" />
+!endif
+<input type="hidden" name="status" value="3" />
+<div class="wimscenter"><input type="submit" value="Envoyer" /></div>
+!formend
+!exit
+
+:reponse
+<p>
+   <blockquote>
+   <p>$(comment$[$nbetape+1])</p>
+!if $erreur!=calcul
+   <p class="oef_indbad">$erreur .</p>
+   <p>Vous pouvez:</p>
+   <ul>
+   <li>
+   !href cmd=resume&status=2 saisir
+   une autre transposition.
+   </li>
+      <li>
+   !href cmd=resume&status=1 retourner
+   au menu général.
+   </li>
+   </ul>
+!else
+   !read erreurcalc.phtml
+!endif
+</blockquote>
+!let wims_module_error=error : $erreur
+!let erreur=$empty
+!exit
+
+:analyse
+!! --------------- test si tous les champs sont remplis
+!bound repexo1 within 1,2 default $empty
+!bound repexo2 within 1,2 default 1
+!if $repexo1=$empty or $repexo3=$empty or ($repexo2=$empty and $mode=2)
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!! -------------- test de la validité de l'expression donnée.
+i=0
+replygood0=0
+test=$empty
+reply0=$repexo3
+!read anstype/algexp
+!if NaN isin $test
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!readproc script/rightexpression.proc $repexo3
+!if $erreur!=$empty
+ status=2
+ !exit
+!endif
+!readproc script/testnbdec.proc $repexo3
+!if $erreur!=$empty
+ erreur=Il n'est pas utile d'utiliser des nombres avec autant de décimales. Vous avez probablement effectué des transformations trop compliquées dans les étapes précédentes.
+ status=2
+ !exit
+!endif
+
+!! ------------- calcul de la nouvelle equation/inequation
+!if $evitecalc=0
+   evitecalc=1
+   !if $mode!=2
+      repexo2=1
+   !endif
+   tmp=!line $repexo2 of $(sys$nbetape)
+   tmp0=!item $repexo1 of +,-
+   tmp5=!rawmath $repexo3
+   tmp1=!exec maxima ($(tmp[1]))$tmp0($tmp5);\
+($(tmp[3]))$tmp0($tmp5);
+   t=!lines2items $tmp1
+   !readproc script/testnbdec.proc $t
+   !if $erreur!=$empty
+    !reset erreur
+    !readproc script/transfofrac.proc $tmp
+    tmp=$sortie
+    !readproc script/transfofrac.proc $tmp5
+    tmp1=!exec maxima ($(tmp[1]))$tmp0($sortie);\
+($(tmp[3]))$tmp0($sortie);
+   !endif
+   !distribute lines $tmp1 into tmp1,tmp3
+   tmp1=!rawmath $tmp1
+   tmp3=!rawmath $tmp3
+   tmp4=$tmp1,$(tmp[2]),$tmp3
+   sys$[$nbetape+1]=!replace line number $repexo2 by $tmp4 in $(sys$nbetape)
+val40=$sys1
+!endif
+
+!! --------------- construction de la phrase de commentaire
+!let tmp=!item $repexo1 of J'ajoute,Je soustrais
+!if $mode=2
+   tmp1=$repexo2
+!else
+   tmp1=$empty
+!endif
+t=!texmath $tmp5
+comment$[$nbetape+1]=$tmp à chacun des membres de l'$nom $tmp1 l'expression \($t).
+
+!! ------------ verification de l'exactitude des calculs
+!if $nocalcul!=1
+!if $mode!=2
+   repexo2=1
+!endif
+!if $mode<3
+   repexo5=1
+!endif
+tmp1=!line $repexo2 of $(sys$[$nbetape+1])
+repexo4=!rawmath $repexo4
+repexo6=!rawmath $repexo6
+!read verifequ.calc $tmp1,$repexo4,$repexo5,$repexo6
+!if NaN isin $test
+   erreur=$meserreur
+   status=2
+   !exit
+!endif
+!if $test!=$empty
+   erreur=calcul
+   !exit
+!endif
+!replace line number $repexo1 of $(sys$[$nbetape+1]) by $repexo4,$repexo5,$repexo6
+!endif
+!increase nbetape
+status=1
+evitecalc=0
+!exit

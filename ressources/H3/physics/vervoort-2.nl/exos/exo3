@@ -1,0 +1,99 @@
+#hfst1
+#exo3(hfst1) Vermenigvuldigen [ruitjes papier]
+n=$counter
+calculator=0
+math=0
+mathview=0
+questiontype=0
+inputs=-1
+checkfile=exos/invulgrid1.proc
+# in checkfile1.proc :
+# var1 gebruiken als "omgekeerde goede antwoord" als leerling zelf de som moet
+# overnemen in de grid-applet...en de zaak inde 'verkeerde' volgorde intikt...
+#  123
+# 7890
+# ---- x
+# 
+# geef var1=$empty als die niet van toepassing is
+
+var1=$empty
+# we strippen de punten weg: 1.234.567.899 ==> 1234567899 
+decimals=0
+
+embed=0
+make_tr=1
+h1=!randint 1,9
+h2=!randint 1,9
+h3=!randint 1,9
+v1=!randint 1,9
+v2=!randint 1,9
+v3=!randint 1,9
+h1=$[$h1*100]
+v1=$[$v1*100]
+h2=$[$h2*10]
+v2=$[$v2*10]
+getal1=$[$h1+$h2+$h3]
+getal2=$[$v1+$v2+$v3]
+finans=$[$getal1*$getal2]
+!if $getal2>$getal1
+    tmp=$getal2
+    getal2=$getal1
+    getal1=$tmp
+!endif
+# applet
+max=!charcnt $finans
+xlines=$[$max+4]
+g1=!charcnt $getal1
+g2=!charcnt $getal2
+answer$n=$getal1,$getal2
+!if $taal=fr
+# left hand signs
+    !for p=1 to $g2
+	c=!char $[$g2-$p+1] of $getal2
+        ans=$[$c*$getal1*10^$[$p-1]]
+	answer$n=!append item $ans to $(answer$n)
+        !if $p = $g2
+	    texans=!append word $ \\ \Bf{+} \:\underline{\: $ans}  $ to $texans
+	!else
+	    texans=!append word $ \\ $ans  $ to $texans
+	!endif
+    !next p
+    texanswer$n=\begin{array}{r} $getal1  \\ \Bf{ \times} \:\: \underline{ \: $getal2} $texans \\  $finans  \end{array}
+!else
+    !for p=1 to $g2
+	c=!char $[$g2-$p+1] of $getal2
+        ans=$[$c*$getal1*10^$[$p-1]]
+	answer$n=!append item $ans to $(answer$n)
+        !if $p = $g2
+	    texans=!append word $ \\ \underline{$ans} & \Bf{+} $ to $texans
+	!else
+	    texans=!append word $ \\ $ans & $ to $texans
+	!endif
+    !next p
+    texanswer$n=\begin{array}{rr} $getal1 & \\ \underline{$getal2} & \Bf{ \times } $texans \\  $finans &  \end{array}
+!endif
+ylines=$[1+2+$g2+4]
+appletspace1= $empty
+appletspace2= $empty
+answer$n=!append item $finans to $(answer$n)
+!for p=1 to $xlines
+    !if $p < $[$xlines - $g1]
+	appletspace1=!append word $ $ to $appletspace1
+    !endif
+    !if $p < $[$xlines - $g2]
+	appletspace2=!append word $ $ to $appletspace2
+    !endif
+!next p
+som=,$appletspace1$getal1,$appletspace2$getal2,---|x"
+xsize=300
+ysize=300
+exotext=<object id="InvulGrid0" width="$xsize" height="$ysize" classid="java:InvulGrid.class" type="application/x-java-applet;jpi-version=1.4"><param name="java_codebase" value="$appletdir" /><param name="java_archive" value="InvulGrid.jar" /><param name="java_code=" valye="InvulGrid.class" /><param name="fontsize" value="50"/><param name="pencolor" value="120,20,255,180"/><param name="bgcolor" value="245,240,240"/><param name="markcolor" value="10,255,10,50"/><param name="linecolor" value="0,0,255"/><param name="linewidth" value="3"/><param name="pointsize" value="5"/><param name="xlines" value="$xlines"/><param name="ylines" value="$ylines"/><param name="showgrid" value="true"/><param name="gridcolor" value="0,0,255,100"/><param name="language" value="$taal"/><param name="exercise" value="$som"/><param name="reverse" value="no"/><param name="exercisecolor" value="255,0,0,160"/><param name="buttons" value="+"/><param name="scribling_row" value="yes"/><param name="scribling_pencolor" value="255,200,50,200"/>$nojava</object>
+
+helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'plaatje\' />
+question$n=Bereken: $getal1 &times; $getal2 = [?] 
+
+!exit
+
+    
+
+    

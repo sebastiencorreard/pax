@@ -1,0 +1,52 @@
+!if / notin $wims_read_parm
+ !goto end
+!endif
+l_=()
+c_=!char 2 of $l_
+o_=!char 1 of $l_
+t1_=!replace internal $c_/ by , in $wims_read_parm 
+n_=!itemcnt $t1_
+!if $n_=1
+ !goto end
+!endif
+c1_=!char 1 of $(t1_[1])
+!if $c1_!=$o_
+ !goto end
+!endif
+c2_=!char 1 of $(t1_[2])
+t_=!charcnt $(t1_[2])
+!if $c2_!=$o_
+ c_=!char 1 of $(t1_[2])
+ k_=1
+ !while $c_ notitemof *,-,+,/ and $k_<=$t_+1
+  !increase k_
+  c_=!char $k_ of $(t1_[2])
+ !endwhile
+ t2_=!char 1 to $k_-1 of $(t1_[2])
+ t3_=!char $k_ to $t_ of $(t1_[2])
+!else
+ cn_=1
+ k_=1
+ !while $cn_!=0 and $k_<=$t_
+  !increase k_
+  d_=!char $k_ of $(t1_[2])
+  !if $cn_=$c_
+   !increase cn_
+  !else
+   !if $cn_=$o_
+    !decrease cn_
+   !endif
+  !endif
+ !endwhile
+ t2_=!char 1 to $k_ of $(t1_[2])
+ t2_=!declosing $t2_
+ t3_=!char $k_+1 to $t_ of $(t1_[2])
+!endif
+t1_=!char 2 to -1 of $(t1_[1])
+t1_=!texmath $t1_
+t3_=!texmath $t3_
+sortie=\frac{$t1_}{$t2_} $t3_
+
+!exit
+:end
+sortie=!texmath $wims_read_parm

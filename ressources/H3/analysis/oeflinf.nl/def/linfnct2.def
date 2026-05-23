@@ -1,0 +1,204 @@
+!set title=Lineaire functies 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Guerimand Fabrice
+email=fguerima@tele2.fr
+computeanswer=no
+precision=10000
+
+ansorder=c
+varcnt=19
+prevarcnt=18
+postvarcnt=0
+replycnt=0
+choicecnt=1
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items f,g,h
+
+tmp0=!randitem $tmp
+val6=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 20
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 40
+
+val8=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+val9=$[rint($(tmp0))]
+tmp=!translate ";': to $     $ in $val8/$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val8=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 20
+
+val10=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randint 2, 20
+
+val9=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 20
+
+val11=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in $val11/$val9
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val11=$(tmp0)
+tmp=!translate ";': to $     $ in $val10*$val8/$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val9=$(tmp0)
+tmp=!nonempty items $val9,$val11
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=Ja, Nee
+
+!ifval $val7*$val11-$val8*$val10=0
+val13=1
+!else
+val13=2
+!endif
+tmp0=!item $val13 of $val12
+
+val13=$(tmp0)
+tmp=!translate ";': to $     $ in $val8/$val7
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val14=$(tmp0)
+
+!ifval ($val14 issametext $val8/$val7)
+val14=\frac{$val8}{$val7}
+!else
+val14=\frac{$val8}{$val7}=$val14
+!endif
+tmp=!translate ";': to $     $ in $val11/$val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val15=$(tmp0)
+
+!ifval ($val15 issametext $val11/$val10)
+val15=\frac{$val11}{$val10}
+!else
+val15=\frac{$val11}{$val10}=$val15
+!endif
+choicename1=Antwoord
+choicegood1=$val13
+choicebad1=$val12
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()
+!insmath $val6
+$() is een lineaire afbeelding met 
+!insmath $val6
+$()(
+!insmath $val7
+$())=
+!insmath $val8
+$() en 
+!insmath $val6
+$()(
+!insmath $val10
+$())=
+!insmath $val11
+$().<p>	Geldt er 
+!insmath $val6(0)=0
+$() ?
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Het oplossen kan op twee manieren: 	<ul>	<li><b>Methode 1 :</b>een verhoudingstabel maken:<p>	<table border="1">	  <tr> 	    <td> 	      <div align="center"><b>x</b></div>	    </td>	    <td>
+!insmath $val7
+$()</td>	    <td>
+!insmath $val10
+$()</td>	  </tr>	  <tr> 	    <td> 	      <div align="center"><b>$val6 (x)</b></div>	    </td>	    <td>
+!insmath $val8
+$()</td>	    <td>
+!insmath $val11
+$()</td>	  </tr>	</table>	Vragen of de functie aan  
+!insmath $val6(0)=0
+$() voldoet komt neer op vragen of de 	tabel een verhoudingstabel is. Bereken dus de verhoudingen tussen de 	getallen in de eerste rij en die in de tweede. We vinden: 	<center> 
+!insmath $val14
+$() et 
+!insmath $val15
+$().</center> Deze twee breuken	 
+!if $val13=Ja 
+$()zijn gelijk, het is dus een verhoudingstabel en de lineaire 	functie voldoet aan de voorwaarde. 
+!else
+$() zijn niet gelijk, het is dus geen 	verhoudingstabel en de lineaire functie voldoet niet aan de voorwaarde. 
+!endif
+$()</li>	<li><b>Methode 2 :</b> de lineaire functie bekijken:<p>	Als de lineaire functie aan de voorwaarde voldoet, dan is de verhouding tussen 	getallen en hun beelden constant. We berekenen die verhoudingen voor 	twee punten (wat voldoende is omdat de functie lineair is):<p>	
+!insmath \frac{$val6($val7)}{$val7}=$val14
+$() en 
+!insmath \frac{$val6($val10)}{$val10}=$val15
+$()<p>	Deze twee breuken	 
+!if $val13=Ja 
+$()zijn gelijk, de lineaire functie voldoet dus aan de voorwaarde. 
+!else
+$()	 zijn niet gelijk, de functie voldoet dus niet aan de voorwaarde. 
+!endif
+$()</li>	</ul> 
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,11,13,14,15
+embedcnt=0

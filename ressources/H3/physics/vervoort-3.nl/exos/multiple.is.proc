@@ -1,0 +1,104 @@
+goback=0
+errortext=$empty
+# test op een "redenering" 3*2^3=3*8=24
+
+!set n=$counter
+!set wims_compare_precision=10000
+
+!if ? isin $(reply$n)
+    remark$n=$NOK
+    maxscore=0
+    goback=0
+    !exit
+!endif
+
+AAA=!lower $(reply$n)
+AAA=!nospace $AAA
+AAA=!replace internal = by , in $AAA
+aantal=!itemcnt $AAA
+!for p=1 to 4
+    AAA=!replace internal ,, by , in $AAA
+!next p
+fin=!item -1 of $AAA
+a1=!exec toascii $fin
+a2=!exec toascii $var1
+!if $a1=$a2
+    extra=!record 73 of $remarkdir/commonremarks.$taal
+    maxscore=$[$maxscore*$P8]
+!else
+    extra=$empty
+!endif
+
+yourans=<ul>
+# 2*8 = 1*16 = 16
+!if $rounding <1
+    diff=10^(-15)
+!else
+    log=!charcnt $rounding
+    # 10000 = 5 -> 10^-4
+    diff=$[10^(-1*($log-1))]
+!endif
+score=0
+!for p=1 to $aantal
+    ex=$empty
+    A$p=!item $p of $AAA
+    A$p=!rawmath $(A$p)
+    !if NaN isin $[1*($(A$p))]
+	ex= $dontknow
+	maxscore=$P8
+	k=red
+    !else
+	!if $[1*($(A$p))]=$(answer$n)
+	    !increase score
+	    k=green
+	!else
+	    !if $[abs($(A$p) - $(answer$n))]<= $diff
+		!increase score
+		k=green
+		ex=&nbsp;=$(answer$n)&plusmn;$diff
+	    !else
+		!if $p>1
+		    !if $[abs($(A$p) - $(A$[$p-1]))]<= $diff
+			score=0.2
+			k=orange
+			ex=&nbsp;&nbsp;= $(A$[$p-1])
+		    !else
+			k=red
+		        ex=&nbsp;&nbsp;&ne; $(A$[$p-1])	
+		    !endif
+		!else
+		    k=red
+		!endif
+	    !endif
+	!endif
+    !endif
+    yourans=!append line <li><span style="color:$k">$(A$p) $ex</span></li> to $yourans
+!next p
+!if $aantal>1
+    !if $[$fin]=$(answer$n)
+	yourans=!append line <li>Je eindantwoord : <span style="color:green">$(A$p)</span>$extra</li> to $yourans
+    !else
+	!if $[abs($fin - $(answer$n))] <= $diff
+	    yourans=!append line <li>je eindantwoord : <span style="color:green">$(A$p)</span> <br />is binnen de nauwkeurigheidsgrenzen (&pm;$diff)</li> to $yourans
+	!else
+	    yourans=!append line <li>je eindantwoord : <span style="color:red">$(A$p)</span> is fout</li> to $yourans
+	!endif
+    !endif
+!endif
+
+math=0
+
+maxscore=$[$maxscore*$score/$aantal]
+!if $score>0.9
+    remark$n=$OK
+!else
+    !if $score > 0.4
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif
+reply$n=$(reply$n) $yourans
+modulescore=$[$modulescore + $maxscore]
+goback=0
+!exit

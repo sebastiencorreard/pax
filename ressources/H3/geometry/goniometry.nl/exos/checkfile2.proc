@@ -1,0 +1,154 @@
+# antwoordformaat: 3 regels met elk 3 woorden gescheiden door ":"
+# naam1:waarde1:waarde1^2 , naam2:waarde2:waarde2^2 ,naam3:waarde3:waarde3^2 
+n=$counter
+goback=0
+!if $(reply$n)=?
+    goback=0
+    maxscore=0
+    module_score=$[$module_score+0.1]
+    remark$n=$NOK
+    !exit
+!endif
+
+ta=!itemcnt $(reply$n)
+tg=!itemcnt $(answer$n)
+
+!if $ta != $tg
+    errortext=!record 38 of $remarkdir/commonremarks.$taal
+    #Zit je met de adresbalk te knoeien ? 
+    maxscore=$[$P6*$maxscore]
+    reply$n=!replace internal : by , in $(reply$n)
+    goback=1
+ !exit
+!endif
+
+yourreply=$empty
+extra=$empty
+namecnt=0
+!for s=1 to $ta
+    rep=!item $s of $(reply$n)
+    rep=!tolower $rep
+    rep=!replace internal : by , in $rep
+    nam=!item 1 of $rep
+    found=0
+    !for p=1 to $tg
+	ans=!item $p of $(answer$n)
+        ans=!replace internal : by , in $ans
+	name=!item 1 to 2 of $ans
+	name=!tolower $name
+        value1=!item 3 of $ans
+	value2=!item 4 of $ans
+	!if $found=0
+	    !if $nam isitemof $name
+		ex=$empty
+		found=1
+		namecnt=$[$namecnt + 1]
+	        v1=!item 2 of $rep
+		v2=!item 3 of $rep
+		!if sqrt isin $v1
+		    v1=!replace internal sqrt by SQRT in $v1
+		!endif    
+		!if sqrt isin $v2
+		    v2=!replace internal sqrt by SQRT in $v2
+		!endif    
+		v1=!replace [a-z\~!@#$_:;] by $empty in $v1
+		v2=!replace [a-z\~!@#$_:;] by $empty in $v2
+		v1=!tolower $v1
+		v2=!tolower $v2
+		!if NaN isin $[1*($v1)]
+		    testvar=$v1
+		    errortext=!record 70 of lang/remarks.$taal
+		    #@Hmmm ,ik kan het met je antwoord  <b>$testvar</b> niet goed uit de voeten...
+		    reply$n=!replace internal : by , in $(reply$n)
+		    goback=1
+		    !exit
+		!endif
+		!if NaN isin $[1*($v2)]
+		    testvar=$v2
+		    errortext=!record 70 of lang/remarks.$taal
+		    reply$n=!replace internal : by , in $(reply$n)
+		    goback=1
+		    !exit
+		!endif
+		!if $rounding != 0
+		    v1=$[(round($rounding*($v1)))/$rounding]
+		    v2=$[(round($rounding*($v2)))/$rounding]
+		    #4/3/2016 ook answer$n wordt afgerond met $rounding
+		    value1=$[(round($rounding*($value1)))/$rounding]
+		    value2=$[(round($rounding*($value2)))/$rounding]
+		    !ifval ($value1 = $v1) and ($value2 = $v2)
+			!increase score
+			k=green
+		    !else
+			!ifval ($value1 = $v1) or ($value2 = $v2)
+			    score=$[$score + $P5]
+			    k=orange
+			!else
+			    k=red
+			!endif
+		    !endif
+		!else
+		    !ifval ($value1 = $v1) and ($value2 = $v2)
+			!increase score
+			k=green
+		    !else
+		        # 4/3/1016 : deze opmerking alleen bij exacte antwoorden !!
+	    		!ifval $[($v1)^2] != $[$v2]
+	    		    ex=<br />$v2 != ($v1)<sup>2</sup>
+	    		!else
+	    		    ex=$empty
+	    		!endif
+			!ifval ($value1 = $v1) or ($value2 = $v2)
+			    score=$[$score + $P5]
+			    k=orange
+			!else
+			    k=red
+			!endif
+		    !endif
+		!endif
+		yourreply=!append line <li><span style="color:$k"> $nam = $v1 $m_rightarrow $v2 $ex</span></li> to $yourreply
+	    !endif
+	!endif
+    !next p
+    !if $s=$ta
+    	!if $nam isitemof $name
+	    extra=$empty
+	!else
+	    # laatste vraag is de hypotenusa
+	    testvar=$nam
+	    extra=!record 71 of lang/remarks.$taal
+	    maxscore=$[$P2*$maxscore]
+	!endif
+    !endif
+!next s
+
+!if $namecnt != $tg
+    errortext=!record 72 of lang/remarks.$taal
+    #@ Ik kon enkele van de zijden van $m_Delta ABC [AB , AC en BC] niet in je antwoord terug vinden !
+    # nodig voor js-functie "refill()"
+    reply$n=!replace internal : by , in $(reply$n)
+    maxscore=$[$P3*$maxscore]
+    goback=1
+ !exit
+!endif
+
+maxscore=$[$maxscore*$score/$tg]
+modulescore=$[$modulescore+$maxscore]
+
+!if $maxscore>0.9
+    remark$n=$OK
+!else
+    !if $maxscore>0.5
+	remark$n=$BOK
+    !else
+	remark$n=$NOK
+    !endif
+!endif 
+
+goback=0
+reply$n=<ul>$yourreply</ul><br />$(reply$n)
+!if $extra != $empty
+    remark$n=!append line $extra to $(remark$n)
+!endif
+
+!exit

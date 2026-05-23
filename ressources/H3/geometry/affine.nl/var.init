@@ -1,0 +1,120 @@
+# Variable initialisation file.
+# This file is read by wims for new sessions.
+
+# content of the file: initialisation of the problem.
+wims_multiexec=pari
+wims_backslash_insmath=yes
+
+!if $type=1
+    !default mode=rep,direct,indirect, applindir,applinante
+    mode= !randitem $mode
+    !default mode=rep
+!else
+    mode=rep
+!endif
+dessin1=$empty
+dessin2=$empty
+liste=$empty
+border=1
+
+m=4
+n=4
+eche=5 
+xsize1=$[-$m]
+xsize2=$n
+x_size=$xsize1, $xsize2
+xx_size=$[$xsize2- $xsize1]
+y_size=$x_size
+yy_size=$xx_size
+ysize2=$xsize2
+
+
+insdraw_size=400,400
+inssize=!item 1 of $insdraw_size
+
+!!incert= $[($xx_size)/($n+$m)*0.1]
+incert= 0.1
+dessin=xrange $x_size\
+yrange $y_size\
+hline black,0,0\
+arrow 2.5,0,$n,0,15,black
+
+dessin=$dessin\
+parallel -$m,-$m,-$m,$n,1/5,0, 200, grey\
+parallel -$m,-$m,-$m,$n,1,0, 40, blue\
+parallel -$m,-$m,$n,-$m,0,1/5, 200, grey\
+parallel -$m,-$m,$n,-$m,0,1, 40, blue\
+linewidth 2\
+hline black,0,0\
+vline black,0,0\
+linewidth 1\
+arrow 0,0,0,$n,15,black\
+text black,0.1,0.1, medium,0
+
+!for i=-$m to $n
+ a=$[$i]
+ !if $i<>0
+ dessin=$dessin\
+text black, $i,-0.2, medium,$a\
+text black, 0.2,$i, medium,$a
+ !endif
+!next i
+
+click_cnt=0
+cnt_orange=0
+
+
+!!On se donne l'équation de la droite
+!if $coeff < 3 
+  a=!randint -3,3
+  !if $coeff=1
+    c=1
+  !else
+    c=!randitem 2,1,4,5
+  !endif
+
+  a= !exec pari $a/$c
+  !if $type=1
+    b=!randint -3,3
+  !else 
+    b=0
+  !endif
+
+  !if $a=0 and $b=0
+    a=!randint 1,3
+    e=!randitem 1,-1
+    a= !exec pari $a*$e
+  !endif
+!else
+  a=!randint -15,15
+  a=$[$a/5]
+  !if $type=1
+     b=!randint -15,15
+     b=$[$b/5]
+  !else
+     b=0
+  !endif
+  !if $a=0 and $b=0
+   a=!randint 5,15
+   e=!randitem 1,-1
+   a=$[$a*$e/5]
+  !endif
+!endif
+
+equation=!exec pari ($a)*x+($b)
+equationlin=!exec pari  ($a)*x
+dessinsol=linewidth 2\
+plot green , $equation
+!if $b>0
+  A=!randint -4,2
+!else
+  A=!randint -2,4
+!endif
+B=!exec pari $A*$a+$b
+
+click_x=
+click_y=
+erreur=0
+miss=0
+status=waiting
+wims_module_log=$cmd : mode $mode type $type coeff $coeff

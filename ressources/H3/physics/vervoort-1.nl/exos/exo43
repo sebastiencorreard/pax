@@ -1,0 +1,65 @@
+#hfst3
+#exo43(hfst4) Toerental van een drukpers berekenen 
+n=$counter
+mathview=0
+questiontype=3
+checkfile=$checkdir/units.proc
+inputs=2
+cols=8
+rows=1
+formula$n=$empty
+# km/h
+sig=!randint 2,3
+!if $sig=2
+    v1=!randint 1,9
+    v2=!randint 1,9
+    snelheid=!nospace $v1 $v2
+!else
+    v1=1
+    v2=!randint 1,3
+    v3=!randint 1,9
+    snelheid=!nospace $v1 $v2 $v3
+!endif
+# m/min
+si_snelheid=$[1000*$snelheid/60]
+omtrek=!randint 300,600
+# meters
+omtrek=!exec moneyprint $[$omtrek/100] 2
+# pagina's
+krant=!randint 2,8
+krant=$[$krant*2]
+k=!randint 2,6
+paginas=$[$krant*$k]
+
+
+ans1=$[$si_snelheid/$omtrek]
+ans2=$[$ans1*$k]
+
+tot=!exec scienceprint $ans1,$sig,0 $ans1,$sig,1 $ans2,$sig,0 $ans2,$sig,1
+c_ans1=!item 1 of $tot
+h_ans1=!item 2 of $tot
+c_ans2=!item 3 of $tot
+h_ans2=!item 4 of $tot
+
+# answer$n is fysiek juist...niet wiskundig precies !
+answer$n=$c_ans1,$c_ans2
+# units.proc : geen eenheid
+var1=0,0
+# diff
+var2=$[abs($ans1 - $c_ans1)],$[abs($ans2 - $c_ans2)]
+ 
+
+description=Het toerental van de drukpers,De productie capaciteit
+ex1=&nbsp;<kbd>rpm</kbd>
+ex2=&nbsp;<kbd>kranten/min</kbd>
+rounding=-1
+helptext=Geef je antwoord in de juiste precisie.
+ss=Een cilindervormige drukpers print per omwenteling $paginas pagina&rsquo;s.<br />Dat gebeurt met een grote draaiende cilinder.<br />(Hier staat een <span style="color:blue"><b>voorbeeld</b></span> van zo&rsquo;n pers met 16 pagina&rsquo;s)<br />De cilinder heeft een omtrek van $omtrek m en de snelheid aan de omtrek is $snelheid km/h.<br />Voor het maken van een krant zijn $krant pagina&rsquo;s nodig.<br />Geef je antwoord in de juiste precisie.
+question$n=<a onmouseover="return escape('<img src=$module_dir/gifs/printrol.jpg alt=geen_plaatje/>')">$ss</a>
+textanswer$n=!subst <ol><li>$inputtext1 <ul><li><kbd>v</kbd> is snelheid in m/min; <kbd>n</kbd> is toerental in rpm ; <kbd>O</kbd> is omtrek in meters </li><li>v = n &times;O $m_rightarrow n = v/O omwentelingen/minuut $m_rightarrow n = v / O rpm </li><li>v = $snelheid km/h = $snelheid &times; 1000/60 m/min &asymp; $si_snelheid m/min</li><li>n &asymp; $si_snelheid / $omtrek &asymp; $ans1 rpm</li><li>Op $sig significante cijfers (afkomstig van $snelheid) n = $h_ans1 rpm</li></ul></li><li>$inputtext2 <ul><li>Een krant heeft $krant paginas </li><li>De rol print $paginas paginas per omwenteling</li><li>In &eacute;&eacute;n omwentelingen worden $k komplete kranten gedrukt</li><li>Toerental van de drukrol <kbd>n</kbd> &asymp; $ans1 rpm</li><li>Er worden $ans1 &times; $k &asymp; $ans2  kranten/min gedrukt</li><li>Op $sig significante cijfers (afkomstig van $snelheid) <br />productie capaciteit = $h_ans2 kranten/min</li></ul></li></ol>
+
+m_rightarrow=&nbsp;&asymp;&nbsp;
+
+!exit
+
+    

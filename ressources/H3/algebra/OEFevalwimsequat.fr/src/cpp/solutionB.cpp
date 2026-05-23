@@ -1,0 +1,56 @@
+target=solution4 solution5
+
+#include "author.inc"
+#define TITRE Solution d'une équation
+#if defined TARGET_solution5
+# define NUM 5
+#endif
+#if defined TARGET_solution4
+# define NUM 4
+#endif
+\title{TITRE NUM}
+\text{x=x}
+\text{v=wims(values v,-v for v=2 to 10)}
+\text{v=shuffle(\v)}
+\integer{nrep=randint(1,2)}
+\integer{nrep=2}
+#if defined TARGET_solution4
+ \text{m1=randitem(\v[1]*\x+\v[2],\v[2]+\v[1]*\x)}
+ \text{mf1=texmath(\m1)}
+ \integer{nombre=\v[4]}
+#endif
+#if defined TARGET_solution5
+ \text{mf1=randitem(\v[1]*\x^2+\v[2],\v[2]+\v[1]*\x^2)}
+ \text{m1=\v[1]*(\x)^2+\v[2]}
+ \integer{nombre=randitem(1,-1,3,-3,2,-2)}
+#endif
+\integer{rep1=evalue(\m1,\x=\nombre)}
+\integer{m2=evalue(\m1-\v[3]*\x,\x=\nombre)}
+\integer{m2=\nrep=1?\m2:\m2+\v[5]}
+\text{m2=randitem(\v[3]*\x+\m2,\m2+\v[3]*\x)}
+\integer{rep2=evalue(\m2,\x=\nombre)}
+\text{m2=texmath(\m2)}
+\text{enonce=\mf1 = \m2}
+\text{ltrep=Oui&#44; \nombre est solution de l'équation,Non&#44; \nombre n'est pas solution de l'équation}
+
+\statement{
+  Soit l'équation :
+<div class="wimscenter">\(\enonce)</div>
+<ul><li>
+  Évaluer les deux membres de cette équation pour \x = \nombre.
+</li><li>
+  Indiquer ensuite si \nombre est solution de l'équation.
+</li></ul>
+<b>Votre réponse :</b>
+<ul>
+ <li> Pour \x = \nombre, <label for="reply1">le membre de gauche vaut</label> \embed{r1,5}.</li>
+ <li> Pour \x = \nombre, <label for="reply1">le membre de droite vaut</label> \embed{r2,5}.</li>
+</ul>
+ <blockquote>
+ <div>\embed{r3,1}</div>
+ <div>\embed{r3,2}</div>
+</blockquote>}
+
+\answer{}{\rep1}{type=numexp}
+\answer{}{\rep2}{type=numexp}
+\answer{Réponse}{\nrep;\ltrep}{type=radio}{option=noreduction}

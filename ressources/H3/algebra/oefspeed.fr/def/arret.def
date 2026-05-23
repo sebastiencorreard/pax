@@ -1,0 +1,200 @@
+!set title=Distance d'arrêt
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+title_nl=Afstand tot stilstand
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=40
+prevarcnt=39
+postvarcnt=0
+replycnt=12
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=h,km,km/h
+tmp=!trim Le temps de réaction d'un conducteur est de	  Sur route mouillée, les distances de freinage sont augmentées de	  Remplir le tableau (on peut consulter l'aide).	  Les distances seront données avec une décimale par excès.
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=vitesse du véhicule en km/h,	  distance parcourue pendant le temps de réaction,	  distance de freinage sur route sèche en m,	  distance d'arrêt sur route sèche en m,	  distance de freinage sur route mouillée en m,	  distance d'arrêt sur route mouillée en m
+val10=seconde,secondes
+val11=Entre le moment où un conducteur voit un obstacle et celui	  où il commence à freiner,	  s'écoule un temps appelé <span class="bold">temps de réaction</span>.	  C'est la durée de transmission de l'influx nerveux entre l'oeil (organe récepteur)	  et la main qui serre le frein ou le pied qui appuie sur la pédale de frein (organe effectueur).
+val12=La distance parcourue pendant le temps de réaction est fonction de la vitesse du véhicule.	  Le temps de réaction est plus ou moins long suivant les individus, leur état de fatigue.	  Sa durée moyenne est de 1 à 3 secondes.
+val13=Entre le moment où le conducteur actionne le frein et celui où le véhicule s'arrête,	  la distance parcourue est appelée <span class="bold">distance de freinage</span>.	  La distance de freinage dépend du véhicule (état du système de freinage),	  de la vitesse, de l'adhérence du véhicule sur la chaussée	  (chaussée glissante, mouillée, verglacée, sèche).
+val14=La <span class="defn">distance d'arrêt</span>	  est la somme de la distance parcourue pendant le temps de réaction	  et de la distance de freinage.
+!if $val6=nl 
+val7=uur,km,km/uur
+tmp=!trim De reactietijd van een rijder is	  Bij een nat wegdek zijn de remafstanden	  hoger. Vul de tabel in (er is hulp).	  De afstanden worden op een decimaal naar boven afgerond.
+val8=!translate internal $	\
+$ to ;; in $tmp
+val9=snelheid van de auto in km/h,	  afstand in m afgelegd tijdens de reactietijd,	  remafstand in m bij een droog wegdek,	  afstand tot stilstand in m bij een droog wegdek,	  remafstand in m bij een nat wegdek,	  afstand tot stilstand in m bij een nat wegdek
+val10=seconde,seconden
+val11=Tussen het tijdstip waarop de rijder een obstakel ziet en het tijdstip waarop	  hij begint te remmen, zit de <span class="defn"><b> reaktietijd</b> </span>.	  Dit is de tijd die nodig is voor het signaal om van de zenuwen van het oog	  (receptie orgaan) naar die van de hand die aan de rem trekt of naar de voet die op de rempedaal trapt (uitvoerend orgaan) te gaan.
+val12=De afstand die tijdens de reaktietijd doorlopen wordt is een functie van de	  snelheid van de auto. De reaktietijd is langer of minder lang naar gelang de	  individu, zijn vermoeidheid. De gemiddelde lengte is 1 à 3 seconden.
+val13=Tussen het tijdstip waarop de rijder de rem activeert en dat waarop de auto	  stilstaat, wordt een afstand doorlopen die de	  <span class="bold"><b> remafstand</b></span> heet. De remafstand hangt	  van de auto af (staat van de remmen), van de snelheid, het wegdek (glad,nat, droog, ijzel).
+val14=De <span class="defn"> <b>afstand tot stilstand </b></span>	  is de som van de afstand die doorlopen is tijdens de reaktietijd en de remafstand.
+!endif
+tmp0=!shuffle 10,20,30,40,50,60,70,80,90,100,110,120,130,140
+
+val15=$(tmp0)
+val16=1.8,3.6,6.9,10.3,16.1,23.2,31.4,41.0,52.0,64.6,78.1,93.0,108.5,123.0
+tmp0=!item 1 of $val15
+
+val17=$[rint($(tmp0))]
+tmp0=!item 2 of $val15
+
+val18=$[rint($(tmp0))]
+tmp0=!item 3 of $val15
+
+val19=$[rint($(tmp0))]
+tmp0=!randitem 1,2,3
+
+val20=$[rint($(tmp0))]
+tmp0=!randitem 30,40,50
+
+val21=$[rint($(tmp0))]
+val22=$[ceil($val17*100/36*$val20)/10]
+val23=$[ceil($val18*100/36*$val20)/10]
+val24=$[ceil($val19*100/36*$val20)/10]
+tmp0=!item $val17/10 of $val16
+
+val25=$(tmp0)
+tmp0=!item $val18/10 of $val16
+
+val26=$(tmp0)
+tmp0=!item $val19/10 of $val16
+
+val27=$(tmp0)
+val28=$[$val22+$val25]
+val29=$[$val23+$val26]
+val30=$[$val24+$val27]
+val31=$[ceil($val25*(100+$val21)/10)/10]
+val32=$[ceil($val26*(100+$val21)/10)/10]
+val33=$[ceil($val27*(100+$val21)/10)/10]
+val34=$[$val22+$val31]
+val35=$[$val23+$val32]
+val36=$[$val24+$val33]
+replyname1=
+replygood1=$val22
+replyname2=
+replygood2=$val23
+replyname3=
+replygood3=$val24
+replyname4=
+replygood4=$val28
+replyname5=
+replygood5=$val29
+replyname6=
+replygood6=$val30
+replyname7=
+replygood7=$val31
+replyname8=
+replygood8=$val32
+replyname9=
+replygood9=$val33
+replyname10=
+replygood10=$val34
+replyname11=
+replygood11=$val35
+replyname12=
+replygood12=$val36
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst  <p>$val11</p> <p>$val12</p> <p>$val13</p> <p>$val14</p>
+
+
+!goto stat
+
+!exit
+
+:question
+$()$(val8[1;])	$val20 
+!if $val20=1 
+$()$(val10[1]) 
+!else
+$() $(val10[2]) 
+!endif
+$(). $(val8[2;]) $val21 %.	$(val8[3;])	$(val8[4;])	<table class="wimscenter wimsborder">	<tr><th>$(val9[1])</th><td>$val17</td><td>$val18</td><td>$val19</td></tr>	<tr><th>$(val9[2]) $val20 s</th>	<td> 
+!read oef/embed.phtml reply 1,6 
+$()</td><td> 
+!read oef/embed.phtml reply 2,6 
+$()</td><td> 
+!read oef/embed.phtml reply 3,6 
+$()</td></tr>	<tr><th>$(val9[3])	</th><td>$val25</td><td>$val26</td><td>$val27</td></tr>	<tr><th>$(val9[4])	</th><td> 
+!read oef/embed.phtml reply 4,6 
+$()</td><td> 
+!read oef/embed.phtml reply 5,6 
+$()</td><td> 
+!read oef/embed.phtml reply 6,6 
+$()</td></tr>	<tr><th>$(val9[5])</th><td> 
+!read oef/embed.phtml reply 7,6 
+$()</td>	<td> 
+!read oef/embed.phtml reply 8,6 
+$()</td><td> 
+!read oef/embed.phtml reply 9,6 
+$()</td></tr>	<tr><th>$(val9[6])</th><td> 
+!read oef/embed.phtml reply 10,6 
+$()</td>	<td> 
+!read oef/embed.phtml reply 11,6 
+$()</td><td> 
+!read oef/embed.phtml reply 12,6 
+$()</td></tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$() <p>$val11</p> <p>$val12</p> <p>$val13</p> <p>$val14</p>
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,12,13,14,17,18,19,20,21,25,26,27
+embedcnt=12

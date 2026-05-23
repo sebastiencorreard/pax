@@ -1,0 +1,107 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+cols=20
+rows=2
+embed=1
+mathviewpanel=$module_title:(x;y):and:sqrt()
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+checkfile=$checkdir/coord.proc
+question$n=!record 5 of lang/remarks.$taal
+#@ Bepaal de co&ouml;rdinaten van de Top 
+de_top=!record 6 of lang/remarks.$taal
+#@ het toppunt is
+exotext=!record 20 of lang/remarks.$taal
+exotext=<small>$exotext</small>
+
+keuze=!randitem 1,2,3,4
+pm=!randitem +,-
+!if $R = 1
+    a=!randint 1,8
+    c=!randint 1,9
+    mp=!randitem +,-
+    !if $keuze=1
+	functie=$c $mp (x $pm $a)^2
+	X=$[$pm $a *-1]
+	Y=$c
+    !else
+	functie=(x $pm $a)^2 $mp $c
+	X=$[$pm $a *-1]
+	Y=$[$mp 1* $c]
+    !endif
+!endif
+!if $R = 2
+    a=!randint 1,8
+    b=!randint 2,6
+    c=!randint 1,9
+    mmp=!randitem +,-
+    !if $keuze=1
+	mp=!randitem 1,-1
+	b=$[$mp*$b]
+	functie=$b*(x $pm $a)^2 $mmp $c
+	X=$[$pm $a *-1]
+	Y=$[$mmp 1* $c]
+    !else
+	functie=$c + $b*(x $pm $a)^2 
+	X=$[$pm $a *-1]
+	Y=$c
+    !endif
+!endif
+
+!if $R >2
+    c=!randint 1,4
+    a=!randint 2,5
+    b=$[$c*$a]
+    d=!randint 1,9
+    mp=!randitem +,-
+    !if $keuze=1
+	functie=$d $mp ($c*x $pm $b)^2
+	X=$[$pm $a *-1]
+	Y=$d
+    !else
+	functie=-($c*x $pm $b)^2 $mp $d
+	X=$[$pm $a *-1]
+	Y=$[$mp 1* $d]
+    !endif
+!endif
+    
+
+
+answer$n=$X,$Y
+textanswer$n= $de_top  ($X:$Y)
+
+formula$n=!texmath $functie
+formula$n=y \,\, = $(formula$n)
+applettext=!nospace y = $functie ->
+
+!if $teaching=1
+    make_tr=0
+    xsize=120
+    ysize=120
+    image_settings$n=200,200
+    image$n=\
+    transparent white\
+    xrange -10,10\
+    yrange -100,100\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 1\
+    dvline $X,0,red\
+    linewidth 2\
+    curve green,$functie\
+    linewidth 6\
+    point $(answer$n),red
+    
+    plot=0
+    draw=1
+    svg=0
+    insdraw_size=150,150
+    !insdraw $(image$n)
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' />
+!endif

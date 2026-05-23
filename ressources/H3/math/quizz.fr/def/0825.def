@@ -1,0 +1,135 @@
+!set title=Question 0825 Médiane d'une liste
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bruno, Mifsud
+email=communaute.mutuwims@laposte.net
+keywords=mental_calculation,median
+oefobservation=Le numéro de la question s'interprète comme suit : <br>Question XXYY est la question YY du niveau XX
+
+ansorder=r
+varcnt=15
+prevarcnt=14
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=<ul class="wims_nopuce"><li><img style="float:left;width:20px;height:20px;" src="gifs/domains/general/calculator_not.svg" alt="Calculatrices interdites" ><strong>La calculatrice n'est pas autorisée, ni le brouillon.</strong></li>	<li><u>Aide à la saisie : </u>saisir 1.25 pour 1,25, saisir 3/4 pour \(3/4\), saisir 2^3 pour \(2^3) et saisir sqrt(3) pour \(\sqrt{ 3}\).</li></ul>
+val7=Félicitations toutes les réponses sont justes !
+tmp0=!randitem 0.5,1.5
+
+tmp=!translate ";': to $     $ in 8-$(tmp0)
+
+tmp=!lower $tmp
+tmp1=!exec maxima fullratsimp($tmp);
+tmp2=!randitem 8,9
+
+tmp3=!randitem 0.5,1.5
+
+tmp=!translate ";': to $     $ in 9+$(tmp3)
+
+tmp=!lower $tmp
+tmp4=!exec maxima fullratsimp($tmp);
+tmp5=!randitem 1,2
+
+tmp=!translate ";': to $     $ in 9+$(tmp5)
+
+tmp=!lower $tmp
+tmp6=!exec maxima fullratsimp($tmp);
+tmp7=!randitem 4,3
+
+tmp=!translate ";': to $     $ in 9+$(tmp7)
+
+tmp=!lower $tmp
+tmp8=!exec maxima fullratsimp($tmp);
+val8=$(tmp1),$(tmp2),$(tmp4),$(tmp6),$(tmp8)
+tmp0=!shuffle $val8
+
+val9=$(tmp0)
+!readproc slib/stat/median $val9 
+tmp0=$slib_out
+val10=$[$(tmp0)]
+val11=$[$val10]
+val12=<table class="wims_noborder"><tr><th>$(val9[1])</th><th>$(val9[2])</th><th>$(val9[3])</th><th>$(val9[4])</th><th>$(val9[5])</th></tr></table>
+val13=Quelle est la médiane de ces 5 notes &#63; <br> $val12 <br> Réponse &#58;
+val14=
+val15=<table class="wims_noborder"><tr><td>$(val8[1])</td><td>$(val8[2])</td><td>$(val8[3])</td><td>$(val8[4])</td><td>$(val8[5])</td></tr></table>
+val16=Ci-dessous la liste par ordre croissant. $val15 La médiane est bien $val11.
+val17=\begin{enumerate}
+val17=$val17	    \item	    $val13	    \dots $val14	  
+val17=$val17 \end{enumerate}
+replytype1=numeric
+replyoption1=comma default=0 
+replyname1=
+replygood1=$[$val10]
+question=__EXECUTED_1692754_EXERCISE__
+latex=!nosubst  \begin{statement} $val17 \end{statement} \begin{solution} \end{solution} 
+
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val6!= 
+$()	<div class="wims_instruction">$val6</div>	 
+!endif
+$()	<div class="wims_question">	  $val13  
+!read oef/embed.phtml r1,10	    autofocus 
+$() $val14</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$() $m_begin{statement} $val17 $m_end{statement} $m_begin{solution} $m_end{solution} 
+$()
+!exit
+
+:feedback
+!ifval ($m_sc_reply1<1) and ($val16!=)
+ <div class='oef_feedbacks'><style>.feedmutu {	    border: 1px solid;	    border-radius: 5px;	    padding: .5em;}	</style>	  <div class="feedmutu">$val16</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,13,14,16,17
+embedcnt=1

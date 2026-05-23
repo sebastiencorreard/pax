@@ -1,0 +1,148 @@
+!set title=Nombres et construction*
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David
+email=Marie-Claude.David@universite-paris-saclay.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=yes
+
+ansorder=r,r,r
+varcnt=12
+prevarcnt=11
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!trim La quadrature du cercle,2,\sqrt{\pi}	La duplication du carré,1,\sqrt{2}	La construction à la règle et au compas de l'heptagone,2,\cos(\frac{2\pi}{7})	La construction à la règle et au compas du pentagone,1,\cos(\frac{2\pi}{5})	La trisection de l'angle \(\frac{\pi}{3}),2,\cos(\frac{\pi}{9})	La trisection de l'angle \(\frac{\pi}{2}),1,\cos(\frac{\pi}{6})	La duplication du cube,2,\displaystyle{\sqrt[3]{2}}	
+val6=!translate internal $	\
+$ to ;; in $tmp
+val7=possible,impossible
+val8=est,n'est pas
+tmp=!translate internal $	$ to ; in $val6
+
+tmp0=!rowcnt $tmp
+tmp1=!randint 1, $(tmp0)
+
+val9=$[rint($(tmp1))]
+!if $val9=1 
+val10=$[sqrt(pi)]
+!endif
+!if $val9=2 
+val10=$[sqrt(2)]
+!endif
+!if $val9=3 
+evaltmp=cos(x)
+
+evaltmp=!mathsubst x=(2*pi/7) in $evaltmp
+tmp0=($evaltmp)
+val10=$[$(tmp0)]
+!endif
+!if $val9=4 
+evaltmp=cos(x)
+
+evaltmp=!mathsubst x=(2*pi/5) in $evaltmp
+tmp0=($evaltmp)
+val10=$[$(tmp0)]
+!endif
+!if $val9=5 
+evaltmp=cos(x)
+
+evaltmp=!mathsubst x=(pi/9) in $evaltmp
+tmp0=($evaltmp)
+val10=$[$(tmp0)]
+!endif
+!if $val9=6 
+val10=$[0.5]
+!endif
+!if $val9=7 
+evaltmp=exp(ln(x)/3)
+
+evaltmp=!mathsubst x=(2) in $evaltmp
+tmp0=($evaltmp)
+val10=$[$(tmp0)]
+!endif
+replytype1=menu
+replyname1=
+replygood1=$(val6[$val9;2]); $val7
+replytype2=numeric
+replyname2=
+replygood2=$[$val10]
+replytype3=menu
+replyname3=
+replygood3=$(val6[$val9;2]); $val8
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<p>Compléter la phrase :</p>	$(val6[$val9;1]) est  
+!read oef/embed.phtml reply1 
+$() parce que <label for="reply2">le nombre</label>	 
+!read oef/embed.phtml reply2, 6 
+$()	 
+!read oef/embed.phtml reply3 
+$() constructible à la règle et au compas.	<div class="wims_instruction">	On écrit <span class="tt">sqrt(pi)</span> pour 
+!insmath \sqrt{\pi}
+$(). On peut aussi donner	une valeur approchée.	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>Traditionnellement, le nombre associé à ce problème	de construction est 
+!insmath $(val6[$val9;3])
+$().
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,9
+embedcnt=3

@@ -1,0 +1,157 @@
+!set title=Translation 7
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel, Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+oefcss= <style> .macss{ background-color : yellow; } </style> 
+title_it=Traslazione 7
+
+ansorder=r,r,r
+varcnt=28
+prevarcnt=27
+postvarcnt=0
+replycnt=3
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=transfo7.png
+val8=Par la translation qui transforme 
+val9=en
+val10=L'hexagone
+val11=La figure ci-dessous est constituée de 10 hexagones réguliers numérotés de 1 à 10.	<p>L'hexagone 5 est noté ABCDEF.</p>	Le point I est le milieu du segment [AB].
+val12=Quelle est l'image de l'hexagone
+val13=hexagone
+!if $val6=it 
+val8=Applicando la traslazione che trasforma
+val9=in
+val10=È l'esagono
+val11=La figura qui sotto è costituita da 10 esagoni regolari numerati da 1 a 10.	<p>L'esagono 5 è indicato con le lettere ABCDEF.</p>	 I è il punto medio del segmento [AB].
+val12=Qual è l'immagine dell'esagono
+val13=esagono
+!endif
+tmp0=!randint 6
+
+val14=$[rint($(tmp0))]
+val15=\(E\) $val9 \(C\),\(E\) $val9 \(A\),\(A\) $val9 \(C\),\(C\) $val9 \(E\),\(A\) $val9 \(E\),\(C\) $val9 \(A\)
+!if $val14=1 or $val14=4 
+tmp=!trim 4,1	5,2	6,3	8,5	9,6	10,7
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val14=2 or $val14=5 
+tmp=!trim 1,2	2,3	4,5	5,6	6,7	8,9	9,10
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+!if $val14=3 or $val14=6 
+tmp=!trim 5,1	6,2	7,3	8,4	9,5	10,6
+val16=!translate internal $	\
+$ to ;; in $tmp
+!endif
+tmp=!translate internal $	$ to ; in $val16
+
+tmp0=!rowcnt $tmp
+tmp1=!shuffle $(tmp0)
+
+val17=$(tmp1)
+tmp=!trim $(val16[$(val17[1..3]);])
+val18=!translate internal $	\
+$ to ;; in $tmp
+!if $val14<4 
+val19=$(val18[1;1]),$(val18[2;1]),$(val18[3;1])
+val20=$(val18[1;2]),$(val18[2;2]),$(val18[3;2])
+!else
+val19=$(val18[1;2]),$(val18[2;2]),$(val18[3;2])
+val20=$(val18[1;1]),$(val18[2;1]),$(val18[3;1])
+!endif
+val21=Une translation est une transformation géométrique qui correspond à l'idée intuitive de « glissement » d'un objet,	sans rotation, ni retournement, ni déformation de cet objet.	<p>Par exemple, la figure bleue est l'image de la figure rouge par la translation qui transforme le point \(A\) en <span class="nowrap">\(A^{'}\).</span></p>	<div class="wimscenter"><img src="$val1/hinttrans2.png" alt="Translaté de cocotte"></div>	<p>L'image de \(A\) est \(A^{'}\), l'image de \(C\) est \(C^{'}\), l'image de \(H\) est \(H^{'}\).</p>	Les quadrilatères \(A A^{'}C^{'}C\) et \(A A^{'}H^{'}H\) sont des parallélogrammes.
+!if $val6=it 
+val21=Una traslazione è una trasformazione geometrica che corrisponde all'idea intuitiva di «scivolamento» di un oggetto,	senza rotazione, né ribaltamento, né deformazione di tale oggetto.	<p>Per esempio, la figura blu è l'immagine della figura rossa tramite la traslazione che trasforma il punto \(A\) in <span class="nowrap">\(A^{'}\).</span></p>	<div class="wimscenter"><img src="$val1/hinttrans2.png" alt="Traslato di cocotte"></div>	<p>L'immagine di \(A\) è \(A^{'}\), l'immagine di \(C\) è \(C^{'}\), l'immagine di \(H\) è \(H^{'}\).</p>	I quadrilateri \(A A^{'}C^{'}C\) e \(A A^{'}H^{'}H\) sono parallelogrammi.
+!endif
+replytype1=case
+replyoption1=numexp 
+replyname1=
+replygood1=$(val20[1])
+replytype2=case
+replyoption2=numexp 
+replyname2=
+replygood2=$(val20[2])
+replytype3=case
+replyoption3=numexp 
+replyname3=
+replygood3=$(val20[3])
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val21
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val11	<div class="wimscenter"><img src="$val1/$val7" alt="$val13"></div>	$val8	<span class="nowrap">$(val15[$val14]) ...</span>	<ul>	<li>$val12 $(val19[1])&nbsp;? <label for="reply1">$val10</label>  
+!read oef/embed.phtml reply1,3 
+$().</li>	<li>$val12 $(val19[2])&nbsp;? <label for="reply2">$val10</label>  
+!read oef/embed.phtml reply2,3 
+$().</li>	<li>$val12 $(val19[3])&nbsp;? <label for="reply3">$val10</label>  
+!read oef/embed.phtml reply3,3 
+$().</li></ul>
+$()
+!exit
+
+:hint
+$()$val21
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,7,8,10,11,12,13,14,15,19,21
+embedcnt=3

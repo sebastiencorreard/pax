@@ -1,0 +1,115 @@
+!set title=Entrepôt
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r,r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 30,35,40,50,60,70,80
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp0=!randint 100, 200
+
+val7=$[rint($(tmp0))]
+tmp0=!randint 50, 99
+
+val8=$[rint($(tmp0))]
+t_=!replace internal \( by ( in gcd($val7,$val8)	
+tmp0=!exec maxima $t_
+
+val9=$[rint($(tmp0))]
+val7=$[rint($val7/$val9)]
+val8=$[rint($val8/$val9)]
+val7=$[rint($val7*$val6)]
+val8=$[rint($val8*$val6)]
+val9=$[rint($val6)]
+val10=$[$val7/100]
+val11=$[$val8/100]
+val12=$[rint(($val7*$val8)/$val9^2)]
+replytype1=units
+replyname1=Longueur des côtés des dalles
+replygood1=$val9 cm
+replytype2=numexp
+replyname2=Nombre de dalles
+replygood2=$val12
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst  Convertir les dimensions de l'entrepôt dans une unité où elles sont entières. Puis, remarquer que le nombre de dalles doit être un diviseur de la longueur et de la largeur de l'entrepôt. 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	On veut paver un entrepôt de longueur $val10 m et de largeur $val11 m, sans découpe,	avec des dalles carrées dont la longueur des côtés est un nombre entier de centimètres.	De plus, on veut utiliser le moins de dalles possible.	<ol>	<li>Quelle doit être la longueur des côtés des dalles ?</li>	<li>Combien de dalles faut-il acheter?</li>	</ol>		<b>Vos réponses :</b>	<ol>	 <li><label for="reply1">La longueur des côtés des dalles doit être de</label>  
+!read oef/embed.phtml r1,8 
+$().</li>	 <li><label for="reply2">Il faut acheter</label>  
+!read oef/embed.phtml r2,5 
+$() dalles.</li>	</ol>	
+$()
+!exit
+
+:hint
+$() Convertir les dimensions de l'entrepôt dans une unité où elles sont entières. Puis, remarquer que le nombre de dalles doit être un diviseur de la longueur et de la largeur de l'entrepôt. 
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()<ol>	<li>L'entrepôt mesure $val10 m de longueur soit $val7 cm et $val11 m de largeur soit $val8 cm.	La longueur des côtés des dalles est le plus grand diviseur commun à $val7 et $val8. On obtient $val9.<br/>	La longueur des côtés des dalles est donc de $val9 cm. </li>	<li>Le nombre de dalles nécessaires est 
+!insmath \frac{$val7}{$val6}\times \frac{$val8}{$val6}
+$() soit $val12 dalles.</li>	</ol>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,9,10,11,12
+embedcnt=2

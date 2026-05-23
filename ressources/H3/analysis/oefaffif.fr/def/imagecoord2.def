@@ -1,0 +1,138 @@
+!set title=Cliquer sur l'abscisse de l'antécédent 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Marie-Claude, David 
+email=mcld@math.u-psud.fr 
+title_it=Clicca sull'ascissa della preimmagine 
+
+ansorder=r
+varcnt=27
+prevarcnt=26
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Voici la réponse
+val8=Voici une représentation graphique de la fonction \(f\).	  Sur l'axe des abscisses, cliquer sur le point d'abscisse \(x\) tel que
+!if $val6=it 
+val7=Ecco la risposta
+val8=Ecco una rappresentazione grafica della funzione \(f\).	  Sull'asse delle ascisse, clicca sul punto di ascissa \(x\) tale che
+!endif
+tmp0=!randint 1, 4
+
+val9=$[rint($(tmp0))]
+tmp0=!randint 1, 5
+
+val10=$[rint($(tmp0))]
+tmp0=!randitem -1,1
+
+val11=$[rint($(tmp0))]
+!if $val11=1 
+val12=$[(-7-$val10)/$val9]
+val13=$[(7-$val10)/$val9]
+!else
+val12=$[(-7+$val10)/$val9]
+val13=$[(7+$val10)/$val9]
+!endif
+val12=$[max($val12,-7)]
+val13=$[min($val13,7)]
+tmp0=!randint $val12, $val13
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val11*$val9)]
+val16=$[rint($val15*$val14+$val10)]
+tmp=!translate ";': to $     $ in $val15*x + $val10
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val17=!rawmath $(tmp0)
+val18=200
+val19=fcircle 0,$val16,6,green
+val20=dpolyline green,$val14,0,$val14,$val16,0,$val16	  fcircle $val14,0,6,green	  text green,$val14+0.3,+1,medium,x
+val21=xrange -7.2,7.2	  yrange -7.2,7.2	  parallel -7,-7,7,-7,0,1,16, grey	  parallel -7,-7,-7,7,1,0,16, grey	  hline 0,0,black	  arrow 0,0,1,0,8, black	  arrow 0,0,0,1,8, black	  text black,7-0.5,+0.8,medium,x	  text black,-0.5,7,medium,y	  vline 0,0,black	  $val19	  linewidth 2	  plot blue, $val17	
+!readproc oef/draw.phtml $val18,$val18 \
+$val21 
+tmp0=$ins_url
+val22=$(tmp0)
+!readproc slib/draw/convpixel $val14,0,$val18,$val18,-7.2,7.2,-7.2,7.2,0,pixels 
+tmp0=$slib_out
+val23=$(tmp0)
+val24=$(val23[1])
+val25=$(val23[2])
+replytype1=coord
+replyname1=
+replygood1=$val22;point,$val24,$val25
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val8	
+!insmath f(x)=$val16
+$().	 <div class="wimscenter"> 
+!read oef/embed.phtml reply1 
+$() </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval  $m_result1 = -1 
+ <div class='oef_feedbacks'> $val7	  <p class="wimscenter">	   
+!read oef/draw.phtml  $val18,$val18  \
+	  $val21	  $val20	 
+$() </p>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,16,18,20,21
+embedcnt=1

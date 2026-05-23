@@ -1,0 +1,418 @@
+!set title=01. Calcul image
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=106
+prevarcnt=101
+postvarcnt=4
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=2
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+val6=2,3,4,5,-2,-3,-4,-5
+val7=1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+!if $val3=1 
+tmp0=!shuffle $val6
+
+val8=$(tmp0)
+!endif
+!if $val3=2 
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp0=!shuffle $val6,$val7
+
+val8=$(tmp0)
+!endif
+val9=$(val8[1])
+!if $val2=1 
+tmp0=!randitem 1,-1
+
+tmp=!nonempty items 1,2,3,4,5
+
+tmp1=!randitem $tmp
+val10=$(tmp0)*$(tmp1)
+!else
+val10=0
+!endif
+tmp=!nonempty items f,g,h,i
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=$[rint($val10)]
+
+!ifval $val12<0
+val13=($val12)
+!else
+val13=$val12
+!endif
+
+!ifval $val12>0
+val14= \plus $val12
+!else
+val14=$val12
+!endif
+val15=$[rint(abs($val12))]
+tmp0=!texmath $val9
+
+val16=$(tmp0)
+t_=!replace internal \( by ( in ($val9)*x+($val12)
+tmp0=!exec pari $t_
+
+val17=$(tmp0)
+tmp0=!texmath $val17
+
+val18=$(tmp0)
+tmp0=!randitem 1,-1
+
+tmp1=!randint 2, 35
+
+val19=$[rint($(tmp0)*$(tmp1))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 2, 35
+
+val20=$[rint($(tmp0)*$(tmp1))]
+val21=$[$val12/(1-$val9)]
+!if $val19=$val21 
+val19=$[rint($val19+1)]
+!endif
+val22=$[rint($val19)]
+
+!ifval $val22<0
+val23=($val22)
+!else
+val23=$val22
+!endif
+!if $val9 isitemof $val7 
+t_=!rawmath $val9
+val24=!exec pari print($t_)
+tmp0=!texmath $val24
+
+val25=$(tmp0)
+
+!ifval $val24<0
+val26=($val24)
+!else
+val26=$val24
+!endif
+
+!ifval $val24<0
+tmp0=!texmath $val26
+
+val27=($(tmp0))
+!else
+tmp1=!texmath $val26
+
+val27=\$(tmp1)
+!endif
+val28=($val24)*x+($val12)
+tmp=!translate ";': to $     $ in $val28
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val29)
+tmp0=!exec pari $t_
+
+val30=$(tmp0)
+tmp0=!texmath $val30
+
+val31=$(tmp0)
+val32=$val11 (x)=$val31
+t_=!replace internal \( by ( in numerator($val24)
+tmp0=!exec pari $t_
+
+val33=$[rint($(tmp0))]
+t_=!replace internal \( by ( in denominator($val24)
+tmp0=!exec pari $t_
+
+val34=$[rint($(tmp0))]
+t_=!rawmath ($val24)*($val22)+($val12)
+val35=!exec pari print($t_)
+t_=!rawmath ($val24)*($val22)
+val36=!exec pari print($t_)
+t_=!rawmath $val35-($val12)
+val37=!exec pari print($t_)
+tmp0=!texmath $val35
+
+val38=$(tmp0)
+tmp0=!texmath $val36
+
+val39=$(tmp0)
+tmp0=!texmath $val37
+
+val40=$(tmp0)
+!if $val12>0 
+val41=\($val11 ($val22)= \frac{$val33}{$val34} \times $val23 + $val12\)
+val42=\($val11 ($val22)= $val39 + $val12\)
+val43=\($val11 ($val22) = $val38\)
+val44=$val38- $val12
+!endif
+!if $val12=0 
+val41=\($val11 ($val22)= \frac{$val33}{$val34} \times $val23\)
+val42=\($val11 ($val22)=$val38\)
+val44=$val38
+!endif
+!if $val12<0 
+val41=\($val11 ($val22)= \frac{$val33}{$val34} \times $val23 $val12\)
+val42=\($val11 ($val22)= $val39 $val12\)
+val43=\($val11 ($val22)= $val38\)
+val44=$val38 + $val15
+!endif
+!else
+val24=$[rint($val9)]
+tmp0=!texmath $val24
+
+val25=$(tmp0)
+
+!ifval $val24<0
+val26=($val24)
+!else
+val26=$val24
+!endif
+val45=$[rint(abs($val26))]
+
+!ifval $val24<0
+tmp0=!texmath $val26
+
+val27=($(tmp0))
+!else
+tmp1=!texmath $val26
+
+val27=\$(tmp1)
+!endif
+val28=($val24)*x+($val12)
+tmp=!translate ";': to $     $ in $val28
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val29=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val29)
+tmp0=!exec pari $t_
+
+val30=$(tmp0)
+tmp0=!texmath $val30
+
+val31=$(tmp0)
+val32=$val11 (x)=$val31
+val35=$[rint(($val24)*($val22)+($val12))]
+val46=$[rint(($val24)*($val22))]
+val37=$[rint($val35-$val12)]
+tmp0=!texmath $val35
+
+val38=$(tmp0)
+!if $val12>0 
+
+!ifval $val24=1
+val41=\($val11 ($val22)= $val22 + $val12\)
+!else
+val41=\($val11 ($val22)= $val24 \times $val23 + $val12\)
+!endif
+
+!ifval $val24=1
+val42=
+!else
+val42=\($val11 ($val22)=$val46 + $val12\)
+!endif
+val43=\($val11 ($val22)=$val38\)
+val40=$val38 - $val12
+!endif
+!if $val12=0 
+
+!ifval $val24=1
+val41=\($val11 ($val22)= $val23\)
+!else
+val41=\($val11 ($val22)=$val24 \times $val23\)
+!endif
+
+!ifval $val24=1
+val42=
+!else
+val42=\($val11 ($val22)=$val38\)
+!endif
+val40=$val38
+!endif
+!if $val12<0 
+
+!ifval $val24=1
+val41=\($val11 ($val22)= $val22 $val12\)
+!else
+val41=\($val11 ($val22)= $val24 \times $val23 $val12\)
+!endif
+
+!ifval $val24=1
+val42=
+!else
+val42=\($val11 ($val22)= $val46 $val12\)
+!endif
+val43=\($val11 ($val22)=$val38\)
+val40=$val38 + $val15
+!endif
+!endif
+tmp0=!texmath $val20
+
+val47=$(tmp0)
+val48=Soit \($val11\) la fonction affine définie pour tout nombre \(x\) par <span class="nowrap">\($val11(x)=$val18\).</span>
+val49=Soit \($val11\) la fonction linéaire de coefficient <span class="nowrap">\($val16\).</span>
+val50=Vous donnerez la réponse sous la forme d'un nombre entier si possible ou d'une fraction irréductible de dénominateur positif.
+val51=Bonne réponse
+val52=Bonne réponse en écriture fractionnaire irréductible ou entière
+val53=Votre réponse n'est pas une fraction irréductible.
+val54=La fonction affine \($val11\) est définie pour tout nombre \(x\) par <span class="nowrap">\($val11(x)=$val18\).</span>
+val55=La fonction linéaire \($val11\) a pour coefficient \($val16\) donc la fonction \($val11\) est définie pour tout nombre \(x\) par <span class="nowrap">\($val11(x)=$val18\).</span>
+val56=Calculer l'image du nombre \($val19\) par la fonction <span class="nowrap">\($val11).</span>
+val57=<p>Pour calculer l'image de \($val19\), on remplace \(x\) par \($val19\) dans l'expression algébrique de la fonction.</p>	<span class="nowrap">$val41</span>	<p><span class="nowrap">$val42</span></p>	<span class="nowrap">$val43</span>
+val58=L'image de \($val19\) par la fonction \($val11\) est égale à 
+val59=image
+val60=Vous avez calculé l'antécédent de \($val19\) par la fonction \($val11\) alors qu'on demande l'image de \($val19\) par la fonction <span class="nowrap">\($val11\).</span>	<p>Pour calculer l'image de \($val19\) par la fonction <span class="nowrap">\($val11\)</span>, vous remplacez le nombre \(x\) par \($val19\) dans l'expression algébrique de la fonction <span class="nowrap">\($val11\).</span></p>
+!if $val2=1 
+val61=$val48
+val62=$val54
+!else
+val61=$val49
+val62=$val55
+!endif
+t_=!rawmath $val35
+val63=!exec pari print($t_)
+t_=!rawmath ($val19-$val12)/($val24)
+val64=!exec pari print($t_)
+val65=$[rint(2)]
+val66=$[rint(2)]
+val67=euler_answer_nobg
+replytype1=numexp
+replyoption1=noreduction 
+replyname1=$val59
+replygood1=?analyze 68
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val61	<div class="euler_quest_nobg spacer">$val56</div>	<div class="$val67"><label for="reply1">$val58</label>  
+!read oef/embed.phtml r1,4 
+$().</div>	<div class="wims_instruction spacer">$val50</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val62	<p>$val57</p>	<p>$val58 <span class="nowrap">
+!insmath $val63
+$().</span></p>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval $val68=$val63
+val65=$[rint(1)]
+!else
+val65=$[rint(0)]
+!endif
+
+!ifval $val68 issamecase $val63
+val66=$[rint(1)]
+!else
+val66=$[rint(0)]
+!endif
+!if $val65<1 or $val66<1 
+val67=euler_rep_bad_nobg cross
+!else
+val67=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+!ifval $val68=$val64
+ <div class='oef_feedbacks'><div class="highlight">$val60</div>
+$()</div>
+!endif
+!ifval $val68=$val63 and ($val68 notsamecase $val63)
+ <div class='oef_feedbacks'><div class="highlight">$val53</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+condweight1=3 
+
+!ifval $val68=$val63
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val51
+condweight2=1 
+
+!ifval $val68 issamecase $val63
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val52
+
+!exit
+
+:stat
+vsavelist=50,51,52,53,56,57,58,60,61,62,63,64,65,66,67,68
+embedcnt=1

@@ -1,0 +1,77 @@
+!! slib_input doit contenir un produit d'au plus trois facteur de degré 1, le premier facteur peut être un monome les autres doivent être de deux monomes. 
+!! la librairie renvoit toutes les expressions du polynome factorisé en gérant la position des signes -
+!! l polynôme d'entrée est systématiquement factorisé
+
+slib_input=!exec maxima factor($wims_read_parm);
+slib_out=$slib_input
+po=!char 1 of ()
+tmp=!char 1 to 2 of $slib_input
+!if $tmp=-$po
+  rep=!char 2 to -1 of $slib_input
+  rep=-1*$rep
+!else
+  rep=$slib_input
+!endif
+sol=!replace internal *$po by ,$po in $rep 
+sol=!nonempty item $sol 
+n=!itemcnt $sol
+!if $n=1
+  !exit
+!endif
+!if $n=2
+  sol=1,$sol
+  n=3
+!endif
+solneg=
+solpos=
+!for j=1 to $n
+  tmp=!declosing $(sol[$j])
+  solpos=!append item $tmp to $solpos
+  t=!char 1 of $tmp
+  !if $t!=-
+    tmp=+$tmp
+  !endif  
+  tmp=!replace internal + by # in $tmp
+  tmp=!replace internal - by + in $tmp
+  tmp=!replace internal # by - in $tmp
+  t=!char 1 of $tmp
+  !if $t=+ 
+    tmp=!char 2 to -1 of $tmp
+  !endif
+  solneg=!append item $tmp to $solneg
+!next j
+!for k=1 to 3
+  tmp=$empty
+  !for i=1 to 3
+    !if $i=$k
+      t=$(solpos[$i])
+    !else
+      t=$(solneg[$i])
+    !endif
+    !if $i=1
+      !! test if only a monomial expression
+      st=!char 1 of $t
+      !if $st=-
+        st=!char 2 to -1 of $t
+      !else
+        st=$t
+      !endif
+      !if + isin $st or - isin $st
+        !reset monomial
+      !else
+        monomial=1
+      !endif
+    !else
+      !reset monomial
+    !endif
+    !if $monomial=$empty
+      tmp=!append item ($t) to $tmp
+    !else
+      !if $t!=1
+        tmp=$t
+      !endif
+    !endif
+  !next i
+  tmp=!replace internal , by * in $tmp
+  slib_out=!append item $tmp to $slib_out
+!next k

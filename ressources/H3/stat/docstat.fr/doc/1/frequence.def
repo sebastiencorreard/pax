@@ -1,0 +1,187 @@
+!set titb=Effectif et fréquence
+!set keyw=
+!set datm=20030521
+!set prev=etendue
+!set next=exfreq
+!set upbl=tocmoyenne
+!set dat1=19000101
+!set dat2=24000101
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+!exit
+
+:content
+<div class="defn"> <span class="defn">Définition &#58; </span>On appelle
+ <span class="definition"> effectif
+ d'une valeur de caractère </span> (ce que l'on est
+ en train d'étudier, dans les exemples précédents les notes d'un
+ élève), le nombre de fois qu'apparaît
+ cette valeur.
+</div>
+
+!set tmp0=!randint 15, 20
+
+!set m_n=$[rint($(tmp0))]
+
+
+!set tmp0=!randint 5, 7
+
+!set m_m=$[rint($(tmp0))]
+
+
+!readproc slib/stat/random $m_n,0,$m_m 
+!set tmp0=$slib_out
+!set m_serie=$(tmp0)
+
+
+
+!set tmp0=!sort numeric item $m_serie
+
+!set m_serie2=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_serie2
+
+!set m_min=$(tmp0)
+
+
+
+!set tmp0=!item -1 of $m_serie2
+
+!set m_max=$(tmp0)
+
+
+
+!set m_ligne1=<th>Série</th>
+
+
+
+!set m_ligne2=<th>Effectifs </th>
+
+
+
+!set m_ligne0=<th>Valeurs </th>
+
+
+
+!set tmp0=!shuffle 8
+
+!set m_liste=$(tmp0)
+
+
+
+!set tmp0=!sort numeric item $m_liste
+
+!set m_liste=0,$(tmp0)
+
+
+
+!readproc slib/stat/effectif [$m_serie],[$m_liste] 
+!set tmp0=$slib_out
+!set m_c=$(tmp0)
+
+
+
+!set tmp0=!item 1 of $m_c
+
+!set tmp1=!declosing $(tmp0)
+
+!set m_c=$(tmp1)
+
+
+  
+!for m_i=1 to $m_n 
+
+    
+!set tmp0=!item $m_i of $m_serie
+
+!set m_a=$[$(tmp0)]
+
+    
+!set tmp0=!item $m_i of $m_c
+
+!set m_b=$[$(tmp0)]
+
+    
+!set m_l=$[$m_i-1]
+
+    
+!set m_ligne1=$m_ligne1 <td>$m_a</td>
+
+
+    
+!ifval $m_max >= $m_l 
+!set m_ligne2= $m_ligne2 <td>$m_b</td>
+
+!endif
+
+    
+!ifval $m_max >= $m_l 
+!set m_ligne0= $m_ligne0 <td>$m_l</td>
+
+!endif
+
+ 
+!next
+
+
+!read primitives.phtml 1, reload, <img src="gifs/doc/etoile.gif" alt="rechargez" width="20" height="20" /> 
+
+Voici une série statistique &#58;
+<table class="tabledocstat wimscenter wimsborder"><tr>$m_ligne1 </tr>
+</table>
+et les effectifs des valeurs &#58;
+<table class="tabledocstat wimscenter wimsborder"><tr>$m_ligne0 </tr>
+<tr>$m_ligne2 </tr>
+</table>
+
+!set tmp0=!randint 1, $m_m-1
+
+!set m_N=$[rint($(tmp0))]
+
+
+!set tmp0=!item $m_N+1 of $m_c
+
+!set m_f=$[rint($(tmp0))]
+
+ 
+!set m_ff1=$[round(100*$m_f/$m_n)]
+
+ 
+!set m_ff=$[$m_ff1/100]
+
+<div class="defn"> <span class="defn">Définition &#58; </span>On appelle
+  <span class="definition">fréquence
+ d'une valeur de caractère</span> (ce que l'on est
+ en train d'étudier, dans les exemples précédents les notes d'un
+ élève), le quotient de l'effectif de cette valeur par l'effectif
+ total.
+</div>
+<ul><li> La fréquence est un nombre, elle vérifie 
+!insmath 0 \leq f \leq 1
+,
+ et on a&nbsp;&#58;
+ <div class="wimscenter">fréquence=
+!insmath \frac{\mbox{effectif partiel}}{\mbox{effectif total}} 
+</div>
+</li><li> On utilise aussi la
+ <span class="defn"> fréquence en pourcentage, ou pourcentage</span>&nbsp;&#58;
+ <div class="wimscenter">pourcentage=fréquence $m_times 100 .</div>
+</li></ul>
+<br/>
+Dans la série statistique précédente, la fréquence de $m_N est égale à 
+!insmath \f/\n
+,
+c'est-à-dire  
+!if $m_f<>0 
+à peu près
+!endif
+ $m_ff. La fréquence en pourcentage de $m_N est
+ 
+!if $m_f<>0 
+à peu près
+!endif
+ $m_ff1 % .
+

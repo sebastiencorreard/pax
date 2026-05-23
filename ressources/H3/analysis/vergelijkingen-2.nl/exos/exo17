@@ -1,0 +1,175 @@
+# type (ax+b)/(cx+d)=ex+f
+# let op: bij texmath vervangen we wims \to door \rightarrow in combinatie met een Array !!!
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+!if $usage=2
+    image=0
+!endif
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+# NEEE  we willen NIET checken op vereenvoudigde breuken
+var5=0
+math=0
+embed=1
+exotext=$empty
+keuze=!randitem 1,2
+checkfile=exos/checkfile1.proc
+mathviewpanel=$module_title:x=:->:and
+!if $subject=17
+    varlist=x
+    ss=!record 1 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    helptext=!record 3 of lang/remarks.$taal
+    cols=15
+    rows=2
+    # berekeniningen laten zien
+    var3=0
+    questiontype=0
+!else
+    varlist=x
+    # maximaal aantal pijlen=tussenstappenn
+    var1=5
+    # aantal pijlen=tussenstappen
+    var2=3
+    # berekeniningen laten zien
+    var3=1
+    ss=!record 4 of lang/remarks.$taal
+    #@ Los de volgende vergelijking op:<br />
+    cols=30
+    rows=5
+    questiontype=7
+    javascript=js/exo1.js
+    embed=1
+    make_tr=1
+    helptext=<img src=\'$module_dir/gifs/exo16.jpg\' alt=\'noalt\' />
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+
+# question$n = html/ascii vraag
+# formula$n  = latex/html versie van de formule
+# answer$n = nakijk wiskundige goede antwoorden
+# textanswer$n= text/ascii/html versie met uitleg van het goede antwoord
+# texanswer$n is latexformule van goede antwoord
+
+!if $R=1
+    # type (ax+b)/(cx+d)=ex+f
+    e=1
+    c=1
+    g=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    h=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    !if $g=$h
+	g=$[-1*$g]
+    !endif
+    f=!randitem -6,-5,-4,-3,-2,1,2,3,4,5,6
+    d=!randitem -6,-5,-4,-3,-2,-1,1,2,3,4,5,6
+    !if $d=$g or $d=$h
+	d=!randitem -8,-7,-6,6,7,8
+    !endif
+    x1=$[-1*$g]
+    x2=$[-1*$h]
+    a=$[($d) + ($f) - ($g) - ($h)]
+    !if $a=0
+	f=$[$f+1]
+	a=$[($d) + ($f) - ($g) - ($h)]
+    !endif
+    b=$[($f)*($d) - ($g)*($h)]
+    !if $d=$b/$a
+	f=$[$f+1]
+        a=$[($d) + ($f) - ($g) - ($h)]
+        b=$[($f)*($d) - ($g)*($h)]
+    !endif
+    !if $b!=0
+	tussen=!rawmath ($a*x + $b)/(x + $d ) = x + $f
+	applettext=!nospace $tussen ->
+	tussen=!texmath $tussen
+	tex=!texmath $a*x + $b = (x + $f)*(x + $d) -> $a*x + $b = x^2 + $[($f) + ($d)]*x + $[($f)*($d)] -> x^2 + $[($f) + ($d) - ($a)]*x + $[($f)*($d) -($b)] = 0 
+    !else
+	tussen=!rawmath ($a*x )/(x + $d ) = x + $f
+	applettext=!nospace $tussen ->
+	tussen=!texmath $tussen
+	tex=!texmath $a*x  = (x + $f)*(x + $d) -> $a*x  = x^2 + $[($f) + ($d)]*x + $[($f)*($d)] -> x^2 + $[($f) + ($d) - ($a)]*x + $[($f)*($d) ] = 0 
+    !endif
+    formula$n=\begin{array}{l}\displaystyle{$tussen} \end{array} 
+    tex=!replace internal \to by $ \rightarrow \\ $ in $tex
+    !if $x1=$x2
+	answer$n=$x1
+	texanswer$n=\left[ \begin{array}{l}$(formula$n) \\  $tex \\ \textrm{abc-formule :}\\ a\cdot x^{2} + b \cdot x + c = 0 \\ a = 1 \\ b = $[($f) + ($d) - ($a)] \\ c = $[($f)*($d) -($b)] \\ \bf{D} = b^{2} -4\cdot a \cdot c = 0 \\ x_{1}=$x1  \end{array} \right.
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{l}$(formula$n) \\ $tex \\ \textrm{abc-formule :}\\ a\cdot x^{2} + b \cdot x + c = 0 \\ a = 1 \\ b = $[($f) + ($d) - ($a)] \\ c = $[($f)*($d) -($b)]  \\  x_{1}=$x1 \wedge x_{2}=$x2 \end{array} \right. 
+    !endif
+ !exit
+!endif
+
+!if $R>1
+    # type (ax+b)/(cx+d)=ex+f
+    c=1
+    g=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    h=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    !if $[($g)/($e)]=$h
+	h=!randitem -6,6,7
+    !endif
+    f=!randitem -5,-4,-3,-2,1,2,3,4,5
+    d=!randitem -5,-4,-3,-2,-1,1,2,3,4,5
+    e=!randitem -5,-4,-3,-2,2,3,4,5
+    !if $d=$[($g)/($e)] or $d=$h
+	d=!randitem -8,-7,-6,6,7,8
+    !endif
+#   noemer=0 : x=-d d=h d=g/e
+#   !if $d=$h
+#	d=$[-1*$d]
+#    !endif
+#   !if $d=$[($g)/($e)]
+#	g=$[-1*$g]
+#    !endif
+    tot=!exec pari A=-1*($g)/($e)\
+    printtex(A)
+    x1=!line 1 of $tot
+    x1_tex=!line 2 of $tot
+    x2=$[-1*$h]
+    x2_tex=$x2
+    a=$[($e)*($d) + ($f) - ($g) - ($e)*($h)]
+    !if $a=0
+	f=$[($f)+1]
+	a=$[($e)*($d) + ($f) - ($g) - ($e)*($h)]
+    !endif
+    b=$[($f)*($d) - ($g)*($h)]
+    !if $d=$[$b/($a)]
+	!if a!=-1
+	    f=$[($f)+1] 
+	!else
+	    f=6
+	!endif
+	a=$[($e)*($d) + ($f) - ($g) - ($e)*($h)]
+        b=$[($f)*($d) - ($g)*($h)]
+   !endif
+    !if $b!=0
+	tussen=!rawmath ($a*x + $b)/(x + $d ) = $e*x + $f
+	applettext=!nospace $tussen ->
+	tussen=!texmath $tussen
+	tex=!texmath $a*x + $b = ($e*x + $f)*(x + $d) -> $a*x + $b = $e*x^2 + $[($f) + ($e)*($d)]*x + $[($f)*($d)] -> $e*x^2 + $[($f) + ($e)*($d) - ($a)]*x + $[($f)*($d) -($b)] = 0
+    !else
+	tussen=!rawmath ($a*x )/(x + $d ) = $e*x + $f
+	applettext=!nospace $tussen ->
+	tussen=!texmath $tussen
+	tex=!texmath $a*x = ($e*x + $f)*(x + $d) -> $a*x = $e*x^2 + $[($f) + ($e)*($d)]*x + $[($f)*($d)] -> $e*x^2 + $[($f) + ($e)*($d) - ($a)]*x + $[($f)*($d) -($b)] = 0
+    !endif
+    formula$n=\begin{array}{l}\displaystyle{ $tussen} \end{array}
+
+    tex=!replace internal \to by $ \\ $ in $tex
+    !if $x1=$x2
+	answer$n=$x1
+	texanswer$n=\left[ \begin{array}{l}$(formula$n) \\ $tex \\ \textrm{abc-formule :}\\ a\cdot x^{2} + b \cdot x + c = 0 \\ a = $e \\ b = $[($f) + ($e)*($d) - ($a)] \\ c = $[($f)*($d) -($b)] \\ \bf{D} = b^{2} -4\cdot a \cdot c = 0 \\  x_{1}=$x1_tex  \end{array} \right.
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{l}$(formula$n) \\ $tex  \\ \textrm{abc-formule :}\\ a\cdot x^{2} + b \cdot x + c = 0 \\ a = $e \\ b = $[($f) + ($e)*($d) - ($a)] \\ c = $[($f)*($d) -($b)] \\ x_{1}=$x1_tex \wedge x_{2}=$x2_tex \end{array} \right.
+    !endif
+ !exit
+!endif
+ 

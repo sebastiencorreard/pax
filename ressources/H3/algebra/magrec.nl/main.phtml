@@ -1,0 +1,50 @@
+!read language lang/names
+!if $status=waiting
+  !set wims_html_header=$wims_html_header\
+    <script>\
+    <!-- hide/\
+    var rtick;\
+    rtick=$remain;\
+    function clock() {\
+     document.chrono.clock.value=rtick; rtick--;\
+     if(rtick<0) rtick=0;\
+     Timer= setTimeout("clock()",1000);\
+    }\
+    // -->\
+    </script>
+  !set wims_html_onload=onload=clock();
+  !header
+  !if $error!=$empty
+    <div class="wims_msg warning">
+    !read lang/msg.phtml.$modu_lang
+    </div>
+  !endif
+  !read form.phtml
+  <p>
+  !set wims_ref_class=wims_button wims_secondary_button
+  !href cmd=reply&abandon=yes $name_giveup
+$ $
+ !set wims_ref_class=wims_button wims_secondary_button
+  !href exo_Renew
+  </p>
+!else
+  !header
+  !if $error!=$empty
+    <div class="wims_msg warning">
+    !read lang/msg.phtml.$modu_lang
+    </div>
+  !endif
+  !read answer.phtml
+  <p>
+  !set wims_ref_class=wims_button
+  !href exo_Again
+$ $
+  !if $worksheet=$empty
+    !set wims_ref_class=wims_button wims_secondary_button
+    !href exo_Intro
+  !endif
+  </p>
+!endif
+
+!tail
+!reset abandon

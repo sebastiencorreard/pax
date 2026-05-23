@@ -1,0 +1,152 @@
+!set title=Avion 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Bernadette, Perrin-Riou
+email=bernadette.m.riou@orange.fr
+title_it=Avion 
+title_nl=Avion 
+
+ansorder=r
+varcnt=26
+prevarcnt=25
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!readproc slib/oef/env lang 
+tmp0=$slib_out
+val6=$(tmp0)
+val7=Metropolis,Springfield, El Dorado
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+val8=Un avion vole au dessus de XXXX.	Il doit atterrir dans un aéroport situé à YYYY km de la ville.	Pour descendre, il parcourt ZZZZ km.
+val9=À quelle altitude volait-il quand il était au dessus de la ville&nbsp;
+!if $val6=it 
+val7=Metropolis,Springfield, El Dorado
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+val8=Un avion vole au dessus de XXXX.	Il doit atterrir dans un aéroport situé à YYYY km de la ville.	Pour descendre, il parcourt ZZZZ km.
+val9=À quelle altitude volait-il quand il était au dessus de la ville&nbsp;
+!endif
+!if $val6=nl 
+val7=Metropolis,Springfield, El Dorado
+tmp=!nonempty items $val7
+
+tmp0=!randitem $tmp
+val7=$(tmp0)
+val8=Un avion vole au dessus de XXXX.	Il doit atterrir dans un aéroport situé à YYYY km de la ville.	Pour descendre, il parcourt ZZZZ km.
+val9=À quelle altitude volait-il quand il était au dessus de la ville&nbsp;
+!endif
+tmp0=!randint 100, 200
+
+val10=$(tmp0)
+tmp0=!randint 100, 200
+
+val11=$(tmp0)
+t_=!replace internal \( by ( in pyth(A,B,lim)={for(a=A+B,A+lim+B, for(b=a,a+lim,N=sqrt(a^2+b^2); if(floor(N)==N, return([a,b,floor(N)]))))}
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in lim=25; pyth($val10,$val11,lim)
+tmp0=!exec pari $t_
+
+val13=$(tmp0)
+
+!ifval $(val13[1])==0
+t_=!replace internal \( by ( in lim1=100; pyth($val10,$val11+lim,lim1)
+tmp0=!exec pari $t_
+
+val13= $(tmp0)
+!endif
+
+!ifval $(val13[1])==0
+val13= erreur
+!endif
+tmp0=!sort item $val13
+
+val12=$(tmp0)
+t_=!replace internal \( by ( in [$val12]/10.
+tmp0=!exec pari $t_
+
+val12=$(tmp0)
+tmp0=!replace internal XXXX by $val7 in $val8
+
+val14=$(tmp0)
+tmp0=!replace internal YYYY by $(val12[2]) in $val14
+
+val14=$(tmp0)
+tmp0=!replace internal ZZZZ by $(val12[3]) in $val14
+
+val14=$(tmp0)
+tmp0=!replace internal XXXX by $val7 in $val9
+
+val15=$(tmp0)
+replytype1=numeric
+replyname1=
+replygood1=$[$(val12[1])]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()$val14	<div><label for="reply1">$val15?</label>  
+!read oef/embed.phtml r1,6 
+$() km.</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=14,15
+embedcnt=1

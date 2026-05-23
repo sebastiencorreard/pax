@@ -1,0 +1,50 @@
+target=distance
+\author{Aurore,Lebon}
+\language{fr}
+\range{-5..5}
+\computeanswer{yes}
+\format{html}
+\precision{10000}
+#include "lang_titles.inc"
+#include "lang.inc"
+
+\matrix{M=\name_M[1;1], \name_M[1;2],2, 7, 5, 59, \name_M[1;3]
+\name_M[2;1], \name_M[2;2], 15, 30, 15, 120, \name_M[2;3]
+\name_M[3;1], \name_M[3;2], 60, 130, 70, 200, \name_M[3;3]
+\name_M[4;1], \name_M[4;2], 30, 100, 15, 90, \name_M[4;3]}
+
+\integer{n=randint(1..4)}
+
+choix de la durée en mn
+\integer{du=randint(\M[\n;5], \M[\n;6])}
+conversion de la durée en heures et minutes
+\integer{h=floor(\du/60)}
+\integer{m=\du-60*\h}
+\text{hh=\h=0? :\h h }
+choix de vi, un entier accessoire :
+\integer{vi=randint(\M[\n;3], \M[\n;4])}
+
+La distance parcourue pendant "du" minutes est calculée ainsi
+\real{di=\du*\vi/100}
+
+Donc la vitesse en km/mn est di/du soit vi/100 d'où en km/h la vitesse est 60*vi/100=vk
+vk est aussi la distance parcourue en 60 mn.
+\real{vk=\vi*6/10}
+
+Donc ce choix de vk permet aux opérations de tomber presque justes. On a envie que vk
+soit presque divisible par 60.
+\integer{s=60}
+\statement{\M[\n;1] \M[\n;2] \name_enonce[1] \vk km/h. \M[\n;7]
+\name_enonce[2] \hh \m min.
+<p>\name_tabl:</p>
+<table class="wimscenter wimsborder">
+<tr><th>\name_head[1]</th><td>\embed{reply 1}</td><td>\embed{reply 2}</td></tr>
+<tr><th>\name_head[2]</th><td>\vk</td><td>\embed{reply 3}</td>
+</tr>
+</table>
+<div><label for="reply4">\name_question</label> \embed{reply 4} km.</div>
+}
+\answer{}{\s}{type=numeric}
+\answer{}{\du}{type=numeric}
+\answer{}{\di}{type=numeric}
+\answer{}{\di}{type=numeric}

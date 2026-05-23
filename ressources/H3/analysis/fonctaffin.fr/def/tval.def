@@ -1,0 +1,326 @@
+!set title=13. Tableau de valeurs (graph)
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+keywords=functions,graphing
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=53
+prevarcnt=40
+postvarcnt=12
+replycnt=8
+choicecnt=0
+conditioncnt=8
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+tmp0=!shuffle 0.5,1,1.5,2,2.5,3,-0.5,-1,-1.5,-2,-2.5,-3
+
+val6=$(tmp0)
+val6=$(val6[1])
+!if $val2=1 
+tmp0=!shuffle -5,-4,-3,-2,-1,1,2,3,4,5
+
+val7=$(tmp0)
+val8=$(val7[1])
+!else
+val8=0
+!endif
+tmp0=!randint -6, -4
+
+tmp1=!randint -3, -1
+
+tmp2=!randint 0, 3
+
+tmp3=!randint 4, 6
+
+val9=$(tmp0),$(tmp1),$(tmp2),$(tmp3)
+val10=$[$val6*$(val9[1])+$val8]
+val11=$[$val6*$(val9[2])+$val8]
+val12=$[$val6*$(val9[3])+$val8]
+val13=$[$val6*$(val9[4])+$val8]
+!if $val10>0 or $val10=0 
+val14=-8,-10
+!else
+val14=-8,30
+!endif
+val15=10,3
+!if $val11>0 or $val11=0 
+val16=-8,-10
+!else
+val16=-8,30
+!endif
+val17=10,15
+!if $val12>0 or $val12=0 
+val18=-5,-10
+!else
+val18=-8,30
+!endif
+val19=-40,15
+!if $val13>0 or $val13=0 
+val20=-8,-10
+!else
+val20=-8,30
+!endif
+val21=-30,15
+val22=$[rint(max(abs($val10),max(abs($val11),max(abs($val12),abs($val13))))+2)]
+val23=<table id="mytab2" class="wimsborder mytab2" style="font-size: 16px; width: 100%; border-collapse: collapse;">	    <tr>	        <td></td>	        <td>\(A\)</td>	        <td>\(B\)</td>	        <td>\(C\)</td>	        <td>\(D\)</td>	    </tr>	    <tr>	        <td>\(x\)</td>	        <td>\($(val9[1])\)</td>	        <td>\($(val9[2])\)</td>	        <td>\($(val9[3])\)</td>	        <td>\($(val9[4])\)</td>	    </tr>	    <tr>	        <td>\(f(x)\)</td>	        <td>\($val10\)</td>	        <td>\($val11\)</td>	        <td>\($val12\)</td>	        <td>\($val13\)</td>	    </tr>	</table>
+val24=JXG.Options.elements.highlight = false;	JXG.Options.elements.tabindex=-1;	var board = JXG.JSXGraph.initBoard('jsxbox', {	    boundingbox: [-7,$val22,7,-$val22],	    showCopyright:false,	    keepAspectRatio:false,	    axis: true,	    grid: {	    drawGrid: true,	    gridX: 1,	    gridY: 1	  }});	    var graph = board.create('functiongraph',[function(x){ return $val6*x+$val8;}, -15, 15]);	    var ptA = board.create('point', [$(val9[1]), $val10], { name: 'A', size: 6, color: 'black',face:'plus',showInfobox:false,fixed:true,label:{fontSize:25}});	    var ptB = board.create('point', [$(val9[2]), $val11], { name: 'B', size: 6, color: 'black',face:'plus',showInfobox:false,fixed:true,label:{fontSize:25}});	    var ptC = board.create('point', [$(val9[3]), $val12], { name: 'C', size: 6, color: 'black',face:'plus',showInfobox:false,fixed:true,label:{fontSize:25}});	    var ptD = board.create('point', [$(val9[4]), $val13], { name: 'D', size: 6, color: 'black',face:'plus',showInfobox:false,fixed:true,label:{fontSize:25}});	    
+val25=var board2 = JXG.JSXGraph.initBoard('jsxbox2', {	    boundingbox: [-7, $val22, 7, -$val22],	    showCopyright: false,	    keepAspectRatio: false,	    axis: true,	    grid: {	    drawGrid: true,	    gridX: 1,	    gridY: 1	  }	});	var ptA = board2.create('point', [$(val9[1]), $val10], { name: 'A', size: 6, color: 'black', face: 'plus', showInfobox: false, fixed: true,label:{fontSize:25} });	var ptB = board2.create('point', [$(val9[2]), $val11], { name: 'B', size: 6, color: 'black', face: 'plus', showInfobox: false, fixed: true,label:{fontSize:25} });	var ptC = board2.create('point', [$(val9[3]), $val12], { name: 'C', size: 6, color: 'black', face: 'plus', showInfobox: false, fixed: true,label:{fontSize:25} });	var ptD = board2.create('point', [$(val9[4]), $val13], { name: 'D', size: 6, color: 'black', face: 'plus', showInfobox: false, fixed: true,label:{fontSize:25} });	var graph = board2.create('line', [ptA,ptB],{strokeWidth:2,strokeColor:'blue'});	var Ax = board2.create('point', [$(val9[1]), 0], { name: '$(val9[1])', visible: false, color: 'blue', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25,autoPosition: false,anchorX:'middle',anchorY:'top', offset: [$(val14[1]), $(val14[2])], color: 'blue'} });	var Ay = board2.create('point', [0, $val10], { name: '$val10', visible: false, color: 'green', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'left',anchorY:'middle', offset: [$(val15[1]), $(val15[2])], color: 'green' } });	var dxA = board2.create('segment', [[$(val9[1]), $val10], [0, $val10]], { size: 2, color: 'green', dash: 1, fixed: true });	var dyA = board2.create('segment', [[$(val9[1]), $val10], [$(val9[1]), 0]], { size: 2, color: 'blue', dash: 1, fixed: true });	var Bx = board2.create('point', [$(val9[2]), 0], { name: '$(val9[2])', visible: false, color: 'blue', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'middle',anchorY:'top', offset: [$(val16[1]), $(val16[2])], color: 'blue' } });	var By = board2.create('point', [0, $val11], { name: '$val11', visible: false, color: 'green', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'left',anchorY:'middle', offset: [$(val17[1]), $(val17[2])], color: 'green' } });	var dxB = board2.create('segment', [[$(val9[2]), $val11], [0, $val11]], { size: 2, color: 'green', dash: 1, fixed: true });	var dyB = board2.create('segment', [[$(val9[2]), $val11], [$(val9[2]), 0]], { size: 2, color: 'blue', dash: 1, fixed: true });	var Cx = board2.create('point', [$(val9[3]), 0], { name: '$(val9[3])', visible: false, color: 'blue', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'middle',anchorY:'top', offset: [$(val18[1]), $(val18[2])], color: 'blue' } });	var Cy = board2.create('point', [0, $val12], { name: '$val12', visible: false, color: 'green', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'left',anchorY:'middle', offset: [$(val19[1]), $(val19[2])], color: 'green' } });	var dxC = board2.create('segment', [[$(val9[3]), $val12], [0, $val12]], { size: 2, color: 'green', dash: 1, fixed: true });	var dyC = board2.create('segment', [[$(val9[3]), $val12], [$(val9[3]), 0]], { size: 2, color: 'blue', dash: 1, fixed: true });	var Dx = board2.create('point', [$(val9[4]), 0], { name: '$(val9[4])',visible: false, color: 'blue', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'middle',anchorY:'top', offset: [$(val20[1]), $(val20[2])], color: 'blue' } });	var Dy = board2.create('point', [0, $val13], { name: '$val13', visible: false, color: 'green', strokeColor: 'red', face: 'cross', showInfobox: false, fixed: true, label: {fontSize:25, autoPosition: false,anchorX:'left',anchorY:'middle', offset: [$(val21[1]), $(val21[2])], color: 'green' } });	var dxD = board2.create('segment', [[$(val9[4]), $val13], [0, $val13]], { size: 2, color: 'green', dash: 1, fixed: true });	var dyD = board2.create('segment', [[$(val9[4]), $val13], [$(val9[4]), 0]], { size: 2, color: 'blue', dash: 1, fixed: true });	var groups = {	    A: { main: ptA, auxPoints: [Ax, Ay], segments: [dxA, dyA] },	    B: { main: ptB, auxPoints: [Bx, By], segments: [dxB, dyB] },	    C: { main: ptC, auxPoints: [Cx, Cy], segments: [dxC, dyC] },	    D: { main: ptD, auxPoints: [Dx, Dy], segments: [dxD, dyD] },	};	var letters = ["A", "B", "C", "D"];	var currentIndex = 0;	var btnExt = document.getElementById('startBtn2');	  btnExt.addEventListener('click', function() {	    btnExt.disabled = true;	    setTimeout(animateBoundingBox(board2, targetBbox2, 1200),1000);	    setTimeout(startAnimation, 600);	  });	
+!readproc slib/geo2D/jsxgraph jsxbox board,[350x350, min=250px max=350px center],$val24 
+tmp0=$slib_out
+val26=$(tmp0)
+!readproc slib/geo2D/jsxgraph jsxbox2 board2,[350x350, min=250px max=350px center],$val25 
+tmp0=$slib_out
+val27=$(tmp0)
+val28=On a repéré 4 points \(\mathrm{A}\), \(\mathrm{B}\), \(\mathrm{C}\) et \(\mathrm{D}\) sur la courbe représentative d'une fonction affine <span class="nowrap">\(f\).</span>
+val29=On a repéré 4 points \(\mathrm{A}\), \(\mathrm{B}\), \(\mathrm{C}\) et \(\mathrm{D}\) sur la courbe représentative d'une fonction linéaire <span class="nowrap">\(f\).</span>
+val30=Par lecture graphique, compléter le tableau de valeurs correspondant.
+val31=Dans un repère, la représentation graphique d'une fonction \(f\) est l'ensemble des points de coordonnées <span class="nowrap">\((x \, ; \, y)\) avec \(y=f(x)\).</span>
+val32=On regarde les coordonnées de chaque point pour complèter le tableau de valeurs.
+val33=Vous avez inversé image et antécédent !
+val34=Bonne réponse
+
+!ifval $val2=1
+val35=$val28
+!else
+val35=$val29
+!endif
+val36=euler_answer_nobg
+replytype1=auto
+
+replyname1=
+replygood1=?analyze 37
+replytype2=auto
+
+replyname2=
+replygood2=?analyze 38
+replytype3=auto
+
+replyname3=
+replygood3=?analyze 39
+replytype4=auto
+
+replyname4=
+replygood4=?analyze 40
+replytype5=auto
+
+replyname5=
+replygood5=?analyze 41
+replytype6=auto
+
+replyname6=
+replygood6=?analyze 42
+replytype7=auto
+
+replyname7=
+replygood7=?analyze 43
+replytype8=auto
+
+replyname8=
+replygood8=?analyze 44
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val31
+
+help=!nosubst <b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+
+solution=!nosubst  <div class="container"> <div class="image-block"> <button id="startBtn2" style="background-color: #ddd;border: 1px solid #bbb;border-radius: 6px;padding: 8px 14px;font-size: 1rem;cursor: pointer;transition: background 0.2s;margin-bottom: 8px;">Démarrer l’animation</button> <div class="image_wrapper">$val27</div> </div> <div class="table-wrapper spacer">$val31<p>$val32</p> $val23 </div> </div> <script type="text/javascript"> function resetGraph() { for (var letter in groups) { groups[letter].main.setAttribute({ color: 'black', size: 6, face: 'cross', visible: true, label:{color:'black'}}); groups[letter].auxPoints.forEach(function(pt) { pt.setAttribute({ visible: false,visible: false }); }); groups[letter].segments.forEach(function(seg) { seg.setAttribute({ visible: false }); }); } } function highlightGroup(letter) { resetGraph(); groups[letter].main.setAttribute({ color: 'blue', size: 6, face: 'cross',withLabel:true,label:{color:'red',fontSize:25}}); groups[letter].auxPoints.forEach(function(pt) { pt.setAttribute({ visible: true}); }); groups[letter].segments.forEach(function(seg) { seg.setAttribute({ visible: true }); }); updateTableHighlight(letter); } function updateTableHighlight(letter) { var table = document.getElementById("mytab2"); var colMap = { A: 1, B: 2, C: 3, D: 4 }; var colIndex = colMap[letter]; var defaultRowColors = ['white', 'lightblue', 'lightgreen']; var rows = table.getElementsByTagName("tr"); for (var i = 0; i < rows.length; i++) { var cells = rows[i].getElementsByTagName("td"); for (var j = 0; j < cells.length; j++) { if (j === colIndex) { cells[j].style.backgroundColor = "red"; } else { cells[j].style.backgroundColor = defaultRowColors[i] || 'white'; } } } } function animateGroups() { var letter = letters[currentIndex]; highlightGroup(letter); currentIndex = (currentIndex + 1) % letters.length; } document.getElementById('startBtn2').addEventListener('click', function() { this.disabled = true; highlightGroup(letters[currentIndex]); setInterval(animateGroups, 2500); }); </script> 
+
+
+!goto stat
+
+!exit
+
+:question
+$()$val35	<div class="container">	  <div class="image-wrapper">$val26</div>	  <div>	    <div class="euler_quest_nobg spacer">$val30</div>	      <div class="$val36" style="padding:30px">	         <table id="mytab" class="wimsborder">	          <tr>	           <td></td>	           <td><label for="reply1">
+!insmath \mathrm{A}
+$()</label></td>	           <td><label for="reply2">
+!insmath \mathrm{B}
+$()</label></td>	           <td><label for="reply3">
+!insmath \mathrm{C}
+$()</label></td>	           <td><label for="reply4">
+!insmath \mathrm{D}
+$()</label></td>	          </tr>	          <tr>	           <td>
+!insmath x
+$()</td>	           <td> 
+!read oef/embed.phtml r1,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r3,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r5,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r7,4 
+$()</td>	          </tr>	          <tr>	           <td>
+!insmath f(x)
+$()</td>	           <td> 
+!read oef/embed.phtml r2,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r4,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r6,4 
+$()</td>	           <td> 
+!read oef/embed.phtml r8,4 
+$()</td>	          </tr>	        </table>	     </div>	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()$val31
+$()
+!exit
+
+:help
+$()<b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+$()
+!exit
+
+:solution
+$() <div class="container"> <div class="image-block"> <button id="startBtn2" style="background-color: #ddd;border: 1px solid #bbb;border-radius: 6px;padding: 8px 14px;font-size: 1rem;cursor: pointer;transition: background 0.2s;margin-bottom: 8px;">Démarrer l’animation</button> <div class="image_wrapper">$val27</div> </div> <div class="table-wrapper spacer">$val31<p>$val32</p> $val23 </div> </div> <script type="text/javascript"> function resetGraph() { for (var letter in groups) { groups[letter].main.setAttribute({ color: 'black', size: 6, face: 'cross', visible: true, label:{color:'black'}}); groups[letter].auxPoints.forEach(function(pt) { pt.setAttribute({ visible: false,visible: false }); }); groups[letter].segments.forEach(function(seg) { seg.setAttribute({ visible: false }); }); } } function highlightGroup(letter) { resetGraph(); groups[letter].main.setAttribute({ color: 'blue', size: 6, face: 'cross',withLabel:true,label:{color:'red',fontSize:25}}); groups[letter].auxPoints.forEach(function(pt) { pt.setAttribute({ visible: true}); }); groups[letter].segments.forEach(function(seg) { seg.setAttribute({ visible: true }); }); updateTableHighlight(letter); } function updateTableHighlight(letter) { var table = document.getElementById("mytab2"); var colMap = { A: 1, B: 2, C: 3, D: 4 }; var colIndex = colMap[letter]; var defaultRowColors = ['white', 'lightblue', 'lightgreen']; var rows = table.getElementsByTagName("tr"); for (var i = 0; i < rows.length; i++) { var cells = rows[i].getElementsByTagName("td"); for (var j = 0; j < cells.length; j++) { if (j === colIndex) { cells[j].style.backgroundColor = "red"; } else { cells[j].style.backgroundColor = defaultRowColors[i] || 'white'; } } } } function animateGroups() { var letter = letters[currentIndex]; highlightGroup(letter); currentIndex = (currentIndex + 1) % letters.length; } document.getElementById('startBtn2').addEventListener('click', function() { this.disabled = true; highlightGroup(letters[currentIndex]); setInterval(animateGroups, 2500); }); </script> 
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $val37<>$(val9[1]) or $val38<$val10 or $val39<$(val9[2]) or $val40<$val11 or $val41<$(val9[3]) or $val42<$val12 or $val43<$(val9[4]) or $val44<$val13 
+val36=euler_rep_bad_nobg cross
+!else
+val36=euler_rep_good_nobg tick
+!endif
+tmp0=!replace internal , by . in $val37
+
+val37=$[$(tmp0)]
+tmp0=!replace internal , by . in $val38
+
+val38=$[$(tmp0)]
+tmp0=!replace internal , by . in $val39
+
+val39=$[$(tmp0)]
+tmp0=!replace internal , by . in $val40
+
+val40=$[$(tmp0)]
+tmp0=!replace internal , by . in $val41
+
+val41=$[$(tmp0)]
+tmp0=!replace internal , by . in $val42
+
+val42=$[$(tmp0)]
+tmp0=!replace internal , by . in $val43
+
+val43=$[$(tmp0)]
+tmp0=!replace internal , by . in $val44
+
+val44=$[$(tmp0)]
+val45=$val37,$val39,$val41,$val43,$val38,$val40,$val42,$val44
+val46=$val10,$val11,$val12,$val13,$val9
+
+!exit
+
+:feedback
+!ifval $val45 issamecase $val46
+ <div class='oef_feedbacks'><div class="highlight">$val33
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val37=$(val9[1])
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val34
+
+!ifval $val38=$val10
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val34
+
+!ifval $val39=$(val9[2])
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$val34
+
+!ifval $val40=$val11
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$val34
+
+!ifval $val41=$(val9[3])
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=$val34
+
+!ifval $val42=$val12
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=$val34
+
+!ifval $val43=$(val9[4])
+ condtest7=1
+!else
+ condtest7=0
+!endif
+condname7=$val34
+
+!ifval $val44=$val13
+ condtest8=1
+!else
+ condtest8=0
+!endif
+condname8=$val34
+
+!exit
+
+:stat
+vsavelist=9,10,11,12,13,23,26,27,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44
+embedcnt=8

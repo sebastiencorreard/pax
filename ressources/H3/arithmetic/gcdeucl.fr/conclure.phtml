@@ -1,0 +1,42 @@
+!! fichier de gestion de la conclusion de l'exercice avant la notation.
+
+<u><b>Donner le résultat:</b></u>
+!goto $wims_read_parm
+!exit
+
+:question
+!form reply
+D'après les calculs précédents, le pgcd de $AA0 et $BB0 est :<p>
+pgcd($AA0,$BB0)=
+<input type=text name=repexo1 size=5 value=$(repexo1)>.<p>
+<input type=hidden name=status value=3>
+<center><input type=submit value="Envoyer"></center>
+</form>
+!exit
+
+:analyse
+erreur=$empty
+!if $(RR$[$nbetape])>1
+   !increase nbreerrrais
+   !exit
+!endif
+
+tmp=!exec maxima gcd($AA0,$BB0)
+
+!if $repexo1!=$tmp
+   erreur=mauvaise réponse.<p>
+   !increase nbreerrrais
+   status=2
+   !exit
+!endif
+   status=5
+!exit
+
+:reponse
+Vous n'êtes pas allé jusqu'à la fin de l'algorithme. Vous devez continuer les calculs avant de conclure.<p>
+!form reply
+<input type=hidden name=status value=1>
+<center><input type=submit value="Continuer"></center>
+</form>
+
+!exit

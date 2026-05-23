@@ -1,0 +1,304 @@
+!set title=Trigo (choix de la formule) 
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Paul,Byache
+email=paul@byache.web4me.fr
+precision=10000
+
+ansorder=r,r,r,r,r,r
+varcnt=43
+prevarcnt=35
+postvarcnt=7
+replycnt=6
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!translate internal $	$ to ; in H,Z,E ;R,T,Y ;P,Q,S ;D,F,G ;H,J,K ;L,M,W ;X,K,V ;M,N,L
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0) 
+tmp0=!item 1 of $val6
+
+val7=$(tmp0)
+tmp0=!item 2 of $val6
+
+tmp1=!item 3 of $val6
+
+tmp2=!shuffle $(tmp0),$(tmp1)
+
+val8=$(tmp2)
+tmp0=!shuffle $val6
+
+val9=$(tmp0)
+tmp0=!items2words $val6
+
+tmp1=!nospace $(tmp0)
+
+val10=$(tmp1)
+tmp0=!item 1 of $val6
+
+tmp1=!item 1 of $val8
+
+tmp2=!item 2 of $val8
+
+val11=$(tmp0) $(tmp1) $(tmp2) 
+tmp0=!nospace $val11
+
+val11=$(tmp0)
+tmp0=!randint 1000, 2000
+
+val12=$[$(tmp0)/100]
+tmp0=!randint 1000, 2000
+
+val13=$[$(tmp0)/100]
+val14=$[rint(sqrt($val12^2+$val13^2)*100)/100]
+val15=$[rint(arctan($val13/$val12)*180/pi*100)/100]
+tmp0=!item 1 of $val6
+
+tmp1=!item 1 of $val8
+
+tmp2=!item 1 of $val6
+
+tmp3=!item 2 of $val8
+
+tmp4=!item 1 of $val8
+
+tmp5=!item 2 of $val8
+
+val16=$(tmp0) $(tmp1) , $val12, $(tmp2)$(tmp3) , $val13 , $(tmp4) $(tmp5) , $val14
+tmp0=!item 1 of $val8
+
+tmp1=!item 1 of $val6
+
+tmp2=!item 2 of $val8
+
+tmp3=!item 1 of $val6
+
+tmp4=!item 2 of $val8
+
+tmp5=!item 1 of $val8
+
+val17=$(tmp0) $(tmp1) , $val12, $(tmp2)$(tmp3) , $val13 , $(tmp4) $(tmp5) , $val14
+tmp0=!shuffle 3
+
+val18=$(tmp0)
+tmp0=!item 1 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+1 of $val16
+
+tmp2=!nospace $(tmp1)
+
+val19=$(tmp2)
+tmp0=!item 1 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+1 of $val17
+
+tmp2=!nospace $(tmp1)
+
+val20=$(tmp2)
+tmp0=!item 1 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+2 of $val16
+
+val21=$(tmp1)
+tmp0=!item 2 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+1 of $val16
+
+tmp2=!nospace $(tmp1)
+
+val22=$(tmp2)
+tmp0=!item 2 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+1 of $val17
+
+tmp2=!nospace $(tmp1)
+
+val23=$(tmp2)
+tmp0=!item 2 of $val18
+
+tmp1=!item ($(tmp0)-1)*2+2 of $val16
+
+val24=$(tmp1)
+val25=le côté adjacent , le côté opposé , l'hypoténuse
+val26=tangente = côté opposé / côté adjacent , cosinus = côté	  adjacent / hypoténuse , sinus = côté opposé / hypoténuse
+tmp0=!item 1 of $val18
+
+val27=$[rint($(tmp0))]
+tmp0=!item 2 of $val18
+
+val28=$[rint($(tmp0))]
+tmp0=!item 1 of $val18
+
+tmp1=!item 2 of $val18
+
+val29=$[rint($(tmp0)+$(tmp1)-2)]
+val30=tan , cos , sin
+tmp0=!item $val29 of $val30
+
+val31=$(tmp0)
+tmp0=!item 1 of $val18
+
+tmp1=!item 2 of $val18
+
+!if $(tmp0)=3 or $(tmp1)=2 
+val32=$val22|$val23
+val33=$[$val21]
+val34=case
+val35=numeric
+!endif
+tmp0=!item 1 of $val18
+
+tmp1=!item 2 of $val18
+
+!if $(tmp0)=2 or $(tmp1)=3 
+val32=$[$val21]
+val33=$val22|$val23
+val35=case
+val34=numeric
+!endif
+oefsteps=reply1, reply2	  reply3	  reply4, reply5, reply6 
+nextstep=!nosubst reply1, reply2	  reply3	  reply4, reply5, reply6 
+!readproc oef/steps.proc
+replytype1=menu
+replyname1=
+replygood1=$val27;$val25
+replytype2=menu
+replyname2=
+replygood2=$val28;$val25
+replytype3=menu
+replyname3=
+replygood3=$val29;$val26
+replytype4=numeric
+replyname4=
+replygood4=$[$val15]
+replytype5=$val34
+
+replyname5=
+replygood5=$val32
+replytype6=$val35
+
+replyname6=
+replygood6=$val33
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()On considère un triangle	  
+!insmath $val10
+$() rectangle en 
+!insmath $val7
+$() et tel que	  <div class="wimscenter">	  
+!insmath \widehat{$val11}
+$() = $val15 ° et 
+!insmath $val19
+$() = $val21 cm.</div>	 On cherche à calculer la longueur 
+!insmath $val22
+$().	 <ol>	  
+!if $m_step=1 
+$()	  <li value="1">	    Faites un schéma du triangle sur une feuille et complétez :	  <ul><li>	  
+!insmath $val19
+$() = $val21 
+!insmath cm
+$() est  
+!read oef/embed.phtml reply1 
+$() par rapport à l'angle 
+!insmath \widehat{$val11}
+$() ;	  </li><li>	  
+!insmath $val22
+$() est  
+!read oef/embed.phtml reply2 
+$() par rapport à l'angle 
+!insmath \widehat{$val11}
+$().	  </li></ul>	   
+!endif
+$()	  
+!if $m_step=2 
+$()	    <li value="2">	    Choisissez la formule de trigonométrie à utiliser :	   
+!read oef/embed.phtml reply3 
+$()	    </li> 
+!endif
+$()	  
+!if $m_step=3 
+$()	    <li value="3">	    Complétez la formule <strong>en mettant les valeurs	    numériques lorsqu'elles sont connues</strong> :	  <div class="wimscenter">	   
+!read oef/special.phtml mathmlinput [$val31( reply4 ^\circ)=\frac{reply5}{reply6}],4	   reply4	   reply5	   reply6 
+$()	  </div>	   
+!endif
+$()	  </li>	  </ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val36=$[1.1*max($val12,$val13)]
+val37=2*$val12/3,$val13/3
+val38=-$(val37[1]),-$(val37[2])
+val39=$val12 -$(val37[1]),-$(val37[2])
+val40=$val12-$(val37[1]),$val13-$(val37[2])
+val36=-$val36,$val36
+val41=xrange $val36	yrange $val36	linewidth 2	triangle $val38,$val39,$val40,green	arc $val38,10,10,0,$val15,red	text black, $val38, medium,$(val8[1])	text black, $val39, medium,$val7	text black, $val40, medium,$(val8[2])
+
+!exit
+
+:feedback
+!ifval 1=1
+ <div class='oef_feedbacks'>Lorsqu'on effectue la fin du calcul, on trouve : 
+!insmath $val22
+$() = $val24 cm.	  Voici le dessin qui correspondait à l'énoncé :<div class="wimscenter">	   
+!read oef/draw.phtml 200,200 \
+$val41 
+$()</div>
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=7,8,10,11,12,13,15,19,21,22,24,31
+embedcnt=4

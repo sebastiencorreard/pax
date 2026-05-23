@@ -1,0 +1,161 @@
+!set title=Choisir les bonnes propriétés 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+oefobservation=losange
+
+ansorder=r
+varcnt=31
+prevarcnt=20
+postvarcnt=10
+replycnt=1
+choicecnt=0
+conditioncnt=1
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Il a 4 côtés,	   Ses côtés opposés sont parallèles deux à deux,	   Ses côtés opposés ont même longueur deux à deux,	   Il a deux côtés opposés parallèles et de même longueur,	   Ses diagonales se coupent en leur milieu,	   Tous ses côtés ont même longueur,	   Ses diagonales sont perpendiculaires,	   Ses diagonales ont même longueur,	   Il a 3 angles droits,	   Il a un angle droit,	   Il a deux côtés consécutifs de même longueur
+tmp0=!itemcnt $val6
+
+val7=$[rint($(tmp0))]
+tmp0=!shuffle A,B,C,D,E,F,G,H,K,L
+
+val8=$(tmp0)
+val9=$(val8[1])
+val10=$(val8[2])
+val11=$(val8[3])
+val12=$(val8[4])
+val13=$val9$val10$val11$val12
+val14=losange
+val15=B,G;C,G;D,G;E,G;B,K;C,K;D,K;E,K
+val16=2,3,4,5,7,8,10,11
+tmp0=!item $val16 of $val6
+
+val17=$(tmp0)
+val18=A,B,C,D,E,F,G,H,I,J,K
+tmp0=!itemcnt $val16
+
+val19=$[rint($(tmp0))]
+val20=$val15
+!for val21 =1 to $val19 
+val22=$(val6[$(val16[$val21])])
+tmp0=!positionof item $val22 in $val17
+
+val23=$[rint($(tmp0))]
+val24=$(val18[$(val16[$val21])])
+tmp0=!replace internal $val24 by $val23 in $val20
+
+val20=$(tmp0)
+!next
+replytype1=checkbox
+replyname1=
+replygood1=?analyze 25;$val17
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	   Il faut démontrer que $val13 est un $val14.	<div class="wims_instruction">Il faut utiliser le moins possible de propriétés	   (tout en étant sûr que cela sera bien un $val14).</div>	   Parmi les propriétés suivantes lesquelles allez-vous utiliser ?	<ul>	 
+!for m_k=1 to $val19 
+$()	 <li> 
+!read oef/embed.phtml r1,\k 
+$()</li>	 
+!next
+$()	</ul>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!itemcnt $val25
+
+val26=$(tmp0)
+val27=
+!for val28 =1 to $val26 
+tmp0=!positionof item $(val25[$val28]) in $val17
+
+val22=$(tmp0)
+tmp0=!append item $val22 to $val27
+
+val27=$(tmp0)
+!next
+tmp=!translate internal $	$ to ; in $val20
+
+tmp0=!rowcnt $tmp
+val29=$[rint($(tmp0))]
+val30=$[rint(0)]
+!for val31 =1 to $val29 
+tmp=!translate internal $	$ to ; in $val20
+
+tmp=!row $val31 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val22=$(tmp0)
+
+!ifval $val27 issametext $val22
+val30=$[rint(1)]
+!endif
+!next
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val30=1
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=Réponse correcte
+
+!exit
+
+:stat
+vsavelist=13,14,17,19,20,22,25
+embedcnt=1

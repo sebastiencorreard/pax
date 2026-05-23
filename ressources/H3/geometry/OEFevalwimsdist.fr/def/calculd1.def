@@ -1,0 +1,198 @@
+!set title=Calcul de distance 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+keywords=distance
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=52
+prevarcnt=51
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=Si nécessaire arrondir votre résultat au dixième.
+val8=rouge,bleue,verte,violette,marron
+val9=L'angle \(\widehat{CCCCBBBBAAAA}) mesure,	  degrés et la distance entre le point AAAA et le point BBBB est de
+val10=Quelle est la distance entre AAAA et la droite
+tmp0=!shuffle A,B,C,E,F,G
+
+val11=$(tmp0)
+val12=$(val11[1])
+val13=$(val11[2])
+val14=$(val11[3])
+tmp0=!random -pi/4, 7*pi/4
+
+val15=$[$(tmp0)]
+val16=$[rint(0)]
+val17=$[rint(0)]
+
+!ifval $val15<=pi/4
+val16=$[-1]
+!else
+val16=$[$val16]
+!endif
+
+!ifval $val15>3*pi/4 and $val15<5*pi/4
+val16=$[+0.2]
+!else
+val16=$[$val16]
+!endif
+
+!ifval $val15>=5*pi/4
+val17=$[1]
+!else
+val17=$[$val17]
+!endif
+
+!ifval $val15>pi/4 and $val15<3*pi/4
+val17=$[-0.1]
+!else
+val17=$[$val17]
+!endif
+val18=$[rint(0)]
+val19=$[rint(0)]
+
+!ifval $val15<=pi/4
+val18=$[0.2]
+!else
+val18=$[$val18]
+!endif
+
+!ifval $val15>3*pi/4 and $val15<5*pi/4
+val18=$[-1]
+!else
+val18=$[$val18]
+!endif
+
+!ifval $val15>=5*pi/4
+val19=$[-0.1]
+!else
+val19=$[$val19]
+!endif
+
+!ifval $val15>pi/4 and $val15<3*pi/4
+val19=$[1]
+!else
+val19=$[$val19]
+!endif
+tmp0=!random 3, 7
+
+val20=$[$(tmp0)]
+val20=$[rint($val20*100)/100]
+tmp=!nonempty items 1,2,3,4,5
+
+tmp0=!randitem $tmp
+val21=$(tmp0)
+tmp0=!item $val21 of red,blue,green,purple,brown
+
+val22=$(tmp0)
+tmp0=!item $val21 of $val8
+
+val23=$(tmp0)
+tmp0=!randint 3, 7
+
+val24=$(tmp0)
+tmp0=!shuffle 1,-1
+
+val21=$(tmp0)
+val25=$[$val20*cos($val15)-$(val21[1])*$val24*sin($val15)]
+val26=$[$val20*sin($val15)+$(val21[1])*$val24*cos($val15)]
+val27=$[$val20*cos($val15)+$(val21[1])*$val24*sin($val15)]
+val28=$[$val20*sin($val15)-$(val21[1])*$val24*cos($val15)]
+val29=$[min($val27,$val25)]
+val30=$[min($val28,$val26)]
+val31=$[max($val27,$val25)]
+val32=$[max($val28,$val26)]
+val33=$[rint(sqrt(($val25)^2+($val26)^2)*10)/10]
+val34=$[rint(arctan($val20/$val24)/pi*180)]
+val35=$[rint($val33*cos((90-$val34)/180*pi)*10)/10]
+val36=$[min($val29,$val30)-2]
+val37=$[max($val31,$val32)+2]
+val38=$[0.5]
+val39=$(val9[1]) $val34 $(val9[2]) $val33 cm
+tmp0=!replace internal AAAA by $val12 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal BBBB by $val13 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal CCCC by $val14 in $val39
+
+val39=$(tmp0)
+tmp0=!replace internal AAAA by $val12 in $val10
+
+val40=$(tmp0)
+val41=fpoly grey,$val20*cos($val15),$val20*sin($val15),$val20*cos($val15)+$val38*sin($val15),$val20*sin($val15)-$val38*cos($val15),($val20-$val38)*cos($val15)+$val38*sin($val15),($val20-$val38)*sin($val15)-$val38*cos($val15),($val20-$val38)*cos($val15),($val20-$val38)*sin($val15)	linewidth=2	dsegment 0,0,$val20*cos($val15),$val20*sin($val15),black
+val41=range $val36,$val37,$val36,$val37	fcircle 0,0,5,black	text black,$val16,$val17,medium,$val12	text black,$val25+$val18,$val26+$val19,medium,$val13	text black,$val27+$val18,$val28+$val19,medium,$val14	segment 0,0,$val25,$val26,black	$val41	line $val20*cos($val15)+20*sin($val15),$val20*sin($val15)-20*cos($val15),$val20*cos($val15)-20*sin($val15),$val20*sin($val15)+20*cos($val15),$val22	fcircle $val27,$val28,5,black
+!readproc oef/draw.phtml 300,300 \
+$val41 
+tmp0=$ins_url
+val42=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val35
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="float_left"><img src="$val42" alt=""></div>	<div class="float_left">$val39.	   $val40 $val23&nbsp;?</div>	   <div class="clearall">	   <b>$val6:</b>  
+!read oef/embed.phtml r1,5 
+$() cm.	   </div>	   <div class="wims_instruction">	   $val7	   </div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,23,39,40,42
+embedcnt=1

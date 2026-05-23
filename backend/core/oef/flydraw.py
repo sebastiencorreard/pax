@@ -18,8 +18,28 @@ counter-transforms.
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
+import sys
 from dataclasses import dataclass, field
+
+_log = logging.getLogger("pax.flydraw")
+_logged_unhandled: set[str] = set()
+
+
+def _log_unhandled_cmd(cmd: str, args: str) -> None:
+    """Log a flydraw command we don't implement. Dedup by name so the log
+    stays readable: each command shows up once per process lifetime."""
+    if cmd in _logged_unhandled:
+        return
+    _logged_unhandled.add(cmd)
+    sample = (args or "").strip().replace("\n", " ")[:80]
+    msg = f"[FLYDRAW-UNHANDLED] {cmd} {sample}"
+    _log.warning(msg)
+    # Fallback for environments where the logger isn't configured: also
+    # write to stderr so docker compose logs surface it.
+    print(msg, file=sys.stderr, flush=True)
+
 
 # ── Color table (subset of wims/src/Flydraw/colors actually used in corpus) ──
 
@@ -201,10 +221,19 @@ class _State:
     ymin: float = -5.0
     ymax: float = 5.0
     linewidth: float = 1.0
+    crosshairsize: float = 8.0  # WIMS default
+    # Font state for string / stringup (separate from text which takes a font arg).
+    # CSS-shorthand parts; defaults match WIMS (12px sans-serif).
+    font_size: str = "12px"
+    font_family: str = "sans-serif"
+    font_style: str = ""  # e.g. "italic"
+    font_weight: str = ""  # e.g. "bold"
     elements: list[str] = field(default_factory=list)
     segments: list[_Seg] = field(default_factory=list)
     width: int = 300
     height: int = 80
+    # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
+    boxplotdata: list[float] = field(default_factory=list)
 
     def px(self, math_x: float) -> float:
         denom = self.xmax - self.xmin or 1.0
@@ -248,12 +277,8 @@ def _cmd_segment(state: _State, args: list[str]) -> None:
     )
 
 
-def _cmd_arrow(state: _State, args: list[str]) -> None:
-    # arrow x1,y1,x2,y2,arrowhead_pixels,[color]
-    if len(args) < 5:
-        return
-    x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
-    color = _color(args[5]) if len(args) > 5 else "#000000"
+def _arrow_marker(state: _State, head_len: float, color: str) -> str:
+    """Emit a <marker> definition and return its ID — used by arrow variants."""
     head_id = f"ah{len(state.elements)}"
     head_size = max(head_len / 2, 4)
     state.elements.append(
@@ -262,11 +287,205 @@ def _cmd_arrow(state: _State, args: list[str]) -> None:
         f'orient="auto-start-reverse" markerUnits="userSpaceOnUse">'
         f'<path d="M 0 0 L 10 5 L 0 10 z" fill="{color}" /></marker></defs>'
     )
+    return head_id
+
+
+def _arrow_segment(state: _State, x1: float, y1: float, x2: float, y2: float,
+                   color: str, marker_end: str | None = None,
+                   marker_start: str | None = None, dashed: bool = False) -> None:
+    extra = ""
+    if marker_end:
+        extra += f' marker-end="url(#{marker_end})"'
+    if marker_start:
+        extra += f' marker-start="url(#{marker_start})"'
+    if dashed:
+        extra += ' stroke-dasharray="4,3"'
     state.elements.append(
         f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
         f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}"{extra} />'
+    )
+
+
+def _cmd_arrow(state: _State, args: list[str]) -> None:
+    # arrow x1,y1,x2,y2,arrowhead_pixels,[color]
+    if len(args) < 5:
+        return
+    x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    color = _color(args[5]) if len(args) > 5 else "#000000"
+    head = _arrow_marker(state, head_len, color)
+    _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head)
+
+
+def _cmd_arrow2(state: _State, args: list[str]) -> None:
+    # arrow2 x1,y1,x2,y2,h,[color] — double-headed arrow (head at both ends).
+    if len(args) < 5:
+        return
+    x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    color = _color(args[5]) if len(args) > 5 else "#000000"
+    head = _arrow_marker(state, head_len, color)
+    _arrow_segment(state, x1, y1, x2, y2, color,
+                   marker_end=head, marker_start=head)
+
+
+def _cmd_arrows(state: _State, args: list[str]) -> None:
+    # arrows [color],l,x1,y1,x2,y2,x3,y3,x4,y4,... — pairs of (start,end) points
+    if len(args) < 6:
+        return
+    color = _color(args[0])
+    head_len = _num(args[1])
+    head = _arrow_marker(state, head_len, color)
+    coords = [_num(a) for a in args[2:]]
+    for i in range(0, len(coords) - 3, 4):
+        x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
+        _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head)
+
+
+def _cmd_arrows2(state: _State, args: list[str]) -> None:
+    # arrows2 [color],l,x1,y1,x2,y2,... — multiple double-headed arrows.
+    if len(args) < 6:
+        return
+    color = _color(args[0])
+    head_len = _num(args[1])
+    head = _arrow_marker(state, head_len, color)
+    coords = [_num(a) for a in args[2:]]
+    for i in range(0, len(coords) - 3, 4):
+        x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
+        _arrow_segment(state, x1, y1, x2, y2, color,
+                       marker_end=head, marker_start=head)
+
+
+def _cmd_darrow(state: _State, args: list[str]) -> None:
+    # darrow x1,y1,x2,y2,l,[color] — dashed arrow.
+    if len(args) < 5:
+        return
+    x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    color = _color(args[5]) if len(args) > 5 else "#000000"
+    head = _arrow_marker(state, head_len, color)
+    _arrow_segment(state, x1, y1, x2, y2, color, marker_end=head, dashed=True)
+
+
+def _cmd_darrow2(state: _State, args: list[str]) -> None:
+    # darrow2 x1,y1,x2,y2,l,[color] — dashed double-headed arrow.
+    if len(args) < 5:
+        return
+    x1, y1, x2, y2, head_len = (_num(a) for a in args[:5])
+    color = _color(args[5]) if len(args) > 5 else "#000000"
+    head = _arrow_marker(state, head_len, color)
+    _arrow_segment(state, x1, y1, x2, y2, color,
+                   marker_end=head, marker_start=head, dashed=True)
+
+
+def _cmd_halfline(state: _State, args: list[str]) -> None:
+    # halfline x1,y1,x2,y2,[color] — ray starting at (x1,y1), through (x2,y2),
+    # extended to the canvas edge.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    # Find where the ray (x1,y1)→(x2,y2)→∞ leaves the canvas box.
+    dx, dy = x2 - x1, y2 - y1
+    if dx == 0 and dy == 0:
+        return
+    # Walk t > 0 until we hit a boundary; clip by xmin/xmax/ymin/ymax.
+    t_max = float("inf")
+    if dx > 0:
+        t_max = min(t_max, (state.xmax - x1) / dx)
+    elif dx < 0:
+        t_max = min(t_max, (state.xmin - x1) / dx)
+    if dy > 0:
+        t_max = min(t_max, (state.ymax - y1) / dy)
+    elif dy < 0:
+        t_max = min(t_max, (state.ymin - y1) / dy)
+    if t_max == float("inf") or t_max <= 0:
+        # Direction has no canvas exit (shouldn't happen); just draw segment.
+        bx, by = x2, y2
+    else:
+        bx, by = x1 + dx * t_max, y1 + dy * t_max
+    state.segments.append(((x1, y1), (bx, by)))
+    state.elements.append(
+        f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
+        f'x2="{state.px(bx):.2f}" y2="{state.py(by):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_dashhalfline(state: _State, args: list[str]) -> None:
+    # Dashed half-line: same geometry as halfline, but rendered dashed.
+    if len(args) < 4:
+        return
+    # Re-use the geometry, then patch the last <line> with stroke-dasharray.
+    _cmd_halfline(state, args)
+    if state.elements and "<line " in state.elements[-1]:
+        state.elements[-1] = state.elements[-1].replace(
+            ' stroke-width="', ' stroke-dasharray="4,3" stroke-width="', 1
+        )
+
+
+def _cmd_square(state: _State, args: list[str]) -> None:
+    # square x,y,side(px),[color] — top-left corner (x,y) in math coords,
+    # side length in pixels (per WIMS doc).
+    if len(args) < 3:
+        return
+    x, y, side = _num(args[0]), _num(args[1]), _num(args[2])
+    color = _color(args[3]) if len(args) > 3 else "#000000"
+    x_px = state.px(x)
+    y_px = state.py(y)
+    state.elements.append(
+        f'<rect x="{x_px:.2f}" y="{y_px:.2f}" '
+        f'width="{side:.2f}" height="{side:.2f}" '
+        f'fill="none" stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_fsquare(state: _State, args: list[str]) -> None:
+    # fsquare x,y,side(px),[color] — filled variant of square.
+    if len(args) < 3:
+        return
+    x, y, side = _num(args[0]), _num(args[1]), _num(args[2])
+    color = _color(args[3]) if len(args) > 3 else "#000000"
+    x_px = state.px(x)
+    y_px = state.py(y)
+    state.elements.append(
+        f'<rect x="{x_px:.2f}" y="{y_px:.2f}" '
+        f'width="{side:.2f}" height="{side:.2f}" '
+        f'fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_fpolygon(state: _State, args: list[str]) -> None:
+    # fpolygon [color],x1,y1,x2,y2,... — filled polygon.
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    if len(coords) < 4 or len(coords) % 2 != 0:
+        return
+    pts = " ".join(
+        f"{state.px(coords[i]):.2f},{state.py(coords[i + 1]):.2f}"
+        for i in range(0, len(coords), 2)
+    )
+    state.elements.append(
+        f'<polygon points="{pts}" fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_dpolyline(state: _State, args: list[str]) -> None:
+    # dpolyline [color],x1,y1,x2,y2,... — dashed polyline.
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    if len(coords) < 4 or len(coords) % 2 != 0:
+        return
+    pts = " ".join(
+        f"{state.px(coords[i]):.2f},{state.py(coords[i + 1]):.2f}"
+        for i in range(0, len(coords), 2)
+    )
+    state.elements.append(
+        f'<polyline points="{pts}" fill="none" '
         f'stroke="{color}" stroke-width="{state.linewidth}" '
-        f'marker-end="url(#{head_id})" />'
+        f'stroke-dasharray="4,3" />'
     )
 
 
@@ -307,9 +526,43 @@ def _cmd_text(state: _State, args: list[str]) -> None:
 
 
 def _cmd_line(state: _State, args: list[str]) -> None:
-    # `line` in flydraw is an infinite line through two points; in our
-    # exercises it's used the same way as `segment` — render as segment.
-    _cmd_segment(state, args)
+    # line x1,y1,x2,y2,[color] — INFINITE line through the two points,
+    # clipped to the current x/yrange. Used by csga to draw an axis that
+    # extends beyond the labelled markers.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+
+    if x1 == x2:
+        # Vertical line — span the full y-range.
+        ax, ay = x1, state.ymin
+        bx, by = x1, state.ymax
+    elif y1 == y2:
+        # Horizontal line — span the full x-range.
+        ax, ay = state.xmin, y1
+        bx, by = state.xmax, y1
+    else:
+        # General case: y = y1 + m(x - x1). Clip to x-range, then to y-range.
+        m = (y2 - y1) / (x2 - x1)
+        # Try x = xmin and x = xmax first.
+        ax, ay = state.xmin, y1 + m * (state.xmin - x1)
+        bx, by = state.xmax, y1 + m * (state.xmax - x1)
+        # If those leave the y-range, clip via y boundaries.
+        ymin, ymax = state.ymin, state.ymax
+        if ay < ymin or ay > ymax:
+            target = ymin if ay < ymin else ymax
+            ax, ay = x1 + (target - y1) / m, target
+        if by < ymin or by > ymax:
+            target = ymin if by < ymin else ymax
+            bx, by = x1 + (target - y1) / m, target
+
+    state.segments.append(((ax, ay), (bx, by)))
+    state.elements.append(
+        f'<line x1="{state.px(ax):.2f}" y1="{state.py(ay):.2f}" '
+        f'x2="{state.px(bx):.2f}" y2="{state.py(by):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
 
 
 def _cmd_dsegment(state: _State, args: list[str]) -> None:
@@ -376,15 +629,15 @@ def _cmd_polygon(state: _State, args: list[str]) -> None:
 
 
 def _cmd_arc(state: _State, args: list[str]) -> None:
-    # arc x,y,w,h,start,end,[color] — elliptical arc; (x,y) is the top-left
-    # of the bounding box in WIMS math coords, w/h are the box dimensions,
-    # start/end are angles in degrees (counter-clockwise from +x axis).
+    # arc xc,yc,w,h,start,end,[color]
+    # Per WIMS doc: (xc, yc) is the *center* of the ellipse in math coords;
+    # w and h are full width/height in x/y-range units; start/end in degrees
+    # counter-clockwise from +x axis (math convention).
     if len(args) < 6:
         return
     import math
-    x, y, w, h, start_deg, end_deg = (_num(a) for a in args[:6])
+    cx, cy, w, h, start_deg, end_deg = (_num(a) for a in args[:6])
     color = _color(args[6]) if len(args) > 6 else "#000000"
-    cx, cy = x + w / 2, y - h / 2  # math coords (y-down for box top → -h/2)
     rx, ry = w / 2, h / 2
     # Sample the arc as a polyline so we don't have to figure out SVG's
     # convoluted A-command flags from math-coord angles.
@@ -400,6 +653,570 @@ def _cmd_arc(state: _State, args: list[str]) -> None:
         f'<polyline points="{" ".join(pts)}" fill="none" '
         f'stroke="{color}" stroke-width="{state.linewidth}" />'
     )
+
+
+def _cmd_fcircle(state: _State, args: list[str]) -> None:
+    # fcircle x,y,d,[color] — filled circle. Per WIMS doc d is the *diameter*
+    # in pixels (not the radius — circle's third arg is the radius).
+    if len(args) < 3:
+        return
+    x, y, d = _num(args[0]), _num(args[1]), _num(args[2])
+    color = _color(args[3]) if len(args) > 3 else "#000000"
+    state.elements.append(
+        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
+        f'r="{d / 2:.2f}" fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_fellipse(state: _State, args: list[str]) -> None:
+    # fellipse x,y,w,h,[color] — filled ellipse centered at (x,y).
+    if len(args) < 4:
+        return
+    x, y, w, h = _num(args[0]), _num(args[1]), _num(args[2]), _num(args[3])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    state.elements.append(
+        f'<ellipse cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
+        f'rx="{abs(w / 2):.2f}" ry="{abs(h / 2):.2f}" '
+        f'fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_ellipse(state: _State, args: list[str]) -> None:
+    # ellipse x,y,w,h,[color] — outline ellipse centered at (x,y) (math coords).
+    if len(args) < 4:
+        return
+    x, y, w, h = _num(args[0]), _num(args[1]), _num(args[2]), _num(args[3])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    # w and h are in x/y-range units, so convert each via the px/py deltas.
+    rx_px = abs(state.px(x + w / 2) - state.px(x))
+    ry_px = abs(state.py(y) - state.py(y + h / 2))
+    state.elements.append(
+        f'<ellipse cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
+        f'rx="{rx_px:.2f}" ry="{ry_px:.2f}" '
+        f'fill="none" stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_lines(state: _State, args: list[str]) -> None:
+    # lines [color],x1,y1,x2,y2,x3,y3,... — independent (x1,y1)→(x2,y2),
+    # (x3,y3)→(x4,y4), … segments (NOT a connected polyline).
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    if len(coords) < 4 or len(coords) % 4 != 0:
+        # accept odd counts gracefully — drop trailing incomplete pair
+        coords = coords[: (len(coords) // 4) * 4]
+    for i in range(0, len(coords), 4):
+        x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
+        state.segments.append(((x1, y1), (x2, y2)))
+        state.elements.append(
+            f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
+            f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+
+
+def _cmd_segments(state: _State, args: list[str]) -> None:
+    # segments [color],x1,y1,x2,y2,x3,y3,x4,y4,... — same as lines.
+    _cmd_lines(state, args)
+
+
+def _cmd_point(state: _State, args: list[str]) -> None:
+    # point x,y,[color] — single pixel/dot.
+    if len(args) < 2:
+        return
+    x, y = _num(args[0]), _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.elements.append(
+        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
+        f'r="{max(state.linewidth / 2, 1):.2f}" fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_points(state: _State, args: list[str]) -> None:
+    # points [color],x1,y1,x2,y2,... — multiple dots.
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    for i in range(0, len(coords) - 1, 2):
+        state.elements.append(
+            f'<circle cx="{state.px(coords[i]):.2f}" '
+            f'cy="{state.py(coords[i + 1]):.2f}" '
+            f'r="{max(state.linewidth / 2, 1):.2f}" '
+            f'fill="{color}" stroke="none" />'
+        )
+
+
+def _cmd_circles(state: _State, args: list[str]) -> None:
+    # circles [color],x1,y1,r1,x2,y2,r2,... — multiple outline circles.
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    for i in range(0, len(coords) - 2, 3):
+        x, y, r = coords[i], coords[i + 1], coords[i + 2]
+        state.elements.append(
+            f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
+            f'r="{r:.2f}" fill="none" stroke="{color}" '
+            f'stroke-width="{state.linewidth}" />'
+        )
+
+
+def _cmd_rect(state: _State, args: list[str]) -> None:
+    # rect x1,y1,x2,y2,[color] — outline rectangle, math coords for both corners.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    px1, px2 = state.px(min(x1, x2)), state.px(max(x1, x2))
+    py1, py2 = state.py(max(y1, y2)), state.py(min(y1, y2))
+    state.elements.append(
+        f'<rect x="{px1:.2f}" y="{py1:.2f}" '
+        f'width="{(px2 - px1):.2f}" height="{(py2 - py1):.2f}" '
+        f'fill="none" stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_frect(state: _State, args: list[str]) -> None:
+    # frect x1,y1,x2,y2,[color] — filled rectangle.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    px1, px2 = state.px(min(x1, x2)), state.px(max(x1, x2))
+    py1, py2 = state.py(max(y1, y2)), state.py(min(y1, y2))
+    state.elements.append(
+        f'<rect x="{px1:.2f}" y="{py1:.2f}" '
+        f'width="{(px2 - px1):.2f}" height="{(py2 - py1):.2f}" '
+        f'fill="{color}" stroke="none" />'
+    )
+
+
+def _cmd_dline(state: _State, args: list[str]) -> None:
+    # dline x1,y1,x2,y2,[color] — dashed segment.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    state.segments.append(((x1, y1), (x2, y2)))
+    state.elements.append(
+        f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
+        f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" '
+        f'stroke-dasharray="4,3" />'
+    )
+
+
+def _cmd_dlines(state: _State, args: list[str]) -> None:
+    # dlines [color],x1,y1,x2,y2,x3,y3,... — multiple dashed segments.
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    for i in range(0, len(coords) - 3, 4):
+        x1, y1, x2, y2 = coords[i], coords[i + 1], coords[i + 2], coords[i + 3]
+        state.segments.append(((x1, y1), (x2, y2)))
+        state.elements.append(
+            f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
+            f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" '
+            f'stroke-dasharray="4,3" />'
+        )
+
+
+def _cmd_dhline(state: _State, args: list[str]) -> None:
+    # dhline x,y,[color] — dashed full-width horizontal line.
+    if len(args) < 2:
+        return
+    y = _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.elements.append(
+        f'<line x1="{state.px(state.xmin):.2f}" y1="{state.py(y):.2f}" '
+        f'x2="{state.px(state.xmax):.2f}" y2="{state.py(y):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" '
+        f'stroke-dasharray="4,3" />'
+    )
+
+
+def _cmd_dvline(state: _State, args: list[str]) -> None:
+    # dvline x,y,[color] — dashed full-height vertical line.
+    if len(args) < 2:
+        return
+    x = _num(args[0])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.elements.append(
+        f'<line x1="{state.px(x):.2f}" y1="{state.py(state.ymin):.2f}" '
+        f'x2="{state.px(x):.2f}" y2="{state.py(state.ymax):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" '
+        f'stroke-dasharray="4,3" />'
+    )
+
+
+# ── Statistical / chart primitives ──────────────────────────────────────────
+
+def _cmd_barchart(state: _State, args: list[str]) -> None:
+    # barchart x_1:y_1:color_1:x_2:y_2:color_2:...
+    # Per the WIMS doc, the colon-separated args come as ONE comma-list cell
+    # OR are split across multiple cells if WIMS-script flattened them via
+    # commas. Re-join then split on ':'.
+    raw = ":".join(args).strip()
+    if not raw:
+        return
+    parts = [p.strip() for p in raw.split(":") if p.strip()]
+    if len(parts) % 3 != 0:
+        return
+    bars = []
+    for i in range(0, len(parts), 3):
+        try:
+            bars.append((_num(parts[i]), _num(parts[i + 1]), _color(parts[i + 2])))
+        except (ValueError, TypeError):
+            return
+    if not bars:
+        return
+    # Bar width: half the smallest gap between consecutive x's (or fallback).
+    xs = sorted(set(b[0] for b in bars))
+    if len(xs) >= 2:
+        gap = min(xs[i + 1] - xs[i] for i in range(len(xs) - 1))
+        bw = gap * 0.8
+    else:
+        bw = (state.xmax - state.xmin) * 0.1 or 1.0
+    for x, y, color in bars:
+        x0_px = state.px(x - bw / 2)
+        x1_px = state.px(x + bw / 2)
+        y_top = state.py(max(y, 0))
+        y_bot = state.py(min(y, 0))
+        state.elements.append(
+            f'<rect x="{min(x0_px, x1_px):.2f}" y="{y_top:.2f}" '
+            f'width="{abs(x1_px - x0_px):.2f}" '
+            f'height="{abs(y_bot - y_top):.2f}" '
+            f'fill="{color}" stroke="{color}" stroke-width="0.5" />'
+        )
+
+
+def _cmd_piechart(state: _State, args: list[str]) -> None:
+    # piechart xc,yc,radius,'data+colorlist'
+    # data+colorlist = "v1:c1:v2:c2:..." (colon-separated)
+    if len(args) < 4:
+        return
+    try:
+        xc = _num(args[0])
+        yc = _num(args[1])
+        radius = _num(args[2])  # pixels
+    except (ValueError, TypeError):
+        return
+    raw = ":".join(args[3:]).strip().strip("'\"")
+    parts = [p.strip() for p in raw.split(":") if p.strip()]
+    if len(parts) < 2 or len(parts) % 2 != 0:
+        return
+    slices = []
+    total = 0.0
+    for i in range(0, len(parts), 2):
+        try:
+            v = _num(parts[i])
+        except (ValueError, TypeError):
+            return
+        slices.append((v, _color(parts[i + 1])))
+        total += v
+    if total <= 0:
+        return
+
+    import math
+    cx_px = state.px(xc)
+    cy_px = state.py(yc)
+    # Start at "12 o'clock" (top) and go clockwise — standard pie convention.
+    angle_start = -math.pi / 2
+    for v, color in slices:
+        sweep = 2 * math.pi * (v / total)
+        angle_end = angle_start + sweep
+        x1 = cx_px + radius * math.cos(angle_start)
+        y1 = cy_px + radius * math.sin(angle_start)
+        x2 = cx_px + radius * math.cos(angle_end)
+        y2 = cy_px + radius * math.sin(angle_end)
+        large_arc = 1 if sweep > math.pi else 0
+        # SVG path: move to centre, line to first edge, arc, line back to centre.
+        path = (
+            f"M {cx_px:.2f},{cy_px:.2f} "
+            f"L {x1:.2f},{y1:.2f} "
+            f"A {radius:.2f},{radius:.2f} 0 {large_arc} 1 {x2:.2f},{y2:.2f} "
+            f"Z"
+        )
+        state.elements.append(
+            f'<path d="{path}" fill="{color}" stroke="#000000" stroke-width="0.5" />'
+        )
+        angle_start = angle_end
+
+
+def _cmd_boxplotdata(state: _State, args: list[str]) -> None:
+    # boxplotdata v1,v2,v3,... — stash raw values; the next `boxplot` reads them.
+    try:
+        values = sorted(_num(a) for a in args if a.strip())
+    except (ValueError, TypeError):
+        return
+    if not values:
+        return
+    state.boxplotdata = values
+
+
+def _percentile(sorted_vals: list[float], q: float) -> float:
+    # Linear-interpolated percentile (q ∈ [0, 1]).
+    if not sorted_vals:
+        return 0.0
+    if len(sorted_vals) == 1:
+        return sorted_vals[0]
+    pos = q * (len(sorted_vals) - 1)
+    lo, hi = int(pos), min(int(pos) + 1, len(sorted_vals) - 1)
+    frac = pos - lo
+    return sorted_vals[lo] * (1 - frac) + sorted_vals[hi] * frac
+
+
+def _cmd_boxplot(state: _State, args: list[str]) -> None:
+    # boxplot x_or_y,box-height_or_box-width,position[,min,Q1,median,Q3,max]
+    # If only the first 3 args are present, expect prior `boxplotdata`.
+    if len(args) < 3:
+        return
+    direction = args[0].strip().lower()
+    if direction not in ("x", "y"):
+        return
+    try:
+        thickness = _num(args[1])
+        position = _num(args[2])
+    except (ValueError, TypeError):
+        return
+    if len(args) >= 8:
+        try:
+            mn, q1, med, q3, mx = (_num(a) for a in args[3:8])
+        except (ValueError, TypeError):
+            return
+    else:
+        data = state.boxplotdata
+        if not data:
+            return
+        mn = data[0]
+        mx = data[-1]
+        q1 = _percentile(data, 0.25)
+        med = _percentile(data, 0.5)
+        q3 = _percentile(data, 0.75)
+    color = "#000000"
+
+    if direction == "x":
+        # Boxplot horizontal: stat values along x, centred on y=position with
+        # ± thickness/2 above and below.
+        y_lo = position - thickness / 2
+        y_hi = position + thickness / 2
+        # Whisker line min → max along x at y=position.
+        state.elements.append(
+            f'<line x1="{state.px(mn):.2f}" y1="{state.py(position):.2f}" '
+            f'x2="{state.px(mx):.2f}" y2="{state.py(position):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+        # Vertical caps at min and max.
+        for v in (mn, mx):
+            state.elements.append(
+                f'<line x1="{state.px(v):.2f}" y1="{state.py(y_lo):.2f}" '
+                f'x2="{state.px(v):.2f}" y2="{state.py(y_hi):.2f}" '
+                f'stroke="{color}" stroke-width="{state.linewidth}" />'
+            )
+        # Q1-Q3 box.
+        x_l, x_r = state.px(q1), state.px(q3)
+        y_t, y_b = state.py(y_hi), state.py(y_lo)
+        state.elements.append(
+            f'<rect x="{min(x_l, x_r):.2f}" y="{min(y_t, y_b):.2f}" '
+            f'width="{abs(x_r - x_l):.2f}" height="{abs(y_b - y_t):.2f}" '
+            f'fill="none" stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+        # Median line.
+        state.elements.append(
+            f'<line x1="{state.px(med):.2f}" y1="{state.py(y_lo):.2f}" '
+            f'x2="{state.px(med):.2f}" y2="{state.py(y_hi):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth + 0.5}" />'
+        )
+    else:  # direction == "y"
+        x_lo = position - thickness / 2
+        x_hi = position + thickness / 2
+        state.elements.append(
+            f'<line x1="{state.px(position):.2f}" y1="{state.py(mn):.2f}" '
+            f'x2="{state.px(position):.2f}" y2="{state.py(mx):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+        for v in (mn, mx):
+            state.elements.append(
+                f'<line x1="{state.px(x_lo):.2f}" y1="{state.py(v):.2f}" '
+                f'x2="{state.px(x_hi):.2f}" y2="{state.py(v):.2f}" '
+                f'stroke="{color}" stroke-width="{state.linewidth}" />'
+            )
+        x_l, x_r = state.px(x_lo), state.px(x_hi)
+        y_t, y_b = state.py(q3), state.py(q1)
+        state.elements.append(
+            f'<rect x="{min(x_l, x_r):.2f}" y="{min(y_t, y_b):.2f}" '
+            f'width="{abs(x_r - x_l):.2f}" height="{abs(y_b - y_t):.2f}" '
+            f'fill="none" stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+        state.elements.append(
+            f'<line x1="{state.px(x_lo):.2f}" y1="{state.py(med):.2f}" '
+            f'x2="{state.px(x_hi):.2f}" y2="{state.py(med):.2f}" '
+            f'stroke="{color}" stroke-width="{state.linewidth + 0.5}" />'
+        )
+
+
+_FONT_SIZE_RE = re.compile(r"\b(\d+(?:\.\d+)?(?:px|pt|em|rem|%))\b", re.IGNORECASE)
+_FONT_STYLE_RE = re.compile(r"\b(italic|oblique|normal)\b", re.IGNORECASE)
+_FONT_WEIGHT_RE = re.compile(r"\b(bold|bolder|lighter|[1-9]00)\b", re.IGNORECASE)
+
+
+def _cmd_fontfamily(state: _State, args: list[str]) -> None:
+    # fontfamily font_description — e.g. "15px Arial", "italic 24pt Courier".
+    # Parse out size / style / weight / family from a CSS-like shorthand.
+    desc = ",".join(args).strip()
+    if not desc:
+        return
+    rest = desc
+    m = _FONT_SIZE_RE.search(rest)
+    if m:
+        state.font_size = m.group(1)
+        rest = rest.replace(m.group(0), "", 1)
+    m = _FONT_STYLE_RE.search(rest)
+    if m:
+        state.font_style = m.group(1).lower()
+        rest = rest.replace(m.group(0), "", 1)
+    m = _FONT_WEIGHT_RE.search(rest)
+    if m:
+        state.font_weight = m.group(1).lower()
+        rest = rest.replace(m.group(0), "", 1)
+    family = rest.strip().strip(",").strip()
+    if family:
+        state.font_family = family
+
+
+def _cmd_fontsize(state: _State, args: list[str]) -> None:
+    # fontsize int — set font size in pixels (WIMS default 12).
+    if args:
+        try:
+            n = float(args[0])
+            state.font_size = f"{n:g}px"
+        except (TypeError, ValueError):
+            pass
+
+
+def _string_attrs(state: _State) -> str:
+    parts = [f'font-size="{state.font_size}"',
+             f'font-family="{state.font_family}"']
+    if state.font_style and state.font_style != "normal":
+        parts.append(f'font-style="{state.font_style}"')
+    if state.font_weight:
+        parts.append(f'font-weight="{state.font_weight}"')
+    return " ".join(parts)
+
+
+def _cmd_string(state: _State, args: list[str]) -> None:
+    # string color,x,y,the text string — text in current fontfamily.
+    if len(args) < 4:
+        return
+    color = _color(args[0])
+    x, y = _num(args[1]), _num(args[2])
+    content = ",".join(args[3:]).strip()
+    state.elements.append(
+        f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
+        f'{_string_attrs(state)} dominant-baseline="middle">'
+        f"{_xml_escape(content)}</text>"
+    )
+
+
+def _cmd_stringup(state: _State, args: list[str]) -> None:
+    # stringup color,x,y,rotation_degrees,the text string — rotated text.
+    # WIMS canvasdraw uses HTML5 Canvas's clockwise rotation convention,
+    # which matches SVG's transform="rotate(deg)" — so we pass the angle
+    # through as-is (270° = text reads bottom-to-top, like a typical y-axis
+    # label).
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    x, y = _num(args[1]), _num(args[2])
+    rot = _num(args[3])
+    content = ",".join(args[4:]).strip()
+    cx, cy = state.px(x), state.py(y)
+    state.elements.append(
+        f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{color}" '
+        f'{_string_attrs(state)} dominant-baseline="middle" '
+        f'transform="rotate({rot:.2f}, {cx:.2f}, {cy:.2f})">'
+        f"{_xml_escape(content)}</text>"
+    )
+
+
+def _cmd_size(state: _State, args: list[str]) -> None:
+    # size x,y — set canvas size in pixels. We ignore: width/height come
+    # from the !readproc oef/draw.phtml header; recomputing px/py would
+    # invalidate already-drawn elements.
+    pass
+
+
+def _crosshair_svg(state: _State, x: float, y: float, color: str) -> str:
+    # WIMS crosshair = small "×" centered on (x, y), size in pixels (default 8).
+    s = state.crosshairsize / 2
+    cx, cy = state.px(x), state.py(y)
+    return (
+        f'<line x1="{cx - s:.2f}" y1="{cy - s:.2f}" '
+        f'x2="{cx + s:.2f}" y2="{cy + s:.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        f'<line x1="{cx - s:.2f}" y1="{cy + s:.2f}" '
+        f'x2="{cx + s:.2f}" y2="{cy - s:.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_crosshair(state: _State, args: list[str]) -> None:
+    # crosshair x,y,[color] — single × at (x, y).
+    if len(args) < 2:
+        return
+    x, y = _num(args[0]), _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    state.elements.append(_crosshair_svg(state, x, y, color))
+
+
+def _cmd_crosshairs(state: _State, args: list[str]) -> None:
+    # crosshairs [color],x1,y1,x2,y2,... — multiple × at given points.
+    if not args:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    for i in range(0, len(coords) - 1, 2):
+        state.elements.append(_crosshair_svg(state, coords[i], coords[i + 1], color))
+
+
+def _cmd_crosshairsize(state: _State, args: list[str]) -> None:
+    # crosshairsize int — set the × size in pixels (default 8).
+    if args:
+        try:
+            state.crosshairsize = float(args[0])
+        except (TypeError, ValueError):
+            pass
+
+
+def _cmd_transparent(state: _State, args: list[str]) -> None:
+    # transparent [color] — declare a color as transparent. No-op in SVG
+    # since we already emit fill="none" for outlines.
+    pass
+
+
+def _cmd_rotation(state: _State, args: list[str]) -> None:
+    # rotation d — rotate subsequent drawing by d degrees. We don't support
+    # the full WIMS matrix stack; rotation is rarely needed and would require
+    # wrapping subsequent elements in a <g transform="…">. No-op for now.
+    pass
+
+
+def _cmd_killrotation(state: _State, args: list[str]) -> None:
+    # Reset the rotation set by `rotation`. We don't track rotation state →
+    # nothing to undo, but recognise the command to keep the log clean.
+    pass
+
+
+def _cmd_trange(state: _State, args: list[str]) -> None:
+    # trange t1,t2 — parameter range for parametric plots (used with
+    # `plot t,formula(t)`). We don't implement parametric plot mode yet;
+    # accept silently to avoid log noise.
+    pass
 
 
 def _cmd_xrange(state: _State, args: list[str]) -> None:
@@ -680,26 +1497,90 @@ def _xml_escape(s: str) -> str:
 
 
 _HANDLERS = {
+    # Range / canvas
     "range": _cmd_range,
     "xrange": _cmd_xrange,
     "yrange": _cmd_yrange,
+    "size": _cmd_size,
     "linewidth": _cmd_linewidth,
+    "transparent": _cmd_transparent,
+    "rotation": _cmd_rotation,
+    "killrotation": _cmd_killrotation,
+    "trange": _cmd_trange,
+    "crosshair": _cmd_crosshair,
+    "crosshairs": _cmd_crosshairs,
+    "crosshairsize": _cmd_crosshairsize,
+    # Lines / segments
     "segment": _cmd_segment,
+    "segments": _cmd_segments,
     "dsegment": _cmd_dsegment,
-    "arrow": _cmd_arrow,
-    "parallel": _cmd_parallel,
-    "text": _cmd_text,
     "line": _cmd_line,
+    "lines": _cmd_lines,
+    "dline": _cmd_dline,
+    "dlines": _cmd_dlines,
     "hline": _cmd_hline,
+    "dhline": _cmd_dhline,
     "vline": _cmd_vline,
+    "dvline": _cmd_dvline,
+    "halfline": _cmd_halfline,
+    "dashhalfline": _cmd_dashhalfline,
+    # Arrows
+    "arrow": _cmd_arrow,
+    "arrow2": _cmd_arrow2,
+    "arrows": _cmd_arrows,
+    "arrows2": _cmd_arrows2,
+    "darrow": _cmd_darrow,
+    "darrow2": _cmd_darrow2,
+    "dasharrow": _cmd_darrow,  # alias per WIMS doc
+    "dasharrow2": _cmd_darrow2,
+    "dashedarrow2": _cmd_darrow2,  # second alias
+    "parallel": _cmd_parallel,
+    # Points / circles / ellipses
+    "point": _cmd_point,
+    "points": _cmd_points,
     "circle": _cmd_circle,
-    "flood": _cmd_flood,
-    "gridfill": _cmd_gridfill,
-    "plot": _cmd_plot,
+    "circles": _cmd_circles,
+    "fcircle": _cmd_fcircle,
+    "disk": _cmd_fcircle,  # alias per WIMS doc
+    "ball": _cmd_fcircle,
+    "filledcircle": _cmd_fcircle,
+    "ellipse": _cmd_ellipse,
+    "fellipse": _cmd_fellipse,
+    # Shapes
     "triangle": _cmd_triangle,
     "polyline": _cmd_polyline,
+    "dpolyline": _cmd_dpolyline,
     "polygon": _cmd_polygon,
+    "poly": _cmd_polygon,  # alias used by corpus (not in summary doc but works)
+    "fpolygon": _cmd_fpolygon,
+    "fpoly": _cmd_fpolygon,
+    "filledpoly": _cmd_fpolygon,
+    "filledpolygon": _cmd_fpolygon,
+    "rect": _cmd_rect,
+    "rectangle": _cmd_rect,  # alias per WIMS doc
+    "frect": _cmd_frect,
+    "frectangle": _cmd_frect,
+    "filledrect": _cmd_frect,
+    "filledrectangle": _cmd_frect,
+    "square": _cmd_square,
+    "fsquare": _cmd_fsquare,
     "arc": _cmd_arc,
+    # Fill
+    "fill": _cmd_flood,
+    "flood": _cmd_flood,
+    "gridfill": _cmd_gridfill,
+    # Text / plot
+    "text": _cmd_text,
+    "string": _cmd_string,
+    "stringup": _cmd_stringup,
+    "fontfamily": _cmd_fontfamily,
+    "fontsize": _cmd_fontsize,
+    "plot": _cmd_plot,
+    # Charts
+    "barchart": _cmd_barchart,
+    "piechart": _cmd_piechart,
+    "boxplot": _cmd_boxplot,
+    "boxplotdata": _cmd_boxplotdata,
 }
 
 
@@ -712,8 +1593,15 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
     Commands may be separated by newline, tab, or semicolon — matching
     WIMS flydraw's ``ggetline`` (``flylines.c``), and matching how the
     .def-baked WIMS-script packs multiple commands on one line via tabs.
+
+    When no xrange/yrange is set, coordinates are interpreted as pixels with
+    (0, 0) at the top-left (HTML5 canvas convention). xrange/yrange commands
+    override that default and switch to math coordinates.
     """
-    state = _State(width=int(width), height=int(height))
+    w, h = int(width), int(height)
+    # Pixel-mode defaults: ymin=h, ymax=0 inverts the y-flip in py() so that
+    # raw pixel y values pass through unchanged.
+    state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0)
     raw_lines = re.split(r"[\n\t;]", commands)
     for raw in raw_lines:
         line = raw.strip().rstrip("\\").strip()
@@ -728,6 +1616,8 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
         handler = _HANDLERS.get(cmd)
         if handler:
             handler(state, args)
+        else:
+            _log_unhandled_cmd(cmd, arg_str)
 
     body = "".join(state.elements)
     return (
@@ -784,11 +1674,10 @@ def inline_svg_imgs(html: str) -> str:
 # ── WIMS domain GIFs (calculator_not.svg, course.svg, …) ────────────────────
 
 import os as _os
-from functools import lru_cache as _lru_cache
 
 # WIMS exercises reference these as e.g. "gifs/domains/general/calculator_not.svg".
 # PAX consolidates them into ``ressources/gifs/<file>``. We rewrite the path
-# to inline the SVG content so the browser doesn't need a separate fetch.
+# to point at /api/static/gifs/<file> served by the backend.
 _GIFS_DIR = _os.path.normpath(
     _os.path.join(_os.path.dirname(__file__), "..", "..", "..", "ressources", "gifs")
 )
@@ -798,45 +1687,69 @@ _WIMS_GIF_IMG_RE = re.compile(
 )
 
 
-@_lru_cache(maxsize=128)
-def _read_gif_file(filename: str) -> str | None:
-    path = _os.path.join(_GIFS_DIR, filename)
-    if not _os.path.isfile(path):
-        return None
-    try:
-        with open(path, encoding="utf-8") as f:
-            return f.read()
-    except OSError:
-        return None
+# ── Module-shared images ($imagedir/../<file>) ──────────────────────────────
+
+import posixpath as _posixpath
+
+# Root of the PAX exercise corpus. URLs we emit are relative to this root,
+# served by the FastAPI StaticFiles mount at /api/static.
+_RESSOURCES_ROOT = _os.path.normpath(
+    _os.path.join(_os.path.dirname(__file__), "..", "..", "..", "ressources")
+)
+
+# Matches <img src="pax-img:…/<file>" …> regardless of "../" segments inside.
+_PAX_IMG_RE = re.compile(
+    r'<img([^>]*?)\ssrc="pax-img:(?P<path>[^"]+)"([^>]*?)>',
+    re.IGNORECASE,
+)
+
+
+def inline_pax_images(html: str, module_dir: str) -> str:
+    """Rewrite ``pax-img:…`` URLs to point at the /api/static mount.
+
+    PAX seeds ``$imagedir`` to the sentinel ``pax-img:_`` so the standard
+    WIMS pattern ``$imagedir/../<file>`` becomes ``pax-img:_/../<file>`` in
+    the rendered HTML. We extract the basename, locate the file in
+    ``<module_dir>/images/``, and emit an URL relative to the ressources
+    root (served by the backend StaticFiles mount at /api/static).
+    """
+    images_dir = _os.path.join(module_dir, "images")
+    if not _os.path.isdir(images_dir):
+        return html
+
+    def repl(m: re.Match[str]) -> str:
+        before, after = m.group(1), m.group(3)
+        raw_path = m.group("path")
+        # Normalise out "../" segments and dummy "_" placeholders.
+        norm = _posixpath.normpath("/" + raw_path).lstrip("/")
+        filename = _posixpath.basename(norm)
+        if not filename or filename == "_":
+            return m.group(0)
+        file_path = _os.path.join(images_dir, filename)
+        if not _os.path.isfile(file_path):
+            return m.group(0)
+        rel = _os.path.relpath(file_path, _RESSOURCES_ROOT).replace(_os.sep, "/")
+        return f'<img{before} src="/api/static/{rel}"{after}>'
+
+    return _PAX_IMG_RE.sub(repl, html)
 
 
 def inline_wims_gifs(html: str) -> str:
-    """Inline WIMS domain GIFs (gifs/domains/<dir>/<file>) from ressources/gifs.
+    """Rewrite WIMS domain GIF refs (gifs/domains/<dir>/<file>) to /api/static.
 
-    For SVG files we inline the raw SVG so the browser renders it without a
-    separate fetch. For non-SVG files (rare in practice) we leave the tag in
-    place; callers may set up a static-files mount if needed.
+    WIMS exercises reference shared icons via paths like
+    ``gifs/domains/general/calculator_not.svg``. PAX consolidates them under
+    ``ressources/gifs/<file>``; we rewrite the URL to point at the backend's
+    /api/static mount so the browser can fetch (and cache) them directly.
     """
 
     def repl(m: re.Match[str]) -> str:
         before, after = m.group(1), m.group(3)
         filename = m.group("file")
-        if not filename.lower().endswith(".svg"):
+        # Only rewrite if the file is actually present in ressources/gifs.
+        file_path = _os.path.join(_GIFS_DIR, filename)
+        if not _os.path.isfile(file_path):
             return m.group(0)
-        content = _read_gif_file(filename)
-        if content is None:
-            return m.group(0)
-        # Strip XML declaration, HTML/SGML comments, and DOCTYPE that may
-        # appear before the root <svg> tag (Adobe Illustrator exports etc.).
-        content = re.sub(r"<\?xml[^?]*\?>", "", content)
-        content = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
-        content = re.sub(r"<!DOCTYPE[^>]*>", "", content)
-        content = content.lstrip()
-        # Merge the inline <img> attributes (style, class, alt, …) onto the
-        # root <svg> tag so layout (width / height / float) is preserved.
-        attrs = (before + after).strip()
-        if attrs:
-            content = re.sub(r"<svg\b", f"<svg {attrs}", content, count=1)
-        return content
+        return f'<img{before} src="/api/static/gifs/{filename}"{after}>'
 
     return _WIMS_GIF_IMG_RE.sub(repl, html)

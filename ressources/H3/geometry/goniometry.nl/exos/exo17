@@ -1,0 +1,106 @@
+n=$counter
+math=0
+inputs=1.1
+mathview=0
+questiontype=0
+embed=1
+cols=15
+rows=1
+checkfile=$checkdir/number.proc
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+
+#een willekeurig punt $A 
+X1=!randitem -4,-3,-2,-1,0,1,2
+Y1=!randitem 4,5,6,7,8,9
+dx=!randitem 4,5,6,7,8
+dy=!randitem -5,-4,-3,-2,1,2
+    
+#nog een willekeurig net punt
+X2=$[$X1+($dx)]
+Y2=$[$Y1+($dy)]
+    
+########PLAATJE############
+keuze=!randitem 1,1
+A=!item $keuze of  A,D,K,P
+B=!item $keuze of  B,E,L,Q
+
+AB=$A $B
+
+Punt1=$A ($X1;$Y1)
+Punt2=$B ($X2;$Y2)
+
+lengte=$AB
+punt=$B
+
+min=$[min($Y1,$Y2)]
+max=$[max($Y1,$Y2)]
+xmin=$[$X1-4]
+xmax=$[$X2+4]
+ymin=$[$min-4]
+ymax=$[$max+4]
+!if $xmax <2
+    xmax=4
+!endif
+!if $ymin > -2
+    ymin=-4
+!endif
+!if $ymax < 2
+    ymax=4
+!endif
+
+telwoorden=!record 59 of $remarkdir/commonremarks.$taal
+!if $rounding=-1
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+!else
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+twee=!item 2 of $telwoorden
+
+tussen=$[($X2-($X1))^2+($Y2-($Y1))^2]
+
+formula$n=\Bf{d} \left($lengte \right)
+answer$n=$[(round($rounding*(sqrt($tussen))))/$rounding]
+ss=!record 81 of lang/remarks.$taal
+!if . isin $(answer$n)
+    ans= \approx $(answer$n)
+!else
+    ans= = $(answer$n)
+!endif
+    
+question$n=$ss
+texanswer$n=\sqrt{\left($X2-$X1\right)^{2}+\left($Y2-$Y1\right)^{2}}=\sqrt{$tussen} $ans
+applet=1
+draw=0
+plot=0
+make_tr=0
+	
+xrange= $xmin,$xmax
+yrange= $ymin,$ymax
+	
+object$n=!exec canvasdraw\
+size 300,300\
+xrange=$xrange\
+yrange=$yrange\
+fontfamily 12px Ariel\
+precision 1\
+axis\
+axisnumbering\
+opacity 180,140\
+grid 2,2,grey,1,1,7,blue\
+#linewidth 2\
+#opacity 200,30\
+#ftriangle $X1,$Y1,$X2,$Y2,red\
+linewidth 4\
+points red,$X1,$Y1,$X2,$Y2\
+fontfamily 16px Ariel\
+#string black,$X1,$[$Y1+1],$A\
+#string black,$X2,$[$Y2+1],$C\
+#string black,$X3,$[$Y3+1],$B\
+mouse blue,22\
+zoom black

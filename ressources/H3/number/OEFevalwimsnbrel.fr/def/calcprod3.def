@@ -1,0 +1,133 @@
+!set title=Calculer un produit 3
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=G.,Bayle;Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=14
+prevarcnt=13
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!translate internal $	$ to ; in +,-	-,-
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val6=$(tmp0)
+tmp0=!shuffle $val6
+
+val6=$(tmp0)
+tmp0=!values v for v=2 to 9
+
+val7=$(tmp0)
+tmp0=!shuffle $val7
+
+val7=$(tmp0)
+val8=$(val6[1])$(val7[1])
+val9=$(val6[2])$(val7[2])
+val10=$[rint($val8*$val9)]
+
+!ifval $val10>0
+val10=+$val10
+!endif
+tmp0=!randint 1, 2
+
+val11=$[rint($(tmp0))]
+
+!ifval $val11=1
+val12=$val8
+!else
+val12=$val9
+!endif
+val13=()
+tmp0=!char 1 of $val13
+
+val14=$(tmp0)
+tmp0=!char 2 of $val13
+
+val13=$(tmp0)
+replytype1=numeric
+replyname1=Réponse
+replygood1=$[$val12]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Compléter l'égalité suivante :	<div class="wimscenter">	
+!if $val11=1 
+$()	 
+!insmath $val14
+$()  
+!read oef/embed.phtml r1,5 
+$() 
+!insmath $val13 \times ($val9) = $val10
+$()	 
+!else
+$() 	 
+!insmath ($val8)\times $val14
+$()  
+!read oef/embed.phtml r1,5 
+$() 
+!insmath $val13 = $val10
+$()	 
+!endif
+$()		</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=8,9,10,11,13,14
+embedcnt=2

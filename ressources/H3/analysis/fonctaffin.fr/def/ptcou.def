@@ -1,0 +1,348 @@
+!set title=06. Point sur courbe
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=86
+prevarcnt=83
+postvarcnt=2
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+tmp0=!shuffle 1,2,3,4,5,-1,-2,-3,-4,-5
+
+val6=$(tmp0)
+tmp0=!shuffle 1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+
+val7=$(tmp0)
+!if $val3=1 
+val8=$(val6[1])
+!endif
+!if $val3=2 
+val8=$(val7[1])
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp=!nonempty items $(val6[1]),$(val7[1])
+
+tmp0=!randitem $tmp
+val8=$(tmp0)
+!endif
+!if $val2=1 
+tmp=!nonempty items -5,-4,-3,-2,-1,1,2,3,4,5
+
+tmp0=!randitem $tmp
+val9=$[rint($(tmp0))]
+!else
+val9=0
+!endif
+tmp=!nonempty items f,g,h,i
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+val11=$[rint($val9)]
+val12=$val8*x+($val11)
+tmp0=!texmath $val12
+
+val13=$(tmp0)
+tmp0=!randint -10, 10
+
+val14=$[rint($(tmp0))]
+val15=$[rint($val14)]
+
+!ifval $val15<0
+val16=($val15)
+!else
+val16=$val15
+!endif
+!if $val8 isitemof $val7 
+t_=!rawmath $val8
+val17=!exec pari print($t_)
+t_=!replace internal \( by ( in denominator($val17)
+tmp0=!exec pari $t_
+
+val18=$[rint($(tmp0))]
+
+!ifval $val17<0
+val19=($val17)
+!else
+val19=$val17
+!endif
+
+!ifval $val17<0
+tmp0=!texmath $val19
+
+val20=($(tmp0))
+!else
+tmp1=!texmath $val19
+
+val20=\$(tmp1)
+!endif
+val12=($val17)*x+($val11)
+tmp=!translate ";': to $     $ in $val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val21)
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+tmp0=!texmath $val22
+
+val13=$(tmp0)
+val23=$val10 (x)=$val13
+t_=!replace internal \( by ( in numerator($val17)
+tmp0=!exec pari $t_
+
+val24=$[rint($(tmp0))]
+t_=!rawmath ($val17)*($val15)+($val11)
+val25=!exec pari print($t_)
+t_=!rawmath ($val17)*($val15)
+val26=!exec pari print($t_)
+t_=!rawmath $val25-($val11)
+val27=!exec pari print($t_)
+tmp0=!texmath $val25
+
+val28=$(tmp0)
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+tmp0=!texmath $val27
+
+val30=$(tmp0)
+!if $val11>0 
+val31=\($val10 ($val15)= \frac{$val24}{$val18} \times $val16 + $val11\)
+val32=\($val10 ($val15)= $val29 + $val11\)
+val33=\($val10 ($val15) = $val28\)
+val34=$val28- $val11
+!endif
+!if $val11=0 
+val31=\($val10 ($val15)= \frac{$val24}{$val18} \times $val16\)
+val32=\($val10 ($val15)=$val28\)
+val34=$val28
+!endif
+!if $val11<0 
+val31=\($val10 ($val15)= \frac{$val24}{$val18} \times $val16 $val11\)
+val32=\($val10 ($val15)= $val29 $val11\)
+val33=\($val10 ($val15)= $val28\)
+val34=$val28 + \absb
+!endif
+!else
+val17=$[rint($val8)]
+
+!ifval $val17<0
+val19=($val17)
+!else
+val19=$val17
+!endif
+
+!ifval $val17<0
+tmp0=!texmath $val19
+
+val20=($(tmp0))
+!else
+tmp1=!texmath $val19
+
+val20=\$(tmp1)
+!endif
+val12=($val17)*x+($val11)
+tmp=!translate ";': to $     $ in $val12
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val21=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val21)
+tmp0=!exec pari $t_
+
+val22=$(tmp0)
+tmp0=!texmath $val22
+
+val13=$(tmp0)
+val23=$val10 (x)=$val13
+val25=$[rint(($val17)*($val15)+($val11))]
+val35=$[rint(($val17)*($val15))]
+val27=$[rint($val25-$val11)]
+tmp0=!texmath $val25
+
+val28=$(tmp0)
+!if $val11>0 
+
+!ifval $val17=1
+val31=\($val10 ($val15)= $val15 + $val11\)
+!else
+val31=\($val10 ($val15)= $val17 \times $val16 + $val11\)
+!endif
+
+!ifval $val17=1
+val32=
+!else
+val32=\($val10 ($val15)=$val35 + $val11\)
+!endif
+val33=\($val10 ($val15)=$val28\)
+val30=$val28 - $val11
+!endif
+!if $val11=0 
+
+!ifval $val17=1
+val31=\($val10 ($val15)= $val16\)
+!else
+val31=\($val10 ($val15)=$val17 \times $val16\)
+!endif
+
+!ifval $val17=1
+val32=
+!else
+val32=\($val10 ($val15)=$val28\)
+!endif
+val30=$val28
+!endif
+!if $val11<0 
+
+!ifval $val17=1
+val31=\($val10 ($val15)= $val15 $val11\)
+!else
+val31=\($val10 ($val15)= $val17 \times $val16 $val11\)
+!endif
+
+!ifval $val17=1
+val32=
+!else
+val32=\($val10 ($val15)= $val35 $val11\)
+!endif
+val33=\($val10 ($val15)=$val28\)
+val30=$val28 + \absb
+!endif
+!endif
+tmp0=!randitem 1,2
+
+val36=$[rint($(tmp0))]
+!if $val36=1 
+t_=!rawmath $val25
+val37=!exec pari print($t_)
+val38=\name_ans31
+!else
+tmp0=!randitem -1,1
+
+t_=!rawmath $val25+$(tmp0)
+val37=!exec pari print($t_)
+val38=\name_ans32
+!endif
+tmp0=!texmath $val37\
+
+val39=$(tmp0)
+val40=Oui, Non
+val41=Comme <span class="nowrap">\($val10($val14)=$val39\),</span> le point de coordonnées \(($val14 \, ; \, $val39)\) appartient à la courbe représentant la fonction
+val42=Comme <span class="nowrap">\($val10($val14) \ne$val39\),</span> le point de coordonnées \(($val14 \, ; \, $val39)\) n'appartient pas à la courbe représentant la fonction
+val43=On considère la fonction \($val10\) définie pour tout nombre \(x\) par <span class="nowrap">\($val23\).</span>
+val44=Le point de coordonnées \(($val14 \, ; \, $val39)\) appartient-il à la représentation graphique de la fonction
+val45=<p>On calcule l'image de \($val14\) par la fonction <span class="nowrap">\($val10\).</span></p>	<p>Pour calculer l'image de \($val14\), on remplace \(x\) par \($val14\) dans l'expression algébrique de la fonction.</p>
+val46=La courbe représentative de la fonction \($val10\) est l'ensemble des points de coordonnées \((x \, ; \, y)\) avec <span class="nowrap">\(y=$val10(x)\).</span>
+!if $val36=1 
+val47=$val41
+!else
+val47=$val42
+!endif
+val48=euler_answer_nobg
+replytype1=radio
+replyname1=
+replygood1=$val36;$val40
+question=__EXECUTED_1692754_EXERCISE__
+hint=!nosubst $val46
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest_nobg spacer">	  $val43	  <p>$val44 <span class="nowrap">
+!insmath $val10
+$() ?</span>	</div>	<div class="spacer">	  <div class="$val48">	      <ul class="wims_nopuce  spacer">	         <li> 
+!read oef/embed.phtml r1,1 
+$()</li>	         <li> 
+!read oef/embed.phtml r1,2 
+$()</li>	      </ul>	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()$val46
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()$val46	$val45	<span class="nowrap">$val31</span>	<p><span class="nowrap">$val32</span></p>	<span class="nowrap">$val33</span>	<p>$val47 <span class="nowrap">
+!insmath $val10
+$().</span></p>
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+!if $m_sc_reply1<1 
+val48=euler_rep_bad_nobg cross
+!else
+val48=euler_rep_good_nobg tick
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=10,31,32,33,43,44,45,46,47,48
+embedcnt=2

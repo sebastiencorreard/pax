@@ -1,0 +1,161 @@
+n=$counter
+math=0
+mathview=0
+questiontyp=0
+embed=1
+inputs=1.1
+cols=15
+rows=1
+checkfile=$checkdir/number.proc
+#checkfile=exos/bewerking1.proc
+!if $level=0 
+    R=$counter
+!else
+    R=$level
+!endif
+sr=$R
+#een willekeurig punt $A     
+X1=!randitem -7,-6,-5,-4,-3,-2
+Y1=!randitem 2,3,4,5,6,7
+dx=!randitem 3,4,5,6,7,8,9,10
+dy=!randitem -10,-9,-8,-7,-6,-5,-4,-3
+    
+#nog een willekeurig net punt
+X2=$[$X1+($dx)]
+Y2=$[$Y1+($dy)]
+    
+#de lijn door X1Y1 X2Y2 y=m1x+q
+m1=$[$dy/$dx]
+q1=$[$Y1-($m1)*$X1]
+    
+#de lijn loodrecht hierop is dus in X1Y1
+m2=$[-1*$dx/$dy]
+q2=$[$Y1-($m2)*$X1]
+    
+#eem mooie Y3
+Y3=!randitem -7,-6,-5,-4,-3,-2,-1,0
+    
+#bijpassende X3-waarde
+X3=$[($Y3-($q2))/($m2)]
+    
+#het maximum en minimun voor het plaatje
+MIN=$[min($X1,min($X3,min($Y1,min($Y2,$Y3))))]
+MAX=$[max($X2,max($X3,max($Y1,max($Y2,$Y3))))]
+
+#lengte AB is dus (X1:Y1) -- (X2:Y2)
+#lengte AC is dus (X1:Y1) -- (X3:Y3)
+#lengte BC is dus (X2:Y3) -- (X3:Y3)
+
+AC=$[round(10*(sqrt(($X1-$X2)^2 + ($Y1-$Y2)^2)))/10]
+AB=$[round(10*(sqrt(($X1-$X3)^2 + ($Y1-$Y3)^2)))/10]
+BC=$[round(10*(sqrt(($X2-$X3)^2 + ($Y2-$Y3)^2)))/10]
+
+#PI=3.141592654
+    
+hoek=$[(round(100*(acos($AC/$BC))*180/pi))/100]
+# 2 decimalen
+    
+########PLAATJE############
+keuze=!randitem 1,2,3,4
+A=!item $keuze of  A,D,K,P
+B=!item $keuze of  B,E,L,Q
+C=!item $keuze of  C,F,M,R
+
+
+!if $R=1
+    ex1=$empty
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$[$AC/$BC]
+    G=$[(round(100*$(answer$n)))/100]
+    formula$n=\cos(\angle $C)
+    answ=\frac{$AC}{$BC}
+    texanswer$n=\cos(\angle $C) = $answ \simeq  $(answer$n) \simeq $G
+    ss=!record 17 of lang/remarks.$taal
+    rr=!record 18 of lang/remarks.$taal    
+!goto KLAAR
+!endif
+
+!if $R=2
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$hoek
+    formula$n=\angle $C
+    answ=cos^{-1} \left( \frac{$AC}{$BC} \right)
+    texanswer$n=\angle $C = $answ \simeq $hoek ^{o}
+    ss=!record 19 of lang/remarks.$taal
+    rr=!record 20 of lang/remarks.$taal
+    ex1=&deg;
+ !goto KLAAR
+!endif
+ 
+!if $R=3
+    ex1=$empty
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$[$BC*(cos($hoek*pi/180))]
+    formula$n=d\left($A$C\right)
+    answ=$BC \cdot cos($hoek)
+    ans=$[round($rounding*$(answer$n))/$rounding]
+    texanswer$n=d\left($A$C\right) = $answ \simeq $(answer$n) \simeq $ans
+    ss=!record 21 of lang/remarks.$taal
+    rr=!record 22 of lang/remarks.$taal
+!else
+    ex1=$empty
+    rounding=10
+    !readproc $remarkdir/rounding.$taal
+    answer$n=$[$AC/(cos($hoek*pi/180))]
+    ans=$[round($rounding*$(answer$n))/$rounding]
+    formula$n=d\left($B$C\right)
+    answ=\frac{$AC}{cos($hoek)}
+    texanswer$n=d\left($B$C\right) = $answ \simeq $(answer$n) \simeq $ans
+    ss=!record 23 of lang/remarks.$taal
+    rr=!record 24 of lang/remarks.$taal
+!endif
+:KLAAR
+
+question$n=$ss
+textanswer$n=$rr
+
+!if $teaching=1
+    applet=1
+    text1=empty
+    text2=empty
+    text3=empty
+    !if $sr=1 or $sr=2 or $sr=4
+    	text1=string black,$[($X1+$X2)/2],$[($Y1+$Y2)/2+0.8],$AC
+    !endif
+    !if $sr=1 or $sr=2 or $sr=3
+	text2=string black,$[($X2+$X3)/2-0.5],$[($Y2+$Y3)/2+0.5],$BC
+    !endif
+    !if $sr=3 or $sr=4 
+	text3=string black,$[$X2-3],$[$Y2+1.5],$hoek
+    !endif
+
+    make_tr=0
+    xsize=220
+    ysize=220
+    k=!randitem red,green,blue,orange
+    
+object$n=!exec canvasdraw\
+size $xsize,$ysize\
+xrange $[$MIN-2],$[$MAX+2]\
+yrange $[$MIN-2],$[$MAX+2]\
+linewidth 2\
+opacity 200,30\
+ftriangle $X1,$Y1,$X2,$Y2,$X3,$Y3,$k\
+linewidth 8\
+fontfamily 14px Ariel\
+linewidth 3\
+points green,$X1,$Y1,$X3,$Y3\
+string black,$[$X1+0.5],$[$Y1+0.5],$A\
+string black,$[$X2+0.5],$[$Y2+0.5],$C\
+string black,$[$X3+0.5],$[$Y3+0.5],$B\
+point $X2,$Y2,red\
+$text1\
+$text2\
+$text3\
+zoom $k
+    
+!exit
+!endif

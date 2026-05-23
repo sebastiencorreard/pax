@@ -1,0 +1,157 @@
+!set title=Graphique -> fonction
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=13
+prevarcnt=12
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 1, 5
+
+val6=$[rint($(tmp0))]
+tmp0=!randitem 1,-1
+
+tmp1=!randint 1, 5
+
+val7=$[rint($(tmp0)*$(tmp1))]
+tmp=!translate ";': to $     $ in $val7/$val6
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val8=$(tmp0)
+val9=$[rint(5*$val8*50+250)]
+val10=$[rint(-5*$val8*50+250)]
+tmp0=!record 1 of src/graph.don
+
+val11=$(tmp0)
+val11=$val11	segment 0,$val9,500,$val10,red
+!if $val6>0 
+val12=text green,220,-($val7*50)+245,medium,$val7
+!else
+val12=text green,255,-($val7*50)+245,medium,$val7
+!endif
+!if $val7>0 
+val13=text green,245+50*($val6),260,medium,$val6
+!else
+val13=text green,245+50*($val6),230,medium,$val6
+!endif
+val14=$val11	arrow 250+50*($val6),250,250+50*($val6),-($val7*50)+250,10,green	$val13	arrow 250+50*($val6),-($val7*50)+250,250,-($val7*50)+250,10,green	$val12
+replytype1=auto
+
+replyname1=a
+replygood1=?analyze 15
+question=__EXECUTED_1692754_EXERCISE__
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()L'objectif de l'exercice est de déterminer le nombre 
+!insmath a
+$() pour que la fonction linéaire de la forme 
+!insmath x\mapsto a x
+$() ait la	représentation graphique suivante (
+!insmath a
+$() est le coefficient de la fonction linéaire) :	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val11 
+$()	</div>	Votre réponse : a =  
+!read oef/embed.phtml r1 
+$()	<div class="wims_instruction">	Vous devez écrire le résultat sous la forme d'un entier ou d'une fraction la plus simple possible.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()Pour trouver le coefficient d'une fonction linéaire, il faut avoir l'image d'un nombre.	Par lecture sur le graphique on obtient que l'image de $val6 par la fonction est $val7.	<div class="wimscenter">	 
+!read oef/draw.phtml 500,500 \
+$val14 
+$()	</div>	Le coefficient de la fonction est donc	
+!if $val8 issametext $val7/$val6 
+$()
+!insmath \frac{$val7}{$val6}
+$() 
+!else
+$() 
+!insmath \frac{$val7}{$val6}=$val8
+$() 
+!endif
+$().
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $val15=$val8 and ($val15 notsamecase $val8)
+ <div class='oef_feedbacks'><span class="oef_indbad">Votre réponse	n'est pas une fraction irréductible, vous perdez des points.</span>La bonne réponse est 
+!insmath $val8
+$()
+$()</div>
+!endif
+
+!exit
+
+:test
+
+!ifval $val15=$val8
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=bonne réponse
+
+!ifval $val15 issamecase $val8
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=écriture irréductible?
+
+!exit
+
+:stat
+vsavelist=6,7,8,11,14,15
+embedcnt=1

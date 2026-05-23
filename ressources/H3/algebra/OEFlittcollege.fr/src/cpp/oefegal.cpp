@@ -1,0 +1,82 @@
+target= oefegal1 oefegal2
+#define TITRE Compléter
+#if defined TARGET_oefegal1
+   \title{TITRE 1}
+   \text{signe=+}
+#endif
+
+#if defined TARGET_oefegal2
+   \title{TITRE 2}
+   \text{signe=-}
+#endif
+
+\language{fr}
+\range{-5..5}
+\author{Jean-Luc,Donadoni}
+\email{jluc.donadoni@gmail.com}
+\computeanswer{no}
+\format{html}
+\precision{10000}
+
+\integer{confparm1=\confparm1}
+\integer{confparm1=NaN isin \confparm1 or \confparm1=?1}
+
+\integer{size=4}
+\text{size2=40x25x1}
+
+\text{a=random(1,1)*randint(2..15)}
+\text{a=simplify(\a)}
+\text{b=randint(2..15)}
+\text{x=random(x,y)}
+
+\text{lt=wims(values v for v=0 to \confparm1)}
+\text{lt=shuffle(\lt)}
+\integer{p1=item(1,\lt)}
+\integer{p2=item(2,\lt)}
+\text{m1=\a*\x^\p1}
+\text{m1=simplify(\m1)}
+\text{rep1=texmath(\m1)}
+\text{m2=\b*\x^\p2}
+\text{m2=simplify(\m2)}
+\text{rep2=texmath(\m2)}
+
+\text{tmp=(\m1)^2,2*(\m1)*(\m2),(\m2)^2}
+
+\text{rep=}
+\text{repco=}
+\for{i=1 to 3}{
+ \text{tmp7=simplify(\tmp[\i])}
+ \text{rep=wims(append item \tmp7 to \rep)}
+ \text{tmp7=texmath(\tmp7)}
+ \text{repco=wims(append item \tmp7 to \repco)}
+}
+
+\text{tmp1=\repco[2]<0?(\repco[2]):\repco[2]}
+\text{tmp2=\repco[3]<0?(\repco[3]):\repco[3]}
+
+\text{fac=(\m1 \signe \m2)^2}
+\text{dev=\(\repco[1])\signe \(\tmp1) + \(\tmp2)}
+
+\integer{ch=randint(1..2)}
+
+\if{\ch=1}{\text{rep=\m1,\tmp1,\tmp2}}
+ {\text{rep=\m2,\repco[1],\tmp1}}
+
+\statement{
+Compléter l'égalité :
+
+<div class="spacer">Je complète :
+<div class="wimscenter">
+
+\if{\ch=1}
+{(\embed{r1,\size} \signe \(\m2))\(^2) =
+\(\repco[1]) \signe \embed{r2,\size} + \embed{r3,\size}}
+{(\(\m1) \signe \embed{r1,\size})\(^2) =
+\embed{r2,\size} \signe \embed{r3,\size} + \(\tmp2)}
+</div>
+</div>
+}
+
+\answer{}{\rep[1]}{type=algexp}
+\answer{}{\rep[2]}{type=algexp}
+\answer{}{\rep[3]}{type=algexp}

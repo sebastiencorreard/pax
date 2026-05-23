@@ -1,0 +1,146 @@
+!let   tmp=!line $repexo2 of $(sys$nbetape)
+
+!let tmp1=$(sys$[$wims_read_parm])
+<td>
+      !let tmp4=!line 1 of $tmp1
+      !distribute items $tmp4 into tmp5,tmp6,tmp7
+      
+!!!!!   tmp8 * listinc + tmp9
+!let tmp8=!exec pari deriv($tmp5,$listinc)
+!let tmp9=!exec pari ($tmp5-$tmp8*$listinc)
+
+!let tmp10=!exec pari deriv($tmp7,$listinc)
+!let tmp11=!exec pari ($tmp7-$tmp10*$listinc)
+
+!!!!!!!!!!!!!!!!!!!dessin des balances!!!!!!!!!!!!!!!!
+
+!let penche=$[4*$(penche$ii)]
+
+!let pl1=!exec pari ($tmp8%2)
+!let lg1=$[($tmp8-$pl1)/2]
+
+!let gauche=
+!for i=1 to $lg1
+  !let gauche=$gauche\
+     frect $[25+(-1)^$i],$[20-$penche+($i-1)*16],$[35+(-1)^$i],$[35-$penche+($i-1)*16],red\
+     text black,$[28+(-1)^$i],$[30+($i-1)*16],large,$listinc\
+     frect $[40+(-1)^$i],$[20-$penche+($i-1)*16],$[50+(-1)^$i],$[35-$penche+($i-1)*16],red\
+     text black,$[43+(-1)^$i],$[30+($i-1)*16],large,$listinc
+!next i
+
+!if $pl1>0
+  !let gauche=$gauche\
+     frect $[25+(-1)^($lg1+1)],$[20-$penche+($lg1)*16],$[35+(-1)^($lg1+1)],$[35-$penche+($lg1)*16],red\
+     text black,$[28+(-1)^($lg1+1)],$[30+($lg1)*16],large,$listinc
+!endif
+
+!let font=!exec pari floor($tmp9)
+!let decal=3
+!if $font<>$tmp9 or $tmp9<0
+  !let font=small
+  !let decal=0
+!else
+  !let font=large
+!endif
+
+!if $tmp9<>0
+  !let gauche=$gauche\
+     frect 10,$[20-$penche],20,$[35-$penche],yellow\
+     text black,$[10+$decal],30,$font,$tmp9
+!endif
+
+!let gauche=$gauche\
+linewidth 2\
+segments black,5,$[25-$penche],10,$[20-$penche],50,$[20-$penche],55,$[25-$penche]\
+
+
+
+!let pl2=!exec pari ($tmp10%2)
+!let lg2=$[($tmp10-$pl2)/2]
+
+!let droite=
+!for i=1 to $lg2
+  !let droite=$droite\
+     frect $[90+(-1)^$i],$[20+$penche+($i-1)*16],$[100+(-1)^$i],$[35+$penche+($i-1)*16],red\
+     text black,$[93+(-1)^$i],$[30+($i-1)*16],large,$listinc\
+     frect $[105+(-1)^$i],$[20+$penche+($i-1)*16],$[115+(-1)^$i],$[35+$penche+($i-1)*16],red\
+     text black,$[108+(-1)^$i],$[30+($i-1)*16],large,$listinc
+!next i
+
+!if $pl2>0
+  !let droite=$droite\
+     frect $[105+(-1)^($lg2+1)],$[20+$penche+($lg2)*16],$[115+(-1)^($lg2+1)],$[35+$penche+($lg2)*16],red\
+     text black,$[108+(-1)^($lg2+1)],$[30+($lg2)*16],large,$listinc
+!endif
+
+
+!let font=!exec pari floor($tmp11)
+!let decal=3
+!if $font<>$tmp11 or $tmp11<0
+  !let font=small
+  !let decal=0
+!else
+  !let font=large
+!endif
+
+!if $tmp11<>0
+  !let droite=$droite\
+     frect 120,$[20+$penche],130,$[35+$penche],yellow\
+     text black,$[120+$decal],30,$font,$tmp11
+!endif
+
+!let droite=$droite\
+linewidth 2\
+segments black,85,$[25+$penche],90,$[20+$penche],130,$[20+$penche],135,$[25+$penche]\
+
+!let agr=$[1.2^(-$nbetape)]
+!let insdraw_size=$[280*$agr],$[280*$agr]
+
+!let drawsource=xrange 0,140\
+yrange -10,90\
+fill 1,1,skyblue\
+brokenline brown,5,0,30,0,35,5,105,5,110,0,135,0,120,15,20,15,5,0\
+fill 20,10,brown\
+linewidth 1\
+arc 70,7,24,18,0,180,black\
+segment 58,7,82,7,black\
+fill 75,10,white\
+fill 72,15.5,white\
+segments black,30,$[20-$penche],30,$[10-$penche],110,$[10+$penche],110,$[20+$penche]\
+arrow 70,10,$[70-$penche],22,$[12*$agr],black\
+disk 30,$[10-$penche],$[8*$agr],black\
+disk 70,10,$[8*$agr],black\
+disk 110,$[10+$penche],$[8*$agr],black\
+segment 0,0,140,0,green\
+fill 5,-5,green\
+disk 80,60,$[40*$agr],white\
+disk 85,68,$[30*$agr],white\
+disk 110,70,$[40*$agr],white\
+disk 120,60,$[40*$agr],white\
+disk 97,63,$[60*$agr],white\
+$gauche\
+$droite\
+linewidth 2\
+brokenline black,5,$[25-$penche],10,$[20-$penche],50,$[20-$penche],55,$[25-$penche]\
+brokenline black,85,$[25+$penche],89.5,$[20+$penche],130.5,$[20+$penche],135,$[25+$penche]
+
+
+!insdraw $drawsource
+
+
+</td>
+<td>
+<center>
+!if $wims_read_parm<>0
+$(comment$[$wims_read_parm])
+<br><br>
+!endif
+      !readproc script/texmath.proc $tmp5
+      <table border=0>
+   <tr><td>\($sortie)</td>
+      <td>
+       \($(symboleaff[$tmp6]))
+      </td>
+      !readproc script/texmath.proc $tmp7
+      <td>\($sortie)</td>
+   </tr></table></center></td>

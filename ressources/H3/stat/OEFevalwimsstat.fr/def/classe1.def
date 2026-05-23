@@ -1,0 +1,143 @@
+!set title=Regroupement en classes 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerimafree.fr
+
+ansorder=r,r,r,r,r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 4, 5
+
+val6=$[rint($(tmp0))]
+
+!ifval $val6=4
+val7=&#91;0;5&#91;,&#91;5;10&#91;,&#91;10;15&#91;,&#91;15;20&#93;
+!else
+val7=&#91;0;4&#91;,&#91;4;8&#91;,&#91;8;12&#91;,&#91;12;16&#91;,&#91;16;20&#93;
+!endif
+val8=
+val9=
+tmp0=!randint 20, 30
+
+val10=$[rint($(tmp0))]
+val11=$[rint($val10)]
+val12=$[rint(20/$val6)]
+!for val13 =1 to $val6 
+tmp0=!randint max(1,$val11/($val6-$val13+1)-3), min(10,$val11-$val6+$val13)
+
+val14=$[rint($(tmp0))]
+val11=$[rint($val10-$val14)]
+tmp0=!append item $val14 to $val9
+
+val9=$(tmp0)
+!for val15 =1 to $val14 
+tmp0=!randint $val12*($val13-1), $val12*($val13)-1
+
+val16=$[rint($(tmp0))]
+tmp0=!append item $val16 to $val8
+
+val8=$(tmp0)
+!next
+!next
+tmp0=!itemcnt $val8
+
+val10=$[rint($(tmp0))]
+tmp0=!shuffle $val8
+
+val8=$(tmp0)
+tmp0=!item 1 to $val6 of r1,r2,r3,r4,r5
+
+val17=$(tmp0)
+oefsteps=$val17 
+nextstep=!nosubst $val17 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=$(val7[1])
+replygood1=$(val9[1])
+replytype2=numexp
+replyname2=$(val7[2])
+replygood2=$(val9[2])
+replytype3=numexp
+replyname3=$(val7[3])
+replygood3=$(val9[3])
+replytype4=numexp
+replyname4=$(val7[4])
+replygood4=$(val9[4])
+replytype5=numexp
+replyname5=$(val7[5])
+replygood5=$(val9[5])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Voici les notes obtenues à un contrôle des $val10 élèves de la classe :	<div class="wimscenter">	$val8	</div>	Complète le tableau des effectifs suivant :	<table class="wimscenter wimsborder">	 <tr><th>classes</th> 
+!for m_k=1 to $val6 
+$()<td><b>$(val7[$m_k])</b></td> 
+!next
+$()</tr>	 <tr><th>Effectifs</th> 
+!for m_L=1 to $val6 
+$()<td> 
+!read oef/embed.phtml $(val17[$m_L]),5 
+$()</td> 
+!next
+$()</tr>	</table>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,8,10,17
+embedcnt=1

@@ -1,0 +1,246 @@
+#:[HTML5] Piramide [ Hoeken bepalen ] 
+n=$counter
+
+R=$level
+!if $level=0
+    R=$counter
+!endif
+!if $rounding<1
+    rounding=100
+    !readproc $remarkdir/rounding.$taal
+!endif
+
+origin=0
+applet=1
+embed=1
+mathview=0
+make_tr=0
+questiontype=0
+cols=20
+rows=1
+m_rightarrow=&nbsp;=
+checkfile=$checkdir/number.proc
+extratext=!record 12 of lang/remarks.$taal
+helptext=$empty
+x=!randitem 6,8,10,12,14
+a=!randitem -3,-2,-1,1,2,3
+z=$[$x+($a)]
+b=$[$x/2]
+!if $R=1
+    setje=A,B B,C C,D A,D
+    keuze=!randint 1,4
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    B=!item 2 of $set
+    AB=!nospace $A $B
+    an=$[atan($z/$b)]
+    #A(-9.23,-5,44) B(1.57,-7.06) C(6.81,-3.75) D(-4.10,-2.19) T(-1.28,8.06) S(-1.21,-4.56) AB(-4.15,-6.81)
+    coord=-3.83,-6.25\
+    4.20,-5.41\
+    1.36,-2.97\
+    -6.66,-3.78
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    punt1=!item 1 of $lijn
+    punt2=!item 2 of $lijn
+    !if $keuze<3
+	seg=segment -1.28,8.06,$lijn,darkred
+	seg2=dashed\
+	dashtype 6,3\
+	segment -1.21,-4.56,$lijn,darkred
+    !else
+	seg=dashed\
+	dashtype 6,3\
+	segment -1.28,8.06,$lijn,darkred
+	seg2=dashed\
+	dashtype 6,3\
+	segment -1.21,-4.56,$lijn,darkred
+    !endif
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo3.jpg\
+    #points red,0,0,1,1,2,2,3,3,4,4\
+    linewidth 2\
+    point,-1.21,-4.56,blue\
+    point,$punt1,$punt2,blue\
+    string black,-4.15,-7.31,$x\
+    string black,-1.01,-0.56,$z\
+    string black,-1.01,-4.56,S\
+    string black,$punt1,$punt2,R\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment -1.28,8.06,-1.21,-4.56,black\
+    $seg\
+    $seg2\
+    #segment $lijn,darkred\
+    #userdraw segment,red\
+    #mouse red,18\
+    dashed\
+    dashtype 4,2\
+    opacity 215,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+    
+    
+    answer$n=$[180/pi*$an]
+    ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 15 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br />R is het midden van $AB<br />Bereken de hoek van TRS
+    question$n=$ss
+
+    formula$n=\angle TRS
+    
+    texanswer$n=\left[ \begin{array}{l} $AB=$x \rightarrow SR=$b \\ \tan( \angle TRS) = \frac{ST}{SR}\\ \tan( \angle TRS) = \frac{$z}{$b} \\ \angle SRT $ans \end{array} \right.
+    
+ !exit
+!endif
+
+!if $R=2
+    H=A,B,C,D
+    keuze=!randint 1,4
+    H=!item $keuze of $H
+    TH=!nospace T $H
+    SH=!nospace S $H
+    SHT=!nospace S $H T
+    c=$[2*$b^2]
+    c_tex=$b^{2}+$b^{2}
+    an=$[atan($z/sqrt($c))]
+
+    #A(-9.23,-5,44) B(1.57,-7.06) C(6.81,-3.75) D(-4.10,-2.19) T(-1.28,8.06) S(-1.21,-4.56) AB(-4.15,-6.81)
+    coord=-9.23,-5.44\
+    1.57,-7.06\
+    6.81,-3.75\
+    -4.10,-2.19
+    
+    lijn=!line $keuze of $coord
+    lijn=!nospace $lijn
+    
+    !if $keuze<4
+	seg=segment -1.28,8.06,$lijn,darkred
+	seg2=dashed\
+	dashtype 6,3\
+	segment -1.21,-4.56,$lijn,darkred
+    !else
+	seg=dashed\
+	dashtype 6,3\
+	segment -1.28,8.06,$lijn,darkred
+	seg2=dashed\
+	dashtype 6,3\
+	segment -1.21,-4.56,$lijn,darkred
+    !endif
+    
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo3.jpg\
+    linewidth 2\
+    point,-1.21,-4.56,blue\
+    string black,-4.15,-7.31,$x\
+    string black,-1.01,-0.56,$z\
+    string black,-1.01,-4.56,S\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment -1.28,8.06,-1.21,-4.56,black\
+    #mouse red,18\
+    $seg\
+    $seg2\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+
+    answer$n=$[180/pi*$an]
+    ans=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 16 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br />R is het midden van $AB<br />Bereken de hoek tussen de lijnen $TH en $SH
+    question$n=$ss 
+    formula$n=\angle $SHT
+    texanswer$n=\left[ \begin{array}{l} $AB=$x \rightarrow $SH=\sqrt{$c_tex}  \\ \tan( \angle $SHT) = \frac{TS}{$SH}\\ \\ \tan( \angle $SHT) = \frac{$z}{\sqrt{$c}} \\ \angle $SHT $ans \end{array} \right.
+    
+ !exit
+!endif
+
+
+!if $R>2
+    setje=A,C B,D
+    keuze=!randitem 1,2
+    set=!word $keuze of $setje
+    A=!item 1 of $set
+    C=!item 2 of $set
+    AC=!nospace $A $C
+    AT=!nospace $A T
+    AS=!nospace $A S
+    CT=!nospace $C T
+    ATC=!nospace $A T $C
+    ATS=!nospace $A T S
+    c=$[$b^2+$b^2]
+    c_tex=$b^{2}+$b^{2}
+    
+    #A(-9.23,-5.44) B(1.57,-7.06) C(6.81,-3.75) D(-4.10,-2.19) T(-1.28,8.06) S(-1.21,-4.56) AB(-4.15,-6.81)
+
+    !if $keuze=1
+	seg=segment -9.23,-5.44,-1.28,8.06,darkred\
+	segment 6.81,-3.75,-1.28,8.06,darkred
+	
+    !else
+	seg=segment 1.57,-7.06,-1.28,8.06,darkred\
+	dashed\
+	dashtype 6,3\
+	segment -4.10,-2.19,-1.28,8.06,darkred
+    !endif
+
+    object$n=!exec canvasdraw\
+    size 398,320\
+    xrange -10,10\
+    yrange -10,10\
+    fontfamily 18px Ariel\
+    copy -10,10,-1,-1,-1,-1,$module_dir/gifs/exo3.jpg\
+    linewidth 2\
+    point,-1.21,-4.56,blue\
+    string black,-4.15,-7.31,$x\
+    string black,-1.01,-0.56,$z\
+    string black,-1.01,-4.56,S\
+    linewidth 2\
+    dashed\
+    dashtype 6,3\
+    segment -1.28,8.06,-1.21,-4.56,black\
+    #mouse red,18\
+    linewidth 3\
+    $seg\
+    dashed\
+    dashtype 6,3\
+    opacity 255,50\
+    filled\
+    fillcolor orange\
+    replyformat -1\
+    userdraw poly3,red
+
+    an=$[atan(sqrt($c)/$z)]
+    ans=$[180/pi*$an]
+    answer$n=$[2*$ans]
+    tex=\approx $[round($rounding*$(answer$n))/$rounding] 
+    ss=!record 17 of lang/remarks.$taal
+    #@Gegeven een regelmatige piramide<br />met grondvlak ABCD en top T.<br />AB=$x en de hoogte TS=$z<br /><br />Bereken de hoek tussen de lijnen $AT en $CT
+    question$n=$ss 
+    formula$n=\angle $ATC
+    texanswer$n=\left[ \begin{array} {l} $AS=\sqrt{$c_tex} = \sqrt{$c} \\ \tan(\angle $ATS) = \frac{$AS}{TS} \\ \tan(\angle $ATS) = \frac{\sqrt{$c}}{$z} \\ \angle $ATS \approx $ans \rightarrow \angle $ATC $tex \end{array} \right.
+    
+ !exit
+!endif
+
+    

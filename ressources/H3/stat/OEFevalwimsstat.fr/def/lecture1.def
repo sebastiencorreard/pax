@@ -1,0 +1,181 @@
+!set title=Tableau d'effectifs 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+email=fwguerima@free.fr
+
+ansorder=r,r,r,r,r,r,r,r
+varcnt=22
+prevarcnt=21
+postvarcnt=0
+replycnt=8
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randrecord src/stat.don
+
+val6=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val8=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val7=$(tmp0)
+tmp0=!randint $(val7[1]), $(val7[2])
+
+val9=$[rint($(tmp0))]
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 3 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 4 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val11=$(tmp0)
+tmp=!translate internal $	$ to ; in $val6
+
+tmp=!row 5 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp=!nonempty items 0,1
+
+tmp0=!randitem $tmp
+val13=$[rint($(val12[1])+$(tmp0))]
+tmp=!nonempty items -1,0
+
+tmp0=!randitem $tmp
+val14=$[rint($(val12[2])+$(tmp0))]
+tmp0=!values 0 for v=$val13 to $val14
+
+val15=$(tmp0)
+val16=
+val9=$[rint($val14-$val13+1)]
+!for val17 =1 to $val8 
+tmp0=!randint $val13, $val14
+
+val18=$[rint($(tmp0))]
+tmp0=!append item $val18 to $val16
+
+val16=$(tmp0)
+val19=$[rint($val18-$val13+1)]
+val7=$[rint($(val15[$val19])+1)]
+tmp0=!replace item number $val19 by $val7 in $val15
+
+val15=$(tmp0)
+!next
+tmp0=!replace internal , by &nbsp;;&nbsp; in $val16
+
+val16=$(tmp0)
+tmp0=!item 1 to $val9 of r1,r2,r3,r4,r5,r6,r7,r8
+
+val20=$(tmp0)
+oefsteps=$val20 
+nextstep=!nosubst $val20 
+!readproc oef/steps.proc
+replytype1=numexp
+replyname1=Effectif 1
+replygood1=$(val15[1])
+replytype2=numexp
+replyname2=Effectif 2
+replygood2=$(val15[2])
+replytype3=numexp
+replyname3=Effectif 3
+replygood3=$(val15[3])
+replytype4=numexp
+replyname4=Effectif 4
+replygood4=$(val15[4])
+replytype5=numexp
+replyname5=Effectif 5
+replygood5=$(val15[5])
+replytype6=numexp
+replyname6=Effectif 6
+replygood6=$(val15[6])
+replytype7=numexp
+replyname7=Effectif 7
+replygood7=$(val15[7])
+replytype8=numexp
+replyname8=Effectif 8
+replygood8=$(val15[8])
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val10	<div class="wimscenter">$val16</div>	Compléter le tableau ci-dessous :	  <table class="wimscenter wimsborder">	   <tr>	    <th>$val11</th>	     
+!for m_l=$val13 to $val14 
+$()<td>$m_l</td> 
+!next
+$()	   </tr><tr>	    <th>Effectifs</th>	     
+!for m_l=1 to $val9 
+$()<td> 
+!read oef/embed.phtml $(val20[$m_l]),5 
+$()</td> 
+!next
+$()	   </tr>	  </table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,10,11,13,14,16,20
+embedcnt=1

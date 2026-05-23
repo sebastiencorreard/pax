@@ -1,0 +1,141 @@
+!set title=gemiddelde
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+language=nl
+leftrange=-5.000000
+rightrange=5.000000
+author=Bernadette Perrin-Riou
+email=bpr@math.u-psud.fr
+computeanswer=no
+precision=100
+
+ansorder=r,r,r,r
+varcnt=17
+prevarcnt=16
+postvarcnt=0
+replycnt=4
+choicecnt=0
+conditioncnt=0
+feedbackcnt=1
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp0=!randint 10, 15
+
+val6=$[rint($(tmp0))]
+tmp0=!randint 20, 30
+
+val7=$[$(tmp0)]
+!readproc slib/stat/random  $val6-1, 0,$val7 
+tmp0=$slib_out
+val8=$(tmp0)
+!readproc slib/stat/random $val6-1,1,4 
+tmp0=$slib_out
+val9=$(tmp0)
+!readproc slib/stat/arithmean $val8;$val9 
+tmp0=$slib_out
+tmp1=!item 1 of $(tmp0)
+
+val10=$(tmp1)
+tmp0=!sort  numeric item $val8
+
+val11=$(tmp0)
+tmp0=!item -1 of  $val11
+
+val12=$(tmp0)
+tmp0=!item 1 of  $val11
+
+val13=$(tmp0)
+val14=$[$val12-$val13]
+val15=<th>Waarden </th>
+val16=<th>Coefficienten</th>
+!for val17 =1 to $val6 
+tmp0=!item $val17 of $val8
+
+val18=$(tmp0)
+tmp0=!item $val17 of $val9
+
+val19=$(tmp0)
+val15=$val15 <td> $val18 </td>
+val16=$val16 <td> $val19 </td>
+!next
+replytype1=numeric
+replyname1=het gemiddelde
+replygood1=$[$val10]
+replytype2=numeric
+replyname2=het maximum
+replygood2=$[$val12]
+replytype3=numeric
+replyname3=het minimum
+replygood3=$[$val13]
+replytype4=numeric
+replyname4=de spreidingsbreedte
+replygood4=$[$val14]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	Zie hier een statistische reeks met bijbehorende coefficienten:: 	 <p> 	 <table align="center" border=1>	  <tr align ="center">$val15 </tr>	  <tr align ="center">$val16 </tr>	  </table>	  	<p>	Bereken voor deze serie statistische gegevens:	<ul><li>het gemiddelde  :  
+!read oef/embed.phtml reply 1, 6 
+$()	</li>	<li> de maximale waarde :  
+!read oef/embed.phtml reply 2, 6 
+$()	</li> 	<li> de minimale waarde :  
+!read oef/embed.phtml reply 3, 6 
+$()	</li>	<li> de spreidingsbreedte :  
+!read oef/embed.phtml reply 4, 6 
+$()	</li>	</ul>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+!ifval $m_reply4-$m_reply2+$m_reply3 !=0
+ <p>	 <font color=red>De spreidingsbreedte is gelijk aan het verschil tussen de maximale	 waarde en de minimale waarde	 </font>	
+$()
+!endif
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=15,16
+embedcnt=4

@@ -1,0 +1,64 @@
+reply$i=!rawmath $(reply$i)
+reply$i=!trim $(reply$i)
+parleft=(
+dd=$(reply$i)
+c=!char 1 of $dd
+!if $c=+ or $c=-
+ dd=!char 2 to -1 of $dd
+!endif
+c=!replace internal / by , in $dd
+c=!itemcnt $c
+!if ( + isin $dd or - isin $dd or * isin $dd or ^ isin $dd \
+	or $parleft isin $dd or $c>2)
+ test=NaN nocompute
+ !exit
+!endif
+
+test=$[$(reply$i)]
+m_reply$i=$(reply$i)
+!if NaN isin $test
+ !exit
+!endif
+
+good=$[$(replygood$i)]
+!if NaN isin $good or Inf isin $good
+ Test=bad $i
+ !exit
+!endif
+
+good=$(replygood$i)
+
+!if $good=0 and $(reply$i) notsametext 0
+ test=NaN badform
+ !exit
+!endif
+
+!for name in reply,replygood
+ ltpart=!replace internal / by , in $($name$i)
+ !distribute item $ltpart into t1_$name,t2_$name
+ !default t2_$name=1
+ !if . isin $(t1_$name)
+  tmp=!replace internal . by , in $(t1_$name)
+  !distribute item $tmp into tmp1,tmp2
+  nbdec=!charcnt $tmp2
+  t1_$name=$[$(t1_$name)*10^$nbdec]
+  t2_$name=$[10^$nbdec*$(t2_$name)]
+ !endif
+ !if . isin $(t2_$name)
+  tmp=!replace internal . by , in $(t2_$name)
+  !distribute item $tmp into tmp1,tmp2
+  nbdec=!charcnt $tmp2
+  t1_$name=$[$(t1_$name)*10^$nbdec]
+  t2_$name=$[10^$nbdec*$(t2_$name)]
+ !endif
+!next name
+mres=$[($t1_reply)*($t2_replygood) - $(t1_replygood)*($t2_reply)]
+
+!if $mres!=0
+ diareply$i=bad
+ !exit
+!endif
+
+diareply$i=good
+
+!advance freegot

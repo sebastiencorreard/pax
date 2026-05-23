@@ -1,0 +1,154 @@
+!set title=Calcul de longueur 2
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=100
+
+ansorder=r
+varcnt=31
+prevarcnt=30
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=est un triangle rectangle en
+val8=à l'unité,au dixième,au centième
+val9=Calculer la longueur du segment, arrondie
+tmp=!translate internal $	$ to ; in A,B,C	T,R,I	S,V,T	R,S,T	E,F,G
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val10=$(tmp0)
+tmp0=!shuffle $val10
+
+val10=$(tmp0)
+tmp0=!item 1 of $val10
+
+val11=$(tmp0)
+tmp0=!item 2 of $val10
+
+val12=$(tmp0)
+tmp0=!item 3 of $val10
+
+val13=$(tmp0)
+val14=$val12$val13
+tmp0=!randint 5, 15
+
+val15=$[rint($(tmp0))]
+tmp0=!randint 30, 70
+
+val16=$[rint($(tmp0))]
+val17=<li>$val11$val12 = $val15 cm</li><li>\(\widehat{$val11$val12$val13} = $val16^\circ)</li>
+val18=$val15/cos($val16*pi/180)
+tmp0=!shuffle $val12,$val13
+
+val19=$(tmp0)
+tmp0=!randint 4, 16
+
+val20=$[$(tmp0)/10]
+val21=$[sqrt(1-($val20-1)^2)]
+val22=$[sqrt($val20^2+$val21^2)/0.1]
+val23=$[sqrt((2-$val20)^2+$val21^2)/0.1]
+val24=$[$val20-$val20/$val22]
+val25=$[$val21-$val21/$val22]
+val26=$[$val24+(2-$val20)/$val23]
+val27=$[$val25-$val21/$val23]
+val28=$[$val20+(2-$val20)/$val23]
+val29=$[$val21-$val21/$val23]
+val30=range -0.2,2.2,-0.2,1.2	segment $val24,$val25,$val26,$val27,red	segment $val26,$val27,$val28,$val29,red	triangle 0,0,2,0,$val20,$val21,black	text black,$val20,$val21+0.14,medium,$val11	text black,-0.05,0,medium,$(val19[1])	text black,2,0,medium,$(val19[2])
+tmp0=!randint 0, 2
+
+val31=$[rint($(tmp0))]
+tmp0=!item $val31+1 of $val8
+
+val32=$(tmp0)
+val18=$[rint(($val18)*10^$val31)/10^$val31]
+!if $val30!= 
+!readproc oef/draw.phtml 240,140 \
+$val30 
+tmp0=$ins_url
+val33=$(tmp0)
+!endif
+replytype1=numexp
+replyname1=$val14
+replygood1=$val18
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	
+!if $val30!= 
+$()<div class="wims_columns">	 <div class="medium_size img_col"><img src="$val33" alt=""></div>	  <div class="medium_size text_col"> 
+!endif
+$()	$val11$val12$val13 $val7 $val11.	<ul>$val17</ul>	$(val9[1]) [$val14] $(val9[2]) $val32.	<div class="spacer">	<b>$val6</b>:	<label for="reply1">
+!insmath $val14 \simeq 
+$()</label>  
+!read oef/embed.phtml r1,5 
+$() cm.	</div>	
+!if $val30!= 
+$()</div></div> 
+!endif
+$()	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=6,7,9,11,12,13,14,17,30,32,33
+embedcnt=1

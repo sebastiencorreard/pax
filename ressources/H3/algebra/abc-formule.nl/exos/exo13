@@ -1,0 +1,142 @@
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+!if $rounding<10
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+cols=20
+rows=2
+embed=1
+checkfile=$checkdir/number.proc
+arglist=x
+varlist=$empty
+
+text=!record 7 of lang/remarks.$taal
+#@ Bepaal de nulpunten,de beide nulpunten zijn,en,het ene nulpunt is
+question$n=!item 1 of $text
+beide=!item 2 of $text
+en=!item 3 of $text
+ene=!item 4 of $text
+keuze=!randitem 0,1
+#functie=(Cx -A)(x+B)= Cx^2 +xCB -xA -AB = Cx^2 +x(CB-A) -AB
+#a= C
+#b= CB-A
+#c= AB
+
+F=!randitem f,g,h
+
+!if $R = 1
+    a=!randint 1,9
+    b=!randint 1,9
+    pm=!randitem +,-
+    mp=!randitem +,-
+    functie=(x $pm $a)*(x $mp $b)
+    formula$n=(x $pm $a)(x $mp $b)
+    x1=$[$pm 1 * -1 *$a]
+    x2=$[$mp 1 * -1 *$b]
+    tussen=(x $pm $a)(x $mp $b)=0 \rightarrow \\  (x $pm $a)=0 \,\,\bigvee\,\, (x $mp $b) = 0 \rightarrow
+!else
+    !if $R = 2
+        a=!randint 1,15
+	b=!randint 1,20
+        c=!randint 2,7
+        pm=!randitem +,-
+        mp=!randitem +,-
+        functie=$c*(x $pm $a)*(x $mp $b)
+	formula$n=$c(x $pm $a)(x $mp $b)
+        x1=$[$pm 1 * -1 *$a]
+        x2=$[$mp 1 * -1 *$b]
+        tussen=(x $pm $a)(x $mp $b)=0 \rightarrow \\ (x $pm $a) = 0 \,\,\bigvee\,\, (x $mp $b)=0 \rightarrow 
+        
+    !else
+	!if $R = 3
+	    a=1
+    	    b=!randint 1,8
+	    d=!randitem 1,4,9,16,25,36,49,64,81,100
+	    e=$[sqrt($d)]
+	    c=$[$a*$d]
+	    x1=$[$e-$b]
+	    x2=$[-1*$e-$b]
+	    tussen=(x+$b)^{2}=$c \rightarrow \\ (x+$b) = \sqrt{$c} \,\,\bigvee\,\, (x+$b)=-\sqrt{$c} \rightarrow \\ x+$b=$e \,\,\bigvee\,\, x+$b=$[-1*$e] \rightarrow
+	    !if $keuze=0
+		functie=$a*(x+$b)^2-$c
+		formula$n=(x+$b)^2-$c
+	    !else
+		a=-1
+		functie=$a*(x+$b)^2+$c
+		formula$n=-(x+$b)^2+$c
+	    !endif
+	!else
+	    a=!randitem 2,3,4,5
+	    b=!randint 1,8
+	    d=!randitem 1,4,9,16,25,36,49,64,81,100
+	    e=$[sqrt($d)]
+	    c=$[$a*$d]
+	    x1=$[$e-$b]
+	    x2=$[-1*$e-$b]
+	    tussen=(x+$b)^2=$d \rightarrow \\ (x+$b) = \sqrt{$d} \,\,\bigvee\,\, (x+$b)= -\sqrt{$d} \rightarrow \\ x+$b=$e \,\,\bigvee\,\, x+$b=$[-1*$e] \rightarrow
+	    !if $keuze=0
+		functie=$a*(x+$b)^2-$c
+		formula$n=$a(x+$b)^2-$c
+	    !else
+		a=$[-1*$a]
+		functie=$a*(x+$b)^2+$c
+		formula$n=$a(x+$b)^2+$c
+	    !endif
+	!endif
+    !endif
+!endif
+#betekend er zijn gewoon altijd nulpunten
+var1=1
+!if $keuze=1
+    formula$n=$F\left( x \right)=$(formula$n)
+    applettext=!nospace $F (x)= $functie ->
+!else
+    formula$n=y\,\,= $(formula$n)
+    applettext=!nospace y= $functie ->
+!endif
+mathviewpanel=$module_title:x_1=:and:x_2=:sqrt()
+
+!if $x1 != $x2
+    texanswer$n=  \left[ \begin{array}{l} $tussen \\ \\ x_{1}= $x1 \\ \\ x_{2}= $x2\end{array}\right.
+    answer$n=$x1,$x2
+    punten=$x1,0,$x2,0
+    textanswer$n=$beide x1=$x1 $en x2=$x2  
+!else
+    texanswer$n=  \left[ \begin{array}{l} $tussen \\ \\ \textrm{$ene} \,\, x_{1} = $x1 \end{array}\right.
+    answer$n=$x1
+    punten=$x1,0,$x1,0
+    textanswer$n=$ene x=$x1
+!endif
+
+
+!if $teaching=1
+    make_tr=0
+    xsize=150
+    ysize=150
+    image_settings$n=$xsize,$ysize
+    image$n=\
+    transparent white\
+    xrange -20,20\
+    yrange -100,100\
+    vline 0,0,blue\
+    hline 0,0,blue\
+    linewidth 2\
+    curve green,$functie\
+    linewidth 6\
+    points red,$punten
+    
+	
+    draw=1
+    plot=0
+    svg=0
+    insdraw_size=$xsize,$ysize
+    !insdraw $(image$n)
+	
+    helptext=<img src=\'$wims_ref_name?&session=$session&module=$module&cmd=getins&special_parm=insert-1.gif\' alt=\'noalt\' />
+!endif

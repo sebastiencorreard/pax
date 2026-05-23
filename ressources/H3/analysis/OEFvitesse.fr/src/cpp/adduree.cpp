@@ -1,0 +1,62 @@
+target= adduree1 adduree2
+
+#if defined TARGET_adduree1
+\title{Ajouter des durées (sans retenue)}
+\integer{max=29}
+#endif
+
+#if defined TARGET_adduree2
+\title{Ajouter des durées}
+\integer{max=59}
+#endif
+
+\text{ltval=wims(values v for v=5 to \max)}
+\text{ltval=shuffle(\ltval)}
+\integer{tm1=item(1,\ltval)}
+\integer{tm2=item(2,\ltval)}
+\integer{s1=item(3,\ltval)}
+\integer{s2=item(4,\ltval)}
+\integer{m1=max(\tm1,\tm2)}
+\integer{m2=min(\tm1,\tm2)}
+
+\integer{heure=floor((\m1+\m2)/60)}
+\integer{min=floor((\s1+\s2)/60)}
+\integer{sec=\s1+\s2-60*\min}
+\integer{min=\min+\m1+\m2-60*\heure}
+
+\text{name=slib(lang/fname fr,boy)}
+
+# -------- Calcul pour la solution
+\integer{sec1=\s1+\s2}
+\integer{secreste=\sec1-floor((\sec1)/60)*60}
+\integer{secmin=floor((\sec1)/60)}
+\integer{min1=\m1+\m2+\secmin}
+\integer{minreste=\min1-floor((\min1)/60)*60}
+\integer{minheure=floor((\min1)/60)}
+# --------- fin
+
+\statement{
+\name fait une course d'endurance. Il court pendant \m1 minutes \s1 secondes puis
+étant fatigué se met à marcher pendant \m2 minutes \s2 secondes.
+<p>
+Quelle est la durée de sa course ?
+</p>
+<div>
+<b>Votre réponse : </b> \embed{r1,5} H \embed{r2,5} min \embed{r3,5} s.
+</div>}
+
+\answer{Heure}{\heure}{type=numexp}
+\answer{Minutes}{\min}{type=numexp}
+\answer{Secondes}{\sec}{type=numexp}
+
+# ---- solution par Bruno MIFSUD
+\solution{
+Par addition : 
+<br \>On commence par les secondes : 
+<br \>\s1 secondes + \s2 secondes = \sec1 secondes 
+\if{\secmin<>0}{ = <b>\secmin minutes</b> + \secreste secondes}
+<br \> Puis les minutes \if{\secmin<>0}{sans oublier les \secmin minutes de 
+l'étape précédente } : 
+<br \>\m1 minutes + \m2 minutes \if{\secmin<>0}{+ <b>\secmin minutes</b> } 
+= \min1 minutes  \if{\minheure<>0}{= \minheure heures + \minreste minutes}
+<br \> Bilan : \heure H \min min \sec s.}

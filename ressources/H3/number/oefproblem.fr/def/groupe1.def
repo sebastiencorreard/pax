@@ -1,0 +1,138 @@
+!set title=Groupes I
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+
+ansorder=r,r
+varcnt=30
+prevarcnt=29
+postvarcnt=0
+replycnt=2
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Les réponses doivent être séparées par une virgule
+val7=On veut former des groupes avec	  XXXX OOOO et YYYY UUUU	  de sorte que chaque groupe ait le même nombre de OOOO et le	  même nombre de UUUU.
+val8=Nombre de groupes
+val9=Combien de groupes au maximum peut-on former&nbsp;
+val10=Dans ce cas combien MMMM y aura-t-il dans chaque groupe&nbsp;
+val8=$val8,Nombre MMMM dans chaque groupe
+val11=filles,billets,boules rouges,pions blancs
+val12=garçons,pièces,boules jaunes, pions noirs
+val13=d'élèves,de billets et de pièces,de boules, de pions
+tmp0=!itemcnt $val11
+
+val14=$[rint($(tmp0))]
+tmp0=!randint 1, $val14
+
+val15=$(tmp0)
+val16=$(val11[$val15])
+val17=$(val12[$val15])
+val18=$(val13[$val15])
+tmp=!nonempty items 5,7,11,13
+
+tmp0=!randitem $tmp
+val19=$(tmp0)
+tmp0=!randint 5, 10
+
+val19=$(tmp0)
+tmp0=!randint 6, 20
+
+val20=$[rint($val19*$(tmp0))]
+tmp0=!randint 6, 20
+
+val21=$[rint($val19*$(tmp0))]
+t_=!replace internal \( by ( in gcd($val20,$val21)
+tmp0=!exec pari $t_
+
+val19=$(tmp0)
+tmp0=!replace internal XXXX by $val20 in $val7
+
+val22=$(tmp0)
+tmp0=!replace internal YYYY by $val21 in $val22
+
+val22=$(tmp0)
+tmp0=!replace internal OOOO by $val16 in $val22
+
+val22=$(tmp0)
+tmp0=!replace internal UUUU by $val17 in $val22
+
+val22=$(tmp0)
+tmp0=!replace internal OOOO by $val16 in $val10
+
+val23=$(tmp0)
+tmp0=!replace internal MMMM by $val18 in $val23
+
+val23=$(tmp0)
+tmp0=!replace internal OOOO by $val16 in $val8
+
+val24=$(tmp0)
+tmp0=!replace internal MMMM by $val18 in $val24
+
+val24=$(tmp0)
+val25=$val19
+val26=$[rint(($val20+$val21)/$val19)]
+replytype1=numeric
+replyname1=$(val24[1])
+replygood1=$[$val25]
+replytype2=numeric
+replyname2=$(val24[2])
+replygood2=$[$val26]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val22	<ol><li>$val9?	</li>	<li>$val23?	</li>	</ol>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,22,23
+embedcnt=0

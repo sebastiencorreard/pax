@@ -1,0 +1,452 @@
+!set title=Tableau arithmétique 2x7
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=XIAO, Gang
+email=xiao@unice.fr
+language=fr
+
+ansorder=r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r
+varcnt=89
+prevarcnt=71
+postvarcnt=17
+replycnt=16
+choicecnt=0
+conditioncnt=9
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=fr
+val7=fr
+val8=Case
+val9=Somme,Produit
+val10=de sorte que les sommes des lignes et les sommes des colonnes,	 de sorte que les sommes des lignes et les produits des colonnes,	 de sorte que les produits des lignes et les sommes des colonnes,	 de sorte que les produits des lignes et les produits des colonnes
+val10=les sommes,la somme ou le produit,la somme ou le produit,les produits
+val11=Remplissez le tableau en tirant les
+val12=du bas dans les cases
+val13=de manière que chaque ligne et chaque colonne donnent 
+val14=comme indiqué
+val15=en faisant les calculs modulo
+val16=ligne
+val17=colonne
+val18=de la ligne
+val19=de la colonne
+val20=vaut
+val21=$[rint(2)]
+val22=$[rint(7)]
+val23=$[rint((2*7))]
+
+!ifval $val2=
+val2=$[rint(1)]
+!endif
+
+!ifval $val3=
+val3=$[rint(1)]
+!endif
+tmp0=!item $val3 of 1,1,2,2
+
+val24=$(tmp0)
+tmp0=!item $val3 of 1,2,1,2
+
+val25=$(tmp0)
+tmp0=!item $val24 of +,*
+
+val26=$(tmp0)
+tmp0=!item $val25 of +,*
+
+val27=$(tmp0)
+tmp0=!item $val24 of $val9
+
+val28=$(tmp0)
+tmp0=!item $val25 of $val9
+
+val29=$(tmp0)
+tmp0=!item $val3 of $val10
+
+val30=$(tmp0)
+tmp0=!shuffle a,b,c,d,r,s,t,x,y,z
+
+val31=$(tmp0)
+tmp0=!randitem 2,3,5
+
+val32=sqrt($(tmp0))
+tmp0=!record $val2 of src/data_$val7
+
+val33=$(tmp0)
+tmp=!translate internal $	$ to ; in $val33
+
+tmp=!row 1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val34=$(tmp0)
+tmp=!translate internal $	$ to ; in $val33
+
+tmp=!row 2 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val35=$(tmp0)
+val36=$(val35[1])
+val37=$(val35[2])
+val38=$(val35[3])
+
+!ifval $val37 =
+val37= 60
+!endif
+
+!ifval $val38=
+val38= 35
+!endif
+val39=$val37 $val38
+tmp=!translate internal $	$ to ; in $val33
+
+tmp=!row 3 to -1 of $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+tmp1=!rows2lines $(tmp0)
+
+val33=$(tmp1)
+val40=$(val35[4..-1])
+!if $val40 notsametext 
+tmp=!nonempty items $val40
+
+tmp0=!randitem $tmp
+val40=$(tmp0)
+tmp0=!values x%$val40 for x=0 to max($val40-1,(2*7) + 10)
+
+val33=$(tmp0)
+!endif
+tmp0=!itemcnt $val33
+
+val41=$[rint($(tmp0))]
+!if $val41<=3 and $val40 issametext 
+val42=$(val33[1])
+val43=$(val33[2])
+val44=$(val33[3])
+val45=computed
+!if $val44<0 
+tmp0=!values $val44*x,-($val44)*x for x=$val42 to $val43
+
+val46=$(tmp0)
+!else
+tmp0=!values $val44*x for x=$val42 to $val43
+
+val46=$(tmp0)
+!endif
+tmp0=!shuffle $val46
+
+tmp1=!item 1 to $val23 of $(tmp0)
+
+val47=$(tmp1)
+!else
+val45=listed
+tmp0=!shuffle $val33
+
+tmp1=!item 1 to $val23 of $(tmp0)
+
+val47=$(tmp1)
+!endif
+tmp0=!mathsubst f=$(val31[1]) in $val47
+
+val47=$(tmp0)
+tmp0=!mathsubst g=$(val31[2]) in $val47
+
+val47=$(tmp0)
+tmp0=!mathsubst rt=$val32 in $val47
+
+val47=$(tmp0)
+val48=
+val49=($(val47[1])),($(val47[2])),($(val47[3])),($(val47[4])),	($(val47[5])),($(val47[6])),($(val47[7])),($(val47[8])),	($(val47[9])),($(val47[10])),($(val47[11])),($(val47[12])),	($(val47[13])),($(val47[14])),($(val47[15])),($(val47[16]))
+val50=
+!for val51 =1 to $val21 
+tmp0=!replace , by $val26 in $(val49[($val51-1)*$val22+1..$val51*$val22])
+
+val52=$(tmp0)
+t_=!replace internal \( by ( in expand($val52)
+tmp0=!exec maxima $t_
+
+val52=$(tmp0)
+!if $val40 notsametext 
+val52=$[rint($val52%$val40)]
+!endif
+tmp0=!append item $val52 to $val50
+
+val50=$(tmp0)
+!next
+val53=
+!for val54 =1 to $val22 
+tmp0=!values $val22*(x-1)+$val54 for x=1 to $val21
+
+tmp1=!replace , by $val27 in $(val49[$(tmp0)])
+
+val44=$(tmp1)
+t_=!replace internal \( by ( in expand($val44)
+tmp0=!exec maxima $t_
+
+val44=$(tmp0)
+!if $val40 notsametext 
+val44=$[rint($val44%$val40)]
+!endif
+tmp0=!append item $val44 to $val53
+
+val53=$(tmp0)
+!next
+tmp0=!item 1 to $val23 of r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13,r14,r15,r16
+
+val55=$(tmp0)
+oefsteps=$val55 
+nextstep=!nosubst $val55 
+!readproc oef/steps.proc
+replytype1=dragfill
+replyname1=$val8 1
+replygood1=?analyze 56;\($(val47[1]))
+replytype2=dragfill
+replyname2=$val8 2
+replygood2=?analyze 57;\($(val47[2]))
+replytype3=dragfill
+replyname3=$val8 3
+replygood3=?analyze 58;\($(val47[3]))
+replytype4=dragfill
+replyname4=$val8 4
+replygood4=?analyze 59;\($(val47[4]))
+replytype5=dragfill
+replyname5=$val8 5
+replygood5=?analyze 60;\($(val47[5]))
+replytype6=dragfill
+replyname6=$val8 6
+replygood6=?analyze 61;\($(val47[6]))
+replytype7=dragfill
+replyname7=$val8 7
+replygood7=?analyze 62;\($(val47[7]))
+replytype8=dragfill
+replyname8=$val8 8
+replygood8=?analyze 63;\($(val47[8]))
+replytype9=dragfill
+replyname9=$val8 9
+replygood9=?analyze 64;\($(val47[9]))
+replytype10=dragfill
+replyname10=$val8 10
+replygood10=?analyze 65;\($(val47[10]))
+replytype11=dragfill
+replyname11=$val8 11
+replygood11=?analyze 66;\($(val47[11]))
+replytype12=dragfill
+replyname12=$val8 12
+replygood12=?analyze 67;\($(val47[12]))
+replytype13=dragfill
+replyname13=$val8 13
+replygood13=?analyze 68;\($(val47[13]))
+replytype14=dragfill
+replyname14=$val8 14
+replygood14=?analyze 69;\($(val47[14]))
+replytype15=dragfill
+replyname15=$val8 15
+replygood15=?analyze 70;\($(val47[15]))
+replytype16=dragfill
+replyname16=$val8 16
+replygood16=?analyze 71;\($(val47[16]))
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<em>$val34</em>.				<p>$val11 $val36 $val12,		$val13	
+!if $val40 issametext 
+$()	 $val30 $val14:	 
+!else
+$() 	 $val30 $val14 $val15 $val40:	 
+!endif
+$()	</p>	<table class="wimsborder wimscenter">	<tr><th></th>	 
+!for m_cc=1 to 7 
+$()<th class="small">$val17 $m_cc</th> 
+!next
+$()	<th>$val28</th></tr>	 
+!for m_rr=1 to 2 
+$()	<tr><th class="small">$val16 $m_rr</th>	  
+!for m_cc=1 to 7 
+$()							  <td> 
+!read oef/embed.phtml $(val55[($m_rr-1)*$val22+$m_cc]),$val39 
+$()</td>		 
+!next
+$()	<td>
+!insmath $(val50[$m_rr])
+$()</td></tr>	 
+!next
+$()	<tr><th>$val29</th>	 
+!for m_cc=1 to 7 
+$()<td>
+!insmath $(val53[$m_cc])
+$()</td> 
+!next
+$()	</tr></table>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+tmp0=!replace internal \ by $val48 in	  $val56,$val57,$val58,$val59,$val60,$val61,$val62,$val63,$val64,$val65,$val66,$val67,$val68,$val69,$val70,$val71
+
+val72=$(tmp0)
+val73=
+!for val51 =1 to $val21 
+tmp0=!replace , by $val26 in $(val72[($val51-1)*$val22+1..$val51*$val22])
+
+val57=$(tmp0)
+!if $val45 issametext computed 
+val74=$[$(val50[$val51])-($val57)]
+!else
+t_=!replace internal \( by ( in expand(($(val50[$val51]))-($val57))
+tmp0=!exec maxima $t_
+
+val74=$(tmp0)
+!endif
+
+!ifval $val74 issametext 
+val74=NaN
+!endif
+
+!ifval $val40 notsametext
+val74=$[rint($val74%$val40)]
+!endif
+tmp0=!append item $val74 to $val73
+
+val73=$(tmp0)
+!next
+val75=
+!for val54 =1 to $val22 
+tmp0=!values $val22*(x-1)+$val54 for x=1 to $val21
+
+tmp1=!replace , by $val27 in $(val72[$(tmp0)])
+
+val76=$(tmp1)
+!if $val45 issametext computed 
+val77=$[$(val53[$val54])-($val76)]
+!else
+t_=!replace internal \( by ( in expand(($(val53[$val54]))-($val76))
+tmp0=!exec maxima $t_
+
+val77=$(tmp0)
+!endif
+
+!ifval $val77 issametext 
+val77=NaN
+!endif
+
+!ifval $val40 notsametext
+val77=$[rint($val77%$val40)]
+!endif
+tmp0=!append item $val77 to $val75
+
+val75=$(tmp0)
+!next
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $(val73[1]) = 0
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val28 $val18 1 $val20 \($(val50[1]))
+
+!ifval $(val73[2]) = 0
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val28 $val18 2 $val20 \($(val50[2]))
+
+!ifval $(val75[1]) = 0
+ condtest3=1
+!else
+ condtest3=0
+!endif
+condname3=$val29 $val19 1 $val20 \($(val53[1]))
+
+!ifval $(val75[2]) = 0
+ condtest4=1
+!else
+ condtest4=0
+!endif
+condname4=$val29 $val19 2 $val20 \($(val53[2]))
+
+!ifval $(val75[3]) = 0
+ condtest5=1
+!else
+ condtest5=0
+!endif
+condname5=$val29 $val19 3 $val20 \($(val53[3]))
+
+!ifval $(val75[4]) = 0
+ condtest6=1
+!else
+ condtest6=0
+!endif
+condname6=$val29 $val19 4 $val20 \($(val53[4]))
+
+!ifval $(val75[5]) = 0
+ condtest7=1
+!else
+ condtest7=0
+!endif
+condname7=$val29 $val19 5 $val20 \($(val53[5]))
+
+!ifval $(val75[6]) = 0
+ condtest8=1
+!else
+ condtest8=0
+!endif
+condname8=$val29 $val19 6 $val20 \($(val53[6]))
+
+!ifval $(val75[7]) = 0
+ condtest9=1
+!else
+ condtest9=0
+!endif
+condname9=$val29 $val19 7 $val20 \($(val53[7]))
+
+!exit
+
+:stat
+vsavelist=11,12,13,14,15,16,17,18,19,20,21,22,26,27,28,29,30,34,36,39,40,45,48,50,51,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71
+embedcnt=1

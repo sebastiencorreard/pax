@@ -1,0 +1,138 @@
+!set title=Lecture de graphique 1
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice,Guerimand
+language=fr
+leftrange=-5.000000
+rightrange=5.000000
+computeanswer=no
+precision=10000
+
+ansorder=r
+varcnt=18
+prevarcnt=17
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+tmp=!nonempty items 2,4,5
+
+tmp0=!randitem $tmp
+val6=$[rint($(tmp0))]
+tmp=!nonempty items 4,5,10
+
+tmp0=!randitem $tmp
+val7=$[rint($(tmp0))]
+tmp0=!randint 9, 13
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 6, 8
+
+tmp1=!randint 12, 16
+
+tmp2=!randint 17, 19
+
+val9=0,0,$(tmp0),$val8,$(tmp1),$val8,20,$(tmp2)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val10=$(tmp0)
+tmp0=!randint 9, 13
+
+val8=$[rint($(tmp0))]
+tmp0=!randint 6, 8
+
+tmp1=!randint 12, 16
+
+tmp2=!randint 17, 19
+
+val9=0,0,$(tmp0),$val8,$(tmp1),$val8,20,$(tmp2)
+val11=Le graphique ci-dessous représente la distance parcourue, en kilomètres, par $val10 en fonction du temps en heures.
+tmp=!translate internal $	$ to ; in Quelle est la durée du trajet de $val10,($(val9[7])-$(val9[1]))/$val6	  Combien de temps dure sa pause,($(val9[5])-$(val9[3]))/$val6
+
+tmp=!nonempty rows $tmp
+tmp=!randrow $tmp
+tmp0=!translate internal $\
+$ to ; in $tmp
+val12=$(tmp0)
+tmp0=!item 1 of $val12
+
+val13=$(tmp0)
+val14=Heures
+tmp0=!item 2 of $val12
+
+val15=$[$(tmp0)]
+val16=100km
+val13=$val13&nbsp;
+!readproc slib/draw/repere 480,480,40,0,20,0,20,1,1,black,grey 
+tmp0=$slib_out
+val17=$(tmp0)
+val17=$val17	range -2,22,-2,22	text black,-2,$val7+0.4,medium,$val16	text black,$val6-0.3,-0.3,medium,1H	linewidth=2	polyline red,$val9
+!readproc oef/draw.phtml 480,480 \
+$val17 
+tmp0=$ins_url
+val18=$(tmp0)
+replytype1=numexp
+replyname1=
+replygood1=$val15
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	$val11	$val13?	<div class="wimscenter"><img src="$val18" alt=""></div>	<div class="spacer">	<label for="reply1"><b>Votre réponse</b>:</label>  
+!read oef/embed.phtml r1,5 
+$() $val14.	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=11,13,14,18
+embedcnt=1

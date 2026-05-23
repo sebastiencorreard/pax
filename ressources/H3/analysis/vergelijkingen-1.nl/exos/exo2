@@ -1,0 +1,267 @@
+n=$counter
+!if $rounding=-1
+    rounding=0
+    !readproc $remarkdir/rounding.$taal
+!endif
+image=0
+impossible=0
+arglist=x
+kleuren=red,blue,green,orange,purple
+kleuren=!shuffle $kleuren
+color1=!item 1 of $kleuren
+color2=!item 2 of $kleuren
+punten=$empty
+exotext=$empty
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+embed=1
+!if $subject=2
+    cols=20
+    rows=2
+    checkfile=$checkdir/number.proc
+    ss=!record 2 of lang/remarks.$taal
+    textanswer$n=!record 5 of lang/remarks.$taal
+    helptext=!record 23 of lang/remarks.$taal
+    mathviewpanel=$module_title:x1=:and:x2=:sqrt():nil
+!else
+    R=$[$R+1]
+    varlist=x
+    # tussenstappen
+    var1=5
+    # maximale aantal pijlen =>
+    cols=40
+    rows=4
+    checkfile=exos/checkfile2.proc
+    ss=!record 25 of lang/remarks.$taal
+    textanswer$n=!record 5 of lang/remarks.$taal
+    helptext=!record 26 of lang/remarks.$taal
+    mathviewpanel=$module_title:->:x1=:x2=:and
+    # convert all arrows to "->"
+    my_arrows=0
+!endif
+question$n=<a onmouseover="return escape('$helptext')">$ss</a>
+!if $R=1
+    #ax^2+bx=0
+    a=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    functie=!rawmath $a*x^2 + $b*x
+    tot=!exec pari A=$functie\
+    printtex(A)\
+    B=-1*($b)/($a)\
+    printtex(B)
+        
+    functie=!line 1 of $tot
+    tex_fun=!line 2 of $tot
+    x2=!line 3 of $tot
+    tex_x2=!line 4 of $tot
+    formula$n= $tex_fun \,\,=\,\, 0 
+    applettext=!nospace $functie=0 ->
+    x1=0
+    y1=0
+    y2=0
+    XRANGE=-10,10
+    YRANGE=-100,100
+    !if $x1=$x2
+	answer$n=$x1
+	texanswer$n=\left[ \begin{array}{l}$tex_fun = 0 \\ x \left( $a x + $b \right) = 0 \\ x = 0 \bigvee $a x + $b = 0 \\ x = 0 \bigvee x = \frac{$[-1*($b)]}{$a} = 0 \\  x_{1} = $x1 \end{array}\right.
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{l}$tex_fun = 0 \\ x \left( $a x + $b \right) = 0 \\ x = 0 \bigvee $a x + $b = 0 \\ x = 0 \bigvee x = \frac{$[-1*($b)]}{$a} = $tex_x2 \\  x_{1} = $x1 \\ x_{2} = $tex_x2 \end{array}\right.
+    !endif
+    !if $teaching=1
+	curve1=curve $color1,$functie
+	curve2=hline 0,0,$color2
+	!readproc exos/image1.proc
+    !endif
+    !exit
+!endif
+
+!if $R=2
+    #ax^2+bx+c = c
+    a=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    c=!randitem -5,-4,-3,-2,-1,2,3,4,5
+    functie=$a*x^2 + ($b)*x + ($c)
+    
+    tot=!exec pari A=$functie\
+    printtex(A)\
+    B=-1*($b)/($a)\
+    printtex(B)\
+    printtex($a*x^2+($b)*x)
+    
+    functie=!line 1 of $tot
+    tex_fun=!line 2 of $tot
+    x2=!line 3 of $tot
+    tex_x2=!line 4 of $tot
+    tussen=!line 5 of $tot
+    formula$n=$tex_fun \,\,=\,\, $c
+    applettext=!nospace $functie=$c ->
+    x1=0
+    y1=$c
+    y2=$c
+    XRANGE=-10,10
+    YRANGE=-100,100
+    !if $x1=$x2
+	answer$n=$x1
+        texanswer$n=\left[ \begin{array}{l} $tex_fun = $c \\   $tex_fun - $c = 0 \\ $tussen = 0\\ x_1 = $x1 \end{array}\right.
+    !else
+	answer$n=$x1,$x2
+        texanswer$n=\left[ \begin{array}{l} $tex_fun = $c \\   $tex_fun - $c = 0 \\ $tussen = 0 \\ x_1 = $x1\\ x_2 = $tex_x2  \end{array}\right.
+    !endif
+    !if $teaching=1
+	curve1=curve $color1,$functie
+	curve2=hline 0,$c,$color2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif
+
+!if $R>2
+    #ax^2+bx+c = dx+c
+    a=!randitem -7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7
+    b=!randitem -9,-8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8,9
+    c=!randitem -5,-4,-3,-2,-1,2,3,4,5
+    d=!randitem 1/2,1/4,3/4,-1/2,-1/4,-3/4,2,-2,3,-3,4,-4,5,-5 
+    !if $b=$d
+	d=$[$d+1]
+    !endif
+    functie1=$a*x^2 + ($b)*x + ($c)
+    functie2=$d*x+($c)
+    
+    tot=!exec pari A=$functie1 \
+    printtex(A)\
+    B=$functie2\
+    printtex(B)\
+    C=(($d)-($b))/($a)\
+    printtex(C)\
+    printtex($a*x^2 + ($b)*x -($d)*x)
+    
+    functie1=!line 1 of $tot
+    ftex1=!line 2 of $tot
+    functie2=!line 3 of $tot
+    ftex2=!line 4 of $tot
+    x2=!line 5 of $tot
+    tex_x2=!line 6 of $tot
+    tussen=!line 7 of $tot
+    
+    formula$n=$ftex1 = $ftex2
+    applettext=!nospace $functie1 = $functie2 ->
+    x1=0
+    y1=$c
+    y2=$[$d*$x2+$c]
+    XRANGE=-10,10
+    YRANGE=-100,100
+    !if $x1=$x2
+	answer$n=$x1
+	texanswer$n=\left[ \begin{array}{l} $ftex1 = $ftex2 \\	$ftex1 - \left( $ftex2 \right) = 0 \\  $tussen = 0\\ x_1 = $x1 \end{array}\right.
+    !else
+	answer$n=$x1,$x2
+	texanswer$n=\left[ \begin{array}{l} $ftex1 = $ftex2 \\	$ftex1 - \left( $ftex2 \right) = 0 \\ $tussen = 0\\ x_1 = $x1\\ x_2 = $tex_x2  \end{array}\right.
+    !endif
+    !if $teaching=1
+	curve1=curve $color1,$functie1
+	curve2=curve $color2,$functie2
+	!readproc exos/image1.proc
+    !endif
+  !exit
+!endif
+
+
+
+#
+#!if $R>3
+#    keuze=!randitem 1,2
+#    #(x+b)^2 + a = cx+(b^2+a)
+#    a=!randitem -8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8
+#    b=!randitem -8,-7,-6,-5,-4,-3,-2,-1,2,3,4,5,6,7,8
+#    c=!randitem 1/2,1/4,-1/2,-1/4,2,-2,3,-3,4,-4,5,-5,6,-6
+#    !if $c=$[2*$b]
+#	c=$[$c+1]
+#    !endif
+#    Ctex=!texmath $c
+#    !if $b > 0
+#	B=$b
+#	pm=+
+#    !else
+#	B=$[-1*$b]
+#	pm=-
+#    !endif
+#    !if $a > 0
+#	A=$a
+#    	mp=+
+#    !else
+#	A=$[-1*$a]
+#	mp=-
+#    !endif
+#    
+#    !if $keuze=1
+#	d=$[$b*$b+$a]
+#	!if $d > 0
+#	    D=$d
+#	    mm=+
+#	!else
+#	    D=$[-1*$d]
+#	    mm=-
+#	!endif
+#	!if $d=0
+#	    D=$empty
+#	    mm=$empty
+#	!endif
+#	formula$n=\left(x $pm $B\right)^{2} $mp $A = $Ctex\cdot x $mm $D
+#	applettext=!nospace (x $pm $b)^2 $mp $A = $c*x $mm $D ->
+#	curve1=curve $color1,(x+$b)^2 + $a
+#	tot=!exec pari $c-2*$b\
+#	printtex($c-2*$b)\
+#	A=((x $pm $B)^2 $mp ($A))\
+#	printtex(A)\
+#	printtex($c*x $mm ($D))
+#    !else
+#	d=$[-1*$b*$b+$a]
+#	!if $d > 0
+#	    D=$d
+#	    mm=+
+#	!else
+#	    D=$[-1*$d]
+#	    mm=-
+#	!endif
+#	!if $d=0
+#	    D=$empty
+#	    mm=$empty
+#	!endif
+#	formula$n= -\left(x $pm $B\right)^{2} $mp $A = $Ctex\cdot x $mm $D
+#	applettext=!nospace -(x $pm $b)^2 $mp $A = $c*x $mm $D ->
+#    	curve1=curve $color1,-1*(x+$b)^2 + $a
+#	tot=!exec pari W=-2*($b) - ($c)\
+#	printtex(W)\
+##	A=(-1*(x $pm ($B))^2 $mp ($A))\
+#	printtex(A)\
+#	printtex($c*x $mm ($D))
+#    !endif
+#    x2=!line 1 of $tot
+###    tex_x2=!line 2 of $tot
+#    y1=$d
+#    y2=$[$c*$x2+$d]
+#    
+#    x1=0
+#    XRANGE=-20,20
+#    YRANGE=-100,100
+#    tussen1=!line 4 of $tot
+#    tussen2=!line 5 of $tot
+#    !if $x1=$x2
+#	answer$n=$x1
+#	texanswer$n=\left[ \begin{array}{l} $tussen1=$tussen2 \\ x_{1} = $x1  \end{array}\right.
+#    !else
+#	answer$n=$x1,$x2
+#	texanswer$n=\left[ \begin{array}{l} $tussen1=$tussen2 \\ x_{1} = $x1\\ x_{2} = $tex_x2  \end{array}\right.
+#    !endif
+#    !if $teaching=1
+#	curve2=curve $color2,$c*x+$d
+#	!readproc exos/image1.proc
+#    !endif
+#  !exit
+#!endif
+#
+##

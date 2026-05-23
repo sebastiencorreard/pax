@@ -1,0 +1,48 @@
+n=$counter
+mathview=0
+inputs=2
+P=!randint 50,150
+r=!randint 200,500
+x=!randint 2,6
+tot=!exec moneyprint $[$P/10],$[$r/100] 2
+P=$(tot[1])
+r=$(tot[2])
+#P=12.5
+#r=2.50
+tot=!exec sigdigits $r
+sig=!item 1 of $tot
+description=Geluidsniveau bij $P W op $r m,Geluidsniveau bij $x &times;
+make_tr=1
+var1=1
+checkfile=$checkdir/new_number.proc
+ex1=dB
+ex2=dB
+ss=Een bolvormige geluidsbron heeft een geluidsvermogen van $P W.<ul><li>Bereken het geluidsniveau op een afstand van $r m</li><li>Bereken het geluidsniveau op deze afstand als het geluidsvermogen $x &times; zo groot wordt.</li></ul>
+A=$[4*pi*$r*$r]
+I=$[$P/$A]
+L=$[10*log($I/(10^(-12)))/log(10)]
+I2=$[3*$I]
+L2=$[10*log($I2/(10^(-12)))/log(10)]
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/hfst2.s15.jpg\' alt=\'noalt\' />')">$ss</a>
+tot=!exec scienceprint $L,$sig,0 $L,$sig,2 $L2,$sig,0 $L2,$sig,2
+ans1=!item 1 of $tot
+t_ans1=!item 2 of $tot
+ans2=!item 3 of $tot
+t_ans2=!item 4 of $tot
+
+answer$n=$ans1\
+$ans2
+
+var1=$[abs($ans1-$L)],$[abs($ans2-$L2)]
+var2=100,100
+texanswer$n=\left[\begin{array}{ll}  a) & I = \frac{P}{A_{bol}} \:\: W/m^{2} \\   & L = 10 \cdot \log \left( \frac{I}{10^{-12}} \right) \: \:  dB \\   & A_{bol} = 4 \cdot \pi \cdot r^{2} \\   & r = $r m \rightarrow A = 4 \cdot \pi \cdot $r^{2} = $A \: \m^{2} \\   & I = \frac{$P \: W}{$A \: m^{2}} = $I \: W/m^{2} \\   & L = 10 \cdot \log \left( \frac{$I}{10^{-12}} \right) = $L \: \: dB \\  & \textrm{Antwoord op $sig significante cijfers afkomstig van $r } \\ &  L = $t_ans1 \: \: dB \\ b) & \textrm{Geluidsvermogen $x keer zo groot : }\:  I = $x \times $I = $I2 \: W/m^{2} \\   & L = 10 \cdot \log \left( \frac{$I2}{10^{-12}} \right) = $L2 \: dB \\   & \textrm{Antwoord op $sig significante cijfers afkomstig van $r} \\ & L = $t_ans2 \: dB \end{array} \right.
+
+
+
+
+
+
+
+
+
+

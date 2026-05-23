@@ -1,0 +1,137 @@
+# :18 Getallen, Wortels en haakjes
+# werkt alleen met javainput applet
+display=1
+# tell myfreestyle.phtml to modify sqrt[3](2) into 2^(1/3)
+convert_root=0
+rounding=0
+mathview=5
+!readproc $remarkdir/rounding.$taal
+image=0
+embed=0
+n=$counter
+!if $level=0
+    R=$counter
+!else
+    R=$level
+!endif
+math=0
+make_tr=1
+helptext=<img src=\'$module_dir/gifs/exo18.jpg\' alt=\'noalt\' />
+#font settings in input applet
+smallfont=18
+largefont=26
+ss=!record 57 of lang/remarks.$taal
+#@Werk de haakjes uit en schrijf zo kort mogelijk...
+question$n=$ss
+checkfile=exos/precheck1.proc
+rounding=0
+!readproc $remarkdir/rounding.$taal
+mathviewpanel=$module_title:sqrt():+:-:*:/
+noselect=0
+#var9 is letterlijke som
+!if $R=1
+    keuze=!randitem 1,0
+    a=!randitem 2,3,5,7,11,13,14,15
+    b=!randint 1,15
+    pm=!randitem +,-
+    !if $keuze=1
+	formula$n=\sqrt{$a} \cdot \left(\sqrt{$a} $pm $b\right) = [?]
+	answer$n=$a $pm $b*sqrt($a)
+        texanswer$n=\left[ \begin{array}{l} \sqrt{$a}\cdot\sqrt{$a} $pm $b \cdot \sqrt{$a} = \\ $a $pm $b \cdot \sqrt{$a} \end{array} \right.
+	var9=sqrt($a)*(sqrt($a) $pm $b)
+    !else
+	formula$n=\left($b $pm \sqrt{$a}\right) \cdot \sqrt{$a}  = [?]
+	answer$n=$b*sqrt($a) $pm $a
+        texanswer$n=\left[ \begin{array}{l} $b \cdot \sqrt{$a} $pm \sqrt{$a} \cdot \sqrt{$a} = \\ $b \cdot \sqrt{$a} $pm $a \end{array} \right.
+	var9=($b $pm sqrt($a))*sqrt($a)
+    !endif
+    applettext=!nospace $var9 =
+ !exit
+!endif
+
+!if $R=2
+    keuze=!randitem 1,0
+    pm=!randitem +,-
+    mp=!randitem +,-
+    a=!randint 2,9
+    b=!randitem 2,3,5,6,7,10,11,13,14,15
+    c=!randint 1,9
+    d=!randint 2,9
+    e=!randint 2,9
+    kans=!randint 1,3
+    !if $keuze=1
+	!if $kans=1
+	    f=$[$a $mp $d]
+	    !if $f=0
+		a=$[$a+1]
+		f=1
+	    !endif
+	    var9=$a*(sqrt($b) $pm $c) + $d*($e $mp sqrt($b))
+	    formula$n=$a \cdot \left( \sqrt{$b} $pm $c \right) + $d \cdot \left( $e $mp \sqrt{$b} \right) = [?]
+	    answer$n=!rawmath $f*sqrt($b) + $[$d*$e $pm $a*$c]
+	    texans=!texmath $(answer$n)
+	    texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$b} $pm $[$a*$c] + $[$d*$e] $mp  $d \cdot \sqrt{$b} = \\ $a \sqrt{$b} $mp $d \sqrt{$b} $pm $[$a*$c] + $[$d*$e] = \\ $texans \end{array} \right.
+	!else
+	    !if $kans=2
+		var9=$a*(sqrt($b) + $c) - $d*($e - sqrt($b))
+	        formula$n=$a \cdot \left( \sqrt{$b} + $c \right) - $d \cdot \left( $e - \sqrt{$b} \right) = [?]
+		answer$n=!rawmath $[$a+$d]*sqrt($b) + $[$a*$c - $d*$e]
+	        texans=!texmath $(answer$n)
+		texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$b} + $[$a*$c] - $[$d*$e] +  $d \cdot \sqrt{$b} = \\ $a \sqrt{$b} + $d \sqrt{$b} + $[$a*$c] - $[$d*$e] = \\ $texans \end{array} \right.
+	    !else
+		!if $a=$d
+		    a=$[$a+1]
+		!endif
+		var9=$a*(sqrt($b) - $c) - $d*($e + sqrt($b))
+	        formula$n=$a \cdot \left( \sqrt{$b} - $c \right) - $d \cdot \left( $e + \sqrt{$b} \right) = [?]
+		answer$n=!rawmath $[$a-$d]*sqrt($b) - $[$a*$c + $d*$e]
+	        texans=!texmath $(answer$n)
+		texanswer$n=\left[ \begin{array}{l} $a \cdot \sqrt{$b} - $[$a*$c] - $[$d*$e] -  $d \cdot \sqrt{$b} = \\ $a \sqrt{$b} - $d \sqrt{$b} - $[$a*$c] - $[$d*$e] = \\ $texans \end{array} \right.
+	    !endif
+	!endif
+    !else
+	var9=($a*sqrt($b) $pm $c)^2
+	formula$n=\left($a \sqrt{$b} $pm $c \right)^{2}
+	answer$n=!rawmath $pm $[2*$a*$c]*sqrt($b)+$[$b*$a^2 + $c^2]
+	texans=!texmath $(answer$n)
+	texanswer$n=\left[ \begin{array}{l} \left($a \sqrt{$b} $pm $c \right) \cdot \left($a \sqrt{$b} $pm $c \right) = \\ $a \sqrt{$b} \cdot $a \sqrt{$b} $pm $c \cdot $a \cdot \sqrt{$b} $pm $c \cdot $a \cdot \sqrt{$b} + $c \cdot $c = \\ $[$a^2*$b] $pm $[$a*$c]\sqrt{$b} $pm $[$a*$c]\sqrt{$b}+ $[$c^2] = \\ $texans \end{array} \right.
+    !endif
+    applettext=!nospace $var9 =
+ !exit
+!endif
+
+
+!if $R>2
+    g=!shuffle 2,3,5,7
+    a=!item 1 of $g
+    b=!item 2 of $g
+    c=!randint 2,9
+    kans=!randint 1,4
+    !if $kans=1
+	var9=(sqrt($a) + sqrt($b))*(sqrt($a) + $c*sqrt($b))
+	formula$n=\left( \sqrt{$a} + \sqrt{$b} \right)\left( \sqrt{$a} + $c\sqrt{$b} \right) = [?]
+	answer$n=$[$a+$c*$b]+$[$c+1]*sqrt($[$a*$b])
+	texanswer$n=\left[ \begin{array}{l} \sqrt{$a}\cdot \sqrt{$a} + \sqrt{$a}\cdot\sqrt{$b} + $c\sqrt{$a}\cdot\sqrt{$b} + $c\sqrt{$b}\cdot\sqrt{$b} = \\ $a + \sqrt{$a \cdot $b} + $c \sqrt{$a \cdot $b} + $c\cdot$b = \\ $[$a+$c*$b]+$[$c+1]\sqrt{$[$a*$b]} \end{array} \right.
+    !else
+	!if $kans=2
+	    var9=(sqrt($a) - sqrt($b))*(sqrt($a) - $c*sqrt($b))
+	    formula$n=\left( \sqrt{$a} - \sqrt{$b} \right)\left( \sqrt{$a} - $c\sqrt{$b} \right) = [?]
+	    answer$n=$[$a+$c*$b]-$[$c+1]*sqrt($[$a*$b])
+	    texanswer$n=\left[ \begin{array}{l} \sqrt{$a}\cdot \sqrt{$a} - \sqrt{$a}\cdot\sqrt{$b} - $c\sqrt{$a}\cdot\sqrt{$b} + $c\sqrt{$b}\cdot\sqrt{$b} = \\ $a - \sqrt{$a \cdot $b} - $c \sqrt{$a \cdot $b} + $c\cdot$b = \\ $[$a+$c*$b] - $[$c+1]\sqrt{$[$a*$b]} \end{array} \right.
+	!else
+	    !if $kans=3
+		var9=(sqrt($a) + sqrt($b))*(sqrt($a) - $c*sqrt($b))
+		formula$n=\left( \sqrt{$a} + \sqrt{$b} \right)\left( \sqrt{$a} - $c\sqrt{$b} \right) = [?]
+		answer$n=$[$a-$c*$b]-$[$c - 1 ]*sqrt($[$a*$b])
+		texanswer$n=\left[ \begin{array}{l} \sqrt{$a}\cdot \sqrt{$a} + \sqrt{$a}\cdot\sqrt{$b} - $c\sqrt{$a}\cdot\sqrt{$b} - $c\sqrt{$b}\cdot\sqrt{$b} = \\  $a + \sqrt{$a \cdot $b} - $c \sqrt{$a \cdot $b} - $c\cdot$b = \\ $[$a-$c*$b] - $[$c-1]\sqrt{$[$a*$b]} \end{array} \right.
+	    !else
+	    	var9=(sqrt($a) - sqrt($b))*(sqrt($a) + $c*sqrt($b))
+		formula$n=\left( \sqrt{$a} - \sqrt{$b} \right)\left( \sqrt{$a} + $c\sqrt{$b} \right) = [?]
+		answer$n=$[$a-$c*$b]+$[$c - 1 ]*sqrt($[$a*$b])
+		texanswer$n=\left[ \begin{array}{l} \sqrt{$a}\cdot \sqrt{$a} - \sqrt{$a}\cdot\sqrt{$b} + $c\sqrt{$a}\cdot\sqrt{$b} - $c\sqrt{$b}\cdot\sqrt{$b} = \\ $a - \sqrt{$a \cdot $b} + $c \sqrt{$a \cdot $b} - $c\cdot$b = \\ $[$a-$c*$b] + $[$c-1]\sqrt{$[$a*$b]} \end{array} \right.
+	    !endif
+	!endif
+    !endif
+    applettext=!nospace $var9 =
+ !exit
+!endif

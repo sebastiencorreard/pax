@@ -1,0 +1,400 @@
+!set title=09.Tracer la représentation graphique
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Lionel,Verbecq
+email=lionel.verbecq@ac-versailles.fr
+language=fr
+computeanswer=no
+precision=10000
+leftrange=-5.000000
+rightrange=5.000000
+oefcss= <style> .euler_quest_nobg { border-left:0.3em solid blue; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; } .euler_rep_good_nobg { border-left:0.3em solid green; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_answer_nobg { border-left:0.3em solid grey; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin:0.3em 0; margin-left:0.3em; } .euler_rep_bad_nobg { border-left:0.3em solid red; border-radius:3px; padding:0.3em 0.3em 0.3em 0.5em; margin-top: 0.3em; margin-bottom: 0.3em; margin-left:0.3em; } .tick:before{ content : "\002713"; color:#008000; font-weight:bold; font-size:1.3em; } .cross:before{ content : "\002717"; color:#b50000; font-weight:bold; font-size:1.3em; } div.tick::before, div.cross::before{ font-size:2em; position: absolute; left: 0.2em; top: 0; height: 100%; display: grid; place-items: center; box-sizing:border-box; } div.tick,div.cross{ position: relative; background-size: 100% 1px; background-repeat: no-repeat; background-position: 0 0; overflow: hidden; padding-left:2.5em; } .container { display: flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content: flex-start; } .image-wrapper { flex: 0 1 auto; text-align: center; box-sizing: border-box; } .table-wrapper { flex: 1 1 300px; min-width: 300px; box-sizing: border-box; } .image-block { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; } .ui-accordion .ui-accordion-content{ padding-left:1em; padding-right:1em; } .highlight { background-color: #FFF9C4; color: #333; padding: 0.2em 0.4em; border-radius: 0.2em; } .legend-item span { line-height: 20px; } .spacer { margin: 1em 0; } @media (max-width: 768px) { .container { flex-direction: column; } } </style> 
+
+ansorder=r
+varcnt=121
+prevarcnt=108
+postvarcnt=12
+replycnt=1
+choicecnt=0
+conditioncnt=2
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+!if $val2= 
+val2=1
+!endif
+!if $val2 issametext 1,2 
+tmp=!nonempty items 1,2
+
+tmp0=!randitem $tmp
+val2=$(tmp0)
+!endif
+!if $val3= 
+val3=1
+!endif
+val6=1,2,3,4,5,-1,-2,-3,-4,-5
+val7=1/2,1/3,1/4,1/5,2/3,2/5,3/2,3/4,3/5,4/3,4/5,5/2,5/3,5/4,-1/2,-1/3,-1/4,-1/5,-2/3,-2/5,-3/2,-3/4,-3/5,-4/3,-4/5,-5/2,-5/3,-5/4
+!if $val3=1 
+tmp0=!shuffle $val6
+
+val8=$(tmp0)
+!endif
+!if $val3=2 
+tmp0=!shuffle $val7
+
+val8=$(tmp0)
+!endif
+!if 1 isitemof $val3 and 2 isitemof $val3 
+tmp0=!shuffle $val6,$val7
+
+val8=$(tmp0)
+!endif
+val9=$(val8[1])
+!if $val2=1 
+tmp=!nonempty items -5,-4,-3,-2,-1,1,2,3,4,5
+
+tmp0=!randitem $tmp
+val10=$(tmp0)
+!else
+val10=0
+!endif
+tmp=!nonempty items f,g,h,i
+
+tmp0=!randitem $tmp
+val11=$(tmp0)
+val12=$[rint($val10)]
+val13=$val9*x+($val12)
+tmp0=!texmath $val13
+
+val14=$(tmp0)
+val15=$[0]
+!if $val9 isitemof $val7 
+t_=!rawmath $val9
+val16=!exec pari print($t_)
+t_=!replace internal \( by ( in denominator($val16)
+tmp0=!exec pari $t_
+
+val17=$[rint($(tmp0))]
+val18=$[rint($val17)]
+!else
+val18=$[rint(1)]
+!endif
+
+!ifval $val18<0
+val19=($val18)
+!else
+val19=$val18
+!endif
+!if $val9 isitemof $val7 
+
+!ifval $val16<0
+val20=($val16)
+!else
+val20=$val16
+!endif
+
+!ifval $val16<0
+tmp0=!texmath $val20
+
+val21=($(tmp0))
+!else
+tmp1=!texmath $val20
+
+val21=\$(tmp1)
+!endif
+val13=($val16)*x+($val12)
+tmp=!translate ";': to $     $ in $val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val22)
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+tmp0=!texmath $val23
+
+val14=$(tmp0)
+val24=$val11 (x)=$val14
+t_=!replace internal \( by ( in numerator($val16)
+tmp0=!exec pari $t_
+
+val25=$[rint($(tmp0))]
+t_=!rawmath ($val16)*($val18)+($val12)
+val26=!exec pari print($t_)
+t_=!rawmath ($val16)*($val18)
+val27=!exec pari print($t_)
+t_=!rawmath $val26-($val12)
+val28=!exec pari print($t_)
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+tmp0=!texmath $val27
+
+val30=$(tmp0)
+tmp0=!texmath $val28
+
+val31=$(tmp0)
+!if $val12>0 
+val32=\($val11 ($val18)= \frac{$val25}{$val17} \times $val19 + $val12\)
+val33=\($val11 ($val18)= $val30 + $val12\)
+val34=\($val11 ($val18) = $val29\)
+val35=$val29- $val12
+!endif
+!if $val12=0 
+val32=\($val11 ($val18)= \frac{$val25}{$val17} \times $val19\)
+val33=\($val11 ($val18)=$val29\)
+val35=$val29
+!endif
+!if $val12<0 
+val32=\($val11 ($val18)= \frac{$val25}{$val17} \times $val19 $val12\)
+val33=\($val11 ($val18)= $val30 $val12\)
+val34=\($val11 ($val18)= $val29\)
+val35=$val29 + \absb
+!endif
+!else
+val16=$[rint($val9)]
+
+!ifval $val16<0
+val20=($val16)
+!else
+val20=$val16
+!endif
+
+!ifval $val16<0
+tmp0=!texmath $val20
+
+val21=($(tmp0))
+!else
+tmp1=!texmath $val20
+
+val21=\$(tmp1)
+!endif
+val13=($val16)*x+($val12)
+tmp=!translate ";': to $     $ in $val13
+
+tmp=!lower $tmp
+tmp0=!exec maxima fullratsimp($tmp);
+val22=$(tmp0)
+t_=!replace internal \( by ( in Polrev($val22)
+tmp0=!exec pari $t_
+
+val23=$(tmp0)
+tmp0=!texmath $val23
+
+val14=$(tmp0)
+val24=$val11 (x)=$val14
+val26=$[rint(($val16)*($val18)+($val12))]
+val36=$[rint(($val16)*($val18))]
+val28=$[rint($val26-$val12)]
+tmp0=!texmath $val26
+
+val29=$(tmp0)
+!if $val12>0 
+
+!ifval $val16=1
+val32=\($val11 ($val18)= $val18 + $val12\)
+!else
+val32=\($val11 ($val18)= $val16 \times $val19 + $val12\)
+!endif
+
+!ifval $val16=1
+val33=
+!else
+val33=\($val11 ($val18)=$val36 + $val12\)
+!endif
+val34=\($val11 ($val18)=$val29\)
+val31=$val29 - $val12
+!endif
+!if $val12=0 
+
+!ifval $val16=1
+val32=\($val11 ($val18)= $val19\)
+!else
+val32=\($val11 ($val18)=$val16 \times $val19\)
+!endif
+
+!ifval $val16=1
+val33=
+!else
+val33=\($val11 ($val18)=$val29\)
+!endif
+val31=$val29
+!endif
+!if $val12<0 
+
+!ifval $val16=1
+val32=\($val11 ($val18)= $val18 $val12\)
+!else
+val32=\($val11 ($val18)= $val16 \times $val19 $val12\)
+!endif
+
+!ifval $val16=1
+val33=
+!else
+val33=\($val11 ($val18)= $val36 $val12\)
+!endif
+val34=\($val11 ($val18)=$val29\)
+val31=$val29 + \absb
+!endif
+!endif
+val37=$[$val26]
+val38=JXG.Options.line.highlight = false;	JXG.Options.label.autoPosition = true;	var board=JXG.JSXGraph.initBoard('jsxbox',{boundingbox: [-10,10,10,-10], showCopyright:false, showNavigation:true,keepAspectRatio:true, axis:true,	 grid: {	    drawGrid: true,	    gridX: 1,	    gridY: 1	  }	});	var jsxbox_rep1 = board.create('point',jsxbox_var1,{face:'plus',name:'A',size:8,color:'black',showInfobox:false,snapToGrid:true,label:{fontSize:15}});	var jsxbox_rep2 = board.create('point',jsxbox_var2, {face:'plus',name:'B',size:8,color:'black',showInfobox:false,snapToGrid:true,label:{fontSize:15}});	var d = board.create('line',[jsxbox_rep1,jsxbox_rep2]);	
+val39=$[0]
+val40=$[0]
+val41=$[0]
+val42=$[0]
+val43=JXG.Options.line.highlight = false;	JXG.Options.label.autoPosition = true;	var board2=JXG.JSXGraph.initBoard('jsxbox2',{boundingbox: [-10,10,10,-10], showCopyright:false, showNavigation:true,keepAspectRatio:true,	 axis:true,	  grid: {	    drawGrid: true,	    gridX: 1,	    gridY: 1	  }	});	var pA = board2.create('point',[0,$val12],{face:'plus',name:'A',size:4,color:'black',showInfobox:false,fixed:true,label:{fontSize:15}});	var pB = board2.create('point',[$val18,$val37], {face:'plus',name:'B',size:4,color:'black',showInfobox:false,fixed:true,label:{fontSize:15}});	var d1 = board2.create('line',[pA,pB],{name:'',color:'green',withLabel:true,label:{color:'green',fontSize:15}});	
+!readproc slib/geo2D/jsxgraph jsxbox2 board2,[500x500, min=250px max=350px center],$val43 
+tmp0=$slib_out
+val44=$(tmp0)
+val45=
+val46=La fonction \($val11\) étant affine, sa représentation graphique est une droite.
+val47=Comme \($val11(0)=$val12\) (ordonnée à l'origine), la droite passe par le point de coordonnées <span class="nowrap">\(\mathrm{A}(0 \, ; \, $val12)\).</span>
+val48=La fonction \($val11\) étant linéaire, sa représentation graphique est une droite <span style="color:red">passant par l'origine</span> <span class="nowrap">\(\mathrm{A}(0;0)\).</span>
+val49=La courbe représentative de la fonction \($val11\) est l'ensemble des points de coordonnées \((x \, ; \, y)\) avec <span class="nowrap">\(y=$val11(x)\).</span>
+val50=Déplacer les points A et B de manière à ce que la droite obtenue soit la représentation graphique de la fonction affine \($val11\) définie pour tout nombre \(x\) par
+val51=Déplacer les points A et B de manière à ce que la droite obtenue soit la représentation graphique de la fonction linéaire \($val11\) définie pour tout nombre \(x\) par
+val52=Point A bien placé
+val53=Point B bien placé
+val54=On calcule l'image d'un nombre non nul.
+val55=On calcule l'image d'un nombre non nul (on s'arrange pour prendre un nombre entier qui a une image entière pour la fonction \($val11\) afin de simplifier le placement du point dans le repère).
+val56=Pour calculer l'image de \($val18\), on remplace \(x\) par \($val18\) dans l'expression algébrique de la fonction.
+val57=Finalement, la droite passe par les points \(\mathrm{A}(0 \, ; \, 0)\) et 
+val58=Finalement, la droite passe par les points \(\mathrm{A}(0 \, ; \, $val12)\) et 
+val59=Votre réponse
+val60=Bonne réponse
+val61=La fonction affine \($val11\) est définie pour tout nombre \(x\) par
+val62=La fonction linéaire \($val11\) est définie pour tout nombre \(x\) par
+val63=La droite passe par le point
+!if $val2=1 
+val64=$val61
+val65=$val46
+val66=$val47
+val67=$val50
+val68=$val58
+!else
+val64=$val62
+val65=$val48
+val67=$val51
+val68=$val57
+!endif
+!if $val3=2 
+val69=$val55
+!else
+val69=$val54
+!endif
+val70=euler_answer_nobg
+replytype1=jsxgraph
+
+replyoption1=precision=10 
+replyname1=
+replygood1=?analyze 71
+question=__EXECUTED_1692754_EXERCISE__
+help=!nosubst <b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+
+solution=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="euler_quest_nobg spacer">$val67 <span class="nowrap">
+!insmath $val11(x)=$val14
+$().</span></div>	<div class="spacer">	<div class="$val70"> 
+!read oef/embed.phtml r1,400x400	jsxbox board[responsive center min=250px max=500px scroll]	$val38	jsxbox_var1=[-3,2] ; jsxbox_var2=[3,2] 
+$()	  </div>	</div>	
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()<b>Utilisation de la barre de navigation de JSXGraph</b> <ul> <li><b>Touche ( + ) :</b> zoom avant.</li> <li><b>Touche ( 0 ) :</b> retour à l'affichage initial.</li> <li><b>Touche ( – ) :</b> zoom arrière.</li> <li><b>Flèche &#8592; (gauche) :</b> déplacer à gauche.</li> <li><b>Flèche &#8594; (droite) :</b> déplacer à droite.</li> <li><b>Flèche &#8593; (haut) :</b> déplacer vers le haut.</li> <li><b>Flèche &#8595; (bas) :</b> déplacer vers le bas.</li> </ul> 
+$()
+!exit
+
+:solution
+$()	<div class="container">	         <div class="image-block">	              <div class="image-wrapper">$val44</div>	              <div class="container"><span style="width:25px; height:25px; display:inline-block;border-color:red;margin-right:0px;background-image:repeating-linear-gradient(	        -45deg,	        red 0,	        red 2px,	        transparent 2px,	        transparent 6px);"></span><span style="color:red">$val59</span>	                 <span style="width:25px; height:25px; background-color:green; display:inline-block; margin-left:20px;margin-right:0px;"></span><span style="color:green">$val60</span>	              </div>	         </div>	         <div class="table-wrapper">	              <p>$val64 <span class="nowrap">
+!insmath $val11(x)=$val14
+$().</span></p>	              $val65	              <p>$m_name_sol2</p>	              $val66	              <p>$val69</p>	              $val56	              <p><span class="nowrap">$val32</span></p>	              <span class="nowrap">$val33</span>	              <p><span class="nowrap">$val34</span></p>	              $val63 <span class="nowrap">
+!insmath \mathrm{B}($val18 \, ; \, $val29)
+$().</span>	              <p>$val68 <span class="nowrap">
+!insmath \mathrm{B}($val18 \, ; \, $val29)
+$().</span></p>	         </div>	</div>	
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+val39=$[$(val71[1;1])]
+val40=$[$(val71[2;1])]
+val41=$[$(val71[1;2])]
+val42=$[$(val71[2;2])]
+val72=$[$(val71[1;2])-($val9*($(val71[1;1]))+($val12))]
+val73=$[$(val71[2;2])-($val9*($(val71[2;1]))+($val12))]
+!if $val72=0 and $(val71[1;1]) notsamecase $(val71[2;1]) and $val73=0 
+val45=$[rint(1)]
+!else
+val45=$[rint(0)]
+!endif
+!if $val45<1 
+val70=euler_rep_bad_nobg cross
+!else
+val70=euler_rep_good_nobg tick
+!endif
+val43=$val43	var pC=board2.create('point',[$val39,$val41],{name:'',size:4,fixed:true,showInfobox:false,face:'plus',color:'black'});	var pD=board2.create('point',[$val40,$val42],{name:'',size:4,fixed:true,showInfobox:false,face:'plus',color:'black'});	var d2= board2.create('line',[pC,pD],{name:'',color:'red',dash:2})	
+!readproc slib/geo2D/jsxgraph jsxbox2 board2,[350x350, min=250px max=350px left],$val43 
+tmp0=$slib_out
+val44=$(tmp0)
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!ifval $val72=0 and $(val71[1;1]) notsamecase $(val71[2;1])
+ condtest1=1
+!else
+ condtest1=0
+!endif
+condname1=$val52
+
+!ifval $val73=0 and $(val71[1;1]) notsamecase $(val71[2;1])
+ condtest2=1
+!else
+ condtest2=0
+!endif
+condname2=$val53
+
+!exit
+
+:stat
+vsavelist=9,11,12,14,18,29,32,33,34,38,39,40,41,42,43,44,45,52,53,56,59,60,63,64,65,66,67,68,69,70,71
+embedcnt=1

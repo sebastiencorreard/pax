@@ -1,0 +1,96 @@
+n=$counter
+math=0
+cols=12
+rounding=1
+mathview=0
+image=0
+draw=1
+plot=0
+make_tr=1
+sig=3
+
+keuze=!randint 1,5
+keuze=5
+!if $keuze=1
+    t_gas=CO<sub>2</sub>
+    h_gas=CO_{2}
+    naam_gas=koolzuur
+    Mc=1\times M_{C} + 2 \times M_{O} = 1 \times 12 + 2 \times 16
+    M=44
+!else
+    !if $keuze=2
+	t_gas=N<sub>2</sub>
+        h_gas=N_{2}
+	naam_gas=stikstof
+        Mc= 2 \times M_{N} = 2 \times 14.0
+	M=28.0
+    !else
+	!if $keuze=3
+	    t_gas=H<sub>2</sub>
+    	    h_gas=H_{2}
+	    naam_gas=waterstof
+    	    Mc= 2 \times M_{H} = 2 \times 1.008
+	    M=2.016
+	!else
+	    !if $keuze=4
+		t_gas=O<sub>2</sub>
+    		h_gas=O_{2}
+	        naam_gas=zuurstof
+    		Mc= 2 \times M_{O} = 2 \times 16.0
+	        M=32.0
+	    !else
+		t_gas=H<sub>2</sub>S
+    		h_gas=H_{2}S
+	        naam_gas=waterstofsulfide
+    		Mc= 2 \times M_{H} + 1 \times M_{S} = 2 \times 1.008 + 1 \times 32.07
+	        M=32.08
+	    !endif
+	!endif
+    !endif
+!endif
+
+inputs=3
+description=<b>a</b>) Aantal mol $t_gas,<b>b</b>) Aantal moleculen $t_gas,<b>c</b>) Massa gevormde gas
+ex1=&nbsp;mol
+ex2=&nbsp;moleculen
+ex3=&nbsp;gram
+m_rightarrow=&nbsp;=&nbsp;
+vol=!randint 20,75
+vol=$[$vol*10]
+T1=22
+T0=273
+T=$[$T1+$T0]
+Rb=8.314
+N=6.022*10^(23)
+
+ss=Bij een chemische reactie komt $t_gas (<kbd>$naam_gas</kbd>) vrij.<br />Dit gas wordt <span style="color:blue">opgevangen</span> in een maatcilinder.<br />Als de maatcilinder gevuld is heb je $vol mL $naam_gas gas opgevangen.<br />De temperatuur is $T1&deg;C en de druk is 1 bar.<hr />a) Bereken de gevormde hoeveelheid $t_gas in mol.(in $sig significante cijfers)<br />b) Bereken het aantal moleculen $t_gas .<br />c) Bereken de massa van het gevormde gas in g.(in $sig significante cijfers)
+# iets raars :10^-1*$vol/($T*$Rb) wordt niet goed uitgerekend !
+mol_CO2=$[10^-1*$vol/(293*$Rb)]
+moleculen_CO2=$[$mol_CO2*($N)]
+g_CO2=$[44*$mol_CO2]
+
+tot=!exec scienceprint $mol_CO2,$sig,0 $mol_CO2,$sig,2 $moleculen_CO2,$sig,0 $moleculen_CO2,$sig,2 $g_CO2,$sig,0 $g_CO2,$sig,2
+ans1=!item 1 of $tot
+t_ans1=!item 2 of $tot
+ans2=!item 3 of $tot
+t_ans2=!item 4 of $tot
+ans3=!item 5 of $tot
+t_ans3=!item 6 of $tot
+
+answer$n=$ans1,$ans2,$ans3
+checkfile=$checkdir/units.proc
+# hoeft geen eenheid
+var1=0,0,0
+var2=$[abs($ans1 - $mol_CO2)],$[abs($ans2 - $moleculen_CO2)],$[abs($ans3 - $g_CO2)]
+
+texanswer$n=\begin{array}{l} a)\\ \left[ \begin{array}{l} \frac{p \cdot V}{T} = n \cdot R \rightarrow n = \frac{P \cdot V}{T \cdot R} \\ V = $vol ml = $vol\times 10^{-6}\;m^{3} \\ T = $T1 + $T0 = $T\;K \\ R = $Rb \;J \cdot K^{-1}\cdot mol^{-1} \;\textrm{(gasconstante)}\\ n = \frac{10^{5} \times $vol \times 10^{-6}}{293 \times $Rb} = $mol_CO2 \;\textrm{mol} \\ \textrm{Opgeven in $sig significante cijfers : } \; n = $t_ans1 \end{array}\right. \\ \\ b)\\ \left[ \begin{array}{l} N = 6.022 \times 10^{23} \;\textrm{ ( Avogadro )} \\ n = $mol_CO2 \;\textrm{mol}  = $mol_CO2 \times 6.022 \times 10^{23} = $moleculen_CO2 \;\textrm{moleculen}\; $h_gas \\ \textrm{Opgeven in $sig significante cijfers : } \; n = $t_ans2  \;\textrm{moleculen}\; $h_gas \end{array}\right. \\ \\ c) \\ \left[ \begin{array}{l} M_{$h_gas} = $Mc = $M\; \textrm{g/mol} \\ m_{gas} = $mol_CO2 \; \textrm{mol} \times 44 \; \textrm{g/mol} = $g_CO2 g \\ \textrm{Opgeven in $sig significante cijfers :} \; m_{gas} = $t_ans3 \;g\; $h_gas \end{array} \right. \end{array}
+
+helptext=<kbd>p&#8901;V&nbsp;=&nbsp;n&#8901;R&#8901;T</kbd><ul><li> p de druk in Pa (N/m<sup>2</sup>)</li><li> V het volume in m<sup>3</sup></li><li> n de hoeveelheid gas in mol (= aantal moleculen gedeeld door de constante van Avogadro)</li><li> R de gasconstante ($Rb J·K<sup>-1</sup>mol<sup>-1</sup>)</li><li> T de absolute temperatuur in K</li><li>N = 6.022&times; 10<sup>23</sup> : getal van Avogadro</li></ul>
+
+question$n=<a onmouseover="return escape('<img src=\'$module_dir/gifs/gaswet.jpg\' alt=\'gaswet\'/>')">$ss</a><br /><small>klik <a target="new" href="$module_dir/gifs/periodiek_systeem.html">hier</a> voor het<kbd> periodiek systeem de elementen</kbd></small>
+
+!exit
+
+
+
+

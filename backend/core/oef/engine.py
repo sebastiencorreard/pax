@@ -106,7 +106,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
         with open(oef_path, encoding="utf-8") as f:
             source = f.read()
     except UnicodeDecodeError:
-        with open(oef_path, encoding="iso-8859-1") as f:
+        with open(oef_path, encoding="cp1252") as f:
             source = f.read()
 
     directives_ast = parse(source)
@@ -186,6 +186,62 @@ _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
 _BR_LEADING = re.compile(r"^(?:\s*<br\s*/?>\s*)+", re.I)
 
 
+_TABLE_OPEN = re.compile(r"<table\b[^>]*>", re.IGNORECASE)
+_TABLE_CLOSE = re.compile(r"</table\s*>", re.IGNORECASE)
+
+
+def _table_ranges(html: str) -> list[tuple[int, int]]:
+    """Find (start, end) byte ranges of top-level <table>…</table> blocks.
+
+    Within these ranges, inline widgets must NOT split the HTML into separate
+    segments — otherwise the surrounding table structure breaks. Instead the
+    backend rewrites such widgets to native <input> tags that the browser
+    renders inline (the frontend binds them via event delegation).
+    """
+    opens = [m.start() for m in _TABLE_OPEN.finditer(html)]
+    closes = [m.end() for m in _TABLE_CLOSE.finditer(html)]
+    ranges: list[tuple[int, int]] = []
+    depth = 0
+    start = -1
+    o = c = 0
+    while o < len(opens) or c < len(closes):
+        next_open = opens[o] if o < len(opens) else float("inf")
+        next_close = closes[c] if c < len(closes) else float("inf")
+        if next_open < next_close:
+            if depth == 0:
+                start = next_open
+            depth += 1
+            o += 1
+        else:
+            depth = max(0, depth - 1)
+            if depth == 0 and start != -1:
+                ranges.append((start, next_close))
+                start = -1
+            c += 1
+    return ranges
+
+
+def _inline_input_html(name: str, size_raw: str) -> str:
+    """Render a widget as a native <input> for inline placement inside a table."""
+    name = re.sub(r"^r(\d+)$", r"reply\1", name)  # rN → replyN
+    textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
+    if textarea_m:
+        rows, cols = int(textarea_m.group(1)), int(textarea_m.group(2))
+        return (
+            f'<textarea class="oef-input" name="{name}" '
+            f'rows="{rows}" cols="{cols}"></textarea>'
+        )
+    try:
+        size = int(size_raw)
+    except (TypeError, ValueError):
+        size = 10
+    width = f"{max(size + 2, 6)}ch"
+    return (
+        f'<input type="text" class="oef-input" name="{name}" '
+        f'autocomplete="off" style="width:{width};min-width:6ch" />'
+    )
+
+
 def _segment_statement(html: str) -> list[dict]:
     """
     Découpe le HTML rendu en segments typés consommables tels quels par le front :
@@ -195,6 +251,11 @@ def _segment_statement(html: str) -> list[dict]:
       - {type: "menu",  name: "reply1", label: "Choix"}
     Aplatit les balises de bloc (<div>, <p>, <li>, <ul>, <ol>) en <br> et
     résout l'alias rN ↔ replyN.
+
+    Widgets situés à l'intérieur d'une <table> ne déclenchent pas de split :
+    leur span <span class="oef-input"> est réécrit en <input> natif et reste
+    inline dans le segment html, ce qui préserve la mise en page (utilisé par
+    ex. pour les fractions superposées de l'exercice de Thalès csgb Q200).
     """
     html = _BLOCK_OPEN.sub("<br>", html)
     html = _BLOCK_CLOSE.sub("<br>", html)
@@ -202,15 +263,39 @@ def _segment_statement(html: str) -> list[dict]:
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
 
+    tables = _table_ranges(html)
+
+    def in_table(pos: int) -> bool:
+        return any(s <= pos < e for s, e in tables)
+
+    # First pass: rewrite oef-input spans inside tables to native <input> tags.
+    # Done right-to-left so earlier offsets stay valid.
+    matches_in_tables = [
+        m for m in _SEGMENT_PATTERN.finditer(html)
+        if in_table(m.start()) and m.group(2) is not None
+    ]
+    for m in reversed(matches_in_tables):
+        name = m.group(2).strip()
+        size_raw = (m.group(3) or "").strip()
+        replacement = _inline_input_html(name, size_raw)
+        html = html[: m.start()] + replacement + html[m.end():]
+    # Re-compute table ranges since byte offsets shifted.
+    tables = _table_ranges(html)
+
     segments: list[dict] = []
     last = 0
     in_sup = 0
     for m in _SEGMENT_PATTERN.finditer(html):
+        # Widgets inside a table were already rewritten above, so nothing left
+        # to match there — but skip defensively in case future widgets land here.
+        if in_table(m.start()):
+            continue
+
         if m.start() > last:
             content = html[last : m.start()]
             segments.append({"type": "html", "content": content})
             in_sup += content.lower().count("<sup") - content.lower().count("</sup")
-            
+
         is_sup = in_sup > 0
 
         if m.group(1) is not None:

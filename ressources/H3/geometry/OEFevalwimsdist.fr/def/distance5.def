@@ -1,0 +1,175 @@
+!set title=Distance d'un point à une droite 5
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Fabrice, Guerimand
+email=fwguerima@free.fr
+
+ansorder=r
+varcnt=53
+prevarcnt=52
+postvarcnt=0
+replycnt=1
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+val6=Votre réponse&nbsp;
+val7=Segment
+val8=rouge,bleu,vert,violet,marron
+val9=a mesuré tous les segments colorés ci-contre.	  Les résultats sont reportés ci-dessous&nbsp;
+val10=Pouvez-vous lui indiquer quelle est la distance entre	  le point AAAA et la droite noire&nbsp;
+val11=Elle est inférieure à ,	  Elle est égale à ,	  Elle est supérieure à
+tmp=!nonempty items A,B,C,E,F,G
+
+tmp0=!randitem $tmp
+val12=$(tmp0)
+tmp0=!random 0, 2*pi
+
+val13=$[$(tmp0)]
+
+!ifval $val13<3*pi/2 and $val13>pi/2
+val14=$[rint(+1)]
+!else
+val14=$[rint(-1)]
+!endif
+
+!ifval $val13<pi
+val15=$[rint(+1)]
+!else
+val15=$[rint(-1)]
+!endif
+tmp0=!random 3, 7
+
+val16=$[$(tmp0)]
+val16=$[rint($val16*100)/100]
+tmp0=!shuffle 1,2,3,4,5
+
+val17=$(tmp0)
+tmp0=!item $val17 of red,blue,green,purple,brown
+
+val18=$(tmp0)
+tmp0=!item $val17 of $val8
+
+val19=$(tmp0)
+val20=6
+val21=$[rint($val20-1)]
+tmp0=!values 2*v for v=1 to $val20
+
+val22=$(tmp0)
+tmp0=!shuffle $val22
+
+val22=$(tmp0)
+tmp0=!item 1 to $val21 of $val22
+
+val22=$(tmp0)
+val23=$[0]
+val24=$[0]
+val25=$[0]
+val26=$[0]
+val27=fcircle 0,0,5,black	text black,$val14,0,medium,$val12
+val28=<ul>
+val29=$[rint(1000)]
+val30=$[rint(0)]
+!for val31 =1 to 5 
+tmp=!nonempty items 1,-1
+
+tmp0=!randitem $tmp
+val17=$[rint($(tmp0))]
+val32=$[$val16*cos($val13)-$val17*$(val22[$val31])*sin($val13)]
+val33=$[$val16*sin($val13)+$val17*$(val22[$val31])*cos($val13)]
+val23=$[min($val23,$val32)]
+val24=$[min($val24,$val33)]
+val25=$[max($val25,$val32)]
+val26=$[max($val26,$val33)]
+val34=$[rint(sqrt(($val32)^2+($val33)^2)*100)/100]
+val29=$[min($val29,$val34)]
+val30=$[max($val30,$val34)]
+val28=$val28<li>$val7 <span style="color:$(val18[$val31])">$(val19[$val31])</span> : $val34 cm.</li>
+val27=$val27	segments $(val18[$val31]),0,0,$val32,$val33
+!next
+val28=$val28</ul>
+val35=$[min($val23,$val24)-2]
+val36=$[max($val25,$val26)+2]
+val37=$[0.5]
+val38=
+val27=range $val35,$val36,$val35,$val36	$val27	$val38	linewidth 2	line $val16*cos($val13)+20*sin($val13),$val16*sin($val13)-20*cos($val13),$val16*cos($val13)-20*sin($val13),$val16*sin($val13)+20*cos($val13),black
+!readproc oef/draw.phtml 300,300 \
+$val27 
+tmp0=$ins_url
+val39=$(tmp0)
+!readproc slib/lang/fname fr,boy 
+tmp0=$slib_out
+val40=$(tmp0)
+val41=1
+val42=$(val11[1]) $val29,	  $(val11[2]) $val29,	  $(val11[3]) $val29,	  $(val11[1]) $val30,	  $(val11[3]) $val30,	  $(val11[2]) $val30
+tmp0=!replace internal AAAA by $val12 in $val10
+
+val43=$(tmp0)
+replytype1=radio
+replyoption1=shuffle 
+replyname1=
+replygood1=$val41;$val42
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()	<div class="grid-x grid-margin-x">	  <div class="cell small-12 medium-6 large-6">	$val40 $val9:	$val28	  <div class="wims_question">$val43?</div>	  </div>	  <div class="cell small-12 medium-6 large-6">	  <div class="wimscenter"><img src="$val39" alt=""></div>	  </div>	</div>	<br class="clearall">		  <ul>	   
+!for m_l=1 to 6 
+$()<li> 
+!read oef/embed.phtml r1,\l 
+$()</li> 
+!next
+$()	</ul>		
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=9,28,39,40,43
+embedcnt=1
