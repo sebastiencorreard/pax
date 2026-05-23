@@ -312,6 +312,96 @@ def _cmd_line(state: _State, args: list[str]) -> None:
     _cmd_segment(state, args)
 
 
+def _cmd_dsegment(state: _State, args: list[str]) -> None:
+    # `dsegment x1,y1,x2,y2,[color]` — directed segment (WIMS uses it for
+    # highlighted sides; visually a normal segment, no arrowhead).
+    _cmd_segment(state, args)
+
+
+def _cmd_triangle(state: _State, args: list[str]) -> None:
+    # triangle x1,y1,x2,y2,x3,y3,[color],[fill]
+    if len(args) < 6:
+        return
+    x1, y1, x2, y2, x3, y3 = (_num(a) for a in args[:6])
+    color = _color(args[6]) if len(args) > 6 else "#000000"
+    fill = _color(args[7]) if len(args) > 7 else "none"
+    pts = (
+        f"{state.px(x1):.2f},{state.py(y1):.2f} "
+        f"{state.px(x2):.2f},{state.py(y2):.2f} "
+        f"{state.px(x3):.2f},{state.py(y3):.2f}"
+    )
+    state.segments.append(((x1, y1), (x2, y2)))
+    state.segments.append(((x2, y2), (x3, y3)))
+    state.segments.append(((x3, y3), (x1, y1)))
+    state.elements.append(
+        f'<polygon points="{pts}" fill="{fill}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_polyline(state: _State, args: list[str]) -> None:
+    # polyline color, x1,y1,x2,y2,... — open chain of line segments.
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    if len(coords) < 4 or len(coords) % 2 != 0:
+        return
+    pts = " ".join(
+        f"{state.px(coords[i]):.2f},{state.py(coords[i + 1]):.2f}"
+        for i in range(0, len(coords), 2)
+    )
+    state.elements.append(
+        f'<polyline points="{pts}" fill="none" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_polygon(state: _State, args: list[str]) -> None:
+    # polygon color, x1,y1,x2,y2,... — closed filled polygon outline.
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    coords = [_num(a) for a in args[1:]]
+    if len(coords) < 4 or len(coords) % 2 != 0:
+        return
+    pts = " ".join(
+        f"{state.px(coords[i]):.2f},{state.py(coords[i + 1]):.2f}"
+        for i in range(0, len(coords), 2)
+    )
+    state.elements.append(
+        f'<polygon points="{pts}" fill="none" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
+def _cmd_arc(state: _State, args: list[str]) -> None:
+    # arc x,y,w,h,start,end,[color] — elliptical arc; (x,y) is the top-left
+    # of the bounding box in WIMS math coords, w/h are the box dimensions,
+    # start/end are angles in degrees (counter-clockwise from +x axis).
+    if len(args) < 6:
+        return
+    import math
+    x, y, w, h, start_deg, end_deg = (_num(a) for a in args[:6])
+    color = _color(args[6]) if len(args) > 6 else "#000000"
+    cx, cy = x + w / 2, y - h / 2  # math coords (y-down for box top → -h/2)
+    rx, ry = w / 2, h / 2
+    # Sample the arc as a polyline so we don't have to figure out SVG's
+    # convoluted A-command flags from math-coord angles.
+    n = max(8, int(abs(end_deg - start_deg) / 5))
+    pts = []
+    for i in range(n + 1):
+        t = start_deg + (end_deg - start_deg) * i / n
+        rad = math.radians(t)
+        mx = cx + rx * math.cos(rad)
+        my = cy + ry * math.sin(rad)
+        pts.append(f"{state.px(mx):.2f},{state.py(my):.2f}")
+    state.elements.append(
+        f'<polyline points="{" ".join(pts)}" fill="none" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" />'
+    )
+
+
 def _cmd_xrange(state: _State, args: list[str]) -> None:
     if len(args) >= 2:
         state.xmin = _num(args[0])
@@ -595,6 +685,7 @@ _HANDLERS = {
     "yrange": _cmd_yrange,
     "linewidth": _cmd_linewidth,
     "segment": _cmd_segment,
+    "dsegment": _cmd_dsegment,
     "arrow": _cmd_arrow,
     "parallel": _cmd_parallel,
     "text": _cmd_text,
@@ -605,6 +696,10 @@ _HANDLERS = {
     "flood": _cmd_flood,
     "gridfill": _cmd_gridfill,
     "plot": _cmd_plot,
+    "triangle": _cmd_triangle,
+    "polyline": _cmd_polyline,
+    "polygon": _cmd_polygon,
+    "arc": _cmd_arc,
 }
 
 
@@ -684,3 +779,64 @@ def inline_svg_imgs(html: str) -> str:
         return svg if svg is not None else m.group(0)
 
     return _IMG_SVG_RE.sub(repl, html)
+
+
+# ── WIMS domain GIFs (calculator_not.svg, course.svg, …) ────────────────────
+
+import os as _os
+from functools import lru_cache as _lru_cache
+
+# WIMS exercises reference these as e.g. "gifs/domains/general/calculator_not.svg".
+# PAX consolidates them into ``ressources/gifs/<file>``. We rewrite the path
+# to inline the SVG content so the browser doesn't need a separate fetch.
+_GIFS_DIR = _os.path.normpath(
+    _os.path.join(_os.path.dirname(__file__), "..", "..", "..", "ressources", "gifs")
+)
+_WIMS_GIF_IMG_RE = re.compile(
+    r'<img([^>]*?)\ssrc="gifs/domains/[^/"]+/(?P<file>[^"]+)"([^>]*?)>',
+    re.IGNORECASE,
+)
+
+
+@_lru_cache(maxsize=128)
+def _read_gif_file(filename: str) -> str | None:
+    path = _os.path.join(_GIFS_DIR, filename)
+    if not _os.path.isfile(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def inline_wims_gifs(html: str) -> str:
+    """Inline WIMS domain GIFs (gifs/domains/<dir>/<file>) from ressources/gifs.
+
+    For SVG files we inline the raw SVG so the browser renders it without a
+    separate fetch. For non-SVG files (rare in practice) we leave the tag in
+    place; callers may set up a static-files mount if needed.
+    """
+
+    def repl(m: re.Match[str]) -> str:
+        before, after = m.group(1), m.group(3)
+        filename = m.group("file")
+        if not filename.lower().endswith(".svg"):
+            return m.group(0)
+        content = _read_gif_file(filename)
+        if content is None:
+            return m.group(0)
+        # Strip XML declaration, HTML/SGML comments, and DOCTYPE that may
+        # appear before the root <svg> tag (Adobe Illustrator exports etc.).
+        content = re.sub(r"<\?xml[^?]*\?>", "", content)
+        content = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
+        content = re.sub(r"<!DOCTYPE[^>]*>", "", content)
+        content = content.lstrip()
+        # Merge the inline <img> attributes (style, class, alt, …) onto the
+        # root <svg> tag so layout (width / height / float) is preserved.
+        attrs = (before + after).strip()
+        if attrs:
+            content = re.sub(r"<svg\b", f"<svg {attrs}", content, count=1)
+        return content
+
+    return _WIMS_GIF_IMG_RE.sub(repl, html)

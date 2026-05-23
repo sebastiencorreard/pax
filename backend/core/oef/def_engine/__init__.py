@@ -57,6 +57,13 @@ _INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]\(]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
+# Detects "$a,$b,$c" pattern (comma-concat of variable references only).
+# Used in _eval_value to neutralise tabs in the substituted parts so the
+# resulting list stays unambiguously comma-separated.
+_COMMA_VARLIST_RE = re.compile(
+    r"^\s*(?:\$\w+|\$\([^)]+\))(?:\s*,\s*(?:\$\w+|\$\([^)]+\)))+\s*$"
+)
+
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
@@ -115,6 +122,10 @@ class DefEngine(_SlibMixin):
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
+        # Set of reply names (e.g. "reply4") referenced by !read oef/embed.phtml
+        # during the current render. Used to filter `answers` for dynsteps/course
+        # exercises so only the active step's answers are exposed to the API.
+        self._touched_replies: set[str] = set()
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
@@ -146,10 +157,11 @@ class DefEngine(_SlibMixin):
         else:
             html = self._subst(stmt)
 
-        from ..flydraw import inline_svg_imgs  # noqa: PLC0415
+        from ..flydraw import inline_svg_imgs, inline_wims_gifs  # noqa: PLC0415
 
         html = _close_inline_math(html)
         html = inline_svg_imgs(html)
+        html = inline_wims_gifs(html)
         # Drop empty `<li>` / `<ul>` shells left behind when radio embeds
         # are stripped (the frontend renders the radio buttons separately
         # from `options.choices`).
@@ -162,7 +174,7 @@ class DefEngine(_SlibMixin):
         # has somewhere to type the answer (matches WIMS' fallback behaviour).
         # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
-        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu", "radio-anchor")}
+        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
         
         # Extract dynamic steps info
         oefsteps_val = self.ctx.get("oefsteps", "").strip()
@@ -206,6 +218,15 @@ class DefEngine(_SlibMixin):
                         continue
 
         is_dynsteps_flag = exercise_type != "standard"
+
+        # For dynsteps/course exercises, only the answers referenced by the
+        # current step's statement are active. `_render_embed` records each
+        # reply it sees in `_touched_replies`; we filter `answers` to those.
+        # This makes downstream code (hasRadioAnswers, allFilled, check route)
+        # naturally correct without per-step bookkeeping.
+        if is_dynsteps_flag and self._touched_replies:
+            answers = [a for a in answers if a.input_name in self._touched_replies]
+
         text_replies = [
             a for a in answers if a.answer_type.lower() not in ("radio", "menu", "mark")
         ]
@@ -330,7 +351,7 @@ class DefEngine(_SlibMixin):
             cmd = cmd.lower()
             if cmd == "nosubst":
                 return args
-            
+
             # For other commands, substitute variables first
             args = self._subst(args)
             return self._eval_cmd(cmd, args)
@@ -338,6 +359,16 @@ class DefEngine(_SlibMixin):
         # $[expr] — arithmetic
         if value.startswith("$["):
             return self._eval_dollar_bracket(value)
+
+        # Pattern: comma-separated list of $var references only
+        # (e.g. "val14=$val19,$val37,$val52,...").  Substitute each ref and
+        # neutralise any tabs in the substituted content so the resulting
+        # comma-separated list is unambiguous to $(var[i]) access.
+        if _COMMA_VARLIST_RE.match(value):
+            parts = []
+            for ref in re.split(r"\s*,\s*", value.strip()):
+                parts.append(self._subst(ref).replace("\t", " "))
+            return ",".join(parts)
 
         # Literal string with variable substitution
         return self._subst(value)
@@ -485,7 +516,7 @@ class DefEngine(_SlibMixin):
         return [p.replace(_PH, ";") for p in protected.split(";")]
 
     def _resolve_indexed2(self, m: re.Match) -> str:
-        """Resolve $(var[n;m]) — row n, column m."""
+        """Resolve $(var[n;m]) — row n, column m. Supports a list of row indices."""
         name, row_expr, col_expr = m.group(1), m.group(2), m.group(3)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
@@ -493,16 +524,48 @@ class DefEngine(_SlibMixin):
         row_s = self._subst_for_arith(row_expr)
         col_s = self._subst_for_arith(col_expr).strip()
 
+        # Split by tab first (rows); fall back to ';' with HTML-entity protection
+        if "\t" in value:
+            row_sep = "\t"
+            rows = value.split("\t")
+        else:
+            row_sep = ";"
+            rows = self._split_rows_by_semi(value)
+
+        # WIMS feature: $(matrix[$list;]) where $list = "2,3,1,4" returns rows
+        # 2,3,1,4 joined by the source separator. Used for shuffled matrices.
+        def parse_indices(s: str) -> list[int] | None:
+            parts = s.split(",") if "," in s else s.split("\t")
+            if len(parts) <= 1:
+                return None
+            indices: list[int] = []
+            for p in parts:
+                try:
+                    indices.append(int(round(float(self._eval_arith(p.strip())))))
+                except (ValueError, TypeError):
+                    return None
+            return indices
+
+        idx_list = parse_indices(row_s.strip())
+        if idx_list is not None:
+            picked = [rows[i - 1] for i in idx_list if 1 <= i <= len(rows)]
+            if not col_s:
+                return row_sep.join(p.strip() for p in picked)
+            try:
+                col = int(round(float(self._eval_arith(col_s))))
+            except (ValueError, TypeError):
+                return ""
+            result = []
+            for r in picked:
+                cols = re.split(r"[;,]", r)
+                if 1 <= col <= len(cols):
+                    result.append(cols[col - 1].strip())
+            return row_sep.join(result)
+
         try:
             row = int(round(float(self._eval_arith(row_s))))
         except (ValueError, TypeError):
             return ""
-
-        # Split by tab first (rows); fall back to ';' with HTML-entity protection
-        if "\t" in value:
-            rows = value.split("\t")
-        else:
-            rows = self._split_rows_by_semi(value)
         if not (1 <= row <= len(rows)):
             return ""
 
@@ -871,11 +934,13 @@ class DefEngine(_SlibMixin):
         return f"UNKNOWN_CMD:{cmd}"
 
     def _cmd_randint(self, args: str) -> str:
-        """!randint a, b — random integer in [a, b]."""
+        """!randint a, b — random integer in [a, b]; !randint N — in [1, N]."""
         parts = [self._subst(p.strip()) for p in args.split(",")]
-        if len(parts) < 2:
-            return "0"
         try:
+            if len(parts) == 1:
+                # Single-arg form: WIMS returns integer in [1, N]
+                n = int(round(float(self._eval_arith(parts[0]))))
+                return str(self.rng.randint(1, n))
             a = int(round(float(self._eval_arith(parts[0]))))
             b = int(round(float(self._eval_arith(parts[1]))))
             return str(self.rng.randint(a, b))
@@ -991,11 +1056,12 @@ class DefEngine(_SlibMixin):
 
         Priorité : \\n (enregistrements/slib) > \\; > \\t (makelist).
         Correspond à la logique de calc_rowof() dans calc.c.
+        Le split par ``;`` protège les entités HTML (&#59;, &amp;, …).
         """
         if "\n" in data:
             return [r for r in data.split("\n") if r.strip()]
         if ";" in data:
-            return [r.strip() for r in data.split(";") if r.strip()]
+            return [r.strip() for r in DefEngine._split_rows_by_semi(data) if r.strip()]
         return [r for r in data.split("\t") if r.strip()]
 
     def _cmd_row(self, args: str) -> str:
@@ -1831,13 +1897,14 @@ class DefEngine(_SlibMixin):
         nm = re.match(r"^r(?:eply)?(\d+)$", ref)
         if nm:
             n = nm.group(1)
+            # Record that this reply is referenced by the current statement.
+            # Used in render() to filter `answers` for dynsteps/course exercises.
+            self._touched_replies.add(f"reply{n}")
             reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
             if reply_type == "radio":
-                # Radio choices are shown below the statement by the frontend.
-                # Emit an invisible anchor so the step's active answer is
-                # detectable via statement_segments (used by the check route
-                # and the DEF engine's answer-filtering logic).
-                return f'<span class="oef-radio-anchor" name="{ref}"></span>'
+                # Radio choices are rendered by the frontend in a dedicated
+                # section below the statement; no widget belongs in the HTML.
+                return ""
             elif reply_type == "mark":
                 # mark: each embed call is one choice column (size_str = column index).
                 # replygood = "correct_pos;choice1,choice2,..." — extract choice text.

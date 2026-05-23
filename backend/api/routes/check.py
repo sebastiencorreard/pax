@@ -80,8 +80,13 @@ async def check_exercise(
         visible_input_names = {
             s["name"]
             for s in rendered.statement_segments
-            if s.get("type") in ("input", "slot", "menu", "radio-anchor")
+            if s.get("type") in ("input", "slot", "menu")
         }
+        # For dynsteps/course, answers are already filtered by the engine to
+        # the current step's replies; include them all (covers radio/menu
+        # answers that don't emit a widget span in the statement).
+        for a in rendered.answers:
+            visible_input_names.add(a.input_name)
 
     active_ans_defs = [
         a for a in rendered.answers

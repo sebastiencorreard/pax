@@ -10,7 +10,7 @@ export interface AnswerDef {
 }
 
 export interface BackendSegment {
-  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'radio-anchor'
+  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu'
   content?: string
   name?: string
   size?: number
@@ -58,12 +58,11 @@ export interface CheckResult {
 }
 
 export type Segment =
-  | { type: 'html';         content: string }
-  | { type: 'slot';         name: string; is_sup?: boolean }
-  | { type: 'input';        name: string; width: string; is_sup?: boolean }
-  | { type: 'textarea';     name: string; rows: number; cols: number; is_sup?: boolean }
-  | { type: 'menu';         name: string; label: string; is_sup?: boolean }
-  | { type: 'radio-anchor'; name: string; is_sup?: boolean }
+  | { type: 'html';     content: string }
+  | { type: 'slot';     name: string; is_sup?: boolean }
+  | { type: 'input';    name: string; width: string; is_sup?: boolean }
+  | { type: 'textarea'; name: string; rows: number; cols: number; is_sup?: boolean }
+  | { type: 'menu';     name: string; label: string; is_sup?: boolean }
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
@@ -82,8 +81,6 @@ export function useExerciseLogic() {
         out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup })
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
-      } else if (s.type === 'radio-anchor') {
-        out.push({ type: 'radio-anchor', name: s.name ?? '', is_sup: s.is_sup })
       }
     }
     return out

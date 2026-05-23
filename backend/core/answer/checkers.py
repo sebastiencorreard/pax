@@ -339,6 +339,15 @@ def check_text(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="text")
 
 
+def check_case(reply: str, expected: str) -> CheckResult:
+    """WIMS `case` type: ``expected`` lists alternatives separated by ``|``;
+    the reply matches if it equals any alternative (case- and space-insensitive)."""
+    reply_norm = reply.strip().lower()
+    alternatives = [alt.strip().lower() for alt in expected.split("|") if alt.strip()]
+    correct = reply_norm in alternatives
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")
+
+
 def check_default(reply: str, expected: str) -> CheckResult:
     """OEF `default`: algebraic comparison, fallback to plain text.
 
@@ -412,6 +421,8 @@ def check_answer(
             return check_set(reply, expected)
         case "radio" | "menu" | "clickfill" | "mark":
             return check_radio(reply, expected)
+        case "case":
+            return check_case(reply, expected)
         case "default":
             return check_default(reply, expected)
         case "text" | _:

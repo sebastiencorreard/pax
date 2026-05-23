@@ -170,10 +170,10 @@ const currentStepFailedInputName = ref('')
 const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
 )
-// Use statementSegments so only the active step's radio anchor is detected,
-// not all radio answers across all steps.
+// `rendered.answers` is already filtered server-side to the current step's
+// active replies, so this is naturally correct per step.
 const hasRadioAnswers = computed(() =>
-  statementSegments.value.some(s => s.type === 'radio-anchor')
+  props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
 )
 
 const isCourse = computed(() => props.rendered?.exercise_type === 'course')
@@ -181,23 +181,13 @@ const courseStopped = ref(false)
 
 const allFilled = computed(() => {
   if (!props.rendered || courseStopped.value) return false
-  const activeNames = new Set(statementSegments.value.map(s => {
-    if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu' || s.type === 'radio-anchor') {
-      return s.name
-    }
-    return null
-  }).filter(Boolean))
-  
-  const activeAnswers = props.rendered.answers.filter(a => activeNames.has(a.input_name))
-  if (activeAnswers.length > 0) {
-    return activeAnswers.every(a => {
-      const val = (replies.value[a.input_name] ?? '').trim()
-      if (val !== '') return true
-      const opt = (a.options?.option || '').toLowerCase()
-      return opt.includes('default=vide')
-    })
-  }
-  return true
+  // `rendered.answers` is server-filtered to the current step's active replies.
+  return props.rendered.answers.every(a => {
+    const val = (replies.value[a.input_name] ?? '').trim()
+    if (val !== '') return true
+    const opt = (a.options?.option || '').toLowerCase()
+    return opt.includes('default=vide')
+  })
 })
 
 async function init() {
@@ -305,13 +295,8 @@ async function submit() {
       checkResult.value.solution_html = await renderMath(checkResult.value.solution_html)
     }
 
-    const activeNames = new Set(statementSegments.value.map(s => {
-      if (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu' || s.type === 'radio-anchor') {
-        return s.name
-      }
-      return null
-    }).filter(Boolean))
-
+    // `rendered.answers` is server-filtered to the current step's replies.
+    const activeNames = new Set(props.rendered.answers.map(a => a.input_name))
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // Update history for each active input in this step
@@ -386,16 +371,11 @@ async function submit() {
 }
 
 function fillAnswers(answers: Record<string, string>) {
-  // Filter answers to only fill those currently visible on screen
-  const activeNames = new Set(statementSegments.value
-    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
-    .filter(Boolean) as string[]
-  )
-  
+  // Only fill the current step's active replies.
+  const activeNames = new Set(props.rendered.answers.map(a => a.input_name))
   const filteredAnswers = Object.fromEntries(
     Object.entries(answers).filter(([name]) => activeNames.has(name))
   )
-  
   replies.value = { ...replies.value, ...filteredAnswers }
 }
 

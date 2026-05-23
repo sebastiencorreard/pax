@@ -161,16 +161,14 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     return rendered
 
 
-# Reconnaît les quatre types de widgets dans le HTML rendu :
+# Reconnaît les trois types de widgets dans le HTML rendu :
 #   groupe 1 — slot clickfill : <cf-slot name="…"></cf-slot>
 #   groupes 2-3 — champ texte : <span class="oef-input" name="…" data-size="…"></span>
 #   groupes 4-5 — menu déroulant : <span class="oef-menu" name="…" data-label="…"></span>
-#   groupe 6 — ancre radio (dynsteps/course) : <span class="oef-radio-anchor" name="…"></span>
 _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
-    r'|<span\s+class="oef-radio-anchor"\s+name="([^"]+)"></span>'
 )
 # Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
@@ -226,13 +224,6 @@ def _segment_statement(html: str) -> list[dict]:
                 name = f"reply{alias.group(1)}"
             label = m.group(5).strip()
             segments.append({"type": "menu", "name": name, "label": label, "is_sup": is_sup})
-        elif m.group(6) is not None:
-            # Radio anchor (dynsteps/course): invisible marker, no widget rendered
-            name = m.group(6).strip()
-            alias = re.match(r"^r(\d+)$", name)
-            if alias:
-                name = f"reply{alias.group(1)}"
-            segments.append({"type": "radio-anchor", "name": name, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
