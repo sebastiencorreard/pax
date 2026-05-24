@@ -52,11 +52,14 @@ from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numer
 # expressions like `$val6` or `$val6+1`. We capture them as
 # `[^]]+` and let `_eval_arith` (after substitution) reduce them.
 _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[([^]]+?)\.\.([^]]+?)\]\)")
-_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]*?);([^\]]*)\]\)")  # $(var[n;m])
-# Subscript excludes "(" so that nested $(outer[$(inner[i])]) resolves
-# inner-first: the outer's "[^(]+" fails at the "(" of "$(inner…", letting the
-# inner match first in re.sub's left-to-right scan.
-_INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]\(]+)\]\)")  # $(var[n])
+# Subscripts exclude "(" so that a nested $(outer[…$(inner[i])…]) resolves
+# inner-first: the outer's pattern fails at the "(" of "$(inner…", so only
+# the inner matches; _resolve_indexed_forms then loops to pick up the outer
+# once the inner is gone (e.g. $(val14[$m_h;$(val11[$m_h])])).
+_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]\(]*?);([^\]\(]*)\]\)")  # $(var[n;m])
+# INDEXED1 also excludes ";" so it never swallows a $(var[n;m]) matrix form
+# (whose single ";" must be handled by _INDEXED2_RE).
+_INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]\(;]+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
@@ -435,14 +438,9 @@ class DefEngine(_SlibMixin):
             return s
         # 1. $[expr] blocks first
         s = self._eval_dollar_bracket(s)
-        # 2. $(var[n..m]) range slice
-        s = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), s)
-        # 3. $(var[n;m]) matrix access
-        s = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), s)
-        # 4. $(var[n]) list access — two passes so nested subscripts like
-        #    $(outer[$(inner[$i])]) are resolved inner-first then outer.
-        s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
-        s = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), s)
+        # 2-4. $(var[n..m]) slices, $(var[n;m]) matrices and $(var[n]) lists,
+        #      resolved inner-first to a fixpoint (handles nested subscripts).
+        s = self._resolve_indexed_forms(s)
         # 5. $(var) simple reference
         s = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
         # 6. $var simple reference (skip $[ which was already handled)
@@ -453,13 +451,30 @@ class DefEngine(_SlibMixin):
         """Substitute variable references inside an arithmetic expression."""
         if not expr or "$" not in expr:
             return expr
-        expr = _RANGE_SLICE_RE.sub(lambda m: self._resolve_range_slice(m), expr)
-        expr = _INDEXED2_RE.sub(lambda m: self._resolve_indexed2(m), expr)
-        expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
-        expr = _INDEXED1_RE.sub(lambda m: self._resolve_indexed1(m), expr)
+        expr = self._resolve_indexed_forms(expr)
         expr = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         return expr
+
+    def _resolve_indexed_forms(self, s: str) -> str:
+        """Resolve $(var[n..m]), $(var[n;m]) and $(var[n]) inner-first.
+
+        Subscripts exclude "(" (see the regex definitions), so a nested
+        reference like $(val14[$m_h;$(val11[$m_h])]) only matches its inner
+        $(val11[…]) on the first pass; once that is gone the outer matrix
+        form matches on the next pass. We loop to a fixpoint (a small bound
+        guards against pathological input) instead of a fixed pass count.
+        """
+        if "$(" not in s:
+            return s
+        for _ in range(8):
+            before = s
+            s = _RANGE_SLICE_RE.sub(self._resolve_range_slice, s)
+            s = _INDEXED2_RE.sub(self._resolve_indexed2, s)
+            s = _INDEXED1_RE.sub(self._resolve_indexed1, s)
+            if s == before:
+                break
+        return s
 
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.

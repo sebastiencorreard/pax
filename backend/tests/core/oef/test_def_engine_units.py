@@ -519,6 +519,27 @@ class TestVariableResolution:
         assert m is not None
         assert e._resolve_indexed2(m) == "c"
 
+    def test_indexed2_nested_column(self):
+        # ecrdec1: $(val14[$m_h;$(val11[$m_h])]) — the column index is itself
+        # an indexed lookup. The inner $(val11[…]) must resolve first, then
+        # the outer matrix access. Previously the outer regex grabbed the
+        # inner "]" and left a literal "])" behind.
+        e = engine()
+        e.ctx["mat"] = "Finie;Infinie périodique\tFinie;Je ne sais pas"
+        e.ctx["pos"] = "2,1"  # correct column per row
+        e.ctx["m_h"] = "1"
+        assert e._subst("$(mat[$m_h;$(pos[$m_h])])") == "Infinie périodique"
+        e.ctx["m_h"] = "2"
+        assert e._subst("$(mat[$m_h;$(pos[$m_h])])") == "Finie"
+
+    def test_indexed1_nested_subscript(self):
+        # $(outer[$(inner[$i])]) still resolves inner-first then outer.
+        e = engine()
+        e.ctx["outer"] = "a,b,c,d"
+        e.ctx["inner"] = "10,3"
+        e.ctx["i"] = "2"
+        assert e._subst("$(outer[$(inner[$i])])") == "c"
+
     def test_dollar_bracket_arithmetic(self):
         e = engine()
         e.ctx["x"] = "3"
