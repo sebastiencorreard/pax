@@ -1682,7 +1682,7 @@ _GIFS_DIR = _os.path.normpath(
     _os.path.join(_os.path.dirname(__file__), "..", "..", "..", "ressources", "gifs")
 )
 _WIMS_GIF_IMG_RE = re.compile(
-    r'<img([^>]*?)\ssrc="gifs/domains/[^/"]+/(?P<file>[^"]+)"([^>]*?)>',
+    r'<img(?P<before>[^>]*?)\ssrc=(?P<q>["\']?)gifs/domains/[^/"\'\s]+/(?P<file>[^"\'\s>]+)(?P=q)(?P<after>[^>]*?)>',
     re.IGNORECASE,
 )
 
@@ -1698,8 +1698,11 @@ _RESSOURCES_ROOT = _os.path.normpath(
 )
 
 # Matches <img src="pax-img:…/<file>" …> regardless of "../" segments inside.
+# The `src=` value can be quoted (single or double) or unquoted — WIMS .def
+# templates often write `<img src=$imagedir/foo.jpg>` with no quotes,
+# which a strict `"..."` pattern would miss.
 _PAX_IMG_RE = re.compile(
-    r'<img([^>]*?)\ssrc="pax-img:(?P<path>[^"]+)"([^>]*?)>',
+    r'<img(?P<before>[^>]*?)\ssrc=(?P<q>["\']?)pax-img:(?P<path>[^"\'\s>]+)(?P=q)(?P<after>[^>]*?)>',
     re.IGNORECASE,
 )
 
@@ -1718,7 +1721,7 @@ def inline_pax_images(html: str, module_dir: str) -> str:
         return html
 
     def repl(m: re.Match[str]) -> str:
-        before, after = m.group(1), m.group(3)
+        before, after = m.group("before"), m.group("after")
         raw_path = m.group("path")
         # Normalise out "../" segments and dummy "_" placeholders.
         norm = _posixpath.normpath("/" + raw_path).lstrip("/")
@@ -1744,7 +1747,7 @@ def inline_wims_gifs(html: str) -> str:
     """
 
     def repl(m: re.Match[str]) -> str:
-        before, after = m.group(1), m.group(3)
+        before, after = m.group("before"), m.group("after")
         filename = m.group("file")
         # Only rewrite if the file is actually present in ressources/gifs.
         file_path = _os.path.join(_GIFS_DIR, filename)
