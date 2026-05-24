@@ -309,9 +309,17 @@ def _expr_to_latex(expr: str) -> str:
         implicit_multiplication_application,
     )
 
+    # Sympy distributes unary minus across an Add even with
+    # evaluate=False: `-(5u+6)` becomes `-5u - 6` at parse, which is
+    # wrong for `!texmath` (distribuer1: the statement should show the
+    # *non*-distributed form for the student to develop). Rewriting
+    # `-(` as `(-1)*(` keeps the parenthesised structure: sympy parses
+    # it as `Mul(-1, Add(...))` without distributing.
+    prep = re.sub(r'(?<![\w)])-\(', '(-1)*(', expr_strip)
+
     try:
         parsed = parse_expr(
-            expr_strip.replace("^", "**"),
+            prep.replace("^", "**"),
             transformations=transformations,
             local_dict=locals_dict,
             evaluate=False,
