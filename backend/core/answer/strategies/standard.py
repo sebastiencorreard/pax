@@ -10,7 +10,7 @@ def pretty_expected(expected: str, answer_type: str) -> str:
     """Retourne la correction sous forme lisible, en préservant la forme
     voulue par l'auteur : développée si l'expected était développé,
     factorisée sinon."""
-    if answer_type.lower() in ("algexp", "litexp", "formal"):
+    if answer_type.lower() in ("algexp", "litexp", "formal") and is_polexpand(expected):
         try:
             import sympy
             from sympy.parsing.sympy_parser import (
@@ -24,14 +24,12 @@ def pretty_expected(expected: str, answer_type: str) -> str:
                 transformations=transformations,
                 local_dict={"expand": sympy.expand, "factor": sympy.factor},
             )
-            # Only expand if the stored expected was itself developed.
-            # Otherwise (factored form expected), keep it as-is so the
-            # debug "Réponse auto" fills a form that passes polfactor.
-            if is_polexpand(expected):
-                return str(sympy.expand(expr))
-            return str(expr)
+            return str(sympy.expand(expr))
         except Exception:
             pass
+    # Non-developed (factored, etc.) or non-polynomial: keep the stored form.
+    # parse_expr's auto-evaluation would distribute Mul (5*(6v-5) → 30v-25)
+    # and defeat the polfactor intent.
     return expected
 
 
