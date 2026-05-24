@@ -48,7 +48,10 @@ from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numer
 
 
 # Patterns for variable substitution
-_RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[(\d+)\.\.(\d+)\]\)")  # $(var[n..m])
+# `$(var[n..m])` — bounds can be plain integers or arithmetic
+# expressions like `$val6` or `$val6+1`. We capture them as
+# `[^]]+` and let `_eval_arith` (after substitution) reduce them.
+_RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[([^]]+?)\.\.([^]]+?)\]\)")
 _INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]]*?);([^\]]*)\]\)")  # $(var[n;m])
 # Subscript excludes "(" so that nested $(outer[$(inner[i])]) resolves
 # inner-first: the outer's "[^(]+" fails at the "(" of "$(inner…", letting the
@@ -459,14 +462,19 @@ class DefEngine(_SlibMixin):
         return expr
 
     def _resolve_range_slice(self, m: re.Match) -> str:
-        """Resolve $(var[n..m]) — items n through m as a comma list."""
+        """Resolve $(var[n..m]) — items n through m as a comma list.
+
+        Bounds can be expressions (e.g. `$val6`, `$val6+1`); they're
+        substituted and evaluated via `_eval_arith` before slicing.
+        """
         name, start_s, end_s = m.group(1), m.group(2), m.group(3)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         try:
-            start, end = int(float(start_s)), int(float(end_s))
-        except ValueError:
+            start = int(round(float(self._eval_arith(self._subst_for_arith(start_s)))))
+            end = int(round(float(self._eval_arith(self._subst_for_arith(end_s)))))
+        except (ValueError, TypeError):
             return ""
         items = value.split("\t") if "\t" in value else value.split(",")
         return ",".join(items[start - 1 : end])
@@ -1901,10 +1909,17 @@ class DefEngine(_SlibMixin):
         # matches the answer's input_name.
         ref = re.sub(r"\s+", "", ref)
 
-        # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs)
-        if ref.startswith("r") and not ref.startswith("reply"):
-            suffix = ref[1:]
-            # 1. Handle loop variables like \qq in r\qq
+        # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs),
+        # reply\h → reply1 (same loop-var substitution, just with the
+        # full `reply` prefix the author wrote).
+        prefix = None
+        if ref.startswith("reply"):
+            prefix = "reply"
+        elif ref.startswith("r"):
+            prefix = "r"
+        if prefix is not None:
+            suffix = ref[len(prefix):]
+            # 1. Handle loop variables like \qq in r\qq or reply\h
             def resolve_loop_var(m):
                 name = m.group(1)
                 # Try exact, then lowercase, then with m_ prefix (compiler artifact)
@@ -1912,7 +1927,7 @@ class DefEngine(_SlibMixin):
                     if candidate in self.ctx:
                         return str(self.ctx[candidate])
                 return name
-            
+
             suffix = re.sub(r"\\(\w+)", resolve_loop_var, suffix)
             # 2. Evaluate bracketed expressions like \[3*\k-2]
             suffix = re.sub(
