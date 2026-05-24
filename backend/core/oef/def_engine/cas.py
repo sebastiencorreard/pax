@@ -268,8 +268,22 @@ def _call_maxima(expr: str) -> str:
 
 
 def _sympy_to_latex(expr: str) -> str:
-    """Convert a SymPy output string to LaTeX notation for display."""
+    """Convert a math expression string to LaTeX notation for display.
+
+    Critically does NOT simplify — used by ``!texmath`` to render an
+    expression *as the author wrote it*. The reduire1..reduire5 family
+    of exercises hands `3*x + 5*x + 2 + 1` to !texmath expecting the
+    student to reduce it; ``sympify`` would have collapsed that to
+    ``8*x + 3`` (Add simplifies on construction), giving the answer
+    away in the statement. Use ``parse_expr(..., evaluate=False)`` to
+    keep the Add/Mul tree intact.
+    """
     import sympy  # noqa: PLC0415
+    from sympy.parsing.sympy_parser import (
+        implicit_multiplication_application,
+        parse_expr,
+        standard_transformations,
+    )
 
     expr_strip = expr.strip()
     wrapped = False
@@ -285,8 +299,24 @@ def _sympy_to_latex(expr: str) -> str:
         if is_single_group:
             wrapped = True
 
+    # Force the namespace-poisoning single-letter names (N, O, I, E,
+    # S, Q, C) to Symbols so `\(N\)` doesn't render as the sympy.N
+    # function — same fix as in checkers.py / presentation.py.
+    locals_dict = {
+        name: sympy.Symbol(name) for name in ("N", "O", "I", "E", "S", "Q", "C")
+    }
+    transformations = standard_transformations + (
+        implicit_multiplication_application,
+    )
+
     try:
-        res = sympy.latex(sympy.sympify(expr_strip.replace("^", "**")))
+        parsed = parse_expr(
+            expr_strip.replace("^", "**"),
+            transformations=transformations,
+            local_dict=locals_dict,
+            evaluate=False,
+        )
+        res = sympy.latex(parsed)
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"
         return res
