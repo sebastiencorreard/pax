@@ -92,6 +92,53 @@ _REWRITE_MSG = (
 )
 
 
+def _is_term_order_mismatch(reply: str, expected: str) -> bool:
+    """True iff `reply` and `expected` are mathematically equal but have
+    different top-level term orderings.
+
+    WIMS' `litexp` script compares the rawmath'd strings directly
+    (`$dd isitemof $good`), not the canonicalised forms (`algexp` does
+    that), so the student's typed order must match the stored
+    canonical order. Mirror that for litexp only.
+    """
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+        T = standard_transformations + (implicit_multiplication_application,)
+        loc = _safe_locals()
+        reply_parsed = parse_expr(
+            reply.replace("^", "**"), transformations=T,
+            local_dict=loc, evaluate=False,
+        )
+        expected_parsed = parse_expr(
+            expected.replace("^", "**"), transformations=T,
+            local_dict=loc, evaluate=False,
+        )
+        # Non-equal expressions are normal wrong answers, not an order issue.
+        if sympy.expand(reply_parsed - expected_parsed) != 0:
+            return False
+        # Single-term expressions can't have an order issue.
+        if not (reply_parsed.is_Add and expected_parsed.is_Add):
+            return False
+        # Canonicalise each arg via sympify(str()) so `-3*x` (which
+        # parse_expr stores as `Mul(-1,3,x)` with evaluate=False) is
+        # compared against `Mul(-3,x)` symmetrically.
+        r_terms = [str(sympy.sympify(str(t))) for t in reply_parsed.args]
+        e_terms = [str(sympy.sympify(str(t))) for t in expected_parsed.args]
+        # Same multiset of terms but different sequence → order issue.
+        # Different multisets (e.g. `2x + 3x` vs `5x`) → reduction issue
+        # already handled by polexpand, not order.
+        if sorted(r_terms) != sorted(e_terms):
+            return False
+        return r_terms != e_terms
+    except Exception:
+        return False
+
+
 def _polexpand_diagnostic(s: str) -> str | None:
     """Returns a French explanation of *why* `s` fails the polexpand
     check, or None when no specific diagnosis is available. Mirrors
@@ -670,25 +717,31 @@ def check_answer(
                 detail=_REWRITE_MSG,
             )
 
-    # Form-mismatch pre-check for algebraic types. Currently only the
-    # case-slip case (`z+15` vs `Z+15`) — genuinely wrong variables
-    # (`X+15` vs `Z+15`) fall through to the normal check and are
-    # rejected as a wrong answer.
-    #
-    # Note: we deliberately do NOT check term ordering. WIMS' algexp
-    # pipes both reply and expected through `print(maxima ...)` which
-    # canonicalises the order before comparison, so any term order is
-    # accepted as long as the values are equal. Mirroring that means
-    # `54x² + 36x + 27x³ + 8` is just as good as `27x³ + 54x² + 36x + 8`
-    # — see develop.fr/bin3 where the user explicitly noted this.
+    # Form-mismatch pre-checks for algebraic types.
     if reply.strip() and answer_type.lower() in (
         "algexp", "default", "auto", "litexp", "formal", "function"
     ):
+        # Case-slip: `z+15` vs `Z+15` warns. Genuinely wrong variables
+        # (`X+15` vs `Z+15`) fall through to the normal check.
         if _is_case_mismatch_only(reply, expected):
             return CheckResult(
                 correct=False,
                 score=0.0,
                 method="bad_variable",
+                status="invalid_format",
+                detail=_REWRITE_MSG,
+            )
+        # Term-order: `litexp` only. WIMS' algexp pipes both sides
+        # through `print(maxima ...)` (`$t2 isitemof $t1`) which
+        # canonicalises the order; litexp compares the rawmath strings
+        # directly (`$dd isitemof $good`), so the student's typed order
+        # must match the stored canonical order. develop.fr/bin3 (algexp)
+        # accepts any equivalent ordering; reduire1..5 (litexp) doesn't.
+        if answer_type.lower() == "litexp" and _is_term_order_mismatch(reply, expected):
+            return CheckResult(
+                correct=False,
+                score=0.0,
+                method="term_order",
                 status="invalid_format",
                 detail=_REWRITE_MSG,
             )
