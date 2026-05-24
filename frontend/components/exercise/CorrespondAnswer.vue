@@ -47,6 +47,8 @@
              'is-dragging': dragSource?.side === 'right' && dragSource.idx === i - 1,
              'is-disabled': submitted,
              'is-drop-target': dragSource?.side === 'left' && hoverRow === i - 1,
+             'is-correct': submitted && rowIsCorrect[i - 1] === true,
+             'is-wrong':   submitted && rowIsCorrect[i - 1] === false,
            }"
            :style="rightStyle"
            :draggable="!submitted"
@@ -83,6 +85,8 @@ const props = defineProps<{
   name: string
   config: CorrespondConfig
   value: string
+  expected?: string  // CSV of correct rights, in left order. Used post-submit
+                     // to colour each right cell green (match) or red (miss).
   submitted: boolean
 }>()
 
@@ -123,6 +127,19 @@ interface DragRef { side: Side; idx: number }
 const selected = ref<DragRef | null>(null)
 const dragSource = ref<DragRef | null>(null)
 const hoverRow = ref<number | null>(null)
+
+// After submission, evaluate each row by comparing the actually-placed
+// right against the correct one stored in `expected` (CSV, in left order).
+const expectedItems = computed(() =>
+  props.expected ? props.expected.split(',').map(s => s.trim()) : []
+)
+const rowIsCorrect = computed(() => {
+  if (!props.submitted || !expectedItems.value.length) return []
+  return order.value.map((origIdx, i) => {
+    const placed = (props.config.rights[origIdx] ?? '').trim()
+    return placed === (expectedItems.value[i] ?? '').trim()
+  })
+})
 
 function emitReply() {
   // Only consider the reply "ready" once the user has explicitly paired
@@ -315,5 +332,13 @@ onMounted(() => {
   border-color: var(--color-primary, #3b82f6);
   background: color-mix(in srgb, var(--color-primary, #3b82f6) 18%, transparent);
   transform: scale(1.02);
+}
+.correspond-cell.is-correct {
+  border-color: var(--color-success, #16a34a);
+  background: color-mix(in srgb, var(--color-success, #16a34a) 18%, transparent);
+}
+.correspond-cell.is-wrong {
+  border-color: var(--color-error, #dc2626);
+  background: color-mix(in srgb, var(--color-error, #dc2626) 18%, transparent);
 }
 </style>

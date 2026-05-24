@@ -49,6 +49,7 @@
             :name="seg.name"
             :config="seg.config"
             :value="replies[seg.name] || ''"
+            :expected="rendered.answers.find(a => a.input_name === seg.name)?.expected || ''"
             :submitted="submitted"
             @update:reply="(name, val) => updateReply(name, val)"
           />

@@ -53,26 +53,42 @@
         </div>
         
         <div class="text-sm space-y-1 mt-1">
-          <div v-for="(r, i) in checkResult.results" :key="r.input_name"
-               class="flex items-baseline gap-2 flex-wrap">
-            <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'">
-            </span>
-            <span v-if="!checkResult.noanalyzeprint" v-html="feedbackHtml[r.input_name]?.reply"></span>
-            <span v-if="checkResult.noanalyzeprint" class="mx-1" style="color:var(--color-text-muted)">-</span>
-            <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">
-              {{ $t('feedback.good') }}
-            </span>
-            <template v-else>
-              <span style="color:var(--color-error)" class="font-medium">
-                {{ $t('feedback.bad') }}<template v-if="!checkResult.noanalyzeprint">,</template>
-              </span>
-              <template v-if="!checkResult.noanalyzeprint">
-                <span style="color:var(--color-text)">
-                  {{ $t('feedback.expected') }}
-                </span>
-                <span v-html="feedbackHtml[r.input_name]?.expected" style="color:var(--color-text)"></span>
-              </template>
+          <div v-for="(r, i) in checkResult.results" :key="r.input_name">
+            <!-- correspond: render a mini-table of the correct pairs
+                 instead of the generic "wrong, expected was X" text. -->
+            <template v-if="answerType(r.input_name) === 'correspond'">
+              <div class="flex items-baseline gap-2 flex-wrap mb-2">
+                <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'"></span>
+                <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">{{ $t('feedback.good') }}</span>
+                <span v-else style="color:var(--color-error)" class="font-medium">{{ $t('feedback.bad') }}</span>
+              </div>
+              <ExerciseCorrespondFeedback
+                v-if="!r.correct"
+                :lefts="(answerOptions(r.input_name)?.lefts as string[]) || []"
+                :rights-correct="(r.expected ?? '').split(',')"
+                class="mb-3"
+              />
             </template>
+            <div v-else class="flex items-baseline gap-2 flex-wrap">
+              <span class="font-medium" style="color:var(--color-text)" v-html="labelsHtml[r.input_name] || rendered.answers.find(a => a.input_name === r.input_name)?.label || $t('feedback.index', { n: i + 1 }) + ' :'">
+              </span>
+              <span v-if="!checkResult.noanalyzeprint" v-html="feedbackHtml[r.input_name]?.reply"></span>
+              <span v-if="checkResult.noanalyzeprint" class="mx-1" style="color:var(--color-text-muted)">-</span>
+              <span v-if="r.correct" style="color:var(--color-success)" class="font-medium">
+                {{ $t('feedback.good') }}
+              </span>
+              <template v-else>
+                <span style="color:var(--color-error)" class="font-medium">
+                  {{ $t('feedback.bad') }}<template v-if="!checkResult.noanalyzeprint">,</template>
+                </span>
+                <template v-if="!checkResult.noanalyzeprint">
+                  <span style="color:var(--color-text)">
+                    {{ $t('feedback.expected') }}
+                  </span>
+                  <span v-html="feedbackHtml[r.input_name]?.expected" style="color:var(--color-text)"></span>
+                </template>
+              </template>
+            </div>
           </div>
         </div>
 
@@ -154,6 +170,15 @@ const hasClickfill = computed(() =>
 const hasRadioAnswers = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
 )
+
+// Lookup helpers used by the feedback section to detect special widgets
+// (e.g. correspond) and reach their config/options.
+function answerType(inputName: string): string {
+  return props.rendered?.answers.find(a => a.input_name === inputName)?.answer_type ?? ''
+}
+function answerOptions(inputName: string): Record<string, unknown> | undefined {
+  return props.rendered?.answers.find(a => a.input_name === inputName)?.options
+}
 
 const allFilled = computed(() => {
   if (!props.rendered) return false
