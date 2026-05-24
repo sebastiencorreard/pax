@@ -56,8 +56,10 @@
             <div v-for="(step, i) in stepsHistory" :key="i"
                  class="flex items-baseline gap-2 flex-wrap">
               <span class="font-medium" style="color:var(--color-text)" v-html="step.labelHtml || step.label || $t('exercise.step_label', { n: step.step }) + ' :'"></span>
-              <span v-if="step.replyHtml && !checkResult?.noanalyzeprint" v-html="step.replyHtml"></span>
-              <span v-if="checkResult?.noanalyzeprint" class="mx-1" style="color:var(--color-text-muted)">-</span>
+              <!-- noanalyzeprint hides the *error* analysis only; a correct
+                   step still echoes what the student typed. -->
+              <span v-if="step.replyHtml && (!checkResult?.noanalyzeprint || step.correct)" v-html="step.replyHtml"></span>
+              <span v-if="checkResult?.noanalyzeprint && !step.correct" class="mx-1" style="color:var(--color-text-muted)">-</span>
               <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
                 {{ $t('feedback.good') }}
               </span>
