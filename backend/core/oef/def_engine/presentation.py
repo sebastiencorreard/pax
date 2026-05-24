@@ -42,8 +42,19 @@ def _normalize_math_content(s: str) -> str:
             if is_single_group:
                 wrapped = True
 
+        # sympify pulls a few single-letter names from sympy's namespace
+        # (N → numerical eval function, O → Order, I → ImaginaryUnit, …),
+        # turning `\(N\)` into "<function N at 0x…>". In school exercises
+        # those letters are always Symbols, so force them.
+        local_dict = {
+            name: sympy.Symbol(name) for name in (
+                "N", "O", "I", "E", "S", "Q", "C"
+            )
+        }
         try:
-            res = sympy.latex(sympy.sympify(side.replace("^", "**")))
+            res = sympy.latex(
+                sympy.sympify(side.replace("^", "**"), locals=local_dict)
+            )
             if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
                 res = f"\\left({res}\\right)"
             return res
