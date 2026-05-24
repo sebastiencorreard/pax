@@ -83,57 +83,9 @@ def _is_case_mismatch_only(reply: str, expected: str) -> bool:
     return all(u.lower() in expected_lower for u in unknown)
 
 
-def _is_term_order_mismatch(reply: str, expected: str) -> bool:
-    """True iff `reply` and `expected` are mathematically equal but have
-    different top-level term orderings.
-
-    Used to enforce "decreasing powers" style conventions (reduire1..5,
-    "Réduire et ordonner suivant les puissances décroissantes …"). The
-    expected value comes through ``!exec pari`` which produces sympy's
-    canonical order (descending powers); if the student typed
-    `9z^2 + 7z^3 + 3z + 5` instead of `7z^3 + 9z^2 + 3z + 5`, the parsed
-    `Add.args` tuples differ even though the expressions are equal.
-    """
-    try:
-        import sympy  # noqa: PLC0415
-        from sympy.parsing.sympy_parser import (
-            implicit_multiplication_application,
-            parse_expr,
-            standard_transformations,
-        )
-        T = standard_transformations + (implicit_multiplication_application,)
-        loc = _safe_locals()
-        reply_parsed = parse_expr(
-            reply.replace("^", "**"), transformations=T,
-            local_dict=loc, evaluate=False,
-        )
-        expected_parsed = parse_expr(
-            expected.replace("^", "**"), transformations=T,
-            local_dict=loc, evaluate=False,
-        )
-        # Math equality first — non-equal expressions are normal wrong
-        # answers, not an order issue.
-        if sympy.expand(reply_parsed - expected_parsed) != 0:
-            return False
-        # Compare top-level term sequences (Add.args preserved by
-        # evaluate=False). Single-term expressions can't have an order.
-        if not (reply_parsed.is_Add and expected_parsed.is_Add):
-            return False
-        r_terms = [str(t) for t in reply_parsed.args]
-        e_terms = [str(t) for t in expected_parsed.args]
-        if sorted(r_terms) != sorted(e_terms):
-            # Same expanded value but different *set* of literal terms
-            # (e.g. `2*x + 3*x` vs `5*x`) — that's a reduction issue
-            # handled by polexpand, not an order issue.
-            return False
-        return r_terms != e_terms
-    except Exception:
-        return False
-
-
 # Generic "rewrite please" message reused for all form-mismatch warnings
-# (polexpand, polfactor, bad_variable, term-order). Mirrors WIMS' single
-# `badform` message rather than spelling out the specific failure mode.
+# (polexpand, polfactor, bad_variable). Mirrors WIMS' single `badform`
+# message rather than spelling out the specific failure mode.
 _REWRITE_MSG = (
     "La réponse que vous avez donnée n'est pas écrite comme il faut. "
     "Veuillez la réécrire correctement."
@@ -661,30 +613,25 @@ def check_answer(
                 detail=_REWRITE_MSG,
             )
 
-    # Form-mismatch pre-checks for algebraic types. All three (case
-    # slip, term-order, …) surface the same generic "rewrite please"
-    # message — distinguishing them in the UI would just clutter
-    # without helping the student.
+    # Form-mismatch pre-check for algebraic types. Currently only the
+    # case-slip case (`z+15` vs `Z+15`) — genuinely wrong variables
+    # (`X+15` vs `Z+15`) fall through to the normal check and are
+    # rejected as a wrong answer.
+    #
+    # Note: we deliberately do NOT check term ordering. WIMS' algexp
+    # pipes both reply and expected through `print(maxima ...)` which
+    # canonicalises the order before comparison, so any term order is
+    # accepted as long as the values are equal. Mirroring that means
+    # `54x² + 36x + 27x³ + 8` is just as good as `27x³ + 54x² + 36x + 8`
+    # — see develop.fr/bin3 where the user explicitly noted this.
     if reply.strip() and answer_type.lower() in (
         "algexp", "default", "auto", "litexp", "formal", "function"
     ):
-        # Case-mismatch: `z+15` vs `Z+15`. Genuinely wrong variables
-        # (`X+15` vs `Z+15`) fall through to the normal check.
         if _is_case_mismatch_only(reply, expected):
             return CheckResult(
                 correct=False,
                 score=0.0,
                 method="bad_variable",
-                status="invalid_format",
-                detail=_REWRITE_MSG,
-            )
-        # Term-order: `9z^2 + 7z^3 + 3z + 5` vs canonical
-        # `7z^3 + 9z^2 + 3z + 5` (reduire1..5 require descending powers).
-        if _is_term_order_mismatch(reply, expected):
-            return CheckResult(
-                correct=False,
-                score=0.0,
-                method="term_order",
                 status="invalid_format",
                 detail=_REWRITE_MSG,
             )
