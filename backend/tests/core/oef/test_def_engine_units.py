@@ -2,7 +2,7 @@
 Unit tests for def_engine internals.
 
 Covers individual commands, variable resolution helpers, condition evaluation,
-find_def_path, _call_pari, _call_maxima (SymPy backend), and _sympy_to_latex.
+find_def_path, _call_pari, _call_maxima (SymPy backend), and _expr_to_latex.
 """
 
 import re
@@ -13,7 +13,7 @@ from core.oef.def_engine import (
     _call_maxima,
     _call_pari,
     _close_inline_math,
-    _sympy_to_latex,
+    _expr_to_latex,
 )
 from core.oef.engine import find_def_path
 
@@ -869,26 +869,26 @@ class TestCallMaxima:
         assert _call_maxima("cardinality({1,2,3,2,1})") == "3"
 
 
-# ── _sympy_to_latex ───────────────────────────────────────────────────────────
+# ── _expr_to_latex ───────────────────────────────────────────────────────────
 
 
 class TestSympyToLatex:
     def test_polynomial(self):
-        result = _sympy_to_latex("n**2 + 2*n - 15")
+        result = _expr_to_latex("n**2 + 2*n - 15")
         assert "n^{2}" in result
         assert "n" in result
 
     def test_fraction(self):
-        result = _sympy_to_latex("3/2")
+        result = _expr_to_latex("3/2")
         assert "frac" in result or "3" in result
 
     def test_negative(self):
-        result = _sympy_to_latex("-10")
+        result = _expr_to_latex("-10")
         assert result.strip() == "-10"
 
     def test_fallback_on_unparseable(self):
         # Should return original string on parse failure
-        result = _sympy_to_latex("some random non-math text @#$")
+        result = _expr_to_latex("some random non-math text @#$")
         assert result  # non-empty
 
 

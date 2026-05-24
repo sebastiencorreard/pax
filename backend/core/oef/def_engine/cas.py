@@ -11,7 +11,7 @@ asks for symbolic / numeric evaluation:
 - ``_call_pari`` — PARI/GP emulation: dispatches the helper functions in
   ``_PARI_HELPERS`` and auto-binds unknown identifiers to ``sympy.Symbol``
   so polynomial expressions like ``polcoeff(x^2 + 3*x + 2, 1)`` work.
-- ``_sympy_to_latex`` — string-in / LaTeX-out helper used by ``!texmath``
+- ``_expr_to_latex`` — string-in / LaTeX-out helper used by ``!texmath``
   and ``!rawmath`` (the latter intentionally bypasses LaTeX conversion;
   see runtime).
 - A handful of helpers (``_split_top_level_args``, ``_sympify_arg``,
@@ -267,7 +267,7 @@ def _call_maxima(expr: str) -> str:
         return expr
 
 
-def _sympy_to_latex(expr: str) -> str:
+def _expr_to_latex(expr: str) -> str:
     """Convert a math expression string to LaTeX notation for display.
 
     Critically does NOT simplify — used by ``!texmath`` to render an

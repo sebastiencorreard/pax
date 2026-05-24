@@ -23,7 +23,7 @@ from .cas import (
     _rint,
     _split_top_level_args,
     _sympify_arg,
-    _sympy_to_latex,
+    _expr_to_latex,
 )
 from .presentation import _close_inline_math, _normalize_math_content
 from .slib import _SlibExit, _SlibMixin
@@ -702,7 +702,7 @@ class DefEngine(_SlibMixin):
             return expr
 
         if cmd == "texmath":
-            return _sympy_to_latex(self._subst(args))
+            return _expr_to_latex(self._subst(args))
 
         if cmd == "insmath":
             return self._subst(args)
