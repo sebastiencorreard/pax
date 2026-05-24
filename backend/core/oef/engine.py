@@ -169,6 +169,7 @@ _SEGMENT_PATTERN = re.compile(
     r'<cf-slot name="([^"]+)"></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
+    r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
 )
 # Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
@@ -309,6 +310,21 @@ def _segment_statement(html: str) -> list[dict]:
                 name = f"reply{alias.group(1)}"
             label = m.group(5).strip()
             segments.append({"type": "menu", "name": name, "label": label, "is_sup": is_sup})
+        elif m.group(6) is not None:
+            # Widget correspond — config est du JSON HTML-escaped
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            name = m.group(6).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            try:
+                config = _json.loads(_html.unescape(m.group(7)))
+            except (ValueError, TypeError):
+                config = {}
+            segments.append({
+                "type": "correspond", "name": name, "config": config, "is_sup": is_sup,
+            })
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

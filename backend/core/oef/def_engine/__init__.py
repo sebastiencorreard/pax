@@ -1372,15 +1372,30 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_column(self, args: str) -> str:
-        """!column C of matrix — column slice as comma list."""
+        """!column C of matrix — column slice as comma list.
+
+        Rows may be tab-separated (raw WIMS) or ``;``-separated (post-
+        ``!translate \\t\\n to ;;``). Columns are always comma-separated,
+        and we use a smart split that preserves commas inside ``\\(...\\)``
+        (LaTeX) and other parenthesised groups.
+        """
         m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
         if not m: return ""
         try:
             col_idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
-            rows = self._subst(m.group(2)).split("\t")
+            value = self._subst(m.group(2))
+            if "\t" in value:
+                rows = value.split("\t")
+            else:
+                rows = self._split_rows_by_semi(value)
+            # Column separator: prefer comma with parenthesis-aware split
+            # (default for WIMS matrices). If no row produces multiple
+            # comma-cols, the author likely used ``;`` instead.
+            all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
+            if all(len(c) == 1 for c in all_cols):
+                all_cols = [r.split(";") for r in rows]
             res = []
-            for r in rows:
-                cols = re.split(r"[;,]", r)
+            for cols in all_cols:
                 if 1 <= col_idx <= len(cols):
                     res.append(cols[col_idx - 1].strip())
             return ",".join(res)
@@ -1961,6 +1976,67 @@ class DefEngine(_SlibMixin):
                 return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
             elif reply_type == "clickfill":
                 return f'<cf-slot name="{ref}"></cf-slot>'
+            elif reply_type == "correspond":
+                # `correspond`: bijection between two columns. replygood
+                # is "left1,left2,...;right1,right2,..." (rows separated
+                # by ``;``, items by ``,`` — same format as `\column N of`).
+                # The right column is shuffled at render time; the user
+                # reorders it to match. Size is "V x HG x HD" (vertical,
+                # left width, right width).
+                import json as _json  # noqa: PLC0415
+                import random as _random  # noqa: PLC0415
+                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+                rows = self._split_rows_by_semi(good_raw)
+                if len(rows) != 2:
+                    return ""
+                lefts = [
+                    self._subst(c.strip())
+                    for c in re.split(r",(?![^(]*\))", rows[0]) if c.strip()
+                ]
+                rights = [
+                    self._subst(c.strip())
+                    for c in re.split(r",(?![^(]*\))", rows[1]) if c.strip()
+                ]
+                if not lefts or len(lefts) != len(rights):
+                    return ""
+                # Deterministic shuffle from the engine seed + reply index
+                rng = _random.Random(f"{self.seed}_correspond_{n}")
+                rights_shuffled = list(rights)
+                rng.shuffle(rights_shuffled)
+                # Parse size "V x HG x HD"
+                size_raw = self._subst(size_str).strip()
+                size_parts = re.split(r"\s*[xX]\s*", size_raw)
+                try:
+                    sizev = int(size_parts[0]) if len(size_parts) >= 1 else 40
+                    sizeh1 = int(size_parts[1]) if len(size_parts) >= 2 else 200
+                    sizeh2 = int(size_parts[2]) if len(size_parts) >= 3 else sizeh1
+                except (ValueError, TypeError):
+                    sizev, sizeh1, sizeh2 = 40, 200, 200
+                opt_str = self._subst(self.ctx.get(f"replyoption{n}", "")).lower()
+                partial = "split" in opt_str or "partialscore" in opt_str
+                config = _json.dumps({
+                    "lefts": lefts,
+                    "rights": rights_shuffled,
+                    "sizev": sizev,
+                    "sizeh1": sizeh1,
+                    "sizeh2": sizeh2,
+                    "partial": partial,
+                }, ensure_ascii=False)
+                # Stash for _extract_answers so AnswerDef gets the same
+                # expected/options without re-parsing.
+                self._correspond_meta = getattr(self, "_correspond_meta", {})
+                self._correspond_meta[ref] = {
+                    "lefts": lefts,
+                    "rights_correct": rights,
+                    "rights_shuffled": rights_shuffled,
+                    "sizev": sizev, "sizeh1": sizeh1, "sizeh2": sizeh2,
+                    "partial": partial,
+                }
+                import html as _html  # noqa: PLC0415
+                return (
+                    f'<span class="oef-correspond" name="{ref}" '
+                    f'data-config="{_html.escape(config)}"></span>'
+                )
 
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
@@ -2104,6 +2180,35 @@ class DefEngine(_SlibMixin):
                     options["choices"] = choices
                 else:
                     expected = good_raw.strip()
+
+            elif ans_type == "correspond":
+                # Bijection between two columns. expected is the right-column
+                # items in their *correct* order (joined by ``,``); the
+                # widget config (lefts, shuffled rights, sizes) is exposed
+                # via the data-config attribute by _render_embed and also
+                # mirrored into options for direct access.
+                meta = getattr(self, "_correspond_meta", {}).get(f"reply{n}")
+                if meta:
+                    expected = ",".join(meta["rights_correct"])
+                    options["lefts"] = meta["lefts"]
+                    options["rights_shuffled"] = meta["rights_shuffled"]
+                    options["partial"] = meta["partial"]
+                    options["sizes"] = {
+                        "v": meta["sizev"],
+                        "hg": meta["sizeh1"],
+                        "hd": meta["sizeh2"],
+                    }
+                else:
+                    # _render_embed wasn't called (no \embed{} in statement).
+                    # Parse replygood directly to still produce a usable
+                    # expected value.
+                    rows = self._split_rows_by_semi(good_raw)
+                    if len(rows) == 2:
+                        rights = [
+                            self._subst(c.strip())
+                            for c in re.split(r",(?![^(]*\))", rows[1]) if c.strip()
+                        ]
+                        expected = ",".join(rights)
 
             elif ans_type == "clickfill":
                 # Format: "correct_answer;wrong1,wrong2,..."

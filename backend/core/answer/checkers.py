@@ -389,6 +389,36 @@ def check_text(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="text")
 
 
+def check_correspond(reply: str, expected: str, partial: bool = False) -> CheckResult:
+    """Correspondance bijective.
+
+    `reply` and `expected` are both ``,``-separated lists of right-column
+    items in the user-chosen / correct order. The j-th reply item is
+    compared to the j-th expected item by whitespace-normalised text
+    equality (matches WIMS' `$g_ notsametext $r_`).
+
+    With `partial=True` (WIMS option ``split`` / ``partialscore``), the
+    score is the fraction of correctly-placed items. Otherwise it's
+    all-or-nothing.
+    """
+    def _norm(s: str) -> str:
+        return re.sub(r"\s+", " ", s).strip()
+    r_items = [_norm(x) for x in reply.split(",")]
+    e_items = [_norm(x) for x in expected.split(",")]
+    if len(r_items) != len(e_items) or not e_items:
+        return CheckResult(correct=False, score=0.0, method="correspond")
+    n_correct = sum(1 for r, e in zip(r_items, e_items) if r == e)
+    if n_correct == len(e_items):
+        return CheckResult(correct=True, score=1.0, method="correspond")
+    if partial:
+        return CheckResult(
+            correct=False,
+            score=n_correct / len(e_items),
+            method="correspond_partial",
+        )
+    return CheckResult(correct=False, score=0.0, method="correspond")
+
+
 def check_case(reply: str, expected: str) -> CheckResult:
     """WIMS `case` type: ``expected`` lists alternatives separated by ``|``;
     the reply matches if it equals any alternative (case- and space-insensitive)."""
@@ -533,6 +563,8 @@ def check_answer(
             return check_set(reply, expected)
         case "radio" | "menu" | "clickfill" | "mark":
             return check_radio(reply, expected)
+        case "correspond":
+            return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "case":
             return check_case(reply, expected)
         case "default" | "auto":

@@ -58,6 +58,9 @@ VOCABAFF3_DEF = os.path.join(
 FORMULE1_DEF = os.path.join(
     RESSOURCES, "H4/algebra/evalwimsdevfact.fr/def/formule1.def"
 )
+FORMULE3_DEF = os.path.join(
+    RESSOURCES, "H3/algebra/OEFevalwimslitt.fr/def/formule3.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -660,3 +663,54 @@ class TestFormule1:
     def test_different_seeds_vary_sign(self):
         results = {load_and_render(FORMULE1_DEF, seed=s).answers[0].expected for s in range(1, 20)}
         assert len(results) > 1  # both + and - variants must appear
+
+
+class TestFormule3Correspond:
+    """formule3 uses replytype=correspond — bijective matching widget."""
+
+    def test_answer_type_is_correspond(self):
+        r = load_and_render(FORMULE3_DEF, seed=42)
+        assert r.answers[0].answer_type == "correspond"
+
+    def test_lefts_and_rights_extracted(self):
+        r = load_and_render(FORMULE3_DEF, seed=42)
+        opts = r.answers[0].options
+        assert len(opts["lefts"]) == 4
+        assert len(opts["rights_shuffled"]) == 4
+        assert opts["partial"] is False
+
+    def test_expected_is_correct_right_order(self):
+        r = load_and_render(FORMULE3_DEF, seed=42)
+        a = r.answers[0]
+        expected_items = a.expected.split(",")
+        assert len(expected_items) == 4
+        # Each expected item must appear in the shuffled set
+        assert set(expected_items) == set(a.options["rights_shuffled"])
+
+    def test_sizes_parsed(self):
+        # embed{r1, 100x200x200}
+        r = load_and_render(FORMULE3_DEF, seed=42)
+        sizes = r.answers[0].options["sizes"]
+        assert sizes == {"v": 100, "hg": 200, "hd": 200}
+
+    def test_shuffle_is_deterministic(self):
+        r1 = load_and_render(FORMULE3_DEF, seed=7)
+        r2 = load_and_render(FORMULE3_DEF, seed=7)
+        assert r1.answers[0].options["rights_shuffled"] == r2.answers[0].options["rights_shuffled"]
+
+    def test_different_seeds_vary(self):
+        # Across many seeds, the shuffled order must differ at least once
+        shuffles = {
+            tuple(load_and_render(FORMULE3_DEF, seed=s).answers[0].options["rights_shuffled"])
+            for s in range(1, 30)
+        }
+        assert len(shuffles) > 1
+
+    def test_correspond_segment_emitted(self):
+        r = load_and_render(FORMULE3_DEF, seed=42)
+        correspond_segs = [s for s in r.statement_segments if s.get("type") == "correspond"]
+        assert len(correspond_segs) == 1
+        seg = correspond_segs[0]
+        assert seg["name"] == "reply1"
+        assert seg["config"]["lefts"] == r.answers[0].options["lefts"]
+        assert seg["config"]["rights"] == r.answers[0].options["rights_shuffled"]

@@ -57,12 +57,22 @@ export interface CheckResult {
   debug_vars?: Record<string, string>
 }
 
+export interface CorrespondConfig {
+  lefts: string[]
+  rights: string[]
+  sizev: number
+  sizeh1: number
+  sizeh2: number
+  partial: boolean
+}
+
 export type Segment =
-  | { type: 'html';     content: string }
-  | { type: 'slot';     name: string; is_sup?: boolean }
-  | { type: 'input';    name: string; width: string; is_sup?: boolean }
-  | { type: 'textarea'; name: string; rows: number; cols: number; is_sup?: boolean }
-  | { type: 'menu';     name: string; label: string; is_sup?: boolean }
+  | { type: 'html';        content: string }
+  | { type: 'slot';        name: string; is_sup?: boolean }
+  | { type: 'input';       name: string; width: string; is_sup?: boolean }
+  | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
+  | { type: 'menu';        name: string; label: string; is_sup?: boolean }
+  | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()

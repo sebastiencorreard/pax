@@ -8,7 +8,7 @@ sys.path.insert(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     ),
 )
-from core.answer.checkers import check_answer, check_default, check_fset
+from core.answer.checkers import check_answer, check_correspond, check_default, check_fset
 
 
 # Bug fix : type "fset" tombait dans le case "text" (comparaison de chaînes),
@@ -116,3 +116,50 @@ def test_default_wrong_answer():
     r = check_default("x^2 + 1", "-x**2 + 8*x + 20")
     assert r.correct is False
     assert r.score == 0.0
+
+
+# correspond — bijection between two columns
+def test_correspond_dispatcher():
+    options = {"partial": False}
+    r = check_answer("correspond", "a,b,c,d", "a,b,c,d", options)
+    assert r.correct
+    assert r.score == 1.0
+    assert r.method == "correspond"
+
+
+def test_correspond_all_correct():
+    r = check_correspond("a,b,c", "a,b,c")
+    assert r.correct
+    assert r.score == 1.0
+
+
+def test_correspond_wrong_no_partial():
+    # 2 out of 4 correct, partial disabled → 0
+    r = check_correspond("a,X,c,Y", "a,b,c,d", partial=False)
+    assert not r.correct
+    assert r.score == 0.0
+
+
+def test_correspond_wrong_with_partial():
+    r = check_correspond("a,X,c,Y", "a,b,c,d", partial=True)
+    assert not r.correct
+    assert r.score == 0.5
+    assert r.method == "correspond_partial"
+
+
+def test_correspond_length_mismatch():
+    r = check_correspond("a,b", "a,b,c,d", partial=True)
+    assert not r.correct
+    assert r.score == 0.0
+
+
+def test_correspond_whitespace_normalised():
+    # Spaces around items shouldn't matter
+    r = check_correspond("  a  ,  b  ", "a,b")
+    assert r.correct
+
+
+def test_correspond_options_partial_true():
+    options = {"partial": True}
+    r = check_answer("correspond", "a,X,c,Y", "a,b,c,d", options)
+    assert r.score == 0.5

@@ -45,6 +45,13 @@
             class="rounded border px-2 py-1 text-sm font-mono resize"
             style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
           />
+          <CorrespondAnswer v-else-if="seg.type === 'correspond'"
+            :name="seg.name"
+            :config="seg.config"
+            :value="replies[seg.name] || ''"
+            :submitted="submitted"
+            @update:reply="(name, val) => updateReply(name, val)"
+          />
           <select v-else-if="seg.type === 'menu'"
             :value="replies[seg.name]"
             @change="e => updateReply(seg.name, (e.target as HTMLSelectElement).value)"
