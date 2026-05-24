@@ -38,9 +38,11 @@
       <div class="rounded-lg px-4 py-3 border"
            :style="checkResult.global_score === 1
              ? 'border-color:var(--color-success);background:color-mix(in srgb, var(--color-success) 10%, transparent)'
-             : checkResult.global_score === 0
-               ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
-               : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
+             : allWrongAreCorrespond
+               ? 'border-color:var(--color-border);background:transparent'
+               : checkResult.global_score === 0
+                 ? 'border-color:var(--color-error);background:color-mix(in srgb, var(--color-error) 10%, transparent)'
+                 : 'border-color:#d97706;background:color-mix(in srgb, #f59e0b 10%, transparent)'">
         <div class="font-semibold text-lg mb-2">
           <template v-if="checkResult.global_score === 1">{{ $t('feedback.correct') }}</template>
           <template v-else-if="checkResult.global_score === 0">{{ $t('feedback.incorrect') }}</template>
@@ -179,6 +181,17 @@ function answerType(inputName: string): string {
 function answerOptions(inputName: string): Record<string, unknown> | undefined {
   return props.rendered?.answers.find(a => a.input_name === inputName)?.options
 }
+
+// True when every wrong result is from a `correspond` widget — in that
+// case the per-row green/red colouring inside the widget + the
+// correction table below already convey the verdict, so we skip the
+// red wash on the outer feedback container.
+const allWrongAreCorrespond = computed(() => {
+  if (!checkResult.value) return false
+  const wrongs = checkResult.value.results.filter(r => !r.correct)
+  if (wrongs.length === 0) return false
+  return wrongs.every(r => answerType(r.input_name) === 'correspond')
+})
 
 const allFilled = computed(() => {
   if (!props.rendered) return false
