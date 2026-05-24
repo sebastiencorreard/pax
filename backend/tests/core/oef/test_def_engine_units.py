@@ -803,6 +803,59 @@ class TestRangeSlice:
         e.ctx["v"] = "a,b,c"
         assert e._subst("$(v[2..2])") == "b"
 
+    def test_variable_bound(self):
+        # Bounds may be variable refs, not just literals: $(v[1..$n]).
+        # This is the "first N items" idiom that ecrdec1 relies on.
+        e = engine()
+        e.ctx["v"] = "a,b,c,d,e"
+        e.ctx["n"] = "3"
+        assert e._subst("$(v[1..$n])") == "a,b,c"
+
+    def test_arithmetic_bound(self):
+        # Bounds may be arithmetic expressions: $(v[1..$n+1]).
+        e = engine()
+        e.ctx["v"] = "a,b,c,d,e"
+        e.ctx["n"] = "3"
+        assert e._subst("$(v[1..$n+1])") == "a,b,c,d"
+
+    def test_variable_start(self):
+        e = engine()
+        e.ctx["v"] = "a,b,c,d,e"
+        e.ctx["n"] = "3"
+        assert e._subst("$(v[$n..5])") == "c,d,e"
+
+
+# ── _render_embed reply ref normalisation ─────────────────────────────────────
+
+
+class TestRenderEmbedReplyRef:
+    def test_reply_loop_var_text(self):
+        # `reply\h` (full `reply` prefix + loop var) must resolve the loop
+        # variable just like `r\h` does → name="reply2" when h=2.
+        e = engine()
+        e.ctx["h"] = "2"
+        assert e._render_embed(r"reply\h,10") == (
+            '<span class="oef-input" name="reply2" data-size="10"></span>'
+        )
+
+    def test_r_loop_var_text(self):
+        # The short `r\h` form still resolves to the same reply ref.
+        e = engine()
+        e.ctx["h"] = "2"
+        assert e._render_embed(r"r\h,10") == (
+            '<span class="oef-input" name="reply2" data-size="10"></span>'
+        )
+
+    def test_reply_loop_var_radio_registers_index(self):
+        # For a radio reply the widget is rendered by the frontend (returns
+        # ""), but the resolved index must still be recorded so the choices
+        # get exposed. With h=1 → reply1.
+        e = engine()
+        e.ctx["h"] = "1"
+        e.ctx["replytype1"] = "radio"
+        assert e._render_embed(r"reply\h,10") == ""
+        assert "reply1" in e._touched_replies
+
 
 # ── _call_maxima (SymPy backend) ──────────────────────────────────────────────
 
