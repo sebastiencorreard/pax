@@ -64,6 +64,25 @@ def _unknown_variables(reply: str, expected: str) -> set[str]:
     return reply_vars - expected_vars
 
 
+def _is_case_mismatch_only(reply: str, expected: str) -> bool:
+    """True iff every variable in `reply` that's absent from `expected`
+    has a case-equivalent (lowercase match) variable in `expected`.
+
+    `z+15` against `Z+15` → True  (just a case slip, prompt for retry)
+    `X+15` against `Z+15` → False (genuinely wrong variable → wrong answer)
+    `z+y` against `Z`     → False (`y` has no case-equivalent in expected)
+    """
+    expected_vars: set[str] = set()
+    for alt in _split_top_level_alternatives(expected):
+        expected_vars |= _free_symbols(alt)
+    reply_vars = _free_symbols(reply)
+    unknown = reply_vars - expected_vars
+    if not unknown:
+        return False
+    expected_lower = {v.lower() for v in expected_vars}
+    return all(u.lower() in expected_lower for u in unknown)
+
+
 def _log_unhandled_answer_type(answer_type: str) -> None:
     """Log an answer type that falls through to text-match (likely unsupported).
     Deduped by name across the process lifetime so the log stays readable."""
@@ -585,16 +604,16 @@ def check_answer(
                 detail="La réponse que vous avez donnée n'est pas écrite sous forme factorisée."
             )
 
-    # bad_variable check (mirrors WIMS' `anstype/function` pre-validation):
-    # if the reply uses variable names that don't appear in the expected
-    # answer, it's almost always a case mismatch (e.g. expected uses `Z`,
-    # the student typed `z+15`). Treat as a soft "rewrite please" instead
-    # of a hard wrong answer.
+    # Case-mismatch pre-check: when the reply's only "unknown" variables
+    # are case-equivalent to expected variables (e.g. `z+15` against
+    # `Z+15`), it's almost certainly a casing slip. Show a soft warning
+    # and let the student retry instead of marking it wrong. A truly
+    # different variable (`X+15` vs `Z+15`) still falls through to the
+    # normal check and is rejected as a wrong answer.
     if reply.strip() and answer_type.lower() in (
         "algexp", "default", "auto", "litexp", "formal", "function"
     ):
-        unknown = _unknown_variables(reply, expected)
-        if unknown:
+        if _is_case_mismatch_only(reply, expected):
             return CheckResult(
                 correct=False,
                 score=0.0,
