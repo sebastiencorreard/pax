@@ -150,16 +150,18 @@ def is_polexpand(s: str) -> bool:
         elif not is_monomial(expr):
             return False
 
-        # 2. Réduit : la forme canonique a le même nombre de termes
-        # (sinon il restait des monômes de même degré à regrouper, ou
-        # des termes qui s'annulent comme 5*x - 5*x).
-        # `simplify` est nécessaire ici plutôt que `expand` car `expand` ne
-        # combine pas les termes similaires d'un Add construit avec
-        # evaluate=False (parse_expr garde la structure littérale).
+        # 2. Réduit : combiner les termes similaires (sans factoriser
+        # ni appliquer d'autres simplifications) et vérifier que le
+        # nombre de termes top-level n'a pas changé.
+        # On utilise `expr.func(*expr.args)` — qui reconstruit le Add
+        # avec evaluate=True par défaut — plutôt que `sympy.simplify`,
+        # car simplify peut factoriser (`40u² + 30u` → `10u(4u+3)`,
+        # 1 terme) et faussement marquer l'expression réduite comme
+        # non-réduite.
         def term_count(e):
             return len(e.args) if e.is_Add else 1
 
-        return term_count(expr) == term_count(sympy.simplify(expr))
+        return term_count(expr) == term_count(expr.func(*expr.args))
     except Exception:
         return True  # En cas d'erreur de parsing, on laisse passer au checker normal
 
