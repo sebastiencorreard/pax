@@ -153,15 +153,22 @@ def is_polexpand(s: str) -> bool:
         # 2. Réduit : combiner les termes similaires (sans factoriser
         # ni appliquer d'autres simplifications) et vérifier que le
         # nombre de termes top-level n'a pas changé.
-        # On utilise `expr.func(*expr.args)` — qui reconstruit le Add
-        # avec evaluate=True par défaut — plutôt que `sympy.simplify`,
-        # car simplify peut factoriser (`40u² + 30u` → `10u(4u+3)`,
-        # 1 terme) et faussement marquer l'expression réduite comme
-        # non-réduite.
+        # Pourquoi `sympify(str(expr))` plutôt que :
+        #   - `sympy.simplify` : factorise (`40u² + 30u` → `10u(4u+3)`,
+        #     2→1 terme, faux positif sur les expressions réduites).
+        #   - `expr.func(*expr.args)` : ne re-canonicalise pas les Mul
+        #     internes, donc `-63x - 6x` (= `Mul(-1,63,x) + Mul(-1,6,x)`)
+        #     n'est pas combiné — alors que `+63x + 6x` l'est. Asymétrie
+        #     entre termes positifs et négatifs construits avec
+        #     evaluate=False.
+        #   - `sympy.expand` : étrangement ne combine pas non plus les
+        #     like terms d'un Add evaluate=False.
+        # sympify(str) re-parse depuis zéro avec evaluate=True : combine
+        # les like terms (positifs OU négatifs) sans factoriser.
         def term_count(e):
             return len(e.args) if e.is_Add else 1
 
-        return term_count(expr) == term_count(expr.func(*expr.args))
+        return term_count(expr) == term_count(sympy.sympify(str(expr)))
     except Exception:
         return True  # En cas d'erreur de parsing, on laisse passer au checker normal
 
