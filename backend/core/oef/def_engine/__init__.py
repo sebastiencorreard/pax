@@ -39,7 +39,7 @@ from ..def_parser import (
     ReadProc,
     parse as parse_def,
 )
-from ..engine import AnswerDef, ExerciseRender, _segment_statement
+from ..engine import AnswerDef, ExerciseRender, _segment_statement, _embedded_widget_names
 
 # Sous-modules extraits — re-exportés ici pour rétrocompatibilité des imports
 # externes : `from core.oef.def_engine import check_analyze` continue de fonctionner.
@@ -192,6 +192,10 @@ class DefEngine(_SlibMixin):
             s["name"] for s in segments
             if s["type"] in ("input", "slot", "menu", "textarea", "correspond")
         }
+        # Widgets embedded inside a <table> become native <input>s and don't
+        # surface as input segments — count them too so the fallback below
+        # doesn't re-append every reply underneath the table.
+        widget_names |= _embedded_widget_names(html)
         
         # Extract dynamic steps info
         oefsteps_val = self.ctx.get("oefsteps", "").strip()

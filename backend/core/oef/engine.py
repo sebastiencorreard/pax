@@ -354,6 +354,26 @@ def _segment_statement(html: str) -> list[dict]:
     return segments
 
 
+def _embedded_widget_names(html: str) -> set[str]:
+    """Reply-widget names present in the rendered statement HTML.
+
+    Detects oef-input / oef-menu / oef-correspond spans and cf-slots
+    regardless of whether they sit inside a <table> — where _segment_statement
+    rewrites them to a native <input> and emits no input segment. Used to
+    decide whether the "append a default input per reply" fallback is needed;
+    without the table-embedded names that fallback duplicates every field
+    underneath the table (power10: 14 inputs in the table + 14 below).
+    """
+    names: set[str] = set()
+    for m in _SEGMENT_PATTERN.finditer(html):
+        nm = m.group(1) or m.group(2) or m.group(4) or m.group(6)
+        if nm:
+            nm = nm.strip()
+            alias = re.match(r"^r(\d+)$", nm)
+            names.add(f"reply{alias.group(1)}" if alias else nm)
+    return names
+
+
 def _extract_statement(ast: OEFNode, ev: OEFEvaluator) -> str:
     """
     Extrait l'énoncé complet en combinant UNIQUEMENT \instruction, \consigne et \statement.

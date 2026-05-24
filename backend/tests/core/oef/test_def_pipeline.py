@@ -61,6 +61,9 @@ FORMULE1_DEF = os.path.join(
 FORMULE3_DEF = os.path.join(
     RESSOURCES, "H3/algebra/OEFevalwimslitt.fr/def/formule3.def"
 )
+POWER10_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/oefnombres.fr/def/power10.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -565,6 +568,35 @@ class TestMediane4:
         # The expected value is one of the data values (between val11 and val12)
         # or the half-sum of two consecutive ones.
         assert r.answers[0].expected.replace(".", "").lstrip("-").isdigit()
+
+
+class TestPower10:
+    """power10 embeds all 14 reply fields inside a <table> via
+    `!read oef/embed.phtml reply N,M`. The fields must appear only in the
+    table — not be re-appended underneath by the "default input per reply"
+    fallback (which fires when the statement has no widgets)."""
+
+    def test_renders_table(self):
+        r = load_and_render(POWER10_DEF, seed=3)
+        assert "<table" in r.statement_html
+
+    def test_inputs_not_duplicated(self):
+        import re as _re
+
+        r = load_and_render(POWER10_DEF, seed=3)
+        # 14 declared replies → exactly 14 input widgets in the HTML, no more.
+        names = _re.findall(r'class="oef-input"\s+name="([^"]+)"', r.statement_html)
+        assert len(names) == 14
+        assert len(set(names)) == 14
+
+    def test_no_standalone_input_segments(self):
+        # Table-embedded inputs are rewritten to native <input> inline, so the
+        # engine must not also emit standalone input segments for them.
+        r = load_and_render(POWER10_DEF, seed=3)
+        standalone = [
+            s for s in r.statement_segments if s.get("type") in ("input", "textarea")
+        ]
+        assert standalone == []
 
 
 class TestVocabaff3:
