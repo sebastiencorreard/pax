@@ -121,19 +121,37 @@ export function useExerciseLogic() {
     return s.startsWith('\\(') || s.startsWith('\\[')
   }
 
-  async function renderValue(s: string): Promise<string> {
+  // Answer types whose reply/expected is free text (or author-delimited HTML),
+  // not a bare math expression. For these we must NOT wrap the whole value in
+  // \(...\): a choice like "Infinie périodique" would otherwise be rendered as
+  // italic math (spaces stripped → "Infiniepériodique"). renderMath still
+  // renders any \(...\) the author embedded inside the choice text.
+  const TEXT_ANSWER_TYPES = new Set([
+    'radio', 'menu', 'checkbox', 'mark', 'correspond', 'clickfill',
+    'atext', 'text', 'nocase', 'case', 'raw',
+  ])
+
+  async function renderValue(s: string, answerType?: string): Promise<string> {
     if (!s) return '—'
     if (isLatexString(s)) return renderMath(s)
+    if (answerType && TEXT_ANSWER_TYPES.has(answerType.toLowerCase())) {
+      // Text/choice answer: render as-is; only embedded \(...\) becomes math.
+      return renderMath(s)
+    }
     return renderMath(`\\(${toLatex(s)}\\)`)
   }
 
-  async function buildFeedbackHtml(checkResult: CheckResult | null): Promise<Record<string, { reply: string, expected: string }>> {
+  async function buildFeedbackHtml(
+    checkResult: CheckResult | null,
+    answerTypes?: Record<string, string>,
+  ): Promise<Record<string, { reply: string, expected: string }>> {
     if (!checkResult) return {}
     const result: Record<string, { reply: string, expected: string }> = {}
     for (const r of checkResult.results) {
+      const t = answerTypes?.[r.input_name]
       result[r.input_name] = {
-        reply: await renderValue(r.reply),
-        expected: await renderValue(r.expected),
+        reply: await renderValue(r.reply, t),
+        expected: await renderValue(r.expected, t),
       }
     }
     return result

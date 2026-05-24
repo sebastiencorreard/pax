@@ -308,7 +308,10 @@ async function submit() {
     }
 
     submitted.value = true
-    feedbackHtml.value = await buildFeedbackHtml(checkResult.value)
+    const answerTypes = Object.fromEntries(
+      props.rendered.answers.map(a => [a.input_name, a.answer_type] as [string, string])
+    )
+    feedbackHtml.value = await buildFeedbackHtml(checkResult.value, answerTypes)
     
     if (checkResult.value.feedback_html) {
       checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
