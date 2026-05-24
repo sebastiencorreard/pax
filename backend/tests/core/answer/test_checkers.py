@@ -212,3 +212,43 @@ def test_constants_dont_trigger_bad_variable():
     r = check_answer("algexp", "pi*r", "pi*r", {})
     assert r.correct
     assert r.status == "ok"
+
+
+# term-order — "Réduire et ordonner suivant les puissances décroissantes"
+def test_term_order_mismatch_warns():
+    """Right value, wrong order (powers not descending) → soft warning."""
+    r = check_answer("litexp", "9*z^2 + 7*z^3 + 3*z + 5",
+                     "7*z^3 + 9*z^2 + 3*z + 5", {})
+    assert not r.correct
+    assert r.method == "term_order"
+    assert r.status == "invalid_format"
+
+
+def test_term_order_canonical_passes():
+    r = check_answer("litexp", "7*z^3 + 9*z^2 + 3*z + 5",
+                     "7*z^3 + 9*z^2 + 3*z + 5", {})
+    assert r.correct
+    assert r.status == "ok"
+
+
+def test_term_order_multi_good_finds_matching_alternative():
+    """When expected lists alternatives, an order match in any of them
+    is accepted — `15+Z` should pass when expected is `Z+15,15+Z`."""
+    r = check_answer("litexp", "15+Z", "Z+15,15+Z", {})
+    assert r.correct
+    assert r.status == "ok"
+
+
+# Unified warning message — all form-mismatch warnings use the same wording.
+def test_all_warnings_use_same_message():
+    """polexpand, polfactor, bad_variable, term_order all share the
+    same generic 'réécrire' message."""
+    # polexpand
+    a = check_answer("litexp", "5*(x+9)^2", "5*x^2 + 90*x + 405", {})
+    # term order
+    b = check_answer("litexp", "9*z^2 + 7*z^3",
+                     "7*z^3 + 9*z^2", {})
+    # case mismatch
+    c = check_answer("litexp", "z+15", "Z+15", {})
+    assert a.detail == b.detail == c.detail
+    assert "réécrire" in (a.detail or "")
