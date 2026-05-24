@@ -216,12 +216,22 @@ async function renderAll() {
   )
 }
 
-onMounted(renderAll)
-watch(() => props.config, renderAll, { deep: true })
+// Reset state when a new exercise instance is loaded (config changes).
+// Without this, committed arrows from the previous question linger.
+watch(() => props.config, () => {
+  order.value = props.config.rights.map((_, i) => i)
+  committed.value = new Set()
+  selected.value = null
+  dragSource.value = null
+  hoverRow.value = null
+  renderAll()
+  emitReply()
+}, { deep: true })
 
-// Initial emit so the parent has a value if the user submits without
-// touching anything (matches the shuffled initial order).
 onMounted(() => {
+  renderAll()
+  // Initial emit so the parent has a value if the user submits without
+  // touching anything (matches the shuffled initial order).
   if (!props.value) emitReply()
 })
 </script>
