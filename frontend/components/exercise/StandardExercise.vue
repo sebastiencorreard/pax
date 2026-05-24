@@ -314,21 +314,16 @@ async function submit() {
 }
 
 function fillAnswers(answers: Record<string, string>) {
-  // Filter answers to only fill those currently visible on screen
-  const activeNames = new Set(statementSegments.value
-    .map(s => (s.type === 'input' || s.type === 'textarea' || s.type === 'slot' || s.type === 'menu') ? s.name : null)
-    .filter(Boolean) as string[]
-  )
-  
+  // Fill every declared answer. Keying off rendered.answers (not statement
+  // segments) means inputs embedded inside a <table> — which become native
+  // <input>s with no corresponding input segment — are filled too; the
+  // replies watcher then syncs the values into the DOM via syncInlineInputs.
+  // (Matches DynstepsExercise.fillAnswers.)
+  const activeNames = new Set(props.rendered.answers.map(a => a.input_name))
   const filteredAnswers = Object.fromEntries(
     Object.entries(answers).filter(([name]) => activeNames.has(name))
   )
-  
-  const newReplies = { ...replies.value }
-  for (const [name, value] of Object.entries(filteredAnswers)) {
-    newReplies[name] = value
-  }
-  replies.value = newReplies
+  replies.value = { ...replies.value, ...filteredAnswers }
 }
 
 defineExpose({ fillAnswers })
