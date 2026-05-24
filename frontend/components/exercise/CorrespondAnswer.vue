@@ -129,21 +129,21 @@ function emitReply() {
   emit('update:reply', props.name, csv)
 }
 
-// Pair left row `li` with right row `rj`: swap order so the right
-// currently on row rj moves to row li (and vice-versa). Both rows are
-// then marked committed (the arrow appears).
+// Pair left row `li` with right row `rj`: swap `order` so the right
+// currently on row rj moves to row li. Only row `li` is committed
+// (an arrow appears there). The displaced right ends up on row rj but
+// that row was not explicitly associated by the user — its old right
+// has been "evicted" by the swap.
 function pair(li: number, rj: number) {
-  if (li === rj) {
-    // Same row: nothing to swap, but the user explicitly "associated"
-    // this row → mark it committed.
-    committed.value.add(li)
-  } else {
+  if (li !== rj) {
     const o = [...order.value]
     ;[o[li], o[rj]] = [o[rj], o[li]]
     order.value = o
-    committed.value.add(li)
-    committed.value.add(rj)
+    // Evicted right is no longer where the user had explicitly placed
+    // it; drop its commit so its arrow disappears.
+    committed.value.delete(rj)
   }
+  committed.value.add(li)
   // Re-trigger reactivity for the Set
   committed.value = new Set(committed.value)
   emitReply()
