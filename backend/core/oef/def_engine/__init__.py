@@ -2055,6 +2055,34 @@ class DefEngine(_SlibMixin):
 
     # ── Answer extraction ─────────────────────────────────────────────────────
 
+    def _resolve_analyze_expected(self, var_name: str, df: "DefFile") -> str:
+        """Scan the :test section for an equality involving `$<var_name>`
+        and return the evaluated RHS — used by debug/auto-fill for the
+        `analyze` answer type.
+
+        Looks for ``$val<N>=<expr>`` (or the symmetric ``<expr>=$val<N>``)
+        inside any !if/!ifval condition reachable from :test. Returns
+        the first match evaluated against the current ctx, or "" if
+        none is found.
+        """
+        from ..def_parser import IfBlock  # noqa: PLC0415
+        pat_rhs = re.compile(rf"\${re.escape(var_name)}\s*=\s*([^\s)]+)")
+        pat_lhs = re.compile(rf"([^\s(]+)\s*=\s*\${re.escape(var_name)}\b")
+
+        def walk(body: list) -> str | None:
+            for instr in body:
+                if isinstance(instr, IfBlock):
+                    cond = instr.condition
+                    m = pat_rhs.search(cond) or pat_lhs.search(cond)
+                    if m:
+                        return self._subst(m.group(1)).strip()
+                    sub = walk(instr.then_body) or walk(instr.else_body)
+                    if sub:
+                        return sub
+            return None
+
+        return walk(df.sections.get("test", [])) or ""
+
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
 
@@ -2108,11 +2136,17 @@ class DefEngine(_SlibMixin):
             analyze_m = re.match(r"^\?analyze\s*(\d+)(?:;(.+))?", good_raw.strip(), re.I)
             if analyze_m:
                 ans_type = "analyze"
-                options["analyze_var"] = f"val{analyze_m.group(1)}"
+                var_name = f"val{analyze_m.group(1)}"
+                options["analyze_var"] = var_name
                 if analyze_m.group(2):
                     expected = analyze_m.group(2)
                 else:
-                    expected = good_raw
+                    # `$val<N>` is the student's reply, not a stored answer
+                    # — the check path uses options["analyze_var"] to feed
+                    # the :test section. For debug / auto-fill, peek into
+                    # :test for an equality like `$val<N>=<rhs>` and
+                    # evaluate `<rhs>` against the current ctx.
+                    expected = self._resolve_analyze_expected(var_name, df) or ""
 
             if ans_type == "radio":
                 choices: list[str] = []
