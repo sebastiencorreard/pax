@@ -10,7 +10,7 @@ export interface AnswerDef {
 }
 
 export interface BackendSegment {
-  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu'
+  type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
   content?: string
   name?: string
   size?: number
@@ -18,6 +18,7 @@ export interface BackendSegment {
   cols?: number
   label?: string
   is_sup?: boolean
+  config?: CorrespondConfig
 }
 
 export interface Rendered {
@@ -98,6 +99,8 @@ export function useExerciseLogic() {
         out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup })
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
+      } else if (s.type === 'correspond' && s.config) {
+        out.push({ type: 'correspond', name: s.name ?? '', config: s.config, is_sup: s.is_sup })
       }
     }
     return out
