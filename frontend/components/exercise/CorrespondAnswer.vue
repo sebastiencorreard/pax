@@ -125,7 +125,13 @@ const dragSource = ref<DragRef | null>(null)
 const hoverRow = ref<number | null>(null)
 
 function emitReply() {
-  const csv = order.value.map(idx => props.config.rights[idx]).join(',')
+  // Only consider the reply "ready" once the user has explicitly paired
+  // every row (one arrow per row). Until then emit an empty string so
+  // the parent's `allFilled` check keeps the Vérifier button disabled.
+  const allCommitted = committed.value.size >= itemCount.value
+  const csv = allCommitted
+    ? order.value.map(idx => props.config.rights[idx]).join(',')
+    : ''
   emit('update:reply', props.name, csv)
 }
 
