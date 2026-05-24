@@ -1,0 +1,29 @@
+!reset slib_xyz slib_ff
+!!calcul de slib_ff et slib_xyz
+slib_t=1
+slib_tmp=!line $slib_t of $slib_pol
+!while # isin $slib_tmp
+  !advance slib_t
+  slib_tmp=!line $slib_t of $slib_pol
+!endwhile
+slib_sfa=!line $slib_t of $slib_pol
+slib_sfa=!items2words $slib_sfa
+
+slib_somcnt=!word 1 of $slib_sfa
+slib_facecnt=!word 2 of $slib_sfa
+slib_sfa=!wordstoitems $slib_sfa
+slib_xyz_=!line $[1+$slib_t] to $slib_somcnt+$slib_t of $slib_pol
+
+!for slib_j=1 to $slib_somcnt
+  slib_tmp=!row $slib_j of $slib_xyz_
+  slib_tmp=!words2items $slib_tmp
+  slib_xyz=!append semicolon $slib_tmp to $slib_xyz
+!next
+
+slib_ff_=!line $[1+$slib_t+$slib_somcnt] to $[$slib_t+1+$slib_somcnt+$slib_facecnt] of $slib_pol
+!for slib_j=1 to $slib_facecnt
+  slib_tmp=!row $slib_j of $slib_ff_
+  slib_tmp=!words2items $slib_tmp
+  slib_ff=!append item [$(slib_tmp[1..$(slib_tmp[1])+1])] to $slib_ff
+!next
+slib_pr=!exec pari xyz=[$slib_xyz];ff=[$slib_ff]

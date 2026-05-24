@@ -1,0 +1,168 @@
+!!! JsxGraph responsive Version 5 - 23/05/2025 gmarbeuf
+!!! CSS use aspect-ratio
+!!! works with jsxgraph 1.11.1 (3D module)
+!!! options : max-width, min-width, center, nocssjs
+!!! resize is cancelled otherwise option jsxgraph full-screen doesn't work
+!!! scroll to add a horizontal scrolling bar (class wims_scrollable)
+!!! Automatic research of the board's name if not indicated
+
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_require=jsxgraph
+slib_author=Bernadette,Perrin-Riou;Gilles, Marbeuf
+
+slib_example=jsxbox brd,[300x300,min=200px max=400px],var brd=JXG.JSXGraph.initBoard('jsxbox',{axis:true,originX:150,originY:150,unitX:10,unitY:10});p1=brd.create('point',[-2,1]);p2=brd.create('point',[0,function(){return p1.X();}]);brd.create('line',[p1,p2]);\
+j1 brd1,[400x400,min=20% max=50% center],var brd1=JXG.JSXGraph.initBoard('j1',{boundingbox:[-2.5,6.5,4,-7.5],axis:true,showCopyright:false,keepAspectRatio:true,zoom:{pinchHorizontal:false,pinchVertical:false,pinchSensitivity:7,min:0.5,max:2,wheel:true,needShift:false},pan:{needTwoFingers:true,needShift:false}});var A=brd1.create('point',[2.5,1],{face:'plus',size:10});var B=brd1.create('point',[-1.25,0.5],{face:'cross',size:4});var C=brd1.create('point',[-1,-5],{face:'circle',size:4});var el=brd1.create('hyperbola',[A,B,C]);var el2=brd1.create('circle',[A,B],{strokecolor:'#f0f'});\
+j2 brd2,[300x200,max=400px],var brd2=JXG.JSXGraph.initBoard('j2',{boundingbox:[-6,2,6,-3],axis:true,showCopyright:false,showFullscreen:true,zoom:{pinchHorizontal:false,pinchVertical:false,pinchSensitivity:7,min:0.5,max:2,wheel:true,needShift:false},pan:{needTwoFingers:true,needShift:false}});var s=brd2.create('slider',[[-2,-2],[2,-2],[-6,5,6]]);var graph=brd2.create('functiongraph',[function(x){return Math.sin(Math.pow(x,2));},-2,function(){return s.Value();}]);\
+j3 brd3,[400x400,min=300px max=500px center],var brd3=JXG.JSXGraph.initBoard('j3',{boundingbox:[-8,8,8,-8],pan:{enabled:true,needTwoFingers:true,needShift:true},keepaspectratio:false,axis:false,showFullscreen:true});var view=brd3.create('view3d',[[-6,-3],[8,8],[[-5,5],[-5,5],[-5,5]]],{projection:'parallel',az:{slider:{visible:true,point1:{pos:[5,-4]},point2:{pos:[5,4]},label:{anchorX:'middle'}}},el:{slider:{visible:true,point1:{pos:[6,-5]},point2:{pos:[6,3]},label:{anchorX:'middle'}}}});var A=view.create('point3d',[-5,0,1],{size:5});var B=view.create('point3d',[3,1,2],{size:5});var C=view.create('point3d',[1,-2,3],{size:5});var D=view.create('polygon3d',[A,B,C],{highlight:false,gradient:'linear',gradientSecondColor:'white',fillColor:'blue',borders:{strokecolor:'blue',strokeWidth:1}});
+
+!exit
+
+:proc
+
+#### PARAM 1 : ID AND BOARD ####
+slib_jsxbox= $(wims_read_parm[1])
+!distribute words $slib_jsxbox into slib_jsxbox,slib_board
+
+#### PARAM 2: ONLY SIZES OR SIZES AND OPTIONS ####
+slib_resp=$(wims_read_parm[2])
+
+#### PARAM 3:  ####
+slib_script= $(wims_read_parm[3..-1])
+
+#### TO DETECT OLD (NO RESPONSIVE) AND NEW VERSION (RESPONSIVE) OF THE SLIB ####
+slib_char1=!char 1 of $slib_resp
+slib_char2=!char -1 of $slib_resp
+!if ($slib_char1=[) and ($slib_char2=])
+  slib_jsversion=responsive
+  !goto responsive
+!else
+  slib_jsversion=no_responsive
+  !goto no_responsive
+!endif
+
+:no_responsive
+slib_size=!declosing $slib_resp
+slib_size=!replace internal x by , in $slib_size
+slib_width=!nospace $(slib_size[1]) px
+slib_height=!nospace $(slib_size[2]) px
+!goto result
+
+:responsive
+slib_resp=!declosing $slib_resp
+slib_size=$(slib_resp[1])
+slib_size=!replace internal x by , in $slib_size
+slib_width=!nospace $(slib_size[1])
+slib_height=!nospace $(slib_size[2])
+slib_ratio=$slib_width/$slib_height
+
+### AUTOMATIC RESEARCH OF BOARD'S NAME ###
+!if $slib_board=$empty
+  slib_tempbrd=$slib_script
+  slib_tempbrd=!replace internal initBoard by $ $@@@@$ $ in $slib_tempbrd
+  slib_tempbrd=!replace internal . by $ $ in $slib_tempbrd
+  slib_pos=!positionof word @@@@ in $slib_tempbrd
+  slib_tempbrd=!replace internal = by  in $slib_tempbrd
+  slib_tempbrd=!words2items $slib_tempbrd
+  slib_tempbrd=!nonempty item $slib_tempbrd
+  slib_itempos=!positionof item @@@@ in $slib_tempbrd
+  slib_board=!item $[$slib_itempos-3] of $slib_tempbrd
+!endif
+
+### OPTIONS ###
+slib_option=$(slib_resp[2])
+
+## scroll ##
+!if scroll iswordof $slib_option
+  slib_tagscroll1=<div class="wims_scrollable">
+  slib_tagscroll2=</div>
+!else
+  slib_tagscroll1=
+  slib_tagscroll2=
+!endif
+
+## center ##
+!if center iswordof $slib_option
+  slib_css_jsxwrap=margin:.5rem auto;
+!else
+  slib_css_jsxwrap=
+!endif
+
+## min and max width ##
+## user must add unit like px or % or ...##
+slib_minwidth=!getopt min in $slib_option
+slib_maxwidth=!getopt max in $slib_option
+
+!if $(slib_maxwidth) !=$empty
+  slib_css_jsxwrap=$slib_css_jsxwrap\
+  max-width:$(slib_maxwidth);
+!endif
+!if $(slib_minwidth) !=$empty
+  slib_css_jsxwrap=$slib_css_jsxwrap\
+  min-width:$slib_minwidth;
+!endif
+slib_css_jsxwrap=$slib_css_jsxwrap\
+height:auto;
+
+### nocssjs ###
+!if nocssjs iswordof $slib_option
+  slib_nocssjs=nocssjs
+!endif
+
+!goto result
+
+:result
+
+!if $slib_nocssjs=
+  slib_out=<link rel="stylesheet" href="scripts/js/jsxgraph/jsxgraph.css">
+!endif
+!if $slib_jsversion=responsive
+  slib_out=$slib_out\
+  <style>\
+  div.jsxwrap_$slib_jsxbox{$slib_css_jsxwrap}\
+  div.resp_$slib_jsxbox{\
+    aspect-ratio: $slib_ratio;\
+    box-sizing: border-box;\
+  }\
+  @media screen and (max-height:500px) {\
+    div.resp_$slib_jsxbox{\
+      margin:0 auto;\
+      width: calc(100vmin - 2em);\
+      height: calc(100vmin - 2em);\
+      padding:0;\
+    }\
+  }\
+  </style>
+!endif
+!if $slib_nocssjs=
+  slib_out=$slib_out\
+  <script src="scripts/js/jsxgraph/jsxgraphcore.js" charset="utf-8"></script>
+!endif
+!if $slib_jsversion=no_responsive
+  slib_out=$slib_out\
+  <div class="wims_scrollable jsxwrap">\
+    <div id="$slib_jsxbox" class="jxgbox" style="width:$slib_width; height:$slib_height"></div>\
+  </div>
+!else
+  slib_out=$slib_out\
+  $slib_tagscroll1\
+  <div class="jsxwrap_$slib_jsxbox jsxwrap">\
+    <div id="$slib_jsxbox" class="jxgbox resp_$slib_jsxbox"></div>\
+  </div>\
+  $slib_tagscroll2
+!endif
+
+slib_out=$slib_out\
+<script>\
+/*<![CDATA[*/\
+$slib_script\
+/*]]>*/\
+</script>
+
+!reset slib_script slib_size slib_width slib_height slib_jsxbox
+!if $slib_jsversion=responsive
+  !reset slib_ratio slib_board slib_option slib_tagscroll1 slib_tagscroll2 slib_nocssjs
+!endif
+!reset slib_jsversion

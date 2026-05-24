@@ -1,0 +1,41 @@
+!distribute items $wims_read_parm into serial, prim, parm1, parm2, parm3, parm4
+!set parms=!items 3 to -1 of $wims_read_parm
+
+!if $prim=$empty or $prim iswordof def define comment
+  !exit
+!endif
+!if $prim notwordof reload resource calcform exercise tool example help adm
+  !changeto primitives/$prim.phtml
+!endif
+!goto $prim
+
+:reload
+!reset anchor
+!if $parm2!=$empty
+  !set anchor=#$parm2
+!endif
+!href cmd=reply&job=read$anchor $parm1
+!exit
+
+:resource
+!for w in $parms
+  !pedia $w
+  &nbsp;
+!next w
+!exit
+
+:calcform
+!set gotcnt=!itemcnt $parms
+!if $gotcnt<1
+  !exit
+!endif
+!set gotm=$parms
+!read popup/search.phtml noremark
+!exit
+
+:exercise
+:tool
+:example
+:help
+:adm
+!changeto primitives/target.phtml

@@ -222,17 +222,26 @@ class _SlibMixin:
         return f"{med:g}"
 
     def _find_wims_scripts_dir(self) -> str | None:
-        """Locate ``wims/public_html/scripts`` by walking up from ``def_path``."""
+        """Locate the WIMS scripts directory.
+
+        Walks up from ``def_path`` looking for either ``wims-scripts/`` (the
+        vendored subset committed under ``ressources/``) or the full
+        ``wims/public_html/scripts/`` tree (only present when developing
+        against a local WIMS checkout). The first match wins.
+        """
         if not self.def_path:
             return None
         d = os.path.abspath(self.def_path)
         for _ in range(10):
             d = os.path.dirname(d)
-            if not d or d == "/":
+            if not d:
                 break
-            candidate = os.path.join(d, "wims", "public_html", "scripts")
-            if os.path.isdir(candidate):
-                return candidate
+            for sub in ("wims-scripts", os.path.join("wims", "public_html", "scripts")):
+                candidate = os.path.join(d, sub)
+                if os.path.isdir(candidate):
+                    return candidate
+            if d == "/":
+                break
         return None
 
     def _run_script_lines(self, lines: list[str]) -> None:

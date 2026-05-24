@@ -1,0 +1,94 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=2\
+ ,[x_1,...,x_n] \
+ ,[a_1,...,a_m]
+slib_author=Adeline, Grelot; Bernadette, Perrin-Riou
+
+slib_example=[1,1,1,3,4,5,6,2],[1,4]\
+[1,1,1,3,4,5,6,2],[1,4,6]\
+[1,1,1,3,6,2],[1,4,5,6]\
+[1,1,1,3,4,5,6,2,7,4,7],[2,3,6]\
+[1,1,1,3,4,5,6,2]\
+[1,1,2]\
+[1,1.5,2.7,0,3,5.5,4]
+
+!exit
+:proc
+slib_out=
+!reset slib_END1 slib_END
+!distribute items $wims_read_parm into slib_data,slib_w
+slib_v=!declosing $slib_data
+slib_w=!declosing $slib_w
+!if $slib_v$slib_w=$empty
+  slib_out=0
+  !exit
+!else
+  slib_v=!sort numeric item $slib_v
+  slib_max=!item -1 of $slib_v
+  slib_min=!item 1 of $slib_v
+  slib_cnt= !itemcnt $slib_v
+  slib_cntw=!itemcnt $slib_w
+  !if $slib_cntw=2
+    !distribute item $slib_w into slib_b,slib_p
+    slib_c=$[ceil(($slib_max-$slib_b)/$slib_p)]
+    slib_d=$[min(0,floor(($slib_min-($slib_b))/$slib_p))]
+    slib_w=!values $slib_b+x*$slib_p for x=$slib_d to $slib_c
+  !endif
+  slib_w=!sort numeric item $slib_w
+  !if $slib_w=$empty
+    slib_N=$[ceil(4*($slib_cnt)^(1/4))]
+    slib_w=!values $slib_min+x*$[(($slib_max-($slib_min))/$slib_N)] for x=0 to $slib_N
+  !else
+    slib_m=!item -1 of $slib_w
+    slib_max=$[max($slib_max,$slib_m)]
+    slib_m=!item 1 of $slib_w
+    slib_min=$[min($slib_min,$slib_m)]
+    slib_w=$slib_min,$slib_w,$slib_max
+    slib_w= !listuniq $slib_w
+  !endif
+  slib_cpt=0
+  slib_cntw=!itemcnt $slib_w
+  slib_wpointer=2
+  # end est le point de separation
+  slib_end=!item $slib_wpointer of $slib_w
+  slib_result=
+  !for slib_i=1 to $slib_cnt
+    slib_dat=!item $slib_i of $slib_v
+    !if $slib_dat<$slib_end or ($slib_dat=$slib_max and $slib_wpointer=$slib_cntw)
+      # On est toujours dans le meme intervalle
+      !advance slib_cpt
+    !else
+      # Le point de separation franchi
+      # creer un nouveau point de separation
+      :point
+      !advance slib_wpointer
+      slib_end=!item $slib_wpointer of $slib_w
+      !if $slib_wpointer < $slib_cntw
+        slib_end1=!item $[$slib_wpointer] of $slib_w
+      !else
+        slib_end1=$[$slib_end+1]
+      !endif
+      slib_END1=!append item $slib_end1 to $slib_END1
+      slib_END=!append item $slib_end to $slib_END
+      slib_result=!append item $[$slib_cpt] to $slib_result
+      !ifval $slib_dat>=$slib_end1
+        slib_cpt=0
+        !goto point
+      !else
+        slib_cpt=1
+      !endif
+    !endif
+  !next slib_i
+  #Le dernier intervalle
+  slib_result=!append item $[$slib_cpt] to $slib_result
+  !if $[$slib_wpointer+1] <=$slib_cntw
+    slib_zero=!values 0 for x=$[$slib_wpointer+1] to $slib_cntw
+    slib_result=$slib_result,$slib_zero
+  !endif
+!endif
+slib_out=!trim $slib_result
+slib_out=!line -1 of $slib_out
+slib_out=[$slib_out],[$slib_w], [$slib_END], [$slib_END1]

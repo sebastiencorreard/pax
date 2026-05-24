@@ -1,0 +1,128 @@
+
+!set default_slib_tag=text
+
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=aprendizaje,spa\
+la vieillesse,fra\
+aimer,fra,tag=baseform\
+carabistouille,fra\
+manger,fra,tag=baseform
+
+!exit
+
+:proc
+
+!!if ...adm/ isin ...$module or .. isin $wims_read_parm or $wims_read_parm=$empty
+!! !exit
+!!!endif
+!reset slib_out slib_son slib_Son slib_son_mod slib_Word slib_word slib_player
+ADDRESS=!record 0 of data/swac/packs
+
+!distribute items $wims_read_parm into slib_word,slib_packs,slib_option,slib_optionhtml
+
+slib_son_mod=!singlespace $slib_word
+slib_son_mod=!replace internal $ $ by _ in $slib_son_mod
+slib_son_mod=!nospace $slib_son_mod
+slib_son_mod=!replace internal " by in $slib_son_mod
+!!FIXME Imindex in class ??
+slib_son_test=!lookup $slib_son_mod.mp3 in Imindex
+!if $slib_son_test notsametext
+  slib_son_test=!replace internal ./ by in $slib_son_test/
+  slib_son=$imagedir/$slib_son_test$slib_son_mod.mp3
+  !goto end
+!endif
+slib_son_test=!lookup $slib_son_mod in Imindex
+!if $slib_son_test notsametext
+  slib_son_test=!replace internal ./ by in $slib_son_test/
+  slib_son=$imagedir/$slib_son_test$slib_son_mod
+  !goto end
+!endif
+slib_word=!replace internal " by $\
+$ in $slib_word
+slib_word=!nonempty lines $slib_word
+slib_word_cnt=!linecnt $slib_word
+slib_tag = !getopt tag in $slib_option
+
+slib_tag=!word 1 of $slib_tag
+!default slib_tag=$default_slib_tag
+slib_packs= !declosing $slib_packs
+slib_packs=!words2items $slib_packs
+slib_pcnt=!itemcnt $slib_packs
+slib_audio=
+!for slib_w = 1 to $slib_word_cnt
+  slib_ww=!row $slib_w of $slib_word
+  !reset slib_audio
+  !for slib_pa=1 to $slib_pcnt
+    slib_pack= $(slib_packs[$slib_pa])
+    slib_ch=!charcnt $slib_pack
+    !if $slib_ch=3
+      slib_adress=!nospace $slib_pack _ $slib_tag _keys
+      slib_au=!lookup $slib_ww in data/swac/$(slib_adress)
+      !if $slib_ww=
+        slib_au=!randrecord data/swac/$(slib_pack)_keys
+      !endif
+    !else
+      slib_adress=$slib_pack/sw_$(slib_tag)_keys
+      slib_au=!lookup $slib_ww in data/swac/$(slib_adress)
+      slib_au=!nospace $slib_au
+      slib_au=!makelist x for x in $slib_au
+      !if $slib_ww=
+        slib_au=!randrecord data/swac/$slib_pack/sw_index_keys
+      !endif
+    !endif
+    slib_audio=!append item $slib_au to $slib_audio
+  !next slib_pa
+  slib_audio=!nonempty items $slib_audio
+  slib_son=!randitem $slib_audio
+  !if $slib_son!=
+    slib_son1=!replace internal / by , in $slib_son
+    slib_dir=$(slib_son1[1])
+    slib_version=!record 0 of data/swac/version
+    slib_version=!lines2items $slib_version
+    slib_Word=!lookup $slib_son in data/swac/$(slib_dir)/sw_tags
+    !if $slib_dir isitemof $slib_version
+      slib_son=scripts/data/swac/$slib_son
+    !else
+      slib_son=https://$ADDRESS/$slib_dir/mp3/$(slib_son1[-1])
+    !endif
+    !if rename iswordof $slib_option2
+      slib_son=!rename $slib_son
+    !endif
+  !endif
+  slib_Son=!append word $slib_son to $slib_Son
+!next slib_w
+slib_son=$slib_Son
+
+:end
+slib_player=!getopt player in $slib_option
+!if $slib_son!=
+  !if $slib_player!=$empty
+    !read slib/media/audio $slib_son,$slib_optionhtml,player=$slib_player
+  !else
+    !read slib/media/audio $slib_son,$slib_optionhtml
+ !endif
+
+  slib_out=!replace internal $\
+$ by $ $ in $slib_out
+
+  slib_wo=!getopt swac_text in $slib_Word
+  !if $slib_wo=
+    slib_wo=$slib_word
+  !endif
+  !if $slib_word_cnt =1
+    slib_out=$slib_out,$slib_wo\
+    $slib_Word
+  !endif
+!else
+!!if nothing is found, try just the word ! hope that \imagedir has been written or an address
+  !if / isin $slib_word
+    !read slib/media/audio $slib_word,$slib_optionhtml,player=$slib_player
+  !else
+    slib_out=
+  !endif
+!endif

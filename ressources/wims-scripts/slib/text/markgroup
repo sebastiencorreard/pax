@@ -1,0 +1,58 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+!exit
+
+:proc
+
+slib_texte=!lines2words $wims_read_parm
+slib_texte=!embraced randitem $slib_texte
+slib_texte=!rows2lines $slib_texte
+slib_texte=!replace internal $\
+$ by &#59; in $slib_texte
+slib_texte=!replace internal ?? by ; in $slib_texte
+
+slib_cntrow=!rowcnt $slib_texte
+slib_TEXTE=
+slib_rep=
+slib_cnt=0
+slib_JUSTE=
+slib_texte=!replace internal , by &#44; in $slib_texte
+slib_texte=!replace internal ( by &#40; in $slib_texte
+slib_texte=!replace internal ) by &#41; in $slib_texte
+!for slib_i= 1 to $slib_cntrow
+  slib_H = !row $slib_i of $slib_texte
+  slib_cnt_w=!wordcnt $slib_H
+  slib_k=$[$slib_i%2]
+  !if $slib_k = 0
+    slib_faux=!replace internal || by _\/_ in $slib_H
+    slib_faux=!replace internal | by , in $slib_faux
+    slib_faux=!replace internal _\/_ by | in $slib_faux
+    !distribute items $slib_faux into slib_H,slib_juste
+    !if $slib_juste=
+      slib_JUSTE = !append item slib_ZZZZZ to $slib_JUSTE
+    !else
+      slib_JUSTE = !append item $slib_juste to $slib_JUSTE
+    !endif
+  !endif
+  slib_cnt_w=!wordcnt $slib_H
+  !if $slib_k = 0
+    slib_rep1 = !values $slib_cnt + x for x=1 to $slib_cnt_w
+    slib_rep  = !append line $slib_rep1 to $slib_rep
+  !endif
+  slib_cnt= $[$slib_cnt+$slib_cnt_w]
+  slib_HH = !words2items $slib_H
+  slib_TEXTE = !append item $slib_HH to $slib_TEXTE
+!next slib_i
+slib_rep=!nonempty items $slib_rep
+
+slib_TEXTE = !nonempty items $slib_TEXTE
+
+
+slib_JUSTE = !replace internal slib_ZZZZZ by in $slib_JUSTE
+
+slib_out= $slib_rep;$slib_TEXTE;$slib_JUSTE;$slib_cnt
+

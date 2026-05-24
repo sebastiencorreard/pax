@@ -1,0 +1,21 @@
+# This script has the right to write to a file in the user's getfile
+# directory.
+# Format of input: multi-line.
+# Line 1: two words. Word 1: file name. Word 2: "append" or "new".
+# 	Word 2 defaults to "append".
+# Line 2 and up: content to write.
+!if obot isin $session
+  !exit
+!endif
+tgf_1=!line 1 of $wims_read_parm
+tgf_c=!line 2 to -1 of $wims_read_parm
+!distribute words $tgf_1 into tgf_w1, tgf_w2
+tgf_w1=!replace internal getfile/ by $ in $tgf_w1
+!if $tgf_w1=$empty or / isin $tgf_w1 or .. isin $tgf_w1
+  !exit
+!endif
+!if $tgf_w2=new
+  !filewrite getfile/$tgf_w1 $tgf_c
+!else
+  !fileappend getfile/$tgf_w1 $tgf_c
+!endif

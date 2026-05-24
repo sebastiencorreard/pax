@@ -1,0 +1,52 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+slib_example=5,item, a,b,c,d,e,f,g\
+5,word, ab cd ef e f g\
+5,row, a;b;c;d;e;f\
+5,row, a;b;c
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_n, slib_type
+slib_data=!item 3 to -1 of $wims_read_parm
+slib_type=!lower $slib_type
+!bound slib_type within item,items,word,words,row,rows,line,lines default item
+
+!if $slib_type iswordof item items
+  slib_data=!nonempty items $slib_data
+  slib_tot=!itemcnt $slib_data
+  !bound slib_n between integer 1 and $slib_tot
+  slib_list=!shuffle $slib_tot
+  slib_out=!item $(slib_list[1..$slib_n]) of $slib_data
+  !exit
+!endif
+
+!if $slib_type iswordof word words
+  slib_tot=!wordcnt $slib_data
+  !bound slib_n between integer 1 and $slib_tot
+  slib_list=!shuffle $slib_tot
+  slib_out=!word $(slib_list[1..$slib_n]) of $slib_data
+  !exit
+!endif
+
+!if $slib_type iswordof row rows
+  slib_data=!nonempty rows $slib_data
+  slib_tot=!rowcnt $slib_data
+  !bound slib_n between integer 1 and $slib_tot
+  slib_list=!shuffle $slib_tot
+  slib_out=!row $(slib_list[1..$slib_n]) of $slib_data
+  !exit
+!endif
+
+!if $slib_type iswordof line lines
+  slib_data=!nonempty line $slib_data
+  slib_tot=!linecnt $slib_data
+  !bound slib_n between integer 1 and $slib_tot
+  slib_list=!shuffle $slib_tot
+  slib_out=!line $(slib_list[1..$slib_n]) of $slib_data
+  !exit
+!endif

@@ -289,8 +289,14 @@ class DefEngine(_SlibMixin):
         """Execute a list of instructions sequentially."""
         for instr in instructions:
             if isinstance(instr, Assign):
-                val = self._eval_value(instr.value)
+                val = self._eval_value(instr.value, target_name=instr.name)
                 self.ctx[instr.name] = val
+                # WIMS \opt self-reference (see _eval_value): when val45 is
+                # the accumulator (the only known pattern in our corpus,
+                # quizz.def), keep ``opt`` in sync so the next iteration's
+                # `!itemcnt \opt` and `val45=\opt,...` see the right value.
+                if instr.name == "val45":
+                    self.ctx["opt"] = val
 
             elif isinstance(instr, IfBlock):
                 cond = self._eval_condition(instr.kind, instr.condition)
@@ -350,8 +356,18 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-    def _eval_value(self, value: str) -> str:
-        """Evaluate the RHS of an assignment."""
+    def _eval_value(self, value: str, target_name: str | None = None) -> str:
+        """Evaluate the RHS of an assignment.
+
+        ``\\opt`` is substituted with ``ctx['opt']`` before any other
+        processing — emulates a WIMS accumulator alias normally set up by
+        ``oef/steps.proc``. ``ctx['opt']`` is kept in sync by ``_exec`` after
+        each assignment of the corresponding accumulator var (val45 in the
+        only corpus exercise that uses this pattern, ``quizz.def``).
+        """
+        if "\\opt" in value:
+            value = value.replace("\\opt", self.ctx.get("opt", ""))
+
         # !cmd — WIMS command
         if value.startswith("!"):
             cmd_line = value[1:].strip()

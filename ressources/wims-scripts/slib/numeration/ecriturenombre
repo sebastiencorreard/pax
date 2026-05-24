@@ -1,0 +1,88 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Fabrice, Guerimand
+!!201904: rajout option tex (par Gilles Marbeuf)
+!!202007: change space by &#8239; in html mode (by FG)
+!!202408: treate some cases with input of the form e+6
+slib_example=4345678\
+4345678,tex\
+5678\
+5678,tex\
+5 234\
+5 234,tex\
+456.789567\
+456.789567,tex\
+456.789567,comma\
+456.789567,comma tex\
+[897456,789],comma\
+[897456,789],comma tex\
+8.1e+09\
+8.1E+09\
+8.1897667e+05\
+8.1e-05
+!exit
+
+:proc
+slib_input=$(wims_read_parm[1])
+slib_input=!declosing $slib_input
+slib_input=!replace internal , by . in $slib_input
+!if comma isin $wims_read_parm
+  slib_point=,
+!endif
+!default slib_point=.
+
+slib_sep=$ $
+!if tex isin $wims_read_parm
+  slib_sep=\:
+!else
+  !if html isin $wims_read_parm
+    slib_sep=&#8239;
+  !endif
+!endif
+slib_test=$[$slib_input]
+!if NaN isin $slib_test
+  slib_out=NaN
+  !exit
+!endif
+!if e isin $slib_input or E isin $slib_input
+  !set slib_input=!exec pari $slib_input
+!endif
+!!does not work always !!
+!if e isin $slib_input
+  slib_out=$slib_input
+  !exit
+!endif
+slib_input=!nospace $slib_input
+slib_decomp=!replace internal . by , in $slib_input
+slib_part=!item 1 of $slib_decomp
+slib_nbchi=!charcnt $slib_part
+slib_nbgrp=$[floor($slib_nbchi/3)]
+slib_out=$empty
+!ifval $slib_nbgrp*3!=$slib_nbchi
+  slib_out=!char 1 to $[$slib_nbchi-3*$slib_nbgrp] of $slib_part
+!endif
+!for slib_i=0 to $slib_nbgrp-1
+  slib_tmp=!char $[$slib_nbchi-3*($slib_nbgrp-$slib_i)+1] to $[$slib_nbchi-3*($slib_nbgrp-$slib_i-1)] of $slib_part
+  slib_out=$slib_out$slib_sep$slib_tmp
+!next slib_i
+
+slib_tst=!itemcnt $slib_decomp
+!if $slib_tst=1 or $(slib_decomp[2])=0
+  slib_out=!singlespace $slib_out
+  !exit
+!endif
+slib_part=!item 2 of $slib_decomp
+slib_nbchi=!charcnt $slib_part
+slib_nbgrp=$[ceil($slib_nbchi/3)]
+slib_tmp=!char 1 to 3 of $slib_part
+slib_out=$(slib_out)$slib_point$slib_tmp
+!for slib_i=1 to $slib_nbgrp
+  slib_tmp=!char $[1+3*($slib_i)] to $[3+3*$slib_i] of $slib_part
+  slib_out=$slib_out$slib_sep$slib_tmp
+!next slib_i
+
+slib_out=!singlespace $slib_out
+
+!reset slib_input slib_point slib_decomp slib_sep slib_test slib_part slib_nbchi slib_nbgrp slib_tmp

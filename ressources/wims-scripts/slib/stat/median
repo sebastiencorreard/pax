@@ -1,0 +1,48 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Adeline, Grelot; Bernadette, PERRIN-RIOU
+
+slib_example=[2,-7,6]\
+[2,-7,6,1]\
+[2,-7,6;1,1,4]\
+[2,1;-7,1;6,4]\
+[2,-7,6],[1,1,4]
+
+!exit
+
+:proc
+
+!readproc slib/stat/dataproc $wims_read_parm
+slib_cnt=!itemcnt item $slib_data
+!if $slib_cnt=0
+  slib_out=0
+!else
+  !if $slib_weight<>$empty
+    slib_d=$empty
+    !for slib_i =1 to $slib_cnt
+      slib_w=!item $slib_i of $slib_weight
+      slib_j=!item $slib_i of $slib_data
+      slib_r = !values $slib_j for x=1 to $slib_w
+      slib_d=!append item $slib_r to $slib_d
+    !next slib_i
+    slib_data=$slib_d
+    slib_cnt=!itemcnt item $slib_data
+  !endif
+  slib_fml=$empty
+
+  !for slib_t in $slib_data
+    !!slib_t=!item $slib_i of $slib_data
+    slib_fml=!append item $[$slib_t] to $slib_fml
+  !next slib_i
+  slib_fml=!sort numeric item $slib_fml
+  !if $[$slib_cnt%2]=1
+    slib_out=!item $[($slib_cnt+1)/2] of $slib_fml
+  !else
+    slib_t1=!item $[$slib_cnt/2] of $slib_fml
+    slib_t2=!item $[$slib_cnt/2+1] of $slib_fml
+    slib_out=$[($slib_t1+$slib_t2)/2]
+  !endif
+!endif
+slib_out =!trim $slib_out

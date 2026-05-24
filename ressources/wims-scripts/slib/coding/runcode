@@ -1,0 +1,95 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=Run code
+slib_require=skulpt,codemirror
+slib_author=Julien, Lyotard
+slib_out=Run code written in the editor instance of codeeditor
+slib_comment=
+slib_parms=4\
+,code: [language,[code]] or [[language,[code1]],[language,[code2]]\
+1,identifiant\
+,option: words as init canvas noexec instruction=[if 4<=i <=9 :,while n<=7 :, instruction 3] post=[@@@@instruction1@@instruction2]
+,text
+
+slib_example=[python,[n=0\nwhile n<10:\n print(n)\n n=n+1]],id1,readonly,Exécuter\
+[python,[n=0\nwhile n<10:\n  print(n)\n  n=n+1\n  print(\"Hello\")]],id2,init,Exécuter\
+[[python,[a=23*797961\nprint(a)],code1],[python,[n=0\nwhile n<10:\n print (n)\n n=n+1],code2]]\
+[python,[import turtle\nt = turtle.Turtle()\nt.forward(100)]],id3,canvas noexec\
+[python,[a=69]],id4, init post=['@@@@print(a)'],Jouer le code
+!exit
+:proc
+
+!reset slib_id
+!distribute items $(wims_read_parm) into slib_code,slib_id,slib_option,slib_text
+!default slib_text=Jouer le code
+!default slib_id=0
+slib_idc=$slib_id
+
+!reset slib_post
+!if post isin $(slib_option)
+  !set slib_post=!replace internal = by _equal_ in $(slib_option)
+  !set slib_post=!replace internal post_equal_ by post= in $(slib_post)
+  !set slib_post=!getopt post in $(slib_post)
+  !set slib_post=!declosing $(slib_post)
+  !set slib_post=!replace internal _equal_ by = in $(slib_post)
+!endif
+!default slib_post=''
+
+!readproc slib/coding/editor $slib_code,$slib_idc,$slib_option
+
+slib_pref=exec
+slib_idp=$(slib_pref)$(slib_idc)
+slib_idcanvas=mycanvas$(slib_idc)
+
+slib_play=<span onclick="playcode$(slib_idp)($(slib_post));" class="wims_button" style="cursor:pointer;">$slib_text</span>
+!if noexec iswordof $slib_option
+  slib_pre=div
+!else
+  slib_pre=pre
+!endif
+
+slib_play=$slib_play\
+  <$slib_pre id="output$(slib_idp)"></$slib_pre>
+!if canvas iswordof $slib_option
+  slib_play=$slib_play\
+  <div id="$slib_idcanvas"></div>
+!endif
+
+slib_out_editor=$slib_out
+slib_out=<script src="scripts/js/external/skulpt/skulpt.min.js" charset="utf-8"></script>\
+  <script src="scripts/js/external/skulpt/skulpt-stdlib.js" charset="utf-8"></script>\
+  $slib_out_editor\
+  <div class="$(slib_pref)" id="$(slib_idp)">$slib_play</div>\
+  <script>\
+  function outf$(slib_idp)(text) {\
+     var mypre = document.getElementById("output$(slib_idp)");\
+     mypre.innerHTML = mypre.innerHTML + text;\
+  }\
+  function builtinRead(x) {\
+    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined)\
+      throw "File not found: '" + x + "'";\
+    return Sk.builtinFiles["files"][x];\
+  }\
+  function playcode$(slib_idp)(post){\
+    prog=editor$(slib_idc).getValue();\
+    var post=arguments[0];\
+    post=post.replace(/@@@@/gm,'\n');\
+    post=post.replace(/@@/gm,'\t');\
+    prog=prog+post;\
+    var mypre = document.getElementById("output$(slib_idp)");\
+    mypre.innerHTML = '';\
+    Sk.$slib_pre = "output$(slib_idp)";\
+    Sk.configure({output:outf$(slib_idp), read:builtinRead, __future__: Sk.python3});\
+    (Sk.TurtleGraphics || (Sk.TurtleGraphics = {})).target = '$slib_idcanvas';\
+    var myPromise = Sk.misceval.asyncToPromise(function() {\
+      return Sk.importMainWithBody("<stdin>", false, prog, true);\
+    });\
+    myPromise.then(function(mod) {\
+      console.log('success');\
+    },\
+    function(err) {\
+      alert(err.toString());\
+    });\
+  }\
+  </script>

@@ -1,0 +1,33 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=1\
+ ,[data] or [data],[weight]
+slib_author=Adeline, Grelot; Bernadette, PERRIN-RIOU
+
+slib_example=[2,-7,6]\
+[2,1;-7,6;1,1]\
+[2,-7,1],[1,6,1]\
+[2,-7,1;1,6,1]
+slib_require=pari
+!exit
+
+:proc
+!if [ isin $wims_read_parm or ; isin $wims_read_parm
+  !readproc slib/stat/dataproc $wims_read_parm
+!else
+  slib_data=$wims_read_parm
+  slib_weight=$empty
+  slib_cnt=!itemcnt $slib_data
+!endif
+!if $slib_cnt =0
+  slib_out=0
+!else
+  !if $slib_weight=$empty
+    slib_out=!sum x for x in $slib_data
+  !else
+    slib_out=!exec pari print(Mat([$slib_data])*Mat([$slib_weight])~);
+  !endif
+!endif
+slib_out=!trim $slib_out

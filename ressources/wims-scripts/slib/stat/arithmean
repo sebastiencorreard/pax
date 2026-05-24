@@ -1,0 +1,30 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=1\
+ ,[data] or [data],[weight]
+slib_author=Adeline, Grelot
+
+slib_example=[1,2;3,4;3,5]\
+ [1,3,3],[2,4,5]
+slib_require=pari
+!exit
+
+:proc
+
+!readproc slib/stat/dataproc $wims_read_parm
+!if $slib_cnt =0
+  slib_out=0
+  !exit
+!else
+  !if $slib_weight=$empty
+    slib_data=!sum x for x in $slib_data
+    slib_out=$[($slib_data)/$slib_cnt],$slib_cnt
+    slib_out =!trim $slib_out
+    !exit
+  !else
+    slib_out=!exec pari print(([$slib_data]*[$slib_weight]~)/$slib_tw","$slib_tw);
+    slib_out =!trim $slib_out
+  !endif
+!endif

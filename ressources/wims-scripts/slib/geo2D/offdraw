@@ -1,0 +1,170 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=Conversion d'un dessin 2D codé dans la syntaxe off en canvasdraw
+slib_author=Bernadette, Perrin-Riou
+slib_parms=3\
+,coordonnées des sommets : [coord,legende;...;coord,legende]\
+,liste des faces: [nombre de sommets, liste des sommets,legende],...,[nombre de sommets, liste des sommets,legende]\
+size=500,option (mots) : size= color=[couleur générale;numero d'une face, couleur;...] zoom vertex_legend face_legend pour afficher les légendes\
+
+slib_out=dessin donné par un fichier de type presque off (en dimension 2),\
+  (version préliminaire, la syntaxe peut changer).
+
+slib_comment=numérotation des sommets à partir de 0,\
+  si une seule couleur, la même couleur pour toutes les faces.\
+  la taille est prise pour la hauteur en pixels.
+
+
+ce n'est pas tout à fait off: rajouter un 0 pour avoir trois composantes dans les points
+Il manque aussi la ligne sur le nombre de sommets faces aretes
+slib_example=[0,0,S1;1,1,S2;1,0,S3;2,1,S4],[[3,0,1,2,A1],[3,1,2,3,A2]], zoom vertex_legend size=200 color=[red;1,blue] html\
+[0,0,V1;1,1,V2;1,0;2,1,V4],[[3,0,1,2,B1],[3,1,2,3]],face_legend html\
+[0,0,11;1,1,22;1,0,33;2,1,44],[[3,0,1,2,B1],[3,1,2,3]],vertex_legend=[2,A;3,B] html\
+[0,0,S1;1,1,S2;1,0,S3;2,1,S4],[[3,0,1,2,A1],[3,1,2,3,A2]]\
+[0,0,S1;1,1,S2;1,0,S3;2,0,S4;1,-1,S5],[[3,0,1,2,A1],[3,1,2,3,A2],[3,0,2,4,A3],[3,3,2,4,A4]],html face_legend color=[red;2,green;3,blue]\
+[0,0,S1;1,1,S2;1,0,S3;2,0,S4;1,-1,S5],[[3,0,1,2,A1],[3,1,2,3,A2],[3,0,2,4,A3],[3,3,2,4,A4]],tikz face_legend color=[red;2,green;3,blue]\
+[-0.707,-0.408,7;0.707,-0.408,8;0.E-19,0.816,11;-1.93,0.299,3;-1.22,1.52,6;-1.93,-1.12,0;-3.35,0.299,2;-3.35,-1.12,1;-1.22,-2.34,4;5.42 E-20,-1.63,8;-1.36 E-19,2.23,10;-1.93,2.75,2;-0.707,3.46,5;-1.93,4.16,1;1.63 E-19,4.68,9;-1.22,5.39,4;2.17 E-19,6.09,8;1.41,4.68,10;1.41,6.09,11;-2.64,-2.34,4;-2.64,1.52,2;0.707,3.46,5],[[4,3,6,7,5],[4,5,8,9,0],[4,13,12,14,15],[4,11,4,10,12],[4,3,0,2,4],[4,16,14,17,18],[3,5,7,19],[3,13,11,12],[3,20,3,4],[3,3,5,0],[3,15,14,16],[3,21,17,14],[3,4,2,10],[3,0,1,2]], tikz face_legend\
+[-0.707,-0.408,7;0.707,-0.408,8;0.E-19,0.816,11;-1.93,0.299,3;-1.22,1.52,6;-1.93,-1.12,0;-3.35,0.299,2;-3.35,-1.12,1;-1.22,-2.34,4;5.42 E-20,-1.63,8;-1.36 E-19,2.23,10;-1.93,2.75,2;-0.707,3.46,5;-1.93,4.16,1;1.63 E-19,4.68,9;-1.22,5.39,4;2.17 E-19,6.09,8;1.41,4.68,10;1.41,6.09,11;-2.64,-2.34,4;-2.64,1.52,2;0.707,3.46,5],[[4,3,6,7,5],[4,5,8,9,0],[4,13,12,14,15],[4,11,4,10,12],[4,3,0,2,4],[4,16,14,17,18],[3,5,7,19],[3,13,11,12],[3,20,3,4],[3,3,5,0],[3,15,14,16],[3,21,17,14],[3,4,2,10],[3,0,1,2]], html face_legend\
+[-0.707,-0.408,7;0.707,-0.408,8;0.E-19,0.816,11;-1.93,0.299,3;-1.22,1.52,6;-1.93,-1.12,0;-3.35,0.299,2;-3.35,-1.12,1;-1.22,-2.34,4;5.42 E-20,-1.63,8;-1.36 E-19,2.23,10;-1.93,2.75,2;-0.707,3.46,5;-1.93,4.16,1;1.63 E-19,4.68,9;-1.22,5.39,4;2.17 E-19,6.09,8;1.41,4.68,10;1.41,6.09,11;-2.64,-2.34,4;-2.64,1.52,2;0.707,3.46,5],[[4,3,6,7,5],[4,5,8,9,0],[4,13,12,14,15],[4,11,4,10,12],[4,3,0,2,4],[4,16,14,17,18],[3,5,7,19],[3,13,11,12],[3,20,3,4],[3,3,5,0],[3,15,14,16],[3,21,17,14],[3,4,2,10],[3,0,1,2]],color=[grey;2,red;7,blue] html\
+[-0.707,-0.408,7;0.707,-0.408,8;0.E-19,0.816,11;-1.93,0.299,3;-1.22,1.52,6;-1.93,-1.12,0;-3.35,0.299,2;-3.35,-1.12,1;-1.22,-2.34,4;5.42 E-20,-1.63,8;-1.36 E-19,2.23,10;-1.93,2.75,2;-0.707,3.46,5;-1.93,4.16,1;1.63 E-19,4.68,9;-1.22,5.39,4;2.17 E-19,6.09,8;1.41,4.68,10;1.41,6.09,11;-2.64,-2.34,4;-2.64,1.52,2;0.707,3.46,5],[[4,3,6,7,5],[4,5,8,9,0],[4,13,12,14,15],[4,11,4,10,12],[4,3,0,2,4],[4,16,14,17,18],[3,5,7,19],[3,13,11,12],[3,20,3,4],[3,3,5,0],[3,15,14,16],[3,21,17,14],[3,4,2,10],[3,0,1,2]],color=[yellow;1 3 4 5 6,red] html\
+[-0.707,-0.408,7;0.707,-0.408,8;0.E-19,0.816,11;-1.93,0.299,3;-1.22,1.52,6;-1.93,-1.12,0;-3.35,0.299,2;-3.35,-1.12,1;-1.22,-2.34,4;5.42 E-20,-1.63,8;-1.36 E-19,2.23,10;-1.93,2.75,2;-0.707,3.46,5;-1.93,4.16,1;1.63 E-19,4.68,9;-1.22,5.39,4;2.17 E-19,6.09,8;1.41,4.68,10;1.41,6.09,11;-2.64,-2.34,4;-2.64,1.52,2;0.707,3.46,5],[[4,3,6,7,5],[4,5,8,9,0],[4,13,12,14,15],[4,11,4,10,12],[4,3,0,2,4],[4,16,14,17,18],[3,5,7,19],[3,13,11,12],[3,20,3,4],[3,3,5,0],[3,15,14,16],[3,21,17,14],[3,4,2,10],[3,0,1,2]],color=[yellow;1 3 4 5 6,red] tikz
+
+!exit
+
+:proc
+!set wims_multiexec=$wims_multiexec pari
+!reset slib_option_som slib_option_face slib_vertex_legend slib_face_legend slib_dessin slib_som slib_face slib_out
+!reset slib_face_legend_tikz slib_dessin_tikz slib_vertex_legend_tikz
+!distribute items $wims_read_parm into slib_som, slib_face, slib_option
+!distribute items 0,0,0,0 into slib_xrange1,slib_xrange2,slib_yrange1,slib_yrange2
+!set slib_size=!getopt size in $slib_option
+!default slib_size=500
+!set slib_color=!getopt color in $slib_option
+
+!set slib_som=!declosing $slib_som
+!set slib_somcnt=!itemcnt $(slib_som[;1])
+!if vertex_legend isin $slib_option
+  slib_option_som=all
+!endif
+!if zoom isin $slib_option
+  slib_zoom=zoom blue
+!endif
+!set slib_tmp=!getopt vertex_legend in $slib_option
+!if $slib_tmp!=$empty and $slib_tmp!=vertex_legend
+  slib_option_som=$slib_tmp
+  !reset sib_tmp
+!endif
+!if face_legend isin $slib_option
+  slib_option_face=all
+!endif
+!set slib_tmp=!getopt face_legend in $slib_option
+!if $slib_tmp!=$empty and $slib_tmp!=face_legend
+  slib_option_face=$slib_tmp
+  !reset sib_tmp
+!endif
+
+!set slib_face=!declosing $slib_face
+!set slib_facecnt=!itemcnt $(slib_face)
+
+!for slib_j=1 to $slib_somcnt
+  !set slib_xrange1=$[min($slib_xrange1,$(slib_som[$slib_j;1]))]
+  !set slib_xrange2=$[max($slib_xrange2,$(slib_som[$slib_j;1]))]
+  !set slib_yrange1=$[min($slib_yrange1,$(slib_som[$slib_j;2]))]
+  !set slib_yrange2=$[max($slib_yrange2,$(slib_som[$slib_j;2]))]
+  !if $slib_option_som!=$empty
+    !if $(slib_som[$slib_j;3])!=$empty and ($slib_j isitemof $(slib_option_som[;1]) or $slib_option_som=all)
+      !set slib_tmp=!select $slib_option_som where column 1 = $slib_j
+      !set slib_tmp=$(slib_tmp[2])
+      !if $slib_tmp=
+        !set slib_tmp=$(slib_som[$slib_j;3])
+      !endif
+      !set slib_vertex_legend=!append line centered\
+text black,$(slib_som[$slib_j;1,2]),large,$(slib_tmp)\
+      to $slib_vertex_legend
+      !if tikz isin $slib_option
+        !set slib_vertex_legend_tikz=!append line \node at ($(slib_som[$slib_j;1,2])) () {\($(slib_tmp)\)};\
+        to $slib_vertex_legend_tikz
+      !endif
+      !reset slib_tmp
+    !endif
+  !endif
+!next
+!for slib_k=1 to $slib_facecnt
+  !reset slib_coord slib_tmp_face
+  !set slib_ff=!declosing $(slib_face[$slib_k])
+  !for slib_t=2 to $(slib_ff[1])+1
+    !set slib_coord=!append semicolon $(slib_som[$(slib_ff[$slib_t])+1;1,2]) to $slib_coord
+  !next
+  !if tikz iswordof $slib_option
+    !set slib_coord_tikz=!replace internal ; by ) -- ( in ($slib_coord;$(slib_coord[;1,2]))
+  !endif
+  !set slib_coord=!replace internal ; by , in $slib_coord
+  !if $slib_option_face!=$empty and ($slib_k isitemof $slib_option_face or $slib_option_face=all)
+    !set slib_facemid=!exec pari v=[$slib_coord];[sum(j=1,#v/2,v[2*j-1]),sum(j=1,#v/2,v[2*j])]/#v*2
+    !if $(slib_ff[$(slib_ff[1])+2])!=$empty
+      !set slib_tmp_face=$(slib_ff[$(slib_ff[1])+2])
+    !endif
+    !default slib_tmp_face=$slib_k
+    !set slib_face_legend=!append line text black,$slib_facemid,large,$slib_tmp_face \
+        to $slib_face_legend
+      !if tikz iswordof $slib_option
+        !set slib_face_legend_tikz=!append line \node at ($slib_facemid) () {$slib_tmp_face};\
+          to $slib_face_legend_tikz
+      !endif
+    !endif
+  !endif
+  !set slib_tmp=!select $slib_color where $slib_k iswordof column 1
+  !if $slib_tmp=$empty
+    !set slib_tmp=$(slib_color[1;])
+  !else
+    !set slib_tmp=$(slib_tmp[2])
+  !endif
+  !set slib_dessin=!append line polygon black, $slib_coord,$(slib_coord[1,2])\
+    to $slib_dessin
+  !if $slib_tmp!=$empty
+    !set slib_dessin=!append line fpolygon $slib_tmp, $slib_coord,$(slib_coord[1,2])\
+    to $slib_dessin
+  !endif
+  !if tikz iswordof $slib_option
+    !if $slib_tmp!=$empty
+      !set slib_dessin_tikz=!append line \draw[fill=$slib_tmp] $slib_coord_tikz; to $slib_dessin_tikz
+    !else
+      !set slib_dessin_tikz=!append line \draw[line width=0.5mm] $slib_coord_tikz; to $slib_dessin_tikz
+    !endif
+  !endif
+!next
+!set slib_xrange1=$[$slib_xrange1-0.5]
+!set slib_xrange2=$[$slib_xrange2+0.5]
+!set slib_yrange1=$[$slib_yrange1-0.5]
+!set slib_yrange2=$[$slib_yrange2+0.5]
+
+!set slib_ratio=$[($slib_yrange2-$slib_yrange1)/($slib_xrange2-$slib_xrange1)]
+!!!if $slib_ratio>1
+  !!!set insdraw_size=$slib_size,$[rint($slib_size*$slib_ratio)]
+!!!else
+!set insdraw_size=$[rint($slib_size/$slib_ratio)],$slib_size
+!!!endif
+!if tikz iswordof $slib_option
+  !set slib_tex=\begin{center}\
+  \begin{tikzpicture}[scale=1]\
+$slib_dessin_tikz\
+$slib_face_legend_tikz\
+$slib_vertex_legend_tikz\
+  \end{tikzpicture}\
+\end{center}
+  !set slib_out=$slib_out\
+  $slib_tex
+!else
+  slib_out=size $insdraw_size\
+  xrange $slib_xrange1,$slib_xrange2\
+  yrange $slib_yrange1,$slib_yrange2\
+  $slib_dessin\
+  fontsize 10\
+  $slib_vertex_legend\
+  $slib_face_legend
+  !if html iswordof $slib_option
+    slib_out=!exec canvasdraw $slib_out\
+    $slib_zoom
+  !endif
+!endif

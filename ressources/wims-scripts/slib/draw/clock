@@ -1,0 +1,81 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Gang, XIAO
+slib_example=02:45:33,120,1,html\
+02:45:33,120,1,html nominute\
+02:45:33,120,2,html nosecond
+!exit
+
+:proc
+slib_sizes=120,160,200,240
+!distribute items $wims_read_parm into slib_time,slib_size,slib_style,slib_option
+!bound slib_size within $slib_sizes default 200
+!bound slib_style between integer 1 and 2 default 1
+slib_time=!translate : to , in $slib_time
+!distribute items $slib_time into slib_h,slib_m,slib_s
+!bound slib_h between integer -10000 and 10000 default 0
+!bound slib_m between integer -10000 and 10000 default 0
+!bound slib_s between integer -10000 and 10000 default 0
+slib_h=$[($slib_h+12000)%12]
+slib_sizef=!positionof item $slib_size in $slib_sizes
+slib_fstyle=!item $slib_style of a,b
+
+!if exactmin notwordof $slib_option
+  slib_m=$[$slib_m+$slib_s/60]
+!endif
+slib_h=$[$slib_h+$slib_m/60]
+!distribute item $[sin($slib_h*pi/6)],$[cos($slib_h*pi/6)],\
+	$[sin($slib_m*pi/30)],$[cos($slib_m*pi/30)],\
+	$[sin($slib_s*pi/30)],$[cos($slib_s*pi/30)] into\
+	slib_h1,slib_h2,slib_m1,slib_m2,slib_s1,slib_s2
+
+slib_colors=!line $slib_style of black,black,red\
+	gold,gold,red
+!distribute item $slib_colors into slib_ch,slib_cm,slib_cs
+
+slib_sizs=!line $slib_sizef of 1.05,0.5,0.05,0.18,0.65,0.04,0.23,0.9,2,0.25,12,7\
+	1.07,0.5,0.05,0.18,0.68,0.04,0.23,0.9,2,0.25,16,10\
+	1.08,0.52,0.05,0.2,0.71,0.04,0.25,0.9,3,0.25,18,12\
+	1.06,0.52,0.05,0.2,0.73,0.04,0.25,0.9,3,0.25,22,12
+!distribute item $slib_sizs into slib_rg,slib_hl,slib_hw,slib_hb,\
+	slib_ml,slib_mw,slib_mb,slib_sl,slib_sw,slib_sb,slib_md,slib_sd
+
+insdraw_size=$slib_size,$slib_size
+slib_out=transparent white\
+ copy 0,0,-1,-1,-1,-1,raw/clock/$slib_size$slib_fstyle.gif\
+ xrange -$slib_rg,$slib_rg\
+ yrange -$slib_rg,$slib_rg\
+ linewidth 1
+!if nohour notwordof $slib_option
+  slib_out=$slib_out\
+  fpoly $slib_ch,$[ $slib_h1*$slib_hl],$[$slib_h2*$slib_hl],$[ $slib_h2*(-$slib_hw)],$[$slib_h1*$slib_hw],$[$slib_h1*(-$slib_sb)],$[$slib_h2*(-$slib_sb)],$[$slib_h2*$slib_hw],$[$slib_h1*(-$slib_hw)]\
+  poly $slib_ch,$[$slib_h1*$slib_hl],$[$slib_h2*$slib_hl],$[$slib_h2*(-$slib_hw)],$[$slib_h1*$slib_hw],$[$slib_h1*(-$slib_sb)],$[$slib_h2*(-$slib_sb)],$[$slib_h2*$slib_hw],$[$slib_h1*(-$slib_hw)]
+!endif
+!if nominute notwordof $slib_option
+  slib_out=$slib_out\
+  fpoly $slib_cm,$[$slib_m1*$slib_ml],$slib_m2*$slib_ml,$[$slib_m2*(-$slib_mw)],$slib_m1*$slib_mw,$[$slib_m1*(-$slib_sb)],$slib_m2*(-$slib_sb),$[$slib_m2*$slib_mw],$slib_m1*(-$slib_mw)\
+  poly $slib_cm,$[$slib_m1*$slib_ml],$[$slib_m2*$slib_ml],$[$slib_m2*(-$slib_mw)],$[$slib_m1*$slib_mw],$[$slib_m1*(-$slib_sb)],$[$slib_m2*(-$slib_sb)],$[$slib_m2*$slib_mw],$[$slib_m1*(-$slib_mw)]
+!endif
+slib_out=$slib_out\
+ linewidth $slib_md\
+ point 0,0,$slib_cm
+
+!if nosecond notwordof $slib_option
+  slib_out=$slib_out\
+  linewidth $slib_sw\
+  segment $[$slib_s1*(-$slib_sb)],$[$slib_s2*(-$slib_sb)],$[$slib_s1*$slib_sl],$[$slib_s2*$slib_sl],$[$slib_cs]\
+  linewidth $slib_sd\
+  point 0,0,$slib_cs
+!endif
+
+!if url iswordof $slib_option or html iswordof $slib_option
+  !insdraw $slib_out
+  slib_out=$ins_url
+  !if html iswordof $slib_option
+    slib_out=<img src="$ins_url" alt="">
+  !else
+    slib_out=$slib_out,$insdraw_size
+  !endif
+!endif

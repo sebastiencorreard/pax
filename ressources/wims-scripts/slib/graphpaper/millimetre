@@ -1,0 +1,240 @@
+!if  $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Georges, Khaznadar
+
+slib_example= ,,,,,,,,,0,0,1.2,1.5,2.4,3.2\
+12,8,0,0,1 max t (ms),1 max U (V),blue,red,[255,128,128],0,0,1.2,1.5,2.4,3.2\
+12,8,0,0,1 max t (ms),1 max U (V),blue,red,[255,128,128],style.grad=x_only, style.dot=o,0,0,1.2,1.5,2.4,3.2
+
+!exit
+
+:proc
+
+!reset slib_formdot,slib_grad,slib_xd, slib_yd, slib_bg, slib_lc, slib_dc, slib_point, slib_xo, slib_yo, slib_xs, slib_ys, slib_labx, slib_laby, slib_maxx, slib_maxy, slib_style, slib_empty, slib_key, slib_val, slib_pos
+
+slib_parm=!item 1 to 9 of $wims_read_parm
+!distribute item $slib_parm into slib_xd, slib_yd, slib_xo, slib_yo, slib_xs, slib_ys, slib_bg, slib_lc, slib_dc
+
+slib_point=!item 10 to -1 of $wims_read_parm
+
+slib_empty=
+slib_style=!item 1 of $slib_point
+slib_pos=!positionof style: in $slib_style
+!while $slib_pos=0
+  slib_point=!item 2 to -1 of $slib_point
+  slib_style= !replace style: by $slib_empty in $slib_style
+  slib_style= !replace = by , in $slib_style
+  !distribute item $slib_style into slib_key, slib_val
+  !if $slib_key=grad
+    !if $slib_val=no
+      slib_grad=0
+    !endif
+    !if $slib_val=x_only
+      slib_grad=2
+    !endif
+    !if $slib_val=y_only
+      slib_grad=3
+    !endif
+  !endif
+  !if $slib_key=dot
+    !if $slib_val=x
+      slib_formdot=0
+    !endif
+    !if $slib_val=o
+      slib_formdot=2
+    !endif
+  !endif
+  slib_style=!item 1 of $slib_point
+  slib_pos=!positionof style: in $slib_style
+!endwhile
+
+!default slib_xd=8
+!default slib_yd=8
+!default slib_xo=1
+!default slib_yo=1
+!default slib_xs=1
+!default slib_ys=1
+!default slib_grad=1
+!default slib_formdot=1
+
+slib_labx=!word 2 to -1 of $slib_xs
+slib_laby=!word 2 to -1 of $slib_ys
+slib_xs=!word 1 of $slib_xs
+slib_ys=!word 1 of $slib_ys
+
+slib_maxx=!word 1 of $slib_labx
+!if $slib_maxx = max
+  slib_labx = !word 2 to -1 of $slib_labx
+  !! we need to compute the X step slib_xs, given the values
+  !! of the total width slib_xd, abscissa of origin slib_xo
+  !! and knowing that slib_xs currently means a maximum value.
+  !! slib_xd-slib_xo must be be sufficient to display ticks greater
+  !! than the current value of slib_xs, the tick step being a multiple
+  !! of 1, 2 or 5.
+  slib_log=$[log10($slib_xs/($slib_xd-$slib_xo))]
+  slib_logint=$[floor($slib_log)]
+  slib_logmant=$[$slib_log-$slib_logint]
+  !if $slib_logmant > $[log10(5)]
+     slib_xs=1e$[$slib_logint+1]
+  !else
+    !if $slib_logmant > $[log10(2)]
+      slib_xs=5e$slib_logint
+    !else
+      slib_xs=2e$slib_logint
+    !endif
+  !endif
+!else
+  slib_maxx=$empty
+!endif
+
+slib_maxy=!word 1 of $slib_laby
+!if $slib_maxy = max
+  slib_laby = !word 2 to -1 of $slib_laby
+  !! we need to compute the Y step slib_ys, given the values
+  !! of the total height slib_yd, ordinate of origin slib_yo
+  !! and knowing that slib_ys currently means a maximum value.
+  !! slib_yd-slib_yo must be be sufficient to display ticks greater
+  !! than the current value of slib_ys, the tick step being a multiple
+  !! of 1, 2 or 5.
+  slib_log=$[log10($slib_ys/($slib_yd-$slib_yo))]
+  slib_logint=$[floor($slib_log)]
+  slib_logmant=$[$slib_log-$slib_logint]
+  !if $slib_logmant > $[log10(5)]
+    slib_ys=1e$[$slib_logint+1]
+  !else
+    !if $slib_logmant > $[log10(2)]
+      slib_ys=5e$slib_logint
+    !else
+      slib_ys=2e$slib_logint
+    !endif
+  !endif
+!else
+  slib_maxy=$empty
+!endif
+
+slib_dc=!declosing $slib_dc
+
+slib_point=!declosing $slib_point
+
+slib_bg=!declosing $slib_bg
+!default slib_bg=240,233,255
+
+slib_lc=!declosing $slib_lc
+!default slib_lc=255,220,180
+
+slib_dc=!declosing $slib_dc
+!default slib_dc=10,10,10
+
+!!!!!!!!!!!!!!!!! begin grid !!!!!!!!!!!!!!!!!!!!!!!!!
+
+slib_grey=white
+
+slib_dessin = new $[60*$slib_xd],$[60*$slib_yd]\
+xrange -0.5, $[10*$slib_xd-0.5]\
+yrange -0.5, $[10*$slib_yd-0.5]\
+fill 1,1,$slib_bg
+
+!! traits fins tous les millimetres
+slib_dessin=$slib_dessin\
+linewidth 1\
+parallel 0, 0, 0, $[10*$slib_yd], 1, 0, $[10*$slib_xd+1], $slib_lc\
+parallel 0, 0, $[10*$slib_xd], 0, 0, 1, $[10*$slib_yd+1], $slib_lc
+
+!! traits gros tous les centimetres
+slib_dessin=$slib_dessin\
+linewidth 3\
+parallel 0, 0, 0, $[10*$slib_yd], 10, 0, $slib_xd+1, $slib_lc\
+parallel 0, 0, $[10*$slib_xd], 0, 0, 10, $slib_yd+1, $slib_lc
+
+!! axe_x
+slib_dessin=$slib_dessin\
+linewidth 3\
+hline 0, $[10*$slib_yo], $slib_grey\
+segment $[10*$slib_xd-3],$[10*$slib_yo-1],$[10*$slib_xd-1],$[10*$slib_yo], $slib_grey\
+segment $[10*$slib_xd-3],$[10*$slib_yo+1],$[10*$slib_xd-1],$[10*$slib_yo], $slib_grey\
+parallel 0,$[10*$slib_yo+1],0,$[10*$slib_yo-1], 10, 0, $slib_xd+1, $slib_grey
+
+slib_val=$[-$slib_xo*$slib_xs]
+slib_dessin=$slib_dessin\
+linewidth 1
+!if ($slib_grad=2 or $slib_grad=1)
+  !for slib_x from 0 to  10*$slib_xd step 10
+    slib_dessin=$slib_dessin\
+      text blue,$[$slib_x+1],$[10*$slib_yo-1],medium,$slib_val
+    slib_val=$[$slib_val+$slib_xs]
+  !next slib_x
+  !if $slib_labx != $empty
+    slib_dessin=$slib_dessin\
+    text blue,$[$slib_x-20],$[10*$slib_yo-6],medium,$slib_labx
+  !endif
+!endif
+
+!! axe_y
+slib_dessin=$slib_dessin\
+linewidth 3\
+vline $[10*$slib_xo],0, $slib_grey\
+segment $[10*$slib_xo-1],$[10*$slib_yd-3],$[10*$slib_xo],$[10*$slib_yd-1], $slib_grey\
+segment $[10*$slib_xo+1],$[10*$slib_yd-3],$[10*$slib_xo],$[10*$slib_yd-1], $slib_grey\
+parallel $[10*$slib_xo+1],0,$[10*$slib_xo-1], 0, 0, 10, $slib_yd+1, $slib_grey
+
+slib_val=$[-$slib_yo*$slib_ys]
+slib_dessin=$slib_dessin\
+linewidth 1
+!if ($slib_grad=3 or $slib_grad=1)
+  !for slib_y from 0 to  10*$slib_yd step 10
+    slib_dessin=$slib_dessin\
+    text blue,$[10*$slib_xo+1],$[$slib_y-1],medium,$slib_val
+    slib_val=$[$slib_val+$slib_ys]
+  !next slib_y
+  !if $slib_laby != $empty
+    slib_dessin=$slib_dessin\
+    text blue,$[10*$slib_xo-9],$[$slib_y-10],medium,$slib_laby
+  !endif
+!endif
+
+!!!!!!!!!!!!!!!!! end grid !!!!!!!!!!!!!!!!!!!!!!!!!
+
+slib_i=0
+!for slib_xy in $slib_point
+  !if $slib_i=0
+    slib_i=1
+    slib_x=$[10*$slib_xy/$slib_xs]
+    !goto continue
+  !endif
+  !if $slib_i=1
+    slib_i=0
+    slib_y=$[10*$slib_xy/$slib_ys]
+    !if $slib_formdot=0
+      slib_x1=$[10*$slib_xo+$slib_x-0.6]
+      slib_x2=$[10*$slib_xo+$slib_x+0.6]
+      slib_y1=$[10*$slib_yo+$slib_y-0.6]
+      slib_y2=$[10*$slib_yo+$slib_y+0.6]
+      slib_dessin=$slib_dessin\
+      linewidth 2\
+      segment $slib_x1,$slib_y1,$slib_x2,$slib_y2,$slib_dc\
+      segment $slib_x2,$slib_y1,$slib_x1,$slib_y2,$slib_dc
+    !endif
+    !if $slib_formdot=1
+      slib_x1=$[10*$slib_xo+$slib_x-1]
+      slib_x2=$[10*$slib_xo+$slib_x+1]
+      slib_x3=$[10*$slib_xo+$slib_x]
+      slib_y1=$[10*$slib_yo+$slib_y]
+      slib_y2=$[10*$slib_yo+$slib_y+1]
+      slib_y3=$[10*$slib_yo+$slib_y-1]
+      slib_dessin=$slib_dessin\
+      linewidth 2\
+      segment $slib_x1,$slib_y1,$slib_x2,$slib_y1,$slib_dc\
+      segment $slib_x3,$slib_y2,$slib_x3,$slib_y3,$slib_dc
+    !endif
+    !if $slib_formdot=2
+      slib_dessin=$slib_dessin\
+      linewidth 1\
+      circle $slib_xo+$slib_x,$slib_yo+$slib_y,6,$slib_dc
+    !endif
+  !endif
+:continue
+!next slib_xy
+
+slib_out= $slib_dessin

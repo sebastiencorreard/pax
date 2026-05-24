@@ -1,0 +1,690 @@
+!!!! tabsignes v1.22 / 11-06-2025
+!!!! NEWS :
+!! Correction du bug de l'option reply lorsque le nombre de reply est 1
+!! Modification de l'exemple 10
+
+
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_title=Tableau de signes d'une fonction numérique
+slib_parms=2\
+,<strong>les informations permettant de remplir le tableau</strong> en mode semi-automatique ou tout le contenu du tableau en mode non automatique&nbsp;: <ul><li>Pour un calcul semi-automatique du contenu du tableau (entre 2 paires de crochets) :<br> <span class="tt wims_code_words">[[</span>la variable,les fonctions séparées par des virgules<span class="tt wims_code_words">],[</span>borne inf,borne sup;racines séparées par des virgules; valeurs interdites séparées par des virgules<span class="tt wims_code_words">]]</span></li><li>Pour un mode non automatique (toutes les informations sont à indiquer entre une seule paire de crochets) :<br><span class="tt wims_code_words">[</span>éléments ligne 1 séparés par des virgules; éléments ligne 2 séparés par des virgules; ....<span class="tt wims_code_words">]</span></li></ul>\
+,<strong>options&nbsp;:</strong> (séparées par des espaces).<br class="spacer">Les options marquées de (*) ne sont utilisables qu'avec le mode semi-automatique.<ul><li><span class="tt wims_code_words">wimscenter</span> pour centrer le tableau.</li><li><span class="tt wims_code_words">allvalues</span> (*) pour afficher aussi les images autres que 0.</li><li><span class="tt wims_code_words">id</span>=[mon_id] pour donner mon_id comme id au tableau. Par défaut, si cette option n'est pas utilisée, le tableau aura pour id <em>wimstab1</em>. Dans le cas de plusieurs appels de cette slib dans la même page, les id automatiques seront <em>wimstab1</em>, <em>wimstab2</em>...Les id <em>wimstabxx</em> étant réservés pour des générations automatiques d'id, ne pas les utiliser soi-même pour générer un id.</li><li><span class="tt wims_code_words">text</span>=[mon_texte,before,numéro de ligne ou all] ou [mon_texte,replace,numéro de ligne ou all] pour ajouter mon_texte devant l'expression de la fonction ou remplacer toute l'expression par mon_texte aux lignes indiquées.</li><li><span class="tt wims_code_words">+</span>=[red,all] pour mettre tous les signes + en rouge ou <span class="tt wims_code_words">+</span>=[red] pour mettre uniquement les signes + de la dernière ligne en rouge. Idem pour l'option <span class="tt wims_code_words">-</span></li><li><span class="tt wims_code_words">reply</span>=[[ligne_i,colonne_j;ligne_k,colonne_m;...],[n]] pour indiquer les cellules à transformer en champs réponses reply où n est le rang de la première reply pour une utilisation avec la méthode spéciale <span class="tt wims_code_words">codeinput</span>.</li><li><span class="tt wims_code_words">code</span> (*) pour sortir la matrice du contenu du tableau.</li><li><span class="tt wims_code_words">nocss</span> pour ne pas appeler le CSS via la slib (voir les commentaires ci-dessous).</li></ul>
+
+slib_out=<ul><li><span class="tt wims_code_words">Le tableau au format HTML</span> ou <span class="tt wims_code_words">la matrice du contenu du tableau</span> si l'option \
+<span class="tt wims_code_words">code</span> a été choisie.</li>\
+<li><span class="tt wims_code_words">Le tableau au format HTML,[les réponses attendues séparées par une virgule]</span> dans le cas où l'option <span class="tt wims_code_words">reply</span> a été choisie.</li></ul>
+
+slib_comment=<ul><li>Quel que soit le mode, aucun code TeX à saisir pour les \
+expressions des fonctions et pour les nombres.</li>\
+<li>Utiliser <span class="tt wims_code_words">-Inf</span> et <span class="tt wims_code_words">+Inf</span>.</li>\
+<li>Mettre <span class="tt wims_code_words">db</span> pour doubles barres (mode non auto).</li>\
+<li>Mettre <span class="tt wims_code_words">ndef</span> pour fonction non définie sur un \
+intervalle (mode non auto).</li>\
+<li>Code TeX autorisé pour le rajout de texte avec l'option \
+<span class="tt wims_code_words">text</span>.</li>\
+<li>Chaque cellule du tableau a un id de la forme \
+<span class="tt wims_code_words">id_l_c</span>, où <span class="tt wims_code_words">id</span> \
+est l'id du tableau, <span class="tt wims_code_words">l</span> est le numéro de \
+la ligne et <span class="tt wims_code_words">c</span> est le numéro de la colonne.</li>\
+<li>Par défaut, le style CSS utilisé pour le tableau de signes est automatiquement appelé par la slib \
+sauf si l'option <span class="tt wims_code_words">nocss</span> est mise.<br> Dans le cas \
+de plusieurs appels de cette slib, sans l'option nocss, dans une même page, c'est le \
+1<sup>er</sup> appel de la slib qui charge le CSS pour toute la page.<br>\
+Dans le cas de l'option <span class="tt wims_code_words">nocss</span>, il faut alors appeler \
+le CSS avec  <span class="nowrap">&lt;link rel="stylesheet" href="themes/_css/slib/tabsignes.css"&gt;</span>\
+dans &#92;css{} par exemple pour un exercice OEF.<br>\
+La feuille de style CSS&nbsp;: <a target="wims_external" href="/wims/html/themes/_css/slib/tabsignes.css">tabsignes.css</a>.</li></ul>
+
+!!!! FIN FICHIER LANG
+
+slib_author=Gilles,Marbeuf
+
+slib_example=[[x,1/x],[-Inf,+Inf;;0]]\
+[[u,cos(u)],[0,(3*pi)/4; pi/2;]],text=[Signe de,before,2]\
+[[u,cos(u)],[0,(3*pi)/4; pi/2;]],allvalues\
+[[x,x^2-1,ln(x^2-1)],[-Inf,+Inf;-sqrt(2),-1,1,sqrt(2);-1,1]],allvalues\
+[[x,x-4,ln(x-1),(x-4)ln(x-1)],[1,+Inf;2,4;1]],wimscenter id=[tab]\
+[[x,x^2-1,sqrt(x^2-1),1/sqrt(x^2-1)],[-Inf,+Inf;1,-1;1,-1]],-=[blue,all] +=[red,all] text=[Signe de,before,2;Signe de,before,3;Signe de \(f(x)\),replace,4]\
+[[x,x-1,x+1,x,(x-1)(x+1)/x],[-Inf,+Inf;1,-1,0;0]],wimscenter -=[#3BE41E,all] +=[red] text=[Signe de,before,all]\
+[[x,x^2-1,e^x,e^x/(x^2-1)],[-Inf,+Inf;-1,1;-1,1]],reply=[[1,6;4,4;2,3],[1]]\
+[[x,x^2-1/4,e^x,e^x/(x^2-1/4)],[-Inf,+Inf;-1/2,1/2;-1/2,1/2]],code\
+[x,-Inf,,x_1,,x_2,,+Inf;a x^2+b x +c,,\begin{matrix}\textrm{signe de}\\a \end{matrix},0,\begin{matrix}\textrm{opposé du}\\ \textrm{signe de}\:a\end{matrix},0,\begin{matrix}\textrm{signe de}\\a \end{matrix}],text=[Signe de,before,2]\
+[x,0,,a,,+Inf;f(x),db,-,0,+,],wimscenter +=[red] -=[#FBCC00]\
+[x,-Inf,,-1,,1,,+Inf;u(x),,+,0,-,0,+,;sqrt(u(x)),,+,0,ndef,0,+,],reply=[[2,3;2,6;3,7],[2]]
+!exit
+
+slib_require=maxima pari
+!exit
+
+:proc
+
+!set wims_multiexec=pari maxima yacas octave gap
+
+!!!! METTRE MAXIMA EN MODE ALGEBRAIC - SUPPRIME POUR L INSTANT!!!
+!!!!exec maxima algebraic:true;
+
+!!!!! RECUPERATION DES PARAMETRES  !!!!!
+
+!distribute items $wims_read_parm into slib_param1,slib_option
+slib_param1=!declosing $slib_param1
+slib_nbparam1=!itemcnt $slib_param1
+
+!!! OPTION NE PAS APPELER themes/_css/slib/tabsignes.css présent sur serveur !!!
+!if nocss iswordof $slib_option
+  slib_nocss=nocss
+!endif
+
+
+!!! OPTION POUR CENTRER LE TABLEAU  !!!
+!if wimscenter iswordof $slib_option
+  slib_wimscenter=wimscenter
+!endif
+
+!!! OPTION POUR AVOIR QUE LES 0 OU AUTRES IMAGES !!!
+!if allvalues iswordof $slib_option
+  slib_allvalues=yes
+!endif
+
+!!! OPTION EN MODE AUTO POUR SORTIR LA MATRICE CONTENT PLUTOT QUE LE TABLEAU  !!!
+!if code iswordof $slib_option
+  slib_code=1
+!else
+  slib_code=0
+!endif
+
+!!! OPTION POUR METTRE SIGNES + ET - EN COULEUR
+slib_colorplus=!getopt + in $slib_option
+slib_colorplus=!lower $slib_colorplus
+!if $slib_colorplus!=$empty
+  !if $slib_colorplus=+ or $slib_colorplus=all
+    slib_colorplus_opt=no
+    slib_colorplus=
+  !else
+    slib_colorplus_opt=yes
+    slib_colorplus=!declosing $slib_colorplus
+    !if $(slib_colorplus[1])=all
+      slib_temp_colorplus1=$(slib_colorplus[1])
+      slib_temp_colorplus2=$(slib_colorplus[2])
+      slib_colorplus=$slib_temp_colorplus2,$slib_temp_colorplus1
+    !endif
+  !endif
+!else
+  slib_colorplus_opt=no
+!endif
+slib_colormoins=!getopt - in $slib_option
+slib_colormoins=!lower $slib_colormoins
+!if $slib_colormoins!=$empty
+  !if $slib_colormoins=- or $slib_colormoins=all
+    slib_colormoins_opt=no
+    slib_colormoins=
+  !else
+    slib_colormoins_opt=yes
+    slib_colormoins=!declosing $slib_colormoins
+    !if $(slib_colormoins[1])=all
+      slib_temp_colormoins1=$(slib_colormoins[1])
+      slib_temp_colormoins2=$(slib_colormoins[2])
+      slib_colormoins=$slib_temp_colormoins2,$slib_temp_colormoins1
+    !endif
+  !endif
+!else
+  slib_colormoins_opt=no
+!endif
+
+!!! OPTION POUR METTRE UN ID DANS TABLE  !!!
+slib_ident=!getopt id in $slib_option
+!if $slib_ident=$empty
+  !if $slib_ident_nb=$empty
+    slib_ident_nb=1
+  !else
+    slib_ident_nb=$[$slib_ident_nb+1]
+  !endif
+  slib_id=wimstab$slib_ident_nb
+!else
+  slib_id=$slib_ident
+!endif
+
+!!! OPTION DE RAJOUT OU REMPLACEMENT DE TEXTE DANS LA PREMIERE COLONNE  !!!!
+slib_text=!getopt text in $slib_option
+slib_text=!declosing $slib_text
+slib_text_nbrow=!rowcnt $slib_text
+slib_nbtext=!itemcnt $slib_text
+!!!RETRO COMPATIBILITE ENTRE ANCIENNE ET NOUVELLE SYNTAXE !!!
+!if $slib_nbtext=1
+  slib_text=$slib_text,before,all
+!endif
+
+
+!!! OPTION POUR METTRE DES CHAMPS REPONSES DANS LE TABLEAU EN MODE AUTO OU MANUEL !!!
+slib_reponses=!getopt reply in $slib_option
+
+!!!RETRO COMPATIBILITE ENTRE ANCIENNE ET NOUVELLE SYNTAXE !!!
+slib_nbbrackets=!text count [ in $slib_reponses
+!if $slib_nbbrackets=0
+  slib_reponses=!append item 1 to [$slib_reponses]
+!endif
+
+!distribute items $slib_reponses into slib_rep,slib_rang
+slib_rang=!declosing $slib_rang
+slib_rep=!declosing $slib_rep
+!if $slib_rep=$empty
+  slib_nbrep=0
+!else
+  slib_nbrep=!exec pari E=[$slib_rep];matsize(E)[1]
+  !if $slib_nbrep=1
+    slib_repsort=[$slib_rep]
+    slib_pos_rep_1=!replace internal , by ; in $slib_rep
+  !else
+    slib_repsort=!exec pari (matsort(mat)=A=[mat];L=List([]);for(i=1,$slib_nbrep,listinsert(L,mat[i,],i));V=Vec(L);N=vecsort(V);N);matsort([$slib_rep])
+    !for slib_i=1 to $slib_nbrep
+      slib_pos_rep_$slib_i=$(slib_repsort[$slib_i])
+      slib_pos_rep_$slib_i=!declosing $(slib_pos_rep_$slib_i)
+      slib_pos_rep_$slib_i=!replace internal , by ; in $(slib_pos_rep_$slib_i)
+    !next slib_i
+  !endif
+!endif
+
+!!! SI LE PREMIER PARAMETRE CONTIENT 2 ITEMS ALORS MODE AUTO SINON MODE MANUEL  !!!
+!if $slib_nbparam1=2
+  !goto matrixcontent
+!else
+  slib_content=$slib_param1
+  !goto matrixcss
+!endif
+
+
+:matrixcontent
+
+!!!!! CREATION DE LA MATRICE CONTENT POUR LE MODE AUTOMATIQUE  !!!!!
+!distribute items $slib_param1 into slib_fonc,slib_data
+slib_fonc=!declosing $slib_fonc
+slib_data=!declosing $slib_data
+slib_fonc=!lines2rows $slib_fonc
+slib_data=!lines2rows $slib_data
+slib_var=!item 1 of $slib_fonc
+slib_nbfonc=!itemcnt $(slib_fonc)
+
+!for slib_i=1 to $[$slib_nbfonc-1]
+  slib_fonc$slib_i = !item $[$slib_i+1] of $slib_fonc
+  slib_fonc$slib_i=!rawmath $(slib_fonc$slib_i)
+!next
+
+slib_bornes=$(slib_data[1;])
+slib_bornes=!sort numeric item $slib_bornes
+slib_borneinf=!item 1 of $slib_bornes
+slib_bornesup=!item 2 of $slib_bornes
+slib_racines=$(slib_data[2;])
+slib_valinterdites=$(slib_data[3;])
+
+slib_datasort=!replace internal ; by , in $slib_data
+slib_datasort=!sort numeric  item $slib_datasort
+slib_datasort=!listuniq $slib_datasort
+
+slib_nbdata=!itemcnt $slib_datasort
+slib_listabsc=$(slib_datasort[1])
+slib_ligne1=$slib_var,$(slib_datasort[1])
+
+!for slib_k=1 to $[$slib_nbdata-1]
+  slib_bornea=$(slib_datasort[$slib_k])
+  slib_borneb=$(slib_datasort[$[$slib_k+1]])
+  !if $slib_bornea=-Inf
+    !if $slib_borneb!=+Inf
+      slib_milieu=$[$slib_borneb - 1000]
+    !else
+      slib_milieu=0
+    !endif
+  !else
+    !if $slib_borneb=+Inf
+      slib_milieu=$[$slib_bornea + 1000]
+    !else
+      slib_milieu=$[($slib_bornea + $slib_borneb)/2]
+    !endif
+  !endif
+
+  slib_listabsc=!append item $slib_milieu to $slib_listabsc
+  slib_listabsc=!append item $slib_borneb to $slib_listabsc
+  slib_ligne1=!append item $ to $slib_ligne1
+  slib_ligne1=!append item $slib_borneb to $slib_ligne1
+!next slib_k
+
+!for slib_m=2 to $slib_nbfonc
+  slib_ligne$slib_m =!item 1 of $(slib_fonc$[$slib_m -1])
+!next
+
+!for slib_r=2 to $slib_nbfonc
+  !for slib_col=1 to $[2*$slib_nbdata -1]
+    slib_elem=$(slib_listabsc[$slib_col])
+    !if $[$slib_col%2]!=0
+      !if Inf isin $slib_elem
+        slib_temp=$empty
+      !else
+        slib_temp=!exec maxima subst($slib_elem,$slib_var,$(slib_fonc$[$slib_r -1]));
+        slib_temp=!exec maxima radcan(ratsimp($slib_temp));
+        slib_temp_img=!exec maxima imagpart($slib_temp);
+        !if ((NaN isin $slib_temp) or ($slib_temp=$empty) or ($slib_temp_img!=0))
+          !if $slib_elem isitemof $slib_valinterdites
+            slib_temp=db
+          !else
+            slib_temp=ndef
+          !endif
+        !else
+          !if $slib_allvalues!=yes
+            !if (($slib_elem isitemof $slib_racines) and $slib_temp!=0)
+              slib_temp=$empty
+            !endif
+            !if (($slib_elem isitemof $slib_valinterdites) and ($slib_temp!=ndef) and ($slib_temp!=db) and $slib_temp!=0)
+              slib_temp=$empty
+            !endif
+            !if (($slib_elem isitemof $slib_bornes) and ($slib_temp!=0))
+              slib_temp=$empty
+            !endif
+          !endif
+        !endif
+      !endif
+    !else
+      slib_temp=!exec pari (g(val)=$slib_var=val;f=$(slib_fonc$[$slib_r -1]);eval(f));g($slib_elem)
+      slib_temp_img=!exec pari imag($slib_temp)
+      slib_varlist=!varlist nofn $slib_temp
+      !if ((NaN isin $slib_temp) or ($slib_temp=$empty) or ($slib_varlist!=$empty) or ($slib_temp_img!=0))
+        slib_temp=ndef
+      !else
+        !if $slib_temp<0
+          slib_temp=-
+        !else
+          slib_temp=+
+        !endif
+      !endif
+    !endif
+    slib_ligne$slib_r=!append item $slib_temp to $(slib_ligne$slib_r)
+  !next slib_col
+!next slib_r
+
+slib_nbcol=!itemcnt $(slib_ligne1)
+
+!for slib_z=1 to $slib_nbfonc
+  slib_content=!append line $(slib_ligne$slib_z) to $slib_content
+!next
+
+slib_content=!translate internal $\
+$ to ; in $slib_content
+
+!if $slib_code=1
+  !goto sortie
+!else
+  !goto matrixcss
+!endif
+
+:matrixcss
+
+!!!! CREATION DE LA MATRICE DES CLASSES CSS DE CHAQUE CELLULE DU TABLEAU   !!!!!
+
+slib_content=!declosing $slib_content
+slib_content=!lines2rows $slib_content
+
+slib_nblines=!rowcnt $slib_content
+slib_nbcol=!itemcnt $(slib_content[1;])
+
+## MODE MANUEL : COMPLETER PAR ITEM VIDE LIGNES 2 à -1 SI DERNIER ITEM MANQUANT ##
+!if $slib_nbparam1!=2
+ slib_content_temp=$(slib_content[1;])
+ !for slib_kline=2 to $slib_nblines
+  slib_line_temp=$(slib_content[$slib_kline;])
+  slib_nbelem=!itemcnt $slib_line_temp
+  slib_diff=$[$slib_nbcol-$slib_nbelem]
+  !if $slib_diff>0
+   slib_comp=!makelist @@ for iiii=1 to $slib_diff
+   slib_comp=!replace item @@ by $empty in $slib_comp
+   slib_line_temp=$slib_line_temp,$slib_comp
+  !endif
+  slib_content_temp=$slib_content_temp;$slib_line_temp
+ !next slib_kline
+ slib_content=!lines2rows $slib_content_temp
+!endif
+
+slib_class=
+!for slib_line=1 to $slib_nblines
+  slib_lignecoef=
+  !for slib_column=1 to $slib_nbcol
+    slib_coef=tab_neutre
+    slib_element=$(slib_content[$slib_line;$slib_column])
+    slib_element_apres=$(slib_content[$slib_line;$[$slib_column +1]])
+    slib_element_avant=$(slib_content[$slib_line;$[$slib_column -1]])
+    !if $[$slib_column%2]!=0
+      !if $slib_column=1
+        slib_coef=tab_fonc
+      !else
+        !if $slib_element=ndef
+          slib_coef=tab_ndef
+        !else
+          !if $slib_line>1
+            !if $slib_element=+
+              slib_coef=tab_sign_plus
+            !else
+              slib_coef=tab_sign_moins
+            !endif
+          !endif
+        !endif
+      !endif
+    !else
+      !if $slib_column=2
+        slib_coef=tab_borneinf
+        !if ($slib_element=ndef or ((($slib_element=$empty) or ($slib_element=0)) and ($slib_element_apres=ndef)))
+          slib_coef=tab_ndef
+        !else
+          !if $slib_element=db
+            !if $slib_element_apres=ndef
+              slib_coef=tab_dbl_ndefr
+            !else
+              slib_coef=tab_dbl
+            !endif
+          !endif
+        !endif
+      !else
+        !if $slib_column=$slib_nbcol
+          slib_coef=tab_bornesup
+          !if ($slib_element=ndef or ((($slib_element=$empty) or ($slib_element=0)) and ($slib_element_avant=ndef)))
+            slib_coef=tab_ndef
+          !else
+            !if $slib_element=db
+              !if $slib_element_avant=ndef
+                slib_coef=tab_dbr_ndefl
+              !else
+                slib_coef=tab_dbr
+              !endif
+            !endif
+          !endif
+        !else
+          !if $slib_line>1
+            !if $slib_element=db
+              !if $slib_element_avant=ndef
+                slib_coef=tab_db_ndefl
+              !else
+                !if $slib_element_apres=ndef
+                  slib_coef=tab_db_ndefr
+                !else
+                  slib_coef=tab_db
+                !endif
+              !endif
+            !else
+              !if ($slib_element_apres=ndef and $slib_element_avant=ndef)
+                slib_coef=tab_dot_ndeflr
+              !else
+                !if $slib_element_apres=ndef
+                  slib_coef=tab_dot_ndefr
+                !else
+                  !if $slib_element_avant=ndef
+                    slib_coef=tab_dot_ndefl
+                  !else
+                    slib_coef=tab_dot
+                  !endif
+                !endif
+              !endif
+            !endif
+          !endif
+        !endif
+      !endif
+    !endif
+    slib_lignecoef=!append item $slib_coef to $(slib_lignecoef)
+  !next slib_column
+  slib_class=$slib_class $\
+  $slib_lignecoef
+!next slib_line
+
+slib_class= !translate internal $\
+$ to ; in $slib_class
+
+slib_class=$(slib_class[2..-1;])
+
+!!!! SURCOUCHE CSS POUR LA COULEUR DES SIGNES !!!!
+slib_style_plus=
+
+!if $(slib_colorplus[2])=all
+  !for slib_r2=1 to $slib_nblines
+    slib_style_plus=!append item style="color:$(slib_colorplus[1]);font-weight:bold;" to $slib_style_plus
+  !next slib_r2
+!else
+  !for slib_r3=1 to $[$slib_nblines-1]
+    slib_style_plus=!append item style="" to $slib_style_plus
+  !next slib_r3
+  !if $slib_colorplus_opt=yes
+    slib_style_plus=!append item style="color:$(slib_colorplus[1]);font-weight:bold;" to $slib_style_plus
+  !else
+    slib_style_plus=!append item style="" to $slib_style_plus
+  !endif
+!endif
+
+slib_style_moins=
+!if $(slib_colormoins[2])=all
+  !for slib_y2=1 to $slib_nblines
+    slib_style_moins=!append item style="color:$(slib_colormoins[1]);font-weight:bold;" to $slib_style_moins
+  !next slib_y2
+!else
+  !for slib_y3=1 to $[$slib_nblines-1]
+    slib_style_moins=!append item style="" to $slib_style_moins
+  !next slib_y3
+  !if $slib_colormoins_opt=yes
+    slib_style_moins=!append item style="color:$(slib_colormoins[1]);font-weight:bold;" to $slib_style_moins
+  !else
+    slib_style_moins=!append item style="" to $slib_style_moins
+  !endif
+!endif
+
+!!!! CREATION DE LA MATRICE DES TEXTES DE RAJOUT OU DE REMPLACEMENT (MODE AUTO)!!!!
+slib_newtext=,,1
+slib_text_pos=!positionof item all in $(slib_text[;3])
+!if $slib_text_pos!=$empty
+  slib_text_pos=!item -1 of $slib_text_pos
+  slib_text_aff=$(slib_text[$slib_text_pos;])
+  !for slib_kk=2 to $slib_nblines
+    slib_newline=!replace item number 3 by $slib_kk in $slib_text_aff
+    slib_newtext=$slib_newtext $\
+    $slib_newline
+  !next slib_kk
+!else
+  !for slib_kkk=2 to $slib_nblines
+    slib_newline=
+    slib_tempo=!positionof item $slib_kkk in $(slib_text[;3])
+    !if $slib_tempo!=$empty
+      slib_tempo=!item -1 of $slib_tempo
+      slib_newline=$(slib_text[$slib_tempo;])
+    !else
+      slib_newline=,,$slib_kkk
+    !endif
+    slib_newtext=$slib_newtext $\
+    $slib_newline
+  !next slib_kkk
+!endif
+slib_text=!translate internal $\
+$ to ; in $slib_newtext
+
+
+!!!! CREATION DE LA MATRICE DES CONTENUS DE CHAQUE CELLULE A AFFICHER   !!!!
+
+slib_cel=$slib_content
+slib_cel=!replace internal db by $empty in $slib_cel
+slib_cel=!replace internal ndef by $empty in $slib_cel
+slib_cel=!replace item + by \quad\plus\quad in $slib_cel
+slib_cel=!replace item - by \quad - \quad in $slib_cel
+slib_cel=!replace internal +Inf by +\infty  in $slib_cel
+slib_cel=!replace internal $empty by \qquad \qquad in $slib_cel
+slib_cel=!replace internal log by ln in $slib_cel
+slib_cel=!replace internal ln10 by log in $slib_cel
+
+!goto sortie
+
+:sortie
+!!!! SORTIES  !!!!
+
+!if $slib_code=1
+  slib_out=[$slib_content]
+!else
+  !if $slib_nocss=nocss
+    slib_out=
+  !else
+   !if $slib_tabsignes_css=$empty
+    slib_tabsignes_css=<link rel="stylesheet" href="themes/_css/slib/tabsignes.css">
+    slib_out=$slib_tabsignes_css
+   !else
+    slib_out=
+   !endif
+  !endif
+  slib_tableau=<div class="table-scroll"><table id="$slib_id" class="tabsignes unstriped $slib_wimscenter">
+  !for slib_l=1 to $slib_nblines
+    !if $slib_l=1
+      slib_tableau=$slib_tableau<thead><tr>
+    !else
+      slib_tableau=$slib_tableau<tr>
+    !endif
+    !for slib_c=1 to $slib_nbcol
+      slib_elemtcss=
+      !if $slib_l=1
+        !if $(slib_content[$slib_l;$slib_c])=$empty or [$slib_l,$slib_c] isitemof $slib_repsort
+          tab_tag=td
+          tab_tag_attr=
+        !else
+          tab_tag=th
+          tab_tag_attr=scope="col"
+        !endif
+      !else
+        !if $slib_c=1
+          !if [$slib_l,$slib_c] isitemof $slib_repsort
+            tab_tag=td
+            tab_tag_attr=
+          !else
+            tab_tag=th
+            tab_tag_attr=scope="row"
+          !endif
+        !else
+          tab_tag=td
+          tab_tag_attr=
+          slib_elemtcss=$(slib_class[$slib_l;$slib_c])
+          slib_elemtcss_apres=$(slib_class[$slib_l;$[$slib_c+1]])
+          slib_elemtcss_avant=$(slib_class[$slib_l;$[$slib_c-1]])
+          !if [$slib_l,$[$slib_c-1]] isitemof $slib_repsort
+            slib_elemt_avant=reply
+          !else
+            slib_elemt_avant=noreply
+          !endif
+          !if [$slib_l,$[$slib_c+1]] isitemof $slib_repsort
+            slib_elemt_apres=reply
+          !else
+            slib_elemt_apres=noreply
+          !endif
+          !if $slib_elemtcss=tab_ndef and (($slib_elemt_apres=reply and $slib_elemtcss_apres=tab_ndef) || ($slib_elemt_avant=reply and $slib_elemtcss_avant=tab_ndef))
+            slib_elemtcss=tab_neutre
+          !endif
+          !if $slib_elemtcss=tab_dbl_ndefr and $slib_elemt_apres=reply
+            slib_elemtcss=tab_dbl
+          !endif
+          !if $slib_elemtcss=tab_db_ndefr and $slib_elemt_apres=reply
+            slib_elemtcss=tab_db
+          !endif
+          !if $slib_elemtcss=tab_dot_ndefr and $slib_elemt_apres=reply
+            slib_elemtcss=tab_dot
+          !endif
+          !if $slib_elemtcss=tab_dot_ndefl and $slib_elemt_avant=reply
+            slib_elemtcss=tab_dot
+          !endif
+          !if $slib_elemtcss=tab_db_ndefl and $slib_elemt_avant=reply
+            slib_elemtcss=tab_db
+          !endif
+          !if $slib_elemtcss=tab_dbr_ndefl and $slib_elemt_avant=reply
+            slib_elemtcss=tab_dbr
+          !endif
+          !if $slib_elemtcss=tab_dot_ndeflr
+            !if $slib_elemt_apres=reply
+              !if $slib_elemt_avant=reply
+                slib_elemtcss=tab_dot
+              !else
+                slib_elemtcss=tab_dot_ndefl
+              !endif
+            !else
+              !if $slib_elemt_avant=reply
+                slib_elemtcss=tab_dot_ndefr
+              !endif
+            !endif
+          !endif
+        !endif
+      !endif
+      !if $slib_elemtcss=$empty
+        slib_elemtcss=$(slib_class[$slib_l;$slib_c])
+      !endif
+      slib_idcell=id="$(slib_id)_$(slib_l)_$(slib_c)"
+      !if [$slib_l,$slib_c] isitemof $slib_repsort
+        slib_position=!positionof item [$slib_l,$slib_c] in $slib_repsort
+        slib_position=$[$slib_position+$slib_rang-1]
+        !if $slib_c=1
+          !if $slib_l>1
+            !if $(slib_text[$slib_l;2])=before
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="tab_fonc" $slib_idcell>$(slib_text[$slib_l;1]) reply$slib_position</$tab_tag>
+            !else
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="tab_fonc" $slib_idcell>reply$slib_position</$tab_tag>
+            !endif
+          !else
+            slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="tab_fonc" $slib_idcell>reply$slib_position</$tab_tag>
+          !endif
+        !else
+          slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="tab_neutre" $slib_idcell>reply$slib_position</$tab_tag>
+        !endif
+      !else
+        !if (($slib_c=1) and ($slib_l>1))
+          !if $(slib_text[$slib_l;2])=before
+            slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="$(slib_class[$slib_l;$slib_c])" $slib_idcell>$(slib_text[$slib_l;1]) \($(slib_cel[$slib_l;$slib_c])\)</$tab_tag>
+          !else
+            !if $(slib_text[$slib_l;2])=replace
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="$(slib_class[$slib_l;$slib_c])" $slib_idcell>$(slib_text[$slib_l;1])</$tab_tag>
+            !else
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="$(slib_class[$slib_l;$slib_c])" $slib_idcell>\($(slib_cel[$slib_l;$slib_c])\)</$tab_tag>
+            !endif
+          !endif
+        !else
+          !if $(slib_class[$slib_l;$slib_c])=tab_sign_plus
+            slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr $(slib_style_plus[$slib_l]) class="$(slib_class[$slib_l;$slib_c])" $slib_idcell>\($(slib_cel[$slib_l;$slib_c])\)</$tab_tag>
+          !else
+            !if $(slib_class[$slib_l;$slib_c])=tab_sign_moins
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr $(slib_style_moins[$slib_l]) class="$(slib_class[$slib_l;$slib_c])" $slib_idcell>\($(slib_cel[$slib_l;$slib_c])\)</$tab_tag>
+            !else
+              slib_tableau=$slib_tableau<$tab_tag $tab_tag_attr class="$slib_elemtcss" $slib_idcell>\($(slib_cel[$slib_l;$slib_c])\)</$tab_tag>
+            !endif
+          !endif
+        !endif
+      !endif
+    !next slib_c
+    !if $slib_l=1
+      slib_tableau=$slib_tableau</tr></thead><tbody>
+    !else
+      slib_tableau=$slib_tableau</tr>
+    !endif
+  !next slib_l
+  slib_tableau=$slib_tableau</tbody></table></div>
+
+  !if $slib_nbrep=0
+    slib_out=$slib_out$slib_tableau
+  !else
+    slib_answer=
+    !for slib_w=1 to $slib_nbrep
+      slib_answer=!append item $(slib_content[$(slib_pos_rep_$slib_w)]) to $slib_answer
+    !next slib_w
+    slib_out=$slib_out$slib_tableau,[$slib_answer]
+  !endif
+!endif
+
+!goto resetvar
+
+:resetvar
+!!!!  RESET DES VARIABLES  !!!!
+
+!for slib_g=1 to $slib_nbfonc
+  !reset slib_fonc$slib_g
+!next
+
+!reset slib_fonc slib_data slib_var slib_nbfonc slib_bornes\
+  slib_racines slib_valinterdites slib_datasort slib_nbdata \
+  slib_listabsc slib_content slib_rep slib_nbrep slib_answer \
+  slib_repsort slib_class slib_cel slib_wimscenter slib_code\
+  slib_style_plus slib_style_moins slib_tableau slib_answer \
+  slib_style_temp slib_allvalues slib_nocss
+
+!!!! SUPPRIME POUR L INSTANT exec maxima algebraic:false;

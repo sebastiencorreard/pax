@@ -1,0 +1,36 @@
+!if $wims_read_parm!=slib_header
+!goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example= 1,2,0,2
+slib_require=pari
+!exit
+
+:proc
+slib_out=
+
+slib_liste=$wims_read_parm
+
+slib_N = !itemcnt $slib_liste
+slib_Y =!values 2*x for x = 1 to $[$slib_N/2]
+slib_X =!values 2*x-1 for x = 1 to $[$slib_N/2]
+
+slib_listeX = $(slib_liste[$slib_X])
+slib_listeY = $(slib_liste[$slib_Y])
+slib_u = !sort numeric items $slib_listeX
+slib_rangex1 = $[$(slib_u[1])]
+slib_rangex2 = $[$(slib_u[-1])]
+slib_u = !sort numeric items $slib_listeY
+slib_rangey1 = $[$(slib_u[1])]
+slib_rangey2 = $[$(slib_u[-1])]
+slib_dif= !exec pari max($slib_rangex2-($slib_rangex1), $slib_rangey2-($slib_rangey1))/2
+slib_xrange = $[($slib_rangex1+ $slib_rangex2)/2]
+slib_rangex2 = $[$slib_xrange + $slib_dif]
+slib_rangex1 = $[$slib_xrange - $slib_dif]
+slib_yrange = $[($slib_rangey1+ $slib_rangey2)/2]
+slib_rangey2 = $[$slib_yrange + $slib_dif]
+slib_rangey1 = $[$slib_yrange - $slib_dif]
+
+slib_out = $slib_rangex1,$slib_rangex2,$slib_rangey1,$slib_rangey2

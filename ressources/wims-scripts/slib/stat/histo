@@ -1,0 +1,275 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Adeline, Grelot ; Bernadette, Perrin-Riou; Sophie, Lemaire
+
+slib_example= [10,5,2,3,10,13],[3,4,6,7,12,14,16],xtics [A1,A3,A6,8,10,12,14],ytics 10,color salmon,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14],xtics [a,b,c,d,e,f],ytics 10,color salmon,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics,ytics 15,color blue,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics [a,b,c,d,e,f],ytics 15,color blue,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics 5,ytics 10,color blue,html\
+[100,500,2,300,1000,1300],[3,4,6,7,12,14],xtics,ytics 10,baton,color green,html\
+[0.007,0.005,0.002,0.003,0.0020,0.01],[3,4,6,7,12,14],xtics,ytics 10,stem,color blue,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics,ytics 10,step,color red,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics [a,b,c,d,e,f],ytics 10,step,color red,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,22],xtics 5,ytics 10,step,color red,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14],xtics [a,b,c,d,e,f],ytics 10,stem,color blue,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14],xtics 5,ytics 1,stem,color blue,html\
+[1,5,2,3,10,13],[3,4,6,7,12,14,14],xtics,ytics,stair,color blue,html\
+[1,5,2],[3,4,6],xtics 10,ytics,stem,color blue,\
+[1,5,2,3,10,13],[3,4,6,7,12,14],xtics 5,noytics,baton,color green,html
+
+!exit
+
+:proc
+
+slib_parm=
+slib_out=
+!reset slib_optx, slib_opty, slib_couleur,slib_baton,slib_pdata, slib_grad,slib_listx,\
+  slib_listxx, slib_param, slib_parm slib_option, slib_points, slib_gradtext
+slib_data=!item 1 to 2 of $wims_read_parm
+slib_parm= !item 3 to -1 of $wims_read_parm
+
+!readproc slib/stat/dataproc $slib_data
+!!! slib_x, slib_y comes from slib/stat/dataproc
+slib_u= $slib_x
+slib_w= $slib_y
+
+slib_u=!declosing $slib_u
+slib_cntu=!itemcnt $slib_u
+slib_w=!declosing $slib_w
+
+!if $slib_w=$empty
+  slib_w=!values x for x=1 to $slib_cntu
+!endif
+
+slib_cnt=!itemcnt $slib_w
+!if $slib_cnt=2
+  slib_begin=!item 1 of $slib_w
+  slib_pas=!item 2 of $slib_w
+  slib_w=!values $slib_begin+x*$slib_pas for x=0 to $[$slib_cntu+1]
+  slib_cnt=!itemcnt $slib_w
+!endif
+slib_w=!sort numeric item $slib_w
+slib_x1=!item 1 of $slib_w
+slib_x2=!item -1 of $slib_w
+
+slib_ocnt=!itemcnt $slib_parm
+!for slib_i=1 to $slib_ocnt
+  slib_param=!item $slib_i of $slib_parm
+  slib_param=!words2items $slib_param
+  !if xtics isitemof $slib_param
+    slib_optx=1
+    slib_param=!replace internal xtics by $  in $slib_param
+    slib_param=!replace internal = by $  in $slib_param
+    slib_param=!nonempty item $slib_param
+    slib_param=!nospace $slib_param
+    slib_param=!declosing $slib_param
+    slib_cnt_ticx=!nonempty item $slib_param
+    slib_c=!itemcnt $slib_cnt_ticx
+
+    !if $slib_c=1
+      slib_arrondi=!exec pari (f(r,n)= l=if(r != 0, floor(log(abs(r))/log(10)),1) ; s=ceil(10^(-l+n-1)*r) ; s*10^(l-n+1) ); \
+   f(($slib_x2-($slib_x1))/$slib_cnt_ticx,1)
+      slib_listx=!values $[$slib_arrondi*floor($slib_x1/$slib_arrondi)]\
+        +x*$slib_arrondi for x=0 to $[$slib_cnt_ticx+1]
+      slib_listxx=$slib_listx
+    !else
+      slib_listx= $slib_param
+      slib_listxx=$slib_w
+    !endif slib_c
+  !endif xtics
+  !if ytics isitemof $slib_param
+    slib_opty=1
+    slib_param=!replace ytics by $ in $slib_param
+    slib_param=!nonempty item $slib_param
+    slib_param=!words2items $slib_param
+    slib_param=!declosing $slib_param
+    slib_param=!nonempty item $slib_param
+    slib_pcnt=!itemcnt $slib_param
+    !if $slib_pcnt=1
+      slib_ra=$slib_param
+    !endif
+  !endif ytics
+  !if color isitemof $slib_param
+    slib_param=!replace color by $ in $slib_param
+    slib_param=!nonempty item $slib_param
+    slib_couleur=$slib_param
+  !endif
+
+  !if $slib_param iswordof baton stem step stair
+    slib_baton=$slib_param
+  !endif
+  !if $slib_param iswordof html url
+    slib_option=$slib_param
+  !endif
+!next slib_i
+
+!default slib_optx=0
+!default slib_opty=0
+!default slib_couleur=red
+!default slib_listx=$slib_w
+
+!if $slib_cnt <= $slib_cntu and $slib_baton notwordof baton stem
+  slib_w=!append item $[$(slib_w[-1])+($(slib_w[-1])-$(slib_w[1]))/10] to $slib_w
+  !increase $slib_cnt
+!endif
+
+!default slib_ra=5
+slib_listx=!declosing $slib_listx
+slib_y1=0
+slib_y2=0
+slib_uu=
+
+!if $slib_baton iswordof baton stem
+  slib_ww=
+  !if $slib_baton iswordof stem
+    slib_r=0
+  !else
+    slib_r=$[($slib_x2-$slib_x1)/(($slib_cntu)*4)]
+  !endif
+  !for slib_i=1 to $slib_cntu
+    slib_j=!item $slib_i of $slib_w
+    slib_ww=!append item $[$slib_j+1-$slib_r],$[$slib_j+1+$slib_r] to $slib_ww
+    slib_j=!item $slib_i of $slib_u
+    slib_uu=!append item $slib_j,0 to $slib_uu
+  !next slib_i
+  slib_uu=!append item 0 to $slib_uu
+  slib_w1=$slib_ww
+  slib_ww=$slib_w
+  slib_w=$slib_w1
+  slib_x1=!item 1 of $slib_w
+  slib_x2=!item -1 of $slib_w
+  slib_y2=!sort numeric item $slib_u
+  slib_y2=!item -1 of $slib_y2
+  slib_cnt=!itemcnt $slib_w
+  slib_cnt=$[$slib_cnt+1]
+!else
+  !if $slib_baton iswordof step stair
+    slib_uu=$slib_u
+    slib_x1=!item 1 of $slib_w
+    slib_x2=!item -1 of $slib_w
+    slib_y2=!sort numeric item $slib_u
+    slib_y2=!item -1 of $slib_y2
+    slib_cnt=!itemcnt $slib_w
+    slib_cnt=$[$slib_cnt]
+  !else
+    slib_uu=
+    !for slib_i=1 to $[$slib_cntu]
+      slib_it=!item $slib_i of $slib_u
+      slib_inf=!item $slib_i of $slib_w
+      slib_sup=!item $[$slib_i+1] of $slib_w
+      slib_it=$[$slib_it/($slib_sup-$slib_inf)]
+      slib_y2=$[max($slib_y2,$slib_it)]
+      slib_uu=!append item $slib_it to $slib_uu
+    !next slib_i
+  !endif
+  slib_ww=$slib_w
+
+!endif
+slib_pas=!exec pari (f(r,n)= l=if(r != 0, floor(log(abs(r))/log(10)),1) ; s=ceil(10^(-l+n-1)*r) ; s*10^(l-n+1) ); \
+   f($slib_y2/$slib_ra,1)
+slib_y2=$[$slib_y2*1.1]
+slib_ord=0
+slib_d=$[($slib_x2-$slib_x1)/5]
+slib_minx=$[$slib_x1*1.01]
+insdraw_size=500,200
+
+slib_rangex=$[$slib_minx-$slib_d],$[$slib_x2+$slib_d]
+slib_rangey=$[min(1,$slib_y1-($slib_y2-$slib_y1)/5)],$[$slib_y2]
+
+!readproc slib/draw/convpixel 0,5,$insdraw_size,$[$slib_minx-$slib_d],$[$slib_x2+$slib_d],$[min(1,$slib_y1-($slib_y2-$slib_y1)/5)],$[$slib_y2]
+slib_pix=$[$slib_y2 -$(slib_out[2])]
+
+!if $slib_opty !=0
+  !for slib_i=1 to $slib_ra
+    slib_ord=$[$slib_pas+$slib_ord]
+    !if $slib_ord <$[$slib_y2+$slib_pas]
+      slib_gradtext=!append line text black,$[$slib_minx-0.8*$slib_d],$[$slib_ord+$slib_pix],small,$slib_ord to $slib_gradtext
+      slib_grad=!append item $[$slib_minx-$slib_d/10],$slib_ord,$[$slib_minx+$slib_d/10],$slib_ord to $slib_grad
+      slib_gradv=vline $slib_minx,0,grey
+    !endif
+  !next slib_i
+!endif
+!if $slib_optx!=0
+  !if $slib_listxx=$empty
+    slib_listxx=$slib_ww
+  !endif
+  slib_cnt_ticx=!itemcnt $slib_listxx
+  !for slib_i=1 to $[$slib_cnt_ticx]
+    slib_wi=!item $slib_i of $slib_listx
+    slib_wj=!item $slib_i of $slib_listxx
+
+    !if $slib_baton iswordof baton stem
+      slib_wj=$[$slib_wj+1]
+    !endif
+    slib_gradtext=!append line text black,$slib_wj,$[$slib_y1-2*$slib_pix],small,$slib_wi to $slib_gradtext
+    slib_grad=!append item $slib_wj,$[$slib_y1-$slib_pix],$slib_wj,$[$slib_y1+$slib_pix] to $slib_grad
+  !next slib_i
+!endif
+
+slib_pdata=xrange $slib_rangex\
+yrange $slib_rangey\
+$slib_gradv\
+segments grey,$slib_grad\
+$slib_gradtext
+
+!if stair notwordof $slib_baton
+  slib_pdata=$slib_pdata\
+polyline $slib_couleur
+!else
+  slib_points= linewidth 4\
+points $slib_couleur
+ !endif
+
+!if stair notwordof $slib_baton and step notwordof $slib_baton
+  !for slib_i=1 to $[$slib_cnt]
+    slib_inf=!item $slib_i of $slib_w
+    slib_sup=!item $[$slib_i+1] of $slib_w
+    slib_f=!item $slib_i of $slib_uu
+    !if $slib_f!=$empty and $slib_sup!=$empty and $slib_inf!=$empty
+      slib_pdata=!append item $slib_inf,0,$slib_inf,$slib_f,$slib_sup,$slib_f,$slib_sup,0 to $slib_pdata
+    !endif
+  !next slib_i
+!endif
+!if step iswordof $slib_baton
+  !for slib_i=1 to $[$slib_cnt]
+    slib_inf=!item $[$slib_i] of $slib_w
+    slib_sup=!item $[$slib_i+1] of $slib_w
+    slib_f=!item $slib_i of $slib_uu
+    !if $slib_f!=$empty and $slib_sup!=$empty and $slib_inf!=$empty
+      slib_pdata=!append item $slib_inf,$slib_f,$slib_sup,$slib_f to $slib_pdata
+    !endif
+  !next slib_i
+!endif
+!if stair iswordof $slib_baton
+  !for slib_i=1 to $[$slib_cnt]
+    slib_inf=!item $[$slib_i] of $slib_w
+    slib_sup=!item $[$slib_i+1] of $slib_w
+    slib_f=!item $slib_i of $slib_uu
+    !if $slib_f!=$empty and $slib_sup!=$empty and $slib_inf!=$empty
+      slib_pdata=!append line segment $slib_inf,$slib_f,$slib_sup,$slib_f,$slib_couleur to $slib_pdata
+    !endif
+    !if $slib_i < $[$slib_cnt]
+      slib_points=!append item $slib_inf,$slib_f to $slib_points
+    !endif
+  !next slib_i
+!endif
+
+slib_out=$slib_pdata\
+$slib_points\
+linewidth 1\
+hline 0,0,grey
+
+!if url iswordof $slib_option or html iswordof $slib_option
+  !insdraw $slib_out
+  slib_out=$ins_url
+  !if html iswordof $slib_option
+    slib_out=<img src="$ins_url" alt="">
+  !else
+    slib_out=$slib_out,$insdraw_size
+  !endif
+!endif
+
+!reset insdraw_size

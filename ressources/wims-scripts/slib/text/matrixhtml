@@ -1,0 +1,108 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=[def1,2,3,4,5;def2,5,6,7;def3,2,3,4;def4,2,3,4],1,TH=[;1]\
+[1,2;allo;mer],wimsborder\
+[1,2;allo,make your own css],4 wimsborder\
+[1;30000],center\
+[\(x^4\),\(x^3);\(\frac{x}{y}\),3],center wimsborder\
+[\(x^4\),\(x^3) &lt; a;\(\frac{x}{y}\),3],wimscenter wimsborder\
+[\(x^4\),\(x^3);\(\frac{x}{y}\),3],wimsnoborder wimscenter 1\
+[1,2,3;4,5,6;5,2,3]\
+[def1,2,3,4;def2,5,6,7;def3,2,3,4],1,TH=[;1,3]\
+[def1,2,3;def2,5,6;def3,2,3],1,TH=[1;]\
+[def1,2,3;def2,5,6;def3,2,3;def4,2,3;def5,2,3],1,TH=[2,4;3]\
+[def1,2,3;def2,5,6;def3,2,3;def4,2,3;def5,2,3],1 wimsborder,TH=[2,4;3] CAPTION="texte en caption"\
+[a,b,c,x,*,z,*;*,*,*,y,z,u,t;1,2,3,4,5,*,*;1,2,3,4,5,6,7;],1 wimsborder, ROWSPAN=[1,1,2;1,2,2;1,3,3] COLSPAN=[1,4,2;1,6,2;3,4,3]\
+[def1,1,2,3,4;*,4,5,6,4;def3,2,3,4;*,2,3,4,5;*,2,3,4,5],wimsborder,ROWSPAN=[1,1,2;3,1,3]\
+[def1,1,2,3;*,5,6,7;def3,2,3,4;def4,2,3,4],wimsborder,ROWSPAN=[1,1,2]\
+[def1,*,1,2;*,*,5,6;def3,2,3,4;def4,2,3,4],wimsborder,ROWSPAN=[1,1,2] COLSPAN=[1,1,2]\
+
+slib_require=pari
+!exit
+
+:proc
+!set slib_joker=*
+!reset slib_align slib_class slib_option slib_id
+!distribute items $wims_read_parm into slib_matrix,slib_id,slib_option
+slib_matrix=!declosing $slib_matrix
+!if center iswordof $slib_id
+  slib_align=$ style="text-align:center"
+  slib_id=!replace internal center by in $slib_id
+!endif
+!for slib_cl in wimscenter, wimsborder, wimsnoborder, wimstable
+  !if $slib_cl iswordof $slib_id
+    slib_class=!append word $slib_cl to $slib_class
+    slib_id=!replace internal $slib_cl by in $slib_id
+  !endif
+!next
+
+slib_id=!nospace $slib_id
+slib_class=class="$slib_class wims_matrix$slib_id"
+slib_caption=!getopt CAPTION in $slib_option
+slib_rowspan=!getopt ROWSPAN in $slib_option
+slib_rowspan=!exec pari [$slib_rowspan]
+slib_rowspan1=!column 1 of $slib_rowspan
+slib_colspan=!getopt COLSPAN in $slib_option
+slib_colspan=!exec pari [$slib_colspan]
+slib_colspan2=!column 2 of $slib_colspan
+slib_th=!getopt TH in $slib_option
+slib_th=!declosing $slib_th
+slib_tr=$(slib_th[1;])
+slib_td=$(slib_th[2;])
+slib_out=<div class="table-scroll"><table $slib_class>
+!if $slib_caption!=$empty
+  slib_out=$slib_out<caption>$slib_caption</caption>
+!endif
+slib_matrix=!lines2rows $slib_matrix
+slib_cnt=
+slib_colcnt=0
+slib_rowcnt=!rowcnt $slib_matrix
+
+!for slib_a =1 to $slib_rowcnt
+  slib_cnt_p=!itemcnt $(slib_matrix[$slib_a;])
+  slib_cnt=!append item $slib_cnt_p to $slib_cnt
+  slib_colcnt=$[max($slib_colcnt,$slib_cnt_p)]
+!next
+slib_tt=td
+!for slib_a =1 to $slib_rowcnt
+  slib_out_p=
+  !if $slib_a isitemof $slib_tr
+    slib_tt=th
+  !endif
+  !if $slib_a isin $slib_rowspan1
+      slib_rs=!select $slib_rowspan where column 1 = $slib_a
+  !endif
+  !for slib_b=1 to $slib_colcnt
+    !if $slib_rs!=$empty and $slib_b isitemof $(slib_rs[;2])
+      slib_tmp2=!select $slib_rowspan where column 1 = $slib_a and column 2 = $slib_b
+      slib_tmp2=$ rowspan="$(slib_rs[1;3])"
+    !endif
+    slib_cs=!select $slib_colspan where column 2 = $slib_b and column 1 = $slib_a
+    !if $slib_cs!=$empty
+      slib_tmp3=$ colspan="$(slib_cs[1;3])"
+    !endif
+    slib_tmp=$(slib_matrix[$slib_a;$slib_b])
+    !if $slib_tmp=$slib_joker
+      !goto nextcell
+    !endif
+    !if $slib_b isitemof $slib_td or $slib_tt=th
+      slib_tt1=th
+    !else
+      slib_tt1=td
+    !endif
+    slib_out_p=!append word <$slib_tt1$slib_align$slib_tmp2$slib_tmp3>$slib_tmp</$slib_tt1> to $slib_out_p
+    :nextcell
+    !reset slib_tt1 slib_tmp slib_tmp2 slib_tmp3 slib_cs
+  !next
+  slib_out=$slib_out\
+  <tr>$slib_out_p</tr>
+  slib_tt=td
+  !reset slib_rs slib_cs
+  :nextcol
+!next
+slib_out=$slib_out\
+</table></div>

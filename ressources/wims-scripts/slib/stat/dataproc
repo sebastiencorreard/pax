@@ -1,0 +1,61 @@
+slib_data=$wims_read_parm
+!!the variables slib_x slib_y are used in other slib as stat/histo
+# data: transform rows to lines.
+slib_data=!singlespace $slib_data
+slib_datacnt=!itemcnt $slib_data
+!if $slib_datacnt=1 and [ isin $slib_data and ; notin $slib_data
+  slib_data_=!declosing $slib_data
+  slib_data_=!itemcnt $slib_data_
+  slib_data_=!makelist 1 for x=1 to $slib_data_
+  slib_data=$slib_data, [$slib_data_]
+!endif
+slib_data=!declosing $slib_data
+slib_data=!translate internal ; to $\
+$ in $slib_data
+slib_data=!nonempty lines $slib_data
+slib_cnt=!linecnt $slib_data
+!if $slib_cnt=1
+  !if , notin $slib_data
+    slib_data=!words2lines $slib_data
+  !else
+    slib_data=!items2lines $slib_data
+  !endif
+  slib_cnt=!linecnt $slib_data
+!endif
+
+# Is each line enclosed in parentheses?
+slib_test=!line 1 of $slib_data
+slib_test=!declosing $slib_test
+slib_test=!itemcnt $slib_test
+!if $slib_test>1
+  # Remove line parentheses. We don't simply translate parentheses
+  # into spaces because data may include embedded computations.
+  slib_d2=
+  !for slib_i=1 to $slib_cnt
+    slib_l=!line $slib_i of $slib_data
+    slib_l=!declosing $slib_l
+    slib_l=!trim $slib_l
+    slib_d2=!append line $slib_l to $slib_d2
+  !next slib_i
+  slib_data=!nonempty lines $slib_d2
+  slib_cnt=!linecnt $slib_data
+!endif
+
+!if $slib_cnt>2
+  slib_x=!column 1 of $slib_data
+  slib_y=!column 2 of $slib_data
+!else
+  !distribute lines $slib_data into slib_x, slib_y
+!endif
+
+slib_data=!declosing $slib_x
+slib_weight=!declosing $slib_y
+
+!if $slib_weight!=$empty
+  slib_tw=!sum x for x in $slib_weight
+  slib_tw=$[$slib_tw]
+  # zero total weight implies division by zero!
+  !if NaN isin $slib_tw or abs($slib_tw)<10^-10
+    slib_weight=
+  !endif
+!endif

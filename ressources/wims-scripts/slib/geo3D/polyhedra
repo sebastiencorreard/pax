@@ -1,0 +1,279 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=cuboctahedron,300,300,show=[S,A,F,BA,BF] color=[black,green,yellow,blue,red] width=[6,2] id=0\
+cube,300,300,show=[S,A,,BA,BF] color=[,green,,red,red] width=[10,10] id=2\
+cube,300,300,show=[S,,,BA,BF] color=[green,,,red,red] width=[10,10] id=3\
+triangular_prism_dual,500,700, id=4
+
+
+,[SS,AA,FF,BA,BF] par exemple, ne remplir que si on veut qu'apparaissent respectivement
+les arêtes, les faces, des boutons des arêtes, des boutons sur les faces\
+[blue,red,yellow,,,],couleur dans l'ordre : des sommets, bords, faces, bouton \
+des arêtes, boutons des faces
+
+
+slib_require=pari
+!exit
+
+:proc
+
+!distribute items $wims_read_parm into slib_polyedre,slib_sizex,slib_sizey,slib_options
+
+!reset slib_vertex slib_face slib_edge slib_out slib_show slib_color slib_width
+!!********** Traitement des options
+
+slib_name_vertex=!getopt name_vertex in $slib_options
+slib_name_face=!getopt name_face in $slib_options
+slib_name_edge=!getopt name_edge in $slib_options
+slib_id=!getopt id in $slib_options
+!default slib_id=!randint 100,1000
+slib_angle=!getopt angle in $slib_options
+slib_angle=!declosing $slib_angle
+slib_angle=!text select uvw, in $slib_angle
+slib_show=!getopt show in $slib_options
+!default slib_show=SS,A
+slib_color=!getopt color in $slib_options
+!default slib_color=red,blue,green
+slib_wire=!getopt width in $slib_options
+!default slib_wire=[0.01,0.01,0.01]
+slib_tool=!getopt tool in $slib_options
+slib_tool=!declosing $slib_tool
+
+!default slib_tool=
+
+### option pour les couleurs des faces ?
+
+!!********** Lecture des données polyedre
+
+slib_polyedre=!record  0 of data/polyedre_off/$slib_polyedre.off
+
+slib_fichier=$[$wims_nowseconds+1].jmol
+
+!readproc slib/geo3D/off2jmol $slib_polyedre,[$slib_show],[$slib_color],[$slib_wire],url,
+!readproc slib/chemistry/jmolshow $(slib_out[2]),$slib_sizex,$slib_sizey,white,script "$(slib_out[1])";zoom 180,$slib_id
+
+!exit
+slib_H=1
+slib_u=!line 1 of $slib_polyedre
+slib_nom=!replace internal # by $empty in $slib_u
+!while # isin $slib_u
+  !advance slib_H
+  slib_u=!line $slib_H of $slib_polyedre
+!endwhile
+
+!distribute word $slib_u into slib_vertex_cnt, slib_face_cnt, slib_edge_cnt
+
+slib_vertex=!line $[$slib_H+1] to $[$slib_H+$slib_vertex_cnt] of $slib_polyedre
+slib_vertex=!nonempty lines $slib_vertex
+
+slib_edge=!line $[$slib_H+$slib_vertex_cnt+$slib_face_cnt+1] to $[$slib_H+$slib_vertex_cnt+$slib_face_cnt+$slib_edge_cnt] of $slib_polyedre
+slib_edge=!nonempty line $slib_edge
+
+slib_face=!line $[$slib_H+$slib_vertex_cnt+1] to $[$slib_H+$slib_vertex_cnt+$slib_face_cnt] of $slib_polyedre
+slib_face=!nonempty line $slib_face
+
+!for slib_option in vertex,face,edge
+  !if $(slib_name_$slib_option)!=$empty
+    slib_show_$slib_option=showname="true"
+    slib_name_$slib_option =!declosing $(slib_name_$slib_option)
+    slib_name=$(slib_name_$slib_option)
+    slib_name1_$slib_option=!makelist alias="x" for x in $(slib_name)
+    slib_show_$slib_option=!makelist showname="true" for x=1 to $(slib_$(slib_option)_cnt)
+    !for slib_a=1 to $(slib_$(slib_option)_cnt)
+      !if $(slib_name[$slib_a])=$empty
+        slib_show_$slib_option=!replace item number $slib_a by  in $(slib_show_$(slib_option))
+      !endif
+    !next
+  !else
+    slib_show_$slib_option=
+  !endif
+!next
+
+!!*************programme de calcul des coordonnées de projection
+
+slib_M=[1,0,0;0,1,0;0,0,1]
+!if u isin $slib_angle
+  slib_M=$slib_M*[1,0,0;0,cu,-su;0,su,cu]
+!endif
+!if v isin $slib_angle
+  slib_M=$slib_M*[cv,0,sv;0,1,0;-sv,0,cv]
+!endif
+!if w isin $slib_angle
+  slib_M=$slib_M*[cw,-sw,0;sw,cw,0;0,0,1]
+!endif
+
+slib_prog=!exec pari {slib_rot(slib_A) =print(slib_A*($slib_M)~);}
+
+!!********** code de dessin des sommets
+slib_compteur_init=50
+slib_compteur=$slib_compteur_init
+slib_polyedre=
+slib_vertex1=!singlespace $slib_vertex1
+slib_vertex1=!lines2rows $slib_vertex
+
+slib_vertex1=!words2items $slib_vertex1
+slib_vertex1=!nonempty items $slib_vertex1
+slib_vertex1=!replace internal ;, by ; in $slib_vertex1
+
+slib_coordx=!sort numeric items $(slib_vertex1[;1])
+slib_coordx=!nonempty items $slib_coordx
+slib_minx=$(slib_coordx[1])
+slib_maxx=$(slib_coordx[-1])
+slib_coordy=!sort numeric items $(slib_vertex1[;2])
+slib_coordy=!nonempty items $slib_coordy
+slib_miny=$(slib_coordy[1])
+slib_maxy=$(slib_coordy[-1])
+
+!reset slib_vertex1  slib_coordx slib_coordy
+
+slib_centrex=$[($slib_minx+$slib_maxx)/2+0.2]
+slib_centrey=$[($slib_miny+$slib_maxy)/2+0.2]
+slib_width=$[max($slib_maxx-($slib_minx),$slib_maxy-($slib_miny))]
+
+
+slib_prelim=<?xml version="1.0" encoding="utf-8"?>\
+<CaR>\
+<Construction>\
+<Window x="$slib_centrex" y="$slib_centrey" w="$slib_width">\
+<Objects>\
+<Point name="P0" n="1" x="0" y="1" hidden="true" fixed="true"></Point>\
+<Point name="Q0" n="2" x="360" y="1" hidden="true" fixed="true"></Point>\
+<Segment name="s0" n="3" from="P0" to="Q0" hidden="true"></Segment>
+
+
+slib_cercle=$[$slib_centrex+0.7*$slib_width],$[$slib_centrey+0.7*$slib_width]
+slib_ray=$[0.05*$slib_width],$[0.1*$slib_width],$[0.15*$slib_width]
+!if u isin $slib_angle
+  slib_prelim=$slib_prelim\
+    <Point name="C1" n="4" x="$(slib_cercle[1])" y="$(slib_cercle[2])" hidden="true" fixed="true"></Point>\
+    <Circle name="c1" n="5" fixed="$(slib_ray[1])" midpoint="C1" acute="true" hidden="true"></Circle>\
+    <PointOn name="R1" n="6" type="thick" on="c1"></PointOn>\
+    <Parallel name="l1" n="7" color="5" point="C1" line="s0" hidden="true"></Parallel>\
+    <Intersection name="I1" n="8" first="l1" second="c1" which="first" hidden="true"></Intersection>\
+    <Angle name="u" n="9" alias="rx" color="1" first="I1" root="C1" second="R1" display="large" filled="true"></Angle>\
+    <Segment name="s1" n="10" from="C1" to="I1"></Segment>\
+    <Segment sname="t1" n="11" from="C1" to="R1"></Segment>
+!endif
+!if v isin $slib_angle
+   slib_prelim=$slib_prelim\
+    <Point name="C2" n="12" x="$(slib_cercle[1])" y="$(slib_cercle[2])" hidden="true" fixed="true"></Point>\
+    <Circle name="c2" n="13" fixed="$(slib_ray[2])" midpoint="C2" acute="true" hidden="true"></Circle>\
+    <PointOn name="R2" n="14" type="thick" on="c2"></PointOn>\
+    <Parallel name="l2" n="15" point="C2" line="s0" hidden="true"></Parallel>\
+    <Intersection name="I2" n="16" first="l2" second="c2" which="first" hidden="true"></Intersection>\
+    <Angle name="v" alias="ry" n="17" color="2" first="I2" root="C2" second="R2" display="large" filled="true"></Angle>\
+    <Segment name="s2" n="18" from="C2" to="I2"></Segment>\
+    <Segment sname="t2" n="19" from="C2" to="R2"></Segment>
+!endif
+!if w isin $slib_angle
+   slib_prelim=$slib_prelim\
+    <Point name="C3" n="20" x="$(slib_cercle[1])" y="$(slib_cercle[2])" hidden="true" fixed="true"></Point>\
+    <Circle name="c3" n="21" fixed="$(slib_ray[3])" midpoint="C3" acute="true" hidden="true"></Circle>\
+    <PointOn name="R3" n="22" type="thick" on="c3"></PointOn>\
+    <Parallel name="l3" n="23" point="C3" line="s0" hidden="true"></Parallel>\
+    <Intersection name="I3" n="24" first="l3" second="c3" which="first" hidden="true"></Intersection>\
+    <Angle name="w" alias="rz" n="25" color="3" first="I3" root="C3" second="R3" display="large" filled="true" actw="180"></Angle>\
+    <Segment name="s3" n="26" from="C3" to="I3"></Segment>\
+    <Segment sname="t3" n="27" from="C3" to="R3"></Segment>
+!endif
+
+!readproc oef/togetfile.proc $slib_fichier new\
+$slib_prelim
+
+slib_polyedre_vertex=
+!for slib_na=1 to $slib_vertex_cnt
+  slib_coord=!line $slib_na of $slib_vertex
+  slib_coord=!words2items $slib_coord
+  slib_liste=u,v,w
+  slib_xyz=!exec pari print(round(100*[$slib_coord]*$slib_M)/100.)
+  !for slib_c in $slib_liste
+  slib_xyz=!mathsubst c$slib_c=cos($slib_c) in $slib_xyz
+  slib_xyz=!mathsubst s$slib_c=sin($slib_c) in $slib_xyz
+  !next
+  slib_xy=$(slib_xyz[1])*(1-($(slib_xyz[3])-($slib_Z0))/($(slib_xyz[3])-($slib_Z1))),$(slib_xyz[2])*(1-($(slib_xyz[3])-($slib_Z0))/($(slib_xyz[3])-($slib_Z1)))
+  slib_polyedre_vertex=$slib_polyedre_vertex\
+    <Point name="$slib_compteur" $(slib_name1_vertex[$slib_na]) n="$slib_compteur" $(slib_show_vertex[$slib_na]) x="($(slib_xy[1]))" y="($(slib_xy[2]))"  fixed="true"></Point>
+  !advance slib_compteur
+  !if $slib_na iswordof 25 50 75 100 150
+    !readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_vertex
+    !reset slib_polyedre_vertex
+  !endif
+!next slib_na
+
+!readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_vertex
+
+!!********** code de dessin des arêtes
+slib_polyedre_segments=
+!if $slib_edge >0
+  !for slib_nb=1 to $slib_edge_cnt
+    slib_r=!line $slib_nb of $slib_edge
+    slib_lien1=!word 1 of $slib_r
+    slib_lien2=!word 2 of $slib_r
+    slib_polyedre_segments=$slib_polyedre_segments\
+      <Segment name="$slib_compteur" $(slib_name1_edge[$slib_nb]) n="$slib_compteur" $(slib_show_edge[$slib_nb]) from="$[$slib_compteur_init+$slib_lien1]" to="$[$slib_compteur_init+$slib_lien2]"></Segment>
+   !advance slib_compteur
+   !if $slib_nb iswordof 50 100 150
+     !readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_segments
+     !reset slib_polyedre_segments
+   !endif
+ !next slib_nb
+ !readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_segments
+!endif
+
+!!********** code de dessin des faces
+slib_polyedre_face=
+!if $slib_face>0
+  !for slib_nc=1 to $slib_face_cnt
+    slib_r=!line $slib_nc of $slib_face
+    slib_nbcotes=!word 1 of $slib_r
+    slib_sommetscote=
+    !for slib_ns=1 to $slib_nbcotes
+      slib_numerosommetscote=!word $[1+$slib_ns] of $slib_r
+      slib_sommetscote= $slib_sommetscote point$slib_ns="$[$slib_compteur_init+$slib_numerosommetscote]"
+    !next slib_ns
+    slib_sommetscote=!nonempty items $slib_sommetscote
+    slib_polyedre_face=$slib_polyedre_face\
+<Polygon name="$slib_compteur" $(slib_name1_face[$slib_nc]) color="$[$slib_compteur%5+1]" n="$slib_compteur" $(slib_show_face[$slib_nc]) $slib_sommetscote></Polygon>
+    !advance slib_compteur
+    !if $slib_nb iswordof 50 100 150
+      !readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_face
+      !reset slib_polyedre_face
+    !endif
+  !next slib_nc
+  !readproc oef/togetfile.proc $slib_fichier append\
+$slib_polyedre_face
+!endif
+
+slib_fin= </Objects>\
+</Construction>\
+</CaR>
+
+!readproc oef/togetfile.proc $slib_fichier append\
+$slib_fin
+
+slib_out=$wims_ref_name?session=$session&+cmd=getfile&+special_parm=$slib_fichier
+
+slib_out=<object id="CaR" type="application/x-java-applet;jpi-version=1.4" \
+ classid="java:rene.zirkel.ZirkelApplet.class" width="420px" height="420px">\
+ <param name="java_codebase" value="java/zirkel">\
+ <param name="java_archive" value="zirkel.jar">\
+ <param name="java_code" value="rene.zirkel.ZirkelApplet.class">\
+ <param name="file" value="$slib_out">\
+ <param name="color" value="244,244,242">\
+ <param name="tools" value="move $slib_tool">\
+ <param name="options" value="">\
+ <param name="style" value="full">\
+ <param name="editdigits" value="6">\
+ <param name="displaydigits" value="2">\
+ Votre navigateur ne supporte pas JAVA\
+ </object>

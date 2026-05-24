@@ -1,0 +1,86 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Fabrice, Guerimand
+slib_example= 400,200,1,-5,5,-5,5,,,,,html\
+200,200,1,-5,5,-5,5,,,red,blue,html\
+200,200,1,-5,5,-5,5,,,red,blue\
+
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+
+!distribute items $slib_input into xsize,ysize,marge,xmin,xmax,ymin,ymax,xgd,ygd,colora,colorg,slib_option
+slib_out=$slib_input
+
+!default xsize=400
+!default ysize=400
+!default marge=20
+!default xmin=-5
+!default xmax=5
+!default ymin=-5
+!default ymax=5
+!default xgd=1
+!default ygd=1
+!default colora=black
+!default colorg=grey
+
+ex=$[($xsize-2*$marge)/($xmax-$xmin)]
+ey=$[($ysize-2*$marge)/($ymax-$ymin)]
+x0=$[$marge-$ex*$xmin]
+y0=$[$marge+$ey*$ymax]
+
+!ifval $xmax*($xmin)<0
+  xcor=1
+!else
+  xcor=0
+!endif
+!ifval $ymax*($ymin)<0
+  ycor=1
+!else
+  ycor=0
+!endif
+
+xcor=1
+ycor=1
+repere=parallel $x0,$[$y0-($ymax)*($ey)],$x0,$[$y0-($ymin)*$ey],$[$ex*($xgd)],0,$[(($xsize-$marge-$x0)/$ex)/$xgd+$xcor],$colorg\
+parallel $x0,$[$y0-($ymax)*($ey)],$x0,$[$y0-($ymin)*$ey],$[-$ex*($xgd)],0,$[((-$marge+$x0)/$ex)/$xgd+$xcor],$colorg\
+parallel $[$x0+($xmin)*($ex)],$y0,$[$x0+($xmax)*($ex)],$y0,0,$[-$ey*($ygd)],$[((-$marge+$y0)/$ey)/$ygd+$ycor],$colorg\
+parallel $[$x0+($xmin)*($ex)],$y0,$[$x0+($xmax)*($ex)],$y0,0,$[$ey*($ygd)],$[(($ysize-$marge-$y0)/$ey)/$ygd+$ycor],$colorg\
+linewidth 2
+
+!if $xgd<1
+  repere=$repere\
+parallel $[$x0+($xmin)*($ex)],$[$y0-($ymax)*($ey)],$[$x0+($xmin)*($ex)],$[$y0-($ymin)*$ey],$ex,0,$[$xmax-($xmin)+$xcor],$colorg
+!endif
+!if $ygd<1
+  repere=$repere\
+parallel $[$x0+($xmin)*($ex)],$[$y0-($ymax)*($ey)],$[$x0+($xmax)*($ex)],$[$y0-($ymax)*$ey],0,$ey,$[$ymax-($ymin)+$ycor],$colorg
+!endif
+repere=$repere\
+arrow 0,$y0,$xsize,$y0,20,$colora\
+arrow $x0,$ysize,$x0,0,20,$colora\
+parallel $[$x0+($xmin)*($ex)],$[$y0-3],$[$x0+($xmin)*($ex)],$[$y0+3],$ex,0,$[$xmax-($xmin)+$xcor],$colora\
+parallel $[$x0+3],$[$y0-($ymax)*($ey)],$[$x0-3],$[$y0-($ymax)*$ey],0,$ey,$[$ymax-($ymin)+$ycor],$colora\
+linewidth 1
+
+slib_out=$x0,$y0\
+$ex,$[-($ey)]\
+$repere
+
+!if url iswordof $slib_option or html iswordof $slib_option
+  slib_out=!line 3 to - 1 of $slib_out
+  insdraw_size1=$insdraw_size
+  insdraw_size=$xsize,$ysize
+  !insdraw $slib_out
+  slib_out=$ins_url
+  !if html iswordof $slib_option
+    slib_out=<img src="$ins_url" alt="">
+  !else
+    slib_out=$slib_out,$insdraw_size
+  !endif
+  insdraw_size=$insdraw_size1
+!endif

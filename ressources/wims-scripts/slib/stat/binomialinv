@@ -1,0 +1,97 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=3\
+,[data]\
+5,n\
+0.5,p
+
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example=0.5,11,0.5\
+0.5,4,0.5\
+[0.5,0.3,0.6],101,0.5\
+0.3,800,0.61\
+0.3,900,0.34\
+[0.2,0.4,0.6],5,0.5
+slib_require=octave pari
+
+!exit
+
+:proc
+slib_test=!exec octave pkg list statistics
+!if Installation notwordof $slib_test
+  !readproc slib/stat/commun stat
+!endif
+!reset slib_out
+!distribute item $wims_read_parm into slib_data,slib_n,slib_p
+!default slib_n= 5
+!default slib_p=0.5
+!if $slib_p>=1 or $slib_p<=0
+  slib_out=0
+  !exit
+!endif
+slib_out=
+slib_data=!declosing $slib_data
+slib_p=$[$slib_p]
+
+!if $slib_p=0.5 and 0.5 isitemof $slib_data
+  !for slib_q in $slib_data
+    !if $slib_q=0.5
+      !if $[$slib_n%2]=0
+        slib_out=!append item $[$slib_n/2] to $slib_out
+      !else
+        slib_out=!append item $[($slib_n-1)/2] to $slib_out
+      !endif
+    !else
+      !if Installation iswordof $slib_test
+        slib_res=!exec octave binoinv($slib_q, $slib_n, $slib_p)
+      !else
+        slib_res=!exec pari statbinominv($slib_n,$slib_p,$slib_q)
+      !endif
+      slib_out=!append item $slib_res to $slib_out
+    !endif
+  !next
+  !goto end
+!endif
+!!le statbinominv du programme gp fait-il les cas particuliers ?
+!if Installation iswordof $slib_test
+  slib_out=!exec octave binoinv([$slib_data],$slib_n,$slib_p)
+!else
+  !for slib_a in $slib_data
+    slib_res=!exec pari statbinominv($slib_n,$slib_p,$slib_a)
+    slib_out=!append item $slib_res to $slib_out
+  !next
+!endif
+:end
+
+slib_out=!words2items $slib_out
+slib_out=!trim $slib_out
+
+!exit
+old
+
+slib_p1=$[1-$slib_p]
+slib_r=$[$slib_p/$slib_p1]
+slib_a=$slib_p1^($slib_n)
+slib_cnt= !itemcnt $slib_data
+slib_pp=$[$slib_p/$slib_p1]
+
+!for slib_i =1 to $slib_cnt
+  slib_di=!item $slib_i of $slib_data
+  slib_P=0
+  slib_a=$[$slib_p1^($slib_n)]
+  !for slib_k=0 to $slib_n
+    !!slib_a=!item $[$slib_k+1] of $slib_bino
+    slib_P=$[$slib_P+$slib_a]
+    slib_out=!append item $slib_P to $slib_out
+    !ifval $slib_P>= $slib_di
+      slib_out=!append item $slib_k to $slib_out
+      !break
+    !endif
+    slib_a=$[$slib_a*$slib_pp*($slib_n-$slib_k)/($slib_k+1)]
+  !next slib_k
+!next slib_i
+!default slib_out=$slib_k
+slib_out=!trim $slib_out

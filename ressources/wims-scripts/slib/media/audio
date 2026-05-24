@@ -1,0 +1,68 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+!! translated text (title, comment...) are in scripts/help/$lang/slib/...
+
+slib_author=Bernadette, Perrin-Riou
+ADDRESS=!record 0 of data/swac/packs
+slib_example=https://$ADDRESS/eng-balm-verbs/mp3/eng-I_bought.mp3\
+https://$ADDRESS/eng-balm-verbs/mp3/eng-I_bought.mp3,style="width:300px;height:25px"\
+https://$ADDRESS/eng-balm-judith/mp3/eng-aae3fab3.mp3|https://$ADDRESS/eng-balm-verbs/mp3/eng-I_bought.mp3,,player=player_mp3_multi\
+\imagedir/exemple.mp3
+!exit
+
+:proc
+!!!if ...adm/ isin ...$module or .. isin $wims_read_parm or $wims_read_parm=$empty
+!! !exit
+!!!endif
+ADDRESS=!record 0 of data/swac/packs
+!reset slib_out slib_player slib_son slib_option slib_option1
+!distribute items $wims_read_parm into slib_son,slib_option,slib_option1
+
+slib_option2 = !getopt option in $slib_option1
+slib_player=!getopt player in $slib_option1
+
+!if rename iswordof $slib_option
+  slib_son=!rename $slib_son
+!endif
+slib_sontest=!replace internal . by , in $slib_son
+!if $(slib_sontest[-1]) notwordof mp3 ogg
+  slib_sontest=mp3
+!endif
+!! laisser slib_out sur une seule ligne (pour correspondance)
+slib_son=!replace internal cgi? by $(slib_sontest[-1])? in $slib_son
+
+!! replace all swf players (except player_mp3_multi) by native html5
+!if $slib_player issametext player_mp3_multi
+  !if .mp3XXX notin $(slib_son)XXX
+    !! audio venant de lang/swac
+    slib_son=$(slib_son).mp3
+  !endif
+  !read slib/media/$slib_player $slib_son,$slib_option
+!else
+
+  !! As hbs_mp3_player was the smallest player (just play/pause buttons),
+  !! we set minimal width/height for compatibility
+  !if $slib_player issametext hbs_mp3_player
+    !set css_class=minimal_size
+  !endif
+
+  slib_out=<audio controls class="wims_audio $css_class" $slib_option>
+  !if .mp3XXXX isin $(slib_son)XXXX
+    slib_out=$slib_out<source src="$slib_son" type="audio/mpeg">
+  !else
+    !if .oggXXXX isin $(slib_son)XXXX
+      slib_out=$slib_out<source src="$slib_son" type="audio/ogg">
+    !else
+      slib_son_ogg=$slib_son
+      !if $ADDRESS isin $slib_son_ogg
+        slib_son_ogg=!replace internal mp3/ by ogg/ in $(slib_son)
+      !endif
+      slib_out=$slib_out<source src="$slib_son_ogg.ogg" type="audio/ogg"><source src="$slib_son.mp3" type="audio/mpeg">
+    !endif
+  !endif
+  slib_out=$slib_out Your browser does not support the audio tag. <a href="$slib_son">Download audio file</a></audio>
+!endif
+
+slib_out=$slib_out

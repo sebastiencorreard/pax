@@ -1,0 +1,50 @@
+!set default_slib_option=preload="auto" height="320" width="600" controls="controls" class="wims_video"
+
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+!! translated text (title, comment...) are in scripts/help/$lang/slib/...
+
+slib_author=Bernadette, Perrin-Riou
+slib_example=[ogg="http://techslides.com/demos/sample-videos/small.ogv" mp4="http://techslides.com/demos/sample-videos/small.mp4", webm="http://techslides.com/demos/sample-videos/small.webm"]\
+[ogg="\imagedir/exemple.ogg" mp4="\imagedir/exemple.mp4"],,poster="gifs/logo.gif"\
+
+!exit
+
+:proc
+!!!if ...adm/ isin ...$module or .. isin $wims_read_parm or !!$wims_read_parm=$empty
+!! !exit
+!!!endif
+!reset slib_out
+!set slib_Type=mp4,webm,ogg,flv
+
+!distribute items $wims_read_parm into slib_media,slib_option,slib_option2
+!set slib_media=!declosing $slib_media
+!set slib_media=!items2words $slib_media
+
+!for slib_type in $slib_Type
+  !reset slib_media_$slib_type
+  slib_media_$slib_type=!getopt $slib_type in $(slib_media)
+  slib_media_$slib_type=!replace internal $	$ by = in $(slib_media_$slib_type)
+  !if $(slib_media_$slib_type)!=
+    !set slib_out=!append line <source src="$(slib_media_$slib_type)" type="video/$slib_type">\
+    to $slib_out
+  !endif
+!next
+!if $slib_out=$empty or $(slib_media_flv)!=$empty
+  !if $slib_media_flv=$empty
+    slib_media_flv=$slib_media
+  !endif
+  slib_out=<object type="application/x-shockwave-flash" data="flash/player_flv_maxi.swf" $slib_option>\
+<param name="movie" value="flash/player_flv_maxi.swf">\
+<param name="allowFullScreen" value="true">\
+<param name="FlashVars" value="flv=$slib_media_flv"></object>
+  !exit
+!endif
+!default slib_option=$default_slib_option
+slib_option=$slib_option $slib_option2
+slib_out=<video $slib_option>\
+ $slib_out\
+ Your browser does not support HTML5 : <a href="$slib_media_mp4">Download video</a>.\
+</video>

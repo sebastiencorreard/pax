@@ -1,0 +1,25 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Adeline, Grelot; Bernadette, PERRIN-RIOU
+
+slib_example=1,3,5,0,10,-4\
+1 3 5 0 10 -4\
+1;3;5;0;10;-4
+!exit
+
+:proc
+!readproc slib/stat/dataproc $wims_read_parm
+
+!if $slib_data=$empty
+  slib_out=0
+!else
+  slib_data=!line 1 of $slib_data
+  slib_data=!sort numeric item $slib_data
+  slib_min=!item 1 of $slib_data
+  slib_max=!item -1 of $slib_data
+  slib_out=$[$slib_max-($slib_min)]
+!endif
+
+slib_out=!trim $slib_out

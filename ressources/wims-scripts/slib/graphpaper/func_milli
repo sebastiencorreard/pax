@@ -1,0 +1,222 @@
+!if  $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Georges, Khaznadar
+
+slib_example= ,,,,,,,,,sin(x),[],0,0,1.2,1.5,2.4,3.2\
+12,8,0,0,1 max t (ms),1 max U (V),blue,red,[255,128,128],sin(x),[0,0,1.3,1.4,2.5,3],0,0,1.2,1.5,2.4,3.2 \
+,,,,,,,,,[cos(6.28*t),sin(6.28*t)],[],0,0,1.2,1.5,2.4,3.2
+
+!exit
+
+:proc
+
+!reset slib_xd, slib_yd, slib_bg, slib_lc, slib_dc, slib_point, slib_xo, slib_yo, slib_xs, slib_ys, slib_correct slib_f, slib_labx, slib_laby, slib_maxx, slib_maxy
+
+slib_parm=!item 1 to 11 of $wims_read_parm
+!distribute item $slib_parm into slib_xd, slib_yd, slib_xo, slib_yo, slib_xs, slib_ys, slib_bg, slib_lc, slib_dc, slib_f, slib_correct
+
+slib_point=!item 12 to -1 of $wims_read_parm
+
+!default slib_xd=8
+!default slib_yd=8
+!default slib_xo=1
+!default slib_yo=1
+!default slib_xs=1
+!default slib_ys=1
+!default slib_correct=[]
+
+slib_f = !declosing $slib_f
+
+slib_labx=!word 2 to -1 of $slib_xs
+slib_laby=!word 2 to -1 of $slib_ys
+slib_xs=!word 1 of $slib_xs
+slib_ys=!word 1 of $slib_ys
+
+slib_maxx=!word 1 of $slib_labx
+!if $slib_maxx = max
+  slib_labx = !word 2 to -1 of $slib_labx
+  !! we need to compute the X step slib_xs, given the values
+  !! of the total width slib_xd, abscissa of origin slib_xo
+  !! and knowing that slib_xs currently means a maximum value.
+  !! slib_xd-slib_xo must be be sufficient to display ticks greater
+  !! than the current value of slib_xs, the tick step being a multiple
+  !! of 1, 2 or 5.
+  slib_log=$[log10($slib_xs/($slib_xd-$slib_xo))]
+  slib_logint=$[floor($slib_log)]
+  slib_logmant=$[$slib_log-$slib_logint]
+  !if $slib_logmant > $[log10(5)]
+     slib_xs=1e$[$slib_logint+1]
+  !else
+    !if $slib_logmant > $[log10(2)]
+      slib_xs=5e$slib_logint
+    !else
+      slib_xs=2e$slib_logint
+    !endif
+  !endif
+!else
+  slib_maxx=$empty
+!endif
+
+slib_maxy=!word 1 of $slib_laby
+!if $slib_maxy = max
+  slib_laby = !word 2 to -1 of $slib_laby
+  !! we need to compute the Y step slib_ys, given the values
+  !! of the total height slib_yd, ordinate of origin slib_yo
+  !! and knowing that slib_ys currently means a maximum value.
+  !! slib_yd-slib_yo must be be sufficient to display ticks greater
+  !! than the current value of slib_ys, the tick step being a multiple
+  !! of 1, 2 or 5.
+  slib_log=$[log10($slib_ys/($slib_yd-$slib_yo))]
+  slib_logint=$[floor($slib_log)]
+  slib_logmant=$[$slib_log-$slib_logint]
+  !if $slib_logmant > $[log10(5)]
+    slib_ys=1e$[$slib_logint+1]
+  !else
+    !if $slib_logmant > $[log10(2)]
+      slib_ys=5e$slib_logint
+    !else
+      slib_ys=2e$slib_logint
+    !endif
+  !endif
+!else
+  slib_maxy=$empty
+!endif
+
+slib_dc=!declosing $slib_dc
+
+slib_correct=!declosing $slib_correct
+slib_point=!declosing $slib_point
+
+slib_bg=!declosing $slib_bg
+!default slib_bg=240,233,255
+
+slib_lc=!declosing $slib_lc
+!default slib_lc=255,220,180
+
+slib_dc=!declosing $slib_dc
+!default slib_dc=10,10,10
+
+!!!!!!!!!!!!!!!!! begin grid !!!!!!!!!!!!!!!!!!!!!!!!!
+
+slib_grey=128,128,128
+
+slib_dessin = new 60*$slib_xd,60*$slib_yd\
+xrange -0.5, 10*$slib_xd-0.5\
+yrange -0.5, 10*$slib_yd-0.5\
+fill 1,1,$slib_bg
+
+!! traits fins tous les millimetres
+slib_dessin=$slib_dessin\
+linewidth 1\
+parallel 0, 0, 0, 10*$slib_yd, 1, 0, 10*$slib_xd+1, $slib_lc\
+parallel 0, 0, 10*$slib_xd, 0, 0, 1, 10*$slib_yd+1, $slib_lc
+
+!! traits gros tous les centimetres
+slib_dessin=$slib_dessin\
+linewidth 3\
+parallel 0, 0, 0, 10*$slib_yd, 10, 0, $slib_xd+1, $slib_lc\
+parallel 0, 0, 10*$slib_xd, 0, 0, 10, $slib_yd+1, $slib_lc
+
+!! axe_x
+slib_dessin=$slib_dessin\
+linewidth 3\
+hline 0, $[10*$slib_yo], $slib_grey\
+segment $[10*$slib_xd-3],$[10*$slib_yo-1],$[10*$slib_xd-1],$[10*$slib_yo], $slib_grey\
+segment $[10*$slib_xd-3],$[10*$slib_yo+1],$[10*$slib_xd-1],$[10*$slib_yo], $slib_grey\
+parallel 0,$[10*$slib_yo+1],0,$[10*$slib_yo-1], 10, 0, $slib_xd+1, $slib_grey
+
+slib_val=$[-$slib_xo*$slib_xs]
+slib_dessin=$slib_dessin\
+linewidth 1
+!for slib_x from 0 to  10*$slib_xd step 10
+  slib_dessin=$slib_dessin\
+    text blue,$[$slib_x+1],$[10*$slib_yo-1],medium,$slib_val
+  slib_val=$[$slib_val+$slib_xs]
+!next slib_x
+!if $slib_labx != $empty
+  slib_dessin=$slib_dessin\
+    text blue,$[$slib_x-20],$[10*$slib_yo-6],medium,$slib_labx
+!endif
+
+!! axe_y
+slib_dessin=$slib_dessin\
+linewidth 3\
+vline $[10*$slib_xo],0, $slib_grey\
+segment $[10*$slib_xo-1],$[10*$slib_yd-3],$[10*$slib_xo],$[10*$slib_yd-1], $slib_grey\
+segment $[10*$slib_xo+1],$[10*$slib_yd-3],$[10*$slib_xo],$[10*$slib_yd-1], $slib_grey\
+parallel $[10*$slib_xo+1],0,$[10*$slib_xo-1], 0, 0, 10, $slib_yd+1, $slib_grey
+
+slib_val=$[-$slib_yo*$slib_ys]
+slib_dessin=$slib_dessin\
+linewidth 1
+!for slib_y from 0 to  10*$slib_yd step 10
+  slib_dessin=$slib_dessin\
+    text blue,$[10*$slib_xo+1],$[$slib_y-1],medium,$slib_val
+  slib_val=$[$slib_val+$slib_ys]
+!next slib_y
+!if $slib_laby != $empty
+  slib_dessin=$slib_dessin\
+  text blue,$[10*$slib_xo-9],$[$slib_y-10],medium,$slib_laby
+!endif
+
+!!!!!!!!!!!!!!!!! end grid !!!!!!!!!!!!!!!!!!!!!!!!!
+
+!! red dots : the correct list
+n1=!itemcnt $slib_correct
+!for i from 1 to $n1 step 2
+  !if $i < $n1
+    slib_x=!item $i of $slib_correct
+    slib_x=$[10*$slib_x/$slib_xs]
+    slib_y=!item $[$i+1] of $slib_correct
+    slib_y=$[10*$slib_y/$slib_ys]
+    slib_x1=$[10*$slib_xo+$slib_x-0.6]
+    slib_x2=$[10*$slib_xo+$slib_x+0.6]
+    slib_y1=$[10*$slib_yo+$slib_y-0.6]
+    slib_y2=$[10*$slib_yo+$slib_y+0.6]
+    !! add one red dot
+    slib_dessin=$slib_dessin\
+    linewidth 2\
+    segment $slib_x1,$slib_y1,$slib_x2,$slib_y2,red\
+    segment $slib_x2,$slib_y1,$slib_x1,$slib_y2,red
+  !endif $i < $n1
+!next i
+
+!! the function : blue thin curve
+slib_n = !itemcnt $slib_f
+!if $slib_n = 1
+  slib_f = !replace internal x by ($slib_xs/10*(x-10*$slib_xo)) in $slib_f
+  slib_f = 10*($slib_f)/$slib_ys+10*$slib_yo
+!else
+  slib_x = !item 1 of $slib_f
+  slib_y = !item 2 of $slib_f
+  slib_x = 10*($slib_x/$slib_xs+$slib_xo)
+  slib_y = 10*($slib_y/$slib_ys+$slib_yo)
+  slib_f = $slib_x, $slib_y
+!endif
+
+slib_dessin=$slib_dessin\
+plot blue, $slib_f
+
+!! black dots
+n2=!itemcnt $slib_point
+!for i from 1 to $n2 step 2
+  !if $i < $n2
+    slib_x=!item $i of $slib_point
+    slib_x=$[10*$slib_x/$slib_xs]
+    slib_y=!item $[$i+1] of $slib_point
+    slib_y=$[10*$slib_y/$slib_ys]
+    slib_x1=$[10*$slib_xo+$slib_x-0.6]
+    slib_x2=$[10*$slib_xo+$slib_x+0.6]
+    slib_y1=$[10*$slib_yo+$slib_y-0.6]
+    slib_y2=$[10*$slib_yo+$slib_y+0.6]
+    !! add one '$slib_dc' dot
+    slib_dessin=$slib_dessin\
+    linewidth 2\
+    segment $slib_x1,$slib_y1,$slib_x2,$slib_y2,$slib_dc\
+    segment $slib_x2,$slib_y1,$slib_x1,$slib_y2,$slib_dc
+  !endif $i < $n2
+!next i
+
+slib_out= $slib_dessin

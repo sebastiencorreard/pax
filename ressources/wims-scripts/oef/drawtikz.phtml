@@ -1,0 +1,35 @@
+!!see modules/adm/doc/primitives/draw.phtml scripts/docu/primitives/draw.phtml scripts/primitives/draw.phtml
+!if $wims_read_parm=$empty
+  !exit
+!endif
+!if $printlatex!=yes
+  !exit
+!endif
+!if $savedrawtikzcnt>0
+  !set savedrawtikz$savedrawtikzcnt=$wims_read_parm
+  !increase savedrawtikzcnt
+!endif
+
+!set pp=!trim $wims_read_parm
+!set pp=!replace internal \\ by ///?/?/?/// in $pp
+!set pp=!replace internal \ by $$m_ in $pp
+!set pp=!replace internal ///?/?/?/// by \\ in $pp
+!set s_=!line 1 of $pp
+!set pp=!line 2 to -1 of $pp
+!set pp=!translate internal $	$ to $\
+$ in $pp
+!set pp=!trim $pp
+
+!set a_=!word 1 of $pp
+!if $a_=alt
+  !set pp=!line 2 to -1 of $pp
+!endif
+!set a_=!word 1 of $pp
+!if $a_=animate
+  !set pp=!line 2 to -1 of $pp
+!endif
+!set insdraw_size=$s_
+!set tmp_format=$ins_format
+!set ins_format=tex
+!insdraw $pp
+!set ins_format=$tmp_format

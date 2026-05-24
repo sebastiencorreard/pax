@@ -1,0 +1,251 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Georges, Khaznadar
+slib_license=GPL
+
+slib_example= H2_g + O2_g -> H2O, state, html \
+H2_g + O2_g -> H2O \
+H2_g + 1/2O2_g -> H2O, nostate, html \
+H2_g + 1/2O2_g -> H2O, nostate \
+BH3_s + 3H2O -> B(OH)3 + 3H2_g, state, html\
+MnO4^- + 8H^+ + 5e^- -> Mn^2+ + 4H2O, nostate, html \
+MnO4^- + 8H^+ + 5e^- -> Mn^2+ + 4H2O
+slib_require=chemeq
+!exit
+
+:proc
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! first check the version of chemeq
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+chemeq_option=v
+slib_out=!exec chemeq
+!reset chemeq_option
+slib_out=!line 1 of $slib_out
+slib_out=!replace .*version. by $empty in $slib_out
+!if $slib_out < 1.119999
+  slib_out=Warning! the version of chemeq is $slib_out (<< 1.12), \
+install a newer version of this program (at least the version 1.12).
+  !goto end
+!endif
+
+!reset slib_parm, slib_eq, slib_format, slib_rep, slib_left, slib_right, \
+slib_w, slib_l, slib_r, slib_mol_l, slib_elcount, slib_el, slib_eln, slib_i, \
+slib_j, slib_atomlist, slib_a, slib_debug, slib_atom, slib_stoe, slib_arity, \
+slib_stoechiometry, slib_phrase, slib_latex, slib_state, slib_charge, \
+slib_chleft, slib_chright, slib_c, slib_ion
+
+slib_stoechiometry= Stoech.,
+slib_latex= Equation,
+
+slib_parm=!item 1 to 3 of $wims_read_parm
+!distribute item $slib_parm into slib_eq, slib_state, slib_format
+
+!default slib_state state
+!default slib_format matrix
+
+chemeq_option=C
+slib_rep=!exec chemeq $slib_eq
+chemeq_option=e
+slib_charge=!exec chemeq $slib_eq
+!reset chemeq_option
+
+slib_left=$(slib_rep[1;])
+slib_right=$(slib_rep[2;])
+slib_chleft=$(slib_charge[1;])
+slib_chright=$(slib_charge[2;])
+slib_ion=
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! collect the elements
+!! result in the sorted list slib_el
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+slib_el=!replace ^[^|]*| by $empty in $slib_rep
+slib_el=!replace :[^ ]* by $empty in $slib_el
+slib_el=!replace [ ][^ ]*| by , in $slib_el
+slib_el=!replace [0-9/]* by $empty in $slib_el
+slib_el=!replace [ ()] by , in $slib_el
+slib_el=!sort list $slib_el
+slib_el=!listuniq $slib_el
+!! remove electrons
+slib_i=
+!for slib_j in $slib_el
+  !if $slib_j != e
+    slib_i=$slib_i$empty$slib_j,
+  !endif
+!next slib_j
+slib_el=$(slib_i[1..-2])
+!! count the number of elements
+slib_eln=!itemcnt $slib_el
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! define variables bound to each element
+!! like slib_arity_Na, slib_arity_H, slib_total_Fe, etc.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!for slib_i in $slib_el
+  !reset slib_arity_$(slib_i)
+  !reset slib_total_$(slib_i)
+  slib_arity_$(slib_i)=$(slib_i)_arity,
+  slib_total_$(slib_i)=$(slib_i)_total,
+!next slib_i
+
+!reset slib_arity_ch
+!reset slib_total_ch
+slib_arity_ch=Charge_arity,
+slib_total_ch=Charge_total,
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Deal with the left side of the equation
+!! slib_l will be the count of molecules on the left side
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+slib_l=0
+slibmol_l=
+!for slib_w in $slib_left
+  slib_molcomp=!replace internal | by , in $slib_w
+  slib_mol_l= $slib_mol_l $(slib_molcomp[1]),
+  slib_i=!replace ^[ 0-9/]* by $empty in $(slib_molcomp[1])
+  !if $slib_state = nostate
+    slib_i=!replace _.* by $empty in $slib_i
+  !endif
+  slib_j=!replace [eA-Z].* by $empty in $(slib_molcomp[1])
+  chemeq_option=l
+  slib_i=!exec chemeq $slib_i
+  !reset chemeq_option
+  slib_latex=$slib_latex $slib_j $slib_i,
+  slib_atomlist=!words2list $(slib_molcomp[2])
+  !for slib_i in $slib_el
+    slib_arity_local_$(slib_i)=0
+  !next slib_i
+  !for slib_a in $slib_atomlist
+    slib_a=!replace [*:] by , in $slib_a
+    !distribute item $slib_a into slib_atom, slib_stoe, slib_arity
+    slib_arity_local_$(slib_atom)=$slib_arity
+  !next slib_a
+  slib_stoechiometry=$slib_stoechiometry $slib_stoe,
+  !for slib_i in $slib_el
+    slib_arity_$(slib_i)= $(slib_arity_$(slib_i)) $(slib_arity_local_$(slib_i)),
+    slib_total_$(slib_i)= $(slib_total_$(slib_i)) $[$slib_stoe * $(slib_arity_local_$(slib_i))],
+  !next slib_i
+  slib_l=!eval $slib_l + 1
+!next slib_w
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! now once more for the charges
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+slib_c=2
+!for slib_w in $slib_chleft
+  slib_i=!replace internal | by , in $slib_w
+  slib_i=!replace internal * by , in $slib_i
+  slib_arity_ch=$slib_arity_ch $(slib_i[3]),
+  !if $(slib_i[3]) != 0
+    slib_ion=yes
+  !endif
+  slib_debug=$slib_debug --- $slib_i
+  slib_total_ch=$slib_total_ch $[$(slib_stoechiometry[$slib_c]) * ($(slib_i[3]))],
+  slib_c=!eval $slib_c + 1
+!next slib_w
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! add one colum to separate left and right side
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+slib_latex=$slib_latex \rightarrow,
+slib_stoechiometry=$slib_stoechiometry %,
+slib_arity_ch=$slib_arity_ch %,
+slib_total_ch=$slib_total_ch %,
+slib_c=!eval $slib_c + 1
+!for slib_i in $slib_el
+  slib_arity_$(slib_i)= $(slib_arity_$(slib_i)) %,
+  slib_total_$(slib_i)=$(slib_total_$(slib_i)) %,
+!next slib_i
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Deal with the right side of the equation
+!! slib_r will be the count of molecules on the right side
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+slib_r=0
+slibmol_r=
+!for slib_w in $slib_right
+  slib_molcomp=!replace internal | by , in $slib_w
+  slib_mol_l= $slib_mol_l $(slib_molcomp[1]),
+  slib_i=!replace ^[ 0-9/]* by $empty in $(slib_molcomp[1])
+  !if $slib_state = nostate
+    slib_i=!replace _.* by $empty in $slib_i
+  !endif
+  slib_j=!replace [A-Z].* by $empty in $(slib_molcomp[1])
+  chemeq_option=l
+  slib_i=!exec chemeq $slib_i
+  !reset chemeq_option
+  slib_latex=$slib_latex $slib_j $slib_i,
+  slib_atomlist=!words2list $(slib_molcomp[2])
+  !for slib_i in $slib_el
+    slib_arity_local_$(slib_i)=0
+  !next slib_i
+  !for slib_a in $slib_atomlist
+    slib_a=!replace [*:] by , in $slib_a
+    !distribute item $slib_a into slib_atom, slib_stoe, slib_arity
+    slib_arity_local_$(slib_atom)=$slib_arity
+  !next slib_a
+  slib_stoechiometry=$slib_stoechiometry $slib_stoe,
+  !for slib_i in $slib_el
+    slib_arity_$(slib_i)= $(slib_arity_$(slib_i)) $(slib_arity_local_$(slib_i)),
+    slib_total_$(slib_i)= $(slib_total_$(slib_i)) $[$slib_stoe * $(slib_arity_local_$(slib_i))],
+  !next slib_i
+  slib_r=!eval $slib_r + 1
+!next slib_w
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! now once more for the charges
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!for slib_w in $slib_chright
+  slib_i=!replace internal | by , in $slib_w
+  slib_i=!replace internal * by , in $slib_i
+  slib_arity_ch=$slib_arity_ch $(slib_i[3]),
+  !if $(slib_i[3]) != 0
+    slib_ion=yes
+  !endif
+  slib_debug=$slib_debug --- $slib_i
+  slib_total_ch=$slib_total_ch $[$(slib_stoechiometry[$slib_c]) * ($(slib_i[3]))],
+  slib_c=!eval $slib_c + 1
+!next slib_w
+
+!if $slib_format = html
+slib_phrase=<table border=1>
+  slib_latex=$(slib_latex[1 to -2])
+  slib_latex=!replace , by </td><td> in $slib_latex
+  slib_phrase=$slib_phrase <tr> <td>$slib_latex</td> </tr>
+  slib_stoechiometry=$(slib_stoechiometry[1 to -2])
+  slib_stoechiometry=!replace , by </td><td> in $slib_stoechiometry
+  slib_phrase=$slib_phrase <tr> <td>$slib_stoechiometry</td> </tr>
+  !for slib_i in $slib_el
+    slib_arity_$(slib_i)=$(slib_arity_$(slib_i)[1 to -2])
+    slib_arity_$(slib_i)=!replace , by </td><td> in $(slib_arity_$(slib_i))
+    slib_phrase=$slib_phrase <tr> <td>$(slib_arity_$(slib_i))</td> </tr>
+    slib_total_$(slib_i)=$(slib_total_$(slib_i)[1 to -2])
+    slib_total_$(slib_i)=!replace , by </td><td> in $(slib_total_$(slib_i))
+    slib_phrase=$slib_phrase <tr> <td>$(slib_total_$(slib_i))</td> </tr>
+  !next slib_i
+  !if $slib_ion = yes
+    slib_total_ch=$(slib_total_ch[1 to -2])
+    slib_total_ch=!replace , by </td><td> in $slib_total_ch
+    slib_phrase=$slib_phrase <tr> <td>$slib_total_ch</td> </tr>
+  !endif
+  slib_phrase=$slib_phrase </table>
+!else
+  slib_phrase=$slib_phrase $slib_latex;
+  slib_phrase=$slib_phrase $slib_stoechiometry;
+  !for slib_i in $slib_el
+    slib_phrase=$slib_phrase $(slib_arity_$(slib_i));
+    slib_phrase=$slib_phrase $(slib_total_$(slib_i));
+  !next slib_i
+  !if $slib_ion = yes
+    slib_phrase=$slib_phrase $slib_total_ch;
+  !endif
+  !! cuts the excess separators in the matrix
+  slib_phrase=$(slib_phrase[1..-1;1..-2])
+!endif
+
+slib_out=$slib_phrase
+
+:end

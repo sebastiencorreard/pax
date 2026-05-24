@@ -1,0 +1,56 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+slib_title= Pie chart
+slib_require=canvasdraw
+
+slib_parms=4\
+[25,25,25,25],data of percentage (in brackets)\
+[red,grey,blue,green,black,orange,yellow],colors (in brackets)\
+,texts (in brackets)\
+200,size of the image in pixels
+
+slib_out=Pie chart
+slib_example= [2,45,43,10],[red,green,orange,black],[Aaa,Bbb,Ccc,Ddd]\
+[25,35,30,10],[red,green,orange,black],[Aaa,Bbb,Ccc,Ddd],100\
+[25,25,25,25]
+
+!exit
+
+:proc
+
+!reset slib_out slib_pt
+
+!distribute items $wims_read_parm into slib_data,slib_color,slib_text,slib_width
+
+slib_data=!declosing $slib_data
+!default slib_data=25,25,25,25
+slib_n=!itemcnt $slib_data
+slib_text=!declosing $slib_text
+!default slib_width=200
+slib_color=!declosing $slib_color
+!default slib_color=red,grey,blue,green,black,orange,yellow
+slib_text=!replace internal , by : in $slib_text
+!for slib_j=1 to $slib_n
+  slib_pt=!append line $(slib_data[$slib_j]):$(slib_color[$slib_j]) to $slib_pt
+!next
+slib_w=$[floor($slib_width/2)]
+slib_pt=!replace internal $\
+$ by : in $slib_pt
+slib_out=size $slib_width, $slib_width\
+xrange -$slib_w,$slib_w\
+yrange -$slib_w,$slib_w
+!if $slib_text!=$empty
+  slib_out=$slib_out\
+fontfamily 16px Ariel\
+centered\
+opacity 255,60\
+legend $slib_text
+!endif
+slib_out=$slib_out\
+piechart 0,0,$slib_w,$slib_pt
+
+slib_out=!exec canvasdraw\
+$slib_out

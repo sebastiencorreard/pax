@@ -1,0 +1,44 @@
+!! -*- coding: iso-8859-1 -*-
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_author=Georges, Khaznadar
+slib_example=1.2345A,2\
+1.2V,5\
+12,3\
+12,3,4\
+0.50A.h\
+1800C,3,,A.h\
+1.8°,5,,rad
+slib_require=units-filter
+!exit
+
+:proc
+slib_data=$wims_read_parm
+!distribute items $slib_data  into slib_qty, slib_sig, slib_order, slib_wanted_unit
+
+!default slib_qty=1m
+!default slib_sig=3
+!default slib_order=
+!default slib_wanted_unit=
+
+units_option=o
+slib_u= !charcnt $slib_wanted_unit
+!if $slib_u > 0
+  slib_out= !exec units-filter $(slib_qty)#$(slib_sig):$(slib_wanted_unit)
+!else
+  slib_out= !exec units-filter $(slib_qty)#$(slib_sig)
+!endif
+slib_n= !charcnt $slib_order
+!if $slib_n > 0
+ slib_test= !eval $slib_out/1e$slib_order
+ !if $slib_test <> NaN
+  !if $slib_order <> 0
+    slib_out=$(slib_test)e$slib_order
+  !else
+    slib_out=$slib_test
+  !endif
+ !endif
+!endif
+
+

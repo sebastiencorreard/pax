@@ -1,0 +1,280 @@
+!!compatible avec GeoGebraWeb-5.0.146.0
+
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=Geogebra HTML 5
+slib_author=Julien, Lyotard; Bernadette, Perrin-Riou
+
+slib_example=Z=(-3,6.78);W=(0.2,5.8);a=Circle[Z,W];Ellipse[Z,W,5];u=Line[W,Z];showMenuBar=true;showToolBar=true;customToolBar="0|40@10||1|2";width=800;height=500;setCoordSystem(-9,7,1,11.5);setAxesVisible(true, true);number=1;\
+A=(0,3.5);B=(0,5);a=Circle[A,B];d:y=2x+1;width=600;showToolBar=true;customToolBar="0|40";number=6\
+A=(0,3);B=(0,4);C=(2,3);s=Segment[A,C];Angle[C,A,B];a=Line[C,B];D=Point[a];b=3;f(x)=b+sin(x);width=600;SetPerspective[2];number=7;\
+ggbBase64=UEsDBBQACAAIAE9zJ0AAAAAAAAAAAAAAAAAMAAAAZ2VvZ2VicmEueG1s3VZNc9s2ED03vwLDeygQ/J6RnFGcHjKTpge3OfQGkbCEGgQYAJQp/fosAJKSXM/0K6fY46Hxdrl4+3YXxPrd2Al0ZNpwJTdREuMIMdmolsv9Jhrs49sqenf3Zr1nas92mqJHpTtqN1Eak8jhA79789PaHNQzosK7fOHseRM9UmFYhEyvGW3NgTF7g9Nh5IJTffp19ydrrLkYQpCPsh/sAjZd+4kbWFs9sGjld+wFtx/4kbdMI6GaTVTkwB3++8K05Q0VmyjDASGbiLwwApQ660FpflbSOvdL8EdAEDL8zEAS4rD1yme6ZkMjeMupdNl4HuCE0DNv7WET1T4k4/sDcM3LPERrlNLtw8lY1qHxD6YV0Elyp/QprNKwMsALNsyxN12vfBh2fGDWQl0MoiO7KLbXvL1ZfDTvlbhAveLS3tPeDtoXNZ2gB3tyG8Be2hHeyr1gE5aA5AfWPO3U+BBESEPo3069f8UT2u3vlVAaaSdvDg7Tcxee3scxXbyw98HeY4rhgi72pCbewz934em9BJeB2pR5Mmed4HkbbpADnIzQi0vygu4YlDZCg+T207yAFni6pOpe+Dx0OxiC6yZYYibfK+Z69aJ91k9MSyZCk0io7aAGg46uGcNenkjLGt7BMhgmSagr1+9AIKAt22s2Ew8jFATzVnzdiC/g9Wom4TgY4NpYOAsgH+tyYcZQ7ubVwqi4PFtqAXazzwTrGAyK9U3he2oRZxstx4LyEz6pMNsvMoP51QbxrURFf6CAzDMg6AnG/TonH+8X1d5mSiUo5tOAqetdAFeTnrFQTju1MeohoB+KK7m9SgaNQCEuK3z9A215gmPFzec5HJb+jTBO7iDwHNKp1kGevxHq/Y8gVBKnhZeGxEX2/bS5/xG0wXFFbpoomZuouIHzf6dbo7qOyhZJ2gGLn4XgPezt3uTu04kodkOIaOJaDFHi1AxSDXa2NyHoFOovxYDjgDeL2E10exLbAxx4Eo4HdyQtYqz+b8Xwf6/XP+IGH2cmj8BMaYPQiN0+JSFJXVc1KfIkrV0lTh4v6qSosgxnhNQ5hosAOuPpjjSCrm9f8zglr0c8J1fFhbbSfERb7O4ocVrWeVnAb5ljksAgbcE3A+cMoBknMFdb4vA6hr+MFDit0zyFD/M2BS4l7JlVsMhgkZdxDdaqrHFNMlI7PAc8ITgmVVYXpCqqOsVlMYnyVQbhTPiA8Q5uVw23L5tudf2F8Jei6Vp49w1QSwcI9HqTJaEDAABICgAAUEsBAhQAFAAIAAgAT3MnQPR6kyWhAwAASAoAAAwAAAAAAAAAAAAAAAAAAAAAAGdlb2dlYnJhLnhtbFBLBQYAAAAAAQABADoAAADbAwAAAAA=; width=800; height=500;number=8;\
+enable3d=yes;A=(0,1,0);B=(0,0,1);C=(2,1,0);a=Line[C,B];SetPerspective("T");number=12
+
+!exit
+
+:proc
+
+!read js/geogebra/test
+!if $geogebra_exists!=yes
+  slib_out=<span class="wims_warning">GeoGebra is not installed</span>
+  !exit
+!endif
+
+!set name_clickgeogebra_fr=Initialiser
+!default name_clickgeogebra_$lang=Init
+
+!reset slib_customToolBar slib_ggbBase64 slib_width\
+  slib_height slib_enableRightClick slib_showToolBar slib_showToolBarHelp \
+  slib_showMenuBar slib_showResetIcon slib_showAlgebraInput slib_language \
+  slib_enableLabelDrags slib_enableShiftDragZoom slib_errorDialogsActive\
+  slib_useBrowserForJS slib_enable3d slib_showAlgebraWindow \
+  slib_showFullscreenButton
+
+
+!reset slib_out slib_data slib_option slib_ggbapplet slib_extra \
+  slib_appletcommand slib_geogebracommand slib_debug slib_list_ap slib_number slib_init slib_fonction
+slib_data=!trim $wims_read_parm
+
+slib_data= !items2lines $wims_read_parm
+slib_data=!replace internal $	$ by $\
+$ in $slib_data
+
+slib_data = !rows2lines $slib_data
+slib_data= !replace internal ; by $\
+$ in $slib_data
+slib_data=!nonempty lines $slib_data
+
+slib_z2= $slib_data
+
+slib_option= !item 2 to -1 of $wims_read_parm
+slib_option= !replace internal , by @ in $slib_option
+slib_option= !replace internal ; by $\
+$ in $slib_option
+!!only for compatibility, only one js method in js=[]
+slib_extra= !getopt js in $slib_data
+slib_extra=!declosing $slib_extra
+slib_extra= !replace internal @ by , in $slib_extra
+slib_extra=!words2lines $slib_extra
+slib_extra = !rows2lines $slib_extra
+slib_data=$slib_data\
+$slib_extra
+
+slib_list_ap = width,height,language,\
+   enableLabelDrags,enableShiftDragZoom,enableRightClick,enableFileFeatures,allowRescaling,\
+  showToolBar,showMenuBar,showResetIcon,showToolBarHelp,showAlgebraInput,customToolBar,\
+  borderColor,capturingThreshold,algebraInputPosition,\
+  material_id,ggbBase64,errorDialogsActive,useBrowserForJS,enable3d,\
+  showAlgebraWindow,showFullscreenButton
+
+!for slib_a in file,$slib_list_ap
+  slib_$slib_a=!getopt $slib_a in $slib_data
+!next slib_a
+
+!if $slib_ggbBase64$slib_file$slib_material_id=$empty
+  slib_ggbBase64=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
+!endif
+
+slib_init=!getopt init in $slib_data
+
+slib_number1=!getopt number in $slib_data
+!if $slib_number1!=
+  slib_number=$slib_number1
+!endif
+
+slib_data_l1=!line 1 of $slib_data
+!! ne pas utiliser getopt car en cas d'un = dans le filestring, il ne sera pas pris en entier
+!if ggbBase64 isin $slib_data_l1
+  slib_ggbBase64=!replace internal ggbBase64= by in $slib_data_l1
+  slib_ggbBase64=!replace internal ggbBase64 = by in $slib_ggbBase64
+  slib_ggbBase64=!replace internal ggbBase64$ $ by in $slib_ggbBase64
+  slib_data=!line 2 to -1 of $slib_data
+!else
+  !reset slib_ggbBase64
+!endif
+slib_customToolBar= !nospace $slib_customToolBar
+slib_customToolBar= !replace internal @ by , in $slib_customToolBar
+slib_customToolBar= !replace internal || by % in $slib_customToolBar
+slib_customToolBar= !replace internal | by ,|, in $slib_customToolBar
+slib_customToolBar= !replace internal % by ,||, in $slib_customToolBar
+slib_customToolBar= !items2words $slib_customToolBar
+
+!default slib_width=300
+!default slib_height=300
+!default slib_enableRightClick=true
+!default slib_showToolBar=false
+!default slib_showToolBarHelp=false
+!default slib_showMenuBar=false
+!default slib_showResetIcon=false
+!default slib_showAlgebraInput=false
+!default slib_showAlgebraWindow=false
+!default slib_showFullscreenButton=false
+!default slib_language=$module_language
+!default slib_enableLabelDrags=false
+!default slib_enableShiftDragZoom=true
+!default slib_useBrowserForJS=true
+!default slib_init=0
+!default slib_enable3d=false
+!default slib_preventFocus=false
+slib_errorDialogsActive=$slib_debug
+!default slib_errorDialogsActive=false
+!default slib_customToolBar=0 39 | 1 501 67 , 5 19 , 72 | 2 15 45 , 18 65 , 7 37 | 4 3 8 9 , 13 44 , 58 , 47 | 16 51 64 , 70 | 10 34 53 11 , 24  20 22 , 21 23 | 55 56 57 , 12 | 36 46 , 38 49 50 , 71 | 30 29 54 32 31 33 | 17 26 62 73 , 14 68 | 25 52 60 61 | 40 41 42 , 27 28 35 , 6
+!default slib_number=1
+slib_number=$[$slib_number-1]
+!default slib_ggbapplet=ggbApplet$slib_number
+
+slib_js_parm=evalCommand setValue setCoords setColor setVisible \
+  setLabelVisible setLabelStyle setFixed setTrace\
+  setAxesVisible setGridVisible setCoordSystem setUndoPoint\
+  deleteObject renameObject setLayer setLayerVisible\
+  setLineStyle setThickness setPointStyle setPointSize\
+  setFilling setAnimating setAnimationSpeed\
+  startAnimation stopAnimation isAnimationRunning
+
+slib_notcommand=height width language number material_id ggbBase64 init enable3d
+slib_cnt=!linecnt $slib_data
+
+slib_data1=!replace internal = by , in $slib_data
+slib_data1=!replace internal ( by , in $slib_data1
+
+!reset slib_appletcommand slib_appletoption slib_geogebracommand slib_data_param
+slib_data_param="id":"ggbApplet$slib_number"
+
+slib_list_ap2=!listcomplement id in $slib_list_ap
+!for slib_first in $slib_list_ap
+   !if $(slib_$slib_first)!=$empty
+     slib_data_param=!append item $\
+"$slib_first":"$(slib_$slib_first)" to $slib_data_param
+     slib_list_ap2=!listcomplement $slib_first in $slib_list_ap2
+  !endif
+!next
+
+!for slib_u=1 to $slib_cnt
+  slib_line=!line $slib_u of $slib_data
+  slib_line=!nospace $slib_line
+  slib_line1=!replace internal = by , in $slib_line
+  slib_line1=!replace internal ( by , in $slib_line1
+  slib_first=!item 1 of $slib_line1
+  !if $slib_first isitemof file,width,height,$slib_list_ap
+    !if $slib_first isitemof $slib_list_ap2
+      slib_data_param=!append item "$slib_first":"$(slib_$slib_first)" to $slib_data_param
+      !if $slib_first != customToolBar
+        slib_appletoption=!append line $slib_first="$(slib_$slib_first)" to $slib_appletoption
+      !else
+        slib_appletoption=!append line $slib_first="$(slib_$(slib_first)1)" to $slib_appletoption
+      !endif
+    !endif
+  !else
+    !if $slib_first iswordof $slib_js_parm
+      slib_appletcommand=!append line $slib_ggbapplet.$slib_line; to $slib_appletcommand
+      slib_geogebracommand=!append line $slib_line to $slib_geogebracommand
+    !else
+      !if $slib_first notwordof $slib_notcommand
+        slib_appletcommand=!append line $slib_ggbapplet.evalCommand('$slib_line'); to $slib_appletcommand
+        slib_geogebracommand=!append line $slib_line to $slib_geogebracommand
+      !endif
+    !endif
+  !endif
+!next
+
+slib_parameters$slib_number=var parameters$slib_number = {\
+$slib_data_param
+
+!if $slib_file!=$empty
+  slib_mod = $module_category
+  slib_mod = !items2words $slib_mod
+  !if document iswordof $slib_mod
+    slib_image_dir=$m_filedir
+  !endif
+  !if oef iswordof $slib_mod
+    slib_image_dir=$imagedir
+  !endif
+  !if adm/createxo isin $module_dir
+    slib_image_dir=$imagedir
+  !endif
+  !if adm/doc isin $module_dir
+    slib_image_dir=$wims_ref_name?session=$wims_session&+cmd=getfile&+special_parm=doc
+  !endif
+  !default slib_image_dir=$module_dir
+  slib_parameters$slib_number=!append item $\
+"filename":"$slib_image_dir/$slib_file" to $(slib_parameters$slib_number)
+!endif
+
+slib_parameters$slib_number=$(slib_parameters$slib_number)};
+
+slib_injection=$slib_injection\
+applet$slib_number.inject('$slib_ggbapplet');
+
+slib_commandgeneral=$slib_commandgeneral\
+$slib_appletcommand
+
+!if $printing=yes
+  slib_commandgeneral=$slib_commandgeneral\
+var base64_string$slib_number="data:image/png;base64,"+ggbApplet$slib_number.getPNGBase64(1,true, 72);\
+document.getElementById("slib_img_print$slib_number").src=base64_string$slib_number;\
+document.getElementById("$slib_ggbapplet").style.display='none';
+!endif
+
+!if $slib_enable3d=true
+  slib_3d=1
+!else
+  slib_3d=0
+!endif
+
+!if $slib_init=1 or $slib_init=2
+  slib_button=<input type="button" style="background-color:$wims_ref_button_bgcolor;color:$wims_ref_button_color;" value="$(name_clickgeogebra_$lang)" onclick="test$slib_number();">
+  slib_fonction=$slib_appletcommand
+!endif
+!if $slib_init=1
+  slib_commandgeneral=$slib_commandgeneral\
+ggbApplet$(slib_number)_tmpi=ggbApplet$slib_number.getXML();
+slib_fonction=ggbApplet$slib_number.setXML(ggbApplet$(slib_number)_tmpi);
+!endif
+
+!!/* is3D=is 3D applet using 3D view, AV=Algebra View, SV=Spreadsheet View, CV=CAS View, EV2=Graphics View 2, CP=Construction Protocol, PC=Probability Calculator, DA=Data Analysis, FI=Function Inspector, PV=Python, macro=Macro View (<=ne fonctionne pas )*/\
+
+
+slib_out=<script src="scripts/js/geogebra/deployggb.js"></script>\
+$slib_button\
+<div id="$slib_ggbapplet" class="ggbapplet"></div>\
+<script>\
+/*<![CDATA[*/\
+$(slib_parameters$slib_number)\
+var views = {'is3D': $slib_3d,'AV': 0,'SV': 0,'CV': 0,'EV2': 0,'CP': 0,'PC': 0,'DA': 0,'FI': 0,'PV': 0,'macro': 0};\
+var applet$slib_number = new GGBApplet(parameters$slib_number, '5.0', views);\
+function test$slib_number(){\
+  $slib_fonction\
+}\
+/*]]>*/\
+</script>
+
+!if $printing=yes
+  slib_out=$slib_out\
+  <div><img id="slib_img_print$slib_number" style="width:$slib_width px;height:$slib_height px;"></div>
+!endif
+
+!!! use to test if we have to print the onload.window at the end of the pages\
+!!! (see the tail of themes for the moment)
+!set slib_geogebra_exists=yes
+!if $slib_injection notlineof $slib_geogebrawindow1
+  !set slib_geogebrawindow1=$slib_geogebrawindow1\
+$slib_injection
+!endif
+
+slib_commandgeneral_cnt=!linecnt $slib_commandgeneral
+!for slib_j=1 to $slib_commandgeneral_cnt
+  !set slib_tmp=!line $slib_j of $slib_commandgeneral
+  !if $slib_tmp notlineof $slib_geogebrawindow2
+    !set slib_geogebrawindow2=$slib_geogebrawindow2\
+$slib_tmp
+  !endif
+!next
+
+!reset slib_injection slib_commandgeneral
+
+!if $slib_debug=true
+  slib_out=$slib_out \
+$slib_fonction<br>Parameters read by the applet : $slib_z1<br>The slib_data : $slib_z2 --> $slib_data\
+<br>slib_data_param=$slib_data_param
+!endif

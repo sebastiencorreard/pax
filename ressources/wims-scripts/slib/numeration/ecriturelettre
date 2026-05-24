@@ -1,0 +1,614 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou; Raoul, Hatterer; Eric, Reyssat
+slib_parms=3\
+,number\
+,language (fr,en,it ; default=fr)\
+,space separated options in brackets (works in french): frrule (trad/1990, default=1990),type (card/ord, default=card), plural (yes/no, default=no), fracdenom (yes/no, default=yes), 70=septante 80=huitante 90=nonante
+
+slib_example=5678\
+[678,122]\
+[295,180],fr\
+[295,180],en\
+[181,1008,1081,200,201,280,1857]\
+[181,1008,1081,200,201,280,1857],en\
+[181,1008,1081,200,201,280,1857],it\
+80080,fr\
+[9880,99120],fr\
+[9880,99120],en\
+[9880,99120],it\
+371,fr,[type=ord plural=yes]\
+371,fr,[type=ord plural=yes frrule=trad]\
+4,fr,[type=ord]\
+4,fr,[type=ord plural=yes fracdenom=no]\
+[0,1,10,100,1000,10000,100000,1000000,10000000,1000000000], fr\
+[0,1,10,100,1000,10000,100000,1000000,10000000], en\
+[0,1,10,100,1000,10000,100000,1000000,10000000,1000000000], it\
+[678,9880,99120],fr,[type=ord 70=septante 80=huitante 90=nonante]\
+[485,95,1881,91],fr,[70=septante 80=huiptante]
+
+!exit
+
+:proc
+
+
+!! Extraction des paramètres et options
+!distribute item $wims_read_parm into slib_data,slib_language,slib_options
+slib_options=!declosing $slib_options
+
+slib_rule=!getopt frrule in $slib_options
+!default slib_rule=1990
+slib_type=!getopt type in $slib_options
+!default slib_type=card
+slib_plural=!getopt plural in $slib_options
+!default slib_plural=no
+slib_fden=!getopt fracdenom in $slib_options
+!default slib_fden=yes
+slib_variant7=!getopt 70 in $slib_options
+slib_variant8=!getopt 80 in $slib_options
+slib_variant9=!getopt 90 in $slib_options
+slib_language= $(wims_read_parm[2])
+!if $slib_language notwordof it fr en
+  slib_language=fr
+!endif
+!reset slib_out
+slib_data= $(wims_read_parm[1])
+slib_data=!declosing $slib_data
+!if $slib_language=en
+  !! english transcription
+  !! author : Raoul HATTERER
+  !! algorithm: http://www.blackwasp.co.uk/NumberToWords.aspx
+
+  slib_smallNumbers = one, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen
+  slib_tyWords = , twenty, thirty, forty, fifty, sixty, seventy, eighty, ninety
+  slib_scaleNumbers = ,thousand, million, billion
+
+  !for slib_number in $slib_data
+    !! Zero Rule.
+    !! If the value is zero then the number in words is 'zero'
+    !! and no other rules apply.
+    !if $slib_number==0
+      slib_combined=zero
+    !else
+      !! Three Digit Rule.
+      !! The integer value is split into groups of three digits starting from the right-hand side.
+      !! Once converted to text, the three-digit groups are recombined with the addition
+      !! of the relevant scale number (thousand, million, billion).
+
+      !! The integer value is split into groups of three digits starting from the right-hand side.
+      !reset slib_3digitsGroups
+      !for slib_scale= 1 to 4
+        slib_3digits=!char -3 to -1 of $slib_number
+        slib_3digitsGroups=!append item $slib_3digits to $slib_3digitsGroups
+        slib_number=!char 1 to -4 of $slib_number
+      !next
+
+      !! Each set of three digits is then processed individually as a number of hundreds, tens and units.
+      !reset slib_textGroups
+      !for slib_scale= 1 to 4
+        slib_3digits= !column $slib_scale of $slib_3digitsGroups
+        !if $slib_3digits > 99
+          slib_hundreds=!char -3 of $slib_3digits
+        !else
+          slib_hundreds=0
+        !endif
+        slib_tensUnits=!char -2 to -1 of $slib_3digits
+        slib_tens=!char -2 of $slib_3digits
+        slib_units=!char -1 of $slib_3digits
+        !! Hundreds Rules.
+        !! If the hundreds portion of a three-digit group is not zero,
+        !! the number of hundreds is added as a word.
+        !! If the three-digit group is exactly divisible by one hundred,
+        !! the text 'hundred' is appended.
+        !! If not, the text "hundred and" is appended.
+        !! eg. 'two hundred' or 'one hundred and twelve'
+        !reset slib_3digitsText
+        !if $slib_hundreds!=0
+          slib_3digitsText = !column $slib_hundreds of $slib_smallNumbers
+          slib_3digitsText = $slib_3digitsText hundred
+          !if $slib_tensUnits!=00
+            slib_3digitsText = $slib_3digitsText and
+          !endif
+        !endif
+
+        !! Tens Rules.
+        !! If the tens section of a three-digit group is two or higher,
+        !! the appropriate '-ty' word (twenty, thirty, etc.) is added
+        !! to the text and followed by the name of the third digit
+        !! (unless the third digit is a zero, which is ignored).
+        !! If the tens and the units are both zero, no text is added.
+        !! For any other value, the name of the one or two-digit number
+        !! is added as a special case.
+        !if $slib_tens >= 2
+          slib_tyWord=!column $slib_tens of $slib_tyWords
+          slib_3digitsText= $slib_3digitsText $slib_tyWord
+          !if $slib_units!= 0
+            slib_unitWord=!column $slib_units of $slib_smallNumbers
+            slib_3digitsText=$slib_3digitsText-$slib_unitWord
+          !endif
+        !else
+          !if $[$slib_tensUnits]!= 0
+            slib_tenUnitWord=!column $slib_tensUnits of $slib_smallNumbers
+            slib_3digitsText= $slib_3digitsText $slib_tenUnitWord
+          !endif
+        !endif
+        !if $slib_3digits==000
+          slib_3digitsText=zero
+        !endif
+        slib_textGroups=!append item $slib_3digitsText to $slib_textGroups
+      !next
+
+      !! Recombination Rules.
+      !! When recombining the translated three-digit groups,
+      !! each group except the last is followed by a large number name
+      !! and a comma,
+      !! unless the group is blank and therefore not included at all.
+      !! One exception is when the final group does not include
+      !! any hundreds and there is more than one non-blank group.
+      !! In this case, the final comma is replaced with 'and'.
+      !! eg. 'one billion, one million and twelve'.
+
+      slib_combined = !column 1 of $slib_textGroups
+      !if $slib_combined=zero
+        slib_combined=
+      !endif
+      slib_3digits=!column 1 of $slib_3digitsGroups
+      !if $[$slib_3digits]>0 and $[$slib_3digits]<100
+        slib_appendAnd=true
+      !else
+        slib_appendAnd=false
+      !endif
+      !for slib_scale = 2 to 4
+        slib_3digits=!column $slib_scale of $slib_3digitsGroups
+        !if $[$slib_3digits]!=0
+          slib_3digitsText=!column $slib_scale of $slib_textGroups
+          slib_scaleNumber=!column $slib_scale of  $slib_scaleNumbers
+          slib_prefix = $slib_3digitsText $slib_scaleNumber
+          !if $slib_appendAnd==true
+            slib_prefix=$slib_prefix and
+            slib_appendAnd=false
+          !else
+            slib_empty=!charcnt $slib_combined
+            !if $slib_empty!=0
+              slib_prefix=$slib_prefix,
+            !endif
+          !endif
+          slib_combined=$slib_prefix $slib_combined
+        !endif
+      !next
+    !endif
+    slib_combined=!items2words $slib_combined
+    slib_combined=!singlespace $slib_combined
+    slib_out=!append item $slib_combined to $slib_out
+  !next
+  !goto end
+  !! todo: ten million should be ten millions etc.
+!endif
+
+!if $slib_language=it
+  !! use adapted English algorithm (MC)
+  slib_smallNumbers = uno, due, tre, quattro, cinque, sei, sette, otto, nove, dieci, undici, dodici, tredici, quattordici, quindici, sedici, diciassette, diciotto, diciannove
+  slib_tyWords = , venti, trenta, quaranta, cinquanta, sessanta, settanta, ottanta, novanta
+  slib_scaleNumbers = ,mila, milioni, miliardi
+
+  !for slib_number in $slib_data
+    !! Zero Rule.
+    !! If the value is zero then the number in words is 'zero'
+    !! and no other rules apply.
+    !if $slib_number==0
+      slib_combined=zero
+    !else
+      !! Three Digit Rule.
+      !! The integer value is split into groups of three digits starting from the right-hand side.
+      !! Once converted to text, the three-digit groups are recombined with the addition
+      !! of the relevant scale number (thousand, million, billion).
+
+      !! The integer value is split into groups of three digits starting from the right-hand side.
+      !reset slib_3digitsGroups
+      !for slib_scale= 1 to 4
+        slib_3digits=!char -3 to -1 of $slib_number
+        slib_3digitsGroups=!append item $slib_3digits to $slib_3digitsGroups
+        slib_number=!char 1 to -4 of $slib_number
+      !next
+
+      !! Each set of three digits is then processed individually as a number of hundreds, tens and units.
+      !reset slib_textGroups
+      !for slib_scale= 1 to 4
+        slib_3digits= !column $slib_scale of $slib_3digitsGroups
+        !if $slib_3digits > 99
+          slib_hundreds=!char -3 of $slib_3digits
+        !else
+          slib_hundreds=0
+        !endif
+        slib_tensUnits=!char -2 to -1 of $slib_3digits
+        slib_tens=!char -2 of $slib_3digits
+        slib_units=!char -1 of $slib_3digits
+        !! Hundreds Rules.
+        !! If the hundreds portion of a three-digit group is not zero
+        !! if it is 1, the word "uno" is omitted,
+        !! the number of hundreds is added as a word.
+        !reset slib_3digitsText
+        !if $slib_hundreds!=0
+          slib_3digitsText = !column $slib_hundreds of $slib_smallNumbers
+          !if $slib_hundreds==1
+            slib_3digitsText = cento
+          !else
+            slib_3digitsText = $slib_3digitsText cento
+          !endif
+        !endif
+
+        !! Tens Rules.
+        !! If the tens section of a three-digit group is two or higher,
+        !! the appropriate '-ty' word (twenty, thirty, etc.) is added
+        !! to the text and followed by the name of the third digit
+        !! (unless the third digit is a zero, which is ignored).
+        !! If the tens and the units are both zero, no text is added.
+        !! For any other value, the name of the one or two-digit number
+        !! is added as a special case.
+        !if $slib_tens >= 2
+          slib_tyWord=!column $slib_tens of $slib_tyWords
+          slib_3digitsText= $slib_3digitsText $slib_tyWord
+          !if $slib_units!= 0
+            slib_unitWord=!column $slib_units of $slib_smallNumbers
+            slib_3digitsText=$slib_3digitsText $slib_unitWord
+          !endif
+        !else
+          !if $[$slib_tensUnits]!= 0
+            slib_tenUnitWord=!column $slib_tensUnits of $slib_smallNumbers
+            slib_3digitsText= $slib_3digitsText $slib_tenUnitWord
+          !endif
+        !endif
+        !if $slib_3digits==000
+          slib_3digitsText=zero
+        !endif
+        slib_3digitsText=!nospace $slib_3digitsText
+        slib_textGroups=!append item $slib_3digitsText to $slib_textGroups
+      !next
+
+      !! Recombination Rules.
+      !! When recombining the translated three-digit groups,
+      !! each group except the last is followed by a large number name
+      !! unless the group is blank and therefore not included at all.
+      !! One exception is when the final group does not include
+      !! any hundreds and there is more than one non-blank group.
+      !! In this case, the final comma is replaced with 'and'.
+      !! eg. 'one billion, one million and twelve'.
+
+      slib_combined = !column 1 of $slib_textGroups
+      !if $slib_combined=zero
+        slib_combined=
+      !endif
+      slib_3digits=!column 1 of $slib_3digitsGroups
+      !if $[$slib_3digits]>0 and $[$slib_3digits]<100
+        slib_appendAnd=true
+      !else
+        slib_appendAnd=false
+      !endif
+      !for slib_scale = 2 to 4
+        slib_3digits=!column $slib_scale of $slib_3digitsGroups
+        !if $[$slib_3digits]!=0
+          slib_3digitsText=!column $slib_scale of $slib_textGroups
+          slib_scaleNumber=!column $slib_scale of  $slib_scaleNumbers
+          !if $[$slib_3digits]==1
+            !if $slib_scale=2
+              slib_prefix = mille
+            !else
+              !!      !if $slib_prefix==2
+              slib_prefix = un $slib_scaleNumber
+              !!      !else
+              !!        slib_prefix = $slib_scaleNumber
+              !!      !endif
+            !endif
+          !else
+            !if $slib_scale=2
+              slib_prefix = $slib_3digitsText$slib_scaleNumber
+            !else
+              slib_prefix = $slib_3digitsText $slib_scaleNumber
+            !endif
+          !endif
+          !if $slib_appendAnd==true
+            slib_prefix=$slib_prefix e
+            slib_appendAnd=false
+          !else
+            slib_empty=!charcnt $slib_combined
+            !if $slib_empty!=0
+              slib_prefix=$slib_prefix
+            !endif
+          !endif
+          slib_combined=$slib_prefix $slib_combined
+        !endif
+      !next
+    !endif
+    slib_out=!append item $slib_combined to $slib_out
+  !next
+  !! contrazioni eufoniche di vocali
+  slib_out=!replace internal oo by o in $slib_out
+  slib_out=!replace internal antauno by antuno in $slib_out
+  slib_out=!replace internal antaotto by antotto in $slib_out
+  slib_out=!replace internal tiuno by tuno in $slib_out
+  slib_out=!replace internal tiotto by totto in $slib_out
+  !! need singular
+  slib_out=!replace internal un milioni by un milione in $slib_out
+  slib_out=!replace internal un miliardi by un miliardo in $slib_out
+  !goto end
+!endif
+
+!if $slib_language=fr
+  !! use adapted English algorithm (E.R.)
+  !! treats simultaneously cardinal and ordinal numbers
+
+  slib_smallNumbers = un, deux, trois, quatre, cinq, six, sept, huit, neuf, dix, onze, douze, treize, quatorze, quinze, seize, dix-sept, dix-huit, dix-neuf
+  slib_tyWords = , vingt, trente, quarante, cinquante, soixante, soixante, quatre-vingt, quatre-vingt
+  slib_scaleNumbers = ,mille, million, milliard
+  slib_smallNumbersOrd = unième, deuxième, troisième, quatrième, cinquième, sixième, septième, huitième, neuvième, dixième, onzième, douzième, treizième, quatorzième, quinzième, seizième, dix-septième, dix-huitième, dix-neuvième
+  slib_tyWordsOrd = , vingtième, trentième, quarantième, cinquantième, soixantième, , quatre-vingtième,
+  slib_scaleNumbersOrd = ,millième, millionième, milliardième
+  slib_var1=7,9
+  slib_var2=2,3,4,5,6,8
+  slib_var3=8
+  !if $slib_variant7!=$empty
+    slib_tyWords=!replace item number 7 by $slib_variant7 in $slib_tyWords
+    slib_variantie7=!char 1 to -2 of $slib_variant7
+    slib_variantie7=$(slib_variantie7)ième
+    slib_tyWordsOrd=!replace item number 7 by $slib_variantie7 in $slib_tyWordsOrd
+    slib_var1=!listcomplement 7 in $slib_var1
+    slib_var2=$slib_var2,7
+  !endif
+  !if $slib_variant8!=$empty
+    slib_tyWords=!replace item number 8 by $slib_variant8 in $slib_tyWords
+    slib_variantie8=!char 1 to -2 of $slib_variant8
+    slib_variantie8=$(slib_variantie8)ième
+    slib_tyWordsOrd=!replace item number 8 by $slib_variantie8 in $slib_tyWordsOrd
+    slib_var1=!listcomplement 8 in $slib_var1
+    slib_var2=$slib_var2,8
+    slib_var3=
+  !endif
+  !if $slib_variant9!=$empty
+    slib_tyWords=!replace item number 9 by  $slib_variant9 in $slib_tyWords
+    slib_variantie9=!char 1 to -2 of $slib_variant9
+    slib_variantie9=$(slib_variantie9)ième
+    slib_tyWordsOrd=!replace item number 9 by $slib_variantie9 in $slib_tyWordsOrd
+    slib_var1=!listcomplement 9 in $slib_var1
+    slib_var2=$slib_var2,9
+  !endif
+  slib_var2=!sort list $slib_var2
+  !! mark for french plural (so we can use $s)
+  s=s
+
+  !! join words with space character (traditional french rule) or - sign (1990 french "new spelling" rule)
+  !if $slib_rule issamecase trad
+    tiret=$ $
+  !else
+    tiret=-
+  !endif
+  et=$(tiret)et$tiret
+
+  !for slib_number in $slib_data
+    !! Zero and small ordinals (<=4) treated first separately.
+    !! If the value is zero then the cardinal number in words is 'zero' (ordinal is 'zéro-ième')
+    !! and no other rules apply.
+    !if $slib_number==0
+      !if $slib_type issamecase ord
+        slib_combined=zéro-ième
+      !else
+        slib_combined=zéro
+      !endif
+    !else
+      !if $[$slib_number]<5 and ($slib_type issamecase ord)
+        !if $slib_fden issamecase no
+          slib_ordinals=premier,deuxième,troisième,quatrième
+        !else
+          slib_ordinals=unième,demi,tiers,quart
+        !endif
+        slib_combined=!column $slib_number of $slib_ordinals
+
+      !else     !! GENERAL CASE of slib_number, neither 0 nor small ordinal
+
+        !! Three Digit Rule.
+        !! The integer value is split into groups of three digits starting from the right-hand side.
+        !! Once converted to text, the three-digit groups are recombined with the addition
+        !! of the relevant scale number (mille, million, milliard).
+
+        !! First, split in groups of 3 starting from right
+        !reset slib_3digitsGroups
+        !for slib_scale= 1 to 4
+          slib_3digits=!char -3 to -1 of $slib_number
+          slib_3digitsGroups=!append item $slib_3digits to $slib_3digitsGroups
+          slib_number=!char 1 to -4 of $slib_number
+        !next
+
+        !! Each set of three digits is then processed individually as a number of hundreds, tens and units.
+        !! flag slib_endOfNb to mark if we the current digit is the last non zero one in the whole number
+        !! (to know if we add 'ième' here to ordinal number)
+        slib_endOfNb=yes
+        !reset slib_textGroups
+        !for slib_scale= 1 to 4
+          slib_3digits=!column $slib_scale of $slib_3digitsGroups
+          !if $slib_3digits > 99
+            slib_hundreds=!char -3 of $slib_3digits
+          !else
+            slib_hundreds=0
+          !endif
+          slib_tensUnits=!char -2 to -1 of $slib_3digits
+          slib_tens=!char -2 of $slib_3digits
+
+          !! due to french oddity :   78 = 60 + 18  , 93 = 80 + 13
+          !if $[$slib_tens] isin $slib_var1
+            slib_tU=$[$slib_tensUnits-10*($slib_tens-1)]
+          !else
+            slib_tU=$slib_tensUnits
+          !endif
+          slib_units=!char -1 of $slib_3digits
+
+          !! Hundreds Rules.
+          !! If the hundreds portion of a three-digit group is not zero
+          !! the number of hundreds is added as a word (except if it is 1)
+          !! and then the word 'cent/cents/centième (depending on singular/plural/ordinal)
+          !reset slib_3digitsText
+
+          !if ($slib_type issamecase ord) and ($slib_endOfNb  issamecase yes) and ($[$slib_tensUnits]==0)
+            slib_centType=centième
+            slib_centsType=centième
+            slib_endOfNb=no
+          !else
+            slib_centType=cent
+            slib_centsType=cents
+          !endif
+
+          !if $slib_hundreds!=0
+            slib_3digitsText = !column $slib_hundreds of $slib_smallNumbers
+            !if $slib_hundreds==1
+              !if $slib_tensUnits>0
+                slib_3digitsText = cent$tiret
+              !else
+                slib_3digitsText = $slib_centType
+              !endif
+            !else
+              !if $slib_tensUnits>0
+                slib_3digitsText = $slib_3digitsText$(tiret)cent$tiret
+              !else
+                slib_3digitsText = $slib_3digitsText$(tiret)$slib_centsType
+              !endif
+            !endif
+          !endif
+
+          !! Tens Rules.
+          !! If the tens section of a three-digit group is two or higher,
+          !! the appropriate '-ty' word (vingt, trente, etc.) is added
+          !! to the text and followed by the name of the third digit
+          !! (unless the third digit is a zero, which is ignored, but for 70, 90, the 'third digit' is dix)).
+          !! French oddity : add 'et' between tens and units when units=1, except if tens=8 (vingt-et-un, quatre-vingt-un)
+          !! Similar rule for 71
+          !! French oddity : quatre-vingts with s iff nothing after.
+          !! If the tens and the units are both zero, no text is added.
+          !! 7x and 9x are treated differently.
+          !! For any other value, the name of the one or two-digit number
+          !! is added as a special case.
+
+          !! _tyWord ends differently if ordinal number without unit 'digit'
+          !if ($slib_type issamecase ord)  and ($slib_endOfNb issamecase yes) and ($slib_units==0) and ($slib_tens isin $slib_var2)
+            slib_tyWordsType=$slib_tyWordsOrd
+            slib_endOfNb=no
+          !else
+            slib_tyWordsType=$slib_tyWords
+          !endif
+
+          !if ($slib_type issamecase ord) and ($slib_endOfNb issamecase yes)
+            slib_smallNumbersType=$slib_smallNumbersOrd
+            slib_endOfNb=no
+          !else
+            slib_smallNumbersType=$slib_smallNumbers
+          !endif
+
+          !if $slib_tens>=2
+            slib_tyWord=!column $slib_tens of $slib_tyWordsType
+            slib_3digitsText= $slib_3digitsText$slib_tyWord
+            !if $[$slib_tens] isin $slib_var2
+              !if $slib_units!= 0
+                slib_unitWord=!column $slib_units of $slib_smallNumbersType
+                !if $slib_units>1 or $slib_tens==$slib_var3
+                  slib_3digitsText=$slib_3digitsText-$slib_unitWord
+                !else
+                  slib_3digitsText=$slib_3digitsText$et$slib_unitWord
+                !endif
+              !endif
+              !if ($slib_tensUnits==$[$slib_var3*10]) and ($slib_type==card) and ($slib_scale==1)
+                slib_3digitsText=$slib_3digitsText$s
+              !endif
+            !else    !! donc slib_tens vaut 7 ou 9 en general
+              !if $[$slib_tensUnits]!= 0
+                slib_tenUnitWord=!column $slib_tU of $slib_smallNumbersType
+                !if $[$slib_tensUnits]==71
+                  slib_tenUnitWord=$et$slib_tenUnitWord
+                  slib_3digitsText=$slib_3digitsText$slib_tenUnitWord
+                !else
+                  slib_3digitsText=$slib_3digitsText-$slib_tenUnitWord
+                !endif
+              !endif
+            !endif
+          !else !! donc slib_tens vaut 0 ou 1
+            slib_tenUnitWord=!column $slib_tU of $slib_smallNumbersType
+            slib_3digitsText= $slib_3digitsText$slib_tenUnitWord
+          !endif
+          !if $slib_3digits==000
+            slib_3digitsText=zero
+          !endif
+          slib_textGroups=!append item $slib_3digitsText to $slib_textGroups
+
+          !! if this pack of 3 digits is non zero then next packs are not at end of number (useful for ordinals)
+          !if $[$slib_3digits]!=0
+            slib_endOfNb=no
+          !endif
+        !next
+
+        !! Recombination Rules.
+        !! When recombining the translated three-digit groups,
+        !! each group except the last is followed by a scale number name
+        !! unless the group is blank and therefore not included at all.
+
+        slib_endOfNb=yes
+        slib_combined = !column 1 of $slib_textGroups
+        !if $slib_combined=zero
+          slib_combined=
+        !endif
+        slib_3digits=!column 1 of $slib_3digitsGroups
+        !if $[$slib_3digits]>0
+          slib_endOfNb=no
+        !endif
+        !for slib_scale = 2 to 4
+          slib_3digits=!column $slib_scale of $slib_3digitsGroups
+          !if $[$slib_3digits]!=0
+            !! do we use cardinal or ordinal scale number name (mille/millième, ...) ?
+            !if ($slib_endOfNb issamecase yes) and ($slib_type issamecase ord)
+              slib_scaleNumbersType=$slib_scaleNumbersOrd
+              slib_endOfNb=no
+            !else
+              slib_scaleNumbersType=$slib_scaleNumbers
+            !endif
+            slib_3digitsText=!column $slib_scale of $slib_textGroups
+            slib_scaleNumber=!column $slib_scale of $slib_scaleNumbersType
+            !if $[$slib_3digits]==1
+              !if $slib_scale=2
+                slib_prefix = $slib_scaleNumber
+              !else
+                !if ($slib_type issamecase ord) and ($slib_scaleNumbersType issamecase $slib_scaleNumbersOrd)
+                  slib_prefix = $slib_scaleNumber
+                !else
+                  slib_prefix = un$tiret$slib_scaleNumber
+                !endif
+              !endif
+            !else
+              slib_prefix = $slib_3digitsText$tiret$slib_scaleNumber
+              !! add plural mark to scale number
+              !if ($slib_scale notsamecase 2) and ($slib_scaleNumbersType notsamecase $slib_scaleNumbersOrd)
+                slib_prefix = $slib_prefix$s
+              !endif
+            !endif
+            slib_empty=!charcnt $slib_combined
+            !if $slib_empty!=0
+              slib_prefix=$slib_prefix$tiret
+            !endif
+            slib_combined=$slib_prefix$slib_combined
+          !endif
+          !if $[$slib_3digits] > 0
+            slib_endOfNb=no
+          !endif
+        !next slib_scale
+      !endif
+    !endif (slib_number==0?)
+
+    !! if plural of ordinal, add s
+    !if ($slib_plural issamecase yes) and ($slib_type issamecase ord)
+      slib_dc=!char -1 of $slib_combined
+      !if $slib_dc notsamecase s
+        slib_combined=$slib_combined$s
+      !endif
+    !endif
+    slib_out=!append item $slib_combined to $slib_out
+  !next slib_number
+  !reset slib_variant7 slib_variant8 slib_variant9
+  !goto end
+!endif
+:end

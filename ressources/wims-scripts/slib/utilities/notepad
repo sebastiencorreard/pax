@@ -1,0 +1,44 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Joke, Evers; Bernadette, Perrin-Riou
+
+!exit
+
+:proc
+slib_text=!item 1 of $wims_read_parm
+slib_option=!item 2 of $wims_read_parm
+!for slib_a in size,left,top
+  slib_$slib_a=!getopt $slib_a in $slib_option
+!next slib_a
+!if $slib_size=small
+  slib_size=1
+  slib_w=400
+  slib_h=260
+!endif
+!if $slib_size=large
+  slib_size=3
+  slib_w=700
+  slib_h=800
+!endif
+!if $slib_size=medium
+  slib_size=2
+  slib_w=700
+  slib_h=600
+!endif
+
+!default slib_size= 1
+!default slib_left= 0
+!default slib_top= 0
+!default slib_w=400
+!default slib_h=260
+
+slib_out=<script type="text/javascript">\
+/*<![CDATA[*/\
+function smallwindow() {\
+mywindow = window.open('scripts/slib/utilities/notepad$slib_size.html' ,'WHAT_EVER',\
+'width=$slib_w,height=$slib_h,left=$slib_left,top=$slib_top');mywindow.focus();}\
+/*]]>*/\
+</script>\
+<a href="javascript:smallwindow()"><span class="wims_notepad">$slib_text</span></a>

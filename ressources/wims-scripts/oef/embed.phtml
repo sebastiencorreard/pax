@@ -1,0 +1,268 @@
+
+!! This script handle OEF embed{t, inputsize, [prompt]} instruction
+
+!! replace oef variables by their associated value
+!set parm=!replace internal \ by $$m_ in $wims_read_parm
+
+!set t_=!item 1 of $parm
+!set inputsize=!item 2 of $parm
+!! To let LaTeX instructions working, "\" must not be replaced in prompt.
+!set prompt_=!item 3 of $wims_read_parm
+
+!if $(replytype$i) iswordof flashcard
+  !set inputsize1=!word 1 of $inputsize
+!else
+  !set inputsize1=$inputsize
+!endif
+!!! i -> iii
+!!! i_ -> i dans print version
+!if $printing=yes or $cmd=hint
+  !set cnt_$iii= !linecnt $(Rg$iii)
+  !! i__ is the question number
+  !! iii is the exercise number (print version)
+  !! does not exist in case cmd=hint
+  !reset prompt___
+  !set i__=!replace internal reply by in $t_
+  !set i__=!replace internal r by in $i__
+  !set i__=!trim $i__
+  !if $cmd!=hint
+    !set replytype$i__=!item $i__ of $(Replytype$iii)
+    !set replystyle$i__=!item $i__ of $(Replystyle$iii)
+  !endif
+  !reset anstyle
+  !readproc anstype/$(replytype$i__).input def
+  !set replystyle$i__=$anstyle
+  !default replystyle$i__=$(replytype$i__)
+  !!  mc=checkbox click flashcard mark menu radio
+  !if mc iswordof $(replystyle$i__) \
+      or $(replytype$i__) iswordof dragfill clickfill
+    !if $inputsize1>0
+      !if $prompt_=$empty
+        !if $cmd=hint
+          !set g_=!rows2lines $(replygood$i__)
+          !set prompt_=!line 2 of $g_
+        !else
+          !set prompt_=!line $i__ of $(Rg$iii)
+        !endif
+        !set prompt_=!item $inputsize1 of $prompt_
+        !set prompt_=<span style="display:inline-block;">$prompt_</span>
+      !endif
+    !else
+      !if $prompt_=$empty
+        !set prompt_=!line $i__ of $(Rg$iii)
+        !set prompt_=!items2lines $prompt_
+        !set prompt__=$prompt_
+        !if $(replytype$i__) iswordof menu checkbox radio click
+          !set tmp=class="wims_list wims_$(replytype$i__)"
+          !set prompt_=!replace internal $\
+$ by  </li>$ $<li> in <div class="inline"><ul $tmp><li>$prompt_</li></ul></div>
+          !reset tmp
+        !else
+          !set prompt_$iii=!append line $prompt__ to $(prompt_$iii)
+          !set inputsize1_=!replace internal x by , in $inputsize1
+          !if $(inputsize1_[4])!=$empty and $(inputsize1_[4])>1
+            !set prompt_=<table class="wimsborder">
+            !for j=1 to $(inputsize1_[4])
+              !set prompt_=$prompt_<tr>
+              !for h=1 to $[ceil($(inputsize1_[3])/$(inputsize1_[4]))]
+                !set prompt_=$prompt_<td>&nbsp;</td>
+              !next
+              !set prompt_=$prompt_ </tr>
+            !next
+            !set prompt_=$prompt_</table>
+          !endif
+          !! regroupe les prompts des dragfill et de clickfill
+          !if $i__>=$(cnt_$iii)
+            !set prompt_$iii=!lines2items $(prompt_$iii)
+            !set prompt_$iii=!listuniq $(prompt_$iii)
+            !set prompt_$iii=!shuffle $(prompt_$iii)
+            !set prompt___=!replace internal , \
+              by </div>$ $<div class="drag_label" style="display:inline-block;"> \
+in <div class="drag_label" style="display:inline-block;">$(prompt_$iii)</div>
+          !endif
+          !reset prompt_
+        !endif
+      !endif
+    !endif
+  !else
+    !set prompt_=!line $i__ of $(Rg$iii)
+    !if $(replytype$i__) iswordof compose reorder
+      !set prompt_=!shuffle $prompt_
+      !set prompt_=!replace internal , by </div>$  $ <div class="drag_label" style="display:inline-block;"> \
+in <div class="drag_label" style="display:inline-block;">$prompt_</div>
+    !endif
+  !endif
+  !if $(replytype$i__) iswordof jsxgraph jsxgraphcurve clock draw
+    $(oefcss_$iii)
+    !read anstype/$(replytype$i__).input $i__
+    !exit
+  !endif
+  !if $prompt_ issametext $empty
+    !set prompt_=$prompt_empty
+  !endif
+  $prompt_
+  !exit
+!endif
+!!end of print section
+
+!if $wims_read_parm=$empty
+  !exit
+!endif
+
+!set n_=!char 2 to -1 of $t_
+!set t_=!char 1 of $t_
+!set t_=!lower $t_
+!set t_=!translate a to r in $t_
+!set n_=!text select 0123456789()+-* in $n_
+!set n_=$[$n_]
+!bound n_ between integer 1 and 100 default $
+!if $t_ notitemof r,c or $n_=$empty
+  !exit
+!endif
+
+!if $t_=c and $(choicelist$n_)=$empty or\
+	  $t_=r and $(replygood$n_)=$empty
+  !exit
+!endif
+!set inputprompt$n_=!append item $(wims_read_parm[3]) to $(inputprompt$n_)
+
+!if $t_$n_ notitemof $embedded
+  !set embedded=!append item $t_$n_ to $embedded
+  !set embcnt=!itemcnt $embedded
+!endif
+!set i=$n_
+!if $q_form=yes
+  !if $t_=c
+    !set p_=$ch_choose,$(choicelist$i)
+    !if $idontknow>0 and noidontknow notwordof $(choiceoption$i)
+      !set p_=$p_,$ch_noidea
+    !endif
+    !if $qcmgood<1
+      !set p_=$p_,$ch_none
+    !endif
+    !set N_=!itemcnt $p_
+    !set C_=$(choice$i)
+    !if debug iswordof $m_oefenv
+      !set replydefaulted=yes
+      !if $oef_default=yes
+        !set T_=!positionof item $(choicegood$i[1]) in $(choicelist$i)
+        !default choice$i=$(T_[1])
+      !endif
+    !endif
+    !formselect choice$i from 0 to $[$N_-1] prompt $p_
+    !set choice$i=$C_
+  !else
+    !read anstype/$(replytype$i).input noprompt
+  !endif
+!else
+  !if $presentgood>0
+    !distribute item oef_indgood, oef_indbad, oef_indforget, oef_indneutral, oef_empty, oef_indprec, oef_indpartial\
+    into colorr_good, colorr_bad, colorr_forget, colorr_neutral, colorr_none, colorr_prec, colorr_partial
+  !else
+    !distribute item oef_indneutral, oef_indneutral, oef_indneutral, oef_indneutral, oef_empty, oef_indprec, oef_indpartial\
+    into colorr_good, colorr_bad, colorr_forget, colorr_neutral, colorr_none, colorr_prec, colorr_partial
+  !endif
+  !set cl=colorr_none
+  !if $t_=c
+    !set cl=$(colorr_$(diachoice$i))
+    !set p_=!item $(choice$i) of $(choicelist$i),$ch_noidea,$ch_none
+    !set choicename$i=[$embcnt]
+  !else
+    !default reply_$i=$(reply$i)
+    !set p_=$(reply_$i)
+    !if dprompt iswordof $(replystyle$i)
+      !set reply_$i=$(reply__$i)
+    !endif
+    !if mc iswordof $(replystyle$i) and $inputsize1!=$empty and $[$inputsize1]!=NaN and $[$inputsize1] >= 1 and $[$inputsize1] <= 1000
+      !set tt=!rows2lines $(replygood$i)
+      !distribute lines $tt into ts,tt
+      !default prompt_=!item $inputsize1 of $tt
+      !set p_=$prompt_
+      !reset tv
+      !if $(replytype$i) iswordof mark flashcard
+        !set tv=$(reply$i)
+      !else
+        !for r_ in $(reply$i)
+          !set tu=!positionof item $r_ in $tt
+          !set tv=!append item $tu to $tv
+        !next r_
+      !endif
+      !set p_=!replace internal &#59; by ; in $p_
+      !if $inputsize1 notitemof $tv
+        !if $presentgood=0
+          !set cl= $colorr_none
+        !else
+          !if $inputsize1 isitemof $ts and $(replytype$i) iswordof mark flashcard checkbox
+            !set cl = $colorr_forget
+          !else
+            !set cl = $colorr_neutral
+          !endif
+        !endif
+        !set p__=!detag $p_
+        !if $p__!=$empty
+          !imgrename <div class="inline $cl">$p_</div>
+        !else
+          $p_
+        !endif
+        !exit
+      !endif
+    !endif
+    !if $(replytype$i) iswordof code
+      !set p_=!replace internal & by &amp; in $p_
+      !set p_=!replace internal &amp;#36; by &#36; in $p_
+      !set p_=!replace internal < by &lt; in $p_
+      !set p_=<pre>$p_</pre>
+    !endif
+    !set tt=!word 1 of $(replygood$i)
+    !if ?analyze notin $tt
+      !set cl=$(colorr_$(diareply$i))
+      !if $(replytype$i) iswordof mark flashcard checkbox
+        !if $inputsize!=$empty
+          !if $inputsize isitemof $ts
+            !set cl = $colorr_good
+          !else
+            !set cl = $colorr_bad
+          !endif
+        !else
+          !set cl=$(colorr_$(diareply$i))
+          !default display_forget=no
+        !endif
+      !endif
+      !if $(partialgood$i)=yes
+        !set cl=$(colorr_partial)
+      !endif
+      !if $(precreply$i)=yes
+        !set cl=$(colorr_prec)
+      !endif
+    !else
+      !set embedded_analyze=!append item $i to $embedded_analyze
+      !if noanalyzeprint notwordof $(replyoption$i)
+        !set embedded_bracket=$embedded_bracket [$embcnt]
+      !endif
+    !endif
+    !set replyname$i=[$embcnt]
+  !endif
+  !set embcnt1=&nbsp;<sup><small>[$embcnt]</small></sup>
+  !if $(replytype$i) notwordof correspond crossword
+    !if bad isin $cl
+      !set instex_color=red
+    !endif
+    !if good isin $cl
+      !set instex_color=green
+    !endif
+    !if forget isin $cl
+      !set instex_color=blue
+    !endif
+    !if $(replytype$i) notwordof jsxgraph jsxgraphcurve
+      !imgrename <div class="inline $cl">$p_</div>$embcnt1
+    !else
+      !imgrename <div class="$cl">$p_</div>$embcnt1
+    !endif
+  !else
+    !imgrename $p_ $embcnt1
+  !endif
+  !set instex_color=black
+  !if $(replytype$i) iswordof correspond
+    !set noshow$i=yes
+  !endif
+!endif

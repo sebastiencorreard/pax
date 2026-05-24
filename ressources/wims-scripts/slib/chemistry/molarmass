@@ -1,0 +1,23 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example= H2\
+C H4
+
+!exit
+
+:proc
+
+!readproc slib/chemistry/molecule $wims_read_parm
+slib_molecule= $slib_out
+slib_cnt=!linecnt $slib_molecule
+slib_out=0
+!for slib_i=1 to $slib_cnt
+  slib_line=!line $slib_i of $slib_molecule
+
+  !distribute item $slib_line into slib_number, slib_name, slib_Z, slib_symbol, slib_masse
+  slib_out=$[$slib_out+$slib_number*$slib_masse]
+!next slib_i

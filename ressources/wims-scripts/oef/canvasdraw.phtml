@@ -1,0 +1,48 @@
+!if $wims_read_parm=$empty
+  !exit
+!endif
+
+!set pp=!trim $wims_read_parm
+!! useful only (?) in draw for symbols as \RR
+!!set pp=!replace internal \\ by ///?/?/?/// in $pp
+!!set pp=!replace internal \ by $$m_ in $pp
+!!set pp=!replace internal ///?/?/?/// by \\ in $pp
+!set pp=!translate internal $	$ to $\
+$ in $pp
+!set s_=!line 1 of $pp
+
+!set tmp=!text remove ,0123456789 in $s_
+!set tmpcnt=!itemcnt $s_
+!if size notin $s_ and ($tmp notsametext $empty or $s_=$empty or $tmpcnt!=2)
+  !exit
+!endif
+!if size isin $s_
+  !set s_=!replace internal size by in $s_
+  !set s_=!trim $s_
+!endif
+!set pp=!line 2 to -1 of $pp
+
+!read canvasimagedir.phtml $pp
+!set pp=!trim $canvas_ppm
+
+!set pp=!rows2lines $pp
+!!non empty lines in canvasdraw
+!set pp=!nonempty lines $pp
+!set canvasdraw_out=!exec canvasdraw\
+size $s_\
+$pp
+!reset canvasdraw_idclass
+!set id1=!positionof canvas_div in $canvasdraw_out
+!if $id1!=$empty
+  !set id2=!positionof " in $canvasdraw_out
+  !for j in $id2
+    !if $j>$id1
+      !break
+    !endif
+  !next
+  !set canvasdraw_idclass=!char $id1+1 to $j of $canvasdraw_out
+!endif
+!set canvasdraw_out=!replace internal , by in $canvasdraw_out
+!!set canvasdraw_out=<div class="wims_scrollable">$canvasdraw_out</div>
+
+$canvasdraw_out

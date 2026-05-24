@@ -1,0 +1,33 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+slib_example= sin(x^4)*x^2, x,0,1
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_fn,slib_var,slib_x1,slib_x2,slib_steps
+slib_fn=!rawmath $slib_fn
+slib_var=!varlist $slib_var
+slib_var=!item 1 of $slib_var
+!default slib_var=x
+slib_x1=$[$slib_x1]
+!if $slib_x1=$empty or $slib_x1 isitemof NaN,Inf
+  slib_x1=0
+!endif
+slib_x2=$[$slib_x2]
+!if $slib_x2=$empty or $slib_x2 isitemof NaN,Inf
+  slib_x2=1
+!endif
+!bound slib_steps between integer 1 and 1000 default 100
+slib_step=$[($slib_x2-($slib_x1))/$slib_steps]
+slib_vals=!values $slib_fn for $slib_var=$slib_x1 to $slib_x2 step $slib_step
+slib_vals=!replace item NaN by $ in $slib_vals
+slib_vals=!nonempty items $slib_vals
+slib_vals=!sort numeric items $slib_vals
+slib_min=!item 1 of $slib_vals
+slib_max=!item -1 of $slib_vals
+slib_out=$slib_min,$slib_max
+

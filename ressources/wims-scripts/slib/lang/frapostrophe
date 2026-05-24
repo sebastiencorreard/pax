@@ -1,0 +1,61 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+slib_example= le avion\
+ le port\
+ de le pain\
+ de huit
+!exit
+
+:proc
+slib_inp=!singlespace $wims_read_parm
+slib_out=
+!if $slib_inp=$empty
+ !exit
+!endif
+slib_haspire=huit haricot
+
+slib_n=!wordcnt $slib_inp
+!for slib_i=1 to $slib_n-1
+  slib_W=!word $slib_i of $slib_inp
+  slib_w=!lower $slib_W
+  slib_c=!char -1 of $slib_W
+  !if $slib_c notin ea or $slib_w notwordof \
+  	ce de je la le ma me ne sa se ta te que puisque lorsque
+   !goto normal
+  !endif
+  slib_n=!word $slib_i+1 of $slib_inp
+  slib_cn=!char 1 of $slib_n
+  slib_cn=!lower $slib_cn
+  slib_cn=!deaccent $slib_cn
+  !if $slib_cn notin aeiouh
+    !goto normal
+  !endif
+  !if $slib_cn=h and $slib_n iswordof $slib_haspire
+    !goto normal
+  !endif
+  !if $slib_w=ce
+    slib_out=$(slib_out)cet $
+    !goto next
+  !endif
+  !if $slib_c=e or $slib_w=la
+    slib_W1=!char 1 to -2 of $slib_W
+    slib_out=$slib_out$slib_W1'
+  !else
+    slib_c1=!char 1 of $slib_W
+    slib_out=$slib_out$(slib_c1)on $
+  !endif
+  !goto next
+  :normal
+  slib_out=$slib_out$slib_W $
+  :next
+!next slib_i
+slib_w=!word -1 of $slib_inp
+slib_out=!trim $slib_out$slib_w
+slib_out=!replace word de le by du in $slib_out
+slib_out=!replace word à le by au in $slib_out
+slib_out=!replace word de les by des in $slib_out
+slib_out=!replace word à les by aux in $slib_out

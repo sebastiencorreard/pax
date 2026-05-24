@@ -1,0 +1,79 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;},png dot url\
+digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;},url neato\
+digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;},png\
+digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;},plain\
+digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;}\
+digraph bar {1 -> 1 ; 2 -> 1 ; 1 -> 2 ; 3 -> 2  ; 2 -> 3 ;},svg
+
+slib_require=graphviz
+!exit
+
+:proc
+
+slib_out=
+### faire le test
+!reset graphviz_output
+!distribute items $wims_read_parm into slib_data,slib_option
+graphviz_charset=!getopt charset in $slib_option
+!if $slib_option issametext
+  slib_option=url
+!endif
+!if plain iswordof $slib_option
+  graphviz_output=plain
+!endif
+!if dot iswordof $slib_option
+  graphviz_format=dot
+!endif
+!if neato iswordof $slib_option
+  graphviz_format=neato
+!endif
+!if jpg iswordof $slib_option
+  graphviz_output=jpg
+!endif
+!if gif iswordof $slib_option
+  graphviz_output=gif
+!endif
+!if png iswordof $slib_option
+  graphviz_output=png
+!endif
+!if plain iswordof $slib_option
+  graphviz_output=plain
+!endif
+!if svg iswordof $slib_option
+  graphviz_output=svg
+!endif
+
+!default graphviz_output=png
+!default graphviz_format=dot
+!if $graphviz_output=plain
+  graphviz_output=png
+  slib_graphviz_out=!exec graphviz $slib_data
+  slib_out=!line 1 to -1 of $slib_graphviz_out
+  !exit
+!endif
+!if $graphviz_output iswordof jpg png gif
+  slib_graphviz_out=!exec graphviz $slib_data
+  slib_d=!line 1 of $slib_graphviz_out
+  !if url iswordof $slib_option
+    slib_out=<img src="$slib_d" alt="">
+  !else
+    slib_out=!line 1 of $slib_d
+  !endif
+!endif
+!if $graphviz_output iswordof svg
+  slib_graphviz_out=!exec graphviz $slib_data
+  !set slib_cnt=!linecnt $slib_graphviz_out
+  !reset slib_out
+  !for l=1 to $slib_cnt
+    !set gs=!line $l of $slib_graphviz_out
+    !if __plain isin __$gs
+      !break
+    !endif
+    !set slib_out=!append line $gs to $slib_out
+  !next
+!endif

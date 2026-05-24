@@ -1,0 +1,50 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+
+slib_parms=3\
+,m\
+0,mu\
+1,sigma
+
+slib_author=Adeline, Grelot; Bernadette, Perrin-Riou
+
+slib_example=5,0,2
+!exit
+
+:proc
+!distribute item $wims_read_parm into slib_m,slib_mu,slib_sigma
+!default slib_mu=0
+!default slib_sigma=1
+
+slib_m2= $[floor(($slib_m)/2)]
+slib_U1=!random 10^-20,1 repeat $[$slib_m2+1]
+slib_U2=!random 0,1 repeat $[$slib_m2+1]
+
+slib_w=!values sqrt(-2*log(x)) for x in $slib_U1
+slib_w1=!values cos(2*Pi*x) for x in $slib_U2
+slib_w2=!values sin(2*Pi*x) for x in $slib_U2
+
+slib_V=$empty
+!for slib_i=1 to $[$slib_m2 +1]
+  slib_v=!item $slib_i of $slib_w
+  slib_v1=!item $slib_i of $slib_w1
+  slib_v2=!item $slib_i of $slib_w2
+  slib_v1=$[$slib_sigma*$slib_v1*$slib_v+$slib_mu]
+  slib_v2=$[$slib_sigma*$slib_v2*$slib_v+$slib_mu]
+
+  !if $slib_i<=$slib_m2
+    slib_V=!append item $slib_v1 to $slib_V
+    slib_V=!append item $slib_v2 to $slib_V
+  !endif
+  !if $slib_i>$slib_m2 and $[2*$slib_m2]!=$slib_m
+    slib_V=!append item $slib_v1 to $slib_V
+  !endif
+!next slib_i
+
+!if $slib_m >1
+  slib_V=!shuffle $slib_V
+!endif
+
+slib_out=!trim $slib_V

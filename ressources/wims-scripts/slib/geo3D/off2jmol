@@ -1,0 +1,299 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_require=pari
+slib_example=14 6;-1.0 -1.0 0;1.0 -1.0 0;1.0 1.0 0;-1.0 1.0 0;1.0 3.0 0;-1.0 3.0 0;-3.0 1.0 0;-3.0 3.0 0;-1.0 5.0 0;-3.0 5.0 0;3.0 -1.0 0;3.0 1.0 0;-5.0 1.0 0;-5.0 3.0 0;4 8 6 9 10;4 4 3 5 6;4 7 4 6 8;4 3 2 11 12;4 13 7 8 14;4 1 2 3 4,[SS,AA],[brown,blue],,raw\
+8 6 12; 1 1 1;1 1 -1; 1 -1 1; 1 -1 -1;-1 1 1;-1 1 -1;-1 -1 1;-1 -1 -1;4 6 4 0 2;4 5 1 0 4;4 7 5 4 6;4 1 3 2 0;4 3 7 6 2;4 7 3 1 5;0 1;0 2;0 4;1 3;1 5;2 3;2 6;3 7;4 5;4 6;5 7;6 7,[SS,AA,FF,butA,butF],[brown,,blue],[0.03,0.06]\
+[14,6;-1.0,-1.0,0;1.0,-1.0,0;1.0,1.0,0;-1.0,1.0,0;1.0,3.0,0;-1.0,3.0,0;-1.0,5.0,0;1.0,5.0,0;-3.0,1.0,0;-3.0,3.0,0;3.0,1.0,0;3.0,3.0,0;-1.0,-3.0,0;1.0,-3.0,0;4,6,5,4,7;4,3,2,4,5;4,8,3,5,9;4,2,10,11,4;4,1,0,12,13;4,0,1,2,3],[SS,AA],[brown,blue],,raw\
+
+slib_comment=numérotation des sommets à partir de 0 du format off
+!exit
+
+:proc
+
+!reset slib_aa slib_ss slib_ff slib_Baa slib_Bff slib_fas slib_out slib_connect slib_connect1 slib_script0 slib_hide slib_option slib_color
+!reset slib_Sommet slib_Face slib_Arete slib_Plan slib_color_sommet slib_color_face slib_color_arete slib_distance
+!reset slib_filenumber
+!for slib_j=1 to 100
+  !reset slib_connect_$slib_j
+!next
+!set slib_listcolor=[0,255,0],[255,0,0],[0,0,255],black,orange,purple,grey,brown,yellow
+!distribute items $wims_read_parm into slib_data,slib_fas,slib_color,slib_width,slib_option
+slib_color=!declosing $slib_color
+!if $slib_color=$empty
+  !set slib_tmp2=!getopt bondcolor in $slib_option
+  !set slib_tmp3=!getopt facecolor in $slib_option
+  !set slib_color=,$slib_tmp2,$slib_tmp3
+!endif
+slib_fas=!declosing $slib_fas
+slib_button=!declosing $slib_button
+slib_data=!declosing $slib_data
+slib_data=!replace internal ; by $\
+$ in $slib_data
+slib_data=!replace internal  $	$ by $\
+$ in $slib_data
+slib_data=!replace internal , by $ $ in $slib_data
+!if distance iswordof $slib_option
+  !set slib_distance=1
+!endif
+!set slib_filenumber=!getopt id in $slib_option
+!set slib_animstep=!getopt animstep in $slib_option
+!set slib_spt=!getopt spt in $slib_option
+!distribute items 1,1,1,1,1 into slib_ss,slib_aa,slib_ff,slib_Baa,slib_Bff
+!distribute items $slib_fas into slib_SS,slib_AA,slib_FF,slib_BAA,slib_BFF
+slib_width=!declosing $slib_width
+slib_spacefill=$(slib_width[1])
+slib_wireframe=$(slib_width[2])
+!default slib_spacefill=0.05
+!default slib_wireframe=0.02
+!if $slib_BFF=
+  !default slib_BFF=BFF
+  slib_Bff=0
+!endif
+!if $slib_BAA=
+  !default slib_BAA=BAA
+  slib_Baa=0
+!endif
+!if $slib_FF=
+  !default slib_FF=FF
+  slib_ff=0
+!endif
+!if $slib_AA=
+  !default slib_AA=AA
+  slib_aa=0
+!endif
+!if $slib_SS=
+  !default slib_SS=SS
+  slib_ss=0
+!endif
+
+!!********** Lecture des données off
+
+slib_off=$slib_data
+
+slib_H=1
+slib_u=!line 1 of $slib_off
+slib_nom=!replace internal # by $empty in $slib_u
+!while # isin $slib_u
+  !advance slib_H
+  slib_u=!line $slib_H of $slib_off
+!endwhile
+
+!distribute word $slib_u into slib_S_cnt, slib_F_cnt, slib_A_cnt
+
+slib_sommet=!line $[$slib_H+1] to $[$slib_H+$slib_S_cnt] of $slib_off
+slib_sommet=!nonempty lines $slib_sommet
+
+slib_arete=!line $[$slib_H+$slib_S_cnt+$slib_F_cnt+1] to $[$slib_H+$slib_S_cnt+$slib_F_cnt+$slib_A_cnt] of $slib_off
+slib_arete=!nonempty line $slib_arete
+slib_face=!line $[$slib_H+$slib_S_cnt+1] to $[$slib_H+$slib_S_cnt+$slib_F_cnt] of $slib_off
+slib_face=!nonempty line $slib_face
+!if $slib_arete=$empty
+  slib_arete=
+  !set slib_tmp=!lines2rows $(slib_face)
+  !set slib_tmp=!singlespace $slib_tmp
+  !set slib_tmp=!words2items $slib_tmp
+  !for slib_i=1 to $slib_F_cnt
+    !for slib_j=2 to $(slib_tmp[$slib_i;1])
+      !set slib_arete=!append line $(slib_tmp[$slib_i;$slib_j]) $(slib_tmp[$slib_i;$slib_j+1]) to $slib_arete
+    !next
+    !set slib_arete=!append line $(slib_tmp[$slib_i;$(slib_tmp[$slib_i;1])+1]) $(slib_tmp[$slib_i;2]) to $slib_arete
+  !next
+!endif
+
+slib_A_cnt=!linecnt $slib_arete
+!!********** code de dessin des sommets
+slib_color_1=!declosing $(slib_color[1])
+!!!je suppose qu'il n'y en a au plus qu'une couleur
+!if $(slib_color_1)!=$empty
+  slib_color_sommet=color atoms $(slib_color_1)
+!endif
+slib_color_2=!declosing $(slib_color[2])
+!!!je suppose qu'il n'y en a qu'une couleur
+!if $slib_color_2!=$empty
+  slib_color_arete=$(slib_color_2[1])
+!endif
+!if $(slib_color[3])!=$empty
+  slib_color_3=!declosing $(slib_color[3])
+  slib_color_face=$(slib_color_3)
+!endif
+!if $(slib_color[4])!=$empty
+  slib_color_Barete=color atoms $(slib_color[4])
+!endif
+!if $(slib_color[5])!=$empty
+  slib_color_Bface=color atoms $(slib_color[5])
+!endif
+!for slib_na=1 to $slib_S_cnt
+  slib_coord=!line $slib_na of $slib_sommet
+  slib_coord=!word 1 to 4 of $slib_coord
+  slib_out=!append line $slib_SS $slib_coord to $slib_out
+  slib_Sommet=!append word $[$slib_na-1] to $slib_Sommet
+!next slib_na
+
+!!********** code de dessin des arêtes
+slib_length_cnt=0
+!reset slib_Length
+slib_connect=function c_a(tab,col){\
+  for(var i=1;i<=tab.size;i++){\
+    arete=tab[@i];select arete;connect (arete);color bonds @col;\
+  }\
+};
+!for slib_nb=1 to $slib_A_cnt
+  slib_r=!line $slib_nb of $slib_arete
+  slib_cnt_r=!itemcnt $slib_r
+  slib_lien1=!word 1 of $slib_r
+  slib_lien2=!word 2 to -1 of $slib_r
+  slib_r1=!line $[1+$slib_lien1] of $slib_out
+  slib_r2=!line $[1+$slib_lien2] of $slib_out
+  slib_coord1=!singlespace $slib_r1
+  slib_coord1=!words2items $slib_coord1
+  slib_coord2=!singlespace $slib_r2
+  slib_coord2=!words2items $slib_coord2
+  !if $slib_distance=1
+    slib_length=$[1/1000*rint(1000*(($(slib_coord1[2])-($(slib_coord2[2])))^2 + ($(slib_coord1[3])-$(slib_coord2[3]))^2+($(slib_coord1[4])-$(slib_coord2[4]))^2))]
+    slib_l=!positionof item $slib_length in $slib_Length
+    !if $slib_l=0 or $slib_l=$empty
+      slib_Length=!append item $slib_length to $slib_Length
+      !increase slib_length_cnt
+      slib_l=$slib_length_cnt
+    !endif
+  !endif
+  !if $slib_Baa!=0
+    slib_center_arete=!exec pari 0.5*([$(slib_coord1[2]),$(slib_coord1[3]),$(slib_coord1[4])] + [$(slib_coord2[2]),$(slib_coord2[3]),$(slib_coord2[4])])
+    slib_center_arete=!items2words $slib_center_arete
+    slib_Arete=!append word $[$slib_nb+$slib_S_cnt-1] to $slib_Arete
+    slib_out=!append line $slib_BAA $slib_center_arete to $slib_out
+  !endif
+  !if $slib_aa!=0
+    slib_lien=!sort numeric item $[$slib_lien1], $[$slib_lien2]
+    !if $slib_color_arete!=$empty and $slib_distance!=1
+      slib_connect1=!append item ({$(slib_lien[1]) $(slib_lien[2])}) \
+        to $slib_connect1
+    !endif
+    !if $slib_distance=1
+      slib_connect_$slib_l=!append item ({$(slib_lien[1]) $(slib_lien[2])}) \
+         to $(slib_connect_$slib_l)
+    !endif
+  !endif
+!next slib_nb
+!if $slib_connect1!=$empty
+  slib_connect=!append line c_a([$slib_connect1],"$slib_color_arete");\
+ to $slib_connect
+!endif
+!for slib_l = 1 to $slib_length_cnt
+  !if $(slib_connect_$slib_l)!=$empty
+    slib_connect=!append line c_a([$(slib_connect_$slib_l)],"$slib_color_arete");\
+    to $slib_connect
+  !endif
+!next
+
+!if $slib_aa!=0
+  slib_connect=$slib_connect\
+select all;wireframe $slib_wireframe;select none;
+!endif
+
+cnt=0
+slib_Face=
+!for slib_f = 1 to $slib_F_cnt
+  slib_plan=!line $slib_f of $slib_face
+  slib_triangle_=!words2items $slib_plan
+  slib_triangle=!item 1 to $(slib_triangle_[1])+1 of $slib_triangle_
+  slib_triangle_cnt=!itemcnt $slib_triangle
+  slib_facecolor_tag=!item $(slib_triangle_[1])+2 of $slib_triangle_
+  !if $slib_ff!=0
+    !for slib_j=3 to $[$slib_triangle_cnt-1]
+      !reset slib_tmp
+      !if $(slib_color_face[$slib_facecolor_tag+1])!=
+        !set slib_tmp=color $(slib_color_face[$slib_facecolor_tag+1])
+      !endif
+      slib_Plan=!append line draw uu$cnt $(slib_tmp) $(slib_color2[3]) ({$(slib_triangle[2])}) ({$(slib_triangle[$slib_j])}) ({$(slib_triangle[$slib_j+1])});\
+        to $slib_Plan
+      !increase cnt
+    !next
+  !endif
+  slib_centerface=[0,0,0]
+  !for slib_j=2 to $[$slib_triangle_cnt]
+    slib_coord=!line $[$(slib_triangle[$slib_j])+1] of $slib_sommet
+    slib_coord=!singlespace $slib_coord
+    slib_coord=!words2items $slib_coord
+    slib_centerface=$slib_centerface + [$slib_coord]
+  !next
+  !if $slib_Bff!=0
+    slib_centerface=!exec pari 1.*($slib_centerface)/($slib_triangle_cnt-1*1.0)
+    slib_centerface=!items2words $slib_centerface
+    slib_out=!append line $slib_BFF $slib_centerface to $slib_out
+    slib_Face=!append word $[$slib_f+$slib_A_cnt+$slib_S_cnt-1] to $slib_Face
+  !endif
+!next
+
+slib_define=define $slib_SS ({$slib_Sommet});
+slib_script0=!append line select $slib_SS; $slib_color_sommet;spacefill $slib_spacefill;select none;\
+  to $slib_script0
+
+!if $slib_Baa!=0
+  slib_define=$slib_define \
+define $slib_BAA ({$slib_Arete});
+  !if $slib_color_Barete!=0
+    slib_script0=$slib_script0\
+select $slib_BAA; $slib_color_Barete; select none;
+  !else
+    slib_hide=!append item $slib_BAA to $slib_hide
+  !endif
+!endif
+
+!if $slib_aa=0
+  !reset slib_connect
+!endif
+!if $slib_Bff!=0
+  slib_define=$slib_define\
+    define $slib_BFF ({$slib_Face});
+  !if $slib_color_Bface!=$empty
+    slib_script0=$slib_script0\
+      select $slib_BFF; $slib_color_Bface; select none;
+  !else
+    slib_hide=!append item $slib_BFF to $slib_hide
+    slib_hide=!replace internal , by $ or $ $  in hide $slib_hide;
+  !endif
+!endif
+
+slib_script=$slib_Plan\
+set disablepopupmenu False;\
+set antialiasdisplay on;\
+connect (*)(*) delete;\
+$slib_define\
+$slib_connect\
+$slib_script0\
+$slib_hide\
+select all;spacefill $slib_spacefill;select none;
+
+!if $slib_Bff=0
+  slib_F_cnt=0
+!endif
+!if $slib_Baa=0
+  slib_A_cnt=0
+!endif
+slib_script=!lines2words $slib_script
+!if url notwordof $slib_option
+  slib_out=[$slib_script],\
+$[$slib_S_cnt+$slib_F_cnt+$slib_A_cnt]\
+\
+$slib_out
+!else
+  !if $slib_filenumber=
+    slib_filenumber=!randint 1,100
+    !increase slib_filenumber
+  !endif
+  slib_file_xyz=file_$slib_filenumber.xyz
+  !readproc oef/togetfile.proc $slib_file_xyz new\
+$[$slib_S_cnt+$slib_F_cnt+$slib_A_cnt]\
+\
+$slib_out
+  !if $slib_spt!=no
+    slib_file_spt=file_$slib_filenumber.spt
+    !readproc oef/togetfile.proc $slib_file_spt new\
+    $slib_script
+  !endif
+  slib_out=$wims_ref_name?session=$session&+cmd=getfile&+special_parm=$slib_file_spt,\
+    $wims_ref_name?session=$session&+cmd=getfile&+special_parm=$slib_file_xyz
+!endif

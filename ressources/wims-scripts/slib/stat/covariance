@@ -1,0 +1,43 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=1\
+ ,[datax;datay] or [datax],[datay]
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example=[1,2,3];[3,1,9]\
+[1,2,3;3,1,9]
+slib_require=pari
+!exit
+
+:proc
+slib_out=
+!readproc slib/stat/dataproc $wims_read_parm
+
+!if $slib_weight=$empty or $slib_data=$empty
+  !exit
+!endif
+slib_x=$slib_data
+slib_y=$slib_weight
+slib_cnt=!itemcnt $slib_x
+slib_cnty=!itemcnt $slib_y
+!if $slib_cnt<>$slib_cnty
+  !exit
+!endif
+
+slib_meanx=!sum x for x in $slib_x
+slib_meanx=$[($slib_meanx)/$slib_cnt]
+slib_meany=!sum y for y in $slib_y
+slib_meany=$[($slib_meany)/$slib_cnt]
+
+slib_varx=!sum (x-($slib_meanx))^2 for x in $slib_x
+slib_varx=$[$slib_varx]
+
+slib_vary=!sum (y-($slib_meany))^2 for y in $slib_y
+slib_vary=$[$slib_vary]
+
+slib_covar=!exec pari print(sum(slib_t=1,$slib_cnt,([$slib_x][slib_t]-($slib_meanx))*([$slib_y][slib_t]-($slib_meany))));
+
+slib_out=$[($slib_varx)/$slib_cnt],$[($slib_covar)/$slib_cnt];$[($slib_covar)/$slib_cnt],$[($slib_vary)/$slib_cnt]
+slib_out=!append line $[($slib_varx)/($slib_cnt-1)],$[($slib_covar)/($slib_cnt-1)];$[($slib_covar)/($slib_cnt-1)],$[($slib_vary)/($slib_cnt-1)] to $slib_out

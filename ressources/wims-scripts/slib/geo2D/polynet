@@ -1,0 +1,120 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=Dessin d'un patron aléatoire du polyèdre
+slib_author=Bernadette, Perrin-Riou
+slib_parms=2\
+,nom d'un polyèdre (en anglais comme dans la base dans wims)\
+size=200,option as words: size=(vertical size) keywords:vertex_legend face_legend  color=[general_color;number:color;number:color2;...] raw tikz html
+
+slib_out=dessin en canvasdraw
+slib_comment=Preliminary version (syntaxe can change)
+!!rajouter option couleur face et sommet ? size ?
+slib_example=cube,size=300 vertex_legend face_legend html\
+cube,html\
+cube,raw\
+cube,size=300 vertex_legend face_legend tikz\
+dodecahedron,size=500 vertex_legend face_legend color=[red] html\
+enneagonal_antiprism_dual,size=400 color=[blue;5,red;7,yellow] html\
+j09_elongated_pentagonal_pyramid,size=300 html\
+j45_gyroelongated_square_bicupola,size=500 html\
+j45_gyroelongated_square_bicupola,html\
+[6 8 12;0 0 1;0 1 0;-1 0 0;1 0 0;0 -1 0;0 0 -1;3,0,1,3;3,1,5,3;3,0,3,4;3,3,5,4;3,0,2,1;3,1,2,5;3,0,4,2;3,2,4,5], tikz spanning_tree=[2,6,1,2,6,8,3,8] vertex_legend face_legend\
+[6,8,12;0,0,1;0,1,0;-1,0,0;1,0,0;0,-1,0;0,0,-1;3,0,1,3;3,1,5,3;3,0,3,4;3,3,5,4;3,0,2,1;3,1,2,5;3,0,4,2;3,2,4,5], html spanning_tree=[2,6,1,2,6,8,3,8] vertex_legend face_legend\
+
+!exit
+
+:proc
+!reset slib_xyz slib_sfa slib_ff slib_size slib_pat slib_out
+
+!distribute items $wims_read_parm into slib_polname,slib_option,slib_color
+!set wims_multiexec=$wims_multiexec pari
+!set slib_size=!getopt size in $slib_option
+!set slib_maxwhile=!getopt pseudomax in $slib_option
+!default slib_size=200
+!set slib_color=!getopt color in $slib_option
+!set slib_color=$(slib_color[1;])
+!default slib_color=black
+!if # isin $slib_polname or [ isin $slib_polname
+  !set slib_pol=!declosing $slib_polname
+  !set slib_pol=!rows2lines $slib_pol
+!else
+  !set slib_pol=!record 0 of data/polyedre_off/$(slib_polname).off
+!endif
+
+!readproc slib/geo2D/polyoff
+!if $slib_header_patron=
+  !readproc gp/spanning_tree.gp
+  slib_pr=!exec pari $slib_header_patron
+!endif
+!! define slib_facecnt in particular in polyoff
+!set slib_pat=!getopt spanning_tree in $slib_option
+slib_patron=0
+!default slib_maxwhile=10
+!if $slib_pat=
+  slib_cntmp=0
+  !while ($slib_patron=0 or $slib_patron=$empty or pseudonet isin $slib_patron) and $slib_cntmp<$slib_maxwhile
+    !set slib_patron=!exec pari m=adjacence(ff); f2=depl_standard(ff,xyz);couv=arbre_couvrant_aleatoire(m); W=etale(couv,ff,f2[1],matsize(xyz)[1])
+    !increase slib_cntmp
+  !endwhile
+  !set slib_pat=!exec pari couv
+!else
+  !set slib_patron=!exec pari m=adjacence(ff);f2=depl_standard(ff,xyz);couv=[$slib_pat]; W=etale(couv,ff,f2[1],matsize(xyz)[1])
+  !set slib_pat=!declosing $slib_pat
+  !if $slib_patron=$empty
+    slib_patron=1
+  !endif
+  !if $slib_patron iswordof 0 1
+    !set slib_out=$slib_patron
+    !goto end
+  !endif
+!endif
+!set slib_W1=!exec pari W[1]
+!set slib_W2=!exec pari W[2]
+!set slib_W2_=
+!if face_legend iswordof $slib_option
+  !for slib_j=1 to $slib_facecnt
+    !set slib_tmp=!declosing $(slib_W2[$slib_j])
+    !set slib_W2_=!append item [$slib_tmp,$slib_j] to $slib_W2_
+  !next
+  slib_W2=$slib_W2_
+!endif
+!set slib_raw=[$slib_W1],[$slib_W2]
+
+!if raw notwordof $slib_option
+  !readproc slib/geo2D/offdraw $slib_raw, $slib_option
+  !reset slib_cntmp
+  !if pseudonet isin $slib_patron
+    !set slib_out=pseudonet $slib_out
+  !endif
+!endif
+!if tikz iswordof $slib_option
+  slib_out=$slib_raw\
+  $slib_out
+!endif
+!if raw iswordof $slib_option
+  !set slib_out=$slib_raw
+!endif
+!!now in off2draw
+!!!!if tikz iswordof $slib_option
+!!!  !set slib_W1_cnt=!rowcnt $slib_W1
+!!!  !set slib_W2_cnt=!itemcnt $slib_W2
+!!!  !set slib_tex=\begin{center}\
+!!!  \begin{tikzpicture}[scale=1]
+!!!  !for slib_j=1 to $slib_W2_cnt
+!!!    !set slib_k=!declosing $(slib_W2[$slib_j])
+!!!    !set slib_tex=$slib_tex\
+!!!  \draw($(slib_W1[$(slib_k[2])+1;1,2]))
+!!!    !for slib_s=2 to $[$(slib_k[1])+1]
+!!!      !set slib_tex=$slib_tex --($(slib_W1[$(slib_k[$slib_s])+1;1,2]))
+!!!    !next
+!!!    !set slib_tex=$slib_tex --($(slib_W1[$(slib_k[2])+1;1,2]));
+!!!  !next
+!!!  !set slib_tex=$slib_tex\
+!!!  \end{tikzpicture}\
+!!!\end{center}
+!!!  !set slib_out=$slib_out\
+!!!$slib_tex
+!!!!endif
+:end
+$slib_out

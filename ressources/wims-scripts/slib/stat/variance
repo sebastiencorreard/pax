@@ -1,0 +1,42 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=1\
+ ,[data] or [data],[weight]
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example=[2,3]\
+2,3\
+[2,-7,6]\
+[2,-7,6;1,1,4]\
+[2,-7,6],[1,1,4]\
+[3,4],[1,1]\
+[2,1;3,1]
+slib_require=pari
+!exit
+
+:proc
+
+!readproc slib/stat/dataproc $wims_read_parm
+slib_cnt=!itemcnt $slib_data
+!if $slib_cnt=0
+slib_out=0
+!else
+  !if $slib_weight=$empty
+    slib_data1=!sum x for x in $slib_data
+    slib_mean=$[($slib_data1)/$slib_cnt]
+    slib_dev=!sum (x-($slib_mean))^2 for x in $slib_data
+    slib_out=$[$slib_dev/$slib_cnt],$[$slib_dev/($slib_cnt-1)]
+    slib_out =!trim $slib_out
+    !exit
+  !else
+    slib_out=!exec pari { slib_mean=([$slib_data]*[$slib_weight]~)/$slib_tw;\
+    slib_dev=sum(x=1,$slib_cnt,[$slib_weight][x]*[$slib_data][x]^2)-$slib_tw*(slib_mean)^2;\
+    print([1.*slib_dev/$slib_tw,1.*slib_dev/($slib_tw-1)])}
+    slib_out =!trim $slib_out
+  !endif weight
+
+  slib_out =!trim $slib_out
+!endif
+slib_out=!trim $slib_out

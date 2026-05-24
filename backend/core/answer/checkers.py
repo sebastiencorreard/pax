@@ -399,6 +399,34 @@ def check_default(reply: str, expected: str) -> CheckResult:
 # ------------------------------------------------------------------ #
 
 
+def _split_top_level_alternatives(expected: str) -> list[str]:
+    """Split `expected` at top-level commas only.
+
+    WIMS' litexp/algexp scripts iterate over `replygood` items split by
+    comma (`!itemcnt $good`), so an expected like ``Z+15,15+Z`` means
+    either form is accepted. We must keep commas inside parentheses
+    intact (e.g. function arguments like ``f(x,y)``).
+    """
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in expected:
+        if ch in "([{":
+            depth += 1
+            current.append(ch)
+        elif ch in ")]}":
+            depth -= 1
+            current.append(ch)
+        elif ch == "," and depth == 0:
+            parts.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    if current:
+        parts.append("".join(current).strip())
+    return [p for p in parts if p]
+
+
 def check_answer(
     answer_type: str,
     reply: str,
@@ -410,12 +438,26 @@ def check_answer(
     """
     options = options or {}
     precision = float(options.get("precision", 1e-4))
-    
+
     # Handle default value if reply is empty
     if not reply.strip():
         opt_str = str(options.get("option", "")).lower()
         if "default=vide" in opt_str:
             return CheckResult(correct=True, score=1.0, method="default_vide")
+
+    # Multi-good: if expected lists several acceptable answers, treat as
+    # alternatives and accept the reply if it matches any of them. Skip for
+    # types where comma is part of the answer syntax (sets, radio/case lists).
+    if answer_type.lower() in ("algexp", "litexp", "formal", "function", "default", "numeric", "numexp"):
+        alternatives = _split_top_level_alternatives(expected)
+        if len(alternatives) > 1:
+            last: CheckResult | None = None
+            for alt in alternatives:
+                r = check_answer(answer_type, reply, alt, options)
+                if r.correct:
+                    return r
+                last = r
+            return last or CheckResult(correct=False, score=0.0, method="default")
 
     opt_str = str(options.get("option", "")).lower()
     

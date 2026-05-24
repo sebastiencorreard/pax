@@ -1,0 +1,22 @@
+!set canvas_ppm=$wims_read_parm
+!if $canvas_ppm=$empty
+  !exit
+!endif
+!if copy isin $canvas_ppm or imagefill isin $canvas_ppm or bgimage isin $canvas_ppm
+  !set line_cnt=!linecnt $canvas_ppm
+  !for l_=1 to $line_cnt
+    !set line=!line $l_ of $canvas_ppm
+    !if copy isin $line or imagefill isin $line or bgimage isin $line
+      !set im=!item -1 of $line
+      !if bgimage isin $line
+        !set im=!word -1 of $im
+        !set line=bgimage \filedir/$im
+      !else
+         !set line=$(line[1..-2]),\filedir/$im
+      !endif
+      !if / notin $im
+        !set canvas_ppm=!replace line number $l_ by $line in $canvas_ppm
+      !endif
+    !endif
+  !next
+!endif

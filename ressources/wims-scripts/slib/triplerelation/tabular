@@ -1,0 +1,301 @@
+!if  $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Georges, KHAZNADAR
+
+slib_example= ,,,2,2,,1 \
+(distance,m,1000,2000,y*z),(duration,s,10,20,x/z),(velocity,m/s,50,200,x/y),4,2 \
+(distance,m,1000,2000,y*z),(duration,s,10,20,x/z),(impossible_velocity,m/s,-50,-10,x/y),4,2
+slib_require=pari
+!exit
+
+:proc
+
+!reset slib_fx, slib_fy, slib_fz, slib_randx, slib_randy, slib_randz, slib_constx, slib_consty, slib_constz, slib_nl, slib_nc, slib_namex, slib_namey, slib_namez, slib_unitx, slib_unity, slib_unitz, slib_datax, slib_datax, slib_dataz, slib_prec
+
+slib_parm=!item 1 to 6 of $wims_read_parm
+!distribute item $slib_parm into slib_datax, slib_datay, slib_dataz, slib_nl, slib_nc, slib_prec, slib_dbg
+
+!default slib_datax=(I,A,1,10,z/y,(x-1)*(10-x))
+!default slib_datay=(R,Ohm,1,10,z/x,(y-1)*(10-y))
+!default slib_dataz=(U,V,1,100,x*y,(z-1)*(100-z))
+!default slib_nl=3
+!default slib_nc=3
+!default slib_prec=3
+!default slib_dbg=0
+
+slib_datax=!declosing $slib_datax
+slib_datay=!declosing $slib_datay
+slib_dataz=!declosing $slib_dataz
+
+slib_namex=$(slib_datax[1])
+slib_namey=$(slib_datay[1])
+slib_namez=$(slib_dataz[1])
+slib_unitx=$(slib_datax[2])
+slib_unity=$(slib_datay[2])
+slib_unitz=$(slib_dataz[2])
+slib_randx=$(slib_datax[3 to 4])
+slib_randy=$(slib_datay[3 to 4])
+slib_randz=$(slib_dataz[3 to 4])
+slib_fx=$(slib_datax[5])
+slib_fy=$(slib_datay[5])
+slib_fz=$(slib_dataz[5])
+slib_constx=$(slib_datax[6])
+slib_consty=$(slib_datay[6])
+slib_constz=$(slib_dataz[6])
+
+!! ==== some expressions which must be constrained to remain positive. ====
+!default slib_constx=(x-$(slib_datax[3]))*($(slib_datax[4])-x)
+!default slib_consty=(y-$(slib_datay[3]))*($(slib_datay[4])-y)
+!default slib_constz=(z-$(slib_dataz[3]))*($(slib_dataz[4])-z)
+
+!! ==== list of given x : at least one given, and one unknown. ====
+slib_givenx=1,0
+
+!! ==== compute a random x1 with significant digits matching the given precision ====
+slib_x1=!random $slib_randx
+slib_mul=$[10^($slib_prec-1-floor(lg($slib_x1)))]
+slib_x1=$[rint($slib_mul*$slib_x1)/$slib_mul]
+
+!for slib_i from 3 to $slib_nc
+  slib_r=!randint 0,1
+  slib_givenx=$slib_givenx, $slib_r
+  !if $slib_r=1
+    !!==== compute a random xi with significant digits matching the given precision ====
+    slib_x$slib_i=!random $slib_randx
+    slib_mul=$[10^($slib_prec-1-floor(lg($(slib_x$slib_i))))]
+    slib_x$slib_i=$[rint($slib_mul*$(slib_x$slib_i))/$slib_mul]
+  !endif
+!next slib_i
+!!==== assert: every given x is an random number between xmin and xmax, ====
+!!==== with no more than prec significant digits. ======================
+
+!! ==== list of given y: at least one given, and one unknown. ====
+slib_giveny=1,0
+
+
+!! ==== compute a random y1 with significant digits matching the given precision ====
+slib_y1=!random $slib_randy
+slib_mul=$[10^($slib_prec-1-floor(lg($slib_y1)))]
+slib_y1=$[rint($slib_mul*$slib_y1)/$slib_mul]
+
+!for slib_i from 3 to $slib_nl
+  slib_r=!randint 0,1
+  slib_giveny=$slib_giveny, $slib_r
+  !if $slib_r=1
+    !!==== compute a random yi with significant digits matching the given precision ====
+    slib_y$slib_i=!random $slib_randy
+    slib_mul=$[10^($slib_prec-1-floor(lg($(slib_y$slib_i))))]
+    slib_y$slib_i=$[rint($slib_mul*$(slib_y$slib_i))/$slib_mul]
+  !endif
+!next slib_i
+!!==== assert: every given y is an random number between ymin and ymax, ====
+!!==== with no more than prec significant digits. ======================
+
+!!==== getting rid of any previous values of z_i_j ====
+!for slib_i from 1 to $slib_nc
+  !for slib_j from 1 to $slib_nl
+    !reset slib_z_$(slib_j)_$(slib_i)
+  !next slib_j
+!next slib_i
+
+!!==== at the begin every z is considered as not given, we shall mark z values as given later ====
+slib_givenz=!exec pari matrix($slib_nl,$slib_nc)
+
+slib_computablex=$slib_givenx
+slib_computabley=$slib_giveny
+
+!!==== gathering the non-computable indexes for x ====
+slib_first=1
+!for slib_i=1 to $slib_nc
+  !if $(slib_computablex[$slib_i]) = 0
+    !if $slib_first=1
+      slib_range_noncomputablex=$slib_i
+      slib_first=0
+    !else
+      slib_range_noncomputablex=$slib_range_noncomputablex, $slib_i
+    !endif
+  !endif
+!next slib_i
+!!=== assert : range_noncomputablex is the list of indexes for noncomputable x
+!for slib_r in $slib_range_noncomputablex
+  !!==== gather the computable indexes for y ====
+  slib_first=1
+  !for slib_i=1 to $slib_nl
+    !if $(slib_computabley[$slib_i]) = 1
+      !if $slib_first=1
+        slib_range_computabley=$slib_i
+        slib_first=0
+      !else
+        slib_range_computabley=$slib_range_computabley, $slib_i
+      !endif
+    !endif
+  !next slib_i
+  !!=== assert : range_computabley is the list of indexes for computable y ====
+  slib_s=!randitem $slib_range_computabley
+  !!==== assert: x is unknown and y is known for column r and row s ====
+  constraint=-1
+  maxwhile=20
+  currentwhile=0
+  !while $constraint <= 0
+    currentwhile=$currentwhile+1
+    !if $currentwhile > $maxwhile
+      !goto too_many_iter
+    !endif
+    slib_z_$(slib_s)_$(slib_r)=!random $slib_randz
+    slib_mul=$[10^($slib_prec-1-floor(lg($(slib_z_$(slib_s)_$(slib_r)))))]
+    slib_z_$(slib_s)_$(slib_r)=$[rint($slib_mul*$(slib_z_$(slib_s)_$(slib_r)))/$slib_mul]
+    expr=!mathsubst y=$(slib_y$(slib_s)) in $slib_fx
+    expr=!mathsubst z=$(slib_z_$(slib_s)_$(slib_r)) in $expr
+    slib_x$(slib_r)=!eval $expr
+    constraint=!mathsubst x=$(slib_x$(slib_r)) in $slib_constx
+  !endwhile
+  !!==== assert: the value of xr is strictly inside the range xmin .. xmax ====
+  !!==== updating slib_givenz ====
+  slib_givenz=!exec pari A=Mat([$slib_givenz]);\
+    B=matrix($slib_nl,$slib_nc,row,col,(row==$slib_s)*(col==$slib_r));\
+    print(A+B);
+  slib_givenz=!nospace $slib_givenz
+  !! updating slib_computablex
+  slib_computablex=!exec pari A=Vec([$slib_computablex]);\
+    B=vector($slib_nc,x,(x==$slib_r));\
+    A+B
+  slib_computablex=!nospace $slib_computablex
+!next slib_r
+!!==== assert: every x is computable ====
+
+!!==== gathering the non-computable indexes for y ====
+slib_first=1
+!for slib_i=1 to $slib_nl
+  !if $(slib_computabley[$slib_i]) = 0
+    !if $slib_first=1
+      slib_range_noncomputabley=$slib_i
+      slib_first=0
+    !else
+      slib_range_noncomputabley=$slib_range_noncomputabley, $slib_i
+    !endif
+  !endif
+!next slib_i
+!!=== assert : range_noncomputabley is the list of indexes for noncomputable y
+!for slib_s in $slib_range_noncomputabley
+  !!==== gather the computable indexes for x ====
+  slib_first=1
+  !for slib_i=1 to $slib_nc
+    !if $(slib_computablex[$slib_i]) = 1
+      !if $slib_first=1
+        slib_range_computablex=$slib_i
+        slib_first=0
+      !else
+        slib_range_computablex=$slib_range_computablex, $slib_i
+      !endif
+    !endif
+  !next slib_i
+  !!=== assert : range_computablex is the list of indexes for computable x ====
+  slib_r=!randitem $slib_range_computablex
+  !!==== assert: x is known and y is unknown for column r and row s ====
+  constraint=-1
+  !while $constraint <= 0
+    slib_z_$(slib_s)_$(slib_r)=!random $slib_randz
+    slib_mul=$[10^($slib_prec-1-floor(lg($(slib_z_$(slib_s)_$(slib_r)))))]
+    slib_z_$(slib_s)_$(slib_r)=$[rint($slib_mul*$(slib_z_$(slib_s)_$(slib_r)))/$slib_mul]
+    expr=!mathsubst x=$(slib_x$(slib_r)) in $slib_fy
+    expr=!mathsubst z=$(slib_z_$(slib_s)_$(slib_r)) in $expr
+    slib_y$(slib_s)=!eval $expr
+    constraint=!mathsubst y=$(slib_y$(slib_s)) in $slib_consty
+  !endwhile
+  !!==== assert: the value of ys is strictly inside the range ymin .. ymax ====
+  !!==== updating slib_givenz ====
+  slib_givenz=!exec pari A=Mat([$slib_givenz]);\
+    B=matrix($slib_nl,$slib_nc,row,col,(row==$slib_s)*(col==$slib_r));\
+    print(A+B);
+  slib_givenz=!nospace $slib_givenz
+  !! updating slib_computabley
+  slib_computabley=!exec pari A=Vec([$slib_computabley]);\
+    B=vector($slib_nl,y,(y==$slib_s)); A+B
+  slib_computabley=!nospace $slib_computabley
+!next slib_s
+!!==== assert: every y is computable ====
+
+!!computing the non-given z_s_r
+!for slib_s=1 to $slib_nl
+  !for slib_r=1 to $slib_nc
+    !!==== if z is not given we compute it from x and y ====
+    !if $(slib_givenz[$slib_s;$slib_r]) = 0
+      expr=!mathsubst x=$(slib_x$slib_r) in $slib_fz
+      expr=!mathsubst y=$(slib_y$slib_s) in $expr
+      expr=!eval ($expr)
+      slib_z_$(slib_s)_$(slib_r)=$expr
+    !endif
+  !next slib_r
+!next slib_s
+
+slib_shx=!shuffle $slib_nc
+slib_shy=!shuffle $slib_nl
+
+slib_reply=1
+slib_replies=
+!! slib_t will be a list of chunks of code to make a table when interleaved
+!! with slib_replies
+slib_t=
+slib_t=<table class="wimsborder"><tr><th style='background-color:#AAFFAA' colspan="2" rowspan="2">$slib_namez ($slib_unitz)</th><th style='background-color:yellow;text-align:center' colspan="$slib_nc">$slib_namex ($slib_unitx)</th></tr><tr>
+!for slib_i=1 to $slib_nc
+slib_c=$(slib_shx[$slib_i])
+!if $(slib_givenx[$slib_c])=1
+  slib_t=$slib_t <td bgcolor='yellow'>$(slib_x$slib_c) $slib_unitx</td>
+!else
+  slib_t=$slib_t <td style='background-color:yellow;padding:8'>,
+  slib_replies=$slib_replies $(slib_x$slib_c) $slib_unitx,
+  slib_reply=$[$slib_reply+1]
+  slib_t=$slib_t </td>
+!endif
+!next slib_i
+
+!!<tr><td>
+!for slib_j=1 to $slib_nl
+  slib_l=$(slib_shy[$slib_j])
+  slib_t=$slib_t </tr><tr>
+  !if $slib_j=1
+    slib_t=$slib_t <th style='background-color:lightblue;vertical-align:medium' rowspan='$slib_nl'>$slib_namey<br>($slib_unity)</th>
+  !endif
+  !if $(slib_giveny[$slib_l])=1
+    slib_t=$slib_t <td bgcolor='lightblue'>$(slib_y$slib_l) $slib_unity</td>
+  !else
+    slib_t=$slib_t <td style='background-color:lightblue;padding:8'>,
+    slib_replies=$slib_replies $(slib_y$slib_l) $slib_unity,
+    slib_reply=$[$slib_reply+1]
+    slib_t=$slib_t </td>
+  !endif
+ !for slib_i=1 to $slib_nc
+    slib_c=$(slib_shx[$slib_i])
+    !if $(slib_givenz[$slib_l;$slib_c])=1
+      slib_t=$slib_t <td style='background-color:#AAFFAA>'>$(slib_z_$(slib_l)_$(slib_c)) $slib_unitz</td>
+    !else
+      slib_t=$slib_t <td style='background-color:#AAFFAA;padding:8'>,
+      slib_replies=$slib_replies $(slib_z_$(slib_l)_$(slib_c)) $slib_unitz,
+      slib_reply=$[$slib_reply+1]
+      slib_t=$slib_t </td>
+    !endif
+  !next slib_i
+!next slib_j
+slib_t=$slib_t</tr></table>
+
+slib_reply=$[$slib_reply-1]
+slib_replies=$(slib_replies[1 to $slib_reply])
+
+slib_table=$(slib_t[1])
+!for slib_i=1 to $slib_reply
+  !if $slib_dbg=1
+    slib_table=$slib_table <input type='text' name='reply$slib_i' value='$(slib_replies[$slib_i])'> $(slib_t[$[$slib_i+1]])
+  !else
+    slib_table=$slib_table <input type='text' name='reply$slib_i'> $(slib_t[$[$slib_i+1]])
+  !endif
+!next slib_i
+
+slib_out= $slib_table, $slib_reply, $slib_replies, $slib_t
+!goto end
+
+:too_many_iter
+slib_out= Error. Please inform the developer that have been too many iterations while trying to satisfy the constraints to adjust a variable. This is very unlikely to occur. Please verify whether the constraint set is compatible with the relations linking the variables and their allowed intervals of validity. If you are visiting the help system, the error was triggered by the impossible_velocity validity interval.
+
+:end

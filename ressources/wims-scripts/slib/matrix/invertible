@@ -1,0 +1,27 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_author=Gang, XIAO
+
+slib_example= 3,6
+slib_require=pari
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_size,slib_range,slib_ring
+!default slib_ring=Z
+!bound slib_size between integer 2 and 20 default 2
+!bound slib_range between integer 1 and 1000000 default 2
+
+!if $slib_ring=Z
+  slib_sh1=!shuffle $slib_size
+  slib_sh2=!shuffle $slib_size
+  slib_ran1=(random(2*$slib_range)*(2*random(2)-1))
+  slib_ran2=(random($slib_range)*(4*random(2)-2))
+  slib_ran3=(random($slib_range)*(4*random(2)-2)+2*random(2)-1)
+  slib_coef=if(x==y,$slib_ran3,if(x>y,$slib_ran2,$slib_ran1))
+  slib_M1=vecextract(matrix($slib_size,$slib_size,x,y,$slib_coef),[$slib_sh1],[$slib_sh2])
+  slib_M2=matrix($slib_size,$slib_size,x,y,$slib_ran1)
+  slib_out=!exec pari M2=$slib_M2;if(matdet(M2)<>0,print(M2),print($slib_M1))
+  !exit
+!endif
