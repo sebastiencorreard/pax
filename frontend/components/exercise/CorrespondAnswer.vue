@@ -26,7 +26,7 @@
            @keydown.enter.prevent="onTap('left', i - 1)"
            @keydown.space.prevent="onTap('left', i - 1)"
            @dragstart="onDragStart('left', i - 1, $event)"
-           @dragover.prevent="onDragOver('right', i - 1, $event)"
+           @dragover.prevent="onDragOver('left', i - 1, $event)"
            @dragleave="hoverRow = null"
            @drop.prevent="onDrop('left', i - 1)"
            @dragend="resetDrag()"
@@ -57,7 +57,7 @@
            @keydown.enter.prevent="onTap('right', i - 1)"
            @keydown.space.prevent="onTap('right', i - 1)"
            @dragstart="onDragStart('right', i - 1, $event)"
-           @dragover.prevent="onDragOver('left', i - 1, $event)"
+           @dragover.prevent="onDragOver('right', i - 1, $event)"
            @dragleave="hoverRow = null"
            @drop.prevent="onDrop('right', i - 1)"
            @dragend="resetDrag()"
@@ -228,28 +228,28 @@ onMounted(() => {
 
 <style scoped>
 .correspond-grid {
+  /* Real CSS table — gives each row the same column widths and lets us
+     use vertical-align on cells for centring with inline content. */
+  display: table;
+  border-collapse: separate;
+  border-spacing: 8px;
   font-size: 0.95rem;
+  margin: 0 auto;
 }
 
 .correspond-row {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  gap: 8px;
-  align-items: stretch;
-  margin-bottom: 6px;
-  justify-content: center;
+  display: table-row;
 }
 
 .correspond-cell {
-  /* `display: grid; place-content: center` centres the cell content
-     vertically and horizontally without putting it in a flex container
-     (which would re-baseline each KaTeX span as its own flex item and
-     push inline letters off the line). */
-  display: grid;
-  place-content: center;
+  /* table-cell + vertical-align preserves the inline text+KaTeX flow
+     (no flex/grid baseline re-targeting), while still centring multi-
+     line content vertically inside the fixed-height cell. */
+  display: table-cell;
+  vertical-align: middle;
   padding: 12px 14px;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.5;
   border-radius: 8px;
   box-sizing: border-box;
   border: 1px solid var(--color-border);
@@ -264,9 +264,9 @@ onMounted(() => {
 }
 
 .correspond-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
   width: 40px;
   color: var(--color-text-muted);
 }
