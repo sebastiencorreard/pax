@@ -45,7 +45,7 @@
             class="rounded border px-2 py-1 text-sm font-mono resize"
             style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
           />
-          <CorrespondAnswer v-else-if="seg.type === 'correspond'"
+          <ExerciseCorrespondAnswer v-else-if="seg.type === 'correspond'"
             :name="seg.name"
             :config="seg.config"
             :value="replies[seg.name] || ''"
