@@ -92,6 +92,54 @@ _REWRITE_MSG = (
 )
 
 
+def _polexpand_diagnostic(s: str) -> str | None:
+    """Returns a French explanation of *why* `s` fails the polexpand
+    check, or None when no specific diagnosis is available. Mirrors
+    WIMS' `oef/analyse/expandpolynome` output style — currently covers
+    only the "termes à combiner" case (its most common warning).
+    """
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+        T = standard_transformations + (
+            implicit_multiplication_application,
+        )
+        expr = parse_expr(
+            s.replace("^", "**"),
+            transformations=T,
+            local_dict=_safe_locals(),
+            evaluate=False,
+        )
+        if not expr.is_Add:
+            return None
+        # Canonicalise each top-level term so positives and negatives
+        # have the same shape (see is_polexpand for why sympify(str())
+        # is needed here too).
+        canon_args = [sympy.sympify(str(a)) for a in expr.args]
+        # Group terms by their symbolic part (coefficient stripped).
+        # Two terms in the same group are combinable → not reduced.
+        groups: dict = {}
+        for orig, canon in zip(expr.args, canon_args):
+            _coef, rest = canon.as_coeff_Mul()
+            groups.setdefault(rest, []).append(orig)
+        for terms in groups.values():
+            if len(terms) > 1:
+                # Render the first two as plain text — sympy's str() uses
+                # `*` like WIMS does in this very message.
+                t1, t2 = str(terms[0]).replace("**", "^"), str(terms[1]).replace("**", "^")
+                return (
+                    f"Votre expression n'est pas réduite. "
+                    f"Les termes {t1} et {t2} se simplifient."
+                )
+        return None
+    except Exception:
+        return None
+
+
 def _log_unhandled_answer_type(answer_type: str) -> None:
     """Log an answer type that falls through to text-match (likely unsupported).
     Deduped by name across the process lifetime so the log stays readable."""
@@ -608,7 +656,7 @@ def check_answer(
                 score=0.0,
                 method="polexpand",
                 status="invalid_format",
-                detail=_REWRITE_MSG,
+                detail=_polexpand_diagnostic(reply) or _REWRITE_MSG,
             )
 
     # Pre-check polfactor if requested
