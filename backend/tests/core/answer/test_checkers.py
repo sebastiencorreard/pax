@@ -163,3 +163,42 @@ def test_correspond_options_partial_true():
     options = {"partial": True}
     r = check_answer("correspond", "a,X,c,Y", "a,b,c,d", options)
     assert r.score == 0.5
+
+
+# bad_variable — case-sensitive variable mismatch should warn, not reject
+def test_bad_variable_case_mismatch():
+    """Z+15 expected, user typed z+15 (lower-case) → soft warning."""
+    r = check_answer("litexp", "z+15", "Z+15", {})
+    assert not r.correct
+    assert r.method == "bad_variable"
+    assert r.status == "invalid_format"
+    assert "réécrire" in (r.detail or "")
+
+
+def test_bad_variable_multi_good_alternatives():
+    """Wrong case still warns when expected lists alternatives."""
+    r = check_answer("litexp", "z+15", "Z+15,15+Z", {})
+    assert r.status == "invalid_format"
+    assert r.method == "bad_variable"
+
+
+def test_bad_variable_extra_unknown_symbol():
+    """Reply with a variable absent from the expected → warning."""
+    r = check_answer("algexp", "X+15", "Z+15", {})
+    assert r.status == "invalid_format"
+    assert r.method == "bad_variable"
+
+
+def test_bad_variable_correct_reply_passes():
+    """Sanity: correct casing still validates."""
+    r = check_answer("litexp", "Z+15", "Z+15", {})
+    assert r.correct
+    assert r.status == "ok"
+
+
+def test_bad_variable_does_not_trip_on_constants():
+    """`pi*r` against expected `r` should not trigger — pi is a constant,
+    not a free symbol."""
+    r = check_answer("algexp", "pi*r", "pi*r", {})
+    assert r.correct
+    assert r.status == "ok"

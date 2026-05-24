@@ -27,6 +27,43 @@ def _safe_locals() -> dict:
     return {name: sympy.Symbol(name) for name in ("N", "O", "I", "E", "S", "Q", "C")}
 
 
+def _free_symbols(expr_str: str) -> set[str]:
+    """Return the set of free variable names in a math expression string.
+
+    Used to detect when a reply introduces variables the expected answer
+    doesn't mention — typically a case mismatch like `z+15` vs `Z+15`.
+    Returns an empty set on parse failure (the caller treats "no info"
+    as "no problem").
+    """
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+        transformations = standard_transformations + (
+            implicit_multiplication_application,
+        )
+        expr = parse_expr(
+            expr_str.replace("^", "**"),
+            transformations=transformations,
+            local_dict=_safe_locals(),
+        )
+        return {str(s) for s in expr.free_symbols}
+    except Exception:
+        return set()
+
+
+def _unknown_variables(reply: str, expected: str) -> set[str]:
+    """Variables present in `reply` but not in any alternative of `expected`."""
+    expected_vars: set[str] = set()
+    for alt in _split_top_level_alternatives(expected):
+        expected_vars |= _free_symbols(alt)
+    reply_vars = _free_symbols(reply)
+    return reply_vars - expected_vars
+
+
 def _log_unhandled_answer_type(answer_type: str) -> None:
     """Log an answer type that falls through to text-match (likely unsupported).
     Deduped by name across the process lifetime so the log stays readable."""
@@ -546,6 +583,24 @@ def check_answer(
                 method="polfactor",
                 status="invalid_format",
                 detail="La réponse que vous avez donnée n'est pas écrite sous forme factorisée."
+            )
+
+    # bad_variable check (mirrors WIMS' `anstype/function` pre-validation):
+    # if the reply uses variable names that don't appear in the expected
+    # answer, it's almost always a case mismatch (e.g. expected uses `Z`,
+    # the student typed `z+15`). Treat as a soft "rewrite please" instead
+    # of a hard wrong answer.
+    if reply.strip() and answer_type.lower() in (
+        "algexp", "default", "auto", "litexp", "formal", "function"
+    ):
+        unknown = _unknown_variables(reply, expected)
+        if unknown:
+            return CheckResult(
+                correct=False,
+                score=0.0,
+                method="bad_variable",
+                status="invalid_format",
+                detail="La réponse que vous avez donnée n'est pas écrite comme il faut. Veuillez la réécrire correctement.",
             )
 
     match answer_type.lower():
