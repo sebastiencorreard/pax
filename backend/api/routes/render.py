@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from config import settings
 from db import get_db
 from models.exercise import Exercise
 from models.user import User
@@ -108,9 +109,20 @@ async def render_exercise_debug(
     seed: int | None = None,
     m_step: int | None = None,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    """Renvoie la solution et les réponses attendues. Réservé au mode debug du front."""
+    """Renvoie la solution et les réponses attendues. Réservé au mode debug du front.
+
+    Double-gated to keep the expected answer away from students:
+    - Off entirely in production: 404 unless ``PAX_DEBUG=1`` is set in
+      the environment. 404 (not 403) avoids advertising the endpoint's
+      existence.
+    - Even with the env flag, only teachers/admins can call it — a
+      student account is rejected (also as 404 for the same reason).
+    """
+    if not settings.pax_debug or current_user.role not in ("teacher", "admin", "super_admin"):
+        raise HTTPException(status_code=404, detail="Not found")
+
     from core.answer.strategies.standard import pretty_expected as _pretty_expected
 
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))

@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     maxima_bin: str = "/usr/bin/maxima"
     cas_timeout_seconds: float = 3.0
 
+    # Debug — exposes /api/render/{id}/debug (the endpoint that leaks the
+    # expected answer to support the front-end "Réponse auto" button).
+    # Off by default; set PAX_DEBUG=1 in dev environments only.
+    pax_debug: bool = False
+
     @field_validator("secret_key")
     @classmethod
     def _validate_secret_key(cls, v: str) -> str:
