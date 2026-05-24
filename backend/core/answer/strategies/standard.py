@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.answer.checkers import check_answer, is_polexpand, _normalize_expr
+from core.answer.checkers import check_answer, is_polexpand, _normalize_expr, _safe_locals
 from core.answer.schemas import AnswerResult
 
 
@@ -22,7 +22,7 @@ def pretty_expected(expected: str, answer_type: str) -> str:
             expr = parse_expr(
                 _normalize_expr(expected),
                 transformations=transformations,
-                local_dict={"expand": sympy.expand, "factor": sympy.factor},
+                local_dict={**_safe_locals(), "expand": sympy.expand, "factor": sympy.factor},
             )
             return str(sympy.expand(expr))
         except Exception:

@@ -15,6 +15,18 @@ _log = logging.getLogger("pax.answer")
 _logged_unhandled_types: set[str] = set()
 
 
+# Single-letter names that sympy's namespace pre-binds to non-Symbol objects
+# (N = numerical-eval function, E = exp(1), I = imaginary unit, O = Order
+# class, S = singleton registry, Q = assumption keys, C = legacy). In school
+# exercises these are always variables (`N` for un nombre, `E` pour un
+# événement, …), so force them to Symbols whenever we hand a string off to
+# sympify / parse_expr. Without this, parse_expr('N+16') raises
+# `TypeError: unsupported operand type(s) for +: 'function' and 'Integer'`.
+def _safe_locals() -> dict:
+    import sympy  # noqa: PLC0415
+    return {name: sympy.Symbol(name) for name in ("N", "O", "I", "E", "S", "Q", "C")}
+
+
 def _log_unhandled_answer_type(answer_type: str) -> None:
     """Log an answer type that falls through to text-match (likely unsupported).
     Deduped by name across the process lifetime so the log stays readable."""
@@ -51,7 +63,10 @@ def is_polexpand(s: str) -> bool:
             implicit_multiplication_application,
         )
         expr = parse_expr(
-            s.replace("^", "**"), transformations=transformations, evaluate=False
+            s.replace("^", "**"),
+            transformations=transformations,
+            evaluate=False,
+            local_dict=_safe_locals(),
         )
 
         def is_monomial(e):
@@ -147,6 +162,7 @@ def check_algexp(reply: str, expected: str) -> CheckResult:
         )
 
         local_dict = {
+            **_safe_locals(),
             "expand": sympy.expand,
             "factor": sympy.factor,
             "simplify": sympy.simplify,
@@ -217,8 +233,9 @@ def _check_algexp_numeric(reply: str, expected: str) -> CheckResult:
             {x: 2, y: -1, z: 1},
             {x: 0.5, y: 1.5, z: -0.5},
         ]
-        r_expr = sympy.sympify(_normalize_expr(reply))
-        e_expr = sympy.sympify(_normalize_expr(expected))
+        _loc = _safe_locals()
+        r_expr = sympy.sympify(_normalize_expr(reply), locals=_loc)
+        e_expr = sympy.sympify(_normalize_expr(expected), locals=_loc)
 
         for pt in test_points:
             r_val = complex(r_expr.subs(pt))
@@ -249,8 +266,9 @@ def check_numexp(reply: str, expected: str, precision: float = 1e-4) -> CheckRes
     try:
         import sympy
 
-        r_val = float(sympy.sympify(_normalize_expr(reply)))
-        e_val = float(sympy.sympify(_normalize_expr(expected)))
+        _loc = _safe_locals()
+        r_val = float(sympy.sympify(_normalize_expr(reply), locals=_loc))
+        e_val = float(sympy.sympify(_normalize_expr(expected), locals=_loc))
         correct = (
             abs(r_val - e_val) <= precision
             or abs(r_val - e_val) / (abs(e_val) + 1e-12) <= precision
@@ -331,8 +349,9 @@ def check_fset(reply: str, expected: str, precision: float = 1e-4) -> CheckResul
             transformations = standard_transformations + (
                 implicit_multiplication_application,
             )
-            ra = parse_expr(_normalize_expr(a), transformations=transformations)
-            rb = parse_expr(_normalize_expr(b), transformations=transformations)
+            _loc = _safe_locals()
+            ra = parse_expr(_normalize_expr(a), transformations=transformations, local_dict=_loc)
+            rb = parse_expr(_normalize_expr(b), transformations=transformations, local_dict=_loc)
             return sympy.simplify(ra - rb) == 0
         except Exception:
             return a.strip().lower() == b.strip().lower()
