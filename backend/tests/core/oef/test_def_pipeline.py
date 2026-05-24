@@ -64,6 +64,9 @@ FORMULE3_DEF = os.path.join(
 POWER10_DEF = os.path.join(
     RESSOURCES, "H4/algebra/oefnombres.fr/def/power10.def"
 )
+ECRDECIMAL_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/oefnombres.fr/def/ecrdecimal.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -597,6 +600,28 @@ class TestPower10:
             s for s in r.statement_segments if s.get("type") in ("input", "textarea")
         ]
         assert standalone == []
+
+
+class TestEcrdecimal:
+    """ecrdecimal is a course exercise whose radio replies are *displayed*
+    normally but *checked* via `?analyze N;<choices>`. The ?analyze prefix
+    must keep the radio type and its choices — overriding to "analyze"
+    dropped them, leaving an empty <ol> with no answerable field."""
+
+    def test_reply_is_radio_with_choices(self):
+        r = load_and_render(ECRDECIMAL_DEF, seed=3, m_step=1)
+        a = r.answers[0]
+        assert a.answer_type == "radio"
+        assert len(a.options.get("choices") or []) == 4
+
+    def test_correct_answer_resolved_from_analyze_condition(self):
+        # The :test condition `$val25 issametext $(val11[1;])` makes the
+        # correct choice val11[1;]; the analyze var is recorded for checking.
+        r = load_and_render(ECRDECIMAL_DEF, seed=3, m_step=1)
+        a = r.answers[0]
+        assert a.expected == "Infinie non périodique"
+        assert a.expected in a.options["choices"]
+        assert a.options.get("analyze_var") == "val25"
 
 
 class TestVocabaff3:

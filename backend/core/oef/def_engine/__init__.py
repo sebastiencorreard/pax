@@ -2100,8 +2100,14 @@ class DefEngine(_SlibMixin):
         none is found.
         """
         from ..def_parser import IfBlock  # noqa: PLC0415
-        pat_rhs = re.compile(rf"\${re.escape(var_name)}\s*=\s*([^\s)]+)")
-        pat_lhs = re.compile(rf"([^\s(]+)\s*=\s*\${re.escape(var_name)}\b")
+        # Accept both `=` and WIMS text comparators (issametext / sametext).
+        # The operand is a single value that may be a `$(…)` reference (whose
+        # own ")" must not truncate the match) — but stop at whitespace so a
+        # multi-clause condition (`$v = 5 and …`) still yields just `5`.
+        _op = r"(?:==?|issametext|sametext)"
+        _val = r"(?:\$\([^()]*\)|[^\s)])+"
+        pat_rhs = re.compile(rf"\${re.escape(var_name)}\b\s*{_op}\s*({_val})")
+        pat_lhs = re.compile(rf"({_val})\s*{_op}\s*\${re.escape(var_name)}\b")
 
         def walk(body: list) -> str | None:
             for instr in body:
@@ -2166,64 +2172,89 @@ class DefEngine(_SlibMixin):
             self.ctx[f"replytype{n}"] = ans_type
 
             expected = good_raw
+            # `analyze_choices` holds the choice list when a radio/menu is
+            # *displayed* normally but *checked* via ?analyze (ecrdecimal).
+            analyze_choices: str | None = None
             # ?analyze N — réponse vérifiée via :postdef + :test
             analyze_m = re.match(r"^\?analyze\s*(\d+)(?:;(.+))?", good_raw.strip(), re.I)
             if analyze_m:
-                ans_type = "analyze"
                 var_name = f"val{analyze_m.group(1)}"
                 options["analyze_var"] = var_name
-                if analyze_m.group(2):
-                    expected = analyze_m.group(2)
-                else:
-                    # `$val<N>` is the student's reply, not a stored answer
-                    # — the check path uses options["analyze_var"] to feed
-                    # the :test section. For debug / auto-fill, peek into
-                    # :test for an equality like `$val<N>=<rhs>` and
-                    # evaluate `<rhs>` against the current ctx.
+                rest = analyze_m.group(2)
+                if ans_type in ("radio", "menu"):
+                    # radio/menu DISPLAY + analyze-based checking: the part
+                    # after ";" is the comma-separated choice list, and the
+                    # correct choice comes from the matching :test condition
+                    # (e.g. `$val25 issametext $(val11[1;])`). Keep the radio/
+                    # menu type so the choices actually render — overriding to
+                    # "analyze" here dropped them, leaving an empty <ol>.
+                    analyze_choices = rest or ""
                     expected = self._resolve_analyze_expected(var_name, df) or ""
+                else:
+                    ans_type = "analyze"
+                    if rest:
+                        expected = rest
+                    else:
+                        # `$val<N>` is the student's reply, not a stored answer
+                        # — the check path uses options["analyze_var"] to feed
+                        # the :test section. For debug / auto-fill, peek into
+                        # :test for an equality like `$val<N>=<rhs>` and
+                        # evaluate `<rhs>` against the current ctx.
+                        expected = self._resolve_analyze_expected(var_name, df) or ""
 
             if ans_type == "radio":
                 choices: list[str] = []
-                for cm in df.choice_meta:
-                    if cm["n"] == n:
-                        correct = self._subst(cm.get("good", ""))
-                        wrong_raw = self._subst(cm.get("bad", ""))
-                        wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
-                        # Dedup: remove duplicates (correct may already be in wrong)
-                        seen_set: set[str] = set()
-                        choices = []
-                        for c in [correct] + wrong:
-                            if c not in seen_set:
-                                seen_set.add(c)
-                                choices.append(c)
-                        # WIMS always appends "Je ne sais pas" as last option
-                        jnsp = "Je ne sais pas"
-                        if jnsp not in seen_set:
-                            choices.append(jnsp)
-                        rng = random.Random(f"{self.seed}_{n}")
-                        rng.shuffle(choices)
-                        expected = correct
-                        break
+                if analyze_choices is not None:
+                    # Choices in author order (they already include "Je ne
+                    # sais pas"); the correct one was resolved above via the
+                    # analyze condition, so no index/shuffle handling here.
+                    choices = [c.strip() for c in analyze_choices.split(",") if c.strip()]
+                else:
+                    for cm in df.choice_meta:
+                        if cm["n"] == n:
+                            correct = self._subst(cm.get("good", ""))
+                            wrong_raw = self._subst(cm.get("bad", ""))
+                            wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
+                            # Dedup: remove duplicates (correct may already be in wrong)
+                            seen_set: set[str] = set()
+                            choices = []
+                            for c in [correct] + wrong:
+                                if c not in seen_set:
+                                    seen_set.add(c)
+                                    choices.append(c)
+                            # WIMS always appends "Je ne sais pas" as last option
+                            jnsp = "Je ne sais pas"
+                            if jnsp not in seen_set:
+                                choices.append(jnsp)
+                            rng = random.Random(f"{self.seed}_{n}")
+                            rng.shuffle(choices)
+                            expected = correct
+                            break
 
-                if not choices and ";" in good_raw:
-                    # Indexed format: "correct_idx;choice1,choice2,..." (like !menu)
-                    # Display order = order in the .def. Authors who want
-                    # randomisation do it explicitly (e.g. !shuffle on the valN
-                    # used for the choices). Re-shuffling here would double up.
-                    idx_str, choices_str = good_raw.split(";", 1)
-                    try:
-                        correct_idx = int(idx_str.strip())
-                        choices = [c.strip() for c in choices_str.split(",") if c.strip()]
-                        if 1 <= correct_idx <= len(choices):
-                            expected = choices[correct_idx - 1]
-                    except (ValueError, IndexError):
-                        pass
+                    if not choices and ";" in good_raw:
+                        # Indexed format: "correct_idx;choice1,choice2,..." (like !menu)
+                        # Display order = order in the .def. Authors who want
+                        # randomisation do it explicitly (e.g. !shuffle on the valN
+                        # used for the choices). Re-shuffling here would double up.
+                        idx_str, choices_str = good_raw.split(";", 1)
+                        try:
+                            correct_idx = int(idx_str.strip())
+                            choices = [c.strip() for c in choices_str.split(",") if c.strip()]
+                            if 1 <= correct_idx <= len(choices):
+                                expected = choices[correct_idx - 1]
+                        except (ValueError, IndexError):
+                            pass
 
                 options["choices"] = choices
 
             elif ans_type == "menu":
                 # WIMS menu format: "correct_index;choice1,choice2,..."
-                if ";" in good_raw:
+                if analyze_choices is not None:
+                    # menu DISPLAY + analyze checking (see the radio branch).
+                    options["choices"] = [
+                        c.strip() for c in analyze_choices.split(",") if c.strip()
+                    ]
+                elif ";" in good_raw:
                     idx_str, choices_str = good_raw.split(";", 1)
                     try:
                         correct_idx = int(idx_str.strip())
