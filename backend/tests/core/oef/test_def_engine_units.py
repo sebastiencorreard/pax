@@ -92,6 +92,23 @@ class TestCloseInlineMath:
         # Variable substitutions not resolved → fallback to plain close
         assert _close_inline_math(r"\($x = $y\)") == r"\($x = $y\)"
 
+    def test_renders_sqrt(self):
+        # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
+        assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
+
+    def test_implicit_product_with_sqrt(self):
+        # ecrdec1: an implicit product `)(` parses via implicit
+        # multiplication and each sqrt renders — and the product is NOT
+        # simplified to -4 (which would give the answer away).
+        assert _close_inline_math(r"\((1+sqrt(5))(1-sqrt(5)))") == (
+            r"\(\left(1 - \sqrt{5}\right) \left(1 + \sqrt{5}\right)\)"
+        )
+
+    def test_renders_fraction_of_sqrt(self):
+        assert _close_inline_math(r"\(2sqrt(5)/sqrt(10))") == (
+            r"\(\frac{2 \sqrt{5}}{\sqrt{10}}\)"
+        )
+
 
 # ── slib helper commands ─────────────────────────────────────────────────────
 

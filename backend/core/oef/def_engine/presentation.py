@@ -15,58 +15,26 @@ from __future__ import annotations
 def _normalize_math_content(s: str) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
-    Tries to render each side of an `=` via SymPy → LaTeX (drops `*`, fixes
-    `+-` → `-`, etc.). Falls back to the original on parse failure so that
-    pre-formatted LaTeX (`\\frac{}{}`, `\\sqrt{}`, …) is preserved.
+    Delegates to ``_expr_to_latex`` (implicit multiplication + evaluate=False)
+    so author expressions render as written: ``sqrt(5)`` → ``\\sqrt{5}`` and
+    implicit products like ``(1+sqrt(5))(1-sqrt(5))`` parse instead of leaking
+    a literal ``sqrt(5)``. Crucially it does *not* simplify — collapsing that
+    product to ``-4`` would give the answer away in an ecrdec-style exercise.
+    Each side of an ``=`` is rendered independently. Falls back to the original
+    string on parse failure so pre-formatted LaTeX (``\\frac{}{}``,
+    ``\\sqrt{}``, …) is preserved.
     """
-    import sympy  # noqa: PLC0415
+    from .cas import _expr_to_latex  # noqa: PLC0415 — lazy, avoids circular import
 
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
-    def _render_side(side: str) -> str:
-        side = side.strip()
-        if not side:
-            return side
-            
-        wrapped = False
-        if side.startswith("(") and side.endswith(")"):
-            depth = 0
-            is_single_group = True
-            for i, c in enumerate(side):
-                if c == "(": depth += 1
-                elif c == ")": depth -= 1
-                if depth == 0 and i < len(side) - 1:
-                    is_single_group = False
-                    break
-            if is_single_group:
-                wrapped = True
-
-        # sympify pulls a few single-letter names from sympy's namespace
-        # (N → numerical eval function, O → Order, I → ImaginaryUnit, …),
-        # turning `\(N\)` into "<function N at 0x…>". In school exercises
-        # those letters are always Symbols, so force them.
-        local_dict = {
-            name: sympy.Symbol(name) for name in (
-                "N", "O", "I", "E", "S", "Q", "C"
-            )
-        }
-        try:
-            res = sympy.latex(
-                sympy.sympify(side.replace("^", "**"), locals=local_dict)
-            )
-            if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
-                res = f"\\left({res}\\right)"
-            return res
-        except Exception:
-            return side
-
     parts = s.split("=")
     if all(p.strip() for p in parts) and len(parts) > 1:
-        rendered = [_render_side(p) for p in parts]
+        rendered = [_expr_to_latex(p.strip()) for p in parts]
         if all(r != p.strip() for r, p in zip(rendered, parts)):
             return " = ".join(rendered)
-    rendered = _render_side(s)
+    rendered = _expr_to_latex(s.strip())
     if rendered != s.strip():
         return rendered
     return s
