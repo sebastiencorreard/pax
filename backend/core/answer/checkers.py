@@ -448,7 +448,7 @@ def check_answer(
     # Multi-good: if expected lists several acceptable answers, treat as
     # alternatives and accept the reply if it matches any of them. Skip for
     # types where comma is part of the answer syntax (sets, radio/case lists).
-    if answer_type.lower() in ("algexp", "litexp", "formal", "function", "default", "numeric", "numexp"):
+    if answer_type.lower() in ("algexp", "litexp", "formal", "function", "default", "auto", "numeric", "numexp"):
         alternatives = _split_top_level_alternatives(expected)
         if len(alternatives) > 1:
             last: CheckResult | None = None
@@ -469,7 +469,7 @@ def check_answer(
     if (
         not requires_expand
         and not requires_factor
-        and answer_type.lower() in ("algexp", "default", "litexp", "formal")
+        and answer_type.lower() in ("algexp", "default", "auto", "litexp", "formal")
         and any(c.isalpha() for c in expected)
     ):
         if is_polexpand(expected):
@@ -516,7 +516,7 @@ def check_answer(
             return check_radio(reply, expected)
         case "case":
             return check_case(reply, expected)
-        case "default":
+        case "default" | "auto":
             return check_default(reply, expected)
         case "text":
             return check_text(reply, expected)

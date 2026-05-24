@@ -32,7 +32,11 @@ export function useKatex() {
   // imbriqués) sont laissées au LaTeX existant.
   function slashToFrac(expr: string): string {
     const atom = String.raw`-{0,2}(?:\([^()]*\)|\d+(?:\.\d+)?|[A-Za-z_]\w*)`
-    const re = new RegExp(`(${atom})\\s*/\\s*(${atom})`)
+    // Lookbehind ``(?<!\^)``: don't pull the numerator out of an exponent —
+    // e.g. ``x^2/2`` is ``(x²)/2``, not ``x^(2/2)``. Without it, the atom
+    // ``2`` after ``^`` is treated as the numerator and \dfrac eats the
+    // whole exponent slot.
+    const re = new RegExp(`(?<!\\^)(${atom})\\s*/\\s*(${atom})`)
     // Une seule passe : le résultat ``\dfrac{…}{…}`` ne re-match plus le pattern.
     let prev: string
     do {
