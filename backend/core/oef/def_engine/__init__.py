@@ -182,7 +182,10 @@ class DefEngine(_SlibMixin):
         # has somewhere to type the answer (matches WIMS' fallback behaviour).
         # Skip this for dynamic steps exercises (they control visibility per step).
         segments = _segment_statement(html)
-        widget_names = {s["name"] for s in segments if s["type"] in ("input", "slot", "menu")}
+        widget_names = {
+            s["name"] for s in segments
+            if s["type"] in ("input", "slot", "menu", "textarea", "correspond")
+        }
         
         # Extract dynamic steps info
         oefsteps_val = self.ctx.get("oefsteps", "").strip()
@@ -236,7 +239,8 @@ class DefEngine(_SlibMixin):
             answers = [a for a in answers if a.input_name in self._touched_replies]
 
         text_replies = [
-            a for a in answers if a.answer_type.lower() not in ("radio", "menu", "mark")
+            a for a in answers
+            if a.answer_type.lower() not in ("radio", "menu", "mark", "correspond")
         ]
         if text_replies and not widget_names and not is_dynsteps_flag:
             for a in text_replies:
