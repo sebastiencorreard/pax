@@ -552,6 +552,19 @@ def check_radio(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="exact")
 
 
+def check_clickfill(reply: str, expected: str) -> CheckResult:
+    """Compare two drag-compose sequences (comma-joined slot values).
+
+    Order matters; empty slots are ignored. Works for a single-slot clickfill
+    too (one item each side).
+    """
+    def seq(s: str) -> list[str]:
+        return [x.strip() for x in s.split(",") if x.strip()]
+
+    correct = seq(reply) == seq(expected)
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="clickfill")
+
+
 def check_text(reply: str, expected: str) -> CheckResult:
     """Comparaison de texte insensible à la casse."""
     correct = reply.strip().lower() == expected.strip().lower()
@@ -759,8 +772,10 @@ def check_answer(
             return check_fset(reply, expected, precision)
         case "set" | "checkbox":
             return check_set(reply, expected)
-        case "radio" | "menu" | "clickfill" | "mark":
+        case "radio" | "menu" | "mark":
             return check_radio(reply, expected)
+        case "clickfill":
+            return check_clickfill(reply, expected)
         case "correspond":
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "case":

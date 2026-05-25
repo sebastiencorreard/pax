@@ -19,6 +19,8 @@ export interface BackendSegment {
   label?: string
   is_sup?: boolean
   config?: CorrespondConfig
+  index?: number
+  width?: number
 }
 
 export interface Rendered {
@@ -69,7 +71,7 @@ export interface CorrespondConfig {
 
 export type Segment =
   | { type: 'html';        content: string }
-  | { type: 'slot';        name: string; is_sup?: boolean }
+  | { type: 'slot';        name: string; is_sup?: boolean; index?: number; width?: number }
   | { type: 'input';       name: string; width: string; is_sup?: boolean }
   | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
@@ -96,7 +98,7 @@ export function useExerciseLogic() {
       } else if (s.type === 'textarea') {
         out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup })
       } else if (s.type === 'slot') {
-        out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup })
+        out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup, index: s.index, width: s.width })
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       } else if (s.type === 'correspond' && s.config) {

@@ -15,13 +15,15 @@
           <span v-else-if="seg.type === 'html'" v-html="seg.content"></span>
           <ExerciseCfSlot v-else-if="seg.type === 'slot'"
             :name="seg.name"
-            :value="replies[seg.name] || ''"
+            :index="seg.index ?? 0"
+            :value="cfValue(seg.name, seg.index ?? 0)"
+            :state="cfSlotState(seg.name, seg.index ?? 0)"
             :choices-html="clickfillChoicesHtml"
             :dragging="draggingChoice"
             :pending="pendingChoice"
             :submitted="submitted"
-            @place="(name, val) => { updateReply(name, val); pendingChoice = null }"
-            @clear="(name) => { updateReply(name, '') }"
+            @place="(name, val, idx) => { setCfSlot(name, idx, val); pendingChoice = null }"
+            @clear="(name, idx) => { setCfSlot(name, idx, '') }"
           />
           <input v-else-if="seg.type === 'input'"
             type="text"
@@ -122,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 
 const props = defineProps<{
@@ -147,6 +149,68 @@ const emit = defineEmits<{
 function updateReply(name: string, value: string) {
   emit('update:replies', { ...props.replies, [name]: value })
 }
+
+// ── Multi-slot clickfill ─────────────────────────────────────────────────────
+// Several drop targets can share one reply name (drag-compose, e.g.
+// repgraphint composes ]−2;20[ across slots). Each slot holds one label; the
+// reply is their ordered, non-empty values joined by ",". cfSlots is the
+// source of truth; replies[name] is derived.
+const cfSlots = ref<Record<string, string[]>>({})
+
+const slotCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {}
+  for (const s of props.statementSegments) {
+    if (s.type === 'slot') counts[s.name] = (counts[s.name] ?? 0) + 1
+  }
+  return counts
+})
+
+function cfValue(name: string, index: number): string {
+  return cfSlots.value[name]?.[index] ?? ''
+}
+
+function setCfSlot(name: string, index: number, value: string) {
+  const n = slotCounts.value[name] ?? 1
+  const arr = (cfSlots.value[name] ?? Array.from({ length: n }, () => '')).slice()
+  arr[index] = value
+  cfSlots.value = { ...cfSlots.value, [name]: arr }
+  updateReply(name, arr.filter(Boolean).join(','))
+}
+
+// Per-slot feedback: compare each filled slot (in sequence order) to the
+// expected item at the same position.
+function cfSlotState(name: string, index: number): '' | 'correct' | 'incorrect' {
+  if (!props.submitted || !props.checkResult) return ''
+  const r = props.checkResult.results.find(x => x.input_name === name)
+  if (!r) return ''
+  const expected = (r.expected ?? '').split(',').map(s => s.trim()).filter(Boolean)
+  const arr = cfSlots.value[name] ?? []
+  const filled = arr.map((v, i) => ({ v, i })).filter(o => o.v)
+  const pos = filled.findIndex(o => o.i === index)
+  if (pos < 0) return ''
+  return filled[pos].v.trim() === (expected[pos] ?? '') ? 'correct' : 'incorrect'
+}
+
+// Reset slots when the exercise (segments) changes.
+watch(() => props.statementSegments, () => { cfSlots.value = {} })
+
+// Mirror an externally-set reply (debug auto-fill / reset) into the slots
+// when it can't be reconstructed from the current slot values. Our own
+// setCfSlot updates keep ext === cur, so this is a no-op for user input.
+watch(() => props.replies, (r) => {
+  for (const name of Object.keys(slotCounts.value)) {
+    const ext = r[name] ?? ''
+    const cur = (cfSlots.value[name] ?? []).filter(Boolean).join(',')
+    if (ext !== cur) {
+      const vals = ext ? ext.split(',') : []
+      const n = slotCounts.value[name]
+      cfSlots.value = {
+        ...cfSlots.value,
+        [name]: Array.from({ length: n }, (_, i) => vals[i] ?? ''),
+      }
+    }
+  }
+}, { deep: true })
 
 const pendingChoice = ref<string | null>(null)
 const draggingChoice = ref<string | null>(null)

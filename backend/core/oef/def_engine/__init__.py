@@ -2046,7 +2046,34 @@ class DefEngine(_SlibMixin):
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
                 return f'<span class="oef-menu" name="{ref}" data-label="{label}"></span>'
             elif reply_type == "clickfill":
-                return f'<cf-slot name="{ref}"></cf-slot>'
+                # Drag-compose answer: emit one target slot per cell. The embed
+                # size is "W x H x N" (cell width/height in px, N = slot count,
+                # e.g. repgraphint's 60x40x12). Fall back to the length of the
+                # correct sequence when N is absent. All slots share `ref`; the
+                # frontend composes their ordered, non-empty values into one
+                # reply. Entity-safe split (replygood holds &#91;/&#93;/&#59;
+                # whose ";" must not be read as the correct;pool separator).
+                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+                rows = self._split_rows_by_semi(good_raw)
+                correct_items = [c for c in (rows[0].split(",") if rows else []) if c.strip()]
+                size_parts = re.split(r"\s*[xX]\s*", self._subst(size_str).strip())
+                nslots = 0
+                if len(size_parts) >= 3:
+                    try:
+                        nslots = int(float(size_parts[2]))
+                    except (ValueError, TypeError):
+                        nslots = 0
+                if nslots <= 0:
+                    nslots = len(correct_items) or 1
+                try:
+                    slot_w = int(float(size_parts[0])) if size_parts else 0
+                except (ValueError, TypeError):
+                    slot_w = 0
+                w_attr = f' data-w="{slot_w}"' if slot_w > 0 else ""
+                return "".join(
+                    f'<cf-slot name="{ref}" data-index="{i}"{w_attr}></cf-slot>'
+                    for i in range(nslots)
+                )
             elif reply_type == "correspond":
                 # `correspond`: bijection between two columns. replygood
                 # is "left1,left2,...;right1,right2,..." (rows separated
@@ -2365,22 +2392,40 @@ class DefEngine(_SlibMixin):
                         expected = ",".join(rights)
 
             elif ans_type == "clickfill":
-                # Format: "correct_answer;wrong1,wrong2,..."
-                if ";" in good_raw:
-                    correct_part, wrongs_str = good_raw.split(";", 1)
-                    correct_part = correct_part.strip()
-                    wrong_items = [w.strip() for w in wrongs_str.split(",") if w.strip()]
+                # Format: "correct;pool". Split entity-safe — the parts hold
+                # HTML entities (&#91; [ , &#93; ] , &#59; ;) whose trailing ";"
+                # must not be mistaken for the correct;pool separator.
+                rows = self._split_rows_by_semi(good_raw)
+                if len(rows) >= 2:
+                    correct_str, pool_str = rows[0], ";".join(rows[1:])
                 else:
-                    correct_part = good_raw.strip()
-                    wrong_items = []
-                if correct_part:
-                    correct_part = _close_inline_math(correct_part)
-                    wrong_items = [_close_inline_math(w) for w in wrong_items]
-                    choices = [correct_part] + wrong_items
+                    correct_str, pool_str = good_raw, ""
+                correct_items = [
+                    _close_inline_math(c.strip()) for c in correct_str.split(",") if c.strip()
+                ]
+                pool_items = [
+                    _close_inline_math(p.strip()) for p in pool_str.split(",") if p.strip()
+                ]
+                rng = random.Random(f"{self.seed}_{n}")
+                if len(correct_items) > 1:
+                    # Multi-slot drag-compose (e.g. repgraphint): the student
+                    # arranges labels from the pool into an ordered sequence.
+                    # expected = the ordered sequence (comma-joined); choices =
+                    # the pool (it already contains every needed label).
                     seen: set[str] = set()
-                    choices = [c for c in choices if not (c in seen or seen.add(c))]  # type: ignore[func-returns-value]
-                    random.Random(f"{self.seed}_{n}").shuffle(choices)
-                    expected = correct_part
+                    choices = [c for c in pool_items if not (c in seen or seen.add(c))]  # type: ignore[func-returns-value]
+                    rng.shuffle(choices)
+                    options["choices"] = choices
+                    options["slots"] = len(correct_items)
+                    expected = ",".join(correct_items)
+                elif correct_items:
+                    # Single-slot: pick the one correct label among distractors.
+                    correct = correct_items[0]
+                    choices = [correct] + pool_items
+                    seen2: set[str] = set()
+                    choices = [c for c in choices if not (c in seen2 or seen2.add(c))]  # type: ignore[func-returns-value]
+                    rng.shuffle(choices)
+                    expected = correct
                     options["choices"] = choices
 
             answers.append(

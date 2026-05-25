@@ -8,7 +8,33 @@ sys.path.insert(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     ),
 )
-from core.answer.checkers import check_answer, check_correspond, check_default, check_fset
+from core.answer.checkers import (
+    check_answer,
+    check_clickfill,
+    check_correspond,
+    check_default,
+    check_fset,
+)
+
+
+class TestCheckClickfill:
+    def test_ordered_sequence_match(self):
+        # repgraphint: ]−2;20[ composed across slots, comma-joined.
+        seq = "&#93;,\\(-2\\),&#59;,\\(20\\),&#91;"
+        assert check_clickfill(seq, seq).correct
+
+    def test_order_matters(self):
+        assert not check_clickfill("a,b,c", "a,c,b").correct
+
+    def test_ignores_empty_and_whitespace(self):
+        assert check_clickfill(" a , b ,, c ", "a,b,c").correct
+
+    def test_wrong_sequence(self):
+        assert not check_clickfill("a,b", "a,b,c").correct
+
+    def test_single_slot_still_works(self):
+        assert check_clickfill("x<-3", "x<-3").correct
+        assert not check_clickfill("x>-3", "x<-3").correct
 
 
 # Bug fix : type "fset" tombait dans le case "text" (comparaison de chaînes),

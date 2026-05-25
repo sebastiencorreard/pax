@@ -73,6 +73,9 @@ NATURE_DEF = os.path.join(
 SDLECTGRAPH1_DEF = os.path.join(
     RESSOURCES, "H4/algebra/oefseconddegree.fr/def/sdlectgraph1.def"
 )
+REPGRAPHINT_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/oefordrevabs.fr/def/repgraphint.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -699,6 +702,37 @@ class TestSdlectgraph1:
             assert "*" not in c  # multiplication rendered, not raw
         # expected stays one of the (closed) choices → reply check is consistent
         assert a.expected in choices
+
+
+class TestRepgraphint:
+    """repgraphint is a multi-slot drag-compose clickfill: the student arranges
+    labels (]/[/;/numbers/∪/∩/±∞) into an ordered sequence forming the interval
+    drawn in red. replygood = "correct_seq;pool" where both carry HTML entities
+    (&#91;/&#93;/&#59;) whose ";" must not split as the correct;pool separator."""
+
+    def test_clickfill_answer_parsed(self):
+        r = load_and_render(REPGRAPHINT_DEF, seed=5)
+        a = r.answers[0]
+        assert a.answer_type == "clickfill"
+        # expected is the full ordered sequence, NOT truncated at the first
+        # entity semicolon (the old bug gave "&#93").
+        items = a.expected.split(",")
+        assert len(items) == 5
+        assert items[0] == "&#93;" and items[-1] == "&#91;"
+
+    def test_pool_choices(self):
+        # choices = the pool (val32), not [correct]+wrongs; entities intact.
+        r = load_and_render(REPGRAPHINT_DEF, seed=5)
+        choices = r.answers[0].options["choices"]
+        assert "&#91;" in choices and "&#93;" in choices and "&#59;" in choices
+        assert "\\(\\cup\\)" in choices  # math closed to KaTeX form
+
+    def test_multi_slot_count_from_embed_size(self):
+        # embed size 60x40x12 → 12 drop slots, indexed 0..11.
+        r = load_and_render(REPGRAPHINT_DEF, seed=5)
+        slots = [s for s in r.statement_segments if s.get("type") == "slot"]
+        assert len(slots) == 12
+        assert [s.get("index") for s in slots] == list(range(12))
 
 
 class TestVocabaff3:

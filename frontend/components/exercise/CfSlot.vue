@@ -5,6 +5,8 @@
       'cf-slot--over': isOver,
       'cf-slot--filled': !!value,
       'cf-slot--pending': isPending,
+      'cf-slot--correct': state === 'correct',
+      'cf-slot--incorrect': state === 'incorrect',
     }"
     @dragover.prevent="isOver = true"
     @dragenter.prevent="isOver = true"
@@ -25,11 +27,13 @@ const props = defineProps<{
   dragging: string | null   // valeur raw de la carte en cours de glisser
   pending: string | null    // valeur raw de la carte sélectionnée par clic
   submitted: boolean
+  index?: number            // slot position within a multi-slot group
+  state?: '' | 'correct' | 'incorrect'  // post-submit feedback
 }>()
 
 const emit = defineEmits<{
-  place: [name: string, value: string]
-  clear: [name: string]
+  place: [name: string, value: string, index: number]
+  clear: [name: string, index: number]
 }>()
 
 const { renderMath } = useKatex()
@@ -48,17 +52,17 @@ function onDrop(e: DragEvent) {
   isOver.value = false
   if (props.submitted) return
   const raw = e.dataTransfer?.getData('text/plain')
-  if (raw) emit('place', props.name, raw)
+  if (raw) emit('place', props.name, raw, props.index ?? 0)
 }
 
 function onClick() {
   if (props.submitted) return
   if (props.pending) {
     // Une carte est en attente → on la place ici
-    emit('place', props.name, props.pending)
+    emit('place', props.name, props.pending, props.index ?? 0)
   } else if (props.value) {
     // Clic sur slot rempli → vider
-    emit('clear', props.name)
+    emit('clear', props.name, props.index ?? 0)
   }
 }
 </script>
@@ -90,6 +94,16 @@ function onClick() {
 .cf-slot--pending {
   border-style: dashed;
   border-color: var(--color-primary);
+}
+.cf-slot--correct {
+  border-style: solid;
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+.cf-slot--incorrect {
+  border-style: solid;
+  border-color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
 }
 .cf-slot-placeholder {
   color: var(--color-text-muted);

@@ -166,7 +166,10 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
 #   groupes 2-3 — champ texte : <span class="oef-input" name="…" data-size="…"></span>
 #   groupes 4-5 — menu déroulant : <span class="oef-menu" name="…" data-label="…"></span>
 _SEGMENT_PATTERN = re.compile(
-    r'<cf-slot name="([^"]+)"></cf-slot>'
+    # cf-slot may carry extra attrs (data-index/data-w for multi-slot
+    # clickfill); keep group 1 = name and swallow the rest non-capturingly
+    # so the later group numbers (oef-input/menu/correspond) don't shift.
+    r'<cf-slot name="([^"]+)"[^>]*></cf-slot>'
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
@@ -300,8 +303,16 @@ def _segment_statement(html: str) -> list[dict]:
         is_sup = in_sup > 0
 
         if m.group(1) is not None:
-            # Slot clickfill
-            segments.append({"type": "slot", "name": m.group(1).strip(), "is_sup": is_sup})
+            # Slot clickfill — carry the slot index/width when present so the
+            # frontend can render an ordered row of drop targets for one reply.
+            slot = {"type": "slot", "name": m.group(1).strip(), "is_sup": is_sup}
+            idx_m = re.search(r'data-index="(\d+)"', m.group(0))
+            if idx_m:
+                slot["index"] = int(idx_m.group(1))
+            w_m = re.search(r'data-w="(\d+)"', m.group(0))
+            if w_m:
+                slot["width"] = int(w_m.group(1))
+            segments.append(slot)
         elif m.group(4) is not None:
             # Menu déroulant
             name = m.group(4).strip()
