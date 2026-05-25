@@ -2109,12 +2109,15 @@ class DefEngine(_SlibMixin):
                 rows = self._split_rows_by_semi(good_raw)
                 if len(rows) != 2:
                     return ""
+                # Close WIMS inline math `\(…)` to KaTeX `\(…\)` so the
+                # frontend typesets the labels (e.g. `\(x \mapsto 2x-2)`); a
+                # no-op for plain text.
                 lefts = [
-                    self._subst(c.strip())
+                    _close_inline_math(self._subst(c.strip()))
                     for c in re.split(r",(?![^(]*\))", rows[0]) if c.strip()
                 ]
                 rights = [
-                    self._subst(c.strip())
+                    _close_inline_math(self._subst(c.strip()))
                     for c in re.split(r",(?![^(]*\))", rows[1]) if c.strip()
                 ]
                 if not lefts or len(lefts) != len(rights):

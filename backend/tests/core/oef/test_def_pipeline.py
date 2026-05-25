@@ -809,6 +809,8 @@ class TestCof:
         cfg = seg["config"]
         assert len(cfg.get("lefts", [])) >= 3
         assert len(cfg.get("rights", [])) >= 3
+        # items are closed to KaTeX form so the frontend typesets them
+        assert all(x.startswith(r"\(") and x.endswith(r"\)") for x in cfg["lefts"])
 
 
 class TestVocabaff3:
