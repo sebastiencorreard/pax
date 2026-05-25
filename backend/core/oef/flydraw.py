@@ -187,6 +187,19 @@ def _num(s: str) -> float:
     s = s.strip()
     if not s:
         return 0.0
+    # A coordinate may arrive wrapped in WIMS inline-math delimiters, e.g.
+    # repgraphint reuses `\(-6)` (its display form) as the x of a bracket and
+    # label. Strip `\(` … `)`/`\)` so it parses as the number, not 0 (which
+    # collapsed every bound to the axis centre).
+    if s.startswith("\\("):
+        inner = s[2:]
+        if inner.endswith("\\)"):
+            inner = inner[:-2]
+        elif inner.endswith(")"):
+            inner = inner[:-1]
+        s = inner.strip()
+        if not s:
+            return 0.0
     try:
         return float(s)
     except ValueError:

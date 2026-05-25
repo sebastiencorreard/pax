@@ -734,6 +734,22 @@ class TestRepgraphint:
         assert len(slots) == 12
         assert [s.get("index") for s in slots] == list(range(12))
 
+    def test_bound_labels_not_collapsed_to_centre(self):
+        # The graph reuses `\(-6)`-style display forms as bracket/label
+        # coordinates; flydraw must parse them as numbers. Otherwise both
+        # bound labels (and brackets) landed at the axis centre (x=400).
+        import re as _re
+
+        r = load_and_render(REPGRAPHINT_DEF, seed=23)
+        svg = r.statement_html
+        svg = svg[svg.find("<svg"):svg.find("</svg>") + 6]
+        xs = [
+            float(m.group(1))
+            for m in _re.finditer(r'<text [^>]*x="([\d.]+)"[^>]*>[^<]+</text>', svg)
+        ]
+        assert len(xs) == 2
+        assert abs(xs[0] - xs[1]) > 1.0  # distinct positions, not both 400
+
 
 class TestVocabaff3:
     """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate

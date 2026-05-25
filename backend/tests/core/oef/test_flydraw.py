@@ -24,6 +24,14 @@ class TestNumEval:
         assert _num("floor(-3)-2") == -5.0
         assert _num("ceil(2.1)") == 3.0
 
+    def test_strips_inline_math_delimiters(self):
+        # repgraphint reuses `\(-6)` (its display form) as a coordinate;
+        # _num must strip the \(…) so it parses as -6, not 0 (which collapsed
+        # every bound onto the axis centre).
+        assert _num(r"\(-6)") == -6.0
+        assert _num(r"\(4)") == 4.0
+        assert _num(r"\((1+3))") == 4.0
+
 
 class TestFlydrawPrimitives:
     def test_viewbox_is_pixel_space(self):
