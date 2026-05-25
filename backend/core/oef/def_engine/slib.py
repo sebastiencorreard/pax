@@ -135,12 +135,45 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._render_jsxgraph(proc_args)
             return
 
+        if path == "slib/data/random":
+            self.ctx["slib_out"] = self._slib_data_random(proc_args)
+            return
+
         if path.startswith("slib/"):
             self._run_slib(path, proc_args)
             return
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _slib_data_random(self, args: str) -> str:
+        """Built-in for ``slib/data/random N,type,data`` — N random items of
+        ``data`` (no replacement), seeded. ``type`` is item / word / row; the
+        WIMS script chokes in our sub-engine (!distribute/!bound/…), so emulate
+        it (couf builds its constant terms this way; without it the list was
+        empty and the whole CAS chain derailed).
+        """
+        parts = args.split(",")
+        if len(parts) < 3:
+            return ""
+        try:
+            n = int(float(parts[0].strip()))
+        except (ValueError, TypeError):
+            return ""
+        typ = parts[1].strip().lower()
+        data = ",".join(parts[2:]).strip()
+        if typ in ("word", "words"):
+            items, sep = [w for w in data.split() if w], " "
+        elif typ in ("row", "rows", "line", "lines"):
+            items, sep = [r.strip() for r in re.split(r"[;\n]", data) if r.strip()], ";"
+        else:  # item(s) — comma-separated
+            items, sep = [c.strip() for c in data.split(",") if c.strip()], ","
+        if not items:
+            return ""
+        n = max(1, min(n, len(items)))
+        shuffled = items[:]
+        self.rng.shuffle(shuffled)
+        return sep.join(shuffled[:n])
 
     def _render_jsxgraph(self, proc_args: str) -> str:
         """Built-in for ``slib/geo2D/jsxgraph``: emit a marker div that
@@ -163,6 +196,10 @@ class _SlibMixin:
         w, h = (int(wh.group(1)), int(wh.group(2))) if wh else (500, 500)
         mx = re.search(r"max\s*=\s*(\d+)\s*px", size_spec)
         maxw = int(mx.group(1)) if mx else 500
+        # Tabs are just statement separators in the .def-authored JS; drop them
+        # so the emitted board div is tab-free and can be stored in a
+        # TAB-separated list (couf indexes its boards via $(val44[…])).
+        js = js.replace("\t", " ")
         return (
             f'<div class="pax-jsxgraph" id="{div_id}" '
             f'data-w="{w}" data-h="{h}" data-maxw="{maxw}" '

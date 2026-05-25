@@ -410,10 +410,14 @@ class DefEngine(_SlibMixin):
         # neutralise any tabs in the substituted content so the resulting
         # comma-separated list is unambiguous to $(var[i]) access.
         if _COMMA_VARLIST_RE.match(value):
-            parts = []
-            for ref in re.split(r"\s*,\s*", value.strip()):
-                parts.append(self._subst(ref).replace("\t", " "))
-            return ",".join(parts)
+            parts = [self._subst(ref) for ref in re.split(r"\s*,\s*", value.strip())]
+            # An item that is a comma-laden HTML blob (e.g. a JSXGraph board
+            # div) can't be comma-joined without breaking $(var[i]); use a TAB
+            # separator. Plain comma-data items (numbers, fractions) keep the
+            # flattening comma-join.
+            if any("," in p and "<" in p for p in parts):
+                return "\t".join(parts)
+            return ",".join(p.replace("\t", " ") for p in parts)
 
         # Literal string with variable substitution
         return self._subst(value)

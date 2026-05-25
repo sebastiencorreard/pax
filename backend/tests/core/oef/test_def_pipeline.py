@@ -79,6 +79,9 @@ REPGRAPHINT_DEF = os.path.join(
 COF_DEF = os.path.join(
     RESSOURCES, "H3/analysis/fonctaffin.fr/def/cof.def"
 )
+COUF_DEF = os.path.join(
+    RESSOURCES, "H3/analysis/fonctaffin.fr/def/couf.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -824,6 +827,41 @@ class TestCof:
         assert len(cfg.get("rights", [])) >= 3
         # items are closed to KaTeX form so the frontend typesets them
         assert all(x.startswith(r"\(") and x.endswith(r"\)") for x in cfg["lefts"])
+
+
+class TestCouf:
+    """couf builds its affine functions from constant terms drawn via
+    slib/data/random. Without that slib the list was empty, so rint() got no
+    argument and the maxima/pari/texmath chain derailed into garbage labels
+    ("P a e f i l l l …"). The boards are also stored in a comma-list, so the
+    comma-laden divs must use a TAB separator to stay indexable."""
+
+    def test_constant_terms_drawn(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(COUF_DEF)
+        e = DefEngine(seed=7, def_path=COUF_DEF)
+        e.render(df)
+        # val10 = the (shuffled, duplicated) constant terms; must be 4 integers.
+        items = str(e.ctx.get("val10")).split(",")
+        assert len(items) == 4
+        assert all(p.strip().lstrip("-").isdigit() for p in items)
+
+    def test_function_labels_clean(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(COUF_DEF)
+        e = DefEngine(seed=7, def_path=COUF_DEF)
+        e.render(df)
+        label = e._subst("$(val17[1])")
+        assert "\\mapsto" in label
+        assert "fillm" not in label.replace(" ", "")  # not the sorted-letters garbage
+
+    def test_question_board_is_a_segment(self):
+        r = load_and_render(COUF_DEF, seed=7)
+        boards = [s for s in r.statement_segments if s.get("type") == "jsxgraph"]
+        assert len(boards) >= 1
+        assert "functiongraph" in boards[0]["js"]
 
 
 class TestVocabaff3:

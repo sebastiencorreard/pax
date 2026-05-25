@@ -491,6 +491,27 @@ class TestCmdStringOps:
         e.ctx["mylist"] = "f(a,b)"
         assert e._eval_cmd("append", "item g(c,d) to $mylist") == "f(a,b)\tg(c,d)"
 
+
+class TestSlibDataRandom:
+    def test_picks_n_distinct_items(self):
+        # slib/data/random N,item,LIST → N distinct random items (seeded).
+        e = engine()
+        e._cmd_readproc("slib/data/random 2,item, a,b,c,d,e")
+        out = e.ctx["slib_out"].split(",")
+        assert len(out) == 2 and len(set(out)) == 2
+        assert set(out) <= set("abcde")
+
+    def test_word_type(self):
+        e = engine()
+        e._cmd_readproc("slib/data/random 3,word, un deux trois quatre")
+        out = e.ctx["slib_out"].split(" ")
+        assert len(out) == 3 and set(out) <= {"un", "deux", "trois", "quatre"}
+
+    def test_deterministic_for_seed(self):
+        a = engine(seed=42); a._cmd_readproc("slib/data/random 2,item, 1,2,3,4,5")
+        b = engine(seed=42); b._cmd_readproc("slib/data/random 2,item, 1,2,3,4,5")
+        assert a.ctx["slib_out"] == b.ctx["slib_out"]
+
     def test_lower(self):
         e = engine()
         assert e._eval_cmd("lower", "ABC") == "abc"
