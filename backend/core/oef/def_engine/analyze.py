@@ -29,6 +29,12 @@ def _analyze_wrap(value: str) -> str:
     stripped = value.strip()
     if not stripped:
         return value
+    # A bare number or simple fraction ("-23/5", "3/4") is atomic: wrapping it
+    # as "(-23/5)" changes nothing arithmetically but breaks the `issamecase`/
+    # `issametext` string comparisons (the parens make it differ from the
+    # stored answer) — e.g. cant's irreducible-fraction check.
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?(?:\s*/\s*[+-]?\d+(?:\.\d+)?)?", stripped):
+        return stripped
     depth = 0
     has_top_op = False
     for i, ch in enumerate(stripped):
@@ -63,8 +69,12 @@ def check_analyze(
     test_instructions: list,
     analyze_replies: dict,
     seed: int,
-) -> dict:
-    """Exécute :postdef puis :test avec les réponses élève ; retourne les condtestN."""
+) -> tuple[dict, dict]:
+    """Exécute :postdef puis :test avec les réponses élève.
+
+    Retourne ``(condtest, weights)`` : les ``condtestN`` (0/1) et leur poids
+    ``condweightN`` (défaut 1) pour un score pondéré.
+    """
     from . import DefEngine  # import différé — évite la circularité
 
     engine = DefEngine(seed=seed)
@@ -73,11 +83,22 @@ def check_analyze(
         engine.ctx[f"val{var_n}"] = _analyze_wrap(value)
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
-    return {
+    condtest = {
         k: int(v)
         for k, v in engine.ctx.items()
         if k.startswith("condtest") and str(v).strip() in ("0", "1")
     }
+    # condweightN sets the relative weight of conditionN (default 1). WIMS
+    # scores `sum(testN*weightN) / sum(weightN)` — e.g. cant weights the
+    # numeric value 3 and the irreducible form 1.
+    weights: dict[str, float] = {}
+    for k in condtest:
+        wn = "condweight" + k[len("condtest"):]
+        try:
+            weights[k] = float(str(engine.ctx.get(wn, 1)).strip() or 1)
+        except (ValueError, TypeError):
+            weights[k] = 1.0
+    return condtest, weights
 
 
 def render_feedback(

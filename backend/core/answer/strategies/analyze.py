@@ -23,15 +23,20 @@ def run_analyze(
         for a in active_ans_defs
         if a.answer_type == "analyze" and "analyze_var" in a.options
     }
-    condtest = check_analyze(
+    condtest, weights = check_analyze(
         ev_ctx=rendered.check_sections["ctx"],
         postdef_instructions=rendered.check_sections["postdef"],
         test_instructions=rendered.check_sections["test"],
         analyze_replies=analyze_replies,
         seed=seed,
     )
-    n_tests = len(condtest)
-    global_score = sum(condtest.values()) / n_tests if n_tests > 0 else 0.0
+    # Weighted score (condweightN); falls back to a plain average when all
+    # weights are 1. Correct on every condition → 1.0.
+    total_w = sum(weights.values())
+    if total_w > 0:
+        global_score = sum(condtest[k] * weights[k] for k in condtest) / total_w
+    else:
+        global_score = 0.0
 
     results: list[AnswerResult] = []
     for ans_def in active_ans_defs:
