@@ -123,6 +123,20 @@ export function useKatex() {
     return expr
   }
 
+  // WIMS blackboard-bold shortcuts (\RR, \NN, …) that KaTeX doesn't know
+  // out of the box — without them an `\insmath \RR` rendered as a red
+  // "[erreur LaTeX]". Mapped to \mathbb{} so ℝ/ℕ/ℤ/… typeset correctly.
+  const KATEX_MACROS: Record<string, string> = {
+    '\\RR': '\\mathbb{R}',
+    '\\NN': '\\mathbb{N}',
+    '\\ZZ': '\\mathbb{Z}',
+    '\\QQ': '\\mathbb{Q}',
+    '\\CC': '\\mathbb{C}',
+    '\\DD': '\\mathbb{D}',
+    '\\KK': '\\mathbb{K}',
+    '\\PP': '\\mathbb{P}',
+  }
+
   async function renderMath(html: string): Promise<string> {
     if (!import.meta.client) return html
 
@@ -131,7 +145,7 @@ export function useKatex() {
     // Remplace \[...\] par du rendu display
     html = html.replace(/\\\[([\s\S]*?)\\\]/g, (_, expr) => {
       try {
-        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: true, throwOnError: false })
+        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: true, throwOnError: false, macros: KATEX_MACROS })
       } catch {
         return `<span class="text-red-500">[erreur LaTeX: ${expr}]</span>`
       }
@@ -140,7 +154,7 @@ export function useKatex() {
     // Remplace \(...\) par du rendu inline
     html = html.replace(/\\\(([\s\S]*?)\\\)/g, (_, expr) => {
       try {
-        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: false, throwOnError: false })
+        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: false, throwOnError: false, macros: KATEX_MACROS })
       } catch {
         return `<span class="text-red-500">[erreur LaTeX: ${expr}]</span>`
       }
