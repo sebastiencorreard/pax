@@ -143,14 +143,14 @@ class _SlibMixin:
         return
 
     def _render_jsxgraph(self, proc_args: str) -> str:
-        """Built-in for ``slib/geo2D/jsxgraph``: turn the board-init JS into an
-        inline container that the frontend hydrates into an interactive
-        JSXGraph board.
+        """Built-in for ``slib/geo2D/jsxgraph``: emit a marker div that
+        _segment_statement turns into a ``jsxgraph`` segment, rendered by the
+        ExerciseJsxgraph Vue component.
 
         Args from the .def are ``<divid> <boardvar>,[<size>], <jscode>``. We
-        keep the div id (the JS calls ``initBoard('<divid>', …)``) and stash
-        the JS in a ``data-jsxgraph`` attribute; the frontend loads the
-        JSXGraph library once and runs the script after the statement renders.
+        keep the div id (the JS calls ``initBoard('<divid>', …)``) and the
+        board-init JS. Because it becomes segment *data* (not statement HTML),
+        the KaTeX pass never sees the ``\\(d_1\\)``-style labels inside it.
         """
         import html as _html  # noqa: PLC0415
 
@@ -162,10 +162,10 @@ class _SlibMixin:
         wh = re.search(r"(\d+)\s*x\s*(\d+)", size_spec)
         w, h = (int(wh.group(1)), int(wh.group(2))) if wh else (500, 500)
         mx = re.search(r"max\s*=\s*(\d+)\s*px", size_spec)
-        max_css = f"max-width:{mx.group(1)}px;" if mx else "max-width:500px;"
+        maxw = int(mx.group(1)) if mx else 500
         return (
-            f'<div id="{div_id}" class="jxgbox pax-jsxgraph" '
-            f'style="width:100%;{max_css}aspect-ratio:{w} / {h};" '
+            f'<div class="pax-jsxgraph" id="{div_id}" '
+            f'data-w="{w}" data-h="{h}" data-maxw="{maxw}" '
             f'data-jsxgraph="{_html.escape(js, quote=True)}"></div>'
         )
 

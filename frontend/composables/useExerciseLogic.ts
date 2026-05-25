@@ -21,6 +21,9 @@ export interface BackendSegment {
   config?: CorrespondConfig
   index?: number
   width?: number
+  height?: number
+  maxw?: number
+  js?: string
 }
 
 export interface Rendered {
@@ -76,6 +79,7 @@ export type Segment =
   | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
+  | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number }
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
@@ -103,6 +107,13 @@ export function useExerciseLogic() {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       } else if (s.type === 'correspond' && s.config) {
         out.push({ type: 'correspond', name: s.name ?? '', config: s.config, is_sup: s.is_sup })
+      } else if (s.type === 'jsxgraph') {
+        // The board JS is passed through untouched (NOT renderMath'd) — it
+        // carries \(…\) labels that KaTeX would otherwise mangle.
+        out.push({
+          type: 'jsxgraph', name: s.name ?? '', js: s.js ?? '',
+          width: s.width, height: s.height, maxw: s.maxw,
+        })
       }
     }
     return out

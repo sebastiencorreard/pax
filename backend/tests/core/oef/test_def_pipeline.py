@@ -760,18 +760,19 @@ class TestCof:
     carrying the board-init JS in data-jsxgraph, and it must survive the
     <div>→<br> statement flattening so the frontend can hydrate it."""
 
-    def test_jsxgraph_container_emitted(self):
+    def test_jsxgraph_segment_emitted(self):
+        # The board is a typed `jsxgraph` segment (not statement HTML), so the
+        # init JS — with its \(d_n\) labels — is segment *data* that the KaTeX
+        # pass never touches. Rendered by the ExerciseJsxgraph component.
         r = load_and_render(COF_DEF, seed=7)
         seg = next(
-            (s for s in r.statement_segments
-             if s.get("type") == "html" and "pax-jsxgraph" in s.get("content", "")),
-            None,
+            (s for s in r.statement_segments if s.get("type") == "jsxgraph"), None
         )
-        assert seg is not None, "jsxgraph container was flattened/dropped"
-        assert 'id="jsxbox"' in seg["content"]
-        assert "data-jsxgraph=" in seg["content"]
-        # the init JS reached the attribute (HTML-escaped)
-        assert "initBoard" in seg["content"]
+        assert seg is not None, "jsxgraph segment missing (flattened/dropped?)"
+        assert seg["name"] == "jsxbox"
+        assert "initBoard" in seg["js"]
+        assert "board.create('line',[" in seg["js"]  # commas survived
+        assert seg.get("width") and seg.get("height")
 
     def test_lines_have_names_and_colors(self):
         # The board JS (val32) builds each line with a name + strokeColor from

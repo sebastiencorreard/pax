@@ -173,6 +173,8 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
+    # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
+    r'|<div class="pax-jsxgraph"[^>]*data-jsxgraph="([^"]*)"[^>]*></div>'
 )
 # Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
 # lisible par le front-end (qui n'attend pas de structure imbriquée).
@@ -350,6 +352,23 @@ def _segment_statement(html: str) -> list[dict]:
             segments.append({
                 "type": "correspond", "name": name, "config": config, "is_sup": is_sup,
             })
+        elif m.group(8) is not None:
+            # JSXGraph board — the init JS becomes segment *data* (not HTML),
+            # so the KaTeX pass never touches its \(…\) labels.
+            import html as _html  # noqa: PLC0415
+            tag = m.group(0)
+            board_id = (re.search(r'id="([^"]+)"', tag) or [None, "jsxbox"])[1]
+            seg = {
+                "type": "jsxgraph",
+                "name": board_id,
+                "js": _html.unescape(m.group(8)),
+                "is_sup": is_sup,
+            }
+            for attr, key in (("data-w", "width"), ("data-h", "height"), ("data-maxw", "maxw")):
+                am = re.search(rf'{attr}="(\d+)"', tag)
+                if am:
+                    seg[key] = int(am.group(1))
+            segments.append(seg)
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

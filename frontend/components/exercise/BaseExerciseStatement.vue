@@ -56,6 +56,13 @@
             :submitted="submitted"
             @update:reply="(name, val) => updateReply(name, val)"
           />
+          <ExerciseJsxgraph v-else-if="seg.type === 'jsxgraph'"
+            :name="seg.name"
+            :js="seg.js"
+            :width="seg.width"
+            :height="seg.height"
+            :maxw="seg.maxw"
+          />
           <select v-else-if="seg.type === 'menu'"
             :value="replies[seg.name]"
             @change="e => updateReply(seg.name, (e.target as HTMLSelectElement).value)"
@@ -334,13 +341,6 @@ watch(
 )
 
 onMounted(syncInlineInputs)
-
-// Hydrate any JSXGraph container (slib/geo2D/jsxgraph) once the statement HTML
-// is in the DOM, and again whenever a new exercise is rendered.
-const { renderBoards } = useJsxgraph()
-function hydrateBoards() { renderBoards(statementEl.value) }
-onMounted(hydrateBoards)
-watch(() => props.statementSegments, hydrateBoards, { flush: 'post' })
 
 function radioClass(inputName: string, choice: string) {
   if (!props.submitted) {
