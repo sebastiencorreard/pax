@@ -1,5 +1,5 @@
 <template>
-  <div class="pax-jsxgraph-wrapper">
+  <div class="pax-jsxgraph-wrapper" :style="wrapperStyle">
     <div :id="name" class="jxgbox" :style="boxStyle"></div>
   </div>
 </template>
@@ -14,16 +14,26 @@ const props = defineProps<{
   width?: number
   height?: number
   maxw?: number
+  minw?: number
 }>()
+
+// Default display width: the spec's `min` bound (the smaller, sensible size),
+// else half of `max`. The wrapper is left-aligned and capped; the board fills
+// it (width:100%) and its SVG scales with it (see <style>), so narrowing the
+// window shrinks the board in place instead of clipping/shifting it.
+const wrapperStyle = computed(() => {
+  const maxw = props.maxw ?? props.width ?? 500
+  const def = props.minw && props.minw > 0 ? props.minw : Math.round(maxw / 2)
+  // A *definite* width (not just max-width): inside a `flex: 0 1 auto`
+  // wrapper a percentage/auto width is circular and collapses to 0.
+  // max-width:100% keeps it responsive; margin-right:auto keeps it left.
+  return `width:${def}px;max-width:100%;margin-right:auto;`
+})
 
 const boxStyle = computed(() => {
   const w = props.width ?? 500
   const h = props.height ?? 500
-  const maxw = props.maxw ?? w
-  // A *definite* width (not 100%): inside a `flex: 0 1 auto` wrapper a
-  // percentage width is circular and collapses the board to 0. max-width
-  // keeps it responsive on narrow / stacked layouts.
-  return `width:${maxw}px;max-width:100%;aspect-ratio:${w} / ${h};`
+  return `width:100%;aspect-ratio:${w} / ${h};`
 })
 
 async function build() {
@@ -52,3 +62,14 @@ onMounted(build)
 watch(() => props.js, () => { freeBoard(); build() })
 onBeforeUnmount(freeBoard)
 </script>
+
+<style scoped>
+/* Let the JSXGraph SVG scale with its (responsive) container instead of
+   keeping the fixed pixel size it was created at — so narrowing the window
+   shrinks the board in place rather than clipping or shifting it. */
+.pax-jsxgraph-wrapper :deep(.jxgbox svg) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+</style>

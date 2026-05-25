@@ -44,6 +44,7 @@ export interface BackendSegment {
   width?: number
   height?: number
   maxw?: number
+  minw?: number
   js?: string
   class?: string
   value?: string
@@ -102,7 +103,7 @@ export type Segment =
   | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
-  | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number }
+  | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -163,7 +164,7 @@ export function useExerciseLogic() {
         // carries \(…\) labels that KaTeX would otherwise mangle.
         out.push({
           type: 'jsxgraph', name: s.name ?? '', js: s.js ?? '',
-          width: s.width, height: s.height, maxw: s.maxw,
+          width: s.width, height: s.height, maxw: s.maxw, minw: s.minw,
         })
       } else if (s.type === 'group-open') {
         out.push({ type: 'group-open', class: s.class ?? '' })

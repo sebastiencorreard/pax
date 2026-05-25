@@ -65,6 +65,7 @@
         :width="node.seg.width"
         :height="node.seg.height"
         :maxw="node.seg.maxw"
+        :minw="node.seg.minw"
       />
 
       <select v-else-if="node.seg.type === 'menu'"

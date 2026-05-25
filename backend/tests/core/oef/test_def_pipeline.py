@@ -862,6 +862,8 @@ class TestCouf:
         boards = [s for s in r.statement_segments if s.get("type") == "jsxgraph"]
         assert len(boards) >= 1
         assert "functiongraph" in boards[0]["js"]
+        # the size spec's min bound drives the (smaller) default display width
+        assert boards[0].get("minw") == 200
 
     def test_inline_radio_choices(self):
         # The 4 options are laid out inline (reply1,POS,CONTENT) with the

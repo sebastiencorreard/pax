@@ -196,13 +196,16 @@ class _SlibMixin:
         w, h = (int(wh.group(1)), int(wh.group(2))) if wh else (500, 500)
         mx = re.search(r"max\s*=\s*(\d+)\s*px", size_spec)
         maxw = int(mx.group(1)) if mx else 500
+        mn = re.search(r"min\s*=\s*(\d+)\s*px", size_spec)
+        minw = int(mn.group(1)) if mn else 0
         # Tabs are just statement separators in the .def-authored JS; drop them
         # so the emitted board div is tab-free and can be stored in a
         # TAB-separated list (couf indexes its boards via $(val44[…])).
         js = js.replace("\t", " ")
+        minw_attr = f' data-minw="{minw}"' if minw else ""
         return (
             f'<div class="pax-jsxgraph" id="{div_id}" '
-            f'data-w="{w}" data-h="{h}" data-maxw="{maxw}" '
+            f'data-w="{w}" data-h="{h}" data-maxw="{maxw}"{minw_attr} '
             f'data-jsxgraph="{_html.escape(js, quote=True)}"></div>'
         )
 

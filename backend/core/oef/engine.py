@@ -354,7 +354,8 @@ def _segment_statement(html: str) -> list[dict]:
                 "js": _html.unescape(m.group(8)),
                 "is_sup": is_sup,
             }
-            for attr, key in (("data-w", "width"), ("data-h", "height"), ("data-maxw", "maxw")):
+            for attr, key in (("data-w", "width"), ("data-h", "height"),
+                              ("data-maxw", "maxw"), ("data-minw", "minw")):
                 am = re.search(rf'{attr}="(\d+)"', tag)
                 if am:
                     seg[key] = int(am.group(1))
