@@ -371,6 +371,9 @@ def _embedded_widget_names(html: str) -> set[str]:
             nm = nm.strip()
             alias = re.match(r"^r(\d+)$", nm)
             names.add(f"reply{alias.group(1)}" if alias else nm)
+    # `checkbox` widgets are emitted by _render_embed as native <input> tags
+    # (not oef-* spans), so _SEGMENT_PATTERN misses them — scan separately.
+    names |= set(re.findall(r'class="oef-checkbox"\s+name="([^"]+)"', html))
     return names
 
 

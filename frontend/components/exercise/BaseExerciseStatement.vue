@@ -6,6 +6,7 @@
            class="oef-statement"
            @click="handleMarkClick"
            @input="handleInlineInput"
+           @change="handleCheckboxChange"
            @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
         <template v-for="(seg, i) in statementSegments" :key="i">
           <!-- Segments containing <table> must use <div> — <span> can't contain block elements -->
@@ -215,6 +216,22 @@ function handleInlineInput(event: Event) {
   updateReply(name, value)
 }
 
+// Checkbox groups (replytype=checkbox): several native checkboxes share one
+// `name` (reply{n}); the reply is the comma-set of checked values. Bound via
+// event delegation, same pattern as the inline text inputs above.
+function handleCheckboxChange(event: Event) {
+  if (props.submitted) return
+  const target = event.target as HTMLElement | null
+  if (!target || !target.classList?.contains('oef-checkbox')) return
+  const name = target.getAttribute('name')
+  const el = statementEl.value
+  if (!name || !el) return
+  const checked = Array.from(
+    el.querySelectorAll<HTMLInputElement>(`.oef-checkbox[name="${name}"]`)
+  ).filter(cb => cb.checked).map(cb => cb.value)
+  updateReply(name, checked.join(','))
+}
+
 function syncInlineInputs() {
   const el = statementEl.value
   if (!el) return
@@ -228,6 +245,20 @@ function syncInlineInputs() {
     if (props.submitted && props.checkResult) {
       const r = props.checkResult.results.find(r => r.input_name === name)
       if (r) input.classList.add(r.correct ? 'correct' : 'incorrect')
+    }
+  })
+  // Reflect the reply set onto each checkbox of the group + lock after submit.
+  el.querySelectorAll<HTMLInputElement>('.oef-checkbox').forEach(cb => {
+    const name = cb.getAttribute('name') ?? ''
+    const set = new Set(
+      (props.replies[name] ?? '').split(',').map(s => s.trim()).filter(Boolean)
+    )
+    cb.checked = set.has(cb.value)
+    cb.disabled = props.submitted
+    cb.classList.remove('correct', 'incorrect')
+    if (props.submitted && props.checkResult) {
+      const r = props.checkResult.results.find(r => r.input_name === name)
+      if (r) cb.classList.add(r.correct ? 'correct' : 'incorrect')
     }
   })
 }

@@ -540,6 +540,38 @@ class TestVariableResolution:
         e.ctx["i"] = "2"
         assert e._subst("$(outer[$(inner[$i])])") == "c"
 
+    def test_indexed2_arithmetic_index(self):
+        # Parenthesised arithmetic in a subscript must still resolve — the
+        # nesting-defer trick excludes "$(" only, not plain "(" (nature).
+        e = engine()
+        e.ctx["m"] = "a;b;c;d;e;f"
+        e.ctx["k"] = "1"
+        e.ctx["n"] = "3"
+        assert e._subst("$(m[(1+3);])") == "d"
+        assert e._subst("$(m[($k+$n);])") == "d"
+
+    def test_indexed1_arithmetic_index(self):
+        e = engine()
+        e.ctx["v"] = "red,green,blue"
+        e.ctx["k"] = "1"
+        assert e._subst("$(v[(2*$k-1)%3+1])") == "green"
+
+    def test_for_in_list_loop(self):
+        # `!for VAR in LIST` iterates VAR over each item — distinct from the
+        # numeric `X = a to b` form (nature builds its correct-answer set this
+        # way). The parser leaves loop.var empty, the var lives in range_expr.
+        from core.oef.def_parser import Assign, ForLoop  # noqa: PLC0415
+        e = engine()
+        e.ctx["lst"] = "3,4,5"
+        e.ctx["acc"] = ""
+        loop = ForLoop(
+            var="",
+            range_expr="x in $lst",
+            body=[Assign(name="acc", value="!append item $x to $acc")],
+        )
+        e._exec([loop], None)
+        assert e.ctx["acc"] == "3,4,5"
+
     def test_dollar_bracket_arithmetic(self):
         e = engine()
         e.ctx["x"] = "3"

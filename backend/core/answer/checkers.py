@@ -757,7 +757,7 @@ def check_answer(
             return check_algexp(reply, expected)
         case "fset":
             return check_fset(reply, expected, precision)
-        case "set":
+        case "set" | "checkbox":
             return check_set(reply, expected)
         case "radio" | "menu" | "clickfill" | "mark":
             return check_radio(reply, expected)

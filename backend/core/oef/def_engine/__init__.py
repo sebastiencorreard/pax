@@ -52,14 +52,17 @@ from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numer
 # expressions like `$val6` or `$val6+1`. We capture them as
 # `[^]]+` and let `_eval_arith` (after substitution) reduce them.
 _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[([^]]+?)\.\.([^]]+?)\]\)")
-# Subscripts exclude "(" so that a nested $(outer[…$(inner[i])…]) resolves
-# inner-first: the outer's pattern fails at the "(" of "$(inner…", so only
-# the inner matches; _resolve_indexed_forms then loops to pick up the outer
-# once the inner is gone (e.g. $(val14[$m_h;$(val11[$m_h])])).
-_INDEXED2_RE = re.compile(r"\$\((\w+)\[([^\]\(]*?);([^\]\(]*)\]\)")  # $(var[n;m])
-# INDEXED1 also excludes ";" so it never swallows a $(var[n;m]) matrix form
-# (whose single ";" must be handled by _INDEXED2_RE).
-_INDEXED1_RE = re.compile(r"\$\((\w+)\[([^\]\(;]+)\]\)")  # $(var[n])
+# A subscript char: anything but "]"/";"/"$", plus a "$" that does NOT start
+# a "$(" — so arithmetic parens are allowed (`(2*$m_k-1)%3+1`, `(1+3)`) and
+# plain `$var` refs too, but a *nested* `$(…)` makes the pattern stop. That
+# deferral lets a nested $(outer[…$(inner[i])…]) resolve inner-first:
+# _resolve_indexed_forms loops and picks up the outer once the inner is gone
+# (e.g. $(val14[$m_h;$(val11[$m_h])])).
+_SUB = r"(?:[^\]$;]|\$(?!\())"
+_INDEXED2_RE = re.compile(rf"\$\((\w+)\[({_SUB}*?);({_SUB}*)\]\)")  # $(var[n;m])
+# INDEXED1's subscript also excludes ";" (built into _SUB) so it never
+# swallows a $(var[n;m]) matrix form, whose ";" must go to _INDEXED2_RE.
+_INDEXED1_RE = re.compile(rf"\$\((\w+)\[({_SUB}+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
@@ -343,8 +346,27 @@ class DefEngine(_SlibMixin):
                     output_buf.append(f'<img src="{url}" alt="">')
 
     def _exec_for(self, loop: ForLoop, output_buf: list[str] | None) -> None:
-        """Execute a !for loop."""
+        """Execute a !for loop — numeric (`X = a to b`) or list (`X in list`)."""
         range_s = self._subst(loop.range_expr)
+
+        # List form: `!for VAR in LIST` — iterate VAR over each item of LIST
+        # (tab- or comma-separated). For this form the parser leaves loop.var
+        # empty and keeps the whole `VAR in LIST` in range_expr.
+        m_in = re.match(r"\$?(\w+)\s+in\s+(.*)", range_s, re.I | re.S)
+        if m_in and not re.search(r"\s+to\s+", range_s, re.I):
+            var = (loop.var.lstrip("$") or m_in.group(1)).strip()
+            items_raw = m_in.group(2).strip()
+            items = items_raw.split("\t") if "\t" in items_raw else items_raw.split(",")
+            saved = self.ctx.get(var)
+            for item in items:
+                self.ctx[var] = item.strip()
+                self._exec(loop.body, output_buf)
+            if saved is not None:
+                self.ctx[var] = saved
+            else:
+                self.ctx.pop(var, None)
+            return
+
         m = re.match(r"(.*?)\s+to\s+(.*)", range_s, re.I)
         if not m:
             return
@@ -2008,6 +2030,17 @@ class DefEngine(_SlibMixin):
                     f'<span class="oef-mark-choice" name="{ref}" '
                     f'data-pos="{col}">{label}</span>'
                 )
+            elif reply_type == "checkbox":
+                # Each embed places one checkbox of the `reply{n}` group;
+                # size_str is the 1-based option index this box represents.
+                # The student's reply is the set of checked indices (compared
+                # order-insensitively via check_set). Emit a native checkbox
+                # so it renders inline in the surrounding <table> layout.
+                value = self._subst(size_str).strip()
+                return (
+                    f'<input type="checkbox" class="oef-checkbox" '
+                    f'name="{ref}" value="{value}" />'
+                )
             elif reply_type == "menu":
                 # Menus need a placeholder in the HTML for inline positioning
                 label = self._subst(self.ctx.get(f"replyname{n}", "")).strip()
@@ -2267,6 +2300,17 @@ class DefEngine(_SlibMixin):
                         options["choices"] = choices
                     except (ValueError, IndexError):
                         pass
+
+            elif ans_type == "checkbox":
+                # Format: "correct_indices;all_indices" (e.g. "1,3;1,2,3,4").
+                # The student's reply is the set of checked option indices;
+                # expected is the correct subset, compared order-insensitively
+                # (check_set). The checkboxes themselves are emitted inline by
+                # _render_embed; no choices list is needed here.
+                correct_part = good_raw.split(";", 1)[0] if ";" in good_raw else good_raw
+                expected = ",".join(
+                    c.strip() for c in correct_part.split(",") if c.strip()
+                )
 
             elif ans_type == "mark":
                 # Format: "correct_pos;choice1,choice2,..." (WIMS mark / click-in-table)

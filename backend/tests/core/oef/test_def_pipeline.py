@@ -67,6 +67,9 @@ POWER10_DEF = os.path.join(
 ECRDECIMAL_DEF = os.path.join(
     RESSOURCES, "H4/algebra/oefnombres.fr/def/ecrdecimal.def"
 )
+NATURE_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/oefnombres.fr/def/nature.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -622,6 +625,36 @@ class TestEcrdecimal:
         assert a.expected == "Infinie non périodique"
         assert a.expected in a.options["choices"]
         assert a.options.get("analyze_var") == "val25"
+
+
+class TestNature:
+    """nature is a `checkbox` exercise: several checkboxes (one per ensemble
+    ℕ/ℤ/ℚ/…) share reply1; the answer is the set of ticked indices. Exercises
+    `!for VAR in LIST` (builds the labels val26 and the correct-set val32),
+    parenthesised matrix indices `$(val26[(1+3);])`, and the checkbox widget."""
+
+    def test_renders_checkboxes_not_text_inputs(self):
+        r = load_and_render(NATURE_DEF, seed=1328739048)
+        assert r.statement_html.count('class="oef-checkbox"') == 6
+        assert 'class="oef-input"' not in r.statement_html
+
+    def test_labels_resolved(self):
+        # val26 is built with `!for VAR in LIST`; without it the labels were
+        # empty and `$(val26[(n);])` leaked literally.
+        r = load_and_render(NATURE_DEF, seed=1328739048)
+        assert "entier naturel" in r.statement_html
+        assert "$(val" not in r.statement_html  # no unresolved subscripts
+
+    def test_checkbox_answer_and_expected(self):
+        r = load_and_render(NATURE_DEF, seed=1328739048)
+        a = r.answers[0]
+        assert a.answer_type == "checkbox"
+        assert a.input_name == "reply1"
+        # Correct set = the ensembles the number belongs to (val32), built via
+        # the `!for VAR in LIST` + !positionof loop; must be a non-empty index
+        # set, never the empty string that an unrun loop produced.
+        assert a.expected.strip()
+        assert all(p.strip().isdigit() for p in a.expected.split(","))
 
 
 class TestVocabaff3:
