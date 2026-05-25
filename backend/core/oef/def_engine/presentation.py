@@ -11,6 +11,8 @@ render as ``3 - 3 x = - x - 5`` without a literal ``*``.
 
 from __future__ import annotations
 
+import re
+
 
 def _normalize_math_content(s: str) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
@@ -29,12 +31,28 @@ def _normalize_math_content(s: str) -> str:
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
+    def _to_latex(expr: str) -> str:
+        # `expr` is already stripped; _expr_to_latex returns it unchanged on a
+        # parse failure. French exercises write decimals with a comma
+        # (``sqrt(0,01)/2``) which SymPy can't parse — retry once with the
+        # digit,digit commas turned into dots, but only adopt that reading if
+        # it actually parses, so ``f(a,b)`` (comma = separator) is untouched.
+        out = _expr_to_latex(expr)
+        if out != expr:
+            return out
+        alt = re.sub(r"(?<=\d),(?=\d)", ".", expr)
+        if alt != expr:
+            alt_out = _expr_to_latex(alt)
+            if alt_out != alt:
+                return alt_out
+        return out
+
     parts = s.split("=")
     if all(p.strip() for p in parts) and len(parts) > 1:
-        rendered = [_expr_to_latex(p.strip()) for p in parts]
+        rendered = [_to_latex(p.strip()) for p in parts]
         if all(r != p.strip() for r, p in zip(rendered, parts)):
             return " = ".join(rendered)
-    rendered = _expr_to_latex(s.strip())
+    rendered = _to_latex(s.strip())
     if rendered != s.strip():
         return rendered
     return s

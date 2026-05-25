@@ -96,6 +96,14 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_renders_sqrt_with_decimal_comma(self):
+        # ecrdec1: a French decimal comma inside a function arg
+        # (`sqrt(0,01)/2`) breaks SymPy as-is; retry reads digit,digit as a
+        # decimal so it renders instead of leaking literal "sqrt".
+        assert _close_inline_math(r"\(sqrt(0,01)/2)") == (
+            r"\(\frac{\sqrt{0.01}}{2}\)"
+        )
+
     def test_implicit_product_with_sqrt(self):
         # ecrdec1: an implicit product `)(` parses via implicit
         # multiplication and each sqrt renders — and the product is NOT
