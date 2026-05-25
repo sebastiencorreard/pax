@@ -70,6 +70,9 @@ ECRDECIMAL_DEF = os.path.join(
 NATURE_DEF = os.path.join(
     RESSOURCES, "H4/algebra/oefnombres.fr/def/nature.def"
 )
+SDLECTGRAPH1_DEF = os.path.join(
+    RESSOURCES, "H4/algebra/oefseconddegree.fr/def/sdlectgraph1.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -655,6 +658,32 @@ class TestNature:
         # set, never the empty string that an unrun loop produced.
         assert a.expected.strip()
         assert all(p.strip().isdigit() for p in a.expected.split(","))
+
+
+class TestSdlectgraph1:
+    """sdlectgraph1 plots a parabola and frames it with
+    `yrange -10,floor(V)+2` (V = vertex y). The yrange bound is an unevaluated
+    `floor(...)` expression that the flydraw renderer must evaluate, otherwise
+    the vertex falls outside the frame and is never visible."""
+
+    def test_renders_graph(self):
+        r = load_and_render(SDLECTGRAPH1_DEF, seed=7)
+        assert "<svg" in r.statement_html
+
+    def test_vertex_inside_yrange(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+        from core.oef.flydraw import _num  # noqa: PLC0415
+
+        df = _parse_def_cached(SDLECTGRAPH1_DEF)
+        for seed in range(1, 40):
+            e = DefEngine(seed=seed, def_path=SDLECTGRAPH1_DEF)
+            e.render(df)
+            vertex = float(e.ctx["val18"])
+            ymin = _num(e._subst("$(val19[1])"))
+            ymax = _num(e._subst("$(val19[2])"))
+            assert ymin < vertex < ymax, (
+                f"seed {seed}: vertex {vertex} outside yrange [{ymin}, {ymax}]"
+            )
 
 
 class TestVocabaff3:

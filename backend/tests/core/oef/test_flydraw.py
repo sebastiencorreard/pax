@@ -1,11 +1,28 @@
 """Unit tests for the flydraw → SVG renderer."""
 
 from core.oef.flydraw import (
+    _num,
     flydraw_to_svg,
     flydraw_to_url,
     get_cached_svg,
     inline_svg_imgs,
 )
+
+
+class TestNumEval:
+    """`_num` must evaluate the arithmetic WIMS leaves in coordinate args."""
+
+    def test_plain_numbers(self):
+        assert _num("10") == 10.0
+        assert _num("-10") == -10.0
+
+    def test_floor_ceil_round(self):
+        # sdlectgraph1 frames the parabola with `yrange -10,floor(V)+2`;
+        # without floor in the eval namespace _num returned 0.0, so the
+        # vertex fell outside the frame and was never visible.
+        assert _num("floor(10.125)+2") == 12.0
+        assert _num("floor(-3)-2") == -5.0
+        assert _num("ceil(2.1)") == 3.0
 
 
 class TestFlydrawPrimitives:
