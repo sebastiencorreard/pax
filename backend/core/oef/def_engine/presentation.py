@@ -64,7 +64,16 @@ def _close_inline_math(text: str) -> str:
     i = 0
     n = len(text)
     while i < n:
-        if i + 1 < n and text[i] == "\\" and text[i + 1] == "(":
+        # A "\\(" (escaped backslash before the paren) is NOT an inline-math
+        # opener — it's a literal backslash, e.g. a JSON-escaped "\\(" inside a
+        # widget's data-config attribute. Treating it as math would shred that
+        # structured data (the correspond table in cof).
+        if (
+            i + 1 < n
+            and text[i] == "\\"
+            and text[i + 1] == "("
+            and not (i > 0 and text[i - 1] == "\\")
+        ):
             depth = 1
             j = i + 2
             closed_proper = False

@@ -96,6 +96,13 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_escaped_backslash_paren_left_alone(self):
+        # `\\(` (escaped backslash) is a literal backslash, not a math opener
+        # — e.g. JSON-escaped `\\(` inside a widget's data-config. It must not
+        # be turned into KaTeX math (that shredded cof's correspond table).
+        src = r'<span data-config="{&quot;a&quot;:&quot;\\(d_3\\) x&quot;}"></span>'
+        assert _close_inline_math(src) == src
+
     def test_renders_sqrt_with_decimal_comma(self):
         # ecrdec1: a French decimal comma inside a function arg
         # (`sqrt(0,01)/2`) breaks SymPy as-is; retry reads digit,digit as a

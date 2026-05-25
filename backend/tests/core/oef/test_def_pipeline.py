@@ -797,6 +797,19 @@ class TestCof:
         assert len(a.options.get("lefts", [])) >= 3
         assert len(a.options.get("rights_shuffled", [])) >= 3
 
+    def test_correspond_widget_config_parsed(self):
+        # The correspond segment's data-config (JSON) carries \(…\) items whose
+        # escaped "\\(" must survive _close_inline_math, or the JSON fails to
+        # parse and the matching table renders empty.
+        r = load_and_render(COF_DEF, seed=7)
+        seg = next(
+            (s for s in r.statement_segments if s.get("type") == "correspond"), None
+        )
+        assert seg is not None
+        cfg = seg["config"]
+        assert len(cfg.get("lefts", [])) >= 3
+        assert len(cfg.get("rights", [])) >= 3
+
 
 class TestVocabaff3:
     """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate
