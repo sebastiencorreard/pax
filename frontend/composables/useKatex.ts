@@ -109,6 +109,12 @@ export function useKatex() {
   // est implicite : 5*v → 5v, )*( → )(, mais 2*3 → 2 \times 3.
   function normalizeMath(expr: string): string {
     expr = decodeHtmlEntitiesForLatex(expr)
+    // Drop a stray backslash before a lone lowercase variable, e.g. WIMS's
+    // `\(\x^2\)` → `x^2`. The lookahead `(?![a-zA-Z])` spares real commands
+    // (`\frac`, `\sqrt`, `\left`…), and limiting to lowercase spares the valid
+    // single-letter commands `\S` (§) / `\P` (¶). Without this KaTeX renders
+    // the unknown `\x` as red error text.
+    expr = expr.replace(/\\([a-z])(?![a-zA-Z])/g, '$1')
     expr = expr.replace(/\*\*/g, '^')
     // Remove spurious sign combinations produced by WIMS string concatenation
     expr = expr.replace(/\+-/g, '-').replace(/-\+/g, '-')
