@@ -2018,8 +2018,22 @@ class DefEngine(_SlibMixin):
             self._touched_replies.add(f"reply{n}")
             reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
             if reply_type == "radio":
-                # Radio choices are rendered by the frontend in a dedicated
-                # section below the statement; no widget belongs in the HTML.
+                # Inline radio (couf): `reply{n},POS,CONTENT` places one choice
+                # *here* in the statement, value = POS, label = CONTENT. The
+                # whole option set is laid out by the author (e.g. a vertical
+                # <ul>), so it's rendered inline instead of in the grid zone.
+                if len(parts) >= 3 and parts[1].strip():
+                    import html as _h  # noqa: PLC0415
+                    pos = parts[1].strip()
+                    content = ",".join(parts[2:]).strip()
+                    self._inline_radio = getattr(self, "_inline_radio", set())
+                    self._inline_radio.add(str(n))
+                    return (
+                        f'<span class="oef-radio-inline" name="reply{n}" '
+                        f'data-value="{pos}" data-content="{_h.escape(content, quote=True)}"></span>'
+                    )
+                # Plain radio: choices are rendered by the frontend in a
+                # dedicated section below the statement; no widget here.
                 return ""
             elif reply_type == "mark":
                 # mark: each embed call is one choice column (size_str = column index).
@@ -2291,7 +2305,15 @@ class DefEngine(_SlibMixin):
                         # evaluate `<rhs>` against the current ctx.
                         expected = self._resolve_analyze_expected(var_name, df) or ""
 
-            if ans_type == "radio":
+            if ans_type == "radio" and str(n) in getattr(self, "_inline_radio", set()):
+                # Inline radio (couf): choices are laid out in the statement by
+                # the author (oef-radio-inline spans, value = position). No grid
+                # choices; the reply is the selected position and the correct
+                # one is the part before ";" in replygood (e.g. "3;2,3,1,4").
+                options["inline"] = True
+                expected = good_raw.split(";", 1)[0].strip() if ";" in good_raw else good_raw.strip()
+
+            elif ans_type == "radio":
                 choices: list[str] = []
                 if analyze_choices is not None:
                     # Choices in author order (they already include "Je ne

@@ -180,6 +180,8 @@ _SEGMENT_PATTERN = re.compile(
     # side by side. Tried after group 8 so the jsxgraph div isn't split.
     r'|(<div\b[^>]*>)'
     r'|(</div>)'
+    # groups 11/12/13: an inline radio choice (couf) — name, value, content.
+    r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
 )
 # Block tags flattened to <br> (the front-end renders segments flat). <div> is
 # NOT flattened — it becomes a layout-group segment (see groups 9/10 above) so
@@ -364,6 +366,20 @@ def _segment_statement(html: str) -> list[dict]:
             segments.append({"type": "group-open", "class": cls_m.group(1) if cls_m else ""})
         elif m.group(10) is not None:
             segments.append({"type": "group-close"})
+        elif m.group(11) is not None:
+            # Inline radio choice (couf): name, value (position), content.
+            import html as _html  # noqa: PLC0415
+            name = m.group(11).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            segments.append({
+                "type": "radio-inline",
+                "name": name,
+                "value": m.group(12).strip(),
+                "content": _html.unescape(m.group(13)),
+                "is_sup": is_sup,
+            })
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

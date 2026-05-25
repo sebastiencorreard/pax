@@ -175,7 +175,7 @@ const hasClickfill = computed(() =>
 // `rendered.answers` is already filtered server-side to the current step's
 // active replies, so this is naturally correct per step.
 const hasRadioAnswers = computed(() =>
-  props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
+  props.rendered?.answers.some(a => a.answer_type === 'radio' && !a.options?.inline) ?? false
 )
 
 const isCourse = computed(() => props.rendered?.exercise_type === 'course')

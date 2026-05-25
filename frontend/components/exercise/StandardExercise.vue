@@ -172,7 +172,8 @@ const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
 )
 const hasRadioAnswers = computed(() =>
-  props.rendered?.answers.some(a => a.answer_type === 'radio') ?? false
+  // Inline radios (options.inline) render in the statement, not the grid zone.
+  props.rendered?.answers.some(a => a.answer_type === 'radio' && !a.options?.inline) ?? false
 )
 
 // Lookup helpers used by the feedback section to detect special widgets

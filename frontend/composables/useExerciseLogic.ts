@@ -46,6 +46,7 @@ export interface BackendSegment {
   maxw?: number
   js?: string
   class?: string
+  value?: string
 }
 
 export interface Rendered {
@@ -104,6 +105,7 @@ export type Segment =
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
+  | { type: 'radio-inline'; name: string; value: string; content: string }
 
 // A statement rendered as a tree: leaf segments or layout groups with children.
 export type SegmentNode =
@@ -167,6 +169,12 @@ export function useExerciseLogic() {
         out.push({ type: 'group-open', class: s.class ?? '' })
       } else if (s.type === 'group-close') {
         out.push({ type: 'group-close' })
+      } else if (s.type === 'radio-inline') {
+        // The label is math (a function def); KaTeX-render it now.
+        out.push({
+          type: 'radio-inline', name: s.name ?? '', value: s.value ?? '',
+          content: await renderMath(s.content ?? ''),
+        })
       }
     }
     return out

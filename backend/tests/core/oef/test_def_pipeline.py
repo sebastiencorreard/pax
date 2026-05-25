@@ -863,6 +863,19 @@ class TestCouf:
         assert len(boards) >= 1
         assert "functiongraph" in boards[0]["js"]
 
+    def test_inline_radio_choices(self):
+        # The 4 options are laid out inline (reply1,POS,CONTENT) with the
+        # function definition as label — not pax's grid of bare values.
+        r = load_and_render(COUF_DEF, seed=7)
+        ri = [s for s in r.statement_segments if s.get("type") == "radio-inline"]
+        assert len(ri) == 4
+        assert sorted(s["value"] for s in ri) == ["1", "2", "3", "4"]
+        assert all("\\mapsto" in s["content"] for s in ri)
+        a = r.answers[0]
+        assert a.answer_type == "radio"
+        assert a.options.get("inline") is True
+        assert a.expected in {"1", "2", "3", "4"}  # the correct position
+
 
 class TestVocabaff3:
     """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate

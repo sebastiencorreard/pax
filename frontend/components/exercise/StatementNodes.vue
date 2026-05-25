@@ -80,6 +80,17 @@
                 v-html="choice.html">
         </option>
       </select>
+
+      <label v-else-if="node.seg.type === 'radio-inline'"
+        class="pax-radio-inline" :class="riClass(node.seg)">
+        <input type="radio"
+          :name="node.seg.name"
+          :value="node.seg.value"
+          :checked="ctx.replies.value[node.seg.name] === node.seg.value"
+          :disabled="ctx.submitted.value"
+          @change="ctx.updateReply(node.seg.name, node.seg.value)" />
+        <span v-html="node.seg.content"></span>
+      </label>
     </template>
   </template>
 </template>
@@ -92,4 +103,42 @@ import { PAX_STATEMENT_CTX, type PaxStatementCtx } from '~/composables/useExerci
 defineProps<{ nodes: SegmentNode[] }>()
 
 const ctx = inject(PAX_STATEMENT_CTX) as PaxStatementCtx
+
+// Selected / correct / incorrect state of an inline radio choice.
+function riClass(seg: { name: string; value: string }): string {
+  const selected = ctx.replies.value[seg.name] === seg.value
+  if (!ctx.submitted.value) return selected ? 'is-selected' : ''
+  const r = ctx.checkResult.value?.results.find(x => x.input_name === seg.name)
+  if (!r) return ''
+  if (seg.value === r.expected) return 'is-correct'
+  if (selected && !r.correct) return 'is-incorrect'
+  return ''
+}
 </script>
+
+<style scoped>
+.pax-radio-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pax-radio-inline:hover { border-color: var(--color-primary); }
+.pax-radio-inline input { accent-color: var(--color-primary); }
+.pax-radio-inline.is-selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+.pax-radio-inline.is-correct {
+  border-color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+.pax-radio-inline.is-incorrect {
+  border-color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
+</style>
