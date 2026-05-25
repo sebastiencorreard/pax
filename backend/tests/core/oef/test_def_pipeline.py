@@ -773,6 +773,29 @@ class TestCof:
         # the init JS reached the attribute (HTML-escaped)
         assert "initBoard" in seg["content"]
 
+    def test_lines_have_names_and_colors(self):
+        # The board JS (val32) builds each line with a name + strokeColor from
+        # the (matrix) val23. Regressions in range-slice / matrix / append
+        # left these empty and the line snippets comma-split mid-way.
+        import re as _re
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(COF_DEF)
+        e = DefEngine(seed=7, def_path=COF_DEF)
+        e.render(df)
+        js = str(e.ctx.get("val32"))
+        assert "board.create('line',[" in js  # commas survived the list join
+        names = _re.findall(r"name:'([^']+)'", js)
+        colors = _re.findall(r"strokeColor:'(#[0-9A-Fa-f]{6})'", js)
+        assert len(names) >= 3 and len(colors) >= 3
+
+    def test_correspond_answer_built(self):
+        r = load_and_render(COF_DEF, seed=7)
+        a = r.answers[0]
+        assert a.answer_type == "correspond"
+        assert len(a.options.get("lefts", [])) >= 3
+        assert len(a.options.get("rights_shuffled", [])) >= 3
+
 
 class TestVocabaff3:
     """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate

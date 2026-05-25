@@ -47,11 +47,7 @@ from .compare import _wims_compare                                      # noqa: 
 from .analyze import _analyze_wrap, check_analyze, render_feedback, _parse_numeric  # noqa: E402
 
 
-# Patterns for variable substitution
-# `$(var[n..m])` — bounds can be plain integers or arithmetic
-# expressions like `$val6` or `$val6+1`. We capture them as
-# `[^]]+` and let `_eval_arith` (after substitution) reduce them.
-_RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[([^]]+?)\.\.([^]]+?)\]\)")
+# Patterns for variable substitution.
 # A subscript char: anything but "]"/";"/"$", plus a "$" that does NOT start
 # a "$(" — so arithmetic parens are allowed (`(2*$m_k-1)%3+1`, `(1+3)`) and
 # plain `$var` refs too, but a *nested* `$(…)` makes the pattern stop. That
@@ -59,6 +55,11 @@ _RANGE_SLICE_RE = re.compile(r"\$\((\w+)\[([^]]+?)\.\.([^]]+?)\]\)")
 # _resolve_indexed_forms loops and picks up the outer once the inner is gone
 # (e.g. $(val14[$m_h;$(val11[$m_h])])).
 _SUB = r"(?:[^\]$;]|\$(?!\())"
+# `$(var[n..m])` — bounds may be ints, `$var`, or arithmetic; _eval_arith
+# reduces them after substitution. Bounds use _SUB so a nested range-slice
+# `$(outer[$(inner[1..3]);])` doesn't make this regex match the OUTER ref on
+# the inner's "..".
+_RANGE_SLICE_RE = re.compile(rf"\$\((\w+)\[({_SUB}+?)\.\.({_SUB}+?)\]\)")
 _INDEXED2_RE = re.compile(rf"\$\((\w+)\[({_SUB}*?);({_SUB}*)\]\)")  # $(var[n;m])
 # INDEXED1's subscript also excludes ";" (built into _SUB) so it never
 # swallows a $(var[n;m]) matrix form, whose ";" must go to _INDEXED2_RE.
@@ -622,6 +623,23 @@ class DefEngine(_SlibMixin):
                 if 1 <= col <= len(cols):
                     result.append(cols[col - 1].strip())
             return row_sep.join(result)
+
+        # Empty row spec → column `col` across ALL rows, e.g. $(matrix[;1])
+        # (cof builds the correspond's right column this way). Joined by "," so
+        # `$lefts;$(m[;1])` stays a 2-part "lefts;rights" with comma items.
+        if not row_s.strip():
+            if not col_s:
+                return value
+            try:
+                col = int(round(float(self._eval_arith(col_s))))
+            except (ValueError, TypeError):
+                return ""
+            out = []
+            for r in rows:
+                cols = re.split(r"[;,]", r)
+                if 1 <= col <= len(cols):
+                    out.append(cols[col - 1].strip())
+            return ",".join(out)
 
         try:
             row = int(round(float(self._eval_arith(row_s))))
@@ -1228,8 +1246,12 @@ class DefEngine(_SlibMixin):
         elif kind_raw.startswith("colon"):
             sep = ":"
         else:
-            # item: auto-detect separator from existing target content (WIMS behaviour)
-            sep = "\t" if "\t" in target else ","
+            # item: comma-separated, but switch to TAB when the list can't be
+            # comma-joined unambiguously — i.e. the new item (or the list)
+            # itself contains a comma/tab (e.g. cof appends JSXGraph
+            # `board.create('line',[…],{…})` snippets, comma-laden, into one
+            # list then reads them back with $(list[N])).
+            sep = "\t" if ("\t" in target or "\t" in val or "," in val) else ","
 
         if not target:
             return val

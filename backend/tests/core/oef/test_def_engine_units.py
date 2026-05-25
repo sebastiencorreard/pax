@@ -476,6 +476,14 @@ class TestCmdStringOps:
         e.ctx["empty"] = ""
         assert e._eval_cmd("append", "item x to $empty") == "x"
 
+    def test_append_comma_item_uses_tab(self):
+        # An item that itself contains a comma can't be comma-joined
+        # unambiguously, so the list switches to TAB — otherwise $(list[N])
+        # would split the item at its inner comma (cof's JSXGraph snippets).
+        e = engine()
+        e.ctx["mylist"] = "f(a,b)"
+        assert e._eval_cmd("append", "item g(c,d) to $mylist") == "f(a,b)\tg(c,d)"
+
     def test_lower(self):
         e = engine()
         assert e._eval_cmd("lower", "ABC") == "abc"
@@ -563,6 +571,24 @@ class TestVariableResolution:
         e.ctx["v"] = "red,green,blue"
         e.ctx["k"] = "1"
         assert e._subst("$(v[(2*$k-1)%3+1])") == "green"
+
+    def test_indexed2_empty_row_is_column(self):
+        # $(m[;col]) → column `col` of every row, comma-joined (cof builds a
+        # correspond's right column this way).
+        e = engine()
+        e.ctx["m"] = "a1,a2;b1,b2;c1,c2"
+        assert e._subst("$(m[;1])") == "a1,b1,c1"
+        assert e._subst("$(m[;2])") == "a2,b2,c2"
+
+    def test_range_slice_as_matrix_row_list(self):
+        # $(m[$(rows[1..n]);]) — a range slice used as the row-list of a
+        # matrix access. The slice's ".." must not trick the range regex into
+        # matching the OUTER ref (cof's shuffled line selection).
+        e = engine()
+        e.ctx["m"] = "A;B;C;D;E"
+        e.ctx["rows"] = "4,3,2,5,1"
+        e.ctx["n"] = "3"
+        assert e._subst("$(m[$(rows[1..$n]);])") == "D;C;B"
 
     def test_for_in_list_loop(self):
         # `!for VAR in LIST` iterates VAR over each item — distinct from the
