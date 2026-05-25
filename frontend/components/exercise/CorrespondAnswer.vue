@@ -283,6 +283,10 @@ onMounted(() => {
   padding: 12px 14px;
   text-align: center;
   line-height: 1.5;
+  /* The inline width (sizeh1/sizeh2) is a *minimum* hint: don't wrap a label
+     to fit it — let the table column grow to the widest item instead, so a
+     single longer expression no longer breaks onto two lines. */
+  white-space: nowrap;
   border-radius: 8px;
   box-sizing: border-box;
   border: 1px solid var(--color-border);
