@@ -797,6 +797,19 @@ class TestCof:
         assert len(a.options.get("lefts", [])) >= 3
         assert len(a.options.get("rights_shuffled", [])) >= 3
 
+    def test_layout_groups_preserved(self):
+        # The flex container/wrappers are kept as group-open/group-close
+        # segments (not flattened to <br>), so the frontend can lay the board
+        # and the matching table out side by side. The board + correspond sit
+        # inside the groups.
+        r = load_and_render(COF_DEF, seed=7)
+        types = [s.get("type") for s in r.statement_segments]
+        assert "group-open" in types and "group-close" in types
+        assert types.count("group-open") == types.count("group-close")
+        classes = [s["class"] for s in r.statement_segments if s.get("type") == "group-open"]
+        assert "container" in classes
+        assert {"image-wrapper", "table-wrapper"} <= set(classes)
+
     def test_correspond_widget_config_parsed(self):
         # The correspond segment's data-config (JSON) carries \(…\) items whose
         # escaped "\\(" must survive _close_inline_math, or the JSON fails to

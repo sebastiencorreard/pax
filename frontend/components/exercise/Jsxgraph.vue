@@ -20,7 +20,10 @@ const boxStyle = computed(() => {
   const w = props.width ?? 500
   const h = props.height ?? 500
   const maxw = props.maxw ?? w
-  return `width:100%;max-width:${maxw}px;aspect-ratio:${w} / ${h};`
+  // A *definite* width (not 100%): inside a `flex: 0 1 auto` wrapper a
+  // percentage width is circular and collapses the board to 0. max-width
+  // keeps it responsive on narrow / stacked layouts.
+  return `width:${maxw}px;max-width:100%;aspect-ratio:${w} / ${h};`
 })
 
 async function build() {

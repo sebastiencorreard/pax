@@ -8,75 +8,7 @@
            @input="handleInlineInput"
            @change="handleCheckboxChange"
            @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
-        <template v-for="(seg, i) in statementSegments" :key="i">
-          <!-- Segments containing <table> must use <div> — <span> can't contain block elements -->
-          <div v-if="seg.type === 'html' && seg.content.includes('<table')"
-               v-html="seg.content"></div>
-          <span v-else-if="seg.type === 'html'" v-html="seg.content"></span>
-          <ExerciseCfSlot v-else-if="seg.type === 'slot'"
-            :name="seg.name"
-            :index="seg.index ?? 0"
-            :value="cfValue(seg.name, seg.index ?? 0)"
-            :state="cfSlotState(seg.name, seg.index ?? 0)"
-            :choices-html="clickfillChoicesHtml"
-            :dragging="draggingChoice"
-            :pending="pendingChoice"
-            :submitted="submitted"
-            @place="(name, val, idx) => { setCfSlot(name, idx, val); pendingChoice = null }"
-            @clear="(name, idx) => { setCfSlot(name, idx, '') }"
-          />
-          <input v-else-if="seg.type === 'input'"
-            type="text"
-            :name="seg.name"
-            :value="replies[seg.name]"
-            @input="e => updateReply(seg.name, (e.target as HTMLInputElement).value)"
-            :style="{ width: seg.width, minWidth: '6ch' }"
-            :disabled="submitted"
-            :class="[inputClass(seg.name), { 'is-sup': seg.is_sup }]"
-            autocomplete="off"
-            @dragover.prevent
-            @drop.prevent
-            @keydown.enter.prevent="() => { if (!submitted && !loading) emit('submit') }"
-          />
-          <textarea v-else-if="seg.type === 'textarea'"
-            :name="seg.name"
-            :value="replies[seg.name]"
-            @input="e => updateReply(seg.name, (e.target as HTMLTextAreaElement).value)"
-            :rows="seg.rows"
-            :cols="seg.cols"
-            :disabled="submitted"
-            class="rounded border px-2 py-1 text-sm font-mono resize"
-            style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
-          />
-          <ExerciseCorrespondAnswer v-else-if="seg.type === 'correspond'"
-            :name="seg.name"
-            :config="seg.config"
-            :value="replies[seg.name] || ''"
-            :expected="checkResult?.results.find(r => r.input_name === seg.name)?.expected || ''"
-            :submitted="submitted"
-            @update:reply="(name, val) => updateReply(name, val)"
-          />
-          <ExerciseJsxgraph v-else-if="seg.type === 'jsxgraph'"
-            :name="seg.name"
-            :js="seg.js"
-            :width="seg.width"
-            :height="seg.height"
-            :maxw="seg.maxw"
-          />
-          <select v-else-if="seg.type === 'menu'"
-            :value="replies[seg.name]"
-            @change="e => updateReply(seg.name, (e.target as HTMLSelectElement).value)"
-            :disabled="submitted"
-            class="inline-block px-3 py-1.5 rounded border mx-1 transition"
-            style="border-color:var(--color-border);background:var(--color-surface)">
-            <option value="">{{ seg.label }}</option>
-            <option v-for="choice in (menuChoicesHtml[seg.name] ?? [])"
-                    :key="choice.raw"
-                    :value="choice.raw"
-                    v-html="choice.html">
-            </option>
-          </select>
-        </template>
+        <ExerciseStatementNodes :nodes="segmentTree" />
       </div>
     </div>
 
@@ -131,8 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, computed, provide } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
+import { buildSegmentTree, PAX_STATEMENT_CTX } from '~/composables/useExerciseLogic'
 
 const props = defineProps<{
   rendered: Rendered
@@ -360,6 +293,27 @@ watch(() => props.statementSegments, () => {
   statementEl.value?.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
 }, { flush: 'post' })
 
+// Statement segments folded into a tree (layout groups wrap their children),
+// rendered by the recursive ExerciseStatementNodes.
+const segmentTree = computed(() => buildSegmentTree(props.statementSegments))
+
+// Shared context for the recursive renderer (avoids prop-drilling).
+provide(PAX_STATEMENT_CTX, {
+  replies: computed(() => props.replies),
+  updateReply,
+  clickfillChoicesHtml: computed(() => props.clickfillChoicesHtml),
+  menuChoicesHtml: computed(() => props.menuChoicesHtml),
+  submitted: computed(() => props.submitted),
+  loading: computed(() => props.loading),
+  checkResult: computed(() => props.checkResult),
+  draggingChoice,
+  pendingChoice,
+  cfValue,
+  setCfSlot,
+  cfSlotState,
+  inputClass,
+  onSubmit: () => emit('submit'),
+})
 </script>
 
 <style scoped>

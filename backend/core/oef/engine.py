@@ -175,16 +175,18 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
     # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
     r'|<div class="pax-jsxgraph"[^>]*data-jsxgraph="([^"]*)"[^>]*></div>'
+    # groups 9/10: generic <div> open/close → layout-group segments, so a
+    # CSS-flex container (e.g. cof's .container) can wrap its child segments
+    # side by side. Tried after group 8 so the jsxgraph div isn't split.
+    r'|(<div\b[^>]*>)'
+    r'|(</div>)'
 )
-# Balises de bloc converties en <br> pour aplatir le HTML en une seule ligne
-# lisible par le front-end (qui n'attend pas de structure imbriquée).
-# <div>, <p>, <li>, <ul>, <ol> ouvrants → <br> (séparateur d'item).
-_BLOCK_OPEN = re.compile(r"<(?:div|p|li|ul|ol)(?=[\s>])[^>]*>", re.I)
-# </div>, </p>, </ul>, </ol> → <br> (fin de bloc) ; </li> → rien (supprimé).
-# </li> ne crée pas de saut car le <li> ouvrant suivant y pourvoit déjà via
-# _BLOCK_OPEN. En revanche </ul> et </ol> marquent la fin de la liste et
-# doivent séparer le dernier item du contenu qui suit (ex : label + champ).
-_BLOCK_CLOSE = re.compile(r"</(?:div|p|ul|ol)>", re.I)
+# Block tags flattened to <br> (the front-end renders segments flat). <div> is
+# NOT flattened — it becomes a layout-group segment (see groups 9/10 above) so
+# its class-based styling (flex containers) is preserved.
+_BLOCK_OPEN = re.compile(r"<(?:p|li|ul|ol)(?=[\s>])[^>]*>", re.I)
+# </p>, </ul>, </ol> → <br> ; </li> → rien (le <li> suivant pourvoit le saut).
+_BLOCK_CLOSE = re.compile(r"</(?:p|ul|ol)>", re.I)
 _LIST_CLOSE = re.compile(r"</li>", re.I)
 # Séquences de plusieurs <br> consécutifs (avec espaces) → un seul <br>.
 _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
@@ -263,25 +265,11 @@ def _segment_statement(html: str) -> list[dict]:
     inline dans le segment html, ce qui préserve la mise en page (utilisé par
     ex. pour les fractions superposées de l'exercice de Thalès csgb Q200).
     """
-    # A jsxgraph container is a self-contained <div class="pax-jsxgraph">…</div>
-    # carrying its init JS in data-jsxgraph; shield it from the <div>→<br>
-    # flattening below (which would otherwise destroy the board mount point).
-    _jsx_boxes: list[str] = []
-
-    def _stash_jsx(m: re.Match) -> str:
-        _jsx_boxes.append(m.group(0))
-        return f"\x02JSX{len(_jsx_boxes) - 1}\x02"
-
-    html = re.sub(r'<div\b[^>]*\bpax-jsxgraph\b[^>]*></div>', _stash_jsx, html)
-
     html = _BLOCK_OPEN.sub("<br>", html)
     html = _BLOCK_CLOSE.sub("<br>", html)
     html = _LIST_CLOSE.sub("", html)
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
-
-    for i, box in enumerate(_jsx_boxes):
-        html = html.replace(f"\x02JSX{i}\x02", box)
 
     tables = _table_ranges(html)
 
@@ -369,6 +357,13 @@ def _segment_statement(html: str) -> list[dict]:
                 if am:
                     seg[key] = int(am.group(1))
             segments.append(seg)
+        elif m.group(9) is not None:
+            # <div …> → layout group open. Carry the class so the frontend can
+            # apply the exercise CSS (flex containers etc.).
+            cls_m = re.search(r'class="([^"]*)"', m.group(9))
+            segments.append({"type": "group-open", "class": cls_m.group(1) if cls_m else ""})
+        elif m.group(10) is not None:
+            segments.append({"type": "group-close"})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

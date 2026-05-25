@@ -1,4 +1,25 @@
 import { ref, computed } from 'vue'
+import type { ComputedRef, InjectionKey, Ref } from 'vue'
+
+// Shared context injected into the recursive StatementNodes renderer, so it
+// can render leaf segments without prop-drilling through every layout group.
+export interface PaxStatementCtx {
+  replies: ComputedRef<Record<string, string>>
+  updateReply: (name: string, value: string) => void
+  clickfillChoicesHtml: ComputedRef<Array<{ raw: string; html: string }>>
+  menuChoicesHtml: ComputedRef<Record<string, Array<{ raw: string; html: string }>>>
+  submitted: ComputedRef<boolean>
+  loading: ComputedRef<boolean>
+  checkResult: ComputedRef<CheckResult | null>
+  draggingChoice: Ref<string | null>
+  pendingChoice: Ref<string | null>
+  cfValue: (name: string, index: number) => string
+  setCfSlot: (name: string, index: number, value: string) => void
+  cfSlotState: (name: string, index: number) => '' | 'correct' | 'incorrect'
+  inputClass: (name: string) => string
+  onSubmit: () => void
+}
+export const PAX_STATEMENT_CTX: InjectionKey<PaxStatementCtx> = Symbol('paxStatementCtx')
 
 export interface AnswerDef {
   input_name: string
@@ -24,6 +45,7 @@ export interface BackendSegment {
   height?: number
   maxw?: number
   js?: string
+  class?: string
 }
 
 export interface Rendered {
@@ -80,6 +102,33 @@ export type Segment =
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number }
+  | { type: 'group-open';  class: string }
+  | { type: 'group-close' }
+
+// A statement rendered as a tree: leaf segments or layout groups with children.
+export type SegmentNode =
+  | { kind: 'leaf'; seg: Segment }
+  | { kind: 'group'; class: string; children: SegmentNode[] }
+
+// Fold a flat segment list (with group-open/group-close markers) into a tree.
+export function buildSegmentTree(segments: Segment[]): SegmentNode[] {
+  const root: SegmentNode[] = []
+  const stack: SegmentNode[][] = [root]
+  const groups: { kind: 'group'; class: string; children: SegmentNode[] }[] = []
+  for (const seg of segments) {
+    if (seg.type === 'group-open') {
+      const node = { kind: 'group' as const, class: seg.class, children: [] }
+      stack[stack.length - 1].push(node)
+      groups.push(node)
+      stack.push(node.children)
+    } else if (seg.type === 'group-close') {
+      if (stack.length > 1) { stack.pop(); groups.pop() }
+    } else {
+      stack[stack.length - 1].push({ kind: 'leaf', seg })
+    }
+  }
+  return root
+}
 
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
@@ -114,6 +163,10 @@ export function useExerciseLogic() {
           type: 'jsxgraph', name: s.name ?? '', js: s.js ?? '',
           width: s.width, height: s.height, maxw: s.maxw,
         })
+      } else if (s.type === 'group-open') {
+        out.push({ type: 'group-open', class: s.class ?? '' })
+      } else if (s.type === 'group-close') {
+        out.push({ type: 'group-close' })
       }
     }
     return out
