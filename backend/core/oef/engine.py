@@ -261,11 +261,25 @@ def _segment_statement(html: str) -> list[dict]:
     inline dans le segment html, ce qui préserve la mise en page (utilisé par
     ex. pour les fractions superposées de l'exercice de Thalès csgb Q200).
     """
+    # A jsxgraph container is a self-contained <div class="pax-jsxgraph">…</div>
+    # carrying its init JS in data-jsxgraph; shield it from the <div>→<br>
+    # flattening below (which would otherwise destroy the board mount point).
+    _jsx_boxes: list[str] = []
+
+    def _stash_jsx(m: re.Match) -> str:
+        _jsx_boxes.append(m.group(0))
+        return f"\x02JSX{len(_jsx_boxes) - 1}\x02"
+
+    html = re.sub(r'<div\b[^>]*\bpax-jsxgraph\b[^>]*></div>', _stash_jsx, html)
+
     html = _BLOCK_OPEN.sub("<br>", html)
     html = _BLOCK_CLOSE.sub("<br>", html)
     html = _LIST_CLOSE.sub("", html)
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
+
+    for i, box in enumerate(_jsx_boxes):
+        html = html.replace(f"\x02JSX{i}\x02", box)
 
     tables = _table_ranges(html)
 

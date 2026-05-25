@@ -131,12 +131,43 @@ class _SlibMixin:
             self.ctx["canvasdraw_out"] = f'<img src="{url}" alt="">'
             return
 
+        if path == "slib/geo2D/jsxgraph":
+            self.ctx["slib_out"] = self._render_jsxgraph(proc_args)
+            return
+
         if path.startswith("slib/"):
             self._run_slib(path, proc_args)
             return
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _render_jsxgraph(self, proc_args: str) -> str:
+        """Built-in for ``slib/geo2D/jsxgraph``: turn the board-init JS into an
+        inline container that the frontend hydrates into an interactive
+        JSXGraph board.
+
+        Args from the .def are ``<divid> <boardvar>,[<size>], <jscode>``. We
+        keep the div id (the JS calls ``initBoard('<divid>', …)``) and stash
+        the JS in a ``data-jsxgraph`` attribute; the frontend loads the
+        JSXGraph library once and runs the script after the statement renders.
+        """
+        import html as _html  # noqa: PLC0415
+
+        m = re.match(r"(\S+)\s+[^,]*,\s*\[([^\]]*)\]\s*,(.*)", proc_args, re.DOTALL)
+        if m:
+            div_id, size_spec, js = m.group(1).strip(), m.group(2), m.group(3).strip()
+        else:
+            div_id, size_spec, js = "jsxbox", "", proc_args.strip()
+        wh = re.search(r"(\d+)\s*x\s*(\d+)", size_spec)
+        w, h = (int(wh.group(1)), int(wh.group(2))) if wh else (500, 500)
+        mx = re.search(r"max\s*=\s*(\d+)\s*px", size_spec)
+        max_css = f"max-width:{mx.group(1)}px;" if mx else "max-width:500px;"
+        return (
+            f'<div id="{div_id}" class="jxgbox pax-jsxgraph" '
+            f'style="width:100%;{max_css}aspect-ratio:{w} / {h};" '
+            f'data-jsxgraph="{_html.escape(js, quote=True)}"></div>'
+        )
 
     def _run_slib(self, slib_path: str, params: str) -> None:
         """Locate and execute a ``slib/<name>`` script."""

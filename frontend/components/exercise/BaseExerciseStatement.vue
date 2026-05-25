@@ -335,6 +335,13 @@ watch(
 
 onMounted(syncInlineInputs)
 
+// Hydrate any JSXGraph container (slib/geo2D/jsxgraph) once the statement HTML
+// is in the DOM, and again whenever a new exercise is rendered.
+const { renderBoards } = useJsxgraph()
+function hydrateBoards() { renderBoards(statementEl.value) }
+onMounted(hydrateBoards)
+watch(() => props.statementSegments, hydrateBoards, { flush: 'post' })
+
 function radioClass(inputName: string, choice: string) {
   if (!props.submitted) {
     return props.replies[inputName] === choice

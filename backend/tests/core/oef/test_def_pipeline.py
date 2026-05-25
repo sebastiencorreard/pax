@@ -76,6 +76,9 @@ SDLECTGRAPH1_DEF = os.path.join(
 REPGRAPHINT_DEF = os.path.join(
     RESSOURCES, "H4/algebra/oefordrevabs.fr/def/repgraphint.def"
 )
+COF_DEF = os.path.join(
+    RESSOURCES, "H3/analysis/fonctaffin.fr/def/cof.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -749,6 +752,26 @@ class TestRepgraphint:
         ]
         assert len(xs) == 2
         assert abs(xs[0] - xs[1]) > 1.0  # distinct positions, not both 400
+
+
+class TestCof:
+    """cof renders an interactive JSXGraph board via `!readproc
+    slib/geo2D/jsxgraph`. The built-in must emit a .pax-jsxgraph container
+    carrying the board-init JS in data-jsxgraph, and it must survive the
+    <div>→<br> statement flattening so the frontend can hydrate it."""
+
+    def test_jsxgraph_container_emitted(self):
+        r = load_and_render(COF_DEF, seed=7)
+        seg = next(
+            (s for s in r.statement_segments
+             if s.get("type") == "html" and "pax-jsxgraph" in s.get("content", "")),
+            None,
+        )
+        assert seg is not None, "jsxgraph container was flattened/dropped"
+        assert 'id="jsxbox"' in seg["content"]
+        assert "data-jsxgraph=" in seg["content"]
+        # the init JS reached the attribute (HTML-escaped)
+        assert "initBoard" in seg["content"]
 
 
 class TestVocabaff3:
