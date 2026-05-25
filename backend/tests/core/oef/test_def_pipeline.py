@@ -685,6 +685,21 @@ class TestSdlectgraph1:
                 f"seed {seed}: vertex {vertex} outside yrange [{ymin}, {ymax}]"
             )
 
+    def test_radio_choices_are_katex_ready(self):
+        # The factored-form choices arrive as WIMS `\(…)` (plain-paren close);
+        # they must be closed to KaTeX `\(…\)` with rendered mults so the
+        # frontend typesets them instead of showing the raw delimiters.
+        r = load_and_render(SDLECTGRAPH1_DEF, seed=7)
+        a = r.answers[0]
+        assert a.answer_type == "radio"
+        choices = a.options["choices"]
+        assert len(choices) == 4
+        for c in choices:
+            assert c.startswith(r"\(") and c.endswith(r"\)")
+            assert "*" not in c  # multiplication rendered, not raw
+        # expected stays one of the (closed) choices → reply check is consistent
+        assert a.expected in choices
+
 
 class TestVocabaff3:
     """vocabaff3 uses inline `!read oef/draw.phtml` to render a coordinate

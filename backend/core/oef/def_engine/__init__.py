@@ -2278,6 +2278,13 @@ class DefEngine(_SlibMixin):
                         except (ValueError, IndexError):
                             pass
 
+                # Choices may carry WIMS inline math `\(…)` (e.g. sdlectgraph1's
+                # factored forms) — close it to KaTeX `\(…\)` so the frontend
+                # renders them instead of showing the raw delimiters. No-op for
+                # plain-text choices. `expected` is one of the choices, so close
+                # it the same way to keep the reply comparison consistent.
+                choices = [_close_inline_math(c) for c in choices]
+                expected = _close_inline_math(expected)
                 options["choices"] = choices
 
             elif ans_type == "menu":
