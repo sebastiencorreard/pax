@@ -138,7 +138,7 @@ async function load(seed?: number, m_step?: number) {
       titleHtml.value = decodedTitle
     }
     if (rendered.value.hint_html) {
-      hintHtml.value = await renderMath(rendered.value.hint_html)
+      hintHtml.value = await renderMath(rendered.value.hint_html, { autoDisplay: true })
     }
 
     emit('rendered', {

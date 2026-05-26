@@ -143,28 +143,57 @@ export function useKatex() {
     '\\PP': '\\mathbb{P}',
   }
 
-  async function renderMath(html: string): Promise<string> {
+  // Un `\(…\)` est "seul sur sa ligne" si, entre les deux <br> (ou les bords de
+  // la chaîne) qui l'encadrent, il ne reste — une fois retirés les autres blocs
+  // math, les balises HTML, les entités et les espaces — aucune lettre ni
+  // chiffre. Autrement dit : la ligne ne contient que cette formule, pas de
+  // texte. Sert à promouvoir une formule isolée en rendu "display" (centré).
+  function isAloneOnLine(s: string, start: number, end: number): boolean {
+    const brRe = /<br\s*\/?>/gi
+    let lineStart = 0
+    let m: RegExpExecArray | null
+    while ((m = brRe.exec(s)) !== null) {
+      if (m.index + m[0].length <= start) lineStart = m.index + m[0].length
+      else break
+    }
+    const after = /<br\s*\/?>/i.exec(s.slice(end))
+    const lineEnd = after ? end + after.index : s.length
+    const rest = (s.slice(lineStart, start) + s.slice(end, lineEnd))
+      .replace(/\\\([\s\S]*?\\\)/g, '')        // autres formules inline
+      .replace(/\\\[[\s\S]*?\\\]/g, '')        // formules display
+      .replace(/<[^>]*>/g, '')                 // balises (dont spans KaTeX déjà rendus)
+      .replace(/&[a-zA-Z]+;|&#\d+;|&#x[0-9a-fA-F]+;/g, '')  // entités (&nbsp;, …)
+    return !/[A-Za-z0-9]/.test(rest)
+  }
+
+  // `autoDisplay` (énoncés/solutions/indices) : un `\(…\)` seul sur sa ligne est
+  // rendu en *displaystyle* (grosses fractions/opérateurs) MAIS reste dans le
+  // flux (inline, pas un bloc centré), pour qu'un champ de réponse puisse le
+  // suivre sur la même ligne. On obtient ça avec `\displaystyle` + displayMode
+  // false ; `displayMode:true` (réservé à `\[…\]`) forcerait un bloc à la ligne.
+  // Les formules mêlées à du texte restent en textstyle. Désactivé par défaut
+  // pour ne pas affecter les contextes inline (labels, choix, correspondance…).
+  async function renderMath(html: string, opts: { autoDisplay?: boolean } = {}): Promise<string> {
     if (!import.meta.client) return html
 
     const katex = await import('katex')
-
-    // Remplace \[...\] par du rendu display
-    html = html.replace(/\\\[([\s\S]*?)\\\]/g, (_, expr) => {
+    const render = (expr: string, { block = false, big = false } = {}) => {
       try {
-        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: true, throwOnError: false, macros: KATEX_MACROS })
+        const tex = (big ? '\\displaystyle ' : '') + normalizeMath(expr.trim())
+        return katex.default.renderToString(tex, { displayMode: block, throwOnError: false, macros: KATEX_MACROS })
       } catch {
         return `<span class="text-red-500">[erreur LaTeX: ${expr}]</span>`
       }
-    })
+    }
 
-    // Remplace \(...\) par du rendu inline
-    html = html.replace(/\\\(([\s\S]*?)\\\)/g, (_, expr) => {
-      try {
-        return katex.default.renderToString(normalizeMath(expr.trim()), { displayMode: false, throwOnError: false, macros: KATEX_MACROS })
-      } catch {
-        return `<span class="text-red-500">[erreur LaTeX: ${expr}]</span>`
-      }
-    })
+    // \[...\] → vrai display (bloc centré)
+    html = html.replace(/\\\[([\s\S]*?)\\\]/g, (_, expr) => render(expr, { block: true }))
+
+    // \(...\) → displaystyle inline si seul sur sa ligne (et autoDisplay actif),
+    // sinon inline textstyle
+    html = html.replace(/\\\(([\s\S]*?)\\\)/g, (match, expr, offset: number, s: string) =>
+      render(expr, { big: !!opts.autoDisplay && isAloneOnLine(s, offset, offset + match.length) }),
+    )
 
     return html
   }

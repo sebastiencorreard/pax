@@ -147,7 +147,7 @@ export function useExerciseLogic() {
     const out: Segment[] = []
     for (const s of backendSegments) {
       if (s.type === 'html') {
-        out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '')) })
+        out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '', { autoDisplay: true })) })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
         out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })

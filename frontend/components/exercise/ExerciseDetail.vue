@@ -155,7 +155,7 @@ async function onRendered(payload: { seed: number; exerciseId: string; currentSt
     if (payload.currentStep) params.append('m_step', payload.currentStep.toString())
     const data = await apiFetch<Debug>(`/api/render/${payload.exerciseId}/debug?${params.toString()}`)
     debug.value = data
-    if (data.solution_html) solutionHtml.value = await renderMath(data.solution_html)
+    if (data.solution_html) solutionHtml.value = await renderMath(data.solution_html, { autoDisplay: true })
     const map: Record<string, string> = {}
     for (const a of data.answers) {
       map[a.input_name] = await renderMath(expectedToLatex(a.expected))

@@ -288,10 +288,10 @@ async function submit() {
     feedbackHtml.value = await buildFeedbackHtml(checkResult.value, answerTypes)
 
     if (checkResult.value.feedback_html) {
-      checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html)
+      checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html, { autoDisplay: true })
     }
     if (checkResult.value.solution_html) {
-      checkResult.value.solution_html = await renderMath(checkResult.value.solution_html)
+      checkResult.value.solution_html = await renderMath(checkResult.value.solution_html, { autoDisplay: true })
     }
 
     const score = checkResult.value!.global_score
