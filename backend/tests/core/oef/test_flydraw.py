@@ -244,3 +244,31 @@ class TestInlineSvgImgs:
         html = f'<img src="{u1}"><img src="{u2}">'
         out = inline_svg_imgs(html)
         assert out.count("<svg") == 2
+
+
+class TestFlydrawFillDashArrow:
+    """Fidelity fixes for oefcalittaire1's figure: dashed dimension lines,
+    full-size arrowheads, and a filled (not just outlined) polygon."""
+
+    def test_dsegment_is_dashed(self):
+        # WIMS 'd' prefix = dashed; dsegment draws the dimension/extension lines.
+        svg = flydraw_to_svg(300, 80, "range -5,5,-5,5\ndsegment -3,0,3,0,black")
+        assert "stroke-dasharray" in svg
+
+    def test_arrowhead_uses_pixel_size(self):
+        # The 5th arg is the arrowhead size in px; render at that size, not half.
+        import re as _re
+
+        svg = flydraw_to_svg(300, 80, "range -5,5,-1,1\narrow 0,0,4,0,8,black")
+        m = _re.search(r'markerWidth="([\d.]+)"', svg)
+        assert m and float(m.group(1)) == 8.0
+
+    def test_fill_fills_enclosing_polygon(self):
+        # `fill x,y,color` fills the closed polygon containing (x,y) — here a
+        # quadrilateral (rhombus) the triangle-only flood couldn't handle.
+        svg = flydraw_to_svg(
+            300, 300,
+            "range -5,5,-5,5\npolygon black,-4,0,0,3,4,0,0,-3\nfill 0,0,skyblue",
+        )
+        assert svg.count("<polygon") == 2  # outline + fill
+        assert 'fill="#87ceeb"' in svg

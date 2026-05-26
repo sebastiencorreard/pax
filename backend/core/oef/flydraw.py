@@ -246,6 +246,9 @@ class _State:
     font_weight: str = ""  # e.g. "bold"
     elements: list[str] = field(default_factory=list)
     segments: list[_Seg] = field(default_factory=list)
+    # Closed polygons actually drawn (polygon/fpolygon/triangle), in math
+    # coords — `flood`/`fill` fills the smallest one containing its point.
+    polygons: list[list[_Pt]] = field(default_factory=list)
     width: int = 300
     height: int = 80
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
@@ -296,7 +299,9 @@ def _cmd_segment(state: _State, args: list[str]) -> None:
 def _arrow_marker(state: _State, head_len: float, color: str) -> str:
     """Emit a <marker> definition and return its ID — used by arrow variants."""
     head_id = f"ah{len(state.elements)}"
-    head_size = max(head_len / 2, 4)
+    # WIMS' 5th `arrow` arg is the arrowhead size in pixels — use it directly
+    # (halving it made the heads visibly smaller than WIMS).
+    head_size = max(head_len, 4)
     state.elements.append(
         f'<defs><marker id="{head_id}" viewBox="0 0 10 10" refX="10" refY="5" '
         f'markerWidth="{head_size}" markerHeight="{head_size}" '
@@ -582,9 +587,18 @@ def _cmd_line(state: _State, args: list[str]) -> None:
 
 
 def _cmd_dsegment(state: _State, args: list[str]) -> None:
-    # `dsegment x1,y1,x2,y2,[color]` — directed segment (WIMS uses it for
-    # highlighted sides; visually a normal segment, no arrowhead).
-    _cmd_segment(state, args)
+    # `dsegment x1,y1,x2,y2,[color]` — DASHED segment (WIMS 'd' prefix = dashed;
+    # used for dimension / extension lines). Not recorded in state.segments: a
+    # dimension line is not a figure boundary, so it must not feed `flood`.
+    if len(args) < 4:
+        return
+    x1, y1, x2, y2 = (_num(a) for a in args[:4])
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    state.elements.append(
+        f'<line x1="{state.px(x1):.2f}" y1="{state.py(y1):.2f}" '
+        f'x2="{state.px(x2):.2f}" y2="{state.py(y2):.2f}" '
+        f'stroke="{color}" stroke-width="{state.linewidth}" stroke-dasharray="4,3" />'
+    )
 
 
 def _cmd_triangle(state: _State, args: list[str]) -> None:
@@ -602,6 +616,7 @@ def _cmd_triangle(state: _State, args: list[str]) -> None:
     state.segments.append(((x1, y1), (x2, y2)))
     state.segments.append(((x2, y2), (x3, y3)))
     state.segments.append(((x3, y3), (x1, y1)))
+    state.polygons.append([(x1, y1), (x2, y2), (x3, y3)])
     state.elements.append(
         f'<polygon points="{pts}" fill="{fill}" '
         f'stroke="{color}" stroke-width="{state.linewidth}" />'
@@ -634,10 +649,9 @@ def _cmd_polygon(state: _State, args: list[str]) -> None:
     coords = [_num(a) for a in args[1:]]
     if len(coords) < 4 or len(coords) % 2 != 0:
         return
-    pts = " ".join(
-        f"{state.px(coords[i]):.2f},{state.py(coords[i + 1]):.2f}"
-        for i in range(0, len(coords), 2)
-    )
+    verts = [(coords[i], coords[i + 1]) for i in range(0, len(coords), 2)]
+    state.polygons.append(verts)
+    pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in verts)
     state.elements.append(
         f'<polygon points="{pts}" fill="none" '
         f'stroke="{color}" stroke-width="{state.linewidth}" />'
@@ -1397,6 +1411,32 @@ def _triangle_area(a: _Pt, b: _Pt, c: _Pt) -> float:
     return 0.5 * abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1]))
 
 
+def _polygon_area(poly: list[_Pt]) -> float:
+    """Absolute area of a (possibly non-convex) polygon — shoelace formula."""
+    n = len(poly)
+    s = 0.0
+    for i in range(n):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % n]
+        s += x1 * y2 - x2 * y1
+    return abs(s) / 2.0
+
+
+def _point_in_polygon(p: _Pt, poly: list[_Pt]) -> bool:
+    """Ray-casting point-in-polygon test (works for convex & concave)."""
+    x, y = p
+    inside = False
+    n = len(poly)
+    for i in range(n):
+        x1, y1 = poly[i]
+        x2, y2 = poly[(i + 1) % n]
+        if (y1 > y) != (y2 > y):
+            x_cross = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
+            if x < x_cross:
+                inside = not inside
+    return inside
+
+
 def _line_intersection(a: _Pt, b: _Pt, c: _Pt, d: _Pt, eps: float = 1e-9) -> _Pt | None:
     """Intersection of two infinite lines defined by points (a,b) and (c,d)."""
     x1, y1 = a
@@ -1426,6 +1466,19 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
         return
     fx, fy = _num(args[0]), _num(args[1])
     color = _color(args[2]) if len(args) > 2 else "#000000"
+
+    # Prefer an explicitly-drawn closed polygon containing the point. This fills
+    # arbitrary shapes (e.g. the rhombus in oefcalittaire1) that the
+    # triangle-from-segments fallback below can't handle. Smallest match wins so
+    # an inner region is preferred over an enclosing one.
+    containing = [poly for poly in state.polygons if _point_in_polygon((fx, fy), poly)]
+    if containing:
+        poly = min(containing, key=_polygon_area)
+        pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
+        # Insert behind the outline/labels so the stroked border stays visible.
+        state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
+        return
+
     if not state.segments:
         return
 
