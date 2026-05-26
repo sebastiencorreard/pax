@@ -175,21 +175,27 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
     # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
     r'|<div class="pax-jsxgraph"[^>]*data-jsxgraph="([^"]*)"[^>]*></div>'
-    # groups 9/10: generic <div> open/close → layout-group segments, so a
-    # CSS-flex container (e.g. cof's .container) can wrap its child segments
-    # side by side. Tried after group 8 so the jsxgraph div isn't split.
-    r'|(<div\b[^>]*>)'
-    r'|(</div>)'
+    # groups 9/10: <div>/<ul>/<ol>/<li> open/close → layout-group segments, so a
+    # CSS-flex container (e.g. cof's .container, or fcou's <ul class="inline">
+    # row of JSXGraph boards) can wrap its child segments side by side. Tried
+    # after group 8 so the jsxgraph div isn't split.
+    # Case-insensitive: OEF HTML mixes case (e.g. Hauteurdunarbr's <uL>).
+    r'|((?i:<(?:div|ul|ol|li)\b[^>]*>))'
+    r'|((?i:</(?:div|ul|ol|li)\s*>))'
     # groups 11/12/13: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
 )
-# Block tags flattened to <br> (the front-end renders segments flat). <div> is
-# NOT flattened — it becomes a layout-group segment (see groups 9/10 above) so
-# its class-based styling (flex containers) is preserved.
-_BLOCK_OPEN = re.compile(r"<(?:p|li|ul|ol)(?=[\s>])[^>]*>", re.I)
-# </p>, </ul>, </ol> → <br> ; </li> → rien (le <li> suivant pourvoit le saut).
-_BLOCK_CLOSE = re.compile(r"</(?:p|ul|ol)>", re.I)
-_LIST_CLOSE = re.compile(r"</li>", re.I)
+# Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
+# <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
+# (see groups 9/10 above) so their class-based styling (flex containers, e.g.
+# fcou's `.inline` row of boards) is preserved. Missing </li> tags are
+# back-filled by _balance_list_items before grouping.
+_BLOCK_OPEN = re.compile(r"<p(?=[\s>])[^>]*>", re.I)
+# </p> → <br>.
+_BLOCK_CLOSE = re.compile(r"</p\s*>", re.I)
+
+# Matches list structure tags so _balance_list_items can re-balance them.
+_LIST_TAG = re.compile(r"<(/?)(ul|ol|li)\b[^>]*>", re.I)
 # Séquences de plusieurs <br> consécutifs (avec espaces) → un seul <br>.
 _BR_RUN = re.compile(r"(?:\s*<br\s*/?>\s*){2,}", re.I)
 # <br> en tête de chaîne (artefacts de la conversion div/p → br).
@@ -252,6 +258,89 @@ def _inline_input_html(name: str, size_raw: str) -> str:
     )
 
 
+def _balance_list_items(html: str) -> str:
+    """Back-fill missing </li> (and dangling list closers) so the ul/ol/li
+    structure is well balanced before it is turned into layout-group segments.
+
+    OEF/WIMS HTML routinely omits </li> — e.g. ``<ul><li>a<li>b</ul>`` — relying
+    on the next <li> or the </ul> to implicitly close the item. Since the front
+    end builds its group tree from the raw open/close markers, an unclosed <li>
+    would wrongly nest the following sibling items inside it and swallow whatever
+    text comes after the list. We close each <li> at the next sibling <li> or the
+    enclosing </ul>/</ol>, and close anything still open at end of input.
+    """
+    out: list[str] = []
+    pos = 0
+    # Stack of open list contexts. Each entry: [tag, li_open]; tag is "ul"/"ol",
+    # or None for a stray <li> opened outside any list.
+    stack: list[list] = []
+    for m in _LIST_TAG.finditer(html):
+        out.append(html[pos:m.start()])
+        pos = m.end()
+        closing = m.group(1) == "/"
+        tag = m.group(2).lower()
+        if tag in ("ul", "ol"):
+            if closing:
+                # Pop any stray <li>s, then this list — closing open items.
+                while stack and stack[-1][0] is None:
+                    if stack.pop()[1]:
+                        out.append("</li>")
+                if stack:
+                    if stack[-1][1]:
+                        out.append("</li>")
+                    stack.pop()
+                out.append(m.group(0))
+            else:
+                stack.append([tag, False])
+                out.append(m.group(0))
+        elif closing:  # </li>
+            if stack and stack[-1][1]:
+                stack[-1][1] = False
+            out.append(m.group(0))
+        else:  # <li>
+            if stack and stack[-1][1]:
+                out.append("</li>")  # close the previous sibling item
+            if stack and stack[-1][0] is not None:
+                stack[-1][1] = True
+            else:
+                stack.append([None, True])  # stray <li>, no enclosing list
+            out.append(m.group(0))
+    out.append(html[pos:])
+    # Close whatever is still open at end of input (lists/items lacking a tag).
+    tail: list[str] = []
+    while stack:
+        tag, li_open = stack.pop()
+        if li_open:
+            tail.append("</li>")
+        if tag is not None:
+            tail.append(f"</{tag}>")
+    return "".join(out) + "".join(tail)
+
+
+def _strip_group_whitespace(segments: list[dict]) -> list[dict]:
+    """Drop whitespace-only html segments sitting against a layout-group border.
+
+    Source lists carry whitespace (tabs/newlines) between </li> and the next
+    <li>, and between <ul> and its first <li>. Left in place these become empty
+    flex items inside the group and double the gap between boards. Whitespace
+    between two inline widgets is kept (it may be a meaningful space) — only
+    whitespace adjacent to a group-open/group-close marker is removed.
+    """
+    def _is_group(seg: dict | None) -> bool:
+        return seg is not None and seg.get("type") in ("group-open", "group-close")
+
+    out: list[dict] = []
+    n = len(segments)
+    for i, seg in enumerate(segments):
+        if seg.get("type") == "html" and not seg.get("content", "").strip():
+            prev = segments[i - 1] if i > 0 else None
+            nxt = segments[i + 1] if i + 1 < n else None
+            if _is_group(prev) or _is_group(nxt):
+                continue
+        out.append(seg)
+    return out
+
+
 def _segment_statement(html: str) -> list[dict]:
     """
     Découpe le HTML rendu en segments typés consommables tels quels par le front :
@@ -259,8 +348,8 @@ def _segment_statement(html: str) -> list[dict]:
       - {type: "input", name: "reply1", size: 10}
       - {type: "slot",  name: "..."}
       - {type: "menu",  name: "reply1", label: "Choix"}
-    Aplatit les balises de bloc (<div>, <p>, <li>, <ul>, <ol>) en <br> et
-    résout l'alias rN ↔ replyN.
+    Aplatit <p> en <br> ; <div>/<ul>/<ol>/<li> sont préservés en groupes de
+    mise en page (segments group-open/group-close). Résout l'alias rN ↔ replyN.
 
     Widgets situés à l'intérieur d'une <table> ne déclenchent pas de split :
     leur span <span class="oef-input"> est réécrit en <input> natif et reste
@@ -269,7 +358,7 @@ def _segment_statement(html: str) -> list[dict]:
     """
     html = _BLOCK_OPEN.sub("<br>", html)
     html = _BLOCK_CLOSE.sub("<br>", html)
-    html = _LIST_CLOSE.sub("", html)
+    html = _balance_list_items(html)
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
 
@@ -407,7 +496,7 @@ def _segment_statement(html: str) -> list[dict]:
         last = m.end()
     if last < len(html):
         segments.append({"type": "html", "content": html[last:]})
-    return segments
+    return _strip_group_whitespace(segments)
 
 
 def _embedded_widget_names(html: str) -> set[str]:

@@ -82,6 +82,9 @@ COF_DEF = os.path.join(
 COUF_DEF = os.path.join(
     RESSOURCES, "H3/analysis/fonctaffin.fr/def/couf.def"
 )
+FCOU_DEF = os.path.join(
+    RESSOURCES, "H3/analysis/fonctaffin.fr/def/fcou.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -877,6 +880,66 @@ class TestCouf:
         assert a.answer_type == "radio"
         assert a.options.get("inline") is True
         assert a.expected in {"1", "2", "3", "4"}  # the correct position
+
+
+class TestFcou:
+    """fcou is the inverse of couf: the 4 answer choices are JSXGraph curves
+    laid out in a `<ul class="inline">` row (pick the curve matching the given
+    function). The list must be preserved as a layout group so the boards sit
+    side by side and wrap (4 → 3+1 → 2+2 …) instead of stacking vertically."""
+
+    def test_four_boards_in_inline_group(self):
+        r = load_and_render(FCOU_DEF, seed=7)
+        segs = r.statement_segments
+        types = [s.get("type") for s in segs]
+
+        # The list survives as a layout group carrying its `inline` class
+        # (not flattened to <br>), and the group tree stays balanced.
+        assert types.count("group-open") == types.count("group-close")
+        opens = [s for s in segs if s.get("type") == "group-open"]
+        assert any(s["class"] == "inline" for s in opens), \
+            "the <ul class=\"inline\"> board row was flattened/lost"
+
+        # Exactly the 4 curve boards, and all 4 live inside the inline group.
+        boards = [s for s in segs if s.get("type") == "jsxgraph"]
+        assert len(boards) == 4
+        assert all("functiongraph" in b["js"] for b in boards)
+
+        start = next(
+            i for i, s in enumerate(segs)
+            if s.get("type") == "group-open" and s["class"] == "inline"
+        )
+        depth, end = 0, len(segs)
+        for i in range(start, len(segs)):
+            t = segs[i].get("type")
+            if t == "group-open":
+                depth += 1
+            elif t == "group-close":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        inside = sum(
+            1 for s in segs[start:end] if s.get("type") == "jsxgraph"
+        )
+        assert inside == 4, "the 4 boards are not nested in the inline group"
+
+
+class TestListBalancing:
+    """_balance_list_items back-fills omitted </li> tags. OEF HTML often writes
+    `<ul><li>a<li>b</ul>text` with no </li>; without re-balancing the group tree
+    would nest the items and swallow the trailing text into the last <li>."""
+
+    def test_missing_li_close_is_backfilled(self):
+        from core.oef.engine import _segment_statement  # noqa: PLC0415
+
+        html = "<uL> <li> a <li> b <li> c </ul> after"
+        segs = _segment_statement(html)
+        types = [s.get("type") for s in segs]
+        # Balanced: one <ul> + three <li> open/close pairs.
+        assert types.count("group-open") == types.count("group-close") == 4
+        # "after" stays outside the list (a sibling html leaf, not nested).
+        assert segs[-1]["type"] == "html" and "after" in segs[-1]["content"]
 
 
 class TestVocabaff3:
