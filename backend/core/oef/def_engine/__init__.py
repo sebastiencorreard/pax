@@ -507,6 +507,28 @@ class DefEngine(_SlibMixin):
                 break
         return s
 
+    @staticmethod
+    def _tab_is_separator(value: str) -> bool:
+        """Whether the TAB acts as the list separator in ``value``.
+
+        The WIMS list separator is the comma. pax additionally uses a TAB as an
+        *internal* separator for lists whose items contain commas (HTML/board
+        blobs — see _eval_assignment), where each item ends in a non-comma char
+        (``>``/``}``) so the tab follows it. But a tab that merely follows a
+        comma (``,\\t``) is cosmetic source whitespace, not a separator: e.g.
+        ``val7=… suivante&nbsp;,\\t… suivantes&nbsp;`` is a 2-item *comma* list,
+        the tab just padding the source. So a TAB is the separator only when at
+        least one tab is preceded (modulo spaces) by a non-comma character.
+        """
+        return "\t" in value and re.search(r"[^,\s]\s*\t", value) is not None
+
+    def _split_list_items(self, value: str) -> list[str]:
+        """Split a WIMS list value into items (TAB- or comma-separated)."""
+        if self._tab_is_separator(value):
+            return value.split("\t")
+        # Comma split, but keep commas nested inside parentheses intact.
+        return re.split(r",(?![^(]*\))", value)
+
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.
 
@@ -522,7 +544,7 @@ class DefEngine(_SlibMixin):
             end = int(round(float(self._eval_arith(self._subst_for_arith(end_s)))))
         except (ValueError, TypeError):
             return ""
-        items = value.split("\t") if "\t" in value else value.split(",")
+        items = self._split_list_items(value)
         return ",".join(items[start - 1 : end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
@@ -533,10 +555,12 @@ class DefEngine(_SlibMixin):
             return ""
         idx_s = self._subst_for_arith(idx_expr)
 
-        # Detect delimiter: tab first; otherwise smart comma split.
+        # Detect delimiter: a TAB is the separator only when it follows a
+        # non-comma char (a real pax tab-join); a ",\t" is cosmetic source
+        # whitespace, so the comma is the separator (see _tab_is_separator).
         # Do NOT treat ";" as a delimiter for single-subscript access — items
         # may legitimately contain ";" inside HTML entities like &#44; (comma).
-        if "\t" in value:
+        if self._tab_is_separator(value):
             delimiter = "\t"
             items = value.split("\t")
         else:
@@ -548,6 +572,9 @@ class DefEngine(_SlibMixin):
             idx = int(round(float(self._eval_arith(idx_s))))
             if 1 <= idx <= len(items):
                 return items[idx - 1].strip()
+            # WIMS negative index: -1 = last item, -2 = second-to-last, …
+            if -len(items) <= idx <= -1:
+                return items[idx].strip()
             return ""
         except (ValueError, TypeError):
             pass

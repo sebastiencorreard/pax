@@ -29,6 +29,13 @@ def _rint(x: Any) -> int:
     return int(round(float(x)))
 
 
+def _lcm(*args: Any) -> int:
+    # WIMS lcm() always operates on integers; coerce so "30"/"30.0" both work
+    # (math.lcm rejects floats). Without this, $[rint(lcm(a,b))] fell through
+    # the eval and leaked the literal "rint(lcm(…))" into the statement.
+    return math.lcm(*(int(round(float(a))) for a in args))
+
+
 _MATH_NS: dict = {
     "__builtins__": {},
     "rint": _rint,
@@ -57,6 +64,7 @@ _MATH_NS: dict = {
     "fact": math.factorial,
     "sign": lambda x: 1 if x > 0 else -1 if x < 0 else 0,
     "gcd": math.gcd,
+    "lcm": _lcm,
 }
 
 
@@ -666,6 +674,12 @@ def _format_pari_result(result) -> str:
 # or identifiers (10x would be unusual, but guards against partial matches).
 _INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d?|\w)")
 
+# A bare *flat* vector literal `[a,b,…]` (no nested brackets, and not an index
+# like `v[1]` — guarded by the lookbehind). PARI allows scalar/vector arithmetic
+# (`1.2*[a,b,c]` → `[1.2a,1.2b,1.2c]`), which is invalid Python; we wrap these as
+# row matrices in the _call_pari fallback so the op broadcasts elementwise.
+_VEC_LITERAL_RE = re.compile(r"(?<![\w\])])\[([^\[\]]+)\]")
+
 
 def _call_pari(expr: str) -> str:
     """Evaluate a PARI/GP-style expression via Python.
@@ -720,4 +734,18 @@ def _call_pari(expr: str) -> str:
             result = sympy.expand(result)
         return _format_pari_result(result)
     except Exception:
+        # Fallback: PARI vector arithmetic. A bare flat vector literal combined
+        # with a scalar (e.g. `1.2*[a,b,c]`) is invalid Python, so the parse
+        # above raised. Re-parse with such literals wrapped as row matrices so
+        # the scalar op broadcasts elementwise; _format_pari_result then renders
+        # the row matrix back as a comma list (used by slib/draw/range extents).
+        if _VEC_LITERAL_RE.search(clean):
+            try:
+                ns["_V"] = lambda *a: sympy.Matrix([list(a)])
+                vec_clean = _VEC_LITERAL_RE.sub(r"_V(\1)", clean)
+                return _format_pari_result(
+                    parse_expr(vec_clean, local_dict=ns, transformations=transformations)
+                )
+            except Exception:
+                pass
         return expr

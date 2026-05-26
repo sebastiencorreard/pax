@@ -423,9 +423,13 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
             eq = line.index("=")
             name = line[:eq].strip()
             if re.match(r"^[a-zA-Z0-9_]+$", name):
-                # Value is taken from the raw line to preserve spacing/tabs in value
+                # Value is taken from the raw line to preserve leading/internal
+                # spacing & tabs (some lists use a TAB separator). Trailing
+                # whitespace is cosmetic line padding in the .def and must be
+                # trimmed — otherwise e.g. `val40=$(tmp0)\t` leaks a tab into the
+                # value, breaking a draw <img src="…/hash\t"> (oefcalittaire1).
                 raw_eq = raw.index("=")
-                value = raw[raw_eq + 1 :].rstrip("\n")
+                value = raw[raw_eq + 1 :].rstrip()
                 instructions.append(Assign(name=name, value=value))
                 i += 1
                 continue

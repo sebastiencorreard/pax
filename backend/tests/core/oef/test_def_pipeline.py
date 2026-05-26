@@ -85,6 +85,15 @@ COUF_DEF = os.path.join(
 FCOU_DEF = os.path.join(
     RESSOURCES, "H3/analysis/fonctaffin.fr/def/fcou.def"
 )
+GEAR23_DEF = os.path.join(
+    RESSOURCES, "H3/arithmetic/gear.fr/def/gear23.def"
+)
+SOPOA_DEF = os.path.join(
+    RESSOURCES, "H3/algebra/oeffrac.fr/def/sopoA.def"
+)
+OEFCALITTAIRE1_DEF = os.path.join(
+    RESSOURCES, "H3/algebra/OEFlittcollege.fr/def/oefcalittaire1.def"
+)
 
 
 # ── Parser tests ──────────────────────────────────────────────────────────────
@@ -940,6 +949,118 @@ class TestListBalancing:
         assert types.count("group-open") == types.count("group-close") == 4
         # "after" stays outside the list (a sibling html leaf, not nested).
         assert segs[-1]["type"] == "html" and "after" in segs[-1]["content"]
+
+
+class TestGear23:
+    """gear23 computes the answer via $[rint(lcm($val8,$val9))]. `lcm` was
+    missing from the arithmetic namespace, so the $[…] eval raised NameError,
+    fell through to its return-as-is fallback and leaked the literal
+    "rint(lcm(…))" into the statement instead of a number."""
+
+    def test_lcm_evaluates_to_a_number(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(GEAR23_DEF)
+        e = DefEngine(seed=7, def_path=GEAR23_DEF)
+        e.render(df)
+        # val21 = lcm(z1,z2); val22 = lcm/z1; val23 = lcm/z2 — all integers now.
+        for key in ("val21", "val22", "val23"):
+            val = str(e.ctx.get(key))
+            assert "lcm" not in val and "rint" not in val, f"{key}={val!r} not evaluated"
+            assert val.lstrip("-").isdigit(), f"{key}={val!r} is not an integer"
+
+    def test_statement_has_no_leaked_expression(self):
+        r = load_and_render(GEAR23_DEF, seed=7)
+        assert "lcm(" not in r.statement_html
+        assert "rint" not in r.statement_html
+
+
+class TestSopoA:
+    """sopoA's prompt is a 2-item comma list selected by confparm1 (singular vs
+    plural): `val7=… suivante&nbsp;,\\t… suivantes&nbsp;`. The TAB after the
+    comma is cosmetic source whitespace — the separator is the comma. The
+    indexed access $(val7[1]) wrongly split on the TAB and leaked the trailing
+    comma ("… suivante ,:"). Guards the comma/TAB separator disambiguation."""
+
+    def test_indexed_item_has_no_trailing_comma(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(SOPOA_DEF)
+        e = DefEngine(seed=3, def_path=SOPOA_DEF)
+        e.render(df)
+        assert e._subst("$(val7[1])") == "Calculer l'expression suivante&nbsp;"
+        assert e._subst("$(val7[2])") == "Calculer les expressions suivantes&nbsp;"
+        # val8's singular item likewise keeps its period but drops the comma.
+        assert not e._subst("$(val8[1])").endswith(",")
+
+    def test_statement_has_no_stray_comma_before_colon(self):
+        r = load_and_render(SOPOA_DEF, seed=3)
+        assert ",:" not in r.statement_html
+        assert "suivante&nbsp;:" in r.statement_html
+
+    def test_tab_separator_disambiguation(self):
+        # A real pax tab-join (HTML blob, item ends in '>') splits on TAB; a
+        # ",\t" (cosmetic) splits on the comma.
+        from core.oef.def_engine import DefEngine  # noqa: PLC0415
+
+        assert DefEngine._tab_is_separator("<div>a</div>\t<div>b</div>") is True
+        assert DefEngine._tab_is_separator("un item,\tautre item") is False
+
+
+class TestOefcalittaire1:
+    """The figure (a labelled triangle) is drawn via `!readproc oef/draw.phtml`.
+    Three def-engine gaps kept it from displaying: a trailing TAB on the
+    assignment `val40=$(tmp0)\\t` leaked into the image URL; PARI scalar×vector
+    `1.2*[…]` (the bounding-box scaling) wasn't evaluated; and `slib/draw/range`
+    uses a negative list index `$(u[-1])` (= last) to find the max bound. All
+    three are needed for a correctly-scaled, inlined SVG. Seed 2 → val6=1."""
+
+    def test_figure_renders_inline_svg(self):
+        r = load_and_render(OEFCALITTAIRE1_DEF, seed=2)
+        h = r.statement_html
+        assert "<svg" in h, "draw image not inlined (broken/trailing-ws URL?)"
+        assert "<polygon" in h, "the rhombus polygon was not drawn"
+        # No stray whitespace leaked into any image URL.
+        assert not re.search(r'src="[^"]*\s"', h)
+        svg = h[h.find("<svg"):h.find("</svg>") + 6]
+        # Visual fidelity vs WIMS: filled rhombus, dashed dimension lines.
+        assert 'fill="#87ceeb"' in svg, "rhombus interior not filled"
+        assert "stroke-dasharray" in svg, "dimension (dsegment) lines not dashed"
+
+    def test_range_is_numeric_and_in_box(self):
+        from core.oef.def_engine import DefEngine, _parse_def_cached  # noqa: PLC0415
+
+        df = _parse_def_cached(OEFCALITTAIRE1_DEF)
+        e = DefEngine(seed=2, def_path=OEFCALITTAIRE1_DEF)
+        e.render(df)
+        # val37 = xmin,xmax,ymin,ymax — four numbers, no leaked "[" / "max(" / "/2".
+        parts = str(e.ctx.get("val37")).split(",")
+        assert len(parts) == 4
+        for p in parts:
+            float(p)  # raises if the slib/draw/range output wasn't evaluated
+
+
+class TestPariVectorAndNegIndex:
+    """Two primitives the gear/littcollege draws rely on."""
+
+    def test_pari_scalar_times_vector(self):
+        from core.oef.def_engine.cas import _call_pari  # noqa: PLC0415
+
+        # float × vector and vector / scalar broadcast elementwise (PARI). The
+        # littcollege bounding-box scaling is `1.2*[…]` (float).
+        assert _call_pari("1.2*[1,2,3]") == "1.2,2.4,3.6"
+        assert _call_pari("[10,20,30]/10") == "1,2,3"
+        # ordinary scalar expressions are unaffected.
+        assert _call_pari("(x-3)*(x+3)") == "x^2 - 9"
+
+    def test_negative_list_index(self):
+        from core.oef.def_engine import DefEngine  # noqa: PLC0415
+
+        e = DefEngine(seed=1, def_path=OEFCALITTAIRE1_DEF)
+        e.ctx["lst"] = "a,b,c,d"
+        assert e._subst("$(lst[-1])") == "d"
+        assert e._subst("$(lst[-2])") == "c"
+        assert e._subst("$(lst[1])") == "a"
 
 
 class TestVocabaff3:
