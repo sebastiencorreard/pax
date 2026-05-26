@@ -272,3 +272,48 @@ class TestFlydrawFillDashArrow:
         )
         assert svg.count("<polygon") == 2  # outline + fill
         assert 'fill="#87ceeb"' in svg
+
+
+class TestFlydrawArgParsing:
+    """Coordinate-arg robustness (oefcalittaire1 branches 4 & 5)."""
+
+    def test_inner_comma_in_min_keeps_args_aligned(self):
+        # `min(a,b)` in a coord must stay one argument; otherwise the comma
+        # split mis-aligns every following coord and a horizontal arrow renders
+        # as a stray diagonal. Both endpoints share y → the line stays level.
+        import re as _re
+
+        svg = flydraw_to_svg(300, 80, "range 0,10,0,10\narrow min(2,8),5,9,5,8,black")
+        m = _re.search(r'<line x1="[\d.]+" y1="([\d.]+)" x2="[\d.]+" y2="([\d.]+)"', svg)
+        assert m and m.group(1) == m.group(2)
+
+    def test_num_tolerates_trailing_operator(self):
+        # A generated coord like "X +" (dangling operator) evaluates to X, not 0.
+        assert _num("25.6 +") == 25.6
+        assert _num("3*4 +") == 12.0
+        assert _num("5 -") == 5.0
+
+
+class TestFlydrawRectFillAndColors:
+    """A `fill` inside a `rectangle`, and the seashell color (oefcalittaire1
+    branches 3/4/5 were black or unfilled)."""
+
+    def test_fill_fills_a_rectangle(self):
+        svg = flydraw_to_svg(
+            300, 200, "range -5,5,-5,5\nrectangle -4,-3,4,3,black\nfill 0,0,lavender"
+        )
+        assert 'fill="#e6e6fa"' in svg          # lavender fill applied
+        assert svg.count("<polygon") == 1       # the fill polygon (outline is <rect>)
+
+    def test_seashell_color_resolves(self):
+        svg = flydraw_to_svg(100, 100, "range -5,5,-5,5\nsegment 0,0,1,1,seashell")
+        assert 'stroke="#fff5ee"' in svg
+
+
+class TestFlydrawText:
+    def test_text_drops_undefined_wims_var(self):
+        # `\name` (an undefined WIMS var) in a flydraw label renders empty, like
+        # WIMS — not as the literal "\unit" (oefcalittaire1 triangle height).
+        svg = flydraw_to_svg(100, 100, "range -5,5,-5,5\ntext black,0,0,normal,0.4 \\unit")
+        assert ">0.4</text>" in svg
+        assert "unit" not in svg

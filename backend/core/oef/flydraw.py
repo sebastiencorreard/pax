@@ -102,6 +102,7 @@ _COLORS: dict[str, str] = {
     "salmon": "#fa8072",
     "sandybrown": "#f4a460",
     "seagreen": "#2e8b57",
+    "seashell": "#fff5ee",
     "sienna": "#a0522d",
     "silver": "#c0c0c0",
     "skyblue": "#87ceeb",
@@ -208,8 +209,41 @@ def _num(s: str) -> float:
         try:
             return float(eval(s, _NUM_NS))  # noqa: S307
         except Exception:
+            # WIMS' flydraw parser tolerates a dangling trailing operator — some
+            # generated coords look like "X +" (a tick's x2 in oefcalittaire1
+            # branch 5). Evaluate them as just "X" instead of collapsing to 0
+            # (which dragged the tick off to the axis as a stray diagonal).
+            stripped = s.rstrip(" \t+-*/")
+            if stripped and stripped != s:
+                try:
+                    return float(eval(stripped, _NUM_NS))  # noqa: S307
+                except Exception:
+                    pass
             return 0.0
     return 0.0
+
+
+def _split_args(arg_str: str) -> list[str]:
+    """Split a flydraw command's argument list on top-level commas only.
+
+    A comma inside a function call — e.g. `min(a,b)` / `max(a,b)`, which WIMS
+    uses to clamp a dimension arrow — must stay within one argument. Splitting
+    on every comma mis-aligned all following coordinates, turning a horizontal
+    arrow into a stray diagonal line (oefcalittaire1 branches 4/5).
+    """
+    args: list[str] = []
+    depth = 0
+    start = 0
+    for i, ch in enumerate(arg_str):
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth = max(0, depth - 1)
+        elif ch == "," and depth == 0:
+            args.append(arg_str[start:i].strip())
+            start = i + 1
+    args.append(arg_str[start:].strip())
+    return args
 
 
 # ── Renderer state ────────────────────────────────────────────────────────────
@@ -538,6 +572,12 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     size = _font_size(args[3])
     # Content may contain commas — re-join the tail
     content = ",".join(args[4:]).strip()
+    # Drop leftover WIMS variable refs (\name) that were undefined: WIMS renders
+    # them empty (e.g. `\c \unit` → "0.4" when `unit` is unset). flydraw text is
+    # plain (never LaTeX), so a residual backslash-word is such a ref, not a
+    # command.
+    content = re.sub(r"\\[A-Za-z]\w*", "", content)
+    content = re.sub(r"\s{2,}", " ", content).strip()
     state.elements.append(
         f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
         f'font-size="{size}" font-family="sans-serif" '
@@ -800,6 +840,9 @@ def _cmd_rect(state: _State, args: list[str]) -> None:
         return
     x1, y1, x2, y2 = (_num(a) for a in args[:4])
     color = _color(args[4]) if len(args) > 4 else "#000000"
+    # Record the rectangle so a later `fill` inside it works (the rhombus/
+    # triangle path handles polygon/triangle; rectangles went unfilled).
+    state.polygons.append([(x1, y1), (x2, y1), (x2, y2), (x1, y2)])
     px1, px2 = state.px(min(x1, x2)), state.px(max(x1, x2))
     py1, py2 = state.py(max(y1, y2)), state.py(min(y1, y2))
     state.elements.append(
@@ -1681,7 +1724,7 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
             continue
         cmd = m.group(1).lower()
         arg_str = m.group(2)
-        args = [a.strip() for a in arg_str.split(",")] if arg_str else []
+        args = _split_args(arg_str) if arg_str else []
         handler = _HANDLERS.get(cmd)
         if handler:
             handler(state, args)
