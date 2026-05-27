@@ -1,3 +1,4 @@
+import html
 import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -135,7 +136,9 @@ async def list_modules(
             raw_author = idx.get("author") or idx.get("maintainer") or ""
             modules[mod_name] = {
                 "module": mod_name,
-                "title": idx.get("title") or mod_name,
+                # WIMS titles carry HTML entities (e.g. "Roue 1 en &euro;");
+                # decode them to text since the sidebar renders titles plainly.
+                "title": html.unescape(idx.get("title") or mod_name),
                 "description": idx.get("description") or "",
                 "author": _format_author(raw_author),
                 "keywords": _split_csv(idx.get("keywords", "")),
@@ -151,7 +154,7 @@ async def list_modules(
         modules[mod_name]["exercises"].append(
             {
                 "id": ex.id,
-                "title": ex.title or os.path.basename(ex.oef_path),
+                "title": html.unescape(ex.title or os.path.basename(ex.oef_path)),
                 "has_def": find_def_path(ex.oef_path) is not None,
                 "author": _format_author(_ex_authors[mod_name].get(stem, "")),
                 "keywords": _split_csv(_ex_keywords[mod_name].get(stem, "")),

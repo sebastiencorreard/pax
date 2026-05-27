@@ -281,8 +281,11 @@ class DefEngine(_SlibMixin):
                 "ctx": dict(self.ctx),
             }
 
+        import html as _html  # noqa: PLC0415
         return ExerciseRender(
-            title=self._subst(df.title),
+            # Decode HTML entities (e.g. "&euro;" → "€") so the title reads as
+            # text wherever it is shown plainly (page header, sidebar list).
+            title=_html.unescape(self._subst(df.title)),
             lang=df.meta.get("language", "fr"),
             statement_html=html,
             statement_segments=segments,
