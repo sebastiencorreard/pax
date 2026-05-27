@@ -36,6 +36,9 @@ Le site est ensuite accessible dans un navigateur à l'adresse localhost:3000
 
 2. Peupler les base de données. Pour le moment, à la main :
 
+- Table des exercices : `docker compose exec backend python scripts/import_exercises.py` (pour les H4)
+ajouter les H3 :  `docker compose exec backend python scripts/import_exercises.py --level H3`
+
 - Table des académies : `docker compose exec backend python scripts/import_academies.py /ressources/a_integrer_dans_db/academies_france.csv`
 
 - Table des établissements (Aix-Marseille seulement, pour le moment) : `docker compose exec backend python scripts/import_etablissements.py 
