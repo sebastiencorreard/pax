@@ -637,7 +637,11 @@ def _extract_answers(ast: OEFNode, ev: OEFEvaluator) -> list[AnswerDef]:
                                 options["weight"] = b  # 5ème bloc = weight
 
                     if ans_type == "clickfill":
-                        # Format: "correct_answer;wrong1,wrong2,..."
+                        # Format: "correct_answer;wrong1,wrong2,...". WIMS also
+                        # accepts "|" as the separator (anstype/fill.inc:15
+                        # translates it to a newline/row break), so treat it the
+                        # same as ";".
+                        expected = expected.replace("|", ";")
                         if ";" in expected:
                             correct_part, wrongs_str = expected.split(";", 1)
                             correct_part = correct_part.strip()

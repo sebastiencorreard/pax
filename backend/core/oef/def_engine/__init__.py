@@ -2121,6 +2121,10 @@ class DefEngine(_SlibMixin):
                 # reply. Entity-safe split (replygood holds &#91;/&#93;/&#59;
                 # whose ";" must not be read as the correct;pool separator).
                 good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+                # WIMS treats "|" as a row separator too (anstype/fill.inc:15
+                # does `!translate internal | to <newline>`), so `correct|pool`
+                # is equivalent to `correct;pool`. Normalise before splitting.
+                good_raw = good_raw.replace("|", ";")
                 rows = self._split_rows_by_semi(good_raw)
                 correct_items = [c for c in (rows[0].split(",") if rows else []) if c.strip()]
                 size_parts = re.split(r"\s*[xX]\s*", self._subst(size_str).strip())
@@ -2472,7 +2476,10 @@ class DefEngine(_SlibMixin):
             elif ans_type == "clickfill":
                 # Format: "correct;pool". Split entity-safe — the parts hold
                 # HTML entities (&#91; [ , &#93; ] , &#59; ;) whose trailing ";"
-                # must not be mistaken for the correct;pool separator.
+                # must not be mistaken for the correct;pool separator. WIMS also
+                # accepts "|" as the separator (anstype/fill.inc:15 translates it
+                # to a newline/row break), so normalise "|" → ";" first.
+                good_raw = good_raw.replace("|", ";")
                 rows = self._split_rows_by_semi(good_raw)
                 if len(rows) >= 2:
                     correct_str, pool_str = rows[0], ";".join(rows[1:])
