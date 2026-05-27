@@ -2161,13 +2161,18 @@ class DefEngine(_SlibMixin):
                 # Close WIMS inline math `\(…)` to KaTeX `\(…\)` so the
                 # frontend typesets the labels (e.g. `\(x \mapsto 2x-2)`); a
                 # no-op for plain text.
+                # Each column is a WIMS list: TAB-separated when items contain
+                # commas (e.g. coordinates "(-1,-2)\t(2,-1)"), otherwise
+                # comma-separated. Split per-column so the two sides line up;
+                # a bare comma split would yield e.g. 3 colours but 1 coord
+                # blob, fail the bijection check below, and render nothing.
                 lefts = [
                     _close_inline_math(self._subst(c.strip()))
-                    for c in re.split(r",(?![^(]*\))", rows[0]) if c.strip()
+                    for c in self._split_list_items(rows[0]) if c.strip()
                 ]
                 rights = [
                     _close_inline_math(self._subst(c.strip()))
-                    for c in re.split(r",(?![^(]*\))", rows[1]) if c.strip()
+                    for c in self._split_list_items(rows[1]) if c.strip()
                 ]
                 if not lefts or len(lefts) != len(rights):
                     return ""
@@ -2469,7 +2474,7 @@ class DefEngine(_SlibMixin):
                     if len(rows) == 2:
                         rights = [
                             self._subst(c.strip())
-                            for c in re.split(r",(?![^(]*\))", rows[1]) if c.strip()
+                            for c in self._split_list_items(rows[1]) if c.strip()
                         ]
                         expected = ",".join(rights)
 

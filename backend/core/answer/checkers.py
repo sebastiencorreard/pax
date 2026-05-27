@@ -579,14 +579,19 @@ def check_correspond(reply: str, expected: str, partial: bool = False) -> CheckR
     compared to the j-th expected item by whitespace-normalised text
     equality (matches WIMS' `$g_ notsametext $r_`).
 
+    Commas *inside parentheses* are not separators — a right item may itself
+    be a coordinate like ``(-1,-2)``. Split with the same paren-aware regex
+    the def-engine uses for WIMS lists (`_split_list_items`); a plain
+    ``a,b,c`` list (no parens) splits identically to ``str.split(",")``.
+
     With `partial=True` (WIMS option ``split`` / ``partialscore``), the
     score is the fraction of correctly-placed items. Otherwise it's
     all-or-nothing.
     """
     def _norm(s: str) -> str:
         return re.sub(r"\s+", " ", s).strip()
-    r_items = [_norm(x) for x in reply.split(",")]
-    e_items = [_norm(x) for x in expected.split(",")]
+    r_items = [_norm(x) for x in re.split(r",(?![^(]*\))", reply)]
+    e_items = [_norm(x) for x in re.split(r",(?![^(]*\))", expected)]
     if len(r_items) != len(e_items) or not e_items:
         return CheckResult(correct=False, score=0.0, method="correspond")
     n_correct = sum(1 for r, e in zip(r_items, e_items) if r == e)

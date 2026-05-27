@@ -130,8 +130,12 @@ const hoverRow = ref<number | null>(null)
 
 // After submission, evaluate each row by comparing the actually-placed
 // right against the correct one stored in `expected` (CSV, in left order).
+// Split on commas except those inside parentheses, so a right item that is
+// itself a coordinate like `(-1,-2)` stays one cell (mirrors the backend's
+// paren-aware list split). A bare `,` split would mis-count the cells and
+// paint correctly-placed rows red.
 const expectedItems = computed(() =>
-  props.expected ? props.expected.split(',').map(s => s.trim()) : []
+  props.expected ? props.expected.split(/,(?![^(]*\))/).map(s => s.trim()) : []
 )
 const rowIsCorrect = computed(() => {
   if (!props.submitted || !expectedItems.value.length) return []
