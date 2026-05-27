@@ -283,6 +283,9 @@ class _State:
     # Closed polygons actually drawn (polygon/fpolygon/triangle), in math
     # coords — `flood`/`fill` fills the smallest one containing its point.
     polygons: list[list[_Pt]] = field(default_factory=list)
+    # Outline ellipses/circles in math coords (cx, cy, rx, ry) — used by
+    # `flood`/`fill` as the rim boundary of a pie/wheel sector.
+    circles: list[tuple[float, float, float, float]] = field(default_factory=list)
     width: int = 300
     height: int = 80
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
@@ -760,6 +763,9 @@ def _cmd_ellipse(state: _State, args: list[str]) -> None:
     # w and h are in x/y-range units, so convert each via the px/py deltas.
     rx_px = abs(state.px(x + w / 2) - state.px(x))
     ry_px = abs(state.py(y) - state.py(y + h / 2))
+    # Record in math coords so a later `fill` can use it as the rim of a
+    # pie/wheel sector (see _sector_fill_polygon).
+    state.circles.append((x, y, abs(w / 2), abs(h / 2)))
     state.elements.append(
         f'<ellipse cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" '
         f'rx="{rx_px:.2f}" ry="{ry_px:.2f}" '
@@ -1493,6 +1499,88 @@ def _line_intersection(a: _Pt, b: _Pt, c: _Pt, d: _Pt, eps: float = 1e-9) -> _Pt
     return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
 
 
+def _sector_fill_polygon(state: _State, fx: float, fy: float) -> list[_Pt] | None:
+    """Pie/wheel sector containing ``(fx, fy)``, or None.
+
+    A roue is drawn as spokes radiating from a common hub plus an enclosing
+    ellipse. Every pair of spokes meets only at the hub, so the triangle-from-
+    parallel-families logic in _cmd_flood degenerates and fills nothing.
+    Instead: locate the hub (the endpoint shared by the most segments) and an
+    ellipse centred on it that contains the point, then return the wedge between
+    the two spokes that angularly bracket the point, capped by the rim arc.
+    """
+    import math  # noqa: PLC0415
+    from collections import defaultdict  # noqa: PLC0415
+
+    if not state.segments or not state.circles:
+        return None
+
+    # Hub = the segment endpoint shared by the most spokes.
+    by_pt: dict[tuple[float, float], list[_Pt]] = defaultdict(list)
+    for p1, p2 in state.segments:
+        by_pt[(round(p1[0], 6), round(p1[1], 6))].append(p2)
+        by_pt[(round(p2[0], 6), round(p2[1], 6))].append(p1)
+    hub_key = max(by_pt, key=lambda k: len(by_pt[k]))
+    spoke_ends = by_pt[hub_key]
+    if len(spoke_ends) < 2:
+        return None
+    hub = (hub_key[0], hub_key[1])
+
+    # An ellipse centred (near) the hub that contains the flood point gives the
+    # rim radius; its presence is what marks this as a genuine pie/wheel.
+    rim: tuple[float, float] | None = None
+    for cx, cy, rx, ry in state.circles:
+        if rx < 1e-9 or ry < 1e-9:
+            continue
+        if math.hypot(cx - hub[0], cy - hub[1]) > 0.05 * max(rx, ry):
+            continue
+        if ((fx - cx) / rx) ** 2 + ((fy - cy) / ry) ** 2 <= 1.0:
+            rim = (rx, ry)
+            break
+    if rim is None:
+        return None
+    rx, ry = rim
+
+    # Distinct spoke angles around the hub.
+    angs: list[float] = []
+    for end in spoke_ends:
+        dx, dy = end[0] - hub[0], end[1] - hub[1]
+        if math.hypot(dx, dy) < 1e-9:
+            continue
+        a = math.atan2(dy, dx) % (2 * math.pi)
+        if not any(abs(a - e) < 1e-4 for e in angs):
+            angs.append(a)
+    angs.sort()
+    if len(angs) < 2:
+        return None
+
+    fdx, fdy = fx - hub[0], fy - hub[1]
+    if math.hypot(fdx, fdy) < 1e-9:
+        return None
+    fang = math.atan2(fdy, fdx) % (2 * math.pi)
+
+    # The two consecutive spokes that bracket the flood point (wrapping past 2π).
+    n = len(angs)
+    lo = hi = None
+    for k in range(n):
+        a_lo = angs[k]
+        a_hi = angs[(k + 1) % n] + (2 * math.pi if k + 1 == n else 0.0)
+        f = fang if fang >= a_lo else fang + 2 * math.pi
+        if a_lo <= f < a_hi:
+            lo, hi = a_lo, a_hi
+            break
+    if lo is None:
+        return None
+
+    # Wedge: hub → rim arc from lo to hi (~5° resolution).
+    steps = max(2, int((hi - lo) / (math.pi / 36)) + 1)
+    poly: list[_Pt] = [hub]
+    for s in range(steps + 1):
+        a = lo + (hi - lo) * s / steps
+        poly.append((hub[0] + rx * math.cos(a), hub[1] + ry * math.sin(a)))
+    return poly
+
+
 def _cmd_flood(state: _State, args: list[str]) -> None:
     """flood x,y,[color] — fill the grid cell containing (x,y).
 
@@ -1519,6 +1607,14 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
         poly = min(containing, key=_polygon_area)
         pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
         # Insert behind the outline/labels so the stroked border stays visible.
+        state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
+        return
+
+    # Pie/wheel sector (spokes from a hub inside an ellipse) — the families
+    # logic below can't handle it because every spoke pair meets at the hub.
+    sector = _sector_fill_polygon(state, fx, fy)
+    if sector is not None:
+        pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in sector)
         state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
         return
 

@@ -130,6 +130,29 @@ class TestFlydrawPrimitives:
         # No segments → nothing to enclose; no polygon emitted.
         assert "<polygon" not in svg
 
+    def test_flood_fills_pie_sector_of_a_wheel(self):
+        # A "roue": spokes radiating from the origin inside a unit circle.
+        # Every spoke pair meets only at the hub, so the triangle-from-families
+        # logic can't help; the sector branch must fill the wedge instead.
+        svg = flydraw_to_svg(
+            200,
+            200,
+            "xrange -1.5,1.5\nyrange -1.5,1.5\n"
+            "ellipse 0,0,2,2,black\n"
+            "segment 0,0,1,0,black\n"            # spoke at 0°
+            "segment 0,0,0,1,black\n"            # spoke at 90°
+            "segment 0,0,-1,0,black\n"           # spoke at 180°
+            "fill 0.5,0.5,red",                  # point in the 0–90° sector
+        )
+        # The wedge is emitted as a filled polygon anchored at the hub centre.
+        assert 'fill="#ff0000"' in svg
+        import re
+        m = re.search(r'<polygon points="([^"]+)" fill="#ff0000"', svg)
+        assert m is not None
+        first = m.group(1).split()[0]
+        # First vertex is the hub → centre of the 200×200 canvas.
+        assert first == "100.00,100.00"
+
     def test_color_table_includes_sienna(self):
         svg = flydraw_to_svg(300, 80, "range 0,10,0,10\nsegment 0,0,10,10,sienna")
         assert 'stroke="#a0522d"' in svg
