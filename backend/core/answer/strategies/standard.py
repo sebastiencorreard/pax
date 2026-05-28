@@ -50,14 +50,31 @@ def run_standard(
             expected=ans_def.expected,
             options=ans_def.options,
         )
+        # `mark` replies are 1-based positions; the feedback should show the
+        # choice *labels*, not the numbers. Map both the student's reply and the
+        # expected position through the choice list.
+        display_reply = reply_value
+        display_expected = pretty_expected(ans_def.expected, ans_def.answer_type)
+        if ans_def.answer_type.lower() == "mark":
+            choices = ans_def.options.get("choices") or []
+
+            def _label(pos: str) -> str:
+                try:
+                    i = int(pos)
+                except (ValueError, TypeError):
+                    return pos
+                return choices[i - 1] if 1 <= i <= len(choices) else pos
+
+            display_reply = _label(reply_value)
+            display_expected = _label(ans_def.expected)
         results.append(
             AnswerResult(
                 input_name=ans_def.input_name,
                 correct=check.correct,
                 score=check.score,
                 method=check.method,
-                reply=reply_value,
-                expected=pretty_expected(ans_def.expected, ans_def.answer_type),
+                reply=display_reply,
+                expected=display_expected,
                 status=check.status,
                 detail=check.detail,
             )
