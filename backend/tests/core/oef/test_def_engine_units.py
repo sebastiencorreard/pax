@@ -96,6 +96,19 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_bare_word_unit_rendered_as_upright_text(self):
+        # A bare word (unit/label) must NOT go through the CAS: `min`/`max`
+        # would become \operatorname{Min/Max} (capitalised) and `cm` → `c m`.
+        # WIMS renders it as upright normal text → wrap in \text{} (quizz 0505
+        # ends with `\(min\)` for "minutes").
+        assert _close_inline_math(r"\(min\).") == r"\(\text{min}\)."
+        assert _close_inline_math(r"\(max)") == r"\(\text{max}\)"
+        assert _close_inline_math(r"\(cm)") == r"\(\text{cm}\)"
+
+    def test_single_letter_stays_italic_variable(self):
+        # A lone letter is a variable, not a unit — left as-is (italic).
+        assert _close_inline_math(r"\(x)") == r"\(x\)"
+
     def test_escaped_backslash_paren_left_alone(self):
         # `\\(` (escaped backslash) is a literal backslash, not a math opener
         # — e.g. JSON-escaped `\\(` inside a widget's data-config. It must not
@@ -1066,6 +1079,17 @@ class TestSympyToLatex:
     def test_fraction(self):
         result = _expr_to_latex("3/2")
         assert "frac" in result or "3" in result
+
+    def test_integer_fraction_not_reduced(self):
+        # The author's un-reduced form must be preserved (quizz 0512 displays
+        # 10/20 and asks for *other* writings of it) — NOT collapsed to 1/2.
+        assert _expr_to_latex("10/20") == r"\frac{10}{20}"
+        assert _expr_to_latex("5/10") == r"\frac{5}{10}"
+
+    def test_unit_numerator_no_spurious_coefficient(self):
+        # `1/4` must be \frac{1}{4}, not `1 \cdot \frac{1}{4}`.
+        assert _expr_to_latex("1/4") == r"\frac{1}{4}"
+        assert _expr_to_latex("7/-4") == r"-\frac{7}{4}"
 
     def test_negative(self):
         result = _expr_to_latex("-10")

@@ -330,6 +330,19 @@ def _expr_to_latex(expr: str) -> str:
     # it as `Mul(-1, Add(...))` without distributing.
     prep = re.sub(r'(?<![\w)])-\(', '(-1)*(', expr_strip)
 
+    # A bare integer ratio `a/b` parses (evaluate=False) as `Mul(a, 1/b)` and
+    # renders a spurious unit coefficient (`1/4` → `1 \cdot \frac{1}{4}`).
+    # Emit `\frac{a}{b}` directly instead — *without* reducing: evaluate=True
+    # would collapse `10/20` → `1/2`, changing the very fraction the author
+    # chose to display (quizz 0512 shows the un-reduced form on purpose).
+    if _PURE_INT_FRAC_RE.match(expr_strip):
+        a_str, b_str = expr_strip.split("/")
+        a, b = int(a_str), int(b_str)
+        if b < 0:
+            a, b = -a, -b
+        sign = "-" if a < 0 else ""
+        return rf"{sign}\frac{{{abs(a)}}}{{{b}}}"
+
     try:
         parsed = parse_expr(
             prep.replace("^", "**"),
@@ -337,19 +350,6 @@ def _expr_to_latex(expr: str) -> str:
             local_dict=locals_dict,
             evaluate=False,
         )
-        # `evaluate=False` keeps the Add/Mul tree intact for symbolic
-        # expressions (so reduire/distribuer show the *un-reduced* form), but a
-        # bare integer ratio `a/b` then parses as `Mul(a, 1/b)` and renders a
-        # spurious unit coefficient: `1/4` → `1 \cdot \frac{1}{4}`. Re-evaluate
-        # *only* that exact shape so `\frac{1}{4}` comes out clean, without
-        # touching expressions like `2*sqrt(5)/sqrt(10)` that must stay as-is.
-        if _PURE_INT_FRAC_RE.match(expr_strip):
-            parsed = parse_expr(
-                prep.replace("^", "**"),
-                transformations=transformations,
-                local_dict=locals_dict,
-                evaluate=True,
-            )
         res = sympy.latex(parsed)
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"

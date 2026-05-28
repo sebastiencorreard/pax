@@ -31,6 +31,15 @@ def _normalize_math_content(s: str) -> str:
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
+    # A bare word (units/labels like `min`, `cm`, `max`) is not a CAS
+    # expression. SymPy would resolve `min`/`max` to the Min/Max functions
+    # (`\operatorname{Min}`, capitalised) and split `cm` into `c m`. WIMS renders
+    # such a word as upright normal text, so wrap it in `\text{}`. A single
+    # letter, though, is a variable (`\(x\)`) — keep it italic.
+    word = s.strip()
+    if re.fullmatch(r"[A-Za-z]+", word):
+        return word if len(word) == 1 else rf"\text{{{word}}}"
+
     def _to_latex(expr: str) -> str:
         # `expr` is already stripped; _expr_to_latex returns it unchanged on a
         # parse failure. French exercises write decimals with a comma
