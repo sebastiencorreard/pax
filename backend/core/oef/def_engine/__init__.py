@@ -516,6 +516,17 @@ class DefEngine(_SlibMixin):
             s = _RANGE_SLICE_RE.sub(self._resolve_range_slice, s)
             s = _INDEXED2_RE.sub(self._resolve_indexed2, s)
             s = _INDEXED1_RE.sub(self._resolve_indexed1, s)
+            # Collapse *defined* simple `$(var)` refs too: subscripts exclude
+            # `$(`, so a simple ref nested in a subscript (e.g. the row index in
+            # `$(val8[$(tmp0);])`) would otherwise never disappear and the outer
+            # matrix form could never match. Undefined names are left as-is so
+            # the caller's final pass applies its own default ("" vs "0").
+            s = _PAREN_VAR_RE.sub(
+                lambda m: str(self.ctx[m.group(1)]) if m.group(1) in self.ctx
+                else (str(self.ctx[m.group(1).lower()]) if m.group(1).lower() in self.ctx
+                      else m.group(0)),
+                s,
+            )
             if s == before:
                 break
         return s

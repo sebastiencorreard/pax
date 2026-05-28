@@ -1258,3 +1258,35 @@ class TestMarkEmbed:
         html = e._render_embed("r1,2")
         assert html.count('class="oef-mark-choice"') == 1
         assert 'data-pos="2">3 dm</span>' in html
+
+
+# ── nested $(var[$(inner);]) matrix resolution ───────────────────────────────
+
+
+class TestNestedMatrixSubst:
+    def _engine(self):
+        e = engine()
+        e.ctx["mat"] = "2,La moitié,dixième(s);5,Le cinquième,dixième(s)"
+        e.ctx["row"] = "1"
+        return e
+
+    def test_nested_ref_whole_row(self):
+        # $(mat[$(row);]) — empty column spec → whole row. The nested simple
+        # ref $(row) must collapse so the outer matrix form resolves.
+        e = self._engine()
+        assert e._subst("$(mat[$(row);])") == "2,La moitié,dixième(s)"
+
+    def test_nested_ref_single_cell(self):
+        e = self._engine()
+        assert e._subst("$(mat[$(row);2])") == "La moitié"
+
+    def test_plain_row_still_works(self):
+        e = self._engine()
+        assert e._subst("$(mat[1;])") == "2,La moitié,dixième(s)"
+
+    def test_undefined_nested_ref_left_alone(self):
+        # An undefined nested ref shouldn't blow up; the outer simply can't
+        # resolve and the form is left for the caller's final pass.
+        e = self._engine()
+        out = e._subst("$(mat[$(missing);])")
+        assert "La moitié" not in out
