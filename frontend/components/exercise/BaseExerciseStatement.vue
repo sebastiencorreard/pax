@@ -40,11 +40,9 @@
           <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
             {{ ans.label || $t('exercise.choose_answer') }}
           </p>
-          <!-- 1 col < sm, 2 cols sm–lg, N cols ≥ lg (one per choice, capped at 4).
-               inline-grid: shrinks the group to content width; 1fr columns make
-               siblings equal-width (sized to the largest choice). -->
-          <div class="inline-grid gap-2 grid-cols-1 sm:grid-cols-2"
-               :class="radioGridLgClass(radioChoicesHtml[ans.input_name] ?? [])">
+          <!-- Stacked vertically, one choice per row (WIMS layout). items-start
+               keeps each label at content width (not stretched full row). -->
+          <div class="flex flex-col items-start gap-2">
             <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
                    class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
                    :class="radioClass(ans.input_name, choice.raw)"
@@ -161,13 +159,6 @@ function inputClass(name: string) {
   const r = props.checkResult.results.find(r => r.input_name === name)
   if (!r) return ''
   return r.correct ? 'correct' : 'incorrect'
-}
-
-// Tailwind-safe map: dynamic class names (`lg:grid-cols-${n}`) aren't picked
-// up by JIT, so we materialise them as static strings.
-function radioGridLgClass(choices: { raw: string }[]): string {
-  const n = Math.max(1, Math.min(choices.length, 4))
-  return ['lg:grid-cols-1', 'lg:grid-cols-2', 'lg:grid-cols-3', 'lg:grid-cols-4'][n - 1]
 }
 
 // ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────

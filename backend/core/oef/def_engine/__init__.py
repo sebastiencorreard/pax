@@ -2430,14 +2430,27 @@ class DefEngine(_SlibMixin):
                         seen_set.add(c)
                         choices.append(c)
                 jnsp = "Je ne sais pas"
-                if jnsp not in seen_set:
-                    choices.append(jnsp)
                 rng = random.Random(f"{self.seed}_{n}")
                 rng.shuffle(choices)
+                # WIMS always presents "I don't know" as the last option, so
+                # append it *after* shuffling the real choices.
+                if jnsp not in seen_set:
+                    choices.append(jnsp)
+                # Close WIMS inline math `\(…)` → KaTeX `\(…\)` so the frontend
+                # renders the labels (choices here carry texmath output like
+                # `\(y < \frac{9}{3})`). Mirrors the reply_meta path below;
+                # `expected` is one of the choices, so close it the same way to
+                # keep the reply comparison consistent.
+                choices = [_close_inline_math(c) for c in choices]
+                # `choicename` is internal metadata in WIMS (field id / answer
+                # summary), not a visible prompt: when the choice isn't embedded
+                # inline the buttons are shown without it (e.g. ineqequi4's
+                # "Intru"). Leave the label empty so the frontend falls back to
+                # its neutral "choose an answer" prompt instead of surfacing it.
                 answers.append(
                     AnswerDef(
-                        label=_close_inline_math(self._subst(cm.get("name", ""))),
-                        expected=correct,
+                        label="",
+                        expected=_close_inline_math(correct),
                         answer_type="radio",
                         options={"choices": choices},
                         weight=1.0,
@@ -2519,12 +2532,13 @@ class DefEngine(_SlibMixin):
                                 if c not in seen_set:
                                     seen_set.add(c)
                                     choices.append(c)
-                            # WIMS always appends "Je ne sais pas" as last option
                             jnsp = "Je ne sais pas"
-                            if jnsp not in seen_set:
-                                choices.append(jnsp)
                             rng = random.Random(f"{self.seed}_{n}")
                             rng.shuffle(choices)
+                            # WIMS always presents "I don't know" as the last
+                            # option — append it after shuffling the real choices.
+                            if jnsp not in seen_set:
+                                choices.append(jnsp)
                             expected = correct
                             break
 
