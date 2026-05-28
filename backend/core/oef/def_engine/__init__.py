@@ -2187,8 +2187,8 @@ class DefEngine(_SlibMixin):
                 # dedicated section below the statement; no widget here.
                 return ""
             elif reply_type == "mark":
-                # mark: each embed call is one choice column (size_str = column index).
-                # replygood = "correct_pos;choice1,choice2,..." — extract choice text.
+                # mark: clickable choices, reply = the 1-based position clicked.
+                # replygood = "correct_pos;choice1,choice2,...".
                 # size_str may be a loop variable like "\r" — resolve \varname patterns.
                 size_resolved = re.sub(
                     r"\\(\w+)",
@@ -2198,10 +2198,6 @@ class DefEngine(_SlibMixin):
                     ),
                     self._subst(size_str).strip(),
                 )
-                try:
-                    col = int(float(size_resolved))
-                except (ValueError, TypeError):
-                    col = 1
                 # Evaluate replygoodN — may still contain $var refs if seeded raw
                 good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
                 # Format: "pos;choice1,choice2,..." or "pos;choice1;choice2;..."
@@ -2215,12 +2211,28 @@ class DefEngine(_SlibMixin):
                 # Always use smart comma split — choices_part may contain ";"
                 # inside HTML entities (e.g. &#44; = comma) that must NOT split.
                 choices = [c.strip() for c in re.split(r",(?![^(]*\))", choices_part) if c.strip()]
-                label = choices[col - 1] if 1 <= col <= len(choices) else ""
-                label = self._subst(label)
-                return (
-                    f'<span class="oef-mark-choice" name="{ref}" '
-                    f'data-pos="{col}">{label}</span>'
-                )
+
+                def _mark_span(col: int) -> str:
+                    label = self._subst(choices[col - 1]) if 1 <= col <= len(choices) else ""
+                    return (
+                        f'<span class="oef-mark-choice" name="{ref}" '
+                        f'data-pos="{col}">{label}</span>'
+                    )
+
+                # A size_str naming a valid 1-based column → this embed is one
+                # choice of a "split" group (author placed one \embed per column).
+                # Otherwise (no index, or out of range — e.g. the leftover input
+                # width "10") the single embed expands to all proposition choices,
+                # as WIMS does by default.
+                try:
+                    col = int(float(size_resolved))
+                except (ValueError, TypeError):
+                    col = None
+                if col is not None and choices and 1 <= col <= len(choices):
+                    return _mark_span(col)
+                if choices:
+                    return " ".join(_mark_span(i + 1) for i in range(len(choices)))
+                return _mark_span(col or 1)
             elif reply_type == "checkbox":
                 # The student's reply is the set of checked option *indices*
                 # (compared order-insensitively via check_set); the labels come

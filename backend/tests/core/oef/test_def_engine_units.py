@@ -1230,3 +1230,31 @@ class TestPariVectorArithmetic:
 
     def test_polynomial_unaffected(self):
         assert _call_pari("(x-3)*(x+3)") == "x^2 - 9"
+
+
+# ── mark answer embed (type=mark) ────────────────────────────────────────────
+
+
+class TestMarkEmbed:
+    def _engine_with_mark(self):
+        e = engine()
+        e.ctx["replytype1"] = "mark"
+        # replygood = "correct_pos;choice1,choice2,choice3"
+        e.ctx["replygood1"] = "2;3 mm,3 dm,3 m"
+        return e
+
+    def test_single_embed_expands_to_all_choices(self):
+        # One \embed{r1,10} (size, not a column index) → all choices, as WIMS.
+        e = self._engine_with_mark()
+        html = e._render_embed("r1,10")
+        assert html.count('class="oef-mark-choice"') == 3
+        assert 'data-pos="1">3 mm</span>' in html
+        assert 'data-pos="2">3 dm</span>' in html
+        assert 'data-pos="3">3 m</span>' in html
+
+    def test_valid_column_index_renders_single_choice(self):
+        # Split mode: \embed{r1,2} places only column 2.
+        e = self._engine_with_mark()
+        html = e._render_embed("r1,2")
+        assert html.count('class="oef-mark-choice"') == 1
+        assert 'data-pos="2">3 dm</span>' in html
