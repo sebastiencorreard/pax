@@ -3,6 +3,11 @@
        style="background:var(--color-surface);border-color:var(--color-border)">
     <component :is="'style'" v-if="rendered?.css" scoped>{{ rendered.css }}</component>
 
+    <!-- Note: the countdown lives in the topbar (layouts/dashboard.vue),
+         fed by useChronoState() so it stays visible regardless of scroll
+         position and doesn't fight the "Nouvel énoncé" button for space. -->
+
+
     <!-- En-tête -->
     <div class="px-6 py-4 border-b flex items-center justify-between"
          style="border-color:var(--color-border)">
@@ -91,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import StandardExercise from './StandardExercise.vue'
 import DynstepsExercise from './DynstepsExercise.vue'
 import type { Rendered } from '~/composables/useExerciseLogic'
@@ -113,6 +118,15 @@ const titleHtml = ref('')
 const loading = ref(false)
 const loadError = ref('')
 const showHint = ref(false)
+
+// Push the rendered chrono into the global state read by the topbar.
+// On every render, the backend either returns a fresh chrono (with a
+// refreshed countdown anchor) or null (no scoredelay for this module);
+// clearing on unmount stops the topbar from showing a stale timer when
+// the user navigates away from the exercise.
+const chronoState = useChronoState()
+watch(rendered, (r) => chronoState.set(r?.chrono ?? null), { immediate: false })
+onBeforeUnmount(() => chronoState.clear())
 
 const exerciseComponent = ref<any>(null)
 

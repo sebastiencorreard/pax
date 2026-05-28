@@ -8,12 +8,13 @@ from models.exercise import Exercise
 from models.attempt import Attempt
 from models.user import User
 from api.deps import get_current_user
-from core.oef.engine import load_and_render
+from core.oef.engine import load_and_render, find_def_path
 from core.oef.evaluator import OEFEvaluator
 from core.answer.schemas import AnswerResult
 from core.answer.strategies.standard import run_standard
 from core.answer.strategies.condition import run_condition
 from core.answer.strategies.analyze import run_analyze, run_feedback
+from core.chrono import module_scoredelay, read_started_at, score_factor
 
 router = APIRouter(prefix="/api/check", tags=["check"])
 
@@ -41,6 +42,12 @@ class CheckResponse(BaseModel):
     noanalyzeprint: bool = False
     feedback_html: str | None = None
     solution_html: str | None = None
+    # Chrono telemetry — informational for the frontend so the score breakdown
+    # can read "vous avez gagné 0.6 pts (1.0 × 60% chrono)". Server already
+    # applied the factor to ``global_score``; these fields are *not* used to
+    # recompute anything client-side.
+    chrono_elapsed: float | None = None
+    chrono_factor: float | None = None
 
 
 # ── Route ─────────────────────────────────────────────────────────────────────
@@ -120,6 +127,25 @@ async def check_exercise(
         for a in rendered.answers
     )
 
+    # ── Chrono : facteur de score en fonction du temps écoulé ────────────────
+    # Si le module a un scoredelay et qu'on retrouve un started_at en Redis,
+    # on multiplie le score brut par le facteur calculé côté serveur. Pas de
+    # started_at (Redis perdu, /check sans /render préalable) → on n'applique
+    # rien (score plein) plutôt que d'infliger un zéro arbitraire.
+    chrono_elapsed: float | None = None
+    chrono_factor: float | None = None
+    if not has_invalid:
+        sd = module_scoredelay(find_def_path(exercise.oef_path))
+        if sd is not None:
+            started_at = read_started_at(str(current_user.id), exercise_id, body.seed)
+            if started_at is not None:
+                from datetime import datetime, timezone
+                elapsed = (datetime.now(timezone.utc) - started_at).total_seconds()
+                factor = score_factor(elapsed, sd)
+                chrono_elapsed = elapsed
+                chrono_factor = factor
+                global_score *= factor
+
     # ── Enregistrement de la tentative ───────────────────────────────────────
     attempt_id = "00000000-0000-0000-0000-000000000000"
     if not has_invalid:
@@ -148,4 +174,6 @@ async def check_exercise(
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,
         solution_html=solution_html,
+        chrono_elapsed=chrono_elapsed,
+        chrono_factor=chrono_factor,
     )

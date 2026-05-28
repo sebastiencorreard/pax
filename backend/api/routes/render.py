@@ -8,7 +8,8 @@ from db import get_db
 from models.exercise import Exercise
 from models.user import User
 from api.deps import get_current_user
-from core.oef.engine import load_and_render
+from core.oef.engine import load_and_render, find_def_path
+from core.chrono import module_scoredelay, get_or_create_started_at
 
 router = APIRouter(prefix="/api/render", tags=["render"])
 
@@ -20,6 +21,17 @@ class AnswerOut(BaseModel):
     options: dict
     weight: float
     logical_name: str = ""
+
+
+class ChronoOut(BaseModel):
+    """Chronometer state sent to the client (display only). The server
+    keeps the canonical ``started_at`` in Redis and re-reads it on /check;
+    the client uses this payload to render a countdown but never to
+    influence scoring."""
+    soft: int  # T1 — countdown displays this value down to 0
+    hard: int  # T2 — past this the score is zero (no client display)
+    started_at: str  # ISO 8601 UTC, the server's anchor for elapsed time
+    server_now: str  # so the client can correct for clock skew
 
 
 class RenderOut(BaseModel):
@@ -37,6 +49,7 @@ class RenderOut(BaseModel):
     total_steps: int | None = None
     type_meta: dict = {}
     css: str | None = None
+    chrono: ChronoOut | None = None
 
 
 @router.get("/{exercise_id}", response_model=RenderOut)
@@ -45,7 +58,7 @@ async def render_exercise(
     seed: int | None = None,
     m_step: int | None = None,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
@@ -60,6 +73,27 @@ async def render_exercise(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {str(e)}")
+
+    # Chrono — look up the module's `!default scoredelay` and seed (or read
+    # back) the per-(user, exercise, seed) start timestamp from Redis. For
+    # dynsteps/course exercises the chrono spans all steps, so we key on
+    # the seed alone (not m_step) — same seed = same session.
+    chrono_out: ChronoOut | None = None
+    sd = module_scoredelay(find_def_path(exercise.oef_path))
+    if sd is not None:
+        from datetime import datetime, timezone
+        started_at = get_or_create_started_at(
+            user_id=str(current_user.id),
+            exercise_id=exercise_id,
+            seed=rendered.seed,
+            scoredelay=sd,
+        )
+        chrono_out = ChronoOut(
+            soft=sd.soft,
+            hard=sd.hard,
+            started_at=started_at.isoformat(),
+            server_now=datetime.now(timezone.utc).isoformat(),
+        )
 
     return RenderOut(
         exercise_id=exercise_id,
@@ -86,6 +120,7 @@ async def render_exercise(
         total_steps=rendered.total_steps,
         type_meta=rendered.type_meta,
         css=rendered.css,
+        chrono=chrono_out,
     )
 
 

@@ -172,9 +172,18 @@ class DefEngine(_SlibMixin):
         else:
             html = self._subst(stmt)
 
-        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images  # noqa: PLC0415
+        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures, hoist_wims_instruction  # noqa: PLC0415
 
         html = _close_inline_math(html)
+        # Lift the calculator/instruction warning to the top of the statement.
+        # Some .def templates (course03_2step.def et al.) emit it AFTER the
+        # question, which reads badly — hoist it so it always comes first.
+        html = hoist_wims_instruction(html)
+        # Group each flydraw figure with its label *before* the SVGs are
+        # inlined — the placeholder is a single <img> tag here, easy to
+        # locate; once inlined, the body contains its own <image>/<polygon>
+        # which the boundary regex would otherwise stumble on.
+        html = group_inline_figures(html)
         html = inline_svg_imgs(html)
         html = inline_wims_gifs(html)
         if self.def_path:
@@ -620,8 +629,20 @@ class DefEngine(_SlibMixin):
         row_s = self._subst_for_arith(row_expr)
         col_s = self._subst_for_arith(col_expr).strip()
 
-        # Split by tab first (rows); fall back to ';' with HTML-entity protection
-        if "\t" in value:
+        # Row-separator detection. The OEF source frequently writes
+        #   \text{list=item1;\nitem2;\nitem3;\nitem4}
+        # which compiles to ``item1;\titem2;\titem3;\titem4`` — the tab is the
+        # cosmetic newline, the *real* separator is ``;``. Splitting by tab
+        # first would leave a stray ";" on each row (Quiz course03_2step's
+        # enonceb list). So: when ``;`` is present AND ``[n;]`` asks for a
+        # whole row (col_expr empty), prefer ``;``. For genuine 2D matrices
+        # with ``[n;m]``, the existing tab-first split is preserved because
+        # those typically don't carry inner ``;`` between rows.
+        prefer_semi = (not col_s) and (";" in value)
+        if prefer_semi:
+            row_sep = ";"
+            rows = self._split_rows_by_semi(value)
+        elif "\t" in value:
             row_sep = "\t"
             rows = value.split("\t")
         else:
@@ -699,9 +720,14 @@ class DefEngine(_SlibMixin):
     # ── Condition evaluation ──────────────────────────────────────────────────
 
     def _eval_condition(self, kind: str, condition: str) -> bool:
-        """Evaluate a !if or !ifval condition (port of WIMS compare.c)."""
-        cond = self._subst(condition)
-        return _wims_compare(cond, numeric=(kind == "ifval"))
+        """Evaluate a !if or !ifval condition (port of WIMS compare.c).
+
+        Pass ``self._subst`` so substitution happens *after* operator
+        identification — matches compare.c's late ``substitute(buf1/buf2)``
+        and prevents a `<`/`>` inside a substituted HTML value (e.g. a
+        ``$val6`` instruction div) from being parsed as a relational op.
+        """
+        return _wims_compare(condition, numeric=(kind == "ifval"), subst=self._subst)
 
     def _eval_loop_expr(self, expr: str, var: str, val: str) -> str:
         """Evaluate a loop body expression, substituting the loop variable."""
@@ -1050,6 +1076,9 @@ class DefEngine(_SlibMixin):
 
         if cmd in ("solve", "rootof"):
             return self._cmd_solve(args)
+
+        if cmd == "insdraw":
+            return self._cmd_insdraw(args)
 
         return f"UNKNOWN_CMD:{cmd}"
 
@@ -1526,41 +1555,77 @@ class DefEngine(_SlibMixin):
             self.ctx[t] = items[i] if i < len(items) else ""
 
     def _cmd_bound(self, args: str) -> None:
-        """!bound VAR within LIST default DEF — clamp to allowed values.
-        !bound VAR between MIN and MAX default DEF — numeric range clamp."""
-        # Form 1: "VAR between MIN and MAX default DEF"
+        """!bound VAR within|among LIST [default DEF] — clamp to allowed values.
+        !bound VAR between [integer[s]] MIN and|, MAX [default DEF] — numeric clamp.
+
+        Port of exec_bound (exec.c): with `integer`, rounds the input; if the
+        value lies in [MIN, MAX] it's kept (or rounded). Otherwise: use DEF if
+        provided, else clamp to the nearest boundary.
+        """
+        # Form 1: "VAR between [integer[s]] MIN <and|,> MAX [default DEF]"
         m = re.match(
-            r"(\w+)\s+between\s+(.*?)\s+and\s+(.*?)\s+default\s+(.*)",
+            r"(\w+)\s+between\s+(.*?)(?:\s+default\s+(.*))?$",
             args, re.I | re.DOTALL,
         )
         if m:
             var = m.group(1).strip()
-            lo_s = self._subst(m.group(2).strip())
-            hi_s = self._subst(m.group(3).strip())
-            default_s = self._subst(m.group(4).strip())
+            body = self._subst(m.group(2).strip())
+            default_s = self._subst(m.group(3).strip()) if m.group(3) else None
+
+            integer_mode = False
+            int_m = re.match(r"^integers?\s+(.*)", body, re.I | re.DOTALL)
+            if int_m:
+                integer_mode = True
+                body = int_m.group(1).strip()
+
+            # `and` or `,` separator
+            split_m = re.match(r"(.*?)\s+and\s+(.*)", body, re.I | re.DOTALL)
+            if not split_m:
+                split_m = re.match(r"(.*?),\s*(.*)", body, re.DOTALL)
+            if not split_m:
+                return
+            lo_s = split_m.group(1).strip()
+            hi_s = split_m.group(2).strip()
+
+            raw = self.ctx.get(var, "").strip()
             try:
-                val = float(self._eval_arith(self.ctx.get(var, "")))
+                val = float(self._eval_arith(raw)) if raw else None
                 lo = float(self._eval_arith(lo_s))
                 hi = float(self._eval_arith(hi_s))
-                if lo <= val <= hi:
-                    return  # in range, keep
             except (ValueError, TypeError):
-                pass
-            self.ctx[var] = default_s
+                if default_s is not None:
+                    self.ctx[var] = default_s
+                return
+            if lo > hi:
+                lo, hi = hi, lo
+            if integer_mode and val is not None:
+                val = round(val)
+            if val is not None and lo <= val <= hi:
+                if integer_mode:
+                    self.ctx[var] = str(int(val))
+                return
+            if default_s is not None:
+                self.ctx[var] = default_s
+                return
+            if integer_mode:
+                from math import ceil as _ceil, floor as _floor
+                lo, hi = _ceil(lo), _floor(hi)
+            clamped = lo if (val is None or val < lo) else hi
+            self.ctx[var] = str(int(clamped)) if integer_mode else str(clamped)
             return
 
-        # Form 2: "VAR within LIST default DEF"
+        # Form 2: "VAR within|among LIST [default DEF]"
         m = re.match(
-            r"(\w+)\s+within\s+(.*?)\s+default\s+(.*)",
+            r"(\w+)\s+(?:within|among)\s+(.*?)(?:\s+default\s+(.*))?$",
             args, re.I | re.DOTALL,
         )
         if m:
             var = m.group(1).strip()
             allowed = [x.strip() for x in self._subst(m.group(2).strip()).split(",")]
-            default_s = self._subst(m.group(3).strip())
+            default_s = self._subst(m.group(3).strip()) if m.group(3) else None
             if self.ctx.get(var, "") in allowed:
-                return  # valid, keep
-            self.ctx[var] = default_s
+                return
+            self.ctx[var] = default_s if default_s is not None else (allowed[0] if allowed else "")
 
     def _cmd_default(self, args: str) -> None:
         """!default VAR=VALUE — set VAR to VALUE only if VAR is currently empty/unset."""
@@ -1888,21 +1953,24 @@ class DefEngine(_SlibMixin):
             mask = m.group(2).strip()
             return "".join(c for c, bit in zip(src, mask) if bit == "1")
 
-        # expand STRING using MASK
+        # expand STRING using MASK — port of Lib/text.c text_expand:
+        # walk MASK cyclically, emitting ' ' for a '0' bit and the next src
+        # char for a '1' bit, until every char of STRING has been placed.
         m = re.match(r"expand\s+(.*?)\s+using\s+(\S+)", s, re.I | re.DOTALL)
         if m:
             src = m.group(1).strip()
             mask = m.group(2).strip()
-            src_iter = iter(src)
+            if not src or not mask or "1" not in mask:
+                return ""
             result = []
-            for bit in mask:
-                if bit == "1":
-                    try:
-                        result.append(next(src_iter))
-                    except StopIteration:
-                        break
+            i = j = 0
+            while i < len(src):
+                if mask[j % len(mask)] == "0":
+                    result.append(" ")
                 else:
-                    result.append("-")
+                    result.append(src[i])
+                    i += 1
+                j += 1
             return "".join(result)
 
         # insert SRC into DST mask MASK
@@ -1921,6 +1989,29 @@ class DefEngine(_SlibMixin):
             return "".join(dst)
 
         return s
+
+    def _cmd_insdraw(self, args: str) -> str:
+        """!insdraw <flydraw commands> — render the body via flydraw and set
+        ``$ins_url`` to the resulting URL. The slib draw/* scripts rely on
+        this side effect (they then wrap ``$ins_url`` in an <img> themselves).
+
+        Size comes from ``$insdraw_size`` (``W,H``) — set by the caller right
+        before invoking !insdraw. Defaults to 300x300 when missing.
+        """
+        from ..flydraw import flydraw_to_url  # noqa: PLC0415
+
+        body = self._subst(args)
+        size_raw = self._subst(self.ctx.get("insdraw_size", "")).strip()
+        size_parts = [p.strip() for p in size_raw.split(",") if p.strip()]
+        try:
+            w = int(float(size_parts[0])) if size_parts else 300
+            h = int(float(size_parts[1])) if len(size_parts) > 1 else w
+        except ValueError:
+            w, h = 300, 300
+
+        url = flydraw_to_url(w, h, body)
+        self.ctx["ins_url"] = url
+        return ""
 
     def _cmd_solve(self, args: str) -> str:
         """!solve EXPR for VAR = START to END — find root of EXPR=0 in [START,END].

@@ -50,6 +50,13 @@ export interface BackendSegment {
   value?: string
 }
 
+export interface Chrono {
+  soft: number       // T1 in seconds: the displayed countdown ends at 0 here
+  hard: number       // T2 in seconds: score is zero past this — not displayed
+  started_at: string // ISO 8601 UTC, the server's elapsed-time anchor
+  server_now: string // server's clock at render time — for skew correction
+}
+
 export interface Rendered {
   exercise_id: string
   title: string
@@ -65,6 +72,7 @@ export interface Rendered {
   css: string | null
   exercise_type?: string
   type_meta?: Record<string, any>
+  chrono?: Chrono | null
 }
 
 export interface CheckResult {

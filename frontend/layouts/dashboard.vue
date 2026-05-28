@@ -31,6 +31,13 @@
 
         <span class="flex-1" />
 
+        <!-- Chrono — published by ExercisePlayer via useChronoState() when an
+             exercise with a scoredelay is loaded. Living in the topbar keeps
+             the countdown in view as the student scrolls a long énoncé. -->
+        <ExerciseTimer v-if="chronoState.chrono.value"
+                       :chrono="chronoState.chrono.value"
+                       :frozen="chronoState.frozen.value" />
+
         <!-- Langue -->
 
         <div ref="langPicker" class="relative">
@@ -84,12 +91,15 @@
 </template>
 
 <script setup lang="ts">
+import ExerciseTimer from '~/components/exercise/ExerciseTimer.vue'
+
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const { coins, formatCoins } = useCoins()
 const { locale, locales, setLocale } = useI18n()
 const availableLocales = locales
+const chronoState = useChronoState()
 
 const sidebarOpen = ref(false)
 const langOpen = ref(false)

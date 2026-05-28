@@ -10,6 +10,18 @@ services:
       timeout: 5s
       retries: 10
 
+  # In-memory store for the render cache and the chrono sessions
+  # (per-(user, exercise, seed) start timestamps). Ephemeral state only —
+  # data loss on restart is acceptable, hence no volume.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build: ./backend
     restart: unless-stopped
@@ -19,8 +31,11 @@ services:
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
       RESOURCES_ROOT: /ressources
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   frontend:

@@ -304,6 +304,93 @@ class _State:
 # ── Primitive handlers ────────────────────────────────────────────────────────
 
 
+def _find_wims_gifs_dir() -> str | None:
+    """Locate WIMS' shared gif tree (``raw/clock/120a.gif`` lives there).
+
+    Mirrors :py:func:`_SlibMixin._find_wims_scripts_dir`: walks up from this
+    file looking for either the vendored ``ressources/wims-gifs/`` mirror or
+    the full ``wims/public_html/gifs/`` checkout. The first match wins.
+    """
+    import os as _os_local
+    d = _os_local.path.dirname(_os_local.path.abspath(__file__))
+    for _ in range(10):
+        d = _os_local.path.dirname(d)
+        if not d:
+            break
+        for sub in (
+            _os_local.path.join("ressources", "wims-gifs"),
+            _os_local.path.join("wims", "public_html", "gifs"),
+        ):
+            candidate = _os_local.path.join(d, sub)
+            if _os_local.path.isdir(candidate):
+                return candidate
+        if d == "/":
+            break
+    return None
+
+
+_WIMS_GIFS_DIR = _find_wims_gifs_dir()
+
+
+def _cmd_copy(state: _State, args: list[str]) -> None:
+    """``copy dx,dy,sx1,sy1,sx2,sy2,filename`` — paste a gif/png onto the canvas.
+
+    Mirrors flydraw's ``obj_copy``: ``(dx,dy)`` is the destination in pixels;
+    ``(sx1,sy1)-(sx2,sy2)`` is the source rect; all-(-1) means the full image.
+    ``filename`` is resolved under WIMS' shared gifs tree (``raw/clock/120a.gif``
+    et al.) and inlined as a base64 ``<image>`` so the SVG stays self-contained.
+    Only the full-image case is implemented — partial source rects would need
+    SVG ``<clipPath>`` for negligible benefit on the WIMS corpus.
+    """
+    import base64 as _base64_local
+    import os as _os_local
+    import posixpath as _pp_local
+
+    if not _WIMS_GIFS_DIR or len(args) < 7:
+        return
+    try:
+        dx = int(round(float(args[0])))
+        dy = int(round(float(args[1])))
+        sx1 = int(round(float(args[2])))
+        sy1 = int(round(float(args[3])))
+        sx2 = int(round(float(args[4])))
+        sy2 = int(round(float(args[5])))
+    except (ValueError, TypeError):
+        return
+    filename = args[6].strip()
+    rel = _pp_local.normpath("/" + filename).lstrip("/")
+    fpath = _os_local.path.join(_WIMS_GIFS_DIR, rel)
+    if not _os_local.path.isfile(fpath):
+        return
+    with open(fpath, "rb") as f:
+        data = f.read()
+    # Detect format + width/height from header
+    if data[:6] in (b"GIF87a", b"GIF89a") and len(data) >= 10:
+        mime = "image/gif"
+        img_w = data[6] | (data[7] << 8)
+        img_h = data[8] | (data[9] << 8)
+    elif data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
+        mime = "image/png"
+        img_w = int.from_bytes(data[16:20], "big")
+        img_h = int.from_bytes(data[20:24], "big")
+    else:
+        return
+    if sx1 == -1 and sy1 == -1 and sx2 == -1 and sy2 == -1:
+        sx1, sy1 = 0, 0
+        sx2, sy2 = img_w - 1, img_h - 1
+    src_w = sx2 - sx1 + 1
+    src_h = sy2 - sy1 + 1
+    if (sx1, sy1) != (0, 0) or (src_w, src_h) != (img_w, img_h):
+        # Partial copy not implemented yet — fall back to whole-image paste.
+        sx1 = sy1 = 0
+        src_w, src_h = img_w, img_h
+    b64 = _base64_local.b64encode(data).decode("ascii")
+    state.elements.append(
+        f'<image x="{dx}" y="{dy}" width="{src_w}" height="{src_h}" '
+        f'href="data:{mime};base64,{b64}" preserveAspectRatio="none"/>'
+    )
+
+
 def _cmd_range(state: _State, args: list[str]) -> None:
     if len(args) >= 4:
         state.xmin = _num(args[0])
@@ -1777,6 +1864,9 @@ _HANDLERS = {
     "fill": _cmd_flood,
     "flood": _cmd_flood,
     "gridfill": _cmd_gridfill,
+    # Image paste
+    "copy": _cmd_copy,
+    "insert": _cmd_copy,  # alias per WIMS nametab
     # Text / plot
     "text": _cmd_text,
     "string": _cmd_string,
@@ -1861,6 +1951,83 @@ def get_cached_svg(key: str) -> str | None:
 
 
 _IMG_SVG_RE = re.compile(r'<img\s+src="/api/render/svg/(?P<key>[a-f0-9]+)"[^>]*/?>')
+
+
+# Block-level tags that act as "wrap reset" boundaries when grouping a figure
+# with its preceding label. A figure can't be glued to a label that lives on
+# the other side of a <br>, table cell, paragraph break, etc.
+_FIG_BOUNDARY_RE = re.compile(
+    r'<br\s*/?>|</?(?:p|div|h[1-6]|li|ul|ol|table|tr|td|th|section|article|header|footer|figure)\b[^>]*>',
+    re.IGNORECASE,
+)
+
+
+_WIMS_INSTRUCTION_RE = re.compile(
+    r'<div\s+class="wims_instruction"[^>]*>.*?</div>',
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def hoist_wims_instruction(html: str) -> str:
+    """Move ``<div class="wims_instruction">…</div>`` to the very top of the
+    rendered statement.
+
+    OEF templates split into two camps: single-question exos place the
+    instruction div BEFORE wims_question (quizz/0320, 0306, …), but
+    course/step exos like course03_2step put it AFTER the question — which
+    reads badly (a "calculatrice interdite" warning at the *bottom* is
+    useless). Hoisting it unconditionally fixes both at once and matches
+    what WIMS' page chrome does for its instruction zone.
+    """
+    m = _WIMS_INSTRUCTION_RE.search(html)
+    if not m:
+        return html
+    return m.group(0) + html[:m.start()] + html[m.end():]
+
+
+def group_inline_figures(html: str) -> str:
+    """Wrap each flydraw figure placeholder with its preceding label text
+    in a ``<span class="pax-fig-group">``.
+
+    Without this, a render like ``Figure 1 : <svg> Figure 2 : <svg>`` is just
+    inline content with breakable whitespace everywhere — narrow viewports
+    can end up wrapping mid-pair (``Figure 1 : <svg> Figure 2 :`` on line one,
+    ``<svg> Figure 3 : <svg>`` on line two), which reads badly. By gluing each
+    label to its figure under ``white-space: nowrap``, the only breakable
+    points are *between* groups.
+
+    Runs in the engine pipeline *before* ``inline_svg_imgs`` so the SVG body
+    (which contains its own ``<image>``/``<polygon>`` tags) doesn't confuse
+    the boundary regex — placeholders here are still ``<img src="/api/render/
+    svg/…">`` one-liners.
+    """
+    out: list[str] = []
+    pos = 0
+    for m in _IMG_SVG_RE.finditer(html):
+        segment = html[pos:m.start()]
+        # The label spans from the latest block boundary (or the previous
+        # figure's end) to this figure's start. If neither exists in
+        # `segment`, we glue from `pos`.
+        last_b = None
+        for bm in _FIG_BOUNDARY_RE.finditer(segment):
+            last_b = bm.end()
+        label_start = pos + last_b if last_b is not None else pos
+
+        # Cap the label at 80 chars so a stray figure inside running prose
+        # doesn't pull the whole sentence into one non-wrapping line. Snap to
+        # the nearest preceding whitespace so we don't slice mid-word.
+        if m.start() - label_start > 80:
+            cap = m.start() - 80
+            space = html.rfind(" ", label_start, cap)
+            label_start = (space + 1) if space > label_start else cap
+
+        out.append(html[pos:label_start])
+        out.append('<span class="pax-fig-group">')
+        out.append(html[label_start:m.end()])
+        out.append('</span>')
+        pos = m.end()
+    out.append(html[pos:])
+    return ''.join(out)
 
 
 def inline_svg_imgs(html: str) -> str:

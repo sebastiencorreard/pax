@@ -10,8 +10,20 @@ Toutes les fonctions ici sont pures (pas de dépendance à DefEngine).
 from __future__ import annotations
 
 import re
+from typing import Callable, Optional
 
 from .cas import _MATH_NS
+
+
+# Type for the optional variable-substitution callback. Mirrors WIMS' compare.c
+# behaviour: substitution happens AFTER the operator is identified, on each
+# operand separately — so `<` and `>` characters inside a substituted value
+# (e.g. HTML in $val6) can't be mistaken for relational operators.
+_Subst = Optional[Callable[[str], str]]
+
+
+def _apply_subst(subst: _Subst, s: str) -> str:
+    return subst(s) if subst is not None else s
 
 
 # ── Tables sémantiques (compare.c relation_type[]) ───────────────────────────
@@ -156,8 +168,15 @@ def _wims_relational(lhs: str, rhs: str, op_code: int, neg: bool, numeric: bool)
 
 # ── Comparaison atomique ──────────────────────────────────────────────────────
 
-def _wims_compare_atomic(s: str, numeric: bool) -> bool:
-    """Évalue une condition atomique WIMS (sans and/or au niveau supérieur)."""
+def _wims_compare_atomic(s: str, numeric: bool, subst: _Subst = None) -> bool:
+    """Évalue une condition atomique WIMS (sans and/or au niveau supérieur).
+
+    Si ``subst`` est fourni, il est appliqué à LHS/RHS *après* l'identification
+    de l'opérateur — comme WIMS compare.c qui appelle ``substitute(buf1)`` /
+    ``substitute(buf2)`` sur chaque opérande extrait. C'est ce qui empêche les
+    `<` et `>` à l'intérieur d'une valeur substituée (HTML d'un `$val6`)
+    d'être pris pour des opérateurs relationnels.
+    """
     n = len(s)
     # Cas LHS vide : si la condition commence directement par ``is…`` / ``not…``
     # (sans LHS), évaluer avec lhs="" — utile pour le pattern WIMS
@@ -170,7 +189,7 @@ def _wims_compare_atomic(s: str, numeric: bool) -> bool:
                     if s[k_start:k_start + rt_len].lower() == rt:
                         after = k_start + rt_len
                         if after >= n or not (s[after].isalnum() or s[after] == "_"):
-                            return _wims_semantic_op("", ri + 1, neg, s[after:].strip())
+                            return _wims_semantic_op("", ri + 1, neg, _apply_subst(subst, s[after:].strip()))
                 break  # matched is/not but no relation type
     depth = 0
     i = 0
@@ -256,13 +275,17 @@ def _wims_compare_atomic(s: str, numeric: bool) -> bool:
                 if word[k:k + rt_len].lower() == rt:
                     after = k + rt_len
                     if after >= len(word) or not (word[after].isalnum() or word[after] == "_"):
-                        return _wims_semantic_op(s[:i].strip(), ri + 1, neg, word[k + rt_len:].strip())
+                        return _wims_semantic_op(
+                            _apply_subst(subst, s[:i].strip()),
+                            ri + 1, neg,
+                            _apply_subst(subst, word[k + rt_len:].strip()),
+                        )
 
         i += 1
 
     if rel is not None:
-        lhs = s[:rel["lhs_end"]].strip()
-        rhs = s[rel["rhs_start"]:].strip()
+        lhs = _apply_subst(subst, s[:rel["lhs_end"]].strip())
+        rhs = _apply_subst(subst, s[rel["rhs_start"]:].strip())
         return _wims_relational(lhs, rhs, rel["op"], rel["neg"], numeric)
 
     return False
@@ -270,12 +293,18 @@ def _wims_compare_atomic(s: str, numeric: bool) -> bool:
 
 # ── Point d'entrée public ─────────────────────────────────────────────────────
 
-def _wims_compare(cond: str, numeric: bool) -> bool:
+def _wims_compare(cond: str, numeric: bool, subst: _Subst = None) -> bool:
     """
     Port Python de compare() dans WIMS compare.c.
 
     numeric=True pour !ifval (= numérique avec précision),
     False pour !if (= comparaison de chaînes).
+
+    ``subst`` est appelé tardivement sur LHS/RHS, après identification de
+    l'opérateur — appelants : passer ``self._subst`` au lieu de pré-substituer
+    pour éviter qu'un ``<`` ou ``>`` HTML dans un opérande soit pris pour un
+    opérateur relationnel (cf. compare.c qui appelle ``substitute(buf1/buf2)``
+    seulement après avoir borné chaque côté).
     """
     cond = _wims_strip_all_parens(cond)
     if not cond:
@@ -284,11 +313,11 @@ def _wims_compare(cond: str, numeric: bool) -> bool:
     split = _wims_find_top_logic(cond, "or") or _wims_find_top_logic(cond, "||")
     if split is not None:
         lhs, rhs = split
-        return _wims_compare(lhs, numeric) or _wims_compare(rhs, numeric)
+        return _wims_compare(lhs, numeric, subst) or _wims_compare(rhs, numeric, subst)
 
     split = _wims_find_top_logic(cond, "and") or _wims_find_top_logic(cond, "&&")
     if split is not None:
         lhs, rhs = split
-        return _wims_compare(lhs, numeric) and _wims_compare(rhs, numeric)
+        return _wims_compare(lhs, numeric, subst) and _wims_compare(rhs, numeric, subst)
 
-    return _wims_compare_atomic(cond, numeric)
+    return _wims_compare_atomic(cond, numeric, subst)
