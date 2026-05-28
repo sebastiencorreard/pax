@@ -741,10 +741,40 @@ def _call_pari(expr: str) -> str:
         if ident not in ns and ident not in _PYTHON_KEYWORDS:
             ns[ident] = sympy.Symbol(ident)
 
-    try:
-        transformations = standard_transformations + (
-            implicit_multiplication_application,
+    transformations = standard_transformations + (
+        implicit_multiplication_application,
+    )
+
+    # PARI vectors `[...]` use *elementwise* +, -, and scalar * (e.g.
+    # `[6,5]+[1,-2]` → `[7,3]`, `2*[1,2,3]` → `[2,4,6]`). Python lists, which
+    # `parse_expr` would otherwise build, instead *concatenate*/​*repeat*
+    # (`[6,5,1,-2]`, `[1,2,3,1,2,3]`) — wrong, and a silent success that never
+    # reaches the exception fallback below. So when a flat vector literal takes
+    # part in such arithmetic, wrap the literals as row matrices first so the
+    # op broadcasts elementwise (coord2 builds the target point as `[v]+[P]`).
+    # Skipped for matrix literals (`[[…],[…]]`) and bare/indexed vectors.
+    if (
+        "[[" not in clean
+        and "]]" not in clean
+        and _VEC_LITERAL_RE.search(clean)
+        and (
+            re.search(r"\]\s*[-+]\s*\[", clean)
+            # scalar/​symbol after `]*` is `_I(…)`-wrapped, hence `[\w(]`.
+            or re.search(r"\]\s*\*\s*[\w(]", clean)
+            or re.search(r"[\w.)\]]\s*\*\s*\[", clean)
         )
+    ):
+        try:
+            ns_v = dict(ns)
+            ns_v["_V"] = lambda *a: sympy.Matrix([list(a)])
+            vec_clean = _VEC_LITERAL_RE.sub(r"_V(\1)", clean)
+            return _format_pari_result(
+                parse_expr(vec_clean, local_dict=ns_v, transformations=transformations)
+            )
+        except Exception:
+            pass  # fall back to the plain parse below
+
+    try:
         result = parse_expr(clean, local_dict=ns, transformations=transformations)
         # PARI's internal representation of polynomials is always expanded;
         # mirror that so e.g. `pari (x-3)*(x+3)` returns `x^2 - 9`.

@@ -1199,3 +1199,34 @@ class TestJsxgraphEmbed:
         html = e._render_embed(args)
         assert 'class="pax-jsxgraph"' in html
         assert "data-reply" not in html
+
+
+# ── PARI vector arithmetic (elementwise, not Python list concat) ─────────────
+
+
+class TestPariVectorArithmetic:
+    def test_vector_addition(self):
+        # PARI: [6,5]+[1,-2] = [7,3], NOT list concat [6,5,1,-2].
+        assert _call_pari("[6,5]+[1,-2]") == "7,3"
+
+    def test_vector_subtraction(self):
+        assert _call_pari("[6,5]-[1,2]") == "5,3"
+
+    def test_scalar_times_vector(self):
+        assert _call_pari("2*[1,2,3]") == "2,4,6"
+
+    def test_vector_times_scalar(self):
+        assert _call_pari("[1,2]*3") == "3,6"
+
+    def test_singleton_vector(self):
+        assert _call_pari("[3]+[4]") == "7"
+
+    def test_bare_vector_unchanged(self):
+        assert _call_pari("[1,2,3]") == "1,2,3"
+
+    def test_indexing_not_treated_as_vector(self):
+        # v[1] is an index, not a vector literal — left symbolic.
+        assert _call_pari("v[1]") == "v[1]"
+
+    def test_polynomial_unaffected(self):
+        assert _call_pari("(x-3)*(x+3)") == "x^2 - 9"
