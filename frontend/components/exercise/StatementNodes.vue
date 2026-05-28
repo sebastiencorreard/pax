@@ -66,6 +66,9 @@
         :height="node.seg.height"
         :maxw="node.seg.maxw"
         :minw="node.seg.minw"
+        :reply="node.seg.reply"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
       <select v-else-if="node.seg.type === 'menu'"

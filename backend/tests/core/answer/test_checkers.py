@@ -14,7 +14,40 @@ from core.answer.checkers import (
     check_correspond,
     check_default,
     check_fset,
+    check_jsxgraph,
 )
+
+
+class TestCheckJsxgraph:
+    def test_single_coordinate_match(self):
+        # quizz 0420: reply is "<x>;", expected the target abscissa.
+        assert check_jsxgraph("7;", "7").correct
+        assert check_jsxgraph("7", "7").correct
+
+    def test_within_tolerance(self):
+        # Default WIMS precision 10 → tolerance 0.1.
+        assert check_jsxgraph("7.05;", "7").correct
+        assert not check_jsxgraph("7.5;", "7").correct
+
+    def test_wrong_and_empty(self):
+        assert not check_jsxgraph("6;", "7").correct
+        assert not check_jsxgraph("", "7").correct
+
+    def test_2d_point(self):
+        assert check_jsxgraph("3,5;", "3,5").correct
+        assert not check_jsxgraph("3,4;", "3,5").correct
+
+    def test_partial_score(self):
+        r = check_jsxgraph("3,9;", "3,5")
+        assert not r.correct and r.score == 0.5
+
+    def test_custom_precision(self):
+        # precision=2 → tolerance 0.5, so 7.4 passes.
+        assert check_jsxgraph("7.4;", "7", {"option": "precision=2"}).correct
+
+    def test_dispatch_routes_to_jsxgraph(self):
+        r = check_answer("jsxgraph", "7;", "7", {"option": "noanalyzeprint"})
+        assert r.correct and r.method == "jsxgraph"
 
 
 class TestCheckClickfill:

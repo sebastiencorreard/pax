@@ -448,6 +448,11 @@ def _segment_statement(html: str) -> list[dict]:
                 am = re.search(rf'{attr}="(\d+)"', tag)
                 if am:
                     seg[key] = int(am.group(1))
+            # `data-reply` (jsxgraph *answer* boards): binds the captured
+            # coordinates to this reply field on the frontend.
+            rm = re.search(r'data-reply="([^"]+)"', tag)
+            if rm:
+                seg["reply"] = rm.group(1)
             segments.append(seg)
         elif m.group(9) is not None:
             # <div …> → layout group open. Carry the class so the frontend can

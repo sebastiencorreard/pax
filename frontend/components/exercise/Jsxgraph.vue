@@ -15,7 +15,11 @@ const props = defineProps<{
   height?: number
   maxw?: number
   minw?: number
+  reply?: string        // answer field bound to the dragged point (type=jsxgraph)
+  submitted?: boolean   // lock interaction once the answer is checked
 }>()
+
+const emit = defineEmits<{ 'update:reply': [name: string, value: string] }>()
 
 // Default display width: the spec's `min` bound (the smaller, sensible size),
 // else half of `max`. The wrapper is left-aligned and capped; the board fills
@@ -33,17 +37,26 @@ const wrapperStyle = computed(() => {
 const boxStyle = computed(() => {
   const w = props.width ?? 500
   const h = props.height ?? 500
-  return `width:100%;aspect-ratio:${w} / ${h};`
+  // Lock dragging once submitted: pointer-events:none freezes the board
+  // visually without touching JSXGraph internals.
+  const locked = props.submitted ? 'pointer-events:none;' : ''
+  return `width:100%;aspect-ratio:${w} / ${h};${locked}`
 })
 
 async function build() {
   if (!import.meta.client || !props.js) return
   try {
     await loadJsxgraph()
-    // The init JS is generated server-side from the exercise (trusted) and
-    // calls JXG.JSXGraph.initBoard(name, …) on our container.
+    // For `type=jsxgraph` answers the server-side script ends with a capture
+    // hook that calls `__paxReport(value)` on every drag; forward it to the
+    // bound reply field (ignored after submission). Display-only boards never
+    // call it. The init JS is trusted (generated server-side) and calls
+    // JXG.JSXGraph.initBoard(name, …) on our container.
+    const report = (value: string) => {
+      if (props.reply && !props.submitted) emit('update:reply', props.reply, value)
+    }
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    new Function(props.js)()
+    new Function('__paxReport', props.js)(report)
   } catch (e) {
     console.error('JSXGraph board init failed', e)
   }

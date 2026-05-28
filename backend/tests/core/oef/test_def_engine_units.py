@@ -1161,3 +1161,41 @@ class TestPariPrint:
 
     def test_print_with_semicolon(self):
         assert _call_pari("print(6);") == "6"
+
+
+# ── jsxgraph answer embed (type=jsxgraph) ────────────────────────────────────
+
+
+class TestJsxgraphEmbed:
+    def test_value_dim(self):
+        from core.oef.def_engine import _jsxgraph_value_dim
+        assert _jsxgraph_value_dim("1") == 1
+        assert _jsxgraph_value_dim("[a,b]") == 2
+        assert _jsxgraph_value_dim("[f(){return Q.X()},g(){return Q.Y()}],{n:1}") == 2
+
+    def test_embed_renders_board_with_reply_and_capture(self):
+        e = engine()
+        e.ctx["replytype1"] = "jsxgraph"
+        # ref,size <TAB> divid boardvar [opts] <TAB> script <TAB> variable line
+        args = (
+            "r1,400x200\tid1 brd [responsive min=250px max=400px]\t"
+            "let p2_rep1=brd.create('glider',[p2_var1,0,l1]);\tp2_var1=1;"
+        )
+        html = e._render_embed(args)
+        assert 'class="pax-jsxgraph"' in html
+        assert 'data-reply="reply1"' in html
+        assert 'data-w="400"' in html and 'data-h="200"' in html
+        # placeholder p2_var1 substituted with its value 1 in the glider
+        assert "[1,0,l1]" in html
+        # capture hook present (drives __paxReport on every board update)
+        assert "__paxReport" in html
+        assert "p2_rep1.X()" in html
+
+    def test_embed_no_capture_without_variable_line(self):
+        # No trailing "name=value" line → no draggable reply, no data-reply.
+        e = engine()
+        e.ctx["replytype1"] = "jsxgraph"
+        args = "r1,300x300\tjxgbox brd\tbrd.create('point',[1,1]);"
+        html = e._render_embed(args)
+        assert 'class="pax-jsxgraph"' in html
+        assert "data-reply" not in html

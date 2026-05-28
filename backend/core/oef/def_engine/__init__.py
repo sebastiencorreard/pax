@@ -2370,7 +2370,7 @@ class DefEngine(_SlibMixin):
                 # `type=jsxgraph`: the answer field *is* an interactive board.
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
-                return self._render_jsxgraph_embed(args)
+                return self._render_jsxgraph_embed(args, ref)
 
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
@@ -2383,7 +2383,7 @@ class DefEngine(_SlibMixin):
 
         return f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
 
-    def _render_jsxgraph_embed(self, args: str) -> str:
+    def _render_jsxgraph_embed(self, args: str, ref: str) -> str:
         """Render a `type=jsxgraph` answer embed as an interactive board.
 
         Mirrors WIMS' ``anstype/jsxgraph.input`` parsing of the embed
@@ -2442,18 +2442,56 @@ class DefEngine(_SlibMixin):
         script = "\t".join(script_lines)
         # Substitute each placeholder NAME with its VALUE in the script (WIMS
         # semantics). Multiple declarations are ";"-separated; split on the
-        # first "=" only since VALUE may itself contain "=".
+        # first "=" only since VALUE may itself contain "=". Each placeholder
+        # also names a draggable element whose coordinates form the reply: WIMS
+        # renames `…var…` → `…rep…` (the element actually created in the script)
+        # and captures `.X()` (+ `.Y()` for a 2-D point) — dim = item count of
+        # the initial value (scalar → 1, `[x,y]` → 2).
+        captures: list[tuple[str, int]] = []
         for decl in var_line.split(";"):
             decl = decl.strip()
             if "=" not in decl:
                 continue
             vname, vval = (p.strip() for p in decl.split("=", 1))
-            if vname:
-                script = re.sub(rf"\b{re.escape(vname)}\b", lambda _m, v=vval: v, script)
+            if not vname:
+                continue
+            script = re.sub(rf"\b{re.escape(vname)}\b", lambda _m, v=vval: v, script)
+            captures.append((vname.replace("var", "rep"), _jsxgraph_value_dim(vval)))
 
+        full_script = script + self._jsxgraph_capture_js(board_var, captures)
         size_field = f"{w} x {h}" + (f",{opts}" if opts else "")
-        proc_args = f"{div_id} {board_var},[{size_field}],{script}"
-        return self._render_jsxgraph(proc_args)
+        proc_args = f"{div_id} {board_var},[{size_field}],{full_script}"
+        div = self._render_jsxgraph(proc_args)
+        # Tag the board with the reply name so the frontend binds the captured
+        # coordinates to this answer field.
+        if captures:
+            div = div.replace(
+                '<div class="pax-jsxgraph"',
+                f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
+            )
+        return div
+
+    @staticmethod
+    def _jsxgraph_capture_js(board_var: str, captures: list[tuple[str, int]]) -> str:
+        """JS appended to the board script: report the dragged point(s) back to
+        the answer field. Reads each element's coordinates on every board update
+        (i.e. while dragging) and calls the `__paxReport` callback the frontend
+        injects. Reply format mirrors WIMS: rows ";"-separated, a 2-D point's
+        coordinates ","-separated — e.g. "7;" or "3,5;"."""
+        if not captures:
+            return ""
+        parts = [
+            f"({obj}.X()+','+{obj}.Y())" if dim >= 2 else f"{obj}.X()"
+            for obj, dim in captures
+        ]
+        arr = "[" + ",".join(parts) + "]"
+        return (
+            "\t;try{var __paxC=function(){return " + arr + ".join(';')+';';};"
+            "if(typeof __paxReport==='function'){"
+            f"{board_var}.on('update',function(){{__paxReport(__paxC());}});"
+            "__paxReport(__paxC());}}"
+            "catch(e){if(typeof console!=='undefined')console.error('pax jsx capture',e);}"
+        )
 
     # ── Answer extraction ─────────────────────────────────────────────────────
 
@@ -2780,6 +2818,28 @@ class DefEngine(_SlibMixin):
         # (This is already handled inline in _eval_cmd, but keeping the method stub
         # if other parts of the engine call it directly)
         return self._eval_cmd("mathsubst", args)
+
+
+def _jsxgraph_value_dim(value: str) -> int:
+    """Dimension of a jsxgraph draggable's initial value: a bracketed
+    ``[x,y]`` → the number of top-level items inside (2 here); anything else
+    (a scalar like ``1``) → 1. Used to decide whether the reply captures just
+    ``.X()`` or both ``.X()`` and ``.Y()``."""
+    v = value.strip()
+    if not v.startswith("["):
+        return 1
+    depth = 0
+    items = 1
+    for ch in v:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+            if depth == 0:
+                break
+        elif ch == "," and depth == 1:
+            items += 1
+    return items
 
 
 def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int:

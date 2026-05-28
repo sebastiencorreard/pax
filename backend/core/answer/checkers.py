@@ -296,6 +296,41 @@ def check_numeric(reply: str, expected: str, precision: float = 1e-4) -> CheckRe
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numeric")
 
 
+def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
+    """Compare les coordonnées du/des point(s) déplacé(s) à la position attendue.
+
+    `reply` et `expected` suivent le format WIMS jsxgraph : des lignes séparées
+    par ``;``, chaque ligne étant les coordonnées d'un point séparées par ``,``
+    (ex. ``"7;"`` ou ``"3,5;"``). Chaque coordonnée est comparée numériquement
+    avec une tolérance ``1/precision`` (précision WIMS par défaut 10 → 0,1).
+    Le score est la fraction de coordonnées dans la tolérance.
+    """
+    options = options or {}
+    m = re.search(r"precision\s*=\s*([\d.]+)", str(options.get("option", "")))
+    precision = float(m.group(1)) if m else 10.0
+    tol = 1.0 / precision if precision else 0.1
+
+    def _rows(s: str) -> list[str]:
+        return [r.strip() for r in s.split(";") if r.strip()]
+
+    exp_rows, rep_rows = _rows(expected), _rows(reply)
+    total = ok = 0
+    for i, exp_row in enumerate(exp_rows):
+        exp_coords = [c.strip() for c in exp_row.split(",") if c.strip()]
+        rep_coords = rep_rows[i].split(",") if i < len(rep_rows) else []
+        for j, ec in enumerate(exp_coords):
+            total += 1
+            try:
+                if j < len(rep_coords) and abs(float(ec) - float(rep_coords[j].strip())) < tol:
+                    ok += 1
+            except (ValueError, TypeError):
+                pass
+    if total == 0:
+        return CheckResult(correct=False, score=0.0, method="jsxgraph")
+    score = ok / total
+    return CheckResult(correct=score == 1.0, score=score, method="jsxgraph")
+
+
 def _parse_number(s: str) -> float:
     """Parse un nombre : entier, décimal, fraction, expression simple."""
     s = s.replace(",", ".").replace("^", "**").strip()
@@ -783,6 +818,8 @@ def check_answer(
             return check_clickfill(reply, expected)
         case "correspond":
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
+        case "jsxgraph":
+            return check_jsxgraph(reply, expected, options)
         case "case":
             return check_case(reply, expected)
         case "default" | "auto":
