@@ -275,6 +275,11 @@ def _call_maxima(expr: str) -> str:
         return expr
 
 
+# A bare integer ratio `a/b` (optionally signed) — the only shape we re-evaluate
+# in `_expr_to_latex` to strip the spurious `1 \cdot` unit coefficient.
+_PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
+
+
 def _expr_to_latex(expr: str) -> str:
     """Convert a math expression string to LaTeX notation for display.
 
@@ -332,6 +337,19 @@ def _expr_to_latex(expr: str) -> str:
             local_dict=locals_dict,
             evaluate=False,
         )
+        # `evaluate=False` keeps the Add/Mul tree intact for symbolic
+        # expressions (so reduire/distribuer show the *un-reduced* form), but a
+        # bare integer ratio `a/b` then parses as `Mul(a, 1/b)` and renders a
+        # spurious unit coefficient: `1/4` → `1 \cdot \frac{1}{4}`. Re-evaluate
+        # *only* that exact shape so `\frac{1}{4}` comes out clean, without
+        # touching expressions like `2*sqrt(5)/sqrt(10)` that must stay as-is.
+        if _PURE_INT_FRAC_RE.match(expr_strip):
+            parsed = parse_expr(
+                prep.replace("^", "**"),
+                transformations=transformations,
+                local_dict=locals_dict,
+                evaluate=True,
+            )
         res = sympy.latex(parsed)
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"

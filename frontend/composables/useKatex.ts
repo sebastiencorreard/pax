@@ -46,6 +46,18 @@ export function useKatex() {
     return expr
   }
 
+  // Promeut ``\frac`` en ``\dfrac`` (displaystyle). KaTeX rend ``\frac`` en
+  // *textstyle* (petite fraction écrasée) dans un ``\(…\)`` inline, alors que
+  // WIMS empile toujours les fractions en taille normale. Le backend émet du
+  // ``\frac`` via ``sympy.latex`` (ex. ``\(\frac{3}{4}\)``) ; on l'aligne sur le
+  // ``\dfrac`` que ``slashToFrac`` produit déjà pour les divisions plates
+  // ``a/b``. La lookbehind ``(?<![\^_])`` épargne les fractions en exposant /
+  // indice (``x^\frac{1}{2}``) qui doivent rester petites ; ``\dfrac``/``\tfrac``
+  // ne matchent pas (le ``\`` y est suivi de ``d``/``t``, pas de ``f``).
+  function fracToDfrac(expr: string): string {
+    return expr.replace(/(?<![\^_])\\frac(?![a-zA-Z])/g, '\\dfrac')
+  }
+
   // Enroule "-N" entre parenthèses quand il suit un opérateur binaire
   // (``+``, ``-``, ``\times``) : ``17 - -9`` → ``17 - (-9)``, ``a \times -9``
   // → ``a \times (-9)``. Évite la confusion visuelle des deux signes ``-``
@@ -123,6 +135,7 @@ export function useKatex() {
     expr = expr.replace(/\s*\*\s*(?=[a-zA-Z(])/g, '')
     expr = expr.replace(/\s*\*\s*/g, ' \\times ')
     expr = slashToFrac(expr)
+    expr = fracToDfrac(expr)
     expr = simplifyFracSign(expr)
     expr = stripRedundantFracParens(expr)
     expr = wrapNegativeOperands(expr)
