@@ -263,7 +263,8 @@ class DefEngine(_SlibMixin):
 
         text_replies = [
             a for a in answers
-            if a.answer_type.lower() not in ("radio", "menu", "mark", "correspond")
+            if a.answer_type.lower()
+            not in ("radio", "menu", "mark", "correspond", "jsxgraph")
         ]
         if text_replies and not widget_names and not is_dynsteps_flag:
             for a in text_replies:
@@ -2365,6 +2366,12 @@ class DefEngine(_SlibMixin):
                     f'data-config="{_html.escape(config)}"></span>'
                 )
 
+            elif reply_type == "jsxgraph":
+                # `type=jsxgraph`: the answer field *is* an interactive board.
+                # Render the board (display) here; the script has commas, so we
+                # re-parse the raw args instead of the comma-split `size_str`.
+                return self._render_jsxgraph_embed(args)
+
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
@@ -2375,6 +2382,78 @@ class DefEngine(_SlibMixin):
             size = 10
 
         return f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
+
+    def _render_jsxgraph_embed(self, args: str) -> str:
+        """Render a `type=jsxgraph` answer embed as an interactive board.
+
+        Mirrors WIMS' ``anstype/jsxgraph.input`` parsing of the embed
+        ``inputsize``. After the reply ref (before the first comma), the
+        remaining TAB-separated "lines" are:
+
+            <W>x<H>                     ← board pixel size
+            <divid> <boardvar> [opts]   ← container id, JS board var, [responsive…]
+            <script…>                   ← board-init JS (JSXGraph)
+            <name>=<val>; …             ← trailing line: the draggable point
+                                          placeholder(s) — a NAME used in the
+                                          script and its initial VALUE
+
+        WIMS substitutes each placeholder NAME textually with its VALUE so the
+        element consuming it (e.g. ``glider [p2_var1,0,l1]`` or
+        ``create('point',jxgbox_var1,…)``) is defined. We do the same, then hand
+        the board id + size + script to ``_render_jsxgraph`` (the slib renderer
+        used by ``slib/geo2D/jsxgraph``). A plain ``var NAME=VALUE`` would break
+        when VALUE isn't a single JS expression (coord2's ``[…],{…}``). Answer
+        *capture* (reading the dragged position back) is not wired yet — this
+        restores the board display in place of a stray text field.
+        """
+        _, _, rest = args.partition(",")
+        lines = rest.split("\t")
+        while lines and not lines[-1].strip():
+            lines.pop()
+        if not lines:
+            return ""
+
+        # Trailing line = draggable-variable initialisation (e.g. "p2_var1=1;").
+        var_line = lines[-1].strip()
+        body = lines[:-1]
+
+        # Line 1 = board size "WxH" (digits and 'x' only).
+        if body and re.fullmatch(r"[\dxX\s]+", body[0].strip()):
+            size = body[0].strip()
+            body = body[1:]
+        else:
+            size = "500x500"
+
+        # Next line = "<divid> <boardvar> [responsive …options]".
+        jbox_line = body[0].strip() if body else ""
+        script_lines = body[1:]
+        opts = ""
+        mopt = re.search(r"\[([^\]]*)\]", jbox_line)
+        if mopt:
+            opts = mopt.group(1).replace("responsive", "").strip()
+            jbox_line = jbox_line[: mopt.start()].strip()
+        words = jbox_line.split()
+        div_id = words[0] if words else "jsxbox"
+        board_var = words[1] if len(words) > 1 else "brd"
+
+        wh = re.search(r"(\d+)\s*[xX]\s*(\d+)", size)
+        w, h = (wh.group(1), wh.group(2)) if wh else ("500", "500")
+
+        script = "\t".join(script_lines)
+        # Substitute each placeholder NAME with its VALUE in the script (WIMS
+        # semantics). Multiple declarations are ";"-separated; split on the
+        # first "=" only since VALUE may itself contain "=".
+        for decl in var_line.split(";"):
+            decl = decl.strip()
+            if "=" not in decl:
+                continue
+            vname, vval = (p.strip() for p in decl.split("=", 1))
+            if vname:
+                script = re.sub(rf"\b{re.escape(vname)}\b", lambda _m, v=vval: v, script)
+
+        size_field = f"{w} x {h}" + (f",{opts}" if opts else "")
+        proc_args = f"{div_id} {board_var},[{size_field}],{script}"
+        return self._render_jsxgraph(proc_args)
 
     # ── Answer extraction ─────────────────────────────────────────────────────
 
