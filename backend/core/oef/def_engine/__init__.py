@@ -707,13 +707,42 @@ class DefEngine(_SlibMixin):
         if not col_s:
             return rows[row - 1].strip()
 
+        cols = re.split(r"[;,]", rows[row - 1])
+        return self._select_cols(cols, col_s)
+
+    def _select_cols(self, cols: list[str], col_s: str) -> str:
+        """Select column(s) from a row's cells.
+
+        ``col_s`` is either a single 1-based index or a WIMS range
+        ``a..b``. Bounds may be negative (``-1`` = last column), so
+        ``2..-1`` means "from column 2 to the end" (used by quizz 0408's
+        ``$(matrix[row;2..-1])`` to collect the divisor columns). Returns the
+        selected cells joined by ``,``; empty string if the spec can't be
+        parsed.
+        """
+        n = len(cols)
+
+        def _norm(i: int) -> int:
+            # WIMS counts negative indices from the end: -1 → n, -2 → n-1.
+            return i + n + 1 if i < 0 else i
+
+        if ".." in col_s:
+            a, _, b = col_s.partition("..")
+            try:
+                start = _norm(int(round(float(self._eval_arith(a.strip())))))
+                end = _norm(int(round(float(self._eval_arith(b.strip())))))
+            except (ValueError, TypeError):
+                return ""
+            if start > end:
+                start, end = end, start
+            sel = [cols[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n]
+            return ",".join(sel)
+
         try:
-            col = int(round(float(self._eval_arith(col_s))))
+            col = _norm(int(round(float(self._eval_arith(col_s)))))
         except (ValueError, TypeError):
             return ""
-
-        cols = re.split(r"[;,]", rows[row - 1])
-        if 1 <= col <= len(cols):
+        if 1 <= col <= n:
             return cols[col - 1].strip()
         return ""
 
@@ -2192,11 +2221,38 @@ class DefEngine(_SlibMixin):
                     f'data-pos="{col}">{label}</span>'
                 )
             elif reply_type == "checkbox":
-                # Each embed places one checkbox of the `reply{n}` group;
-                # size_str is the 1-based option index this box represents.
-                # The student's reply is the set of checked indices (compared
-                # order-insensitively via check_set). Emit a native checkbox
-                # so it renders inline in the surrounding <table> layout.
+                # The student's reply is the set of checked option *indices*
+                # (compared order-insensitively via check_set); the labels come
+                # from the proposition list in replygood = "correct;prop1,prop2,…".
+                good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
+                labels_part = good_raw.partition(";")[2] if ";" in good_raw else ""
+                # Smart comma split: don't break commas inside \(...\) math.
+                labels = [
+                    c.strip()
+                    for c in re.split(r",(?![^(]*\))", labels_part)
+                    if c.strip()
+                ]
+
+                def _box(i: int, label: str) -> str:
+                    lbl = self._subst(label)
+                    return (
+                        f'<label class="oef-checkbox-label">'
+                        f'<input type="checkbox" class="oef-checkbox" '
+                        f'name="{ref}" value="{i}" /> {lbl}</label>'
+                    )
+
+                # A leading integer in size_str that names a valid 1-based option
+                # → this embed is one box of a "split" group (author placed one
+                # \embed per option via a \for loop). Otherwise (no index, or out
+                # of range — e.g. the leftover input width "10") the single embed
+                # expands to the whole proposition list, as WIMS does by default.
+                idx_m = re.match(r"-?\d+", self._subst(size_str).strip())
+                idx = int(idx_m.group()) if idx_m else None
+                if idx is not None and labels and 1 <= idx <= len(labels):
+                    return _box(idx, labels[idx - 1])
+                if labels:
+                    return ", ".join(_box(i + 1, lbl) for i, lbl in enumerate(labels))
+                # No proposition list available — fall back to a single box.
                 value = self._subst(size_str).strip()
                 return (
                     f'<input type="checkbox" class="oef-checkbox" '

@@ -348,4 +348,21 @@ provide(PAX_STATEMENT_CTX, {
   background: #fee2e2;
   color: #dc2626;
 }
+/* replytype=checkbox: a native box + its proposition label, clickable as one. */
+:deep(.oef-checkbox-label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 1px 4px;
+  cursor: pointer;
+}
+:deep(.oef-checkbox-label:has(.oef-checkbox:disabled)) {
+  cursor: default;
+}
+:deep(.oef-checkbox.correct) {
+  accent-color: #16a34a;
+}
+:deep(.oef-checkbox.incorrect) {
+  accent-color: #dc2626;
+}
 </style>
