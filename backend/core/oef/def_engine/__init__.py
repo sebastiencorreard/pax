@@ -275,21 +275,47 @@ class DefEngine(_SlibMixin):
         # naturally correct without per-step bookkeeping.
         if is_dynsteps_flag and self._touched_replies:
             answers = [a for a in answers if a.input_name in self._touched_replies]
+        elif is_dynsteps_flag and oefsteps_val:
+            # No embed recorded the active replies (embedcnt=0): derive the
+            # current step's replies from oefsteps so the right fields appear
+            # (simpquot's course step is e.g. "r1,r3" = replies 1 and 3).
+            steps = [s.strip() for s in re.split(r"[;\n\r\t]+", oefsteps_val) if s.strip()]
+            cur = type_meta.get("current_step", 1)
+            if 1 <= cur <= len(steps):
+                refs: set[str] = set()
+                for tok in steps[cur - 1].split(","):
+                    rm = re.fullmatch(r"r(\d+)", tok.strip(), re.I)
+                    if rm:
+                        refs.add(f"reply{rm.group(1)}")
+                    elif tok.strip():
+                        refs.add(tok.strip())
+                if refs:
+                    answers = [a for a in answers if a.input_name in refs]
 
         text_replies = [
             a for a in answers
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph")
         ]
-        if text_replies and not widget_names and not is_dynsteps_flag:
+        # Append a default field per reply when the question carries no widget.
+        # For dynsteps/course this is reached only when there are no embeds
+        # (otherwise widget_names is set); `answers` is already filtered to the
+        # active step above, so we add exactly the current step's fields.
+        if text_replies and not widget_names:
+            # With several fields (e.g. a course step's two replies) prefix each
+            # with its label so the student can tell them apart.
+            show_labels = len(text_replies) > 1
             for a in text_replies:
                 # No embed → WIMS renders a default-width reply field. Algebraic
                 # answers (litexp/algexp…) can be long expressions
                 # (`162sqrt(6)+567`), so give them room; a bare 10 was too narrow
                 # (devred). Numeric-ish answers keep a modest default.
                 size = 20 if a.answer_type.lower() in _WIDE_FALLBACK_TYPES else 14
+                label = ""
+                if show_labels and a.label and a.label.strip():
+                    label = _close_inline_math(a.label.strip(), self.lang) + " : "
                 html += (
-                    f'<br><span class="oef-input" name="{a.input_name}" '
+                    f'<br>{label}<span class="oef-input" name="{a.input_name}" '
                     f'data-size="{size}"></span>'
                 )
             segments = _segment_statement(html)
