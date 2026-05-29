@@ -500,6 +500,17 @@ class TestCmdItemRow:
         e = engine()
         assert e._eval_cmd("item", "9 of a,b,c") == ""
 
+    def test_item_range_to(self):
+        e = engine()
+        assert e._eval_cmd("item", "2 to 3 of a,b,c,d") == "b,c"
+
+    def test_item_range_negative_end(self):
+        # WIMS `-1` = last item: "2 to -1" = from 2 to the end (simpquot keeps
+        # every accepted answer form after the displayed expression).
+        e = engine()
+        assert e._eval_cmd("item", "2 to -1 of a,b,c,d") == "b,c,d"
+        assert e._eval_cmd("item", "2 to -1 of expr,15") == "15"
+
     def test_item_tab_separated(self):
         e = engine()
         assert e._eval_cmd("item", "2 of x\ty\tz") == "y"

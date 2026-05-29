@@ -1272,12 +1272,22 @@ class DefEngine(_SlibMixin):
                 return s.split("\t")
             return re.split(r",(?![^(]*\))", s)
 
-        # Range: "2 to 5" → items 2 through 5
-        range_m = re.match(r"(\d+)\s+to\s+(\d+)", idx_s)
+        # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
+        # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
+        # (simpquot keeps every accepted form after the displayed expression).
+        range_m = re.match(r"(-?\d+)\s+to\s+(-?\d+)\s*$", idx_s)
         if range_m:
             a, b = int(range_m.group(1)), int(range_m.group(2))
             items = split_items(data)
-            return ",".join(items[a - 1 : b])
+            n = len(items)
+            if a < 0:
+                a = n + a + 1
+            if b < 0:
+                b = n + b + 1
+            a, b = max(1, a), min(n, b)
+            if a > b:
+                return ""
+            return ",".join(it.strip() for it in items[a - 1 : b])
 
         # Comma-separated list of indices → pick each, join with commas
         if "," in idx_s:
