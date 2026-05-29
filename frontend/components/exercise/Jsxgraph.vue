@@ -21,17 +21,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:reply': [name: string, value: string] }>()
 
-// Default display width: the spec's `min` bound (the smaller, sensible size),
-// else half of `max`. The wrapper is left-aligned and capped; the board fills
-// it (width:100%) and its SVG scales with it (see <style>), so narrowing the
-// window shrinks the board in place instead of clipping/shifting it.
+// Default display width: the board's natural pixel width (the embed size),
+// capped by the spec's `max` bound — this is what WIMS renders. `min` is only
+// the responsive floor, not the default. The wrapper is left-aligned and
+// capped; the board fills it (width:100%) and its SVG scales with it (see
+// <style>), so narrowing the window shrinks the board in place instead of
+// clipping/shifting it, down to the `min` floor.
 const wrapperStyle = computed(() => {
-  const maxw = props.maxw ?? props.width ?? 500
-  const def = props.minw && props.minw > 0 ? props.minw : Math.round(maxw / 2)
+  const natural = props.width ?? props.maxw ?? 500
+  const maxw = props.maxw ?? natural
+  const def = Math.min(natural, maxw)
+  const floor = props.minw && props.minw > 0 ? `min-width:${props.minw}px;` : ''
   // A *definite* width (not just max-width): inside a `flex: 0 1 auto`
   // wrapper a percentage/auto width is circular and collapses to 0.
   // max-width:100% keeps it responsive; margin-right:auto keeps it left.
-  return `width:${def}px;max-width:100%;margin-right:auto;`
+  return `width:${def}px;max-width:100%;${floor}margin-right:auto;`
 })
 
 const boxStyle = computed(() => {
