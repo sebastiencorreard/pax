@@ -69,6 +69,12 @@ _INDEXED1_RE = re.compile(rf"\$\((\w+)\[({_SUB}+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 
+# Answer types whose value is an algebraic expression (potentially long), so a
+# no-embed fallback reply field gets a wider default than a numeric one.
+_WIDE_FALLBACK_TYPES = {
+    "litexp", "algexp", "formal", "function", "numexp", "default", "auto",
+}
+
 # Detects "$a,$b,$c" pattern (comma-concat of variable references only).
 # Used in _eval_value to neutralise tabs in the substituted parts so the
 # resulting list stays unambiguously comma-separated.
@@ -276,9 +282,14 @@ class DefEngine(_SlibMixin):
         ]
         if text_replies and not widget_names and not is_dynsteps_flag:
             for a in text_replies:
+                # No embed → WIMS renders a default-width reply field. Algebraic
+                # answers (litexp/algexp…) can be long expressions
+                # (`162sqrt(6)+567`), so give them room; a bare 10 was too narrow
+                # (devred). Numeric-ish answers keep a modest default.
+                size = 20 if a.answer_type.lower() in _WIDE_FALLBACK_TYPES else 14
                 html += (
                     f'<br><span class="oef-input" name="{a.input_name}" '
-                    f'data-size="10"></span>'
+                    f'data-size="{size}"></span>'
                 )
             segments = _segment_statement(html)
             widget_names = {

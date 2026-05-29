@@ -108,7 +108,7 @@ export interface CorrespondConfig {
 export type Segment =
   | { type: 'html';        content: string }
   | { type: 'slot';        name: string; is_sup?: boolean; index?: number; width?: number }
-  | { type: 'input';       name: string; width: string; cols?: number; is_sup?: boolean }
+  | { type: 'input';       name: string; width: string; is_sup?: boolean }
   | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
@@ -173,9 +173,7 @@ export function useExerciseLogic() {
         out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '', { autoDisplay: true })) })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
-        // `cols` drives the native `size` attribute (rendered exactly like
-        // WIMS' `<input size="N">`); `width` is the fallback when no size given.
-        out.push({ type: 'input', name: s.name ?? '', cols: size > 0 ? size : undefined, width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })
+        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })
       } else if (s.type === 'textarea') {
         out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup })
       } else if (s.type === 'slot') {
