@@ -698,6 +698,16 @@ class TestVariableResolution:
         e.ctx["x"] = "3"
         assert e._eval_dollar_bracket("$[$x*2]") == "6"
 
+    def test_arctan_arc_aliases(self):
+        # WIMS spells inverse trig `arc*`; rectangle.oef's angle reply uses
+        # `$[rint(arctan(...)*180/pi)]` — must evaluate to a number, not leak
+        # the literal expression.
+        e = engine()
+        assert e._eval_dollar_bracket(
+            "$[rint(arctan((sqrt(21)-1)/(sqrt(21)+1))*180/pi)]"
+        ) == "33"
+        assert e._eval_dollar_bracket("$[rint(arcsin(1)*180/pi)]") == "90"
+
     def test_subst_paren_var(self):
         e = engine()
         e.ctx["foo"] = "bar"

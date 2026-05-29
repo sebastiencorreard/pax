@@ -52,6 +52,13 @@ _MATH_NS: dict = {
     "acos": math.acos,
     "atan": math.atan,
     "atan2": math.atan2,
+    # WIMS spells the inverse trig functions `arc*`; without these aliases
+    # `$[rint(arctan(...)*180/pi)]` raised NameError and the un-evaluated
+    # expression leaked into the answer (rectangle.oef's angle reply).
+    "arcsin": math.asin,
+    "arccos": math.acos,
+    "arctan": math.atan,
+    "arctan2": math.atan2,
     "log": math.log,
     "log10": math.log10,
     "log2": math.log2,
