@@ -283,6 +283,17 @@ def test_term_order_is_accepted():
     assert r.correct
 
 
+def test_litexp_polexpand_accepts_reordered_terms():
+    """litexp + polexpand: an expanded answer in non-canonical power order is
+    accepted (WIMS canonicalises order). Regression for developperA4:
+    `72y-54y^2` for `-54y^2+72y`. The shape constraint still rejects the
+    factored form."""
+    opt = {"option": "polexpand"}
+    assert check_answer("litexp", "72y-54y^2", "-54*y^2+72*y", opt).correct
+    factored = check_answer("litexp", "-9y(6y-8)", "-54*y^2+72*y", opt)
+    assert not factored.correct and factored.status == "invalid_format"
+
+
 # Unified warning message — both form-mismatch warnings share the wording.
 def test_all_warnings_use_same_message():
     """polexpand and bad_variable share the same generic 'réécrire' message."""
