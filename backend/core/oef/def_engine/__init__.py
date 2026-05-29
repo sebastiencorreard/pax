@@ -61,7 +61,8 @@ _SUB = r"(?:[^\]$;]|\$(?!\())"
 # reduces them after substitution. Bounds use _SUB so a nested range-slice
 # `$(outer[$(inner[1..3]);])` doesn't make this regex match the OUTER ref on
 # the inner's "..".
-_RANGE_SLICE_RE = re.compile(rf"\$\((\w+)\[({_SUB}+?)\.\.({_SUB}+?)\]\)")
+# Range bound separator: `..` or WIMS' ` to ` (e.g. `$(val[1 to 3])`).
+_RANGE_SLICE_RE = re.compile(rf"\$\((\w+)\[({_SUB}+?)(?:\.\.|\s+to\s+)({_SUB}+?)\]\)")
 _INDEXED2_RE = re.compile(rf"\$\((\w+)\[({_SUB}*?);({_SUB}*)\]\)")  # $(var[n;m])
 # INDEXED1's subscript also excludes ";" (built into _SUB) so it never
 # swallows a $(var[n;m]) matrix form, whose ";" must go to _INDEXED2_RE.
@@ -1588,36 +1589,46 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_column(self, args: str) -> str:
-        """!column C of matrix — column slice as comma list.
+        """!column C of matrix — select column(s) of a matrix.
 
+        ``C`` may be a single index or a list/range (``3,4,2``, ``1 to 3``).
         Rows may be tab-separated (raw WIMS) or ``;``-separated (post-
-        ``!translate \\t\\n to ;;``). Columns are always comma-separated,
-        and we use a smart split that preserves commas inside ``\\(...\\)``
-        (LaTeX) and other parenthesised groups.
+        ``!translate \\t\\n to ;;``). Columns are comma-separated, with a
+        parenthesis-aware split that keeps commas inside ``\\(...\\)`` (LaTeX).
+
+        A single column → its cells across all rows as a comma list (a vector).
+        Several columns → a sub-matrix preserving rows, rows joined by newline
+        (callers translate ``\\n`` → ``;`` as needed, e.g. liaison3's correspond
+        data).
         """
         m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
-        if not m: return ""
+        if not m:
+            return ""
+        spec = self._subst(m.group(1).strip())
+        idx_tokens = [t for t in re.split(r"[,\s]+", spec) if t]
         try:
-            col_idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
-            value = self._subst(m.group(2))
-            if "\t" in value:
-                rows = value.split("\t")
-            else:
-                rows = self._split_rows_by_semi(value)
-            # Column separator: prefer comma with parenthesis-aware split
-            # (default for WIMS matrices). If no row produces multiple
-            # comma-cols, the author likely used ``;`` instead.
-            all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
-            if all(len(c) == 1 for c in all_cols):
-                all_cols = [r.split(";") for r in rows]
-            res = []
-            for cols in all_cols:
-                if 1 <= col_idx <= len(cols):
-                    res.append(cols[col_idx - 1].strip())
-            return ",".join(res)
+            indices = [int(round(float(self._eval_arith(t)))) for t in idx_tokens]
         except (ValueError, TypeError):
-            pass
-        return ""
+            return ""
+        if not indices:
+            return ""
+
+        value = self._subst(m.group(2))
+        rows = value.split("\t") if "\t" in value else self._split_rows_by_semi(value)
+        all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
+        if all(len(c) == 1 for c in all_cols):
+            all_cols = [r.split(";") for r in rows]
+
+        def pick(cols: list[str], i: int) -> str | None:
+            return cols[i - 1].strip() if 1 <= i <= len(cols) else None
+
+        if len(indices) == 1:
+            i = indices[0]
+            return ",".join(v for cols in all_cols if (v := pick(cols, i)) is not None)
+        out_rows = []
+        for cols in all_cols:
+            out_rows.append(",".join(v for i in indices if (v := pick(cols, i)) is not None))
+        return "\n".join(out_rows)
 
     # ── Slib helper command implementations ──────────────────────────────────
 

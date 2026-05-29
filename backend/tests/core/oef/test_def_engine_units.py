@@ -49,6 +49,28 @@ def engine(seed: int = 1) -> DefEngine:
     return DefEngine(seed=seed)
 
 
+class TestColumnAndRangeSlice:
+    """Regression for liaison3's correspond table (empty before the fix)."""
+
+    def test_range_slice_with_to(self):
+        e = engine()
+        e.ctx["val30"] = "3,4,2,5,8,7,1,6"
+        e.ctx["val7"] = "3"
+        assert e._subst("$(val30[1 to $val7])") == "3,4,2"
+        assert e._subst("$(val30[1..3])") == "3,4,2"
+
+    def test_column_single_index_vector(self):
+        e = engine()
+        # A single column → that column's cells across rows, comma-joined.
+        assert e._cmd_column("3 of a,b,c;d,e,f") == "c,f"
+
+    def test_column_multiple_indices_submatrix(self):
+        e = engine()
+        # Several columns → sub-matrix preserving rows (newline-joined), which
+        # callers translate to ``;`` (liaison3's correspond pairs).
+        assert e._cmd_column("3,1,2 of a,b,c;d,e,f") == "c,a,b\nf,d,e"
+
+
 # ── find_def_path ──────────────────────────────────────────────────────────────
 
 
