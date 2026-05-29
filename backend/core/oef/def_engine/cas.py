@@ -299,6 +299,17 @@ def _expr_to_latex(expr: str) -> str:
     )
 
     expr_strip = expr.strip()
+
+    # Single-expression renderer: a top-level lone "=" means we were handed an
+    # equation/assignment (e.g. "C = -(7b+3)", built by _normalize_math_content
+    # from "$name = $texmath"). Don't sympify it — parse_expr would raise for an
+    # ordinary name (→ returned unchanged) but, for a name poisoned into
+    # local_dict below (C, E, N, …), parses "C = x" as a Python assignment and
+    # silently returns just the RHS (dropping "C =" and distributing it). Leave
+    # such strings to the caller; relational "=" (<=, >=, ==, !=) still render.
+    if re.search(r"(?<![<>=!])=(?!=)", expr_strip):
+        return expr
+
     wrapped = False
     if expr_strip.startswith("(") and expr_strip.endswith(")"):
         depth = 0

@@ -1100,6 +1100,16 @@ class TestSympyToLatex:
         result = _expr_to_latex("some random non-math text @#$")
         assert result  # non-empty
 
+    def test_equation_is_left_untouched(self):
+        # A top-level lone "=" means an equation/assignment, not an expression:
+        # _expr_to_latex must return it verbatim. Regression for distribuer1,
+        # where "C = -(7b+3)" (C poisoned into local_dict) was silently parsed
+        # as an assignment and reduced to just the distributed RHS "-7b-3".
+        for name in ("A", "C", "E", "N"):
+            assert _expr_to_latex(f"{name} = - (7 b + 3)") == f"{name} = - (7 b + 3)"
+        # Relational "=" (<=, >=) must still render via sympy.
+        assert "\\leq" in _expr_to_latex("x <= 3")
+
 
 # ── !texmath command ──────────────────────────────────────────────────────────
 
