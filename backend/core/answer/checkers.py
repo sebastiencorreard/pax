@@ -126,12 +126,16 @@ def _polexpand_diagnostic(s: str) -> str | None:
         for canon in canon_args:
             _coef, rest = canon.as_coeff_Mul()
             groups.setdefault(rest, []).append(canon)
+        def _fmt(term) -> str:
+            # Render the *canonical* term (sympify collapses the unevaluated
+            # parse, so `-1*4` shows as `-4`). `**` → `^` and drop the explicit
+            # `*` of a monomial so it reads like maths: `7*a` → `7a`, `3*x**2`
+            # → `3x^2`.
+            return str(term).replace("**", "^").replace("*", "")
+
         for terms in groups.values():
             if len(terms) > 1:
-                # Render the *canonical* term (sympify collapses the
-                # unevaluated parse, so `-1*4` shows as `-4`). str() keeps
-                # `*`/`^` like WIMS does in this very message.
-                t1, t2 = str(terms[0]).replace("**", "^"), str(terms[1]).replace("**", "^")
+                t1, t2 = _fmt(terms[0]), _fmt(terms[1])
                 return (
                     f"Votre expression n'est pas réduite. "
                     f"Les termes {t1} et {t2} se simplifient."

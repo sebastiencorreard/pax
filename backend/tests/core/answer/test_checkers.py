@@ -27,6 +27,13 @@ def test_polexpand_diagnostic_shows_reduced_coefficients():
     assert "-1*4" not in msg
 
 
+def test_polexpand_diagnostic_drops_explicit_times():
+    """Les monômes s'écrivent sans `*` : « 7a et -9a », pas « 7*a et -9*a »."""
+    msg = _polexpand_diagnostic("7a-9a+2")
+    assert "7a et -9a" in msg
+    assert "*" not in msg
+
+
 class TestCheckJsxgraph:
     def test_single_coordinate_match(self):
         # quizz 0420: reply is "<x>;", expected the target abscissa.
