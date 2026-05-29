@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
@@ -8,6 +9,7 @@ from models.user import User
 from core.security import hash_password
 from api.schemas.class_schema import UserCreate, UserResponse
 from api.deps import get_current_user, require_role
+from scripts._passphrase import generate_passphrase
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -79,6 +81,32 @@ async def create_user(
     await db.commit()
     await db.refresh(user)
     return user
+
+
+class ResetPasswordResponse(BaseModel):
+    temporary_password: str
+
+
+@router.post("/users/{user_id}/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_role("admin", "super_admin")),
+):
+    """Génère un mot de passe temporaire et force son changement à la connexion."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(404, "Utilisateur introuvable")
+    # admin ne peut réinitialiser que dans son établissement
+    if current_user.role == "admin" and user.etab_id != current_user.etab_id:
+        raise HTTPException(403, "Cet utilisateur n'appartient pas à votre établissement")
+
+    temporary_password = generate_passphrase()
+    user.hashed_password = hash_password(temporary_password)
+    user.must_change_password = True
+    await db.commit()
+    return ResetPasswordResponse(temporary_password=temporary_password)
 
 
 @router.delete("/users/{user_id}", status_code=204)
