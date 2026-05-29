@@ -299,6 +299,16 @@ def test_term_order_is_accepted():
     assert r.correct
 
 
+def test_algexp_accepts_comma_decimal_in_comma_locale():
+    """algexp avec une réponse décimale à virgule (arrondie2) : `0,113` doit
+    valoir `0.113` en locale virgule, et NE PAS être lue comme un tuple (0,113).
+    En locale point, la virgule n'est pas décimale."""
+    assert check_answer("algexp", "0,113", "0.113000000000000", {}, lang="fr").correct
+    assert check_answer("algexp", "0.113", "0.113000000000000", {}, lang="fr").correct
+    assert not check_answer("algexp", "0,114", "0.113000000000000", {}, lang="fr").correct
+    assert not check_answer("algexp", "0,113", "0.113000000000000", {}, lang="en").correct
+
+
 def test_plain_litexp_enforces_decreasing_power_order():
     """Plain litexp (no polexpand) = « réduire et ordonner suivant les puissances
     décroissantes » (reduire1p): a reordered-but-equal answer is rejected, the

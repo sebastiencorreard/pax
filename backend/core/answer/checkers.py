@@ -365,7 +365,9 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
 # ------------------------------------------------------------------ #
 
 
-def check_algexp(reply: str, expected: str) -> CheckResult:
+def check_algexp(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
     """
     Compare deux expressions algébriques via SymPy.
     Correct si la différence se simplifie à 0.
@@ -389,12 +391,12 @@ def check_algexp(reply: str, expected: str) -> CheckResult:
             "simplify": sympy.simplify,
         }
         r_expr = parse_expr(
-            _normalize_expr(reply),
+            _normalize_expr(reply, comma_is_decimal),
             transformations=transformations,
             local_dict=local_dict,
         )
         e_expr = parse_expr(
-            _normalize_expr(expected),
+            _normalize_expr(expected, comma_is_decimal),
             transformations=transformations,
             local_dict=local_dict,
         )
@@ -408,11 +410,16 @@ def check_algexp(reply: str, expected: str) -> CheckResult:
 
     except Exception:
         # Fallback : comparaison numérique en plusieurs points
-        return _check_algexp_numeric(reply, expected)
+        return _check_algexp_numeric(reply, expected, comma_is_decimal)
 
 
-def _normalize_expr(expr: str) -> str:
-    """Normalise une expression OEF/élève pour SymPy."""
+def _normalize_expr(expr: str, comma_is_decimal: bool = True) -> str:
+    """Normalise une expression OEF/élève pour SymPy.
+
+    ``comma_is_decimal`` (locales à virgule) : une virgule entre deux chiffres
+    est un séparateur décimal → convertie en point avant sympify, qui sinon
+    lirait ``0,113`` comme un tuple ``(0, 113)``.
+    """
     expr = expr.strip()
     # Exposants LaTeX ^{n} -> ^n
     expr = re.sub(r"\^\{(.*?)\}", r"^\1", expr)
@@ -436,10 +443,15 @@ def _normalize_expr(expr: str) -> str:
     expr = expr.replace("\\cdot", "*")
     # Supprime les espaces autour des opérateurs
     expr = re.sub(r"\s+", "", expr)
+    # Virgule décimale (locale à virgule) : ``0,113`` → ``0.113``.
+    if comma_is_decimal:
+        expr = re.sub(r"(?<=\d),(?=\d)", ".", expr)
     return expr
 
 
-def _check_algexp_numeric(reply: str, expected: str) -> CheckResult:
+def _check_algexp_numeric(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
     """
     Fallback : évalue les deux expressions en plusieurs points et compare.
     Fonctionne pour des polynômes en x, y.
@@ -455,8 +467,8 @@ def _check_algexp_numeric(reply: str, expected: str) -> CheckResult:
             {x: 0.5, y: 1.5, z: -0.5},
         ]
         _loc = _safe_locals()
-        r_expr = sympy.sympify(_normalize_expr(reply), locals=_loc)
-        e_expr = sympy.sympify(_normalize_expr(expected), locals=_loc)
+        r_expr = sympy.sympify(_normalize_expr(reply, comma_is_decimal), locals=_loc)
+        e_expr = sympy.sympify(_normalize_expr(expected, comma_is_decimal), locals=_loc)
 
         for pt in test_points:
             r_val = complex(r_expr.subs(pt))
@@ -703,13 +715,15 @@ def check_case(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")
 
 
-def check_default(reply: str, expected: str) -> CheckResult:
+def check_default(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
     """OEF `default`: algebraic comparison, fallback to plain text.
 
     WIMS `anstype/default` runs through Maxima for symbolic equivalence; if
     that fails (or expected is a non-math string), accept exact text match.
     """
-    algexp = check_algexp(reply, expected)
+    algexp = check_algexp(reply, expected, comma_is_decimal)
     if algexp.correct:
         return CheckResult(correct=True, score=1.0, method="default_algexp")
     text = check_text(reply, expected)
@@ -871,9 +885,9 @@ def check_answer(
         case "numexp":
             return check_numexp(reply, expected, precision, comma_is_decimal)
         case "algexp" | "litexp" | "formal":
-            return check_algexp(reply, expected)
+            return check_algexp(reply, expected, comma_is_decimal)
         case "function":
-            return check_algexp(reply, expected)
+            return check_algexp(reply, expected, comma_is_decimal)
         case "fset":
             return check_fset(reply, expected, precision, comma_is_decimal)
         case "set" | "checkbox":
@@ -889,7 +903,7 @@ def check_answer(
         case "case":
             return check_case(reply, expected)
         case "default" | "auto":
-            return check_default(reply, expected)
+            return check_default(reply, expected, comma_is_decimal)
         case "text":
             return check_text(reply, expected)
         case _:
