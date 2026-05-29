@@ -14,6 +14,34 @@ from __future__ import annotations
 import re
 
 
+# Decimal dot between two digits (a number like 1.21 / 0.3). Used to localise
+# displayed numbers to the exercise language's separator.
+_DECIMAL_DOT_RE = re.compile(r"(?<=\d)\.(?=\d)")
+# A *real* HTML tag (starts with a letter or "/"), so a math "<"/">" (e.g.
+# "\(x<3\)") is never mistaken for a tag and split apart.
+_HTML_TAG_RE = re.compile(r"(<[/!]?[A-Za-z][^>]*>)")
+
+
+def localize_decimals(text: str, lang: str | None = None) -> str:
+    """In a comma-decimal locale, render ``1.21`` as ``1,21``.
+
+    Converts the decimal dot of every ``digit.digit`` to the locale's separator,
+    but only in *text* — never inside an HTML tag's attributes (e.g. an image
+    ``src`` or a ``data-w``). Dots inside ``\\(…\\)`` math are converted too
+    (they're plain text at this stage; KaTeX renders them later), so
+    ``\\(\\sqrt{0.3}\\)`` becomes ``\\(\\sqrt{0,3}\\)``.
+    """
+    from ..i18n import uses_comma_decimal  # noqa: PLC0415
+
+    if "." not in text or not uses_comma_decimal(lang):
+        return text
+    parts = _HTML_TAG_RE.split(text)
+    for i, part in enumerate(parts):
+        if not _HTML_TAG_RE.fullmatch(part):
+            parts[i] = _DECIMAL_DOT_RE.sub(",", part)
+    return "".join(parts)
+
+
 def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 

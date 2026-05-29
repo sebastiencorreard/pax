@@ -18,6 +18,7 @@ import pytest
 from core.oef.i18n import decimal_separator, list_separator, uses_comma_decimal
 from core.oef.numfmt import format_wims_float
 from core.oef.def_engine.presentation import _normalize_math_content as N
+from core.oef.def_engine.presentation import localize_decimals
 from core.answer.checkers import check_answer, check_fset, check_numeric, _parse_number
 
 
@@ -69,6 +70,18 @@ def test_decimal_uses_locale_separator():
     assert N("-2.5", "fr") == "-2,5"
     assert N("3.93", "en") == "3.93"      # locale à point : inchangé
     assert N("3,93", "en") == "3,93"      # locale à point : laissé tel quel
+
+
+def test_localize_decimals_text_and_math_not_tags():
+    # Bare numbers (table cells / labels) and dots inside \(…\) math are
+    # localised; HTML tag attributes are left untouched.
+    assert localize_decimals("<td>1.21</td>", "fr") == "<td>1,21</td>"
+    assert localize_decimals(r"\(\sqrt{0.3}\)", "fr") == r"\(\sqrt{0,3}\)"
+    assert localize_decimals('<img src="a/0.5.png">', "fr") == '<img src="a/0.5.png">'
+    # A math "<" is not an HTML tag → text around it still localised.
+    assert localize_decimals(r"\(x<2.5\)", "fr") == r"\(x<2,5\)"
+    # Dot locale: unchanged.
+    assert localize_decimals("<td>1.21</td>", "en") == "<td>1.21</td>"
 
 
 def test_function_call_comma_is_not_a_decimal():

@@ -142,6 +142,20 @@ export function buildSegmentTree(segments: Segment[]): SegmentNode[] {
   return root
 }
 
+// Languages whose decimal separator is a comma. Keep in sync with the backend
+// source of truth, `backend/core/oef/i18n.py` (COMMA_DECIMAL_LANGS).
+const COMMA_DECIMAL_LANGS = new Set(['fr', 'nl'])
+
+// Localise a choice's *display* string: `0.3` → `0,3` in comma-decimal
+// locales. Applied to the rendered label only — the `raw` value kept for
+// answer matching stays dotted (clickfill encodes slots comma-separated, so a
+// comma inside a value would corrupt both the separator and the comparison).
+function localizeChoiceDisplay(s: string, lang: string): string {
+  return COMMA_DECIMAL_LANGS.has((lang || 'fr').split('-')[0].toLowerCase())
+    ? s.replace(/(?<=\d)\.(?=\d)/g, ',')
+    : s
+}
+
 export function useExerciseLogic() {
   const { renderMath } = useKatex()
   const apiBase = useRuntimeConfig().public.apiBase
@@ -247,22 +261,25 @@ export function useExerciseLogic() {
     const radioChoicesHtml: Record<string, Array<{ raw: string; html: string }>> = {}
     const menuChoicesHtml: Record<string, Array<{ raw: string; html: string }>> = {}
 
+    // `raw` keeps the original (dotted) value for answer matching; `html` is
+    // the localised display (comma decimals in comma-decimal locales).
+    const disp = (c: string) => renderMath(localizeChoiceDisplay(c, rendered.lang))
     for (const ans of rendered.answers) {
       if (ans.answer_type === 'clickfill' && ans.options.choices?.length) {
         for (const c of ans.options.choices) {
-          clickfillChoicesHtml.push({ raw: c, html: await renderMath(c) })
+          clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
         }
       }
       if (ans.answer_type === 'radio' && ans.options.choices?.length) {
         radioChoicesHtml[ans.input_name] = []
         for (const c of ans.options.choices) {
-          radioChoicesHtml[ans.input_name].push({ raw: c, html: await renderMath(c) })
+          radioChoicesHtml[ans.input_name].push({ raw: c, html: await disp(c) })
         }
       }
       if (ans.answer_type === 'menu' && ans.options.choices?.length) {
         menuChoicesHtml[ans.input_name] = []
         for (const c of ans.options.choices) {
-          menuChoicesHtml[ans.input_name].push({ raw: c, html: await renderMath(c) })
+          menuChoicesHtml[ans.input_name].push({ raw: c, html: await disp(c) })
         }
       }
     }

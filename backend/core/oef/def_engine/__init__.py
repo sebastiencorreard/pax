@@ -25,9 +25,10 @@ from .cas import (
     _sympify_arg,
     _expr_to_latex,
 )
-from .presentation import _close_inline_math, _normalize_math_content
+from .presentation import _close_inline_math, _normalize_math_content, localize_decimals
 from .slib import _SlibExit, _SlibMixin
 from ..numfmt import format_wims_float
+from ..i18n import uses_comma_decimal
 from ..def_parser import (
     Assign,
     DefFile,
@@ -282,6 +283,24 @@ class DefEngine(_SlibMixin):
             widget_names = {
                 s["name"] for s in segments if s["type"] in ("input", "slot", "menu")
             }
+
+        # Locale-aware decimal display for the statement (comma-decimal
+        # languages): localise bare numbers in the text / table (e.g.
+        # `<td>1.21</td>` → `<td>1,21</td>`) and inside `\(…\)` math. The
+        # `wims_instruction` block is skipped — it carries the boilerplate
+        # "saisir 1.3 pour 1,3" help, whose dot is intentional.
+        if uses_comma_decimal(self.lang):
+            instr_depth = 0
+            for seg in segments:
+                if seg.get("type") == "group-open":
+                    if "wims_instruction" in (seg.get("class") or ""):
+                        instr_depth += 1
+                    elif instr_depth:
+                        instr_depth += 1
+                elif seg.get("type") == "group-close" and instr_depth:
+                    instr_depth -= 1
+                elif seg.get("type") == "html" and not instr_depth:
+                    seg["content"] = localize_decimals(seg["content"], self.lang)
 
         raw_css = self.ctx.get("oefcss") or self.ctx.get("css", "")
         css = None
