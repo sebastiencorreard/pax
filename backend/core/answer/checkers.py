@@ -123,13 +123,14 @@ def _polexpand_diagnostic(s: str) -> str | None:
         # Group terms by their symbolic part (coefficient stripped).
         # Two terms in the same group are combinable → not reduced.
         groups: dict = {}
-        for orig, canon in zip(expr.args, canon_args):
+        for canon in canon_args:
             _coef, rest = canon.as_coeff_Mul()
-            groups.setdefault(rest, []).append(orig)
+            groups.setdefault(rest, []).append(canon)
         for terms in groups.values():
             if len(terms) > 1:
-                # Render the first two as plain text — sympy's str() uses
-                # `*` like WIMS does in this very message.
+                # Render the *canonical* term (sympify collapses the
+                # unevaluated parse, so `-1*4` shows as `-4`). str() keeps
+                # `*`/`^` like WIMS does in this very message.
                 t1, t2 = str(terms[0]).replace("**", "^"), str(terms[1]).replace("**", "^")
                 return (
                     f"Votre expression n'est pas réduite. "

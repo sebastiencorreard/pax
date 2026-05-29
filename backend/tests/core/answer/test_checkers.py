@@ -15,7 +15,16 @@ from core.answer.checkers import (
     check_default,
     check_fset,
     check_jsxgraph,
+    _polexpand_diagnostic,
 )
+
+
+def test_polexpand_diagnostic_shows_reduced_coefficients():
+    """Le diagnostic « non réduite » affiche le coefficient réduit (-4),
+    pas la forme brute non évaluée (-1*4). Régression distribuer3."""
+    msg = _polexpand_diagnostic("-1*4+2+3a")
+    assert "-4 et 2" in msg
+    assert "-1*4" not in msg
 
 
 class TestCheckJsxgraph:
