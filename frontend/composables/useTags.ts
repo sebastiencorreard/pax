@@ -2,6 +2,7 @@ export interface Tag {
   id: number
   name: string
   created_at: string
+  is_shared?: boolean
 }
 
 export interface TagWithCount extends Tag {

@@ -27,6 +27,7 @@
                   : 'background:transparent;border-color:var(--color-border);color:var(--color-text-muted)'"
                 :class="pending.has(tag.id) ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:opacity-80'">
           {{ tag.name }}
+          <span v-if="tag.is_shared" class="ml-1 opacity-70" :title="$t('tags.shared')" aria-hidden="true">🔗</span>
         </button>
 
         <span v-if="allTags.length === 0"

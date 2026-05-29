@@ -20,6 +20,7 @@ class TagResponse(BaseModel):
     id: int
     name: str
     created_at: datetime
+    is_shared: bool = False
 
     model_config = {"from_attributes": True}
 
