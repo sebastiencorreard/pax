@@ -2,13 +2,40 @@
 Script d'import d'exercices OEF dans la base PAX.
 
 Usage:
-    python scripts/import_exercises.py --level H4 --domains algebra,analysis,number,arithmetic
+    # Tous les niveaux découverts automatiquement (défaut) :
+    python scripts/import_exercises.py
+    # Un seul niveau / des domaines précis :
+    python scripts/import_exercises.py --level H4 --domains algebra,analysis,number
 """
 
 import sys
 import os
+import re
 import argparse
 import asyncio
+
+# Dossiers de premier niveau importés par défaut : un nom « lettre majuscule +
+# chiffre(s) » (H3, H4, H10…) plus les dossiers transverses `tool` et `Lang`.
+LEVEL_RE = re.compile(r"^[A-Z]\d+$")
+EXTRA_LEVEL_DIRS = ("tool", "Lang")
+
+
+def discover_levels(resources_root: str) -> list[str]:
+    """Liste triée des dossiers de niveau sous ``resources_root``.
+
+    Retient ceux dont le nom est « <lettre majuscule><chiffre(s)> » (ex. H3,
+    H4) ainsi que ``tool`` / ``Lang`` s'ils existent.
+    """
+    try:
+        entries = os.listdir(resources_root)
+    except FileNotFoundError:
+        return []
+    return sorted(
+        d
+        for d in entries
+        if os.path.isdir(os.path.join(resources_root, d))
+        and (LEVEL_RE.match(d) or d in EXTRA_LEVEL_DIRS)
+    )
 
 # Ajoute le répertoire parent au path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,6 +76,8 @@ async def import_exercises(
     if not os.path.isdir(modules_path):
         print(f"Dossier introuvable : {modules_path}")
         return
+
+    print(f"\n=== Niveau {level} ===")
 
     # Collecte tous les fichiers .oef dans les domaines demandés
     oef_files = []
@@ -112,9 +141,34 @@ async def import_exercises(
     print(f"\nRésultat : {ok} importés, {skip_exists} déjà en base")
 
 
+async def import_levels(
+    levels: list[str], domains_arg: str | None, resources_root: str, dry_run: bool
+):
+    """Importe chaque niveau ; domaines explicites ou tous les sous-dossiers."""
+    for level in levels:
+        level_path = os.path.join(resources_root, level)
+        if not os.path.isdir(level_path):
+            print(f"Dossier introuvable : {level_path}")
+            continue
+        if domains_arg:
+            domains = [d.strip() for d in domains_arg.split(",")]
+        else:
+            domains = sorted(
+                d
+                for d in os.listdir(level_path)
+                if os.path.isdir(os.path.join(level_path, d))
+            )
+        await import_exercises(level, domains, resources_root, dry_run)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--level", default="H4")
+    parser.add_argument(
+        "--level",
+        default=None,
+        help="Niveau unique à importer (ex. H4). Par défaut : tous les dossiers "
+        "« <lettre majuscule><chiffre> » + tool/Lang.",
+    )
     parser.add_argument(
         "--domains",
         default=None,
@@ -124,16 +178,15 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
-    if args.domains:
-        domains = [d.strip() for d in args.domains.split(",")]
+    if args.level:
+        levels = [args.level]
     else:
-        level_path = os.path.join(args.resources_root, args.level)
-        domains = sorted(
-            d
-            for d in os.listdir(level_path)
-            if os.path.isdir(os.path.join(level_path, d))
-        )
+        levels = discover_levels(args.resources_root)
+        if not levels:
+            print(f"Aucun dossier de niveau trouvé sous {args.resources_root}")
+        else:
+            print(f"Niveaux découverts : {', '.join(levels)}")
 
     asyncio.run(
-        import_exercises(args.level, domains, args.resources_root, args.dry_run)
+        import_levels(levels, args.domains, args.resources_root, args.dry_run)
     )

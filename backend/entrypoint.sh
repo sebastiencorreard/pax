@@ -26,7 +26,7 @@ echo "Ensuring guest user..."
 python scripts/ensure_guest_user.py
 
 echo "Starting server (exercise import running in background)..."
-python scripts/import_exercises.py --level H4 &
+python scripts/import_exercises.py &
 
 # Hot reload in dev: docker-compose.override.yml bind-mounts the source and
 # sets UVICORN_RELOAD=1. Production keeps the default (no --reload).

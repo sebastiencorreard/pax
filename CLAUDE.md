@@ -45,7 +45,7 @@ Services:
 
 On first start, `entrypoint.sh` runs automatically:
 1. `alembic upgrade head` — applies all migrations
-2. `python scripts/import_exercises.py --level H4` — imports all renderable OEF exercises
+2. `python scripts/import_exercises.py` — imports all renderable OEF exercises from every level dir (`H3`, `H4`, … any `<uppercase letter><digit>` name) plus `tool`/`Lang`; pass `--level H4` to restrict to one
 3. `uvicorn main:app` — starts the API
 
 **Create a user** (run after `docker compose up`):
