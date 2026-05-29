@@ -139,6 +139,14 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._slib_data_random(proc_args)
             return
 
+        if path == "slib/numeration/ecriturelettre":
+            res = _ecriture_lettre(proc_args)
+            if res is not None:
+                self.ctx["slib_out"] = res
+                return
+            # Non-trivial case (en/it, ordinals, options) → fall through to the
+            # generic runner below.
+
         if path.startswith("slib/"):
             self._run_slib(path, proc_args)
             return
@@ -434,3 +442,125 @@ class _SlibMixin:
                     name, val = m.group(1), m.group(2)
                     self.ctx[name] = self._eval_value(val)
             i += 1
+
+
+# ── slib/numeration/ecriturelettre — French cardinal number → words ──────────
+#
+# Native port of the French *cardinal* path of the WIMS slib script (which is
+# too command-heavy to run through the sub-engine, so it returned an empty
+# slib_out — bug on quizz 0619). Follows the WIMS default `frrule=1990`: every
+# component is joined by hyphens (`sept-millions-soixante-mille`). `vingt`/`cent`
+# take a plural `s` only when they end the number; `mille` is invariable.
+# English/Italian, ordinals and other options fall back to the generic runner.
+
+_FR_UNITS = (
+    "zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit",
+    "neuf", "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize",
+    "dix-sept", "dix-huit", "dix-neuf",
+)
+_FR_TENS = {2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante"}
+
+
+def _fr_below_100(n: int, final: bool = True) -> str:
+    if n < 20:
+        return _FR_UNITS[n]
+    t, u = divmod(n, 10)
+    if t in _FR_TENS:  # 20..69
+        base = _FR_TENS[t]
+        if u == 0:
+            return base
+        if u == 1:
+            return f"{base}-et-un"
+        return f"{base}-{_FR_UNITS[u]}"
+    if t == 7:  # 70..79  (soixante + 10..19; 71 = soixante-et-onze)
+        if u == 1:
+            return "soixante-et-onze"
+        return f"soixante-{_FR_UNITS[10 + u]}"
+    if t == 8:  # 80..89  (plural s only on a standalone 80)
+        if u == 0:
+            return "quatre-vingts" if final else "quatre-vingt"
+        return f"quatre-vingt-{_FR_UNITS[u]}"
+    return f"quatre-vingt-{_FR_UNITS[10 + u]}"  # 90..99
+
+
+def _fr_below_1000(n: int, final: bool = True) -> str:
+    if n < 100:
+        return _fr_below_100(n, final)
+    h, rest = divmod(n, 100)
+    head = "cent" if h == 1 else f"{_FR_UNITS[h]}-cent"
+    if rest == 0:
+        return head + ("s" if (h > 1 and final) else "")
+    return f"{head}-{_fr_below_100(rest, final)}"
+
+
+def _fr_cardinal(n: int) -> str:
+    if n < 0:
+        return "moins-" + _fr_cardinal(-n)
+    if n == 0:
+        return "zéro"
+    milliards, n = divmod(n, 1_000_000_000)
+    millions, n = divmod(n, 1_000_000)
+    milliers, units = divmod(n, 1000)
+
+    parts: list[str] = []
+    if milliards:
+        c = _fr_below_1000(milliards, final=False)
+        parts.append("un-milliard" if milliards == 1 else f"{c}-milliards")
+    if millions:
+        c = _fr_below_1000(millions, final=False)
+        parts.append("un-million" if millions == 1 else f"{c}-millions")
+    if milliers:
+        # "mille" is invariable, and 1000 is "mille", not "un-mille".
+        parts.append("mille" if milliers == 1
+                     else f"{_fr_below_1000(milliers, final=False)}-mille")
+    if units:
+        parts.append(_fr_below_1000(units, final=True))
+    return "-".join(parts)
+
+
+def _split_top_level_commas(s: str) -> list[str]:
+    """Split on commas that are not inside [...] brackets."""
+    out: list[str] = []
+    depth = 0
+    cur: list[str] = []
+    for ch in s:
+        if ch == "[":
+            depth += 1
+        elif ch == "]":
+            depth = max(0, depth - 1)
+        if ch == "," and depth == 0:
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    out.append("".join(cur))
+    return out
+
+
+def _ecriture_lettre(args: str) -> str | None:
+    """Built-in for ``slib/numeration/ecriturelettre``.
+
+    Returns the WIMS item-list of French cardinal spellings, or ``None`` to
+    signal the caller to fall back to the generic slib runner (non-French
+    language, ordinals, or any explicit options — not ported natively).
+    """
+    fields = _split_top_level_commas(args)
+    lang = fields[1].strip().lower() if len(fields) > 1 and fields[1].strip() else "fr"
+    opts = fields[2].strip() if len(fields) > 2 else ""
+    if lang != "fr" or opts:
+        return None
+
+    data = fields[0].strip() if fields else ""
+    if data.startswith("[") and data.endswith("]"):
+        items = [x.strip() for x in data[1:-1].split(",") if x.strip()]
+    else:
+        items = [data] if data else []
+
+    words = []
+    for x in items:
+        try:
+            n = int(round(float(x)))
+        except (ValueError, TypeError):
+            return None  # not a plain number → let the generic runner try
+        words.append(_fr_cardinal(n))
+    return ",".join(words)

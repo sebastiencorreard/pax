@@ -16,6 +16,30 @@ from core.oef.def_engine import (
     _expr_to_latex,
 )
 from core.oef.engine import find_def_path
+from core.oef.def_engine.slib import _fr_cardinal, _ecriture_lettre
+
+
+class TestEcritureLettre:
+    def test_french_cardinal_words(self):
+        cases = {
+            0: "zéro", 7: "sept", 15: "quinze", 21: "vingt-et-un",
+            60: "soixante", 70: "soixante-dix", 71: "soixante-et-onze",
+            80: "quatre-vingts", 81: "quatre-vingt-un", 90: "quatre-vingt-dix",
+            91: "quatre-vingt-onze", 100: "cent", 200: "deux-cents",
+            201: "deux-cent-un", 1000: "mille", 1000000: "un-million",
+            7060000: "sept-millions-soixante-mille",
+        }
+        for n, expected in cases.items():
+            assert _fr_cardinal(n) == expected
+
+    def test_ecriturelettre_single_and_list(self):
+        assert _ecriture_lettre("7") == "sept"
+        assert _ecriture_lettre("[7,60]") == "sept,soixante"
+
+    def test_ecriturelettre_falls_back_for_non_french(self):
+        # en/it and options aren't ported natively → None signals fallback.
+        assert _ecriture_lettre("5,en") is None
+        assert _ecriture_lettre("4,fr,[type=ord]") is None
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
