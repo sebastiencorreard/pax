@@ -264,9 +264,15 @@ export function useExerciseLogic() {
     // `raw` keeps the original (dotted) value for answer matching; `html` is
     // the localised display (comma decimals in comma-decimal locales).
     const disp = (c: string) => renderMath(localizeChoiceDisplay(c, rendered.lang))
+    // Multi-slot clickfill: every slot (reply1…replyN) carries the *same* pool,
+    // so the palette is the de-duplicated union — one card per distinct label,
+    // not N copies.
+    const seenClickfill = new Set<string>()
     for (const ans of rendered.answers) {
       if (ans.answer_type === 'clickfill' && ans.options.choices?.length) {
         for (const c of ans.options.choices) {
+          if (seenClickfill.has(c)) continue
+          seenClickfill.add(c)
           clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
         }
       }

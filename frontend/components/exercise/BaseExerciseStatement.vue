@@ -4,9 +4,13 @@
     <div class="px-6 py-6">
       <div ref="statementEl"
            class="oef-statement"
-           @click="handleMarkClick"
+           @click="(e) => { handleMarkClick(e); handleCfSlotClick(e) }"
            @input="handleInlineInput"
            @change="handleCheckboxChange"
+           @dragover.prevent
+           @dragenter="handleCfSlotDragEnter"
+           @dragleave="handleCfSlotDragLeave"
+           @drop="handleCfSlotDrop"
            @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
         <ExerciseStatementNodes :nodes="segmentTree" />
       </div>
@@ -190,13 +194,83 @@ function syncMarkChoices() {
   })
 }
 
+// ── Clickfill drop targets embedded inside a <table> ────────────────────────
+// Cf-slots rendered as part of a v-html'd table aren't <ExerciseCfSlot>
+// components, so (like mark choices) we hydrate the raw `<cf-slot>` elements
+// via event delegation + DOM sync. The interactive standalone slots outside
+// tables keep using the component; both share the global .cf-slot styles.
+
+function _closestCfSlot(event: Event): HTMLElement | null {
+  return (event.target as Element)?.closest('cf-slot') ?? null
+}
+
+function handleCfSlotDrop(event: DragEvent) {
+  const slot = _closestCfSlot(event)
+  slot?.classList.remove('cf-slot--over')
+  if (!slot || props.submitted) return
+  event.preventDefault()
+  const raw = event.dataTransfer?.getData('text/plain') || draggingChoice.value
+  const name = slot.getAttribute('name')
+  const index = Number(slot.getAttribute('data-index') ?? '0') || 0
+  if (raw && name) {
+    setCfSlot(name, index, raw)
+    pendingChoice.value = null
+  }
+}
+
+function handleCfSlotClick(event: MouseEvent) {
+  if (props.submitted) return
+  const slot = _closestCfSlot(event)
+  if (!slot) return
+  const name = slot.getAttribute('name')
+  const index = Number(slot.getAttribute('data-index') ?? '0') || 0
+  if (!name) return
+  if (pendingChoice.value) {
+    setCfSlot(name, index, pendingChoice.value)
+    pendingChoice.value = null
+  } else if (cfValue(name, index)) {
+    setCfSlot(name, index, '')  // click a filled slot → empty it
+  }
+}
+
+function handleCfSlotDragEnter(event: DragEvent) {
+  const slot = _closestCfSlot(event)
+  if (slot && !props.submitted) slot.classList.add('cf-slot--over')
+}
+
+function handleCfSlotDragLeave(event: DragEvent) {
+  _closestCfSlot(event)?.classList.remove('cf-slot--over')
+}
+
+function syncCfSlots() {
+  const el = statementEl.value
+  if (!el) return
+  el.querySelectorAll<HTMLElement>('cf-slot').forEach(slot => {
+    const name = slot.getAttribute('name') ?? ''
+    const index = Number(slot.getAttribute('data-index') ?? '0') || 0
+    slot.classList.add('cf-slot')
+    const value = cfValue(name, index)
+    const choice = props.clickfillChoicesHtml.find(c => c.raw === value)
+    slot.innerHTML = value
+      ? `<span class="cf-slot-content">${choice?.html ?? value}</span>`
+      : '<span class="cf-slot-placeholder">···</span>'
+    slot.classList.toggle('cf-slot--filled', !!value)
+    const state = cfSlotState(name, index)
+    slot.classList.toggle('cf-slot--correct', state === 'correct')
+    slot.classList.toggle('cf-slot--incorrect', state === 'incorrect')
+  })
+}
+
 watch(
-  [() => props.replies, () => props.submitted, () => props.checkResult, () => props.statementSegments],
-  syncMarkChoices,
+  [
+    () => props.replies, () => props.submitted, () => props.checkResult,
+    () => props.statementSegments, () => props.clickfillChoicesHtml,
+  ],
+  () => { syncMarkChoices(); syncCfSlots() },
   { deep: true, flush: 'post' }
 )
 
-onMounted(syncMarkChoices)
+onMounted(() => { syncMarkChoices(); syncCfSlots() })
 
 // ── Inline native inputs (replytype text fields placed inside <table> for
 //    fraction-like layouts, e.g. csgb Q200) — bound via event delegation ─────
