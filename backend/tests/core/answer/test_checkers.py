@@ -299,6 +299,17 @@ def test_term_order_is_accepted():
     assert r.correct
 
 
+def test_plain_litexp_enforces_decreasing_power_order():
+    """Plain litexp (no polexpand) = « réduire et ordonner suivant les puissances
+    décroissantes » (reduire1p): a reordered-but-equal answer is rejected, the
+    canonical order is accepted, a wrong value stays a normal wrong answer."""
+    bad = check_answer("litexp", "8+11v", "11*v + 8", {})
+    assert not bad.correct and bad.status == "invalid_format" and bad.method == "term_order"
+    assert check_answer("litexp", "11v+8", "11*v + 8", {}).correct
+    wrong = check_answer("litexp", "12v+8", "11*v + 8", {})
+    assert not wrong.correct and wrong.status == "ok"
+
+
 def test_litexp_polexpand_accepts_reordered_terms():
     """litexp + polexpand: an expanded answer in non-canonical power order is
     accepted (WIMS canonicalises order). Regression for developperA4:
