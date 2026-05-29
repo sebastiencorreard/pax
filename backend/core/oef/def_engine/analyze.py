@@ -110,6 +110,7 @@ def render_feedback(
     results: list,
     seed: int,
     analyze_replies: dict | None = None,
+    lang: str = "fr",
 ) -> str:
     """Exécute :postdef, :test puis :feedback ; retourne le HTML de feedback."""
     from . import DefEngine  # import différé
@@ -117,6 +118,7 @@ def render_feedback(
     from ..flydraw import inline_svg_imgs
 
     engine = DefEngine(seed=seed)
+    engine.lang = lang
     engine.ctx.update(ev_ctx)
 
     # Vider les variables de réponse pré-existantes pour éviter les fuites
@@ -158,6 +160,6 @@ def render_feedback(
     engine._exec(test_instructions, output_buf=None)
 
     html = engine._render_section(feedback_instructions)
-    html = _close_inline_math(html)
+    html = _close_inline_math(html, lang)
     html = inline_svg_imgs(html)
     return html

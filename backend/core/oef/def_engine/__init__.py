@@ -27,6 +27,7 @@ from .cas import (
 )
 from .presentation import _close_inline_math, _normalize_math_content
 from .slib import _SlibExit, _SlibMixin
+from ..numfmt import format_wims_float
 from ..def_parser import (
     Assign,
     DefFile,
@@ -137,6 +138,10 @@ class DefEngine(_SlibMixin):
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
+        # Exercise content language (ISO code). Set from df.meta at render time;
+        # drives the decimal/list separator for number display & checking
+        # (see core/oef/i18n.py). Defaults to French until render() reads it.
+        self.lang = "fr"
         # Set of reply names (e.g. "reply4") referenced by !read oef/embed.phtml
         # during the current render. Used to filter `answers` for dynsteps/course
         # exercises so only the active step's answers are exposed to the API.
@@ -149,6 +154,7 @@ class DefEngine(_SlibMixin):
         # overridden by load_and_render before calling render(). This ensures
         # m_step is defined when var_instructions execute, so conditions like
         # !if $m_step=2 work correctly.
+        self.lang = df.meta.get("language", "fr")
 
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the
@@ -174,7 +180,7 @@ class DefEngine(_SlibMixin):
 
         from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures, hoist_wims_instruction  # noqa: PLC0415
 
-        html = _close_inline_math(html)
+        html = _close_inline_math(html, self.lang)
         # Lift the calculator/instruction warning to the top of the statement.
         # Some .def templates (course03_2step.def et al.) emit it AFTER the
         # question, which reads badly — hoist it so it always comes first.
@@ -468,8 +474,8 @@ class DefEngine(_SlibMixin):
                 ns[k] = s
         try:
             res = eval(expr, ns)  # noqa: S307
-            if isinstance(res, float) and res.is_integer():
-                return str(int(res))
+            if isinstance(res, float):
+                return format_wims_float(res)
             return str(res)
         except Exception:
             return expr  # return as-is on failure
@@ -789,9 +795,9 @@ class DefEngine(_SlibMixin):
                     except: ns[k] = v
                 
                 eval_res = eval(res.replace("^", "**"), ns)
-                if isinstance(eval_res, (int, float)):
-                    if isinstance(eval_res, float) and eval_res.is_integer():
-                        return str(int(eval_res))
+                if isinstance(eval_res, float):
+                    return format_wims_float(eval_res)
+                if isinstance(eval_res, int):
                     return str(eval_res)
             except:
                 pass
@@ -2341,11 +2347,11 @@ class DefEngine(_SlibMixin):
                 # a bare comma split would yield e.g. 3 colours but 1 coord
                 # blob, fail the bijection check below, and render nothing.
                 lefts = [
-                    _close_inline_math(self._subst(c.strip()))
+                    _close_inline_math(self._subst(c.strip()), self.lang)
                     for c in self._split_list_items(rows[0]) if c.strip()
                 ]
                 rights = [
-                    _close_inline_math(self._subst(c.strip()))
+                    _close_inline_math(self._subst(c.strip()), self.lang)
                     for c in self._split_list_items(rows[1]) if c.strip()
                 ]
                 if not lefts or len(lefts) != len(rights):
@@ -2581,7 +2587,7 @@ class DefEngine(_SlibMixin):
                 # `\(y < \frac{9}{3})`). Mirrors the reply_meta path below;
                 # `expected` is one of the choices, so close it the same way to
                 # keep the reply comparison consistent.
-                choices = [_close_inline_math(c) for c in choices]
+                choices = [_close_inline_math(c, self.lang) for c in choices]
                 # `choicename` is internal metadata in WIMS (field id / answer
                 # summary), not a visible prompt: when the choice isn't embedded
                 # inline the buttons are shown without it (e.g. ineqequi4's
@@ -2590,7 +2596,7 @@ class DefEngine(_SlibMixin):
                 answers.append(
                     AnswerDef(
                         label="",
-                        expected=_close_inline_math(correct),
+                        expected=_close_inline_math(correct, self.lang),
                         answer_type="radio",
                         options={"choices": choices},
                         weight=1.0,
@@ -2603,7 +2609,7 @@ class DefEngine(_SlibMixin):
         for rm in df.reply_meta:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
-            label = _close_inline_math(self._subst(rm.get("name", "")))
+            label = _close_inline_math(self._subst(rm.get("name", "")), self.lang)
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
@@ -2701,8 +2707,8 @@ class DefEngine(_SlibMixin):
                 # renders them instead of showing the raw delimiters. No-op for
                 # plain-text choices. `expected` is one of the choices, so close
                 # it the same way to keep the reply comparison consistent.
-                choices = [_close_inline_math(c) for c in choices]
-                expected = _close_inline_math(expected)
+                choices = [_close_inline_math(c, self.lang) for c in choices]
+                expected = _close_inline_math(expected, self.lang)
                 options["choices"] = choices
 
             elif ans_type == "menu":
@@ -2795,10 +2801,10 @@ class DefEngine(_SlibMixin):
                 else:
                     correct_str, pool_str = good_raw, ""
                 correct_items = [
-                    _close_inline_math(c.strip()) for c in correct_str.split(",") if c.strip()
+                    _close_inline_math(c.strip(), self.lang) for c in correct_str.split(",") if c.strip()
                 ]
                 pool_items = [
-                    _close_inline_math(p.strip()) for p in pool_str.split(",") if p.strip()
+                    _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
                 if len(correct_items) > 1:

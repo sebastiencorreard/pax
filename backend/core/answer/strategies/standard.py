@@ -36,8 +36,13 @@ def pretty_expected(expected: str, answer_type: str) -> str:
 def run_standard(
     active_ans_defs: list,
     replies_by_name: dict[str, str],
+    lang: str | None = None,
 ) -> tuple[float, list[AnswerResult]]:
-    """Vérifie chaque réponse indépendamment, retourne (global_score, results)."""
+    """Vérifie chaque réponse indépendamment, retourne (global_score, results).
+
+    ``lang`` (langue de l'exercice) est transmis aux checkers pour le séparateur
+    décimal locale-aware (voir ``core/oef/i18n.py``).
+    """
     results: list[AnswerResult] = []
     weighted_score = 0.0
     total_weight = 0.0
@@ -49,6 +54,7 @@ def run_standard(
             reply=reply_value,
             expected=ans_def.expected,
             options=ans_def.options,
+            lang=lang,
         )
         # `mark` replies are 1-based positions; the feedback should show the
         # choice *labels*, not the numbers. Map both the student's reply and the

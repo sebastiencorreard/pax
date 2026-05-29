@@ -82,4 +82,5 @@ def run_feedback(
         results=results,
         seed=seed,
         analyze_replies=analyze_replies,
+        lang=rendered.lang,
     )

@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 
 
-def _normalize_math_content(s: str) -> str:
+def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
     Delegates to ``_expr_to_latex`` (implicit multiplication + evaluate=False)
@@ -25,11 +25,27 @@ def _normalize_math_content(s: str) -> str:
     Each side of an ``=`` is rendered independently. Falls back to the original
     string on parse failure so pre-formatted LaTeX (``\\frac{}{}``,
     ``\\sqrt{}``, …) is preserved.
+
+    ``lang`` drives the decimal separator (see ``core/oef/i18n.py``): a
+    standalone decimal number renders with the locale's separator (``3.93`` →
+    ``3,93`` in comma-decimal locales) and is *never* fed to SymPy — otherwise
+    ``sympify("3,93")`` reads the comma as a tuple separator and emits
+    ``\\left( 3, \\  93\\right)``.
     """
     from .cas import _expr_to_latex  # noqa: PLC0415 — lazy, avoids circular import
+    from ..i18n import uses_comma_decimal  # noqa: PLC0415
 
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
+
+    # A standalone decimal number (comma or dot): render it directly, never via
+    # SymPy — otherwise the comma is mistaken for a tuple/list separator. In a
+    # comma-decimal locale we also normalise a dot to a comma (covers exercises
+    # whose author didn't `!replace . by ,`); in a dot locale the token is left
+    # exactly as authored.
+    num = s.strip()
+    if re.fullmatch(r"-?\d+[.,]\d+", num):
+        return num.replace(".", ",") if uses_comma_decimal(lang) else num
 
     # A bare word (units/labels like `min`, `cm`, `max`) is not a CAS
     # expression. SymPy would resolve `min`/`max` to the Min/Max functions
@@ -67,8 +83,12 @@ def _normalize_math_content(s: str) -> str:
     return s
 
 
-def _close_inline_math(text: str) -> str:
-    """Convert WIMS-style ``\\(...)`` to KaTeX ``\\(...\\)`` and clean content."""
+def _close_inline_math(text: str, lang: str | None = None) -> str:
+    """Convert WIMS-style ``\\(...)`` to KaTeX ``\\(...\\)`` and clean content.
+
+    ``lang`` is forwarded to :func:`_normalize_math_content` for locale-aware
+    decimal-separator rendering.
+    """
     out: list[str] = []
     i = 0
     n = len(text)
@@ -100,14 +120,14 @@ def _close_inline_math(text: str) -> str:
             if (j < n and not closed_proper and depth == 0) or (j == n and not closed_proper):
                 content = text[i + 2 : j]
                 out.append("\\(")
-                out.append(_normalize_math_content(content))
+                out.append(_normalize_math_content(content, lang))
                 out.append("\\)")
                 i = j + 1 if j < n else n
                 continue
             if closed_proper:
                 content = text[i + 2 : j]
                 out.append("\\(")
-                out.append(_normalize_math_content(content))
+                out.append(_normalize_math_content(content, lang))
                 out.append("\\)")
                 i = j + 2
                 continue

@@ -656,8 +656,9 @@ def _extract_answers(ast: OEFNode, ev: OEFEvaluator) -> list[AnswerDef]:
                             wrong_items = []
                         if correct_part:
                             from .def_engine.presentation import _close_inline_math as _cf_close  # noqa: PLC0415
-                            correct_part = _cf_close(correct_part)
-                            wrong_items = [_cf_close(w) for w in wrong_items]
+                            _cf_lang = ev.meta.get("language", "fr")
+                            correct_part = _cf_close(correct_part, _cf_lang)
+                            wrong_items = [_cf_close(w, _cf_lang) for w in wrong_items]
                             choices = [correct_part] + wrong_items
                             seen_cf: set[str] = set()
                             choices = [c for c in choices if not (c in seen_cf or seen_cf.add(c))]  # type: ignore[func-returns-value]

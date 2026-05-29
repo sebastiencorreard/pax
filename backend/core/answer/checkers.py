@@ -273,14 +273,17 @@ def is_polexpand(s: str) -> bool:
 # ------------------------------------------------------------------ #
 
 
-def check_numeric(reply: str, expected: str, precision: float = 1e-4) -> CheckResult:
+def check_numeric(
+    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+) -> CheckResult:
     """
     Compare deux nombres avec tolérance relative + absolue.
     Accepte les fractions (1/2), les expressions simples (2*3).
+    ``comma_is_decimal`` : voir :func:`_parse_number`.
     """
     try:
-        r = _parse_number(reply.strip())
-        e = _parse_number(expected.strip())
+        r = _parse_number(reply.strip(), comma_is_decimal)
+        e = _parse_number(expected.strip(), comma_is_decimal)
     except (ValueError, ZeroDivisionError, SyntaxError):
         return CheckResult(
             correct=False,
@@ -331,9 +334,18 @@ def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> Ch
     return CheckResult(correct=score == 1.0, score=score, method="jsxgraph")
 
 
-def _parse_number(s: str) -> float:
-    """Parse un nombre : entier, décimal, fraction, expression simple."""
-    s = s.replace(",", ".").replace("^", "**").strip()
+def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
+    """Parse un nombre : entier, décimal, fraction, expression simple.
+
+    ``comma_is_decimal`` (vrai par défaut, locales à virgule) traite la virgule
+    comme séparateur décimal — on accepte alors aussi le point (``3,5`` et
+    ``3.5`` valent 3,5). En locale à point, la virgule n'est PAS décimale : un
+    ``3,5`` n'est pas reconnu comme un nombre (il échoue au parsing).
+    """
+    s = s.strip()
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    s = s.replace("^", "**")
     # Fraction explicite ex: 3/4
     if re.fullmatch(r"-?\d+\s*/\s*-?\d+", s):
         return float(Fraction(s.replace(" ", "")))
@@ -462,7 +474,9 @@ def _check_algexp_numeric(reply: str, expected: str) -> CheckResult:
 # ------------------------------------------------------------------ #
 
 
-def check_numexp(reply: str, expected: str, precision: float = 1e-4) -> CheckResult:
+def check_numexp(
+    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+) -> CheckResult:
     """
     Évalue les deux expressions numériquement et compare.
     Ex: reply="2+3", expected="5"
@@ -471,8 +485,12 @@ def check_numexp(reply: str, expected: str, precision: float = 1e-4) -> CheckRes
         import sympy
 
         _loc = _safe_locals()
-        r_val = float(sympy.sympify(_normalize_expr(reply), locals=_loc))
-        e_val = float(sympy.sympify(_normalize_expr(expected), locals=_loc))
+        # En locale à virgule, ``2,5`` est un décimal : on le convertit avant
+        # sympify (qui lirait sinon un tuple). Le point reste accepté.
+        r_in = reply.replace(",", ".") if comma_is_decimal else reply
+        e_in = expected.replace(",", ".") if comma_is_decimal else expected
+        r_val = float(sympy.sympify(_normalize_expr(r_in), locals=_loc))
+        e_val = float(sympy.sympify(_normalize_expr(e_in), locals=_loc))
         correct = (
             abs(r_val - e_val) <= precision
             or abs(r_val - e_val) / (abs(e_val) + 1e-12) <= precision
@@ -481,7 +499,7 @@ def check_numexp(reply: str, expected: str, precision: float = 1e-4) -> CheckRes
             correct=correct, score=1.0 if correct else 0.0, method="numexp"
         )
     except Exception:
-        return check_numeric(reply, expected, precision)
+        return check_numeric(reply, expected, precision, comma_is_decimal)
 
 
 # ------------------------------------------------------------------ #
@@ -511,31 +529,25 @@ def check_set(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=False, score=score, method="set")
 
 
-def check_fset(reply: str, expected: str, precision: float = 1e-4) -> CheckResult:
+def check_fset(
+    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+) -> CheckResult:
     """
     Ensemble fini WIMS : ordre non significatif, équivalence numérique
     ou symbolique sur chaque élément (donc -4 == -8/2 == -4.0).
+
+    Désambiguïsation de la virgule (``comma_is_decimal``) : en locale à virgule,
+    ``,`` est le séparateur décimal et ``;`` sépare les éléments. La réponse est
+    lue de façon **tolérante** : sans ``;``, on essaie à la fois « un seul
+    décimal » (``2,5`` → 2,5) et « liste séparée par des virgules » (``2,5`` →
+    {2;5}), et on retient l'interprétation qui colle le mieux à l'attendu. En
+    locale à point, la virgule n'est qu'un séparateur de liste.
     """
-
-    def split_items(s: str) -> list[str]:
-        sep = ";" if ";" in s else ","
-        return [x.strip() for x in s.split(sep) if x.strip()]
-
-    r_items = split_items(reply)
-    e_items = split_items(expected)
-
-    if len(r_items) != len(e_items):
-        return CheckResult(
-            correct=False,
-            score=0.0,
-            method="fset",
-            detail=f"{len(r_items)} valeur(s), {len(e_items)} attendue(s)",
-        )
 
     def equiv(a: str, b: str) -> bool:
         try:
-            av = _parse_number(a)
-            bv = _parse_number(b)
+            av = _parse_number(a, comma_is_decimal)
+            bv = _parse_number(b, comma_is_decimal)
             return (
                 abs(av - bv) <= precision
                 or abs(av - bv) / (abs(bv) + 1e-12) <= precision
@@ -560,20 +572,56 @@ def check_fset(reply: str, expected: str, precision: float = 1e-4) -> CheckResul
         except Exception:
             return a.strip().lower() == b.strip().lower()
 
-    matched = [False] * len(r_items)
-    n_correct = 0
-    for e in e_items:
-        for i, r in enumerate(r_items):
-            if matched[i]:
-                continue
-            if equiv(r, e):
-                matched[i] = True
-                n_correct += 1
-                break
+    def count_matches(r_items: list[str], e_items: list[str]) -> int:
+        matched = [False] * len(r_items)
+        n = 0
+        for e in e_items:
+            for i, r in enumerate(r_items):
+                if matched[i]:
+                    continue
+                if equiv(r, e):
+                    matched[i] = True
+                    n += 1
+                    break
+        return n
 
-    if n_correct == len(e_items):
-        return CheckResult(correct=True, score=1.0, method="fset")
-    return CheckResult(correct=False, score=n_correct / len(e_items), method="fset")
+    def split_on(s: str, sep: str) -> list[str]:
+        return [x.strip() for x in s.split(sep) if x.strip()]
+
+    # Expected is author-written: prefer its ';' if present, else ','.
+    e_items = split_on(expected, ";" if ";" in expected else ",")
+
+    # Candidate readings of the reply (see docstring).
+    if ";" in reply:
+        candidates = [split_on(reply, ";")]
+    else:
+        candidates = []
+        if comma_is_decimal and reply.strip():
+            candidates.append([reply.strip()])          # comma = decimal → one element
+        candidates.append(split_on(reply, ","))         # comma = list separator
+
+    best_score = -1.0
+    mismatch_len = None
+    for r_items in candidates:
+        if len(r_items) != len(e_items):
+            if mismatch_len is None:
+                mismatch_len = len(r_items)
+            continue
+        n = count_matches(r_items, e_items)
+        if n == len(e_items):
+            return CheckResult(correct=True, score=1.0, method="fset")
+        score = n / len(e_items) if e_items else 0.0
+        best_score = max(best_score, score)
+
+    if best_score < 0:
+        # Every candidate had the wrong cardinality.
+        return CheckResult(
+            correct=False,
+            score=0.0,
+            method="fset",
+            detail=f"{mismatch_len or 0} valeur(s), {len(e_items)} attendue(s)",
+        )
+    return CheckResult(correct=False, score=best_score, method="fset")
 
 
 # ------------------------------------------------------------------ #
@@ -703,12 +751,20 @@ def check_answer(
     reply: str,
     expected: str,
     options: dict | None = None,
+    lang: str | None = None,
 ) -> CheckResult:
     """
     Point d'entrée unique. Dispatch vers le bon checker selon le type.
+
+    ``lang`` (langue de l'exercice) décide du séparateur décimal : la virgule
+    n'est traitée comme décimale que dans les locales concernées (voir
+    ``core/oef/i18n.py``). Défaut : français (virgule décimale).
     """
+    from core.oef.i18n import uses_comma_decimal  # noqa: PLC0415
+
     options = options or {}
     precision = float(options.get("precision", 1e-4))
+    comma_is_decimal = uses_comma_decimal(lang)
 
     # Handle default value if reply is empty
     if not reply.strip():
@@ -724,7 +780,7 @@ def check_answer(
         if len(alternatives) > 1:
             last: CheckResult | None = None
             for alt in alternatives:
-                r = check_answer(answer_type, reply, alt, options)
+                r = check_answer(answer_type, reply, alt, options, lang)
                 if r.correct:
                     return r
                 last = r
@@ -801,15 +857,15 @@ def check_answer(
 
     match answer_type.lower():
         case "numeric":
-            return check_numeric(reply, expected, precision)
+            return check_numeric(reply, expected, precision, comma_is_decimal)
         case "numexp":
-            return check_numexp(reply, expected, precision)
+            return check_numexp(reply, expected, precision, comma_is_decimal)
         case "algexp" | "litexp" | "formal":
             return check_algexp(reply, expected)
         case "function":
             return check_algexp(reply, expected)
         case "fset":
-            return check_fset(reply, expected, precision)
+            return check_fset(reply, expected, precision, comma_is_decimal)
         case "set" | "checkbox":
             return check_set(reply, expected)
         case "radio" | "menu" | "mark":

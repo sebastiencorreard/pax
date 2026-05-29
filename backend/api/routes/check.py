@@ -116,7 +116,7 @@ async def check_exercise(
         )
 
     else:
-        global_score, results = run_standard(active_ans_defs, replies_by_name)
+        global_score, results = run_standard(active_ans_defs, replies_by_name, rendered.lang)
         feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
 
     # ── Métadonnées de réponse ────────────────────────────────────────────────

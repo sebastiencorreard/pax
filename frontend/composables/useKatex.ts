@@ -116,6 +116,18 @@ export function useKatex() {
     )
   }
 
+  // Virgule décimale : entre deux chiffres, ``,`` est le séparateur décimal
+  // (``2,95``), pas une ponctuation. KaTeX, lui, traite ``,`` comme une
+  // ponctuation math et ajoute une espace fine après — d'où le rendu fautif
+  // « 2, 95 ». On l'enrobe en ``{,}`` (atome ordinaire, sans espace), solution
+  // LaTeX standard pour les décimales (cf. paquet ``icomma``). Le backend émet
+  // déjà la virgule selon la locale ; les couples/ensembles des locales à
+  // virgule usent du ``;`` comme séparateur, donc un chiffre-virgule-chiffre est
+  // ici sans ambiguïté une décimale, quelle que soit la langue.
+  function decimalComma(expr: string): string {
+    return expr.replace(/(\d)\s*,\s*(\d)/g, '$1{,}$2')
+  }
+
   // Normalise une expression OEF/SymPy en LaTeX : ** → ^, * → \times (croix),
   // sauf devant une lettre ou une parenthèse ouvrante où la multiplication
   // est implicite : 5*v → 5v, )*( → )(, mais 2*3 → 2 \times 3.
@@ -139,6 +151,7 @@ export function useKatex() {
     expr = simplifyFracSign(expr)
     expr = stripRedundantFracParens(expr)
     expr = wrapNegativeOperands(expr)
+    expr = decimalComma(expr)
     return expr
   }
 

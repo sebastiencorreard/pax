@@ -10,6 +10,7 @@ from typing import Any
 from fractions import Fraction
 from lark import Lark, Transformer, v_args
 from .parser import OEFNode
+from .numfmt import format_wims_float
 
 EXPR_GRAMMAR = r"""
     ?start: expression_list
@@ -371,8 +372,8 @@ class OEFEvaluator:
             if val.denominator == 1:
                 return str(val.numerator)
             return f"{val.numerator}/{val.denominator}"
-        if isinstance(val, float) and val.is_integer():
-            return str(int(val))
+        if isinstance(val, float):
+            return format_wims_float(val)
         return str(val)
 
     def render_node(self, node: Any) -> str:

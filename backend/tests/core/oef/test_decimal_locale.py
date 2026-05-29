@@ -1,0 +1,133 @@
+"""Séparateur décimal piloté par la locale : config, affichage, saisie.
+
+Couvre les trois couches du correctif :
+  1. ``core/oef/i18n.py`` — config (décimale/liste par locale).
+  2. ``presentation._normalize_math_content`` — affichage math sûr (pas de tuple)
+     + virgule décimale en locale à virgule.
+  3. ``checkers`` — saisie locale-aware (virgule décimale seulement où pertinent ;
+     listes multi-valeurs tolérantes).
+Et le bout-en-bout : rendu de ``0615.def`` sans bruit flottant ni tuple.
+"""
+
+from __future__ import annotations
+
+import os
+
+import pytest
+
+from core.oef.i18n import decimal_separator, list_separator, uses_comma_decimal
+from core.oef.numfmt import format_wims_float
+from core.oef.def_engine.presentation import _normalize_math_content as N
+from core.answer.checkers import check_answer, check_fset, check_numeric, _parse_number
+
+
+# ── 1. Config locale ──────────────────────────────────────────────────────────
+
+def test_decimal_separator_by_locale():
+    assert decimal_separator("fr") == ","
+    assert decimal_separator("nl") == ","
+    assert decimal_separator("fr-BE") == ","      # sous-tag ignoré
+    assert decimal_separator("en") == "."
+    assert decimal_separator("de") == "."         # langue non configurée → point
+    assert decimal_separator(None) == ","         # défaut français
+
+
+def test_list_separator_pairs_with_decimal():
+    assert list_separator("fr") == ";"
+    assert list_separator("en") == ","
+    # décimale et séparateur de liste toujours distincts dans une locale
+    for lang in ("fr", "nl", "en", "de"):
+        assert decimal_separator(lang) != list_separator(lang)
+
+
+def test_uses_comma_decimal():
+    assert uses_comma_decimal("fr") is True
+    assert uses_comma_decimal("en") is False
+
+
+# ── 2bis. Anti-bruit flottant ────────────────────────────────────────────────
+
+def test_format_wims_float_strips_binary_noise():
+    assert format_wims_float(2 + 0.9 + 0.05) == "2.95"
+    assert format_wims_float(3.9299999999999997) == "3.93"
+    assert format_wims_float(7.0) == "7"           # entier → sans décimale
+    assert format_wims_float(1 / 3) == "0.333333333333"
+
+
+# ── 2. Affichage math ────────────────────────────────────────────────────────
+
+def test_standalone_decimal_not_turned_into_tuple():
+    # Le bug d'origine : sympify("3,93") → \left( 3, \  93\right).
+    out = N("3,93", "fr")
+    assert out == "3,93"
+    assert "\\left(" not in out
+
+
+def test_decimal_uses_locale_separator():
+    assert N("3.93", "fr") == "3,93"      # point → virgule (auteur sans !replace)
+    assert N("3,93", "fr") == "3,93"
+    assert N("-2.5", "fr") == "-2,5"
+    assert N("3.93", "en") == "3.93"      # locale à point : inchangé
+    assert N("3,93", "en") == "3,93"      # locale à point : laissé tel quel
+
+
+def test_function_call_comma_is_not_a_decimal():
+    # f(a,b) n'est pas un nombre décimal isolé → la virgule reste un séparateur.
+    out = N("f(a,b)", "fr")
+    assert not out.startswith("3")  # sanity
+    assert "a" in out and "b" in out
+
+
+# ── 3. Saisie locale-aware ───────────────────────────────────────────────────
+
+def test_numeric_comma_accepted_in_comma_locale():
+    assert check_answer("numeric", "3,93", "3.93", lang="fr").correct
+    assert check_answer("numeric", "3.93", "3.93", lang="fr").correct  # point aussi
+
+
+def test_numeric_comma_rejected_in_dot_locale():
+    # En locale à point, la virgule n'est PAS un séparateur décimal.
+    assert not check_answer("numeric", "3,5", "3.5", lang="en").correct
+    assert check_answer("numeric", "3.5", "3.5", lang="en").correct
+
+
+def test_parse_number_respects_comma_flag():
+    assert _parse_number("3,5", comma_is_decimal=True) == 3.5
+    assert _parse_number("3.5", comma_is_decimal=True) == 3.5
+    with pytest.raises(ValueError):
+        _parse_number("3,5", comma_is_decimal=False)
+
+
+def test_fset_single_decimal_in_comma_locale():
+    assert check_fset("2,5", "2.5", comma_is_decimal=True).correct
+
+
+def test_fset_semicolon_separated_decimals():
+    assert check_fset("2,5;3,7", "2.5;3.7", comma_is_decimal=True).correct
+
+
+def test_fset_tolerant_comma_list():
+    # Sans ';', '2,5' accepté comme liste {2;5} si ça colle mieux à l'attendu.
+    assert check_fset("2,5", "2;5", comma_is_decimal=True).correct
+
+
+def test_fset_backward_compatible_comma_list_dot_decimal():
+    # Convention historique : virgule = liste, point = décimale (toujours OK).
+    assert check_fset("-1.125,-4", "-9/8,-8/2").correct
+    assert check_fset("-6/5,-9/8", "-9/8,-6/5").correct
+
+
+# ── Bout-en-bout ─────────────────────────────────────────────────────────────
+
+_DEF_0615 = "/ressources/H3/math/quizz.fr/def/0615.def"
+
+
+@pytest.mark.skipif(not os.path.exists(_DEF_0615), reason="corpus absent")
+def test_render_0615_clean_decimal():
+    from core.oef.def_engine import load_and_render
+
+    r = load_and_render(_DEF_0615, seed=722630044)
+    html = " ".join(s["content"] for s in r.statement_segments if s.get("type") == "html")
+    assert "\\left(" not in html               # pas de tuple
+    assert "9999999" not in html               # pas de bruit flottant
+    assert "2,95" in html                       # décimale française correcte

@@ -145,6 +145,17 @@ When editing or adding exercises under `ressources/`:
 - OEF `.phtml` templates use WIMS variable syntax
 - `\language{}` values in OEF files may be full names (`french`, `dutch`) — the import script normalizes these to ISO codes (`fr`, `nl`) before inserting
 
+## Locale-driven decimal/list separators
+
+Number display and answer parsing follow the **exercise language**, not the UI
+locale. `backend/core/oef/i18n.py` is the single source of truth: comma-decimal
+languages (`,` decimal / `;` list) vs dot-decimal (`.` decimal / `,` list).
+**To support a new comma-decimal language, add its ISO code to
+`COMMA_DECIMAL_LANGS` there — nothing else changes.** Decimals are formatted
+noise-free via `core/oef/numfmt.py:format_wims_float` (12 significant digits,
+like WIMS' `double` printing). The frontend (`composables/useKatex.ts`) wraps a
+decimal comma as `{,}` so KaTeX doesn't add punctuation spacing.
+
 ## Documentation index (`docs/`)
 
 In-depth references and dev guides:
