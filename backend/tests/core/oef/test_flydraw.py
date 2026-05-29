@@ -1,12 +1,42 @@
 """Unit tests for the flydraw → SVG renderer."""
 
+import pytest
+
 from core.oef.flydraw import (
     _num,
     flydraw_to_svg,
     flydraw_to_url,
     get_cached_svg,
+    inline_pax_images,
     inline_svg_imgs,
 )
+
+
+class TestInlinePaxImages:
+    """`$imagedir/<file>` (pax-img sentinel) must resolve to /api/static."""
+
+    @pytest.fixture
+    def module(self, tmp_path, monkeypatch):
+        # ressources/<module>/images/<exercise>/tice.jpg (per-exercise layout).
+        monkeypatch.setattr("core.oef.flydraw._RESSOURCES_ROOT", str(tmp_path))
+        mod = tmp_path / "mod"
+        (mod / "images" / "deuxcarres").mkdir(parents=True)
+        (mod / "images" / "deuxcarres" / "tice.jpg").write_bytes(b"x")
+        (mod / "images" / "flat.png").write_bytes(b"y")
+        return str(mod)
+
+    def test_per_exercise_subdir(self, module):
+        html = '<img src="pax-img:_/tice.jpg" alt="">'
+        out = inline_pax_images(html, module, exercise="deuxcarres")
+        assert 'src="/api/static/mod/images/deuxcarres/tice.jpg"' in out
+
+    def test_flat_layout_still_works(self, module):
+        out = inline_pax_images('<img src="pax-img:flat.png">', module, exercise="deuxcarres")
+        assert 'src="/api/static/mod/images/flat.png"' in out
+
+    def test_missing_file_left_untouched(self, module):
+        html = '<img src="pax-img:_/nope.jpg">'
+        assert inline_pax_images(html, module, exercise="deuxcarres") == html
 
 
 class TestNumEval:

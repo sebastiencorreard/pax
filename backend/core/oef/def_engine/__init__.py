@@ -195,7 +195,8 @@ class DefEngine(_SlibMixin):
         html = inline_wims_gifs(html)
         if self.def_path:
             module_dir = os.path.dirname(os.path.dirname(self.def_path))
-            html = inline_pax_images(html, module_dir)
+            exercise = os.path.splitext(os.path.basename(self.def_path))[0]
+            html = inline_pax_images(html, module_dir, exercise)
         # Drop empty `<li>` / `<ul>` shells left behind when radio embeds
         # are stripped (the frontend renders the radio buttons separately
         # from `options.choices`).

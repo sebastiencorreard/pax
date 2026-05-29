@@ -2082,18 +2082,34 @@ _PAX_IMG_RE = re.compile(
 )
 
 
-def inline_pax_images(html: str, module_dir: str) -> str:
+def inline_pax_images(html: str, module_dir: str, exercise: str | None = None) -> str:
     """Rewrite ``pax-img:…`` URLs to point at the /api/static mount.
 
     PAX seeds ``$imagedir`` to the sentinel ``pax-img:_`` so the standard
     WIMS pattern ``$imagedir/../<file>`` becomes ``pax-img:_/../<file>`` in
-    the rendered HTML. We extract the basename, locate the file in
-    ``<module_dir>/images/``, and emit an URL relative to the ressources
+    the rendered HTML. We extract the basename and locate the file under
+    ``<module_dir>/images/`` — directly, in a per-exercise subdirectory
+    ``images/<exercise>/`` (oefracine.fr's layout), or anywhere below
+    ``images/`` as a last resort — then emit an URL relative to the ressources
     root (served by the backend StaticFiles mount at /api/static).
     """
     images_dir = _os.path.join(module_dir, "images")
     if not _os.path.isdir(images_dir):
         return html
+
+    def _locate(filename: str) -> str | None:
+        # 1. flat images/<file>  2. per-exercise images/<exercise>/<file>
+        candidates = [_os.path.join(images_dir, filename)]
+        if exercise:
+            candidates.append(_os.path.join(images_dir, exercise, filename))
+        for p in candidates:
+            if _os.path.isfile(p):
+                return p
+        # 3. recursive fallback (first match anywhere under images/).
+        for root, _dirs, files in _os.walk(images_dir):
+            if filename in files:
+                return _os.path.join(root, filename)
+        return None
 
     def repl(m: re.Match[str]) -> str:
         before, after = m.group("before"), m.group("after")
@@ -2103,8 +2119,8 @@ def inline_pax_images(html: str, module_dir: str) -> str:
         filename = _posixpath.basename(norm)
         if not filename or filename == "_":
             return m.group(0)
-        file_path = _os.path.join(images_dir, filename)
-        if not _os.path.isfile(file_path):
+        file_path = _locate(filename)
+        if not file_path:
             return m.group(0)
         rel = _os.path.relpath(file_path, _RESSOURCES_ROOT).replace(_os.sep, "/")
         return f'<img{before} src="/api/static/{rel}"{after}>'
