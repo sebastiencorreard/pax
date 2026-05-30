@@ -10,6 +10,15 @@ def pretty_expected(expected: str, answer_type: str) -> str:
     """Retourne la correction sous forme lisible, en préservant la forme
     voulue par l'auteur : développée si l'expected était développé,
     factorisée sinon."""
+    if answer_type.lower() == "case":
+        # Drop WIMS' internal `[Alt:[Apick:…]]` alternative encoding (1024) and
+        # show only the human-readable main answer (e.g. `5^2*2*7`).
+        from core.answer.checkers import _split_top_level
+        for part in _split_top_level(expected, "|"):
+            p = part.strip()
+            if p and not p.lower().startswith("[alt:"):
+                return p
+        return expected
     if answer_type.lower() in ("algexp", "litexp", "formal") and is_polexpand(expected):
         try:
             import sympy

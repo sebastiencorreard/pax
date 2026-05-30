@@ -706,12 +706,94 @@ def check_correspond(reply: str, expected: str, partial: bool = False) -> CheckR
     return CheckResult(correct=False, score=0.0, method="correspond")
 
 
+def _split_top_level(s: str, sep: str) -> list[str]:
+    """Split `s` on single-char `sep`, only at bracket depth 0."""
+    parts: list[str] = []
+    depth = 0
+    cur: list[str] = []
+    for ch in s:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth = max(0, depth - 1)
+        if ch == sep and depth == 0:
+            parts.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    parts.append("".join(cur))
+    return parts
+
+
+def _product_multiset(s: str) -> tuple[str, ...]:
+    """Factors of a product ``a*b*c`` as an order-independent sorted multiset,
+    spaces stripped (``*`` or ``×`` accepted as the operator)."""
+    factors = re.split(r"[*×]", s)
+    return tuple(sorted(f.replace(" ", "").lower() for f in factors if f.strip()))
+
+
+def _find_bracket_blocks(s: str) -> list[str]:
+    """Top-level ``[...]`` blocks in `s` (the Apick blocks inside ``Alt:``)."""
+    blocks: list[str] = []
+    depth = 0
+    start: int | None = None
+    for i, ch in enumerate(s):
+        if ch == "[":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "]":
+            depth -= 1
+            if depth == 0 and start is not None:
+                blocks.append(s[start : i + 1])
+                start = None
+    return blocks
+
+
+def _apick_multiset(block: str) -> tuple[str, ...] | None:
+    """Parse a WIMS ``[Apick:N,[*],…,op1,…,opN]`` block into its N operands as
+    a sorted multiset. ``Apick:N`` and the ``[*]`` separator slots are dropped;
+    the rest are the factors the student may give in any order."""
+    inner = block.strip()
+    if inner.startswith("[") and inner.endswith("]"):
+        inner = inner[1:-1]
+    items = [it.strip() for it in _split_top_level(inner, ",")]
+    if not items or not items[0].lower().startswith("apick:"):
+        return None
+    ops = [
+        it.replace(" ", "").lower()
+        for it in items[1:]
+        if it.strip() and it.strip() != "[*]"
+    ]
+    return tuple(sorted(ops)) if ops else None
+
+
 def check_case(reply: str, expected: str) -> CheckResult:
-    """WIMS `case` type: ``expected`` lists alternatives separated by ``|``;
-    the reply matches if it equals any alternative (case- and space-insensitive)."""
+    """WIMS `case` type: ``expected`` lists alternatives separated by ``|``.
+    The reply matches an alternative literally (case/space-insensitive), or —
+    for WIMS' ``[Alt:[Apick:N,…]]`` construct (prime factorisation, 1024) — as
+    a product whose factor multiset equals an accepted one (order-free). E.g.
+    ``5^2*2*7|[Alt:[Apick:3,[*],[*],5^2,2,7],[Apick:4,[*],[*],[*],5,5,2,7]]``
+    accepts ``2*5*5*7`` as well as ``5^2*2*7`` in any factor order."""
     reply_norm = reply.strip().lower()
-    alternatives = [alt.strip().lower() for alt in expected.split("|") if alt.strip()]
-    correct = reply_norm in alternatives
+    reply_ms = _product_multiset(reply)
+
+    literal_alts: set[str] = set()
+    accepted_ms: list[tuple[str, ...]] = []
+    for part in _split_top_level(expected, "|"):
+        part = part.strip()
+        if not part:
+            continue
+        m = re.match(r"\[alt:(.*)\]$", part, re.I | re.DOTALL)
+        if m:
+            for block in _find_bracket_blocks(m.group(1)):
+                ms = _apick_multiset(block)
+                if ms is not None:
+                    accepted_ms.append(ms)
+        else:
+            literal_alts.add(part.lower())
+
+    correct = reply_norm in literal_alts or (bool(reply_ms) and reply_ms in accepted_ms)
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")
 
 
