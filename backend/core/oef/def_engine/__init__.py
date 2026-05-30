@@ -2727,7 +2727,14 @@ class DefEngine(_SlibMixin):
             res = eval(wrapped, {"Fraction": Fraction, "__builtins__": {}})  # noqa: S307
         except Exception:
             return None
-        if isinstance(res, Fraction) and res.denominator != 1:
+        # A denominator that is a multiple of 10 is a decimal / unit-conversion
+        # artifact (loigp1's `$[$val11/1000]` = 7/1000 L = 0.007 L), not a
+        # pedagogical fraction (those use 2,3,4,6,7,8,…). Keep those decimal.
+        if (
+            isinstance(res, Fraction)
+            and res.denominator != 1
+            and res.denominator % 10 != 0
+        ):
             return f"{res.numerator}/{res.denominator}"
         return None
 
