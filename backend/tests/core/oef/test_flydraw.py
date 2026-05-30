@@ -135,10 +135,12 @@ class TestFlydrawPrimitives:
         assert 'x1="180.00"' in svg
 
     def test_circle(self):
+        # WIMS `circle x,y,d` — d is the *diameter* in pixels, so the SVG
+        # radius is d/2 (here 4 → 2.00). Matches fcircle's convention.
         svg = flydraw_to_svg(300, 80, "range 0,10,0,10\ncircle 5,5,4,red")
         assert "<circle" in svg
         assert 'cx="150.00"' in svg
-        assert 'r="4.0"' in svg
+        assert 'r="2.00"' in svg
         assert 'stroke="#ff0000"' in svg
 
     def test_flood_emits_polygon_for_enclosing_triangle(self):

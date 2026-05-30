@@ -1504,13 +1504,16 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
 
 
 def _cmd_circle(state: _State, args: list[str]) -> None:
-    # circle x,y,r,[color] — radius in pixels per flydraw spec.
+    # circle x,y,d,[color] — d is the *diameter* in pixels (WIMS flydraw spec,
+    # same convention as fcircle), so the SVG radius is d/2. (E.g. 0718: a
+    # `circle E,d` of diameter 2·EF passing through F, not a radius-EF·2 one.)
     if len(args) < 3:
         return
-    x, y, r = _num(args[0]), _num(args[1]), _num(args[2])
+    x, y, d = _num(args[0]), _num(args[1]), _num(args[2])
+    r = abs(d) / 2
     color = _color(args[3]) if len(args) > 3 else "#000000"
     state.elements.append(
-        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" r="{r}" '
+        f'<circle cx="{state.px(x):.2f}" cy="{state.py(y):.2f}" r="{r:.2f}" '
         f'stroke="{color}" stroke-width="{state.linewidth}" fill="none" />'
     )
 

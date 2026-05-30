@@ -66,6 +66,17 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
+    # WIMS inline math uses bare relation *words* — e.g. `\(I in [EG]\)` for set
+    # membership (rendered ``I ∈ [EG]``). SymPy can't parse these, so map the
+    # known ones to their LaTeX command and skip the CAS path. The lookbehind/
+    # lookahead keep the match to a *standalone* token so substrings of real
+    # identifiers (`sin`, `min`, `index`) are left untouched.
+    _word_ops = {"in": r"\in", "notin": r"\notin"}
+    _alts = "|".join(sorted(_word_ops, key=len, reverse=True))
+    _op_pat = re.compile(rf"(?<![A-Za-z\\])({_alts})(?![A-Za-z])")
+    if _op_pat.search(s):
+        return _op_pat.sub(lambda m: _word_ops[m.group(1)], s)
+
     # A standalone decimal number (comma or dot): render it directly, never via
     # SymPy — otherwise the comma is mistaken for a tuple/list separator. In a
     # comma-decimal locale we also normalise a dot to a comma (covers exercises
