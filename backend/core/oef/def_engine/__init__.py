@@ -2970,7 +2970,53 @@ class DefEngine(_SlibMixin):
                 )
             )
 
+        # Optional-separator slots (e.g. the ∪ between two intervals in
+        # ineqva2interv). Such a slot is a clickfill+analyze whose pool is a
+        # single fixed symbol and whose :test condition fixes it via
+        # `<symbol> issametext $val<N>` in the *union* case only. It is
+        # ambiguous to resolve in isolation (the single-interval branch leaves
+        # it blank), so _resolve_analyze_expected returns "". Resolve it here:
+        # the symbol belongs in the slot iff there *is* a second interval —
+        # i.e. some later reply has a non-empty expected.
+        for i, a in enumerate(answers):
+            if (
+                a.answer_type == "clickfill"
+                and "analyze_var" in a.options
+                and not a.expected
+                and len(a.options.get("choices", [])) == 1
+                and self._slot_fixed_to_pool_literal(a.options["analyze_var"], df)
+            ):
+                if any(later.expected for later in answers[i + 1 :]):
+                    a.expected = a.options["choices"][0]
+
         return answers
+
+    def _slot_fixed_to_pool_literal(self, var_name: str, df: "DefFile") -> bool:
+        """True if :test/:postdef contains `<literal> sametext $<var>` (or the
+        mirror) where the other operand is a *fixed literal*, not a `$ref`.
+        Marks an optional-separator slot (e.g. the ∪ symbol) whose presence is
+        case-dependent — see the post-pass in `_extract_answers`."""
+        from ..def_parser import IfBlock  # noqa: PLC0415
+        op = r"(?:is|not)?sametext"
+        pat = re.compile(
+            rf"(\S+)\s+{op}\s+\${re.escape(var_name)}\b"
+            rf"|\${re.escape(var_name)}\b\s+{op}\s+(\S+)"
+        )
+
+        def walk(body: list) -> bool:
+            for instr in body:
+                if isinstance(instr, IfBlock):
+                    for m in pat.finditer(instr.condition):
+                        other = (m.group(1) or m.group(2) or "").strip("()")
+                        if other and not other.startswith("$"):
+                            return True
+                    if walk(instr.then_body) or walk(instr.else_body):
+                        return True
+            return False
+
+        return walk(df.sections.get("test", [])) or walk(
+            df.sections.get("postdef", [])
+        )
 
     def _cmd_mathsubst(self, args: str) -> str:
         """!mathsubst x=1 in x^2+x -> 1^2+1"""

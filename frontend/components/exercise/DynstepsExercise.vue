@@ -222,7 +222,14 @@ const scorePct = computed(() => Math.round(scoreRatio.value * 100))
 const allFilled = computed(() => {
   if (!props.rendered || courseStopped.value) return false
   // `rendered.answers` is server-filtered to the current step's active replies.
-  return props.rendered.answers.every(a => {
+  const answers = props.rendered.answers
+  // Analyze-checked exercises validate the whole answer via the :test section,
+  // and some zones are meant to stay empty (e.g. a single interval uses 4 of
+  // the 9 interval/union slots). Only require *at least one* field filled.
+  if (answers.some(a => a.options?.analyze_var)) {
+    return answers.some(a => (replies.value[a.input_name] ?? '').trim() !== '')
+  }
+  return answers.every(a => {
     const val = (replies.value[a.input_name] ?? '').trim()
     if (val !== '') return true
     const opt = (a.options?.option || '').toLowerCase()
