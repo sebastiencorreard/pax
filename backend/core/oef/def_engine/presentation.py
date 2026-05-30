@@ -42,6 +42,20 @@ def localize_decimals(text: str, lang: str | None = None) -> str:
     return "".join(parts)
 
 
+def _wrap_katex_exponents(s: str) -> str:
+    """Brace multi-character exponents so KaTeX raises the whole token.
+
+    WIMS lets ``^`` grab a whole number or parenthesised group; KaTeX only
+    raises the next single token, so ``10^27`` → ``10²7``. We rewrite
+    ``10^(27)`` → ``10^{27}`` (parens dropped) and ``10^27`` → ``10^{27}``.
+    Single-character exponents (``x^2``) and already-braced ones (``^{…}``)
+    are left untouched.
+    """
+    s = re.sub(r"\^\(([^()]+)\)", r"^{\1}", s)
+    s = re.sub(r"\^(-?\d{2,}|-\d)", r"^{\1}", s)
+    return s
+
+
 def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
@@ -62,6 +76,13 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """
     from .cas import _expr_to_latex  # noqa: PLC0415 — lazy, avoids circular import
     from ..i18n import uses_comma_decimal  # noqa: PLC0415
+
+    # WIMS lets `^` grab a whole number or parenthesised group (`10^27`,
+    # `10^(27)`), but KaTeX only raises the next single token — so `10^27`
+    # renders as `10²7`. Brace multi-character exponents so KaTeX raises the
+    # whole thing. Done *before* the backslash/brace bail so it also fixes
+    # content like `85 \times 10^27` that skips the CAS path below.
+    s = _wrap_katex_exponents(s)
 
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
