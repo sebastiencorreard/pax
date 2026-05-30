@@ -290,6 +290,10 @@ class _State:
     height: int = 80
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
     boxplotdata: list[float] = field(default_factory=list)
+    # Current rotation (degrees, WIMS-absolute) and whether a <g transform>
+    # group is currently open for it. See `set_rotation`.
+    rotation: float = 0.0
+    rot_group_open: bool = False
 
     def px(self, math_x: float) -> float:
         denom = self.xmax - self.xmin or 1.0
@@ -299,6 +303,35 @@ class _State:
         # SVG y grows downward; flip math y (up) to screen y (down).
         denom = self.ymax - self.ymin or 1.0
         return self.height - (math_y - self.ymin) * self.height / denom
+
+    def set_rotation(self, deg: float) -> None:
+        """WIMS `rotation d` — rotate subsequent primitives by `d` degrees
+        (CCW, math convention) around the math origin. WIMS rotation is
+        *absolute* (a new `rotation` replaces the previous, not cumulative).
+
+        Implemented by wrapping subsequent elements in an SVG
+        ``<g transform="rotate(...)">`` around the origin's pixel position.
+        SVG `rotate` is isotropic in pixel space, so this matches a true
+        coordinate-space rotation only when the x and y pixel scales are
+        equal — which is the normal setup for rotation (e.g. the 0724
+        protractor: 15 px/unit on both axes). The screen y-flip turns a math
+        CCW rotation into an SVG `rotate(-d)`.
+        """
+        if self.rot_group_open:
+            self.elements.append("</g>")
+            self.rot_group_open = False
+        self.rotation = deg
+        if deg:
+            ox, oy = self.px(0.0), self.py(0.0)
+            self.elements.append(
+                f'<g transform="rotate({-deg:.4f},{ox:.2f},{oy:.2f})">'
+            )
+            self.rot_group_open = True
+
+    def close_rotation(self) -> None:
+        if self.rot_group_open:
+            self.elements.append("</g>")
+            self.rot_group_open = False
 
 
 # ── Primitive handlers ────────────────────────────────────────────────────────
@@ -1366,16 +1399,15 @@ def _cmd_transparent(state: _State, args: list[str]) -> None:
 
 
 def _cmd_rotation(state: _State, args: list[str]) -> None:
-    # rotation d — rotate subsequent drawing by d degrees. We don't support
-    # the full WIMS matrix stack; rotation is rarely needed and would require
-    # wrapping subsequent elements in a <g transform="…">. No-op for now.
-    pass
+    # rotation d — rotate subsequent drawing by d degrees (around the origin).
+    if not args:
+        return
+    state.set_rotation(_num(args[0]))
 
 
 def _cmd_killrotation(state: _State, args: list[str]) -> None:
-    # Reset the rotation set by `rotation`. We don't track rotation state →
-    # nothing to undo, but recognise the command to keep the log clean.
-    pass
+    # Reset the rotation set by `rotation` back to 0.
+    state.set_rotation(0.0)
 
 
 def _cmd_trange(state: _State, args: list[str]) -> None:
@@ -1920,6 +1952,7 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
         else:
             _log_unhandled_cmd(cmd, arg_str)
 
+    state.close_rotation()  # close a still-open rotation group (no killrotation)
     body = "".join(state.elements)
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" '
