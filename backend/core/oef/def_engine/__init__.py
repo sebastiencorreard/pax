@@ -2670,6 +2670,30 @@ class DefEngine(_SlibMixin):
             return ""
         return result
 
+    def _expected_as_fraction(self, raw_good: str) -> str | None:
+        """If the replygood (`$[expr]` or a bare expr) is a pure rational that
+        evaluates to an exact non-integer fraction, return it as ``"p/q"``;
+        else None. Uses `fractions.Fraction` so `$[2/3]` stays `2/3` instead of
+        the decimal the float `$[…]` path produces — used for numeric answer
+        expected so auto-fill inserts the fraction."""
+        from fractions import Fraction  # noqa: PLC0415
+
+        m = re.fullmatch(r"\s*\$\[(.+)\]\s*", raw_good, re.DOTALL)
+        expr = (m.group(1) if m else raw_good)
+        expr = self._subst_for_arith(expr).replace("^", "**")
+        # Pure integer arithmetic with at least one division — no decimals,
+        # functions, or symbols (those belong to the float / CAS paths).
+        if "/" not in expr or not re.fullmatch(r"[\d\s+\-*/().]+", expr):
+            return None
+        wrapped = re.sub(r"\d+", lambda mm: f"Fraction({mm.group(0)})", expr)
+        try:
+            res = eval(wrapped, {"Fraction": Fraction, "__builtins__": {}})  # noqa: S307
+        except Exception:
+            return None
+        if isinstance(res, Fraction) and res.denominator != 1:
+            return f"{res.numerator}/{res.denominator}"
+        return None
+
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
 
@@ -2957,6 +2981,16 @@ class DefEngine(_SlibMixin):
                     rng.shuffle(choices)
                     expected = correct
                     options["choices"] = choices
+
+            # Keep an exact non-integer rational answer as a fraction so the
+            # auto-fill inserts e.g. `2/3` rather than the lossy decimal
+            # `0.666…` (replygood `$[$val12]` floats it via `$[…]`). Scoped to
+            # numeric answers: text rendering still prints `$[2/3]` as a decimal
+            # like WIMS. The numeric checker accepts the fraction either way.
+            if ans_type in ("numeric", "numexp") and "analyze_var" not in options:
+                _frac = self._expected_as_fraction(rm.get("good", ""))
+                if _frac is not None:
+                    expected = _frac
 
             answers.append(
                 AnswerDef(
