@@ -709,6 +709,29 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     )
 
 
+def _cmd_textup(state: _State, args: list[str]) -> None:
+    # textup [color],x,y,size,content — same args as `text`, but the string is
+    # rotated 90° counter-clockwise (vertical, reading bottom-to-top — e.g. the
+    # left-side length label of 0923's rectangle). SVG rotate is clockwise, so
+    # 90° CCW = rotate(-90) around the anchor point.
+    if len(args) < 5:
+        return
+    color = _color(args[0])
+    x, y = _num(args[1]), _num(args[2])
+    size = _font_size(args[3])
+    content = ",".join(args[4:]).strip()
+    content = re.sub(r"\\[A-Za-z]\w*", "", content)
+    content = re.sub(r"\s{2,}", " ", content).strip()
+    cx, cy = state.px(x), state.py(y)
+    state.elements.append(
+        f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{color}" '
+        f'font-size="{size}" font-family="sans-serif" '
+        f'text-anchor="start" dominant-baseline="hanging" '
+        f'transform="rotate(-90, {cx:.2f}, {cy:.2f})">'
+        f"{_xml_escape(content)}</text>"
+    )
+
+
 def _cmd_line(state: _State, args: list[str]) -> None:
     # line x1,y1,x2,y2,[color] — INFINITE line through the two points,
     # clipped to the current x/yrange. Used by csga to draw an axis that
@@ -1912,6 +1935,7 @@ _HANDLERS = {
     "insert": _cmd_copy,  # alias per WIMS nametab
     # Text / plot
     "text": _cmd_text,
+    "textup": _cmd_textup,
     "string": _cmd_string,
     "stringup": _cmd_stringup,
     "fontfamily": _cmd_fontfamily,

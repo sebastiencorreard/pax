@@ -1189,7 +1189,10 @@ class DefEngine(_SlibMixin):
 
     def _cmd_randint(self, args: str) -> str:
         """!randint a, b — random integer in [a, b]; !randint N — in [1, N]."""
-        parts = [self._subst(p.strip()) for p in args.split(",")]
+        # Split at top-level commas only: a bound may itself be a call with
+        # commas, e.g. `!randint 3, min(9,$L)` (0923) — a plain split(",")
+        # would shred `min(9,10)` into "min(9" / "10)" and fail → "0".
+        parts = [self._subst(p.strip()) for p in _split_top_level_args(args)]
         try:
             if len(parts) == 1:
                 # Single-arg form: WIMS returns integer in [1, N]
@@ -1203,7 +1206,7 @@ class DefEngine(_SlibMixin):
 
     def _cmd_random(self, args: str) -> str:
         """!random a, b — random float in [a, b]."""
-        parts = [self._subst(p.strip()) for p in args.split(",")]
+        parts = [self._subst(p.strip()) for p in _split_top_level_args(args)]
         if len(parts) < 2:
             return "0"
         try:
