@@ -130,6 +130,13 @@ function cfSlotState(name: string, index: number): '' | 'correct' | 'incorrect' 
   const filled = arr.map((v, i) => ({ v, i })).filter(o => o.v)
   const pos = filled.findIndex(o => o.i === index)
   if (pos < 0) return ''
+  // Single-slot field, or no usable per-slot expected sequence (e.g. an
+  // analyze-checked clickfill whose expected is computed at runtime): colour by
+  // the backend's correctness for the whole reply. Only multi-slot drag-compose
+  // (expected is an ordered sequence) compares position by position.
+  if (filled.length <= 1 || expected.length <= 1) {
+    return r.correct ? 'correct' : 'incorrect'
+  }
   return filled[pos].v.trim() === (expected[pos] ?? '') ? 'correct' : 'incorrect'
 }
 
