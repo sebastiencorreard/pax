@@ -568,6 +568,14 @@ class TestCmdStringOps:
         e = engine()
         assert e._eval_cmd("replace", "internal z by y in abc") == "abc"
 
+    def test_replace_empty_with_internal_prefix(self):
+        # `!replace internal , by in TEXT` deletes commas — the `internal`
+        # prefix must be consumed (interint3 strips the clickfill list
+        # separators from the displayed interval `[,15,;,17,[` → `[15;17[`).
+        e = engine()
+        assert e._eval_cmd("replace", "internal , by in [,15,;,17,[") == "[15;17["
+        assert e._eval_cmd("replace", ", by in [,a,;,b,[") == "[a;b["
+
     def test_append_to_comma_list(self):
         # No tabs in the list → append with comma so slib helpers building
         # comma-separated frequency lists (e.g. slib/generator) work.

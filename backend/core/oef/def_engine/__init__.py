@@ -1357,10 +1357,16 @@ class DefEngine(_SlibMixin):
             if m:
                 mode, old, new, text = "internal", m.group(1), m.group(2), m.group(3)
             else:
-                # Handle cases like '!replace * by in $text' where 'new' is empty and only 1 space exists
-                m = re.match(r"(.*?)\s+by\s+in\s+(.*)", args, re.I | re.DOTALL)
+                # Empty replacement: `!replace internal , by in $text` deletes
+                # every comma (interint3 strips the clickfill list separators
+                # from the displayed interval). Optional `internal|word` prefix
+                # must be consumed so `old` is just `,`, not `internal ,`.
+                m = re.match(
+                    r"(?:(internal|word)\s+)?(.*?)\s+by\s+in\s+(.*)",
+                    args, re.I | re.DOTALL,
+                )
                 if m:
-                    mode, old, new, text = "internal", m.group(1), "", m.group(2)
+                    mode, old, new, text = (m.group(1) or "internal"), m.group(2), "", m.group(3)
                 else:
                     return self._subst(args)
         
