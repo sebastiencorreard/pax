@@ -832,13 +832,21 @@ def _cmd_arc(state: _State, args: list[str]) -> None:
     cx, cy, w, h, start_deg, end_deg = (_num(a) for a in args[:6])
     color = _color(args[6]) if len(args) > 6 else "#000000"
     rx, ry = w / 2, h / 2
+    # An arc's angular *span* is given in absolute (figure) coordinates: under
+    # an active `rotation`, WIMS does not also rotate start/end (only its
+    # center moves with the figure — see 0724's protractor rim, authored at
+    # 10–190° to match a base tilted by `rotation 10`). The enclosing
+    # `<g rotate(-rotation)>` group adds `rotation` back to every sampled
+    # point, so pre-subtract it here to cancel out (exact for a circle,
+    # rx == ry, which is the rotation use-case).
+    rot = state.rotation
     # Sample the arc as a polyline so we don't have to figure out SVG's
     # convoluted A-command flags from math-coord angles.
     n = max(8, int(abs(end_deg - start_deg) / 5))
     pts = []
     for i in range(n + 1):
         t = start_deg + (end_deg - start_deg) * i / n
-        rad = math.radians(t)
+        rad = math.radians(t - rot)
         mx = cx + rx * math.cos(rad)
         my = cy + ry * math.sin(rad)
         pts.append(f"{state.px(mx):.2f},{state.py(my):.2f}")
