@@ -2716,6 +2716,15 @@ class DefEngine(_SlibMixin):
                     # "analyze" here dropped them, leaving an empty <ol>.
                     analyze_choices = rest or ""
                     expected = self._resolve_analyze_expected(var_name, df) or ""
+                elif ans_type in ("clickfill", "checkbox", "mark"):
+                    # Widget DISPLAY + analyze CHECK: keep the widget type so it
+                    # renders (draggable labels / boxes) — the pool is in `rest`
+                    # and parsed by the widget branch below. The student's value
+                    # is fed to val<N> in :test (see run_feedback), so keep
+                    # `analyze_var`. `good_raw` keeps "?analyze N;<pool>" which the
+                    # clickfill branch splits into correct ("?analyze N") + pool.
+                    # ineqinterv1: drag `[`/`]` brackets into the interval slots.
+                    pass
                 else:
                     ans_type = "analyze"
                     if rest:
@@ -2885,7 +2894,16 @@ class DefEngine(_SlibMixin):
                     _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
-                if len(correct_items) > 1:
+                if "analyze_var" in options:
+                    # Analyze-based clickfill (ineqinterv1): the "correct" part is
+                    # "?analyze N" — a checking ref, NOT a draggable label. The
+                    # palette is the pool only; scoring is via the :test section.
+                    seen0: set[str] = set()
+                    choices = [c for c in pool_items if not (c in seen0 or seen0.add(c))]  # type: ignore[func-returns-value]
+                    rng.shuffle(choices)
+                    options["choices"] = choices
+                    expected = self._resolve_analyze_expected(options["analyze_var"], df) or ""
+                elif len(correct_items) > 1:
                     # Multi-slot drag-compose (e.g. repgraphint): the student
                     # arranges labels from the pool into an ordered sequence.
                     # expected = the ordered sequence (comma-joined); choices =

@@ -21,7 +21,8 @@ def run_analyze(
     analyze_replies = {
         int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
         for a in active_ans_defs
-        if a.answer_type == "analyze" and "analyze_var" in a.options
+        if "analyze_var" in a.options  # any reply feeding an analyze val<N>
+        # (clickfill/radio/menu DISPLAY + analyze CHECK), not just type=="analyze"
     }
     condtest, weights = check_analyze(
         ev_ctx=rendered.check_sections["ctx"],
@@ -70,7 +71,8 @@ def run_feedback(
     analyze_replies = {
         int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
         for a in active_ans_defs
-        if a.answer_type == "analyze" and "analyze_var" in a.options
+        if "analyze_var" in a.options  # any reply feeding an analyze val<N>
+        # (clickfill/radio/menu DISPLAY + analyze CHECK), not just type=="analyze"
     } or None
 
     return render_feedback(
