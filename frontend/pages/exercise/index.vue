@@ -74,7 +74,7 @@
                 <button class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-black/5 dark:hover:bg-white/5 transition"
                         @click="toggle(mod.module)">
                   <div class="flex-1 min-w-0">
-                    <span class="font-medium text-sm block truncate">{{ decodeEntities(mod.title) }}</span>
+                    <MathText :text="mod.title" class="font-medium text-sm block truncate" />
                     <div class="flex items-center gap-2 mt-0.5">
                       <span v-if="mod.author" class="text-xs truncate"
                             style="color:var(--color-text-muted)">{{ mod.author }}</span>
@@ -101,10 +101,9 @@
                               ? 'border-color:var(--color-border);background:color-mix(in srgb,var(--color-primary) 8%,transparent)'
                               : 'border-color:var(--color-border)'"
                             @click="onExerciseClick(ex.id, $event)">
-                    <span class="text-xs truncate transition"
-                          :style="previewId === ex.id ? 'color:var(--color-primary);font-weight:600' : ''">
-                      {{ decodeEntities(ex.title || ex.id) }}
-                    </span>
+                    <MathText :text="ex.title || ex.id"
+                          class="text-xs truncate transition"
+                          :style="previewId === ex.id ? 'color:var(--color-primary);font-weight:600' : ''" />
                     <div class="ml-2 flex items-center gap-1.5 flex-shrink-0">
                       <span v-if="!ex.has_def"
                             class="text-xs font-bold px-1 py-0.5 rounded"
@@ -170,15 +169,6 @@ interface DomainGroup {
 
 const { apiFetch } = useApi()
 const { debugMode: debugOef } = useDebugMode()
-
-function decodeEntities(s: string): string {
-  return (s || '')
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ')
-}
 
 const route = useRoute()
 const router = useRouter()

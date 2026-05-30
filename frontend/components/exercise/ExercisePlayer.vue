@@ -149,7 +149,8 @@ async function load(seed?: number, m_step?: number) {
       const decodedTitle = rendered.value.title
         .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
         .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      titleHtml.value = decodedTitle
+      // Titles can carry inline math (e.g. `\(|ax+b|\leq c\)`) — render it.
+      titleHtml.value = await renderMath(decodedTitle)
     }
     if (rendered.value.hint_html) {
       hintHtml.value = await renderMath(rendered.value.hint_html, { autoDisplay: true })
