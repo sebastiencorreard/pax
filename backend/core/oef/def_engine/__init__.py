@@ -154,6 +154,11 @@ class DefEngine(_SlibMixin):
         # during the current render. Used to filter `answers` for dynsteps/course
         # exercises so only the active step's answers are exposed to the API.
         self._touched_replies: set[str] = set()
+        # Raw (unevaluated) RHS of the last assignment to each variable. Lets
+        # the numeric-answer fraction recovery trace `$[$val9]` back through
+        # `val9=$[$(val8[2])]` to the original `3/4` (the floated ctx value has
+        # lost it). See `_expected_as_fraction`.
+        self.raw_assigns: dict[str, str] = {}
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
@@ -386,6 +391,7 @@ class DefEngine(_SlibMixin):
             if isinstance(instr, Assign):
                 val = self._eval_value(instr.value)
                 self.ctx[instr.name] = val
+                self.raw_assigns[instr.name] = instr.value
 
             elif isinstance(instr, IfBlock):
                 cond = self._eval_condition(instr.kind, instr.condition)
@@ -2673,17 +2679,45 @@ class DefEngine(_SlibMixin):
             return ""
         return result
 
+    def _rational_expand(self, expr: str, depth: int = 0) -> str:
+        """Expand `expr` keeping fractions intact: resolve `$(var[i])` indexed
+        forms against ctx, and replace each `$var` by its *raw* assignment RHS
+        (recursively, unwrapping a `$[…]`) rather than its floated ctx value —
+        so a nested `$[3/4]` doesn't collapse to `0.75`. Bounded recursion;
+        the caller's strict numeric guard rejects any non-rational expansion."""
+        if depth > 6:
+            return expr
+        expr = self._resolve_indexed_forms(expr)
+
+        def repl(m: "re.Match") -> str:
+            name = m.group(1)
+            ctx_val = self.ctx.get(name, self.ctx.get(name.lower()))
+            # If the stored value is already a clean rational (int or p/q), use
+            # it — don't trace back into its (possibly !cmd) assignment, e.g.
+            # val12="2/3" from `!exec pari` (0814). Only a floated decimal
+            # value warrants recovering the fraction from the raw assignment.
+            if ctx_val is not None and re.fullmatch(r"-?\d+(?:/\d+)?", ctx_val.strip()):
+                return "(" + ctx_val.strip() + ")"
+            raw = self.raw_assigns.get(name) or self.raw_assigns.get(name.lower())
+            if raw is None:
+                return str(ctx_val if ctx_val is not None else m.group(0))
+            inner = re.fullmatch(r"\s*\$\[(.+)\]\s*", raw, re.DOTALL)
+            return "(" + self._rational_expand(inner.group(1) if inner else raw, depth + 1) + ")"
+
+        return _DOLLAR_VAR_RE.sub(repl, expr)
+
     def _expected_as_fraction(self, raw_good: str) -> str | None:
-        """If the replygood (`$[expr]` or a bare expr) is a pure rational that
-        evaluates to an exact non-integer fraction, return it as ``"p/q"``;
-        else None. Uses `fractions.Fraction` so `$[2/3]` stays `2/3` instead of
-        the decimal the float `$[…]` path produces — used for numeric answer
-        expected so auto-fill inserts the fraction."""
+        """If the replygood evaluates to an exact non-integer rational, return
+        it as ``"p/q"``; else None. Traces `$var` references back through their
+        raw assignments (via `_rational_expand`) so a fraction floated by an
+        intermediate `$[…]` — e.g. `replygood=$[$val9]`, `val9=$[$(val8[2])]`,
+        `val8[2]=3/4` (1022) — is recovered. Used for numeric answer expected
+        so auto-fill inserts the fraction (`3/4`) not the decimal (`0.75`)."""
         from fractions import Fraction  # noqa: PLC0415
 
         m = re.fullmatch(r"\s*\$\[(.+)\]\s*", raw_good, re.DOTALL)
         expr = (m.group(1) if m else raw_good)
-        expr = self._subst_for_arith(expr).replace("^", "**")
+        expr = self._rational_expand(expr).replace("^", "**")
         # Pure integer arithmetic with at least one division — no decimals,
         # functions, or symbols (those belong to the float / CAS paths).
         if "/" not in expr or not re.fullmatch(r"[\d\s+\-*/().]+", expr):
