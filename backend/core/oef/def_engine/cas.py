@@ -124,6 +124,22 @@ def _sympify_arg(s: str):
     return parse_expr(s.replace("^", "**"), transformations=transformations)
 
 
+def _maxima_num_str(result) -> str:
+    """Stringify a Maxima/SymPy result, trimming float noise. SymPy's
+    ``str(Float('7.5'))`` emits ``7.50000000000000``; real Maxima (and WIMS)
+    print ``7.5``. Integers stay integers; non-number results (symbols,
+    expressions, sets) pass through unchanged."""
+    import sympy  # noqa: PLC0415
+
+    if isinstance(result, sympy.Float):
+        from ..numfmt import format_wims_float  # noqa: PLC0415
+
+        return format_wims_float(float(result))
+    if isinstance(result, sympy.Integer):
+        return str(int(result))
+    return str(result)
+
+
 def _call_maxima(expr: str) -> str:
     """Evaluate a Maxima CAS expression using SymPy as a drop-in replacement."""
     import sympy  # noqa: PLC0415
@@ -269,7 +285,7 @@ def _call_maxima(expr: str) -> str:
             try:
                 sympy_func = getattr(sympy, sympy_func_name)
                 result = sympy_func(_sympify_arg(arg_str))
-                return str(result)
+                return _maxima_num_str(result)
             except Exception:
                 return clean
 
@@ -277,7 +293,7 @@ def _call_maxima(expr: str) -> str:
         result = sympy.simplify(_sympify_arg(clean))
         if result.is_number and result.is_integer:
             return str(int(result))
-        return str(result)
+        return _maxima_num_str(result)
     except Exception:
         return expr
 
