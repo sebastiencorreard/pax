@@ -24,7 +24,14 @@ def pretty_expected(expected: str, answer_type: str) -> str:
                 transformations=transformations,
                 local_dict={**_safe_locals(), "expand": sympy.expand, "factor": sympy.factor},
             )
-            return str(sympy.expand(expr))
+            result = sympy.expand(expr)
+            # A purely numeric expected (e.g. `0.87`) has nothing to expand, but
+            # the SymPy round-trip prints a Float with trailing-zero noise
+            # (`str(Float('0.87'))` → `0.870000000000000`). Format it noise-free.
+            if result.is_number and result.is_real:
+                from core.oef.numfmt import format_wims_float
+                return format_wims_float(float(result))
+            return str(result)
         except Exception:
             pass
     # Non-developed (factored, etc.) or non-polynomial: keep the stored form.
