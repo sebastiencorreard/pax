@@ -71,6 +71,38 @@ class TestColumnAndRangeSlice:
         assert e._cmd_column("3,1,2 of a,b,c;d,e,f") == "c,a,b\nf,d,e"
 
 
+class TestResolveAnalyzeExpected:
+    """Regression for ineqva1interv: `issametext` suffix matched as `sametext`,
+    leaving the captured value as the leftover "is"."""
+
+    def _df(self, **sections):
+        from types import SimpleNamespace
+        return SimpleNamespace(sections={k: v for k, v in sections.items()})
+
+    def test_issametext_not_captured_as_is(self):
+        from core.oef.def_parser import IfBlock
+        e = engine()
+        # `\({\cup}\) issametext $val40`: literal (parenthesised) operand, must
+        # resolve to "" — never the suffix "is" of "issametext".
+        cond = r"(\({\cup}\) issametext $val40) and ($val46=0)"
+        df = self._df(postdef=[IfBlock(kind="if", condition=cond)], test=[])
+        assert e._resolve_analyze_expected("val40", df) == ""
+
+    def test_valn_reference_still_resolves(self):
+        from core.oef.def_parser import IfBlock
+        e = engine()
+        e.ctx["val20"] = r"\(\rbrack\)"
+        df = self._df(test=[IfBlock(kind="if", condition="($val20 issametext $val22)")])
+        assert e._resolve_analyze_expected("val22", df) == r"\(\rbrack\)"
+
+    def test_empty_math_normalised(self):
+        from core.oef.def_parser import IfBlock
+        e = engine()
+        e.ctx["val34"] = r"\(\)"  # unused slot in a single-interval answer
+        df = self._df(postdef=[IfBlock(kind="if", condition="($val34 issametext $val41)")])
+        assert e._resolve_analyze_expected("val41", df) == ""
+
+
 # ── find_def_path ──────────────────────────────────────────────────────────────
 
 

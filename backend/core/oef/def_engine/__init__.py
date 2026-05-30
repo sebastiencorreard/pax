@@ -2617,7 +2617,10 @@ class DefEngine(_SlibMixin):
         # The operand is a single value that may be a `$(…)` reference (whose
         # own ")" must not truncate the match); exclude "(" so a parenthesised
         # clause `($val20 issametext $val22)` yields `$val20`, not `($val20`.
-        _op = r"(?:==?|issametext|sametext)"
+        # Word boundaries on the text comparators so `sametext` doesn't match
+        # the *suffix* of `issametext` / `notsametext` — which made `_val`
+        # capture the leftover "is" (ineqva1interv's union slot bug).
+        _op = r"(?:==?|\bissametext\b|\bsametext\b)"
         _val = r"(?:\$\([^()]*\)|[^\s()])+"
         pat_rhs = re.compile(rf"\${re.escape(var_name)}\b\s*{_op}\s*({_val})")
         pat_lhs = re.compile(rf"({_val})\s*{_op}\s*\${re.escape(var_name)}\b")
@@ -2649,11 +2652,17 @@ class DefEngine(_SlibMixin):
 
         # :test holds the comparison for most analyze exercises; ineqinterv1
         # puts it (and the difference assigns) in :postdef, so scan both.
-        return (
+        result = (
             walk(df.sections.get("test", []))
             or walk(df.sections.get("postdef", []))
             or ""
         )
+        # Empty inline math `\(\)` (an unused slot in a conditional exercise,
+        # e.g. ineqva1interv's 2nd interval for a single-interval answer) is
+        # really "no value" — return "" so auto-fill leaves the slot blank.
+        if not result.replace("\\(", "").replace("\\)", "").strip():
+            return ""
+        return result
 
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
