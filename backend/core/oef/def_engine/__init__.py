@@ -2612,15 +2612,24 @@ class DefEngine(_SlibMixin):
         the first match evaluated against the current ctx, or "" if
         none is found.
         """
-        from ..def_parser import IfBlock  # noqa: PLC0415
+        from ..def_parser import IfBlock, Assign  # noqa: PLC0415
         # Accept both `=` and WIMS text comparators (issametext / sametext).
         # The operand is a single value that may be a `$(…)` reference (whose
-        # own ")" must not truncate the match) — but stop at whitespace so a
-        # multi-clause condition (`$v = 5 and …`) still yields just `5`.
+        # own ")" must not truncate the match); exclude "(" so a parenthesised
+        # clause `($val20 issametext $val22)` yields `$val20`, not `($val20`.
         _op = r"(?:==?|issametext|sametext)"
-        _val = r"(?:\$\([^()]*\)|[^\s)])+"
+        _val = r"(?:\$\([^()]*\)|[^\s()])+"
         pat_rhs = re.compile(rf"\${re.escape(var_name)}\b\s*{_op}\s*({_val})")
         pat_lhs = re.compile(rf"({_val})\s*{_op}\s*\${re.escape(var_name)}\b")
+        # Difference-style check: the reply ($<var>) is compared via a
+        # `$<var> - $valX` (or `$valX - $<var>`) whose simplification :test then
+        # requires == 0 — so the other operand $valX is the expected value
+        # (ineqinterv1's bounds: `val26 = maxima($val23 - $val16)`).
+        _ref = r"(?:\$\w+|\$\([^()]*\))"
+        pat_sub = re.compile(
+            rf"\${re.escape(var_name)}\b\s*-\s*({_ref})"
+            rf"|({_ref})\s*-\s*\${re.escape(var_name)}\b"
+        )
 
         def walk(body: list) -> str | None:
             for instr in body:
@@ -2632,9 +2641,19 @@ class DefEngine(_SlibMixin):
                     sub = walk(instr.then_body) or walk(instr.else_body)
                     if sub:
                         return sub
+                elif isinstance(instr, Assign):
+                    sm = pat_sub.search(instr.value)
+                    if sm:
+                        return self._subst(sm.group(1) or sm.group(2)).strip()
             return None
 
-        return walk(df.sections.get("test", [])) or ""
+        # :test holds the comparison for most analyze exercises; ineqinterv1
+        # puts it (and the difference assigns) in :postdef, so scan both.
+        return (
+            walk(df.sections.get("test", []))
+            or walk(df.sections.get("postdef", []))
+            or ""
+        )
 
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []

@@ -103,6 +103,16 @@ const slotCounts = computed<Record<string, number>>(() => {
   const counts: Record<string, number> = {}
   for (const s of props.statementSegments) {
     if (s.type === 'slot') counts[s.name] = (counts[s.name] ?? 0) + 1
+    // Cf-slots embedded inside an html segment (e.g. a <table>) aren't `slot`
+    // segments — count them too so the replies→slots mirror (debug auto-fill,
+    // reset) populates them.
+    else if (s.type === 'html' && s.content.includes('<cf-slot')) {
+      const re = /<cf-slot\s+name="([^"]+)"/g
+      let m: RegExpExecArray | null
+      while ((m = re.exec(s.content)) !== null) {
+        counts[m[1]] = (counts[m[1]] ?? 0) + 1
+      }
+    }
   }
   return counts
 })
