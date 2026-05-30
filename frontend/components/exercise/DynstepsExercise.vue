@@ -53,28 +53,36 @@
 
 
           <div class="text-sm space-y-1 mt-1">
-            <div v-for="(step, i) in stepsHistory" :key="i"
-                 class="flex items-baseline gap-2 flex-wrap">
-              <span class="font-medium" style="color:var(--color-text)" v-html="step.labelHtml || step.label || $t('exercise.step_label', { n: step.step }) + ' :'"></span>
-              <!-- noanalyzeprint hides the *error* analysis only; a correct
-                   step still echoes what the student typed. -->
-              <span v-if="step.replyHtml && (!checkResult?.noanalyzeprint || step.correct)" v-html="step.replyHtml"></span>
-              <span v-if="checkResult?.noanalyzeprint && !step.correct" class="mx-1" style="color:var(--color-text-muted)">-</span>
-              <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
-                {{ $t('feedback.good') }}
-              </span>
-              <template v-else>
-                <span style="color:var(--color-error)" class="font-medium">
-                  {{ $t('feedback.bad') }}<template v-if="!checkResult?.noanalyzeprint">,</template>
-                </span>
-                <template v-if="!checkResult?.noanalyzeprint">
-                  <span style="color:var(--color-text)">
-                    {{ $t('feedback.expected') }}
-                  </span>
-                  <span v-if="step.expectedHtml" v-html="step.expectedHtml" style="color:var(--color-text)"></span>
-                </template>
-              </template>
+            <!-- Analyze (oui/non) : pas de détail par champ, juste OUI/NON. -->
+            <div v-if="isAnalyzeWhole" class="flex items-baseline gap-2">
+              <span class="font-medium" style="color:var(--color-text)">{{ $t('feedback.whole_label') }}</span>
+              <span v-if="checkResult.global_score === 1" style="color:var(--color-success)" class="font-medium">{{ $t('feedback.yes') }}</span>
+              <span v-else style="color:var(--color-error)" class="font-medium">{{ $t('feedback.no') }}</span>
             </div>
+            <template v-else>
+              <div v-for="(step, i) in stepsHistory" :key="i"
+                   class="flex items-baseline gap-2 flex-wrap">
+                <span class="font-medium" style="color:var(--color-text)" v-html="step.labelHtml || step.label || $t('exercise.step_label', { n: step.step }) + ' :'"></span>
+                <!-- noanalyzeprint hides the *error* analysis only; a correct
+                     step still echoes what the student typed. -->
+                <span v-if="step.replyHtml && (!checkResult?.noanalyzeprint || step.correct)" v-html="step.replyHtml"></span>
+                <span v-if="checkResult?.noanalyzeprint && !step.correct" class="mx-1" style="color:var(--color-text-muted)">-</span>
+                <span v-if="step.correct" style="color:var(--color-success)" class="font-medium">
+                  {{ $t('feedback.good') }}
+                </span>
+                <template v-else>
+                  <span style="color:var(--color-error)" class="font-medium">
+                    {{ $t('feedback.bad') }}<template v-if="!checkResult?.noanalyzeprint">,</template>
+                  </span>
+                  <template v-if="!checkResult?.noanalyzeprint">
+                    <span style="color:var(--color-text)">
+                      {{ $t('feedback.expected') }}
+                    </span>
+                    <span v-if="step.expectedHtml" v-html="step.expectedHtml" style="color:var(--color-text)"></span>
+                  </template>
+                </template>
+              </div>
+            </template>
           </div>
 
           <div v-if="checkResult?.feedback_html" class="mt-3 text-sm" v-html="checkResult.feedback_html"></div>
@@ -180,6 +188,14 @@ const hasRadioAnswers = computed(() =>
 
 const isCourse = computed(() => props.rendered?.exercise_type === 'course')
 const courseStopped = ref(false)
+
+// Analyze-checked exercises are all-or-nothing (a single combined :test
+// condition), so a per-field breakdown is misleading — show just OUI/NON like
+// WIMS, then the correction (feedback_html).
+const isAnalyzeWhole = computed(() =>
+  !!checkResult.value?.results.length &&
+  checkResult.value.results.every(r => r.method === 'analyze')
+)
 
 // Score helpers — a "step" may contain several inputs (e.g. csgb Q200 lays
 // out a Thales ratio as 4 fields reply10..reply13 inside one step). We must

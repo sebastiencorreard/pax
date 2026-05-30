@@ -55,7 +55,13 @@
         </div>
         
         <div class="text-sm space-y-1 mt-1">
-          <div v-for="(r, i) in checkResult.results" :key="r.input_name">
+          <!-- Analyze (oui/non) : all-or-nothing single check → just OUI/NON. -->
+          <div v-if="isAnalyzeWhole" class="flex items-baseline gap-2">
+            <span class="font-medium" style="color:var(--color-text)">{{ $t('feedback.whole_label') }}</span>
+            <span v-if="checkResult.global_score === 1" style="color:var(--color-success)" class="font-medium">{{ $t('feedback.yes') }}</span>
+            <span v-else style="color:var(--color-error)" class="font-medium">{{ $t('feedback.no') }}</span>
+          </div>
+          <div v-else v-for="(r, i) in checkResult.results" :key="r.input_name">
             <!-- correspond: render a mini-table of the correct pairs
                  instead of the generic "wrong, expected was X" text. -->
             <template v-if="answerType(r.input_name) === 'correspond'">
@@ -195,6 +201,12 @@ const allWrongAreCorrespond = computed(() => {
   if (wrongs.length === 0) return false
   return wrongs.every(r => answerType(r.input_name) === 'correspond')
 })
+
+// Analyze-checked exercises are all-or-nothing → show OUI/NON, not per-field.
+const isAnalyzeWhole = computed(() =>
+  !!checkResult.value?.results.length &&
+  checkResult.value.results.every(r => r.method === 'analyze')
+)
 
 const allFilled = computed(() => {
   if (!props.rendered) return false
