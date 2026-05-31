@@ -1213,6 +1213,15 @@ class TestCallMaxima:
         result = _call_maxima("expand((n + 2)*(n + 3))")
         assert "n**2" in result or "n^2" in result or "5*n" in result
 
+    def test_wims_capital_pi_constant(self):
+        # WIMS spells π as `Pi` (capital): both the arith eval (`$[rint(…+Pi)]`,
+        # quizz 1211) and the sympy path must treat it as the constant, not a
+        # free symbol/NameError.
+        e = engine()
+        assert e._eval_arith("rint(1.41421356237 + Pi)") == "5"
+        assert e._eval_arith("Pi") == "3.14159265359"
+        assert _call_maxima("Pi*2").startswith(("6.28318", "2*pi"))
+
     def test_expand_with_minus(self):
         result = _call_maxima("expand(-(n + 2)*(n + 3))")
         assert "n**2" in result or "n^2" in result

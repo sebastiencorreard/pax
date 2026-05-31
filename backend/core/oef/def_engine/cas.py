@@ -66,6 +66,10 @@ _MATH_NS: dict = {
     "floor": math.floor,
     "ceil": math.ceil,
     "pi": math.pi,
+    # WIMS also spells π as `Pi` (capital) — e.g. quizz 1211's matrix
+    # `quest=e,Pi,sqrt(2)`; without it `$[rint(…+Pi)]` raised NameError and the
+    # literal `rint(1.414…+Pi)` leaked into the expected answer.
+    "Pi": math.pi,
     "e": math.e,
     "mod": lambda a, b: float(a) % float(b),
     "fact": math.factorial,
@@ -121,7 +125,12 @@ def _sympify_arg(s: str):
     s = s.replace("+-", "-").replace("-+", "-").replace("--", "+").replace("++", "+")
     
     transformations = standard_transformations + (implicit_multiplication_application,)
-    return parse_expr(s.replace("^", "**"), transformations=transformations)
+    # WIMS spells π as `Pi` (capital); map it to the constant so it isn't parsed
+    # as a free symbol (sympy already knows lowercase `pi`/`E`).
+    return parse_expr(
+        s.replace("^", "**"), transformations=transformations,
+        local_dict={"Pi": sympy.pi},
+    )
 
 
 def _maxima_num_str(result) -> str:
