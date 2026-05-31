@@ -140,6 +140,67 @@ def _maxima_num_str(result) -> str:
     return str(result)
 
 
+def _split_equation(eq_s: str) -> tuple[str, str]:
+    """Split ``lhs=rhs`` on the top-level ``=`` into ``(lhs, rhs)``.
+
+    A bare expression (no top-level ``=``) is taken as ``expr = 0``. Brackets
+    protect an inner ``=`` (none expected here, but keeps it robust).
+    """
+    depth = 0
+    for i, ch in enumerate(eq_s):
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "=" and depth == 0:
+            return eq_s[:i], eq_s[i + 1:]
+    return eq_s, "0"
+
+
+def _numeric_root_in_interval(fexpr, var, a: float, b: float, n: int = 400):
+    """Numeric root of ``fexpr`` (in ``var``) within ``[a, b]``, or None.
+
+    Scans the interval for a sign change then bisects — robust for the smooth
+    curves WIMS' ``solve(eq, x=a..b)`` is used on (e.g. placing a label where
+    f(x)=k). Returns the first root found.
+    """
+    import sympy  # noqa: PLC0415
+
+    f = sympy.lambdify(var, fexpr, modules=["math"])
+    if b < a:
+        a, b = b, a
+    step = (b - a) / n
+    prev_x = a
+    try:
+        prev_y = float(f(a))
+    except Exception:
+        prev_y = None
+    for i in range(1, n + 1):
+        xx = a + i * step
+        try:
+            yy = float(f(xx))
+        except Exception:
+            prev_x, prev_y = xx, None
+            continue
+        if prev_y is not None and prev_y == prev_y and yy == yy:
+            if prev_y == 0.0:
+                return prev_x
+            if prev_y * yy < 0:
+                lo, hi, ylo = prev_x, xx, prev_y
+                for _ in range(60):
+                    mid = (lo + hi) / 2.0
+                    ym = float(f(mid))
+                    if ym == 0.0:
+                        return mid
+                    if ylo * ym < 0:
+                        hi = mid
+                    else:
+                        lo, ylo = mid, ym
+                return (lo + hi) / 2.0
+        prev_x, prev_y = xx, yy
+    return None
+
+
 def _call_maxima(expr: str) -> str:
     """Evaluate a Maxima CAS expression using SymPy as a drop-in replacement."""
     import sympy  # noqa: PLC0415

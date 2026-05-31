@@ -31,6 +31,7 @@ from ..numfmt import format_wims_float
 from ..i18n import uses_comma_decimal
 from ..def_parser import (
     Assign,
+    Command,
     DefFile,
     ForLoop,
     IfBlock,
@@ -395,6 +396,11 @@ class DefEngine(_SlibMixin):
                 val = self._eval_value(instr.value)
                 self.ctx[instr.name] = val
                 self.raw_assigns[instr.name] = instr.value
+
+            elif isinstance(instr, Command):
+                # Standalone ctx-mutating command (!distribute/!reset/…); the
+                # handler substitutes its own args and writes to ctx.
+                self._eval_cmd(instr.cmd, instr.args)
 
             elif isinstance(instr, IfBlock):
                 cond = self._eval_condition(instr.kind, instr.condition)
@@ -1007,6 +1013,9 @@ class DefEngine(_SlibMixin):
                     # case-insensitive match for the variable key
                     expr = re.sub(rf"\b{re.escape(k)}\b", v, expr, flags=re.IGNORECASE)
             return expr
+
+        if cmd == "solve":
+            return self._cmd_solve(args)
 
         if cmd == "listuniq":
             return self._cmd_listuniq(args)
@@ -1850,6 +1859,38 @@ class DefEngine(_SlibMixin):
         """
         for var in self._subst(args.strip()).split():
             self.ctx[var] = ""
+
+    def _cmd_solve(self, args: str) -> str:
+        """!solve EXPR for VAR = LO to HI — numeric root of EXPR in [LO, HI].
+
+        EXPR is an equation ``lhs=rhs`` (bare expr taken ``=0``). WIMS' OEF
+        ``solve(eq, x=a..b)`` compiles to this; quizz 1120 uses it to place the
+        ``(Cf)`` label where ``f(x)=y0+1``. Returns the root, or "" if none.
+        """
+        m = re.match(r"(.*?)\s+for\s+(\w+)\s*=\s*(.*?)\s+to\s+(.*)$", args, re.I | re.DOTALL)
+        if not m:
+            return ""
+        eq_s = self._subst(m.group(1)).strip()
+        var_name = m.group(2).strip()
+        try:
+            lo = float(self._eval_arith(m.group(3)))
+            hi = float(self._eval_arith(m.group(4)))
+        except (ValueError, TypeError):
+            return ""
+        import sympy  # noqa: PLC0415
+        from .cas import (  # noqa: PLC0415
+            _maxima_num_str,
+            _numeric_root_in_interval,
+            _split_equation,
+            _sympify_arg,
+        )
+        try:
+            lhs, rhs = _split_equation(eq_s)
+            fexpr = _sympify_arg(lhs) - _sympify_arg(rhs)
+            root = _numeric_root_in_interval(fexpr, sympy.Symbol(var_name), lo, hi)
+        except Exception:
+            return ""
+        return _maxima_num_str(sympy.Float(root)) if root is not None else ""
 
     def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:
         """Generic N-of-LIST picker (port of _blockof in calc.c).

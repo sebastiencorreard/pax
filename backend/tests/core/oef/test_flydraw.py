@@ -372,3 +372,23 @@ class TestFlydrawText:
         svg = flydraw_to_svg(100, 100, "range -5,5,-5,5\ntext black,0,0,normal,0.4 \\unit")
         assert ">0.4</text>" in svg
         assert "unit" not in svg
+
+    def test_leading_space_nudges_label_right(self):
+        # WIMS uses a leading space (` (Cf)`) to offset a label right of its
+        # anchor; SVG collapses it, so we apply an x-offset (quizz 1120).
+        import re
+        base = flydraw_to_svg(200, 200, "xrange 0,3\nyrange 0,5\ntext black,1,3,medium,(Cf)")
+        nudged = flydraw_to_svg(200, 200, "xrange 0,3\nyrange 0,5\ntext black,1,3,medium, (Cf)")
+        x0 = float(re.search(r'<text x="([\d.]+)"', base).group(1))
+        x1 = float(re.search(r'<text x="([\d.]+)"', nudged).group(1))
+        assert x1 > x0
+        assert ">(Cf)</text>" in nudged  # the space itself isn't rendered
+
+
+class TestFlydrawPlot:
+    def test_plot_implicit_multiplication(self):
+        # WIMS tangents like `1(x-2)+2` (from `\z2(x-\x2)+\y2`) use implicit
+        # multiplication; bare sympify reads `1(...)` as a call and drops the
+        # line. The curve must still render (quizz 1120 tangent).
+        svg = flydraw_to_svg(200, 200, "xrange -1,4\nyrange -1,5\nplot black,1(x-2)+2")
+        assert svg.count("<polyline") == 1

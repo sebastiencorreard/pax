@@ -29,6 +29,19 @@ class Assign:
 
 
 @dataclass
+class Command:
+    """A standalone ``!cmd args`` line that mutates the variable dict.
+
+    No ``=`` target (those are ``Assign``); executed for its ctx side effects,
+    e.g. ``!distribute items $tmp into a,b,c`` (quizz 1120 feeds the ``!solve``
+    that positions the (Cf) label).
+    """
+
+    cmd: str
+    args: str
+
+
+@dataclass
 class IfBlock:
     """!if / !ifval conditional block."""
 
@@ -433,6 +446,16 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
                 instructions.append(Assign(name=name, value=value))
                 i += 1
                 continue
+
+        # Standalone ctx-mutating commands (no `=` target): they set variables
+        # used downstream, so they must execute — not be skipped. E.g. quizz
+        # 1120's `!distribute items $tmp into tmp1,tmp2,tmp3` feeds the `!solve`
+        # that places the (Cf) label.
+        m_cmd = re.match(r"!(distribute|reset|bound|advance|default)\b\s*(.*)$", line, re.I | re.DOTALL)
+        if m_cmd:
+            instructions.append(Command(cmd=m_cmd.group(1).lower(), args=m_cmd.group(2)))
+            i += 1
+            continue
 
         # If it's not a command and not an assignment, it's raw text/HTML to be output
         if not line.startswith("!") and line:

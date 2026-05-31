@@ -245,6 +245,29 @@ class TestSlibHelpers:
         assert e.ctx["b"] == "1"
         assert e.ctx["c"] == "readonly theme=[x,y]"
 
+    def test_solve_command_numeric_root(self):
+        # !solve EQ for VAR = LO to HI — numeric root in the interval (quizz
+        # 1120 places its (Cf) label this way). OEF `solve(eq, x=a..b)` compiles
+        # to this command.
+        e = engine()
+        assert e._eval_cmd("solve", "x^2-2=0 for x = 1 to 2").startswith("1.41421")
+        # No sign change in the interval → empty (label coord left blank).
+        assert e._eval_cmd("solve", "x^2+1=0 for x = 0 to 1") == ""
+
+    def test_standalone_distribute_command_executes(self):
+        # A bare `!distribute` line (no `=` target) must run, not be skipped —
+        # it feeds downstream vars (quizz 1120's solve setup).
+        from core.oef.def_parser import Command
+        e = engine()
+        e.ctx["src"] = "a=1,x=0.1,0.9"
+        e._exec([Command(cmd="distribute", args="items $src into t1,t2,t3")], None)
+        assert e.ctx["t1"] == "a=1" and e.ctx["t2"] == "x=0.1" and e.ctx["t3"] == "0.9"
+
+    def test_parser_keeps_standalone_ctx_commands(self):
+        from core.oef.def_parser import _parse_instructions, Command
+        instrs, _ = _parse_instructions(["!distribute items $tmp into a,b,c"], 0)
+        assert any(isinstance(i, Command) and i.cmd == "distribute" for i in instrs)
+
     def test_bound_clamps_to_default(self):
         e = engine()
         e.ctx["v"] = "weird"

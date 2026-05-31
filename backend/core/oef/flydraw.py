@@ -240,9 +240,9 @@ def _split_args(arg_str: str) -> list[str]:
         elif ch in ")]":
             depth = max(0, depth - 1)
         elif ch == "," and depth == 0:
-            args.append(arg_str[start:i].strip())
+            args.append(arg_str[start:i].rstrip())
             start = i + 1
-    args.append(arg_str[start:].strip())
+    args.append(arg_str[start:].rstrip())
     return args
 
 
@@ -694,15 +694,21 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     x, y = _num(args[1]), _num(args[2])
     size = _font_size(args[3])
     # Content may contain commas — re-join the tail
-    content = ",".join(args[4:]).strip()
+    raw_content = ",".join(args[4:])
+    # WIMS nudges a label right of its anchor with leading spaces (e.g.
+    # ` (Cf)` so it sits beside the curve, not on it). SVG collapses leading
+    # whitespace, so turn it into a small x-offset (~⅓ em per space) instead.
+    lead = len(raw_content) - len(raw_content.lstrip(" "))
+    content = raw_content.strip()
     # Drop leftover WIMS variable refs (\name) that were undefined: WIMS renders
     # them empty (e.g. `\c \unit` → "0.4" when `unit` is unset). flydraw text is
     # plain (never LaTeX), so a residual backslash-word is such a ref, not a
     # command.
     content = re.sub(r"\\[A-Za-z]\w*", "", content)
     content = re.sub(r"\s{2,}", " ", content).strip()
+    x_px = state.px(x) + lead * size * 0.3
     state.elements.append(
-        f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
+        f'<text x="{x_px:.2f}" y="{state.py(y):.2f}" fill="{color}" '
         f'font-size="{size}" font-family="sans-serif" '
         f'text-anchor="start" dominant-baseline="hanging">'
         f"{_xml_escape(content)}</text>"
@@ -1540,7 +1546,17 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
         return
     try:
         x_sym = sympy.Symbol("x")
-        expr = sympy.sympify(formula.replace("^", "**"))
+        # Parse with implicit multiplication so WIMS tangents like `1(x-2)+2`
+        # (from `\z2(x-\x2)+\y2`) work — bare sympify reads `1(...)` as a call
+        # and rejects it, dropping the curve (quizz 1120 tangent). Done with
+        # sympy directly to avoid importing the def_engine (circular).
+        from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+        transformations = standard_transformations + (implicit_multiplication_application,)
+        expr = parse_expr(formula.replace("^", "**"), transformations=transformations)
         f = sympy.lambdify(x_sym, expr, modules=["math"])
     except Exception:
         return
