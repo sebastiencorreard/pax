@@ -84,6 +84,13 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     # content like `85 \times 10^27` that skips the CAS path below.
     s = _wrap_katex_exponents(s)
 
+    # WIMS scientific notation often juxtaposes mantissa and power of ten with a
+    # bare space (`5 10^2`, from `\c4 10^\m4`); KaTeX collapses that space so it
+    # reads `510^2`. Make the implied product explicit — matching the corpus'
+    # usual `\times 10^` form. Done before the brace bail below so it also fixes
+    # content already braced into `10^{-2}` by _wrap_katex_exponents.
+    s = re.sub(r"(\d)\s+(10\^)", r"\1 \\times \2", s)
+
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
