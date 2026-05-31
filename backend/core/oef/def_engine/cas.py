@@ -66,10 +66,13 @@ _MATH_NS: dict = {
     "floor": math.floor,
     "ceil": math.ceil,
     "pi": math.pi,
-    # WIMS also spells π as `Pi` (capital) — e.g. quizz 1211's matrix
-    # `quest=e,Pi,sqrt(2)`; without it `$[rint(…+Pi)]` raised NameError and the
-    # literal `rint(1.414…+Pi)` leaked into the expected answer.
+    # WIMS also spells π as `Pi` and `PI` — its evalue.c constant table lists
+    # all three (`pi`/`Pi`/`PI` → M_PI). Without them `$[rint(…*PI)]` raised
+    # NameError and the literal expression leaked into the expected answer
+    # (`Pi`: quizz 1211's matrix `quest=e,Pi,sqrt(2)`; `PI`: quizz 1221's
+    # `$[rint(($val9)*cos($val8*PI))]`).
     "Pi": math.pi,
+    "PI": math.pi,
     "e": math.e,
     "mod": lambda a, b: float(a) % float(b),
     "fact": math.factorial,

@@ -131,8 +131,69 @@ export function useKatex() {
   // Normalise une expression OEF/SymPy en LaTeX : ** → ^, * → \times (croix),
   // sauf devant une lettre ou une parenthèse ouvrante où la multiplication
   // est implicite : 5*v → 5v, )*( → )(, mais 2*3 → 2 \times 3.
+  // WIMS matrix notation. In WIMS math (texmath.c, t_onefactor) a bracket
+  // group `[…]` that contains a top-level ';' or ',' is a matrix: ';' starts a
+  // new row, ',' a new column. A column vector `\([7;5]\)` thus typesets as a
+  // 2×1 pmatrix — exactly what e.g. the H3 quizz "vecteurs colinéaires"
+  // question expects. Bracket groups without a top-level separator are left
+  // as ordinary delimiters. ',' / ';' nested in inner ()/[]/{} are part of a
+  // cell, never separators (matches WIMS' nesting-aware find_matching).
+  function matchingBracket(s: string, start: number, close: string): number {
+    let paren = 0, brak = 0, brace = 0
+    for (let i = start; i < s.length; i++) {
+      const ch = s[i]
+      if (ch === '[') brak++
+      else if (ch === ']') brak--
+      else if (ch === '(') paren++
+      else if (ch === ')') paren--
+      else if (ch === '{') brace++
+      else if (ch === '}') brace--
+      else continue
+      if (paren < 0 || brak < 0 || brace < 0)
+        return (ch === close && paren <= 0 && brak <= 0 && brace <= 0) ? i : -1
+    }
+    return -1
+  }
+  function splitTopLevel(s: string, sep: string): string[] {
+    const parts: string[] = []
+    let paren = 0, brak = 0, brace = 0, start = 0
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i]
+      if (ch === '(') paren++
+      else if (ch === ')') paren--
+      else if (ch === '[') brak++
+      else if (ch === ']') brak--
+      else if (ch === '{') brace++
+      else if (ch === '}') brace--
+      else if (ch === sep && paren === 0 && brak === 0 && brace === 0) {
+        parts.push(s.slice(start, i)); start = i + 1
+      }
+    }
+    parts.push(s.slice(start))
+    return parts
+  }
+  // Only a *standalone* bracket (the whole math span) is a vector/matrix —
+  // `\([7;5]\)`. A bracket embedded in a larger expression is interval/list
+  // notation and stays literal: `\(x \in [2;5]\)` (French interval, quizz 1222).
+  // KaTeX never reads `[a;b]` as a matrix on its own, so leaving it is correct.
+  function wimsMatrix(expr: string): string {
+    const s = expr.trim()
+    if (!(s.startsWith('[') && s.endsWith(']'))) return expr
+    if (matchingBracket(s, 1, ']') !== s.length - 1) return expr  // not a single group
+    const inner = s.slice(1, -1)
+    const rows = splitTopLevel(inner, ';')
+    if (rows.length <= 1 && splitTopLevel(inner, ',').length <= 1) return expr
+    const body = rows
+      .map(row => splitTopLevel(row, ',').map(c => wimsMatrix(c.trim())).join(' & '))
+      .join(' \\\\ ')
+    return `\\begin{pmatrix}${body}\\end{pmatrix}`
+  }
+
   function normalizeMath(expr: string): string {
     expr = decodeHtmlEntitiesForLatex(expr)
+    // WIMS matrix brackets → pmatrix. Run early so column-separator commas are
+    // consumed here, before decimalComma would touch a `\d,\d` pair.
+    expr = wimsMatrix(expr)
     // Drop a stray backslash before a lone lowercase variable, e.g. WIMS's
     // `\(\x^2\)` → `x^2`. The lookahead `(?![a-zA-Z])` spares real commands
     // (`\frac`, `\sqrt`, `\left`…), and limiting to lowercase spares the valid

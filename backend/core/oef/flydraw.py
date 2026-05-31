@@ -71,10 +71,10 @@ _COLORS: dict[str, str] = {
     "deeppink": "#ff1493",
     "fuchsia": "#ff00ff",
     "gold": "#ffd700",
-    "gray": "#808080",
+    "gray": "#bebebe",
     "green": "#008000",
     "greenyellow": "#adff2f",
-    "grey": "#808080",
+    "grey": "#bebebe",
     "indigo": "#4b0082",
     "khaki": "#f0e68c",
     "lavender": "#e6e6fa",
@@ -120,11 +120,15 @@ _COLORS: dict[str, str] = {
     "yellowgreen": "#9acd32",
 }
 
+# WIMS flydraw uses GD built-in bitmap fonts; these px values approximate each
+# font's glyph height: gdFontSmall ≈ 12, gdFontMediumBold ≈ 13, gdFontLarge ≈ 16,
+# gdFontGiant ≈ 15. PAX previously mapped `giant` to 22, making labels like the
+# "(d)" line tag noticeably larger than WIMS.
 _FONT_SIZES: dict[str, float] = {
     "small": 10,
     "medium": 12,
     "large": 16,
-    "giant": 22,
+    "giant": 16,
 }
 
 
@@ -145,6 +149,14 @@ def _font_size(s: str) -> float:
         return float(s)
     except ValueError:
         return _FONT_SIZES["medium"]
+
+
+def _font_weight(s: str) -> str:
+    # WIMS' GD font table maps only `medium` to a *bold* face (gdFontMediumBold);
+    # tiny/small/large/giant/huge are regular. So bold the `medium` labels (e.g.
+    # axis numbers in quizz 1216) but leave `large`/`giant` (axis numbers in
+    # 0406, the "(d)" tag) at normal weight.
+    return "bold" if (s or "").strip().lower() == "medium" else "normal"
 
 
 import math as _math  # noqa: E402
@@ -271,7 +283,7 @@ class _State:
     ymin: float = -5.0
     ymax: float = 5.0
     linewidth: float = 1.0
-    crosshairsize: float = 8.0  # WIMS default
+    crosshairsize: float = 4.0  # WIMS global `width2` default (full × extent = 2·this)
     # Font state for string / stringup (separate from text which takes a font arg).
     # CSS-shorthand parts; defaults match WIMS (12px sans-serif).
     font_size: str = "12px"
@@ -712,12 +724,13 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     color = _color(args[0])
     x, y = _num(args[1]), _num(args[2])
     size = _font_size(args[3])
+    weight = _font_weight(args[3])
     # Content may contain commas — re-join the tail
     raw_content = ",".join(args[4:])
-    # WIMS nudges a label right of its anchor with leading spaces (e.g.
-    # ` (Cf)` so it sits beside the curve, not on it). SVG collapses leading
-    # whitespace, so turn it into a small x-offset (~⅓ em per space) instead.
-    lead = len(raw_content) - len(raw_content.lstrip(" "))
+    # WIMS draws the string at the raw (x, y) as top-left, after stripping
+    # leading/trailing whitespace (obj_string: find_word_start + strip_trailing).
+    # So a leading space (e.g. ` \a2` in the repérage exercises, or ` (Cf)`) is
+    # NOT a rightward nudge — matching that keeps axis numbers under their tick.
     content = raw_content.strip()
     # Drop leftover WIMS variable refs (\name) that were undefined: WIMS renders
     # them empty (e.g. `\c \unit` → "0.4" when `unit` is unset). flydraw text is
@@ -725,10 +738,9 @@ def _cmd_text(state: _State, args: list[str]) -> None:
     # command.
     content = re.sub(r"\\[A-Za-z]\w*", "", content)
     content = re.sub(r"\s{2,}", " ", content).strip()
-    x_px = state.px(x) + lead * size * 0.3
     state.elements.append(
-        f'<text x="{x_px:.2f}" y="{state.py(y):.2f}" fill="{color}" '
-        f'font-size="{size}" font-family="sans-serif" '
+        f'<text x="{state.px(x):.2f}" y="{state.py(y):.2f}" fill="{color}" '
+        f'font-size="{size}" font-family="sans-serif" font-weight="{weight}" '
         f'text-anchor="start" dominant-baseline="hanging">'
         f"{_xml_escape(content)}</text>"
     )
@@ -744,13 +756,14 @@ def _cmd_textup(state: _State, args: list[str]) -> None:
     color = _color(args[0])
     x, y = _num(args[1]), _num(args[2])
     size = _font_size(args[3])
+    weight = _font_weight(args[3])
     content = ",".join(args[4:]).strip()
     content = re.sub(r"\\[A-Za-z]\w*", "", content)
     content = re.sub(r"\s{2,}", " ", content).strip()
     cx, cy = state.px(x), state.py(y)
     state.elements.append(
         f'<text x="{cx:.2f}" y="{cy:.2f}" fill="{color}" '
-        f'font-size="{size}" font-family="sans-serif" '
+        f'font-size="{size}" font-family="sans-serif" font-weight="{weight}" '
         f'text-anchor="start" dominant-baseline="hanging" '
         f'transform="rotate(-90, {cx:.2f}, {cy:.2f})">'
         f"{_xml_escape(content)}</text>"
@@ -1407,8 +1420,10 @@ def _cmd_size(state: _State, args: list[str]) -> None:
 
 
 def _crosshair_svg(state: _State, x: float, y: float, color: str) -> str:
-    # WIMS crosshair = small "×" centered on (x, y), size in pixels (default 8).
-    s = state.crosshairsize / 2
+    # WIMS crosshair = "×" centered on (x, y). `crosshairsize` is the half-length
+    # (radius): WIMS draws each branch from (x-size, y-size) to (x+size, y+size),
+    # i.e. full extent = 2·size (see canvasdraw draw_crosshairs). Don't halve it.
+    s = state.crosshairsize
     cx, cy = state.px(x), state.py(y)
     return (
         f'<line x1="{cx - s:.2f}" y1="{cy - s:.2f}" '

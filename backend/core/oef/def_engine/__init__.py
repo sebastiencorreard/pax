@@ -7,6 +7,7 @@ question= text), extracts answer metadata, and returns an ExerciseRender.
 
 from __future__ import annotations
 
+import math
 import os
 import random
 import re
@@ -25,7 +26,12 @@ from .cas import (
     _sympify_arg,
     _expr_to_latex,
 )
-from .presentation import _close_inline_math, _normalize_math_content, localize_decimals
+from .presentation import (
+    _close_inline_math,
+    _normalize_math_content,
+    localize_decimals,
+    wims_matrices_to_latex,
+)
 from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
 from ..numfmt import format_wims_float
 from ..i18n import uses_comma_decimal
@@ -332,6 +338,15 @@ class DefEngine(_SlibMixin):
             widget_names = {
                 s["name"] for s in segments if s["type"] in ("input", "slot", "menu")
             }
+
+        # WIMS matrix-bracket notation → LaTeX pmatrix, inside `\(…\)` math.
+        # Runs for every locale and *before* the decimal localisation below so
+        # a column vector's structural `;`/`,` is consumed while numbers are
+        # still dot-decimal (otherwise a localised `1,2` decimal would be split
+        # into two columns — see presentation.wims_matrices_to_latex).
+        for seg in segments:
+            if seg.get("type") == "html":
+                seg["content"] = wims_matrices_to_latex(seg["content"])
 
         # Locale-aware decimal display for the statement (comma-decimal
         # languages): localise bare numbers in the text / table (e.g.
@@ -736,18 +751,68 @@ class DefEngine(_SlibMixin):
 
     @staticmethod
     def _split_rows_by_semi(value: str) -> list[str]:
-        """Split by ';' while preserving ';' that closes an HTML entity (&#40; &amp; …).
+        """Split by ';' at bracket depth 0, mirroring WIMS' rows2lines().
 
-        WIMS data files may contain HTML-encoded characters like &#40; (left paren)
-        whose closing ';' would otherwise be mistaken for a row separator.
+        WIMS (liblines.c rows2lines) treats a ';' as a matrix-row separator
+        only when it sits outside any (), [], {} group and outside an HTML
+        entity (&alpha; / &#58;). A ';' nested in brackets — e.g. the
+        column-vector display ``\\([7;5]\\)`` — or one closing an HTML entity
+        is part of the cell, not a separator. Unbalanced brackets fall back to
+        a literal ';' (find_matching returns nothing, scan keeps going), again
+        matching the C source.
         """
-        _PH = "\x01"
-        protected = re.sub(
-            r"(&(?:#x?[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*));",
-            lambda mm: mm.group(1) + _PH,
-            value,
-        )
-        return [p.replace(_PH, ";") for p in protected.split(";")]
+        close_of = {"(": ")", "[": "]", "{": "}"}
+
+        def find_matching(start: int, close: str) -> int:
+            """Index of the nesting-aware match for ``close``, or -1."""
+            parenth = brak = brace = 0
+            for i in range(start, len(value)):
+                ch = value[i]
+                if ch == "[":
+                    brak += 1
+                elif ch == "]":
+                    brak -= 1
+                elif ch == "(":
+                    parenth += 1
+                elif ch == ")":
+                    parenth -= 1
+                elif ch == "{":
+                    brace += 1
+                elif ch == "}":
+                    brace -= 1
+                else:
+                    continue
+                if parenth < 0 or brak < 0 or brace < 0:
+                    if ch != close or parenth > 0 or brak > 0 or brace > 0:
+                        return -1
+                    return i
+            return -1
+
+        rows: list[str] = []
+        n = len(value)
+        start = i = 0
+        while i < n:
+            ch = value[i]
+            if ch in close_of:
+                j = find_matching(i + 1, close_of[ch])
+                i = (j + 1) if j != -1 else (i + 1)
+            elif ch == ";":
+                rows.append(value[start:i])
+                start = i = i + 1
+            elif ch == "&" and i + 1 < n and value[i + 1].isalpha():
+                j = i + 1
+                while j < n and value[j].isalpha() and j - i < 14:
+                    j += 1
+                i = j + 1  # WIMS skips the entity's terminating ';' too
+            elif ch == "&" and i + 1 < n and value[i + 1] == "#":
+                j = i + 2
+                while j < n and value[j].isdigit() and j - i < 6:
+                    j += 1
+                i = j + 1
+            else:
+                i += 1
+        rows.append(value[start:])
+        return rows
 
     def _resolve_indexed2(self, m: re.Match) -> str:
         """Resolve $(var[n;m]) — row n, column m. Supports a list of row indices."""
@@ -1871,38 +1936,6 @@ class DefEngine(_SlibMixin):
         for var in self._subst(args.strip()).split():
             self.ctx[var] = ""
 
-    def _cmd_solve(self, args: str) -> str:
-        """!solve EXPR for VAR = LO to HI — numeric root of EXPR in [LO, HI].
-
-        EXPR is an equation ``lhs=rhs`` (bare expr taken ``=0``). WIMS' OEF
-        ``solve(eq, x=a..b)`` compiles to this; quizz 1120 uses it to place the
-        ``(Cf)`` label where ``f(x)=y0+1``. Returns the root, or "" if none.
-        """
-        m = re.match(r"(.*?)\s+for\s+(\w+)\s*=\s*(.*?)\s+to\s+(.*)$", args, re.I | re.DOTALL)
-        if not m:
-            return ""
-        eq_s = self._subst(m.group(1)).strip()
-        var_name = m.group(2).strip()
-        try:
-            lo = float(self._eval_arith(m.group(3)))
-            hi = float(self._eval_arith(m.group(4)))
-        except (ValueError, TypeError):
-            return ""
-        import sympy  # noqa: PLC0415
-        from .cas import (  # noqa: PLC0415
-            _maxima_num_str,
-            _numeric_root_in_interval,
-            _split_equation,
-            _sympify_arg,
-        )
-        try:
-            lhs, rhs = _split_equation(eq_s)
-            fexpr = _sympify_arg(lhs) - _sympify_arg(rhs)
-            root = _numeric_root_in_interval(fexpr, sympy.Symbol(var_name), lo, hi)
-        except Exception:
-            return ""
-        return _maxima_num_str(sympy.Float(root)) if root is not None else ""
-
     def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:
         """Generic N-of-LIST picker (port of _blockof in calc.c).
 
@@ -2260,10 +2293,15 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_solve(self, args: str) -> str:
-        """!solve EXPR for VAR = START to END — find root of EXPR=0 in [START,END].
+        """!solve EXPR for VAR = START to END — ALL real roots of EXPR=0 in [START,END].
 
-        Uses bisection. Returns the root as a decimal string, or '' if not found.
-        EXPR may contain '=' (treated as LHS-RHS=0).
+        Faithful port of WIMS ``calc.c:calc_solve``: scan the interval in 100
+        steps, detect every sign change between consecutive samples, refine each
+        by 30 bisection steps, and return the roots as a comma-separated list.
+        This is what ``!itemcnt`` then counts — e.g. quizz 1218 "nombre de
+        solutions de f'(x)=0" (4 extrema). A range with a single root (quizz
+        1120's ``(Cf)`` position, used as a scalar via ``$[…]``) just yields a
+        one-element list. EXPR may be an equation ``lhs=rhs`` (taken as lhs-rhs).
         """
         m = re.match(r"(.*?)\s+for\s+(\w+)\s*=\s*(.*?)\s+to\s+(.*)", args, re.I | re.DOTALL)
         if not m:
@@ -2283,34 +2321,65 @@ class DefEngine(_SlibMixin):
         else:
             expr_py = expr_raw.replace("^", "**")
 
+        try:
+            code = compile(expr_py, "<solve>", "eval")
+        except SyntaxError:
+            return ""
         ns = dict(_MATH_NS)
 
         def f(v: float) -> float:
             ns[var] = v
             try:
-                return float(eval(expr_py, ns))
+                return float(eval(code, ns))
             except Exception:
                 return float("nan")
 
-        # Bisection with 50 steps
-        fa, fb = f(start), f(stop)
-        if fa != fa or fb != fb:  # NaN check
+        if start > stop:
+            start, stop = stop, start
+        step = (stop - start) / 100.0
+        if step == 0:
             return ""
-        if fa * fb > 0:
-            return ""  # no sign change
-        for _ in range(50):
-            mid = (start + stop) / 2
-            fm = f(mid)
-            if fm != fm or abs(stop - start) < 1e-12:
-                break
-            if fa * fm <= 0:
-                stop, fb = mid, fm
-            else:
-                start, fa = mid, fm
-        result = (start + stop) / 2
-        if result == int(result):
-            return str(int(result))
-        return f"{result:.6g}"
+
+        def _fmt(v: float) -> str:
+            r = round(v, 6)
+            return str(int(r)) if r == int(r) else f"{r:.6g}"
+
+        roots: list[str] = []
+        prev = f(start)
+        for i in range(1, 101):
+            v = start + i * step
+            dd = f(v)
+            if (
+                not math.isfinite(prev)
+                or not math.isfinite(dd)
+                or (prev > 0 and dd > 0)
+                or (prev < 0 and dd < 0)
+            ):
+                prev = dd
+                continue
+            # an exact-zero sample is refined at the *next* boundary (skip now,
+            # unless it's the last point) — mirrors WIMS' `if(dd==0 && v<stop)`.
+            if dd == 0 and v < stop:
+                prev = dd
+                continue
+            # sign change in [v-step, v] → 30-step bisection
+            v1, v2, d1 = v - step, v, prev
+            v3 = v1
+            ok = True
+            for _ in range(30):
+                v3 = (v1 + v2) / 2
+                d3 = f(v3)
+                if not math.isfinite(d3):
+                    ok = False
+                    break
+                if (d1 > 0 and d3 > 0) or (d1 < 0 and d3 < 0):
+                    d1, v1 = d3, v3
+                else:
+                    v2 = v3
+            if ok:
+                roots.append(_fmt(v3))
+            prev = dd
+        return ",".join(roots)
 
     # ── Section rendering ─────────────────────────────────────────────────────
 
@@ -2377,6 +2446,7 @@ class DefEngine(_SlibMixin):
                 ref = f"reply{suffix}"
 
         # Handle radio and menu types specially.
+        reply_type = ""
         nm = re.match(r"^r(?:eply)?(\d+)$", ref)
         if nm:
             n = nm.group(1)
@@ -2603,13 +2673,19 @@ class DefEngine(_SlibMixin):
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
-            return f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
-        try:
-            size = int(round(float(self._eval_arith(size_raw))))
-        except (ValueError, TypeError):
-            size = 10
+            span = f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
+        else:
+            try:
+                size = int(round(float(self._eval_arith(size_raw))))
+            except (ValueError, TypeError):
+                size = 10
+            span = f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
 
-        return f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
+        # WIMS' fset.input frames the field in literal braces to signal that a
+        # *set* is expected (e.g. T1116: the solution set of f(x)=k). Mirror it.
+        if reply_type == "fset":
+            return f'<span class="oef-set-brace">{{</span>{span}<span class="oef-set-brace">}}</span>'
+        return span
 
     def _render_jsxgraph_embed(self, args: str, ref: str) -> str:
         """Render a `type=jsxgraph` answer embed as an interactive board.

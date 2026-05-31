@@ -22,6 +22,116 @@ _DECIMAL_DOT_RE = re.compile(r"(?<=\d)\.(?=\d)")
 _HTML_TAG_RE = re.compile(r"(<[/!]?[A-Za-z][^>]*>)")
 
 
+# Inline / display math spans. The matrix conversion must stay scoped to math
+# (where WIMS' ``[a,b;c,d]`` notation lives) — never plain text/HTML brackets.
+_MATH_SPAN_RE = re.compile(r"\\\((.*?)\\\)|\\\[(.*?)\\\]", re.DOTALL)
+
+
+def _matrix_close(s: str, start: int, close: str) -> int:
+    """Index of the nesting-aware match for ``close`` from ``start``, or -1.
+
+    Mirrors WIMS' ``liblines.c:find_matching`` so ``;`` / ``,`` nested in inner
+    ()/[]/{} are never mistaken for matrix separators.
+    """
+    paren = brak = brace = 0
+    for i in range(start, len(s)):
+        ch = s[i]
+        if ch == "[":
+            brak += 1
+        elif ch == "]":
+            brak -= 1
+        elif ch == "(":
+            paren += 1
+        elif ch == ")":
+            paren -= 1
+        elif ch == "{":
+            brace += 1
+        elif ch == "}":
+            brace -= 1
+        else:
+            continue
+        if paren < 0 or brak < 0 or brace < 0:
+            if ch == close and paren <= 0 and brak <= 0 and brace <= 0:
+                return i
+            return -1
+    return -1
+
+
+def _split_top_level(s: str, sep: str) -> list[str]:
+    """Split ``s`` on ``sep`` only at bracket depth 0."""
+    parts: list[str] = []
+    paren = brak = brace = 0
+    start = 0
+    for i, ch in enumerate(s):
+        if ch == "(":
+            paren += 1
+        elif ch == ")":
+            paren -= 1
+        elif ch == "[":
+            brak += 1
+        elif ch == "]":
+            brak -= 1
+        elif ch == "{":
+            brace += 1
+        elif ch == "}":
+            brace -= 1
+        elif ch == sep and paren == 0 and brak == 0 and brace == 0:
+            parts.append(s[start:i])
+            start = i + 1
+    parts.append(s[start:])
+    return parts
+
+
+def _maybe_pmatrix(span: str) -> str:
+    """Turn a *standalone* ``[a,b;c,d]`` bracket into a LaTeX ``pmatrix``.
+
+    Only a bracket that is the **entire** (trimmed) content of the math span is a
+    vector/matrix — ``\\([7;5]\\)`` (column vector, quizz 1216 colinéaires). A
+    bracket embedded in a larger expression is interval / list / delimiter
+    notation and must render literally: ``\\(x \\in [2;5]\\)`` (French interval,
+    quizz 1222), ``\\left[ x_1,x_2 \\right]`` (2nddegre). This matches the web
+    math renderer (MathJax/KaTeX), which never reads ``[a;b]`` as a matrix —
+    WIMS' ``[…]``→matrix rule lives only in the legacy GIF path (texmath.c).
+
+    A bracket is a matrix iff it then carries a top-level ``;`` (rows) or ``,``
+    (columns).
+    """
+    s = span.strip()
+    if not (s.startswith("[") and s.endswith("]")):
+        return span
+    # The first "[" must close on the final "]" (a single group, not "[a][b]").
+    if _matrix_close(s, 1, "]") != len(s) - 1:
+        return span
+    inner = s[1:-1]
+    rows = _split_top_level(inner, ";")
+    if len(rows) <= 1 and len(_split_top_level(inner, ",")) <= 1:
+        return span
+    body = r" \\ ".join(
+        " & ".join(_maybe_pmatrix(c.strip()) for c in _split_top_level(row, ","))
+        for row in rows
+    )
+    return r"\begin{pmatrix}" + body + r"\end{pmatrix}"
+
+
+def wims_matrices_to_latex(text: str) -> str:
+    """Rewrite WIMS matrix-bracket notation to ``pmatrix`` inside math spans.
+
+    Runs in the backend *before* ``localize_decimals`` so the structural
+    ``,`` / ``;`` separators are consumed while numbers are still dot-decimal —
+    otherwise a localised ``1,2`` decimal would be mistaken for two columns.
+    Only a standalone bracket is converted (see :func:`_maybe_pmatrix`).
+    """
+    if "[" not in text:
+        return text
+
+    def repl(m: re.Match) -> str:
+        if m.group(1) is not None:
+            return "\\(" + _maybe_pmatrix(m.group(1)) + "\\)"
+        return "\\[" + _maybe_pmatrix(m.group(2)) + "\\]"
+
+    return _MATH_SPAN_RE.sub(repl, text)
+
+
 def localize_decimals(text: str, lang: str | None = None) -> str:
     """In a comma-decimal locale, render ``1.21`` as ``1,21``.
 

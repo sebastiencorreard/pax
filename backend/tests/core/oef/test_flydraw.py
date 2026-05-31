@@ -373,16 +373,18 @@ class TestFlydrawText:
         assert ">0.4</text>" in svg
         assert "unit" not in svg
 
-    def test_leading_space_nudges_label_right(self):
-        # WIMS uses a leading space (` (Cf)`) to offset a label right of its
-        # anchor; SVG collapses it, so we apply an x-offset (quizz 1120).
+    def test_leading_space_is_stripped_not_nudged(self):
+        # WIMS' obj_string strips leading/trailing whitespace (find_word_start +
+        # strip_trailing_spaces) and draws at the raw (x, y) — a leading space is
+        # NOT a rightward nudge. So ` (Cf)` and `(Cf)` land at the same x, which
+        # keeps repérage axis numbers centred under their tick (quizz 0406).
         import re
         base = flydraw_to_svg(200, 200, "xrange 0,3\nyrange 0,5\ntext black,1,3,medium,(Cf)")
-        nudged = flydraw_to_svg(200, 200, "xrange 0,3\nyrange 0,5\ntext black,1,3,medium, (Cf)")
+        spaced = flydraw_to_svg(200, 200, "xrange 0,3\nyrange 0,5\ntext black,1,3,medium, (Cf)")
         x0 = float(re.search(r'<text x="([\d.]+)"', base).group(1))
-        x1 = float(re.search(r'<text x="([\d.]+)"', nudged).group(1))
-        assert x1 > x0
-        assert ">(Cf)</text>" in nudged  # the space itself isn't rendered
+        x1 = float(re.search(r'<text x="([\d.]+)"', spaced).group(1))
+        assert x1 == x0
+        assert ">(Cf)</text>" in spaced  # the leading space is stripped
 
 
 class TestFlydrawPlot:
