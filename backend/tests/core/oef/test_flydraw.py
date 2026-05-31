@@ -392,3 +392,26 @@ class TestFlydrawPlot:
         # line. The curve must still render (quizz 1120 tangent).
         svg = flydraw_to_svg(200, 200, "xrange -1,4\nyrange -1,5\nplot black,1(x-2)+2")
         assert svg.count("<polyline") == 1
+
+
+class TestFlydrawCopy:
+    def test_copy_resolves_module_image_and_projects_dest(self, tmp_path):
+        # `copy …,1128.png` pastes a module-local image (quizz 1128's tree
+        # skeleton). The file lives in <module>/images/, and the destination is
+        # projected through the coord system (dest 0,160 with yrange 0,160 →
+        # top of canvas), not pasted off-screen at raw pixel y=160.
+        import re
+        import struct
+        (tmp_path / "images").mkdir()
+        png = (
+            b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR"
+            + struct.pack(">II", 256, 160) + b"\x00\x00\x00\x00\x00"
+        )
+        (tmp_path / "images" / "tree.png").write_bytes(png)
+        cmds = "xrange 0,256\nyrange 0,160\ncopy 0,160,-1,-1,-1,-1,tree.png"
+        svg = flydraw_to_svg(256, 160, cmds, base_dir=str(tmp_path))
+        m = re.search(r'<image x="([\d.]+)" y="([\d.]+)" width="(\d+)" height="(\d+)"', svg)
+        assert m is not None
+        assert 'href="data:image/png;base64,' in svg
+        assert float(m.group(2)) == 0.0  # projected to the top, not y=160
+        assert (m.group(3), m.group(4)) == ("256", "160")

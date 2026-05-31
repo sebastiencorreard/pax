@@ -123,7 +123,10 @@ class _SlibMixin:
                 ysize = int(float(size_parts[1])) if len(size_parts) > 1 else 80
             except ValueError:
                 xsize, ysize = 300, 80
-            url = flydraw_to_url(xsize, ysize, body)
+            # Module dir (…/quizz.fr) so `copy <file>` finds module-local images
+            # (images/<file>), e.g. 1128's probability-tree skeleton.
+            mod_dir = os.path.dirname(os.path.dirname(self.def_path)) if self.def_path else None
+            url = flydraw_to_url(xsize, ysize, body, base_dir=mod_dir)
             # $ins_url stays a bare URL — WIMS callers wrap it explicitly in <img>.
             # $canvasdraw_out is used inline in question text without an explicit
             # <img>, so we store it as a ready-to-render <img> tag.

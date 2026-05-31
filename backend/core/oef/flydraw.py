@@ -288,6 +288,10 @@ class _State:
     circles: list[tuple[float, float, float, float]] = field(default_factory=list)
     width: int = 300
     height: int = 80
+    # Exercise module directory (e.g. ressources/H3/math/quizz.fr) — lets
+    # `copy <file>` resolve a module-local image (images/<file>) in addition to
+    # the shared WIMS gifs tree.
+    base_dir: str | None = None
     # Raw values stashed by `boxplotdata` for use by the next `boxplot`.
     boxplotdata: list[float] = field(default_factory=list)
     # Current rotation (degrees, WIMS-absolute) and whether a <g transform>
@@ -379,7 +383,7 @@ def _cmd_copy(state: _State, args: list[str]) -> None:
     import os as _os_local
     import posixpath as _pp_local
 
-    if not _WIMS_GIFS_DIR or len(args) < 7:
+    if len(args) < 7:
         return
     try:
         dx = int(round(float(args[0])))
@@ -392,8 +396,17 @@ def _cmd_copy(state: _State, args: list[str]) -> None:
         return
     filename = args[6].strip()
     rel = _pp_local.normpath("/" + filename).lstrip("/")
-    fpath = _os_local.path.join(_WIMS_GIFS_DIR, rel)
-    if not _os_local.path.isfile(fpath):
+    # Resolve module-local images (images/<file>, then <file>) first, then the
+    # shared WIMS gifs tree — e.g. quizz 1128's `copy …,1128.png` (probability
+    # tree skeleton) lives in the module's images/ dir, not the gifs tree.
+    candidates = []
+    if state.base_dir:
+        candidates.append(_os_local.path.join(state.base_dir, "images", rel))
+        candidates.append(_os_local.path.join(state.base_dir, rel))
+    if _WIMS_GIFS_DIR:
+        candidates.append(_os_local.path.join(_WIMS_GIFS_DIR, rel))
+    fpath = next((p for p in candidates if _os_local.path.isfile(p)), None)
+    if fpath is None:
         return
     with open(fpath, "rb") as f:
         data = f.read()
@@ -418,8 +431,14 @@ def _cmd_copy(state: _State, args: list[str]) -> None:
         sx1 = sy1 = 0
         src_w, src_h = img_w, img_h
     b64 = _base64_local.b64encode(data).decode("ascii")
+    # Project the destination through the coordinate system: with xrange/yrange
+    # set, (dx,dy) is the image's top-left in user coords (1128: copy 0,160 with
+    # yrange 0,160 → top of the canvas). In pixel mode px/py are the identity,
+    # so the shared WIMS gifs (clock, …) keep pasting at raw pixel offsets.
+    x_px = state.px(dx)
+    y_px = state.py(dy)
     state.elements.append(
-        f'<image x="{dx}" y="{dy}" width="{src_w}" height="{src_h}" '
+        f'<image x="{x_px:.2f}" y="{y_px:.2f}" width="{src_w}" height="{src_h}" '
         f'href="data:{mime};base64,{b64}" preserveAspectRatio="none"/>'
     )
 
@@ -1968,7 +1987,7 @@ _HANDLERS = {
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
-def flydraw_to_svg(width: int, height: int, commands: str) -> str:
+def flydraw_to_svg(width: int, height: int, commands: str, base_dir: str | None = None) -> str:
     """Render a flydraw command list to an SVG string.
 
     Commands may be separated by newline, tab, or semicolon — matching
@@ -1982,7 +2001,7 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
     w, h = int(width), int(height)
     # Pixel-mode defaults: ymin=h, ymax=0 inverts the y-flip in py() so that
     # raw pixel y values pass through unchanged.
-    state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0)
+    state = _State(width=w, height=h, xmin=0, xmax=w, ymin=h, ymax=0, base_dir=base_dir)
     raw_lines = re.split(r"[\n\t;]", commands)
     for raw in raw_lines:
         line = raw.strip().rstrip("\\").strip()
@@ -2016,7 +2035,7 @@ def flydraw_to_svg(width: int, height: int, commands: str) -> str:
 _SVG_CACHE: dict[str, str] = {}
 
 
-def flydraw_to_url(width: int, height: int, commands: str) -> str:
+def flydraw_to_url(width: int, height: int, commands: str, base_dir: str | None = None) -> str:
     """Render commands, cache the SVG, and return a comma-free URL.
 
     A data URI would contain ``,`` (between ``;base64`` and the data), which
@@ -2024,7 +2043,7 @@ def flydraw_to_url(width: int, height: int, commands: str) -> str:
     (``!shuffle``, ``!positionof``). Instead, we hash the rendered SVG, cache
     it, and emit ``/api/render/svg/<hash>``.
     """
-    svg = flydraw_to_svg(width, height, commands)
+    svg = flydraw_to_svg(width, height, commands, base_dir=base_dir)
     key = hashlib.sha1(svg.encode("utf-8")).hexdigest()[:16]
     _SVG_CACHE[key] = svg
     return f"/api/render/svg/{key}"

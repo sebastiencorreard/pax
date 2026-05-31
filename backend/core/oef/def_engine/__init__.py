@@ -2254,7 +2254,8 @@ class DefEngine(_SlibMixin):
         except ValueError:
             w, h = 300, 300
 
-        url = flydraw_to_url(w, h, body)
+        mod_dir = os.path.dirname(os.path.dirname(self.def_path)) if self.def_path else None
+        url = flydraw_to_url(w, h, body, base_dir=mod_dir)
         self.ctx["ins_url"] = url
         return ""
 
