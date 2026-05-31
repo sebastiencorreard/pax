@@ -72,6 +72,16 @@ def test_decimal_uses_locale_separator():
     assert N("3,93", "en") == "3,93"      # locale à point : laissé tel quel
 
 
+def test_scientific_notation_space_becomes_times():
+    # WIMS juxtaposes mantissa and power of ten with a bare space (`5 10^2`,
+    # from `\c4 10^\m4`); KaTeX would collapse it to `510^2`. Make the product
+    # explicit so it reads `5 × 10²` (quizz 1104).
+    assert N("5 10^2", "fr") == r"5 \times 10^2"
+    assert N("4 10^2+2+5 10^-1", "fr") == r"4 \times 10^2+2+5 \times 10^{-1}"
+    # A multi-digit mantissa keeps its digits together.
+    assert N("12 10^3", "fr") == r"12 \times 10^3"
+
+
 def test_localize_decimals_text_and_math_not_tags():
     # Bare numbers (table cells / labels) and dots inside \(…\) math are
     # localised; HTML tag attributes are left untouched.
