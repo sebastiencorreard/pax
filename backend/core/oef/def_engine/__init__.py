@@ -26,7 +26,7 @@ from .cas import (
     _expr_to_latex,
 )
 from .presentation import _close_inline_math, _normalize_math_content, localize_decimals
-from .slib import _SlibExit, _SlibMixin
+from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
 from ..numfmt import format_wims_float
 from ..i18n import uses_comma_decimal
 from ..def_parser import (
@@ -69,6 +69,9 @@ _INDEXED2_RE = re.compile(rf"\$\((\w+)\[({_SUB}*?);({_SUB}*)\]\)")  # $(var[n;m]
 _INDEXED1_RE = re.compile(rf"\$\((\w+)\[({_SUB}+)\]\)")  # $(var[n])
 _PAREN_VAR_RE = re.compile(r"\$\((\w+)\)")  # $(var)
 _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
+# A bare $var sitting inside a $(...) — i.e. the name/subscript of an
+# enclosing reference is itself built from a variable ($(slib_theme$slib_n)).
+_DOLLAR_IN_PAREN_RE = re.compile(r"\$\([^)]*\$[a-zA-Z_]")
 
 # Answer types whose value is an algebraic expression (potentially long), so a
 # no-embed fallback reply field gets a wider default than a numeric one.
@@ -550,15 +553,24 @@ class DefEngine(_SlibMixin):
         """Substitute all WIMS variable references in a string."""
         if not s or "$" not in s:
             return s
+        _var = lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), ""))  # noqa: E731
         # 1. $[expr] blocks first
         s = self._eval_dollar_bracket(s)
+        # 1b. Resolve a bare $var that builds the *name* (or subscript) of an
+        #     enclosing $(...) — e.g. $(slib_theme$slib_n) → $(slib_theme1),
+        #     $(slib_code$jj[2]) → $(slib_code1[2]) — so the indexed/paren
+        #     passes below can expand it. Only fires when a $var sits between
+        #     a $( and its closing ), leaving $(missing)-style nested *paren*
+        #     refs (handled later) and standalone $var untouched.
+        if _DOLLAR_IN_PAREN_RE.search(s):
+            s = _DOLLAR_VAR_RE.sub(_var, s)
         # 2-4. $(var[n..m]) slices, $(var[n;m]) matrices and $(var[n]) lists,
         #      resolved inner-first to a fixpoint (handles nested subscripts).
         s = self._resolve_indexed_forms(s)
         # 5. $(var) simple reference
-        s = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
+        s = _PAREN_VAR_RE.sub(_var, s)
         # 6. $var simple reference (skip $[ which was already handled)
-        s = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "")), s)
+        s = _DOLLAR_VAR_RE.sub(_var, s)
         return s
 
     def _subst_for_arith(self, expr: str) -> str:
@@ -613,8 +625,26 @@ class DefEngine(_SlibMixin):
         ``val7=… suivante&nbsp;,\\t… suivantes&nbsp;`` is a 2-item *comma* list,
         the tab just padding the source. So a TAB is the separator only when at
         least one tab is preceded (modulo spaces) by a non-comma character.
+
+        Tabs *inside* ``[...]`` don't count: a multi-line code blob stored as
+        ``[python,[def f():\\t a=0]]`` keeps its newlines-as-tabs within the
+        brackets, so the top-level separator there is still the comma.
         """
-        return "\t" in value and re.search(r"[^,\s]\s*\t", value) is not None
+        if "\t" not in value:
+            return False
+        depth = 0
+        last = ""
+        for ch in value:
+            if ch == "[":
+                depth, last = depth + 1, ch
+            elif ch == "]":
+                depth, last = max(0, depth - 1), ch
+            elif ch == "\t":
+                if depth == 0 and last not in ("", ","):
+                    return True
+            elif not ch.isspace():
+                last = ch
+        return False
 
     def _split_list_items(self, value: str) -> list[str]:
         """Split a WIMS list value into items (TAB- or comma-separated)."""
@@ -1612,7 +1642,24 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m: return ""
         key, text = m.group(1).strip().lower(), self._subst(m.group(2))
-        for part in re.split(r"[\s,]+", text):
+        # Options are split on whitespace/commas, but separators inside [...]
+        # are protected so a bracketed value like `theme=[3024-night,3024-day]`
+        # (or `instruction=[a :, b :]`) stays whole instead of being truncated.
+        parts, cur, depth = [], [], 0
+        for ch in text:
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                depth = max(0, depth - 1)
+            if depth == 0 and (ch.isspace() or ch == ","):
+                if cur:
+                    parts.append("".join(cur))
+                    cur = []
+            else:
+                cur.append(ch)
+        if cur:
+            parts.append("".join(cur))
+        for part in parts:
             if "=" in part:
                 k, v = part.split("=", 1)
                 if k.strip().lower() == key:
@@ -1690,7 +1737,9 @@ class DefEngine(_SlibMixin):
             return
         src = self._subst(m.group(1).strip())
         targets = [t.strip() for t in self._subst(m.group(2)).split(",")]
-        items = [x.strip() for x in src.split(",")]
+        # Items are comma-separated but commas inside [...] are protected
+        # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
+        items = [x.strip() for x in _split_top_level_commas(src)]
         for i, t in enumerate(targets):
             self.ctx[t] = items[i] if i < len(items) else ""
 
@@ -1794,9 +1843,13 @@ class DefEngine(_SlibMixin):
             self.ctx[var] = str(step)
 
     def _cmd_reset(self, args: str) -> None:
-        """!reset VAR — reset a variable to empty string."""
-        var = self._subst(args.strip())
-        self.ctx[var] = ""
+        """!reset VAR [VAR2 …] — reset each space-separated variable to empty.
+
+        WIMS accepts several names at once, e.g.
+        ``!reset slib_theme1 slib_themecss1 slib_contrast_button1``.
+        """
+        for var in self._subst(args.strip()).split():
+            self.ctx[var] = ""
 
     def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:
         """Generic N-of-LIST picker (port of _blockof in calc.c).

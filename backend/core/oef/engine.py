@@ -175,14 +175,18 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
     # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
     r'|<div class="pax-jsxgraph"[^>]*data-jsxgraph="([^"]*)"[^>]*></div>'
-    # groups 9/10: <div>/<ul>/<ol>/<li> open/close → layout-group segments, so a
+    # group 9: a CodeMirror editor container. Kept before the generic <div>
+    # group below so this self-contained marker isn't split into open/close
+    # layout groups (same reasoning as the jsxgraph div above).
+    r'|<div class="pax-codeeditor"[^>]*data-codeeditor="([^"]*)"[^>]*></div>'
+    # groups 10/11: <div>/<ul>/<ol>/<li> open/close → layout-group segments, so a
     # CSS-flex container (e.g. cof's .container, or fcou's <ul class="inline">
     # row of JSXGraph boards) can wrap its child segments side by side. Tried
-    # after group 8 so the jsxgraph div isn't split.
+    # after group 9 so the jsxgraph/codeeditor divs aren't split.
     # Case-insensitive: OEF HTML mixes case (e.g. Hauteurdunarbr's <uL>).
     r'|((?i:<(?:div|ul|ol|li)\b[^>]*>))'
     r'|((?i:</(?:div|ul|ol|li)\s*>))'
-    # groups 11/12/13: an inline radio choice (couf) — name, value, content.
+    # groups 12/13/14: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
@@ -455,24 +459,35 @@ def _segment_statement(html: str) -> list[dict]:
                 seg["reply"] = rm.group(1)
             segments.append(seg)
         elif m.group(9) is not None:
+            # CodeMirror editor — its config (code, mode, themes, …) becomes
+            # segment *data* (JSON), rendered client-side by the Codemirror
+            # component (inline <script>s can't run via the front-end v-html).
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            try:
+                config = _json.loads(_html.unescape(m.group(9)))
+            except (ValueError, TypeError):
+                config = {}
+            segments.append({"type": "codeeditor", "config": config, "is_sup": is_sup})
+        elif m.group(10) is not None:
             # <div …> → layout group open. Carry the class so the frontend can
             # apply the exercise CSS (flex containers etc.).
-            cls_m = re.search(r'class="([^"]*)"', m.group(9))
+            cls_m = re.search(r'class="([^"]*)"', m.group(10))
             segments.append({"type": "group-open", "class": cls_m.group(1) if cls_m else ""})
-        elif m.group(10) is not None:
-            segments.append({"type": "group-close"})
         elif m.group(11) is not None:
+            segments.append({"type": "group-close"})
+        elif m.group(12) is not None:
             # Inline radio choice (couf): name, value (position), content.
             import html as _html  # noqa: PLC0415
-            name = m.group(11).strip()
+            name = m.group(12).strip()
             alias = re.match(r"^r(\d+)$", name)
             if alias:
                 name = f"reply{alias.group(1)}"
             segments.append({
                 "type": "radio-inline",
                 "name": name,
-                "value": m.group(12).strip(),
-                "content": _html.unescape(m.group(13)),
+                "value": m.group(13).strip(),
+                "content": _html.unescape(m.group(14)),
                 "is_sup": is_sup,
             })
         else:

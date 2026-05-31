@@ -183,6 +183,90 @@ class _SlibMixin:
         self.rng.shuffle(shuffled)
         return sep.join(shuffled[:n])
 
+    @staticmethod
+    def _declose(s: str) -> str:
+        """Strip one outer matching bracket pair: ``[python,[c]]`` → ``python,[c]``."""
+        s = s.strip()
+        if len(s) >= 2 and s[0] in "([{" and s[-1] in ")]}":
+            return s[1:-1]
+        return s
+
+    def _render_codeeditor(self, params: str) -> str:
+        """Built-in for the slib ``coding/editor``: parse its argument string and
+        emit a ``pax-codeeditor`` marker carrying the editor config as JSON.
+
+        Args (WIMS): ``<codes>,<id>,<options>`` where ``<codes>`` is either a
+        single ``[lang,[code]]`` or a multi list ``[[lang,[code],name,ro?],…]``,
+        and ``<options>`` are space-separated words (``readonly``, ``fullscreen``,
+        ``init``, ``theme=[a,b]``, ``instruction=[…]``). Newlines inside code are
+        stored as TABs (WIMS convention) — restored to ``\\n`` here.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        parts = _split_top_level_commas(params)
+        code_field = parts[0].strip() if parts else ""
+        editor_id = self._declose(parts[1]).strip() if len(parts) > 1 else "0"
+        options = parts[2].strip() if len(parts) > 2 else ""
+
+        # Options: space/comma-separated tokens, separators inside [...] kept.
+        tokens: list[str] = []
+        cur: list[str] = []
+        depth = 0
+        for ch in options:
+            if ch == "[":
+                depth += 1
+            elif ch == "]":
+                depth = max(0, depth - 1)
+            if depth == 0 and (ch.isspace() or ch == ","):
+                if cur:
+                    tokens.append("".join(cur))
+                    cur = []
+            else:
+                cur.append(ch)
+        if cur:
+            tokens.append("".join(cur))
+        words = {t.lower() for t in tokens if "=" not in t}
+
+        def getopt(key: str) -> str:
+            for t in tokens:
+                if "=" in t:
+                    k, v = t.split("=", 1)
+                    if k.strip().lower() == key:
+                        return v.strip()
+            return ""
+
+        readonly_global = "readonly" in words
+        theme_raw = getopt("theme")
+        themes = [x.strip() for x in _split_top_level_commas(self._declose(theme_raw)) if x.strip()] if theme_raw else []
+        instr_raw = getopt("instruction")
+        instructions = [x.strip() for x in _split_top_level_commas(self._declose(instr_raw)) if x.strip()] if instr_raw else []
+
+        def one_code(fields: list[str]) -> dict:
+            lang = fields[0].strip() if fields else ""
+            code = self._declose(fields[1]).replace("\t", "\n") if len(fields) > 1 else ""
+            name = fields[2].strip() if len(fields) > 2 else ""
+            ro = readonly_global or (len(fields) > 3 and "readonly" in fields[3].lower())
+            return {"lang": lang, "code": code, "name": name, "readonly": ro}
+
+        inner = self._declose(code_field)
+        sub = _split_top_level_commas(inner)
+        if sub and sub[0].strip().startswith("["):
+            codes = [one_code(_split_top_level_commas(self._declose(item))) for item in sub]
+        else:
+            codes = [one_code(sub)]
+
+        config = {
+            "id": editor_id or "0",
+            "themes": themes,
+            "fullscreen": "fullscreen" in words,
+            "init": "init" in words,
+            "instructions": instructions,
+            "codes": codes,
+        }
+        data = _html.escape(_json.dumps(config, ensure_ascii=False), quote=True)
+        return f'<div class="pax-codeeditor" data-codeeditor="{data}"></div>'
+
     def _render_jsxgraph(self, proc_args: str) -> str:
         """Built-in for ``slib/geo2D/jsxgraph``: emit a marker div that
         _segment_statement turns into a ``jsxgraph`` segment, rendered by the
@@ -220,6 +304,15 @@ class _SlibMixin:
     def _run_slib(self, slib_path: str, params: str) -> None:
         """Locate and execute a ``slib/<name>`` script."""
         from ..def_parser import _merge_continuations  # noqa: PLC0415
+
+        # The WYSIWYG code editor (slib `coding/editor`, often vendored locally
+        # as `slib/editor`) builds a CodeMirror widget out of inline <script>s,
+        # which can't run when injected via the front-end's v-html. Emit a
+        # structured marker instead — _segment_statement turns it into a
+        # `codeeditor` segment rendered by the Codemirror Vue component.
+        if slib_path.rsplit("/", 1)[-1] == "editor":
+            self.ctx["slib_out"] = self._render_codeeditor(params)
+            return
 
         if not self.def_path:
             return
@@ -387,7 +480,6 @@ class _SlibMixin:
             if stripped == "!exit":
                 raise _SlibExit()
             if stripped.startswith("!for "):
-                m = re.match(r"^!for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)$", stripped)
                 depth = 1
                 j = i + 1
                 while j < n and depth > 0:
@@ -399,20 +491,35 @@ class _SlibMixin:
                         if depth == 0:
                             break
                     j += 1
-                if not m or depth != 0:
+                if depth != 0:
                     i = (j + 1) if j < n else n
                     continue
-                var = m.group(1)
-                try:
-                    start = int(round(float(self._eval_arith(self._subst(m.group(2))))))
-                    end = int(round(float(self._eval_arith(self._subst(m.group(3))))))
-                except (ValueError, TypeError):
+                body = lines[i + 1 : j]
+                spec = stripped[len("!for ") :]
+                # Numeric form `VAR = a to b`, or list form `VAR in LIST`
+                # (tab- or comma-separated) — the latter drives e.g. the slib
+                # editor's per-theme CSS loop.
+                num_m = re.match(r"(\w+)\s*=\s*(.+?)\s+to\s+(.+)$", spec)
+                in_m = re.match(r"\$?(\w+)\s+in\s+(.*)$", spec, re.I | re.S)
+                if num_m:
+                    try:
+                        start = int(round(float(self._eval_arith(self._subst(num_m.group(2))))))
+                        end = int(round(float(self._eval_arith(self._subst(num_m.group(3))))))
+                    except (ValueError, TypeError):
+                        i = j + 1
+                        continue
+                    var, seq = num_m.group(1), [str(v) for v in range(start, end + 1)]
+                elif in_m:
+                    var = in_m.group(1)
+                    items_raw = self._subst(in_m.group(2).strip())
+                    parts = items_raw.split("\t") if "\t" in items_raw else items_raw.split(",")
+                    seq = [p.strip() for p in parts]
+                else:
                     i = j + 1
                     continue
-                body = lines[i + 1 : j]
                 saved = self.ctx.get(var)
-                for v in range(start, end + 1):
-                    self.ctx[var] = str(v)
+                for v in seq:
+                    self.ctx[var] = v
                     self._run_script_lines(body)
                 if saved is not None:
                     self.ctx[var] = saved
@@ -429,6 +536,15 @@ class _SlibMixin:
                 else:
                     i += 1
                 continue
+            if stripped.startswith("!set "):
+                # `!set NAME=VALUE` — explicit assignment. NAME may contain a
+                # dynamic part (`slib_theme$slib_n`) that must expand first.
+                set_m = re.match(r"(.+?)\s*=\s*(.*)$", stripped[len("!set ") :], re.DOTALL)
+                if set_m:
+                    name = self._subst(set_m.group(1).strip())
+                    self.ctx[name] = self._eval_value(set_m.group(2))
+                i += 1
+                continue
             if stripped.startswith("!"):
                 cmd_line = stripped[1:].strip()
                 cmd, _, cargs = cmd_line.partition(" ")
@@ -436,11 +552,12 @@ class _SlibMixin:
                 # or stored in slib_out.
                 self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
             else:
-                # Assign: key=value
-                m = re.match(r"^\s*(\w+)\s*=\s*(.*)$", line, re.DOTALL)
+                # Assign: key=value. The key may be dynamically named
+                # (`slib_code$jj=…`), so allow `$`/`()`/`[]` and expand it.
+                m = re.match(r"^\s*([\w$()\[\]]+?)\s*=\s*(.*)$", line, re.DOTALL)
                 if m:
-                    name, val = m.group(1), m.group(2)
-                    self.ctx[name] = self._eval_value(val)
+                    name = self._subst(m.group(1).strip())
+                    self.ctx[name] = self._eval_value(m.group(2))
             i += 1
 
 

@@ -234,6 +234,17 @@ class TestSlibHelpers:
         e._eval_cmd("distribute", "items $src into a,b,c")
         assert e.ctx["c"] == ""
 
+    def test_distribute_protects_bracketed_commas(self):
+        # Commas inside [...] must not split items — the editor slib passes
+        # `[python,[code]],1,readonly …` and expects exactly 3 items, so that
+        # `id` (here `b`) stays "1" and isn't polluted by the code's content.
+        e = engine()
+        e.ctx["src"] = "[python,[def f(): return 0]],1,readonly theme=[x,y]"
+        e._eval_cmd("distribute", "items $src into a,b,c")
+        assert e.ctx["a"] == "[python,[def f(): return 0]]"
+        assert e.ctx["b"] == "1"
+        assert e.ctx["c"] == "readonly theme=[x,y]"
+
     def test_bound_clamps_to_default(self):
         e = engine()
         e.ctx["v"] = "weird"
@@ -245,6 +256,14 @@ class TestSlibHelpers:
         e.ctx["v"] = ">="
         e._eval_cmd("bound", "v within <,>,<=,>= default <")
         assert e.ctx["v"] == ">="
+
+    def test_reset_clears_multiple_vars(self):
+        # `!reset a b c` must clear each space-separated variable (slib editor
+        # resets several theme/contrast vars on one line).
+        e = engine()
+        e.ctx.update(a="1", b="2", c="3")
+        e._eval_cmd("reset", "a b c")
+        assert e.ctx["a"] == "" and e.ctx["b"] == "" and e.ctx["c"] == ""
 
     def test_default_sets_when_missing(self):
         e = engine()
@@ -274,6 +293,40 @@ class TestSlibHelpers:
         e = engine()
         assert e._eval_condition("if", "<,3 != slib_header")
         assert not e._eval_condition("if", "abc != abc")
+
+    def test_codeeditor_single_code(self):
+        import html as _html
+        import json as _json
+        e = engine()
+        code = "def f(b):\t   a = 0\t   return a"  # WIMS stores newlines as tabs
+        out = e._render_codeeditor(
+            f"[python,[{code}]],1,readonly fullscreen theme=[3024-night,3024-day]"
+        )
+        assert out.startswith('<div class="pax-codeeditor" data-codeeditor="')
+        m = re.search(r'data-codeeditor="([^"]*)"', out)
+        cfg = _json.loads(_html.unescape(m.group(1)))
+        assert cfg["id"] == "1"
+        assert cfg["themes"] == ["3024-night", "3024-day"]
+        assert cfg["fullscreen"] is True
+        assert len(cfg["codes"]) == 1
+        assert cfg["codes"][0]["lang"] == "python"
+        assert cfg["codes"][0]["readonly"] is True
+        # Tabs (WIMS newlines) restored to real newlines for display.
+        assert cfg["codes"][0]["code"] == "def f(b):\n   a = 0\n   return a"
+
+    def test_codeeditor_multi_code(self):
+        import html as _html
+        import json as _json
+        e = engine()
+        out = e._render_codeeditor(
+            "[[python,[a=1],initial],[python,[a=2],corrige,readonly]],2,init"
+        )
+        m = re.search(r'data-codeeditor="([^"]*)"', out)
+        cfg = _json.loads(_html.unescape(m.group(1)))
+        assert cfg["init"] is True
+        assert [c["name"] for c in cfg["codes"]] == ["initial", "corrige"]
+        assert cfg["codes"][0]["readonly"] is False
+        assert cfg["codes"][1]["readonly"] is True
 
     def test_distribute_accepts_singular_item(self):
         # `!distribute item` (singular, used by slib/generator) is accepted.
@@ -993,6 +1046,13 @@ class TestCmdMiscNew:
     def test_getopt_not_found(self):
         e = engine()
         assert e._eval_cmd("getopt", "missing in key=val") == ""
+
+    def test_getopt_bracketed_value_keeps_commas(self):
+        # `theme=[3024-night,3024-day]` must come back whole — the comma is
+        # inside [...] and must not split the value (slib editor theme list).
+        e = engine()
+        e.ctx["opts"] = "readonly fullscreen theme=[3024-night,3024-day]"
+        assert e._eval_cmd("getopt", "theme in $opts") == "[3024-night,3024-day]"
 
     def test_getdef_same_as_getopt(self):
         e = engine()

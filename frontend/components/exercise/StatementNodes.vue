@@ -59,6 +59,10 @@
         @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
+      <ExerciseCodemirror v-else-if="node.seg.type === 'codeeditor'"
+        :config="node.seg.config"
+      />
+
       <ExerciseJsxgraph v-else-if="node.seg.type === 'jsxgraph'"
         :name="node.seg.name"
         :js="node.seg.js"
