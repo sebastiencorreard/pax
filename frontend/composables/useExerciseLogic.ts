@@ -30,8 +30,19 @@ export interface AnswerDef {
   logical_name: string
 }
 
+export interface CodeEditorCode { lang: string; code: string; name: string; readonly: boolean }
+export interface CodeEditorConfig {
+  id: string
+  themes: string[]
+  fullscreen: boolean
+  init: boolean
+  instructions: string[]
+  codes: CodeEditorCode[]
+}
+
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
+    | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline'
   content?: string
   name?: string
   size?: number
@@ -39,7 +50,7 @@ export interface BackendSegment {
   cols?: number
   label?: string
   is_sup?: boolean
-  config?: CorrespondConfig
+  config?: CorrespondConfig | CodeEditorConfig
   index?: number
   width?: number
   height?: number
@@ -113,6 +124,7 @@ export type Segment =
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
+  | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -181,7 +193,7 @@ export function useExerciseLogic() {
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       } else if (s.type === 'correspond' && s.config) {
-        out.push({ type: 'correspond', name: s.name ?? '', config: s.config, is_sup: s.is_sup })
+        out.push({ type: 'correspond', name: s.name ?? '', config: s.config as CorrespondConfig, is_sup: s.is_sup })
       } else if (s.type === 'jsxgraph') {
         // The board JS is passed through untouched (NOT renderMath'd) — it
         // carries \(…\) labels that KaTeX would otherwise mangle.
@@ -190,6 +202,10 @@ export function useExerciseLogic() {
           width: s.width, height: s.height, maxw: s.maxw, minw: s.minw,
           reply: s.reply,
         })
+      } else if (s.type === 'codeeditor' && s.config) {
+        // Code + options are passed through untouched (NOT renderMath'd) — the
+        // CodeMirror widget is built client-side from this config.
+        out.push({ type: 'codeeditor', config: s.config as CodeEditorConfig, is_sup: s.is_sup })
       } else if (s.type === 'group-open') {
         out.push({ type: 'group-open', class: s.class ?? '' })
       } else if (s.type === 'group-close') {
