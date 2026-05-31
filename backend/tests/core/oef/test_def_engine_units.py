@@ -268,6 +268,19 @@ class TestSlibHelpers:
         instrs, _ = _parse_instructions(["!distribute items $tmp into a,b,c"], 0)
         assert any(isinstance(i, Command) and i.cmd == "distribute" for i in instrs)
 
+    def test_while_loop_iterates(self):
+        # `!while COND … !endwhile` must re-check COND and loop, not run the
+        # body once (quizz 1126: Suite(2) with max=6,r=3 → n=2, not 1).
+        from core.oef.def_parser import _parse_instructions, WhileLoop
+        lines = ["!while $u<6", "n=$[$n+1]", "u=$[$u+3]", "!endwhile", "rep=$n"]
+        instrs, _ = _parse_instructions(lines, 0)
+        assert any(isinstance(i, WhileLoop) for i in instrs)
+        e = engine()
+        e.ctx["n"], e.ctx["u"] = "0", "2"
+        e._exec(instrs, None)
+        assert e.ctx["u"] == "8"   # 2 → 5 → 8 (stops when 8 < 6 is false)
+        assert e.ctx["rep"] == "2"  # n incremented twice
+
     def test_bound_clamps_to_default(self):
         e = engine()
         e.ctx["v"] = "weird"

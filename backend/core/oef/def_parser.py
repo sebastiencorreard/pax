@@ -52,6 +52,18 @@ class IfBlock:
 
 
 @dataclass
+class WhileLoop:
+    """!while COND ... !endwhile — repeat the body while COND holds.
+
+    Used by the Python-trace quizzes (1126: `\\while{\\u<\\max}{…}` compiles to
+    `!while $u<$max … !endwhile`) to compute the loop's final value.
+    """
+
+    condition: str
+    body: list = field(default_factory=list)
+
+
+@dataclass
 class ForLoop:
     """!for var=start to end loop."""
 
@@ -362,6 +374,7 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
             line.startswith("!else")
             or line.startswith("!endif")
             or line.startswith("!next")
+            or line.startswith("!endwhile")
             or line.startswith("!exit")
         ):
             break
@@ -386,6 +399,12 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
         # !for
         if line.startswith("!for "):
             loop, i = _parse_for(lines, i)
+            instructions.append(loop)
+            continue
+
+        # !while COND ... !endwhile
+        if line.startswith("!while "):
+            loop, i = _parse_while(lines, i)
             instructions.append(loop)
             continue
 
@@ -529,3 +548,15 @@ def _parse_for(lines: list[str], i: int) -> tuple[ForLoop, int]:
         i += 1
 
     return ForLoop(var=var, range_expr=range_expr, body=body), i
+
+
+def _parse_while(lines: list[str], i: int) -> tuple["WhileLoop", int]:
+    """Parse a !while COND ... !endwhile loop. Returns (WhileLoop, next_i)."""
+    condition = lines[i].strip()[len("!while ") :].strip()
+    body, i = _parse_instructions(lines, i + 1)
+
+    # Consume !endwhile
+    if i < len(lines) and lines[i].strip().startswith("!endwhile"):
+        i += 1
+
+    return WhileLoop(condition=condition, body=body), i

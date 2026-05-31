@@ -34,6 +34,7 @@ from ..def_parser import (
     Command,
     DefFile,
     ForLoop,
+    WhileLoop,
     IfBlock,
     Insmath,
     Output,
@@ -409,6 +410,16 @@ class DefEngine(_SlibMixin):
 
             elif isinstance(instr, ForLoop):
                 self._exec_for(instr, output_buf)
+
+            elif isinstance(instr, WhileLoop):
+                # Repeat the body while the (re-evaluated) condition holds; a
+                # bound guards against a non-terminating/ill-formed loop.
+                guard = 0
+                while self._eval_condition("if", instr.condition):
+                    self._exec(instr.body, output_buf)
+                    guard += 1
+                    if guard > 100000:
+                        break
 
             elif isinstance(instr, Output):
                 if output_buf is not None:
