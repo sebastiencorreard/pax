@@ -33,8 +33,10 @@
       </div>
     </div>
 
-    <!-- Résultats Dynsteps -->
-    <div v-if="checkResult && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
+    <!-- Résultats Dynsteps — masqués tant qu'un avertissement de format réclame
+         une nouvelle saisie (ex. polexpand « réduisez votre réponse »), sinon le
+         bilan/score s'afficherait sous l'avertissement à la dernière étape. -->
+    <div v-if="checkResult && !checkResult.has_invalid_format && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
       <!-- Bilan Global (à la fin ou arrêt course) -->
       <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
