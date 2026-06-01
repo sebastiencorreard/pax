@@ -496,4 +496,8 @@ provide(PAX_STATEMENT_CTX, {
   gap: 4px;
   cursor: pointer;
 }
+/* WIMS per-reply verdict colours (e.g. course step feedback: "reply : BONNE
+   REPONSE" green / "MAUVAISE REPONSE" red — lebrun5). */
+:deep(.oef_indgood) { color: #16a34a; font-weight: 600; }
+:deep(.oef_indbad) { color: #dc2626; font-weight: 600; }
 </style>

@@ -152,7 +152,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   reload: []
-  'load-step': [m_step: number]
+  'load-step': [m_step: number, replies: Record<string, string>]
 }>()
 
 const { apiFetch } = useApi()
@@ -304,7 +304,13 @@ async function nextStep() {
 
   const nextMStep = (props.rendered.current_step || 1) + 1
   currentMStep.value = nextMStep
-  emit('load-step', nextMStep)
+  // Carry the replies submitted so far so the next step's statement can echo
+  // each previous reply's verdict ($m_sc_reply{n}, e.g. lebrun5).
+  const acc: Record<string, string> = {}
+  for (const [k, v] of Object.entries(replies.value)) {
+    if (typeof v === 'string' && v.trim() !== '') acc[k] = v
+  }
+  emit('load-step', nextMStep, acc)
 }
 
 async function submit() {

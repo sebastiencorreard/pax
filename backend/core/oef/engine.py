@@ -68,12 +68,20 @@ def find_def_path(oef_path: str) -> str | None:
     return None
 
 
-def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
+def load_and_render(
+    oef_path: str,
+    seed: int | None = None,
+    m_step: int | None = None,
+    prev_replies: dict[str, str] | None = None,
+) -> ExerciseRender:
     """
     Point d'entrée principal.
     Essaie d'abord le pipeline .def compilé ; retombe sur le parser OEF si absent.
     Les résultats sont mis en cache Redis (TTL 10 min) pour éviter le double
     rendu render→check qui serait sinon systématique.
+
+    ``prev_replies`` : réponses des étapes précédentes d'un exercice course,
+    pour alimenter ``$m_reply{n}``/``$m_sc_reply{n}`` du verdict par étape.
     """
     if not os.path.exists(oef_path):
         raise FileNotFoundError(f"Fichier OEF introuvable : {oef_path}")
@@ -87,7 +95,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
         seed = random.randint(0, 2**31)
 
     from . import render_cache
-    key = render_cache.cache_key(effective_path, seed, m_step)
+    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies)
     cached = render_cache.get(key)
     if cached is not None:
         return cached
@@ -95,7 +103,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     if def_path:
         from .def_engine import load_and_render as _def_render
 
-        rendered = _def_render(def_path, seed=seed, m_step=m_step)
+        rendered = _def_render(def_path, seed=seed, m_step=m_step, prev_replies=prev_replies)
         render_cache.set(key, rendered)
         return rendered
 

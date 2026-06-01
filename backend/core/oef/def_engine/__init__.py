@@ -117,8 +117,18 @@ def _parse_def_cached(def_path: str) -> DefFile:
     return parse_def(text)
 
 
-def load_and_render(def_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
-    """Parse (cached) and evaluate a .def file, returning an ExerciseRender."""
+def load_and_render(
+    def_path: str,
+    seed: int | None = None,
+    m_step: int | None = None,
+    prev_replies: dict[str, str] | None = None,
+) -> ExerciseRender:
+    """Parse (cached) and evaluate a .def file, returning an ExerciseRender.
+
+    ``prev_replies`` ({input_name: value}) are the answers submitted on earlier
+    course steps; they populate `$m_reply{n}`/`$m_sc_reply{n}` for the step
+    statement's per-reply verdict.
+    """
     if seed is None:
         seed = random.randint(0, 2**31)
 
@@ -127,6 +137,8 @@ def load_and_render(def_path: str, seed: int | None = None, m_step: int | None =
     if m_step is not None:
         engine.ctx["m_step"] = str(m_step)
         engine.ctx["step"] = str(m_step)  # WIMS alias
+    if prev_replies:
+        engine.prev_replies = dict(prev_replies)
     return engine.render(def_file)
 
 
@@ -172,6 +184,11 @@ class DefEngine(_SlibMixin):
         # `val9=$[$(val8[2])]` to the original `3/4` (the floated ctx value has
         # lost it). See `_expected_as_fraction`.
         self.raw_assigns: dict[str, str] = {}
+        # Replies the student already submitted on previous steps of a course
+        # exercise, {input_name: value}. Used to populate WIMS' memorised
+        # `$m_reply{n}` / `$m_sc_reply{n}` so a later step's statement can echo
+        # "reply : BONNE/MAUVAISE REPONSE" (lebrun5). Set by load_and_render.
+        self.prev_replies: dict[str, str] = {}
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
@@ -195,6 +212,13 @@ class DefEngine(_SlibMixin):
                     self.ctx[f"reply{key}{n}"] = rm[key]
 
         self._exec(df.var_instructions, output_buf=None)
+
+        # Course/dynsteps: expose the previous steps' submitted replies + their
+        # scores as WIMS' memorised `$m_reply{n}` / `$m_sc_reply{n}` so this
+        # step's statement can echo "reply : BONNE/MAUVAISE REPONSE" (lebrun5).
+        # Done after var_instructions so the expected (`$replygood{n}`, which
+        # may reference val vars computed above) is resolvable.
+        self._apply_prev_replies()
 
         # Render statement HTML
         stmt = df.statement.strip()
@@ -2468,6 +2492,37 @@ class DefEngine(_SlibMixin):
             return []
         after = raw.split(";", 1)[1].strip()
         return [c.strip() for c in after.split(",") if c.strip()]
+
+    def _apply_prev_replies(self) -> None:
+        """Set `$m_reply{n}` / `$m_sc_reply{n}` (and `$reply{n}` / `$sc_reply{n}`)
+        from the replies submitted on earlier course steps, grading each against
+        its `replygood{n}` so the step statement shows the right verdict/colour."""
+        if not self.prev_replies:
+            return
+        for name, value in self.prev_replies.items():
+            m = re.match(r"r(?:eply)?(\d+)$", name)
+            if not m:
+                continue
+            n = m.group(1)
+            self.ctx[f"reply{n}"] = value
+            self.ctx[f"m_reply{n}"] = value
+            expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
+            rtype = (self.ctx.get(f"replytype{n}", "") or "numexp").strip().lower()
+            correct = self._grade_prev_reply(value, expected, rtype)
+            sc = "1" if correct else "0"
+            self.ctx[f"sc_reply{n}"] = sc
+            self.ctx[f"m_sc_reply{n}"] = sc
+
+    def _grade_prev_reply(self, reply: str, expected: str, rtype: str) -> bool:
+        """Best-effort grade of a previous-step reply (for the `$m_sc_reply`
+        verdict only — the authoritative score is computed at check time)."""
+        if not reply.strip():
+            return False
+        try:
+            from core.answer.checkers import check_answer  # noqa: PLC0415
+            return check_answer(rtype or "numexp", reply, expected, lang=self.lang).correct
+        except Exception:
+            return reply.strip() == expected.strip()
 
     def _render_special(self, args: str) -> str:
         """Dispatch an OEF ``\\special`` (``!read oef/special.phtml <kind> …``).

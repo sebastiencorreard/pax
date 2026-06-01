@@ -59,7 +59,7 @@
           :exercise-id="exerciseId"
           :debug-answers="debugAnswers"
           @reload="reload"
-          @load-step="(m_step) => load(rendered?.seed, m_step)"
+          @load-step="(m_step, replies) => load(rendered?.seed, m_step, replies)"
         />
         <StandardExercise
           v-else
@@ -130,7 +130,7 @@ onBeforeUnmount(() => chronoState.clear())
 
 const exerciseComponent = ref<any>(null)
 
-async function load(seed?: number, m_step?: number) {
+async function load(seed?: number, m_step?: number, replies?: Record<string, string>) {
   loading.value = true
   loadError.value = ''
   showHint.value = false
@@ -141,6 +141,9 @@ async function load(seed?: number, m_step?: number) {
     const params = new URLSearchParams()
     if (seed) params.append('seed', seed.toString())
     if (m_step) params.append('m_step', m_step.toString())
+    // Course steps carry the earlier steps' replies so the step statement can
+    // echo their verdict ($m_sc_reply{n}).
+    if (replies && Object.keys(replies).length) params.append('replies', JSON.stringify(replies))
     const url = `/api/render/${props.exerciseId}${params.toString() ? '?' + params.toString() : ''}`
     
     rendered.value = await apiFetch<Rendered>(url)

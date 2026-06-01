@@ -57,6 +57,7 @@ async def render_exercise(
     exercise_id: str,
     seed: int | None = None,
     m_step: int | None = None,
+    replies: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -65,8 +66,20 @@ async def render_exercise(
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercice introuvable")
 
+    # `replies` (JSON {input_name: value}) carries earlier course steps' answers
+    # so a step statement can echo their verdict (`$m_sc_reply{n}`).
+    prev_replies: dict[str, str] | None = None
+    if replies:
+        import json as _json  # noqa: PLC0415
+        try:
+            parsed = _json.loads(replies)
+            if isinstance(parsed, dict):
+                prev_replies = {str(k): str(v) for k, v in parsed.items()}
+        except (ValueError, TypeError):
+            prev_replies = None
+
     try:
-        rendered = load_and_render(exercise.oef_path, seed=seed, m_step=m_step)
+        rendered = load_and_render(exercise.oef_path, seed=seed, m_step=m_step, prev_replies=prev_replies)
     except FileNotFoundError:
         raise HTTPException(
             status_code=404, detail=f"Fichier OEF introuvable : {exercise.oef_path}"
