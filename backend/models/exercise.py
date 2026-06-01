@@ -19,22 +19,30 @@ _RESOURCES_PREFIX = "ressources~"
 def path_to_id(oef_path: str) -> str:
     """Convert an oef_path to a URL-safe id by replacing '/' with '~'.
 
-    The redundant leading ``ressources~`` component is dropped, so
-    ``/ressources/H4/chemistry/…oef`` → ``H4~chemistry~…oef``.
+    The redundant leading ``ressources~`` component and the trailing ``.oef``
+    extension are dropped, so
+    ``/ressources/H4/algebra/oefsuites1S.fr/src/limmonot1.oef``
+    → ``H4~algebra~oefsuites1S.fr~src~limmonot1``.
     """
     slug = oef_path.lstrip("/").replace("/", "~")
     if slug.startswith(_RESOURCES_PREFIX):
         slug = slug[len(_RESOURCES_PREFIX):]
+    if slug.endswith(".oef"):
+        slug = slug[: -len(".oef")]
     return slug
 
 
 def id_to_path(exercise_id: str) -> str:
-    """Reverse of path_to_id (assumes the file lives under /ressources/).
+    """Reverse of path_to_id (assumes the file lives under /ressources/ and is
+    an ``.oef``).
 
     Not used for file resolution at runtime — routes read the stored
     ``Exercise.oef_path`` directly — but kept as a faithful inverse.
     """
-    return "/ressources/" + exercise_id.replace("~", "/")
+    path = "/ressources/" + exercise_id.replace("~", "/")
+    if not path.endswith(".oef"):
+        path += ".oef"
+    return path
 
 
 class Exercise(Base):
