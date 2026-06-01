@@ -108,8 +108,16 @@ class ReadDraw:
     args: str
 
 
+@dataclass
+class ReadSpecial:
+    """!read oef/special.phtml args — an OEF \\special (e.g. mathmlinput:
+    math with inline answer fields). Rendered inline in the question."""
+
+    args: str
+
+
 Instruction = Union[
-    Assign, IfBlock, ForLoop, Output, Insmath, ReadEmbed, ReadProc, ReadDraw
+    Assign, IfBlock, ForLoop, Output, Insmath, ReadEmbed, ReadProc, ReadDraw, ReadSpecial
 ]
 
 
@@ -437,6 +445,15 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
         if line.startswith("!read ") and "oef/draw.phtml" in line:
             args = re.sub(r".*oef/draw\.phtml\s*", "", line).strip()
             instructions.append(ReadDraw(args))
+            i += 1
+            continue
+
+        # !read oef/special.phtml — an OEF \special (mathmlinput, …). The arg
+        # keeps its internal tabs (mathmlinput packs its option/reply lines with
+        # tabs); `line` is `raw.strip()` so those internal tabs survive.
+        if line.startswith("!read ") and "oef/special.phtml" in line:
+            args = re.sub(r".*oef/special\.phtml\s*", "", line).strip()
+            instructions.append(ReadSpecial(args))
             i += 1
             continue
 

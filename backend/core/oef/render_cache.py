@@ -45,8 +45,15 @@ def _redis_client():
     return _redis
 
 
-def cache_key(path: str, seed: int, m_step: int | None) -> str:
-    return f"pax:render:{path}:{seed}:{m_step or 0}"
+def cache_key(
+    path: str, seed: int, m_step: int | None, prev_replies: dict[str, str] | None = None
+) -> str:
+    # Course steps that echo previous replies (`$m_reply{n}`) render differently
+    # per submitted answer, so the replies are part of the key.
+    rep = ""
+    if prev_replies:
+        rep = ":" + ";".join(f"{k}={v}" for k, v in sorted(prev_replies.items()))
+    return f"pax:render:{path}:{seed}:{m_step or 0}{rep}"
 
 
 def get(key: str):

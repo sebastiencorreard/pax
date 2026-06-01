@@ -59,6 +59,16 @@
         @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
+      <ExerciseCoordPlane v-else-if="node.seg.type === 'coord'"
+        :name="node.seg.name"
+        :image="node.seg.image"
+        :svg="node.seg.svg"
+        :value="ctx.replies.value[node.seg.name] || ''"
+        :submitted="ctx.submitted.value"
+        :correct="ctx.checkResult.value?.results.find(r => r.input_name === node.seg.name)?.correct ?? null"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
+      />
+
       <ExerciseCodemirror v-else-if="node.seg.type === 'codeeditor'"
         :config="node.seg.config"
       />

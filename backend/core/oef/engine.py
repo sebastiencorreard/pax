@@ -68,12 +68,20 @@ def find_def_path(oef_path: str) -> str | None:
     return None
 
 
-def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None = None) -> ExerciseRender:
+def load_and_render(
+    oef_path: str,
+    seed: int | None = None,
+    m_step: int | None = None,
+    prev_replies: dict[str, str] | None = None,
+) -> ExerciseRender:
     """
     Point d'entrée principal.
     Essaie d'abord le pipeline .def compilé ; retombe sur le parser OEF si absent.
     Les résultats sont mis en cache Redis (TTL 10 min) pour éviter le double
     rendu render→check qui serait sinon systématique.
+
+    ``prev_replies`` : réponses des étapes précédentes d'un exercice course,
+    pour alimenter ``$m_reply{n}``/``$m_sc_reply{n}`` du verdict par étape.
     """
     if not os.path.exists(oef_path):
         raise FileNotFoundError(f"Fichier OEF introuvable : {oef_path}")
@@ -87,7 +95,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
         seed = random.randint(0, 2**31)
 
     from . import render_cache
-    key = render_cache.cache_key(effective_path, seed, m_step)
+    key = render_cache.cache_key(effective_path, seed, m_step, prev_replies)
     cached = render_cache.get(key)
     if cached is not None:
         return cached
@@ -95,7 +103,7 @@ def load_and_render(oef_path: str, seed: int | None = None, m_step: int | None =
     if def_path:
         from .def_engine import load_and_render as _def_render
 
-        rendered = _def_render(def_path, seed=seed, m_step=m_step)
+        rendered = _def_render(def_path, seed=seed, m_step=m_step, prev_replies=prev_replies)
         render_cache.set(key, rendered)
         return rendered
 
@@ -188,6 +196,8 @@ _SEGMENT_PATTERN = re.compile(
     r'|((?i:</(?:div|ul|ol|li)\s*>))'
     # groups 12/13/14: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
+    # group 15: a coord click-target — name + background repère image URL.
+    r'|<span class="oef-coord" name="([^"]+)" data-img="([^"]*)"></span>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -260,6 +270,25 @@ def _inline_input_html(name: str, size_raw: str) -> str:
         f'<input type="text" class="oef-input" name="{name}" '
         f'autocomplete="off" style="width:{width};min-width:6ch" />'
     )
+
+
+def _inline_radio_html(name: str, value: str, content: str) -> str:
+    """Render an inline radio choice as a native <input type=radio> for inline
+    placement inside a table (chgrhyper: each choice sits next to its graph).
+
+    Choices sharing one ``name`` form a radio group; the frontend reads the
+    checked value via event delegation. ``content`` (an optional label) is
+    emitted after the button; chgrhyper has none (the graph is the label).
+    """
+    import html as _html  # noqa: PLC0415
+    name = re.sub(r"^r(\d+)$", r"reply\1", name)
+    radio = (
+        f'<input type="radio" class="oef-radio" name="{name}" '
+        f'value="{_html.escape(value, quote=True)}" />'
+    )
+    if content.strip():
+        return f'<label class="oef-radio-label">{radio} {content}</label>'
+    return radio
 
 
 def _balance_list_items(html: str) -> str:
@@ -371,16 +400,23 @@ def _segment_statement(html: str) -> list[dict]:
     def in_table(pos: int) -> bool:
         return any(s <= pos < e for s, e in tables)
 
-    # First pass: rewrite oef-input spans inside tables to native <input> tags.
-    # Done right-to-left so earlier offsets stay valid.
+    # First pass: rewrite oef-input (group 2) and oef-radio-inline (group 12)
+    # spans inside tables to native <input> tags — a <table> stays one html
+    # segment (splitting it would break the layout), so its widgets can't be
+    # hydrated as Vue components; the frontend binds these native inputs via
+    # event delegation instead. Done right-to-left so earlier offsets stay valid.
+    import html as _html  # noqa: PLC0415
     matches_in_tables = [
         m for m in _SEGMENT_PATTERN.finditer(html)
-        if in_table(m.start()) and m.group(2) is not None
+        if in_table(m.start()) and (m.group(2) is not None or m.group(12) is not None)
     ]
     for m in reversed(matches_in_tables):
-        name = m.group(2).strip()
-        size_raw = (m.group(3) or "").strip()
-        replacement = _inline_input_html(name, size_raw)
+        if m.group(2) is not None:
+            replacement = _inline_input_html(m.group(2).strip(), (m.group(3) or "").strip())
+        else:  # group 12: inline radio choice (value=position, optional label)
+            replacement = _inline_radio_html(
+                m.group(12).strip(), m.group(13).strip(), _html.unescape(m.group(14) or "")
+            )
         html = html[: m.start()] + replacement + html[m.end():]
     # Re-compute table ranges since byte offsets shifted.
     tables = _table_ranges(html)
@@ -490,6 +526,23 @@ def _segment_statement(html: str) -> list[dict]:
                 "content": _html.unescape(m.group(14)),
                 "is_sup": is_sup,
             })
+        elif m.group(15) is not None:
+            # Coord click-target: a clickable repère image whose pixel click
+            # becomes the reply (type=coord).
+            name = m.group(15).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            img_url = m.group(16)
+            # Inline the SVG so it travels with the (Redis-)cached render —
+            # the /api/render/svg cache is in-memory only (see inline_svg_imgs).
+            from .flydraw import get_cached_svg  # noqa: PLC0415
+            key_m = re.search(r"/api/render/svg/([a-f0-9]+)", img_url)
+            svg = get_cached_svg(key_m.group(1)) if key_m else None
+            seg = {"type": "coord", "name": name, "image": img_url, "is_sup": is_sup}
+            if svg:
+                seg["svg"] = svg
+            segments.append(seg)
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
@@ -531,7 +584,7 @@ def _embedded_widget_names(html: str) -> set[str]:
     """
     names: set[str] = set()
     for m in _SEGMENT_PATTERN.finditer(html):
-        nm = m.group(1) or m.group(2) or m.group(4) or m.group(6)
+        nm = m.group(1) or m.group(2) or m.group(4) or m.group(6) or m.group(15)
         if nm:
             nm = nm.strip()
             alias = re.match(r"^r(\d+)$", nm)
@@ -539,6 +592,11 @@ def _embedded_widget_names(html: str) -> set[str]:
     # `checkbox` widgets are emitted by _render_embed as native <input> tags
     # (not oef-* spans), so _SEGMENT_PATTERN misses them — scan separately.
     names |= set(re.findall(r'class="oef-checkbox"\s+name="([^"]+)"', html))
+    # mathmlinput renders native <input class="oef-input"> fields inline in the
+    # math (not splittable spans), so detect those too — otherwise the fallback
+    # re-appends reply1/reply2 underneath (elassaoui3).
+    names |= set(re.findall(r'<input[^>]*\bclass="oef-input"[^>]*\bname="([^"]+)"', html))
+    names |= set(re.findall(r'<input[^>]*\bname="([^"]+)"[^>]*\bclass="oef-input"', html))
     return names
 
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from fractions import Fraction
 import logging
+import math
 import re
 import sys
 
@@ -337,6 +338,49 @@ def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> Ch
         return CheckResult(correct=False, score=0.0, method="jsxgraph")
     score = ok / total
     return CheckResult(correct=score == 1.0, score=score, method="jsxgraph")
+
+
+def check_coord(reply: str, expected: str) -> CheckResult:
+    """Type ``coord`` : clic sur une image-repère (``<input type=image>``).
+
+    ``reply`` = les pixels cliqués ``(x,y)`` (ou ``x,y``). ``expected`` = la
+    *click-zone* WIMS, p.ex. ``point,Ax,Ay`` / ``circle,cx,cy,d`` /
+    ``rectangle,x1,y1,x2,y2`` — coordonnées en pixels-image. Portage fidèle de
+    ``wims/src/Misc/clickzone.c`` : pour ``point`` le clic est bon si la distance
+    au point cible est ≤ 4 px (exact) ou ≤ 7 px (toléré). L'origine du repère et
+    l'échelle sont déjà encodées dans ces pixels par le tracé, donc la
+    comparaison se fait entièrement en espace-image.
+    """
+    nums = re.findall(r"-?\d+(?:\.\d+)?", reply or "")
+    if len(nums) < 2:
+        return CheckResult(correct=False, score=0.0, method="coord")
+    cx, cy = float(nums[0]), float(nums[1])
+
+    parts = [p.strip() for p in (expected or "").split(",")]
+    if not parts:
+        return CheckResult(correct=False, score=0.0, method="coord")
+    shape = parts[0].lower()
+    vals = [float(v) for v in parts[1:] if re.fullmatch(r"-?\d+(?:\.\d+)?", v)]
+
+    def _hit() -> bool:
+        if shape.startswith("point") or shape == "p":
+            # One or more target points; any within tolerance counts.
+            for i in range(0, len(vals) - 1, 2):
+                if math.hypot(vals[i] - cx, vals[i + 1] - cy) <= 7:
+                    return True
+            return False
+        if shape.startswith("circle") and len(vals) >= 3:
+            return math.hypot(vals[0] - cx, vals[1] - cy) <= vals[2] / 2
+        if shape.startswith("rectangle") and len(vals) >= 4:
+            x1, x2 = sorted((vals[0], vals[2]))
+            y1, y2 = sorted((vals[1], vals[3]))
+            return x1 <= cx <= x2 and y1 <= cy <= y2
+        if shape.startswith("ellipse") and len(vals) >= 4 and vals[2] > 0 and vals[3] > 0:
+            return math.hypot(2 * (vals[0] - cx) / vals[2], 2 * (vals[1] - cy) / vals[3]) <= 1
+        return False
+
+    ok = _hit()
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
 
 
 def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
@@ -982,6 +1026,8 @@ def check_answer(
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "jsxgraph":
             return check_jsxgraph(reply, expected, options)
+        case "coord":
+            return check_coord(reply, expected)
         case "case":
             return check_case(reply, expected)
         case "default" | "auto":

@@ -52,7 +52,7 @@ def teacher_headers(teacher_token):
 
 
 # Known exercise: H4 algebra, fset answer, seed=42 → reply1="-6/5,-9/8"
-EXERCISE_ID = "H4~algebra~OEFevalwimsequ.fr~src~equaprod1.oef"
+EXERCISE_ID = "H4~algebra~OEFevalwimsequ.fr~src~equaprod1"
 SEED = 42
 CORRECT_REPLY = "-6/5,-9/8"
 WRONG_REPLY = "0"

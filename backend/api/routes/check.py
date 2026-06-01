@@ -50,6 +50,38 @@ class CheckResponse(BaseModel):
     chrono_factor: float | None = None
 
 
+def _pixels_to_repere(s: str | None, transform: str, comma_decimal: bool) -> str | None:
+    """Render a coord click-zone (pixels) in repère units for the feedback.
+
+    ``transform`` is ``"x0,y0,ex,ey"`` (origin pixel + pixels-per-unit, from
+    slib/draw/repere). ``s`` is e.g. ``"(177,317)"`` or ``"point,170,320"`` —
+    the first numeric pair is the point/centre. The reply click rarely lands
+    on an exact grid node, so we round to 1 decimal (honest: shows a near-miss
+    as ``(-0,8;-3,9)``, not a misleading ``(-1;-4)``).
+    """
+    import re as _re  # noqa: PLC0415
+
+    try:
+        x0, y0, ex, ey = (float(v) for v in transform.split(","))
+    except (ValueError, TypeError):
+        return s
+    if not ex or not ey:
+        return s
+    nums = _re.findall(r"-?\d+(?:\.\d+)?", s or "")
+    if len(nums) < 2:
+        return s
+    mx = (float(nums[0]) - x0) / ex
+    my = (float(nums[1]) - y0) / ey
+    dec, sep = (",", ";") if comma_decimal else (".", ",")
+
+    def _fmt(v: float) -> str:
+        v = round(v, 1)
+        out = str(int(v)) if v == int(v) else str(v)
+        return out.replace(".", dec)
+
+    return f"({_fmt(mx)}{sep}{_fmt(my)})"
+
+
 # ── Route ─────────────────────────────────────────────────────────────────────
 
 @router.post("/{exercise_id}", response_model=CheckResponse)
@@ -118,6 +150,21 @@ async def check_exercise(
     else:
         global_score, results = run_standard(active_ans_defs, replies_by_name, rendered.lang)
         feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
+
+    # ── coord : feedback en coordonnées du repère (pas en pixels) ────────────
+    from core.oef.i18n import uses_comma_decimal  # noqa: PLC0415
+    _coord_xform = {
+        a.input_name: a.options["transform"]
+        for a in rendered.answers
+        if a.answer_type == "coord" and a.options.get("transform")
+    }
+    if _coord_xform:
+        comma = uses_comma_decimal(rendered.lang)
+        for r in results:
+            xform = _coord_xform.get(r.input_name)
+            if xform:
+                r.reply = _pixels_to_repere(r.reply, xform, comma)
+                r.expected = _pixels_to_repere(r.expected, xform, comma)
 
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)

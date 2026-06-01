@@ -152,7 +152,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   reload: []
-  'load-step': [m_step: number]
+  'load-step': [m_step: number, replies: Record<string, string>]
 }>()
 
 const { apiFetch } = useApi()
@@ -304,7 +304,13 @@ async function nextStep() {
 
   const nextMStep = (props.rendered.current_step || 1) + 1
   currentMStep.value = nextMStep
-  emit('load-step', nextMStep)
+  // Carry the replies submitted so far so the next step's statement can echo
+  // each previous reply's verdict ($m_sc_reply{n}, e.g. lebrun5).
+  const acc: Record<string, string> = {}
+  for (const [k, v] of Object.entries(replies.value)) {
+    if (typeof v === 'string' && v.trim() !== '') acc[k] = v
+  }
+  emit('load-step', nextMStep, acc)
 }
 
 async function submit() {
@@ -350,7 +356,7 @@ async function submit() {
     const activeResults = checkResult.value.results.filter(r => activeNames.has(r.input_name))
     
     // Update history for each active input in this step
-    let stepHasError = false
+    let stepHasBlockingError = false  // wrong AND not `nonstop`
     for (const res of activeResults) {
       const existingIdx = stepsHistory.value.findIndex(s => s.input_name === res.input_name)
       const rawLabel = props.rendered.answers.find(a => a.input_name === res.input_name)?.label || ''
@@ -372,18 +378,27 @@ async function submit() {
       }
 
       if (!res.correct) {
-        stepHasError = true
-        stepFailed.value = true
-        currentStepFailedInputName.value = res.input_name
-        // For dynsteps, we often fill the correct answer on failure to allow moving forward
-        // BUT for courses, we stop.
-        if (!isCourse.value) {
-          replies.value[res.input_name] = res.expected
+        // WIMS `option=nonstop`: a wrong answer still advances to the next
+        // step (oef/step.proc: stop only `if reply!=good and nonstop notwordof
+        // replyoption`). lebrun5 puts nonstop on each step's answer.
+        const opt = (props.rendered.answers.find(a => a.input_name === res.input_name)?.options?.option || '').toLowerCase()
+        const nonstop = /\bnonstop\b/.test(opt)
+        if (!nonstop) {
+          stepHasBlockingError = true
+          stepFailed.value = true
+          currentStepFailedInputName.value = res.input_name
+          // For dynsteps, fill the correct answer on failure to move forward;
+          // for a (blocking) course step we stop instead.
+          if (!isCourse.value) {
+            replies.value[res.input_name] = res.expected
+          }
         }
       }
     }
 
-    if (isCourse.value && stepHasError) {
+    // Only a *blocking* wrong answer (no `nonstop`) stops a course; a nonstop
+    // wrong answer is recorded as wrong but the course advances.
+    if (isCourse.value && stepHasBlockingError) {
       courseStopped.value = true
     }
 

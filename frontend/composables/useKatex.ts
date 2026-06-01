@@ -8,7 +8,24 @@ export function useKatex() {
   // WIMS exercises encode literal symbols via entities specifically to avoid
   // collision with LaTeX commands — we have to undo that one level down.
   const LATEX_ESCAPE = new Set(['%', '&', '#', '$', '_', '{', '}'])
+  // Named HTML entities WIMS authors drop straight into `\(…\)` for relation /
+  // set symbols (e.g. `\(f(x)&le; 2\)`). KaTeX can't read `&le;` (the bare `&`
+  // is an alignment char) and renders it as a red error, so map each to its
+  // LaTeX command. Trailing space keeps the command token from gluing onto the
+  // next char (`\le2` → `\le 2`).
+  const NAMED_ENTITY_LATEX: Record<string, string> = {
+    le: '\\le ', ge: '\\ge ', ne: '\\ne ', infin: '\\infty ',
+    cup: '\\cup ', cap: '\\cap ', empty: '\\emptyset ', isin: '\\in ',
+    notin: '\\notin ', times: '\\times ', sdot: '\\cdot ', minus: '-',
+    plusmn: '\\pm ', rarr: '\\to ', larr: '\\leftarrow ', harr: '\\leftrightarrow ',
+    forall: '\\forall ', exist: '\\exists ', radic: '\\sqrt ', prop: '\\propto ',
+  }
   function decodeHtmlEntitiesForLatex(expr: string): string {
+    expr = expr.replace(/&([a-zA-Z]+);/g, (m, name) =>
+      Object.prototype.hasOwnProperty.call(NAMED_ENTITY_LATEX, name)
+        ? NAMED_ENTITY_LATEX[name]
+        : m,
+    )
     expr = expr.replace(/&#(\d+);/g, (_, code) => {
       const ch = String.fromCharCode(Number(code))
       return LATEX_ESCAPE.has(ch) ? '\\' + ch : ch

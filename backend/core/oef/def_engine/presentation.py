@@ -204,6 +204,14 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     if not s.strip() or "\\" in s or "{" in s or "}" in s:
         return s
 
+    # HTML entities (`&le;`, `&infin;`, `&#93;`, …) are display symbols the
+    # author embedded in the math span — e.g. `\(f(x)&le; 2\)`. SymPy can't
+    # parse them and would mangle the surrounding expression (`f(x)` → `f x`),
+    # so leave the span untouched: the frontend KaTeX layer decodes the entity
+    # to its LaTeX command (`\le`) at display time.
+    if re.search(r"&[A-Za-z]+;|&#x?[0-9A-Fa-f]+;", s):
+        return s
+
     # WIMS inline math uses bare relation *words* — e.g. `\(I in [EG]\)` for set
     # membership (rendered ``I ∈ [EG]``). SymPy can't parse these, so map the
     # known ones to their LaTeX command and skip the CAS path. The lookbehind/
@@ -234,17 +242,23 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
         return word if len(word) == 1 else rf"\text{{{word}}}"
 
     def _to_latex(expr: str) -> str:
+        # A single letter immediately followed by ``(`` is function-application
+        # notation — ``f(x)``, ``g(t)`` — not implicit multiplication. SymPy's
+        # implicit-mult transform would read ``f(x)`` as ``f*x`` and drop the
+        # parens (``f x``); telling ``_expr_to_latex`` to treat those letters as
+        # functions keeps ``f(x)`` intact (so e.g. ``\(f(x)< 2\)`` renders right).
+        funcs = set(re.findall(r"(?<![A-Za-z0-9_])([A-Za-z])(?=\()", expr))
         # `expr` is already stripped; _expr_to_latex returns it unchanged on a
         # parse failure. French exercises write decimals with a comma
         # (``sqrt(0,01)/2``) which SymPy can't parse — retry once with the
         # digit,digit commas turned into dots, but only adopt that reading if
         # it actually parses, so ``f(a,b)`` (comma = separator) is untouched.
-        out = _expr_to_latex(expr)
+        out = _expr_to_latex(expr, funcs)
         if out != expr:
             return out
         alt = re.sub(r"(?<=\d),(?=\d)", ".", expr)
         if alt != expr:
-            alt_out = _expr_to_latex(alt)
+            alt_out = _expr_to_latex(alt, funcs)
             if alt_out != alt:
                 return alt_out
         return out

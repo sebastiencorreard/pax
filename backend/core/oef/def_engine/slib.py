@@ -152,6 +152,16 @@ class _SlibMixin:
 
         if path.startswith("slib/"):
             self._run_slib(path, proc_args)
+            # `draw/repere` returns "x0,y0\nex,-ey\n<commands>": its first two
+            # rows are the pixel↔repère affine transform. Stash it so a `coord`
+            # answer can report the click in repère units, not raw pixels.
+            if path == "slib/draw/repere":
+                rows = (self.ctx.get("slib_out") or "").split("\n")
+                if len(rows) >= 2:
+                    o = [p.strip() for p in rows[0].split(",")]
+                    s = [p.strip() for p in rows[1].split(",")]
+                    if len(o) >= 2 and len(s) >= 2:
+                        self.ctx["_repere_transform"] = f"{o[0]},{o[1]},{s[0]},{s[1]}"
             return
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.

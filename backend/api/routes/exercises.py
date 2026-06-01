@@ -1,5 +1,7 @@
 import html
 import os
+import re
+import unicodedata
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -101,6 +103,25 @@ async def list_exercises(
     return result.scalars().all()
 
 
+def _title_sort_key(title: str) -> list:
+    """Natural, case/accent-insensitive sort key for an exercise title.
+
+    Exercises are listed by their displayed title (not their filename). The key
+    folds accents and case so "Évolution" sorts next to "Equation", and splits
+    digit runs into ints so "Question 9" precedes "Question 10" (a plain string
+    sort would put "10" first). WIMS itself orders via the module's `Exindex`,
+    which we don't track; an alphabetical title sort is the closest intuitive
+    equivalent and, here, also puts the "Course…" entries ahead of "Question…".
+    """
+    folded = "".join(
+        c for c in unicodedata.normalize("NFKD", title or "") if not unicodedata.combining(c)
+    ).casefold()
+    return [
+        int(tok) if tok.isdigit() else tok
+        for tok in re.split(r"(\d+)", folded)
+    ]
+
+
 @router.get("/modules")
 async def list_modules(
     level: str | None = None,
@@ -160,6 +181,11 @@ async def list_modules(
                 "keywords": _split_csv(_ex_keywords[mod_name].get(stem, "")),
             }
         )
+
+    # Within each module, list exercises by their (displayed) title — not the
+    # filename the DB query happened to order by.
+    for mod in modules.values():
+        mod["exercises"].sort(key=lambda e: _title_sort_key(e["title"]))
 
     # Sort modules by domain then title
     return sorted(

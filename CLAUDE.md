@@ -88,16 +88,16 @@ npm run lint
 
 ## Exercise ID System
 
-Exercise primary keys are **path slugs** — the `oef_path` with the leading `/` stripped, all `/` replaced by `~`, and the redundant leading `ressources~` component dropped (everything lives under `/ressources/`):
+Exercise primary keys are **path slugs** — the `oef_path` with the leading `/` stripped, all `/` replaced by `~`, the redundant leading `ressources~` component dropped (everything lives under `/ressources/`), and the trailing `.oef` extension dropped:
 
 ```
 /ressources/H4/chemistry/equilibrium.fr/src/coefficients2.oef
-→ H4~chemistry~equilibrium.fr~src~coefficients2.oef
+→ H4~chemistry~equilibrium.fr~src~coefficients2
 ```
 
 Two helper functions in `models/exercise.py`:
-- `path_to_id(oef_path)` — converts path to slug, stripping `ressources~` (used by import script)
-- `id_to_path(exercise_id)` — reverses it (re-adds `/ressources/`); not used at runtime — routes resolve files via the stored `Exercise.oef_path`
+- `path_to_id(oef_path)` — converts path to slug, stripping `ressources~` and the `.oef` suffix (used by import script)
+- `id_to_path(exercise_id)` — reverses it (re-adds `/ressources/` and `.oef`); not used at runtime — routes resolve files via the stored `Exercise.oef_path`
 
 This makes IDs deterministic across fresh DB setups and URL-safe (`~` is RFC 3986 unreserved). All routes (`/api/exercises/{id}`, `/api/render/{id}`, `/api/check/{id}`) and frontend types use `str`, not `int`.
 
