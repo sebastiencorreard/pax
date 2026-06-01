@@ -702,7 +702,14 @@ class DefEngine(_SlibMixin):
         except (ValueError, TypeError):
             return ""
         items = self._split_list_items(value)
-        return ",".join(items[start - 1 : end])
+        # WIMS indices are 1-based and a negative index counts from the end with
+        # -1 = the *last* item, **inclusive** (`[2..-1]` = item 2 through the
+        # last). Python's `items[1:-1]` would drop the last, so map a negative
+        # end to its inclusive Python bound (-1 → None, -2 → -1, …).
+        py_end: int | None = end
+        if end < 0:
+            py_end = end + 1 or None
+        return ",".join(items[start - 1 : py_end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
         """Resolve $(var[n]) — 1-indexed item from tab/semicolon/comma-separated list."""
