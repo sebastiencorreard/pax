@@ -256,9 +256,9 @@ export function useExerciseLogic() {
   const TEXT_ANSWER_TYPES = new Set([
     'radio', 'menu', 'checkbox', 'mark', 'correspond', 'clickfill',
     'atext', 'text', 'nocase', 'case', 'raw',
-    // `units` answers ("7.7 m/s") render verbatim — otherwise slashToFrac would
-    // turn the unit's "/" into a LaTeX fraction (m/s → m over s).
-    'units', 'unit',
+    // `units`/`sigunits` answers ("7.7 m/s", "1.64e11 km^3") render verbatim —
+    // otherwise slashToFrac would turn a unit's "/" into a LaTeX fraction.
+    'units', 'unit', 'sigunits',
   ])
 
   async function renderValue(s: string, answerType?: string): Promise<string> {

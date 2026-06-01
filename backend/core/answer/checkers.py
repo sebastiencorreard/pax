@@ -346,6 +346,108 @@ def check_unit(
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="unit")
 
 
+# Scientific notation written as ``×10^n`` / ``*10^n`` / ``·10^n`` / `` 10^n``
+# (with or without the ``^``) → ``e`` notation, so `float()` can read it.
+_SCI_OP_RE = re.compile(r"\s*[*x×·⋅]\s*10\s*\^?\s*([+-]?\d+)")
+_SCI_SP_RE = re.compile(r"(?<=\d)\s*10\s*\^\s*([+-]?\d+)")
+
+
+def _normalize_sci(s: str) -> str:
+    s = _SCI_OP_RE.sub(lambda m: "e" + m.group(1), s)
+    s = _SCI_SP_RE.sub(lambda m: "e" + m.group(1), s)
+    return s
+
+
+def _split_sci_value_unit(s: str) -> tuple[str | None, str]:
+    """Split ``"1.64e11 km^3"`` / ``"1,64 × 10^11 km^3"`` / ``"164200792894 km^3"``
+    into ``(value, unit)``, the value possibly in scientific notation."""
+    s = _normalize_sci(s.strip())
+    m = re.match(r"^\s*([+-]?\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?)\s*(.*)$", s, re.DOTALL)
+    if not m:
+        return None, ""
+    return m.group(1).strip(), m.group(2).strip()
+
+
+def _round_sig(x: float, n: int) -> float:
+    """Round ``x`` to ``n`` significant figures."""
+    if x == 0 or n < 1:
+        return 0.0
+    return round(x, -int(math.floor(math.log10(abs(x)))) + (n - 1))
+
+
+def _sci_to_float(s: str, comma_is_decimal: bool) -> float:
+    s = s.strip()
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    return float(_normalize_sci(s))
+
+
+def format_sigunits_expected(expected: str) -> str:
+    """Render a ``sigunits`` expected (``"164200792894 km^3 #3"``) as the answer
+    the student should give: scientific notation rounded to N significant
+    figures, plus the unit (``"1.64e11 km^3"``) — the ``#N`` directive dropped."""
+    m = re.match(r"^(.*?)\s*#\s*(\d+)\s*$", expected.strip(), re.DOTALL)
+    if not m:
+        return expected
+    n = int(m.group(2))
+    val, unit = _split_sci_value_unit(m.group(1))
+    if val is None:
+        return m.group(1).strip()
+    try:
+        x = _sci_to_float(val, comma_is_decimal=True)
+    except (ValueError, OverflowError):
+        return m.group(1).strip()
+    if x == 0:
+        mant_exp = "0"
+    else:
+        exp = int(math.floor(math.log10(abs(x))))
+        mant = round(x / 10 ** exp, n - 1)
+        if abs(mant) >= 10:  # rounding pushed e.g. 9.99→10.0
+            mant /= 10
+            exp += 1
+        mant_exp = f"{mant:.{max(n - 1, 0)}f}e{exp}"
+    return f"{mant_exp} {unit}".strip()
+
+
+def check_sigunits(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type ``sigunits`` (WIMS): a value in scientific notation rounded to N
+    significant figures, plus a unit — expected stored as ``"<value> <unit> #N"``.
+
+    Checks: the reply rounded to N sig figs equals the expected rounded to N sig
+    figs, the unit matches, and the reply isn't given with *more* than N sig
+    figs (so the student must actually round, e.g. ``1.64e11`` not the raw
+    ``164200792894``). Unlike WIMS' ``units-filter`` we don't convert between
+    units (the statement asks for a specific one).
+    """
+    m = re.match(r"^(.*?)\s*#\s*(\d+)\s*$", expected.strip(), re.DOTALL)
+    if not m:
+        return check_unit(reply, expected, comma_is_decimal=comma_is_decimal)
+    n_sig = int(m.group(2))
+    ev, eu = _split_sci_value_unit(m.group(1))
+    rv, ru = _split_sci_value_unit(reply)
+    if ev is None or rv is None:
+        return CheckResult(correct=False, score=0.0, method="sigunits")
+    try:
+        en = _sci_to_float(ev, comma_is_decimal)
+        rn = _sci_to_float(rv, comma_is_decimal)
+    except (ValueError, OverflowError):
+        return CheckResult(correct=False, score=0.0, method="sigunits")
+
+    target = _round_sig(en, n_sig)
+    rr = _round_sig(rn, n_sig)
+
+    def _close(a: float, b: float) -> bool:
+        return abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1.0)
+
+    # value rounds to the target AND the reply was itself given to ≤ N sig figs
+    num_ok = _close(rr, target) and _close(rr, rn)
+    unit_ok = _normalize_unit(ru) == _normalize_unit(eu)
+    correct = num_ok and unit_ok
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="sigunits")
+
+
 def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
     """Compare les coordonnées du/des point(s) déplacé(s) à la position attendue.
 
@@ -1053,6 +1155,8 @@ def check_answer(
             return check_numexp(reply, expected, precision, comma_is_decimal)
         case "units" | "unit":
             return check_unit(reply, expected, precision, comma_is_decimal)
+        case "sigunits":
+            return check_sigunits(reply, expected, comma_is_decimal)
         case "algexp" | "litexp" | "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
