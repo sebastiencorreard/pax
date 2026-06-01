@@ -74,6 +74,7 @@ const auth = useAuthStore()
 const { debugMode: debugOef } = useDebugMode()
 const { apiFetch } = useApi()
 const { renderMath } = useKatex()
+const { renderValue } = useExerciseLogic()
 
 const playerRef = ref<{ fillAnswers: (a: Record<string, string>) => void } | null>(null)
 
@@ -140,12 +141,6 @@ async function loadSource() {
   }
 }
 
-function expectedToLatex(s: string): string {
-  if (!s) return '—'
-  if (s.startsWith('\\(') || s.startsWith('\\[')) return s
-  return `\\(${s.replace(/\*\*/g, '^').replace(/\*/g, '')}\\)`
-}
-
 async function onRendered(payload: { seed: number; exerciseId: string; currentStep?: number | null }) {
   if (!debugOef) return
   debug.value = null
@@ -161,7 +156,9 @@ async function onRendered(payload: { seed: number; exerciseId: string; currentSt
     if (data.solution_html) solutionHtml.value = await renderMath(data.solution_html, { autoDisplay: true })
     const map: Record<string, string> = {}
     for (const a of data.answers) {
-      map[a.input_name] = await renderMath(expectedToLatex(a.expected))
+      // renderValue respects TEXT_ANSWER_TYPES (e.g. `units`: "7.7 m/s" stays
+      // text, so the unit's "/" isn't turned into a LaTeX fraction).
+      map[a.input_name] = await renderValue(a.expected, a.answer_type)
     }
     expectedHtml.value = map
   } catch (e: any) {

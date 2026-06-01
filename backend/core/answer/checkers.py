@@ -305,6 +305,47 @@ def check_numeric(
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numeric")
 
 
+def _split_value_unit(s: str) -> tuple[str | None, str]:
+    """Split ``"7.7 m/s"`` / ``"7.7m/s"`` into ``("7.7", "m/s")``.
+
+    The value is a leading signed decimal or integer fraction; everything after
+    is the unit. Returns ``(None, "")`` when no leading number is found.
+    """
+    m = re.match(r"^\s*([+-]?\d+(?:[.,]\d+)?|[+-]?\d+\s*/\s*\d+)\s*(.*)$", s.strip(), re.DOTALL)
+    if not m:
+        return None, ""
+    return m.group(1).strip(), m.group(2).strip()
+
+
+def _normalize_unit(u: str) -> str:
+    """Normalise a unit string for comparison: drop whitespace, unify the
+    multiplication dot. (``"m / s"`` → ``"m/s"``; case is significant — m≠M.)"""
+    u = re.sub(r"\s+", "", u)
+    return u.replace("·", "*").replace("⋅", "*").replace("×", "*")
+
+
+def check_unit(
+    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type ``units`` (WIMS): a numeric value followed by a unit (``"7.7 m/s"``).
+
+    The number is compared numerically (``check_numeric``) and the unit string
+    textually after normalising whitespace/separators — so ``"7.7m/s"`` matches
+    the expected ``"7.7 m/s"``. WIMS' ``units-filter`` additionally *converts*
+    between compatible units; we don't (these exercises ask for a specific
+    unit), so the unit must match after normalisation. A missing unit (when one
+    is expected) fails — the statement asks to "préciser l'unité".
+    """
+    rn, ru = _split_value_unit(reply)
+    en, eu = _split_value_unit(expected)
+    if rn is None or en is None:
+        return CheckResult(correct=False, score=0.0, method="unit")
+    num = check_numeric(rn, en, precision, comma_is_decimal)
+    unit_ok = _normalize_unit(ru) == _normalize_unit(eu)
+    correct = num.correct and unit_ok
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="unit")
+
+
 def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
     """Compare les coordonnées du/des point(s) déplacé(s) à la position attendue.
 
@@ -1010,6 +1051,8 @@ def check_answer(
             return check_numeric(reply, expected, precision, comma_is_decimal)
         case "numexp":
             return check_numexp(reply, expected, precision, comma_is_decimal)
+        case "units" | "unit":
+            return check_unit(reply, expected, precision, comma_is_decimal)
         case "algexp" | "litexp" | "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
