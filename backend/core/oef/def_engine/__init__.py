@@ -2476,12 +2476,15 @@ class DefEngine(_SlibMixin):
 
         # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs),
         # reply\h → reply1 (same loop-var substitution, just with the
-        # full `reply` prefix the author wrote).
+        # full `reply` prefix the author wrote). `rep1` (tavernier1) is the same
+        # reply 1 — WIMS keys the reply off the trailing index regardless of the
+        # `reply`/`rep`/`r` spelling. Match the longest prefix first so `reply…`
+        # and `rep…` aren't truncated to a bare `r`.
         prefix = None
-        if ref.startswith("reply"):
-            prefix = "reply"
-        elif ref.startswith("r"):
-            prefix = "r"
+        for p in ("reply", "rep", "r"):
+            if ref.startswith(p):
+                prefix = p
+                break
         if prefix is not None:
             suffix = ref[len(prefix):]
             # 1. Handle loop variables like \qq in r\qq or reply\h
