@@ -584,6 +584,11 @@ def _embedded_widget_names(html: str) -> set[str]:
     # `checkbox` widgets are emitted by _render_embed as native <input> tags
     # (not oef-* spans), so _SEGMENT_PATTERN misses them — scan separately.
     names |= set(re.findall(r'class="oef-checkbox"\s+name="([^"]+)"', html))
+    # mathmlinput renders native <input class="oef-input"> fields inline in the
+    # math (not splittable spans), so detect those too — otherwise the fallback
+    # re-appends reply1/reply2 underneath (elassaoui3).
+    names |= set(re.findall(r'<input[^>]*\bclass="oef-input"[^>]*\bname="([^"]+)"', html))
+    names |= set(re.findall(r'<input[^>]*\bname="([^"]+)"[^>]*\bclass="oef-input"', html))
     return names
 
 

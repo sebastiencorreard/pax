@@ -48,6 +48,7 @@ from ..def_parser import (
     ReadDraw,
     ReadEmbed,
     ReadProc,
+    ReadSpecial,
     parse as parse_def,
 )
 from ..engine import AnswerDef, ExerciseRender, _segment_statement, _embedded_widget_names
@@ -464,6 +465,13 @@ class DefEngine(_SlibMixin):
                 url = self.ctx.get("ins_url", "")
                 if output_buf is not None and url:
                     output_buf.append(f'<img src="{url}" alt="">')
+
+            elif isinstance(instr, ReadSpecial):
+                # !read oef/special.phtml ARGS — an OEF \special. Currently
+                # `mathmlinput` (math with inline answer fields) is rendered;
+                # other specials produce nothing rather than leaking markup.
+                if output_buf is not None:
+                    output_buf.append(self._render_special(instr.args))
 
     def _exec_for(self, loop: ForLoop, output_buf: list[str] | None) -> None:
         """Execute a !for loop — numeric (`X = a to b`) or list (`X in list`)."""
@@ -2460,6 +2468,97 @@ class DefEngine(_SlibMixin):
             return []
         after = raw.split(";", 1)[1].strip()
         return [c.strip() for c in after.split(",") if c.strip()]
+
+    def _render_special(self, args: str) -> str:
+        """Dispatch an OEF ``\\special`` (``!read oef/special.phtml <kind> …``).
+
+        Only ``mathmlinput`` is implemented; unknown specials render to nothing.
+        """
+        s = self._subst(args).strip()
+        m = re.match(r"^\s*(\w+)\s+(.*)$", s, re.DOTALL)
+        if not m:
+            return ""
+        kind, rest = m.group(1).lower(), m.group(2)
+        if kind == "mathmlinput":
+            return self._render_mathmlinput(rest)
+        return ""
+
+    def _render_mathmlinput(self, args: str) -> str:
+        """``mathmlinput [EXPR],<size>,<opts>\\t<replyN,size>…`` — render EXPR as
+        math with each ``replyN`` token replaced by an inline answer field
+        (WIMS' ``\\input{…}`` in the math). ``reply1^{reply2}`` thus becomes a
+        base field with a superscript exponent field, as in elassaoui3.
+
+        Mirrors ``oef/special/mathmlinput.phtml``: tabs become whitespace (the
+        wrapped EXPR keeps its tab as a harmless newline; the option/reply lines
+        are tab-separated), the bracketed EXPR is item 1, then line 1 is the
+        default size and the remaining lines are ``replyN,size``.
+        """
+        s = args.replace("\t", "\n")
+        m = re.match(r"^\s*\[(.*?)\]\s*,?(.*)$", s, re.DOTALL)
+        if not m:
+            return ""
+        code = m.group(1)
+        rest_lines = m.group(2).split("\n")
+        opt_line = rest_lines[0] if rest_lines else ""
+        dm = re.search(r"\d+", opt_line)
+        default_size = int(dm.group(0)) if dm else 5
+        sizes: dict[str, int] = {}
+        for ln in rest_lines[1:]:
+            cells = [c.strip() for c in ln.split(",")]
+            if not cells or not cells[0]:
+                continue
+            num = re.search(r"\d+", cells[0])
+            if not num:
+                continue
+            name = f"reply{num.group(0)}"
+            try:
+                sizes[name] = int(cells[1]) if len(cells) > 1 and cells[1] else default_size
+            except ValueError:
+                sizes[name] = default_size
+        return self._mathmlinput_html(code, sizes, default_size)
+
+    def _mathmlinput_html(self, code: str, sizes: dict[str, int], default_size: int) -> str:
+        """Build the math+inputs HTML for mathmlinput: ``\\(…\\)`` math chunks
+        interleaved with native ``<input class="oef-input">`` fields, the
+        ``^{replyN}`` exponents wrapped in ``<sup>``. The whole thing stays one
+        HTML segment so the frontend KaTeX-renders the math and event-delegation
+        binds the inputs."""
+        sup_map: dict[str, str] = {}
+        inp_map: dict[str, str] = {}
+
+        def sup_repl(mm: re.Match) -> str:
+            key = f"\x00S{len(sup_map)}\x00"
+            sup_map[key] = mm.group(1)
+            return key
+
+        def inp_repl(mm: re.Match) -> str:
+            key = f"\x00I{len(inp_map)}\x00"
+            inp_map[key] = mm.group(1)
+            return key
+
+        # Mark exponent fields (^{replyN} / ^replyN) first, then the plain ones.
+        code = re.sub(r"\^\{\s*(reply\d+)\s*\}", sup_repl, code)
+        code = re.sub(r"\^\s*(reply\d+)\b", sup_repl, code)
+        code = re.sub(r"\b(reply\d+)\b", inp_repl, code)
+
+        def field(name: str) -> str:
+            width = max(sizes.get(name, default_size) + 2, 4)
+            return (
+                f'<input type="text" class="oef-input" name="{name}" autocomplete="off" '
+                f'style="width:{width}ch;min-width:3ch;text-align:center" />'
+            )
+
+        out: list[str] = []
+        for seg in re.split(r"(\x00[SI]\d+\x00)", code):
+            tm = re.match(r"\x00([SI])\d+\x00$", seg)
+            if tm:
+                name = (sup_map if tm.group(1) == "S" else inp_map)[seg]
+                inp = field(name)
+                out.append(f"<sup>{inp}</sup>" if tm.group(1) == "S" else inp)
+            elif seg.strip():
+                out.append(f"\\({seg.strip()}\\)")
+        return "".join(out)
 
     def _render_embed(self, args: str) -> str:
         """Render an !read oef/embed.phtml marker as an input span."""
