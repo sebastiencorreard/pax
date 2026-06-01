@@ -29,12 +29,13 @@ from .cas import (
 from .presentation import (
     _close_inline_math,
     _normalize_math_content,
+    _split_top_level,
     localize_decimals,
     wims_matrices_to_latex,
 )
 from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
 from ..numfmt import format_wims_float
-from ..i18n import uses_comma_decimal
+from ..i18n import list_separator, uses_comma_decimal
 from ..def_parser import (
     Assign,
     Command,
@@ -1052,7 +1053,18 @@ class DefEngine(_SlibMixin):
             return expr
 
         if cmd == "texmath":
-            return _expr_to_latex(self._subst(args))
+            s = self._subst(args)
+            # A top-level comma list (e.g. the solution set `-1,0`) is a *list*,
+            # not a tuple: render each element and join with the locale list
+            # separator — WIMS never wraps it in parentheses (the `{…}` braces
+            # come from the template). Commas inside ()/[]/{} (function args,
+            # an explicit point `(a,b)`) stay put. ``;`` in comma-decimal
+            # locales also avoids KaTeX reading `-1,0` as one decimal.
+            parts = _split_top_level(s, ",")
+            if len(parts) > 1 and all(p.strip() for p in parts):
+                sep = list_separator(self.lang)
+                return sep.join(_expr_to_latex(p.strip()) for p in parts)
+            return _expr_to_latex(s)
 
         if cmd == "insmath":
             return self._subst(args)
@@ -2399,6 +2411,49 @@ class DefEngine(_SlibMixin):
             return self._subst(literal)
         return ""
 
+    def _split_correspond_column(self, row: str) -> list[str]:
+        """Split one correspond column into items, robust to HTML-element items.
+
+        ``_split_list_items`` over-splits a column of complete HTML elements
+        (assgrhyper's 4 ``<img>`` hyperbola graphs): the multi-line ``<img>``
+        markup carries tabs (source newlines) that collide with the tab used as
+        the item separator. Such elements end in ``>`` and the next begins with
+        ``<``, so a tab that *follows* a closing ``>`` is the only real boundary
+        (attribute tabs follow ``"`` or spaces). Fall back to the generic split
+        when the column isn't a clean list of elements (CORvect3 coords, text).
+        """
+        if "<" in row and ">" in row:
+            elems = [e.strip() for e in re.split(r"(?<=>)\s*\t\s*", row) if e.strip()]
+            if len(elems) >= 2 and all(e.startswith("<") for e in elems):
+                return elems
+        return [c for c in self._split_list_items(row) if c.strip()]
+
+    def _prep_correspond_item(self, raw: str) -> str:
+        """Normalise one correspond cell for display: close WIMS inline math and,
+        for a flydraw graph, collapse the multi-line ``<img>`` whitespace and
+        inline its SVG (so it travels in the payload, like the rest of the
+        rendered statement — the ``/api/render/svg`` cache is in-memory only)."""
+        s = _close_inline_math(self._subst(raw.strip()), self.lang)
+        if "/api/render/svg/" in s:
+            from ..flydraw import inline_svg_imgs  # noqa: PLC0415
+            s = re.sub(r"\s+", " ", s)            # flatten the multi-line markup
+            s = re.sub(r'src="\s+', 'src="', s)   # trim the URL's leading space
+            s = inline_svg_imgs(s)
+        return s
+
+    def _inline_radio_choices(self, n: str) -> list[str]:
+        """Choice list of radio reply ``n`` from ``replygood{n}`` (``correct;a,b,…``).
+
+        Used by the inline-radio test in :meth:`_render_embed` to recognise the
+        "pick figure N" style (choices are the bare positions ``1,2,…``). Returns
+        ``[]`` when there's no choice list yet (e.g. plain/analyze radios).
+        """
+        raw = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
+        if ";" not in raw:
+            return []
+        after = raw.split(";", 1)[1].strip()
+        return [c.strip() for c in after.split(",") if c.strip()]
+
     def _render_embed(self, args: str) -> str:
         """Render an !read oef/embed.phtml marker as an input span."""
         args = self._subst(args).strip()
@@ -2455,14 +2510,27 @@ class DefEngine(_SlibMixin):
             self._touched_replies.add(f"reply{n}")
             reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
             if reply_type == "radio":
-                # Inline radio (couf): `reply{n},POS,CONTENT` places one choice
-                # *here* in the statement, value = POS, label = CONTENT. The
-                # whole option set is laid out by the author (e.g. a vertical
-                # <ul>), so it's rendered inline instead of in the grid zone.
-                if len(parts) >= 3 and parts[1].strip():
+                # Inline radio: `reply{n},POS[,CONTENT]` places one choice *here*
+                # in the statement (value = POS, label = CONTENT), instead of in
+                # the grid zone below. Two author styles:
+                #  - couf: explicit CONTENT (the choice text) → inline.
+                #  - chgrhyper: `reply 1,1`..`reply 1,4` with NO content, where
+                #    the choices are the bare position numbers `1,2,3,4` and each
+                #    radio sits in a table next to its graph → inline, empty label.
+                # A 2nd arg that is a *size* (ecrdecimal `reply \h,\s`) or any
+                # reply whose choices carry their own text (vocabaff3) must stay
+                # a plain deferred radio — so only treat the bare-position case as
+                # inline when the choice list is exactly the sequence 1..N.
+                pos = parts[1].strip() if len(parts) >= 2 else ""
+                content = ",".join(parts[2:]).strip() if len(parts) > 2 else ""
+                inline = bool(pos) and bool(content)
+                if pos and not content:
+                    choices = self._inline_radio_choices(n)
+                    inline = bool(choices) and pos in choices and choices == [
+                        str(i) for i in range(1, len(choices) + 1)
+                    ]
+                if inline:
                     import html as _h  # noqa: PLC0415
-                    pos = parts[1].strip()
-                    content = ",".join(parts[2:]).strip()
                     self._inline_radio = getattr(self, "_inline_radio", set())
                     self._inline_radio.add(str(n))
                     return (
@@ -2615,14 +2683,8 @@ class DefEngine(_SlibMixin):
                 # comma-separated. Split per-column so the two sides line up;
                 # a bare comma split would yield e.g. 3 colours but 1 coord
                 # blob, fail the bijection check below, and render nothing.
-                lefts = [
-                    _close_inline_math(self._subst(c.strip()), self.lang)
-                    for c in self._split_list_items(rows[0]) if c.strip()
-                ]
-                rights = [
-                    _close_inline_math(self._subst(c.strip()), self.lang)
-                    for c in self._split_list_items(rows[1]) if c.strip()
-                ]
+                lefts = [self._prep_correspond_item(c) for c in self._split_correspond_column(rows[0])]
+                rights = [self._prep_correspond_item(c) for c in self._split_correspond_column(rows[1])]
                 if not lefts or len(lefts) != len(rights):
                     return ""
                 # Deterministic shuffle from the engine seed + reply index
@@ -2669,6 +2731,15 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "coord":
+                # `type=coord`: the field is a clickable repère image (WIMS'
+                # `<input type=image>`). `replygood{n}` = "<image_url>;<zone>"
+                # (rows split on ';'); the first row is the background to click.
+                good = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
+                img = good.split(";", 1)[0].strip()
+                if img:
+                    return f'<span class="oef-coord" name="reply{n}" data-img="{img}"></span>'
+                return ""
 
         size_raw = self._subst(size_str).strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
@@ -2830,6 +2901,23 @@ class DefEngine(_SlibMixin):
             rf"\${re.escape(var_name)}\b\s*-\s*({_ref})"
             rf"|({_ref})\s*-\s*\${re.escape(var_name)}\b"
         )
+        # Set-equality check: the reply set is compared to the solution set via
+        # maxima ``is({$sol}={$reply})`` (factorcom's eqfactorcom: the reply
+        # `$<var>` equals the other braced set, the solutions). The other side
+        # is the expected value.
+        pat_iseq = re.compile(r"is\(\s*\{([^{}]*)\}\s*=\s*\{([^{}]*)\}\s*\)")
+
+        def _other_set_side(value: str) -> str | None:
+            em = pat_iseq.search(value)
+            if not em:
+                return None
+            a, b = em.group(1).strip(), em.group(2).strip()
+            targets = {f"${var_name}", f"$({var_name})"}
+            if b in targets:
+                return self._subst(a).strip()
+            if a in targets:
+                return self._subst(b).strip()
+            return None
 
         def walk(body: list) -> str | None:
             for instr in body:
@@ -2838,6 +2926,9 @@ class DefEngine(_SlibMixin):
                     m = pat_rhs.search(cond) or pat_lhs.search(cond)
                     if m:
                         return self._subst(m.group(1)).strip()
+                    other = _other_set_side(cond)
+                    if other is not None:
+                        return other
                     sub = walk(instr.then_body) or walk(instr.else_body)
                     if sub:
                         return sub
@@ -2845,6 +2936,9 @@ class DefEngine(_SlibMixin):
                     sm = pat_sub.search(instr.value)
                     if sm:
                         return self._subst(sm.group(1) or sm.group(2)).strip()
+                    other = _other_set_side(instr.value)
+                    if other is not None:
+                        return other
             return None
 
         # :test holds the comparison for most analyze exercises; ineqinterv1
@@ -3217,6 +3311,20 @@ class DefEngine(_SlibMixin):
                 _frac = self._expected_as_fraction(rm.get("good", ""))
                 if _frac is not None:
                     expected = _frac
+
+            if ans_type == "coord":
+                # replygood = "<image_url>;<click-zone>" (rows split on ';').
+                # Row 1 is the clickable background; the rest is the target zone
+                # (e.g. "point,Ax,Ay") the checker compares the click against.
+                rows = [r.strip() for r in good_raw.split(";")]
+                if rows:
+                    options["image"] = rows[0]
+                expected = ";".join(rows[1:]).strip()
+                # The pixel↔repère transform (from slib/draw/repere) lets the
+                # feedback report the click in repère units instead of pixels.
+                xform = self.ctx.get("_repere_transform")
+                if xform:
+                    options["transform"] = xform
 
             answers.append(
                 AnswerDef(

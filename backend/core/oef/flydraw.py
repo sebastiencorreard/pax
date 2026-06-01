@@ -1595,10 +1595,17 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
     except Exception:
         return
 
-    # Sample the curve and emit a polyline, clipping to the y range.
+    # Sample the curve and emit one polyline per continuous branch, clipping to
+    # the y range. A sample that is undefined, NaN or out of range is dropped;
+    # whenever that breaks the run of consecutive samples we start a *new*
+    # polyline rather than bridging the gap — otherwise the two points either
+    # side of a pole (e.g. 1/x at x=0) get joined by a spurious near-vertical
+    # segment across the asymptote.
     n_samples = 200
     step = (state.xmax - state.xmin) / n_samples
-    pts: list[str] = []
+    branches: list[list[str]] = []
+    cur: list[str] = []
+    prev_i: int | None = None
     for i in range(n_samples + 1):
         x = state.xmin + i * step
         try:
@@ -1607,13 +1614,20 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
             continue
         if y != y or y < state.ymin - 1 or y > state.ymax + 1:
             continue
-        pts.append(f"{state.px(x):.2f},{state.py(y):.2f}")
-    if len(pts) < 2:
-        return
-    state.elements.append(
-        f'<polyline points="{" ".join(pts)}" fill="none" '
-        f'stroke="{color}" stroke-width="{state.linewidth}" />'
-    )
+        if cur and prev_i is not None and i != prev_i + 1:
+            branches.append(cur)
+            cur = []
+        cur.append(f"{state.px(x):.2f},{state.py(y):.2f}")
+        prev_i = i
+    if cur:
+        branches.append(cur)
+    for pts in branches:
+        if len(pts) < 2:
+            continue
+        state.elements.append(
+            f'<polyline points="{" ".join(pts)}" fill="none" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
 
 
 def _cmd_circle(state: _State, args: list[str]) -> None:
@@ -1784,45 +1798,34 @@ def _sector_fill_polygon(state: _State, fx: float, fy: float) -> list[_Pt] | Non
     return poly
 
 
-def _cmd_flood(state: _State, args: list[str]) -> None:
-    """flood x,y,[color] — fill the grid cell containing (x,y).
+def _flood_region(state: _State, fx: float, fy: float) -> list[_Pt] | None:
+    """Math-coord polygon of the connected region containing (fx, fy), or None.
 
-    Strategy: group recorded segments into families of parallel lines (one
-    family per direction). For each family, find the closest line ABOVE and
-    BELOW the flood point. With 3 families that's 6 candidate lines and
-    8 = 2³ ways to pick one from each side. For each combination, compute
-    the 3 pairwise intersections — they're the candidate triangle vertices.
-    Take the smallest valid triangle that contains (fx, fy). This guarantees
-    the polygon's edges lie on actual grid lines (not just on arbitrary
-    intersection points) so the fill aligns with the grid cell.
+    Shared by the solid fill (`fill`/`flood`) and the pattern fills
+    (`hatchfill`, …). Strategy, smallest-first:
+    1. an explicitly-drawn closed polygon containing the point;
+    2. a pie/wheel sector (spokes from a hub inside an ellipse);
+    3. a grid cell reconstructed from three families of parallel segments —
+       find the closest line above/below the point in each family, then take
+       the smallest triangle of pairwise intersections that contains the
+       point, so its edges lie on actual grid lines.
     """
-    if len(args) < 2:
-        return
-    fx, fy = _num(args[0]), _num(args[1])
-    color = _color(args[2]) if len(args) > 2 else "#000000"
-
     # Prefer an explicitly-drawn closed polygon containing the point. This fills
     # arbitrary shapes (e.g. the rhombus in oefcalittaire1) that the
     # triangle-from-segments fallback below can't handle. Smallest match wins so
     # an inner region is preferred over an enclosing one.
     containing = [poly for poly in state.polygons if _point_in_polygon((fx, fy), poly)]
     if containing:
-        poly = min(containing, key=_polygon_area)
-        pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
-        # Insert behind the outline/labels so the stroked border stays visible.
-        state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
-        return
+        return min(containing, key=_polygon_area)
 
-    # Pie/wheel sector (spokes from a hub inside an ellipse) — the families
-    # logic below can't handle it because every spoke pair meets at the hub.
+    # Pie/wheel sector — the families logic below can't handle it because every
+    # spoke pair meets at the hub.
     sector = _sector_fill_polygon(state, fx, fy)
     if sector is not None:
-        pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in sector)
-        state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
-        return
+        return sector
 
     if not state.segments:
-        return
+        return None
 
     # Group segments by direction. Each family entry is keyed by a rounded
     # canonical normal so that segments with opposite orientation merge.
@@ -1843,7 +1846,7 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
         families.setdefault(key, []).append((c, seg))
 
     if len(families) < 3:
-        return
+        return None
 
     # For each family find the closest line above and below the flood point.
     # Each candidate is (offset c, sample segment).
@@ -1864,7 +1867,7 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
         if above:
             cands.append((above[0], by_offset[above[0]]))
         if not cands:
-            return
+            return None
         candidate_pairs.append(cands)
 
     # We expect exactly 3 families; with more, take the 3 with members
@@ -1892,10 +1895,62 @@ def _cmd_flood(state: _State, args: list[str]) -> None:
             best = (v01, v12, v02)
             best_area = area
     if best is None:
-        return
+        return None
+    return [best[0], best[1], best[2]]
 
-    pts = " ".join(f"{state.px(p[0]):.2f},{state.py(p[1]):.2f}" for p in best)
+
+def _cmd_flood(state: _State, args: list[str]) -> None:
+    """fill/flood x,y,[color] — fill the connected region containing (x,y)."""
+    if len(args) < 2:
+        return
+    fx, fy = _num(args[0]), _num(args[1])
+    color = _color(args[2]) if len(args) > 2 else "#000000"
+    poly = _flood_region(state, fx, fy)
+    if poly is None:
+        return
+    pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
+    # Insert behind the outline/labels so the stroked border stays visible.
     state.elements.insert(0, f'<polygon points="{pts}" fill="{color}" stroke="none" />')
+
+
+def _cmd_hatchfill(state: _State, args: list[str]) -> None:
+    """hatchfill xc,yc,dx,dy,[color] — hatch the region containing (xc,yc).
+
+    Per WIMS' ``draw_hatchfill`` (canvasdraw/canvasutils.c), the 3rd/4th args
+    are pixel *increments* ``(dx, dy)`` setting the hatch line *direction* — NOT
+    a (distance, angle°) pair. The corpus value ``10,10`` therefore means 45°
+    (``dx == dy``), which is why WIMS hatches T1130 diagonally, not the ~10°
+    a degree reading produced. We tile an SVG ``<pattern>`` of one ``dx×dy``
+    cell with its diagonal drawn: the cells stitch into continuous parallel
+    lines at angle ``atan2(dy, dx)`` (perpendicular spacing
+    ``dx·dy/hypot(dx, dy)``), clipped to the region polygon. A later white
+    ``fcircle`` then masks the centre, leaving the corners hatched.
+    """
+    if len(args) < 2:
+        return
+    fx, fy = _num(args[0]), _num(args[1])
+    dx = abs(_num(args[2])) if len(args) > 2 else 10.0
+    dy = abs(_num(args[3])) if len(args) > 3 else 10.0
+    color = _color(args[4]) if len(args) > 4 else "#000000"
+    poly = _flood_region(state, fx, fy)
+    if poly is None:
+        return
+    dx = max(dx, 2.0)  # avoid a degenerate / solid-black tile
+    dy = max(dy, 2.0)
+    pid = f"hatch{len(state.elements)}_{abs(hash((round(fx, 3), round(fy, 3)))) % 100000}"
+    # One corner-to-corner diagonal per dx×dy tile. Endpoints sit exactly on the
+    # tile corners, so neighbouring tiles' segments meet → continuous parallel
+    # lines. (0,0)→(dx,dy) leans "\" in SVG's y-down space, matching WIMS.
+    pattern = (
+        f'<defs><pattern id="{pid}" width="{dx:.2f}" height="{dy:.2f}" '
+        f'patternUnits="userSpaceOnUse">'
+        f'<line x1="0" y1="0" x2="{dx:.2f}" y2="{dy:.2f}" '
+        f'stroke="{color}" stroke-width="{max(state.linewidth, 1.0):.2f}" />'
+        f"</pattern></defs>"
+    )
+    pts = " ".join(f"{state.px(x):.2f},{state.py(y):.2f}" for x, y in poly)
+    # Behind the outline/labels (and any later masking fill) like `fill`.
+    state.elements.insert(0, pattern + f'<polygon points="{pts}" fill="url(#{pid})" stroke="none" />')
 
 
 def _xml_escape(s: str) -> str:
@@ -1980,6 +2035,7 @@ _HANDLERS = {
     "fill": _cmd_flood,
     "flood": _cmd_flood,
     "gridfill": _cmd_gridfill,
+    "hatchfill": _cmd_hatchfill,
     # Image paste
     "copy": _cmd_copy,
     "insert": _cmd_copy,  # alias per WIMS nametab

@@ -376,8 +376,13 @@ def _call_maxima(expr: str) -> str:
 _PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
 
 
-def _expr_to_latex(expr: str) -> str:
+def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
     """Convert a math expression string to LaTeX notation for display.
+
+    ``func_names`` lists single identifiers that the caller knows are function
+    applications (``f`` in ``f(x)``), not multiplication. They're bound to
+    ``sympy.Function`` so SymPy keeps ``f(x)`` instead of reading it as ``f*x``
+    and rendering ``f x`` (parens dropped).
 
     Critically does NOT simplify — used by ``!texmath`` to render an
     expression *as the author wrote it*. The reduire1..reduire5 family
@@ -425,6 +430,10 @@ def _expr_to_latex(expr: str) -> str:
     locals_dict = {
         name: sympy.Symbol(name) for name in ("N", "O", "I", "E", "S", "Q", "C")
     }
+    # Function-application names (``f(x)``) win over the Symbol poisoning above:
+    # `\(f(x)\)` is a function, not the variable `f` times `x`.
+    for fn in func_names or ():
+        locals_dict[fn] = sympy.Function(fn)
     transformations = standard_transformations + (
         implicit_multiplication_application,
     )

@@ -27,11 +27,11 @@
              @dragstart="e => { e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
              @dragend="draggingChoice = null"
              @click="pendingChoice = (pendingChoice === choice.raw ? null : choice.raw)"
-             class="px-4 py-2 rounded-lg border font-medium transition cursor-grab select-none"
+             class="px-4 py-2 rounded-lg border font-medium transition cursor-grab select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
              :class="choice.raw === pendingChoice
-               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-               : 'hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10'"
-             style="border-color:var(--color-border);min-width:3rem;text-align:center"
+               ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
+               : 'hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'"
+             style="min-width:3rem;text-align:center"
              v-html="choice.html">
         </div>
       </div>
@@ -308,10 +308,18 @@ function handleInlineInput(event: Event) {
 function handleCheckboxChange(event: Event) {
   if (props.submitted) return
   const target = event.target as HTMLElement | null
-  if (!target || !target.classList?.contains('oef-checkbox')) return
+  if (!target) return
   const name = target.getAttribute('name')
+  if (!name) return
+  // Inline radio (chgrhyper): one native radio per choice in the table, sharing
+  // a `name`; the reply is the selected value.
+  if (target.classList?.contains('oef-radio')) {
+    updateReply(name, (target as HTMLInputElement).value)
+    return
+  }
+  if (!target.classList?.contains('oef-checkbox')) return
   const el = statementEl.value
-  if (!name || !el) return
+  if (!el) return
   const checked = Array.from(
     el.querySelectorAll<HTMLInputElement>(`.oef-checkbox[name="${name}"]`)
   ).filter(cb => cb.checked).map(cb => cb.value)
@@ -331,6 +339,21 @@ function syncInlineInputs() {
     if (props.submitted && props.checkResult) {
       const r = props.checkResult.results.find(r => r.input_name === name)
       if (r) input.classList.add(r.correct ? 'correct' : 'incorrect')
+    }
+  })
+  // Inline radios (chgrhyper): check the selected value, lock + colour after
+  // submit (green = correct choice, red = a wrong pick).
+  el.querySelectorAll<HTMLInputElement>('.oef-radio').forEach(radio => {
+    const name = radio.getAttribute('name') ?? ''
+    radio.checked = (props.replies[name] ?? '') === radio.value
+    radio.disabled = props.submitted
+    radio.classList.remove('correct', 'incorrect')
+    if (props.submitted && props.checkResult) {
+      const r = props.checkResult.results.find(r => r.input_name === name)
+      if (r) {
+        if (radio.value === r.expected) radio.classList.add('correct')
+        else if (radio.checked && !r.correct) radio.classList.add('incorrect')
+      }
     }
   })
   // Reflect the reply set onto each checkbox of the group + lock after submit.
@@ -446,5 +469,31 @@ provide(PAX_STATEMENT_CTX, {
 }
 :deep(.oef-checkbox.incorrect) {
   accent-color: #dc2626;
+}
+/* Inline radio choices placed in a table next to their figure (chgrhyper). */
+:deep(.oef-radio) {
+  cursor: pointer;
+  width: 1.1em;
+  height: 1.1em;
+  accent-color: var(--color-primary);
+}
+:deep(.oef-radio:disabled) {
+  cursor: default;
+}
+:deep(.oef-radio.correct) {
+  accent-color: #16a34a;
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
+}
+:deep(.oef-radio.incorrect) {
+  accent-color: #dc2626;
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+:deep(.oef-radio-label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
 }
 </style>

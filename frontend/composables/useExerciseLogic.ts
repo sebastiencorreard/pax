@@ -42,7 +42,7 @@ export interface CodeEditorConfig {
 
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
-    | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline'
+    | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
   content?: string
   name?: string
   size?: number
@@ -60,6 +60,8 @@ export interface BackendSegment {
   class?: string
   value?: string
   reply?: string
+  image?: string
+  svg?: string
 }
 
 export interface Chrono {
@@ -124,6 +126,7 @@ export type Segment =
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
+  | { type: 'coord';       name: string; image: string; svg?: string; is_sup?: boolean }
   | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
@@ -201,6 +204,15 @@ export function useExerciseLogic() {
           type: 'jsxgraph', name: s.name ?? '', js: s.js ?? '',
           width: s.width, height: s.height, maxw: s.maxw, minw: s.minw,
           reply: s.reply,
+        })
+      } else if (s.type === 'coord') {
+        // Clickable repère: the SVG travels inline; fall back to the URL
+        // (served by the backend, so prefix the relative /api/ path).
+        const img = s.image ?? ''
+        out.push({
+          type: 'coord', name: s.name ?? '',
+          image: img.startsWith('/api/') ? apiBase + img : img,
+          svg: s.svg, is_sup: s.is_sup,
         })
       } else if (s.type === 'codeeditor' && s.config) {
         // Code + options are passed through untouched (NOT renderMath'd) — the
