@@ -55,6 +55,55 @@ def run_analyze(
     return global_score, results
 
 
+def solve_analyze_expected(rendered, ans_defs: list, seed: int) -> dict[str, str]:
+    """Brute-force the expected labels for clickfill+analyze slots whose
+    ``expected`` couldn't be derived statically (polynomial-identity grading
+    like deve7: ``val53 = (val49)²+2·val50·val51+(val52)²−enonce``, no plain
+    ``$valN = …`` equality for ``_resolve_analyze_expected`` to read).
+
+    Tries every assignment of each slot's own choice pool and returns the first
+    that makes all :test conditions pass — i.e. exactly what the student would
+    click. Used by the debug/auto-fill path only (it runs the CAS once per
+    combo), never on the hot render path. Bounded so a large pool can't blow up.
+    """
+    import itertools  # noqa: PLC0415
+
+    from core.oef.def_engine import check_analyze
+
+    if not rendered.check_sections:
+        return {}
+    slots = [
+        a for a in ans_defs
+        if a.answer_type == "clickfill"
+        and "analyze_var" in a.options
+        and not a.expected
+        and a.options.get("choices")
+    ]
+    if not slots:
+        return {}
+    pools = [a.options["choices"] for a in slots]
+    total = 1
+    for p in pools:
+        total *= len(p)
+        if total > 4096:
+            return {}  # search space too large — give up rather than stall
+    for combo in itertools.product(*pools):
+        analyze_replies = {
+            int(a.options["analyze_var"][3:]): val
+            for a, val in zip(slots, combo)
+        }
+        condtest, _ = check_analyze(
+            ev_ctx=rendered.check_sections["ctx"],
+            postdef_instructions=rendered.check_sections["postdef"],
+            test_instructions=rendered.check_sections["test"],
+            analyze_replies=analyze_replies,
+            seed=seed,
+        )
+        if condtest and all(v == 1 for v in condtest.values()):
+            return {a.input_name: val for a, val in zip(slots, combo)}
+    return {}
+
+
 def run_feedback(
     rendered,
     active_ans_defs: list,
