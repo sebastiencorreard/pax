@@ -636,6 +636,13 @@ class DefEngine(_SlibMixin):
         #     refs (handled later) and standalone $var untouched.
         if _DOLLAR_IN_PAREN_RE.search(s):
             s = _DOLLAR_VAR_RE.sub(_var, s)
+        # 1c. A simple `$var` ref sitting immediately *before* a `$(…)` must be
+        #     resolved at this boundary, before the indexed pass expands the
+        #     `$(…)`. Otherwise a `$(val31[1])`→"12 a" inserted after an empty
+        #     `$val33` would merge into the name ("$val33"+"12 a" → "val3312"),
+        #     swallowing the leading digits — WIMS stops the name at the `$`.
+        #     (deve7 solution: `($val33$(val31[1])$val34)^2` → `( a)^2`.)
+        s = re.sub(r"\$([A-Za-z_]\w*)(?=\$\()", _var, s)
         # 2-4. $(var[n..m]) slices, $(var[n;m]) matrices and $(var[n]) lists,
         #      resolved inner-first to a fixpoint (handles nested subscripts).
         s = self._resolve_indexed_forms(s)
@@ -2448,14 +2455,28 @@ class DefEngine(_SlibMixin):
         return "".join(buf)
 
     def _render_block_or_text(self, literal: str, section_instrs: list) -> str:
-        """Render hint/solution: use section if it has content, else literal."""
+        """Render hint/solution: use section if it has content, else literal.
+
+        Closes WIMS inline math (``\\(…)`` → ``\\(…\\)``) and inlines any flydraw
+        SVG/GIF, exactly like the statement pipeline — otherwise the solution
+        table cells (deve7: ``\\(( 12 a + 4 )^2)``) reach the front with an
+        unclosed ``\\(`` and KaTeX can't render them (shows raw ``\\displaystyle …``).
+        """
+        out = ""
         if section_instrs:
             rendered = self._render_section(section_instrs)
             if rendered.strip():
-                return rendered
-        if literal and literal.strip():
-            return self._subst(literal)
-        return ""
+                out = rendered
+        if not out and literal and literal.strip():
+            out = self._subst(literal)
+        if not out:
+            return ""
+        out = _close_inline_math(out, self.lang)
+        if "/api/render/svg/" in out or "wimsdraw" in out:
+            from ..flydraw import inline_svg_imgs, inline_wims_gifs  # noqa: PLC0415
+            out = inline_svg_imgs(out)
+            out = inline_wims_gifs(out)
+        return out
 
     def _split_correspond_column(self, row: str) -> list[str]:
         """Split one correspond column into items, robust to HTML-element items.
