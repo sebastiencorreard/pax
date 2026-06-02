@@ -187,6 +187,14 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     from .cas import _expr_to_latex  # noqa: PLC0415 — lazy, avoids circular import
     from ..i18n import uses_comma_decimal  # noqa: PLC0415
 
+    # WIMS colours inline math with `\special{color=NAME}` — a TeX colour
+    # *switch* applying from that point to the end of the group (deve1 solution:
+    # `\(\special{color=green} -4 \special{color=black} (…)\)`). KaTeX spells the
+    # same switch `\color{NAME}` (named CSS colours render fine). Translate first,
+    # before the backslash/brace bail below — coloured content always has both,
+    # so it would otherwise leak the raw `\special{…}` and break KaTeX.
+    s = re.sub(r"\\special\s*\{\s*color\s*=\s*([^}]+?)\s*\}", r"\\color{\1}", s)
+
     # WIMS lets `^` grab a whole number or parenthesised group (`10^27`,
     # `10^(27)`), but KaTeX only raises the next single token — so `10^27`
     # renders as `10²7`. Brace multi-character exponents so KaTeX raises the

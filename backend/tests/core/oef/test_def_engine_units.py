@@ -215,6 +215,15 @@ class TestCloseInlineMath:
             r"\(\frac{2 \sqrt{5}}{\sqrt{10}}\)"
         )
 
+    def test_special_color_to_katex_color(self):
+        # WIMS `\special{color=NAME}` (TeX colour switch) → KaTeX `\color{NAME}`.
+        # deve1 colours the factors in its worked solution.
+        assert _close_inline_math(
+            r"\(\special{color=green} -4 \special{color=black} (5)\)"
+        ) == r"\(\color{green} -4 \color{black} (5)\)"
+        # The colour value may be a resolved variable holding any CSS colour.
+        assert _close_inline_math(r"\(\special{color=purple}x)") == r"\(\color{purple}x\)"
+
 
 class TestFinalizeAnswerMath:
     """The single guarantee point: every answer's display fields have their
