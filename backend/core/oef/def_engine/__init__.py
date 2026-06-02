@@ -3206,7 +3206,40 @@ class DefEngine(_SlibMixin):
             return f"{res.numerator}/{res.denominator}"
         return None
 
+    # Answer types whose `expected` is one of the *displayed* choices (compared
+    # as text by check_radio / check_clickfill), so it must be closed in lockstep
+    # with the choices. Free-input types (numeric/litexp/…) keep `expected` raw
+    # for the CAS/numeric checker; checkbox/mark `expected` is an index (closing
+    # is a no-op); correspond has its own display path (_prep_correspond_item).
+    _CHOICE_EXPECTED_TYPES = frozenset({"radio", "menu", "mark", "clickfill"})
+
+    def _finalize_answer_math(self, answers: list[AnswerDef]) -> None:
+        """Single guarantee point for inline-math closing on answer fields.
+
+        Closes WIMS `\\(…)` → KaTeX `\\(…\\)` on every user-facing answer field
+        (label, choices, and choice-type `expected`). Idempotent — a span already
+        closed as `\\(…\\)` is left untouched — so it safely re-covers the fields
+        the type-specific code closes inline (radio/clickfill, where closing is
+        interleaved with de-dup/shuffle and must stay there) *and* covers the ones
+        historically missed (menu, mark), without any path having to remember.
+        """
+        for a in answers:
+            if a.label:
+                a.label = _close_inline_math(a.label, self.lang)
+            ch = a.options.get("choices")
+            if isinstance(ch, list):
+                a.options["choices"] = [_close_inline_math(c, self.lang) for c in ch]
+            if a.answer_type in self._CHOICE_EXPECTED_TYPES and a.expected:
+                a.expected = _close_inline_math(a.expected, self.lang)
+
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
+        """Thin wrapper: build the answers, then close inline math on their
+        display fields in one place (see :meth:`_finalize_answer_math`)."""
+        answers = self._extract_answers_raw(df)
+        self._finalize_answer_math(answers)
+        return answers
+
+    def _extract_answers_raw(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
 
         # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from

@@ -216,6 +216,58 @@ class TestCloseInlineMath:
         )
 
 
+class TestFinalizeAnswerMath:
+    """The single guarantee point: every answer's display fields have their
+    WIMS inline math closed, whatever the type-specific code did upstream."""
+
+    def _engine(self):
+        e = DefEngine(seed=1)
+        e.lang = "fr"
+        return e
+
+    def test_closes_label_choices_and_choice_expected(self):
+        from core.oef.engine import AnswerDef
+
+        # A `menu` answer whose inline math was historically left unclosed.
+        a = AnswerDef(
+            label=r"Choisis \(f(x))",
+            expected=r"\(x^2)",
+            answer_type="menu",
+            options={"choices": [r"\(x^2)", r"\(x^3)"]},
+            weight=1.0,
+            input_name="reply1",
+            logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.label == r"Choisis \(f{\left(x \right)}\)"
+        assert a.expected == r"\(x^{2}\)"
+        assert a.options["choices"] == [r"\(x^{2}\)", r"\(x^{3}\)"]
+
+    def test_free_input_expected_left_raw(self):
+        from core.oef.engine import AnswerDef
+
+        # A numeric/litexp answer keeps `expected` raw for the CAS/numeric
+        # checker — only label (and any choices) are closed.
+        a = AnswerDef(
+            label="", expected="(x+1)(x-1)", answer_type="litexp",
+            options={}, weight=1.0, input_name="reply1", logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.expected == "(x+1)(x-1)"
+
+    def test_idempotent_on_already_closed(self):
+        from core.oef.engine import AnswerDef
+
+        a = AnswerDef(
+            label="", expected=r"\(x^{2}\)", answer_type="radio",
+            options={"choices": [r"\(x^{2}\)"]}, weight=1.0,
+            input_name="reply1", logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.expected == r"\(x^{2}\)"
+        assert a.options["choices"] == [r"\(x^{2}\)"]
+
+
 # ── slib helper commands ─────────────────────────────────────────────────────
 
 
