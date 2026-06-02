@@ -593,6 +593,13 @@ class DefEngine(_SlibMixin):
         """Evaluate a WIMS arithmetic expression string."""
         # 1. Substitute all variable references
         expr = self._subst_for_arith(expr)
+        # 1b. An empty function argument — e.g. `rint()` produced when an
+        # undefined/empty variable was substituted into `rint($confparm1)` —
+        # is a failed numeric calc. WIMS' `$[…]` yields NaN here; returning the
+        # literal `rint()` instead would slip past guards like
+        # `!ifval NaN isin $x or $x=` (deve7: confparm1 unset → must fall back).
+        if re.search(r"[A-Za-z_]\w*\(\s*\)", expr):
+            return "NaN"
         # 2. Replace ^ with ** for Python
         expr = expr.replace("^", "**")
         # 3. Evaluate
