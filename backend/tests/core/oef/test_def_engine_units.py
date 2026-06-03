@@ -190,6 +190,16 @@ class TestCloseInlineMath:
         # …while a literal bracketed pair is still read as a column vector.
         assert "pmatrix" in wims_matrices_to_latex(r"\([7;5]\)")
 
+    def test_skips_mathml_blocks(self):
+        # A native <math> block (mathmlinput) is copied verbatim — its already
+        # finalized \(…\) spans must not be re-scanned/mangled — while prose
+        # WIMS math around it is still converted.
+        out = _close_inline_math(
+            r'A <math class="oef-mathml">X\(f(\)<input>\()\)Y</math> B \(K) C', "fr"
+        )
+        assert r'<math class="oef-mathml">X\(f(\)<input>\()\)Y</math>' in out
+        assert r"B \(K\) C" in out  # prose outside the block still closed
+
     def test_idempotent_on_trailing_paren_span(self):
         # A mathmlinput cell like `f(reply2)` emits `\(f(\)<input>\()\)`. Re-running
         # the pass must keep `\()\)` intact (content `)`), not collapse it to an

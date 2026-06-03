@@ -291,6 +291,9 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     return s
 
 
+_MATH_BLOCK_RE = re.compile(r"<math[\s>]")
+
+
 def _close_inline_math(text: str, lang: str | None = None) -> str:
     """Convert WIMS-style ``\\(...)`` to KaTeX ``\\(...\\)`` and clean content.
 
@@ -301,6 +304,18 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
     i = 0
     n = len(text)
     while i < n:
+        # Copy a native MathML ``<math>…</math>`` block verbatim. Its ``\\(…\\)``
+        # spans are already finalised by ``_mathmlinput_inline`` (and the browser
+        # KaTeX-renders them); re-scanning them here is pointless and risks
+        # mangling an already-closed span like ``\\()\\)`` (a mathmlinput cell's
+        # trailing paren). MathML doesn't nest, so the next ``</math>`` closes it.
+        if text[i] == "<" and _MATH_BLOCK_RE.match(text, i):
+            end = text.find("</math>", i)
+            if end != -1:
+                end += len("</math>")
+                out.append(text[i:end])
+                i = end
+                continue
         # A "\\(" (escaped backslash before the paren) is NOT an inline-math
         # opener — it's a literal backslash, e.g. a JSON-escaped "\\(" inside a
         # widget's data-config attribute. Treating it as math would shred that
