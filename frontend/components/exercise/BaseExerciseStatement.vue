@@ -13,6 +13,31 @@
            @drop="handleCfSlotDrop"
            @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
         <ExerciseStatementNodes :nodes="segmentTree" />
+
+        <!-- Radio answers, rendered inside the statement so the question frame
+             (.wims_question) englobes them. Laid out horizontally, wrapping to
+             the next line when there isn't room. -->
+        <div v-if="hasRadioAnswers" class="oef-answer-zone">
+          <div v-for="ans in rendered.answers" :key="ans.input_name">
+            <template v-if="ans.answer_type === 'radio' && ans.options.choices">
+              <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
+                {{ ans.label || $t('exercise.choose_answer') }}
+              </p>
+              <div class="flex flex-row flex-wrap items-stretch gap-2">
+                <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
+                       :class="radioClass(ans.input_name, choice.raw)"
+                       style="border-color:var(--color-border)">
+                  <input type="radio" :name="ans.input_name" :value="choice.raw"
+                         :checked="replies[ans.input_name] === choice.raw"
+                         @change="updateReply(ans.input_name, choice.raw)"
+                         :disabled="submitted" class="accent-blue-500" />
+                  <span v-html="choice.html"></span>
+                </label>
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -37,30 +62,6 @@
       </div>
     </div>
 
-    <!-- Zone de réponse (pour les radio) -->
-    <div v-if="hasRadioAnswers" class="px-6 pb-4 space-y-2">
-      <div v-for="ans in rendered.answers" :key="ans.input_name">
-        <template v-if="ans.answer_type === 'radio' && ans.options.choices">
-          <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
-            {{ ans.label || $t('exercise.choose_answer') }}
-          </p>
-          <!-- Stacked vertically, one choice per row (WIMS layout). items-start
-               keeps each label at content width (not stretched full row). -->
-          <div class="flex flex-col items-start gap-2">
-            <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
-                   class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
-                   :class="radioClass(ans.input_name, choice.raw)"
-                   style="border-color:var(--color-border)">
-              <input type="radio" :name="ans.input_name" :value="choice.raw"
-                     :checked="replies[ans.input_name] === choice.raw"
-                     @change="updateReply(ans.input_name, choice.raw)"
-                     :disabled="submitted" class="accent-blue-500" />
-              <span v-html="choice.html"></span>
-            </label>
-          </div>
-        </template>
-      </div>
-    </div>
   </div>
 </template>
 
