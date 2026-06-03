@@ -2722,17 +2722,39 @@ class DefEngine(_SlibMixin):
                     return code[i + 1 : j], j + 1
         return None
 
+    # Stretchy delimiters as SVG paths (viewBox 0 0 12 100): with
+    # preserveAspectRatio="none" + align-self:stretch the path is scaled to the
+    # exact body height, so a `(` spans a 1-row interval or a 4-row matrix alike
+    # — like WIMS' full-height delimiters, where a fixed-size glyph only covered
+    # one row (cercle1). `vector-effect=non-scaling-stroke` keeps an even stroke.
+    _DELIM_SVG = {
+        "(": ("M9.5 2 C4.5 30 4.5 70 9.5 98", 0.5),
+        ")": ("M2.5 2 C7.5 30 7.5 70 2.5 98", 0.5),
+        "[": ("M9 2 L3 2 L3 98 L9 98", 0.45),
+        "]": ("M3 2 L9 2 L9 98 L3 98", 0.45),
+        "{": ("M9 2 C5.5 2 6.5 42 3 50 C6.5 58 5.5 98 9 98", 0.5),
+        "}": ("M3 2 C6.5 2 5.5 42 9 50 C5.5 58 6.5 98 3 98", 0.5),
+        "|": ("M6 2 L6 98", 0.3),
+    }
+
+    def _mml_delim(self, ch: str) -> str:
+        if not ch:
+            return ""  # invisible delimiter (\left. … \right)
+        spec = self._DELIM_SVG.get(ch)
+        if not spec:  # ‖, ⟨, ⟩ — glyph fallback (rare)
+            return f'<span class="oef-vec-delim">{ch}</span>'
+        path, w = spec
+        return (
+            f'<svg class="oef-vec-svg" viewBox="0 0 12 100" preserveAspectRatio="none" '
+            f'style="width:{w}em" aria-hidden="true"><path d="{path}" fill="none" '
+            f'stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>'
+        )
+
     def _mml_wrap(self, left: str, body: str, right: str) -> str:
-        # Scale the delimiters to the body height: WIMS draws full-height
-        # parentheses around a column vector. A fixed size only spans one row,
-        # leaving the `(` `)` too short for a 2+-row matrix (cercle1). Size them
-        # by the number of stacked rows; an inline body (no array) keeps the
-        # CSS default.
-        rows = body.count('class="oef-arr-row"')
-        style = f' style="font-size:{rows * 2.0:.1f}em"' if rows >= 2 else ""
-        ld = f'<span class="oef-vec-delim"{style}>{left}</span>' if left else ""
-        rd = f'<span class="oef-vec-delim"{style}>{right}</span>' if right else ""
-        return f'<span class="oef-vec">{ld}<span class="oef-vec-body">{body}</span>{rd}</span>'
+        return (
+            f'<span class="oef-vec">{self._mml_delim(left)}'
+            f'<span class="oef-vec-body">{body}</span>{self._mml_delim(right)}</span>'
+        )
 
     def _mathmlinput_render(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
         """Recursively render mathmlinput ``code`` (math + ``replyN`` fields) to

@@ -432,6 +432,15 @@ provide(PAX_STATEMENT_CTX, {
   vertical-align: middle;
   gap: 1px;
 }
+/* Stretchy SVG delimiter — fills the body height exactly (column vectors,
+   intervals, sets). align-self:stretch gives it the flex line's height. */
+:deep(.oef-vec-svg) {
+  align-self: stretch;
+  flex: none;
+  min-height: 1.2em;
+  overflow: visible;
+}
+/* Glyph fallback for delimiters without an SVG path (‖, ⟨, ⟩). */
 :deep(.oef-vec-delim) {
   font-size: 2.4em;
   line-height: 0.8;
