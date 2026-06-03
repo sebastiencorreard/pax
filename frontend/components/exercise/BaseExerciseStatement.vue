@@ -422,83 +422,15 @@ provide(PAX_STATEMENT_CTX, {
 </script>
 
 <style scoped>
-/* mathmlinput container with answer fields (cercle1: coordinates of a centre;
-   intervals, sets, systems): big delimiters around a matrix/array or inline
-   content. KaTeX can't embed HTML inputs in a \begin{pmatrix}/\left(…\right),
-   so the backend emits this HTML layout (see _mathmlinput_render). */
-:deep(.oef-vec) {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: middle;
-  gap: 1px;
+/* mathmlinput container with answer fields (cercle1 coordinates, intervals,
+   sets, systems, fractions): emitted as native MathML by the backend
+   (_mml_mathml). The browser stretches the <mo> fences / <mfrac> to the
+   content height; the answer <input>s live in <annotation-xml> cells. */
+:deep(math.oef-mathml) {
+  font-size: 1.05em;
 }
-/* Stretchy SVG delimiter — fills the body height exactly (column vectors,
-   intervals, sets). align-self:stretch gives it the flex line's height. */
-:deep(.oef-vec-svg) {
-  align-self: stretch;
-  flex: none;
-  min-height: 1.2em;
-  overflow: visible;
-}
-/* Glyph fallback for delimiters without an SVG path (‖, ⟨, ⟩). */
-:deep(.oef-vec-delim) {
-  font-size: 2.4em;
-  line-height: 0.8;
-  font-weight: 300;
-}
-:deep(.oef-vec-body) {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  padding: 0 0.15em;
-}
-/* matrix/array body: rows stacked, cells aligned — covers a column vector
-   (1 cell/row) and a system/cases array (\begin{array}{lcl}). */
-:deep(.oef-arr) {
-  display: inline-table;
-  vertical-align: middle;
-  border-collapse: collapse;
-}
-:deep(.oef-arr-row) {
-  display: table-row;
-}
-:deep(.oef-arr-cell) {
-  display: table-cell;
-  padding: 0.15em 0.3em;
-  text-align: center;
-  vertical-align: middle;
-}
-/* \frac{…}{…} embedding a field → HTML fraction (input over input). */
-:deep(.oef-frac) {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  vertical-align: middle;
-  margin: 0 0.15em;
-}
-:deep(.oef-frac-num) {
-  padding: 0 0.3em 0.1em;
-  border-bottom: 1px solid currentColor;
-}
-:deep(.oef-frac-den) {
-  padding: 0.1em 0.3em 0;
-}
-/* \overrightarrow{…}/\vec{…}/\overline{…} over a field. */
-:deep(.oef-overarrow),
-:deep(.oef-overline) {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2em;
-  border-top: 1px solid currentColor;
-  padding-top: 0.1em;
-  position: relative;
-}
-:deep(.oef-overarrow)::before {
-  content: "\2192"; /* → */
-  position: absolute;
-  top: -0.9em;
-  right: -0.2em;
-  font-size: 0.8em;
+:deep(math.oef-mathml mtable) {
+  rowspacing: 0.4ex;
 }
 :deep(.oef-mark-choice) {
   display: inline-block;

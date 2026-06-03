@@ -290,61 +290,69 @@ class TestFinalizeAnswerMath:
 
 
 class TestMathmlinput:
-    def test_pmatrix_vector_renders_html_layout(self):
+    def test_pmatrix_vector_renders_mathml(self):
         # `\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}` (cercle1's centre
-        # coordinates) → HTML vector layout, NOT split \(…\) spans that leak
-        # `\begin{pmatrix}` and break KaTeX.
+        # coordinates) → native MathML <mtable> + stretchy fences, NOT split
+        # \(…\) spans that leak `\begin{pmatrix}` and break KaTeX.
         e = engine()
         out = e._mathmlinput_html(r"\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}", {}, 5)
-        assert "oef-vec" in out
+        assert out.startswith('<math class="oef-mathml"')
         assert "begin{pmatrix}" not in out
+        assert "<mtable>" in out and out.count("<mtr>") == 2  # one row per cell
+        assert '<mo fence="true" stretchy="true">(</mo>' in out
         assert out.count('class="oef-input"') == 2
-        assert out.count("oef-arr-row") == 2  # column vector: one table row per cell
 
-    def test_left_right_vector_renders_html_layout(self):
+    def test_left_right_vector_renders_mathml(self):
         e = engine()
         out = e._mathmlinput_html(r"\left( reply1 ; reply2 \right)", {}, 5)
-        assert "oef-vec" in out and "left(" not in out
+        assert "<math" in out and "left(" not in out
+        assert '<mo fence="true" stretchy="true">(</mo>' in out
         assert out.count('class="oef-input"') == 2
 
     def test_plain_exponent_stays_inline(self):
-        # elassaoui3's `reply1^{reply2}` is not a container → inline sup, no layout.
+        # elassaoui3's `reply1^{reply2}` is not a container → inline sup, no MathML.
         e = engine()
         out = e._mathmlinput_html(r"reply1^{reply2}", {}, 5)
-        assert "oef-vec" not in out
+        assert "<math" not in out
         assert "<sup>" in out
 
-    def test_frac_with_fields_renders_html_fraction(self):
-        # `\frac{reply1}{reply2}` (frac3) → HTML fraction, not split \(\frac{\).
+    def test_frac_with_fields_renders_mathml(self):
+        # `\frac{reply1}{reply2}` (frac3) → native <mfrac>, not split \(\frac{\).
         e = engine()
         out = e._mathmlinput_html(r"\frac{reply1}{reply2}", {}, 5)
-        assert "oef-frac-num" in out and "oef-frac-den" in out
+        assert "<mfrac>" in out and "frac{" not in out
         assert out.count('class="oef-input"') == 2
-        assert "frac{" not in out
 
     def test_frac_without_field_stays_katex(self):
-        # A reply-free \frac is left for KaTeX (only the reply one becomes HTML).
+        # A reply-free \frac is left for KaTeX (only the reply one becomes MathML).
         e = engine()
         out = e._mathmlinput_html(r"\frac{5}{4} = \frac{reply1}{reply2}", {}, 5)
-        assert r"\(\frac{5}{4} =\)" in out
-        assert "oef-frac-num" in out
+        assert r"\(\frac{5}{4} =\)" in out  # static part KaTeX'd in annotation-xml
+        assert "<mfrac>" in out
 
-    def test_prefixed_interval_renders_layout(self):
+    def test_prefixed_interval_renders_mathml(self):
         # `I_c=\left[reply9;reply10\right]` (carlo) — prefix + bracket container.
         e = engine()
         out = e._mathmlinput_html(r"I_c=\left[reply9;reply10\right]", {}, 5)
-        assert r"\(I_c=\)" in out and "oef-vec" in out
+        assert r"\(I_c=\)" in out and "left[" not in out
+        assert '<mo fence="true" stretchy="true">[</mo>' in out
         assert out.count('class="oef-input"') == 2
-        assert "left[" not in out
 
-    def test_cases_array_renders_table(self):
-        # `\left.\begin{array}{lcl}…\end{array}\right\rbrace` (balayage) → table.
+    def test_cases_array_renders_mathml_table(self):
+        # `\left.\begin{array}{lcl}…\end{array}\right\rbrace` (balayage) → mtable.
         e = engine()
         code = (r"\left.\begin{array}{lcl}f(reply2) &=& reply3 \\ "
                 r"f(reply4) &=& reply5\end{array}\right \rbrace")
         out = e._mathmlinput_html(code, {}, 5)
-        assert "oef-arr" in out and "begin{array}" not in out
+        assert "<mtable>" in out and "begin{array}" not in out
         assert out.count('class="oef-input"') == 4
+
+    def test_fields_in_annotation_xml(self):
+        # Inputs sit in <annotation-xml> (WIMS' pattern) so the browser keeps
+        # them interactive and the front's `.oef-input` binding finds them.
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{reply1}{reply2}", {}, 5)
+        assert 'annotation-xml encoding="application/xhtml+xml"' in out
 
 
 class TestCommutesom:

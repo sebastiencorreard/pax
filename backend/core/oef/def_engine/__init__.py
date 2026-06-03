@@ -2618,24 +2618,139 @@ class DefEngine(_SlibMixin):
         return self._mathmlinput_html(code, sizes, default_size)
 
     def _mathmlinput_html(self, code: str, sizes: dict[str, int], default_size: int) -> str:
-        """Build the math+inputs HTML for mathmlinput.
+        """Render mathmlinput (math + ``replyN`` fields).
 
-        A container that embeds answer fields — a matrix/array, a
-        ``\\left(…\\right)`` vector/interval/set, possibly with a prefix
-        (``I_c=\\left[reply9;reply10\\right]``) or nested (``\\left(\\begin{array}
-        {c}reply1\\\\reply2\\end{array}\\right)``) — can't be split into separate
-        ``\\(…\\)`` spans: each fragment (``\\(\\begin{pmatrix}\\)`` …) is invalid
-        KaTeX and leaks. ``_mathmlinput_render`` walks the structure and emits an
-        HTML layout (delimiters + table cells) with the inputs in place. Plain
-        code (no container — e.g. elassaoui3's ``reply1^{reply2}``) uses the
-        inline interleave."""
+        A container that embeds fields — matrix/array, ``\\left…\\right``
+        vector/interval/set, ``\\frac``, ``\\vec``/``\\overrightarrow``, with a
+        prefix/suffix or nested — is emitted as **native MathML** (like WIMS):
+        the browser stretches the ``<mo>`` fences / ``<mfrac>`` to the content
+        height, and the fields sit in ``<annotation-xml>`` cells. Plain code
+        (no container — elassaoui3's ``reply1^{reply2}``) uses the inline
+        interleave (KaTeX + inputs)."""
         code = re.sub(r"^\s*\\displaystyle\s*", "", code.strip())
         structural = r"\\begin\{|\\left\b|\\right\b|\\[dt]?frac\b|\\overrightarrow\b|\\vec\b|\\overline\b"
         if re.search(structural, code) and re.search(r"reply\d", code):
-            return self._mathmlinput_render(code, sizes, default_size)
+            body = self._mml_mathml(code, sizes, default_size)
+            return f'<math class="oef-mathml" display="inline">{body}</math>'
         return self._mathmlinput_inline(code, sizes, default_size)
 
-    # Matrix env → (left, right) delimiter characters for the HTML layout.
+    def _mml_annot(self, html: str) -> str:
+        """Embed an HTML fragment (KaTeX spans + answer ``<input>``) inside
+        MathML via ``<semantics><annotation-xml>`` — WIMS' way of placing form
+        fields in math (the browser keeps them interactive)."""
+        return (
+            '<semantics><annotation-xml encoding="application/xhtml+xml">'
+            f'<span xmlns="http://www.w3.org/1999/xhtml">{html}</span>'
+            "</annotation-xml></semantics>"
+        )
+
+    def _mml_mathml(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
+        """Recursively render a mathmlinput container to native MathML:
+        ``\\begin{…}`` → ``<mtable>``, ``\\left…\\right`` → stretchy ``<mo>``
+        fences, ``\\frac`` → ``<mfrac>``, ``\\vec``/``\\overrightarrow`` →
+        ``<mover>``; a run of static math + fields becomes one
+        ``<annotation-xml>`` HTML chunk (KaTeX + inputs). Handles prefixes,
+        suffixes, nesting (frac in a matrix cell) and WIMS' unmatched ``\\left``
+        (half-open interval)."""
+        out: list[str] = []
+        static: list[str] = []
+
+        def flush() -> None:
+            s = "".join(static).strip()
+            static.clear()
+            if s:
+                out.append(self._mml_annot(self._mathmlinput_inline(s, sizes, default_size)))
+
+        beg = re.compile(r"\\begin\{(\w+)\}(?:\{[^}]*\})?")
+        left = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
+        right = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
+        frac = re.compile(r"\\[dt]?frac\b")
+        over = re.compile(r"\\(overrightarrow|vec|overline)\b")
+        i, n = 0, len(code)
+        while i < n:
+            if depth < 12 and (m := frac.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                b = self._mml_brace(code, a[1]) if a else None
+                if a and b and re.search(r"reply\d", a[0] + b[0]):
+                    flush()
+                    out.append(
+                        f"<mfrac><mrow>{self._mml_mathml(a[0], sizes, default_size, depth + 1)}</mrow>"
+                        f"<mrow>{self._mml_mathml(b[0], sizes, default_size, depth + 1)}</mrow></mfrac>"
+                    )
+                    i = b[1]
+                    continue
+            if depth < 12 and (m := over.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                if a and re.search(r"reply\d", a[0]):
+                    flush()
+                    acc = "¯" if m.group(1) == "overline" else "→"
+                    out.append(
+                        '<mover accent="true"><mrow>'
+                        f"{self._mml_mathml(a[0], sizes, default_size, depth + 1)}</mrow>"
+                        f"<mo>{acc}</mo></mover>"
+                    )
+                    i = a[1]
+                    continue
+            if depth < 12 and (m := beg.match(code, i)):
+                res = self._mml_find_end(code, m.end(), m.group(1))
+                if res:
+                    flush()
+                    out.append(self._mml_mathml_table(code[m.end():res[0]], m.group(1), sizes, default_size, depth))
+                    i = res[1]
+                    continue
+            if depth < 12 and (m := left.match(code, i)):
+                res = self._mml_find_right(code, m.end())
+                if res:
+                    flush()
+                    r_idx, r_end, rtok = res
+                    ld = self._DELIM_DISPLAY.get(m.group(1), "")
+                    rd = self._DELIM_DISPLAY.get(rtok, "")
+                    lo = f'<mo fence="true" stretchy="true">{ld}</mo>' if ld else ""
+                    ro = f'<mo fence="true" stretchy="true">{rd}</mo>' if rd else ""
+                    inner = self._mml_mathml(code[m.end():r_idx], sizes, default_size, depth + 1)
+                    out.append(f"<mrow>{lo}{inner}{ro}</mrow>")
+                    i = r_end
+                    continue
+                # Unmatched \left (WIMS half-open interval [a;b[) → plain operator.
+                flush()
+                g = self._DELIM_DISPLAY.get(m.group(1), "")
+                if g:
+                    out.append(f"<mo>{g}</mo>")
+                i = m.end()
+                continue
+            if (m := right.match(code, i)):
+                flush()
+                g = self._DELIM_DISPLAY.get(m.group(1), "")
+                if g:
+                    out.append(f"<mo>{g}</mo>")
+                i = m.end()
+                continue
+            static.append(code[i])
+            i += 1
+        flush()
+        return "".join(out)
+
+    def _mml_mathml_table(self, body: str, env: str, sizes: dict, default_size: int, depth: int) -> str:
+        """Matrix/array body → MathML ``<mtable>``; a matrix env adds its fences."""
+        rows = []
+        for row in re.split(r"\\\\", body):
+            row = re.sub(r"\\hline", "", row).strip()
+            if not row:
+                continue
+            cells = "".join(
+                f"<mtd>{self._mml_mathml(c.strip(), sizes, default_size, depth + 1)}</mtd>"
+                for c in re.split(r"&(?!#?\w+;)", row)
+            )
+            rows.append(f"<mtr>{cells}</mtr>")
+        table = f'<mtable>{"".join(rows)}</mtable>'
+        md = self._MATRIX_DELIMS.get(env)
+        if md and (md[0] or md[1]):
+            lo = f'<mo fence="true" stretchy="true">{md[0]}</mo>' if md[0] else ""
+            ro = f'<mo fence="true" stretchy="true">{md[1]}</mo>' if md[1] else ""
+            return f"<mrow>{lo}{table}{ro}</mrow>"
+        return table
+
+    # Matrix env → (left, right) delimiter characters.
     _MATRIX_DELIMS = {
         "pmatrix": ("(", ")"), "bmatrix": ("[", "]"), "Bmatrix": ("{", "}"),
         "vmatrix": ("|", "|"), "Vmatrix": ("‖", "‖"), "matrix": ("", ""),
@@ -2688,22 +2803,6 @@ class DefEngine(_SlibMixin):
             i += 1
         return None
 
-    def _mml_array(self, body: str, env: str, sizes: dict, default_size: int, depth: int) -> str:
-        """Render a matrix/array body as an HTML table; cells recurse so a cell
-        that is ``replyN`` becomes an input and a static cell becomes math."""
-        rows = []
-        for row in re.split(r"\\\\", body):
-            row = re.sub(r"\\hline", "", row).strip()
-            if not row:
-                continue
-            cells = "".join(
-                f'<span class="oef-arr-cell">'
-                f'{self._mathmlinput_render(c.strip(), sizes, default_size, depth + 1)}</span>'
-                for c in re.split(r"&(?!#?\w+;)", row)
-            )
-            rows.append(f'<span class="oef-arr-row">{cells}</span>')
-        return f'<span class="oef-arr">{"".join(rows)}</span>'
-
     def _mml_brace(self, code: str, start: int):
         """From ``start``, skip spaces and return ``(content, end)`` of the
         ``{…}`` brace group (depth-aware), or ``None`` if no ``{`` follows."""
@@ -2721,124 +2820,6 @@ class DefEngine(_SlibMixin):
                 if depth == 0:
                     return code[i + 1 : j], j + 1
         return None
-
-    # Stretchy delimiters as SVG paths (viewBox 0 0 12 100): with
-    # preserveAspectRatio="none" + align-self:stretch the path is scaled to the
-    # exact body height, so a `(` spans a 1-row interval or a 4-row matrix alike
-    # — like WIMS' full-height delimiters, where a fixed-size glyph only covered
-    # one row (cercle1). `vector-effect=non-scaling-stroke` keeps an even stroke.
-    _DELIM_SVG = {
-        "(": ("M9.5 2 C4.5 30 4.5 70 9.5 98", 0.5),
-        ")": ("M2.5 2 C7.5 30 7.5 70 2.5 98", 0.5),
-        "[": ("M9 2 L3 2 L3 98 L9 98", 0.45),
-        "]": ("M3 2 L9 2 L9 98 L3 98", 0.45),
-        "{": ("M9 2 C5.5 2 6.5 42 3 50 C6.5 58 5.5 98 9 98", 0.5),
-        "}": ("M3 2 C6.5 2 5.5 42 9 50 C5.5 58 6.5 98 3 98", 0.5),
-        "|": ("M6 2 L6 98", 0.3),
-    }
-
-    def _mml_delim(self, ch: str) -> str:
-        if not ch:
-            return ""  # invisible delimiter (\left. … \right)
-        spec = self._DELIM_SVG.get(ch)
-        if not spec:  # ‖, ⟨, ⟩ — glyph fallback (rare)
-            return f'<span class="oef-vec-delim">{ch}</span>'
-        path, w = spec
-        return (
-            f'<svg class="oef-vec-svg" viewBox="0 0 12 100" preserveAspectRatio="none" '
-            f'style="width:{w}em" aria-hidden="true"><path d="{path}" fill="none" '
-            f'stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>'
-        )
-
-    def _mml_wrap(self, left: str, body: str, right: str) -> str:
-        return (
-            f'<span class="oef-vec">{self._mml_delim(left)}'
-            f'<span class="oef-vec-body">{body}</span>{self._mml_delim(right)}</span>'
-        )
-
-    def _mathmlinput_render(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
-        """Recursively render mathmlinput ``code`` (math + ``replyN`` fields) to
-        HTML: ``\\begin{…}`` → table, ``\\left…\\right`` → delimiters, ``replyN`` →
-        input, static runs → ``\\(…\\)`` KaTeX. Handles prefixes/suffixes and
-        nesting (array in delimiters, delimiters in a cell)."""
-        out: list[str] = []
-        static: list[str] = []
-
-        def flush() -> None:
-            s = "".join(static).strip()
-            static.clear()
-            if s:
-                out.append(self._mathmlinput_inline(s, sizes, default_size))
-
-        beg = re.compile(r"\\begin\{(\w+)\}(?:\{[^}]*\})?")
-        left = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
-        right = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
-        frac = re.compile(r"\\[dt]?frac\b")
-        over = re.compile(r"\\(overrightarrow|vec|overline)\b")
-        i, n = 0, len(code)
-        while i < n:
-            # \frac{A}{B} embedding a field — HTML fraction (KaTeX can't put an
-            # input inside \frac). A reply-free \frac stays static (KaTeX).
-            if depth < 12 and (m := frac.match(code, i)):
-                a = self._mml_brace(code, m.end())
-                b = self._mml_brace(code, a[1]) if a else None
-                if a and b and re.search(r"reply\d", a[0] + b[0]):
-                    flush()
-                    num = self._mathmlinput_render(a[0], sizes, default_size, depth + 1)
-                    den = self._mathmlinput_render(b[0], sizes, default_size, depth + 1)
-                    out.append(
-                        f'<span class="oef-frac"><span class="oef-frac-num">{num}</span>'
-                        f'<span class="oef-frac-den">{den}</span></span>'
-                    )
-                    i = b[1]
-                    continue
-            # \overrightarrow{…}/\vec{…}/\overline{…} over a field (reperptch1).
-            if depth < 12 and (m := over.match(code, i)):
-                a = self._mml_brace(code, m.end())
-                if a and re.search(r"reply\d", a[0]):
-                    flush()
-                    inner = self._mathmlinput_render(a[0], sizes, default_size, depth + 1)
-                    cls = "oef-overline" if m.group(1) == "overline" else "oef-overarrow"
-                    out.append(f'<span class="{cls}">{inner}</span>')
-                    i = a[1]
-                    continue
-            if depth < 12 and (m := beg.match(code, i)):
-                res = self._mml_find_end(code, m.end(), m.group(1))
-                if res:
-                    flush()
-                    table = self._mml_array(code[m.end():res[0]], m.group(1), sizes, default_size, depth)
-                    md = self._MATRIX_DELIMS.get(m.group(1))
-                    out.append(self._mml_wrap(md[0], table, md[1]) if md and (md[0] or md[1]) else table)
-                    i = res[1]
-                    continue
-            if depth < 12 and (m := left.match(code, i)):
-                res = self._mml_find_right(code, m.end())
-                if res:
-                    flush()
-                    r_idx, r_end, rtok = res
-                    inner = self._mathmlinput_render(code[m.end():r_idx], sizes, default_size, depth + 1)
-                    out.append(self._mml_wrap(
-                        self._DELIM_DISPLAY.get(m.group(1), ""), inner,
-                        self._DELIM_DISPLAY.get(rtok, ""),
-                    ))
-                    i = r_end
-                    continue
-                # Unmatched `\left` — a WIMS half-open interval writes both ends
-                # as `\left` (`\left\lbracket a;b \left\lbracket` = `[a;b[`,
-                # fonction93/94). Emit the delimiter glyph inline and move on
-                # rather than leaking the raw `\left`.
-                static.append(self._DELIM_DISPLAY.get(m.group(1), ""))
-                i = m.end()
-                continue
-            # Unmatched `\right` (the mirror case, other interval orientations).
-            if (m := right.match(code, i)):
-                static.append(self._DELIM_DISPLAY.get(m.group(1), ""))
-                i = m.end()
-                continue
-            static.append(code[i])
-            i += 1
-        flush()
-        return "".join(out)
 
     def _mathmlinput_inline(self, code: str, sizes: dict[str, int], default_size: int) -> str:
         """Inline interleave: ``\\(…\\)`` math chunks with native
