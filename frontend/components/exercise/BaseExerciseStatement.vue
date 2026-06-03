@@ -443,6 +443,9 @@ provide(PAX_STATEMENT_CTX, {
   transition: border-color 0.15s, background 0.15s;
   background: var(--color-bg, #fff);
   color: var(--color-text, #111);
+  /* Keep a choice on one line — KaTeX would otherwise break inline math at a
+     binary operator (`2,5 × 10^19` → `2,5 ×` / `10^19`) in a narrow cell. */
+  white-space: nowrap;
 }
 :deep(.oef-mark-choice:hover) {
   border-color: #3b82f6;
