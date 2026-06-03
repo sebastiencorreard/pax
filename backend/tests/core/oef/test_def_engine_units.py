@@ -174,6 +174,12 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_maps_wims_bracket_macros(self):
+        # WIMS `\lbracket`/`\rbracket` (balayage1 intervals) → `[`/`]`; KaTeX
+        # doesn't know the long form. The valid short `\lbrack`/`\rbrack` stays.
+        assert _close_inline_math(r"\(\lbracket1;2\rbracket\)") == r"\([1;2]\)"
+        assert _close_inline_math(r"\(x \in \lbrack a;b \rbrack\)") == r"\(x \in \lbrack a;b \rbrack\)"
+
     def test_closes_at_first_unmatched_paren(self):
         # WIMS find_matching: `\(K) sont (5;10)` closes right after `K`, it does
         # NOT swallow the trailing `) sont (5;10` (cercle1 statement bug).

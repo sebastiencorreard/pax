@@ -195,6 +195,13 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     # so it would otherwise leak the raw `\special{…}` and break KaTeX.
     s = re.sub(r"\\special\s*\{\s*color\s*=\s*([^}]+?)\s*\}", r"\\color{\1}", s)
 
+    # WIMS writes brackets as `\lbracket` / `\rbracket` (e.g. an interval
+    # `\(\lbracket1;2\rbracket\)` — balayage1), which KaTeX doesn't know (it has
+    # `\lbrack`/`\rbrack` and `[`/`]`) → red error. Map them to `[` / `]`.
+    # Matching the long form never touches the valid short `\lbrack`/`\rbrack`
+    # (they lack the trailing `et`). Before the backslash bail below.
+    s = s.replace(r"\lbracket", "[").replace(r"\rbracket", "]")
+
     # WIMS lets `^` grab a whole number or parenthesised group (`10^27`,
     # `10^(27)`), but KaTeX only raises the next single token — so `10^27`
     # renders as `10²7`. Brace multi-character exponents so KaTeX raises the
