@@ -3294,6 +3294,17 @@ class DefEngine(_SlibMixin):
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
+            # `slib/commutesom` (réduire family) accepts the reduced sum in any
+            # term order. Mark such litexp/algexp answers `expand` so the checker
+            # requires the reduced form but exempts term order (see
+            # _slib_commutesom / check_answer's term_order gate). Only when the
+            # author set no explicit form option of their own.
+            if (
+                self.ctx.get("_commutesom_anyorder")
+                and ans_type.lower() in ("litexp", "algexp", "formal")
+                and not re.search(r"\b(polexpand|expand|polfactor)\b", option)
+            ):
+                option = (option + " expand").strip()
             options: dict = {"option": option} if option else {}
 
             # Expose to ctx so _render_embed can access them during statement rendering

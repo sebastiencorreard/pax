@@ -280,6 +280,27 @@ class TestFinalizeAnswerMath:
 # ── slib helper commands ─────────────────────────────────────────────────────
 
 
+class TestCommutesom:
+    def test_returns_reduced_canonical_form(self):
+        # `slib/commutesom POLY,VAR` → one canonical reduced form (decreasing
+        # degree), not the explosive permutation list / leaked coeff(…).
+        e = engine()
+        e._cmd_readproc("slib/commutesom 3*b+2-8*b-9,b")
+        assert e.ctx["slib_out"] == "-5*b - 7"
+        assert "coeff" not in e.ctx["slib_out"]
+
+    def test_sets_anyorder_flag(self):
+        e = engine()
+        e._cmd_readproc("slib/commutesom 3*x-x,x")
+        assert e.ctx.get("_commutesom_anyorder") == "1"
+
+    def test_falls_back_on_unparseable(self):
+        e = engine()
+        e._cmd_readproc("slib/commutesom not a poly @@,x")
+        # No crash; returns the input unchanged.
+        assert e.ctx["slib_out"] == "not a poly @@"
+
+
 class TestSlibHelpers:
     def test_distribute_assigns_each_item(self):
         e = engine()

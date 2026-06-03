@@ -142,6 +142,10 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._slib_data_random(proc_args)
             return
 
+        if path == "slib/commutesom":
+            self.ctx["slib_out"] = self._slib_commutesom(proc_args)
+            return
+
         if path == "slib/numeration/ecriturelettre":
             res = _ecriture_lettre(proc_args)
             if res is not None:
@@ -166,6 +170,51 @@ class _SlibMixin:
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _slib_commutesom(self, args: str) -> str:
+        """Built-in for ``slib/commutesom POLY,VAR``.
+
+        WIMS' commutesom returns *every* commutative ordering of a developed
+        polynomial's monomials, so a litexp answer accepts the reduced sum in any
+        term order. It does so by generating the permutation group (factorial)
+        with Maxima ``coeff``/``hipow`` and a precomputed ``commutesom.don`` table
+        — none of which our sub-engine can run, so interpreting the script leaks
+        literal ``coeff(…)`` / ``$(slib_lineN)`` and crawls (reduire).
+
+        PAX doesn't need the permutation list: the litexp checker compares
+        algebraically and auto-detects the reduced (polexpand) form, accepting any
+        equivalent reduced expression. So we return a single canonical reduced
+        form — the polynomial expanded by SymPy, terms in decreasing degree (the
+        usual "réduire" order). Falls back to the input on any parse failure.
+        """
+        # commutesom is the "réduire" family's order-tolerance mechanism: any
+        # commutative ordering of the reduced sum is accepted. We return one
+        # canonical form (below) and flag the exercise so `_extract_answers`
+        # marks its litexp answers `expand` (reduced form required, but any term
+        # order accepted) — matching WIMS instead of enforcing a single order.
+        self.ctx["_commutesom_anyorder"] = "1"
+        poly_s = args.split(",")[0].strip()
+        if not poly_s:
+            return poly_s
+        try:
+            import sympy  # noqa: PLC0415
+            from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+                parse_expr,
+                standard_transformations,
+                implicit_multiplication_application,
+            )
+        except Exception:
+            return poly_s
+        try:
+            T = standard_transformations + (implicit_multiplication_application,)
+            expr = sympy.expand(
+                parse_expr(poly_s.replace("^", "**"), transformations=T)
+            )
+            # `sstr(order='lex')` lists monomials by decreasing degree; `**`→`^`
+            # back to WIMS/KaTeX notation. The litexp checker re-parses it.
+            return sympy.sstr(expr, order="lex").replace("**", "^")
+        except Exception:
+            return poly_s
 
     def _slib_data_random(self, args: str) -> str:
         """Built-in for ``slib/data/random N,type,data`` — N random items of
