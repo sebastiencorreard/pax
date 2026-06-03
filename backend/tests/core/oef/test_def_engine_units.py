@@ -175,10 +175,20 @@ class TestCloseInlineMath:
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
     def test_maps_wims_bracket_macros(self):
-        # WIMS `\lbracket`/`\rbracket` (balayage1 intervals) → `[`/`]`; KaTeX
-        # doesn't know the long form. The valid short `\lbrack`/`\rbrack` stays.
-        assert _close_inline_math(r"\(\lbracket1;2\rbracket\)") == r"\([1;2]\)"
+        # WIMS `\lbracket`/`\rbracket` (balayage1 intervals) → `\lbrack`/`\rbrack`
+        # (KaTeX-valid, inline). NOT literal `[`/`]`: those would be mistaken for
+        # a column vector. The valid short `\lbrack`/`\rbrack` stays untouched.
+        assert _close_inline_math(r"\(\lbracket1;2\rbracket\)") == r"\(\lbrack 1;2\rbrack \)"
         assert _close_inline_math(r"\(x \in \lbrack a;b \rbrack\)") == r"\(x \in \lbrack a;b \rbrack\)"
+
+    def test_interval_not_turned_into_vector(self):
+        # An interval `[1;2]` (from \lbracket…\rbracket) must stay inline, NOT
+        # become a pmatrix column vector — only a *literal* `[a;b]` is a vector.
+        from core.oef.def_engine.presentation import wims_matrices_to_latex
+        out = wims_matrices_to_latex(_close_inline_math(r"\(\lbracket1;2\rbracket\)"))
+        assert "pmatrix" not in out
+        # …while a literal bracketed pair is still read as a column vector.
+        assert "pmatrix" in wims_matrices_to_latex(r"\([7;5]\)")
 
     def test_closes_at_first_unmatched_paren(self):
         # WIMS find_matching: `\(K) sont (5;10)` closes right after `K`, it does

@@ -195,12 +195,14 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     # so it would otherwise leak the raw `\special{…}` and break KaTeX.
     s = re.sub(r"\\special\s*\{\s*color\s*=\s*([^}]+?)\s*\}", r"\\color{\1}", s)
 
-    # WIMS writes brackets as `\lbracket` / `\rbracket` (e.g. an interval
-    # `\(\lbracket1;2\rbracket\)` — balayage1), which KaTeX doesn't know (it has
-    # `\lbrack`/`\rbrack` and `[`/`]`) → red error. Map them to `[` / `]`.
-    # Matching the long form never touches the valid short `\lbrack`/`\rbrack`
-    # (they lack the trailing `et`). Before the backslash bail below.
-    s = s.replace(r"\lbracket", "[").replace(r"\rbracket", "]")
+    # WIMS writes interval brackets as `\lbracket` / `\rbracket` (e.g.
+    # `\(\lbracket1;2\rbracket\)` — balayage1), which KaTeX doesn't know → red
+    # error. Map to the valid `\lbrack` / `\rbrack` (NOT literal `[` / `]`):
+    # a literal `[…;…]` would then be mistaken by `wims_matrices_to_latex`
+    # /`_maybe_pmatrix` for a column vector and stacked vertically, whereas an
+    # interval must stay inline `[1;2]`. Matching the long form leaves the short
+    # `\lbrack`/`\rbrack` untouched. Before the backslash bail below.
+    s = s.replace(r"\lbracket", r"\lbrack ").replace(r"\rbracket", r"\rbrack ")
 
     # WIMS lets `^` grab a whole number or parenthesised group (`10^27`,
     # `10^(27)`), but KaTeX only raises the next single token — so `10^27`
