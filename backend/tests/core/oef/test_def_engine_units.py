@@ -290,7 +290,7 @@ class TestMathmlinput:
         assert "oef-vec" in out
         assert "begin{pmatrix}" not in out
         assert out.count('class="oef-input"') == 2
-        assert out.count("oef-vec-row") == 2  # column: one row per cell
+        assert out.count("oef-arr-row") == 2  # column vector: one table row per cell
 
     def test_left_right_vector_renders_html_layout(self):
         e = engine()
@@ -304,6 +304,38 @@ class TestMathmlinput:
         out = e._mathmlinput_html(r"reply1^{reply2}", {}, 5)
         assert "oef-vec" not in out
         assert "<sup>" in out
+
+    def test_frac_with_fields_renders_html_fraction(self):
+        # `\frac{reply1}{reply2}` (frac3) → HTML fraction, not split \(\frac{\).
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{reply1}{reply2}", {}, 5)
+        assert "oef-frac-num" in out and "oef-frac-den" in out
+        assert out.count('class="oef-input"') == 2
+        assert "frac{" not in out
+
+    def test_frac_without_field_stays_katex(self):
+        # A reply-free \frac is left for KaTeX (only the reply one becomes HTML).
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{5}{4} = \frac{reply1}{reply2}", {}, 5)
+        assert r"\(\frac{5}{4} =\)" in out
+        assert "oef-frac-num" in out
+
+    def test_prefixed_interval_renders_layout(self):
+        # `I_c=\left[reply9;reply10\right]` (carlo) — prefix + bracket container.
+        e = engine()
+        out = e._mathmlinput_html(r"I_c=\left[reply9;reply10\right]", {}, 5)
+        assert r"\(I_c=\)" in out and "oef-vec" in out
+        assert out.count('class="oef-input"') == 2
+        assert "left[" not in out
+
+    def test_cases_array_renders_table(self):
+        # `\left.\begin{array}{lcl}…\end{array}\right\rbrace` (balayage) → table.
+        e = engine()
+        code = (r"\left.\begin{array}{lcl}f(reply2) &=& reply3 \\ "
+                r"f(reply4) &=& reply5\end{array}\right \rbrace")
+        out = e._mathmlinput_html(code, {}, 5)
+        assert "oef-arr" in out and "begin{array}" not in out
+        assert out.count('class="oef-input"') == 4
 
 
 class TestCommutesom:

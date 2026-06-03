@@ -2578,11 +2578,27 @@ class DefEngine(_SlibMixin):
         default size and the remaining lines are ``replyN,size``.
         """
         s = args.replace("\t", "\n")
-        m = re.match(r"^\s*\[(.*?)\]\s*,?(.*)$", s, re.DOTALL)
-        if not m:
+        # The EXPR is the leading ``[…]`` — but it may itself contain ``[``/``]``
+        # (intervals ``\left[…\right]``, carlo1). A non-greedy ``\[(.*?)\]`` stops
+        # at the inner ``]`` and truncates the closing delimiter; match the
+        # bracket-balanced span instead.
+        start = s.find("[")
+        if start < 0:
             return ""
-        code = m.group(1)
-        rest_lines = m.group(2).split("\n")
+        depth = 0
+        end = -1
+        for j in range(start, len(s)):
+            if s[j] == "[":
+                depth += 1
+            elif s[j] == "]":
+                depth -= 1
+                if depth == 0:
+                    end = j
+                    break
+        if end < 0:
+            return ""
+        code = s[start + 1 : end]
+        rest_lines = re.sub(r"^\s*,?", "", s[end + 1 :]).split("\n")
         opt_line = rest_lines[0] if rest_lines else ""
         dm = re.search(r"\d+", opt_line)
         default_size = int(dm.group(0)) if dm else 5
@@ -2604,16 +2620,19 @@ class DefEngine(_SlibMixin):
     def _mathmlinput_html(self, code: str, sizes: dict[str, int], default_size: int) -> str:
         """Build the math+inputs HTML for mathmlinput.
 
-        A matrix / parenthesised vector (``\\begin{pmatrix}reply1 \\\\ reply2
-        \\end{pmatrix}``, ``\\left( reply1 ; reply2 \\right)`` — cercle1's centre
-        coordinates) can't be split into separate ``\\(…\\)`` spans: each fragment
-        (``\\(\\begin{pmatrix}\\)`` …) is invalid KaTeX and leaks. Render those as
-        an HTML layout with big delimiters and the inputs in cells. Everything
-        else falls back to the inline interleave below."""
+        A container that embeds answer fields — a matrix/array, a
+        ``\\left(…\\right)`` vector/interval/set, possibly with a prefix
+        (``I_c=\\left[reply9;reply10\\right]``) or nested (``\\left(\\begin{array}
+        {c}reply1\\\\reply2\\end{array}\\right)``) — can't be split into separate
+        ``\\(…\\)`` spans: each fragment (``\\(\\begin{pmatrix}\\)`` …) is invalid
+        KaTeX and leaks. ``_mathmlinput_render`` walks the structure and emits an
+        HTML layout (delimiters + table cells) with the inputs in place. Plain
+        code (no container — e.g. elassaoui3's ``reply1^{reply2}``) uses the
+        inline interleave."""
         code = re.sub(r"^\s*\\displaystyle\s*", "", code.strip())
-        layout = self._mathmlinput_layout(code, sizes, default_size)
-        if layout is not None:
-            return layout
+        structural = r"\\begin\{|\\left\b|\\right\b|\\[dt]?frac\b|\\overrightarrow\b|\\vec\b|\\overline\b"
+        if re.search(structural, code) and re.search(r"reply\d", code):
+            return self._mathmlinput_render(code, sizes, default_size)
         return self._mathmlinput_inline(code, sizes, default_size)
 
     # Matrix env → (left, right) delimiter characters for the HTML layout.
@@ -2621,48 +2640,176 @@ class DefEngine(_SlibMixin):
         "pmatrix": ("(", ")"), "bmatrix": ("[", "]"), "Bmatrix": ("{", "}"),
         "vmatrix": ("|", "|"), "Vmatrix": ("‖", "‖"), "matrix": ("", ""),
     }
+    # WIMS/TeX delimiter token (after \left / \right) → displayed character.
+    # "." is the invisible delimiter (\left. … \right) — no glyph.
+    _DELIM_TOK = (
+        r"\\lbrace|\\rbrace|\\lbracket|\\rbracket|\\lvert|\\rvert|"
+        r"\\langle|\\rangle|\\\{|\\\}|\\\||[()\[\].|]"
+    )
+    _DELIM_DISPLAY = {
+        "(": "(", ")": ")", "[": "[", "]": "]", ".": "", "|": "|",
+        "\\{": "{", "\\}": "}", "\\|": "‖", "\\lbrace": "{", "\\rbrace": "}",
+        "\\lbracket": "[", "\\rbracket": "]", "\\lvert": "|", "\\rvert": "|",
+        "\\langle": "⟨", "\\rangle": "⟩",
+    }
 
-    def _mathmlinput_layout(self, code: str, sizes: dict[str, int], default_size: int) -> str | None:
-        """Render a matrix / ``\\left(…\\right)`` vector that embeds answer fields
-        as an HTML layout (big delimiters + cells), or ``None`` if ``code`` isn't
-        such a container. Cells are rendered with the inline interleave so a cell
-        that is just ``replyN`` becomes an input and a static cell becomes math."""
-        left = right = None
-        inner = None
-        stacked = False
-        m = re.match(r"\\begin\{([pbBvV]?matrix)\}(.*)\\end\{\1\}$", code, re.DOTALL)
-        if m:
-            left, right = self._MATRIX_DELIMS.get(m.group(1), ("", ""))
-            inner = m.group(2).strip()
-            stacked = "\\\\" in inner
-        else:
-            m = re.match(
-                r"\\left\s*(\(|\[|\\\{|\\lvert|\\\|)\s*(.*?)\s*"
-                r"\\right\s*(\)|\]|\\\}|\\rvert|\\\|)$",
-                code, re.DOTALL,
+    def _mml_find_right(self, code: str, start: int):
+        """From ``start`` (just after a ``\\left<delim>``), return
+        ``(idx, end, right_token)`` of the matching ``\\right<delim>`` (depth-aware
+        over nested ``\\left``/``\\right``), or ``None``."""
+        depth = 0
+        i, n = start, len(code)
+        lo = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
+        ro = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
+        while i < n:
+            if (m := lo.match(code, i)):
+                depth += 1; i = m.end(); continue
+            if (m := ro.match(code, i)):
+                if depth == 0:
+                    return i, m.end(), m.group(1)
+                depth -= 1; i = m.end(); continue
+            i += 1
+        return None
+
+    def _mml_find_end(self, code: str, start: int, env: str):
+        """Return ``(idx, end)`` of the ``\\end{env}`` matching the ``\\begin{env}``
+        whose body starts at ``start`` (depth-aware), or ``None``."""
+        depth = 0
+        i, n = start, len(code)
+        beg = re.compile(r"\\begin\{" + re.escape(env) + r"\}(?:\{[^}]*\})?")
+        end = re.compile(r"\\end\{" + re.escape(env) + r"\}")
+        while i < n:
+            if (m := beg.match(code, i)):
+                depth += 1; i = m.end(); continue
+            if (m := end.match(code, i)):
+                if depth == 0:
+                    return i, m.end()
+                depth -= 1; i = m.end(); continue
+            i += 1
+        return None
+
+    def _mml_array(self, body: str, env: str, sizes: dict, default_size: int, depth: int) -> str:
+        """Render a matrix/array body as an HTML table; cells recurse so a cell
+        that is ``replyN`` becomes an input and a static cell becomes math."""
+        rows = []
+        for row in re.split(r"\\\\", body):
+            row = re.sub(r"\\hline", "", row).strip()
+            if not row:
+                continue
+            cells = "".join(
+                f'<span class="oef-arr-cell">'
+                f'{self._mathmlinput_render(c.strip(), sizes, default_size, depth + 1)}</span>'
+                for c in re.split(r"&(?!#?\w+;)", row)
             )
-            if m:
-                lmap = {"(": "(", "[": "[", "\\{": "{", "\\lvert": "|", "\\|": "‖"}
-                rmap = {")": ")", "]": "]", "\\}": "}", "\\rvert": "|", "\\|": "‖"}
-                left, right = lmap.get(m.group(1), "("), rmap.get(m.group(3), ")")
-                inner = m.group(2).strip()
-                stacked = "\\\\" in inner
-        if inner is None or not re.search(r"\breply\d+\b", inner):
+            rows.append(f'<span class="oef-arr-row">{cells}</span>')
+        return f'<span class="oef-arr">{"".join(rows)}</span>'
+
+    def _mml_brace(self, code: str, start: int):
+        """From ``start``, skip spaces and return ``(content, end)`` of the
+        ``{…}`` brace group (depth-aware), or ``None`` if no ``{`` follows."""
+        i = start
+        while i < len(code) and code[i].isspace():
+            i += 1
+        if i >= len(code) or code[i] != "{":
             return None
+        depth = 0
+        for j in range(i, len(code)):
+            if code[j] == "{":
+                depth += 1
+            elif code[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return code[i + 1 : j], j + 1
+        return None
 
-        def cell(s: str) -> str:
-            return self._mathmlinput_inline(s.strip(), sizes, default_size)
-
-        if stacked:
-            body = "".join(
-                f'<span class="oef-vec-row">{cell(r)}</span>'
-                for r in re.split(r"\\\\", inner) if r.strip()
-            )
-        else:
-            body = f'<span class="oef-vec-row">{cell(inner)}</span>'
+    def _mml_wrap(self, left: str, body: str, right: str) -> str:
         ld = f'<span class="oef-vec-delim">{left}</span>' if left else ""
         rd = f'<span class="oef-vec-delim">{right}</span>' if right else ""
         return f'<span class="oef-vec">{ld}<span class="oef-vec-body">{body}</span>{rd}</span>'
+
+    def _mathmlinput_render(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
+        """Recursively render mathmlinput ``code`` (math + ``replyN`` fields) to
+        HTML: ``\\begin{…}`` → table, ``\\left…\\right`` → delimiters, ``replyN`` →
+        input, static runs → ``\\(…\\)`` KaTeX. Handles prefixes/suffixes and
+        nesting (array in delimiters, delimiters in a cell)."""
+        out: list[str] = []
+        static: list[str] = []
+
+        def flush() -> None:
+            s = "".join(static).strip()
+            static.clear()
+            if s:
+                out.append(self._mathmlinput_inline(s, sizes, default_size))
+
+        beg = re.compile(r"\\begin\{(\w+)\}(?:\{[^}]*\})?")
+        left = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
+        right = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
+        frac = re.compile(r"\\[dt]?frac\b")
+        over = re.compile(r"\\(overrightarrow|vec|overline)\b")
+        i, n = 0, len(code)
+        while i < n:
+            # \frac{A}{B} embedding a field — HTML fraction (KaTeX can't put an
+            # input inside \frac). A reply-free \frac stays static (KaTeX).
+            if depth < 12 and (m := frac.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                b = self._mml_brace(code, a[1]) if a else None
+                if a and b and re.search(r"reply\d", a[0] + b[0]):
+                    flush()
+                    num = self._mathmlinput_render(a[0], sizes, default_size, depth + 1)
+                    den = self._mathmlinput_render(b[0], sizes, default_size, depth + 1)
+                    out.append(
+                        f'<span class="oef-frac"><span class="oef-frac-num">{num}</span>'
+                        f'<span class="oef-frac-den">{den}</span></span>'
+                    )
+                    i = b[1]
+                    continue
+            # \overrightarrow{…}/\vec{…}/\overline{…} over a field (reperptch1).
+            if depth < 12 and (m := over.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                if a and re.search(r"reply\d", a[0]):
+                    flush()
+                    inner = self._mathmlinput_render(a[0], sizes, default_size, depth + 1)
+                    cls = "oef-overline" if m.group(1) == "overline" else "oef-overarrow"
+                    out.append(f'<span class="{cls}">{inner}</span>')
+                    i = a[1]
+                    continue
+            if depth < 12 and (m := beg.match(code, i)):
+                res = self._mml_find_end(code, m.end(), m.group(1))
+                if res:
+                    flush()
+                    table = self._mml_array(code[m.end():res[0]], m.group(1), sizes, default_size, depth)
+                    md = self._MATRIX_DELIMS.get(m.group(1))
+                    out.append(self._mml_wrap(md[0], table, md[1]) if md and (md[0] or md[1]) else table)
+                    i = res[1]
+                    continue
+            if depth < 12 and (m := left.match(code, i)):
+                res = self._mml_find_right(code, m.end())
+                if res:
+                    flush()
+                    r_idx, r_end, rtok = res
+                    inner = self._mathmlinput_render(code[m.end():r_idx], sizes, default_size, depth + 1)
+                    out.append(self._mml_wrap(
+                        self._DELIM_DISPLAY.get(m.group(1), ""), inner,
+                        self._DELIM_DISPLAY.get(rtok, ""),
+                    ))
+                    i = r_end
+                    continue
+                # Unmatched `\left` — a WIMS half-open interval writes both ends
+                # as `\left` (`\left\lbracket a;b \left\lbracket` = `[a;b[`,
+                # fonction93/94). Emit the delimiter glyph inline and move on
+                # rather than leaking the raw `\left`.
+                static.append(self._DELIM_DISPLAY.get(m.group(1), ""))
+                i = m.end()
+                continue
+            # Unmatched `\right` (the mirror case, other interval orientations).
+            if (m := right.match(code, i)):
+                static.append(self._DELIM_DISPLAY.get(m.group(1), ""))
+                i = m.end()
+                continue
+            static.append(code[i])
+            i += 1
+        flush()
+        return "".join(out)
 
     def _mathmlinput_inline(self, code: str, sizes: dict[str, int], default_size: int) -> str:
         """Inline interleave: ``\\(…\\)`` math chunks with native
@@ -2685,6 +2832,11 @@ class DefEngine(_SlibMixin):
         # Mark exponent fields (^{replyN} / ^replyN) first, then the plain ones.
         code = re.sub(r"\^\{\s*(reply\d+)\s*\}", sup_repl, code)
         code = re.sub(r"\^\s*(reply\d+)\b", sup_repl, code)
+        # Absorb TeX *grouping* braces around a lone field — `{reply3}` (fonction93's
+        # interval bounds). The split would otherwise strand the `{`/`}` in adjacent
+        # `\(…\)` spans (unbalanced → KaTeX error). The lookbehind keeps command
+        # arguments (`\frac{reply}`, `\sqrt{reply}`, second arg `}{reply}`) intact.
+        code = re.sub(r"(?<![A-Za-z}])\{\s*(reply\d+)\s*\}", inp_repl, code)
         code = re.sub(r"\b(reply\d+)\b", inp_repl, code)
 
         def field(name: str) -> str:

@@ -422,9 +422,10 @@ provide(PAX_STATEMENT_CTX, {
 </script>
 
 <style scoped>
-/* mathmlinput vector/matrix with answer fields (cercle1: coordinates of a
-   centre): big delimiters around a column/row of inputs. KaTeX can't embed
-   HTML inputs in a \begin{pmatrix}, so the backend emits this HTML layout. */
+/* mathmlinput container with answer fields (cercle1: coordinates of a centre;
+   intervals, sets, systems): big delimiters around a matrix/array or inline
+   content. KaTeX can't embed HTML inputs in a \begin{pmatrix}/\left(…\right),
+   so the backend emits this HTML layout (see _mathmlinput_render). */
 :deep(.oef-vec) {
   display: inline-flex;
   align-items: center;
@@ -438,15 +439,57 @@ provide(PAX_STATEMENT_CTX, {
 }
 :deep(.oef-vec-body) {
   display: inline-flex;
-  flex-direction: column;
-  gap: 0.3em;
+  align-items: center;
+  gap: 0.25em;
   padding: 0 0.15em;
 }
-:deep(.oef-vec-row) {
+/* matrix/array body: rows stacked, cells aligned — covers a column vector
+   (1 cell/row) and a system/cases array (\begin{array}{lcl}). */
+:deep(.oef-arr) {
+  display: inline-table;
+  vertical-align: middle;
+  border-collapse: collapse;
+}
+:deep(.oef-arr-row) {
+  display: table-row;
+}
+:deep(.oef-arr-cell) {
+  display: table-cell;
+  padding: 0.15em 0.3em;
+  text-align: center;
+  vertical-align: middle;
+}
+/* \frac{…}{…} embedding a field → HTML fraction (input over input). */
+:deep(.oef-frac) {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 0.15em;
+}
+:deep(.oef-frac-num) {
+  padding: 0 0.3em 0.1em;
+  border-bottom: 1px solid currentColor;
+}
+:deep(.oef-frac-den) {
+  padding: 0.1em 0.3em 0;
+}
+/* \overrightarrow{…}/\vec{…}/\overline{…} over a field. */
+:deep(.oef-overarrow),
+:deep(.oef-overline) {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.25em;
+  gap: 0.2em;
+  border-top: 1px solid currentColor;
+  padding-top: 0.1em;
+  position: relative;
+}
+:deep(.oef-overarrow)::before {
+  content: "\2192"; /* → */
+  position: absolute;
+  top: -0.9em;
+  right: -0.2em;
+  font-size: 0.8em;
 }
 :deep(.oef-mark-choice) {
   display: inline-block;
