@@ -388,6 +388,30 @@ class TestMathmlinput:
         assert 'annotation-xml encoding="application/xhtml+xml"' in out
 
 
+class TestWimsListSplit:
+    def test_splits_on_comma_and_semicolon(self):
+        # WIMS comma-bearing items become `;`-separated (append-tab + translate).
+        # `$(var[N])` must split on both `,` and `;` (brevet01 QCM choices).
+        e = engine()
+        val = r"1|\(\large 25),0|\(\large 1000),0|\(\large 4 \times 10^{22});0|\(\large 2,5 \times 10^{19})"
+        items = e._split_wims_items(val)
+        assert items == [
+            r"1|\(\large 25)", r"0|\(\large 1000)",
+            r"0|\(\large 4 \times 10^{22})", r"0|\(\large 2,5 \times 10^{19})",
+        ]
+
+    def test_protects_parens_and_entities(self):
+        e = engine()
+        # comma inside \(…) and ; inside an entity are NOT separators.
+        assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
+        assert e._split_wims_items(r"x&#44;y;z") == ["x&#44;y", "z"]
+
+    def test_indexed_access_with_semicolon_list(self):
+        e = engine()
+        e.ctx["v"] = r"\(\large 25),\(\large 1000);\(\large 2,5 \times 10^{19})"
+        assert e._subst(r"$(v[3])") == r"\(\large 2,5 \times 10^{19})"
+
+
 class TestCommutesom:
     def test_returns_reduced_canonical_form(self):
         # `slib/commutesom POLY,VAR` → one canonical reduced form (decreasing

@@ -733,6 +733,41 @@ class DefEngine(_SlibMixin):
         # Comma split, but keep commas nested inside parentheses intact.
         return re.split(r",(?![^(]*\))", value)
 
+    def _split_wims_items(self, value: str) -> list[str]:
+        """Split a WIMS list whose items are separated by ``,`` OR ``;`` — at
+        bracket depth 0 and outside HTML entities.
+
+        WIMS' ``!append item`` switches to a TAB separator when an item itself
+        holds a comma (``\\(\\large 2,5 \\times 10^{19})``); the very common
+        ``!translate internal \\t to ;`` idiom then turns that TAB into ``;``. So
+        a list with comma-bearing items ends up ``;``-separated (brevet01's QCM
+        choices ``\\(25),\\(1000);\\(4·10^{22});\\(2,5·10^{19})``) and a naive
+        comma split crams the tail into one item. Entities (``&#44;`` comma,
+        ``&alpha;``) and ``()[]{}`` groups are protected, so we scan char by
+        char rather than regex-split."""
+        if self._tab_is_separator(value):
+            return value.split("\t")
+        parts: list[str] = []
+        depth = 0
+        start = 0
+        i = 0
+        n = len(value)
+        while i < n:
+            c = value[i]
+            if c == "&" and (em := re.match(r"&#?\w+;", value[i:])):
+                i += em.end()
+                continue
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth = max(0, depth - 1)
+            elif depth == 0 and c in ",;":
+                parts.append(value[start:i])
+                start = i + 1
+            i += 1
+        parts.append(value[start:])
+        return parts
+
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.
 
@@ -766,17 +801,17 @@ class DefEngine(_SlibMixin):
             return ""
         idx_s = self._subst_for_arith(idx_expr)
 
-        # Detect delimiter: a TAB is the separator only when it follows a
-        # non-comma char (a real pax tab-join); a ",\t" is cosmetic source
-        # whitespace, so the comma is the separator (see _tab_is_separator).
-        # Do NOT treat ";" as a delimiter for single-subscript access — items
-        # may legitimately contain ";" inside HTML entities like &#44; (comma).
+        # A WIMS list item is delimited by `,` or `;` (the `;` arising from the
+        # append-tab + `!translate \t→;` idiom for comma-bearing items — brevet01
+        # QCM choices). `_split_wims_items` splits on both at bracket depth 0
+        # while protecting HTML entities (`&#44;`) — which is why a naive `;`
+        # split was previously avoided. TAB-joined lists are handled there too.
         if self._tab_is_separator(value):
             delimiter = "\t"
             items = value.split("\t")
         else:
             delimiter = ","
-            items = re.split(r",(?![^(]*\))", value)
+            items = self._split_wims_items(value)
 
         # Try to parse as single integer first
         try:
@@ -2976,12 +3011,11 @@ class DefEngine(_SlibMixin):
                     _pos_part, _, choices_part = good_raw.partition(";")
                 else:
                     choices_part = good_raw
-                # Choices may be ";"-joined (translate chain) or ","-joined.
-                # For comma-separated lists use a smart split that avoids breaking
-                # commas inside LaTeX \(...) expressions (e.g. "2,5 × 10^19").
-                # Always use smart comma split — choices_part may contain ";"
-                # inside HTML entities (e.g. &#44; = comma) that must NOT split.
-                choices = [c.strip() for c in re.split(r",(?![^(]*\))", choices_part) if c.strip()]
+                # Choices are separated by `,` OR `;` (the `;` from the
+                # append-tab + `!translate \t→;` idiom when a choice holds a
+                # comma, e.g. "2,5 × 10^19" — brevet01). Split on both at bracket
+                # depth 0, protecting `\(…)` and HTML entities (`&#44;`).
+                choices = [c.strip() for c in self._split_wims_items(choices_part) if c.strip()]
 
                 def _mark_span(col: int) -> str:
                     label = self._subst(choices[col - 1]) if 1 <= col <= len(choices) else ""
@@ -3676,9 +3710,11 @@ class DefEngine(_SlibMixin):
                 if ";" in good_raw:
                     pos_str, _, choices_str = good_raw.partition(";")
                     expected = pos_str.strip()
+                    # Choices split on `,` or `;` (the `;` from the append-tab +
+                    # translate idiom for comma-bearing choices — brevet01).
                     choices = [
                         c.strip()
-                        for c in re.split(r",(?![^(]*\))", choices_str)
+                        for c in self._split_wims_items(choices_str)
                         if c.strip()
                     ]
                     options["choices"] = choices
