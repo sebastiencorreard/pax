@@ -228,13 +228,14 @@ class DefEngine(_SlibMixin):
         else:
             html = self._subst(stmt)
 
-        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures, hoist_wims_instruction  # noqa: PLC0415
+        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures  # noqa: PLC0415
 
         html = _close_inline_math(html, self.lang)
-        # Lift the calculator/instruction warning to the top of the statement.
-        # Some .def templates (course03_2step.def et al.) emit it AFTER the
-        # question, which reads badly — hoist it so it always comes first.
-        html = hoist_wims_instruction(html)
+        # A `<div class="wims_instruction">` (calculator notice, answer-format
+        # hint…) is rendered *in source order*, like WIMS — it's just a CSS class
+        # for technical instructions, WIMS never repositions it. (We used to
+        # hoist it to the top; that wrongly put litt1's "Une seule bonne réponse"
+        # *above* "Cliquez sur les bonnes réponses" — WIMS keeps it below.)
         # Group each flydraw figure with its label *before* the SVGs are
         # inlined — the placeholder is a single <img> tag here, easy to
         # locate; once inlined, the body contains its own <image>/<polygon>

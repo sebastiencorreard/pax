@@ -2136,29 +2136,6 @@ _FIG_BOUNDARY_RE = re.compile(
 )
 
 
-_WIMS_INSTRUCTION_RE = re.compile(
-    r'<div\s+class="wims_instruction"[^>]*>.*?</div>',
-    re.IGNORECASE | re.DOTALL,
-)
-
-
-def hoist_wims_instruction(html: str) -> str:
-    """Move ``<div class="wims_instruction">…</div>`` to the very top of the
-    rendered statement.
-
-    OEF templates split into two camps: single-question exos place the
-    instruction div BEFORE wims_question (quizz/0320, 0306, …), but
-    course/step exos like course03_2step put it AFTER the question — which
-    reads badly (a "calculatrice interdite" warning at the *bottom* is
-    useless). Hoisting it unconditionally fixes both at once and matches
-    what WIMS' page chrome does for its instruction zone.
-    """
-    m = _WIMS_INSTRUCTION_RE.search(html)
-    if not m:
-        return html
-    return m.group(0) + html[:m.start()] + html[m.end():]
-
-
 def group_inline_figures(html: str) -> str:
     """Wrap each flydraw figure placeholder with its preceding label text
     in a ``<span class="pax-fig-group">``.
