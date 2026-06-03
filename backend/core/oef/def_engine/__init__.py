@@ -2602,11 +2602,73 @@ class DefEngine(_SlibMixin):
         return self._mathmlinput_html(code, sizes, default_size)
 
     def _mathmlinput_html(self, code: str, sizes: dict[str, int], default_size: int) -> str:
-        """Build the math+inputs HTML for mathmlinput: ``\\(…\\)`` math chunks
-        interleaved with native ``<input class="oef-input">`` fields, the
-        ``^{replyN}`` exponents wrapped in ``<sup>``. The whole thing stays one
-        HTML segment so the frontend KaTeX-renders the math and event-delegation
-        binds the inputs."""
+        """Build the math+inputs HTML for mathmlinput.
+
+        A matrix / parenthesised vector (``\\begin{pmatrix}reply1 \\\\ reply2
+        \\end{pmatrix}``, ``\\left( reply1 ; reply2 \\right)`` — cercle1's centre
+        coordinates) can't be split into separate ``\\(…\\)`` spans: each fragment
+        (``\\(\\begin{pmatrix}\\)`` …) is invalid KaTeX and leaks. Render those as
+        an HTML layout with big delimiters and the inputs in cells. Everything
+        else falls back to the inline interleave below."""
+        code = re.sub(r"^\s*\\displaystyle\s*", "", code.strip())
+        layout = self._mathmlinput_layout(code, sizes, default_size)
+        if layout is not None:
+            return layout
+        return self._mathmlinput_inline(code, sizes, default_size)
+
+    # Matrix env → (left, right) delimiter characters for the HTML layout.
+    _MATRIX_DELIMS = {
+        "pmatrix": ("(", ")"), "bmatrix": ("[", "]"), "Bmatrix": ("{", "}"),
+        "vmatrix": ("|", "|"), "Vmatrix": ("‖", "‖"), "matrix": ("", ""),
+    }
+
+    def _mathmlinput_layout(self, code: str, sizes: dict[str, int], default_size: int) -> str | None:
+        """Render a matrix / ``\\left(…\\right)`` vector that embeds answer fields
+        as an HTML layout (big delimiters + cells), or ``None`` if ``code`` isn't
+        such a container. Cells are rendered with the inline interleave so a cell
+        that is just ``replyN`` becomes an input and a static cell becomes math."""
+        left = right = None
+        inner = None
+        stacked = False
+        m = re.match(r"\\begin\{([pbBvV]?matrix)\}(.*)\\end\{\1\}$", code, re.DOTALL)
+        if m:
+            left, right = self._MATRIX_DELIMS.get(m.group(1), ("", ""))
+            inner = m.group(2).strip()
+            stacked = "\\\\" in inner
+        else:
+            m = re.match(
+                r"\\left\s*(\(|\[|\\\{|\\lvert|\\\|)\s*(.*?)\s*"
+                r"\\right\s*(\)|\]|\\\}|\\rvert|\\\|)$",
+                code, re.DOTALL,
+            )
+            if m:
+                lmap = {"(": "(", "[": "[", "\\{": "{", "\\lvert": "|", "\\|": "‖"}
+                rmap = {")": ")", "]": "]", "\\}": "}", "\\rvert": "|", "\\|": "‖"}
+                left, right = lmap.get(m.group(1), "("), rmap.get(m.group(3), ")")
+                inner = m.group(2).strip()
+                stacked = "\\\\" in inner
+        if inner is None or not re.search(r"\breply\d+\b", inner):
+            return None
+
+        def cell(s: str) -> str:
+            return self._mathmlinput_inline(s.strip(), sizes, default_size)
+
+        if stacked:
+            body = "".join(
+                f'<span class="oef-vec-row">{cell(r)}</span>'
+                for r in re.split(r"\\\\", inner) if r.strip()
+            )
+        else:
+            body = f'<span class="oef-vec-row">{cell(inner)}</span>'
+        ld = f'<span class="oef-vec-delim">{left}</span>' if left else ""
+        rd = f'<span class="oef-vec-delim">{right}</span>' if right else ""
+        return f'<span class="oef-vec">{ld}<span class="oef-vec-body">{body}</span>{rd}</span>'
+
+    def _mathmlinput_inline(self, code: str, sizes: dict[str, int], default_size: int) -> str:
+        """Inline interleave: ``\\(…\\)`` math chunks with native
+        ``<input class="oef-input">`` fields, ``^{replyN}`` exponents wrapped in
+        ``<sup>``. Stays one HTML segment so the frontend KaTeX-renders the math
+        and event-delegation binds the inputs."""
         sup_map: dict[str, str] = {}
         inp_map: dict[str, str] = {}
 

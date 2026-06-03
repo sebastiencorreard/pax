@@ -280,6 +280,32 @@ class TestFinalizeAnswerMath:
 # ── slib helper commands ─────────────────────────────────────────────────────
 
 
+class TestMathmlinput:
+    def test_pmatrix_vector_renders_html_layout(self):
+        # `\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}` (cercle1's centre
+        # coordinates) → HTML vector layout, NOT split \(…\) spans that leak
+        # `\begin{pmatrix}` and break KaTeX.
+        e = engine()
+        out = e._mathmlinput_html(r"\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}", {}, 5)
+        assert "oef-vec" in out
+        assert "begin{pmatrix}" not in out
+        assert out.count('class="oef-input"') == 2
+        assert out.count("oef-vec-row") == 2  # column: one row per cell
+
+    def test_left_right_vector_renders_html_layout(self):
+        e = engine()
+        out = e._mathmlinput_html(r"\left( reply1 ; reply2 \right)", {}, 5)
+        assert "oef-vec" in out and "left(" not in out
+        assert out.count('class="oef-input"') == 2
+
+    def test_plain_exponent_stays_inline(self):
+        # elassaoui3's `reply1^{reply2}` is not a container → inline sup, no layout.
+        e = engine()
+        out = e._mathmlinput_html(r"reply1^{reply2}", {}, 5)
+        assert "oef-vec" not in out
+        assert "<sup>" in out
+
+
 class TestCommutesom:
     def test_returns_reduced_canonical_form(self):
         # `slib/commutesom POLY,VAR` → one canonical reduced form (decreasing

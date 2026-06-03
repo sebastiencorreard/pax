@@ -422,6 +422,32 @@ provide(PAX_STATEMENT_CTX, {
 </script>
 
 <style scoped>
+/* mathmlinput vector/matrix with answer fields (cercle1: coordinates of a
+   centre): big delimiters around a column/row of inputs. KaTeX can't embed
+   HTML inputs in a \begin{pmatrix}, so the backend emits this HTML layout. */
+:deep(.oef-vec) {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 1px;
+}
+:deep(.oef-vec-delim) {
+  font-size: 2.4em;
+  line-height: 1;
+  font-weight: 300;
+}
+:deep(.oef-vec-body) {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.3em;
+  padding: 0 0.15em;
+}
+:deep(.oef-vec-row) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25em;
+}
 :deep(.oef-mark-choice) {
   display: inline-block;
   padding: 2px 10px;
