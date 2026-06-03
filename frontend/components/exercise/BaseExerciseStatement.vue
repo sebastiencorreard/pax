@@ -434,7 +434,7 @@ provide(PAX_STATEMENT_CTX, {
 }
 :deep(.oef-vec-delim) {
   font-size: 2.4em;
-  line-height: 1;
+  line-height: 0.8;
   font-weight: 300;
 }
 :deep(.oef-vec-body) {

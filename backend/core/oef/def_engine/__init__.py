@@ -2723,8 +2723,15 @@ class DefEngine(_SlibMixin):
         return None
 
     def _mml_wrap(self, left: str, body: str, right: str) -> str:
-        ld = f'<span class="oef-vec-delim">{left}</span>' if left else ""
-        rd = f'<span class="oef-vec-delim">{right}</span>' if right else ""
+        # Scale the delimiters to the body height: WIMS draws full-height
+        # parentheses around a column vector. A fixed size only spans one row,
+        # leaving the `(` `)` too short for a 2+-row matrix (cercle1). Size them
+        # by the number of stacked rows; an inline body (no array) keeps the
+        # CSS default.
+        rows = body.count('class="oef-arr-row"')
+        style = f' style="font-size:{rows * 2.0:.1f}em"' if rows >= 2 else ""
+        ld = f'<span class="oef-vec-delim"{style}>{left}</span>' if left else ""
+        rd = f'<span class="oef-vec-delim"{style}>{right}</span>' if right else ""
         return f'<span class="oef-vec">{ld}<span class="oef-vec-body">{body}</span>{rd}</span>'
 
     def _mathmlinput_render(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
