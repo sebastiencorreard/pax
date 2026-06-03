@@ -174,6 +174,15 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_closes_at_first_unmatched_paren(self):
+        # WIMS find_matching: `\(K) sont (5;10)` closes right after `K`, it does
+        # NOT swallow the trailing `) sont (5;10` (cercle1 statement bug).
+        assert _close_inline_math(r"\(K) sont (5 ; 10).") == r"\(K\) sont (5 ; 10)."
+        # A balanced inner group still closes on its own matching paren.
+        assert _close_inline_math(r"\((a+b)) plus") == r"\(\left(a + b\right)\) plus"
+        # Trailing text after a closed span isn't pulled into the math.
+        assert _close_inline_math(r"\(2^3) et sqrt(3)") == r"\(2^{3}\) et sqrt(3)"
+
     def test_bare_word_unit_rendered_as_upright_text(self):
         # A bare word (unit/label) must NOT go through the CAS: `min`/`max`
         # would become \operatorname{Min/Max} (capitalised) and `cm` → `c m`.

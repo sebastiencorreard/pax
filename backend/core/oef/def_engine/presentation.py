@@ -302,53 +302,64 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
             and text[i + 1] == "("
             and not (i > 0 and text[i - 1] == "\\")
         ):
-            # The closer is the *last* plain ``)`` before a hard boundary, or an
-            # explicit ``\)``. A WIMS ``\(...)`` math fragment can't cross an
-            # HTML tag (an embed-marker ``<span>``/``<cf-slot>``) nor the next
-            # ``\(``: in a clickfill-in-math template (deve7) ``\po``/``\pf``
-            # inject lone parens, so the span is unbalanced and the old
-            # paren-depth matching closed it at the wrong ``)`` (empty ``\(\)``
-            # + leaked LaTeX). Taking the last ``)`` before the marker fixes it,
-            # while ``\(x < 3\)`` is safe: a boundary is ``<`` *starting a tag*
-            # (``<[/!]?[A-Za-z]``), not the ``<`` of an inequality.
+            # Find the closer the way WIMS does (lines.c:output0 →
+            # find_matching): the math ends at the first ``)`` that drives the
+            # paren depth below zero — the first *unmatched* ``)`` — with ``[]``
+            # / ``{}`` balanced. This closes ``\(K) sont (5;10)`` right after the
+            # ``K`` (instead of swallowing the trailing ``) sont (5;10`` like a
+            # naive "last ``)``" rule did — cercle1). An explicit ``\)`` closes
+            # too. PAX safety nets, because PAX interleaves HTML widgets in math
+            # where WIMS uses separate !insmath calls: an HTML tag or the next
+            # ``\(`` is a hard boundary; if no balanced ``)`` is found before it,
+            # fall back to the last plain ``)`` (covers unbalanced embed-in-math
+            # fragments). A boundary ``<`` is one *starting a tag*
+            # (``<[/!]?[A-Za-z]``), not the ``<`` of an inequality ``\(x<3\)``.
             j = i + 2
-            closed_proper = False
-            closer = -1  # index of the last plain ')' seen before a boundary
+            paren = brak = brace = 0
+            last_paren = -1  # last plain ')' seen (fallback)
+            content_end = -1  # where the math content stops
+            advance = -1      # where to resume scanning after the span
             while j < n:
                 c = text[j]
                 if c == "\\" and j + 1 < n and text[j + 1] == ")":
-                    closed_proper = True
+                    content_end, advance = j, j + 2  # explicit \)
                     break
                 if c == "\\" and j + 1 < n and text[j + 1] == "(":
                     break  # next math span opens — hard boundary
                 if c == "<" and j + 1 < n and (text[j + 1] in "/!" or text[j + 1].isalpha()):
                     break  # HTML tag (embed marker) — hard boundary
-                if c == ")":
-                    closer = j
+                if c == "(":
+                    paren += 1
+                elif c == ")":
+                    last_paren = j
+                    paren -= 1
+                    if paren < 0 and brak <= 0 and brace <= 0:
+                        content_end, advance = j, j + 1  # WIMS find_matching closer
+                        break
+                elif c == "[":
+                    brak += 1
+                elif c == "]":
+                    brak -= 1
+                elif c == "{":
+                    brace += 1
+                elif c == "}":
+                    brace -= 1
                 j += 1
-            if closed_proper:
-                content = text[i + 2 : j]
-                out.append("\\(")
-                out.append(_normalize_math_content(content, lang))
-                out.append("\\)")
-                i = j + 2
-                continue
-            if closer >= 0:
-                content = text[i + 2 : closer]
-                out.append("\\(")
-                out.append(_normalize_math_content(content, lang))
-                out.append("\\)")
-                i = closer + 1
-                continue
-            if j == n:
-                # Unclosed "\(" running to end-of-string (no ')' at all): wrap
-                # the rest as math, mirroring the previous fallback.
-                out.append("\\(")
-                out.append(_normalize_math_content(text[i + 2 :], lang))
-                out.append("\\)")
-                i = n
-                continue
-            # Boundary hit with no ')' inside → not a math span; leave "\(" literal.
+            if content_end < 0:
+                # Boundary or EOL without a balanced closer.
+                if last_paren >= 0:
+                    content_end, advance = last_paren, last_paren + 1
+                elif j == n:
+                    content_end, advance = n, n  # unclosed to EOL — wrap the rest
+                else:
+                    out.append(text[i])  # boundary, no ')' → not math, "\(" literal
+                    i += 1
+                    continue
+            out.append("\\(")
+            out.append(_normalize_math_content(text[i + 2 : content_end], lang))
+            out.append("\\)")
+            i = advance
+            continue
         out.append(text[i])
         i += 1
     return "".join(out)
