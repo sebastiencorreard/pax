@@ -190,6 +190,13 @@ class TestCloseInlineMath:
         # …while a literal bracketed pair is still read as a column vector.
         assert "pmatrix" in wims_matrices_to_latex(r"\([7;5]\)")
 
+    def test_idempotent_on_trailing_paren_span(self):
+        # A mathmlinput cell like `f(reply2)` emits `\(f(\)<input>\()\)`. Re-running
+        # the pass must keep `\()\)` intact (content `)`), not collapse it to an
+        # empty `\(\)` and leak the `\)` as literal text (balayage1 conclusion).
+        assert _close_inline_math(r"\()\)") == r"\()\)"
+        assert _close_inline_math(r"\(f(\)X\()\)") == r"\(f(\)X\()\)"
+
     def test_closes_at_first_unmatched_paren(self):
         # WIMS find_matching: `\(K) sont (5;10)` closes right after `K`, it does
         # NOT swallow the trailing `) sont (5;10` (cercle1 statement bug).

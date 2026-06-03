@@ -342,7 +342,13 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
                 elif c == ")":
                     last_paren = j
                     paren -= 1
-                    if paren < 0 and brak <= 0 and brace <= 0:
+                    # An explicit ``\)`` right after this ``)`` is the real
+                    # closer, so the ``)`` is content — keeps the pass idempotent
+                    # on an already-closed span like ``\()\)`` (a mathmlinput
+                    # cell's trailing paren, e.g. ``f(reply2)`` → ``…\()\)``,
+                    # re-processed here). Without this it would close at the
+                    # ``)`` (empty content) and leak the ``\)`` as literal text.
+                    if paren < 0 and brak <= 0 and brace <= 0 and text[j + 1 : j + 3] != "\\)":
                         content_end, advance = j, j + 1  # WIMS find_matching closer
                         break
                 elif c == "[":
