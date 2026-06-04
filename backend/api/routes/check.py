@@ -152,7 +152,8 @@ async def check_exercise(
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
         global_score, results = run_condition(
-            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator
+            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator,
+            rendered.lang,
         )
 
     else:

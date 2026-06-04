@@ -3599,6 +3599,12 @@ class DefEngine(_SlibMixin):
                     # ineqinterv1: drag `[`/`]` brackets into the interval slots.
                     pass
                 else:
+                    # Remember the author's original reply type before we mask
+                    # it as "analyze". The check path needs it to know whether a
+                    # comma in the reply is a decimal separator (numeric/numexp)
+                    # — so `0,7` in an fr/nl exercise normalises to `0.7` before
+                    # being fed to :test (otherwise WIMS' eval reads it as a tuple).
+                    options["analyze_input_type"] = ans_type
                     ans_type = "analyze"
                     if rest:
                         expected = rest

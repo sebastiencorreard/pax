@@ -3,7 +3,25 @@
 from __future__ import annotations
 
 from core.answer.schemas import AnswerResult
+from core.answer.strategies._locale import normalize_decimal_reply
 from core.answer.strategies.standard import pretty_expected
+
+
+def _analyze_replies(active_ans_defs: list, replies_by_name: dict[str, str], lang: str | None) -> dict[int, str]:
+    """Mappe ``val<N>`` → réponse élève (nettoyée + virgule décimale normalisée).
+
+    Couvre toute réponse alimentant un ``analyze_var`` (clickfill/radio/menu qui
+    AFFICHENT un widget mais sont VÉRIFIÉS par :test), pas seulement
+    ``type==analyze``. La normalisation virgule→point évite que ``0,7`` injecté
+    dans :test soit lu comme un tuple par le comparateur WIMS.
+    """
+    return {
+        int(a.options["analyze_var"][3:]): normalize_decimal_reply(
+            replies_by_name.get(a.input_name, "").strip(), a, lang
+        )
+        for a in active_ans_defs
+        if "analyze_var" in a.options
+    }
 
 
 def run_analyze(
@@ -18,12 +36,7 @@ def run_analyze(
     """
     from core.oef.def_engine import check_analyze
 
-    analyze_replies = {
-        int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
-        for a in active_ans_defs
-        if "analyze_var" in a.options  # any reply feeding an analyze val<N>
-        # (clickfill/radio/menu DISPLAY + analyze CHECK), not just type=="analyze"
-    }
+    analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang)
     condtest, weights = check_analyze(
         ev_ctx=rendered.check_sections["ctx"],
         postdef_instructions=rendered.check_sections["postdef"],
@@ -117,12 +130,7 @@ def run_feedback(
 
     from core.oef.def_engine import render_feedback
 
-    analyze_replies = {
-        int(a.options["analyze_var"][3:]): replies_by_name.get(a.input_name, "").strip()
-        for a in active_ans_defs
-        if "analyze_var" in a.options  # any reply feeding an analyze val<N>
-        # (clickfill/radio/menu DISPLAY + analyze CHECK), not just type=="analyze"
-    } or None
+    analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang) or None
 
     return render_feedback(
         ev_ctx=rendered.check_sections["ctx"],

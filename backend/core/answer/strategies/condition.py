@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from core.answer.schemas import AnswerResult
+from core.answer.strategies._locale import normalize_decimal_reply
 from core.oef.evaluator import OEFEvaluator
 
 
@@ -11,6 +12,7 @@ def run_condition(
     active_ans_defs: list,
     replies_by_name: dict[str, str],
     ev: OEFEvaluator,
+    lang: str = "fr",
 ) -> tuple[float, list[AnswerResult]]:
     """Évalue la \\condition OEF avec les réponses élève.
 
@@ -18,7 +20,8 @@ def run_condition(
     l'expression booléenne globale, et retourne (global_score, results).
     """
     for ans in active_ans_defs:
-        val = replies_by_name.get(ans.input_name, "").strip()
+        raw = replies_by_name.get(ans.input_name, "").strip()
+        val = normalize_decimal_reply(raw, ans, lang)
         ev.ctx[ans.input_name] = val
         alias = ans.input_name.replace("reply", "r")
         ev.ctx[alias] = val
