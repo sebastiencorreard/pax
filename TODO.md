@@ -12,11 +12,62 @@ $\rightarrow$ comment sont-ils pris en compte ? (implémenté ou pas ?)
 
 $\rightarrow$ où régler les paramètres ?
 
+## 3. Conformité WIMS (réf. docOEF4, audit 2026-06-12)
+
+### a) Notation / précision (prioritaire)
+
+- [ ] **Brancher `\precision{M}`** : parsé dans les meta mais jamais transmis aux checkers (tolérance figée 1e-4, `checkers.py:1054`) ; formule WIMS : `|s−r|/max(|s+r|,M) < 1/M` — petit correctif, gros impact
+- [ ] **`numexp` formel** : WIMS rejette `2/8` pour `1/4` (« écriture irréductible ») et `0.333333` pour `1/3` ; PAX accepte les deux (comparaison numérique) — 48 exercices, type le plus utilisé ; option `noreduction` à gérer
+- [ ] **`\condition` multiples** : seule la 1ère extraite (`engine.py:622`), tout-ou-rien ; WIMS : chaque condition évaluée/affichée, note = fraction, options `weight=`/`hide` ; commande `\conditions{}` (sélection dynamique) absente
+- [ ] **`option=default=xxx`** : substituer xxx à une réponse vide puis analyser (PAX ne gère que `default=vide`, `checkers.py:1060`)
+- [ ] `\computeanswer{no}` ignoré : `5*5` accepté pour `25`
+- [ ] `sc_reply` binaire (WIMS : 0.5 si « bonne à précision près » / partiellement juste)
+
+### b) Types litexp / algexp / formal (§1.4.5, testés)
+
+PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
+
+- [ ] **`formal`** : sortir du pré-check développé/factorisé (`checkers.py:1087`) — WIMS = équivalence CAS pure (`(x+1)(x-1)` accepté pour `x^2-1`) ; correctif simple, 2 exercices
+- [ ] **`litexp`** : trop laxiste — `6/4` accepté pour `3/2`, `x*x+3` pour `x^2+3` ; WIMS compare quasi littéralement (façon `rawmath`) ; 24 exercices
+- [ ] **`algexp`** : accepter les coefficients non simplifiés (`(24+4)*x-53` pour `28*x-53`, rejeté à tort) ; rejeter les identités trig (`sin²+cos²` pour `1`, accepté quand l'attendu est sans variable) ; 30 exercices
+
+### c) Autres types de réponse
+
+- [ ] **`atext`** (10 exo) : tolérances pluriel/accents/mots communs + alternatives `|` (tombe dans le fallback `check_text`)
+- [ ] **`nocase`** (5 exo) : alternatives `|` non découpées (seul `check_case` le fait)
+- [ ] **`dragfill`** (~25 exo) : vérifier rendu/scoring (passe par la voie `analyze`, `expected` douteux sur `arithtable.nl/table2x6`) ; contrainte « chaque étiquette une seule fois »
+- [ ] **`units`** (12 exo) : pas de conversion d'unités (WIMS accepte `400 dm^2` pour `4 m^2`)
+- [ ] `click` (3 exo) : non câblé (réponse = position `~k`)
+- [ ] `raw` (2 exo) : options `nospace`/`noaccent`/`nodigit`… non appliquées
+- [ ] `range`, `matrix`, `vector`, `complex`, `equation`, `reorder`, `compose`, `flashcard` : absents, 0 usage corpus → différé
+
+### d) Étapes, rendu, moteur
+
+- [ ] **`\nextstep`** (étapes dynamiques selon réponses, §4.3.3-4) : traité comme course ordinaire — vérifier sur `moles.nl/masse1-2`, `numeration.fr/convertir10`, `oefspeed.nl/*` ; option `nonstop` non gérée ; heuristique `total_steps` fragile
+- [ ] **`\special`** : seul `mathmlinput` rendu ; `help` contextuel (`help_subject`), `tooltip`, `imagefill` (champs sur image), `codeinput` ignorés en silence
+- [ ] `\embed` lignes supplémentaires (`style="…"`, mot-clé `default` → classe `wims_oef_input`)
+- [ ] `exec` : maxima/pari seulement ; `octave`/`gap`/`float_calc` → vide silencieux (§2.5)
+- [ ] Flydraw : manquent `levelcurve`, `affine`, `copyresized`, `plotjump`/`plotstep`, `filltoborder`, `diamondfill`/`dotfill`, `rays` — 0 usage corpus → différé
+- [ ] Corriger `docs/types-exercices-reponses.md:82` : `symbols=` n'est pas « variables autorisées de formal » mais une option d'UI transverse (palette de boutons insérant au caret, cf. `wims/.../anstype/symbols.inc`)
+
+Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`/`\while`, alias `r1`/`reply1`/`rep1`, `\feedback` + `sc_reply`/`m_reply`, bonnes réponses multiples, `case` avec `|`, `correspond`+`split`, virgule décimale, `\hint`/`\help`/`\solution`, `\css`.
+
 # II. Fonctionnalités PAX
 
 ## 1. Feuilles ?
 
 ## 2. Statistiques d'utilisation du site
+
+## 3. Clavier virtuel mathématique
+
+Barre en bas d'écran, masquable, compacte (touches de base + extension), mobile et desktop.
+Contrainte : les réponses sont des `<input>` texte brut (syntaxe WIMS, virgule décimale) — un clavier produisant du LaTeX ne se branche pas directement.
+
+Options :
+- [ ] **Composant maison** (recommandé) — mini-clavier Vue (~150 lignes) insérant des tokens au caret de l'input focalisé ; zéro dépendance, KaTeX déjà là pour les étiquettes
+- [ ] **simple-keyboard** (hodgef) — léger, layout custom, insère dans les inputs existants ; mais layout math à construire soi-même, dépendance peu justifiée pour ~20 touches
+- [ ] **MathLive** — clavier intégré excellent (layouts compact/minimalist, politique manual) mais couplé aux `<math-field>` (valeur LaTeX) → conversion LaTeX→WIMS à écrire, bundle lourd ; à considérer seulement si on veut la saisie WYSIWYG 2D
+- [ ] **MathQuill** — écarté : jQuery, maintenance sporadique, pas de clavier intégré
 
 # III. Mentions légales
 
