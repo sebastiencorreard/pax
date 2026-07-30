@@ -361,9 +361,12 @@ class TestWimsPrecision:
         r = check_answer("numeric", "0.333", "1/3", {"precision": 100.0})
         assert r.correct and r.score == 1.0
 
-    def test_precision_flows_to_numexp(self):
-        r = check_answer("numexp", "0.333", "1/3", {"precision": 100.0})
-        assert r.correct
+    def test_precision_flows_to_numexp_float_fallback(self):
+        """numexp compare les rationnels exactement (0.333 ≠ 1/3), mais la
+        précision gouverne le repli flottant quand l'attendu n'est pas un
+        rationnel simple (ici composé `1/3+0` → repli)."""
+        assert not check_answer("numexp", "0.333", "1/3", {"precision": 100.0}).correct
+        assert check_answer("numexp", "0.333", "1/3+0", {"precision": 100.0}).correct
 
     def test_absolute_option_uses_absolute_difference(self):
         """Option `absolute` : |test-good|*prec < 1 → juste."""
@@ -410,3 +413,40 @@ class TestDefaultOption:
 
     def test_non_empty_reply_ignores_default(self):
         assert check_answer("numeric", "5", "5", {"option": "default=0"}).correct
+
+
+class TestNumexpFormal:
+    """numexp WIMS : fraction irréductible + égalité rationnelle exacte."""
+
+    def test_exact_fraction_accepted(self):
+        assert check_answer("numexp", "1/4", "1/4").correct
+        assert check_answer("numexp", "7/3", "7/3").correct
+
+    def test_decimal_equal_to_fraction_accepted(self):
+        """Un décimal exactement égal à la fraction attendue passe."""
+        assert check_answer("numexp", "0.25", "1/4").correct
+        assert check_answer("numexp", "0,25", "1/4", lang="fr").correct
+
+    def test_unreduced_fraction_rejected(self):
+        r = check_answer("numexp", "2/8", "1/4")
+        assert not r.correct and r.status == "invalid_format"
+        assert check_answer("numexp", "-12/2", "-6").correct is False
+
+    def test_noreduction_accepts_unreduced(self):
+        assert check_answer("numexp", "2/8", "1/4", {"option": "noreduction"}).correct
+
+    def test_approx_decimal_rejected(self):
+        """`0.333` n'est pas exactement `1/3` → refusé (pas de tolérance)."""
+        assert not check_answer("numexp", "0.333", "1/3").correct
+
+    def test_compound_expression_rejected(self):
+        r = check_answer("numexp", "2+3", "5")
+        assert not r.correct and r.status == "invalid_format"
+
+    def test_fraction_and_decimal_mixed_rejected(self):
+        r = check_answer("numexp", "1.5/2", "3/4")
+        assert not r.correct and r.status == "invalid_format"
+
+    def test_float_fallback_for_compound_expected(self):
+        """Attendu composé non évalué (`5*3`) : repli flottant, `15` accepté."""
+        assert check_answer("numexp", "15", "5*3").correct

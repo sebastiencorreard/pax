@@ -104,6 +104,13 @@ _COMPUTE_MSG = (
     "Donnez le résultat sous forme d'un nombre, pas d'un calcul à effectuer."
 )
 
+# numexp : la fraction doit être irréductible (WIMS `noreduced`).
+_NUMEXP_REDUCE_MSG = "Écrivez la fraction sous sa forme irréductible."
+# numexp : mélange fraction + décimal interdit (WIMS `badform`).
+_NUMEXP_BADFORM_MSG = (
+    "N'utilisez pas à la fois une barre de fraction et une virgule décimale."
+)
+
 
 def _is_term_order_mismatch(reply: str, expected: str) -> bool:
     """True iff `reply` and `expected` are mathematically equal but list their
@@ -755,22 +762,90 @@ def _check_algexp_numeric(
 # ------------------------------------------------------------------ #
 
 
+def _parse_exact_rational(
+    s: str, comma_is_decimal: bool
+) -> tuple[Fraction, str, bool] | None:
+    """Interprète ``s`` comme un rationnel exact : entier, décimal, ou fraction
+    simple ``a/b``. Retourne ``(valeur, forme, réduite)`` où ``forme`` ∈
+    {``"int"``, ``"decimal"``, ``"fraction"``} et ``réduite`` indique si une
+    fraction ``a/b`` est irréductible (``pgcd=1`` et dénominateur > 0). Retourne
+    ``None`` si ``s`` n'est pas un rationnel simple (expression composée,
+    irrationnel…). Pas de tolérance : ``0.333`` ≠ ``1/3`` (WIMS `numexp`)."""
+    s = s.strip().replace(" ", "")
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    m = re.fullmatch(r"([+-]?\d+)/([+-]?\d+)", s)
+    if m:
+        num, den = int(m.group(1)), int(m.group(2))
+        if den == 0:
+            return None
+        reduced = math.gcd(abs(num), abs(den)) == 1 and den > 0
+        return Fraction(num, den), "fraction", reduced
+    if re.fullmatch(r"[+-]?\d+", s):
+        return Fraction(int(s)), "int", True
+    if re.fullmatch(r"[+-]?(?:\d+\.\d*|\.\d+)", s):
+        try:
+            return Fraction(s), "decimal", True
+        except (ValueError, ZeroDivisionError):
+            return None
+    return None
+
+
 def check_numexp(
     reply: str,
     expected: str,
     precision: float = WIMS_DEFAULT_PRECISION,
     comma_is_decimal: bool = True,
+    noreduction: bool = False,
 ) -> CheckResult:
-    """
-    Évalue les deux expressions numériquement et compare (précision WIMS).
-    Ex: reply="2+3", expected="5"
-    """
+    """Type ``numexp`` (WIMS ``anstype/numexp``) : l'élève donne un nombre —
+    entier, décimal, ou **fraction irréductible** — pas un calcul.
+
+    Contrairement à une comparaison numérique tolérante, WIMS exige :
+    - pas de mélange ``/`` et ``.`` (``badform``) ;
+    - pas d'expression composée (``+ - * ^ (``, `nocompute`) ;
+    - fraction sous forme **irréductible** (``2/8`` refusé pour ``1/4``), sauf
+      option ``noreduction`` ;
+    - égalité **rationnelle exacte** : ``0.333`` refusé pour ``1/3``.
+
+    Repli sur une comparaison flottante (précision WIMS) quand un côté n'est pas
+    un rationnel simple (attendu irrationnel, etc.)."""
+    r = reply.strip()
+    r_norm = (r.replace(",", ".") if comma_is_decimal else r).replace(" ", "")
+
+    # badform : fraction ET décimal mélangés.
+    if "/" in r_norm and "." in r_norm:
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_NUMEXP_BADFORM_MSG)
+    # nocompute : expression composée interdite (numexp = une valeur).
+    dd = r_norm[1:] if r_norm[:1] in "+-" else r_norm
+    if any(op in dd for op in ("+", "-", "*", "^", "(")):
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_COMPUTE_MSG)
+
+    rp = _parse_exact_rational(r, comma_is_decimal)
+    ep = _parse_exact_rational(expected, comma_is_decimal)
+    if rp is None or ep is None:
+        # Attendu (ou réponse) non rationnel simple → comparaison flottante.
+        return _check_numexp_float(reply, expected, precision, comma_is_decimal)
+
+    r_val, r_form, r_reduced = rp
+    if r_form == "fraction" and not noreduction and not r_reduced:
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_NUMEXP_REDUCE_MSG)
+    correct = r_val == ep[0]
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numexp")
+
+
+def _check_numexp_float(
+    reply: str, expected: str, precision: float, comma_is_decimal: bool
+) -> CheckResult:
+    """Repli de :func:`check_numexp` : évalue les deux côtés en flottant et
+    compare à la précision WIMS (pour un attendu non rationnel simple)."""
     try:
         import sympy
 
         _loc = _safe_locals()
-        # En locale à virgule, ``2,5`` est un décimal : on le convertit avant
-        # sympify (qui lirait sinon un tuple). Le point reste accepté.
         r_in = reply.replace(",", ".") if comma_is_decimal else reply
         e_in = expected.replace(",", ".") if comma_is_decimal else expected
         r_val = float(sympy.sympify(_normalize_expr(r_in), locals=_loc))
@@ -1252,7 +1327,8 @@ def check_answer(
                 )
             return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
         case "numexp":
-            return check_numexp(reply, expected, precision, comma_is_decimal)
+            noreduction = "noreduction" in opt_str
+            return check_numexp(reply, expected, precision, comma_is_decimal, noreduction)
         case "units" | "unit":
             return check_unit(reply, expected, precision, comma_is_decimal)
         case "sigunits":
