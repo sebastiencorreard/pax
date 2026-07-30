@@ -92,6 +92,18 @@ _REWRITE_MSG = (
     "Veuillez la réécrire correctement."
 )
 
+# Réponse juste « à la précision près » : proche de la bonne valeur mais pas
+# assez précise (deuxième passage WIMS à sqrt(precision) → crédit partiel).
+_POOR_PRECISION_MSG = (
+    "Votre réponse est presque juste, mais pas assez précise."
+)
+
+# `\computeanswer{no}` : l'élève doit fournir la valeur numérique calculée, pas
+# une expression à évaluer (`5*5` refusé pour `25`).
+_COMPUTE_MSG = (
+    "Donnez le résultat sous forme d'un nombre, pas d'un calcul à effectuer."
+)
+
 
 def _is_term_order_mismatch(reply: str, expected: str) -> bool:
     """True iff `reply` and `expected` are mathematically equal but list their
@@ -278,14 +290,66 @@ def is_polexpand(s: str) -> bool:
 # Numérique                                                            #
 # ------------------------------------------------------------------ #
 
+# Précision WIMS par défaut pour les comparaisons numériques. WIMS stocke
+# `wims_compare_precision` = `\precision{M}` de l'OEF (var.prep : borné entre
+# 20 et 1e8, défaut 10000). Contrairement à une tolérance, M est *grand* : plus
+# M est grand, plus la comparaison est stricte (tolérance relative ≈ 2/M).
+WIMS_DEFAULT_PRECISION = 10000.0
+
+
+def _wims_has_compound_arith(reply: str, comma_is_decimal: bool = True) -> bool:
+    """True si ``reply`` est une expression arithmétique composée, à rejeter
+    quand ``\\computeanswer{no}`` (l'élève doit donner la valeur calculée).
+
+    Reproduit ``anstype/numeric`` : on retire le signe de tête puis on rejette
+    si l'un de ``+ - * ^ (`` apparaît, ou à la fois ``.`` et ``/`` (fraction de
+    décimaux). Une fraction simple d'entiers (``3/4``) et un décimal (``2.5``)
+    restent acceptés. En locale à virgule, ``,`` est d'abord normalisé en ``.``
+    comme le fait WIMS avant le test."""
+    s = reply.strip()
+    if not s:
+        return False
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    if s[0] in "+-":
+        s = s[1:]
+    if any(op in s for op in ("+", "-", "*", "^", "(")):
+        return True
+    return "." in s and "/" in s
+
+
+def _wims_num_equal(d1: float, d2: float, prec: float) -> bool:
+    """Égalité numérique WIMS (``compare.c``) : deux réels sont égaux ssi
+    ``|d1-d2|*prec <= |d1+d2| + 1/prec``. ``prec`` est la précision WIMS
+    (grand entier, ≈ inverse de la tolérance relative)."""
+    diff = abs(d1 - d2) * prec
+    s = abs(d1 + d2)
+    if 0 < prec < 1e10:
+        s += 1.0 / prec
+    return s >= diff
+
 
 def check_numeric(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    absolute: bool = False,
 ) -> CheckResult:
     """
-    Compare deux nombres avec tolérance relative + absolue.
+    Compare deux nombres avec la sémantique de précision WIMS (``anstype/numeric``).
     Accepte les fractions (1/2), les expressions simples (2*3).
     ``comma_is_decimal`` : voir :func:`_parse_number`.
+
+    ``precision`` est la précision WIMS (grand entier, défaut 10000), *pas* une
+    tolérance. Deux passages, comme WIMS :
+
+    - à ``precision`` : réponse exacte → correct, score 1.0 ;
+    - sinon à ``sqrt(precision)`` (comparaison relâchée) → « bonne à la précision
+      près » : score partiel 0.5, ``correct=False`` (``precgood`` de WIMS).
+
+    Avec l'option ``absolute``, WIMS compare la différence absolue :
+    ``precision*|test-good| < 1`` (correct) ou ``< 10`` (partiel).
     """
     try:
         r = _parse_number(reply.strip(), comma_is_decimal)
@@ -298,11 +362,21 @@ def check_numeric(
             detail="Réponse non reconnue comme un nombre",
         )
 
-    abs_err = abs(r - e)
-    rel_err = abs_err / (abs(e) + 1e-12)
-    correct = abs_err <= precision or rel_err <= precision
+    if absolute:
+        diff = abs(r - e)
+        if precision * diff < 1:
+            return CheckResult(correct=True, score=1.0, method="numeric")
+        if precision * diff < 10:
+            return CheckResult(correct=False, score=0.5, method="numeric",
+                               detail=_POOR_PRECISION_MSG)
+        return CheckResult(correct=False, score=0.0, method="numeric")
 
-    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numeric")
+    if _wims_num_equal(r, e, precision):
+        return CheckResult(correct=True, score=1.0, method="numeric")
+    if _wims_num_equal(r, e, math.sqrt(precision)):
+        return CheckResult(correct=False, score=0.5, method="numeric",
+                           detail=_POOR_PRECISION_MSG)
+    return CheckResult(correct=False, score=0.0, method="numeric")
 
 
 def _split_value_unit(s: str) -> tuple[str | None, str]:
@@ -325,7 +399,10 @@ def _normalize_unit(u: str) -> str:
 
 
 def check_unit(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
 ) -> CheckResult:
     """Type ``units`` (WIMS): a numeric value followed by a unit (``"7.7 m/s"``).
 
@@ -679,10 +756,13 @@ def _check_algexp_numeric(
 
 
 def check_numexp(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
 ) -> CheckResult:
     """
-    Évalue les deux expressions numériquement et compare.
+    Évalue les deux expressions numériquement et compare (précision WIMS).
     Ex: reply="2+3", expected="5"
     """
     try:
@@ -695,13 +775,12 @@ def check_numexp(
         e_in = expected.replace(",", ".") if comma_is_decimal else expected
         r_val = float(sympy.sympify(_normalize_expr(r_in), locals=_loc))
         e_val = float(sympy.sympify(_normalize_expr(e_in), locals=_loc))
-        correct = (
-            abs(r_val - e_val) <= precision
-            or abs(r_val - e_val) / (abs(e_val) + 1e-12) <= precision
-        )
-        return CheckResult(
-            correct=correct, score=1.0 if correct else 0.0, method="numexp"
-        )
+        if _wims_num_equal(r_val, e_val, precision):
+            return CheckResult(correct=True, score=1.0, method="numexp")
+        if _wims_num_equal(r_val, e_val, math.sqrt(precision)):
+            return CheckResult(correct=False, score=0.5, method="numexp",
+                               detail=_POOR_PRECISION_MSG)
+        return CheckResult(correct=False, score=0.0, method="numexp")
     except Exception:
         return check_numeric(reply, expected, precision, comma_is_decimal)
 
@@ -734,7 +813,10 @@ def check_set(reply: str, expected: str) -> CheckResult:
 
 
 def check_fset(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
 ) -> CheckResult:
     """
     Ensemble fini WIMS : ordre non significatif, équivalence numérique
@@ -752,10 +834,7 @@ def check_fset(
         try:
             av = _parse_number(a, comma_is_decimal)
             bv = _parse_number(b, comma_is_decimal)
-            return (
-                abs(av - bv) <= precision
-                or abs(av - bv) / (abs(bv) + 1e-12) <= precision
-            )
+            return _wims_num_equal(av, bv, precision)
         except (ValueError, ZeroDivisionError, SyntaxError):
             pass
         try:
@@ -1051,14 +1130,30 @@ def check_answer(
     from core.oef.i18n import uses_comma_decimal  # noqa: PLC0415
 
     options = options or {}
-    precision = float(options.get("precision", 1e-4))
+    # Précision WIMS (`\precision{M}`, grand entier) injectée par le moteur ;
+    # défaut 10000 comme WIMS (var.prep). C'est un facteur, pas une tolérance.
+    try:
+        precision = float(options.get("precision", WIMS_DEFAULT_PRECISION))
+    except (TypeError, ValueError):
+        precision = WIMS_DEFAULT_PRECISION
+    if precision <= 0:
+        precision = WIMS_DEFAULT_PRECISION
     comma_is_decimal = uses_comma_decimal(lang)
+    # Option WIMS `absolute` : comparaison en écart absolu (anstype/numeric).
+    absolute = "absolute" in str(options.get("option", "")).lower()
+    # `\computeanswer{no}` (défaut OEF) : une réponse numérique doit être un
+    # nombre, pas une expression à calculer. `yes` autorise le calcul.
+    compute_ok = str(options.get("computeanswer", "")).strip().lower() == "yes"
 
-    # Handle default value if reply is empty
+    # WIMS `option=default=X` (step.proc) : une réponse vide est remplacée par X
+    # puis vérifiée normalement. Couvre `default=vide` (fset « ∅ » : un champ
+    # laissé vide vaut la réponse « ensemble vide ») et `default=$valN` (valeur
+    # déjà substituée par le moteur). Les brouillons (type=draft) sont exclus en
+    # amont (check.py), donc n'atteignent pas ce point.
     if not reply.strip():
-        opt_str = str(options.get("option", "")).lower()
-        if "default=vide" in opt_str:
-            return CheckResult(correct=True, score=1.0, method="default_vide")
+        m = re.search(r"default=(\S+)", str(options.get("option", "")))
+        if m:
+            reply = m.group(1)
 
     # Multi-good: if expected lists several acceptable answers, treat as
     # alternatives and accept the reply if it matches any of them. Skip for
@@ -1150,7 +1245,12 @@ def check_answer(
 
     match answer_type.lower():
         case "numeric":
-            return check_numeric(reply, expected, precision, comma_is_decimal)
+            if not compute_ok and _wims_has_compound_arith(reply, comma_is_decimal):
+                return CheckResult(
+                    correct=False, score=0.0, method="numeric",
+                    status="invalid_format", detail=_COMPUTE_MSG,
+                )
+            return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
         case "numexp":
             return check_numexp(reply, expected, precision, comma_is_decimal)
         case "units" | "unit":

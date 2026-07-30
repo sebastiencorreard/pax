@@ -220,8 +220,8 @@ const allFilled = computed(() => {
   return answers.every(a => {
     const val = (replies.value[a.input_name] ?? '').trim()
     if (val !== '') return true
-    const opt = (a.options?.option || '').toLowerCase()
-    return opt.includes('default=vide')
+    // Champ non noté (brouillon type=draft, ou analyze optionnel) : vide autorisé.
+    return !!a.options?.ungraded
   })
 })
 

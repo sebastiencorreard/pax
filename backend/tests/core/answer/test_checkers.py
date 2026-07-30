@@ -338,3 +338,75 @@ def test_all_warnings_use_same_message():
     c = check_answer("litexp", "z+15", "Z+15", {})
     assert a.detail == c.detail
     assert "réécrire" in (a.detail or "")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Conformité WIMS I.3.a : précision `\precision{M}`, `absolute`,
+# `\computeanswer{no}`, `option=default=X`.
+# ─────────────────────────────────────────────────────────────────────────────
+class TestWimsPrecision:
+    def test_exact_reply_is_correct_at_default_precision(self):
+        """Défaut 10000 : une réponse exacte reste juste."""
+        r = check_answer("numeric", "0.3333333333", "1/3")
+        assert r.correct and r.score == 1.0
+
+    def test_poor_precision_gives_partial_credit(self):
+        """0.333 pour 1/3 au défaut 10000 : juste « à la précision près » → 0.5."""
+        r = check_answer("numeric", "0.333", "1/3")
+        assert not r.correct
+        assert r.score == pytest.approx(0.5)
+
+    def test_loose_precision_accepts_rounded_reply(self):
+        """`\\precision{100}` : 0.333 pour 1/3 devient pleinement juste."""
+        r = check_answer("numeric", "0.333", "1/3", {"precision": 100.0})
+        assert r.correct and r.score == 1.0
+
+    def test_precision_flows_to_numexp(self):
+        r = check_answer("numexp", "0.333", "1/3", {"precision": 100.0})
+        assert r.correct
+
+    def test_absolute_option_uses_absolute_difference(self):
+        """Option `absolute` : |test-good|*prec < 1 → juste."""
+        r = check_answer("numeric", "7.05", "7",
+                         {"precision": 10.0, "option": "absolute"})
+        assert r.correct
+        r2 = check_answer("numeric", "7.5", "7",
+                          {"precision": 10.0, "option": "absolute"})
+        assert not r2.correct
+
+
+class TestComputeAnswer:
+    def test_expression_rejected_when_no(self):
+        """`\\computeanswer{no}` (défaut) : `5*5` refusé pour `25`."""
+        r = check_answer("numeric", "5*5", "25")
+        assert not r.correct
+        assert r.status == "invalid_format"
+
+    def test_plain_value_accepted_when_no(self):
+        assert check_answer("numeric", "25", "25").correct
+
+    def test_simple_fraction_accepted_when_no(self):
+        """Une fraction simple d'entiers reste acceptée."""
+        assert check_answer("numeric", "3/4", "0.75").correct
+
+    def test_leading_sign_allowed_when_no(self):
+        assert check_answer("numeric", "-3", "-3").correct
+
+    def test_expression_accepted_when_yes(self):
+        r = check_answer("numeric", "5*5", "25", {"computeanswer": "yes"})
+        assert r.correct
+
+
+class TestDefaultOption:
+    def test_empty_reply_substituted_by_default_value(self):
+        assert check_answer("numeric", "", "0", {"option": "default=0"}).correct
+        assert not check_answer("numeric", "", "5", {"option": "default=0"}).correct
+
+    def test_default_vide_substitutes_empty_set(self):
+        """`default=vide` (fset) : un champ laissé vide vaut la réponse « ∅ ».
+        Correct si l'attendu est `vide`, faux sinon (substitution WIMS)."""
+        assert check_answer("fset", "", "vide", {"option": "default=vide"}).correct
+        assert not check_answer("fset", "", "13/5,-1", {"option": "default=vide"}).correct
+
+    def test_non_empty_reply_ignores_default(self):
+        assert check_answer("numeric", "5", "5", {"option": "default=0"}).correct

@@ -129,7 +129,7 @@ async def check_exercise(
 
     active_ans_defs = [
         a for a in rendered.answers
-        if "default=vide" not in str(a.options.get("option", "")).lower()
+        if not a.options.get("ungraded")
         and (visible_input_names is None or a.input_name in visible_input_names)
     ]
 

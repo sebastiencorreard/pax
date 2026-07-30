@@ -3491,6 +3491,27 @@ class DefEngine(_SlibMixin):
             if a.answer_type in self._CHOICE_EXPECTED_TYPES and a.expected:
                 a.expected = _close_inline_math(a.expected, self.lang)
 
+    def _wims_precision(self, df: DefFile) -> float:
+        """Précision numérique WIMS (`\\precision{M}`) de l'exercice.
+
+        WIMS pose `wims_compare_precision = precision`, borné entre 20 et 1e8,
+        défaut 10000 (cf. `scripts/oef/var.prep`). La valeur peut référencer une
+        variable (`\\precision{\\prec}`), donc on substitue puis on évalue avant
+        de borner. Renvoyée aux checkers via `options["precision"]`."""
+        raw = self.ctx.get("precision") or df.meta.get("precision") or ""
+        raw = self._subst(str(raw)).strip()
+        if raw and not re.fullmatch(r"-?\d+(?:\.\d+)?", raw):
+            raw = self._eval_arith(raw).strip()
+        try:
+            prec = float(raw)
+        except (TypeError, ValueError):
+            return 10000.0
+        if prec < 20:
+            return 20.0
+        if prec > 1e8:
+            return 1e8
+        return prec
+
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
         """Thin wrapper: build the answers, then close inline math on their
         display fields in one place (see :meth:`_finalize_answer_math`)."""
@@ -3500,6 +3521,8 @@ class DefEngine(_SlibMixin):
 
     def _extract_answers_raw(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
+        wims_prec = self._wims_precision(df)
+        compute_answer = self._subst(str(df.meta.get("computeanswer", ""))).strip().lower()
 
         # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from
         # choice_meta (WIMS creates an implicit reply slot in this case).
@@ -3549,6 +3572,11 @@ class DefEngine(_SlibMixin):
         for rm in df.reply_meta:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
+            # `type=draft` (brouillon WIMS) : champ de saisie libre où l'élève
+            # pose son calcul. Non noté et facultatif. Le type d'origine est
+            # ensuite masqué en "analyze" (good=?analyze) ; on le capte ici pour
+            # marquer la réponse comme brouillon (cf. options["draft"]).
+            is_draft = ans_type.lower() == "draft"
             label = _close_inline_math(self._subst(rm.get("name", "")), self.lang)
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
@@ -3565,6 +3593,14 @@ class DefEngine(_SlibMixin):
             ):
                 option = (option + " expand").strip()
             options: dict = {"option": option} if option else {}
+            # Précision WIMS de l'exercice → checkers numériques (numeric,
+            # numexp, units, fset). Jusqu'ici figée à 1e-4 côté checker ; on
+            # transmet désormais `\precision{M}` (cf. _wims_precision).
+            options["precision"] = wims_prec
+            # `\computeanswer{no}` (défaut) : réponse numérique = valeur, pas un
+            # calcul. Transmis au checker numeric.
+            if compute_answer:
+                options["computeanswer"] = compute_answer
 
             # Expose to ctx so _render_embed can access them during statement rendering
             self.ctx[f"replygood{n}"] = good_raw
@@ -3828,6 +3864,20 @@ class DefEngine(_SlibMixin):
                 xform = self.ctx.get("_repere_transform")
                 if xform:
                     options["transform"] = xform
+
+            # Champ non noté ni obligatoire (« ungraded ») :
+            #  - brouillon `type=draft` (l'élève y pose son calcul) ;
+            #  - champ `analyze` marqué `default=vide` sans test réel (ex.
+            #    oefcalcullit dev2fact : reply2 matrix→analyze, `:test` vide —
+            #    le forcer dans run_analyze fausserait toute la notation).
+            # Les vraies réponses (fset, numeric…) avec `default=vide` restent
+            # notées : `default=vide` y signifie « vide = ensemble ∅ » (cf.
+            # oefresolalg synth*), géré par la substitution WIMS des checkers.
+            if is_draft or (
+                ans_type.lower() == "analyze"
+                and "default=vide" in option.lower()
+            ):
+                options["ungraded"] = True
 
             answers.append(
                 AnswerDef(

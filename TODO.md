@@ -16,12 +16,13 @@ $\rightarrow$ où régler les paramètres ?
 
 ### a) Notation / précision (prioritaire)
 
-- [ ] **Brancher `\precision{M}`** : parsé dans les meta mais jamais transmis aux checkers (tolérance figée 1e-4, `checkers.py:1054`) ; formule WIMS : `|s−r|/max(|s+r|,M) < 1/M` — petit correctif, gros impact
+- [x] **Brancher `\precision{M}`** : injecté par `def_engine._wims_precision` (borné 20..1e8, défaut 10000) dans `options["precision"]`, consommé par `check_numeric/numexp/unit/fset`. Formule exacte de `compare.c` : `|d1-d2|*prec ≤ |d1+d2| + 1/prec`, avec 2ᵉ passage à `sqrt(prec)` → crédit partiel 0.5 (« bonne à précision près »). Option `absolute` gérée. (`checkers.py` `_wims_num_equal`)
 - [ ] **`numexp` formel** : WIMS rejette `2/8` pour `1/4` (« écriture irréductible ») et `0.333333` pour `1/3` ; PAX accepte les deux (comparaison numérique) — 48 exercices, type le plus utilisé ; option `noreduction` à gérer
 - [ ] **`\condition` multiples** : seule la 1ère extraite (`engine.py:622`), tout-ou-rien ; WIMS : chaque condition évaluée/affichée, note = fraction, options `weight=`/`hide` ; commande `\conditions{}` (sélection dynamique) absente
-- [ ] **`option=default=xxx`** : substituer xxx à une réponse vide puis analyser (PAX ne gère que `default=vide`, `checkers.py:1060`)
-- [ ] `\computeanswer{no}` ignoré : `5*5` accepté pour `25`
-- [ ] `sc_reply` binaire (WIMS : 0.5 si « bonne à précision près » / partiellement juste)
+- [x] **`option=default=xxx`** : réponse vide → substituée par xxx puis vérifiée (WIMS `step.proc`). Couvre `default=vide` (fset : vide = ensemble ∅, cf. oefresolalg synth*) et `default=$valN`. **Bug corrigé au passage** : l'ancien `default=vide` excluait de la notation *toutes* les réponses le portant — donc les vrais ensembles-solutions des synth n'étaient pas notés, et eqalgpara/ineqalgpara (brouillon `default=empty`) étaient insolubles (run_analyze forcé, bonne réponse → 0).
+- [x] **Type `draft` (brouillon) + marqueur `options["ungraded"]`** : champs `type=draft` (et `analyze`+`default=vide` sans `:test`, ex. dev2fact) désormais ni notés ni obligatoires, keyés sur le TYPE et non sur la chaîne `default=vide`. Consommé par `check.py` (exclusion) et le front (`allFilled`). Corrige synth1deg/2deg/synthquot, eqalgpara1-5, ineqalgpara1-5 ; préserve dev2fact1/2.
+- [x] `\computeanswer{no}` : injecté dans `options`, refuse une réponse `numeric` composée (`5*5` pour `25`) via `_wims_has_compound_arith` (règle exacte d'`anstype/numeric` : opérateurs `+-*^(` ou `.`+`/`) ; `computeanswer=yes` autorise le calcul. Fractions simples/décimaux acceptés.
+- [~] `sc_reply` : « bonne à précision près » → 0.5 fait pour numeric/numexp (2ᵉ passage sqrt) ; reste le « partiellement juste » d'autres types
 
 ### b) Types litexp / algexp / formal (§1.4.5, testés)
 
