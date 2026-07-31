@@ -319,6 +319,10 @@ def _wims_has_compound_arith(reply: str, comma_is_decimal: bool = True) -> bool:
         return False
     if comma_is_decimal:
         s = s.replace(",", ".")
+    # Notation scientifique (`3.34e-26`) : un nombre, pas un calcul — le `-` de
+    # l'exposant ne doit pas la faire passer pour une expression composée.
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?[eE][+-]?\d+", s):
+        return False
     if s[0] in "+-":
         s = s[1:]
     if any(op in s for op in ("+", "-", "*", "^", "(")):
@@ -393,7 +397,12 @@ def _split_value_unit(s: str) -> tuple[str | None, str]:
     The value is a leading signed decimal or integer fraction; everything after
     is the unit. Returns ``(None, "")`` when no leading number is found.
     """
-    m = re.match(r"^\s*([+-]?\d+(?:[.,]\d+)?|[+-]?\d+\s*/\s*\d+)\s*(.*)$", s.strip(), re.DOTALL)
+    # Valeur : décimal avec exposant scientifique optionnel (`3.34e-26`), ou
+    # fraction d'entiers. L'exposant fait partie de la VALEUR, pas de l'unité.
+    m = re.match(
+        r"^\s*([+-]?\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?|[+-]?\d+\s*/\s*\d+)\s*(.*)$",
+        s.strip(), re.DOTALL,
+    )
     if not m:
         return None, ""
     return m.group(1).strip(), m.group(2).strip()
@@ -406,64 +415,72 @@ def _normalize_unit(u: str) -> str:
     return u.replace("·", "*").replace("⋅", "*").replace("×", "*")
 
 
-# Préfixes métriques (facteur multiplicatif). `da` (déca) est le seul à deux
-# lettres. Attention : `h` (hecto) et `d` (déci) sont ambigus avec des unités —
-# on ne les applique que si le reste est une base connue et « préfixable ».
-_METRIC_PREFIX = {
-    "da": 1e1, "h": 1e2, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12,
-    "d": 1e-1, "c": 1e-2, "m": 1e-3, "µ": 1e-6, "u": 1e-6, "n": 1e-9, "p": 1e-12,
+# Symboles d'unités → nom sympy.physics.units. `L`/`l` = litre.
+_UNIT_BASE = {
+    "m": "meter", "g": "gram", "s": "second", "L": "liter", "l": "liter",
+    "mol": "mole", "N": "newton", "J": "joule", "Pa": "pascal", "W": "watt",
+    "V": "volt", "A": "ampere", "K": "kelvin", "Hz": "hertz", "C": "coulomb",
+    "F": "farad", "Ohm": "ohm", "Ω": "ohm", "h": "hour", "min": "minute",
+    "mn": "minute", "°": "degree", "deg": "degree", "rad": "radian",
+    "bar": "bar", "eV": "electronvolt",
 }
-# Bases SI/métriques admettant un préfixe (école). `L`=`l` (litre).
-_PREFIXABLE_BASE = {"m", "g", "L", "s", "mol", "J", "W", "N", "Pa", "V", "A",
-                    "Hz", "F", "C", "eV", "cal", "bar", "mol"}
+# Préfixes → clé sympy.physics.units.prefixes.PREFIXES. `µ`/`u` = micro (`mu`).
+_UNIT_PREFIX = {
+    "da": "da", "h": "h", "k": "k", "M": "M", "G": "G", "T": "T", "P": "P",
+    "E": "E", "d": "d", "c": "c", "m": "m", "µ": "mu", "u": "mu", "n": "n",
+    "p": "p", "f": "f", "a": "a",
+}
 
 
-def _unit_atom_si(tok: str) -> tuple[str, float] | None:
-    """`dm^2` → (`m^2`, 1e-2) ; `kg` → (`g`, 1e3) ; `mol` → (`mol`, 1). Renvoie
-    (dimension canonique, facteur vers cette base) ou None si non reconnu."""
-    m = re.fullmatch(r"([A-Za-zµΩ]+)\^?(-?\d+)?", tok)
+def _unit_atom(tok: str):
+    """`dm^2` → expression sympy `(deci·meter)**2` ; `kOhm` → `kilo·ohm`.
+    Renvoie l'expression sympy (unité) ou None si non reconnue. Le préfixe est
+    appliqué AVANT la puissance."""
+    import sympy.physics.units as _u  # noqa: PLC0415
+    from sympy.physics.units.prefixes import PREFIXES  # noqa: PLC0415
+
+    m = re.fullmatch(r"([A-Za-zµΩ°]+)\^?(-?\d+)?", tok)
     if not m:
         return None
-    name = m.group(1).replace("l", "L") if tok and tok[0] == "l" else m.group(1)
-    power = int(m.group(2)) if m.group(2) else 1
-    if name in _PREFIXABLE_BASE:
-        base, factor = name, 1.0
-    else:
-        base = None
-        for p in ("da", "M", "G", "T", "k", "h", "d", "c", "m", "µ", "u", "n", "p"):
-            rest = name[len(p):]
-            if name.startswith(p) and rest in _PREFIXABLE_BASE:
-                base, factor = rest, _METRIC_PREFIX[p]
-                break
-        if base is None:
-            return None
-    return f"{base}^{power}", factor ** power
+    name, pw = m.group(1), m.group(2)
+    power = int(pw) if pw else 1
+    if name in _UNIT_BASE:  # base exacte (min, mol, bar… avant tout préfixe)
+        return getattr(_u, _UNIT_BASE[name]) ** power
+    # Préfixe (2 lettres d'abord) + base.
+    for p in ("da",) + tuple("EGMPTkhdcmµunpfa"):
+        rest = name[len(p):]
+        if name.startswith(p) and rest in _UNIT_BASE and p in _UNIT_PREFIX:
+            return (PREFIXES[_UNIT_PREFIX[p]] * getattr(_u, _UNIT_BASE[rest])) ** power
+    return None
 
 
 def _unit_to_si(unit: str) -> tuple[str, float] | None:
-    """Convertit une unité composée (`mol/L`, `g/mol`, `cm^3`) en (dimension
-    canonique triée, facteur total). None si une partie n'est pas reconnue."""
+    """Réduit une unité composée (`km/h`, `mol/L`, `dm^2`) à
+    (dimension canonique, facteur vers les unités de base SI) via
+    ``sympy.physics.units`` — gère préfixes, puissances, unités dérivées
+    (N, J, Ω…) et non-métriques (h, min, °). None si non reconnue."""
     unit = _normalize_unit(unit)
     if not unit:
         return None
-    # Parcours des facteurs : chaque token précédé de son opérateur (`*`/`/`).
-    num_dims: dict[str, int] = {}
-    factor = 1.0
+    expr = None
     op = "*"
     for tok in re.findall(r"[*/]|[^*/]+", unit):
         if tok in ("*", "/"):
             op = tok
             continue
-        atom = _unit_atom_si(tok)
+        atom = _unit_atom(tok)
         if atom is None:
             return None
-        dim, f = atom
-        base, _, p = dim.partition("^")
-        power = int(p) * (1 if op == "*" else -1)
-        num_dims[base] = num_dims.get(base, 0) + power
-        factor *= f if op == "*" else 1.0 / f
-    canon = ",".join(f"{b}^{num_dims[b]}" for b in sorted(num_dims) if num_dims[b] != 0)
-    return canon, factor
+        expr = atom if expr is None else (expr * atom if op == "*" else expr / atom)
+    if expr is None:
+        return None
+    try:
+        from sympy.physics.units.systems.si import SI  # noqa: PLC0415
+        factor, _dim = SI._collect_factor_and_dimension(expr)
+        dim = str(SI.get_dimensional_expr(expr))
+        return dim, float(factor)
+    except Exception:
+        return None
 
 
 def check_unit(
@@ -697,6 +714,11 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
     if comma_is_decimal:
         s = s.replace(",", ".")
     s = s.replace("^", "**")
+    # Nombre simple, y compris notation scientifique (`3.34e-26`, `1.5E3`) que
+    # la voie « expression arithmétique » ci-dessous rejette (le `e` n'est pas
+    # dans sa classe de caractères). Masses atomiques, constantes physiques…
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", s):
+        return float(s)
     # Fraction explicite ex: 3/4
     if re.fullmatch(r"-?\d+\s*/\s*-?\d+", s):
         return float(Fraction(s.replace(" ", "")))
