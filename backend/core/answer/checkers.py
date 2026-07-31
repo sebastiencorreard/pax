@@ -1314,6 +1314,82 @@ def check_nocase(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=False, score=0.0, method="nocase")
 
 
+import os.path as _osp
+from functools import lru_cache as _lru_cache
+
+
+@_lru_cache(maxsize=None)
+def _atext_dicts(lang: str) -> tuple[frozenset, tuple]:
+    """Charge (mots à supprimer, règles de suffixe) pour `atext` depuis
+    ``data/atext/`` (copiés de WIMS `scripts/oef/<lang>/atext.dic` et
+    ``bases/sys/suffix.<lang>``). Règles triées par longueur de clé décroissante
+    (plus longue correspondance d'abord). Repli sur ``fr`` si la langue manque."""
+    base = _osp.join(_osp.dirname(__file__), "data", "atext")
+    lang = (lang or "fr").split("-")[0].lower()
+    dic_path = _osp.join(base, f"atext.{lang}.dic")
+    suf_path = _osp.join(base, f"suffix.{lang}")
+    if not _osp.exists(dic_path):
+        dic_path, suf_path = _osp.join(base, "atext.fr.dic"), _osp.join(base, "suffix.fr")
+    strip: set[str] = set()
+    try:
+        with open(dic_path, encoding="utf-8") as f:
+            for line in f:
+                w, _, tr = line.strip().partition(":")
+                if w and not tr:  # traduction vide → mot supprimé
+                    strip.add(w)
+    except OSError:
+        pass
+    rules: list[tuple[str, str]] = []
+    try:
+        with open(suf_path, encoding="utf-8") as f:
+            for line in f:
+                k, _, v = line.strip().partition(":")
+                if k:
+                    rules.append((k, v))
+    except OSError:
+        pass
+    rules.sort(key=lambda kv: len(kv[0]), reverse=True)
+    return frozenset(strip), tuple(rules)
+
+
+def _atext_stem(word: str, rules: tuple) -> str:
+    """Racinise un mot via les règles de suffixe WIMS (appliquées sur le mot
+    inversé : plus longue clé-préfixe remplacée)."""
+    rev = word[::-1]
+    for key, val in rules:
+        if rev.startswith(key):
+            rev = val + rev[len(key):]
+            break
+    return rev[::-1]
+
+
+def _atext_normalize(s: str, lang: str) -> str:
+    """Normalisation `atext` : nocase (accents/casse/ponctuation) + suppression
+    des mots vides (articles) + racinisation (pluriel/genre) par dictionnaire."""
+    strip, rules = _atext_dicts(lang)
+    s = _nocase_normalize(s)  # deaccent, lower, ponctuation→espace, singlespace
+    out = []
+    for w in s.split():
+        if w in strip:
+            continue
+        out.append(_atext_stem(w, rules))
+    return " ".join(out)
+
+
+def check_atext(reply: str, expected: str, lang: str = "fr") -> CheckResult:
+    """Type WIMS `atext` : texte libre tolérant — accents/casse/ponctuation
+    ignorés, **mots vides** (articles) supprimés, **pluriel/genre** normalisés
+    par dictionnaire. Alternatives séparées par ``|``. Donc « les triangles »,
+    « un triangle », « triangle » sont équivalents."""
+    r = _atext_normalize(reply, lang)
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="atext")
+    for alt in expected.split("|"):
+        if r == _atext_normalize(alt, lang):
+            return CheckResult(correct=True, score=1.0, method="atext")
+    return CheckResult(correct=False, score=0.0, method="atext")
+
+
 def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
     """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
     par défaut), après application des filtres pilotés par l'option :
@@ -1581,13 +1657,10 @@ def check_answer(
             return check_case(reply, expected)
         case "raw":
             return check_raw(reply, expected, opt_str)
-        case "nocase" | "atext":
-            # `atext` = même normalisation + alternatives `|`. La normalisation
-            # par dictionnaire (pluriel/synonymes, `!exec translator`) n'est pas
-            # portée faute de `atext.dic`/`suffix.<lang>` dans le dépôt ; WIMS
-            # laisse alors les mots inconnus tels quels (`translator_unknown=
-            # leave`), donc atext ≈ nocase.
+        case "nocase":
             return check_nocase(reply, expected)
+        case "atext":
+            return check_atext(reply, expected, lang or "fr")
         case "default" | "auto":
             return check_default(reply, expected, comma_is_decimal)
         case "text":
