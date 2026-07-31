@@ -11,6 +11,7 @@ import logging
 import math
 import re
 import sys
+import unicodedata
 
 _log = logging.getLogger("pax.answer")
 _logged_unhandled_types: set[str] = set()
@@ -1186,6 +1187,37 @@ def check_case(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")
 
 
+def _deaccent(s: str) -> str:
+    """Retire les diacritiques (é→e, ç→c…) — WIMS `!deaccent`."""
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+# Ponctuation neutralisée par WIMS `nocase` (badchars → espaces).
+_NOCASE_PUNCT = re.compile(r"""[-+/*='"`.;,!{}@#$%^&()\[\]?<>\\~]""")
+
+
+def _nocase_normalize(s: str) -> str:
+    """Normalisation `nocase` : ponctuation → espace, accents/casse/espaces
+    multiples ignorés (WIMS : translate badchars, singlespace, deaccent, lower,
+    trim)."""
+    s = _NOCASE_PUNCT.sub(" ", s)
+    s = _deaccent(s)
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def check_nocase(reply: str, expected: str) -> CheckResult:
+    """Type WIMS `nocase` : correspondance **exacte après normalisation**
+    (accents, casse, espaces et ponctuation ignorés), contre n'importe quelle
+    alternative séparée par ``|``."""
+    r = _nocase_normalize(reply)
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="nocase")
+    for alt in expected.split("|"):
+        if r == _nocase_normalize(alt):
+            return CheckResult(correct=True, score=1.0, method="nocase")
+    return CheckResult(correct=False, score=0.0, method="nocase")
+
+
 def check_default(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:
@@ -1420,6 +1452,13 @@ def check_answer(
             return check_coord(reply, expected)
         case "case":
             return check_case(reply, expected)
+        case "nocase" | "atext":
+            # `atext` = même normalisation + alternatives `|`. La normalisation
+            # par dictionnaire (pluriel/synonymes, `!exec translator`) n'est pas
+            # portée faute de `atext.dic`/`suffix.<lang>` dans le dépôt ; WIMS
+            # laisse alors les mots inconnus tels quels (`translator_unknown=
+            # leave`), donc atext ≈ nocase.
+            return check_nocase(reply, expected)
         case "default" | "auto":
             return check_default(reply, expected, comma_is_decimal)
         case "text":

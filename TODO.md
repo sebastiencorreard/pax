@@ -35,8 +35,8 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 ### c) Autres types de réponse
 
-- [ ] **`atext`** (10 exo) : tolérances pluriel/accents/mots communs + alternatives `|` (tombe dans le fallback `check_text`)
-- [ ] **`nocase`** (5 exo) : alternatives `|` non découpées (seul `check_case` le fait)
+- [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
+- [~] **`atext`** : même normalisation + `|` (via `check_nocase`) → gros gain vs l'ancien `check_text` (accents + alternatives). Self-check 39/0. **Reste** : normalisation par dictionnaire (pluriel/synonymes, `!exec translator`) non portée — `atext.dic`/`suffix.<lang>` absents du dépôt (WIMS laisse alors les mots inconnus tels quels).
 - [ ] **`dragfill`** (~25 exo) : vérifier rendu/scoring (passe par la voie `analyze`, `expected` douteux sur `arithtable.nl/table2x6`) ; contrainte « chaque étiquette une seule fois »
 - [ ] **`units`** (12 exo) : pas de conversion d'unités (WIMS accepte `400 dm^2` pour `4 m^2`)
 - [ ] `click` (3 exo) : non câblé (réponse = position `~k`)
