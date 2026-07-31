@@ -1292,6 +1292,37 @@ def check_nocase(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=False, score=0.0, method="nocase")
 
 
+def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
+    """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
+    par défaut), après application des filtres pilotés par l'option :
+    `nospace`, `nocase`, `deaccent`/`noaccent`, `nodigit`, `nopunct`,
+    `noparenthesis`, `nomathop`, `noquote` (WIMS retire chaque classe de
+    caractères, puis compare)."""
+    opt = option.lower()
+
+    def _filter(s: str) -> str:
+        if "nospace" in opt:
+            s = re.sub(r"\s+", "", s)
+        if "nocase" in opt:
+            s = s.lower()
+        if "deaccent" in opt or "noaccent" in opt:
+            s = _deaccent(s)
+        if "nodigit" in opt:
+            s = re.sub(r"[0-9]", "", s)
+        if "noquote" in opt:
+            s = re.sub(r"[\"'`]", "", s)
+        if "nomathop" in opt:
+            s = re.sub(r"[+\-=*/^<>%|]", "", s)
+        if "noparenthes" in opt:  # noparenthesis / noparentheses
+            s = re.sub(r"[()\[\]{}]", "", s)
+        if "nopunct" in opt:
+            s = re.sub(r"[.,;!?:()\[\]{}]", "", s)
+        return s
+
+    correct = _filter(reply.strip()) == _filter(expected.strip())
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="raw")
+
+
 def check_default(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:
@@ -1526,6 +1557,8 @@ def check_answer(
             return check_coord(reply, expected)
         case "case":
             return check_case(reply, expected)
+        case "raw":
+            return check_raw(reply, expected, opt_str)
         case "nocase" | "atext":
             # `atext` = même normalisation + alternatives `|`. La normalisation
             # par dictionnaire (pluriel/synonymes, `!exec translator`) n'est pas

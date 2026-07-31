@@ -40,7 +40,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [ ] **`dragfill`** (~25 exo) : vérifier rendu/scoring (passe par la voie `analyze`, `expected` douteux sur `arithtable.nl/table2x6`) ; contrainte « chaque étiquette une seule fois »
 - [x] **`units`** : conversion métrique implémentée (`_unit_to_si` : préfixes + puissances + composés `a/b`) en fallback additif — `400 dm^2` accepté pour `4 m^2`, `4000 g` pour `4 kg`, `1000 mL` pour `1 L` ; dimensions incompatibles rejetées. Le match textuel exact reste prioritaire (aucune régression). Moteur complet (unités dérivées N=kg·m/s²…) non porté. Self-check 30 refus = expected malformés préexistants (HTML dans concentration1.def, rint non évalué).
 - [ ] `click` (3 exo) : non câblé (réponse = position `~k`)
-- [ ] `raw` (2 exo) : options `nospace`/`noaccent`/`nodigit`… non appliquées
+- [x] **`raw`** : `check_raw` — comparaison exacte de chaîne après filtres pilotés par option (`nospace`, `nocase`, `deaccent`, `nodigit`, `nopunct`, `noparenthesis`, `nomathop`, `noquote`). Routé depuis le dispatch. 585 tests core.
 - [ ] `range`, `matrix`, `vector`, `complex`, `equation`, `reorder`, `compose`, `flashcard` : absents, 0 usage corpus → différé
 
 ### d) Étapes, rendu, moteur
