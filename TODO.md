@@ -37,9 +37,9 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 - [x] **`nocase`** : `check_nocase` — match exact après normalisation (ponctuation→espace, accents/casse/espaces ignorés) contre toute alternative `|`. Self-check corpus 40/0.
 - [~] **`atext`** : même normalisation + `|` (via `check_nocase`) → gros gain vs l'ancien `check_text` (accents + alternatives). Self-check 39/0. **Reste** : normalisation par dictionnaire (pluriel/synonymes, `!exec translator`) non portée — `atext.dic`/`suffix.<lang>` absents du dépôt (WIMS laisse alors les mots inconnus tels quels).
-- [ ] **`dragfill`** (~25 exo) : vérifier rendu/scoring (passe par la voie `analyze`, `expected` douteux sur `arithtable.nl/table2x6`) ; contrainte « chaque étiquette une seule fois »
+- [~] **`dragfill`** (~25 exo) : actuellement routé vers `check_text` (fallback) ; self-check corpus 385/0 (l'`expected` round-trip). **Reste à vérifier/corriger** : (a) le format exact sérialisé par le composant front pour les étiquettes glissées (séparateurs, entités HTML `&#91;`) doit matcher l'`expected` ; (b) alternatives `|` non découpées (chform1) ; (c) contrainte « chaque étiquette une seule fois ». Nécessite une investigation frontend → item dédié.
 - [x] **`units`** : conversion métrique implémentée (`_unit_to_si` : préfixes + puissances + composés `a/b`) en fallback additif — `400 dm^2` accepté pour `4 m^2`, `4000 g` pour `4 kg`, `1000 mL` pour `1 L` ; dimensions incompatibles rejetées. Le match textuel exact reste prioritaire (aucune régression). Moteur complet (unités dérivées N=kg·m/s²…) non porté. Self-check 30 refus = expected malformés préexistants (HTML dans concentration1.def, rint non évalué).
-- [ ] `click` (3 exo) : non câblé (réponse = position `~k`)
+- [x] `click` : **déjà fonctionnel** — mappé vers `clickfill` (matching par contenu du choix, pas par position `~k`). formule1-5 et compTrinomeSign* notent correctement (self-check OK). La note « non câblé » était obsolète.
 - [x] **`raw`** : `check_raw` — comparaison exacte de chaîne après filtres pilotés par option (`nospace`, `nocase`, `deaccent`, `nodigit`, `nopunct`, `noparenthesis`, `nomathop`, `noquote`). Routé depuis le dispatch. 585 tests core.
 - [ ] `range`, `matrix`, `vector`, `complex`, `equation`, `reorder`, `compose`, `flashcard` : absents, 0 usage corpus → différé
 
