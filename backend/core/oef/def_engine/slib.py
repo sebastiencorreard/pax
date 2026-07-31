@@ -725,14 +725,19 @@ def _fr_cardinal(n: int) -> str:
 
 
 def _split_top_level_commas(s: str) -> list[str]:
-    """Split on commas that are not inside [...] brackets."""
+    """Split on commas that are not inside (...), [...] or {...} brackets.
+
+    Les trois types comptent : les listes WIMS protègent aussi bien
+    `(a,b),(c,d)` (groupes parenthésés d'equaitions2) que `[a,b],[c,d]`
+    (données de slib/stat). Fermetures bornées à 0 pour rester robuste sur des
+    parenthèses déséquilibrées (expressions mathématiques)."""
     out: list[str] = []
     depth = 0
     cur: list[str] = []
     for ch in s:
-        if ch == "[":
+        if ch in "([{":
             depth += 1
-        elif ch == "]":
+        elif ch in ")]}":
             depth = max(0, depth - 1)
         if ch == "," and depth == 0:
             out.append("".join(cur))
