@@ -530,11 +530,11 @@ class _SlibMixin:
                     s = lines[j].strip()
                     if s.startswith("!if ") or s.startswith("!ifval "):
                         depth += 1
-                    elif s == "!endif":
+                    elif re.match(r"!endif\b", s):
                         depth -= 1
                         if depth == 0:
                             break
-                    elif s == "!else" and depth == 1:
+                    elif re.match(r"!else\b", s) and depth == 1:
                         else_at = j
                     j += 1
                 if depth != 0:
@@ -545,13 +545,17 @@ class _SlibMixin:
                 else:
                     i = (else_at + 1) if else_at != -1 else j
                 continue
-            if stripped == "!else":
+            # `!endif`/`!else` peuvent porter une annotation (`!endif weight` dans
+            # slib/stat/variance) — un mot après le mot-clé, ignoré par WIMS. On
+            # matche donc sur `\b` et non par égalité stricte, sinon le bloc
+            # n'est pas fermé et l'appariement `!if/!else/!endif` se décale.
+            if re.match(r"!else\b", stripped):
                 if if_stack:
                     i = if_stack[-1]
                     continue
                 i += 1
                 continue
-            if stripped == "!endif":
+            if re.match(r"!endif\b", stripped):
                 if if_stack:
                     if_stack.pop()
                 i += 1
