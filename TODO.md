@@ -48,6 +48,7 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [ ] **`\special`** : seul `mathmlinput` rendu ; `help` contextuel (`help_subject`), `tooltip`, `imagefill` (champs sur image), `codeinput` ignorés en silence
 - [ ] `\embed` lignes supplémentaires (`style="…"`, mot-clé `default` → classe `wims_oef_input`)
 - [ ] `exec` : maxima/pari seulement ; `octave`/`gap`/`float_calc` → vide silencieux (§2.5)
+- [ ] **PARI impératif** : `_call_pari` (`cas.py`) n'évalue qu'une **expression** unique (`gcd(...)`, `polcoeff(...)`, `print(expr)`). Les **programmes** `!exec pari { i=…; l=[…]; for(j=1,4,…print(l[j])) }` (affectations, `for(...)`, `print` multiples, indexation/mutation de listes) ne sont pas exécutés → la source brute fuite dans la valeur calculée (mêmes symptômes que le bug GCD). Débloque les 21 derniers `expected` numexp malformés : `liste_portee1/2` (oefpython.fr, ~18) et `bergamo6`/`slib/stat/variance` (branche pondérée, 3). Chantier = mini-interpréteur PARI/GP (parser d'affectations + boucle `for` + `print` accumulant la sortie + listes). NB : `bergamo6` a aussi un `!endif weight` (endif à commentaire) non géré.
 - [ ] Flydraw : manquent `levelcurve`, `affine`, `copyresized`, `plotjump`/`plotstep`, `filltoborder`, `diamondfill`/`dotfill`, `rays` — 0 usage corpus → différé
 - [ ] Corriger `docs/types-exercices-reponses.md:82` : `symbols=` n'est pas « variables autorisées de formal » mais une option d'UI transverse (palette de boutons insérant au caret, cf. `wims/.../anstype/symbols.inc`)
 
