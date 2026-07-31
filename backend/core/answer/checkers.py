@@ -1251,10 +1251,14 @@ def check_answer(
     # mathematically-equal reply that doesn't match the form the author stored.
     requires_expand = "polexpand" in opt_str or "expand" in opt_str
     requires_factor = "polfactor" in opt_str
+    # `formal` = équivalence CAS pure (WIMS : `good-reply` simplifié à 0) :
+    # aucune contrainte de forme développée/factorisée. `(x+1)(x-1)` est accepté
+    # pour `x^2-1`. Les options explicites `polexpand`/`polfactor` (ci-dessus)
+    # s'appliquent quand même si l'auteur les a posées.
     if (
         not requires_expand
         and not requires_factor
-        and answer_type.lower() in ("algexp", "default", "auto", "litexp", "formal")
+        and answer_type.lower() in ("algexp", "default", "auto", "litexp")
         and any(c.isalpha() for c in expected)
     ):
         if is_polexpand(expected):
