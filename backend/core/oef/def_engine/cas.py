@@ -79,6 +79,9 @@ _MATH_NS: dict = {
     "sign": lambda x: 1 if x > 0 else -1 if x < 0 else 0,
     "gcd": math.gcd,
     "lcm": _lcm,
+    # WIMS écrit parfois ces fonctions en majuscules dans `$[…]` (cf. GCD).
+    "GCD": math.gcd,
+    "LCM": _lcm,
 }
 
 
@@ -129,10 +132,16 @@ def _sympify_arg(s: str):
     
     transformations = standard_transformations + (implicit_multiplication_application,)
     # WIMS spells π as `Pi` (capital); map it to the constant so it isn't parsed
-    # as a free symbol (sympy already knows lowercase `pi`/`E`).
+    # as a free symbol (sympy already knows lowercase `pi`/`E`). Idem pour les
+    # fonctions WIMS écrites en majuscules (`GCD`/`LCM`/`Mod`) que sympy ne
+    # connaît qu'en minuscules — sinon elles fuient en littéral dans l'attendu
+    # (redfrac : `rint(GCD(720,1320);)` non évalué).
     return parse_expr(
         s.replace("^", "**"), transformations=transformations,
-        local_dict={"Pi": sympy.pi},
+        local_dict={
+            "Pi": sympy.pi,
+            "GCD": sympy.gcd, "LCM": sympy.lcm, "Mod": sympy.Mod,
+        },
     )
 
 

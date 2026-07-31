@@ -1500,9 +1500,17 @@ class DefEngine(_SlibMixin):
         # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
         # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
         # (simpquot keeps every accepted form after the displayed expression).
-        range_m = re.match(r"(-?\d+)\s+to\s+(-?\d+)\s*$", idx_s)
+        # Les bornes peuvent être des expressions arithmétiques (`$(val9[1])+1`,
+        # cf. moyenneB2) : on les évalue via _eval_arith, sinon la plage échoue
+        # et la sous-liste ressort vide.
+        range_m = re.match(r"(.+?)\s+to\s+(.+?)\s*$", idx_s)
         if range_m:
-            a, b = int(range_m.group(1)), int(range_m.group(2))
+            try:
+                a = int(round(float(self._eval_arith(range_m.group(1).strip()))))
+                b = int(round(float(self._eval_arith(range_m.group(2).strip()))))
+            except (ValueError, TypeError):
+                range_m = None
+        if range_m:
             items = split_items(data)
             n = len(items)
             if a < 0:
@@ -1573,12 +1581,16 @@ class DefEngine(_SlibMixin):
         """!replace [internal/word] A by B in text."""
         # Standard: !replace internal x by y in text
         # Shortcut: !replace x by y in text (defaults to internal)
-        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        # `\s+in\s*` (pas `\s+in\s+`) : le texte cible peut être vide quand un
+        # `$var` substitué est vide (`!replace internal , by + in $vide` →
+        # texte ""). Sinon le regex échoue et la commande fuite en littéral
+        # (`internal , by + in`) dans la valeur calculée (moyenneB2).
+        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
         if m:
             mode, old, new, text = m.groups()
         else:
             # Try shortcut without mode prefix
-            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
             if m:
                 mode, old, new, text = "internal", m.group(1), m.group(2), m.group(3)
             else:
