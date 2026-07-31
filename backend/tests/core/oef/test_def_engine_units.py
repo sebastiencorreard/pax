@@ -413,12 +413,15 @@ class TestWimsListSplit:
 
 
 class TestCommutesom:
-    def test_returns_reduced_canonical_form(self):
-        # `slib/commutesom POLY,VAR` → one canonical reduced form (decreasing
-        # degree), not the explosive permutation list / leaked coeff(…).
+    def test_returns_permutation_list_canonical_first(self):
+        # `slib/commutesom POLY,VAR` → liste des permutations commutatives des
+        # monômes (comme WIMS), forme réduite canonique (degré décroissant) en
+        # tête. Certains exercices l'utilisent via `!item N of` (oefremplacer2).
         e = engine()
         e._cmd_readproc("slib/commutesom 3*b+2-8*b-9,b")
-        assert e.ctx["slib_out"] == "-5*b - 7"
+        items = e.ctx["slib_out"].split(",")
+        assert items[0].replace(" ", "") == "-5*b-7"  # canonique en tête
+        assert set(items) == {"-5*b-7", "-7-5*b"}     # les 2 ordres
         assert "coeff" not in e.ctx["slib_out"]
 
     def test_sets_anyorder_flag(self):

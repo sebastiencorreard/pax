@@ -175,28 +175,25 @@ class _SlibMixin:
         """Built-in for ``slib/commutesom POLY,VAR``.
 
         WIMS' commutesom returns *every* commutative ordering of a developed
-        polynomial's monomials, so a litexp answer accepts the reduced sum in any
-        term order. It does so by generating the permutation group (factorial)
-        with Maxima ``coeff``/``hipow`` and a precomputed ``commutesom.don`` table
-        — none of which our sub-engine can run, so interpreting the script leaks
-        literal ``coeff(…)`` / ``$(slib_lineN)`` and crawls (reduire).
+        polynomial's monomials (liste séparée par des virgules), forme réduite
+        canonique en tête. Deux usages :
+        - tolérance d'ordre pour un `litexp` : chaque ordre est une alternative
+          acceptée (et le flag `_commutesom_anyorder` marque l'answer `expand`) ;
+        - affichage direct d'un ordre précis via `!item N of` (oefremplacer2 :
+          E = forme développée, prise dans la liste).
 
-        PAX doesn't need the permutation list: the litexp checker compares
-        algebraically and auto-detects the reduced (polexpand) form, accepting any
-        equivalent reduced expression. So we return a single canonical reduced
-        form — the polynomial expanded by SymPy, terms in decreasing degree (the
-        usual "réduire" order). Falls back to the input on any parse failure.
+        WIMS le fait via ``coeff``/``hipow`` Maxima + une table ``commutesom.don``
+        que notre sous-moteur ne sait pas exécuter (ça fuyait en ``coeff(…)``
+        littéral). On génère ici la liste avec SymPy : monômes en degré
+        décroissant, puis toutes leurs permutations (bornées à 5 monômes pour
+        éviter l'explosion factorielle). Repli sur l'entrée si parsing impossible.
         """
-        # commutesom is the "réduire" family's order-tolerance mechanism: any
-        # commutative ordering of the reduced sum is accepted. We return one
-        # canonical form (below) and flag the exercise so `_extract_answers`
-        # marks its litexp answers `expand` (reduced form required, but any term
-        # order accepted) — matching WIMS instead of enforcing a single order.
         self.ctx["_commutesom_anyorder"] = "1"
         poly_s = args.split(",")[0].strip()
         if not poly_s:
             return poly_s
         try:
+            import itertools  # noqa: PLC0415
             import sympy  # noqa: PLC0415
             from sympy.parsing.sympy_parser import (  # noqa: PLC0415
                 parse_expr,
@@ -210,9 +207,28 @@ class _SlibMixin:
             expr = sympy.expand(
                 parse_expr(poly_s.replace("^", "**"), transformations=T)
             )
-            # `sstr(order='lex')` lists monomials by decreasing degree; `**`→`^`
-            # back to WIMS/KaTeX notation. The litexp checker re-parses it.
-            return sympy.sstr(expr, order="lex").replace("**", "^")
+            # Monômes du polynôme développé, en degré décroissant (forme
+            # canonique « réduire »). On découpe la chaîne ordonnée par sstr
+            # (`order='lex'`) plutôt que via make_args (qui réordonne).
+            canon_str = sympy.sstr(expr, order="lex").replace("**", "^")
+            _raw = re.split(r"\s+([+-])\s+", canon_str)
+            term_strs = [_raw[0].strip()]
+            for _i in range(1, len(_raw), 2):
+                term_strs.append(("-" if _raw[_i] == "-" else "") + _raw[_i + 1].strip())
+            canonical = _join_terms(term_strs)
+            # WIMS commutesom renvoie TOUTES les permutations commutatives des
+            # monômes (liste séparée par des virgules) — certaines exercices
+            # l'utilisent directement (`!item N of`, oefremplacer2). Au-delà de
+            # 5 monômes la factorielle explose : on se limite alors à la forme
+            # canonique (le checker litexp reste tolérant à l'ordre via les
+            # alternatives et le flag `_commutesom_anyorder`).
+            if not (2 <= len(term_strs) <= 5):
+                return canonical
+            orderings = [_join_terms(list(p)) for p in itertools.permutations(term_strs)]
+            # Canonique en tête (litexp affiche `!item 1` comme réponse type).
+            seen = {canonical}
+            ordered = [canonical] + [o for o in orderings if not (o in seen or seen.add(o))]
+            return ",".join(ordered)
         except Exception:
             return poly_s
 
@@ -722,6 +738,17 @@ def _fr_cardinal(n: int) -> str:
     if units:
         parts.append(_fr_below_1000(units, final=True))
     return "-".join(parts)
+
+
+def _join_terms(term_strs: list[str]) -> str:
+    """Joint des monômes signés en une somme : premier terme tel quel, les
+    suivants préfixés de `+` sauf s'ils commencent déjà par `-`."""
+    if not term_strs:
+        return ""
+    out = term_strs[0]
+    for t in term_strs[1:]:
+        out += t if t.lstrip().startswith("-") else "+" + t
+    return out
 
 
 def _split_top_level_commas(s: str) -> list[str]:
