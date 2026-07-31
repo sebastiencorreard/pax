@@ -28,7 +28,7 @@ $\rightarrow$ où régler les paramètres ?
 
 PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
-- [ ] **`formal`** : sortir du pré-check développé/factorisé (`checkers.py:1087`) — WIMS = équivalence CAS pure (`(x+1)(x-1)` accepté pour `x^2-1`) ; correctif simple, 2 exercices
+- [x] **`formal`** : retiré de l'auto-classification développé/factorisé → équivalence CAS pure (`(x+1)(x-1)` accepté pour `x^2-1`, `2*(x+3)` pour `2*x+6`). Options explicites `polexpand`/`polfactor` toujours honorées. (12/428 self-checks échouent encore = limites CAS sympy sur formules physiques `sqrt`, préexistant.)
 - [ ] **`litexp`** : trop laxiste — `6/4` accepté pour `3/2`, `x*x+3` pour `x^2+3` ; WIMS compare quasi littéralement (façon `rawmath`) ; 24 exercices
 - [ ] **`algexp`** : accepter les coefficients non simplifiés (`(24+4)*x-53` pour `28*x-53`, rejeté à tort) ; rejeter les identités trig (`sin²+cos²` pour `1`, accepté quand l'attendu est sans variable) ; 30 exercices
 

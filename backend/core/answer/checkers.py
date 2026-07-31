@@ -684,6 +684,44 @@ def check_algexp(
         return _check_algexp_numeric(reply, expected, comma_is_decimal)
 
 
+def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
+    """Normalisation « rawmath » légère pour la comparaison littérale de `litexp`.
+
+    WIMS compare les formes rawmath-normalisées (pas via CAS) : espaces retirés,
+    multiplication implicite explicitée, `**`→`^`. **Aucune simplification** :
+    `6/4` reste `6/4`, `x*x` reste `x*x`, l'ordre des termes est préservé (les
+    auteurs énumèrent les formes acceptées, ex. `5*sqrt(5),sqrt(5)*5`).
+
+    Le `*` implicite n'est PAS inséré avant `(` après une lettre, pour ne pas
+    casser les appels de fonction (`sqrt(5)` ne devient pas `sqrt*(5)`)."""
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    s = s.replace(" ", "").replace("**", "^")
+    s = re.sub(r"(\d)([A-Za-z(])", r"\1*\2", s)   # 2x → 2*x ; 2( → 2*(
+    s = re.sub(r"(\))([A-Za-z0-9(])", r"\1*\2", s)  # )x → )*x ; )( → )*(
+    return s
+
+
+def check_litexp(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type ``litexp`` WIMS (plain, sans polexpand/polfactor) : la réponse doit
+    être **mathématiquement égale** ET écrite **dans la même forme** que
+    l'attendu (comparaison rawmath littérale, `$dd isitemof $good`).
+
+    Donc `6/4` est refusé (badform) pour `3/2`, `x*x+3` pour `x^2+3`, `1.5` pour
+    `3/2` — équivalents mais forme non conforme. `2x+3` reste accepté pour
+    `2*x+3` (même forme rawmath)."""
+    base = check_algexp(reply, expected, comma_is_decimal)
+    if not base.correct:
+        return base  # pas égal → mauvaise réponse
+    if _rawmath_normalize(reply, comma_is_decimal) == _rawmath_normalize(expected, comma_is_decimal):
+        return CheckResult(correct=True, score=1.0, method="litexp")
+    # Égal mais forme non conforme → à réécrire.
+    return CheckResult(correct=False, score=0.0, method="litexp_badform",
+                       status="invalid_format", detail=_REWRITE_MSG)
+
+
 def _normalize_expr(expr: str, comma_is_decimal: bool = True) -> str:
     """Normalise une expression OEF/élève pour SymPy.
 
@@ -1255,10 +1293,12 @@ def check_answer(
     # aucune contrainte de forme développée/factorisée. `(x+1)(x-1)` est accepté
     # pour `x^2-1`. Les options explicites `polexpand`/`polfactor` (ci-dessus)
     # s'appliquent quand même si l'auteur les a posées.
+    # `litexp` exclu : le plain litexp fait une comparaison littérale de forme
+    # (check_litexp), pas une contrainte développé/factorisé auto-déduite.
     if (
         not requires_expand
         and not requires_factor
-        and answer_type.lower() in ("algexp", "default", "auto", "litexp")
+        and answer_type.lower() in ("algexp", "default", "auto")
         and any(c.isalpha() for c in expected)
     ):
         if is_polexpand(expected):
@@ -1337,7 +1377,14 @@ def check_answer(
             return check_unit(reply, expected, precision, comma_is_decimal)
         case "sigunits":
             return check_sigunits(reply, expected, comma_is_decimal)
-        case "algexp" | "litexp" | "formal":
+        case "litexp":
+            # Plain litexp = comparaison littérale (forme conforme). Avec une
+            # option de forme (expand/polfactor), WIMS vérifie plutôt que la
+            # réponse est développée/factorisée → voie check_algexp + pré-checks.
+            if "expand" in opt_str or "polfactor" in opt_str:
+                return check_algexp(reply, expected, comma_is_decimal)
+            return check_litexp(reply, expected, comma_is_decimal)
+        case "algexp" | "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
             return check_algexp(reply, expected, comma_is_decimal)
