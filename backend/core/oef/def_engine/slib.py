@@ -622,9 +622,15 @@ class _SlibMixin:
             if stripped.startswith("!"):
                 cmd_line = stripped[1:].strip()
                 cmd, _, cargs = cmd_line.partition(" ")
-                # Command results in slib are either used for side effects
-                # or stored in slib_out.
-                self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
+                # `!readproc` imbriqué (un slib en appelle un autre, ex.
+                # stat/freq → stat/dataproc) : router vers _cmd_readproc, sinon
+                # le sous-script ne s'exécute pas et ses sorties restent vides.
+                if cmd.lower() == "readproc":
+                    self._cmd_readproc(cargs)
+                else:
+                    # Command results in slib are either used for side effects
+                    # or stored in slib_out.
+                    self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
             else:
                 # Assign: key=value. The key may be dynamically named
                 # (`slib_code$jj=…`), so allow `$`/`()`/`[]` and expand it.

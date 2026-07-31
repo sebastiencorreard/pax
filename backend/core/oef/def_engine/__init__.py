@@ -1313,7 +1313,9 @@ class DefEngine(_SlibMixin):
         # ── Conversion: items ↔ lines ↔ words ────────────────────────────────
         if cmd in ("items2lines", "itemstolines", "list2lines", "listtolines"):
             s = self._subst(args)
-            return "\n".join(x.strip() for x in s.split(",") if x.strip())
+            # Virgules protégées par les crochets : `[a,b],[c,d]` → 2 lignes,
+            # pas 6 (slib/stat/dataproc sépare `[data],[poids]`).
+            return "\n".join(x.strip() for x in _split_top_level_commas(s) if x.strip())
 
         if cmd in ("lines2items", "linestoitems", "lines2list", "linestolist"):
             s = self._subst(args)
@@ -1493,12 +1495,18 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(items) if items else ""
 
     def _cmd_nonempty(self, args: str) -> str:
-        """!nonempty items/rows list — remove empty entries."""
-        m = re.match(r"(items?|rows?)\s*(.*)", args, re.I | re.DOTALL)
+        """!nonempty items/rows/lines list — remove empty entries."""
+        m = re.match(r"(items?|rows?|lines?|words?)\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind = m.group(1).lower()
         val = self._subst(m.group(2))
+        # `lines` : séparateur newline (slib/stat/dataproc). `words` : espaces.
+        if kind.startswith("line"):
+            items = [x.strip() for x in val.split("\n") if x.strip()]
+            return "\n".join(items)
+        if kind.startswith("word"):
+            return " ".join(w for w in val.split() if w)
         # Same separator logic as _cmd_shuffle: tab first, then smart comma.
         # Do NOT detect ";" — items may contain ";" inside HTML entities.
         if kind.startswith("row") or "\t" in val:
@@ -1830,7 +1838,8 @@ class DefEngine(_SlibMixin):
             if modifier in ("reverse", "down"):
                 reverse = True
 
-        m = re.match(r"(items?|rows?|list)\s+(.*)", rest, re.I | re.DOTALL)
+        # `of` optionnel après le type (`!sort numeric item of $v`, slib/stat/freq).
+        m = re.match(r"(items?|rows?|list)(?:\s+of)?\s+(.*)", rest, re.I | re.DOTALL)
         if m:
             kind, val = m.group(1).lower(), self._subst(m.group(2))
         else:
@@ -1883,11 +1892,27 @@ class DefEngine(_SlibMixin):
         return ",".join(x for x in items1 if x in items2)
 
     def _cmd_declosing(self, args: str) -> str:
-        """!declosing text — remove outer parentheses/brackets/braces."""
+        """!declosing text — remove outer parentheses/brackets/braces.
+
+        Uniquement si toute la chaîne est enclose dans UNE paire équilibrée : le
+        premier crochet ouvrant doit s'apparier au dernier caractère. Sinon
+        `[a,b],[c,d]` verrait ses deux listes fusionnées à tort (dataproc)."""
         s = self._subst(args).strip()
         pairs = [("(", ")"), ("[", "]"), ("{", "}")]
         for open_, close_ in pairs:
             if s.startswith(open_) and s.endswith(close_):
+                depth = 0
+                for j, ch in enumerate(s):
+                    if ch == open_:
+                        depth += 1
+                    elif ch == close_:
+                        depth -= 1
+                        if depth == 0:
+                            # Le 1er ouvrant se ferme ailleurs qu'à la fin → pas
+                            # d'enclosure unique (ex. `[a],[b]`).
+                            if j != len(s) - 1:
+                                return s
+                            break
                 return s[1:-1].strip()
         return s
 
@@ -1985,17 +2010,23 @@ class DefEngine(_SlibMixin):
     # ── Slib helper command implementations ──────────────────────────────────
 
     def _cmd_distribute(self, args: str) -> None:
-        """!distribute items $src into a,b,c — assign each item to a variable."""
-        m = re.match(r"items?\s+(.*?)\s+into\s+(.*)", args, re.I | re.DOTALL)
+        """!distribute items/lines/words $src into a,b,c — assign each to a var."""
+        m = re.match(r"(items?|lines?|words?)\s+(.*?)\s+into\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return
-        src = self._subst(m.group(1).strip())
-        targets = [t.strip() for t in self._subst(m.group(2)).split(",")]
-        # Items are comma-separated but commas inside [...] are protected
-        # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
-        items = [x.strip() for x in _split_top_level_commas(src)]
+        kind = m.group(1).lower()
+        src = self._subst(m.group(2).strip())
+        targets = [t.strip() for t in self._subst(m.group(3)).split(",")]
+        if kind.startswith("line"):
+            items = src.split("\n")
+        elif kind.startswith("word"):
+            items = src.split()
+        else:
+            # Items are comma-separated but commas inside [...] are protected
+            # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
+            items = [x.strip() for x in _split_top_level_commas(src)]
         for i, t in enumerate(targets):
-            self.ctx[t] = items[i] if i < len(items) else ""
+            self.ctx[t] = items[i].strip() if i < len(items) else ""
 
     def _cmd_bound(self, args: str) -> None:
         """!bound VAR within|among LIST [default DEF] — clamp to allowed values.
@@ -2182,7 +2213,14 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(lines) if lines else ""
 
     def _cmd_sum(self, args: str) -> str:
-        """!add / !sum list — arithmetic sum of comma-separated values."""
+        """!add / !sum list — arithmetic sum of comma-separated values.
+
+        Forme itérée `!sum EXPR for VAR in LIST` / `… for VAR=a to b`
+        (slib/stat/dataproc : `!sum x for x in $poids`) : on génère la liste via
+        `!makelist` puis on somme.
+        """
+        if re.search(r"\bfor\b", args, re.I):
+            args = self._cmd_makelist(args).replace("\t", ",")
         parts = [self._subst(p.strip()) for p in args.split(",")]
         total = 0.0
         for p in parts:
