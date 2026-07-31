@@ -29,8 +29,9 @@ $\rightarrow$ où régler les paramètres ?
 PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 - [x] **`formal`** : retiré de l'auto-classification développé/factorisé → équivalence CAS pure (`(x+1)(x-1)` accepté pour `x^2-1`, `2*(x+3)` pour `2*x+6`). Options explicites `polexpand`/`polfactor` toujours honorées. (12/428 self-checks échouent encore = limites CAS sympy sur formules physiques `sqrt`, préexistant.)
-- [ ] **`litexp`** : trop laxiste — `6/4` accepté pour `3/2`, `x*x+3` pour `x^2+3` ; WIMS compare quasi littéralement (façon `rawmath`) ; 24 exercices
-- [ ] **`algexp`** : accepter les coefficients non simplifiés (`(24+4)*x-53` pour `28*x-53`, rejeté à tort) ; rejeter les identités trig (`sin²+cos²` pour `1`, accepté quand l'attendu est sans variable) ; 30 exercices
+- [x] **`litexp`** : `check_litexp` = égalité CAS + forme **rawmath conforme** (`_rawmath_normalize` : nospace + `*` implicite + `**`→`^`, sans simplification). `6/4`/`x*x+3`/`1.5` → `badform` ; `2x+3`=`2*x+3` OK ; alternatives virgulées gérées. Options explicites `expand`/`polfactor` gardent la voie check_algexp. Corpus : 268 formes stockées, 0 régression.
+- [x] **`algexp`** : équivalence **rationnelle** (`check_algexp(rational_only=True)` → `cancel`, sans trig) → `sin²+cos²` refusé pour `1`/`x²+1` ; retiré de l'auto-classification de forme → coefficients non simplifiés acceptés (`(24+4)*x-53`, `2*x+3*x` pour `5*x`, `x*x` pour `x²`). Options explicites `expand`/`polfactor` gardent la voie check_algexp. Corpus : 204 formes, 19 refus tous préexistants (expected malformés `print(print(...`, matrices `f=c in`, edge polfactor).
+- [x] **Fonctions maxima `coeff`/`hipow` imbriquées** : fournies à sympy (`cas.py:_sympify_arg`) → `coeff(P,b,2)*(b^2)` s'évalue au lieu de fuir. Répare `developper.def` (litexp expected `coeff(...)` non évalué → `c e f f o \left(` mangé).
 
 ### c) Autres types de réponse
 

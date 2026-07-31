@@ -136,11 +136,22 @@ def _sympify_arg(s: str):
     # fonctions WIMS écrites en majuscules (`GCD`/`LCM`/`Mod`) que sympy ne
     # connaît qu'en minuscules — sinon elles fuient en littéral dans l'attendu
     # (redfrac : `rint(GCD(720,1320);)` non évalué).
+    # `coeff(e,v,n)` (coefficient de v^n) et `hipow(e,v)` (degré) : fonctions
+    # maxima que sympy ne connaît pas. Fournies ici pour qu'elles s'évaluent même
+    # imbriquées dans une expression composée (`coeff(P,b,2)*(b^2)` de
+    # developper.def) — sinon la fonction fuit en littéral dans l'attendu.
+    def _coeff(e, v, n):
+        return e.coeff(v, int(n))
+
+    def _hipow(e, v):
+        return sympy.degree(e, v)
+
     return parse_expr(
         s.replace("^", "**"), transformations=transformations,
         local_dict={
             "Pi": sympy.pi,
             "GCD": sympy.gcd, "LCM": sympy.lcm, "Mod": sympy.Mod,
+            "coeff": _coeff, "hipow": _hipow,
         },
     )
 

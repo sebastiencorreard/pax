@@ -637,11 +637,19 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
 
 
 def check_algexp(
-    reply: str, expected: str, comma_is_decimal: bool = True
+    reply: str, expected: str, comma_is_decimal: bool = True,
+    rational_only: bool = False,
 ) -> CheckResult:
     """
     Compare deux expressions algébriques via SymPy.
     Correct si la différence se simplifie à 0.
+
+    ``rational_only`` (type ``algexp``) : simplification **rationnelle** seule
+    (``cancel``), sans identités trigonométriques/fonctionnelles — comme le
+    ``ratsimp`` de WIMS. Ainsi ``sin²+cos²`` n'est PAS accepté pour ``1`` (WIMS
+    rejette : ratsimp ne connaît pas l'identité). Le défaut (``formal``,
+    ``default``) garde ``simplify`` (avec trig), fidèle au ``trigsimp`` de
+    ``anstype/formal``.
     """
     try:
         import sympy
@@ -672,8 +680,10 @@ def check_algexp(
             local_dict=local_dict,
         )
 
-        diff = sympy.simplify(sympy.expand(r_expr) - sympy.expand(e_expr))
-        correct = diff == 0
+        if rational_only:
+            correct = sympy.cancel(r_expr - e_expr) == 0
+        else:
+            correct = sympy.simplify(sympy.expand(r_expr) - sympy.expand(e_expr)) == 0
 
         return CheckResult(
             correct=correct, score=1.0 if correct else 0.0, method="sympy"
@@ -1293,12 +1303,14 @@ def check_answer(
     # aucune contrainte de forme développée/factorisée. `(x+1)(x-1)` est accepté
     # pour `x^2-1`. Les options explicites `polexpand`/`polfactor` (ci-dessus)
     # s'appliquent quand même si l'auteur les a posées.
-    # `litexp` exclu : le plain litexp fait une comparaison littérale de forme
-    # (check_litexp), pas une contrainte développé/factorisé auto-déduite.
+    # `litexp` et `algexp` exclus : litexp fait une comparaison littérale de
+    # forme (check_litexp) ; algexp accepte toute forme équivalente non
+    # simplifiée (`(24+4)*x-53` pour `28*x-53`) — pas de contrainte
+    # développé/factorisé auto-déduite. `default`/`auto` la gardent.
     if (
         not requires_expand
         and not requires_factor
-        and answer_type.lower() in ("algexp", "default", "auto")
+        and answer_type.lower() in ("default", "auto")
         and any(c.isalpha() for c in expected)
     ):
         if is_polexpand(expected):
@@ -1384,7 +1396,11 @@ def check_answer(
             if "expand" in opt_str or "polfactor" in opt_str:
                 return check_algexp(reply, expected, comma_is_decimal)
             return check_litexp(reply, expected, comma_is_decimal)
-        case "algexp" | "formal":
+        case "algexp":
+            # Équivalence rationnelle (sans trig) ; formes équivalentes non
+            # simplifiées acceptées (`(24+4)*x-53` = `28*x-53`).
+            return check_algexp(reply, expected, comma_is_decimal, rational_only=True)
+        case "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
             return check_algexp(reply, expected, comma_is_decimal)
