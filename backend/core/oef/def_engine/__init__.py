@@ -1765,8 +1765,13 @@ class DefEngine(_SlibMixin):
             expr = in_m.group(1).strip()
             var = in_m.group(2)
             list_raw = self._subst(in_m.group(3).strip())
-            # Split list by tab, semicolon, or comma
-            if "\t" in list_raw:
+            # Split list by newline, tab, semicolon, or comma. Le newline est le
+            # séparateur des listes produites par slib/stat/dataproc (données en
+            # lignes) : sans lui, `!sum x for x in $slib_data` voyait un seul
+            # item et renvoyait 0 (variance non pondérée fausse).
+            if "\n" in list_raw:
+                items = list_raw.split("\n")
+            elif "\t" in list_raw:
                 items = list_raw.split("\t")
             elif ";" in list_raw:
                 items = list_raw.split(";")
@@ -1993,7 +1998,16 @@ class DefEngine(_SlibMixin):
             return ""
 
         value = self._subst(m.group(2))
-        rows = value.split("\t") if "\t" in value else self._split_rows_by_semi(value)
+        # Lignes séparées par tab, newline (données de slib/stat/dataproc), ou
+        # `;` (après `!translate \t\n to ;;`). Sans le newline, `!column 1 of`
+        # sur des données en lignes renvoyait tout le bloc comme une seule
+        # cellule (dataproc → slib_data mal formé → variance fausse).
+        if "\t" in value:
+            rows = value.split("\t")
+        elif "\n" in value:
+            rows = value.split("\n")
+        else:
+            rows = self._split_rows_by_semi(value)
         all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
         if all(len(c) == 1 for c in all_cols):
             all_cols = [r.split(";") for r in rows]
