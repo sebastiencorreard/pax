@@ -515,15 +515,20 @@ class _SlibMixin:
             if not stripped or stripped.startswith("#") or stripped.startswith(":"):
                 i += 1
                 continue
-            if stripped.startswith("!if "):
-                cond = stripped[len("!if ") :]
-                taken = self._eval_condition("if", cond)
+            # `!ifval` (comparaison numérique) ouvre un bloc comme `!if` : il DOIT
+            # compter dans la profondeur, sinon un `!ifval` interne fait matcher
+            # le mauvais `!else`/`!endif` (slib/stat/effectif : la branche else
+            # sautait ses premières lignes → comptes faux).
+            if stripped.startswith("!if ") or stripped.startswith("!ifval "):
+                kind = "ifval" if stripped.startswith("!ifval ") else "if"
+                cond = stripped[len("!ifval ") if kind == "ifval" else len("!if "):]
+                taken = self._eval_condition(kind, cond)
                 depth = 1
                 j = i + 1
                 else_at = -1
                 while j < n and depth > 0:
                     s = lines[j].strip()
-                    if s.startswith("!if "):
+                    if s.startswith("!if ") or s.startswith("!ifval "):
                         depth += 1
                     elif s == "!endif":
                         depth -= 1

@@ -1551,7 +1551,9 @@ class DefEngine(_SlibMixin):
         def split_items(s: str) -> list[str]:
             if "\t" in s:
                 return s.split("\t")
-            return re.split(r",(?![^(]*\))", s)
+            # Virgules protégées par () ET [] {} : `!item 1 of [a,b],[c,d]` doit
+            # rendre `[a,b]`, pas `[a` (sortie de slib/stat/effectif|freq).
+            return _split_top_level_commas(s)
 
         # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
         # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
