@@ -406,6 +406,66 @@ def _normalize_unit(u: str) -> str:
     return u.replace("·", "*").replace("⋅", "*").replace("×", "*")
 
 
+# Préfixes métriques (facteur multiplicatif). `da` (déca) est le seul à deux
+# lettres. Attention : `h` (hecto) et `d` (déci) sont ambigus avec des unités —
+# on ne les applique que si le reste est une base connue et « préfixable ».
+_METRIC_PREFIX = {
+    "da": 1e1, "h": 1e2, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12,
+    "d": 1e-1, "c": 1e-2, "m": 1e-3, "µ": 1e-6, "u": 1e-6, "n": 1e-9, "p": 1e-12,
+}
+# Bases SI/métriques admettant un préfixe (école). `L`=`l` (litre).
+_PREFIXABLE_BASE = {"m", "g", "L", "s", "mol", "J", "W", "N", "Pa", "V", "A",
+                    "Hz", "F", "C", "eV", "cal", "bar", "mol"}
+
+
+def _unit_atom_si(tok: str) -> tuple[str, float] | None:
+    """`dm^2` → (`m^2`, 1e-2) ; `kg` → (`g`, 1e3) ; `mol` → (`mol`, 1). Renvoie
+    (dimension canonique, facteur vers cette base) ou None si non reconnu."""
+    m = re.fullmatch(r"([A-Za-zµΩ]+)\^?(-?\d+)?", tok)
+    if not m:
+        return None
+    name = m.group(1).replace("l", "L") if tok and tok[0] == "l" else m.group(1)
+    power = int(m.group(2)) if m.group(2) else 1
+    if name in _PREFIXABLE_BASE:
+        base, factor = name, 1.0
+    else:
+        base = None
+        for p in ("da", "M", "G", "T", "k", "h", "d", "c", "m", "µ", "u", "n", "p"):
+            rest = name[len(p):]
+            if name.startswith(p) and rest in _PREFIXABLE_BASE:
+                base, factor = rest, _METRIC_PREFIX[p]
+                break
+        if base is None:
+            return None
+    return f"{base}^{power}", factor ** power
+
+
+def _unit_to_si(unit: str) -> tuple[str, float] | None:
+    """Convertit une unité composée (`mol/L`, `g/mol`, `cm^3`) en (dimension
+    canonique triée, facteur total). None si une partie n'est pas reconnue."""
+    unit = _normalize_unit(unit)
+    if not unit:
+        return None
+    # Parcours des facteurs : chaque token précédé de son opérateur (`*`/`/`).
+    num_dims: dict[str, int] = {}
+    factor = 1.0
+    op = "*"
+    for tok in re.findall(r"[*/]|[^*/]+", unit):
+        if tok in ("*", "/"):
+            op = tok
+            continue
+        atom = _unit_atom_si(tok)
+        if atom is None:
+            return None
+        dim, f = atom
+        base, _, p = dim.partition("^")
+        power = int(p) * (1 if op == "*" else -1)
+        num_dims[base] = num_dims.get(base, 0) + power
+        factor *= f if op == "*" else 1.0 / f
+    canon = ",".join(f"{b}^{num_dims[b]}" for b in sorted(num_dims) if num_dims[b] != 0)
+    return canon, factor
+
+
 def check_unit(
     reply: str,
     expected: str,
@@ -425,10 +485,24 @@ def check_unit(
     en, eu = _split_value_unit(expected)
     if rn is None or en is None:
         return CheckResult(correct=False, score=0.0, method="unit")
-    num = check_numeric(rn, en, precision, comma_is_decimal)
-    unit_ok = _normalize_unit(ru) == _normalize_unit(eu)
-    correct = num.correct and unit_ok
-    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="unit")
+    # 1) Même unité (texte) : comparaison numérique directe.
+    if _normalize_unit(ru) == _normalize_unit(eu):
+        num = check_numeric(rn, en, precision, comma_is_decimal)
+        return CheckResult(correct=num.correct, score=num.score, method="unit")
+    # 2) Unités différentes mais compatibles : conversion vers la base SI (WIMS
+    #    `units-filter` accepte `400 dm^2` pour `4 m^2`). On ramène les deux
+    #    valeurs à la même dimension avant de comparer.
+    r_si = _unit_to_si(ru)
+    e_si = _unit_to_si(eu)
+    if r_si is not None and e_si is not None and r_si[0] == e_si[0]:
+        try:
+            rv = _parse_number(rn, comma_is_decimal) * r_si[1]
+            ev = _parse_number(en, comma_is_decimal) * e_si[1]
+        except (ValueError, ZeroDivisionError, SyntaxError):
+            return CheckResult(correct=False, score=0.0, method="unit")
+        correct = _wims_num_equal(rv, ev, precision)
+        return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="unit")
+    return CheckResult(correct=False, score=0.0, method="unit")
 
 
 # Scientific notation written as ``×10^n`` / ``*10^n`` / ``·10^n`` / `` 10^n``
