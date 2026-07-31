@@ -185,6 +185,11 @@ class DefEngine(_SlibMixin):
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
+        # Variables du mini-interpréteur PARI. WIMS pilote un unique processus
+        # `gp` par exécution, donc les `!exec pari` successifs se partagent leur
+        # état : oefforpython.fr définit `l=vector(n);for(…)` dans un appel puis
+        # l'affiche avec `print(l)` dans le suivant.
+        self.pari_session: dict[str, object] = {}
         # Exercise content language (ISO code). Set from df.meta at render time;
         # drives the decimal/list separator for number display & checking
         # (see core/oef/i18n.py). Defaults to French until render() reads it.
@@ -1751,7 +1756,7 @@ class DefEngine(_SlibMixin):
         if engine == "maxima":
             return _call_maxima(expr)
         if engine == "pari":
-            return _call_pari(expr)
+            return _call_pari(expr, session=self.pari_session)
         return ""
 
     def _cmd_makelist(self, args: str) -> str:
