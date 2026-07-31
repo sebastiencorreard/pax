@@ -497,7 +497,15 @@ class _SlibMixin:
         if_stack: list[int] = []
         i = 0
         n = len(lines)
+        # Un slib peut boucler via `!goto` (saut arrière) sans terminer si une
+        # valeur amont est cassée. On respecte le budget temps du rendu ici
+        # aussi (cet interpréteur ne passe pas par `_exec`).
+        import time as _time  # noqa: PLC0415
+        deadline = getattr(self, "_deadline", None)
         while i < n:
+            if deadline is not None and _time.monotonic() > deadline:
+                from . import _RenderBudgetExceeded  # noqa: PLC0415
+                raise _RenderBudgetExceeded()
             line = lines[i]
             stripped = line.strip()
             if not stripped or stripped.startswith("#") or stripped.startswith(":"):

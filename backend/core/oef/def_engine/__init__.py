@@ -11,7 +11,19 @@ import math
 import os
 import random
 import re
+import time
 from functools import lru_cache
+
+
+class _RenderBudgetExceeded(Exception):
+    """Levée quand un rendu dépasse son budget temps (garde-fou contre une
+    boucle emballée : slib incomplet, borne géante…). Rattrapée au niveau du
+    rendu, qui poursuit avec l'état partiel calculé — un rendu approximatif vaut
+    mieux qu'un rendu de plusieurs minutes."""
+
+
+# Budget temps d'un rendu, en secondes. WIMS lui-même borne le temps d'exécution.
+_RENDER_TIME_BUDGET = 8.0
 
 from .cas import (
     _MATH_NS,
@@ -149,6 +161,8 @@ class DefEngine(_SlibMixin):
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self.rng = random.Random(seed)
+        # Échéance du budget temps (posée par render()) ; None = pas de limite.
+        self._deadline: float | None = None
         # WIMS treats ``$empty`` as the predefined empty-string sentinel;
         # exposing it as a regular ctx entry keeps `_subst` happy.
         # Always initialize m_step to "1" so it's defined when var_instructions execute.
@@ -211,7 +225,16 @@ class DefEngine(_SlibMixin):
                 if key in rm:
                     self.ctx[f"reply{key}{n}"] = rm[key]
 
-        self._exec(df.var_instructions, output_buf=None)
+        # Budget temps : abandonne le calcul des variables s'il s'emballe
+        # (boucle non terminante d'un slib incomplet). On poursuit le rendu avec
+        # l'état partiel plutôt que de bloquer plusieurs minutes.
+        self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
+        try:
+            self._exec(df.var_instructions, output_buf=None)
+        except _RenderBudgetExceeded:
+            pass
+        finally:
+            self._deadline = None
 
         # Course/dynsteps: expose the previous steps' submitted replies + their
         # scores as WIMS' memorised `$m_reply{n}` / `$m_sc_reply{n}` so this
@@ -434,7 +457,10 @@ class DefEngine(_SlibMixin):
 
     def _exec(self, instructions: list, output_buf: list[str] | None) -> None:
         """Execute a list of instructions sequentially."""
+        deadline = self._deadline
         for instr in instructions:
+            if deadline is not None and time.monotonic() > deadline:
+                raise _RenderBudgetExceeded()
             if isinstance(instr, Assign):
                 val = self._eval_value(instr.value)
                 self.ctx[instr.name] = val
@@ -531,7 +557,9 @@ class DefEngine(_SlibMixin):
 
         var = loop.var.lstrip("$")
         saved = self.ctx.get(var)
-        for i in range(start, end + 1):
+        # Backstop contre une borne géante à corps vide (le budget temps du
+        # rendu ne s'arme que si le corps s'exécute) : cap dur d'itérations.
+        for i in range(start, min(end, start + 100000) + 1):
             self.ctx[var] = str(i)
             self._exec(loop.body, output_buf)
         if saved is not None:
@@ -1075,6 +1103,21 @@ class DefEngine(_SlibMixin):
         """Evaluate a WIMS !cmd and return the result as a string."""
         args = args.strip()
 
+        # Modificateur WIMS `… repeat N` : exécute la commande N fois et joint
+        # les résultats par des virgules. Utilisé par les tirages aléatoires
+        # (`!randint N,M repeat K`, cf. slib/stat/random). Restreint à la famille
+        # aléatoire pour ne pas confondre un « repeat » textuel ; N est évalué.
+        if cmd in ("randint", "random", "randitem", "randword", "randchar", "randrow"):
+            rep_m = re.match(r"^(.*\S)\s+repeat\s+(\S+)\s*$", args, re.DOTALL)
+            if rep_m:
+                try:
+                    n = int(round(float(self._eval_arith(rep_m.group(2)))))
+                except (ValueError, TypeError):
+                    n = None
+                if n is not None and n >= 1:
+                    base = rep_m.group(1).strip()
+                    return ",".join(self._eval_cmd(cmd, base) for _ in range(n))
+
         if cmd == "randint":
             return self._cmd_randint(args)
 
@@ -1537,11 +1580,16 @@ class DefEngine(_SlibMixin):
                     res.append(items[idx - 1].strip())
             return ",".join(res)
 
-        # Single index
+        # Single index. Negative = from the end (WIMS `-1` = last item), e.g.
+        # `!item -1 of $slib_w` (slib/stat/effectif). Without this, negative
+        # single indices returned empty and cascaded into `max(,)`-style leaks.
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
             items = split_items(data)
-            if 1 <= idx <= len(items):
+            n = len(items)
+            if idx < 0:
+                idx = n + idx + 1
+            if 1 <= idx <= n:
                 return items[idx - 1].strip()
         except (ValueError, TypeError):
             pass
@@ -1720,6 +1768,9 @@ class DefEngine(_SlibMixin):
                 end = int(round(float(self._eval_arith(self._subst(end_s)))))
             except (ValueError, TypeError):
                 return ""
+            # Cap dur : une borne géante (valeur amont cassée d'un slib) ferait
+            # une liste énorme et un rendu de plusieurs secondes.
+            end = min(end, start + 100000)
             items = [str(i) for i in range(start, end + 1)]
         else:
             return ""
