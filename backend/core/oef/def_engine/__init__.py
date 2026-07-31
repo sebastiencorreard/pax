@@ -685,9 +685,14 @@ class DefEngine(_SlibMixin):
         """Substitute variable references inside an arithmetic expression."""
         if not expr or "$" not in expr:
             return expr
+        # Résoudre les `$name` (opérateurs et indices de sous-listes) AVANT les
+        # formes indexées `$(var[i])`. Sinon la valeur numérique d'un
+        # `$(val15[1])` se colle au `$var` qui précède et le corrompt en un
+        # nouveau nom : `$val18$val19$(val15[1])` (val19="-") donnait `$val18` +
+        # `$val193`(inconnu→0) = `rint(30)` au lieu de `rint(3-3)` (mediane5).
+        expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         expr = self._resolve_indexed_forms(expr)
         expr = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
-        expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         return expr
 
     def _resolve_indexed_forms(self, s: str) -> str:

@@ -706,6 +706,12 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
     n = int(_num(args[6]))
     if n <= 0:
         return
+    # Garde-fou : au-delà de la résolution de l'image, les lignes parallèles se
+    # superposent en aplat — inutile de les tracer. Sans plafond, une donnée
+    # corrompue en amont (ex. `slib/stat/freq` cassé gonfle `s_ymax` à 230000,
+    # cf. mediane5) fait dessiner des centaines de milliers de lignes et bloque
+    # le rendu plusieurs secondes. On borne au nombre de pixels + une marge.
+    n = min(n, max(state.width, state.height) + 100)
     color = _color(args[7]) if len(args) > 7 else "#000000"
     for i in range(n):
         ox, oy = i * dx, i * dy

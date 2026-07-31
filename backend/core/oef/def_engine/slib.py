@@ -420,6 +420,10 @@ class _SlibMixin:
             s = s[1:-1]
         elif s.startswith("[") and "],[" in s:
             s = s[1:-1].replace("],[", ";")
+        # `!values`/`!append item` joignent les lignes par des TABs ; pour un
+        # échantillon plat (données de la médiane), le TAB est un séparateur au
+        # même titre que la virgule (mediane5 : val21 accumulé par lignes).
+        s = s.replace("\t", ",")
 
         if ";" in s:
             v_str, w_str = s.split(";", 1)
