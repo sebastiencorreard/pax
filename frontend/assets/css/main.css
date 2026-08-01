@@ -298,3 +298,54 @@ body {
   padding: 0.2rem 0.9rem 0.7rem;
   margin: 0 0 0.75rem 0;
 }
+
+/* `\special{tooltip ancre,options,texte}` : l'ancre reste dans le fil du
+   texte, l'explication n'apparaît qu'au survol (ou au focus clavier). Sans
+   ces règles le contenu du `.wims_tooltiptext` s'afficherait en clair au
+   milieu de l'énoncé — l'infobulle ne masque rien par elle-même. Repris de
+   `_css/tooltip.css` de WIMS, avec les couleurs du thème PAX. */
+.oef-statement .wims_tooltip {
+  position: relative;
+  display: inline-block;
+  /* Le pointillé est le seul indice qu'il y a quelque chose à survoler. */
+  border-bottom: 1px dotted var(--color-text-muted);
+  cursor: help;
+}
+.oef-statement .wims_tooltip > .wims_tooltiptext {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
+  position: absolute;
+  z-index: 1000;
+  /* Sous l'ancre et centrée dessus ; `max-width` plutôt que la largeur fixe
+     de WIMS pour que les textes longs (le tableau de caractéristiques de
+     oefphotocopie) restent lisibles sur mobile. */
+  top: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(28rem, 90vw);
+  box-sizing: border-box;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 35%, transparent);
+  border-radius: 0.4rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+  text-align: left;
+  font-weight: normal;
+  line-height: 1.45;
+}
+.oef-statement .wims_tooltip:hover > .wims_tooltiptext,
+.oef-statement .wims_tooltip:focus-within > .wims_tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* `\special{help sujet, libellé}` renvoie vers l'aide du module, que PAX n'a
+   pas encore : on garde le libellé lisible dans l'énoncé (il en fait partie)
+   sans faire croire à un lien cliquable. */
+.oef-statement .disabled_link {
+  color: inherit;
+  border-bottom: 1px dotted color-mix(in srgb, var(--color-text-muted) 50%, transparent);
+}

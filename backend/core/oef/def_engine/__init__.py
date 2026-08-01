@@ -2901,7 +2901,12 @@ class DefEngine(_SlibMixin):
     def _render_special(self, args: str) -> str:
         """Dispatch an OEF ``\\special`` (``!read oef/special.phtml <kind> …``).
 
-        Only ``mathmlinput`` is implemented; unknown specials render to nothing.
+        Les `\\special` non gérés rendent une chaîne vide plutôt que de laisser
+        fuir du balisage — mais ce silence *supprime le texte de l'énoncé*
+        quand le `\\special` en porte (`help`, `tooltip`), d'où les rendus
+        ci-dessous. Restent non gérés : `glossary` (base `data/glossary`),
+        `imagefill`, `editarea`, `codeinput`, `drawinput`, `jsxgraphinput`
+        (widgets front).
         """
         s = self._subst(args).strip()
         m = re.match(r"^\s*(\w+)\s+(.*)$", s, re.DOTALL)
@@ -2910,7 +2915,83 @@ class DefEngine(_SlibMixin):
         kind, rest = m.group(1).lower(), m.group(2)
         if kind == "mathmlinput":
             return self._render_mathmlinput(rest)
+        if kind == "expandlines":
+            return self._render_expandlines(rest)
+        if kind == "tooltip":
+            return self._render_tooltip(rest)
+        if kind == "help":
+            return self._render_special_help(rest)
         return ""
+
+    def _render_expandlines(self, args: str) -> str:
+        """``expandlines <texte>`` — bloc préformaté dont les tabulations sont
+        des sauts de ligne (`oef/special/expandlines.phtml`)."""
+        return f"<pre>{args.replace(chr(9), chr(10))}</pre>"
+
+    def _render_special_help(self, args: str) -> str:
+        """``help <sujet>, <libellé>`` — lien vers l'aide du module.
+
+        PAX n'a pas (encore) de pages d'aide par module, donc le lien ne mène
+        nulle part ; on rend le libellé comme WIMS le fait déjà en mode examen
+        (`<span class="disabled_link">`). L'important est que le texte cesse de
+        disparaître de l'énoncé : `\\special{help fscient, format scientifique}`
+        rendait le vide au milieu d'une phrase.
+        """
+        parts = _split_top_level(args, ",")
+        prompt = ",".join(parts[1:]).strip() if len(parts) > 1 else args.strip()
+        if not prompt:
+            return ""
+        import html as _html  # noqa: PLC0415
+
+        subject = _html.escape(parts[0].strip(), quote=True)
+        return (
+            f'<span class="disabled_link oef_specialhelp" data-help="{subject}">'
+            f"{prompt}</span>"
+        )
+
+    def _render_tooltip(self, args: str) -> str:
+        """``tooltip <ancre>,<options>,<texte>`` — infobulle CSS.
+
+        Port de la branche moderne d'`oef/special/tooltip.phtml` : un `span`
+        (ou un `div` si le texte porte du balisage) contenant l'ancre puis le
+        texte dans un `.wims_tooltiptext`. La variante `DURATION` s'appuie sur
+        `wz_tooltip.js`, absent de PAX ; on la rend avec la même structure CSS
+        plutôt qu'avec du JavaScript mort — l'infobulle reste consultable, seul
+        le minutage se perd.
+        """
+        parts = _split_top_level(args, ",")
+        anchor = self._cmd_declosing(parts[0].strip()) if parts else ""
+        # `!set text=!item 3 to -1` ; s'il est vide, l'item 2 était le texte et
+        # non les options.
+        option = parts[1].strip() if len(parts) > 2 else ""
+        text = ",".join(parts[2:]).strip() if len(parts) > 2 else (
+            parts[1].strip() if len(parts) > 1 else ""
+        )
+        text = text.replace("&#59;", ";").replace("&#44;", ",")
+        text = self._cmd_declosing(text)
+        if not anchor:
+            # `!if $parm1 = $empty` : sans ancre, WIMS n'émet que le texte.
+            return text
+        if not text:
+            return anchor
+
+        css_class = style = ""
+        if option and "DURATION" not in option:
+            opt = self._cmd_declosing(option)
+            cm = re.search(r"\bclass\s*=\s*([^\s,]+)", opt)
+            sm = re.search(r"\bstyle\s*=\s*([^,]+)", opt)
+            css_class = self._cmd_declosing(cm.group(1)).strip() if cm else ""
+            style = self._cmd_declosing(sm.group(1)).strip() if sm else ""
+        # `!detag $text = $text` : un texte balisé ne peut pas vivre dans un
+        # `span` (HTML invalide dès qu'il contient un bloc).
+        tag = "span" if re.sub(r"<[^>]*>", "", text) == text else "div"
+        style_attr = f' style="{style}"' if style else ""
+        inner_class = f"wims_tooltiptext {css_class}".strip()
+        return (
+            f'<{tag} class="wims_tooltip">{anchor}'
+            f'<{tag} class="{inner_class}"{style_attr}>{text}</{tag}>'
+            f"</{tag}>"
+        )
 
     def _render_mathmlinput(self, args: str) -> str:
         """``mathmlinput [EXPR],<size>,<opts>\\t<replyN,size>…`` — render EXPR as
