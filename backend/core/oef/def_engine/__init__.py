@@ -3068,8 +3068,7 @@ class DefEngine(_SlibMixin):
         Les `\\special` non gérés rendent une chaîne vide plutôt que de laisser
         fuir du balisage — mais ce silence *supprime le texte de l'énoncé*
         quand le `\\special` en porte (`help`, `tooltip`), d'où les rendus
-        ci-dessous. Restent non gérés : `glossary` (base `data/glossary`),
-        `imagefill`, `editarea`, `codeinput`, `drawinput`, `jsxgraphinput`
+        ci-dessous. Restent non gérés : `drawinput` et `jsxgraphinput`
         (widgets front).
         """
         s = self._subst(args).strip()
@@ -3091,7 +3090,100 @@ class DefEngine(_SlibMixin):
             return self._render_glossary(rest)
         if kind == "codeinput":
             return self._render_codeinput(rest)
+        if kind == "imagefill":
+            return self._render_imagefill(rest)
         return ""
+
+    def _render_imagefill(self, args: str) -> str:
+        """``imagefill IMG,LxH,lxh<TAB>replyN,x,y[,L]<TAB>…``
+
+        Port d'`oef/special/imagefill.phtml` : une grande image sur laquelle des
+        champs `clickfill`/`dragfill` sont posés à des coordonnées absolues.
+        WIMS empile des calques DynAPI ; en CSS c'est un conteneur
+        `position:relative` et des cases `position:absolute`, à quoi se réduit
+        tout le mécanisme.
+
+        Découpage repris tel quel du phtml : une tabulation suivie d'une virgule
+        est absorbée, les autres deviennent des séparateurs de lignes ; la ligne
+        1 porte image/grande taille/petite taille, les suivantes un champ
+        chacune. Les tailles s'écrivent `LxH` ou `L x H`, d'où le `x` traité
+        comme un séparateur au même titre que la virgule.
+
+        Le 4ᵉ paramètre d'une ligne est le nombre d'étiquettes que la case peut
+        recevoir (défaut 1) : autant de cases côte à côte, comme le
+        `stretchH:$sizei*$ssizex` du calque WIMS.
+        """
+        import html as _html  # noqa: PLC0415
+
+        # `imagefill.phtml` traduit les tabulations en `;` *puis* découpe les
+        # lignes sur `;` — les deux séparateurs sont donc équivalents, et
+        # `oefmolecule` livre effectivement ses champs en `;`. La tabulation
+        # suivie d'une virgule est absorbée avant, comme dans le phtml.
+        raw = args.replace("\t,", ",").replace("\t", ";")
+        rows = [r for r in self._split_rows_by_semi(raw) if r.strip()]
+        if not rows:
+            return ""
+        head = [p.strip() for p in rows[0].split(",")]
+        img = head[0] if head else ""
+        if not img:
+            return ""
+
+        def _dims(spec: str) -> tuple[int, int] | None:
+            """`LxH` / `L x H` / `L,H` → (L, H) ; None si non numérique."""
+            parts = [p for p in re.split(r"[x,\s]+", spec.strip()) if p]
+            if len(parts) < 2:
+                return None
+            try:
+                return int(round(float(parts[0]))), int(round(float(parts[1])))
+            except (ValueError, TypeError):
+                return None
+
+        big = _dims(head[1]) if len(head) > 1 else None
+        small = _dims(head[2]) if len(head) > 2 else None
+        # Une taille non évaluée (`[227,13,146,15] x [18,120,48,117]` d'unitecell)
+        # ne doit pas coûter l'exercice : l'image garde sa taille naturelle et les
+        # cases prennent un gabarit par défaut.
+        sx, sy = small or (40, 30)
+
+        slots: list[str] = []
+        for row in rows[1:]:
+            cells = [c.strip() for c in re.split(r"[x,]", row) if c.strip()]
+            if len(cells) < 3:
+                continue
+            n = re.sub(r"[^0-9()+\-*/]", "", cells[0])
+            try:
+                n = str(int(round(float(self._eval_arith(n)))))
+            except (ValueError, TypeError):
+                continue
+            if not 1 <= int(n) <= 100:
+                continue
+            if _normalize_reply_type(self.ctx.get(f"replytype{n}", "")) != "clickfill":
+                continue
+            try:
+                px, py = int(round(float(cells[1]))), int(round(float(cells[2])))
+            except (ValueError, TypeError):
+                continue
+            try:
+                count = max(1, int(round(float(cells[3])))) if len(cells) > 3 else 1
+            except (ValueError, TypeError):
+                count = 1
+            self._touched_replies.add(f"reply{n}")
+            for i in range(count):
+                slots.append(
+                    f'<cf-slot name="reply{n}" data-index="{i}" data-w="{sx}" '
+                    f'style="position:absolute;left:{px + i * sx}px;top:{py}px;'
+                    f'width:{sx}px;height:{sy}px"></cf-slot>'
+                )
+
+        box = f"position:relative;display:inline-block;line-height:0"
+        if big:
+            box += f";width:{big[0]}px;height:{big[1]}px"
+        img_style = f"width:{big[0]}px;height:{big[1]}px" if big else "max-width:100%"
+        return (
+            f'<div class="oef-imagefill" style="{box}">'
+            f'<img src="{_html.escape(img, quote=True)}" alt="" style="{img_style}">'
+            f'{"".join(slots)}</div>'
+        )
 
     def _render_codeinput(self, args: str) -> str:
         """``codeinput <code>,<taille>,<pre|div><TAB>replyN,<taille>,<css>…``

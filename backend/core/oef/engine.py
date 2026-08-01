@@ -254,6 +254,27 @@ def _table_ranges(html: str) -> list[tuple[int, int]]:
     return ranges
 
 
+# Conteneur d'un `\special{imagefill}` : une image et des cases posées dessus en
+# coordonnées absolues.
+_IMAGEFILL_BLOCK = re.compile(
+    r'<div class="oef-imagefill".*?</div>', re.IGNORECASE | re.DOTALL
+)
+
+
+def _unsplittable_ranges(html: str) -> list[tuple[int, int]]:
+    """Zones dont les widgets ne doivent pas découper le HTML en segments.
+
+    Les `<table>` en font partie de longue date : segmenter briserait leur
+    structure. Un `imagefill` s'y ajoute pour une raison voisine — ses cases ne
+    valent que par leur position absolue dans le conteneur, qu'un découpage
+    ferait perdre. Dans les deux cas le HTML reste d'un bloc et le front lie les
+    widgets par délégation d'événements.
+    """
+    return _table_ranges(html) + [
+        m.span() for m in _IMAGEFILL_BLOCK.finditer(html)
+    ]
+
+
 def _widget_attrs(tag: str) -> dict:
     """HTML attributes an `\\embed` size tail attached to the widget (data-attrs).
 
@@ -424,7 +445,7 @@ def _segment_statement(html: str) -> list[dict]:
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
 
-    tables = _table_ranges(html)
+    tables = _unsplittable_ranges(html)
 
     def in_table(pos: int) -> bool:
         return any(s <= pos < e for s, e in tables)
@@ -449,8 +470,8 @@ def _segment_statement(html: str) -> list[dict]:
                 m.group(12).strip(), m.group(13).strip(), _html.unescape(m.group(14) or "")
             )
         html = html[: m.start()] + replacement + html[m.end():]
-    # Re-compute table ranges since byte offsets shifted.
-    tables = _table_ranges(html)
+    # Re-compute the ranges since byte offsets shifted.
+    tables = _unsplittable_ranges(html)
 
     segments: list[dict] = []
     last = 0

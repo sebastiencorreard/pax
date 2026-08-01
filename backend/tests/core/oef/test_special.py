@@ -97,7 +97,7 @@ class TestTooltip:
 
 
 class TestUnhandled:
-    @pytest.mark.parametrize("kind", ["glossary machin", "imagefill a,b", "drawinput x"])
+    @pytest.mark.parametrize("kind", ["glossary machin", "drawinput x"])
     def test_still_render_nothing(self, kind):
         """Les specials adossés à une infra absente (base glossaire, widgets
         front) restent silencieux plutôt que de laisser fuir du balisage."""
