@@ -71,6 +71,79 @@ Il existe 4 roles :
 `docker compose exec backend python scripts/reset_password.py --email VOTRE_EMAIL@pax.fr --password VOTRE_NOUVEAU_MOT_DE_PASSE`
 
 
+## Dépendances
+
+### Ce qui tourne tout seul
+
+Deux automatismes, une fois `.github/` présent sur la **branche par défaut** —
+Dependabot y lit sa configuration et les workflows planifiés n'en partent que
+de là. Sur une autre branche, rien ne se déclenche.
+
+- **Dependabot** (`.github/dependabot.yml`) — le lundi matin, ouvre les PR de
+  montée (pip, npm, docker, actions), 5 au plus par écosystème. Les mineures et
+  correctifs sont **groupés en une seule PR** : FastAPI épingle starlette et
+  pydantic suit FastAPI, donc des PR séparées seraient rouges par construction.
+  Les majeures de `nuxt`, `pinia` et `@vueuse` sont **ignorées** — ce sont des
+  migrations, pas des montées.
+- **Workflow « Dépendances »** (`.github/workflows/dependencies.yml`) — le même
+  jour, lance `pip-audit` et `npm audit`. Il répond à ce que Dependabot ne dit
+  pas : *y a-t-il une faille connue maintenant ?* Un avis peut sortir sans
+  qu'aucune montée n'existe. Tourne aussi sur toute PR touchant
+  `requirements.txt` / `package.json` / `package-lock.json`, et à la demande.
+
+**Pour être averti**, l'onglet *Actions* ne suffit pas : GitHub n'envoie de
+courriel sur échec d'un run planifié qu'à la dernière personne ayant modifié le
+workflow. Activez *Watch → Custom → Actions* sur le dépôt.
+
+### Le même contrôle en local
+
+```bash
+./scripts/check-deps.sh            # tout
+./scripts/check-deps.sh backend    # Python seulement
+./scripts/check-deps.sh frontend   # npm seulement
+```
+
+Sort en code 1 s'il reste une faille bloquante. Ne dépend pas de GitHub.
+
+`PYSEC-2026-1325` (`ecdsa`, attaque temporelle Minerva sur P-256) est écarté du
+script comme du workflow : l'amont considère les canaux auxiliaires hors
+périmètre, donc l'avis ne se refermera jamais. Non atteignable tant que les JWT
+sont signés en HS256 — **à réactiver si l'on passe un jour à ES256**.
+
+### Appliquer une montée
+
+Le point contre-intuitif : **un `restart` ne suffit jamais, il faut reconstruire
+l'image.**
+
+```bash
+# Backend — après édition de backend/requirements.txt
+docker compose build backend
+docker compose up -d backend
+docker compose exec -T backend pytest tests/ -q
+```
+
+Reconstruire n'est pas du zèle : `pip install` dans un conteneur vivant garde
+les paquets déjà présents et masque une dépendance non déclarée. C'est ainsi
+qu'`email-validator`, tirée implicitement par FastAPI 0.111 et plus par la
+0.141, n'est apparue manquante qu'à la reconstruction complète.
+
+```bash
+# Frontend
+cd frontend && npm install <paquet>@<version> && cd ..
+docker compose build frontend
+docker compose down frontend && docker compose up -d frontend   # `restart` NE SUFFIT PAS
+```
+
+`/app/node_modules` est un **volume anonyme** (`docker-compose.override.yml`) :
+un `restart` conserve les paquets d'origine du conteneur, et l'on croit vérifier
+une montée alors qu'on teste l'ancienne. Seul un `down` détruit le volume.
+
+Pour une montée non triviale, ajouter la régression corpus côté backend
+(cf. [`docs/def-engine-workflow.md`](docs/def-engine-workflow.md)) et la suite
+e2e côté front (`cd frontend && npx playwright test`). Cette dernière rend
+aujourd'hui 17 échecs préexistants — elle décrit une page `/exercise` remplacée
+depuis — donc c'est **l'écart** qui compte, pas le total.
+
 ## Licence
 
 AGPL-3.0
