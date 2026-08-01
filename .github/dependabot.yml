@@ -1,0 +1,69 @@
+version: 2
+
+# Dependabot ouvre les PR de montée de version ; le workflow `dependencies.yml`
+# fait le contrôle de sécurité hebdomadaire, y compris sur ce que Dependabot ne
+# propose pas (dépendances transitives sans correctif direct).
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Brussels
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Une PR pour tout ce qui est correctif ou mineur : ces montées passent
+      # ensemble ou pas du tout (FastAPI épingle starlette, pydantic suit
+      # FastAPI — les séparer produit des PR qui ne peuvent pas être vertes).
+      backend-mineures:
+        update-types: [minor, patch]
+    labels: [dependencies, backend]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Brussels
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      frontend-mineures:
+        update-types: [minor, patch]
+    # Les majeures de ces trois-là sont des migrations à part entière
+    # (nuxt 3→4, pinia 2→4, @vueuse 10→14) : à traiter à la main, pas dans le
+    # flux hebdomadaire.
+    ignore:
+      - dependency-name: nuxt
+        update-types: [version-update:semver-major]
+      - dependency-name: pinia
+        update-types: [version-update:semver-major]
+      - dependency-name: "@pinia/nuxt"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@vueuse/*"
+        update-types: [version-update:semver-major]
+    labels: [dependencies, frontend]
+
+  - package-ecosystem: docker
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Brussels
+    commit-message:
+      prefix: "chore(deps)"
+    labels: [dependencies, docker]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(deps)"
+    labels: [dependencies, ci]
