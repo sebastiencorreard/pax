@@ -1801,3 +1801,44 @@ class TestSlibComments:
         e = engine()
         e._run_script_lines(["slib_out=!trim   espaces  "])
         assert e.ctx.get("slib_out") == "espaces"
+
+
+class TestReplaceEmptyPattern:
+    """`!replace internal $empty by X in Y` : motif vide → aucune occurrence.
+
+    Python insérerait le remplacement entre *chaque* caractère
+    (`"ab".replace("", "X")` vaut `"XaXbX"`). `slib/function/tabsignes` écrit
+    `!replace internal $empty by \\qquad \\qquad in $slib_cel` pour espacer ses
+    cellules vides, ce qui hachait toutes les autres : son marqueur `reply1`
+    ressortait en `\\qquad r\\qquad e\\qquad p\\qquad l\\qquad y…`.
+    """
+
+    def test_empty_pattern_is_a_noop(self):
+        e = engine()
+        e.ctx["empty"] = ""
+        assert e._eval_cmd("replace", "internal $empty by \\qquad in reply1") == "reply1"
+
+    def test_normal_replacement_still_works(self):
+        assert engine()._eval_cmd("replace", "internal a by X in banana") == "bXnXnX"
+
+    def test_empty_replacement_still_deletes(self):
+        assert engine()._eval_cmd("replace", "internal , by in a,b,c") == "abc"
+
+
+class TestSlibOutPreservation:
+    """Une commande `!xxx` isolée ne doit pas effacer `slib_out`.
+
+    `slib/function/tabsignes` assemble son tableau dans `slib_out`, puis termine
+    par le `!reset` de ses variables de travail. Ce `!reset` renvoie `""` — et
+    emportait le tableau avec lui. Le cas vaut pour tout slib finissant par un
+    nettoyage."""
+
+    def test_reset_does_not_wipe_the_result(self):
+        e = engine()
+        e._run_script_lines(["slib_out=<table>résultat</table>", "!reset slib_tmp"])
+        assert e.ctx.get("slib_out") == "<table>résultat</table>"
+
+    def test_a_command_with_a_result_still_fills_slib_out(self):
+        e = engine()
+        e._run_script_lines(["!trim   valeur  "])
+        assert e.ctx.get("slib_out") == "valeur"

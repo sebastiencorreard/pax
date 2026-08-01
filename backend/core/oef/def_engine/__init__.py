@@ -1850,6 +1850,14 @@ class DefEngine(_SlibMixin):
                 else:
                     return self._subst(args)
         
+        # Motif vide → aucune occurrence à remplacer. WIMS ne fait rien ; Python
+        # insérerait le remplacement entre *chaque* caractère (`"ab".replace("",
+        # "X")` vaut `"XaXbX"`). `slib/function/tabsignes` écrit
+        # `!replace internal $empty by \qquad \qquad in $slib_cel` pour espacer
+        # les cellules vides, ce qui hachait toutes les autres : son marqueur
+        # `reply1` ressortait en `\qquad r\qquad e\qquad p\qquad l\qquad y…`.
+        if not old:
+            return text
         if mode.lower() == "word":
             # Escape old for regex if using word mode
             return re.sub(rf"\b{re.escape(old)}\b", new, text)
@@ -2923,7 +2931,97 @@ class DefEngine(_SlibMixin):
             return self._render_special_help(rest)
         if kind == "editarea":
             return self._render_editarea(rest)
+        if kind == "glossary":
+            return self._render_glossary(rest)
         return ""
+
+    def _render_glossary(self, args: str) -> str:
+        """``glossary <chemin>,tooltip=[<ancre>,<largeur>]`` — terme de glossaire.
+
+        Port d'`oef/special/glossary.phtml` : l'ancre reste dans la phrase et la
+        définition s'ouvre au survol, dans la même structure `.wims_tooltip` que
+        `\\special{tooltip}`. Sans ce rendu, l'ancre disparaissait avec le reste :
+        la solution de `descriptives.fr/ecarttype` s'ouvrait sur « est la racine
+        carré de la . », amputée de ses deux termes.
+
+        Les définitions vivent dans `data/glossary/…`, vendorées sous
+        `ressources/wims-scripts/`. Un terme absent (le `cumulate_frequency1`
+        d'`oefstatistiques`, coquille pour `cumulative_`) rend l'ancre seule
+        plutôt que rien.
+        """
+        parts = _split_top_level(args, ",")
+        if not parts:
+            return ""
+        path = parts[0].strip()
+        option = ",".join(parts[1:])
+        # `!getopt tooltip in $option` → `[ancre,largeur]`
+        m = re.search(r"tooltip\s*=\s*\[(.*)\]", option, re.DOTALL)
+        anchor, width = "", ""
+        if m:
+            inner = _split_top_level(m.group(1), ",")
+            anchor = inner[0].strip() if inner else ""
+            width = inner[1].strip() if len(inner) > 1 else ""
+        if not anchor:
+            return ""
+
+        body = self._read_glossary_entry(path, option)
+        if not body:
+            return anchor
+        style = f' style="width:{width}"' if width else ' style="width:400px"'
+        return (
+            f'<div class="wims_tooltip">{anchor}'
+            f'<div class="wims_tooltiptext"{style}>'
+            f'<div class="wims_glossary">{body}</div></div></div>'
+        )
+
+    def _read_glossary_entry(self, path: str, option: str) -> str:
+        """Contenu d'une fiche de glossaire.
+
+        Les fiches sont découpées en *records* par des lignes réduites à `:`.
+        L'en-tête (les `!set gl_title=…`) précède le premier séparateur et n'est
+        pas un record, si bien que les records **pairs** portent le contenu —
+        c'est ce que suppose la boucle de `glossary.phtml` (`!if $[$j%2]=0`),
+        qui lit les records 4..N et traite les impairs comme des noms de fiches
+        à inclure.
+        """
+        scripts_dir = self._find_wims_scripts_dir()
+        if not scripts_dir:
+            return ""
+        data_dir = os.path.join(scripts_dir, "data", "glossary")
+        full = os.path.normpath(os.path.join(data_dir, path))
+        # Le chemin vient du .def, mais restons dans l'arborescence glossaire.
+        if not full.startswith(os.path.normpath(data_dir) + os.sep):
+            return ""
+        if not os.path.isfile(full):
+            return ""
+        try:
+            with open(full, encoding="utf-8") as fh:
+                text = fh.read()
+        except (UnicodeDecodeError, OSError):
+            try:
+                with open(full, encoding="latin-1") as fh:
+                    text = fh.read()
+            except OSError:
+                return ""
+
+        records = re.split(r"(?:^|\n):[ \t]*(?=\n|$)", text)[1:]
+        if not records:
+            return ""
+        if re.search(r"content\s*=\s*\[?\s*abstract", option):
+            wanted = [1]
+        else:
+            wanted = list(range(4, len(records) + 1))
+        out: list[str] = []
+        for j in wanted:
+            rec = records[j - 1].strip() if j <= len(records) else ""
+            if not rec:
+                continue
+            if j % 2 == 0:
+                out.append(rec)
+            else:
+                # Record impair non vide : un nom de fiche à inclure (macros).
+                out.append(self._read_glossary_entry(rec, option))
+        return "\n".join(x for x in out if x)
 
     def _render_editarea(self, args: str) -> str:
         """``editarea <code>`` — bloc de code en lecture seule.

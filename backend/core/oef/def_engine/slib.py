@@ -664,8 +664,16 @@ class _SlibMixin:
                     self._cmd_readproc(cargs)
                 else:
                     # Command results in slib are either used for side effects
-                    # or stored in slib_out.
-                    self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
+                    # or stored in slib_out — mais seulement quand il y a un
+                    # résultat. Une commande sans valeur de retour (`!reset`,
+                    # `!set`…) ne doit pas effacer ce que le script a déjà
+                    # produit : `slib/function/tabsignes` assemble son tableau
+                    # dans `slib_out`, puis termine par le `!reset` de ses
+                    # variables de travail — qui renvoyait `""` et emportait le
+                    # tableau avec lui.
+                    result = self._eval_cmd(cmd.lower(), cargs)
+                    if result:
+                        self.ctx["slib_out"] = result
             else:
                 # Assign: key=value. The key may be dynamically named
                 # (`slib_code$jj=…`), so allow `$`/`()`/`[]` and expand it.

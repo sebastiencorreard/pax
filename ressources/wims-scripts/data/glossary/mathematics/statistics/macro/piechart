@@ -1,0 +1,18 @@
+!set gl_n=!randint 5,8
+!set gl_ABC=A,B,C,D,E,F,G,H
+!set gl_color=red,grey,blue,green,black,orange,brown,purple
+!set gl_color=$(gl_color[1..$gl_n])
+!set gl_ABC=$(gl_ABC[1..$gl_n])
+!set gl_data=!randint 20,100 repeat $gl_n
+!set gl_s=!exec pari vecsum([$gl_data])
+!!!set gl_angle=!exec pari floor([$gl_data]*360/$gl_s*10)/10.
+!set gl_angle=!exec pari round([$gl_data]*360/$gl_s*10)/10.
+!set gl_angle=!makelist \(x^\deg\) for x in $gl_angle
+!set gl_angle=!replace internal .0 by  in $gl_angle
+!set gl_angle=!replace internal . by , in $gl_angle
+!readproc slib/text/matrixhtml [$(name_gl[1]),$gl_ABC;$(name_gl[2]),$gl_data],spacer wimsborder wimscenter,TH=[1;1]
+gl_out1=$slib_out
+!readproc slib/text/matrixhtml [$(name_gl[1]),$gl_ABC;$(name_gl[3]),$gl_angle],spacer wimsborder wimscenter,TH=[1;1]
+gl_out2=$slib_out
+!readproc slib/stat/piechart [$gl_data],[$gl_color],[$gl_ABC],300
+gl_out3=$slib_out

@@ -178,3 +178,48 @@ class TestEditarea:
         r = load_and_render("/ressources/H4/algo/oefpython.fr/def/liste_portee1.def", seed=42)
         assert "<textarea" in r.statement_html
         assert "def fonction(u, l):" in r.statement_html
+
+
+class TestGlossary:
+    """`glossary.phtml` : l'ancre reste dans la phrase, la définition s'ouvre au
+    survol. Les fiches sont vendorées sous `ressources/wims-scripts/data/`."""
+
+    def _engine(self):
+        return DefEngine(seed=1, def_path="/ressources/H4/stat/descriptives.fr/def/ecarttype.def")
+
+    def test_anchor_and_definition(self):
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/variance,tooltip=[la variance,300px]"
+        )
+        assert 'class="wims_tooltip"' in out
+        assert "la variance" in out
+        assert 'class="wims_glossary"' in out
+        assert "Définition" in out
+
+    def test_width_option_is_honoured(self):
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/variance,tooltip=[x,250px]"
+        )
+        assert 'style="width:250px"' in out
+
+    def test_unknown_term_still_shows_the_anchor(self):
+        """`oefstatistiques` référence `cumulate_frequency1`, coquille pour
+        `cumulative_` : la fiche n'existe ni chez nous ni dans WIMS."""
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/cumulate_frequency1,tooltip=[Les effectifs cumulés,300px]"
+        )
+        assert out == "Les effectifs cumulés"
+
+    def test_without_a_tooltip_anchor_nothing_is_rendered(self):
+        assert self._engine()._render_special("glossary mathematics/statistics/fr/variance") == ""
+
+    def test_path_traversal_is_refused(self):
+        out = self._engine()._render_special("glossary ../../../etc/passwd,tooltip=[x,10px]")
+        assert out == "x"
+
+    def test_corpus_solution_regains_its_terms(self):
+        """La solution s'ouvrait sur « est la racine carré de la . », amputée
+        de ses deux termes."""
+        r = load_and_render("/ressources/H4/stat/descriptives.fr/def/ecarttype.def", seed=42)
+        assert "wims_glossary" in (r.solution_html or "")
+        assert "L'écart-type" in (r.solution_html or "")
