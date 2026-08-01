@@ -197,3 +197,19 @@ class TestVarianceBranch:
         out = _call_pari(src)
         assert out.startswith("22.80")
         assert "27.36" in out
+
+
+class TestHelperValueConversion:
+    """Les helpers de `cas` raisonnent sur des listes Python. Sans conversion
+    *entrante*, `matsize` ne reconnaissait pas un `PMat` et retombait sur son
+    `[1, 1]` par défaut : `slib/function/tabsignes` lisait alors une seule
+    position de réponse au lieu de six."""
+
+    def test_matsize_of_a_program_built_matrix(self):
+        assert _call_pari("E=[1,2;1,4;1,6];matsize(E)[1]") == "3"
+
+    def test_matsize_columns(self):
+        assert _call_pari("E=[1,2;1,4;1,6];matsize(E)[2]") == "2"
+
+    def test_matdet_still_works(self):
+        assert _call_pari("M=[1,2;3,4];matdet(M)") == "-2"

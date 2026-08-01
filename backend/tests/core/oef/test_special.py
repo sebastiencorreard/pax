@@ -223,3 +223,53 @@ class TestGlossary:
         r = load_and_render("/ressources/H4/stat/descriptives.fr/def/ecarttype.def", seed=42)
         assert "wims_glossary" in (r.solution_html or "")
         assert "L'écart-type" in (r.solution_html or "")
+
+
+class TestCodeinput:
+    """`codeinput.phtml` : un bloc de code dont chaque marqueur `replyN` est
+    remplacé par le champ de la réponse N — le principe de `mathmlinput`,
+    appliqué à du texte."""
+
+    def _engine(self):
+        e = DefEngine(seed=1)
+        for n in range(1, 12):
+            e.ctx[f"replygood{n}"] = "42"
+            e.ctx[f"replytype{n}"] = "numeric"
+        return e
+
+    def test_marker_becomes_a_field(self):
+        out = self._engine()._render_special("codeinput [x = reply1],5,pre\treply1,5,")
+        assert 'name="reply1"' in out
+        assert "oef_codeinput" in out
+        assert "reply1</pre>" not in out
+
+    def test_tag_option(self):
+        out = self._engine()._render_special("codeinput [a reply1],5,div\treply1,5,")
+        assert out.startswith('<div class="oef_codeinput"')
+
+    def test_math_delimiters_are_absorbed(self):
+        r"""`tabsignes` place ses marqueurs en `\(reply1\)` : laisser les
+        délimiteurs donnerait du HTML à composer à KaTeX."""
+        out = self._engine()._render_special("codeinput [a \\(reply1\\) b],5,pre\treply1,5,")
+        assert "\\(" not in out
+        assert 'name="reply1"' in out
+
+    def test_longer_markers_first(self):
+        """`reply1` ne doit pas s'apparier à l'intérieur de `reply10`."""
+        out = self._engine()._render_special(
+            "codeinput [reply10 et reply1],4,pre\treply1,4,\treply10,4,"
+        )
+        assert 'name="reply10"' in out
+        assert 'name="reply1"' in out
+        assert "reply10<" not in out
+
+    def test_unlisted_markers_are_left_alone(self):
+        """WIMS ne remplace que les réponses listées ; les autres restent."""
+        out = self._engine()._render_special("codeinput [reply1 reply2],4,pre\treply2,4,")
+        assert 'name="reply2"' in out
+        assert "reply1" in out
+
+    def test_corpus_table_gains_its_fields(self):
+        r = load_and_render("/ressources/H4/algebra/oeffunctionmod.fr/def/ederive.def", seed=42)
+        assert "oef_codeinput" in r.statement_html
+        assert sum(1 for s in r.statement_segments if s.get("type") == "input") >= 5

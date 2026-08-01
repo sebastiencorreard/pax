@@ -2268,7 +2268,12 @@ class DefEngine(_SlibMixin):
         else:
             # Items are comma-separated but commas inside [...] are protected
             # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
-            items = [x.strip() for x in _split_top_level_commas(src)]
+            # Une paire englobant *toute* la chaîne est en revanche la notation
+            # de liste, pas une protection : `[[1,2;1,4],[2]]` porte deux items.
+            # Sans ce déballage, `slib/function/tabsignes` recevait positions et
+            # rang collés en un seul, et ne voyait plus qu'une réponse au lieu
+            # de six.
+            items = [x.strip() for x in _split_top_level_commas(self._cmd_declosing(src))]
         for i, t in enumerate(targets):
             self.ctx[t] = items[i].strip() if i < len(items) else ""
 
@@ -2965,7 +2970,68 @@ class DefEngine(_SlibMixin):
             return self._render_editarea(rest)
         if kind == "glossary":
             return self._render_glossary(rest)
+        if kind == "codeinput":
+            return self._render_codeinput(rest)
         return ""
+
+    def _render_codeinput(self, args: str) -> str:
+        """``codeinput <code>,<taille>,<pre|div><TAB>replyN,<taille>,<css>…``
+
+        Port de la branche `q_form` d'`oef/special/codeinput.phtml` : le bloc
+        `code` est recopié tel quel, et chaque marqueur `replyN` qu'il contient
+        est remplacé par le champ de la réponse N. C'est le même principe que
+        `mathmlinput`, sur du texte au lieu d'une formule.
+
+        Les marqueurs les plus longs passent d'abord — sans quoi `reply1`
+        s'apparierait à l'intérieur de `reply10` (WIMS obtient le même effet en
+        triant ses lignes à l'envers).
+
+        `slib/function/tabsignes` place ses marqueurs dans des cellules de
+        tableau déjà mises en forme mathématique, sous la forme `\\(reply1\\)` :
+        les délimiteurs sont absorbés avec le marqueur, sinon KaTeX recevrait
+        du HTML à composer.
+        """
+        body = args.replace("\t", "\n")
+        lines = [line for line in body.split("\n")]
+        head = _split_top_level(lines[0], ",")
+        if not head:
+            return ""
+        # Les deux derniers champs de l'en-tête sont la taille par défaut et la
+        # balise ; ce qui précède est le code — qui peut lui-même porter des
+        # virgules (le tableau de `tabsignes` en a une).
+        if len(head) >= 3:
+            code = ",".join(head[:-2]).strip()
+            default_size = head[-2].strip()
+            tag = head[-1].strip().lower()
+        else:
+            code, default_size, tag = head[0].strip(), "", ""
+        code = self._cmd_declosing(code)
+        if not code:
+            return ""
+        tag = "div" if tag == "div" else "pre"
+
+        specs: list[tuple[str, str]] = []
+        for spec in lines[1:]:
+            fields = _split_top_level(spec, ",")
+            ref = re.sub(r"\s+", "", fields[0]) if fields else ""
+            if not re.fullmatch(r"(?:reply|r)\d+", ref, re.I):
+                continue
+            size = fields[1].strip() if len(fields) > 1 and fields[1].strip() else default_size
+            specs.append((ref, size))
+
+        # Marqueurs longs d'abord : `reply10` avant `reply1`.
+        for ref, size in sorted(specs, key=lambda s: len(s[0]), reverse=True):
+            n = re.sub(r"\D", "", ref)
+            name = f"reply{n}"
+            widget = self._render_embed(f"{name},{size}" if size else name)
+            if not widget:
+                continue
+            pattern = re.compile(
+                r"(?:\\\(\s*)?\b(?:reply|r)" + re.escape(n) + r"\b(?:\s*\\\))?",
+                re.I,
+            )
+            code = pattern.sub(lambda _m, w=widget: w, code, count=1)
+        return f'<{tag} class="oef_codeinput">{code}</{tag}>'
 
     def _render_glossary(self, args: str) -> str:
         """``glossary <chemin>,tooltip=[<ancre>,<largeur>]`` — terme de glossaire.

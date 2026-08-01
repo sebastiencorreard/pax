@@ -1876,3 +1876,26 @@ class TestItemCount:
 
     def test_empty_input(self):
         assert engine()._eval_cmd("itemcnt", "  ") == "0"
+
+
+class TestDistributeEnclosedList:
+    """`!distribute items` : une paire de crochets englobant *toute* la chaîne
+    est la notation de liste, pas une protection de virgules.
+
+    `slib/function/tabsignes` reçoit ses positions de réponses sous la forme
+    `[[1,2;1,4],[2]]` — positions puis rang de départ. Sans déballage, les deux
+    arrivaient collés et le slib ne voyait plus qu'une réponse au lieu de six.
+    """
+
+    def test_enclosing_pair_is_unwrapped(self):
+        e = engine()
+        e.ctx["src"] = "[[1,2;1,4],[2]]"
+        e._eval_cmd("distribute", "items $src into a,b")
+        assert e.ctx["a"] == "[1,2;1,4]"
+        assert e.ctx["b"] == "[2]"
+
+    def test_inner_brackets_still_protect_commas(self):
+        e = engine()
+        e.ctx["src"] = "[python,[code]],1,readonly"
+        e._eval_cmd("distribute", "items $src into x,y,z")
+        assert (e.ctx["x"], e.ctx["y"], e.ctx["z"]) == ("[python,[code]]", "1", "readonly")

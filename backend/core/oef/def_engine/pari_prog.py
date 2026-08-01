@@ -686,11 +686,27 @@ def _to_pari_value(value: Any) -> Any:
     return value
 
 
+def _from_pari_value(value: Any) -> Any:
+    """Inverse de `_to_pari_value` : les helpers de `cas` raisonnent sur des
+    listes Python et ne connaissent pas `PVec`/`PMat`."""
+    if isinstance(value, PMat):
+        return [list(row) for row in value.rows]
+    if isinstance(value, PVec):
+        return list(value.items)
+    return value
+
+
 def _wrap_helper(fn):
+    """Adapte un helper de `cas` aux valeurs de l'interpréteur — dans les deux
+    sens. Sans la conversion *entrante*, `matsize` ne reconnaissait pas un
+    `PMat` et retombait sur son `[1, 1]` par défaut : `slib/function/tabsignes`
+    lisait alors 1 seule position de réponse au lieu de 6."""
     if not callable(fn):
         return fn
 
     def wrapper(*args, **kwargs):
+        args = tuple(_from_pari_value(a) for a in args)
+        kwargs = {k: _from_pari_value(v) for k, v in kwargs.items()}
         return _to_pari_value(fn(*args, **kwargs))
 
     return wrapper
