@@ -114,6 +114,12 @@ _COMMA_VARLIST_RE = re.compile(
     r"^\s*(?:\$\w+|\$\([^)]+\))(?:\s*,\s*(?:\$\w+|\$\([^)]+\)))+\s*$"
 )
 
+# Racine servie par `/api/static` (cf. `main.py`). `!rename` y ramène ses
+# chemins ; c'est aussi la barrière qui les y confine.
+_RESSOURCES_ROOT = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+)
+
 # `anstype/inputcss.inc` injects the lines that follow the size verbatim into the
 # `<input>` tag, so they may be bare flags (`autofocus`) or `name="value"` pairs
 # (`autocomplete="off"`). Only attributes on this allow-list are forwarded: the
@@ -1659,6 +1665,9 @@ class DefEngine(_SlibMixin):
         if cmd in ("recordcnt", "recordcount", "recordno", "recordnum"):
             return self._cmd_recordcnt(args)
 
+        if cmd in ("rename",):
+            return self._cmd_rename(args)
+
         if cmd in ("randfile",):
             return ""
 
@@ -2656,6 +2665,38 @@ class DefEngine(_SlibMixin):
             return open(full, encoding="cp1252").read()
         except OSError:
             return None
+
+    def _cmd_rename(self, args: str) -> str:
+        """!rename PATH — URL de service pour un fichier du module ou de `gifs/`.
+
+        WIMS (`calc_rename`) pose un lien symbolique dans le répertoire de
+        session et renvoie une URL `getfile/rename-<alea>` : c'est un moyen de
+        servir un fichier sans en exposer le chemin. PAX sert `ressources/` par
+        `/api/static`, donc la traduction suffit — pas de lien, pas d'aléa.
+
+        La liste blanche de chemins de `calc_rename` (`gifs`, le répertoire du
+        module, `modules/data/`, `scripts/data/`) est reprise, complétée par son
+        refus des `..` : le paramètre vient du `.def`, et rien ne doit pouvoir
+        pointer hors de `ressources/`. Un fichier absent rend la chaîne vide,
+        comme WIMS quand le `symlink` échoue.
+        """
+        path = self._subst(args).strip().split()[0] if self._subst(args).strip() else ""
+        if not path or ".." in path.split("/"):
+            return ""
+        # `gifs/…` désigne l'arbre partagé de WIMS, vendoré en
+        # `ressources/wims-gifs/` (cf. `_find_wims_gifs_dir`).
+        if path.startswith("gifs/"):
+            rel = f"wims-gifs/{path[len('gifs/'):]}"
+        else:
+            if not self.def_path:
+                return ""
+            module_dir = os.path.dirname(os.path.dirname(self.def_path))
+            rel = os.path.relpath(os.path.join(module_dir, path), _RESSOURCES_ROOT)
+            if rel.startswith(".."):
+                return ""
+        if not os.path.isfile(os.path.join(_RESSOURCES_ROOT, rel)):
+            return ""
+        return f"/api/static/{rel}"
 
     @staticmethod
     def _split_records(text: str) -> list[str]:

@@ -181,7 +181,12 @@ export function useExerciseLogic() {
   // Rewrite backend-relative /api/static URLs so images load from the
   // backend (not the frontend dev server) without needing a proxy.
   function prefixStaticUrls(html: string): string {
-    return html.replaceAll(' src="/api/static/', ` src="${apiBase}/api/static/`)
+    // Le guillemet est facultatif : l'OEF écrit couramment `<img src=$val14>`
+    // sans en mettre (les drapeaux d'`oefcountries`, via `!rename`).
+    return html.replace(
+      /(\ssrc=)(["']?)\/api\/static\//g,
+      (_m, attr, quote) => `${attr}${quote}${apiBase}/api/static/`,
+    )
   }
 
   async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
@@ -199,7 +204,18 @@ export function useExerciseLogic() {
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       } else if (s.type === 'correspond' && s.config) {
-        out.push({ type: 'correspond', name: s.name ?? '', config: s.config as CorrespondConfig, is_sup: s.is_sup })
+        // Les colonnes d'un `correspond` sont du HTML rendu tel quel par le
+        // composant, donc hors du chemin des segments `html` : elles doivent
+        // être préfixées ici (les colonnes d'images d'`oefcountries`).
+        const cfg = s.config as CorrespondConfig
+        out.push({
+          type: 'correspond', name: s.name ?? '', is_sup: s.is_sup,
+          config: {
+            ...cfg,
+            lefts: cfg.lefts.map(prefixStaticUrls),
+            rights: cfg.rights.map(prefixStaticUrls),
+          },
+        })
       } else if (s.type === 'jsxgraph') {
         // The board JS is passed through untouched (NOT renderMath'd) — it
         // carries \(…\) labels that KaTeX would otherwise mangle.
