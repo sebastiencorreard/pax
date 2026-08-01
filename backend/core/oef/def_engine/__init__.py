@@ -25,6 +25,12 @@ class _RenderBudgetExceeded(Exception):
 # Budget temps d'un rendu, en secondes. WIMS lui-même borne le temps d'exécution.
 _RENDER_TIME_BUDGET = 8.0
 
+# `\nextstep` ne dit jamais combien d'étapes restent : l'exercice s'arrête quand
+# la variable devient vide. On rejoue donc `:postdef` jusqu'à cet arrêt, borné
+# pour qu'un `.def` mal formé ne parte pas en boucle (le maximum observé sur le
+# corpus est 6).
+_MAX_NEXTSTEPS = 32
+
 from .cas import (
     _MATH_NS,
     _PARI_HELPERS,
@@ -211,6 +217,146 @@ class DefEngine(_SlibMixin):
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
+    # ── \nextstep (étapes dynamiques) ─────────────────────────────────────────
+
+    @staticmethod
+    def _normalise_nextstep(raw: str) -> str:
+        """Port de `wims/public_html/scripts/oef/nextstep.proc`.
+
+        `replies`/`choices` → `r`/`c`, minuscules, espaces retirés, tabulations
+        converties en lignes (`!rows2lines`), puis **première ligne non vide**.
+        Une chaîne vide signifie « plus d'étape ».
+        """
+        if not raw.strip():
+            return ""
+        s = raw.lower()
+        for long, short in (
+            ("replies", "r"), ("choices", "c"), ("reply", "r"), ("choice", "c")
+        ):
+            s = s.replace(long, short)
+        # `!nospace` retire les blancs sauf les sauts de ligne ; `!rows2lines`
+        # promeut ensuite les tabulations en sauts de ligne.
+        s = re.sub(r"[^\S\n\r\t]", "", s)
+        for line in re.split(r"[\t\r\n]+", s):
+            if line:
+                return line
+        return ""
+
+    @staticmethod
+    def _nextstep_depends_on_replies(postdef: list, nextstep_raw: str) -> bool:
+        """True si la *suite* de l'exercice dépend des réponses déjà données.
+
+        26 des 97 exercices dont `\\nextstep` pointe vers une variable calculée
+        en `:postdef` font dépendre l'existence de l'étape suivante de la
+        *justesse* d'une réponse (`!ifval ($m_step==2 and $m_sc_reply1==1)`,
+        oefechpython.fr/de4) — c'est ce que la doc OEF appelle « étapes
+        dynamiques ». Leur nombre d'étapes n'est pas connaissable avant que
+        l'élève ait répondu.
+
+        Seules comptent les affectations de la variable que `\\nextstep`
+        désigne : `heron1` lit `$m_sc_reply2` pour composer un feedback, mais
+        son `val6` ne branche que sur `$m_step`, donc son total est connu.
+        """
+        from ..def_parser import Assign, IfBlock  # noqa: PLC0415
+
+        m = re.fullmatch(r"\$\(?(\w+)\)?", (nextstep_raw or "").strip())
+        if not m:
+            # Forme littérale (`reply1<TAB>reply2,reply3`) : rien à recalculer.
+            return False
+        target = m.group(1)
+        pat = re.compile(r"\$m_(?:sc_)?(?:reply|choice)")
+
+        def walk(body: list, guarded: bool) -> bool:
+            for instr in body:
+                if isinstance(instr, IfBlock):
+                    cond = guarded or bool(pat.search(instr.condition))
+                    if walk(instr.then_body, cond) or walk(instr.else_body, cond):
+                        return True
+                elif isinstance(instr, Assign) and instr.name == target:
+                    if guarded or pat.search(instr.value or ""):
+                        return True
+            return False
+
+        return walk(postdef, False)
+
+    def _resolve_nextstep(
+        self, df: DefFile, dynamic_out: list | None = None
+    ) -> tuple[int | None, list[str]] | None:
+        """Progression d'un exercice `\\nextstep` : (total d'étapes, `oefsteps`).
+
+        WIMS relit `$nextstep` après chaque étape (`nextstep.proc`) et s'arrête
+        dès qu'il est vide ; le total n'est donc jamais écrit dans le `.def`. On
+        rejoue la progression en repartant de l'étape 1 — `:postdef` ne branche
+        que sur `$m_step` et sur les réponses mémorisées, toutes deux déjà dans
+        le contexte au moment du rendu.
+
+        Le total renvoyé vaut ``None`` quand la suite dépend des réponses : au
+        delà de l'étape courante on ne sait pas encore combien d'étapes
+        viendront, et annoncer un nombre serait un mensonge. Les lignes déjà
+        déterminées, elles, restent exactes et sont renvoyées dans tous les cas.
+
+        Renvoie ``None`` quand `\\nextstep` est inactif (`postvarcnt=0`, le cas
+        majoritaire : WIMS sort alors immédiatement de `nextstep.proc`).
+        """
+        try:
+            postvarcnt = int(str(df.meta.get("postvarcnt", "0")).strip() or "0")
+        except ValueError:
+            postvarcnt = 0
+        postdef = df.sections.get("postdef") or []
+        if postvarcnt <= 0 or not postdef or "nextstep" not in self.ctx:
+            return None
+
+        try:
+            current = int(self.ctx.get("m_step", "1"))
+        except (TypeError, ValueError):
+            current = 1
+        dynamic = self._nextstep_depends_on_replies(postdef, self.ctx.get("nextstep", ""))
+        if dynamic_out is not None:
+            dynamic_out.append(dynamic)
+
+        saved = dict(self.ctx)
+        steps: list[str] = []
+        total: int | None = None
+        deadline = self._deadline
+        self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
+        try:
+            # `step.proc` fait `!advance oefstep` / `m_step=$oefstep` *avant*
+            # de lire `nextstep.proc` : `:postdef` s'exécute donc avec `m_step`
+            # pointant l'étape à venir, et les `.def` testent bien `m_step==2`
+            # pour décider si une deuxième étape existe. La première est déjà
+            # décrite par `oefsteps`, d'où le départ à 2.
+            for k in range(2, _MAX_NEXTSTEPS + 1):
+                # Progression conditionnée par les réponses : au-delà de l'étape
+                # courante, le rejeu extrapolerait sur des réponses que l'élève
+                # n'a pas encore données. On laisse alors le total indéterminé
+                # plutôt que d'en annoncer un faux.
+                if dynamic and k > current:
+                    break
+                self.ctx["m_step"] = str(k)
+                self.ctx["step"] = str(k)
+                try:
+                    self._exec(postdef, output_buf=None)
+                except _RenderBudgetExceeded:
+                    break
+                line = self._normalise_nextstep(self._subst(self.ctx.get("nextstep", "")))
+                if not line:
+                    total = k - 1
+                    # Progression conditionnée par les réponses : sans elles,
+                    # `:postdef` peut refuser d'ouvrir une étape pourtant déjà
+                    # atteinte (oefechpython.fr/de4). Le total ne peut alors
+                    # pas être inférieur à l'étape en cours. Pour un exercice
+                    # déterministe, au contraire, `k-1` fait autorité — un
+                    # `m_step` au-delà est une étape qui n'existe pas.
+                    if dynamic:
+                        total = max(total, current)
+                    break
+                steps.append(line)
+        finally:
+            self._deadline = deadline
+            self.ctx.clear()
+            self.ctx.update(saved)
+        return total, steps
+
     def render(self, df: DefFile) -> ExerciseRender:
         # m_step is now always initialized to "1" in __init__, and can be
         # overridden by load_and_render before calling render(). This ensures
@@ -313,18 +459,47 @@ class DefEngine(_SlibMixin):
                 type_meta["current_step"] = int(self.ctx.get("m_step", "1"))
             except (ValueError, TypeError):
                 type_meta["current_step"] = 1
-            
+
+            # `\nextstep` fait autorité quand il est actif : lui seul sait où
+            # l'exercice s'arrête. Les lignes rejouées complètent `oefsteps`,
+            # qui ne contient que l'étape courante au premier rendu.
+            dynamic_flag: list[bool] = []
+            plan = self._resolve_nextstep(df, dynamic_flag)
+            # Le rejeu ne fait autorité que s'il a tranché : soit il a trouvé la
+            # fin, soit il a établi que la suite dépend des réponses et qu'aucun
+            # total n'est annonçable. Sinon — `$nextstep` constant, comme les
+            # tables de arithtable.*/table2x2 dont `:postdef` ne touche jamais la
+            # variable — on n'a rien appris : ni total, ni étapes à ajouter à
+            # `oefsteps`, et les heuristiques de repli reprennent la main.
+            nextstep_active = plan is not None and (
+                plan[0] is not None or (dynamic_flag and dynamic_flag[0])
+            )
+            if nextstep_active:
+                total, extra = plan
+                if total is not None:
+                    type_meta["total_steps"] = total
+                known = [s for s in re.split(r"[;\n\r\t]+", oefsteps_val) if s.strip()]
+                for line in extra:
+                    if total is not None and len(known) >= total:
+                        break
+                    known.append(line)
+                if known:
+                    oefsteps_val = "\n".join(known)
+                    self.ctx["oefsteps"] = oefsteps_val
+
             # Try to extract total steps from common variable names.
             # 1. Look at oefsteps first
-            if oefsteps_val:
+            if not nextstep_active and "total_steps" not in type_meta and oefsteps_val:
                 # oefsteps may be tab-, semicolon-, or newline-separated (e.g. "r1\tr2\tr3\tr4")
                 steps = re.split(r"[;\n\r\t]+", oefsteps_val)
                 steps = [s.strip() for s in steps if s.strip()]
                 if steps:
                     type_meta["total_steps"] = len(steps)
             
-            # 2. Fall back to other common variables if total_steps still missing
-            if "total_steps" not in type_meta:
+            # 2. Fall back to other common variables if total_steps still
+            # missing. Ce repli devine un total à partir de noms de variables
+            # arbitraires (`val62`, `val71`, …) : à ne tenter que faute de mieux.
+            if not nextstep_active and "total_steps" not in type_meta:
                 for var_name in ("val62", "val71", "cnt", "val61", "val70"):
                     val = self.ctx.get(var_name, "")
                     try:

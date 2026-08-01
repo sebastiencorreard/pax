@@ -79,7 +79,11 @@ Dans le corpus OEF, le type de réponse peut être résolu récursivement. PAX d
     *   `absolute` ❌ : Tolérance absolue.
     *   `comma` ❌ : Virgule comme séparateur décimal.
     *   `noreduction` ❌ : N'exige pas de simplification (type `numexp`).
-    *   `symbols=[...]` ❌ : Variables autorisées (type `formal`).
+    *   `symbols=[...]` ❌ : **option d'UI transverse**, pas une contrainte de
+        vérification — une palette de boutons affichée sous le champ, chacun
+        insérant son symbole au caret de l'input (`appendToInput`, cf.
+        `wims/public_html/scripts/anstype/symbols.inc`). S'applique à tout type
+        de réponse, avec rendu via `chemeq` quand le type l'est.
     *   `vector_left`, `vector_right` ❌ : Délimiteurs de vecteurs.
 *   **QCM** : 
     *   `shuffle` ❌ : Mélange l'ordre des choix.
