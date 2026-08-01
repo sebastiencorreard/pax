@@ -19,11 +19,15 @@ Périmètre couvert (suffisant pour le corpus) :
 * ``if(cond, alors, sinon)`` en position d'instruction **et** d'expression ;
 * ``print``/``print1`` accumulant la sortie (une ligne par ``print``, comme GP) ;
 * ``sum(v = a, b, e)`` et ``prod(v = a, b, e)`` ;
-* vecteurs/matrices **1-indexés** (``l[j]``, ``m[i,j]``) et transposée ``x~``.
+* vecteurs/matrices **1-indexés** (``l[j]``, ``m[i,j]``) et transposée ``x~`` ;
+* fonctions définies par le programme (``f(x) = corps``, éventuellement
+  entourées de parenthèses), ``local()``, et le type mutable ``List`` avec
+  ``listinsert``/``Vec``/``vecsort`` — ce dont ``slib/function/tabsignes`` a
+  besoin pour trier ses positions de réponses.
 
-Tout le reste (définitions de fonctions ``f(x) = …``, ``local()``, ``List()``)
-sort du périmètre : l'interpréteur lève alors ``PariProgramError`` et
-``_call_pari`` retombe sur son évaluation d'expression d'origine.
+Tout le reste sort du périmètre : l'interpréteur lève alors
+``PariProgramError`` et ``_call_pari`` retombe sur son évaluation d'expression
+d'origine.
 """
 
 from __future__ import annotations
@@ -173,6 +177,65 @@ class PMat:
 
     def __repr__(self):
         return f"PMat({self.rows!r})"
+
+
+class PList:
+    """`List` de GP — un vecteur *mutable*, distinct du vecteur immuable.
+
+    Seul `listinsert` est utilisé par le corpus (`slib/function/tabsignes` et
+    `slib/stat/binomial` construisent leurs lignes ainsi) ; `Vec` la reconvertit
+    en vecteur ordinaire.
+    """
+
+    __slots__ = ("items",)
+
+    def __init__(self, items=()):
+        self.items = list(items)
+
+    def __len__(self):
+        return len(self.items)
+
+    def __iter__(self):
+        return iter(self.items)
+
+    def __getitem__(self, idx):
+        return self.items[_one_based(idx, len(self.items))]
+
+    def __setitem__(self, idx, value):
+        self.items[_one_based(idx, len(self.items))] = value
+
+    def __repr__(self):
+        return f"PList({self.items!r})"
+
+
+def _pari_listinsert(lst, value, index):
+    """`listinsert(L, x, i)` — insère `x` en position `i` (1-based) et renvoie
+    la valeur insérée, comme GP."""
+    if not isinstance(lst, PList):
+        raise PariProgramError("listinsert attend une List")
+    i = int(index)
+    if i < 1 or i > len(lst.items) + 1:
+        raise PariProgramError(f"listinsert : index {i} hors bornes")
+    lst.items.insert(i - 1, value)
+    return value
+
+
+def _sort_key(value):
+    """Clé de tri de `vecsort` : ordre lexicographique pour les vecteurs (les
+    lignes d'une matrice), numérique sinon."""
+    if isinstance(value, (PVec, PList)):
+        return tuple(_sort_key(v) for v in value.items)
+    try:
+        return (0, float(value))
+    except (TypeError, ValueError):
+        return (1, str(value))
+
+
+def _pari_vecsort(vec, *_rest):
+    """`vecsort(V)` — tri croissant. Les arguments de comparaison optionnels de
+    GP ne sont pas utilisés par le corpus."""
+    items = vec.items if isinstance(vec, (PVec, PList)) else list(vec)
+    return PVec(sorted(items, key=_sort_key))
 
 
 def _one_based(idx, length: int) -> int:
@@ -408,6 +471,8 @@ class PariInterpreter:
         # Littéraux chaîne mis de côté en amont : le découpage aux `;`/`,` ne
         # doit pas voir leur contenu (`print(n","nbin)` de oefbin.nl/binary).
         self.strings: dict[str, str] = strings or {}
+        # Fonctions définies par le programme : nom → (paramètres, corps).
+        self.funcs: dict[str, tuple[list[str], str]] = {}
         # Les helpers de `cas` renvoient des listes/matrices sympy ; on les
         # enveloppe pour que l'indexation reste 1-based côté programme.
         self.base_ns = {k: _wrap_helper(v) for k, v in base_ns.items()}
@@ -419,6 +484,15 @@ class PariInterpreter:
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
                 "length": _pari_length,
                 "Vec": _pari_vec,
+                "List": lambda x=(): PList(
+                    x.items if isinstance(x, (PVec, PList)) else (x or ())
+                ),
+                "listinsert": _pari_listinsert,
+                "vecsort": _pari_vecsort,
+                # `local(a,b,…)` déclare des variables de fonction ; l'effet de
+                # portée ne change rien ici puisque chaque appel restaure déjà
+                # l'état qu'il a modifié.
+                "local": lambda *a: sympy.Integer(0),
                 "concat": _pari_concat,
                 "abs": abs,
                 # Constantes GP — sans elles, `boo=true` liait un symbole libre
@@ -447,6 +521,27 @@ class PariInterpreter:
 
     def exec_stmt(self, stmt: str) -> Any:
         self._tick()
+
+        # `( … )` enveloppant toute l'instruction : GP l'autorise, et les slib
+        # s'en servent pour isoler une définition de fonction avant de
+        # l'appeler (`(f(r,n)= … ); f(2,1)` dans slib/stat/histo). Sans ce
+        # déballage, le `=` de la définition reste à profondeur 1 et
+        # l'instruction est prise pour une expression.
+        stripped = stmt.strip()
+        if stripped.startswith("(") and stripped.endswith(")"):
+            inner = stripped[1:-1]
+            depth = 0
+            balanced = True
+            for ch in inner:
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+                    if depth < 0:
+                        balanced = False
+                        break
+            if balanced and depth == 0 and _split_assignment(inner) is not None:
+                stmt = inner
 
         inner = _match_call(stmt, "for")
         if inner is not None:
@@ -536,6 +631,18 @@ class PariInterpreter:
         return "".join(out)
 
     def _exec_assign(self, target: str, rhs: str) -> Any:
+        # `nom(params) = corps` — définition de fonction GP. Le corps est une
+        # séquence d'instructions dont la dernière donne la valeur de retour
+        # (`slib/function/tabsignes` trie ainsi ses positions de réponses avec
+        # `matsort(mat)=…;N`).
+        fn = re.match(r"^([A-Za-z_]\w*)\s*\(([^)]*)\)$", target.strip())
+        if fn:
+            name = fn.group(1)
+            params = [p.strip() for p in fn.group(2).split(",") if p.strip()]
+            self.funcs[name] = (params, rhs)
+            self.vars.pop(name, None)
+            return None
+
         value = self.eval_expr(rhs)
         m = re.match(r"^([A-Za-z_]\w*)\s*\[(.+)\]$", target.strip(), re.DOTALL)
         if m:
@@ -572,6 +679,8 @@ class PariInterpreter:
 
         ns = dict(self.base_ns)
         ns.update(self.vars)
+        for name in self.funcs:
+            ns[name] = self._user_func(name)
         for ident in set(_IDENT_RE.findall(code)):
             if ident not in ns and ident not in _PY_KEYWORDS:
                 ns[ident] = self.sympy.Symbol(ident)
@@ -581,6 +690,26 @@ class PariInterpreter:
             raise
         except Exception as exc:  # parse/exécution impossible → hors périmètre
             raise PariProgramError(f"expression non évaluable : {expr!r} ({exc})") from exc
+
+    def _user_func(self, name: str):
+        """Rend une fonction définie par le programme appelable depuis une
+        expression. Les paramètres masquent les variables de même nom le temps
+        de l'appel, et la dernière instruction du corps donne le résultat."""
+
+        def call(*args):
+            params, body = self.funcs[name]
+            saved = {p: self.vars.get(p) for p in params}
+            self.vars.update(dict(zip(params, args)))
+            try:
+                return self.exec_block(body)
+            finally:
+                for p, old in saved.items():
+                    if old is None:
+                        self.vars.pop(p, None)
+                    else:
+                        self.vars[p] = old
+
+        return call
 
     def _expand_reductions(self, expr: str) -> str:
         """Déroule ``sum(v = a, b, e)`` / ``prod(...)`` — variable liée, donc
@@ -662,7 +791,7 @@ def _truth(value: Any) -> bool:
     """
     if isinstance(value, bool):
         return value
-    if isinstance(value, (PVec, PMat)):
+    if isinstance(value, (PVec, PMat, PList)):
         return len(value) > 0
     if getattr(value, "is_Boolean", False) or getattr(value, "is_Relational", False):
         try:
@@ -691,7 +820,7 @@ def _from_pari_value(value: Any) -> Any:
     listes Python et ne connaissent pas `PVec`/`PMat`."""
     if isinstance(value, PMat):
         return [list(row) for row in value.rows]
-    if isinstance(value, PVec):
+    if isinstance(value, (PVec, PList)):
         return list(value.items)
     return value
 
@@ -733,7 +862,7 @@ def _pari_concat(*args) -> Any:
 
 
 def _pari_length(x) -> int:
-    if isinstance(x, (PVec, PMat)):
+    if isinstance(x, (PVec, PMat, PList)):
         return len(x)
     if isinstance(x, (list, tuple, str)):
         return len(x)
@@ -741,7 +870,7 @@ def _pari_length(x) -> int:
 
 
 def _pari_vec(x):
-    if isinstance(x, PVec):
+    if isinstance(x, (PVec, PList)):
         return PVec(x.items)
     if isinstance(x, PMat):
         return PVec([PVec(r) for r in x.rows])
@@ -805,7 +934,7 @@ def _format_value(value: Any) -> str:
 
     if isinstance(value, str):
         return value.strip('"')
-    if isinstance(value, PVec):
+    if isinstance(value, (PVec, PList)):
         return "[" + ", ".join(_format_value(v) for v in value.items) + "]"
     if isinstance(value, PMat):
         return "[" + "; ".join(
@@ -825,13 +954,16 @@ def _format_value(value: Any) -> str:
 # traitée par `_call_pari`.
 _CONTROL_RE = re.compile(r"^\s*(for|while|forstep)\s*\(", re.I)
 _BOUND_VAR_RE = re.compile(r"\b(sum|prod)\s*\(\s*[A-Za-z_]\w*\s*=")
+# Constructions que l'évaluation d'expression ne sait pas rendre : types
+# mutables et fonctions définies à la volée.
+_GP_ONLY_RE = re.compile(r"\b(List|listinsert|listput|vecsort|local)\s*\(|\w+\([^)]*\)\s*=(?!=)")
 
 
 def looks_like_program(src: str) -> bool:
     body, _ = _stash_strings(src.strip().rstrip(";").strip())
     if body.startswith("{") and body.endswith("}"):
         body = body[1:-1]
-    if _CONTROL_RE.match(body) or _BOUND_VAR_RE.search(body):
+    if _CONTROL_RE.match(body) or _BOUND_VAR_RE.search(body) or _GP_ONLY_RE.search(body):
         return True
     if _TILDE_RE.search(body):
         return True

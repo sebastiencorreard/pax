@@ -147,8 +147,39 @@ class TestFallback:
         assert _call_pari("polcoeff(x^2+3*x+2,1)") == "3"
 
     def test_unsupported_construct_returns_source(self):
-        src = "f(x)=x^2; print(f(3))"
+        """Une syntaxe que l'interpréteur ne sait pas lire ressort intacte."""
+        src = "f(x)=x^^2; print(f(3"
         assert _call_pari(src) == src
+
+
+class TestUserFunctions:
+    """Fonctions définies par le programme, `List` et `vecsort` — ce dont
+    `slib/function/tabsignes` a besoin pour trier ses positions de réponses."""
+
+    def test_simple_definition_and_call(self):
+        assert _call_pari("f(x)=x^2; print(f(3))") == "9"
+
+    def test_definition_wrapped_in_parentheses(self):
+        """`slib/stat/histo` isole ainsi sa fonction d'arrondi avant l'appel."""
+        src = "(f(r,n)= l=if(r != 0, 1,1) ; s=r*10 ; s*10^(l-n+1) ); print(f(2,1))"
+        assert _call_pari(src) == "200"
+
+    def test_parameters_do_not_leak(self):
+        assert _call_pari("x=7; f(x)=x*2; f(3); print(x)") == "7"
+
+    def test_list_insert_and_vec(self):
+        assert _call_pari("L=List([]); listinsert(L,5,1); listinsert(L,3,1); print(Vec(L))") == "3, 5"
+
+    def test_vecsort(self):
+        assert _call_pari("print(vecsort([3,1,2]))") == "1, 2, 3"
+
+    def test_matsort_sorts_matrix_rows(self):
+        """Le `matsort` de tabsignes : lignes triées dans l'ordre lexicographique."""
+        src = (
+            "(matsort(mat)=A=[mat];L=List([]);for(i=1,3,listinsert(L,mat[i,],i));"
+            "V=Vec(L);N=vecsort(V);N);matsort([2,9;1,4;1,2])"
+        )
+        assert _call_pari(src) == "[1, 2], [1, 4], [2, 9]"
 
 
 class TestWimsOutputFilter:
