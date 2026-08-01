@@ -62,6 +62,9 @@ export interface BackendSegment {
   reply?: string
   image?: string
   svg?: string
+  // HTML attributes carried by the extra lines of an `\embed` size parameter
+  // (`\embed{reply 1,30 autofocus}`), allow-listed backend-side.
+  attrs?: Record<string, string | boolean>
 }
 
 export interface Chrono {
@@ -121,8 +124,8 @@ export interface CorrespondConfig {
 export type Segment =
   | { type: 'html';        content: string }
   | { type: 'slot';        name: string; is_sup?: boolean; index?: number; width?: number }
-  | { type: 'input';       name: string; width: string; is_sup?: boolean }
-  | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
+  | { type: 'input';       name: string; width: string; is_sup?: boolean; attrs?: Record<string, string | boolean> }
+  | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean; attrs?: Record<string, string | boolean> }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
@@ -188,9 +191,9 @@ export function useExerciseLogic() {
         out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '', { autoDisplay: true })) })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
-        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })
+        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup, attrs: s.attrs })
       } else if (s.type === 'textarea') {
-        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup })
+        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup, attrs: s.attrs })
       } else if (s.type === 'slot') {
         out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup, index: s.index, width: s.width })
       } else if (s.type === 'menu') {

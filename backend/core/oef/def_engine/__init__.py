@@ -114,6 +114,42 @@ _COMMA_VARLIST_RE = re.compile(
     r"^\s*(?:\$\w+|\$\([^)]+\))(?:\s*,\s*(?:\$\w+|\$\([^)]+\)))+\s*$"
 )
 
+# `anstype/inputcss.inc` injects the lines that follow the size verbatim into the
+# `<input>` tag, so they may be bare flags (`autofocus`) or `name="value"` pairs
+# (`autocomplete="off"`). Only attributes on this allow-list are forwarded: the
+# tail is exercise content, and an `on…` handler reaching the DOM would run.
+_ALLOWED_INPUT_ATTRS = {
+    "autocomplete", "autofocus", "dir", "inputmode", "lang", "maxlength",
+    "placeholder", "readonly", "spellcheck", "title",
+}
+_INPUT_ATTR_RE = re.compile(
+    r"""([A-Za-z][A-Za-z0-9-]*)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"']+))?"""
+)
+
+
+def _parse_input_attributes(tail: str) -> dict[str, object]:
+    """HTML attributes carried by the extra lines of an `\\embed` size parameter.
+
+    Returns ``{name: value}``, a bare flag mapping to ``True``. Unknown names are
+    dropped silently — WIMS' own tail also holds non-attribute payloads (the
+    `brd [responsive …]` of a jsxgraph embed, which never reaches this path).
+    """
+    attrs: dict[str, object] = {}
+    for line in tail.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        for m in _INPUT_ATTR_RE.finditer(line):
+            name = m.group(1).lower()
+            if name not in _ALLOWED_INPUT_ATTRS:
+                continue
+            raw = m.group(2)
+            if raw is None:
+                attrs[name] = True
+            else:
+                attrs[name] = raw[1:-1] if raw[:1] in ("'", '"') else raw
+    return attrs
+
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
@@ -3820,16 +3856,31 @@ class DefEngine(_SlibMixin):
         # `30<TAB>autofocus` n'était pas numérique et la taille retombait
         # silencieusement sur le défaut : ~370 champs du corpus (355
         # `autofocus`, 17 `autocomplete="off"`) étaient rendus trop étroits.
-        size_raw = self._subst(size_str).replace("\t", "\n").split("\n", 1)[0].strip()
+        size_raw, _, attr_tail = (
+            self._subst(size_str).replace("\t", "\n").partition("\n")
+        )
+        size_raw = size_raw.strip()
+        attrs = _parse_input_attributes(attr_tail)
+        extra = ""
+        if attrs:
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            extra = f' data-attrs="{_html.escape(_json.dumps(attrs), quote=True)}"'
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
-            span = f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
+            span = (
+                f'<span class="oef-input" name="{ref}" '
+                f'data-size="{size_raw}"{extra}></span>'
+            )
         else:
             try:
                 size = int(round(float(self._eval_arith(size_raw))))
             except (ValueError, TypeError):
                 size = 10
-            span = f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
+            span = (
+                f'<span class="oef-input" name="{ref}" '
+                f'data-size="{size}"{extra}></span>'
+            )
 
         # WIMS' fset.input frames the field in literal braces to signal that a
         # *set* is expected (e.g. T1116: the solution set of f(x)=k). Mirror it.

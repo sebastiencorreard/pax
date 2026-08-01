@@ -34,6 +34,7 @@
         :disabled="ctx.submitted.value"
         :class="[ctx.inputClass(node.seg.name), { 'is-sup': node.seg.is_sup }]"
         autocomplete="off"
+        v-bind="node.seg.attrs"
         @dragover.prevent
         @drop.prevent
         @keydown.enter.prevent="() => { if (!ctx.submitted.value && !ctx.loading.value) ctx.onSubmit() }"
@@ -48,6 +49,7 @@
         :disabled="ctx.submitted.value"
         class="rounded border px-2 py-1 text-sm font-mono resize"
         style="background:var(--color-bg);border-color:var(--color-border);color:var(--color-text)"
+        v-bind="node.seg.attrs"
       />
 
       <ExerciseCorrespondAnswer v-else-if="node.seg.type === 'correspond'"

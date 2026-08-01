@@ -394,9 +394,17 @@ function radioClass(inputName: string, choice: string) {
   return ''
 }
 
-// Focus automatique sur le premier input texte après chaque chargement
+// Focus automatique après chaque chargement : sur le champ que l'énoncé a
+// marqué `autofocus` (attribut hérité du paramètre de taille de `\embed`,
+// cf. anstype/inputcss.inc) s'il y en a un, sinon sur le premier champ texte.
+// L'attribut HTML seul ne suffit pas : posé sur un élément inséré après le
+// parsing du document, il ne donne pas le focus.
 watch(() => props.statementSegments, () => {
-  statementEl.value?.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
+  const root = statementEl.value
+  if (!root) return
+  const el = root.querySelector<HTMLInputElement>('input[type="text"][autofocus]')
+    ?? root.querySelector<HTMLInputElement>('input[type="text"]')
+  el?.focus()
 }, { flush: 'post' })
 
 // Statement segments folded into a tree (layout groups wrap their children),
