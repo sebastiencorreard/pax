@@ -147,3 +147,34 @@ class TestEmbedExtraLines:
 
     def test_textarea_geometry_is_unchanged(self):
         assert 'data-size="4x30"' in self._embed("r1,4x30")
+
+
+class TestEditarea:
+    """`editarea.phtml` : bloc de code en lecture seule, dimensionné sur le
+    contenu (`cols` = ligne la plus longue + 20, `rows` = nombre de lignes)."""
+
+    def test_code_is_rendered_readonly(self):
+        out = engine()._render_special("editarea a = 1\tb = 2")
+        assert 'readonly="readonly"' in out
+        assert "a = 1\nb = 2" in out
+
+    def test_dimensions_follow_the_content(self):
+        out = engine()._render_special("editarea abc\tdefgh")
+        assert 'rows="2"' in out
+        assert 'cols="25"' in out  # 5 (la plus longue) + 20
+
+    def test_markup_in_code_is_escaped(self):
+        out = engine()._render_special("editarea if a < b:\tprint('<x>')")
+        assert "&lt;" in out
+        assert "<x>" not in out
+
+    def test_empty_code_renders_nothing(self):
+        assert engine()._render_special("editarea    ") == ""
+
+    def test_corpus_script_reaches_the_statement(self):
+        """`oefpython.fr/liste_portee1` demande la valeur finale d'un script
+        Python : sans ce rendu, le script n'apparaissait nulle part et
+        l'exercice était insoluble."""
+        r = load_and_render("/ressources/H4/algo/oefpython.fr/def/liste_portee1.def", seed=42)
+        assert "<textarea" in r.statement_html
+        assert "def fonction(u, l):" in r.statement_html

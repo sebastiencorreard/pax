@@ -2921,7 +2921,34 @@ class DefEngine(_SlibMixin):
             return self._render_tooltip(rest)
         if kind == "help":
             return self._render_special_help(rest)
+        if kind == "editarea":
+            return self._render_editarea(rest)
         return ""
+
+    def _render_editarea(self, args: str) -> str:
+        """``editarea <code>`` — bloc de code en lecture seule.
+
+        Port d'`oef/special/editarea.phtml` : tabulations promues en sauts de
+        ligne, puis un `textarea` en lecture seule dimensionné sur le contenu
+        (`cols` = ligne la plus longue + 20, `rows` = nombre de lignes). WIMS y
+        ajoute la coloration syntaxique d'EditArea ; sans elle le code reste
+        parfaitement lisible.
+
+        Sans ce rendu, `oefpython.fr/liste_portee1` demandait la valeur finale
+        d'un script Python **que l'énoncé n'affichait pas** : l'exercice était
+        insoluble, pas seulement dégradé.
+        """
+        import html as _html  # noqa: PLC0415
+
+        code = args.replace("\t", "\n").strip("\n")
+        if not code.strip():
+            return ""
+        lines = code.split("\n")
+        cols = max((len(line) for line in lines), default=0) + 20
+        return (
+            f'<textarea class="wims_show" cols="{cols}" rows="{len(lines)}" '
+            f'readonly="readonly">{_html.escape(code)}</textarea>'
+        )
 
     def _render_expandlines(self, args: str) -> str:
         """``expandlines <texte>`` — bloc préformaté dont les tabulations sont

@@ -528,7 +528,17 @@ class _SlibMixin:
                 raise _RenderBudgetExceeded()
             line = lines[i]
             stripped = line.strip()
-            if not stripped or stripped.startswith("#") or stripped.startswith(":"):
+            # `!!` ouvre un commentaire WIMS (et `!!!!` un bandeau de version en
+            # tête de slib). Sans ce filtre, chaque ligne de commentaire partait
+            # dans le dispatch de commandes et en revenait avec `UNKNOWN_CMD:!`,
+            # qui écrasait `slib_out` — `slib/function/tabsignes` ne renvoyait
+            # que `UNKNOWN_CMD:!!!`, son en-tête de version.
+            if (
+                not stripped
+                or stripped.startswith("#")
+                or stripped.startswith("!!")
+                or stripped.startswith(":")
+            ):
                 i += 1
                 continue
             # `!ifval` (comparaison numérique) ouvre un bloc comme `!if` : il DOIT

@@ -1772,3 +1772,32 @@ class TestNestedMatrixSubst:
         e = self._engine()
         out = e._subst("$(mat[$(missing);])")
         assert "La moitié" not in out
+
+
+# ── slib : lignes de commentaire ──────────────────────────────────────────────
+
+
+class TestSlibComments:
+    """`!!` ouvre un commentaire WIMS. L'interpréteur slib sautait `#` et `:`
+    mais pas `!!` : chaque ligne de commentaire partait dans le dispatch de
+    commandes et en revenait avec `UNKNOWN_CMD:!`, qui écrasait `slib_out`.
+    `slib/function/tabsignes` ne renvoyait ainsi que son bandeau de version
+    (`!!!! tabsignes v1.22`, première ligne du fichier)."""
+
+    def test_comment_lines_are_skipped(self):
+        e = engine()
+        e._run_script_lines(
+            ["!! un commentaire", "!!!! bandeau de version", "slib_out=ok"]
+        )
+        assert e.ctx.get("slib_out") == "ok"
+
+    def test_comment_does_not_overwrite_an_earlier_result(self):
+        e = engine()
+        e._run_script_lines(["slib_out=valeur", "!! commentaire de fin"])
+        assert e.ctx.get("slib_out") == "valeur"
+
+    def test_a_bang_command_is_still_dispatched(self):
+        """Le filtre ne doit pas avaler les vraies commandes."""
+        e = engine()
+        e._run_script_lines(["slib_out=!trim   espaces  "])
+        assert e.ctx.get("slib_out") == "espaces"
