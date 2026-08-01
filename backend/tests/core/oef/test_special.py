@@ -116,3 +116,34 @@ class TestCorpus:
         r = load_and_render("/ressources/H4/physics/oefpression.fr/def/0704.def", seed=42)
         assert re.search(r"format scientifique", r.statement_html)
         assert "oef_specialhelp" in r.statement_html
+
+
+class TestEmbedExtraLines:
+    """`\\embed{reply 1,30 autofocus}` compile en `r1,30<TAB>autofocus`.
+
+    `anstype/inputcss.inc` découpe ce paramètre en lignes : la première est la
+    taille, les suivantes sont des attributs HTML du champ. Sans ce découpage,
+    `30<TAB>autofocus` n'était pas numérique et la taille retombait sur le
+    défaut — 95 champs du corpus étaient rendus à la mauvaise largeur.
+    """
+
+    def _embed(self, args: str) -> str:
+        e = engine()
+        e.ctx["replygood1"] = "42"
+        e.ctx["replytype1"] = "numeric"
+        return e._render_embed(args)
+
+    def test_size_survives_a_trailing_autofocus(self):
+        assert 'data-size="30"' in self._embed("r1,30\tautofocus")
+
+    def test_size_survives_indented_extra_lines(self):
+        assert 'data-size="30"' in self._embed("r1,30\t    autofocus")
+
+    def test_size_survives_an_html_attribute(self):
+        assert 'data-size="5"' in self._embed('r1,5\tautocomplete="off"')
+
+    def test_plain_size_is_unchanged(self):
+        assert 'data-size="30"' in self._embed("r1,30")
+
+    def test_textarea_geometry_is_unchanged(self):
+        assert 'data-size="4x30"' in self._embed("r1,4x30")

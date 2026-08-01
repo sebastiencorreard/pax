@@ -3583,7 +3583,14 @@ class DefEngine(_SlibMixin):
                     return f'<span class="oef-coord" name="reply{n}" data-img="{img}"></span>'
                 return ""
 
-        size_raw = self._subst(size_str).strip()
+        # `anstype/inputcss.inc` : le paramètre de taille peut porter des lignes
+        # supplémentaires (tabulations promues en sauts de ligne) qui sont des
+        # *attributs HTML* du champ, pas des chiffres — `\embed{reply 1,30
+        # autofocus}` compile en `r1,30<TAB>autofocus`. Sans ce découpage,
+        # `30<TAB>autofocus` n'était pas numérique et la taille retombait
+        # silencieusement sur le défaut : ~370 champs du corpus (355
+        # `autofocus`, 17 `autocomplete="off"`) étaient rendus trop étroits.
+        size_raw = self._subst(size_str).replace("\t", "\n").split("\n", 1)[0].strip()
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
             span = f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
