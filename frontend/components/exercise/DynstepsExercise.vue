@@ -14,6 +14,7 @@
       :radio-choices-html="radioChoicesHtml"
       :menu-choices-html="menuChoicesHtml"
       :has-clickfill="hasClickfill"
+      :single-use-fill="singleUseFill"
       :has-radio-answers="hasRadioAnswers"
       :submitted="submitted"
       :loading="checking"
@@ -181,6 +182,11 @@ const currentStepFailedInputName = ref('')
 
 const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
+)
+// `dragfill` : étiquettes à usage unique. WIMS impose que tous les champs à
+// remplir d'un exercice soient du même type, d'où un drapeau global.
+const singleUseFill = computed(() =>
+  props.rendered?.answers.some(a => a.options?.single_use) ?? false
 )
 // `rendered.answers` is already filtered server-side to the current step's
 // active replies, so this is naturally correct per step.

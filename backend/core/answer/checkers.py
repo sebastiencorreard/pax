@@ -1138,16 +1138,19 @@ def check_radio(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="exact")
 
 
-def check_clickfill(reply: str, expected: str) -> CheckResult:
+def check_clickfill(reply: str, expected: str, noorder: bool = False) -> CheckResult:
     """Compare two drag-compose sequences (comma-joined slot values).
 
     Order matters; empty slots are ignored. Works for a single-slot clickfill
-    too (one item each side).
+    too (one item each side). Under the `noorder` option (`anstype/dragfill`
+    compares `!sort items` on both sides) only the multiset counts — that is
+    what makes "sort these into groups" exercises gradable.
     """
     def seq(s: str) -> list[str]:
         return [x.strip() for x in s.split(",") if x.strip()]
 
-    correct = seq(reply) == seq(expected)
+    a, b = seq(reply), seq(expected)
+    correct = sorted(a) == sorted(b) if noorder else a == b
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="clickfill")
 
 
@@ -1646,7 +1649,7 @@ def check_answer(
         case "radio" | "menu" | "mark":
             return check_radio(reply, expected)
         case "clickfill":
-            return check_clickfill(reply, expected)
+            return check_clickfill(reply, expected, noorder="noorder" in opt_str)
         case "correspond":
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "jsxgraph":

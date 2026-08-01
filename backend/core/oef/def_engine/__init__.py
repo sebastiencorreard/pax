@@ -127,6 +127,19 @@ _INPUT_ATTR_RE = re.compile(
 )
 
 
+def _normalize_reply_type(rtype: str) -> str:
+    """Canonical reply type, folding `dragfill` onto `clickfill`.
+
+    `help/anstype/clickfill.phtml` documents the two as one widget with one
+    difference: a label may be dropped several times in a `clickfill`, at most
+    once in a `dragfill`. Everything else — `replygood` as `correct;pool`, the
+    `HxVxLxT` embed size, the shared shuffled palette — is identical, so the
+    single-use constraint travels separately (`options["single_use"]`).
+    """
+    t = rtype.strip().lower()
+    return "clickfill" if t == "dragfill" else t
+
+
 def _parse_input_attributes(tail: str) -> dict[str, object]:
     """HTML attributes carried by the extra lines of an `\\embed` size parameter.
 
@@ -2969,7 +2982,7 @@ class DefEngine(_SlibMixin):
             self.ctx[f"reply{n}"] = value
             self.ctx[f"m_reply{n}"] = value
             expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
-            rtype = (self.ctx.get(f"replytype{n}", "") or "numexp").strip().lower()
+            rtype = _normalize_reply_type(self.ctx.get(f"replytype{n}", "") or "numexp")
             correct = self._grade_prev_reply(value, expected, rtype)
             sc = "1" if correct else "0"
             self.ctx[f"sc_reply{n}"] = sc
@@ -3617,7 +3630,7 @@ class DefEngine(_SlibMixin):
             # Record that this reply is referenced by the current statement.
             # Used in render() to filter `answers` for dynsteps/course exercises.
             self._touched_replies.add(f"reply{n}")
-            reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
+            reply_type = _normalize_reply_type(self.ctx.get(f"replytype{n}", ""))
             if reply_type == "radio":
                 # Inline radio: `reply{n},POS[,CONTENT]` places one choice *here*
                 # in the statement (value = POS, label = CONTENT), instead of in
@@ -4256,6 +4269,12 @@ class DefEngine(_SlibMixin):
             # ensuite masqué en "analyze" (good=?analyze) ; on le capte ici pour
             # marquer la réponse comme brouillon (cf. options["draft"]).
             is_draft = ans_type.lower() == "draft"
+            # `dragfill` est le `clickfill` dont chaque étiquette ne sert qu'une
+            # fois : même widget, même `replygood`, contrainte reportée plus bas
+            # dans `options["single_use"]`.
+            is_dragfill = ans_type.strip().lower() == "dragfill"
+            if is_dragfill:
+                ans_type = "clickfill"
             label = _close_inline_math(self._subst(rm.get("name", "")), self.lang)
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
@@ -4272,6 +4291,8 @@ class DefEngine(_SlibMixin):
             ):
                 option = (option + " expand").strip()
             options: dict = {"option": option} if option else {}
+            if is_dragfill:
+                options["single_use"] = True
             # Précision WIMS de l'exercice → checkers numériques (numeric,
             # numexp, units, fset). Jusqu'ici figée à 1e-4 côté checker ; on
             # transmet désormais `\precision{M}` (cf. _wims_precision).
@@ -4490,7 +4511,32 @@ class DefEngine(_SlibMixin):
                     _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
-                if "analyze_var" in options:
+                if is_dragfill and correct_items and "analyze_var" not in options:
+                    # `fill.inc` compose la palette d'un dragfill autrement que
+                    # celle d'un clickfill : ligne 1 (la bonne réponse) **puis**
+                    # le complément des lignes suivantes (`!listcomplement`),
+                    # sans `!listuniq` — un mot à lettre répétée a besoin d'une
+                    # carte par occurrence. Un vivier absent est donc licite :
+                    # la palette est alors la réponse elle-même mélangée (les
+                    # anagrammes de `oefdeutsch`, où l'on rassemble « Hamburg »
+                    # lettre à lettre).
+                    choices = list(correct_items)
+                    known = set(correct_items)
+                    for p in pool_items:
+                        if p not in known:
+                            choices.append(p)
+                            known.add(p)
+                    # `dragfill.after` : mélange tant que la palette n'excède ni
+                    # le nombre de cases ni 12 étiquettes, tri alphabétique
+                    # au-delà (une longue liste reste ainsi parcourable).
+                    if len(choices) <= max(len(correct_items), 12):
+                        rng.shuffle(choices)
+                    else:
+                        choices.sort()
+                    options["choices"] = choices
+                    options["slots"] = len(correct_items)
+                    expected = ",".join(correct_items)
+                elif "analyze_var" in options:
                     # Analyze-based clickfill (ineqinterv1): the "correct" part is
                     # "?analyze N" — a checking ref, NOT a draggable label. The
                     # palette is the pool only; scoring is via the :test section.

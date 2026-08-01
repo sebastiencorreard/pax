@@ -47,15 +47,19 @@
         {{ $t('exercise.drag_hint') }}
       </p>
       <div class="flex gap-2 flex-wrap">
-        <div v-for="choice in clickfillChoicesHtml" :key="choice.raw"
-             draggable="true"
-             @dragstart="e => { e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
+        <!-- Clé par rang : un dragfill garde ses doublons (deux étiquettes
+             identiques sont deux cartes distinctes). -->
+        <div v-for="(choice, ci) in clickfillChoicesHtml" :key="ci"
+             :draggable="!choiceUsed(ci)"
+             @dragstart="e => { if (choiceUsed(ci)) { e.preventDefault(); return } e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
              @dragend="draggingChoice = null"
-             @click="pendingChoice = (pendingChoice === choice.raw ? null : choice.raw)"
-             class="px-4 py-2 rounded-lg border font-medium transition cursor-grab select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-             :class="choice.raw === pendingChoice
-               ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
-               : 'hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'"
+             @click="() => { if (!choiceUsed(ci)) pendingChoice = (pendingChoice === choice.raw ? null : choice.raw) }"
+             class="px-4 py-2 rounded-lg border font-medium transition select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+             :class="choiceUsed(ci)
+               ? 'opacity-30 cursor-default'
+               : (choice.raw === pendingChoice
+                 ? 'cursor-grab ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
+                 : 'cursor-grab hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30')"
              style="min-width:3rem;text-align:center"
              v-html="choice.html">
         </div>
@@ -78,6 +82,10 @@ const props = defineProps<{
   radioChoicesHtml: Record<string, Array<{ raw: string; html: string }>>
   menuChoicesHtml: Record<string, Array<{ raw: string; html: string }>>
   hasClickfill: boolean
+  // `dragfill` : chaque étiquette ne se dépose qu'une fois (`anstype/dragfill`
+  // la retire de `fill_check` dès qu'elle est utilisée), là où un `clickfill`
+  // la laisse resservir.
+  singleUseFill: boolean
   hasRadioAnswers: boolean
   submitted: boolean
   loading: boolean
@@ -171,6 +179,30 @@ watch(() => props.replies, (r) => {
     }
   }
 }, { deep: true })
+
+// Nombre de cases occupées par chaque étiquette — sert à griser, dans un
+// dragfill, autant de cartes que d'exemplaires déjà posés.
+const placedCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {}
+  for (const vals of Object.values(cfSlots.value)) {
+    for (const v of vals) if (v) counts[v] = (counts[v] ?? 0) + 1
+  }
+  return counts
+})
+
+// La carte de rang `idx` est-elle consommée ? Les exemplaires d'une même
+// étiquette se consomment dans l'ordre : la carte est grisée si son rang parmi
+// ses homonymes est inférieur au nombre d'exemplaires posés.
+function choiceUsed(idx: number): boolean {
+  if (!props.singleUseFill) return false
+  const raw = props.clickfillChoicesHtml[idx]?.raw
+  if (!raw) return false
+  let rank = 0
+  for (let i = 0; i < idx; i++) {
+    if (props.clickfillChoicesHtml[i].raw === raw) rank++
+  }
+  return rank < (placedCounts.value[raw] ?? 0)
+}
 
 const pendingChoice = ref<string | null>(null)
 const draggingChoice = ref<string | null>(null)

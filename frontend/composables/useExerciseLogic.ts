@@ -301,12 +301,19 @@ export function useExerciseLogic() {
     // Multi-slot clickfill: every slot (reply1…replyN) carries the *same* pool,
     // so the palette is the de-duplicated union — one card per distinct label,
     // not N copies.
+    // Un `dragfill` (`options.single_use`) se compose au contraire par
+    // concaténation, sans `!listuniq` (cf. `anstype/dragfill.after`) : chaque
+    // étiquette ne servant qu'une fois, une réponse qui répète un même libellé
+    // — un anagramme dont une lettre revient — a besoin d'autant de cartes.
     const seenClickfill = new Set<string>()
     for (const ans of rendered.answers) {
       if (ans.answer_type === 'clickfill' && ans.options.choices?.length) {
+        const singleUse = !!ans.options.single_use
         for (const c of ans.options.choices) {
-          if (seenClickfill.has(c)) continue
-          seenClickfill.add(c)
+          if (!singleUse) {
+            if (seenClickfill.has(c)) continue
+            seenClickfill.add(c)
+          }
           clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
         }
       }

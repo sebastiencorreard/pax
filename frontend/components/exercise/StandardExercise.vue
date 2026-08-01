@@ -14,6 +14,7 @@
       :radio-choices-html="radioChoicesHtml"
       :menu-choices-html="menuChoicesHtml"
       :has-clickfill="hasClickfill"
+      :single-use-fill="singleUseFill"
       :has-radio-answers="hasRadioAnswers"
       :submitted="submitted"
       :loading="checking"
@@ -176,6 +177,11 @@ const feedbackHtml = ref<Record<string, { reply: string, expected: string }>>({}
 
 const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
+)
+// `dragfill` : étiquettes à usage unique. WIMS impose que tous les champs à
+// remplir d'un exercice soient du même type, d'où un drapeau global.
+const singleUseFill = computed(() =>
+  props.rendered?.answers.some(a => a.options?.single_use) ?? false
 )
 const hasRadioAnswers = computed(() =>
   // Inline radios (options.inline) render in the statement, not the grid zone.
