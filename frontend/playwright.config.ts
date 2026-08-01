@@ -9,6 +9,12 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
+    // Les tests affirment une interface en français (« Connexion », « Vérifier »).
+    // Or `nuxt.config.ts` ne désactive pas `detectBrowserLanguage`, donc i18n
+    // suit la langue du navigateur — et le Chromium de Playwright demande
+    // `en-US` par défaut. L'application rendait donc « Log in » et les tests
+    // échouaient : c'est la locale du test qu'il faut fixer, pas l'application.
+    locale: 'fr-FR',
   },
 
   projects: [

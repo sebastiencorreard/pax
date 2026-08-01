@@ -14,7 +14,12 @@ setup('authenticate as student', async ({ page }) => {
   await page.locator('input[type="password"]').fill('eleve1234')
   await page.locator('button[type="submit"]').click()
 
-  await page.waitForURL('**/exercise**', { timeout: 15_000 })
+  // La page de connexion redirige vers `route.query.redirect || '/'`
+  // (pages/auth/login.vue) : sans paramètre, on atterrit à la racine. Attendre
+  // `**/exercise**` était vrai en mai 2026 et ne l'est plus. On attend donc
+  // simplement d'avoir quitté la page de connexion.
+  await page.waitForURL(url => !url.pathname.startsWith('/auth/login'),
+                        { timeout: 15_000 })
   await page.context().storageState({ path: STUDENT_FILE })
 })
 
@@ -26,6 +31,11 @@ setup('authenticate as teacher', async ({ page }) => {
   await page.locator('input[type="password"]').fill('prof1234')
   await page.locator('button[type="submit"]').click()
 
-  await page.waitForURL('**/exercise**', { timeout: 15_000 })
+  // La page de connexion redirige vers `route.query.redirect || '/'`
+  // (pages/auth/login.vue) : sans paramètre, on atterrit à la racine. Attendre
+  // `**/exercise**` était vrai en mai 2026 et ne l'est plus. On attend donc
+  // simplement d'avoir quitté la page de connexion.
+  await page.waitForURL(url => !url.pathname.startsWith('/auth/login'),
+                        { timeout: 15_000 })
   await page.context().storageState({ path: TEACHER_FILE })
 })
