@@ -1900,20 +1900,27 @@ class DefEngine(_SlibMixin):
         return [r for r in data.split("\t") if r.strip()]
 
     def _cmd_row(self, args: str) -> str:
-        """!row I of matrix — ligne I (1-indexée), séparateur auto."""
+        """!row I of matrix — ligne(s) I, séparateur auto.
+
+        `calc_rowof` passe par le `_blockof` commun à `!item`/`!line` : `I` peut
+        donc être une plage (`3 to -1`) ou une liste (`1,3`) autant qu'un indice.
+        Le séparateur de sortie est celui d'entrée, comme dans `calc.c` (`;`
+        quand la matrice n'a pas de saut de ligne mais des points-virgules).
+        """
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
-        try:
-            idx = int(round(float(self._eval_arith(idx_s))))
-            rows = self._split_rows(data)
-            if 1 <= idx <= len(rows):
-                return rows[idx - 1].strip()
-        except (ValueError, TypeError):
-            pass
-        return ""
+        if "\n" in data:
+            sep = "\n"
+        elif ";" in data:
+            sep = ";"
+        else:
+            sep = "\t"
+        return self._blockof(
+            data, lambda s: [r.strip() for r in self._split_rows(s)], sep, idx_s
+        )
 
     def _cmd_replace(self, args: str) -> str:
         """!replace [internal/word] A by B in text."""
@@ -2258,17 +2265,18 @@ class DefEngine(_SlibMixin):
         return ",".join(items)
 
     def _cmd_word(self, args: str) -> str:
-        """!word N of text — 1-indexed word."""
+        """!word N of text — mot(s) N, 1-indexé.
+
+        Même `_blockof` que `!item`/`!line` (`calc_wordof` dans `calc.c`) : `N`
+        peut être une plage ou une liste, les mots ressortant séparés par une
+        espace.
+        """
         m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
-        if not m: return ""
-        try:
-            idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
-            words = self._subst(m.group(2)).split()
-            if 1 <= idx <= len(words):
-                return words[idx - 1].strip()
-        except (ValueError, TypeError):
-            pass
-        return ""
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        data = self._subst(m.group(2))
+        return self._blockof(data, str.split, " ", idx_s)
 
     def _cmd_column(self, args: str) -> str:
         """!column C of matrix — select column(s) of a matrix.
