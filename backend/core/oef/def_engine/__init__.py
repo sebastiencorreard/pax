@@ -2044,9 +2044,16 @@ class DefEngine(_SlibMixin):
             return "0"
         needle = self._subst(m.group(1).strip())
         haystack = self._subst(m.group(2).strip())
-        items = haystack.split("\t") if "\t" in haystack else haystack.split(",")
+        # Même découpage que `!item`, et pour la même raison que `isitemof` :
+        # les virgules protégées par des crochets ne séparent pas des items.
+        # `slib/function/tabsignes` cherche la position d'un couple
+        # `[ligne,colonne]` dans sa liste de couples, et un découpage naïf
+        # renvoyait 0 — toutes ses cellules-réponses recevaient alors le même
+        # numéro (`0 + rang - 1`).
+        items = self._split_items(haystack)
+        needle_norm = needle.replace(" ", "")
         for i, item in enumerate(items, 1):
-            if item.strip() == needle:
+            if item.strip().replace(" ", "") == needle_norm:
                 return str(i)
         return "0"
 

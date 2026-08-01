@@ -1899,3 +1899,43 @@ class TestDistributeEnclosedList:
         e.ctx["src"] = "[python,[code]],1,readonly"
         e._eval_cmd("distribute", "items $src into x,y,z")
         assert (e.ctx["x"], e.ctx["y"], e.ctx["z"]) == ("[python,[code]]", "1", "readonly")
+
+
+class TestListMembershipWithBrackets:
+    """`isitemof` et `!positionof item` : les virgules protégées par des
+    crochets ne séparent pas des items.
+
+    `slib/function/tabsignes` teste `[ligne,colonne] isitemof <liste de
+    couples>` puis cherche `positionof item [ligne,colonne]` pour numéroter la
+    réponse. Avec un découpage naïf, le premier était toujours faux et le
+    second toujours 0 : toutes les cellules recevaient le même numéro
+    (`0 + rang - 1`), et le tableau affichait `reply1` en clair partout.
+    """
+
+    def test_isitemof_protects_brackets(self):
+        e = engine()
+        assert e._eval_condition("if", "[1,2] isitemof [1,2],[3,4]")
+        assert not e._eval_condition("if", "[9,9] isitemof [1,2],[3,4]")
+
+    def test_isitemof_ignores_presentation_spaces(self):
+        """GP écrit `[1, 2]` là où le `.def` compose `[1,2]`."""
+        assert engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+
+    def test_isitemof_plain_list_unchanged(self):
+        e = engine()
+        assert e._eval_condition("if", "b isitemof a,b,c")
+        assert not e._eval_condition("if", "z isitemof a,b,c")
+
+    def test_positionof_protects_brackets(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item [2,3] in [1,2],[2,3],[3,4]") == "2"
+
+    def test_positionof_ignores_presentation_spaces(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "2"
+
+    def test_positionof_absent_returns_zero(self):
+        assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == "0"
+
+    def test_positionof_plain_list_unchanged(self):
+        assert engine()._eval_cmd("positionof", "item b in a,b,c") == "2"

@@ -42,6 +42,25 @@ def _wims_bufprep(s: str) -> str:
     return " ".join(s.split())
 
 
+def _split_items_protected(s: str) -> list[str]:
+    """Découpe une liste aux virgules de premier niveau."""
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in s:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        if ch == "," and depth <= 0:
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(ch)
+    parts.append("".join(current))
+    return [p.strip() for p in parts]
+
+
 def _wims_strip_all_parens(s: str) -> str:
     """Strip every layer of balanced outer parens (while loop in compare.c)."""
     while True:
@@ -131,7 +150,14 @@ def _wims_semantic_op(lhs: str, r: int, neg: bool, rhs: str) -> bool:
         words = [w.strip() for w in re.split(r"[\s,]+", b2) if w.strip()]
         result = b1 in words
     elif r == 5:
-        result = b1 in [x.strip() for x in b2.split(",")]
+        # Les virgules protégées par `[]`/`()`/`{}` ne séparent pas des items :
+        # `slib/function/tabsignes` teste `[ligne,colonne] isitemof <liste de
+        # couples>`, ce qu'un découpage naïf rendait toujours faux. Les espaces
+        # de présentation sont ignorés de part et d'autre — GP écrit `[1, 2]`
+        # quand le `.def` compose `[1,2]`.
+        result = _wims_bufprep(b1).replace(" ", "") in [
+            _wims_bufprep(x).replace(" ", "") for x in _split_items_protected(b2)
+        ]
     elif r == 6:
         result = b1 in [x.strip() for x in b2.splitlines()]
     elif r in (7, 8):
