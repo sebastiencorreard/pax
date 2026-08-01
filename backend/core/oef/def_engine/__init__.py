@@ -1214,16 +1214,14 @@ class DefEngine(_SlibMixin):
             picked = [rows[i - 1] for i in idx_list if 1 <= i <= len(rows)]
             if not col_s:
                 return row_sep.join(p.strip() for p in picked)
-            try:
-                col = int(round(float(self._eval_arith(col_s))))
-            except (ValueError, TypeError):
-                return ""
-            result = []
-            for r in picked:
-                cols = re.split(r"[;,]", r)
-                if 1 <= col <= len(cols):
-                    result.append(cols[col - 1].strip())
-            return row_sep.join(result)
+            # Même sélecteur de colonnes que la branche « ligne unique » —
+            # sinon `[liste;liste]` (`calc_columnof` appelle `calc_itemof` sur
+            # chaque ligne, avec le même analyseur d'indices) ne rendait rien.
+            # Une ligne dont la sélection est vide compte quand même : la boucle
+            # de `calc_columnof` ajoute un séparateur par ligne, sans condition.
+            return row_sep.join(
+                self._select_cols(re.split(r"[;,]", r), col_s) for r in picked
+            )
 
         # Empty row spec → column `col` across ALL rows, e.g. $(matrix[;1])
         # (cof builds the correspond's right column this way). Joined by "," so
@@ -1259,12 +1257,17 @@ class DefEngine(_SlibMixin):
     def _select_cols(self, cols: list[str], col_s: str) -> str:
         """Select column(s) from a row's cells.
 
-        ``col_s`` is either a single 1-based index or a WIMS range
-        ``a..b``. Bounds may be negative (``-1`` = last column), so
-        ``2..-1`` means "from column 2 to the end" (used by quizz 0408's
-        ``$(matrix[row;2..-1])`` to collect the divisor columns). Returns the
-        selected cells joined by ``,``; empty string if the spec can't be
-        parsed.
+        ``col_s`` is a single 1-based index, a WIMS range ``a..b``, or a
+        **comma-separated list** of indices. Bounds may be negative (``-1`` =
+        last column), so ``2..-1`` means "from column 2 to the end" (used by
+        quizz 0408's ``$(matrix[row;2..-1])`` to collect the divisor columns).
+        Returns the selected cells joined by ``,``; empty string if the spec
+        can't be parsed.
+
+        The list form is `calc.c`'s `_blockof` else-branch: it evaluates each
+        index in turn and **skips** those out of range instead of failing, so a
+        shuffled index list can be applied to a shorter row. The range test
+        comes first, as it does there.
         """
         n = len(cols)
 
@@ -1282,6 +1285,17 @@ class DefEngine(_SlibMixin):
             if start > end:
                 start, end = end, start
             sel = [cols[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n]
+            return ",".join(sel)
+
+        if "," in col_s:
+            sel = []
+            for part in col_s.split(","):
+                try:
+                    i = _norm(int(round(float(self._eval_arith(part.strip())))))
+                except (ValueError, TypeError):
+                    continue
+                if 1 <= i <= n:
+                    sel.append(cols[i - 1].strip())
             return ",".join(sel)
 
         try:
