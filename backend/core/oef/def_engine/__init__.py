@@ -1693,14 +1693,22 @@ class DefEngine(_SlibMixin):
             return self._subst(args)
         a_raw, b_raw, text_raw = m.groups()
 
-        # Strip $...$ delimiters from character set (WIMS quoting for whitespace/special chars)
-        a_stripped = a_raw.strip()
-        if a_stripped.startswith("$") and a_stripped.endswith("$") and len(a_stripped) >= 2:
-            a = a_stripped[1:-1]  # Literal chars between the $ delimiters
-        else:
-            a = self._subst(a_raw)
+        # Strip $...$ delimiters from character set (WIMS quoting for whitespace/special chars).
+        # WIMS applique `substit()` aux deux opérandes de la même façon
+        # (`calc.c:calc_translate`), donc le déballage vaut aussi pour la
+        # cible : `!translate internal ; to $\<LF>$` remplace `;` par un saut
+        # de ligne. Sans cela, `slib/stat/dataproc` collait données et
+        # effectifs en une seule liste (`1,4,6$2,3,3`), `slib_weight` restait
+        # vide, et toutes les statistiques pondérées tombaient dans la branche
+        # non pondérée avec un effectif faux.
+        def _unquote(raw: str) -> str:
+            s = raw.strip()
+            if len(s) >= 2 and s.startswith("$") and s.endswith("$"):
+                return s[1:-1]  # Literal chars between the $ delimiters
+            return self._subst(raw)
 
-        b = self._subst(b_raw)
+        a = _unquote(a_raw)
+        b = _unquote(b_raw)
         text = self._subst(text_raw)
 
         # C: if len(b) < len(a), truncate a to len(b) (extra chars in a are IGNORED, not deleted)

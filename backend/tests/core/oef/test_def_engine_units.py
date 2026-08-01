@@ -1607,6 +1607,25 @@ class TestTranslate:
         result = e._eval_cmd("translate", "\";': to $     $ in $val")
         assert result == "1+2+3"
 
+    def test_dollar_delimiters_apply_to_the_target_too(self):
+        """`slib/stat/dataproc` sépare données et effectifs avec
+        `!translate internal ; to $<LF>$`. WIMS déballe les deux opérandes de
+        la même façon (`calc.c:calc_translate` leur applique `substit()`) ;
+        ne le faire que sur la source produisait un `$` littéral, les deux
+        séries restaient collées et toute statistique pondérée basculait dans
+        la branche non pondérée."""
+        e = engine()
+        result = e._eval_cmd("translate", "internal ; to $\n$ in 1,4,6;2,3,3")
+        assert result == "1,4,6\n2,3,3"
+
+    def test_variable_reference_in_target_is_still_substituted(self):
+        """Le déballage ne doit pas manger une référence de variable : `$sep`
+        ne commence et finit pas par `$`."""
+        e = engine()
+        e.ctx["sep"] = ":"
+        result = e._eval_cmd("translate", "internal ; to $sep in a;b")
+        assert result == "a:b"
+
 
 # ── !exec pari print() unwrapping ─────────────────────────────────────────────
 
