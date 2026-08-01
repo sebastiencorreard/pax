@@ -1842,3 +1842,37 @@ class TestSlibOutPreservation:
         e = engine()
         e._run_script_lines(["!trim   valeur  "])
         assert e.ctx.get("slib_out") == "valeur"
+
+
+class TestItemCount:
+    """`!itemcnt` — les cases vides comptent, les lignes blanches non.
+
+    Les deux séparateurs n'ont pas la même sémantique. Entre virgules, un trou
+    porte du sens : les colonnes sans signe d'un tableau de variation
+    (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes` bâtissait
+    4 colonnes au lieu de 6 quand on les ignorait. La tabulation, elle, sépare
+    des lignes — une ligne blanche n'est pas un item, et chaque `,<TAB>` en
+    fabriquerait un fantôme, ce qui décalait le tirage aléatoire de
+    `oefsuites1S/cvgequot` vers un énoncé vide.
+    """
+
+    def test_empty_cells_between_commas_are_counted(self):
+        assert engine()._eval_cmd("itemcnt", "f'(x),,reply4,,reply5,,reply6") == "7"
+
+    def test_plain_comma_list(self):
+        assert engine()._eval_cmd("itemcnt", "a,b,c") == "3"
+
+    def test_blank_lines_between_tabs_are_not_counted(self):
+        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "3"
+
+    def test_comma_tab_pairs_do_not_add_phantom_items(self):
+        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`"""
+        assert engine()._eval_cmd("itemcnt", "x,\t  y,\t  z\t") == "3"
+
+    def test_brackets_do_not_protect_commas(self):
+        """`slib/stat/dataproc` compte les valeurs d'une ligne encore entourée
+        de crochets ; les protéger renvoyait 1 et cassait les moyennes."""
+        assert engine()._eval_cmd("itemcnt", "[0,4,3.5]") == "3"
+
+    def test_empty_input(self):
+        assert engine()._eval_cmd("itemcnt", "  ") == "0"

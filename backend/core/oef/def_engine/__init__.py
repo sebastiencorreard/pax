@@ -1325,8 +1325,29 @@ class DefEngine(_SlibMixin):
             return self._cmd_row(args)
 
         if cmd == "itemcnt":
+            # Les items vides comptent : `!item N of` les indexe déjà ainsi
+            # (`item 3 of "f'(x),,reply4"` = `reply4`), et WIMS ne fournirait
+            # pas `!nonempty items` si `!itemcnt` les ignorait de lui-même. Une
+            # liste dont les trous portent du sens — les colonnes sans signe
+            # d'un tableau de variation (`x,reply1,,reply2,,reply3`) — était
+            # sinon comptée trop court, et `slib/function/tabsignes` bâtissait
+            # 4 colonnes au lieu de 7.
             subst_args = self._subst(args)
-            items = [x for x in re.split(r",|\t", subst_args) if x.strip()]
+            if not subst_args.strip():
+                return "0"
+            items = re.split(r",|\t", subst_args)
+            if "\t" in subst_args:
+                # Tabulations : ce sont des séparateurs de *lignes*, et une
+                # ligne blanche n'est pas un item — les listes multi-lignes des
+                # `.def` en intercalent pour aérer (`oefsuites1S/cvgequot`
+                # sépare deux groupes d'énoncés par un `\t\t`, et chaque `,<TAB>`
+                # produirait sinon un item fantôme). Les compter décalait le
+                # tirage aléatoire vers un énoncé vide.
+                items = [x for x in items if x.strip()]
+            # Séparées par des virgules, au contraire, les cases vides portent
+            # du sens : les colonnes sans signe d'un tableau de variation
+            # (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes`
+            # bâtissait 4 colonnes au lieu de 6 quand on les ignorait.
             return str(len(items))
 
         if cmd in ("rowcnt", "rowcount", "rowno", "rownum"):
@@ -1716,6 +1737,22 @@ class DefEngine(_SlibMixin):
         self.rng.shuffle(items)
         return sep.join(items)
 
+    @staticmethod
+    def _split_items(s: str) -> list[str]:
+        """Découpe une liste WIMS en items — le découpage que `!item` indexe.
+
+        La tabulation sépare des *lignes* : quand il y en a, c'est elle qui
+        prime, sinon on découpe aux virgules de premier niveau. Mélanger les
+        deux séparateurs fabriquerait un item vide à chaque `,<TAB>`, séquence
+        banale dans les listes multi-lignes des `.def`.
+
+        Les virgules protégées par `()`/`[]`/`{}` ne coupent pas : `!item 1 of
+        [a,b],[c,d]` rend `[a,b]`, pas `[a` (sortie de slib/stat/effectif|freq).
+        """
+        if "\t" in s:
+            return s.split("\t")
+        return _split_top_level_commas(s)
+
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
 
@@ -1728,12 +1765,7 @@ class DefEngine(_SlibMixin):
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
 
-        def split_items(s: str) -> list[str]:
-            if "\t" in s:
-                return s.split("\t")
-            # Virgules protégées par () ET [] {} : `!item 1 of [a,b],[c,d]` doit
-            # rendre `[a,b]`, pas `[a` (sortie de slib/stat/effectif|freq).
-            return _split_top_level_commas(s)
+        split_items = self._split_items
 
         # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
         # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
