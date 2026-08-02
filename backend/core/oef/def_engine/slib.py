@@ -323,6 +323,8 @@ class _SlibMixin:
 
         def one_code(fields: list[str]) -> dict:
             lang = fields[0].strip() if fields else ""
+            # `slib/coding/editor` : `!replace internal \t by \n` — les
+            # tabulations du `.def` sont les retours à la ligne du code source.
             code = self._declose(fields[1]).replace("\t", "\n") if len(fields) > 1 else ""
             name = fields[2].strip() if len(fields) > 2 else ""
             ro = readonly_global or (len(fields) > 3 and "readonly" in fields[3].lower())
@@ -369,10 +371,6 @@ class _SlibMixin:
         maxw = int(mx.group(1)) if mx else 500
         mn = re.search(r"min\s*=\s*(\d+)\s*px", size_spec)
         minw = int(mn.group(1)) if mn else 0
-        # Tabs are just statement separators in the .def-authored JS; drop them
-        # so the emitted board div is tab-free and can be stored in a
-        # TAB-separated list (couf indexes its boards via $(val44[…])).
-        js = js.replace("\t", " ")
         minw_attr = f' data-minw="{minw}"' if minw else ""
         return (
             f'<div class="pax-jsxgraph" id="{div_id}" '
@@ -437,10 +435,6 @@ class _SlibMixin:
             s = s[1:-1]
         elif s.startswith("[") and "],[" in s:
             s = s[1:-1].replace("],[", ";")
-        # `!values`/`!append item` joignent les lignes par des TABs ; pour un
-        # échantillon plat (données de la médiane), le TAB est un séparateur au
-        # même titre que la virgule (mediane5 : val21 accumulé par lignes).
-        s = s.replace("\t", ",")
 
         if ";" in s:
             v_str, w_str = s.split(";", 1)
