@@ -9,6 +9,7 @@ import random
 from typing import Any
 from fractions import Fraction
 from lark import Lark, Transformer, v_args
+from .def_engine import wims_lists as wl
 from .parser import OEFNode
 from .numfmt import format_wims_float
 
@@ -313,7 +314,7 @@ class OEFEvaluator:
                     i += 1
                     continue
                 inner_raw = expr[i + 5 : j]
-                parts = _split_top_level_commas(inner_raw)
+                parts = wl.cutitems(inner_raw)
                 if len(parts) >= 2:
                     idx_str = self._substitute_vars(parts[0].strip())
                     try:
@@ -324,7 +325,7 @@ class OEFEvaluator:
                         expanded = ",".join(
                             self._substitute_vars(p.strip()) for p in parts[1:]
                         )
-                        items = _split_top_level_commas(expanded)
+                        items = wl.cutitems(expanded)
                         result = items[idx].strip() if 0 <= idx < len(items) else ""
                     except Exception:
                         result = inner_raw
@@ -744,23 +745,6 @@ def _oef_cond_to_py(c: str) -> str:
     )
 
 
-def _split_top_level_commas(s: str) -> list[str]:
-    """Découpe sur les virgules de profondeur 0, en respectant les parenthèses."""
-    parts: list[str] = []
-    depth = 0
-    last = 0
-    for i, ch in enumerate(s):
-        if ch == "(":
-            depth += 1
-        elif ch == ")":
-            depth -= 1
-        elif ch == "," and depth == 0:
-            parts.append(s[last:i])
-            last = i + 1
-    parts.append(s[last:])
-    return [p.strip() for p in parts]
-
-
 # Reconnaît un rapport entier/entier (éventuellement signés) dans une expression.
 # Utilisé par _expr_to_latex pour convertir a/b en \frac{a}{b}.
 _INT_FRAC_RE = re.compile(r"(-?\d+)/(-?\d+)")
@@ -858,7 +842,7 @@ def _pick_randitem_template(expr: str) -> str | None:
             if depth == 0 and i != len(expr) - 1:
                 return None
     inner = expr[len("randitem(") : -1]
-    items = _split_top_level_commas(inner)
+    items = wl.cutitems(inner)
     items = [it for it in items if it]
     if not items:
         return None

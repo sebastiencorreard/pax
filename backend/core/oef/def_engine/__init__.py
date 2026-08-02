@@ -51,7 +51,7 @@ from .presentation import (
     localize_decimals,
     wims_matrices_to_latex,
 )
-from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
+from .slib import _SlibExit, _SlibMixin
 from ..numfmt import format_wims_float
 from ..i18n import list_separator, uses_comma_decimal
 from . import wims_lists as wl
@@ -1343,7 +1343,7 @@ class DefEngine(_SlibMixin):
             s = self._subst(args)
             # Virgules protégées par les crochets : `[a,b],[c,d]` → 2 lignes,
             # pas 6 (slib/stat/dataproc sépare `[data],[poids]`).
-            return "\n".join(x.strip() for x in _split_top_level_commas(s) if x.strip())
+            return "\n".join(x.strip() for x in wl.cutitems(s) if x.strip())
 
         if cmd in ("lines2items", "linestoitems", "lines2list", "linestolist"):
             s = self._subst(args)
@@ -2161,7 +2161,7 @@ class DefEngine(_SlibMixin):
             # Sans ce déballage, `slib/function/tabsignes` recevait positions et
             # rang collés en un seul, et ne voyait plus qu'une réponse au lieu
             # de six.
-            items = [x.strip() for x in _split_top_level_commas(self._cmd_declosing(src))]
+            items = [x.strip() for x in wl.cutitems(self._cmd_declosing(src))]
         for i, t in enumerate(targets):
             self.ctx[t] = items[i].strip() if i < len(items) else ""
 

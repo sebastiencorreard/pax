@@ -283,7 +283,7 @@ class _SlibMixin:
         import html as _html  # noqa: PLC0415
         import json as _json  # noqa: PLC0415
 
-        parts = _split_top_level_commas(params)
+        parts = wl.cutitems(params)
         code_field = parts[0].strip() if parts else ""
         editor_id = self._declose(parts[1]).strip() if len(parts) > 1 else "0"
         options = parts[2].strip() if len(parts) > 2 else ""
@@ -317,9 +317,9 @@ class _SlibMixin:
 
         readonly_global = "readonly" in words
         theme_raw = getopt("theme")
-        themes = [x.strip() for x in _split_top_level_commas(self._declose(theme_raw)) if x.strip()] if theme_raw else []
+        themes = [x.strip() for x in wl.cutitems(self._declose(theme_raw)) if x.strip()] if theme_raw else []
         instr_raw = getopt("instruction")
-        instructions = [x.strip() for x in _split_top_level_commas(self._declose(instr_raw)) if x.strip()] if instr_raw else []
+        instructions = [x.strip() for x in wl.cutitems(self._declose(instr_raw)) if x.strip()] if instr_raw else []
 
         def one_code(fields: list[str]) -> dict:
             lang = fields[0].strip() if fields else ""
@@ -331,9 +331,9 @@ class _SlibMixin:
             return {"lang": lang, "code": code, "name": name, "readonly": ro}
 
         inner = self._declose(code_field)
-        sub = _split_top_level_commas(inner)
+        sub = wl.cutitems(inner)
         if sub and sub[0].strip().startswith("["):
-            codes = [one_code(_split_top_level_commas(self._declose(item))) for item in sub]
+            codes = [one_code(wl.cutitems(self._declose(item))) for item in sub]
         else:
             codes = [one_code(sub)]
 
@@ -766,30 +766,6 @@ def _join_terms(term_strs: list[str]) -> str:
     return out
 
 
-def _split_top_level_commas(s: str) -> list[str]:
-    """Split on commas that are not inside (...), [...] or {...} brackets.
-
-    Les trois types comptent : les listes WIMS protègent aussi bien
-    `(a,b),(c,d)` (groupes parenthésés d'equaitions2) que `[a,b],[c,d]`
-    (données de slib/stat). Fermetures bornées à 0 pour rester robuste sur des
-    parenthèses déséquilibrées (expressions mathématiques)."""
-    out: list[str] = []
-    depth = 0
-    cur: list[str] = []
-    for ch in s:
-        if ch in "([{":
-            depth += 1
-        elif ch in ")]}":
-            depth = max(0, depth - 1)
-        if ch == "," and depth == 0:
-            out.append("".join(cur))
-            cur = []
-        else:
-            cur.append(ch)
-    out.append("".join(cur))
-    return out
-
-
 def _ecriture_lettre(args: str) -> str | None:
     """Built-in for ``slib/numeration/ecriturelettre``.
 
@@ -797,7 +773,7 @@ def _ecriture_lettre(args: str) -> str | None:
     signal the caller to fall back to the generic slib runner (non-French
     language, ordinals, or any explicit options — not ported natively).
     """
-    fields = _split_top_level_commas(args)
+    fields = wl.cutitems(args)
     lang = fields[1].strip().lower() if len(fields) > 1 and fields[1].strip() else "fr"
     opts = fields[2].strip() if len(fields) > 2 else ""
     if lang != "fr" or opts:
