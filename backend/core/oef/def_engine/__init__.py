@@ -1920,6 +1920,17 @@ class DefEngine(_SlibMixin):
         deux séparateurs fabriquerait un item vide à chaque `,<TAB>`, séquence
         banale dans les listes multi-lignes des `.def`.
 
+        NB : WIMS, lui, ne découpe **qu'aux virgules** (`find_item_end` vaut
+        `strparstr(p, ",")`), la tabulation n'étant qu'un caractère à élaguer.
+        Aligner PAX là-dessus rend à `oefmolecule/lewis` les atomes de sa
+        palette — sa liste de directions `0,r,…,rru,<TAB>ull,…` porte une
+        tabulation purement cosmétique qui la réduisait à 2 items, faisant
+        échouer toute recherche de position — **mais casse `moles.fr`,
+        `moles.nl` et `mouvrel.fr`** : leur `val14` passe de `5` à un
+        `rint(rint(…))` non évalué, et 30 `expected` se vident. Une autre
+        liste y dépend du découpage par tabulation malgré ses virgules. À
+        reprendre avec elles. Cf. TODO I.3.d.
+
         Les virgules protégées par `()`/`[]`/`{}` ne coupent pas : `!item 1 of
         [a,b],[c,d]` rend `[a,b]`, pas `[a` (sortie de slib/stat/effectif|freq).
         """
