@@ -169,9 +169,16 @@ const COMMA_DECIMAL_LANGS = new Set(['fr', 'nl'])
 // answer matching stays dotted (clickfill encodes slots comma-separated, so a
 // comma inside a value would corrupt both the separator and the comparison).
 function localizeChoiceDisplay(s: string, lang: string): string {
-  return COMMA_DECIMAL_LANGS.has((lang || 'fr').split('-')[0].toLowerCase())
-    ? s.replace(/(?<=\d)\.(?=\d)/g, ',')
-    : s
+  if (!COMMA_DECIMAL_LANGS.has((lang || 'fr').split('-')[0].toLowerCase())) return s
+  // Uniquement le texte affiché : jamais l'intérieur d'une balise. Un choix
+  // peut être une figure (`oefmolecule/lewis` propose des schémas de liaison
+  // en SVG incorporé), et franciser ses coordonnées transformait
+  // `points="20.00,33.33"` en `20,00,33,33` — quatre nombres au lieu de deux,
+  // donc une ligne brisée en zigzag à la place du trait.
+  return s
+    .split(/(<[^>]*>)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/(?<=\d)\.(?=\d)/g, ',')))
+    .join('')
 }
 
 export function useExerciseLogic() {
