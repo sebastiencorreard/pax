@@ -1440,6 +1440,13 @@ class DefEngine(_SlibMixin):
             subst_args = self._subst(args)
             if not subst_args.strip():
                 return "0"
+            # NB : `itemnum` protège bel et bien les crochets dans WIMS
+            # (`find_item_end` = `strparstr(p, ",")`), mais l'appliquer ici
+            # casse `oefstat/mean` : sa ligne arrive **encore entourée** de
+            # crochets côté PAX là où WIMS l'a déjà déballée, et sa moyenne
+            # passe de 3.97 à un `print((…)` non évalué. Le correctif est donc
+            # en amont, dans le déballage — pas ici. Mesuré : la protection ne
+            # gagnerait que `lewis`. Cf. TODO I.3.d.
             items = re.split(r",|\t", subst_args)
             if "\t" in subst_args:
                 # Tabulations : ce sont des séparateurs de *lignes*, et une
@@ -2227,11 +2234,27 @@ class DefEngine(_SlibMixin):
         """!values V for var=start to end — list of values."""
         return self._cmd_makelist(args).replace("\t", ",")
 
+    def _list_items(self, value: str) -> list[str]:
+        """Items d'une liste WIMS, pour les commandes ensemblistes.
+
+        `find_item_end` vaut `strparstr(p, ",")` : la virgule ne sépare qu'à
+        profondeur zéro, les paires `()`/`[]`/`{}` protégeant leur contenu.
+        `[polyline red,-1,0],[polyline red,0,-1]` vaut donc **deux** dessins et
+        non quinze morceaux.
+
+        Il n'y a en revanche **aucun déballage** de la paire englobante :
+        `[0,4,3.5]` vaut un item pour WIMS. Une valeur qui doit être lue comme
+        une liste est déballée en amont, par `!declosing`.
+
+        La tabulation prime quand il y en a, comme pour `!item`.
+        """
+        return [x.strip() for x in self._split_items(value) if x.strip()]
+
     def _cmd_listuniq(self, args: str) -> str:
-        """!listuniq list — remove duplicates (preserves separator style)."""
+        """``!listuniq liste`` — retire les doublons, séparateur conservé."""
         s = self._subst(args)
         sep = "\t" if "\t" in s else ","
-        items = [x.strip() for x in s.split(sep) if x.strip()]
+        items = self._list_items(s)
         seen: dict = {}
         res = []
         for x in items:
@@ -2710,8 +2733,8 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return ""
-        l1 = {x.strip() for x in self._subst(m.group(1)).split(",") if x.strip()}
-        l2 = [x.strip() for x in self._subst(m.group(2)).split(",") if x.strip()]
+        l1 = set(self._list_items(self._subst(m.group(1))))
+        l2 = self._list_items(self._subst(m.group(2)))
         seen: dict = {}
         result = []
         for item in l2:
