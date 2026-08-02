@@ -294,6 +294,13 @@ Restent ouverts, hors périmètre du découpage :
   affichent une équation vide (`\(0\)`, `NaN`) quoi qu'on fasse ; tout diff
   corpus qui s'y limite est du bruit. Les porter suppose d'écrire un
   équilibreur d'équations chimiques.
+- **`imgrename(...)` n'est pas implémenté** — 19 `.def` l'utilisent comme
+  *fonction* dans une expression (`!makelist imgrename($val1/ttt width=…)
+  for ttt in …`), là où PAX ne connaît rien de ce nom. Le contrôle navigateur
+  l'a mis au jour sur `oefmolecule/corresnom` : son widget `correspond`
+  réapparu affiche `imgrename(pax-img:_/ch4o/ch4o.png width=150)` en clair au
+  lieu des modèles moléculaires. Défaut antérieur au programme, simplement
+  rendu visible par la réparation du widget.
 - **Le séparateur de sortie de `!item`** : `_blockof` joint par `", "`
   (virgule-espace, `calc.c`), nous par `","`. Sans effet sur un redécoupage
   (`fnd_item` élague), visible à l'affichage et dans les `expected`. À
