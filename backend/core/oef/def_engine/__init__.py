@@ -993,80 +993,19 @@ class DefEngine(_SlibMixin):
                 break
         return s
 
-    @staticmethod
-    def _tab_is_separator(value: str) -> bool:
-        """Whether the TAB acts as the list separator in ``value``.
-
-        The WIMS list separator is the comma. pax additionally uses a TAB as an
-        *internal* separator for lists whose items contain commas (HTML/board
-        blobs — see _eval_assignment), where each item ends in a non-comma char
-        (``>``/``}``) so the tab follows it. But a tab that merely follows a
-        comma (``,\\t``) is cosmetic source whitespace, not a separator: e.g.
-        ``val7=… suivante&nbsp;,\\t… suivantes&nbsp;`` is a 2-item *comma* list,
-        the tab just padding the source. So a TAB is the separator only when at
-        least one tab is preceded (modulo spaces) by a non-comma character.
-
-        Tabs *inside* ``[...]`` don't count: a multi-line code blob stored as
-        ``[python,[def f():\\t a=0]]`` keeps its newlines-as-tabs within the
-        brackets, so the top-level separator there is still the comma.
-        """
-        if "\t" not in value:
-            return False
-        depth = 0
-        last = ""
-        for ch in value:
-            if ch == "[":
-                depth, last = depth + 1, ch
-            elif ch == "]":
-                depth, last = max(0, depth - 1), ch
-            elif ch == "\t":
-                if depth == 0 and last not in ("", ","):
-                    return True
-            elif not ch.isspace():
-                last = ch
-        return False
-
     def _split_list_items(self, value: str) -> list[str]:
-        """Split a WIMS list value into items (TAB- or comma-separated)."""
-        if self._tab_is_separator(value):
-            return value.split("\t")
-        # Comma split, but keep commas nested inside parentheses intact.
-        return re.split(r",(?![^(]*\))", value)
+        """Items d'une liste WIMS — `cutitems` (`liblines.c`).
 
-    def _split_wims_items(self, value: str) -> list[str]:
-        """Split a WIMS list whose items are separated by ``,`` OR ``;`` — at
-        bracket depth 0 and outside HTML entities.
+        La virgule seule sépare, à profondeur zéro. Ni la tabulation (elle
+        encode un retour à la ligne du source OEF et se fait élaguer aux bords
+        d'item), ni le `;` (qui sépare des *lignes de matrice*, cf.
+        `rows2lines`) n'en coupent une.
+        """
+        return wl.cutitems(value)
 
-        WIMS' ``!append item`` switches to a TAB separator when an item itself
-        holds a comma (``\\(\\large 2,5 \\times 10^{19})``); the very common
-        ``!translate internal \\t to ;`` idiom then turns that TAB into ``;``. So
-        a list with comma-bearing items ends up ``;``-separated (brevet01's QCM
-        choices ``\\(25),\\(1000);\\(4·10^{22});\\(2,5·10^{19})``) and a naive
-        comma split crams the tail into one item. Entities (``&#44;`` comma,
-        ``&alpha;``) and ``()[]{}`` groups are protected, so we scan char by
-        char rather than regex-split."""
-        if self._tab_is_separator(value):
-            return value.split("\t")
-        parts: list[str] = []
-        depth = 0
-        start = 0
-        i = 0
-        n = len(value)
-        while i < n:
-            c = value[i]
-            if c == "&" and (em := re.match(r"&#?\w+;", value[i:])):
-                i += em.end()
-                continue
-            if c in "([{":
-                depth += 1
-            elif c in ")]}":
-                depth = max(0, depth - 1)
-            elif depth == 0 and c in ",;":
-                parts.append(value[start:i])
-                start = i + 1
-            i += 1
-        parts.append(value[start:])
-        return parts
+    # Un seul découpage d'items, celui du C : les deux noms coexistent le temps
+    # que la phase 4 fusionne les appelants.
+    _split_wims_items = _split_list_items
 
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.
@@ -4005,15 +3944,14 @@ class DefEngine(_SlibMixin):
                 )
                 # Evaluate replygoodN — may still contain $var refs if seeded raw
                 good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-                # Format: "pos;choice1,choice2,..." or "pos;choice1;choice2;..."
+                # Format : "pos;choice1,choice2,…". `oef/embed.phtml` lit ce
+                # champ en `!rows2lines` puis `!distribute lines … into ts,tt`
+                # (le `;` sépare la position des choix), et prend enfin
+                # `!item N of $tt` : les choix se séparent à la virgule.
                 if ";" in good_raw:
                     _pos_part, _, choices_part = good_raw.partition(";")
                 else:
                     choices_part = good_raw
-                # Choices are separated by `,` OR `;` (the `;` from the
-                # append-tab + `!translate \t→;` idiom when a choice holds a
-                # comma, e.g. "2,5 × 10^19" — brevet01). Split on both at bracket
-                # depth 0, protecting `\(…)` and HTML entities (`&#44;`).
                 choices = [c.strip() for c in self._split_wims_items(choices_part) if c.strip()]
 
                 def _mark_span(col: int) -> str:
@@ -4781,8 +4719,9 @@ class DefEngine(_SlibMixin):
                 if ";" in good_raw:
                     pos_str, _, choices_str = good_raw.partition(";")
                     expected = pos_str.strip()
-                    # Choices split on `,` or `;` (the `;` from the append-tab +
-                    # translate idiom for comma-bearing choices — brevet01).
+                    # Les choix se séparent à la virgule (`!item N of $tt`
+                    # dans `oef/embed.phtml`) : un `;` qui subsisterait dans un
+                    # choix serait de la donnée, pas une frontière.
                     choices = [
                         c.strip()
                         for c in self._split_wims_items(choices_str)

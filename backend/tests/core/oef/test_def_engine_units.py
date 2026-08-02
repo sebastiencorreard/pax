@@ -389,22 +389,29 @@ class TestMathmlinput:
 
 
 class TestWimsListSplit:
-    def test_splits_on_comma_and_semicolon(self):
-        # WIMS comma-bearing items become `;`-separated (append-tab + translate).
-        # `$(var[N])` must split on both `,` and `;` (brevet01 QCM choices).
+    """Un item WIMS se termine à la virgule de profondeur zéro, un point.
+
+    Le `;` a longtemps été traité ici comme une seconde frontière, parce que
+    notre `!append item` séparait par des tabulations et que l'idiome
+    `!translate \\t to ;` des QCM (brevet01) les transformait en `;`. Le
+    producteur corrigé, ce `;` n'apparaît plus qu'à l'intérieur d'un choix —
+    c'est de la donnée. `oef/embed.phtml` le confirme : il lit `replygood` en
+    `!rows2lines` + `!distribute lines … into ts,tt`, puis prend `!item N of
+    $tt`.
+    """
+
+    def test_semicolon_is_not_a_separator(self):
         e = engine()
-        val = r"1|\(\large 25),0|\(\large 1000),0|\(\large 4 \times 10^{22});0|\(\large 2,5 \times 10^{19})"
-        items = e._split_wims_items(val)
-        assert items == [
-            r"1|\(\large 25)", r"0|\(\large 1000)",
-            r"0|\(\large 4 \times 10^{22})", r"0|\(\large 2,5 \times 10^{19})",
+        val = r"1|\(\large 25),0|\(\large 1000);0|\(\large 2,5 \times 10^{19})"
+        assert e._split_wims_items(val) == [
+            r"1|\(\large 25)",
+            r"0|\(\large 1000);0|\(\large 2,5 \times 10^{19})",
         ]
 
-    def test_protects_parens_and_entities(self):
+    def test_protects_parens(self):
         e = engine()
-        # comma inside \(…) and ; inside an entity are NOT separators.
+        # La virgule de `\(2,5)` est protégée par la parenthèse ouvrante.
         assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
-        assert e._split_wims_items(r"x&#44;y;z") == ["x&#44;y", "z"]
 
     def test_semicolon_is_not_an_item_border(self):
         """`find_item_end` vaut `strparstr(p, ",")` : seule la virgule sépare.
@@ -1410,11 +1417,13 @@ class TestRangeSlice:
         e.ctx["v"] = "a,b,c,d,e"
         assert e._subst("$(v[2..4])") == "b,c,d"
 
-    def test_tab_separated(self):
-        # Range slice always returns comma-joined items regardless of source separator
+    def test_tab_is_not_a_separator(self):
+        """La tabulation ne coupe rien : la valeur entière est l'item 1."""
         e = engine()
         e.ctx["v"] = "x\ty\tz"
-        assert e._subst("$(v[1..2])") == "x,y"
+        assert e._subst("$(v[1..2])") == "x\ty\tz"
+        e.ctx["w"] = "x,\ty,\tz"
+        assert e._subst("$(w[1..2])") == "x,y"
 
     def test_single_element(self):
         e = engine()
