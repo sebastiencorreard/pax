@@ -1458,38 +1458,13 @@ class DefEngine(_SlibMixin):
             return self._cmd_row(args)
 
         if cmd == "itemcnt":
-            # Les items vides comptent : `!item N of` les indexe déjà ainsi
-            # (`item 3 of "f'(x),,reply4"` = `reply4`), et WIMS ne fournirait
-            # pas `!nonempty items` si `!itemcnt` les ignorait de lui-même. Une
-            # liste dont les trous portent du sens — les colonnes sans signe
-            # d'un tableau de variation (`x,reply1,,reply2,,reply3`) — était
-            # sinon comptée trop court, et `slib/function/tabsignes` bâtissait
-            # 4 colonnes au lieu de 7.
-            subst_args = self._subst(args)
-            if not subst_args.strip():
-                return "0"
-            # `itemnum` passe par `find_item_end` = `strparstr(p, ",")` : les
-            # virgules protégées par `()`/`[]`/`{}` ne séparent pas.
-            # Indissociable du séparateur de `!makelist` ci-dessous : seul,
-            # ce correctif fait passer `slib/stat/dataproc` dans sa branche
-            # pondérée — la bonne — mais celle-ci reçoit alors un
-            # `slib_weight` tabulé, invalide en PARI, et `oefstat/mean`
-            # ressort son `print((…)` en clair. Les deux ensemble donnent la
-            # moyenne juste.
-            items = _split_protected(subst_args, ",\t")
-            if "\t" in subst_args:
-                # Tabulations : ce sont des séparateurs de *lignes*, et une
-                # ligne blanche n'est pas un item — les listes multi-lignes des
-                # `.def` en intercalent pour aérer (`oefsuites1S/cvgequot`
-                # sépare deux groupes d'énoncés par un `\t\t`, et chaque `,<TAB>`
-                # produirait sinon un item fantôme). Les compter décalait le
-                # tirage aléatoire vers un énoncé vide.
-                items = [x for x in items if x.strip()]
-            # Séparées par des virgules, au contraire, les cases vides portent
-            # du sens : les colonnes sans signe d'un tableau de variation
-            # (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes`
-            # bâtissait 4 colonnes au lieu de 6 quand on les ignorait.
-            return str(len(items))
+            # `itemnum` (`liblines.c`) : la virgule seule sépare, à profondeur
+            # zéro, et **les items vides comptent** — `a,,b` en vaut 3. WIMS ne
+            # fournirait pas `!nonempty items` si `!itemcnt` les ignorait de
+            # lui-même, et les trous portent du sens : les colonnes sans signe
+            # d'un tableau de variation (`x,reply1,,reply2,,reply3`) en sont.
+            # Une chaîne vide en compte 0.
+            return str(wl.itemnum(self._subst(args)))
 
         if cmd in ("rowcnt", "rowcount", "rowno", "rownum"):
             val = self._subst(args)

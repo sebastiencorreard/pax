@@ -1880,15 +1880,15 @@ class TestSlibOutPreservation:
 
 
 class TestItemCount:
-    """`!itemcnt` — les cases vides comptent, les lignes blanches non.
+    """`!itemcnt` — `itemnum` (`liblines.c`), et rien d'autre.
 
-    Les deux séparateurs n'ont pas la même sémantique. Entre virgules, un trou
-    porte du sens : les colonnes sans signe d'un tableau de variation
-    (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes` bâtissait
-    4 colonnes au lieu de 6 quand on les ignorait. La tabulation, elle, sépare
-    des lignes — une ligne blanche n'est pas un item, et chaque `,<TAB>` en
-    fabriquerait un fantôme, ce qui décalait le tirage aléatoire de
-    `oefsuites1S/cvgequot` vers un énoncé vide.
+    La virgule seule sépare, à profondeur zéro, et les cases vides comptent :
+    les colonnes sans signe d'un tableau de variation (`x,reply1,,reply2`) en
+    sont, et `slib/function/tabsignes` bâtissait 4 colonnes au lieu de 6 quand
+    on les ignorait. Seule la chaîne **vide** vaut 0 (`if(*p==0) return 0`).
+
+    La tabulation n'a jamais eu de rôle ici : le filtre « ligne blanche » qui
+    l'accompagnait compensait un `!makelist` tabulé, corrigé depuis.
     """
 
     def test_empty_cells_between_commas_are_counted(self):
@@ -1897,11 +1897,16 @@ class TestItemCount:
     def test_plain_comma_list(self):
         assert engine()._eval_cmd("itemcnt", "a,b,c") == "3"
 
-    def test_blank_lines_between_tabs_are_not_counted(self):
-        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "3"
+    def test_tabs_are_not_separators(self):
+        """Sans virgule, il n'y a qu'un item — la tabulation n'en coupe aucun."""
+        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "1"
 
     def test_comma_tab_pairs_do_not_add_phantom_items(self):
-        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`"""
+        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`
+
+        La virgule découpe, `fnd_item` élague la tabulation de bord : trois
+        items, sans qu'aucun fantôme n'apparaisse.
+        """
         assert engine()._eval_cmd("itemcnt", "x,\t  y,\t  z\t") == "3"
 
     def test_brackets_protect_commas(self):
