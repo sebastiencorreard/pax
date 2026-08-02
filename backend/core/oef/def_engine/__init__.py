@@ -1952,17 +1952,17 @@ class DefEngine(_SlibMixin):
 
     @staticmethod
     def _split_rows(data: str) -> list[str]:
-        """Sépare les lignes d'une matrice WIMS.
+        """Lignes d'une matrice WIMS — `rows2lines` puis les lignes.
 
-        Priorité : \\n (enregistrements/slib) > \\; > \\t (makelist).
-        Correspond à la logique de calc_rowof() dans calc.c.
-        Le split par ``;`` protège les entités HTML (&#59;, &amp;, …).
+        L'idiome du C, partout où une matrice se lit (`matrix.c:34`,
+        `calc_randrow`) : `rows2lines(p)` convertit les `;` de profondeur zéro
+        en sauts de ligne — et ne fait rien si la valeur en a déjà —, puis
+        `linenum`/`fnd_line` la découpent. La tabulation n'y figure pas ; la
+        branche qui lui donnait la priorité compensait un `!makelist` tabulé.
+
+        Les lignes vides comptent, comme dans `linenum`.
         """
-        if "\n" in data:
-            return [r for r in data.split("\n") if r.strip()]
-        if ";" in data:
-            return [r.strip() for r in DefEngine._split_rows_by_semi(data) if r.strip()]
-        return [r for r in data.split("\t") if r.strip()]
+        return wl.cutrows(data)
 
     def _cmd_row(self, args: str) -> str:
         """!row I of matrix — ligne(s) I, séparateur auto.
@@ -1977,12 +1977,10 @@ class DefEngine(_SlibMixin):
             return ""
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
-        if "\n" in data:
-            sep = "\n"
-        elif ";" in data:
-            sep = ";"
-        else:
-            sep = "\t"
+        # `calc_rowof` : `;` si la matrice n'a pas de saut de ligne mais en
+        # porte un, `\n` dans tous les autres cas — il n'y a pas de troisième
+        # branche, et surtout pas de tabulation.
+        sep = ";" if ("\n" not in data and ";" in data) else "\n"
         return self._blockof(
             data, lambda s: [r.strip() for r in self._split_rows(s)], sep, idx_s
         )

@@ -819,8 +819,11 @@ class TestCmdListOps:
         assert e._eval_cmd("itemcnt", "a,b,c") == "3"
 
     def test_rowcnt(self):
+        """`rownum` = `rows2lines` puis `linenum` : `;` ou `\n`, jamais `\t`."""
         e = engine()
-        assert e._eval_cmd("rowcnt", "a\tb\tc") == "3"
+        assert e._eval_cmd("rowcnt", "a;b;c") == "3"
+        assert e._eval_cmd("rowcnt", "a\nb\nc") == "3"
+        assert e._eval_cmd("rowcnt", "a\tb\tc") == "1"
 
 
 # ── !item / !row ───────────────────────────────────────────────────────────────
@@ -865,12 +868,20 @@ class TestCmdItemRow:
         assert e._eval_cmd("item", "2 of a,\tb") == "b"
 
     def test_row_second(self):
+        """`calc_rowof` : les lignes se séparent par `;` ou `\n`."""
         e = engine()
-        assert e._eval_cmd("row", "2 of a\tb\tc") == "b"
+        assert e._eval_cmd("row", "2 of a;b;c") == "b"
+        assert e._eval_cmd("row", "2 of a\nb\nc") == "b"
+
+    def test_row_of_a_tabbed_value_is_the_whole_value(self):
+        """Aucune tabulation ne coupe une matrice : elle n'a qu'une ligne."""
+        e = engine()
+        assert e._eval_cmd("row", "1 of a\tb\tc") == "a\tb\tc"
+        assert e._eval_cmd("row", "2 of a\tb\tc") == ""
 
     def test_row_out_of_range(self):
         e = engine()
-        assert e._eval_cmd("row", "5 of a\tb") == ""
+        assert e._eval_cmd("row", "5 of a;b") == ""
 
 
 # ── !replace / !append ────────────────────────────────────────────────────────
@@ -1195,14 +1206,21 @@ class TestCmdPositionof:
 
 class TestCmdRandrow:
     def test_returns_one_row(self):
+        """`calc_randrow` : `rows2lines(p)` puis `calc_randline` (calc.c:498)."""
         e = engine(1)
-        e.ctx["mat"] = "a,1\tb,2\tc,3"
+        e.ctx["mat"] = "a,1;b,2;c,3"
         result = e._eval_cmd("randrow", "$mat")
         assert result in ("a,1", "b,2", "c,3")
 
+    def test_tabs_make_a_single_row(self):
+        """Une valeur tabulée n'a qu'une ligne : elle ressort entière."""
+        e = engine(1)
+        e.ctx["mat"] = "a,1\tb,2\tc,3"
+        assert e._eval_cmd("randrow", "$mat") == "a,1\tb,2\tc,3"
+
     def test_deterministic(self):
         e1, e2 = engine(42), engine(42)
-        e1.ctx["mat"] = e2.ctx["mat"] = "x\ty\tz"
+        e1.ctx["mat"] = e2.ctx["mat"] = "x;y;z"
         assert e1._eval_cmd("randrow", "$mat") == e2._eval_cmd("randrow", "$mat")
 
     def test_empty_returns_empty(self):
