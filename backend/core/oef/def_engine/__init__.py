@@ -1245,7 +1245,7 @@ class DefEngine(_SlibMixin):
             if not col_s:
                 return picked_s
             return row_sep.join(
-                self._select_cols(re.split(r"[;,]", r), col_s)
+                self._select_cols(_split_protected(r, ";,"), col_s)
                 for r in picked_s.split(row_sep) if r
             )
 
@@ -1260,7 +1260,7 @@ class DefEngine(_SlibMixin):
             # Une ligne dont la sélection est vide compte quand même : la boucle
             # de `calc_columnof` ajoute un séparateur par ligne, sans condition.
             return row_sep.join(
-                self._select_cols(re.split(r"[;,]", r), col_s) for r in picked
+                self._select_cols(_split_protected(r, ";,"), col_s) for r in picked
             )
 
         # Empty row spec → column `col` across ALL rows, e.g. $(matrix[;1])
@@ -1273,9 +1273,13 @@ class DefEngine(_SlibMixin):
                 col = int(round(float(self._eval_arith(col_s))))
             except (ValueError, TypeError):
                 return ""
+            # Les virgules protégées ne coupent pas une cellule : la grille de
+            # `oefmolecule/lewis` est faite de `(H,0),(LL,1),…`, et un découpage
+            # naïf rendait `As H_3,(H,100,100` pour sa colonne 1 — d'où un
+            # nombre de lignes faux et une molécule tronquée.
             out = []
             for r in rows:
-                cols = re.split(r"[;,]", r)
+                cols = _split_protected(r, ";,")
                 if 1 <= col <= len(cols):
                     out.append(cols[col - 1].strip())
             return ",".join(out)
@@ -1291,7 +1295,7 @@ class DefEngine(_SlibMixin):
         if not col_s:
             return rows[row - 1].strip()
 
-        cols = re.split(r"[;,]", rows[row - 1])
+        cols = _split_protected(rows[row - 1], ";,")
         return self._select_cols(cols, col_s)
 
     def _select_rows(self, rows: list[str], row_s: str, sep: str) -> str:
