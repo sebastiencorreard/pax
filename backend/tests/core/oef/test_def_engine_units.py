@@ -1005,20 +1005,22 @@ class TestVariableResolution:
         assert e._resolve_indexed1(m) == ""
 
     def test_indexed2_matrix(self):
+        """`$(v[l;c])` = `calc_rowof` puis `calc_columnof` : le `;` sépare les
+        lignes (via `rows2lines`), la virgule les cellules."""
         e = engine()
-        e.ctx["mat"] = "a;b\tc;d"  # row1: a;b  row2: c;d
+        e.ctx["mat"] = "a,b;c,d"
         m = re.match(r"\$\((\w+)\[([^\]]+);([^\]]+)\]\)", "$(mat[2;1])")
         assert m is not None
         assert e._resolve_indexed2(m) == "c"
 
     def test_indexed2_nested_column(self):
-        # ecrdec1: $(val14[$m_h;$(val11[$m_h])]) — the column index is itself
-        # an indexed lookup. The inner $(val11[…]) must resolve first, then
-        # the outer matrix access. Previously the outer regex grabbed the
-        # inner "]" and left a literal "])" behind.
+        # ecrdec1 : `$(val14[$m_h;$(val11[$m_h])])` — l'indice de colonne est
+        # lui-même une lecture indexée ; l'intérieur se résout d'abord. La
+        # matrice a la forme qu'elle prend dans le `.def` : lignes séparées par
+        # `;`, cellules par des virgules.
         e = engine()
-        e.ctx["mat"] = "Finie;Infinie périodique\tFinie;Je ne sais pas"
-        e.ctx["pos"] = "2,1"  # correct column per row
+        e.ctx["mat"] = "Finie,Infinie périodique;Finie,Je ne sais pas"
+        e.ctx["pos"] = "2,1"  # colonne correcte, ligne par ligne
         e.ctx["m_h"] = "1"
         assert e._subst("$(mat[$m_h;$(pos[$m_h])])") == "Infinie périodique"
         e.ctx["m_h"] = "2"

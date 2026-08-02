@@ -108,13 +108,6 @@ _WIDE_FALLBACK_TYPES = {
     "litexp", "algexp", "formal", "function", "numexp", "default", "auto",
 }
 
-# Detects "$a,$b,$c" pattern (comma-concat of variable references only).
-# Used in _eval_value to neutralise tabs in the substituted parts so the
-# resulting list stays unambiguously comma-separated.
-_COMMA_VARLIST_RE = re.compile(
-    r"^\s*(?:\$\w+|\$\([^)]+\))(?:\s*,\s*(?:\$\w+|\$\([^)]+\)))+\s*$"
-)
-
 # Racine servie par `/api/static` (cf. `main.py`). `!rename` y ramène ses
 # chemins ; c'est aussi la barrière qui les y confine.
 _RESSOURCES_ROOT = os.path.normpath(
@@ -134,25 +127,25 @@ _INPUT_ATTR_RE = re.compile(
 )
 
 
-def _split_protected(s: str, seps: str) -> list[str]:
-    """Découpe `s` sur `seps`, en sautant les paires `()`/`[]`/`{}`.
+def _split_range_spec(idx_s: str) -> tuple[str, str] | None:
+    """Bornes d'un indice-plage `a to b` / `a..b`, ou None (`_blockof`, calc.c).
 
-    Port de `strparstr` (`liblines.c`), sur lequel repose `find_item_end` : un
-    séparateur ne compte qu'à profondeur zéro. Les segments vides sont
-    conservés — c'est à l'appelant de décider s'ils comptent.
+    Le `to` est cherché à **profondeur zéro** et doit être un mot : précédé
+    d'un blanc (ou en tête) *et* suivi d'un blanc — un `to` collé, ou en fin de
+    chaîne, n'ouvre pas de plage. À défaut, `..`, sans condition de frontière.
     """
-    parts, depth, cur = [], 0, []
-    for ch in s:
-        if ch in "([{":
-            depth += 1
-        elif ch in ")]}":
-            depth = max(0, depth - 1)
-        if ch in seps and depth == 0:
-            parts.append("".join(cur)); cur = []
-        else:
-            cur.append(ch)
-    parts.append("".join(cur))
-    return parts
+    n = len(idx_s)
+    i = wl.strparstr(idx_s, "to")
+    while i < n:
+        before_ok = i == 0 or idx_s[i - 1] in " \t\n\r"
+        after_ok = i + 2 < n and idx_s[i + 2] in " \t\n\r"
+        if before_ok and after_ok:
+            return idx_s[:i], idx_s[i + 2:]
+        i = wl.strparstr(idx_s, "to", i + 2)
+    i = wl.strparstr(idx_s, "..")
+    if i < n:
+        return idx_s[:i], idx_s[i + 2:]
+    return None
 
 
 def _normalize_reply_type(rtype: str) -> str:
@@ -1136,184 +1129,42 @@ class DefEngine(_SlibMixin):
         return rows
 
     def _resolve_indexed2(self, m: re.Match) -> str:
-        """Resolve $(var[n;m]) — row n, column m. Supports a list of row indices."""
+        """`$(var[lignes;colonnes])` — port de `substit` (`evalue.c:109-131`).
+
+        Le C n'a pas de code d'indexation à lui : il **réécrit la référence en
+        commandes**. `$(v[l;c])` devient `calc_rowof("l of $v")` — ou la valeur
+        entière si la partie lignes est vide — puis `calc_columnof("c of …")`
+        si la partie colonnes ne l'est pas. Et `calc_columnof` est lui-même un
+        `rows2lines` suivi d'un `calc_itemof` par ligne.
+
+        D'où la règle qui tenait lieu de bug ici : une « cellule » se termine à
+        la virgule, jamais au `;` — celui-ci a déjà été consommé comme fin de
+        ligne. Et la tabulation ne sépare rien du tout.
+        """
         name, row_expr, col_expr = m.group(1), m.group(2), m.group(3)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
-        row_s = self._subst_for_arith(row_expr)
+        row_s = self._subst_for_arith(row_expr).strip()
         col_s = self._subst_for_arith(col_expr).strip()
 
-        # Row-separator detection. The OEF source frequently writes
-        #   \text{list=item1;\nitem2;\nitem3;\nitem4}
-        # which compiles to ``item1;\titem2;\titem3;\titem4`` — the tab is the
-        # cosmetic newline, the *real* separator is ``;``. Splitting by tab
-        # first would leave a stray ";" on each row (Quiz course03_2step's
-        # enonceb list). So: when ``;`` is present AND ``[n;]`` asks for a
-        # whole row (col_expr empty), prefer ``;``. For genuine 2D matrices
-        # with ``[n;m]``, the existing tab-first split is preserved because
-        # those typically don't carry inner ``;`` between rows.
-        prefer_semi = (not col_s) and (";" in value)
-        if prefer_semi:
-            row_sep = ";"
-            rows = self._split_rows_by_semi(value)
-        elif "\t" in value:
-            row_sep = "\t"
-            rows = value.split("\t")
-        else:
-            row_sep = ";"
-            rows = self._split_rows_by_semi(value)
+        tbuf = self._rowof(row_s, value) if row_s else value
+        return self._columnof(col_s, tbuf) if col_s else tbuf
 
-        # WIMS feature: $(matrix[$list;]) where $list = "2,3,1,4" returns rows
-        # 2,3,1,4 joined by the source separator. Used for shuffled matrices.
-        def parse_indices(s: str) -> list[int] | None:
-            parts = s.split(",") if "," in s else s.split("\t")
-            if len(parts) <= 1:
-                return None
-            indices: list[int] = []
-            for p in parts:
-                try:
-                    indices.append(int(round(float(self._eval_arith(p.strip())))))
-                except (ValueError, TypeError):
-                    return None
-            return indices
+    def _columnof(self, idx_s: str, data: str) -> str:
+        """`!column I of MATRICE` — port de `calc_columnof` (`calc.c`).
 
-        # Plage de lignes `a..b` / `a to b` — même sélecteur que les colonnes.
-        # `calc_rowof` la traite au même titre qu'un indice ; sans elle,
-        # `$(val13[2..-1;])` (unitecell : « toutes les lignes sauf la taille »)
-        # rendait la chaîne vide et l'exercice perdait ses organites.
-        if re.search(r"\.\.|\s+to\s+", row_s):
-            picked_s = self._select_rows(rows, row_s, row_sep)
-            if not col_s:
-                return picked_s
-            return row_sep.join(
-                self._select_cols(_split_protected(r, ";,"), col_s)
-                for r in picked_s.split(row_sep) if r
-            )
-
-        idx_list = parse_indices(row_s.strip())
-        if idx_list is not None:
-            picked = [rows[i - 1] for i in idx_list if 1 <= i <= len(rows)]
-            if not col_s:
-                return row_sep.join(p.strip() for p in picked)
-            # Même sélecteur de colonnes que la branche « ligne unique » —
-            # sinon `[liste;liste]` (`calc_columnof` appelle `calc_itemof` sur
-            # chaque ligne, avec le même analyseur d'indices) ne rendait rien.
-            # Une ligne dont la sélection est vide compte quand même : la boucle
-            # de `calc_columnof` ajoute un séparateur par ligne, sans condition.
-            return row_sep.join(
-                self._select_cols(_split_protected(r, ";,"), col_s) for r in picked
-            )
-
-        # Empty row spec → column `col` across ALL rows, e.g. $(matrix[;1])
-        # (cof builds the correspond's right column this way). Joined by "," so
-        # `$lefts;$(m[;1])` stays a 2-part "lefts;rights" with comma items.
-        if not row_s.strip():
-            if not col_s:
-                return value
-            try:
-                col = int(round(float(self._eval_arith(col_s))))
-            except (ValueError, TypeError):
-                return ""
-            # Les virgules protégées ne coupent pas une cellule : la grille de
-            # `oefmolecule/lewis` est faite de `(H,0),(LL,1),…`, et un découpage
-            # naïf rendait `As H_3,(H,100,100` pour sa colonne 1 — d'où un
-            # nombre de lignes faux et une molécule tronquée.
-            out = []
-            for r in rows:
-                cols = _split_protected(r, ";,")
-                if 1 <= col <= len(cols):
-                    out.append(cols[col - 1].strip())
-            return ",".join(out)
-
-        try:
-            row = int(round(float(self._eval_arith(row_s))))
-        except (ValueError, TypeError):
-            return ""
-        if not (1 <= row <= len(rows)):
-            return ""
-
-        # If col_expr is empty, return entire row
-        if not col_s:
-            return rows[row - 1].strip()
-
-        cols = _split_protected(rows[row - 1], ";,")
-        return self._select_cols(cols, col_s)
-
-    def _select_rows(self, rows: list[str], row_s: str, sep: str) -> str:
-        """Lignes d'une plage `a..b` / `a to b`, bornes négatives comprises.
-
-        Mêmes règles que `_select_cols` — l'indice négatif compte depuis la fin
-        et la plage est **inclusive** —, appliquées aux lignes.
+        `rows2lines` d'abord, puis un `calc_itemof` par ligne. Le séparateur de
+        sortie suit trois règles, dans cet ordre : `;` si `rows2lines` a
+        converti quelque chose, `\n` sinon — mais `,` dès que l'indice demandé
+        est **unique** (ni virgule, ni `to`, ni `..`), parce qu'une colonne
+        simple est une liste d'items, pas une matrice.
         """
-        n = len(rows)
-
-        def _norm(i: int) -> int:
-            return i + n + 1 if i < 0 else i
-
-        a, _, b = re.split(r"(\.\.|\s+to\s+)", row_s.strip(), maxsplit=1)[:3] or ("", "", "")
-        try:
-            start = _norm(int(round(float(self._eval_arith(a.strip())))))
-            end = _norm(int(round(float(self._eval_arith(b.strip())))))
-        except (ValueError, TypeError):
-            return ""
-        if start > end:
-            start, end = end, start
-        return sep.join(
-            rows[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n
-        )
-
-    def _select_cols(self, cols: list[str], col_s: str) -> str:
-        """Select column(s) from a row's cells.
-
-        ``col_s`` is a single 1-based index, a WIMS range ``a..b``, or a
-        **comma-separated list** of indices. Bounds may be negative (``-1`` =
-        last column), so ``2..-1`` means "from column 2 to the end" (used by
-        quizz 0408's ``$(matrix[row;2..-1])`` to collect the divisor columns).
-        Returns the selected cells joined by ``,``; empty string if the spec
-        can't be parsed.
-
-        The list form is `calc.c`'s `_blockof` else-branch: it evaluates each
-        index in turn and **skips** those out of range instead of failing, so a
-        shuffled index list can be applied to a shorter row. The range test
-        comes first, as it does there.
-        """
-        n = len(cols)
-
-        def _norm(i: int) -> int:
-            # WIMS counts negative indices from the end: -1 → n, -2 → n-1.
-            return i + n + 1 if i < 0 else i
-
-        if ".." in col_s:
-            a, _, b = col_s.partition("..")
-            try:
-                start = _norm(int(round(float(self._eval_arith(a.strip())))))
-                end = _norm(int(round(float(self._eval_arith(b.strip())))))
-            except (ValueError, TypeError):
-                return ""
-            if start > end:
-                start, end = end, start
-            sel = [cols[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n]
-            return ",".join(sel)
-
-        if "," in col_s:
-            sel = []
-            for part in col_s.split(","):
-                try:
-                    i = _norm(int(round(float(self._eval_arith(part.strip())))))
-                except (ValueError, TypeError):
-                    continue
-                if 1 <= i <= n:
-                    sel.append(cols[i - 1].strip())
-            return ",".join(sel)
-
-        try:
-            col = _norm(int(round(float(self._eval_arith(col_s)))))
-        except (ValueError, TypeError):
-            return ""
-        if 1 <= col <= n:
-            return cols[col - 1].strip()
-        return ""
+        converted, count = wl.rows2lines(data)
+        sep = ";" if count else "\n"
+        if "," not in idx_s and ".." not in idx_s and not re.search(r"\bto\b", idx_s):
+            sep = ","
+        return sep.join(self._itemof(idx_s, line) for line in wl.cutlines(converted))
 
     # ── Condition evaluation ──────────────────────────────────────────────────
 
@@ -1829,65 +1680,22 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
-        idx_s = self._subst(m.group(1).strip())
-        data = self._subst(m.group(2).strip())
+        return self._itemof(self._subst(m.group(1).strip()),
+                            self._subst(m.group(2).strip()))
 
-        split_items = self._split_items
+    def _itemof(self, idx_s: str, data: str) -> str:
+        """`calc_itemof` sur des opérandes **déjà substituées**.
 
-        # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
-        # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
-        # (simpquot keeps every accepted form after the displayed expression).
-        # Les bornes peuvent être des expressions arithmétiques (`$(val9[1])+1`,
-        # cf. moyenneB2) : on les évalue via _eval_arith, sinon la plage échoue
-        # et la sous-liste ressort vide.
-        range_m = re.match(r"(.+?)\s+to\s+(.+?)\s*$", idx_s)
-        if range_m:
-            try:
-                a = int(round(float(self._eval_arith(range_m.group(1).strip()))))
-                b = int(round(float(self._eval_arith(range_m.group(2).strip()))))
-            except (ValueError, TypeError):
-                range_m = None
-        if range_m:
-            items = split_items(data)
-            n = len(items)
-            if a < 0:
-                a = n + a + 1
-            if b < 0:
-                b = n + b + 1
-            a, b = max(1, a), min(n, b)
-            if a > b:
-                return ""
-            return ",".join(it.strip() for it in items[a - 1 : b])
+        Séparé de `_cmd_item` parce que `substit` (`evalue.c`) réécrit
+        `$(v[l;c])` en `calc_rowof`/`calc_columnof`, qui appellent à leur tour
+        `calc_itemof` : la valeur y arrive substituée, et la resubstituer
+        rejouerait les `$` qu'elle contient.
 
-        # Comma-separated list of indices → pick each, join with commas
-        if "," in idx_s:
-            indices: list[int] = []
-            for p in idx_s.split(","):
-                try:
-                    indices.append(int(round(float(self._eval_arith(p.strip())))))
-                except (ValueError, TypeError):
-                    continue
-            items = split_items(data)
-            res = []
-            for idx in indices:
-                if 1 <= idx <= len(items):
-                    res.append(items[idx - 1].strip())
-            return ",".join(res)
-
-        # Single index. Negative = from the end (WIMS `-1` = last item), e.g.
-        # `!item -1 of $slib_w` (slib/stat/effectif). Without this, negative
-        # single indices returned empty and cascaded into `max(,)`-style leaks.
-        try:
-            idx = int(round(float(self._eval_arith(idx_s))))
-            items = split_items(data)
-            n = len(items)
-            if idx < 0:
-                idx = n + idx + 1
-            if 1 <= idx <= n:
-                return items[idx - 1].strip()
-        except (ValueError, TypeError):
-            pass
-        return ""
+        Toute la sélection — plage, liste, indice négatif — vit dans
+        `_blockof`, comme dans le C où `calc_itemof` n'est qu'un appel avec
+        `itemnum`/`fnd_item`.
+        """
+        return self._blockof(data, self._split_items, ",", idx_s)
 
     @staticmethod
     def _split_rows(data: str) -> list[str]:
@@ -1914,11 +1722,14 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
-        idx_s = self._subst(m.group(1).strip())
-        data = self._subst(m.group(2).strip())
-        # `calc_rowof` : `;` si la matrice n'a pas de saut de ligne mais en
-        # porte un, `\n` dans tous les autres cas — il n'y a pas de troisième
-        # branche, et surtout pas de tabulation.
+        return self._rowof(self._subst(m.group(1).strip()),
+                           self._subst(m.group(2).strip()))
+
+    def _rowof(self, idx_s: str, data: str) -> str:
+        """`calc_rowof` sur des opérandes déjà substituées (cf. `_itemof`)."""
+        # `;` si la matrice n'a pas de saut de ligne mais en porte un, `\n`
+        # dans tous les autres cas — il n'y a pas de troisième branche, et
+        # surtout pas de tabulation.
         sep = ";" if ("\n" not in data and ";" in data) else "\n"
         return self._blockof(
             data, lambda s: [r.strip() for r in self._split_rows(s)], sep, idx_s
@@ -2572,50 +2383,59 @@ class DefEngine(_SlibMixin):
             self.ctx[var] = ""
 
     def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:
-        """Generic N-of-LIST picker (port of _blockof in calc.c).
+        """Sélecteur commun à `!item`/`!line`/`!row`/`!word`/`!char` (`_blockof`).
 
-        split_fn(s) -> list[str]; sep is joined between multiple results.
-        idx_s may be a single int, 'A to B' range, or comma-separated indices.
-        Negative indices are Python-style from end (-1 = last).
+        Port de `calc.c` : `split_fn` tient lieu de la paire `len_fn`/`fnd_fn`,
+        `sep` de l'`append_char`. Deux formes d'indice, dans cet ordre —
+
+        - une **plage** `a to b` (le `to` doit être un mot, cherché à
+          profondeur zéro) ou `a..b` : bornes évaluées, négatives comptées
+          depuis la fin (`-1` = dernier), puis rabotées à `[1, t]`. Une plage
+          vide rend une chaîne vide ;
+        - sinon une **liste d'indices** découpée par `find_item_end`, chacun
+          évalué et compté depuis la fin s'il est négatif ; ceux qui sortent
+          des bornes sont **sautés**, pas fatals — un indice unique n'est que
+          le cas à un élément.
         """
         parts = split_fn(data)
-        n = len(parts)
+        t = len(parts)
 
-        def resolve(i: int) -> int:
+        def one(i: int) -> str:
+            """`_blockof_one` : hors bornes → chaîne vide."""
+            return parts[i - 1] if 1 <= i <= t else ""
+
+        def num(expr: str) -> int | None:
+            try:
+                return int(round(float(self._eval_arith(expr.strip()))))
+            except (ValueError, TypeError):
+                return None
+
+        bounds = _split_range_spec(idx_s)
+        if bounds is not None:
+            i, j = num(bounds[0]), num(bounds[1])
+            if i is None or j is None:
+                return ""
             if i < 0:
-                return n + i + 1
-            return i
+                i = t + i + 1
+            if i < 1:
+                i = 1
+            if j < 0:
+                j = t + j + 1
+            if j > t:
+                j = t
+            return sep.join(one(k) for k in range(i, j + 1))
 
-        # Range: "2 to 5" or "2..5"
-        range_m = re.match(r"(-?\d+)\s+to\s+(-?\d+)", idx_s) or \
-                  re.match(r"(-?\d+)\.\.(-?\d+)", idx_s)
-        if range_m:
-            a = resolve(int(range_m.group(1)))
-            b = resolve(int(range_m.group(2)))
-            a = max(1, a); b = min(n, b)
-            return sep.join(parts[i - 1] for i in range(a, b + 1))
-
-        # Multiple indices
-        raw_indices = [s.strip() for s in idx_s.split(",") if s.strip()]
-        if len(raw_indices) > 1:
-            res = []
-            for s in raw_indices:
-                try:
-                    i = resolve(int(round(float(self._eval_arith(s)))))
-                    if 1 <= i <= n:
-                        res.append(parts[i - 1])
-                except (ValueError, TypeError):
-                    pass
-            return sep.join(res)
-
-        # Single index
-        try:
-            i = resolve(int(round(float(self._eval_arith(idx_s)))))
-            if 1 <= i <= n:
-                return parts[i - 1]
-        except (ValueError, TypeError):
-            pass
-        return ""
+        out = []
+        for raw in wl.cutitems(idx_s):
+            i = num(raw)
+            if i is None:
+                continue
+            if i < 0:
+                i = t + i + 1
+            if i > t or i < 0:
+                continue
+            out.append(one(i))
+        return sep.join(out)
 
     def _cmd_line(self, args: str) -> str:
         """!line N of text — Nth newline-separated line (1-indexed)."""
