@@ -406,10 +406,14 @@ class TestWimsListSplit:
         assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
         assert e._split_wims_items(r"x&#44;y;z") == ["x&#44;y", "z"]
 
-    def test_indexed_access_with_semicolon_list(self):
+    def test_semicolon_is_not_an_item_border(self):
+        """`find_item_end` vaut `strparstr(p, ",")` : seule la virgule sépare.
+        Le `;` est une frontière de *ligne de matrice*, et le prendre pour un
+        item hachait le JavaScript des tableaux JSXGraph de `couf`."""
         e = engine()
         e.ctx["v"] = r"\(\large 25),\(\large 1000);\(\large 2,5 \times 10^{19})"
-        assert e._subst(r"$(v[3])") == r"\(\large 2,5 \times 10^{19})"
+        assert e._subst(r"$(v[2])") == r"\(\large 1000);\(\large 2,5 \times 10^{19})"
+        assert e._subst(r"$(v[3])") == ""
 
 
 class TestCommutesom:
@@ -853,9 +857,12 @@ class TestCmdItemRow:
         assert e._eval_cmd("item", "2 to -1 of a,b,c,d") == "b,c,d"
         assert e._eval_cmd("item", "2 to -1 of expr,15") == "15"
 
-    def test_item_tab_separated(self):
+    def test_tab_is_not_an_item_border(self):
+        """La tabulation encode un retour à la ligne du source OEF ; elle se
+        fait élaguer aux bords d'item, jamais découper."""
         e = engine()
-        assert e._eval_cmd("item", "2 of x\ty\tz") == "y"
+        assert e._eval_cmd("item", "1 of a\tb\tc") == "a\tb\tc"
+        assert e._eval_cmd("item", "2 of a,\tb") == "b"
 
     def test_row_second(self):
         e = engine()
@@ -952,12 +959,12 @@ class TestSlibDataRandom:
 
 
 class TestVariableResolution:
-    def test_indexed1_tab_separated(self):
+    def test_indexed1_tab_is_not_a_separator(self):
         e = engine()
-        e.ctx["lst"] = "A\tB\tC"
-        m = re.match(r"\$\((\w+)\[([^\]]+)\]\)", "$(lst[3])")
-        assert m is not None
-        assert e._resolve_indexed1(m) == "C"
+        e.ctx["v"] = "a\tb\tc"
+        assert e._subst("$(v[1])") == "a\tb\tc"
+        e.ctx["w"] = "a,\tb"
+        assert e._subst("$(w[2])") == "b"
 
     def test_indexed1_comma_separated(self):
         e = engine()
@@ -1170,9 +1177,11 @@ class TestCmdPositionof:
         e = engine()
         assert e._eval_cmd("positionof", "item z in a,b,c") == "0"
 
-    def test_tab_separated(self):
+    def test_tab_is_not_a_separator(self):
+        """`_pos` passe par `fnd_item` : la virgule seule sépare, et l'item
+        est élagué avant comparaison."""
         e = engine()
-        e.ctx["lst"] = "x\ty\tz"
+        e.ctx["lst"] = "x,\ty,\tz"
         assert e._eval_cmd("positionof", "item y in $lst") == "2"
 
     def test_numeric_value(self):

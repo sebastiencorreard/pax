@@ -860,28 +860,11 @@ class DefEngine(_SlibMixin):
         if value.startswith("$["):
             return self._eval_dollar_bracket(value)
 
-        # Pattern: comma-separated list of $var references only
-        # (e.g. "val14=$val19,$val37,$val52,...").  Substitute each ref and
-        # neutralise any tabs in the substituted content so the resulting
-        # comma-separated list is unambiguous to $(var[i]) access.
-        if _COMMA_VARLIST_RE.match(value):
-            parts = [self._subst(ref) for ref in re.split(r"\s*,\s*", value.strip())]
-            # An item that is a comma-laden HTML blob (e.g. a JSXGraph board
-            # div) can't be comma-joined without breaking $(var[i]); use a TAB
-            # separator. Plain comma-data items (numbers, fractions) keep the
-            # flattening comma-join.
-            if any("," in p and "<" in p for p in parts):
-                return "\t".join(parts)
-            # La tabulation interne devient un **saut de ligne**, pas une
-            # espace. Elle doit disparaître — `_split_items` la prendrait pour
-            # un séparateur d'items et l'indexation `$(liste[n])` s'en
-            # trouverait faussée — mais elle sépare aussi les commandes d'une
-            # figure : les items d'`oefmolecule/lewis` accumulés par
-            # `val26=$val26,$val51` portent `polyline …<TAB>polyline …`. Réduite
-            # à une espace, flydraw n'y voyait qu'une seule ligne brisée, d'où
-            # des symboles de liaison en zigzag. Le saut de ligne, lui, sépare
-            # les commandes sans séparer les items.
-            return ",".join(p.replace("\t", "\n") for p in parts)
+        # `substit` (`evalue.c`) ne réécrit rien : une concaténation `$a,$b`
+        # est une substitution textuelle, séparateur compris. Le cas spécial
+        # qui vivait ici — tabulations internes neutralisées, bascule vers un
+        # join tabulé pour le HTML à virgules — compensait la priorité
+        # tabulation de `_split_items` ; il tombe avec elle.
 
         # Literal string with variable substitution
         return self._subst(value)
@@ -1111,50 +1094,42 @@ class DefEngine(_SlibMixin):
         return ",".join(items[start - 1 : py_end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
-        """Resolve $(var[n]) — 1-indexed item from tab/semicolon/comma-separated list."""
+        """`$(var[n])` — n-ième item, ou sous-liste si `n` est une liste.
+
+        Découpage par `cutitems` : la virgule seule sépare, à profondeur zéro.
+        Le `;` n'est pas une frontière d'item — c'en est une de *ligne de
+        matrice* —, et le prendre pour tel hachait les tableaux JSXGraph de
+        `couf`, dont le JavaScript en est truffé.
+        """
         name, idx_expr = m.group(1), m.group(2)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         idx_s = self._subst_for_arith(idx_expr)
+        items = wl.cutitems(value)
 
-        # A WIMS list item is delimited by `,` or `;` (the `;` arising from the
-        # append-tab + `!translate \t→;` idiom for comma-bearing items — brevet01
-        # QCM choices). `_split_wims_items` splits on both at bracket depth 0
-        # while protecting HTML entities (`&#44;`) — which is why a naive `;`
-        # split was previously avoided. TAB-joined lists are handled there too.
-        if self._tab_is_separator(value):
-            delimiter = "\t"
-            items = value.split("\t")
-        else:
-            delimiter = ","
-            items = self._split_wims_items(value)
-
-        # Try to parse as single integer first
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
             if 1 <= idx <= len(items):
-                return items[idx - 1].strip()
-            # WIMS negative index: -1 = last item, -2 = second-to-last, …
+                return items[idx - 1]
+            # Indice négatif WIMS : -1 = dernier item.
             if -len(items) <= idx <= -1:
-                return items[idx].strip()
+                return items[idx]
             return ""
         except (ValueError, TypeError):
             pass
 
-        # Handle list of indices (WIMS feature): $(var[$list]) where $list='5,4'
-        # Returns items 5 and 4, separated by same delimiter as source
-        idx_list_str = idx_s.strip()
-        idx_parts = idx_list_str.split(",") if "," in idx_list_str else idx_list_str.split("\t")
+        # Liste d'indices : `$(var[$liste])` avec `$liste = "5,4"` rend les
+        # items 5 et 4, joints par des virgules.
         result_items = []
-        for idx_part in idx_parts:
+        for part in wl.cutitems(idx_s):
             try:
-                idx = int(round(float(self._eval_arith(idx_part.strip()))))
-                if 1 <= idx <= len(items):
-                    result_items.append(items[idx - 1].strip())
+                idx = int(round(float(self._eval_arith(part))))
             except (ValueError, TypeError):
                 continue
-        return delimiter.join(result_items) if result_items else ""
+            if 1 <= idx <= len(items):
+                result_items.append(items[idx - 1])
+        return ",".join(result_items)
 
     @staticmethod
     def _split_rows_by_semi(value: str) -> list[str]:
@@ -1923,30 +1898,13 @@ class DefEngine(_SlibMixin):
 
     @staticmethod
     def _split_items(s: str) -> list[str]:
-        """Découpe une liste WIMS en items — le découpage que `!item` indexe.
+        """Items d'une liste WIMS — `cutitems` (`liblines.c`).
 
-        La tabulation sépare des *lignes* : quand il y en a, c'est elle qui
-        prime, sinon on découpe aux virgules de premier niveau. Mélanger les
-        deux séparateurs fabriquerait un item vide à chaque `,<TAB>`, séquence
-        banale dans les listes multi-lignes des `.def`.
-
-        NB : WIMS, lui, ne découpe **qu'aux virgules** (`find_item_end` vaut
-        `strparstr(p, ",")`), la tabulation n'étant qu'un caractère à élaguer.
-        Aligner PAX là-dessus rend à `oefmolecule/lewis` les atomes de sa
-        palette — sa liste de directions `0,r,…,rru,<TAB>ull,…` porte une
-        tabulation purement cosmétique qui la réduisait à 2 items, faisant
-        échouer toute recherche de position — **mais casse `moles.fr`,
-        `moles.nl` et `mouvrel.fr`** : leur `val14` passe de `5` à un
-        `rint(rint(…))` non évalué, et 30 `expected` se vident. Une autre
-        liste y dépend du découpage par tabulation malgré ses virgules. À
-        reprendre avec elles. Cf. TODO I.3.d.
-
-        Les virgules protégées par `()`/`[]`/`{}` ne coupent pas : `!item 1 of
-        [a,b],[c,d]` rend `[a,b]`, pas `[a` (sortie de slib/stat/effectif|freq).
+        La virgule seule sépare, à profondeur zéro. La tabulation n'en est pas
+        une : elle encode un retour à la ligne du source OEF et se fait élaguer
+        aux bords d'item comme n'importe quel blanc.
         """
-        if "\t" in s:
-            return s.split("\t")
-        return _split_top_level_commas(s)
+        return wl.cutitems(s)
 
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.

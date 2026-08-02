@@ -140,7 +140,10 @@ dans cette phase : le corpus doit être strictement inchangé.
 
 ### Phase 1 — Producteurs
 
-Migrer vers la sortie virgule, dans cet ordre (du moins au plus risqué) :
+Migrer vers la sortie virgule. **L'ordre suit les chemins de données, pas les
+rôles** : `makelist` doit précéder `itemcnt`, et `shuffle` ne peut passer
+qu'une fois les producteurs de tabulations qui l'alimentent déjà migrés. Un
+producteur dont le consommateur n'est pas prêt casse le corpus — vérifié.
 
 1. `listuniq`/`listintersect`/`listcomplement` : dédoublonnage par `itemchr`
    (aujourd'hui : égalité normalisée — divergence supplémentaire) ;
@@ -148,8 +151,11 @@ Migrer vers la sortie virgule, dans cet ordre (du moins au plus risqué) :
 3. `shuffle` : virgule, **conservation des items vides**, décision
    liste/nombre par `find_item_end` + `evalue` (pas `.isdigit()`), suppression
    du `,(?![^(]*\))` ; poser `wims_shuffle_order` ;
-4. `_eval_value` : supprimer le hack HTML→tab **en même temps** que la
-   vérification §5.1 sur `slib_table` (c'est la paire de `moles.fr`) ;
+4. ~~`_eval_value`~~ — **erreur de classement, corrigée à l'exécution** : ce
+   n'est pas un producteur mais une **compensation** de la priorité tabulation
+   de `_split_items`. Le retirer en phase 1 vide la palette de `lewis` et casse
+   les tableaux JSXGraph de `cof` (`test_four_boards_in_inline_group`). Il ne
+   peut tomber qu'en phase 3, après les consommateurs ;
 5. auditer `slib.py` (`.split("\t")` ligne 624, `replace("\t", ",")` ligne
    442…) : chacun est soit un port fidèle d'un `!translate` du slib WIMS,
    soit une compensation.
