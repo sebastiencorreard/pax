@@ -211,6 +211,22 @@ Mettre à jour `docs/def-engine-commands.md`.
 
 ## 5. Protocole de validation (leçons payées cette session)
 
+**Reprendre le travail après une interruption** — capturer une référence
+*avant* toute modification, puis comparer :
+
+```bash
+docker compose exec -T backend sh -c "cd /app && python3 scripts/corpus_state.py /tmp/ref.json"
+# … modifications …
+docker compose exec -T backend sh -c "cd /app && python3 scripts/corpus_state.py /tmp/apres.json && \
+    python3 scripts/corpus_state.py /tmp/ref.json /tmp/apres.json"
+```
+
+Comptez ~3 minutes par capture (12 897 rendus, 3 graines). Ces fichiers vivent
+dans le `/tmp` du conteneur : ils **disparaissent à chaque reconstruction
+d'image**, il faut donc toujours en refaire un plutôt que se fier à un ancien.
+
+
+
 1. **Comparer les valeurs, jamais les comptes.** Deux régressions (moyenne de
    `mean.def`, `val14` de `concentration1`) étaient invisibles au nombre de
    réponses. Référence = dump `{fichier#reply: expected}` + `options.choices`
