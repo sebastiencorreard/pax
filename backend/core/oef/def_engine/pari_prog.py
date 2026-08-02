@@ -929,16 +929,25 @@ def _wims_line_filter(line: str) -> str:
 
 
 def _format_value(value: Any) -> str:
-    """Rendu d'une valeur pour `print`, au format GP."""
+    """Rendu d'une valeur pour `print`, au format GP **brut**.
+
+    L'interface PARI de WIMS ouvre `gp` sur `default(output,0)`
+    (`wims/src/Interfaces/pari.c`, en-tête du `.gprc`) : le mode « raw », qui
+    imprime `[1,6]` et non `[1, 6]`. L'espace de présentation du mode par
+    défaut n'atteint donc jamais une variable WIMS — et c'est ce qui permet à
+    `[$l,$c] isitemof $slib_repsort` (`slib/function/tabsignes`) de retrouver
+    son couple par simple recherche de sous-chaîne. L'émettre ici obligeait
+    tous les consommateurs à ignorer les espaces, `itemchr` compris.
+    """
     from .cas import _format_pari_result  # noqa: PLC0415
 
     if isinstance(value, str):
         return value.strip('"')
     if isinstance(value, (PVec, PList)):
-        return "[" + ", ".join(_format_value(v) for v in value.items) + "]"
+        return "[" + ",".join(_format_value(v) for v in value.items) + "]"
     if isinstance(value, PMat):
-        return "[" + "; ".join(
-            ", ".join(_format_value(v) for v in row) for row in value.rows
+        return "[" + ";".join(
+            ",".join(_format_value(v) for v in row) for row in value.rows
         ) + "]"
     return _format_pari_result(value)
 

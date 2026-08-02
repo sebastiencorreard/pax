@@ -1960,9 +1960,15 @@ class TestListMembershipWithBrackets:
         assert e._eval_condition("if", "[1,2] isitemof [1,2],[3,4]")
         assert not e._eval_condition("if", "[9,9] isitemof [1,2],[3,4]")
 
-    def test_isitemof_ignores_presentation_spaces(self):
-        """GP écrit `[1, 2]` là où le `.def` compose `[1,2]`."""
-        assert engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+    def test_isitemof_ne_normalise_pas_les_espaces(self):
+        """`itemchr(buf2,buf1)` (compare.c:165) — recherche de sous-chaîne.
+
+        Aucune normalisation n'entoure l'appel : un `[1, 2]` espacé ne contient
+        pas la sous-chaîne `[1,2]`. WIMS n'en produit d'ailleurs jamais, son
+        `gp` tournant en mode brut (`default(output,0)`, Interfaces/pari.c).
+        """
+        assert not engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+        assert engine()._eval_condition("if", "[1, 2] isitemof [1, 2], [3, 4]")
 
     def test_isitemof_plain_list_unchanged(self):
         e = engine()
@@ -1973,9 +1979,15 @@ class TestListMembershipWithBrackets:
         e = engine()
         assert e._eval_cmd("positionof", "item [2,3] in [1,2],[2,3],[3,4]") == "2"
 
-    def test_positionof_ignores_presentation_spaces(self):
+    def test_positionof_compare_sans_normaliser(self):
+        """`_pos` (calc.c) : `strcmp` sur l'item élagué, rien de plus.
+
+        Les blancs de **bord** tombent avec `fnd_item`, ceux de l'intérieur
+        restent — `[2,3]` n'est pas `[2, 3]`.
+        """
         e = engine()
-        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "2"
+        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "0"
+        assert e._eval_cmd("positionof", "item [2, 3] in [1, 2], [2, 3]") == "2"
 
     def test_positionof_absent_returns_zero(self):
         assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == "0"

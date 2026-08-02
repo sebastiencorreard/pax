@@ -2212,16 +2212,13 @@ class DefEngine(_SlibMixin):
             return "0"
         needle = self._subst(m.group(1).strip())
         haystack = self._subst(m.group(2).strip())
-        # Même découpage que `!item`, et pour la même raison que `isitemof` :
-        # les virgules protégées par des crochets ne séparent pas des items.
-        # `slib/function/tabsignes` cherche la position d'un couple
-        # `[ligne,colonne]` dans sa liste de couples, et un découpage naïf
-        # renvoyait 0 — toutes ses cellules-réponses recevaient alors le même
-        # numéro (`0 + rang - 1`).
-        items = self._split_items(haystack)
-        needle_norm = needle.replace(" ", "")
+        # `_pos` (`calc.c`) compare l'item **élagué** au motif par `strcmp` :
+        # aucune normalisation, pas même sur les espaces. Celle qui vivait ici
+        # rattrapait le `[1, 2]` que produisait notre émulation de GP ; le mode
+        # brut de WIMS (`default(output,0)`) n'en émet pas.
+        items = wl.cutitems(haystack)
         for i, item in enumerate(items, 1):
-            if item.strip().replace(" ", "") == needle_norm:
+            if item == needle:
                 return str(i)
         return "0"
 
