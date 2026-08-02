@@ -1861,14 +1861,14 @@ class DefEngine(_SlibMixin):
     def _cmd_randitem(self, args: str) -> str:
         """``!randitem item1, item2, …`` — en tire un au sort.
 
-        Le découpage protège les crochets, comme `itemnum`/`fnd_item` dans
-        WIMS : `[227,13],[18,120]` vaut deux items, pas quatre. La liste vient
-        presque toujours d'une variable, si bien qu'un découpage naïf ne se
-        voyait pas dans le `.def` mais coupait les couples de coordonnées de
-        `unitecell` en morceaux (`13]`).
+        Port de `calc_randitem` : `itemnum` puis `fnd_item`. Les items vides
+        comptent donc dans le tirage, et un item entre crochets reste entier.
         """
-        items = [x.strip() for x in self._split_wims_items(self._subst(args)) if x.strip()]
-        return self.rng.choice(items) if items else ""
+        val = self._subst(args)
+        n = wl.itemnum(val)
+        if n <= 0:
+            return ""
+        return wl.fnd_item(val, self.rng.randrange(n) + 1)
 
     def _cmd_nonempty(self, args: str) -> str:
         """``!nonempty items|lines|rows LISTE`` — retire les entrées vides.
