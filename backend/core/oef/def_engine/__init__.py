@@ -803,7 +803,10 @@ class DefEngine(_SlibMixin):
         if m_in and not re.search(r"\s+to\s+", range_s, re.I):
             var = (loop.var.lstrip("$") or m_in.group(1)).strip()
             items_raw = m_in.group(2).strip()
-            items = items_raw.split("\t") if "\t" in items_raw else items_raw.split(",")
+            # `cutfor` (`evalue.c`) : la virgule de profondeur zéro, items
+            # élagués — le `!for … in …` d'un `.def` ne se découpe pas
+            # autrement que celui d'un slib ou d'un `!makelist`.
+            items = wl.cutitems(items_raw)
             saved = self.ctx.get(var)
             for item in items:
                 self.ctx[var] = item.strip()
@@ -2051,10 +2054,10 @@ class DefEngine(_SlibMixin):
 
         if op == "linkedranditem":
             a, b = spans[0]
-            n = len([x for x in re.split(r",|\t", text[a + 1 : b - 1]) if x.strip()])
+            n = len([x for x in wl.cutitems(text[a + 1 : b - 1]) if x])
             idx = self.rng.randrange(n) if n else 0
             def pick(content: str) -> str:
-                items = [x.strip() for x in re.split(r",|\t", content) if x.strip()]
+                items = [x for x in wl.cutitems(content) if x]
                 return items[idx] if idx < len(items) else ""
         elif op == "randrow":
             def pick(content: str) -> str:
