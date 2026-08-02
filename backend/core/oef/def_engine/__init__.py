@@ -133,6 +133,27 @@ _INPUT_ATTR_RE = re.compile(
 )
 
 
+def _split_protected(s: str, seps: str) -> list[str]:
+    """Découpe `s` sur `seps`, en sautant les paires `()`/`[]`/`{}`.
+
+    Port de `strparstr` (`liblines.c`), sur lequel repose `find_item_end` : un
+    séparateur ne compte qu'à profondeur zéro. Les segments vides sont
+    conservés — c'est à l'appelant de décider s'ils comptent.
+    """
+    parts, depth, cur = [], 0, []
+    for ch in s:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth = max(0, depth - 1)
+        if ch in seps and depth == 0:
+            parts.append("".join(cur)); cur = []
+        else:
+            cur.append(ch)
+    parts.append("".join(cur))
+    return parts
+
+
 def _normalize_reply_type(rtype: str) -> str:
     """Canonical reply type, folding `dragfill` onto `clickfill`.
 
@@ -1440,14 +1461,15 @@ class DefEngine(_SlibMixin):
             subst_args = self._subst(args)
             if not subst_args.strip():
                 return "0"
-            # NB : `itemnum` protège bel et bien les crochets dans WIMS
-            # (`find_item_end` = `strparstr(p, ",")`), mais l'appliquer ici
-            # casse `oefstat/mean` : sa ligne arrive **encore entourée** de
-            # crochets côté PAX là où WIMS l'a déjà déballée, et sa moyenne
-            # passe de 3.97 à un `print((…)` non évalué. Le correctif est donc
-            # en amont, dans le déballage — pas ici. Mesuré : la protection ne
-            # gagnerait que `lewis`. Cf. TODO I.3.d.
-            items = re.split(r",|\t", subst_args)
+            # `itemnum` passe par `find_item_end` = `strparstr(p, ",")` : les
+            # virgules protégées par `()`/`[]`/`{}` ne séparent pas.
+            # Indissociable du séparateur de `!makelist` ci-dessous : seul,
+            # ce correctif fait passer `slib/stat/dataproc` dans sa branche
+            # pondérée — la bonne — mais celle-ci reçoit alors un
+            # `slib_weight` tabulé, invalide en PARI, et `oefstat/mean`
+            # ressort son `print((…)` en clair. Les deux ensemble donnent la
+            # moyenne juste.
+            items = _split_protected(subst_args, ",\t")
             if "\t" in subst_args:
                 # Tabulations : ce sont des séparateurs de *lignes*, et une
                 # ligne blanche n'est pas un item — les listes multi-lignes des
@@ -2162,14 +2184,11 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-        # NB : `_values` (`calc.c`) joint toutes ses valeurs par une virgule
-        # (`if(pp>p) *pp++=','`), sans séparateur de lignes. Aligner PAX là-dessus
-        # corrige `slib_weight` (`1<TAB>1<TAB>…`, invalide en PARI, d'où le
-        # `print((…)` en clair d'`oefstat/mean`) mais **fait perdre leur vivier**
-        # aux clickfill de `symax2`/`symcen2`/`rota2` (`3;1,2,3…` → `3`) : le
-        # code alentour compense la divergence historique. À reprendre avec la
-        # couche slib, pas isolément. Cf. TODO I.3.d.
-        return "\t".join(results)
+        # `_values` (`calc.c`) joint **toutes** ses valeurs par une virgule
+        # (`if(pp>p) *pp++=','`), sans séparateur de lignes. La tabulation
+        # produisait un `slib_weight` en `1<TAB>1<TAB>…` que
+        # `slib/stat/arithmean` passait tel quel à PARI.
+        return ",".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""

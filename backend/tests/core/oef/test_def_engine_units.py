@@ -1114,25 +1114,32 @@ class TestEvalCondition:
 
 
 class TestCmdMakelist:
-    def test_simple_tab_separated(self):
-        e = engine()
-        result = e._eval_cmd("makelist", "v for v=1 to 3")
-        assert result == "1\t2\t3"
+    """`_values` (`calc.c`) joint **toutes** ses valeurs par une virgule —
+    `if(pp>p) *pp++=','` — sans séparateur de lignes.
 
-    def test_multi_column_row(self):
+    PAX les séparait par des tabulations, ce qui donnait à `slib/stat/dataproc`
+    un `slib_weight` en `1<TAB>1<TAB>…` : invalide en PARI, d'où le
+    `print((…)` en clair d'`oefstat/mean`.
+    """
+
+    def test_comma_separated(self):
         e = engine()
-        result = e._eval_cmd("makelist", "v,-v for v=1 to 3")
-        assert result == "1,-1\t2,-2\t3,-3"
+        assert e._eval_cmd("makelist", "v for v=1 to 3") == "1,2,3"
+
+    def test_multi_expression_stays_flat(self):
+        """Plusieurs expressions ne font pas des *lignes* : la liste reste
+        plate, chaque valeur séparée par une virgule."""
+        e = engine()
+        assert e._eval_cmd("makelist", "v,-v for v=1 to 3") == "1,-1,2,-2,3,-3"
 
     def test_expression(self):
         e = engine()
-        result = e._eval_cmd("makelist", "v*v for v=1 to 4")
-        assert result == "1\t4\t9\t16"
+        assert e._eval_cmd("makelist", "v*v for v=1 to 4") == "1,4,9,16"
 
-    def test_row_access_after_makelist(self):
+    def test_item_access_after_makelist(self):
         e = engine()
         e.ctx["mat"] = e._eval_cmd("makelist", "v,-v for v=2 to 4")
-        assert e._subst("$(mat[2])") == "3,-3"
+        assert e._subst("$(mat[2])") == "-2"
 
     def test_loop_var_removed_after(self):
         e = engine()
@@ -1869,10 +1876,18 @@ class TestItemCount:
         """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`"""
         assert engine()._eval_cmd("itemcnt", "x,\t  y,\t  z\t") == "3"
 
-    def test_brackets_do_not_protect_commas(self):
-        """`slib/stat/dataproc` compte les valeurs d'une ligne encore entourée
-        de crochets ; les protéger renvoyait 1 et cassait les moyennes."""
-        assert engine()._eval_cmd("itemcnt", "[0,4,3.5]") == "3"
+    def test_brackets_protect_commas(self):
+        """`itemnum` passe par `find_item_end` = `strparstr(p, ",")` : la virgule
+        ne sépare qu'à profondeur zéro.
+
+        L'assertion inverse a longtemps tenu ici, parce que protéger seul
+        cassait `oefstat/mean` : la protection fait passer `slib/stat/dataproc`
+        dans sa branche pondérée — la bonne — mais celle-ci recevait un
+        `slib_weight` tabulé, invalide en PARI. C'est le séparateur de
+        `!makelist` qu'il fallait corriger en même temps.
+        """
+        assert engine()._eval_cmd("itemcnt", "[0,4,3.5]") == "1"
+        assert engine()._eval_cmd("itemcnt", "[a,b],[c,d]") == "2"
 
     def test_empty_input(self):
         assert engine()._eval_cmd("itemcnt", "  ") == "0"
