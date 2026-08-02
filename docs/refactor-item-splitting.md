@@ -121,6 +121,35 @@ priorité tab de `_split_items`/`_split_rows`, filtre « ligne blanche » du
 (be6c2938), **le cas spécial `_COMMA_VARLIST_RE` tout entier** (WIMS n'a
 aucun équivalent : `substit` ne réécrit rien).
 
+## 3bis. État d'avancement (2026-08-02)
+
+| Phase | État | Effet corpus (12 897 rendus, 3 graines) |
+|---|---|---|
+| 0 — socle `wims_lists` + 53 tests | ✅ | 0 différence |
+| 1a — `listuniq`, `listintersect`, `listcomplement` | ✅ | 0 valeur, 6 énoncés |
+| 1b — `nonempty`, `append`, `sort` | ✅ | 383 valeurs, 1 vidée (déjà fausse) |
+| 1c — `shuffle` | ✅ | 470 valeurs, 9 palettes remplies |
+| 1d — `randitem` | ✅ | 116 valeurs, 0 perte |
+| 2 — `_split_items`, `_resolve_indexed1`, chute de la priorité tab + compensation `_eval_value` | ✅ | 579 valeurs, **46 remplies, 0 vidée** |
+| 3 — compensations restantes (`compare.py`, `_split_rows`, `_split_wims_items`) | ⏳ | |
+| 4 — fusion des découpeurs, `re.split` résiduels | ⏳ | |
+
+**Cible atteinte pour `lewis`** : 18 étiquettes (8 atomes, 6 doublets non
+liants, les liaisons), 7 attendus sur 7 champs — la composition exacte du
+rendu WIMS de référence. Sentinelles toutes vertes ; `concentration1` passe
+de `0 Ohm` à `0 mol`.
+
+**Angle mort de l'instrument, constaté** : `corpus_state.py` compare les
+valeurs (attendu, palette) et une empreinte d'énoncé, mais ne détecte ni la
+disparition d'un segment (un tableau JSXGraph évanoui) ni un HTML déséquilibré
+— seuls deux tests unitaires l'ont vu. À compléter avant la phase 3 :
+compter les segments par type et vérifier l'appariement `group-open`/
+`group-close`.
+
+**Piège d'édition à éviter** : remplacer une méthode en scannant jusqu'au
+prochain `    def ` avale le décorateur `@staticmethod` de la méthode
+suivante. Ça a produit 53 échecs de tests attribués à tort à la sémantique.
+
 ## 4. Programme de refactorisation
 
 Chaque phase = un commit, avec le protocole de validation du §5 exécuté
