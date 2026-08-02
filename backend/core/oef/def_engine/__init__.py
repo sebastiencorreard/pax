@@ -2911,21 +2911,17 @@ class DefEngine(_SlibMixin):
         return out
 
     def _split_correspond_column(self, row: str) -> list[str]:
-        """Split one correspond column into items, robust to HTML-element items.
+        """Items d'une colonne de `correspond` — `!nonempty items` (`liblines.c`).
 
-        ``_split_list_items`` over-splits a column of complete HTML elements
-        (assgrhyper's 4 ``<img>`` hyperbola graphs): the multi-line ``<img>``
-        markup carries tabs (source newlines) that collide with the tab used as
-        the item separator. Such elements end in ``>`` and the next begins with
-        ``<``, so a tab that *follows* a closing ``>`` is the only real boundary
-        (attribute tabs follow ``"`` or spaces). Fall back to the generic split
-        when the column isn't a clean list of elements (CORvect3 coords, text).
+        `anstype/correspond.input` ne fait rien d'autre : `!rows2lines` sur le
+        `replygood`, `!distribute lines` en deux colonnes, puis
+        `!nonempty items` sur chacune. Une heuristique vivait ici pour
+        rattraper les colonnes d'éléments HTML (les 4 `<img>` d'`assgrhyper`),
+        dont le balisage multi-lignes porte des tabulations : elle coupait
+        après un `>` suivi d'une tabulation. La virgule les sépare déjà —
+        mesuré : 4 items dans les deux cas.
         """
-        if "<" in row and ">" in row:
-            elems = [e.strip() for e in re.split(r"(?<=>)\s*\t\s*", row) if e.strip()]
-            if len(elems) >= 2 and all(e.startswith("<") for e in elems):
-                return elems
-        return [c for c in self._split_list_items(row) if c.strip()]
+        return [c for c in wl.cutitems(row) if c.strip()]
 
     def _prep_correspond_item(self, raw: str) -> str:
         """Normalise one correspond cell for display: close WIMS inline math and,
