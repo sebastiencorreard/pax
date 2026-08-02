@@ -9,7 +9,6 @@ import random
 from typing import Any
 from fractions import Fraction
 from lark import Lark, Transformer, v_args
-from .def_engine import wims_lists as wl
 from .parser import OEFNode
 from .numfmt import format_wims_float
 
@@ -314,6 +313,11 @@ class OEFEvaluator:
                     i += 1
                     continue
                 inner_raw = expr[i + 5 : j]
+                # Import différé : `def_engine` importe `engine`, qui importe
+                # ce module — le charger en tête refermerait le cycle et
+                # empêcherait `uvicorn main:app` de démarrer.
+                from .def_engine import wims_lists as wl  # noqa: PLC0415
+
                 parts = wl.cutitems(inner_raw)
                 if len(parts) >= 2:
                     idx_str = self._substitute_vars(parts[0].strip())
@@ -842,6 +846,8 @@ def _pick_randitem_template(expr: str) -> str | None:
             if depth == 0 and i != len(expr) - 1:
                 return None
     inner = expr[len("randitem(") : -1]
+    from .def_engine import wims_lists as wl  # noqa: PLC0415
+
     items = wl.cutitems(inner)
     items = [it for it in items if it]
     if not items:
