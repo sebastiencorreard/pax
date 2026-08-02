@@ -1871,27 +1871,29 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(items) if items else ""
 
     def _cmd_nonempty(self, args: str) -> str:
-        """!nonempty items/rows/lines list — remove empty entries."""
+        """``!nonempty items|lines|rows LISTE`` — retire les entrées vides.
+
+        Port de `calc_nonempty`. Les `rows` passent par `rows2lines` ; **si
+        rien n'est converti**, WIMS bascule sur le traitement des lignes — d'où
+        le repli explicite ci-dessous. `words` est une extension PAX (absente
+        de `calc.c`), conservée faute d'avoir mesuré ses appelants.
+        """
         m = re.match(r"(items?|rows?|lines?|words?)\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind = m.group(1).lower()
         val = self._subst(m.group(2))
-        # `lines` : séparateur newline (slib/stat/dataproc). `words` : espaces.
-        if kind.startswith("line"):
-            items = [x.strip() for x in val.split("\n") if x.strip()]
-            return "\n".join(items)
+
         if kind.startswith("word"):
             return " ".join(w for w in val.split() if w)
-        # Same separator logic as _cmd_shuffle: tab first, then smart comma.
-        # Do NOT detect ";" — items may contain ";" inside HTML entities.
-        if kind.startswith("row") or "\t" in val:
-            sep = "\t"
-            items = [x.strip() for x in val.split(sep) if x.strip()]
-        else:
-            sep = ","
-            items = [x.strip() for x in re.split(r",(?![^(]*\))", val) if x.strip()]
-        return sep.join(items)
+        if kind.startswith("row"):
+            converted, n = wl.rows2lines(val)
+            if n:
+                return ";".join(x for x in wl.cutlines(converted) if x.strip())
+            kind = "lines"
+        if kind.startswith("line"):
+            return "\n".join(x for x in wl.cutlines(val) if x.strip())
+        return ",".join(x for x in wl.cutitems(val) if x)
 
     def _cmd_shuffle(self, args: str) -> str:
         """!shuffle list — return list items in random order."""
@@ -2132,15 +2134,23 @@ class DefEngine(_SlibMixin):
         return text.translate(table)
 
     def _cmd_append(self, args: str) -> str:
-        """!append item/line/word/semicolon X to list — append with appropriate separator."""
-        # Also accepts 'word' (→ space), 'semicolon' (→ ;), 'colon' (→ :).
+        """``!append item|line|word|semicolon|colon X to LISTE``.
+
+        Port de `calc_append` : le séparateur vient de la table `apch_list`
+        (`item`→`,`, `line`→`\n`, `word`→espace, `semicolon`→`;`,
+        `colon`→`:`), et n'est inséré que si la liste cible n'est pas vide.
+
+        Aucun basculement vers la tabulation : WIMS n'en a pas, et c'en était
+        un des producteurs qui obligeaient les consommateurs à la traiter en
+        séparateur.
+        """
         m = re.match(r"(items?|lines?|words?|semicolons?|colons?)\s+(.*?)\s+to\s*(.*)",
                      args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind_raw = m.group(1).lower()
         val = self._subst(m.group(2))
-        target = self._subst((m.group(3) or "").strip())
+        target = self._subst((m.group(3) or ""))
 
         if kind_raw.startswith("line"):
             sep = "\n"
@@ -2151,14 +2161,11 @@ class DefEngine(_SlibMixin):
         elif kind_raw.startswith("colon"):
             sep = ":"
         else:
-            # item: comma-separated, but switch to TAB when the list can't be
-            # comma-joined unambiguously — i.e. the new item (or the list)
-            # itself contains a comma/tab (e.g. cof appends JSXGraph
-            # `board.create('line',[…],{…})` snippets, comma-laden, into one
-            # list then reads them back with $(list[N])).
-            sep = "\t" if ("\t" in target or "\t" in val or "," in val) else ","
+            sep = ","
 
-        if not target:
+        # `if(*p3) *p4++=append_char` : `p3` a sauté les blancs de tête, donc
+        # une cible entièrement blanche ne reçoit pas de séparateur.
+        if not target.strip():
             return val
         return f"{target}{sep}{val}"
 
@@ -2277,14 +2284,23 @@ class DefEngine(_SlibMixin):
                 reverse = True
 
         # `of` optionnel après le type (`!sort numeric item of $v`, slib/stat/freq).
-        m = re.match(r"(items?|rows?|list)(?:\s+of)?\s+(.*)", rest, re.I | re.DOTALL)
+        m = re.match(r"(items?|rows?|lines?|words?|list)(?:\s+of)?\s+(.*)", rest, re.I | re.DOTALL)
         if m:
             kind, val = m.group(1).lower(), self._subst(m.group(2))
         else:
             kind, val = "items", self._subst(rest)
 
-        sep = "\t" if kind.startswith("row") else ","
-        items = [x.strip() for x in val.split(sep) if x.strip()]
+        # `calc_sort` : items→`,`, mots→espace, lignes/rows→`\n`. Les rows
+        # sont converties en lignes d'abord, puis **reconverties** en fin de
+        # course (`if(t) lines2rows(p)`).
+        back_to_rows = 0
+        if kind.startswith("row"):
+            val, back_to_rows = wl.rows2lines(val)
+            sep, items = "\n", [x for x in wl.cutlines(val) if x.strip()]
+        elif kind.startswith("word"):
+            sep, items = " ", val.split()
+        else:
+            sep, items = ",", [x for x in wl.cutitems(val) if x]
 
         if numeric:
             def _num_key(s: str) -> float:
@@ -2296,7 +2312,8 @@ class DefEngine(_SlibMixin):
         else:
             items.sort(reverse=reverse)
 
-        return sep.join(items)
+        out = sep.join(items)
+        return wl.lines2rows(out) if back_to_rows else out
 
     def _cmd_values(self, args: str) -> str:
         """!values V for var=start to end — list of values."""

@@ -802,9 +802,13 @@ class TestCmdListOps:
         e = engine()
         assert e._eval_cmd("nonempty", "items a,,b,") == "a,b"
 
-    def test_nonempty_rows(self):
+    def test_nonempty_rows_uses_semicolons(self):
+        """`calc_nonempty` découpe les rows par `rows2lines` — donc `;`, jamais
+        la tabulation — et les rejoint par `;`. Une valeur tabulée ne convertit
+        rien : WIMS bascule alors sur les lignes, et elle ressort telle quelle."""
         e = engine()
-        assert e._eval_cmd("nonempty", "rows a\t\tb") == "a\tb"
+        assert e._eval_cmd("nonempty", "rows a;;b") == "a;b"
+        assert e._eval_cmd("nonempty", "rows a\t\tb") == "a\t\tb"
 
     def test_itemcnt(self):
         e = engine()
@@ -889,23 +893,26 @@ class TestCmdStringOps:
         e.ctx["mylist"] = "a,b"
         assert e._eval_cmd("append", "item c to $mylist") == "a,b,c"
 
-    def test_append_to_tab_list(self):
+    def test_append_item_always_uses_a_comma(self):
+        """`calc_append` prend son séparateur dans `apch_list` — `item`→`,` —
+        sans regarder le contenu. Le basculement vers la tabulation était l'un
+        des producteurs qui obligeaient les consommateurs à traiter la
+        tabulation en séparateur."""
         e = engine()
         e.ctx["mylist"] = "a\tb"
-        assert e._eval_cmd("append", "item c to $mylist") == "a\tb\tc"
+        assert e._eval_cmd("append", "item c to $mylist") == "a\tb,c"
 
     def test_append_to_empty_var(self):
         e = engine()
         e.ctx["empty"] = ""
         assert e._eval_cmd("append", "item x to $empty") == "x"
 
-    def test_append_comma_item_uses_tab(self):
-        # An item that itself contains a comma can't be comma-joined
-        # unambiguously, so the list switches to TAB — otherwise $(list[N])
-        # would split the item at its inner comma (cof's JSXGraph snippets).
+    def test_append_item_with_a_comma_still_uses_a_comma(self):
+        """Même quand l'item porte lui-même une virgule : c'est au consommateur
+        de protéger ses crochets, pas au producteur de changer de séparateur."""
         e = engine()
-        e.ctx["mylist"] = "f(a,b)"
-        assert e._eval_cmd("append", "item g(c,d) to $mylist") == "f(a,b)\tg(c,d)"
+        e.ctx["mylist"] = "a"
+        assert e._eval_cmd("append", "item [x,y] to $mylist") == "a,[x,y]"
 
 
 class TestSlibDataRandom:
