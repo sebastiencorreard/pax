@@ -34,6 +34,7 @@ import os
 import random
 import re
 
+from . import wims_lists as wl
 from .cas import _MATH_NS  # noqa: F401  # re-exported for callers if needed
 
 
@@ -621,8 +622,10 @@ class _SlibMixin:
                 elif in_m:
                     var = in_m.group(1)
                     items_raw = self._subst(in_m.group(2).strip())
-                    parts = items_raw.split("\t") if "\t" in items_raw else items_raw.split(",")
-                    seq = [p.strip() for p in parts]
+                    # `cutfor` (`evalue.c`) : la virgule de profondeur zéro,
+                    # items élagués — le `!for x in …` d'un slib ne se découpe
+                    # pas autrement que celui d'un `.def`.
+                    seq = wl.cutitems(items_raw)
                 else:
                     i = j + 1
                     continue
