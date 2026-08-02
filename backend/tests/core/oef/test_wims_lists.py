@@ -142,6 +142,17 @@ class TestCutitems:
     def test_empty_string(self):
         assert cutitems("") == []
 
+    def test_trailing_empty_item_is_kept(self):
+        """La nuance assumée face au `cutitems` du C.
+
+        `_cutit_` s'arrête sur `*pp` et perd un dernier item vide ; `itemnum`
+        et `fnd_item`, eux, le voient (`"a,"` = 2 items). Nos appelants
+        modélisent cette paire-là — `!item -1 of "a,"` doit rendre le vide.
+        """
+        assert cutitems("a,") == ["a", ""]
+        assert cutitems("a,") == [fnd_item("a,", i) for i in (1, 2)]
+        assert itemnum("a,") == 2
+
 
 class TestItemchr:
     def test_membership(self):
