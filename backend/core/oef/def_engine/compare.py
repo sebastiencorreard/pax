@@ -43,7 +43,16 @@ def _wims_bufprep(s: str) -> str:
 
 
 def _split_items_protected(s: str) -> list[str]:
-    """Découpe une liste aux virgules de premier niveau."""
+    """Découpe une liste WIMS en items.
+
+    La tabulation sépare aussi des items, et prime quand il y en a — même règle
+    que `_split_items` côté moteur. Sans elle, `isitemof` était **toujours faux**
+    sur une liste tabulée : `mathelexikon` garde ses champs actifs dans un
+    `r 1<TAB>r 2<TAB>…` et son `!if r $m_k isitemof $val105` ne passait jamais,
+    si bien qu'aucun `\\embed` n'était émis.
+    """
+    if "\t" in s:
+        return [p.strip() for p in s.split("\t")]
     parts: list[str] = []
     depth = 0
     current: list[str] = []

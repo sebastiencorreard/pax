@@ -1215,6 +1215,19 @@ class DefEngine(_SlibMixin):
                     return None
             return indices
 
+        # Plage de lignes `a..b` / `a to b` — même sélecteur que les colonnes.
+        # `calc_rowof` la traite au même titre qu'un indice ; sans elle,
+        # `$(val13[2..-1;])` (unitecell : « toutes les lignes sauf la taille »)
+        # rendait la chaîne vide et l'exercice perdait ses organites.
+        if re.search(r"\.\.|\s+to\s+", row_s):
+            picked_s = self._select_rows(rows, row_s, row_sep)
+            if not col_s:
+                return picked_s
+            return row_sep.join(
+                self._select_cols(re.split(r"[;,]", r), col_s)
+                for r in picked_s.split(row_sep) if r
+            )
+
         idx_list = parse_indices(row_s.strip())
         if idx_list is not None:
             picked = [rows[i - 1] for i in idx_list if 1 <= i <= len(rows)]
@@ -1259,6 +1272,29 @@ class DefEngine(_SlibMixin):
 
         cols = re.split(r"[;,]", rows[row - 1])
         return self._select_cols(cols, col_s)
+
+    def _select_rows(self, rows: list[str], row_s: str, sep: str) -> str:
+        """Lignes d'une plage `a..b` / `a to b`, bornes négatives comprises.
+
+        Mêmes règles que `_select_cols` — l'indice négatif compte depuis la fin
+        et la plage est **inclusive** —, appliquées aux lignes.
+        """
+        n = len(rows)
+
+        def _norm(i: int) -> int:
+            return i + n + 1 if i < 0 else i
+
+        a, _, b = re.split(r"(\.\.|\s+to\s+)", row_s.strip(), maxsplit=1)[:3] or ("", "", "")
+        try:
+            start = _norm(int(round(float(self._eval_arith(a.strip())))))
+            end = _norm(int(round(float(self._eval_arith(b.strip())))))
+        except (ValueError, TypeError):
+            return ""
+        if start > end:
+            start, end = end, start
+        return sep.join(
+            rows[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n
+        )
 
     def _select_cols(self, cols: list[str], col_s: str) -> str:
         """Select column(s) from a row's cells.
@@ -1762,9 +1798,15 @@ class DefEngine(_SlibMixin):
             return "0"
 
     def _cmd_randitem(self, args: str) -> str:
-        """!randitem item1, item2, ... — pick one randomly."""
-        val = self._subst(args)
-        items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
+        """``!randitem item1, item2, …`` — en tire un au sort.
+
+        Le découpage protège les crochets, comme `itemnum`/`fnd_item` dans
+        WIMS : `[227,13],[18,120]` vaut deux items, pas quatre. La liste vient
+        presque toujours d'une variable, si bien qu'un découpage naïf ne se
+        voyait pas dans le `.def` mais coupait les couples de coordonnées de
+        `unitecell` en morceaux (`13]`).
+        """
+        items = [x.strip() for x in self._split_wims_items(self._subst(args)) if x.strip()]
         return self.rng.choice(items) if items else ""
 
     def _cmd_nonempty(self, args: str) -> str:
@@ -2267,11 +2309,78 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_embraced(self, args: str) -> str:
-        """!embraced item N of list — return content inside { }."""
-        # WIMS specific; simplified implementation
-        items = re.findall(r"\{(.*?)\}", self._subst(args))
-        # This is a bit of a guess on how WIMS uses this command
-        return ",".join(items)
+        """``!embraced <op> <texte>`` — applique `op` **dans chaque `{…}`**.
+
+        Port de `calc_embraced` (`calc.c`). Le point à ne pas manquer : la
+        commande ne choisit rien dans la liste globale — elle remplace chaque
+        groupe accolé **sur place** par le résultat de `op` sur son seul
+        contenu, en laissant intact tout le texte autour. C'est ce qui permet à
+        `unitecell` d'écrire `232,197;Membrane,{coords…};Cytoplasme,{coords…}`
+        et de récupérer le même squelette avec une coordonnée tirée par ligne :
+        la taille en ligne 1, une ligne par organite ensuite.
+
+        `linkedranditem` tire **un seul** rang, appliqué à tous les groupes —
+        c'est ce qui les « lie ».
+        """
+        s = self._subst(args)
+        m = re.match(r"\s*(\w+)\s+(.*)$", s, re.DOTALL)
+        if not m:
+            return s
+        op, text = m.group(1).lower(), m.group(2)
+
+        def groups(t: str) -> list[tuple[int, int]]:
+            """Spans des `{…}` de premier niveau (imbrication comprise)."""
+            out, depth, start = [], 0, -1
+            for i, ch in enumerate(t):
+                if ch == "{":
+                    if depth == 0:
+                        start = i
+                    depth += 1
+                elif ch == "}" and depth:
+                    depth -= 1
+                    if depth == 0:
+                        out.append((start, i + 1))
+            return out
+
+        spans = groups(text)
+        if not spans:
+            return text
+
+        if op == "extract":
+            a, b = spans[0]
+            return text[a + 1 : b - 1]
+        if op == "delete":
+            out, last = [], 0
+            for a, b in spans:
+                out.append(text[last:a])
+                last = b
+            out.append(text[last:])
+            return "".join(out)
+
+        if op == "linkedranditem":
+            a, b = spans[0]
+            n = len([x for x in re.split(r",|\t", text[a + 1 : b - 1]) if x.strip()])
+            idx = self.rng.randrange(n) if n else 0
+            def pick(content: str) -> str:
+                items = [x.strip() for x in re.split(r",|\t", content) if x.strip()]
+                return items[idx] if idx < len(items) else ""
+        elif op == "randrow":
+            def pick(content: str) -> str:
+                rows = [r for r in self._split_rows(content) if r.strip()]
+                return self.rng.choice(rows) if rows else ""
+        elif op == "randitem":
+            def pick(content: str) -> str:
+                return self._cmd_randitem(content)
+        else:
+            return text
+
+        out, last = [], 0
+        for a, b in spans:
+            out.append(text[last:a])
+            out.append(pick(text[a + 1 : b - 1]))
+            last = b
+        out.append(text[last:])
+        return "".join(out)
 
     def _cmd_word(self, args: str) -> str:
         """!word N of text — mot(s) N, 1-indexé.
@@ -3045,7 +3154,7 @@ class DefEngine(_SlibMixin):
             self.ctx[f"reply{n}"] = value
             self.ctx[f"m_reply{n}"] = value
             expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
-            rtype = _normalize_reply_type(self.ctx.get(f"replytype{n}", "") or "numexp")
+            rtype = self._reply_type(n) or "numexp"
             correct = self._grade_prev_reply(value, expected, rtype)
             sc = "1" if correct else "0"
             self.ctx[f"sc_reply{n}"] = sc
@@ -3061,6 +3170,17 @@ class DefEngine(_SlibMixin):
             return check_answer(rtype or "numexp", reply, expected, lang=self.lang).correct
         except Exception:
             return reply.strip() == expected.strip()
+
+    def _reply_type(self, n) -> str:
+        """Type canonique de la réponse `n`, tel que le `.def` le déclare.
+
+        `replytypeN` n'est pas toujours littéral : `unitecell` écrit
+        `replytype1=$val12`, et la valeur brute reste dans le contexte. Il faut
+        donc substituer avant de comparer — sans quoi le test échoue en
+        silence, et `imagefill` refusait toutes ses cases faute de reconnaître
+        un `clickfill` écrit derrière une variable.
+        """
+        return _normalize_reply_type(self._subst(self.ctx.get(f"replytype{n}", "")))
 
     def _render_special(self, args: str) -> str:
         """Dispatch an OEF ``\\special`` (``!read oef/special.phtml <kind> …``).
@@ -3157,7 +3277,7 @@ class DefEngine(_SlibMixin):
                 continue
             if not 1 <= int(n) <= 100:
                 continue
-            if _normalize_reply_type(self.ctx.get(f"replytype{n}", "")) != "clickfill":
+            if self._reply_type(n) != "clickfill":
                 continue
             try:
                 px, py = int(round(float(cells[1]))), int(round(float(cells[2])))
@@ -3785,7 +3905,7 @@ class DefEngine(_SlibMixin):
             # Record that this reply is referenced by the current statement.
             # Used in render() to filter `answers` for dynsteps/course exercises.
             self._touched_replies.add(f"reply{n}")
-            reply_type = _normalize_reply_type(self.ctx.get(f"replytype{n}", ""))
+            reply_type = self._reply_type(n)
             if reply_type == "radio":
                 # Inline radio: `reply{n},POS[,CONTENT]` places one choice *here*
                 # in the statement (value = POS, label = CONTENT), instead of in
