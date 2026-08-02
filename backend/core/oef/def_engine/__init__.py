@@ -986,20 +986,6 @@ class DefEngine(_SlibMixin):
                 break
         return s
 
-    def _split_list_items(self, value: str) -> list[str]:
-        """Items d'une liste WIMS — `cutitems` (`liblines.c`).
-
-        La virgule seule sépare, à profondeur zéro. Ni la tabulation (elle
-        encode un retour à la ligne du source OEF et se fait élaguer aux bords
-        d'item), ni le `;` (qui sépare des *lignes de matrice*, cf.
-        `rows2lines`) n'en coupent une.
-        """
-        return wl.cutitems(value)
-
-    # Un seul découpage d'items, celui du C : les deux noms coexistent le temps
-    # que la phase 4 fusionne les appelants.
-    _split_wims_items = _split_list_items
-
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.
 
@@ -1015,7 +1001,7 @@ class DefEngine(_SlibMixin):
             end = int(round(float(self._eval_arith(self._subst_for_arith(end_s)))))
         except (ValueError, TypeError):
             return ""
-        items = self._split_list_items(value)
+        items = wl.cutitems(value)
         # WIMS indices are 1-based and a negative index counts from the end with
         # -1 = the *last* item, **inclusive** (`[2..-1]` = item 2 through the
         # last). Python's `items[1:-1]` would drop the last, so map a negative
@@ -1062,71 +1048,6 @@ class DefEngine(_SlibMixin):
             if 1 <= idx <= len(items):
                 result_items.append(items[idx - 1])
         return ",".join(result_items)
-
-    @staticmethod
-    def _split_rows_by_semi(value: str) -> list[str]:
-        """Split by ';' at bracket depth 0, mirroring WIMS' rows2lines().
-
-        WIMS (liblines.c rows2lines) treats a ';' as a matrix-row separator
-        only when it sits outside any (), [], {} group and outside an HTML
-        entity (&alpha; / &#58;). A ';' nested in brackets — e.g. the
-        column-vector display ``\\([7;5]\\)`` — or one closing an HTML entity
-        is part of the cell, not a separator. Unbalanced brackets fall back to
-        a literal ';' (find_matching returns nothing, scan keeps going), again
-        matching the C source.
-        """
-        close_of = {"(": ")", "[": "]", "{": "}"}
-
-        def find_matching(start: int, close: str) -> int:
-            """Index of the nesting-aware match for ``close``, or -1."""
-            parenth = brak = brace = 0
-            for i in range(start, len(value)):
-                ch = value[i]
-                if ch == "[":
-                    brak += 1
-                elif ch == "]":
-                    brak -= 1
-                elif ch == "(":
-                    parenth += 1
-                elif ch == ")":
-                    parenth -= 1
-                elif ch == "{":
-                    brace += 1
-                elif ch == "}":
-                    brace -= 1
-                else:
-                    continue
-                if parenth < 0 or brak < 0 or brace < 0:
-                    if ch != close or parenth > 0 or brak > 0 or brace > 0:
-                        return -1
-                    return i
-            return -1
-
-        rows: list[str] = []
-        n = len(value)
-        start = i = 0
-        while i < n:
-            ch = value[i]
-            if ch in close_of:
-                j = find_matching(i + 1, close_of[ch])
-                i = (j + 1) if j != -1 else (i + 1)
-            elif ch == ";":
-                rows.append(value[start:i])
-                start = i = i + 1
-            elif ch == "&" and i + 1 < n and value[i + 1].isalpha():
-                j = i + 1
-                while j < n and value[j].isalpha() and j - i < 14:
-                    j += 1
-                i = j + 1  # WIMS skips the entity's terminating ';' too
-            elif ch == "&" and i + 1 < n and value[i + 1] == "#":
-                j = i + 2
-                while j < n and value[j].isdigit() and j - i < 6:
-                    j += 1
-                i = j + 1
-            else:
-                i += 1
-        rows.append(value[start:])
-        return rows
 
     def _resolve_indexed2(self, m: re.Match) -> str:
         """`$(var[lignes;colonnes])` — port de `substit` (`evalue.c:109-131`).
@@ -1258,7 +1179,7 @@ class DefEngine(_SlibMixin):
 
         if cmd in ("rowcnt", "rowcount", "rowno", "rownum"):
             val = self._subst(args)
-            return str(len(self._split_rows(val)))
+            return str(len(wl.cutrows(val)))
 
         if cmd == "trim":
             return self._subst(args).strip()
@@ -1661,16 +1582,6 @@ class DefEngine(_SlibMixin):
         self.rng.shuffle(items)
         return ",".join(items)
 
-    @staticmethod
-    def _split_items(s: str) -> list[str]:
-        """Items d'une liste WIMS — `cutitems` (`liblines.c`).
-
-        La virgule seule sépare, à profondeur zéro. La tabulation n'en est pas
-        une : elle encode un retour à la ligne du source OEF et se fait élaguer
-        aux bords d'item comme n'importe quel blanc.
-        """
-        return wl.cutitems(s)
-
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
 
@@ -1695,21 +1606,7 @@ class DefEngine(_SlibMixin):
         `_blockof`, comme dans le C où `calc_itemof` n'est qu'un appel avec
         `itemnum`/`fnd_item`.
         """
-        return self._blockof(data, self._split_items, ",", idx_s)
-
-    @staticmethod
-    def _split_rows(data: str) -> list[str]:
-        """Lignes d'une matrice WIMS — `rows2lines` puis les lignes.
-
-        L'idiome du C, partout où une matrice se lit (`matrix.c:34`,
-        `calc_randrow`) : `rows2lines(p)` convertit les `;` de profondeur zéro
-        en sauts de ligne — et ne fait rien si la valeur en a déjà —, puis
-        `linenum`/`fnd_line` la découpent. La tabulation n'y figure pas ; la
-        branche qui lui donnait la priorité compensait un `!makelist` tabulé.
-
-        Les lignes vides comptent, comme dans `linenum`.
-        """
-        return wl.cutrows(data)
+        return self._blockof(data, wl.cutitems, ",", idx_s)
 
     def _cmd_row(self, args: str) -> str:
         """!row I of matrix — ligne(s) I, séparateur auto.
@@ -1732,7 +1629,7 @@ class DefEngine(_SlibMixin):
         # surtout pas de tabulation.
         sep = ";" if ("\n" not in data and ";" in data) else "\n"
         return self._blockof(
-            data, lambda s: [r.strip() for r in self._split_rows(s)], sep, idx_s
+            data, lambda s: [r.strip() for r in wl.cutrows(s)], sep, idx_s
         )
 
     def _cmd_replace(self, args: str) -> str:
@@ -1942,7 +1839,7 @@ class DefEngine(_SlibMixin):
     def _cmd_randrow(self, args: str) -> str:
         """!randrow $matrix — ligne aléatoire (séparateur auto)."""
         val = self._subst(args.strip())
-        rows = self._split_rows(val)
+        rows = wl.cutrows(val)
         return self.rng.choice(rows) if rows else ""
 
     def _cmd_sort(self, args: str) -> str:
@@ -2012,7 +1909,7 @@ class DefEngine(_SlibMixin):
 
         La tabulation prime quand il y en a, comme pour `!item`.
         """
-        return [x.strip() for x in self._split_items(value) if x.strip()]
+        return [x for x in wl.cutitems(value) if x]
 
     def _cmd_listuniq(self, args: str) -> str:
         """``!listuniq liste`` — items distincts, joints par des virgules.
@@ -2161,7 +2058,7 @@ class DefEngine(_SlibMixin):
                 return items[idx] if idx < len(items) else ""
         elif op == "randrow":
             def pick(content: str) -> str:
-                rows = [r for r in self._split_rows(content) if r.strip()]
+                rows = [r for r in wl.cutrows(content) if r.strip()]
                 return self.rng.choice(rows) if rows else ""
         elif op == "randitem":
             def pick(content: str) -> str:
@@ -2226,7 +2123,7 @@ class DefEngine(_SlibMixin):
         elif "\n" in value:
             rows = value.split("\n")
         else:
-            rows = self._split_rows_by_semi(value)
+            rows = wl.cutrows(value)
         all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
         if all(len(c) == 1 for c in all_cols):
             all_cols = [r.split(";") for r in rows]
@@ -3043,7 +2940,7 @@ class DefEngine(_SlibMixin):
         # `oefmolecule` livre effectivement ses champs en `;`. La tabulation
         # suivie d'une virgule est absorbée avant, comme dans le phtml.
         raw = args.replace("\t,", ",").replace("\t", ";")
-        rows = [r for r in self._split_rows_by_semi(raw) if r.strip()]
+        rows = [r for r in wl.cutrows(raw) if r.strip()]
         if not rows:
             return ""
         head = [p.strip() for p in rows[0].split(",")]
@@ -3762,7 +3659,7 @@ class DefEngine(_SlibMixin):
                     _pos_part, _, choices_part = good_raw.partition(";")
                 else:
                     choices_part = good_raw
-                choices = [c.strip() for c in self._split_wims_items(choices_part) if c.strip()]
+                choices = [c.strip() for c in wl.cutitems(choices_part) if c.strip()]
 
                 def _mark_span(col: int) -> str:
                     label = self._subst(choices[col - 1]) if 1 <= col <= len(choices) else ""
@@ -3840,7 +3737,7 @@ class DefEngine(_SlibMixin):
                 # does `!translate internal | to <newline>`), so `correct|pool`
                 # is equivalent to `correct;pool`. Normalise before splitting.
                 good_raw = good_raw.replace("|", ";")
-                rows = self._split_rows_by_semi(good_raw)
+                rows = wl.cutrows(good_raw)
                 correct_items = [c for c in (rows[0].split(",") if rows else []) if c.strip()]
                 size_parts = re.split(r"\s*[xX]\s*", self._subst(size_str).strip())
                 nslots = 0
@@ -3870,7 +3767,7 @@ class DefEngine(_SlibMixin):
                 import json as _json  # noqa: PLC0415
                 import random as _random  # noqa: PLC0415
                 good_raw = self._subst(self.ctx.get(f"replygood{n}", ""))
-                rows = self._split_rows_by_semi(good_raw)
+                rows = wl.cutrows(good_raw)
                 if len(rows) != 2:
                     return ""
                 # Close WIMS inline math `\(…)` to KaTeX `\(…\)` so the
@@ -4534,7 +4431,7 @@ class DefEngine(_SlibMixin):
                     # choix serait de la donnée, pas une frontière.
                     choices = [
                         c.strip()
-                        for c in self._split_wims_items(choices_str)
+                        for c in wl.cutitems(choices_str)
                         if c.strip()
                     ]
                     options["choices"] = choices
@@ -4562,11 +4459,11 @@ class DefEngine(_SlibMixin):
                     # _render_embed wasn't called (no \embed{} in statement).
                     # Parse replygood directly to still produce a usable
                     # expected value.
-                    rows = self._split_rows_by_semi(good_raw)
+                    rows = wl.cutrows(good_raw)
                     if len(rows) == 2:
                         rights = [
                             self._subst(c.strip())
-                            for c in self._split_list_items(rows[1]) if c.strip()
+                            for c in wl.cutitems(rows[1]) if c.strip()
                         ]
                         expected = ",".join(rights)
 
@@ -4577,11 +4474,13 @@ class DefEngine(_SlibMixin):
                 # accepts "|" as the separator (anstype/fill.inc:15 translates it
                 # to a newline/row break), so normalise "|" → ";" first.
                 good_raw = good_raw.replace("|", ";")
-                rows = self._split_rows_by_semi(good_raw)
-                if len(rows) >= 2:
-                    correct_str, pool_str = rows[0], ";".join(rows[1:])
-                else:
-                    correct_str, pool_str = good_raw, ""
+                # `anstype/fill.inc` : `!rows2lines` puis `!nonempty lines`.
+                # La ligne 1 porte la réponse, les suivantes le vivier — un
+                # `replygood` qui finit par `;` n'a donc **pas** de vivier, et
+                # non un vivier vide qu'il faudrait deviner.
+                rows = [r for r in wl.cutrows(good_raw) if r.strip()]
+                correct_str = rows[0] if rows else ""
+                pool_str = ",".join(rows[1:])
                 correct_items = [
                     _close_inline_math(c.strip(), self.lang) for c in correct_str.split(",") if c.strip()
                 ]

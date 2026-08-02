@@ -15,6 +15,7 @@ from core.oef.def_engine import (
     _close_inline_math,
     _expr_to_latex,
 )
+from core.oef.def_engine import wims_lists as wl
 from core.oef.engine import find_def_path
 from core.oef.def_engine.slib import _fr_cardinal, _ecriture_lettre
 
@@ -403,7 +404,7 @@ class TestWimsListSplit:
     def test_semicolon_is_not_a_separator(self):
         e = engine()
         val = r"1|\(\large 25),0|\(\large 1000);0|\(\large 2,5 \times 10^{19})"
-        assert e._split_wims_items(val) == [
+        assert wl.cutitems(val) == [
             r"1|\(\large 25)",
             r"0|\(\large 1000);0|\(\large 2,5 \times 10^{19})",
         ]
@@ -411,7 +412,7 @@ class TestWimsListSplit:
     def test_protects_parens(self):
         e = engine()
         # La virgule de `\(2,5)` est protégée par la parenthèse ouvrante.
-        assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
+        assert wl.cutitems(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
 
     def test_semicolon_is_not_an_item_border(self):
         """`find_item_end` vaut `strparstr(p, ",")` : seule la virgule sépare.

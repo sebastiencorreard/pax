@@ -1005,13 +1005,12 @@ class TestSopoA:
         WIMS ; les producteurs migrés, un `<div>a</div><TAB><div>b</div>` est
         un seul item, et un `,<TAB>` en donne bien deux, tabulation élaguée.
         """
-        from core.oef.def_engine import DefEngine  # noqa: PLC0415
+        from core.oef.def_engine import wims_lists as wl  # noqa: PLC0415
 
-        e = DefEngine(seed=1)
-        assert e._split_list_items("<div>a</div>\t<div>b</div>") == [
+        assert wl.cutitems("<div>a</div>\t<div>b</div>") == [
             "<div>a</div>\t<div>b</div>"
         ]
-        assert e._split_list_items("un item,\tautre item") == ["un item", "autre item"]
+        assert wl.cutitems("un item,\tautre item") == ["un item", "autre item"]
 
 
 class TestOefcalittaire1:
