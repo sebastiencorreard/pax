@@ -2162,7 +2162,13 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-        # WIMS: !makelist returns tab-separated rows; columns within each row keep commas.
+        # NB : `_values` (`calc.c`) joint toutes ses valeurs par une virgule
+        # (`if(pp>p) *pp++=','`), sans séparateur de lignes. Aligner PAX là-dessus
+        # corrige `slib_weight` (`1<TAB>1<TAB>…`, invalide en PARI, d'où le
+        # `print((…)` en clair d'`oefstat/mean`) mais **fait perdre leur vivier**
+        # aux clickfill de `symax2`/`symcen2`/`rota2` (`3;1,2,3…` → `3`) : le
+        # code alentour compense la divergence historique. À reprendre avec la
+        # couche slib, pas isolément. Cf. TODO I.3.d.
         return "\t".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
