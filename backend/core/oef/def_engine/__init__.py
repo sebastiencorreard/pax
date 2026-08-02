@@ -871,7 +871,16 @@ class DefEngine(_SlibMixin):
             # flattening comma-join.
             if any("," in p and "<" in p for p in parts):
                 return "\t".join(parts)
-            return ",".join(p.replace("\t", " ") for p in parts)
+            # La tabulation interne devient un **saut de ligne**, pas une
+            # espace. Elle doit disparaître — `_split_items` la prendrait pour
+            # un séparateur d'items et l'indexation `$(liste[n])` s'en
+            # trouverait faussée — mais elle sépare aussi les commandes d'une
+            # figure : les items d'`oefmolecule/lewis` accumulés par
+            # `val26=$val26,$val51` portent `polyline …<TAB>polyline …`. Réduite
+            # à une espace, flydraw n'y voyait qu'une seule ligne brisée, d'où
+            # des symboles de liaison en zigzag. Le saut de ligne, lui, sépare
+            # les commandes sans séparer les items.
+            return ",".join(p.replace("\t", "\n") for p in parts)
 
         # Literal string with variable substitution
         return self._subst(value)
