@@ -1,12 +1,16 @@
 # Découpage des listes WIMS : analyse et programme de refactorisation
 
 *Établi le 2026-08-02, à partir de la lecture de `wims/src/Lib/liblines.c`,
-`wims/src/calc.c` et `wims/src/compare.c`, et de l'inventaire complet des
-découpeurs de `backend/core/oef/`.*
+`wims/src/calc.c`, `wims/src/compare.c`, `wims/src/evalue.c` et des scripts
+`anstype/` de WIMS, avec l'inventaire complet des découpeurs de
+`backend/core/oef/`.*
+
+*Le programme est **terminé** (§3bis) : le §1 décrit l'état d'avant, gardé
+parce qu'il dit pourquoi les retouches locales ne pouvaient pas converger.*
 
 ## 1. Le constat qui motive la refactorisation
 
-Le moteur PAX compte aujourd'hui **11 fonctions de découpage nommées** et
+Le moteur PAX comptait **11 fonctions de découpage nommées** et
 **26 `re.split` ad hoc** rien que dans `def_engine/__init__.py`, plus des
 variantes dans `compare.py`, `slib.py`, `engine.py` et `evaluator.py`. Chaque
 bug corrigé cette session (`isitemof`, `positionof`, `randitem`,
@@ -101,25 +105,30 @@ Vérifié un à un dans `calc.c` :
 
 ## 3. Inventaire PAX et verdicts
 
-| Découpeur | Où | Sémantique actuelle | Verdict |
-|---|---|---|---|
-| `_split_items` | `__init__.py:1915` | **tab d'abord**, sinon virgules protégées | → `cutitems` (l'axiome supprime la branche tab) |
-| `_split_wims_items` | `:1052` | virgule/`;` + entités HTML | fusionner ; le `;` n'est **pas** une frontière d'item dans WIMS (c'est `rows2lines`) — auditer les appelants |
-| `_split_list_items` | `:1045` | délègue | fusionner |
-| `_list_items` | `:2304` | `_split_items` sur commandes ensemblistes | → `cutitems` |
-| `_split_protected` | `:136` | virgule+tab protégées, `_split_protected(r, ";,")` pour colonnes | remplacer : colonnes = `rows2lines` puis items |
-| `_split_rows` | `:2011` | `\n` > `;` > **tab** | branche tab = compensation `makelist` ; → `rows2lines` |
-| `_split_rows_by_semi` | `:1159` | port fidèle de `rows2lines` ✓ | **socle à conserver** (déplacer) |
-| `_split_items_protected` | `compare.py:45` | tab d'abord (correctif `mathelexikon`) | compensation morte → `itemchr` |
-| `_split_top_level_commas` | `slib.py:772` + `evaluator.py:747` (dupliqué !) | virgules profondeur 0 | → `find_item_end` (ajouter le repli `strstr`) |
-| `_split_correspond_column`, `_split_records` | locaux | spécifiques | garder tels quels |
-| 26 `re.split` ad hoc | partout | dont 6× `,(?![^(]*\))` (demi-protection fausse : ne regarde que la parenthèse suivante), 3× `[;\n\r\t]+`, 2× `,|\t` | à remplacer un à un quand ils modélisent des items ; garder les vrais locaux (tailles `LxH`…) |
+*État au 2026-08-02, après les phases 3 et 4 : les onze découpeurs ont fondu
+en un seul module. Le tableau garde la trace de ce que chacun est devenu.*
 
-Compensations identifiées à supprimer *en fin de programme seulement* :
-priorité tab de `_split_items`/`_split_rows`, filtre « ligne blanche » du
-`itemcnt` tabulé, branche tab de `compare.py`, `\t→\n` de `_eval_value`
-(be6c2938), **le cas spécial `_COMMA_VARLIST_RE` tout entier** (WIMS n'a
-aucun équivalent : `substit` ne réécrit rien).
+| Découpeur | Devenu | Note |
+|---|---|---|
+| `_split_items` | `wl.cutitems` | supprimé (phase 4a) |
+| `_split_wims_items` / `_split_list_items` | `wl.cutitems` | supprimés ; le `;` n'était pas une frontière d'item |
+| `_list_items` | `wl.cutitems` filtré | commandes ensemblistes |
+| `_split_protected` | — | supprimé : les colonnes passent par `rows2lines` + `!item` |
+| `_split_rows` | `wl.cutrows` | supprimé (phase 4a) |
+| `_split_rows_by_semi` | `wl.rows2lines` | supprimé ; il coupait le `;` même en présence de `\n` |
+| `_split_items_protected` (`compare.py`) | `wl.itemchr` | la branche tab était une compensation morte |
+| `_split_top_level_commas` (×2) | `wl.cutitems` | dédupliqué (phase 4b) |
+| `_split_correspond_column` | `wl.cutitems` non vides | l'heuristique `<img>` + tabulation n'a plus d'objet |
+| `_select_rows` / `_select_cols` | `_blockof` | doublaient le sélecteur du C |
+| `_blockof` | port fidèle | plages `to`/`..`, listes d'indices, négatifs, hors-bornes sautés |
+| `re.split` ad hoc de sémantique liste | `wl.cutitems` | restent les vrais locaux (tailles `LxH`, `oefsteps`…) |
+
+Compensations retirées, toutes mesurées : priorité tabulation de
+`_split_items`/`_split_rows`/`_resolve_indexed2`, filtre « ligne blanche » de
+`itemcnt`, branche tab de `compare.py`, `\t→\n` de `_eval_value`,
+`_COMMA_VARLIST_RE`, `\t→,` de la médiane, `\t→` espace du blob JSXGraph,
+priorité tabulation des `!for … in …` (moteur, slib, `!makelist`) et du
+`\linkedranditem`.
 
 ## 3bis. État d'avancement (2026-08-02)
 
@@ -130,31 +139,41 @@ aucun équivalent : `substit` ne réécrit rien).
 | 1b — `nonempty`, `append`, `sort` | ✅ | 383 valeurs, 1 vidée (déjà fausse) |
 | 1c — `shuffle` | ✅ | 470 valeurs, 9 palettes remplies |
 | 1d — `randitem` | ✅ | 116 valeurs, 0 perte |
-| 2 — `_split_items`, `_resolve_indexed1`, chute de la priorité tab + compensation `_eval_value` | ✅ | 579 valeurs, **46 remplies, 0 vidée** |
-| 3 — compensations restantes (`compare.py`, `_split_rows`, `_split_wims_items`) | ⏳ | |
-| 4 — fusion des découpeurs, `re.split` résiduels | ⏳ | |
+| 2 — `_split_items`, `_resolve_indexed1`, chute de la priorité tab | ✅ | 579 valeurs, 46 remplies, 0 vidée |
+| 3a — sortie GP brute + `isitemof`/`positionof` sans normalisation | ✅ | 86 valeurs (les espaces inventés disparaissent) |
+| 3b — `!itemcnt` = `itemnum` | ✅ | **0 différence** |
+| 3c — lignes de matrice (`!row`, `!rowcnt`, `!randrow`) | ✅ | **0 différence** |
+| 3d — `_split_wims_items`/`_split_list_items` = `cutitems` | ✅ | **54 segments `correspond` retrouvés** (18 exercices) |
+| 3e — `$(v[l;c])` = `!row` + `!column` | ✅ | +26 et +14 champs (`wurzel2`, `gauss_summe`), −24 sur la famille `chemeq` |
+| 3f — colonne de `correspond` sans heuristique | ✅ | 0 différence |
+| 3g — `!makelist … for x in` = `cutfor` | ✅ | 0 différence |
+| 3h — `!for … in` d'un slib = `cutfor` | ✅ | diff contenu dans la famille `chemeq` |
+| 3i — dernières tabulations de `slib.py` | ✅ | 0 valeur ; 380 énoncés (blob JS) |
+| 4a — fusion des découpeurs dans le socle | ✅ | 82 valeurs, palettes `clickfill` réparées |
+| 4b — déduplication de `_split_top_level_commas` | ✅ | 0 différence |
+| 4c — derniers `re.split` tabulés | ✅ | 0 différence |
 
-**Cible atteinte pour `lewis`** : 18 étiquettes (8 atomes, 6 doublets non
-liants, les liaisons), 7 attendus sur 7 champs — la composition exacte du
-rendu WIMS de référence. Sentinelles toutes vertes ; `concentration1` passe
-de `0 Ohm` à `0 mol`.
+**Le programme est terminé.** 762 tests, sentinelles vertes
+(`scripts/sentinelles.py`), 0 réponse perdue et 0 valeur vidée hors famille
+`chemeq` sur l'ensemble des phases 3 et 4.
 
-**Angle mort de l'instrument, constaté** : `corpus_state.py` compare les
-valeurs (attendu, palette) et une empreinte d'énoncé, mais ne détecte ni la
-disparition d'un segment (un tableau JSXGraph évanoui) ni un HTML déséquilibré
-— seuls deux tests unitaires l'ont vu. À compléter avant la phase 3 :
-compter les segments par type et vérifier l'appariement `group-open`/
-`group-close`.
+**L'instrument a été complété d'abord** (le premier travail de la phase 3) :
+`corpus_state.py` capture désormais le nombre de segments par type et
+l'appariement `group-open`/`group-close`, et la comparaison en fait deux
+verdicts bloquants. C'est lui qui a montré les 18 `correspond` évanouis, que
+le hash d'énoncé signalait sans les nommer. Référence de branche : 60 rendus
+au HTML déséquilibré (20 exercices × 3 graines), antérieurs au programme.
 
 **Piège d'édition à éviter** : remplacer une méthode en scannant jusqu'au
 prochain `    def ` avale le décorateur `@staticmethod` de la méthode
 suivante. Ça a produit 53 échecs de tests attribués à tort à la sémantique.
 
-## 4. Programme de refactorisation
+## 4. Programme de refactorisation *(exécuté)*
 
 Chaque phase = un commit, avec le protocole de validation du §5 exécuté
 avant/après. Ne **jamais** mélanger deux phases dans un commit : c'est
-l'enseignement des trois annulations.
+l'enseignement des trois annulations — et ce qui a permis, à la phase 3e,
+d'attribuer sans hésiter une régression au bon changement.
 
 ### Phase 0 — Module socle `def_engine/wims_lists.py`
 
@@ -207,7 +226,10 @@ pas tomber signale un producteur oublié : revenir en phase 1, ne pas rustiner.
 
 Fusionner les 11 découpeurs dans `wims_lists`, dédupliquer
 `_split_top_level_commas`, remplacer les `re.split` de sémantique liste.
-Mettre à jour `docs/def-engine-commands.md`.
+
+Fait en trois commits (4a, 4b, 4c). `docs/def-engine-commands.md` n'a rien
+demandé : c'est un tableau de couverture des commandes, sans sémantique de
+séparateur.
 
 ## 5. Protocole de validation (leçons payées cette session)
 
@@ -225,7 +247,15 @@ Comptez ~3 minutes par capture (12 897 rendus, 3 graines). Ces fichiers vivent
 dans le `/tmp` du conteneur : ils **disparaissent à chaque reconstruction
 d'image**, il faut donc toujours en refaire un plutôt que se fier à un ancien.
 
+La comparaison rend trois verdicts bloquants : une valeur **vidée**, un
+**segment perdu** (un type de widget dont le compte recule — c'est ainsi que
+les 18 `correspond` évanouis se sont montrés) et un **groupe déséquilibré**
+(`group-open`/`group-close` mal appariés). Les sentinelles se lisent dans la
+même capture :
 
+```bash
+docker compose exec -T backend python3 /app/scripts/sentinelles.py /tmp/apres.json
+```
 
 1. **Comparer les valeurs, jamais les comptes.** Deux régressions (moyenne de
    `mean.def`, `val14` de `concentration1`) étaient invisibles au nombre de
@@ -235,35 +265,57 @@ d'image**, il faut donc toujours en refaire un plutôt que se fier à un ancien.
 2. **Un `expected` qui rétrécit n'est pas une perte** : celui de `symax2`
    contenait son vivier, parti à sa place dans `options.choices`. Toujours
    regarder où le contenu est allé avant de conclure.
-3. **Exercices sentinelles** à vérifier nommément après chaque phase :
-   `oefstat/mean` (3.97368421053), `transform/symax2` (menu à 20 options),
-   `oefpython/bouclefor1` (rang 3, masque `val44`), `moles.fr/concentration1`
-   (`val14`=5), `mathelexikon/Declinaisons` (13 champs),
-   `oefmolecule/lewis` (7 champs, **18 étiquettes** attendues à terme),
-   `oefsuites1S/cvgequot`, `oefstat/baton`, `geo6`/`evolmeth2` (re-tester :
-   leurs `replygood` vides relèvent peut-être de cette famille).
+3. **Exercices sentinelles**, vérifiés par `scripts/sentinelles.py` :
+   `oefstat/mean` (3.973684211), `transform/symax2` (menu à 20 options),
+   `oefpython/bouclefor1` (rang 3), `moles.fr/concentration1` (`val14` en
+   mol), `mathelexikon/Declinaisons` (13 champs), `oefmolecule/lewis`
+   (7 champs, 18 étiquettes).
 4. **Après tout changement moteur** : `docker compose restart backend` +
    purge `pax:render:*` avant le moindre contrôle navigateur (deux faux
    verdicts cette session).
-5. Tests : `pytest tests/core/oef/` ≥ 703 ; les tests qui figent une
+5. Tests : `pytest tests/core/oef/` ≥ 762 ; les tests qui figent une
    invention de PAX (séparateur tabulé de `makelist`, ancien `itemcnt`) se
    réécrivent avec référence C en docstring, comme déjà fait.
 
-### 5.1 Points ouverts à trancher pendant la phase 1
+### 5.1 Points ouverts (mis à jour à la fin du programme)
 
-- La table HTML de `slib/triplerelation/tabular` générée par PAX
-  contient-elle des virgules de profondeur 0 que celle de WIMS n'a pas ?
-  (Si oui, c'est *elle* qu'il faut corriger, pas le join.)
-- Le blob JSXGraph cité par le commentaire de `_COMMA_VARLIST_RE` : comment
-  WIMS s'en sort-il ? (Probablement : il ne s'en sort pas mieux — vérifier
-  l'exercice d'origine avant de supposer un besoin.)
-- `wims_shuffle_order` / `wims_sort_order` : implémenter ou documenter
-  l'absence (usages corpus à mesurer).
+Tranchés en cours de route :
 
-## 6. Estimation
+- le blob JSXGraph de `_COMMA_VARLIST_RE` : le cas spécial n'avait aucun
+  équivalent WIMS, il est tombé sans dommage (phase 3e) ;
+- la sortie de GP : WIMS ouvre `gp` sur `default(output,0)`
+  (`src/Interfaces/pari.c`), donc **sans espace de présentation**. C'est la
+  correction qui a permis à `isitemof` de redevenir `itemchr` (phase 3a).
 
-Phases 0–1 : le gros du risque (producteurs = tirages aléatoires déplacés,
-donc gros diff de graine à trier). Phases 2–3 : mécaniques si la 1 est
-complète. Le gain attendu : ~10 découpeurs → 1 module, disparition des
-paires producteur/consommateur, et déblocage connu de `lewis` (18
-étiquettes), `moles`/`mouvrel` (sans hack), probablement `geo6`/`evolmeth2`.
+Restent ouverts, hors périmètre du découpage :
+
+- **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
+  pari. Les 7 exercices de `equilibrium`/`chemavance1` qui en dépendent
+  affichent une équation vide (`\(0\)`, `NaN`) quoi qu'on fasse ; tout diff
+  corpus qui s'y limite est du bruit. Les porter suppose d'écrire un
+  équilibreur d'équations chimiques.
+- **Le séparateur de sortie de `!item`** : `_blockof` joint par `", "`
+  (virgule-espace, `calc.c`), nous par `","`. Sans effet sur un redécoupage
+  (`fnd_item` élague), visible à l'affichage et dans les `expected`. À
+  mesurer isolément.
+- **`!positionof`** : `_pos` renvoie **toutes** les positions jointes par `,`
+  et la chaîne **vide** quand l'item est absent ; nous renvoyons la première
+  et `"0"`. Même remarque : une mesure isolée avant de bouger.
+- `wims_shuffle_order` / `wims_sort_order` : toujours non implémentés.
+- La table HTML de `slib/triplerelation/tabular` : la question des virgules de
+  profondeur 0 n'a plus d'urgence depuis que `moles`/`mouvrel` passent sans
+  hack, mais elle n'a pas été tranchée.
+
+## 6. Bilan
+
+Le gain visé est atteint : **onze découpeurs et deux copies d'un même
+helper ont fondu en un module**, `def_engine/wims_lists.py`, chaque primitive
+portant sa référence C. Les paires producteur/consommateur ont disparu avec
+eux — c'est ce qui explique que dix des dix-huit étapes ne changent **rien**
+au corpus : une compensation dont le producteur est déjà corrigé n'attrape
+plus rien, et c'est la seule preuve solide qu'on pouvait la retirer.
+
+Débloqués au passage : `lewis` (18 étiquettes), `moles`/`mouvrel` (sans hack),
+18 exercices `correspond` qui n'affichaient aucun widget, `wurzel2_beweisen`
+(26 champs) et `gauss_summe` (14), les palettes `clickfill` de
+`OEFevalwimspyth`/`OEFpythagore2`, celles de `notation4`.
