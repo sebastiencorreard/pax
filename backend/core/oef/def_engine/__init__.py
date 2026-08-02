@@ -1881,19 +1881,13 @@ class DefEngine(_SlibMixin):
             expr = in_m.group(1).strip()
             var = in_m.group(2)
             list_raw = self._subst(in_m.group(3).strip())
-            # Split list by newline, tab, semicolon, or comma. Le newline est le
-            # séparateur des listes produites par slib/stat/dataproc (données en
-            # lignes) : sans lui, `!sum x for x in $slib_data` voyait un seul
-            # item et renvoyait 0 (variance non pondérée fausse).
-            if "\n" in list_raw:
-                items = list_raw.split("\n")
-            elif "\t" in list_raw:
-                items = list_raw.split("\t")
-            elif ";" in list_raw:
-                items = list_raw.split(";")
-            else:
-                items = re.split(r",(?![^(]*\))", list_raw)
-            items = [x.strip() for x in items if x.strip()]
+            # `cutfor` (`evalue.c`) découpe la liste d'un `for … in …` par
+            # `strparchr(inp, ',')` : la virgule de profondeur zéro, et rien
+            # d'autre. Les branches `\n`/`\t`/`;` qui vivaient ici
+            # compensaient un `!column` qui joignait ses lignes — depuis qu'il
+            # suit `calc_columnof`, `slib/stat/dataproc` rend bien à
+            # `slib/stat/arithmean` une liste à virgules.
+            items = wl.cutitems(list_raw)
         elif range_m:
             expr = range_m.group(1).strip()
             var = range_m.group(2)
