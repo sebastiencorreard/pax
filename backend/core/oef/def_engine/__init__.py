@@ -1896,23 +1896,30 @@ class DefEngine(_SlibMixin):
         return ",".join(x for x in wl.cutitems(val) if x)
 
     def _cmd_shuffle(self, args: str) -> str:
-        """!shuffle list — return list items in random order."""
+        """``!shuffle LISTE`` ou ``!shuffle N`` — permutation aléatoire.
+
+        Port de `calc_randperm` : c'est la présence d'une **virgule de premier
+        niveau** qui fait la liste (`p1=find_item_end(pp); if(*p1==',')`) ;
+        sinon l'argument est évalué et l'on permute `1..n`. Sortie en virgules,
+        items vides conservés.
+
+        Les options `even`/`odd` et la variable `wims_shuffle_order` publiée
+        par WIMS ne sont pas gérées (cf. `docs/refactor-item-splitting.md`).
+        """
         val = self._subst(args.strip())
-        if val.isdigit():
-            items = [str(i) for i in range(1, int(val) + 1)]
+        if wl.find_item_end(val) < len(val):
+            items = wl.cutitems(val)
             self.rng.shuffle(items)
             return ",".join(items)
-        # Detect separator: tab first; otherwise smart comma split.
-        # Do NOT use ";" as a separator: items may contain ";" inside HTML
-        # entities like &#44; (comma) or &#40; (open paren).
-        if "\t" in val:
-            sep, items = "\t", val.split("\t")
-        else:
-            sep = ","
-            items = re.split(r",(?![^(]*\))", val)
-        items = [x.strip() for x in items if x.strip()]
+        try:
+            n = int(round(float(self._eval_arith(val))))
+        except (ValueError, TypeError):
+            return val
+        if n <= 1:
+            return val if n == 1 else ""
+        items = [str(i) for i in range(1, n + 1)]
         self.rng.shuffle(items)
-        return sep.join(items)
+        return ",".join(items)
 
     @staticmethod
     def _split_items(s: str) -> list[str]:
