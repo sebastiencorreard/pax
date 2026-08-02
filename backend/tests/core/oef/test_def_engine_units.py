@@ -1260,9 +1260,21 @@ class TestCmdListuniq:
         e = engine()
         assert e._eval_cmd("listuniq", "x,y,z") == "x,y,z"
 
-    def test_tab_separated(self):
+    def test_tab_is_not_a_separator(self):
+        """`calc_listuniq` passe par `cutitems`, donc par `find_item_end` : la
+        virgule seule sépare. Une valeur tabulée est **un** item, qu'aucun
+        doublon ne vient réduire."""
         e = engine()
-        assert e._eval_cmd("listuniq", "a\tb\ta\tc") == "a\tb\tc"
+        assert e._eval_cmd("listuniq", "a\tb\ta\tc") == "a\tb\ta\tc"
+
+    def test_output_is_comma_joined_without_space(self):
+        """`strcat(lout,",")` : virgule sans espace."""
+        e = engine()
+        assert e._eval_cmd("listuniq", "a , b , a") == "a,b"
+
+    def test_empty_items_are_dropped(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "a,,b,") == "a,b"
 
 
 # ── !declosing ────────────────────────────────────────────────────────────────

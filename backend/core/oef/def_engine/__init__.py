@@ -54,6 +54,7 @@ from .presentation import (
 from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
 from ..numfmt import format_wims_float
 from ..i18n import list_separator, uses_comma_decimal
+from . import wims_lists as wl
 from ..def_parser import (
     Assign,
     Command,
@@ -2318,31 +2319,39 @@ class DefEngine(_SlibMixin):
         return [x.strip() for x in self._split_items(value) if x.strip()]
 
     def _cmd_listuniq(self, args: str) -> str:
-        """``!listuniq liste`` — retire les doublons, séparateur conservé."""
-        s = self._subst(args)
-        sep = "\t" if "\t" in s else ","
-        items = self._list_items(s)
-        seen: dict = {}
-        res = []
-        for x in items:
-            if x not in seen:
-                seen[x] = True
-                res.append(x)
-        return sep.join(res)
+        """``!listuniq liste`` — items distincts, joints par des virgules.
+
+        Port de `calc_listuniq` : `cutitems` puis test d'appartenance par
+        `itemchr`. Deux conséquences à ne pas « corriger » — les items vides
+        sont écartés, et la comparaison est celle d'`itemchr`, une recherche
+        de sous-chaîne encadrée, non une égalité.
+        """
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(self._subst(args)):
+            if item and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_listintersect(self, args: str) -> str:
-        """!listintersect list1 and list2 — items of list1 that appear in list2."""
+        """``!listintersect L1 and L2`` — items de L1 présents dans L2.
+
+        Port de `calc_listintersect` : items vides écartés, doublons écartés,
+        appartenance par `itemchr`, sortie en virgules.
+        """
         m = re.match(r"(.*?)\s+and\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return ""
-        list1_str = m.group(1).strip()
-        list2_str = m.group(2).strip()
-        if not list1_str or not list2_str:
-            return ""
-        sep = "\t" if "\t" in list1_str else ","
-        items1 = [x.strip() for x in list1_str.split(sep) if x.strip()]
-        items2 = {x.strip() for x in re.split(r"[,\t]", list2_str) if x.strip()}
-        return ",".join(x for x in items1 if x in items2)
+        l1 = self._subst(m.group(1))
+        l2 = self._subst(m.group(2))
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(l1):
+            if item and wl.itemchr(l2, item) and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_declosing(self, args: str) -> str:
         """!declosing text — remove outer parentheses/brackets/braces.
@@ -2796,19 +2805,22 @@ class DefEngine(_SlibMixin):
         return ",".join(result)
 
     def _cmd_listcomplement(self, args: str) -> str:
-        """!listcomplement L1 in L2 — items of L2 NOT in L1."""
+        """``!listcomplement L1 in L2`` — items de L2 absents de L1.
+
+        Port de `calc_listcomplement` : mêmes règles que `listintersect`.
+        """
         m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return ""
-        l1 = set(self._list_items(self._subst(m.group(1))))
-        l2 = self._list_items(self._subst(m.group(2)))
-        seen: dict = {}
-        result = []
-        for item in l2:
-            if item not in l1 and item not in seen:
-                seen[item] = True
-                result.append(item)
-        return ",".join(result)
+        l1 = self._subst(m.group(1))
+        l2 = self._subst(m.group(2))
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(l2):
+            if item and not wl.itemchr(l1, item) and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_select(self, args: str) -> str:
         """!select DATA where CONDITION — filter rows matching condition.
