@@ -215,6 +215,7 @@ In-depth references and dev guides:
 - [`def-engine-commands.md`](docs/def-engine-commands.md) — WIMS `!cmd` reference
 - [`def-engine-cas-functions.md`](docs/def-engine-cas-functions.md) — Maxima / Pari → Python mapping
 - [`def-engine-workflow.md`](docs/def-engine-workflow.md) — dev workflow when adding new `.def` files
+- [`refactor-item-splitting.md`](docs/refactor-item-splitting.md) — WIMS list-splitting ground truth (C source) + refactoring program; read before touching any item/row/list splitting
 - [`slib.md`](docs/slib.md) — shared library scripts (`!readproc slib/…`)
 - [`types-exercices-reponses.md`](docs/types-exercices-reponses.md) — catalogue of exercise + answer types
 - [`exercises-course.md`](docs/exercises-course.md) — deep dive on `course` (sequential) exercises
