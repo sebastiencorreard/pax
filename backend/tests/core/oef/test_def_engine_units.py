@@ -174,6 +174,48 @@ class TestCloseInlineMath:
         # `sqrt(2)` must become `\sqrt{2}`, not literal italic "sqrt(2)".
         assert _close_inline_math(r"\(sqrt(2))") == r"\(\sqrt{2}\)"
 
+    def test_maps_wims_bracket_macros(self):
+        # WIMS `\lbracket`/`\rbracket` (balayage1 intervals) → `\lbrack`/`\rbrack`
+        # (KaTeX-valid, inline). NOT literal `[`/`]`: those would be mistaken for
+        # a column vector. The valid short `\lbrack`/`\rbrack` stays untouched.
+        assert _close_inline_math(r"\(\lbracket1;2\rbracket\)") == r"\(\lbrack 1;2\rbrack \)"
+        assert _close_inline_math(r"\(x \in \lbrack a;b \rbrack\)") == r"\(x \in \lbrack a;b \rbrack\)"
+
+    def test_interval_not_turned_into_vector(self):
+        # An interval `[1;2]` (from \lbracket…\rbracket) must stay inline, NOT
+        # become a pmatrix column vector — only a *literal* `[a;b]` is a vector.
+        from core.oef.def_engine.presentation import wims_matrices_to_latex
+        out = wims_matrices_to_latex(_close_inline_math(r"\(\lbracket1;2\rbracket\)"))
+        assert "pmatrix" not in out
+        # …while a literal bracketed pair is still read as a column vector.
+        assert "pmatrix" in wims_matrices_to_latex(r"\([7;5]\)")
+
+    def test_skips_mathml_blocks(self):
+        # A native <math> block (mathmlinput) is copied verbatim — its already
+        # finalized \(…\) spans must not be re-scanned/mangled — while prose
+        # WIMS math around it is still converted.
+        out = _close_inline_math(
+            r'A <math class="oef-mathml">X\(f(\)<input>\()\)Y</math> B \(K) C', "fr"
+        )
+        assert r'<math class="oef-mathml">X\(f(\)<input>\()\)Y</math>' in out
+        assert r"B \(K\) C" in out  # prose outside the block still closed
+
+    def test_idempotent_on_trailing_paren_span(self):
+        # A mathmlinput cell like `f(reply2)` emits `\(f(\)<input>\()\)`. Re-running
+        # the pass must keep `\()\)` intact (content `)`), not collapse it to an
+        # empty `\(\)` and leak the `\)` as literal text (balayage1 conclusion).
+        assert _close_inline_math(r"\()\)") == r"\()\)"
+        assert _close_inline_math(r"\(f(\)X\()\)") == r"\(f(\)X\()\)"
+
+    def test_closes_at_first_unmatched_paren(self):
+        # WIMS find_matching: `\(K) sont (5;10)` closes right after `K`, it does
+        # NOT swallow the trailing `) sont (5;10` (cercle1 statement bug).
+        assert _close_inline_math(r"\(K) sont (5 ; 10).") == r"\(K\) sont (5 ; 10)."
+        # A balanced inner group still closes on its own matching paren.
+        assert _close_inline_math(r"\((a+b)) plus") == r"\(\left(a + b\right)\) plus"
+        # Trailing text after a closed span isn't pulled into the math.
+        assert _close_inline_math(r"\(2^3) et sqrt(3)") == r"\(2^{3}\) et sqrt(3)"
+
     def test_bare_word_unit_rendered_as_upright_text(self):
         # A bare word (unit/label) must NOT go through the CAS: `min`/`max`
         # would become \operatorname{Min/Max} (capitalised) and `cm` → `c m`.
@@ -215,8 +257,187 @@ class TestCloseInlineMath:
             r"\(\frac{2 \sqrt{5}}{\sqrt{10}}\)"
         )
 
+    def test_special_color_to_katex_color(self):
+        # WIMS `\special{color=NAME}` (TeX colour switch) → KaTeX `\color{NAME}`.
+        # deve1 colours the factors in its worked solution.
+        assert _close_inline_math(
+            r"\(\special{color=green} -4 \special{color=black} (5)\)"
+        ) == r"\(\color{green} -4 \color{black} (5)\)"
+        # The colour value may be a resolved variable holding any CSS colour.
+        assert _close_inline_math(r"\(\special{color=purple}x)") == r"\(\color{purple}x\)"
+
+
+class TestFinalizeAnswerMath:
+    """The single guarantee point: every answer's display fields have their
+    WIMS inline math closed, whatever the type-specific code did upstream."""
+
+    def _engine(self):
+        e = DefEngine(seed=1)
+        e.lang = "fr"
+        return e
+
+    def test_closes_label_choices_and_choice_expected(self):
+        from core.oef.engine import AnswerDef
+
+        # A `menu` answer whose inline math was historically left unclosed.
+        a = AnswerDef(
+            label=r"Choisis \(f(x))",
+            expected=r"\(x^2)",
+            answer_type="menu",
+            options={"choices": [r"\(x^2)", r"\(x^3)"]},
+            weight=1.0,
+            input_name="reply1",
+            logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.label == r"Choisis \(f{\left(x \right)}\)"
+        assert a.expected == r"\(x^{2}\)"
+        assert a.options["choices"] == [r"\(x^{2}\)", r"\(x^{3}\)"]
+
+    def test_free_input_expected_left_raw(self):
+        from core.oef.engine import AnswerDef
+
+        # A numeric/litexp answer keeps `expected` raw for the CAS/numeric
+        # checker — only label (and any choices) are closed.
+        a = AnswerDef(
+            label="", expected="(x+1)(x-1)", answer_type="litexp",
+            options={}, weight=1.0, input_name="reply1", logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.expected == "(x+1)(x-1)"
+
+    def test_idempotent_on_already_closed(self):
+        from core.oef.engine import AnswerDef
+
+        a = AnswerDef(
+            label="", expected=r"\(x^{2}\)", answer_type="radio",
+            options={"choices": [r"\(x^{2}\)"]}, weight=1.0,
+            input_name="reply1", logical_name="reply1",
+        )
+        self._engine()._finalize_answer_math([a])
+        assert a.expected == r"\(x^{2}\)"
+        assert a.options["choices"] == [r"\(x^{2}\)"]
+
 
 # ── slib helper commands ─────────────────────────────────────────────────────
+
+
+class TestMathmlinput:
+    def test_pmatrix_vector_renders_mathml(self):
+        # `\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}` (cercle1's centre
+        # coordinates) → native MathML <mtable> + stretchy fences, NOT split
+        # \(…\) spans that leak `\begin{pmatrix}` and break KaTeX.
+        e = engine()
+        out = e._mathmlinput_html(r"\begin{pmatrix} reply1 \\ reply2 \end{pmatrix}", {}, 5)
+        assert out.startswith('<math class="oef-mathml"')
+        assert "begin{pmatrix}" not in out
+        assert "<mtable>" in out and out.count("<mtr>") == 2  # one row per cell
+        assert '<mo fence="true" stretchy="true">(</mo>' in out
+        assert out.count('class="oef-input"') == 2
+
+    def test_left_right_vector_renders_mathml(self):
+        e = engine()
+        out = e._mathmlinput_html(r"\left( reply1 ; reply2 \right)", {}, 5)
+        assert "<math" in out and "left(" not in out
+        assert '<mo fence="true" stretchy="true">(</mo>' in out
+        assert out.count('class="oef-input"') == 2
+
+    def test_plain_exponent_stays_inline(self):
+        # elassaoui3's `reply1^{reply2}` is not a container → inline sup, no MathML.
+        e = engine()
+        out = e._mathmlinput_html(r"reply1^{reply2}", {}, 5)
+        assert "<math" not in out
+        assert "<sup>" in out
+
+    def test_frac_with_fields_renders_mathml(self):
+        # `\frac{reply1}{reply2}` (frac3) → native <mfrac>, not split \(\frac{\).
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{reply1}{reply2}", {}, 5)
+        assert "<mfrac>" in out and "frac{" not in out
+        assert out.count('class="oef-input"') == 2
+
+    def test_frac_without_field_stays_katex(self):
+        # A reply-free \frac is left for KaTeX (only the reply one becomes MathML).
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{5}{4} = \frac{reply1}{reply2}", {}, 5)
+        assert r"\(\frac{5}{4} =\)" in out  # static part KaTeX'd in annotation-xml
+        assert "<mfrac>" in out
+
+    def test_prefixed_interval_renders_mathml(self):
+        # `I_c=\left[reply9;reply10\right]` (carlo) — prefix + bracket container.
+        e = engine()
+        out = e._mathmlinput_html(r"I_c=\left[reply9;reply10\right]", {}, 5)
+        assert r"\(I_c=\)" in out and "left[" not in out
+        assert '<mo fence="true" stretchy="true">[</mo>' in out
+        assert out.count('class="oef-input"') == 2
+
+    def test_cases_array_renders_mathml_table(self):
+        # `\left.\begin{array}{lcl}…\end{array}\right\rbrace` (balayage) → mtable.
+        e = engine()
+        code = (r"\left.\begin{array}{lcl}f(reply2) &=& reply3 \\ "
+                r"f(reply4) &=& reply5\end{array}\right \rbrace")
+        out = e._mathmlinput_html(code, {}, 5)
+        assert "<mtable>" in out and "begin{array}" not in out
+        assert out.count('class="oef-input"') == 4
+
+    def test_fields_in_annotation_xml(self):
+        # Inputs sit in <annotation-xml> (WIMS' pattern) so the browser keeps
+        # them interactive and the front's `.oef-input` binding finds them.
+        e = engine()
+        out = e._mathmlinput_html(r"\frac{reply1}{reply2}", {}, 5)
+        assert 'annotation-xml encoding="application/xhtml+xml"' in out
+
+
+class TestWimsListSplit:
+    def test_splits_on_comma_and_semicolon(self):
+        # WIMS comma-bearing items become `;`-separated (append-tab + translate).
+        # `$(var[N])` must split on both `,` and `;` (brevet01 QCM choices).
+        e = engine()
+        val = r"1|\(\large 25),0|\(\large 1000),0|\(\large 4 \times 10^{22});0|\(\large 2,5 \times 10^{19})"
+        items = e._split_wims_items(val)
+        assert items == [
+            r"1|\(\large 25)", r"0|\(\large 1000)",
+            r"0|\(\large 4 \times 10^{22})", r"0|\(\large 2,5 \times 10^{19})",
+        ]
+
+    def test_protects_parens_and_entities(self):
+        e = engine()
+        # comma inside \(…) and ; inside an entity are NOT separators.
+        assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
+        assert e._split_wims_items(r"x&#44;y;z") == ["x&#44;y", "z"]
+
+    def test_semicolon_is_not_an_item_border(self):
+        """`find_item_end` vaut `strparstr(p, ",")` : seule la virgule sépare.
+        Le `;` est une frontière de *ligne de matrice*, et le prendre pour un
+        item hachait le JavaScript des tableaux JSXGraph de `couf`."""
+        e = engine()
+        e.ctx["v"] = r"\(\large 25),\(\large 1000);\(\large 2,5 \times 10^{19})"
+        assert e._subst(r"$(v[2])") == r"\(\large 1000);\(\large 2,5 \times 10^{19})"
+        assert e._subst(r"$(v[3])") == ""
+
+
+class TestCommutesom:
+    def test_returns_permutation_list_canonical_first(self):
+        # `slib/commutesom POLY,VAR` → liste des permutations commutatives des
+        # monômes (comme WIMS), forme réduite canonique (degré décroissant) en
+        # tête. Certains exercices l'utilisent via `!item N of` (oefremplacer2).
+        e = engine()
+        e._cmd_readproc("slib/commutesom 3*b+2-8*b-9,b")
+        items = e.ctx["slib_out"].split(",")
+        assert items[0].replace(" ", "") == "-5*b-7"  # canonique en tête
+        assert set(items) == {"-5*b-7", "-7-5*b"}     # les 2 ordres
+        assert "coeff" not in e.ctx["slib_out"]
+
+    def test_sets_anyorder_flag(self):
+        e = engine()
+        e._cmd_readproc("slib/commutesom 3*x-x,x")
+        assert e.ctx.get("_commutesom_anyorder") == "1"
+
+    def test_falls_back_on_unparseable(self):
+        e = engine()
+        e._cmd_readproc("slib/commutesom not a poly @@,x")
+        # No crash; returns the input unchanged.
+        assert e.ctx["slib_out"] == "not a poly @@"
 
 
 class TestSlibHelpers:
@@ -585,9 +806,13 @@ class TestCmdListOps:
         e = engine()
         assert e._eval_cmd("nonempty", "items a,,b,") == "a,b"
 
-    def test_nonempty_rows(self):
+    def test_nonempty_rows_uses_semicolons(self):
+        """`calc_nonempty` découpe les rows par `rows2lines` — donc `;`, jamais
+        la tabulation — et les rejoint par `;`. Une valeur tabulée ne convertit
+        rien : WIMS bascule alors sur les lignes, et elle ressort telle quelle."""
         e = engine()
-        assert e._eval_cmd("nonempty", "rows a\t\tb") == "a\tb"
+        assert e._eval_cmd("nonempty", "rows a;;b") == "a;b"
+        assert e._eval_cmd("nonempty", "rows a\t\tb") == "a\t\tb"
 
     def test_itemcnt(self):
         e = engine()
@@ -632,9 +857,12 @@ class TestCmdItemRow:
         assert e._eval_cmd("item", "2 to -1 of a,b,c,d") == "b,c,d"
         assert e._eval_cmd("item", "2 to -1 of expr,15") == "15"
 
-    def test_item_tab_separated(self):
+    def test_tab_is_not_an_item_border(self):
+        """La tabulation encode un retour à la ligne du source OEF ; elle se
+        fait élaguer aux bords d'item, jamais découper."""
         e = engine()
-        assert e._eval_cmd("item", "2 of x\ty\tz") == "y"
+        assert e._eval_cmd("item", "1 of a\tb\tc") == "a\tb\tc"
+        assert e._eval_cmd("item", "2 of a,\tb") == "b"
 
     def test_row_second(self):
         e = engine()
@@ -672,23 +900,26 @@ class TestCmdStringOps:
         e.ctx["mylist"] = "a,b"
         assert e._eval_cmd("append", "item c to $mylist") == "a,b,c"
 
-    def test_append_to_tab_list(self):
+    def test_append_item_always_uses_a_comma(self):
+        """`calc_append` prend son séparateur dans `apch_list` — `item`→`,` —
+        sans regarder le contenu. Le basculement vers la tabulation était l'un
+        des producteurs qui obligeaient les consommateurs à traiter la
+        tabulation en séparateur."""
         e = engine()
         e.ctx["mylist"] = "a\tb"
-        assert e._eval_cmd("append", "item c to $mylist") == "a\tb\tc"
+        assert e._eval_cmd("append", "item c to $mylist") == "a\tb,c"
 
     def test_append_to_empty_var(self):
         e = engine()
         e.ctx["empty"] = ""
         assert e._eval_cmd("append", "item x to $empty") == "x"
 
-    def test_append_comma_item_uses_tab(self):
-        # An item that itself contains a comma can't be comma-joined
-        # unambiguously, so the list switches to TAB — otherwise $(list[N])
-        # would split the item at its inner comma (cof's JSXGraph snippets).
+    def test_append_item_with_a_comma_still_uses_a_comma(self):
+        """Même quand l'item porte lui-même une virgule : c'est au consommateur
+        de protéger ses crochets, pas au producteur de changer de séparateur."""
         e = engine()
-        e.ctx["mylist"] = "f(a,b)"
-        assert e._eval_cmd("append", "item g(c,d) to $mylist") == "f(a,b)\tg(c,d)"
+        e.ctx["mylist"] = "a"
+        assert e._eval_cmd("append", "item [x,y] to $mylist") == "a,[x,y]"
 
 
 class TestSlibDataRandom:
@@ -728,12 +959,12 @@ class TestSlibDataRandom:
 
 
 class TestVariableResolution:
-    def test_indexed1_tab_separated(self):
+    def test_indexed1_tab_is_not_a_separator(self):
         e = engine()
-        e.ctx["lst"] = "A\tB\tC"
-        m = re.match(r"\$\((\w+)\[([^\]]+)\]\)", "$(lst[3])")
-        assert m is not None
-        assert e._resolve_indexed1(m) == "C"
+        e.ctx["v"] = "a\tb\tc"
+        assert e._subst("$(v[1])") == "a\tb\tc"
+        e.ctx["w"] = "a,\tb"
+        assert e._subst("$(w[2])") == "b"
 
     def test_indexed1_comma_separated(self):
         e = engine()
@@ -897,25 +1128,32 @@ class TestEvalCondition:
 
 
 class TestCmdMakelist:
-    def test_simple_tab_separated(self):
-        e = engine()
-        result = e._eval_cmd("makelist", "v for v=1 to 3")
-        assert result == "1\t2\t3"
+    """`_values` (`calc.c`) joint **toutes** ses valeurs par une virgule —
+    `if(pp>p) *pp++=','` — sans séparateur de lignes.
 
-    def test_multi_column_row(self):
+    PAX les séparait par des tabulations, ce qui donnait à `slib/stat/dataproc`
+    un `slib_weight` en `1<TAB>1<TAB>…` : invalide en PARI, d'où le
+    `print((…)` en clair d'`oefstat/mean`.
+    """
+
+    def test_comma_separated(self):
         e = engine()
-        result = e._eval_cmd("makelist", "v,-v for v=1 to 3")
-        assert result == "1,-1\t2,-2\t3,-3"
+        assert e._eval_cmd("makelist", "v for v=1 to 3") == "1,2,3"
+
+    def test_multi_expression_stays_flat(self):
+        """Plusieurs expressions ne font pas des *lignes* : la liste reste
+        plate, chaque valeur séparée par une virgule."""
+        e = engine()
+        assert e._eval_cmd("makelist", "v,-v for v=1 to 3") == "1,-1,2,-2,3,-3"
 
     def test_expression(self):
         e = engine()
-        result = e._eval_cmd("makelist", "v*v for v=1 to 4")
-        assert result == "1\t4\t9\t16"
+        assert e._eval_cmd("makelist", "v*v for v=1 to 4") == "1,4,9,16"
 
-    def test_row_access_after_makelist(self):
+    def test_item_access_after_makelist(self):
         e = engine()
         e.ctx["mat"] = e._eval_cmd("makelist", "v,-v for v=2 to 4")
-        assert e._subst("$(mat[2])") == "3,-3"
+        assert e._subst("$(mat[2])") == "-2"
 
     def test_loop_var_removed_after(self):
         e = engine()
@@ -939,9 +1177,11 @@ class TestCmdPositionof:
         e = engine()
         assert e._eval_cmd("positionof", "item z in a,b,c") == "0"
 
-    def test_tab_separated(self):
+    def test_tab_is_not_a_separator(self):
+        """`_pos` passe par `fnd_item` : la virgule seule sépare, et l'item
+        est élagué avant comparaison."""
         e = engine()
-        e.ctx["lst"] = "x\ty\tz"
+        e.ctx["lst"] = "x,\ty,\tz"
         assert e._eval_cmd("positionof", "item y in $lst") == "2"
 
     def test_numeric_value(self):
@@ -1036,9 +1276,21 @@ class TestCmdListuniq:
         e = engine()
         assert e._eval_cmd("listuniq", "x,y,z") == "x,y,z"
 
-    def test_tab_separated(self):
+    def test_tab_is_not_a_separator(self):
+        """`calc_listuniq` passe par `cutitems`, donc par `find_item_end` : la
+        virgule seule sépare. Une valeur tabulée est **un** item, qu'aucun
+        doublon ne vient réduire."""
         e = engine()
-        assert e._eval_cmd("listuniq", "a\tb\ta\tc") == "a\tb\tc"
+        assert e._eval_cmd("listuniq", "a\tb\ta\tc") == "a\tb\ta\tc"
+
+    def test_output_is_comma_joined_without_space(self):
+        """`strcat(lout,",")` : virgule sans espace."""
+        e = engine()
+        assert e._eval_cmd("listuniq", "a , b , a") == "a,b"
+
+    def test_empty_items_are_dropped(self):
+        e = engine()
+        assert e._eval_cmd("listuniq", "a,,b,") == "a,b"
 
 
 # ── !declosing ────────────────────────────────────────────────────────────────
@@ -1390,6 +1642,25 @@ class TestTranslate:
         result = e._eval_cmd("translate", "\";': to $     $ in $val")
         assert result == "1+2+3"
 
+    def test_dollar_delimiters_apply_to_the_target_too(self):
+        """`slib/stat/dataproc` sépare données et effectifs avec
+        `!translate internal ; to $<LF>$`. WIMS déballe les deux opérandes de
+        la même façon (`calc.c:calc_translate` leur applique `substit()`) ;
+        ne le faire que sur la source produisait un `$` littéral, les deux
+        séries restaient collées et toute statistique pondérée basculait dans
+        la branche non pondérée."""
+        e = engine()
+        result = e._eval_cmd("translate", "internal ; to $\n$ in 1,4,6;2,3,3")
+        assert result == "1,4,6\n2,3,3"
+
+    def test_variable_reference_in_target_is_still_substituted(self):
+        """Le déballage ne doit pas manger une référence de variable : `$sep`
+        ne commence et finit pas par `$`."""
+        e = engine()
+        e.ctx["sep"] = ":"
+        result = e._eval_cmd("translate", "internal ; to $sep in a;b")
+        assert result == "a:b"
+
 
 # ── !exec pari print() unwrapping ─────────────────────────────────────────────
 
@@ -1536,3 +1807,178 @@ class TestNestedMatrixSubst:
         e = self._engine()
         out = e._subst("$(mat[$(missing);])")
         assert "La moitié" not in out
+
+
+# ── slib : lignes de commentaire ──────────────────────────────────────────────
+
+
+class TestSlibComments:
+    """`!!` ouvre un commentaire WIMS. L'interpréteur slib sautait `#` et `:`
+    mais pas `!!` : chaque ligne de commentaire partait dans le dispatch de
+    commandes et en revenait avec `UNKNOWN_CMD:!`, qui écrasait `slib_out`.
+    `slib/function/tabsignes` ne renvoyait ainsi que son bandeau de version
+    (`!!!! tabsignes v1.22`, première ligne du fichier)."""
+
+    def test_comment_lines_are_skipped(self):
+        e = engine()
+        e._run_script_lines(
+            ["!! un commentaire", "!!!! bandeau de version", "slib_out=ok"]
+        )
+        assert e.ctx.get("slib_out") == "ok"
+
+    def test_comment_does_not_overwrite_an_earlier_result(self):
+        e = engine()
+        e._run_script_lines(["slib_out=valeur", "!! commentaire de fin"])
+        assert e.ctx.get("slib_out") == "valeur"
+
+    def test_a_bang_command_is_still_dispatched(self):
+        """Le filtre ne doit pas avaler les vraies commandes."""
+        e = engine()
+        e._run_script_lines(["slib_out=!trim   espaces  "])
+        assert e.ctx.get("slib_out") == "espaces"
+
+
+class TestReplaceEmptyPattern:
+    """`!replace internal $empty by X in Y` : motif vide → aucune occurrence.
+
+    Python insérerait le remplacement entre *chaque* caractère
+    (`"ab".replace("", "X")` vaut `"XaXbX"`). `slib/function/tabsignes` écrit
+    `!replace internal $empty by \\qquad \\qquad in $slib_cel` pour espacer ses
+    cellules vides, ce qui hachait toutes les autres : son marqueur `reply1`
+    ressortait en `\\qquad r\\qquad e\\qquad p\\qquad l\\qquad y…`.
+    """
+
+    def test_empty_pattern_is_a_noop(self):
+        e = engine()
+        e.ctx["empty"] = ""
+        assert e._eval_cmd("replace", "internal $empty by \\qquad in reply1") == "reply1"
+
+    def test_normal_replacement_still_works(self):
+        assert engine()._eval_cmd("replace", "internal a by X in banana") == "bXnXnX"
+
+    def test_empty_replacement_still_deletes(self):
+        assert engine()._eval_cmd("replace", "internal , by in a,b,c") == "abc"
+
+
+class TestSlibOutPreservation:
+    """Une commande `!xxx` isolée ne doit pas effacer `slib_out`.
+
+    `slib/function/tabsignes` assemble son tableau dans `slib_out`, puis termine
+    par le `!reset` de ses variables de travail. Ce `!reset` renvoie `""` — et
+    emportait le tableau avec lui. Le cas vaut pour tout slib finissant par un
+    nettoyage."""
+
+    def test_reset_does_not_wipe_the_result(self):
+        e = engine()
+        e._run_script_lines(["slib_out=<table>résultat</table>", "!reset slib_tmp"])
+        assert e.ctx.get("slib_out") == "<table>résultat</table>"
+
+    def test_a_command_with_a_result_still_fills_slib_out(self):
+        e = engine()
+        e._run_script_lines(["!trim   valeur  "])
+        assert e.ctx.get("slib_out") == "valeur"
+
+
+class TestItemCount:
+    """`!itemcnt` — les cases vides comptent, les lignes blanches non.
+
+    Les deux séparateurs n'ont pas la même sémantique. Entre virgules, un trou
+    porte du sens : les colonnes sans signe d'un tableau de variation
+    (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes` bâtissait
+    4 colonnes au lieu de 6 quand on les ignorait. La tabulation, elle, sépare
+    des lignes — une ligne blanche n'est pas un item, et chaque `,<TAB>` en
+    fabriquerait un fantôme, ce qui décalait le tirage aléatoire de
+    `oefsuites1S/cvgequot` vers un énoncé vide.
+    """
+
+    def test_empty_cells_between_commas_are_counted(self):
+        assert engine()._eval_cmd("itemcnt", "f'(x),,reply4,,reply5,,reply6") == "7"
+
+    def test_plain_comma_list(self):
+        assert engine()._eval_cmd("itemcnt", "a,b,c") == "3"
+
+    def test_blank_lines_between_tabs_are_not_counted(self):
+        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "3"
+
+    def test_comma_tab_pairs_do_not_add_phantom_items(self):
+        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`"""
+        assert engine()._eval_cmd("itemcnt", "x,\t  y,\t  z\t") == "3"
+
+    def test_brackets_protect_commas(self):
+        """`itemnum` passe par `find_item_end` = `strparstr(p, ",")` : la virgule
+        ne sépare qu'à profondeur zéro.
+
+        L'assertion inverse a longtemps tenu ici, parce que protéger seul
+        cassait `oefstat/mean` : la protection fait passer `slib/stat/dataproc`
+        dans sa branche pondérée — la bonne — mais celle-ci recevait un
+        `slib_weight` tabulé, invalide en PARI. C'est le séparateur de
+        `!makelist` qu'il fallait corriger en même temps.
+        """
+        assert engine()._eval_cmd("itemcnt", "[0,4,3.5]") == "1"
+        assert engine()._eval_cmd("itemcnt", "[a,b],[c,d]") == "2"
+
+    def test_empty_input(self):
+        assert engine()._eval_cmd("itemcnt", "  ") == "0"
+
+
+class TestDistributeEnclosedList:
+    """`!distribute items` : une paire de crochets englobant *toute* la chaîne
+    est la notation de liste, pas une protection de virgules.
+
+    `slib/function/tabsignes` reçoit ses positions de réponses sous la forme
+    `[[1,2;1,4],[2]]` — positions puis rang de départ. Sans déballage, les deux
+    arrivaient collés et le slib ne voyait plus qu'une réponse au lieu de six.
+    """
+
+    def test_enclosing_pair_is_unwrapped(self):
+        e = engine()
+        e.ctx["src"] = "[[1,2;1,4],[2]]"
+        e._eval_cmd("distribute", "items $src into a,b")
+        assert e.ctx["a"] == "[1,2;1,4]"
+        assert e.ctx["b"] == "[2]"
+
+    def test_inner_brackets_still_protect_commas(self):
+        e = engine()
+        e.ctx["src"] = "[python,[code]],1,readonly"
+        e._eval_cmd("distribute", "items $src into x,y,z")
+        assert (e.ctx["x"], e.ctx["y"], e.ctx["z"]) == ("[python,[code]]", "1", "readonly")
+
+
+class TestListMembershipWithBrackets:
+    """`isitemof` et `!positionof item` : les virgules protégées par des
+    crochets ne séparent pas des items.
+
+    `slib/function/tabsignes` teste `[ligne,colonne] isitemof <liste de
+    couples>` puis cherche `positionof item [ligne,colonne]` pour numéroter la
+    réponse. Avec un découpage naïf, le premier était toujours faux et le
+    second toujours 0 : toutes les cellules recevaient le même numéro
+    (`0 + rang - 1`), et le tableau affichait `reply1` en clair partout.
+    """
+
+    def test_isitemof_protects_brackets(self):
+        e = engine()
+        assert e._eval_condition("if", "[1,2] isitemof [1,2],[3,4]")
+        assert not e._eval_condition("if", "[9,9] isitemof [1,2],[3,4]")
+
+    def test_isitemof_ignores_presentation_spaces(self):
+        """GP écrit `[1, 2]` là où le `.def` compose `[1,2]`."""
+        assert engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+
+    def test_isitemof_plain_list_unchanged(self):
+        e = engine()
+        assert e._eval_condition("if", "b isitemof a,b,c")
+        assert not e._eval_condition("if", "z isitemof a,b,c")
+
+    def test_positionof_protects_brackets(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item [2,3] in [1,2],[2,3],[3,4]") == "2"
+
+    def test_positionof_ignores_presentation_spaces(self):
+        e = engine()
+        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "2"
+
+    def test_positionof_absent_returns_zero(self):
+        assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == "0"
+
+    def test_positionof_plain_list_unchanged(self):
+        assert engine()._eval_cmd("positionof", "item b in a,b,c") == "2"

@@ -129,14 +129,22 @@ async def check_exercise(
 
     active_ans_defs = [
         a for a in rendered.answers
-        if "default=vide" not in str(a.options.get("option", "")).lower()
+        if not a.options.get("ungraded")
         and (visible_input_names is None or a.input_name in visible_input_names)
     ]
 
     # ── Dispatch vers la bonne stratégie ─────────────────────────────────────
     feedback_html: str | None = None
 
-    if rendered.check_sections and any(a.answer_type == "analyze" for a in active_ans_defs):
+    # `analyze_var` covers widget answers (clickfill/radio/menu) that DISPLAY a
+    # widget but are CHECKED via the :test section — e.g. deve7's clickfill
+    # slots feed `?analyze 49…52` and grading is `simplify(reply1²+2·reply2·
+    # reply3+reply4²−enonce)=0`. Without this they fell through to run_standard
+    # (empty expected → always wrong).
+    if rendered.check_sections and any(
+        a.answer_type == "analyze" or "analyze_var" in a.options
+        for a in active_ans_defs
+    ):
         global_score, results = run_analyze(rendered, active_ans_defs, replies_by_name, body.seed)
         feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
 
@@ -144,7 +152,8 @@ async def check_exercise(
         evaluator = OEFEvaluator(seed=body.seed)
         evaluator.ctx.update(rendered.ev_ctx)
         global_score, results = run_condition(
-            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator
+            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator,
+            rendered.lang,
         )
 
     else:

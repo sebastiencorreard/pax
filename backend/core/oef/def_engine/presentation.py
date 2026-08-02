@@ -187,6 +187,23 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     from .cas import _expr_to_latex  # noqa: PLC0415 — lazy, avoids circular import
     from ..i18n import uses_comma_decimal  # noqa: PLC0415
 
+    # WIMS colours inline math with `\special{color=NAME}` — a TeX colour
+    # *switch* applying from that point to the end of the group (deve1 solution:
+    # `\(\special{color=green} -4 \special{color=black} (…)\)`). KaTeX spells the
+    # same switch `\color{NAME}` (named CSS colours render fine). Translate first,
+    # before the backslash/brace bail below — coloured content always has both,
+    # so it would otherwise leak the raw `\special{…}` and break KaTeX.
+    s = re.sub(r"\\special\s*\{\s*color\s*=\s*([^}]+?)\s*\}", r"\\color{\1}", s)
+
+    # WIMS writes interval brackets as `\lbracket` / `\rbracket` (e.g.
+    # `\(\lbracket1;2\rbracket\)` — balayage1), which KaTeX doesn't know → red
+    # error. Map to the valid `\lbrack` / `\rbrack` (NOT literal `[` / `]`):
+    # a literal `[…;…]` would then be mistaken by `wims_matrices_to_latex`
+    # /`_maybe_pmatrix` for a column vector and stacked vertically, whereas an
+    # interval must stay inline `[1;2]`. Matching the long form leaves the short
+    # `\lbrack`/`\rbrack` untouched. Before the backslash bail below.
+    s = s.replace(r"\lbracket", r"\lbrack ").replace(r"\rbracket", r"\rbrack ")
+
     # WIMS lets `^` grab a whole number or parenthesised group (`10^27`,
     # `10^(27)`), but KaTeX only raises the next single token — so `10^27`
     # renders as `10²7`. Brace multi-character exponents so KaTeX raises the
@@ -274,6 +291,9 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     return s
 
 
+_MATH_BLOCK_RE = re.compile(r"<math[\s>]")
+
+
 def _close_inline_math(text: str, lang: str | None = None) -> str:
     """Convert WIMS-style ``\\(...)`` to KaTeX ``\\(...\\)`` and clean content.
 
@@ -284,6 +304,18 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
     i = 0
     n = len(text)
     while i < n:
+        # Copy a native MathML ``<math>…</math>`` block verbatim. Its ``\\(…\\)``
+        # spans are already finalised by ``_mathmlinput_inline`` (and the browser
+        # KaTeX-renders them); re-scanning them here is pointless and risks
+        # mangling an already-closed span like ``\\()\\)`` (a mathmlinput cell's
+        # trailing paren). MathML doesn't nest, so the next ``</math>`` closes it.
+        if text[i] == "<" and _MATH_BLOCK_RE.match(text, i):
+            end = text.find("</math>", i)
+            if end != -1:
+                end += len("</math>")
+                out.append(text[i:end])
+                i = end
+                continue
         # A "\\(" (escaped backslash before the paren) is NOT an inline-math
         # opener — it's a literal backslash, e.g. a JSON-escaped "\\(" inside a
         # widget's data-config attribute. Treating it as math would shred that
@@ -294,34 +326,70 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
             and text[i + 1] == "("
             and not (i > 0 and text[i - 1] == "\\")
         ):
-            depth = 1
+            # Find the closer the way WIMS does (lines.c:output0 →
+            # find_matching): the math ends at the first ``)`` that drives the
+            # paren depth below zero — the first *unmatched* ``)`` — with ``[]``
+            # / ``{}`` balanced. This closes ``\(K) sont (5;10)`` right after the
+            # ``K`` (instead of swallowing the trailing ``) sont (5;10`` like a
+            # naive "last ``)``" rule did — cercle1). An explicit ``\)`` closes
+            # too. PAX safety nets, because PAX interleaves HTML widgets in math
+            # where WIMS uses separate !insmath calls: an HTML tag or the next
+            # ``\(`` is a hard boundary; if no balanced ``)`` is found before it,
+            # fall back to the last plain ``)`` (covers unbalanced embed-in-math
+            # fragments). A boundary ``<`` is one *starting a tag*
+            # (``<[/!]?[A-Za-z]``), not the ``<`` of an inequality ``\(x<3\)``.
             j = i + 2
-            closed_proper = False
+            paren = brak = brace = 0
+            last_paren = -1  # last plain ')' seen (fallback)
+            content_end = -1  # where the math content stops
+            advance = -1      # where to resume scanning after the span
             while j < n:
-                if text[j] == "\\" and j + 1 < n and text[j + 1] == ")":
-                    closed_proper = True
+                c = text[j]
+                if c == "\\" and j + 1 < n and text[j + 1] == ")":
+                    content_end, advance = j, j + 2  # explicit \)
                     break
-                if text[j] == "(":
-                    depth += 1
-                elif text[j] == ")":
-                    depth -= 1
-                    if depth == 0:
+                if c == "\\" and j + 1 < n and text[j + 1] == "(":
+                    break  # next math span opens — hard boundary
+                if c == "<" and j + 1 < n and (text[j + 1] in "/!" or text[j + 1].isalpha()):
+                    break  # HTML tag (embed marker) — hard boundary
+                if c == "(":
+                    paren += 1
+                elif c == ")":
+                    last_paren = j
+                    paren -= 1
+                    # An explicit ``\)`` right after this ``)`` is the real
+                    # closer, so the ``)`` is content — keeps the pass idempotent
+                    # on an already-closed span like ``\()\)`` (a mathmlinput
+                    # cell's trailing paren, e.g. ``f(reply2)`` → ``…\()\)``,
+                    # re-processed here). Without this it would close at the
+                    # ``)`` (empty content) and leak the ``\)`` as literal text.
+                    if paren < 0 and brak <= 0 and brace <= 0 and text[j + 1 : j + 3] != "\\)":
+                        content_end, advance = j, j + 1  # WIMS find_matching closer
                         break
+                elif c == "[":
+                    brak += 1
+                elif c == "]":
+                    brak -= 1
+                elif c == "{":
+                    brace += 1
+                elif c == "}":
+                    brace -= 1
                 j += 1
-            if (j < n and not closed_proper and depth == 0) or (j == n and not closed_proper):
-                content = text[i + 2 : j]
-                out.append("\\(")
-                out.append(_normalize_math_content(content, lang))
-                out.append("\\)")
-                i = j + 1 if j < n else n
-                continue
-            if closed_proper:
-                content = text[i + 2 : j]
-                out.append("\\(")
-                out.append(_normalize_math_content(content, lang))
-                out.append("\\)")
-                i = j + 2
-                continue
+            if content_end < 0:
+                # Boundary or EOL without a balanced closer.
+                if last_paren >= 0:
+                    content_end, advance = last_paren, last_paren + 1
+                elif j == n:
+                    content_end, advance = n, n  # unclosed to EOL — wrap the rest
+                else:
+                    out.append(text[i])  # boundary, no ')' → not math, "\(" literal
+                    i += 1
+                    continue
+            out.append("\\(")
+            out.append(_normalize_math_content(text[i + 2 : content_end], lang))
+            out.append("\\)")
+            i = advance
+            continue
         out.append(text[i])
         i += 1
     return "".join(out)

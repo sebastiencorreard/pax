@@ -172,6 +172,7 @@ async def render_exercise_debug(
         raise HTTPException(status_code=404, detail="Not found")
 
     from core.answer.strategies.standard import pretty_expected as _pretty_expected
+    from core.answer.strategies.analyze import solve_analyze_expected
 
     result = await db.execute(select(Exercise).where(Exercise.id == exercise_id))
     exercise = result.scalar_one_or_none()
@@ -186,6 +187,10 @@ async def render_exercise_debug(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur de rendu : {str(e)}")
 
+    # clickfill+analyze slots graded by a polynomial identity (deve7) carry no
+    # static expected — derive the auto-fill labels by solving the :test.
+    solved = solve_analyze_expected(rendered, rendered.answers, rendered.seed)
+
     return DebugOut(
         exercise_id=exercise_id,
         seed=rendered.seed,
@@ -195,7 +200,8 @@ async def render_exercise_debug(
                 input_name=a.input_name,
                 label=a.label,
                 answer_type=a.answer_type,
-                expected=_pretty_expected(a.expected, a.answer_type),
+                expected=solved.get(a.input_name)
+                or _pretty_expected(a.expected, a.answer_type),
             )
             for a in rendered.answers
         ],

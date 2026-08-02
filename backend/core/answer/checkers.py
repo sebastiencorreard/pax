@@ -11,6 +11,7 @@ import logging
 import math
 import re
 import sys
+import unicodedata
 
 _log = logging.getLogger("pax.answer")
 _logged_unhandled_types: set[str] = set()
@@ -90,6 +91,25 @@ def _is_case_mismatch_only(reply: str, expected: str) -> bool:
 _REWRITE_MSG = (
     "La réponse que vous avez donnée n'est pas écrite comme il faut. "
     "Veuillez la réécrire correctement."
+)
+
+# Réponse juste « à la précision près » : proche de la bonne valeur mais pas
+# assez précise (deuxième passage WIMS à sqrt(precision) → crédit partiel).
+_POOR_PRECISION_MSG = (
+    "Votre réponse est presque juste, mais pas assez précise."
+)
+
+# `\computeanswer{no}` : l'élève doit fournir la valeur numérique calculée, pas
+# une expression à évaluer (`5*5` refusé pour `25`).
+_COMPUTE_MSG = (
+    "Donnez le résultat sous forme d'un nombre, pas d'un calcul à effectuer."
+)
+
+# numexp : la fraction doit être irréductible (WIMS `noreduced`).
+_NUMEXP_REDUCE_MSG = "Écrivez la fraction sous sa forme irréductible."
+# numexp : mélange fraction + décimal interdit (WIMS `badform`).
+_NUMEXP_BADFORM_MSG = (
+    "N'utilisez pas à la fois une barre de fraction et une virgule décimale."
 )
 
 
@@ -278,14 +298,70 @@ def is_polexpand(s: str) -> bool:
 # Numérique                                                            #
 # ------------------------------------------------------------------ #
 
+# Précision WIMS par défaut pour les comparaisons numériques. WIMS stocke
+# `wims_compare_precision` = `\precision{M}` de l'OEF (var.prep : borné entre
+# 20 et 1e8, défaut 10000). Contrairement à une tolérance, M est *grand* : plus
+# M est grand, plus la comparaison est stricte (tolérance relative ≈ 2/M).
+WIMS_DEFAULT_PRECISION = 10000.0
+
+
+def _wims_has_compound_arith(reply: str, comma_is_decimal: bool = True) -> bool:
+    """True si ``reply`` est une expression arithmétique composée, à rejeter
+    quand ``\\computeanswer{no}`` (l'élève doit donner la valeur calculée).
+
+    Reproduit ``anstype/numeric`` : on retire le signe de tête puis on rejette
+    si l'un de ``+ - * ^ (`` apparaît, ou à la fois ``.`` et ``/`` (fraction de
+    décimaux). Une fraction simple d'entiers (``3/4``) et un décimal (``2.5``)
+    restent acceptés. En locale à virgule, ``,`` est d'abord normalisé en ``.``
+    comme le fait WIMS avant le test."""
+    s = reply.strip()
+    if not s:
+        return False
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    # Notation scientifique (`3.34e-26`) : un nombre, pas un calcul — le `-` de
+    # l'exposant ne doit pas la faire passer pour une expression composée.
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?[eE][+-]?\d+", s):
+        return False
+    if s[0] in "+-":
+        s = s[1:]
+    if any(op in s for op in ("+", "-", "*", "^", "(")):
+        return True
+    return "." in s and "/" in s
+
+
+def _wims_num_equal(d1: float, d2: float, prec: float) -> bool:
+    """Égalité numérique WIMS (``compare.c``) : deux réels sont égaux ssi
+    ``|d1-d2|*prec <= |d1+d2| + 1/prec``. ``prec`` est la précision WIMS
+    (grand entier, ≈ inverse de la tolérance relative)."""
+    diff = abs(d1 - d2) * prec
+    s = abs(d1 + d2)
+    if 0 < prec < 1e10:
+        s += 1.0 / prec
+    return s >= diff
+
 
 def check_numeric(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    absolute: bool = False,
 ) -> CheckResult:
     """
-    Compare deux nombres avec tolérance relative + absolue.
+    Compare deux nombres avec la sémantique de précision WIMS (``anstype/numeric``).
     Accepte les fractions (1/2), les expressions simples (2*3).
     ``comma_is_decimal`` : voir :func:`_parse_number`.
+
+    ``precision`` est la précision WIMS (grand entier, défaut 10000), *pas* une
+    tolérance. Deux passages, comme WIMS :
+
+    - à ``precision`` : réponse exacte → correct, score 1.0 ;
+    - sinon à ``sqrt(precision)`` (comparaison relâchée) → « bonne à la précision
+      près » : score partiel 0.5, ``correct=False`` (``precgood`` de WIMS).
+
+    Avec l'option ``absolute``, WIMS compare la différence absolue :
+    ``precision*|test-good| < 1`` (correct) ou ``< 10`` (partiel).
     """
     try:
         r = _parse_number(reply.strip(), comma_is_decimal)
@@ -298,11 +374,254 @@ def check_numeric(
             detail="Réponse non reconnue comme un nombre",
         )
 
-    abs_err = abs(r - e)
-    rel_err = abs_err / (abs(e) + 1e-12)
-    correct = abs_err <= precision or rel_err <= precision
+    if absolute:
+        diff = abs(r - e)
+        if precision * diff < 1:
+            return CheckResult(correct=True, score=1.0, method="numeric")
+        if precision * diff < 10:
+            return CheckResult(correct=False, score=0.5, method="numeric",
+                               detail=_POOR_PRECISION_MSG)
+        return CheckResult(correct=False, score=0.0, method="numeric")
 
-    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numeric")
+    if _wims_num_equal(r, e, precision):
+        return CheckResult(correct=True, score=1.0, method="numeric")
+    if _wims_num_equal(r, e, math.sqrt(precision)):
+        return CheckResult(correct=False, score=0.5, method="numeric",
+                           detail=_POOR_PRECISION_MSG)
+    return CheckResult(correct=False, score=0.0, method="numeric")
+
+
+def _split_value_unit(s: str) -> tuple[str | None, str]:
+    """Split ``"7.7 m/s"`` / ``"7.7m/s"`` into ``("7.7", "m/s")``.
+
+    The value is a leading signed decimal or integer fraction; everything after
+    is the unit. Returns ``(None, "")`` when no leading number is found.
+    """
+    # Valeur : décimal avec exposant scientifique optionnel (`3.34e-26`), ou
+    # fraction d'entiers. L'exposant fait partie de la VALEUR, pas de l'unité.
+    m = re.match(
+        r"^\s*([+-]?\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?|[+-]?\d+\s*/\s*\d+)\s*(.*)$",
+        s.strip(), re.DOTALL,
+    )
+    if not m:
+        return None, ""
+    return m.group(1).strip(), m.group(2).strip()
+
+
+def _normalize_unit(u: str) -> str:
+    """Normalise a unit string for comparison: drop whitespace, unify the
+    multiplication dot. (``"m / s"`` → ``"m/s"``; case is significant — m≠M.)"""
+    u = re.sub(r"\s+", "", u)
+    return u.replace("·", "*").replace("⋅", "*").replace("×", "*")
+
+
+# Symboles d'unités → nom sympy.physics.units. `L`/`l` = litre.
+_UNIT_BASE = {
+    "m": "meter", "g": "gram", "s": "second", "L": "liter", "l": "liter",
+    "mol": "mole", "N": "newton", "J": "joule", "Pa": "pascal", "W": "watt",
+    "V": "volt", "A": "ampere", "K": "kelvin", "Hz": "hertz", "C": "coulomb",
+    "F": "farad", "Ohm": "ohm", "Ω": "ohm", "h": "hour", "min": "minute",
+    "mn": "minute", "°": "degree", "deg": "degree", "rad": "radian",
+    "bar": "bar", "eV": "electronvolt",
+}
+# Préfixes → clé sympy.physics.units.prefixes.PREFIXES. `µ`/`u` = micro (`mu`).
+_UNIT_PREFIX = {
+    "da": "da", "h": "h", "k": "k", "M": "M", "G": "G", "T": "T", "P": "P",
+    "E": "E", "d": "d", "c": "c", "m": "m", "µ": "mu", "u": "mu", "n": "n",
+    "p": "p", "f": "f", "a": "a",
+}
+
+
+def _unit_atom(tok: str):
+    """`dm^2` → expression sympy `(deci·meter)**2` ; `kOhm` → `kilo·ohm`.
+    Renvoie l'expression sympy (unité) ou None si non reconnue. Le préfixe est
+    appliqué AVANT la puissance."""
+    import sympy.physics.units as _u  # noqa: PLC0415
+    from sympy.physics.units.prefixes import PREFIXES  # noqa: PLC0415
+
+    m = re.fullmatch(r"([A-Za-zµΩ°]+)\^?(-?\d+)?", tok)
+    if not m:
+        return None
+    name, pw = m.group(1), m.group(2)
+    power = int(pw) if pw else 1
+    if name in _UNIT_BASE:  # base exacte (min, mol, bar… avant tout préfixe)
+        return getattr(_u, _UNIT_BASE[name]) ** power
+    # Préfixe (2 lettres d'abord) + base.
+    for p in ("da",) + tuple("EGMPTkhdcmµunpfa"):
+        rest = name[len(p):]
+        if name.startswith(p) and rest in _UNIT_BASE and p in _UNIT_PREFIX:
+            return (PREFIXES[_UNIT_PREFIX[p]] * getattr(_u, _UNIT_BASE[rest])) ** power
+    return None
+
+
+def _unit_to_si(unit: str) -> tuple[str, float] | None:
+    """Réduit une unité composée (`km/h`, `mol/L`, `dm^2`) à
+    (dimension canonique, facteur vers les unités de base SI) via
+    ``sympy.physics.units`` — gère préfixes, puissances, unités dérivées
+    (N, J, Ω…) et non-métriques (h, min, °). None si non reconnue."""
+    unit = _normalize_unit(unit)
+    if not unit:
+        return None
+    expr = None
+    op = "*"
+    for tok in re.findall(r"[*/]|[^*/]+", unit):
+        if tok in ("*", "/"):
+            op = tok
+            continue
+        atom = _unit_atom(tok)
+        if atom is None:
+            return None
+        expr = atom if expr is None else (expr * atom if op == "*" else expr / atom)
+    if expr is None:
+        return None
+    try:
+        from sympy.physics.units.systems.si import SI  # noqa: PLC0415
+        factor, _dim = SI._collect_factor_and_dimension(expr)
+        dim = str(SI.get_dimensional_expr(expr))
+        return dim, float(factor)
+    except Exception:
+        return None
+
+
+def check_unit(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+) -> CheckResult:
+    """Type ``units`` (WIMS): a numeric value followed by a unit (``"7.7 m/s"``).
+
+    The number is compared numerically (``check_numeric``) and the unit string
+    textually after normalising whitespace/separators — so ``"7.7m/s"`` matches
+    the expected ``"7.7 m/s"``. WIMS' ``units-filter`` additionally *converts*
+    between compatible units; we don't (these exercises ask for a specific
+    unit), so the unit must match after normalisation. A missing unit (when one
+    is expected) fails — the statement asks to "préciser l'unité".
+    """
+    rn, ru = _split_value_unit(reply)
+    en, eu = _split_value_unit(expected)
+    if rn is None or en is None:
+        return CheckResult(correct=False, score=0.0, method="unit")
+    # 1) Même unité (texte) : comparaison numérique directe.
+    if _normalize_unit(ru) == _normalize_unit(eu):
+        num = check_numeric(rn, en, precision, comma_is_decimal)
+        return CheckResult(correct=num.correct, score=num.score, method="unit")
+    # 2) Unités différentes mais compatibles : conversion vers la base SI (WIMS
+    #    `units-filter` accepte `400 dm^2` pour `4 m^2`). On ramène les deux
+    #    valeurs à la même dimension avant de comparer.
+    r_si = _unit_to_si(ru)
+    e_si = _unit_to_si(eu)
+    if r_si is not None and e_si is not None and r_si[0] == e_si[0]:
+        try:
+            rv = _parse_number(rn, comma_is_decimal) * r_si[1]
+            ev = _parse_number(en, comma_is_decimal) * e_si[1]
+        except (ValueError, ZeroDivisionError, SyntaxError):
+            return CheckResult(correct=False, score=0.0, method="unit")
+        correct = _wims_num_equal(rv, ev, precision)
+        return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="unit")
+    return CheckResult(correct=False, score=0.0, method="unit")
+
+
+# Scientific notation written as ``×10^n`` / ``*10^n`` / ``·10^n`` / `` 10^n``
+# (with or without the ``^``) → ``e`` notation, so `float()` can read it.
+_SCI_OP_RE = re.compile(r"\s*[*x×·⋅]\s*10\s*\^?\s*([+-]?\d+)")
+_SCI_SP_RE = re.compile(r"(?<=\d)\s*10\s*\^\s*([+-]?\d+)")
+
+
+def _normalize_sci(s: str) -> str:
+    s = _SCI_OP_RE.sub(lambda m: "e" + m.group(1), s)
+    s = _SCI_SP_RE.sub(lambda m: "e" + m.group(1), s)
+    return s
+
+
+def _split_sci_value_unit(s: str) -> tuple[str | None, str]:
+    """Split ``"1.64e11 km^3"`` / ``"1,64 × 10^11 km^3"`` / ``"164200792894 km^3"``
+    into ``(value, unit)``, the value possibly in scientific notation."""
+    s = _normalize_sci(s.strip())
+    m = re.match(r"^\s*([+-]?\d+(?:[.,]\d+)?(?:[eE][+-]?\d+)?)\s*(.*)$", s, re.DOTALL)
+    if not m:
+        return None, ""
+    return m.group(1).strip(), m.group(2).strip()
+
+
+def _round_sig(x: float, n: int) -> float:
+    """Round ``x`` to ``n`` significant figures."""
+    if x == 0 or n < 1:
+        return 0.0
+    return round(x, -int(math.floor(math.log10(abs(x)))) + (n - 1))
+
+
+def _sci_to_float(s: str, comma_is_decimal: bool) -> float:
+    s = s.strip()
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    return float(_normalize_sci(s))
+
+
+def format_sigunits_expected(expected: str) -> str:
+    """Render a ``sigunits`` expected (``"164200792894 km^3 #3"``) as the answer
+    the student should give: scientific notation rounded to N significant
+    figures, plus the unit (``"1.64e11 km^3"``) — the ``#N`` directive dropped."""
+    m = re.match(r"^(.*?)\s*#\s*(\d+)\s*$", expected.strip(), re.DOTALL)
+    if not m:
+        return expected
+    n = int(m.group(2))
+    val, unit = _split_sci_value_unit(m.group(1))
+    if val is None:
+        return m.group(1).strip()
+    try:
+        x = _sci_to_float(val, comma_is_decimal=True)
+    except (ValueError, OverflowError):
+        return m.group(1).strip()
+    if x == 0:
+        mant_exp = "0"
+    else:
+        exp = int(math.floor(math.log10(abs(x))))
+        mant = round(x / 10 ** exp, n - 1)
+        if abs(mant) >= 10:  # rounding pushed e.g. 9.99→10.0
+            mant /= 10
+            exp += 1
+        mant_exp = f"{mant:.{max(n - 1, 0)}f}e{exp}"
+    return f"{mant_exp} {unit}".strip()
+
+
+def check_sigunits(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type ``sigunits`` (WIMS): a value in scientific notation rounded to N
+    significant figures, plus a unit — expected stored as ``"<value> <unit> #N"``.
+
+    Checks: the reply rounded to N sig figs equals the expected rounded to N sig
+    figs, the unit matches, and the reply isn't given with *more* than N sig
+    figs (so the student must actually round, e.g. ``1.64e11`` not the raw
+    ``164200792894``). Unlike WIMS' ``units-filter`` we don't convert between
+    units (the statement asks for a specific one).
+    """
+    m = re.match(r"^(.*?)\s*#\s*(\d+)\s*$", expected.strip(), re.DOTALL)
+    if not m:
+        return check_unit(reply, expected, comma_is_decimal=comma_is_decimal)
+    n_sig = int(m.group(2))
+    ev, eu = _split_sci_value_unit(m.group(1))
+    rv, ru = _split_sci_value_unit(reply)
+    if ev is None or rv is None:
+        return CheckResult(correct=False, score=0.0, method="sigunits")
+    try:
+        en = _sci_to_float(ev, comma_is_decimal)
+        rn = _sci_to_float(rv, comma_is_decimal)
+    except (ValueError, OverflowError):
+        return CheckResult(correct=False, score=0.0, method="sigunits")
+
+    target = _round_sig(en, n_sig)
+    rr = _round_sig(rn, n_sig)
+
+    def _close(a: float, b: float) -> bool:
+        return abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1.0)
+
+    # value rounds to the target AND the reply was itself given to ≤ N sig figs
+    num_ok = _close(rr, target) and _close(rr, rn)
+    unit_ok = _normalize_unit(ru) == _normalize_unit(eu)
+    correct = num_ok and unit_ok
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="sigunits")
 
 
 def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
@@ -395,6 +714,11 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
     if comma_is_decimal:
         s = s.replace(",", ".")
     s = s.replace("^", "**")
+    # Nombre simple, y compris notation scientifique (`3.34e-26`, `1.5E3`) que
+    # la voie « expression arithmétique » ci-dessous rejette (le `e` n'est pas
+    # dans sa classe de caractères). Masses atomiques, constantes physiques…
+    if re.fullmatch(r"[+-]?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?", s):
+        return float(s)
     # Fraction explicite ex: 3/4
     if re.fullmatch(r"-?\d+\s*/\s*-?\d+", s):
         return float(Fraction(s.replace(" ", "")))
@@ -410,11 +734,19 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
 
 
 def check_algexp(
-    reply: str, expected: str, comma_is_decimal: bool = True
+    reply: str, expected: str, comma_is_decimal: bool = True,
+    rational_only: bool = False,
 ) -> CheckResult:
     """
     Compare deux expressions algébriques via SymPy.
     Correct si la différence se simplifie à 0.
+
+    ``rational_only`` (type ``algexp``) : simplification **rationnelle** seule
+    (``cancel``), sans identités trigonométriques/fonctionnelles — comme le
+    ``ratsimp`` de WIMS. Ainsi ``sin²+cos²`` n'est PAS accepté pour ``1`` (WIMS
+    rejette : ratsimp ne connaît pas l'identité). Le défaut (``formal``,
+    ``default``) garde ``simplify`` (avec trig), fidèle au ``trigsimp`` de
+    ``anstype/formal``.
     """
     try:
         import sympy
@@ -445,8 +777,10 @@ def check_algexp(
             local_dict=local_dict,
         )
 
-        diff = sympy.simplify(sympy.expand(r_expr) - sympy.expand(e_expr))
-        correct = diff == 0
+        if rational_only:
+            correct = sympy.cancel(r_expr - e_expr) == 0
+        else:
+            correct = sympy.simplify(sympy.expand(r_expr) - sympy.expand(e_expr)) == 0
 
         return CheckResult(
             correct=correct, score=1.0 if correct else 0.0, method="sympy"
@@ -455,6 +789,44 @@ def check_algexp(
     except Exception:
         # Fallback : comparaison numérique en plusieurs points
         return _check_algexp_numeric(reply, expected, comma_is_decimal)
+
+
+def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
+    """Normalisation « rawmath » légère pour la comparaison littérale de `litexp`.
+
+    WIMS compare les formes rawmath-normalisées (pas via CAS) : espaces retirés,
+    multiplication implicite explicitée, `**`→`^`. **Aucune simplification** :
+    `6/4` reste `6/4`, `x*x` reste `x*x`, l'ordre des termes est préservé (les
+    auteurs énumèrent les formes acceptées, ex. `5*sqrt(5),sqrt(5)*5`).
+
+    Le `*` implicite n'est PAS inséré avant `(` après une lettre, pour ne pas
+    casser les appels de fonction (`sqrt(5)` ne devient pas `sqrt*(5)`)."""
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    s = s.replace(" ", "").replace("**", "^")
+    s = re.sub(r"(\d)([A-Za-z(])", r"\1*\2", s)   # 2x → 2*x ; 2( → 2*(
+    s = re.sub(r"(\))([A-Za-z0-9(])", r"\1*\2", s)  # )x → )*x ; )( → )*(
+    return s
+
+
+def check_litexp(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type ``litexp`` WIMS (plain, sans polexpand/polfactor) : la réponse doit
+    être **mathématiquement égale** ET écrite **dans la même forme** que
+    l'attendu (comparaison rawmath littérale, `$dd isitemof $good`).
+
+    Donc `6/4` est refusé (badform) pour `3/2`, `x*x+3` pour `x^2+3`, `1.5` pour
+    `3/2` — équivalents mais forme non conforme. `2x+3` reste accepté pour
+    `2*x+3` (même forme rawmath)."""
+    base = check_algexp(reply, expected, comma_is_decimal)
+    if not base.correct:
+        return base  # pas égal → mauvaise réponse
+    if _rawmath_normalize(reply, comma_is_decimal) == _rawmath_normalize(expected, comma_is_decimal):
+        return CheckResult(correct=True, score=1.0, method="litexp")
+    # Égal mais forme non conforme → à réécrire.
+    return CheckResult(correct=False, score=0.0, method="litexp_badform",
+                       status="invalid_format", detail=_REWRITE_MSG)
 
 
 def _normalize_expr(expr: str, comma_is_decimal: bool = True) -> str:
@@ -535,30 +907,100 @@ def _check_algexp_numeric(
 # ------------------------------------------------------------------ #
 
 
+def _parse_exact_rational(
+    s: str, comma_is_decimal: bool
+) -> tuple[Fraction, str, bool] | None:
+    """Interprète ``s`` comme un rationnel exact : entier, décimal, ou fraction
+    simple ``a/b``. Retourne ``(valeur, forme, réduite)`` où ``forme`` ∈
+    {``"int"``, ``"decimal"``, ``"fraction"``} et ``réduite`` indique si une
+    fraction ``a/b`` est irréductible (``pgcd=1`` et dénominateur > 0). Retourne
+    ``None`` si ``s`` n'est pas un rationnel simple (expression composée,
+    irrationnel…). Pas de tolérance : ``0.333`` ≠ ``1/3`` (WIMS `numexp`)."""
+    s = s.strip().replace(" ", "")
+    if comma_is_decimal:
+        s = s.replace(",", ".")
+    m = re.fullmatch(r"([+-]?\d+)/([+-]?\d+)", s)
+    if m:
+        num, den = int(m.group(1)), int(m.group(2))
+        if den == 0:
+            return None
+        reduced = math.gcd(abs(num), abs(den)) == 1 and den > 0
+        return Fraction(num, den), "fraction", reduced
+    if re.fullmatch(r"[+-]?\d+", s):
+        return Fraction(int(s)), "int", True
+    if re.fullmatch(r"[+-]?(?:\d+\.\d*|\.\d+)", s):
+        try:
+            return Fraction(s), "decimal", True
+        except (ValueError, ZeroDivisionError):
+            return None
+    return None
+
+
 def check_numexp(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    noreduction: bool = False,
 ) -> CheckResult:
-    """
-    Évalue les deux expressions numériquement et compare.
-    Ex: reply="2+3", expected="5"
-    """
+    """Type ``numexp`` (WIMS ``anstype/numexp``) : l'élève donne un nombre —
+    entier, décimal, ou **fraction irréductible** — pas un calcul.
+
+    Contrairement à une comparaison numérique tolérante, WIMS exige :
+    - pas de mélange ``/`` et ``.`` (``badform``) ;
+    - pas d'expression composée (``+ - * ^ (``, `nocompute`) ;
+    - fraction sous forme **irréductible** (``2/8`` refusé pour ``1/4``), sauf
+      option ``noreduction`` ;
+    - égalité **rationnelle exacte** : ``0.333`` refusé pour ``1/3``.
+
+    Repli sur une comparaison flottante (précision WIMS) quand un côté n'est pas
+    un rationnel simple (attendu irrationnel, etc.)."""
+    r = reply.strip()
+    r_norm = (r.replace(",", ".") if comma_is_decimal else r).replace(" ", "")
+
+    # badform : fraction ET décimal mélangés.
+    if "/" in r_norm and "." in r_norm:
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_NUMEXP_BADFORM_MSG)
+    # nocompute : expression composée interdite (numexp = une valeur).
+    dd = r_norm[1:] if r_norm[:1] in "+-" else r_norm
+    if any(op in dd for op in ("+", "-", "*", "^", "(")):
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_COMPUTE_MSG)
+
+    rp = _parse_exact_rational(r, comma_is_decimal)
+    ep = _parse_exact_rational(expected, comma_is_decimal)
+    if rp is None or ep is None:
+        # Attendu (ou réponse) non rationnel simple → comparaison flottante.
+        return _check_numexp_float(reply, expected, precision, comma_is_decimal)
+
+    r_val, r_form, r_reduced = rp
+    if r_form == "fraction" and not noreduction and not r_reduced:
+        return CheckResult(correct=False, score=0.0, method="numexp",
+                           status="invalid_format", detail=_NUMEXP_REDUCE_MSG)
+    correct = r_val == ep[0]
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="numexp")
+
+
+def _check_numexp_float(
+    reply: str, expected: str, precision: float, comma_is_decimal: bool
+) -> CheckResult:
+    """Repli de :func:`check_numexp` : évalue les deux côtés en flottant et
+    compare à la précision WIMS (pour un attendu non rationnel simple)."""
     try:
         import sympy
 
         _loc = _safe_locals()
-        # En locale à virgule, ``2,5`` est un décimal : on le convertit avant
-        # sympify (qui lirait sinon un tuple). Le point reste accepté.
         r_in = reply.replace(",", ".") if comma_is_decimal else reply
         e_in = expected.replace(",", ".") if comma_is_decimal else expected
         r_val = float(sympy.sympify(_normalize_expr(r_in), locals=_loc))
         e_val = float(sympy.sympify(_normalize_expr(e_in), locals=_loc))
-        correct = (
-            abs(r_val - e_val) <= precision
-            or abs(r_val - e_val) / (abs(e_val) + 1e-12) <= precision
-        )
-        return CheckResult(
-            correct=correct, score=1.0 if correct else 0.0, method="numexp"
-        )
+        if _wims_num_equal(r_val, e_val, precision):
+            return CheckResult(correct=True, score=1.0, method="numexp")
+        if _wims_num_equal(r_val, e_val, math.sqrt(precision)):
+            return CheckResult(correct=False, score=0.5, method="numexp",
+                               detail=_POOR_PRECISION_MSG)
+        return CheckResult(correct=False, score=0.0, method="numexp")
     except Exception:
         return check_numeric(reply, expected, precision, comma_is_decimal)
 
@@ -591,7 +1033,10 @@ def check_set(reply: str, expected: str) -> CheckResult:
 
 
 def check_fset(
-    reply: str, expected: str, precision: float = 1e-4, comma_is_decimal: bool = True
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
 ) -> CheckResult:
     """
     Ensemble fini WIMS : ordre non significatif, équivalence numérique
@@ -609,10 +1054,7 @@ def check_fset(
         try:
             av = _parse_number(a, comma_is_decimal)
             bv = _parse_number(b, comma_is_decimal)
-            return (
-                abs(av - bv) <= precision
-                or abs(av - bv) / (abs(bv) + 1e-12) <= precision
-            )
+            return _wims_num_equal(av, bv, precision)
         except (ValueError, ZeroDivisionError, SyntaxError):
             pass
         try:
@@ -696,16 +1138,19 @@ def check_radio(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="exact")
 
 
-def check_clickfill(reply: str, expected: str) -> CheckResult:
+def check_clickfill(reply: str, expected: str, noorder: bool = False) -> CheckResult:
     """Compare two drag-compose sequences (comma-joined slot values).
 
     Order matters; empty slots are ignored. Works for a single-slot clickfill
-    too (one item each side).
+    too (one item each side). Under the `noorder` option (`anstype/dragfill`
+    compares `!sort items` on both sides) only the multiset counts — that is
+    what makes "sort these into groups" exercises gradable.
     """
     def seq(s: str) -> list[str]:
         return [x.strip() for x in s.split(",") if x.strip()]
 
-    correct = seq(reply) == seq(expected)
+    a, b = seq(reply), seq(expected)
+    correct = sorted(a) == sorted(b) if noorder else a == b
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="clickfill")
 
 
@@ -841,6 +1286,144 @@ def check_case(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")
 
 
+def _deaccent(s: str) -> str:
+    """Retire les diacritiques (é→e, ç→c…) — WIMS `!deaccent`."""
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+
+
+# Ponctuation neutralisée par WIMS `nocase` (badchars → espaces).
+_NOCASE_PUNCT = re.compile(r"""[-+/*='"`.;,!{}@#$%^&()\[\]?<>\\~]""")
+
+
+def _nocase_normalize(s: str) -> str:
+    """Normalisation `nocase` : ponctuation → espace, accents/casse/espaces
+    multiples ignorés (WIMS : translate badchars, singlespace, deaccent, lower,
+    trim)."""
+    s = _NOCASE_PUNCT.sub(" ", s)
+    s = _deaccent(s)
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
+def check_nocase(reply: str, expected: str) -> CheckResult:
+    """Type WIMS `nocase` : correspondance **exacte après normalisation**
+    (accents, casse, espaces et ponctuation ignorés), contre n'importe quelle
+    alternative séparée par ``|``."""
+    r = _nocase_normalize(reply)
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="nocase")
+    for alt in expected.split("|"):
+        if r == _nocase_normalize(alt):
+            return CheckResult(correct=True, score=1.0, method="nocase")
+    return CheckResult(correct=False, score=0.0, method="nocase")
+
+
+import os.path as _osp
+from functools import lru_cache as _lru_cache
+
+
+@_lru_cache(maxsize=None)
+def _atext_dicts(lang: str) -> tuple[frozenset, tuple]:
+    """Charge (mots à supprimer, règles de suffixe) pour `atext` depuis
+    ``data/atext/`` (copiés de WIMS `scripts/oef/<lang>/atext.dic` et
+    ``bases/sys/suffix.<lang>``). Règles triées par longueur de clé décroissante
+    (plus longue correspondance d'abord). Repli sur ``fr`` si la langue manque."""
+    base = _osp.join(_osp.dirname(__file__), "data", "atext")
+    lang = (lang or "fr").split("-")[0].lower()
+    dic_path = _osp.join(base, f"atext.{lang}.dic")
+    suf_path = _osp.join(base, f"suffix.{lang}")
+    if not _osp.exists(dic_path):
+        dic_path, suf_path = _osp.join(base, "atext.fr.dic"), _osp.join(base, "suffix.fr")
+    strip: set[str] = set()
+    try:
+        with open(dic_path, encoding="utf-8") as f:
+            for line in f:
+                w, _, tr = line.strip().partition(":")
+                if w and not tr:  # traduction vide → mot supprimé
+                    strip.add(w)
+    except OSError:
+        pass
+    rules: list[tuple[str, str]] = []
+    try:
+        with open(suf_path, encoding="utf-8") as f:
+            for line in f:
+                k, _, v = line.strip().partition(":")
+                if k:
+                    rules.append((k, v))
+    except OSError:
+        pass
+    rules.sort(key=lambda kv: len(kv[0]), reverse=True)
+    return frozenset(strip), tuple(rules)
+
+
+def _atext_stem(word: str, rules: tuple) -> str:
+    """Racinise un mot via les règles de suffixe WIMS (appliquées sur le mot
+    inversé : plus longue clé-préfixe remplacée)."""
+    rev = word[::-1]
+    for key, val in rules:
+        if rev.startswith(key):
+            rev = val + rev[len(key):]
+            break
+    return rev[::-1]
+
+
+def _atext_normalize(s: str, lang: str) -> str:
+    """Normalisation `atext` : nocase (accents/casse/ponctuation) + suppression
+    des mots vides (articles) + racinisation (pluriel/genre) par dictionnaire."""
+    strip, rules = _atext_dicts(lang)
+    s = _nocase_normalize(s)  # deaccent, lower, ponctuation→espace, singlespace
+    out = []
+    for w in s.split():
+        if w in strip:
+            continue
+        out.append(_atext_stem(w, rules))
+    return " ".join(out)
+
+
+def check_atext(reply: str, expected: str, lang: str = "fr") -> CheckResult:
+    """Type WIMS `atext` : texte libre tolérant — accents/casse/ponctuation
+    ignorés, **mots vides** (articles) supprimés, **pluriel/genre** normalisés
+    par dictionnaire. Alternatives séparées par ``|``. Donc « les triangles »,
+    « un triangle », « triangle » sont équivalents."""
+    r = _atext_normalize(reply, lang)
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="atext")
+    for alt in expected.split("|"):
+        if r == _atext_normalize(alt, lang):
+            return CheckResult(correct=True, score=1.0, method="atext")
+    return CheckResult(correct=False, score=0.0, method="atext")
+
+
+def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
+    """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
+    par défaut), après application des filtres pilotés par l'option :
+    `nospace`, `nocase`, `deaccent`/`noaccent`, `nodigit`, `nopunct`,
+    `noparenthesis`, `nomathop`, `noquote` (WIMS retire chaque classe de
+    caractères, puis compare)."""
+    opt = option.lower()
+
+    def _filter(s: str) -> str:
+        if "nospace" in opt:
+            s = re.sub(r"\s+", "", s)
+        if "nocase" in opt:
+            s = s.lower()
+        if "deaccent" in opt or "noaccent" in opt:
+            s = _deaccent(s)
+        if "nodigit" in opt:
+            s = re.sub(r"[0-9]", "", s)
+        if "noquote" in opt:
+            s = re.sub(r"[\"'`]", "", s)
+        if "nomathop" in opt:
+            s = re.sub(r"[+\-=*/^<>%|]", "", s)
+        if "noparenthes" in opt:  # noparenthesis / noparentheses
+            s = re.sub(r"[()\[\]{}]", "", s)
+        if "nopunct" in opt:
+            s = re.sub(r"[.,;!?:()\[\]{}]", "", s)
+        return s
+
+    correct = _filter(reply.strip()) == _filter(expected.strip())
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="raw")
+
+
 def check_default(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:
@@ -908,14 +1491,30 @@ def check_answer(
     from core.oef.i18n import uses_comma_decimal  # noqa: PLC0415
 
     options = options or {}
-    precision = float(options.get("precision", 1e-4))
+    # Précision WIMS (`\precision{M}`, grand entier) injectée par le moteur ;
+    # défaut 10000 comme WIMS (var.prep). C'est un facteur, pas une tolérance.
+    try:
+        precision = float(options.get("precision", WIMS_DEFAULT_PRECISION))
+    except (TypeError, ValueError):
+        precision = WIMS_DEFAULT_PRECISION
+    if precision <= 0:
+        precision = WIMS_DEFAULT_PRECISION
     comma_is_decimal = uses_comma_decimal(lang)
+    # Option WIMS `absolute` : comparaison en écart absolu (anstype/numeric).
+    absolute = "absolute" in str(options.get("option", "")).lower()
+    # `\computeanswer{no}` (défaut OEF) : une réponse numérique doit être un
+    # nombre, pas une expression à calculer. `yes` autorise le calcul.
+    compute_ok = str(options.get("computeanswer", "")).strip().lower() == "yes"
 
-    # Handle default value if reply is empty
+    # WIMS `option=default=X` (step.proc) : une réponse vide est remplacée par X
+    # puis vérifiée normalement. Couvre `default=vide` (fset « ∅ » : un champ
+    # laissé vide vaut la réponse « ensemble vide ») et `default=$valN` (valeur
+    # déjà substituée par le moteur). Les brouillons (type=draft) sont exclus en
+    # amont (check.py), donc n'atteignent pas ce point.
     if not reply.strip():
-        opt_str = str(options.get("option", "")).lower()
-        if "default=vide" in opt_str:
-            return CheckResult(correct=True, score=1.0, method="default_vide")
+        m = re.search(r"default=(\S+)", str(options.get("option", "")))
+        if m:
+            reply = m.group(1)
 
     # Multi-good: if expected lists several acceptable answers, treat as
     # alternatives and accept the reply if it matches any of them. Skip for
@@ -938,10 +1537,18 @@ def check_answer(
     # mathematically-equal reply that doesn't match the form the author stored.
     requires_expand = "polexpand" in opt_str or "expand" in opt_str
     requires_factor = "polfactor" in opt_str
+    # `formal` = équivalence CAS pure (WIMS : `good-reply` simplifié à 0) :
+    # aucune contrainte de forme développée/factorisée. `(x+1)(x-1)` est accepté
+    # pour `x^2-1`. Les options explicites `polexpand`/`polfactor` (ci-dessus)
+    # s'appliquent quand même si l'auteur les a posées.
+    # `litexp` et `algexp` exclus : litexp fait une comparaison littérale de
+    # forme (check_litexp) ; algexp accepte toute forme équivalente non
+    # simplifiée (`(24+4)*x-53` pour `28*x-53`) — pas de contrainte
+    # développé/factorisé auto-déduite. `default`/`auto` la gardent.
     if (
         not requires_expand
         and not requires_factor
-        and answer_type.lower() in ("algexp", "default", "auto", "litexp", "formal")
+        and answer_type.lower() in ("default", "auto")
         and any(c.isalpha() for c in expected)
     ):
         if is_polexpand(expected):
@@ -1007,10 +1614,31 @@ def check_answer(
 
     match answer_type.lower():
         case "numeric":
-            return check_numeric(reply, expected, precision, comma_is_decimal)
+            if not compute_ok and _wims_has_compound_arith(reply, comma_is_decimal):
+                return CheckResult(
+                    correct=False, score=0.0, method="numeric",
+                    status="invalid_format", detail=_COMPUTE_MSG,
+                )
+            return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
         case "numexp":
-            return check_numexp(reply, expected, precision, comma_is_decimal)
-        case "algexp" | "litexp" | "formal":
+            noreduction = "noreduction" in opt_str
+            return check_numexp(reply, expected, precision, comma_is_decimal, noreduction)
+        case "units" | "unit":
+            return check_unit(reply, expected, precision, comma_is_decimal)
+        case "sigunits":
+            return check_sigunits(reply, expected, comma_is_decimal)
+        case "litexp":
+            # Plain litexp = comparaison littérale (forme conforme). Avec une
+            # option de forme (expand/polfactor), WIMS vérifie plutôt que la
+            # réponse est développée/factorisée → voie check_algexp + pré-checks.
+            if "expand" in opt_str or "polfactor" in opt_str:
+                return check_algexp(reply, expected, comma_is_decimal)
+            return check_litexp(reply, expected, comma_is_decimal)
+        case "algexp":
+            # Équivalence rationnelle (sans trig) ; formes équivalentes non
+            # simplifiées acceptées (`(24+4)*x-53` = `28*x-53`).
+            return check_algexp(reply, expected, comma_is_decimal, rational_only=True)
+        case "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
             return check_algexp(reply, expected, comma_is_decimal)
@@ -1021,7 +1649,7 @@ def check_answer(
         case "radio" | "menu" | "mark":
             return check_radio(reply, expected)
         case "clickfill":
-            return check_clickfill(reply, expected)
+            return check_clickfill(reply, expected, noorder="noorder" in opt_str)
         case "correspond":
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "jsxgraph":
@@ -1030,6 +1658,12 @@ def check_answer(
             return check_coord(reply, expected)
         case "case":
             return check_case(reply, expected)
+        case "raw":
+            return check_raw(reply, expected, opt_str)
+        case "nocase":
+            return check_nocase(reply, expected)
+        case "atext":
+            return check_atext(reply, expected, lang or "fr")
         case "default" | "auto":
             return check_default(reply, expected, comma_is_decimal)
         case "text":

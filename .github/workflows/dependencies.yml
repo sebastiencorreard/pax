@@ -1,0 +1,90 @@
+name: Dépendances
+
+# Dependabot propose les montées ; ce workflow répond à l'autre question — « y
+# a-t-il une faille connue, maintenant ? ». Les deux sont nécessaires : un avis
+# peut sortir sans qu'aucune montée ne soit disponible (cf. `ecdsa`), et une
+# dépendance transitive n'a pas de PR Dependabot dédiée.
+on:
+  schedule:
+    # Lundi 06:00 UTC, avant les PR de Dependabot.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - backend/requirements.txt
+      - frontend/package.json
+      - frontend/package-lock.json
+      - .github/workflows/dependencies.yml
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python — pip-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Installer pip-audit
+        run: pip install --upgrade pip pip-audit
+
+      # `-r` résout le fichier sans installer : plus rapide, et ça audite ce
+      # qui est *déclaré* plutôt qu'un environnement qui aurait dérivé.
+      #
+      # PYSEC-2026-1325 (`ecdsa`, Minerva sur P-256) est écarté : l'amont
+      # considère les canaux auxiliaires hors périmètre — « there is no planned
+      # fix » —, donc l'avis ne se refermera jamais et rendrait ce contrôle
+      # rouge en permanence. Non atteignable ici : PAX signe et vérifie en
+      # HS256. Justification complète dans `scripts/check-deps.sh`, à garder
+      # synchronisé.
+      - name: Auditer les dépendances déclarées
+        run: |
+          pip-audit -r backend/requirements.txt --desc --progress-spinner off \
+            --ignore-vuln PYSEC-2026-1325
+
+      - name: Lister les versions en retard
+        if: always()
+        run: |
+          pip install --quiet -r backend/requirements.txt
+          echo '### Python — versions en retard' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          pip list --outdated >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  npm:
+    name: npm — audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # Seul le périmètre de production fait échouer : l'essentiel des avis npm
+      # vise la chaîne de développement (vite, ws, playwright), qui n'est pas
+      # servie au public. Ils restent rapportés juste en dessous.
+      - name: Auditer les dépendances de production
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Rapporter l'audit complet (sans échouer)
+        if: always()
+        run: |
+          echo '### npm — audit complet (dev inclus)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          npm audit >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '### npm — versions en retard' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          npm outdated >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

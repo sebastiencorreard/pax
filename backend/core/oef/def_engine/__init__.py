@@ -11,7 +11,25 @@ import math
 import os
 import random
 import re
+import time
 from functools import lru_cache
+
+
+class _RenderBudgetExceeded(Exception):
+    """Levée quand un rendu dépasse son budget temps (garde-fou contre une
+    boucle emballée : slib incomplet, borne géante…). Rattrapée au niveau du
+    rendu, qui poursuit avec l'état partiel calculé — un rendu approximatif vaut
+    mieux qu'un rendu de plusieurs minutes."""
+
+
+# Budget temps d'un rendu, en secondes. WIMS lui-même borne le temps d'exécution.
+_RENDER_TIME_BUDGET = 8.0
+
+# `\nextstep` ne dit jamais combien d'étapes restent : l'exercice s'arrête quand
+# la variable devient vide. On rejoue donc `:postdef` jusqu'à cet arrêt, borné
+# pour qu'un `.def` mal formé ne parte pas en boucle (le maximum observé sur le
+# corpus est 6).
+_MAX_NEXTSTEPS = 32
 
 from .cas import (
     _MATH_NS,
@@ -36,6 +54,7 @@ from .presentation import (
 from .slib import _SlibExit, _SlibMixin, _split_top_level_commas
 from ..numfmt import format_wims_float
 from ..i18n import list_separator, uses_comma_decimal
+from . import wims_lists as wl
 from ..def_parser import (
     Assign,
     Command,
@@ -96,6 +115,82 @@ _COMMA_VARLIST_RE = re.compile(
     r"^\s*(?:\$\w+|\$\([^)]+\))(?:\s*,\s*(?:\$\w+|\$\([^)]+\)))+\s*$"
 )
 
+# Racine servie par `/api/static` (cf. `main.py`). `!rename` y ramène ses
+# chemins ; c'est aussi la barrière qui les y confine.
+_RESSOURCES_ROOT = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "ressources")
+)
+
+# `anstype/inputcss.inc` injects the lines that follow the size verbatim into the
+# `<input>` tag, so they may be bare flags (`autofocus`) or `name="value"` pairs
+# (`autocomplete="off"`). Only attributes on this allow-list are forwarded: the
+# tail is exercise content, and an `on…` handler reaching the DOM would run.
+_ALLOWED_INPUT_ATTRS = {
+    "autocomplete", "autofocus", "dir", "inputmode", "lang", "maxlength",
+    "placeholder", "readonly", "spellcheck", "title",
+}
+_INPUT_ATTR_RE = re.compile(
+    r"""([A-Za-z][A-Za-z0-9-]*)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"']+))?"""
+)
+
+
+def _split_protected(s: str, seps: str) -> list[str]:
+    """Découpe `s` sur `seps`, en sautant les paires `()`/`[]`/`{}`.
+
+    Port de `strparstr` (`liblines.c`), sur lequel repose `find_item_end` : un
+    séparateur ne compte qu'à profondeur zéro. Les segments vides sont
+    conservés — c'est à l'appelant de décider s'ils comptent.
+    """
+    parts, depth, cur = [], 0, []
+    for ch in s:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth = max(0, depth - 1)
+        if ch in seps and depth == 0:
+            parts.append("".join(cur)); cur = []
+        else:
+            cur.append(ch)
+    parts.append("".join(cur))
+    return parts
+
+
+def _normalize_reply_type(rtype: str) -> str:
+    """Canonical reply type, folding `dragfill` onto `clickfill`.
+
+    `help/anstype/clickfill.phtml` documents the two as one widget with one
+    difference: a label may be dropped several times in a `clickfill`, at most
+    once in a `dragfill`. Everything else — `replygood` as `correct;pool`, the
+    `HxVxLxT` embed size, the shared shuffled palette — is identical, so the
+    single-use constraint travels separately (`options["single_use"]`).
+    """
+    t = rtype.strip().lower()
+    return "clickfill" if t == "dragfill" else t
+
+
+def _parse_input_attributes(tail: str) -> dict[str, object]:
+    """HTML attributes carried by the extra lines of an `\\embed` size parameter.
+
+    Returns ``{name: value}``, a bare flag mapping to ``True``. Unknown names are
+    dropped silently — WIMS' own tail also holds non-attribute payloads (the
+    `brd [responsive …]` of a jsxgraph embed, which never reaches this path).
+    """
+    attrs: dict[str, object] = {}
+    for line in tail.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        for m in _INPUT_ATTR_RE.finditer(line):
+            name = m.group(1).lower()
+            if name not in _ALLOWED_INPUT_ATTRS:
+                continue
+            raw = m.group(2)
+            if raw is None:
+                attrs[name] = True
+            else:
+                attrs[name] = raw[1:-1] if raw[:1] in ("'", '"') else raw
+    return attrs
+
 
 # ── Public entry point ────────────────────────────────────────────────────────
 
@@ -149,6 +244,8 @@ class DefEngine(_SlibMixin):
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self.rng = random.Random(seed)
+        # Échéance du budget temps (posée par render()) ; None = pas de limite.
+        self._deadline: float | None = None
         # WIMS treats ``$empty`` as the predefined empty-string sentinel;
         # exposing it as a regular ctx entry keeps `_subst` happy.
         # Always initialize m_step to "1" so it's defined when var_instructions execute.
@@ -171,6 +268,11 @@ class DefEngine(_SlibMixin):
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
+        # Variables du mini-interpréteur PARI. WIMS pilote un unique processus
+        # `gp` par exécution, donc les `!exec pari` successifs se partagent leur
+        # état : oefforpython.fr définit `l=vector(n);for(…)` dans un appel puis
+        # l'affiche avec `print(l)` dans le suivant.
+        self.pari_session: dict[str, object] = {}
         # Exercise content language (ISO code). Set from df.meta at render time;
         # drives the decimal/list separator for number display & checking
         # (see core/oef/i18n.py). Defaults to French until render() reads it.
@@ -192,6 +294,146 @@ class DefEngine(_SlibMixin):
 
     # ── Top-level render ──────────────────────────────────────────────────────
 
+    # ── \nextstep (étapes dynamiques) ─────────────────────────────────────────
+
+    @staticmethod
+    def _normalise_nextstep(raw: str) -> str:
+        """Port de `wims/public_html/scripts/oef/nextstep.proc`.
+
+        `replies`/`choices` → `r`/`c`, minuscules, espaces retirés, tabulations
+        converties en lignes (`!rows2lines`), puis **première ligne non vide**.
+        Une chaîne vide signifie « plus d'étape ».
+        """
+        if not raw.strip():
+            return ""
+        s = raw.lower()
+        for long, short in (
+            ("replies", "r"), ("choices", "c"), ("reply", "r"), ("choice", "c")
+        ):
+            s = s.replace(long, short)
+        # `!nospace` retire les blancs sauf les sauts de ligne ; `!rows2lines`
+        # promeut ensuite les tabulations en sauts de ligne.
+        s = re.sub(r"[^\S\n\r\t]", "", s)
+        for line in re.split(r"[\t\r\n]+", s):
+            if line:
+                return line
+        return ""
+
+    @staticmethod
+    def _nextstep_depends_on_replies(postdef: list, nextstep_raw: str) -> bool:
+        """True si la *suite* de l'exercice dépend des réponses déjà données.
+
+        26 des 97 exercices dont `\\nextstep` pointe vers une variable calculée
+        en `:postdef` font dépendre l'existence de l'étape suivante de la
+        *justesse* d'une réponse (`!ifval ($m_step==2 and $m_sc_reply1==1)`,
+        oefechpython.fr/de4) — c'est ce que la doc OEF appelle « étapes
+        dynamiques ». Leur nombre d'étapes n'est pas connaissable avant que
+        l'élève ait répondu.
+
+        Seules comptent les affectations de la variable que `\\nextstep`
+        désigne : `heron1` lit `$m_sc_reply2` pour composer un feedback, mais
+        son `val6` ne branche que sur `$m_step`, donc son total est connu.
+        """
+        from ..def_parser import Assign, IfBlock  # noqa: PLC0415
+
+        m = re.fullmatch(r"\$\(?(\w+)\)?", (nextstep_raw or "").strip())
+        if not m:
+            # Forme littérale (`reply1<TAB>reply2,reply3`) : rien à recalculer.
+            return False
+        target = m.group(1)
+        pat = re.compile(r"\$m_(?:sc_)?(?:reply|choice)")
+
+        def walk(body: list, guarded: bool) -> bool:
+            for instr in body:
+                if isinstance(instr, IfBlock):
+                    cond = guarded or bool(pat.search(instr.condition))
+                    if walk(instr.then_body, cond) or walk(instr.else_body, cond):
+                        return True
+                elif isinstance(instr, Assign) and instr.name == target:
+                    if guarded or pat.search(instr.value or ""):
+                        return True
+            return False
+
+        return walk(postdef, False)
+
+    def _resolve_nextstep(
+        self, df: DefFile, dynamic_out: list | None = None
+    ) -> tuple[int | None, list[str]] | None:
+        """Progression d'un exercice `\\nextstep` : (total d'étapes, `oefsteps`).
+
+        WIMS relit `$nextstep` après chaque étape (`nextstep.proc`) et s'arrête
+        dès qu'il est vide ; le total n'est donc jamais écrit dans le `.def`. On
+        rejoue la progression en repartant de l'étape 1 — `:postdef` ne branche
+        que sur `$m_step` et sur les réponses mémorisées, toutes deux déjà dans
+        le contexte au moment du rendu.
+
+        Le total renvoyé vaut ``None`` quand la suite dépend des réponses : au
+        delà de l'étape courante on ne sait pas encore combien d'étapes
+        viendront, et annoncer un nombre serait un mensonge. Les lignes déjà
+        déterminées, elles, restent exactes et sont renvoyées dans tous les cas.
+
+        Renvoie ``None`` quand `\\nextstep` est inactif (`postvarcnt=0`, le cas
+        majoritaire : WIMS sort alors immédiatement de `nextstep.proc`).
+        """
+        try:
+            postvarcnt = int(str(df.meta.get("postvarcnt", "0")).strip() or "0")
+        except ValueError:
+            postvarcnt = 0
+        postdef = df.sections.get("postdef") or []
+        if postvarcnt <= 0 or not postdef or "nextstep" not in self.ctx:
+            return None
+
+        try:
+            current = int(self.ctx.get("m_step", "1"))
+        except (TypeError, ValueError):
+            current = 1
+        dynamic = self._nextstep_depends_on_replies(postdef, self.ctx.get("nextstep", ""))
+        if dynamic_out is not None:
+            dynamic_out.append(dynamic)
+
+        saved = dict(self.ctx)
+        steps: list[str] = []
+        total: int | None = None
+        deadline = self._deadline
+        self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
+        try:
+            # `step.proc` fait `!advance oefstep` / `m_step=$oefstep` *avant*
+            # de lire `nextstep.proc` : `:postdef` s'exécute donc avec `m_step`
+            # pointant l'étape à venir, et les `.def` testent bien `m_step==2`
+            # pour décider si une deuxième étape existe. La première est déjà
+            # décrite par `oefsteps`, d'où le départ à 2.
+            for k in range(2, _MAX_NEXTSTEPS + 1):
+                # Progression conditionnée par les réponses : au-delà de l'étape
+                # courante, le rejeu extrapolerait sur des réponses que l'élève
+                # n'a pas encore données. On laisse alors le total indéterminé
+                # plutôt que d'en annoncer un faux.
+                if dynamic and k > current:
+                    break
+                self.ctx["m_step"] = str(k)
+                self.ctx["step"] = str(k)
+                try:
+                    self._exec(postdef, output_buf=None)
+                except _RenderBudgetExceeded:
+                    break
+                line = self._normalise_nextstep(self._subst(self.ctx.get("nextstep", "")))
+                if not line:
+                    total = k - 1
+                    # Progression conditionnée par les réponses : sans elles,
+                    # `:postdef` peut refuser d'ouvrir une étape pourtant déjà
+                    # atteinte (oefechpython.fr/de4). Le total ne peut alors
+                    # pas être inférieur à l'étape en cours. Pour un exercice
+                    # déterministe, au contraire, `k-1` fait autorité — un
+                    # `m_step` au-delà est une étape qui n'existe pas.
+                    if dynamic:
+                        total = max(total, current)
+                    break
+                steps.append(line)
+        finally:
+            self._deadline = deadline
+            self.ctx.clear()
+            self.ctx.update(saved)
+        return total, steps
+
     def render(self, df: DefFile) -> ExerciseRender:
         # m_step is now always initialized to "1" in __init__, and can be
         # overridden by load_and_render before calling render(). This ensures
@@ -211,7 +453,16 @@ class DefEngine(_SlibMixin):
                 if key in rm:
                     self.ctx[f"reply{key}{n}"] = rm[key]
 
-        self._exec(df.var_instructions, output_buf=None)
+        # Budget temps : abandonne le calcul des variables s'il s'emballe
+        # (boucle non terminante d'un slib incomplet). On poursuit le rendu avec
+        # l'état partiel plutôt que de bloquer plusieurs minutes.
+        self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
+        try:
+            self._exec(df.var_instructions, output_buf=None)
+        except _RenderBudgetExceeded:
+            pass
+        finally:
+            self._deadline = None
 
         # Course/dynsteps: expose the previous steps' submitted replies + their
         # scores as WIMS' memorised `$m_reply{n}` / `$m_sc_reply{n}` so this
@@ -228,13 +479,14 @@ class DefEngine(_SlibMixin):
         else:
             html = self._subst(stmt)
 
-        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures, hoist_wims_instruction  # noqa: PLC0415
+        from ..flydraw import inline_svg_imgs, inline_wims_gifs, inline_pax_images, group_inline_figures  # noqa: PLC0415
 
         html = _close_inline_math(html, self.lang)
-        # Lift the calculator/instruction warning to the top of the statement.
-        # Some .def templates (course03_2step.def et al.) emit it AFTER the
-        # question, which reads badly — hoist it so it always comes first.
-        html = hoist_wims_instruction(html)
+        # A `<div class="wims_instruction">` (calculator notice, answer-format
+        # hint…) is rendered *in source order*, like WIMS — it's just a CSS class
+        # for technical instructions, WIMS never repositions it. (We used to
+        # hoist it to the top; that wrongly put litt1's "Une seule bonne réponse"
+        # *above* "Cliquez sur les bonnes réponses" — WIMS keeps it below.)
         # Group each flydraw figure with its label *before* the SVGs are
         # inlined — the placeholder is a single <img> tag here, easy to
         # locate; once inlined, the body contains its own <image>/<polygon>
@@ -252,6 +504,24 @@ class DefEngine(_SlibMixin):
         html = re.sub(r"<li[^>]*>\s*</li>", "", html)
         html = re.sub(r"<ul[^>]*>\s*</ul>", "", html)
         answers = self._extract_answers(df)
+
+        # Les figures d'une palette ou d'un attendu sont incorporées comme
+        # celles de l'énoncé. Le marqueur `<img src="/api/render/svg/…">` est
+        # une forme *interne*, choisie pour survivre aux découpages de listes
+        # WIMS ; il ne peut pas sortir tel quel, car le cache SVG vit en
+        # mémoire du backend et un rendu resservi par Redis le laisse sans
+        # image (`oefmolecule/lewis` affichait 10 étiquettes vides). Palette et
+        # attendu sont traités **ensemble** : ce sont deux chaînes comparées
+        # l'une à l'autre, les incorporer d'un seul côté casserait la notation.
+        for a in answers:
+            if a.expected and "/api/render/svg/" in a.expected:
+                a.expected = inline_svg_imgs(a.expected)
+            choices = a.options.get("choices")
+            if choices:
+                a.options["choices"] = [
+                    inline_svg_imgs(c) if "/api/render/svg/" in c else c
+                    for c in choices
+                ]
 
         # If the question text has no input/slot widget but the exercise
         # declares replies, append a default input for each so the frontend
@@ -284,18 +554,47 @@ class DefEngine(_SlibMixin):
                 type_meta["current_step"] = int(self.ctx.get("m_step", "1"))
             except (ValueError, TypeError):
                 type_meta["current_step"] = 1
-            
+
+            # `\nextstep` fait autorité quand il est actif : lui seul sait où
+            # l'exercice s'arrête. Les lignes rejouées complètent `oefsteps`,
+            # qui ne contient que l'étape courante au premier rendu.
+            dynamic_flag: list[bool] = []
+            plan = self._resolve_nextstep(df, dynamic_flag)
+            # Le rejeu ne fait autorité que s'il a tranché : soit il a trouvé la
+            # fin, soit il a établi que la suite dépend des réponses et qu'aucun
+            # total n'est annonçable. Sinon — `$nextstep` constant, comme les
+            # tables de arithtable.*/table2x2 dont `:postdef` ne touche jamais la
+            # variable — on n'a rien appris : ni total, ni étapes à ajouter à
+            # `oefsteps`, et les heuristiques de repli reprennent la main.
+            nextstep_active = plan is not None and (
+                plan[0] is not None or (dynamic_flag and dynamic_flag[0])
+            )
+            if nextstep_active:
+                total, extra = plan
+                if total is not None:
+                    type_meta["total_steps"] = total
+                known = [s for s in re.split(r"[;\n\r\t]+", oefsteps_val) if s.strip()]
+                for line in extra:
+                    if total is not None and len(known) >= total:
+                        break
+                    known.append(line)
+                if known:
+                    oefsteps_val = "\n".join(known)
+                    self.ctx["oefsteps"] = oefsteps_val
+
             # Try to extract total steps from common variable names.
             # 1. Look at oefsteps first
-            if oefsteps_val:
+            if not nextstep_active and "total_steps" not in type_meta and oefsteps_val:
                 # oefsteps may be tab-, semicolon-, or newline-separated (e.g. "r1\tr2\tr3\tr4")
                 steps = re.split(r"[;\n\r\t]+", oefsteps_val)
                 steps = [s.strip() for s in steps if s.strip()]
                 if steps:
                     type_meta["total_steps"] = len(steps)
             
-            # 2. Fall back to other common variables if total_steps still missing
-            if "total_steps" not in type_meta:
+            # 2. Fall back to other common variables if total_steps still
+            # missing. Ce repli devine un total à partir de noms de variables
+            # arbitraires (`val62`, `val71`, …) : à ne tenter que faute de mieux.
+            if not nextstep_active and "total_steps" not in type_meta:
                 for var_name in ("val62", "val71", "cnt", "val61", "val70"):
                     val = self.ctx.get(var_name, "")
                     try:
@@ -433,7 +732,10 @@ class DefEngine(_SlibMixin):
 
     def _exec(self, instructions: list, output_buf: list[str] | None) -> None:
         """Execute a list of instructions sequentially."""
+        deadline = self._deadline
         for instr in instructions:
+            if deadline is not None and time.monotonic() > deadline:
+                raise _RenderBudgetExceeded()
             if isinstance(instr, Assign):
                 val = self._eval_value(instr.value)
                 self.ctx[instr.name] = val
@@ -530,7 +832,9 @@ class DefEngine(_SlibMixin):
 
         var = loop.var.lstrip("$")
         saved = self.ctx.get(var)
-        for i in range(start, end + 1):
+        # Backstop contre une borne géante à corps vide (le budget temps du
+        # rendu ne s'arme que si le corps s'exécute) : cap dur d'itérations.
+        for i in range(start, min(end, start + 100000) + 1):
             self.ctx[var] = str(i)
             self._exec(loop.body, output_buf)
         if saved is not None:
@@ -556,19 +860,11 @@ class DefEngine(_SlibMixin):
         if value.startswith("$["):
             return self._eval_dollar_bracket(value)
 
-        # Pattern: comma-separated list of $var references only
-        # (e.g. "val14=$val19,$val37,$val52,...").  Substitute each ref and
-        # neutralise any tabs in the substituted content so the resulting
-        # comma-separated list is unambiguous to $(var[i]) access.
-        if _COMMA_VARLIST_RE.match(value):
-            parts = [self._subst(ref) for ref in re.split(r"\s*,\s*", value.strip())]
-            # An item that is a comma-laden HTML blob (e.g. a JSXGraph board
-            # div) can't be comma-joined without breaking $(var[i]); use a TAB
-            # separator. Plain comma-data items (numbers, fractions) keep the
-            # flattening comma-join.
-            if any("," in p and "<" in p for p in parts):
-                return "\t".join(parts)
-            return ",".join(p.replace("\t", " ") for p in parts)
+        # `substit` (`evalue.c`) ne réécrit rien : une concaténation `$a,$b`
+        # est une substitution textuelle, séparateur compris. Le cas spécial
+        # qui vivait ici — tabulations internes neutralisées, bascule vers un
+        # join tabulé pour le HTML à virgules — compensait la priorité
+        # tabulation de `_split_items` ; il tombe avec elle.
 
         # Literal string with variable substitution
         return self._subst(value)
@@ -593,6 +889,13 @@ class DefEngine(_SlibMixin):
         """Evaluate a WIMS arithmetic expression string."""
         # 1. Substitute all variable references
         expr = self._subst_for_arith(expr)
+        # 1b. An empty function argument — e.g. `rint()` produced when an
+        # undefined/empty variable was substituted into `rint($confparm1)` —
+        # is a failed numeric calc. WIMS' `$[…]` yields NaN here; returning the
+        # literal `rint()` instead would slip past guards like
+        # `!ifval NaN isin $x or $x=` (deve7: confparm1 unset → must fall back).
+        if re.search(r"[A-Za-z_]\w*\(\s*\)", expr):
+            return "NaN"
         # 2. Replace ^ with ** for Python
         expr = expr.replace("^", "**")
         # 3. Evaluate
@@ -629,6 +932,13 @@ class DefEngine(_SlibMixin):
         #     refs (handled later) and standalone $var untouched.
         if _DOLLAR_IN_PAREN_RE.search(s):
             s = _DOLLAR_VAR_RE.sub(_var, s)
+        # 1c. A simple `$var` ref sitting immediately *before* a `$(…)` must be
+        #     resolved at this boundary, before the indexed pass expands the
+        #     `$(…)`. Otherwise a `$(val31[1])`→"12 a" inserted after an empty
+        #     `$val33` would merge into the name ("$val33"+"12 a" → "val3312"),
+        #     swallowing the leading digits — WIMS stops the name at the `$`.
+        #     (deve7 solution: `($val33$(val31[1])$val34)^2` → `( a)^2`.)
+        s = re.sub(r"\$([A-Za-z_]\w*)(?=\$\()", _var, s)
         # 2-4. $(var[n..m]) slices, $(var[n;m]) matrices and $(var[n]) lists,
         #      resolved inner-first to a fixpoint (handles nested subscripts).
         s = self._resolve_indexed_forms(s)
@@ -642,9 +952,14 @@ class DefEngine(_SlibMixin):
         """Substitute variable references inside an arithmetic expression."""
         if not expr or "$" not in expr:
             return expr
+        # Résoudre les `$name` (opérateurs et indices de sous-listes) AVANT les
+        # formes indexées `$(var[i])`. Sinon la valeur numérique d'un
+        # `$(val15[1])` se colle au `$var` qui précède et le corrompt en un
+        # nouveau nom : `$val18$val19$(val15[1])` (val19="-") donnait `$val18` +
+        # `$val193`(inconnu→0) = `rint(30)` au lieu de `rint(3-3)` (mediane5).
+        expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         expr = self._resolve_indexed_forms(expr)
         expr = _PAREN_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
-        expr = _DOLLAR_VAR_RE.sub(lambda m: str(self.ctx.get(m.group(1)) if m.group(1) in self.ctx else self.ctx.get(m.group(1).lower(), "0")), expr)
         return expr
 
     def _resolve_indexed_forms(self, s: str) -> str:
@@ -718,6 +1033,41 @@ class DefEngine(_SlibMixin):
         # Comma split, but keep commas nested inside parentheses intact.
         return re.split(r",(?![^(]*\))", value)
 
+    def _split_wims_items(self, value: str) -> list[str]:
+        """Split a WIMS list whose items are separated by ``,`` OR ``;`` — at
+        bracket depth 0 and outside HTML entities.
+
+        WIMS' ``!append item`` switches to a TAB separator when an item itself
+        holds a comma (``\\(\\large 2,5 \\times 10^{19})``); the very common
+        ``!translate internal \\t to ;`` idiom then turns that TAB into ``;``. So
+        a list with comma-bearing items ends up ``;``-separated (brevet01's QCM
+        choices ``\\(25),\\(1000);\\(4·10^{22});\\(2,5·10^{19})``) and a naive
+        comma split crams the tail into one item. Entities (``&#44;`` comma,
+        ``&alpha;``) and ``()[]{}`` groups are protected, so we scan char by
+        char rather than regex-split."""
+        if self._tab_is_separator(value):
+            return value.split("\t")
+        parts: list[str] = []
+        depth = 0
+        start = 0
+        i = 0
+        n = len(value)
+        while i < n:
+            c = value[i]
+            if c == "&" and (em := re.match(r"&#?\w+;", value[i:])):
+                i += em.end()
+                continue
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                depth = max(0, depth - 1)
+            elif depth == 0 and c in ",;":
+                parts.append(value[start:i])
+                start = i + 1
+            i += 1
+        parts.append(value[start:])
+        return parts
+
     def _resolve_range_slice(self, m: re.Match) -> str:
         """Resolve $(var[n..m]) — items n through m as a comma list.
 
@@ -744,50 +1094,42 @@ class DefEngine(_SlibMixin):
         return ",".join(items[start - 1 : py_end])
 
     def _resolve_indexed1(self, m: re.Match) -> str:
-        """Resolve $(var[n]) — 1-indexed item from tab/semicolon/comma-separated list."""
+        """`$(var[n])` — n-ième item, ou sous-liste si `n` est une liste.
+
+        Découpage par `cutitems` : la virgule seule sépare, à profondeur zéro.
+        Le `;` n'est pas une frontière d'item — c'en est une de *ligne de
+        matrice* —, et le prendre pour tel hachait les tableaux JSXGraph de
+        `couf`, dont le JavaScript en est truffé.
+        """
         name, idx_expr = m.group(1), m.group(2)
         value = self.ctx.get(name, self.ctx.get(name.lower(), ""))
         if not value:
             return ""
         idx_s = self._subst_for_arith(idx_expr)
+        items = wl.cutitems(value)
 
-        # Detect delimiter: a TAB is the separator only when it follows a
-        # non-comma char (a real pax tab-join); a ",\t" is cosmetic source
-        # whitespace, so the comma is the separator (see _tab_is_separator).
-        # Do NOT treat ";" as a delimiter for single-subscript access — items
-        # may legitimately contain ";" inside HTML entities like &#44; (comma).
-        if self._tab_is_separator(value):
-            delimiter = "\t"
-            items = value.split("\t")
-        else:
-            delimiter = ","
-            items = re.split(r",(?![^(]*\))", value)
-
-        # Try to parse as single integer first
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
             if 1 <= idx <= len(items):
-                return items[idx - 1].strip()
-            # WIMS negative index: -1 = last item, -2 = second-to-last, …
+                return items[idx - 1]
+            # Indice négatif WIMS : -1 = dernier item.
             if -len(items) <= idx <= -1:
-                return items[idx].strip()
+                return items[idx]
             return ""
         except (ValueError, TypeError):
             pass
 
-        # Handle list of indices (WIMS feature): $(var[$list]) where $list='5,4'
-        # Returns items 5 and 4, separated by same delimiter as source
-        idx_list_str = idx_s.strip()
-        idx_parts = idx_list_str.split(",") if "," in idx_list_str else idx_list_str.split("\t")
+        # Liste d'indices : `$(var[$liste])` avec `$liste = "5,4"` rend les
+        # items 5 et 4, joints par des virgules.
         result_items = []
-        for idx_part in idx_parts:
+        for part in wl.cutitems(idx_s):
             try:
-                idx = int(round(float(self._eval_arith(idx_part.strip()))))
-                if 1 <= idx <= len(items):
-                    result_items.append(items[idx - 1].strip())
+                idx = int(round(float(self._eval_arith(part))))
             except (ValueError, TypeError):
                 continue
-        return delimiter.join(result_items) if result_items else ""
+            if 1 <= idx <= len(items):
+                result_items.append(items[idx - 1])
+        return ",".join(result_items)
 
     @staticmethod
     def _split_rows_by_semi(value: str) -> list[str]:
@@ -897,21 +1239,32 @@ class DefEngine(_SlibMixin):
                     return None
             return indices
 
+        # Plage de lignes `a..b` / `a to b` — même sélecteur que les colonnes.
+        # `calc_rowof` la traite au même titre qu'un indice ; sans elle,
+        # `$(val13[2..-1;])` (unitecell : « toutes les lignes sauf la taille »)
+        # rendait la chaîne vide et l'exercice perdait ses organites.
+        if re.search(r"\.\.|\s+to\s+", row_s):
+            picked_s = self._select_rows(rows, row_s, row_sep)
+            if not col_s:
+                return picked_s
+            return row_sep.join(
+                self._select_cols(_split_protected(r, ";,"), col_s)
+                for r in picked_s.split(row_sep) if r
+            )
+
         idx_list = parse_indices(row_s.strip())
         if idx_list is not None:
             picked = [rows[i - 1] for i in idx_list if 1 <= i <= len(rows)]
             if not col_s:
                 return row_sep.join(p.strip() for p in picked)
-            try:
-                col = int(round(float(self._eval_arith(col_s))))
-            except (ValueError, TypeError):
-                return ""
-            result = []
-            for r in picked:
-                cols = re.split(r"[;,]", r)
-                if 1 <= col <= len(cols):
-                    result.append(cols[col - 1].strip())
-            return row_sep.join(result)
+            # Même sélecteur de colonnes que la branche « ligne unique » —
+            # sinon `[liste;liste]` (`calc_columnof` appelle `calc_itemof` sur
+            # chaque ligne, avec le même analyseur d'indices) ne rendait rien.
+            # Une ligne dont la sélection est vide compte quand même : la boucle
+            # de `calc_columnof` ajoute un séparateur par ligne, sans condition.
+            return row_sep.join(
+                self._select_cols(_split_protected(r, ";,"), col_s) for r in picked
+            )
 
         # Empty row spec → column `col` across ALL rows, e.g. $(matrix[;1])
         # (cof builds the correspond's right column this way). Joined by "," so
@@ -923,9 +1276,13 @@ class DefEngine(_SlibMixin):
                 col = int(round(float(self._eval_arith(col_s))))
             except (ValueError, TypeError):
                 return ""
+            # Les virgules protégées ne coupent pas une cellule : la grille de
+            # `oefmolecule/lewis` est faite de `(H,0),(LL,1),…`, et un découpage
+            # naïf rendait `As H_3,(H,100,100` pour sa colonne 1 — d'où un
+            # nombre de lignes faux et une molécule tronquée.
             out = []
             for r in rows:
-                cols = re.split(r"[;,]", r)
+                cols = _split_protected(r, ";,")
                 if 1 <= col <= len(cols):
                     out.append(cols[col - 1].strip())
             return ",".join(out)
@@ -941,18 +1298,46 @@ class DefEngine(_SlibMixin):
         if not col_s:
             return rows[row - 1].strip()
 
-        cols = re.split(r"[;,]", rows[row - 1])
+        cols = _split_protected(rows[row - 1], ";,")
         return self._select_cols(cols, col_s)
+
+    def _select_rows(self, rows: list[str], row_s: str, sep: str) -> str:
+        """Lignes d'une plage `a..b` / `a to b`, bornes négatives comprises.
+
+        Mêmes règles que `_select_cols` — l'indice négatif compte depuis la fin
+        et la plage est **inclusive** —, appliquées aux lignes.
+        """
+        n = len(rows)
+
+        def _norm(i: int) -> int:
+            return i + n + 1 if i < 0 else i
+
+        a, _, b = re.split(r"(\.\.|\s+to\s+)", row_s.strip(), maxsplit=1)[:3] or ("", "", "")
+        try:
+            start = _norm(int(round(float(self._eval_arith(a.strip())))))
+            end = _norm(int(round(float(self._eval_arith(b.strip())))))
+        except (ValueError, TypeError):
+            return ""
+        if start > end:
+            start, end = end, start
+        return sep.join(
+            rows[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n
+        )
 
     def _select_cols(self, cols: list[str], col_s: str) -> str:
         """Select column(s) from a row's cells.
 
-        ``col_s`` is either a single 1-based index or a WIMS range
-        ``a..b``. Bounds may be negative (``-1`` = last column), so
-        ``2..-1`` means "from column 2 to the end" (used by quizz 0408's
-        ``$(matrix[row;2..-1])`` to collect the divisor columns). Returns the
-        selected cells joined by ``,``; empty string if the spec can't be
-        parsed.
+        ``col_s`` is a single 1-based index, a WIMS range ``a..b``, or a
+        **comma-separated list** of indices. Bounds may be negative (``-1`` =
+        last column), so ``2..-1`` means "from column 2 to the end" (used by
+        quizz 0408's ``$(matrix[row;2..-1])`` to collect the divisor columns).
+        Returns the selected cells joined by ``,``; empty string if the spec
+        can't be parsed.
+
+        The list form is `calc.c`'s `_blockof` else-branch: it evaluates each
+        index in turn and **skips** those out of range instead of failing, so a
+        shuffled index list can be applied to a shorter row. The range test
+        comes first, as it does there.
         """
         n = len(cols)
 
@@ -970,6 +1355,17 @@ class DefEngine(_SlibMixin):
             if start > end:
                 start, end = end, start
             sel = [cols[i - 1].strip() for i in range(start, end + 1) if 1 <= i <= n]
+            return ",".join(sel)
+
+        if "," in col_s:
+            sel = []
+            for part in col_s.split(","):
+                try:
+                    i = _norm(int(round(float(self._eval_arith(part.strip())))))
+                except (ValueError, TypeError):
+                    continue
+                if 1 <= i <= n:
+                    sel.append(cols[i - 1].strip())
             return ",".join(sel)
 
         try:
@@ -1025,6 +1421,21 @@ class DefEngine(_SlibMixin):
         """Evaluate a WIMS !cmd and return the result as a string."""
         args = args.strip()
 
+        # Modificateur WIMS `… repeat N` : exécute la commande N fois et joint
+        # les résultats par des virgules. Utilisé par les tirages aléatoires
+        # (`!randint N,M repeat K`, cf. slib/stat/random). Restreint à la famille
+        # aléatoire pour ne pas confondre un « repeat » textuel ; N est évalué.
+        if cmd in ("randint", "random", "randitem", "randword", "randchar", "randrow"):
+            rep_m = re.match(r"^(.*\S)\s+repeat\s+(\S+)\s*$", args, re.DOTALL)
+            if rep_m:
+                try:
+                    n = int(round(float(self._eval_arith(rep_m.group(2)))))
+                except (ValueError, TypeError):
+                    n = None
+                if n is not None and n >= 1:
+                    base = rep_m.group(1).strip()
+                    return ",".join(self._eval_cmd(cmd, base) for _ in range(n))
+
         if cmd == "randint":
             return self._cmd_randint(args)
 
@@ -1047,8 +1458,37 @@ class DefEngine(_SlibMixin):
             return self._cmd_row(args)
 
         if cmd == "itemcnt":
+            # Les items vides comptent : `!item N of` les indexe déjà ainsi
+            # (`item 3 of "f'(x),,reply4"` = `reply4`), et WIMS ne fournirait
+            # pas `!nonempty items` si `!itemcnt` les ignorait de lui-même. Une
+            # liste dont les trous portent du sens — les colonnes sans signe
+            # d'un tableau de variation (`x,reply1,,reply2,,reply3`) — était
+            # sinon comptée trop court, et `slib/function/tabsignes` bâtissait
+            # 4 colonnes au lieu de 7.
             subst_args = self._subst(args)
-            items = [x for x in re.split(r",|\t", subst_args) if x.strip()]
+            if not subst_args.strip():
+                return "0"
+            # `itemnum` passe par `find_item_end` = `strparstr(p, ",")` : les
+            # virgules protégées par `()`/`[]`/`{}` ne séparent pas.
+            # Indissociable du séparateur de `!makelist` ci-dessous : seul,
+            # ce correctif fait passer `slib/stat/dataproc` dans sa branche
+            # pondérée — la bonne — mais celle-ci reçoit alors un
+            # `slib_weight` tabulé, invalide en PARI, et `oefstat/mean`
+            # ressort son `print((…)` en clair. Les deux ensemble donnent la
+            # moyenne juste.
+            items = _split_protected(subst_args, ",\t")
+            if "\t" in subst_args:
+                # Tabulations : ce sont des séparateurs de *lignes*, et une
+                # ligne blanche n'est pas un item — les listes multi-lignes des
+                # `.def` en intercalent pour aérer (`oefsuites1S/cvgequot`
+                # sépare deux groupes d'énoncés par un `\t\t`, et chaque `,<TAB>`
+                # produirait sinon un item fantôme). Les compter décalait le
+                # tirage aléatoire vers un énoncé vide.
+                items = [x for x in items if x.strip()]
+            # Séparées par des virgules, au contraire, les cases vides portent
+            # du sens : les colonnes sans signe d'un tableau de variation
+            # (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes`
+            # bâtissait 4 colonnes au lieu de 6 quand on les ignorait.
             return str(len(items))
 
         if cmd in ("rowcnt", "rowcount", "rowno", "rownum"):
@@ -1215,7 +1655,9 @@ class DefEngine(_SlibMixin):
         # ── Conversion: items ↔ lines ↔ words ────────────────────────────────
         if cmd in ("items2lines", "itemstolines", "list2lines", "listtolines"):
             s = self._subst(args)
-            return "\n".join(x.strip() for x in s.split(",") if x.strip())
+            # Virgules protégées par les crochets : `[a,b],[c,d]` → 2 lignes,
+            # pas 6 (slib/stat/dataproc sépare `[data],[poids]`).
+            return "\n".join(x.strip() for x in _split_top_level_commas(s) if x.strip())
 
         if cmd in ("lines2items", "linestoitems", "lines2list", "linestolist"):
             s = self._subst(args)
@@ -1294,6 +1736,9 @@ class DefEngine(_SlibMixin):
 
         if cmd in ("recordcnt", "recordcount", "recordno", "recordnum"):
             return self._cmd_recordcnt(args)
+
+        if cmd in ("rename",):
+            return self._cmd_rename(args)
 
         if cmd in ("randfile",):
             return ""
@@ -1389,46 +1834,77 @@ class DefEngine(_SlibMixin):
             return "0"
 
     def _cmd_randitem(self, args: str) -> str:
-        """!randitem item1, item2, ... — pick one randomly."""
+        """``!randitem item1, item2, …`` — en tire un au sort.
+
+        Port de `calc_randitem` : `itemnum` puis `fnd_item`. Les items vides
+        comptent donc dans le tirage, et un item entre crochets reste entier.
+        """
         val = self._subst(args)
-        items = [x.strip() for x in re.split(r",|\t", val) if x.strip()]
-        return self.rng.choice(items) if items else ""
+        n = wl.itemnum(val)
+        if n <= 0:
+            return ""
+        return wl.fnd_item(val, self.rng.randrange(n) + 1)
 
     def _cmd_nonempty(self, args: str) -> str:
-        """!nonempty items/rows list — remove empty entries."""
-        m = re.match(r"(items?|rows?)\s*(.*)", args, re.I | re.DOTALL)
+        """``!nonempty items|lines|rows LISTE`` — retire les entrées vides.
+
+        Port de `calc_nonempty`. Les `rows` passent par `rows2lines` ; **si
+        rien n'est converti**, WIMS bascule sur le traitement des lignes — d'où
+        le repli explicite ci-dessous. `words` est une extension PAX (absente
+        de `calc.c`), conservée faute d'avoir mesuré ses appelants.
+        """
+        m = re.match(r"(items?|rows?|lines?|words?)\s*(.*)", args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind = m.group(1).lower()
         val = self._subst(m.group(2))
-        # Same separator logic as _cmd_shuffle: tab first, then smart comma.
-        # Do NOT detect ";" — items may contain ";" inside HTML entities.
-        if kind.startswith("row") or "\t" in val:
-            sep = "\t"
-            items = [x.strip() for x in val.split(sep) if x.strip()]
-        else:
-            sep = ","
-            items = [x.strip() for x in re.split(r",(?![^(]*\))", val) if x.strip()]
-        return sep.join(items)
+
+        if kind.startswith("word"):
+            return " ".join(w for w in val.split() if w)
+        if kind.startswith("row"):
+            converted, n = wl.rows2lines(val)
+            if n:
+                return ";".join(x for x in wl.cutlines(converted) if x.strip())
+            kind = "lines"
+        if kind.startswith("line"):
+            return "\n".join(x for x in wl.cutlines(val) if x.strip())
+        return ",".join(x for x in wl.cutitems(val) if x)
 
     def _cmd_shuffle(self, args: str) -> str:
-        """!shuffle list — return list items in random order."""
+        """``!shuffle LISTE`` ou ``!shuffle N`` — permutation aléatoire.
+
+        Port de `calc_randperm` : c'est la présence d'une **virgule de premier
+        niveau** qui fait la liste (`p1=find_item_end(pp); if(*p1==',')`) ;
+        sinon l'argument est évalué et l'on permute `1..n`. Sortie en virgules,
+        items vides conservés.
+
+        Les options `even`/`odd` et la variable `wims_shuffle_order` publiée
+        par WIMS ne sont pas gérées (cf. `docs/refactor-item-splitting.md`).
+        """
         val = self._subst(args.strip())
-        if val.isdigit():
-            items = [str(i) for i in range(1, int(val) + 1)]
+        if wl.find_item_end(val) < len(val):
+            items = wl.cutitems(val)
             self.rng.shuffle(items)
             return ",".join(items)
-        # Detect separator: tab first; otherwise smart comma split.
-        # Do NOT use ";" as a separator: items may contain ";" inside HTML
-        # entities like &#44; (comma) or &#40; (open paren).
-        if "\t" in val:
-            sep, items = "\t", val.split("\t")
-        else:
-            sep = ","
-            items = re.split(r",(?![^(]*\))", val)
-        items = [x.strip() for x in items if x.strip()]
+        try:
+            n = int(round(float(self._eval_arith(val))))
+        except (ValueError, TypeError):
+            return val
+        if n <= 1:
+            return val if n == 1 else ""
+        items = [str(i) for i in range(1, n + 1)]
         self.rng.shuffle(items)
-        return sep.join(items)
+        return ",".join(items)
+
+    @staticmethod
+    def _split_items(s: str) -> list[str]:
+        """Items d'une liste WIMS — `cutitems` (`liblines.c`).
+
+        La virgule seule sépare, à profondeur zéro. La tabulation n'en est pas
+        une : elle encode un retour à la ligne du source OEF et se fait élaguer
+        aux bords d'item comme n'importe quel blanc.
+        """
+        return wl.cutitems(s)
 
     def _cmd_item(self, args: str) -> str:
         """!item I of list — 1-indexed item, or list of items.
@@ -1442,17 +1918,22 @@ class DefEngine(_SlibMixin):
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
 
-        def split_items(s: str) -> list[str]:
-            if "\t" in s:
-                return s.split("\t")
-            return re.split(r",(?![^(]*\))", s)
+        split_items = self._split_items
 
         # Range: "2 to 5" → items 2 through 5. Bounds may be negative (WIMS
         # ``-1`` = last item), e.g. ``!item 2 to -1 of …`` = "from 2 to the end"
         # (simpquot keeps every accepted form after the displayed expression).
-        range_m = re.match(r"(-?\d+)\s+to\s+(-?\d+)\s*$", idx_s)
+        # Les bornes peuvent être des expressions arithmétiques (`$(val9[1])+1`,
+        # cf. moyenneB2) : on les évalue via _eval_arith, sinon la plage échoue
+        # et la sous-liste ressort vide.
+        range_m = re.match(r"(.+?)\s+to\s+(.+?)\s*$", idx_s)
         if range_m:
-            a, b = int(range_m.group(1)), int(range_m.group(2))
+            try:
+                a = int(round(float(self._eval_arith(range_m.group(1).strip()))))
+                b = int(round(float(self._eval_arith(range_m.group(2).strip()))))
+            except (ValueError, TypeError):
+                range_m = None
+        if range_m:
             items = split_items(data)
             n = len(items)
             if a < 0:
@@ -1479,11 +1960,16 @@ class DefEngine(_SlibMixin):
                     res.append(items[idx - 1].strip())
             return ",".join(res)
 
-        # Single index
+        # Single index. Negative = from the end (WIMS `-1` = last item), e.g.
+        # `!item -1 of $slib_w` (slib/stat/effectif). Without this, negative
+        # single indices returned empty and cascaded into `max(,)`-style leaks.
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
             items = split_items(data)
-            if 1 <= idx <= len(items):
+            n = len(items)
+            if idx < 0:
+                idx = n + idx + 1
+            if 1 <= idx <= n:
                 return items[idx - 1].strip()
         except (ValueError, TypeError):
             pass
@@ -1504,31 +1990,42 @@ class DefEngine(_SlibMixin):
         return [r for r in data.split("\t") if r.strip()]
 
     def _cmd_row(self, args: str) -> str:
-        """!row I of matrix — ligne I (1-indexée), séparateur auto."""
+        """!row I of matrix — ligne(s) I, séparateur auto.
+
+        `calc_rowof` passe par le `_blockof` commun à `!item`/`!line` : `I` peut
+        donc être une plage (`3 to -1`) ou une liste (`1,3`) autant qu'un indice.
+        Le séparateur de sortie est celui d'entrée, comme dans `calc.c` (`;`
+        quand la matrice n'a pas de saut de ligne mais des points-virgules).
+        """
         m = re.match(r"(.+?)\s+of\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         idx_s = self._subst(m.group(1).strip())
         data = self._subst(m.group(2).strip())
-        try:
-            idx = int(round(float(self._eval_arith(idx_s))))
-            rows = self._split_rows(data)
-            if 1 <= idx <= len(rows):
-                return rows[idx - 1].strip()
-        except (ValueError, TypeError):
-            pass
-        return ""
+        if "\n" in data:
+            sep = "\n"
+        elif ";" in data:
+            sep = ";"
+        else:
+            sep = "\t"
+        return self._blockof(
+            data, lambda s: [r.strip() for r in self._split_rows(s)], sep, idx_s
+        )
 
     def _cmd_replace(self, args: str) -> str:
         """!replace [internal/word] A by B in text."""
         # Standard: !replace internal x by y in text
         # Shortcut: !replace x by y in text (defaults to internal)
-        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+        # `\s+in\s*` (pas `\s+in\s+`) : le texte cible peut être vide quand un
+        # `$var` substitué est vide (`!replace internal , by + in $vide` →
+        # texte ""). Sinon le regex échoue et la commande fuite en littéral
+        # (`internal , by + in`) dans la valeur calculée (moyenneB2).
+        m = re.match(r"(internal|word)\s+(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
         if m:
             mode, old, new, text = m.groups()
         else:
             # Try shortcut without mode prefix
-            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
+            m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
             if m:
                 mode, old, new, text = "internal", m.group(1), m.group(2), m.group(3)
             else:
@@ -1545,6 +2042,14 @@ class DefEngine(_SlibMixin):
                 else:
                     return self._subst(args)
         
+        # Motif vide → aucune occurrence à remplacer. WIMS ne fait rien ; Python
+        # insérerait le remplacement entre *chaque* caractère (`"ab".replace("",
+        # "X")` vaut `"XaXbX"`). `slib/function/tabsignes` écrit
+        # `!replace internal $empty by \qquad \qquad in $slib_cel` pour espacer
+        # les cellules vides, ce qui hachait toutes les autres : son marqueur
+        # `reply1` ressortait en `\qquad r\qquad e\qquad p\qquad l\qquad y…`.
+        if not old:
+            return text
         if mode.lower() == "word":
             # Escape old for regex if using word mode
             return re.sub(rf"\b{re.escape(old)}\b", new, text)
@@ -1563,14 +2068,22 @@ class DefEngine(_SlibMixin):
             return self._subst(args)
         a_raw, b_raw, text_raw = m.groups()
 
-        # Strip $...$ delimiters from character set (WIMS quoting for whitespace/special chars)
-        a_stripped = a_raw.strip()
-        if a_stripped.startswith("$") and a_stripped.endswith("$") and len(a_stripped) >= 2:
-            a = a_stripped[1:-1]  # Literal chars between the $ delimiters
-        else:
-            a = self._subst(a_raw)
+        # Strip $...$ delimiters from character set (WIMS quoting for whitespace/special chars).
+        # WIMS applique `substit()` aux deux opérandes de la même façon
+        # (`calc.c:calc_translate`), donc le déballage vaut aussi pour la
+        # cible : `!translate internal ; to $\<LF>$` remplace `;` par un saut
+        # de ligne. Sans cela, `slib/stat/dataproc` collait données et
+        # effectifs en une seule liste (`1,4,6$2,3,3`), `slib_weight` restait
+        # vide, et toutes les statistiques pondérées tombaient dans la branche
+        # non pondérée avec un effectif faux.
+        def _unquote(raw: str) -> str:
+            s = raw.strip()
+            if len(s) >= 2 and s.startswith("$") and s.endswith("$"):
+                return s[1:-1]  # Literal chars between the $ delimiters
+            return self._subst(raw)
 
-        b = self._subst(b_raw)
+        a = _unquote(a_raw)
+        b = _unquote(b_raw)
         text = self._subst(text_raw)
 
         # C: if len(b) < len(a), truncate a to len(b) (extra chars in a are IGNORED, not deleted)
@@ -1586,15 +2099,23 @@ class DefEngine(_SlibMixin):
         return text.translate(table)
 
     def _cmd_append(self, args: str) -> str:
-        """!append item/line/word/semicolon X to list — append with appropriate separator."""
-        # Also accepts 'word' (→ space), 'semicolon' (→ ;), 'colon' (→ :).
+        """``!append item|line|word|semicolon|colon X to LISTE``.
+
+        Port de `calc_append` : le séparateur vient de la table `apch_list`
+        (`item`→`,`, `line`→`\n`, `word`→espace, `semicolon`→`;`,
+        `colon`→`:`), et n'est inséré que si la liste cible n'est pas vide.
+
+        Aucun basculement vers la tabulation : WIMS n'en a pas, et c'en était
+        un des producteurs qui obligeaient les consommateurs à la traiter en
+        séparateur.
+        """
         m = re.match(r"(items?|lines?|words?|semicolons?|colons?)\s+(.*?)\s+to\s*(.*)",
                      args, re.I | re.DOTALL)
         if not m:
             return self._subst(args)
         kind_raw = m.group(1).lower()
         val = self._subst(m.group(2))
-        target = self._subst((m.group(3) or "").strip())
+        target = self._subst((m.group(3) or ""))
 
         if kind_raw.startswith("line"):
             sep = "\n"
@@ -1605,14 +2126,11 @@ class DefEngine(_SlibMixin):
         elif kind_raw.startswith("colon"):
             sep = ":"
         else:
-            # item: comma-separated, but switch to TAB when the list can't be
-            # comma-joined unambiguously — i.e. the new item (or the list)
-            # itself contains a comma/tab (e.g. cof appends JSXGraph
-            # `board.create('line',[…],{…})` snippets, comma-laden, into one
-            # list then reads them back with $(list[N])).
-            sep = "\t" if ("\t" in target or "\t" in val or "," in val) else ","
+            sep = ","
 
-        if not target:
+        # `if(*p3) *p4++=append_char` : `p3` a sauté les blancs de tête, donc
+        # une cible entièrement blanche ne reçoit pas de séparateur.
+        if not target.strip():
             return val
         return f"{target}{sep}{val}"
 
@@ -1626,7 +2144,7 @@ class DefEngine(_SlibMixin):
         if engine == "maxima":
             return _call_maxima(expr)
         if engine == "pari":
-            return _call_pari(expr)
+            return _call_pari(expr, session=self.pari_session)
         return ""
 
     def _cmd_makelist(self, args: str) -> str:
@@ -1640,8 +2158,13 @@ class DefEngine(_SlibMixin):
             expr = in_m.group(1).strip()
             var = in_m.group(2)
             list_raw = self._subst(in_m.group(3).strip())
-            # Split list by tab, semicolon, or comma
-            if "\t" in list_raw:
+            # Split list by newline, tab, semicolon, or comma. Le newline est le
+            # séparateur des listes produites par slib/stat/dataproc (données en
+            # lignes) : sans lui, `!sum x for x in $slib_data` voyait un seul
+            # item et renvoyait 0 (variance non pondérée fausse).
+            if "\n" in list_raw:
+                items = list_raw.split("\n")
+            elif "\t" in list_raw:
                 items = list_raw.split("\t")
             elif ";" in list_raw:
                 items = list_raw.split(";")
@@ -1658,6 +2181,9 @@ class DefEngine(_SlibMixin):
                 end = int(round(float(self._eval_arith(self._subst(end_s)))))
             except (ValueError, TypeError):
                 return ""
+            # Cap dur : une borne géante (valeur amont cassée d'un slib) ferait
+            # une liste énorme et un rendu de plusieurs secondes.
+            end = min(end, start + 100000)
             items = [str(i) for i in range(start, end + 1)]
         else:
             return ""
@@ -1673,8 +2199,11 @@ class DefEngine(_SlibMixin):
         else:
             self.ctx.pop(var, None)
 
-        # WIMS: !makelist returns tab-separated rows; columns within each row keep commas.
-        return "\t".join(results)
+        # `_values` (`calc.c`) joint **toutes** ses valeurs par une virgule
+        # (`if(pp>p) *pp++=','`), sans séparateur de lignes. La tabulation
+        # produisait un `slib_weight` en `1<TAB>1<TAB>…` que
+        # `slib/stat/arithmean` passait tel quel à PARI.
+        return ",".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""
@@ -1683,9 +2212,16 @@ class DefEngine(_SlibMixin):
             return "0"
         needle = self._subst(m.group(1).strip())
         haystack = self._subst(m.group(2).strip())
-        items = haystack.split("\t") if "\t" in haystack else haystack.split(",")
+        # Même découpage que `!item`, et pour la même raison que `isitemof` :
+        # les virgules protégées par des crochets ne séparent pas des items.
+        # `slib/function/tabsignes` cherche la position d'un couple
+        # `[ligne,colonne]` dans sa liste de couples, et un découpage naïf
+        # renvoyait 0 — toutes ses cellules-réponses recevaient alors le même
+        # numéro (`0 + rang - 1`).
+        items = self._split_items(haystack)
+        needle_norm = needle.replace(" ", "")
         for i, item in enumerate(items, 1):
-            if item.strip() == needle:
+            if item.strip().replace(" ", "") == needle_norm:
                 return str(i)
         return "0"
 
@@ -1712,14 +2248,24 @@ class DefEngine(_SlibMixin):
             if modifier in ("reverse", "down"):
                 reverse = True
 
-        m = re.match(r"(items?|rows?|list)\s+(.*)", rest, re.I | re.DOTALL)
+        # `of` optionnel après le type (`!sort numeric item of $v`, slib/stat/freq).
+        m = re.match(r"(items?|rows?|lines?|words?|list)(?:\s+of)?\s+(.*)", rest, re.I | re.DOTALL)
         if m:
             kind, val = m.group(1).lower(), self._subst(m.group(2))
         else:
             kind, val = "items", self._subst(rest)
 
-        sep = "\t" if kind.startswith("row") else ","
-        items = [x.strip() for x in val.split(sep) if x.strip()]
+        # `calc_sort` : items→`,`, mots→espace, lignes/rows→`\n`. Les rows
+        # sont converties en lignes d'abord, puis **reconverties** en fin de
+        # course (`if(t) lines2rows(p)`).
+        back_to_rows = 0
+        if kind.startswith("row"):
+            val, back_to_rows = wl.rows2lines(val)
+            sep, items = "\n", [x for x in wl.cutlines(val) if x.strip()]
+        elif kind.startswith("word"):
+            sep, items = " ", val.split()
+        else:
+            sep, items = ",", [x for x in wl.cutitems(val) if x]
 
         if numeric:
             def _num_key(s: str) -> float:
@@ -1731,45 +2277,86 @@ class DefEngine(_SlibMixin):
         else:
             items.sort(reverse=reverse)
 
-        return sep.join(items)
+        out = sep.join(items)
+        return wl.lines2rows(out) if back_to_rows else out
 
     def _cmd_values(self, args: str) -> str:
         """!values V for var=start to end — list of values."""
         return self._cmd_makelist(args).replace("\t", ",")
 
+    def _list_items(self, value: str) -> list[str]:
+        """Items d'une liste WIMS, pour les commandes ensemblistes.
+
+        `find_item_end` vaut `strparstr(p, ",")` : la virgule ne sépare qu'à
+        profondeur zéro, les paires `()`/`[]`/`{}` protégeant leur contenu.
+        `[polyline red,-1,0],[polyline red,0,-1]` vaut donc **deux** dessins et
+        non quinze morceaux.
+
+        Il n'y a en revanche **aucun déballage** de la paire englobante :
+        `[0,4,3.5]` vaut un item pour WIMS. Une valeur qui doit être lue comme
+        une liste est déballée en amont, par `!declosing`.
+
+        La tabulation prime quand il y en a, comme pour `!item`.
+        """
+        return [x.strip() for x in self._split_items(value) if x.strip()]
+
     def _cmd_listuniq(self, args: str) -> str:
-        """!listuniq list — remove duplicates (preserves separator style)."""
-        s = self._subst(args)
-        sep = "\t" if "\t" in s else ","
-        items = [x.strip() for x in s.split(sep) if x.strip()]
-        seen: dict = {}
-        res = []
-        for x in items:
-            if x not in seen:
-                seen[x] = True
-                res.append(x)
-        return sep.join(res)
+        """``!listuniq liste`` — items distincts, joints par des virgules.
+
+        Port de `calc_listuniq` : `cutitems` puis test d'appartenance par
+        `itemchr`. Deux conséquences à ne pas « corriger » — les items vides
+        sont écartés, et la comparaison est celle d'`itemchr`, une recherche
+        de sous-chaîne encadrée, non une égalité.
+        """
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(self._subst(args)):
+            if item and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_listintersect(self, args: str) -> str:
-        """!listintersect list1 and list2 — items of list1 that appear in list2."""
+        """``!listintersect L1 and L2`` — items de L1 présents dans L2.
+
+        Port de `calc_listintersect` : items vides écartés, doublons écartés,
+        appartenance par `itemchr`, sortie en virgules.
+        """
         m = re.match(r"(.*?)\s+and\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return ""
-        list1_str = m.group(1).strip()
-        list2_str = m.group(2).strip()
-        if not list1_str or not list2_str:
-            return ""
-        sep = "\t" if "\t" in list1_str else ","
-        items1 = [x.strip() for x in list1_str.split(sep) if x.strip()]
-        items2 = {x.strip() for x in re.split(r"[,\t]", list2_str) if x.strip()}
-        return ",".join(x for x in items1 if x in items2)
+        l1 = self._subst(m.group(1))
+        l2 = self._subst(m.group(2))
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(l1):
+            if item and wl.itemchr(l2, item) and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_declosing(self, args: str) -> str:
-        """!declosing text — remove outer parentheses/brackets/braces."""
+        """!declosing text — remove outer parentheses/brackets/braces.
+
+        Uniquement si toute la chaîne est enclose dans UNE paire équilibrée : le
+        premier crochet ouvrant doit s'apparier au dernier caractère. Sinon
+        `[a,b],[c,d]` verrait ses deux listes fusionnées à tort (dataproc)."""
         s = self._subst(args).strip()
         pairs = [("(", ")"), ("[", "]"), ("{", "}")]
         for open_, close_ in pairs:
             if s.startswith(open_) and s.endswith(close_):
+                depth = 0
+                for j, ch in enumerate(s):
+                    if ch == open_:
+                        depth += 1
+                    elif ch == close_:
+                        depth -= 1
+                        if depth == 0:
+                            # Le 1er ouvrant se ferme ailleurs qu'à la fin → pas
+                            # d'enclosure unique (ex. `[a],[b]`).
+                            if j != len(s) - 1:
+                                return s
+                            break
                 return s[1:-1].strip()
         return s
 
@@ -1803,24 +2390,92 @@ class DefEngine(_SlibMixin):
         return ""
 
     def _cmd_embraced(self, args: str) -> str:
-        """!embraced item N of list — return content inside { }."""
-        # WIMS specific; simplified implementation
-        items = re.findall(r"\{(.*?)\}", self._subst(args))
-        # This is a bit of a guess on how WIMS uses this command
-        return ",".join(items)
+        """``!embraced <op> <texte>`` — applique `op` **dans chaque `{…}`**.
+
+        Port de `calc_embraced` (`calc.c`). Le point à ne pas manquer : la
+        commande ne choisit rien dans la liste globale — elle remplace chaque
+        groupe accolé **sur place** par le résultat de `op` sur son seul
+        contenu, en laissant intact tout le texte autour. C'est ce qui permet à
+        `unitecell` d'écrire `232,197;Membrane,{coords…};Cytoplasme,{coords…}`
+        et de récupérer le même squelette avec une coordonnée tirée par ligne :
+        la taille en ligne 1, une ligne par organite ensuite.
+
+        `linkedranditem` tire **un seul** rang, appliqué à tous les groupes —
+        c'est ce qui les « lie ».
+        """
+        s = self._subst(args)
+        m = re.match(r"\s*(\w+)\s+(.*)$", s, re.DOTALL)
+        if not m:
+            return s
+        op, text = m.group(1).lower(), m.group(2)
+
+        def groups(t: str) -> list[tuple[int, int]]:
+            """Spans des `{…}` de premier niveau (imbrication comprise)."""
+            out, depth, start = [], 0, -1
+            for i, ch in enumerate(t):
+                if ch == "{":
+                    if depth == 0:
+                        start = i
+                    depth += 1
+                elif ch == "}" and depth:
+                    depth -= 1
+                    if depth == 0:
+                        out.append((start, i + 1))
+            return out
+
+        spans = groups(text)
+        if not spans:
+            return text
+
+        if op == "extract":
+            a, b = spans[0]
+            return text[a + 1 : b - 1]
+        if op == "delete":
+            out, last = [], 0
+            for a, b in spans:
+                out.append(text[last:a])
+                last = b
+            out.append(text[last:])
+            return "".join(out)
+
+        if op == "linkedranditem":
+            a, b = spans[0]
+            n = len([x for x in re.split(r",|\t", text[a + 1 : b - 1]) if x.strip()])
+            idx = self.rng.randrange(n) if n else 0
+            def pick(content: str) -> str:
+                items = [x.strip() for x in re.split(r",|\t", content) if x.strip()]
+                return items[idx] if idx < len(items) else ""
+        elif op == "randrow":
+            def pick(content: str) -> str:
+                rows = [r for r in self._split_rows(content) if r.strip()]
+                return self.rng.choice(rows) if rows else ""
+        elif op == "randitem":
+            def pick(content: str) -> str:
+                return self._cmd_randitem(content)
+        else:
+            return text
+
+        out, last = [], 0
+        for a, b in spans:
+            out.append(text[last:a])
+            out.append(pick(text[a + 1 : b - 1]))
+            last = b
+        out.append(text[last:])
+        return "".join(out)
 
     def _cmd_word(self, args: str) -> str:
-        """!word N of text — 1-indexed word."""
+        """!word N of text — mot(s) N, 1-indexé.
+
+        Même `_blockof` que `!item`/`!line` (`calc_wordof` dans `calc.c`) : `N`
+        peut être une plage ou une liste, les mots ressortant séparés par une
+        espace.
+        """
         m = re.match(r"(.*?)\s+of\s+(.*)", args, re.I | re.DOTALL)
-        if not m: return ""
-        try:
-            idx = int(round(float(self._eval_arith(self._subst(m.group(1).strip())))))
-            words = self._subst(m.group(2)).split()
-            if 1 <= idx <= len(words):
-                return words[idx - 1].strip()
-        except (ValueError, TypeError):
-            pass
-        return ""
+        if not m:
+            return ""
+        idx_s = self._subst(m.group(1).strip())
+        data = self._subst(m.group(2))
+        return self._blockof(data, str.split, " ", idx_s)
 
     def _cmd_column(self, args: str) -> str:
         """!column C of matrix — select column(s) of a matrix.
@@ -1848,7 +2503,16 @@ class DefEngine(_SlibMixin):
             return ""
 
         value = self._subst(m.group(2))
-        rows = value.split("\t") if "\t" in value else self._split_rows_by_semi(value)
+        # Lignes séparées par tab, newline (données de slib/stat/dataproc), ou
+        # `;` (après `!translate \t\n to ;;`). Sans le newline, `!column 1 of`
+        # sur des données en lignes renvoyait tout le bloc comme une seule
+        # cellule (dataproc → slib_data mal formé → variance fausse).
+        if "\t" in value:
+            rows = value.split("\t")
+        elif "\n" in value:
+            rows = value.split("\n")
+        else:
+            rows = self._split_rows_by_semi(value)
         all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
         if all(len(c) == 1 for c in all_cols):
             all_cols = [r.split(";") for r in rows]
@@ -1867,17 +2531,28 @@ class DefEngine(_SlibMixin):
     # ── Slib helper command implementations ──────────────────────────────────
 
     def _cmd_distribute(self, args: str) -> None:
-        """!distribute items $src into a,b,c — assign each item to a variable."""
-        m = re.match(r"items?\s+(.*?)\s+into\s+(.*)", args, re.I | re.DOTALL)
+        """!distribute items/lines/words $src into a,b,c — assign each to a var."""
+        m = re.match(r"(items?|lines?|words?)\s+(.*?)\s+into\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return
-        src = self._subst(m.group(1).strip())
-        targets = [t.strip() for t in self._subst(m.group(2)).split(",")]
-        # Items are comma-separated but commas inside [...] are protected
-        # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
-        items = [x.strip() for x in _split_top_level_commas(src)]
+        kind = m.group(1).lower()
+        src = self._subst(m.group(2).strip())
+        targets = [t.strip() for t in self._subst(m.group(3)).split(",")]
+        if kind.startswith("line"):
+            items = src.split("\n")
+        elif kind.startswith("word"):
+            items = src.split()
+        else:
+            # Items are comma-separated but commas inside [...] are protected
+            # (e.g. `[python,[code]],1,readonly` → 3 items, not 5) — matching WIMS.
+            # Une paire englobant *toute* la chaîne est en revanche la notation
+            # de liste, pas une protection : `[[1,2;1,4],[2]]` porte deux items.
+            # Sans ce déballage, `slib/function/tabsignes` recevait positions et
+            # rang collés en un seul, et ne voyait plus qu'une réponse au lieu
+            # de six.
+            items = [x.strip() for x in _split_top_level_commas(self._cmd_declosing(src))]
         for i, t in enumerate(targets):
-            self.ctx[t] = items[i] if i < len(items) else ""
+            self.ctx[t] = items[i].strip() if i < len(items) else ""
 
     def _cmd_bound(self, args: str) -> None:
         """!bound VAR within|among LIST [default DEF] — clamp to allowed values.
@@ -2064,7 +2739,14 @@ class DefEngine(_SlibMixin):
         return self.rng.choice(lines) if lines else ""
 
     def _cmd_sum(self, args: str) -> str:
-        """!add / !sum list — arithmetic sum of comma-separated values."""
+        """!add / !sum list — arithmetic sum of comma-separated values.
+
+        Forme itérée `!sum EXPR for VAR in LIST` / `… for VAR=a to b`
+        (slib/stat/dataproc : `!sum x for x in $poids`) : on génère la liste via
+        `!makelist` puis on somme.
+        """
+        if re.search(r"\bfor\b", args, re.I):
+            args = self._cmd_makelist(args).replace("\t", ",")
         parts = [self._subst(p.strip()) for p in args.split(",")]
         total = 0.0
         for p in parts:
@@ -2105,19 +2787,22 @@ class DefEngine(_SlibMixin):
         return ",".join(result)
 
     def _cmd_listcomplement(self, args: str) -> str:
-        """!listcomplement L1 in L2 — items of L2 NOT in L1."""
+        """``!listcomplement L1 in L2`` — items de L2 absents de L1.
+
+        Port de `calc_listcomplement` : mêmes règles que `listintersect`.
+        """
         m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
         if not m:
             return ""
-        l1 = {x.strip() for x in self._subst(m.group(1)).split(",") if x.strip()}
-        l2 = [x.strip() for x in self._subst(m.group(2)).split(",") if x.strip()]
-        seen: dict = {}
-        result = []
-        for item in l2:
-            if item not in l1 and item not in seen:
-                seen[item] = True
-                result.append(item)
-        return ",".join(result)
+        l1 = self._subst(m.group(1))
+        l2 = self._subst(m.group(2))
+        out: list[str] = []
+        acc = ""
+        for item in wl.cutitems(l2):
+            if item and not wl.itemchr(l1, item) and not wl.itemchr(acc, item):
+                out.append(item)
+                acc = ",".join(out)
+        return acc
 
     def _cmd_select(self, args: str) -> str:
         """!select DATA where CONDITION — filter rows matching condition.
@@ -2173,6 +2858,38 @@ class DefEngine(_SlibMixin):
             return open(full, encoding="cp1252").read()
         except OSError:
             return None
+
+    def _cmd_rename(self, args: str) -> str:
+        """!rename PATH — URL de service pour un fichier du module ou de `gifs/`.
+
+        WIMS (`calc_rename`) pose un lien symbolique dans le répertoire de
+        session et renvoie une URL `getfile/rename-<alea>` : c'est un moyen de
+        servir un fichier sans en exposer le chemin. PAX sert `ressources/` par
+        `/api/static`, donc la traduction suffit — pas de lien, pas d'aléa.
+
+        La liste blanche de chemins de `calc_rename` (`gifs`, le répertoire du
+        module, `modules/data/`, `scripts/data/`) est reprise, complétée par son
+        refus des `..` : le paramètre vient du `.def`, et rien ne doit pouvoir
+        pointer hors de `ressources/`. Un fichier absent rend la chaîne vide,
+        comme WIMS quand le `symlink` échoue.
+        """
+        path = self._subst(args).strip().split()[0] if self._subst(args).strip() else ""
+        if not path or ".." in path.split("/"):
+            return ""
+        # `gifs/…` désigne l'arbre partagé de WIMS, vendoré en
+        # `ressources/wims-gifs/` (cf. `_find_wims_gifs_dir`).
+        if path.startswith("gifs/"):
+            rel = f"wims-gifs/{path[len('gifs/'):]}"
+        else:
+            if not self.def_path:
+                return ""
+            module_dir = os.path.dirname(os.path.dirname(self.def_path))
+            rel = os.path.relpath(os.path.join(module_dir, path), _RESSOURCES_ROOT)
+            if rel.startswith(".."):
+                return ""
+        if not os.path.isfile(os.path.join(_RESSOURCES_ROOT, rel)):
+            return ""
+        return f"/api/static/{rel}"
 
     @staticmethod
     def _split_records(text: str) -> list[str]:
@@ -2441,14 +3158,28 @@ class DefEngine(_SlibMixin):
         return "".join(buf)
 
     def _render_block_or_text(self, literal: str, section_instrs: list) -> str:
-        """Render hint/solution: use section if it has content, else literal."""
+        """Render hint/solution: use section if it has content, else literal.
+
+        Closes WIMS inline math (``\\(…)`` → ``\\(…\\)``) and inlines any flydraw
+        SVG/GIF, exactly like the statement pipeline — otherwise the solution
+        table cells (deve7: ``\\(( 12 a + 4 )^2)``) reach the front with an
+        unclosed ``\\(`` and KaTeX can't render them (shows raw ``\\displaystyle …``).
+        """
+        out = ""
         if section_instrs:
             rendered = self._render_section(section_instrs)
             if rendered.strip():
-                return rendered
-        if literal and literal.strip():
-            return self._subst(literal)
-        return ""
+                out = rendered
+        if not out and literal and literal.strip():
+            out = self._subst(literal)
+        if not out:
+            return ""
+        out = _close_inline_math(out, self.lang)
+        if "/api/render/svg/" in out or "wimsdraw" in out:
+            from ..flydraw import inline_svg_imgs, inline_wims_gifs  # noqa: PLC0415
+            out = inline_svg_imgs(out)
+            out = inline_wims_gifs(out)
+        return out
 
     def _split_correspond_column(self, row: str) -> list[str]:
         """Split one correspond column into items, robust to HTML-element items.
@@ -2507,7 +3238,7 @@ class DefEngine(_SlibMixin):
             self.ctx[f"reply{n}"] = value
             self.ctx[f"m_reply{n}"] = value
             expected = self._subst(self.ctx.get(f"replygood{n}", "")).strip()
-            rtype = (self.ctx.get(f"replytype{n}", "") or "numexp").strip().lower()
+            rtype = self._reply_type(n) or "numexp"
             correct = self._grade_prev_reply(value, expected, rtype)
             sc = "1" if correct else "0"
             self.ctx[f"sc_reply{n}"] = sc
@@ -2524,10 +3255,25 @@ class DefEngine(_SlibMixin):
         except Exception:
             return reply.strip() == expected.strip()
 
+    def _reply_type(self, n) -> str:
+        """Type canonique de la réponse `n`, tel que le `.def` le déclare.
+
+        `replytypeN` n'est pas toujours littéral : `unitecell` écrit
+        `replytype1=$val12`, et la valeur brute reste dans le contexte. Il faut
+        donc substituer avant de comparer — sans quoi le test échoue en
+        silence, et `imagefill` refusait toutes ses cases faute de reconnaître
+        un `clickfill` écrit derrière une variable.
+        """
+        return _normalize_reply_type(self._subst(self.ctx.get(f"replytype{n}", "")))
+
     def _render_special(self, args: str) -> str:
         """Dispatch an OEF ``\\special`` (``!read oef/special.phtml <kind> …``).
 
-        Only ``mathmlinput`` is implemented; unknown specials render to nothing.
+        Les `\\special` non gérés rendent une chaîne vide plutôt que de laisser
+        fuir du balisage — mais ce silence *supprime le texte de l'énoncé*
+        quand le `\\special` en porte (`help`, `tooltip`), d'où les rendus
+        ci-dessous. Restent non gérés : `drawinput` et `jsxgraphinput`
+        (widgets front).
         """
         s = self._subst(args).strip()
         m = re.match(r"^\s*(\w+)\s+(.*)$", s, re.DOTALL)
@@ -2536,7 +3282,354 @@ class DefEngine(_SlibMixin):
         kind, rest = m.group(1).lower(), m.group(2)
         if kind == "mathmlinput":
             return self._render_mathmlinput(rest)
+        if kind == "expandlines":
+            return self._render_expandlines(rest)
+        if kind == "tooltip":
+            return self._render_tooltip(rest)
+        if kind == "help":
+            return self._render_special_help(rest)
+        if kind == "editarea":
+            return self._render_editarea(rest)
+        if kind == "glossary":
+            return self._render_glossary(rest)
+        if kind == "codeinput":
+            return self._render_codeinput(rest)
+        if kind == "imagefill":
+            return self._render_imagefill(rest)
         return ""
+
+    def _render_imagefill(self, args: str) -> str:
+        """``imagefill IMG,LxH,lxh<TAB>replyN,x,y[,L]<TAB>…``
+
+        Port d'`oef/special/imagefill.phtml` : une grande image sur laquelle des
+        champs `clickfill`/`dragfill` sont posés à des coordonnées absolues.
+        WIMS empile des calques DynAPI ; en CSS c'est un conteneur
+        `position:relative` et des cases `position:absolute`, à quoi se réduit
+        tout le mécanisme.
+
+        Découpage repris tel quel du phtml : une tabulation suivie d'une virgule
+        est absorbée, les autres deviennent des séparateurs de lignes ; la ligne
+        1 porte image/grande taille/petite taille, les suivantes un champ
+        chacune. Les tailles s'écrivent `LxH` ou `L x H`, d'où le `x` traité
+        comme un séparateur au même titre que la virgule.
+
+        Le 4ᵉ paramètre d'une ligne est le nombre d'étiquettes que la case peut
+        recevoir (défaut 1) : autant de cases côte à côte, comme le
+        `stretchH:$sizei*$ssizex` du calque WIMS.
+        """
+        import html as _html  # noqa: PLC0415
+
+        # `imagefill.phtml` traduit les tabulations en `;` *puis* découpe les
+        # lignes sur `;` — les deux séparateurs sont donc équivalents, et
+        # `oefmolecule` livre effectivement ses champs en `;`. La tabulation
+        # suivie d'une virgule est absorbée avant, comme dans le phtml.
+        raw = args.replace("\t,", ",").replace("\t", ";")
+        rows = [r for r in self._split_rows_by_semi(raw) if r.strip()]
+        if not rows:
+            return ""
+        head = [p.strip() for p in rows[0].split(",")]
+        img = head[0] if head else ""
+        if not img:
+            return ""
+
+        def _dims(spec: str) -> tuple[int, int] | None:
+            """`LxH` / `L x H` / `L,H` → (L, H) ; None si non numérique."""
+            parts = [p for p in re.split(r"[x,\s]+", spec.strip()) if p]
+            if len(parts) < 2:
+                return None
+            try:
+                return int(round(float(parts[0]))), int(round(float(parts[1])))
+            except (ValueError, TypeError):
+                return None
+
+        big = _dims(head[1]) if len(head) > 1 else None
+        small = _dims(head[2]) if len(head) > 2 else None
+        # Une taille non évaluée (`[227,13,146,15] x [18,120,48,117]` d'unitecell)
+        # ne doit pas coûter l'exercice : l'image garde sa taille naturelle et les
+        # cases prennent un gabarit par défaut.
+        sx, sy = small or (40, 30)
+
+        slots: list[str] = []
+        for row in rows[1:]:
+            cells = [c.strip() for c in re.split(r"[x,]", row) if c.strip()]
+            if len(cells) < 3:
+                continue
+            n = re.sub(r"[^0-9()+\-*/]", "", cells[0])
+            try:
+                n = str(int(round(float(self._eval_arith(n)))))
+            except (ValueError, TypeError):
+                continue
+            if not 1 <= int(n) <= 100:
+                continue
+            if self._reply_type(n) != "clickfill":
+                continue
+            try:
+                px, py = int(round(float(cells[1]))), int(round(float(cells[2])))
+            except (ValueError, TypeError):
+                continue
+            try:
+                count = max(1, int(round(float(cells[3])))) if len(cells) > 3 else 1
+            except (ValueError, TypeError):
+                count = 1
+            self._touched_replies.add(f"reply{n}")
+            for i in range(count):
+                slots.append(
+                    f'<cf-slot name="reply{n}" data-index="{i}" data-w="{sx}" '
+                    f'style="position:absolute;left:{px + i * sx}px;top:{py}px;'
+                    f'width:{sx}px;height:{sy}px"></cf-slot>'
+                )
+
+        box = f"position:relative;display:inline-block;line-height:0"
+        if big:
+            box += f";width:{big[0]}px;height:{big[1]}px"
+        img_style = f"width:{big[0]}px;height:{big[1]}px" if big else "max-width:100%"
+        return (
+            f'<div class="oef-imagefill" style="{box}">'
+            f'<img src="{_html.escape(img, quote=True)}" alt="" style="{img_style}">'
+            f'{"".join(slots)}</div>'
+        )
+
+    def _render_codeinput(self, args: str) -> str:
+        """``codeinput <code>,<taille>,<pre|div><TAB>replyN,<taille>,<css>…``
+
+        Port de la branche `q_form` d'`oef/special/codeinput.phtml` : le bloc
+        `code` est recopié tel quel, et chaque marqueur `replyN` qu'il contient
+        est remplacé par le champ de la réponse N. C'est le même principe que
+        `mathmlinput`, sur du texte au lieu d'une formule.
+
+        Les marqueurs les plus longs passent d'abord — sans quoi `reply1`
+        s'apparierait à l'intérieur de `reply10` (WIMS obtient le même effet en
+        triant ses lignes à l'envers).
+
+        `slib/function/tabsignes` place ses marqueurs dans des cellules de
+        tableau déjà mises en forme mathématique, sous la forme `\\(reply1\\)` :
+        les délimiteurs sont absorbés avec le marqueur, sinon KaTeX recevrait
+        du HTML à composer.
+        """
+        body = args.replace("\t", "\n")
+        lines = [line for line in body.split("\n")]
+        head = _split_top_level(lines[0], ",")
+        if not head:
+            return ""
+        # Les deux derniers champs de l'en-tête sont la taille par défaut et la
+        # balise ; ce qui précède est le code — qui peut lui-même porter des
+        # virgules (le tableau de `tabsignes` en a une).
+        if len(head) >= 3:
+            code = ",".join(head[:-2]).strip()
+            default_size = head[-2].strip()
+            tag = head[-1].strip().lower()
+        else:
+            code, default_size, tag = head[0].strip(), "", ""
+        code = self._cmd_declosing(code)
+        if not code:
+            return ""
+        tag = "div" if tag == "div" else "pre"
+
+        specs: list[tuple[str, str]] = []
+        for spec in lines[1:]:
+            fields = _split_top_level(spec, ",")
+            ref = re.sub(r"\s+", "", fields[0]) if fields else ""
+            if not re.fullmatch(r"(?:reply|r)\d+", ref, re.I):
+                continue
+            size = fields[1].strip() if len(fields) > 1 and fields[1].strip() else default_size
+            specs.append((ref, size))
+
+        # Marqueurs longs d'abord : `reply10` avant `reply1`.
+        for ref, size in sorted(specs, key=lambda s: len(s[0]), reverse=True):
+            n = re.sub(r"\D", "", ref)
+            name = f"reply{n}"
+            widget = self._render_embed(f"{name},{size}" if size else name)
+            if not widget:
+                continue
+            pattern = re.compile(
+                r"(?:\\\(\s*)?\b(?:reply|r)" + re.escape(n) + r"\b(?:\s*\\\))?",
+                re.I,
+            )
+            code = pattern.sub(lambda _m, w=widget: w, code, count=1)
+        return f'<{tag} class="oef_codeinput">{code}</{tag}>'
+
+    def _render_glossary(self, args: str) -> str:
+        """``glossary <chemin>,tooltip=[<ancre>,<largeur>]`` — terme de glossaire.
+
+        Port d'`oef/special/glossary.phtml` : l'ancre reste dans la phrase et la
+        définition s'ouvre au survol, dans la même structure `.wims_tooltip` que
+        `\\special{tooltip}`. Sans ce rendu, l'ancre disparaissait avec le reste :
+        la solution de `descriptives.fr/ecarttype` s'ouvrait sur « est la racine
+        carré de la . », amputée de ses deux termes.
+
+        Les définitions vivent dans `data/glossary/…`, vendorées sous
+        `ressources/wims-scripts/`. Un terme absent (le `cumulate_frequency1`
+        d'`oefstatistiques`, coquille pour `cumulative_`) rend l'ancre seule
+        plutôt que rien.
+        """
+        parts = _split_top_level(args, ",")
+        if not parts:
+            return ""
+        path = parts[0].strip()
+        option = ",".join(parts[1:])
+        # `!getopt tooltip in $option` → `[ancre,largeur]`
+        m = re.search(r"tooltip\s*=\s*\[(.*)\]", option, re.DOTALL)
+        anchor, width = "", ""
+        if m:
+            inner = _split_top_level(m.group(1), ",")
+            anchor = inner[0].strip() if inner else ""
+            width = inner[1].strip() if len(inner) > 1 else ""
+        if not anchor:
+            return ""
+
+        body = self._read_glossary_entry(path, option)
+        if not body:
+            return anchor
+        style = f' style="width:{width}"' if width else ' style="width:400px"'
+        return (
+            f'<div class="wims_tooltip">{anchor}'
+            f'<div class="wims_tooltiptext"{style}>'
+            f'<div class="wims_glossary">{body}</div></div></div>'
+        )
+
+    def _read_glossary_entry(self, path: str, option: str) -> str:
+        """Contenu d'une fiche de glossaire.
+
+        Les fiches sont découpées en *records* par des lignes réduites à `:`.
+        L'en-tête (les `!set gl_title=…`) précède le premier séparateur et n'est
+        pas un record, si bien que les records **pairs** portent le contenu —
+        c'est ce que suppose la boucle de `glossary.phtml` (`!if $[$j%2]=0`),
+        qui lit les records 4..N et traite les impairs comme des noms de fiches
+        à inclure.
+        """
+        scripts_dir = self._find_wims_scripts_dir()
+        if not scripts_dir:
+            return ""
+        data_dir = os.path.join(scripts_dir, "data", "glossary")
+        full = os.path.normpath(os.path.join(data_dir, path))
+        # Le chemin vient du .def, mais restons dans l'arborescence glossaire.
+        if not full.startswith(os.path.normpath(data_dir) + os.sep):
+            return ""
+        if not os.path.isfile(full):
+            return ""
+        try:
+            with open(full, encoding="utf-8") as fh:
+                text = fh.read()
+        except (UnicodeDecodeError, OSError):
+            try:
+                with open(full, encoding="latin-1") as fh:
+                    text = fh.read()
+            except OSError:
+                return ""
+
+        records = re.split(r"(?:^|\n):[ \t]*(?=\n|$)", text)[1:]
+        if not records:
+            return ""
+        if re.search(r"content\s*=\s*\[?\s*abstract", option):
+            wanted = [1]
+        else:
+            wanted = list(range(4, len(records) + 1))
+        out: list[str] = []
+        for j in wanted:
+            rec = records[j - 1].strip() if j <= len(records) else ""
+            if not rec:
+                continue
+            if j % 2 == 0:
+                out.append(rec)
+            else:
+                # Record impair non vide : un nom de fiche à inclure (macros).
+                out.append(self._read_glossary_entry(rec, option))
+        return "\n".join(x for x in out if x)
+
+    def _render_editarea(self, args: str) -> str:
+        """``editarea <code>`` — bloc de code en lecture seule.
+
+        Port d'`oef/special/editarea.phtml` : tabulations promues en sauts de
+        ligne, puis un `textarea` en lecture seule dimensionné sur le contenu
+        (`cols` = ligne la plus longue + 20, `rows` = nombre de lignes). WIMS y
+        ajoute la coloration syntaxique d'EditArea ; sans elle le code reste
+        parfaitement lisible.
+
+        Sans ce rendu, `oefpython.fr/liste_portee1` demandait la valeur finale
+        d'un script Python **que l'énoncé n'affichait pas** : l'exercice était
+        insoluble, pas seulement dégradé.
+        """
+        import html as _html  # noqa: PLC0415
+
+        code = args.replace("\t", "\n").strip("\n")
+        if not code.strip():
+            return ""
+        lines = code.split("\n")
+        cols = max((len(line) for line in lines), default=0) + 20
+        return (
+            f'<textarea class="wims_show" cols="{cols}" rows="{len(lines)}" '
+            f'readonly="readonly">{_html.escape(code)}</textarea>'
+        )
+
+    def _render_expandlines(self, args: str) -> str:
+        """``expandlines <texte>`` — bloc préformaté dont les tabulations sont
+        des sauts de ligne (`oef/special/expandlines.phtml`)."""
+        return f"<pre>{args.replace(chr(9), chr(10))}</pre>"
+
+    def _render_special_help(self, args: str) -> str:
+        """``help <sujet>, <libellé>`` — lien vers l'aide du module.
+
+        PAX n'a pas (encore) de pages d'aide par module, donc le lien ne mène
+        nulle part ; on rend le libellé comme WIMS le fait déjà en mode examen
+        (`<span class="disabled_link">`). L'important est que le texte cesse de
+        disparaître de l'énoncé : `\\special{help fscient, format scientifique}`
+        rendait le vide au milieu d'une phrase.
+        """
+        parts = _split_top_level(args, ",")
+        prompt = ",".join(parts[1:]).strip() if len(parts) > 1 else args.strip()
+        if not prompt:
+            return ""
+        import html as _html  # noqa: PLC0415
+
+        subject = _html.escape(parts[0].strip(), quote=True)
+        return (
+            f'<span class="disabled_link oef_specialhelp" data-help="{subject}">'
+            f"{prompt}</span>"
+        )
+
+    def _render_tooltip(self, args: str) -> str:
+        """``tooltip <ancre>,<options>,<texte>`` — infobulle CSS.
+
+        Port de la branche moderne d'`oef/special/tooltip.phtml` : un `span`
+        (ou un `div` si le texte porte du balisage) contenant l'ancre puis le
+        texte dans un `.wims_tooltiptext`. La variante `DURATION` s'appuie sur
+        `wz_tooltip.js`, absent de PAX ; on la rend avec la même structure CSS
+        plutôt qu'avec du JavaScript mort — l'infobulle reste consultable, seul
+        le minutage se perd.
+        """
+        parts = _split_top_level(args, ",")
+        anchor = self._cmd_declosing(parts[0].strip()) if parts else ""
+        # `!set text=!item 3 to -1` ; s'il est vide, l'item 2 était le texte et
+        # non les options.
+        option = parts[1].strip() if len(parts) > 2 else ""
+        text = ",".join(parts[2:]).strip() if len(parts) > 2 else (
+            parts[1].strip() if len(parts) > 1 else ""
+        )
+        text = text.replace("&#59;", ";").replace("&#44;", ",")
+        text = self._cmd_declosing(text)
+        if not anchor:
+            # `!if $parm1 = $empty` : sans ancre, WIMS n'émet que le texte.
+            return text
+        if not text:
+            return anchor
+
+        css_class = style = ""
+        if option and "DURATION" not in option:
+            opt = self._cmd_declosing(option)
+            cm = re.search(r"\bclass\s*=\s*([^\s,]+)", opt)
+            sm = re.search(r"\bstyle\s*=\s*([^,]+)", opt)
+            css_class = self._cmd_declosing(cm.group(1)).strip() if cm else ""
+            style = self._cmd_declosing(sm.group(1)).strip() if sm else ""
+        # `!detag $text = $text` : un texte balisé ne peut pas vivre dans un
+        # `span` (HTML invalide dès qu'il contient un bloc).
+        tag = "span" if re.sub(r"<[^>]*>", "", text) == text else "div"
+        style_attr = f' style="{style}"' if style else ""
+        inner_class = f"wims_tooltiptext {css_class}".strip()
+        return (
+            f'<{tag} class="wims_tooltip">{anchor}'
+            f'<{tag} class="{inner_class}"{style_attr}>{text}</{tag}>'
+            f"</{tag}>"
+        )
 
     def _render_mathmlinput(self, args: str) -> str:
         """``mathmlinput [EXPR],<size>,<opts>\\t<replyN,size>…`` — render EXPR as
@@ -2550,11 +3643,27 @@ class DefEngine(_SlibMixin):
         default size and the remaining lines are ``replyN,size``.
         """
         s = args.replace("\t", "\n")
-        m = re.match(r"^\s*\[(.*?)\]\s*,?(.*)$", s, re.DOTALL)
-        if not m:
+        # The EXPR is the leading ``[…]`` — but it may itself contain ``[``/``]``
+        # (intervals ``\left[…\right]``, carlo1). A non-greedy ``\[(.*?)\]`` stops
+        # at the inner ``]`` and truncates the closing delimiter; match the
+        # bracket-balanced span instead.
+        start = s.find("[")
+        if start < 0:
             return ""
-        code = m.group(1)
-        rest_lines = m.group(2).split("\n")
+        depth = 0
+        end = -1
+        for j in range(start, len(s)):
+            if s[j] == "[":
+                depth += 1
+            elif s[j] == "]":
+                depth -= 1
+                if depth == 0:
+                    end = j
+                    break
+        if end < 0:
+            return ""
+        code = s[start + 1 : end]
+        rest_lines = re.sub(r"^\s*,?", "", s[end + 1 :]).split("\n")
         opt_line = rest_lines[0] if rest_lines else ""
         dm = re.search(r"\d+", opt_line)
         default_size = int(dm.group(0)) if dm else 5
@@ -2574,11 +3683,214 @@ class DefEngine(_SlibMixin):
         return self._mathmlinput_html(code, sizes, default_size)
 
     def _mathmlinput_html(self, code: str, sizes: dict[str, int], default_size: int) -> str:
-        """Build the math+inputs HTML for mathmlinput: ``\\(…\\)`` math chunks
-        interleaved with native ``<input class="oef-input">`` fields, the
-        ``^{replyN}`` exponents wrapped in ``<sup>``. The whole thing stays one
-        HTML segment so the frontend KaTeX-renders the math and event-delegation
-        binds the inputs."""
+        """Render mathmlinput (math + ``replyN`` fields).
+
+        A container that embeds fields — matrix/array, ``\\left…\\right``
+        vector/interval/set, ``\\frac``, ``\\vec``/``\\overrightarrow``, with a
+        prefix/suffix or nested — is emitted as **native MathML** (like WIMS):
+        the browser stretches the ``<mo>`` fences / ``<mfrac>`` to the content
+        height, and the fields sit in ``<annotation-xml>`` cells. Plain code
+        (no container — elassaoui3's ``reply1^{reply2}``) uses the inline
+        interleave (KaTeX + inputs)."""
+        code = re.sub(r"^\s*\\displaystyle\s*", "", code.strip())
+        structural = r"\\begin\{|\\left\b|\\right\b|\\[dt]?frac\b|\\overrightarrow\b|\\vec\b|\\overline\b"
+        if re.search(structural, code) and re.search(r"reply\d", code):
+            body = self._mml_mathml(code, sizes, default_size)
+            return f'<math class="oef-mathml" display="inline">{body}</math>'
+        return self._mathmlinput_inline(code, sizes, default_size)
+
+    def _mml_annot(self, html: str) -> str:
+        """Embed an HTML fragment (KaTeX spans + answer ``<input>``) inside
+        MathML via ``<semantics><annotation-xml>`` — WIMS' way of placing form
+        fields in math (the browser keeps them interactive)."""
+        return (
+            '<semantics><annotation-xml encoding="application/xhtml+xml">'
+            f'<span xmlns="http://www.w3.org/1999/xhtml">{html}</span>'
+            "</annotation-xml></semantics>"
+        )
+
+    def _mml_mathml(self, code: str, sizes: dict, default_size: int, depth: int = 0) -> str:
+        """Recursively render a mathmlinput container to native MathML:
+        ``\\begin{…}`` → ``<mtable>``, ``\\left…\\right`` → stretchy ``<mo>``
+        fences, ``\\frac`` → ``<mfrac>``, ``\\vec``/``\\overrightarrow`` →
+        ``<mover>``; a run of static math + fields becomes one
+        ``<annotation-xml>`` HTML chunk (KaTeX + inputs). Handles prefixes,
+        suffixes, nesting (frac in a matrix cell) and WIMS' unmatched ``\\left``
+        (half-open interval)."""
+        out: list[str] = []
+        static: list[str] = []
+
+        def flush() -> None:
+            s = "".join(static).strip()
+            static.clear()
+            if s:
+                out.append(self._mml_annot(self._mathmlinput_inline(s, sizes, default_size)))
+
+        beg = re.compile(r"\\begin\{(\w+)\}(?:\{[^}]*\})?")
+        left = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
+        right = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
+        frac = re.compile(r"\\[dt]?frac\b")
+        over = re.compile(r"\\(overrightarrow|vec|overline)\b")
+        i, n = 0, len(code)
+        while i < n:
+            if depth < 12 and (m := frac.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                b = self._mml_brace(code, a[1]) if a else None
+                if a and b and re.search(r"reply\d", a[0] + b[0]):
+                    flush()
+                    out.append(
+                        f"<mfrac><mrow>{self._mml_mathml(a[0], sizes, default_size, depth + 1)}</mrow>"
+                        f"<mrow>{self._mml_mathml(b[0], sizes, default_size, depth + 1)}</mrow></mfrac>"
+                    )
+                    i = b[1]
+                    continue
+            if depth < 12 and (m := over.match(code, i)):
+                a = self._mml_brace(code, m.end())
+                if a and re.search(r"reply\d", a[0]):
+                    flush()
+                    acc = "¯" if m.group(1) == "overline" else "→"
+                    out.append(
+                        '<mover accent="true"><mrow>'
+                        f"{self._mml_mathml(a[0], sizes, default_size, depth + 1)}</mrow>"
+                        f"<mo>{acc}</mo></mover>"
+                    )
+                    i = a[1]
+                    continue
+            if depth < 12 and (m := beg.match(code, i)):
+                res = self._mml_find_end(code, m.end(), m.group(1))
+                if res:
+                    flush()
+                    out.append(self._mml_mathml_table(code[m.end():res[0]], m.group(1), sizes, default_size, depth))
+                    i = res[1]
+                    continue
+            if depth < 12 and (m := left.match(code, i)):
+                res = self._mml_find_right(code, m.end())
+                if res:
+                    flush()
+                    r_idx, r_end, rtok = res
+                    ld = self._DELIM_DISPLAY.get(m.group(1), "")
+                    rd = self._DELIM_DISPLAY.get(rtok, "")
+                    lo = f'<mo fence="true" stretchy="true">{ld}</mo>' if ld else ""
+                    ro = f'<mo fence="true" stretchy="true">{rd}</mo>' if rd else ""
+                    inner = self._mml_mathml(code[m.end():r_idx], sizes, default_size, depth + 1)
+                    out.append(f"<mrow>{lo}{inner}{ro}</mrow>")
+                    i = r_end
+                    continue
+                # Unmatched \left (WIMS half-open interval [a;b[) → plain operator.
+                flush()
+                g = self._DELIM_DISPLAY.get(m.group(1), "")
+                if g:
+                    out.append(f"<mo>{g}</mo>")
+                i = m.end()
+                continue
+            if (m := right.match(code, i)):
+                flush()
+                g = self._DELIM_DISPLAY.get(m.group(1), "")
+                if g:
+                    out.append(f"<mo>{g}</mo>")
+                i = m.end()
+                continue
+            static.append(code[i])
+            i += 1
+        flush()
+        return "".join(out)
+
+    def _mml_mathml_table(self, body: str, env: str, sizes: dict, default_size: int, depth: int) -> str:
+        """Matrix/array body → MathML ``<mtable>``; a matrix env adds its fences."""
+        rows = []
+        for row in re.split(r"\\\\", body):
+            row = re.sub(r"\\hline", "", row).strip()
+            if not row:
+                continue
+            cells = "".join(
+                f"<mtd>{self._mml_mathml(c.strip(), sizes, default_size, depth + 1)}</mtd>"
+                for c in re.split(r"&(?!#?\w+;)", row)
+            )
+            rows.append(f"<mtr>{cells}</mtr>")
+        table = f'<mtable>{"".join(rows)}</mtable>'
+        md = self._MATRIX_DELIMS.get(env)
+        if md and (md[0] or md[1]):
+            lo = f'<mo fence="true" stretchy="true">{md[0]}</mo>' if md[0] else ""
+            ro = f'<mo fence="true" stretchy="true">{md[1]}</mo>' if md[1] else ""
+            return f"<mrow>{lo}{table}{ro}</mrow>"
+        return table
+
+    # Matrix env → (left, right) delimiter characters.
+    _MATRIX_DELIMS = {
+        "pmatrix": ("(", ")"), "bmatrix": ("[", "]"), "Bmatrix": ("{", "}"),
+        "vmatrix": ("|", "|"), "Vmatrix": ("‖", "‖"), "matrix": ("", ""),
+    }
+    # WIMS/TeX delimiter token (after \left / \right) → displayed character.
+    # "." is the invisible delimiter (\left. … \right) — no glyph.
+    _DELIM_TOK = (
+        r"\\lbrace|\\rbrace|\\lbracket|\\rbracket|\\lvert|\\rvert|"
+        r"\\langle|\\rangle|\\\{|\\\}|\\\||[()\[\].|]"
+    )
+    _DELIM_DISPLAY = {
+        "(": "(", ")": ")", "[": "[", "]": "]", ".": "", "|": "|",
+        "\\{": "{", "\\}": "}", "\\|": "‖", "\\lbrace": "{", "\\rbrace": "}",
+        "\\lbracket": "[", "\\rbracket": "]", "\\lvert": "|", "\\rvert": "|",
+        "\\langle": "⟨", "\\rangle": "⟩",
+    }
+
+    def _mml_find_right(self, code: str, start: int):
+        """From ``start`` (just after a ``\\left<delim>``), return
+        ``(idx, end, right_token)`` of the matching ``\\right<delim>`` (depth-aware
+        over nested ``\\left``/``\\right``), or ``None``."""
+        depth = 0
+        i, n = start, len(code)
+        lo = re.compile(r"\\left\s*(" + self._DELIM_TOK + ")")
+        ro = re.compile(r"\\right\s*(" + self._DELIM_TOK + ")")
+        while i < n:
+            if (m := lo.match(code, i)):
+                depth += 1; i = m.end(); continue
+            if (m := ro.match(code, i)):
+                if depth == 0:
+                    return i, m.end(), m.group(1)
+                depth -= 1; i = m.end(); continue
+            i += 1
+        return None
+
+    def _mml_find_end(self, code: str, start: int, env: str):
+        """Return ``(idx, end)`` of the ``\\end{env}`` matching the ``\\begin{env}``
+        whose body starts at ``start`` (depth-aware), or ``None``."""
+        depth = 0
+        i, n = start, len(code)
+        beg = re.compile(r"\\begin\{" + re.escape(env) + r"\}(?:\{[^}]*\})?")
+        end = re.compile(r"\\end\{" + re.escape(env) + r"\}")
+        while i < n:
+            if (m := beg.match(code, i)):
+                depth += 1; i = m.end(); continue
+            if (m := end.match(code, i)):
+                if depth == 0:
+                    return i, m.end()
+                depth -= 1; i = m.end(); continue
+            i += 1
+        return None
+
+    def _mml_brace(self, code: str, start: int):
+        """From ``start``, skip spaces and return ``(content, end)`` of the
+        ``{…}`` brace group (depth-aware), or ``None`` if no ``{`` follows."""
+        i = start
+        while i < len(code) and code[i].isspace():
+            i += 1
+        if i >= len(code) or code[i] != "{":
+            return None
+        depth = 0
+        for j in range(i, len(code)):
+            if code[j] == "{":
+                depth += 1
+            elif code[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    return code[i + 1 : j], j + 1
+        return None
+
+    def _mathmlinput_inline(self, code: str, sizes: dict[str, int], default_size: int) -> str:
+        """Inline interleave: ``\\(…\\)`` math chunks with native
+        ``<input class="oef-input">`` fields, ``^{replyN}`` exponents wrapped in
+        ``<sup>``. Stays one HTML segment so the frontend KaTeX-renders the math
+        and event-delegation binds the inputs."""
         sup_map: dict[str, str] = {}
         inp_map: dict[str, str] = {}
 
@@ -2595,6 +3907,11 @@ class DefEngine(_SlibMixin):
         # Mark exponent fields (^{replyN} / ^replyN) first, then the plain ones.
         code = re.sub(r"\^\{\s*(reply\d+)\s*\}", sup_repl, code)
         code = re.sub(r"\^\s*(reply\d+)\b", sup_repl, code)
+        # Absorb TeX *grouping* braces around a lone field — `{reply3}` (fonction93's
+        # interval bounds). The split would otherwise strand the `{`/`}` in adjacent
+        # `\(…\)` spans (unbalanced → KaTeX error). The lookbehind keeps command
+        # arguments (`\frac{reply}`, `\sqrt{reply}`, second arg `}{reply}`) intact.
+        code = re.sub(r"(?<![A-Za-z}])\{\s*(reply\d+)\s*\}", inp_repl, code)
         code = re.sub(r"\b(reply\d+)\b", inp_repl, code)
 
         def field(name: str) -> str:
@@ -2672,7 +3989,7 @@ class DefEngine(_SlibMixin):
             # Record that this reply is referenced by the current statement.
             # Used in render() to filter `answers` for dynsteps/course exercises.
             self._touched_replies.add(f"reply{n}")
-            reply_type = self.ctx.get(f"replytype{n}", "").strip().lower()
+            reply_type = self._reply_type(n)
             if reply_type == "radio":
                 # Inline radio: `reply{n},POS[,CONTENT]` places one choice *here*
                 # in the statement (value = POS, label = CONTENT), instead of in
@@ -2723,12 +4040,11 @@ class DefEngine(_SlibMixin):
                     _pos_part, _, choices_part = good_raw.partition(";")
                 else:
                     choices_part = good_raw
-                # Choices may be ";"-joined (translate chain) or ","-joined.
-                # For comma-separated lists use a smart split that avoids breaking
-                # commas inside LaTeX \(...) expressions (e.g. "2,5 × 10^19").
-                # Always use smart comma split — choices_part may contain ";"
-                # inside HTML entities (e.g. &#44; = comma) that must NOT split.
-                choices = [c.strip() for c in re.split(r",(?![^(]*\))", choices_part) if c.strip()]
+                # Choices are separated by `,` OR `;` (the `;` from the
+                # append-tab + `!translate \t→;` idiom when a choice holds a
+                # comma, e.g. "2,5 × 10^19" — brevet01). Split on both at bracket
+                # depth 0, protecting `\(…)` and HTML entities (`&#44;`).
+                choices = [c.strip() for c in self._split_wims_items(choices_part) if c.strip()]
 
                 def _mark_span(col: int) -> str:
                     label = self._subst(choices[col - 1]) if 1 <= col <= len(choices) else ""
@@ -2905,16 +4221,38 @@ class DefEngine(_SlibMixin):
                     return f'<span class="oef-coord" name="reply{n}" data-img="{img}"></span>'
                 return ""
 
-        size_raw = self._subst(size_str).strip()
+        # `anstype/inputcss.inc` : le paramètre de taille peut porter des lignes
+        # supplémentaires (tabulations promues en sauts de ligne) qui sont des
+        # *attributs HTML* du champ, pas des chiffres — `\embed{reply 1,30
+        # autofocus}` compile en `r1,30<TAB>autofocus`. Sans ce découpage,
+        # `30<TAB>autofocus` n'était pas numérique et la taille retombait
+        # silencieusement sur le défaut : ~370 champs du corpus (355
+        # `autofocus`, 17 `autocomplete="off"`) étaient rendus trop étroits.
+        size_raw, _, attr_tail = (
+            self._subst(size_str).replace("\t", "\n").partition("\n")
+        )
+        size_raw = size_raw.strip()
+        attrs = _parse_input_attributes(attr_tail)
+        extra = ""
+        if attrs:
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            extra = f' data-attrs="{_html.escape(_json.dumps(attrs), quote=True)}"'
         textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
         if textarea_m:
-            span = f'<span class="oef-input" name="{ref}" data-size="{size_raw}"></span>'
+            span = (
+                f'<span class="oef-input" name="{ref}" '
+                f'data-size="{size_raw}"{extra}></span>'
+            )
         else:
             try:
                 size = int(round(float(self._eval_arith(size_raw))))
             except (ValueError, TypeError):
                 size = 10
-            span = f'<span class="oef-input" name="{ref}" data-size="{size}"></span>'
+            span = (
+                f'<span class="oef-input" name="{ref}" '
+                f'data-size="{size}"{extra}></span>'
+            )
 
         # WIMS' fset.input frames the field in literal braces to signal that a
         # *set* is expected (e.g. T1116: the solution set of f(x)=k). Mirror it.
@@ -3178,8 +4516,64 @@ class DefEngine(_SlibMixin):
             return f"{res.numerator}/{res.denominator}"
         return None
 
+    # Answer types whose `expected` is one of the *displayed* choices (compared
+    # as text by check_radio / check_clickfill), so it must be closed in lockstep
+    # with the choices. Free-input types (numeric/litexp/…) keep `expected` raw
+    # for the CAS/numeric checker; checkbox/mark `expected` is an index (closing
+    # is a no-op); correspond has its own display path (_prep_correspond_item).
+    _CHOICE_EXPECTED_TYPES = frozenset({"radio", "menu", "mark", "clickfill"})
+
+    def _finalize_answer_math(self, answers: list[AnswerDef]) -> None:
+        """Single guarantee point for inline-math closing on answer fields.
+
+        Closes WIMS `\\(…)` → KaTeX `\\(…\\)` on every user-facing answer field
+        (label, choices, and choice-type `expected`). Idempotent — a span already
+        closed as `\\(…\\)` is left untouched — so it safely re-covers the fields
+        the type-specific code closes inline (radio/clickfill, where closing is
+        interleaved with de-dup/shuffle and must stay there) *and* covers the ones
+        historically missed (menu, mark), without any path having to remember.
+        """
+        for a in answers:
+            if a.label:
+                a.label = _close_inline_math(a.label, self.lang)
+            ch = a.options.get("choices")
+            if isinstance(ch, list):
+                a.options["choices"] = [_close_inline_math(c, self.lang) for c in ch]
+            if a.answer_type in self._CHOICE_EXPECTED_TYPES and a.expected:
+                a.expected = _close_inline_math(a.expected, self.lang)
+
+    def _wims_precision(self, df: DefFile) -> float:
+        """Précision numérique WIMS (`\\precision{M}`) de l'exercice.
+
+        WIMS pose `wims_compare_precision = precision`, borné entre 20 et 1e8,
+        défaut 10000 (cf. `scripts/oef/var.prep`). La valeur peut référencer une
+        variable (`\\precision{\\prec}`), donc on substitue puis on évalue avant
+        de borner. Renvoyée aux checkers via `options["precision"]`."""
+        raw = self.ctx.get("precision") or df.meta.get("precision") or ""
+        raw = self._subst(str(raw)).strip()
+        if raw and not re.fullmatch(r"-?\d+(?:\.\d+)?", raw):
+            raw = self._eval_arith(raw).strip()
+        try:
+            prec = float(raw)
+        except (TypeError, ValueError):
+            return 10000.0
+        if prec < 20:
+            return 20.0
+        if prec > 1e8:
+            return 1e8
+        return prec
+
     def _extract_answers(self, df: DefFile) -> list[AnswerDef]:
+        """Thin wrapper: build the answers, then close inline math on their
+        display fields in one place (see :meth:`_finalize_answer_math`)."""
+        answers = self._extract_answers_raw(df)
+        self._finalize_answer_math(answers)
+        return answers
+
+    def _extract_answers_raw(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
+        wims_prec = self._wims_precision(df)
+        compute_answer = self._subst(str(df.meta.get("computeanswer", ""))).strip().lower()
 
         # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from
         # choice_meta (WIMS creates an implicit reply slot in this case).
@@ -3229,11 +4623,43 @@ class DefEngine(_SlibMixin):
         for rm in df.reply_meta:
             n = rm["n"]
             ans_type = self._subst(rm.get("type", "numeric")).strip()
+            # `type=draft` (brouillon WIMS) : champ de saisie libre où l'élève
+            # pose son calcul. Non noté et facultatif. Le type d'origine est
+            # ensuite masqué en "analyze" (good=?analyze) ; on le capte ici pour
+            # marquer la réponse comme brouillon (cf. options["draft"]).
+            is_draft = ans_type.lower() == "draft"
+            # `dragfill` est le `clickfill` dont chaque étiquette ne sert qu'une
+            # fois : même widget, même `replygood`, contrainte reportée plus bas
+            # dans `options["single_use"]`.
+            is_dragfill = ans_type.strip().lower() == "dragfill"
+            if is_dragfill:
+                ans_type = "clickfill"
             label = _close_inline_math(self._subst(rm.get("name", "")), self.lang)
             good_raw = self._eval_value(rm.get("good", ""))
             weight = float(self._subst(rm.get("weight", "1")) or "1")
             option = self._subst(rm.get("option", ""))
+            # `slib/commutesom` (réduire family) accepts the reduced sum in any
+            # term order. Mark such litexp/algexp answers `expand` so the checker
+            # requires the reduced form but exempts term order (see
+            # _slib_commutesom / check_answer's term_order gate). Only when the
+            # author set no explicit form option of their own.
+            if (
+                self.ctx.get("_commutesom_anyorder")
+                and ans_type.lower() in ("litexp", "algexp", "formal")
+                and not re.search(r"\b(polexpand|expand|polfactor)\b", option)
+            ):
+                option = (option + " expand").strip()
             options: dict = {"option": option} if option else {}
+            if is_dragfill:
+                options["single_use"] = True
+            # Précision WIMS de l'exercice → checkers numériques (numeric,
+            # numexp, units, fset). Jusqu'ici figée à 1e-4 côté checker ; on
+            # transmet désormais `\precision{M}` (cf. _wims_precision).
+            options["precision"] = wims_prec
+            # `\computeanswer{no}` (défaut) : réponse numérique = valeur, pas un
+            # calcul. Transmis au checker numeric.
+            if compute_answer:
+                options["computeanswer"] = compute_answer
 
             # Expose to ctx so _render_embed can access them during statement rendering
             self.ctx[f"replygood{n}"] = good_raw
@@ -3268,6 +4694,12 @@ class DefEngine(_SlibMixin):
                     # ineqinterv1: drag `[`/`]` brackets into the interval slots.
                     pass
                 else:
+                    # Remember the author's original reply type before we mask
+                    # it as "analyze". The check path needs it to know whether a
+                    # comma in the reply is a decimal separator (numeric/numexp)
+                    # — so `0,7` in an fr/nl exercise normalises to `0.7` before
+                    # being fed to :test (otherwise WIMS' eval reads it as a tuple).
+                    options["analyze_input_type"] = ans_type
                     ans_type = "analyze"
                     if rest:
                         expected = rest
@@ -3379,9 +4811,11 @@ class DefEngine(_SlibMixin):
                 if ";" in good_raw:
                     pos_str, _, choices_str = good_raw.partition(";")
                     expected = pos_str.strip()
+                    # Choices split on `,` or `;` (the `;` from the append-tab +
+                    # translate idiom for comma-bearing choices — brevet01).
                     choices = [
                         c.strip()
-                        for c in re.split(r",(?![^(]*\))", choices_str)
+                        for c in self._split_wims_items(choices_str)
                         if c.strip()
                     ]
                     options["choices"] = choices
@@ -3436,7 +4870,32 @@ class DefEngine(_SlibMixin):
                     _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
-                if "analyze_var" in options:
+                if is_dragfill and correct_items and "analyze_var" not in options:
+                    # `fill.inc` compose la palette d'un dragfill autrement que
+                    # celle d'un clickfill : ligne 1 (la bonne réponse) **puis**
+                    # le complément des lignes suivantes (`!listcomplement`),
+                    # sans `!listuniq` — un mot à lettre répétée a besoin d'une
+                    # carte par occurrence. Un vivier absent est donc licite :
+                    # la palette est alors la réponse elle-même mélangée (les
+                    # anagrammes de `oefdeutsch`, où l'on rassemble « Hamburg »
+                    # lettre à lettre).
+                    choices = list(correct_items)
+                    known = set(correct_items)
+                    for p in pool_items:
+                        if p not in known:
+                            choices.append(p)
+                            known.add(p)
+                    # `dragfill.after` : mélange tant que la palette n'excède ni
+                    # le nombre de cases ni 12 étiquettes, tri alphabétique
+                    # au-delà (une longue liste reste ainsi parcourable).
+                    if len(choices) <= max(len(correct_items), 12):
+                        rng.shuffle(choices)
+                    else:
+                        choices.sort()
+                    options["choices"] = choices
+                    options["slots"] = len(correct_items)
+                    expected = ",".join(correct_items)
+                elif "analyze_var" in options:
                     # Analyze-based clickfill (ineqinterv1): the "correct" part is
                     # "?analyze N" — a checking ref, NOT a draggable label. The
                     # palette is the pool only; scoring is via the :test section.
@@ -3489,6 +4948,20 @@ class DefEngine(_SlibMixin):
                 xform = self.ctx.get("_repere_transform")
                 if xform:
                     options["transform"] = xform
+
+            # Champ non noté ni obligatoire (« ungraded ») :
+            #  - brouillon `type=draft` (l'élève y pose son calcul) ;
+            #  - champ `analyze` marqué `default=vide` sans test réel (ex.
+            #    oefcalcullit dev2fact : reply2 matrix→analyze, `:test` vide —
+            #    le forcer dans run_analyze fausserait toute la notation).
+            # Les vraies réponses (fset, numeric…) avec `default=vide` restent
+            # notées : `default=vide` y signifie « vide = ensemble ∅ » (cf.
+            # oefresolalg synth*), géré par la substitution WIMS des checkers.
+            if is_draft or (
+                ans_type.lower() == "analyze"
+                and "default=vide" in option.lower()
+            ):
+                options["ungraded"] = True
 
             answers.append(
                 AnswerDef(

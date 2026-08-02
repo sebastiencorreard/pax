@@ -1,0 +1,275 @@
+"""
+`\\special{…}` — dispatch des specials OEF (`oef/special.phtml`).
+
+Un special non géré rend une chaîne vide : c'est voulu pour ne pas laisser
+fuir du balisage, mais cela *supprimait le texte de l'énoncé* pour ceux qui en
+portent (`help`, `tooltip`). Ces tests couvrent les trois portés depuis
+`wims/public_html/scripts/oef/special/`.
+"""
+
+import re
+
+import pytest
+
+from core.oef.def_engine import DefEngine, load_and_render
+
+
+def engine() -> DefEngine:
+    return DefEngine(seed=1)
+
+
+class TestExpandlines:
+    """`expandlines.phtml` : `<pre>` dont les tabulations sont des retours
+    ligne."""
+
+    def test_tabs_become_newlines_inside_pre(self):
+        assert engine()._render_special("expandlines a\tb\tc") == "<pre>a\nb\nc</pre>"
+
+    def test_plain_text_is_preserved(self):
+        assert engine()._render_special("expandlines x = 1") == "<pre>x = 1</pre>"
+
+
+class TestSpecialHelp:
+    """`help.phtml` : lien vers l'aide du module. PAX n'a pas ces pages, mais
+    le libellé fait partie de la phrase — il doit rester lisible."""
+
+    def test_label_stays_visible(self):
+        out = engine()._render_special("help fscient, format scientifique")
+        assert "format scientifique" in out
+        assert 'data-help="fscient"' in out
+
+    def test_rendered_as_a_disabled_link_not_an_anchor(self):
+        out = engine()._render_special("help fscient, format scientifique")
+        assert "disabled_link" in out
+        assert "<a " not in out
+
+    def test_subject_without_label_renders_nothing(self):
+        assert engine()._render_special("help fscient,") == ""
+
+
+class TestTooltip:
+    """`tooltip.phtml`, branche CSS : ancre + texte masqué."""
+
+    def test_anchor_and_text(self):
+        out = engine()._render_special("tooltip <b>survolez</b>,,[le détail]")
+        assert 'class="wims_tooltip"' in out
+        assert "<b>survolez</b>" in out
+        assert 'class="wims_tooltiptext"' in out
+        assert "le détail" in out
+
+    def test_two_arguments_only_means_the_second_is_the_text(self):
+        """`!if $text=$empty` → `!set text=!item 2 of $parms`."""
+        out = engine()._render_special("tooltip ancre,[explication]")
+        assert "explication" in out
+        assert 'class="wims_tooltip"' in out
+
+    def test_class_and_style_options(self):
+        out = engine()._render_special(
+            "tooltip ancre,[class=[maclasse] style=[color:red]],[texte]"
+        )
+        assert 'class="wims_tooltiptext maclasse"' in out
+        assert 'style="color:red"' in out
+
+    def test_markup_in_text_switches_span_to_div(self):
+        """`!if $test_div=$text` : un texte balisé ne peut pas vivre dans un
+        `span` (HTML invalide dès qu'il contient un bloc)."""
+        out = engine()._render_special("tooltip ancre,,[<p>bloc</p>]")
+        assert out.startswith('<div class="wims_tooltip">')
+        assert "<span" not in out
+
+    def test_duration_variant_degrades_to_css(self):
+        """La variante `DURATION` s'appuie sur `wz_tooltip.js`, absent de PAX :
+        on rend la structure CSS plutôt que du JavaScript mort."""
+        out = engine()._render_special(
+            "tooltip ancre,[CLICKCLOSE,true,DURATION,2000],[texte]"
+        )
+        assert 'class="wims_tooltip"' in out
+        assert "onmouseover" not in out
+        assert "texte" in out
+
+    def test_html_entities_are_decoded_in_text(self):
+        out = engine()._render_special("tooltip a,,[x&#44;y&#59;z]")
+        assert "x,y;z" in out
+
+    def test_missing_anchor_falls_back_to_the_text(self):
+        """`!if $parm1 = $empty` : WIMS n'émet alors que le texte."""
+        assert engine()._render_special("tooltip ,,juste du texte") == "juste du texte"
+
+
+class TestUnhandled:
+    @pytest.mark.parametrize("kind", ["glossary machin", "drawinput x"])
+    def test_still_render_nothing(self, kind):
+        """Les specials adossés à une infra absente (base glossaire, widgets
+        front) restent silencieux plutôt que de laisser fuir du balisage."""
+        assert engine()._render_special(kind) == ""
+
+
+class TestCorpus:
+    def test_tooltip_reaches_the_statement(self):
+        r = load_and_render("/ressources/H4/geometry/oefphotocopie.fr/def/ex01.def", seed=42)
+        assert "wims_tooltip" in r.statement_html
+        assert "Formats de papier disponibles" in r.statement_html
+
+    def test_help_label_reaches_the_statement(self):
+        """Avant, `\\special{help fscient, format scientifique}` rendait le vide
+        au milieu d'une phrase."""
+        r = load_and_render("/ressources/H4/physics/oefpression.fr/def/0704.def", seed=42)
+        assert re.search(r"format scientifique", r.statement_html)
+        assert "oef_specialhelp" in r.statement_html
+
+
+class TestEmbedExtraLines:
+    """`\\embed{reply 1,30 autofocus}` compile en `r1,30<TAB>autofocus`.
+
+    `anstype/inputcss.inc` découpe ce paramètre en lignes : la première est la
+    taille, les suivantes sont des attributs HTML du champ. Sans ce découpage,
+    `30<TAB>autofocus` n'était pas numérique et la taille retombait sur le
+    défaut — 95 champs du corpus étaient rendus à la mauvaise largeur.
+    """
+
+    def _embed(self, args: str) -> str:
+        e = engine()
+        e.ctx["replygood1"] = "42"
+        e.ctx["replytype1"] = "numeric"
+        return e._render_embed(args)
+
+    def test_size_survives_a_trailing_autofocus(self):
+        assert 'data-size="30"' in self._embed("r1,30\tautofocus")
+
+    def test_size_survives_indented_extra_lines(self):
+        assert 'data-size="30"' in self._embed("r1,30\t    autofocus")
+
+    def test_size_survives_an_html_attribute(self):
+        assert 'data-size="5"' in self._embed('r1,5\tautocomplete="off"')
+
+    def test_plain_size_is_unchanged(self):
+        assert 'data-size="30"' in self._embed("r1,30")
+
+    def test_textarea_geometry_is_unchanged(self):
+        assert 'data-size="4x30"' in self._embed("r1,4x30")
+
+
+class TestEditarea:
+    """`editarea.phtml` : bloc de code en lecture seule, dimensionné sur le
+    contenu (`cols` = ligne la plus longue + 20, `rows` = nombre de lignes)."""
+
+    def test_code_is_rendered_readonly(self):
+        out = engine()._render_special("editarea a = 1\tb = 2")
+        assert 'readonly="readonly"' in out
+        assert "a = 1\nb = 2" in out
+
+    def test_dimensions_follow_the_content(self):
+        out = engine()._render_special("editarea abc\tdefgh")
+        assert 'rows="2"' in out
+        assert 'cols="25"' in out  # 5 (la plus longue) + 20
+
+    def test_markup_in_code_is_escaped(self):
+        out = engine()._render_special("editarea if a < b:\tprint('<x>')")
+        assert "&lt;" in out
+        assert "<x>" not in out
+
+    def test_empty_code_renders_nothing(self):
+        assert engine()._render_special("editarea    ") == ""
+
+    def test_corpus_script_reaches_the_statement(self):
+        """`oefpython.fr/liste_portee1` demande la valeur finale d'un script
+        Python : sans ce rendu, le script n'apparaissait nulle part et
+        l'exercice était insoluble."""
+        r = load_and_render("/ressources/H4/algo/oefpython.fr/def/liste_portee1.def", seed=42)
+        assert "<textarea" in r.statement_html
+        assert "def fonction(u, l):" in r.statement_html
+
+
+class TestGlossary:
+    """`glossary.phtml` : l'ancre reste dans la phrase, la définition s'ouvre au
+    survol. Les fiches sont vendorées sous `ressources/wims-scripts/data/`."""
+
+    def _engine(self):
+        return DefEngine(seed=1, def_path="/ressources/H4/stat/descriptives.fr/def/ecarttype.def")
+
+    def test_anchor_and_definition(self):
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/variance,tooltip=[la variance,300px]"
+        )
+        assert 'class="wims_tooltip"' in out
+        assert "la variance" in out
+        assert 'class="wims_glossary"' in out
+        assert "Définition" in out
+
+    def test_width_option_is_honoured(self):
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/variance,tooltip=[x,250px]"
+        )
+        assert 'style="width:250px"' in out
+
+    def test_unknown_term_still_shows_the_anchor(self):
+        """`oefstatistiques` référence `cumulate_frequency1`, coquille pour
+        `cumulative_` : la fiche n'existe ni chez nous ni dans WIMS."""
+        out = self._engine()._render_special(
+            "glossary mathematics/statistics/fr/cumulate_frequency1,tooltip=[Les effectifs cumulés,300px]"
+        )
+        assert out == "Les effectifs cumulés"
+
+    def test_without_a_tooltip_anchor_nothing_is_rendered(self):
+        assert self._engine()._render_special("glossary mathematics/statistics/fr/variance") == ""
+
+    def test_path_traversal_is_refused(self):
+        out = self._engine()._render_special("glossary ../../../etc/passwd,tooltip=[x,10px]")
+        assert out == "x"
+
+    def test_corpus_solution_regains_its_terms(self):
+        """La solution s'ouvrait sur « est la racine carré de la . », amputée
+        de ses deux termes."""
+        r = load_and_render("/ressources/H4/stat/descriptives.fr/def/ecarttype.def", seed=42)
+        assert "wims_glossary" in (r.solution_html or "")
+        assert "L'écart-type" in (r.solution_html or "")
+
+
+class TestCodeinput:
+    """`codeinput.phtml` : un bloc de code dont chaque marqueur `replyN` est
+    remplacé par le champ de la réponse N — le principe de `mathmlinput`,
+    appliqué à du texte."""
+
+    def _engine(self):
+        e = DefEngine(seed=1)
+        for n in range(1, 12):
+            e.ctx[f"replygood{n}"] = "42"
+            e.ctx[f"replytype{n}"] = "numeric"
+        return e
+
+    def test_marker_becomes_a_field(self):
+        out = self._engine()._render_special("codeinput [x = reply1],5,pre\treply1,5,")
+        assert 'name="reply1"' in out
+        assert "oef_codeinput" in out
+        assert "reply1</pre>" not in out
+
+    def test_tag_option(self):
+        out = self._engine()._render_special("codeinput [a reply1],5,div\treply1,5,")
+        assert out.startswith('<div class="oef_codeinput"')
+
+    def test_math_delimiters_are_absorbed(self):
+        r"""`tabsignes` place ses marqueurs en `\(reply1\)` : laisser les
+        délimiteurs donnerait du HTML à composer à KaTeX."""
+        out = self._engine()._render_special("codeinput [a \\(reply1\\) b],5,pre\treply1,5,")
+        assert "\\(" not in out
+        assert 'name="reply1"' in out
+
+    def test_longer_markers_first(self):
+        """`reply1` ne doit pas s'apparier à l'intérieur de `reply10`."""
+        out = self._engine()._render_special(
+            "codeinput [reply10 et reply1],4,pre\treply1,4,\treply10,4,"
+        )
+        assert 'name="reply10"' in out
+        assert 'name="reply1"' in out
+        assert "reply10<" not in out
+
+    def test_unlisted_markers_are_left_alone(self):
+        """WIMS ne remplace que les réponses listées ; les autres restent."""
+        out = self._engine()._render_special("codeinput [reply1 reply2],4,pre\treply2,4,")
+        assert 'name="reply2"' in out
+        assert "reply1" in out
+
+    def test_corpus_table_gains_its_fields(self):
+        r = load_and_render("/ressources/H4/algebra/oeffunctionmod.fr/def/ederive.def", seed=42)
+        assert "oef_codeinput" in r.statement_html
+        assert sum(1 for s in r.statement_segments if s.get("type") == "input") >= 5

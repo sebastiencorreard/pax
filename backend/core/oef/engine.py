@@ -178,7 +178,10 @@ _SEGMENT_PATTERN = re.compile(
     # clickfill); keep group 1 = name and swallow the rest non-capturingly
     # so the later group numbers (oef-input/menu/correspond) don't shift.
     r'<cf-slot name="([^"]+)"[^>]*></cf-slot>'
-    r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"></span>'
+    # oef-input may carry a trailing data-attrs="…" (the HTML attributes of an
+    # `\embed` size tail, e.g. autofocus); swallowed non-capturingly so the
+    # later group numbers don't shift — it is re-read from group 0 below.
+    r'|<span\s+class="oef-input"\s+name="([^"]+)"\s+data-size="([^"]*)"[^>]*></span>'
     r'|<span\s+class="oef-menu"\s+name="([^"]+)"\s+data-label="([^"]*)"></span>'
     r'|<span\s+class="oef-correspond"\s+name="([^"]+)"\s+data-config="([^"]*)"></span>'
     # group 8: a JSXGraph board container (kept last so earlier groups don't shift)
@@ -251,15 +254,62 @@ def _table_ranges(html: str) -> list[tuple[int, int]]:
     return ranges
 
 
-def _inline_input_html(name: str, size_raw: str) -> str:
+# Conteneur d'un `\special{imagefill}` : une image et des cases posées dessus en
+# coordonnées absolues.
+_IMAGEFILL_BLOCK = re.compile(
+    r'<div class="oef-imagefill".*?</div>', re.IGNORECASE | re.DOTALL
+)
+
+
+def _unsplittable_ranges(html: str) -> list[tuple[int, int]]:
+    """Zones dont les widgets ne doivent pas découper le HTML en segments.
+
+    Les `<table>` en font partie de longue date : segmenter briserait leur
+    structure. Un `imagefill` s'y ajoute pour une raison voisine — ses cases ne
+    valent que par leur position absolue dans le conteneur, qu'un découpage
+    ferait perdre. Dans les deux cas le HTML reste d'un bloc et le front lie les
+    widgets par délégation d'événements.
+    """
+    return _table_ranges(html) + [
+        m.span() for m in _IMAGEFILL_BLOCK.finditer(html)
+    ]
+
+
+def _widget_attrs(tag: str) -> dict:
+    """HTML attributes an `\\embed` size tail attached to the widget (data-attrs).
+
+    Already allow-listed and JSON-encoded backend-side (`_parse_input_attributes`
+    in def_engine); here it is only unpacked back into the segment.
+    """
+    import html as _html  # noqa: PLC0415
+    import json as _json  # noqa: PLC0415
+    m = re.search(r'data-attrs="([^"]*)"', tag)
+    if not m:
+        return {}
+    try:
+        attrs = _json.loads(_html.unescape(m.group(1)))
+    except (ValueError, TypeError):
+        return {}
+    return attrs if isinstance(attrs, dict) else {}
+
+
+def _inline_input_html(name: str, size_raw: str, attrs: dict | None = None) -> str:
     """Render a widget as a native <input> for inline placement inside a table."""
+    import html as _html  # noqa: PLC0415
     name = re.sub(r"^r(\d+)$", r"reply\1", name)  # rN → replyN
+    # `autocomplete="off"` is already hard-set below, as on the Vue-rendered
+    # fields; the tail's own value would only restate it.
+    extra = "".join(
+        f" {k}" if v is True else f' {k}="{_html.escape(str(v), quote=True)}"'
+        for k, v in (attrs or {}).items()
+        if k != "autocomplete"
+    )
     textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
     if textarea_m:
         rows, cols = int(textarea_m.group(1)), int(textarea_m.group(2))
         return (
             f'<textarea class="oef-input" name="{name}" '
-            f'rows="{rows}" cols="{cols}"></textarea>'
+            f'rows="{rows}" cols="{cols}"{extra}></textarea>'
         )
     try:
         size = int(size_raw)
@@ -268,7 +318,7 @@ def _inline_input_html(name: str, size_raw: str) -> str:
     width = f"{max(size + 2, 6)}ch"
     return (
         f'<input type="text" class="oef-input" name="{name}" '
-        f'autocomplete="off" style="width:{width};min-width:6ch" />'
+        f'autocomplete="off"{extra} style="width:{width};min-width:6ch" />'
     )
 
 
@@ -395,7 +445,7 @@ def _segment_statement(html: str) -> list[dict]:
     html = _BR_RUN.sub("<br>", html)
     html = _BR_LEADING.sub("", html)
 
-    tables = _table_ranges(html)
+    tables = _unsplittable_ranges(html)
 
     def in_table(pos: int) -> bool:
         return any(s <= pos < e for s, e in tables)
@@ -412,14 +462,16 @@ def _segment_statement(html: str) -> list[dict]:
     ]
     for m in reversed(matches_in_tables):
         if m.group(2) is not None:
-            replacement = _inline_input_html(m.group(2).strip(), (m.group(3) or "").strip())
+            replacement = _inline_input_html(
+                m.group(2).strip(), (m.group(3) or "").strip(), _widget_attrs(m.group(0))
+            )
         else:  # group 12: inline radio choice (value=position, optional label)
             replacement = _inline_radio_html(
                 m.group(12).strip(), m.group(13).strip(), _html.unescape(m.group(14) or "")
             )
         html = html[: m.start()] + replacement + html[m.end():]
-    # Re-compute table ranges since byte offsets shifted.
-    tables = _table_ranges(html)
+    # Re-compute the ranges since byte offsets shifted.
+    tables = _unsplittable_ranges(html)
 
     segments: list[dict] = []
     last = 0
@@ -551,21 +603,25 @@ def _segment_statement(html: str) -> list[dict]:
             if alias:
                 name = f"reply{alias.group(1)}"
             size_raw = (m.group(3) or "").strip()
+            attrs = _widget_attrs(m.group(0))
             textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
             if textarea_m:
-                segments.append({
+                seg = {
                     "type": "textarea",
                     "name": name,
                     "rows": int(textarea_m.group(1)),
                     "cols": int(textarea_m.group(2)),
                     "is_sup": is_sup
-                })
+                }
             else:
                 try:
                     size = int(size_raw)
                 except (TypeError, ValueError):
                     size = 10
-                segments.append({"type": "input", "name": name, "size": size, "is_sup": is_sup})
+                seg = {"type": "input", "name": name, "size": size, "is_sup": is_sup}
+            if attrs:
+                seg["attrs"] = attrs
+            segments.append(seg)
         last = m.end()
     if last < len(html):
         segments.append({"type": "html", "content": html[last:]})

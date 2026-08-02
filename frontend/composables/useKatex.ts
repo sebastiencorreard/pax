@@ -221,7 +221,10 @@ export function useKatex() {
     // Remove spurious sign combinations produced by WIMS string concatenation
     expr = expr.replace(/\+-/g, '-').replace(/-\+/g, '-')
     // Strip a leading '+' that may appear when the first term is positive
-    expr = expr.replace(/^\s*\+\s*/, '')
+    // (`+5x` → `5x`). Exception : le `+` isolé suivi de `\phantom` est un
+    // OPÉRATEUR de séparation de termes (WIMS émet `\(\signe\phantom{ }\)` entre
+    // deux termes d'une somme, cf. factorisat) — le retirer le rend invisible.
+    expr = expr.replace(/^\s*\+\s*(?!\\phantom)/, '')
     expr = expr.replace(/\s*\*\s*(?=[a-zA-Z(])/g, '')
     expr = expr.replace(/\s*\*\s*/g, ' \\times ')
     expr = slashToFrac(expr)

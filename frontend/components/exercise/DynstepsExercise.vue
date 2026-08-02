@@ -14,6 +14,7 @@
       :radio-choices-html="radioChoicesHtml"
       :menu-choices-html="menuChoicesHtml"
       :has-clickfill="hasClickfill"
+      :single-use-fill="singleUseFill"
       :has-radio-answers="hasRadioAnswers"
       :submitted="submitted"
       :loading="checking"
@@ -33,8 +34,10 @@
       </div>
     </div>
 
-    <!-- Résultats Dynsteps -->
-    <div v-if="checkResult && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
+    <!-- Résultats Dynsteps — masqués tant qu'un avertissement de format réclame
+         une nouvelle saisie (ex. polexpand « réduisez votre réponse »), sinon le
+         bilan/score s'afficherait sous l'avertissement à la dernière étape. -->
+    <div v-if="checkResult && !checkResult.has_invalid_format && (stepFailed || (rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped)" class="px-6 pb-4">
       <!-- Bilan Global (à la fin ou arrêt course) -->
       <div v-if="(rendered.current_step || 0) >= (rendered.total_steps || 0) || courseStopped" class="space-y-3">
         <div class="rounded-lg px-4 py-3 border"
@@ -180,6 +183,11 @@ const currentStepFailedInputName = ref('')
 const hasClickfill = computed(() =>
   props.rendered?.answers.some(a => a.answer_type === 'clickfill') ?? false
 )
+// `dragfill` : étiquettes à usage unique. WIMS impose que tous les champs à
+// remplir d'un exercice soient du même type, d'où un drapeau global.
+const singleUseFill = computed(() =>
+  props.rendered?.answers.some(a => a.options?.single_use) ?? false
+)
 // `rendered.answers` is already filtered server-side to the current step's
 // active replies, so this is naturally correct per step.
 const hasRadioAnswers = computed(() =>
@@ -232,8 +240,8 @@ const allFilled = computed(() => {
   return answers.every(a => {
     const val = (replies.value[a.input_name] ?? '').trim()
     if (val !== '') return true
-    const opt = (a.options?.option || '').toLowerCase()
-    return opt.includes('default=vide')
+    // Champ non noté (brouillon type=draft, ou analyze optionnel) : vide autorisé.
+    return !!a.options?.ungraded
   })
 })
 

@@ -13,6 +13,31 @@
            @drop="handleCfSlotDrop"
            @keydown.enter.prevent="(e) => { if (!submitted && !loading && (e.target as HTMLElement)?.tagName !== 'TEXTAREA') emit('submit') }">
         <ExerciseStatementNodes :nodes="segmentTree" />
+
+        <!-- Radio answers, rendered inside the statement so the question frame
+             (.wims_question) englobes them. Laid out horizontally, wrapping to
+             the next line when there isn't room. -->
+        <div v-if="hasRadioAnswers" class="oef-answer-zone">
+          <div v-for="ans in rendered.answers" :key="ans.input_name">
+            <template v-if="ans.answer_type === 'radio' && ans.options.choices">
+              <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
+                {{ ans.label || $t('exercise.choose_answer') }}
+              </p>
+              <div class="flex flex-row flex-wrap items-stretch gap-2">
+                <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
+                       :class="radioClass(ans.input_name, choice.raw)"
+                       style="border-color:var(--color-border)">
+                  <input type="radio" :name="ans.input_name" :value="choice.raw"
+                         :checked="replies[ans.input_name] === choice.raw"
+                         @change="updateReply(ans.input_name, choice.raw)"
+                         :disabled="submitted" class="accent-blue-500" />
+                  <span v-html="choice.html"></span>
+                </label>
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -22,45 +47,25 @@
         {{ $t('exercise.drag_hint') }}
       </p>
       <div class="flex gap-2 flex-wrap">
-        <div v-for="choice in clickfillChoicesHtml" :key="choice.raw"
-             draggable="true"
-             @dragstart="e => { e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
+        <!-- Clé par rang : un dragfill garde ses doublons (deux étiquettes
+             identiques sont deux cartes distinctes). -->
+        <div v-for="(choice, ci) in clickfillChoicesHtml" :key="ci"
+             :draggable="!choiceUsed(ci)"
+             @dragstart="e => { if (choiceUsed(ci)) { e.preventDefault(); return } e.dataTransfer!.setData('text/plain', choice.raw); draggingChoice = choice.raw }"
              @dragend="draggingChoice = null"
-             @click="pendingChoice = (pendingChoice === choice.raw ? null : choice.raw)"
-             class="px-4 py-2 rounded-lg border font-medium transition cursor-grab select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-             :class="choice.raw === pendingChoice
-               ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
-               : 'hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'"
+             @click="() => { if (!choiceUsed(ci)) pendingChoice = (pendingChoice === choice.raw ? null : choice.raw) }"
+             class="px-4 py-2 rounded-lg border font-medium transition select-none text-blue-700 dark:text-blue-200 border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+             :class="choiceUsed(ci)
+               ? 'opacity-30 cursor-default'
+               : (choice.raw === pendingChoice
+                 ? 'cursor-grab ring-2 ring-blue-500 border-blue-500 bg-blue-100 dark:bg-blue-900/40'
+                 : 'cursor-grab hover:border-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30')"
              style="min-width:3rem;text-align:center"
              v-html="choice.html">
         </div>
       </div>
     </div>
 
-    <!-- Zone de réponse (pour les radio) -->
-    <div v-if="hasRadioAnswers" class="px-6 pb-4 space-y-2">
-      <div v-for="ans in rendered.answers" :key="ans.input_name">
-        <template v-if="ans.answer_type === 'radio' && ans.options.choices">
-          <p class="text-sm font-medium mb-2" style="color:var(--color-text-muted)">
-            {{ ans.label || $t('exercise.choose_answer') }}
-          </p>
-          <!-- Stacked vertically, one choice per row (WIMS layout). items-start
-               keeps each label at content width (not stretched full row). -->
-          <div class="flex flex-col items-start gap-2">
-            <label v-for="choice in (radioChoicesHtml[ans.input_name] ?? [])" :key="choice.raw"
-                   class="flex items-center gap-3 px-4 py-3 rounded-lg border cursor-pointer transition"
-                   :class="radioClass(ans.input_name, choice.raw)"
-                   style="border-color:var(--color-border)">
-              <input type="radio" :name="ans.input_name" :value="choice.raw"
-                     :checked="replies[ans.input_name] === choice.raw"
-                     @change="updateReply(ans.input_name, choice.raw)"
-                     :disabled="submitted" class="accent-blue-500" />
-              <span v-html="choice.html"></span>
-            </label>
-          </div>
-        </template>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -77,6 +82,10 @@ const props = defineProps<{
   radioChoicesHtml: Record<string, Array<{ raw: string; html: string }>>
   menuChoicesHtml: Record<string, Array<{ raw: string; html: string }>>
   hasClickfill: boolean
+  // `dragfill` : chaque étiquette ne se dépose qu'une fois (`anstype/dragfill`
+  // la retire de `fill_check` dès qu'elle est utilisée), là où un `clickfill`
+  // la laisse resservir.
+  singleUseFill: boolean
   hasRadioAnswers: boolean
   submitted: boolean
   loading: boolean
@@ -170,6 +179,30 @@ watch(() => props.replies, (r) => {
     }
   }
 }, { deep: true })
+
+// Nombre de cases occupées par chaque étiquette — sert à griser, dans un
+// dragfill, autant de cartes que d'exemplaires déjà posés.
+const placedCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {}
+  for (const vals of Object.values(cfSlots.value)) {
+    for (const v of vals) if (v) counts[v] = (counts[v] ?? 0) + 1
+  }
+  return counts
+})
+
+// La carte de rang `idx` est-elle consommée ? Les exemplaires d'une même
+// étiquette se consomment dans l'ordre : la carte est grisée si son rang parmi
+// ses homonymes est inférieur au nombre d'exemplaires posés.
+function choiceUsed(idx: number): boolean {
+  if (!props.singleUseFill) return false
+  const raw = props.clickfillChoicesHtml[idx]?.raw
+  if (!raw) return false
+  let rank = 0
+  for (let i = 0; i < idx; i++) {
+    if (props.clickfillChoicesHtml[i].raw === raw) rank++
+  }
+  return rank < (placedCounts.value[raw] ?? 0)
+}
 
 const pendingChoice = ref<string | null>(null)
 const draggingChoice = ref<string | null>(null)
@@ -393,9 +426,17 @@ function radioClass(inputName: string, choice: string) {
   return ''
 }
 
-// Focus automatique sur le premier input texte après chaque chargement
+// Focus automatique après chaque chargement : sur le champ que l'énoncé a
+// marqué `autofocus` (attribut hérité du paramètre de taille de `\embed`,
+// cf. anstype/inputcss.inc) s'il y en a un, sinon sur le premier champ texte.
+// L'attribut HTML seul ne suffit pas : posé sur un élément inséré après le
+// parsing du document, il ne donne pas le focus.
 watch(() => props.statementSegments, () => {
-  statementEl.value?.querySelector<HTMLInputElement>('input[type="text"]')?.focus()
+  const root = statementEl.value
+  if (!root) return
+  const el = root.querySelector<HTMLInputElement>('input[type="text"][autofocus]')
+    ?? root.querySelector<HTMLInputElement>('input[type="text"]')
+  el?.focus()
 }, { flush: 'post' })
 
 // Statement segments folded into a tree (layout groups wrap their children),
@@ -422,6 +463,16 @@ provide(PAX_STATEMENT_CTX, {
 </script>
 
 <style scoped>
+/* mathmlinput container with answer fields (cercle1 coordinates, intervals,
+   sets, systems, fractions): emitted as native MathML by the backend
+   (_mml_mathml). The browser stretches the <mo> fences / <mfrac> to the
+   content height; the answer <input>s live in <annotation-xml> cells. */
+:deep(math.oef-mathml) {
+  font-size: 1.05em;
+}
+:deep(math.oef-mathml mtable) {
+  rowspacing: 0.4ex;
+}
 :deep(.oef-mark-choice) {
   display: inline-block;
   padding: 2px 10px;
@@ -432,6 +483,9 @@ provide(PAX_STATEMENT_CTX, {
   transition: border-color 0.15s, background 0.15s;
   background: var(--color-bg, #fff);
   color: var(--color-text, #111);
+  /* Keep a choice on one line — KaTeX would otherwise break inline math at a
+     binary operator (`2,5 × 10^19` → `2,5 ×` / `10^19`) in a narrow cell. */
+  white-space: nowrap;
 }
 :deep(.oef-mark-choice:hover) {
   border-color: #3b82f6;

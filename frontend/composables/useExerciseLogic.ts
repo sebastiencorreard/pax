@@ -62,6 +62,9 @@ export interface BackendSegment {
   reply?: string
   image?: string
   svg?: string
+  // HTML attributes carried by the extra lines of an `\embed` size parameter
+  // (`\embed{reply 1,30 autofocus}`), allow-listed backend-side.
+  attrs?: Record<string, string | boolean>
 }
 
 export interface Chrono {
@@ -121,8 +124,8 @@ export interface CorrespondConfig {
 export type Segment =
   | { type: 'html';        content: string }
   | { type: 'slot';        name: string; is_sup?: boolean; index?: number; width?: number }
-  | { type: 'input';       name: string; width: string; is_sup?: boolean }
-  | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean }
+  | { type: 'input';       name: string; width: string; is_sup?: boolean; attrs?: Record<string, string | boolean> }
+  | { type: 'textarea';    name: string; rows: number; cols: number; is_sup?: boolean; attrs?: Record<string, string | boolean> }
   | { type: 'menu';        name: string; label: string; is_sup?: boolean }
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
@@ -166,9 +169,16 @@ const COMMA_DECIMAL_LANGS = new Set(['fr', 'nl'])
 // answer matching stays dotted (clickfill encodes slots comma-separated, so a
 // comma inside a value would corrupt both the separator and the comparison).
 function localizeChoiceDisplay(s: string, lang: string): string {
-  return COMMA_DECIMAL_LANGS.has((lang || 'fr').split('-')[0].toLowerCase())
-    ? s.replace(/(?<=\d)\.(?=\d)/g, ',')
-    : s
+  if (!COMMA_DECIMAL_LANGS.has((lang || 'fr').split('-')[0].toLowerCase())) return s
+  // Uniquement le texte affiché : jamais l'intérieur d'une balise. Un choix
+  // peut être une figure (`oefmolecule/lewis` propose des schémas de liaison
+  // en SVG incorporé), et franciser ses coordonnées transformait
+  // `points="20.00,33.33"` en `20,00,33,33` — quatre nombres au lieu de deux,
+  // donc une ligne brisée en zigzag à la place du trait.
+  return s
+    .split(/(<[^>]*>)/)
+    .map((part, i) => (i % 2 ? part : part.replace(/(?<=\d)\.(?=\d)/g, ',')))
+    .join('')
 }
 
 export function useExerciseLogic() {
@@ -178,7 +188,12 @@ export function useExerciseLogic() {
   // Rewrite backend-relative /api/static URLs so images load from the
   // backend (not the frontend dev server) without needing a proxy.
   function prefixStaticUrls(html: string): string {
-    return html.replaceAll(' src="/api/static/', ` src="${apiBase}/api/static/`)
+    // Le guillemet est facultatif : l'OEF écrit couramment `<img src=$val14>`
+    // sans en mettre (les drapeaux d'`oefcountries`, via `!rename`).
+    return html.replace(
+      /(\ssrc=)(["']?)\/api\/static\//g,
+      (_m, attr, quote) => `${attr}${quote}${apiBase}/api/static/`,
+    )
   }
 
   async function buildSegments(backendSegments: BackendSegment[]): Promise<Segment[]> {
@@ -188,15 +203,26 @@ export function useExerciseLogic() {
         out.push({ type: 'html', content: prefixStaticUrls(await renderMath(s.content ?? '', { autoDisplay: true })) })
       } else if (s.type === 'input') {
         const size = s.size ?? 0
-        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup })
+        out.push({ type: 'input', name: s.name ?? '', width: size > 0 ? `${size + 2}ch` : '10ch', is_sup: s.is_sup, attrs: s.attrs })
       } else if (s.type === 'textarea') {
-        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup })
+        out.push({ type: 'textarea', name: s.name ?? '', rows: s.rows ?? 5, cols: s.cols ?? 30, is_sup: s.is_sup, attrs: s.attrs })
       } else if (s.type === 'slot') {
         out.push({ type: 'slot', name: s.name ?? '', is_sup: s.is_sup, index: s.index, width: s.width })
       } else if (s.type === 'menu') {
         out.push({ type: 'menu', name: s.name ?? '', label: s.label ?? '', is_sup: s.is_sup })
       } else if (s.type === 'correspond' && s.config) {
-        out.push({ type: 'correspond', name: s.name ?? '', config: s.config as CorrespondConfig, is_sup: s.is_sup })
+        // Les colonnes d'un `correspond` sont du HTML rendu tel quel par le
+        // composant, donc hors du chemin des segments `html` : elles doivent
+        // être préfixées ici (les colonnes d'images d'`oefcountries`).
+        const cfg = s.config as CorrespondConfig
+        out.push({
+          type: 'correspond', name: s.name ?? '', is_sup: s.is_sup,
+          config: {
+            ...cfg,
+            lefts: cfg.lefts.map(prefixStaticUrls),
+            rights: cfg.rights.map(prefixStaticUrls),
+          },
+        })
       } else if (s.type === 'jsxgraph') {
         // The board JS is passed through untouched (NOT renderMath'd) — it
         // carries \(…\) labels that KaTeX would otherwise mangle.
@@ -256,6 +282,9 @@ export function useExerciseLogic() {
   const TEXT_ANSWER_TYPES = new Set([
     'radio', 'menu', 'checkbox', 'mark', 'correspond', 'clickfill',
     'atext', 'text', 'nocase', 'case', 'raw',
+    // `units`/`sigunits` answers ("7.7 m/s", "1.64e11 km^3") render verbatim —
+    // otherwise slashToFrac would turn a unit's "/" into a LaTeX fraction.
+    'units', 'unit', 'sigunits',
   ])
 
   async function renderValue(s: string, answerType?: string): Promise<string> {
@@ -295,12 +324,19 @@ export function useExerciseLogic() {
     // Multi-slot clickfill: every slot (reply1…replyN) carries the *same* pool,
     // so the palette is the de-duplicated union — one card per distinct label,
     // not N copies.
+    // Un `dragfill` (`options.single_use`) se compose au contraire par
+    // concaténation, sans `!listuniq` (cf. `anstype/dragfill.after`) : chaque
+    // étiquette ne servant qu'une fois, une réponse qui répète un même libellé
+    // — un anagramme dont une lettre revient — a besoin d'autant de cartes.
     const seenClickfill = new Set<string>()
     for (const ans of rendered.answers) {
       if (ans.answer_type === 'clickfill' && ans.options.choices?.length) {
+        const singleUse = !!ans.options.single_use
         for (const c of ans.options.choices) {
-          if (seenClickfill.has(c)) continue
-          seenClickfill.add(c)
+          if (!singleUse) {
+            if (seenClickfill.has(c)) continue
+            seenClickfill.add(c)
+          }
           clickfillChoicesHtml.push({ raw: c, html: await disp(c) })
         }
       }

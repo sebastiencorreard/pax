@@ -142,6 +142,10 @@ class _SlibMixin:
             self.ctx["slib_out"] = self._slib_data_random(proc_args)
             return
 
+        if path == "slib/commutesom":
+            self.ctx["slib_out"] = self._slib_commutesom(proc_args)
+            return
+
         if path == "slib/numeration/ecriturelettre":
             res = _ecriture_lettre(proc_args)
             if res is not None:
@@ -166,6 +170,67 @@ class _SlibMixin:
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _slib_commutesom(self, args: str) -> str:
+        """Built-in for ``slib/commutesom POLY,VAR``.
+
+        WIMS' commutesom returns *every* commutative ordering of a developed
+        polynomial's monomials (liste séparée par des virgules), forme réduite
+        canonique en tête. Deux usages :
+        - tolérance d'ordre pour un `litexp` : chaque ordre est une alternative
+          acceptée (et le flag `_commutesom_anyorder` marque l'answer `expand`) ;
+        - affichage direct d'un ordre précis via `!item N of` (oefremplacer2 :
+          E = forme développée, prise dans la liste).
+
+        WIMS le fait via ``coeff``/``hipow`` Maxima + une table ``commutesom.don``
+        que notre sous-moteur ne sait pas exécuter (ça fuyait en ``coeff(…)``
+        littéral). On génère ici la liste avec SymPy : monômes en degré
+        décroissant, puis toutes leurs permutations (bornées à 5 monômes pour
+        éviter l'explosion factorielle). Repli sur l'entrée si parsing impossible.
+        """
+        self.ctx["_commutesom_anyorder"] = "1"
+        poly_s = args.split(",")[0].strip()
+        if not poly_s:
+            return poly_s
+        try:
+            import itertools  # noqa: PLC0415
+            import sympy  # noqa: PLC0415
+            from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+                parse_expr,
+                standard_transformations,
+                implicit_multiplication_application,
+            )
+        except Exception:
+            return poly_s
+        try:
+            T = standard_transformations + (implicit_multiplication_application,)
+            expr = sympy.expand(
+                parse_expr(poly_s.replace("^", "**"), transformations=T)
+            )
+            # Monômes du polynôme développé, en degré décroissant (forme
+            # canonique « réduire »). On découpe la chaîne ordonnée par sstr
+            # (`order='lex'`) plutôt que via make_args (qui réordonne).
+            canon_str = sympy.sstr(expr, order="lex").replace("**", "^")
+            _raw = re.split(r"\s+([+-])\s+", canon_str)
+            term_strs = [_raw[0].strip()]
+            for _i in range(1, len(_raw), 2):
+                term_strs.append(("-" if _raw[_i] == "-" else "") + _raw[_i + 1].strip())
+            canonical = _join_terms(term_strs)
+            # WIMS commutesom renvoie TOUTES les permutations commutatives des
+            # monômes (liste séparée par des virgules) — certaines exercices
+            # l'utilisent directement (`!item N of`, oefremplacer2). Au-delà de
+            # 5 monômes la factorielle explose : on se limite alors à la forme
+            # canonique (le checker litexp reste tolérant à l'ordre via les
+            # alternatives et le flag `_commutesom_anyorder`).
+            if not (2 <= len(term_strs) <= 5):
+                return canonical
+            orderings = [_join_terms(list(p)) for p in itertools.permutations(term_strs)]
+            # Canonique en tête (litexp affiche `!item 1` comme réponse type).
+            seen = {canonical}
+            ordered = [canonical] + [o for o in orderings if not (o in seen or seen.add(o))]
+            return ",".join(ordered)
+        except Exception:
+            return poly_s
 
     def _slib_data_random(self, args: str) -> str:
         """Built-in for ``slib/data/random N,type,data`` — N random items of
@@ -371,6 +436,10 @@ class _SlibMixin:
             s = s[1:-1]
         elif s.startswith("[") and "],[" in s:
             s = s[1:-1].replace("],[", ";")
+        # `!values`/`!append item` joignent les lignes par des TABs ; pour un
+        # échantillon plat (données de la médiane), le TAB est un séparateur au
+        # même titre que la virgule (mediane5 : val21 accumulé par lignes).
+        s = s.replace("\t", ",")
 
         if ";" in s:
             v_str, w_str = s.split(";", 1)
@@ -448,27 +517,50 @@ class _SlibMixin:
         if_stack: list[int] = []
         i = 0
         n = len(lines)
+        # Un slib peut boucler via `!goto` (saut arrière) sans terminer si une
+        # valeur amont est cassée. On respecte le budget temps du rendu ici
+        # aussi (cet interpréteur ne passe pas par `_exec`).
+        import time as _time  # noqa: PLC0415
+        deadline = getattr(self, "_deadline", None)
         while i < n:
+            if deadline is not None and _time.monotonic() > deadline:
+                from . import _RenderBudgetExceeded  # noqa: PLC0415
+                raise _RenderBudgetExceeded()
             line = lines[i]
             stripped = line.strip()
-            if not stripped or stripped.startswith("#") or stripped.startswith(":"):
+            # `!!` ouvre un commentaire WIMS (et `!!!!` un bandeau de version en
+            # tête de slib). Sans ce filtre, chaque ligne de commentaire partait
+            # dans le dispatch de commandes et en revenait avec `UNKNOWN_CMD:!`,
+            # qui écrasait `slib_out` — `slib/function/tabsignes` ne renvoyait
+            # que `UNKNOWN_CMD:!!!`, son en-tête de version.
+            if (
+                not stripped
+                or stripped.startswith("#")
+                or stripped.startswith("!!")
+                or stripped.startswith(":")
+            ):
                 i += 1
                 continue
-            if stripped.startswith("!if "):
-                cond = stripped[len("!if ") :]
-                taken = self._eval_condition("if", cond)
+            # `!ifval` (comparaison numérique) ouvre un bloc comme `!if` : il DOIT
+            # compter dans la profondeur, sinon un `!ifval` interne fait matcher
+            # le mauvais `!else`/`!endif` (slib/stat/effectif : la branche else
+            # sautait ses premières lignes → comptes faux).
+            if stripped.startswith("!if ") or stripped.startswith("!ifval "):
+                kind = "ifval" if stripped.startswith("!ifval ") else "if"
+                cond = stripped[len("!ifval ") if kind == "ifval" else len("!if "):]
+                taken = self._eval_condition(kind, cond)
                 depth = 1
                 j = i + 1
                 else_at = -1
                 while j < n and depth > 0:
                     s = lines[j].strip()
-                    if s.startswith("!if "):
+                    if s.startswith("!if ") or s.startswith("!ifval "):
                         depth += 1
-                    elif s == "!endif":
+                    elif re.match(r"!endif\b", s):
                         depth -= 1
                         if depth == 0:
                             break
-                    elif s == "!else" and depth == 1:
+                    elif re.match(r"!else\b", s) and depth == 1:
                         else_at = j
                     j += 1
                 if depth != 0:
@@ -479,13 +571,17 @@ class _SlibMixin:
                 else:
                     i = (else_at + 1) if else_at != -1 else j
                 continue
-            if stripped == "!else":
+            # `!endif`/`!else` peuvent porter une annotation (`!endif weight` dans
+            # slib/stat/variance) — un mot après le mot-clé, ignoré par WIMS. On
+            # matche donc sur `\b` et non par égalité stricte, sinon le bloc
+            # n'est pas fermé et l'appariement `!if/!else/!endif` se décale.
+            if re.match(r"!else\b", stripped):
                 if if_stack:
                     i = if_stack[-1]
                     continue
                 i += 1
                 continue
-            if stripped == "!endif":
+            if re.match(r"!endif\b", stripped):
                 if if_stack:
                     if_stack.pop()
                 i += 1
@@ -561,9 +657,23 @@ class _SlibMixin:
             if stripped.startswith("!"):
                 cmd_line = stripped[1:].strip()
                 cmd, _, cargs = cmd_line.partition(" ")
-                # Command results in slib are either used for side effects
-                # or stored in slib_out.
-                self.ctx["slib_out"] = self._eval_cmd(cmd.lower(), cargs)
+                # `!readproc` imbriqué (un slib en appelle un autre, ex.
+                # stat/freq → stat/dataproc) : router vers _cmd_readproc, sinon
+                # le sous-script ne s'exécute pas et ses sorties restent vides.
+                if cmd.lower() == "readproc":
+                    self._cmd_readproc(cargs)
+                else:
+                    # Command results in slib are either used for side effects
+                    # or stored in slib_out — mais seulement quand il y a un
+                    # résultat. Une commande sans valeur de retour (`!reset`,
+                    # `!set`…) ne doit pas effacer ce que le script a déjà
+                    # produit : `slib/function/tabsignes` assemble son tableau
+                    # dans `slib_out`, puis termine par le `!reset` de ses
+                    # variables de travail — qui renvoyait `""` et emportait le
+                    # tableau avec lui.
+                    result = self._eval_cmd(cmd.lower(), cargs)
+                    if result:
+                        self.ctx["slib_out"] = result
             else:
                 # Assign: key=value. The key may be dynamically named
                 # (`slib_code$jj=…`), so allow `$`/`()`/`[]` and expand it.
@@ -648,15 +758,31 @@ def _fr_cardinal(n: int) -> str:
     return "-".join(parts)
 
 
+def _join_terms(term_strs: list[str]) -> str:
+    """Joint des monômes signés en une somme : premier terme tel quel, les
+    suivants préfixés de `+` sauf s'ils commencent déjà par `-`."""
+    if not term_strs:
+        return ""
+    out = term_strs[0]
+    for t in term_strs[1:]:
+        out += t if t.lstrip().startswith("-") else "+" + t
+    return out
+
+
 def _split_top_level_commas(s: str) -> list[str]:
-    """Split on commas that are not inside [...] brackets."""
+    """Split on commas that are not inside (...), [...] or {...} brackets.
+
+    Les trois types comptent : les listes WIMS protègent aussi bien
+    `(a,b),(c,d)` (groupes parenthésés d'equaitions2) que `[a,b],[c,d]`
+    (données de slib/stat). Fermetures bornées à 0 pour rester robuste sur des
+    parenthèses déséquilibrées (expressions mathématiques)."""
     out: list[str] = []
     depth = 0
     cur: list[str] = []
     for ch in s:
-        if ch == "[":
+        if ch in "([{":
             depth += 1
-        elif ch == "]":
+        elif ch in ")]}":
             depth = max(0, depth - 1)
         if ch == "," and depth == 0:
             out.append("".join(cur))

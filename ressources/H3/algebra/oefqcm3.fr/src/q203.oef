@@ -37,12 +37,15 @@
 %%Choix de l'angle
 \text{types_angle=aigu,obtus}
 \text{type_angle=types_angle[randint(2)]}
-%%#%%#%%Dessin triangle
+%%%%%%%%Dessin triangle
+%Tailles côtés
 \integer{b=randint(5..8)}
 \integer{c=randint(3..7)}
-%% \integer{rotation=randint(0..30)-15}
+%%
+\integer{rotation=randint(0..30)-15}
 \integer{rotation=0}
 \real{t=\rotation*pi/180}
+%% Points A(0,0), B(b,0), C(0,c) transformés par la rotation
 \real{xA=0*cos(\t)-0*sin(\t)}
 \real{yA=0*sin(\t)+0*cos(\t)}
 \real{xB=\b*cos(\t)-0*sin(\t)}
@@ -50,11 +53,14 @@
 \real{xC=0*cos(\t)-\c*sin(\t)}
 \real{yC=0*sin(\t)+\c*cos(\t)}
 %%Codage de l'angle droit
+%% Vecteurs unitaires sur AB et AC
 \real{uABx=(\xB-\xA)/\b}
 \real{uABy=(\yB-\yA)/\b}
 \real{uACx=(\xC-\xA)/\c}
 \real{uACy=(\yC-\yA)/\c}
+%%Taille codage
 \real{d=0.6}
+%%Points du petit carré pour le codage
 \real{D1x=\xA+\d*\uABx}
 \real{D1y=\yA+\d*\uABy}
 \real{D2x=\D1x+\d*\uACx}
@@ -67,6 +73,7 @@
 \real{dyBA=\yA-\yB}
 \real{dxBC=\xC-\xB}
 \real{dyBC=\yC-\yB}
+%%%% angle BA
 \if{\dxBA!=0}{
   \real{thetaBA=atan(\dyBA/\dxBA)*180/pi}
   \if{\dxBA<0}{\real{thetaBA=\thetaBA+180}}
@@ -74,6 +81,7 @@
   \if{\dyBA>0}{\real{thetaBA=90}}
   \if{\dyBA<0}{\real{thetaBA=-90}}
 }
+%%%% angle BC
 \if{\dxBC!=0}{
   \real{thetaBC=atan(\dyBC/\dxBC)*180/pi}
   \if{\dxBC<0}{\real{thetaBC=\thetaBC+180}}
@@ -81,6 +89,7 @@
   \if{\dyBC>0}{\real{thetaBC=90}}
   \if{\dyBC<0}{\real{thetaBC=-90}}
 }
+%%%% Rangés dans l'ordre croissant
 \real{thetaBmin=min(\thetaBA,\thetaBC)}
 \real{thetaBmax=max(\thetaBA,\thetaBC)}
 \if{\thetaBmax-\thetaBmin>180}{
@@ -89,10 +98,12 @@
 \real{thetaBmin=\theta_temp}
 }
 \text{angle_B=arc \xB,\yB,\diam,\diam,\thetaBmin,\thetaBmax,red}
+%%%% arguments des vecteurs CA et CB
 \real{dxCA=\xA-\xC}
 \real{dyCA=\yA-\yC}
 \real{dxCB=\xB-\xC}
 \real{dyCB=\yB-\yC}
+%%%% angle du vecteur CA
 \if{\dxCA!=0}{
   \real{thetaCA=atan(\dyCA/\dxCA)*180/pi}
   \if{\dxCA<0}{\real{thetaCA=\thetaCA+180}}
@@ -100,6 +111,7 @@
   \if{\dyCA>0}{\real{thetaCA=90}}
   \if{\dyCA<0}{\real{thetaCA=-90}}
 }
+%%%% angle du vecteur CB
 \if{\dxCB!=0}{
   \real{thetaCB=atan(\dyCB/\dxCB)*180/pi}
   \if{\dxCB<0}{\real{thetaCB=\thetaCB+180}}
@@ -107,6 +119,7 @@
   \if{\dyCB>0}{\real{thetaCB=90}}
   \if{\dyCB<0}{\real{thetaCB=-90}}
 }
+%%%% Rangés dans l'ordre croissant
 \real{thetaCmin=min(\thetaCA,\thetaCB)}
 \real{thetaCmax=max(\thetaCA,\thetaCB)}
 \if{\thetaCmax-\thetaCmin>180}{
@@ -117,6 +130,7 @@
 \text{angle_C=arc \xC,\yC,\diam,\diam,\thetaCmin,\thetaCmax,red}
 \integer{size=randint(20..30)}
 %% Placement des noms des sommets
+%%%% Barycentre
 \real{Gx=(\xA+\xB+\xC)/3}
 \real{Gy=(\yA+\yB+\yC)/3}
 \real{d_label=0.6}
@@ -154,23 +168,21 @@
 \text{dela=\dela[\n_fonction]}
 %% Tirage angle
 \text{angles=\B,\C}
-\integer{n_angle=randint(1..2)}
+\integer{n_angle=randomitem(1,2)}
 \real{angleB=atan(\c/\b)*180/pi}
 \real{angleC=atan(\b/\c)*180/pi}
 \integer{angleBi=round(\angleB/5)*5}
 \integer{angleCi=round(\angleC/5)*5}
 \text{angle=\angles[\n_angle]}
-\text{angle2=\angle issametext \B?\C:\B}
-\if{n_angle=1}
-{
+\text{angle2=\angle issametext \B ?\C:\B}
+\if{\n_angle=1}{
   \integer{valangle=\angleBi}
   \integer{valangle2=\angleCi}
   \text{color_B=black}
   \text{color_C=red}
   \text{lib_angle_B=\valangle°}
   \text{lib_angle_C=?}
-}
-{
+}{
   \integer{valangle=\angleCi}
   \integer{valangle2=\angleBi}
   \text{color_B=red}
@@ -264,8 +276,7 @@ linewidth 2
 \text{cote1=le côté opposé}
 \text{cote2=son côté adjacent}
 }
-\text{enonce=
-Dans le triangle \(\triangle\)&#44; rectangle en \(\A\)&#44; on sait que \(\widehat{\angle}\) = \valangle°. Calculer \(\widehat{\angle2}\).
+\text{enonce=Dans le triangle \(\triangle\)&#44; rectangle en \(\A\)&#44; on sait que \(\widehat{\angle}\) = \valangle°. Calculer \(\widehat{\angle2}\).
 <div class="wimscenter"><img src="\dessin_triangle" alt=""></div>
 }
 \text{enonceb=°}
@@ -284,10 +295,10 @@ Dans le triangle \(\triangle\)&#44; rectangle en \(\A\)&#44; on sait que \(\wide
 \statement{<div class="wims_instruction">\instruction</div>
 <div class="wims_question">
   \enonce
- <br><label for="reply1"> Réponse&nbsp;&#58;</label> \embed{r1,10
+ <br>Réponse&nbsp;: \embed{r1,10
  autofocus}
   \enonceb
 </div>}
-\answer{}{\rep}{type=\typerep}{option=nolegend noanalyzeprint }
+\answer{}{\rep}{type=\typerep}{option=nolegend noanalyzeprint \comma}
 \feedback{(\sc_reply1<1) and (\feedback!=)}{
   <div class="feedmutu">\feedback</div>}

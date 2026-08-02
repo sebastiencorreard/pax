@@ -79,6 +79,9 @@ _MATH_NS: dict = {
     "sign": lambda x: 1 if x > 0 else -1 if x < 0 else 0,
     "gcd": math.gcd,
     "lcm": _lcm,
+    # WIMS écrit parfois ces fonctions en majuscules dans `$[…]` (cf. GCD).
+    "GCD": math.gcd,
+    "LCM": _lcm,
 }
 
 
@@ -129,10 +132,27 @@ def _sympify_arg(s: str):
     
     transformations = standard_transformations + (implicit_multiplication_application,)
     # WIMS spells π as `Pi` (capital); map it to the constant so it isn't parsed
-    # as a free symbol (sympy already knows lowercase `pi`/`E`).
+    # as a free symbol (sympy already knows lowercase `pi`/`E`). Idem pour les
+    # fonctions WIMS écrites en majuscules (`GCD`/`LCM`/`Mod`) que sympy ne
+    # connaît qu'en minuscules — sinon elles fuient en littéral dans l'attendu
+    # (redfrac : `rint(GCD(720,1320);)` non évalué).
+    # `coeff(e,v,n)` (coefficient de v^n) et `hipow(e,v)` (degré) : fonctions
+    # maxima que sympy ne connaît pas. Fournies ici pour qu'elles s'évaluent même
+    # imbriquées dans une expression composée (`coeff(P,b,2)*(b^2)` de
+    # developper.def) — sinon la fonction fuit en littéral dans l'attendu.
+    def _coeff(e, v, n):
+        return e.coeff(v, int(n))
+
+    def _hipow(e, v):
+        return sympy.degree(e, v)
+
     return parse_expr(
         s.replace("^", "**"), transformations=transformations,
-        local_dict={"Pi": sympy.pi},
+        local_dict={
+            "Pi": sympy.pi,
+            "GCD": sympy.gcd, "LCM": sympy.lcm, "Mod": sympy.Mod,
+            "coeff": _coeff, "hipow": _hipow,
+        },
     )
 
 
@@ -477,8 +497,21 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
 # ── PARI helpers ─────────────────────────────────────────────────────────────
 
 
-def _pari_concat(*args) -> str:
-    return "".join(str(a) for a in args)
+def _pari_concat(*args):
+    """PARI `concat` : concaténation de **vecteurs**, en aplatissant d'un
+    niveau — `concat(5,1)` vaut `[5,1]` et non la chaîne `"51"`. Tous les
+    usages du corpus sont des accumulations de listes (`xl=concat(xl,xi)`).
+    Le repli textuel ne sert que si un argument est déjà une chaîne.
+    """
+    if any(isinstance(a, str) for a in args):
+        return "".join(str(a) for a in args)
+    items: list = []
+    for arg in args:
+        if isinstance(arg, (list, tuple)):
+            items.extend(arg)
+        else:
+            items.append(arg)
+    return items
 
 
 def _pari_expand(p):
@@ -815,13 +848,16 @@ _INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d?|\w)")
 _VEC_LITERAL_RE = re.compile(r"(?<![\w\])])\[([^\[\]]+)\]")
 
 
-def _call_pari(expr: str) -> str:
+def _call_pari(expr: str, session: dict | None = None) -> str:
     """Evaluate a PARI/GP-style expression via Python.
 
     Unknown identifiers are auto-bound to SymPy symbols, so polynomial
     expressions like ``polcoeff(x^2 + 3*x + 2, 1)`` evaluate symbolically.
     Integer literals are wrapped as ``sympy.Integer`` so ``3/4`` becomes the
     Rational 3/4 rather than the float 0.75.
+
+    ``session`` porte les variables du mini-interpréteur entre deux ``!exec
+    pari`` du même exercice (WIMS pilote un unique processus ``gp``).
     """
     import sympy  # noqa: PLC0415
     from sympy.parsing.sympy_parser import (
@@ -829,6 +865,25 @@ def _call_pari(expr: str) -> str:
         parse_expr,
         standard_transformations,
     )
+
+    from .pari_prog import (  # noqa: PLC0415
+        PariProgramError,
+        looks_like_program,
+        run_pari_program,
+    )
+
+    # Programme impératif (affectations, `for`, `print` multiples) : le mini-
+    # interpréteur l'exécute. Une session non vide y route aussi les expressions
+    # simples, qui peuvent lire les variables posées par un `!exec pari`
+    # antérieur (`print(l)` après `l=vector(n);…`). Hors périmètre → on retombe
+    # sur l'évaluation d'expression ci-dessous.
+    if looks_like_program(expr) or session:
+        try:
+            return run_pari_program(
+                expr, {**_MATH_NS, **_PARI_HELPERS}, session=session
+            )
+        except PariProgramError:
+            pass
 
     clean = expr.strip().rstrip(";").strip()
     m = re.match(r"^print\s*\((.+)\)$", clean, re.DOTALL)

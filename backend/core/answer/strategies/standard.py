@@ -10,6 +10,10 @@ def pretty_expected(expected: str, answer_type: str) -> str:
     """Retourne la correction sous forme lisible, en préservant la forme
     voulue par l'auteur : développée si l'expected était développé,
     factorisée sinon."""
+    if answer_type.lower() == "sigunits":
+        # "164200792894 km^3 #3" → "1.64e11 km^3" (scientific, N sig figs, no #N).
+        from core.answer.checkers import format_sigunits_expected
+        return format_sigunits_expected(expected)
     if answer_type.lower() == "case":
         # Drop WIMS' internal `[Alt:[Apick:…]]` alternative encoding (1024) and
         # show only the human-readable main answer (e.g. `5^2*2*7`).

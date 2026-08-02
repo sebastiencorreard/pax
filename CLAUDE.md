@@ -86,6 +86,58 @@ npm run build
 npm run lint
 ```
 
+## Dependencies
+
+### Applying an upgrade — rebuild, never restart
+
+A `restart` reuses the container's own packages. Both stacks hide a stale
+install in a way that makes a verification look green when it tested nothing:
+
+```bash
+# Backend — after editing backend/requirements.txt
+docker compose build backend && docker compose up -d backend
+docker compose exec -T backend pytest tests/ -q
+```
+`pip install -r requirements.txt` inside a live container keeps whatever is
+already installed, so a dependency that is *used but not declared* stays
+invisible. That is how `email-validator` — pulled implicitly by FastAPI 0.111,
+no longer by 0.141 — only surfaced on a full image rebuild, as an ImportError
+on the `auth` router at startup.
+
+```bash
+# Frontend
+cd frontend && npm install <pkg>@<version> && cd ..
+docker compose build frontend
+docker compose down frontend && docker compose up -d frontend   # `restart` is NOT enough
+```
+`/app/node_modules` is an **anonymous volume** (`docker-compose.override.yml`),
+so a `restart` keeps the image's original packages and host-side `npm install`
+never reaches the running app. Only `down` drops the volume.
+
+For a non-trivial upgrade, add the corpus regression (backend) and
+`cd frontend && npx playwright test`. The e2e suite currently yields **17
+pre-existing failures** — it describes an `/exercise` page that has since been
+replaced — so judge the *delta*, not the total. Its accounts (`eleve@pax.fr` /
+`eleve1234`, `prof@pax.fr` / `prof1234`) must exist in the DB.
+
+### Automated checks
+
+`.github/dependabot.yml` (weekly PRs) and `.github/workflows/dependencies.yml`
+(`pip-audit` + `npm audit`) — **both inert until `.github/` reaches the default
+branch**: Dependabot reads its config there, and scheduled workflows only run
+from it. Same check locally, GitHub-free: `./scripts/check-deps.sh [backend|frontend]`,
+exit 1 on a blocking advisory.
+
+Backend minor/patch updates are **grouped into one PR** on purpose: FastAPI pins
+starlette and pydantic follows FastAPI, so split PRs could never be green.
+`nuxt` / `pinia` / `@vueuse` majors are ignored — migrations, not upgrades.
+
+`PYSEC-2026-1325` (`ecdsa`, Minerva timing attack on P-256) is ignored in both,
+with its rationale: upstream considers side channels out of scope, so it will
+never close, and it is unreachable while JWTs are HS256 (`config.py:algorithm`,
+`core/security.py` restricting `algorithms` on decode). **Re-enable it if the
+project ever moves to ES256.**
+
 ## Exercise ID System
 
 Exercise primary keys are **path slugs** — the `oef_path` with the leading `/` stripped, all `/` replaced by `~`, the redundant leading `ressources~` component dropped (everything lives under `/ressources/`), and the trailing `.oef` extension dropped:
@@ -163,6 +215,7 @@ In-depth references and dev guides:
 - [`def-engine-commands.md`](docs/def-engine-commands.md) — WIMS `!cmd` reference
 - [`def-engine-cas-functions.md`](docs/def-engine-cas-functions.md) — Maxima / Pari → Python mapping
 - [`def-engine-workflow.md`](docs/def-engine-workflow.md) — dev workflow when adding new `.def` files
+- [`refactor-item-splitting.md`](docs/refactor-item-splitting.md) — WIMS list-splitting ground truth (C source) + refactoring program; read before touching any item/row/list splitting
 - [`slib.md`](docs/slib.md) — shared library scripts (`!readproc slib/…`)
 - [`types-exercices-reponses.md`](docs/types-exercices-reponses.md) — catalogue of exercise + answer types
 - [`exercises-course.md`](docs/exercises-course.md) — deep dive on `course` (sequential) exercises

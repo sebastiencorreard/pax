@@ -706,6 +706,12 @@ def _cmd_parallel(state: _State, args: list[str]) -> None:
     n = int(_num(args[6]))
     if n <= 0:
         return
+    # Garde-fou : au-delà de la résolution de l'image, les lignes parallèles se
+    # superposent en aplat — inutile de les tracer. Sans plafond, une donnée
+    # corrompue en amont (ex. `slib/stat/freq` cassé gonfle `s_ymax` à 230000,
+    # cf. mediane5) fait dessiner des centaines de milliers de lignes et bloque
+    # le rendu plusieurs secondes. On borne au nombre de pixels + une marge.
+    n = min(n, max(state.width, state.height) + 100)
     color = _color(args[7]) if len(args) > 7 else "#000000"
     for i in range(n):
         ox, oy = i * dx, i * dy
@@ -2134,29 +2140,6 @@ _FIG_BOUNDARY_RE = re.compile(
     r'<br\s*/?>|</?(?:p|div|h[1-6]|li|ul|ol|table|tr|td|th|section|article|header|footer|figure)\b[^>]*>',
     re.IGNORECASE,
 )
-
-
-_WIMS_INSTRUCTION_RE = re.compile(
-    r'<div\s+class="wims_instruction"[^>]*>.*?</div>',
-    re.IGNORECASE | re.DOTALL,
-)
-
-
-def hoist_wims_instruction(html: str) -> str:
-    """Move ``<div class="wims_instruction">…</div>`` to the very top of the
-    rendered statement.
-
-    OEF templates split into two camps: single-question exos place the
-    instruction div BEFORE wims_question (quizz/0320, 0306, …), but
-    course/step exos like course03_2step put it AFTER the question — which
-    reads badly (a "calculatrice interdite" warning at the *bottom* is
-    useless). Hoisting it unconditionally fixes both at once and matches
-    what WIMS' page chrome does for its instruction zone.
-    """
-    m = _WIMS_INSTRUCTION_RE.search(html)
-    if not m:
-        return html
-    return m.group(0) + html[:m.start()] + html[m.end():]
 
 
 def group_inline_figures(html: str) -> str:
