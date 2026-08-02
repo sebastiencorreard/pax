@@ -7,6 +7,13 @@ laissaient le nombre de réponses intact et n'ont changé que leur *valeur*.
 On capture donc, par exercice et par graine : l'attendu, la palette, le type
 et une empreinte de l'énoncé.
 
+Une empreinte d'énoncé, en revanche, ne dit **pas ce qui a changé** : un
+tableau JSXGraph évanoui et une virgule déplacée donnent le même hash
+différent. On capture donc aussi la **structure** du rendu — le nombre de
+segments par type et l'appariement `group-open`/`group-close` —, ce qui met
+au jour la disparition d'un widget et le HTML déséquilibré, les deux angles
+morts que seuls des tests unitaires avaient vus jusqu'ici.
+
     python3 scripts/corpus_state.py avant.json           # capture
     python3 scripts/corpus_state.py avant.json apres.json  # comparaison
 
@@ -14,6 +21,7 @@ Les graines sont celles des exercices sentinelles de
 `docs/refactor-item-splitting.md`.
 """
 
+import collections
 import glob
 import hashlib
 import json
@@ -26,6 +34,34 @@ from core.oef.def_engine import load_and_render  # noqa: E402
 
 SEEDS = (42, 1135432845, 586627288)
 ROOT = "/ressources"
+
+
+def _structure(segments) -> tuple[str, str]:
+    """(segments par type, verdict d'appariement) d'un rendu.
+
+    Le déséquilibre se lit sur la profondeur des groupes de mise en page :
+    une fermeture de trop (profondeur négative) tronque la mise en page côté
+    front, un ouvrant non refermé (profondeur finale > 0) avale la suite de
+    l'énoncé. Les deux sont invisibles au hash — il change, sans dire pourquoi.
+    """
+    counts = collections.Counter(s.get("type", "?") for s in segments or [])
+    par_type = " ".join(f"{t}={n}" for t, n in sorted(counts.items()))
+
+    depth = 0
+    min_depth = 0
+    for seg in segments or []:
+        if seg.get("type") == "group-open":
+            depth += 1
+        elif seg.get("type") == "group-close":
+            depth -= 1
+            min_depth = min(min_depth, depth)
+    if min_depth < 0:
+        verdict = f"fermeture-orpheline({min_depth})"
+    elif depth > 0:
+        verdict = f"ouvrant-non-fermé(+{depth})"
+    else:
+        verdict = "équilibré"
+    return par_type, verdict
 
 
 def capture() -> dict:
@@ -41,11 +77,14 @@ def capture() -> dict:
             except Exception as exc:  # noqa: BLE001
                 state[f"{rel}@{seed}"] = {"erreur": type(exc).__name__}
                 continue
+            segments, groupes = _structure(r.statement_segments)
             state[f"{rel}@{seed}"] = {
                 "enonce": hashlib.sha1(
                     (r.statement_html or "").encode("utf-8")
                 ).hexdigest()[:12],
                 "vide": not (r.statement_html or "").strip(),
+                "segments": segments,
+                "groupes": groupes,
                 "reponses": {
                     a.input_name: {
                         "type": a.answer_type,
@@ -66,11 +105,24 @@ def _flatten(state: dict) -> dict[str, str]:
             out[f"{key}|ERREUR"] = ex["erreur"]
             continue
         out[f"{key}|enonce"] = ex["enonce"]
+        # Absents d'une capture antérieure à l'ajout de la structure : on ne
+        # les invente pas, sinon tout le corpus ressort en « apparues ».
+        for champ in ("segments", "groupes"):
+            if champ in ex:
+                out[f"{key}|{champ}"] = ex[champ]
         for name, a in ex["reponses"].items():
             out[f"{key}|{name}|type"] = a["type"]
             out[f"{key}|{name}|attendu"] = a["attendu"]
             out[f"{key}|{name}|palette"] = "\x1f".join(a["palette"])
     return out
+
+
+def _seg_counts(dump: str) -> dict[str, int]:
+    counts = {}
+    for part in dump.split():
+        typ, _, n = part.partition("=")
+        counts[typ] = int(n)
+    return counts
 
 
 def compare(before: dict, after: dict) -> int:
@@ -79,21 +131,49 @@ def compare(before: dict, after: dict) -> int:
     disparues, apparues = sorted(ka - kb), sorted(kb - ka)
     modifiees = sorted(k for k in ka & kb if a[k] != b[k])
 
+    structurelles = [k for k in modifiees if k.endswith(("|segments", "|groupes"))]
+    modifiees = [k for k in modifiees if k not in set(structurelles)]
+
     # Une valeur qui se vide est le signal le plus sûr d'une régression.
     vidées = [k for k in modifiees if a[k].strip() and not b[k].strip()]
     remplies = [k for k in modifiees if not a[k].strip() and b[k].strip()]
 
+    # Un segment en moins, c'est un widget évanoui : un tableau JSXGraph, un
+    # champ de saisie. Le hash d'énoncé le signale sans le nommer.
+    perdus = []
+    for k in structurelles:
+        if not k.endswith("|segments"):
+            continue
+        av, ap = _seg_counts(a[k]), _seg_counts(b[k])
+        manques = [f"{t} {av[t]}→{ap.get(t, 0)}" for t in sorted(av)
+                   if ap.get(t, 0) < av[t]]
+        if manques:
+            perdus.append((k, ", ".join(manques)))
+
+    déséquilibrés = [k for k in structurelles if k.endswith("|groupes")
+                     and b[k] != "équilibré"]
+
     print(f"disparues {len(disparues)} | apparues {len(apparues)} "
           f"| modifiées {len(modifiees)}")
     print(f"  dont vidées {len(vidées)} | remplies {len(remplies)}")
+    print(f"structure : {len(structurelles)} changements "
+          f"| segments perdus {len(perdus)} | groupes déséquilibrés "
+          f"{len(déséquilibrés)}")
     for k in vidées[:25]:
         print(f"   VIDÉE  {k}  |  {a[k][:60]!r}")
     for k in disparues[:15]:
         print(f"   PERDUE {k}  |  {a[k][:60]!r}")
+    for k, manques in perdus[:25]:
+        print(f"   SEGMENT {k}  |  {manques}")
+    for k in déséquilibrés[:15]:
+        print(f"   GROUPES {k}  |  {a[k]} -> {b[k]}")
+    for k in structurelles[:10]:
+        if k.endswith("|segments") and not any(k == p for p, _ in perdus):
+            print(f"   s      {k}\n            {a[k][:70]!r}\n         -> {b[k][:70]!r}")
     for k in modifiees[:15]:
         if k not in vidées:
             print(f"   ~      {k}\n            {a[k][:70]!r}\n         -> {b[k][:70]!r}")
-    return 1 if (vidées or disparues) else 0
+    return 1 if (vidées or disparues or perdus or déséquilibrés) else 0
 
 
 def main() -> int:
@@ -103,8 +183,11 @@ def main() -> int:
             json.dump(state, f)
         erreurs = sum(1 for v in state.values() if "erreur" in v)
         vides = sum(1 for v in state.values() if v.get("vide"))
+        bancals = sum(1 for v in state.values()
+                      if v.get("groupes") not in (None, "équilibré"))
         print(f"capturé {len(state)} rendus ({len(SEEDS)} graines) "
-              f"| erreurs {erreurs} | énoncés vides {vides} -> {sys.argv[1]}")
+              f"| erreurs {erreurs} | énoncés vides {vides} "
+              f"| groupes déséquilibrés {bancals} -> {sys.argv[1]}")
         return 0
     if len(sys.argv) == 3:
         with open(sys.argv[1]) as f:
