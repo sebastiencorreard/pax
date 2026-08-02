@@ -504,6 +504,24 @@ class DefEngine(_SlibMixin):
         html = re.sub(r"<ul[^>]*>\s*</ul>", "", html)
         answers = self._extract_answers(df)
 
+        # Les figures d'une palette ou d'un attendu sont incorporées comme
+        # celles de l'énoncé. Le marqueur `<img src="/api/render/svg/…">` est
+        # une forme *interne*, choisie pour survivre aux découpages de listes
+        # WIMS ; il ne peut pas sortir tel quel, car le cache SVG vit en
+        # mémoire du backend et un rendu resservi par Redis le laisse sans
+        # image (`oefmolecule/lewis` affichait 10 étiquettes vides). Palette et
+        # attendu sont traités **ensemble** : ce sont deux chaînes comparées
+        # l'une à l'autre, les incorporer d'un seul côté casserait la notation.
+        for a in answers:
+            if a.expected and "/api/render/svg/" in a.expected:
+                a.expected = inline_svg_imgs(a.expected)
+            choices = a.options.get("choices")
+            if choices:
+                a.options["choices"] = [
+                    inline_svg_imgs(c) if "/api/render/svg/" in c else c
+                    for c in choices
+                ]
+
         # If the question text has no input/slot widget but the exercise
         # declares replies, append a default input for each so the frontend
         # has somewhere to type the answer (matches WIMS' fallback behaviour).
