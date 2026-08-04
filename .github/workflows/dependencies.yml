@@ -208,15 +208,16 @@ jobs:
           docker compose exec -T backend python scripts/create_user.py \
             --email prof@pax.fr --first-name Prof --role teacher --password prof1234
 
-      # `test_exercises_check.py` et `test_exercises_render.py` sont écartés :
-      # ils appellent `psql`, absent de l'image, et convertissent l'identifiant
-      # d'exercice en entier — obsolète depuis le passage aux slugs. Ils ne se
-      # collectent pas, ici pas plus qu'en local ; à réparer à part.
       - name: Lancer la suite
-        run: |
-          docker compose exec -T backend pytest tests/ -q \
-            --ignore=tests/test_exercises_check.py \
-            --ignore=tests/test_exercises_render.py
+        run: docker compose exec -T backend pytest tests/ -q
+
+      # Ces deux modules parcourent les 4278 exercices du corpus : la bonne
+      # réponse est-elle acceptée, une fausse rejetée, le HTML est-il sain ?
+      # Ils portent le marqueur `slow`, écarté par défaut (`pytest.ini`), d'où
+      # ce second passage. Le corpus est lu sur le disque : ni base ni import
+      # préalable, contrairement à la suite ci-dessus.
+      - name: Lancer les tests de corpus
+        run: docker compose exec -T backend pytest tests/ -m slow -q
 
       - name: Journaux du backend en cas d'échec
         if: failure()

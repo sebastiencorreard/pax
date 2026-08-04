@@ -9,13 +9,19 @@ import os
 import re
 import sys
 import pytest
-from tests.known_failures import XFAIL_CORRECT_SCORE
+from tests import corpus
+from tests.known_failures import XFAIL_CORRECT_SCORE, XFAIL_WRONG_SCORE
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from core.oef.engine import load_and_render
 from core.answer.checkers import check_answer
 
 SEED = 42
+
+# Parcourir les 4278 exercices demande une dizaine de minutes : ces tests ne
+# sont pas de ceux qu'on lance à chaque sauvegarde. `PAX_TEST_CORPUS` restreint
+# le parcours (cf. `tests/corpus.py`).
+pytestmark = pytest.mark.slow
 
 
 # ------------------------------------------------------------------ #
@@ -71,16 +77,7 @@ def _expected_is_resolved(expected: str) -> bool:
 
 
 def _get_testable_exercises():
-    import subprocess
-    out = subprocess.check_output(
-        ['psql', '-U', 'pax', '-h', 'localhost', 'pax', '-t', '-A', '-F', '|||',
-         '-c', 'SELECT id, oef_path FROM exercises ORDER BY id'],
-        env={**os.environ, 'PGPASSWORD': 'brougne99'}
-    ).decode()
-    rows = [(int(a), b.strip())
-            for line in out.strip().split('\n')
-            if line
-            for a, b in [line.split('|||')]]
+    rows = corpus.exercises()
 
     testable = []
     for ex_id, path in rows:
@@ -112,13 +109,19 @@ def get_testable():
 
 
 def pytest_generate_tests(metafunc):
-    if 'exercise' in metafunc.fixturenames:
-        testable = get_testable()
-        metafunc.parametrize(
-            'exercise',
-            testable,
-            ids=[f"ex{ex_id}" for ex_id, _ in testable],
-        )
+    if 'exercise' not in metafunc.fixturenames:
+        return
+    # Énumérer le corpus rend les 4278 exercices : inutile de payer ces minutes
+    # à la collecte quand `-m "not slow"` va de toute façon les écarter.
+    if "not slow" in (metafunc.config.getoption("markexpr") or ""):
+        metafunc.parametrize('exercise', [])
+        return
+    testable = get_testable()
+    metafunc.parametrize(
+        'exercise',
+        testable,
+        ids=[ex_id for ex_id, _ in testable],
+    )
 
 
 # ------------------------------------------------------------------ #
@@ -129,17 +132,19 @@ def test_correct_answer_scores_1(exercise):
     """Soumettre la bonne réponse donne score=1."""
     ex_id, path = exercise
     if ex_id in XFAIL_CORRECT_SCORE:
-        pytest.xfail(f"ex.{ex_id}: bug préexistant dans l'évaluation de 'expected'")
+        pytest.xfail(f"{ex_id}: la bonne réponse ne donne pas 1 (bug préexistant)")
     render = load_and_render(path, seed=SEED)
     correct_replies = {a.input_name: a.expected for a in render.answers}
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
-        f"ex.{ex_id}: score={score} avec la bonne réponse {correct_replies}"
+        f"{ex_id}: score={score} avec la bonne réponse {correct_replies}"
 
 
 def test_wrong_answer_scores_less_than_1(exercise):
     """Soumettre une réponse fausse donne score<1."""
     ex_id, path = exercise
+    if ex_id in XFAIL_WRONG_SCORE:
+        pytest.xfail(f"{ex_id}: une réponse fausse est acceptée (bug préexistant)")
     render = load_and_render(path, seed=SEED)
     # Ne prend que le premier champ pour le rendre faux
     wrong_replies = {}
@@ -150,4 +155,4 @@ def test_wrong_answer_scores_less_than_1(exercise):
             wrong_replies[a.input_name] = a.expected
     score = _check_all(render, wrong_replies)
     assert score < 1.0, \
-        f"ex.{ex_id}: score={score} même avec une réponse fausse {wrong_replies}"
+        f"{ex_id}: score={score} même avec une réponse fausse {wrong_replies}"
