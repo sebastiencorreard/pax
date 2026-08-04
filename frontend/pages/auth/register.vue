@@ -64,7 +64,7 @@
         <button type="submit" :disabled="regLoading || !!regSuccess"
                 class="w-full py-2.5 rounded-lg font-medium transition disabled:opacity-60"
                 style="background:var(--color-primary);color:#fff">
-          {{ regLoading ? '…' : $t('register.submit') }}
+          {{ regLoading ? 'â€¦' : $t('register.submit') }}
         </button>
       </form>
 
@@ -129,7 +129,7 @@ async function register() {
   } catch (e: any) {
     const detail = e?.data?.detail
     if (Array.isArray(detail)) {
-      regError.value = detail.map((d: any) => d.msg).join(' — ')
+      regError.value = detail.map((d: any) => d.msg).join(' â€” ')
     } else {
       regError.value = detail || String(e)
     }
