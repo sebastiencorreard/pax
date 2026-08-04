@@ -7,7 +7,12 @@ uvicorn[standard]==0.52.1
 python-multipart==0.0.32
 
 # Base de données
-sqlalchemy==2.0.30
+# 2.0.30 ne survit pas à python 3.13+ : son `FastIntFlag` ramasse
+# `__firstlineno__`, attribut de classe apparu en 3.13, et le prend pour un
+# symbole canonique — l'import de l'application s'arrête sur un TypeError avant
+# même d'atteindre le premier routeur. Première version à publier une wheel
+# `cp314` : 2.0.45.
+sqlalchemy==2.0.51
 alembic==1.13.1
 # Les deux pilotes ne publient de wheel `cp314` qu'à partir de ces versions
 # (asyncpg 0.31, psycopg2-binary 2.9.11). En dessous, pip retombe sur une
