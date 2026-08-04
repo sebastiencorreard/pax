@@ -73,6 +73,8 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 - [ ] Flydraw : manquent `levelcurve`, `affine`, `copyresized`, `plotjump`/`plotstep`, `filltoborder`, `diamondfill`/`dotfill`, `rays` — 0 usage corpus → différé
 - [x] Corriger `docs/types-exercices-reponses.md:82` : `symbols=` n'est pas « variables autorisées de formal » mais une option d'UI transverse (palette de boutons insérant au caret, cf. `wims/.../anstype/symbols.inc`) — 0 usage corpus, l'implémentation reste à faire côté front si le besoin apparaît
 
+- [ ] **Facteur 1 explicite dans les produits rendus en LaTeX** : PAX construit des `Mul(1, …, evaluate=False)`, que sympy imprimait `1 \cdot \frac{1}{x}` en 1.12 et imprime `1 \frac{1}{x}` depuis 1.14 — soit, pour un élève, un nombre mixte (« 1 et 1/x »). Le `\cdot` ne corrigeait rien, il rendait le défaut supportable : **ce facteur 1 n'a pas lieu d'être**, et c'est à la construction de l'expression qu'il faut le supprimer, pas à l'affichage. Repéré en mesurant la montée sympy 1.12 → 1.14 (PR #41) : 25 des 178 rendus modifiés sur 12 897 en viennent, dont `oefordrevabs.fr/deducencad2`, `OEFevalwimsfctref.fr/assocgr1` et `OEFevalwimsfnctg.fr/chforme5` (où il touche une palette de QCM). Le point de construction reste à localiser — vraisemblablement côté `cas.py`/`_sympify_arg`, là où un coefficient est appliqué à une expression déjà formée.
+
 Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`/`\while`, alias `r1`/`reply1`/`rep1`, `\feedback` + `sc_reply`/`m_reply`, bonnes réponses multiples, `case` avec `|`, `correspond`+`split`, virgule décimale, `\hint`/`\help`/`\solution`, `\css`.
 
 # II. Fonctionnalités PAX
