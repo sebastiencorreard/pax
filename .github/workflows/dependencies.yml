@@ -6,14 +6,20 @@ name: Dépendances
 # dépendance transitive n'a pas de PR Dependabot dédiée.
 on:
   schedule:
-    # Lundi 06:00 UTC, avant les PR de Dependabot.
+    # Lundi 06:00 UTC. Dependabot ouvre ses PR à 06:00 Europe/Brussels, soit
+    # 04:00 UTC l'été : ce passage arrive donc après elles, et de toute façon
+    # GitHub décale les tâches planifiées de plusieurs heures quand ses files
+    # sont chargées. Aucun ordre n'est garanti, et aucun n'est nécessaire — les
+    # deux contrôles sont indépendants.
     - cron: "0 6 * * 1"
   workflow_dispatch:
   pull_request:
     paths:
       - backend/requirements.txt
+      - backend/Dockerfile
       - frontend/package.json
       - frontend/package-lock.json
+      - frontend/Dockerfile
       - .github/workflows/dependencies.yml
 
 permissions:
@@ -96,3 +102,34 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           npm outdated >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  # Les deux audits ci-dessus ne regardent que des fichiers de dépendances : une
+  # montée d'image de base passait donc sans le moindre contrôle. C'est ce job
+  # qui répond à « est-ce que ça construit encore, et est-ce que ça démarre ? ».
+  images:
+    name: Images — construction
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Construire l'image backend
+        run: docker build -t pax-backend-ci backend
+
+      # Construire ne prouve rien côté Python : `pip install` réussit sans que
+      # le moindre module applicatif ne soit importé. Le chargement de `main`
+      # traverse les cinq routeurs et donc l'essentiel des dépendances — c'est
+      # ainsi qu'un `email-validator` manquant s'était trahi. `SECRET_KEY` est
+      # le seul réglage sans valeur par défaut, et `config.py` en exige 32
+      # caractères : on en tire une au hasard, elle ne sert qu'à cet import.
+      - name: Vérifier que l'application se charge
+        run: |
+          docker run --rm --entrypoint python \
+            -e SECRET_KEY="$(openssl rand -hex 32)" \
+            pax-backend-ci -c "import main"
+
+      # L'étage `prod` va jusqu'à `nuxt build`, seul endroit où le code source
+      # passe entre les mains de rolldown — nettement plus strict que le serveur
+      # de développement, au point qu'un fichier non-UTF-8 a pu casser la
+      # production sans que le mode dev ne montre quoi que ce soit.
+      - name: Construire l'image frontend, bundle de production compris
+        run: docker build --target prod -t pax-frontend-ci frontend
