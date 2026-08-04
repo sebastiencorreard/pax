@@ -248,9 +248,17 @@ class TestRender:
         r = client.get("/api/render/does~not~exist", headers=student_headers)
         assert r.status_code == 404
 
-    def test_render_debug_returns_expected_answers(self, client, student_headers):
+    def test_render_debug_rejects_students(self, client, student_headers):
+        # La route est réservée aux enseignants/admins, et répond 404 plutôt
+        # que 403 pour ne pas signaler son existence (cf. render.py:171).
         r = client.get(
             f"/api/render/{EXERCISE_ID}/debug?seed={SEED}", headers=student_headers
+        )
+        assert r.status_code == 404
+
+    def test_render_debug_returns_expected_answers(self, client, teacher_headers):
+        r = client.get(
+            f"/api/render/{EXERCISE_ID}/debug?seed={SEED}", headers=teacher_headers
         )
         assert r.status_code == 200
         body = r.json()
@@ -263,10 +271,10 @@ class TestRender:
         assert "answer_type" in answer
 
     def test_render_debug_correct_answer_matches_expected(
-        self, client, student_headers
+        self, client, teacher_headers
     ):
         r = client.get(
-            f"/api/render/{EXERCISE_ID}/debug?seed={SEED}", headers=student_headers
+            f"/api/render/{EXERCISE_ID}/debug?seed={SEED}", headers=teacher_headers
         )
         expected = r.json()["answers"][0]["expected"]
         assert expected == CORRECT_REPLY
