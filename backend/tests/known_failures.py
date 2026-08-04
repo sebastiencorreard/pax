@@ -110,8 +110,7 @@ XFAIL_CORRECT_SCORE = {
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
-XFAIL_WRONG_SCORE = {
-    'H3~math~quizz.fr~src~0619',
-    'H4~algebra~contribution.fr~src~lebrun4',
-    'H4~geometry~evalwimssections.fr~src~airecoeff5',
-}
+XFAIL_WRONG_SCORE: set[str] = set()
+# Vide : les trois exercices qui y figuraient acceptaient une réponse « fausse »
+# de 999 supérieure à la bonne — sous la tolérance relative de `\precision`, donc
+# à bon droit. C'est le générateur du test qui a été corrigé, pas le moteur.

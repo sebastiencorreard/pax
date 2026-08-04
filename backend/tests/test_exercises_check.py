@@ -103,10 +103,21 @@ def _check_all(render, replies: dict) -> float:
 
 
 def _wrong_answer(expected: str) -> str:
-    """Génère une réponse clairement fausse à partir de la bonne."""
+    r"""Génère une réponse franchement fausse à partir de la bonne.
+
+    L'ancienne version ajoutait 999. Or `\precision{M}` définit une tolérance
+    **relative** — `compare.c` : `|d1-d2|*prec <= |d1+d2| + 1/prec` — de sorte
+    qu'à 7 035 000 près, la tolérance vaut 1407 et l'écart de 999 tombait
+    *dedans*. Trois exercices semblaient accepter une réponse fausse ; ils
+    appliquaient la règle de WIMS à la lettre.
+
+    `3n + 7` place la réponse hors tolérance quelle que soit la grandeur, et
+    n'a pas de point fixe entier — `2n + 1` en avait un, `-1`, qui faisait
+    passer la réponse « fausse » pour la bonne dans 18 exercices.
+    """
     try:
         n = float(expected.replace(',', '.'))
-        return str(int(n) + 999)
+        return str(int(n) * 3 + 7)
     except (ValueError, AttributeError):
         return "__FAUX__"
 
