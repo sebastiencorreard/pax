@@ -69,7 +69,16 @@ Run tests:
 ```bash
 cd backend && pytest                         # all tests
 cd backend && pytest tests/path/to_test.py  # single file
+cd backend && pytest -m slow                 # corpus sweep (4278 exercises)
+cd backend && PAX_TEST_CORPUS=H4/algebra pytest -m slow   # one subtree
 ```
+
+`test_exercises_check` and `test_exercises_render` walk the whole corpus, so
+they carry the `slow` marker and `pytest.ini` excludes them by default —
+otherwise every run would render 4278 exercises. They read the corpus **off
+disk** (`tests/corpus.py`), needing neither a database nor a prior import.
+Known-failing exercises live in `tests/known_failures.py`, keyed by **slug**;
+rebuild those lists from a real run after fixing a bug.
 
 Database migrations:
 ```bash
