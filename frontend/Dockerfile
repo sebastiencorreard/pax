@@ -4,13 +4,15 @@
 # selects `dev`; `docker-compose.prod.yml` selects `prod`.
 
 # ── deps ──────────────────────────────────────────────────────────────────────
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci || npm install
+# Pas de repli `|| npm install` : il masquerait un lock désynchronisé et
+# construirait l'image sur un arbre non verrouillé, sans rien signaler.
+RUN npm ci
 
 # ── dev: hot-reload server ────────────────────────────────────────────────────
-FROM node:22-alpine AS dev
+FROM node:24-alpine AS dev
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -19,7 +21,7 @@ ENV NODE_ENV=development
 CMD ["npx", "nuxt", "dev", "--port", "3000", "--host", "0.0.0.0"]
 
 # ── builder: produces .output/ for prod ───────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -27,7 +29,7 @@ ENV NODE_ENV=production
 RUN npx nuxt build
 
 # ── prod: runs the built server, no devtools, no source code ──────────────────
-FROM node:22-alpine AS prod
+FROM node:24-alpine AS prod
 WORKDIR /app
 COPY --from=builder /app/.output ./.output
 EXPOSE 3000
