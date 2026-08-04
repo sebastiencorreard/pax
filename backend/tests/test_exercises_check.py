@@ -28,6 +28,54 @@ pytestmark = pytest.mark.slow
 # Helpers
 # ------------------------------------------------------------------ #
 
+# Types dont la virgule fait partie de la réponse — un ensemble solution
+# `-6/5,-9/8`, des coordonnées, une suite d'étiquettes. Partout ailleurs elle
+# sépare des écritures acceptables, comme le `|`.
+_TYPES_LISTE = {
+    "fset", "set", "coord", "clickfill", "dragfill", "correspond", "imagefill",
+    "range", "matrix", "atext",
+}
+
+
+def _candidats(ans):
+    """Réponses recevables tirées d'`expected`.
+
+    WIMS y range souvent plusieurs écritures équivalentes — `parallèle|parallèles`,
+    `-9*x^2+144,144-9*x^2`. C'est un catalogue de possibilités, pas une réponse :
+    le soumettre en bloc est refusé, et à juste titre. Vérifié à la main sur les
+    trois formes (voir `fset` en regard, où la virgule appartient à la réponse).
+    """
+    brut = ans.expected or ""
+    yield brut
+    if "|" in brut:
+        for part in brut.split("|"):
+            yield part.strip()
+    if "," in brut and ans.answer_type not in _TYPES_LISTE:
+        for part in brut.split(","):
+            yield part.strip()
+
+
+def _meilleure_reponse(ans) -> str:
+    """La formulation d'`expected` qui obtient le meilleur score pour ce champ.
+
+    Le test demande « une bonne réponse est-elle acceptée ? ». La valeur entière
+    est essayée d'abord : quand elle convient, c'est elle qui est retenue.
+    """
+    meilleure, meilleur_score = ans.expected or "", -1.0
+    for candidat in _candidats(ans):
+        res = check_answer(
+            answer_type=ans.answer_type,
+            reply=candidat,
+            expected=ans.expected,
+            options=ans.options,
+        )
+        if res.score > meilleur_score:
+            meilleure, meilleur_score = candidat, res.score
+        if meilleur_score >= 1.0:
+            break
+    return meilleure
+
+
 def _check_all(render, replies: dict) -> float:
     """Évalue toutes les réponses et retourne le score global."""
     if render.condition:
@@ -36,6 +84,11 @@ def _check_all(render, replies: dict) -> float:
     total_weight = 0.0
     weighted_score = 0.0
     for ans in render.answers:
+        # Un champ sans réponse attendue n'est pas noté — brouillon, `type=draft`
+        # ou `default=vide`. Le faire peser tirait le score global vers le bas
+        # quoi qu'on soumette, et 78 exercices échouaient pour cette seule raison.
+        if not (ans.expected or "").strip():
+            continue
         reply_value = replies.get(ans.input_name, "").strip()
         result = check_answer(
             answer_type=ans.answer_type,
@@ -134,7 +187,9 @@ def test_correct_answer_scores_1(exercise):
     if ex_id in XFAIL_CORRECT_SCORE:
         pytest.xfail(f"{ex_id}: la bonne réponse ne donne pas 1 (bug préexistant)")
     render = load_and_render(path, seed=SEED)
-    correct_replies = {a.input_name: a.expected for a in render.answers}
+    correct_replies = {a.input_name: _meilleure_reponse(a) for a in render.answers}
+    if not any(v.strip() for v in correct_replies.values()):
+        pytest.skip("aucun champ noté (réponses attendues toutes vides)")
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
         f"{ex_id}: score={score} avec la bonne réponse {correct_replies}"
@@ -146,13 +201,17 @@ def test_wrong_answer_scores_less_than_1(exercise):
     if ex_id in XFAIL_WRONG_SCORE:
         pytest.xfail(f"{ex_id}: une réponse fausse est acceptée (bug préexistant)")
     render = load_and_render(path, seed=SEED)
-    # Ne prend que le premier champ pour le rendre faux
+    # Fausser le premier champ **noté** : un champ sans réponse attendue est
+    # ignoré à l'évaluation, le fausser ne prouverait rien.
+    notes = [a for a in render.answers if (a.expected or "").strip()]
+    if not notes:
+        pytest.skip("aucun champ noté (réponses attendues toutes vides)")
     wrong_replies = {}
-    for i, a in enumerate(render.answers):
+    for i, a in enumerate(notes):
         if i == 0:
             wrong_replies[a.input_name] = _wrong_answer(a.expected)
         else:
-            wrong_replies[a.input_name] = a.expected
+            wrong_replies[a.input_name] = _meilleure_reponse(a)
     score = _check_all(render, wrong_replies)
     assert score < 1.0, \
         f"{ex_id}: score={score} même avec une réponse fausse {wrong_replies}"
