@@ -149,7 +149,14 @@ jobs:
       # `/app` (les tests sont exclus de l'image par le `.dockerignore`), pose
       # `SECRET_KEY` et `PAX_DEBUG=1`. On ne démarre pas le frontend, dont la
       # compilation n'apprendrait rien ici — `images` s'en charge déjà.
+      # Importer les 4278 exercices demande une vingtaine de minutes sur un
+      # runner — mesuré : 3600 au bout de quinze. On se limite donc à deux
+      # domaines de H4 (944 exercices), ce qui couvre tout ce que la suite
+      # interroge : l'exercice témoin de `test_api.py` est un H4/algebra, et
+      # les filtres portent sur ce niveau et ces domaines.
       - name: Démarrer la pile
+        env:
+          IMPORT_ARGS: "--level H4 --domains algebra,analysis"
         run: docker compose up -d db redis backend
 
       # `entrypoint.sh` migre puis importe le corpus avant de servir : l'attente
@@ -170,10 +177,10 @@ jobs:
       - name: Attendre la fin de l'import du corpus
         run: |
           prev=-1
-          for _ in $(seq 1 90); do
+          for _ in $(seq 1 60); do
             n=$(docker compose exec -T db psql -U pax pax -tAc \
                   "select count(*) from exercises" | tr -d '[:space:]')
-            if [ "$n" = "$prev" ] && [ "${n:-0}" -gt 4000 ]; then
+            if [ "$n" = "$prev" ] && [ "${n:-0}" -gt 800 ]; then
               echo "corpus importé : $n exercices"; exit 0
             fi
             prev=$n; sleep 10
