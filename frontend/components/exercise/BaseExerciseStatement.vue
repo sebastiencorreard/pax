@@ -217,13 +217,31 @@ function inputClass(name: string) {
 
 // ── Mark choice (replytype=mark) — event delegation + DOM state sync ─────────
 
+// `mark` est une sélection **multiple** : le script WIMS (`anstype/mark.input`)
+// bascule chaque étiquette par un XOR (`replist[k-1]^=1`), puis reconstruit la
+// réponse en parcourant les rangs dans l'ordre — `vv=vv+','+repval[i]`. Un
+// énoncé comme « Cochez les pays limitrophes de l'Allemagne » en attend neuf ;
+// nous n'en gardions qu'un, chaque clic effaçant le précédent.
+function markPositions(value: string | undefined): string[] {
+  return (value ?? '').split(',').map(p => p.trim()).filter(Boolean)
+}
+
 function handleMarkClick(event: MouseEvent) {
   if (props.submitted) return
   const target = (event.target as Element)?.closest('.oef-mark-choice')
   if (!target) return
   const name = target.getAttribute('name')
   const pos = target.getAttribute('data-pos')
-  if (name && pos) updateReply(name, pos)
+  if (!name || !pos) return
+  const current = markPositions(props.replies[name])
+  const next = current.includes(pos)
+    ? current.filter(p => p !== pos)
+    : [...current, pos]
+  // WIMS relit `replist` de gauche à droite : les rangs sortent triés par
+  // position, pas par ordre de clic — et l'attendu qu'ils affrontent l'est
+  // aussi (`!positionof` parcourt la liste dans l'ordre).
+  next.sort((a, b) => Number(a) - Number(b))
+  updateReply(name, next.join(','))
 }
 
 function syncMarkChoices() {
@@ -232,7 +250,7 @@ function syncMarkChoices() {
   el.querySelectorAll<HTMLElement>('.oef-mark-choice').forEach(span => {
     const name = span.getAttribute('name') ?? ''
     const pos = span.getAttribute('data-pos') ?? ''
-    const selected = props.replies[name] === pos
+    const selected = markPositions(props.replies[name]).includes(pos)
     span.classList.toggle('mark-selected', selected && !props.submitted)
     span.classList.remove('mark-correct', 'mark-incorrect')
     if (props.submitted && props.checkResult) {
