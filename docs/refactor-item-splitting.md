@@ -339,6 +339,25 @@ Restent ouverts, hors périmètre du découpage :
   crochets protégeant tout, la liste n'a qu'un item et son `!positionof` ne
   trouve rien : la palette sort vide (elle sortait auparavant en trois
   fragments d'expression coupée, tout aussi inutilisables).
+- **Des types de réponse retombent sur une comparaison de texte** — le repli
+  de `check_answer` (tracé par `[ANSWER-FALLBACK]`) accepte tout type inconnu
+  et le compare littéralement. Inventaire du 2026-08-05, une fois `range`
+  traité et `analyze` mis de côté (il a sa propre stratégie) :
+
+  | type | rendus | exercices |
+  |---|---|---|
+  | `runcode` | 297 | 99 |
+  | `equation` | 90 | 29 |
+  | `vector` | 93 | 23 |
+  | `click` | 63 | 21 |
+  | `js2wims1` | 39 | 12 |
+
+  **Le repli ne se voit pas** : il rend `correct` dès que la saisie égale
+  l'attendu au caractère près, ce qui suffit à passer `test_correct_answer_scores_1`
+  — le test soumet justement l'attendu. C'est ainsi que `range` a paru vert
+  pendant tout le refactoring. Les checkers WIMS sont dans
+  `wims/…/scripts/anstype/<type>` (sans extension ; le `.input` voisin n'est
+  que l'affichage).
 - **`unknownword` n'est pas rendu** — le checker `atext` distingue trois
   issues, nous deux. Quand la réponse ne correspond pas, il regarde si chacun
   de ses mots figure dans `good` ou dans les `badwords` ; s'il en trouve un
