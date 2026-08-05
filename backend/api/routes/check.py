@@ -186,6 +186,18 @@ async def check_exercise(
             if r.input_name in _atext_names and r.expected:
                 r.expected = atext_display_answer(r.expected)
 
+    # ── range : le corrigé montre une valeur, pas les bornes ─────────────────
+    # `anstype/range` affiche le milieu du premier intervalle (ou ses deux
+    # bornes s'il est ouvert) : « 0,5 » plutôt que le « 0.6,0.4 » stocké, que
+    # l'élève lirait comme deux réponses.
+    _range_names = {a.input_name for a in rendered.answers if a.answer_type == "range"}
+    if _range_names:
+        from core.answer.checkers import range_display_answer  # noqa: PLC0415
+        comma = uses_comma_decimal(rendered.lang)
+        for r in results:
+            if r.input_name in _range_names and r.expected:
+                r.expected = range_display_answer(r.expected, comma)
+
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)
 

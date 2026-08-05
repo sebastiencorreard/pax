@@ -585,6 +585,122 @@ def format_sigunits_expected(expected: str) -> str:
     return f"{mant_exp} {unit}".strip()
 
 
+def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
+    """La valeur affichée en corrigé pour un `range` — le `replyGood` de WIMS.
+
+    `anstype/range` la pose sur la **première** paire de bornes : le milieu de
+    l'intervalle quand il est borné, les deux bornes telles quelles s'il y a un
+    `inf`. Un `replygood` de longueur **impaire** l'emporte : son dernier item
+    est alors la réponse à afficher.
+
+        !if $t=1
+          !if inf notin $g1$g2
+            replyGood$i=$[($G1+($G2))/2]
+          !else
+            replyGood$i=$g1,$g2
+          !endif
+        !endif
+        …
+        !if $[$gcnt%2]=1
+          replyGood$i=$(replygood$i[-1])
+        !endif
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+    from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+
+    items = [x.strip() for x in cutitems(expected or "") if x.strip()]
+
+    # La convention locale vit aux frontières, et l'affichage en est une : le
+    # front ne convertit pas un point en virgule (`useKatex.decimalComma` ne
+    # fait qu'emballer une virgule déjà là), c'est au backend de l'émettre.
+    sep = ";" if comma_is_decimal else ","
+
+    def _loc(s: str) -> str:
+        return s.replace(".", ",") if comma_is_decimal else s
+
+    if len(items) % 2 == 1:
+        return _loc(items[-1])
+    if len(items) < 2:
+        return ""
+
+    g1, g2 = items[0], items[1]
+    if "inf" in g1.lower() or "inf" in g2.lower():
+        return f"{_loc(g1)}{sep}{_loc(g2)}"
+    try:
+        a = _parse_number(g1, comma_is_decimal)
+        b = _parse_number(g2, comma_is_decimal)
+    except (ValueError, ZeroDivisionError, SyntaxError, TypeError):
+        return f"{_loc(g1)}{sep}{_loc(g2)}"
+    return _loc(format_wims_float((a + b) / 2))
+
+
+def check_range(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type WIMS `range` : la réponse doit tomber **dans** un intervalle.
+
+    `replygood` est une liste d'items de longueur paire, lue par paires de
+    bornes (`anstype/range`) :
+
+        gcnt=!itemcnt $(replygood$i)
+        !if $gcnt<2 … Text=bad …
+        gcnt2=$[floor($gcnt/2)]
+        !for t=1 to $gcnt2
+          g1=$(replygood$i[2*$t-1]) ; g2=$(replygood$i[2*$t])
+          !if inf notin $g1$g2 and $G1>$G2 … !exchange G1,G2
+          !if (inf isin $G1 or $G1<=$test) and (inf isin $G2 or $G2>=$test)
+            diag=yes
+
+    Les bornes sont donc **rangées dans l'ordre où elles viennent** — un
+    `0.6,0.4` est l'intervalle [0.4 ; 0.6] —, plusieurs paires forment une
+    union, et `inf` ouvre le côté correspondant. Un item surnuméraire (compte
+    impair) n'est pas une borne : il ne sert qu'à l'affichage du corrigé.
+
+    PAX repliait sur une comparaison de texte : `0.5` face à `0.6,0.4` était
+    refusé, et `3` face à `3,3` aussi.
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+    from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+
+    def _wims_double(x: float) -> float:
+        """La valeur telle que WIMS la manipule : 12 chiffres significatifs.
+
+        Une borne est un `$[…]` — donc évaluée **puis imprimée** avant d'être
+        comparée. Sans ce passage, `2.59+0.01` reste `2.5999999999999996` et
+        rejette la borne haute `2.6` de `descriptives/ecarttype2`.
+        """
+        try:
+            return float(format_wims_float(x))
+        except (ValueError, OverflowError):
+            return x
+
+    try:
+        test = _wims_double(_parse_number(reply.strip(), comma_is_decimal))
+    except (ValueError, ZeroDivisionError, SyntaxError, TypeError):
+        return CheckResult(correct=False, score=0.0, method="range")
+    if test != test or test in (float("inf"), float("-inf")):  # NaN / Inf
+        return CheckResult(correct=False, score=0.0, method="range")
+
+    items = [x.strip() for x in cutitems(expected or "") if x.strip()]
+    if len(items) < 2:
+        # `!if $gcnt<2 … Text=bad` — un `replygood` inexploitable.
+        return CheckResult(correct=False, score=0.0, method="range")
+
+    for i in range(len(items) // 2):
+        g1, g2 = items[2 * i], items[2 * i + 1]
+        lo_inf, hi_inf = "inf" in g1.lower(), "inf" in g2.lower()
+        try:
+            lo = None if lo_inf else _wims_double(_parse_number(g1, comma_is_decimal))
+            hi = None if hi_inf else _wims_double(_parse_number(g2, comma_is_decimal))
+        except (ValueError, ZeroDivisionError, SyntaxError, TypeError):
+            continue  # borne non évaluable : `!goto badgood` côté WIMS
+        if lo is not None and hi is not None and lo > hi:
+            lo, hi = hi, lo
+        if (lo is None or lo <= test) and (hi is None or hi >= test):
+            return CheckResult(correct=True, score=1.0, method="range")
+    return CheckResult(correct=False, score=0.0, method="range")
+
+
 def check_sigunits(
     reply: str, expected: str, comma_is_decimal: bool = True
 ) -> CheckResult:
@@ -1682,6 +1798,8 @@ def check_answer(
             return check_unit(reply, expected, precision, comma_is_decimal)
         case "sigunits":
             return check_sigunits(reply, expected, comma_is_decimal)
+        case "range":
+            return check_range(reply, expected, comma_is_decimal)
         case "litexp":
             # Plain litexp = comparaison littérale (forme conforme). Avec une
             # option de forme (expand/polfactor), WIMS vérifie plutôt que la

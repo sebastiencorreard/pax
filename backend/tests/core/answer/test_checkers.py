@@ -532,3 +532,89 @@ class TestAtextDisplayAnswer:
     def test_empty_stays_empty(self):
         from core.answer.checkers import atext_display_answer
         assert atext_display_answer("") == ""
+
+
+class TestCheckRange:
+    """`range` : la réponse doit tomber dans un intervalle, pas l'égaler.
+
+    `anstype/range` lit `replygood` par **paires de bornes** :
+
+        gcnt=!itemcnt $(replygood$i)
+        !if $gcnt<2 … Text=bad …
+        !for t=1 to $[floor($gcnt/2)]
+          g1=$(replygood$i[2*$t-1]) ; g2=$(replygood$i[2*$t])
+          !if inf notin $g1$g2 and $G1>$G2 … !exchange G1,G2
+          !if (inf isin $G1 or $G1<=$test) and (inf isin $G2 or $G2>=$test)
+            diag=yes
+    """
+
+    def test_inside_the_interval(self):
+        assert check_answer("range", "0.5", "0.6,0.4").correct
+
+    def test_bounds_are_inclusive(self):
+        assert check_answer("range", "0.4", "0.6,0.4").correct
+        assert check_answer("range", "0.6", "0.6,0.4").correct
+
+    def test_outside_is_wrong(self):
+        assert not check_answer("range", "0.7", "0.6,0.4").correct
+
+    def test_bounds_may_come_reversed(self):
+        """`!exchange G1,G2` : `0.6,0.4` est l'intervalle [0.4 ; 0.6]."""
+        assert check_answer("range", "0.5", "0.4,0.6").correct
+        assert check_answer("range", "0.5", "0.6,0.4").correct
+
+    def test_degenerate_interval(self):
+        """`3,3` n'accepte que 3 — c'est la forme qu'emploie `tabvaleur1`."""
+        assert check_answer("range", "3", "3,3").correct
+        assert not check_answer("range", "3.1", "3,3").correct
+
+    def test_several_pairs_are_a_union(self):
+        assert check_answer("range", "1.5", "1,2,4,6").correct
+        assert check_answer("range", "5", "1,2,4,6").correct
+        assert not check_answer("range", "3", "1,2,4,6").correct
+
+    def test_infinite_bound_opens_the_side(self):
+        assert check_answer("range", "-5", "-inf,0").correct
+        assert not check_answer("range", "100", "-inf,0").correct
+
+    def test_a_single_bound_is_unusable(self):
+        """`!if $gcnt<2` → `Text=bad` : rien à comparer."""
+        assert not check_answer("range", "3", "3").correct
+
+    def test_non_numeric_reply_is_wrong(self):
+        assert not check_answer("range", "abc", "0.4,0.6").correct
+
+
+class TestRangeDisplayAnswer:
+    """Le corrigé d'un `range` montre une valeur, pas les bornes stockées."""
+
+    def test_midpoint_of_the_first_pair(self):
+        """(Locale par défaut = française, d'où la virgule décimale.)"""
+        from core.answer.checkers import range_display_answer
+        assert range_display_answer("0.6,0.4") == "0,5"
+        assert range_display_answer("1,2,4,6") == "1,5"
+
+    def test_open_interval_keeps_its_bounds(self):
+        from core.answer.checkers import range_display_answer
+        assert range_display_answer("-inf,0", comma_is_decimal=False) == "-inf,0"
+
+    def test_odd_count_means_the_last_item_is_the_answer(self):
+        """`!if $[$gcnt%2]=1 … replyGood=$(replygood[-1])`.
+
+        Localisé comme le reste : cet item est affiché, pas comparé.
+        """
+        from core.answer.checkers import range_display_answer
+        assert range_display_answer("1,2,environ 1.5", comma_is_decimal=False) == "environ 1.5"
+        assert range_display_answer("1,2,environ 1.5", comma_is_decimal=True) == "environ 1,5"
+
+    def test_display_follows_the_locale(self):
+        """La convention locale vit aux frontières, et l'affichage en est une.
+
+        `useKatex.decimalComma` n'emballe qu'une virgule **déjà présente** ; le
+        point ne devient pas virgule côté front, c'est au backend de l'émettre.
+        """
+        from core.answer.checkers import range_display_answer
+        assert range_display_answer("0.6,0.4", comma_is_decimal=True) == "0,5"
+        assert range_display_answer("0.6,0.4", comma_is_decimal=False) == "0.5"
+        # Séparateur de liste : `;` quand la virgule est décimale.
+        assert range_display_answer("-inf,0", comma_is_decimal=True) == "-inf;0"

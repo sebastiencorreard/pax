@@ -59,6 +59,16 @@ def _candidats(ans):
             if ligne.strip():
                 yield ligne.strip()
                 break
+    # `range` stocke des **bornes**, pas une réponse : `0.6,0.4` est
+    # l'intervalle [0.4 ; 0.6]. La valeur qu'un élève est censé saisir — et que
+    # WIMS affiche en corrigé (`replyGood`) — est le milieu du premier
+    # intervalle. Soumettre les bornes n'a jamais été une bonne réponse ; cela
+    # passait tant que `range` retombait sur une comparaison de texte.
+    if ans.answer_type == "range":
+        from core.answer.checkers import range_display_answer  # noqa: PLC0415
+        milieu = range_display_answer(brut)
+        if milieu:
+            yield milieu
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()

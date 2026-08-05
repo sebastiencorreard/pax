@@ -38,7 +38,17 @@ XFAIL_RENDER_STRUCTURE = {
 }
 
 # test_correct_answer_scores_1 : la bonne réponse ne donne pas 1
+#
+# Les deux `range` ci-dessous s'y sont ajoutés le 2026-08-05, en implémentant
+# `anstype/range`. Ils ne passaient qu'en apparence : le type retombait sur une
+# comparaison de texte, et le test leur soumettait leur propre `expected`, si
+# bien qu'une chaîne se comparait à elle-même. Leur attendu est cassé **en
+# amont** — `moho1` porte un `NaN`, `ConnexionInt2` un `rint(…print(Mat(…`
+# jamais évalué (la famille des sept attendus non évalués). Aucune borne
+# numérique n'en sort, donc aucune réponse ne peut tomber dedans.
 XFAIL_CORRECT_SCORE = {
+    'H3~geometry~oefpytha.fr~src~moho1',
+    'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
     'H3~algebra~OEFlittcollege.fr~src~oeffac3b',
     'H3~algebra~OEFlittcollege.fr~src~oeffac4b',
     'H3~algebra~OEFlittcollege.fr~src~oeffactir3',
