@@ -318,6 +318,15 @@ Refermés depuis (2026-08-05, un commit et une mesure par point) :
   l'attendu de `OEFevalwimsnbrel/progA3` faux et celui de
   `OEFevalwimsrot/polyreg2` égal à `0,0,0`.
 
+  Le contrôle navigateur qui a suivi en a montré un **quatrième**, côté front
+  celui-là : le widget `mark` ne gardait qu'une marque, chaque clic effaçant le
+  précédent, alors que `anstype/mark.input` bascule par XOR et rend les rangs
+  triés par position. Les deux erreurs se masquaient l'une l'autre — un attendu
+  à un rang face à un widget à une marque — et `oefdeutsch/geo5` (« cochez les
+  neuf pays limitrophes ») était infaisable. **Leçon de méthode** : la mesure
+  corpus ne voit que le back ; un type de réponse touché se rejoue au
+  navigateur, sur un cas multiple *et* un cas simple.
+
 Restent ouverts, hors périmètre du découpage :
 
 - **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
