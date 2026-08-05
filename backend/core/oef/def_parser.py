@@ -448,6 +448,16 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
             i += 1
             continue
 
+        # !read oef/img.phtml — ce que devient un `\img{}` à la compilation :
+        # le script rend une balise <img>. Routé vers ReadProc, dont le
+        # built-in `_proc_img` le porte ; sans cette branche la directive
+        # n'était reconnue nulle part et l'image disparaissait de l'énoncé.
+        if line.startswith("!read ") and "oef/img.phtml" in line:
+            args = re.sub(r".*oef/img\.phtml\s*", "", line).strip()
+            instructions.append(ReadProc(path="oef/img.phtml", args=args))
+            i += 1
+            continue
+
         # !read oef/special.phtml — an OEF \special (mathmlinput, …). The arg
         # keeps its internal tabs (mathmlinput packs its option/reply lines with
         # tabs); `line` is `raw.strip()` so those internal tabs survive.

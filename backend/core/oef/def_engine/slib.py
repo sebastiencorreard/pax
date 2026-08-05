@@ -112,6 +112,10 @@ class _SlibMixin:
         path = m.group(1).strip()
         proc_args = self._subst(m.group(2).strip())
 
+        if path == "oef/img.phtml":
+            self.ctx["_proc_html"] = self._proc_img(proc_args)
+            return
+
         if path == "slib/stat/median":
             self.ctx["slib_out"] = self._compute_weighted_median(proc_args)
             return
@@ -171,6 +175,39 @@ class _SlibMixin:
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _proc_img(self, args: str) -> str:
+        """`!read oef/img.phtml CHEMIN [ATTRIBUTS]` — la balise `<img>` d'un `\\img{}`.
+
+        Port du script (`scripts/oef/img.phtml`), qui tient en huit lignes :
+
+            !set imgf_=!word 1 of $wims_read_parm
+            !set imgf_=!replace internal datamodule by modules/data in $imgf_
+            !if .. isin $imgf_
+              !exit
+            !endif
+            !set options=!word 2 to -1 of $wims_read_parm
+            !set newf_=!rename $imgf_
+            !if alt notin $options
+              !set options=$options alt=""
+            !endif
+            <img src="$newf_" $options>
+
+        Le `!exit` sur `..` est une garde anti-remontée — le commentaire du
+        script dit « avoids module errors if people try to hack » — et rend
+        alors la chaîne vide, pas une balise.
+        """
+        parts = args.split()
+        if not parts:
+            return ""
+        imgf = parts[0].replace("datamodule", "modules/data")
+        if ".." in imgf:
+            return ""
+        options = " ".join(parts[1:])
+        newf = self._cmd_rename(imgf)
+        if "alt" not in options:
+            options = f'{options} alt=""'
+        return f'<img src="{newf}" {options}>'
 
     def _slib_commutesom(self, args: str) -> str:
         """Built-in for ``slib/commutesom POLY,VAR``.

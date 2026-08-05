@@ -781,11 +781,14 @@ class DefEngine(_SlibMixin):
                     output_buf.append(self._render_embed(instr.args))
 
             elif isinstance(instr, ReadProc):
-                # Run for its side effects (sets ctx['ins_url'], etc.) — the
-                # call's textual output is empty for our supported procs.
+                # Run for its side effects (sets ctx['ins_url'], etc.). La
+                # plupart de nos procs ne rendent rien de textuel ; ceux qui
+                # produisent du HTML — `oef/img.phtml` en pose une balise
+                # `<img>` — le déposent dans `_proc_html`, consommé ici.
+                self.ctx.pop("_proc_html", None)
                 self._cmd_readproc(f"{instr.path} {instr.args}".strip())
                 if output_buf is not None:
-                    output_buf.append("")
+                    output_buf.append(self.ctx.pop("_proc_html", ""))
 
             elif isinstance(instr, ReadDraw):
                 # !read oef/draw.phtml ARGS — render a graph and inline it
@@ -2530,10 +2533,23 @@ class DefEngine(_SlibMixin):
         path = self._subst(args).strip().split()[0] if self._subst(args).strip() else ""
         if not path or ".." in path.split("/"):
             return ""
+        # `$imagedir` vaut la sentinelle `pax-img:` — déjà la forme « servable »
+        # de PAX, que `flydraw.inline_pax_images` résout en post-rendu. C'est
+        # elle qui tient chez nous le rôle de `calc_rename` ; le chemin ressort
+        # donc intact, sans quoi `!rename $imagedir/x.png` (ce que devient un
+        # `\img{}` via `oef/img.phtml`) rendrait une chaîne vide.
+        if path.startswith("pax-img:"):
+            return path
         # `gifs/…` désigne l'arbre partagé de WIMS, vendoré en
         # `ressources/wims-gifs/` (cf. `_find_wims_gifs_dir`).
         if path.startswith("gifs/"):
             rel = f"wims-gifs/{path[len('gifs/'):]}"
+        # `scripts/data/…` est l'autre arbre partagé de la liste blanche de
+        # `calc_rename`, vendoré en `ressources/wims-scripts/data/` : c'est là
+        # que `oefcountries` va chercher ses 268 cartes
+        # (`scripts/data/maps/<code>.jpg`).
+        elif path.startswith("scripts/data/"):
+            rel = f"wims-scripts/data/{path[len('scripts/data/'):]}"
         else:
             if not self.def_path:
                 return ""
@@ -2833,7 +2849,12 @@ class DefEngine(_SlibMixin):
             from ..flydraw import inline_svg_imgs, inline_wims_gifs  # noqa: PLC0415
             out = inline_svg_imgs(out)
             out = inline_wims_gifs(out)
-        return out
+        # Une indication porte volontiers une image de module : `mole/…` y met
+        # sa table périodique, `fonctaffin/coef` la capture qui explique la
+        # pente. Elles n'empruntent pas l'énoncé, donc pas sa passe de
+        # post-rendu — sans cette résolution, l'URL sentinelle sortait telle
+        # quelle et l'indication s'ouvrait sur une image brisée.
+        return self._inline_module_imgs(out)
 
     def _split_correspond_column(self, row: str) -> list[str]:
         """Items d'une colonne de `correspond` — `!nonempty items` (`liblines.c`).
