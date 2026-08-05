@@ -339,11 +339,14 @@ Restent ouverts, hors périmètre du découpage :
   crochets protégeant tout, la liste n'a qu'un item et son `!positionof` ne
   trouve rien : la palette sort vide (elle sortait auparavant en trois
   fragments d'expression coupée, tout aussi inutilisables).
-- **`!read oef/img.phtml` ignoré** — 21 `.def` de 6 modules l'appellent (c'est
-  ce que devient `\img{}` à la compilation) ; `_cmd_readproc` le range dans
-  « other procs » et jette sa sortie, alors que le script produit une balise
-  `<img>`. `oefmolecule/formule` et `name` affichent des `<li>` vides. Le
-  script est pourtant présent, en `ressources/wims-scripts/oef/img.phtml`.
+- **`atext` ne coupe pas son `replygood` au `;`** — `oefcountries` écrit
+  `replygood1=$val14;$val15`, où `$val14` est le pays cherché et `$val15` la
+  liste de tous les pays du monde (l'`<input list=…>` d'`anstype/atext.input`
+  suggère une datalist d'autocomplétion). PAX compare la saisie à la chaîne
+  entière : « Pologne » est refusé et le corrigé affiche les deux cents pays.
+  42 rendus, 14 exercices — exactement ceux dont `oef/img.phtml` vient de
+  réparer la carte, qui restent donc innotables. Vérifier la sémantique du `;`
+  contre le checker WIMS avant de bouger.
 - `wims_shuffle_order` / `wims_sort_order` : toujours non implémentés.
 - La table HTML de `slib/triplerelation/tabular` : la question des virgules de
   profondeur 0 n'a plus d'urgence depuis que `moles`/`mouvrel` passent sans
