@@ -13,14 +13,29 @@ on:
     # deux contrôles sont indépendants.
     - cron: "0 6 * * 1"
   workflow_dispatch:
+
+  # Le dépôt n'a qu'un auteur : le travail arrive sur `main` par poussée
+  # directe, pas par pull request. Sans ce déclencheur, rien ne s'exécuterait —
+  # ni les tests, ni la construction des images. Le contrôle a lieu après coup
+  # plutôt qu'avant, ce qui est le prix de la vitesse ; il a lieu, c'est
+  # l'essentiel.
+  # (GitHub Actions ne gère pas les ancres YAML : les deux listes de chemins
+  # sont identiques et doivent le rester.)
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - frontend/**
+      - .github/workflows/**
+
+  # Ces chemins couvrent le code et les tests, pas seulement les fichiers de
+  # dépendances. Une correction dans `backend/tests/` ne déclenchait aucun
+  # contrôle — c'est ce qui a laissé passer la PR #49 sans le moindre check.
   pull_request:
     paths:
-      - backend/requirements.txt
-      - backend/Dockerfile
-      - frontend/package.json
-      - frontend/package-lock.json
-      - frontend/Dockerfile
-      - .github/workflows/dependencies.yml
+      - backend/**
+      - frontend/**
+      - .github/workflows/**
 
 permissions:
   contents: read
