@@ -287,6 +287,37 @@ Tranchés en cours de route :
   (`src/Interfaces/pari.c`), donc **sans espace de présentation**. C'est la
   correction qui a permis à `isitemof` de redevenir `itemchr` (phase 3a).
 
+Refermés depuis (2026-08-05, un commit et une mesure par point) :
+
+- **`imgrename(...)`** — porté dans `def_engine/wims_img.py`, développé depuis
+  `_eval_value`, le point par lequel passe toute valeur calculée (dans WIMS
+  c'est une fonction du calculateur, donc les deux formes du corpus — appel
+  direct et appel niché dans un `!makelist` — sont couvertes ensemble). Le
+  `calc_rename` du C est tenu chez nous par le pipeline `pax-img:` /
+  `inline_pax_images`. La mesure a révélé un second défaut, corrigé du même
+  coup : une palette part sérialisée en JSON dans un `data-config`, où le HTML
+  est échappé et hors de portée de la passe de post-rendu — palette et attendu
+  y sont donc résolus avant sérialisation, **ensemble**.
+- **Les 57 rendus au HTML déséquilibré** — le défaut est en amont, chez WIMS :
+  `oefconversion/conversion1` ferme un `</ul>` jamais ouvert, et son `.oef`
+  d'origine le porte déjà. `_balance_groups` (`core/oef/engine.py`) reproduit
+  l'indulgence du navigateur — jeter les fermants orphelins, refermer les
+  ouvrants restants. 57 → 0.
+- **Le séparateur de sortie de `!item`** — passé à `", "`. 65 valeurs
+  modifiées, toutes réductibles à l'espace ; la notation est invariante
+  (247 comparaisons sur `fset`, `set`, `litexp`, `algexp`, `atext`, zéro
+  verdict divergent). Les tests qui figeaient `","` ont été réécrits contre le
+  C. À noter : `calc_columnof` passe par `calc_itemof` ligne à ligne, donc les
+  colonnes d'une même ligne héritent du même séparateur.
+- **`!positionof`** — rend tous les rangs, et la chaîne vide quand l'item est
+  absent. Correction franche pour les exercices à cases multiples :
+  `oefdeutsch/geo5` (`mark`) demande de marquer neuf pays et n'en attendait
+  qu'un. La mesure a mis au jour un **troisième** défaut, commité à part : le
+  « in » qui sépare motif et liste doit être un mot (`wordchr`), là où PAX
+  coupait sur `\s+in\s*` — donc sur le « in » de « inverses », ce qui rendait
+  l'attendu de `OEFevalwimsnbrel/progA3` faux et celui de
+  `OEFevalwimsrot/polyreg2` égal à `0,0,0`.
+
 Restent ouverts, hors périmètre du découpage :
 
 - **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
@@ -294,20 +325,16 @@ Restent ouverts, hors périmètre du découpage :
   affichent une équation vide (`\(0\)`, `NaN`) quoi qu'on fasse ; tout diff
   corpus qui s'y limite est du bruit. Les porter suppose d'écrire un
   équilibreur d'équations chimiques.
-- **`imgrename(...)` n'est pas implémenté** — 19 `.def` l'utilisent comme
-  *fonction* dans une expression (`!makelist imgrename($val1/ttt width=…)
-  for ttt in …`), là où PAX ne connaît rien de ce nom. Le contrôle navigateur
-  l'a mis au jour sur `oefmolecule/corresnom` : son widget `correspond`
-  réapparu affiche `imgrename(pax-img:_/ch4o/ch4o.png width=150)` en clair au
-  lieu des modèles moléculaires. Défaut antérieur au programme, simplement
-  rendu visible par la réparation du widget.
-- **Le séparateur de sortie de `!item`** : `_blockof` joint par `", "`
-  (virgule-espace, `calc.c`), nous par `","`. Sans effet sur un redécoupage
-  (`fnd_item` élague), visible à l'affichage et dans les `expected`. À
-  mesurer isolément.
-- **`!positionof`** : `_pos` renvoie **toutes** les positions jointes par `,`
-  et la chaîne **vide** quand l'item est absent ; nous renvoyons la première
-  et `"0"`. Même remarque : une mesure isolée avant de bouger.
+- **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
+  `!exec pari [$val25]/10.` et récupère la chaîne brute, non évaluée. Les
+  crochets protégeant tout, la liste n'a qu'un item et son `!positionof` ne
+  trouve rien : la palette sort vide (elle sortait auparavant en trois
+  fragments d'expression coupée, tout aussi inutilisables).
+- **`!read oef/img.phtml` ignoré** — 21 `.def` de 6 modules l'appellent (c'est
+  ce que devient `\img{}` à la compilation) ; `_cmd_readproc` le range dans
+  « other procs » et jette sa sortie, alors que le script produit une balise
+  `<img>`. `oefmolecule/formule` et `name` affichent des `<li>` vides. Le
+  script est pourtant présent, en `ressources/wims-scripts/oef/img.phtml`.
 - `wims_shuffle_order` / `wims_sort_order` : toujours non implémentés.
 - La table HTML de `slib/triplerelation/tabular` : la question des virgules de
   profondeur 0 n'a plus d'urgence depuis que `moles`/`mouvrel` passent sans
