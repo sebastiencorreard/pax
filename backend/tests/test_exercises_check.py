@@ -9,7 +9,8 @@ import os
 import re
 import sys
 import pytest
-from tests.known_failures import XFAIL_CORRECT_SCORE
+from tests import corpus
+from tests.known_failures import XFAIL_CORRECT_SCORE, XFAIL_WRONG_SCORE
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from core.oef.engine import load_and_render
@@ -17,10 +18,63 @@ from core.answer.checkers import check_answer
 
 SEED = 42
 
+# Parcourir les 4278 exercices demande une dizaine de minutes : ces tests ne
+# sont pas de ceux qu'on lance à chaque sauvegarde. `PAX_TEST_CORPUS` restreint
+# le parcours (cf. `tests/corpus.py`).
+pytestmark = pytest.mark.slow
+
 
 # ------------------------------------------------------------------ #
 # Helpers
 # ------------------------------------------------------------------ #
+
+# Types dont la virgule fait partie de la réponse — un ensemble solution
+# `-6/5,-9/8`, des coordonnées, une suite d'étiquettes. Partout ailleurs elle
+# sépare des écritures acceptables, comme le `|`.
+_TYPES_LISTE = {
+    "fset", "set", "coord", "clickfill", "dragfill", "correspond", "imagefill",
+    "range", "matrix", "atext",
+}
+
+
+def _candidats(ans):
+    """Réponses recevables tirées d'`expected`.
+
+    WIMS y range souvent plusieurs écritures équivalentes — `parallèle|parallèles`,
+    `-9*x^2+144,144-9*x^2`. C'est un catalogue de possibilités, pas une réponse :
+    le soumettre en bloc est refusé, et à juste titre. Vérifié à la main sur les
+    trois formes (voir `fset` en regard, où la virgule appartient à la réponse).
+    """
+    brut = ans.expected or ""
+    yield brut
+    if "|" in brut:
+        for part in brut.split("|"):
+            yield part.strip()
+    if "," in brut and ans.answer_type not in _TYPES_LISTE:
+        for part in brut.split(","):
+            yield part.strip()
+
+
+def _meilleure_reponse(ans) -> str:
+    """La formulation d'`expected` qui obtient le meilleur score pour ce champ.
+
+    Le test demande « une bonne réponse est-elle acceptée ? ». La valeur entière
+    est essayée d'abord : quand elle convient, c'est elle qui est retenue.
+    """
+    meilleure, meilleur_score = ans.expected or "", -1.0
+    for candidat in _candidats(ans):
+        res = check_answer(
+            answer_type=ans.answer_type,
+            reply=candidat,
+            expected=ans.expected,
+            options=ans.options,
+        )
+        if res.score > meilleur_score:
+            meilleure, meilleur_score = candidat, res.score
+        if meilleur_score >= 1.0:
+            break
+    return meilleure
+
 
 def _check_all(render, replies: dict) -> float:
     """Évalue toutes les réponses et retourne le score global."""
@@ -30,6 +84,11 @@ def _check_all(render, replies: dict) -> float:
     total_weight = 0.0
     weighted_score = 0.0
     for ans in render.answers:
+        # Un champ sans réponse attendue n'est pas noté — brouillon, `type=draft`
+        # ou `default=vide`. Le faire peser tirait le score global vers le bas
+        # quoi qu'on soumette, et 78 exercices échouaient pour cette seule raison.
+        if not (ans.expected or "").strip():
+            continue
         reply_value = replies.get(ans.input_name, "").strip()
         result = check_answer(
             answer_type=ans.answer_type,
@@ -44,10 +103,21 @@ def _check_all(render, replies: dict) -> float:
 
 
 def _wrong_answer(expected: str) -> str:
-    """Génère une réponse clairement fausse à partir de la bonne."""
+    r"""Génère une réponse franchement fausse à partir de la bonne.
+
+    L'ancienne version ajoutait 999. Or `\precision{M}` définit une tolérance
+    **relative** — `compare.c` : `|d1-d2|*prec <= |d1+d2| + 1/prec` — de sorte
+    qu'à 7 035 000 près, la tolérance vaut 1407 et l'écart de 999 tombait
+    *dedans*. Trois exercices semblaient accepter une réponse fausse ; ils
+    appliquaient la règle de WIMS à la lettre.
+
+    `3n + 7` place la réponse hors tolérance quelle que soit la grandeur, et
+    n'a pas de point fixe entier — `2n + 1` en avait un, `-1`, qui faisait
+    passer la réponse « fausse » pour la bonne dans 18 exercices.
+    """
     try:
         n = float(expected.replace(',', '.'))
-        return str(int(n) + 999)
+        return str(int(n) * 3 + 7)
     except (ValueError, AttributeError):
         return "__FAUX__"
 
@@ -71,16 +141,7 @@ def _expected_is_resolved(expected: str) -> bool:
 
 
 def _get_testable_exercises():
-    import subprocess
-    out = subprocess.check_output(
-        ['psql', '-U', 'pax', '-h', 'localhost', 'pax', '-t', '-A', '-F', '|||',
-         '-c', 'SELECT id, oef_path FROM exercises ORDER BY id'],
-        env={**os.environ, 'PGPASSWORD': 'brougne99'}
-    ).decode()
-    rows = [(int(a), b.strip())
-            for line in out.strip().split('\n')
-            if line
-            for a, b in [line.split('|||')]]
+    rows = corpus.exercises()
 
     testable = []
     for ex_id, path in rows:
@@ -112,13 +173,19 @@ def get_testable():
 
 
 def pytest_generate_tests(metafunc):
-    if 'exercise' in metafunc.fixturenames:
-        testable = get_testable()
-        metafunc.parametrize(
-            'exercise',
-            testable,
-            ids=[f"ex{ex_id}" for ex_id, _ in testable],
-        )
+    if 'exercise' not in metafunc.fixturenames:
+        return
+    # Énumérer le corpus rend les 4278 exercices : inutile de payer ces minutes
+    # à la collecte quand `-m "not slow"` va de toute façon les écarter.
+    if "not slow" in (metafunc.config.getoption("markexpr") or ""):
+        metafunc.parametrize('exercise', [])
+        return
+    testable = get_testable()
+    metafunc.parametrize(
+        'exercise',
+        testable,
+        ids=[ex_id for ex_id, _ in testable],
+    )
 
 
 # ------------------------------------------------------------------ #
@@ -129,25 +196,33 @@ def test_correct_answer_scores_1(exercise):
     """Soumettre la bonne réponse donne score=1."""
     ex_id, path = exercise
     if ex_id in XFAIL_CORRECT_SCORE:
-        pytest.xfail(f"ex.{ex_id}: bug préexistant dans l'évaluation de 'expected'")
+        pytest.xfail(f"{ex_id}: la bonne réponse ne donne pas 1 (bug préexistant)")
     render = load_and_render(path, seed=SEED)
-    correct_replies = {a.input_name: a.expected for a in render.answers}
+    correct_replies = {a.input_name: _meilleure_reponse(a) for a in render.answers}
+    if not any(v.strip() for v in correct_replies.values()):
+        pytest.skip("aucun champ noté (réponses attendues toutes vides)")
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
-        f"ex.{ex_id}: score={score} avec la bonne réponse {correct_replies}"
+        f"{ex_id}: score={score} avec la bonne réponse {correct_replies}"
 
 
 def test_wrong_answer_scores_less_than_1(exercise):
     """Soumettre une réponse fausse donne score<1."""
     ex_id, path = exercise
+    if ex_id in XFAIL_WRONG_SCORE:
+        pytest.xfail(f"{ex_id}: une réponse fausse est acceptée (bug préexistant)")
     render = load_and_render(path, seed=SEED)
-    # Ne prend que le premier champ pour le rendre faux
+    # Fausser le premier champ **noté** : un champ sans réponse attendue est
+    # ignoré à l'évaluation, le fausser ne prouverait rien.
+    notes = [a for a in render.answers if (a.expected or "").strip()]
+    if not notes:
+        pytest.skip("aucun champ noté (réponses attendues toutes vides)")
     wrong_replies = {}
-    for i, a in enumerate(render.answers):
+    for i, a in enumerate(notes):
         if i == 0:
             wrong_replies[a.input_name] = _wrong_answer(a.expected)
         else:
-            wrong_replies[a.input_name] = a.expected
+            wrong_replies[a.input_name] = _meilleure_reponse(a)
     score = _check_all(render, wrong_replies)
     assert score < 1.0, \
-        f"ex.{ex_id}: score={score} même avec une réponse fausse {wrong_replies}"
+        f"{ex_id}: score={score} même avec une réponse fausse {wrong_replies}"

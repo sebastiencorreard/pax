@@ -7,26 +7,43 @@ uvicorn[standard]==0.52.1
 python-multipart==0.0.32
 
 # Base de données
-sqlalchemy==2.0.30
-alembic==1.13.1
-asyncpg==0.29.0
-psycopg2-binary==2.9.9
+# 2.0.30 ne survit pas à python 3.13+ : son `FastIntFlag` ramasse
+# `__firstlineno__`, attribut de classe apparu en 3.13, et le prend pour un
+# symbole canonique — l'import de l'application s'arrête sur un TypeError avant
+# même d'atteindre le premier routeur. Première version à publier une wheel
+# `cp314` : 2.0.45.
+sqlalchemy==2.0.51
+alembic==1.18.5
+# Les deux pilotes ne publient de wheel `cp314` qu'à partir de ces versions
+# (asyncpg 0.31, psycopg2-binary 2.9.11). En dessous, pip retombe sur une
+# compilation depuis les sources, qui s'arrête faute de `pg_config` — l'image
+# `slim` n'embarque pas `libpq-dev`. C'est ce qui bloquait la montée de
+# l'image de base vers python 3.14.
+asyncpg==0.31.0
+psycopg2-binary==2.9.12
 
 # Cache & tâches async
-redis==5.0.4
-celery==5.4.0
+redis==8.1.0
+celery==5.6.3
 
 # Auth (JWT + Keycloak)
 # `python-jose` 3.3.0 portait PYSEC-2024-232/233 (confusion d'algorithme et DoS
 # JWE) — sur le chemin de vérification des JWT, donc de l'authentification.
 python-jose[cryptography]==3.5.0
 cryptography>=50.0.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.0.1
+# passlib n'a plus de version depuis 2020 et sa détection de backend appelle
+# bcrypt avec un mot de passe de plus de 72 octets — ce que la 5.0 refuse. Le
+# hachage passe donc par `bcrypt` directement (`core/security.py`), ce qui
+# supprime une dépendance morte en même temps que le blocage.
+bcrypt==5.0.0
 httpx==0.28.1
 
 # Calcul symbolique
-sympy==1.12
+# 1.12 ne survit pas à python 3.13+ : `__firstlineno__`, attribut de classe
+# apparu en 3.13, y est pris pour un symbole canonique et l'import de
+# l'application s'arrête sur un TypeError. C'est ce qui bloquait la montée de
+# l'image de base après les pilotes PostgreSQL.
+sympy==1.14.0
 
 # Validation
 # Remontés par la montée de FastAPI, qui exige un pydantic plus récent.

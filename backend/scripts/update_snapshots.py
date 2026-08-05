@@ -12,50 +12,38 @@ import sys
 import os
 import json
 import argparse
-import subprocess
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from core.oef.engine import load_and_render
+from tests import corpus
 
 SNAPSHOTS_DIR = os.path.join(os.path.dirname(__file__), "..", "tests", "snapshots")
 SEED = 42
 
 
 def get_exercises(ids=None):
-    cond = f"WHERE id = ANY(ARRAY[{','.join(map(str, ids))}])" if ids else ""
-    out = subprocess.check_output(
-        [
-            "psql",
-            "-U",
-            "pax",
-            "-h",
-            "localhost",
-            "pax",
-            "-t",
-            "-A",
-            "-F",
-            "|||",
-            "-c",
-            f"SELECT id, oef_path FROM exercises {cond} ORDER BY id",
-        ],
-        env={**os.environ, "PGPASSWORD": "brougne99"},
-    ).decode()
-    return [
-        (int(a), b.strip())
-        for line in out.strip().split("\n")
-        if line
-        for a, b in [line.split("|||")]
-    ]
+    """Corpus lu sur le disque — la base ne servait qu'à lister des chemins.
+
+    L'ancienne version passait par `psql` (mot de passe en dur, client absent
+    de l'image) et convertissait l'identifiant en entier, ce qui n'a plus cours
+    depuis que les identifiants sont des slugs.
+    """
+    tout = corpus.exercises()
+    if not ids:
+        return tout
+    voulus = set(ids)
+    return [(ex_id, chemin) for ex_id, chemin in tout if ex_id in voulus]
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--id", type=str, default=None, help="IDs séparés par des virgules"
+        "--id", type=str, default=None,
+        help="Identifiants (slugs) séparés par des virgules"
     )
     args = parser.parse_args()
 
-    ids = [int(x) for x in args.id.split(",")] if args.id else None
+    ids = [x.strip() for x in args.id.split(",")] if args.id else None
     exercises = get_exercises(ids=ids)
 
     os.makedirs(SNAPSHOTS_DIR, exist_ok=True)

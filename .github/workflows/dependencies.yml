@@ -6,15 +6,36 @@ name: Dépendances
 # dépendance transitive n'a pas de PR Dependabot dédiée.
 on:
   schedule:
-    # Lundi 06:00 UTC, avant les PR de Dependabot.
+    # Lundi 06:00 UTC. Dependabot ouvre ses PR à 06:00 Europe/Brussels, soit
+    # 04:00 UTC l'été : ce passage arrive donc après elles, et de toute façon
+    # GitHub décale les tâches planifiées de plusieurs heures quand ses files
+    # sont chargées. Aucun ordre n'est garanti, et aucun n'est nécessaire — les
+    # deux contrôles sont indépendants.
     - cron: "0 6 * * 1"
   workflow_dispatch:
+
+  # Le dépôt n'a qu'un auteur : le travail arrive sur `main` par poussée
+  # directe, pas par pull request. Sans ce déclencheur, rien ne s'exécuterait —
+  # ni les tests, ni la construction des images. Le contrôle a lieu après coup
+  # plutôt qu'avant, ce qui est le prix de la vitesse ; il a lieu, c'est
+  # l'essentiel.
+  # (GitHub Actions ne gère pas les ancres YAML : les deux listes de chemins
+  # sont identiques et doivent le rester.)
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - frontend/**
+      - .github/workflows/**
+
+  # Ces chemins couvrent le code et les tests, pas seulement les fichiers de
+  # dépendances. Une correction dans `backend/tests/` ne déclenchait aucun
+  # contrôle — c'est ce qui a laissé passer la PR #49 sans le moindre check.
   pull_request:
     paths:
-      - backend/requirements.txt
-      - frontend/package.json
-      - frontend/package-lock.json
-      - .github/workflows/dependencies.yml
+      - backend/**
+      - frontend/**
+      - .github/workflows/**
 
 permissions:
   contents: read
@@ -24,8 +45,8 @@ jobs:
     name: Python — pip-audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.10"
 
@@ -62,10 +83,18 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: "22"
+          # node 24 pour npm 11, comme `frontend/Dockerfile` — à garder
+          # synchronisés. npm 10 ajoute les *peer dependencies optionnelles* à
+          # son arbre idéal alors que npm 11 les laisse de côté : un lock écrit
+          # par npm 11 lui paraît incomplet et `npm ci` s'arrête. C'est ce qui a
+          # cassé ce contrôle sur `commander`, peer optionnelle de `@bomb.sh/tab`
+          # tirée par `@nuxt/cli`. Régénérer le lock avec npm 10 lui ferait
+          # perdre les champs `libc` (glibc/musl) des binaires natifs, qu'il ne
+          # connaît pas : c'est le gestionnaire qu'on aligne, pas le lock.
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -88,3 +117,123 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           npm outdated >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+  # Les deux audits ci-dessus ne regardent que des fichiers de dépendances : une
+  # montée d'image de base passait donc sans le moindre contrôle. C'est ce job
+  # qui répond à « est-ce que ça construit encore, et est-ce que ça démarre ? ».
+  images:
+    name: Images — construction
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Construire l'image backend
+        run: docker build -t pax-backend-ci backend
+
+      # Construire ne prouve rien côté Python : `pip install` réussit sans que
+      # le moindre module applicatif ne soit importé. Le chargement de `main`
+      # traverse les cinq routeurs et donc l'essentiel des dépendances — c'est
+      # ainsi qu'un `email-validator` manquant s'était trahi. `SECRET_KEY` est
+      # le seul réglage sans valeur par défaut, et `config.py` en exige 32
+      # caractères : on en tire une au hasard, elle ne sert qu'à cet import.
+      - name: Vérifier que l'application se charge
+        run: |
+          docker run --rm --entrypoint python \
+            -e SECRET_KEY="$(openssl rand -hex 32)" \
+            pax-backend-ci -c "import main"
+
+      # L'étage `prod` va jusqu'à `nuxt build`, seul endroit où le code source
+      # passe entre les mains de rolldown — nettement plus strict que le serveur
+      # de développement, au point qu'un fichier non-UTF-8 a pu casser la
+      # production sans que le mode dev ne montre quoi que ce soit.
+      - name: Construire l'image frontend, bundle de production compris
+        run: docker build --target prod -t pax-frontend-ci frontend
+
+  # `import main` ne dit rien de ce qui se passe *à l'exécution*. C'est la leçon
+  # de bcrypt 5 : l'import réussit, et le premier hachage de mot de passe lève
+  # `ValueError: password cannot be longer than 72 bytes` — l'authentification
+  # entière par terre, sans qu'aucun contrôle ne bronche. Ce job fait tourner la
+  # pile réelle et lui parle en HTTP.
+  tests:
+    name: Backend — tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # `docker-compose.override.yml` est versionné : il monte `./backend` sur
+      # `/app` (les tests sont exclus de l'image par le `.dockerignore`), pose
+      # `SECRET_KEY` et `PAX_DEBUG=1`. On ne démarre pas le frontend, dont la
+      # compilation n'apprendrait rien ici — `images` s'en charge déjà.
+      # Importer les 4278 exercices demande une vingtaine de minutes sur un
+      # runner — mesuré : 3600 au bout de quinze. On se limite donc à deux
+      # domaines de H4 (944 exercices), ce qui couvre tout ce que la suite
+      # interroge : l'exercice témoin de `test_api.py` est un H4/algebra, et
+      # les filtres portent sur ce niveau et ces domaines.
+      - name: Démarrer la pile
+        env:
+          IMPORT_ARGS: "--level H4 --domains algebra,analysis"
+        run: docker compose up -d db redis backend
+
+      # `entrypoint.sh` migre puis importe le corpus avant de servir : l'attente
+      # porte sur l'API, pas sur le conteneur. `/docs` est désactivé sur ce
+      # projet, d'où `openapi.json`.
+      - name: Attendre l'API
+        run: |
+          for _ in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:8001/openapi.json && exit 0
+            sleep 5
+          done
+          echo "l'API n'a pas démarré"; docker compose logs backend; exit 1
+
+      # `entrypoint.sh` lance `import_exercises.py` **en arrière-plan** et sert
+      # aussitôt : l'API répond avant que le corpus ne soit en base. On attend
+      # donc que le compte se stabilise, faute de quoi les tests interrogent
+      # des exercices qui n'existent pas encore.
+      - name: Attendre la fin de l'import du corpus
+        run: |
+          prev=-1
+          for _ in $(seq 1 60); do
+            n=$(docker compose exec -T db psql -U pax pax -tAc \
+                  "select count(*) from exercises" | tr -d '[:space:]')
+            if [ "$n" = "$prev" ] && [ "${n:-0}" -gt 800 ]; then
+              echo "corpus importé : $n exercices"; exit 0
+            fi
+            prev=$n; sleep 10
+          done
+          echo "import incomplet (dernier compte : $prev)"; exit 1
+
+      # `create_user` refuse un rôle élève ou enseignant sans établissement
+      # (exit 3), et rien au démarrage ne peuple ces tables. L'UAI par défaut
+      # du script (0132401P) vient du CSV d'Aix-Marseille, versionné ici.
+      - name: Peupler académies et établissements
+        run: |
+          docker compose exec -T backend python scripts/import_academies.py \
+            /ressources/a_integrer_dans_db/academies_france.csv
+          docker compose exec -T backend python scripts/import_etablissements.py \
+            ac-aix-marseille.fr \
+            /ressources/a_integrer_dans_db/etablissements_aix_marseille.csv
+
+      # Les comptes que `tests/test_api.py` attend pour ouvrir une session.
+      # Leur création passe par `core/security.py` — donc par le hachage, qui
+      # est précisément ce qu'aucun autre contrôle n'exerce.
+      - name: Créer les comptes de test
+        run: |
+          docker compose exec -T backend python scripts/create_user.py \
+            --email eleve@pax.fr --first-name Eleve --role student --password eleve1234
+          docker compose exec -T backend python scripts/create_user.py \
+            --email prof@pax.fr --first-name Prof --role teacher --password prof1234
+
+      - name: Lancer la suite
+        run: docker compose exec -T backend pytest tests/ -q
+
+      # Ces deux modules parcourent les 4278 exercices du corpus : la bonne
+      # réponse est-elle acceptée, une fausse rejetée, le HTML est-il sain ?
+      # Ils portent le marqueur `slow`, écarté par défaut (`pytest.ini`), d'où
+      # ce second passage. Le corpus est lu sur le disque : ni base ni import
+      # préalable, contrairement à la suite ci-dessus.
+      - name: Lancer les tests de corpus
+        run: docker compose exec -T backend pytest tests/ -m slow -q
+
+      - name: Journaux du backend en cas d'échec
+        if: failure()
+        run: docker compose logs backend | tail -100

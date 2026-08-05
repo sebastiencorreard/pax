@@ -1,18 +1,38 @@
 from datetime import datetime, timedelta
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt
 
 from config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt n'a jamais lu au-delà de 72 octets ; jusqu'en 4.x il ignorait le
+# surplus en silence, et passlib s'appuyait dessus. La 5.0 lève désormais une
+# `ValueError` — ce qui mettait à terre toute l'authentification à la première
+# tentative de hachage. On tronque donc explicitement, ce que faisait déjà la
+# bibliothèque : le comportement est inchangé, il est simplement écrit.
+# La coupe porte sur les *octets*, jamais sur les caractères — un caractère
+# multi-octets peut être sectionné, sans conséquence dès lors que le hachage et
+# la vérification appliquent la même règle.
+_MAX_BCRYPT_BYTES = 72
+
+
+def _to_bcrypt_bytes(password: str) -> bytes:
+    return password.encode("utf-8")[:_MAX_BCRYPT_BYTES]
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    # `gensalt()` produit un `$2b$` à 12 tours, identique à ce que posait
+    # passlib : les mots de passe déjà en base restent vérifiables.
+    return bcrypt.hashpw(_to_bcrypt_bytes(password), bcrypt.gensalt()).decode("ascii")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    # Un compte sans mot de passe (l'invité) porte une empreinte vide, et une
+    # empreinte tronquée n'est pas impossible : dans les deux cas c'est un refus,
+    # pas une erreur qui remonterait jusqu'à la requête.
+    try:
+        return bcrypt.checkpw(_to_bcrypt_bytes(plain), hashed.encode("ascii"))
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(user_id: str, role: str) -> str:
