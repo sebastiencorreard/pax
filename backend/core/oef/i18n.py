@@ -12,8 +12,15 @@ language whose decimal separator is the comma, add its ISO code to
 
 from __future__ import annotations
 
+import re
+
 # The only thing to edit when adding a comma-decimal language (e.g. "de", "es").
 COMMA_DECIMAL_LANGS = {"fr", "nl"}
+
+# A decimal point, i.e. one *between two digits* — `1.5`, never the dot of
+# `fig.2`, of a `3.10` version string or of an `x2.png` filename. Same guard as
+# `def_engine/presentation.py`, which localises the statement.
+_DECIMAL_DOT_RE = re.compile(r"(?<=\d)\.(?=\d)")
 
 
 def _base(lang: str | None) -> str:
@@ -39,3 +46,18 @@ def list_separator(lang: str | None) -> str:
     decimal) from a two-element list (``2;5`` in comma-decimal locales).
     """
     return ";" if uses_comma_decimal(lang) else ","
+
+
+def localize_decimals(s: str, lang: str | None) -> str:
+    """Rewrite decimal points as the separator ``lang`` writes them.
+
+    Only a dot **between two digits** is touched, so a filename (``x2.png``),
+    a version (``3.10``) or a sentence's full stop survives intact. Nothing
+    else is rewritten — in particular not the list separator, which cannot be
+    told apart from a decimal comma once the conversion has happened.
+
+    Idempotent, and a no-op for dot-decimal languages.
+    """
+    if not s or not uses_comma_decimal(lang):
+        return s
+    return _DECIMAL_DOT_RE.sub(",", s)

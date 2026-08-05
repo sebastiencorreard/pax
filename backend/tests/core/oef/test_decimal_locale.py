@@ -154,3 +154,118 @@ def test_render_0615_clean_decimal():
     assert "\\left(" not in html               # pas de tuple
     assert "9999999" not in html               # pas de bruit flottant
     assert "2,95" in html                       # décimale française correcte
+
+
+# ── Corrigé : localisation transverse (PAX_LOCALIZE_FEEDBACK) ────────────────
+
+
+class TestLocalizeDecimals:
+    """`i18n.localize_decimals` — la virgule décimale du corrigé.
+
+    Confort d'affichage posé en une passe sur les corrigés numériques
+    (`api/routes/check.py`), pas une règle du moteur : la notation accepte les
+    deux écritures dans tous les cas.
+    """
+
+    def test_decimal_point_becomes_a_comma(self):
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("4.76", "fr") == "4,76"
+        assert localize_decimals("0.5", "nl") == "0,5"
+
+    def test_dot_decimal_languages_are_untouched(self):
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("4.76", "en") == "4.76"
+
+    def test_only_between_two_digits(self):
+        """Un point de nom de fichier, de version ou de phrase ne bouge pas."""
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("x2.png", "fr") == "x2.png"
+        assert localize_decimals("fig.2", "fr") == "fig.2"
+        assert localize_decimals("Fin de phrase.", "fr") == "Fin de phrase."
+        assert localize_decimals("/api/static/a/b2.jpg", "fr") == "/api/static/a/b2.jpg"
+
+    def test_several_numbers_in_one_string(self):
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("1.5 et 2.25", "fr") == "1,5 et 2,25"
+
+    def test_is_idempotent(self):
+        from core.oef.i18n import localize_decimals
+        once = localize_decimals("4.76", "fr")
+        assert localize_decimals(once, "fr") == once
+
+    def test_empty_and_none_survive(self):
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("", "fr") == ""
+        assert localize_decimals("abc", "fr") == "abc"
+
+    def test_list_separator_is_left_alone(self):
+        """Une fois la virgule posée, on ne peut plus la distinguer d'un
+        séparateur : la fonction n'y touche donc jamais."""
+        from core.oef.i18n import localize_decimals
+        assert localize_decimals("1,2", "fr") == "1,2"
+
+
+class TestLocalizedFeedbackTypes:
+    """Le périmètre de la passe : les types dont la réponse est un nombre."""
+
+    def test_text_types_are_excluded(self):
+        """Un `atext` répond « 3.5 pouces », un `runcode` du Python : le point
+        y a d'autres rôles que celui de décimale."""
+        from api.routes.check import _LOCALIZED_FEEDBACK_TYPES
+        for t in ("atext", "raw", "case", "nocase", "correspond", "runcode", "radio"):
+            assert t not in _LOCALIZED_FEEDBACK_TYPES
+
+    def test_numeric_types_are_included(self):
+        from api.routes.check import _LOCALIZED_FEEDBACK_TYPES
+        for t in ("numeric", "numexp", "range", "units"):
+            assert t in _LOCALIZED_FEEDBACK_TYPES
+
+
+class TestLocalizeFeedbackSetting:
+    def test_setting_exists_and_defaults_to_on(self):
+        from config import settings
+        assert settings.pax_localize_feedback is True
+
+    @staticmethod
+    def _fixture():
+        """Un corrigé numérique et un corrigé textuel, en français."""
+        from types import SimpleNamespace
+        results = [
+            SimpleNamespace(input_name="reply1", expected="4.76"),
+            SimpleNamespace(input_name="reply2", expected="3.5 pouces"),
+        ]
+        answers = [
+            SimpleNamespace(input_name="reply1", answer_type="numeric"),
+            SimpleNamespace(input_name="reply2", answer_type="atext"),
+        ]
+        return results, answers
+
+    def test_enabled_rewrites_numeric_only(self):
+        from api.routes.check import _localize_feedback
+        results, answers = self._fixture()
+        _localize_feedback(results, answers, "fr", enabled=True)
+        assert results[0].expected == "4,76"
+        assert results[1].expected == "3.5 pouces"   # atext : hors périmètre
+
+    def test_disabled_changes_nothing(self):
+        """`PAX_LOCALIZE_FEEDBACK=0` doit rendre la passe totalement inerte."""
+        from api.routes.check import _localize_feedback
+        results, answers = self._fixture()
+        _localize_feedback(results, answers, "fr", enabled=False)
+        assert results[0].expected == "4.76"
+        assert results[1].expected == "3.5 pouces"
+
+    def test_dot_decimal_language_is_inert_too(self):
+        from api.routes.check import _localize_feedback
+        results, answers = self._fixture()
+        _localize_feedback(results, answers, "en", enabled=True)
+        assert results[0].expected == "4.76"
+
+    def test_reply_is_never_touched(self):
+        """On rend à l'élève ce qu'il a tapé, sans le réécrire."""
+        from types import SimpleNamespace
+        from api.routes.check import _localize_feedback
+        r = SimpleNamespace(input_name="reply1", expected="4.76", reply="4.7")
+        a = SimpleNamespace(input_name="reply1", answer_type="numeric")
+        _localize_feedback([r], [a], "fr", enabled=True)
+        assert r.expected == "4,76" and r.reply == "4.7"

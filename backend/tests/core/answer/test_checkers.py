@@ -589,28 +589,25 @@ class TestRangeDisplayAnswer:
     """Le corrigé d'un `range` montre une valeur, pas les bornes stockées."""
 
     def test_midpoint_of_the_first_pair(self):
-        """(Locale par défaut = française, d'où la virgule décimale.)"""
         from core.answer.checkers import range_display_answer
-        assert range_display_answer("0.6,0.4") == "0,5"
-        assert range_display_answer("1,2,4,6") == "1,5"
+        assert range_display_answer("0.6,0.4") == "0.5"
+        assert range_display_answer("1,2,4,6") == "1.5"
 
     def test_open_interval_keeps_its_bounds(self):
         from core.answer.checkers import range_display_answer
-        assert range_display_answer("-inf,0", comma_is_decimal=False) == "-inf,0"
 
     def test_odd_count_means_the_last_item_is_the_answer(self):
         """`!if $[$gcnt%2]=1 … replyGood=$(replygood[-1])`."""
         from core.answer.checkers import range_display_answer
-        assert range_display_answer("1,2,environ 1.5", comma_is_decimal=False) == "environ 1.5"
-        assert range_display_answer("1,2,environ 1.5", comma_is_decimal=True) == "environ 1,5"
+        assert range_display_answer("1,2,environ 1.5") == "environ 1.5"
 
-    def test_display_follows_the_locale(self):
-        """`,` décimal ⇒ `;` de liste, cf. `core/oef/i18n.py`.
+    def test_only_the_list_separator_is_localised_here(self):
+        """La virgule décimale vient d'ailleurs (passe transverse de `check.py`).
 
-        L'affichage est une frontière : le front n'y convertit rien, il se
-        contente d'emballer une virgule déjà présente.
+        Cet appelant ne décide que du séparateur de **liste** : `;` quand la
+        virgule est décimale, pour que les deux rôles restent distincts.
         """
         from core.answer.checkers import range_display_answer
-        assert range_display_answer("0.6,0.4", comma_is_decimal=True) == "0,5"
-        assert range_display_answer("0.6,0.4", comma_is_decimal=False) == "0.5"
+        assert range_display_answer("0.6,0.4", comma_is_decimal=True) == "0.5"
         assert range_display_answer("-inf,0", comma_is_decimal=True) == "-inf;0"
+        assert range_display_answer("-inf,0", comma_is_decimal=False) == "-inf,0"

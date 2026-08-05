@@ -54,6 +54,14 @@ class Settings(BaseSettings):
     # Off by default; set PAX_DEBUG=1 in dev environments only.
     pax_debug: bool = False
 
+    # Corrigé — écrit la bonne réponse dans la convention décimale de la langue
+    # de l'exercice (`4,76` en français, cf. `core/oef/i18n.py`) au lieu du
+    # point brut que sort le moteur. Confort d'affichage, pas une règle du
+    # moteur : la notation, elle, accepte les deux écritures dans tous les cas.
+    # Mettre PAX_LOCALIZE_FEEDBACK=0 pour revenir au point partout — utile pour
+    # comparer un rendu à WIMS, qui n'y localise rien.
+    pax_localize_feedback: bool = True
+
     @field_validator("secret_key")
     @classmethod
     def _validate_secret_key(cls, v: str) -> str:

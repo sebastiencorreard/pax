@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from config import settings
 from db import get_db
 from models.exercise import Exercise
 from models.attempt import Attempt
@@ -17,6 +18,42 @@ from core.answer.strategies.analyze import run_analyze, run_feedback
 from core.chrono import module_scoredelay, read_started_at, score_factor
 
 router = APIRouter(prefix="/api/check", tags=["check"])
+
+# Types dont la bonne réponse est un **nombre**, et dont le corrigé peut donc
+# s'écrire dans la convention décimale de la langue (cf. `PAX_LOCALIZE_FEEDBACK`).
+# Tout le reste en est exclu à dessein : un `atext` répond « 3.5 pouces », un
+# `raw` compare au caractère près, un `correspond` transporte du HTML, un
+# `runcode` du Python — un point y a d'autres rôles que celui de décimale.
+_LOCALIZED_FEEDBACK_TYPES = frozenset({
+    "numeric", "numexp", "range", "units", "unit", "sigunits",
+    "coord", "vector", "jsxgraph",
+})
+
+
+def _localize_feedback(results, answers, lang: str, enabled: bool) -> None:
+    """Écrit les corrigés numériques dans la convention décimale de `lang`.
+
+    Confort d'affichage, coupé par `PAX_LOCALIZE_FEEDBACK=0` : le moteur sort
+    des points, la langue de l'exercice en veut peut-être des virgules
+    (`core/oef/i18n.py`). **Aucun verdict n'en dépend** — la notation accepte
+    les deux écritures, et seule la bonne réponse est réécrite : `reply` est ce
+    que l'élève a tapé, on le lui rend tel quel.
+
+    Modifie `results` sur place.
+    """
+    from core.oef.i18n import localize_decimals, uses_comma_decimal  # noqa: PLC0415
+
+    if not enabled or not uses_comma_decimal(lang):
+        return
+    names = {
+        a.input_name for a in answers
+        if (a.answer_type or "").lower() in _LOCALIZED_FEEDBACK_TYPES
+    }
+    if not names:
+        return
+    for r in results:
+        if r.input_name in names and r.expected:
+            r.expected = localize_decimals(r.expected, lang)
 
 
 # ── Modèles HTTP ──────────────────────────────────────────────────────────────
@@ -197,6 +234,11 @@ async def check_exercise(
         for r in results:
             if r.input_name in _range_names and r.expected:
                 r.expected = range_display_answer(r.expected, comma)
+
+    # ── Corrigé : la convention décimale de la langue (cf. _localize_feedback)
+    _localize_feedback(
+        results, rendered.answers, rendered.lang, settings.pax_localize_feedback
+    )
 
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)

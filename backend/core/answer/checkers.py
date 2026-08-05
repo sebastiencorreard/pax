@@ -605,16 +605,11 @@ def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
           replyGood$i=$(replygood$i[-1])
         !endif
 
-    La valeur sort **dans la convention de la langue** (`core/oef/i18n.py`) :
-    virgule décimale et point-virgule de liste en `fr`/`nl`. L'affichage est
-    une frontière, et le front n'y convertit rien — `useKatex.decimalComma`
-    n'emballe qu'une virgule déjà présente, pour que KaTeX ne l'espace pas.
-
-    Le C, lui, imprime la sortie brute de son évaluateur (`$[…]`, donc un
-    point) : c'est l'une des divergences assumées de PAX, au même titre que la
-    saisie. Ne pas se laisser égarer par l'énoncé de `descriptives/ecarttype2`,
-    qui annonce « le séparateur décimal est le point » — c'est le texte source
-    de l'exercice WIMS, pas une règle du moteur.
+    `comma_is_decimal` ne décide ici que du **séparateur de liste** — `;` quand
+    la virgule est décimale, pour que les deux rôles ne se confondent pas
+    (`core/oef/i18n.py`) —, et seul cet appelant sait qu'il s'agit d'une paire
+    de bornes. La virgule décimale, elle, est posée en une passe transverse sur
+    tous les corrigés numériques (`check.py`, `PAX_LOCALIZE_FEEDBACK`).
     """
     from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
     from core.oef.numfmt import format_wims_float  # noqa: PLC0415
@@ -626,22 +621,19 @@ def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
     # `2,5` de la paire `2;5`.
     sep = ";" if comma_is_decimal else ","
 
-    def _loc(s: str) -> str:
-        return s.replace(".", ",") if comma_is_decimal else s
-
     if len(items) % 2 == 1:
-        return _loc(items[-1])
+        return items[-1]
     if len(items) < 2:
         return ""
     g1, g2 = items[0], items[1]
     if "inf" in g1.lower() or "inf" in g2.lower():
-        return f"{_loc(g1)}{sep}{_loc(g2)}"
+        return f"{g1}{sep}{g2}"
     try:
         a = _parse_number(g1, comma_is_decimal)
         b = _parse_number(g2, comma_is_decimal)
     except (ValueError, ZeroDivisionError, SyntaxError, TypeError):
-        return f"{_loc(g1)}{sep}{_loc(g2)}"
-    return _loc(format_wims_float((a + b) / 2))
+        return f"{g1}{sep}{g2}"
+    return format_wims_float((a + b) / 2)
 
 
 def check_range(
