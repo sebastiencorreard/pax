@@ -1846,7 +1846,12 @@ class DefEngine(_SlibMixin):
 
     def _cmd_positionof(self, args: str) -> str:
         """!positionof item X in $list — 1-indexed position, 0 if absent."""
-        m = re.match(r"item\s+(.*?)\s+in\s*(.*)", args, re.DOTALL | re.I)
+        # `calc_pos` sépare motif et liste par `wordchr(p1,"in")` : le « in »
+        # doit être un **mot**, donc suivi d'un blanc ou de la fin. Le `\s*`
+        # qui vivait ici coupait sur le « in » de « inverses », et
+        # `OEFevalwimsnbrel/progA3` cherchait « La somme des » dans « verses
+        # de 7.5 … » — introuvable, quelle que soit la liste.
+        m = re.match(r"item\s+(.*?)\s+in(?=\s|$)\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return "0"
         needle = self._subst(m.group(1).strip())

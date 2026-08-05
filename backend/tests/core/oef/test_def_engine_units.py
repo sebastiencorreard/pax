@@ -1203,6 +1203,19 @@ class TestCmdPositionof:
         e = engine()
         assert e._eval_cmd("positionof", "item z in a,b,c") == "0"
 
+    def test_in_must_be_a_whole_word(self):
+        """`calc_pos` sépare par `wordchr(p1,"in")` : le « in » doit être un mot.
+
+        Un motif contenant « in » collé à d'autres lettres — « inverses »,
+        « intervalle » — ne doit pas servir de point de coupe. C'est le cas de
+        `OEFevalwimsnbrel/progA3`, dont l'attendu était devenu « 0;… ».
+        """
+        e = engine()
+        liste = "L'inverse de la somme,La somme des inverses de 7.5"
+        assert e._eval_cmd("positionof", f"item La somme des inverses de 7.5 in {liste}") == "2"
+        # « in » terminal (liste vide) reste un point de coupe valide.
+        assert e._eval_cmd("positionof", "item x in") == "0"
+
     def test_tab_is_not_a_separator(self):
         """`_pos` passe par `fnd_item` : la virgule seule sépare, et l'item
         est élagué avant comparaison."""
