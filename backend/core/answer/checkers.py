@@ -604,15 +604,26 @@ def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
         !if $[$gcnt%2]=1
           replyGood$i=$(replygood$i[-1])
         !endif
+
+    La valeur sort **dans la convention de la langue** (`core/oef/i18n.py`) :
+    virgule décimale et point-virgule de liste en `fr`/`nl`. L'affichage est
+    une frontière, et le front n'y convertit rien — `useKatex.decimalComma`
+    n'emballe qu'une virgule déjà présente, pour que KaTeX ne l'espace pas.
+
+    Le C, lui, imprime la sortie brute de son évaluateur (`$[…]`, donc un
+    point) : c'est l'une des divergences assumées de PAX, au même titre que la
+    saisie. Ne pas se laisser égarer par l'énoncé de `descriptives/ecarttype2`,
+    qui annonce « le séparateur décimal est le point » — c'est le texte source
+    de l'exercice WIMS, pas une règle du moteur.
     """
     from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
     from core.oef.numfmt import format_wims_float  # noqa: PLC0415
 
     items = [x.strip() for x in cutitems(expected or "") if x.strip()]
 
-    # La convention locale vit aux frontières, et l'affichage en est une : le
-    # front ne convertit pas un point en virgule (`useKatex.decimalComma` ne
-    # fait qu'emballer une virgule déjà là), c'est au backend de l'émettre.
+    # `,` décimal ⇒ `;` de liste : les deux rôles ne se confondent jamais dans
+    # une même locale (`i18n.list_separator`), ce qui distingue le décimal
+    # `2,5` de la paire `2;5`.
     sep = ";" if comma_is_decimal else ","
 
     def _loc(s: str) -> str:
@@ -622,7 +633,6 @@ def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
         return _loc(items[-1])
     if len(items) < 2:
         return ""
-
     g1, g2 = items[0], items[1]
     if "inf" in g1.lower() or "inf" in g2.lower():
         return f"{_loc(g1)}{sep}{_loc(g2)}"

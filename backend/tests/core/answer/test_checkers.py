@@ -599,22 +599,18 @@ class TestRangeDisplayAnswer:
         assert range_display_answer("-inf,0", comma_is_decimal=False) == "-inf,0"
 
     def test_odd_count_means_the_last_item_is_the_answer(self):
-        """`!if $[$gcnt%2]=1 … replyGood=$(replygood[-1])`.
-
-        Localisé comme le reste : cet item est affiché, pas comparé.
-        """
+        """`!if $[$gcnt%2]=1 … replyGood=$(replygood[-1])`."""
         from core.answer.checkers import range_display_answer
         assert range_display_answer("1,2,environ 1.5", comma_is_decimal=False) == "environ 1.5"
         assert range_display_answer("1,2,environ 1.5", comma_is_decimal=True) == "environ 1,5"
 
     def test_display_follows_the_locale(self):
-        """La convention locale vit aux frontières, et l'affichage en est une.
+        """`,` décimal ⇒ `;` de liste, cf. `core/oef/i18n.py`.
 
-        `useKatex.decimalComma` n'emballe qu'une virgule **déjà présente** ; le
-        point ne devient pas virgule côté front, c'est au backend de l'émettre.
+        L'affichage est une frontière : le front n'y convertit rien, il se
+        contente d'emballer une virgule déjà présente.
         """
         from core.answer.checkers import range_display_answer
         assert range_display_answer("0.6,0.4", comma_is_decimal=True) == "0,5"
         assert range_display_answer("0.6,0.4", comma_is_decimal=False) == "0.5"
-        # Séparateur de liste : `;` quand la virgule est décimale.
         assert range_display_answer("-inf,0", comma_is_decimal=True) == "-inf;0"
