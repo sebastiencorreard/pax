@@ -15,36 +15,45 @@ from core.oef.evaluator import (
     _eval_exact_arithmetic,
     _expr_to_latex,
     _pick_randitem_template,
-    _split_top_level_commas,
     _to_exact,
 )
+from core.oef.def_engine import wims_lists as wl
 
 
-# ---------- _split_top_level_commas ---------- #
+# ---------- découpage en items (socle `wims_lists`) ---------- #
+#
+# `_split_top_level_commas` vivait ici *et* dans `slib.py`, à un détail près :
+# il ne comptait que les parenthèses. `cutitems` compte les trois paires et
+# porte le repli de `strparstr` sur un ouvrant non apparié.
 
 
 def test_split_top_level_simple():
-    assert _split_top_level_commas("a,b,c") == ["a", "b", "c"]
+    assert wl.cutitems("a,b,c") == ["a", "b", "c"]
 
 
 def test_split_top_level_respects_parens():
-    assert _split_top_level_commas("a(1,2),b") == ["a(1,2)", "b"]
+    assert wl.cutitems("a(1,2),b") == ["a(1,2)", "b"]
 
 
 def test_split_top_level_nested_parens():
-    assert _split_top_level_commas("f(g(1,2),3),h(4)") == ["f(g(1,2),3)", "h(4)"]
+    assert wl.cutitems("f(g(1,2),3),h(4)") == ["f(g(1,2),3)", "h(4)"]
 
 
 def test_split_top_level_strips_whitespace():
-    assert _split_top_level_commas("  a , b , c ") == ["a", "b", "c"]
+    assert wl.cutitems("  a , b , c ") == ["a", "b", "c"]
 
 
 def test_split_top_level_no_commas():
-    assert _split_top_level_commas("alone") == ["alone"]
+    assert wl.cutitems("alone") == ["alone"]
 
 
 def test_split_top_level_empty():
-    assert _split_top_level_commas("") == [""]
+    """`cutitems("")` vaut la liste vide : `itemnum` compte 0 (`if(*p==0)`)."""
+    assert wl.cutitems("") == []
+
+
+def test_split_top_level_brackets_too():
+    assert wl.cutitems("[a,b],{c,d}") == ["[a,b]", "{c,d}"]
 
 
 # ---------- _pick_randitem_template ---------- #

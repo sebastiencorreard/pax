@@ -182,7 +182,16 @@ def fnd_item(s: str, n: int) -> str:
 
 
 def cutitems(s: str) -> list[str]:
-    """Tous les items, élagués (`cutitems` → `_cutit_(…, tag=3)`)."""
+    """Tous les items, élagués — l'énumération de `fnd_item(1..itemnum)`.
+
+    Une nuance à connaître : le `cutitems` du C (`_cutit_(…, tag=3)`) s'arrête
+    sur `*pp`, donc **abandonne un dernier item vide** — `"a,"` lui vaut un
+    item quand `itemnum` en compte deux. La paire `itemnum`/`fnd_item`, elle,
+    en voit bien deux, et c'est elle que modélisent les appelants de PAX
+    (`!item`, `$(var[n])`, `!itemcnt`). Les appelants du `cutitems` C
+    (`!distribute`, `!listuniq`, `!nonempty`) sont insensibles à la nuance :
+    ils écartent les items vides ou complètent par des chaînes vides.
+    """
     out = []
     for a, b in _item_bounds(s):
         a2 = find_word_start(s, a)

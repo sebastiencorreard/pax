@@ -76,7 +76,7 @@ class TestVectorsAndMatrices:
         assert _call_pari("l=[7,8,9]; print(l[1])") == "7"
 
     def test_indexed_assignment(self):
-        assert _call_pari("l=[1,2,3]; l[2]=9; print(l)") == "1, 9, 3"
+        assert _call_pari("l=[1,2,3]; l[2]=9; print(l)") == "1,9,3"
 
     def test_out_of_range_index_falls_back_instead_of_raising(self):
         """Hors périmètre → l'appelant récupère la source, jamais une exception."""
@@ -91,10 +91,10 @@ class TestVectorsAndMatrices:
         assert _call_pari("print(([2,-7,6]*[1,1,4]~)/6)") == "19/6"
 
     def test_elementwise_addition(self):
-        assert _call_pari("v=[1,2]+[10,20]; print(v)") == "11, 22"
+        assert _call_pari("v=[1,2]+[10,20]; print(v)") == "11,22"
 
     def test_vector_builtin_returns_one_based_vector(self):
-        assert _call_pari("l=vector(3); for(x=1,3,l[x]=x^2); print(l)") == "1, 4, 9"
+        assert _call_pari("l=vector(3); for(x=1,3,l[x]=x^2); print(l)") == "1,4,9"
 
 
 class TestReductions:
@@ -128,7 +128,7 @@ class TestSession:
         `!exec pari` et l'affiche dans le suivant."""
         session: dict = {}
         _call_pari("l=vector(10); for(x=1,10,l[x]=0+1*(x-1));", session=session)
-        assert _call_pari("print(l);", session=session) == "0, 1, 2, 3, 4, 5, 6, 7, 8, 9"
+        assert _call_pari("print(l);", session=session) == "0,1,2,3,4,5,6,7,8,9"
 
     def test_session_is_not_shared_without_one(self):
         """Sans session, rien ne survit d'un appel à l'autre : `zz` retombe sur
@@ -168,10 +168,10 @@ class TestUserFunctions:
         assert _call_pari("x=7; f(x)=x*2; f(3); print(x)") == "7"
 
     def test_list_insert_and_vec(self):
-        assert _call_pari("L=List([]); listinsert(L,5,1); listinsert(L,3,1); print(Vec(L))") == "3, 5"
+        assert _call_pari("L=List([]); listinsert(L,5,1); listinsert(L,3,1); print(Vec(L))") == "3,5"
 
     def test_vecsort(self):
-        assert _call_pari("print(vecsort([3,1,2]))") == "1, 2, 3"
+        assert _call_pari("print(vecsort([3,1,2]))") == "1,2,3"
 
     def test_matsort_sorts_matrix_rows(self):
         """Le `matsort` de tabsignes : lignes triées dans l'ordre lexicographique."""
@@ -179,18 +179,25 @@ class TestUserFunctions:
             "(matsort(mat)=A=[mat];L=List([]);for(i=1,3,listinsert(L,mat[i,],i));"
             "V=Vec(L);N=vecsort(V);N);matsort([2,9;1,4;1,2])"
         )
-        assert _call_pari(src) == "[1, 2], [1, 4], [2, 9]"
+        assert _call_pari(src) == "[1,2],[1,4],[2,9]"
 
 
 class TestWimsOutputFilter:
     """WIMS post-traite chaque ligne de `gp` (`wims/src/Interfaces/pari.c`) :
-    les crochets englobants sautent, pour que la sortie soit une liste WIMS."""
+    les crochets englobants sautent, pour que la sortie soit une liste WIMS.
+
+    Et il n'y a **aucun espace** à retirer : l'interface ouvre `gp` sur
+    `default(output,0)` (l'en-tête `.gprc` du même fichier), le mode brut, qui
+    imprime `[1,2]` et non `[1, 2]`. Les attendus de ce fichier suivent ce
+    mode : un `, ` y serait une invention de PAX, et il en coûtait une
+    normalisation d'espaces chez tous les consommateurs — `itemchr` compris.
+    """
 
     def test_outer_brackets_are_stripped(self):
-        assert _call_pari("v=[1,2,3]; print(v)") == "1, 2, 3"
+        assert _call_pari("v=[1,2,3]; print(v)") == "1,2,3"
 
     def test_nested_brackets_are_kept(self):
-        assert _call_pari("m=[1,2;3,4]; print(m)") == "1, 2; 3, 4"
+        assert _call_pari("m=[1,2;3,4]; print(m)") == "1,2;3,4"
 
     def test_scalar_output_is_untouched(self):
         assert _call_pari("n=5; print(n)") == "5"
@@ -202,16 +209,16 @@ class TestConcat:
     listes (`xl=concat(xl,xi)` des balayages de oefalgopython.fr)."""
 
     def test_concat_of_scalars_builds_a_vector(self):
-        assert _call_pari("v=concat(5,1); print(v)") == "5, 1"
+        assert _call_pari("v=concat(5,1); print(v)") == "5,1"
 
     def test_concat_of_vectors_flattens_one_level(self):
-        assert _call_pari("v=concat([1,2],[3,4]); print(v)") == "1, 2, 3, 4"
+        assert _call_pari("v=concat([1,2],[3,4]); print(v)") == "1,2,3,4"
 
     def test_accumulation_in_a_loop(self):
-        assert _call_pari("xl=[]; for(i=1,3, xl=concat(xl,i*10)); print(xl)") == "10, 20, 30"
+        assert _call_pari("xl=[]; for(i=1,3, xl=concat(xl,i*10)); print(xl)") == "10,20,30"
 
     def test_boolean_constants(self):
-        assert _call_pari("b=true; print(concat(3,b))") == "3, 1"
+        assert _call_pari("b=true; print(concat(3,b))") == "3,1"
 
     def test_string_argument_still_concatenates_textually(self):
         assert _call_pari('s=concat("a","b"); print(s)') == "ab"

@@ -998,13 +998,19 @@ class TestSopoA:
         assert ",:" not in r.statement_html
         assert "suivante&nbsp;:" in r.statement_html
 
-    def test_tab_separator_disambiguation(self):
-        # A real pax tab-join (HTML blob, item ends in '>') splits on TAB; a
-        # ",\t" (cosmetic) splits on the comma.
-        from core.oef.def_engine import DefEngine  # noqa: PLC0415
+    def test_la_tabulation_ne_separe_jamais(self):
+        """Il n'y a plus de désambiguïsation à faire : la virgule seule sépare.
 
-        assert DefEngine._tab_is_separator("<div>a</div>\t<div>b</div>") is True
-        assert DefEngine._tab_is_separator("un item,\tautre item") is False
+        Le blob HTML joint par tabulations était une production de PAX, pas de
+        WIMS ; les producteurs migrés, un `<div>a</div><TAB><div>b</div>` est
+        un seul item, et un `,<TAB>` en donne bien deux, tabulation élaguée.
+        """
+        from core.oef.def_engine import wims_lists as wl  # noqa: PLC0415
+
+        assert wl.cutitems("<div>a</div>\t<div>b</div>") == [
+            "<div>a</div>\t<div>b</div>"
+        ]
+        assert wl.cutitems("un item,\tautre item") == ["un item", "autre item"]
 
 
 class TestOefcalittaire1:

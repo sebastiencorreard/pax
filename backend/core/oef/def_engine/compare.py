@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 from typing import Callable, Optional
 
+from . import wims_lists as wl
 from .cas import _MATH_NS
 
 
@@ -40,34 +41,6 @@ _WIMS_PREFIX_CHARS = frozenset("siwlv")
 def _wims_bufprep(s: str) -> str:
     """Collapse whitespace (bufprep in compare.c)."""
     return " ".join(s.split())
-
-
-def _split_items_protected(s: str) -> list[str]:
-    """Découpe une liste WIMS en items.
-
-    La tabulation sépare aussi des items, et prime quand il y en a — même règle
-    que `_split_items` côté moteur. Sans elle, `isitemof` était **toujours faux**
-    sur une liste tabulée : `mathelexikon` garde ses champs actifs dans un
-    `r 1<TAB>r 2<TAB>…` et son `!if r $m_k isitemof $val105` ne passait jamais,
-    si bien qu'aucun `\\embed` n'était émis.
-    """
-    if "\t" in s:
-        return [p.strip() for p in s.split("\t")]
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in s:
-        if ch in "([{":
-            depth += 1
-        elif ch in ")]}":
-            depth -= 1
-        if ch == "," and depth <= 0:
-            parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    parts.append("".join(current))
-    return [p.strip() for p in parts]
 
 
 def _wims_strip_all_parens(s: str) -> str:
@@ -159,14 +132,12 @@ def _wims_semantic_op(lhs: str, r: int, neg: bool, rhs: str) -> bool:
         words = [w.strip() for w in re.split(r"[\s,]+", b2) if w.strip()]
         result = b1 in words
     elif r == 5:
-        # Les virgules protégées par `[]`/`()`/`{}` ne séparent pas des items :
-        # `slib/function/tabsignes` teste `[ligne,colonne] isitemof <liste de
-        # couples>`, ce qu'un découpage naïf rendait toujours faux. Les espaces
-        # de présentation sont ignorés de part et d'autre — GP écrit `[1, 2]`
-        # quand le `.def` compose `[1,2]`.
-        result = _wims_bufprep(b1).replace(" ", "") in [
-            _wims_bufprep(x).replace(" ", "") for x in _split_items_protected(b2)
-        ]
+        # `itemchr(buf2,buf1)`, sans rien autour (compare.c:165). Ce n'est pas
+        # une égalité item à item mais une recherche de sous-chaîne encadrée de
+        # frontières — d'où le fait qu'un `[ligne,colonne]` s'y retrouve entier
+        # dans une liste de couples (slib/function/tabsignes) sans qu'aucune
+        # protection de crochets soit nécessaire.
+        result = wl.itemchr(b2, b1)
     elif r == 6:
         result = b1 in [x.strip() for x in b2.splitlines()]
     elif r in (7, 8):

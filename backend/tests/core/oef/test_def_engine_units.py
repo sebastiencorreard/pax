@@ -15,6 +15,7 @@ from core.oef.def_engine import (
     _close_inline_math,
     _expr_to_latex,
 )
+from core.oef.def_engine import wims_lists as wl
 from core.oef.engine import find_def_path
 from core.oef.def_engine.slib import _fr_cardinal, _ecriture_lettre
 
@@ -389,22 +390,29 @@ class TestMathmlinput:
 
 
 class TestWimsListSplit:
-    def test_splits_on_comma_and_semicolon(self):
-        # WIMS comma-bearing items become `;`-separated (append-tab + translate).
-        # `$(var[N])` must split on both `,` and `;` (brevet01 QCM choices).
+    """Un item WIMS se termine à la virgule de profondeur zéro, un point.
+
+    Le `;` a longtemps été traité ici comme une seconde frontière, parce que
+    notre `!append item` séparait par des tabulations et que l'idiome
+    `!translate \\t to ;` des QCM (brevet01) les transformait en `;`. Le
+    producteur corrigé, ce `;` n'apparaît plus qu'à l'intérieur d'un choix —
+    c'est de la donnée. `oef/embed.phtml` le confirme : il lit `replygood` en
+    `!rows2lines` + `!distribute lines … into ts,tt`, puis prend `!item N of
+    $tt`.
+    """
+
+    def test_semicolon_is_not_a_separator(self):
         e = engine()
-        val = r"1|\(\large 25),0|\(\large 1000),0|\(\large 4 \times 10^{22});0|\(\large 2,5 \times 10^{19})"
-        items = e._split_wims_items(val)
-        assert items == [
-            r"1|\(\large 25)", r"0|\(\large 1000)",
-            r"0|\(\large 4 \times 10^{22})", r"0|\(\large 2,5 \times 10^{19})",
+        val = r"1|\(\large 25),0|\(\large 1000);0|\(\large 2,5 \times 10^{19})"
+        assert wl.cutitems(val) == [
+            r"1|\(\large 25)",
+            r"0|\(\large 1000);0|\(\large 2,5 \times 10^{19})",
         ]
 
-    def test_protects_parens_and_entities(self):
+    def test_protects_parens(self):
         e = engine()
-        # comma inside \(…) and ; inside an entity are NOT separators.
-        assert e._split_wims_items(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
-        assert e._split_wims_items(r"x&#44;y;z") == ["x&#44;y", "z"]
+        # La virgule de `\(2,5)` est protégée par la parenthèse ouvrante.
+        assert wl.cutitems(r"\(2,5),\(a;b)") == [r"\(2,5)", r"\(a;b)"]
 
     def test_semicolon_is_not_an_item_border(self):
         """`find_item_end` vaut `strparstr(p, ",")` : seule la virgule sépare.
@@ -819,8 +827,11 @@ class TestCmdListOps:
         assert e._eval_cmd("itemcnt", "a,b,c") == "3"
 
     def test_rowcnt(self):
+        """`rownum` = `rows2lines` puis `linenum` : `;` ou `\n`, jamais `\t`."""
         e = engine()
-        assert e._eval_cmd("rowcnt", "a\tb\tc") == "3"
+        assert e._eval_cmd("rowcnt", "a;b;c") == "3"
+        assert e._eval_cmd("rowcnt", "a\nb\nc") == "3"
+        assert e._eval_cmd("rowcnt", "a\tb\tc") == "1"
 
 
 # ── !item / !row ───────────────────────────────────────────────────────────────
@@ -865,12 +876,20 @@ class TestCmdItemRow:
         assert e._eval_cmd("item", "2 of a,\tb") == "b"
 
     def test_row_second(self):
+        """`calc_rowof` : les lignes se séparent par `;` ou `\n`."""
         e = engine()
-        assert e._eval_cmd("row", "2 of a\tb\tc") == "b"
+        assert e._eval_cmd("row", "2 of a;b;c") == "b"
+        assert e._eval_cmd("row", "2 of a\nb\nc") == "b"
+
+    def test_row_of_a_tabbed_value_is_the_whole_value(self):
+        """Aucune tabulation ne coupe une matrice : elle n'a qu'une ligne."""
+        e = engine()
+        assert e._eval_cmd("row", "1 of a\tb\tc") == "a\tb\tc"
+        assert e._eval_cmd("row", "2 of a\tb\tc") == ""
 
     def test_row_out_of_range(self):
         e = engine()
-        assert e._eval_cmd("row", "5 of a\tb") == ""
+        assert e._eval_cmd("row", "5 of a;b") == ""
 
 
 # ── !replace / !append ────────────────────────────────────────────────────────
@@ -987,20 +1006,22 @@ class TestVariableResolution:
         assert e._resolve_indexed1(m) == ""
 
     def test_indexed2_matrix(self):
+        """`$(v[l;c])` = `calc_rowof` puis `calc_columnof` : le `;` sépare les
+        lignes (via `rows2lines`), la virgule les cellules."""
         e = engine()
-        e.ctx["mat"] = "a;b\tc;d"  # row1: a;b  row2: c;d
+        e.ctx["mat"] = "a,b;c,d"
         m = re.match(r"\$\((\w+)\[([^\]]+);([^\]]+)\]\)", "$(mat[2;1])")
         assert m is not None
         assert e._resolve_indexed2(m) == "c"
 
     def test_indexed2_nested_column(self):
-        # ecrdec1: $(val14[$m_h;$(val11[$m_h])]) — the column index is itself
-        # an indexed lookup. The inner $(val11[…]) must resolve first, then
-        # the outer matrix access. Previously the outer regex grabbed the
-        # inner "]" and left a literal "])" behind.
+        # ecrdec1 : `$(val14[$m_h;$(val11[$m_h])])` — l'indice de colonne est
+        # lui-même une lecture indexée ; l'intérieur se résout d'abord. La
+        # matrice a la forme qu'elle prend dans le `.def` : lignes séparées par
+        # `;`, cellules par des virgules.
         e = engine()
-        e.ctx["mat"] = "Finie;Infinie périodique\tFinie;Je ne sais pas"
-        e.ctx["pos"] = "2,1"  # correct column per row
+        e.ctx["mat"] = "Finie,Infinie périodique;Finie,Je ne sais pas"
+        e.ctx["pos"] = "2,1"  # colonne correcte, ligne par ligne
         e.ctx["m_h"] = "1"
         assert e._subst("$(mat[$m_h;$(pos[$m_h])])") == "Infinie périodique"
         e.ctx["m_h"] = "2"
@@ -1195,14 +1216,21 @@ class TestCmdPositionof:
 
 class TestCmdRandrow:
     def test_returns_one_row(self):
+        """`calc_randrow` : `rows2lines(p)` puis `calc_randline` (calc.c:498)."""
         e = engine(1)
-        e.ctx["mat"] = "a,1\tb,2\tc,3"
+        e.ctx["mat"] = "a,1;b,2;c,3"
         result = e._eval_cmd("randrow", "$mat")
         assert result in ("a,1", "b,2", "c,3")
 
+    def test_tabs_make_a_single_row(self):
+        """Une valeur tabulée n'a qu'une ligne : elle ressort entière."""
+        e = engine(1)
+        e.ctx["mat"] = "a,1\tb,2\tc,3"
+        assert e._eval_cmd("randrow", "$mat") == "a,1\tb,2\tc,3"
+
     def test_deterministic(self):
         e1, e2 = engine(42), engine(42)
-        e1.ctx["mat"] = e2.ctx["mat"] = "x\ty\tz"
+        e1.ctx["mat"] = e2.ctx["mat"] = "x;y;z"
         assert e1._eval_cmd("randrow", "$mat") == e2._eval_cmd("randrow", "$mat")
 
     def test_empty_returns_empty(self):
@@ -1392,11 +1420,13 @@ class TestRangeSlice:
         e.ctx["v"] = "a,b,c,d,e"
         assert e._subst("$(v[2..4])") == "b,c,d"
 
-    def test_tab_separated(self):
-        # Range slice always returns comma-joined items regardless of source separator
+    def test_tab_is_not_a_separator(self):
+        """La tabulation ne coupe rien : la valeur entière est l'item 1."""
         e = engine()
         e.ctx["v"] = "x\ty\tz"
-        assert e._subst("$(v[1..2])") == "x,y"
+        assert e._subst("$(v[1..2])") == "x\ty\tz"
+        e.ctx["w"] = "x,\ty,\tz"
+        assert e._subst("$(w[1..2])") == "x,y"
 
     def test_single_element(self):
         e = engine()
@@ -1880,15 +1910,15 @@ class TestSlibOutPreservation:
 
 
 class TestItemCount:
-    """`!itemcnt` — les cases vides comptent, les lignes blanches non.
+    """`!itemcnt` — `itemnum` (`liblines.c`), et rien d'autre.
 
-    Les deux séparateurs n'ont pas la même sémantique. Entre virgules, un trou
-    porte du sens : les colonnes sans signe d'un tableau de variation
-    (`x,reply1,,reply2,,reply3`) en sont, et `slib/function/tabsignes` bâtissait
-    4 colonnes au lieu de 6 quand on les ignorait. La tabulation, elle, sépare
-    des lignes — une ligne blanche n'est pas un item, et chaque `,<TAB>` en
-    fabriquerait un fantôme, ce qui décalait le tirage aléatoire de
-    `oefsuites1S/cvgequot` vers un énoncé vide.
+    La virgule seule sépare, à profondeur zéro, et les cases vides comptent :
+    les colonnes sans signe d'un tableau de variation (`x,reply1,,reply2`) en
+    sont, et `slib/function/tabsignes` bâtissait 4 colonnes au lieu de 6 quand
+    on les ignorait. Seule la chaîne **vide** vaut 0 (`if(*p==0) return 0`).
+
+    La tabulation n'a jamais eu de rôle ici : le filtre « ligne blanche » qui
+    l'accompagnait compensait un `!makelist` tabulé, corrigé depuis.
     """
 
     def test_empty_cells_between_commas_are_counted(self):
@@ -1897,11 +1927,16 @@ class TestItemCount:
     def test_plain_comma_list(self):
         assert engine()._eval_cmd("itemcnt", "a,b,c") == "3"
 
-    def test_blank_lines_between_tabs_are_not_counted(self):
-        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "3"
+    def test_tabs_are_not_separators(self):
+        """Sans virgule, il n'y a qu'un item — la tabulation n'en coupe aucun."""
+        assert engine()._eval_cmd("itemcnt", "a\t\tb\tc") == "1"
 
     def test_comma_tab_pairs_do_not_add_phantom_items(self):
-        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`"""
+        """La forme des listes multi-lignes des `.def` : `item,<TAB>item,<TAB>…`
+
+        La virgule découpe, `fnd_item` élague la tabulation de bord : trois
+        items, sans qu'aucun fantôme n'apparaisse.
+        """
         assert engine()._eval_cmd("itemcnt", "x,\t  y,\t  z\t") == "3"
 
     def test_brackets_protect_commas(self):
@@ -1960,9 +1995,15 @@ class TestListMembershipWithBrackets:
         assert e._eval_condition("if", "[1,2] isitemof [1,2],[3,4]")
         assert not e._eval_condition("if", "[9,9] isitemof [1,2],[3,4]")
 
-    def test_isitemof_ignores_presentation_spaces(self):
-        """GP écrit `[1, 2]` là où le `.def` compose `[1,2]`."""
-        assert engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+    def test_isitemof_ne_normalise_pas_les_espaces(self):
+        """`itemchr(buf2,buf1)` (compare.c:165) — recherche de sous-chaîne.
+
+        Aucune normalisation n'entoure l'appel : un `[1, 2]` espacé ne contient
+        pas la sous-chaîne `[1,2]`. WIMS n'en produit d'ailleurs jamais, son
+        `gp` tournant en mode brut (`default(output,0)`, Interfaces/pari.c).
+        """
+        assert not engine()._eval_condition("if", "[1,2] isitemof [1, 2], [3, 4]")
+        assert engine()._eval_condition("if", "[1, 2] isitemof [1, 2], [3, 4]")
 
     def test_isitemof_plain_list_unchanged(self):
         e = engine()
@@ -1973,9 +2014,15 @@ class TestListMembershipWithBrackets:
         e = engine()
         assert e._eval_cmd("positionof", "item [2,3] in [1,2],[2,3],[3,4]") == "2"
 
-    def test_positionof_ignores_presentation_spaces(self):
+    def test_positionof_compare_sans_normaliser(self):
+        """`_pos` (calc.c) : `strcmp` sur l'item élagué, rien de plus.
+
+        Les blancs de **bord** tombent avec `fnd_item`, ceux de l'intérieur
+        restent — `[2,3]` n'est pas `[2, 3]`.
+        """
         e = engine()
-        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "2"
+        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "0"
+        assert e._eval_cmd("positionof", "item [2, 3] in [1, 2], [2, 3]") == "2"
 
     def test_positionof_absent_returns_zero(self):
         assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == "0"
