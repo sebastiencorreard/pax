@@ -339,14 +339,13 @@ Restent ouverts, hors périmètre du découpage :
   crochets protégeant tout, la liste n'a qu'un item et son `!positionof` ne
   trouve rien : la palette sort vide (elle sortait auparavant en trois
   fragments d'expression coupée, tout aussi inutilisables).
-- **`atext` ne coupe pas son `replygood` au `;`** — `oefcountries` écrit
-  `replygood1=$val14;$val15`, où `$val14` est le pays cherché et `$val15` la
-  liste de tous les pays du monde (l'`<input list=…>` d'`anstype/atext.input`
-  suggère une datalist d'autocomplétion). PAX compare la saisie à la chaîne
-  entière : « Pologne » est refusé et le corrigé affiche les deux cents pays.
-  42 rendus, 14 exercices — exactement ceux dont `oef/img.phtml` vient de
-  réparer la carte, qui restent donc innotables. Vérifier la sémantique du `;`
-  contre le checker WIMS avant de bouger.
+- **`unknownword` n'est pas rendu** — le checker `atext` distingue trois
+  issues, nous deux. Quand la réponse ne correspond pas, il regarde si chacun
+  de ses mots figure dans `good` ou dans les `badwords` ; s'il en trouve un
+  qui n'est nulle part, il rend `NaN unknownword <mot>` — un statut qui
+  redemande à l'élève au lieu de le noter faux. Nous notons faux. C'est la
+  seule raison d'être des `badwords`, désormais correctement écartés de la
+  comparaison.
 - `wims_shuffle_order` / `wims_sort_order` : toujours non implémentés.
 - La table HTML de `slib/triplerelation/tabular` : la question des virgules de
   profondeur 0 n'a plus d'urgence depuis que `moles`/`mouvrel` passent sans
