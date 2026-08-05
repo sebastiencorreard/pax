@@ -17,30 +17,42 @@ def engine() -> DefEngine:
 
 
 class TestColumnIndexList:
+    """Les colonnes retenues sur une même ligne sont jointes par `", "`.
+
+    `calc_columnof` (`calc.c`) découpe la matrice ligne à ligne et délègue la
+    sélection des colonnes à `calc_itemof` — dont l'`append_char` est `", "`,
+    virgule **et** espace. Son propre séparateur (`sep`) ne joint que les
+    lignes entre elles : `';'` quand la matrice en portait, `'\\n'` sinon, et
+    `','` seulement lorsque l'indice est unique (ni virgule, ni `to`, ni `..`),
+    auquel cas il n'y a de toute façon rien à joindre sur la ligne.
+    """
+
     def test_list_selects_in_the_order_given(self):
-        assert engine()._subst("$(m[1;2,4])") == "b,d"
-        assert engine()._subst("$(m[1;4,2])") == "d,b"
+        assert engine()._subst("$(m[1;2,4])") == "b, d"
+        assert engine()._subst("$(m[1;4,2])") == "d, b"
 
     def test_out_of_range_indices_are_skipped_not_fatal(self):
         # `_blockof` fait `continue` : la sélection garde ce qu'elle peut.
+        # Un seul item retenu : pas d'`append_char`, donc pas d'espace.
         assert engine()._subst("$(m[1;2,9])") == "b"
 
     def test_negative_indices_count_from_the_end(self):
-        assert engine()._subst("$(m[1;1,-1])") == "a,d"
+        assert engine()._subst("$(m[1;1,-1])") == "a, d"
 
     def test_the_list_may_come_from_a_variable(self):
         e = engine()
         e.ctx["idx"] = "2,4"
-        assert e._subst("$(m[1;$idx])") == "b,d"
-        assert e._subst("$(m[2;$idx])") == "f,h"
+        assert e._subst("$(m[1;$idx])") == "b, d"
+        assert e._subst("$(m[2;$idx])") == "f, h"
 
     def test_row_list_and_column_list_combine(self):
-        assert engine()._subst("$(m[1,2;2,4])") == "b,d;f,h"
+        """Deux séparateurs distincts : `", "` sur la ligne, `;` entre lignes."""
+        assert engine()._subst("$(m[1,2;2,4])") == "b, d;f, h"
 
     def test_single_index_and_range_are_unchanged(self):
         e = engine()
         assert e._subst("$(m[1;2])") == "b"
-        assert e._subst("$(m[1;2..4])") == "b,c,d"
+        assert e._subst("$(m[1;2..4])") == "b, c, d"
         assert e._subst("$(m[1;])") == "a,b,c,d"
 
 

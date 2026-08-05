@@ -1627,7 +1627,11 @@ class DefEngine(_SlibMixin):
         `_blockof`, comme dans le C où `calc_itemof` n'est qu'un appel avec
         `itemnum`/`fnd_item`.
         """
-        return self._blockof(data, wl.cutitems, ",", idx_s)
+        # `append_char` vaut `", "` — virgule **et espace** —, pas `","` :
+        # `_blockof(p,itemnum,fnd_item,", ","item")`. C'est le seul des cinq
+        # sélecteurs à en porter un ; il ne se voit que quand `!item` rend
+        # plusieurs items, et l'espace est élagué au prochain découpage.
+        return self._blockof(data, wl.cutitems, ", ", idx_s)
 
     def _cmd_row(self, args: str) -> str:
         """!row I of matrix — ligne(s) I, séparateur auto.

@@ -845,9 +845,12 @@ class TestCmdItemRow:
     def test_item_index_list(self):
         # WIMS `!item 4,7,8 of LIST` picks multiple items by index — used by
         # rotation/colour-permutation exercises.
+        # `calc_itemof` : `_blockof(p,itemnum,fnd_item,", ","item")` — les items
+        # retenus sont joints par une virgule **et un espace**, seul des cinq
+        # sélecteurs de `calc.c` à en porter un.
         e = engine()
         result = e._eval_cmd("item", "3,1,2 of red,blue,yellow")
-        assert result == "yellow,red,blue"
+        assert result == "yellow, red, blue"
 
     def test_item_second(self):
         e = engine()
@@ -858,14 +861,16 @@ class TestCmdItemRow:
         assert e._eval_cmd("item", "9 of a,b,c") == ""
 
     def test_item_range_to(self):
+        # `append_char` = `", "` (cf. test_item_index_list).
         e = engine()
-        assert e._eval_cmd("item", "2 to 3 of a,b,c,d") == "b,c"
+        assert e._eval_cmd("item", "2 to 3 of a,b,c,d") == "b, c"
 
     def test_item_range_negative_end(self):
         # WIMS `-1` = last item: "2 to -1" = from 2 to the end (simpquot keeps
         # every accepted answer form after the displayed expression).
         e = engine()
-        assert e._eval_cmd("item", "2 to -1 of a,b,c,d") == "b,c,d"
+        assert e._eval_cmd("item", "2 to -1 of a,b,c,d") == "b, c, d"
+        # Un seul item retenu : pas de jointure, donc pas d'espace.
         assert e._eval_cmd("item", "2 to -1 of expr,15") == "15"
 
     def test_tab_is_not_an_item_border(self):
