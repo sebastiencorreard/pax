@@ -55,6 +55,7 @@ from .slib import _SlibExit, _SlibMixin
 from ..numfmt import format_wims_float
 from ..i18n import list_separator, uses_comma_decimal
 from . import wims_lists as wl
+from .wims_img import calc_imgrename
 from ..def_parser import (
     Assign,
     Command,
@@ -506,13 +507,22 @@ class DefEngine(_SlibMixin):
         # image (`oefmolecule/lewis` affichait 10 étiquettes vides). Palette et
         # attendu sont traités **ensemble** : ce sont deux chaînes comparées
         # l'une à l'autre, les incorporer d'un seul côté casserait la notation.
+        # Les images de module (`pax-img:…`, posées par `$imagedir` ou par
+        # `imgrename(…)`) y sont résolues au même titre : la palette d'un
+        # `type=correspond` est faite de balises `<img>` — `oefmolecule` fait
+        # apparier des modèles moléculaires à leur nom — et sans cette passe
+        # l'URL sentinelle sortait telle quelle, donc aucune image à l'écran.
         for a in answers:
-            if a.expected and "/api/render/svg/" in a.expected:
-                a.expected = inline_svg_imgs(a.expected)
+            if a.expected:
+                if "/api/render/svg/" in a.expected:
+                    a.expected = inline_svg_imgs(a.expected)
+                a.expected = self._inline_module_imgs(a.expected)
             choices = a.options.get("choices")
             if choices:
                 a.options["choices"] = [
-                    inline_svg_imgs(c) if "/api/render/svg/" in c else c
+                    self._inline_module_imgs(
+                        inline_svg_imgs(c) if "/api/render/svg/" in c else c
+                    )
                     for c in choices
                 ]
 
@@ -839,7 +849,15 @@ class DefEngine(_SlibMixin):
             self.ctx.pop(var, None)
 
     def _eval_value(self, value: str) -> str:
-        """Evaluate the RHS of an assignment."""
+        """Evaluate the RHS of an assignment.
+
+        `imgrename(…)` est développé sur le résultat : dans WIMS c'est une
+        fonction du calculateur (`calc.c`, table `calc_list`), donc toute
+        valeur calculée y passe. Les deux formes que porte le corpus sont ainsi
+        couvertes d'un même point — l'appel direct (`val69=imgrename($val1/$val69)`)
+        comme celui niché dans un `!makelist`. `!nosubst`, qui coupe le
+        calculateur, en est exclu.
+        """
         # !cmd — WIMS command
         if value.startswith("!"):
             cmd_line = value[1:].strip()
@@ -850,7 +868,7 @@ class DefEngine(_SlibMixin):
 
             # For other commands, substitute variables first
             args = self._subst(args)
-            return self._eval_cmd(cmd, args)
+            return calc_imgrename(self._eval_cmd(cmd, args))
 
         # $[expr] — arithmetic
         if value.startswith("$["):
@@ -863,7 +881,7 @@ class DefEngine(_SlibMixin):
         # tabulation de `_split_items` ; il tombe avec elle.
 
         # Literal string with variable substitution
-        return self._subst(value)
+        return calc_imgrename(self._subst(value))
 
     def _eval_dollar_bracket(self, s: str) -> str:
         """Evaluate $[expr] — find the outermost brackets and eval."""
@@ -2817,18 +2835,38 @@ class DefEngine(_SlibMixin):
         """
         return [c for c in wl.cutitems(row) if c.strip()]
 
+    def _inline_module_imgs(self, s: str) -> str:
+        """Résout les `pax-img:…` d'un fragment hors énoncé.
+
+        L'énoncé traverse `inline_pax_images` en post-rendu, mais une palette
+        part sérialisée en JSON dans un attribut `data-config` : le HTML y est
+        échappé (`&lt;img src=\\&quot;pax-img:…`) et la passe de post-rendu ne
+        peut plus le voir. Les fragments qui n'empruntent pas l'énoncé doivent
+        donc être résolus ici, avant leur sérialisation.
+        """
+        if "pax-img:" not in s or not self.def_path:
+            return s
+        from ..flydraw import inline_pax_images  # noqa: PLC0415
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        exercise = os.path.splitext(os.path.basename(self.def_path))[0]
+        return inline_pax_images(s, module_dir, exercise)
+
     def _prep_correspond_item(self, raw: str) -> str:
         """Normalise one correspond cell for display: close WIMS inline math and,
         for a flydraw graph, collapse the multi-line ``<img>`` whitespace and
         inline its SVG (so it travels in the payload, like the rest of the
-        rendered statement — the ``/api/render/svg`` cache is in-memory only)."""
+        rendered statement — the ``/api/render/svg`` cache is in-memory only).
+
+        Une image de module (`oefmolecule` fait apparier des modèles
+        moléculaires à leur nom) y est résolue de même : la cellule part en
+        JSON échappé, hors de portée de la passe de post-rendu."""
         s = _close_inline_math(self._subst(raw.strip()), self.lang)
         if "/api/render/svg/" in s:
             from ..flydraw import inline_svg_imgs  # noqa: PLC0415
             s = re.sub(r"\s+", " ", s)            # flatten the multi-line markup
             s = re.sub(r'src="\s+', 'src="', s)   # trim the URL's leading space
             s = inline_svg_imgs(s)
-        return s
+        return self._inline_module_imgs(s)
 
     def _inline_radio_choices(self, n: str) -> list[str]:
         """Choice list of radio reply ``n`` from ``replygood{n}`` (``correct;a,b,…``).
