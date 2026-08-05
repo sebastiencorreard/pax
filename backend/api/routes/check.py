@@ -175,6 +175,17 @@ async def check_exercise(
                 r.reply = _pixels_to_repere(r.reply, xform, comma)
                 r.expected = _pixels_to_repere(r.expected, xform, comma)
 
+    # ── atext : le corrigé montre `replyGood`, pas `replygood` ───────────────
+    # WIMS affiche la première alternative de la première ligne ; le reste du
+    # `replygood` est un jeu de `badwords` interne. `oefcountries` y range les
+    # deux cents pays du monde, que le corrigé déroulait en entier.
+    _atext_names = {a.input_name for a in rendered.answers if a.answer_type == "atext"}
+    if _atext_names:
+        from core.answer.checkers import atext_display_answer  # noqa: PLC0415
+        for r in results:
+            if r.input_name in _atext_names and r.expected:
+                r.expected = atext_display_answer(r.expected)
+
     # ── Métadonnées de réponse ────────────────────────────────────────────────
     has_invalid = any(r.status == "invalid_format" for r in results)
 

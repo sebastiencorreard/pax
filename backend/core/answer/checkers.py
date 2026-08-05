@@ -1379,15 +1379,70 @@ def _atext_normalize(s: str, lang: str) -> str:
     return " ".join(out)
 
 
+def atext_good_line(expected: str) -> str:
+    """La ligne de `replygood` qui porte la réponse, pour `atext`.
+
+    `anstype/atext` ouvre sur `!singlespace`, `!rows2lines`, `!nonempty lines`
+    puis `!line 1 of` : le `;` est un saut de ligne, et seule la première ligne
+    est la réponse. Les suivantes sont les `badwords`, qui ne servent qu'au
+    diagnostic `unknownword`.
+    """
+    from core.oef.def_engine.wims_lists import cutlines, rows2lines  # noqa: PLC0415
+
+    good, _ = rows2lines(re.sub(r"[ \t]+", " ", expected or ""))
+    for ligne in cutlines(good):
+        if ligne.strip():
+            return ligne
+    return ""
+
+
+def atext_display_answer(expected: str) -> str:
+    """La bonne réponse **affichable** d'un `atext` — le `replyGood` de WIMS.
+
+    Le checker la pose juste après avoir isolé la ligne 1 :
+
+        replyGood$i=!translate | to <NL> in $good
+        replyGood$i=!nonempty lines $(replyGood$i)
+        replyGood$i=!line 1 of $(replyGood$i)
+
+    C'est donc la **première alternative** de la première ligne : « Pays-Bas »
+    pour un `Pays-Bas|Hollande;Belgique,Suisse`. Sans elle, le corrigé de
+    `oefcountries` déroulait les deux cents pays du monde.
+    """
+    for alt in atext_good_line(expected).split("|"):
+        if alt.strip():
+            return alt.strip()
+    return ""
+
+
 def check_atext(reply: str, expected: str, lang: str = "fr") -> CheckResult:
     """Type WIMS `atext` : texte libre tolérant — accents/casse/ponctuation
     ignorés, **mots vides** (articles) supprimés, **pluriel/genre** normalisés
     par dictionnaire. Alternatives séparées par ``|``. Donc « les triangles »,
-    « un triangle », « triangle » sont équivalents."""
+    « un triangle », « triangle » sont équivalents.
+
+    Seule la **première ligne** de l'attendu porte la bonne réponse. Le
+    checker WIMS (`anstype/atext`) ouvre sur :
+
+        good=!singlespace $(replygood$i)
+        good=!rows2lines $good
+        good=!nonempty lines $good
+        badwords=!line 2 to -1 of $good
+        good=!line 1 of $good
+
+    `rows2lines` fait des `;` des sauts de ligne : `oefcountries` écrit
+    `Pologne;Algérie,Angola,…`, où la suite n'est pas une alternative mais la
+    liste des **autres** pays. Elle sert à un diagnostic (`unknownword` quand
+    la saisie ne contient aucun mot connu de l'exercice) que nous ne rendons
+    pas encore — une mauvaise réponse est simplement fausse — mais elle ne
+    doit surtout pas entrer dans la comparaison.
+    """
+    good = atext_good_line(expected)
+
     r = _atext_normalize(reply, lang)
     if not r:
         return CheckResult(correct=False, score=0.0, method="atext")
-    for alt in expected.split("|"):
+    for alt in good.split("|"):
         if r == _atext_normalize(alt, lang):
             return CheckResult(correct=True, score=1.0, method="atext")
     return CheckResult(correct=False, score=0.0, method="atext")

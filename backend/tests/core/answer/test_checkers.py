@@ -450,3 +450,85 @@ class TestNumexpFormal:
     def test_float_fallback_for_compound_expected(self):
         """Attendu composé non évalué (`5*3`) : repli flottant, `15` accepté."""
         assert check_answer("numexp", "15", "5*3").correct
+
+
+class TestAtextReplygoodLines:
+    """`atext` ne compare qu'à la **première ligne** de son `replygood`.
+
+    Le checker WIMS (`anstype/atext`) ouvre sur :
+
+        good=!singlespace $(replygood$i)
+        good=!rows2lines $good
+        good=!nonempty lines $good
+        badwords=!line 2 to -1 of $good
+        good=!line 1 of $good
+
+    `rows2lines` fait des `;` des sauts de ligne. Ce qui suit n'est donc pas
+    une alternative : `oefcountries` y range la liste des **autres** pays, dont
+    WIMS ne se sert que pour son diagnostic `unknownword`.
+    """
+
+    def test_only_the_first_line_is_the_answer(self):
+        expected = "Vatican;Algérie,Angola,Pologne,Suède"
+        assert check_answer("atext", "Vatican", expected).correct
+
+    def test_a_badword_is_not_accepted(self):
+        """Un pays de la seconde ligne est une *mauvaise* réponse."""
+        expected = "Vatican;Algérie,Angola,Pologne,Suède"
+        assert not check_answer("atext", "Pologne", expected).correct
+
+    def test_alternatives_still_split_on_pipe(self):
+        """Le `|` reste le séparateur d'alternatives, dans la ligne 1."""
+        expected = "Pays-Bas|Hollande;Belgique,Suisse"
+        assert check_answer("atext", "Hollande", expected).correct
+        assert check_answer("atext", "Pays-Bas", expected).correct
+        assert not check_answer("atext", "Belgique", expected).correct
+
+    def test_tolerance_still_applies_to_the_first_line(self):
+        """Casse, accents et articles restent ignorés après le découpage."""
+        expected = "Vatican;Algérie,Angola"
+        assert check_answer("atext", "le vatican", expected).correct
+
+    def test_html_entity_semicolon_is_not_a_separator(self):
+        """`rows2lines` épargne le `;` qui ferme une entité : `caf&eacute;`
+        reste d'un bloc en ligne 1, au lieu d'être coupé après `caf&eacute`.
+
+        (WIMS ne décode pas l'entité pour autant — sa normalisation change `&`
+        et `;` en espaces —, donc c'est bien `caf&eacute;` qu'on retrouve.)
+        """
+        assert check_answer("atext", "caf&eacute;", "caf&eacute;;Belgique").correct
+        assert not check_answer("atext", "Belgique", "caf&eacute;;Belgique").correct
+
+    def test_plain_expected_unchanged(self):
+        """Sans `;`, rien ne change."""
+        assert check_answer("atext", "triangle", "les triangles").correct
+
+
+class TestAtextDisplayAnswer:
+    """`replyGood` — la bonne réponse *affichée* — n'est pas `replygood`.
+
+    Le checker WIMS la dérive juste après avoir isolé la ligne 1 :
+
+        replyGood$i=!translate | to <NL> in $good
+        replyGood$i=!nonempty lines $(replyGood$i)
+        replyGood$i=!line 1 of $(replyGood$i)
+
+    C'est donc la première alternative de la première ligne.
+    """
+
+    def test_first_alternative_of_first_line(self):
+        from core.answer.checkers import atext_display_answer
+        assert atext_display_answer("Pays-Bas|Hollande;Belgique,Suisse") == "Pays-Bas"
+
+    def test_badwords_are_never_shown(self):
+        """Le corrigé de `oefcountries` déroulait les deux cents pays."""
+        from core.answer.checkers import atext_display_answer
+        assert atext_display_answer("Vatican;Algérie,Angola,Pologne") == "Vatican"
+
+    def test_plain_answer_unchanged(self):
+        from core.answer.checkers import atext_display_answer
+        assert atext_display_answer("triangle") == "triangle"
+
+    def test_empty_stays_empty(self):
+        from core.answer.checkers import atext_display_answer
+        assert atext_display_answer("") == ""

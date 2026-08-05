@@ -47,6 +47,18 @@ def _candidats(ans):
     """
     brut = ans.expected or ""
     yield brut
+    # `atext` range sa réponse en **première ligne** de `replygood`, et le `;`
+    # y fait un saut de ligne (`anstype/atext` : `!rows2lines` puis
+    # `!line 1 of`). Ce qui suit n'est pas une écriture acceptable : les 14
+    # `oefcountries` y listent les *autres* pays, pour le seul diagnostic
+    # `unknownword`. Soumettre le tout n'a jamais été une bonne réponse.
+    if ans.answer_type == "atext" and ";" in brut:
+        from core.oef.def_engine.wims_lists import cutlines, rows2lines  # noqa: PLC0415
+        lignes, _ = rows2lines(re.sub(r"[ \t]+", " ", brut))
+        for ligne in cutlines(lignes):
+            if ligne.strip():
+                yield ligne.strip()
+                break
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()
