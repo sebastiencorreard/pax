@@ -1200,8 +1200,19 @@ class TestCmdPositionof:
         assert e._eval_cmd("positionof", "item b in a,b,c") == "2"
 
     def test_not_found(self):
+        """`_pos` laisse `out` intact quand rien ne correspond : chaîne vide.
+
+        Pas `"0"` — les `.def` réinjectent ce résultat en indice, et un `0`
+        s'y ferait passer pour un rang.
+        """
         e = engine()
-        assert e._eval_cmd("positionof", "item z in a,b,c") == "0"
+        assert e._eval_cmd("positionof", "item z in a,b,c") == ""
+
+    def test_every_occurrence_is_returned(self):
+        """`_pos` parcourt toute la liste et concatène chaque rang trouvé
+        (`if(t>0) strcat(out,",")`) — il ne s'arrête pas au premier."""
+        e = engine()
+        assert e._eval_cmd("positionof", "item a in a,b,a,c,a") == "1,3,5"
 
     def test_in_must_be_a_whole_word(self):
         """`calc_pos` sépare par `wordchr(p1,"in")` : le « in » doit être un mot.
@@ -1214,7 +1225,7 @@ class TestCmdPositionof:
         liste = "L'inverse de la somme,La somme des inverses de 7.5"
         assert e._eval_cmd("positionof", f"item La somme des inverses de 7.5 in {liste}") == "2"
         # « in » terminal (liste vide) reste un point de coupe valide.
-        assert e._eval_cmd("positionof", "item x in") == "0"
+        assert e._eval_cmd("positionof", "item x in") == ""
 
     def test_tab_is_not_a_separator(self):
         """`_pos` passe par `fnd_item` : la virgule seule sépare, et l'item
@@ -2039,11 +2050,12 @@ class TestListMembershipWithBrackets:
         restent — `[2,3]` n'est pas `[2, 3]`.
         """
         e = engine()
-        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == "0"
+        assert e._eval_cmd("positionof", "item [2,3] in [1, 2], [2, 3]") == ""
         assert e._eval_cmd("positionof", "item [2, 3] in [1, 2], [2, 3]") == "2"
 
-    def test_positionof_absent_returns_zero(self):
-        assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == "0"
+    def test_positionof_absent_returns_empty(self):
+        """Rien trouvé : `out` reste vide, et c'est la chaîne vide qui sort."""
+        assert engine()._eval_cmd("positionof", "item [9,9] in [1,2],[2,3]") == ""
 
     def test_positionof_plain_list_unchanged(self):
         assert engine()._eval_cmd("positionof", "item b in a,b,c") == "2"

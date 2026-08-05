@@ -1845,7 +1845,14 @@ class DefEngine(_SlibMixin):
         return ",".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
-        """!positionof item X in $list — 1-indexed position, 0 if absent."""
+        """!positionof item X in $list — rangs de X, séparés par des virgules.
+
+        `_pos` (`calc.c`) parcourt **toute** la liste et concatène le rang de
+        chaque item égal au motif (`if(t>0) strcat(out,",")`) : trois
+        occurrences rendent `2,5,7`, pas `2`. Rien trouvé laisse `out` intact,
+        donc **la chaîne vide** — jamais `"0"`, qui a l'air d'un rang et que
+        les `.def` réinjectent tel quel en indice.
+        """
         # `calc_pos` sépare motif et liste par `wordchr(p1,"in")` : le « in »
         # doit être un **mot**, donc suivi d'un blanc ou de la fin. Le `\s*`
         # qui vivait ici coupait sur le « in » de « inverses », et
@@ -1853,7 +1860,7 @@ class DefEngine(_SlibMixin):
         # de 7.5 … » — introuvable, quelle que soit la liste.
         m = re.match(r"item\s+(.*?)\s+in(?=\s|$)\s*(.*)", args, re.DOTALL | re.I)
         if not m:
-            return "0"
+            return ""
         needle = self._subst(m.group(1).strip())
         haystack = self._subst(m.group(2).strip())
         # `_pos` (`calc.c`) compare l'item **élagué** au motif par `strcmp` :
@@ -1861,10 +1868,7 @@ class DefEngine(_SlibMixin):
         # rattrapait le `[1, 2]` que produisait notre émulation de GP ; le mode
         # brut de WIMS (`default(output,0)`) n'en émet pas.
         items = wl.cutitems(haystack)
-        for i, item in enumerate(items, 1):
-            if item == needle:
-                return str(i)
-        return "0"
+        return ",".join(str(i) for i, item in enumerate(items, 1) if item == needle)
 
     def _cmd_randrow(self, args: str) -> str:
         """!randrow $matrix — ligne aléatoire (séparateur auto)."""
