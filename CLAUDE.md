@@ -217,6 +217,16 @@ noise-free via `core/oef/numfmt.py:format_wims_float` (12 significant digits,
 like WIMS' `double` printing). The frontend (`composables/useKatex.ts`) wraps a
 decimal comma as `{,}` so KaTeX doesn't add punctuation spacing.
 
+The **corrected answer** shown after submitting goes through one pass of its
+own, `_localize_feedback` in `api/routes/check.py`: the engine emits dots, the
+exercise's language may want commas. It rewrites a dot only *between two
+digits*, only on `expected` (never `reply` — that's what the student typed),
+and only for answer types whose value is a number (`atext` answers "3.5
+inches", `runcode` returns Python). It is a display convenience, **not** an
+engine rule: no verdict depends on it, and the checkers accept `2,6` as
+readily as `2.6`. `PAX_LOCALIZE_FEEDBACK=0` turns it off — handy when
+diffing a render against WIMS, which localises nothing.
+
 ## Documentation index (`docs/`)
 
 In-depth references and dev guides:
