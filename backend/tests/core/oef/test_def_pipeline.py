@@ -951,6 +951,58 @@ class TestListBalancing:
         assert segs[-1]["type"] == "html" and "after" in segs[-1]["content"]
 
 
+class TestGroupBalancing:
+    """_balance_groups reproduit l'indulgence du navigateur sur un HTML mal
+    formé. Le défaut vient des exercices eux-mêmes : `oefconversion/conversion1`
+    ferme un `</ul>` jamais ouvert, et son `.oef` d'origine le porte déjà — WIMS
+    l'envoie tel quel, le navigateur ignore le fermant en trop. Le front, lui,
+    bâtit un arbre : un fermant orphelin tronque la mise en page, un ouvrant
+    resté ouvert avale la suite de l'énoncé."""
+
+    def _depth(self, segs):
+        depth = min_depth = 0
+        for s in segs:
+            if s.get("type") == "group-open":
+                depth += 1
+            elif s.get("type") == "group-close":
+                depth -= 1
+                min_depth = min(min_depth, depth)
+        return depth, min_depth
+
+    def test_fermant_orphelin_ignore(self):
+        """Le cas conversion1 : un `</ul>` sans ouvrant, en fin d'énoncé."""
+        from core.oef.engine import _segment_statement  # noqa: PLC0415
+
+        segs = _segment_statement("<p>texte</p></ul>")
+        assert self._depth(segs) == (0, 0)
+
+    def test_ouvrant_restant_referme(self):
+        """Un `<div>` jamais fermé : le front doit retrouver son niveau."""
+        from core.oef.engine import _segment_statement  # noqa: PLC0415
+
+        segs = _segment_statement('<div class="a">texte')
+        assert self._depth(segs) == (0, 0)
+        assert segs[-1]["type"] == "group-close"
+
+    def test_contenu_apres_un_fermant_orphelin_conserve(self):
+        """Jeter le fermant ne doit rien emporter de l'énoncé avec lui."""
+        from core.oef.engine import _segment_statement  # noqa: PLC0415
+
+        segs = _segment_statement("</ul>avant<div>dedans</div>apres")
+        assert self._depth(segs) == (0, 0)
+        texte = "".join(s.get("content", "") for s in segs if s.get("type") == "html")
+        assert "avant" in texte and "dedans" in texte and "apres" in texte
+
+    def test_html_bien_forme_inchange(self):
+        """Un énoncé déjà équilibré ne doit gagner aucun segment."""
+        from core.oef.engine import _segment_statement  # noqa: PLC0415
+
+        segs = _segment_statement("<div>a<div>b</div></div>")
+        assert self._depth(segs) == (0, 0)
+        types = [s.get("type") for s in segs]
+        assert types.count("group-open") == types.count("group-close") == 2
+
+
 class TestGear23:
     """gear23 computes the answer via $[rint(lcm($val8,$val9))]. `lcm` was
     missing from the arithmetic namespace, so the $[…] eval raised NameError,

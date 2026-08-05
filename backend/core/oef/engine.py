@@ -424,6 +424,35 @@ def _strip_group_whitespace(segments: list[dict]) -> list[dict]:
     return out
 
 
+def _balance_groups(segments: list[dict]) -> list[dict]:
+    """Rend l'appariement group-open/group-close bien parenthésé.
+
+    Le HTML des exercices ne l'est pas toujours : `oefconversion/conversion1`
+    ferme un `</ul>` qu'il n'a jamais ouvert, et son `.oef` d'origine porte
+    déjà le défaut — WIMS l'envoie tel quel au navigateur, qui ignore le
+    fermant orphelin et referme en fin de document ce qui traîne. Le front,
+    lui, bâtit un arbre à partir de ces marqueurs : un fermant de trop tronque
+    la mise en page, un ouvrant resté ouvert avale la suite de l'énoncé.
+
+    On reproduit donc l'indulgence du navigateur — jeter les fermants
+    orphelins, refermer les ouvrants restants — plutôt que de corriger 19
+    exercices dont le défaut est en amont, chez WIMS.
+    """
+    out: list[dict] = []
+    depth = 0
+    for seg in segments:
+        t = seg.get("type")
+        if t == "group-close":
+            if depth == 0:
+                continue  # fermant orphelin : ignoré, comme le fait un navigateur
+            depth -= 1
+        elif t == "group-open":
+            depth += 1
+        out.append(seg)
+    out.extend({"type": "group-close"} for _ in range(depth))
+    return out
+
+
 def _segment_statement(html: str) -> list[dict]:
     """
     Découpe le HTML rendu en segments typés consommables tels quels par le front :
@@ -625,7 +654,7 @@ def _segment_statement(html: str) -> list[dict]:
         last = m.end()
     if last < len(html):
         segments.append({"type": "html", "content": html[last:]})
-    return _strip_group_whitespace(segments)
+    return _balance_groups(_strip_group_whitespace(segments))
 
 
 def _embedded_widget_names(html: str) -> set[str]:
