@@ -9,6 +9,8 @@ d'un nombre — la comparaison numérique échoue alors silencieusement.
 
 from __future__ import annotations
 
+import unicodedata
+
 from core.oef.i18n import uses_comma_decimal
 
 # Types de réponse où la virgule est SANS ambiguïté un séparateur décimal (une
@@ -16,6 +18,39 @@ from core.oef.i18n import uses_comma_decimal
 # en locale à virgule. Les types ensemblistes/textuels (set, fset, radio,
 # text…) en sont exclus : la virgule peut y être un séparateur de liste.
 NUMERIC_REPLY_TYPES = frozenset({"numeric", "numexp", "unit", "units", "sigunits"})
+
+# `auto` n'est pas un type : `oef/replytype.proc` l'aliase vers `default`
+# (première entrée de `rt_names`, première de `rt_types`).
+_DEFAULT_ALIASES = frozenset({"default", "auto"})
+
+
+def _default_is_numeric(expected: str) -> bool:
+    """Vrai si un `default` se comporterait en `numeric` — cf. `anstype/default` :
+
+        eq==
+        !if $eq isin $(replygood$i) … !changeto anstype/equation
+        accent=!deaccent $(replygood$i)
+        !if $accent!=$(replygood$i) … !changeto anstype/atext
+        nn=$[$(replygood$i)]
+        !if NaN notin $nn
+          !changeto anstype/numeric
+
+    L'attendu qui s'évalue en nombre fait donc de la réponse un nombre, et de
+    sa virgule une décimale. Les deux branches qui précèdent sont reprises
+    telles quelles : un `=` en fait une équation, un accent un texte.
+    """
+    from core.answer.checkers import _parse_number  # noqa: PLC0415
+
+    s = (expected or "").strip()
+    if not s or "=" in s:
+        return False
+    if any(unicodedata.combining(c) for c in unicodedata.normalize("NFD", s)):
+        return False
+    try:
+        _parse_number(s, comma_is_decimal=False)
+    except (ValueError, ZeroDivisionError, SyntaxError, TypeError):
+        return False
+    return True
 
 
 def _effective_type(ans) -> str:
@@ -36,7 +71,18 @@ def normalize_decimal_reply(val: str, ans, lang: str | None) -> str:
 
     Sans effet sur ``0.7`` (pas de virgule), sur les types non numériques, ni
     hors locale à virgule.
+
+    Un ``default``/``auto`` en fait partie **quand son attendu est un nombre** :
+    `anstype/default` bascule alors sur `anstype/numeric` (cf.
+    :func:`_default_is_numeric`), et la virgule y est décimale au même titre.
+    Sans cela `quizz/pourappl` refusait ``9,41`` en français tout en acceptant
+    ``9.41``.
     """
-    if uses_comma_decimal(lang) and _effective_type(ans).lower() in NUMERIC_REPLY_TYPES:
+    if not uses_comma_decimal(lang):
+        return val
+    t = _effective_type(ans).lower()
+    if t in NUMERIC_REPLY_TYPES:
+        return val.replace(",", ".")
+    if t in _DEFAULT_ALIASES and _default_is_numeric(getattr(ans, "expected", "")):
         return val.replace(",", ".")
     return val

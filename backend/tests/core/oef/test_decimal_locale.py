@@ -290,3 +290,61 @@ class TestLocalizeFeedbackSetting:
         a = SimpleNamespace(input_name="reply1", answer_type="numeric")
         _localize_feedback([r], [a], "fr", enabled=True)
         assert r.expected == "4,76" and r.reply == "4.7"
+
+
+class TestNormalizeDefaultNumeric:
+    """Saisie : un `default`/`auto` dont l'attendu est un nombre suit `numeric`.
+
+    `oef/replytype.proc` aliase `auto` sur `default` (première entrée de
+    `rt_names`, première de `rt_types`), et `anstype/default` bascule vers
+    `anstype/numeric` dès que son attendu s'évalue en nombre :
+
+        eq==
+        !if $eq isin $(replygood$i) … !changeto anstype/equation
+        accent=!deaccent $(replygood$i)
+        !if $accent!=$(replygood$i) … !changeto anstype/atext
+        nn=$[$(replygood$i)]
+        !if NaN notin $nn
+          !changeto anstype/numeric
+
+    La virgule de la réponse y est donc décimale. Sans cela `quizz/pourappl`
+    refusait « 9,41 » en français tout en acceptant « 9.41 ».
+    """
+
+    @staticmethod
+    def _ans(expected, answer_type="auto"):
+        from types import SimpleNamespace
+        return SimpleNamespace(answer_type=answer_type, expected=expected, options={})
+
+    def test_numeric_expected_makes_the_comma_decimal(self):
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("9,41", self._ans("9.41"), "fr") == "9.41"
+        assert N("785,15", self._ans("785.15"), "fr") == "785.15"
+
+    def test_default_alias_behaves_the_same(self):
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("9,41", self._ans("9.41", "default"), "fr") == "9.41"
+
+    def test_an_equation_expected_is_left_alone(self):
+        """`!if $eq isin … !changeto anstype/equation` — première branche."""
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("1,5", self._ans("x=1.5"), "fr") == "1,5"
+
+    def test_an_accented_expected_is_left_alone(self):
+        """`!if $accent!=… !changeto anstype/atext` — deuxième branche."""
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("1,5", self._ans("café"), "fr") == "1,5"
+
+    def test_a_non_numeric_expected_is_left_alone(self):
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("1,5", self._ans("x+1"), "fr") == "1,5"
+        assert N("a,b", self._ans("a,b"), "fr") == "a,b"
+
+    def test_dot_decimal_language_is_untouched(self):
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("9,41", self._ans("9.41"), "en") == "9,41"
+
+    def test_fraction_expected_counts_as_numeric(self):
+        """`$[3/4]` s'évalue : l'attendu est bien un nombre."""
+        from core.answer.strategies._locale import normalize_decimal_reply as N
+        assert N("0,75", self._ans("3/4"), "fr") == "0.75"
