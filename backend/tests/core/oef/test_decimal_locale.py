@@ -215,6 +215,27 @@ class TestLocalizedFeedbackTypes:
         for t in ("atext", "raw", "case", "nocase", "correspond", "runcode", "radio"):
             assert t not in _LOCALIZED_FEEDBACK_TYPES
 
+    def test_multi_component_types_are_excluded(self):
+        """Leur virgule sépare déjà les composantes : localiser les points d'un
+        `coord` attendu `2.5,3.5` donnerait `2,5,3,5`, illisible."""
+        from api.routes.check import _LOCALIZED_FEEDBACK_TYPES
+        for t in ("coord", "vector", "jsxgraph", "set", "fset", "matrix"):
+            assert t not in _LOCALIZED_FEEDBACK_TYPES
+
+    def test_a_coord_expected_is_left_alone(self):
+        from types import SimpleNamespace
+        from api.routes.check import _localize_feedback
+        r = [SimpleNamespace(input_name="r1", expected="2.5,3.5")]
+        a = [SimpleNamespace(input_name="r1", answer_type="coord")]
+        _localize_feedback(r, a, "fr", enabled=True)
+        assert r[0].expected == "2.5,3.5"
+
+    def test_scope_matches_the_input_side_plus_range(self):
+        """Le périmètre d'affichage suit celui de la saisie, `range` en plus."""
+        from api.routes.check import _LOCALIZED_FEEDBACK_TYPES
+        from core.answer.strategies._locale import NUMERIC_REPLY_TYPES
+        assert _LOCALIZED_FEEDBACK_TYPES == NUMERIC_REPLY_TYPES | {"range"}
+
     def test_numeric_types_are_included(self):
         from api.routes.check import _LOCALIZED_FEEDBACK_TYPES
         for t in ("numeric", "numexp", "range", "units"):

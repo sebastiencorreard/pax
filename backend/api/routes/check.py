@@ -19,14 +19,20 @@ from core.chrono import module_scoredelay, read_started_at, score_factor
 
 router = APIRouter(prefix="/api/check", tags=["check"])
 
-# Types dont la bonne réponse est un **nombre**, et dont le corrigé peut donc
-# s'écrire dans la convention décimale de la langue (cf. `PAX_LOCALIZE_FEEDBACK`).
-# Tout le reste en est exclu à dessein : un `atext` répond « 3.5 pouces », un
-# `raw` compare au caractère près, un `correspond` transporte du HTML, un
-# `runcode` du Python — un point y a d'autres rôles que celui de décimale.
+# Types dont la bonne réponse est **une seule valeur numérique**, et dont le
+# corrigé peut donc s'écrire dans la convention décimale de la langue
+# (cf. `PAX_LOCALIZE_FEEDBACK`). C'est le périmètre de `NUMERIC_REPLY_TYPES`
+# (`strategies/_locale.py`, côté saisie), plus `range` — dont la réponse est
+# elle aussi une valeur unique, ses bornes ne servant qu'à la comparer.
+#
+# Les types à **plusieurs composantes** en sont exclus, et c'est le point à ne
+# pas rater : leur virgule sépare déjà les composantes. Localiser les points
+# d'un `coord` attendu `2.5,3.5` donnerait `2,5,3,5`, illisible. Ceux-là
+# s'écrivent `2,5;3,5`, ce que `_pixels_to_repere` fait déjà pour `coord`.
+# Exclus aussi les types textuels : un `atext` répond « 3.5 pouces », un `raw`
+# compare au caractère près, un `correspond` transporte du HTML.
 _LOCALIZED_FEEDBACK_TYPES = frozenset({
     "numeric", "numexp", "range", "units", "unit", "sigunits",
-    "coord", "vector", "jsxgraph",
 })
 
 
