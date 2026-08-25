@@ -219,6 +219,96 @@ def _polexpand_diagnostic(s: str) -> str | None:
         return None
 
 
+# Alias historiques de `oef/replytype.proc` (`rt_names` → `rt_types`). WIMS les
+# traduit avant tout dispatch : un exercice qui déclare `number` veut `numeric`.
+# Noter `text` → `case`, et non une comparaison de texte : `case` sait lire les
+# écritures alternatives séparées par `|`.
+_RT_ALIASES = {
+    "auto": "default",
+    "coordinate": "coord",
+    "coordinates": "coord",
+    "corresp": "correspond",
+    "correspondance": "correspond",
+    "expalg": "algexp",
+    "link": "click",
+    "number": "numeric",
+    "ranges": "range",
+    "select": "menu",
+    "sigunit": "sigunits",
+    "text": "case",
+    "unit": "units",
+    "wordcomp": "textcomp",
+}
+
+# Les types de réponse qui existent réellement chez WIMS — `rt_all` de
+# `replytype.proc`, complété des « new types » que le même fichier dit ne plus
+# avoir à déclarer (« just put a line `!set anstype=yes` in the input file »),
+# soit un fichier par type dans `wims/public_html/scripts/anstype/`. Régénérer
+# par : `ls wims/public_html/scripts/anstype/ | grep -vE '\.(input|inc|after|css|md)$'`.
+#
+# Cette liste ne dit pas ce que PAX sait faire, mais ce que WIMS connaît : elle
+# sépare le type *inventé par un auteur* (que WIMS ramène à `default`) du type
+# *réel non encore porté* (dette identifiée, tracée par `[ANSWER-FALLBACK]`).
+_WIMS_KNOWN_TYPES = frozenset({
+    "algexp", "aset", "atext", "case", "checkbox", "chembrut", "chemclick",
+    "chemdraw", "chemeq", "chemformula", "chemformula_analysis", "chessgame",
+    "chset", "click", "clickfill", "clicktile", "clock", "code", "complex",
+    "compose", "coord", "correspond", "crossword", "default", "dragfill",
+    "draw", "equation", "flashcard", "formal", "fset", "function", "geogebra",
+    "geogebra_translation", "imgcomp", "javacurve", "jmolclick", "jsxgraph",
+    "jsxgraphcurve", "keyboard", "litexp", "mark", "matrix", "menu",
+    "multidraw", "multipleclick", "nocase", "numeric", "numexp", "puzzle",
+    "radio", "range", "raw", "reorder", "set", "sigunits", "symtext",
+    "textcomp", "time", "units", "vector", "wlist",
+})
+
+# Un module peut définir ses propres types, et `replytype.proc` les cherche
+# avant de conclure : `!readproc anstype/<type>.input` résout d'abord dans le
+# module. Ceux du corpus, relevés par
+#
+#   find ressources -path '*/anstype/*' -type f ! -name '*.input'
+#
+# et retenus seulement s'ils portent bien `!set anstype=yes` — sans quoi le C
+# les ramènerait à `default`. Ce ne sont donc pas des noms inventés : leur
+# checker existe, il n'est simplement pas encore porté. `oefforpython` redéfinit
+# même `vector` pour son propre compte, nuance que PAX ne gère pas encore : le
+# checker du cœur s'applique à tous.
+_MODULE_ANSTYPES = frozenset({
+    "runcode", "js2wims1", "draft", "autoeval", "vector", "reaction",
+    "numexp2", "jsxgraphobjet",
+})
+
+
+def normalize_replytype(answer_type: str) -> str:
+    """Nom de type canonique, façon ``oef/replytype.proc``.
+
+    Le C procède dans cet ordre, et l'ordre compte :
+
+        rt_1=!positionof item $(replytype$i) in $rt_names
+        !if $rt_1 != $empty and $rt_1 > 0
+          replytype$i=!item $rt_1 of $rt_types
+        !default replytype$i=default
+        replytype$i=!word 1 of $(replytype$i)
+
+    D'où : l'alias d'abord, puis le **type vide qui devient `default`** — c'est
+    la réponse au type vide de 4 exercices du corpus —, puis le **premier mot
+    seulement**, si bien qu'un `default nonstop` reste un `default`.
+
+    Le nettoyage alphanumérique du C (`!text select abcdef… in`) n'est appliqué
+    qu'aux noms qu'il ne reconnaît pas, comme lui, et sert surtout à écarter les
+    restes de variables non substituées (`$(val11[])menu`).
+    """
+    t = (answer_type or "").strip().lower()
+    t = _RT_ALIASES.get(t, t)
+    if not t:
+        return "default"
+    t = t.split()[0] if t.split() else "default"
+    if t in _WIMS_KNOWN_TYPES or t in _MODULE_ANSTYPES:
+        return t
+    cleaned = re.sub(r"[^a-z0-9]", "", t)
+    return cleaned or "default"
+
+
 def _log_unhandled_answer_type(answer_type: str) -> None:
     """Log an answer type that falls through to text-match (likely unsupported).
     Deduped by name across the process lifetime so the log stays readable."""
@@ -2014,6 +2104,11 @@ def check_answer(
     from core.oef.i18n import uses_comma_decimal  # noqa: PLC0415
 
     options = options or {}
+    # Alias, type vide, premier mot : WIMS canonise avant de dispatcher, et
+    # tout ce qui suit raisonne sur le nom canonique. Le nom d'origine ne sert
+    # plus qu'au journal, où il doit rester tel que l'auteur l'a écrit.
+    raw_answer_type = answer_type
+    answer_type = normalize_replytype(answer_type)
     # Précision WIMS (`\precision{M}`, grand entier) injectée par le moteur ;
     # défaut 10000 comme WIMS (var.prep). C'est un facteur, pas une tolérance.
     try:
@@ -2200,8 +2295,18 @@ def check_answer(
             return check_atext(reply, expected, lang or "fr")
         case "default" | "auto":
             return check_default(reply, expected, comma_is_decimal)
-        case "text":
-            return check_text(reply, expected)
         case _:
-            _log_unhandled_answer_type(answer_type)
-            return check_text(reply, expected)
+            # `replytype.proc` ne connaît pas de repli textuel : un type qu'il
+            # ne reconnaît pas devient `default`, donc une comparaison
+            # mathématique. C'est le cas des noms inventés par les auteurs
+            # (`rational`, `fonction`, `numexp2`…), que `check_text` refusait
+            # dès que l'élève écrivait la même valeur autrement.
+            #
+            # Un type que WIMS connaît mais que PAX n'a pas encore porté est
+            # une autre affaire : ce n'est pas un `default`, c'est une dette.
+            # On garde la comparaison littérale — `check_default` prétendrait
+            # comparer mathématiquement un clic ou une figure — et on la trace.
+            if answer_type in _WIMS_KNOWN_TYPES or answer_type in _MODULE_ANSTYPES:
+                _log_unhandled_answer_type(raw_answer_type)
+                return check_text(reply, expected)
+            return check_default(reply, expected, comma_is_decimal)

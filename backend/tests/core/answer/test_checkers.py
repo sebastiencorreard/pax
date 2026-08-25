@@ -783,3 +783,101 @@ class TestCheckVector:
         r = check_answer("vector", "abc,def", self.V)
         assert not r.correct
         assert r.status == "invalid_format"
+
+
+class TestReplytypeNormalisation:
+    """`oef/replytype.proc` : le nom de type canonique, avant tout dispatch.
+
+        rt_1=!positionof item $(replytype$i) in $rt_names
+        !if $rt_1 != $empty and $rt_1 > 0
+          replytype$i=!item $rt_1 of $rt_types
+        !default replytype$i=default
+        replytype$i=!word 1 of $(replytype$i)
+        !if $(replytype$i) notwordof $rt_all
+          replytype$i=!text select abcdef…0123456789 in $(replytype$i)
+          !readproc anstype/$(replytype$i).input def
+          !if $anstype!=yes
+            replytype$i=default
+    """
+
+    def test_historical_aliases(self):
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("number") == "numeric"
+        assert normalize_replytype("select") == "menu"
+        assert normalize_replytype("expalg") == "algexp"
+        assert normalize_replytype("coordinates") == "coord"
+        assert normalize_replytype("correspondance") == "correspond"
+        assert normalize_replytype("auto") == "default"
+        assert normalize_replytype("unit") == "units"
+
+    def test_text_is_an_alias_of_case_not_a_text_match(self):
+        """`rt_types` fait correspondre `text` à `case`, qui sait lire les
+        écritures alternatives séparées par `|`."""
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("text") == "case"
+        assert check_answer("text", "bleu", "rouge|bleu|vert").correct
+
+    def test_an_empty_type_is_default(self):
+        """`!default replytype$i=default` — 216 rendus du corpus sortent du
+        moteur sans type."""
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("") == "default"
+        assert normalize_replytype("   ") == "default"
+        assert normalize_replytype(None) == "default"
+
+    def test_only_the_first_word_counts(self):
+        """`!word 1 of $(replytype$i)` : `default nonstop` reste `default`."""
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("default nonstop") == "default"
+        assert normalize_replytype("numeric absolute") == "numeric"
+
+    def test_an_unsubstituted_variable_falls_back_to_default(self):
+        """`\\typerep`, `$(val11[])menu` : des restes de substitution, pas des
+        types. Le nettoyage alphanumérique du C ne les sauve pas."""
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("\\typerep") == "typerep"
+        assert normalize_replytype("$(val11[])menu") == "val11menu"
+
+    def test_case_and_spacing_are_ignored(self):
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("  NUMERIC  ") == "numeric"
+        assert normalize_replytype("Vector") == "vector"
+
+
+class TestUnknownTypeFallback:
+    """Un type que WIMS ne connaît pas devient `default`, jamais du texte.
+
+    `replytype.proc` n'a pas de repli textuel : faute de reconnaître le nom et
+    de trouver un `anstype/<type>.input` qui se déclare (`!set anstype=yes`),
+    il pose `replytype$i=default` — une comparaison mathématique.
+    """
+
+    def test_an_invented_type_compares_mathematically(self):
+        """`rational`, `fonction`, `equations`… n'existent nulle part chez
+        WIMS. `check_text` refusait `4/2` pour `2`."""
+        for typ in ("rational", "integer", "fonction", "equations", "real"):
+            assert check_answer(typ, "4/2", "2").correct, typ
+
+    def test_an_invented_type_still_rejects_a_wrong_answer(self):
+        for typ in ("rational", "integer", "fonction"):
+            assert not check_answer(typ, "3", "2").correct, typ
+
+    def test_equivalent_writings_are_accepted(self):
+        assert check_answer("fonction", "2*x+2", "2(x+1)").correct
+        assert check_answer("rational", "0.5", "1/2").correct
+
+    def test_a_real_wims_type_keeps_the_literal_comparison(self):
+        """`click`, `geogebra`, `draw` : leur checker existe chez WIMS et n'est
+        pas porté. Les comparer mathématiquement n'aurait aucun sens — c'est
+        une dette, tracée par `[ANSWER-FALLBACK]`, pas un `default`."""
+        assert check_answer("click", "3,4", "3,4").correct
+        assert not check_answer("click", "4/2,4", "2,4").correct
+
+    def test_a_module_defined_type_is_not_an_invented_one(self):
+        """`runcode` et `js2wims1` ont un `anstype/` **dans le module**
+        (`ressources/H4/programming/*/anstype/runcode`), que `replytype.proc`
+        résout avant de conclure."""
+        from core.answer.checkers import normalize_replytype
+        assert normalize_replytype("runcode") == "runcode"
+        assert check_answer("runcode", "print(2)", "print(2)").correct
+        assert not check_answer("runcode", "4/2", "2").correct

@@ -366,13 +366,44 @@ Restent ouverts, hors périmètre du découpage :
   `droitecar1` et `ConnexionInt4`, tous deux à l'attendu troué en amont et
   désormais listés dans `known_failures.py`.
 
-  L'inventaire ci-dessus, refait le 2026-08-25, en laisse d'autres qu'il ne
-  nommait pas — par ordre de poids : `chemeq` (33), `jsxgraphcurve` (33),
-  `rational` et `integer` (24 chacun), `multipleclick` et `geogebra` (21),
-  `numexp2` (18), `fonction` (15). S'y ajoutent deux anomalies qui ne sont pas
-  des types : 216 rendus dont le type est **vide** (4 exercices), et des noms
-  restés à l'état de variable non substituée — `\typerep`, `\reptype`,
-  `$(val11[])menu`. Le repli réel hors `analyze` pèse 867 rendus.
+  **Le repli lui-même était infidèle**, et c'est la découverte du 2026-08-25 :
+  `oef/replytype.proc` ne comporte aucune comparaison de texte. Un type qu'il
+  ne reconnaît pas — après la table d'alias `rt_names`→`rt_types`, et faute de
+  trouver un `anstype/<type>.input` qui se déclare par `!set anstype=yes` —
+  devient **`default`**, donc une comparaison mathématique :
+
+  ```
+  !default replytype$i=default
+  replytype$i=!word 1 of $(replytype$i)
+  !if $(replytype$i) notwordof $rt_all
+    !readproc anstype/$(replytype$i).input def
+    !if $anstype!=yes
+      replytype$i=default
+  ```
+
+  `normalize_replytype` porte ce fichier, ce qui range enfin l'inventaire en
+  trois tas au lieu d'un :
+
+  | | rendus | traitement |
+  |---|---|---|
+  | checker dédié | 25508 | le cas normal |
+  | `analyze` | 1461 | intercepté en amont par `check.py` |
+  | dette : checker WIMS réel non porté | 558 | comparaison littérale + `[ANSWER-FALLBACK]` |
+  | nom inventé par l'auteur | 93 | `default`, comme WIMS |
+
+  Les 93 sont `rational` et `integer` (24 chacun), `fonction` (15), `defaut`,
+  `equations`, `monequation`, `formula`, `real`, plus les restes de
+  substitution `\typerep`, `\reptype`, `$(val11[])menu`. Aucun n'existe chez
+  WIMS. S'y ajoutent les **216 rendus au type vide** (4 exercices), que
+  `!default replytype$i=default` réglait depuis toujours.
+
+  La dette, elle, se lit maintenant à découvert : `click` (63), `chemeq` (33),
+  `jsxgraphcurve` (33), `multipleclick` et `geogebra` (21), `draw` (12),
+  `aset` (6), `wlist` et `jmolclick` (3) pour le cœur WIMS ; `runcode` (297) et
+  `js2wims1` (39) pour les checkers **définis par le module**
+  (`ressources/H4/programming/*/anstype/`), un mécanisme d'extension que PAX
+  n'exploite pas encore et qui vaut pour `numexp2`, `jsxgraphobjet` et
+  `reaction`. `oefforpython` y redéfinit même son propre `vector`.
 - **`unknownword` n'est pas rendu** — le checker `atext` distingue trois
   issues, nous deux. Quand la réponse ne correspond pas, il regarde si chacun
   de ses mots figure dans `good` ou dans les `badwords` ; s'il en trouve un
