@@ -46,9 +46,19 @@ XFAIL_RENDER_STRUCTURE = {
 # amont** — `moho1` porte un `NaN`, `ConnexionInt2` un `rint(…print(Mat(…`
 # jamais évalué (la famille des sept attendus non évalués). Aucune borne
 # numérique n'en sort, donc aucune réponse ne peut tomber dedans.
+#
+# Les deux `equation` suivants s'y sont ajoutés le 2026-08-25, pour la même
+# raison et en implémentant `anstype/equation`. Leur attendu est cassé en
+# amont, sans qu'aucun checker puisse y remédier : `droitecar1` porte
+# `mmli*x+*y+=0`, où ni `mmli` ni deux coefficients n'ont été substitués, et
+# `ConnexionInt4` reprend le `rint(/*100)` — division inachevée — de son frère
+# `ConnexionInt2`, déjà listé ci-dessous. Une expression trouée n'est l'équation
+# de rien : elle ne se comparait à elle-même que faute de checker.
 XFAIL_CORRECT_SCORE = {
     'H3~geometry~oefpytha.fr~src~moho1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
+    'H4~programming~oefalgopython.fr~src~droitecar1',
+    'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
     'H3~algebra~OEFlittcollege.fr~src~oeffac3b',
     'H3~algebra~OEFlittcollege.fr~src~oeffac4b',
     'H3~algebra~OEFlittcollege.fr~src~oeffactir3',

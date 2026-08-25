@@ -105,6 +105,12 @@ _COMPUTE_MSG = (
     "Donnez le résultat sous forme d'un nombre, pas d'un calcul à effectuer."
 )
 
+# equation : `eqsign=yes` (défaut) exige une vraie équation, signe « = » compris
+# — WIMS rend `NaN badform` avant même de comparer.
+_EQSIGN_MSG = (
+    "Donnez une équation complète, avec le signe « = »."
+)
+
 # numexp : la fraction doit être irréductible (WIMS `noreduced`).
 _NUMEXP_REDUCE_MSG = "Écrivez la fraction sous sa forme irréductible."
 # numexp : mélange fraction + décimal interdit (WIMS `badform`).
@@ -820,6 +826,161 @@ def check_coord(reply: str, expected: str) -> CheckResult:
     return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
 
 
+# ------------------------------------------------------------------ #
+# Vecteur — comparaison composante par composante                      #
+# ------------------------------------------------------------------ #
+
+
+def _declosing(s: str) -> str:
+    """``!declosing`` : retire UNE paire de délimiteurs englobants.
+
+    Même règle que le `_cmd_declosing` du moteur : la paire ne tombe que si le
+    premier ouvrant s'apparie au tout dernier caractère, sinon `(1,2),(3,4)`
+    verrait ses deux couples fusionnés en un seul.
+    """
+    s = s.strip()
+    for open_, close_ in (("(", ")"), ("[", "]"), ("{", "}")):
+        if s.startswith(open_) and s.endswith(close_):
+            depth = 0
+            for j, ch in enumerate(s):
+                if ch == open_:
+                    depth += 1
+                elif ch == close_:
+                    depth -= 1
+                    if depth == 0:
+                        if j != len(s) - 1:
+                            return s
+                        break
+            return s[1:-1].strip()
+    return s
+
+
+def _vector_items(s: str) -> list[str]:
+    """Composantes d'un vecteur, façon ``anstype/vector``.
+
+    La virgule sépare ; **à défaut de virgule** l'espace prend le relais
+    (`!words2items`), donc `3 -3` vaut `3,-3`. Le découpage passe par
+    `wims_lists.cutitems`, seul endroit du projet qui découpe une liste WIMS.
+    """
+    from core.oef.def_engine import wims_lists as wl  # noqa: PLC0415
+
+    if "," in s:
+        return [x.strip() for x in wl.cutitems(s)]
+    return s.split()
+
+
+def _eval_scalar(s: str, comma_is_decimal: bool = True) -> float:
+    """Valeur numérique d'une composante, comme le `$[...]` de WIMS.
+
+    `_parse_number` couvre l'entier, le décimal, la fraction et l'arithmétique
+    simple ; sympy prend la suite pour ce qui appelle une fonction (`sqrt(2)/2`
+    en géométrie). Lève `ValueError` si rien n'y parvient.
+    """
+    try:
+        return _parse_number(s, comma_is_decimal)
+    except (ValueError, SyntaxError, ZeroDivisionError, NameError, TypeError):
+        pass
+    try:
+        import sympy  # noqa: PLC0415
+
+        val = complex(
+            sympy.sympify(
+                _normalize_expr(s, comma_is_decimal), locals=_safe_locals()
+            ).evalf()
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f"Impossible d'évaluer: {s!r}") from exc
+    if abs(val.imag) > 1e-12:
+        raise ValueError(f"Valeur complexe: {s!r}")
+    return val.real
+
+
+def check_vector(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    absolute: bool = False,
+) -> CheckResult:
+    """Type ``vector`` : un vecteur donné par ses composantes.
+
+    Portage de ``anstype/vector``. Les délimiteurs englobants sont facultatifs
+    (`!declosing`) et l'espace vaut séparateur quand aucune virgule n'est
+    présente (`!words2items`) : `(3,-3)`, `3,-3` et `3 -3` sont la même
+    réponse. Le point-virgule, lui, est refusé net — WIMS rend `NaN` sans
+    regarder plus loin, et c'est le seul motif de rejet de forme du checker.
+
+    Chaque composante est comparée **en valeur**, pas littéralement : le
+    `-5.5/2` de `translation5` vaut la décimale `-2.75`, que le repli
+    texte refusait. Deux passages comme WIMS — à `precision` (juste), puis à
+    sa racine (« presque juste » : non crédité, mais signalé plutôt que
+    compté faux sec). L'option `absolute` compare en écart absolu et relâche
+    à `precision/10`, exactement comme `check_numeric`.
+
+    Un attendu illisible est une erreur d'auteur (`Test=bad` chez WIMS) ; une
+    réponse illisible est une erreur d'élève (`test=NaN`). Les deux valent 0
+    ici, mais seule la seconde porte un message de forme.
+    """
+    dd = _declosing(reply or "")
+    good = _declosing(expected or "")
+
+    # `!if ; isin $dd` — antérieur à tout découpage, donc même un `;` niché
+    # dans une composante condamne la réponse entière.
+    if ";" in dd:
+        return CheckResult(correct=False, score=0.0, method="vector",
+                           status="invalid_format", detail=_REWRITE_MSG)
+
+    e_items = _vector_items(good)
+    r_items = _vector_items(dd)
+    if not e_items:
+        return CheckResult(correct=False, score=0.0, method="vector")
+    # `badsize` : un vecteur de la mauvaise taille est faux, sans second
+    # passage de précision (WIMS exclut explicitement `badsize` du precgood).
+    if len(r_items) != len(e_items):
+        return CheckResult(correct=False, score=0.0, method="vector")
+
+    prec_loose = precision / 10 if absolute else math.sqrt(precision)
+    verdicts: list[str] = []
+    for x_s, y_s in zip(e_items, r_items):
+        try:
+            x = _eval_scalar(x_s, comma_is_decimal)
+        except ValueError:
+            return CheckResult(correct=False, score=0.0, method="vector")
+        try:
+            y = _eval_scalar(y_s, comma_is_decimal)
+        except ValueError:
+            return CheckResult(correct=False, score=0.0, method="vector",
+                               status="invalid_format", detail=_REWRITE_MSG)
+        if not math.isfinite(x):
+            return CheckResult(correct=False, score=0.0, method="vector")
+        if not math.isfinite(y):
+            return CheckResult(correct=False, score=0.0, method="vector",
+                               status="invalid_format", detail=_REWRITE_MSG)
+        if absolute:
+            diff = abs(x - y)
+            if precision * diff < 1:
+                verdicts.append("yes")
+            elif prec_loose * diff < 1:
+                verdicts.append("almost")
+            else:
+                verdicts.append("bad")
+        else:
+            if _wims_num_equal(x, y, precision):
+                verdicts.append("yes")
+            elif _wims_num_equal(x, y, prec_loose):
+                verdicts.append("almost")
+            else:
+                verdicts.append("bad")
+
+    if all(v == "yes" for v in verdicts):
+        return CheckResult(correct=True, score=1.0, method="vector")
+    # `!if bad notin $test` : toutes les composantes sont au moins « almost ».
+    if "bad" not in verdicts:
+        return CheckResult(correct=False, score=0.5, method="vector",
+                           detail=_POOR_PRECISION_MSG)
+    return CheckResult(correct=False, score=0.0, method="vector")
+
+
 def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
     """Parse un nombre : entier, décimal, fraction, expression simple.
 
@@ -907,6 +1068,176 @@ def check_algexp(
     except Exception:
         # Fallback : comparaison numérique en plusieurs points
         return _check_algexp_numeric(reply, expected, comma_is_decimal)
+
+
+# ------------------------------------------------------------------ #
+# Équation — équivalence à facteur multiplicatif près                  #
+# ------------------------------------------------------------------ #
+
+
+def _equation_sides(s: str, comma_is_decimal: bool):
+    """Membre gauche moins membre droit, en expression sympy.
+
+    WIMS traduit le `=` en saut de ligne puis `!distribute lines … into t,t2` :
+    au-delà de deux membres, le surplus est **perdu** (`a=b=c` devient `a-(b)`).
+    On reproduit ce découpage plutôt que de rejeter, pour ne pas inventer un
+    verdict que le C ne rend pas.
+    """
+    import sympy  # noqa: PLC0415
+    from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+        implicit_multiplication_application,
+        parse_expr,
+        standard_transformations,
+    )
+
+    transformations = standard_transformations + (
+        implicit_multiplication_application,
+    )
+    local_dict = {**_safe_locals(), "expand": sympy.expand, "factor": sympy.factor}
+    parts = s.split("=")
+    lhs = parse_expr(
+        _normalize_expr(parts[0], comma_is_decimal),
+        transformations=transformations, local_dict=local_dict,
+    )
+    if len(parts) < 2 or not parts[1].strip():
+        return lhs
+    rhs = parse_expr(
+        _normalize_expr(parts[1], comma_is_decimal),
+        transformations=transformations, local_dict=local_dict,
+    )
+    return lhs - rhs
+
+
+def check_equation(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+    eqsign: bool = True,
+) -> CheckResult:
+    """Type ``equation`` : deux équations sont égales **à un facteur près**.
+
+    Portage de ``anstype/equation``. C'est tout l'intérêt du type, et ce que le
+    repli texte détruisait : pour l'attendu `2*x - 3*y - 1=0` d'`equationDe2pts`,
+    WIMS accepte `4x-6y-2=0`, `2x-3y=1` et `-2x+3y+1=0` — la même droite. La
+    comparaison littérale n'acceptait que la seule écriture stockée par
+    l'auteur, et notait faux toutes les autres.
+
+    WIMS ramène chaque membre à `gauche-(droite)`, puis tire au sort des
+    valeurs pour les variables et regarde si le **rapport** des deux
+    expressions reste constant : constant ⇒ proportionnelles ⇒ même équation.
+    Un rapport nul (`abs<1/precision`) ou qui change de signe (`max*min<0`)
+    est rejeté.
+
+    Nous menons ce test **symboliquement** — `cancel(E_reply/E_good)` sans
+    variable libre —, ce qui rend le même verdict sans dépendre d'un tirage :
+    le C échantillonne faute de CAS sous la main, et son `Error=bad` après
+    `5*testnum` essais infructueux est un aveu de la méthode, pas une règle à
+    porter. Le repli numérique ci-dessous reprend le principe du C pour ce que
+    `cancel` ne réduit pas (trigonométrie, exponentielles).
+
+    ``eqsign`` (option WIMS `eqsign`, vraie par défaut) : sans signe « = », la
+    réponse est un `badform`, pas une réponse fausse. Avec `eqsign=no`, WIMS
+    sous-entend « = 0 ».
+
+    L'attendu peut lister des variables après l'équation (`x^2+y^2=1,x,y`) :
+    elles n'entrent que dans le tirage du repli numérique, et une virgule
+    décimale ne doit pas passer pour un séparateur — d'où le garde-fou.
+    """
+    from core.oef.def_engine import wims_lists as wl  # noqa: PLC0415
+
+    good_raw = (expected or "").strip()
+    items = [x.strip() for x in wl.cutitems(good_raw)]
+    eq_str = items[0] if items else good_raw
+    extra_vars = [v for v in items[1:] if re.fullmatch(r"[A-Za-z_]\w*", v)]
+    # `0,5` n'est pas « 0 puis la variable 5 » : si le reste n'est pas une
+    # liste de noms de variables, l'attendu est repris entier.
+    if len(items) > 1 and len(extra_vars) != len(items) - 1:
+        eq_str = good_raw
+        extra_vars = []
+
+    r_raw = (reply or "").strip()
+    if "=" not in r_raw:
+        if eqsign:
+            return CheckResult(correct=False, score=0.0, method="equation",
+                               status="invalid_format", detail=_EQSIGN_MSG)
+        r_raw = f"{r_raw}=0" if r_raw else "0=0"
+
+    try:
+        import sympy  # noqa: PLC0415
+
+        e_expr = _equation_sides(eq_str, comma_is_decimal)
+        r_expr = _equation_sides(r_raw, comma_is_decimal)
+    except Exception:  # noqa: BLE001
+        return CheckResult(correct=False, score=0.0, method="equation",
+                           status="invalid_format", detail=_REWRITE_MSG)
+
+    # Une réponse identiquement nulle (`0=0`) n'est l'équation de rien : WIMS
+    # la rejette par `abs($max)<1/$precision`.
+    if r_expr == 0 or e_expr == 0:
+        return CheckResult(correct=False, score=0.0, method="equation")
+
+    try:
+        ratio = sympy.cancel(sympy.together(r_expr / e_expr))
+        if not ratio.free_symbols and ratio.is_finite is not False and ratio != 0:
+            return CheckResult(correct=True, score=1.0, method="equation")
+        # `cancel` ne réduit pas tout : on retombe sur l'échantillonnage du C.
+        ok = _equation_ratio_constant(
+            r_expr, e_expr, extra_vars, precision
+        )
+        return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="equation")
+    except Exception:  # noqa: BLE001
+        return CheckResult(correct=False, score=0.0, method="equation")
+
+
+def _equation_ratio_constant(
+    r_expr, e_expr, extra_vars: list[str], precision: float
+) -> bool:
+    """Le rapport des deux expressions est-il constant, aux points d'essai ?
+
+    Reprise de la boucle `!for N=1 to 5*$testnum` d'``anstype/equation``, avec
+    des points **fixes** au lieu d'un tirage : un checker doit rendre deux fois
+    le même verdict sur la même copie. Ils sont irrationnels et non alignés
+    pour éviter les annulations heureuses (une racine commune ferait passer
+    deux équations différentes).
+
+    Un point où l'attendu s'annule est écarté, comme le `abs($gt)>10/$precision`
+    du C — le rapport y explose sans rien dire de l'équivalence.
+    """
+    import sympy  # noqa: PLC0415
+
+    variables = sorted(
+        {str(s) for s in (r_expr.free_symbols | e_expr.free_symbols)}
+        | set(extra_vars)
+    )
+    if not variables:
+        return False
+    probes = (0.7071067811865476, 1.4142135623730951, 2.718281828459045,
+              3.141592653589793, 1.6180339887498949, 0.5772156649015329)
+    ratios: list[float] = []
+    for k in range(len(probes)):
+        subs = {
+            sympy.Symbol(v): probes[(k + i) % len(probes)] + k
+            for i, v in enumerate(variables)
+        }
+        try:
+            den = complex(e_expr.subs(subs).evalf())
+            num = complex(r_expr.subs(subs).evalf())
+        except Exception:  # noqa: BLE001
+            return False
+        if not (math.isfinite(den.real) and math.isfinite(num.real)):
+            return False
+        if abs(den) <= 10.0 / precision:
+            continue
+        ratios.append((num / den).real if abs(den) else 0.0)
+    if len(ratios) < 3:
+        return False
+    hi, lo = max(ratios), min(ratios)
+    scale = max(abs(hi), abs(lo))
+    # Rapport nul ou changeant de signe : `test=100` chez WIMS, donc faux.
+    if scale < 1.0 / precision or hi * lo < 0:
+        return False
+    return abs(hi - lo) / scale < 1.0 / precision
 
 
 def _rawmath_normalize(s: str, comma_is_decimal: bool = True) -> str:
@@ -1831,6 +2162,15 @@ def check_answer(
             return check_jsxgraph(reply, expected, options)
         case "coord":
             return check_coord(reply, expected)
+        case "equation":
+            # `option:eqsign=yes` — le signe « = » est exigé sauf mention
+            # contraire de l'auteur.
+            return check_equation(
+                reply, expected, precision, comma_is_decimal,
+                eqsign="eqsign=no" not in opt_str.replace(" ", ""),
+            )
+        case "vector":
+            return check_vector(reply, expected, precision, comma_is_decimal, absolute)
         case "case":
             return check_case(reply, expected)
         case "raw":

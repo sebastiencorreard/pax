@@ -611,3 +611,158 @@ class TestRangeDisplayAnswer:
         assert range_display_answer("0.6,0.4", comma_is_decimal=True) == "0.5"
         assert range_display_answer("-inf,0", comma_is_decimal=True) == "-inf;0"
         assert range_display_answer("-inf,0", comma_is_decimal=False) == "-inf,0"
+
+
+class TestCheckEquation:
+    """`equation` : deux équations sont égales **à un facteur près**.
+
+    `anstype/equation` ramène chaque membre à `gauche-(droite)`, puis mesure la
+    constance du rapport des deux expressions :
+
+        t=!translate internal = to $\\n$ in $t
+        !distribute lines $t into t,t2
+        !if $t2!=$empty ; t=$t-($t2)
+        …
+        tt=($t)/($s)
+        …
+        !if $abs<1/$precision or ($max)*($min)<0 ; test=100
+        !else ; test=$[abs($max-($min))/$abs]
+
+    Un rapport constant ⇒ équations proportionnelles ⇒ même équation. C'est ce
+    que le repli sur `check_text` détruisait : il n'acceptait que l'écriture
+    stockée par l'auteur.
+    """
+
+    # Attendu réel de `H4/algebra/h4droites.fr/def/equationDe2pts.def`.
+    DROITE = "2*x - 3*y - 1=0"
+    OPTS = {"precision": 1000.0, "computeanswer": "yes"}
+
+    def test_the_stored_form_is_accepted(self):
+        assert check_answer("equation", self.DROITE, self.DROITE, self.OPTS).correct
+
+    def test_a_proportional_equation_is_the_same_line(self):
+        """Le cœur du type : `4x-6y-2=0` est la droite de `2x-3y-1=0`."""
+        for reply in ("4x-6y-2=0", "-2x+3y+1=0", "6x-9y-3=0"):
+            assert check_answer("equation", reply, self.DROITE, self.OPTS).correct
+
+    def test_terms_may_cross_the_equal_sign(self):
+        assert check_answer("equation", "2x-3y=1", self.DROITE, self.OPTS).correct
+
+    def test_terms_may_be_reordered(self):
+        assert check_answer("equation", "-1-3y+2x=0", self.DROITE, self.OPTS).correct
+
+    def test_a_different_line_is_wrong(self):
+        for reply in ("2x-3y-2=0", "x-3y-1=0", "2x+3y-1=0"):
+            assert not check_answer("equation", reply, self.DROITE, self.OPTS).correct
+
+    def test_missing_equal_sign_is_a_badform(self):
+        """`option:eqsign=yes` → `test=NaN badform`, pas « faux »."""
+        r = check_answer("equation", "2x-3y-1", self.DROITE, self.OPTS)
+        assert not r.correct
+        assert r.status == "invalid_format"
+
+    def test_eqsign_no_implies_equals_zero(self):
+        """Avec `eqsign=no`, WIMS sous-entend « = 0 »."""
+        opts = {**self.OPTS, "option": "eqsign=no"}
+        assert check_answer("equation", "2x-3y-1", self.DROITE, opts).correct
+
+    def test_the_null_equation_is_not_an_equation(self):
+        """`0=0` : rapport nul, écarté par `abs($max)<1/$precision`."""
+        assert not check_answer("equation", "0=0", self.DROITE, self.OPTS).correct
+
+    def test_a_vertical_axis_equation(self):
+        """Attendu de `oefseconddegree.fr/def/sddescrcourbe2` : `x=-3`."""
+        for reply in ("x=-3", "x+3=0", "2x+6=0"):
+            assert check_answer("equation", reply, "x=-3").correct
+        assert not check_answer("equation", "x=3", "x=-3").correct
+
+    def test_fractional_expected(self):
+        """`sdsymetrie` stocke `x=-13/2` ; `2x+13=0` est la même équation."""
+        assert check_answer("equation", "2x+13=0", "x=-13/2").correct
+        assert not check_answer("equation", "2x+13.5=0", "x=-13/2").correct
+
+    def test_extra_variables_after_the_equation(self):
+        """`!item 2 to -1 of $(replygood)` déclare des variables, pas une autre
+        équation."""
+        assert check_answer("equation", "2x^2+2y^2=2", "x^2+y^2=1,x,y").correct
+
+    def test_a_decimal_comma_is_not_a_variable_list(self):
+        """Garde-fou : `x=0,5` reste une équation, pas « x=0 » plus « 5 »."""
+        assert check_answer("equation", "2x=1", "x=0.5").correct
+
+    def test_unparsable_reply_is_a_badform(self):
+        r = check_answer("equation", "???=0", self.DROITE, self.OPTS)
+        assert not r.correct
+        assert r.status == "invalid_format"
+
+
+class TestCheckVector:
+    """`vector` : comparaison composante par composante, **en valeur**.
+
+    `anstype/vector` :
+
+        dd=!declosing $(reply$i)
+        !if ; isin $dd ; test=NaN ; !exit
+        !if , notin $good ; good=!words2items $good
+        !if $n1=$n2 … !ifval $x_=$y_ … test=!append item yes to $test
+        !else ; badsize$i=true
+
+    Deux passages : `precision` (juste), puis `sqrt(precision)` (« presque
+    juste », non crédité). `badsize` est exclu du second — un vecteur de la
+    mauvaise taille est faux, pas imprécis.
+    """
+
+    # Attendus réels de `H3/geometry/oeftranslation.fr/def/`.
+    V = "3,-3"
+    FRAC = "-5.5/2,-9.5/2"
+
+    def test_the_stored_form_is_accepted(self):
+        assert check_answer("vector", self.V, self.V).correct
+
+    def test_enclosing_delimiters_are_optional(self):
+        """`!declosing` : `(3,-3)` et `[3,-3]` valent `3,-3`."""
+        for reply in ("(3,-3)", "[3,-3]", "{3,-3}"):
+            assert check_answer("vector", reply, self.V).correct
+
+    def test_space_separates_when_no_comma(self):
+        """`!words2items` : `3 -3` vaut `3,-3`."""
+        assert check_answer("vector", "3 -3", self.V).correct
+
+    def test_components_are_compared_by_value(self):
+        """`translation5` stocke `-5.5/2` ; l'élève qui simplifie a juste."""
+        assert check_answer("vector", "-2.75,-4.75", self.FRAC).correct
+        assert check_answer("vector", "(-2.75,-4.75)", self.FRAC).correct
+
+    def test_a_wrong_component_is_wrong(self):
+        assert not check_answer("vector", "-2.75,-4.5", self.FRAC).correct
+
+    def test_order_matters(self):
+        assert not check_answer("vector", "-3,3", self.V).correct
+
+    def test_semicolon_is_refused_outright(self):
+        """`!if ; isin $dd ; test=NaN` — avant tout découpage."""
+        r = check_answer("vector", "3;-3", self.V)
+        assert not r.correct
+        assert r.status == "invalid_format"
+
+    def test_wrong_size_is_wrong_not_imprecise(self):
+        """`badsize` est exclu du second passage : score 0, pas 0.5."""
+        r = check_answer("vector", "3,-3,0", self.V)
+        assert not r.correct
+        assert r.score == 0.0
+
+    def test_almost_right_scores_half(self):
+        """Second passage à `sqrt(precision)` : signalé, non crédité."""
+        r = check_answer("vector", "3.001,-3", self.V, {"precision": 10000.0})
+        assert not r.correct
+        assert r.score == 0.5
+
+    def test_function_calls_are_evaluated(self):
+        """Les composantes passent par le `$[...]` de WIMS, pas par un
+        appariement littéral."""
+        assert check_answer("vector", "sqrt(2)/2,0", "0.7071067811865476,0").correct
+
+    def test_unparsable_reply_is_a_badform(self):
+        r = check_answer("vector", "abc,def", self.V)
+        assert not r.correct
+        assert r.status == "invalid_format"

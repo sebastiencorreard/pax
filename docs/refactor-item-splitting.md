@@ -344,13 +344,13 @@ Restent ouverts, hors périmètre du découpage :
   et le compare littéralement. Inventaire du 2026-08-05, une fois `range`
   traité et `analyze` mis de côté (il a sa propre stratégie) :
 
-  | type | rendus | exercices |
-  |---|---|---|
-  | `runcode` | 297 | 99 |
-  | `equation` | 90 | 29 |
-  | `vector` | 93 | 23 |
-  | `click` | 63 | 21 |
-  | `js2wims1` | 39 | 12 |
+  | type | rendus | exercices | état |
+  |---|---|---|---|
+  | `runcode` | 297 | 99 | ouvert |
+  | `equation` | 90 | 29 | **fait** (2026-08-25) |
+  | `vector` | 93 | 23 | **fait** (2026-08-25) |
+  | `click` | 63 | 21 | ouvert |
+  | `js2wims1` | 39 | 12 | ouvert |
 
   **Le repli ne se voit pas** : il rend `correct` dès que la saisie égale
   l'attendu au caractère près, ce qui suffit à passer `test_correct_answer_scores_1`
@@ -358,6 +358,21 @@ Restent ouverts, hors périmètre du découpage :
   pendant tout le refactoring. Les checkers WIMS sont dans
   `wims/…/scripts/anstype/<type>` (sans extension ; le `.input` voisin n'est
   que l'affichage).
+
+  `equation` et `vector` sont sortis du repli les premiers parce qu'ils sont
+  mathématiques de bout en bout, là où `runcode` (Python), `click` et
+  `js2wims1` relèvent d'autres chantiers. Les deux confirment la règle
+  ci-dessus : chacun a révélé un exercice qui ne passait qu'en apparence,
+  `droitecar1` et `ConnexionInt4`, tous deux à l'attendu troué en amont et
+  désormais listés dans `known_failures.py`.
+
+  L'inventaire ci-dessus, refait le 2026-08-25, en laisse d'autres qu'il ne
+  nommait pas — par ordre de poids : `chemeq` (33), `jsxgraphcurve` (33),
+  `rational` et `integer` (24 chacun), `multipleclick` et `geogebra` (21),
+  `numexp2` (18), `fonction` (15). S'y ajoutent deux anomalies qui ne sont pas
+  des types : 216 rendus dont le type est **vide** (4 exercices), et des noms
+  restés à l'état de variable non substituée — `\typerep`, `\reptype`,
+  `$(val11[])menu`. Le repli réel hors `analyze` pèse 867 rendus.
 - **`unknownword` n'est pas rendu** — le checker `atext` distingue trois
   issues, nous deux. Quand la réponse ne correspond pas, il regarde si chacun
   de ses mots figure dans `good` ou dans les `badwords` ; s'il en trouve un
