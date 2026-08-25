@@ -855,15 +855,21 @@ def _declosing(s: str) -> str:
     return s
 
 
-def _vector_items(s: str) -> list[str]:
+def _vector_items(s: str, semicolon_separates: bool = False) -> list[str]:
     """Composantes d'un vecteur, façon ``anstype/vector``.
 
     La virgule sépare ; **à défaut de virgule** l'espace prend le relais
     (`!words2items`), donc `3 -3` vaut `3,-3`. Le découpage passe par
     `wims_lists.cutitems`, seul endroit du projet qui découpe une liste WIMS.
+
+    ``semicolon_separates`` sort de WIMS : en locale à virgule décimale, c'est
+    le `;` qui sépare et la virgule appartient au nombre (`-2,75;-4,75`). Il
+    prime alors sur la virgule, sans quoi `-2,75` se lirait en deux items.
     """
     from core.oef.def_engine import wims_lists as wl  # noqa: PLC0415
 
+    if semicolon_separates:
+        return [x.strip() for x in s.split(";")]
     if "," in s:
         return [x.strip() for x in wl.cutitems(s)]
     return s.split()
@@ -907,8 +913,17 @@ def check_vector(
     Portage de ``anstype/vector``. Les délimiteurs englobants sont facultatifs
     (`!declosing`) et l'espace vaut séparateur quand aucune virgule n'est
     présente (`!words2items`) : `(3,-3)`, `3,-3` et `3 -3` sont la même
-    réponse. Le point-virgule, lui, est refusé net — WIMS rend `NaN` sans
-    regarder plus loin, et c'est le seul motif de rejet de forme du checker.
+    réponse.
+
+    **Un écart assumé au C** : WIMS refuse le point-virgule net (`!if ; isin
+    $dd → NaN`), n'ayant jamais eu à écrire `-2,75`. La convention i18n du
+    projet en fait au contraire le séparateur de liste des langues à virgule
+    décimale (`core/oef/i18n.py`), si bien qu'un élève francophone saisissant
+    `-2,75;-4,75` — la forme la plus naturelle pour lui — était recalé avec la
+    bonne réponse. On accepte donc le `;` **là où la virgule est décimale**, et
+    nulle part ailleurs : en locale à point, le refus du C tient tel quel.
+    L'ambiguïté ne se pose pas, un `;` présent tranchant la lecture de la
+    virgule (séparateur sans lui, décimale avec).
 
     Chaque composante est comparée **en valeur**, pas littéralement : le
     `-5.5/2` de `translation5` vaut la décimale `-2.75`, que le repli
@@ -925,13 +940,17 @@ def check_vector(
     good = _declosing(expected or "")
 
     # `!if ; isin $dd` — antérieur à tout découpage, donc même un `;` niché
-    # dans une composante condamne la réponse entière.
-    if ";" in dd:
+    # dans une composante condamne la réponse entière. Sauf en locale à virgule
+    # décimale, où il est le séparateur attendu (cf. docstring).
+    if ";" in dd and not comma_is_decimal:
         return CheckResult(correct=False, score=0.0, method="vector",
                            status="invalid_format", detail=_REWRITE_MSG)
 
-    e_items = _vector_items(good)
-    r_items = _vector_items(dd)
+    # L'attendu sort du moteur en notation à point (`3,-3`), mais on lui
+    # applique la même règle : un `;` y séparerait aussi, plutôt que de rendre
+    # la composante illisible.
+    e_items = _vector_items(good, comma_is_decimal and ";" in good)
+    r_items = _vector_items(dd, comma_is_decimal and ";" in dd)
     if not e_items:
         return CheckResult(correct=False, score=0.0, method="vector")
     # `badsize` : un vecteur de la mauvaise taille est faux, sans second

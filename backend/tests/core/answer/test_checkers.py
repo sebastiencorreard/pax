@@ -739,11 +739,28 @@ class TestCheckVector:
     def test_order_matters(self):
         assert not check_answer("vector", "-3,3", self.V).correct
 
-    def test_semicolon_is_refused_outright(self):
+    def test_semicolon_is_refused_in_a_dot_locale(self):
         """`!if ; isin $dd ; test=NaN` — avant tout découpage."""
-        r = check_answer("vector", "3;-3", self.V)
+        r = check_answer("vector", "3;-3", self.V, lang="en")
         assert not r.correct
         assert r.status == "invalid_format"
+
+    def test_semicolon_separates_in_a_comma_locale(self):
+        """Écart assumé au C : le `;` est le séparateur de liste des langues à
+        virgule décimale (`core/oef/i18n.py`), et la virgule y appartient au
+        nombre. WIMS, qui n'écrit jamais `-2,75`, le refusait net."""
+        assert check_answer("vector", "3;-3", self.V, lang="fr").correct
+        assert check_answer("vector", "-2,75;-4,75", self.FRAC, lang="fr").correct
+        assert check_answer("vector", "(-2,75;-4,75)", self.FRAC, lang="nl").correct
+
+    def test_the_comma_form_still_works_in_a_comma_locale(self):
+        """L'attendu du moteur reste en notation à point : accepter le `;` ne
+        doit pas coûter la forme que WIMS stocke."""
+        assert check_answer("vector", "3,-3", self.V, lang="fr").correct
+        assert check_answer("vector", "-2.75,-4.75", self.FRAC, lang="fr").correct
+
+    def test_a_wrong_value_stays_wrong_with_semicolons(self):
+        assert not check_answer("vector", "-2,75;-4,5", self.FRAC, lang="fr").correct
 
     def test_wrong_size_is_wrong_not_imprecise(self):
         """`badsize` est exclu du second passage : score 0, pas 0.5."""

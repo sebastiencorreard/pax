@@ -258,6 +258,31 @@ C'est un choix **délibéré** : on ne veut pas reproduire le rendu WIMS de la
 correction (qui est côté serveur dans des `<div class="oef_indgood">`), mais
 utiliser notre propre UI React/Vue.
 
+### Le point-virgule d'`anstype/vector`
+
+`anstype/vector` refuse le point-virgule sans rien regarder d'autre :
+
+```
+dd=!declosing $(reply$i)
+!if ; isin $dd
+  test=NaN
+  !exit
+```
+
+WIMS peut se le permettre : ses vecteurs s'écrivent `3,-3`, la virgule sépare
+et aucun nombre ne la contient. PAX fait suivre le séparateur décimal à la
+**langue de l'exercice** (`core/oef/i18n.py`) : en français et en néerlandais,
+la virgule appartient au nombre et c'est le `;` qui sépare. Appliqué tel quel,
+le refus du C recalait un élève francophone écrivant `-2,75;-4,75` — la forme
+que le reste de la plateforme lui apprend — alors qu'il a la bonne réponse.
+
+`check_vector` accepte donc le `;` **quand la locale est à virgule décimale**,
+et le refuse partout ailleurs. L'ambiguïté ne se pose pas : la présence d'un
+`;` tranche la lecture de la virgule (séparateur sans lui, décimale avec), si
+bien que `3,-3` et `-2,75;-4,75` restent lisibles tous les deux. C'est le seul
+endroit du checker qui s'écarte du C, et il s'écarte vers la convention que
+`i18n.py` fixe pour tout le reste.
+
 ### Confparms et variables de session
 
 `$confparm1` à `$confparm8` sont des paramètres qu'un enseignant configure
