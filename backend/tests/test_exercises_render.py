@@ -366,9 +366,13 @@ def test_render_structure(exercise):
 
 def test_render_snapshot(exercise):
     ex_id, path = exercise
+    # Les snapshots ne couvrent qu'un **échantillon** raisonné, pas les 4278
+    # exercices : un par type de réponse, les six sentinelles, et les pièges de
+    # rendu déjà payés. Cf. `tests/snapshots/README.md` pour la composition et
+    # la marche à suivre quand un changement de rendu est voulu.
     snap_path = os.path.join(SNAPSHOTS_DIR, f"ex_{ex_id}.json")
     if not os.path.exists(snap_path):
-        pytest.skip(f"Pas de snapshot pour {ex_id} (lancer update_snapshots.py)")
+        pytest.skip(f"{ex_id} hors échantillon de référence (tests/snapshots/README.md)")
 
     with open(snap_path) as f:
         snap = json.load(f)
