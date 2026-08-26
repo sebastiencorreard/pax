@@ -69,6 +69,16 @@ def _candidats(ans):
         milieu = range_display_answer(brut)
         if milieu:
             yield milieu
+    # `sigunits` stocke `"<valeur> <unité> #N"`, où `#N` est la **consigne** :
+    # arrondir à N chiffres significatifs. Soumettre l'attendu tel quel revient
+    # à rendre la valeur non arrondie, que le checker refuse — à bon droit,
+    # puisque l'exercice demande précisément l'arrondi. Même travers que les
+    # bornes de `range` ci-dessus.
+    if ans.answer_type == "sigunits" and "#" in brut:
+        from core.answer.checkers import sigunits_display_answer  # noqa: PLC0415
+        arrondi = sigunits_display_answer(brut)
+        if arrondi:
+            yield arrondi
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()

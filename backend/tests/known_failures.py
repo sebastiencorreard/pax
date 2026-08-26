@@ -74,6 +74,13 @@ XFAIL_RENDER_STRUCTURE = {
 # réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
 # comparée numériquement, et notée fausse.
 #
+# Huit `sigunits` sont partis le 2026-08-27, et le checker n'y était pour rien :
+# l'attendu se stocke `"<valeur> <unité> #N"`, où `#N` est la **consigne** —
+# arrondir à N chiffres significatifs. Le test soumettait l'attendu tel quel,
+# donc la valeur non arrondie, que `check_sigunits` refusait à bon droit. Le
+# corrigé montré à l'élève souffrait du même mal (`74753832.77 km^2 #4` au lieu
+# de `7.475e7 km^2`) : `sigunits_display_answer` sert désormais les deux.
+#
 # Les quatre `oefpyramid` sont partis le 2026-08-27 : ils fabriquent leurs
 # nombres en concaténant des chiffres tirés au sort
 # (`$[($(tmp0)$(tmp1)$(tmp2))/…]`), et un tirage de 0, 0, 2 donnait `$[(002)/1]`
@@ -99,8 +106,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~programming~oefalgopython.fr~src~droitecar1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
     'H3~algebra~oefdevfact.nl~src~deve6',
-    'H3~algebra~oefvitesse.fr~src~astron2',
-    'H3~algebra~oefvitesse.fr~src~astron3',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
     'H3~geography~oefdepregfr.fr~src~clickcode',
@@ -131,12 +136,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~geometry~droiteplanrep.fr~src~tracredstep',
     'H4~math~quizzautomat.fr~src~fct4',
     'H4~physics~mouvrel.fr~src~vitesse0',
-    'H4~physics~oefpression.fr~src~0704',
-    'H4~physics~oefpression.fr~src~0705',
-    'H4~physics~oefpression.fr~src~0706',
-    'H4~physics~oefpression.fr~src~0707',
-    'H4~physics~oefpression.fr~src~0708',
-    'H4~physics~oefpression.fr~src~0710',
     'H4~physics~temps.fr~src~periodefrequence',
     'H4~programming~oefalgopython.fr~src~balayage3',
     'H4~programming~oefalgopython.fr~src~balayage4',

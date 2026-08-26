@@ -241,6 +241,19 @@ async def check_exercise(
             if r.input_name in _range_names and r.expected:
                 r.expected = range_display_answer(r.expected, comma)
 
+    # ── sigunits : le corrigé montre la valeur arrondie, pas la consigne ──────
+    # L'attendu est stocké `"<valeur> <unité> #N"`, où `#N` dit combien de
+    # chiffres significatifs on exige. Affiché tel quel, `astron2` rendait
+    # « 74753832.77 km^2 #4 » : la valeur que l'élève devait justement
+    # arrondir, suivie d'un marqueur qui ne lui parle pas.
+    _sig_names = {a.input_name for a in rendered.answers if a.answer_type == "sigunits"}
+    if _sig_names:
+        from core.answer.checkers import sigunits_display_answer  # noqa: PLC0415
+        comma = uses_comma_decimal(rendered.lang)
+        for r in results:
+            if r.input_name in _sig_names and r.expected:
+                r.expected = sigunits_display_answer(r.expected, comma)
+
     # ── Corrigé : la convention décimale de la langue (cf. _localize_feedback)
     _localize_feedback(
         results, rendered.answers, rendered.lang, settings.pax_localize_feedback

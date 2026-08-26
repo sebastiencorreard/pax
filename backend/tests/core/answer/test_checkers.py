@@ -938,3 +938,36 @@ class TestDefaultIsARouter:
         cherche un « = » **seul**, et sympy sait rendre les composés."""
         r = check_answer("default", "x <= 3", "x<=3")
         assert r.method != "equation"
+
+
+class TestSigunitsDisplayAnswer:
+    """Le corrigé d'un `sigunits` montre la valeur arrondie, pas la consigne.
+
+    L'attendu se stocke `"<valeur> <unité> #N"` : `#N` n'est pas une réponse,
+    c'est le nombre de chiffres significatifs exigé. Affiché tel quel,
+    `astron2` rendait `74753832.77 km^2 #4` — la valeur que l'élève devait
+    justement arrondir, suivie d'un marqueur qui ne lui parle pas.
+    """
+
+    def test_scientific_notation_beyond_the_significant_digits(self):
+        from core.answer.checkers import sigunits_display_answer as D
+        assert D("74753832.77 km^2 #4") == "7.475e7 km^2"
+        assert D("3802500 N#4") == "3.802e6 N"
+
+    def test_a_value_that_already_fits_stays_decimal(self):
+        from core.answer.checkers import sigunits_display_answer as D
+        assert D("4878 km #4") == "4878 km"
+        assert D("55.3896 #4") == "55.39"
+        assert D("1.5 m #2") == "1.5 m"
+
+    def test_what_it_shows_is_what_the_checker_accepts(self):
+        """Le corrigé doit être une réponse juste — sinon on montre à l'élève
+        une valeur qu'on lui aurait refusée."""
+        from core.answer.checkers import sigunits_display_answer as D
+        for attendu in ("74753832.77 km^2 #4", "4878 km #4", "3802500 N#4",
+                        "19.6349540849 #4", "2.57304292311 #4", "44226 N#4"):
+            assert check_answer("sigunits", D(attendu), attendu).correct, attendu
+
+    def test_an_expected_without_the_marker_is_left_alone(self):
+        from core.answer.checkers import sigunits_display_answer as D
+        assert D("4878 km") == "4878 km"

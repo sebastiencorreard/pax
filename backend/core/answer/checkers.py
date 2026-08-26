@@ -681,6 +681,43 @@ def format_sigunits_expected(expected: str) -> str:
     return f"{mant_exp} {unit}".strip()
 
 
+def sigunits_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
+    """La valeur affichée en corrigé pour un `sigunits`.
+
+    L'attendu est stocké `"<valeur> <unité> #N"`, où `#N` n'est pas une réponse
+    mais une **consigne** : le nombre de chiffres significatifs exigé. Montré
+    tel quel, le corrigé d'`astron2` affichait `74753832.77 km^2 #4` — la
+    valeur que l'élève devait justement arrondir, suivie d'un marqueur qui ne
+    veut rien dire pour lui. On rend ce qu'on lui demandait : `7.475e7 km^2`.
+
+    Chez WIMS le corrigé passe par `!exec units-filter` en mode `o`
+    (`anstype/sigunits`), un binaire externe que PAX ne reproduit pas ; on s'en
+    tient à la valeur arrondie et à son unité, ce que le checker attend.
+    """
+    from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+
+    m = re.match(r"^(.*?)\s*#\s*(\d+)\s*$", (expected or "").strip(), re.DOTALL)
+    if not m:
+        return expected
+    n_sig = int(m.group(2))
+    val, unit = _split_sci_value_unit(m.group(1))
+    if val is None:
+        return m.group(1).strip()
+    try:
+        arrondi = _round_sig(_sci_to_float(val, comma_is_decimal), n_sig)
+    except (ValueError, OverflowError):
+        return m.group(1).strip()
+    texte = format_wims_float(arrondi) if arrondi != int(arrondi) else str(int(arrondi))
+    # Au-delà de N chiffres devant la virgule, la forme décimale ferait croire
+    # à une précision qu'on vient justement de retirer (74750000 pour quatre
+    # chiffres significatifs) : la notation scientifique la rend visible.
+    if arrondi and abs(arrondi) >= 10 ** n_sig:
+        mant = arrondi / 10 ** math.floor(math.log10(abs(arrondi)))
+        expo = math.floor(math.log10(abs(arrondi)))
+        texte = f"{format_wims_float(round(mant, n_sig - 1))}e{expo}"
+    return f"{texte} {unit}".strip()
+
+
 def range_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
     """La valeur affichée en corrigé pour un `range` — le `replyGood` de WIMS.
 
