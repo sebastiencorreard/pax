@@ -2097,3 +2097,35 @@ class TestListMembershipWithBrackets:
 
     def test_positionof_plain_list_unchanged(self):
         assert engine()._eval_cmd("positionof", "item b in a,b,c") == "2"
+
+
+class TestRenderByParts:
+    """Expressions que sympy ne lit pas d'un bloc, mais dont chaque morceau se
+    rend très bien.
+
+    Elles repartaient telles quelles, `sqrt(` en clair — c'est ce qui tenait
+    `solveineq3/5` et `longueur4/5` dans `XFAIL_RENDER_STRUCTURE`. Le découpage
+    n'a lieu qu'**après** l'échec du parse : ce qui se rend d'un bloc continue
+    de se rendre d'un bloc.
+    """
+
+    def test_a_chained_inequality(self):
+        """`solveineq3` : sympy ne chaîne pas les comparaisons, là où
+        `t_onestring` (`texmath.c`) découpe et laisse `t_oneterm` imprimer
+        l'opérateur rencontré."""
+        assert _expr_to_latex("3.87 < sqrt(15) < 3.88") == r"3.87 < \sqrt{15} < 3.88"
+        assert _expr_to_latex("1.41 < sqrt(2) < 1.42") == r"1.41 < \sqrt{2} < 1.42"
+
+    def test_french_coordinates_use_a_semicolon(self):
+        """`longueur4` : `( 5 ; 6*sqrt(2) )` — le point-virgule sépare les
+        coordonnées en français, ce n'est pas un opérateur."""
+        assert _expr_to_latex("( 5 ; 6*sqrt(2) )") == r"\left(5 ; 6 \sqrt{2}\right)"
+
+    def test_a_single_comparison_still_goes_through_sympy(self):
+        assert _expr_to_latex("x <= 3") == r"x \leq 3"
+        assert _expr_to_latex("2*x < 3*y") == "2 x < 3 y"
+
+    def test_nothing_is_rewritten_when_no_part_improves(self):
+        """Recoller nos propres espaces n'apporterait rien : on rend alors la
+        chaîne d'origine."""
+        assert _expr_to_latex("(a;b);c") == "(a;b);c"

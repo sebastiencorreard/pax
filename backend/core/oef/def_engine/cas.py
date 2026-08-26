@@ -424,6 +424,77 @@ def _split_top_level_equals(s: str) -> list[str] | None:
     return parts
 
 
+# Jetons que sympy ne sait pas lire au milieu d'une expression, et leur forme
+# LaTeX. L'ordre compte : les composés d'abord, sinon `<=` se lirait `<`.
+_PART_TOKENS: tuple[tuple[str, str], ...] = (
+    ("<=", r"\leq"), (">=", r"\geq"), ("!=", r"\neq"), ("<>", r"\neq"),
+    ("<", "<"), (">", ">"), (";", ";"),
+)
+
+
+def _split_top_level_tokens(s: str) -> tuple[list[str], list[str]] | None:
+    """(morceaux, séparateurs LaTeX) autour des jetons de premier niveau."""
+    parts: list[str] = []
+    seps: list[str] = []
+    depth = start = i = 0
+    while i < len(s):
+        c = s[i]
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif depth == 0:
+            for tok, tex in _PART_TOKENS:
+                if s.startswith(tok, i):
+                    parts.append(s[start:i])
+                    seps.append(tex)
+                    i += len(tok)
+                    start = i
+                    break
+            else:
+                i += 1
+            continue
+        i += 1
+    if not seps:
+        return None
+    parts.append(s[start:])
+    return parts, seps
+
+
+def _render_by_parts(expr_strip: str, func_names, wrapped: bool) -> str | None:
+    """Rend une expression morceau par morceau, quand sympy cale sur l'ensemble.
+
+    Deux notations scolaires y échouent alors que chaque morceau se rend très
+    bien :
+
+    * l'**encadrement**, `3.87 < sqrt(15) < 3.88` (`solveineq3`) — sympy ne
+      chaîne pas les comparaisons, là où `t_onestring` (`texmath.c`) découpe la
+      chaîne en termes et laisse `t_oneterm` imprimer l'opérateur rencontré ;
+    * le **couple de coordonnées à la française**, `( 5 ; 6*sqrt(2) )`
+      (`longueur4`), dont le point-virgule n'est pas un opérateur.
+
+    Faute de mieux, l'expression entière repartait telle quelle et son `sqrt(`
+    s'affichait en clair. On ne tente ce découpage qu'**après** l'échec du
+    parse : ce qui se rend d'un bloc continue de se rendre d'un bloc.
+    """
+    inner = expr_strip[1:-1].strip() if wrapped else expr_strip
+    decoupe = _split_top_level_tokens(inner)
+    if decoupe is None:
+        return None
+    parts, seps = decoupe
+    if any(not p.strip() for p in parts):
+        return None
+    rendus = [_expr_to_latex(p.strip(), func_names) for p in parts]
+    # Rien de gagné si aucun morceau n'a bougé : mieux vaut la chaîne d'origine
+    # que la nôtre, recollée avec un espacement qui n'est pas celui de l'auteur.
+    if all(r == p.strip() for r, p in zip(rendus, parts)):
+        return None
+    out = rendus[0]
+    for sep, r in zip(seps, rendus[1:]):
+        out = f"{out} {sep} {r}"
+    return f"\\left({out}\\right)" if wrapped else out
+
+
 def _wims_factor_rank(node) -> int:
     """Rang d'un facteur dans un terme, façon ``fsort`` (``src/texmath.c``).
 
@@ -612,7 +683,8 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
             res = f"\\left({res}\\right)"
         return res
     except Exception:
-        return expr
+        rendu = _render_by_parts(expr_strip, func_names, wrapped)
+        return rendu if rendu is not None else expr
 
 
 # ── PARI helpers ─────────────────────────────────────────────────────────────

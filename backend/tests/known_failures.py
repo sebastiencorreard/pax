@@ -19,10 +19,14 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 
 # test_render_structure : anomalie dans le HTML rendu
 #
-# Trois sont partis le 2026-08-26, avec le rendu des formules à « = » :
-# `racequ2`, `corriger_fonctions` et `gauss_summe`. `_expr_to_latex` renvoyait
-# l'expression telle quelle dès qu'elle portait un `=` de premier niveau, si
-# bien que `\(-3*sqrt(x) - 9 = 0\)` gardait son `sqrt(` en clair.
+# Sept sont partis le 2026-08-26, tous pour la même raison de fond : une
+# expression que sympy ne parvenait pas à lire d'un bloc repartait **telle
+# quelle**, son `sqrt(` en clair. Trois portaient un « = » de premier niveau
+# (`racequ2`, `corriger_fonctions`, `gauss_summe`), quatre une notation
+# scolaire que sympy ne parse pas — l'encadrement `3.87 < sqrt(15) < 3.88`
+# (`solveineq3`, `solveineq5`) et le couple de coordonnées à la française
+# `( 5 ; 6*sqrt(2) )` (`longueur4`, `longueur5`). Les membres se rendent
+# désormais un à un.
 #
 # Attention en relisant cette liste : `test_render_structure` appelle
 # `pytest.xfail()` **impérativement**, ce qui interrompt le test sur-le-champ.
@@ -37,11 +41,6 @@ XFAIL_RENDER_STRUCTURE = {
     'H3~number~OEFevalwimsnbrel.fr~src~calcprod3',
     'H3~number~OEFevalwimsnbrel.fr~src~signeprod2',
     'H3~number~OEFevalwimsnbrel.fr~src~signequot2',
-    # `sqrt(` brut hors formule à « = » : autre cause, encore à instruire.
-    'H4~analysis~OEFevalwimsordre.fr~src~solveineq3',
-    'H4~analysis~OEFevalwimsordre.fr~src~solveineq5',
-    'H4~geometry~OEFevalwimscoord.fr~src~longueur4',
-    'H4~geometry~OEFevalwimscoord.fr~src~longueur5',
     # énoncé quasi-vide
     'H3~geometry~oefpolygon.fr~src~nompolygone',
     'H4~physics~oefpression.fr~src~0703',
