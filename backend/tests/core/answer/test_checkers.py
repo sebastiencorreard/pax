@@ -971,3 +971,42 @@ class TestSigunitsDisplayAnswer:
     def test_an_expected_without_the_marker_is_left_alone(self):
         from core.answer.checkers import sigunits_display_answer as D
         assert D("4878 km") == "4878 km"
+
+
+class TestCoordZones:
+    """Une click-zone se calcule, et ce qu'on y attend est un point.
+
+    `getvalue` (`Misc/clickzone.c`) passe chaque composante au calculateur :
+    ce sont des expressions, pas des littéraux. Et `reply` est le **pixel
+    cliqué**, quand `expected` décrit la cible — les confondre revient à
+    demander à l'élève de saisir la consigne.
+    """
+
+    def test_a_radius_can_be_an_expression(self):
+        """`somvect` pose `circle,110,80,30/3` — rayon 10, pas « pas de rayon »."""
+        assert check_answer("coord", "110,80", "circle,110,80,30/3").correct
+        assert not check_answer("coord", "160,80", "circle,110,80,30/3").correct
+
+    def test_a_centre_can_be_an_expression(self):
+        """`tracredstep` pose `circle,200,200-20*7,9` — centre (200, 60)."""
+        assert check_answer("coord", "200,60", "circle,200,200-20*7,9").correct
+        assert not check_answer("coord", "200,200", "circle,200,200-20*7,9").correct
+
+    def test_the_centre_of_each_shape(self):
+        from core.answer.checkers import coord_display_answer as D
+        assert D("circle,110,80,30/3") == "110,80"
+        assert D("point,204,338") == "204,338"
+        assert D("rectangle,10,20,50,60") == "30,40"
+
+    def test_what_it_offers_is_what_the_checker_accepts(self):
+        from core.answer.checkers import coord_display_answer as D
+        for zone in ("circle,110,80,30/3", "circle,200,200-20*7,9",
+                     "point,204,338", "rectangle,10,20,50,60"):
+            assert check_answer("coord", D(zone), zone).correct, zone
+
+    def test_an_uncomputable_zone_yields_nothing(self):
+        """`bound` teste l'appartenance à une région d'un GIF par remplissage :
+        sans l'image, il n'y a pas de centre à proposer."""
+        from core.answer.checkers import coord_display_answer as D
+        assert D("(bound,,56,146)") == ""
+        assert D("b,dept.gif,204,338") == ""

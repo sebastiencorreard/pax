@@ -74,6 +74,15 @@ XFAIL_RENDER_STRUCTURE = {
 # réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
 # comparée numériquement, et notée fausse.
 #
+# Sept `coord` sont partis le 2026-08-27, pour deux raisons qui se cumulaient.
+# Les composantes d'une click-zone sont des **expressions** que `getvalue`
+# (`Misc/clickzone.c`) passe au calculateur — `circle,110,80,30/3`,
+# `circle,200,200-20*7,9` —, et n'en garder que les nombres purs laissait le
+# cercle sans rayon. Et un `coord` n'attend pas une zone mais un **point** : le
+# test lui soumettait la description de la cible au lieu d'un clic dedans.
+# Restent les `bound`, qui testent l'appartenance à une région d'un GIF par
+# remplissage : sans l'image, rien à calculer.
+#
 # Huit `sigunits` sont partis le 2026-08-27, et le checker n'y était pour rien :
 # l'attendu se stocke `"<valeur> <unité> #N"`, où `#N` est la **consigne** —
 # arrondir à N chiffres significatifs. Le test soumettait l'attendu tel quel,
@@ -112,8 +121,6 @@ XFAIL_CORRECT_SCORE = {
     'H3~geography~oefdepregfr.fr~src~clickdept',
     'H3~geography~oefdepregfr.fr~src~clickrcap',
     'H3~geography~oefdepregfr.fr~src~clickreg',
-    'H3~geometry~oefcoord.fr~src~somvect',
-    'H3~geometry~oefcoord.fr~src~vectgraph',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
     'H3~geometry~oefpytha.fr~src~avion',
     'H3~geometry~oefpytha.fr~src~moho0',
@@ -130,11 +137,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~moles.nl~src~concentration1',
     'H4~chemistry~moles.nl~src~masse1',
     'H4~chemistry~moles.nl~src~massevolumique',
-    'H4~geometry~OEFevalwimsvect1.fr~src~reperpt3',
-    'H4~geometry~OEFevalwimsvect1.fr~src~reperpt4',
-    'H4~geometry~OEFevalwimsvect1.fr~src~reperpt5',
-    'H4~geometry~droiteplanrep.fr~src~tracredstep',
-    'H4~math~quizzautomat.fr~src~fct4',
     'H4~physics~mouvrel.fr~src~vitesse0',
     'H4~physics~temps.fr~src~periodefrequence',
     'H4~programming~oefalgopython.fr~src~balayage3',

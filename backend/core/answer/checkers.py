@@ -681,6 +681,43 @@ def format_sigunits_expected(expected: str) -> str:
     return f"{mant_exp} {unit}".strip()
 
 
+def coord_display_answer(expected: str) -> str:
+    """Un clic qui tombe dans la click-zone — le centre, quand il en a un.
+
+    Un `coord` n'attend pas une zone mais un **point** : `reply` est le pixel
+    cliqué. L'attendu, lui, décrit la cible (`circle,110,80,30/3`,
+    `point,204,338`, `rectangle,x1,y1,x2,y2`). Les confondre revient à demander
+    à l'élève de saisir la consigne, comme les bornes d'un `range` ou le `#N`
+    d'un `sigunits`.
+
+    Rend `""` pour les formes dont le centre ne se calcule pas — `bound` teste
+    l'appartenance à une région d'un GIF par remplissage (`Misc/clickzone.c`),
+    et `polygon` demanderait le centroïde.
+    """
+    from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+
+    parts = [p.strip() for p in _declosing(expected or "").split(",")]
+    if len(parts) < 2:
+        return ""
+    shape = parts[0].lower()
+    vals: list[float] = []
+    for v in parts[1:]:
+        if not v:
+            continue
+        try:
+            vals.append(_eval_scalar(v, comma_is_decimal=False))
+        except ValueError:
+            return ""
+    if shape.startswith(("point", "circle", "ellipse")) and len(vals) >= 2:
+        # Les deux premières composantes sont le centre dans les trois cas ;
+        # `point` accepte plusieurs cibles, la première suffit.
+        return f"{format_wims_float(vals[0])},{format_wims_float(vals[1])}"
+    if shape.startswith("rectangle") and len(vals) >= 4:
+        return (f"{format_wims_float((vals[0] + vals[2]) / 2)},"
+                f"{format_wims_float((vals[1] + vals[3]) / 2)}")
+    return ""
+
+
 def sigunits_display_answer(expected: str, comma_is_decimal: bool = True) -> str:
     """La valeur affichée en corrigé pour un `sigunits`.
 
@@ -926,11 +963,24 @@ def check_coord(reply: str, expected: str) -> CheckResult:
         return CheckResult(correct=False, score=0.0, method="coord")
     cx, cy = float(nums[0]), float(nums[1])
 
-    parts = [p.strip() for p in (expected or "").split(",")]
+    parts = [p.strip() for p in _declosing(expected or "").split(",")]
     if not parts:
         return CheckResult(correct=False, score=0.0, method="coord")
     shape = parts[0].lower()
-    vals = [float(v) for v in parts[1:] if re.fullmatch(r"-?\d+(?:\.\d+)?", v)]
+    # Les composantes d'une click-zone sont des **expressions**, pas des
+    # littéraux : `getvalue` (`Misc/clickzone.c`) passe chaque item au
+    # calculateur. `somvect` pose `circle,110,80,30/3` et `tracredstep`
+    # `circle,200,200-20*7,9`. Ne garder que les nombres purs, comme le
+    # faisait un filtre par expression régulière, laissait le cercle sans
+    # rayon — et refusait alors tous les clics.
+    vals: list[float] = []
+    for v in parts[1:]:
+        if not v:
+            continue
+        try:
+            vals.append(_eval_scalar(v, comma_is_decimal=False))
+        except ValueError:
+            continue
 
     def _hit() -> bool:
         if shape.startswith("point") or shape == "p":

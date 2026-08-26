@@ -79,6 +79,14 @@ def _candidats(ans):
         arrondi = sigunits_display_answer(brut)
         if arrondi:
             yield arrondi
+    # `coord` n'attend pas une zone mais un **point** : `reply` est le pixel
+    # cliqué, quand `expected` décrit la cible (`circle,110,80,30/3`). Le
+    # centre de cette cible est une bonne réponse ; la description, non.
+    if ans.answer_type == "coord":
+        from core.answer.checkers import coord_display_answer  # noqa: PLC0415
+        clic = coord_display_answer(brut)
+        if clic:
+            yield clic
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()
