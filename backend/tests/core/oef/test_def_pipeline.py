@@ -1323,3 +1323,60 @@ class TestDropUnitFactors:
         from core.oef.def_engine.cas import _expr_to_latex
         assert _expr_to_latex("3/x") == r"\frac{3}{x}"
         assert _expr_to_latex("2/(3x)") == r"\frac{2}{3 x}"
+
+
+class TestTermOrder:
+    """Les termes d'une somme sortent dans l'ordre de la source.
+
+    Le printer sympy trie par défaut (`order='lex'`), ce que rien chez WIMS ne
+    justifie : `t_onestring` (`src/texmath.c`) découpe la chaîne et émet chaque
+    terme dans l'ordre où il vient —
+
+        for(pp=p,i=0;*pp;pp=pe,i++) {
+          pe=find_term_end(pp);
+          memmove(termbuf,pp,pe-pp); termbuf[pe-pp]=0;
+          t_oneterm(termbuf,i);
+        }
+
+    — son seul tri (`qsort` sur `fsort`) portant sur les facteurs *à
+    l'intérieur* d'un terme, classés par type. Le tri des termes gênait
+    doublement : il inversait les opérandes d'un calcul à poser, et la famille
+    `reduire1p…` compare les rawmath **littéralement** (cf. `check_litexp`), si
+    bien que l'élève devait retrouver un ordre que l'énoncé lui montrait déjà
+    réarrangé.
+    """
+
+    def test_numeric_terms_keep_their_order(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("2+1") == "2 + 1"
+        assert _expr_to_latex("5+x") == "5 + x"
+        assert _expr_to_latex("b+a") == "b + a"
+
+    def test_a_reduction_statement_is_shown_as_written(self):
+        """`reduire1` remet l'expression à l'élève : ni réduite, ni réordonnée."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("3*x+5*x+2+1") == "3 x + 5 x + 2 + 1"
+
+    def test_the_CORdistribution_family(self):
+        """Attendus réels d'`oefdevfact.ca/CORdistribution`, que le tri
+        retournait en `- 8 b + 10 b - 3 + 3`."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("10*b - 3 - 8*b + 3") == "10 b - 3 - 8 b + 3"
+        assert _expr_to_latex("10*b - 3 - 8*b - 3") == "10 b - 3 - 8 b - 3"
+
+    def test_operands_of_a_sum_are_not_swapped(self):
+        """`14/10 + 9/8` s'affichait `9/8 + 14/10`."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("14/10 + 9/8") == r"\frac{14}{10} + \frac{9}{8}"
+
+    def test_factors_inside_a_term_are_still_sympy_s_business(self):
+        """WIMS trie les facteurs d'un même terme (`fsort`, par type) : le
+        coefficient devant la variable. On ne touche pas à ce niveau-là."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("x*3") == "3 x"
+
+    def test_nothing_is_simplified(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        out = _expr_to_latex("(1+sqrt(5))(1-sqrt(5))")
+        assert "-4" not in out
+        assert out.index(r"1 + \sqrt{5}") < out.index(r"1 - \sqrt{5}")

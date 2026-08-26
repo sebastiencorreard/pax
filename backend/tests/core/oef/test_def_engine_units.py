@@ -154,8 +154,23 @@ class TestCloseInlineMath:
         assert _close_inline_math(r"\(-4) text") == r"\(-4\) text"
 
     def test_normalizes_equation(self):
+        """Les termes sortent dans l'ordre de la source, pas triés.
+
+        Ce test figeait `\\(3 - 3 x = …\\)`, c'est-à-dire le tri du printer
+        sympy (`order='lex'`) — une invention de PAX. WIMS n'ordonne pas les
+        termes d'une somme : `t_onestring` (`src/texmath.c`) découpe la chaîne
+        et émet chaque terme dans l'ordre où il vient,
+
+            for(pp=p,i=0;*pp;pp=pe,i++) {
+              pe=find_term_end(pp);
+              …
+              t_oneterm(termbuf,i);
+
+        son seul tri (`qsort`/`fsort`) portant sur les facteurs *à l'intérieur*
+        d'un terme. La source dit `-3*x + 3`, le rendu doit dire `- 3 x + 3`.
+        """
         result = _close_inline_math(r"\(-3*x + 3 = -1*x+-5).")
-        assert result == r"\(3 - 3 x = - x - 5\)."
+        assert result == r"\(- 3 x + 3 = - x - 5\)."
 
     def test_preserves_already_closed_latex(self):
         # `\frac{}{}` content has backslashes — left untouched.
@@ -249,8 +264,12 @@ class TestCloseInlineMath:
         # ecrdec1: an implicit product `)(` parses via implicit
         # multiplication and each sqrt renders — and the product is NOT
         # simplified to -4 (which would give the answer away).
+        #
+        # Les deux facteurs gardent l'ordre de la source, `(1+sqrt(5))` puis
+        # `(1-sqrt(5))` : le tri qui les intervertissait était celui du printer
+        # sympy, pas celui de WIMS (cf. `test_normalizes_equation`).
         assert _close_inline_math(r"\((1+sqrt(5))(1-sqrt(5)))") == (
-            r"\(\left(1 - \sqrt{5}\right) \left(1 + \sqrt{5}\right)\)"
+            r"\(\left(1 + \sqrt{5}\right) \left(1 - \sqrt{5}\right)\)"
         )
 
     def test_renders_fraction_of_sqrt(self):

@@ -396,8 +396,28 @@ def _call_maxima(expr: str) -> str:
 _PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
 
 
+def _wims_factor_rank(node) -> int:
+    """Rang d'un facteur dans un terme, façon ``fsort`` (``src/texmath.c``).
+
+    Le C classe par type et plafonne tout ce qui dépasse la variable :
+
+        i1=t1->type; if(i1>type_var) i1=type_var;
+        return i1-i2;
+
+    avec ``enum {type_integer, type_numeric, type_var, type_poly,
+    type_transcend}``. D'où trois rangs seulement — entier, numérique, le
+    reste —, le coefficient passant devant sa variable (``x*3`` → ``3x``).
+    """
+    if getattr(node, "is_Integer", False):
+        return 0
+    if getattr(node, "is_Number", False):
+        return 1
+    return 2
+
+
 def _drop_unit_factors(node):
-    """Retire les facteurs 1 explicites d'un arbre parsé sans évaluation.
+    """Met l'arbre dans la forme que WIMS imprimerait : sans facteur 1, et les
+    facteurs d'un terme classés par type.
 
     ``parse_expr(evaluate=False)`` garde l'arbre tel que l'auteur l'a écrit —
     c'est tout l'intérêt pour ``!texmath``, qui ne doit pas donner la réponse.
@@ -413,6 +433,13 @@ def _drop_unit_factors(node):
     Le ``-1`` est épargné, et il le faut : ``_expr_to_latex`` réécrit exprès
     ``-(`` en ``(-1)*(`` pour empêcher sympy de distribuer le signe, la forme
     non développée étant l'énoncé même de `distribuer1`.
+
+    Le classement des facteurs (``_wims_factor_rank``) accompagne le
+    ``order='none'`` de l'appelant : couper le tri du printer rend aux *termes*
+    l'ordre de la source, ce que veut WIMS, mais le coupe aussi pour les
+    *facteurs*, que WIMS trie. On le rétablit donc ici, au seul niveau où le C
+    le fait — et de façon stable, là où son ``qsort`` laisse l'ordre des
+    ex æquo indéterminé.
     """
     import sympy  # noqa: PLC0415
 
@@ -425,7 +452,7 @@ def _drop_unit_factors(node):
             return sympy.Integer(1)
         if len(kept) == 1:
             return kept[0]
-        new_args = kept
+        new_args = sorted(kept, key=_wims_factor_rank)
     if len(new_args) == len(node.args) and all(
         a is b for a, b in zip(new_args, node.args)
     ):
@@ -526,7 +553,16 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
             local_dict=locals_dict,
             evaluate=False,
         )
-        res = sympy.latex(_drop_unit_factors(parsed))
+        # `order='none'` : imprimer les termes dans l'ordre où l'auteur les a
+        # écrits. Le printer sympy trie par défaut (`order='lex'`), si bien que
+        # `14/10 + 9/8` s'affichait `9/8 + 14/10` — les opérandes inversés dans
+        # l'énoncé même. WIMS ne trie pas les termes d'une somme : `t_onestring`
+        # (`src/texmath.c`) les émet dans l'ordre de la source, et son seul tri
+        # (`qsort`/`fsort`) porte sur les facteurs *à l'intérieur* d'un terme.
+        # Le tri était d'autant plus gênant que la famille `reduire1p…` compare
+        # les rawmath littéralement (cf. `check_litexp`) : l'élève doit
+        # retrouver l'ordre stocké, que l'énoncé lui montrait déjà réarrangé.
+        res = sympy.latex(_drop_unit_factors(parsed), order="none")
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"
         return res
