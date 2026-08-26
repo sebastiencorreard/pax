@@ -74,6 +74,12 @@ XFAIL_RENDER_STRUCTURE = {
 # réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
 # comparée numériquement, et notée fausse.
 #
+# Les quatre `oefpyramid` sont partis le 2026-08-27 : ils fabriquent leurs
+# nombres en concaténant des chiffres tirés au sort
+# (`$[($(tmp0)$(tmp1)$(tmp2))/…]`), et un tirage de 0, 0, 2 donnait `$[(002)/1]`
+# — que Python 3 refuse d'évaluer, zéros de tête interdits, là où le C les lit
+# sans broncher. L'attendu restait la formule.
+#
 # Trois factorisations sont parties le 2026-08-27. `slib/commutesom` pose son
 # drapeau dès qu'on l'appelle, et PAX en marquait la réponse `expand` — donc
 # « forme développée exigée ». Or `oeffac3b` s'en sert pour son énoncé mais
@@ -107,10 +113,6 @@ XFAIL_CORRECT_SCORE = {
     'H3~geometry~oefpytha.fr~src~avion',
     'H3~geometry~oefpytha.fr~src~moho0',
     'H3~math~quizz.fr~src~T1110',
-    'H3~number~OEFnbredeccollege.fr~src~oefpyramid1',
-    'H3~number~OEFnbredeccollege.fr~src~oefpyramid2',
-    'H3~number~OEFnbredeccollege.fr~src~oefpyramid3',
-    'H3~number~OEFnbredeccollege.fr~src~oefpyramid4',
     'H4~algebra~h4droites.fr~src~ordoneeOrign',
     'H4~chemistry~chemavance1.fr~src~Tableaudavance',
     'H4~chemistry~chemavance1.fr~src~TableaudavanceBis',

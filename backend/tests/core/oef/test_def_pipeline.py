@@ -1380,3 +1380,42 @@ class TestTermOrder:
         out = _expr_to_latex("(1+sqrt(5))(1-sqrt(5))")
         assert "-4" not in out
         assert out.index(r"1 + \sqrt{5}") < out.index(r"1 - \sqrt{5}")
+
+
+class TestLeadingZeros:
+    """`$[…]` doit lire les zéros de tête, que Python 3 refuse.
+
+    « leading zeros in decimal integer literals are not permitted » : le C de
+    WIMS n'a pas cette contrainte, et les zéros de tête arrivent naturellement
+    d'une concaténation de chiffres. `oefpyramid` fabrique ainsi ses nombres —
+    `$[($(tmp0)$(tmp1)$(tmp2))/$(val11[1])]` —, et un tirage de 0, 0, 2 donnait
+    `$[(002)/1]` : l'évaluation échouait en silence et l'attendu restait la
+    formule, si bien qu'aucune réponse ne pouvait valoir 1.
+    """
+
+    @staticmethod
+    def _ev(expr):
+        from core.oef.def_engine import DefEngine
+        e = DefEngine.__new__(DefEngine)
+        e.ctx = {}
+        return e._eval_arith(expr)
+
+    def test_the_oefpyramid_case(self):
+        assert self._ev("(002)/1") == "2"
+        assert self._ev("(002)/1+(007)/1") == "9"
+
+    def test_a_lone_zero_is_untouched(self):
+        assert self._ev("0") == "0"
+        assert self._ev("0+5") == "5"
+
+    def test_a_decimal_keeps_its_zeros(self):
+        assert self._ev("0.5") == "0.5"
+        assert self._ev("10.02") == "10.02"
+        assert self._ev("1.007*1000") == "1007"
+
+    def test_an_ordinary_number_is_untouched(self):
+        assert self._ev("100") == "100"
+        assert self._ev("1000/10") == "100"
+
+    def test_a_negative_with_leading_zeros(self):
+        assert self._ev("-002") == "-2"

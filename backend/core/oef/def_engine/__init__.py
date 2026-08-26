@@ -983,6 +983,15 @@ class DefEngine(_SlibMixin):
             return "NaN"
         # 2. Replace ^ with ** for Python
         expr = expr.replace("^", "**")
+        # 2b. Zéros de tête : le C les lit sans broncher, Python 3 refuse
+        # `002` (« leading zeros in decimal integer literals »). Ils arrivent
+        # d'une concaténation de chiffres, tout ce qu'il y a de courant —
+        # `oefpyramid` fabrique ses nombres par `$[($(tmp0)$(tmp1)$(tmp2))/…]`,
+        # et un tirage de 0, 0, 2 donnait `$[(002)/1]`. L'évaluation échouait
+        # en silence, l'attendu restait la formule, et aucune réponse ne pouvait
+        # valoir 1. On ne touche ni au `0` seul, ni à la partie décimale d'un
+        # nombre (`10.02`), ni aux chiffres déjà précédés d'un chiffre.
+        expr = re.sub(r"(?<![\d.\w])0+(?=\d)", "", expr)
         # 3. Evaluate
         ns = dict(_MATH_NS)
         # Also inject current context for bare variable names
