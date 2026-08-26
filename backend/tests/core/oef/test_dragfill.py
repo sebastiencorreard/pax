@@ -94,3 +94,95 @@ class TestCorpusRendering:
         for item in a.expected.split(","):
             assert item in pool, f"{item!r} absent de la palette de {path}"
             pool.remove(item)
+
+
+class TestFillChoiceOrder:
+    """Ordre d'affichage d'une palette — portage d'``anstype/fill.after``.
+
+        !if $wims_fill_type=dragfill
+          !if keeporder notwordof $wims_fill_option
+            !ifval $t_<=$filltotal or $t_<=12
+              !set list=!shuffle $list
+            !else
+              !set list=!sort items $list
+        !else
+          !set list=!listuniq $list
+          !if keeporder notwordof $wims_fill_option
+            !set list=!sort items $list
+        !endif
+        !if shuffle iswordof $wims_fill_option
+          !set list=!shuffle $list
+        !if sort iswordof $wims_fill_option
+          !set list=!sort items $list
+
+    Un `clickfill` est **trié** par défaut ; PAX le mélangeait toujours.
+    """
+
+    @staticmethod
+    def _rng():
+        import random
+        return random.Random("graine-fixe")
+
+    def test_a_clickfill_palette_is_sorted(self):
+        from core.oef.def_engine import _order_fill_choices
+        ch = ["poire", "ananas", "cerise"]
+        _order_fill_choices(ch, [], self._rng(), is_dragfill=False, slots=1)
+        assert ch == ["ananas", "cerise", "poire"]
+
+    def test_the_shuffle_option_is_needed_to_shuffle(self):
+        """`adddec` n'a pas d'option : ses `<`, `>`, `=` sortent triés."""
+        from core.oef.def_engine import _order_fill_choices
+        ch = [">", "<", "="]
+        _order_fill_choices(ch, [], self._rng(), is_dragfill=False, slots=1)
+        assert ch == ["<", "=", ">"]
+
+    def test_shuffle_option_breaks_the_sort(self):
+        """`oefreduire1` porte `replyoption1=shuffle`, seule occurrence du
+        corpus."""
+        from core.oef.def_engine import _order_fill_choices
+        base = [f"item{i:02d}" for i in range(12)]
+        ch = list(base)
+        _order_fill_choices(ch, ["shuffle"], self._rng(),
+                            is_dragfill=False, slots=1)
+        assert sorted(ch) == base
+        assert ch != base
+
+    def test_keeporder_leaves_the_palette_alone(self):
+        from core.oef.def_engine import _order_fill_choices
+        ch = ["poire", "ananas", "cerise"]
+        _order_fill_choices(ch, ["keeporder"], self._rng(),
+                            is_dragfill=False, slots=1)
+        assert ch == ["poire", "ananas", "cerise"]
+
+    def test_a_small_dragfill_is_shuffled_not_sorted(self):
+        """`dragfill` garde sa règle : mélangé tant qu'il tient dans ses cases
+        ou dans douze étiquettes."""
+        from core.oef.def_engine import _order_fill_choices
+        base = [f"lettre{i:02d}" for i in range(12)]
+        ch = list(base)
+        _order_fill_choices(ch, [], self._rng(), is_dragfill=True, slots=3)
+        assert sorted(ch) == base
+        assert ch != base
+
+    def test_a_long_dragfill_is_sorted(self):
+        from core.oef.def_engine import _order_fill_choices
+        ch = [f"lettre{i:02d}" for i in range(20)][::-1]
+        _order_fill_choices(ch, [], self._rng(), is_dragfill=True, slots=3)
+        assert ch == sorted(ch)
+
+    def test_sort_option_wins_over_shuffle(self):
+        """Les deux blocs finaux s'appliquent dans l'ordre du C : `shuffle`
+        puis `sort`."""
+        from core.oef.def_engine import _order_fill_choices
+        ch = ["c", "a", "b"]
+        _order_fill_choices(ch, ["shuffle", "sort"], self._rng(),
+                            is_dragfill=False, slots=1)
+        assert ch == ["a", "b", "c"]
+
+    def test_sorting_is_bytewise_like_strcmp(self):
+        """`calc_sort` sans mot-clé retombe sur `strcmp` : par octets, casse
+        comprise — `Z` avant `a`."""
+        from core.oef.def_engine import _order_fill_choices
+        ch = ["a", "Z", "B"]
+        _order_fill_choices(ch, [], self._rng(), is_dragfill=False, slots=1)
+        assert ch == ["B", "Z", "a"]

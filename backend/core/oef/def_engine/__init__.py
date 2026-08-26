@@ -162,6 +162,61 @@ def _normalize_reply_type(rtype: str) -> str:
     return "clickfill" if t == "dragfill" else t
 
 
+def _order_fill_choices(
+    choices: list[str],
+    opt_words: list[str],
+    rng,
+    *,
+    is_dragfill: bool,
+    slots: int,
+) -> list[str]:
+    """Ordre d'affichage d'une palette, d'après ``anstype/fill.after``.
+
+    Le fichier — partagé par `clickfill` et `dragfill` — décide en trois temps :
+
+        !if $wims_fill_type=dragfill
+          !if keeporder notwordof $wims_fill_option
+            !ifval $t_<=$filltotal or $t_<=12
+              !set list=!shuffle $list
+            !else
+              !set list=!sort items $list
+        !else
+          !set list=!listuniq $list
+          !if keeporder notwordof $wims_fill_option
+            !set list=!sort items $list
+        !endif
+        !if shuffle iswordof $wims_fill_option
+          !set list=!shuffle $list
+        !if sort iswordof $wims_fill_option
+          !set list=!sort items $list
+
+    Un `clickfill` est donc **trié** par défaut, et ne se mélange que si
+    l'auteur écrit `shuffle` — PAX le mélangeait systématiquement. Un
+    `dragfill` se mélange tant qu'il tient dans ses cases ou dans douze
+    étiquettes, et se trie au-delà (une longue liste reste parcourable).
+
+    Le tri est celui de `calc_sort` sans mot-clé : `strcmp`, donc par octets et
+    sensible à la casse. En UTF-8 l'ordre des octets suit celui des points de
+    code, si bien que le `sorted` de Python lui est équivalent.
+
+    Les deux options finales s'appliquent aux deux types : elles sont hors du
+    `if/else` dans le C.
+    """
+    if "keeporder" not in opt_words:
+        if is_dragfill:
+            if len(choices) <= max(slots, 12):
+                rng.shuffle(choices)
+            else:
+                choices.sort()
+        else:
+            choices.sort()
+    if "shuffle" in opt_words:
+        rng.shuffle(choices)
+    if "sort" in opt_words:
+        choices.sort()
+    return choices
+
+
 def _parse_input_attributes(tail: str) -> dict[str, object]:
     """HTML attributes carried by the extra lines of an `\\embed` size parameter.
 
@@ -4563,6 +4618,11 @@ class DefEngine(_SlibMixin):
                     _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
+                # `$wims_fill_option` = `replyoption$i` (`fill.inc:1`) : c'est
+                # lui qui décide de l'ordre final de la palette (`fill.after`).
+                fill_words = self._subst(
+                    self.ctx.get(f"replyoption{n}", "")
+                ).lower().split()
                 if is_dragfill and correct_items and "analyze_var" not in options:
                     # `fill.inc` compose la palette d'un dragfill autrement que
                     # celle d'un clickfill : ligne 1 (la bonne réponse) **puis**
@@ -4578,13 +4638,10 @@ class DefEngine(_SlibMixin):
                         if p not in known:
                             choices.append(p)
                             known.add(p)
-                    # `dragfill.after` : mélange tant que la palette n'excède ni
-                    # le nombre de cases ni 12 étiquettes, tri alphabétique
-                    # au-delà (une longue liste reste ainsi parcourable).
-                    if len(choices) <= max(len(correct_items), 12):
-                        rng.shuffle(choices)
-                    else:
-                        choices.sort()
+                    _order_fill_choices(
+                        choices, fill_words, rng,
+                        is_dragfill=True, slots=len(correct_items),
+                    )
                     options["choices"] = choices
                     options["slots"] = len(correct_items)
                     expected = ",".join(correct_items)
@@ -4594,7 +4651,8 @@ class DefEngine(_SlibMixin):
                     # palette is the pool only; scoring is via the :test section.
                     seen0: set[str] = set()
                     choices = [c for c in pool_items if not (c in seen0 or seen0.add(c))]  # type: ignore[func-returns-value]
-                    rng.shuffle(choices)
+                    _order_fill_choices(choices, fill_words, rng,
+                                        is_dragfill=False, slots=1)
                     options["choices"] = choices
                     expected = self._resolve_analyze_expected(options["analyze_var"], df) or ""
                 elif len(correct_items) > 1:
@@ -4604,7 +4662,8 @@ class DefEngine(_SlibMixin):
                     # the pool (it already contains every needed label).
                     seen: set[str] = set()
                     choices = [c for c in pool_items if not (c in seen or seen.add(c))]  # type: ignore[func-returns-value]
-                    rng.shuffle(choices)
+                    _order_fill_choices(choices, fill_words, rng,
+                                        is_dragfill=False, slots=len(correct_items))
                     options["choices"] = choices
                     options["slots"] = len(correct_items)
                     expected = ",".join(correct_items)
@@ -4614,7 +4673,8 @@ class DefEngine(_SlibMixin):
                     choices = [correct] + pool_items
                     seen2: set[str] = set()
                     choices = [c for c in choices if not (c in seen2 or seen2.add(c))]  # type: ignore[func-returns-value]
-                    rng.shuffle(choices)
+                    _order_fill_choices(choices, fill_words, rng,
+                                        is_dragfill=False, slots=1)
                     expected = correct
                     options["choices"] = choices
 
