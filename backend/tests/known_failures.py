@@ -74,6 +74,12 @@ XFAIL_RENDER_STRUCTURE = {
 # réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
 # comparée numériquement, et notée fausse.
 #
+# Trois factorisations sont parties le 2026-08-27. `slib/commutesom` pose son
+# drapeau dès qu'on l'appelle, et PAX en marquait la réponse `expand` — donc
+# « forme développée exigée ». Or `oeffac3b` s'en sert pour son énoncé mais
+# attend `(2 y + 13)^2` : l'attendu se voyait refuser lui-même. Le marqueur ne
+# vaut plus que si l'attendu est effectivement développé.
+#
 # Les deux `equation` suivants s'y sont ajoutés le 2026-08-25, pour la même
 # raison et en implémentant `anstype/equation`. Leur attendu est cassé en
 # amont, sans qu'aucun checker puisse y remédier : `droitecar1` porte
@@ -86,9 +92,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
     'H4~programming~oefalgopython.fr~src~droitecar1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
-    'H3~algebra~OEFlittcollege.fr~src~oeffac3b',
-    'H3~algebra~OEFlittcollege.fr~src~oeffac4b',
-    'H3~algebra~OEFlittcollege.fr~src~oeffactir3',
     'H3~algebra~oefdevfact.nl~src~deve6',
     'H3~algebra~oefvitesse.fr~src~astron2',
     'H3~algebra~oefvitesse.fr~src~astron3',

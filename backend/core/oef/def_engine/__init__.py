@@ -162,6 +162,19 @@ def _normalize_reply_type(rtype: str) -> str:
     return "clickfill" if t == "dragfill" else t
 
 
+def _expected_is_developed(good_raw: str) -> bool:
+    """L'attendu est-il une somme de monômes réduite ?
+
+    Sert à ne marquer `expand` que là où la forme développée est bien ce que
+    l'exercice demande. Une factorisation (`(2 y + 13)^2`) ou une réponse
+    multiple laisse la question ouverte : on s'abstient plutôt que d'imposer.
+    """
+    from core.answer.checkers import is_polexpand  # noqa: PLC0415
+
+    premier = (good_raw or "").split(",")[0].strip()
+    return bool(premier) and is_polexpand(premier)
+
+
 def _order_fill_choices(
     choices: list[str],
     opt_words: list[str],
@@ -4395,10 +4408,17 @@ class DefEngine(_SlibMixin):
             # requires the reduced form but exempts term order (see
             # _slib_commutesom / check_answer's term_order gate). Only when the
             # author set no explicit form option of their own.
+            # …et seulement si l'attendu est lui-même développé. Le flag est
+            # posé dès l'appel de `commutesom`, sans regarder ce que l'exercice
+            # en fait : `oeffac3b` s'en sert pour son énoncé mais attend une
+            # **factorisation**, `(2 y + 13)^2`. Le marquer `expand` faisait
+            # exiger la forme développée, et l'attendu se voyait refusé
+            # lui-même — trois exercices de factorisation notés faux à coup sûr.
             if (
                 self.ctx.get("_commutesom_anyorder")
                 and ans_type.lower() in ("litexp", "algexp", "formal")
                 and not re.search(r"\b(polexpand|expand|polfactor)\b", option)
+                and _expected_is_developed(good_raw)
             ):
                 option = (option + " expand").strip()
             options: dict = {"option": option} if option else {}
