@@ -363,7 +363,22 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
                     # cell's trailing paren, e.g. ``f(reply2)`` → ``…\()\)``,
                     # re-processed here). Without this it would close at the
                     # ``)`` (empty content) and leak the ``\)`` as literal text.
-                    if paren < 0 and brak <= 0 and brace <= 0 and text[j + 1 : j + 3] != "\\)":
+                    # Un closer qui ne laisserait **rien** dans la formule n'en
+                    # est pas un : le fragment commence alors par la parenthèse
+                    # fermante d'un trou à compléter, et ce `)` est du contenu.
+                    #
+                    # C'est encore une question d'idempotence, comme le `\()\)`
+                    # ci-dessus. `deve7` remplit un développement à trous, et
+                    # son `.def` en fait autant de `!insmath` : le deuxième vaut
+                    # `)^2 + 2\times (`, que le moteur a déjà enveloppé en
+                    # `\()^2 + 2\times (\)`. Cette passe le relit, prend le `)`
+                    # de tête pour son closer, et ferme un `\(\)` vide en
+                    # laissant `^2 + 2\times (` filer en texte brut.
+                    if (
+                        paren < 0 and brak <= 0 and brace <= 0
+                        and text[j + 1 : j + 3] != "\\)"
+                        and text[i + 2 : j].strip()
+                    ):
                         content_end, advance = j, j + 1  # WIMS find_matching closer
                         break
                 elif c == "[":

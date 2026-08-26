@@ -2129,3 +2129,20 @@ class TestRenderByParts:
         """Recoller nos propres espaces n'apporterait rien : on rend alors la
         chaîne d'origine."""
         assert _expr_to_latex("(a;b);c") == "(a;b);c"
+
+    def test_a_leading_paren_is_content_not_a_closer(self):
+        """Fermer sur un « ) » de tête viderait la formule.
+
+        `deve7` fait remplir un développement à trous ; son `.def` en fait
+        autant de `!insmath`, dont `)^2 + 2\\times (`. Le moteur l'enveloppe en
+        `\\()^2 + 2\\times (\\)`, que cette passe relit — elle prenait le « ) »
+        de tête pour son closer, fermait un `\\(\\)` vide, et laissait
+        `^2 + 2\\times (` filer en texte brut. Même question d'idempotence que
+        le `\\()\\)` d'un `mathmlinput`.
+        """
+        assert _close_inline_math(r"\()^2 + 2\times (\)") == r"\()^2 + 2\times (\)"
+        assert _close_inline_math(r"\()\)") == r"\()\)"
+
+    def test_a_real_closer_still_closes(self):
+        assert _close_inline_math(r"\(-4) text") == r"\(-4\) text"
+        assert _close_inline_math(r"\(K) sont (5;10)") == r"\(K\) sont (5;10)"

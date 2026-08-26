@@ -33,12 +33,9 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 # Un exercice réparé ne se signale donc jamais par un XPASS — il faut le
 # retirer d'ici et relancer, ou passer `structural_issues` sur la liste.
 XFAIL_RENDER_STRUCTURE = {
-    # `\(` déséquilibré (7/11, 2/3) : la fermeture des maths en ligne, chantier
-    # ouvert — le closer de WIMS s'appuie sur `find_matching`, PAX sur une
-    # heuristique.
-    'H3~algebra~oefdevfact.fr~src~deve7',
-    'H3~algebra~oefdevfact.fr~src~deve8',
-    'H3~number~OEFevalwimsnbrel.fr~src~calcprod3',
+    # `\(` déséquilibré (2 ouvrants / 3 fermants), cause encore à isoler : la
+    # formule se ferme après `46`, laissant `\times (+34) = -1564` en texte. Ce
+    # n'est pas le `)` de tête de `deve7`/`calcprod3`, réglé le 2026-08-26.
     'H3~number~OEFevalwimsnbrel.fr~src~signeprod2',
     'H3~number~OEFevalwimsnbrel.fr~src~signequot2',
     # énoncé quasi-vide
