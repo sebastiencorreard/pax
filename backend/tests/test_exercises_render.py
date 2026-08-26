@@ -307,9 +307,17 @@ def structural_issues(html: str) -> list[str]:
         if fn in maths:
             issues.append(f"fonction WIMS non évaluée : {fn}")
 
-    # 6. Énoncé vide
+    # 6. Énoncé vide — mais tout énoncé n'est pas fait de texte. Un exercice
+    # peut poser sa question par une **image** (`0703` montre une table de
+    # pressions) ou par le **widget** lui-même (`nompolygone` fait apparier
+    # trois noms de polygones à leurs figures, et n'a rien d'autre à dire).
+    # Ne compter que le texte y voyait un énoncé vide, alors qu'il ne manque
+    # rien à l'élève.
     text = re.sub(r"<[^>]+>", "", html).strip()
-    if len(text) < 5:
+    porte_un_visuel = re.search(
+        r"<(?:img|svg|canvas)\b|<cf-slot\b|class=\"oef-", html or ""
+    )
+    if len(text) < 5 and not porte_un_visuel:
         issues.append("énoncé quasi-vide")
 
     return issues

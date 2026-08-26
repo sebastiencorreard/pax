@@ -19,7 +19,8 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 
 # test_render_structure : anomalie dans le HTML rendu
 #
-# Douze sont partis le 2026-08-26, de seize entrées à quatre, en deux familles.
+# Quatorze sont partis le 2026-08-26, de seize entrées à deux, en trois
+# familles.
 #
 # Sept tenaient à une expression que sympy ne lisait pas d'un bloc : elle
 # repartait **telle quelle**, son `sqrt(` en clair. Trois portaient un « = » de
@@ -33,6 +34,11 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 # contenu : la parenthèse d'un trou à compléter (`deve7`, `deve8`,
 # `calcprod3`, `signeprod2`, `signequot2`).
 #
+# Deux venaient du contrôle lui-même : `structural_issues` ne comptait que le
+# texte, et jugeait vide l'énoncé posé par une image (`0703`) ou par le widget
+# seul (`nompolygone`, qui fait apparier des noms de polygones à leurs
+# figures). Il ne manquait rien à l'élève.
+#
 # Deux pièges à connaître avant de rouvrir cette liste :
 #
 # 1. `test_render_structure` appelle `pytest.xfail()` **impérativement**, ce
@@ -44,9 +50,12 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 #    `signeprod2` a paru résister une fois le bug corrigé, pour cette seule
 #    raison. `docker compose exec redis redis-cli FLUSHDB` avant toute mesure.
 XFAIL_RENDER_STRUCTURE = {
-    # énoncé quasi-vide
-    'H3~geometry~oefpolygon.fr~src~nompolygone',
-    'H4~physics~oefpression.fr~src~0703',
+    # Rien à rendre, et ce n'est pas le moteur : la ressource elle-même n'a pas
+    # d'énoncé. `franccarreau1` est l'un des deux seuls `.oef` du corpus sans
+    # `.def` compilé (l'autre, `oefpression.fr/mathml.oef`, se rend quand
+    # même) ; le `.def` de `medicament` existe mais ne comporte aucune section
+    # `:question` — c'est d'ailleurs le filtre qu'applique `corpus_state.py`.
+    # Les recompiler est un travail sur le corpus, pas sur le code.
     'H4~programming~oefechpython.fr~src~franccarreau1',
     'H4~stat~oefstatistiques.fr~src~medicament',
 }
