@@ -74,6 +74,14 @@ XFAIL_RENDER_STRUCTURE = {
 # réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
 # comparée numériquement, et notée fausse.
 #
+# Trois `analyze` d'`oefstatistiques` (`histocap`, `histogramme`, `moustache`)
+# sont partis le 2026-08-27 sans qu'on ait rien corrigé au moteur : leur unique
+# champ porte une réponse attendue **et** un poids nul — la note vient de la
+# section `:test`. Le score global se divisait par un poids total nul et rendait
+# 0. Le test les écarte désormais, comme il écartait déjà les exercices dont
+# tous les attendus sont vides : exiger 1 de ce qui n'est pas noté n'a pas de
+# sens.
+#
 # Sept `coord` sont partis le 2026-08-27, pour deux raisons qui se cumulaient.
 # Les composantes d'une click-zone sont des **expressions** que `getvalue`
 # (`Misc/clickzone.c`) passe au calculateur — `circle,110,80,30/3`,
@@ -152,9 +160,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~stat~descriptives.fr~src~pdfctstat',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt5',
-    'H4~stat~oefstatistiques.fr~src~histocap',
-    'H4~stat~oefstatistiques.fr~src~histogramme',
-    'H4~stat~oefstatistiques.fr~src~moustache',
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée

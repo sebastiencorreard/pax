@@ -241,6 +241,14 @@ def test_correct_answer_scores_1(exercise):
     correct_replies = {a.input_name: _meilleure_reponse(a) for a in render.answers}
     if not any(v.strip() for v in correct_replies.values()):
         pytest.skip("aucun champ noté (réponses attendues toutes vides)")
+    # Un champ peut porter une réponse attendue **et** un poids nul : sa note
+    # vient d'ailleurs. Les trois `analyze` d'`oefstatistiques` (`histocap`,
+    # `histogramme`, `moustache`) sont dans ce cas — le widget affiche une
+    # valeur, la notation se fait dans la section `:test`. Le score global se
+    # divise alors par un poids total nul, et `_check_all` rend 0 : exiger 1
+    # d'un exercice dont rien n'est noté n'a pas de sens.
+    if not any(a.weight for a in render.answers if (a.expected or "").strip()):
+        pytest.skip("aucun champ pesant (poids tous nuls — noté par :test)")
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
         f"{ex_id}: score={score} avec la bonne réponse {correct_replies}"
