@@ -2146,3 +2146,25 @@ class TestRenderByParts:
     def test_a_real_closer_still_closes(self):
         assert _close_inline_math(r"\(-4) text") == r"\(-4\) text"
         assert _close_inline_math(r"\(K) sont (5;10)") == r"\(K\) sont (5;10)"
+
+    def test_an_explicit_closer_wins_over_a_content_paren(self):
+        """Un « \\) » avant la frontière coiffe le « ) » de `find_matching`.
+
+        `signeprod2` fait compléter `( … ) × (+34) = -1564` : son `.def` tire
+        les deux parenthèses d'un `val14=()` par `!char 1`/`!char 2`, et le
+        `!insmath` qui suit vaut `46 ) \\times (+34) = -1564`. Le moteur l'a
+        déjà fermé ; ce « ) » est du contenu. S'arrêter dessus coupait la
+        formule après `46` et laissait le reste en texte brut.
+        """
+        assert (_close_inline_math(r"\(46 ) \times (+34) = -1564\)")
+                == r"\(46 ) \times (+34) = -1564\)")
+
+    def test_find_matching_still_closes_an_unclosed_span(self):
+        """Sans « \\) », la règle de WIMS reprend la main : premier « ) » non
+        apparié."""
+        assert _close_inline_math(r"\(-4) text") == r"\(-4\) text"
+        assert _close_inline_math(r"\(K) sont (5;10)") == r"\(K\) sont (5;10)"
+
+    def test_the_next_span_is_a_boundary(self):
+        """Le « \\) » du span suivant ne doit pas servir de closer au premier."""
+        assert _close_inline_math(r"\(a) et \(b\)") == r"\(a\) et \(b\)"

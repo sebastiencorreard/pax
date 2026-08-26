@@ -19,25 +19,31 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 
 # test_render_structure : anomalie dans le HTML rendu
 #
-# Sept sont partis le 2026-08-26, tous pour la même raison de fond : une
-# expression que sympy ne parvenait pas à lire d'un bloc repartait **telle
-# quelle**, son `sqrt(` en clair. Trois portaient un « = » de premier niveau
-# (`racequ2`, `corriger_fonctions`, `gauss_summe`), quatre une notation
-# scolaire que sympy ne parse pas — l'encadrement `3.87 < sqrt(15) < 3.88`
-# (`solveineq3`, `solveineq5`) et le couple de coordonnées à la française
-# `( 5 ; 6*sqrt(2) )` (`longueur4`, `longueur5`). Les membres se rendent
-# désormais un à un.
+# Douze sont partis le 2026-08-26, de seize entrées à quatre, en deux familles.
 #
-# Attention en relisant cette liste : `test_render_structure` appelle
-# `pytest.xfail()` **impérativement**, ce qui interrompt le test sur-le-champ.
-# Un exercice réparé ne se signale donc jamais par un XPASS — il faut le
-# retirer d'ici et relancer, ou passer `structural_issues` sur la liste.
+# Sept tenaient à une expression que sympy ne lisait pas d'un bloc : elle
+# repartait **telle quelle**, son `sqrt(` en clair. Trois portaient un « = » de
+# premier niveau (`racequ2`, `corriger_fonctions`, `gauss_summe`), quatre une
+# notation scolaire que sympy ne parse pas — l'encadrement
+# `3.87 < sqrt(15) < 3.88` (`solveineq3`, `solveineq5`) et le couple de
+# coordonnées à la française `( 5 ; 6*sqrt(2) )` (`longueur4`, `longueur5`).
+#
+# Cinq tenaient au closer de `_close_inline_math`, qui relit un HTML **déjà
+# fermé par le moteur** et prenait pour sa fermeture un « ) » qui était du
+# contenu : la parenthèse d'un trou à compléter (`deve7`, `deve8`,
+# `calcprod3`, `signeprod2`, `signequot2`).
+#
+# Deux pièges à connaître avant de rouvrir cette liste :
+#
+# 1. `test_render_structure` appelle `pytest.xfail()` **impérativement**, ce
+#    qui interrompt le test sur-le-champ. Un exercice réparé ne se signale
+#    jamais par un XPASS — il faut le retirer d'ici et relancer, ou passer
+#    `structural_issues` sur la liste.
+# 2. `core.oef.engine.load_and_render` sert le **cache Redis** (`pax:render:*`).
+#    Un contrôle mené sans l'avoir purgé mesure l'état d'avant la correction :
+#    `signeprod2` a paru résister une fois le bug corrigé, pour cette seule
+#    raison. `docker compose exec redis redis-cli FLUSHDB` avant toute mesure.
 XFAIL_RENDER_STRUCTURE = {
-    # `\(` déséquilibré (2 ouvrants / 3 fermants), cause encore à isoler : la
-    # formule se ferme après `46`, laissant `\times (+34) = -1564` en texte. Ce
-    # n'est pas le `)` de tête de `deve7`/`calcprod3`, réglé le 2026-08-26.
-    'H3~number~OEFevalwimsnbrel.fr~src~signeprod2',
-    'H3~number~OEFevalwimsnbrel.fr~src~signequot2',
     # énoncé quasi-vide
     'H3~geometry~oefpolygon.fr~src~nompolygone',
     'H4~physics~oefpression.fr~src~0703',

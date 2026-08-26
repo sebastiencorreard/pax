@@ -343,6 +343,16 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
             last_paren = -1  # last plain ')' seen (fallback)
             content_end = -1  # where the math content stops
             advance = -1      # where to resume scanning after the span
+            # Premier ``)`` non apparié — le closer de `find_matching`. On le
+            # mémorise au lieu de s'arrêter dessus : un ``\)`` explicite avant
+            # la prochaine frontière le coiffe, parce qu'il vient du moteur
+            # lui-même. C'est l'idempotence de la passe. `signeprod2` fait
+            # compléter `( … ) × (+34) = -1564` : son `.def` extrait les deux
+            # parenthèses d'un `val14=()` par `!char 1`/`!char 2`, si bien que
+            # le `!insmath` suivant vaut `46 ) \times (+34) = -1564`. Ce ``)``
+            # est du contenu, et le span est déjà fermé — s'arrêter là coupait
+            # la formule après `46` et laissait le reste en texte brut.
+            first_unmatched = -1
             while j < n:
                 c = text[j]
                 if c == "\\" and j + 1 < n and text[j + 1] == ")":
@@ -357,30 +367,16 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
                 elif c == ")":
                     last_paren = j
                     paren -= 1
-                    # An explicit ``\)`` right after this ``)`` is the real
-                    # closer, so the ``)`` is content — keeps the pass idempotent
-                    # on an already-closed span like ``\()\)`` (a mathmlinput
-                    # cell's trailing paren, e.g. ``f(reply2)`` → ``…\()\)``,
-                    # re-processed here). Without this it would close at the
-                    # ``)`` (empty content) and leak the ``\)`` as literal text.
-                    # Un closer qui ne laisserait **rien** dans la formule n'en
-                    # est pas un : le fragment commence alors par la parenthèse
-                    # fermante d'un trou à compléter, et ce `)` est du contenu.
-                    #
-                    # C'est encore une question d'idempotence, comme le `\()\)`
-                    # ci-dessus. `deve7` remplit un développement à trous, et
-                    # son `.def` en fait autant de `!insmath` : le deuxième vaut
-                    # `)^2 + 2\times (`, que le moteur a déjà enveloppé en
-                    # `\()^2 + 2\times (\)`. Cette passe le relit, prend le `)`
-                    # de tête pour son closer, et ferme un `\(\)` vide en
-                    # laissant `^2 + 2\times (` filer en texte brut.
+                    # Candidat closer, retenu mais pas suivi tout de suite (cf.
+                    # `first_unmatched` plus haut). Un contenu vide le
+                    # disqualifie d'emblée : `deve7` produit `\()^2 + 2\times (\)`
+                    # et le `)` de tête y est du contenu, pas une fermeture.
                     if (
-                        paren < 0 and brak <= 0 and brace <= 0
-                        and text[j + 1 : j + 3] != "\\)"
+                        first_unmatched < 0
+                        and paren < 0 and brak <= 0 and brace <= 0
                         and text[i + 2 : j].strip()
                     ):
-                        content_end, advance = j, j + 1  # WIMS find_matching closer
-                        break
+                        first_unmatched = j
                 elif c == "[":
                     brak += 1
                 elif c == "]":
@@ -390,6 +386,10 @@ def _close_inline_math(text: str, lang: str | None = None) -> str:
                 elif c == "}":
                     brace -= 1
                 j += 1
+            if content_end < 0 and first_unmatched >= 0:
+                # Pas de `\)` avant la frontière : le closer de `find_matching`
+                # reprend la main, comme chez WIMS.
+                content_end, advance = first_unmatched, first_unmatched + 1
             if content_end < 0:
                 # Boundary or EOL without a balanced closer.
                 if last_paren >= 0:
