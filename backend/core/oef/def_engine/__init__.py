@@ -4367,7 +4367,14 @@ class DefEngine(_SlibMixin):
 
         for rm in df.reply_meta:
             n = rm["n"]
-            ans_type = self._subst(rm.get("type", "numeric")).strip()
+            # Sans `replytypeN`, WIMS pose `default` (`!default replytype$i=default`,
+            # `oef/replytype.proc`), pas `numeric` : `anstype/default` est un
+            # aiguilleur qui regarde l'attendu avant de choisir. Le défaut
+            # `numeric` de PAX notait faux toute réponse algébrique non typée —
+            # `2*b` de `distrired`, `1-p` de `pairs4`, `15*x/2 - 23/2` de
+            # `fnctaff1`. Cela ne concerne que 211 des 12414 réponses du corpus,
+            # les autres déclarant leur type.
+            ans_type = self._subst(rm.get("type", "default")).strip()
             # `type=draft` (brouillon WIMS) : champ de saisie libre où l'élève
             # pose son calcul. Non noté et facultatif. Le type d'origine est
             # ensuite masqué en "analyze" (good=?analyze) ; on le capte ici pour
@@ -4683,7 +4690,11 @@ class DefEngine(_SlibMixin):
             # `0.666…` (replygood `$[$val12]` floats it via `$[…]`). Scoped to
             # numeric answers: text rendering still prints `$[2/3]` as a decimal
             # like WIMS. The numeric checker accepts the fraction either way.
-            if ans_type in ("numeric", "numexp") and "analyze_var" not in options:
+            # `default`/`auto` compris : `anstype/default` aiguille vers
+            # `numeric` dès que l'attendu s'évalue en nombre, et un attendu qui
+            # ne s'évalue pas laisse `_expected_as_fraction` rendre None.
+            if (ans_type in ("numeric", "numexp", "default", "auto")
+                    and "analyze_var" not in options):
                 _frac = self._expected_as_fraction(rm.get("good", ""))
                 if _frac is not None:
                     expected = _frac

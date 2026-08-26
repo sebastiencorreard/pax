@@ -68,6 +68,12 @@ XFAIL_RENDER_STRUCTURE = {
 # jamais évalué (la famille des sept attendus non évalués). Aucune borne
 # numérique n'en sort, donc aucune réponse ne peut tomber dedans.
 #
+# Cinq sont partis le 2026-08-26 : sans `replytypeN`, PAX supposait `numeric`
+# là où `replytype.proc` pose `default` — et `anstype/default` n'est pas un
+# comparateur mais un aiguilleur, qui lit l'attendu avant de choisir. Une
+# réponse algébrique non typée (`2*b`, `1-p`, `15*x/2 - 23/2`) était donc
+# comparée numériquement, et notée fausse.
+#
 # Les deux `equation` suivants s'y sont ajoutés le 2026-08-25, pour la même
 # raison et en implémentant `anstype/equation`. Leur attendu est cassé en
 # amont, sans qu'aucun checker puisse y remédier : `droitecar1` porte
@@ -83,14 +89,10 @@ XFAIL_CORRECT_SCORE = {
     'H3~algebra~OEFlittcollege.fr~src~oeffac3b',
     'H3~algebra~OEFlittcollege.fr~src~oeffac4b',
     'H3~algebra~OEFlittcollege.fr~src~oeffactir3',
-    'H3~algebra~oefdevfact.ca~src~distrired',
     'H3~algebra~oefdevfact.nl~src~deve6',
     'H3~algebra~oefvitesse.fr~src~astron2',
     'H3~algebra~oefvitesse.fr~src~astron3',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
-    'H3~analysis~oefaffif.ca~src~fnctaff1',
-    'H3~analysis~oefaffif.ca~src~fnctaff3',
-    'H3~coding~oefbin.nl~src~calcbase',
     'H3~geography~oefdepregfr.fr~src~clickcap',
     'H3~geography~oefdepregfr.fr~src~clickcode',
     'H3~geography~oefdepregfr.fr~src~clickdept',
@@ -131,7 +133,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~physics~oefpression.fr~src~0708',
     'H4~physics~oefpression.fr~src~0710',
     'H4~physics~temps.fr~src~periodefrequence',
-    'H4~probability~oefpenney.it~src~pairs4',
     'H4~programming~oefalgopython.fr~src~balayage3',
     'H4~programming~oefalgopython.fr~src~balayage4',
     'H4~programming~oefalgopython.fr~src~balayage5',

@@ -2294,6 +2294,37 @@ def check_answer(
         case "atext":
             return check_atext(reply, expected, lang or "fr")
         case "default" | "auto":
+            # `anstype/default` n'est pas un comparateur mais un aiguilleur :
+            # sa toute première règle renvoie vers `equation` dès que l'attendu
+            # porte un « = ».
+            #
+            #     eq==
+            #     !if $eq isin $(replygood$i) and $wims_read_parm!=sub
+            #       !changeto anstype/equation
+            #
+            # Sans quoi `fnctaff3`, qui attend `-1=3*a+b`, partait en
+            # comparaison algébrique : le « = » y fait échouer le parse, et une
+            # bonne réponse était notée fausse.
+            if "=" in expected and not re.search(r"[<>=!]=|=[<>=]", expected):
+                return check_equation(reply, expected, precision, comma_is_decimal)
+            # Deuxième règle de l'aiguilleur : un attendu qui **s'évalue en
+            # nombre** relève de `numeric`, et de sa tolérance.
+            #
+            #     nn=$[$(replygood$i)]
+            #     !if NaN notin $nn
+            #       !changeto anstype/numeric
+            #
+            # Sans elle, `1/4` se comparait symboliquement : juste dans les
+            # faits, mais sans la marge de `\precision` que l'auteur a réglée.
+            try:
+                _val = _eval_scalar(expected, comma_is_decimal)
+            except ValueError:
+                _val = None
+            if _val is not None and math.isfinite(_val):
+                return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
+            # Faute de quoi WIMS regarde la longueur des variables et part sur
+            # `function` (≤ 3 caractères) ou `atext`. `check_default` couvre les
+            # deux : comparaison algébrique, puis textuelle.
             return check_default(reply, expected, comma_is_decimal)
         case _:
             # `replytype.proc` ne connaît pas de repli textuel : un type qu'il

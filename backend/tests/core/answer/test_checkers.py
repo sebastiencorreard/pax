@@ -881,3 +881,60 @@ class TestUnknownTypeFallback:
         assert normalize_replytype("runcode") == "runcode"
         assert check_answer("runcode", "print(2)", "print(2)").correct
         assert not check_answer("runcode", "4/2", "2").correct
+
+
+class TestDefaultIsARouter:
+    """`anstype/default` n'est pas un comparateur mais un aiguilleur.
+
+        eq==
+        !if $eq isin $(replygood$i) and $wims_read_parm!=sub
+          !changeto anstype/equation
+        …
+        nn=$[$(replygood$i)]
+        !if NaN notin $nn
+          !changeto anstype/numeric
+        …
+        !if $varlen<=3
+          !changeto anstype/function
+        !changeto anstype/atext
+
+    Il lit l'attendu avant de choisir. C'est aussi le type que `replytype.proc`
+    pose quand le `.def` n'en déclare aucun — là où PAX supposait `numeric`,
+    ce qui notait fausse toute réponse algébrique non typée.
+    """
+
+    def test_an_expected_with_an_equals_goes_to_equation(self):
+        """`fnctaff3` attend `-1=3*a+b` : le « = » y faisait échouer la
+        comparaison algébrique."""
+        assert check_answer("default", "-1=3*a+b", "-1=3*a+b").correct
+        assert check_answer("default", "3*a+b=-1", "-1=3*a+b").correct
+        assert not check_answer("default", "3*a+b=1", "-1=3*a+b").correct
+
+    def test_a_numeric_expected_keeps_its_tolerance(self):
+        """Un attendu qui s'évalue en nombre relève de `numeric` — et donc de
+        `\\precision`, qu'une comparaison symbolique ignorerait."""
+        r = check_answer("default", "0.25", "1/4")
+        assert r.correct and r.method == "numeric"
+
+    def test_a_short_variable_goes_the_algebraic_way(self):
+        """`distrired` attend `2*b`, `pairs4` attend `1-p` : variables d'un
+        caractère, donc `function` chez WIMS."""
+        assert check_answer("default", "2*b", "2*b").correct
+        assert check_answer("default", "b*2", "2*b").correct
+        assert check_answer("default", "1-p", "1-p").correct
+        assert not check_answer("default", "3*b", "2*b").correct
+
+    def test_a_plain_word_still_compares_as_text(self):
+        """Un attendu que rien n'évalue reste comparé littéralement.
+
+        (La casse, elle, est tranchée en amont par le pré-check
+        `bad_variable`, antérieur à cet aiguillage et inchangé par lui.)
+        """
+        assert check_answer("default", "Paris", "Paris").correct
+        assert not check_answer("default", "Londres", "Paris").correct
+
+    def test_a_relational_operator_is_not_an_equation(self):
+        """`<=` et `>=` ne déclenchent pas l'aiguillage vers `equation` : le C
+        cherche un « = » **seul**, et sympy sait rendre les composés."""
+        r = check_answer("default", "x <= 3", "x<=3")
+        assert r.method != "equation"
