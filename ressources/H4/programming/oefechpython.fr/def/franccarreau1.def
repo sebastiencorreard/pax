@@ -1,0 +1,338 @@
+!set title=Jeu du franc&#8209;carreau niveau 3eme
+!if $wims_read_parm!=$empty
+ !goto $wims_read_parm
+!endif
+oef2wims_version=3.22
+author=Julien, Lyotard
+email=Julien.Lyotard@ac-dijon.fr
+keywords=python,probability
+language=fr
+precision=10000000
+
+ansorder=r,r,r,r,r
+varcnt=80
+prevarcnt=59
+postvarcnt=20
+replycnt=5
+choicecnt=0
+conditioncnt=0
+feedbackcnt=0
+format=html
+
+val1=$imagedir
+val2=$confparm1
+val3=$confparm2
+val4=$confparm3
+val5=$confparm4
+
+!if $testcondition=yes
+ !goto test
+!endif
+!if $status=waiting
+ !exit
+!endif
+
+
+!ifval ($val3==)
+val6=ambiance
+!else
+val6=$val3
+!endif
+
+!ifval ($val2==)
+val7=1
+!endif
+
+!ifval ($val2==1)
+val8=$[rint(0)]
+!else
+val8=$[rint(1)]
+!endif
+
+!ifval ($val8==1)
+val9=par défaut et par excès
+!endif
+
+!ifval ($val3==)
+val6=ambiance
+!else
+val6=$val3
+!endif
+tmp=!trim r1
+val10=!translate internal $	\
+$ to ;; in $tmp
+tmp0=!randint 10, 20
+
+val11=$[rint($(tmp0))]
+val12=$[rint()]
+val13=
+val14=
+val15=
+tmp0=!randitem +,-
+
+tmp1=!randint 0, 10
+
+val16=$[rint($(tmp0)$(tmp1))]
+tmp0=!randitem +,-
+
+tmp1=!randint 0, 4
+
+val17=$[rint($(tmp0)$(tmp1))]
+t_=!rawmath 4+0.1*$val16
+val18=!exec pari print($t_)
+t_=!rawmath 1+0.1*$val17
+val19=!exec pari print($t_)
+t_=!rawmath -$val19
+val20=!exec pari print($t_)
+t_=!rawmath -$val19
+val21=!exec pari print($t_)
+t_=!rawmath $val18+2*$val19
+val22=!exec pari print($t_)
+t_=!rawmath $val18+2*$val19
+val23=!exec pari print($t_)
+val24=$val20,$val23,$val22,$val21
+t_=!rawmath (($val18-2*$val19)/$val18)^2
+val25=!exec pari print($t_)
+val26=random
+val27=[]
+tmp0=!char 1 of $val27
+
+val28=$(tmp0)
+tmp0=!char 2 of $val27
+
+val29=$(tmp0)
+tmp0=!makelist r x for x = 3 to 5
+
+val30=$(tmp0)
+val31=$[rint(7)]
+val32=Quelle est la probabilité de réaliser un franc-carreau ?
+val33=<p>Le jeu du franc-carreau a été pratiqué dès le Moyen-Âge.	 Ce jeu consistait à jeter un écu sur un carrelage et à parier sur la position finale	 de la pièce : à cheval sur un des bords du carreau ou entièrement à l’intérieur d’un	 carreau, on parlait alors de « Franc-carreau ». Il a été étudié par Georges Louis Leclerc,	 comte de Buffon en 1733 :</p>	<div>Voici un problème qui m’a occupé ces jours passés, et qui sera peut-être du goût	 de Mr de Moivre. Vous ne savez peut-être pas ce que nous appelons en français le jeu	 du franc-carreau. Dans une chambre pavée de carreaux, on jette en l’air un écu.	<ul><li>S’il retombe sur un seul carreau, on dit qu’il tombe franc, et celui qui l’a jeté	 gagne.</li>	<li>S’il tombe sur deux ou plusieurs carreaux, celui qui l’a jeté perd.</li>	</ul>	 C’est un problème à résoudre et qui n’a point de difficulté : trouver la probabilité	 de gagner ou de perdre, les carreaux et l’écu étant donnés.</div>
+val34=<div>Pour jouer à franc-carreau, on utilise un quadrillage type carrelage ou damier,	et une pièce ou un palet plat et rond. On lance la pièce sur le quadrillage, et on regarde comment elle s'est	immobilisée :	<ul><li>si elle ne touche qu'un seul carreau, on gagne et on dit qu'on a fait	« franc-carreau ».</li>	<li>Si elle chevauche une ligne du quadrillage (elle touche alors	plusieurs carreaux) ou si elle est tangente à une de ces lignes, on perd.</li>	<li> Si le centre de la pièce est à l'extérieur du quadrillage, on recommence.</li>	</ul>	</div>
+val35=Afin de simplifier ce problème, on travaille sur un unique carreau de côté $val18. Après	 avoir lancé $val11 écu de rayon $val19, on obtient le graphique ci-dessous. Dénombrer le nombre de	 franc-carreau :
+val36=Conjecturer la zone de la figure qui va permettre d'obtenir un franc-carreau.
+val37=<div class="wims_instruction">Déplacer les centres des écus afin de délimiter cette zone.</div>
+val38=Calculer l'aire où le centre de la pièce peut tomber
+val39=Calculer l'aire où le centre de la pièce effectue un franc-carreau
+val40=En déduire la probabilité d'obtenir un franc-carreau
+val41=
+val42=
+val43=
+val44=$[rint(0)]
+!for val45 =1 to $val11 
+tmp0=!random 0, $val18
+
+val46=$[$(tmp0)]
+tmp0=!random 0, $val18
+
+val47=$[$(tmp0)]
+!if ($val19<$val46 and $val46<$val18-$val19) and ($val19<$val47 and $val47<$val18-$val19) 
+val44=$[rint($val44+1)]
+!endif
+tmp0=!append item $val46,$val47 to $val42
+
+val42=$(tmp0)
+tmp0=!append line var c_$val45=brd.create('point', [$val46,$val47],{Name:'\(A_{$val45}\)',color:'black',fixed:true,visible:true}); to $val41
+
+val41=$(tmp0)
+tmp0=!append line brd.create('circle', [c_$val45, $val19], {strokeColor: 'black', center: {visible:true}}); to $val43
+
+val43=$(tmp0)
+!next
+val48=jsxbox,400 x 400,JXG.Options.point.fixed = true;	JXG.Options.point.highlight=false;	JXG.Options.point.showInfobox=false;	JXG.Options.point.name = "";	JXG.Options.point.face = "+";	JXG.Options.point.withLabel=true;	var brd = JXG.JSXGraph.initBoard('jsxbox', {axis:true, boundingbox: [$val24],	shownavigation:false,showCopyright : false,	showZoom : false,keepaspectratio : true,showFullscreen: true});	var a=brd.create('point',[0,0],{fixed:true,visible:false});	var b =brd.create('point',[0,$val18],{fixed:true,visible:false});	var c =brd.create('point',[$val18,0],{fixed:true,visible:false});	var d=brd.create('point',[$val18,$val18],{fixed:true,visible:false});	var pol1 = brd.create('polygon', [a,c,d,b], {vertices: {withLabel: false},Color: 'blue'});
+tmp0=!replace brd by brd2 in $val48
+
+val49=$(tmp0)
+tmp0=!replace jsxbox by jsxbox2 in $val49
+
+val50=$(tmp0)
+tmp0=!replace brd by brd3 in $val48
+
+val51=$(tmp0)
+tmp0=!replace jsxbox by jsxbox3 in $val51
+
+val52=$(tmp0)
+tmp0=!replace brd by brd4 in $val48
+
+val53=$(tmp0)
+tmp0=!replace jsxbox by jsxbox4 in $val53
+
+val54=$(tmp0)
+tmp0=!replace brd by brd5 in $val48
+
+val55=$(tmp0)
+tmp0=!replace jsxbox by jsxbox5 in $val55
+
+val56=$(tmp0)
+!readproc slib/geo2D/jsxgraph $val48	$val41	$val43	 
+tmp0=$slib_out
+val57=$(tmp0)
+!readproc slib/geo2D/jsxgraph $val56 
+tmp0=$slib_out
+val58=$(tmp0)
+val59=var brd3 = JXG.JSXGraph.initBoard('jxgbox3', {	 axis:true,boundingbox: [-0.5,5,5,-0.5], shownavigation:false,showCopyright : false,	showZoom : false,keepaspectratio : true,showFullscreen: true});	var a=brd3.create('point',[0,0],{name:"",fixed:true,visible:false});	var b =brd3.create('point',[0,$val18],{name:"",fixed:true,visible:false});	var c =brd3.create('point',[$val18,0],{name:"",fixed:true,visible:false});	var d=brd3.create('point',[$val18,$val18],{name:"",fixed:true,visible:false});	var pol1 = brd3.create('polygon', [a,c,d,b], {vertices: {withLabel: false},Color: 'blue'});	jxgbox_rep1 = brd3.create('point',jxgbox_var1,{face:"+",showInfobox:false});	jxgbox_rep2 = brd3.create('point',jxgbox_var2,{face:"+",showInfobox:false} );	jxgbox_rep3 = brd3.create('point',jxgbox_var3,{face:"+",showInfobox:false} );	jxgbox_rep4 = brd3.create('point',jxgbox_var4,{face:"+",showInfobox:false} );	brd3.create('circle', [jxgbox_rep1, $val19], {name:"A_1",strokeColor: 'black', center: {visible:true}});	brd3.create('circle', [jxgbox_rep2, $val19], {name:"A_2",strokeColor: 'black', center: {visible:true}});	brd3.create('circle', [jxgbox_rep3, $val19], {name:"A_3",strokeColor: 'black', center: {visible:true}});	brd3.create('circle', [jxgbox_rep4, $val19], {name:"A_4",strokeColor: 'black', center: {visible:true}});	brd3.create('polygon', [jxgbox_rep1,jxgbox_rep2,jxgbox_rep3,jxgbox_rep4], {vertices: {withLabel: false},Color: 'green'});	
+dynsteps=yes
+oefsteps=$val10 
+nextstep=!nosubst $val10 
+!readproc oef/steps.proc
+replytype1=numeric
+replyname1=
+replygood1=$[$val44]
+replytype2=jsxgraph
+
+replyoption2=precision=50 absolue 
+replyoption2=nonstop 
+replyname2=Graphique 4 cercles
+replygood2=$val19,$val19;$val18-$val19,$val19;$val18-$val19,$val18-$val19;\ar,$val18-$val19
+replytype3=numeric
+replyoption3=nonstop 
+replyname3=
+replygood3=$[$val18^2]
+replytype4=numeric
+replyoption4=nonstop 
+replyname4=
+replygood4=$[($val18-2*$val19)^2]
+replytype5=numeric
+replyoption5=nonstop 
+replyname5=
+replygood5=$[(($val18-2*$val19)/$val18)^2]
+question=__EXECUTED_1692754_EXERCISE__
+
+!goto stat
+
+!exit
+
+:question
+$()<div class="encadre">	<p class="problematique">$val32</p>	<div id="boiteg"><img src=$val1/GLLB.jpg alt="Georges-Louis Leclerc de Buffon" width="200" height="300"></div>	<div class="encadre">$val33</div>	<div id="boited">	<img src=$val1/FC.png alt="Jeux du franc-carreaux" >	</div>	<div class="enonce">	$val34	<div class="question">	<div class="etape">Étape $m_step sur 7</div>	$val35  
+!read oef/embed.phtml reply1,3 
+$()	<div class="wimscenter">	<div class="wimscenter" style="font-weight: bold;">$val11 écus</div>	$val57	</div>	
+!if $m_step>=2 
+$()	<div class="question">	$val36	$val37	
+!if $m_step==2 or $m_sc_reply2!=1 
+$()	<div class="wimscenter">	 
+!read oef/embed.phtml r2,400x400	jxgbox3 brd3	$val59	jxgbox_var1=[Math.$val26()*$val18/2,Math.$val26()*$val18/2] ; jxgbox_var2=[Math.$val26()*$val18/2+$val18/2,Math.$val26()*$val18/2]; jxgbox_var3=[Math.$val26()*$val18/2+$val18/2,Math.$val26()*$val18/2+$val18/2];jxgbox_var4=[Math.$val26()*$val18/2,Math.$val26()*$val18/2+$val18/2]	 
+$()	</div> 
+!endif
+$()	
+!if $m_sc_reply2==1 or $m_step==6 
+$()	<div class="wimscenter">	$val14	</div>	 
+!endif
+$()	
+!if $m_step>=3 and $m_sc_reply2!=1 
+$()	<div class="indication">$val15	<div class="wimscenter">	<div class="wimscenter" style="font-weight: bold;">$val12 écus</div>	$val13	</div>	</div>	 
+!endif
+$()	 
+!endif
+$()	
+!if $m_step>=3 and $m_sc_reply2==1 or $m_step==6 
+$()	<div class="question">	<ul><li>$val38 :  
+!read oef/embed.phtml reply3,3 
+$()</li>	<li>$val39 :  
+!read oef/embed.phtml reply4,3 
+$()</li>	<li>$val40 :  
+!read oef/embed.phtml reply5,3 
+$()</li>	</ul>	</div>	 
+!endif
+$()	</div>	</div>	</div>
+$()
+!exit
+
+:hint
+$()
+$()
+!exit
+
+:help
+$()
+$()
+!exit
+
+:solution
+$()
+$()
+!exit
+
+:latex
+$()
+$()
+!exit
+
+:postdef
+
+!ifval ($m_step==3 and $m_sc_reply2!=1 )
+tmp0=!randint 100, 200
+
+val12=$[rint($(tmp0))]
+!endif
+
+!ifval ($m_step==4 and $m_sc_reply2!=1 )
+tmp0=!randint 300, 600
+
+val12=$[rint($(tmp0))]
+!endif
+
+!ifval ($m_step==5 and $m_sc_reply2!=1 )
+tmp0=!randint 1000, 1500
+
+val12=$[rint($(tmp0))]
+!endif
+!readproc slib/geo2D/jsxgraph $val50	brd2.suspendUpdate();	for (i=0; i<$val12;i++) {let x=$val18*Math.$val26();	let y=$val18*Math.$val26();	let co="red";	if( $val19<x & x<$val18-$val19 & $val19<y & y<$val18-$val19 ){co="green";};	brd2.create('point', [x, y], { style:4, Color:co});	}	brd2.unsuspendUpdate();	 
+tmp0=$slib_out
+val13=$(tmp0)
+val15=Pour vous aider, on réalise $val12 tirages. Pour une meilleur lecture	de la figure, on n'effectue pas les cercles. Les points verts correspondent aux centres des écus	 qui sont franc-carreau tandis que les points rouges correspondent aux centres des écus qui ne sont pas franc-carreau.
+tmp=!trim $m_reply2
+val60=!translate internal $	\
+$ to ;; in $tmp
+val61=$(val60[1;])
+val62=$(val60[2;])
+val63=$(val60[3;])
+val64=$(val60[4;])
+!readproc slib/geo2D/jsxgraph $val54	zr1 = brd4.create('point',[$val61],{face:"+"});	zr2 = brd4.create('point',[$val62],{face:"+"} );	zr3 = brd4.create('point',[$val63],{face:"+"} );	zr4= brd4.create('point',[$val64],{face:"+"} );	brd4.create('circle', [zr1, $val19], {name:'\(A_{1}\)',strokeColor: 'black', center: {visible:true}});	brd4.create('circle', [zr2, $val19], {name:'\(A_{2}\)',strokeColor: 'black', center: {visible:true}});	brd4.create('circle', [zr3, $val19], {name:'\(A_{3}\)',strokeColor: 'black', center: {visible:true}});	brd4.create('circle', [zr4, $val19], {name:'\(A_{4}\)',strokeColor: 'black', center: {visible:true}});	brd4.create('polygon', [zr1,zr2,zr3,zr4], {vertices: {withLabel: false},Color: 'green'});	 
+tmp0=$slib_out
+val14=$(tmp0)
+val10=
+
+!ifval ($m_step==2 )
+val10=r2
+!endif
+
+!ifval ($m_step=3 and $m_sc_reply2!=1)
+val10=r2
+!endif
+
+!ifval ($m_step=4 and $m_sc_reply2!=1)
+val10=r2
+!endif
+
+!ifval ($m_step=5 and $m_sc_reply2!=1)
+val10=r2
+!endif
+
+!ifval ($m_step=6 and $m_sc_reply2!=1)
+val10=$val30
+!endif
+
+!ifval ($m_step>=3 and $m_sc_reply2==1)
+val10=$val30
+!endif
+
+!ifval ($m_sc_reply3==1)
+val10=
+!endif
+
+!ifval ($m_step=$val31)
+val10=
+!endif
+
+!exit
+
+:feedback
+
+!exit
+
+:test
+
+!exit
+
+:stat
+vsavelist=1,11,12,13,14,15,18,19,26,30,31,32,33,34,35,36,37,38,39,40,50,54,57,59
+embedcnt=5

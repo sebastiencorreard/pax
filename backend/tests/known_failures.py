@@ -50,13 +50,11 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 #    `signeprod2` a paru résister une fois le bug corrigé, pour cette seule
 #    raison. `docker compose exec redis redis-cli FLUSHDB` avant toute mesure.
 XFAIL_RENDER_STRUCTURE = {
-    # Rien à rendre, et ce n'est pas le moteur : la ressource elle-même n'a pas
-    # d'énoncé. `franccarreau1` est l'un des deux seuls `.oef` du corpus sans
-    # `.def` compilé (l'autre, `oefpression.fr/mathml.oef`, se rend quand
-    # même) ; le `.def` de `medicament` existe mais ne comporte aucune section
-    # `:question` — c'est d'ailleurs le filtre qu'applique `corpus_state.py`.
-    # Les recompiler est un travail sur le corpus, pas sur le code.
-    'H4~programming~oefechpython.fr~src~franccarreau1',
+    # Rien à rendre, et ce n'est pas le moteur : le `.def` de `medicament` ne
+    # comporte **aucune** section — pas de `:question`, donc pas d'énoncé. Il
+    # est identique, octet pour octet, à celui de `wims/public_html/modules/`,
+    # si bien que WIMS n'en tire pas davantage. C'est le filtre qu'applique
+    # déjà `corpus_state.py`, et un travail sur le corpus, pas sur le code.
     'H4~stat~oefstatistiques.fr~src~medicament',
 }
 
