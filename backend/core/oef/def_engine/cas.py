@@ -396,6 +396,34 @@ def _call_maxima(expr: str) -> str:
 _PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
 
 
+def _split_top_level_equals(s: str) -> list[str] | None:
+    """Membres d'une égalité de premier niveau, ou ``None`` s'il n'y en a pas.
+
+    Seul le « = » **simple** et **hors parenthèses** sépare. Les opérateurs
+    relationnels composés (``<=``, ``>=``, ``==``, ``!=``) restent dans leur
+    membre : sympy sait les rendre lui-même (``\\leq``, ``\\geq``…), et les
+    couper les détruirait.
+    """
+    parts: list[str] = []
+    depth = start = 0
+    for i, c in enumerate(s):
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+        elif c == "=" and depth == 0:
+            prev = s[i - 1] if i else ""
+            nxt = s[i + 1] if i + 1 < len(s) else ""
+            if prev in "<>=!" or nxt == "=":
+                continue
+            parts.append(s[start:i])
+            start = i + 1
+    if not parts:
+        return None
+    parts.append(s[start:])
+    return parts
+
+
 def _wims_factor_rank(node) -> int:
     """Rang d'un facteur dans un terme, façon ``fsort`` (``src/texmath.c``).
 
@@ -488,15 +516,23 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
 
     expr_strip = expr.strip()
 
-    # Single-expression renderer: a top-level lone "=" means we were handed an
-    # equation/assignment (e.g. "C = -(7b+3)", built by _normalize_math_content
-    # from "$name = $texmath"). Don't sympify it — parse_expr would raise for an
-    # ordinary name (→ returned unchanged) but, for a name poisoned into
-    # local_dict below (C, E, N, …), parses "C = x" as a Python assignment and
-    # silently returns just the RHS (dropping "C =" and distributing it). Leave
-    # such strings to the caller; relational "=" (<=, >=, ==, !=) still render.
-    if re.search(r"(?<![<>=!])=(?!=)", expr_strip):
-        return expr
+    # Un « = » de premier niveau : chaque membre se rend séparément, puis on
+    # les rejoint. `parse_expr` lit `C = x` comme une affectation Python et ne
+    # renvoie que le membre droit — en distribuant, et en perdant le « C = ».
+    # D'où l'ancien garde-fou, qui rendait toute l'expression telle quelle :
+    # `-2*x = -1` s'affichait avec son astérisque et `-3*sqrt(x) - 9 = 0`
+    # gardait son `sqrt(` en clair, 200 formules du corpus dans ce cas. Traiter
+    # les membres un à un lève les deux : `C` reste `C`, et le reste passe par
+    # le rendu normal. WIMS ne fait pas autrement — `t_oneterm` (`texmath.c`)
+    # imprime l'opérateur de relation et poursuit sur le membre suivant.
+    membres = _split_top_level_equals(expr_strip)
+    if membres and any(m.strip() for m in membres):
+        # Un membre vide est courant et voulu : `-4*(-2*x + 5) =` précède le
+        # champ que l'élève remplit. On rend ce qu'il y a et on garde le « = ».
+        return " = ".join(
+            _expr_to_latex(m.strip(), func_names) if m.strip() else ""
+            for m in membres
+        ).rstrip()
 
     wrapped = False
     if expr_strip.startswith("(") and expr_strip.endswith(")"):
@@ -531,7 +567,16 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
     # *non*-distributed form for the student to develop). Rewriting
     # `-(` as `(-1)*(` keeps the parenthesised structure: sympy parses
     # it as `Mul(-1, Add(...))` without distributing.
-    prep = re.sub(r'(?<![\w)])-\(', '(-1)*(', expr_strip)
+    # Le motif doit enjamber les espaces des deux côtés du moins, et le
+    # lookbehind de longueur fixe ne le permet pas : on capture donc ce qui
+    # précède. Un moins est **unaire** en début de chaîne ou après un
+    # opérateur ; après un opérande (mot, chiffre, parenthèse fermante) il est
+    # binaire, quel que soit l'espacement. L'ancien `(?<![\w)])-\(` ne voyait
+    # que le caractère collé au moins : `a -(b+c)` lui semblait unaire et
+    # sortait `- a (b+c)`, et `- (7b+3)` lui échappait — donc se distribuait,
+    # ce que `distribuer1` ne peut pas se permettre (la forme non développée
+    # *est* l'énoncé).
+    prep = re.sub(r'(^|[^\w)\s])\s*-\s*\(', r'\1(-1)*(', expr_strip)
 
     # A bare integer ratio `a/b` parses (evaluate=False) as `Mul(a, 1/b)` and
     # renders a spurious unit coefficient (`1/4` → `1 \cdot \frac{1}{4}`).

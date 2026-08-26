@@ -18,20 +18,32 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 """
 
 # test_render_structure : anomalie dans le HTML rendu
+#
+# Trois sont partis le 2026-08-26, avec le rendu des formules à « = » :
+# `racequ2`, `corriger_fonctions` et `gauss_summe`. `_expr_to_latex` renvoyait
+# l'expression telle quelle dès qu'elle portait un `=` de premier niveau, si
+# bien que `\(-3*sqrt(x) - 9 = 0\)` gardait son `sqrt(` en clair.
+#
+# Attention en relisant cette liste : `test_render_structure` appelle
+# `pytest.xfail()` **impérativement**, ce qui interrompt le test sur-le-champ.
+# Un exercice réparé ne se signale donc jamais par un XPASS — il faut le
+# retirer d'ici et relancer, ou passer `structural_issues` sur la liste.
 XFAIL_RENDER_STRUCTURE = {
+    # `\(` déséquilibré (7/11, 2/3) : la fermeture des maths en ligne, chantier
+    # ouvert — le closer de WIMS s'appuie sur `find_matching`, PAX sur une
+    # heuristique.
     'H3~algebra~oefdevfact.fr~src~deve7',
     'H3~algebra~oefdevfact.fr~src~deve8',
-    'H3~geometry~oefpolygon.fr~src~nompolygone',
     'H3~number~OEFevalwimsnbrel.fr~src~calcprod3',
     'H3~number~OEFevalwimsnbrel.fr~src~signeprod2',
     'H3~number~OEFevalwimsnbrel.fr~src~signequot2',
-    'H4~algebra~oeffctref.fr~src~racequ2',
+    # `sqrt(` brut hors formule à « = » : autre cause, encore à instruire.
     'H4~analysis~OEFevalwimsordre.fr~src~solveineq3',
     'H4~analysis~OEFevalwimsordre.fr~src~solveineq5',
     'H4~geometry~OEFevalwimscoord.fr~src~longueur4',
     'H4~geometry~OEFevalwimscoord.fr~src~longueur5',
-    'H4~language~mathelexikon1.fr~src~corriger_fonctions',
-    'H4~language~mathelexikon1.fr~src~gauss_summe',
+    # énoncé quasi-vide
+    'H3~geometry~oefpolygon.fr~src~nompolygone',
     'H4~physics~oefpression.fr~src~0703',
     'H4~programming~oefechpython.fr~src~franccarreau1',
     'H4~stat~oefstatistiques.fr~src~medicament',

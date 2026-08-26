@@ -1642,15 +1642,34 @@ class TestSympyToLatex:
         result = _expr_to_latex("some random non-math text @#$")
         assert result  # non-empty
 
-    def test_equation_is_left_untouched(self):
-        # A top-level lone "=" means an equation/assignment, not an expression:
-        # _expr_to_latex must return it verbatim. Regression for distribuer1,
-        # where "C = -(7b+3)" (C poisoned into local_dict) was silently parsed
-        # as an assignment and reduced to just the distributed RHS "-7b-3".
+    def test_an_equation_renders_each_side(self):
+        """Un « = » de premier niveau sépare deux membres, rendus chacun.
+
+        `parse_expr` lit `C = x` comme une affectation Python et ne renvoie que
+        le membre droit, distribué : c'est la régression `distribuer1`, où la
+        forme non développée **est** l'énoncé. On la couvrait en rendant toute
+        l'expression verbatim, au prix des `*` et des `sqrt(` laissés en clair
+        dans 200 formules du corpus. Les membres traités un à un lèvent les
+        deux : le nom survit, et le reste se met en forme.
+        """
         for name in ("A", "C", "E", "N"):
             assert _expr_to_latex(f"{name} = - (7 b + 3)") == f"{name} = - (7 b + 3)"
+        assert _expr_to_latex("-2*x = -1") == "- 2 x = -1"
+        assert _expr_to_latex("-3*sqrt(x) - 9 = 0") == r"- 3 \sqrt{x} - 9 = 0"
         # Relational "=" (<=, >=) must still render via sympy.
         assert "\\leq" in _expr_to_latex("x <= 3")
+
+    def test_a_minus_before_a_group_stays_unary_or_binary(self):
+        """L'espacement ne décide pas de la nature du moins.
+
+        Le moins est unaire en début de chaîne ou après un opérateur, binaire
+        après un opérande. L'ancien lookbehind ne voyait que le caractère collé
+        au moins : `a -(b+c)` lui semblait unaire et sortait `- a (b+c)`.
+        """
+        assert _expr_to_latex("-(7b+3)") == "- (7 b + 3)"
+        assert _expr_to_latex("- (7b+3)") == "- (7 b + 3)"
+        for e in ("a-(b+c)", "a -(b+c)", "a - (b+c)"):
+            assert _expr_to_latex(e) == r"a - \left(b + c\right)", e
 
 
 # ── !texmath command ──────────────────────────────────────────────────────────
