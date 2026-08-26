@@ -1268,3 +1268,58 @@ class TestFormule3Correspond:
         assert seg["name"] == "reply1"
         assert seg["config"]["lefts"] == r.answers[0].options["lefts"]
         assert seg["config"]["rights"] == r.answers[0].options["rights_shuffled"]
+
+
+class TestDropUnitFactors:
+    """Le facteur 1 explicite laissé par ``parse_expr(evaluate=False)``.
+
+    `!texmath` ne doit rien simplifier — sinon l'énoncé de `reduire1` donnerait
+    la réponse. Mais l'arbre non évalué garde le `1` que sympy aurait absorbé :
+    `1/x` est un `Mul(Integer(1), Pow(x, -1))` que `sympy.latex` imprime
+    `1 \\frac{1}{x}`, qu'un élève lit « un et un sur x ».
+    """
+
+    def test_the_note_case(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("1/x") == r"\frac{1}{x}"
+
+    def test_unit_factor_before_a_fraction(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("1/(x+1)") == r"\frac{1}{x + 1}"
+        assert _expr_to_latex("1/x^2") == r"\frac{1}{x^{2}}"
+        assert _expr_to_latex("1/sqrt(2)") == r"\frac{1}{\sqrt{2}}"
+
+    def test_unit_factor_before_a_variable(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("1*x") == "x"
+
+    def test_unit_factor_inside_a_denominator(self):
+        """`inverse3` affichait `\\frac{1}{1 \\cdot 5}`."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("1/(1*5)") == r"\frac{1}{5}"
+
+    def test_a_legitimate_one_survives(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("1") == "1"
+        assert _expr_to_latex("1*1") == "1"
+        assert _expr_to_latex("x+1/2") == r"x + \frac{1}{2}"
+
+    def test_the_minus_one_is_spared(self):
+        """`_expr_to_latex` réécrit `-(` en `(-1)*(` pour empêcher sympy de
+        distribuer le signe : `distribuer1` montre la forme non développée,
+        c'est l'énoncé même de l'exercice."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("-(5u+6)") == r"- (5 u + 6)"
+
+    def test_nothing_else_is_simplified(self):
+        """`reduire1` remet `3*x + 5*x + 2 + 1` à l'élève : le retrait du
+        facteur neutre ne doit pas devenir une réduction."""
+        from core.oef.def_engine.cas import _expr_to_latex
+        out = _expr_to_latex("3*x+5*x+2+1")
+        assert "3 x" in out and "5 x" in out
+        assert "8 x" not in out
+
+    def test_expressions_without_a_unit_factor_are_untouched(self):
+        from core.oef.def_engine.cas import _expr_to_latex
+        assert _expr_to_latex("3/x") == r"\frac{3}{x}"
+        assert _expr_to_latex("2/(3x)") == r"\frac{2}{3 x}"

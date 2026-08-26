@@ -396,6 +396,46 @@ def _call_maxima(expr: str) -> str:
 _PURE_INT_FRAC_RE = re.compile(r"^-?\d+\s*/\s*-?\d+$")
 
 
+def _drop_unit_factors(node):
+    """Retire les facteurs 1 explicites d'un arbre parsé sans évaluation.
+
+    ``parse_expr(evaluate=False)`` garde l'arbre tel que l'auteur l'a écrit —
+    c'est tout l'intérêt pour ``!texmath``, qui ne doit pas donner la réponse.
+    Mais il garde aussi le ``1`` que sympy aurait absorbé de lui-même : ``1/x``
+    est un ``Mul(Integer(1), Pow(x, -1))``, que ``sympy.latex`` imprime
+    ``1 \\frac{1}{x}``. Un élève y lit un nombre mixte — « un et un sur x ».
+
+    Le facteur neutre part donc à la **construction**, avant l'appel à
+    ``latex``. Le retirer de la chaîne LaTeX après coup supposerait de
+    distinguer ce ``1`` d'un ``1`` légitime, que plus rien ne sépare une fois
+    le rendu fait (``1 \\frac{1}{2}`` parasite contre un « 1 » d'énoncé).
+
+    Le ``-1`` est épargné, et il le faut : ``_expr_to_latex`` réécrit exprès
+    ``-(`` en ``(-1)*(`` pour empêcher sympy de distribuer le signe, la forme
+    non développée étant l'énoncé même de `distribuer1`.
+    """
+    import sympy  # noqa: PLC0415
+
+    if not getattr(node, "args", ()):
+        return node
+    new_args = [_drop_unit_factors(a) for a in node.args]
+    if node.is_Mul:
+        kept = [a for a in new_args if not (a.is_Integer and a == 1)]
+        if not kept:  # `1*1` : il reste le neutre lui-même.
+            return sympy.Integer(1)
+        if len(kept) == 1:
+            return kept[0]
+        new_args = kept
+    if len(new_args) == len(node.args) and all(
+        a is b for a, b in zip(new_args, node.args)
+    ):
+        return node
+    try:
+        return node.func(*new_args, evaluate=False)
+    except TypeError:
+        return node.func(*new_args)
+
+
 def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
     """Convert a math expression string to LaTeX notation for display.
 
@@ -486,7 +526,7 @@ def _expr_to_latex(expr: str, func_names: set[str] | None = None) -> str:
             local_dict=locals_dict,
             evaluate=False,
         )
-        res = sympy.latex(parsed)
+        res = sympy.latex(_drop_unit_factors(parsed))
         if wrapped and not (res.startswith("(") or res.startswith("\\left(")):
             res = f"\\left({res}\\right)"
         return res
