@@ -1419,3 +1419,73 @@ class TestLeadingZeros:
 
     def test_a_negative_with_leading_zeros(self):
         assert self._ev("-002") == "-2"
+
+
+class TestSlibFlatInterpreter:
+    """L'interpréteur de slib exécute ses boucles sans récursion.
+
+    `_run_script_lines` se décrit comme « flat single-pointer » : un `!goto`
+    niché dans un `!if` doit pouvoir viser un label extérieur. Ses `!for`
+    faisaient pourtant exception — le corps partait dans un appel récursif, où
+    les labels du script englobant étaient invisibles. C'est l'idiome des
+    gardes de slib qui en souffrait : `!if $n > $max` suivi d'un
+    `!goto trop_de_tours` ne sortait pas de la boucle.
+    """
+
+    @staticmethod
+    def _run(lignes):
+        from core.oef.def_engine import DefEngine
+        e = DefEngine.__new__(DefEngine)
+        e.ctx = {"empty": ""}
+        e._deadline = None
+        e._run_script_lines(lignes)
+        return e.ctx
+
+    def test_a_plain_loop_still_works(self):
+        ctx = self._run(["!set acc=", "!for k =1 to 3", "!set acc=$acc$k", "!next"])
+        assert ctx["acc"] == "123"
+
+    def test_the_loop_variable_is_restored_afterwards(self):
+        """Un `!for` n'expose pas sa variable au-delà de son corps."""
+        ctx = self._run(["!set k=avant", "!for k =1 to 3", "!set vu=$k", "!next"])
+        assert ctx["k"] == "avant"
+        assert ctx["vu"] == "3"
+
+    def test_a_goto_escapes_the_loop(self):
+        """Le cas qui motive la refonte : sortir d'une boucle par un label."""
+        ctx = self._run([
+            "!set acc=", "!set tours=0",
+            "!for k =1 to 100",
+            "!set tours=$[$tours+1]",
+            "!if $tours>2",
+            "!goto fini",
+            "!endif",
+            "!set acc=$acc$k",
+            "!next",
+            ":fini",
+            "!set sorti=oui",
+        ])
+        assert ctx["sorti"] == "oui"
+        assert ctx["tours"] == "3"
+        assert ctx["acc"] == "12"
+
+    def test_the_variable_is_restored_even_when_leaving_by_goto(self):
+        ctx = self._run([
+            "!set k=avant",
+            "!for k =1 to 9", "!goto dehors", "!next",
+            ":dehors", "!set fait=1",
+        ])
+        assert ctx["k"] == "avant"
+        assert ctx["fait"] == "1"
+
+    def test_nested_loops(self):
+        ctx = self._run([
+            "!set acc=",
+            "!for a =1 to 2", "!for b =1 to 2",
+            "!set acc=$acc$a$b", "!next", "!next",
+        ])
+        assert ctx["acc"] == "11122122"
+
+    def test_a_list_loop(self):
+        ctx = self._run(["!set acc=", "!for x in rouge,vert", "!set acc=$acc$x-", "!next"])
+        assert ctx["acc"] == "rouge-vert-"

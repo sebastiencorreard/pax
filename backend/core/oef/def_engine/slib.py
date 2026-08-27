@@ -42,6 +42,23 @@ class _SlibExit(Exception):
     """Sentinel raised by `!exit` inside a slib script to stop execution."""
 
 
+def _restaurer_boucle(ctx: dict, boucle: dict) -> None:
+    """Rend à la variable d'une boucle la valeur qu'elle avait avant elle.
+
+    Un `!for` de WIMS n'expose pas sa variable au-delà de son corps ; la
+    version récursive de cet interpréteur le faisait en restaurant `saved`
+    après l'appel. Le comportement est le même, qu'on sorte par le `!next`
+    ou par un `!goto`.
+    """
+    var, saved = boucle.get("var"), boucle.get("saved")
+    if not var:
+        return
+    if saved is not None:
+        ctx[var] = saved
+    else:
+        ctx.pop(var, None)
+
+
 class _SlibMixin:
     """Slib runner methods. Mixed into ``DefEngine`` — see ``runtime`` notes."""
 
@@ -547,6 +564,11 @@ class _SlibMixin:
                 labels[s[1:].strip()] = idx
 
         if_stack: list[int] = []
+        # Boucles en cours. Les tenir ici plutôt que dans la pile d'appels
+        # Python rend l'interpréteur réellement « plat » : un `!goto` peut
+        # sauter hors d'une boucle, ce que le corps exécuté récursivement
+        # interdisait — le label lui restait invisible.
+        loop_stack: list[dict] = []
         i = 0
         n = len(lines)
         # Un slib peut boucler via `!goto` (saut arrière) sans terminer si une
@@ -660,21 +682,48 @@ class _SlibMixin:
                 else:
                     i = j + 1
                     continue
-                saved = self.ctx.get(var)
-                for v in seq:
-                    self.ctx[var] = v
-                    self._run_script_lines(body)
-                if saved is not None:
-                    self.ctx[var] = saved
-                else:
-                    self.ctx.pop(var, None)
-                i = j + 1
+                if not seq:
+                    i = j + 1
+                    continue
+                # La boucle s'exécute **dans** le pointeur courant, et non par
+                # un appel récursif : c'est ce qui permet à un `!goto` de son
+                # corps d'atteindre un label extérieur. Le corps reste donc à
+                # sa place dans `lines`, et `!next` décide de reboucler.
+                loop_stack.append({
+                    "kind": "for", "var": var, "seq": seq, "pos": 0,
+                    "head": i, "end": j, "saved": self.ctx.get(var),
+                })
+                self.ctx[var] = seq[0]
+                i += 1
+                continue
+            if stripped.startswith("!next"):
+                # Fin de corps : on reboucle tant que la séquence n'est pas
+                # épuisée, puis on rend à la variable la valeur qu'elle avait
+                # avant la boucle — comme le faisait la version récursive.
+                if loop_stack and loop_stack[-1]["end"] == i:
+                    top = loop_stack[-1]
+                    top["pos"] += 1
+                    if top["pos"] < len(top["seq"]):
+                        self.ctx[top["var"]] = top["seq"][top["pos"]]
+                        i = top["head"] + 1
+                        continue
+                    _restaurer_boucle(self.ctx, loop_stack.pop())
+                i += 1
                 continue
             if stripped.startswith("!goto "):
                 target = stripped[len("!goto ") :].strip().lstrip(":")
                 tgt_idx = labels.get(target)
                 if tgt_idx is not None:
                     if_stack.clear()
+                    # Sauter hors d'une boucle la termine : on dépile celles
+                    # dont le corps ne contient pas la cible, en rendant à
+                    # chaque variable sa valeur d'avant. C'est l'idiome des
+                    # gardes de slib — `!if $currentwhile > $maxwhile` suivi
+                    # d'un `!goto too_many_iter` qui doit vraiment sortir.
+                    while loop_stack and not (
+                        loop_stack[-1]["head"] <= tgt_idx <= loop_stack[-1]["end"]
+                    ):
+                        _restaurer_boucle(self.ctx, loop_stack.pop())
                     i = tgt_idx + 1
                 else:
                     i += 1
