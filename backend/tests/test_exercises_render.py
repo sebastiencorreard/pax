@@ -366,13 +366,14 @@ def test_render_structure(exercise):
 
 def test_render_snapshot(exercise):
     ex_id, path = exercise
-    # Les snapshots ne couvrent qu'un **échantillon** raisonné, pas les 4278
-    # exercices : un par type de réponse, les six sentinelles, et les pièges de
-    # rendu déjà payés. Cf. `tests/snapshots/README.md` pour la composition et
-    # la marche à suivre quand un changement de rendu est voulu.
+    # Les snapshots couvrent **tout le corpus**. Un exercice sans référence est
+    # donc un exercice arrivé depuis la dernière régénération : le signaler
+    # plutôt que de le passer sous silence, car ce test se tait quand il ne
+    # trouve rien — c'est ainsi qu'il n'a rien protégé pendant des mois.
+    # Cf. `tests/snapshots/README.md`.
     snap_path = os.path.join(SNAPSHOTS_DIR, f"ex_{ex_id}.json")
     if not os.path.exists(snap_path):
-        pytest.skip(f"{ex_id} hors échantillon de référence (tests/snapshots/README.md)")
+        pytest.skip(f"{ex_id} sans référence — lancer scripts/update_snapshots.py")
 
     with open(snap_path) as f:
         snap = json.load(f)
