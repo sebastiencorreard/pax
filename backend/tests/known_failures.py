@@ -125,17 +125,22 @@ XFAIL_RENDER_STRUCTURE = {
 # ci-dessous. Une expression trouée n'est l'équation de rien : elle ne se
 # comparait à elle-même que faute de checker.
 #
-# Huit `programming` sont partis le 2026-08-27, tous d'une même cause : la
-# session PARI ne portait ni les fonctions qu'un `!exec pari` y définit, ni le
-# `default(format, …)` qu'il y pose — et cette dernière commande, faute d'être
-# reconnue, faisait **abandonner le programme entier**, qui repartait alors en
-# source brute. Les attendus gardaient donc le nom de la variable PARI (`llo`,
-# `vv`, `mmli`) au lieu de sa valeur. `droitecar1` en faisait partie : son
-# `mmli*x+*y+=0` n'était pas un attendu cassé par l'auteur, contrairement à ce
-# qu'on avait conclu — juste un calcul jamais fait. Restent les trois
-# ci-dessous, d'une autre famille : `f'(x_0)` en type `formal`, la dérivée
-# notée par une apostrophe, que le checker ne sait pas lire — l'attendu s'y
-# refuse lui-même.
+# Les onze `programming` sont partis le 2026-08-27, en deux familles.
+#
+# Huit tenaient à la session PARI, qui ne portait ni les fonctions qu'un
+# `!exec pari` y définit, ni le `default(format, …)` qu'il y pose — et cette
+# dernière commande, faute d'être reconnue, faisait **abandonner le programme
+# entier**, qui repartait alors en source brute. Les attendus gardaient donc le
+# nom de la variable PARI (`llo`, `vv`, `mmli`) au lieu de sa valeur.
+# `droitecar1` en faisait partie : son `mmli*x+*y+=0` n'était pas un attendu
+# cassé par l'auteur, contrairement à ce qu'on avait conclu — juste un calcul
+# jamais fait.
+#
+# Trois tenaient à la dérivée notée par une apostrophe (`f'(x_0)`, `euler1`,
+# `euler2`, `tangente1`) : Python y lit le début d'une f-string, le parse
+# échouait, et l'attendu se refusait lui-même. `_normalize_expr` en fait
+# désormais un nom de fonction, comme WIMS qui n'a pas davantage d'opérateur
+# apostrophe.
 XFAIL_CORRECT_SCORE = {
     'H3~geometry~oefpytha.fr~src~moho1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
@@ -159,9 +164,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~moles.fr~src~masse1',
     'H4~chemistry~moles.nl~src~masse1',
     'H4~physics~temps.fr~src~periodefrequence',
-    'H4~programming~oefalgopython.fr~src~euler1',
-    'H4~programming~oefalgopython.fr~src~euler2',
-    'H4~programming~oefalgopython.fr~src~tangente1',
     'H4~stat~descriptives.fr~src~pdfctstat',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt5',

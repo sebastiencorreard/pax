@@ -1474,6 +1474,12 @@ def check_litexp(
                        status="invalid_format", detail=_REWRITE_MSG)
 
 
+# `f'`, `f''`, et la variante typographique que produit un traitement de texte
+# ou un clavier français. Le nom doit précéder l'apostrophe : celle d'un mot
+# (`l'aire`) n'a pas cette forme dans une expression.
+_DERIVEE_APOSTROPHE_RE = re.compile(r"([A-Za-z]\w*)(['’]+)")
+
+
 def _normalize_expr(expr: str, comma_is_decimal: bool = True) -> str:
     """Normalise une expression OEF/élève pour SymPy.
 
@@ -1504,6 +1510,18 @@ def _normalize_expr(expr: str, comma_is_decimal: bool = True) -> str:
     expr = expr.replace("\\cdot", "*")
     # Supprime les espaces autour des opérateurs
     expr = re.sub(r"\s+", "", expr)
+    # Dérivée notée par une apostrophe : `f'(x)` devient un nom de fonction à
+    # part entière. Python y lisait le début d'une f-string — littéralement,
+    # `parse_expr("f'(x_i)")` lève « unterminated f-string literal » —, le
+    # parse échouait, le repli numérique échouait avec lui, et le score tombait
+    # à 0 : l'attendu se refusait lui-même dans `euler1`, `euler2` et
+    # `tangente1`. WIMS n'a pas d'opérateur apostrophe non plus ; `f'` y est un
+    # nom, que la comparaison distingue de `f` sans jamais dériver quoi que ce
+    # soit. Traduire plutôt que dériver garde cette sémantique, et une dérivée
+    # seconde reste distincte d'une première.
+    expr = _DERIVEE_APOSTROPHE_RE.sub(
+        lambda m: m.group(1) + "_prime" * len(m.group(2)), expr
+    )
     # Virgule décimale (locale à virgule) : ``0,113`` → ``0.113``.
     if comma_is_decimal:
         expr = re.sub(r"(?<=\d),(?=\d)", ".", expr)
