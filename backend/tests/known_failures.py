@@ -141,8 +141,17 @@ XFAIL_RENDER_STRUCTURE = {
 # échouait, et l'attendu se refusait lui-même. `_normalize_expr` en fait
 # désormais un nom de fonction, comme WIMS qui n'a pas davantage d'opérateur
 # apostrophe.
+#
+# Les trois Pythagore (`avion`, `moho0`, `moho1`) sont partis le même jour, et
+# la même session PARI y était pour moitié : `pyth(A,B,lim)={…}` cherche un
+# triplet par deux `for` imbriqués dont il sort par `return`, deux
+# constructions que l'interpréteur ignorait — corps entre accolades et sortie
+# anticipée. L'autre moitié tenait à `divrem` sur des réels, qui partait en
+# division *polynomiale* : `moho0` y lit le reste pour convertir un temps de
+# trajet en minutes et secondes, et n'obtenait que `NaN`. Trois autres
+# exercices du même module (`bird`, `etagere1`, `etagere2`) y ont gagné leur
+# énoncé, qui affichait jusque-là son propre code source.
 XFAIL_CORRECT_SCORE = {
-    'H3~geometry~oefpytha.fr~src~moho1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
@@ -152,8 +161,6 @@ XFAIL_CORRECT_SCORE = {
     'H3~geography~oefdepregfr.fr~src~clickrcap',
     'H3~geography~oefdepregfr.fr~src~clickreg',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
-    'H3~geometry~oefpytha.fr~src~avion',
-    'H3~geometry~oefpytha.fr~src~moho0',
     'H3~math~quizz.fr~src~T1110',
     'H4~algebra~h4droites.fr~src~ordoneeOrign',
     'H4~chemistry~chemavance1.fr~src~Tableaudavance',

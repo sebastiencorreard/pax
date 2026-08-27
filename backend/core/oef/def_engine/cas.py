@@ -800,8 +800,26 @@ def _pari_divrem(a, b):
     if _is_int_like(a) and _is_int_like(b):
         q, r = divmod(int(a), int(b))
         return [q, r]
+    # Deux réels : `divrem` reste la division **euclidienne** — quotient entier,
+    # reste de même signe que le diviseur, comme `divmod`. C'est la seule
+    # lecture qui ait un sens pour les `divrem($val28, 60)` de `moho0`, qui
+    # convertissent un temps de trajet en minutes et secondes. `sympy.div`,
+    # elle, fait une division **polynomiale** : sur deux nombres elle rend
+    # (a/b, 0), et le reste — la seconde composante, précisément ce que
+    # l'exercice lit — était perdu.
+    if _est_nombre(a) and _est_nombre(b):
+        q, r = divmod(float(a), float(b))
+        return [int(q), r]
     q, r = sympy.div(a, b)  # pyright: ignore[reportCallIssue]
     return [q, r]
+
+
+def _est_nombre(v: Any) -> bool:
+    """Vrai pour un scalaire numérique — Python ou sympy —, faux pour un
+    polynôme ou une expression symbolique."""
+    if isinstance(v, (int, float)):
+        return True
+    return bool(getattr(v, "is_number", False))
 
 
 def _pari_polcoeff(p, n, var=None):

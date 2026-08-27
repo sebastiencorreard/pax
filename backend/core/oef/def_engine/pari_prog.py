@@ -133,6 +133,19 @@ class PariProgramError(Exception):
     d'expression."""
 
 
+class _Retour(Exception):
+    """``return(x)`` — sortie anticipée d'une fonction GP.
+
+    Une exception, parce que `return` traverse les boucles : le `pyth` d'
+    `oefpytha` sort de deux `for` imbriqués dès qu'il tient son triplet
+    pythagoricien. Interne à l'interpréteur ; jamais vue par l'appelant.
+    """
+
+    def __init__(self, valeur: Any = None):
+        super().__init__("return")
+        self.valeur = valeur
+
+
 # --------------------------------------------------------------------------- #
 # Valeurs : vecteurs / matrices 1-indexés
 # --------------------------------------------------------------------------- #
@@ -602,7 +615,11 @@ class PariInterpreter:
 
     def run(self, src: str) -> tuple[str, Any]:
         """Exécute le programme ; renvoie (sortie des `print`, dernière valeur)."""
-        last = self.exec_block(src)
+        try:
+            last = self.exec_block(src)
+        except _Retour as sortie:
+            # `return` au niveau du programme : GP l'accepte et rend la valeur.
+            last = sortie.valeur
         lines = "".join(self.out).strip("\n").split("\n")
         return "\n".join(_wims_line_filter(line) for line in lines), last
 
@@ -662,6 +679,12 @@ class PariInterpreter:
         inner = _match_call(stmt, "default")
         if inner is not None:
             return self._exec_default(inner)
+
+        inner = _match_call(stmt, "return")
+        if inner is not None:
+            raise _Retour(self.eval_expr(inner) if inner.strip() else None)
+        if stmt.strip().lower() == "return":
+            raise _Retour(None)
 
         assign = _split_assignment(stmt)
         if assign is not None:
@@ -821,7 +844,14 @@ class PariInterpreter:
         if fn:
             name = fn.group(1)
             params = [p.strip() for p in fn.group(2).split(",") if p.strip()]
-            self.funcs[name] = (params, rhs)
+            # GP autorise un corps entouré d'accolades, et c'est même la forme
+            # usuelle dès qu'il tient sur plusieurs lignes (`pyth(A,B,lim)={…}`
+            # d'`oefpytha`). Sans ce déballage, `exec_block` recevait `{for(…)}`
+            # et n'y voyait pas une instruction.
+            corps = rhs.strip()
+            if corps.startswith("{") and corps.endswith("}"):
+                corps = corps[1:-1]
+            self.funcs[name] = (params, corps)
             self.vars.pop(name, None)
             return None
 
@@ -888,7 +918,10 @@ class PariInterpreter:
             saved = {p: self.vars.get(p) for p in params}
             self.vars.update(dict(zip(params, args)))
             try:
-                return self.exec_block(body)
+                try:
+                    return self.exec_block(body)
+                except _Retour as sortie:
+                    return sortie.valeur
             finally:
                 for p, old in saved.items():
                     if old is None:
