@@ -794,9 +794,43 @@ def _pari_subst(p, var, val):
     return p
 
 
-def _pari_matrix(rows):
+def _pari_vec(x=None):
+    """`Vec(x)` — conversion en vecteur ligne.
+
+    `slib/triplerelation/tabular` part d'une liste littérale (`Vec([1,0])`)
+    avant de lui ajouter un vecteur indicateur. Sans cette entrée, `Vec` était
+    auto-lié à un symbole libre : le résultat tombait juste par accident sur
+    les cas simples, et faux dès que l'expression se compliquait.
+    """
+    if x is None:
+        return []
+    if isinstance(x, (list, tuple)):
+        return list(x)
+    if hasattr(x, "__iter__") and not isinstance(x, str):
+        return list(x)
+    return [x]
+
+
+def _pari_matrix(rows, ncols=None, body=None):
+    """`matrix(rows)` — depuis une liste — ou `matrix(m, n, I, J, expr)`.
+
+    La seconde forme est la plus fréquente du corpus (160 usages), et son
+    corps arrive en lambda à deux paramètres : PARI l'évalue case par case,
+    lignes et colonnes numérotées à partir de 1.
+    """
     import sympy  # noqa: PLC0415
 
+    if callable(body):
+        m, n = int(rows), int(ncols)
+        return sympy.Matrix(
+            m, n,
+            lambda i, j: _pari_valeur_pari(
+                body(sympy.Integer(i + 1), sympy.Integer(j + 1))
+            ),
+        )
+    if ncols is not None:
+        # `matrix(m, n)` — matrice nulle.
+        return sympy.zeros(int(rows), int(ncols))
     return sympy.Matrix(rows)
 
 
@@ -902,9 +936,36 @@ def _pari_polrev(*args):
     return sympy.expand(sum(c * x**i for i, c in enumerate(coeffs)))
 
 
-def _pari_vector(n_or_list=None, var=None, body=None):
-    """Pari vector(n) → zero list; vector(n, i, expr) → list comprehension."""
+def _pari_valeur_pari(val):
+    """Ramène le résultat d'un corps lié à ce que PARI en ferait.
+
+    Une comparaison y vaut 1 ou 0 — `(row==2)*(col==3)` est l'idiome du
+    vecteur/matrice indicateur —, et un nombre exact perd sa forme sympy.
+    """
     import sympy  # noqa: PLC0415
+
+    if isinstance(val, bool) or val in (sympy.true, sympy.false):
+        return 1 if bool(val) else 0
+    try:
+        fval = float(sympy.N(val))
+    except Exception:
+        return val
+    return int(fval) if fval == int(fval) else fval
+
+
+def _pari_vector(n_or_list=None, var=None, body=None):
+    """Pari vector(n) → zero list; vector(n, i, expr) → list comprehension.
+
+    Le corps arrive sous forme de **lambda** quand l'expression le liait à une
+    variable (cf. `_LierVariables` dans `pari_prog`) : PARI l'évalue une fois
+    par indice, ce que la forme paresseuse rend fidèlement. L'ancienne forme —
+    variable et expression déjà évaluée — reste acceptée.
+    """
+    import sympy  # noqa: PLC0415
+
+    if callable(var):
+        n = int(n_or_list)
+        return [_pari_valeur_pari(var(sympy.Integer(k))) for k in range(1, n + 1)]
 
     if var is None or body is None:
         try:
@@ -970,6 +1031,7 @@ _PARI_HELPERS: dict = {
     "subst": _pari_subst,
     "matrix": _pari_matrix,
     "vector": _pari_vector,
+    "Vec": _pari_vec,
     "round": _pari_round,
     "core": _pari_core,
 }
@@ -1022,6 +1084,12 @@ def _format_pari_result(result) -> str:
         return ";".join(rows)
     if isinstance(result, (list, tuple)):
         return ",".join(_format_pari_result(x) for x in result)
+    # `PVec` (mini-interpréteur PARI) : un vecteur, qui s'écrit donc comme un
+    # vecteur. Sans cette branche, son `repr` Python fuyait tel quel dans
+    # l'attendu — `PVec([13,94,175],col=False)` au lieu de `13,94,175`, ce que
+    # les `pixel_art_flag*` affichaient à l'élève.
+    if hasattr(result, "items") and hasattr(result, "col") and not isinstance(result, dict):
+        return ",".join(_format_pari_result(x) for x in result.items)
     # PARI uses `^` for exponentiation; SymPy's str() emits `**`. The downstream
     # WIMS pipeline (e.g. `!replace * by`) treats `*` literally, so leaving `**`
     # would corrupt powers like `x**2` into `x2`.

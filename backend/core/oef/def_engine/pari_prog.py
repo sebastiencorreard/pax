@@ -32,8 +32,72 @@ d'origine.
 
 from __future__ import annotations
 
+import ast
 import re
 from typing import Any
+
+# Constructions PARI à **variable liée** : (nombre d'arguments avant les
+# variables, nombre de variables). `vector(n, X, expr)` évalue `expr` une fois
+# par indice, `matrix(m, n, I, J, expr)` une fois par case.
+_PARI_LIEES: dict[str, tuple[int, int]] = {
+    "vector": (1, 1),
+    "matrix": (2, 2),
+}
+
+
+class _LierVariables(ast.NodeTransformer):
+    """Transforme le corps d'une construction PARI liée en lambda.
+
+    C'est une question d'**ordre d'évaluation**, pas de syntaxe : PARI évalue
+    le corps une fois par indice, quand `eval()` de Python l'évalue une seule
+    fois, avant l'appel. La différence ne se voit pas sur `vector(3,k,k^2)` —
+    `k` reste un symbole et la substitution rattrape le coup — mais elle est
+    fatale dès que le corps se réduit sans le symbole : `vector(2,x,(x==2))`
+    devient `False` avant même d'entrer dans la fonction, et le vecteur
+    indicateur de `slib/triplerelation/tabular` sort nul.
+
+    Passer par une lambda rend la sémantique de PARI telle quelle, pour les
+    quelque 190 `matrix(` et `vector(` du corpus et des slib partagés.
+    """
+
+    def visit_Call(self, node: ast.Call) -> ast.Call:
+        self.generic_visit(node)
+        if not isinstance(node.func, ast.Name):
+            return node
+        spec = _PARI_LIEES.get(node.func.id)
+        if spec is None:
+            return node
+        avant, nb_vars = spec
+        if len(node.args) != avant + nb_vars + 1:
+            return node  # forme courte : `vector(n)`, `matrix(m,n)`
+        variables = node.args[avant : avant + nb_vars]
+        if not all(isinstance(v, ast.Name) for v in variables):
+            return node
+        lam = ast.Lambda(
+            args=ast.arguments(
+                posonlyargs=[], args=[ast.arg(arg=v.id) for v in variables],
+                kwonlyargs=[], kw_defaults=[], defaults=[],
+            ),
+            body=node.args[-1],
+        )
+        node.args = node.args[:avant] + [lam]
+        return ast.fix_missing_locations(node)
+
+
+def _lier_variables(code: str) -> str:
+    """Réécrit `code` pour que les corps liés deviennent des lambdas.
+
+    Rend le code inchangé si l'AST ne se relit pas — l'évaluation se fera
+    comme avant, plutôt que d'échouer sur une transformation.
+    """
+    try:
+        arbre = ast.parse(code, mode="eval")
+    except SyntaxError:
+        return code
+    try:
+        return ast.unparse(_LierVariables().visit(arbre))
+    except Exception:  # noqa: BLE001
+        return code
 
 # Garde-fou : un programme WIMS reste minuscule ; au-delà, on considère que la
 # boucle ne termine pas plutôt que de bloquer le rendu de l'exercice.
@@ -685,7 +749,12 @@ class PariInterpreter:
             if ident not in ns and ident not in _PY_KEYWORDS:
                 ns[ident] = self.sympy.Symbol(ident)
         try:
-            return eval(code, {"__builtins__": {}}, ns)  # noqa: S307
+            # Le namespace passe en **globals** : une lambda — celles que
+            # `_lier_variables` introduit pour les corps liés — résout ses noms
+            # dans les globals de sa définition, jamais dans les locals d'un
+            # `eval`. Les helpers PARI y seraient invisibles au moment de
+            # l'appel. `__builtins__` reste vide, comme avant.
+            return eval(_lier_variables(code), {**ns, "__builtins__": {}})  # noqa: S307
         except PariProgramError:
             raise
         except Exception as exc:  # parse/exécution impossible → hors périmètre
