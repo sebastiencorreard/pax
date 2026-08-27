@@ -189,12 +189,16 @@ def _get_testable_exercises():
             r = load_and_render(path, seed=SEED)
         except Exception:
             continue
-        # Exclure : sans réponse, avec \condition, radio uniquement
+        # Ce filtre écarte **avant la collecte** : un exercice retiré ici ne
+        # se signale ni en échec, ni en skip, ni nulle part. Le garder étroit.
         if not r.answers:
+            # 24 exercices n'exposent aucune réponse. Onze affichent pourtant
+            # des champs où l'élève peut écrire : défaut réel, à instruire.
             continue
         if r.condition:
-            continue
-        if all(a.answer_type == 'radio' for a in r.answers):
+            # `\condition` globale : la note dépend d'un croisement entre
+            # champs que `_check_all` ne sait pas reproduire. Aucun exercice du
+            # corpus n'y tombe aujourd'hui.
             continue
         # Exclure si la réponse attendue contient des fonctions WIMS non résolues
         if not all(_expected_is_resolved(a.expected) for a in r.answers):
