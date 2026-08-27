@@ -258,6 +258,20 @@ C'est un choix **délibéré** : on ne veut pas reproduire le rendu WIMS de la
 correction (qui est côté serveur dans des `<div class="oef_indgood">`), mais
 utiliser notre propre UI React/Vue.
 
+### Les corps liés de `vector` et `matrix` passent par une lambda
+
+PARI évalue le corps de `vector(n, X, expr)` **une fois par indice**, quand
+l'`eval()` de Python l'évalue une seule fois, avant l'appel. La différence est
+invisible sur `vector(3,k,k^2)` — `k` reste un symbole et la substitution
+rattrape — et fatale dès que le corps se réduit sans le symbole :
+`vector(2,x,(x==2))` devient `False` avant d'entrer dans la fonction.
+
+Plutôt que de réécrire le parseur d'expressions, `pari_prog._lier_variables`
+transforme l'AST : `vector(2, x, (x==2))` devient `vector(2, lambda x: x == 2)`,
+ce qui **est** la sémantique de PARI. Corollaire à connaître : le namespace doit
+alors passer en **globals** de l'`eval`, une lambda n'y résolvant pas ses noms
+autrement.
+
 ### Le point-virgule d'`anstype/vector`
 
 `anstype/vector` refuse le point-virgule sans rien regarder d'autre :

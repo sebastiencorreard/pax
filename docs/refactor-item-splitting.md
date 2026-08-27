@@ -412,6 +412,33 @@ Restent ouverts, hors périmètre du découpage :
   seule raison d'être des `badwords`, désormais correctement écartés de la
   comparaison.
 - `wims_shuffle_order` / `wims_sort_order` : toujours non implémentés.
+
+### 5.2 La cascade du 2026-08-28
+
+Une question simple — « pourquoi quatre exercices n'ont-ils aucune question ? »
+— a ouvert cinq défauts emboîtés, chacun invisible tant que le précédent
+bloquait. Aucun ne levait d'erreur : une boucle qui ne tourne pas, une fonction
+absente qui rend zéro, une syntaxe non reconnue **faussent en silence**. C'est
+la leçon la plus coûteuse de ces deux jours, et elle vaut pour la suite.
+
+| ordre | ce qui manquait | portée |
+|---|---|---|
+| 1 | `_run_script_lines` exécutait le corps d'un `!for` par un appel **récursif** : un `!goto` n'en sortait pas, alors que c'est l'idiome des gardes de slib | tout slib à boucle gardée |
+| 2 | `vector(n,X,expr)` / `matrix(m,n,I,J,expr)` : corps évalué **une fois** au lieu d'une fois par indice — une transformation d'AST le rend paresseux | 187 usages |
+| 3 | `!for i from 3 to 5` — `from` vaut `=` (`exec.c`, `exec_for`), et la boucle ne tournait pas du tout | 16 `.def`, 31 scripts |
+| 4 | `lg` (log décimal) et `ln` absents du namespace : `lg(x)` valait 0, et l'arrondi aux chiffres significatifs avec | 25 scripts |
+| 5 | les `confparm` que le module pose dans son `introhook.phtml` (`!default confparm1=1`) | 32 modules |
+
+Le balayage complet de la table de `Lib/evalue.c` a suivi : 36 de ses 70 entrées
+manquaient, mais un seul des dix-huit slib réellement lus en employait une. La
+surface était donc propre, `lg` mis à part — le portage restant est une
+assurance contre les silences futurs, pas une correction.
+
+**Méthode qui a marché** : mesurer chaque maillon **seul** avec
+`corpus_state.py`, et annuler sans regret quand le verdict est mauvais. Trois
+tentatives d'implémenter `!while` ont été annulées avant que la quatrième
+aboutisse — chacune butait sur un maillon différent, et seule la mesure isolée
+l'a montré.
 - La table HTML de `slib/triplerelation/tabular` : la question des virgules de
   profondeur 0 n'a plus d'urgence depuis que `moles`/`mouvrel` passent sans
   hack, mais elle n'a pas été tranchée.
