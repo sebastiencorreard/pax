@@ -1594,3 +1594,50 @@ class TestModuleConfparmDefaults:
             )
             assert len(r.answers) == 1, nom
             assert r.answers[0].expected == attendu, nom
+
+
+class TestEvalueTable:
+    """La table des fonctions de `Lib/evalue.c`, portée intégralement.
+
+    Une fonction absente ne lève rien : `$[…]` rend l'expression telle quelle,
+    et le calcul se poursuit sur du faux. C'est ce qui a coûté cinq niveaux de
+    diagnostic avec `lg`. Le balayage de la table a montré que 36 de ses 70
+    entrées manquaient — d'où ce portage, et ces tests qui le figent.
+    """
+
+    @staticmethod
+    def _ev(expr, seed=42):
+        import random
+        from core.oef.def_engine import DefEngine
+        e = DefEngine.__new__(DefEngine)
+        e.ctx = {}
+        e.rng = random.Random(seed)
+        return e._eval_arith(expr)
+
+    def test_french_and_german_spellings(self):
+        """WIMS accepte `tg`/`ctg` et `sh`/`ch`/`th` à côté des noms anglais."""
+        assert self._ev("tg(0)") == "0"
+        assert self._ev("ch(0)") == "1"
+        assert self._ev("th(0)") == "0"
+        assert self._ev("arctg(0)") == "0"
+
+    def test_reciprocal_trigonometry(self):
+        assert self._ev("sec(0)") == "1"
+        assert self._ev("rint(cot(0.7853981633974483))") == "1"
+
+    def test_combinatorics_and_special_functions(self):
+        assert self._ev("factorial(4)") == "24"
+        assert self._ev("binomial(5,2)") == "10"
+        assert self._ev("sgn(-3)") == "-1"
+        assert self._ev("erf(0)") == "0"
+
+    def test_random_follows_the_render_seed(self):
+        """Deux rendus de même graine doivent tirer la même chose — sans quoi
+        ni les snapshots ni `corpus_state` ne voudraient plus rien dire."""
+        assert self._ev("random(10)", seed=42) == self._ev("random(10)", seed=42)
+        assert self._ev("random(10)", seed=42) != self._ev("random(10)", seed=7)
+
+    def test_random_stays_within_bounds(self):
+        for seed in range(5):
+            assert 0 <= float(self._ev("random(10)", seed=seed)) < 10
+            assert 0 <= int(self._ev("randint(6)", seed=seed)) < 6

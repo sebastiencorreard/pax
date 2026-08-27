@@ -1031,6 +1031,25 @@ class DefEngine(_SlibMixin):
         expr = re.sub(r"(?<![\d.\w])0+(?=\d)", "", expr)
         # 3. Evaluate
         ns = dict(_MATH_NS)
+        # Les fonctions aléatoires de `Lib/evalue.c` tirent sur le générateur
+        # **du rendu**, pas sur un global : deux rendus de même graine doivent
+        # rendre la même chose, sans quoi ni les snapshots ni `corpus_state`
+        # ne voudraient plus rien dire. `slib/matrix/non0` s'en sert
+        # (`(random($range)+1)*(2*random(2)-1)`), et sans elles l'expression
+        # repartait telle quelle.
+        #
+        #     double drand(double m) { … return (r/RAND_MAX)*m; }
+        #     double irand(double n) { … r = random()*end/RAND_MAX; … }
+        ns.update({
+            "drand": lambda m=1.0: self.rng.random() * float(m),
+            "random": lambda m=1.0: self.rng.random() * float(m),
+            "randdouble": lambda m=1.0: self.rng.random() * float(m),
+            "randfloat": lambda m=1.0: self.rng.random() * float(m),
+            "randreal": lambda m=1.0: self.rng.random() * float(m),
+            "rand": lambda m=1.0: self.rng.random() * float(m),
+            "irand": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
+            "randint": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
+        })
         # Also inject current context for bare variable names
         for k, v in self.ctx.items():
             s = v.strip()

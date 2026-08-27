@@ -101,6 +101,35 @@ _MATH_NS: dict = {
     # WIMS écrit parfois ces fonctions en majuscules dans `$[…]` (cf. GCD).
     "GCD": math.gcd,
     "LCM": _lcm,
+    # ── Le reste de la table de `Lib/evalue.c` ──────────────────────────────
+    #
+    # Une fonction absente ne lève rien : `$[…]` rend l'expression telle quelle
+    # (ou zéro), et le calcul se poursuit sur du faux. C'est ce qui a coûté
+    # cinq niveaux de diagnostic avec `lg`, et le balayage de la table le
+    # confirme — 36 des 70 entrées manquaient. Celles-ci sont déterministes,
+    # donc sûres à poser ici ; les aléatoires (`random`, `drand`, `irand`…)
+    # dépendent de la graine du rendu et vivent dans `_eval_arith`.
+    #
+    # WIMS accepte les noms français et allemands des mêmes fonctions :
+    # `tg`/`ctg` (tangente, cotangente), `sh`/`ch`/`th` (hyperboliques),
+    # `argsh`/`argch`/`argth` (réciproques hyperboliques).
+    "asinh": math.asinh, "acosh": math.acosh, "atanh": math.atanh,
+    "sh": math.sinh, "ch": math.cosh, "th": math.tanh,
+    "argsh": math.asinh, "argch": math.acosh, "argth": math.atanh,
+    "tg": math.tan, "arctg": math.atan,
+    "cot": lambda x: 1.0 / math.tan(float(x)),
+    "cotan": lambda x: 1.0 / math.tan(float(x)),
+    "ctg": lambda x: 1.0 / math.tan(float(x)),
+    "coth": lambda x: 1.0 / math.tanh(float(x)),
+    "cotanh": lambda x: 1.0 / math.tanh(float(x)),
+    "cth": lambda x: 1.0 / math.tanh(float(x)),
+    "sec": lambda x: 1.0 / math.cos(float(x)),
+    "csc": lambda x: 1.0 / math.sin(float(x)),
+    "erf": math.erf, "erfc": math.erfc, "lgamma": math.lgamma,
+    "factorial": math.factorial,
+    "binomial": lambda n, k: math.comb(int(n), int(k)),
+    "sgn": lambda x: 1 if x > 0 else -1 if x < 0 else 0,
+    "euler": 0.5772156649015329,
 }
 
 
