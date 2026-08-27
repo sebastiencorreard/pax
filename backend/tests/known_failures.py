@@ -104,6 +104,14 @@ XFAIL_RENDER_STRUCTURE = {
 # — que Python 3 refuse d'évaluer, zéros de tête interdits, là où le C les lit
 # sans broncher. L'attendu restait la formule.
 #
+# Six sont partis le 2026-08-28, au bout d'une cascade de cinq corrections du
+# moteur — interpréteur de slib rendu plat, corps liés de PARI, `!for … from`,
+# `lg`/`ln` et `!while`, puis les `confparm` du module. Les quatre exercices
+# `moles`/`mouvrel` reposent sur `slib/triplerelation/tabular`, qui arrondit
+# aux chiffres significatifs par `rint(10^(prec-1-floor(lg(x)))*x)` : `lg`
+# manquant, sa contrainte n'était jamais satisfaite et le slib rendait un
+# message d'erreur à la place des valeurs.
+#
 # Trois factorisations sont parties le 2026-08-27. `slib/commutesom` pose son
 # drapeau dès qu'on l'appelle, et PAX en marquait la réponse `expand` — donc
 # « forme développée exigée ». Or `oeffac3b` s'en sert pour son énoncé mais
@@ -122,7 +130,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
     'H4~programming~oefalgopython.fr~src~droitecar1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
-    'H3~algebra~oefdevfact.nl~src~deve6',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
     'H3~geography~oefdepregfr.fr~src~clickcode',
@@ -139,13 +146,8 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~mole.fr~src~masse_molaire1',
     'H4~chemistry~mole.fr~src~masse_molaire_avec_solution',
     'H4~chemistry~mole.fr~src~nb_moles_avec_solution',
-    'H4~chemistry~moles.fr~src~concentration1',
     'H4~chemistry~moles.fr~src~masse1',
-    'H4~chemistry~moles.fr~src~massevolumique',
-    'H4~chemistry~moles.nl~src~concentration1',
     'H4~chemistry~moles.nl~src~masse1',
-    'H4~chemistry~moles.nl~src~massevolumique',
-    'H4~physics~mouvrel.fr~src~vitesse0',
     'H4~physics~temps.fr~src~periodefrequence',
     'H4~programming~oefalgopython.fr~src~balayage3',
     'H4~programming~oefalgopython.fr~src~balayage4',
