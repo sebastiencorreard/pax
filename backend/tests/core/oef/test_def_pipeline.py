@@ -1554,3 +1554,43 @@ class TestLogFunctions:
         assert self._ev("sinh(0)") == "0"
         assert self._ev("cosh(0)") == "1"
         assert self._ev("int(3.7)") == "3"
+
+
+class TestModuleConfparmDefaults:
+    """Un module WIMS se donne ses `confparm` dans son `introhook.phtml`.
+
+        !default confparm1=1
+        !formselect confparm1 list 1,2,3,4,5
+
+    Le `!default` fixe la valeur, le `!formselect` laisse l'enseignant en
+    choisir une autre sur la page d'accueil. Sans cette lecture, `$confparm1`
+    restait vide et un exercice qui boucle dessus — `!for val11 =1 to $val2`
+    où `val2=$confparm1` — se rendait sans une seule question.
+    """
+
+    def test_a_module_that_sets_one(self):
+        from core.oef.def_engine import _module_confparm_defaults as f
+        d = dict(f("/ressources/H3/algebra/oefpuis.nl/def/decalage.def"))
+        assert d == {"confparm1": "1"}
+
+    def test_a_module_that_sets_several(self):
+        from core.oef.def_engine import _module_confparm_defaults as f
+        d = dict(f("/ressources/H4/stat/oefstatistiques.fr/def/histogramme.def"))
+        assert d == {"confparm1": "40", "confparm2": "1000", "confparm3": "6"}
+
+    def test_a_module_without_a_hook(self):
+        """Pas de `introhook.phtml`, pas de valeur — et surtout pas d'erreur."""
+        from core.oef.def_engine import _module_confparm_defaults as f
+        assert f("/ressources/aucun/module/def/x.def") == ()
+        assert f(None) == ()
+
+    def test_the_four_oefpuis_now_have_a_question(self):
+        """Les quatre exercices qui n'en avaient aucune, faute de paramètre."""
+        from core.oef.engine import load_and_render
+        for nom, attendu in (("decalage", "0.0769"), ("decimal", "76.9"),
+                             ("puisdiv", "-216")):
+            r = load_and_render(
+                f"/ressources/H3/algebra/oefpuis.nl/src/{nom}.oef", seed=42
+            )
+            assert len(r.answers) == 1, nom
+            assert r.answers[0].expected == attendu, nom

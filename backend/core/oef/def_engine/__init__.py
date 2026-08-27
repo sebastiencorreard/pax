@@ -257,6 +257,41 @@ def _parse_input_attributes(tail: str) -> dict[str, object]:
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
+@lru_cache(maxsize=256)
+def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ...]:
+    """Valeurs par défaut des `confparm` posées par le module lui-même.
+
+    Un module WIMS règle ses paramètres dans son `introhook.phtml`, le bloc
+    inséré dans sa page d'accueil : `!default` fixe la valeur, le `!formselect`
+    qui suit laisse l'enseignant en choisir une autre.
+
+        !default confparm1=1
+        !formselect confparm1 list 1,2,3,4,5
+
+    Sans cette lecture, `$confparm1` reste vide, et un exercice qui boucle
+    dessus — `!for val11 =1 to $val2` où `val2=$confparm1` — se rend sans une
+    seule question. `!default` ne remplace jamais une valeur déjà posée, d'où
+    l'application avant tout le reste.
+
+    Sept modules du corpus s'en servent, 305 dans l'arbre WIMS.
+    """
+    if not def_path:
+        return ()
+    hook = os.path.join(
+        os.path.dirname(os.path.dirname(def_path)), "introhook.phtml"
+    )
+    try:
+        with open(hook, encoding="latin-1") as f:
+            texte = f.read()
+    except OSError:
+        return ()
+    trouves: dict[str, str] = {}
+    for m in re.finditer(r"^\s*!default\s+(confparm\d+)\s*=\s*(.*?)\s*$",
+                         texte, re.M):
+        trouves.setdefault(m.group(1), m.group(2))
+    return tuple(trouves.items())
+
+
 @lru_cache(maxsize=2048)
 def _parse_def_cached(def_path: str) -> DefFile:
     """Parse a .def file into an AST and cache the result by path.
@@ -330,6 +365,8 @@ class DefEngine(_SlibMixin):
         # Path of the .def file being rendered. Used to resolve `!readproc
         # slib/<name>` paths relative to the module directory.
         self.def_path = def_path
+        # Les `confparm` que le module se donne à lui-même, avant tout le reste.
+        self.ctx.update(_module_confparm_defaults(def_path))
         # Variables du mini-interpréteur PARI. WIMS pilote un unique processus
         # `gp` par exécution, donc les `!exec pari` successifs se partagent leur
         # état : oefforpython.fr définit `l=vector(n);for(…)` dans un appel puis
