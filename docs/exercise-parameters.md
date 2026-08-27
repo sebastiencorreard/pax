@@ -60,6 +60,29 @@ val265= $val2
 !endif
 ```
 
+#### Les exercices qui n'ont pas ce garde-fou
+
+Quatre exercices bouclent directement sur le paramètre, sans vérifier qu'il est
+là — `!for val11 =1 to $val2` où `val2=$confparm1`. La borne étant vide, la
+boucle ne tourne pas, et l'exercice se rend **sans aucune question** :
+
+| exercice | ce qu'il attend |
+|---|---|
+| `H3~algebra~oefpuis.nl~src~decalage` | `\confparm1` = nombre de questions |
+| `H3~algebra~oefpuis.nl~src~decalage2` | idem |
+| `H3~algebra~oefpuis.nl~src~decimal` | idem |
+| `H3~algebra~oefpuis.nl~src~puisdiv` | idem |
+
+Ce n'est pas un défaut du moteur : WIMS ne fournit pas davantage de valeur par
+défaut, et l'exercice n'est utilisable qu'une fois posé sur une feuille par un
+enseignant qui l'a réglé. Relevé le 2026-08-28, en cherchant pourquoi certains
+exercices n'exposent aucune réponse attendue — ils sont les seuls du corpus
+dans ce cas, les autres portant bien leur `!ifval $valN=`.
+
+Ils resteront donc invisibles aux tests de notation tant que les confparms ne
+seront pas exposés (voir ci-dessous) : `_get_testable_exercises` les écarte,
+faute de réponse.
+
 ### Pour exposer des paramètres dans l'API
 
 Si on voulait permettre à l'enseignant d'appeler `GET /api/render/{id}?confparm1=1,2,3` pour personnaliser un exercice, il faudrait :
