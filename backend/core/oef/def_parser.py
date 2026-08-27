@@ -559,8 +559,20 @@ def _parse_for(lines: list[str], i: int) -> tuple[ForLoop, int]:
     line = lines[i].strip()
     for_args = line[len("!for ") :]
 
-    # Syntax: "var =start to end" or "var=start to end" or "var =start..end"
-    m = re.match(r"(\S+)\s*=\s*(.+)", for_args)
+    # Syntax: "var =start to end" or "var=start to end" or "var =start..end".
+    # `from` est un synonyme de `=` — `exec.c`, `exec_for` :
+    #
+    #     if(memcmp(p1,"from",strlen("from"))==0 && isspace(*(p1+strlen("from")))) {
+    #       p1+=strlen("from"); goto assign;
+    #
+    # Sans lui, `!for slib_i from 3 to $slib_nl` ne se reconnaissait pas comme
+    # une boucle numérique et ne tournait pas : `slib/triplerelation/tabular`
+    # y remplit `slib_giveny`, qui restait à deux éléments au lieu de trois et
+    # faisait échouer toute la suite de son calcul. Seize `.def` du corpus et
+    # trente et un scripts WIMS emploient cette forme.
+    m = re.match(r"(\w+)\s+from\s+(.+)", for_args) or re.match(
+        r"(\S+)\s*=\s*(.+)", for_args
+    )
     if m:
         var = m.group(1).strip()
         range_expr = m.group(2).strip().replace("..", " to ")

@@ -662,7 +662,10 @@ class _SlibMixin:
                 # Numeric form `VAR = a to b`, or list form `VAR in LIST`
                 # (tab- or comma-separated) — the latter drives e.g. the slib
                 # editor's per-theme CSS loop.
-                num_m = re.match(r"(\w+)\s*=\s*(.+?)\s+to\s+(.+)$", spec)
+                # `from` vaut `=` (`exec.c`, `exec_for`) : `!for i from 3 to 5`.
+                num_m = re.match(
+                    r"(\w+)\s*(?:=|\bfrom\b)\s*(.+?)\s+to\s+(.+)$", spec
+                )
                 in_m = re.match(r"\$?(\w+)\s+in\s+(.*)$", spec, re.I | re.S)
                 if num_m:
                     try:

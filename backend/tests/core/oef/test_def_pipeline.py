@@ -1489,3 +1489,21 @@ class TestSlibFlatInterpreter:
     def test_a_list_loop(self):
         ctx = self._run(["!set acc=", "!for x in rouge,vert", "!set acc=$acc$x-", "!next"])
         assert ctx["acc"] == "rouge-vert-"
+
+    def test_a_loop_can_say_from_instead_of_equals(self):
+        """`!for i from 3 to 5` — `from` est un synonyme de `=`.
+
+            if(memcmp(p1,"from",strlen("from"))==0 && isspace(*(p1+strlen("from")))) {
+              p1+=strlen("from"); goto assign;      (exec.c, exec_for)
+
+        Sans lui, la boucle n'était pas reconnue comme numérique et ne tournait
+        pas du tout : `slib/triplerelation/tabular` y remplit `slib_giveny`,
+        qui restait à deux éléments au lieu de trois.
+        """
+        ctx = self._run(["!set acc=", "!for k from 2 to 4", "!set acc=$acc$k", "!next"])
+        assert ctx["acc"] == "234"
+
+    def test_from_and_equals_agree(self):
+        a = self._run(["!set acc=", "!for k from 1 to 3", "!set acc=$acc$k", "!next"])
+        b = self._run(["!set acc=", "!for k =1 to 3", "!set acc=$acc$k", "!next"])
+        assert a["acc"] == b["acc"] == "123"
