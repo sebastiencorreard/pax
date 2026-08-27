@@ -120,15 +120,25 @@ XFAIL_RENDER_STRUCTURE = {
 #
 # Les deux `equation` suivants s'y sont ajoutés le 2026-08-25, pour la même
 # raison et en implémentant `anstype/equation`. Leur attendu est cassé en
-# amont, sans qu'aucun checker puisse y remédier : `droitecar1` porte
-# `mmli*x+*y+=0`, où ni `mmli` ni deux coefficients n'ont été substitués, et
-# `ConnexionInt4` reprend le `rint(/*100)` — division inachevée — de son frère
-# `ConnexionInt2`, déjà listé ci-dessous. Une expression trouée n'est l'équation
-# de rien : elle ne se comparait à elle-même que faute de checker.
+# amont, sans qu'aucun checker puisse y remédier : `ConnexionInt4` reprend le
+# `rint(/*100)` — division inachevée — de son frère `ConnexionInt2`, déjà listé
+# ci-dessous. Une expression trouée n'est l'équation de rien : elle ne se
+# comparait à elle-même que faute de checker.
+#
+# Huit `programming` sont partis le 2026-08-27, tous d'une même cause : la
+# session PARI ne portait ni les fonctions qu'un `!exec pari` y définit, ni le
+# `default(format, …)` qu'il y pose — et cette dernière commande, faute d'être
+# reconnue, faisait **abandonner le programme entier**, qui repartait alors en
+# source brute. Les attendus gardaient donc le nom de la variable PARI (`llo`,
+# `vv`, `mmli`) au lieu de sa valeur. `droitecar1` en faisait partie : son
+# `mmli*x+*y+=0` n'était pas un attendu cassé par l'auteur, contrairement à ce
+# qu'on avait conclu — juste un calcul jamais fait. Restent les trois
+# ci-dessous, d'une autre famille : `f'(x_0)` en type `formal`, la dérivée
+# notée par une apostrophe, que le checker ne sait pas lire — l'attendu s'y
+# refuse lui-même.
 XFAIL_CORRECT_SCORE = {
     'H3~geometry~oefpytha.fr~src~moho1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
-    'H4~programming~oefalgopython.fr~src~droitecar1',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
@@ -149,15 +159,8 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~moles.fr~src~masse1',
     'H4~chemistry~moles.nl~src~masse1',
     'H4~physics~temps.fr~src~periodefrequence',
-    'H4~programming~oefalgopython.fr~src~balayage3',
-    'H4~programming~oefalgopython.fr~src~balayage4',
-    'H4~programming~oefalgopython.fr~src~balayage5',
-    'H4~programming~oefalgopython.fr~src~balayage6',
-    'H4~programming~oefalgopython.fr~src~dichotomie1',
     'H4~programming~oefalgopython.fr~src~euler1',
     'H4~programming~oefalgopython.fr~src~euler2',
-    'H4~programming~oefalgopython.fr~src~heron1',
-    'H4~programming~oefalgopython.fr~src~heron2',
     'H4~programming~oefalgopython.fr~src~tangente1',
     'H4~stat~descriptives.fr~src~pdfctstat',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt1',

@@ -1179,14 +1179,16 @@ def _call_pari(expr: str, session: dict | None = None) -> str:
         PariProgramError,
         looks_like_program,
         run_pari_program,
+        session_porte_un_etat,
     )
 
     # Programme impératif (affectations, `for`, `print` multiples) : le mini-
-    # interpréteur l'exécute. Une session non vide y route aussi les expressions
-    # simples, qui peuvent lire les variables posées par un `!exec pari`
-    # antérieur (`print(l)` après `l=vector(n);…`). Hors périmètre → on retombe
-    # sur l'évaluation d'expression ci-dessous.
-    if looks_like_program(expr) or session:
+    # interpréteur l'exécute. Une session qui porte déjà un état y route aussi
+    # les expressions simples, qui peuvent lire ce qu'un `!exec pari` antérieur
+    # y a posé (`print(l)` après `l=vector(n);…`, `print(f(2))` après
+    # `f(t)=…`). Hors périmètre → on retombe sur l'évaluation d'expression
+    # ci-dessous.
+    if looks_like_program(expr) or session_porte_un_etat(session):
         try:
             return run_pari_program(
                 expr, {**_MATH_NS, **_PARI_HELPERS}, session=session

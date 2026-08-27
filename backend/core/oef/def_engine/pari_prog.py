@@ -33,6 +33,7 @@ d'origine.
 from __future__ import annotations
 
 import ast
+import math
 import re
 from typing import Any
 
@@ -102,6 +103,29 @@ def _lier_variables(code: str) -> str:
 # Garde-fou : un programme WIMS reste minuscule ; au-delà, on considère que la
 # boucle ne termine pas plutôt que de bloquer le rendu de l'exercice.
 _MAX_STEPS = 100_000
+
+# WIMS tient une session `gp` **ouverte** pour la durée d'un exercice : ce qu'un
+# `!exec pari` y dépose, le suivant le retrouve. Les variables l'étaient déjà ;
+# ne l'étaient pas les deux autres choses qu'une session porte — les fonctions
+# qu'on y définit et le format de sortie qu'on y fixe. D'où le cas typique de
+# `oefpytha` et d'`oefalgopython`, une définition inline suivie de son appel
+# dans un second `!exec` :
+#
+#     !exec pari f(t)=(t+e/t)*0.5;      ← posée ici…
+#     !exec pari default(format,"f.8"); u=f(3,\rac); …
+#     !exec pari print(u)               ← …et attendue ici
+#
+# Elles vivent donc dans le même dictionnaire que les variables, sous des clés
+# qu'aucun identifiant PARI ne peut porter (`_IDENT_RE` exige une lettre ou un
+# `_` en tête). Elles traversent l'`eval` sans effet : le résolveur de noms de
+# Python ne peut nommer une clé qui n'est pas un identifiant.
+_SESSION_FUNCS = "\x00funcs"
+_SESSION_FORMAT = "\x00format"
+
+# `default(format, "<style>.<chiffres>")` — le style vaut `e` (toujours
+# scientifique), `f` (jamais d'exposant) ou `g` (au choix), et le nombre est
+# celui des chiffres **significatifs** affichés, non des décimales.
+_FORMAT_RE = re.compile(r"([efg])\.(\d+)", re.I)
 
 
 class PariProgramError(Exception):
@@ -535,8 +559,15 @@ class PariInterpreter:
         # Littéraux chaîne mis de côté en amont : le découpage aux `;`/`,` ne
         # doit pas voir leur contenu (`print(n","nbin)` de oefbin.nl/binary).
         self.strings: dict[str, str] = strings or {}
-        # Fonctions définies par le programme : nom → (paramètres, corps).
-        self.funcs: dict[str, tuple[list[str], str]] = {}
+        # Fonctions définies par le programme : nom → (paramètres, corps). Le
+        # dictionnaire est **celui de la session** quand il y en a une, pour
+        # qu'une définition survive au `!exec pari` qui l'a posée.
+        self.funcs: dict[str, tuple[list[str], str]] = self.vars.setdefault(
+            _SESSION_FUNCS, {}
+        )
+        # Format de sortie courant, `(style, chiffres significatifs)` ou None
+        # tant qu'aucun `default(format, …)` ne l'a fixé.
+        self.fmt: tuple[str, int] | None = self.vars.get(_SESSION_FORMAT)
         # Les helpers de `cas` renvoient des listes/matrices sympy ; on les
         # enveloppe pour que l'indexation reste 1-based côté programme.
         self.base_ns = {k: _wrap_helper(v) for k, v in base_ns.items()}
@@ -611,6 +642,10 @@ class PariInterpreter:
         if inner is not None:
             return self._exec_for(inner)
 
+        inner = _match_call(stmt, "forstep")
+        if inner is not None:
+            return self._exec_forstep(inner)
+
         inner = _match_call(stmt, "while")
         if inner is not None:
             return self._exec_while(inner)
@@ -623,6 +658,10 @@ class PariInterpreter:
             inner = _match_call(stmt, fn)
             if inner is not None:
                 return self._exec_print(inner, newline)
+
+        inner = _match_call(stmt, "default")
+        if inner is not None:
+            return self._exec_default(inner)
 
         assign = _split_assignment(stmt)
         if assign is not None:
@@ -652,6 +691,56 @@ class PariInterpreter:
             else:
                 self.vars[var] = saved
 
+    def _exec_forstep(self, inner: str) -> None:
+        """``forstep(v = a, b, pas, corps)`` — la boucle `for` à pas choisi.
+
+        `_CONTROL_RE` la reconnaissait déjà comme structure de contrôle, mais
+        rien ne l'exécutait : l'instruction partait en évaluation d'expression,
+        et le `=` du `v = a` y devenait un argument nommé Python. L'erreur
+        emportait le programme entier — les balayages d'`oefalgopython`
+        n'obtenaient plus aucune de leurs listes, sans qu'aucun message ne le
+        dise. Trente-six fichiers du corpus s'en servent.
+
+        Le pas est le plus souvent fractionnaire (`1.0*10^(-p)`), d'où la
+        boucle sur un accumulateur plutôt que sur `range`. GP compare la
+        variable à la borne à chaque tour et s'arrête dès qu'elle la dépasse,
+        dans le sens du pas ; un pas nul ne boucle pas.
+        """
+        args = _split_top_level(inner, ",")
+        if len(args) < 4:
+            raise PariProgramError("forstep() malformé")
+        head = _split_assignment(args[0])
+        if head is None:
+            raise PariProgramError("forstep() sans variable de boucle")
+        var = head[0]
+        debut = self.eval_expr(head[1])
+        fin = self.eval_expr(args[1])
+        pas = self.eval_expr(args[2])
+        body = ",".join(args[3:])
+        try:
+            pas_f = float(pas)
+        except (TypeError, ValueError) as exc:
+            # `forstep(x=a,b,[p,q])` — pas donné par un vecteur de résidus.
+            # Aucun exercice du corpus n'y recourt ; hors périmètre.
+            raise PariProgramError(f"forstep() à pas non scalaire : {pas!r}") from exc
+        if pas_f == 0:
+            raise PariProgramError("forstep() à pas nul")
+        saved = self.vars.get(var)
+        try:
+            valeur = debut
+            while (float(valeur) <= float(fin)) if pas_f > 0 else (
+                float(valeur) >= float(fin)
+            ):
+                self._tick()
+                self.vars[var] = valeur
+                self.exec_block(body)
+                valeur = valeur + pas
+        finally:
+            if saved is None:
+                self.vars.pop(var, None)
+            else:
+                self.vars[var] = saved
+
     def _exec_while(self, inner: str) -> None:
         args = _split_top_level(inner, ",")
         if len(args) < 2:
@@ -671,6 +760,35 @@ class PariInterpreter:
         branch = branch.strip()
         return self.exec_block(branch) if branch else None
 
+    def _exec_default(self, inner: str) -> None:
+        """``default(clé, valeur)`` — un réglage de la session `gp`, pas un calcul.
+
+        Rien ne l'évaluait, et l'échec ne restait pas local : il emportait le
+        programme entier, qui repartait alors en **source brute** dans la
+        variable WIMS. Or 89 fichiers du corpus — dont 36 `.def` — ouvrent sur
+        ``default(format, "f.8")`` avant de poser leurs variables, si bien que
+        tout ce qui suivait était perdu sans qu'aucune erreur ne le signale.
+
+        Seul ``format`` change quelque chose d'observable ici : il fixe la
+        notation des réels imprimés (cf. ``_format_value``). Les autres
+        réglages — ``realprecision``, ``output``, ``seriesprecision`` — ne
+        portent pas jusqu'à cette émulation ; les ignorer est fidèle à ce
+        qu'elles produisent chez nous, c'est-à-dire rien.
+        """
+        args = _split_top_level(inner, ",")
+        if len(args) < 2:
+            # `default(cle)` lit un réglage au lieu d'en poser un. Aucun
+            # exercice ne s'en sert, et rendre 0 vaut mieux qu'abandonner.
+            return None
+        cle = _unstash(args[0], self.strings).strip().strip('"').lower()
+        val = _unstash(args[1], self.strings).strip().strip('"')
+        if cle == "format":
+            m = _FORMAT_RE.fullmatch(val.strip())
+            if m:
+                self.fmt = (m.group(1).lower(), int(m.group(2)))
+                self.vars[_SESSION_FORMAT] = self.fmt
+        return None
+
     def _exec_print(self, inner: str, newline: bool) -> None:
         # GP concatène les arguments sans séparateur ; `print` termine la ligne,
         # `print1` la poursuit.
@@ -685,13 +803,13 @@ class PariInterpreter:
         dans un contexte chaîne, `n","nbin` concatène les trois morceaux."""
         pieces = _STASH_KEY_RE.split(arg)
         if len(pieces) == 1:
-            return _format_value(self.eval_expr(arg))
+            return _format_value(self.eval_expr(arg), self.fmt)
         out: list[str] = []
         for piece in pieces:
             if piece in self.strings:
                 out.append(self.strings[piece].strip('"'))
             elif piece.strip():
-                out.append(_format_value(self.eval_expr(piece)))
+                out.append(_format_value(self.eval_expr(piece), self.fmt))
         return "".join(out)
 
     def _exec_assign(self, target: str, rhs: str) -> Any:
@@ -997,7 +1115,41 @@ def _wims_line_filter(line: str) -> str:
     return out
 
 
-def _format_value(value: Any) -> str:
+def _format_reel(x: float, fmt: tuple[str, int]) -> str | None:
+    """Un réel selon ``default(format, …)``, ou None si la règle ne s'applique pas.
+
+    Le style dicte la notation — `e` toujours un exposant, `f` jamais, `g` au
+    choix — et le nombre compte les chiffres **significatifs**, non les
+    décimales : `f.8` rend `0.33333333` comme `1.2345679`.
+
+    Les entiers exacts restent hors de cette règle et gardent leur écriture
+    courte (`2`, non `2.0000000`). GP, lui, affiche la précision complète ; mais
+    la valeur ne traverse pas WIMS comme un affichage, elle y devient le contenu
+    d'une variable qu'un `!ifval` compare ou qu'un attendu reprend. Le zéro de
+    queue n'y apporterait rien et changerait 89 fichiers d'un coup.
+    """
+    style, chiffres = fmt
+    if chiffres <= 0 or x != x or x in (float("inf"), float("-inf")):
+        return None
+    if x.is_integer():
+        return None
+    if style == "e":
+        return f"{x:.{chiffres - 1}e}"
+    if style == "g":
+        return f"{x:.{chiffres}g}"
+    # `f` : notation fixe, quelle que soit la grandeur. Le nombre de décimales
+    # se déduit des chiffres significatifs demandés et de l'ordre de grandeur.
+    exposant = math.floor(math.log10(abs(x)))
+    decimales = max(0, chiffres - 1 - exposant)
+    out = f"{x:.{decimales}f}"
+    # Un arrondi peut vider la partie significative (`0.00000004` en `f.3`) ;
+    # mieux vaut alors la notation courte que `0.000`.
+    if float(out) == 0.0:
+        return None
+    return out.rstrip("0").rstrip(".") if "." in out else out
+
+
+def _format_value(value: Any, fmt: tuple[str, int] | None = None) -> str:
     """Rendu d'une valeur pour `print`, au format GP **brut**.
 
     L'interface PARI de WIMS ouvre `gp` sur `default(output,0)`
@@ -1013,12 +1165,30 @@ def _format_value(value: Any) -> str:
     if isinstance(value, str):
         return value.strip('"')
     if isinstance(value, (PVec, PList)):
-        return "[" + ",".join(_format_value(v) for v in value.items) + "]"
+        return "[" + ",".join(_format_value(v, fmt) for v in value.items) + "]"
     if isinstance(value, PMat):
         return "[" + ";".join(
-            ",".join(_format_value(v) for v in row) for row in value.rows
+            ",".join(_format_value(v, fmt) for v in row) for row in value.rows
         ) + "]"
+    # `format` ne régit que les réels — les t_REAL de GP. Un rationnel y reste
+    # exact (`1/3` s'imprime `1/3`, jamais `0.33333333`) et un entier garde son
+    # écriture ; les formater serait une perte d'information, pas une mise en
+    # forme.
+    if fmt is not None and isinstance(value, float):
+        rendu = _format_reel(value, fmt)
+        if rendu is not None:
+            return rendu
+    if fmt is not None and _est_flottant_sympy(value):
+        rendu = _format_reel(float(value), fmt)
+        if rendu is not None:
+            return rendu
     return _format_pari_result(value)
+
+
+def _est_flottant_sympy(value: Any) -> bool:
+    import sympy  # noqa: PLC0415
+
+    return isinstance(value, sympy.Float)
 
 
 # --------------------------------------------------------------------------- #
@@ -1034,7 +1204,9 @@ _CONTROL_RE = re.compile(r"^\s*(for|while|forstep)\s*\(", re.I)
 _BOUND_VAR_RE = re.compile(r"\b(sum|prod)\s*\(\s*[A-Za-z_]\w*\s*=")
 # Constructions que l'évaluation d'expression ne sait pas rendre : types
 # mutables et fonctions définies à la volée.
-_GP_ONLY_RE = re.compile(r"\b(List|listinsert|listput|vecsort|local)\s*\(|\w+\([^)]*\)\s*=(?!=)")
+_GP_ONLY_RE = re.compile(
+    r"\b(List|listinsert|listput|vecsort|local|default)\s*\(|\w+\([^)]*\)\s*=(?!=)"
+)
 
 
 def looks_like_program(src: str) -> bool:
@@ -1049,6 +1221,48 @@ def looks_like_program(src: str) -> bool:
     if len(statements) > 1:
         return True
     return bool(statements) and _split_assignment(statements[0]) is not None
+
+
+def session_porte_un_etat(session: dict[str, Any] | None) -> bool:
+    """Vrai si la session tient de quoi changer le sens d'une expression.
+
+    Un simple `if session` ne suffit plus : l'interpréteur y installe sa table
+    de fonctions dès qu'il s'exécute, fût-ce pour un programme abandonné en
+    route. Une session ainsi peuplée d'un dictionnaire vide dirait « non
+    vide », et tout `!exec pari` ultérieur serait routé vers l'interpréteur
+    au lieu de l'évaluation d'expression — un changement de comportement pour
+    tout exercice qui enchaîne plusieurs `!exec pari`, sans qu'aucun état
+    réel le justifie.
+    """
+    if not session:
+        return False
+    for cle, valeur in session.items():
+        if cle == _SESSION_FUNCS:
+            if valeur:
+                return True
+        elif cle == _SESSION_FORMAT:
+            return True
+        else:
+            # Une variable compte même quand elle vaut 0 : c'est bien une
+            # valeur qu'une expression peut lire.
+            return True
+    return False
+
+
+def _snapshot(session: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Copie de la session à restaurer si le programme est abandonné.
+
+    Superficielle, à une exception près : la table des fonctions est un
+    dictionnaire que l'interpréteur mute **en place**, si bien qu'une copie
+    plate l'aurait laissée partagée — et une fonction définie juste avant
+    l'abandon aurait survécu à la restauration.
+    """
+    if session is None:
+        return None
+    snap = dict(session)
+    if _SESSION_FUNCS in snap:
+        snap[_SESSION_FUNCS] = dict(snap[_SESSION_FUNCS])
+    return snap
 
 
 def _restore(session: dict[str, Any] | None, snapshot: dict[str, Any] | None) -> None:
@@ -1082,7 +1296,7 @@ def run_pari_program(
     # L'exécution est atomique vis-à-vis de la session : un programme
     # abandonné en route ne doit pas y laisser de variables à moitié
     # calculées, que le `!exec pari` suivant lirait comme valides.
-    snapshot = dict(session) if session is not None else None
+    snapshot = _snapshot(session)
     try:
         printed, last = interp.run(body)
     except PariProgramError:
@@ -1101,4 +1315,4 @@ def run_pari_program(
     # oefline.it/sys3 renvoie sa valeur).
     if last is None or src.rstrip().rstrip("}").rstrip().endswith(";"):
         return ""
-    return _wims_line_filter(_format_value(last))
+    return _wims_line_filter(_format_value(last, interp.fmt))
