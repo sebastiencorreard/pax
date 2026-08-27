@@ -642,6 +642,48 @@ class _SlibMixin:
                 continue
             if stripped == "!exit":
                 raise _SlibExit()
+            if stripped.startswith("!while "):
+                # `!while COND … !endwhile`, sur le même pointeur que `!for` :
+                # la condition se réévalue à chaque tour, et un `!goto` du corps
+                # peut en sortir — ce que la garde des slib suppose
+                # (`!if $currentwhile > $maxwhile` → `!goto too_many_iter`).
+                # Sans cette branche, `!endwhile` remontait en `UNKNOWN_CMD`
+                # jusque dans l'attendu de l'exercice.
+                depth = 1
+                j = i + 1
+                while j < n and depth > 0:
+                    s = lines[j].strip()
+                    if s.startswith("!while "):
+                        depth += 1
+                    elif re.match(r"!endwhile\b", s):
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    j += 1
+                if depth != 0:
+                    i = (j + 1) if j < n else n
+                    continue
+                cond = stripped[len("!while ") :]
+                if not self._eval_condition("if", cond):
+                    i = j + 1
+                    continue
+                loop_stack.append({
+                    "kind": "while", "cond": cond, "head": i, "end": j, "tours": 0,
+                })
+                i += 1
+                continue
+            if re.match(r"!endwhile\b", stripped):
+                # Même borne que le `WhileLoop` du moteur principal : une
+                # condition qui ne retombe jamais ne doit pas emporter le rendu.
+                if loop_stack and loop_stack[-1]["end"] == i:
+                    top = loop_stack[-1]
+                    top["tours"] += 1
+                    if top["tours"] <= 100000 and self._eval_condition("if", top["cond"]):
+                        i = top["head"] + 1
+                        continue
+                    _restaurer_boucle(self.ctx, loop_stack.pop())
+                i += 1
+                continue
             if stripped.startswith("!for "):
                 depth = 1
                 j = i + 1

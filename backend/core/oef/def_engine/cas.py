@@ -62,6 +62,25 @@ _MATH_NS: dict = {
     "log": math.log,
     "log10": math.log10,
     "log2": math.log2,
+    # `lg` est le logarithme **décimal**, `ln` le népérien — table des
+    # fonctions de `Lib/evalue.c` :
+    #
+    #     {"lg",   1, 0, log10, NULL},
+    #     {"ln",   1, 0, log,   NULL},
+    #
+    # Sans elles, `lg(0.0312)` s'évaluait à 0 en silence, et l'arrondi aux
+    # chiffres significatifs de `slib/triplerelation/tabular` —
+    # `rint(10^(prec-1-floor(lg(x)))*x)/10^(prec-1-floor(lg(x)))` — ne
+    # produisait plus rien d'exploitable. Vingt-cinq scripts WIMS emploient
+    # `lg`. Les hyperboliques et `int`/`frac` de la même table complètent
+    # l'alignement.
+    "lg": math.log10,
+    "ln": math.log,
+    "sinh": math.sinh,
+    "cosh": math.cosh,
+    "tanh": math.tanh,
+    "int": lambda x: int(float(x)),
+    "frac": lambda x: float(x) - int(float(x)),
     "exp": math.exp,
     "floor": math.floor,
     "ceil": math.ceil,

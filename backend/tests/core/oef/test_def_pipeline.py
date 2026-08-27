@@ -1507,3 +1507,50 @@ class TestSlibFlatInterpreter:
         a = self._run(["!set acc=", "!for k from 1 to 3", "!set acc=$acc$k", "!next"])
         b = self._run(["!set acc=", "!for k =1 to 3", "!set acc=$acc$k", "!next"])
         assert a["acc"] == b["acc"] == "123"
+
+
+class TestLogFunctions:
+    """`lg` est le logarithme décimal, `ln` le népérien.
+
+    Table des fonctions de `Lib/evalue.c` :
+
+        {"lg",   1, 0, log10, NULL},
+        {"ln",   1, 0, log,   NULL},
+        {"log",  1, 0, log,   NULL},
+
+    Aucune des deux n'existait dans le namespace : `lg(x)` s'évaluait à 0 en
+    silence. L'arrondi aux chiffres significatifs de
+    `slib/triplerelation/tabular` en dépend entièrement —
+    `rint(10^(prec-1-floor(lg(x)))*x)/10^(prec-1-floor(lg(x)))` —, ce qui
+    laissait `moles`, `massevolumique` et `vitesse0` sans aucune valeur.
+    """
+
+    @staticmethod
+    def _ev(expr):
+        from core.oef.def_engine import DefEngine
+        e = DefEngine.__new__(DefEngine)
+        e.ctx = {}
+        return e._eval_arith(expr)
+
+    def test_lg_is_base_ten(self):
+        assert self._ev("lg(100)") == "2"
+        assert self._ev("lg(1000)") == "3"
+
+    def test_ln_is_natural(self):
+        assert self._ev("ln(1)") == "0"
+        assert self._ev("rint(ln(e))") == "1"
+
+    def test_log_stays_natural(self):
+        """`log` reste le népérien, comme dans la table du C."""
+        assert self._ev("log(1)") == "0"
+
+    def test_the_significant_digits_rounding(self):
+        """Le motif exact de `tabular`, à trois chiffres significatifs."""
+        assert self._ev(
+            "rint(10^(2-1-floor(lg(0.0312)))*0.0312)/10^(2-1-floor(lg(0.0312)))"
+        ) == "0.031"
+
+    def test_hyperbolics_and_int_frac(self):
+        assert self._ev("sinh(0)") == "0"
+        assert self._ev("cosh(0)") == "1"
+        assert self._ev("int(3.7)") == "3"
