@@ -103,6 +103,11 @@ _DOLLAR_VAR_RE = re.compile(r"\$([a-zA-Z_][a-zA-Z0-9_]*)")  # $varname
 # enclosing reference is itself built from a variable ($(slib_theme$slib_n)).
 _DOLLAR_IN_PAREN_RE = re.compile(r"\$\([^)]*\$[a-zA-Z_]")
 
+# Division par une puissance de 10 — `/1000` comme `/10**(3)`, parenthèses
+# éventuelles. Signe d'une mise à l'échelle décimale, non d'une fraction
+# (cf. `_expected_as_fraction`).
+_DIVISION_DECIMALE_RE = re.compile(r"/\s*\(*\s*(?:10\s*\*\*|10*0)\b")
+
 # Answer types whose value is an algebraic expression (potentially long), so a
 # no-embed fallback reply field gets a wider default than a numeric one.
 _WIDE_FALLBACK_TYPES = {
@@ -4331,6 +4336,16 @@ class DefEngine(_SlibMixin):
         # A denominator that is a multiple of 10 is a decimal / unit-conversion
         # artifact (loigp1's `$[$val11/1000]` = 7/1000 L = 0.007 L), not a
         # pedagogical fraction (those use 2,3,4,6,7,8,…). Keep those decimal.
+        #
+        # Le test porte sur le dénominateur **réduit**, et la réduction efface
+        # justement ce qu'il cherche : l'arrondi `rint(x*10^3)/10^3` des
+        # balayages d'`oefalgopython` donne `1424/1000`, que `Fraction` ramène
+        # à `178/125` — dénominateur non multiple de 10, donc pris pour une
+        # fraction, et l'élève lisait `178/125` au lieu de `1.424`. D'où le
+        # second test, sur l'**expression** : diviser par une puissance de 10
+        # est une mise à l'échelle décimale, quoi que la réduction en fasse.
+        if _DIVISION_DECIMALE_RE.search(expr):
+            return None
         if (
             isinstance(res, Fraction)
             and res.denominator != 1
