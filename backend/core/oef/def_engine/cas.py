@@ -305,7 +305,24 @@ def _call_maxima(expr: str) -> str:
                 var = _sympify_arg(args[1])
                 order = int(args[2]) if len(args) >= 3 else 1
                 return str(sympy.diff(e, var, order))
-            if func_name in ("subst", "ev") and len(args) >= 3:
+            if func_name == "ev" and args:
+                # `ev(expr, x=0)` — Maxima évalue `expr` en lui appliquant les
+                # équations qui suivent. L'ordre des arguments est l'inverse de
+                # celui de `subst(nouveau, ancien, expr)`, avec quoi cette
+                # branche était confondue : `ev` n'y entrait qu'à trois
+                # arguments, si bien que la forme réelle du corpus repartait
+                # telle quelle — et pire, `ev(x^2+1)` se lisait `e*v*(x^2+1)`,
+                # un produit par la constante d'Euler.
+                e = _sympify_arg(args[0])
+                for arg in args[1:]:
+                    var, sep, val = arg.partition("=")
+                    # Un argument sans `=` est un mot-clé d'évaluation (`simp`,
+                    # `numer`, `expand`) : sympy simplifie déjà, il n'y a rien
+                    # à en faire de plus.
+                    if sep and re.fullmatch(r"\s*[A-Za-z_]\w*\s*", var):
+                        e = e.subs(_sympify_arg(var), _sympify_arg(val))
+                return str(e)
+            if func_name == "subst" and len(args) >= 3:
                 val = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
                 e = _sympify_arg(args[2])

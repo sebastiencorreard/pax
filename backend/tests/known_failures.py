@@ -151,6 +151,20 @@ XFAIL_RENDER_STRUCTURE = {
 # trajet en minutes et secondes, et n'obtenait que `NaN`. Trois autres
 # exercices du même module (`bird`, `etagere1`, `etagere2`) y ont gagné leur
 # énoncé, qui affichait jusque-là son propre code source.
+#
+# Deux derniers sont partis le 2026-08-27, chacun pour une raison isolée :
+#
+#   - `ordoneeOrign` appelle `ev($val26, x=0)`, la fonction Maxima qui évalue
+#     une expression sous une substitution. Elle n'était reconnue qu'à trois
+#     arguments, sur la signature de `subst(nouveau, ancien, expr)` — dont
+#     l'ordre est pourtant l'inverse. La forme réelle repartait telle quelle,
+#     et `ev(x^2+1)` se lisait même `e*v*(x^2+1)`, un produit par la constante
+#     d'Euler.
+#   - `T1110` demande « 30 % de 20 » et attend `6`, sous le `polfactor` que le
+#     module pose pour toutes ses questions. Or une constante n'a pas de forme
+#     factorisée *par opposition à* développée : elle est les deux. Le
+#     pré-contrôle la disait développée — un nombre est un monôme — et la
+#     refusait donc au titre de la factorisation exigée.
 XFAIL_CORRECT_SCORE = {
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
     'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
@@ -161,8 +175,6 @@ XFAIL_CORRECT_SCORE = {
     'H3~geography~oefdepregfr.fr~src~clickrcap',
     'H3~geography~oefdepregfr.fr~src~clickreg',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
-    'H3~math~quizz.fr~src~T1110',
-    'H4~algebra~h4droites.fr~src~ordoneeOrign',
     'H4~chemistry~chemavance1.fr~src~Tableaudavance',
     'H4~chemistry~chemavance1.fr~src~TableaudavanceBis',
     'H4~chemistry~mole.fr~src~masse_molaire1',

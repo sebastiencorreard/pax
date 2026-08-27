@@ -330,6 +330,31 @@ class CheckResult:
     status: str = "ok"  # "ok", "invalid_format"
 
 
+def _est_constante(s: str) -> bool:
+    """Vrai si l'expression ne porte aucune variable — `6`, `-3/4`, `2^3`.
+
+    Une telle réponse échappe à l'opposition développé / factorisé, dont les
+    deux pré-contrôles de forme dépendent.
+    """
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+
+        expr = parse_expr(
+            _normalize_expr(s),
+            transformations=standard_transformations
+            + (implicit_multiplication_application,),
+            local_dict=_safe_locals(),
+        )
+        return not expr.free_symbols
+    except Exception:  # noqa: BLE001 — illisible : on ne conclut pas
+        return False
+
+
 def is_polexpand(s: str) -> bool:
     """Vérifie si une expression est sous forme développée ET réduite
     (somme de monômes distincts par degré/symbole)."""
@@ -2292,7 +2317,13 @@ def check_answer(
 
     # Pre-check polfactor if requested
     if requires_factor:
-        if reply.strip() and is_polexpand(reply):
+        # Une **constante** n'a pas de forme factorisée par opposition à une
+        # forme développée : elle est les deux. `is_polexpand` la dit pourtant
+        # développée — un nombre est un monôme —, si bien qu'exiger une
+        # factorisation la refusait. `T1110` demande « 30 % de 20 » et attend
+        # `6`, sous un `polfactor` que le module pose pour toutes ses
+        # questions : son attendu se refusait lui-même.
+        if reply.strip() and not _est_constante(reply) and is_polexpand(reply):
             return CheckResult(
                 correct=False,
                 score=0.0,
