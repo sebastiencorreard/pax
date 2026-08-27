@@ -1641,3 +1641,46 @@ class TestEvalueTable:
         for seed in range(5):
             assert 0 <= float(self._ev("random(10)", seed=seed)) < 10
             assert 0 <= int(self._ev("randint(6)", seed=seed)) < 6
+
+
+class TestChoiceAnswers:
+    """Un `\\choice{}` porte sa propre réponse, dans un champ `c<N>`.
+
+    WIMS lui réserve un champ à part, désigné `c<N>` dans `oefsteps` comme
+    dans un `\\embed{}`. PAX ne la fabriquait que pour un exercice **sans
+    aucune `reply`** : ceux qui mêlent les deux affichaient un champ que rien
+    ne notait. `cosinus` est un `course` dont `oefsteps` vaut `c1\\tr1,r2,r3` —
+    à l'étape 1, le filtre ne gardait que `c1`, qui n'existait pas.
+    """
+
+    def test_a_course_step_that_asks_for_the_choice(self):
+        from core.oef.engine import load_and_render
+        r = load_and_render(
+            "/ressources/H4/analysis/OEFevacollege2005.fr/src/cosinus.oef", seed=42
+        )
+        assert [a.input_name for a in r.answers] == ["c1"]
+        assert r.answers[0].expected
+        assert r.answers[0].options.get("choices")
+
+    def test_the_choice_field_is_named_c(self):
+        from core.oef.engine import load_and_render
+        r = load_and_render(
+            "/ressources/H3/number/oefrelatifcollege.fr/src/calcprio.oef", seed=42
+        )
+        assert [a.input_name for a in r.answers] == ["c1"]
+
+    def test_an_exercise_with_only_choices_keeps_reply_names(self):
+        """Sans aucune `reply`, les choix restent exposés en `replyN` — c'est
+        le seul cas où WIMS ne les distingue pas."""
+        from core.oef.def_engine import _parse_def_cached
+        from core.oef.engine import find_def_path, load_and_render
+        import glob
+        for oef in glob.glob("/ressources/H3/**/src/*.oef", recursive=True)[:400]:
+            d = find_def_path(oef)
+            if not d:
+                continue
+            df = _parse_def_cached(d)
+            if df.choice_meta and not df.reply_meta:
+                r = load_and_render(oef, seed=42)
+                assert all(a.input_name.startswith("reply") for a in r.answers), oef
+                return

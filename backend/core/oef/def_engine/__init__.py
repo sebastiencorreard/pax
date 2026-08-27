@@ -4400,9 +4400,18 @@ class DefEngine(_SlibMixin):
 
         # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from
         # choice_meta (WIMS creates an implicit reply slot in this case).
-        if not df.reply_meta and df.choice_meta:
+        # Un `\choice{}` porte sa propre réponse, et WIMS lui réserve un champ
+        # à part : `c<N>`, tel qu'il apparaît dans `oefsteps` et dans un
+        # `\embed{}`. PAX ne la fabriquait que pour un exercice **sans aucune
+        # `reply`**, ce qui laissait sans réponse ceux qui mêlent les deux —
+        # `cosinus` est un `course` dont `oefsteps` vaut `c1\tr1,r2,r3` : à
+        # l'étape 1 le filtre ne gardait que le champ `c1`, qui n'existait pas,
+        # et l'exercice s'affichait avec un champ que rien ne notait.
+        if df.choice_meta:
             for cm in df.choice_meta:
                 n = cm["n"]
+                # Seul un exercice qui n'a que des choix les expose en `reply`.
+                nom_champ = f"reply{n}" if not df.reply_meta else f"c{n}"
                 correct = self._subst(cm.get("good", ""))
                 wrong_raw = self._subst(cm.get("bad", ""))
                 wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
@@ -4437,11 +4446,12 @@ class DefEngine(_SlibMixin):
                         answer_type="radio",
                         options={"choices": choices},
                         weight=1.0,
-                        input_name=f"reply{n}",
-                        logical_name=f"reply{n}",
+                        input_name=nom_champ,
+                        logical_name=nom_champ,
                     )
                 )
-            return answers
+            if not df.reply_meta:
+                return answers
 
         for rm in df.reply_meta:
             n = rm["n"]
