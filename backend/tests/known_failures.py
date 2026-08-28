@@ -186,6 +186,18 @@ XFAIL_RENDER_STRUCTURE = {
 # `moymanqte` et `C1` y ont gagné au passage, le premier son énoncé — il
 # annonçait une moyenne égale à `print(rint(print(Mat([0,4,13,14])*…` et dit
 # maintenant 303/28.
+#
+# `pdfctstat` est le cinquième `stat`, et **rien n'est à corriger dans le
+# moteur** : ses attendus (`\eAD/\eA`) nomment des effectifs que le `.oef` ne
+# définit jamais. Le préprocesseur les pose bien, mais sous une garde
+# `#if defined defined TARGET_pdfctstat` — un `defined` de trop
+# (`src/cpp/piecesdefct.cpp`, lignes 42, 86 et 172, seules occurrences du
+# corpus). L'expression est donc fausse, les douze `\integer{eAD=…}` sont
+# exclus de la génération, et le bloc suivant — dont la garde est correcte —
+# les référence quand même. Le `.oef` livré est cassé à la source, chez WIMS
+# comme ici. Corriger demande de retirer le mot en trop **et** de régénérer
+# `.oef` et `.def` : un travail sur le corpus, pas sur le code, à trancher
+# avec le mainteneur — même nature que `medicament` dans la liste du rendu.
 XFAIL_CORRECT_SCORE = {
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
