@@ -679,6 +679,53 @@ def _sci_to_float(s: str, comma_is_decimal: bool) -> float:
     return float(_normalize_sci(s))
 
 
+def units_filter(args: str) -> str:
+    """``!exec units-filter <quantité>#<chiffres>[:<unité voulue>]``.
+
+    `units-filter` est un binaire de WIMS : il lit une quantité avec son unité,
+    l'arrondit au nombre de chiffres **significatifs** demandé, et sait la
+    convertir vers une autre unité. PAX ne le fournissait pas, et `!exec` ne
+    connaissant que `maxima` et `pari`, l'appel rendait une chaîne vide — d'où
+    l'attendu ` s#2` de `periodefrequence`, réduit à son unité, la valeur
+    partie. Soixante-dix fichiers du corpus passent par `slib/text/sigunits`,
+    qui n'est qu'une enveloppe autour de cet appel.
+
+    L'arrondi est porté ici ; la **conversion** d'unité ne l'est pas — elle
+    demanderait la table de WIMS — et un appel qui en réclame une rend la
+    chaîne vide comme avant, plutôt qu'une valeur non convertie qui serait
+    fausse sans le dire.
+    """
+    from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+
+    spec = (args or "").strip()
+    if not spec:
+        return ""
+    # `:unité` — conversion demandée. Tolérée seulement si l'unité voulue est
+    # celle de départ, auquel cas il n'y a rien à convertir.
+    voulue = ""
+    if ":" in spec:
+        spec, _, voulue = spec.partition(":")
+        voulue = voulue.strip()
+    quantite, _, chiffres = spec.partition("#")
+    try:
+        n_sig = int(chiffres.strip())
+    except ValueError:
+        n_sig = 3  # `!default slib_sig=3` dans `slib/text/sigunits`
+    val, unite = _split_sci_value_unit(quantite.strip())
+    if val is None:
+        return ""
+    if voulue and voulue != unite:
+        return ""
+    try:
+        arrondi = _round_sig(_sci_to_float(val, comma_is_decimal=False), n_sig)
+    except (ValueError, OverflowError):
+        return ""
+    texte = (
+        str(int(arrondi)) if arrondi == int(arrondi) else format_wims_float(arrondi)
+    )
+    return f"{texte} {unite}".strip()
+
+
 def format_sigunits_expected(expected: str) -> str:
     """Render a ``sigunits`` expected (``"164200792894 km^3 #3"``) as the answer
     the student should give: scientific notation rounded to N significant

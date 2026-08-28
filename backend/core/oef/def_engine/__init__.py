@@ -1659,14 +1659,25 @@ class DefEngine(_SlibMixin):
         # would shred `min(9,10)` into "min(9" / "10)" and fail → "0".
         parts = [self._subst(p.strip()) for p in _split_top_level_args(args)]
         try:
-            if len(parts) == 1:
-                # Single-arg form: WIMS returns integer in [1, N]
-                n = int(round(float(self._eval_arith(parts[0]))))
-                return str(self.rng.randint(1, n))
             a = int(round(float(self._eval_arith(parts[0]))))
-            b = int(round(float(self._eval_arith(parts[1]))))
+            if len(parts) == 1:
+                # `calc_randint` : « Missing ubound: random between +-1 and
+                # lbound » — l'autre borne est 1, ou -1 si la première est
+                # négative. `!randint -3` tire donc dans [-3, -1], quand
+                # `randint(1, -3)` levait ici une ValueError et rendait 0.
+                b = -1 if a < 0 else 1
+            else:
+                b = int(round(float(self._eval_arith(parts[1]))))
+            # `if(lbound>ubound) {i=lbound; lbound=ubound; ubound=i;}` — WIMS
+            # **échange** les bornes inversées plutôt que d'abandonner. Sans
+            # cela, le `!randint 2, $val17-1` de `chiffres3`, dont la seconde
+            # borne peut tomber à 1, levait une ValueError et rendait 0 — d'où
+            # un nombre de chiffres significatifs nul, et tout un exercice de
+            # volumes à zéro.
+            if a > b:
+                a, b = b, a
             return str(self.rng.randint(a, b))
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, IndexError):
             return "0"
 
     def _cmd_random(self, args: str) -> str:
@@ -1921,8 +1932,14 @@ class DefEngine(_SlibMixin):
         return f"{target}{sep}{val}"
 
     def _cmd_exec(self, args: str) -> str:
-        """!exec maxima expr / !exec pari expr — call external CAS."""
-        m = re.match(r"(maxima|pari)\s+(.*)", args, re.DOTALL | re.I)
+        """!exec maxima expr / !exec pari expr / !exec units-filter qty#sig.
+
+        `units-filter` n'est pas un CAS mais un petit binaire de WIMS, qui
+        arrondit une quantité à N chiffres significatifs. Sans lui, l'appel
+        rendait une chaîne vide et `slib/text/sigunits` — que 70 fichiers du
+        corpus emploient — ne servait plus que son unité.
+        """
+        m = re.match(r"(maxima|pari|units-filter)\s+(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         engine = m.group(1).lower()
@@ -1931,6 +1948,10 @@ class DefEngine(_SlibMixin):
             return _call_maxima(expr)
         if engine == "pari":
             return _call_pari(expr, session=self.pari_session)
+        if engine == "units-filter":
+            from core.answer.checkers import units_filter  # noqa: PLC0415
+
+            return units_filter(expr)
         return ""
 
     def _cmd_makelist(self, args: str) -> str:

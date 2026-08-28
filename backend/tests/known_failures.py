@@ -198,6 +198,16 @@ XFAIL_RENDER_STRUCTURE = {
 # comme ici. Corriger demande de retirer le mot en trop **et** de régénérer
 # `.oef` et `.def` : un travail sur le corpus, pas sur le code, à trancher
 # avec le mainteneur — même nature que `medicament` dans la liste du rendu.
+#
+# `periodefrequence` est parti le 2026-08-28 : son attendu ` s#2` avait perdu
+# sa valeur, et n'en gardait que l'unité. `slib/text/sigunits` — que 70
+# fichiers du corpus emploient — n'est qu'une enveloppe autour de
+# `!exec units-filter`, le binaire de WIMS qui arrondit une quantité à N
+# chiffres significatifs ; `!exec` ne connaissant que `maxima` et `pari`,
+# l'appel rendait une chaîne vide. L'arrondi est désormais porté (`units_filter`
+# dans `core/answer/checkers.py`) ; la **conversion** d'unité ne l'est pas, et
+# un appel qui en réclame une rend toujours vide, plutôt qu'une valeur non
+# convertie qui serait fausse sans le dire.
 XFAIL_CORRECT_SCORE = {
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
@@ -213,7 +223,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~mole.fr~src~nb_moles_avec_solution',
     'H4~chemistry~moles.fr~src~masse1',
     'H4~chemistry~moles.nl~src~masse1',
-    'H4~physics~temps.fr~src~periodefrequence',
     'H4~stat~descriptives.fr~src~pdfctstat',
 }
 

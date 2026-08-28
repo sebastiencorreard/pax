@@ -166,6 +166,42 @@ def _wrap_katex_exponents(s: str) -> str:
     return s
 
 
+def _positions_virgule_decimale(s: str) -> list[int]:
+    """Index des virgules décimales de ``s`` : entre deux chiffres, **hors**
+    de toute parenthèse, crochet ou accolade.
+
+    La profondeur fait toute la différence : `C = 6,6` porte un nombre, quand
+    `A = (1, 2)` porte un couple de coordonnées et `f(a,b)` deux arguments.
+    """
+    positions: list[int] = []
+    depth = 0
+    for i, ch in enumerate(s):
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif (
+            ch == ","
+            and depth == 0
+            and i and s[i - 1].isdigit()
+            and i + 1 < len(s) and s[i + 1].isdigit()
+        ):
+            positions.append(i)
+    return positions
+
+
+def _virgule_decimale_au_sommet(s: str) -> bool:
+    return bool(_positions_virgule_decimale(s))
+
+
+def _remplacer_au_sommet(s: str) -> str:
+    """``s`` avec ses seules virgules décimales de premier niveau en points."""
+    out = list(s)
+    for i in _positions_virgule_decimale(s):
+        out[i] = "."
+    return "".join(out)
+
+
 def _normalize_math_content(s: str, lang: str | None = None) -> str:
     """Best-effort cleanup of an inline math expression for KaTeX rendering.
 
@@ -257,6 +293,33 @@ def _normalize_math_content(s: str, lang: str | None = None) -> str:
     word = s.strip()
     if re.fullmatch(r"[A-Za-z]+", word):
         return word if len(word) == 1 else rf"\text{{{word}}}"
+
+    # Une virgule **entre deux chiffres** est un séparateur décimal dans ces
+    # locales, et le CAS n'a aucun moyen de le savoir : il y lit un séparateur
+    # de tuple, et — c'est le piège — il y **réussit**. `\(C = 6,6\)`
+    # ressortait `C = \left( 6, \  6\right)`. Le garde-fou du nombre isolé,
+    # plus haut, ne voit que la chaîne entière et laissait passer tout ce qui
+    # l'entoure ; le repli `virgule → point` de `_to_latex`, lui, ne se
+    # déclenche que quand le CAS échoue — ce qui n'était pas le cas ici.
+    #
+    # On lui soumet donc la lecture décimale d'abord, et on ne garde le
+    # résultat que s'il parse. Sinon le contenu part tel quel à KaTeX, qui
+    # l'affiche correctement : ne rien convertir vaut mieux qu'une conversion
+    # fausse.
+    # …mais **hors parenthèses** seulement. Entre parenthèses, la même virgule
+    # sépare deux coordonnées ou deux arguments : `A = (1, 2)` est un point, et
+    # le confondre avec un décimal le réduisait à `(1.2)`, `A(0,5)` à `0.5 A`.
+    # C'est le contexte qui tranche, comme dans la branche `texmath` — la
+    # profondeur zéro, et rien d'autre.
+    if uses_comma_decimal(lang) and _virgule_decimale_au_sommet(s):
+        pointe = _remplacer_au_sommet(s)
+        parts_p = pointe.split("=")
+        if all(p.strip() for p in parts_p) and len(parts_p) > 1:
+            rendus = [_expr_to_latex(p.strip()) for p in parts_p]
+            if all(r != p.strip() for r, p in zip(rendus, parts_p)):
+                return " = ".join(rendus)
+        rendu = _expr_to_latex(pointe.strip())
+        return rendu if rendu != pointe.strip() else s
 
     def _to_latex(expr: str) -> str:
         # A single letter immediately followed by ``(`` is function-application
