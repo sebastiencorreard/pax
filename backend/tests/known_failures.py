@@ -63,10 +63,13 @@ XFAIL_RENDER_STRUCTURE = {
 # Les deux `range` ci-dessous s'y sont ajoutés le 2026-08-05, en implémentant
 # `anstype/range`. Ils ne passaient qu'en apparence : le type retombait sur une
 # comparaison de texte, et le test leur soumettait leur propre `expected`, si
-# bien qu'une chaîne se comparait à elle-même. Leur attendu est cassé **en
-# amont** — `moho1` porte un `NaN`, `ConnexionInt2` un `rint(…print(Mat(…`
-# jamais évalué (la famille des sept attendus non évalués). Aucune borne
-# numérique n'en sort, donc aucune réponse ne peut tomber dedans.
+# bien qu'une chaîne se comparait à elle-même. On les avait crus cassés **en
+# amont**, `moho1` par son `NaN` et `ConnexionInt2` par un `rint(…print(Mat(…`
+# jamais évalué : aucune borne numérique n'en sortait, donc aucune réponse ne
+# pouvait tomber dedans. Ce diagnostic était faux dans les deux cas — le calcul
+# n'avait simplement jamais eu lieu, faute d'un `divrem` réel pour l'un, d'une
+# transposée de matrice sympy pour l'autre. Tous deux sont partis le
+# 2026-08-28.
 #
 # Cinq sont partis le 2026-08-26 : sans `replytypeN`, PAX supposait `numeric`
 # là où `replytype.proc` pose `default` — et `anstype/default` n'est pas un
@@ -118,12 +121,12 @@ XFAIL_RENDER_STRUCTURE = {
 # attend `(2 y + 13)^2` : l'attendu se voyait refuser lui-même. Le marqueur ne
 # vaut plus que si l'attendu est effectivement développé.
 #
-# Les deux `equation` suivants s'y sont ajoutés le 2026-08-25, pour la même
-# raison et en implémentant `anstype/equation`. Leur attendu est cassé en
-# amont, sans qu'aucun checker puisse y remédier : `ConnexionInt4` reprend le
-# `rint(/*100)` — division inachevée — de son frère `ConnexionInt2`, déjà listé
-# ci-dessous. Une expression trouée n'est l'équation de rien : elle ne se
-# comparait à elle-même que faute de checker.
+# Deux `equation` s'y étaient ajoutés le 2026-08-25, en implémentant
+# `anstype/equation` : `ConnexionInt4` portait un `rint(/*100)` — division sans
+# numérateur — et on l'avait dit cassé en amont, hors d'atteinte d'un checker.
+# À tort, là encore. Ce trou était celui de `!column 1 to $val25 of`, forme que
+# la commande ne savait pas lire : la plage lui rendait une chaîne vide, donc
+# plus aucune donnée à moyenner. Parti le 2026-08-28.
 #
 # Les onze `programming` sont partis le 2026-08-27, en deux familles.
 #
@@ -165,9 +168,25 @@ XFAIL_RENDER_STRUCTURE = {
 #     factorisée *par opposition à* développée : elle est les deux. Le
 #     pré-contrôle la disait développée — un nombre est un monôme — et la
 #     refusait donc au titre de la factorisation exigée.
+#
+# Les quatre `ConnexionInt` sont partis le 2026-08-28, et leurs deux causes
+# étaient l'une et l'autre en amont de tout checker :
+#
+#   - `slib/stat/sum` calcule sa somme pondérée par `Mat([data])*Mat([poids])~`.
+#     La transposée postfixe se traduisait par l'opérateur `~` de Python, donc
+#     par `__invert__` — que `PVec` et `PMat` définissent, mais **pas**
+#     `sympy.Matrix`, ce que rendent justement les helpers de `cas`. Le slib
+#     rendait alors son propre code source à qui l'appelait.
+#   - `!column 1 to $val25 of` : la commande découpait ses indices aux virgules
+#     *et aux espaces*, prenait donc le `to` d'une plage pour un indice, et
+#     rendait une chaîne vide faute de savoir l'évaluer. Elle lit désormais
+#     `_index_list`, la grammaire d'indices commune à `!item`/`!row`/`!line`.
+#     C'est ce qui donne enfin à `ConnexionInt1` ses « 7 dernières semaines ».
+#
+# `moymanqte` et `C1` y ont gagné au passage, le premier son énoncé — il
+# annonçait une moyenne égale à `print(rint(print(Mat([0,4,13,14])*…` et dit
+# maintenant 303/28.
 XFAIL_CORRECT_SCORE = {
-    'H4~stat~oefseriestat2var.fr~src~ConnexionInt2',
-    'H4~stat~oefseriestat2var.fr~src~ConnexionInt4',
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
     'H3~geography~oefdepregfr.fr~src~clickcode',
@@ -184,8 +203,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~moles.nl~src~masse1',
     'H4~physics~temps.fr~src~periodefrequence',
     'H4~stat~descriptives.fr~src~pdfctstat',
-    'H4~stat~oefseriestat2var.fr~src~ConnexionInt1',
-    'H4~stat~oefseriestat2var.fr~src~ConnexionInt5',
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée

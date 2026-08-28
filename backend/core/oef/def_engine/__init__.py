@@ -2280,13 +2280,6 @@ class DefEngine(_SlibMixin):
         if not m:
             return ""
         spec = self._subst(m.group(1).strip())
-        idx_tokens = [t for t in re.split(r"[,\s]+", spec) if t]
-        try:
-            indices = [int(round(float(self._eval_arith(t)))) for t in idx_tokens]
-        except (ValueError, TypeError):
-            return ""
-        if not indices:
-            return ""
 
         value = self._subst(m.group(2))
         # Lignes séparées par tab, newline (données de slib/stat/dataproc), ou
@@ -2302,6 +2295,16 @@ class DefEngine(_SlibMixin):
         all_cols = [re.split(r",(?![^(]*\))", r) for r in rows]
         if all(len(c) == 1 for c in all_cols):
             all_cols = [r.split(";") for r in rows]
+
+        # Les indices se lisent avec la grammaire commune (`_index_list`), donc
+        # sur le nombre de colonnes — celui de la première ligne, la matrice
+        # étant rectangulaire. Le parsing maison d'avant découpait aux virgules
+        # *et aux espaces*, ce qui lui faisait prendre le `to` d'une plage pour
+        # un indice, échouer à l'évaluer, et rendre une chaîne vide.
+        largeur = max((len(c) for c in all_cols), default=0)
+        indices = self._index_list(spec, largeur)
+        if not indices:
+            return ""
 
         def pick(cols: list[str], i: int) -> str | None:
             return cols[i - 1].strip() if 1 <= i <= len(cols) else None
@@ -2470,6 +2473,18 @@ class DefEngine(_SlibMixin):
             """`_blockof_one` : hors bornes → chaîne vide."""
             return parts[i - 1] if 1 <= i <= t else ""
 
+        return sep.join(one(i) for i in self._index_list(idx_s, t))
+
+    def _index_list(self, idx_s: str, t: int) -> list[int]:
+        """Indices 1-based désignés par ``idx_s`` sur ``t`` éléments.
+
+        La grammaire d'indices de `calc.c`, commune à `!item`, `!line`, `!row`,
+        `!word`, `!char` — et désormais à `!column`, qui avait le sien et n'y
+        connaissait pas la plage : `!column 1 to $val25 of` rendait une chaîne
+        **vide**, faute de savoir lire le mot `to` comme un indice. Neuf
+        fichiers du corpus s'en servent, dont les `ConnexionInt` qui n'avaient
+        alors plus de données à moyenner.
+        """
         def num(expr: str) -> int | None:
             try:
                 return int(round(float(self._eval_arith(expr.strip()))))
@@ -2480,7 +2495,7 @@ class DefEngine(_SlibMixin):
         if bounds is not None:
             i, j = num(bounds[0]), num(bounds[1])
             if i is None or j is None:
-                return ""
+                return []
             if i < 0:
                 i = t + i + 1
             if i < 1:
@@ -2489,19 +2504,21 @@ class DefEngine(_SlibMixin):
                 j = t + j + 1
             if j > t:
                 j = t
-            return sep.join(one(k) for k in range(i, j + 1))
+            return list(range(i, j + 1))
 
-        out = []
+        out: list[int] = []
         for raw in wl.cutitems(idx_s):
             i = num(raw)
             if i is None:
                 continue
             if i < 0:
                 i = t + i + 1
+            # Hors bornes : sauté, pas fatal — un indice unique n'est que le
+            # cas à un élément.
             if i > t or i < 0:
                 continue
-            out.append(one(i))
-        return sep.join(out)
+            out.append(i)
+        return out
 
     def _cmd_line(self, args: str) -> str:
         """!line N of text — Nth newline-separated line (1-indexed)."""

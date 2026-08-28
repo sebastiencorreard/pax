@@ -510,19 +510,41 @@ def _translate_brackets(src: str) -> str:
     return "".join(out)
 
 
-# `x~` / `)~` / `]~` — transposée postfixe. Traduit en `~x` (Python `__invert__`).
+# `x~` / `)~` / `]~` — transposée postfixe, réécrite en appel de `_transposee`.
 _TILDE_RE = re.compile(r"([A-Za-z_]\w*|\)|\])\s*~")
 
 
 def _translate_tilde(src: str) -> str:
-    """Réécrit la transposée postfixe ``expr~`` en ``(~expr)``."""
+    """Réécrit la transposée postfixe ``expr~`` en ``_transposee(expr)``.
+
+    L'ancienne traduction passait par l'opérateur `~` de Python, donc par
+    `__invert__` — que `PVec` et `PMat` définissent, mais pas `sympy.Matrix`.
+    Or `Mat(…)` est un helper de `cas` et rend justement une matrice sympy :
+    le `Mat([data])*Mat([weight])~` de `slib/stat/sum` levait « bad operand
+    type for unary ~ », l'exécution était abandonnée, et le slib rendait son
+    propre code source aux exercices `ConnexionInt` qui l'appellent.
+    """
     while True:
         m = _TILDE_RE.search(src)
         if not m:
             return src
         end = m.end(1)
         start = _operand_start(src, end)
-        src = src[:start] + "(~" + src[start:end] + ")" + src[m.end() :]
+        src = src[:start] + "_transposee(" + src[start:end] + ")" + src[m.end() :]
+
+
+def _transposee(x: Any) -> Any:
+    """Transposée PARI, quel que soit le porteur de la valeur.
+
+    `PVec` échange ligne et colonne, `PMat` retourne ses rangées, et une
+    matrice sympy — ce que rendent les helpers de `cas` — a la sienne.
+    """
+    if isinstance(x, (PVec, PMat)):
+        return ~x
+    transpose = getattr(x, "T", None)
+    if transpose is not None:
+        return transpose
+    raise PariProgramError(f"transposée impossible sur {type(x).__name__}")
 
 
 def _operand_start(src: str, end: int) -> int:
@@ -589,6 +611,7 @@ class PariInterpreter:
                 "_I": sympy.Integer,
                 "_V": lambda *a: PVec(a),
                 "_M": PMat,
+                "_transposee": _transposee,
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
                 "length": _pari_length,
                 "Vec": _pari_vec,
