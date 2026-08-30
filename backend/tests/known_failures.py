@@ -208,6 +208,24 @@ XFAIL_RENDER_STRUCTURE = {
 # dans `core/answer/checkers.py`) ; la **conversion** d'unité ne l'est pas, et
 # un appel qui en réclame une rend toujours vide, plutôt qu'une valeur non
 # convertie qui serait fausse sans le dire.
+#
+# Les deux `masse1` sont partis le 2026-08-30, avec `!exec chemeq` : le
+# calculateur de chimie de WIMS, dont `slib/chemistry/chemeq_mass` tire les
+# masses molaires et `chemeq_tex` le rendu LaTeX des équations. `_cmd_exec` ne
+# connaissait que `maxima` et `pari`, si bien que l'attendu se réduisait à son
+# unité (` g/mol`) et que les énoncés d'`equilibrium` annonçaient « Voici une
+# équation de réaction chimique : \(\) ». Il est désormais émulé
+# (`core/oef/def_engine/chemeq.py`), à l'image de Maxima et de PARI — le
+# binaire du dépôt (`wims/other/bin/chemeq`) sert d'oracle, et
+# `tests/test_chemeq.py` rejoue la comparaison sur les 65 entrées que le corpus
+# lui soumet.
+#
+# Restent trois `mole.fr`, d'une **autre** famille malgré l'apparence : ils
+# passent par `slib/chemistry/molarmass`, qui n'appelle pas `chemeq` mais porte
+# sa propre table d'éléments en WIMS pur. Leur attendu garde un
+# `0+U*238.03+F4*` — une substitution inachevée dans ce slib, à instruire à
+# part. Idem pour les deux `chemavance1`, qui attendent l'équilibrage (`-e`,
+# `-C`), non porté.
 XFAIL_CORRECT_SCORE = {
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
     'H3~geography~oefdepregfr.fr~src~clickcap',
@@ -221,8 +239,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~mole.fr~src~masse_molaire1',
     'H4~chemistry~mole.fr~src~masse_molaire_avec_solution',
     'H4~chemistry~mole.fr~src~nb_moles_avec_solution',
-    'H4~chemistry~moles.fr~src~masse1',
-    'H4~chemistry~moles.nl~src~masse1',
     'H4~stat~descriptives.fr~src~pdfctstat',
 }
 

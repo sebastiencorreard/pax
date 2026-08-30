@@ -1932,14 +1932,19 @@ class DefEngine(_SlibMixin):
         return f"{target}{sep}{val}"
 
     def _cmd_exec(self, args: str) -> str:
-        """!exec maxima expr / !exec pari expr / !exec units-filter qty#sig.
+        """`!exec <programme> <entrée>` — les binaires que WIMS appelle.
 
-        `units-filter` n'est pas un CAS mais un petit binaire de WIMS, qui
-        arrondit une quantité à N chiffres significatifs. Sans lui, l'appel
-        rendait une chaîne vide et `slib/text/sigunits` — que 70 fichiers du
-        corpus emploient — ne servait plus que son unité.
+        Aucun n'existe ici : `maxima` et `pari` sont émulés de longue date, et
+        l'image ne contient ni l'un ni l'autre. `units-filter` (arrondi aux
+        chiffres significatifs) et `chemeq` (chimie) suivent la même voie.
+
+        `chemeq` lit son option dans la variable `chemeq_option`, que le script
+        pose juste avant l'appel — c'est ainsi que `slib/chemistry/chemeq_mass`
+        demande une masse molaire (`M`) et `chemeq_tex` un rendu LaTeX (`l`).
+        L'entrée peut être vide : le slib d'équilibrage interroge d'abord la
+        version (`chemeq_option=v`, sans argument).
         """
-        m = re.match(r"(maxima|pari|units-filter)\s+(.*)", args, re.DOTALL | re.I)
+        m = re.match(r"(maxima|pari|units-filter|chemeq)\b\s*(.*)", args, re.DOTALL | re.I)
         if not m:
             return ""
         engine = m.group(1).lower()
@@ -1952,6 +1957,10 @@ class DefEngine(_SlibMixin):
             from core.answer.checkers import units_filter  # noqa: PLC0415
 
             return units_filter(expr)
+        if engine == "chemeq":
+            from .chemeq import chemeq  # noqa: PLC0415
+
+            return chemeq(expr, str(self.ctx.get("chemeq_option", "")))
         return ""
 
     def _cmd_makelist(self, args: str) -> str:
