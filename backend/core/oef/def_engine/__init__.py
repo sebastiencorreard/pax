@@ -1031,19 +1031,41 @@ class DefEngine(_SlibMixin):
         m = re.match(r"(.*?)\s+to\s+(.*)", range_s, re.I)
         if not m:
             return
+        borne_haute = m.group(2).strip()
+        # `!for v = a to b step s` — `exec_for` cherche le mot `step` dans la
+        # borne haute, et prend 1 à défaut. Sans cette lecture, `end` valait
+        # `$val16 step 2`, l'évaluation échouait et la boucle **ne tournait pas
+        # du tout** : 92 fichiers du corpus emploient cette forme, dont
+        # `equilibrium` qui y construit les lignes de son tableau.
+        pas_expr = "1"
+        m_step = re.match(r"(.*?)\s+step\s+(.*)", borne_haute, re.I)
+        if m_step:
+            borne_haute, pas_expr = m_step.group(1).strip(), m_step.group(2).strip()
         try:
-            start = int(round(float(self._eval_arith(m.group(1).strip()))))
-            end = int(round(float(self._eval_arith(m.group(2).strip()))))
+            start = float(self._eval_arith(m.group(1).strip()))
+            end = float(self._eval_arith(borne_haute))
+            pas = float(self._eval_arith(pas_expr))
         except (ValueError, TypeError):
+            return
+        if pas == 0:
+            # `module_error("zero_step")` : WIMS interrompt l'exercice. Ne rien
+            # exécuter vaut mieux que boucler sans fin.
             return
 
         var = loop.var.lstrip("$")
         saved = self.ctx.get(var)
+        # Les bornes sont des `double` dans le C, et `float2str` écrit un entier
+        # sans décimale : `!for q=0 to 360 step 45` donne bien `45`, non `45.0`.
+        entier = all(float(x).is_integer() for x in (start, end, pas))
+        valeur = start
         # Backstop contre une borne géante à corps vide (le budget temps du
         # rendu ne s'arme que si le corps s'exécute) : cap dur d'itérations.
-        for i in range(start, min(end, start + 100000) + 1):
-            self.ctx[var] = str(i)
+        for _ in range(100001):
+            if (pas > 0 and valeur > end) or (pas < 0 and valeur < end):
+                break
+            self.ctx[var] = str(int(valeur)) if entier else format_wims_float(valeur)
             self._exec(loop.body, output_buf)
+            valeur += pas
         if saved is not None:
             self.ctx[var] = saved
         else:

@@ -269,19 +269,14 @@ XFAIL_RENDER_STRUCTURE = {
 # `coefficients` et `coefficients2` **entrent** en échange dans les tests : ils
 # en étaient écartés faute d'attendus, et leur tableau se construit désormais
 # pour de bon — 11 champs pour NaCl → Na⁺ + Cl⁻ au lieu de 29 cases vides.
-# Huit de leurs onze attendus sont justes ; trois gardent un `*1/1`. La piste
-# du slib est écartée : ses lignes `Charge_total` et `<élément>_total` se
-# calculent correctement, vérification faite pas à pas. Le trou est dans le
-# `.def` lui-même —
-#
-#     val43=$[$(val26[$val44;$val46])*$val41/$(val14[2;1])]
-#
-# — dont le premier facteur ressort vide pour trois des tours de boucle. La
-# substitution est pourtant juste sur les premiers (`0*1/1`, `1*1/1`,
-# `-1*1/1`) : ce sont les indices `$val44`/`$val46` de tours ultérieurs qu'il
-# reste à instruire. Une tentative d'imputer cela à `_rational_expand` — qui
-# remonte l'affectation *source* d'une variable réaffectée, défaut réel par
-# ailleurs — a été mesurée sans effet ici, et annulée.
+# Huit de leurs onze attendus étaient justes, trois gardaient un `*1/1`. Deux
+# fausses pistes ont été mesurées puis annulées — le slib, dont les lignes
+# `Charge_total` et `<élément>_total` se calculent bien, et `_rational_expand`,
+# sans effet ici. La cause était en amont de tout cela : `!for v = a to b
+# **step** s`. Rien ne lisait le mot `step`, la borne haute valait
+# `$val16 step 2`, son évaluation échouait, et la boucle ne tournait pas —
+# `val26` n'y recevait qu'une ligne sur trois. Réglé le 2026-08-30 ; 92
+# fichiers du corpus emploient cette forme.
 #
 # Au passage, `corpus_state` a signalé « segments perdus » sur ces deux
 # exercices — `input 29→0`. C'est un **faux positif** : leurs champs passent
@@ -290,8 +285,6 @@ XFAIL_RENDER_STRUCTURE = {
 # docstring). Vérification faite, les onze champs restent atteignables et
 # appariés à leurs `answers`.
 XFAIL_CORRECT_SCORE = {
-    'H4~chemistry~equilibrium.fr~src~coefficients',
-    'H4~chemistry~equilibrium.fr~src~coefficients2',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
 }
 
