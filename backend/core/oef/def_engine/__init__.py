@@ -4100,7 +4100,16 @@ class DefEngine(_SlibMixin):
                 if choices:
                     return " ".join(_mark_span(i + 1) for i in range(len(choices)))
                 return _mark_span(col or 1)
-            elif reply_type == "checkbox":
+            elif reply_type in ("checkbox", "multipleclick"):
+                # `anstype/multipleclick` a le contrat de `checkbox` : son
+                # `replygood` s'écrit `<positions correctes>;<choix…>`, l'élève
+                # en désigne plusieurs, et la note est une **égalité
+                # d'ensembles** — `menupos=!listintersect $menupos and $good`
+                # puis `$poscnt1=$poscnt2 and $poscnt1=$poscnt3`. (Le score
+                # partiel n'entre en jeu que sous `split`/`partialscore`, qu'
+                # aucun des sept exercices du corpus ne porte.) PAX n'en
+                # connaissait pas le type : un seul champ de saisie, et
+                # l'attendu gardait la liste d'images entière.
                 # The student's reply is the set of checked option *indices*
                 # (compared order-insensitively via check_set); the labels come
                 # from the proposition list in replygood = "correct;prop1,prop2,…".
@@ -4860,7 +4869,7 @@ class DefEngine(_SlibMixin):
                     except (ValueError, IndexError):
                         pass
 
-            elif ans_type == "checkbox":
+            elif ans_type in ("checkbox", "multipleclick"):
                 # Format: "correct_indices;all_indices" (e.g. "1,3;1,2,3,4").
                 # The student's reply is the set of checked option indices;
                 # expected is the correct subset, compared order-insensitively

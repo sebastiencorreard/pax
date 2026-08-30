@@ -1813,10 +1813,28 @@ def _check_numexp_float(
 # ------------------------------------------------------------------ #
 
 
-def check_set(reply: str, expected: str) -> CheckResult:
-    """
-    Compare deux ensembles de valeurs (séparées par des virgules ou des ;).
-    Ordre non significatif.
+def check_set(reply: str, expected: str, opt_str: str = "") -> CheckResult:
+    """Ensembles de valeurs, ordre non significatif — `set`, `checkbox`,
+    `multipleclick`.
+
+    Les trois anstype de WIMS exigent la **même** chose, et c'est une égalité :
+
+        menupos=!listintersect $menupos and $good
+        !if $poscnt1=$poscnt2 and $poscnt1=$poscnt3   → good, sinon bad
+
+    autrement dit « autant de cases cochées que de bonnes réponses, et toutes
+    justes ». Le score partiel de PAX ne valait pas seulement une note trop
+    généreuse : il ne pénalisait pas les réponses **en trop**, si bien que
+    cocher tout donnait 1.0 — `{1,3,4}` contre `{1,3}` rendait
+    `len({1,3})/len({1,3})`. Cocher toutes les cases était donc la stratégie
+    gagnante sur 214 rendus du corpus.
+
+    Le partiel n'existe que sous `split` ou `partialscore`
+    (`anstype/checkbox`, `anstype/multipleclick`), et il retranche alors les
+    mauvaises réponses :
+
+        diaratio = 3*bonnes_cochées - 2*cochées      (2*… - … sous `eqweight`)
+        note     = max(0, diaratio / max(attendues, 1))
     """
 
     def parse_set(s: str) -> set:
@@ -1829,10 +1847,13 @@ def check_set(reply: str, expected: str) -> CheckResult:
     if r_set == e_set:
         return CheckResult(correct=True, score=1.0, method="set")
 
-    # Score partiel : proportion d'éléments corrects
-    intersection = r_set & e_set
-    score = len(intersection) / max(len(e_set), 1) if e_set else 0.0
-    return CheckResult(correct=False, score=score, method="set")
+    mots = (opt_str or "").lower()
+    if "split" in mots or "partialscore" in mots:
+        cochees, bonnes = len(r_set), len(r_set & e_set)
+        ratio = (2 * bonnes - cochees) if "eqweight" in mots else (3 * bonnes - 2 * cochees)
+        note = max(0.0, ratio / max(len(e_set), 1))
+        return CheckResult(correct=note > 0, score=min(1.0, note), method="set")
+    return CheckResult(correct=False, score=0.0, method="set")
 
 
 def check_fset(
@@ -2515,8 +2536,11 @@ def check_answer(
             return check_algexp(reply, expected, comma_is_decimal)
         case "fset":
             return check_fset(reply, expected, precision, comma_is_decimal)
-        case "set" | "checkbox":
-            return check_set(reply, expected)
+        # `multipleclick` note par égalité d'ensembles de positions, comme
+        # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
+        # égaux dans `anstype/multipleclick`.
+        case "set" | "checkbox" | "multipleclick":
+            return check_set(reply, expected, opt_str)
         # `anstype/click` compare des **positions** : il cherche le rang de la
         # réponse dans la liste des choix et le confronte à la première ligne
         # de `replygood` (`!if $menupos isitemof $good`). C'est le contrat de
