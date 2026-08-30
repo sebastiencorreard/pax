@@ -994,6 +994,114 @@ def check_sigunits(
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="sigunits")
 
 
+def _coords(s: str) -> list[float]:
+    """Les nombres d'une liste de coordonnées, chacun **évalué** : le corpus y
+    écrit des expressions (`400-0.087*400`, `160+2*200/5`)."""
+    out: list[float] = []
+    for morceau in s.split(","):
+        morceau = morceau.strip()
+        if not morceau:
+            continue
+        try:
+            out.append(_eval_scalar(morceau, comma_is_decimal=False))
+        except ValueError:
+            return []
+    return out
+
+
+def check_jsxgraphcurve(
+    reply: str, expected: str, options: dict | None = None
+) -> CheckResult:
+    """Figure tracée sur une image — `anstype/jsxgraphcurve`.
+
+    L'attendu s'écrit `<image>;<forme>,<coordonnées…>` et la forme choisit le
+    comparateur, chacun dans son `anstype/javacurve.<forme>`. Le corpus n'en
+    emploie que quatre, portés ici avec leurs précisions par défaut :
+
+    * `points` (15) — chaque point attendu doit trouver un point de l'élève à
+      moins de `precision` ; il faut ni manque ni excédent, et le partiel suit
+      `max(0, Bon - trop)` ;
+    * `vector` (10) — les deux extrémités coïncident, à `max` des deux écarts ;
+    * `line` (5) — même **droite**, comparée par ses coefficients normalisés
+      `a = y₁-y₂`, `b = x₂-x₁`, `c = y₁x₂-x₁y₂` : deux droites sont égales si
+      `max(|t1|, |t2|)` reste sous la précision ;
+    * `sline` (5) — la demi-droite : `line`, plus l'origine commune (`t3`) et
+      le même sens (`t4 > 0`).
+
+    Ces onze rendus étaient notés par comparaison de chaînes, ce qui ne
+    reconnaissait que la figure écrite exactement comme l'auteur l'avait
+    stockée.
+    """
+    options = options or {}
+    opt = str(options.get("option", ""))
+    m = re.search(r"precision\s*=\s*([\d.]+)", opt)
+
+    zone = (expected or "").split(";", 1)[-1].strip()
+    forme, _, coords_att = zone.partition(",")
+    forme = forme.strip().lower()
+    g = _coords(coords_att)
+    # La réponse peut arriver préfixée `free=…` (`!getopt free in $reply`).
+    brut = (reply or "").split("=", 1)[-1] if "=" in (reply or "") else (reply or "")
+    r = _coords(brut.replace(";", ","))
+    if not g or not r:
+        return CheckResult(correct=False, score=0.0, method="jsxgraphcurve")
+
+    def resultat(bon: bool, score: float | None = None) -> CheckResult:
+        note = (1.0 if bon else 0.0) if score is None else score
+        return CheckResult(correct=bon, score=note, method="jsxgraphcurve")
+
+    if forme == "points":
+        precision = float(m.group(1)) if m else 15.0
+        att = [(g[i], g[i + 1]) for i in range(0, len(g) - 1, 2)]
+        rep = [(r[i], r[i + 1]) for i in range(0, len(r) - 1, 2)]
+        if not att:
+            return resultat(False)
+        trouves = sum(
+            any(math.hypot(ax - bx, ay - by) < precision for bx, by in rep)
+            for ax, ay in att
+        )
+        part_bonne = trouves / len(att)
+        trop = (len(rep) - trouves) / len(att)
+        manque = 1 - part_bonne
+        if trop == 0 and manque == 0:
+            return resultat(True)
+        note = max(0.0, part_bonne - trop)
+        return resultat(part_bonne > trop + manque, min(1.0, note))
+
+    if forme == "vector":
+        precision = float(m.group(1)) if m else 10.0
+        if len(g) < 4 or len(r) < 4:
+            return resultat(False)
+        ecart = max(math.hypot(g[0] - r[0], g[1] - r[1]),
+                    math.hypot(g[2] - r[2], g[3] - r[3]))
+        return resultat(ecart < precision)
+
+    if forme in ("line", "sline"):
+        precision = float(m.group(1)) if m else 5.0
+        if len(g) < 4 or len(r) < 4:
+            return resultat(False)
+        ga, gb = g[1] - g[3], g[2] - g[0]
+        gc = g[1] * g[2] - g[0] * g[3]
+        ra, rb = r[1] - r[3], r[2] - r[0]
+        rc = r[1] * r[2] - r[0] * r[3]
+        gm, rm = max(abs(ga), abs(gb)), max(abs(ra), abs(rb))
+        # Deux points confondus ne définissent pas de droite.
+        if gm < precision or rm < precision:
+            return resultat(False)
+        t1 = (ga * rb - gb * ra) / gm
+        t2 = (ga * rc - gc * ra) if abs(ga) > abs(gb) else (gb * rc - gc * rb)
+        t2 /= gm ** 2
+        ecart = max(abs(t1), abs(t2))
+        if forme == "line":
+            return resultat(ecart < precision)
+        # `sline` : même origine, et même sens que le vecteur attendu.
+        t3 = math.hypot(g[0] - r[0], g[1] - r[1])
+        t4 = (g[2] - g[0]) * (r[2] - g[1]) + (g[3] - g[1]) * (r[3] - g[1])
+        return resultat(max(ecart, t3) < precision and t4 > 0)
+
+    return CheckResult(correct=False, score=0.0, method="jsxgraphcurve")
+
+
 def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
     """Compare les coordonnées du/des point(s) déplacé(s) à la position attendue.
 
@@ -2554,6 +2662,8 @@ def check_answer(
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
         case "jsxgraph":
             return check_jsxgraph(reply, expected, options)
+        case "jsxgraphcurve":
+            return check_jsxgraphcurve(reply, expected, options)
         case "coord":
             return check_coord(reply, expected, options)
         case "equation":

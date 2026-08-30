@@ -87,6 +87,14 @@ def _candidats(ans):
         clic = coord_display_answer(brut)
         if clic:
             yield clic
+    # `jsxgraphcurve` attend une **figure**, décrite après le `;` par sa forme
+    # et ses coordonnées (`sline,250,250,389,501`). L'attendu porte l'image en
+    # tête ; ce sont les coordonnées seules que l'élève produit en traçant.
+    if ans.answer_type == "jsxgraphcurve" and ";" in brut:
+        zone = brut.split(";", 1)[1]
+        _, _, coords = zone.partition(",")
+        if coords.strip():
+            yield coords.strip()
     # `numexp` demande un **nombre**, jamais un calcul : c'est tout l'objet du
     # type, qui refuse `+ - * ^ (` (`nocompute` d'`anstype/numexp`). L'attendu
     # peut pourtant être une expression — `produit5` range `5*3` pour « 5³×3³,
