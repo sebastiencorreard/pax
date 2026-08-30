@@ -6,10 +6,28 @@ rendu LaTeX (`l` / `m`). Le binaire vit dans `wims/src/Misc/chemeq/` — du C++
 avec lex/yacc — mais PAX n'appelle aucun processus externe : Maxima et PARI y
 sont déjà émulés, et l'image n'en contient ni l'un ni l'autre.
 
-Périmètre : ce que le corpus soumet réellement, soit les molécules et ions de
-`slib/chemistry/chemeq_mass` et les équations de `chemeq_tex`. L'équilibrage
-(`-e`, `-C`, dont `slib/chemistry/chemeq_equilibrium` a besoin) n'est pas
-porté ; l'appel rend alors une chaîne vide, comme il le faisait pour tous.
+Périmètre : ce que le corpus soumet réellement — les molécules et ions de
+`slib/chemistry/chemeq_mass`, les équations de `chemeq_tex`, et l'équilibrage
+que `chemeq_equilibrium` tire de `-e` et `-C`.
+
+Reste `-n`, la **forme normalisée**, dont `anstype/chemeq` se sert pour noter :
+`slib/chemistry/chemeq_compare` normalise la réponse de l'élève et l'attendu,
+puis compare les deux chaînes. Onze rendus du corpus en dépendent, sur deux
+exercices (`equilibrer` et `completer` de `reaction1.fr`), et ce slib manque
+d'ailleurs de `ressources/wims-scripts/` — il faudrait l'y copier depuis
+`wims/public_html/scripts/`.
+
+`chemeq.h:265` en donne la recette, si l'on veut la porter :
+
+    void normalise(){numerote(); triage(); coeff1(); delete_aq();};
+
+soit : compter les atomes, les trier — `AtomeListe::triage` est un tri à bulles
+sur `strcmp(symbole)`, qui ne descend pas dans un groupe parenthésé, d'où
+`CaCO3` → `CCaO3` et `Fe2(SO4)3` inchangé —, ramener le premier coefficient à
+1, puis retirer les `_(aq)`. Deux comportements observés restent inexpliqués et
+demanderont la lecture du source : l'ordre des espèces, tantôt trié
+(`Fe + 3/2Cl2` → `Cl2 + 2/3 Fe`) tantôt conservé (`Al2O3_s + 3Cl2_g + 6C_s`),
+et la sortie **vide** sur `CH3COOH` ou `Fe2(SO4)3 -> Fe2(SO4)3`.
 
 Chaque sortie est confrontée au binaire du dépôt, qui sert d'oracle :
 `backend/tests/test_chemeq.py` rejoue la comparaison sur toutes les entrées
