@@ -108,6 +108,94 @@ _DOLLAR_IN_PAREN_RE = re.compile(r"\$\([^)]*\$[a-zA-Z_]")
 # (cf. `_expected_as_fraction`).
 _DIVISION_DECIMALE_RE = re.compile(r"/\s*\(*\s*(?:10\s*\*\*|10*0)\b")
 
+
+def _PORTE_UN_METACARACTERE(old: str, new: str) -> bool:
+    """`strpbrk(bf[0],"\\\\[^.*$")` de `calc.c` — sur l'un OU l'autre motif.
+
+    C'est ce test, et lui seul, qui décide si `!replace` remplace du texte ou
+    lance sed. Le caractère cherché dans le *remplacement* compte autant que
+    dans le motif : `!replace , by \\n in …` passe donc en regexp.
+    """
+    return any(c in old or c in new for c in "\\[^.*$")
+
+
+# Métacaractères que BRE écrit **échappés**, là où l'expression régulière de
+# Python les veut nus : `\(` y ouvre un groupe, `(` est un littéral.
+_BRE_ECHAPPES_ACTIFS = "(){}|+?"
+# …et ceux qui restent littéraux une fois échappés, dans les deux notations.
+_BRE_ECHAPPES_LITTERAUX = "^$.*[]\\"
+
+
+def _bre_vers_python(motif: str) -> str:
+    """Traduit une expression régulière POSIX **basique** — celle de sed — en
+    son équivalent Python.
+
+    La différence tient aux échappements, exactement inversés pour sept
+    caractères : `\\(` groupe en BRE quand `(` est un littéral, et
+    réciproquement. Les classes `[…]` se recopient telles quelles : à
+    l'intérieur, plus rien n'est métacaractère hormis `]`, `^` en tête et `-`.
+
+    Une divergence subsiste, sur les correspondances **vides** : `s/x*/Q/g`
+    rend `QyQ` chez sed et `QQyQ` en Python, qui substitue aussi la
+    correspondance vide suivant une non vide. Aucun des 121 motifs du corpus ne
+    l'exerce — tous exigent au moins un caractère —, et le seul `*` isolé ne se
+    compile pas, ce qui fait retomber l'appelant sur le remplacement littéral,
+    précisément ce que POSIX demande d'un `*` en tête d'expression.
+    """
+    out: list[str] = []
+    i = 0
+    while i < len(motif):
+        c = motif[i]
+        if c == "\\" and i + 1 < len(motif):
+            suivant = motif[i + 1]
+            if suivant in _BRE_ECHAPPES_ACTIFS:
+                out.append(suivant)          # `\(` → `(`
+            elif suivant in _BRE_ECHAPPES_LITTERAUX:
+                out.append("\\" + suivant)   # `\^` reste un accent littéral
+            else:
+                out.append("\\" + suivant)   # `\n`, `\t`, `\w` : tels quels
+            i += 2
+            continue
+        if c == "[":
+            fin = i + 1
+            if fin < len(motif) and motif[fin] == "^":
+                fin += 1
+            if fin < len(motif) and motif[fin] == "]":
+                fin += 1                     # un `]` en tête est un littéral
+            while fin < len(motif) and motif[fin] != "]":
+                fin += 1
+            if fin >= len(motif):
+                out.append("\\[")            # crochet non fermé : littéral
+                i += 1
+                continue
+            out.append(motif[i : fin + 1])
+            i = fin + 1
+            continue
+        if c in _BRE_ECHAPPES_ACTIFS:
+            out.append("\\" + c)             # `(` est un littéral en BRE
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def _sed_substitution(old: str, new: str):
+    """La fonction de substitution `s/old/new/g` de sed, ou None si le motif
+    ne se compile pas — auquel cas l'appelant retombe sur le remplacement
+    littéral plutôt que d'abandonner la valeur."""
+    try:
+        motif = re.compile(_bre_vers_python(old))
+    except re.error:
+        return None
+    # Dans le remplacement, sed ne connaît que `&` (tout le motif) et `\1`…
+    # Le reste est littéral, `\` compris — que `re.sub` interpréterait.
+    remplacement = re.sub(r"\\(?![1-9])", r"\\\\", new)
+    remplacement = re.sub(r"(?<!\\)&", r"\\g<0>", remplacement)
+    try:
+        return lambda texte: motif.sub(remplacement, texte)
+    except re.error:
+        return None
+
 # Answer types whose value is an algebraic expression (potentially long), so a
 # no-embed fallback reply field gets a wider default than a numeric one.
 _WIDE_FALLBACK_TYPES = {
@@ -1810,7 +1898,23 @@ class DefEngine(_SlibMixin):
         )
 
     def _cmd_replace(self, args: str) -> str:
-        """!replace [internal/word] A by B in text."""
+        """!replace [internal/word] A by B in text.
+
+        Sans le préfixe `internal`, et dès que l'un des deux motifs porte un
+        caractère de `\\[^.*$`, WIMS ne remplace pas du texte : il lance **sed**
+        (`calc.c:calc_replace`) —
+
+            if(internal || … || (strpbrk(bf[0],"\\\\[^.*$")==NULL &&
+                                 strpbrk(bf[1],"\\\\[^.*$")==NULL)) {
+              /* No regexp, direct replace */
+
+        — sur `s/<motif>/<par>/g`. C'est ce qui donne son sens à
+        `!replace [0-9] by $ in F4` (retirer les chiffres) ou à
+        `!replace \\^ by ** in x^2`. Traités littéralement, ces motifs ne
+        trouvaient jamais rien : `slib/chemistry/molecule` en tirait un nombre
+        d'atomes égal au symbole (`U,Uranium,…` au lieu de `1,Uranium,…`), et
+        la masse molaire d'`UF4` sortait en `0+U*238.03+F4*`.
+        """
         # Standard: !replace internal x by y in text
         # Shortcut: !replace x by y in text (defaults to internal)
         # `\s+in\s*` (pas `\s+in\s+`) : le texte cible peut être vide quand un
@@ -1821,10 +1925,11 @@ class DefEngine(_SlibMixin):
         if m:
             mode, old, new, text = m.groups()
         else:
-            # Try shortcut without mode prefix
+            # Sans préfixe : ni `internal` ni `word`. La nuance compte, c'est
+            # `internal` qui coupe la voie regexp.
             m = re.match(r"(.*?)\s+by\s+(.*?)\s+in\s*(.*)", args, re.I | re.DOTALL)
             if m:
-                mode, old, new, text = "internal", m.group(1), m.group(2), m.group(3)
+                mode, old, new, text = "", m.group(1), m.group(2), m.group(3)
             else:
                 # Empty replacement: `!replace internal , by in $text` deletes
                 # every comma (interint3 strips the clickfill list separators
@@ -1835,7 +1940,7 @@ class DefEngine(_SlibMixin):
                     args, re.I | re.DOTALL,
                 )
                 if m:
-                    mode, old, new, text = (m.group(1) or "internal"), m.group(2), "", m.group(3)
+                    mode, old, new, text = (m.group(1) or ""), m.group(2), "", m.group(3)
                 else:
                     return self._subst(args)
         
@@ -1845,11 +1950,26 @@ class DefEngine(_SlibMixin):
         # `!replace internal $empty by \qquad \qquad in $slib_cel` pour espacer
         # les cellules vides, ce qui hachait toutes les autres : son marqueur
         # `reply1` ressortait en `\qquad r\qquad e\qquad p\qquad l\qquad y…`.
+        # `by $` — un dollar seul — nomme la variable de nom **vide**, que
+        # `substit` (`evalue.c`) résout comme n'importe quelle autre : sa
+        # boucle `for(p2=pp+1; myisalnum(*p2)…)` s'arrête aussitôt, le nom est
+        # vide, et le `$` disparaît. C'est ainsi que
+        # `!replace [0-9] by $ in $slib_mol` retire les chiffres, et
+        # `!replace internal : by $ in $error` les deux-points. Les neuf
+        # occurrences du corpus ont toutes ce sens. La règle n'est pas portée
+        # dans `_subst` : les 14 000 `$ ` du corpus y sont d'abord les
+        # délimiteurs de `!translate internal $…$`.
+        old = "" if old.strip() == "$" else old
+        new = "" if new.strip() == "$" else new
         if not old:
             return text
         if mode.lower() == "word":
             # Escape old for regex if using word mode
             return re.sub(rf"\b{re.escape(old)}\b", new, text)
+        if not mode and _PORTE_UN_METACARACTERE(old, new):
+            substitue = _sed_substitution(old, new)
+            if substitue is not None:
+                return substitue(text)
         return text.replace(old, new)
 
     def _cmd_translate(self, args: str) -> str:

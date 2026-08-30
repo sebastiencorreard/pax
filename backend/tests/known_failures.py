@@ -219,11 +219,17 @@ XFAIL_RENDER_STRUCTURE = {
 # `tests/test_chemeq.py` rejoue la comparaison sur les 65 entrées que le corpus
 # lui soumet.
 #
-# Restent trois `mole.fr`, d'une **autre** famille malgré l'apparence : ils
-# passent par `slib/chemistry/molarmass`, qui n'appelle pas `chemeq` mais porte
-# sa propre table d'éléments en WIMS pur. Leur attendu garde un
-# `0+U*238.03+F4*` — une substitution inachevée dans ce slib, à instruire à
-# part. Idem pour les deux `chemavance1`, qui attendent l'équilibrage (`-e`,
+# Les trois `mole.fr` sont partis le 2026-08-30, et leur cause n'avait rien de
+# chimique : `slib/chemistry/molecule` sépare le nombre d'atomes du symbole par
+# deux `!replace` à **expression régulière** — `[0-9]` d'un côté, `[a-zA-Z]` de
+# l'autre. Sans le préfixe `internal`, et dès qu'un motif porte un caractère de
+# `\[^.*$`, WIMS ne remplace pas du texte : il lance sed (`calc.c`). PAX prenait
+# `[0-9]` pour un littéral, ne trouvait rien, et le slib rendait un nombre
+# d'atomes égal au symbole — d'où le `0+U*238.03+F4*` de la masse molaire.
+# `by $` s'y lit « par rien » : un dollar seul nomme la variable de nom vide,
+# que `substit` résout comme une autre.
+#
+# Restent les deux `chemavance1`, qui attendent l'équilibrage (`chemeq -e`,
 # `-C`), non porté.
 XFAIL_CORRECT_SCORE = {
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
@@ -235,9 +241,6 @@ XFAIL_CORRECT_SCORE = {
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
     'H4~chemistry~chemavance1.fr~src~Tableaudavance',
     'H4~chemistry~chemavance1.fr~src~TableaudavanceBis',
-    'H4~chemistry~mole.fr~src~masse_molaire1',
-    'H4~chemistry~mole.fr~src~masse_molaire_avec_solution',
-    'H4~chemistry~mole.fr~src~nb_moles_avec_solution',
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
