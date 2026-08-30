@@ -2517,7 +2517,12 @@ def check_answer(
             return check_fset(reply, expected, precision, comma_is_decimal)
         case "set" | "checkbox":
             return check_set(reply, expected)
-        case "radio" | "menu" | "mark":
+        # `anstype/click` compare des **positions** : il cherche le rang de la
+        # réponse dans la liste des choix et le confronte à la première ligne
+        # de `replygood` (`!if $menupos isitemof $good`). C'est le contrat de
+        # `mark`, et le moteur lui donne désormais la même forme — d'où le
+        # même comparateur, plutôt que le repli textuel qui traînait ici.
+        case "radio" | "menu" | "mark" | "click":
             return check_radio(reply, expected)
         case "clickfill":
             return check_clickfill(reply, expected, noorder="noorder" in opt_str)

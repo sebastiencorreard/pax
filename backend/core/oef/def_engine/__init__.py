@@ -837,7 +837,7 @@ class DefEngine(_SlibMixin):
         text_replies = [
             a for a in answers
             if a.answer_type.lower()
-            not in ("radio", "menu", "mark", "correspond", "jsxgraph")
+            not in ("radio", "menu", "mark", "correspond", "jsxgraph", "click")
         ]
         # Append a default field per reply when the question carries no widget.
         # For dynsteps/course this is reached only when there are no embeds
@@ -4055,7 +4055,7 @@ class DefEngine(_SlibMixin):
                 # Plain radio: choices are rendered by the frontend in a
                 # dedicated section below the statement; no widget here.
                 return ""
-            elif reply_type == "mark":
+            elif reply_type in ("mark", "click"):
                 # mark: clickable choices, reply = the 1-based position clicked.
                 # replygood = "correct_pos;choice1,choice2,...".
                 # size_str may be a loop variable like "\r" — resolve \varname patterns.
@@ -4564,7 +4564,7 @@ class DefEngine(_SlibMixin):
     # with the choices. Free-input types (numeric/litexp/…) keep `expected` raw
     # for the CAS/numeric checker; checkbox/mark `expected` is an index (closing
     # is a no-op); correspond has its own display path (_prep_correspond_item).
-    _CHOICE_EXPECTED_TYPES = frozenset({"radio", "menu", "mark", "clickfill"})
+    _CHOICE_EXPECTED_TYPES = frozenset({"radio", "menu", "mark", "clickfill", "click"})
 
     def _finalize_answer_math(self, answers: list[AnswerDef]) -> None:
         """Single guarantee point for inline-math closing on answer fields.
@@ -4871,7 +4871,7 @@ class DefEngine(_SlibMixin):
                     c.strip() for c in correct_part.split(",") if c.strip()
                 )
 
-            elif ans_type == "mark":
+            elif ans_type in ("mark", "click"):
                 # Format: "correct_pos;choice1,choice2,..." (WIMS mark / click-in-table)
                 # The student's reply is the 1-based column they clicked.
                 # expected = that column index as a string.
