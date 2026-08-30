@@ -1004,9 +1004,24 @@ class TestCoordZones:
                      "point,204,338", "rectangle,10,20,50,60"):
             assert check_answer("coord", D(zone), zone).correct, zone
 
-    def test_an_uncomputable_zone_yields_nothing(self):
-        """`bound` teste l'appartenance à une région d'un GIF par remplissage :
-        sans l'image, il n'y a pas de centre à proposer."""
+    def test_une_zone_sans_image_ne_propose_rien(self):
+        """`bound` teste l'appartenance à une région d'un GIF ; sans nom de
+        fichier il n'y a pas de zone du tout — le cas de `quadrilatere`, dont
+        l'image est un SVG produit par flydraw et non un GIF sur disque."""
         from core.answer.checkers import coord_display_answer as D
         assert D("(bound,,56,146)") == ""
-        assert D("b,dept.gif,204,338") == ""
+
+    def test_le_point_de_reference_dun_bound_est_un_clic_valide(self):
+        """Il appartient par construction à la région qu'il désigne, ce qui en
+        fait la réponse à proposer — le reste du travail est dans l'image."""
+        from core.answer.checkers import coord_display_answer as D
+        assert D("b,dept.gif,204,338") == "204,338"
+
+    def test_seule_la_premiere_zone_vaut_bonne_reponse(self):
+        """`anstype/coord` ne retient le rang rendu par `clickzone` que s'il
+        vaut 1 (`!if $i_=1`) : les zones suivantes servent au diagnostic."""
+        from core.answer.checkers import coord_display_answer as D
+        zones = "point,10,10;point,300,300"
+        assert D(zones) == "10,10"
+        assert check_answer("coord", "10,10", zones).correct
+        assert not check_answer("coord", "300,300", zones).correct

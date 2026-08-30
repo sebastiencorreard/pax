@@ -91,8 +91,20 @@ XFAIL_RENDER_STRUCTURE = {
 # `circle,200,200-20*7,9` —, et n'en garder que les nombres purs laissait le
 # cercle sans rayon. Et un `coord` n'attend pas une zone mais un **point** : le
 # test lui soumettait la description de la cible au lieu d'un clic dedans.
-# Restent les `bound`, qui testent l'appartenance à une région d'un GIF par
-# remplissage : sans l'image, rien à calculer.
+#
+# Les cinq derniers, les `bound` d'`oefdepregfr`, sont partis le 2026-08-30.
+# Ils ne se calculent pas : `clickzone.c` remplit l'image par diffusion depuis
+# le point cliqué et regarde si le point de référence de la zone a été atteint
+# — deux points d'un même département de `dept.gif` communiquent, le tracé les
+# sépare de leurs voisins. D'où un décodeur GIF (`def_engine/gif.py`, sans
+# dépendance ajoutée) et la région 4-connexe qui va avec, confrontés au binaire
+# `clickzone` du dépôt sur 136 clics — dont 120 tirés au hasard — sans un écart.
+#
+# Le même travail a montré que `check_coord` n'acceptait qu'**une** zone là où
+# le moteur en joint plusieurs par `;`, et surtout que seule la **première**
+# vaut bonne réponse : `anstype/coord` ne retient le rang rendu par `clickzone`
+# que s'il vaut 1 (`!if $i_=1`), les suivantes servant à colorier la carte en
+# diagnostic. Accepter n'importe laquelle aurait rendu ces exercices triviaux.
 #
 # Huit `sigunits` sont partis le 2026-08-27, et le checker n'y était pour rien :
 # l'attendu se stocke `"<valeur> <unité> #N"`, où `#N` est la **consigne** —
@@ -233,11 +245,6 @@ XFAIL_RENDER_STRUCTURE = {
 # `-C`), non porté.
 XFAIL_CORRECT_SCORE = {
     'H3~analysis~OEFevalwimspuis.fr~src~produit5',
-    'H3~geography~oefdepregfr.fr~src~clickcap',
-    'H3~geography~oefdepregfr.fr~src~clickcode',
-    'H3~geography~oefdepregfr.fr~src~clickdept',
-    'H3~geography~oefdepregfr.fr~src~clickrcap',
-    'H3~geography~oefdepregfr.fr~src~clickreg',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
     'H4~chemistry~chemavance1.fr~src~Tableaudavance',
     'H4~chemistry~chemavance1.fr~src~TableaudavanceBis',

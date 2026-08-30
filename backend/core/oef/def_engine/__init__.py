@@ -4984,6 +4984,18 @@ class DefEngine(_SlibMixin):
                 if rows:
                     options["image"] = rows[0]
                 expected = ";".join(rows[1:]).strip()
+                # Une zone `bound` ne se décide pas au calcul mais **dans
+                # l'image** : `clickzone.c` y remplit la région du clic et
+                # regarde si le point de référence a été atteint. Le checker a
+                # donc besoin du fichier, que seul le moteur sait situer.
+                if re.search(r"(^|;)\s*b(ound)?\s*,", expected, re.I):
+                    # Relatif à la racine des ressources, non absolu : cette
+                    # option entre dans les snapshots, qu'un chemin absolu
+                    # rendrait dépendants de l'endroit où le corpus est monté.
+                    images = os.path.join(
+                        os.path.dirname(os.path.dirname(self.def_path)), "images"
+                    )
+                    options["images_dir"] = os.path.relpath(images, _RESSOURCES_ROOT)
                 # The pixel↔repère transform (from slib/draw/repere) lets the
                 # feedback report the click in repère units instead of pixels.
                 xform = self.ctx.get("_repere_transform")

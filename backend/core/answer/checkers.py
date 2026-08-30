@@ -762,13 +762,23 @@ def coord_display_answer(expected: str) -> str:
     à l'élève de saisir la consigne, comme les bornes d'un `range` ou le `#N`
     d'un `sigunits`.
 
-    Rend `""` pour les formes dont le centre ne se calcule pas — `bound` teste
-    l'appartenance à une région d'un GIF par remplissage (`Misc/clickzone.c`),
-    et `polygon` demanderait le centroïde.
+    Rend `""` pour les formes dont le centre ne se calcule pas — `polygon`
+    demanderait le centroïde.
     """
     from core.oef.numfmt import format_wims_float  # noqa: PLC0415
 
-    parts = [p.strip() for p in _declosing(expected or "").split(",")]
+    # Seule la première zone est la bonne réponse (cf. `check_coord`) ; les
+    # suivantes servent au diagnostic.
+    premiere = _declosing(expected or "").split(";")[0]
+    parts = [p.strip() for p in _declosing(premiere).split(",")]
+    if (parts and parts[0].strip().lower().startswith("b")
+            and len(parts) >= 4 and parts[1].strip()):
+        # `b,<gif>,x,y` : le point de référence de la région **est** un clic
+        # valide, puisqu'il appartient par construction à la zone visée. Sans
+        # nom de fichier, en revanche, il n'y a pas de zone du tout — c'est le
+        # cas de `quadrilatere`, dont l'image est un SVG produit par flydraw et
+        # non un GIF sur disque.
+        return f"{parts[2].strip()},{parts[3].strip()}"
     if len(parts) < 2:
         return ""
     shape = parts[0].lower()
@@ -1019,7 +1029,49 @@ def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> Ch
     return CheckResult(correct=score == 1.0, score=score, method="jsxgraph")
 
 
-def check_coord(reply: str, expected: str) -> CheckResult:
+def _bound_atteint(clic: tuple[float, float], zone: list[str], images_dir: str) -> bool:
+    """Zone ``b,<fichier.gif>,x,y`` — appartenance à une **région de l'image**.
+
+    Portage de la branche `bound` de `Misc/clickzone.c` : elle remplit l'image
+    par diffusion depuis le point cliqué, puis regarde si le point de référence
+    de la zone a pris la couleur. Deux points d'un même département de
+    `dept.gif` communiquent ; le tracé les sépare de leurs voisins.
+
+    Le C distingue deux formes selon le nombre de coordonnées données (`T`) :
+    sans point de référence, il compare simplement la couleur du clic à celle
+    du coin (1,1), c'est-à-dire au fond. Les deux sont ici.
+    """
+    from core.oef.def_engine.gif import GifError, lire_gif  # noqa: PLC0415
+
+    if len(zone) < 2 or not images_dir:
+        return False
+    fichier = zone[1].strip()
+    if not fichier or "/" in fichier or ".." in fichier:
+        return False
+    from core.oef.flydraw import _RESSOURCES_ROOT  # noqa: PLC0415
+
+    # `images_dir` est relatif à la racine des ressources (cf. le moteur).
+    chemin = _osp.join(_RESSOURCES_ROOT, images_dir, fichier)
+    if not _osp.isfile(chemin):
+        return False
+    try:
+        image = lire_gif(chemin)
+    except (GifError, OSError):
+        return False
+    cx, cy = int(clic[0]), int(clic[1])
+    reperes = [v.strip() for v in zone[2:] if v.strip()]
+    if len(reperes) < 2:
+        # `T == 0` : est-on ailleurs que sur le fond ?
+        couleur = image.pixel(cx, cy)
+        return couleur is not None and couleur != image.pixel(1, 1)
+    try:
+        rx, ry = int(float(reperes[0])), int(float(reperes[1]))
+    except ValueError:
+        return False
+    return image.region_atteint((cx, cy), (rx, ry))
+
+
+def check_coord(reply: str, expected: str, options: dict | None = None) -> CheckResult:
     """Type ``coord`` : clic sur une image-repère (``<input type=image>``).
 
     ``reply`` = les pixels cliqués ``(x,y)`` (ou ``x,y``). ``expected`` = la
@@ -1035,10 +1087,30 @@ def check_coord(reply: str, expected: str) -> CheckResult:
         return CheckResult(correct=False, score=0.0, method="coord")
     cx, cy = float(nums[0]), float(nums[1])
 
-    parts = [p.strip() for p in _declosing(expected or "").split(",")]
+    # `clickzone.c` lit **une zone par ligne** et imprime le rang de la
+    # première qui contient le clic ; le moteur les joint par `;`. Mais
+    # `anstype/coord` ne retient ce rang que s'il vaut 1 :
+    #
+    #     !distribute words $test1 into i_,prec
+    #     !if $i_=1
+    #
+    # La bonne réponse est donc le clic dans la **première** zone, les
+    # suivantes servant au diagnostic — la carte d'`oefdepregfr` y range les
+    # autres départements pour pouvoir colorier celui qu'il fallait. Accepter
+    # n'importe laquelle rendrait l'exercice trivial.
+    zones = [z.strip() for z in _declosing(expected or "").split(";") if z.strip()]
+    ok = bool(zones) and _zone_contient(cx, cy, zones[0], options)
+    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
+
+
+def _zone_contient(cx: float, cy: float, zone: str, options: dict | None) -> bool:
+    """Le clic tombe-t-il dans cette click-zone ? (`test()` de `clickzone.c`)"""
+    parts = [p.strip() for p in _declosing(zone).split(",")]
     if not parts:
-        return CheckResult(correct=False, score=0.0, method="coord")
+        return False
     shape = parts[0].lower()
+    if shape in ("b", "bound") or shape.startswith("bound"):
+        return _bound_atteint((cx, cy), parts, (options or {}).get("images_dir", ""))
     # Les composantes d'une click-zone sont des **expressions**, pas des
     # littéraux : `getvalue` (`Misc/clickzone.c`) passe chaque item au
     # calculateur. `somvect` pose `circle,110,80,30/3` et `tracredstep`
@@ -1054,25 +1126,21 @@ def check_coord(reply: str, expected: str) -> CheckResult:
         except ValueError:
             continue
 
-    def _hit() -> bool:
-        if shape.startswith("point") or shape == "p":
-            # One or more target points; any within tolerance counts.
-            for i in range(0, len(vals) - 1, 2):
-                if math.hypot(vals[i] - cx, vals[i + 1] - cy) <= 7:
-                    return True
-            return False
-        if shape.startswith("circle") and len(vals) >= 3:
-            return math.hypot(vals[0] - cx, vals[1] - cy) <= vals[2] / 2
-        if shape.startswith("rectangle") and len(vals) >= 4:
-            x1, x2 = sorted((vals[0], vals[2]))
-            y1, y2 = sorted((vals[1], vals[3]))
-            return x1 <= cx <= x2 and y1 <= cy <= y2
-        if shape.startswith("ellipse") and len(vals) >= 4 and vals[2] > 0 and vals[3] > 0:
-            return math.hypot(2 * (vals[0] - cx) / vals[2], 2 * (vals[1] - cy) / vals[3]) <= 1
+    if shape.startswith("point") or shape == "p":
+        # One or more target points; any within tolerance counts.
+        for i in range(0, len(vals) - 1, 2):
+            if math.hypot(vals[i] - cx, vals[i + 1] - cy) <= 7:
+                return True
         return False
-
-    ok = _hit()
-    return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
+    if shape.startswith("circle") and len(vals) >= 3:
+        return math.hypot(vals[0] - cx, vals[1] - cy) <= vals[2] / 2
+    if shape.startswith("rectangle") and len(vals) >= 4:
+        x1, x2 = sorted((vals[0], vals[2]))
+        y1, y2 = sorted((vals[1], vals[3]))
+        return x1 <= cx <= x2 and y1 <= cy <= y2
+    if shape.startswith("ellipse") and len(vals) >= 4 and vals[2] > 0 and vals[3] > 0:
+        return math.hypot(2 * (vals[0] - cx) / vals[2], 2 * (vals[1] - cy) / vals[3]) <= 1
+    return False
 
 
 # ------------------------------------------------------------------ #
@@ -2458,7 +2526,7 @@ def check_answer(
         case "jsxgraph":
             return check_jsxgraph(reply, expected, options)
         case "coord":
-            return check_coord(reply, expected)
+            return check_coord(reply, expected, options)
         case "equation":
             # `option:eqsign=yes` — le signe « = » est exigé sauf mention
             # contraire de l'auteur.
