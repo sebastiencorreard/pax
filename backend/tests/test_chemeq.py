@@ -39,10 +39,27 @@ def test_latex_conforme_au_binaire(entree, attendu):
     assert chemeq(entree, "l") == attendu.strip()
 
 
+@pytest.mark.parametrize("entree,attendu", _cas("e"), ids=lambda v: v if isinstance(v, str) else "")
+def test_charges_conformes_au_binaire(entree, attendu):
+    assert chemeq(entree, "e") == attendu.strip()
+
+
+@pytest.mark.parametrize("entree,attendu", _cas("C"), ids=lambda v: v if isinstance(v, str) else "")
+def test_decompte_datomes_conforme_au_binaire(entree, attendu):
+    assert chemeq(entree, "C") == attendu.strip()
+
+
+def test_une_molecule_seule_rend_le_latex_sous_e_et_C():
+    """Sans flèche, il n'y a pas d'équation à décrire : le binaire rend alors
+    le LaTeX, et non un décompte. Vérifié sur `chemeq -e H2O`."""
+    assert chemeq("H2O", "e") == chemeq("H2O", "l")
+    assert chemeq("H2O", "C") == chemeq("H2O", "l")
+
+
 def test_option_inconnue_rend_le_vide():
-    """`v` (version), `e` et `C` (équilibrage) sortent du périmètre porté :
-    ils rendent le vide, comme le faisait l'appel avant qu'il existe."""
-    for option in ("v", "e", "C", ""):
+    """`v` (version) reste hors du périmètre porté : elle rend le vide, comme
+    le faisait l'appel avant qu'il existe."""
+    for option in ("v", "x", ""):
         assert chemeq("H2O", option) == ""
 
 

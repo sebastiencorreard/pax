@@ -269,10 +269,19 @@ XFAIL_RENDER_STRUCTURE = {
 # `coefficients` et `coefficients2` **entrent** en échange dans les tests : ils
 # en étaient écartés faute d'attendus, et leur tableau se construit désormais
 # pour de bon — 11 champs pour NaCl → Na⁺ + Cl⁻ au lieu de 29 cases vides.
-# Huit de leurs onze attendus sont justes ; les trois derniers, ceux de la
-# ligne `Charge_total`, gardent un `*1/1` : le slib y écrit
-# `$[$(slib_stoechiometry[$slib_c]) * (…)]` et l'indice `$slib_c` ne désigne
-# rien. À instruire.
+# Huit de leurs onze attendus sont justes ; trois gardent un `*1/1`. La piste
+# du slib est écartée : ses lignes `Charge_total` et `<élément>_total` se
+# calculent correctement, vérification faite pas à pas. Le trou est dans le
+# `.def` lui-même —
+#
+#     val43=$[$(val26[$val44;$val46])*$val41/$(val14[2;1])]
+#
+# — dont le premier facteur ressort vide pour trois des tours de boucle. La
+# substitution est pourtant juste sur les premiers (`0*1/1`, `1*1/1`,
+# `-1*1/1`) : ce sont les indices `$val44`/`$val46` de tours ultérieurs qu'il
+# reste à instruire. Une tentative d'imputer cela à `_rational_expand` — qui
+# remonte l'affectation *source* d'une variable réaffectée, défaut réel par
+# ailleurs — a été mesurée sans effet ici, et annulée.
 #
 # Au passage, `corpus_state` a signalé « segments perdus » sur ces deux
 # exercices — `input 29→0`. C'est un **faux positif** : leurs champs passent
