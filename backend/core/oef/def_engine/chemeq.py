@@ -73,6 +73,32 @@ _SYMBOLE_RE = re.compile(r"[A-Z][a-z]?")
 _ETATS = ("aq", "s", "l", "g")
 
 
+class Terme:
+    """Une espèce dans un membre d'équation, avec son coefficient.
+
+    `atomes` garde l'ordre d'écriture et ne regroupe pas les symboles répétés,
+    comme le fait `chemeq -C` ; `brut` est l'écriture normalisée que le binaire
+    réaffiche (`H_2O` ressort `H2O`) ; `charge` est signée.
+    """
+
+    __slots__ = ("coefficient", "atomes", "tex", "brut", "charge")
+
+    def __init__(self, coefficient, atomes, tex, brut, charge):
+        self.coefficient = coefficient
+        self.atomes = atomes
+        self.tex = tex
+        self.brut = brut
+        self.charge = charge
+
+    def affichage(self) -> str:
+        """`2 H^+`, `1/2 O2`, `Fe` — coefficient puis formule, l'unité tue."""
+        if self.coefficient == 1:
+            return self.brut
+        c = self.coefficient
+        texte = f"{c.numerator}/{c.denominator}" if c.denominator != 1 else str(c.numerator)
+        return f"{texte} {self.brut}"
+
+
 class _Lecteur:
     """Curseur sur la chaîne, pour une descente récursive sans état global."""
 
@@ -111,24 +137,33 @@ class _Lecteur:
         return self.entier() or 1
 
 
-def _lire_groupes(lec: _Lecteur) -> tuple[list, str]:
+def _lire_groupes(lec: _Lecteur) -> tuple[list, str, str]:
     """Suite de groupes — `H2O`, `(SO4)3` — jusqu'à la fin de l'espèce.
 
-    Rend le couple (atomes comptés, LaTeX). Les deux se construisent du même
-    parcours : séparer les passes ferait diverger le rendu du calcul.
+    Rend (atomes comptés, LaTeX, écriture normalisée). Les trois se
+    construisent du même parcours : séparer les passes les ferait diverger.
+
+    Les atomes ne sont **pas** regroupés : `CH3COOH` compte six entrées, une
+    par symbole écrit, comme le fait `chemeq -C`. Seuls les indices de groupe
+    se propagent — `Fe2(SO4)3` donne `Fe:2, S:3, O:12`.
+
+    L'écriture normalisée est celle que `chemeq` réaffiche : indices collés au
+    symbole, `H_2O` ressortant `H2O`.
     """
     atomes: list[tuple[str, int]] = []
     tex: list[str] = []
+    brut: list[str] = []
     while not lec.fini():
         c = lec.regarde()
         if c == "(":
             lec.i += 1
-            interne, tex_interne = _lire_groupes(lec)
+            interne, tex_interne, brut_interne = _lire_groupes(lec)
             if not lec.avale(")"):
                 raise ChemeqError("parenthèse non fermée")
             n = lec.indice()
             atomes += [(s, k * n) for s, k in interne]
             tex.append(f"({tex_interne})" + (f"_{{{n}}}" if n != 1 else ""))
+            brut.append(f"({brut_interne})" + (str(n) if n != 1 else ""))
             continue
         m = _SYMBOLE_RE.match(lec.src, lec.i)
         if not m:
@@ -144,23 +179,31 @@ def _lire_groupes(lec: _Lecteur) -> tuple[list, str]:
         n = lec.indice()
         atomes.append((symbole, n))
         tex.append(rf"\mathrm{{{symbole}}}" + (f"_{{{n}}}" if n != 1 else ""))
+        brut.append(symbole + (str(n) if n != 1 else ""))
     if not atomes:
         raise ChemeqError("espèce vide")
-    return atomes, "".join(tex)
+    return atomes, "".join(tex), "".join(brut)
 
 
-def _lire_espece(lec: _Lecteur) -> tuple[list, str]:
+def _lire_espece(lec: _Lecteur) -> tuple[list, str, str, int]:
     """Une espèce : ses groupes, puis sa charge et son état, tous deux
     optionnels et sans effet sur la masse — un ion pèse ce que pèsent ses
-    atomes, l'électron mis à part, que `chemeq` néglige comme nous."""
-    atomes, tex = _lire_groupes(lec)
+    atomes, l'électron mis à part, que `chemeq` néglige comme nous.
+
+    Rend (atomes, LaTeX, écriture normalisée, charge). La charge est signée :
+    `Cl^-` vaut -1 et `Ca^2+` vaut 2, ce dont `chemeq -e` rend compte.
+    """
+    atomes, tex, brut = _lire_groupes(lec)
+    charge = 0
     if lec.avale("^"):
         n = lec.entier()
         signe = lec.regarde()
         if signe not in "+-":
             raise ChemeqError("charge sans signe")
         lec.i += 1
+        charge = (n if n else 1) * (1 if signe == "+" else -1)
         tex += f"^{{{n if n else ''}{signe}}}"
+        brut += f"^{n if n else ''}{signe}"
     if lec.regarde() == "_":
         for etat in _ETATS:
             if lec.src.startswith("_" + etat, lec.i):
@@ -169,11 +212,12 @@ def _lire_espece(lec: _Lecteur) -> tuple[list, str]:
                 if fin >= len(lec.src) or not lec.src[fin].isalnum():
                     lec.i = fin
                     tex += f"_{{({etat})}}"
+                    brut += f"_({etat})"
                     break
-    return atomes, tex
+    return atomes, tex, brut, charge
 
 
-def _lire_terme(lec: _Lecteur) -> tuple[Fraction, list, str]:
+def _lire_terme(lec: _Lecteur) -> "Terme":
     """Coefficient éventuel — entier ou fraction — puis l'espèce."""
     while lec.regarde() == " ":
         lec.i += 1
@@ -197,13 +241,13 @@ def _lire_terme(lec: _Lecteur) -> tuple[Fraction, list, str]:
         if lec.fini() or not (lec.regarde().isupper() or lec.regarde() == "("):
             lec.i = depart
             coefficient, tex_coef = Fraction(1), ""
-    atomes, tex = _lire_espece(lec)
+    atomes, tex, brut, charge = _lire_espece(lec)
     while lec.regarde() == " ":
         lec.i += 1
-    return coefficient, atomes, tex_coef + tex
+    return Terme(coefficient, atomes, tex_coef + tex, brut, charge)
 
 
-def _lire_membre(src: str) -> list[tuple[Fraction, list, str]]:
+def _lire_membre(src: str) -> list["Terme"]:
     """Les termes d'un membre, séparés par des `+` de premier niveau.
 
     Le `+` d'une charge (`Ca^2+`) n'en est pas un : il suit un `^` ou un
@@ -260,17 +304,44 @@ def chemeq(entree: str, option: str) -> str:
         # espaces — le coefficient stœchiométrique **compte** : `2Al` pèse
         # 53.964. C'est ce que lit `slib/chemistry/chemeq_mass`.
         sorties = [
-            _format_c(float(coef) * masse_molaire(atomes))
+            _format_c(float(t.coefficient) * masse_molaire(t.atomes))
             for membre in analyses
-            for coef, atomes, _ in membre
+            for t in membre
         ]
         return " ".join(sorties)
 
     if option in ("l", "m"):
-        rendus = [
-            "\\,+\\,".join(tex for _, _, tex in membre) for membre in analyses
-        ]
+        rendus = ["\\,+\\,".join(t.tex for t in membre) for membre in analyses]
         return f"\\,{fleche_tex}\\,".join(rendus)
 
-    # `v` (version), `e` et `C` (équilibrage) : hors périmètre.
+    if option in ("e", "C"):
+        # Ces deux options décrivent l'équation membre par membre, pour
+        # `slib/chemistry/chemeq_equilibrium` qui en tire son tableau. Sur une
+        # **molécule seule**, sans flèche, le binaire n'a pas d'équation à
+        # décrire et rend le LaTeX — comportement reproduit ici.
+        if not fleche_tex:
+            return chemeq(src, "l")
+        membres_rendus = []
+        for membre in analyses:
+            especes = []
+            for t in membre:
+                if option == "e":
+                    # `<affichage>|<coefficient>*<charge>`
+                    detail = f"{_coefficient_texte(t.coefficient)}*{t.charge}"
+                else:
+                    # `<affichage>|<élément>:<coefficient>*<atomes>`, une entrée
+                    # par symbole écrit, séparées par des espaces.
+                    detail = " ".join(
+                        f"{symbole}:{_coefficient_texte(t.coefficient)}*{n}"
+                        for symbole, n in t.atomes
+                    )
+                especes.append(f"{t.affichage()}|{detail}")
+            membres_rendus.append(", ".join(especes))
+        return "; ".join(membres_rendus)
+
+    # `v` (version) : hors périmètre.
     return ""
+
+
+def _coefficient_texte(c: Fraction) -> str:
+    return f"{c.numerator}/{c.denominator}" if c.denominator != 1 else str(c.numerator)

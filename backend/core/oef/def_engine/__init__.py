@@ -1676,10 +1676,13 @@ class DefEngine(_SlibMixin):
         if cmd in ("rename",):
             return self._cmd_rename(args)
 
-        if cmd in ("randfile",):
-            return ""
-
-        if cmd in ("randrecord",):
+        # `randfile` et `randrecord` sont **la même fonction** dans la table de
+        # `calc.c` — les deux noms y pointent sur `calc_randfile` (lignes 2393
+        # et 2402). Seul `randrecord` était routé, si bien que le
+        # `!randfile $val2.dat` de `chemavance1` rendait le vide : son équation
+        # de réaction n'était jamais tirée, et le tableau d'avancement partait
+        # d'une équation vide.
+        if cmd in ("randfile", "randrecord"):
             return self._cmd_randrecord(args)
 
         # ── Slib helper commands (mutate self.ctx, return empty string) ────────
@@ -2593,12 +2596,25 @@ class DefEngine(_SlibMixin):
             self.ctx[var] = str(step)
 
     def _cmd_reset(self, args: str) -> None:
-        """!reset VAR [VAR2 …] — reset each space-separated variable to empty.
+        """``!reset VAR [VAR2 …]`` — vide chacune des variables nommées.
 
-        WIMS accepts several names at once, e.g.
-        ``!reset slib_theme1 slib_themecss1 slib_contrast_button1``.
+        `exec_reset` (`exec.c`) ouvre sur `items2words(p)` : la **virgule sépare
+        autant que l'espace**. Ne découper que sur les blancs laissait à chaque
+        nom sa virgule (`slib_eq,` au lieu de `slib_eq`), si bien qu'un
+        `!reset a, b, c` ne vidait que le dernier. `slib/chemistry/chemeq_equilibrium`
+        ouvre sur un tel `!reset` de trente noms, dont `slib_phrase` où il
+        construit sa réponse : d'un appel au suivant, la précédente y restait et
+        les deux tableaux se concaténaient.
+
+        La forme `nom[N]` vide la série `nom1`…`nomN`, comme le fait la boucle
+        du C.
         """
-        for var in self._subst(args.strip()).split():
+        for var in self._subst(args.strip()).replace(",", " ").split():
+            m = re.fullmatch(r"([A-Za-z_]\w*)\[(\d+)\]", var)
+            if m:
+                for i in range(1, int(m.group(2)) + 1):
+                    self.ctx[f"{m.group(1)}{i}"] = ""
+                continue
             self.ctx[var] = ""
 
     def _blockof(self, data: str, split_fn, sep: str, idx_s: str) -> str:

@@ -87,6 +87,19 @@ def _candidats(ans):
         clic = coord_display_answer(brut)
         if clic:
             yield clic
+    # `numexp` demande un **nombre**, jamais un calcul : c'est tout l'objet du
+    # type, qui refuse `+ - * ^ (` (`nocompute` d'`anstype/numexp`). L'attendu
+    # peut pourtant être une expression — `produit5` range `5*3` pour « 5³×3³,
+    # soit 15³ » —, et la soumettre telle quelle revenait à taper la consigne
+    # au lieu de la réponse, comme les bornes d'un `range` ou le `#N` d'un
+    # `sigunits`.
+    if ans.answer_type == "numexp" and re.search(r"[+\-*/^()]", brut):
+        from core.answer.checkers import _eval_scalar  # noqa: PLC0415
+        from core.oef.numfmt import format_wims_float  # noqa: PLC0415
+        try:
+            yield format_wims_float(_eval_scalar(brut, comma_is_decimal=False))
+        except (ValueError, ZeroDivisionError, OverflowError):
+            pass
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()

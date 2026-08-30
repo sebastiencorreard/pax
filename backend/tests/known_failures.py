@@ -106,6 +106,13 @@ XFAIL_RENDER_STRUCTURE = {
 # que s'il vaut 1 (`!if $i_=1`), les suivantes servant à colorier la carte en
 # diagnostic. Accepter n'importe laquelle aurait rendu ces exercices triviaux.
 #
+# `produit5` est parti le 2026-08-30, et le moteur n'y était pour rien : c'est
+# le **test** qui soumettait la consigne au lieu de la réponse. Un `numexp`
+# demande un nombre, jamais un calcul — `anstype/numexp` refuse `+ - * ^ (` —,
+# et l'attendu stocké est pourtant une expression : `5*3` pour « 5³×3³, soit
+# 15³ ». `_candidats` propose désormais aussi sa valeur, comme il propose déjà
+# le milieu d'un `range`, l'arrondi d'un `sigunits` ou le clic d'un `coord`.
+#
 # Huit `sigunits` sont partis le 2026-08-27, et le checker n'y était pour rien :
 # l'attendu se stocke `"<valeur> <unité> #N"`, où `#N` est la **consigne** —
 # arrondir à N chiffres significatifs. Le test soumettait l'attendu tel quel,
@@ -241,13 +248,42 @@ XFAIL_RENDER_STRUCTURE = {
 # `by $` s'y lit « par rien » : un dollar seul nomme la variable de nom vide,
 # que `substit` résout comme une autre.
 #
-# Restent les deux `chemavance1`, qui attendent l'équilibrage (`chemeq -e`,
-# `-C`), non porté.
+# Les deux `chemavance1` sont partis le 2026-08-30, avec l'équilibrage
+# (`chemeq -e` et `-C`, désormais portés) et deux corrections du moteur :
+#
+#   - `!randfile` et `!randrecord` sont **la même fonction** dans la table de
+#     `calc.c` — les deux noms y pointent sur `calc_randfile` —, mais seul le
+#     second était routé. Le `!randfile $val2.dat` de `chemavance1` rendait
+#     donc le vide : son équation de réaction n'était jamais tirée.
+#   - `!reset a, b, c` ne vidait que le dernier nom. `exec_reset` ouvre sur
+#     `items2words` : la virgule sépare autant que l'espace. Or
+#     `slib/chemistry/chemeq_equilibrium` ouvre sur un `!reset` de trente noms,
+#     dont `slib_phrase` où il construit sa réponse — d'un appel au suivant,
+#     la précédente y restait et les deux tableaux se concaténaient. La forme
+#     `nom[N]`, qui vide la série `nom1`…`nomN`, manquait aussi.
+#
+# `Tableaudavance` passe d'un unique champ vide à cinq colonnes d'avancement
+# vérifiables : pour Fe + 2H⁺ → Fe²⁺ + H₂ partant de 0.392 et 0.361 mol,
+# l'avancement maximal vaut 0.361/2 = 0.1805, H⁺ limitant.
+#
+# `coefficients` et `coefficients2` **entrent** en échange dans les tests : ils
+# en étaient écartés faute d'attendus, et leur tableau se construit désormais
+# pour de bon — 11 champs pour NaCl → Na⁺ + Cl⁻ au lieu de 29 cases vides.
+# Huit de leurs onze attendus sont justes ; les trois derniers, ceux de la
+# ligne `Charge_total`, gardent un `*1/1` : le slib y écrit
+# `$[$(slib_stoechiometry[$slib_c]) * (…)]` et l'indice `$slib_c` ne désigne
+# rien. À instruire.
+#
+# Au passage, `corpus_state` a signalé « segments perdus » sur ces deux
+# exercices — `input 29→0`. C'est un **faux positif** : leurs champs passent
+# dans un `<table>`, où `_segment_statement` les réécrit en `<input>` natifs
+# inline au lieu d'en faire des segments propres (c'est documenté dans sa
+# docstring). Vérification faite, les onze champs restent atteignables et
+# appariés à leurs `answers`.
 XFAIL_CORRECT_SCORE = {
-    'H3~analysis~OEFevalwimspuis.fr~src~produit5',
+    'H4~chemistry~equilibrium.fr~src~coefficients',
+    'H4~chemistry~equilibrium.fr~src~coefficients2',
     'H3~geometry~oefpolygon.fr~src~quadrilatere',
-    'H4~chemistry~chemavance1.fr~src~Tableaudavance',
-    'H4~chemistry~chemavance1.fr~src~TableaudavanceBis',
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
