@@ -240,4 +240,5 @@ In-depth references and dev guides:
 - [`exercises-course.md`](docs/exercises-course.md) — deep dive on `course` (sequential) exercises
 - [`exercise-parameters.md`](docs/exercise-parameters.md) — WIMS session variables (`$imagedir`, `$confparm*`, `$m_step`, …)
 - [`static-assets.md`](docs/static-assets.md) — `/api/static` endpoint, image serving, `$imagedir` resolution
+- [`regenerer-un-oef.md`](docs/regenerer-un-oef.md) — quand un exercice vient d'un `src/cpp/*.cpp` : `.cpp` → `.oef` → `.def`, et les pièges d'encodage
 - [`wims-c-to-python-port.md`](docs/wims-c-to-python-port.md) — porting decisions vs the WIMS C source

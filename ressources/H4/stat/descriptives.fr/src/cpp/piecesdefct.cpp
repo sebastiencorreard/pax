@@ -39,7 +39,7 @@ target=pdfcttableffect,pdfcttablpourcent,pdfctstat
 \integer{fB=randint(1..4)*10}
 \integer{fC=100-\fA-\fB}
 
-#if defined defined TARGET_pdfctstat
+#if defined TARGET_pdfctstat
 \integer{eAD=\tot*\fA*\fDA/10000}
 \integer{eBD=\tot*\fB*\fDB/10000}
 \integer{eCD=\tot*\fC*\fDC/10000}
@@ -83,7 +83,7 @@ Quelle est la fréquence des ampoules produites par la machine \B parmi celles qu
 \questions1[\melange[4];]}
 #endif
 
-#if defined defined TARGET_pdfctstat
+#if defined TARGET_pdfctstat
 //préparation de l'afficahe de la solution avec des fractions :
 \text{f=wims(replace internal / by , in \questions[1;3])}
 \integer{n=\f[1]}
@@ -169,7 +169,7 @@ Compléter le tableau ci-dessous avec des fréquences en pourcentages :
 </table>
 #endif
 
-#if defined defined TARGET_pdfctstat
+#if defined TARGET_pdfctstat
 Un fabriquant d'ampoules possède trois machines notées \A, \B et \C.
 La production quotidienne totale du fabriquant est de \tot ampoules. Certaines ampoules présentent un défaut de fabrication.
 Voici un tableau résumant les différents effectifs dans la production.

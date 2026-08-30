@@ -187,17 +187,16 @@ XFAIL_RENDER_STRUCTURE = {
 # annonçait une moyenne égale à `print(rint(print(Mat([0,4,13,14])*…` et dit
 # maintenant 303/28.
 #
-# `pdfctstat` est le cinquième `stat`, et **rien n'est à corriger dans le
-# moteur** : ses attendus (`\eAD/\eA`) nomment des effectifs que le `.oef` ne
-# définit jamais. Le préprocesseur les pose bien, mais sous une garde
+# `pdfctstat` était le cinquième `stat`, et rien n'était à corriger dans le
+# moteur : ses attendus (`\eAD/\eA`) nommaient des effectifs que le `.oef` ne
+# définissait jamais. Le préprocesseur les posait, mais sous une garde
 # `#if defined defined TARGET_pdfctstat` — un `defined` de trop
 # (`src/cpp/piecesdefct.cpp`, lignes 42, 86 et 172, seules occurrences du
-# corpus). L'expression est donc fausse, les douze `\integer{eAD=…}` sont
-# exclus de la génération, et le bloc suivant — dont la garde est correcte —
-# les référence quand même. Le `.oef` livré est cassé à la source, chez WIMS
-# comme ici. Corriger demande de retirer le mot en trop **et** de régénérer
-# `.oef` et `.def` : un travail sur le corpus, pas sur le code, à trancher
-# avec le mainteneur — même nature que `medicament` dans la liste du rendu.
+# corpus). L'expression était fausse, les douze `\integer{eAD=…}` exclus de la
+# génération, et le bloc suivant — dont la garde était correcte — les
+# référençait quand même. Le mot en trop retiré, `.oef` et `.def` régénérés
+# (cf. `docs/regenerer-un-oef.md`), l'exercice retrouve son tableau
+# d'effectifs et ses trois fréquences. Parti le 2026-08-30.
 #
 # `periodefrequence` est parti le 2026-08-28 : son attendu ` s#2` avait perdu
 # sa valeur, et n'en gardait que l'unité. `slib/text/sigunits` — que 70
@@ -239,7 +238,6 @@ XFAIL_CORRECT_SCORE = {
     'H4~chemistry~mole.fr~src~masse_molaire1',
     'H4~chemistry~mole.fr~src~masse_molaire_avec_solution',
     'H4~chemistry~mole.fr~src~nb_moles_avec_solution',
-    'H4~stat~descriptives.fr~src~pdfctstat',
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
