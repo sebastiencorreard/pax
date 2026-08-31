@@ -119,12 +119,29 @@ appelle `etale(couv,ff,f2[1],matsize(xyz)[1])`. Cette bibliothèque emploie
 ne connaît pas. C'est un chantier d'interpréteur pour huit exercices, en
 comptant les deux `bound` d'`oefpolynet` qui butent sur le même `W`.
 
-**`lang/swac`** lit `!record 0 of data/swac/packs`, une base de fichiers audio
-qui n'a pas été reprise dans `ressources/`. Rien à coder : une donnée à
-rapatrier, ou six exercices à laisser.
+**`lang/swac`** lit `!record 0 of data/swac/packs`, puis des index par paquet.
+Ces données ont été rapatriées le 2026-08-31 depuis
+`wims/public_html/scripts/data/swac` — le pointeur `packs`, les index allemands
+et le paquet `eng-balm-verbs`, 568 Ko en tout ; l'audio lui-même reste distant,
+servi depuis l'URL que porte `packs`. **Le slib rend toujours le vide** : il
+bute avant d'atteindre ces fichiers, `!lookup` et `!randrecord` n'étant jamais
+appelés. Reste donc à trouver où il s'arrête ; les données, elles, ne manquent
+plus.
 
-**`basep`** reçoit `rint(NaN**4*0)` ou un second argument vide : le défaut est
-chez ses appelants, pas en lui. À instruire séparément.
+**`basep`** fonctionne ; ses appelants lui passent `rint(NaN**4*0)`. En
+remontant : `val5=$confparm4`, et `confparm4` est calculé par le **`var.proc`
+du module** —
+
+    basep=!randitem $confparm1
+    confparm4=$basep
+
+— fichier que PAX n'exécute pas. Il ne lit que les `!default confparmN=` de
+`introhook.phtml` (cf. `_module_confparm_defaults`), ce qui suffit à
+`confparm1`, `2` et `3` mais pas au quatrième, qui demande un calcul.
+
+Un seul module du corpus est dans ce cas (`numeration.fr`, 13 exercices), pour
+340 `var.proc` au total : les exécuter tous serait un changement structurel à
+mesurer, et c'est la décision qui bloque ce lot.
 
 **`text/sigunits`** n'échoue que sur les appels demandant une **conversion**
 d'unité (`units-filter qty#sig:unit`), non portée — l'arrondi l'est depuis le
