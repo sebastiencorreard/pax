@@ -1418,10 +1418,35 @@ class TestCmdMiscNew:
         e.ctx["opts"] = "readonly fullscreen theme=[3024-night,3024-day]"
         assert e._eval_cmd("getopt", "theme in $opts") == "[3024-night,3024-day]"
 
-    def test_getdef_same_as_getopt(self):
+    def test_getdef_lit_un_fichier_du_module(self, tmp_path):
+        """`!getdef <nom> in <fichier>` n'est pas `getopt` : `exec.c` l'envoie
+        à `calc_defof`, qui ouvre un **fichier du module** et y cherche les
+        lignes `nom = valeur`, éventuellement introduites par `!set`/`!let`/
+        `!def`/`!define`. Le second argument nomme donc un fichier, non une
+        chaîne d'options."""
+        module = tmp_path / "mod.fr"
+        (module / "def").mkdir(parents=True)
+        (module / "textes").write_text(
+            ":une phrase, sans définition\n"
+            "instruction = Complète la phrase.\n"
+            "!set size=300\n",
+            encoding="utf-8",
+        )
+        e = engine()
+        e.def_path = str(module / "def" / "x.def")
+        assert e._eval_cmd("getdef", "instruction in textes") == "Complète la phrase."
+        assert e._eval_cmd("getdef", "size in textes") == "300"
+        # Un nom absent, un fichier absent : le vide, comme `_getdef`.
+        assert e._eval_cmd("getdef", "inconnu in textes") == ""
+        assert e._eval_cmd("getdef", "instruction in nulle_part") == ""
+
+    def test_getdef_ne_repond_plus_a_la_place_de_getopt(self):
+        """Les deux commandes n'ont de commun que leur préfixe ; c'est
+        `getopt` qui lit une option dans une chaîne."""
         e = engine()
         e.ctx["defs"] = "title=My Title size=3"
-        assert e._eval_cmd("getdef", "title in $defs") == "My"
+        assert e._eval_cmd("getopt", "title in $defs") == "My"
+        assert e._eval_cmd("getdef", "title in $defs") == ""
 
     def test_word_first(self):
         e = engine()

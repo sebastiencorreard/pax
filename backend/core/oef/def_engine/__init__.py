@@ -1554,8 +1554,11 @@ class DefEngine(_SlibMixin):
         if cmd == "nospace":
             return re.sub(r"\s+", "", self._subst(args))
 
-        if cmd in ("getopt", "getdef"):
+        if cmd == "getopt":
             return self._cmd_getopt(args)
+
+        if cmd == "getdef":
+            return self._cmd_getdef(args)
 
         if cmd == "embraced":
             return self._cmd_embraced(args)
@@ -2640,6 +2643,55 @@ class DefEngine(_SlibMixin):
         except (ValueError, TypeError):
             courant = 0
         self.ctx[var] = str(courant + 1)
+
+    def _cmd_getdef(self, args: str) -> str:
+        """``!getdef <expression> in <fichier>`` — lit des définitions **dans un
+        fichier du module**.
+
+        `exec.c:1914` l'envoie à `calc_defof`, non à `calc_getopt` : les deux
+        commandes n'ont de commun que leur préfixe. `getopt` cherche une option
+        dans une chaîne ; `getdef` ouvre un fichier du module et y remplace
+        **chaque identifiant** de l'expression par la valeur qu'il y trouve
+        (`lines.c:getdef`, qui boucle sur les noms et appelle `_getdef`).
+
+        `_getdef` retient une ligne `nom = valeur` — le nom précédé d'un blanc
+        ou en tête de fichier —, éventuellement introduite par `!set`, `!let`,
+        `!def` ou `!define`, et rien d'autre. La valeur court jusqu'à la fin de
+        la ligne, espaces de queue retirés.
+
+        Aucun des 55 appels que le corpus exécute n'y trouve quoi que ce soit :
+        leurs fichiers cibles sont des listes de phrases, sans un seul `=`.
+        WIMS y rend donc le vide, et PAX le rendait déjà — mais par le mauvais
+        chemin, `getopt` répondant à la place. Un module qui livrerait un vrai
+        fichier de définitions était jusqu'ici mal servi.
+        """
+        m = re.match(r"(.*?)\s+in\s+(.*)", self._subst(args), re.S)
+        if not m:
+            return ""
+        expression, cible = m.group(1).strip(), m.group(2).strip()
+        # `find_module_file` : le premier mot, cherché dans le module.
+        cible = cible.split()[0] if cible.split() else ""
+        if not cible or not expression or "/" in cible or ".." in cible:
+            return ""
+        module_dir = os.path.dirname(os.path.dirname(self.def_path or ""))
+        chemin = os.path.join(module_dir, cible)
+        if not os.path.isfile(chemin):
+            return ""
+        try:
+            with open(chemin, encoding="utf-8", errors="replace") as f:
+                contenu = f.read()
+        except OSError:
+            return ""
+
+        def definition(nom: str) -> str:
+            motif = re.compile(
+                rf"(?:^|\n)[ \t]*(?:!(?:set|let|def|define)[ \t]+)?"
+                rf"{re.escape(nom)}[ \t]*=(.*)"
+            )
+            trouve = motif.search(contenu)
+            return trouve.group(1).strip() if trouve else ""
+
+        return re.sub(r"[A-Za-z_]\w*", lambda mm: definition(mm.group(0)), expression)
 
     def _cmd_reset(self, args: str) -> None:
         """``!reset VAR [VAR2 …]`` — vide chacune des variables nommées.
