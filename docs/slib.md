@@ -128,26 +128,29 @@ bute avant d'atteindre ces fichiers, `!lookup` et `!randrecord` n'étant jamais
 appelés. Reste donc à trouver où il s'arrête ; les données, elles, ne manquent
 plus.
 
-**`basep`** fonctionne ; ses appelants lui passent `rint(NaN**4*0)`. En
-remontant : `val5=$confparm4`, et `confparm4` est calculé par le **`var.proc`
+**`basep`** fonctionnait déjà ; ses appelants lui passaient `rint(NaN**4*0)`.
+En remontant : `val5=$confparm4`, et `confparm4` est calculé par le **`var.proc`
 du module** —
 
     basep=!randitem $confparm1
     confparm4=$basep
 
-— fichier que PAX n'exécute pas. Il ne lit que les `!default confparmN=` de
-`introhook.phtml` (cf. `_module_confparm_defaults`), ce qui suffit à
+— fichier que PAX n'exécutait pas. Il ne lisait que les `!default confparmN=`
+de `introhook.phtml` (cf. `_module_confparm_defaults`), ce qui suffit à
 `confparm1`, `2` et `3` mais pas au quatrième, qui demande un calcul.
 
-Un seul module du corpus a besoin de ce calcul (`numeration.fr`, 13
-exercices). Mais brancher l'exécution des `var.proc` ne coûterait pas 340
-fichiers par rendu — un seul, celui du module — pour une portée bien plus
-large que ces 13 exercices : **340 modules en portent un, et ils couvrent les
-4301 exercices du corpus**. Chaque rendu exécuterait donc un fichier
-aujourd'hui jamais lu, et ces fichiers ne sont pas anodins (10 471 lignes,
-659 `!if`, 68 `!for`, 61 `!readproc` qui en appellent d'autres). Un seul pose
-des `confparm` ; les 339 autres posent autre chose, et ce que cela déplace
-dans le rendu est l'inconnue à mesurer avant de décider.
+`_module_var_proc_lines` exécute désormais ce fichier avant chaque exercice,
+comme WIMS qui le lit « for all valid calls to the module ». La crainte était
+la portée : **340 modules portent un `var.proc`, et ils couvrent les 4301
+exercices du corpus** — chaque rendu exécute donc un fichier jusque-là jamais
+lu, et ces fichiers ne sont pas anodins (10 471 lignes, 659 `!if`, 68 `!for`,
+61 `!readproc` qui en appellent d'autres).
+
+La mesure a démenti la crainte. Sur les 12 900 rendus : **111 valeurs
+modifiées, toutes dans `numeration.fr`, dont 22 passées du vide à une valeur,
+aucune vidée** ; 0 segment perdu, 0 groupe déséquilibré, les six sentinelles
+inchangées. Les 339 autres `var.proc` posent des variables que leurs exercices
+n'utilisent pas ou que le `.def` réécrit : ils ne déplacent rien.
 
 **`text/sigunits`** n'échoue que sur les appels demandant une **conversion**
 d'unité (`units-filter qty#sig:unit`), non portée — l'arrondi l'est depuis le

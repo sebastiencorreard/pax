@@ -411,6 +411,37 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     return tuple(trouves.items())
 
 
+@lru_cache(maxsize=512)
+def _module_var_proc_lines(def_path: str | None) -> tuple[str, ...]:
+    """Lignes du `var.proc` du module, exécutées avant chaque exercice.
+
+    WIMS lit ce fichier « for all valid calls to the module » : il porte
+    l'environnement commun aux exercices, là où `introhook.phtml` ne porte que
+    les valeurs par défaut réglables par l'enseignant. La différence compte dès
+    qu'un paramètre se **calcule** plutôt que se choisir :
+
+        basep=!randitem $confparm1        (numeration.fr)
+        confparm4=$basep\\…
+
+    `confparm4` n'existe nulle part ailleurs, et sans lui `slib/basep` reçoit
+    un `NaN`.
+    """
+    if not def_path:
+        return ()
+    chemin = os.path.join(os.path.dirname(os.path.dirname(def_path)), "var.proc")
+    try:
+        with open(chemin, encoding="utf-8") as f:
+            texte = f.read()
+    except UnicodeDecodeError:
+        with open(chemin, encoding="cp1252") as f:
+            texte = f.read()
+    except OSError:
+        return ()
+    from ..def_parser import _merge_continuations  # noqa: PLC0415
+
+    return tuple(_merge_continuations(texte.split("\n")))
+
+
 @lru_cache(maxsize=2048)
 def _parse_def_cached(def_path: str) -> DefFile:
     """Parse a .def file into an AST and cache the result by path.
@@ -694,6 +725,14 @@ class DefEngine(_SlibMixin):
         # l'état partiel plutôt que de bloquer plusieurs minutes.
         self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
         try:
+            # L'environnement du module vient avant l'exercice, comme chez WIMS :
+            # ce que le `.def` pose ensuite l'emporte sur ce que le module suggère.
+            lignes_module = _module_var_proc_lines(self.def_path)
+            if lignes_module:
+                try:
+                    self._run_script_lines(list(lignes_module))
+                except _SlibExit:
+                    pass
             self._exec(df.var_instructions, output_buf=None)
         except _RenderBudgetExceeded:
             pass
