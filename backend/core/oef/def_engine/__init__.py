@@ -3087,11 +3087,13 @@ class DefEngine(_SlibMixin):
         """
         if not self.def_path:
             return None
+        # Concaténation textuelle, comme `mkfname(buf,"%s/%s",…)` : `os.path.join`
+        # prendrait un `/data1` pour un chemin absolu et jetterait le préfixe.
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
-        candidats = [os.path.join(module_dir, filename)]
+        candidats = [f"{module_dir}/{filename}"]
         scripts_dir = self._find_wims_scripts_dir()
         if scripts_dir:
-            candidats.append(os.path.join(scripts_dir, filename))
+            candidats.append(f"{scripts_dir}/{filename}")
         full = next((c for c in candidats if os.path.exists(c)), None)
         if full is None:
             return None

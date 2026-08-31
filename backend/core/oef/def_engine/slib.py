@@ -95,7 +95,12 @@ class _SlibMixin:
         if not path:
             return ""
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
-        full = os.path.join(module_dir, path)
+        # `find_module_file` concatène le texte — `mkfname(buf,"%s/%s",…)` —, là
+        # où `os.path.join` prend un chemin commençant par `/` pour un absolu et
+        # jette le préfixe. C'est ainsi que le `!randfile /data1` de
+        # `mouvrel/vitesse1` cherchait à la racine du disque : le module y perdait
+        # ses données, et avec elles ses cinq réponses.
+        full = f"{module_dir}/{path}"
         if not os.path.exists(full):
             return ""
         try:
