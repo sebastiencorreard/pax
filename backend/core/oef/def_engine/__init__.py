@@ -109,6 +109,23 @@ _DOLLAR_IN_PAREN_RE = re.compile(r"\$\([^)]*\$[a-zA-Z_]")
 _DIVISION_DECIMALE_RE = re.compile(r"/\s*\(*\s*(?:10\s*\*\*|10*0)\b")
 
 
+# `<nom>.<lang>` — la langue que WIMS lit dans le nom du répertoire du module.
+_MODULE_LANG_RE = re.compile(r"\.([a-z]{2})$")
+
+
+def _langue_du_module(def_path: str | None) -> str:
+    """Code ISO du module, tiré de son répertoire (`oefpenney.it` → `it`).
+
+    C'est la source de `$lang` chez WIMS, et donc d'`oefenv_lang` : un `.def`
+    sans `\language` ne dit rien de la langue du module qui l'héberge.
+    """
+    if not def_path:
+        return ""
+    module = os.path.basename(os.path.dirname(os.path.dirname(def_path)))
+    m = _MODULE_LANG_RE.search(module)
+    return m.group(1) if m else ""
+
+
 def _fin_nom_math(s: str, i: int) -> int:
     """`find_mathvar_end` : un nom mathématique court sur les lettres, les
     chiffres, le point et l'apostrophe — `f'` et `x.1` en sont."""
@@ -641,6 +658,24 @@ class DefEngine(_SlibMixin):
         # m_step is defined when var_instructions execute, so conditions like
         # !if $m_step=2 work correctly.
         self.lang = df.meta.get("language", "fr")
+        # `slib/oef/env <mot>` rend `$(oefenv_<mot>)`, et ces variables sont
+        # posées par `oef/var.proc` — que PAX ne lit pas :
+        #
+        #     oefenv_presentgood=$presentgood
+        #     oefenv_lang=$lang            (ou $lang_choice si le module est traduit)
+        #
+        # Faute d'elles, les 534 `slib/oef/env lang` du corpus rendaient tous
+        # le vide. `presentgood` vaut « le corrigé est-il montré » : PAX rend
+        # l'énoncé, jamais la correction, d'où `no`.
+        #
+        # `$lang` est celle du **module**, que WIMS tient de son répertoire —
+        # `oefpenney.it` est italien —, non celle du `.def`. Un exercice sans
+        # `\language` y retomberait sur le `fr` par défaut de `self.lang` et
+        # afficherait du français dans un module italien : c'est ce qui est
+        # arrivé aux dix `oefpenney.it`, dont les textes existent dans les deux
+        # langues et se choisissent précisément là-dessus.
+        self.ctx.setdefault("oefenv_lang", _langue_du_module(self.def_path) or self.lang)
+        self.ctx.setdefault("oefenv_presentgood", "no")
 
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the
