@@ -89,105 +89,50 @@ aussi `<app_root>/scripts` (là où `/app/scripts/slib/` serait dans le containe
 
 ---
 
-## Slib à implémenter
+## État des slib — mesuré au rendu du corpus
 
-### 1. Vendoring — scripts purs WIMS (priorité haute)
+Chiffres relevés le 2026-08-31 en instrumentant `_cmd_readproc` sur les 4278
+exercices, graine 42 : **84 slib appelés, 2784 appels**. C'est la seule mesure
+qui vaille — compter les occurrences dans les sources surestime largement, et
+l'absence d'un fichier dans `ressources/wims-scripts/` ne dit rien du portage
+(`slib/commutesom`, `slib/runcode` et `slib/calcpuis` n'y sont pas et
+fonctionnent, PAX les émulant en Python).
 
-Ces scripts ne nécessitent aucun binaire externe. Il suffit de les rendre accessibles.
+**Attention au critère.** Un `slib_out` vide ne signale une dette que si le
+slib est censé en poser un : `slib/stat/dataproc` (55 « vides » sur 202
+appels) n'en pose **aucun** — il alimente `slib_data` et `slib_weight`. Vérifier
+`grep -c '^\s*slib_out=' <fichier>` avant de conclure.
 
-| Script | Source WIMS | Rôle |
-|---|---|---|
-| `slib/triplerelation/tabular` | `wims/public_html/scripts/slib/triplerelation/tabular` | Génère un tableau à double entrée (x, y, z=f(x,y)) avec cases à remplir |
-| `slib/matrix/non0` | `wims/public_html/scripts/slib/matrix/non0` | Matrice aléatoire sans zéro via PARI |
-| `slib/oef/env` | `wims/public_html/scripts/slib/oef/env` | Lit une variable d'environnement OEF (`oefenv_*`) |
-| `slib/text/matrixhtml` | `wims/public_html/scripts/slib/text/matrixhtml` | Génère un tableau HTML depuis notation `[a,b;c,d]` |
+### Ce qui reste, et pourquoi
 
-**Plan :** activer l'une des deux solutions de chemin ci-dessus. Aucun code de parsing
-supplémentaire n'est requis — `_run_script_lines` gère déjà le sous-ensemble WIMS utilisé
-par ces scripts (`!if/!else/!endif`, `!for/!next`, `!distribute`, `!exec pari`, etc.).
+| slib | appels vides | exercices | obstacle |
+|---|---|---|---|
+| `geo2D/offdraw` | 8 / 10 | 6 | la variable PARI `W` |
+| `lang/swac` | 23 / 23 | 6 | `data/swac/packs` absent du dépôt |
+| `basep` | 6 / 12 | 8 | arguments déjà `NaN` en amont |
+| `text/sigunits` | 55 / 167 | 34 | conversion d'unité non portée |
 
-À noter : `slib/triplerelation/tabular` est le plus important (2 exercices de chimie H4 —
-`concentration1.def` et `massevolumique.def`). Il utilise `!exec pari` pour les calculs
-matriciels et `!while` pour la convergence. **`!while/!endwhile` n'est pas encore géré
-dans `_run_script_lines`** — c'est un prérequis à implémenter avant de vendre ce script.
+**`geo2D/offdraw`** reçoit `[W[1]],[W[2]]` non substitué. `W` vient de
+`slib/geo2D/polynet`, qui charge `gp/spanning_tree.gp` par `!readproc` puis
+appelle `etale(couv,ff,f2[1],matsize(xyz)[1])`. Cette bibliothèque emploie
+`my()`, le cardinal `#f`, les lambdas `{v->…}` — que le mini-interpréteur PARI
+ne connaît pas. C'est un chantier d'interpréteur pour huit exercices, en
+comptant les deux `bound` d'`oefpolynet` qui butent sur le même `W`.
 
----
+**`lang/swac`** lit `!record 0 of data/swac/packs`, une base de fichiers audio
+qui n'a pas été reprise dans `ressources/`. Rien à coder : une donnée à
+rapatrier, ou six exercices à laisser.
 
-### 2. `slib/chemistry/chemeq_tex` et `chemeq_mass` — Python built-in (priorité haute)
+**`basep`** reçoit `rint(NaN**4*0)` ou un second argument vide : le défaut est
+chez ses appelants, pas en lui. À instruire séparément.
 
-Ces slib appellent `!exec chemeq` (binaire C WIMS). Le script est trivial :
+**`text/sigunits`** n'échoue que sur les appels demandant une **conversion**
+d'unité (`units-filter qty#sig:unit`), non portée — l'arrondi l'est depuis le
+2026-08-30. Rendre le vide y vaut mieux qu'une valeur non convertie.
 
-```wims
-# chemeq_tex
-chemeq_option=l
-slib_out=!exec chemeq $wims_read_parm
+### Ce qui a été fait depuis la version précédente de ce document
 
-# chemeq_mass
-chemeq_option=M
-slib_out=!exec chemeq $wims_read_parm
-```
-
-Le binaire `chemeq` fait deux choses :
-- **option `l`** : formule chimique → LaTeX (`H2O` → `H_2O`, `Fe(CN)6^3-` → `Fe(CN)_6^{3-}`)
-- **option `M`** : formule → masse molaire (`H2O` → `18.015`)
-
-**Plan — deux approches :**
-
-**A (simple) : implémenter en Python dans `slib.py`**
-
-Ajouter deux cas dans `_cmd_readproc` avant le dispatch `slib/` :
-
-```python
-if path == "slib/chemistry/chemeq_tex":
-    self.ctx["slib_out"] = _chemeq_to_latex(proc_args)
-    return
-
-if path == "slib/chemistry/chemeq_mass":
-    self.ctx["slib_out"] = _chemeq_molar_mass(proc_args)
-    return
-```
-
-`_chemeq_to_latex` : parser regex de formule chimique.
-- `([A-Z][a-z]?)(\d*)` → groupe élément + coefficient
-- parenthèses `(...)n` → répétition
-- charges `^n+` / `^n-` → `^{n+}` / `^{n-}`
-- `->` → `\rightarrow`
-- `+` entre molécules → `+`
-
-`_chemeq_molar_mass` : masses atomiques (dict) + parser pour sommer.
-
-**B (robuste) : appeler le binaire chemeq si disponible**
-Ajouter `!exec chemeq` dans `_cmd_exec` → tente `subprocess(["chemeq", ...])`.
-Fallback sur le parser Python si binaire absent.
-
-**Recommandation : A** — le binaire n'est pas dans le container, le parser Python couvre
-les formules du corpus H4 (inorganique simple : H₂O, FeSO₄, Fe₂(SO₄)₃, HCO₃⁻…).
-
----
-
-### 3. `oef/steps.proc` — ignoré pour l'instant (priorité basse)
-
-Mécanisme de questions en plusieurs étapes (stepwise exercises). Affecte 3 exercices H4,
-tous dans des modules de type documentation (`docbinaire.fr`). Complexe à implémenter
-(gère `oefstep`, `dynstep`, compteurs de réponses). À faire si ces exercices sont jugés
-importants.
-
----
-
-### 4. `slib/utilities/mathcalc` — stub HTML (priorité basse)
-
-Génère un bouton/lien ouvrant une popup calculatrice JavaScript. Sans impact sur la logique
-de l'exercice. Implémenter comme stub retournant `""` ou un texte fixe
-`[calculatrice non disponible]`.
-
----
-
-## Résumé du plan
-
-| Priorité | Action | Effort |
-|---|---|---|
-| 🔴 Haute | Activer accès scripts WIMS (var d'env ou vendoring) | 1h |
-| 🔴 Haute | Implémenter `chemeq_tex` / `chemeq_mass` en Python | 2h |
-| 🟡 Moyenne | Implémenter `!while/!endwhile` dans `_run_script_lines` (requis par `triplerelation/tabular`) | 1h |
-| 🟢 Basse | Stub `oef/steps.proc` | 1h |
-| 🟢 Basse | Stub `utilities/mathcalc` | 15min |
+`chemeq_tex`, `chemeq_mass` et l'équilibrage (`chemeq_equilibrium`) sont portés
+— cf. `core/oef/def_engine/chemeq.py`, dont les sorties sont confrontées au
+binaire du dépôt. `!while` l'est également, ainsi que `units-filter` (arrondi),
+`!increase`, `!varlist`, `!getdef` et le `!read` des slib.
