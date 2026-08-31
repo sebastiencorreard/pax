@@ -377,9 +377,17 @@ class _SlibMixin:
 
         def one_code(fields: list[str]) -> dict:
             lang = fields[0].strip() if fields else ""
-            # `slib/coding/editor` : `!replace internal \t by \n` — les
+            # `slib/coding/editor` : `!replace internal $\t$ by $\n$` — les
             # tabulations du `.def` sont les retours à la ligne du code source.
-            code = self._declose(fields[1]).replace("\t", "\n") if len(fields) > 1 else ""
+            #
+            # Le slib fait lui-même cette conversion, mais pour un contexte JS :
+            # il pose les deux caractères `\` et `n`, que le navigateur de WIMS
+            # relit comme un saut de ligne en interprétant la chaîne. PAX
+            # sérialise le code en JSON, où cette séquence ressortirait telle
+            # quelle dans l'éditeur ; on la relit donc ici. La tabulation reste
+            # traitée pour les appels qui n'ont pas traversé le slib.
+            brut = self._declose(fields[1]) if len(fields) > 1 else ""
+            code = brut.replace("\t", "\n").replace("\\n", "\n")
             name = fields[2].strip() if len(fields) > 2 else ""
             ro = readonly_global or (len(fields) > 3 and "readonly" in fields[3].lower())
             return {"lang": lang, "code": code, "name": name, "readonly": ro}

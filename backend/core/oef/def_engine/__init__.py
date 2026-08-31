@@ -2094,8 +2094,28 @@ class DefEngine(_SlibMixin):
         # occurrences du corpus ont toutes ce sens. La règle n'est pas portée
         # dans `_subst` : les 14 000 `$ ` du corpus y sont d'abord les
         # délimiteurs de `!translate internal $…$`.
-        old = "" if old.strip() == "$" else old
-        new = "" if new.strip() == "$" else new
+        # Le même `$…$` sert aussi de **délimiteur** autour d'une valeur que les
+        # espaces de bord perdraient — `!translate` le déballe déjà. `substit`
+        # y arrive par le même chemin : chaque `$` ouvre un nom qui s'arrête au
+        # premier caractère non alphanumérique, donc vide, donc effacé, et il
+        # ne reste que ce qu'ils encadrent. `slib/lang/swac` écrit ainsi
+        #
+        #     slib_word=!replace internal " by $\
+        #     $ in $slib_word
+        #
+        # pour couper ses mots sur les guillemets : le remplacement est un saut
+        # de ligne. Pris littéralement, il insérait `$\n$` et le mot cherché
+        # devenait `$` — aucun des dix-huit appels allemands ne trouvait son son.
+        def _deballer(s: str) -> str:
+            t = s.strip()
+            if t == "$":
+                return ""
+            if len(t) >= 2 and t.startswith("$") and t.endswith("$"):
+                return t[1:-1]
+            return s
+
+        old = _deballer(old)
+        new = _deballer(new)
         if not old:
             return text
         if mode.lower() == "word":
