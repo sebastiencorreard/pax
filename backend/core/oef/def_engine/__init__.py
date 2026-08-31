@@ -109,6 +109,15 @@ _DOLLAR_IN_PAREN_RE = re.compile(r"\$\([^)]*\$[a-zA-Z_]")
 _DIVISION_DECIMALE_RE = re.compile(r"/\s*\(*\s*(?:10\s*\*\*|10*0)\b")
 
 
+def _fin_nom_math(s: str, i: int) -> int:
+    """`find_mathvar_end` : un nom mathématique court sur les lettres, les
+    chiffres, le point et l'apostrophe — `f'` et `x.1` en sont."""
+    j = i
+    while j < len(s) and (s[j].isalnum() or s[j] in ".'"):
+        j += 1
+    return max(j, i + 1)
+
+
 def _PORTE_UN_METACARACTERE(old: str, new: str) -> bool:
     """`strpbrk(bf[0],"\\\\[^.*$")` de `calc.c` — sur l'un OU l'autre motif.
 
@@ -1557,6 +1566,9 @@ class DefEngine(_SlibMixin):
         if cmd == "getopt":
             return self._cmd_getopt(args)
 
+        if cmd in ("varlist", "listvar"):
+            return self._cmd_varlist(args)
+
         if cmd == "getdef":
             return self._cmd_getdef(args)
 
@@ -2643,6 +2655,52 @@ class DefEngine(_SlibMixin):
         except (ValueError, TypeError):
             courant = 0
         self.ctx[var] = str(courant + 1)
+
+    def _cmd_varlist(self, args: str) -> str:
+        """``!varlist [nofn] <expression>`` — les noms de variables qu'elle porte.
+
+        `mathvarlist` (`Lib/math.c`) parcourt l'expression et retient chaque
+        nom **commençant** par une lettre, dédoublonné, dans l'ordre
+        d'apparition, joint par des virgules. Un nom court sur les lettres,
+        chiffres, points et apostrophes (`find_mathvar_end`), ce qui laisse
+        `f'` entier ; un nombre n'en est jamais un, la boucle exigeant une
+        lettre en tête.
+
+        `nofn` en préfixe écarte les noms suivis d'une parenthèse — les
+        fonctions —, ce qui distingue `a*b+f(x)` → `a,b,f,x` de sa variante
+        `a,b,x`.
+
+        `listvar` en est le second nom, comme `advance` l'est d'`increase` :
+        les deux entrées de la table pointent sur la même fonction
+        (`calc.c:2359` et `2453`, `exec.c:1988` et `2071`).
+        """
+        expression = self._subst(args).strip()
+        nofn = False
+        if re.match(r"nofn\b", expression):
+            nofn = True
+            expression = expression[len("nofn"):].strip()
+
+        noms: list[str] = []
+        i = 0
+        while i < len(expression):
+            c = expression[i]
+            if not c.isalpha():
+                i += 1
+                continue
+            # Un nom ne commence pas au milieu d'un autre.
+            if i > 0 and expression[i - 1].isalnum():
+                i = _fin_nom_math(expression, i)
+                continue
+            fin = _fin_nom_math(expression, i)
+            nom = expression[i:fin]
+            suite = expression[fin:].lstrip()
+            if nofn and suite.startswith("("):
+                i = fin
+                continue
+            if nom not in noms:
+                noms.append(nom)
+            i = fin
+        return ",".join(noms)
 
     def _cmd_getdef(self, args: str) -> str:
         """``!getdef <expression> in <fichier>`` — lit des définitions **dans un
