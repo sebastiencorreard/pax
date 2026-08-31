@@ -1720,7 +1720,7 @@ class DefEngine(_SlibMixin):
             self._cmd_default(args)
             return ""
 
-        if cmd in ("advance",):
+        if cmd in ("advance", "increase"):
             self._cmd_advance(args)
             return ""
 
@@ -1762,6 +1762,23 @@ class DefEngine(_SlibMixin):
 
         if cmd == "insdraw":
             return self._cmd_insdraw(args)
+
+        if cmd in ("read", "readproc"):
+            # `exec_readproc` n'est que `exec_read` la sortie coupée :
+            #
+            #     void exec_readproc(char *p)
+            #     { int o=outputing; outputing=0; exec_read(p); outputing=o; }
+            #
+            # Les `!read` d'un `.def` sont typés au parsing (embed, draw,
+            # special…), mais ceux que portent les **slib** arrivaient ici sans
+            # être reconnus : `slib/chemistry/jmolshow` lit son
+            # `jmolshow_init` par `!read`, et le `UNKNOWN_CMD:read` s'affichait
+            # dans l'énoncé, sous les yeux de l'élève. Le HTML éventuel du
+            # fichier lu est rendu, ce qui distingue `read` de `readproc`.
+            self.ctx.pop("_proc_html", None)
+            self._cmd_readproc(args)
+            html = self.ctx.pop("_proc_html", "")
+            return html if cmd == "read" else ""
 
         return f"UNKNOWN_CMD:{cmd}"
 
@@ -2601,21 +2618,28 @@ class DefEngine(_SlibMixin):
             self.ctx[var] = value
 
     def _cmd_advance(self, args: str) -> None:
-        """!advance VAR [step] — increment a counter variable."""
+        """``!advance VAR`` / ``!increase VAR`` — ajoute 1 à un compteur.
+
+        Les deux noms désignent **la même fonction** dans la table d'`exec.c`
+        (`exec_increase`, lignes 1853 et 1950), comme `randfile` et
+        `randrecord`. Seul `advance` était routé : les 1491 `!increase` du
+        corpus, répartis sur 316 fichiers, ne faisaient rien — et leur valeur
+        de retour `UNKNOWN_CMD:increase` pouvait fuiter dans une variable.
+
+        Le C ne lit qu'un mot et ajoute toujours 1 ; aucune occurrence du
+        corpus ne porte de second argument. La valeur courante passe par
+        `atoi`, qui rend 0 sur ce qui n'est pas un entier — d'où le repli
+        plutôt qu'une exception.
+        """
         parts = args.split()
         if not parts:
             return
         var = parts[0].strip()
-        step = 1
-        if len(parts) >= 2:
-            try:
-                step = int(self._eval_arith(self._subst(parts[1])))
-            except (ValueError, TypeError):
-                pass
         try:
-            self.ctx[var] = str(int(self.ctx.get(var, "0")) + step)
+            courant = int(str(self.ctx.get(var, "0")).strip() or "0")
         except (ValueError, TypeError):
-            self.ctx[var] = str(step)
+            courant = 0
+        self.ctx[var] = str(courant + 1)
 
     def _cmd_reset(self, args: str) -> None:
         """``!reset VAR [VAR2 …]`` — vide chacune des variables nommées.
