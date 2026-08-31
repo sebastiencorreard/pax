@@ -123,10 +123,14 @@ comptant les deux `bound` d'`oefpolynet` qui butent sur le même `W`.
 Ces données ont été rapatriées le 2026-08-31 depuis
 `wims/public_html/scripts/data/swac` — le pointeur `packs`, les index allemands
 et le paquet `eng-balm-verbs`, 568 Ko en tout ; l'audio lui-même reste distant,
-servi depuis l'URL que porte `packs`. **Le slib rend toujours le vide** : il
-bute avant d'atteindre ces fichiers, `!lookup` et `!randrecord` n'étant jamais
-appelés. Reste donc à trouver où il s'arrête ; les données, elles, ne manquent
-plus.
+servi depuis l'URL que porte `packs`.
+
+Il a fallu deux corrections pour que le slib s'en serve. `!lookup` ne cherchait
+que dans le répertoire du module, quand un slib partagé lit ses données là où
+il vit : `_read_module_file` se replie désormais sur `wims-scripts/`. Et
+`!record 0` rendait le vide, alors que l'indice zéro est licite pour cette
+commande seule (calc.c:614) et désigne l'en-tête — ici l'hôte des fichiers
+audio. Le slib rend maintenant sa balise `<audio>`.
 
 **`basep`** fonctionnait déjà ; ses appelants lui passaient `rint(NaN**4*0)`.
 En remontant : `val5=$confparm4`, et `confparm4` est calculé par le **`var.proc`

@@ -25,6 +25,10 @@ class _RenderBudgetExceeded(Exception):
 # Budget temps d'un rendu, en secondes. WIMS lui-même borne le temps d'exécution.
 _RENDER_TIME_BUDGET = 8.0
 
+# Longueur du tampon de ligne de WIMS (`wimsdef.h`), au-delà de laquelle ses
+# fonctions de lecture coupent.
+_MAX_LINELEN = 45000
+
 # `\nextstep` ne dit jamais combien d'étapes restent : l'exercice s'arrête quand
 # la variable devient vide. On rejoue donc `:postdef` jusqu'à cet arrêt, borné
 # pour qu'un `.def` mal formé ne parte pas en boucle (le maximum observé sur le
@@ -3053,12 +3057,23 @@ class DefEngine(_SlibMixin):
         return "\n".join(selected)
 
     def _read_module_file(self, filename: str) -> str | None:
-        """Lit un fichier relatif au répertoire module ; None si absent."""
+        """Lit un fichier de données du module, sinon de l'arbre partagé.
+
+        Un slib partagé lit ses données là où il vit, non dans le module qui
+        l'appelle : `slib/lang/swac` cherche `data/swac/packs` sous
+        `scripts/`, que le module soit un cours d'anglais ou de néerlandais.
+        D'où le repli sur `wims-scripts/` — le module reste prioritaire, un
+        fichier local l'emportant sur son homonyme partagé.
+        """
         if not self.def_path:
             return None
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
-        full = os.path.join(module_dir, filename)
-        if not os.path.exists(full):
+        candidats = [os.path.join(module_dir, filename)]
+        scripts_dir = self._find_wims_scripts_dir()
+        if scripts_dir:
+            candidats.append(os.path.join(scripts_dir, filename))
+        full = next((c for c in candidats if os.path.exists(c)), None)
+        if full is None:
             return None
         try:
             return open(full, encoding="utf-8").read()
@@ -3135,6 +3150,14 @@ class DefEngine(_SlibMixin):
 
         Retourne l'enregistrement avec son nom comme première ligne
         (les lignes suivantes sont accessibles via !row 2, !row 3, …).
+
+        L'indice **0** est licite ici, et pour `record` seul : `_blockof` le
+        refuse à `!row` ou `!item` mais l'accepte quand la fonction de
+        recherche est `datafile_fnd_record` (calc.c:614). Il désigne alors
+        l'en-tête — ce qui précède le premier `\\n:` —, dont `slib/lang/swac`
+        tire l'hôte des fichiers audio :
+
+            ADDRESS=!record 0 of data/swac/packs
         """
         m = re.match(r"(.+?)\s+of\s+(\S+)", args, re.I | re.DOTALL)
         if not m:
@@ -3147,6 +3170,13 @@ class DefEngine(_SlibMixin):
         records = self._split_records(text)
         try:
             idx = int(round(float(self._eval_arith(idx_s))))
+            if idx == 0:
+                debut = re.search(r"(?:^|\n):", text)
+                entete = text[: debut.start()] if debut else text
+                # `datafile_fnd_record` recopie dans un tampon de MAX_LINELEN
+                # (wimsdef.h) et coupe au-delà — un fichier sans `:`, comme
+                # `oefmolecule/1centre`, ressort donc entier mais borné.
+                return entete[: _MAX_LINELEN - 1].strip("\n")
             if 1 <= idx <= len(records):
                 return records[idx - 1]
         except (ValueError, TypeError):
@@ -3168,25 +3198,18 @@ class DefEngine(_SlibMixin):
             key1: value line 1 (may be comma-separated list)
             key2: value line 2
         Lookup is case-insensitive; KEY is trimmed.
-        Resolves DATAFILE relative to the module directory (two levels above def).
+        DATAFILE is resolved by `_read_module_file`: the module first, then the
+        shared `wims-scripts/` tree where a slib keeps its own data.
         """
         m = re.match(r"(.*?)\s+in\s+(\S+)", args, re.I | re.DOTALL)
         if not m:
             return ""
         key = self._subst(m.group(1)).strip()
         filename = self._subst(m.group(2)).strip()
-        if not self.def_path or not key:
+        if not key:
             return ""
-        module_dir = os.path.dirname(os.path.dirname(self.def_path))
-        full_path = os.path.join(module_dir, filename)
-        if not os.path.exists(full_path):
-            return ""
-        try:
-            try:
-                text = open(full_path, encoding="utf-8").read()
-            except UnicodeDecodeError:
-                text = open(full_path, encoding="cp1252").read()
-        except OSError:
+        text = self._read_module_file(filename)
+        if text is None:
             return ""
         # Search for "KEY:" at the start of a line (case-insensitive)
         needle = key.lower() + ":"
