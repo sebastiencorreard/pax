@@ -139,9 +139,15 @@ du module** —
 `introhook.phtml` (cf. `_module_confparm_defaults`), ce qui suffit à
 `confparm1`, `2` et `3` mais pas au quatrième, qui demande un calcul.
 
-Un seul module du corpus est dans ce cas (`numeration.fr`, 13 exercices), pour
-340 `var.proc` au total : les exécuter tous serait un changement structurel à
-mesurer, et c'est la décision qui bloque ce lot.
+Un seul module du corpus a besoin de ce calcul (`numeration.fr`, 13
+exercices). Mais brancher l'exécution des `var.proc` ne coûterait pas 340
+fichiers par rendu — un seul, celui du module — pour une portée bien plus
+large que ces 13 exercices : **340 modules en portent un, et ils couvrent les
+4301 exercices du corpus**. Chaque rendu exécuterait donc un fichier
+aujourd'hui jamais lu, et ces fichiers ne sont pas anodins (10 471 lignes,
+659 `!if`, 68 `!for`, 61 `!readproc` qui en appellent d'autres). Un seul pose
+des `confparm` ; les 339 autres posent autre chose, et ce que cela déplace
+dans le rendu est l'inconnue à mesurer avant de décider.
 
 **`text/sigunits`** n'échoue que sur les appels demandant une **conversion**
 d'unité (`units-filter qty#sig:unit`), non portée — l'arrondi l'est depuis le
