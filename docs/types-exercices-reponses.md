@@ -32,20 +32,31 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 *   **`clickfill`** : Glisser-déposer — mono-slot (choisir une étiquette) **ou** multi-slots (composer une séquence ordonnée). Voir [§ 6](#6-clickfill--glisser-déposer).
 *   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
 *   **`default`** : Redirection vers `algexp` ou `text`.
+*   **`units`**, **`sigunits`** : Unités physiques et chiffres significatifs.
+*   **`equation`**, **`range`**, **`vector`**, **`matrix`** : Équations, intervalles, vecteurs, matrices.
+*   **`checkbox`**, **`mark`**, **`click`**, **`multipleclick`** : Choix multiples et pointage.
+*   **`correspond`** : Appariement de deux colonnes.
+*   **`coord`** : Clic sur une image-repère (port de `clickzone.c`).
+*   **`jsxgraph`**, **`jsxgraphcurve`** : Géométrie dynamique (figure et courbe tracée).
+*   **`draw`** : **Tracé sur une figure** — l'élève pose des croix, des segments
+    ou des flèches sur un canevas, et c'est la liste de leurs coordonnées, dans
+    le repère du dessin, qui est corrigée. Port d'`anstype/draw` : appariement
+    glouton à `1/precision` près, barème `split` / `eqweight`. Neuf exercices
+    (`oefpolynet`, `evolmeth`, `oefvectgraph`).
+
+La liste faisant foi est le `match` de `core/answer/checkers.py:check_answer` ;
+`_WIMS_KNOWN_TYPES`, dans le même fichier, dit ce que **WIMS** connaît, ce qui
+n'est pas la même question.
 
 ### Analyseurs Identifiés (Non encore supportés) ❌
-*   **Sciences** : 
-    *   `units`, `sigunits` : Gestion des unités physiques et chiffres significatifs.
-    *   `chemformula`, `chemdraw`, `chemclick`, `chemeq` : Chimie (formules, équilibres).
-*   **Géométrie** : 
-    *   `coord` : Clic sur zone d'image.
-    *   `vector` : Comparaison de vecteurs.
-    *   `jsxgraph`, `geogebra` : Géométrie dynamique.
-*   **Avancé** : 
-    *   `matrix` : Matrices mathématiques (comparaison coeff par coeff).
-    *   `equation` : Équations numériques.
+*   **Sciences** :
+    *   `chemformula`, `chemdraw`, `chemclick` : Chimie (formules, tracés, pointage).
+        `chemeq` a son moteur (`def_engine/chemeq.py`) mais pas encore d'analyseur.
+*   **Géométrie** :
+    *   `geogebra` : applet de géométrie dynamique (7 exercices).
+*   **Avancé** :
     *   `symtext` : Outil avancé d'identification de textes (synonymes).
-    *   `runcode` : Validation par exécution de code (Python).
+    *   `runcode` : Validation par exécution de code (Python) — 99 exercices.
     *   `reorder`, `puzzle`, `crossword`, `chessgame` : Jeux et mises en ordre.
 
 ## 3. Typage Dynamique (Variables)
@@ -63,6 +74,11 @@ Dans le corpus OEF, le type de réponse peut être résolu récursivement. PAX d
 *   **`menu`** : Liste déroulante.
 *   **`slot`** : Zone de réception "clickfill" (cible de dépôt). Plusieurs `slot` peuvent partager le même `name` (voir [§ 6](#6-clickfill--glisser-déposer)).
 *   **`radio`** : Boutons de sélection (support de l'insertion individuelle via `!embed reply N, M`).
+*   **`coord`** (`CoordPlane.vue`) : image-repère cliquable, un point.
+*   **`draw`** (`DrawAnswer.vue`) : canevas de tracé — clic pour poser une croix,
+    départ puis arrivée pour un segment ou une flèche, bouton d'effacement. Le
+    segment porte les bornes du repère : c'est en ses unités, non en pixels, que
+    la réponse est envoyée.
 
 ## 5. Options de Réponses (`option=`)
 
