@@ -234,6 +234,26 @@ manques de PAX.
   littéral était voulu. WIMS y rend `$(oefenv_)`, soit le vide. Défaut
   d'auteur, reproduit fidèlement.
 
+### Les procs qui ne sont pas des slib
+
+`!readproc` sert aussi des procs hors de `slib/`. Ils étaient tous ignorés en
+silence ; deux le sont encore, et c'est **mesuré**, pas déduit.
+
+| proc | appels | état |
+|---|---|---|
+| `oef/steps.proc` | 635 | **exécuté** — il normalise `oefsteps`, et 189 réponses sont apparues |
+| `gp/*.gp` | 8 | **exécuté** — une bibliothèque PARI, cf. `geo2D/polynet` |
+| `oef/togetfile.proc` | 43 | inerte : il écrit pour une applet Jmol que PAX n'embarque pas |
+| `js/geogebra/test` | 12 | inerte : le fichier n'existe pas, et son absence *est* la réponse |
+| `oef/drawtikz.phtml` | 5 | inerte : `!if $printlatex!=yes → !exit`, et PAX ne pose jamais ce drapeau |
+
+Le détail de chaque cas est au point de chute de `_cmd_readproc`
+(`def_engine/slib.py`). Deux d'entre eux ne demandent aucun code : le premier
+est mort-né, le deuxième dit déjà la vérité — `slib/geo2D/geogebra` rend
+l'avertissement de WIMS, « GeoGebra is not installed ». Le troisième attend
+Jmol, pas un portage de proc : écrire le fichier ne servirait à personne tant
+qu'aucun lecteur ne peut l'ouvrir.
+
 ### Ce qui a été fait depuis la version précédente de ce document
 
 `chemeq_tex`, `chemeq_mass` et l'équilibrage (`chemeq_equilibrium`) sont portés

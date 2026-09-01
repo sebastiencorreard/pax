@@ -215,7 +215,30 @@ class _SlibMixin:
             self._run_slib(path, proc_args)
             return
 
-        # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
+        # Les trois procs qu'on laisse tomber, et pourquoi chacun est **inerte**
+        # — mesuré au rendu, pas déduit des sources :
+        #
+        #   oef/drawtikz.phtml   43 appels. Sa deuxième ligne est
+        #                        `!if $printlatex!=yes → !exit` : il ne sert
+        #                        que l'export LaTeX, que PAX n'a pas et dont
+        #                        il ne pose jamais le drapeau. L'exécuter
+        #                        serait un non-événement.
+        #   js/geogebra/test     12 appels. Le fichier **n'existe pas**, pas
+        #                        même dans l'arbre WIMS vendorisé : son rôle
+        #                        est de poser `geogebra_exists`, et son absence
+        #                        *est* la réponse. `slib/geo2D/geogebra` en
+        #                        tire déjà l'avertissement de WIMS,
+        #                        « GeoGebra is not installed ».
+        #   oef/togetfile.proc    5 appels. Il écrit un fichier dans le dossier
+        #                        `getfile` de la session, que `jmolshow` et
+        #                        `geo3D/polyhedra` font ensuite charger par une
+        #                        applet Jmol. PAX n'embarque aucun Jmol : le
+        #                        fichier écrit n'aurait pas de lecteur. C'est
+        #                        le troisième maillon d'une chaîne dont le
+        #                        dernier manque.
+        #
+        # Aucun n'attend donc d'être porté : le premier est mort-né, le
+        # deuxième dit déjà la vérité, le troisième attend Jmol.
         return
 
     def _proc_steps(self) -> None:
