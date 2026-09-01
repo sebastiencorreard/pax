@@ -282,6 +282,11 @@ class _State:
     xmax: float = 5.0
     ymin: float = -5.0
     ymax: float = 5.0
+    # Domaine du paramètre d'un tracé paramétrique, et son échantillonnage.
+    # Valeurs par défaut de `flydraw.c:38` (`tstart`, `tend`, `tstep`).
+    tmin: float = 0.0
+    tmax: float = 1.0
+    tstep: int = 100
     linewidth: float = 1.0
     crosshairsize: float = 4.0  # WIMS global `width2` default (full × extent = 2·this)
     # Font state for string / stringup (separate from text which takes a font arg).
@@ -1488,10 +1493,25 @@ def _cmd_killrotation(state: _State, args: list[str]) -> None:
 
 
 def _cmd_trange(state: _State, args: list[str]) -> None:
-    # trange t1,t2 — parameter range for parametric plots (used with
-    # `plot t,formula(t)`). We don't implement parametric plot mode yet;
-    # accept silently to avoid log noise.
-    pass
+    # trange t1,t2 — domaine du paramètre d'un tracé paramétrique.
+    if len(args) >= 2:
+        state.tmin = _num(args[0])
+        state.tmax = _num(args[1])
+
+
+def _cmd_plotstep(state: _State, args: list[str]) -> None:
+    """`plotstep n` / `plotsteps n` — nombre d'échantillons d'un tracé.
+
+    `flydraw.c` la nomme `tstep` et la partage entre `plot` et `dplot`.
+    """
+    if not args:
+        return
+    try:
+        n = int(float(_num(args[0])))
+    except (TypeError, ValueError):
+        return
+    if n > 0:
+        state.tstep = min(n, 5000)
 
 
 def _cmd_xrange(state: _State, args: list[str]) -> None:
@@ -1573,10 +1593,21 @@ def _cmd_gridfill(state: _State, args: list[str]) -> None:
 
 
 def _cmd_plot(state: _State, args: list[str]) -> None:
-    # plot [color],[formula] — explicit function of x.
+    """`plot couleur,f(x)` — ou `plot couleur,x(t),y(t)`, la forme paramétrique.
+
+    Les deux formes partagent `obj_plot` dans `nametab.c`, et le corpus les
+    emploie autant l'une que l'autre : 326 appels explicites, 70 paramétriques
+    répartis sur vingt fichiers. La seconde n'était pas traitée — les trois
+    arguments étaient recollés en une seule formule, que sympy refusait, et la
+    courbe disparaissait sans bruit. C'est ainsi que la figure de
+    `oefpolygon/quadrilatere` ne portait plus que son cadre.
+    """
     if len(args) < 2:
         return
     color = _color(args[0])
+    if len(args) >= 3:
+        _plot_parametrique(state, color, args[1].strip(), ",".join(args[2:]).strip())
+        return
     formula = ",".join(args[1:]).strip()
     if not formula:
         return
@@ -1634,6 +1665,78 @@ def _cmd_plot(state: _State, args: list[str]) -> None:
             f'<polyline points="{" ".join(pts)}" fill="none" '
             f'stroke="{color}" stroke-width="{state.linewidth}" />'
         )
+
+
+def _plot_parametrique(state: _State, color: str, sx: str, sy: str) -> None:
+    """`plot couleur,x(t),y(t)` — une courbe échantillonnée sur `trange`.
+
+    Le découpage en branches suit celui du tracé explicite : un échantillon
+    indéfini ou hors cadre interrompt la polyligne au lieu d'être relié au
+    suivant, pour ne pas barrer la figure d'un trait qui n'existe pas.
+    """
+    if not sx or not sy:
+        return
+    fx = _fonction_de_t(sx)
+    fy = _fonction_de_t(sy)
+    if fx is None or fy is None:
+        return
+
+    n = max(2, state.tstep)
+    pas = (state.tmax - state.tmin) / n
+    branches: list[list[str]] = []
+    cur: list[str] = []
+    for i in range(n + 1):
+        t = state.tmin + i * pas
+        try:
+            x = float(fx(t))
+            y = float(fy(t))
+        except Exception:  # noqa: BLE001 — point indéfini : on coupe la branche
+            if cur:
+                branches.append(cur)
+                cur = []
+            continue
+        # Fenêtrage au cadre **exact** : flydraw dessine dans un bitmap de
+        # taille fixe, ce qui en sort n'existe pas. La tolérance d'une unité
+        # que s'accorde le tracé explicite n'a pas cours ici — sur un `xrange`
+        # de six unités elle laissait la courbe déborder de cinquante pixels.
+        if x != x or y != y or not (
+            state.xmin <= x <= state.xmax and state.ymin <= y <= state.ymax
+        ):
+            if cur:
+                branches.append(cur)
+                cur = []
+            continue
+        cur.append(f"{state.px(x):.2f},{state.py(y):.2f}")
+    if cur:
+        branches.append(cur)
+    for pts in branches:
+        if len(pts) < 2:
+            continue
+        state.elements.append(
+            f'<polyline points="{" ".join(pts)}" fill="none" '
+            f'stroke="{color}" stroke-width="{state.linewidth}" />'
+        )
+
+
+def _fonction_de_t(formule: str):
+    """Compile une expression du paramètre `t` en fonction Python, ou None."""
+    try:
+        import sympy  # noqa: PLC0415
+        from sympy.parsing.sympy_parser import (  # noqa: PLC0415
+            implicit_multiplication_application,
+            parse_expr,
+            standard_transformations,
+        )
+    except ImportError:
+        return None
+    try:
+        transformations = standard_transformations + (
+            implicit_multiplication_application,
+        )
+        expr = parse_expr(formule.replace("^", "**"), transformations=transformations)
+        return sympy.lambdify(sympy.Symbol("t"), expr, modules=["math"])
+    except Exception:  # noqa: BLE001 — hors périmètre : pas de courbe
+        return None
 
 
 def _cmd_circle(state: _State, args: list[str]) -> None:
@@ -1979,6 +2082,8 @@ _HANDLERS = {
     "rotation": _cmd_rotation,
     "killrotation": _cmd_killrotation,
     "trange": _cmd_trange,
+    "plotstep": _cmd_plotstep,
+    "plotsteps": _cmd_plotstep,
     "crosshair": _cmd_crosshair,
     "crosshairs": _cmd_crosshairs,
     "crosshairsize": _cmd_crosshairsize,
