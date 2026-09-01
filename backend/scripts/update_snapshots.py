@@ -14,7 +14,14 @@ import json
 import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from core.oef.engine import load_and_render
+
+# Même horloge gelée que `conftest.py` : les snapshots sont comparés par la
+# suite de tests, qui la fige. Sans cette ligne, une régénération daterait
+# `quizzautomat.fr/pcent5` de l'année réelle et la comparaison échouerait
+# aussitôt.
+os.environ.setdefault("PAX_WIMS_NOW", "20260101.12:00:00")
+
+from core.oef.engine import load_and_render  # noqa: E402
 from tests import corpus
 
 SNAPSHOTS_DIR = os.path.join(os.path.dirname(__file__), "..", "tests", "snapshots")

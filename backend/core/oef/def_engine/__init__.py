@@ -7,6 +7,7 @@ question= text), extracts answer metadata, and returns an ExerciseRender.
 
 from __future__ import annotations
 
+import datetime
 import math
 import os
 import random
@@ -415,6 +416,24 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     return tuple(trouves.items())
 
 
+def _horloge_session() -> datetime.datetime:
+    """L'instant que voit l'exercice, gelable par `PAX_WIMS_NOW`.
+
+    WIMS fige l'heure une fois par requête (`wims.c:1200`) ; PAX la fige une
+    fois par rendu. La variable d'environnement — au format `AAAAMMJJ.hh:mm:ss`
+    de `$wims_now` — sert aux snapshots : `quizzautomat.fr/pcent5` date son
+    énoncé de l'année courante, et sans horloge fixe sa référence pourrit au
+    changement d'année.
+    """
+    fige = os.environ.get("PAX_WIMS_NOW")
+    if fige:
+        try:
+            return datetime.datetime.strptime(fige, "%Y%m%d.%H:%M:%S")
+        except ValueError:
+            pass
+    return datetime.datetime.now()
+
+
 @lru_cache(maxsize=512)
 def _module_var_proc_lines(def_path: str | None) -> tuple[str, ...]:
     """Lignes du `var.proc` du module, exécutées avant chaque exercice.
@@ -719,6 +738,15 @@ class DefEngine(_SlibMixin):
         # dix-huit exercices. `$presentgood` s'y prêterait aussi, mais aucun
         # `var.proc` du corpus ne le lit : on ne le pose pas.
         self.ctx.setdefault("lang", langue_module)
+        # `$wims_now` / `$wims_nowseconds` — l'horloge de la session, posée par
+        # WIMS au tout début de la requête (`wims.c:1200`, format
+        # `AAAAMMJJ.hh:mm:ss`, et les secondes depuis l'époque). Un seul
+        # consommateur dans le corpus, mais il suffisait à casser l'énoncé :
+        # `quizzautomat.fr/var.proc` en tire `oefenv_year`, et sans lui
+        # `pcent5` datait son chiffre d'affaires « en -2 » et « en -1 ».
+        maintenant = _horloge_session()
+        self.ctx.setdefault("wims_now", maintenant.strftime("%Y%m%d.%H:%M:%S"))
+        self.ctx.setdefault("wims_nowseconds", str(int(maintenant.timestamp())))
 
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the
