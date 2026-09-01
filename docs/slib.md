@@ -117,19 +117,29 @@ silence se lit comme une absence.
 
 ### Ce qui reste, et pourquoi
 
-| slib | appels vides | exercices | obstacle |
-|---|---|---|---|
-| `geo2D/offdraw` · `polyoff` · `polynet` | 22 / 26 | 6 | la variable PARI `W` |
+Il n'en reste aucun. `basep`, `text/sigunits`, `lang/swac` et le trio
+`geo2D/offdraw` · `polyoff` · `polynet` sont réparés ; `stat/dataproc` et
+`oef/env` n'avaient jamais rien eu à réparer.
 
-Il n'en reste qu'un. `basep`, `text/sigunits` et `lang/swac` sont réparés ;
-`stat/dataproc` et `oef/env` n'avaient jamais rien eu à réparer.
+Attention au compteur pour `polyoff` : comme `stat/dataproc`, il ne pose
+**aucun** `slib_out` — il alimente `slib_xyz` et `slib_ff`. Ses « 8 vides »
+sur 8 appels ne mesurent rien.
 
-**`geo2D/offdraw`** reçoit `[W[1]],[W[2]]` non substitué. `W` vient de
-`slib/geo2D/polynet`, qui charge `gp/spanning_tree.gp` par `!readproc` puis
-appelle `etale(couv,ff,f2[1],matsize(xyz)[1])`. Cette bibliothèque emploie
-`my()`, le cardinal `#f`, les lambdas `{v->…}` — que le mini-interpréteur PARI
-ne connaît pas. C'est un chantier d'interpréteur pour huit exercices, en
-comptant les deux `bound` d'`oefpolynet` qui butent sur le même `W`.
+**`geo2D/offdraw`** recevait `[W[1]],[W[2]]` non substitué, et le diagnostic
+s'arrêtait à « chantier d'interpréteur PARI ». Il l'était, mais pas seulement,
+et surtout pas d'abord : **la bibliothèque n'était jamais lue**.
+`!readproc gp/spanning_tree.gp` tombait dans le « silently ignore » des procs
+non-`slib/`, et les 177 polyèdres `.off` n'avaient pas été rapatriés. Tant que
+ces deux-là tenaient, aucune limite de l'interpréteur ne pouvait se voir.
+
+Ensuite seulement, huit constructions GP manquaient — lambdas `{v->…}`,
+accolade terminant une instruction, commentaires `/* … */`, cardinal `#v`,
+`my()` initialisant, `until()`, affectations composées / en chaîne /
+multiples, tranches `v[a..b]` —, plus deux défauts qui ne levaient rien :
+`my()` écrivait dans l'espace global (le `v` local de `deplacement_poly`
+écrasait le paramètre `v` d'`etale`), et `matrix(…)` rendait une matrice
+sympy indexée à partir de **0**. Voir `pari_prog.py` et
+`tests/core/oef/test_pari_prog.py`.
 
 **`lang/swac`** lit `!record 0 of data/swac/packs`, puis des index par paquet.
 Ces données ont été rapatriées le 2026-08-31 depuis
