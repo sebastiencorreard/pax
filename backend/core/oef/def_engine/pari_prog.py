@@ -37,6 +37,14 @@ import math
 import re
 from typing import Any
 
+
+def _INT(n):
+    """Entier PARI — un `sympy.Integer`, importé au premier appel comme partout
+    ailleurs dans le module (sympy coûte cher à l'import)."""
+    import sympy  # noqa: PLC0415
+
+    return sympy.Integer(n)
+
 # Constructions PARI à **variable liée** : (nombre d'arguments avant les
 # variables, nombre de variables). `vector(n, X, expr)` évalue `expr` une fois
 # par indice, `matrix(m, n, I, J, expr)` une fois par case.
@@ -128,6 +136,10 @@ _SESSION_FORMAT = "\x00format"
 _FORMAT_RE = re.compile(r"([efg])\.(\d+)", re.I)
 
 
+# Sentinelle : distingue « la variable n'existait pas » de « elle valait None ».
+_ABSENT = object()
+
+
 class PariProgramError(Exception):
     """Construction hors périmètre — l'appelant doit retomber sur l'évaluation
     d'expression."""
@@ -174,6 +186,8 @@ class PVec:
     def __getitem__(self, idx):
         if isinstance(idx, tuple):
             raise PariProgramError("indexation 2D sur un vecteur")
+        if isinstance(idx, _Plage):
+            return PVec(idx.tranche(self.items), col=self.col)
         return self.items[_one_based(idx, len(self.items))]
 
     def __setitem__(self, idx, value):
@@ -202,6 +216,22 @@ class PVec:
         return PVec([-a for a in self.items], self.col)
 
     def __mul__(self, other):
+        # `ligne * matrice` — le changement de repère de `deplacement_poly`,
+        # qui fait tourner chaque sommet d'une face par `f[i]*m1 + dec`.
+        if isinstance(other, PMat):
+            if len(self.items) != len(other.rows):
+                raise PariProgramError("produit vecteur × matrice non conforme")
+            largeur = len(other.rows[0]) if other.rows else 0
+            return PVec(
+                [
+                    sum(
+                        (self.items[i] * other.rows[i][j] for i in range(len(self.items))),
+                        _INT(0),
+                    )
+                    for j in range(largeur)
+                ],
+                self.col,
+            )
         # `ligne * colonne` = produit scalaire (le cas `[data]*[weight]~` de
         # slib/stat/variance) ; sinon multiplication par un scalaire.
         if isinstance(other, PVec):
@@ -251,6 +281,10 @@ class PMat:
         if not isinstance(idx, tuple):
             raise PariProgramError("indexation 1D sur une matrice")
         i, j = idx
+        if isinstance(j, _Plage):
+            return PVec(j.tranche(self.rows[_one_based(i, len(self.rows))]))
+        if isinstance(i, _Plage):
+            return PMat([r for r in i.tranche(self.rows)])
         if i is None and j is None:
             raise PariProgramError("indexation matricielle vide")
         if i is None:  # colonne entière
@@ -273,11 +307,93 @@ class PMat:
     def __invert__(self):
         return PMat([list(c) for c in zip(*self.rows)])
 
+    # -- arithmétique ------------------------------------------------------- #
+    # `matrix(…)` et `Mat(…)` rendent tous deux un `PMat` : il leur faut donc
+    # les opérations qu'une matrice sympy portait pour eux. `slib/triplerelation/
+    # tabular` additionne les deux (`A=Mat([0,0;0,0]); B=matrix(2,2,i,j,…);
+    # A+B`), et `slib/stat/sum` multiplie une ligne par une colonne.
+
+    def _elementwise(self, other, op) -> "PMat":
+        autre = _en_pmat(other)
+        if autre is None:
+            return PMat([[op(x, other) for x in ligne] for ligne in self.rows])
+        if len(autre.rows) != len(self.rows) or (
+            self.rows and len(autre.rows[0]) != len(self.rows[0])
+        ):
+            raise PariProgramError("matrices de tailles différentes")
+        return PMat(
+            [[op(x, y) for x, y in zip(a, b)] for a, b in zip(self.rows, autre.rows)]
+        )
+
+    def __add__(self, other):
+        return self._elementwise(other, lambda x, y: x + y)
+
+    def __radd__(self, other):
+        return self._elementwise(other, lambda x, y: y + x)
+
+    def __sub__(self, other):
+        return self._elementwise(other, lambda x, y: x - y)
+
+    def __rsub__(self, other):
+        return self._elementwise(other, lambda x, y: y - x)
+
+    def __neg__(self):
+        return PMat([[-x for x in ligne] for ligne in self.rows])
+
+    def __mul__(self, other):
+        autre = _en_pmat(other)
+        if autre is not None:
+            if not self.rows or len(self.rows[0]) != len(autre.rows):
+                raise PariProgramError("produit de matrices non conforme")
+            largeur = len(autre.rows[0]) if autre.rows else 0
+            return PMat(
+                [
+                    [
+                        sum((ligne[k] * autre.rows[k][j] for k in range(len(ligne))), 0)
+                        for j in range(largeur)
+                    ]
+                    for ligne in self.rows
+                ]
+            )
+        if isinstance(other, PVec):
+            # matrice × colonne
+            if not self.rows or len(self.rows[0]) != len(other):
+                raise PariProgramError("produit matrice × vecteur non conforme")
+            return PVec(
+                [sum((x * y for x, y in zip(ligne, other.items)), 0) for ligne in self.rows],
+                col=True,
+            )
+        return PMat([[x * other for x in ligne] for ligne in self.rows])
+
+    def __rmul__(self, other):
+        if isinstance(other, (PMat, PVec)):
+            return NotImplemented
+        return PMat([[other * x for x in ligne] for ligne in self.rows])
+
+    def __truediv__(self, other):
+        return PMat([[x / other for x in ligne] for ligne in self.rows])
+
     def __eq__(self, other):
-        return isinstance(other, PMat) and self.rows == other.rows
+        autre = _en_pmat(other)
+        return autre is not None and self.rows == autre.rows
 
     def __repr__(self):
         return f"PMat({self.rows!r})"
+
+
+def _en_pmat(x) -> "PMat | None":
+    """`x` vu comme matrice, ou None si ce n'en est pas une.
+
+    Accepte un `PMat` et une matrice sympy — celle que rendent encore les
+    helpers de `cas` qu'on n'a pas repris ici.
+    """
+    if isinstance(x, PMat):
+        return x
+    tolist = getattr(x, "tolist", None)
+    shape = getattr(x, "shape", None)
+    if tolist is not None and isinstance(shape, tuple) and len(shape) == 2:
+        return PMat(tolist())
+    return None
 
 
 class PList:
@@ -307,6 +423,121 @@ class PList:
 
     def __repr__(self):
         return f"PList({self.items!r})"
+
+
+def _pari_random(rng: Any, n=None):
+    """`random(n)` de GP — un entier de `[0, n[`, ou de `[0, 2^31[` sans borne.
+
+    Sans générateur fourni, on n'invente rien : la construction sort du
+    périmètre plutôt que de rendre un tirage que le rendu ne saurait
+    reproduire.
+    """
+    if rng is None:
+        raise PariProgramError("random() sans générateur de rendu")
+    borne = 2**31 if n is None else int(n)
+    if borne <= 0:
+        return _INT(0)
+    return _INT(rng.randrange(borne))
+
+
+def _pari_vecteur(n_or_list=None, var=None, body=None) -> PVec:
+    """`vector(n)`, `vector(n, i, expr)` ou `vector(liste)` → `PVec`."""
+    if callable(var):
+        return PVec([_en_valeur_pari(var(_INT(k))) for k in range(1, int(n_or_list) + 1)])
+    if var is None or body is None:
+        try:
+            return PVec([_INT(0)] * int(n_or_list))
+        except (TypeError, ValueError):
+            items = list(n_or_list) if hasattr(n_or_list, "__iter__") else []
+            return PVec([_en_valeur_pari(x) for x in items])
+    return PVec(
+        [_en_valeur_pari(body) for _ in range(1, int(n_or_list) + 1)]
+    )
+
+
+def _en_valeur_pari(v):
+    """Une composante de vecteur : les listes deviennent des `PVec`, jamais des
+    matrices — c'est le vecteur qui décide de son contenu, pas l'inverse."""
+    if isinstance(v, (list, tuple)):
+        return PVec([_en_valeur_pari(x) for x in v])
+    return v
+
+
+def _pari_mat_gp(v=None) -> PMat:
+    """`Mat(x)` de GP — `x` vu comme matrice.
+
+    La règle tient en une phrase du manuel : un vecteur **ligne** donne une
+    matrice à une ligne, un vecteur **colonne** une matrice à une colonne.
+    C'est ce qui fait de `Mat([1,2,3])*Mat([4,5,6])~` un produit scalaire
+    (1×3 par 3×1) et non un produit extérieur — le `slib/stat/sum` dont
+    dépend la moyenne d'`oefstat` en vit.
+    """
+    if v is None:
+        return PMat([])
+    if isinstance(v, PMat):
+        return PMat(v.rows)
+    if isinstance(v, PVec):
+        return PMat([[x] for x in v]) if v.col else PMat([list(v)])
+    if isinstance(v, (list, tuple)):
+        if v and all(isinstance(r, (list, tuple, PVec)) for r in v):
+            return PMat([list(r) for r in v])
+        return PMat([list(v)])
+    return PMat([[v]])
+
+
+def _pari_matrice(rows, ncols=None, body=None) -> PMat:
+    """`matrix(m,n)`, `matrix(m,n,I,J,expr)` ou `matrix(liste)` → `PMat`.
+
+    Le corps arrive en lambda (cf. `_LierVariables`) : PARI l'évalue case par
+    case, lignes et colonnes numérotées à partir de 1.
+    """
+    if callable(body):
+        m, n = int(rows), int(ncols)
+        return PMat(
+            [[body(_INT(i), _INT(j)) for j in range(1, n + 1)] for i in range(1, m + 1)]
+        )
+    if ncols is not None:
+        return PMat([[_INT(0)] * int(ncols) for _ in range(int(rows))])
+    if isinstance(rows, PMat):
+        return rows
+    if isinstance(rows, PVec):
+        rows = list(rows)
+    return PMat([r if isinstance(r, (list, tuple)) else [r] for r in rows])
+
+
+def _pari_listput(lst, value, index=None):
+    """`listput(L, x[, n])` — ajoute en fin de liste, ou remplace la n-ième."""
+    if not isinstance(lst, PList):
+        raise PariProgramError("listput hors d'une List")
+    if index is None:
+        lst.items.append(value)
+    else:
+        i = int(index)
+        if i == len(lst.items) + 1:
+            lst.items.append(value)
+        else:
+            lst.items[_one_based(i, len(lst.items))] = value
+    return value
+
+
+def _pari_matconcat(v) -> PMat:
+    """`matconcat(v)` — recolle un vecteur de matrices ou de vecteurs.
+
+    `ffdual` s'en sert sur un vecteur **colonne** de vecteurs lignes
+    (`matconcat(res~)`), ce qui empile les lignes.
+    """
+    if isinstance(v, PMat):
+        return v
+    items = list(v) if isinstance(v, (PVec, PList, list, tuple)) else [v]
+    lignes = []
+    for it in items:
+        if isinstance(it, PMat):
+            lignes.extend(it.rows)
+        elif isinstance(it, (PVec, PList, list, tuple)):
+            lignes.append(list(it))
+        else:
+            lignes.append([it])
+    return PMat(lignes)
 
 
 def _pari_listinsert(lst, value, index):
@@ -396,6 +627,56 @@ def _split_top_level(src: str, sep: str) -> list[str]:
     return parts
 
 
+def _decoupe_instructions(src: str) -> list[str]:
+    """Découpe une suite d'instructions GP.
+
+    Le `;` sépare, mais il n'est pas seul : en GP une accolade fermante de
+    premier niveau **termine** l'instruction, et rien n'oblige à la faire
+    suivre d'un `;`. `gp/spanning_tree.gp` enchaîne ainsi
+
+        a_gauche={(a,b,c)->…;}
+        tout_a_droite(a,b,poly)={ … };
+
+    sans séparateur entre les deux. Un découpage sur le seul `;` les soudait
+    en une instruction, dont la cible d'affectation était `a_gauche` et le
+    corps tout le reste : quatre des vingt-trois fonctions de la bibliothèque
+    ne se définissaient jamais.
+    """
+    parts: list[str] = []
+    depth = 0
+    current: list[str] = []
+    for ch in src:
+        if ch in "([{":
+            depth += 1
+            current.append(ch)
+            continue
+        if ch in ")]}":
+            depth -= 1
+            current.append(ch)
+            if ch == "}" and depth == 0:
+                parts.append("".join(current))
+                current = []
+            continue
+        if ch == ";" and depth == 0:
+            parts.append("".join(current))
+            current = []
+            continue
+        current.append(ch)
+    parts.append("".join(current))
+    return [p for p in (x.strip() for x in parts) if p]
+
+
+def _cible_affectable(target: str) -> bool:
+    """Vrai si ``target`` est une cible d'affectation — un nom, ou un nom
+    indexé. Sert à distinguer une affectation en chaîne d'une expression qui
+    contiendrait un `=` pour une autre raison."""
+    t = target.strip()
+    return bool(
+        _IDENT_RE.fullmatch(t)
+        or re.fullmatch(r"[A-Za-z_]\w*\s*\[.+\]", t, re.DOTALL)
+    )
+
+
 def _match_call(stmt: str, name: str) -> str | None:
     """Si ``stmt`` est exactement ``name(...)``, renvoie le contenu des
     parenthèses ; sinon ``None``."""
@@ -430,6 +711,15 @@ def _split_assignment(stmt: str) -> tuple[str, str] | None:
                 return None
             if stmt[i - 1 : i] in ("=", "<", ">", "!"):
                 return None
+            # Affectations composées de GP : `k += 1`, `reste -= 1`. On les
+            # déplie en `k = (k) + (1)` plutôt que de les traiter à part — la
+            # cible reste la même, et l'évaluateur ne voit qu'une affectation
+            # ordinaire. Sans cela, `_split_assignment` rendait la cible
+            # `reste-`, que rien ne sait affecter.
+            if stmt[i - 1 : i] in ("+", "-", "*", "/", "\\", "%"):
+                op = stmt[i - 1]
+                cible = stmt[: i - 1].strip()
+                return cible, f"({cible}) {op} ({stmt[i + 1 :].strip()})"
             return stmt[:i].strip(), stmt[i + 1 :].strip()
     return None
 
@@ -451,6 +741,7 @@ def _translate_expr(expr: str) -> str:
 
     src = _translate_brackets(src)
     src = _translate_tilde(src)
+    src = _translate_diese(src)
     src = _INT_LITERAL_RE.sub(r"_I(\1)", src)
 
     return _unstash(src, strings)
@@ -491,12 +782,12 @@ def _translate_brackets(src: str) -> str:
         inner = _translate_brackets(src[i + 1 : j])
 
         if is_index:
-            parts = [p.strip() for p in _split_top_level(inner, ",")]
+            parts = [_traduit_plage(p.strip()) for p in _split_top_level(inner, ",")]
             if len(parts) > 1:
                 parts = [p if p else "None" for p in parts]
                 out.append("[(" + ",".join(parts) + ")]")
             else:
-                out.append(f"[{inner}]")
+                out.append(f"[{parts[0]}]")
         else:
             rows = _split_top_level(inner, ";")
             if len(rows) > 1:
@@ -508,6 +799,41 @@ def _translate_brackets(src: str) -> str:
                 out.append(f"_V({inner})")
         i = j + 1
     return "".join(out)
+
+
+def _traduit_plage(part: str) -> str:
+    """``a..b`` dans un index → ``_plage(a, b)``.
+
+    GP extrait ainsi une tranche : `s2D[k, 1..2]` est la restriction de la
+    ligne `k` à ses deux premières colonnes — l'abscisse et l'ordonnée d'un
+    sommet, dans `etale`, dont la troisième colonne porte le numéro du sommet.
+    """
+    depth = 0
+    for i in range(len(part) - 1):
+        ch = part[i]
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "." and part[i + 1] == "." and depth == 0:
+            gauche = part[:i].strip()
+            droite = part[i + 2 :].strip()
+            if gauche and droite:
+                return f"_plage({gauche},{droite})"
+    return part
+
+
+class _Plage:
+    """Une tranche PARI `a..b`, bornes comprises et numérotées à partir de 1."""
+
+    __slots__ = ("debut", "fin")
+
+    def __init__(self, debut, fin):
+        self.debut = int(debut)
+        self.fin = int(fin)
+
+    def tranche(self, items: list) -> list:
+        return items[self.debut - 1 : self.fin]
 
 
 # `x~` / `)~` / `]~` — transposée postfixe, réécrite en appel de `_transposee`.
@@ -531,6 +857,58 @@ def _translate_tilde(src: str) -> str:
         end = m.end(1)
         start = _operand_start(src, end)
         src = src[:start] + "_transposee(" + src[start:end] + ")" + src[m.end() :]
+
+
+def _translate_diese(src: str) -> str:
+    """Réécrit le cardinal préfixe ``#v`` en ``length(v)``.
+
+    En GP, `#` est un opérateur unaire : `#f` est le nombre de composantes de
+    `f`. Il n'a pas d'équivalent Python, et la bibliothèque `spanning_tree.gp`
+    en fait sa mesure courante (`vector(#f)`, `for(k=1,#f,…)`, `#f2[#f]`).
+    L'opérande est le terme qui **suit**, appel et indexation compris —
+    `#f2[#f]` est bien `length(f2[length(f)])`, non `length(f2)[…]`.
+    """
+    out = []
+    i = 0
+    n = len(src)
+    while i < n:
+        if src[i] != "#":
+            out.append(src[i])
+            i += 1
+            continue
+        fin = _operand_end(src, i + 1)
+        if fin == i + 1:  # rien à mesurer : on laisse le caractère tel quel
+            out.append(src[i])
+            i += 1
+            continue
+        out.append("length(" + _translate_diese(src[i + 1 : fin]) + ")")
+        i = fin
+    return "".join(out)
+
+
+def _operand_end(src: str, start: int) -> int:
+    """Fin de l'opérande qui commence en ``start`` — le pendant de
+    `_operand_start`, pour les opérateurs préfixes."""
+    i = start
+    n = len(src)
+    while i < n and src[i].isspace():
+        i += 1
+    if i < n and src[i] == "#":  # `##v` : on laisse la récursion mesurer
+        i = _operand_end(src, i + 1)
+    elif i < n and src[i] in "([":
+        i = _find_matching(src, i + 1, ")" if src[i] == "(" else "]") + 1
+        if i <= 0:
+            return start
+    else:
+        while i < n and (src[i].isalnum() or src[i] == "_"):
+            i += 1
+    # Suffixes : appels et indexations collés au nom (`f[k]`, `g(x)[1]`).
+    while i < n and src[i] in "([":
+        j = _find_matching(src, i + 1, ")" if src[i] == "(" else "]")
+        if j < 0:
+            break
+        i = j + 1
+    return i
 
 
 def _transposee(x: Any) -> Any:
@@ -582,6 +960,7 @@ class PariInterpreter:
         base_ns: dict[str, Any],
         strings: dict[str, str] | None = None,
         session: dict[str, Any] | None = None,
+        rng: Any = None,
     ):
         import sympy  # noqa: PLC0415
 
@@ -591,6 +970,12 @@ class PariInterpreter:
         self.vars: dict[str, Any] = session if session is not None else {}
         self.out: list[str] = []
         self.steps = 0
+        # Pile des portées ouvertes par un appel de fonction. Chaque cadre
+        # retient ce que les `my()` du corps ont masqué, pour le rendre au
+        # retour. Sans cela, le `my(v=…)` de `deplacement_poly` écrasait le
+        # paramètre `v` d'`etale` — l'arbre couvrant devenait un vecteur
+        # unitaire, et le patron du polyèdre partait sur des faces vides.
+        self.portees: list[dict[str, Any]] = []
         # Littéraux chaîne mis de côté en amont : le découpage aux `;`/`,` ne
         # doit pas voir leur contenu (`print(n","nbin)` de oefbin.nl/binary).
         self.strings: dict[str, str] = strings or {}
@@ -612,13 +997,40 @@ class PariInterpreter:
                 "_V": lambda *a: PVec(a),
                 "_M": PMat,
                 "_transposee": _transposee,
+                "_plage": _Plage,
                 "_if": lambda c, a, b=0: a if _truth(c) else b,
                 "length": _pari_length,
                 "Vec": _pari_vec,
                 "List": lambda x=(): PList(
                     x.items if isinstance(x, (PVec, PList)) else (x or ())
                 ),
+                # `matrix(...)` rend un `PMat`, non une matrice sympy : PARI
+                # indexe à partir de 1, et c'est la seule forme qu'on puisse
+                # écrire *et relire* case par case. Le helper de `cas` rendait
+                # `sympy.zeros`, si bien que le `s2D[k,3]` de `etale` sortait
+                # des bornes et que le `m[k,l]` d'`arbres_couvrants` lisait la
+                # colonne d'à côté, sans rien signaler.
+                # `random(n)` tire dans `[0, n[`. Il vient du générateur du
+                # **rendu**, pour que le patron d'un polyèdre soit reproductible
+                # à graine égale, comme l'est tout le reste de l'exercice.
+                "random": lambda n=None: _pari_random(rng, n),
+                # `vector(...)` rend un `PVec`, quoi que contiennent ses
+                # composantes. Le helper de `cas` rendait une liste, que la
+                # conversion générique prenait pour une **matrice** dès que les
+                # éléments étaient eux-mêmes des listes : le `vector(#w,i,
+                # [w[i]*t1,w[i]*t2])` de `depl_standard` — un vecteur de points
+                # — devenait un `PMat`, et l'indexation simple `f[i]` n'avait
+                # plus de sens. En PARI, seuls `matrix`, `Mat` et `[a,b;c,d]`
+                # construisent une matrice.
+                "vector": _pari_vecteur,
+                "matrix": _pari_matrice,
+                # `Mat` doit rendre le même type que `matrix` : les deux se
+                # rencontrent dans une même expression, et une matrice sympy
+                # ne s'additionne pas à un `PMat`.
+                "Mat": _pari_mat_gp,
                 "listinsert": _pari_listinsert,
+                "listput": _pari_listput,
+                "matconcat": _pari_matconcat,
                 "vecsort": _pari_vecsort,
                 # `local(a,b,…)` déclare des variables de fonction ; l'effet de
                 # portée ne change rien ici puisque chaque appel restaure déjà
@@ -648,7 +1060,7 @@ class PariInterpreter:
 
     def exec_block(self, src: str) -> Any:
         last = None
-        for stmt in _split_top_level(src, ";"):
+        for stmt in _decoupe_instructions(src):
             stmt = stmt.strip()
             if stmt:
                 last = self.exec_stmt(stmt)
@@ -663,6 +1075,16 @@ class PariInterpreter:
         # déballage, le `=` de la définition reste à profondeur 1 et
         # l'instruction est prise pour une expression.
         stripped = stmt.strip()
+        # `{ … }` autour d'une instruction entière : en GP les accolades
+        # délimitent un bloc multiligne, et `spanning_tree.gp` s'en sert pour
+        # ses définitions courtes — `{pred=(v,k)->v[…];}`. Sans ce déballage,
+        # l'accolade partait dans l'évaluateur d'expression.
+        if stripped.startswith("{") and stripped.endswith("}"):
+            interieur = stripped[1:-1].strip()
+            if interieur.endswith(";"):
+                interieur = interieur[:-1]
+            stmt = stripped = interieur
+
         if stripped.startswith("(") and stripped.endswith(")"):
             inner = stripped[1:-1]
             depth = 0
@@ -690,6 +1112,10 @@ class PariInterpreter:
         if inner is not None:
             return self._exec_while(inner)
 
+        inner = _match_call(stmt, "until")
+        if inner is not None:
+            return self._exec_until(inner)
+
         inner = _match_call(stmt, "if")
         if inner is not None:
             return self._exec_if(inner)
@@ -702,6 +1128,11 @@ class PariInterpreter:
         inner = _match_call(stmt, "default")
         if inner is not None:
             return self._exec_default(inner)
+
+        for mot in ("my", "local"):
+            inner = _match_call(stmt, mot)
+            if inner is not None:
+                return self._exec_declaration(inner)
 
         inner = _match_call(stmt, "return")
         if inner is not None:
@@ -796,6 +1227,24 @@ class PariInterpreter:
             self._tick()
             self.exec_block(body)
 
+    def _exec_until(self, inner: str) -> None:
+        """``until(cond, corps)`` — la boucle « faire … jusqu'à » de GP.
+
+        Le corps s'exécute **avant** le premier test, contrairement à `while` :
+        `arbre_couvrant_aleatoire2` tire un sommet au hasard et ne s'arrête
+        que lorsqu'il en trouve un adjacent au sommet courant.
+        """
+        args = _split_top_level(inner, ",")
+        if len(args) < 2:
+            raise PariProgramError("until() malformé")
+        cond = args[0]
+        corps = ",".join(args[1:])
+        while True:
+            self._tick()
+            self.exec_block(corps)
+            if _truth(self.eval_expr(cond)):
+                return
+
     def _exec_if(self, inner: str) -> Any:
         args = _split_top_level(inner, ",")
         if len(args) < 2:
@@ -858,11 +1307,84 @@ class PariInterpreter:
                 out.append(_format_value(self.eval_expr(piece), self.fmt))
         return "".join(out)
 
+    def _exec_declaration(self, inner: str) -> Any:
+        """``my(a, b=…, c)`` / ``local(…)`` — déclaration de variables locales.
+
+        GP y accepte des initialisations, et `spanning_tree.gp` ne s'en prive
+        pas : `my(res2D = vector(#f), no = vector(#f), t2, w)`. Les traiter en
+        appel de fonction perdait ces valeurs — l'ancien `local` n'était qu'un
+        no-op, ce qui suffisait tant que les déclarations restaient nues.
+
+        La portée, elle, n'est pas simulée : chaque appel de fonction restaure
+        déjà les paramètres qu'il masque, et aucune des fonctions du corpus ne
+        réutilise un nom local hors de son appel.
+        """
+        for part in _split_top_level(inner, ","):
+            part = part.strip()
+            if not part:
+                continue
+            aff = _split_assignment(part)
+            nom = aff[0].strip() if aff is not None else part
+            if _IDENT_RE.fullmatch(nom):
+                self._declare_locale(nom)
+            if aff is not None:
+                self._exec_assign(*aff)
+            elif _IDENT_RE.fullmatch(part):
+                self.vars[part] = self.sympy.Integer(0)
+        return None
+
+    def _declare_locale(self, nom: str) -> None:
+        """Note dans la portée courante ce que ce nom masque, s'il masque."""
+        if not self.portees:
+            return
+        cadre = self.portees[-1]
+        if nom not in cadre:
+            cadre[nom] = self.vars.get(nom, _ABSENT)
+
+    def _decoupe_lambda(self, rhs: str) -> tuple[list[str], str] | None:
+        """`{params -> corps}` → (paramètres, corps), ou None si ce n'en est pas."""
+        corps = rhs.strip()
+        if corps.startswith("{") and corps.endswith("}"):
+            corps = corps[1:-1].strip()
+        fleche = -1
+        depth = 0
+        for i, ch in enumerate(corps):
+            if ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                depth -= 1
+            elif ch == "-" and depth == 0 and corps[i + 1 : i + 2] == ">":
+                fleche = i
+                break
+        if fleche < 0:
+            return None
+        tete = corps[:fleche].strip()
+        if tete.startswith("(") and tete.endswith(")"):
+            tete = tete[1:-1]
+        params = [p.strip() for p in tete.split(",") if p.strip()]
+        if not all(_IDENT_RE.fullmatch(p) for p in params):
+            return None
+        suite = corps[fleche + 2 :].strip()
+        if suite.endswith(";"):
+            suite = suite[:-1]
+        return params, suite
+
     def _exec_assign(self, target: str, rhs: str) -> Any:
         # `nom(params) = corps` — définition de fonction GP. Le corps est une
         # séquence d'instructions dont la dernière donne la valeur de retour
         # (`slib/function/tabsignes` trie ainsi ses positions de réponses avec
         # `matsort(mat)=…;N`).
+        # `nom = {params -> corps}` — la fonction anonyme de GP, affectée à un
+        # nom. `spanning_tree.gp` définit ainsi `normalise`, `wedge`, `pred`,
+        # `succ`, `a_gauche`, `adjacence` : six fonctions dont tout le reste
+        # dépend. Les parenthèses autour des paramètres sont facultatives —
+        # `{v->…}` comme `{(a,b)->…}`.
+        lam = self._decoupe_lambda(rhs)
+        if lam is not None and _IDENT_RE.fullmatch(target.strip()):
+            self.funcs[target.strip()] = lam
+            self.vars.pop(target.strip(), None)
+            return None
+
         fn = re.match(r"^([A-Za-z_]\w*)\s*\(([^)]*)\)$", target.strip())
         if fn:
             name = fn.group(1)
@@ -878,7 +1400,15 @@ class PariInterpreter:
             self.vars.pop(name, None)
             return None
 
-        value = self.eval_expr(rhs)
+        # `a = b = c` — l'affectation en chaîne de GP. `spanning_tree.gp`
+        # écrit `pat[#f]=r=f2[#f]` : la valeur va dans les deux cibles. Sans
+        # ce détour, la partie droite `r=f2[#f]` partait dans l'évaluateur
+        # d'expression, où le `=` n'est pas une syntaxe Python valide.
+        chaine = _split_assignment(rhs)
+        if chaine is not None and _cible_affectable(chaine[0]):
+            value = self._exec_assign(*chaine)
+        else:
+            value = self.eval_expr(rhs)
         m = re.match(r"^([A-Za-z_]\w*)\s*\[(.+)\]$", target.strip(), re.DOTALL)
         if m:
             name, index_src = m.group(1), m.group(2)
@@ -891,6 +1421,24 @@ class PariInterpreter:
             )
             container[indices[0] if len(indices) == 1 else indices] = value
             return value
+        # `[i1,j1,i2,j2] = adj(…)` — l'affectation multiple de GP, qui déballe
+        # un vecteur en autant de variables. `etale` et `dual` s'en servent
+        # pour recevoir les quatre indices d'une arête commune à deux faces.
+        cible = target.strip()
+        if cible.startswith("[") and cible.endswith("]"):
+            noms = [n.strip() for n in _split_top_level(cible[1:-1], ",")]
+            if all(_IDENT_RE.fullmatch(n) for n in noms):
+                if not isinstance(value, (PVec, PList, list, tuple)):
+                    raise PariProgramError(
+                        f"affectation multiple sur une valeur non vectorielle : {value!r}"
+                    )
+                composantes = list(value)
+                if len(composantes) != len(noms):
+                    raise PariProgramError("affectation multiple de longueur inégale")
+                for nom, part in zip(noms, composantes):
+                    self.vars[nom] = part
+                return value
+
         if not _IDENT_RE.fullmatch(target.strip()):
             raise PariProgramError(f"cible d'affectation non gérée : {target!r}")
         self.vars[target.strip()] = value
@@ -938,16 +1486,25 @@ class PariInterpreter:
 
         def call(*args):
             params, body = self.funcs[name]
-            saved = {p: self.vars.get(p) for p in params}
+            saved = {p: self.vars.get(p, _ABSENT) for p in params}
             self.vars.update(dict(zip(params, args)))
+            self.portees.append({})
             try:
                 try:
                     return self.exec_block(body)
                 except _Retour as sortie:
                     return sortie.valeur
             finally:
+                cadre = self.portees.pop()
+                for nom, old in cadre.items():
+                    if nom in saved:  # un paramètre : c'est `saved` qui tranche
+                        continue
+                    if old is _ABSENT:
+                        self.vars.pop(nom, None)
+                    else:
+                        self.vars[nom] = old
                 for p, old in saved.items():
-                    if old is None:
+                    if old is _ABSENT:
                         self.vars.pop(p, None)
                     else:
                         self.vars[p] = old
@@ -1151,6 +1708,37 @@ def _find_matching(src: str, start: int, closing: str) -> int:
     return -1
 
 
+def _retire_commentaires(src: str) -> str:
+    """Retire les commentaires GP, `/* … */` et `\\\\ jusqu'à la fin de ligne`.
+
+    Ils ne gênaient pas tant que les programmes du corpus tenaient sur une
+    ligne. Une **bibliothèque**, elle, se documente : `gp/spanning_tree.gp`
+    intercale un commentaire entre chacune de ses définitions, et le
+    découpage sur `;` le collait à l'instruction suivante —
+    `/* … */ wedge={(a,b)->…}` n'a plus de cible d'affectation valide.
+
+    À appeler après `_stash_strings` : une chaîne littérale peut contenir
+    `/*` sans ouvrir de commentaire.
+    """
+    out = []
+    i = 0
+    n = len(src)
+    while i < n:
+        if src.startswith("/*", i):
+            fin = src.find("*/", i + 2)
+            i = n if fin < 0 else fin + 2
+            # Le commentaire vaut une espace : deux mots ne doivent pas se
+            # souder par son retrait.
+            out.append(" ")
+        elif src.startswith("\\\\", i):
+            fin = src.find("\n", i)
+            i = n if fin < 0 else fin
+        else:
+            out.append(src[i])
+            i += 1
+    return "".join(out)
+
+
 def _wims_line_filter(line: str) -> str:
     """Post-traitement que WIMS applique à chaque ligne de sortie de `gp`.
 
@@ -1328,7 +1916,10 @@ def _restore(session: dict[str, Any] | None, snapshot: dict[str, Any] | None) ->
 
 
 def run_pari_program(
-    src: str, base_ns: dict[str, Any], session: dict[str, Any] | None = None
+    src: str,
+    base_ns: dict[str, Any],
+    session: dict[str, Any] | None = None,
+    rng: Any = None,
 ) -> str:
     """Exécute un programme PARI et renvoie sa sortie (`print` accumulés).
 
@@ -1348,7 +1939,8 @@ def run_pari_program(
     body = body.replace("\\\n", " ")
 
     body, strings = _stash_strings(body)
-    interp = PariInterpreter(base_ns, strings, session)
+    body = _retire_commentaires(body)
+    interp = PariInterpreter(base_ns, strings, session, rng)
     # L'exécution est atomique vis-à-vis de la session : un programme
     # abandonné en route ne doit pas y laisser de variables à moitié
     # calculées, que le `!exec pari` suivant lirait comme valides.

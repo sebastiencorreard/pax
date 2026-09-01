@@ -251,3 +251,123 @@ class TestHelperValueConversion:
 
     def test_matdet_still_works(self):
         assert _call_pari("M=[1,2;3,4];matdet(M)") == "-2"
+
+
+class TestBibliothequeGP:
+    """Les constructions d'une **bibliothèque** GP, par opposition au programme
+    d'une ligne — `gp/spanning_tree.gp`, que `slib/geo2D/polynet` charge pour
+    déplier un polyèdre. Aucune n'était couverte : la bibliothèque ne
+    définissait pas une seule de ses vingt-trois fonctions.
+    """
+
+    def test_fonction_anonyme_affectee(self):
+        """`nom = {params -> corps}` — six fonctions de la bibliothèque, dont
+        tout le reste dépend, sont écrites ainsi."""
+        assert _call_pari("carre={v->v*v}; carre(7)") == "49"
+        assert _call_pari("prod2={(a,b)->a*b}; prod2(6,7)") == "42"
+
+    def test_accolade_termine_l_instruction(self):
+        """En GP un bloc `{…}` se passe de `;` final : deux définitions qui se
+        suivent sans séparateur restent deux instructions."""
+        src = "f={v->v+1}\ng(x)={x*2}\ng(f(3))"
+        assert _call_pari(src) == "8"
+
+    def test_commentaires(self):
+        """`/* … */` et `\\\\ …` — une bibliothèque se documente, et le
+        découpage sur `;` collait le commentaire à l'instruction suivante."""
+        assert _call_pari("/* somme */ a=2; /* et */ b=3; a+b") == "5"
+        assert _call_pari("a=2 \\\\ un commentaire\n; a*3") == "6"
+
+    def test_cardinal(self):
+        """`#v` — le nombre de composantes, opérateur unaire sans équivalent
+        Python. `#f2[#f]` mesure bien `f2[#f]`, non `f2`."""
+        assert _call_pari("v=[4,5,6]; #v") == "3"
+        assert _call_pari("m=[[1,2],[3,4,5]]; #m[2]") == "3"
+
+    def test_my_avec_initialisation(self):
+        assert _call_pari("f(n)={my(a=n*2, b); b=a+1; b}; f(5)") == "11"
+
+    def test_my_ne_fuit_pas_hors_de_l_appel(self):
+        """Le défaut qui a coûté le plus cher : le `my(v=…)` de
+        `deplacement_poly` écrasait le paramètre `v` d'`etale`, et l'arbre
+        couvrant devenait un vecteur unitaire — sans que rien ne le signale."""
+        src = "interne()={my(v=99); v}; externe(v)={interne(); v}; externe(7)"
+        assert _call_pari(src) == "7"
+
+    def test_until(self):
+        """`until(cond, corps)` exécute le corps **avant** le premier test."""
+        assert _call_pari("k=0; until(k>=3, k=k+1); k") == "3"
+        assert _call_pari("k=9; until(1, k=k+1); k") == "10"
+
+    def test_affectation_composee(self):
+        assert _call_pari("k=5; k+=3; k") == "8"
+        assert _call_pari("k=5; k-=3; k") == "2"
+        assert _call_pari("v=[1,2]; v[2]*=10; v[2]") == "20"
+
+    def test_affectation_en_chaine(self):
+        assert _call_pari("v=[0,0]; v[1]=r=7; concat([v[1]],[r])") == "7,7"
+
+    def test_affectation_multiple(self):
+        assert _call_pari("f()={[3,4]}; [a,b]=f(); a*10+b") == "34"
+
+    def test_tranche(self):
+        """`v[a..b]` et `m[i, a..b]` — la restriction que `etale` applique à
+        une ligne de `s2D` pour n'en garder que l'abscisse et l'ordonnée."""
+        assert _call_pari("v=[10,20,30,40]; v[2..3]") == "20,30"
+        assert _call_pari("m=[1,2,3;4,5,6]; m[2,1..2]") == "4,5"
+
+
+class TestTypesPari:
+    """`vector`, `matrix` et `Mat` construisent des types **distincts**, et
+    l'indexation part de 1. Le contraire se voyait mal : `s2D[k,3]` sortait
+    des bornes d'une matrice sympy 0-based, et `m[k,l]` lisait la case d'à
+    côté sans rien signaler."""
+
+    def test_matrix_est_indexee_a_partir_de_un(self):
+        assert _call_pari("m=matrix(2,3); m[2,3]=7; m[2,3]") == "7"
+
+    def test_matrix_avec_corps(self):
+        assert _call_pari("m=matrix(2,2,i,j,i*10+j); m[2,1]") == "21"
+
+    def test_vector_de_vecteurs_reste_un_vecteur(self):
+        """`vector(n,i,[a,b])` est un vecteur de points, non une matrice :
+        `f[i]` doit rendre le point, et non lever « indexation 1D sur une
+        matrice »."""
+        assert _call_pari("f=vector(2,i,[i,i*i]); f[2][2]") == "4"
+
+    def test_mat_d_un_vecteur_ligne_donne_une_ligne(self):
+        """`Mat([1,2,3])` est 1×3 : c'est ce qui fait de
+        `Mat(a)*Mat(b)~` un produit scalaire, dont dépend `slib/stat/sum`."""
+        assert _call_pari("Mat([1,2,3])*Mat([4,5,6])~") == "32"
+
+    def test_matrix_et_mat_s_additionnent(self):
+        """Les deux constructeurs se rencontrent dans une même expression —
+        `slib/triplerelation/tabular` en vit."""
+        src = "A=Mat([0,0;0,0]); B=matrix(2,2,i,j,(i==1)*(j==2)); A+B"
+        assert _call_pari(src) == "0,1;0,0"
+
+    def test_norml2_est_le_carre_de_la_norme(self):
+        assert _call_pari("norml2([3,4])") == "25"
+
+
+class TestAleaPari:
+    """`random(n)` vient du générateur du **rendu** : à graine égale, le patron
+    d'un polyèdre est reproductible comme le reste de l'exercice."""
+
+    def test_random_suit_la_graine(self):
+        from core.oef.def_engine import DefEngine
+
+        a = DefEngine(42)._cmd_exec("pari v=vector(5,i,random(1000)); v")
+        b = DefEngine(42)._cmd_exec("pari v=vector(5,i,random(1000)); v")
+        c = DefEngine(43)._cmd_exec("pari v=vector(5,i,random(1000)); v")
+        assert a == b
+        assert a != c
+        assert all(0 <= int(x) < 1000 for x in a.split(","))
+
+    def test_random_sans_generateur_sort_du_perimetre(self):
+        """Sans générateur, on n'invente pas un tirage que le rendu ne saurait
+        reproduire : la construction sort du périmètre."""
+        from core.oef.def_engine.cas import _MATH_NS, _PARI_HELPERS
+
+        with pytest.raises(PariProgramError):
+            run_pari_program("random(10)", {**_MATH_NS, **_PARI_HELPERS})

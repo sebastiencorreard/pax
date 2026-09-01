@@ -796,6 +796,18 @@ def _pari_numerator(x):
     return sympy.fraction(sympy.together(x))[0]
 
 
+def _pari_norml2(v):
+    """``norml2(v)`` — le **carré** de la norme euclidienne, non la norme.
+
+    Le nom trompe : GP rend `sum(v[i]^2)`. `gp/spanning_tree.gp` s'appuie
+    dessus pour normaliser ses vecteurs (`1/sqrt(norml2(v))*v`) ; prendre la
+    norme aurait donné des faces à l'échelle de la racine.
+    """
+    if hasattr(v, "__iter__") and not isinstance(v, str):
+        return sum(x * x for x in v)
+    return v * v
+
+
 def _pari_vecmax(v):
     if hasattr(v, "__iter__") and not isinstance(v, str):
         return max(v)
@@ -1099,6 +1111,7 @@ _PARI_HELPERS: dict = {
     "expand": _pari_expand,
     "denominator": _pari_denominator,
     "numerator": _pari_numerator,
+    "norml2": _pari_norml2,
     "vecmax": _pari_vecmax,
     "vecmin": _pari_vecmin,
     "divrem": _pari_divrem,
@@ -1192,7 +1205,7 @@ _INT_LITERAL_RE = re.compile(r"(?<![\w.])(\d+)(?!\.\d?|\w)")
 _VEC_LITERAL_RE = re.compile(r"(?<![\w\])])\[([^\[\]]+)\]")
 
 
-def _call_pari(expr: str, session: dict | None = None) -> str:
+def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     """Evaluate a PARI/GP-style expression via Python.
 
     Unknown identifiers are auto-bound to SymPy symbols, so polynomial
@@ -1226,7 +1239,7 @@ def _call_pari(expr: str, session: dict | None = None) -> str:
     if looks_like_program(expr) or session_porte_un_etat(session):
         try:
             return run_pari_program(
-                expr, {**_MATH_NS, **_PARI_HELPERS}, session=session
+                expr, {**_MATH_NS, **_PARI_HELPERS}, session=session, rng=rng
             )
         except PariProgramError:
             pass

@@ -1277,9 +1277,16 @@ class DefEngine(_SlibMixin):
             args = self._subst(args)
             return calc_imgrename(self._eval_cmd(cmd, args))
 
-        # $[expr] — arithmetic
-        if value.startswith("$["):
-            return self._eval_dollar_bracket(value)
+        # `$[…]` n'a pas de voie à part : `_subst` l'évalue en premier, puis
+        # substitue les variables du reste de la chaîne. La sortie anticipée
+        # qui vivait ici rendait la valeur dès le calcul, si bien qu'une
+        # concaténation dont le **premier** caractère ouvrait un crochet
+        # perdait ses variables suivantes :
+        #
+        #     insdraw_size=$[rint($slib_size/$slib_ratio)],$slib_size
+        #
+        # valait `178,$slib_size` — et tous les patrons de polyèdre sortaient
+        # à la taille par défaut, faute d'une hauteur lisible.
 
         # `substit` (`evalue.c`) ne réécrit rien : une concaténation `$a,$b`
         # est une substitution textuelle, séparateur compris. Le cas spécial
@@ -2316,7 +2323,9 @@ class DefEngine(_SlibMixin):
         L'entrée peut être vide : le slib d'équilibrage interroge d'abord la
         version (`chemeq_option=v`, sans argument).
         """
-        m = re.match(r"(maxima|pari|units-filter|chemeq)\b\s*(.*)", args, re.DOTALL | re.I)
+        m = re.match(
+            r"(maxima|pari|units-filter|chemeq|canvasdraw)\b\s*(.*)", args, re.DOTALL | re.I
+        )
         if not m:
             return ""
         engine = m.group(1).lower()
@@ -2324,7 +2333,7 @@ class DefEngine(_SlibMixin):
         if engine == "maxima":
             return _call_maxima(expr)
         if engine == "pari":
-            return _call_pari(expr, session=self.pari_session)
+            return _call_pari(expr, session=self.pari_session, rng=self.rng)
         if engine == "units-filter":
             from core.answer.checkers import units_filter  # noqa: PLC0415
 
@@ -2333,7 +2342,39 @@ class DefEngine(_SlibMixin):
             from .chemeq import chemeq  # noqa: PLC0415
 
             return chemeq(expr, str(self.ctx.get("chemeq_option", "")))
+        if engine == "canvasdraw":
+            return self._exec_canvasdraw(expr)
         return ""
+
+    def _exec_canvasdraw(self, script: str) -> str:
+        """`!exec canvasdraw <script>` — le dessin, rendu en SVG.
+
+        WIMS en tire un `<canvas>` piloté en JavaScript ; PAX rend le même
+        programme flydraw en SVG, comme le fait déjà `oef/canvasdraw.phtml`.
+        La différence de forme n'en est pas une pour l'énoncé : dans les deux
+        cas une image, à la même échelle.
+
+        La taille se lit **dans le script** (`size 245,200`), là où
+        `oef/canvasdraw.phtml` la reçoit en en-tête. `slib/geo2D/offdraw` la
+        calcule à partir du rapport d'aspect du patron et l'écrit en première
+        ligne ; sans cette lecture, tous les patrons de polyèdre sortaient au
+        format par défaut.
+        """
+        from ..flydraw import flydraw_to_url  # noqa: PLC0415
+
+        m = re.search(
+            r"^\s*size\s+([0-9.]+)\s*,\s*([0-9.]+)\s*$", script, re.MULTILINE
+        )
+        try:
+            largeur = int(float(m.group(1))) if m else 300
+            hauteur = int(float(m.group(2))) if m else 300
+        except (TypeError, ValueError):
+            largeur, hauteur = 300, 300
+        mod_dir = (
+            os.path.dirname(os.path.dirname(self.def_path)) if self.def_path else None
+        )
+        url = flydraw_to_url(largeur, hauteur, script, base_dir=mod_dir)
+        return f'<img src="{url}" alt="">'
 
     def _cmd_makelist(self, args: str) -> str:
         """!makelist expr for var=start to end — or — for var in list."""
@@ -4698,7 +4739,17 @@ class DefEngine(_SlibMixin):
             import html as _html  # noqa: PLC0415
             import json as _json  # noqa: PLC0415
             extra = f' data-attrs="{_html.escape(_json.dumps(attrs), quote=True)}"'
-        textarea_m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
+        # `type=draw` — WIMS y ouvre un canevas de `W×H` **pixels** sur lequel
+        # l'élève trace sa figure. PAX ne porte pas ce type (cf.
+        # `types-exercices-reponses.md`) ; sa taille n'est donc pas une
+        # géométrie de `textarea`, et la lire comme telle donnait un champ de
+        # 543 lignes sur 400 colonnes. Faute de canevas, on rend le champ
+        # simple qu'il rendait déjà — mais pour une raison dite.
+        textarea_m = (
+            None
+            if reply_type == "draw"
+            else re.match(r"^(\d+)\s*[xX]\s*(\d+)$", size_raw)
+        )
         if textarea_m:
             span = (
                 f'<span class="oef-input" name="{ref}" '

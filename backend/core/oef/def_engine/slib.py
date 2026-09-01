@@ -195,6 +195,15 @@ class _SlibMixin:
                         self.ctx["_repere_transform"] = f"{o[0]},{o[1]},{s[0]},{s[1]}"
             return
 
+        # `gp/<nom>.gp` — une bibliothèque PARI, que le script pose dans une
+        # variable (`!set slib_header_patron=…`) avant qu'un `!exec pari` ne
+        # l'exécute. Ce n'est pas un slib : ni `slib_out`, ni paramètres. Sans
+        # cette lecture, `slib/geo2D/polynet` appelait `!exec pari` sur une
+        # chaîne vide, et les six exercices d'`oefpolynet` restaient muets.
+        if path.startswith("gp/"):
+            self._run_slib(path, proc_args)
+            return
+
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
 
@@ -462,10 +471,11 @@ class _SlibMixin:
             return
         module_dir = os.path.dirname(os.path.dirname(self.def_path))
         wims_scripts_dir = self._find_wims_scripts_dir()
-        candidates = [
-            os.path.join(module_dir, slib_path),
-            os.path.join(module_dir, "slib", "local", slib_path[len("slib/") :]),
-        ]
+        candidates = [os.path.join(module_dir, slib_path)]
+        if slib_path.startswith("slib/"):
+            candidates.append(
+                os.path.join(module_dir, "slib", "local", slib_path[len("slib/") :])
+            )
         if wims_scripts_dir:
             candidates.append(os.path.join(wims_scripts_dir, slib_path))
         script_path = next((p for p in candidates if os.path.exists(p)), None)
