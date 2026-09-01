@@ -284,21 +284,17 @@ XFAIL_RENDER_STRUCTURE = {
 # inline au lieu d'en faire des segments propres (c'est documenté dans sa
 # docstring). Vérification faite, les onze champs restent atteignables et
 # appariés à leurs `answers`.
-XFAIL_CORRECT_SCORE = {
-    # Le dernier `bound`, et le seul que le décodeur GIF ne règle pas : son
-    # image n'est pas un fichier du module mais une figure que flydraw produit
-    # à la volée. WIMS en tire un GIF, dont `slib/oef/insfilename` donne le
-    # nom ; PAX rend un SVG (`/api/render/svg/…`), si bien que la zone arrive
-    # sans nom de fichier — `(bound,,56,146)`.
-    #
-    # La figure porte pourtant ce qu'il faut : son premier programme trace
-    # `plot blue, 1.5*t,2.0*t-0.5`, `plot blue, 1.5*t-1.5,-0.5*t` et le cadre,
-    # soit les droites qui délimitent la région où D rend ABCD convexe. Deux
-    # voies pour conclure, aucune raisonnable pour un seul exercice : rendre le
-    # SVG en pixels pour y refaire le remplissage, ou porter le test en
-    # géométrie — même côté de chaque droite que le point de référence.
-    'H3~geometry~oefpolygon.fr~src~quadrilatere',
-}
+# Vide. `oefpolygon/quadrilatere`, qui y figurait seul, est réparé : la voie
+# retenue est celle de la géométrie, la seconde des deux que cette note
+# envisageait. Trois manques se cachaient derrière, et le premier masquait les
+# autres — le `plot` **paramétrique** n'était pas tracé, si bien que la figure
+# des frontières ne portait que son cadre ; `$ins_filename` n'était pas posée,
+# si bien que la zone arrivait sans figure à désigner ; et `oneline` n'était
+# pas porté, si bien que le `|` de plusieurs régions acceptables n'était pas lu.
+# Le remplissage bitmap de WIMS se reformule alors exactement : deux points
+# sont dans la même région si le segment qui les joint ne croise aucune
+# frontière tracée (cf. `_meme_region_svg`).
+XFAIL_CORRECT_SCORE: set[str] = set()
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
 XFAIL_WRONG_SCORE: set[str] = set()

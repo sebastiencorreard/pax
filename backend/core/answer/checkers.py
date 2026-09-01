@@ -770,14 +770,14 @@ def coord_display_answer(expected: str) -> str:
     # Seule la première zone est la bonne réponse (cf. `check_coord`) ; les
     # suivantes servent au diagnostic.
     premiere = _declosing(expected or "").split(";")[0]
+    # Une ligne peut offrir plusieurs régions, séparées par `|` (cf.
+    # `_ligne_zone`) : la première suffit à répondre.
+    premiere = _coupe_hors_parentheses(premiere, "|")[0]
     parts = [p.strip() for p in _declosing(premiere).split(",")]
     if (parts and parts[0].strip().lower().startswith("b")
             and len(parts) >= 4 and parts[1].strip()):
-        # `b,<gif>,x,y` : le point de référence de la région **est** un clic
-        # valide, puisqu'il appartient par construction à la zone visée. Sans
-        # nom de fichier, en revanche, il n'y a pas de zone du tout — c'est le
-        # cas de `quadrilatere`, dont l'image est un SVG produit par flydraw et
-        # non un GIF sur disque.
+        # `b,<figure>,x,y` : le point de référence de la région **est** un clic
+        # valide, puisqu'il appartient par construction à la zone visée.
         return f"{parts[2].strip()},{parts[3].strip()}"
     if len(parts) < 2:
         return ""
@@ -1137,6 +1137,144 @@ def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> Ch
     return CheckResult(correct=score == 1.0, score=score, method="jsxgraph")
 
 
+def _ligne_zone(cx: float, cy: float, ligne: str, options: dict | None) -> bool:
+    """Une **ligne** de click-zone — port d'`oneline` (`Misc/clickzone.c:231`).
+
+    Une ligne n'est pas une zone unique : c'est une expression booléenne sur
+    des zones, avec `|` pour le ou, `&` pour le et, `^` pour la négation et des
+    parenthèses pour grouper. `oefpolygon/quadrilatere` s'en sert pour offrir
+    plusieurs régions acceptables — « le quadrilatère est concave » en admet
+    quatre —, séparées par des `|`.
+
+    Les séparateurs se lisent à profondeur de parenthèses zéro (`strparchr`),
+    sans quoi la virgule interne d'une zone couperait au mauvais endroit.
+    """
+    p = (ligne or "").strip()
+    morceaux = _coupe_hors_parentheses(p, "|")
+    if len(morceaux) > 1:
+        return any(_ligne_zone(cx, cy, m, options) for m in morceaux)
+    morceaux = _coupe_hors_parentheses(p, "&")
+    if len(morceaux) > 1:
+        return all(_ligne_zone(cx, cy, m, options) for m in morceaux)
+
+    inverse = False
+    if p.startswith("^"):
+        inverse = True
+        p = p[1:].strip()
+    if not p:
+        # `if(*p1==0) return rev^1` : une ligne vide est vraie, sa négation fausse.
+        return not inverse
+    if p.startswith("("):
+        fin = _appariement(p, 1, ")")
+        if fin >= 0:
+            return _ligne_zone(cx, cy, p[1:fin], options) != inverse
+    return _zone_contient(cx, cy, p, options) != inverse
+
+
+def _coupe_hors_parentheses(s: str, sep: str) -> list[str]:
+    """Découpe sur `sep` à profondeur de parenthèses zéro (`strparchr`)."""
+    parts, courant, profondeur = [], [], 0
+    for ch in s:
+        if ch == "(":
+            profondeur += 1
+        elif ch == ")":
+            profondeur = max(0, profondeur - 1)
+        if ch == sep and profondeur == 0:
+            parts.append("".join(courant))
+            courant = []
+        else:
+            courant.append(ch)
+    parts.append("".join(courant))
+    return [x.strip() for x in parts]
+
+
+def _appariement(s: str, depart: int, fermant: str) -> int:
+    """Index du `fermant` appariant l'ouvrant qui précède `depart`, ou -1."""
+    profondeur = 1
+    for i in range(depart, len(s)):
+        if s[i] == "(":
+            profondeur += 1
+        elif s[i] == fermant:
+            profondeur -= 1
+            if profondeur == 0:
+                return i
+    return -1
+
+
+def _segments_du_svg(svg: str) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    """Les frontières d'une figure SVG, en segments.
+
+    On ne lit que les primitives que flydraw produit pour un **tracé** :
+    polylignes (les courbes et les `plot`), lignes, polygones et le cadre.
+    Les arcs (`<path>`) sont hors de cette lecture — aucune figure du corpus
+    n'en fait une frontière de région.
+    """
+    segs: list[tuple[tuple[float, float], tuple[float, float]]] = []
+
+    def suite(points: list[tuple[float, float]], ferme: bool = False) -> None:
+        for i in range(len(points) - 1):
+            segs.append((points[i], points[i + 1]))
+        if ferme and len(points) > 2:
+            segs.append((points[-1], points[0]))
+
+    def lis_points(brut: str) -> list[tuple[float, float]]:
+        nombres = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", brut)]
+        return [(nombres[i], nombres[i + 1]) for i in range(0, len(nombres) - 1, 2)]
+
+    for m in re.finditer(r'<polyline[^>]*points="([^"]*)"', svg):
+        suite(lis_points(m.group(1)))
+    for m in re.finditer(r'<polygon[^>]*points="([^"]*)"', svg):
+        suite(lis_points(m.group(1)), ferme=True)
+    for m in re.finditer(
+        r'<line[^>]*x1="([-\d.]+)"[^>]*y1="([-\d.]+)"[^>]*x2="([-\d.]+)"[^>]*y2="([-\d.]+)"',
+        svg,
+    ):
+        x1, y1, x2, y2 = (float(v) for v in m.groups())
+        segs.append(((x1, y1), (x2, y2)))
+    for m in re.finditer(
+        r'<rect[^>]*x="([-\d.]+)"[^>]*y="([-\d.]+)"[^>]*width="([-\d.]+)"[^>]*height="([-\d.]+)"',
+        svg,
+    ):
+        x, y, w, h = (float(v) for v in m.groups())
+        suite([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], ferme=True)
+    for m in re.finditer(
+        r'<circle[^>]*cx="([-\d.]+)"[^>]*cy="([-\d.]+)"[^>]*r="([-\d.]+)"', svg
+    ):
+        cx, cy, r = (float(v) for v in m.groups())
+        pts = [
+            (cx + r * math.cos(2 * math.pi * k / 64), cy + r * math.sin(2 * math.pi * k / 64))
+            for k in range(64)
+        ]
+        suite(pts, ferme=True)
+    return segs
+
+
+def _meme_region_svg(
+    clic: tuple[float, float], repere: tuple[float, float], svg: str
+) -> bool:
+    """Les deux points sont-ils dans la même région de la figure ?
+
+    WIMS répond en **remplissant** l'image bitmap depuis le clic et en
+    regardant si le point de référence a pris la couleur. PAX n'a pas de
+    bitmap : sa figure est vectorielle. La question se reformule alors
+    exactement — deux points sont dans la même région si le segment qui les
+    joint ne croise **aucune** frontière tracée.
+
+    L'équivalence est stricte tant que les régions sont convexes, ce qui est le
+    cas d'un découpage par des droites — celui de `oefpolygon/quadrilatere`,
+    seul `bound` du corpus. Sur une région en croissant, un chemin droit
+    pourrait sortir et revenir : la réponse serait alors trop sévère, jamais
+    trop permissive.
+    """
+    from core.oef.flydraw import _segment_intersection  # noqa: PLC0415
+
+    trajet = (clic, repere)
+    for frontiere in _segments_du_svg(svg):
+        if _segment_intersection(trajet, frontiere) is not None:
+            return False
+    return True
+
+
 def _bound_atteint(clic: tuple[float, float], zone: list[str], images_dir: str) -> bool:
     """Zone ``b,<fichier.gif>,x,y`` — appartenance à une **région de l'image**.
 
@@ -1151,9 +1289,28 @@ def _bound_atteint(clic: tuple[float, float], zone: list[str], images_dir: str) 
     """
     from core.oef.def_engine.gif import GifError, lire_gif  # noqa: PLC0415
 
-    if len(zone) < 2 or not images_dir:
+    if len(zone) < 2:
         return False
     fichier = zone[1].strip()
+
+    # Figure produite par PAX : `$ins_filename` porte l'URL de son SVG, et la
+    # région se teste en géométrie plutôt que par remplissage.
+    m_svg = re.search(r"/api/render/svg/([a-f0-9]+)", fichier)
+    if m_svg is not None:
+        from core.oef.flydraw import get_cached_svg  # noqa: PLC0415
+
+        svg = get_cached_svg(m_svg.group(1))
+        reperes_svg = [v.strip() for v in zone[2:] if v.strip()]
+        if not svg or len(reperes_svg) < 2:
+            return False
+        try:
+            rx, ry = float(reperes_svg[0]), float(reperes_svg[1])
+        except ValueError:
+            return False
+        return _meme_region_svg(clic, (rx, ry), svg)
+
+    if not images_dir:
+        return False
     if not fichier or "/" in fichier or ".." in fichier:
         return False
     from core.oef.flydraw import _RESSOURCES_ROOT  # noqa: PLC0415
@@ -1207,7 +1364,10 @@ def check_coord(reply: str, expected: str, options: dict | None = None) -> Check
     # autres départements pour pouvoir colorier celui qu'il fallait. Accepter
     # n'importe laquelle rendrait l'exercice trivial.
     zones = [z.strip() for z in _declosing(expected or "").split(";") if z.strip()]
-    ok = bool(zones) and _zone_contient(cx, cy, zones[0], options)
+    # Une *ligne* de zones n'est pas une zone : `oneline` y lit une expression
+    # booléenne (`|`, `&`, `^`, parenthèses). Plusieurs régions acceptables s'y
+    # écrivent donc sur la même ligne, séparées par des `|`.
+    ok = bool(zones) and _ligne_zone(cx, cy, zones[0], options)
     return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
 
 

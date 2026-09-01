@@ -158,6 +158,13 @@ class _SlibMixin:
             # $canvasdraw_out is used inline in question text without an explicit
             # <img>, so we store it as a ready-to-render <img> tag.
             self.ctx["ins_url"] = url
+            # `$ins_filename` — WIMS y met le nom du fichier qu'il vient de
+            # produire (`insert-3.gif`), et `slib/oef/insfilename` le rend aux
+            # exercices qui doivent **désigner** cette image : la zone `bound`
+            # d'un `type=coord` y renvoie pour dire « la région de cette
+            # figure-là ». PAX ne produit pas de fichier, mais son URL de SVG
+            # joue le même rôle de poignée — c'est elle qu'on pose.
+            self.ctx["ins_filename"] = url
             self.ctx["canvasdraw_out"] = f'<img src="{url}" alt="">'
             return
 

@@ -1112,3 +1112,78 @@ class TestCheckDraw:
         assert F(self.FOND + ";crosshairs,3,3,1,-3") == "(3, 3) ; (1, -3)"
         assert F(self.FOND + ";arrows,0,0,1,1") == "(0, 0, 1, 1)"
         assert F(self.FOND) == ""
+
+
+class TestLigneDeZones:
+    """Une **ligne** de click-zone est une expression booléenne, pas une zone.
+
+    Port d'`oneline` (`Misc/clickzone.c:231`) : `|` pour le ou, `&` pour le et,
+    `^` pour la négation, des parenthèses pour grouper. Sans lui, une question
+    qui offre plusieurs régions acceptables — `oefpolygon/quadrilatere` en
+    admet quatre pour « concave » — n'en voyait aucune.
+    """
+
+    ZONE_A = "(point,10,10)"
+    ZONE_B = "(point,200,200)"
+
+    def test_ou(self):
+        ligne = f"{self.ZONE_A} | {self.ZONE_B}"
+        assert check_answer("coord", "10,10", ligne).correct
+        assert check_answer("coord", "200,200", ligne).correct
+        assert not check_answer("coord", "150,40", ligne).correct
+
+    def test_et(self):
+        # Un point ne peut pas être aux deux endroits à la fois.
+        ligne = f"{self.ZONE_A} & {self.ZONE_B}"
+        assert not check_answer("coord", "10,10", ligne).correct
+
+    def test_negation(self):
+        assert check_answer("coord", "200,200", f"^{self.ZONE_A}").correct
+        assert not check_answer("coord", "10,10", f"^{self.ZONE_A}").correct
+
+    def test_la_virgule_interne_ne_coupe_pas(self):
+        """Les séparateurs se lisent hors parenthèses (`strparchr`) : la
+        virgule d'une zone ne doit pas être prise pour une frontière."""
+        ligne = f"(rectangle,0,0,50,50) | {self.ZONE_B}"
+        assert check_answer("coord", "25,25", ligne).correct
+
+
+class TestBoundGeometrique:
+    """`bound` sur une figure vectorielle.
+
+    WIMS remplit un bitmap depuis le clic et regarde si le point de référence a
+    pris la couleur. PAX n'a pas de bitmap : la question se reformule
+    exactement — deux points sont dans la même région si le segment qui les
+    joint ne croise aucune frontière tracée. L'équivalence est stricte tant que
+    les régions sont convexes, ce qu'assure un découpage par des droites.
+    """
+
+    # Un cadre et une droite verticale qui le coupe en deux.
+    SVG = (
+        '<svg width="200" height="200">'
+        '<rect x="0.00" y="0.00" width="200.00" height="200.00" fill="none" />'
+        '<polyline points="100.00,0.00 100.00,200.00" fill="none" />'
+        "</svg>"
+    )
+
+    def _meme_region(self, a, b):
+        from core.answer.checkers import _meme_region_svg
+
+        return _meme_region_svg(a, b, self.SVG)
+
+    def test_meme_cote(self):
+        assert self._meme_region((20, 20), (60, 180))
+
+    def test_cotes_opposes(self):
+        assert not self._meme_region((20, 20), (180, 20))
+
+    def test_le_cadre_est_une_frontiere(self):
+        """Un point de référence hors du cadre n'est atteignable par aucun
+        clic — comme chez WIMS, où `gdImageGetPixel` hors image ne rend pas la
+        couleur de remplissage."""
+        assert not self._meme_region((20, 20), (250, 20))
+
+    def test_sans_figure_rien_n_est_valide(self):
+        from core.answer.checkers import _meme_region_svg
+
+        assert _meme_region_svg((1, 1), (2, 2), "") is True  # aucune frontière
