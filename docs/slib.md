@@ -104,6 +104,12 @@ appels) n'en pose **aucun** — il alimente `slib_data` et `slib_weight`. Vérif
 `grep -c '^\s*slib_out=' <fichier>` avant de conclure, puis mesurer les
 variables que le slib pose vraiment : c'est ce qui l'a innocenté.
 
+**Et le vide peut être le rendu juste.** Avant de porter quoi que ce soit,
+remonter à la source WIMS de la variable : les 12 derniers appels vides
+d'`oef/env` viennent d'un `my_var.proc` que son module ne lit pas — WIMS rend
+le vide lui aussi. Attention alors au `grep` : ces `.def` sont en ISO-8859, où
+il se tait sans le dire ; `grep -a` les lit.
+
 **Attention au cache.** Une instrumentation qui rejoue le corpus doit être
 précédée d'un `redis-cli FLUSHDB`, faute de quoi les rendus sortent du cache
 sans exécuter une ligne du moteur — un espion y compte zéro appel et le
@@ -115,10 +121,9 @@ silence se lit comme une absence.
 |---|---|---|---|
 | `geo2D/offdraw` · `polyoff` · `polynet` | 22 / 26 | 6 | la variable PARI `W` |
 | `lang/swac` | 13 / 23 | 6 | mots hors des index rapatriés |
-| `oef/env` | 15 / 533 | 15 | `rename`, `user`, `list_error`, `year` |
 
-`basep`, `text/sigunits` et `stat/dataproc` en sont sortis — les deux premiers
-réparés, le troisième n'ayant jamais rien eu.
+`basep`, `text/sigunits`, `stat/dataproc` et `oef/env` en sont sortis — les
+deux premiers réparés, les deux derniers n'ayant jamais rien eu à réparer.
 
 **`geo2D/offdraw`** reçoit `[W[1]],[W[2]]` non substitué. `W` vient de
 `slib/geo2D/polynet`, qui charge `gp/spanning_tree.gp` par `!readproc` puis
@@ -180,13 +185,27 @@ Vérifié sur les valeurs : `descriptives/ecarttype` rend `1.34` pour
 `1;5;4;4;3;2`, soit l'écart-type de population, et `oefstat.nl/mean`
 `3.97368421053`.
 
-**`oef/env`** rend encore le vide sur quatre mots — `rename`, `user`,
-`list_error`, `year` — qui sont des variables de session que PAX ne tient pas.
-Son cinquième cas, `lang`, s'est révélé un effet de bord de l'exécution des
-`var.proc` : quatre modules y écrivent `oefenv_lang=$lang`, ce qui écrasait par
-du vide la valeur que `render` venait de poser. `$lang` est donc posée avant,
-avec la langue du module. `$presentgood` s'y prêterait, mais aucun `var.proc`
-du corpus ne le lit : on ne le pose pas.
+**`oef/env`** est clos : sur 556 appels, les 14 qui rendent encore le vide le
+rendent **chez WIMS aussi**. Ses deux premiers cas, eux, étaient bien des
+manques de PAX.
+
+- `lang` — un effet de bord de l'exécution des `var.proc` : quatre modules y
+  écrivent `oefenv_lang=$lang`, ce qui écrasait par du vide la valeur que
+  `render` venait de poser. `$lang` est donc posée avant, avec la langue du
+  module. `$presentgood` s'y prêterait, mais aucun `var.proc` du corpus ne le
+  lit : on ne le pose pas.
+- `year` — `quizzautomat.fr/var.proc` le tire de `$wims_now`, l'horloge que
+  WIMS fige au début de chaque requête (`wims.c:1200`) et que PAX ne posait
+  pas. Réparé : `pcent5` datait son énoncé « en -2 » et « en -1 ».
+- `rename`, `user`, `list_error` (12 appels, `oefanglais.fr`) — ils ne sont
+  posés que par `my_var.proc`, que le `var.proc` du module **ne lit pas** : la
+  ligne est commentée (`!!read my_var.proc`), et le fichier s'ouvre lui-même
+  sur `!!no more used`. `oefenv_user` y est de surcroît réservé au
+  superviseur. Rien à réparer.
+- l'argument vide (2 appels, `oefdeutsch.fr/geo3`) — la source écrit
+  `slib(oef/env \presentgood)`, une *référence* de variable là où le nom
+  littéral était voulu. WIMS y rend `$(oefenv_)`, soit le vide. Défaut
+  d'auteur, reproduit fidèlement.
 
 ### Ce qui a été fait depuis la version précédente de ce document
 
