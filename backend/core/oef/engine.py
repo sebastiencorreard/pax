@@ -201,6 +201,12 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
     # group 15: a coord click-target — name + background repère image URL.
     r'|<span class="oef-coord" name="([^"]+)" data-img="([^"]*)"></span>'
+    # groups 17-22 : un canevas `type=draw` — nom, fond, taille du canevas,
+    # type d'objet à tracer, couleur, et les deux bornes du repère (c'est en
+    # **ses** unités que la réponse est attendue, non en pixels).
+    r'|<span class="oef-draw" name="([^"]+)" data-img="([^"]*)" '
+    r'data-size="([^"]*)" data-objet="([^"]*)" data-couleur="([^"]*)" '
+    r'data-xrange="([^"]*)" data-yrange="([^"]*)"></span>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -624,6 +630,36 @@ def _segment_statement(html: str) -> list[dict]:
             if svg:
                 seg["svg"] = svg
             segments.append(seg)
+        elif m.group(17) is not None:
+            # Canevas `type=draw` : l'élève y pose des objets, dont la liste de
+            # coordonnées — dans le repère du dessin — devient la réponse.
+            name = m.group(17).strip()
+            alias = re.match(r"^r(\d+)$", name)
+            if alias:
+                name = f"reply{alias.group(1)}"
+            img_url = m.group(18)
+            from .flydraw import get_cached_svg  # noqa: PLC0415
+            key_m = re.search(r"/api/render/svg/([a-f0-9]+)", img_url)
+            svg = get_cached_svg(key_m.group(1)) if key_m else None
+            taille = (m.group(19) or "").lower().split("x")
+            seg = {
+                "type": "draw",
+                "name": name,
+                "image": img_url,
+                "objet": m.group(20) or "points",
+                "couleur": m.group(21) or "blue",
+                "xrange": m.group(22) or "",
+                "yrange": m.group(23) or "",
+                "is_sup": is_sup,
+            }
+            try:
+                seg["width"] = int(taille[0])
+                seg["height"] = int(taille[1])
+            except (IndexError, ValueError):
+                seg["width"] = seg["height"] = 400
+            if svg:
+                seg["svg"] = svg
+            segments.append(seg)
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
@@ -669,7 +705,10 @@ def _embedded_widget_names(html: str) -> set[str]:
     """
     names: set[str] = set()
     for m in _SEGMENT_PATTERN.finditer(html):
-        nm = m.group(1) or m.group(2) or m.group(4) or m.group(6) or m.group(15)
+        nm = (
+            m.group(1) or m.group(2) or m.group(4) or m.group(6)
+            or m.group(15) or m.group(17)
+        )
         if nm:
             nm = nm.strip()
             alias = re.match(r"^r(\d+)$", nm)

@@ -1025,3 +1025,81 @@ class TestCoordZones:
         assert D(zones) == "10,10"
         assert check_answer("coord", "10,10", zones).correct
         assert not check_answer("coord", "300,300", zones).correct
+
+
+class TestCheckDraw:
+    """`type=draw` : l'élève trace des objets sur une figure, et c'est la liste
+    de leurs coordonnées — dans le repère du dessin — qui est corrigée.
+
+    Port d'`anstype/draw` et de son `draw.inc`. Le rendu était jusqu'ici un
+    champ de saisie : PAX lisait la taille du canevas (`800 x 400` pixels)
+    comme une géométrie de `textarea` et n'affichait aucune figure.
+    """
+
+    FOND = "[xrange -3,2\npolygon black, 1,2]"
+    BON = FOND + ";crosshairs,1.5,-0.5,-2.1,-0.9,1.0,-0.9"
+
+    def test_les_points_attendus_dans_l_ordre(self):
+        assert check_answer("draw", "1.5,-0.5,-2.1,-0.9,1.0,-0.9", self.BON).correct
+
+    def test_l_ordre_est_indifferent(self):
+        """L'appariement est glouton : chaque point posé cherche un attendu
+        libre, sans que l'ordre compte."""
+        assert check_answer("draw", "1.0,-0.9,1.5,-0.5,-2.1,-0.9", self.BON).correct
+
+    def test_la_tolerance_vient_de_l_option(self):
+        """`!default precision=1000`, que `replyoption` règle : l'écart admis
+        est `1/precision`, en unités du repère."""
+        opts = {"option": "precision=10"}
+        assert check_answer("draw", "1.55,-0.5,-2.1,-0.9,1.0,-0.9", self.BON, options=opts).correct
+        serre = {"option": "precision=1000"}
+        assert not check_answer("draw", "1.55,-0.5,-2.1,-0.9,1.0,-0.9", self.BON, options=serre).correct
+
+    def test_bareme_partiel_avec_split(self):
+        """`score = (justes − coeff·max(en trop, manquants)) / attendus`, avec
+        `coeff=1` pour `split`. Deux points sur trois valent donc un tiers."""
+        opts = {"option": "split precision=10"}
+        r = check_answer("draw", "1.5,-0.5,-2.1,-0.9", self.BON, options=opts)
+        assert not r.correct
+        assert abs(r.score - 1 / 3) < 1e-9
+
+    def test_eqweight_ne_penalise_qu_a_demi(self):
+        opts = {"option": "eqweight precision=10"}
+        r = check_answer("draw", "1.5,-0.5,-2.1,-0.9", self.BON, options=opts)
+        assert abs(r.score - (2 - 0.5) / 3) < 1e-9
+
+    def test_sans_option_c_est_tout_ou_rien(self):
+        opts = {"option": "precision=10"}
+        assert check_answer("draw", "1.5,-0.5,-2.1,-0.9", self.BON, options=opts).score == 0.0
+
+    def test_un_point_en_trop_coute(self):
+        opts = {"option": "split precision=10"}
+        r = check_answer("draw", "1.5,-0.5,-2.1,-0.9,1.0,-0.9,0,0", self.BON, options=opts)
+        assert abs(r.score - 2 / 3) < 1e-9
+
+    def test_un_segment_se_lit_dans_les_deux_sens(self):
+        """`draw.inc` ajoute aux bonnes réponses la version retournée des types
+        symétriques — un segment tracé de B vers A vaut celui de A vers B."""
+        bon = self.FOND + ";segments,0,0,1,1"
+        opts = {"option": "precision=100"}
+        assert check_answer("draw", "0,0,1,1", bon, options=opts).correct
+        assert check_answer("draw", "1,1,0,0", bon, options=opts).correct
+
+    def test_une_fleche_garde_son_sens(self):
+        """`arrows` n'est pas dans la liste des types symétriques : le sens
+        compte, c'est tout l'objet d'un vecteur."""
+        bon = self.FOND + ";arrows,0,0,1,1"
+        opts = {"option": "precision=100"}
+        assert check_answer("draw", "0,0,1,1", bon, options=opts).correct
+        assert not check_answer("draw", "1,1,0,0", bon, options=opts).correct
+
+    def test_la_figure_de_fond_ne_compte_pas_comme_reponse(self):
+        """Le fond est entre crochets et porte lui-même des nombres : le
+        découpage en rangées doit s'arrêter aux `;` de profondeur zéro, sans
+        quoi les coordonnées du dessin passeraient pour la bonne réponse."""
+        from core.answer.checkers import draw_display_answer
+
+        assert draw_display_answer(self.BON) == "1.5,-0.5,-2.1,-0.9,1.0,-0.9"
+
+    def test_une_reponse_vide_ne_vaut_rien(self):
+        assert check_answer("draw", "", self.BON).score == 0.0

@@ -87,6 +87,14 @@ def _candidats(ans):
         clic = coord_display_answer(brut)
         if clic:
             yield clic
+    # `draw` attend la liste des coordonnées que l'élève a tracées, quand
+    # l'attendu juxtapose la figure de fond et cette liste, précédée du type
+    # d'objet — `[<figure>];crosshairs,1.59,-0.04,…`.
+    if ans.answer_type == "draw":
+        from core.answer.checkers import draw_display_answer  # noqa: PLC0415
+        coords = draw_display_answer(brut)
+        if coords:
+            yield coords
     # `jsxgraphcurve` attend une **figure**, décrite après le `;` par sa forme
     # et ses coordonnées (`sline,250,250,389,501`). L'attendu porte l'image en
     # tête ; ce sont les coordonnées seules que l'élève produit en traçant.

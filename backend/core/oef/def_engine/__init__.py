@@ -459,6 +459,67 @@ def _chemin_du_module(def_path: str | None) -> str:
     return "modules/" + queue if queue else ""
 
 
+def _rangees_protegees(s: str) -> list[str]:
+    """Découpe en rangées sur les `;` de profondeur zéro, **toujours**.
+
+    `rows2lines` (`liblines.c`) ne convertit les `;` que si la valeur ne
+    contient aucun saut de ligne ; sinon rangées et lignes se confondent. Cette
+    garde suffit tant que la valeur est courte, mais elle dégénère sur un
+    `replygood` de `type=draw`, qui juxtapose une **figure multiligne** et la
+    réponse attendue :
+
+        replygood1=[<figure sur dix lignes>];crosshairs,1.59,-0.04,…
+
+    WIMS y lit alors comme « rangée 2 » la deuxième *ligne de la figure* —
+    `yrange -1.46,2.29` —, dont il tire un type d'objet à dessiner qui n'existe
+    pas. C'est le cas d'`oefpolynet/31` et `32` ; `evolmeth`, dont la figure est
+    tabulée et non multiligne, y échappe. On lit donc la syntaxe que l'auteur a
+    écrite — les crochets délimitent la figure, le `;` sépare — plutôt que le
+    résultat dégénéré.
+    """
+    parts: list[str] = []
+    courant: list[str] = []
+    i = 0
+    n = len(s)
+    while i < n:
+        ch = s[i]
+        ferme = {"(": ")", "[": "]", "{": "}"}.get(ch)
+        if ferme is not None:
+            j = wl.find_matching(s, i + 1, ferme)
+            if j >= 0:
+                courant.append(s[i : j + 1])
+                i = j + 1
+                continue
+        if ch == ";":
+            parts.append("".join(courant))
+            courant = []
+        else:
+            courant.append(ch)
+        i += 1
+    parts.append("".join(courant))
+    return parts
+
+
+def _declos(s: str) -> str:
+    """Retire une paire de crochets englobante — le `!declosing` de WIMS."""
+    t = s.strip()
+    if len(t) >= 2 and t[0] == "[" and t[-1] == "]":
+        return t[1:-1]
+    return t
+
+
+def _plage_flydraw(programme: str, mot: str) -> str:
+    """`xrange a,b` / `yrange a,b` d'un programme flydraw, ou la chaîne vide.
+
+    Les bornes peuvent être des expressions (`-1*6+1,6*1.5` chez `evolmeth`) :
+    on les rend telles quelles, à charge du lecteur de les évaluer.
+    """
+    m = re.search(
+        rf"(?:^|[\n\t;])\s*{mot}\s+([^\n\t;]+)", programme, re.IGNORECASE
+    )
+    return m.group(1).strip() if m else ""
+
+
 def _horloge_session() -> datetime.datetime:
     """L'instant que voit l'exercice, gelable par `PAX_WIMS_NOW`.
 
@@ -915,7 +976,7 @@ class DefEngine(_SlibMixin):
         segments = _segment_statement(html)
         widget_names = {
             s["name"] for s in segments
-            if s["type"] in ("input", "slot", "menu", "textarea", "correspond")
+            if s["type"] in ("input", "slot", "menu", "textarea", "correspond", "draw", "coord")
         }
         # Widgets embedded inside a <table> become native <input>s and don't
         # surface as input segments — count them too so the fallback below
@@ -4721,6 +4782,12 @@ class DefEngine(_SlibMixin):
                 if img:
                     return f'<span class="oef-coord" name="reply{n}" data-img="{img}"></span>'
                 return ""
+            elif reply_type == "draw":
+                # Comme `jsxgraph` : le paramètre porte une figure entière,
+                # virgules comprises, que le découpage sur `,` de `_render_embed`
+                # aurait tronquée à `[xrange -10`. On repart des arguments bruts.
+                _, _, apres_ref = args.partition(",")
+                return self._render_draw_embed(n, apres_ref)
 
         # `anstype/inputcss.inc` : le paramètre de taille peut porter des lignes
         # supplémentaires (tabulations promues en sauts de ligne) qui sont des
@@ -4770,6 +4837,103 @@ class DefEngine(_SlibMixin):
         if reply_type == "fset":
             return f'<span class="oef-set-brace">{{</span>{span}<span class="oef-set-brace">}}</span>'
         return span
+
+    def _render_draw_embed(self, n: int, size_str: str) -> str:
+        """`type=draw` — la figure sur laquelle l'élève trace sa réponse.
+
+        Port d'`anstype/draw.input`. WIMS y ouvre un canevas `canvasdraw` de
+        `xsize × ysize` **pixels** portant un fond, et arme `userdraw <type>,
+        <couleur>` : l'élève y pose des objets, que JavaScript relit en une
+        liste de coordonnées (dans le repère du dessin, non en pixels) et
+        dépose dans un champ caché.
+
+        Trois choses à lire, et elles ne viennent pas du même endroit selon la
+        forme de la question (`draw.input`, lignes 17-30) :
+
+          taille   première ligne du paramètre d'`embed` (`400x400` à défaut) ;
+          type     `$(replygood[2;1])` — sauf si la réponse est déléguée à un
+                   analyseur (`?analyze` en tête), où il vient de la deuxième
+                   ligne du paramètre d'`embed` ;
+          fond     `$(replygood[1;])` — ou les lignes 3 et suivantes de ce même
+                   paramètre dans le cas `?analyze`.
+
+        Le paramètre d'`embed` porte ses lignes en **tabulations** :
+        `r1,500x200<TAB>arrows<TAB>[figure]`.
+        """
+        lignes = [
+            ligne.strip()
+            for ligne in self._subst(size_str).replace("\t", "\n").split("\n")
+        ]
+        taille = lignes[0] if lignes else ""
+        m = re.match(r"^(\d+)\s*[xX]\s*(\d+)$", taille)
+        largeur, hauteur = (int(m.group(1)), int(m.group(2))) if m else (400, 400)
+
+        good = self._subst(self.ctx.get(f"replygood{n}", ""))
+        rangees = _rangees_protegees(good)
+        tete = rangees[0].strip() if rangees else ""
+
+        if "?analyze" in tete:
+            type_objet = lignes[1].strip() if len(lignes) > 1 else ""
+            fond = "\n".join(lignes[2:])
+        else:
+            deuxieme = rangees[1] if len(rangees) > 1 else ""
+            type_objet = (deuxieme.split(",", 1)[0] or "").strip()
+            fond = tete
+        # `!text remove 0123456789.` : `poly3`…`poly9` désignent un polygone à
+        # n sommets, et le compteur ne fait pas partie du nom du type.
+        type_objet = re.sub(r"[0-9.]", "", type_objet).strip() or "points"
+
+        fond = _declos(fond)
+        if not fond.strip():
+            return ""
+        # Le fond de `oefpolynet` porte encore sa ligne `size`, dont flydraw ne
+        # fait rien : la taille du canevas vient du paramètre d'`embed`.
+
+        couleur = (
+            self._cmd_getopt(f"color in {self.ctx.get(f'replyoption{n}', '')}")
+            or "blue"
+        )
+
+        from ..flydraw import flydraw_to_url  # noqa: PLC0415
+
+        mod_dir = (
+            os.path.dirname(os.path.dirname(self.def_path)) if self.def_path else None
+        )
+        url = flydraw_to_url(largeur, hauteur, fond, base_dir=mod_dir)
+        # Le repère du dessin : c'est en **ses** unités que WIMS attend la
+        # réponse, non en pixels — `crosshairs,1.596,-0.044,…` chez
+        # `oefpolynet/31`, dont le `xrange` va de -3.02 à 2.10.
+        xr = self._bornes_repere(fond, "xrange") or f"0,{largeur}"
+        yr = self._bornes_repere(fond, "yrange") or f"0,{hauteur}"
+        import html as _html  # noqa: PLC0415
+
+        return (
+            f'<span class="oef-draw" name="reply{n}" '
+            f'data-img="{_html.escape(url, quote=True)}" '
+            f'data-size="{largeur}x{hauteur}" '
+            f'data-objet="{_html.escape(type_objet, quote=True)}" '
+            f'data-couleur="{_html.escape(couleur, quote=True)}" '
+            f'data-xrange="{_html.escape(xr, quote=True)}" '
+            f'data-yrange="{_html.escape(yr, quote=True)}"></span>'
+        )
+
+    def _bornes_repere(self, programme: str, mot: str) -> str:
+        """Les deux bornes d'un `xrange`/`yrange`, **évaluées**.
+
+        Elles peuvent être des expressions — `xrange -1*6+1,6*1.5` chez
+        `evolmeth` —, et le front en a besoin en nombres pour convertir un clic
+        en coordonnées du repère.
+        """
+        brut = _plage_flydraw(programme, mot)
+        if not brut:
+            return ""
+        parts = [p.strip() for p in brut.split(",")]
+        if len(parts) < 2:
+            return ""
+        try:
+            return ",".join(str(float(self._eval_arith(p))) for p in parts[:2])
+        except (ValueError, TypeError):
+            return ""
 
     def _render_jsxgraph_embed(self, args: str, ref: str) -> str:
         """Render a `type=jsxgraph` answer embed as an interactive board.

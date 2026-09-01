@@ -125,6 +125,17 @@ def _seg_counts(dump: str) -> dict[str, int]:
     return counts
 
 
+def _widgets(counts) -> int:
+    """Nombre de champs de réponse, tous types confondus.
+
+    Sert à distinguer un widget disparu d'un widget remplacé : porter un type
+    change son nom de segment sans rien retirer à l'élève.
+    """
+    reponses = ("input", "textarea", "menu", "correspond", "coord", "draw",
+                "jsxgraph", "codeeditor", "slot", "radio-inline")
+    return sum(n for t, n in counts.items() if t in reponses)
+
+
 def compare(before: dict, after: dict) -> int:
     a, b = _flatten(before), _flatten(after)
     ka, kb = set(a), set(b)
@@ -140,14 +151,27 @@ def compare(before: dict, after: dict) -> int:
 
     # Un segment en moins, c'est un widget évanoui : un tableau JSXGraph, un
     # champ de saisie. Le hash d'énoncé le signale sans le nommer.
-    perdus = []
+    #
+    # Sauf quand un widget en **remplace** un autre : porter `type=draw` change
+    # un `input` en `draw`, un pour un. Le compteur y lisait 27 pertes là où le
+    # nombre total de champs de réponse ne bougeait pas. On sépare donc les
+    # deux — une perte reste une perte, une substitution se lit comme telle.
+    perdus, substitutions = [], []
     for k in structurelles:
         if not k.endswith("|segments"):
             continue
         av, ap = _seg_counts(a[k]), _seg_counts(b[k])
         manques = [f"{t} {av[t]}→{ap.get(t, 0)}" for t in sorted(av)
                    if ap.get(t, 0) < av[t]]
-        if manques:
+        if not manques:
+            continue
+        gagnes = sum(max(0, ap[t] - av.get(t, 0)) for t in ap)
+        perdu_total = sum(max(0, av[t] - ap.get(t, 0)) for t in av)
+        if gagnes == perdu_total and _widgets(av) == _widgets(ap):
+            gains = [f"{t} {av.get(t, 0)}→{ap[t]}" for t in sorted(ap)
+                     if ap[t] > av.get(t, 0)]
+            substitutions.append((k, ", ".join(manques + gains)))
+        else:
             perdus.append((k, ", ".join(manques)))
 
     déséquilibrés = [k for k in structurelles if k.endswith("|groupes")
@@ -157,18 +181,21 @@ def compare(before: dict, after: dict) -> int:
           f"| modifiées {len(modifiees)}")
     print(f"  dont vidées {len(vidées)} | remplies {len(remplies)}")
     print(f"structure : {len(structurelles)} changements "
-          f"| segments perdus {len(perdus)} | groupes déséquilibrés "
-          f"{len(déséquilibrés)}")
+          f"| segments perdus {len(perdus)} | substitués {len(substitutions)} "
+          f"| groupes déséquilibrés {len(déséquilibrés)}")
     for k in vidées[:25]:
         print(f"   VIDÉE  {k}  |  {a[k][:60]!r}")
     for k in disparues[:15]:
         print(f"   PERDUE {k}  |  {a[k][:60]!r}")
     for k, manques in perdus[:25]:
         print(f"   SEGMENT {k}  |  {manques}")
+    for k, echange in substitutions[:10]:
+        print(f"   ÉCHANGE {k}  |  {echange}")
     for k in déséquilibrés[:15]:
         print(f"   GROUPES {k}  |  {a[k]} -> {b[k]}")
     for k in structurelles[:10]:
-        if k.endswith("|segments") and not any(k == p for p, _ in perdus):
+        connus = {p for p, _ in perdus} | {p for p, _ in substitutions}
+        if k.endswith("|segments") and k not in connus:
             print(f"   s      {k}\n            {a[k][:70]!r}\n         -> {b[k][:70]!r}")
     for k in modifiees[:15]:
         if k not in vidées:

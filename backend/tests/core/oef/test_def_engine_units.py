@@ -2321,3 +2321,76 @@ class TestVariablesDeSession:
         e.ctx["l"] = "fr"
         e._run_script_lines(["!bound l within $langs default en"])
         assert e.ctx["l"] == "fr"
+
+
+class TestCanevasDeTrace:
+    """Le canevas de `type=draw` (`anstype/draw.input`).
+
+    WIMS y ouvre un `canvasdraw` de `xsize × ysize` **pixels** portant un fond,
+    et arme `userdraw <type>,<couleur>`. Trois choses à lire, qui ne viennent
+    pas du même endroit selon que la réponse est comparée ou déléguée à un
+    analyseur.
+    """
+
+    def _canevas(self, e, replygood, embed, replyoption=""):
+        e.ctx["replytype1"] = "draw"
+        e.ctx["replygood1"] = replygood
+        e.ctx["replyoption1"] = replyoption
+        return e._render_embed(f"r1,{embed}")
+
+    def test_le_type_et_le_fond_viennent_du_replygood(self):
+        e = engine()
+        html = self._canevas(
+            e, "[xrange 0,10\nyrange 0,5\npolygon black, 1,1,2,2];crosshairs,3,4", "200x100"
+        )
+        assert 'class="oef-draw"' in html
+        assert 'data-objet="crosshairs"' in html
+        assert 'data-size="200x100"' in html
+        assert 'data-xrange="0.0,10.0"' in html
+        assert 'data-yrange="0.0,5.0"' in html
+
+    def test_la_figure_multiligne_ne_dicte_pas_le_type(self):
+        """`rows2lines` ne convertit les `;` que faute de saut de ligne ; sur un
+        `replygood` qui juxtapose une figure multiligne et la réponse, WIMS lit
+        alors comme « rangée 2 » la deuxième *ligne de la figure*. On lit la
+        syntaxe que l'auteur a écrite — c'est le cas d'`oefpolynet/31`."""
+        e = engine()
+        html = self._canevas(
+            e, "[xrange -3,2\nyrange -1,2\npolygon black, 0,0];crosshairs,1,1", "543x400"
+        )
+        assert 'data-objet="crosshairs"' in html
+        assert "yrange" not in html.split("data-objet=")[1].split('"')[1]
+
+    def test_le_cas_analyze_lit_le_type_et_le_fond_dans_l_embed(self):
+        """`?analyze` délègue la correction : le type d'objet et la figure
+        viennent alors des lignes 2 et 3 du paramètre d'`embed`, séparées par
+        des tabulations (`draw.input`, lignes 25-30)."""
+        e = engine()
+        html = self._canevas(
+            e, "?analyze 23", "500x200\tarrows\t[xrange -10,10\tyrange -4,4\thline 0,0,black]"
+        )
+        assert 'data-objet="arrows"' in html
+        assert 'data-xrange="-10.0,10.0"' in html
+        assert 'data-yrange="-4.0,4.0"' in html
+
+    def test_la_couleur_vient_de_replyoption(self):
+        e = engine()
+        html = self._canevas(
+            e, "[xrange 0,1\nyrange 0,1\npoint 0,0];points,0.5,0.5", "100x100",
+            replyoption="color=red split",
+        )
+        assert 'data-couleur="red"' in html
+
+    def test_sans_figure_il_n_y_a_pas_de_canevas(self):
+        """Rien à cliquer : on ne rend pas un cadre vide."""
+        e = engine()
+        assert self._canevas(e, ";crosshairs,1,1", "100x100") == ""
+
+    def test_le_compteur_de_poly_n_est_pas_le_nom_du_type(self):
+        """`!text remove 0123456789.` — `poly3` désigne un polygone à trois
+        sommets, et le chiffre ne fait pas partie du type."""
+        e = engine()
+        html = self._canevas(
+            e, "[xrange 0,1\nyrange 0,1\npoint 0,0];poly3,0,0,1,0,0,1", "100x100"
+        )
+        assert 'data-objet="poly"' in html

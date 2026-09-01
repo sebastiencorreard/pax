@@ -71,6 +71,22 @@
         @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
+      <ExerciseDrawAnswer v-else-if="node.seg.type === 'draw'"
+        :name="node.seg.name"
+        :image="node.seg.image"
+        :svg="node.seg.svg"
+        :objet="node.seg.objet"
+        :couleur="node.seg.couleur"
+        :xrange="node.seg.xrange"
+        :yrange="node.seg.yrange"
+        :width="node.seg.width"
+        :height="node.seg.height"
+        :value="ctx.replies.value[node.seg.name] || ''"
+        :submitted="ctx.submitted.value"
+        :correct="ctx.checkResult.value?.results.find(r => r.input_name === node.seg.name)?.correct ?? null"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
+      />
+
       <ExerciseCodemirror v-else-if="node.seg.type === 'codeeditor'"
         :config="node.seg.config"
       />

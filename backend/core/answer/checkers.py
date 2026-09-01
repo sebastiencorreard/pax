@@ -1211,6 +1211,182 @@ def check_coord(reply: str, expected: str, options: dict | None = None) -> Check
     return CheckResult(correct=ok, score=1.0 if ok else 0.0, method="coord")
 
 
+# Nombre de coordonnées par objet tracé (`anstype/draw`, bloc `type_cnt`).
+_DRAW_TAILLES: dict[str, int] = {
+    "points": 2, "crosshairs": 2, "polyline": 2, "polygon": 2,
+    "circles": 3,
+    "segments": 4, "arrows": 4, "arrows2": 4, "rects": 4,
+    "lines": 4, "demilines": 4,
+    "curvedarrows": 6, "curvedarrows2": 6,
+}
+# Types dont un objet se lit à l'envers aussi bien qu'à l'endroit.
+_DRAW_SYMETRIQUES = frozenset({"segments", "arrows2", "rects"})
+
+
+def check_draw(reply: str, expected: str, options: dict | None = None) -> CheckResult:
+    r"""Type ``draw`` : l'élève trace des objets sur une figure.
+
+    Port d'``anstype/draw`` et de son ``draw.inc``. ``expected`` porte deux
+    rangées — la figure de fond, puis ``<type>,<coordonnées…>`` :
+
+        [xrange …\npolygon black, …];crosshairs,1.596,-0.044,-2.128,-0.966
+
+    ``reply`` est la liste plate des coordonnées posées par l'élève, **dans le
+    repère du dessin** et non en pixels.
+
+    La comparaison est un appariement glouton : chaque objet rendu cherche le
+    premier attendu dont il s'écarte de moins de ``1/precision``, et chacun ne
+    sert qu'une fois. L'écart est la distance euclidienne du premier point,
+    doublée du second quand l'objet en a deux (``draw.inc``, ``ecart1`` /
+    ``ecart2``, dont le maximum décide).
+
+    Le barème suit `anstype/draw` : tout ou rien par défaut ; avec ``split`` ou
+    ``partialscore`` une pénalité pleine par objet en trop ou manquant, avec
+    ``eqweight`` une demi-pénalité.
+
+        score = max(0, min(1, (justes − coeff·max(en trop, manquants)) / attendus))
+    """
+    opts = options or {}
+    opt_str = str(opts.get("option", "") or "")
+
+    rangees = _rangees_draw(expected or "")
+    ligne_bonne = rangees[1] if len(rangees) > 1 else ""
+    morceaux = [x.strip() for x in ligne_bonne.split(",")]
+    type_objet = re.sub(r"[0-9.]", "", morceaux[0] if morceaux else "").strip()
+    if type_objet.startswith("poly") and type_objet not in ("polyline", "polygon"):
+        type_objet = "polygon"
+    largeur = _DRAW_TAILLES.get(type_objet, 2)
+
+    bons = _nombres(",".join(morceaux[1:]))
+    rendus = _nombres(reply or "")
+    if not bons:
+        return CheckResult(correct=False, score=0.0, method="draw")
+
+    # `!default precision=1000` ; l'auteur la règle par `precision=` dans
+    # `replyoption`. Un `precision=0` est ignoré, comme dans le script.
+    tolerance = 1.0 / 1000.0
+    m = re.search(r"precision\s*=\s*([0-9.]+)", opt_str)
+    if m:
+        try:
+            p = float(m.group(1))
+            if p:
+                tolerance = 1.0 / p
+        except ValueError:
+            pass
+
+    attendus = _objets_draw(bons, largeur, type_objet)
+    poses = _objets_draw(rendus, largeur, type_objet)
+    if not attendus:
+        return CheckResult(correct=False, score=0.0, method="draw")
+
+    pris: set[int] = set()
+    justes = 0
+    for objet in poses:
+        for i, cible in enumerate(attendus):
+            if i in pris:
+                continue
+            if _ecart_draw(objet, cible, type_objet) < tolerance:
+                pris.add(i)
+                justes += 1
+                break
+
+    en_trop = len(poses) - justes
+    manquants = len(attendus) - len(pris)
+
+    if "eqweight" in opt_str:
+        coeff = 0.5
+    elif "split" in opt_str or "partialscore" in opt_str:
+        coeff = 1.0
+    else:
+        coeff = 0.0
+
+    if coeff == 0:
+        score = 1.0 if (manquants == 0 and en_trop == 0) else 0.0
+    else:
+        score = max(
+            0.0,
+            min(1.0, (justes - coeff * max(en_trop, manquants)) / len(attendus)),
+        )
+    return CheckResult(correct=score >= 1.0, score=score, method="draw")
+
+
+def draw_display_answer(expected: str) -> str:
+    """Les coordonnées attendues d'un `type=draw`, sans la figure ni le type.
+
+    `expected` juxtapose le fond et la réponse — `[<figure>];crosshairs,1.59,…`.
+    C'est la seconde partie, privée de son mot de tête, que l'élève produit en
+    traçant : la rendre séparément sert à afficher le corrigé, et au test qui
+    rejoue la bonne réponse.
+    """
+    rangees = _rangees_draw(expected or "")
+    if len(rangees) < 2:
+        return ""
+    _, _, coords = rangees[1].strip().partition(",")
+    return coords.strip()
+
+
+def _rangees_draw(s: str) -> list[str]:
+    """Rangées d'un `replygood` de `draw` : les `;` hors crochets.
+
+    La figure de fond est entre crochets et peut contenir des `;` comme des
+    sauts de ligne ; seuls les `;` de profondeur zéro séparent."""
+    parts: list[str] = []
+    courant: list[str] = []
+    profondeur = 0
+    for ch in s:
+        if ch in "([{":
+            profondeur += 1
+        elif ch in ")]}":
+            profondeur = max(0, profondeur - 1)
+        if ch == ";" and profondeur == 0:
+            parts.append("".join(courant))
+            courant = []
+        else:
+            courant.append(ch)
+    parts.append("".join(courant))
+    return parts
+
+
+def _nombres(s: str) -> list[float]:
+    return [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?", s or "")]
+
+
+def _objets_draw(plat: list[float], largeur: int, type_objet: str) -> list[list[float]]:
+    """Découpe une liste plate de coordonnées en objets de `largeur` nombres.
+
+    `polyline` et `polygon` font exception : WIMS y voit **un seul** objet, dont
+    chaque sommet est comparé — on garde donc les points deux à deux, comme
+    pour `points`, ce que fait `type_cnt=2` dans le script.
+    """
+    del type_objet  # même découpage pour tous : `type_cnt` porte déjà la nuance
+    if largeur <= 0:
+        return []
+    return [plat[i : i + largeur] for i in range(0, len(plat) - largeur + 1, largeur)]
+
+
+def _ecart_draw(a: list[float], b: list[float], type_objet: str) -> float:
+    """L'écart de `draw.inc` : le pire des deux extrémités.
+
+    Pour un objet à deux points, WIMS compare aussi l'ordre inverse quand le
+    type est symétrique (`segments`, `arrows2`, `rects` : le script en ajoute
+    la version retournée à la liste des bonnes réponses).
+    """
+    def dist(x1, y1, x2, y2):
+        return math.hypot(x1 - x2, y1 - y2)
+
+    if len(a) < 2 or len(b) < 2:
+        return float("inf")
+    if len(a) == 2:
+        return dist(a[0], a[1], b[0], b[1])
+    if len(a) == 3:  # circles : centre puis rayon
+        return max(dist(a[0], a[1], b[0], b[1]), abs(a[2] - b[2]))
+    direct = max(dist(a[0], a[1], b[0], b[1]), dist(a[2], a[3], b[2], b[3]))
+    if type_objet in _DRAW_SYMETRIQUES:
+        inverse = max(dist(a[0], a[1], b[2], b[3]), dist(a[2], a[3], b[0], b[1]))
+        return min(direct, inverse)
+    return direct
+
+
 def _zone_contient(cx: float, cy: float, zone: str, options: dict | None) -> bool:
     """Le clic tombe-t-il dans cette click-zone ? (`test()` de `clickzone.c`)"""
     parts = [p.strip() for p in _declosing(zone).split(",")]
@@ -2666,6 +2842,8 @@ def check_answer(
             return check_jsxgraphcurve(reply, expected, options)
         case "coord":
             return check_coord(reply, expected, options)
+        case "draw":
+            return check_draw(reply, expected, options)
         case "equation":
             # `option:eqsign=yes` — le signe « = » est exigé sauf mention
             # contraire de l'auteur.

@@ -43,6 +43,7 @@ export interface CodeEditorConfig {
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
     | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
+    | 'draw'
   content?: string
   name?: string
   size?: number
@@ -62,6 +63,13 @@ export interface BackendSegment {
   reply?: string
   image?: string
   svg?: string
+  // `draw` : le type d'objet à tracer, sa couleur et les bornes du repère —
+  // c'est en ses unités que la réponse est attendue, non en pixels. Le fond
+  // passe par `image`/`svg`, comme celui de `coord`.
+  objet?: string
+  couleur?: string
+  xrange?: string
+  yrange?: string
   // HTML attributes carried by the extra lines of an `\embed` size parameter
   // (`\embed{reply 1,30 autofocus}`), allow-listed backend-side.
   attrs?: Record<string, string | boolean>
@@ -130,6 +138,8 @@ export type Segment =
   | { type: 'correspond';  name: string; config: CorrespondConfig; is_sup?: boolean }
   | { type: 'jsxgraph';    name: string; js: string; width?: number; height?: number; maxw?: number; minw?: number; reply?: string }
   | { type: 'coord';       name: string; image: string; svg?: string; is_sup?: boolean }
+  | { type: 'draw';        name: string; image: string; svg?: string; objet: string; couleur: string
+                           xrange: string; yrange: string; width?: number; height?: number; is_sup?: boolean }
   | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
@@ -239,6 +249,17 @@ export function useExerciseLogic() {
           type: 'coord', name: s.name ?? '',
           image: img.startsWith('/api/') ? apiBase + img : img,
           svg: s.svg, is_sup: s.is_sup,
+        })
+      } else if (s.type === 'draw') {
+        // Canevas `type=draw` : même traitement d'image que `coord` (le SVG
+        // voyage en ligne, l'URL sert de repli et doit être préfixée).
+        const imgd = s.image ?? ''
+        out.push({
+          type: 'draw', name: s.name ?? '',
+          image: imgd.startsWith('/api/') ? apiBase + imgd : imgd,
+          svg: s.svg, objet: s.objet ?? 'points', couleur: s.couleur ?? 'blue',
+          xrange: s.xrange ?? '', yrange: s.yrange ?? '',
+          width: s.width, height: s.height, is_sup: s.is_sup,
         })
       } else if (s.type === 'codeeditor' && s.config) {
         // Code + options are passed through untouched (NOT renderMath'd) — the
