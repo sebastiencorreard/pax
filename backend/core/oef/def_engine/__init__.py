@@ -709,8 +709,16 @@ class DefEngine(_SlibMixin):
         # afficherait du français dans un module italien : c'est ce qui est
         # arrivé aux dix `oefpenney.it`, dont les textes existent dans les deux
         # langues et se choisissent précisément là-dessus.
-        self.ctx.setdefault("oefenv_lang", _langue_du_module(self.def_path) or self.lang)
+        langue_module = _langue_du_module(self.def_path) or self.lang
+        self.ctx.setdefault("oefenv_lang", langue_module)
         self.ctx.setdefault("oefenv_presentgood", "no")
+        # `$lang` est une variable de **session** chez WIMS. Elle ne comptait pas
+        # tant que PAX posait directement `oefenv_lang`, mais le `var.proc` du
+        # module la relit — quatre modules y écrivent `oefenv_lang=$lang` — et
+        # sans elle il rétablissait le vide qu'on venait de combler, pour
+        # dix-huit exercices. `$presentgood` s'y prêterait aussi, mais aucun
+        # `var.proc` du corpus ne le lit : on ne le pose pas.
+        self.ctx.setdefault("lang", langue_module)
 
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the

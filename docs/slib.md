@@ -107,10 +107,12 @@ appels) n'en pose **aucun** — il alimente `slib_data` et `slib_weight`. Vérif
 
 | slib | appels vides | exercices | obstacle |
 |---|---|---|---|
-| `geo2D/offdraw` | 8 / 10 | 6 | la variable PARI `W` |
-| `lang/swac` | 23 / 23 | 6 | `data/swac/packs` absent du dépôt |
-| `basep` | 6 / 12 | 8 | arguments déjà `NaN` en amont |
-| `text/sigunits` | 55 / 167 | 34 | conversion d'unité non portée |
+| `geo2D/offdraw` · `polyoff` · `polynet` | 22 / 26 | 6 | la variable PARI `W` |
+| `lang/swac` | 13 / 23 | 6 | mots hors des index rapatriés |
+| `oef/env` | 15 / 533 | 15 | `rename`, `user`, `list_error`, `year` |
+
+`basep`, `text/sigunits` et `stat/dataproc` en sont sortis — les deux premiers
+réparés, le troisième n'ayant jamais rien eu.
 
 **`geo2D/offdraw`** reçoit `[W[1]],[W[2]]` non substitué. `W` vient de
 `slib/geo2D/polynet`, qui charge `gp/spanning_tree.gp` par `!readproc` puis
@@ -156,9 +158,29 @@ aucune vidée** ; 0 segment perdu, 0 groupe déséquilibré, les six sentinelles
 inchangées. Les 339 autres `var.proc` posent des variables que leurs exercices
 n'utilisent pas ou que le `.def` réécrit : ils ne déplacent rien.
 
-**`text/sigunits`** n'échoue que sur les appels demandant une **conversion**
-d'unité (`units-filter qty#sig:unit`), non portée — l'arrondi l'est depuis le
-2026-08-30. Rendre le vide y vaut mieux qu'une valeur non convertie.
+**`text/sigunits`** ne devait rien à la conversion d'unités, contrairement à ce
+qu'affirmait la version précédente de ce document. Ses 55 appels vides venaient
+tous d'un seul exercice, `mouvrel/vitesse1`, qui les enchaîne en boucle : son
+`!randfile /data1` cherchait à la racine du disque, `os.path.join` prenant le
+`/` initial pour un chemin absolu là où `find_module_file` concatène du texte.
+Le module y perdait ses données, et l'exercice tout son contenu. Le slib, lui,
+n'avait rien.
+
+**`stat/dataproc`** est sain, et l'était déjà : il ne pose pas de `slib_out`,
+d'où ses « 40 vides » au compteur. Ses seules sorties creuses sont onze
+`slib_weight` sur 202, pour des séries **non pondérées** — une liste sans
+seconde colonne, cas que le slib traite explicitement (`!if $slib_weight!=$empty`).
+Vérifié sur les valeurs : `descriptives/ecarttype` rend `1.34` pour
+`1;5;4;4;3;2`, soit l'écart-type de population, et `oefstat.nl/mean`
+`3.97368421053`.
+
+**`oef/env`** rend encore le vide sur quatre mots — `rename`, `user`,
+`list_error`, `year` — qui sont des variables de session que PAX ne tient pas.
+Son cinquième cas, `lang`, s'est révélé un effet de bord de l'exécution des
+`var.proc` : quatre modules y écrivent `oefenv_lang=$lang`, ce qui écrasait par
+du vide la valeur que `render` venait de poser. `$lang` est donc posée avant,
+avec la langue du module. `$presentgood` s'y prêterait, mais aucun `var.proc`
+du corpus ne le lit : on ne le pose pas.
 
 ### Ce qui a été fait depuis la version précédente de ce document
 
