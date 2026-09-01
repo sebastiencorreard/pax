@@ -99,9 +99,15 @@ l'absence d'un fichier dans `ressources/wims-scripts/` ne dit rien du portage
 fonctionnent, PAX les émulant en Python).
 
 **Attention au critère.** Un `slib_out` vide ne signale une dette que si le
-slib est censé en poser un : `slib/stat/dataproc` (55 « vides » sur 202
+slib est censé en poser un : `slib/stat/dataproc` (40 « vides » sur 202
 appels) n'en pose **aucun** — il alimente `slib_data` et `slib_weight`. Vérifier
-`grep -c '^\s*slib_out=' <fichier>` avant de conclure.
+`grep -c '^\s*slib_out=' <fichier>` avant de conclure, puis mesurer les
+variables que le slib pose vraiment : c'est ce qui l'a innocenté.
+
+**Attention au cache.** Une instrumentation qui rejoue le corpus doit être
+précédée d'un `redis-cli FLUSHDB`, faute de quoi les rendus sortent du cache
+sans exécuter une ligne du moteur — un espion y compte zéro appel et le
+silence se lit comme une absence.
 
 ### Ce qui reste, et pourquoi
 
