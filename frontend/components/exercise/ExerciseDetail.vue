@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <!-- `v-figures` couvre aussi ce qui vit **hors** du lecteur : le corrigé et
+       les panneaux de mise au point, qui portent leurs propres figures. -->
+  <div v-figures>
     <ExercisePlayer ref="playerRef"
                     :exercise-id="exerciseId"
                     :debug-answers="autofillMap"

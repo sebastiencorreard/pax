@@ -1,5 +1,8 @@
 <template>
-  <div class="rounded-xl border shadow-sm overflow-hidden"
+  <!-- `v-figures` : les couleurs des figures suivent le thème. Le rendu est mis
+       en cache côté serveur et partagé entre utilisateurs, donc la figure ne
+       peut pas porter le choix de l'un d'eux — l'ajustement est fait ici. -->
+  <div v-figures class="rounded-xl border shadow-sm overflow-hidden"
        style="background:var(--color-surface);border-color:var(--color-border)">
     <component :is="'style'" v-if="rendered?.css" scoped>{{ rendered.css }}</component>
 
