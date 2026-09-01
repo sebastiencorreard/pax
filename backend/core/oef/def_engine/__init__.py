@@ -416,6 +416,28 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     return tuple(trouves.items())
 
 
+def _position_du_mot(botte: str, mot: str) -> int:
+    """`wordchr` : index de la première occurrence de `mot` **en tant que mot**.
+
+    Les bornes sont les caractères non alphanumériques, le souligné excepté —
+    sans quoi `swac_text` répondrait à une recherche de `text`.
+    """
+    if not mot:
+        return -1
+    def est_lettre(c: str) -> bool:
+        return c.isalnum() or c == "_"
+
+    i = botte.find(mot)
+    while i >= 0:
+        avant_ok = i == 0 or not est_lettre(botte[i - 1])
+        j = i + len(mot)
+        apres_ok = j >= len(botte) or not est_lettre(botte[j])
+        if avant_ok and apres_ok:
+            return i
+        i = botte.find(mot, i + 1)
+    return -1
+
+
 def _horloge_session() -> datetime.datetime:
     """L'instant que voit l'exercice, gelable par `PAX_WIMS_NOW`.
 
@@ -2488,33 +2510,65 @@ class DefEngine(_SlibMixin):
         return s
 
     def _cmd_getopt(self, args: str) -> str:
-        """!getopt key in list — extract value from key=value options."""
+        r"""`!getopt <nom> in <options>` — la valeur d'une option `nom=valeur`.
+
+        Port de `calc_getopt` (`calc.c:2051`). Trois choses que le découpage
+        naïf sur les blancs et les virgules manquait :
+
+        1. **La normalisation.** WIMS remplace tout blanc par une espace, puis
+           chaque `=` par une tabulation. C'est la tabulation, et elle seule,
+           qui sépare le nom de sa valeur ; la virgule n'est **pas** un
+           séparateur d'options.
+        2. **Les délimiteurs.** Une valeur ouverte par `"`, `(`, `[` ou `{`
+           court jusqu'à son appariant et le rend **sans** les délimiteurs.
+           C'est ce qui garde entier un `swac_text="to build"` — que le
+           découpage sur les espaces coupait en deux — et ce qui débarrasse
+           `swac_baseform="build"` de ses guillemets, sans quoi le `!lookup`
+           suivant cherchait `"build"` dans un fichier indexé sur `build`.
+        3. **L'option sans valeur.** `nom` seul, non suivi d'un `=`, se rend
+           lui-même : c'est un drapeau, et il est vrai.
+
+        Le fait de rendre depuis le tampon normalisé est fidèle et visible :
+        un `=` à l'intérieur d'une valeur en ressort en tabulation, comme chez
+        WIMS.
+        """
         m = re.match(r"(.*?)\s+in\s+(.*)", args, re.I | re.DOTALL)
-        if not m: return ""
-        key, text = m.group(1).strip().lower(), self._subst(m.group(2))
-        # Options are split on whitespace/commas, but separators inside [...]
-        # are protected so a bracketed value like `theme=[3024-night,3024-day]`
-        # (or `instruction=[a :, b :]`) stays whole instead of being truncated.
-        parts, cur, depth = [], [], 0
-        for ch in text:
-            if ch == "[":
-                depth += 1
-            elif ch == "]":
-                depth = max(0, depth - 1)
-            if depth == 0 and (ch.isspace() or ch == ","):
-                if cur:
-                    parts.append("".join(cur))
-                    cur = []
-            else:
-                cur.append(ch)
-        if cur:
-            parts.append("".join(cur))
-        for part in parts:
-            if "=" in part:
-                k, v = part.split("=", 1)
-                if k.strip().lower() == key:
-                    return v.strip()
-        return ""
+        if not m:
+            return ""
+        cle = self._subst(m.group(1)).strip()
+        if not cle:
+            return ""
+        texte = self._subst(m.group(2))
+        botte = "".join(
+            "\t" if c == "=" else (" " if c in " \t\n\r\f\v" else c) for c in texte
+        )
+
+        i = _position_du_mot(botte, cle)
+        if i < 0:
+            return ""
+        fin_cle = wl.find_word_end(botte, i)
+        j = fin_cle
+        while j < len(botte) and botte[j] in " \t":
+            if botte[j] != "\t":
+                j += 1
+                continue
+            k = wl.find_word_start(botte, j)
+            if k >= len(botte):
+                return ""
+            # Un ouvrant sans appariant ne délimite rien : WIMS retombe alors
+            # sur le cas commun (`goto nomatch`), un seul mot.
+            ouvrant = botte[k]
+            if ouvrant == '"':
+                f = botte.find('"', k + 1)
+                if f >= 0:
+                    return botte[k + 1 : f]
+            elif ouvrant in ("(", "[", "{"):
+                f = wl.find_matching(botte, k + 1, {"(": ")", "[": "]", "{": "}"}[ouvrant])
+                if f >= 0:
+                    return botte[k + 1 : f]
+            return botte[k : wl.find_word_end(botte, k)]
+        # Aucun `=` derrière le nom : drapeau nu, qui se rend lui-même.
+        return botte[i:fin_cle]
 
     def _cmd_embraced(self, args: str) -> str:
         """``!embraced <op> <texte>`` — applique `op` **dans chaque `{…}`**.
@@ -3258,6 +3312,21 @@ class DefEngine(_SlibMixin):
         Lookup is case-insensitive; KEY is trimmed.
         DATAFILE is resolved by `_read_module_file`: the module first, then the
         shared `wims-scripts/` tree where a slib keeps its own data.
+
+        Une valeur peut courir sur plusieurs lignes, chacune terminée par une
+        contre-oblique. `_lookup` (calc.c:1883-1887) avance de saut de ligne en
+        saut de ligne tant qu'une contre-oblique le précède, la **remplace par
+        une espace** et garde le saut de ligne — la valeur rendue est donc
+        multiligne. C'est ainsi que sont écrits les `sw_tags` de swac, dont un
+        enregistrement porte tous les mots-clés d'un enregistrement audio :
+
+            eng-balm-verbs/t/eng-to_build:swac_text="to build"\\
+            swac_alphaidx="build"\\
+            swac_baseform="build"
+
+        Sans cette suite, `slib/lang/swac` ne rendait que `swac_text` ; les
+        `!getopt swac_baseform` d'`oefanglais` repartaient vides, et avec eux
+        les trois formes verbales que l'exercice fait ensuite prononcer.
         """
         m = re.match(r"(.*?)\s+in\s+(\S+)", args, re.I | re.DOTALL)
         if not m:
@@ -3271,9 +3340,17 @@ class DefEngine(_SlibMixin):
             return ""
         # Search for "KEY:" at the start of a line (case-insensitive)
         needle = key.lower() + ":"
-        for line in text.splitlines():
-            if line.lower().startswith(needle):
-                return line[len(needle):].strip()
+        lignes = text.splitlines()
+        for i, line in enumerate(lignes):
+            if not line.lower().startswith(needle):
+                continue
+            morceaux = [line[len(needle):]]
+            j = i
+            while morceaux[-1].endswith("\\") and j + 1 < len(lignes):
+                morceaux[-1] = morceaux[-1][:-1] + " "
+                j += 1
+                morceaux.append(lignes[j])
+            return "\n".join(morceaux).strip()
         return ""
 
     def _cmd_text(self, args: str) -> str:

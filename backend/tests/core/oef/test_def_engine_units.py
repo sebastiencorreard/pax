@@ -1412,11 +1412,50 @@ class TestCmdMiscNew:
         assert e._eval_cmd("getopt", "missing in key=val") == ""
 
     def test_getopt_bracketed_value_keeps_commas(self):
-        # `theme=[3024-night,3024-day]` must come back whole — the comma is
-        # inside [...] and must not split the value (slib editor theme list).
+        # `theme=[3024-night,3024-day]` revient d'un seul tenant — la virgule
+        # est dans les crochets et ne coupe pas la valeur. `calc_getopt`
+        # (calc.c:2072) **retire** les crochets : le délimiteur borne la
+        # valeur, il n'en fait pas partie. Le seul consommateur, l'éditeur de
+        # code, a son propre `getopt` et un `_declose` — il ne voit rien passer.
         e = engine()
         e.ctx["opts"] = "readonly fullscreen theme=[3024-night,3024-day]"
-        assert e._eval_cmd("getopt", "theme in $opts") == "[3024-night,3024-day]"
+        assert e._eval_cmd("getopt", "theme in $opts") == "3024-night,3024-day"
+
+    def test_getopt_valeur_entre_guillemets_garde_ses_espaces(self):
+        """`swac_text="to build"` : la valeur court jusqu'au guillemet
+        appariant, et les guillemets ne sont pas rendus. Un découpage sur les
+        blancs la coupait à `to`, ce dont `slib/lang/swac` mourait — les mots
+        allemands `das Dreieck`, `der Radius` devenaient `das`, `der`, absents
+        des index, et l'exercice perdait son widget."""
+        e = engine()
+        e.ctx["tags"] = 'swac_text="to build" swac_alphaidx="build"'
+        assert e._eval_cmd("getopt", "swac_text in $tags") == "to build"
+        assert e._eval_cmd("getopt", "swac_alphaidx in $tags") == "build"
+
+    def test_getopt_drapeau_nu_se_rend_lui_meme(self):
+        """Un nom non suivi d'un `=` est un drapeau : `calc_getopt` rend le mot
+        lui-même, ce qui le rend vrai pour un `!if`."""
+        e = engine()
+        e.ctx["opts"] = "readonly fullscreen theme=[a,b]"
+        assert e._eval_cmd("getopt", "readonly in $opts") == "readonly"
+        assert e._eval_cmd("getopt", "absent in $opts") == ""
+
+    def test_getopt_la_virgule_ne_separe_pas_les_options(self):
+        """Seule la tabulation issue du `=` sépare le nom de sa valeur ; la
+        virgule est un caractère ordinaire. `a=1,b=2` rend donc `1,b` pour `a`
+        — surprenant, mais c'est ce que fait `find_word_end` sur le tampon
+        normalisé, et les auteurs séparent leurs options par des espaces."""
+        e = engine()
+        e.ctx["opts"] = "a=1,b=2"
+        assert e._eval_cmd("getopt", "a in $opts") == "1,b"
+        assert e._eval_cmd("getopt", "b in $opts") == "2"
+
+    def test_getopt_ne_confond_pas_un_suffixe_avec_un_nom(self):
+        """`wordchr` cherche un **mot** : le souligné est une lettre, sans quoi
+        `swac_text` répondrait à une recherche de `text`."""
+        e = engine()
+        e.ctx["tags"] = 'swac_text="to build"'
+        assert e._eval_cmd("getopt", "text in $tags") == ""
 
     def test_getdef_lit_un_fichier_du_module(self, tmp_path):
         """`!getdef <nom> in <fichier>` n'est pas `getopt` : `exec.c` l'envoie
@@ -1439,6 +1478,30 @@ class TestCmdMiscNew:
         # Un nom absent, un fichier absent : le vide, comme `_getdef`.
         assert e._eval_cmd("getdef", "inconnu in textes") == ""
         assert e._eval_cmd("getdef", "instruction in nulle_part") == ""
+
+    def test_lookup_suit_les_lignes_prolongees(self, tmp_path):
+        """`_lookup` (calc.c:1883-1887) avance tant qu'une contre-oblique
+        précède le saut de ligne : il la remplace par une espace et **garde**
+        le saut de ligne. C'est la forme des `sw_tags` de swac, dont un
+        enregistrement porte tous les mots-clés d'un fichier audio ; s'arrêter
+        à la première ligne n'en rendait que le premier."""
+        module = tmp_path / "mod.fr"
+        (module / "def").mkdir(parents=True)
+        (module / "tags").write_text(
+            'autre:sans suite\n'
+            'eng-to_build:swac_text="to build"\\\n'
+            'swac_baseform="build"\\\n'
+            'swac_form_name="Infinitive"\n'
+            'suivant:hors enregistrement\n',
+            encoding="utf-8",
+        )
+        e = engine()
+        e.def_path = str(module / "def" / "x.def")
+        assert e._eval_cmd("lookup", "eng-to_build in tags") == (
+            'swac_text="to build" \nswac_baseform="build" \nswac_form_name="Infinitive"'
+        )
+        # Une ligne sans contre-oblique s'arrête là où elle finit.
+        assert e._eval_cmd("lookup", "autre in tags") == "sans suite"
 
     def test_getdef_ne_repond_plus_a_la_place_de_getopt(self):
         """Les deux commandes n'ont de commun que leur préfixe ; c'est
