@@ -2439,3 +2439,70 @@ class TestCanevasDeTrace:
             e, "[xrange 0,1\nyrange 0,1\npoint 0,0];poly3,0,0,1,0,0,1", "100x100"
         )
         assert 'data-objet="poly"' in html
+
+
+class TestStepsProc:
+    """`!readproc oef/steps.proc` — la mise en forme des étapes.
+
+    Le proc normalise `oefsteps` avant que quiconque le lise : tabulations en
+    séparateurs, minuscules, `reply`/`replies` en `r`, `choice`/`choices` en
+    `c`, blancs retirés, une étape par ligne. 635 exercices l'appellent, et PAX
+    l'ignorait — ses lecteurs comparent pourtant des jetons `r1`, `c2`, qu'un
+    `Reply 1` écrit par l'auteur ne leur donnait pas.
+    """
+
+    def _steps(self, brut, dynstep=""):
+        e = engine()
+        e.ctx["oefsteps"] = brut
+        e.ctx["dynstep"] = dynstep
+        e._proc_steps()
+        return e.ctx
+
+    def test_abrege_et_met_en_minuscules(self):
+        c = self._steps("Reply 1, Reply 2")
+        assert c["oefsteps"] == "r1,r2"
+
+    def test_une_etape_par_tabulation(self):
+        c = self._steps("r1,r2\tr3,r4")
+        assert c["oefsteps"] == "r1,r2\nr3,r4"
+        assert c["oefstepcnt"] == "2"
+
+    def test_le_saut_de_ligne_vaut_la_tabulation(self):
+        """WIMS sépare les étapes par des tabulations et peut donc retirer les
+        sauts de ligne sans dommage — il n'y en a jamais. PAX en porte de
+        vrais : les deux doivent séparer, sans quoi `!nospace` souderait
+        toutes les étapes en une."""
+        c = self._steps("r1,r2\nr3,r4")
+        assert c["oefsteps"] == "r1,r2\nr3,r4"
+        assert c["oefstepcnt"] == "2"
+
+    def test_les_choix_aussi(self):
+        c = self._steps("Choice 1\tChoices 2,3")
+        assert c["oefsteps"] == "c1\nc2,3"
+
+    def test_compte_reponses_et_choix(self):
+        c = self._steps("c1\tr1,r2,r3")
+        assert c["creplycnt"] == "3"
+        assert c["cchoicecnt"] == "1"
+        assert c["rr"] == "rrr"
+        assert c["cc"] == "c"
+
+    def test_dynstep_ne_garde_que_l_etape_courante(self):
+        c = self._steps("r1,r2\tr3,r4", dynstep="yes")
+        assert c["oefsteps"] == "r1,r2"
+        assert c["oefstepcnt"] == "1"
+
+    def test_vide(self):
+        """`!if $oefsteps=$empty` : le proc pose zéro et sort."""
+        c = self._steps("")
+        assert c["oefstepcnt"] == "0"
+        assert c["oefstep"] == "0"
+
+    def test_oefstep_par_defaut(self):
+        assert self._steps("r1\tr2")["oefstep"] == "1"
+
+    def test_oefstep_deja_posee_n_est_pas_ecrasee(self):
+        e = engine()
+        e.ctx.update({"oefsteps": "r1\tr2", "oefstep": "2"})
+        e._proc_steps()
+        assert e.ctx["oefstep"] == "2"

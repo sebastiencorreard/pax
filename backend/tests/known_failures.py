@@ -49,14 +49,18 @@ entiers d'avant la migration `c1a2b3d4e5f6`, que plus rien ne désignait.
 #    Un contrôle mené sans l'avoir purgé mesure l'état d'avant la correction :
 #    `signeprod2` a paru résister une fois le bug corrigé, pour cette seule
 #    raison. `docker compose exec redis redis-cli FLUSHDB` avant toute mesure.
-XFAIL_RENDER_STRUCTURE = {
-    # Rien à rendre, et ce n'est pas le moteur : le `.def` de `medicament` ne
-    # comporte **aucune** section — pas de `:question`, donc pas d'énoncé. Il
-    # est identique, octet pour octet, à celui de `wims/public_html/modules/`,
-    # si bien que WIMS n'en tire pas davantage. C'est le filtre qu'applique
-    # déjà `corpus_state.py`, et un travail sur le corpus, pas sur le code.
-    'H4~stat~oefstatistiques.fr~src~medicament',
-}
+# Vide. `medicament` y figurait seul : son `.def` ne comporte **aucune**
+# section — pas de `:question`, donc pas d'énoncé —, et son titre dit
+# lui-même « (bug) ». Il rend pourtant quelque chose depuis que
+# `oef/steps.proc` est exécuté : `oefsteps` normalisé, le repli « un champ par
+# réponse déclarée » s'applique, et les six réponses qui portent un attendu
+# (1.35, 1.56, 1.64, …) deviennent atteignables, étiquetées par leurs
+# `replyname`. C'est le repli de WIMS lui-même, non une invention de PAX.
+#
+# Ce qui reste cassé est en amont et n'est pas du ressort du moteur : le `.def`
+# annonce `replycnt=16` là où six réponses seulement se matérialisent, faute
+# d'énoncé pour les porter.
+XFAIL_RENDER_STRUCTURE: set[str] = set()
 
 # test_correct_answer_scores_1 : la bonne réponse ne donne pas 1
 #

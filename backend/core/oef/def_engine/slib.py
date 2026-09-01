@@ -202,6 +202,10 @@ class _SlibMixin:
                         self.ctx["_repere_transform"] = f"{o[0]},{o[1]},{s[0]},{s[1]}"
             return
 
+        if path == "oef/steps.proc":
+            self._proc_steps()
+            return
+
         # `gp/<nom>.gp` — une bibliothèque PARI, que le script pose dans une
         # variable (`!set slib_header_patron=…`) avant qu'un `!exec pari` ne
         # l'exécute. Ce n'est pas un slib : ni `slib_out`, ni paramètres. Sans
@@ -213,6 +217,54 @@ class _SlibMixin:
 
         # Other procs (oef/steps.proc, slib/oef, …) — silently ignore for now.
         return
+
+    def _proc_steps(self) -> None:
+        r"""`!readproc oef/steps.proc` — normalise `oefsteps` et en tire ses
+        compteurs.
+
+        Le proc met la description des étapes sous une forme unique avant que
+        quiconque la lise : tabulations en séparateurs de rangée, minuscules,
+        `reply`/`replies` abrégés en `r` et `choice`/`choices` en `c`, blancs
+        retirés, une étape par ligne. Il pose ensuite `oefstepcnt`, `rr`, `cc`,
+        `creplycnt` et `cchoicecnt`.
+
+        **Aucun exercice du corpus ne lit ces compteurs** : ils alimentent la
+        machinerie de WIMS, pas les `.def`. Le seul effet qui porte est donc la
+        normalisation en place, dont les consommateurs de PAX ont besoin — ils
+        comparent des jetons `r1`, `c2`, et un `Reply 1` écrit par l'auteur ne
+        leur ressemble pas.
+
+        Une adaptation, et une seule : là où WIMS sépare les étapes par des
+        tabulations, PAX porte de vrais sauts de ligne (`_merge_continuations`
+        les produit, et le `.def` les encode ainsi). Les deux valent donc
+        séparateur — sans quoi `!nospace`, qui chez WIMS peut retirer un saut
+        de ligne sans dommage puisqu'il n'y en a jamais, souderait ici toutes
+        les étapes en une.
+        """
+        brut = str(self.ctx.get("oefsteps", ""))
+        if not brut.strip():
+            self.ctx["oefstepcnt"] = "0"
+            self.ctx["oefstep"] = "0"
+            return
+        s = re.sub(r"[\t\n\r]+", ";", brut).lower()
+        for long, court in (
+            ("replies", "r"), ("choices", "c"), ("reply", "r"), ("choice", "c")
+        ):
+            s = s.replace(long, court)
+        s = re.sub(r"[^\S;]", "", s)
+        lignes = [x for x in s.split(";") if x]
+        # `!if $dynstep=yes` : une étape dynamique ne décrit que la courante.
+        if str(self.ctx.get("dynstep", "")).strip().lower() == "yes" and lignes:
+            lignes = lignes[:1]
+        self.ctx["oefsteps"] = "\n".join(lignes)
+        self.ctx["oefstepcnt"] = str(len(lignes))
+        joint = "".join(lignes)
+        self.ctx["rr"] = "r" * joint.count("r")
+        self.ctx["cc"] = "c" * joint.count("c")
+        self.ctx["creplycnt"] = str(joint.count("r"))
+        self.ctx["cchoicecnt"] = str(joint.count("c"))
+        if not str(self.ctx.get("oefstep", "")).strip():
+            self.ctx["oefstep"] = "1"
 
     def _proc_img(self, args: str) -> str:
         """`!read oef/img.phtml CHEMIN [ATTRIBUTS]` — la balise `<img>` d'un `\\img{}`.
