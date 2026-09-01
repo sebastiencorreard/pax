@@ -2256,3 +2256,68 @@ class TestRenderByParts:
     def test_the_next_span_is_a_boundary(self):
         """Le « \\) » du span suivant ne doit pas servir de closer au premier."""
         assert _close_inline_math(r"\(a) et \(b\)") == r"\(a\) et \(b\)"
+
+
+class TestVariablesDeSession:
+    """Ce que WIMS pose avant qu'un exercice ne commence, et que PAX doit tenir.
+
+    Ces variables ne viennent d'aucun `.def` : c'est le serveur qui les pose.
+    Un exercice qui en lit une absente ne lève rien — il rend simplement autre
+    chose, et c'est ce qui les rend coûteuses à trouver.
+    """
+
+    def _rendu(self, def_path):
+        from core.oef.def_engine import load_and_render
+
+        return load_and_render(def_path, seed=42)
+
+    def test_horloge_de_session(self, monkeypatch):
+        """`$wims_now` (`AAAAMMJJ.hh:mm:ss`) et `$wims_nowseconds`, figées une
+        fois par rendu comme WIMS les fige une fois par requête."""
+        from core.oef.def_engine import _horloge_session
+
+        monkeypatch.setenv("PAX_WIMS_NOW", "20240229.03:04:05")
+        t = _horloge_session()
+        assert (t.year, t.month, t.day, t.hour) == (2024, 2, 29, 3)
+        # Une valeur illisible ne fige rien : on retombe sur l'heure réelle.
+        monkeypatch.setenv("PAX_WIMS_NOW", "n'importe quoi")
+        assert _horloge_session().year >= 2024
+
+    def test_chemin_du_module(self):
+        """`$module_dir` porte la forme WIMS — c'est elle que les tests de
+        chaîne des slib attendent (`adm/createxo isin $module_dir`)."""
+        from core.oef.def_engine import _chemin_du_module
+
+        assert (_chemin_du_module("/ressources/H4/geometry/oefpolynet.fr/def/11.def")
+                == "modules/H4/geometry/oefpolynet.fr")
+        assert _chemin_du_module(None) == ""
+        # Hors de `ressources/`, on préfère ne rien affirmer.
+        assert _chemin_du_module("/ailleurs/mod.fr/def/x.def") == ""
+
+    def test_langues_du_site_valident_la_langue_demandee(self):
+        """`$wims_site_languages` ne choisit aucune langue : elle sert à
+        `!bound … within` de `slib/lang/fname`. Vide, la liste faisait tout
+        retomber sur `en` — des prénoms anglais dans un exercice français."""
+        from core.oef.def_engine import _LANGUES_DU_SITE
+
+        assert "fr" in _LANGUES_DU_SITE.split()
+        assert "nl" in _LANGUES_DU_SITE.split()
+        e = engine()
+        e.ctx["langs"] = _LANGUES_DU_SITE.replace(" ", ",")
+        e.ctx["l"] = "fr"
+        e._run_script_lines(["!bound l within $langs default en"])
+        assert e.ctx["l"] == "fr"
+        # Une langue que le site ne sert pas retombe sur le repli.
+        e.ctx["l"] = "xx"
+        e._run_script_lines(["!bound l within $langs default en"])
+        assert e.ctx["l"] == "en"
+
+    def test_bound_within_ne_touche_a_rien_sur_liste_vide(self):
+        """`exec_bound` (`exec.c:1594`) : `bcnt<=0` rend la main sans écrire.
+        C'est ce qui masquait le trou — la langue demandée survivait par
+        accident, faute de liste à laquelle la confronter."""
+        e = engine()
+        e.ctx["langs"] = ""
+        e.ctx["l"] = "fr"
+        e._run_script_lines(["!bound l within $langs default en"])
+        assert e.ctx["l"] == "fr"

@@ -31,6 +31,47 @@ self.ctx: dict[str, str] = {
 
 Voir [`static-assets.md`](static-assets.md) pour la résolution de `imagedir`.
 
+### Variables posées au rendu
+
+`DefEngine.render` en pose quelques autres, qui dépendent du module ou de
+l'instant et n'ont donc pas leur place dans `__init__` :
+
+| Variable | Rôle | Valeur PAX |
+|---|---|---|
+| `lang` / `oefenv_lang` | Langue du **module**, que WIMS tient de son répertoire (`oefpenney.it`) | Suffixe du répertoire, sinon `\language` du `.def` |
+| `oefenv_presentgood` | « le corrigé est-il montré » | `"no"` — PAX rend l'énoncé, jamais la correction |
+| `wims_now` | Horloge de session, `AAAAMMJJ.hh:mm:ss` (`wims.c:1200`) | L'instant du rendu, gelable par `PAX_WIMS_NOW` |
+| `wims_nowseconds` | La même, en secondes depuis l'époque | Idem |
+| `wims_site_languages` | Langues installées sur le site (`defaults.conf:72`) | `en fr es it nl ca si de cn` |
+| `module_dir` | `modules/<niveau>/<domaine>/<module>.<lang>` (`wims.c:159`) | Déduit du chemin du `.def` |
+
+`wims_now` est figée une fois par rendu, comme WIMS la fige une fois par
+requête. `PAX_WIMS_NOW` sert aux snapshots : `quizzautomat.fr/pcent5` imprime
+l'année dans son énoncé, et sa référence pourrirait au 1er janvier.
+
+`wims_site_languages` ne choisit aucune langue — elle sert à `!bound … within`
+de `slib/lang/fname` pour valider celle qu'un exercice demande. Un déploiement
+qui n'en servirait qu'une partie n'a qu'à restreindre `_LANGUES_DU_SITE`.
+
+### Ce que WIMS pose et que PAX laisse vide, à dessein
+
+Relevé **au rendu** — un espion sur le contexte, sur les 4301 exercices — puis
+recoupé avec les `setvar` du C. Chacune de ces variables est lue par le corpus
+et reste vide ; aucune n'est un défaut :
+
+| Variable | Lectures | Pourquoi le vide est juste |
+|---|---|---|
+| `wims_read_parm` | 1052 | Vide en tête d'exercice chez WIMS aussi ; PAX la pose dans les slib, seul endroit où elle porte des paramètres |
+| `wims_firstname` | 70 | Le rendu est anonyme. Les modules ont leur repli — `oefenv_fn=$wims_firstname` puis `!if $oefenv_fn=$empty → L'élève` |
+| `wims_ref_name`, `session` | 86 | Elles construisent une URL `?cmd=getfile` vers un fichier temporaire de session (Jmol, GeoGebra). Sans cet endpoint, une valeur donnerait un lien mort — pire que le vide |
+| `wims_multiexec` | 12 | Liste des CAS à garder en processus persistants. PAX n'a pas ce cache ; la variable ne se lit que pour s'y ajouter |
+| `ins_tikz` | 10 | Source TikZ d'une figure, qui n'alimente que la section `latex` (export PDF), non rendue |
+| `ins_filename` | 2 | Nom du GIF que WIMS génère ; PAX rend un SVG. C'est la cause connue de l'échec de `oefpolygon/quadrilatere` (`known_failures.py`) |
+
+Deux d'entre elles pourraient changer de statut : `wims_firstname` le jour où
+le rendu connaîtrait l'élève (au prix d'un cache par utilisateur), et le couple
+`wims_ref_name`/`session` le jour où PAX servirait des fichiers de session.
+
 ## Paramètres de configuration (`confparm1..4`)
 
 Les exercices WIMS reçoivent jusqu'à 4 paramètres de configuration via `$confparm1`, `$confparm2`, etc. Ces paramètres permettent à l'enseignant de personnaliser un même exercice (sélectionner un sous-ensemble de questions, changer la difficulté, etc.).

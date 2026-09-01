@@ -438,6 +438,27 @@ def _position_du_mot(botte: str, mot: str) -> int:
     return -1
 
 
+# Les langues que WIMS déclare installées par défaut (`bases/sys/defaults.conf`,
+# `DF_site_languages`). Un déploiement PAX qui n'en servirait qu'une partie
+# n'aurait qu'à restreindre cette liste : elle ne sert qu'à valider la langue
+# qu'un exercice demande, jamais à en choisir une.
+_LANGUES_DU_SITE = "en fr es it nl ca si de cn"
+
+
+def _chemin_du_module(def_path: str | None) -> str:
+    """`$module_dir` : le chemin du module tel que WIMS le nomme.
+
+    WIMS enracine ses modules dans `modules/` (`wims.c:159`) ; PAX les tient
+    sous `ressources/`, mais ce sont les tests de chaîne des slib qui comptent
+    (`adm/createxo isin $module_dir`), et ils sont écrits pour la forme WIMS.
+    """
+    if not def_path:
+        return ""
+    module = os.path.dirname(os.path.dirname(def_path))
+    tete, _, queue = module.partition("/ressources/")
+    return "modules/" + queue if queue else ""
+
+
 def _horloge_session() -> datetime.datetime:
     """L'instant que voit l'exercice, gelable par `PAX_WIMS_NOW`.
 
@@ -766,6 +787,24 @@ class DefEngine(_SlibMixin):
         # consommateur dans le corpus, mais il suffisait à casser l'énoncé :
         # `quizzautomat.fr/var.proc` en tire `oefenv_year`, et sans lui
         # `pcent5` datait son chiffre d'affaires « en -2 » et « en -1 ».
+        # `$wims_site_languages` — les langues installées sur le site, que
+        # WIMS lit dans `wims.conf` (`DF_site_languages`, `defaults.conf:72`).
+        # `slib/lang/fname` s'en sert pour valider la langue demandée :
+        # `!bound slib_lang within $slib_langs default en`. Sur une liste vide,
+        # tout retombe sur `en`, et la forme à trois paramètres rendait des
+        # prénoms anglais dans des exercices français (`fr,boy,2`).
+        self.ctx.setdefault("wims_site_languages", _LANGUES_DU_SITE)
+        # `$module_dir` — `modules/<niveau>/<domaine>/<module>.<lang>`
+        # (`wims.c:159` + `variables.c:564`). Ses quatre lecteurs du corpus
+        # passent par `slib/geo2D/geogebra`, non porté : le rendu ne bouge pas.
+        # On la pose quand même parce que le vide n'y est pas neutre —
+        # `slib/chemistry/jmolshow` écrit `!replace internal $module_dir/ by in
+        # …`, qui dégénère alors en « supprimer toutes les barres obliques ».
+        # La branche n'est pas atteinte aujourd'hui ; elle le serait au premier
+        # exercice Jmol servi depuis un fichier local.
+        chemin_module = _chemin_du_module(self.def_path)
+        if chemin_module:
+            self.ctx.setdefault("module_dir", chemin_module)
         maintenant = _horloge_session()
         self.ctx.setdefault("wims_now", maintenant.strftime("%Y%m%d.%H:%M:%S"))
         self.ctx.setdefault("wims_nowseconds", str(int(maintenant.timestamp())))
@@ -2805,11 +2844,24 @@ class DefEngine(_SlibMixin):
         )
         if m:
             var = m.group(1).strip()
-            allowed = [x.strip() for x in self._subst(m.group(2).strip()).split(",")]
+            # `cutitems` plutôt qu'un `split(",")` : c'est le découpage du C, et
+            # il donne **zéro** item sur une chaîne vide là où `split` en donne
+            # un, vide. La nuance décide de tout — `exec_bound` (exec.c:1594)
+            # rend la main sans rien écrire quand la liste est vide :
+            #
+            #     bcnt=cutitems(lbuf,blist,2048);
+            #     if(bcnt<=0) { *p=0; return; }
+            #
+            # PAX y écrivait la valeur par défaut, ce qui remplaçait une valeur
+            # légitime par un repli au seul motif que la liste de référence
+            # manquait — la langue de `slib/lang/fname` en dépendait.
+            allowed = wl.cutitems(self._subst(m.group(2).strip()))
+            if not allowed:
+                return
             default_s = self._subst(m.group(3).strip()) if m.group(3) else None
             if self.ctx.get(var, "") in allowed:
                 return
-            self.ctx[var] = default_s if default_s is not None else (allowed[0] if allowed else "")
+            self.ctx[var] = default_s if default_s is not None else allowed[0]
 
     def _cmd_default(self, args: str) -> None:
         """!default VAR=VALUE — set VAR to VALUE only if VAR is currently empty/unset."""
