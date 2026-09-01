@@ -1325,6 +1325,32 @@ def draw_display_answer(expected: str) -> str:
     return coords.strip()
 
 
+def draw_feedback_answer(expected: str) -> str:
+    """Les coordonnées attendues, groupées par objet pour la lecture.
+
+    `draw_display_answer` rend la liste plate, celle que l'élève produit ;
+    affichée telle quelle, « 3,3,1,-3 » se lit comme quatre nombres alors que
+    ce sont deux points. On les rend donc `(3, 3) ; (1, -3)`.
+    """
+    plat = draw_display_answer(expected)
+    if not plat:
+        return ""
+    rangees = _rangees_draw(expected or "")
+    tete = rangees[1].strip().split(",", 1)[0] if len(rangees) > 1 else ""
+    type_objet = re.sub(r"[0-9.]", "", tete).strip()
+    if type_objet.startswith("poly") and type_objet not in ("polyline", "polygon"):
+        type_objet = "polygon"
+    largeur = _DRAW_TAILLES.get(type_objet, 2)
+    morceaux = [m.strip() for m in plat.split(",") if m.strip()]
+    if largeur < 2 or len(morceaux) < largeur:
+        return plat
+    groupes = [
+        "(" + ", ".join(morceaux[i : i + largeur]) + ")"
+        for i in range(0, len(morceaux) - largeur + 1, largeur)
+    ]
+    return " ; ".join(groupes)
+
+
 def _rangees_draw(s: str) -> list[str]:
     """Rangées d'un `replygood` de `draw` : les `;` hors crochets.
 

@@ -1103,3 +1103,12 @@ class TestCheckDraw:
 
     def test_une_reponse_vide_ne_vaut_rien(self):
         assert check_answer("draw", "", self.BON).score == 0.0
+
+    def test_le_corrige_groupe_les_coordonnees(self):
+        """La liste plate se lit mal : « 3,3,1,-3 » a l'air de quatre nombres
+        quand ce sont deux points. Le corrigé les groupe par objet."""
+        from core.answer.checkers import draw_feedback_answer as F
+
+        assert F(self.FOND + ";crosshairs,3,3,1,-3") == "(3, 3) ; (1, -3)"
+        assert F(self.FOND + ";arrows,0,0,1,1") == "(0, 0, 1, 1)"
+        assert F(self.FOND) == ""

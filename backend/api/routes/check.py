@@ -254,6 +254,20 @@ async def check_exercise(
             if r.input_name in _sig_names and r.expected:
                 r.expected = sigunits_display_answer(r.expected, comma)
 
+    # ── draw : le corrigé montre les coordonnées, pas le programme de la figure
+    # L'attendu juxtapose le fond et la réponse — `[<figure flydraw>];crosshairs,
+    # 1.59,-0.04,…`. Affiché tel quel, le corrigé déroulait tout le tracé du
+    # patron, que KaTeX rendait en bouillie de symboles. Ce sont les
+    # coordonnées seules que l'élève a produites en cliquant ; le front les
+    # repose en outre sur la figure, comme WIMS redessine en pointillé les
+    # objets manquants (`anstype/draw`, branche `presentgood`).
+    _draw_names = {a.input_name for a in rendered.answers if a.answer_type == "draw"}
+    if _draw_names:
+        from core.answer.checkers import draw_feedback_answer  # noqa: PLC0415
+        for r in results:
+            if r.input_name in _draw_names and r.expected:
+                r.expected = draw_feedback_answer(r.expected) or r.expected
+
     # ── Corrigé : la convention décimale de la langue (cf. _localize_feedback)
     _localize_feedback(
         results, rendered.answers, rendered.lang, settings.pax_localize_feedback

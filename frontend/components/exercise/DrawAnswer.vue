@@ -21,6 +21,18 @@
                 :stroke="trait" stroke-width="2"
                 :marker-end="flechee ? `url(#${idFleche})` : undefined" />
         </template>
+        <!-- Après correction, les objets attendus, en pointillé : c'est ce que
+             WIMS redessine quand le corrigé est montré (`anstype/draw`). -->
+        <template v-if="submitted" v-for="(o, i) in objetsAttendus" :key="`g${i}`">
+          <template v-if="taille === 2">
+            <line :x1="px(o[0]) - 7" :y1="py(o[1])" :x2="px(o[0]) + 7" :y2="py(o[1])"
+                  stroke="#2563eb" stroke-width="2" stroke-dasharray="3 2" />
+            <line :x1="px(o[0])" :y1="py(o[1]) - 7" :x2="px(o[0])" :y2="py(o[1]) + 7"
+                  stroke="#2563eb" stroke-width="2" stroke-dasharray="3 2" />
+          </template>
+          <line v-else :x1="px(o[0])" :y1="py(o[1])" :x2="px(o[2])" :y2="py(o[3])"
+                stroke="#2563eb" stroke-width="2" stroke-dasharray="3 2" />
+        </template>
         <!-- Le premier point d'un objet en cours de tracé. -->
         <circle v-if="attente" :cx="px(attente[0])" :cy="py(attente[1])" r="4"
                 :fill="trait" fill-opacity="0.5" />
@@ -55,6 +67,7 @@ const props = defineProps<{
   width?: number | string
   height?: number | string
   value?: string
+  expected?: string
   submitted?: boolean
   correct?: boolean | null
 }>()
@@ -99,11 +112,14 @@ const trait = computed(() =>
   props.submitted ? (props.correct ? '#16a34a' : '#dc2626') : (props.couleur || '#2563eb'),
 )
 
-const aide = computed(() =>
-  taille.value === 2
+const aide = computed(() => {
+  if (props.submitted) {
+    return objetsAttendus.value.length ? 'En pointillé : la réponse attendue.' : ''
+  }
+  return taille.value === 2
     ? 'Cliquez pour poser un point.'
-    : 'Cliquez le départ, puis l’arrivée.',
-)
+    : 'Cliquez le départ, puis l’arrivée.'
+})
 
 // La réponse est une liste plate ; on la relit pour afficher les marques.
 const nombres = computed<number[]>(() =>
@@ -115,6 +131,19 @@ const objets = computed<number[][]>(() => {
   for (let i = 0; i + n <= nombres.value.length; i += n) out.push(nombres.value.slice(i, i + n))
   return out
 })
+// Les objets attendus, pour les reposer sur la figure après correction. Le
+// serveur n'envoie que les coordonnées : la figure de fond en est retirée.
+const objetsAttendus = computed<number[][]>(() => {
+  const n = taille.value
+  // Le corrigé arrive groupé — `(3, 3) ; (1, -3)` —, plus lisible qu'une liste
+  // plate. On en extrait les nombres, quelle que soit la ponctuation.
+  const nums = ((props.expected || '').match(/-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?/g) || [])
+    .map(x => parseFloat(x)).filter(Number.isFinite)
+  const out: number[][] = []
+  for (let i = 0; i + n <= nums.length; i += n) out.push(nums.slice(i, i + n))
+  return out
+})
+
 // Coordonnées d'un objet commencé mais pas fini (premier clic d'un segment).
 const attente = computed<number[] | null>(() => {
   const reste = nombres.value.length % taille.value

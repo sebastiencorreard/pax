@@ -82,6 +82,7 @@
         :width="node.seg.width"
         :height="node.seg.height"
         :value="ctx.replies.value[node.seg.name] || ''"
+        :expected="ctx.checkResult.value?.results.find(r => r.input_name === node.seg.name)?.expected || ''"
         :submitted="ctx.submitted.value"
         :correct="ctx.checkResult.value?.results.find(r => r.input_name === node.seg.name)?.correct ?? null"
         @update:reply="(name, val) => ctx.updateReply(name, val)"
