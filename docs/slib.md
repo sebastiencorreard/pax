@@ -120,10 +120,9 @@ silence se lit comme une absence.
 | slib | appels vides | exercices | obstacle |
 |---|---|---|---|
 | `geo2D/offdraw` · `polyoff` · `polynet` | 22 / 26 | 6 | la variable PARI `W` |
-| `lang/swac` | 13 / 23 | 6 | mots hors des index rapatriés |
 
-`basep`, `text/sigunits`, `stat/dataproc` et `oef/env` en sont sortis — les
-deux premiers réparés, les deux derniers n'ayant jamais rien eu à réparer.
+Il n'en reste qu'un. `basep`, `text/sigunits` et `lang/swac` sont réparés ;
+`stat/dataproc` et `oef/env` n'avaient jamais rien eu à réparer.
 
 **`geo2D/offdraw`** reçoit `[W[1]],[W[2]]` non substitué. `W` vient de
 `slib/geo2D/polynet`, qui charge `gp/spanning_tree.gp` par `!readproc` puis
@@ -138,12 +137,30 @@ Ces données ont été rapatriées le 2026-08-31 depuis
 et le paquet `eng-balm-verbs`, 568 Ko en tout ; l'audio lui-même reste distant,
 servi depuis l'URL que porte `packs`.
 
-Il a fallu deux corrections pour que le slib s'en serve. `!lookup` ne cherchait
-que dans le répertoire du module, quand un slib partagé lit ses données là où
-il vit : `_read_module_file` se replie désormais sur `wims-scripts/`. Et
-`!record 0` rendait le vide, alors que l'indice zéro est licite pour cette
-commande seule (calc.c:614) et désigne l'en-tête — ici l'hôte des fichiers
-audio. Le slib rend maintenant sa balise `<audio>`.
+Il a fallu quatre corrections pour que le slib s'en serve, et les deux
+dernières valent d'être retenues parce que **le diagnostic tenu jusque-là était
+faux**. On lisait « les mots demandés ne sont pas dans les index rapatriés » :
+il n'y avait aucun manque de données.
+
+- `!lookup` ne cherchait que dans le répertoire du module, quand un slib
+  partagé lit ses données là où il vit : `_read_module_file` se replie
+  désormais sur `wims-scripts/`.
+- `!record 0` rendait le vide, alors que l'indice zéro est licite pour cette
+  commande seule (calc.c:614) et désigne l'en-tête — ici l'hôte des fichiers
+  audio.
+- `!lookup` s'arrêtait à la première ligne physique. `_lookup` (calc.c:1883)
+  prolonge l'enregistrement tant qu'une contre-oblique précède le saut de
+  ligne, la remplace par une espace et garde le saut : c'est la forme des
+  `sw_tags`, dont un enregistrement porte tous les mots-clés d'un fichier
+  audio. Sans la suite, seul `swac_text` en revenait.
+- `!getopt` découpait sur les blancs et gardait les délimiteurs. `calc_getopt`
+  (calc.c:2051) borne la valeur par son `"`, `(`, `[` ou `{` et le **retire** :
+  `swac_text="das Dreieck"` vaut `das Dreieck`, non `das`. C'est là qu'était
+  toute l'affaire — les mots cherchés n'étaient pas absents, ils étaient
+  tronqués à leur premier mot.
+
+Le slib rend maintenant sa balise `<audio>` sur ses 23 appels, et
+`geometrie_audio` retrouve le widget d'appariement qu'il ne rendait plus.
 
 **`basep`** fonctionnait déjà ; ses appelants lui passaient `rint(NaN**4*0)`.
 En remontant : `val5=$confparm4`, et `confparm4` est calculé par le **`var.proc`
