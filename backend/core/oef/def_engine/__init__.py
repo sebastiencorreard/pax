@@ -2490,7 +2490,7 @@ class DefEngine(_SlibMixin):
         return ",".join(results)
 
     def _cmd_positionof(self, args: str) -> str:
-        """!positionof item X in $list — rangs de X, séparés par des virgules.
+        """!positionof [word|item|line|char|row] X in $list — les rangs de X.
 
         `_pos` (`calc.c`) parcourt **toute** la liste et concatène le rang de
         chaque item égal au motif (`if(t>0) strcat(out,",")`) : trois
@@ -2503,17 +2503,44 @@ class DefEngine(_SlibMixin):
         # qui vivait ici coupait sur le « in » de « inverses », et
         # `OEFevalwimsnbrel/progA3` cherchait « La somme des » dans « verses
         # de 7.5 … » — introuvable, quelle que soit la liste.
-        m = re.match(r"item\s+(.*?)\s+in(?=\s|$)\s*(.*)", args, re.DOTALL | re.I)
+        m = re.match(
+            r"(word|item|line|char|row)?\s*(.*?)\s+in(?=\s|$)\s*(.*)",
+            args, re.DOTALL | re.I,
+        )
         if not m:
             return ""
-        needle = self._subst(m.group(1).strip())
-        haystack = self._subst(m.group(2).strip())
-        # `_pos` (`calc.c`) compare l'item **élagué** au motif par `strcmp` :
+        style = (m.group(1) or "").lower()
+        needle = self._subst(m.group(2).strip())
+        haystack = self._subst(m.group(3).strip())
+        # `_pos` (`calc.c`) compare l'objet **élagué** au motif par `strcmp` :
         # aucune normalisation, pas même sur les espaces. Celle qui vivait ici
         # rattrapait le `[1, 2]` que produisait notre émulation de GP ; le mode
         # brut de WIMS (`default(output,0)`) n'en émet pas.
-        items = wl.cutitems(haystack)
-        return ",".join(str(i) for i, item in enumerate(items, 1) if item == needle)
+        #
+        # `calc_pos` connaît cinq styles, tous confiés au même `_pos` avec un
+        # découpeur différent. Seul `item` était porté : un `!positionof row`
+        # rendait le vide, et `oefpolynet/31` y perdait le sommet de référence
+        # que son énoncé dit « marqué par une croix » — sans lui, l'exercice ne
+        # peut pas être répondu.
+        decoupeurs = {
+            "item": wl.cutitems,
+            "row": wl.cutrows,
+            "line": wl.cutlines,
+            "word": lambda t: t.split(),
+            "char": list,
+        }
+        if not style:
+            # Sans mot-clé, `calc_pos` cherche une **sous-chaîne** et rend les
+            # décalages en octets, à partir de zéro (`i = pp - buf[1]`).
+            if not needle:
+                return ""
+            positions, depart = [], haystack.find(needle)
+            while depart >= 0:
+                positions.append(str(depart))
+                depart = haystack.find(needle, depart + 1)
+            return ",".join(positions)
+        objets = decoupeurs[style](haystack)
+        return ",".join(str(i) for i, o in enumerate(objets, 1) if o == needle)
 
     def _cmd_randrow(self, args: str) -> str:
         """!randrow $matrix — ligne aléatoire (séparateur auto)."""

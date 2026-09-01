@@ -2323,6 +2323,51 @@ class TestVariablesDeSession:
         assert e.ctx["l"] == "fr"
 
 
+class TestPositionof:
+    """`!positionof [word|item|line|char|row] X in …` (`calc_pos`, calc.c:821).
+
+    Cinq styles, tous confiés au même `_pos` avec un découpeur différent, plus
+    la recherche de sous-chaîne quand aucun mot-clé n'est donné. Seul `item`
+    était porté ; un `!positionof row` rendait le vide, et le silence a coûté
+    cher — `oefpolynet/31` y perdait le sommet que son énoncé dit « marqué par
+    une croix », et les `Ocean*` d'`oefseriestat2var` traçaient leurs croix à
+    `x = -59238`, hors du canevas.
+    """
+
+    def test_row(self):
+        e = engine()
+        e.ctx["liste"] = "a,b,1;c,d,2;e,f,3"
+        assert e._eval_cmd("positionof", "row c,d,2 in $liste") == "2"
+
+    def test_line(self):
+        e = engine()
+        e.ctx["texte"] = "premiere\ndeuxieme\ntroisieme"
+        assert e._eval_cmd("positionof", "line deuxieme in $texte") == "2"
+
+    def test_word(self):
+        assert engine()._eval_cmd("positionof", "word chat in le chat dort") == "2"
+
+    def test_char_rend_tous_les_rangs(self):
+        """`_pos` parcourt toute la liste et concatène : deux occurrences font
+        `2,4`, jamais le premier rang seul."""
+        assert engine()._eval_cmd("positionof", "char b in abcb") == "2,4"
+
+    def test_item_inchange(self):
+        assert engine()._eval_cmd("positionof", "item b in a,b,c") == "2"
+
+    def test_sans_mot_cle_c_est_une_sous_chaine(self):
+        """`calc_pos` y rend les décalages en octets, **à partir de zéro**
+        (`i = pp - buf[1]`) — non des rangs."""
+        assert engine()._eval_cmd("positionof", "bc in abcbc") == "1,3"
+
+    def test_rien_trouve_rend_le_vide(self):
+        """Jamais `0`, qui a l'air d'un rang et que les `.def` réinjectent tel
+        quel en indice."""
+        e = engine()
+        e.ctx["liste"] = "a,b;c,d"
+        assert e._eval_cmd("positionof", "row x,y in $liste") == ""
+
+
 class TestCanevasDeTrace:
     """Le canevas de `type=draw` (`anstype/draw.input`).
 
