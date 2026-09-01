@@ -119,7 +119,7 @@ _MODULE_LANG_RE = re.compile(r"\.([a-z]{2})$")
 
 
 def _langue_du_module(def_path: str | None) -> str:
-    """Code ISO du module, tiré de son répertoire (`oefpenney.it` → `it`).
+    r"""Code ISO du module, tiré de son répertoire (`oefpenney.it` → `it`).
 
     C'est la source de `$lang` chez WIMS, et donc d'`oefenv_lang` : un `.def`
     sans `\language` ne dit rien de la langue du module qui l'héberge.

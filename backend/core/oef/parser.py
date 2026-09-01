@@ -158,7 +158,7 @@ def _reattach_braced_groups(nodes: list) -> list:
 
 
 def _normalize_math_delimiters(source: str) -> str:
-    """Convert WIMS-style \(expr) to standard \(expr\).
+    r"""Convert WIMS-style \(expr) to standard \(expr\).
 
     In OEF files, math mode opened with \( is often closed by a bare )
     instead of \). This function replaces the closing bare ) with \),

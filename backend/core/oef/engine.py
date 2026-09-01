@@ -686,7 +686,7 @@ def _embedded_widget_names(html: str) -> set[str]:
 
 
 def _extract_statement(ast: OEFNode, ev: OEFEvaluator) -> str:
-    """
+    r"""
     Extrait l'énoncé complet en combinant UNIQUEMENT \instruction, \consigne et \statement.
     Le texte brut en dehors de ces commandes est ignoré (métadonnées, etc.).
     """
@@ -705,7 +705,7 @@ def _extract_statement(ast: OEFNode, ev: OEFEvaluator) -> str:
 
 
 def _extract_condition(ast: OEFNode, ev: OEFEvaluator) -> dict | None:
-    """Extrait \condition{label}{expression} via l'AST."""
+    r"""Extrait \condition{label}{expression} via l'AST."""
     if ast.type == "document" and isinstance(ast.content, list):
         for item in ast.content:
             if isinstance(item, OEFNode) and item.name == "condition":
@@ -718,7 +718,7 @@ def _extract_condition(ast: OEFNode, ev: OEFEvaluator) -> dict | None:
 
 
 def _extract_answers(ast: OEFNode, ev: OEFEvaluator) -> list[AnswerDef]:
-    """
+    r"""
     Extrait les \answer{}{}{}... et \choice{}{}{} via l'AST.
     Gère les arguments positionnels (WIMS standard) et nommés (type=...).
     """
