@@ -105,3 +105,69 @@ def test_le_coefficient_compte_dans_la_masse():
     """`-M` rend une masse **par espèce**, coefficient stœchiométrique inclus :
     `2Al` pèse 53.964, non 26.982. C'est ce que lit `chemeq_mass`."""
     assert chemeq("2Al + 3Cu^2+ -> 2Al^3+ + 3Cu", "M") == "53.964 190.638 53.964 190.638"
+
+
+class TestEquationsEquivalentes:
+    """La comparaison de deux équations, telle que `anstype/chemeq` en a besoin.
+
+    WIMS passe par `chemeq -n` et compare les chaînes normalisées. PAX compare
+    le **sens** : chaque membre doit coïncider à un seul et même facteur
+    d'échelle près. Les cas ci-dessous ont été confrontés au binaire du dépôt,
+    qui les tranche tous de la même façon — sauf le dernier, où il échoue.
+    """
+
+    from core.oef.def_engine.chemeq import equations_equivalentes as _eq
+
+    def test_mise_a_l_echelle(self):
+        eq = TestEquationsEquivalentes._eq
+        assert eq("2Fe + 3Cl2 -> 2FeCl3", "Fe + 3/2Cl2 -> FeCl3")
+        assert eq("2H2 + O2 -> 2H2O", "H2 + 1/2 O2 -> H2O")
+        assert eq("Na + 1/4O2 -> 1/2Na2O", "2Na + 1/2O2 -> Na2O")
+
+    def test_les_blancs_et_l_ordre_des_especes_sont_indifferents(self):
+        eq = TestEquationsEquivalentes._eq
+        assert eq("Fe + 3/2 Cl2 -> FeCl3", "Fe + 3/2Cl2 -> FeCl3")
+        assert eq("Ca_s + F2_g -> Ca^2+ + 2F^-", "F2_g + Ca_s -> Ca^2+ + 2F^-")
+
+    def test_le_sens_de_la_reaction_compte(self):
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("FeCl3 -> Fe + 3/2Cl2", "Fe + 3/2Cl2 -> FeCl3")
+
+    def test_la_fleche_compte(self):
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("Fe + 3/2Cl2 <-> FeCl3", "Fe + 3/2Cl2 -> FeCl3")
+
+    def test_un_facteur_par_membre_ne_suffit_pas(self):
+        """Doubler un seul côté donne une autre réaction : le facteur doit
+        valoir pour les deux membres à la fois."""
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("2H2 + O2 -> H2O", "H2 + 1/2 O2 -> H2O")
+
+    def test_etat_et_charge_distinguent(self):
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("2H2_g + O2_g -> 2H2O", "H2 + 1/2 O2 -> H2O")
+        assert not eq("Mg_s + 2H^+ -> Mg + H_2_g", "Mg_s + 2H^+ -> Mg^2+ + H_2_g")
+
+    def test_aqueux_s_efface(self):
+        """`delete_aq()` (`chemeq.h:265`) — une espèce en solution s'écrit avec
+        ou sans son `_(aq)`."""
+        eq = TestEquationsEquivalentes._eq
+        assert eq("Na^+_aq + Cl^-_aq -> NaCl", "Na^+ + Cl^- -> NaCl")
+
+    def test_une_equation_fausse_reste_fausse(self):
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("Fe + Cl2 -> FeCl3", "Fe + 3/2Cl2 -> FeCl3")
+        assert not eq("Fe + 3/2Cl2 -> FeCl2", "Fe + 3/2Cl2 -> FeCl3")
+
+    def test_entree_vide_ou_illisible(self):
+        eq = TestEquationsEquivalentes._eq
+        assert not eq("", "Fe + 3/2Cl2 -> FeCl3")
+        assert not eq("n'importe quoi", "Fe + 3/2Cl2 -> FeCl3")
+
+    def test_ecart_assume_avec_le_binaire(self):
+        """`chemeq -n` rend ` -> ` sur `Fe2(SO4)3 -> Fe2(SO4)3` : deux membres
+        vides, qu'il déclare donc *égaux* — n'importe quelle réponse y
+        passerait. Ici, une équation n'est égale qu'à elle-même."""
+        eq = TestEquationsEquivalentes._eq
+        assert eq("Fe2(SO4)3 -> Fe2(SO4)3", "Fe2(SO4)3 -> Fe2(SO4)3")
+        assert not eq("H2O -> H2O", "Fe2(SO4)3 -> Fe2(SO4)3")

@@ -10,24 +10,30 @@ Périmètre : ce que le corpus soumet réellement — les molécules et ions de
 `slib/chemistry/chemeq_mass`, les équations de `chemeq_tex`, et l'équilibrage
 que `chemeq_equilibrium` tire de `-e` et `-C`.
 
-Reste `-n`, la **forme normalisée**, dont `anstype/chemeq` se sert pour noter :
-`slib/chemistry/chemeq_compare` normalise la réponse de l'élève et l'attendu,
-puis compare les deux chaînes. Onze rendus du corpus en dépendent, sur deux
-exercices (`equilibrer` et `completer` de `reaction1.fr`), et ce slib manque
-d'ailleurs de `ressources/wims-scripts/` — il faudrait l'y copier depuis
-`wims/public_html/scripts/`.
+`-n`, la **forme normalisée**, n'est pas portée — et n'a pas eu à l'être.
+`anstype/chemeq` s'en sert pour noter : `slib/chemistry/chemeq_compare`
+normalise la réponse de l'élève et l'attendu, puis compare les deux chaînes.
+PAX compare le **sens** à la place, par `equations_equivalentes` en fin de
+module : deux équations sont les mêmes si chaque membre coïncide à un seul et
+même facteur d'échelle près. Résultat identique là où le binaire fonctionne,
+sans avoir à reproduire une chaîne dont l'ordre des espèces suit une règle
+qu'il n'applique pas uniformément — `Fe + 3/2Cl2` sort trié
+(`Cl2 + 2/3 Fe`), `Al2O3_s + 3Cl2_g + 6C_s` non, alors que `C` devrait y
+précéder `Cl2`.
 
-`chemeq.h:265` en donne la recette, si l'on veut la porter :
+L'écart assumé porte sur les entrées où le binaire échoue : il rend ` -> `
+sur `Fe2(SO4)3 -> Fe2(SO4)3`, donc deux membres vides qu'il déclare *égaux*,
+et n'importe quelle réponse y passerait.
+
+Pour mémoire, `chemeq.h:265` donne la recette de `-n` si l'on veut un jour la
+porter à l'identique :
 
     void normalise(){numerote(); triage(); coeff1(); delete_aq();};
 
 soit : compter les atomes, les trier — `AtomeListe::triage` est un tri à bulles
 sur `strcmp(symbole)`, qui ne descend pas dans un groupe parenthésé, d'où
 `CaCO3` → `CCaO3` et `Fe2(SO4)3` inchangé —, ramener le premier coefficient à
-1, puis retirer les `_(aq)`. Deux comportements observés restent inexpliqués et
-demanderont la lecture du source : l'ordre des espèces, tantôt trié
-(`Fe + 3/2Cl2` → `Cl2 + 2/3 Fe`) tantôt conservé (`Al2O3_s + 3Cl2_g + 6C_s`),
-et la sortie **vide** sur `CH3COOH` ou `Fe2(SO4)3 -> Fe2(SO4)3`.
+1, puis retirer les `_(aq)`.
 
 Chaque sortie est confrontée au binaire du dépôt, qui sert d'oracle :
 `backend/tests/test_chemeq.py` rejoue la comparaison sur toutes les entrées
@@ -47,6 +53,7 @@ Grammaire couverte, telle que les exemples du corpus l'exercent :
 
 from __future__ import annotations
 
+import collections
 import re
 from fractions import Fraction
 
@@ -391,3 +398,87 @@ def chemeq(entree: str, option: str) -> str:
 
 def _coefficient_texte(c: Fraction) -> str:
     return f"{c.numerator}/{c.denominator}" if c.denominator != 1 else str(c.numerator)
+
+
+# ── Comparaison de deux équations ─────────────────────────────────────────────
+
+def _cle_espece(t: "Terme") -> tuple:
+    """L'identité d'une espèce, indépendante de son écriture.
+
+    Les atomes sont triés — `FeCl3` et `Cl3Fe` désignent le même corps, et le
+    binaire les ramène d'ailleurs à la même forme. L'état et la charge en font
+    partie : `H2_(g)` n'est pas `H2`, et WIMS ne les confond pas non plus.
+
+    `_(aq)` est la seule exception, retirée comme le fait `delete_aq()` dans
+    `chemeq.h:265` — une espèce en solution aqueuse s'écrit avec ou sans.
+    """
+    etat = ""
+    m = re.search(r"_\((s|l|g|aq)\)$", t.brut)
+    if m and m.group(1) != "aq":
+        etat = m.group(1)
+    atomes = tuple(sorted(collections.Counter(dict(t.atomes)).items()))
+    return (atomes, t.charge, etat)
+
+
+def _membre_canonique(membre: list) -> dict:
+    """Un membre d'équation en multiensemble espèce → coefficient."""
+    total: dict = collections.defaultdict(Fraction)
+    for t in membre:
+        total[_cle_espece(t)] += t.coefficient
+    return {k: v for k, v in total.items() if v != 0}
+
+
+def equations_equivalentes(a: str, b: str) -> bool:
+    """Les deux écritures désignent-elles la même réaction ?
+
+    WIMS compare les sorties de `chemeq -n`, la forme normalisée
+    (`slib/chemistry/chemeq_compare`). PAX compare le **sens** : deux équations
+    sont les mêmes si chaque membre coïncide à un seul et même facteur d'échelle
+    près. `2Fe + 3Cl2 -> 2FeCl3` vaut donc `Fe + 3/2Cl2 -> FeCl3`, comme chez
+    WIMS, sans avoir à reproduire sa chaîne — dont l'ordre des espèces suit une
+    règle que le binaire lui-même n'applique pas uniformément (`Fe + Cl2` sort
+    trié, `Al2O3 + Cl2 + C` non).
+
+    L'écart assumé porte sur les entrées où le binaire échoue : il rend ` -> `
+    sur `Fe2(SO4)3 -> Fe2(SO4)3`, donc y déclare deux membres vides *égaux* —
+    une réponse quelconque y passerait. Ici, une équation n'est égale qu'à
+    elle-même.
+
+    Le sens de la réaction compte (les deux membres sont comparés chacun de son
+    côté), et la flèche aussi : `->` n'est pas `<->`.
+    """
+    def decoupe(src: str):
+        src = (src or "").strip()
+        if not src:
+            return None
+        for fleche, _tex in _FLECHES:
+            if fleche in src:
+                gauche, _, droite = src.partition(fleche)
+                return fleche, [gauche, droite]
+        return "", [src]
+
+    da, db = decoupe(a), decoupe(b)
+    if da is None or db is None or da[0] != db[0]:
+        return False
+    try:
+        ma = [_membre_canonique(_lire_membre(m)) for m in da[1]]
+        mb = [_membre_canonique(_lire_membre(m)) for m in db[1]]
+    except (ChemeqError, KeyError, IndexError):
+        return False
+    if any(not m for m in ma) or any(not m for m in mb):
+        return False
+    if [set(m) for m in ma] != [set(m) for m in mb]:
+        return False
+
+    # Un facteur d'échelle unique, valable pour les deux membres à la fois :
+    # `2H2 + O2 -> 2H2O` est `H2 + 1/2 O2 -> H2O` doublé des deux côtés, mais
+    # doubler un seul membre donnerait une autre réaction.
+    facteur = None
+    for ca, cb in zip(ma, mb):
+        for cle, va in ca.items():
+            r = va / cb[cle]
+            if facteur is None:
+                facteur = r
+            elif r != facteur:
+                return False
+    return facteur is not None and facteur > 0

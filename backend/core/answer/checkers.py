@@ -1102,6 +1102,32 @@ def check_jsxgraphcurve(
     return CheckResult(correct=False, score=0.0, method="jsxgraphcurve")
 
 
+def check_chemeq(reply: str, expected: str) -> CheckResult:
+    """Équation chimique — `anstype/chemeq`.
+
+    WIMS passe par `slib/chemistry/chemeq_compare`, qui normalise les deux
+    écritures avec `chemeq -n` et compare les chaînes obtenues. PAX compare le
+    **sens** : deux équations sont les mêmes si chaque membre coïncide à un
+    seul et même facteur d'échelle près (`chemeq.equations_equivalentes`).
+
+    Le résultat est le même là où le binaire fonctionne — vérifié sur douze
+    couples représentatifs, états, charges et groupes parenthésés compris. Il
+    en diffère là où le binaire échoue : `Fe2(SO4)3 -> Fe2(SO4)3` lui fait
+    rendre ` -> `, donc deux membres vides qu'il déclare égaux — n'importe
+    quelle réponse y passerait.
+
+    Sans ce cas, `chemeq` tombait dans le repli `check_text` : seule la chaîne
+    stockée au caractère près était acceptée. Une espace en plus (`Fe + 3/2 Cl2`)
+    ou des coefficients mis à l'échelle (`2Fe + 3Cl2 -> 2FeCl3`) — que WIMS
+    accepte — étaient comptés faux. Le test du corpus ne le voyait pas : il
+    soumet l'attendu lui-même, donc la seule écriture qui passait.
+    """
+    from core.oef.def_engine.chemeq import equations_equivalentes  # noqa: PLC0415
+
+    bon = equations_equivalentes(reply, expected)
+    return CheckResult(correct=bon, score=1.0 if bon else 0.0, method="chemeq")
+
+
 def check_jsxgraph(reply: str, expected: str, options: dict | None = None) -> CheckResult:
     """Compare les coordonnées du/des point(s) déplacé(s) à la position attendue.
 
@@ -3022,6 +3048,8 @@ def check_answer(
             return check_clickfill(reply, expected, noorder="noorder" in opt_str)
         case "correspond":
             return check_correspond(reply, expected, partial=bool(options.get("partial")))
+        case "chemeq":
+            return check_chemeq(reply, expected)
         case "jsxgraph":
             return check_jsxgraph(reply, expected, options)
         case "jsxgraphcurve":
