@@ -386,8 +386,8 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     """Valeurs par défaut des `confparm` posées par le module lui-même.
 
     Un module WIMS règle ses paramètres dans son `introhook.phtml`, le bloc
-    inséré dans sa page d'accueil : `!default` fixe la valeur, le `!formselect`
-    qui suit laisse l'enseignant en choisir une autre.
+    inséré dans sa page d'accueil : la valeur est fixée, le `!formselect` qui
+    suit laisse l'enseignant en choisir une autre.
 
         !default confparm1=1
         !formselect confparm1 list 1,2,3,4,5
@@ -397,7 +397,15 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     seule question. `!default` ne remplace jamais une valeur déjà posée, d'où
     l'application avant tout le reste.
 
-    Sept modules du corpus s'en servent, 305 dans l'arbre WIMS.
+    **Les deux formes comptent.** 32 modules du corpus posent leur valeur par
+    `!default`, 9 par `!set` — et l'arbre WIMS, 79 contre 41. `oef-resoudre.fr`
+    écrit `!set confparm1=Z` : ses cinq exercices tirent alors des nombres
+    relatifs, là où le vide les faisait retomber sur la branche positive que
+    personne n'avait demandée.
+
+    `!set` l'emporte sur `!default` s'ils coexistent, comme chez WIMS où il
+    écrase une valeur déjà posée. Aucun module du corpus ne mélange les deux ;
+    la règle est là pour ne pas dépendre de l'ordre des lignes.
     """
     if not def_path:
         return ()
@@ -410,9 +418,11 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     except OSError:
         return ()
     trouves: dict[str, str] = {}
-    for m in re.finditer(r"^\s*!default\s+(confparm\d+)\s*=\s*(.*?)\s*$",
-                         texte, re.M):
-        trouves.setdefault(m.group(1), m.group(2))
+    for forme in ("set", "default"):
+        for m in re.finditer(
+            rf"^\s*!{forme}\s+(confparm\d+)\s*=\s*(.*?)\s*$", texte, re.M
+        ):
+            trouves.setdefault(m.group(1), m.group(2))
     return tuple(trouves.items())
 
 

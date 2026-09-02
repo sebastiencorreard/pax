@@ -357,11 +357,13 @@ poser — `new Function(cfg.id, cfg.commands)(api)`.
 **Reste la correction**, non faite : `anstype/geogebra` fait 1128 lignes de
 scénarios, et 17 exercices portent `replytype=geogebra`.
 
-Une observation de côté, non traitée : `_module_confparm_defaults` ne lit que
-`!default confparm<N>=…`, pas `!set`. Ici cela ne change rien — `confparm1`
-reste vide et `val9` retombe sur 1, la même valeur que le `!set` du module
-imposerait — mais un module qui forcerait une **autre** valeur par `!set` ne
-serait pas suivi.
+Une observation de côté, depuis traitée : `_module_confparm_defaults` ne lisait
+que `!default confparm<N>=…`, pas `!set`. Pour ce module-ci cela ne changeait
+rien — `confparm1` restait vide et `val9` retombait sur 1, la valeur même que
+le `!set` impose — mais 9 modules du corpus emploient cette forme, et
+`oef-resoudre.fr` y déclare `!set confparm1=Z`. Ses cinq exercices tiraient
+donc des nombres positifs là où le module demande des relatifs. Les deux formes
+sont lues désormais, `!set` l'emportant.
 
 ### Ce qui a été fait depuis la version précédente de ce document
 
