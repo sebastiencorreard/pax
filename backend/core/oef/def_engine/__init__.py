@@ -995,13 +995,22 @@ class DefEngine(_SlibMixin):
                 if "/api/render/svg/" in a.expected:
                     a.expected = inline_svg_imgs(a.expected)
                 a.expected = self._inline_module_imgs(a.expected)
-            choices = a.options.get("choices")
-            if choices:
-                a.options["choices"] = [
+            # `choices` porte la palette d'un radio ou d'un menu ; `lefts` et
+            # `rights` les deux colonnes d'un `correspond`, que `oefgrfctref`
+            # fait apparier — une courbe à gauche, son expression à droite.
+            # Les trois sont du HTML d'affichage et se traitent pareil : sans
+            # cette passe, les 36 figures de `lefts` sortaient en marqueur, donc
+            # en image morte.
+            for clef in ("choices", "lefts", "rights", "rights_shuffled"):
+                valeurs = a.options.get(clef)
+                if not valeurs:
+                    continue
+                a.options[clef] = [
                     self._inline_module_imgs(
-                        inline_svg_imgs(c) if "/api/render/svg/" in c else c
+                        inline_svg_imgs(v) if "/api/render/svg/" in v else v
                     )
-                    for c in choices
+                    if isinstance(v, str) else v
+                    for v in valeurs
                 ]
 
         # If the question text has no input/slot widget but the exercise
@@ -3838,7 +3847,8 @@ class DefEngine(_SlibMixin):
         if "/api/render/svg/" in s:
             from ..flydraw import inline_svg_imgs  # noqa: PLC0415
             s = re.sub(r"\s+", " ", s)            # flatten the multi-line markup
-            s = re.sub(r'src="\s+', 'src="', s)   # trim the URL's leading space
+            # (le blanc qui suivait le guillemet — `src="<TAB>/api/…` — était
+            # retiré ici ; `_IMG_SVG_RE` le tolère désormais lui-même.)
             s = inline_svg_imgs(s)
         return self._inline_module_imgs(s)
 
@@ -4570,6 +4580,31 @@ class DefEngine(_SlibMixin):
         parts = [p.strip() for p in args.split(",")]
         ref = parts[0] if parts else "reply1"
         size_str = parts[1] if len(parts) > 1 else "10"
+
+        # Le **second** argument porte lui aussi des variables de boucle. Le
+        # `.def` compilé garde la forme OEF `\j` là où l'exécution pose `m_j` :
+        #
+        #     !for m_j=1 to $val16
+        #       !read oef/embed.phtml r1,\j
+        #
+        # Seul le nom de la réponse était résolu (plus bas). L'index restait
+        # `\j`, aucun chiffre n'en sortait, et la branche `checkbox` retombait
+        # sur « pas d'index → toute la palette » : `patron1` affichait ses trois
+        # figures **à chaque tour**, soit neuf cases pour trois choix
+        # (`value="1,2,3,1,2,3,1,2,3"`).
+        #
+        # On garde `\nom` intact quand la variable n'existe pas — contrairement
+        # à la résolution du nom de réponse, qui laisse tomber la contre-oblique.
+        # Ici le texte peut être une largeur ou une expression, et le mutiler
+        # coûterait plus que de le laisser passer.
+        def _var_de_boucle(m: re.Match) -> str:
+            nom = m.group(1)
+            for candidat in (nom, nom.lower(), f"m_{nom}", f"m_{nom.lower()}"):
+                if candidat in self.ctx:
+                    return str(self.ctx[candidat])
+            return m.group(0)
+
+        size_str = re.sub(r"\\(\w+)", _var_de_boucle, size_str)
 
         # Some .def files write `reply 1,30` (space between word and index)
         # instead of `reply1,30`; collapse internal whitespace so the ref

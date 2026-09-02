@@ -74,3 +74,55 @@ class TestSegmentation:
         assert "autofocus" in content
         # `autocomplete` est déjà posé sans condition, comme sur les champs Vue.
         assert content.count("autocomplete") == 1
+
+
+class TestVariableDeBoucleDansLIndex:
+    """Le **second** argument d'un `\\embed` porte lui aussi des variables de
+    boucle, et seul le nom de la réponse était résolu.
+
+    Le `.def` compilé garde la forme OEF `\\j` là où l'exécution pose `m_j` :
+
+        !for m_j=1 to $val16
+          !read oef/embed.phtml r1,\\j
+
+    L'index restait `\\j`, aucun chiffre n'en sortait, et la branche `checkbox`
+    retombait sur « pas d'index → toute la palette » : `patron1` affichait ses
+    trois figures à chaque tour, soit neuf cases pour trois choix.
+    """
+
+    @staticmethod
+    def _moteur(good: str) -> DefEngine:
+        e = engine()
+        e.ctx["replytype1"] = "checkbox"
+        e.ctx["replygood1"] = good
+        return e
+
+    def test_index_de_boucle_rend_une_seule_case(self):
+        e = self._moteur("1,3;alpha,beta,gamma")
+        e.ctx["m_j"] = "2"
+        out = e._render_embed(r"r1,\j")
+        assert out.count('type="checkbox"') == 1
+        assert 'value="2"' in out and "beta" in out
+
+    def test_chaque_tour_rend_sa_case(self):
+        e = self._moteur("1,3;alpha,beta,gamma")
+        vus = []
+        for tour in ("1", "2", "3"):
+            e.ctx["m_j"] = tour
+            vus.append(e._render_embed(r"r1,\j"))
+        assert [v.count('type="checkbox"') for v in vus] == [1, 1, 1]
+        assert ['value="%s"' % n in v for n, v in zip("123", vus)] == [True] * 3
+
+    def test_sans_index_la_palette_entiere_sort(self):
+        """Le repli de WIMS quand aucun index n'est donné."""
+        e = self._moteur("1,3;alpha,beta,gamma")
+        out = e._render_embed("r1")
+        assert out.count('type="checkbox"') == 3
+
+    def test_une_variable_inconnue_reste_intacte(self):
+        """On ne mutile pas un second argument qu'on ne sait pas résoudre :
+        sans `m_inconnue` au contexte, l'index n'existe pas et la palette
+        entière sort — comme avant, plutôt qu'un index inventé."""
+        e = self._moteur("1;alpha,beta")
+        out = e._render_embed(r"r1,\inconnue")
+        assert out.count('type="checkbox"') == 2

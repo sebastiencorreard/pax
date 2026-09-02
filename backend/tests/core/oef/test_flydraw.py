@@ -1,5 +1,7 @@
 """Unit tests for the flydraw → SVG renderer."""
 
+import re
+
 import pytest
 
 from core.oef.flydraw import (
@@ -299,6 +301,55 @@ class TestInlineSvgImgs:
         html = f'<img src="{u1}"><img src="{u2}">'
         out = inline_svg_imgs(html)
         assert out.count("<svg") == 2
+
+    # Les quatre formes que le motif d'origine ratait — toutes écrites par
+    # l'exercice lui-même, pas par PAX. Un marqueur qui sort tel quel donne une
+    # image morte : la route `/api/render/svg/…` n'existe pas, le cache est en
+    # mémoire et c'est `inline_svg_imgs` seul qui le lit.
+    def test_apostrophes(self):
+        """`patron1.def` écrit `val20=<img src='$val20' alt=\'\'>`."""
+        url = flydraw_to_url(200, 200, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        out = inline_svg_imgs(f"<img src='{url}' alt=''>")
+        assert "<svg" in out and "/api/render/svg/" not in out
+
+    def test_espace_apres_le_signe_egal(self):
+        """`oefgrfctref` écrit `<img src= "…" width="160">`."""
+        url = flydraw_to_url(160, 160, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        out = inline_svg_imgs(f'<img src= "{url}" width="160" height="160" alt="">')
+        assert "<svg" in out and "/api/render/svg/" not in out
+
+    def test_blanc_dans_la_valeur(self):
+        """Une tabulation après le guillemet, et entre les attributs."""
+        url = flydraw_to_url(40, 40, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        out = inline_svg_imgs(f'<img src="\t{url}"\twidth="40"\theight="40"\talt="">')
+        assert "<svg" in out and "/api/render/svg/" not in out
+
+    def test_attribut_avant_src(self):
+        """`<img name="0" src="…" alt="0">` — `src` n'est pas le premier."""
+        url = flydraw_to_url(60, 60, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        out = inline_svg_imgs(f'<img name="0" src="{url}" alt="0">')
+        assert "<svg" in out and "/api/render/svg/" not in out
+
+
+class TestGroupInlineFiguresNeCoupePasLesBalises:
+    """Le plafond d'étiquette (80 caractères) coupe à l'espace le plus proche —
+    et une balise en contient. `patron1` s'y voyait trancher son
+    `<label class="oef-checkbox-label">`, le `<span>` ouvert au milieu, et la
+    fin de la balise sortait **en texte** sous les yeux de l'élève."""
+
+    def test_le_span_ne_s_ouvre_pas_dans_une_balise(self):
+        from core.oef.flydraw import group_inline_figures
+
+        url = flydraw_to_url(200, 200, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        html = (
+            "<li> <label class=\"oef-checkbox-label\">"
+            "<input type=\"checkbox\" class=\"oef-checkbox\" "
+            "name=\"reply1\" value=\"1\" /> "
+            f"<img src=\'{url}\' alt=\'\'></label></li>"
+        )
+        out = group_inline_figures(html)
+        assert re.search(r"<[a-zA-Z][^<>]*?<span", out) is None
+        assert out.count('<span class="pax-fig-group">') == 1
 
 
 class TestFlydrawFillDashArrow:

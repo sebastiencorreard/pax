@@ -2235,7 +2235,24 @@ def get_cached_svg(key: str) -> str | None:
     return _SVG_CACHE.get(key)
 
 
-_IMG_SVG_RE = re.compile(r'<img\s+src="/api/render/svg/(?P<key>[a-f0-9]+)"[^>]*/?>')
+# La balise que ce motif doit reconnaître est écrite **par l'exercice**, pas
+# par PAX : `patron1.def` pose `val20=<img src='$val20' alt=''>`. Elle prend
+# donc toutes les formes que le HTML autorise, et le motif d'origine —
+# `<img\s+src="…"` — en ratait quatre, mesurées sur le corpus (522 marqueurs,
+# 16 exercices) :
+#
+#   apostrophes            381   <img src='…' alt=''>
+#   attribut avant `src`    51   <img name="0" src="…" alt="0">
+#   blanc dans la valeur    51   <img src="<TAB>…"<TAB>width="40">
+#   espace après `src=`     36   <img src= "…" width="160">
+#
+# Chacune laissait sortir le marqueur tel quel — et comme la route
+# `/api/render/svg/…` **n'existe pas** (le cache est en mémoire, lu ici même),
+# l'élève voyait une image morte à la place de la figure.
+_IMG_SVG_RE = re.compile(
+    r'<img\b[^>]*?\bsrc\s*=\s*(?P<q>["\'])\s*'
+    r'/api/render/svg/(?P<key>[a-f0-9]+)\s*(?P=q)[^>]*>'
+)
 
 
 # Block-level tags that act as "wrap reset" boundaries when grouping a figure
@@ -2282,6 +2299,22 @@ def group_inline_figures(html: str) -> str:
             cap = m.start() - 80
             space = html.rfind(" ", label_start, cap)
             label_start = (space + 1) if space > label_start else cap
+            # Ce plafond coupe à l'espace, et une balise en contient : celle
+            # de `patron1` — `<label class="oef-checkbox-label">` précédée d'un
+            # `<input>` fait plus de 80 caractères — se voyait tranchée entre
+            # `<label` et `class=`, le `<span>` ouvert au milieu, et le reste
+            # de la balise sortait **en texte** sous les yeux de l'élève.
+            #
+            # On n'avance jamais que vers l'avant : `m.end()` est fixe, donc
+            # reculer jusqu'au `<` ouvrirait le `<span>` avant une balise qu'il
+            # ne refermerait pas. Sortir par la fin de la balise garde
+            # l'imbrication valide, quitte à ne coller aucune étiquette — ce
+            # qui est le cas ici, où la case à cocher *est* l'étiquette.
+            dernier_lt = html.rfind("<", 0, label_start)
+            dernier_gt = html.rfind(">", 0, label_start)
+            if dernier_lt > dernier_gt:
+                fin = html.find(">", label_start)
+                label_start = fin + 1 if 0 <= fin < m.start() else m.start()
 
         out.append(html[pos:label_start])
         out.append('<span class="pax-fig-group">')
