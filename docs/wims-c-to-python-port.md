@@ -120,6 +120,45 @@ bouge non plus), et **246, sur 14 exercices, avaient le verdict inversé** —
 treize de chimie, que la réponse de version neutralise, plus les deux
 `etagere`.
 
+#### Et dans l'arithmétique `$[…]` (corrigé aussi)
+
+La même règle vaut pour l'évaluateur, et pas seulement pour la comparaison :
+après un opérateur binaire, `_evalue` retombe sur le même `return 0`. Ce n'est
+donc pas « ignorer l'opérateur en suspens », c'est lui donner zéro à droite —
+
+| expression | WIMS | pourquoi |
+|---|---|---|
+| `2+` | 2 | `d += 0` |
+| `5-` | 5 | `d -= 0` |
+| `3*` | **0** | `d *= 0` |
+| `2^` | **1** | `pow(d, 0)` |
+| `3/` | NaN | `if(dd==0) {evalue_error=10; return NAN;}` |
+
+`moles.fr/masse2` et son jumeau néerlandais en dépendaient sans qu'on le
+sache. Leur `val7=$[rint(2+$val2)]` tire `val2` de `$confparm1`, que
+l'`introhook` du module n'initialise pas (`!formbar confparm1 from 1 to 7`,
+sans `!default` ni `!set`). L'expression devenait `rint(2+)`, la boucle
+`!for val18=1 to $val7` ne tournait pas, et les **27 réponses** de l'exercice
+sortaient sans attendu : l'élève ne pouvait pas avoir juste. Quatre
+occurrences dans tout le corpus, sur ces deux exercices.
+
+La division par zéro rend `NaN` plutôt que l'expression littérale, comme le
+faisait déjà l'argument de fonction vide : rendue telle quelle, elle passerait
+pour du texte devant un garde `!ifval NaN isin $x`.
+
+### `lines.c` — l'indexation des enregistrements (corrigé)
+
+`datafile_fnd_record` porte son contrat en commentaire : « find record n,
+**starting from 1** ». Ce qui précède le premier `:` est l'**en-tête** du
+fichier, que la fonction sert à l'indice 0 (`datacache[0]`) et que
+`datafile_recordnum` exclut du compte (`lines.c:659`, `ret=i-1`).
+
+PAX gardait cet en-tête dans sa liste d'enregistrements : l'indice 1 le
+redonnait, et les données ne commençaient qu'à 2. `OEFspectres/spectre3` y
+perdait toute sa table de spectres — `!rowcnt` tombait à 1, le `!randint 2,
+$val8-1` qui suit devenait `!randint 2, 0`, et le choix correct de l'exercice
+sortait vide. `!randrecord` avait le même biais et pouvait tirer l'en-tête.
+
 ### `var.c` — Score 5/5 ⭐
 
 **438 lignes (200 non-triviales).** Stockage bas-niveau des variables avec un

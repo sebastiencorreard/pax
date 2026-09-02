@@ -1429,6 +1429,23 @@ class DefEngine(_SlibMixin):
         # `!ifval NaN isin $x or $x=` (deve7: confparm1 unset → must fall back).
         if re.search(r"[A-Za-z_]\w*\(\s*\)", expr):
             return "NaN"
+        # 1c. Un opérande **manquant vaut zéro**, comme dans `Lib/evalue.c` :
+        # après un opérateur binaire, l'évaluateur récursif retombe sur
+        # `if(*evalue_pt==0) return 0;`. D'où `2+` = 2, `5-` = 5, `3*` = 0 et
+        # `2^` = 1 — ce n'est pas « ignorer l'opérateur », c'est lui donner
+        # zéro à droite. `/` et `%` font exception : WIMS y lève une division
+        # par zéro (`evalue_error=10`), et on laisse alors l'expression telle
+        # quelle, qui est la façon dont PAX dit « je n'ai pas su ».
+        #
+        # `moles.fr/masse2` en dépendait sans qu'on le sache : son
+        # `val7=$[rint(2+$val2)]` tire `val2` de `$confparm1`, que
+        # l'`introhook` du module n'initialise pas (`!formbar confparm1 from 1
+        # to 7`, sans `!default`). L'expression devenait `rint(2+)`, la boucle
+        # `!for val18=1 to $val7` ne tournait pas, et les **27 réponses** de
+        # l'exercice sortaient sans attendu : l'élève ne pouvait pas avoir
+        # juste. Quatre occurrences dans tout le corpus, sur deux exercices.
+        expr = re.sub(r"(?<=[-+*^])\s*(?=\)|$)", "0", expr)
+
         # 2. Replace ^ with ** for Python
         expr = expr.replace("^", "**")
         # 2b. Zéros de tête : le C les lit sans broncher, Python 3 refuse
@@ -1473,6 +1490,14 @@ class DefEngine(_SlibMixin):
             if isinstance(res, float):
                 return format_wims_float(res)
             return str(res)
+        except ZeroDivisionError:
+            # `Lib/evalue.c` — `if(dd==0) {evalue_error=10; return NAN;}`. Même
+            # raison que pour l'argument vide plus haut : rendre l'expression
+            # littérale la ferait passer pour du texte devant un garde
+            # `!ifval NaN isin $x`, alors que WIMS y voit un échec de calcul.
+            # `fonctaffin/afeg` divise par `$(val11[…])`, qui se substitue en
+            # `-` seul — donc par zéro.
+            return "NaN"
         except Exception:
             return expr  # return as-is on failure
 
@@ -3481,13 +3506,28 @@ class DefEngine(_SlibMixin):
 
     @staticmethod
     def _split_records(text: str) -> list[str]:
-        """Découpe un fichier WIMS en enregistrements séparés par \\n:.
+        """Découpe un fichier WIMS en enregistrements séparés par `\\n:`.
 
-        Chaque enregistrement inclut son nom comme première ligne
-        (sans le ':' initial), conformément au comportement de
-        datafile_fnd_record() dans WIMS calc.c.
+        Chaque enregistrement inclut son nom comme première ligne (sans le
+        `:` initial), conformément à `datafile_fnd_record` (`lines.c:666`),
+        dont le commentaire précise « find record n, **starting from 1** ».
+
+        **Ce qui précède le premier `:` n'en est pas un.** C'est l'en-tête du
+        fichier, que `datafile_fnd_record` sert à l'indice 0 (`datacache[0]`)
+        et que `_cmd_record` traite déjà à part. Le garder ici décalait tout
+        d'un rang : `!record 1` redonnait l'en-tête, et les données ne
+        commençaient qu'à 2. `OEFspectres/spectre3` y perdait sa table de
+        spectres — `!rowcnt` tombait à 1, `!randint 2, $val8-1` devenait
+        `!randint 2, 0`, et le choix correct de l'exercice sortait vide.
+
+        `datafile_recordnum` (`lines.c:659`, `ret=i-1`) l'exclut de même du
+        compte : un fichier d'en-tête plus un enregistrement en déclare **un**.
         """
         chunks = re.split(r"(?:^|\n):", text)
+        # Le premier morceau n'est un enregistrement que si le fichier ouvre
+        # directement sur un `:` — auquel cas `re.split` a produit un vide.
+        if chunks and not text.lstrip().startswith(":"):
+            chunks = chunks[1:]
         return [c.rstrip("\n") for c in chunks if c.strip()]
 
     def _cmd_record(self, args: str) -> str:

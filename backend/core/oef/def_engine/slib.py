@@ -111,7 +111,12 @@ class _SlibMixin:
             with open(full, encoding="cp1252") as f:
                 text = f.read()
 
+        # `calc_randrecord` tire parmi les enregistrements **1..n**
+        # (`calc.c:471`, `datafile_fnd_record(n, j+1, p)`) : l'en-tête du
+        # fichier, qui précède le premier `:`, n'en fait pas partie.
         chunks = re.split(r"(?:^|\n):", text)
+        if chunks and not text.lstrip().startswith(":"):
+            chunks = chunks[1:]
         records = [c.strip("\n") for c in chunks if c.strip()]
         if not records:
             return ""

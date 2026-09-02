@@ -661,6 +661,101 @@ class TestCmdRandrecord:
         e = DefEngine(seed=1, def_path=str(def_path))
         assert e._eval_cmd("randrecord", "src/missing.don") == ""
 
+    def test_l_entete_n_est_pas_un_enregistrement(self, tmp_path):
+        """Ce qui précède le premier `:` est l'en-tête du fichier, servi à
+        l'indice 0 — `calc_randrecord` tire parmi 1..n (`calc.c:471`)."""
+        mod = tmp_path / "mod"
+        (mod / "def").mkdir(parents=True)
+        (mod / "src").mkdir()
+        (mod / "src" / "d.don").write_text(
+            "\\comment{en-tête}\n:alpha\ncorps-alpha\n"
+        )
+        def_path = mod / "def" / "x.def"
+        def_path.write_text("")
+        e = DefEngine(seed=1, def_path=str(def_path))
+        for _ in range(8):
+            assert "comment" not in e._eval_cmd("randrecord", "src/d.don")
+
+
+class TestIndexationDesEnregistrements:
+    """`datafile_fnd_record` (`lines.c:666`) : « find record n, **starting from
+    1** ». Ce qui précède le premier `:` est l'en-tête, servi à l'indice 0.
+
+    PAX le gardait dans la liste : l'indice 1 le redonnait, et les données ne
+    commençaient qu'à 2. `OEFspectres/spectre3` y perdait sa table de spectres
+    — `!rowcnt` tombait à 1, `!randint 2, $val8-1` devenait `!randint 2, 0`, et
+    le choix correct de l'exercice sortait vide.
+    """
+
+    @staticmethod
+    def _module(tmp_path, contenu: str) -> DefEngine:
+        mod = tmp_path / "mod"
+        (mod / "def").mkdir(parents=True)
+        (mod / "data").write_text(contenu)
+        def_path = mod / "def" / "x.def"
+        def_path.write_text("")
+        return DefEngine(seed=1, def_path=str(def_path))
+
+    def test_avec_entete(self, tmp_path):
+        e = self._module(tmp_path, "en-tete\n:un\ncorps-un\n:deux\ncorps-deux\n")
+        assert e._eval_cmd("record", "0 of data").startswith("en-tete")
+        assert e._eval_cmd("record", "1 of data").startswith("un")
+        assert e._eval_cmd("record", "2 of data").startswith("deux")
+        assert e._eval_cmd("record", "3 of data") == ""
+        # `datafile_recordnum` (`lines.c:659`, `ret=i-1`) exclut l'en-tête.
+        assert e._eval_cmd("recordcnt", "data") == "2"
+
+    def test_sans_entete(self, tmp_path):
+        """Un fichier qui ouvre sur `:` n'a pas d'en-tête à retirer."""
+        e = self._module(tmp_path, ":un\ncorps-un\n:deux\ncorps-deux\n")
+        assert e._eval_cmd("record", "1 of data").startswith("un")
+        assert e._eval_cmd("record", "2 of data").startswith("deux")
+        assert e._eval_cmd("recordcnt", "data") == "2"
+
+    def test_un_seul_enregistrement_multiligne(self, tmp_path):
+        """Le cas d'`OEFspectres` : un en-tête, un `:`, et quatorze lignes de
+        données qui appartiennent toutes à ce seul enregistrement."""
+        e = self._module(tmp_path, "en-tete\n:Fe,fer\nHe,helium\nH,hydrogene\n")
+        rec = e._eval_cmd("record", "1 of data")
+        assert rec.startswith("Fe,fer")
+        assert "hydrogene" in rec
+        assert e._eval_cmd("recordcnt", "data") == "1"
+
+
+class TestOperandeManquant:
+    """`Lib/evalue.c` donne l'opérande manquant pour **zéro** : après un
+    opérateur binaire, l'évaluateur récursif retombe sur
+    `if(*evalue_pt==0) return 0;`.
+
+    `moles/masse2` en dépendait : son `val7=$[rint(2+$val2)]` tire `val2` de
+    `$confparm1`, que l'`introhook` du module n'initialise pas. L'expression
+    devenait `rint(2+)`, la boucle qui bâtit l'exercice ne tournait pas, et ses
+    **27 réponses** sortaient sans attendu — l'élève ne pouvait pas avoir juste.
+    """
+
+    def test_somme_et_difference(self):
+        e = DefEngine(seed=1)
+        assert e._eval_arith("2+") == "2"
+        assert e._eval_arith("5-") == "5"
+
+    def test_produit_et_puissance(self):
+        """Ce n'est pas « ignorer l'opérateur » : `3*0` fait 0, `2^0` fait 1."""
+        e = DefEngine(seed=1)
+        assert e._eval_arith("3*") == "0"
+        assert e._eval_arith("2^") == "1"
+
+    def test_dans_un_appel_et_une_parenthese(self):
+        e = DefEngine(seed=1)
+        assert e._eval_arith("rint(2+)") == "2"
+        assert e._eval_arith("(2+)*4") == "8"
+
+    def test_division_par_zero_rend_nan(self):
+        """`if(dd==0) {evalue_error=10; return NAN;}`. Rendre l'expression
+        littérale la ferait passer pour du texte devant un `!ifval NaN isin`."""
+        e = DefEngine(seed=1)
+        assert e._eval_arith("3/0") == "NaN"
+        assert e._eval_arith("-1*(-2-1)/(-)") == "NaN"
+
 
 # ── _call_pari ─────────────────────────────────────────────────────────────────
 
