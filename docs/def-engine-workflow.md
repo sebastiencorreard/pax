@@ -106,6 +106,43 @@ for n, e in failures[:5]: print(f'  FAIL {n}: {e}')
 
 **Baseline attendue** : OK ≥ 2162/2172, Fail ≤ 1 (seul `calfrac4.def` est connu en échec).
 
+### Deux vitesses, et quand employer chacune
+
+`scripts/corpus_state.py` est l'outil qui compare un avant/après **par
+valeurs** — c'est lui qui rattrape ce que les tests laissent passer. Il coûte
+cher : 12900 rendus, **7 min 19**. Le payer à chaque essai d'une mise au point
+revient à passer sa journée à attendre.
+
+Deux réglages le ramènent à la taille de la question posée :
+
+```bash
+# Itération : la portée du changement, une graine
+PAX_STATE_SEEDS=1 PAX_STATE_ONLY=H3/algebra python3 scripts/corpus_state.py /tmp/a.json
+
+# Avant de committer : tout, trois graines
+python3 scripts/corpus_state.py /tmp/apres.json
+```
+
+| portée | rendus | durée |
+|---|---|---|
+| corpus, 3 graines (défaut) | 12900 | 439 s |
+| corpus, 1 graine | 4300 | 153 s |
+| un sous-arbre, 1 graine | 604 | 30 s |
+
+**Le balayage complet reste la porte de sortie**, pas une formalité : sur une
+seule session il a rattrapé trois régressions déjà écrites — 261 palettes
+vidées quand les radios sont passés en ligne, 132 réponses disparues quand la
+comparaison numérique a changé, huit choix perdus quand l'inline a été refusé
+à tort. Aucune n'apparaissait dans `pytest`.
+
+La même économie vaut pour les **sondes** exploratoires : filtrer la liste des
+`.def` par un `grep` avant de rendre. Chercher 68 fractions en rendant 12900
+exercices coûte 7 minutes ; les chercher dans les fichiers qui contiennent
+`frac` en coûte quelques dizaines de secondes.
+
+Attention au `grep` sur les `.def` : ils sont en ISO-8859 et `grep` les traite
+en binaire, sans rien dire. `grep -a` les lit.
+
 ## Étape 6 — Tests
 
 ```bash

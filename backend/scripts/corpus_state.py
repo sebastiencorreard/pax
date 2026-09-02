@@ -35,6 +35,23 @@ from core.oef.def_engine import load_and_render  # noqa: E402
 SEEDS = (42, 1135432845, 586627288)
 ROOT = "/ressources"
 
+# Deux réglages pour la **phase d'itération**, où l'on refait la mesure à
+# chaque essai. Le balayage complet coûte 7 min 19 ; il reste la référence
+# avant de committer, mais tant qu'on cherche, une graine et le sous-arbre
+# touché suffisent à voir bouger ce qu'on vient de changer.
+#
+#   PAX_STATE_SEEDS=1              une seule graine (≈ 3× plus rapide)
+#   PAX_STATE_ONLY=H4/chemistry    ne rend que ce préfixe
+#
+# Les deux se lisent dans l'environnement plutôt qu'en option de ligne de
+# commande : `corpus_state.py` prend déjà ses fichiers en arguments
+# positionnels, et une comparaison doit pouvoir se relire sans rejouer le
+# réglage qui l'a produite.
+_n = os.environ.get("PAX_STATE_SEEDS")
+if _n:
+    SEEDS = SEEDS[: max(1, min(len(SEEDS), int(_n)))]
+_ONLY = os.environ.get("PAX_STATE_ONLY", "")
+
 
 def _structure(segments) -> tuple[str, str]:
     """(segments par type, verdict d'appariement) d'un rendu.
@@ -67,10 +84,12 @@ def _structure(segments) -> tuple[str, str]:
 def capture() -> dict:
     state: dict[str, dict] = {}
     for path in sorted(glob.glob(f"{ROOT}/**/*.def", recursive=True)):
+        rel = path.split("ressources/")[-1]
+        if _ONLY and not rel.startswith(_ONLY):
+            continue
         with open(path, "rb") as f:
             if b":question" not in f.read():
                 continue
-        rel = path.split("ressources/")[-1]
         for seed in SEEDS:
             try:
                 r = load_and_render(path, seed=seed)
@@ -213,7 +232,8 @@ def main() -> int:
         vides = sum(1 for v in state.values() if v.get("vide"))
         bancals = sum(1 for v in state.values()
                       if v.get("groupes") not in (None, "équilibré"))
-        print(f"capturé {len(state)} rendus ({len(SEEDS)} graines) "
+        portee = f" | portée {_ONLY}" if _ONLY else ""
+        print(f"capturé {len(state)} rendus ({len(SEEDS)} graines){portee} "
               f"| erreurs {erreurs} | énoncés vides {vides} "
               f"| groupes déséquilibrés {bancals} -> {sys.argv[1]}")
         return 0
