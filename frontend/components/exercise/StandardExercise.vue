@@ -310,7 +310,12 @@ async function submit() {
     const answerTypes = Object.fromEntries(
       props.rendered.answers.map(a => [a.input_name, a.answer_type] as [string, string])
     )
-    feedbackHtml.value = await buildFeedbackHtml(checkResult.value, answerTypes)
+    const inlineChoices = Object.fromEntries(
+      props.rendered.answers
+        .filter(a => a.answer_type === 'radio' && a.options?.inline && a.options?.choices?.length)
+        .map(a => [a.input_name, a.options.choices as string[]]),
+    )
+    feedbackHtml.value = await buildFeedbackHtml(checkResult.value, answerTypes, inlineChoices)
 
     if (checkResult.value.feedback_html) {
       checkResult.value.feedback_html = await renderMath(checkResult.value.feedback_html, { autoDisplay: true })

@@ -163,7 +163,14 @@ function riClass(seg: { name: string; value: string }): string {
 
 <style scoped>
 .pax-radio-inline {
-  display: flex;
+  /* `inline-flex`, pas `flex` : ces choix sont posés **dans** l'énoncé par
+     l'auteur, et un conteneur block prendrait toute la largeur. `OEFcone`
+     fait suivre chaque choix de « : » et de sa figure — en block, le « : »
+     et le dessin partaient à la ligne suivante, seuls contre la marge.
+     Ceux qui vivent déjà dans leur propre `<li>` (couf, fcou) sont
+     inchangés : c'est le `<li>` qui les met l'un sous l'autre. */
+  display: inline-flex;
+  vertical-align: middle;
   align-items: center;
   gap: 0.6rem;
   padding: 0.4rem 0.8rem;

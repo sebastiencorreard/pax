@@ -126,3 +126,50 @@ class TestVariableDeBoucleDansLIndex:
         e = self._moteur("1;alpha,beta")
         out = e._render_embed(r"r1,\inconnue")
         assert out.count('type="checkbox"') == 2
+
+
+class TestRadioPoseParLAuteur:
+    """`\\embed{reply{n},POS}` sans contenu : l'auteur place le choix lui-même.
+
+    PAX le renvoyait dans la grille du bas dès que la palette portait du texte,
+    et laissait sur place ce qui l'accompagnait. `OEFcone/patron00` fait suivre
+    chaque choix de « : » et de sa figure : le « : » restait orphelin, la figure
+    sans étiquette, et le « : » de l'énoncé se doublait de celui du premier
+    choix escamoté.
+    """
+
+    @staticmethod
+    def _moteur(good: str) -> DefEngine:
+        e = engine()
+        e.ctx["replytype1"] = "radio"
+        e.ctx["replygood1"] = good
+        return e
+
+    def test_le_choix_se_pose_sur_place_avec_son_libelle(self):
+        e = self._moteur("1;un secteur angulaire,un triangle")
+        out = e._render_embed("r1,2")
+        assert 'class="oef-radio-inline"' in out
+        assert 'data-value="2"' in out
+        assert "un triangle" in out
+
+    def test_palette_numerique_garde_son_etiquette_vide(self):
+        """`chgrhyper` : les choix *sont* les positions, la figure d'à côté
+        porte déjà le numéro — un libellé « 2 » ferait doublon."""
+        e = self._moteur("2;1,2,3,4")
+        out = e._render_embed("r1,2")
+        assert 'class="oef-radio-inline"' in out
+        assert 'data-content=""' in out
+
+    def test_un_second_argument_qui_n_est_pas_un_rang_reste_differe(self):
+        """`ecrdecimal` écrit `reply \\h,\\s`, où le second argument est une
+        taille : le radio doit rester dans la grille du bas."""
+        e = self._moteur("1;alpha,beta")
+        assert e._render_embed("r1,30") == ""
+        assert e._render_embed("r1") == ""
+
+    def test_le_libelle_ferme_son_math_en_ligne(self):
+        r"""Un libellé peut porter du `\(…)` à la mode WIMS, que KaTeX ne lit
+        pas tant qu'il n'est pas refermé."""
+        e = self._moteur(r"1;0 \(\le \) \(x^{2}\) < 16,autre")
+        out = e._render_embed("r1,1")
+        assert out.count(r"\(") == out.count(r"\)")

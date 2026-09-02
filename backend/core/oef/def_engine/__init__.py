@@ -4673,9 +4673,28 @@ class DefEngine(_SlibMixin):
                 inline = bool(pos) and bool(content)
                 if pos and not content:
                     choices = self._inline_radio_choices(n)
-                    inline = bool(choices) and pos in choices and choices == [
-                        str(i) for i in range(1, len(choices) + 1)
-                    ]
+                    # `reply{n},POS` sans contenu : c'est encore l'auteur qui
+                    # place le choix, il en laisse simplement le texte à la
+                    # palette. On le reprend de là — `OEFcone/patron00` fait
+                    # suivre chaque choix de sa figure (`… : <dessin>`), et
+                    # renvoyer le choix dans le bloc du bas laissait la figure
+                    # sans étiquette et le « : » orphelin, deux fois de suite.
+                    #
+                    # La palette purement numérique (`chgrhyper`, où les choix
+                    # *sont* les positions) garde son étiquette vide : le
+                    # numéro est déjà porté par la figure d'à côté.
+                    if pos.isdigit() and 1 <= int(pos) <= len(choices):
+                        inline = True
+                        numerique = choices == [
+                            str(i) for i in range(1, len(choices) + 1)
+                        ]
+                        if not numerique:
+                            # Le libellé peut porter du `\(…)` à la mode WIMS,
+                            # que KaTeX ne lit pas tant qu'il n'est pas refermé —
+                            # la branche classée le fait pour sa palette, il faut
+                            # le faire ici aussi. Sans quoi `oefresolalg/synth1deg`
+                            # sortait treize `\(` ouvrants pour cinq fermants.
+                            content = _close_inline_math(choices[int(pos) - 1], self.lang)
                 if inline:
                     import html as _h  # noqa: PLC0415
                     self._inline_radio = getattr(self, "_inline_radio", set())
@@ -5539,6 +5558,20 @@ class DefEngine(_SlibMixin):
                 # one is the part before ";" in replygood (e.g. "3;2,3,1,4").
                 options["inline"] = True
                 expected = good_raw.split(";", 1)[0].strip() if ";" in good_raw else good_raw.strip()
+                # La palette est posée dans l'énoncé, mais on la garde ici : le
+                # corrigé en a besoin pour nommer le choix. Sans elle il annonce
+                # « la bonne réponse est 1 » — un rang nu, là où le radio classé
+                # dit « Oui, 5 est solution de l'équation ». C'est
+                # `options["inline"]` qui empêche le front de dresser la grille,
+                # pas une palette vide (cf. `StandardExercise.hasRadioAnswers`).
+                if ";" in good_raw:
+                    palette = [
+                        _close_inline_math(c.strip(), self.lang)
+                        for c in good_raw.split(";", 1)[1].split(",")
+                        if c.strip()
+                    ]
+                    if palette:
+                        options["choices"] = palette
 
             elif ans_type == "radio":
                 choices: list[str] = []

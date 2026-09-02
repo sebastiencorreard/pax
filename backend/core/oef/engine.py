@@ -279,6 +279,11 @@ _IMAGEFILL_BLOCK = re.compile(
 )
 
 
+_FIG_GROUP_BLOCK = re.compile(
+    r'<span class="pax-fig-group">.*?</span>', re.S
+)
+
+
 def _unsplittable_ranges(html: str) -> list[tuple[int, int]]:
     """Zones dont les widgets ne doivent pas découper le HTML en segments.
 
@@ -287,10 +292,22 @@ def _unsplittable_ranges(html: str) -> list[tuple[int, int]]:
     valent que par leur position absolue dans le conteneur, qu'un découpage
     ferait perdre. Dans les deux cas le HTML reste d'un bloc et le front lie les
     widgets par délégation d'événements.
+
+    Un `pax-fig-group` s'y ajoute pour la même raison : il n'existe **que** pour
+    son `white-space: nowrap`, qui colle une étiquette à sa figure. Extraire un
+    widget d'entre ses balises laisse le `<span>` ouvrant dans un segment et son
+    `</span>` dans le suivant : le groupe n'existe plus, et le `nowrap` non
+    plus. `OEFcone/patron00` fait suivre chaque choix de « : » et de son
+    dessin — la ligne se coupait entre les deux, laissant le « : » seul contre
+    la marge suivante.
+
+    Sur 1046 groupes du corpus, onze seulement contiennent un widget (neuf
+    `mark`, déjà hydratés à part, et les deux radios de `patron00`) : la zone
+    est donc large mais son effet, minuscule.
     """
     return _table_ranges(html) + [
         m.span() for m in _IMAGEFILL_BLOCK.finditer(html)
-    ]
+    ] + [m.span() for m in _FIG_GROUP_BLOCK.finditer(html)]
 
 
 def _widget_attrs(tag: str) -> dict:

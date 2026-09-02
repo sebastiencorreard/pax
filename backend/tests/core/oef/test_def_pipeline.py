@@ -1153,18 +1153,27 @@ class TestVocabaff3:
     def test_radio_answer_parsed_from_indexed_form(self):
         # `replygood1=<idx>;<choice1>,<choice2>,…` — extract the choices
         # and the 1-based correct index.
+        #
+        # L'énoncé pose lui-même ses quatre choix (`!read oef/embed.phtml
+        # reply1,1`…`,4`), donc le radio est **inline** : l'élève répond par un
+        # rang, et `expected` est ce rang — pas le libellé. C'est le contrat de
+        # `couf` et `chgrhyper` de longue date ; il vaut pour tout radio que
+        # l'auteur place. La palette reste jointe, pour que le corrigé puisse
+        # nommer le choix (`buildFeedbackHtml`, côté front).
         r = load_and_render(VOCABAFF3_DEF, seed=42)
         ans = r.answers[0]
         assert ans.answer_type == "radio"
+        assert ans.options.get("inline") is True
         choices = ans.options.get("choices", [])
         assert len(choices) == 4
-        # Correct answer matches one of the four choices.
-        assert ans.expected in choices
+        # Le rang attendu désigne bien l'un des quatre choix.
+        assert ans.expected.isdigit()
+        assert 1 <= int(ans.expected) <= len(choices)
 
     def test_no_text_input_emitted_for_radio_embeds(self):
         # `!read oef/embed.phtml reply1,N` for a radio reply must NOT
-        # produce <input>/<span> text widgets — the frontend renders the
-        # choices from options.choices instead.
+        # produce <input>/<span> text widgets — the choices are laid out in
+        # the statement as `radio-inline` segments.
         r = load_and_render(VOCABAFF3_DEF, seed=42)
         input_segments = [s for s in r.statement_segments if s["type"] == "input"]
         assert input_segments == []

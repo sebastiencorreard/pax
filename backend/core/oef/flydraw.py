@@ -2264,6 +2264,34 @@ _FIG_BOUNDARY_RE = re.compile(
 )
 
 
+_VIDES = frozenset(
+    "area base br col embed hr img input link meta param source track wbr".split()
+)
+_BALISE_RE = re.compile(r"<(/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*?(/?)>")
+
+
+def _balises_equilibrees(fragment: str) -> bool:
+    """Tout ce que `fragment` ouvre s'y referme-t-il ?
+
+    Sert à décider si `group_inline_figures` peut reculer son `<span>` jusqu'à
+    une balise : envelopper un fragment déséquilibré produirait du HTML mal
+    imbriqué. Les éléments vides (`<img>`, `<br>`, `<input>`…) et les balises
+    auto-fermantes ne comptent pas.
+    """
+    profondeur = 0
+    for m in _BALISE_RE.finditer(fragment):
+        fermante, nom, auto = m.group(1), m.group(2).lower(), m.group(3)
+        if nom in _VIDES or auto:
+            continue
+        if fermante:
+            profondeur -= 1
+            if profondeur < 0:
+                return False
+        else:
+            profondeur += 1
+    return profondeur == 0
+
+
 def group_inline_figures(html: str) -> str:
     """Wrap each flydraw figure placeholder with its preceding label text
     in a ``<span class="pax-fig-group">``.
@@ -2305,16 +2333,25 @@ def group_inline_figures(html: str) -> str:
             # `<label` et `class=`, le `<span>` ouvert au milieu, et le reste
             # de la balise sortait **en texte** sous les yeux de l'élève.
             #
-            # On n'avance jamais que vers l'avant : `m.end()` est fixe, donc
-            # reculer jusqu'au `<` ouvrirait le `<span>` avant une balise qu'il
-            # ne refermerait pas. Sortir par la fin de la balise garde
-            # l'imbrication valide, quitte à ne coller aucune étiquette — ce
-            # qui est le cas ici, où la case à cocher *est* l'étiquette.
+            # Quand la coupe tombe dans du balisage, on recule jusqu'au début
+            # de la balise : c'est la seule bordure propre à portée. Sortir par
+            # sa **fin** atterrirait *dans* l'élément, et
+            # `<span class="oef-radio-inline" …></span>` — que le découpage en
+            # segments reconnaît à son `></span>` collé — s'en trouvait
+            # éventré, donc plus rendu du tout.
+            #
+            # Reculer n'est sûr que si tout ce qu'on enveloppe s'y referme :
+            # sinon le `<span>` ouvrirait avant une balise que `m.end()` ne
+            # refermerait pas. À défaut, on n'enveloppe que la figure — il n'y
+            # a alors pas d'étiquette à coller, et c'est sans conséquence.
             dernier_lt = html.rfind("<", 0, label_start)
             dernier_gt = html.rfind(">", 0, label_start)
             if dernier_lt > dernier_gt:
-                fin = html.find(">", label_start)
-                label_start = fin + 1 if 0 <= fin < m.start() else m.start()
+                recule = dernier_lt
+                label_start = (
+                    recule if _balises_equilibrees(html[recule:m.end()])
+                    else m.start()
+                )
 
         out.append(html[pos:label_start])
         out.append('<span class="pax-fig-group">')

@@ -468,3 +468,61 @@ class TestFlydrawCopy:
         assert 'href="data:image/png;base64,' in svg
         assert float(m.group(2)) == 0.0  # projected to the top, not y=160
         assert (m.group(3), m.group(4)) == ("256", "160")
+
+
+class TestGroupInlineFiguresRecule:
+    """Quand le plafond d'étiquette coupe dans une balise, on recule jusqu'à
+    son début — mais seulement si tout s'y referme."""
+
+    def test_le_groupe_englobe_le_widget_entier(self):
+        """`OEFcone/patron00` : `<span class="oef-radio-inline" …></span> : <img>`
+        doit tenir d'un bloc, sinon la ligne se coupe entre le choix et sa
+        figure et le « : » reste seul contre la marge."""
+        from core.oef.flydraw import group_inline_figures
+
+        url = flydraw_to_url(100, 100, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        radio = (
+            '<span class="oef-radio-inline" name="reply1" data-value="1" '
+            'data-content="un secteur angulaire tres tres long pour depasser le plafond">'
+            "</span>"
+        )
+        out = group_inline_figures(f"prefixe {radio} :  <img src='{url}' alt=''>")
+        assert re.search(r"<[a-zA-Z][^<>]*?<span", out) is None
+        # Le groupe s'ouvre avant le widget, pas au milieu de ses attributs.
+        assert '<span class="pax-fig-group"><span class="oef-radio-inline"' in out
+
+    def test_repli_sur_la_figure_seule_si_le_recul_desequilibre(self):
+        """Reculer jusqu'au `<` d'une balise **ouvrante** dont la fermeture est
+        hors de portée produirait du HTML mal imbriqué : on n'enveloppe alors
+        que la figure."""
+        from core.oef.flydraw import group_inline_figures
+
+        url = flydraw_to_url(100, 100, "range 0,1,0,1\nsegment 0,0,1,1,red")
+        # `<div …>` ouvre sans se refermer avant la figure.
+        html = (
+            "<p>du texte</p><div class='"
+            + "x" * 90
+            + f"'><img src='{url}' alt=''>"
+        )
+        out = group_inline_figures(html)
+        assert re.search(r"<[a-zA-Z][^<>]*?<span", out) is None
+        assert '<span class="pax-fig-group"><img' in out
+
+
+class TestBalisesEquilibrees:
+    def test_equilibre(self):
+        from core.oef.flydraw import _balises_equilibrees
+
+        assert _balises_equilibrees("<span>a</span>")
+        assert _balises_equilibrees("<span>a</span> <b>c</b>")
+        # Les éléments vides ne comptent pas.
+        assert _balises_equilibrees("<img src='x'> <br> <input value='1'>")
+        # Ni les balises auto-fermantes.
+        assert _balises_equilibrees("<span/>")
+
+    def test_desequilibre(self):
+        from core.oef.flydraw import _balises_equilibrees
+
+        assert not _balises_equilibrees("<div>a")
+        assert not _balises_equilibrees("a</div>")
+        assert not _balises_equilibrees("</span><span>")

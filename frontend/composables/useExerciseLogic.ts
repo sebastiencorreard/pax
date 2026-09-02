@@ -340,14 +340,30 @@ export function useExerciseLogic() {
   async function buildFeedbackHtml(
     checkResult: CheckResult | null,
     answerTypes?: Record<string, string>,
+    // Palettes des radios *inline* : leur réponse est un **rang**, pas un
+    // libellé. Sans cette table, le corrigé annonce « votre réponse 2, la
+    // bonne réponse est 1 » là où le radio classé nomme le choix.
+    inlineChoices?: Record<string, string[]>,
   ): Promise<Record<string, { reply: string, expected: string }>> {
     if (!checkResult) return {}
+    // Traduction d'affichage seulement : `r.expected` garde son rang, car
+    // c'est lui que la surbrillance compare au `value` de chaque bouton
+    // (cf. BaseExerciseStatement, `.oef-radio`). Un rang hors palette — ou une
+    // palette de figures, que `chgrhyper` laisse vide — reste tel quel.
+    const libelle = (name: string, valeur: string) => {
+      const palette = inlineChoices?.[name]
+      if (!palette?.length) return valeur
+      const rang = Number((valeur ?? '').trim())
+      return Number.isInteger(rang) && rang >= 1 && rang <= palette.length
+        ? palette[rang - 1]
+        : valeur
+    }
     const result: Record<string, { reply: string, expected: string }> = {}
     for (const r of checkResult.results) {
       const t = answerTypes?.[r.input_name]
       result[r.input_name] = {
-        reply: await renderValue(r.reply, t),
-        expected: await renderValue(r.expected, t),
+        reply: await renderValue(libelle(r.input_name, r.reply), t),
+        expected: await renderValue(libelle(r.input_name, r.expected), t),
       }
     }
     return result
