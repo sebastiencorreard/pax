@@ -179,4 +179,11 @@ Et tout ce qui n'est pas une couleur littérale (`none`, `currentColor`,
 - **L'auth est nulle**. Si un futur besoin de protéger l'accès (par classe, par rôle), remplacer le `StaticFiles` par une route FastAPI avec auth + lecture fichier manuelle.
 - **Pas de hot-reload SVG**. Si un fichier SVG est modifié sur disque, le navigateur peut servir une version cachée (busting via query string si besoin).
 - **Pas de support pour les images servies par WIMS lui-même**. Les exercices qui référenceraient `https://wims.unice.fr/wims/gifs/...` ne sont pas réécrits — le navigateur tenterait une requête HTTP externe.
-- **L'adaptation au thème ne vaut que pour les SVG.** Une image matricielle (PNG, GIF) garde ses couleurs : on ne sait pas y distinguer un trait d'un aplat. Les photos et schémas scannés des modules restent donc tels quels, ce qui est le bon comportement pour une photo et discutable pour un schéma au trait.
+- **L'adaptation au thème ne vaut que pour les SVG, et c'est délibéré.** Une
+  image matricielle (PNG, GIF) garde ses couleurs : on ne sait pas y distinguer
+  un trait d'un aplat, donc pas inverser l'un sans abîmer l'autre. La question
+  a été tranchée le 2026-09-02 — **on les laisse telles quelles, quel que soit
+  le thème**. C'est le bon comportement pour une photo, et le moins mauvais
+  pour un schéma au trait scanné : un schéma un peu clair sur fond sombre reste
+  lisible, là où une photo aux couleurs inversées ne l'est plus du tout.
+  Ce n'est donc plus une dette ouverte.
