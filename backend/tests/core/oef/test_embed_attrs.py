@@ -173,3 +173,71 @@ class TestRadioPoseParLAuteur:
         e = self._moteur(r"1;0 \(\le \) \(x^{2}\) < 16,autre")
         out = e._render_embed("r1,1")
         assert out.count(r"\(") == out.count(r"\)")
+
+
+class TestSecondArgumentAbsent:
+    """`!read oef/embed.phtml reply1`, sans second argument.
+
+    `size_str` vaut `"10"` par défaut, et les branches qui y lisent un rang
+    (`checkbox`, `mark`) ne savaient pas distinguer ce défaut d'un index voulu.
+    `oefarith/Critere4` a douze propositions : `10` tombant dans `1..12`, la
+    garde d'intervalle ne voyait rien et une seule case s'affichait.
+    """
+
+    @staticmethod
+    def _moteur(t: str, good: str) -> DefEngine:
+        e = engine()
+        e.ctx["replytype1"] = t
+        e.ctx["replygood1"] = good
+        return e
+
+    def test_checkbox_sans_index_rend_toute_la_palette(self):
+        e = self._moteur("checkbox", "2,4;" + ",".join(f"p{i}" for i in range(1, 13)))
+        out = e._render_embed("reply1")
+        assert out.count('type="checkbox"') == 12
+
+    def test_checkbox_avec_index_rend_une_case(self):
+        e = self._moteur("checkbox", "2,4;" + ",".join(f"p{i}" for i in range(1, 13)))
+        out = e._render_embed("reply1,10")
+        assert out.count('type="checkbox"') == 1
+        assert 'value="10"' in out
+
+
+class TestPaletteEtVariableDeBoucle:
+    """Deux défauts que le détecteur d'« bonne réponse non affichée » a sortis."""
+
+    @staticmethod
+    def _radio(good: str) -> DefEngine:
+        e = engine()
+        e.ctx["replytype1"] = "radio"
+        e.ctx["replygood1"] = good
+        return e
+
+    def test_la_branche_radio_lit_l_index_resolu(self):
+        """Elle relisait `parts[1]`, non résolu, au lieu de `size_str`.
+        `oeffonctgen/qcmensdef` boucle `!for m_t=2 to 4` sur `reply 1,\\t` :
+        trois choix sur quatre s'évanouissaient, dont le bon."""
+        e = self._radio("2;a,b,c,d")
+        e.ctx["m_t"] = "3"
+        out = e._render_embed(r"reply 1,\t")
+        assert 'data-value="3"' in out
+        assert 'data-content="c"' in out
+
+    def test_une_virgule_dans_le_math_ne_coupe_pas_la_palette(self):
+        r"""`qcmensdef` propose des intervalles — `\(\rbrack -\infty,3 \lbrack\)` —
+        qu'un `split(",")` cassait en morceaux au math déséquilibré."""
+        e = self._radio(r"1;\(\rbrack -\infty,3 \lbrack\),\(\mathbb{R}\)")
+        assert e._inline_radio_choices("1") == [
+            r"\(\rbrack -\infty,3 \lbrack\)",
+            r"\(\mathbb{R}\)",
+        ]
+
+    def test_un_attendu_par_analyse_n_est_pas_ecrase(self):
+        """`replygood1=?analyze 114;…` : la notation passe par l'analyse, qui a
+        déjà résolu l'attendu. L'écraser par « ?analyze 114 » donnait une bonne
+        réponse que rien ne peut satisfaire — et refuser d'inliner pour autant
+        faisait disparaître les huit choix posés par l'auteur."""
+        e = self._radio("?analyze 114;a,b,c")
+        out = e._render_embed("reply1,2")
+        assert 'class="oef-radio-inline"' in out
+        assert 'data-value="2"' in out

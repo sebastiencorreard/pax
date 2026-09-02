@@ -3863,7 +3863,12 @@ class DefEngine(_SlibMixin):
         if ";" not in raw:
             return []
         after = raw.split(";", 1)[1].strip()
-        return [c.strip() for c in after.split(",") if c.strip()]
+        # Découpage prudent : une virgule **dans** un `\(…\)` n'en sépare pas
+        # deux choix. `oeffonctgen/qcmensdef` propose des intervalles —
+        # `\(\rbrack -\infty , 3 \lbrack \cup \rbrack 3 , +\infty \lbrack\)` —
+        # qu'un `split(",")` cassait en trois morceaux, dont deux au math
+        # déséquilibré. C'est le même découpage que la branche `checkbox`.
+        return [c.strip() for c in re.split(r",(?![^(]*\))", after) if c.strip()]
 
     def _apply_prev_replies(self) -> None:
         """Set `$m_reply{n}` / `$m_sc_reply{n}` (and `$reply{n}` / `$sc_reply{n}`)
@@ -4580,6 +4585,13 @@ class DefEngine(_SlibMixin):
         parts = [p.strip() for p in args.split(",")]
         ref = parts[0] if parts else "reply1"
         size_str = parts[1] if len(parts) > 1 else "10"
+        # A-t-on **écrit** un second argument ? `size_str` vaut `"10"` par
+        # défaut, et les branches qui y lisent un rang (checkbox, mark) ne
+        # savaient pas distinguer ce défaut d'un index voulu. `oefarith/Critere4`
+        # écrit `!read oef/embed.phtml reply1`, sans rien : sa palette de douze
+        # propositions se réduisait à la seule dixième — 10 tombant dans
+        # `1..12`, la garde d'intervalle ne le voyait pas.
+        index_donne = len(parts) > 1
 
         # Le **second** argument porte lui aussi des variables de boucle. Le
         # `.def` compilé garde la forme OEF `\j` là où l'exécution pose `m_j` :
@@ -4664,11 +4676,17 @@ class DefEngine(_SlibMixin):
                 #  - chgrhyper: `reply 1,1`..`reply 1,4` with NO content, where
                 #    the choices are the bare position numbers `1,2,3,4` and each
                 #    radio sits in a table next to its graph → inline, empty label.
-                # A 2nd arg that is a *size* (ecrdecimal `reply \h,\s`) or any
-                # reply whose choices carry their own text (vocabaff3) must stay
-                # a plain deferred radio — so only treat the bare-position case as
-                # inline when the choice list is exactly the sequence 1..N.
-                pos = parts[1].strip() if len(parts) >= 2 else ""
+                # (`ecrdecimal` a longtemps figuré ici comme contre-exemple,
+                # son `reply \h,\s` passant pour une *taille*. Mesuré : `\s`
+                # y vaut 1, 2, 3, 4 — c'est un rang, posé par un `!for`, comme
+                # partout ailleurs.)
+                # `size_str`, pas `parts[1]` : c'est lui qui porte la variable
+                # de boucle résolue. `oeffonctgen/qcmensdef` écrit
+                # `!read oef/embed.phtml reply 1,\t` dans un `!for m_t=2 to 4`,
+                # et à relire `parts[1]` la branche voyait encore `\t` — donc
+                # pas de rang, donc rien d'affiché : trois choix sur quatre
+                # manquaient, dont le bon.
+                pos = size_str.strip() if index_donne else ""
                 content = ",".join(parts[2:]).strip() if len(parts) > 2 else ""
                 inline = bool(pos) and bool(content)
                 if pos and not content:
@@ -4746,7 +4764,7 @@ class DefEngine(_SlibMixin):
                     col = int(float(size_resolved))
                 except (ValueError, TypeError):
                     col = None
-                if col is not None and choices and 1 <= col <= len(choices):
+                if index_donne and col is not None and choices and 1 <= col <= len(choices):
                     return _mark_span(col)
                 if choices:
                     return " ".join(_mark_span(i + 1) for i in range(len(choices)))
@@ -4788,7 +4806,7 @@ class DefEngine(_SlibMixin):
                 # expands to the whole proposition list, as WIMS does by default.
                 idx_m = re.match(r"-?\d+", self._subst(size_str).strip())
                 idx = int(idx_m.group()) if idx_m else None
-                if idx is not None and labels and 1 <= idx <= len(labels):
+                if index_donne and idx is not None and labels and 1 <= idx <= len(labels):
                     return _box(idx, labels[idx - 1])
                 if labels:
                     return ", ".join(_box(i + 1, lbl) for i, lbl in enumerate(labels))
@@ -5557,7 +5575,16 @@ class DefEngine(_SlibMixin):
                 # choices; the reply is the selected position and the correct
                 # one is the part before ";" in replygood (e.g. "3;2,3,1,4").
                 options["inline"] = True
-                expected = good_raw.split(";", 1)[0].strip() if ";" in good_raw else good_raw.strip()
+                # Le rang correct est ce qui précède le `;` — **quand c'en est
+                # un**. `OEFevalwimsgrph/ineqalghyper1` écrit
+                # `replygood1=?analyze 114;$val111` : la notation passe par
+                # l'analyse, qui a déjà résolu `expected` plus haut. L'écraser
+                # par « ?analyze 114 » donnait un attendu que rien ne peut
+                # satisfaire, et refuser d'inliner pour autant faisait
+                # disparaître les huit choix que l'auteur avait posés.
+                rang = good_raw.split(";", 1)[0].strip() if ";" in good_raw else good_raw.strip()
+                if rang.isdigit():
+                    expected = rang
                 # La palette est posée dans l'énoncé, mais on la garde ici : le
                 # corrigé en a besoin pour nommer le choix. Sans elle il annonce
                 # « la bonne réponse est 1 » — un rang nu, là où le radio classé
