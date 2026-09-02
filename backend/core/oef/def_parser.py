@@ -488,7 +488,7 @@ def _parse_instructions(lines: list[str], start: int) -> tuple[list, int]:
                 # trimmed — otherwise e.g. `val40=$(tmp0)\t` leaks a tab into the
                 # value, breaking a draw <img src="…/hash\t"> (oefcalittaire1).
                 raw_eq = raw.index("=")
-                value = raw[raw_eq + 1 :].rstrip()
+                value = raw[raw_eq + 1 :].rstrip().lstrip(" \t")
                 instructions.append(Assign(name=name, value=value))
                 i += 1
                 continue

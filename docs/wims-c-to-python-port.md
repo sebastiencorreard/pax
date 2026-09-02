@@ -131,6 +131,40 @@ Ce qu'on a déjà porté : tout le flux de contrôle. **Ce qui reste :**
 - Le compteur `executed_gotos` (on l'a, mais la limite pourrait différer)
 - Les `!read` complexes avec paramètres multi-niveaux
 
+#### `exec_set` — l'espace de tête d'une valeur (corrigé)
+
+`exec.c:1028` traite toute ligne `nom=valeur` d'un `.def` ou d'un `var.proc` :
+
+```c
+p=strchr(name,'=');
+*p=0; defn=find_word_start(p+1);   /* ← rogne les blancs de tête */
+```
+
+`find_word_start` saute tous les `isspace` — espaces **et tabulations**. Une
+ligne `val2= 1` pose donc `1` chez WIMS, pas ` 1`.
+
+PAX préservait ce blanc, volontairement (« some lists use a TAB separator »).
+La source C dit l'inverse, et le corpus lui donne raison : 2 664 affectations
+dans 619 `.def` commencent par un blanc, et le garder produisait —
+
+- des **doublons de menu** : `oefprop/tabprop2` proposait `' oui'` *et* `'oui'`,
+  quatre choix au lieu de trois ;
+- des **images cassées** : `<img src="pax-img:_/ activites.jpg">`, que
+  `inline_pax_images` ne pouvait pas résoudre ;
+- des **figures absentes** : six exercices de `droiteplanrep.fr` retombaient
+  sur `val2= 1`, et le `!if $val2=1` qui suit échouait — pas de graphique ;
+- des **attendus** avec un blanc de tête (`' 8'`, `' oui'`).
+
+Attention au point de rognage : c'est bien **l'affectation** qui rogne, pas la
+comparaison. `compare.c:136-142` rogne les opérandes *avant* `substitute()`,
+donc sur le texte source (`$val2`), jamais sur la valeur substituée. Corriger
+`!if` au lieu de l'affectation aurait manqué la cible.
+
+Mesure du correctif : 348 valeurs changent, 0 disparue, 0 vidée, 0 perte
+structurelle ; sur 91 snapshots touchés, 83 ne diffèrent que par des blancs et
+les 8 autres sont des gains (les six figures, l'image résolue, un double espace
+réduit).
+
 ### `calc.c` — Score 2/5
 
 **2 467 lignes, ~1 600 non-triviales.** C'est le fichier le plus complexe.
