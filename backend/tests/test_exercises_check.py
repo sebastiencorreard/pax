@@ -95,6 +95,14 @@ def _candidats(ans):
         coords = draw_display_answer(brut)
         if coords:
             yield coords
+    # `jsxgraphobjet` range dans l'attendu la figure entière — l'objet demandé,
+    # puis les leurres qu'il faut rendre cliquables (`hypo;cat1|cat2`). L'élève
+    # ne clique que le premier.
+    if ans.answer_type == "jsxgraphobjet":
+        from core.answer.checkers import jsxgraphobjet_display_answer  # noqa: PLC0415
+        objet = jsxgraphobjet_display_answer(brut)
+        if objet:
+            yield objet
     # `jsxgraphcurve` attend une **figure**, décrite après le `;` par sa forme
     # et ses coordonnées (`sline,250,250,389,501`). L'attendu porte l'image en
     # tête ; ce sont les coordonnées seules que l'élève produit en traçant.

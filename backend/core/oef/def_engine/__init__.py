@@ -273,6 +273,31 @@ def _split_range_spec(idx_s: str) -> tuple[str, str] | None:
     return None
 
 
+_JS_IDENT = re.compile(r"[A-Za-z_$][A-Za-z_0-9$]*")
+
+
+def _objets_cliquables(replygood: str) -> list[str]:
+    """Les objets qu'un `jsxgraphobjet` rend cliquables, dédoublonnés.
+
+    `anstype/jsxgraphobjet.input` ne distingue pas la bonne réponse des
+    leurres : il ramène `;`, `&` et `|` à la virgule et prend la liste entière
+    (`!listuniq`), les trois séparateurs disant respectivement la ligne, le
+    groupe et l'alternative. `hypo;cat1|cat2` désigne donc trois segments
+    cliquables, dont `hypo` est le seul attendu.
+
+    Le nom sert de variable JavaScript dans le script de la figure : on écarte
+    ce qui n'est pas un identifiant, un `replygood` mal formé n'ayant pas à
+    finir dans du code.
+    """
+    plat = replygood.replace(";", ",").replace("&", ",").replace("|", ",")
+    vus: list[str] = []
+    for brut in plat.split(","):
+        nom = brut.strip()
+        if nom and nom not in vus and _JS_IDENT.fullmatch(nom):
+            vus.append(nom)
+    return vus
+
+
 def _normalize_reply_type(rtype: str) -> str:
     """Canonical reply type, folding `dragfill` onto `clickfill`.
 
@@ -1126,7 +1151,8 @@ class DefEngine(_SlibMixin):
         text_replies = [
             a for a in answers
             if a.answer_type.lower()
-            not in ("radio", "menu", "mark", "correspond", "jsxgraph", "click")
+            not in ("radio", "menu", "mark", "correspond", "jsxgraph",
+                    "jsxgraphobjet", "click")
         ]
         # Append a default field per reply when the question carries no widget.
         # For dynsteps/course this is reached only when there are no embeds
@@ -4962,6 +4988,11 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "jsxgraphobjet":
+                # Même figure, autre geste : ici l'élève *clique* des objets
+                # nommés plutôt que d'en déplacer un. Les arguments bruts pour
+                # la même raison — le script est plein de virgules.
+                return self._render_jsxgraphobjet_embed(args, ref, n)
             elif reply_type == "coord":
                 # `type=coord`: the field is a clickable repère image (WIMS'
                 # `<input type=image>`). `replygood{n}` = "<image_url>;<zone>"
@@ -5211,6 +5242,80 @@ class DefEngine(_SlibMixin):
                 f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
             )
         return div
+
+    def _render_jsxgraphobjet_embed(self, args: str, ref: str, n: int) -> str:
+        """`type=jsxgraphobjet` — une figure dont l'élève **clique** les objets.
+
+        Le type n'existe pas chez WIMS : il est défini par le module
+        `oeftrigoclg1` (`anstype/jsxgraphobjet.input`), qui monte la figure
+        comme `slib/geo2D/jsxgraph`, puis attache à chaque objet nommé dans
+        `replygood` un `on('up')` qui l'épaissit et l'empile dans
+        `jsxbox_objet`. Un second clic le retire. La réponse est la liste,
+        dans l'ordre des clics.
+
+        Le paramètre d'embed a la même forme que pour `jsxgraph` — taille,
+        `<divid> <boardvar>`, script — moins la ligne de placeholders : rien
+        n'est déplacé, donc rien n'est à substituer.
+
+        Faute de ce rendu, l'embed retombait sur le champ de saisie générique :
+        les trois exercices affichaient une zone de texte de 199 × 250 à la
+        place de la figure.
+        """
+        _, _, rest = args.partition(",")
+        lignes = rest.split("\t")
+        while lignes and not lignes[-1].strip():
+            lignes.pop()
+        if not lignes:
+            return ""
+
+        taille = "500x500"
+        if re.fullmatch(r"[\dxX\s]+", lignes[0].strip()):
+            taille = lignes[0].strip()
+            lignes = lignes[1:]
+        jbox = lignes[0].strip() if lignes else ""
+        script = "\t".join(lignes[1:])
+        mots = jbox.split()
+        div_id = mots[0] if mots else f"jsxbox{n}"
+        board_var = mots[1] if len(mots) > 1 else "brd"
+        wh = re.search(r"(\d+)\s*[xX]\s*(\d+)", taille)
+        w, h = (wh.group(1), wh.group(2)) if wh else ("500", "500")
+
+        good = self._subst(self.ctx.get(f"replygood{n}", ""))
+        script += self._jsxgraphobjet_capture_js(_objets_cliquables(good))
+        div = self._render_jsxgraph(f"{div_id} {board_var},[{w} x {h}],{script}")
+        return div.replace(
+            '<div class="pax-jsxgraph"',
+            f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
+        )
+
+    @staticmethod
+    def _jsxgraphobjet_capture_js(objets: list[str]) -> str:
+        """Les gestionnaires de clic du module, plus le report vers le champ.
+
+        WIMS relit `jsxbox_objet` au moment de l'envoi (`oef_js_submit` appelle
+        `capture$i()`), ce que PAX n'a pas : le composant `Jsxgraph.vue` lie la
+        réponse par le rappel `__paxReport`, alimenté à chaque clic. Le premier
+        appel, à la construction, pose le champ à vide plutôt que de le laisser
+        indéfini.
+        """
+        if not objets:
+            return ""
+        bouts = [
+            "\t;var jsxbox_objet=[];",
+            "var __paxObjR=function(){try{if(typeof __paxReport==='function')"
+            "__paxReport(jsxbox_objet.toString());}catch(e){}};",
+        ]
+        for o in objets:
+            bouts.append(
+                f"try{{{o}.on('up',function(){{"
+                f"if({o}.getAttribute('strokeWidth')!=5)"
+                f"{{jsxbox_objet.push('{o}');{o}.setAttribute({{strokeWidth:5}});}}"
+                f"else{{{o}.setAttribute({{strokeWidth:2}});"
+                f"jsxbox_objet.splice(jsxbox_objet.indexOf('{o}'),1);}}"
+                f"__paxObjR();}});}}catch(e){{}}"
+            )
+        bouts.append("__paxObjR();")
+        return "".join(bouts)
 
     @staticmethod
     def _jsxgraph_capture_js(board_var: str, captures: list[tuple[str, int]]) -> str:

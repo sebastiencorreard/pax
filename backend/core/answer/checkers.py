@@ -2304,6 +2304,147 @@ def _check_numexp_float(
         return check_numeric(reply, expected, precision, comma_is_decimal)
 
 
+# `numexp2` : la fraction demandée n'a pas à être irréductible.
+_NUMEXP2_ZERO_MSG = "Pour une valeur nulle, écrivez simplement 0."
+
+# `[+-]? nombre ( / nombre )?` — le signe ne peut porter que sur la tête, le
+# fichier rejetant tout `-` ou `+` après le premier caractère.
+_NUMEXP2_RE = re.compile(
+    r"(?P<signe>[+-]?)(?P<num>\d+(?:\.\d*)?|\.\d+)"
+    r"(?:/(?P<den>\d+(?:\.\d*)?|\.\d+))?"
+)
+
+
+def _numexp2_rationnel(s: str) -> Fraction | None:
+    """Valeur exacte d'une écriture `a`, `a/b` ou `-a/b`, décimales comprises.
+
+    `None` si l'écriture sort de cette grammaire — le fichier du module parle
+    alors de `nocompute` : ce n'est pas une réponse fausse, c'est une réponse
+    hors format.
+    """
+    m = _NUMEXP2_RE.fullmatch(s)
+    if m is None:
+        return None
+    try:
+        val = Fraction(m.group("num"))
+        if m.group("den") is not None:
+            den = Fraction(m.group("den"))
+            if den == 0:
+                # Un dénominateur nul ne franchit pas `!if NaN isin $test` :
+                # le fichier sort sans verdict, ce qui vaut ici hors format.
+                return None
+            val /= den
+    except (ValueError, ZeroDivisionError):
+        return None
+    return -val if m.group("signe") == "-" else val
+
+
+def check_numexp2(
+    reply: str, expected: str, comma_is_decimal: bool = True
+) -> CheckResult:
+    """Type `numexp2` — défini par le module `OEFevalwimsfrac`
+    (`anstype/numexp2`), employé par ses six exercices sur les fractions.
+
+    C'est le `numexp` du cœur amputé de sa contrainte d'irréductibilité, ce qui
+    est tout l'objet du module : `6/4` y **vaut** `3/2`, l'élève apprenant
+    d'abord à écrire un quotient avant d'apprendre à le réduire. Le fichier
+    compare par produit en croix (`t1_reply*t2_replygood - t1_replygood*t2_reply`)
+    après avoir chassé les décimales des deux côtés — soit, ici, l'égalité de
+    deux `Fraction`.
+
+    Ce qu'il refuse, en revanche :
+
+    - toute **opération** — `+ - * ^ (` après un éventuel signe de tête, ou une
+      seconde barre de fraction (`c>2`) : `test=NaN nocompute` ;
+    - un attendu nul auquel l'élève répond autre chose que le texte `0` —
+      `!if $good=0 and $(reply$i) notsametext 0` : ni `0/5`, ni `0.0`.
+
+    Il accepte en revanche ce que `numexp` nomme `badform`, le mélange de la
+    barre et de la virgule : `1,5/2` passe par la mise à l'échelle du `!for`.
+    """
+    r = _rawmath_normalize(reply, comma_is_decimal).strip()
+    if not r:
+        return CheckResult(correct=False, score=0.0, method="numexp2")
+
+    # `!if ( + isin $dd or … )` — le signe de tête est ôté avant l'examen, si
+    # bien qu'un `1/-2` reste hors format.
+    dd = r[1:] if r[:1] in "+-" else r
+    if any(op in dd for op in ("+", "-", "*", "^", "(")) or dd.count("/") > 1:
+        return CheckResult(correct=False, score=0.0, method="numexp2",
+                           status="invalid_format", detail=_COMPUTE_MSG)
+
+    r_val = _numexp2_rationnel(r)
+    if r_val is None:
+        return CheckResult(correct=False, score=0.0, method="numexp2",
+                           status="invalid_format", detail=_REWRITE_MSG)
+
+    e_val = _numexp2_rationnel(
+        _rawmath_normalize(expected, comma_is_decimal).strip()
+    )
+    if e_val is None:
+        # `!if NaN isin $good or Inf isin $good` → `Test=bad`, une erreur
+        # d'auteur. Rien de mieux à faire que de refuser sans accuser l'élève
+        # d'une faute de forme.
+        return CheckResult(correct=False, score=0.0, method="numexp2")
+
+    if e_val == 0 and reply.strip() != "0":
+        return CheckResult(correct=False, score=0.0, method="numexp2",
+                           status="invalid_format", detail=_NUMEXP2_ZERO_MSG)
+
+    correct = r_val == e_val
+    return CheckResult(correct=correct, score=1.0 if correct else 0.0,
+                       method="numexp2")
+
+
+def jsxgraphobjet_display_answer(expected: str) -> str:
+    """Ce qu'il y a à montrer d'un attendu `jsxgraphobjet` : sa première ligne.
+
+    `replygood=hypo;cat1|cat2` décrit la figure entière — l'objet demandé, puis
+    les leurres à rendre cliquables. Le corrigé n'a rien à dire des seconds :
+    les afficher revenait à souffler les trois réponses possibles.
+    """
+    return expected.split(";", 1)[0].strip()
+
+
+def check_jsxgraphobjet(
+    reply: str, expected: str, opt_str: str = ""
+) -> CheckResult:
+    """Type `jsxgraphobjet` — les objets qu'un élève a cliqués sur une figure.
+
+    Défini par `oeftrigoclg1` (`anstype/jsxgraphobjet`), employé par ses trois
+    exercices « sélectionner l'hypoténuse / le côté adjacent / opposé ». La
+    réponse est la liste des objets, dans l'ordre des clics
+    (`jsxbox_objet.toString()`).
+
+    L'attendu n'est que la **première ligne** de `replygood` —
+    `replygood=$(replygood$i[1;])` : dans `hypo;cat1|cat2`, seul `hypo` est
+    demandé, `cat1|cat2` énumérant les leurres à rendre cliquables (voir
+    `_objets_cliquables`).
+
+    Le fichier compare ensuite de deux façons :
+
+    - sans `noorder`, une égalité de texte stricte (`==`), ordre compris ;
+    - avec `noorder`, à nombre d'items égal, une part par item attendu retrouvé
+      dans la réponse — le score partiel vaut `bon/total`.
+
+    Un nombre d'items différent annule le score dans les deux cas
+    (`!if $(cnt_rg)=!$(cnt_r)` → `score=0`), y compris une réponse vide.
+    """
+    attendu = expected.split(";", 1)[0]
+    e_items = [x.strip() for x in attendu.split(",") if x.strip()]
+    r_items = [x.strip() for x in reply.split(",") if x.strip()]
+    if not e_items or len(r_items) != len(e_items):
+        return CheckResult(correct=False, score=0.0, method="jsxgraphobjet")
+    if "noorder" not in opt_str.lower():
+        correct = r_items == e_items
+        return CheckResult(correct=correct, score=1.0 if correct else 0.0,
+                           method="jsxgraphobjet")
+    trouves = sum(1 for g in e_items if g in r_items)
+    score = trouves / len(r_items)
+    return CheckResult(correct=score >= 1.0, score=score,
+                       method="jsxgraphobjet")
+
+
 # ------------------------------------------------------------------ #
 # Ensemble (set)                                                       #
 # ------------------------------------------------------------------ #
@@ -3039,6 +3180,10 @@ def check_answer(
         case "numexp":
             noreduction = "noreduction" in opt_str
             return check_numexp(reply, expected, precision, comma_is_decimal, noreduction)
+        case "numexp2":
+            return check_numexp2(reply, expected, comma_is_decimal)
+        case "jsxgraphobjet":
+            return check_jsxgraphobjet(reply, expected, opt_str)
         case "units" | "unit":
             return check_unit(reply, expected, precision, comma_is_decimal)
         case "sigunits":

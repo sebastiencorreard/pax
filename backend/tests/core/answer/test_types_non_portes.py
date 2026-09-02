@@ -43,9 +43,8 @@ _DETTE = frozenset({
     "chemformula_analysis", "chessgame", "chset", "clicktile", "clock", "code",
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
     "geogebra", "geogebra_translation", "imgcomp", "javacurve", "jmolclick",
-    "js2wims1", "jsxgraphobjet", "keyboard", "matrix", "multidraw", "numexp2",
-    "puzzle", "reaction", "reorder", "runcode", "symtext", "textcomp", "time",
-    "wlist",
+    "js2wims1", "keyboard", "matrix", "multidraw", "puzzle", "reaction",
+    "reorder", "runcode", "symtext", "textcomp", "time", "wlist",
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
@@ -56,12 +55,12 @@ _DETTE = frozenset({
 #   dragfill  →  replié sur `clickfill` (`_normalize_reply_type`), voir plus bas
 #   draft     →  capté en `options["draft"]` par le moteur, champ non noté
 #
-# Les autres arrivent bien jusqu'à `check_text` : un balayage du corpus complet
-# en a compté 131 exercices touchés, répartis sur 9 types.
+# Les autres arrivent bien jusqu'à `check_text`. Un balayage du corpus complet
+# en comptait 131 sur 9 types avant que `numexp2` (6 exercices) et
+# `jsxgraphobjet` (3) ne soient portés.
 _DETTE_EMPLOYEE = frozenset({
     "aset", "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
-    "jsxgraphobjet", "matrix", "numexp2", "reaction", "runcode", "symtext",
-    "wlist",
+    "matrix", "reaction", "runcode", "symtext", "wlist",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")

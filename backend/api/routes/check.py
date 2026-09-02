@@ -229,6 +229,18 @@ async def check_exercise(
             if r.input_name in _atext_names and r.expected:
                 r.expected = atext_display_answer(r.expected)
 
+    # ── jsxgraphobjet : le corrigé nomme l'objet, pas la figure ──────────────
+    # L'attendu porte l'objet demandé *et* les leurres (`hypo;cat1|cat2`), les
+    # seconds n'étant là que pour être rendus cliquables. Affiché tel quel, le
+    # corrigé énumérait les trois segments du triangle.
+    _jsxo_names = {a.input_name for a in rendered.answers
+                   if a.answer_type == "jsxgraphobjet"}
+    if _jsxo_names:
+        from core.answer.checkers import jsxgraphobjet_display_answer  # noqa: PLC0415
+        for r in results:
+            if r.input_name in _jsxo_names and r.expected:
+                r.expected = jsxgraphobjet_display_answer(r.expected)
+
     # ── range : le corrigé montre une valeur, pas les bornes ─────────────────
     # `anstype/range` affiche le milieu du premier intervalle (ou ses deux
     # bornes s'il est ouvert) : « 0,5 » plutôt que le « 0.6,0.4 » stocké, que

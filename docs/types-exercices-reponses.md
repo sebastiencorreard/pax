@@ -27,17 +27,25 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 *   **`numeric`**, **`numexp`** : Valeurs numériques et expressions calculables.
 *   **`algexp`**, **`litexp`**, **`formal`** : Équivalence algébrique (SymPy).
 *   **`function`**, **`fset`** : Fonctions et ensembles de fonctions.
-*   **`set`**, **`aset`** : Ensembles d'éléments (ordre indifférent).
+*   **`set`** : Ensembles d'éléments (ordre indifférent).
 *   **`radio`**, **`menu`** : Choix unique (boutons / liste déroulante).
 *   **`clickfill`** : Glisser-déposer — mono-slot (choisir une étiquette) **ou** multi-slots (composer une séquence ordonnée). Voir [§ 6](#6-clickfill--glisser-déposer).
 *   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
 *   **`default`** : Redirection vers `algexp` ou `text`.
 *   **`units`**, **`sigunits`** : Unités physiques et chiffres significatifs.
-*   **`equation`**, **`range`**, **`vector`**, **`matrix`** : Équations, intervalles, vecteurs, matrices.
+*   **`equation`**, **`range`**, **`vector`** : Équations, intervalles, vecteurs.
 *   **`checkbox`**, **`mark`**, **`click`**, **`multipleclick`** : Choix multiples et pointage.
 *   **`correspond`** : Appariement de deux colonnes.
 *   **`coord`** : Clic sur une image-repère (port de `clickzone.c`).
 *   **`jsxgraph`**, **`jsxgraphcurve`** : Géométrie dynamique (figure et courbe tracée).
+*   **`chemeq`** : Équations chimiques — comparaison sémantique, à un facteur
+    d'échelle près (`def_engine/chemeq.py`).
+*   **`numexp2`** *(défini par le module `OEFevalwimsfrac`)* : le `numexp` **sans
+    l'exigence d'irréductibilité** — `6/4` y vaut `3/2`. Six exercices.
+*   **`jsxgraphobjet`** *(défini par le module `oeftrigoclg1`)* : les objets
+    qu'un élève **clique** sur une figure JSXGraph. Trois exercices. Le rendu du
+    champ est produit par le moteur (`_render_jsxgraphobjet_embed`), le module
+    n'ayant pas de `.input` que PAX sache exécuter.
 *   **`draw`** : **Tracé sur une figure** — l'élève pose des croix, des segments
     ou des flèches sur un canevas, et c'est la liste de leurs coordonnées, dans
     le repère du dessin, qui est corrigée. Port d'`anstype/draw` : appariement
@@ -46,16 +54,20 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 
 La liste faisant foi est le `match` de `core/answer/checkers.py:check_answer` ;
 `_WIMS_KNOWN_TYPES`, dans le même fichier, dit ce que **WIMS** connaît, ce qui
-n'est pas la même question.
+n'est pas la même question. Le relevé de ce qui manque encore est figé par
+`tests/core/answer/test_types_non_portes.py` : porter un type l'oblige à en
+sortir, et rien n'y entre sans décision.
 
 ### Analyseurs Identifiés (Non encore supportés) ❌
 *   **Sciences** :
-    *   `chemformula`, `chemdraw`, `chemclick` : Chimie (formules, tracés, pointage).
-        `chemeq` a son moteur (`def_engine/chemeq.py`) mais pas encore d'analyseur.
+    *   `chemformula`, `chemdraw`, `chemclick`, `reaction` : Chimie (formules,
+        tracés, pointage, réactions).
 *   **Géométrie** :
     *   `geogebra` : applet de géométrie dynamique (7 exercices).
+*   **Algèbre** :
+    *   `matrix`, `aset` : matrices et ensembles « assortis ».
 *   **Avancé** :
-    *   `symtext` : Outil avancé d'identification de textes (synonymes).
+    *   `symtext`, `textcomp` : Outils avancés d'identification de textes (synonymes).
     *   `runcode` : Validation par exécution de code (Python) — 99 exercices.
     *   `reorder`, `puzzle`, `crossword`, `chessgame` : Jeux et mises en ordre.
 
