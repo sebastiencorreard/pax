@@ -108,9 +108,31 @@ def _wims_numeric_eq(d1: float, d2: float, prec: float = 10000.0) -> bool:
 
 
 def _wims_eval_num(expr: str) -> float | None:
-    """Évalue expr en float; None si impossible."""
+    """Évalue expr en float; None si impossible.
+
+    **Une chaîne vide vaut zéro**, comme chez WIMS : l'évaluateur y sort dès le
+    premier caractère (`Lib/evalue.c:324`, `if(*evalue_pt==0) return 0;`). Sans
+    cela `_wims_relational` ne trouvait pas de nombre et retombait sur une
+    comparaison *textuelle*, où `"" == "0"` est faux.
+
+    Le cas n'est pas théorique : un `.def` teste couramment le résultat d'un
+    calcul qui a pu ne rien rendre, pour se rabattre sur une autre voie —
+    `oefpytha/etagere2` cherche un triplet pythagoricien par `!exec pari`, et
+    sur `pyth(522,124,25)` il n'en existe aucun. Son `!ifval $(val18[1])==0`
+    devait déclencher une seconde recherche, plus large, qui aboutit
+    (`(672,754,1010)`). Le test étant faux, le repli ne partait pas : `val14`
+    restait vide, et l'énoncé sortait `[-1,,+2,-3]/10.` — l'expression PARI
+    elle-même, avec son trou, en guise de palette.
+
+    Mesuré sur le corpus : 4406 comparaisons portent un opérande vide sans que
+    le verdict change, 1002 ont l'autre opérande inévaluable (rien ne bouge non
+    plus), et **246, sur 14 exercices, avaient le verdict inversé**.
+    """
+    s = expr.strip()
+    if not s:
+        return 0.0
     try:
-        result = eval(expr.strip().replace("^", "**"), {"__builtins__": {}}, _MATH_NS)
+        result = eval(s.replace("^", "**"), {"__builtins__": {}}, _MATH_NS)
         return float(result)
     except Exception:
         return None

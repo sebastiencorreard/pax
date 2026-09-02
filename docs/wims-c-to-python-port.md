@@ -85,6 +85,41 @@ présente plusieurs lacunes découvertes en production :
 
 **Recommandation : réécrire `_eval_condition` depuis `compare.c`. Effort : 1–2 jours.**
 
+#### La chaîne vide vaut zéro (corrigé)
+
+`compare.c` délègue ses opérandes numériques à `evalue`, et celui-ci sort dès
+le premier caractère :
+
+```c
+if(*evalue_pt==0) return 0;   /* empty string */   — Lib/evalue.c:324
+```
+
+Une comparaison numérique portant un opérande vide vaut donc « 0 op autre ».
+PAX n'y arrivait pas : `_wims_eval_num("")` échouait, `_wims_relational`
+retombait sur une comparaison **textuelle**, et `"" == "0"` est faux.
+
+Le cas est courant : un `.def` teste le résultat d'un calcul qui a pu ne rien
+rendre, pour se rabattre sur une autre voie.
+
+- `oefpytha/etagere2` cherche un triplet pythagoricien par `!exec pari`. Sur
+  `pyth(522,124,25)` il n'en existe aucun — l'émulateur a raison —, et son
+  `!ifval $(val18[1])==0` doit déclencher une seconde recherche, plus large,
+  qui aboutit à `(672,754,1010)`. Le test étant faux, le repli ne partait pas :
+  l'énoncé proposait `[-1,,+2,-3]/10.`, l'expression PARI elle-même avec son
+  trou, en guise de palette de réponses.
+- `slib/chemistry/chemeq_equilibrium` compare la version du binaire à
+  `1.119999` avant toute chose. L'émulation ne répondait pas à `chemeq -v` ; le
+  vide qui en sortait aurait dû faire échouer le test et couper le slib. Elle
+  annonce désormais la version du binaire vendorisé (2.8, cf.
+  `src/Misc/chemeq/debian/changelog`), celle-là même dont
+  `tests/chemeq_oracle.json` tire ses sorties de référence.
+
+Mesuré sur le corpus, trois graines : 4406 comparaisons portent un opérande
+vide sans que le verdict change, 1002 ont l'autre opérande inévaluable (rien ne
+bouge non plus), et **246, sur 14 exercices, avaient le verdict inversé** —
+treize de chimie, que la réponse de version neutralise, plus les deux
+`etagere`.
+
 ### `var.c` — Score 5/5 ⭐
 
 **438 lignes (200 non-triviales).** Stockage bas-niveau des variables avec un

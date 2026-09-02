@@ -292,6 +292,12 @@ def masse_molaire(espece: list[tuple[str, int]]) -> float:
     return sum(MASSES[s] * n for s, n in espece)
 
 
+# La version que l'émulation annonce à `chemeq -v`. Celle du binaire vendorisé
+# (`wims/src/Misc/chemeq/debian/changelog`), dont `tests/chemeq_oracle.json`
+# tire ses sorties de référence.
+VERSION_EMULEE = "2.8"
+
+
 def chemeq(entree: str, option: str) -> str:
     """Point d'entrée : l'équivalent d'un `!exec chemeq` sous `chemeq_option`.
 
@@ -300,10 +306,32 @@ def chemeq(entree: str, option: str) -> str:
     d'erreur qui remonterait dans une variable WIMS ferait plus de dégâts
     qu'un vide, que les scripts savent déjà traiter.
     """
+    option = (option or "").strip()
+
+    # `chemeq -v` : la version, seule requête qui n'a pas d'entrée. C'est la
+    # **première chose** que demande `slib/chemistry/chemeq_equilibrium`, et
+    # d'elle dépend tout le reste :
+    #
+    #     chemeq_option=v
+    #     slib_out=!exec chemeq
+    #     slib_out=!replace .*version. by $empty in $slib_out
+    #     !if $slib_out < 1.119999
+    #       slib_out=Warning! … install a newer version …
+    #       !goto end
+    #
+    # Le vide qu'on rendait jusqu'ici vaut zéro dans une comparaison WIMS
+    # (`Lib/evalue.c:324`), donc `0 < 1.12` : le slib refusait de tourner et
+    # quatorze exercices de chimie perdaient leurs réponses. Le binaire du
+    # dépôt est en 2.8 (`src/Misc/chemeq/debian/changelog`), version dont
+    # `tests/chemeq_oracle.json` tire ses sorties de référence : c'est elle
+    # qu'on annonce, et le format `… version <n>` est celui que le
+    # `!replace` du slib sait découper.
+    if option == "v":
+        return f"Chemeq version {VERSION_EMULEE}"
+
     src = (entree or "").strip()
     if not src:
         return ""
-    option = (option or "").strip()
 
     membres, fleche_tex = [src], ""
     for fleche, tex in _FLECHES:

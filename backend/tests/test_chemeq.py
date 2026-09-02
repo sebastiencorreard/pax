@@ -15,6 +15,7 @@ d'où cette capture figée plutôt qu'un appel au fil du test.
 """
 import json
 import os
+import re
 
 import pytest
 
@@ -57,10 +58,31 @@ def test_une_molecule_seule_rend_le_latex_sous_e_et_C():
 
 
 def test_option_inconnue_rend_le_vide():
-    """`v` (version) reste hors du périmètre porté : elle rend le vide, comme
-    le faisait l'appel avant qu'il existe."""
-    for option in ("v", "x", ""):
+    """Une option hors périmètre rend le vide, comme le faisait l'appel avant
+    qu'elle existe. `v` fait exception depuis qu'elle est portée."""
+    for option in ("x", ""):
         assert chemeq("H2O", option) == ""
+
+
+def test_version_annoncee():
+    """`chemeq -v` — la **première** chose que demande
+    `slib/chemistry/chemeq_equilibrium`, et de quoi dépend tout le reste :
+
+        slib_out=!replace .*version. by $empty in $slib_out
+        !if $slib_out < 1.119999
+          slib_out=Warning! … install a newer version …
+          !goto end
+
+    Le vide qu'on rendait valait zéro dans la comparaison WIMS, donc
+    `0 < 1.12` : le slib refusait de tourner. Le binaire ignore son entrée
+    pour cette option, l'émulation aussi.
+    """
+    for entree in ("", "H2O", "Fe + 3/2Cl2 -> FeCl3"):
+        sortie = chemeq(entree, "v")
+        assert "version" in sortie
+        # Ce que le `!replace` du slib en tire doit être un nombre ≥ 1.12.
+        reste = re.sub(r".*version.", "", sortie).strip()
+        assert float(reste) >= 1.12
 
 
 def test_entree_hors_grammaire_rend_le_vide():
