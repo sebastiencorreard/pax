@@ -73,6 +73,7 @@
 import { ref, watch, onMounted, computed, provide } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import { buildSegmentTree, PAX_STATEMENT_CTX } from '~/composables/useExerciseLogic'
+import { hydrateJmolMarkers } from '~/composables/useJsmol'
 
 const props = defineProps<{
   rendered: Rendered
@@ -430,6 +431,20 @@ watch(
 )
 
 onMounted(syncInlineInputs)
+
+// ── Applets Jmol posées dans un <table> ─────────────────────────────────────
+// Les trois exercices d'`oefmolecule` alignent leurs molécules en tableau, et
+// un tableau reste un seul segment HTML : ses marqueurs `.pax-jmol` ne sont
+// donc pas des composants, on les hydrate après le rendu. Hors tableau —
+// les patrons de polyèdre d'`oefpolynet` — c'est <ExerciseJmol> qui s'en
+// charge. `hydrateJmolMarkers` est idempotent : il saute ce qu'il a déjà monté.
+function mountTableJmol() {
+  const el = statementEl.value
+  if (el) hydrateJmolMarkers(el)
+}
+
+watch(() => props.statementSegments, mountTableJmol, { flush: 'post' })
+onMounted(mountTableJmol)
 
 function radioClass(inputName: string, choice: string) {
   if (!props.submitted) {

@@ -444,6 +444,11 @@ def _position_du_mot(botte: str, mot: str) -> int:
 # qu'un exercice demande, jamais à en choisir une.
 _LANGUES_DU_SITE = "en fr es it nl ca si de cn"
 
+# Racine des URL de session (`$wims_ref_name`). Voir le commentaire à sa pose :
+# le préfixe `https` est ce que `jmolshow` teste, le domaine `.invalid` dit que
+# personne n'est censé la déréférencer.
+_WIMS_REF_NAME = "https://pax.invalid/wims.cgi"
+
 
 def _chemin_du_module(def_path: str | None) -> str:
     """`$module_dir` : le chemin du module tel que WIMS le nomme.
@@ -649,6 +654,11 @@ class DefEngine(_SlibMixin):
         # état : oefforpython.fr définit `l=vector(n);for(…)` dans un appel puis
         # l'affiche avec `print(l)` dans le suivant.
         self.pari_session: dict[str, object] = {}
+        # Le magasin de `oef/togetfile.proc` — les fichiers que WIMS écrirait
+        # dans le répertoire de la session (`.xyz`, `.spt` d'une figure Jmol).
+        # Il vit hors de `ctx`, qui n'accepte que des chaînes, et ne dure que
+        # le temps d'un rendu : producteur et lecteur sont dans ce moteur-ci.
+        self._getfile_store: dict[str, str] = {}
         # Exercise content language (ISO code). Set from df.meta at render time;
         # drives the decimal/list separator for number display & checking
         # (see core/oef/i18n.py). Defaults to French until render() reads it.
@@ -869,6 +879,21 @@ class DefEngine(_SlibMixin):
         maintenant = _horloge_session()
         self.ctx.setdefault("wims_now", maintenant.strftime("%Y%m%d.%H:%M:%S"))
         self.ctx.setdefault("wims_nowseconds", str(int(maintenant.timestamp())))
+        # `$wims_ref_name` — l'URL absolue du script WIMS, que `variables.c:118`
+        # pose après avoir réécrit `http:` en `https:`. Le **`http`** compte :
+        # `slib/chemistry/jmolshow` s'en sert pour distinguer une URL d'un
+        # chemin de fichier (`!if __http isin __$slib_file`). Vide, le test
+        # échoue, le slib prend l'URL que `togetfile` vient de lui rendre pour
+        # un chemin, n'y lit rien, et **ré-écrit un fichier vide par-dessus** —
+        # mesuré à 55 écritures vides sur les neuf exercices Jmol, dont les
+        # `.xyz`/`.spt` corrects se retrouvaient orphelins.
+        #
+        # L'hôte est en `.invalid` (RFC 2606, garanti non résoluble) parce que
+        # **rien ne doit être allé chercher là** : PAX ne sert pas de route
+        # `cmd=getfile`. L'URL circule entre `togetfile.proc` et `jmolshow`,
+        # tous deux internes au moteur, et `_render_jmol_embed` la résout
+        # contre le magasin en mémoire avant qu'elle n'atteigne le navigateur.
+        self.ctx.setdefault("wims_ref_name", _WIMS_REF_NAME)
 
         # Reply metadata (`replytype1=…`, `replyname1=…`, …) lives in
         # df.reply_meta, not in var_instructions. Seed it into ctx so the
@@ -2384,6 +2409,21 @@ class DefEngine(_SlibMixin):
         L'entrée peut être vide : le slib d'équilibrage interroge d'abord la
         version (`chemeq_option=v`, sans argument).
         """
+        # `obabel.sh` — le convertisseur de formats chimiques. WIMS l'appelle
+        # pour transformer un SMILES (`@CCCCC`) en coordonnées 3D, et **son
+        # script rend `-1` quand il échoue** ; `slib/chemistry/jmolshow` teste
+        # exactement cela (`!if $slib_temp!=-1`) pour se replier sur le service
+        # distant cactus.nci.nih.gov, que l'applet interroge elle-même.
+        #
+        # Le repli était donc inatteignable : faute d'être reconnu, `obabel.sh`
+        # tombait dans le `return ""` ci-dessous, et `"" != "-1"` fait prendre
+        # la branche « la conversion a réussi » — avec un fichier vide. Mesuré
+        # sur `isomerie` et `jmol` : 18 rendus, 18 molécules vides. Rendre
+        # `-1`, c'est dire la vérité (PAX n'embarque pas Open Babel) dans les
+        # termes où le slib l'attend.
+        if re.match(r"obabel(\.sh)?\b", args.strip(), re.I):
+            return "-1"
+
         m = re.match(
             r"(maxima|pari|units-filter|chemeq|canvasdraw)\b\s*(.*)", args, re.DOTALL | re.I
         )

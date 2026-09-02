@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
+import type { JmolConfig } from '~/composables/useJsmol'
 
 // Shared context injected into the recursive StatementNodes renderer, so it
 // can render leaf segments without prop-drilling through every layout group.
@@ -43,7 +44,7 @@ export interface CodeEditorConfig {
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
     | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
-    | 'draw'
+    | 'draw' | 'jmol'
   content?: string
   name?: string
   size?: number
@@ -141,6 +142,7 @@ export type Segment =
   | { type: 'draw';        name: string; image: string; svg?: string; objet: string; couleur: string
                            xrange: string; yrange: string; width?: number; height?: number; is_sup?: boolean }
   | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
+  | { type: 'jmol';        config: JmolConfig; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -241,6 +243,10 @@ export function useExerciseLogic() {
           width: s.width, height: s.height, maxw: s.maxw, minw: s.minw,
           reply: s.reply,
         })
+      } else if (s.type === 'jmol') {
+        // La configuration de l'applet passe telle quelle : c'est un script
+        // Jmol, que la passe KaTeX n'a rien à faire d'inspecter.
+        out.push({ type: 'jmol', config: (s as unknown as { config: JmolConfig }).config })
       } else if (s.type === 'coord') {
         // Clickable repère: the SVG travels inline; fall back to the URL
         // (served by the backend, so prefix the relative /api/ path).

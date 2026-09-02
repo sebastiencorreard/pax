@@ -66,6 +66,7 @@ class _SlibMixin:
     ctx: dict[str, str]
     def_path: str | None
     rng: "random.Random"
+    _getfile_store: dict[str, str]
 
     # Methods provided by the concrete ``DefEngine`` class. Stub bodies make
     # ``self._subst(...)`` resolvable for type-checkers; at runtime the MRO
@@ -206,6 +207,10 @@ class _SlibMixin:
             self._proc_steps()
             return
 
+        if path == "oef/togetfile.proc":
+            self._proc_togetfile(proc_args)
+            return
+
         # `gp/<nom>.gp` — une bibliothèque PARI, que le script pose dans une
         # variable (`!set slib_header_patron=…`) avant qu'un `!exec pari` ne
         # l'exécute. Ce n'est pas un slib : ni `slib_out`, ni paramètres. Sans
@@ -215,7 +220,7 @@ class _SlibMixin:
             self._run_slib(path, proc_args)
             return
 
-        # Les trois procs qu'on laisse tomber, et pourquoi chacun est **inerte**
+        # Les deux procs qu'on laisse tomber, et pourquoi chacun est **inerte**
         # — mesuré au rendu, pas déduit des sources :
         #
         #   oef/drawtikz.phtml   43 appels. Sa deuxième ligne est
@@ -229,17 +234,48 @@ class _SlibMixin:
         #                        *est* la réponse. `slib/geo2D/geogebra` en
         #                        tire déjà l'avertissement de WIMS,
         #                        « GeoGebra is not installed ».
-        #   oef/togetfile.proc    5 appels. Il écrit un fichier dans le dossier
-        #                        `getfile` de la session, que `jmolshow` et
-        #                        `geo3D/polyhedra` font ensuite charger par une
-        #                        applet Jmol. PAX n'embarque aucun Jmol : le
-        #                        fichier écrit n'aurait pas de lecteur. C'est
-        #                        le troisième maillon d'une chaîne dont le
-        #                        dernier manque.
         #
-        # Aucun n'attend donc d'être porté : le premier est mort-né, le
-        # deuxième dit déjà la vérité, le troisième attend Jmol.
+        # Aucun des deux n'attend d'être porté : le premier est mort-né, le
+        # second dit déjà la vérité. (`oef/togetfile.proc` complétait la liste
+        # tant que Jmol manquait ; il est porté, plus haut.)
         return
+
+    def _proc_togetfile(self, args: str) -> None:
+        """`!readproc oef/togetfile.proc <nom> <mode>\\n<contenu>` — le magasin
+        de fichiers de la session.
+
+        WIMS écrit là un vrai fichier, sous `getfile/` dans le répertoire de
+        session, et le ressert par `?cmd=getfile&special_parm=<nom>`. C'est par
+        ce détour que la molécule atteint l'applet : `slib/geo3D/off2jmol` y
+        dépose le `.xyz` (les coordonnées) et le `.spt` (le script Jmol), puis
+        passe les deux URL à `slib/chemistry/jmolshow`.
+
+        PAX n'a pas de session côté moteur, et n'a pas besoin d'en fabriquer
+        une : le producteur et son unique lecteur — `_render_jmol_embed`, plus
+        bas dans le même rendu — vivent dans le même moteur. Le magasin est
+        donc un attribut d'instance, et l'URL rendue au script n'est qu'un
+        jeton que ce lecteur redéréférence. Aucune route ne le sert : le
+        contenu part vers le navigateur **inline**, dans le segment.
+
+        Un attribut, et non une entrée de `ctx` : le contexte ne contient que
+        des chaînes, et `_subst` s'y casse les dents sur tout le reste
+        (`'dict' object has no attribute 'strip'`).
+
+        Deux modes, ceux de WIMS : `new` écrase, `append` ajoute une ligne.
+        `polyhedra` a besoin des deux — il écrit les sommets d'un polyèdre par
+        tranches de 25 pour ne pas gonfler une variable sans fin.
+        """
+        entete, _, contenu = args.partition("\n")
+        morceaux = entete.split()
+        if not morceaux:
+            return
+        nom = morceaux[0]
+        mode = morceaux[1].lower() if len(morceaux) > 1 else "new"
+        magasin = self._getfile_store
+        if mode == "append" and nom in magasin:
+            magasin[nom] = f"{magasin[nom]}\n{contenu}"
+        else:
+            magasin[nom] = contenu
 
     def _proc_steps(self) -> None:
         r"""`!readproc oef/steps.proc` — normalise `oefsteps` et en tire ses
@@ -420,6 +456,145 @@ class _SlibMixin:
             return s[1:-1]
         return s
 
+    # Le service que `jmolshow` désigne pour résoudre un identifiant chimique
+    # (nom courant, SMILES, InChI) en un modèle 3D. Ce n'est pas PAX qui
+    # l'interroge : l'URL part telle quelle dans le `set loadFormat` du script,
+    # et c'est l'applet, dans le navigateur, qui va la chercher.
+    _CACTUS = (
+        "https://cactus.nci.nih.gov/chemical/structure/%FILE"
+        "/file?format=sdf&get3d=True"
+    )
+
+    def _render_jmol_embed(self, params: str) -> str:
+        """Built-in pour `slib/chemistry/jmolshow` : émet un marqueur `pax-jmol`
+        portant la configuration de l'applet en JSON.
+
+        Paramètres WIMS (`!distribute items`) :
+        ``<fichier>,<largeur>,<hauteur>,<couleur>,<script>,<id>,<type>``
+
+        Le premier en porte tout l'intérêt : **trois branches**, et le corpus
+        les emprunte toutes les trois (mesuré sur les neuf exercices Jmol,
+        trois graines) —
+
+        - **un jeton de session** (`?…&+cmd=getfile&+special_parm=…`), déposé
+          par `oef/togetfile.proc`. C'est la voie de `slib/geo3D/polyhedra` :
+          `off2jmol` calcule le `.xyz` (les sommets) et le `.spt` (le script de
+          tracé), le proc les range, et on les redéréférence ici pour les
+          envoyer **inline**. 36 rendus sur 36, aucune donnée manquante.
+        - **un chemin de fichier du module** — `data/benzene.pdb` chez
+          `structure`, 1033 o déjà convertis et commités. Lu sur disque.
+        - **un identifiant préfixé** (`@`, `=` ou `$`) — un SMILES chez
+          `isomerie` et `jmol` (`@CCCCC`, `@C(=O)`). Il n'y a rien à lire :
+          seul un convertisseur sait en tirer de la 3D. WIMS appelle
+          `obabel.sh` et, sur son échec, laisse l'applet interroger cactus.
+          PAX n'embarque pas Open Babel (`!exec obabel.sh` rend `-1`), donc
+          c'est toujours cactus — 18 rendus sur 18.
+
+        Le `<script>` reçoit le même traitement : `polyhedra` y passe
+        ``script "<jeton .spt>";zoom 180``, dont le jeton se résout en contenu.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        parts = wl.cutitems(params)
+
+        def arg(i: int) -> str:
+            return parts[i].strip() if len(parts) > i else ""
+
+        fichier = arg(0)
+        largeur = self._entier(arg(1), 200)
+        hauteur = self._entier(arg(2), 200)
+        couleur = arg(3) or "white"
+        script = arg(4)
+        applet_id = arg(5) or "0"
+
+        cfg: dict = {
+            "id": f"jmolApplet_{applet_id}",
+            "width": largeur,
+            "height": hauteur,
+            "color": couleur,
+        }
+
+        # --- le modèle -----------------------------------------------------
+        # Les trois préfixes que le slib traite ensemble : `$` (arrivé encodé
+        # en `&#36;` quand il a traversé du HTML), `=` et `@`. Tous trois
+        # disent « ceci n'est pas un fichier, c'est un identifiant ».
+        nu = fichier
+        for prefixe in ("&#36;", "$", "=", "@"):
+            if nu.startswith(prefixe):
+                nu = nu[len(prefixe) :]
+                cfg["loadFormat"] = self._CACTUS
+                cfg["load"] = f'load "={nu}";'
+                break
+        else:
+            contenu = self._resoudre_fichier_jmol(fichier)
+            cfg["data"] = contenu
+
+        # --- le script -----------------------------------------------------
+        # `script "<jeton>"` désigne un `.spt` du magasin : on l'inline, sans
+        # quoi l'applet irait chercher une URL que PAX ne sert pas.
+        def _inline_spt(m: re.Match) -> str:
+            corps = self._resoudre_fichier_jmol(m.group(1))
+            return corps if corps else ""
+
+        script = re.sub(r'script\s+"([^"]*)"\s*;?', _inline_spt, script)
+
+        # La queue que `jmolshow` ajoute toujours. `set DisablePopupMenu FALSE`
+        # est inconditionnel chez WIMS — le slib pose la variable dans un `!if`
+        # puis l'écrase juste après, si bien que le menu reste toujours actif ;
+        # on reproduit son effet, pas son intention.
+        survol = "" if "hover" in script else " hover off;"
+        cfg["script"] = (
+            f"{script}\n"
+            "selectionhalos on;select none;set picking off;set frank off;"
+            f"set DisablePopupMenu FALSE;{survol}"
+        ).strip()
+
+        charge = _html.escape(_json.dumps(cfg, ensure_ascii=False), quote=True)
+        return (
+            f'<div class="pax-jmol" id="{cfg["id"]}" '
+            f'data-w="{largeur}" data-h="{hauteur}" data-jmol="{charge}"></div>'
+        )
+
+    @staticmethod
+    def _entier(valeur: str, defaut: int) -> int:
+        """Une taille WIMS, qui peut être vide (le slib a ses `!default`)."""
+        try:
+            return int(float(valeur))
+        except (TypeError, ValueError):
+            return defaut
+
+    def _resoudre_fichier_jmol(self, ref: str) -> str:
+        """Le contenu derrière une référence de `jmolshow` : jeton, puis disque.
+
+        L'ordre compte — un jeton de session (`…&+special_parm=file_35.xyz`)
+        n'est pas un chemin, et le chercher sur disque ne rendrait rien.
+        """
+        ref = ref.strip()
+        if not ref:
+            return ""
+        jeton = re.search(r"special_parm=([^&\s]+)", ref)
+        if jeton:
+            return str(self._getfile_store.get(jeton.group(1), ""))
+        if not self.def_path:
+            return ""
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        # `jmolshow` retire `$module_dir/` d'un chemin absolu WIMS avant de
+        # relire ; ici les chemins sont relatifs au module, plus le repli sur
+        # l'arbre `wims-scripts` (c'est là que vivent les `data/molecule_pdb`).
+        candidats = [os.path.join(module_dir, ref)]
+        scripts_dir = self._find_wims_scripts_dir()
+        if scripts_dir:
+            candidats.append(os.path.join(scripts_dir, ref))
+        for chemin in candidats:
+            if os.path.isfile(chemin):
+                try:
+                    with open(chemin, encoding="utf-8") as f:
+                        return f.read()
+                except (OSError, UnicodeDecodeError):
+                    continue
+        return ""
+
     def _render_codeeditor(self, params: str) -> str:
         """Built-in for the slib ``coding/editor``: parse its argument string and
         emit a ``pax-codeeditor`` marker carrying the editor config as JSON.
@@ -547,6 +722,14 @@ class _SlibMixin:
         # `codeeditor` segment rendered by the Codemirror Vue component.
         if slib_path.rsplit("/", 1)[-1] == "editor":
             self.ctx["slib_out"] = self._render_codeeditor(params)
+            return
+
+        # `slib/chemistry/jmolshow` — même raison que l'éditeur : le slib rend
+        # un `<script>` inline qui construit l'objet `Info` de `Jmol.getApplet`,
+        # et un `<script>` injecté par le `v-html` du front ne s'exécute pas.
+        # On émet un marqueur `pax-jmol` que le composant Vue interprète.
+        if slib_path.rsplit("/", 1)[-1] == "jmolshow":
+            self.ctx["slib_out"] = self._render_jmol_embed(params)
             return
 
         if not self.def_path:

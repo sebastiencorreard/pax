@@ -195,7 +195,11 @@ _SEGMENT_PATTERN = re.compile(
     # row of JSXGraph boards) can wrap its child segments side by side. Tried
     # after group 9 so the jsxgraph/codeeditor divs aren't split.
     # Case-insensitive: OEF HTML mixes case (e.g. Hauteurdunarbr's <uL>).
-    r'|((?i:<(?:div|ul|ol|li)\b[^>]*>))'
+    # The `pax-jmol` marker is excluded by lookahead: it is a self-contained
+    # div like jsxgraph/codeeditor, but its alternative sits at the *end* of
+    # the pattern (to keep every existing group number stable), so ordering
+    # alone can't protect it — without this it would be split open/close here.
+    r'|((?i:(?!<div class="pax-jmol")<(?:div|ul|ol|li)\b[^>]*>))'
     r'|((?i:</(?:div|ul|ol|li)\s*>))'
     # groups 12/13/14: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
@@ -207,6 +211,11 @@ _SEGMENT_PATTERN = re.compile(
     r'|<span class="oef-draw" name="([^"]+)" data-img="([^"]*)" '
     r'data-size="([^"]*)" data-objet="([^"]*)" data-couleur="([^"]*)" '
     r'data-xrange="([^"]*)" data-yrange="([^"]*)"></span>'
+    # groupe 24 : un conteneur d'applet Jmol. Comme la div JSXGraph, il se
+    # place **après** les groupes `<div>` ouvrant/fermant pour ne pas être
+    # coupé en deux groupes de mise en page — mais en queue de motif, pour ne
+    # décaler la numérotation d'aucun groupe existant.
+    r'|<div class="pax-jmol"[^>]*data-jmol="([^"]*)"[^>]*></div>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -660,6 +669,17 @@ def _segment_statement(html: str) -> list[dict]:
             if svg:
                 seg["svg"] = svg
             segments.append(seg)
+        elif m.group(24) is not None:
+            # Applet Jmol — sa configuration voyage en **données** de segment,
+            # comme celle de JSXGraph : la passe KaTeX ne doit pas approcher un
+            # script Jmol, où `\(` n'est pas une formule.
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            try:
+                config = _json.loads(_html.unescape(m.group(24)))
+            except (ValueError, TypeError):
+                config = {}
+            segments.append({"type": "jmol", "config": config, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

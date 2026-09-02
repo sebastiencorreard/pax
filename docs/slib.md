@@ -243,16 +243,65 @@ silence ; deux le sont encore, et c'est **mesuré**, pas déduit.
 |---|---|---|
 | `oef/steps.proc` | 635 | **exécuté** — il normalise `oefsteps`, et 189 réponses sont apparues |
 | `gp/*.gp` | 8 | **exécuté** — une bibliothèque PARI, cf. `geo2D/polynet` |
-| `oef/togetfile.proc` | 43 | inerte : il écrit pour une applet Jmol que PAX n'embarque pas |
+| `oef/togetfile.proc` | 43 | **exécuté** — le magasin de fichiers de session dont Jmol tire ses modèles |
 | `js/geogebra/test` | 12 | inerte : le fichier n'existe pas, et son absence *est* la réponse |
 | `oef/drawtikz.phtml` | 5 | inerte : `!if $printlatex!=yes → !exit`, et PAX ne pose jamais ce drapeau |
 
 Le détail de chaque cas est au point de chute de `_cmd_readproc`
-(`def_engine/slib.py`). Deux d'entre eux ne demandent aucun code : le premier
-est mort-né, le deuxième dit déjà la vérité — `slib/geo2D/geogebra` rend
-l'avertissement de WIMS, « GeoGebra is not installed ». Le troisième attend
-Jmol, pas un portage de proc : écrire le fichier ne servirait à personne tant
-qu'aucun lecteur ne peut l'ouvrir.
+(`def_engine/slib.py`). Les deux qui restent ne demandent aucun code : le
+premier dit déjà la vérité — `slib/geo2D/geogebra` rend l'avertissement de
+WIMS, « GeoGebra is not installed » —, le second est mort-né.
+
+### La chaîne Jmol
+
+Sept exercices affichent une figure 3D au rendu de l'énoncé : quatre patrons de
+polyèdre (`oefpolynet.fr`, par `slib/geo3D/polyhedra`) et trois molécules
+(`oefmolecule.fr`, par `slib/chemistry/jmolshow`). Deux autres — `oefpolynet`
+21 et 22 — n'appellent le slib que depuis `:postdef`, donc à la correction.
+
+`jmolshow` a **trois branches**, et le corpus les emprunte toutes les trois.
+C'est ce que dit la mesure, sur les neuf `.def` et les trois graines
+sentinelles :
+
+| branche | qui | ce qu'elle charge |
+|---|---|---|
+| jeton de session | les 4 polynet, 36 rendus | `off2jmol` calcule le `.xyz` (sommets) et le `.spt` (script de tracé), `togetfile.proc` les range, `jmolshow` les redéréférence |
+| fichier du module | `structure`, 2 graines sur 3 | `data/benzene.pdb`, 1033 o déjà convertis et commités |
+| identifiant préfixé | `isomerie` et `jmol`, 18 rendus | un SMILES (`@CCCCC`) : rien à lire sur disque, l'applet le fait résoudre par cactus.nci.nih.gov |
+
+Trois pièges s'y sont logés, tous corrigés :
+
+- **`$wims_ref_name` vide.** `variables.c:118` montre que WIMS y met une URL
+  absolue, réécrite en `https:`. `jmolshow` s'en sert pour distinguer une URL
+  d'un chemin (`!if __http isin __$slib_file`). Vide, le test échouait, le slib
+  prenait l'URL que `togetfile` venait de rendre pour un chemin, n'y lisait rien
+  et **ré-écrivait un fichier vide par-dessus** — 55 écritures vides sur les
+  neuf exercices, les bons `.xyz`/`.spt` restant orphelins.
+- **`!exec obabel.sh` non reconnu.** Le script de WIMS rend `-1` quand il
+  échoue, et `jmolshow` teste exactement cela pour se replier sur cactus.
+  Tombant dans le `return ""` du `!exec`, `"" != "-1"` faisait toujours prendre
+  la branche « la conversion a réussi », avec un fichier vide : 18 rendus, 18
+  molécules absentes. PAX n'embarque pas Open Babel — rendre `-1` dit la vérité
+  dans les termes où le slib l'attend.
+- **Le `<script>` inline.** Comme pour l'éditeur de code, un `<script>` injecté
+  par le `v-html` du front ne s'exécute jamais. `_render_jmol_embed` intercepte
+  donc le slib et émet un marqueur `pax-jmol` portant la configuration en JSON,
+  que le composant Vue interprète — même dispositif que JSXGraph.
+
+Côté front, `composables/useJsmol.ts` charge JSmol depuis
+`chemapps.stolaf.edu` : la bibliothèque n'est **ni sur cdnjs ni sur jsdelivr**
+(le paquet npm `jsmol` n'est qu'un chargeur de 1,4 Ko), et le mode HTML5 a
+besoin qu'un hôte serve aussi son arbre `j2s/`. Tout tient dans la constante
+`JSMOL_BASE` : vendoriser un jour — la LGPL le permet — se réduit à la changer.
+
+Deux détails que seul l'essai au navigateur a révélés : l'applet s'initialise en
+**asynchrone**, et tout script lancé avant son `readyFunction` se perd sans un
+mot dans la console ; et `Jmol.loadInline` n'existe pas sur le namespace public
+— le modèle passe par un bloc `load DATA "…" … end "…"` dans le script.
+
+Enfin, les trois molécules d'`oefmolecule` vivent dans un `<table>`, qui reste
+un seul segment HTML : leurs marqueurs sont hydratés après le rendu
+(`hydrateJmolMarkers`), comme le sont déjà les champs et les cases en tableau.
 
 ### Ce qui a été fait depuis la version précédente de ce document
 
