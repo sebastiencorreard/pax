@@ -201,6 +201,13 @@ class _SlibMixin:
                     s = [p.strip() for p in rows[1].split(",")]
                     if len(o) >= 2 and len(s) >= 2:
                         self.ctx["_repere_transform"] = f"{o[0]},{o[1]},{s[0]},{s[1]}"
+            # `geo2D/geogebra` rend un `<script>` qui construit un `GGBApplet` —
+            # inerte au travers du `v-html` du front, comme celui de Jmol. On
+            # laisse le slib s'exécuter (c'est lui qui sait lire ses options,
+            # et le réimplémenter serait le dupliquer), puis on **traduit ses
+            # variables** en un marqueur que le composant Vue sait monter.
+            if path == "slib/geo2D/geogebra":
+                self.ctx["slib_out"] = self._render_geogebra_embed()
             return
 
         if path == "oef/steps.proc":
@@ -209,6 +216,19 @@ class _SlibMixin:
 
         if path == "oef/togetfile.proc":
             self._proc_togetfile(proc_args)
+            return
+
+        # `js/geogebra/test` — le fichier n'existe pas, pas même dans l'arbre
+        # WIMS vendorisé : chez WIMS son rôle est de poser `geogebra_exists`
+        # selon que l'installation locale a GeoGebra ou non. Son absence *était*
+        # la réponse, et `slib/geo2D/geogebra` s'arrêtait à sa deuxième ligne
+        # sur « GeoGebra is not installed » — pour ses 38 appelants.
+        #
+        # Le front charge maintenant `deployggb.js` : la réponse est oui. On
+        # pose donc le drapeau, seule chose que le fichier ferait. C'est aussi
+        # sa seule lecture du corpus (le slib lui-même, nulle part ailleurs).
+        if path == "js/geogebra/test":
+            self.ctx["geogebra_exists"] = "yes"
             return
 
         # `gp/<nom>.gp` — une bibliothèque PARI, que le script pose dans une
@@ -594,6 +614,112 @@ class _SlibMixin:
                 except (OSError, UnicodeDecodeError):
                     continue
         return ""
+
+    def _render_geogebra_embed(self) -> str:
+        """Traduit ce que `slib/geo2D/geogebra` vient de calculer en marqueur.
+
+        On ne réimplémente pas le slib : il a déjà fait le travail difficile —
+        démêler les options de l'applet (`width`, `showToolBar`, `ggbBase64`…)
+        des commandes GeoGebra, et distinguer parmi ces dernières les méthodes
+        de l'API (`setAxesVisible(false,false)`, appelées telles quelles) des
+        constructions (`A=(0,3.5)`, qui passent par `evalCommand`). Il laisse
+        tout cela dans trois variables, qu'il suffit de lire :
+
+        - `slib_parameters<N>` — l'objet `parameters<N>` complet
+        - `slib_appletcommand` — une ligne par commande, l'applet en préfixe
+        - `slib_3d` — le drapeau `is3D` de l'objet `views`
+
+        C'est bien `slib_parameters<N>` qu'il faut lire, et non `slib_data_param`
+        qui le précède : le slib n'ajoute le `filename` du `.ggb` **qu'après**
+        avoir refermé le second dans le premier. À lire `slib_data_param`,
+        `experim` s'ouvrait sur une applet vide — sans son `square.ggb`, donc
+        sans sa figure ni sa perspective, dans la vue algébrique par défaut de
+        GeoGebra.
+
+        Ce que le slib ne peut pas faire, en revanche, c'est nommer le fichier
+        `.ggb` d'une manière que le navigateur sache atteindre : il écrit
+        `$imagedir/<nom>`, et `$imagedir` vaut chez PAX la sentinelle
+        `pax-img:_`. `inline_pax_images` ne réécrit que les `<img>`, pas du
+        JSON : on résout donc ici, vers `/api/static`.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        numero = str(self.ctx.get("slib_number", "0")).strip() or "0"
+        brut = str(self.ctx.get(f"slib_parameters{numero}", "")).strip()
+        # `var parameters0 = { … };` — on ne garde que l'objet.
+        corps = brut.partition("{")[2].rpartition("}")[0].strip()
+        if not corps:
+            return ""
+        # Le slib écrit ses items un par ligne, par `!append item $\<retour>` —
+        # chez WIMS le `$…$` délimite un littéral, et celui-ci ne contient qu'un
+        # saut de ligne. PAX en laisse le `$` d'ouverture, d'où des séparateurs
+        # `,$\n` que JSON refuse. On retire le `$` qui précède un retour, et les
+        # retours eux-mêmes : ils n'étaient que de la mise en forme.
+        corps = re.sub(r"\$?\s*\n\s*", "", corps).rstrip(",")
+        try:
+            params = _json.loads("{" + corps + "}")
+        except ValueError:
+            return ""
+        if not isinstance(params, dict):
+            return ""
+
+        fichier = params.get("filename")
+        if isinstance(fichier, str) and fichier:
+            url = self._url_fichier_module(fichier)
+            if url:
+                params["filename"] = url
+            else:
+                params.pop("filename", None)
+
+        applet_id = str(params.get("id") or "ggbApplet0")
+        commandes = "\n".join(
+            l for l in str(self.ctx.get("slib_appletcommand", "")).split("\n")
+            if l.strip()
+        )
+        cfg = {
+            "id": applet_id,
+            "params": params,
+            "is3d": str(self.ctx.get("slib_3d", "0")).strip() == "1",
+            "commands": commandes,
+        }
+        charge = _html.escape(_json.dumps(cfg, ensure_ascii=False), quote=True)
+        return (
+            f'<div class="pax-geogebra" id="{applet_id}" '
+            f'data-geogebra="{charge}"></div>'
+        )
+
+    def _url_fichier_module(self, ref: str) -> str:
+        """L'URL `/api/static` d'un fichier du module, désigné par son nom.
+
+        Même recherche que `flydraw.inline_pax_images` : à plat sous `images/`,
+        puis n'importe où en dessous. Les `.ggb` du corpus y sont tous
+        (`oefalgopython.fr/images/suite_escalier_methode_heron.ggb`).
+        """
+        from ..flydraw import _RESSOURCES_ROOT  # noqa: PLC0415
+
+        if not self.def_path:
+            return ""
+        nom = os.path.basename(ref.split("?", 1)[0])
+        if not nom or nom == "_":
+            return ""
+        module_dir = os.path.dirname(os.path.dirname(self.def_path))
+        images = os.path.join(module_dir, "images")
+        trouve = None
+        plat = os.path.join(images, nom)
+        if os.path.isfile(plat):
+            trouve = plat
+        elif os.path.isdir(images):
+            for racine, _d, fichiers in os.walk(images):
+                if nom in fichiers:
+                    trouve = os.path.join(racine, nom)
+                    break
+        if not trouve:
+            return ""
+        rel = os.path.relpath(trouve, _RESSOURCES_ROOT).replace(os.sep, "/")
+        if rel.startswith(".."):
+            return ""
+        return f"/api/static/{rel}"
 
     def _render_codeeditor(self, params: str) -> str:
         """Built-in for the slib ``coding/editor``: parse its argument string and

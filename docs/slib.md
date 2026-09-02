@@ -244,13 +244,12 @@ silence ; deux le sont encore, et c'est **mesuré**, pas déduit.
 | `oef/steps.proc` | 635 | **exécuté** — il normalise `oefsteps`, et 189 réponses sont apparues |
 | `gp/*.gp` | 8 | **exécuté** — une bibliothèque PARI, cf. `geo2D/polynet` |
 | `oef/togetfile.proc` | 43 | **exécuté** — le magasin de fichiers de session dont Jmol tire ses modèles |
-| `js/geogebra/test` | 12 | inerte : le fichier n'existe pas, et son absence *est* la réponse |
+| `js/geogebra/test` | 12 | **exécuté** — il pose `geogebra_exists`, désormais vrai |
 | `oef/drawtikz.phtml` | 5 | inerte : `!if $printlatex!=yes → !exit`, et PAX ne pose jamais ce drapeau |
 
 Le détail de chaque cas est au point de chute de `_cmd_readproc`
-(`def_engine/slib.py`). Les deux qui restent ne demandent aucun code : le
-premier dit déjà la vérité — `slib/geo2D/geogebra` rend l'avertissement de
-WIMS, « GeoGebra is not installed » —, le second est mort-né.
+(`def_engine/slib.py`). Le seul qui reste est mort-né : il ne sert que l'export
+LaTeX, que PAX n'a pas.
 
 ### La chaîne Jmol
 
@@ -302,6 +301,67 @@ mot dans la console ; et `Jmol.loadInline` n'existe pas sur le namespace public
 Enfin, les trois molécules d'`oefmolecule` vivent dans un `<table>`, qui reste
 un seul segment HTML : leurs marqueurs sont hydratés après le rendu
 (`hydrateJmolMarkers`), comme le sont déjà les champs et les cases en tableau.
+
+### GeoGebra — l'affichage
+
+`slib/geo2D/geogebra` s'arrêtait à sa deuxième ligne. Elle lit
+`js/geogebra/test`, un fichier absent de l'arbre WIMS vendorisé, dont le rôle
+est de poser `geogebra_exists` ; faute de drapeau, le slib rendait
+l'avertissement de WIMS, « GeoGebra is not installed ». Le front chargeant
+maintenant `deployggb.js`, la réponse est oui, et le proc pose le drapeau —
+c'est sa seule lecture dans tout le corpus.
+
+**Ce que cela ouvre, mesuré.** 65 `.def` mentionnent GeoGebra, 38 appellent le
+slib. Au rendu de l'énoncé, à la configuration par défaut, **un seul** affiche
+une applet : `oefprogpythag.fr/experim`. Les autres se répartissent ainsi :
+
+| combien | qui | pourquoi |
+|---|---|---|
+| 34 | `OEFevalwimsgespa1.fr` | derrière `!if $val9==2`, où `val9` vient de `confparm1`. L'`introhook.phtml` du module fait `!set confparm1=1` et son `!formradio` propose « un dessin statique, Geogebra 3D » : **le module choisit le dessin statique**, GeoGebra est l'option de l'enseignant. Vérifié : à `confparm1=2`, les 34 rendent leur cube 3D. |
+| 2 | `oefalgopython.fr` heron1/2 | l'appel est dans `:postdef`, et sa variable (`val79`) n'est lue nulle part |
+| 1 | `oefqcm3.fr/q102` | même chose : `val39` est assignée puis jamais lue — mort chez WIMS aussi |
+
+Contrairement à Jmol, on **ne réimplémente pas** le slib : il sait démêler les
+options de l'applet des commandes GeoGebra, et parmi ces dernières les méthodes
+de l'API (`setFixed('A',true)`, appelées telles quelles) des constructions
+(`C=Intersect[r,s,1]`, qui passent par `evalCommand`). On le laisse s'exécuter
+et on traduit ses variables — `_render_geogebra_embed`.
+
+Deux pièges s'y sont logés :
+
+- C'est `slib_parameters<N>` qu'il faut lire, **pas** `slib_data_param` : le
+  slib n'ajoute le `filename` du `.ggb` qu'après avoir refermé le second dans
+  le premier. À lire le mauvais, `experim` s'ouvrait sur une applet vide, sans
+  sa figure ni sa perspective.
+- Le slib écrit ses items par `!append item $\<retour>`, où le `$…$` de WIMS
+  délimite un littéral ne contenant qu'un saut de ligne. PAX en laisse le `$`
+  d'ouverture, d'où des séparateurs `,$\n` que JSON refuse ; on les normalise.
+
+Le `.ggb` d'un module vit sous `images/` ; le slib le nomme `$imagedir/<x>`, et
+`inline_pax_images` ne réécrit que les `<img>`. `_url_fichier_module` le résout
+donc vers `/api/static`, que `useExerciseLogic` préfixe ensuite de l'API base.
+
+Côté front, `deployggb.js` vient de `https://www.geogebra.org/apps/` : ce n'est
+qu'un **chargeur** de 37 Ko, qui va chercher l'application sur
+`cdn.geogebra.org` — on ne réhéberge rien, ce qui laisse la question de licence
+où GeoGebra la met pour l'intégration. Le dépôt en garde une copie vendorisée
+(`wims/public_html/scripts/js/geogebra/`), figée à la version de l'arbre WIMS ;
+basculer dessus se réduit à changer `DEPLOYGGB` dans `composables/useGeogebra.ts`.
+
+Comme pour Jmol, l'applet se charge en asynchrone : les commandes ne valent
+qu'une fois `appletOnLoad` appelé, et c'est lui qui livre l'objet d'API. Les
+commandes désignant l'applet par son nom (`ggbApplet0.evalCommand(…)`), on lie
+ce nom-là à l'API reçue plutôt que d'attendre la globale que l'applet finit par
+poser — `new Function(cfg.id, cfg.commands)(api)`.
+
+**Reste la correction**, non faite : `anstype/geogebra` fait 1128 lignes de
+scénarios, et 17 exercices portent `replytype=geogebra`.
+
+Une observation de côté, non traitée : `_module_confparm_defaults` ne lit que
+`!default confparm<N>=…`, pas `!set`. Ici cela ne change rien — `confparm1`
+reste vide et `val9` retombe sur 1, la même valeur que le `!set` du module
+imposerait — mais un module qui forcerait une **autre** valeur par `!set` ne
+serait pas suivi.
 
 ### Ce qui a été fait depuis la version précédente de ce document
 

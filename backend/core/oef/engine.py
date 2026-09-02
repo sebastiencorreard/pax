@@ -199,7 +199,7 @@ _SEGMENT_PATTERN = re.compile(
     # div like jsxgraph/codeeditor, but its alternative sits at the *end* of
     # the pattern (to keep every existing group number stable), so ordering
     # alone can't protect it — without this it would be split open/close here.
-    r'|((?i:(?!<div class="pax-jmol")<(?:div|ul|ol|li)\b[^>]*>))'
+    r'|((?i:(?!<div class="pax-(?:jmol|geogebra)")<(?:div|ul|ol|li)\b[^>]*>))'
     r'|((?i:</(?:div|ul|ol|li)\s*>))'
     # groups 12/13/14: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
@@ -216,6 +216,9 @@ _SEGMENT_PATTERN = re.compile(
     # coupé en deux groupes de mise en page — mais en queue de motif, pour ne
     # décaler la numérotation d'aucun groupe existant.
     r'|<div class="pax-jmol"[^>]*data-jmol="([^"]*)"[^>]*></div>'
+    # groupe 25 : un conteneur d'applet GeoGebra, même placement et même
+    # raison que le groupe 24 ci-dessus.
+    r'|<div class="pax-geogebra"[^>]*data-geogebra="([^"]*)"[^>]*></div>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -680,6 +683,16 @@ def _segment_statement(html: str) -> list[dict]:
             except (ValueError, TypeError):
                 config = {}
             segments.append({"type": "jmol", "config": config, "is_sup": is_sup})
+        elif m.group(25) is not None:
+            # Applet GeoGebra — mêmes raisons que Jmol : la configuration
+            # voyage en données, jamais en HTML soumis à la passe KaTeX.
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            try:
+                config = _json.loads(_html.unescape(m.group(25)))
+            except (ValueError, TypeError):
+                config = {}
+            segments.append({"type": "geogebra", "config": config, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

@@ -92,6 +92,10 @@
         :config="node.seg.config"
       />
 
+      <ExerciseGeogebra v-else-if="node.seg.type === 'geogebra'"
+        :config="node.seg.config"
+      />
+
       <ExerciseJmol v-else-if="node.seg.type === 'jmol'"
         :config="node.seg.config"
       />

@@ -74,6 +74,7 @@ import { ref, watch, onMounted, computed, provide } from 'vue'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import { buildSegmentTree, PAX_STATEMENT_CTX } from '~/composables/useExerciseLogic'
 import { hydrateJmolMarkers } from '~/composables/useJsmol'
+import { hydrateGeogebraMarkers } from '~/composables/useGeogebra'
 
 const props = defineProps<{
   rendered: Rendered
@@ -440,7 +441,9 @@ onMounted(syncInlineInputs)
 // charge. `hydrateJmolMarkers` est idempotent : il saute ce qu'il a déjà monté.
 function mountTableJmol() {
   const el = statementEl.value
-  if (el) hydrateJmolMarkers(el)
+  if (!el) return
+  hydrateJmolMarkers(el)
+  hydrateGeogebraMarkers(el)
 }
 
 watch(() => props.statementSegments, mountTableJmol, { flush: 'post' })

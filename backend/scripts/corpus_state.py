@@ -132,7 +132,8 @@ def _widgets(counts) -> int:
     change son nom de segment sans rien retirer à l'élève.
     """
     reponses = ("input", "textarea", "menu", "correspond", "coord", "draw",
-                "jsxgraph", "codeeditor", "slot", "radio-inline", "jmol")
+                "jsxgraph", "codeeditor", "slot", "radio-inline", "jmol",
+                "geogebra")
     return sum(n for t, n in counts.items() if t in reponses)
 
 
