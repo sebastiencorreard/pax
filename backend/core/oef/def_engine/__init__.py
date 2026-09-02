@@ -5632,13 +5632,22 @@ class DefEngine(_SlibMixin):
                 # `options["inline"]` qui empêche le front de dresser la grille,
                 # pas une palette vide (cf. `StandardExercise.hasRadioAnswers`).
                 if ";" in good_raw:
+                    brutes = self._inline_radio_choices(n)
                     palette = [
-                        _close_inline_math(c.strip(), self.lang)
-                        for c in good_raw.split(";", 1)[1].split(",")
-                        if c.strip()
+                        _close_inline_math(c, self.lang) for c in brutes
                     ]
                     if palette:
                         options["choices"] = palette
+                        # La forme **d'origine**, telle que l'exercice la range
+                        # dans ses variables. Le corrigé et la notation par
+                        # analyse en ont besoin : un `:postdef` cherche
+                        # couramment le rang de la réponse dans sa propre liste
+                        # (`!positionof item $m_reply1 in $val111`), et ce que
+                        # le front renvoie est la forme *affichée* — math
+                        # refermé pour KaTeX, entité HTML restée en clair.
+                        # Aucune des deux ne se retrouve dans la liste brute.
+                        if brutes != palette:
+                            options["choices_raw"] = brutes
 
             elif ans_type == "radio":
                 choices: list[str] = []

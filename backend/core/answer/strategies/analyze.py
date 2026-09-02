@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import html
+import re
+
 from core.answer.schemas import AnswerResult
 from core.answer.strategies._locale import normalize_decimal_reply
 from core.answer.strategies.standard import pretty_expected
@@ -24,6 +27,39 @@ def _analyze_replies(active_ans_defs: list, replies_by_name: dict[str, str], lan
     }
 
 
+def _forme_brute(valeur: str, ans_def) -> str:
+    """La réponse telle que l'exercice la range dans ses variables.
+
+    Ce que le front renvoie est la forme **affichée** : le math y a été refermé
+    pour KaTeX (`\\(x)` → `\\(x\\)`) et l'entité HTML y est restée en clair
+    (`&#59;` là où un navigateur montre `;`). Un `:postdef` qui cherche le rang
+    de la réponse dans sa propre liste — `!positionof item $m_reply1 in
+    $val111` — ne l'y retrouve donc jamais.
+
+    Plutôt que de défaire ces transformations à l'aveugle, on retrouve le rang
+    du choix dans la palette affichée et on rend l'item de même rang dans la
+    palette d'origine (`options["choices_raw"]`). C'est exact par
+    construction ; à défaut de correspondance, la réponse passe telle quelle.
+
+    Une dernière étape, et elle n'est pas cosmétique : l'entité est **décodée**.
+    WIMS met la palette dans du HTML, le navigateur y montre `;` pour `&#59;`,
+    et c'est ce `;` que l'élève renvoie — d'où le `!replace internal ; by
+    &#59;` que le `:postdef` fait juste après, pour revenir à la forme rangée.
+    Lui donner l'entité telle quelle produirait `&#59&#59;`, échappé deux fois,
+    introuvable dans la liste.
+    """
+    if ans_def is None:
+        return valeur
+    affichees = ans_def.options.get("choices") or []
+    brutes = ans_def.options.get("choices_raw") or []
+    if len(affichees) != len(brutes):
+        return valeur
+    for i, c in enumerate(affichees):
+        if c == valeur:
+            return html.unescape(brutes[i])
+    return valeur
+
+
 def run_analyze(
     rendered,
     active_ans_defs: list,
@@ -37,12 +73,24 @@ def run_analyze(
     from core.oef.def_engine import check_analyze
 
     analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang)
+    # `$m_reply<n>` / `$reply<n>` — bruts, pour tout `reply<n>` soumis. Un
+    # `:postdef` s'en sert couramment pour retrouver le rang de la réponse dans
+    # la liste des choix ; sans eux il travaille sur du vide.
+    par_nom = {a.input_name: a for a in active_ans_defs}
+    replies_by_number: dict[int, str] = {}
+    for nom, valeur in replies_by_name.items():
+        m = re.match(r"^r(?:eply)?(\d+)$", nom.strip())
+        if m:
+            replies_by_number[int(m.group(1))] = _forme_brute(
+                valeur.strip(), par_nom.get(nom)
+            )
     condtest, weights = check_analyze(
         ev_ctx=rendered.check_sections["ctx"],
         postdef_instructions=rendered.check_sections["postdef"],
         test_instructions=rendered.check_sections["test"],
         analyze_replies=analyze_replies,
         seed=seed,
+        replies_by_number=replies_by_number,
     )
     # Weighted score (condweightN); falls back to a plain average when all
     # weights are 1. Correct on every condition → 1.0.

@@ -69,11 +69,28 @@ def check_analyze(
     test_instructions: list,
     analyze_replies: dict,
     seed: int,
+    replies_by_number: dict | None = None,
 ) -> tuple[dict, dict]:
     """Exécute :postdef puis :test avec les réponses élève.
 
     Retourne ``(condtest, weights)`` : les ``condtestN`` (0/1) et leur poids
     ``condweightN`` (défaut 1) pour un score pondéré.
+
+    Deux jeux de variables, et il faut les deux :
+
+    - ``val<N>`` pour un ``?analyze N``, entouré de parenthèses au besoin
+      (`_analyze_wrap`) puisqu'il entre dans un calcul ;
+    - ``m_reply<n>`` et ``reply<n>``, **bruts**, que WIMS rend disponibles à la
+      correction pour toute réponse. `_apply_prev_replies` pose déjà le même
+      couple pour les étapes d'un exercice `course`.
+
+    Les seconds manquaient. `OEFevalwimsgrph/ineqalghyper1` en dépend
+    entièrement : son `:postdef` cherche le rang de la réponse dans la liste
+    des choix (`!positionof item $val115 in $val111`, où `val115` vient de
+    `$m_reply1`), et son `:test` compare ce rang au bon. Sans `m_reply1`, le
+    rang sortait vide et **aucune réponse ne pouvait être juste**. 121 `.def`
+    lisent `$m_reply` dans leur `:postdef` ou leur `:test`, dont 47 avec un
+    `?analyze`.
     """
     from . import DefEngine  # import différé — évite la circularité
 
@@ -81,6 +98,9 @@ def check_analyze(
     engine.ctx.update(ev_ctx)
     for var_n, value in analyze_replies.items():
         engine.ctx[f"val{var_n}"] = _analyze_wrap(value)
+    for n, value in (replies_by_number or {}).items():
+        engine.ctx[f"m_reply{n}"] = value
+        engine.ctx[f"reply{n}"] = value
     engine._exec(postdef_instructions, output_buf=None)
     engine._exec(test_instructions, output_buf=None)
     condtest = {
