@@ -90,10 +90,27 @@ cd backend && alembic revision --autogenerate -m "description"
 ```bash
 cd frontend
 npm install
-npm run dev    # dev server on :3000
+npm run dev        # dev server on :3000
 npm run build
-npm run lint
+npm run lint       # eslint (config Nuxt officielle)
+npm run lint:fix   # dont ~485 des problèmes se corrigent seuls
+npm run typecheck  # vue-tsc sur .nuxt/tsconfig.json
+npm run test:e2e   # playwright
 ```
+
+**Ligne de base — juger le *delta*, pas le total.** Le dépôt a longtemps vécu
+sans linter (`npm run lint` était documenté mais n'existait pas), et l'arriéré
+est réel :
+
+| commande | état au 2026-09-02 |
+|---|---|
+| `npm run lint` | 572 problèmes — 57 erreurs, 515 avertissements, dont **485 corrigeables par `lint:fix`** |
+| `npm run typecheck` | 69 erreurs, concentrées sur `DrawAnswer.vue` (28) et `utils/figureColors.ts` (13) |
+| `npm run test:e2e` | 18 passent, 2 ignorés, **0 échec** |
+
+Résorber l'arriéré est un chantier à part : `lint:fix` touche des centaines de
+fichiers pour un gain cosmétique, et mérite sa propre relecture. Ce qui compte
+d'ici là, c'est qu'un changement n'aggrave aucun des trois compteurs.
 
 ## Dependencies
 
