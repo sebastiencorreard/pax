@@ -2577,14 +2577,44 @@ def _apick_multiset(block: str) -> tuple[str, ...] | None:
     return tuple(sorted(ops)) if ops else None
 
 
+# Ponctuation neutralisée par WIMS `case` : les `badchars` d'`anstype/case`,
+# soit ceux de `nocase` plus la barre verticale — laquelle sépare les
+# alternatives de l'attendu, et n'a donc à être neutralisée que dans la réponse
+# (l'attendu est découpé dessus avant d'arriver ici).
+_CASE_PUNCT = re.compile(r"""[-+/*='"`.;,!|{}@#$%^&()\[\]?<>\\~]""")
+
+
+def _case_normalize(s: str) -> str:
+    """`translate badchars → espaces`, `singlespace`, `trim` — la préparation
+    que `anstype/case` applique à la réponse **comme** à l'attendu.
+
+    La casse est ignorée en plus, comme elle l'était déjà. WIMS, lui, compare
+    par `!if $dd=$g`, donc en tenant compte de la casse : c'est un écart connu,
+    laissé tel quel faute d'un cas du corpus qui le tranche — le corriger
+    rendrait PAX **plus strict**, ce qu'aucune mesure ne réclame aujourd'hui.
+    """
+    s = _CASE_PUNCT.sub(" ", s)
+    return re.sub(r"\s+", " ", s).strip().lower()
+
+
 def check_case(reply: str, expected: str) -> CheckResult:
     """WIMS `case` type: ``expected`` lists alternatives separated by ``|``.
     The reply matches an alternative literally (case/space-insensitive), or —
     for WIMS' ``[Alt:[Apick:N,…]]`` construct (prime factorisation, 1024) — as
     a product whose factor multiset equals an accepted one (order-free). E.g.
     ``5^2*2*7|[Alt:[Apick:3,[*],[*],5^2,2,7],[Apick:4,[*],[*],[*],5,5,2,7]]``
-    accepts ``2*5*5*7`` as well as ``5^2*2*7`` in any factor order."""
-    reply_norm = reply.strip().lower()
+    accepts ``2*5*5*7`` as well as ``5^2*2*7`` in any factor order.
+
+    **La ponctuation ne compte pas.** `anstype/case` traduit une liste de
+    `badchars` en espaces — des deux côtés — puis `!singlespace` et `!trim`
+    avant de comparer. Sans cela, `mathelexikon1/Kreisenkette` était
+    inaccessible : son `replygood1=$(val74[1;]);$(val72[1;])` sort `e;`, le
+    `;` n'étant qu'un séparateur entre deux composantes dont la seconde est
+    **délibérément vide** (`!ifval $val21 iswordof case raw → val72=`). Il
+    fallait taper `e;` pour avoir juste, là où la désinence attendue est `e`.
+    Ses vingt-deux champs sont dans ce cas.
+    """
+    reply_norm = _case_normalize(reply)
     reply_ms = _product_multiset(reply)
 
     literal_alts: set[str] = set()
@@ -2600,7 +2630,7 @@ def check_case(reply: str, expected: str) -> CheckResult:
                 if ms is not None:
                     accepted_ms.append(ms)
         else:
-            literal_alts.add(part.lower())
+            literal_alts.add(_case_normalize(part))
 
     correct = reply_norm in literal_alts or (bool(reply_ms) and reply_ms in accepted_ms)
     return CheckResult(correct=correct, score=1.0 if correct else 0.0, method="case")

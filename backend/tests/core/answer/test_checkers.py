@@ -1187,3 +1187,38 @@ class TestBoundGeometrique:
         from core.answer.checkers import _meme_region_svg
 
         assert _meme_region_svg((1, 1), (2, 2), "") is True  # aucune frontière
+
+
+class TestCasePonctuation:
+    """`anstype/case` traduit ses `badchars` en espaces — des deux côtés — puis
+    `!singlespace` et `!trim` avant de comparer.
+
+    Sans cela, `mathelexikon1/Kreisenkette` était inaccessible. Son
+    `replygood1=$(val74[1;]);$(val72[1;])` sort `e;` : le `;` n'est qu'un
+    séparateur entre deux composantes, dont la seconde est **délibérément
+    vide** — l'exercice écrit `!ifval $val21 iswordof case raw → val72=`. Il
+    fallait donc taper `e;` pour avoir juste, là où la désinence allemande
+    attendue est `e`. Ses vingt-deux champs étaient dans ce cas.
+    """
+
+    def test_le_separateur_en_trop_ne_compte_pas(self):
+        assert check_answer("case", "e", "e;").correct
+        assert check_answer("case", "e;", "e;").correct
+        assert check_answer("case", "Kreisen und ein", "Kreisen und ein;").correct
+
+    def test_une_mauvaise_reponse_reste_mauvaise(self):
+        assert not check_answer("case", "a", "e;").correct
+        assert not check_answer("case", "", "e;").correct
+        assert not check_answer("case", "en", "e;").correct
+
+    def test_les_alternatives_restent_reconnues(self):
+        """La barre verticale sépare les alternatives de l'attendu ; elle est
+        découpée avant la normalisation, et neutralisée dans la réponse."""
+        assert check_answer("case", "rouge", "rouge|bleu").correct
+        assert check_answer("case", "bleu", "rouge|bleu").correct
+        assert not check_answer("case", "vert", "rouge|bleu").correct
+
+    def test_espaces_multiples_et_ponctuation_variee(self):
+        assert check_answer("case", "un  deux", "un deux").correct
+        assert check_answer("case", "un, deux", "un deux").correct
+        assert check_answer("case", " un deux ", "un.deux").correct
