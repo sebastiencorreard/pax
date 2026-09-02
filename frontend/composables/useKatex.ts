@@ -88,41 +88,26 @@ export function useKatex() {
     )
   }
 
-  // Compte les ``-`` empilés au début d'une expression numérique simple
-  // (gère ``--``, ``-(-x)``, ``-x``). Renvoie [n_negs, body_sans_signes].
-  function countLeadingNegs(s: string): [number, string] {
-    s = s.trim()
-    let n = 0
-    while (true) {
-      if (s.startsWith("--")) { n += 2; s = s.slice(2); continue }
-      if (s.startsWith("-(-") && s.endsWith(")")) { n += 2; s = s.slice(3, -1).trim(); continue }
-      if (s.startsWith("-(") && s.endsWith(")")) {
-        // -(X) where X has its own potential signs: keep one neg and recurse on X
-        const inner = s.slice(2, -1).trim()
-        const [m, body] = countLeadingNegs(inner)
-        return [n + 1 + m, body]
-      }
-      if (s.startsWith("-")) { n += 1; s = s.slice(1).trim(); break }
-      break
-    }
-    return [n, s]
-  }
-
-  // Simplifie les signes ``-`` accumulés au numérateur et dénominateur d'une
-  // ``\dfrac{a}{b}`` : ``\dfrac{-11}{-10}`` → ``\dfrac{11}{10}`` ;
-  // ``\dfrac{-15}{-(-7)}`` → ``-\dfrac{15}{7}``.
-  function simplifyFracSign(expr: string): string {
-    return expr.replace(
-      /\\dfrac\{([^{}]+)\}\{([^{}]+)\}/g,
-      (_m, num, den) => {
-        const [nNum, bodyNum] = countLeadingNegs(num)
-        const [nDen, bodyDen] = countLeadingNegs(den)
-        const total = nNum + nDen
-        const sign = total % 2 === 1 ? "-" : ""
-        return `${sign}\\dfrac{${bodyNum}}{${bodyDen}}`
-      }
-    )
-  }
+  // Le signe d'une fraction **reste où l'auteur l'a mis**. On a longtemps
+  // « simplifié » ici : ``\dfrac{-11}{6}`` devenait ``-\dfrac{11}{6}``, et
+  // ``\dfrac{-4}{-4}`` devenait ``\dfrac{4}{4}``. Deux raisons de ne plus le
+  // faire, l'une de fidélité, l'autre plus grave :
+  //
+  //   - WIMS rend ce que le `.def` émet, sans déplacer le signe. Sorti du
+  //     numérateur, il produisait des ``- -`` disgracieux :
+  //     ``rational.fr/sommesimple1`` affichait ``A = -\dfrac{6}{4} - -\dfrac{10}{6}``
+  //     là où WIMS écrit ``\dfrac{-2}{2} - \dfrac{4}{2}``.
+  //   - Simplifier ``\dfrac{-4}{-4}`` en ``\dfrac{4}{4}`` **donne une partie
+  //     de la réponse** : dans ``rational.fr/quotient1``, ``11 \div \dfrac{-4}{-4}``
+  //     attend ``11``, et reconnaître que deux négatifs s'annulent *est*
+  //     l'exercice.
+  //
+  // La fonction invoquait des formes à signes doublés (``\dfrac{-15}{-(-7)}``,
+  // ``--``) : mesuré sur les 4278 exercices et trois graines, le corpus n'en
+  // produit **aucune**, ni dans un `\frac` du backend ni dans une division
+  // plate que ``slashToFrac`` empile. Elle ne faisait donc que déplacer des
+  // signes légitimes — 648 numérateurs sur 116 exercices, 208 dénominateurs
+  // sur 71, et 59 fractions doublement signées sur 27.
 
   // Retire les parenthèses inutiles autour d'une ``\dfrac`` : ``(\dfrac{a}{b})``
   // est visuellement déjà un bloc unique, les parens autour sont redondantes.
@@ -229,7 +214,6 @@ export function useKatex() {
     expr = expr.replace(/\s*\*\s*/g, ' \\times ')
     expr = slashToFrac(expr)
     expr = fracToDfrac(expr)
-    expr = simplifyFracSign(expr)
     expr = stripRedundantFracParens(expr)
     expr = wrapNegativeOperands(expr)
     expr = decimalComma(expr)
