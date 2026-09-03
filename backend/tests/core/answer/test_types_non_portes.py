@@ -40,7 +40,7 @@ from core.oef.engine import load_and_render
 #          C.check_answer(t,'1','1',{},'fr') or True) and C._logged_unhandled_types]
 #   print(d)"
 _DETTE = frozenset({
-    "aset", "autoeval", "chembrut", "chemclick", "chemdraw", "chemformula",
+    "autoeval", "chembrut", "chemclick", "chemdraw", "chemformula",
     "chemformula_analysis", "chessgame", "chset", "clicktile", "clock", "code",
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
     "geogebra", "geogebra_translation", "imgcomp", "javacurve", "jmolclick",
@@ -57,7 +57,7 @@ _DETTE = frozenset({
 # onze types avant le dispatch. La partition qui suit dit lesquels, et c'est
 # `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
-    "aset", "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
+    "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
     "matrix", "reaction", "runcode", "symtext", "wlist",
 })
 
@@ -88,13 +88,12 @@ _DETTE_INTERCEPTEE = frozenset({
 #               variables d'une exécution Python)
 #   geogebra     7 champs,  7 exercices — l'affichage est porté, reste la
 #               correction (`anstype/geogebra`, 1128 lignes de scénarios)
-#   aset         2 champs,  1 exercice
 #   wlist        1 champ,   1 exercice
 #   jmolclick    1 champ,   1 exercice — l'affichage Jmol est porté, le clic
 #               sur un atome manque
 #   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
 _DETTE_ATTEINTE = frozenset({
-    "aset", "geogebra", "jmolclick", "js2wims1", "runcode", "wlist",
+    "geogebra", "jmolclick", "js2wims1", "runcode", "wlist",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")

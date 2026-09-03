@@ -32,8 +32,8 @@ pytestmark = pytest.mark.slow
 # `-6/5,-9/8`, des coordonnées, une suite d'étiquettes. Partout ailleurs elle
 # sépare des écritures acceptables, comme le `|`.
 _TYPES_LISTE = {
-    "fset", "set", "coord", "clickfill", "dragfill", "correspond", "imagefill",
-    "range", "matrix", "atext",
+    "aset", "fset", "set", "coord", "clickfill", "dragfill", "correspond",
+    "imagefill", "range", "matrix", "atext",
 }
 
 

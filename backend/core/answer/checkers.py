@@ -2588,6 +2588,66 @@ def check_fset(
     return CheckResult(correct=False, score=best_score, method="fset")
 
 
+def check_aset(
+    reply: str,
+    expected: str,
+    precision: float = WIMS_DEFAULT_PRECISION,
+    comma_is_decimal: bool = True,
+) -> CheckResult:
+    """Ensemble approximatif — le troisième de la famille `set`/`fset`/`aset`.
+
+    L'aide de WIMS les donne pour un même type à trois évaluations : `set` ne
+    compare que du texte, `fset` évalue ses éléments comme des expressions
+    formelles, `aset` comme des expressions approximatives. `check_fset` fait
+    déjà les deux dernières — il essaie le numérique avant le symbolique —, et
+    c'est lui qui apparie ici.
+
+    Ce que `anstype/aset` ajoute tient dans son préambule, et il faut le
+    reproduire avant de comparer :
+
+    * `!declosing` retire une paire de délimiteurs englobants. L'énoncé pose
+      « \(S =\) » devant le champ, alors l'élève écrit volontiers `{3/7,1/90}` ;
+    * `!listuniq` dédoublonne **les deux** côtés avant de compter. `1,1,2` vaut
+      donc `1,2`, là où `check_fset` seul y verrait deux cardinaux différents ;
+    * sans virgule, la liste se coupe sur les espaces (`!words2items`), ce qui
+      accepte `3/7 1/90`.
+
+    La note est tout ou rien. WIMS compare les deux ensembles par un détour
+    élégant — il forme ∏(J−xᵢ) de chaque côté et confie les deux polynômes à
+    `anstype/function`, deux ensembles étant égaux exactement quand leurs
+    polynômes le sont — et un seul élément faux suffit à les séparer. Le score
+    partiel de `check_fset` accorderait des points là où WIMS n'en donne aucun.
+    """
+    def declos(s: str) -> str:
+        s = s.strip()
+        for ouvrant, fermant in (("{", "}"), ("(", ")"), ("[", "]")):
+            if s.startswith(ouvrant) and s.endswith(fermant):
+                return s[1:-1].strip()
+        return s
+
+    def uniq(s: str, sep: str) -> str:
+        vus: list[str] = []
+        for x in s.split(sep):
+            x = x.strip()
+            if x and x not in vus:
+                vus.append(x)
+        return sep.join(vus)
+
+    reply, expected = declos(reply), declos(expected)
+    # `!if , notin $dd → !words2items` : l'espace ne sépare que faute de virgule.
+    if "," not in reply and ";" not in reply:
+        reply = ",".join(reply.split())
+    if "," not in expected and ";" not in expected:
+        expected = ",".join(expected.split())
+    reply = uniq(reply, ";" if ";" in reply else ",")
+    expected = uniq(expected, ";" if ";" in expected else ",")
+
+    res = check_fset(reply, expected, precision, comma_is_decimal)
+    if res.correct:
+        return CheckResult(correct=True, score=1.0, method="aset")
+    return CheckResult(correct=False, score=0.0, method="aset", detail=res.detail)
+
+
 # ------------------------------------------------------------------ #
 # Choix (radio, checkbox, clickfill)                                   #
 # ------------------------------------------------------------------ #
@@ -3207,6 +3267,8 @@ def check_answer(
             return check_algexp(reply, expected, comma_is_decimal)
         case "fset":
             return check_fset(reply, expected, precision, comma_is_decimal)
+        case "aset":
+            return check_aset(reply, expected, precision, comma_is_decimal)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.
