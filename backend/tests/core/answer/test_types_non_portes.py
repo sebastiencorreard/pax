@@ -27,6 +27,7 @@ import pytest
 from config import settings
 from core.answer import checkers as C
 from core.oef.def_engine import _normalize_reply_type
+from core.oef.engine import load_and_render
 
 
 # Les types que le dispatch abandonne à `check_text`. Régénérer après avoir
@@ -48,19 +49,52 @@ _DETTE = frozenset({
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
-# une dette théorique, sans un seul exercice pour la porter. C'est cette
-# liste-ci qui ordonne le travail, et deux de ses entrées n'y figurent que pour
-# mémoire, le moteur les interceptant avant le checker :
+# une dette théorique, sans un seul exercice pour la porter.
 #
-#   dragfill  →  replié sur `clickfill` (`_normalize_reply_type`), voir plus bas
-#   draft     →  capté en `options["draft"]` par le moteur, champ non noté
-#
-# Les autres arrivent bien jusqu'à `check_text`. Un balayage du corpus complet
-# en comptait 131 sur 9 types avant que `numexp2` (6 exercices) et
-# `jsxgraphobjet` (3) ne soient portés.
+# Ce relevé-ci est **statique** : il compte des `replytype<n>=` dans les
+# `.def`, et à ce titre il sur-rapporte. Ce qu'un fichier déclare n'est pas ce
+# qui parvient au checker — le moteur replie, masque ou écarte cinq de ces
+# onze types avant le dispatch. La partition qui suit dit lesquels, et c'est
+# `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
     "aset", "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
     "matrix", "reaction", "runcode", "symtext", "wlist",
+})
+
+# Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
+# intercepte en amont, chacun à sa manière. Ils restent dans `_DETTE` parce que
+# le dispatch, lui, ignore ces détours — si l'interception tombait, les
+# réponses basculeraient d'un coup sur `check_text`.
+#
+#   dragfill  →  replié sur `clickfill` (`_normalize_reply_type`), voir plus bas
+#   draft     →  capté en `options["draft"]`, champ brouillon non noté
+#   matrix    →  ses 7 champs portent tous `?analyze`, qui masque le type en
+#                `analyze` ; la notation passe par `:test` (et pour 7 d'entre
+#                eux, plus du tout : rien ne les éprouve, ils sont `ungraded`)
+#   symtext   →  idem, ses 2 champs sont `?analyze`
+#   reaction  →  `?analyze` *et* `replyweight=0` : le type de module
+#                d'oefstatistiques ne corrige rien, il dresse un tableau HTML
+#                des temps relevés et conclut `diareply=good` sans condition
+_DETTE_INTERCEPTEE = frozenset({
+    "draft", "dragfill", "matrix", "reaction", "symtext",
+})
+
+# Ce qui reste vraiment à porter : les types qui atteignent `check_text` sur au
+# moins un champ **pesant** (`replyweight` non nul) du corpus. Mesuré au rendu,
+# non déclaré — cf. `test_ce_qui_atteint_vraiment_le_checker`.
+#
+#   runcode     98 champs, 98 exercices — exécution de code élève, le gros
+#               morceau, et `js2wims1` en dépend (son `.input` lit les
+#               variables d'une exécution Python)
+#   geogebra     7 champs,  7 exercices — l'affichage est porté, reste la
+#               correction (`anstype/geogebra`, 1128 lignes de scénarios)
+#   aset         2 champs,  1 exercice
+#   wlist        1 champ,   1 exercice
+#   jmolclick    1 champ,   1 exercice — l'affichage Jmol est porté, le clic
+#               sur un atome manque
+#   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
+_DETTE_ATTEINTE = frozenset({
+    "aset", "geogebra", "jmolclick", "js2wims1", "runcode", "wlist",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")
@@ -131,6 +165,78 @@ def test_le_corpus_n_emploie_de_la_dette_que_ce_qui_est_recense():
         f"plus employés par le corpus : {sorted(sorties)} — les retirer de "
         "_DETTE_EMPLOYEE"
     )
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(
+    not os.path.isdir(settings.resources_root),
+    reason="corpus absent (les ressources ne sont pas montées)",
+)
+def test_ce_qui_atteint_vraiment_le_checker():
+    """La dette telle qu'un élève la subit, mesurée au rendu.
+
+    Les deux relevés qui précèdent lisent des fichiers ; celui-ci rend les
+    exercices. L'écart n'est pas anecdotique — cinq des onze types déclarés
+    n'arrivent jamais jusqu'à `check_answer` —, et il porte à conséquence : ce
+    test dit sur quoi travailler, et un relevé statique enverrait porter un
+    correcteur `matrix` dont pas un champ ne se sert.
+
+    Deux filtres, et ils comptent autant que la mesure. `ungraded` écarte les
+    brouillons, `weight` les champs de poids nul : leur note n'entre dans
+    aucun total, si bien qu'un repli sur `check_text` n'y coûte rien. Les
+    treize `js2wims1` d'oefechpython sont dans ce cas — ce qui leur manque est
+    un *affichage*, pas un correcteur.
+
+    Coûte une minute : il rend les 276 exercices qui déclarent un type de la
+    dette, d'où le marqueur `slow`.
+    """
+    racine = settings.resources_root.rstrip("/")
+    a_rendre = set()
+    for chemin in glob.glob(f"{racine}/**/*.def", recursive=True):
+        with open(chemin, "rb") as f:
+            octets = f.read()
+        if any(
+            C.normalize_replytype(m.group(1).decode("latin-1")) in _DETTE
+            for m in _RT.finditer(octets)
+        ):
+            oef = chemin.replace("/def/", "/src/")[:-4] + ".oef"
+            if os.path.exists(oef):
+                a_rendre.add(oef)
+
+    atteints: set[str] = set()
+    for chemin in sorted(a_rendre):
+        try:
+            rendu = load_and_render(
+                "/ressources/" + os.path.relpath(chemin, racine), seed=42
+            )
+        except Exception:  # noqa: BLE001 — un rendu cassé relève d'un autre test
+            continue
+        for ans in rendu.answers:
+            if ans.options.get("ungraded") or not ans.weight:
+                continue
+            type_effectif = C.normalize_replytype(ans.answer_type)
+            if type_effectif in _DETTE:
+                atteints.add(type_effectif)
+
+    entrees = atteints - _DETTE_ATTEINTE
+    sorties = _DETTE_ATTEINTE - atteints
+    assert not entrees, (
+        f"atteignent désormais check_text sur un champ noté : {sorted(entrees)} "
+        "— régression du repli qui les interceptait, ou dette à recenser"
+    )
+    assert not sorties, (
+        f"n'atteignent plus le checker : {sorted(sorties)} — checker porté (les "
+        "retirer aussi de _DETTE), ou repli en amont (les passer à "
+        "_DETTE_INTERCEPTEE)"
+    )
+
+
+def test_la_dette_employee_se_partitionne():
+    """Tout type employé est soit intercepté, soit subi. Sans recouvrement :
+    un type ne peut pas à la fois ne jamais parvenir au checker et y parvenir.
+    """
+    assert _DETTE_INTERCEPTEE | _DETTE_ATTEINTE == _DETTE_EMPLOYEE
+    assert not (_DETTE_INTERCEPTEE & _DETTE_ATTEINTE)
 
 
 def test_dragfill_ne_parvient_jamais_au_checker():
