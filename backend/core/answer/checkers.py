@@ -2999,6 +2999,80 @@ def check_atext(reply: str, expected: str, lang: str = "fr") -> CheckResult:
     return CheckResult(correct=False, score=0.0, method="atext")
 
 
+def check_wlist(reply: str, expected: str, lang: str = "fr") -> CheckResult:
+    """Type WIMS `wlist` : une liste de mots, tous à prendre dans un répertoire.
+
+    Ce n'est pas une égalité d'ensembles, et c'est ce qui le distingue de
+    `set` : `anstype/wlist` demande que **chaque mot cité appartienne** au
+    répertoire, et qu'il y en ait au moins `n`.
+
+        gd = 0
+        !for w in $dd
+          !if $w isitemof $good
+            !advance gd
+        tt = !itemcnt $dd
+        !ifval $gd=$tt and $gd>=$n   → good
+
+    Le seuil `n` est le **premier mot** de `replygood`, quand c'en est un
+    nombre (`n=!word 1 of $good`, `n=$[$n]`, `!if $n>0`) ; sinon il vaut 1 et
+    le répertoire commence au premier mot. `mol/molecule2` est dans ce second
+    cas : il pose les quatre atomes sans seuil, si bien qu'un seul d'entre eux
+    fait une réponse juste — laxisme de l'exercice, que nous reproduisons.
+
+    Le `;` de `replygood` fait un saut de ligne (`!rows2lines`) : la première
+    ligne est le répertoire, les suivantes les `badwords`, qui ne servent qu'au
+    diagnostic `unknownword` — non rendu ici, comme pour `atext`.
+
+    La normalisation est celle d'`atext`, dont `wlist` partage le dictionnaire
+    (`scripts/oef/<lang>/atext.dic` et `bases/sys/suffix.<lang>`) : accents,
+    casse, ponctuation, mots vides et racinisation. « le Carbone et
+    l'hydrogène » vaut donc « carbone hydrogene ».
+
+    La note est tout ou rien. WIMS marque bien un `precgood` quand la moitié
+    des mots au moins est juste, mais c'est `freegot` qui note, et il n'avance
+    que dans la branche « good » : le `precgood` ne vaut qu'un message.
+    """
+    # `!items2words` d'abord : les virgules de `replygood` deviennent des
+    # espaces, et seul le `;` sépare encore le répertoire des badwords.
+    brut = (expected or "").replace(",", " ")
+    lignes = [ligne for ligne in brut.split(";") if ligne.strip()]
+    repertoire = lignes[0] if lignes else ""
+
+    mots_good = repertoire.split()
+    seuil = 1
+    if mots_good:
+        try:
+            premier = int(mots_good[0])
+        except ValueError:
+            premier = 0
+        if premier > 0:
+            seuil = premier
+            mots_good = mots_good[1:]
+
+    good = set(_atext_normalize(" ".join(mots_good), lang).split())
+    if not good:
+        return CheckResult(correct=False, score=0.0, method="wlist")
+
+    # `!listuniq $dd` : un mot répété ne compte qu'une fois, des deux côtés.
+    donnes: list[str] = []
+    for mot in _atext_normalize(reply, lang).split():
+        if mot not in donnes:
+            donnes.append(mot)
+    if not donnes:
+        return CheckResult(correct=False, score=0.0, method="wlist")
+
+    justes = sum(1 for mot in donnes if mot in good)
+    if justes == len(donnes) and justes >= seuil:
+        return CheckResult(correct=True, score=1.0, method="wlist")
+
+    intrus = [mot for mot in donnes if mot not in good]
+    detail = (
+        f"mot(s) hors sujet : {', '.join(intrus)}" if intrus
+        else f"{len(donnes)} mot(s), {seuil} attendu(s) au moins"
+    )
+    return CheckResult(correct=False, score=0.0, method="wlist", detail=detail)
+
+
 def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
     """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
     par défaut), après application des filtres pilotés par l'option :
@@ -3312,6 +3386,8 @@ def check_answer(
             return check_nocase(reply, expected)
         case "atext":
             return check_atext(reply, expected, lang or "fr")
+        case "wlist":
+            return check_wlist(reply, expected, lang or "fr")
         case "default" | "auto":
             # `anstype/default` n'est pas un comparateur mais un aiguilleur :
             # sa toute première règle renvoie vers `equation` dès que l'attendu

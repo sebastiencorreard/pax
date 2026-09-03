@@ -45,7 +45,7 @@ _DETTE = frozenset({
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
     "geogebra", "geogebra_translation", "imgcomp", "javacurve", "jmolclick",
     "js2wims1", "keyboard", "matrix", "multidraw", "puzzle", "reaction",
-    "reorder", "runcode", "symtext", "textcomp", "time", "wlist",
+    "reorder", "runcode", "symtext", "textcomp", "time",
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
@@ -58,7 +58,7 @@ _DETTE = frozenset({
 # `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
     "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
-    "matrix", "reaction", "runcode", "symtext", "wlist",
+    "matrix", "reaction", "runcode", "symtext",
 })
 
 # Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
@@ -88,12 +88,11 @@ _DETTE_INTERCEPTEE = frozenset({
 #               variables d'une exécution Python)
 #   geogebra     7 champs,  7 exercices — l'affichage est porté, reste la
 #               correction (`anstype/geogebra`, 1128 lignes de scénarios)
-#   wlist        1 champ,   1 exercice
 #   jmolclick    1 champ,   1 exercice — l'affichage Jmol est porté, le clic
 #               sur un atome manque
 #   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
 _DETTE_ATTEINTE = frozenset({
-    "geogebra", "jmolclick", "js2wims1", "runcode", "wlist",
+    "geogebra", "jmolclick", "js2wims1", "runcode",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")
