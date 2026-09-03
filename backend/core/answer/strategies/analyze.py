@@ -136,6 +136,32 @@ def run_analyze(
             / (total_w + poids_reponses)
         )
 
+    # Une condition ne juge pas tout l'exercice : `fill2deg` en pose deux, dont
+    # la première ne regarde que `reply4`. Le champ dont la condition passe doit
+    # donc être vert, même si une **autre** condition échoue ailleurs.
+    from core.oef.def_engine.analyze import champs_par_condition  # noqa: PLC0415
+
+    rattachement = champs_par_condition(rendered.check_sections["test"])
+
+    def note_du_champ(ans_def) -> float | None:
+        """La note des seules conditions qui éprouvent ce champ, ou `None`.
+
+        Le relevé désigne une réponse par son numéro (`4`, tiré de
+        `$m_reply4`) ou par sa variable d'analyse (`val28`).
+        """
+        numero = ans_def.input_name.removeprefix("reply")
+        var = ans_def.options.get("analyze_var") or ""
+        siennes = [
+            k for k, refs in rattachement.items()
+            if numero in refs or (var and var in refs)
+        ]
+        if not siennes:
+            return None
+        poids = sum(weights.get(k, 1.0) for k in siennes)
+        if not poids:
+            return None
+        return sum(condtest.get(k, 0) * weights.get(k, 1.0) for k in siennes) / poids
+
     results: list[AnswerResult] = []
     for ans_def in active_ans_defs:
         # Le verdict d'un champ est celui de **son** checker quand il en a un.
@@ -145,11 +171,14 @@ def run_analyze(
             results.append(verdicts[ans_def.input_name])
             continue
         reply_value = replies_by_name.get(ans_def.input_name, "").strip()
+        note = note_du_champ(ans_def)
+        if note is None:
+            note = global_score
         results.append(
             AnswerResult(
                 input_name=ans_def.input_name,
-                correct=(global_score == 1.0),
-                score=global_score,
+                correct=(note == 1.0),
+                score=note,
                 method="analyze",
                 reply=reply_value,
                 expected=pretty_expected(ans_def.expected, ans_def.answer_type),

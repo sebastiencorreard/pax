@@ -33,6 +33,10 @@ class _Def:
 
 
 class _Rendu:
+    """Sans instruction dans `:test`, aucune condition n'est rattachée à un
+    champ : chaque `?analyze` porte alors la note d'ensemble, ce que les tests
+    de note ci-dessous mesurent."""
+
     check_sections = {"ctx": {}, "postdef": [], "test": []}
     lang = "fr"
 
@@ -115,6 +119,45 @@ class TestExerciceSansReponseJugeable:
         defs = [_Def("reply1", "analyze", "", {"analyze_var": "val1"})]
         score, _ = _run(monkeypatch, defs, {"reply1": ""}, {}, {})
         assert score == 0.0
+
+
+class TestRattachementDesConditions:
+    """Une condition ne juge pas tout l'exercice.
+
+    `fill2deg` en pose deux : la première ne regarde que `$m_reply4`, la
+    seconde `$m_reply7|8|9`. Un champ dont la condition passe doit rester vert
+    même si l'**autre** échoue — sans quoi l'élève voit tout en rouge et ne
+    sait pas quoi reprendre.
+    """
+
+    def test_le_releve_lit_les_variables_de_chaque_condition(self):
+        from core.oef.def_engine.analyze import champs_par_condition
+        from core.oef.def_parser import Assign, IfBlock
+
+        test = [
+            IfBlock("ifval", "$m_reply4<0", [Assign("condtest1", "1")],
+                    [Assign("condtest1", "0")]),
+            IfBlock("ifval", "$m_reply7*$m_reply8=$m_reply9",
+                    [Assign("condtest2", "1")], [Assign("condtest2", "0")]),
+        ]
+        assert champs_par_condition(test) == {
+            "condtest1": {"4"}, "condtest2": {"7", "8", "9"},
+        }
+
+    def test_la_variable_d_analyse_compte_aussi(self):
+        from core.oef.def_engine.analyze import champs_par_condition
+        from core.oef.def_parser import Assign, IfBlock
+
+        test = [IfBlock("ifval", "$val28>0", [Assign("condtest1", "1")], [])]
+        assert champs_par_condition(test) == {"condtest1": {"val28"}}
+
+    def test_une_condition_sans_reference_n_est_rattachee_a_rien(self):
+        """Repli sûr : elle vaut alors pour tout l'exercice."""
+        from core.oef.def_engine.analyze import champs_par_condition
+        from core.oef.def_parser import Assign, IfBlock
+
+        test = [IfBlock("ifval", "1=1", [Assign("condtest1", "1")], [])]
+        assert champs_par_condition(test) == {}
 
 
 class TestVerdictParChamp:

@@ -63,6 +63,54 @@ def _parse_numeric(s: str) -> float:
 
 # ── API publique ──────────────────────────────────────────────────────────────
 
+def champs_par_condition(test_instructions: list) -> dict[str, set[int]]:
+    """Les réponses que chaque `condtest<k>` éprouve, relevées sur `:test`.
+
+    Une condition ne juge pas tout l'exercice : `oefresolalg/fill2deg` en pose
+    deux, dont la première ne regarde que `$m_reply4` (« le second membre est
+    négatif, donc pas de solution ») et la seconde `$m_reply7`, `8` et `9`.
+    Sans ce rattachement, un champ dont la condition passe se voyait peint de
+    la note d'ensemble — rouge dès qu'une **autre** condition échouait, et
+    l'élève ne pouvait pas savoir laquelle reprendre.
+
+    Le relevé est textuel : on descend les `!if`/`!ifval` de `:test`, et toute
+    condition dont le corps pose un `condtest<k>` livre les `$m_reply<n>`,
+    `$reply<n>` et `$val<N>` qu'elle mentionne. Les `val<N>` sont ramenés au
+    numéro de la réponse par la table `var_par_reponse`.
+
+    Une condition dont on ne tire aucun champ n'est rattachée à rien : elle
+    vaut alors pour tout l'exercice, ce qui est le repli sûr.
+    """
+    from ..def_parser import Assign, IfBlock  # noqa: PLC0415
+
+    trouve: dict[str, set[str]] = {}
+
+    def pose_condtest(corps: list) -> set[str]:
+        noms = set()
+        for instr in corps:
+            if isinstance(instr, Assign) and instr.name.startswith("condtest"):
+                noms.add(instr.name)
+            elif isinstance(instr, IfBlock):
+                noms |= pose_condtest(instr.then_body) | pose_condtest(instr.else_body)
+        return noms
+
+    def descendre(corps: list) -> None:
+        for instr in corps:
+            if not isinstance(instr, IfBlock):
+                continue
+            noms = pose_condtest(instr.then_body) | pose_condtest(instr.else_body)
+            if noms:
+                refs = set(re.findall(r"\$\(?\s*(?:m_)?reply(\d+)", instr.condition))
+                refs |= {f"val{n}" for n in re.findall(r"\$\(?\s*val(\d+)\b", instr.condition)}
+                for nom in noms:
+                    trouve.setdefault(nom, set()).update(refs)
+            descendre(instr.then_body)
+            descendre(instr.else_body)
+
+    descendre(test_instructions)
+    return {k: v for k, v in trouve.items() if v}
+
+
 def check_analyze(
     ev_ctx: dict,
     postdef_instructions: list,
