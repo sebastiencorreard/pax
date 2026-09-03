@@ -27,10 +27,19 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 *   **`numeric`**, **`numexp`** : Valeurs numériques et expressions calculables.
 *   **`algexp`**, **`litexp`**, **`formal`** : Équivalence algébrique (SymPy).
 *   **`function`**, **`fset`** : Fonctions et ensembles de fonctions.
-*   **`set`** : Ensembles d'éléments (ordre indifférent).
+*   **`set`**, **`aset`** : Ensembles d'éléments (ordre indifférent). Les
+    trois de la famille se distinguent par l'évaluation de leurs éléments :
+    `set` compare du texte, `fset` des expressions formelles, `aset` des
+    expressions approximatives. `aset` retire en outre les délimiteurs
+    englobants (`{3/7,1/90}`), dédoublonne les deux côtés, et coupe sur les
+    espaces à défaut de virgule.
 *   **`radio`**, **`menu`** : Choix unique (boutons / liste déroulante).
 *   **`clickfill`** : Glisser-déposer — mono-slot (choisir une étiquette) **ou** multi-slots (composer une séquence ordonnée). Voir [§ 6](#6-clickfill--glisser-déposer).
 *   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
+*   **`wlist`** : Liste de mots puisés dans un répertoire — non pas une
+    égalité d'ensembles, mais « chaque mot cité est du répertoire, et il y
+    en a au moins `n` » (`n` = premier mot de `replygood` quand c'en est un
+    nombre). Même normalisation qu'`atext`, dont il partage le dictionnaire.
 *   **`default`** : Redirection vers `algexp` ou `text`.
 *   **`units`**, **`sigunits`** : Unités physiques et chiffres significatifs.
 *   **`equation`**, **`range`**, **`vector`** : Équations, intervalles, vecteurs.
@@ -58,16 +67,30 @@ n'est pas la même question. Le relevé de ce qui manque encore est figé par
 `tests/core/answer/test_types_non_portes.py` : porter un type l'oblige à en
 sortir, et rien n'y entre sans décision.
 
+Ce relevé se lit à trois niveaux, et ils ne donnent pas le même chiffre :
+ce que le dispatch abandonne (`_DETTE`), ce que les `.def` **déclarent**
+(`_DETTE_EMPLOYEE`, statique, il sur-rapporte) et ce qui parvient au
+checker sur un champ **noté**, mesuré au rendu (`_DETTE_ATTEINTE`). Seul
+le dernier dit ce qu'un élève subit : cinq des onze types déclarés sont
+interceptés en amont — repli, `?analyze`, ou poids nul.
+
 ### Analyseurs Identifiés (Non encore supportés) ❌
 *   **Sciences** :
     *   `chemformula`, `chemdraw`, `chemclick`, `reaction` : Chimie (formules,
-        tracés, pointage, réactions).
+        tracés, pointage, réactions). `reaction` est un type de module
+        d'oefstatistiques qui ne corrige rien — il dresse un tableau des
+        temps relevés et conclut `good` sans condition ; ses 3 champs
+        pèsent 0.
 *   **Géométrie** :
     *   `geogebra` : applet de géométrie dynamique (7 exercices).
 *   **Algèbre** :
-    *   `matrix`, `aset` : matrices et ensembles « assortis ».
+    *   `matrix` : aucun de ses 7 champs n'atteint le checker — tous
+        portent `?analyze`, qui masque le type et confie la note à
+        `:test`. Rien à porter tant que le corpus reste ainsi.
 *   **Avancé** :
-    *   `symtext`, `textcomp` : Outils avancés d'identification de textes (synonymes).
+    *   `symtext`, `textcomp` : Outils avancés d'identification de textes
+        (synonymes). Comme `matrix`, les 2 champs `symtext` du corpus
+        passent par `?analyze` et n'atteignent pas le checker.
     *   `runcode` : Validation par exécution de code (Python) — 99 exercices.
     *   `reorder`, `puzzle`, `crossword`, `chessgame` : Jeux et mises en ordre.
 
