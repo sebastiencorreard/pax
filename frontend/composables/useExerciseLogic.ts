@@ -40,6 +40,17 @@ export interface CodeEditorConfig {
   init: boolean
   instructions: string[]
   codes: CodeEditorCode[]
+  /** Posé quand l'éditeur **est** la réponse (`type=runcode`). */
+  run?: CodeEditorRun
+}
+
+/** Ce qu'il faut pour exécuter et juger : le champ, les variables, les mots
+ *  exigés dans le code. Le correcteur ne voit que les valeurs relevées. */
+export interface CodeEditorRun {
+  reply: string
+  label: string
+  variables: string[]
+  keywords: string[]
 }
 
 export interface BackendSegment {

@@ -90,6 +90,8 @@
 
       <ExerciseCodemirror v-else-if="node.seg.type === 'codeeditor'"
         :config="node.seg.config"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
       <ExerciseGeogebra v-else-if="node.seg.type === 'geogebra'"

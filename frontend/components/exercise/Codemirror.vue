@@ -13,6 +13,20 @@
               class="pax-cm-btn pax-cm-instr" @click="insert(ins)">{{ ins }}</button>
     </div>
     <div ref="host" class="pax-cm-host"></div>
+    <!-- `type=runcode` : l'éditeur est la réponse. Le programme s'exécute ici,
+         dans le navigateur, et seules les valeurs des variables partent au
+         serveur. -->
+    <div v-if="config.run" class="pax-cm-run">
+      <button
+        type="button" class="pax-cm-btn pax-cm-play"
+        :disabled="busy" @click="executer">
+        {{ busy ? '…' : (config.run.label || 'Jouer le code') }}
+      </button>
+      <p v-if="avertissement" class="pax-cm-warn">{{ avertissement }}</p>
+      <pre
+        v-if="sortie || erreur" class="pax-cm-output"
+        :class="{ 'is-error': !!erreur }">{{ erreur || sortie }}</pre>
+    </div>
     <!-- Floating exit button: in fullscreen the toolbar is hidden behind the
          editor, so this stays reachable to leave (Esc/F11 also work). -->
     <button v-if="isFullscreen" type="button" class="pax-cm-exit-fs"
@@ -27,7 +41,57 @@ import {
   loadCodemirrorCore, loadCodemirrorMode, loadCodemirrorTheme, loadCodemirrorFullscreen,
 } from '~/composables/useCodemirror'
 
-const props = defineProps<{ config: CodeEditorConfig }>()
+import {
+  composerReponseRuncode, executerPython, motCleManquant,
+} from '~/composables/useSkulpt'
+
+const props = defineProps<{
+  config: CodeEditorConfig
+  submitted?: boolean
+}>()
+
+const emit = defineEmits<{ 'update:reply': [name: string, value: string] }>()
+
+const busy = ref(false)
+const sortie = ref('')
+const erreur = ref<string | null>(null)
+const avertissement = ref('')
+
+/**
+ * Exécute le programme et remonte ce que le correcteur attend.
+ *
+ * WIMS sépare les deux gestes — un bouton lance le code, et `capture()` relève
+ * les variables au moment de l'envoi. Les réunir vaut mieux ici : le champ
+ * suit l'exécution, comme les figures suivent le déplacement d'un point, et
+ * l'élève ne peut pas envoyer l'état d'un programme qu'il a modifié depuis.
+ */
+async function executer() {
+  const run = props.config.run
+  if (!run || busy.value) return
+  const code = cm ? cm.getValue() : (current()?.code ?? '')
+
+  // `keyword_python` : l'exercice exige certains mots dans le code. WIMS
+  // refuse alors d'envoyer et le dit — « sers-toi d'une boucle `for` » n'est
+  // pas une suggestion.
+  const manquant = motCleManquant(code, run.keywords || [])
+  if (manquant) {
+    avertissement.value = `Il manque « ${manquant} » dans votre code.`
+    return
+  }
+  avertissement.value = ''
+
+  busy.value = true
+  try {
+    const res = await executerPython(code, run.variables || [])
+    sortie.value = res.sortie
+    erreur.value = res.erreur
+    if (!props.submitted) {
+      emit('update:reply', run.reply, composerReponseRuncode(code, res.valeurs))
+    }
+  } finally {
+    busy.value = false
+  }
+}
 
 const host = ref<HTMLElement | null>(null)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -119,6 +183,27 @@ onBeforeUnmount(() => { cm = null })
 </script>
 
 <style scoped>
+/* `type=runcode` : le bouton d'exécution et la sortie du programme, sous
+   l'éditeur. WIMS les pose de même — un `<span>` cliquable et un `<pre>`. */
+.pax-cm-run { margin-top: 0.5rem; }
+.pax-cm-play { font-weight: 600; }
+.pax-cm-warn {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--color-warning, #b45309);
+}
+.pax-cm-output {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--color-surface-2, rgba(127, 127, 127, 0.08));
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 16rem;
+}
+.pax-cm-output.is-error { color: var(--color-danger, #dc2626); }
+
 .pax-codeeditor { margin: 0.5rem 0; }
 .pax-cm-toolbar, .pax-cm-instructions {
   display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; align-items: center;

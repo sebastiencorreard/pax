@@ -874,13 +874,18 @@ class TestUnknownTypeFallback:
         assert not check_answer("click", "4/2,4", "2,4").correct
 
     def test_a_module_defined_type_is_not_an_invented_one(self):
-        """`runcode` et `js2wims1` ont un `anstype/` **dans le module**
-        (`ressources/H4/programming/*/anstype/runcode`), que `replytype.proc`
-        résout avant de conclure."""
+        """`js2wims1` a un `anstype/` **dans le module**
+        (`ressources/H4/programming/oefechpython.fr/anstype/js2wims1`), que
+        `replytype.proc` résout avant de conclure : ce n'est pas un nom inventé
+        que WIMS ramènerait à `default`, mais une dette — comparaison
+        littérale, tracée par `[ANSWER-FALLBACK]`.
+
+        `runcode` tenait ce rôle jusqu'à son port : depuis, il a son checker,
+        qui attend la forme `[code],[valeur]…` et non du texte brut."""
         from core.answer.checkers import normalize_replytype
-        assert normalize_replytype("runcode") == "runcode"
-        assert check_answer("runcode", "print(2)", "print(2)").correct
-        assert not check_answer("runcode", "4/2", "2").correct
+        assert normalize_replytype("js2wims1") == "js2wims1"
+        assert check_answer("js2wims1", "print(2)", "print(2)").correct
+        assert not check_answer("js2wims1", "4/2", "2").correct
 
 
 class TestDefaultIsARouter:

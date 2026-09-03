@@ -45,7 +45,7 @@ _DETTE = frozenset({
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
     "geogebra_translation", "imgcomp", "javacurve",
     "js2wims1", "keyboard", "matrix", "multidraw", "puzzle", "reaction",
-    "reorder", "runcode", "symtext", "textcomp", "time",
+    "reorder", "symtext", "textcomp", "time",
 })
 
 # Le sous-ensemble que le corpus emploie vraiment — le reste de `_DETTE` est
@@ -58,7 +58,7 @@ _DETTE = frozenset({
 # `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
     "draft", "dragfill", "js2wims1",
-    "matrix", "reaction", "runcode", "symtext",
+    "matrix", "reaction", "symtext",
 })
 
 # Employés par le corpus, jamais parvenus à `check_answer` : le moteur les
@@ -83,12 +83,9 @@ _DETTE_INTERCEPTEE = frozenset({
 # moins un champ **pesant** (`replyweight` non nul) du corpus. Mesuré au rendu,
 # non déclaré — cf. `test_ce_qui_atteint_vraiment_le_checker`.
 #
-#   runcode     98 champs, 98 exercices — exécution de code élève, le gros
-#               morceau, et `js2wims1` en dépend (son `.input` lit les
-#               variables d'une exécution Python)
 #   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
 _DETTE_ATTEINTE = frozenset({
-    "js2wims1", "runcode",
+    "js2wims1",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")

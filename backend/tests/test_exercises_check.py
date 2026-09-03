@@ -124,6 +124,15 @@ def _candidats(ans):
             yield format_wims_float(_eval_scalar(brut, comma_is_decimal=False))
         except (ValueError, ZeroDivisionError, OverflowError):
             pass
+    # `runcode` range dans son attendu ce que les **variables** doivent valoir
+    # (`[vi,1],[vf,4]`), non ce que l'élève envoie — lequel est
+    # `[<code>],[1],[4]`, le code en tête. Le soumettre tel quel revenait à
+    # donner la consigne pour réponse, comme les bornes d'un `range`.
+    if ans.answer_type == "runcode":
+        from core.answer.checkers import runcode_display_answer  # noqa: PLC0415
+        compose = runcode_display_answer(brut)
+        if compose:
+            yield compose
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()

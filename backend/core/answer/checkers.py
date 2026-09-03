@@ -3343,6 +3343,115 @@ def check_geogebra(
     )
 
 
+def check_runcode(
+    reply: str,
+    expected: str,
+    precision: float = 1000.0,
+) -> CheckResult:
+    """Type `runcode` : le code Python que l'élève écrit, jugé sur ses variables.
+
+    Le type n'existe pas chez WIMS — huit modules d'`H4/programming` le
+    définissent, à quelques lignes près les uns des autres. Et son correcteur
+    **n'exécute rien** : Skulpt fait tourner le programme dans le navigateur,
+    le `.input` relève les variables globales (`Sk.ffi.remapToJs`) et compose
+    la réponse
+
+        [<code source>],[<valeur 1>],[<valeur 2>]…
+
+    dont le serveur ne compare que les valeurs, dans l'ordre où `replygood`
+    nomme les variables (`[vi,1],[vf,4]` : « vi doit valoir 1, vf 4 »). Le code
+    lui-même n'est pas jugé — seulement ce qu'il produit.
+
+    Une variable peut porter une **liste** (`x_list`, les abscisses d'une
+    courbe) : chaque terme compte alors pour une fraction de sa variable, et
+    chaque variable pour une fraction du tout — c'est le
+    `1/$nbr_good/$cnt_variable` du module. Un terme numérique se compare à
+    `1/precision` près, un terme textuel à l'identique.
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+
+    attendus = [x for x in cutitems(expected or "") if x.strip()]
+    if not attendus:
+        return CheckResult(correct=False, score=0.0, method="runcode")
+    donnes = [x for x in cutitems(reply or "") if x.strip()]
+    # Item 1 = le code source ; les valeurs commencent au deuxième.
+    valeurs = donnes[1:]
+
+    total = 0.0
+    manquantes: list[str] = []
+    for j, brut in enumerate(attendus):
+        couple = cutitems(_declose(brut))
+        if len(couple) < 2:
+            continue
+        nom, attendu_var = couple[0].strip(), ",".join(couple[1:])
+        recu = valeurs[j] if j < len(valeurs) else ""
+        termes_a = [t.strip() for t in cutitems(_declose(attendu_var))]
+        termes_r = [t.strip() for t in cutitems(_declose(recu))]
+        if not termes_a:
+            continue
+        justes = 0
+        for k, ta in enumerate(termes_a):
+            tr = termes_r[k] if k < len(termes_r) else ""
+            if _est_nombre(ta) and _est_nombre(tr):
+                try:
+                    if abs(float(ta) - float(tr)) < 1 / precision:
+                        justes += 1
+                except (ValueError, OverflowError):
+                    pass
+            elif ta == tr:
+                justes += 1
+        total += justes / len(termes_a) / len(attendus)
+        if justes < len(termes_a):
+            manquantes.append(nom)
+
+    note = min(1.0, max(0.0, total))
+    return CheckResult(
+        correct=note >= 1.0,
+        score=note,
+        method="runcode",
+        detail=("variable(s) fausse(s) : " + ", ".join(manquantes)) if manquantes else None,
+    )
+
+
+def runcode_display_answer(expected: str) -> str:
+    """Une réponse `runcode` que l'attendu suffit à composer.
+
+    `[vi,1],[vf,4]` dit ce que les variables doivent valoir ; la réponse qui
+    satisfait cet attendu s'écrit donc `[<code>],[1],[4]`. Le code lui-même
+    n'entre pas dans la note — le correcteur ne juge que les valeurs —, d'où le
+    marqueur en première position.
+
+    Sert au test de corpus, qui soumet l'attendu tel quel pour vérifier qu'une
+    bonne réponse vaut 1. Sans cette conversion, il soumettrait la *consigne*
+    au lieu de la réponse, comme pour les bornes d'un `range`.
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+
+    valeurs = []
+    for couple in cutitems(expected or ""):
+        champs = cutitems(_declose(couple))
+        if len(champs) < 2:
+            return ""
+        valeurs.append(_declose(",".join(champs[1:])))
+    if not valeurs:
+        return ""
+    return ",".join(["[code]", *(f"[{v}]" for v in valeurs)])
+
+
+def _est_nombre(texte: str) -> bool:
+    """Le test du module : `!text remove 0123456789e.-` ne laisse rien."""
+    return bool(texte) and not (set(texte) - set("0123456789e.-+"))
+
+
+def _declose(texte: str) -> str:
+    """`!declosing` — retire une paire de crochets ou de parenthèses."""
+    t = (texte or "").strip()
+    for o, f in (("[", "]"), ("(", ")"), ("{", "}")):
+        if t.startswith(o) and t.endswith(f):
+            return t[1:-1].strip()
+    return t
+
+
 def check_jmolclick(reply: str, expected: str) -> CheckResult:
     """Type WIMS `jmolclick` : les atomes qu'on clique sur une molécule.
 
@@ -3646,6 +3755,8 @@ def check_answer(
             return check_geogebra(reply, expected, options)
         case "jmolclick":
             return check_jmolclick(reply, expected)
+        case "runcode":
+            return check_runcode(reply, expected, precision)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.

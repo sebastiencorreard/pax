@@ -1175,7 +1175,8 @@ class DefEngine(_SlibMixin):
             a for a in answers
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
-                    "jsxgraphobjet", "geogebra", "jmolclick", "click")
+                    "jsxgraphobjet", "geogebra", "jmolclick", "runcode",
+                    "click")
         ]
         # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
         #
@@ -5078,6 +5079,10 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "runcode":
+                # `type=runcode` : l'éditeur de code **est** le champ. Arguments
+                # bruts — le code initial est plein de virgules.
+                return self._render_runcode_embed(args, ref, n)
             elif reply_type == "jmolclick":
                 # `type=jmolclick` : la molécule **est** le champ, et l'élève y
                 # clique les atomes. Arguments bruts — le script Jmol qui suit
@@ -5346,6 +5351,71 @@ class DefEngine(_SlibMixin):
                 f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
             )
         return div
+
+    def _render_runcode_embed(self, args: str, ref: str, n: int) -> str:
+        """`type=runcode` — le programme Python que l'élève écrit et exécute.
+
+        Le type n'existe pas chez WIMS : huit modules d'`H4/programming` le
+        définissent, à quelques lignes près les uns des autres. Son `.input`
+        n'assemble rien lui-même — il appelle `slib/runcode`, qui monte
+        l'éditeur (`slib/editor`, déjà porté en marqueur `pax-codeeditor`),
+        ajoute un bouton d'exécution et une zone de sortie, et charge Skulpt.
+
+        Le paramètre d'embed tient en deux **rangées** :
+
+            [python,[<code initial>]] ; [<id>,<options>,<libellé du bouton>]
+
+        Le reste vient d'ailleurs : `replygood` nomme les variables à relever
+        après exécution (`[vi,1],[vf,4]`), et `keyword_python` dans l'option
+        exige que certains mots figurent dans le code — « sers-toi d'une
+        boucle `for` ». Le composant a besoin des deux, puisque c'est lui qui
+        exécute : le correcteur, lui, ne fait que comparer les valeurs reçues.
+
+        Faute de ce rendu, les 99 exercices du type affichaient un champ de
+        saisie d'une ligne à la place de l'éditeur.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        _, _, brut = args.partition(",")
+        rangees = [r.strip() for r in brut.split(";")]
+        code_champ = rangees[0] if rangees else ""
+        para = self._declose(rangees[1]) if len(rangees) > 1 else ""
+        items = wl.cutitems(para)
+        editeur_id = items[0].strip() if items else "0"
+        options = items[1].strip() if len(items) > 1 else ""
+        libelle = items[2].strip() if len(items) > 2 else "Jouer le code"
+
+        marqueur = self._render_codeeditor(f"{code_champ},{editeur_id},{options}")
+        m = re.search(r'data-codeeditor="([^"]*)"', marqueur)
+        if not m:
+            return ""
+        try:
+            config = _json.loads(_html.unescape(m.group(1)))
+        except ValueError:
+            return ""
+
+        # Les variables à relever après exécution, dans l'ordre où le
+        # `replygood` les nomme — c'est cet ordre que le correcteur attend.
+        good = self._subst(self.ctx.get(f"replygood{n}", ""))
+        variables = []
+        for couple in wl.cutitems(good):
+            champs = wl.cutitems(self._declose(couple))
+            if champs and champs[0].strip():
+                variables.append(champs[0].strip())
+
+        option = self._subst(self.ctx.get(f"replyoption{n}", ""))
+        km = re.search(r"\bkeyword_python\s*=\s*(\S+)", option)
+        mots = [k for k in re.split(r"[&,]", km.group(1)) if k.strip()] if km else []
+
+        config["run"] = {
+            "reply": ref,
+            "label": libelle,
+            "variables": variables,
+            "keywords": mots,
+        }
+        charge = _html.escape(_json.dumps(config, ensure_ascii=False), quote=True)
+        return f'<div class="pax-codeeditor" data-codeeditor="{charge}"></div>'
 
     def _render_jmolclick_embed(self, args: str, ref: str, n: int) -> str:
         """`type=jmolclick` — la molécule dont l'élève clique les atomes.

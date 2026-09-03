@@ -298,7 +298,21 @@ XFAIL_RENDER_STRUCTURE: set[str] = set()
 # Le remplissage bitmap de WIMS se reformule alors exactement : deux points
 # sont dans la même région si le segment qui les joint ne croise aucune
 # frontière tracée (cf. `_meme_region_svg`).
-XFAIL_CORRECT_SCORE: set[str] = set()
+# `oefalgopython/balayage1|2` : leur `replygood` sort du moteur avec une
+# substitution **non résolue**, `[xmin,[1]]$(val63[pas,[0.1]]),[x_list,…]`.
+# L'auteur écrit `$(val63[pas,[$(val50[1])]])`, où l'index de `val63` n'est pas
+# un rang mais du texte — ni un item ni une rangée. Le moteur laisse donc la
+# référence en clair, et l'attendu qui en résulte est inutilisable : il manque
+# la virgule que `val63` portait, et la variable `pas` n'y figure jamais.
+#
+# Le défaut est antérieur au port de `runcode` (2026-09-03) ; il ne se voyait
+# pas tant que le type retombait sur `check_text`, qui comparait l'attendu à
+# lui-même et concluait juste. Reste à trancher : défaut d'exercice, ou
+# indexation textuelle que WIMS sait résoudre et pas nous.
+XFAIL_CORRECT_SCORE: set[str] = {
+    "H4~programming~oefalgopython.fr~src~balayage1",
+    "H4~programming~oefalgopython.fr~src~balayage2",
+}
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
 XFAIL_WRONG_SCORE: set[str] = set()
