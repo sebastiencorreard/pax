@@ -233,6 +233,29 @@ _WIDE_FALLBACK_TYPES = {
     "litexp", "algexp", "formal", "function", "numexp", "default", "auto",
 }
 
+# L'intitulé que WIMS pose au-dessus des champs qu'il n'a pas embarqués
+# (`$name_enterreply` de `scripts/oef/<lang>/names.proc`, rendu par
+# `oef/form.phtml`). Il ne paraît que s'il reste une réponse à y mettre.
+_ENTER_REPLY = {
+    "fr": "Entrez votre réponse :",
+    "en": "Enter your reply:",
+    "nl": "Voer hier je antwoord in:",
+    "it": "Inserire la risposta:",
+    "es": "Introduzca su respuesta:",
+    "de": "Antwort eingeben:",
+    "ca": "Entrar la resposta:",
+}
+
+# Les types dont le `.input` écrit `<label>nom</label>&nbsp;=` — la réponse s'y
+# lit comme une égalité (`Solution(s) = …`). Les autres posent le nom seul :
+# `atext` demande une phrase, `case` un mot, `coord` un point. Relevé sur les
+# `anstype/*.input` de l'arbre WIMS, non deviné.
+_EGAL_APRES_LABEL = {
+    "algexp", "aset", "chemeq", "complex", "default", "formal", "fset",
+    "function", "litexp", "matrix", "numeric", "numexp", "range", "set",
+    "sigunits", "units", "vector",
+}
+
 # Racine servie par `/api/static` (cf. `main.py`). `!rename` y ramène ses
 # chemins ; c'est aussi la barrière qui les y confine.
 _RESSOURCES_ROOT = os.path.normpath(
@@ -1174,22 +1197,43 @@ class DefEngine(_SlibMixin):
         # chaque champ d'un `<table>`.
         orphelines = [a for a in text_replies if a.input_name not in widget_names]
         if orphelines:
-            # With several fields (e.g. a course step's two replies) prefix each
-            # with its label so the student can tell them apart.
-            show_labels = len(orphelines) > 1
+            # Le bloc que WIMS pose sous l'énoncé pour les réponses qu'il n'a
+            # pas embarquées (`oef/form.phtml`) : un intitulé, puis un champ par
+            # réponse précédé de son nom. Le titre ne paraît que s'il reste
+            # quelque chose à y mettre — `!if $fieldtot<=$N_ → !goto send`.
+            html += (
+                f'<div class="oef-enterreply">{_ENTER_REPLY.get(self.lang or "fr", _ENTER_REPLY["fr"])}</div>'
+            )
             for a in orphelines:
                 # No embed → WIMS renders a default-width reply field. Algebraic
                 # answers (litexp/algexp…) can be long expressions
                 # (`162sqrt(6)+567`), so give them room; a bare 10 was too narrow
                 # (devred). Numeric-ish answers keep a modest default.
                 size = 20 if a.answer_type.lower() in _WIDE_FALLBACK_TYPES else 14
+                # `<label>$(replyname$i)</label>` précède **toujours** le champ
+                # dans les `anstype/<type>.input` — ce n'est pas une commodité
+                # quand il y en a plusieurs, c'est le nom que l'auteur donne à
+                # la réponse. `eqalghyper3` appelle la sienne « Solution(s) », et
+                # sans elle l'élève voit un champ nu sans savoir ce qu'on
+                # attend. Le `=` qui suit vient des mêmes fichiers ; `case` et
+                # quelques autres s'en passent.
                 label = ""
-                if show_labels and a.label and a.label.strip():
-                    label = _close_inline_math(a.label.strip(), self.lang) + " : "
-                html += (
-                    f'<br>{label}<span class="oef-input" name="{a.input_name}" '
+                if a.label and a.label.strip():
+                    lien = " =" if a.answer_type.lower() in _EGAL_APRES_LABEL else " :"
+                    label = (
+                        f'<label for="{a.input_name}">'
+                        f'{_close_inline_math(a.label.strip(), self.lang)}</label>{lien} '
+                    )
+                champ = (
+                    f'<span class="oef-input" name="{a.input_name}" '
                     f'data-size="{size}"></span>'
                 )
+                if a.answer_type.lower() in ("set", "fset", "aset"):
+                    champ = (
+                        f'<span class="oef-set-brace">{{</span>{champ}'
+                        f'<span class="oef-set-brace">}}</span>'
+                    )
+                html += f'<br>{label}{champ}'
             segments = _segment_statement(html)
             widget_names = {
                 s["name"] for s in segments if s["type"] in ("input", "slot", "menu")
@@ -5093,9 +5137,13 @@ class DefEngine(_SlibMixin):
                 f'data-size="{size}"{extra}></span>'
             )
 
-        # WIMS' fset.input frames the field in literal braces to signal that a
-        # *set* is expected (e.g. T1116: the solution set of f(x)=k). Mirror it.
-        if reply_type == "fset":
+        # Les trois `.input` de la famille encadrent le champ d'accolades
+        # littérales : la réponse attendue est un **ensemble**, et c'est ainsi
+        # qu'on l'écrit. `set.input`, `fset.input` et `aset.input` posent le `{`
+        # avant le champ et le `}` après, dans les deux branches (avec ou sans
+        # `distinct_inputs`) et quelle que soit la place du champ — le
+        # `noprompt` de l'embed n'en saute que le libellé, jamais les accolades.
+        if reply_type in ("set", "fset", "aset"):
             return f'<span class="oef-set-brace">{{</span>{span}<span class="oef-set-brace">}}</span>'
         return span
 
