@@ -5341,6 +5341,46 @@ class DefEngine(_SlibMixin):
 
     # ── Answer extraction ─────────────────────────────────────────────────────
 
+    @staticmethod
+    def _instr_texts(instrs: list):
+        """Toutes les chaînes portées par un arbre d'instructions.
+
+        Les instructions du parseur sont des dataclasses dont les champs sont
+        soit du texte (`condition`, `value`, `args`…), soit un sous-corps.
+        Les aplatir permet de chercher une variable sans énumérer les types.
+        """
+        for instr in instrs:
+            for val in vars(instr).values():
+                if isinstance(val, str):
+                    yield val
+                elif isinstance(val, list):
+                    yield from DefEngine._instr_texts(val)
+
+    def _analyze_var_is_graded(self, var_name: str, n: int, df: "DefFile") -> bool:
+        """La réponse `?analyze` n° `n` est-elle éprouvée par un test ?
+
+        Une réponse `?analyze` ne porte pas sa correction : elle alimente
+        `val<N>`, et c'est `:test` qui décide. Encore faut-il que `:test` la
+        regarde. Deux écritures s'y croisent — `$val<N>`, la variable
+        d'analyse, et `$m_reply<n>` / `$reply<n>`, la réponse brute
+        (`oefresolalg/fill1deg` note ses neuf champs par la seconde). On
+        cherche donc les deux, dans `:test` comme dans `:postdef`, ce dernier
+        pouvant dériver la valeur vers ce que `:test` compare.
+
+        Quand aucune ne s'y trouve, **rien** ne peut noter ce champ : ni la
+        voie `analyze`, qui n'a pas de condition à évaluer, ni la voie
+        standard, dont l'attendu est vide. C'est ce que dit `ungraded`.
+        """
+        motifs = [re.compile(rf"\$\(?\s*(?:m_)?reply{n}\b")]
+        if var_name:
+            motifs.append(re.compile(rf"\$\(?\s*{re.escape(var_name)}\b"))
+        zone = "\n".join(
+            self._instr_texts(df.sections.get("test", []))
+        ) + "\n" + "\n".join(
+            self._instr_texts(df.sections.get("postdef", []))
+        )
+        return any(m.search(zone) for m in motifs)
+
     def _resolve_analyze_expected(self, var_name: str, df: "DefFile") -> str:
         """Scan the :test section for an equality involving `$<var_name>`
         and return the evaluated RHS — used by debug/auto-fill for the
@@ -6010,15 +6050,26 @@ class DefEngine(_SlibMixin):
 
             # Champ non noté ni obligatoire (« ungraded ») :
             #  - brouillon `type=draft` (l'élève y pose son calcul) ;
-            #  - champ `analyze` marqué `default=vide` sans test réel (ex.
-            #    oefcalcullit dev2fact : reply2 matrix→analyze, `:test` vide —
-            #    le forcer dans run_analyze fausserait toute la notation).
-            # Les vraies réponses (fset, numeric…) avec `default=vide` restent
-            # notées : `default=vide` y signifie « vide = ensemble ∅ » (cf.
-            # oefresolalg synth*), géré par la substitution WIMS des checkers.
+            #  - champ `analyze` que **rien ne peut noter** : son attendu est
+            #    vide, et aucun test ne regarde sa valeur. Le laisser actif
+            #    force tout l'exercice sur `run_analyze`, dont le score se
+            #    calcule sur les conditions de `:test` — absentes ici, d'où un
+            #    total nul et la note 0 quoi que l'élève écrive. Les cinq
+            #    `OEFevalwimsgrph/eqalghyper*` en étaient insolubles : leur
+            #    zone de brouillon 10×30 (`default=empty`) emportait la note du
+            #    QCM qui la précède.
+            # Le critère porte sur la **structure**, non sur le mot `default` :
+            # `default=vide` et `default=empty` nomment la valeur substituée à
+            # un champ laissé vide, et sur une vraie réponse (fset, numeric…)
+            # `default=vide` signifie « vide = ensemble ∅ » — cf. oefresolalg
+            # synth*, qui doit rester noté. C'est l'absence de test, pas le
+            # libellé, qui distingue le brouillon.
             if is_draft or (
                 ans_type.lower() == "analyze"
-                and "default=vide" in option.lower()
+                and not (expected or "").strip()
+                and not self._analyze_var_is_graded(
+                    options.get("analyze_var", ""), n, df
+                )
             ):
                 options["ungraded"] = True
 
