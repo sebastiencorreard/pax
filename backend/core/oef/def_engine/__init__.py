@@ -1175,7 +1175,7 @@ class DefEngine(_SlibMixin):
             a for a in answers
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
-                    "jsxgraphobjet", "geogebra", "click")
+                    "jsxgraphobjet", "geogebra", "jmolclick", "click")
         ]
         # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
         #
@@ -5078,6 +5078,11 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "jmolclick":
+                # `type=jmolclick` : la molécule **est** le champ, et l'élève y
+                # clique les atomes. Arguments bruts — le script Jmol qui suit
+                # la taille est plein de virgules.
+                return self._render_jmolclick_embed(args, ref, n)
             elif reply_type == "geogebra":
                 # `type=geogebra` : le champ de réponse *est* une applet, que
                 # l'élève manipule. Arguments bruts — la configuration est
@@ -5341,6 +5346,78 @@ class DefEngine(_SlibMixin):
                 f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
             )
         return div
+
+    def _render_jmolclick_embed(self, args: str, ref: str, n: int) -> str:
+        """`type=jmolclick` — la molécule dont l'élève clique les atomes.
+
+        `anstype/jmolclick.input` monte une applet JSmol, arme son
+        `pickcallback` et laisse l'élève basculer la sélection atome par
+        atome. Le `replygood` porte les deux choses dont l'applet a besoin,
+        séparées par un `;` (`!rows2lines` puis `;` → sauts de ligne) :
+
+            <expression de sélection Jmol> ; <fichier de la molécule>
+
+        L'expression est du Jmol pur — `oxygen and connected(hydrogen) and
+        …` —, que l'applet sait évaluer elle-même : c'est ainsi que le
+        navigateur compare la sélection de l'élève à la bonne réponse sans
+        jamais l'expliciter.
+
+        Le script d'initialisation est celui du `.input`, à ceci près qu'on ne
+        reprend pas la queue de `_render_jmol_embed` : elle éteint le picking
+        (`set picking off`), ce qui est juste pour une molécule d'énoncé et
+        ruinerait celle-ci.
+
+        Faute de ce rendu, l'embed retombait sur le champ générique : l'unique
+        exercice du type affichait une zone de texte de 400 × 400 à la place de
+        la molécule.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        good = self._subst(self.ctx.get(f"replygood{n}", ""))
+        expression, _, fichier = good.partition(";")
+        fichier = fichier.strip().split("\t")[0].strip()
+        if not expression.strip() or not fichier:
+            return ""
+
+        _, _, apres_ref = args.partition(",")
+        lignes = apres_ref.split("\t")
+        taille = lignes[0].strip() if lignes else ""
+        wh = re.search(r"(\d+)\s*[xX]\s*(\d+)", taille)
+        largeur, hauteur = (wh.group(1), wh.group(2)) if wh else ("400", "400")
+        # `!distribute lines … into size,file,ans_sc0,ans_sc2` : les deux
+        # derniers sont des scripts que l'exercice ajoute à l'initialisation
+        # (`reconnaissance` y étiquette ses atomes, `select all;label %e`).
+        scripts = [l.strip() for l in lignes[2:4] if l.strip() and l.strip() != ";"]
+
+        contenu = self._resoudre_fichier_jmol(fichier)
+        if not contenu:
+            return ""
+
+        # Le préambule du `.input`, sans ce qui n'a de sens que chez WIMS
+        # (`serverURL`, `j2sPath`) : halos bleus sur la sélection, picking
+        # armé, menu contextuel et survol désactivés.
+        init = (
+            "selectionhalos on;select none;color selectionHalos blue;"
+            "set antialiasdisplay on;set frank on;set DisablePopupMenu TRUE;"
+            "hover off;set picking;console off;"
+        )
+        cfg = {
+            "id": f"jmolApplet_{n}",
+            "width": int(largeur),
+            "height": int(hauteur),
+            "color": "white",
+            "data": contenu,
+            "script": init + "".join(f"{sc};" if not sc.endswith(";") else sc
+                                     for sc in scripts),
+            # Ce que le composant doit savoir pour juger la sélection.
+            "pick": {"good": expression.strip(), "reply": ref},
+        }
+        charge = _html.escape(_json.dumps(cfg, ensure_ascii=False), quote=True)
+        return (
+            f'<div class="pax-jmol" id="{cfg["id"]}" data-reply="{ref}" '
+            f'data-w="{largeur}" data-h="{hauteur}" data-jmol="{charge}"></div>'
+        )
 
     def _render_geogebra_answer_embed(self, args: str, ref: str, n: int) -> str:
         """`type=geogebra` — l'applet **est** le champ de réponse.

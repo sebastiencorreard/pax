@@ -142,7 +142,10 @@ def _candidats(ans):
 # avant la collecte ne se signale nulle part, quand un skip se compte. Le
 # checker, lui, est éprouvé sur de vraies figures par
 # `tests/core/answer/test_geogebra.py`.
-_TYPES_SANS_REPONSE_DEDUCTIBLE = {"geogebra"}
+# `jmolclick` va plus loin encore : sa réponse n'est même pas une figure, mais
+# la **note** que l'applet a calculée en comparant la sélection de l'élève à
+# l'expression attendue. Soumettre cette expression n'a aucun sens.
+_TYPES_SANS_REPONSE_DEDUCTIBLE = {"geogebra", "jmolclick"}
 
 
 def _notes(render) -> list:

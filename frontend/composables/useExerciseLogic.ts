@@ -143,7 +143,7 @@ export type Segment =
   | { type: 'draw';        name: string; image: string; svg?: string; objet: string; couleur: string
                            xrange: string; yrange: string; width?: number; height?: number; is_sup?: boolean }
   | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
-  | { type: 'jmol';        config: JmolConfig; is_sup?: boolean }
+  | { type: 'jmol';        config: JmolConfig; is_sup?: boolean; reply?: string }
   | { type: 'geogebra';    config: GeogebraConfig; is_sup?: boolean;
                            reply?: string; answer?: GeogebraLecture }
   | { type: 'group-open';  class: string }
@@ -249,7 +249,12 @@ export function useExerciseLogic() {
       } else if (s.type === 'jmol') {
         // La configuration de l'applet passe telle quelle : c'est un script
         // Jmol, que la passe KaTeX n'a rien à faire d'inspecter.
-        out.push({ type: 'jmol', config: (s as unknown as { config: JmolConfig }).config })
+        out.push({
+          type: 'jmol',
+          config: (s as unknown as { config: JmolConfig }).config,
+          // Posé seulement quand la molécule **est** la réponse (`jmolclick`).
+          reply: (s as unknown as { reply?: string }).reply,
+        })
       } else if (s.type === 'geogebra') {
         // Le `.ggb` est servi par le backend : son URL `/api/static` doit être
         // absolue pour le navigateur, comme celles de `coord` et `draw`.

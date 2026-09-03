@@ -102,6 +102,9 @@
 
       <ExerciseJmol v-else-if="node.seg.type === 'jmol'"
         :config="node.seg.config"
+        :reply="node.seg.reply"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
       <ExerciseJsxgraph v-else-if="node.seg.type === 'jsxgraph'"

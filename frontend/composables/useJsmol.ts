@@ -30,6 +30,8 @@ export interface JmolConfig {
   loadFormat?: string
   /** Les commandes Jmol à passer après le chargement. */
   script?: string
+  /** Posé quand la molécule **est** la réponse : l'attendu et son champ. */
+  pick?: JmolPick
 }
 
 interface JmolNamespace {
@@ -37,6 +39,8 @@ interface JmolNamespace {
   getApplet: (id: string, info: Record<string, unknown>) => unknown
   getAppletHtml: (applet: unknown) => string
   script: (applet: unknown, script: string) => void
+  /** Évalue une expression Jmol et rend sa valeur — un compte d'atomes ici. */
+  evaluateVar: (applet: unknown, expression: string) => unknown
 }
 
 function jmolNs(): JmolNamespace | null {
@@ -67,7 +71,7 @@ export function loadJsmol(): Promise<void> {
  * par `document.write`, ce qui après le chargement de la page efface le
  * document. On récupère donc le HTML et on l'insère soi-même.
  */
-export async function mountJmol(el: HTMLElement, cfg: JmolConfig): Promise<void> {
+export async function mountJmol(el: HTMLElement, cfg: JmolConfig): Promise<unknown> {
   if (!import.meta.client) return
   await loadJsmol()
   const Jmol = jmolNs()
@@ -121,6 +125,78 @@ export async function mountJmol(el: HTMLElement, cfg: JmolConfig): Promise<void>
   }
   if (cfg.script) commandes.push(cfg.script)
   if (commandes.length) Jmol.script(applet, commandes.join('\n'))
+  // Rendue pour les molécules **de réponse** (`type=jmolclick`), qui s'y
+  // abonnent ; une molécule d'énoncé n'en fait rien.
+  return applet
+}
+
+// ── La molécule comme réponse : le port d'`anstype/jmolclick` ────────────────
+
+/** Ce que le serveur dit d'une molécule sur laquelle l'élève clique. */
+export interface JmolPick {
+  /** L'expression de sélection Jmol qui décrit la bonne réponse. */
+  good: string
+  /** Le champ que la sélection alimente. */
+  reply: string
+}
+
+/** Le nombre d'atomes que désigne une expression Jmol. */
+function compte(applet: unknown, expression: string): number {
+  const Jmol = jmolNs()
+  if (!Jmol) return 0
+  try {
+    const n = Jmol.evaluateVar(applet, `{${expression}}.length`)
+    return typeof n === 'number' && n >= 0 ? n : 0
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * La note de la sélection courante, sur dix — la forme que WIMS attend.
+ *
+ * `anstype/jmolclick` ne corrige pas côté serveur : son JavaScript compare la
+ * sélection de l'élève à l'expression attendue, en laissant l'applet faire le
+ * travail — elle seule sait ce qu'est « un oxygène lié à un hydrogène ». Le
+ * checker WIMS se contente ensuite de relire ce nombre (`round(score)/10`).
+ *
+ * Trois comptes suffisent, et ce sont ceux d'`analyserep` : les atomes justes
+ * (attendus **et** sélectionnés), les faux (sélectionnés sans être attendus)
+ * et les oubliés. Sans option de barème — le cas du seul exercice du type —
+ * la note est tout ou rien : aucun faux, et tous les bons.
+ */
+export function noterSelectionJmol(applet: unknown, attendu: string): number {
+  const natgood = compte(applet, attendu)
+  if (!natgood) return 0
+  const justes = compte(applet, `(${attendu}) and (selected)`)
+  const faux = compte(applet, `(selected) and not (${attendu})`)
+  return faux === 0 && justes === natgood ? 10 : 0
+}
+
+/**
+ * Arme le clic : chaque atome touché entre ou sort de la sélection.
+ *
+ * C'est le `mycallback` du `.input`, au mot près — Jmol n'expose pas de
+ * bascule toute faite, il faut lire l'état de l'atome piqué et poser la
+ * nouvelle sélection. Le rappel `onSelection` suit chaque changement.
+ */
+export function armerClicJmol(
+  applet: unknown,
+  onSelection: () => void,
+): void {
+  const Jmol = jmolNs()
+  if (!Jmol) return
+  const nom = `paxJmolPick_${Math.random().toString(36).slice(2)}`
+  ;(window as unknown as Record<string, unknown>)[nom] = () => {
+    Jmol.script(
+      applet,
+      'pic={atomIndex = _atomPicked};'
+      + 'if(pic.selected==1){select selected and not pic}'
+      + 'else{select selected or pic};message "";',
+    )
+    onSelection()
+  }
+  Jmol.script(applet, `set picking;set pickcallback "${nom}";`)
 }
 
 /**

@@ -263,6 +263,21 @@ async def check_exercise(
                 r.reply = ""
                 r.expected = ""
 
+    # ── jmolclick : ni la note brute, ni l'expression de sélection ───────────
+    # La « réponse » est le nombre que l'applet a calculé (`10` ou `0`), et
+    # l'« attendu » une expression Jmol — `nitrogen and connected(3) and
+    # connected(2, hydrogen) or (hydrogen and …)`, que le corrigé déroulait
+    # telle quelle. Ni l'un ni l'autre ne se lit. WIMS ne les montre pas non
+    # plus : son feedback dit « la bonne réponse s'obtient en cliquant sur les
+    # atomes apparaissant en jaune », et c'est la molécule qui parle.
+    _jmol_names = {a.input_name for a in rendered.answers
+                   if a.answer_type == "jmolclick"}
+    if _jmol_names:
+        for r in results:
+            if r.input_name in _jmol_names:
+                r.reply = ""
+                r.expected = ""
+
     # ── range : le corrigé montre une valeur, pas les bornes ─────────────────
     # `anstype/range` affiche le milieu du premier intervalle (ou ses deux
     # bornes s'il est ouvert) : « 0,5 » plutôt que le « 0.6,0.4 » stocké, que

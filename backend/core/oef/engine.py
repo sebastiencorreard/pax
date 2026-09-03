@@ -699,7 +699,14 @@ def _segment_statement(html: str) -> list[dict]:
                 config = _json.loads(_html.unescape(m.group(24)))
             except (ValueError, TypeError):
                 config = {}
-            segments.append({"type": "jmol", "config": config, "is_sup": is_sup})
+            seg = {"type": "jmol", "config": config, "is_sup": is_sup}
+            # `data-reply` : la molécule **est** le champ (`type=jmolclick`),
+            # et non une figure d'énoncé. Le composant y remonte la note de la
+            # sélection, que l'applet seule sait calculer.
+            rm = re.search(r'data-reply="([^"]+)"', m.group(0))
+            if rm:
+                seg["reply"] = rm.group(1)
+            segments.append(seg)
         elif m.group(25) is not None:
             # Applet GeoGebra — mêmes raisons que Jmol : la configuration
             # voyage en données, jamais en HTML soumis à la passe KaTeX.

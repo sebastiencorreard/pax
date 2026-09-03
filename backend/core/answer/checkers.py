@@ -3343,6 +3343,35 @@ def check_geogebra(
     )
 
 
+def check_jmolclick(reply: str, expected: str) -> CheckResult:
+    """Type WIMS `jmolclick` : les atomes qu'on clique sur une molécule.
+
+    Le correcteur ne corrige pas. `anstype/jmolclick` reçoit une réponse dont
+    la **première ligne est déjà la note**, calculée dans le navigateur par le
+    JavaScript de son `.input` — l'applet seule sait ce qu'est « un oxygène lié
+    à un hydrogène et à un carbone », et c'est elle qui compare la sélection de
+    l'élève à l'expression attendue. Le script WIMS s'en tient à :
+
+        !distribute lines $(reply$i) into score,selgood,selbad,selforget,…
+        score=$[round($score)/10]
+
+    PAX fait de même : la note est portée par `noterSelectionJmol`
+    (`composables/useJsmol.ts`), et il ne reste ici qu'à la relire. Les lignes
+    suivantes — atomes justes, faux, oubliés — servent au seul feedback.
+
+    L'attendu n'entre pas dans le calcul : il a déjà servi, dans l'applet.
+    """
+    premiere = (reply or "").strip().splitlines()
+    if not premiere:
+        return CheckResult(correct=False, score=0.0, method="jmolclick")
+    try:
+        note = round(float(premiere[0].strip())) / 10
+    except (ValueError, TypeError):
+        return CheckResult(correct=False, score=0.0, method="jmolclick")
+    note = min(1.0, max(0.0, note))
+    return CheckResult(correct=note >= 1.0, score=note, method="jmolclick")
+
+
 def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
     """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
     par défaut), après application des filtres pilotés par l'option :
@@ -3615,6 +3644,8 @@ def check_answer(
             return check_aset(reply, expected, precision, comma_is_decimal)
         case "geogebra":
             return check_geogebra(reply, expected, options)
+        case "jmolclick":
+            return check_jmolclick(reply, expected)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.
