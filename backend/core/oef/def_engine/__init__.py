@@ -1219,10 +1219,20 @@ class DefEngine(_SlibMixin):
                 # quelques autres s'en passent.
                 label = ""
                 if a.label and a.label.strip():
-                    lien = " =" if a.answer_type.lower() in _EGAL_APRES_LABEL else " :"
+                    nom = a.label.strip()
+                    # Six exercices ponctuent déjà leur `replyname` — « Hoek: »,
+                    # « Mesure de l'angle : ». Y ajouter le nôtre donnait
+                    # « antwoord:: ». WIMS écrit `<label>$(replyname$i)</label>=`
+                    # sans regarder, mais WIMS n'affiche pas un `=` après un `:`
+                    # non plus : c'est l'auteur qui a tranché, on le suit.
+                    lien = (
+                        ""
+                        if nom.endswith((":", "=", "："))
+                        else (" =" if a.answer_type.lower() in _EGAL_APRES_LABEL else " :")
+                    )
                     label = (
                         f'<label for="{a.input_name}">'
-                        f'{_close_inline_math(a.label.strip(), self.lang)}</label>{lien} '
+                        f'{_close_inline_math(nom, self.lang)}</label>{lien} '
                     )
                 champ = (
                     f'<span class="oef-input" name="{a.input_name}" '
