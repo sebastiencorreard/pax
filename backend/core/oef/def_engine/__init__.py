@@ -1154,15 +1154,30 @@ class DefEngine(_SlibMixin):
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
                     "jsxgraphobjet", "geogebra", "click")
         ]
-        # Append a default field per reply when the question carries no widget.
-        # For dynsteps/course this is reached only when there are no embeds
-        # (otherwise widget_names is set); `answers` is already filtered to the
-        # active step above, so we add exactly the current step's fields.
-        if text_replies and not widget_names:
+        # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
+        #
+        # C'est la règle de WIMS, et elle se lit en cinq lignes dans
+        # `oef/formr.phtml` : le formulaire parcourt `ansorder` et, pour chaque
+        # réponse, `!if r$i isitemof $embedded → !exit`, sinon il pose le champ.
+        # La décision est **par réponse**, non pour l'énoncé entier.
+        #
+        # PAX ne l'ajoutait que si l'énoncé ne portait *aucun* widget. Un auteur
+        # qui n'embarque qu'une partie de ses champs laissait donc les autres
+        # sans nulle part où écrire : `OEFevalwimsgrph/eqalghyper3`, `4` et `5`
+        # posent l'embed de leur zone de brouillon et **oublient celui de la
+        # réponse** — l'élève voyait le brouillon, et rien pour répondre.
+        # Huit autres exercices étaient dans ce cas, dont `oefphotocopie/ex03`
+        # (deux champs sur trois) et `oefstatistiques/medicament1`.
+        #
+        # `widget_names` compte les widgets des tableaux comme ceux des
+        # segments (`_embedded_widget_names`), sans quoi ce repli doublerait
+        # chaque champ d'un `<table>`.
+        orphelines = [a for a in text_replies if a.input_name not in widget_names]
+        if orphelines:
             # With several fields (e.g. a course step's two replies) prefix each
             # with its label so the student can tell them apart.
-            show_labels = len(text_replies) > 1
-            for a in text_replies:
+            show_labels = len(orphelines) > 1
+            for a in orphelines:
                 # No embed → WIMS renders a default-width reply field. Algebraic
                 # answers (litexp/algexp…) can be long expressions
                 # (`162sqrt(6)+567`), so give them room; a bare 10 was too narrow
@@ -4718,12 +4733,33 @@ class DefEngine(_SlibMixin):
                 lambda m: self._eval_arith(m.group(1).replace("\\", "$")),
                 suffix,
             )
+            suffix_val = self._subst(suffix)
             try:
                 # Suffix might still contain a variable reference like $m_qq
-                suffix_val = self._subst(suffix)
                 ref = f"reply{int(float(suffix_val))}"
             except (ValueError, TypeError, OverflowError):
-                ref = f"reply{suffix}"
+                # Le suffixe n'est pas un nombre : WIMS y lit une **expression**.
+                # `oef/embed.phtml` ne garde du nom que les chiffres et les
+                # opérateurs, puis les évalue —
+                #
+                #     n_=!text select 0123456789()+-* in $n_
+                #     n_=$[$n_]
+                #     !bound n_ between integer 1 and 100
+                #
+                # `oefstatistiques/entreprise` écrit ses soixante champs
+                # `!read oef/embed.phtml reply\jj+10`, où `\jj` est l'indice de
+                # boucle : le nom se résolvait en « reply1+10 », qui ne
+                # correspond à aucune réponse. Les champs s'affichaient bien,
+                # l'élève pouvait y écrire, et rien n'était relié — soixante
+                # réponses perdues sur un exercice qui en compte soixante-dix-neuf.
+                filtre = re.sub(r"[^0-9()+\-*]", "", suffix_val)
+                indice = None
+                if filtre:
+                    try:
+                        indice = int(float(self._eval_arith(filtre)))
+                    except (ValueError, TypeError, OverflowError, ZeroDivisionError):
+                        indice = None
+                ref = f"reply{indice}" if indice and 1 <= indice <= 100 else f"reply{suffix}"
 
         # Handle radio and menu types specially.
         reply_type = ""
