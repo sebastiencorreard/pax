@@ -1176,7 +1176,7 @@ class DefEngine(_SlibMixin):
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
                     "jsxgraphobjet", "geogebra", "jmolclick", "runcode",
-                    "click")
+                    "js2wims1", "click")
         ]
         # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
         #
@@ -5079,6 +5079,14 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "js2wims1":
+                # `type=js2wims1` : WIMS en fait un `<input type=hidden>` que
+                # son JavaScript remplit à l'envoi. L'élève n'y écrit jamais —
+                # les valeurs viennent du programme joué dans le `runcode`
+                # voisin, qui les dépose (cf. `_render_runcode_embed`). Rendre
+                # un champ de saisie ici, c'est en offrir un que rien ne peut
+                # remplir : les quatorze champs du module en affichaient un.
+                return ""
             elif reply_type == "runcode":
                 # `type=runcode` : l'éditeur de code **est** le champ. Arguments
                 # bruts — le code initial est plein de virgules.
@@ -5408,11 +5416,31 @@ class DefEngine(_SlibMixin):
         km = re.search(r"\bkeyword_python\s*=\s*(\S+)", option)
         mots = [k for k in re.split(r"[&,]", km.group(1)) if k.strip()] if km else []
 
+        # Les champs `js2wims1` de l'exercice se nourrissent du **même**
+        # programme : leur `.input` relit les variables que celui-ci laisse.
+        # On les rattache ici, faute de quoi ils resteraient vides — c'est la
+        # dépendance que le relevé de dette annonçait entre les deux types.
+        annexes = []
+        for cle in sorted(self.ctx):
+            m2 = re.fullmatch(r"replytype(\d+)", cle)
+            if not m2 or self._subst(self.ctx[cle]).strip().lower() != "js2wims1":
+                continue
+            n2 = m2.group(1)
+            good2 = self._subst(self.ctx.get(f"replygood{n2}", ""))
+            vars2 = []
+            for couple in wl.cutitems(good2):
+                champs = wl.cutitems(self._declose(couple))
+                if champs and champs[0].strip():
+                    vars2.append(champs[0].strip())
+            if vars2:
+                annexes.append({"reply": f"reply{n2}", "variables": vars2})
+
         config["run"] = {
             "reply": ref,
             "label": libelle,
             "variables": variables,
             "keywords": mots,
+            "also": annexes,
         }
         charge = _html.escape(_json.dumps(config, ensure_ascii=False), quote=True)
         return f'<div class="pax-codeeditor" data-codeeditor="{charge}"></div>'

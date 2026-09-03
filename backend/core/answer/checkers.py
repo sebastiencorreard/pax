@@ -3413,6 +3413,85 @@ def check_runcode(
     )
 
 
+def check_js2wims1(reply: str, expected: str) -> CheckResult:
+    """Type `js2wims1` : les variables d'une exécution Python, relues telles quelles.
+
+    Défini par `oefechpython`, et jumeau simplifié de `runcode` — dont il
+    dépend : son `.input` ne monte aucun éditeur, il pose un champ **caché**
+    et le remplit, à l'envoi, des variables laissées par le programme que
+    l'élève a joué dans le `runcode` voisin. D'où une réponse sans code source
+    en tête, `[valeur 1],[valeur 2]…`, là où `runcode` ouvre par le programme.
+
+    Deux autres écarts avec son jumeau, tous deux dans le sens de la
+    simplicité : la comparaison est **purement textuelle** — pas de tolérance
+    numérique —, et chaque variable vaut `1/n` sans découpage par terme.
+
+    Un attendu dont la valeur est vide vaut juste d'office : le module sort
+    alors sur `diareply=good`. C'est le cas de `de4`, `de5` et `de6`, dont le
+    `replygood` se réduit à un nom (`nn`) — et dont le champ pèse zéro.
+    Treize des quatorze champs du corpus sont dans ce cas ; seul `de3/reply2`
+    compte dans une note.
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+
+    attendus = [x for x in cutitems(expected or "") if x.strip()]
+    if not attendus:
+        return CheckResult(correct=False, score=0.0, method="js2wims1")
+    donnes = [x for x in cutitems(reply or "")]
+
+    total = 0.0
+    juges = 0
+    manquantes: list[str] = []
+    for j, brut in enumerate(attendus):
+        # `!if \ notin …` : un item porteur d'une contre-oblique est ignoré.
+        if "\\" in brut:
+            continue
+        couple = cutitems(_declose(brut))
+        nom = couple[0].strip() if couple else ""
+        valeur = _declose(",".join(couple[1:])) if len(couple) > 1 else ""
+        if not valeur:
+            # Rien à comparer : le module conclut « juste » et s'arrête là.
+            return CheckResult(correct=True, score=1.0, method="js2wims1")
+        juges += 1
+        recu = _declose(donnes[j]) if j < len(donnes) else ""
+        if j == 0:
+            recu = re.sub(r"\s+", "", recu)
+        if valeur == recu:
+            total += 1
+        else:
+            manquantes.append(nom or f"#{j + 1}")
+
+    if not juges:
+        return CheckResult(correct=False, score=0.0, method="js2wims1")
+    note = total / juges
+    return CheckResult(
+        correct=note >= 1.0,
+        score=note,
+        method="js2wims1",
+        detail=("variable(s) fausse(s) : " + ", ".join(manquantes)) if manquantes else None,
+    )
+
+
+def js2wims1_display_answer(expected: str) -> str:
+    """Une réponse `js2wims1` que l'attendu suffit à composer.
+
+    Même service que `runcode_display_answer`, sans le code en tête :
+    `[n,[3]]` dit que la variable `n` doit valoir 3, et la réponse qui le
+    satisfait s'écrit `[3]`. Un attendu réduit à un nom (`nn`, chez `de4` à
+    `de6`) ne décrit aucune valeur — le module conclut alors juste d'office,
+    et n'importe quelle réponse convient.
+    """
+    from core.oef.def_engine.wims_lists import cutitems  # noqa: PLC0415
+
+    valeurs = []
+    for couple in cutitems(expected or ""):
+        champs = cutitems(_declose(couple))
+        if len(champs) < 2:
+            return ""
+        valeurs.append(_declose(",".join(champs[1:])))
+    return ",".join(f"[{v}]" for v in valeurs) if valeurs else ""
+
+
 def runcode_display_answer(expected: str) -> str:
     """Une réponse `runcode` que l'attendu suffit à composer.
 
@@ -3757,6 +3836,8 @@ def check_answer(
             return check_jmolclick(reply, expected)
         case "runcode":
             return check_runcode(reply, expected, precision)
+        case "js2wims1":
+            return check_js2wims1(reply, expected)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.

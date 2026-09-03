@@ -103,6 +103,19 @@ function updateReply(name: string, value: string) {
   emit('update:replies', { ...props.replies, [name]: value })
 }
 
+/**
+ * Plusieurs champs d'un coup.
+ *
+ * `updateReply` repart de `props.replies` à chaque appel : deux appels
+ * successifs dans la même microtâche partent donc du **même** état, et le
+ * second écrase le premier. Un composant qui alimente plusieurs réponses — le
+ * `runcode`, qui remplit son champ et les `js2wims1` que le même programme
+ * nourrit — doit les émettre ensemble.
+ */
+function updateReplies(map: Record<string, string>) {
+  emit('update:replies', { ...props.replies, ...map })
+}
+
 // ── Multi-slot clickfill ─────────────────────────────────────────────────────
 // Several drop targets can share one reply name (drag-compose, e.g.
 // repgraphint composes ]−2;20[ across slots). Each slot holds one label; the
@@ -483,6 +496,7 @@ const segmentTree = computed(() => buildSegmentTree(props.statementSegments))
 provide(PAX_STATEMENT_CTX, {
   replies: computed(() => props.replies),
   updateReply,
+  updateReplies,
   clickfillChoicesHtml: computed(() => props.clickfillChoicesHtml),
   menuChoicesHtml: computed(() => props.menuChoicesHtml),
   submitted: computed(() => props.submitted),

@@ -50,7 +50,7 @@ const props = defineProps<{
   submitted?: boolean
 }>()
 
-const emit = defineEmits<{ 'update:reply': [name: string, value: string] }>()
+const emit = defineEmits<{ 'update:replies': [map: Record<string, string>] }>()
 
 const busy = ref(false)
 const sortie = ref('')
@@ -82,11 +82,30 @@ async function executer() {
 
   busy.value = true
   try {
-    const res = await executerPython(code, run.variables || [])
+    // Une SEULE exécution pour tous les champs : ces programmes tirent au
+    // hasard (`randint`), et rejouer le code donnerait au champ `js2wims1` des
+    // valeurs différentes de celles du `runcode` — deux réponses incohérentes
+    // pour un même programme.
+    const annexes = run.also || []
+    const noms = [...(run.variables || []), ...annexes.flatMap(a => a.variables)]
+    const res = await executerPython(code, noms)
     sortie.value = res.sortie
     erreur.value = res.erreur
     if (!props.submitted) {
-      emit('update:reply', run.reply, composerReponseRuncode(code, res.valeurs))
+      // Toutes les réponses en **une** émission : émises l'une après l'autre,
+      // elles repartiraient du même état et la dernière écraserait les autres.
+      const propres = res.valeurs.slice(0, (run.variables || []).length)
+      const lot: Record<string, string> = {
+        [run.reply]: composerReponseRuncode(code, propres),
+      }
+      let i = (run.variables || []).length
+      for (const annexe of annexes) {
+        const part = res.valeurs.slice(i, i + annexe.variables.length)
+        i += annexe.variables.length
+        // Sans le code en tête : `js2wims1` ne reçoit que les valeurs.
+        lot[annexe.reply] = part.map(v => `[${v}]`).join(',')
+      }
+      emit('update:replies', lot)
     }
   } finally {
     busy.value = false

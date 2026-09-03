@@ -8,6 +8,9 @@ import type { GeogebraConfig, GeogebraLecture } from '~/composables/useGeogebra'
 export interface PaxStatementCtx {
   replies: ComputedRef<Record<string, string>>
   updateReply: (name: string, value: string) => void
+  /** Plusieurs réponses d'un coup : `updateReply` repart de l'état courant à
+   *  chaque appel, donc deux appels successifs s'écrasent. */
+  updateReplies: (map: Record<string, string>) => void
   clickfillChoicesHtml: ComputedRef<Array<{ raw: string; html: string }>>
   menuChoicesHtml: ComputedRef<Record<string, Array<{ raw: string; html: string }>>>
   submitted: ComputedRef<boolean>
@@ -51,6 +54,9 @@ export interface CodeEditorRun {
   label: string
   variables: string[]
   keywords: string[]
+  /** Champs `js2wims1` nourris par le **même** programme : ils relisent des
+   *  variables que celui-ci laisse, sans éditeur ni saisie propres. */
+  also?: { reply: string, variables: string[] }[]
 }
 
 export interface BackendSegment {

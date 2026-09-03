@@ -44,7 +44,7 @@ _DETTE = frozenset({
     "chemformula_analysis", "chessgame", "chset", "clicktile", "clock", "code",
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
     "geogebra_translation", "imgcomp", "javacurve",
-    "js2wims1", "keyboard", "matrix", "multidraw", "puzzle", "reaction",
+    "keyboard", "matrix", "multidraw", "puzzle", "reaction",
     "reorder", "symtext", "textcomp", "time",
 })
 
@@ -57,7 +57,7 @@ _DETTE = frozenset({
 # onze types avant le dispatch. La partition qui suit dit lesquels, et c'est
 # `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
-    "draft", "dragfill", "js2wims1",
+    "draft", "dragfill",
     "matrix", "reaction", "symtext",
 })
 
@@ -83,10 +83,10 @@ _DETTE_INTERCEPTEE = frozenset({
 # moins un champ **pesant** (`replyweight` non nul) du corpus. Mesuré au rendu,
 # non déclaré — cf. `test_ce_qui_atteint_vraiment_le_checker`.
 #
-#   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
-_DETTE_ATTEINTE = frozenset({
-    "js2wims1",
-})
+# Vide : plus rien n'atteint `check_text` sur un champ noté. Le dernier,
+# `js2wims1`, a été porté le 2026-09-03 en même temps que `runcode`, dont il
+# dépend — son `.input` relit les variables d'une exécution Python.
+_DETTE_ATTEINTE: frozenset[str] = frozenset()
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")
 
@@ -175,8 +175,8 @@ def test_ce_qui_atteint_vraiment_le_checker():
     Deux filtres, et ils comptent autant que la mesure. `ungraded` écarte les
     brouillons, `weight` les champs de poids nul : leur note n'entre dans
     aucun total, si bien qu'un repli sur `check_text` n'y coûte rien. Les
-    treize `js2wims1` d'oefechpython sont dans ce cas — ce qui leur manque est
-    un *affichage*, pas un correcteur.
+    treize `js2wims1` d'oefechpython étaient dans ce cas — ce qui leur manquait
+    était un *affichage*, pas un correcteur.
 
     Coûte une minute : il rend les 276 exercices qui déclarent un type de la
     dette, d'où le marqueur `slow`.

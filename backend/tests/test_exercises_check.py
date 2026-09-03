@@ -133,6 +133,13 @@ def _candidats(ans):
         compose = runcode_display_answer(brut)
         if compose:
             yield compose
+    # `js2wims1` range de même ce que les variables doivent valoir
+    # (`[n,[3]]`), quand la réponse n'en porte que les valeurs (`[3]`).
+    if ans.answer_type == "js2wims1":
+        from core.answer.checkers import js2wims1_display_answer  # noqa: PLC0415
+        compose = js2wims1_display_answer(brut)
+        if compose:
+            yield compose
     if "|" in brut:
         for part in brut.split("|"):
             yield part.strip()
