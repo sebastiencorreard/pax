@@ -7,7 +7,7 @@ import re
 
 from core.answer.schemas import AnswerResult
 from core.answer.strategies._locale import normalize_decimal_reply
-from core.answer.strategies.standard import pretty_expected
+from core.answer.strategies.standard import pretty_expected, run_standard
 
 
 def _analyze_replies(active_ans_defs: list, replies_by_name: dict[str, str], lang: str | None) -> dict[int, str]:
@@ -95,13 +95,55 @@ def run_analyze(
     # Weighted score (condweightN); falls back to a plain average when all
     # weights are 1. Correct on every condition → 1.0.
     total_w = sum(weights.values())
-    if total_w > 0:
-        global_score = sum(condtest[k] * weights[k] for k in condtest) / total_w
-    else:
-        global_score = 0.0
+    numerateur_conditions = sum(condtest[k] * weights[k] for k in condtest)
+    global_score = numerateur_conditions / total_w if total_w > 0 else 0.0
+
+    # Un exercice peut mêler les deux notations : des réponses que leur type
+    # sait juger seul (`replygood` explicite) et des réponses `?analyze` que
+    # seules les conditions éprouvent. `oefresolalg/fill2deg` en compte quatre
+    # des premières et cinq des secondes ; `quizz/course04_1`, quinze et une.
+    #
+    # Ne garder que les conditions revenait à **ne pas noter** les premières :
+    # fausser trois champs sur quatre n'y changeait pas le score. WIMS les note,
+    # lui — chaque `anstype/<type>` avance `freegot` quand la réponse est
+    # bonne —, et la documentation dit des conditions qu'elles font « une
+    # analyse plus précise » des réponses, non qu'elles s'y substituent.
+    #
+    # D'où une moyenne sur les deux ensembles, avec les poids de chacun : celui
+    # de la réponse (`replyweight`) et celui de la condition (`condweight`).
+    # Un exercice dont toutes les réponses passent par `?analyze` — 324 des 377
+    # du corpus — retombe exactement sur la formule d'avant, son premier terme
+    # étant vide.
+    jugeables = [
+        a for a in active_ans_defs
+        if (a.expected or "").strip()
+        and a.answer_type != "analyze"
+        and "analyze_var" not in a.options
+    ]
+    verdicts: dict[str, AnswerResult] = {}
+    note_reponses = poids_reponses = 0.0
+    if jugeables:
+        _, resultats_reponses = run_standard(jugeables, replies_by_name, rendered.lang)
+        verdicts = {r.input_name: r for r in resultats_reponses}
+        for ans_def in jugeables:
+            r = verdicts[ans_def.input_name]
+            note_reponses += r.score * ans_def.weight
+            poids_reponses += ans_def.weight
+
+    if poids_reponses:
+        global_score = (
+            (numerateur_conditions + note_reponses)
+            / (total_w + poids_reponses)
+        )
 
     results: list[AnswerResult] = []
     for ans_def in active_ans_defs:
+        # Le verdict d'un champ est celui de **son** checker quand il en a un.
+        # Peindre tout l'exercice de la note globale mettait en rouge des
+        # réponses justes, dès lors qu'une condition échouait ailleurs.
+        if ans_def.input_name in verdicts:
+            results.append(verdicts[ans_def.input_name])
+            continue
         reply_value = replies_by_name.get(ans_def.input_name, "").strip()
         results.append(
             AnswerResult(
