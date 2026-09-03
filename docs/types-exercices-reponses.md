@@ -36,6 +36,14 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 *   **`radio`**, **`menu`** : Choix unique (boutons / liste déroulante).
 *   **`clickfill`** : Glisser-déposer — mono-slot (choisir une étiquette) **ou** multi-slots (composer une séquence ordonnée). Voir [§ 6](#6-clickfill--glisser-déposer).
 *   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
+*   **`jmolclick`** : les atomes qu'on clique sur une molécule 3D. Le
+    correcteur ne corrige pas — la réponse porte en **première ligne la note**,
+    calculée dans le navigateur (`noterSelectionJmol`, port d'`analyserep`) :
+    l'applet seule sait évaluer « un oxygène lié à un hydrogène et à un
+    carbone », et compare cette expression à la sélection de l'élève. Le
+    `replygood` porte l'expression puis le fichier de la molécule, séparés par
+    un `;`. Un exercice (`oefmolecule/reconnaissance`) ; le barème partiel
+    (`split`/`eqweight`) n'est pas porté, rien ne l'éprouve.
 *   **`geogebra`** : l'applet **est** le champ de réponse — l'élève construit
     ou déplace, et ce n'est pas une valeur qui est comparée mais un **état de
     figure** contre une liste de **conditions** (`n` numériques, `f`
