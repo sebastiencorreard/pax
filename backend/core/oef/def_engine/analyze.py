@@ -131,8 +131,16 @@ def render_feedback(
     seed: int,
     analyze_replies: dict | None = None,
     lang: str = "fr",
+    memo_replies: dict | None = None,
 ) -> str:
-    """Exécute :postdef, :test puis :feedback ; retourne le HTML de feedback."""
+    """Exécute :postdef, :test puis :feedback ; retourne le HTML de feedback.
+
+    `memo_replies` porte, pour les types qui la distinguent, la forme que WIMS
+    **mémorise** dans `$m_reply<n>` — laquelle n'est pas toujours ce que le
+    navigateur a envoyé. Un `geogebra` en est l'exemple : `$reply<n>` reste
+    l'état brut de la figure, quand `$m_reply<n>` est la structure à trois
+    blocs que le `:postdef` de l'exercice sait lire.
+    """
     from . import DefEngine  # import différé
     from .presentation import _close_inline_math
     from ..flydraw import inline_svg_imgs
@@ -165,11 +173,27 @@ def render_feedback(
             engine.ctx[f"r{m.group(1)}"] = value
             engine.ctx[f"m_r{m.group(1)}"] = value
 
-    # Injecter les scores
+    # Injecter les scores, dans l'écriture de WIMS.
+    #
+    # `str(1.0)` rend « 1.0 », et un `:postdef` qui teste `!if $m_sc_reply1=1`
+    # compare des **chaînes** : « 1.0 » n'y vaut pas « 1 », si bien qu'une
+    # réponse juste prenait la branche de l'échec. `oefvectdirnorm/06memenorme`
+    # y félicitait l'élève d'un « Correct ! 100 % » suivi de « les vecteurs
+    # n'ont pas la même norme ». `format_wims_float` écrit les nombres comme le
+    # fait WIMS — « 1 », « 0.5 » —, ce que le reste du moteur emploie déjà.
+    from ..numfmt import format_wims_float  # noqa: PLC0415
+
     for res in results:
-        engine.ctx[f"m_sc_{res.input_name}"] = str(res.score)
+        note = format_wims_float(res.score)
+        engine.ctx[f"m_sc_{res.input_name}"] = note
         if m := re.match(r"^reply(\d+)$", res.input_name, re.I):
-            engine.ctx[f"m_sc_r{m.group(1)}"] = str(res.score)
+            engine.ctx[f"m_sc_r{m.group(1)}"] = note
+
+    # La forme mémorisée, là où elle diffère de ce qui a été envoyé.
+    for name, memo in (memo_replies or {}).items():
+        engine.ctx[f"m_{name}"] = memo
+        if m := re.match(r"^reply(\d+)$", name, re.I):
+            engine.ctx[f"m_r{m.group(1)}"] = memo
 
     # Injecter les valN pour les exercices ?analyze
     if analyze_replies:

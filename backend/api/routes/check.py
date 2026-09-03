@@ -241,6 +241,28 @@ async def check_exercise(
             if r.input_name in _jsxo_names and r.expected:
                 r.expected = jsxgraphobjet_display_answer(r.expected)
 
+    # ── geogebra : ni la figure brute, ni la liste des conditions ────────────
+    # Des deux côtés, ce qui est stocké n'est pas fait pour être lu. La
+    # « réponse » est l'état de la figure tel que l'applet le sérialise —
+    # `tableau=text,&&k=numeric,21.25&&H=point,3,6&&…`, deux cents caractères
+    # que le corrigé affichait en rouge —, et l'« attendu » la liste des
+    # conditions à vérifier, en syntaxe PARI.
+    #
+    # WIMS n'affiche ni l'un ni l'autre : il déroule les **messages** des
+    # conditions, chacun coloré selon qu'elle passe ou non (`displaylist2`), et
+    # le mot `hiden` est précisément celui qui en tait une. Les sept exercices
+    # d'`oefvectdirnorm` masquent toutes les leurs — d'où un corrigé vide, qui
+    # est la bonne réponse à la question « qu'est-ce que WIMS montrerait ici ».
+    # Les messages qui, eux, se montrent passent déjà par le diagnostic du
+    # checker (`CheckResult.detail`).
+    _ggb_names = {a.input_name for a in rendered.answers
+                  if a.answer_type == "geogebra"}
+    if _ggb_names:
+        for r in results:
+            if r.input_name in _ggb_names:
+                r.reply = ""
+                r.expected = ""
+
     # ── range : le corrigé montre une valeur, pas les bornes ─────────────────
     # `anstype/range` affiche le milieu du premier intervalle (ou ses deux
     # bornes s'il est ouvert) : « 0,5 » plutôt que le « 0.6,0.4 » stocké, que

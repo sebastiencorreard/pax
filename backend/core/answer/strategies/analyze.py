@@ -180,6 +180,16 @@ def run_feedback(
 
     analyze_replies = _analyze_replies(active_ans_defs, replies_by_name, rendered.lang) or None
 
+    # `geogebra` mémorise autre chose que ce qu'il reçoit : le `:postdef` de
+    # l'exercice lit une structure, non l'état brut de la figure.
+    from core.answer.checkers import geogebra_memo_reply  # noqa: PLC0415
+
+    memo = {
+        a.input_name: geogebra_memo_reply(replies_by_name.get(a.input_name, ""))
+        for a in active_ans_defs
+        if a.answer_type == "geogebra"
+    }
+
     return render_feedback(
         ev_ctx=rendered.check_sections["ctx"],
         postdef_instructions=rendered.check_sections["postdef"],
@@ -190,4 +200,5 @@ def run_feedback(
         seed=seed,
         analyze_replies=analyze_replies,
         lang=rendered.lang,
+        memo_replies=memo or None,
     )

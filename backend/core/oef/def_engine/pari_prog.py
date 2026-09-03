@@ -1853,11 +1853,47 @@ _GP_ONLY_RE = re.compile(
 )
 
 
+def _a_une_construction_liee(body: str) -> bool:
+    """Vrai si `body` emploie `vector`/`matrix` sous leur **forme longue**.
+
+    `matrix(m, n, I, J, expr)` et `vector(n, X, expr)` lient des variables et
+    évaluent leur corps une fois par case — comme `sum`/`prod`, que
+    `_BOUND_VAR_RE` reconnaît déjà. Seul l'interpréteur sait les dérouler ;
+    l'évaluation d'expression, elle, appelle `_pari_matrix` avec cinq
+    arguments quand il en prend trois, et rend l'appel **inchangé**. C'est ce
+    qui laissait `matrix(1,2,x,y,(random(13)-6))` traverser tout un calcul
+    sous sa forme textuelle, jusqu'au `setCoordSystem` d'une figure GeoGebra
+    que le navigateur ne pouvait plus lire.
+
+    Les formes courtes (`matrix(3,3)`, `vector(5)`, `matrix([1,2;3,4])`)
+    restent sur la voie des expressions, où elles sont traitées.
+    """
+    for nom, (avant, variables) in _PARI_LIEES.items():
+        for m in re.finditer(rf"\b{nom}\s*\(", body):
+            debut = m.end()
+            profondeur = 1
+            i = debut
+            while i < len(body) and profondeur:
+                if body[i] in "([{":
+                    profondeur += 1
+                elif body[i] in ")]}":
+                    profondeur -= 1
+                i += 1
+            if profondeur:
+                continue
+            args = _split_top_level(body[debut:i - 1], ",")
+            if len(args) >= avant + variables + 1:
+                return True
+    return False
+
+
 def looks_like_program(src: str) -> bool:
     body, _ = _stash_strings(src.strip().rstrip(";").strip())
     if body.startswith("{") and body.endswith("}"):
         body = body[1:-1]
     if _CONTROL_RE.match(body) or _BOUND_VAR_RE.search(body) or _GP_ONLY_RE.search(body):
+        return True
+    if _a_une_construction_liee(body):
         return True
     if _TILDE_RE.search(body):
         return True

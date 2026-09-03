@@ -3073,6 +3073,276 @@ def check_wlist(reply: str, expected: str, lang: str = "fr") -> CheckResult:
     return CheckResult(correct=False, score=0.0, method="wlist", detail=detail)
 
 
+# ------------------------------------------------------------------ #
+# GeoGebra : la figure que l'élève construit                           #
+# ------------------------------------------------------------------ #
+
+# Ce qu'un objet met à disposition d'une condition, par type. `anstype/geogebra`
+# les substitue avant d'évaluer : `x_A` devient l'abscisse de A, `v_t` la valeur
+# du texte t. Les coniques et les droites en offrent davantage (`a_`, `b_`,
+# `R_`, `x2_`…) ; aucun exercice du corpus n'en pose, et les porter à l'aveugle
+# reviendrait à écrire du code que rien n'éprouve.
+_GGB_COORDS = ("point", "vector")
+_GGB_VALEUR = ("segment", "function", "angle", "numeric", "text", "boolean")
+
+
+def _ggb_nombre(brut: str) -> Fraction | None:
+    """Un littéral de la figure, en rationnel exact.
+
+    Les coordonnées arrivent en écriture décimale (`-12`, `0.5`), et c'est
+    Pari qui les évalue chez WIMS — en exact, non en binaire. `Fraction` tient
+    la même promesse : `0.1+0.2 == 0.3` y est vrai, ce qu'un `float` refuse.
+    Or ces conditions sont pleines d'égalités à zéro (`x_u*y_v-y_u*x_v==0`),
+    où le bruit binaire déciderait à la place de la géométrie.
+    """
+    try:
+        return Fraction(brut.strip())
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _ggb_objets(reply: str) -> tuple[dict[str, tuple[str, list[str]]], dict[str, str]]:
+    """Les deux moitiés de la réponse : les valeurs, puis les définitions.
+
+    `geogebra2wims()` compose une chaîne à deux parties séparées par `;` —
+    d'abord `<nom>=<type>,<données>` joints par `&&`, puis
+    `<nom>=<commande>` de même. La première dit *où* sont les objets, la
+    seconde *comment* ils ont été obtenus : un point posé à la main et un point
+    construit par intersection ont les mêmes coordonnées et des définitions
+    différentes, ce que les conditions `f` savent distinguer.
+    """
+    valeurs, definitions = {}, {}
+    zone_val, _, zone_def = reply.partition(";")
+    for morceau in zone_val.split("&&"):
+        nom, sep, reste = morceau.partition("=")
+        if not sep or not reste.strip():
+            continue
+        champs = [c.strip() for c in reste.split(",")]
+        valeurs[nom.strip()] = (champs[0].lower(), champs[1:])
+    for morceau in zone_def.split("&&"):
+        nom, sep, reste = morceau.partition("=")
+        if sep:
+            definitions[nom.strip()] = reste.strip()
+    return valeurs, definitions
+
+
+def _ggb_tests(expected: str) -> list[tuple[str, str, str]]:
+    """Les conditions de `replygood`, en triplets `(genre, condition, message)`.
+
+    Elles sont séparées par `;`, et chacune s'écrit `<genre>,<condition>,<msg>` :
+    `n` pour une condition numérique, `f` pour une condition formelle (WIMS
+    accepte aussi les mots entiers `numeric` et `formal`). Le message `hiden`
+    est celui qu'on ne montre pas.
+
+    La condition s'arrête à la première virgule — c'est `!item 1 of $cond` chez
+    WIMS, qui ne regarde pas davantage les parenthèses que nous ici.
+    """
+    tests = []
+    for ligne in expected.replace("\t", "").split(";"):
+        ligne = ligne.strip()
+        if not ligne:
+            continue
+        genre, sep, reste = ligne.partition(",")
+        genre = genre.strip().lower()
+        if not sep or genre not in ("n", "f", "numeric", "formal"):
+            continue
+        condition, _, message = reste.partition(",")
+        tests.append(
+            ("f" if genre in ("f", "formal") else "n",
+             condition.strip(), message.strip())
+        )
+    return tests
+
+
+def _ggb_substitue(condition: str, valeurs: dict) -> str:
+    """Remplace `x_A`, `y_A`, `z_A`, `v_t` par ce que la figure porte.
+
+    Les noms les plus longs d'abord : sans cela, un objet `u` verrait son
+    `x_u` substitué à l'intérieur du `x_u1` d'un voisin.
+    """
+    for nom in sorted(valeurs, key=len, reverse=True):
+        type_obj, champs = valeurs[nom]
+        if type_obj in _GGB_COORDS:
+            for prefixe, rang in (("x_", 0), ("y_", 1), ("z_", 2)):
+                if rang < len(champs):
+                    condition = condition.replace(
+                        f"{prefixe}{nom}", f"({champs[rang]})"
+                    )
+        elif type_obj in _GGB_VALEUR:
+            valeur = ",".join(champs) or "0"
+            condition = condition.replace(f"v_{nom}=", f"({valeur})==")
+            condition = condition.replace(f"v_{nom}", f"({valeur})")
+    return condition
+
+
+def _ggb_evalue(condition: str) -> bool:
+    """Évalue une condition numérique, en arithmétique exacte.
+
+    WIMS la confie à Pari (`check=!exec pari ($cond)`), d'où une syntaxe de
+    C : `&&`/`&` pour l'et, `||` pour le ou, `^` pour la puissance. On la
+    traduit en Python, et les nombres deviennent des `Fraction` : les
+    conditions sont pleines d'égalités à zéro, que le bruit binaire des
+    flottants trancherait de travers.
+    """
+    expr = condition.strip()
+    if not expr:
+        return False
+    # Un identifiant qui subsiste est un objet que la figure ne porte pas : la
+    # condition est alors fausse, non erronée (WIMS y voit Pari rendre vide,
+    # qu'il ramène à 0).
+    reste = re.sub(r"\b(abs|sqrt|min|max)\b", "", expr)
+    if re.search(r"[A-Za-z_]", reste):
+        return False
+    expr = expr.replace("&&", " and ").replace("||", " or ")
+    expr = re.sub(r"(?<![&])&(?![&])", " and ", expr)
+    expr = expr.replace("^", "**")
+    # Chaque littéral en rationnel exact, la puissance mise à part : un exposant
+    # doit rester un entier Python.
+    expr = re.sub(
+        r"(?<![\w.])(\d+\.?\d*)(?![\w.])",
+        lambda m: f"Fraction('{m.group(1)}')",
+        expr,
+    )
+    expr = re.sub(r"\*\*\s*Fraction\('(\d+)'\)", r"**\1", expr)
+    try:
+        return bool(eval(expr, {"__builtins__": {}}, {  # noqa: S307
+            "Fraction": Fraction, "abs": abs, "min": min, "max": max,
+        }))
+    except (ValueError, TypeError, SyntaxError, ZeroDivisionError, NameError):
+        return False
+
+
+def _ggb_evalue_formelle(condition: str, definitions: dict) -> bool:
+    """Une condition `f` : l'objet nommé a-t-il été **construit** comme il faut ?
+
+    Elle s'écrit `<nom>=<Commande>` et se lit sur la seconde moitié de la
+    réponse, celle des définitions. WIMS y ramène `Point[a,b]` à `Point,a,b`
+    (`!replace internal [ by ,`) puis compare le nom de commande ; on compare
+    de même, sans la casse — un point libre y répond par son type, `point`,
+    faute de commande.
+    """
+    nom, sep, attendu = condition.partition("=")
+    if not sep:
+        return False
+    definition = definitions.get(nom.strip())
+    if definition is None:
+        return False
+    tete = re.split(r"[\[(]", definition.strip(), maxsplit=1)[0]
+    return tete.strip().lower() == attendu.strip().lower()
+
+
+def geogebra_memo_reply(reply: str) -> str:
+    """La réponse dans la forme que WIMS **mémorise**, pour le `:postdef`.
+
+    `anstype/geogebra` ne range pas dans `$m_reply<i>` la chaîne que le
+    navigateur envoie, mais une structure à trois blocs de lignes :
+
+        $ynamecnt          le nombre d'objets
+        $yourggb           les définitions, une par ligne
+        $yourlist_name     les valeurs (`v=vector,3,6`), une par ligne
+
+    C'est là-dessus que les exercices bâtissent leur feedback :
+    `oefvectdirnorm/06memenorme` lit `!line 1` pour le compte, en déduit les
+    deux blocs, et va chercher `!getopt v in` le troisième pour comparer les
+    normes. Sans cette mise en forme, son `:postdef` travaillait sur du vide et
+    concluait à l'échec — l'élève lisait « Correct ! 100 % » suivi de « les
+    vecteurs n'ont pas la même norme ».
+
+    Le bloc des définitions est rendu tel que l'applet le donne. WIMS le
+    retravaille (une centaine de lignes pour reconstruire des commandes
+    GeoGebra affichables) ; ce qu'un `:postdef` y lit — les coordonnées d'un
+    objet nommé — s'y retrouve de la même façon.
+    """
+    valeurs, definitions = _ggb_objets(reply)
+    lignes_val = [f"{nom}={t},{','.join(champs)}" for nom, (t, champs) in valeurs.items()]
+    lignes_def = [f"{nom}={cmd}" for nom, cmd in definitions.items()]
+    return "\n".join([str(len(lignes_val)), *lignes_def, *lignes_val])
+
+
+def check_geogebra(
+    reply: str,
+    expected: str,
+    options: dict | None = None,
+) -> CheckResult:
+    """Type WIMS `geogebra` : la figure que l'élève construit ou déplace.
+
+    La réponse n'est pas un nombre mais un **état de figure**, que
+    `geogebra2wims()` compose côté navigateur (porté dans
+    `composables/useGeogebra.ts`). Le `replygood` en regard n'est pas une
+    valeur non plus : c'est une liste de conditions à vérifier, dont chacune
+    porte son message.
+
+        n,(x_B-x_C)!=0||(y_B-y_C)!=0 & (x_u)*(y_v)-(y_u)*(x_v)==0,hiden
+
+    « le vecteur CB n'est pas nul, et son déterminant avec FH est nul » —
+    autrement dit *les deux vecteurs sont colinéaires*, sans exiger de l'élève
+    un placement particulier. C'est tout l'intérêt du type : la bonne réponse
+    est un ensemble de figures, pas une figure.
+
+    **La note** suit `anstype/geogebra` :
+
+        score = (w₁·formelles + w₂·noms + w₃·numériques) / (w₁+w₂+w₃)
+
+    chaque terme étant la fraction des conditions de son genre qui passent, et
+    son poids ramené à zéro quand l'exercice n'en pose aucune. `weight` vaut
+    `1,0.2,1` par défaut. Le second terme, la vérification des **noms** donnés
+    aux objets, n'est pas porté : aucun des dix-sept exercices ne le demande,
+    et son total nul annule son poids — la formule reste donc exacte ici.
+
+    Le reste du script — traduction des conditions formelles en conditions
+    numériques, dictionnaire multilingue des types, coniques et droites — suit
+    la même règle : rien n'est porté qu'aucun exercice n'éprouve.
+    """
+    tests = _ggb_tests(expected)
+    if not tests:
+        return CheckResult(correct=False, score=0.0, method="geogebra")
+    valeurs, definitions = _ggb_objets(reply)
+    if not valeurs and not definitions:
+        return CheckResult(
+            correct=False, score=0.0, method="geogebra",
+            detail="figure vide",
+        )
+
+    poids = [1.0, 0.2, 1.0]
+    m = re.search(r"\bweights?\s*=\s*(\S+)", str((options or {}).get("option", "")))
+    if m:
+        lus = [_ggb_nombre(x) for x in m.group(1).replace("&", ",").split(",")]
+        if len(lus) == 3 and all(v is not None for v in lus):
+            poids = [float(v) for v in lus]  # type: ignore[arg-type]
+
+    reussies = {"n": 0, "f": 0}
+    totaux = {"n": 0, "f": 0}
+    manquees: list[str] = []
+    for genre, condition, message in tests:
+        totaux[genre] += 1
+        if genre == "f":
+            ok = _ggb_evalue_formelle(condition, definitions)
+        else:
+            ok = _ggb_evalue(_ggb_substitue(condition, valeurs))
+        if ok:
+            reussies[genre] += 1
+        elif message and message.lower() != "hiden":
+            manquees.append(message)
+
+    parts = (
+        (poids[0], reussies["f"], totaux["f"]),
+        (poids[1], 0, 0),  # noms : non porté, et sans emploi dans le corpus
+        (poids[2], reussies["n"], totaux["n"]),
+    )
+    numerateur = sum(p * (n / t) for p, n, t in parts if t)
+    denominateur = sum(p for p, _, t in parts if t)
+    if not denominateur:
+        return CheckResult(correct=False, score=0.0, method="geogebra")
+    score = numerateur / denominateur
+    # `diareply=good` seulement si le score vaut 1 (`anstype/geogebra`).
+    return CheckResult(
+        correct=score >= 1.0,
+        score=min(1.0, max(0.0, score)),
+        method="geogebra",
+        detail="; ".join(manquees) or None,
+    )
+
+
 def check_raw(reply: str, expected: str, option: str = "") -> CheckResult:
     """Type WIMS `raw` : comparaison **exacte** de chaîne (sensible casse/espaces
     par défaut), après application des filtres pilotés par l'option :
@@ -3343,6 +3613,8 @@ def check_answer(
             return check_fset(reply, expected, precision, comma_is_decimal)
         case "aset":
             return check_aset(reply, expected, precision, comma_is_decimal)
+        case "geogebra":
+            return check_geogebra(reply, expected, options)
         # `multipleclick` note par égalité d'ensembles de positions, comme
         # `checkbox` (cf. le moteur) : `!listintersect` puis trois comptes
         # égaux dans `anstype/multipleclick`.

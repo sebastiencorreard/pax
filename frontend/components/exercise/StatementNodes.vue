@@ -94,6 +94,10 @@
 
       <ExerciseGeogebra v-else-if="node.seg.type === 'geogebra'"
         :config="node.seg.config"
+        :reply="node.seg.reply"
+        :answer="node.seg.answer"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
       <ExerciseJmol v-else-if="node.seg.type === 'jmol'"

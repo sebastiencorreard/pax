@@ -43,7 +43,7 @@ _DETTE = frozenset({
     "autoeval", "chembrut", "chemclick", "chemdraw", "chemformula",
     "chemformula_analysis", "chessgame", "chset", "clicktile", "clock", "code",
     "complex", "compose", "crossword", "draft", "dragfill", "flashcard",
-    "geogebra", "geogebra_translation", "imgcomp", "javacurve", "jmolclick",
+    "geogebra_translation", "imgcomp", "javacurve", "jmolclick",
     "js2wims1", "keyboard", "matrix", "multidraw", "puzzle", "reaction",
     "reorder", "runcode", "symtext", "textcomp", "time",
 })
@@ -57,7 +57,7 @@ _DETTE = frozenset({
 # onze types avant le dispatch. La partition qui suit dit lesquels, et c'est
 # `_DETTE_ATTEINTE` qui ordonne le travail.
 _DETTE_EMPLOYEE = frozenset({
-    "draft", "dragfill", "geogebra", "jmolclick", "js2wims1",
+    "draft", "dragfill", "jmolclick", "js2wims1",
     "matrix", "reaction", "runcode", "symtext",
 })
 
@@ -86,13 +86,11 @@ _DETTE_INTERCEPTEE = frozenset({
 #   runcode     98 champs, 98 exercices — exécution de code élève, le gros
 #               morceau, et `js2wims1` en dépend (son `.input` lit les
 #               variables d'une exécution Python)
-#   geogebra     7 champs,  7 exercices — l'affichage est porté, reste la
-#               correction (`anstype/geogebra`, 1128 lignes de scénarios)
 #   jmolclick    1 champ,   1 exercice — l'affichage Jmol est porté, le clic
 #               sur un atome manque
 #   js2wims1     1 champ,   1 exercice — les 13 autres pèsent 0
 _DETTE_ATTEINTE = frozenset({
-    "geogebra", "jmolclick", "js2wims1", "runcode",
+    "jmolclick", "js2wims1", "runcode",
 })
 
 _RT = re.compile(rb"replytype\d*\s*=\s*([A-Za-z_][A-Za-z_0-9]*)")

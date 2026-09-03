@@ -1266,6 +1266,17 @@ def _call_pari(expr: str, session: dict | None = None, rng=None) -> str:
     ns: dict = dict(_MATH_NS)
     ns.update(_PARI_HELPERS)
     ns["_I"] = sympy.Integer
+    # `random(n)` — l'entier aléatoire de PARI, dans [0, n[. Le mini-
+    # interpréteur le fournit de longue date ; cette voie-ci, celle des
+    # expressions simples, ne l'avait pas, et la liaison automatique en faisait
+    # un **symbole** : `random(13)-6` s'évaluait en `13*random - 6`, une
+    # expression littérale que le reste du calcul promenait sans broncher.
+    # C'est ainsi que `oefvectdirnorm/06memenorme` et `07memenormenoncoli`
+    # posaient leur repère GeoGebra sur un `setCoordSystem(rint(vecmax([…
+    # random …])))` que le navigateur ne pouvait pas lire — figure vide.
+    # Le tirage passe par le `rng` de l'exercice : une graine, un rendu.
+    from .pari_prog import _pari_random  # noqa: PLC0415
+    ns["random"] = lambda n=None: _pari_random(rng, n)
     # Auto-bind symbols
     for ident in set(re.findall(r"[a-zA-Z_]\w*", clean)):
         if ident not in ns and ident not in _PYTHON_KEYWORDS:

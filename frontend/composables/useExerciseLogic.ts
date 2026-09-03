@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { JmolConfig } from '~/composables/useJsmol'
-import type { GeogebraConfig } from '~/composables/useGeogebra'
+import type { GeogebraConfig, GeogebraLecture } from '~/composables/useGeogebra'
 
 // Shared context injected into the recursive StatementNodes renderer, so it
 // can render leaf segments without prop-drilling through every layout group.
@@ -144,7 +144,8 @@ export type Segment =
                            xrange: string; yrange: string; width?: number; height?: number; is_sup?: boolean }
   | { type: 'codeeditor';  config: CodeEditorConfig; is_sup?: boolean }
   | { type: 'jmol';        config: JmolConfig; is_sup?: boolean }
-  | { type: 'geogebra';    config: GeogebraConfig; is_sup?: boolean }
+  | { type: 'geogebra';    config: GeogebraConfig; is_sup?: boolean;
+                           reply?: string; answer?: GeogebraLecture }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -254,11 +255,17 @@ export function useExerciseLogic() {
         // absolue pour le navigateur, comme celles de `coord` et `draw`.
         const cfg = (s as unknown as { config: GeogebraConfig }).config
         const f = cfg?.params?.filename
+        // `reply` / `answer` ne sont posés que sur une applet **de réponse**
+        // (`type=geogebra`) : le champ qu'elle alimente, et les réglages de
+        // lecture de la figure. Une figure d'énoncé n'en a aucun.
+        const rep = s as unknown as { reply?: string; answer?: GeogebraLecture }
         out.push({
           type: 'geogebra',
           config: f && f.startsWith('/api/')
             ? { ...cfg, params: { ...cfg.params, filename: apiBase + f } }
             : cfg,
+          reply: rep.reply,
+          answer: rep.answer,
         })
       } else if (s.type === 'coord') {
         // Clickable repère: the SVG travels inline; fall back to the URL

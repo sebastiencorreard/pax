@@ -132,6 +132,34 @@ def _candidats(ans):
             yield part.strip()
 
 
+# `geogebra` ne range pas une réponse dans son attendu mais une **liste de
+# conditions** — « les deux vecteurs sont colinéaires », « le point est à
+# moins de 0,2 de sa place ». La bonne réponse en est un ensemble de figures,
+# et aucune ne se déduit du texte des conditions sans les résoudre. Les deux
+# tests qui suivent soumettent l'attendu ; ici, cela n'a pas de sens.
+#
+# D'où un `skip` explicite plutôt qu'un filtre de collecte : un exercice écarté
+# avant la collecte ne se signale nulle part, quand un skip se compte. Le
+# checker, lui, est éprouvé sur de vraies figures par
+# `tests/core/answer/test_geogebra.py`.
+_TYPES_SANS_REPONSE_DEDUCTIBLE = {"geogebra"}
+
+
+def _notes(render) -> list:
+    """Les champs qui pèsent dans la note : un attendu, et non vide."""
+    return [a for a in render.answers if (a.expected or "").strip()]
+
+
+def _skip_si_indeductible(notes) -> None:
+    if notes and all(
+        a.answer_type in _TYPES_SANS_REPONSE_DEDUCTIBLE for a in notes
+    ):
+        pytest.skip(
+            "attendu = conditions à vérifier, pas une réponse soumissible "
+            "(cf. tests/core/answer/test_geogebra.py)"
+        )
+
+
 def _meilleure_reponse(ans) -> str:
     """La formulation d'`expected` qui obtient le meilleur score pour ce champ.
 
@@ -279,6 +307,7 @@ def test_correct_answer_scores_1(exercise):
     if ex_id in XFAIL_CORRECT_SCORE:
         pytest.xfail(f"{ex_id}: la bonne réponse ne donne pas 1 (bug préexistant)")
     render = load_and_render(path, seed=SEED)
+    _skip_si_indeductible(_notes(render))
     correct_replies = {a.input_name: _meilleure_reponse(a) for a in render.answers}
     if not any(v.strip() for v in correct_replies.values()):
         pytest.skip("aucun champ noté (réponses attendues toutes vides)")
@@ -303,9 +332,10 @@ def test_wrong_answer_scores_less_than_1(exercise):
     render = load_and_render(path, seed=SEED)
     # Fausser le premier champ **noté** : un champ sans réponse attendue est
     # ignoré à l'évaluation, le fausser ne prouverait rien.
-    notes = [a for a in render.answers if (a.expected or "").strip()]
+    notes = _notes(render)
     if not notes:
         pytest.skip("aucun champ noté (réponses attendues toutes vides)")
+    _skip_si_indeductible(notes)
     wrong_replies = {}
     for i, a in enumerate(notes):
         if i == 0:

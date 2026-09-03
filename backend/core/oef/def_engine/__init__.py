@@ -1152,7 +1152,7 @@ class DefEngine(_SlibMixin):
             a for a in answers
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
-                    "jsxgraphobjet", "click")
+                    "jsxgraphobjet", "geogebra", "click")
         ]
         # Append a default field per reply when the question carries no widget.
         # For dynsteps/course this is reached only when there are no embeds
@@ -4988,6 +4988,11 @@ class DefEngine(_SlibMixin):
                 # Render the board (display) here; the script has commas, so we
                 # re-parse the raw args instead of the comma-split `size_str`.
                 return self._render_jsxgraph_embed(args, ref)
+            elif reply_type == "geogebra":
+                # `type=geogebra` : le champ de réponse *est* une applet, que
+                # l'élève manipule. Arguments bruts — la configuration est
+                # pleine de virgules (`setCoordSystem(-10,10,-10,10)`).
+                return self._render_geogebra_answer_embed(args, ref, n)
             elif reply_type == "jsxgraphobjet":
                 # Même figure, autre geste : ici l'élève *clique* des objets
                 # nommés plutôt que d'en déplacer un. Les arguments bruts pour
@@ -5242,6 +5247,124 @@ class DefEngine(_SlibMixin):
                 f'<div class="pax-jsxgraph" data-reply="{ref}"', 1,
             )
         return div
+
+    def _render_geogebra_answer_embed(self, args: str, ref: str, n: int) -> str:
+        """`type=geogebra` — l'applet **est** le champ de réponse.
+
+        `anstype/geogebra.input` ne construit pas la figure lui-même : il
+        remet en forme le paramètre d'embed, puis appelle
+        `slib/geo2D/geogebra`, celui-là même qui monte les figures d'énoncé et
+        que PAX porte déjà (`_render_geogebra_embed`). Il n'y a donc rien à
+        réimplémenter — seulement à préparer les options comme lui :
+
+            oef_applet_option = !replace internal <tab> by <NL> in $inputsize
+            oef_applet_option = !replace internal ; by <NL> in …
+            Inputsize         = !line 1, `x` → `,`
+            oef_applet_option = !line 2 to -1
+            !if width notin …  → width=$(Inputsize[1])
+            !if height notin … → height=$(Inputsize[2])
+
+        La première ligne est la taille (`600 x 600`), le reste les options de
+        l'applet et ses commandes de construction (`file=vector.ggb`,
+        `setCoordSystem(…)`, `F=(0,0)`, `u=Vector(F,H)`…).
+
+        Le marqueur reçoit en plus un `data-reply` : c'est par lui que le
+        composant sait à quel champ rattacher l'état de la figure. Même
+        dispositif que `jsxgraphobjet`, et pour la même raison — faute de ce
+        rendu, l'embed retombait sur le champ de saisie générique, et les sept
+        exercices d'`oefvectdirnorm` affichaient une zone de texte de 600 × 600
+        à la place de l'applet.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        _, _, brut = args.partition(",")
+        lignes = [
+            ligne.strip()
+            for morceau in brut.split("\t")
+            for ligne in morceau.split(";")
+            if ligne.strip()
+        ]
+        if not lignes:
+            return ""
+
+        taille, options = lignes[0], lignes[1:]
+        dims = re.findall(r"\d+", taille)
+        if not re.fullmatch(r"[\dxX\s*]+", taille) or len(dims) < 2:
+            # Pas une taille : l'auteur a commencé par une option.
+            options, dims = lignes, []
+        if dims:
+            if not any(o.startswith("width") for o in options):
+                options.append(f"width={dims[0]}")
+            if not any(o.startswith("height") for o in options):
+                options.append(f"height={dims[1]}")
+
+        garde = self.ctx.get("slib_out")
+        self.ctx["slib_out"] = ""
+        try:
+            self._cmd_readproc("slib/geo2D/geogebra " + ";".join(options))
+            marqueur = str(self.ctx.get("slib_out") or "")
+        finally:
+            if garde is None:
+                self.ctx.pop("slib_out", None)
+            else:
+                self.ctx["slib_out"] = garde
+        if not marqueur.startswith('<div class="pax-geogebra"'):
+            return ""
+        lecture = _html.escape(
+            _json.dumps(self._geogebra_lecture_options(n, options), ensure_ascii=False),
+            quote=True,
+        )
+        return marqueur.replace(
+            '<div class="pax-geogebra"',
+            f'<div class="pax-geogebra" data-reply="{ref}" '
+            f'data-ggb-answer="{lecture}"', 1,
+        )
+
+    def _geogebra_lecture_options(self, n: int, options: list[str]) -> dict:
+        """Ce dont le front a besoin pour relire la figure, tiré de l'option.
+
+        `anstype/geogebra.input` construit son `geogebra2wims()` autour de cinq
+        réglages, et c'est tout ce qui distingue une lecture d'une autre :
+
+        - `max` (défaut 10) — au-delà, WIMS refuse d'envoyer et alerte : la
+          figure porte plus d'objets que l'exercice n'en attend ;
+        - `precision` (défaut 18) — les décimales conservées sur les
+          coordonnées ;
+        - `ignore` — les objets à passer, quels qu'ils soient ;
+        - `object_analysis` — un préfixe qui restreint l'analyse ; à défaut,
+          WIMS écarte ce qui commence par `My_`, la marque des objets d'un
+          `.ggb` que l'exercice ne veut pas voir ;
+        - `enable3d` — la cote entre alors dans les coordonnées.
+
+        Le sixième, `last`, renomme le dernier objet construit ; aucun exercice
+        du corpus ne s'en sert, et `last_b` y reste `false`.
+        """
+        opt = self._subst(self.ctx.get(f"replyoption{n}", ""))
+
+        def mot(cle: str) -> str:
+            m = re.search(rf"\b{cle}\s*=\s*(\S+)", opt, re.I)
+            return m.group(1).strip() if m else ""
+
+        def entier(cle: str, defaut: int) -> int:
+            try:
+                return int(float(mot(cle)))
+            except ValueError:
+                return defaut
+
+        ignore = [x for x in re.split(r"[&,]", mot("ignore")) if x.strip()]
+        prefixe = mot("object_analysis").strip()
+        trois_d = any(
+            re.fullmatch(r"enable3d\s*=\s*(true|yes)", o.strip(), re.I)
+            for o in options
+        )
+        return {
+            "max": entier("max", 10),
+            "precision": entier("precision", 18),
+            "ignore": ignore,
+            "prefix": prefixe,
+            "is3d": trois_d,
+        }
 
     def _render_jsxgraphobjet_embed(self, args: str, ref: str, n: int) -> str:
         """`type=jsxgraphobjet` — une figure dont l'élève **clique** les objets.

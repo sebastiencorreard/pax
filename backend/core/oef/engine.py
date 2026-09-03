@@ -709,7 +709,24 @@ def _segment_statement(html: str) -> list[dict]:
                 config = _json.loads(_html.unescape(m.group(25)))
             except (ValueError, TypeError):
                 config = {}
-            segments.append({"type": "geogebra", "config": config, "is_sup": is_sup})
+            seg = {"type": "geogebra", "config": config, "is_sup": is_sup}
+            # `data-reply` : l'applet **est** le champ de réponse (`type=geogebra`),
+            # et non une figure d'énoncé. Le composant y rattache l'état de la
+            # figure au moment de l'envoi. Même liaison que pour un `jsxgraph`
+            # de réponse, lue sur le marqueur entier faute d'un groupe dédié.
+            rm = re.search(r'data-reply="([^"]+)"', m.group(0))
+            if rm:
+                seg["reply"] = rm.group(1)
+            # Les réglages de lecture de la figure (`max`, `precision`,
+            # `ignore`, préfixe d'analyse, 3D) : le composant en a besoin pour
+            # relire l'applet comme le ferait `geogebra2wims()`.
+            am = re.search(r'data-ggb-answer="([^"]*)"', m.group(0))
+            if am:
+                try:
+                    seg["answer"] = _json.loads(_html.unescape(am.group(1)))
+                except (ValueError, TypeError):
+                    pass
+            segments.append(seg)
         else:
             # Input texte ou textarea
             name = m.group(2).strip()
