@@ -36,6 +36,16 @@ PAX utilise des "checkers" pour valider les réponses. Cette liste est issue de 
 *   **`radio`**, **`menu`** : Choix unique (boutons / liste déroulante).
 *   **`clickfill`** : Glisser-déposer — mono-slot (choisir une étiquette) **ou** multi-slots (composer une séquence ordonnée). Voir [§ 6](#6-clickfill--glisser-déposer).
 *   **`text`**, **`case`**, **`nocase`**, **`atext`** : Comparaison de chaînes (gestion de la casse et pluriels).
+*   **`geogebra`** : l'applet **est** le champ de réponse — l'élève construit
+    ou déplace, et ce n'est pas une valeur qui est comparée mais un **état de
+    figure** contre une liste de **conditions** (`n` numériques, `f`
+    formelles). La bonne réponse est donc un ensemble de figures. Le
+    navigateur compose l'état (`composables/useGeogebra.ts`, port de
+    `geogebra2wims()`), le checker substitue `x_A`/`y_A`/`z_A`/`v_t` puis
+    évalue en arithmétique exacte, et la note suit la formule pondérée de
+    `anstype/geogebra`. Dix-sept exercices : les sept d'`oefvectdirnorm`, et
+    les dix d'`OEFevalwimsgespa1`, qui n'exposent leur champ que sous
+    `confparm1=2` (variante configurable, non étape).
 *   **`wlist`** : Liste de mots puisés dans un répertoire — non pas une
     égalité d'ensembles, mais « chaque mot cité est du répertoire, et il y
     en a au moins `n` » (`n` = premier mot de `replygood` quand c'en est un
@@ -74,6 +84,12 @@ checker sur un champ **noté**, mesuré au rendu (`_DETTE_ATTEINTE`). Seul
 le dernier dit ce qu'un élève subit : cinq des onze types déclarés sont
 interceptés en amont — repli, `?analyze`, ou poids nul.
 
+Attention, la mesure au rendu ne voit que la **première étape** d'un
+`dynsteps` : un champ posé plus loin lui échappe. Elle sous-estime donc,
+et c'est ainsi que les dix `OEFevalwimsgespa1` ne figuraient pas au
+relevé de `geogebra` — pour une autre raison encore, leur champ ne
+s'ouvrant que sous `confparm1=2`.
+
 ### Analyseurs Identifiés (Non encore supportés) ❌
 *   **Sciences** :
     *   `chemformula`, `chemdraw`, `chemclick`, `reaction` : Chimie (formules,
@@ -81,8 +97,6 @@ interceptés en amont — repli, `?analyze`, ou poids nul.
         d'oefstatistiques qui ne corrige rien — il dresse un tableau des
         temps relevés et conclut `good` sans condition ; ses 3 champs
         pèsent 0.
-*   **Géométrie** :
-    *   `geogebra` : applet de géométrie dynamique (7 exercices).
 *   **Algèbre** :
     *   `matrix` : aucun de ses 7 champs n'atteint le checker — tous
         portent `?analyze`, qui masque le type et confie la note à
