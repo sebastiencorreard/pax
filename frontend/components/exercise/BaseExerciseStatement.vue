@@ -66,11 +66,23 @@
       </div>
     </div>
 
+    <!-- Clavier mathématique : la réponse se tape en syntaxe WIMS (`sqrt(2)`,
+         `x^2`), et sur tablette les caractères qu'elle réclame sont enterrés
+         dans les sous-menus du clavier système. La planche ne s'ouvre que
+         lorsqu'un champ a le focus, et d'elle-même seulement sur un écran
+         tactile — sur ordinateur le clavier physique suffit. -->
+    <ExerciseMathKeyboard
+      :cible="champActif"
+      :ouvert="clavierOuvert && !!champActif"
+      @close="clavierFerme = true"
+      @open="clavierFerme = false; clavierDemande = true" />
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, provide } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, computed, provide } from 'vue'
+import { pointeurGrossier } from '~/composables/useMathKeyboard'
 import type { Rendered, Segment, CheckResult } from '~/composables/useExerciseLogic'
 import { buildSegmentTree, PAX_STATEMENT_CTX } from '~/composables/useExerciseLogic'
 import { hydrateJmolMarkers } from '~/composables/useJsmol'
@@ -98,6 +110,33 @@ const emit = defineEmits<{
   'update:replies': [Record<string, string>]
   'submit': []
 }>()
+
+// ── Clavier mathématique ────────────────────────────────────────────────────
+// On suit le champ qui a le focus plutôt que de câbler chaque `<input>` : les
+// champs naissent d'un `v-html` autant que de segments, et un écouteur posé à
+// la racine les couvre tous — y compris ceux qu'un tableau garde en HTML brut.
+const champActif = ref<HTMLInputElement | HTMLTextAreaElement | null>(null)
+const clavierFerme = ref(false)
+const tactile = ref(false)
+
+// Ouvert d'office au doigt, sur demande à la souris. Refermer vaut pour la
+// durée de l'exercice : rouvrir à chaque champ harcèlerait.
+const clavierDemande = ref(false)
+const clavierOuvert = computed(
+  () => (tactile.value || clavierDemande.value) && !clavierFerme.value,
+)
+
+function surFocus(e: FocusEvent) {
+  const el = e.target as HTMLElement | null
+  if (el instanceof HTMLInputElement && el.type === 'text') champActif.value = el
+  else if (el instanceof HTMLTextAreaElement) champActif.value = el
+}
+
+onMounted(() => {
+  tactile.value = pointeurGrossier()
+  document.addEventListener('focusin', surFocus)
+})
+onBeforeUnmount(() => document.removeEventListener('focusin', surFocus))
 
 function updateReply(name: string, value: string) {
   emit('update:replies', { ...props.replies, [name]: value })
