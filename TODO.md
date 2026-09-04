@@ -83,13 +83,54 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   annonçait 24, dont 11 avec des champs visibles ; c'était vrai avant les
   corrections d'août.
 
-- [ ] **224 exercices sont notés par leur section `:test`** (`analyze`), et
-  **`_check_all` ne passe jamais par `run_analyze`** : il appelle `check_answer`
-  champ par champ. Toute la stratégie `analyze` — combinaison des conditions,
-  rattachement des champs, score partiel — échappe donc à la suite lente. C'est
-  le plus gros angle mort de la couverture actuelle, et le seul de cette liste
-  qui puisse laisser passer une régression silencieuse sur un exercice qui
-  marchait.
+- [x] **377 exercices sont notés par leur section `:test`**, et `_check_all` n'y
+  passait jamais : il appelait `check_answer` champ par champ. Corrigé le
+  2026-09-05 — `_check_all` reprend la bifurcation d'`api/routes/check.py`, à la
+  lettre, pour éprouver ce que l'élève subit et non une notation inventée pour
+  le test.
+
+  Le chiffre de 224 annoncé plus haut le 2026-09-05 était un sous-compte : il
+  ne voyait que les champs `answer_type == "analyze"`, alors que la route
+  bascule aussi sur les champs portant `analyze_var` — des widgets
+  (clickfill, radio, menu) qui s'affichent normalement mais se notent par
+  `:test`.
+
+  Les deux tests ne couvrent pas la même part, et c'est structurel :
+
+  | | |
+  |---|---|
+  | Tous les champs `analyze` portent un attendu | 107 |
+  | Attendu partiel | 38 |
+  | **Aucun attendu — la bonne réponse n'est écrite nulle part** | **232** |
+
+  `test_correct_answer_scores_1` demande une vérité de référence : il ne peut
+  atteindre que les 107. `test_wrong_answer_scores_less_than_1` n'en demande
+  aucune — il suffit qu'une réponse absurde ne vaille pas 1 — et couvre donc
+  les 377. C'est lui qui attrape le défaut le plus grave de cette famille : une
+  section `:test` qui conclut `good` quoi qu'on lui soumette.
+
+  **Le branchement a produit 68 échecs sur des exercices que la suite déclarait
+  sains.** Aucun n'était une régression : ils étaient cassés depuis toujours, et
+  rien ne les regardait. 35 ont été réparés par deux correctifs, 33 restent
+  consignés dans `known_failures.py` avec leur famille.
+
+- [ ] **Le rang au lieu du texte** (`OEFevalwimsgeplan`, 6 exercices). Un
+  `clickfill` noté par `:test` renvoie le libellé affiché, quand le `:test`
+  cherche le **rang** du choix dans sa liste. `_forme_brute` fait déjà cette
+  conversion pour les palettes ; elle ne couvre pas ce cas. Bonne réponse : 0.
+
+- [ ] **Des conditions qui ignorent la réponse** (`oefstatistiques`, 5). Le
+  score ne bouge pas entre la bonne réponse et l'absurde — 0,9388 dans les deux
+  cas pour `histocap`. Les `condtestN` se calculent sur des variables que
+  `:postdef` n'a pas rafraîchies.
+
+- [ ] **`$[…]` rend du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4).
+  Le `:test` demande `NaN notin $val19`, où `val19 = $[fullratsimp(…)]` porte
+  la réponse de l'élève. Sur une entrée non calculable PAX rend
+  `-__faux__ - 7*x + 5`, WIMS rendrait `NaN` : la condition est donc satisfaite
+  par n'importe quoi, et ces exercices **valident tout**. Le correctif porte sur
+  l'évaluation `$[…]` elle-même et touchera tout le moteur — à traiter avec la
+  prudence que mérite un changement de cette portée.
 
 - [ ] **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
   pari. Les 7 exercices d'`equilibrium` / `chemavance1` qui en dépendent

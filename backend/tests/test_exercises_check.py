@@ -15,6 +15,7 @@ from tests.known_failures import XFAIL_CORRECT_SCORE, XFAIL_WRONG_SCORE
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from core.oef.engine import load_and_render
 from core.answer.checkers import check_answer
+from core.answer.strategies.analyze import run_analyze
 
 SEED = 42
 
@@ -200,10 +201,47 @@ def _meilleure_reponse(ans) -> str:
     return meilleure
 
 
+def _champs_actifs(render) -> list:
+    """Les champs que la route de production noterait, et eux seuls.
+
+    Reproduit le filtre d'`api/routes/check.py` : un champ marqué `ungraded`
+    n'entre pas dans la note. Le second critère de la route — ne garder que les
+    champs visibles d'une étape `dynsteps` — ne s'applique pas ici : le moteur a
+    déjà restreint `render.answers` à l'étape rendue.
+    """
+    return [a for a in render.answers if not a.options.get("ungraded")]
+
+
+def _note_par_analyze(render) -> bool:
+    """Cet exercice est-il noté par sa section `:test` ?
+
+    **La condition est recopiée d'`api/routes/check.py`, et doit le rester.**
+    Un test qui choisirait sa stratégie autrement n'éprouverait pas ce que
+    l'élève subit : c'est précisément ce qui a laissé 224 exercices hors de
+    portée de cette suite jusqu'au 2026-09-05.
+    """
+    return bool(render.check_sections) and any(
+        a.answer_type == "analyze" or "analyze_var" in a.options
+        for a in _champs_actifs(render)
+    )
+
+
 def _check_all(render, replies: dict) -> float:
-    """Évalue toutes les réponses et retourne le score global."""
+    """Évalue toutes les réponses et retourne le score global.
+
+    Deux chemins, comme en production : la section `:test` quand l'exercice s'y
+    note, le comparateur champ par champ sinon.
+    """
     if render.condition:
         pytest.skip("Exercice avec \\condition globale (non supporté ici)")
+
+    if _note_par_analyze(render):
+        # `run_analyze` rejoue `:postdef` puis `:test` avec les réponses de
+        # l'élève injectées en `val<N>`. Le score qu'il rend est déjà global —
+        # il croise les conditions entre elles, ce qu'aucune somme pondérée
+        # champ par champ ne sait reproduire.
+        global_score, _ = run_analyze(render, _champs_actifs(render), replies, SEED)
+        return global_score
 
     total_weight = 0.0
     weighted_score = 0.0
@@ -332,13 +370,25 @@ def test_correct_answer_scores_1(exercise):
     correct_replies = {a.input_name: _meilleure_reponse(a) for a in render.answers}
     if not any(v.strip() for v in correct_replies.values()):
         pytest.skip("aucun champ noté (réponses attendues toutes vides)")
+    if _note_par_analyze(render):
+        # La note vient de `:test`, pas d'une somme pondérée : le poids nul des
+        # champs `analyze` ne dit rien ici, et la garde ci-dessous ne s'applique
+        # pas. En revanche il faut une vérité de référence, et 232 des 377
+        # exercices concernés n'en ont aucune — leurs champs `analyze` n'ont pas
+        # d'`expected`, la bonne réponse n'est écrite nulle part. Ceux-là ne
+        # peuvent pas être éprouvés *par le haut* ; c'est
+        # `test_wrong_answer_scores_less_than_1` qui les couvre.
+        if any(
+            not (a.expected or "").strip()
+            for a in _champs_actifs(render)
+            if a.answer_type == "analyze" or "analyze_var" in a.options
+        ):
+            pytest.skip("noté par :test, sans réponse attendue de référence")
     # Un champ peut porter une réponse attendue **et** un poids nul : sa note
-    # vient d'ailleurs. Les trois `analyze` d'`oefstatistiques` (`histocap`,
-    # `histogramme`, `moustache`) sont dans ce cas — le widget affiche une
-    # valeur, la notation se fait dans la section `:test`. Le score global se
-    # divise alors par un poids total nul, et `_check_all` rend 0 : exiger 1
-    # d'un exercice dont rien n'est noté n'a pas de sens.
-    if not any(a.weight for a in render.answers if (a.expected or "").strip()):
+    # vient d'ailleurs. Le score global se diviserait par un poids total nul, et
+    # `_check_all` rendrait 0 : exiger 1 d'un exercice dont rien n'est noté n'a
+    # pas de sens.
+    elif not any(a.weight for a in render.answers if (a.expected or "").strip()):
         pytest.skip("aucun champ pesant (poids tous nuls — noté par :test)")
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
@@ -351,6 +401,20 @@ def test_wrong_answer_scores_less_than_1(exercise):
     if ex_id in XFAIL_WRONG_SCORE:
         pytest.xfail(f"{ex_id}: une réponse fausse est acceptée (bug préexistant)")
     render = load_and_render(path, seed=SEED)
+    if _note_par_analyze(render):
+        # Ce test-ci n'a **pas besoin de vérité de référence** : il suffit qu'une
+        # réponse manifestement absurde ne vaille pas 1. C'est ce qui le rend
+        # applicable aux 377 exercices notés par `:test`, y compris les 232 dont
+        # la bonne réponse n'est écrite nulle part. Il attrape le défaut le plus
+        # grave de cette famille — une section `:test` qui conclut `good` quoi
+        # qu'on lui soumette, et note tout le monde à 1.
+        wrong_replies = {a.input_name: "__FAUX__" for a in _champs_actifs(render)}
+        if not wrong_replies:
+            pytest.skip("aucun champ actif")
+        score = _check_all(render, wrong_replies)
+        assert score < 1.0, \
+            f"{ex_id}: la section :test donne {score} à une réponse absurde"
+        return
     # Fausser le premier champ **noté** : un champ sans réponse attendue est
     # ignoré à l'évaluation, le fausser ne prouverait rien.
     notes = _notes(render)

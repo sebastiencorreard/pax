@@ -1289,6 +1289,11 @@ class DefEngine(_SlibMixin):
                 "test": df.sections.get("test", []),
                 "feedback": df.sections.get("feedback", []),
                 "ctx": dict(self.ctx),
+                # Le chemin du `.def`, sans quoi le moteur de correction ne sait
+                # pas où sont les `slib` du module : `_run_slib` en déduit le
+                # répertoire, et sans lui il retourne sans rien faire — en
+                # silence, comme le reste du moteur.
+                "def_path": self.def_path,
             }
 
         import html as _html  # noqa: PLC0415
@@ -6439,6 +6444,21 @@ class DefEngine(_SlibMixin):
                 xform = self.ctx.get("_repere_transform")
                 if xform:
                     options["transform"] = xform
+
+            # `?analyze N` n'est pas une réponse : c'est la référence de la
+            # variable que `:test` examinera. Le laisser dans `expected` fait
+            # passer un marqueur pour un attendu — le bouton « Réponse auto »
+            # écrivait `?analyze 80` dans le champ, et la suite lente soumettait
+            # la même chose en croyant soumettre la bonne réponse (25 échecs en
+            # biologie, le 2026-09-05). On tente donc de le résoudre depuis
+            # `:test`, comme le fait déjà `clickfill`, et on le vide à défaut :
+            # la note de ces champs vient des conditions, jamais d'ici.
+            if "analyze_var" in options and re.match(
+                r"^\?analyze\b", (expected or "").strip(), re.I
+            ):
+                expected = self._resolve_analyze_expected(
+                    options["analyze_var"], df
+                ) or ""
 
             # Champ non noté ni obligatoire (« ungraded ») :
             #  - brouillon `type=draft` (l'élève y pose son calcul) ;

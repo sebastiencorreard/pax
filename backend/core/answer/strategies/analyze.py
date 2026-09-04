@@ -91,6 +91,7 @@ def run_analyze(
         analyze_replies=analyze_replies,
         seed=seed,
         replies_by_number=replies_by_number,
+        def_path=rendered.check_sections.get("def_path"),
     )
     # Weighted score (condweightN); falls back to a plain average when all
     # weights are 1. Correct on every condition → 1.0.
@@ -230,6 +231,7 @@ def solve_analyze_expected(rendered, ans_defs: list, seed: int) -> dict[str, str
             test_instructions=rendered.check_sections["test"],
             analyze_replies=analyze_replies,
             seed=seed,
+            def_path=rendered.check_sections.get("def_path"),
         )
         if condtest and all(v == 1 for v in condtest.values()):
             return {a.input_name: val for a, val in zip(slots, combo)}

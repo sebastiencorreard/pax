@@ -118,6 +118,7 @@ def check_analyze(
     analyze_replies: dict,
     seed: int,
     replies_by_number: dict | None = None,
+    def_path: str | None = None,
 ) -> tuple[dict, dict]:
     """Exécute :postdef puis :test avec les réponses élève.
 
@@ -142,7 +143,14 @@ def check_analyze(
     """
     from . import DefEngine  # import différé — évite la circularité
 
-    engine = DefEngine(seed=seed)
+    # `def_path` n'est pas un confort : `_run_slib` en deduit le repertoire du
+    # module, et sans lui **tout `!readproc slib/...` d'un `:postdef` retourne
+    # sans rien faire**. Les variables que le script devait poser gardent alors
+    # la valeur heritee du rendu, les deux cotes d'une comparaison se retrouvent
+    # egaux, et l'exercice note 1 quoi qu'on lui soumette. Releve le 2026-09-05
+    # sur `numeration/compter`, ou `slib/char2item` rendait `fr` -- la langue du
+    # module -- pour toute entree.
+    engine = DefEngine(seed=seed, def_path=def_path)
     engine.ctx.update(ev_ctx)
     for var_n, value in analyze_replies.items():
         engine.ctx[f"val{var_n}"] = _analyze_wrap(value)

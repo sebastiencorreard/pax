@@ -312,10 +312,82 @@ XFAIL_RENDER_STRUCTURE: set[str] = set()
 XFAIL_CORRECT_SCORE: set[str] = {
     "H4~programming~oefalgopython.fr~src~balayage1",
     "H4~programming~oefalgopython.fr~src~balayage2",
+    # ── Notés par leur section `:test` ───────────────────────────────────────
+    #
+    # Les 28 qui suivent sont arrivés d'un coup le 2026-09-05, quand
+    # `_check_all` a cessé de noter ces exercices champ par champ pour emprunter
+    # la même bifurcation que `api/routes/check.py` : `run_analyze`, donc
+    # `:postdef` puis `:test`. Ils ne sont pas des régressions — ils étaient
+    # cassés depuis toujours, et rien ne les regardait.
+    #
+    # Trois familles, à instruire séparément :
+    #
+    # 1. Le rang au lieu du texte (`OEFevalwimsgeplan`, 6). Les `clickfill`
+    #    notés par `:test` renvoient le libellé affiché, quand le `:test`
+    #    cherche le **rang** du choix dans sa liste. `_forme_brute` fait déjà
+    #    cette conversion pour les palettes ; elle ne couvre pas ce cas.
+    #    Symptôme : la bonne réponse note 0, l'absurde aussi.
+    #
+    # 2. Des conditions qui ignorent la réponse (`oefstatistiques`, 5). Le
+    #    score ne bouge pas d'un iota entre la bonne réponse et `__FAUX__`
+    #    (0,9388 dans les deux cas pour `histocap`) : les `condtestN` se
+    #    calculent sur des variables que `:postdef` n'a pas rafraîchies.
+    #
+    # 3. Isolés (17), sans cause commune établie.
+    "H3~algebra~oefqcm3.fr~src~q200",
+    "H3~analysis~fonctaffin.fr~src~coef",
+    "H3~arithmetic~oefarith.fr~src~diviseur",
+    "H3~arithmetic~oefarith.fr~src~multiple",
+    "H3~geometry~oefpolygon.fr~src~quadrilatere",
+    "H3~geometry~oeftrigoclg1.fr~src~04ReconTrRect1",
+    "H3~math~quizz.fr~src~0412",
+    "H3~math~quizz.fr~src~0512",
+    "H3~math~quizz.fr~src~course04_1",
+    "H3~math~quizz.fr~src~course05_1",
+    "H3~number~OEFevalwimscomp.fr~src~encadrement4",
+    "H3~number~OEFevalwimscomp.fr~src~encadrement5",
+    "H3~number~OEFevalwimscomp.fr~src~somme5",
+    "H4~algebra~oefnombres.fr~src~ecrdecimal",
+    "H4~analysis~OEFevacollege2005.fr~src~geometriepart2",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction1",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction3",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction4",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte2",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte3",
+    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte5",
+    "H4~geometry~OEFevalwimsgespa1.fr~src~patrons4",
+    "H4~geometry~oefphotocopie.fr~src~ex02",
+    "H4~stat~oefstatistiques.fr~src~histocap",
+    "H4~stat~oefstatistiques.fr~src~histogramme",
+    "H4~stat~oefstatistiques.fr~src~medicament1",
+    "H4~stat~oefstatistiques.fr~src~medicament2",
+    "H4~stat~oefstatistiques.fr~src~moustache",
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée
-XFAIL_WRONG_SCORE: set[str] = set()
-# Vide : les trois exercices qui y figuraient acceptaient une réponse « fausse »
-# de 999 supérieure à la bonne — sous la tolérance relative de `\precision`, donc
-# à bon droit. C'est le générateur du test qui a été corrigé, pas le moteur.
+# Une réponse absurde obtient la note maximale. C'est le défaut le plus grave
+# que cette suite sache produire : l'exercice ne note rien, il valide.
+#
+# Les cinq sont apparus le 2026-09-05, quand le test a cessé d'ignorer les
+# exercices notés par `:test`. Deux causes :
+#
+# - `OEFequdrt/equcond*` (4). Le `:test` demande
+#   `NaN notin $val19 and $val19!=0`, où `val19 = $[fullratsimp(…$val18…)]`
+#   porte la réponse de l'élève. PAX rend la forme **symbolique**
+#   (`-__faux__ - 7*x + 5`) là où le `$[…]` de WIMS évalue numériquement et
+#   donnerait `NaN` sur une entrée non calculable. La condition est donc
+#   satisfaite par n'importe quoi. Le correctif porte sur `$[…]`, pas sur ces
+#   exercices — et il touchera tout le moteur, d'où la prudence.
+# - `quizz/0315` (1). Ses deux conditions (`$val15!=0`, `$val16!=0`) sont
+#   vraies pour une réponse absurde et fausses pour une réponse vide : la
+#   valeur testée n'est pas celle qu'on croit.
+XFAIL_WRONG_SCORE: set[str] = {
+    "H3~math~quizz.fr~src~0315",
+    "H4~analysis~OEFequdrt.fr~src~equcond1",
+    "H4~analysis~OEFequdrt.fr~src~equcond2",
+    "H4~analysis~OEFequdrt.fr~src~equcond21",
+    "H4~analysis~OEFequdrt.fr~src~equcond22",
+}
+# Les trois qui y figuraient avant acceptaient une réponse « fausse » de 999
+# supérieure à la bonne — sous la tolérance relative de `\precision`, donc à bon
+# droit. C'est le générateur du test qui avait été corrigé, pas le moteur.
