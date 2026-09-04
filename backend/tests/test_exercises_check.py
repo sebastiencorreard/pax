@@ -276,8 +276,10 @@ def _get_testable_exercises():
         # Ce filtre écarte **avant la collecte** : un exercice retiré ici ne
         # se signale ni en échec, ni en skip, ni nulle part. Le garder étroit.
         if not r.answers:
-            # 24 exercices n'exposent aucune réponse. Onze affichent pourtant
-            # des champs où l'élève peut écrire : défaut réel, à instruire.
+            # Trois exercices n'exposent aucune réponse (relevé du 2026-09-05,
+            # seed 1) : `oefspeed.nl/trajet`, `equilibrium.fr/methode`,
+            # `anglesCercleTrigo.fr/definitions`. Ils en comptaient 24 avant les
+            # corrections d'août. Défaut réel, à instruire — cf. TODO I.1.
             continue
         if r.condition:
             # `\condition` globale : la note dépend d'un croisement entre

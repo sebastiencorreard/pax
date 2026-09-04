@@ -2,9 +2,111 @@
 
 ## 1. Comprendre mieux
 
-- [ ] Lister tous les types de réponses attendus, voir à quoi ils correspondent
+Les deux inventaires sont faits. Ils ne sont pas figés dans ce fichier — un
+relevé recopié à la main pourrit — mais tenus par un test et par une sonde
+qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
 
-- [ ] Lister tout ce qui manque dans l'implémentation du moteur
+- [x] **Les types de réponse.** `tests/core/answer/test_types_non_portes.py`
+  est l'inventaire vivant : il énumère les types, mesure lesquels retombent sur
+  `check_text`, et échoue si la liste bouge dans un sens comme dans l'autre. Le
+  catalogue narratif — à quoi chaque type correspond — est dans
+  [`docs/types-exercices-reponses.md`](docs/types-exercices-reponses.md).
+
+  | | |
+  |---|---|
+  | Types connus (WIMS + `anstype/` des modules) | 68 |
+  | Employés par au moins un `.def` du corpus | 44 |
+  | Jamais employés | 24 |
+  | **Atteignant `check_text` sur un champ noté** | **0** |
+
+  Les 24 inemployés (`chessgame`, `crossword`, `flashcard`, `clock`,
+  `puzzle`, `keyboard`…) ne coûtent rien tant qu'aucun exercice ne les appelle :
+  les porter serait du travail sans effet mesurable. Cinq types employés
+  n'atteignent jamais le dispatch — le moteur les intercepte en amont
+  (`_DETTE_INTERCEPTEE`) ; c'est voulu, et le test le vérifie séparément pour
+  qu'une interception qui tomberait se voie.
+
+  Les noms que les auteurs inventent — `rational` (24), `integer` (8),
+  `fonction` (7), `formula`, `real`, `equations` — ne sont pas une dette : comme
+  chez WIMS, un type inconnu devient `default`, donc une comparaison
+  mathématique.
+
+- [x] **Ce qui manque au moteur.** Mesuré en rendant tout le corpus, pas en
+  lisant les sources — la lecture sur-rapporte, à chaque fois.
+
+  | | |
+  |---|---|
+  | Exercices rendus sans exception | 4278 / 4278 |
+  | Occurrences de `UNKNOWN_CMD` | **0** |
+  | Exercices n'exposant aucune réponse | 3 |
+  | Exercices touchant une primitive de figure non traitée | 23 |
+
+  **Aucune commande ne manque.** Le relevé statique en désignait 19 (`!let`,
+  `!href`, `!header`, `!tail`, `!insplot`, `!filewrite`…), mais aucune
+  n'apparaît dans un `.def` : toutes vivent dans les `.phtml` et `.proc` des
+  pages de module, que le moteur d'exercices n'exécute pas. Le « ~70 % de
+  `calc.c` » de [`wims-c-to-python-port.md`](docs/wims-c-to-python-port.md)
+  mesurait le fichier C, pas le besoin du corpus.
+
+  Rappel de méthode : **zéro exception ne veut pas dire zéro défaut.** Le moteur
+  ne lève pas — il rend une chaîne vide, un `NaN`, un énoncé sans question. Les
+  trois compteurs ci-dessous sont là pour ça, et c'est encore l'œil humain qui
+  attrape le reste.
+
+### Ce que ces mesures laissent ouvert
+
+- [ ] **23 exercices touchent une primitive de figure non traitée**
+  (`[FLYDRAW-UNHANDLED]`, journalisée sur stderr — jamais levée). Trois familles
+  bien distinctes, à ne pas traiter ensemble :
+
+  - *Vraies primitives flydraw absentes* — `ftriangle`, `fillrect`, `fcircles`,
+    `dashed`, et les transformations `translate` / `affine` / `killaffine` /
+    `rotate` / `translation` / `killrotate` / `killtranslate` / `animate`.
+    Une dizaine d'exercices : `oefpytha/etagere1`, `oeftranslation/translation1`
+    et `translation4`, `oefmolecule/cramform1`, `oefaffine/droiteanim`,
+    `gensuitefig/slin`, `OEFevalwimsequat/resoudre2`.
+  - *Options JSXGraph, pas du flydraw* — `axis`, `axisnumbering`, `grid`,
+    `legend`, `linegraph`, `strokecolor`, `xlabel`, `ylabel`, `snaptogrid`,
+    `snaptopoints`, `opacity`, `latex`. Elles remontent sous la même étiquette
+    alors qu'elles relèvent d'un autre sous-système : `unitefonct/1`,
+    `oefvectgraph/comblin`, `evolmeth/evolmeth1`.
+  - *Bruit d'analyse* — `toto`, `new`, `centre`, `arete`, `polygone`,
+    `vecteurs`, `abcah` et des nombres nus (`0`, `1`, `2`, `20`, `400`). Ce ne
+    sont pas des commandes : le découpage prend des noms de variables ou des
+    étiquettes pour des opérations. À instruire avant de porter quoi que ce
+    soit — il se peut qu'il n'y ait rien à porter.
+
+- [ ] **Trois exercices n'exposent aucune réponse** : `oefspeed.nl/trajet`,
+  `equilibrium.fr/methode`, `anglesCercleTrigo.fr/definitions`. Ils sont écartés
+  *avant collecte* par `_get_testable_exercises`, donc invisibles aux tests —
+  ni échec, ni skip. Le commentaire de `tests/test_exercises_check.py` en
+  annonçait 24, dont 11 avec des champs visibles ; c'était vrai avant les
+  corrections d'août.
+
+- [ ] **224 exercices sont notés par leur section `:test`** (`analyze`), et
+  **`_check_all` ne passe jamais par `run_analyze`** : il appelle `check_answer`
+  champ par champ. Toute la stratégie `analyze` — combinaison des conditions,
+  rattachement des champs, score partiel — échappe donc à la suite lente. C'est
+  le plus gros angle mort de la couverture actuelle, et le seul de cette liste
+  qui puisse laisser passer une régression silencieuse sur un exercice qui
+  marchait.
+
+- [ ] **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
+  pari. Les 7 exercices d'`equilibrium` / `chemavance1` qui en dépendent
+  affichent une équation vide quoi qu'on fasse. Les porter suppose d'écrire un
+  équilibreur d'équations chimiques. (Déjà consigné dans
+  [`refactor-item-splitting.md`](docs/refactor-item-splitting.md) § 5.1.)
+
+- [ ] **`!exec pari` sur un vecteur** — `oefpytha/etagere2` écrit
+  `!exec pari [$val25]/10.` et récupère la chaîne brute. Un seul exercice.
+
+- [ ] **Variables de session laissées vides à dessein** — `wims_firstname` (le
+  rendu est anonyme), `wims_ref_name` / `session` (pas d'endpoint `getfile`),
+  `ins_filename` (PAX rend du SVG, WIMS un GIF — cause connue de l'échec de
+  `oefpolygon/quadrilatere`). Chacune est justifiée dans
+  [`exercise-parameters.md`](docs/exercise-parameters.md) ; aucune n'est un
+  oubli, mais deux changeraient de statut le jour où le rendu connaîtrait
+  l'élève ou servirait des fichiers de session.
 
 ## 2. paramétrage des exercices
 
