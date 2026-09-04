@@ -445,11 +445,11 @@ def _module_confparm_defaults(def_path: str | None) -> tuple[tuple[str, str], ..
     seule question. `!default` ne remplace jamais une valeur déjà posée, d'où
     l'application avant tout le reste.
 
-    **Les deux formes comptent.** 32 modules du corpus posent leur valeur par
-    `!default`, 9 par `!set` — et l'arbre WIMS, 79 contre 41. `oef-resoudre.fr`
-    écrit `!set confparm1=Z` : ses cinq exercices tirent alors des nombres
-    relatifs, là où le vide les faisait retomber sur la branche positive que
-    personne n'avait demandée.
+    **Les deux formes comptent.** Le corpus compte 8 modules qui posent ainsi
+    une valeur — 7 par `!default`, `droiteplanrep.fr` par `!set` ; l'arbre WIMS
+    en compte 23, dont 9 par `!set`. Ne lire que `!default` laisserait donc
+    `droiteplanrep.fr` sans son `confparm1=1`, celui-là même que son
+    `!formradio … prompt Non, Oui` propose ensuite de changer.
 
     `!set` l'emporte sur `!default` s'ils coexistent, comme chez WIMS où il
     écrase une valeur déjà posée. Aucun module du corpus ne mélange les deux ;

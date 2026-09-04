@@ -90,7 +90,16 @@ val5=$confparm4
 
 ### État actuel
 
-`confparm1..4` ne sont **pas** initialisés dans le ctx. Une référence comme `$confparm1` se substitue donc en chaîne vide. Pour la plupart des exercices, c'est OK (le `!ifval $val2=` détecte l'absence et applique des valeurs par défaut) :
+Les `confparm` que **le module se donne à lui-même** sont posés dans le ctx
+avant tout le reste, par `_module_confparm_defaults` : la fonction lit
+l'`introhook.phtml` du module et y relève ses `!default confparm1=…` et
+`!set confparm1=…`. Huit modules du corpus en portent (sept par `!default`,
+`droiteplanrep.fr` par `!set`).
+
+Aucun autre `confparm` n'est initialisé : hors de ces huit modules, une
+référence comme `$confparm1` se substitue toujours en chaîne vide. Pour la
+plupart des exercices, c'est sans conséquence — le `!ifval $val2=` détecte
+l'absence et applique des valeurs par défaut :
 
 ```
 !ifval $val2= 
@@ -114,15 +123,15 @@ boucle ne tourne pas, et l'exercice se rend **sans aucune question** :
 | `H3~algebra~oefpuis.nl~src~decimal` | idem |
 | `H3~algebra~oefpuis.nl~src~puisdiv` | idem |
 
-Ce n'est pas un défaut du moteur : WIMS ne fournit pas davantage de valeur par
-défaut, et l'exercice n'est utilisable qu'une fois posé sur une feuille par un
-enseignant qui l'a réglé. Relevé le 2026-08-28, en cherchant pourquoi certains
-exercices n'exposent aucune réponse attendue — ils sont les seuls du corpus
-dans ce cas, les autres portant bien leur `!ifval $valN=`.
+Relevé le 2026-08-28, en cherchant pourquoi certains exercices n'exposent
+aucune réponse attendue — ils sont les seuls du corpus dans ce cas, les autres
+portant bien leur `!ifval $valN=`.
 
-Ils resteront donc invisibles aux tests de notation tant que les confparms ne
-seront pas exposés (voir ci-dessous) : `_get_testable_exercises` les écarte,
-faute de réponse.
+**Résolu** : leur module, `oefpuis.nl`, écrit `!default confparm1=1` dans son
+`introhook.phtml`, que `_module_confparm_defaults` lit désormais. Les quatre
+exercices se rendent avec une question. Ce que WIMS offre en plus reste à
+faire : l'enseignant y remplace le défaut par le `!formselect confparm1 list
+1,2,3,4,5` qui suit — voir ci-dessous.
 
 ### Pour exposer des paramètres dans l'API
 
@@ -130,9 +139,17 @@ Si on voulait permettre à l'enseignant d'appeler `GET /api/render/{id}?confparm
 
 1. Ajouter `confparm1..4` aux paramètres de la route (`backend/api/routes/render.py`)
 2. Les passer à `load_and_render`
-3. Dans `DefEngine.__init__`, les seeder dans `self.ctx` AVANT `render()`
+3. Dans `DefEngine.__init__`, les seeder dans `self.ctx` **après**
+   `_module_confparm_defaults` — l'ordre importe : le réglage de l'enseignant
+   doit écraser le défaut du module, jamais l'inverse
+4. Inclure les valeurs dans la clé du cache de rendu
+   (`render_cache.cache_key`), qui ne connaît aujourd'hui que le chemin, la
+   graine, l'étape et les réponses précédentes — sans quoi deux réglages d'un
+   même exercice se serviraient mutuellement leur rendu
 
-Ce n'est pas fait à ce jour.
+Ce n'est pas fait à ce jour. Le porteur pressenti n'est pas l'URL mais la
+feuille d'exercice, où WIMS lui-même attache la configuration (cf. `TODO.md`,
+partie I.2).
 
 ## Variables de séquençage (course / dynsteps)
 

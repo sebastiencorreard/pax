@@ -8,9 +8,37 @@
 
 ## 2. paramétrage des exercices
 
-$\rightarrow$ comment sont-ils pris en compte ? (implémenté ou pas ?)
+- [x] **Les `confparm` du module sont lus.** `_module_confparm_defaults`
+  (`def_engine/__init__.py`) ouvre l'`introhook.phtml` du module — le bloc que
+  WIMS insère dans sa page d'accueil, où l'enseignant règle ses paramètres — et
+  verse ses `!default confparm1=…` / `!set confparm1=…` dans le ctx avant tout
+  le reste. Sans cette lecture, `$confparm1` se substituait en chaîne vide :
+  `H3~algebra~oefpuis.nl~src~{decalage,decalage2,decimal,puisdiv}` bouclent sur
+  `!for val11 =1 to $val2` où `val2=$confparm1`, et se rendaient **sans une
+  seule question**. 8 modules du corpus posent ainsi une valeur — 7 par
+  `!default`, `droiteplanrep.fr` par `!set` ; `!set` l'emporte s'ils
+  coexistent, comme chez WIMS où il écrase une valeur déjà posée.
 
-$\rightarrow$ où régler les paramètres ?
+- [ ] **Surcharger ces valeurs par défaut.** Ce que lit PAX n'est que la
+  première moitié du dispositif WIMS : l'`introhook` pose une valeur, puis un
+  `!formselect` / `!formradio` laisse l'enseignant en choisir une autre. Nous
+  servons donc à tout le monde le réglage d'usine. Ce qui manque n'est pas la
+  lecture du paramètre, c'est l'**objet qui porte le choix**.
+
+  - La **feuille d'exercice** (cf. II.1) est le porteur naturel : c'est là que
+    WIMS lui-même attache la configuration, et le modèle le prévoit déjà —
+    `Attempt` et `Grade` portent un `sheet_id`. Un même exercice pourrait ainsi
+    être posé deux fois avec deux réglages, sans dupliquer le `.def`.
+  - Ordre de priorité à tenir : défauts du module → réglage de la feuille →
+    paramètre d'URL (essai ponctuel, pratique pour déboguer un exercice).
+  - Côté moteur, le travail est mince : il suffit de verser les valeurs dans le
+    ctx après `_module_confparm_defaults`, qui applique déjà la bonne règle de
+    précédence. L'essentiel est en amont — stockage sur la feuille, écran de
+    réglage côté enseignant, et route de rendu qui transmet.
+  - **Piège à ne pas manquer** : la clé du cache de rendu est
+    `pax:render:{path}:{seed}:{m_step}{replies}` (`render_cache.cache_key`) et
+    ignore les `confparm`. Deux réglages d'un même exercice se serviraient
+    mutuellement leur rendu. La clé devra les inclure le jour où ils varient.
 
 ## 3. Conformité WIMS (réf. docOEF4, audit 2026-06-12)
 
