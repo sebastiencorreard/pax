@@ -678,6 +678,12 @@ def load_and_render(
 
 
 class DefEngine(_SlibMixin):
+    # Voir `_eval_arith` : au rendu un calcul raté se montre tel quel, à la
+    # correction il vaut NaN. `check_analyze` lève ce drapeau. Attribut de
+    # **classe** à dessein — les tests du pipeline construisent un moteur sans
+    # passer par `__init__`, et un attribut d'instance les ferait tomber.
+    _strict_arith: bool = False
+
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self.rng = random.Random(seed)
@@ -1512,15 +1518,34 @@ class DefEngine(_SlibMixin):
             if s[i] == "$" and i + 1 < len(s) and s[i + 1] == "[":
                 end = _find_matching_bracket(s, i + 1, "[", "]")
                 expr = s[i + 2 : end]
-                result.append(self._eval_arith(expr))
+                result.append(self._eval_arith(expr, strict=self._strict_arith))
                 i = end + 1
             else:
                 result.append(s[i])
                 i += 1
         return "".join(result)
 
-    def _eval_arith(self, expr: str) -> str:
-        """Evaluate a WIMS arithmetic expression string."""
+    def _eval_arith(self, expr: str, strict: bool = False) -> str:
+        """Evaluate a WIMS arithmetic expression string.
+
+        ``strict`` sépare **afficher** de **noter**, et l'asymétrie est
+        délibérée.
+
+        Quand PAX ne sait pas évaluer une expression, il la rend telle quelle.
+        Au rendu, c'est le moindre mal : montrer `[2,2,4]*[0.6;0.5;0.7]` est
+        laid, mais `NaN` ne vaut pas mieux, et la règle stricte produisait
+        `width="nan"` dans le SVG d'`OEFspectres/spectre3` — du SVG invalide là
+        où il y avait un nombre. Dix-neuf exercices changeaient d'aspect, aucun
+        en mieux.
+
+        À la correction, le même passe-plat est un défaut grave : un `:test`
+        qui demande `NaN notin $val19` voit passer la forme symbolique
+        `-__faux__ - 7*x + 5` et conclut que la réponse est bonne. Les quatre
+        `OEFequdrt/equcond*` **validaient tout**, y compris une chaîne absurde.
+
+        D'où la règle : au rendu on montre ce qu'on a, à la correction un calcul
+        raté vaut `NaN` et ne valide rien. `check_analyze` pose le drapeau.
+        """
         # 1. Substitute all variable references
         expr = self._subst_for_arith(expr)
         # 1b. An empty function argument — e.g. `rint()` produced when an
@@ -1600,7 +1625,8 @@ class DefEngine(_SlibMixin):
             # `-` seul — donc par zéro.
             return "NaN"
         except Exception:
-            return expr  # return as-is on failure
+            # Sous `$[…]`, un calcul qui échoue vaut NaN (cf. docstring).
+            return "NaN" if strict else expr
 
     # ── Variable substitution ─────────────────────────────────────────────────
 

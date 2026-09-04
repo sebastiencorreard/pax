@@ -368,25 +368,19 @@ XFAIL_CORRECT_SCORE: set[str] = {
 # Une réponse absurde obtient la note maximale. C'est le défaut le plus grave
 # que cette suite sache produire : l'exercice ne note rien, il valide.
 #
-# Les cinq sont apparus le 2026-09-05, quand le test a cessé d'ignorer les
-# exercices notés par `:test`. Deux causes :
+# Il n'en reste qu'un. Les quatre `OEFequdrt/equcond*` sont repartis le jour même
+# où ils sont apparus : leur `:test` demandait `NaN notin $val19`, où
+# `val19 = $[fullratsimp(...$val18...)]` porte la réponse de l'élève, et PAX
+# rendait la forme symbolique (`-__faux__ - 7*x + 5`) que la garde laissait
+# passer. Un `$[...]` que le moteur ne sait pas calculer vaut désormais `NaN`
+# **à la correction** — au rendu il se montre toujours tel quel, cf.
+# `_eval_arith`.
 #
-# - `OEFequdrt/equcond*` (4). Le `:test` demande
-#   `NaN notin $val19 and $val19!=0`, où `val19 = $[fullratsimp(…$val18…)]`
-#   porte la réponse de l'élève. PAX rend la forme **symbolique**
-#   (`-__faux__ - 7*x + 5`) là où le `$[…]` de WIMS évalue numériquement et
-#   donnerait `NaN` sur une entrée non calculable. La condition est donc
-#   satisfaite par n'importe quoi. Le correctif porte sur `$[…]`, pas sur ces
-#   exercices — et il touchera tout le moteur, d'où la prudence.
-# - `quizz/0315` (1). Ses deux conditions (`$val15!=0`, `$val16!=0`) sont
-#   vraies pour une réponse absurde et fausses pour une réponse vide : la
-#   valeur testée n'est pas celle qu'on croit.
+# `quizz/0315` reste : ses deux conditions (`$val15!=0`, `$val16!=0`) sont
+# vraies pour une réponse absurde et fausses pour une réponse vide — la valeur
+# testée n'est pas celle qu'on croit.
 XFAIL_WRONG_SCORE: set[str] = {
     "H3~math~quizz.fr~src~0315",
-    "H4~analysis~OEFequdrt.fr~src~equcond1",
-    "H4~analysis~OEFequdrt.fr~src~equcond2",
-    "H4~analysis~OEFequdrt.fr~src~equcond21",
-    "H4~analysis~OEFequdrt.fr~src~equcond22",
 }
 # Les trois qui y figuraient avant acceptaient une réponse « fausse » de 999
 # supérieure à la bonne — sous la tolérance relative de `\precision`, donc à bon

@@ -151,6 +151,9 @@ def check_analyze(
     # sur `numeration/compter`, ou `slib/char2item` rendait `fr` -- la langue du
     # module -- pour toute entree.
     engine = DefEngine(seed=seed, def_path=def_path)
+    # On note, on n'affiche pas : un `$[…]` que le moteur ne sait pas calculer
+    # vaut `NaN` et ne doit rien valider. Cf. `_eval_arith`.
+    engine._strict_arith = True
     engine.ctx.update(ev_ctx)
     for var_n, value in analyze_replies.items():
         engine.ctx[f"val{var_n}"] = _analyze_wrap(value)

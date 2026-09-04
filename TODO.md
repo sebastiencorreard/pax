@@ -124,13 +124,20 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   cas pour `histocap`. Les `condtestN` se calculent sur des variables que
   `:postdef` n'a pas rafraîchies.
 
-- [ ] **`$[…]` rend du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4).
-  Le `:test` demande `NaN notin $val19`, où `val19 = $[fullratsimp(…)]` porte
-  la réponse de l'élève. Sur une entrée non calculable PAX rend
-  `-__faux__ - 7*x + 5`, WIMS rendrait `NaN` : la condition est donc satisfaite
-  par n'importe quoi, et ces exercices **valident tout**. Le correctif porte sur
-  l'évaluation `$[…]` elle-même et touchera tout le moteur — à traiter avec la
-  prudence que mérite un changement de cette portée.
+- [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
+  corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
+  `val19 = $[fullratsimp(…)]` porte la réponse de l'élève ; PAX rendait
+  `-__faux__ - 7*x + 5`, que la garde laissait passer. Ces quatre exercices
+  **validaient tout**.
+
+  Le correctif a d'abord été posé au mauvais endroit, et la mesure l'a dit :
+  appliquer la règle au rendu changeait 19 exercices, aucun en mieux —
+  `OEFspectres/spectre3` écrivait `width="nan"` dans son SVG, là où il y avait
+  un nombre. La règle finale sépare **afficher** de **noter** : au rendu, une
+  expression que le moteur ne sait pas calculer se montre telle quelle (c'est
+  le moindre mal, et `10*8 step 10` est une spécification d'axe, pas un calcul
+  raté) ; à la correction, elle vaut `NaN` et ne valide rien. `check_analyze`
+  lève le drapeau `_strict_arith`.
 
 - [ ] **`!exec chemeq` n'est pas implémenté** — `!exec` ne connaît que maxima et
   pari. Les 7 exercices d'`equilibrium` / `chemavance1` qui en dépendent
