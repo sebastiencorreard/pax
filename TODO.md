@@ -114,10 +114,14 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   rien ne les regardait. 35 ont été réparés par deux correctifs, 33 restent
   consignés dans `known_failures.py` avec leur famille.
 
-- [ ] **Le rang au lieu du texte** (`OEFevalwimsgeplan`, 6 exercices). Un
-  `clickfill` noté par `:test` renvoie le libellé affiché, quand le `:test`
-  cherche le **rang** du choix dans sa liste. `_forme_brute` fait déjà cette
-  conversion pour les palettes ; elle ne couvre pas ce cas. Bonne réponse : 0.
+- [ ] **La forme affichée au lieu de la forme rangée** (`OEFevalwimsgeplan`).
+  Le `:test` compare `$val9 issametext $(val7[1])` — la forme que l'exercice
+  range, `\(A') … \((d))` — quand l'élève renvoie celle qu'on lui montre,
+  `\(A'\) … \left(d\right)`, math refermé pour KaTeX et délimiteurs
+  développés. `_forme_brute` savait faire la conversion, mais on ne la lui
+  demandait que pour `m_reply<n>`, jamais pour les `val<N>` d'un `?analyze`.
+  Corrigé le 2026-09-05 : trois des six sont partis. Restent `deduction3`,
+  `deduction4` et `thmpte5`, dont le `:test` demande encore autre chose.
 
 - [ ] **Des conditions qui ignorent la réponse** (`oefstatistiques`, 5). Le
   score ne bouge pas entre la bonne réponse et l'absurde — 0,9388 dans les deux

@@ -18,9 +18,18 @@ def _analyze_replies(active_ans_defs: list, replies_by_name: dict[str, str], lan
     ``type==analyze``. La normalisation virgule→point évite que ``0,7`` injecté
     dans :test soit lu comme un tuple par le comparateur WIMS.
     """
+    # `_forme_brute` d'abord, et l'ordre compte : elle apparie la réponse à la
+    # palette **affichée** pour rendre l'item de même rang dans la palette
+    # d'origine. Normaliser avant fausserait cet appariement, qui est une
+    # égalité de chaînes.
+    #
+    # Sans elle, un `:test` du genre `$val9 issametext $(val7[1])` ne pouvait
+    # jamais conclure : l'élève renvoie `\(A'\) … \left(d\right)`, le math
+    # refermé pour KaTeX, quand `val7` range `\(A') … \((d))`. Les six
+    # `OEFevalwimsgeplan` notaient 0 une réponse juste.
     return {
         int(a.options["analyze_var"][3:]): normalize_decimal_reply(
-            replies_by_name.get(a.input_name, "").strip(), a, lang
+            _forme_brute(replies_by_name.get(a.input_name, "").strip(), a), a, lang
         )
         for a in active_ans_defs
         if "analyze_var" in a.options

@@ -6364,11 +6364,24 @@ class DefEngine(_SlibMixin):
                 rows = [r for r in wl.cutrows(good_raw) if r.strip()]
                 correct_str = rows[0] if rows else ""
                 pool_str = ",".join(rows[1:])
+                # La forme affichée et la forme rangée diffèrent : PAX referme
+                # le math pour KaTeX (`\(A')` → `\(A'\)`) et développe les
+                # délimiteurs (`(d)` → `\left(d\right)`). Un `:test` qui
+                # compare la réponse à sa propre liste — `$val9 issametext
+                # $(val7[1])` — travaille sur la forme rangée : il faut garder
+                # les deux, et savoir passer de l'une à l'autre.
+                _brut_par_affiche: dict[str, str] = {}
+
+                def _afficher(brut: str) -> str:
+                    vu = _close_inline_math(brut, self.lang)
+                    _brut_par_affiche.setdefault(vu, brut)
+                    return vu
+
                 correct_items = [
-                    _close_inline_math(c.strip(), self.lang) for c in correct_str.split(",") if c.strip()
+                    _afficher(c.strip()) for c in correct_str.split(",") if c.strip()
                 ]
                 pool_items = [
-                    _close_inline_math(p.strip(), self.lang) for p in pool_str.split(",") if p.strip()
+                    _afficher(p.strip()) for p in pool_str.split(",") if p.strip()
                 ]
                 rng = random.Random(f"{self.seed}_{n}")
                 # `$wims_fill_option` = `replyoption$i` (`fill.inc:1`) : c'est
@@ -6407,6 +6420,14 @@ class DefEngine(_SlibMixin):
                     _order_fill_choices(choices, fill_words, rng,
                                         is_dragfill=False, slots=1)
                     options["choices"] = choices
+                    # Sans ceci, la bonne réponse notait 0 sur les six
+                    # `OEFevalwimsgeplan` : l'élève renvoie le libellé affiché,
+                    # le `:test` cherche la forme rangée, et `issametext` ne les
+                    # rapproche jamais. `_forme_brute` fait la conversion, mais
+                    # seulement si on lui donne les deux listes.
+                    brutes = [_brut_par_affiche.get(c, c) for c in choices]
+                    if brutes != choices:
+                        options["choices_raw"] = brutes
                     expected = self._resolve_analyze_expected(options["analyze_var"], df) or ""
                 elif len(correct_items) > 1:
                     # Multi-slot drag-compose (e.g. repgraphint): the student

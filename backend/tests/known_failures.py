@@ -322,11 +322,14 @@ XFAIL_CORRECT_SCORE: set[str] = {
     #
     # Trois familles, à instruire séparément :
     #
-    # 1. Le rang au lieu du texte (`OEFevalwimsgeplan`, 6). Les `clickfill`
-    #    notés par `:test` renvoient le libellé affiché, quand le `:test`
-    #    cherche le **rang** du choix dans sa liste. `_forme_brute` fait déjà
-    #    cette conversion pour les palettes ; elle ne couvre pas ce cas.
-    #    Symptôme : la bonne réponse note 0, l'absurde aussi.
+    # 1. La forme affichée au lieu de la forme rangée (`OEFevalwimsgeplan`).
+    #    Le `:test` compare `$val9 issametext $(val7[1])` : la forme que
+    #    l'exercice range (`\(A') … \((d))`), quand l'élève renvoie celle
+    #    qu'on lui montre (`\(A'\) … \left(d\right)`). Corrigé le
+    #    2026-09-05 en appliquant `_forme_brute` aux `val<N>` — trois des six
+    #    sont partis. Les trois qui restent (`deduction3`, `deduction4`,
+    #    `thmpte5`) notent 0 ou partiellement : leur `:test` demande autre
+    #    chose encore, à instruire séparément.
     #
     # 2. Des conditions qui ignorent la réponse (`oefstatistiques`, 5). Le
     #    score ne bouge pas d'un iota entre la bonne réponse et `__FAUX__`
@@ -349,11 +352,8 @@ XFAIL_CORRECT_SCORE: set[str] = {
     "H3~number~OEFevalwimscomp.fr~src~somme5",
     "H4~algebra~oefnombres.fr~src~ecrdecimal",
     "H4~analysis~OEFevacollege2005.fr~src~geometriepart2",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~deduction1",
     "H4~geometry~OEFevalwimsgeplan.fr~src~deduction3",
     "H4~geometry~OEFevalwimsgeplan.fr~src~deduction4",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte2",
-    "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte3",
     "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte5",
     "H4~geometry~OEFevalwimsgespa1.fr~src~patrons4",
     "H4~geometry~oefphotocopie.fr~src~ex02",
