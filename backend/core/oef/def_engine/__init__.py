@@ -6150,7 +6150,8 @@ class DefEngine(_SlibMixin):
                     # "analyze" here dropped them, leaving an empty <ol>.
                     analyze_choices = rest or ""
                     expected = self._resolve_analyze_expected(var_name, df) or ""
-                elif ans_type in ("clickfill", "checkbox", "mark"):
+                elif ans_type in ("clickfill", "checkbox", "mark",
+                                  "jsxgraph", "reaction"):
                     # Widget DISPLAY + analyze CHECK: keep the widget type so it
                     # renders (draggable labels / boxes) — the pool is in `rest`
                     # and parsed by the widget branch below. The student's value
@@ -6158,6 +6159,16 @@ class DefEngine(_SlibMixin):
                     # `analyze_var`. `good_raw` keeps "?analyze N;<pool>" which the
                     # clickfill branch splits into correct ("?analyze N") + pool.
                     # ineqinterv1: drag `[`/`]` brackets into the interval slots.
+                    #
+                    # `jsxgraph` et `reaction` ont rejoint la liste le
+                    # 2026-09-05. Leur `rest` est la **configuration** du
+                    # widget — la liste des objets à lire
+                    # (`\jsq1;\jsme;\jsq3;\jsmax`) ou les dimensions du
+                    # dessin (`$val7,$val10,$val12,$val11` → `40,1000,6,1000`)
+                    # — et non une réponse. La brancher dans `expected` faisait
+                    # d'un réglage un attendu : les cinq `oefstatistiques`
+                    # notaient une bonne réponse 0,83 à 0,94, et le corrigé
+                    # affichait `\jsq1;\jsme;…` à l'élève.
                     pass
                 else:
                     # Remember the author's original reply type before we mask

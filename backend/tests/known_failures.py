@@ -331,12 +331,14 @@ XFAIL_CORRECT_SCORE: set[str] = {
     #    `thmpte5`) notent 0 ou partiellement : leur `:test` demande autre
     #    chose encore, à instruire séparément.
     #
-    # 2. Des conditions qui ignorent la réponse (`oefstatistiques`, 5). Le
-    #    score ne bouge pas d'un iota entre la bonne réponse et `__FAUX__`
-    #    (0,9388 dans les deux cas pour `histocap`) : les `condtestN` se
-    #    calculent sur des variables que `:postdef` n'a pas rafraîchies.
+    # 2. Isolés, sans cause commune établie.
     #
-    # 3. Isolés (17), sans cause commune établie.
+    # Les cinq `oefstatistiques` ont quitté cette liste le 2026-09-05 : leur
+    # champ de figure n'a plus d'attendu — ce qui suivait `?analyze N;` était
+    # la configuration du widget, pas une réponse — et le test les saute
+    # désormais, faute de vérité de référence. Ils ne sont pas réparés pour
+    # autant : cf. `TODO.md` I.1, leur score ne bouge pas d'un iota entre la
+    # bonne réponse et `__FAUX__`, et aucun des deux tests ne sait le voir.
     "H3~algebra~oefqcm3.fr~src~q200",
     "H3~analysis~fonctaffin.fr~src~coef",
     "H3~arithmetic~oefarith.fr~src~diviseur",
@@ -357,11 +359,6 @@ XFAIL_CORRECT_SCORE: set[str] = {
     "H4~geometry~OEFevalwimsgeplan.fr~src~thmpte5",
     "H4~geometry~OEFevalwimsgespa1.fr~src~patrons4",
     "H4~geometry~oefphotocopie.fr~src~ex02",
-    "H4~stat~oefstatistiques.fr~src~histocap",
-    "H4~stat~oefstatistiques.fr~src~histogramme",
-    "H4~stat~oefstatistiques.fr~src~medicament1",
-    "H4~stat~oefstatistiques.fr~src~medicament2",
-    "H4~stat~oefstatistiques.fr~src~moustache",
 }
 
 # test_wrong_answer_scores_less_than_1 : une réponse fausse est acceptée

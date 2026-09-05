@@ -123,10 +123,29 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   Corrigé le 2026-09-05 : trois des six sont partis. Restent `deduction3`,
   `deduction4` et `thmpte5`, dont le `:test` demande encore autre chose.
 
-- [ ] **Des conditions qui ignorent la réponse** (`oefstatistiques`, 5). Le
-  score ne bouge pas entre la bonne réponse et l'absurde — 0,9388 dans les deux
-  cas pour `histocap`. Les `condtestN` se calculent sur des variables que
-  `:postdef` n'a pas rafraîchies.
+- [x] **Ce qui suit `?analyze N;` est une configuration, pas une réponse**
+  (`oefstatistiques` et 5 autres) — corrigé le 2026-09-05. Pour un `jsxgraph`
+  c'est la liste des objets à lire (`\jsq1;\jsme;\jsq3;\jsmax`), pour une
+  `reaction` les dimensions du dessin (`40,1000,6,1000`) ; le moteur en faisait
+  un attendu, et l'affichait à l'élève comme corrigé. Ces deux types rejoignent
+  `clickfill`/`checkbox`/`mark`, dont le `rest` était déjà traité comme tel.
+  Effet de bord bienvenu : un champ texte parasite (`Entrez votre réponse :` +
+  `<input name="reply1">`) disparaît de quatre exercices où la figure porte
+  déjà la réponse.
+
+- [ ] **`histocap`, `histogramme`, `moustache` : le score ignore la réponse.**
+  0,9388 pour la bonne réponse, pour `__FAUX__` et pour une réponse vide — 46
+  conditions sur 49. Ces trois-là ne sont **pas** réparés, et le plus gênant
+  est ailleurs :
+
+  **aucun des deux tests ne sait voir ce défaut.** `test_correct_answer` les
+  saute (leur champ de figure n'a pas d'attendu, et on ne devine pas un
+  diagramme dessiné) ; `test_wrong_answer` n'exige que « score < 1 », et 0,9388
+  y satisfait. Un exercice dont la note est constante mais inférieure à 1 passe
+  donc les deux. Il manque une propriété : *une réponse absurde doit noter
+  strictement moins qu'une bonne réponse* — indécidable ici, faute de bonne
+  réponse connue. À défaut : *deux réponses différentes ne doivent pas toujours
+  donner la même note*.
 
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où
