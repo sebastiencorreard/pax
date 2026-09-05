@@ -133,6 +133,9 @@ export interface CheckResult {
   }>
   attempt_id: string
   has_invalid_format?: boolean
+  /** Une étape suit-elle celle qu'on vient de corriger ? `undefined` quand
+   *  l'exercice n'a pas de `\\nextstep` — on s'en tient alors à `total_steps`. */
+  has_next_step?: boolean | null
   noanalyzeprint?: boolean
   feedback_html?: string | null
   solution_html?: string | null

@@ -147,13 +147,26 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   navigateur : mesure enregistrée, essai rejeté au-delà du seuil, tableau
   récapitulatif alimenté.
 
-- [ ] **`total_steps` vaut 1 alors que ces exercices en ont six.** « ÉTAPE
-  \step sur 6 », dit leur énoncé, et les étapes 2 et 3 rendent bien un contenu
-  (1662 et 1424 caractères) — mais le front affiche « Étape 1 / 1 » et l'élève
-  ne peut pas avancer. `nextstep=!nosubst $val56` est recalculé à chaque étape
-  depuis les réponses : le total n'est pas connaissable au rendu, et
-  `_resolve_nextstep` repart les mains vides. Tant que ce point n'est pas réglé,
-  le chronomètre ci-dessus ne mène nulle part.
+- [x] **`total_steps` valait 1 alors que ces exercices en ont six** — corrigé le
+  2026-09-05, et le remède n'est pas de mieux deviner.
+
+  `total_steps` est une **estimation faite au rendu**, avant que l'élève ait
+  répondu. `_resolve_nextstep` rejoue `:postdef` à vide pour la produire, et sur
+  50 exercices ce rejeu n'aboutit pas : il tourne en rond
+  (`OEFpythagore2/rectangle` répète la même étape 31 fois), épuise son budget
+  (`histocap`), ou ne trouve aucun `\nextstep`. Le repli annonçait alors une
+  seule étape, et l'élève restait bloqué sur la première.
+
+  WIMS ne devine rien : `nextstep.proc` rejoue `:postdef` **après** la réponse,
+  avec `m_step` déjà avancé, et regarde si `$nextstep` est vide. C'est ce que
+  fait maintenant `etape_suivante_existe`, appelée par la route de correction,
+  dont la réponse porte un `has_next_step`. Le front ne s'en sert que pour
+  *ajouter* une étape que l'estimation avait manquée — jamais pour en retirer —
+  et `null` (l'exercice n'a pas de `\nextstep`) laisse le comportement d'avant
+  intact : **79 exercices débloqués, 432 inchangés**.
+
+  L'étiquette suit : elle n'annonce plus un total qu'on sait faux (« Étape 2 / 1 »
+  s'affichait dès la première étape franchie), seulement « Étape 2 ».
 
 - [ ] **`histocap`, `histogramme`, `moustache` : le score ignore la réponse.**
   0,9388 pour la bonne réponse, pour `__FAUX__` et pour une réponse vide — 46

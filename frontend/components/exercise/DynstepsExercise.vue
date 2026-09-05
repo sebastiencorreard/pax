@@ -328,7 +328,18 @@ async function submit() {
   try {
     const currentStep = props.rendered.current_step || 1
     const totalSteps = props.rendered.total_steps || 1
-
+    // `total_steps` est une **estimation faite au rendu**, avant que l'élève
+    // ait répondu. Pour un exercice dont la suite dépend des réponses
+    // (`\nextstep`), elle vaut souvent 1 alors qu'il y a six étapes : le
+    // moteur rejoue `:postdef` à vide, tourne en rond ou épuise son budget, et
+    // le repli annonce une seule étape. Cinquante exercices restaient bloqués
+    // sur la première.
+    //
+    // Le serveur, lui, vient de rejouer `:postdef` **avec** les réponses, comme
+    // WIMS le fait après chaque étape : `has_next_step` dit alors s'il en reste
+    // une. On ne s'en sert que pour *ajouter* une étape que l'estimation avait
+    // manquée — jamais pour en retirer, et `null` (l'exercice n'a pas de
+    // `\nextstep`) laisse le comportement d'avant intact.
     const replyList = Object.entries(replies.value)
       .map(([input_name, value]) => ({ input_name, value }))
 
@@ -345,6 +356,11 @@ async function submit() {
       checking.value = false
       return
     }
+
+    // Calculé **après** la réponse du serveur, et non avant : c'est elle qui
+    // porte `has_next_step`.
+    const encoreUneEtape = checkResult.value.has_next_step === true
+    const finDuParcours = currentStep >= totalSteps && !encoreUneEtape
 
     submitted.value = true
     const answerTypes = Object.fromEntries(
@@ -417,14 +433,14 @@ async function submit() {
 
     // Auto-advance to next step immediately if at least one input was processed
     // and there was no error in a course
-    if (activeResults.length > 0 && currentStep < totalSteps && !courseStopped.value) {
+    if (activeResults.length > 0 && !finDuParcours && !courseStopped.value) {
       setTimeout(async () => {
         await nextStep()
       }, 0)
     }
 
     // Only finalize score and show results at the end or if course stopped
-    if (currentStep >= totalSteps || courseStopped.value) {
+    if (finDuParcours || courseStopped.value) {
       // Use the same dedup-by-step ratio as the displayed bilan (correctStepsCount
       // counts each step at most once, even when it has multiple input fields).
       const score = scoreRatio.value

@@ -15,6 +15,7 @@ from core.answer.schemas import AnswerResult
 from core.answer.strategies.standard import run_standard
 from core.answer.strategies.condition import run_condition
 from core.answer.strategies.analyze import run_analyze, run_feedback
+from core.oef.def_engine.analyze import etape_suivante_existe
 from core.chrono import module_scoredelay, read_started_at, score_factor
 
 router = APIRouter(prefix="/api/check", tags=["check"])
@@ -91,6 +92,10 @@ class CheckResponse(BaseModel):
     # recompute anything client-side.
     chrono_elapsed: float | None = None
     chrono_factor: float | None = None
+    # Existe-t-il une etape apres celle-ci ? `None` quand la question ne se
+    # pose pas (l'exercice n'a pas de `\nextstep`) : le front s'en tient
+    # alors a `total_steps`, comme avant. Voir `etape_suivante_existe`.
+    has_next_step: bool | None = None
 
 
 def _pixels_to_repere(s: str | None, transform: str, comma_decimal: bool) -> str | None:
@@ -374,6 +379,9 @@ async def check_exercise(
         results=results,
         attempt_id=attempt_id,
         has_invalid_format=has_invalid,
+        has_next_step=etape_suivante_existe(
+            rendered, replies_by_name, body.seed, body.m_step or 1
+        ),
         noanalyzeprint=noanalyzeprint,
         feedback_html=feedback_html,
         solution_html=solution_html,

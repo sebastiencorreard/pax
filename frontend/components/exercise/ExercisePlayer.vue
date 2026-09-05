@@ -16,10 +16,16 @@
          style="border-color:var(--color-border)">
       <div class="flex items-center gap-3">
         <h2 class="font-semibold text-lg" v-html="titleHtml || rendered?.title || $t('exercise.loading')"></h2>
-        <span v-if="rendered?.is_dynsteps && rendered.current_step && rendered.total_steps"
+        <!-- Le total n'est qu'une estimation faite au rendu : pour un exercice
+             dont la suite dépend des réponses, il est souvent faux, et l'élève
+             lisait « Étape 2 / 1 » une fois la première franchie. On ne
+             l'annonce donc que tant qu'il reste crédible. -->
+        <span v-if="rendered?.is_dynsteps && rendered.current_step"
               class="text-sm px-2 py-1 rounded"
               style="background:var(--color-bg);color:var(--color-text-muted)">
-          {{ $t('exercise.step_progress', { current: rendered.current_step, total: rendered.total_steps }) }}
+          {{ rendered.total_steps && rendered.current_step <= rendered.total_steps
+             ? $t('exercise.step_progress', { current: rendered.current_step, total: rendered.total_steps })
+             : $t('exercise.step_only', { current: rendered.current_step }) }}
         </span>
       </div>
       <div class="flex items-center gap-2">

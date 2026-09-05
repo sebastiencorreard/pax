@@ -111,6 +111,59 @@ def champs_par_condition(test_instructions: list) -> dict[str, set[int]]:
     return {k: v for k, v in trouve.items() if v}
 
 
+def etape_suivante_existe(
+    rendered,
+    replies_by_name: dict[str, str],
+    seed: int,
+    etape: int,
+) -> bool | None:
+    """Existe-t-il une étape après ``etape`` ? ``None`` si la question ne se pose pas.
+
+    **C'est WIMS qui dicte le moment.** `nextstep.proc` ne devine rien au rendu :
+    il rejoue `:postdef` *après* la réponse de l'élève, avec `m_step` déjà
+    avancé, et regarde si `$nextstep` est vide. Le total n'est écrit nulle part,
+    et pour cause — dans un exercice comme `oefstatistiques/histocap`, la suite
+    dépend de ce que l'élève a fait.
+
+    PAX essayait de deviner ce total au rendu (`_resolve_nextstep`), en rejouant
+    `:postdef` sans les réponses. Sur 50 exercices, le rejeu n'aboutissait pas :
+    il tournait en rond (`rectangle` répète la même étape 31 fois), épuisait son
+    budget (`histocap`), ou ne trouvait pas de `\nextstep` du tout. Le repli
+    annonçait alors **une seule étape**, et l'élève restait bloqué sur la
+    première d'un exercice qui en compte six.
+
+    Ici, les réponses sont connues : on pose la question comme WIMS la pose.
+    Retourne ``None`` — et non ``False`` — quand l'exercice n'a pas de
+    `\nextstep` : le front garde alors le comportement qu'il avait, fondé sur
+    `total_steps`.
+    """
+    from . import DefEngine  # import différé — évite la circularité
+
+    sections = rendered.check_sections or {}
+    ctx = sections.get("ctx") or {}
+    if "nextstep" not in ctx or not sections.get("postdef"):
+        return None
+
+    engine = DefEngine(seed=seed, def_path=sections.get("def_path"))
+    engine._strict_arith = True
+    engine.ctx.update(ctx)
+    # Les réponses, sous les deux noms que `:postdef` peut lire.
+    for nom, valeur in replies_by_name.items():
+        m = re.match(r"^r(?:eply)?(\d+)$", nom.strip())
+        if m:
+            engine.ctx[f"m_reply{m.group(1)}"] = valeur
+            engine.ctx[f"reply{m.group(1)}"] = valeur
+    # `step.proc` avance `m_step` **avant** de lire `nextstep.proc` : le
+    # `:postdef` doit donc s'exécuter en pointant l'étape à venir.
+    engine.ctx["m_step"] = str(etape + 1)
+    engine.ctx["step"] = str(etape + 1)
+    try:
+        engine._exec(sections["postdef"], output_buf=None)
+    except Exception:  # noqa: BLE001 — le moteur ne lève pas, mais on ne parie pas dessus
+        return None
+    return bool(engine._subst(engine.ctx.get("nextstep", "")).strip())
+
+
 def check_analyze(
     ev_ctx: dict,
     postdef_instructions: list,
