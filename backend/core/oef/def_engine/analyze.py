@@ -161,7 +161,49 @@ def etape_suivante_existe(
         engine._exec(sections["postdef"], output_buf=None)
     except Exception:  # noqa: BLE001 — le moteur ne lève pas, mais on ne parie pas dessus
         return None
-    return bool(engine._subst(engine.ctx.get("nextstep", "")).strip())
+    annonce = engine._subst(engine.ctx.get("nextstep", "")).strip()
+    if not annonce:
+        return False
+
+    # **L'étape annoncée doit différer de celle en cours.** Beaucoup de `.def`
+    # écrivent `nextstep=!nosubst $valN` sans que `:postdef` retouche jamais
+    # `valN` : la variable garde sa valeur du rendu, et l'annonce répète
+    # indéfiniment l'étape courante. `arithtable/table2x2` en est le cas type —
+    # `oefsteps` vaut `r1,r2,r3,r4` et l'annonce aussi, à un espace près.
+    #
+    # Le prendre pour une progression enfermait l'élève dans une boucle sans
+    # fin : 19 exercices sur 120 ne se terminaient plus. On répond alors `None`
+    # — « je n'ai rien appris » — et le front s'en tient à `total_steps`, comme
+    # avant. `_resolve_nextstep` connaissait déjà ce piège au rendu ; il fallait
+    # le connaître aussi à la correction.
+    etapes_connues = engine._subst(ctx.get("oefsteps", "")).strip()
+
+    # Un exercice `course` énumère ses étapes dans `oefsteps`, une par ligne :
+    # le total est déjà connu et fait autorité. Rien à ajouter — et prétendre le
+    # contraire prolongeait `quizz/course05_1step` au delà de ses douze étapes.
+    if len([l for l in re.split(r"[\n\r]+", etapes_connues) if l.strip()]) > 1:
+        return None
+
+    def _reponses(ligne: str) -> list[str]:
+        """Les réponses d'une ligne d'étape, sous un nom canonique.
+
+        La même étape s'écrit `r1,r2,r3,r4` ici et `r 1, r 2, r 3, r 4` là —
+        `photosynthesis/7` mélange les deux. Comparer les chaînes brutes faisait
+        passer une répétition pour une progression.
+        """
+        sans_espace = re.sub(r"\s+", "", ligne)
+        out = []
+        for x in re.split(r"[,;]+", sans_espace):
+            if not x:
+                continue
+            m = re.fullmatch(r"r(?:eply)?(\d+)", x, re.I)
+            out.append(f"reply{m.group(1)}" if m else x)
+        return out
+
+    courante = _reponses(etapes_connues)
+    if courante and _reponses(annonce) == courante:
+        return None
+    return True
 
 
 def check_analyze(
