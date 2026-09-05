@@ -199,7 +199,7 @@ _SEGMENT_PATTERN = re.compile(
     # div like jsxgraph/codeeditor, but its alternative sits at the *end* of
     # the pattern (to keep every existing group number stable), so ordering
     # alone can't protect it — without this it would be split open/close here.
-    r'|((?i:(?!<div class="pax-(?:jmol|geogebra)")<(?:div|ul|ol|li)\b[^>]*>))'
+    r'|((?i:(?!<div class="pax-(?:jmol|geogebra|reaction)")<(?:div|ul|ol|li)\b[^>]*>))'
     r'|((?i:</(?:div|ul|ol|li)\s*>))'
     # groups 12/13/14: an inline radio choice (couf) — name, value, content.
     r'|<span class="oef-radio-inline" name="([^"]+)" data-value="([^"]*)" data-content="([^"]*)"></span>'
@@ -219,6 +219,11 @@ _SEGMENT_PATTERN = re.compile(
     # groupe 25 : un conteneur d'applet GeoGebra, même placement et même
     # raison que le groupe 24 ci-dessus.
     r'|<div class="pax-geogebra"[^>]*data-geogebra="([^"]*)"[^>]*></div>'
+    # groupe 26 : le chronomètre de `type=reaction`. Même placement et même
+    # raison que les deux précédents — en queue de motif pour ne décaler
+    # aucun numéro de groupe, et exclu des groupes `<div>` par la
+    # sentinelle ci-dessus.
+    r'|<div class="pax-reaction"[^>]*data-reaction="([^"]*)"[^>]*></div>'
 )
 # Only <p> is flattened to <br> (the front-end renders segments flat). <div>,
 # <ul>, <ol> and <li> are NOT flattened — they become layout-group segments
@@ -734,6 +739,16 @@ def _segment_statement(html: str) -> list[dict]:
                 except (ValueError, TypeError):
                     pass
             segments.append(seg)
+        elif m.group(26) is not None:
+            # Chronomètre de temps de réaction : le champ **est** le widget,
+            # et sa configuration voyage en données comme celle des applets.
+            import html as _html  # noqa: PLC0415
+            import json as _json  # noqa: PLC0415
+            try:
+                config = _json.loads(_html.unescape(m.group(26)))
+            except (ValueError, TypeError):
+                config = {}
+            segments.append({"type": "reaction", "config": config, "is_sup": is_sup})
         else:
             # Input texte ou textarea
             name = m.group(2).strip()

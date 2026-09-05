@@ -133,6 +133,28 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   `<input name="reply1">`) disparaît de quatre exercices où la figure porte
   déjà la réponse.
 
+- [x] **Le chronomètre de `type=reaction` est porté** (2026-09-05). Ces trois
+  exercices sont interactifs : l'élève appuie sur GO, attend un délai qu'il ne
+  peut pas anticiper, frappe STOP le plus vite possible, et recommence quarante
+  fois ; la série de temps ainsi mesurée est la donnée que les cinq étapes
+  suivantes dépouillent. Le `.input` du module monte ce chronomètre en
+  JavaScript inline — inerte une fois injecté par le `v-html` du front. PAX
+  n'affichait donc que « Réaliser 40 tests. » et un champ vide, sans dire quoi y
+  écrire : l'exercice était **inutilisable depuis le début**, et son défaut de
+  notation n'en était que la conséquence.
+
+  Composant `ReactionTest.vue`, marqueur `pax-reaction` côté moteur. Vérifié au
+  navigateur : mesure enregistrée, essai rejeté au-delà du seuil, tableau
+  récapitulatif alimenté.
+
+- [ ] **`total_steps` vaut 1 alors que ces exercices en ont six.** « ÉTAPE
+  \step sur 6 », dit leur énoncé, et les étapes 2 et 3 rendent bien un contenu
+  (1662 et 1424 caractères) — mais le front affiche « Étape 1 / 1 » et l'élève
+  ne peut pas avancer. `nextstep=!nosubst $val56` est recalculé à chaque étape
+  depuis les réponses : le total n'est pas connaissable au rendu, et
+  `_resolve_nextstep` repart les mains vides. Tant que ce point n'est pas réglé,
+  le chronomètre ci-dessus ne mène nulle part.
+
 - [ ] **`histocap`, `histogramme`, `moustache` : le score ignore la réponse.**
   0,9388 pour la bonne réponse, pour `__FAUX__` et pour une réponse vide — 46
   conditions sur 49. Ces trois-là ne sont **pas** réparés, et le plus gênant

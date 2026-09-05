@@ -36,6 +36,18 @@ _MAX_LINELEN = 45000
 # corpus est 6).
 _MAX_NEXTSTEPS = 32
 
+# Budget propre au rejeu de `\nextstep`, distinct de celui du rendu. Ce rejeu
+# est une **heuristique** : il rejoue `:postdef` jusqu'à 31 fois pour deviner
+# combien d'étapes viendront, et repart parfois les mains vides. Lui laisser le
+# budget du rendu entier lui permettait d'y passer huit secondes pour n'en rien
+# tirer — c'était le cas d'`oefstatistiques/histocap`, dont le rendu prenait
+# 8,2 s dont 8,0 ici, pour finir sur `total=None`.
+#
+# Mesuré sur les 4278 exercices : neuf y passent plus de 0,3 s, un seul plus de
+# 2 s (histocap, qui n'aboutit pas). Le plus lent qui **aboutit** tient en
+# 0,34 s. Deux secondes laissent donc six fois la marge du pire cas utile.
+_NEXTSTEP_TIME_BUDGET = 2.0
+
 from .cas import (
     _MATH_NS,
     _PARI_HELPERS,
@@ -845,7 +857,7 @@ class DefEngine(_SlibMixin):
         steps: list[str] = []
         total: int | None = None
         deadline = self._deadline
-        self._deadline = time.monotonic() + _RENDER_TIME_BUDGET
+        self._deadline = time.monotonic() + _NEXTSTEP_TIME_BUDGET
         try:
             # `step.proc` fait `!advance oefstep` / `m_step=$oefstep` *avant*
             # de lire `nextstep.proc` : `:postdef` s'exécute donc avec `m_step`
@@ -1182,7 +1194,7 @@ class DefEngine(_SlibMixin):
             if a.answer_type.lower()
             not in ("radio", "menu", "mark", "correspond", "jsxgraph",
                     "jsxgraphobjet", "geogebra", "jmolclick", "runcode",
-                    "js2wims1", "click")
+                    "js2wims1", "click", "reaction")
         ]
         # Un champ de secours par réponse **que l'énoncé n'a pas embarquée**.
         #
@@ -1604,8 +1616,17 @@ class DefEngine(_SlibMixin):
             "irand": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
             "randint": lambda n: 0 if int(n) == 0 else self.rng.randrange(abs(int(n))),
         })
-        # Also inject current context for bare variable names
-        for k, v in self.ctx.items():
+        # Le contexte, pour les noms de variables nus — mais **seulement ceux
+        # que l'expression nomme**. La boucle portait sur tout le contexte :
+        # `eval` ne peut lire qu'un nom présent dans l'expression, et convertir
+        # les autres était du travail jeté. `oefstatistiques/histocap` appelle
+        # cette fonction 7435 fois sur un contexte de plusieurs centaines
+        # d'entrées — trois millions de `strip`/`isdigit`, cinq des huit
+        # secondes de son rendu.
+        for k in set(_IDENT_RE.findall(expr)):
+            v = self.ctx.get(k)
+            if v is None:
+                continue
             s = v.strip()
             try:
                 ns[k] = int(s) if s.lstrip("-").isdigit() else float(s)
@@ -5122,6 +5143,11 @@ class DefEngine(_SlibMixin):
                 # `type=runcode` : l'éditeur de code **est** le champ. Arguments
                 # bruts — le code initial est plein de virgules.
                 return self._render_runcode_embed(args, ref, n)
+            elif reply_type == "reaction":
+                # `type=reaction` : le champ **est** un chronomètre. L'élève
+                # appuie sur GO, attend, puis frappe STOP le plus vite
+                # possible ; la réponse est la liste des temps mesurés.
+                return self._render_reaction_embed(args, ref, n)
             elif reply_type == "jmolclick":
                 # `type=jmolclick` : la molécule **est** le champ, et l'élève y
                 # clique les atomes. Arguments bruts — le script Jmol qui suit
@@ -5475,6 +5501,59 @@ class DefEngine(_SlibMixin):
         }
         charge = _html.escape(_json.dumps(config, ensure_ascii=False), quote=True)
         return f'<div class="pax-codeeditor" data-codeeditor="{charge}"></div>'
+
+    def _render_reaction_embed(self, args: str, ref: str, n: int) -> str:
+        """`type=reaction` — le test de temps de réaction d'`oefstatistiques`.
+
+        Le type appartient au module, pas à WIMS. Son `.input` monte un petit
+        chronomètre en JavaScript : un bouton **GO** arme un délai aléatoire,
+        le bouton devient **STOP**, et l'écart entre l'apparition de la
+        consigne et la frappe est le temps de réaction. L'élève recommence
+        `nbrtest` fois — quarante, dans `histocap` — et la réponse envoyée est
+        la liste de ces temps, en millisecondes.
+
+        Ce script ne pouvait pas s'exécuter : injecté par le `v-html` du front,
+        un `<script>` reste inerte. Les trois exercices du module affichaient
+        donc « Réaliser 40 tests. » suivi d'un champ de saisie vide, sans dire
+        quoi y écrire ni permettre de le mesurer — et comme rien n'était
+        recueilli, les cinq étapes suivantes n'avaient aucune donnée à traiter.
+
+        Les réglages tiennent dans la **deuxième rangée** de `replygood`, où le
+        `.input` les lit un à un (`$(replygood$i[2;1])`…) : nombre de tests,
+        délai avant le départ, attente aléatoire maximale, et le temps au delà
+        duquel un essai est rejeté (« Réveillez-vous ! »). Le nombre de
+        colonnes du tableau récapitulatif vient de la taille de l'`\embed`.
+        """
+        import html as _html  # noqa: PLC0415
+        import json as _json  # noqa: PLC0415
+
+        _, _, taille = args.partition(",")
+        try:
+            colonnes = int(float(self._subst(taille).strip().split(",")[0]))
+        except (ValueError, IndexError):
+            colonnes = 5
+
+        good = self._subst(self.ctx.get(f"replygood{n}", ""))
+        rangees = wl.cutrows(good)
+        reglages = wl.cutitems(rangees[1]) if len(rangees) > 1 else []
+
+        def _entier(rang: int, defaut: int) -> int:
+            try:
+                return int(float(reglages[rang].strip()))
+            except (IndexError, ValueError):
+                return defaut
+
+        config = {
+            "reply": ref,
+            # Les défauts sont ceux du `.input` du module, à la ligne près.
+            "tests": _entier(0, 7),
+            "delai": _entier(1, 1000),
+            "attenteMax": _entier(2, 6),
+            "reactionMax": _entier(3, 1000),
+            "colonnes": max(1, colonnes),
+        }
+        charge = _html.escape(_json.dumps(config, ensure_ascii=False), quote=True)
+        return f'<div class="pax-reaction" data-reaction="{charge}"></div>'
 
     def _render_jmolclick_embed(self, args: str, ref: str, n: int) -> str:
         """`type=jmolclick` — la molécule dont l'élève clique les atomes.
@@ -6630,6 +6709,11 @@ def _jsxgraph_value_dim(value: str) -> int:
         elif ch == "," and depth == 1:
             items += 1
     return items
+
+
+# Les identifiants d'une expression arithmétique — cf. `_eval_arith`, qui s'en
+# sert pour ne convertir du contexte que ce qu'il va lire.
+_IDENT_RE = re.compile(r"[A-Za-z_]\w*")
 
 
 def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int:

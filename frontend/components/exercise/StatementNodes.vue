@@ -102,6 +102,12 @@
         @update:reply="(name, val) => ctx.updateReply(name, val)"
       />
 
+      <ExerciseReactionTest v-else-if="node.seg.type === 'reaction'"
+        :config="node.seg.config"
+        :submitted="ctx.submitted.value"
+        @update:reply="(name, val) => ctx.updateReply(name, val)"
+      />
+
       <ExerciseJmol v-else-if="node.seg.type === 'jmol'"
         :config="node.seg.config"
         :reply="node.seg.reply"

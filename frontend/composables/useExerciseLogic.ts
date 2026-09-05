@@ -62,7 +62,7 @@ export interface CodeEditorRun {
 export interface BackendSegment {
   type: 'html' | 'input' | 'textarea' | 'slot' | 'menu' | 'correspond'
     | 'jsxgraph' | 'codeeditor' | 'group-open' | 'group-close' | 'radio-inline' | 'coord'
-    | 'draw' | 'jmol' | 'geogebra'
+    | 'draw' | 'jmol' | 'geogebra' | 'reaction'
   content?: string
   name?: string
   size?: number
@@ -148,6 +148,22 @@ export interface CorrespondConfig {
   partial: boolean
 }
 
+/** Réglages du chronomètre de `type=reaction` (module `oefstatistiques`). */
+export interface ReactionConfig {
+  /** Le champ que le widget alimente. */
+  reply: string
+  /** Nombre de mesures à réaliser. */
+  tests: number
+  /** Délai fixe avant le tirage, en millisecondes. */
+  delai: number
+  /** Attente aléatoire maximale ajoutée au délai, en **secondes**. */
+  attenteMax: number
+  /** Au delà, l'essai est rejeté. */
+  reactionMax: number
+  /** Largeur du tableau récapitulatif. */
+  colonnes: number
+}
+
 export type Segment =
   | { type: 'html';        content: string }
   | { type: 'slot';        name: string; is_sup?: boolean; index?: number; width?: number }
@@ -163,6 +179,7 @@ export type Segment =
   | { type: 'jmol';        config: JmolConfig; is_sup?: boolean; reply?: string }
   | { type: 'geogebra';    config: GeogebraConfig; is_sup?: boolean;
                            reply?: string; answer?: GeogebraLecture }
+  | { type: 'reaction';    config: ReactionConfig; is_sup?: boolean }
   | { type: 'group-open';  class: string }
   | { type: 'group-close' }
   | { type: 'radio-inline'; name: string; value: string; content: string }
@@ -309,6 +326,8 @@ export function useExerciseLogic() {
           xrange: s.xrange ?? '', yrange: s.yrange ?? '',
           width: s.width, height: s.height, is_sup: s.is_sup,
         })
+      } else if (s.type === 'reaction' && s.config) {
+        out.push({ type: 'reaction', config: s.config as unknown as ReactionConfig, is_sup: s.is_sup })
       } else if (s.type === 'codeeditor' && s.config) {
         // Code + options are passed through untouched (NOT renderMath'd) — the
         // CodeMirror widget is built client-side from this config.
