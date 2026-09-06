@@ -53,11 +53,11 @@ test.describe('exercise list', () => {
   test('empty state shown when no exercises match', async ({ page }) => {
     await page.waitForSelector('.animate-pulse', { state: 'detached', timeout: 15_000 })
 
-    // Combine two very specific filters unlikely to match together
-    await page.locator('select').first().selectOption('U4')
-    await page.locator('select').nth(1).selectOption('chemistry')
+    // Le menu de niveau ne propose que les niveaux réellement présents en base
+    // (H3, H4) : il n'y a plus de code « impossible » à y choisir. On force donc
+    // la liste vide par une recherche qui ne peut correspondre à rien.
+    await page.locator('input[type="search"]').fill('zzzznexistepaszzzz')
     await page.waitForLoadState('networkidle')
-    await page.waitForSelector('.animate-pulse', { state: 'detached', timeout: 15_000 })
 
     const exercises = page.locator('a[href^="/exercise/"]')
     const emptyMsg = page.locator('text=Aucun exercice trouvé')

@@ -28,15 +28,30 @@
               class="px-3 py-2 rounded-lg border text-sm"
               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)">
         <option value="">{{ $t('exercise.all_levels') }}</option>
-        <option v-for="l in levels" :key="l" :value="l">{{ l }}</option>
+        <option v-for="l in levels" :key="l.code" :value="l.code">
+          {{ levelLabel(l.code!) }} ({{ l.count }})
+        </option>
       </select>
 
       <select v-model="filterDomain"
               class="px-3 py-2 rounded-lg border text-sm"
               style="background:var(--color-surface);border-color:var(--color-border);color:var(--color-text)">
         <option value="">{{ $t('exercise.all_domains') }}</option>
-        <option v-for="d in availableDomains" :key="d" :value="d">{{ d }}</option>
+        <option v-for="d in domains" :key="d.name" :value="d.name">
+          {{ d.name }} ({{ d.count }})
+        </option>
       </select>
+    </div>
+
+    <!-- Ce que le filtre courant laisse : un compte, et l'aveu d'une liste coupée -->
+    <div
+      class="flex items-center gap-3 mb-4 text-sm min-h-5"
+      style="color:var(--color-text-muted)">
+      <span v-if="searching">{{ $t('exercise.searching') }}</span>
+      <span v-else-if="!loading">{{ $t('exercise.results_count', { n: total }, total) }}</span>
+      <span
+        v-if="truncated"
+        style="color:var(--color-primary)">{{ $t('exercise.refine') }}</span>
     </div>
 
     <!-- Layout : liste seule sur petit écran, liste + preview sur lg+ -->
@@ -80,7 +95,12 @@
                             style="color:var(--color-text-muted)">{{ mod.author }}</span>
                       <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
                             style="background:var(--color-bg);color:var(--color-text-muted)">
-                        {{ mod.exercises.length }}
+                        {{ mod.match_count ?? mod.exercise_count }}
+                      </span>
+                      <span
+                        class="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+                        style="background:var(--color-bg);color:var(--color-text-muted)">
+                        {{ levelLabel(mod.level) }}
                       </span>
                     </div>
                   </div>
@@ -92,7 +112,7 @@
                 <div v-if="openModules.has(mod.module)"
                      class="border-t"
                      style="border-color:var(--color-border)">
-                  <NuxtLink v-for="ex in mod.exercises"
+                  <NuxtLink v-for="ex in exercisesOf(mod)"
                             :key="ex.id"
                             :to="`/exercise/${ex.id}`"
                             class="flex items-center justify-between px-4 py-2.5 transition group border-b last:border-b-0"
@@ -142,6 +162,7 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: 'dashboard' })
+
 interface ModuleExercise {
   id: string
   title: string | null
@@ -159,7 +180,20 @@ interface Module {
   domain: string
   level: string
   lang: string
+  exercise_count: number
+  match_count?: number
   exercises: ModuleExercise[]
+}
+
+interface Facette { code?: string, name?: string, count: number }
+
+interface Catalogue {
+  modules: Module[]
+  levels: Facette[]
+  domains: Facette[]
+  total: number
+  searched: boolean
+  truncated: boolean
 }
 
 interface DomainGroup {
@@ -168,7 +202,7 @@ interface DomainGroup {
 }
 
 const { apiFetch } = useApi()
-const { debugMode: debugOef } = useDebugMode()
+const { t, te } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -177,7 +211,13 @@ const isLarge = useMediaQuery('(min-width: 1024px)')
 type SearchScope = 'all' | 'modules' | 'exercises'
 
 const modules = ref<Module[]>([])
+const levels = ref<Facette[]>([])
+const domains = ref<Facette[]>([])
+const total = ref(0)
+const truncated = ref(false)
 const loading = ref(true)
+const searching = ref(false)
+
 const filterLevel = ref((route.query.level as string) || '')
 const filterDomain = ref((route.query.domain as string) || '')
 const searchQuery = ref((route.query.q as string) || '')
@@ -197,59 +237,25 @@ watch([filterLevel, filterDomain, searchQuery, searchScope, previewId], ([level,
 }, { flush: 'sync' })
 
 const openModules = ref(new Set<string>())
+// Exercices chargés à la demande, un module à la fois : `/modules` n'en renvoie
+// plus aucun tant qu'aucune recherche ne les désigne.
+const loadedExercises = ref<Record<string, ModuleExercise[]>>({})
 
-const levels = ['E1','E2','E3','E4','E5','E6','H1','H2','H3','H4','H5','H6','U1','U2','U3','U4']
-
-const availableDomains = computed(() =>
-  [...new Set(modules.value.map(m => m.domain))].sort()
-)
-
-function exerciseMatchesSearch(ex: ModuleExercise, q: string): boolean {
-  if ((ex.title || '').toLowerCase().includes(q)) return true
-  if (ex.author.toLowerCase().includes(q)) return true
-  return ex.keywords.some(k => k.toLowerCase().includes(q))
+/**
+ * Le libellé d'un niveau : le code WIMS, suivi de la classe correspondante
+ * quand la locale la connaît. La table (`exercise.levels`) ne couvre que les
+ * niveaux réellement présents en base — H3 et H4 aujourd'hui ; un niveau
+ * ajouté au corpus s'affiche par son code jusqu'à ce qu'on lui donne sa
+ * traduction, plutôt que de disparaître ou d'afficher une clé manquante.
+ */
+function levelLabel(code: string): string {
+  const cle = `exercise.levels.${code}`
+  return te(cle) ? t('exercise.level_with_code', { code, label: t(cle) }) : code
 }
-
-function moduleMatchesSearch(m: Module, q: string): boolean {
-  if (m.title.toLowerCase().includes(q)) return true
-  if (m.author.toLowerCase().includes(q)) return true
-  if (m.description.toLowerCase().includes(q)) return true
-  return m.keywords.some(k => k.toLowerCase().includes(q))
-}
-
-const filteredModules = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase()
-  const scope = searchScope.value
-
-  return modules.value
-    .filter(m => {
-      if (filterLevel.value && m.level !== filterLevel.value) return false
-      if (filterDomain.value && m.domain !== filterDomain.value) return false
-      return true
-    })
-    .map(m => {
-      let exercises = m.exercises
-
-      if (q) {
-        if (scope === 'modules') {
-          if (!moduleMatchesSearch(m, q)) return { ...m, exercises: [] }
-        } else if (scope === 'exercises') {
-          exercises = exercises.filter(ex => exerciseMatchesSearch(ex, q))
-        } else {
-          if (!moduleMatchesSearch(m, q)) {
-            exercises = exercises.filter(ex => exerciseMatchesSearch(ex, q))
-          }
-        }
-      }
-
-      return { ...m, exercises }
-    })
-    .filter(m => m.exercises.length > 0)
-})
 
 const groupedModules = computed<DomainGroup[]>(() => {
   const map = new Map<string, Module[]>()
-  for (const mod of filteredModules.value) {
+  for (const mod of modules.value) {
     const d = mod.domain || '—'
     if (!map.has(d)) map.set(d, [])
     map.get(d)!.push(mod)
@@ -259,11 +265,23 @@ const groupedModules = computed<DomainGroup[]>(() => {
     .map(([domain, mods]) => ({ domain, modules: mods }))
 })
 
-function toggle(moduleId: string) {
+/** Les exercices à afficher sous un module : ceux d'une recherche, ou ceux
+ *  qu'un dépliage est allé chercher. */
+function exercisesOf(mod: Module): ModuleExercise[] {
+  return mod.exercises.length ? mod.exercises : (loadedExercises.value[mod.module] || [])
+}
+
+async function toggle(moduleId: string) {
   if (openModules.value.has(moduleId)) {
     openModules.value.delete(moduleId)
-  } else {
-    openModules.value.add(moduleId)
+    return
+  }
+  openModules.value.add(moduleId)
+  const mod = modules.value.find(m => m.module === moduleId)
+  if (mod && !mod.exercises.length && !loadedExercises.value[moduleId]) {
+    loadedExercises.value[moduleId] = await apiFetch<ModuleExercise[]>(
+      `/api/exercises/modules/${encodeURIComponent(moduleId)}/exercises?lang=fr`,
+    )
   }
 }
 
@@ -278,23 +296,54 @@ function onExerciseClick(id: string, event: MouseEvent) {
   // Petit écran : navigation normale via NuxtLink
 }
 
-watch(searchQuery, (q) => {
-  if (q.trim()) {
-    openModules.value = new Set(filteredModules.value.map(m => m.module))
-  } else {
-    openModules.value = new Set()
-  }
-})
+let jeton = 0
 
-async function fetchModules() {
-  loading.value = true
+async function fetchCatalogue(premierChargement = false) {
+  const q = searchQuery.value.trim()
+  if (premierChargement) loading.value = true
+  else searching.value = true
+  const mien = ++jeton
   try {
-    const params = new URLSearchParams({ lang: 'fr' })
-    modules.value = await apiFetch<Module[]>(`/api/exercises/modules?${params}`)
+    const params = new URLSearchParams({ lang: 'fr', scope: searchScope.value })
+    if (filterLevel.value) params.set('level', filterLevel.value)
+    if (filterDomain.value) params.set('domain', filterDomain.value)
+    if (q) params.set('q', q)
+
+    const data = await apiFetch<Catalogue>(`/api/exercises/modules?${params}`)
+    // Une réponse doublée par une frappe plus récente est jetée : sans ce
+    // jeton, la plus lente des deux écrase la plus fraîche.
+    if (mien !== jeton) return
+
+    modules.value = data.modules
+    levels.value = data.levels
+    domains.value = data.domains
+    total.value = data.total
+    truncated.value = data.truncated
+    // Une recherche renvoie déjà les exercices qui correspondent : on déplie
+    // ce qu'elle a trouvé, et rien de plus. Sans recherche, tout reste replié
+    // — c'est ce qui évite de jeter des milliers de titres dans le DOM, chacun
+    // passant par KaTeX.
+    openModules.value = data.searched
+      ? new Set(data.modules.filter(m => m.exercises.length).map(m => m.module))
+      : new Set()
   } finally {
-    loading.value = false
+    if (mien === jeton) {
+      loading.value = false
+      searching.value = false
+    }
   }
 }
 
-onMounted(fetchModules)
+// Anti-rebond : une frappe ne déclenche pas une requête, une pause si.
+let minuteur: ReturnType<typeof setTimeout> | undefined
+watch(searchQuery, () => {
+  clearTimeout(minuteur)
+  minuteur = setTimeout(() => fetchCatalogue(), 250)
+})
+
+// Les menus, eux, filtrent tout de suite.
+watch([filterLevel, filterDomain, searchScope], () => fetchCatalogue())
+
+onMounted(() => fetchCatalogue(true))
+onBeforeUnmount(() => clearTimeout(minuteur))
 </script>

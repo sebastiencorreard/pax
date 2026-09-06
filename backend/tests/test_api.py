@@ -112,6 +112,122 @@ class TestAuth:
 # ---------------------------------------------------------------------------
 
 
+class TestCatalogue:
+    """`/api/exercises/modules` — la recherche, faite au serveur.
+
+    La page chargeait les 3911 exercices francophones (683 Ko) et les filtrait
+    en JavaScript à chaque frappe. Elle reçoit maintenant les modules seuls,
+    et les exercices seulement quand une recherche les désigne ou qu'un
+    dépliage les demande.
+    """
+
+    def test_requires_auth(self, client):
+        assert client.get("/api/exercises/modules").status_code == 401
+
+    def test_sans_recherche_aucun_exercice_n_est_envoye(self, client, student_headers):
+        """C'est tout l'objet du changement : le catalogue nu ne porte que des
+        compteurs."""
+        r = client.get("/api/exercises/modules?lang=fr", headers=student_headers)
+        assert r.status_code == 200
+        body = r.json()
+        assert body["modules"], "le catalogue français n'est pas vide"
+        assert all(m["exercises"] == [] for m in body["modules"])
+        assert all(m["exercise_count"] > 0 for m in body["modules"])
+        assert body["total"] == sum(m["exercise_count"] for m in body["modules"])
+        assert body["searched"] is False
+
+    def test_les_facettes_ne_listent_que_ce_qui_existe(self, client, student_headers):
+        """Proposer `U4` quand aucun exercice ne s'y trouve n'aide personne —
+        et c'est la raison d'être des facettes servies avec le catalogue."""
+        body = client.get(
+            "/api/exercises/modules?lang=fr", headers=student_headers
+        ).json()
+        codes = {n["code"] for n in body["levels"]}
+        assert codes == {"H3", "H4"}
+        assert all(n["count"] > 0 for n in body["levels"])
+        assert all(d["count"] > 0 for d in body["domains"])
+
+    def test_le_filtre_de_niveau_porte(self, client, student_headers):
+        body = client.get(
+            "/api/exercises/modules?lang=fr&level=H4", headers=student_headers
+        ).json()
+        assert body["modules"]
+        assert {m["level"] for m in body["modules"]} == {"H4"}
+
+    def test_une_recherche_rapporte_les_exercices_trouves(self, client, student_headers):
+        body = client.get(
+            "/api/exercises/modules?lang=fr&q=thales&scope=exercises",
+            headers=student_headers,
+        ).json()
+        assert body["searched"] is True
+        assert body["total"] > 0
+        trouves = [e for m in body["modules"] for e in m["exercises"]]
+        assert trouves, "une recherche doit rapporter les exercices, pas que les modules"
+        assert all(
+            "thales" in (e["title"] or "").lower()
+            or "thalès" in (e["title"] or "").lower()
+            or any("thales" in k.lower() for k in e["keywords"])
+            for e in trouves
+        )
+
+    def test_la_recherche_ignore_les_accents(self, client, student_headers):
+        """Un élève tape « algebre » ; le corpus écrit « algèbre »."""
+        def total(q):
+            return client.get(
+                f"/api/exercises/modules?lang=fr&q={q}&scope=all",
+                headers=student_headers,
+            ).json()["total"]
+
+        assert total("algebre") == total("alg%C3%A8bre") > 0
+
+    def test_l_union_des_mots_cles_rend_les_quizz_trouvables(
+        self, client, student_headers
+    ):
+        """`csga` ne mentionne Thalès que dans la ligne d'agrégation de son
+        `.def` — pas dans `Exkeywords`, ni dans son titre. Il n'était donc
+        trouvable par aucune des deux sources prises seule."""
+        body = client.get(
+            "/api/exercises/modules?lang=fr&q=thales&scope=exercises",
+            headers=student_headers,
+        ).json()
+        ids = {e["id"] for m in body["modules"] for e in m["exercises"]}
+        assert "H3~algebra~oefqcm3.fr~src~csga" in ids
+
+    def test_une_recherche_trop_large_est_coupee_mais_comptee(
+        self, client, student_headers
+    ):
+        """Une requête d'une lettre correspond à presque tout le corpus : le
+        compte reste exact, le détail est plafonné, et `truncated` le dit."""
+        body = client.get(
+            "/api/exercises/modules?lang=fr&q=e&scope=exercises",
+            headers=student_headers,
+        ).json()
+        rendus = sum(len(m["exercises"]) for m in body["modules"])
+        assert body["truncated"] is True
+        assert body["total"] > rendus
+        assert rendus <= 400
+
+    def test_les_exercices_d_un_module_se_chargent_a_part(
+        self, client, student_headers
+    ):
+        catalogue = client.get(
+            "/api/exercises/modules?lang=fr&level=H4", headers=student_headers
+        ).json()
+        mod = catalogue["modules"][0]
+        r = client.get(
+            f"/api/exercises/modules/{mod['module']}/exercises?lang=fr",
+            headers=student_headers,
+        )
+        assert r.status_code == 200
+        assert len(r.json()) == mod["exercise_count"]
+
+    def test_un_module_inconnu_est_404(self, client, student_headers):
+        r = client.get(
+            "/api/exercises/modules/nexiste-pas/exercises", headers=student_headers
+        )
+        assert r.status_code == 404
+
+
 class TestExercises:
     def test_list_requires_auth(self, client):
         r = client.get("/api/exercises/")
