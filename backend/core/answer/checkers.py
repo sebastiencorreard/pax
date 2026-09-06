@@ -1832,6 +1832,27 @@ def check_vector(
     return CheckResult(correct=False, score=0.0, method="vector")
 
 
+# Les tirets qu'un élève peut poser à la place du trait d'union-moins ASCII.
+# Le signe moins typographique `−` (U+2212) est celui que produisent un
+# copier-coller depuis un énoncé mathématique, le pavé numérique de certains
+# systèmes et l'autocorrection de plusieurs traitements de texte ; les tirets
+# demi-cadratin et cadratin viennent des mêmes autocorrections. Sans cette
+# table, `−1` était refusé comme « non reconnu comme un nombre » alors que la
+# réponse est juste.
+#
+# C'est une tolérance propre à PAX, non une règle WIMS : le moteur d'origine
+# travaille en ISO-8859-1 et ne rencontre aucun de ces caractères. Elle
+# n'assouplit donc aucun verdict que WIMS rendrait — elle rattrape une saisie
+# que lui n'aurait jamais reçue.
+_MOINS_UNICODE = {
+    ord("\u2212"): "-",  # signe moins
+    ord("\u2013"): "-",  # tiret demi-cadratin
+    ord("\u2014"): "-",  # tiret cadratin
+    ord("\u2010"): "-",  # trait d'union
+    ord("\u2011"): "-",  # trait d'union insécable
+}
+
+
 def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
     """Parse un nombre : entier, décimal, fraction, expression simple.
 
@@ -1840,7 +1861,7 @@ def _parse_number(s: str, comma_is_decimal: bool = True) -> float:
     ``3.5`` valent 3,5). En locale à point, la virgule n'est PAS décimale : un
     ``3,5`` n'est pas reconnu comme un nombre (il échoue au parsing).
     """
-    s = s.strip()
+    s = s.strip().translate(_MOINS_UNICODE)
     if comma_is_decimal:
         s = s.replace(",", ".")
     s = s.replace("^", "**")

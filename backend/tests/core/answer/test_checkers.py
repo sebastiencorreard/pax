@@ -344,6 +344,48 @@ def test_all_warnings_use_same_message():
 # Conformité WIMS I.3.a : précision `\precision{M}`, `absolute`,
 # `\computeanswer{no}`, `option=default=X`.
 # ─────────────────────────────────────────────────────────────────────────────
+class TestSigneMoinsUnicode:
+    """Un élève ne tape pas toujours le trait d'union-moins ASCII.
+
+    Le signe moins typographique `−` (U+2212) vient d'un copier-coller depuis
+    un énoncé mathématique, du pavé numérique de certains systèmes ou de
+    l'autocorrection d'un traitement de texte ; les tirets demi-cadratin et
+    cadratin de la même autocorrection. Ils faisaient échouer le parsing —
+    « Réponse non reconnue comme un nombre » — sur une réponse pourtant juste.
+
+    Tolérance propre à PAX : WIMS travaille en ISO-8859-1 et ne reçoit jamais
+    ces caractères, donc aucun verdict qu'il rendrait n'est assoupli.
+    """
+
+    @pytest.mark.parametrize(
+        "signe, nom",
+        [
+            ("\u2212", "signe moins U+2212"),
+            ("\u2013", "tiret demi-cadratin"),
+            ("\u2014", "tiret cadratin"),
+            ("\u2010", "trait d'union"),
+            ("\u2011", "trait d'union insécable"),
+        ],
+    )
+    def test_un_moins_typographique_vaut_le_moins_ascii(self, signe, nom):
+        r = check_answer("numeric", f"{signe}1", "-1")
+        assert r.correct, f"{nom} refusé"
+        assert r.score == 1.0
+
+    def test_le_moins_typographique_marche_avec_une_decimale(self):
+        assert check_answer("numeric", "\u22121,5", "-1.5", lang="fr").correct
+
+    def test_il_reste_un_signe_et_non_un_nombre(self):
+        """La tolérance ne doit pas transformer un tiret seul en zéro."""
+        for saisie in ("-", "\u2212", "\u2014"):
+            r = check_answer("numeric", saisie, "-1")
+            assert not r.correct
+            assert r.detail == "Réponse non reconnue comme un nombre"
+
+    def test_une_reponse_fausse_le_reste(self):
+        assert not check_answer("numeric", "\u22122", "-1").correct
+
+
 class TestWimsPrecision:
     def test_exact_reply_is_correct_at_default_precision(self):
         """Défaut 10000 : une réponse exacte reste juste."""
