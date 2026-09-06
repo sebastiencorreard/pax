@@ -697,10 +697,14 @@ class DefEngine(_SlibMixin):
     _strict_arith: bool = False
     # Les palettes des `\choice`, composées par `_prepare_choices`.
     _choice_lists: dict[str, list[str]] = {}
+    # Faut-il proposer « aucune de ces réponses » ? Oui quand la bonne
+    # réponse n'est pas garantie présente (`qcmgood<1`, cf. `formc.phtml`).
+    _choice_none: dict[str, bool] = {}
 
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
         self._choice_lists = {}
+        self._choice_none = {}
         self.rng = random.Random(seed)
         # Échéance du budget temps (posée par render()) ; None = pas de limite.
         self._deadline: float | None = None
@@ -4806,18 +4810,34 @@ class DefEngine(_SlibMixin):
         première est la bonne. Et la liste finale est **triée**, non mélangée,
         sauf mention `shuffle` : l'ordre ne doit pas trahir la réponse.
         """
-        try:
-            qcmpresent = int(float(self._subst(self.ctx.get("qcmpresent", "")) or 0))
-        except (TypeError, ValueError):
-            qcmpresent = 0
-        if qcmpresent <= 0:
-            # **On ne tronque pas.** WIMS déduit `qcmpresent` du `qcmlevel`,
-            # un réglage de sévérité que l'enseignant choisit sur la feuille
-            # et que PAX n'a pas. Lui donner d'office le premier palier (3)
-            # retirait une option écrite par l'auteur : `representation1`
-            # propose quatre graphiques, il n'en restait que trois — et la
-            # bonne réponse pouvait être celle qui manquait.
-            qcmpresent = 0
+        # ── Niveau de sévérité ────────────────────────────────────────────
+        # Chez WIMS, l'enseignant qui pose l'exercice sur une feuille choisit un
+        # `qcmlevel` de 1 à 9, et ce seul curseur commande dix réglages
+        # (`oef/exo.init`). Deux nous concernent ici :
+        #
+        #     qcmpresent = !item $qcmlevel of 3,3,4,5,5,6,7,8,8
+        #     qcmgood    = !item $qcmlevel of 1,1,1,1,0,0,0,0,0
+        #
+        # `qcmpresent` est le nombre de propositions montrées — moins il y en
+        # a, plus l'exercice est facile. `qcmgood` dit si la bonne réponse est
+        # **garantie** parmi elles. PAX n'a pas encore ce curseur côté feuille :
+        # il prend le défaut de WIMS, le niveau 1, et le `.def` peut l'écraser.
+        _PRESENT = (3, 3, 4, 5, 5, 6, 7, 8, 8)
+        _GOOD = (1, 1, 1, 1, 0, 0, 0, 0, 0)
+
+        def _entier_ctx(nom: str) -> int | None:
+            brut = self._subst(str(self.ctx.get(nom, ""))).strip()
+            try:
+                return int(float(brut))
+            except (TypeError, ValueError):
+                return None
+
+        niveau = _entier_ctx("qcmlevel") or 1
+        niveau = min(max(niveau, 1), 9)
+        qcmpresent = _entier_ctx("qcmpresent") or _PRESENT[niveau - 1]
+        qcmgood_defaut = _entier_ctx("qcmgood")
+        if qcmgood_defaut is None:
+            qcmgood_defaut = _GOOD[niveau - 1]
 
         for cm in df.choice_meta:
             n = cm.get("n")
@@ -4838,9 +4858,25 @@ class DefEngine(_SlibMixin):
             if not bons and not mauvais:
                 continue
             rng = random.Random(f"{self.seed}_choice{n}")
-            melange = bons + mauvais
-            rng.shuffle(melange)
-            cli = melange[: max(qcmpresent, len(bons))] if qcmpresent else melange
+            qcmgood = qcmgood_defaut
+            if len(bons) <= 1 and qcmgood > 0 and len(mauvais) > 1:
+                # `var.prep`, branche « la bonne réponse est garantie » : elle
+                # passe **en tête**, et la troncature ne peut donc pas
+                # l'emporter. Le premier leurre est lui aussi préservé — WIMS ne
+                # mélange que les suivants (`ccbad=!item 2 to -1 of $cbad`),
+                # l'auteur ayant souvent mis en premier le piège qu'il tient à
+                # montrer.
+                reste = mauvais[1:]
+                rng.shuffle(reste)
+                cli = (bons + [mauvais[0]] + reste)[:qcmpresent]
+            else:
+                melange = bons + mauvais
+                rng.shuffle(melange)
+                cli = melange[:qcmpresent]
+                if qcmpresent <= len(mauvais):
+                    # La bonne réponse a pu disparaître : WIMS offre alors une
+                    # échappatoire honnête plutôt que de piéger l'élève.
+                    qcmgood = 0
             option = self._subst(cm.get("option", "")).lower()
             if "shuffle" in option.split():
                 rng.shuffle(cli)
@@ -4850,6 +4886,7 @@ class DefEngine(_SlibMixin):
             # des virgules puis la recouper perdrait les options qui en
             # contiennent une (cf. ci-dessus).
             self._choice_lists[str(n)] = cli
+            self._choice_none[str(n)] = qcmgood < 1
             self.ctx[f"choicelist{n}"] = ",".join(cli)
             self.ctx[f"choiceitems{n}"] = str(len(cli))
 
@@ -6237,8 +6274,15 @@ class DefEngine(_SlibMixin):
                 # réponse : ses phrases à choisir manquaient de la phrase,
                 # là où WIMS y glisse deux menus.
                 en_menu = len(df.choice_meta) > 1 or bool(df.reply_meta)
+                # Les deux échappatoires de `formc.phtml`, toujours en
+                # queue de liste. « Aucune de ces réponses » n'apparaît que
+                # si la bonne peut manquer (`qcmgood<1`) : la proposer
+                # autrement offrirait une réponse qui n'est jamais juste.
+                if self._choice_none.get(str(n)):
+                    aucune = "Aucune de ces réponses"
+                    if aucune not in seen_set:
+                        choices.append(aucune)
                 jnsp = "Je ne sais pas"
-                # « Je ne sais pas » vient toujours en dernier (`formc.phtml`).
                 if jnsp not in seen_set:
                     choices.append(jnsp)
                 # Close WIMS inline math `\(…)` → KaTeX `\(…\)` so the frontend

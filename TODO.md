@@ -365,16 +365,33 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   écrit `shuffle`. Le type suit `oef/formc.phtml` : boutons radio quand
   l'exercice n'a qu'un choix et aucune réponse, menu déroulant sinon.
 
-- [ ] **Deux limites assumées.**
-  - `choicegood` est une liste chez WIMS ; PAX garde la bonne réponse
-    **entière**, parce que plusieurs exercices y écrivent une seule option qui
-    contient une virgule (`oefanglais/Verbesirrgulie4`,
-    `oefstatproba/bergamo1`). Un choix à plusieurs bonnes réponses serait donc
-    mal traité — aucun n'a été rencontré.
-  - `qcmpresent` n'est pas appliqué : PAX montre toutes les options. C'est un
-    réglage de sévérité que l'enseignant choisit sur la feuille chez WIMS, et
-    que PAX n'a pas. Le tronquer d'office retirait une option écrite par
-    l'auteur.
+- [x] **Le niveau de sévérité de WIMS est repris** (2026-09-06). L'enseignant
+  qui pose un exercice sur une feuille WIMS choisit un `qcmlevel` de 1 à 9, et
+  ce curseur commande dix réglages (`oef/exo.init`). Deux touchent les
+  palettes :
+
+      qcmpresent = !item $qcmlevel of 3,3,4,5,5,6,7,8,8   ← options montrées
+      qcmgood    = !item $qcmlevel of 1,1,1,1,0,0,0,0,0   ← bonne réponse garantie ?
+
+  PAX prend le défaut de WIMS — niveau 1, donc trois propositions — et un
+  `.def` qui pose ses propres valeurs les garde. **142 palettes** du corpus
+  sont réduites, et zéro bonne réponse n'est perdue : c'est le rôle de
+  `qcmgood`, qui place la bonne réponse en tête *avant* la troncature.
+  Au-dessus du niveau 4 elle peut manquer, et « Aucune de ces réponses »
+  apparaît alors — l'échappatoire est implémentée mais aucun exercice du
+  corpus ne l'atteint au niveau 1.
+
+- [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez
+  WIMS, et c'est le pendant naturel de la surcharge des `confparm` (cf. I.2).
+  Les huit autres réglages qu'il commande — `penalty`, `givegood`, `givesol`,
+  `givehint`, `scorepower`, `freepower`, `precweight` — restent à instruire :
+  PAX montre aujourd'hui le corrigé et le retour sans condition.
+
+- [ ] **Une limite assumée.** `choicegood` est une liste chez WIMS ; PAX garde
+  la bonne réponse **entière**, parce que plusieurs exercices y écrivent une
+  seule option qui contient une virgule (`oefanglais/Verbesirrgulie4`,
+  `oefstatproba/bergamo1`). Un choix à plusieurs bonnes réponses serait donc
+  mal traité — aucun n'a été rencontré.
 
 # II. Fonctionnalités PAX
 

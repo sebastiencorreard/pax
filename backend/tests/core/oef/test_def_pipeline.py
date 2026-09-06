@@ -516,11 +516,28 @@ class TestRepresentation1:
 
     def test_choices_are_dedup_labels(self):
         r = load_and_render(REPRESENTATION1_DEF, seed=42)
-        # Four "Graphique N" + "Je ne sais pas"
+        # L'exercice écrit quatre graphiques ; WIMS n'en montre que trois.
+        # `qcmpresent` vient du niveau de sévérité — `!item $qcmlevel of
+        # 3,3,4,5,5,6,7,8,8` — et le niveau par défaut est 1. Le test attendait
+        # les quatre : il décrivait PAX, pas WIMS.
         choices = r.answers[0].options.get("choices", [])
-        assert len(choices) == 5
         graph_labels = [c for c in choices if c.startswith("Graphique ")]
-        assert len(graph_labels) == 4
+        assert len(graph_labels) == 3
+        assert choices[-1] == "Je ne sais pas"
+
+    def test_the_right_answer_is_always_offered(self):
+        """La troncature ne doit jamais emporter la bonne réponse.
+
+        C'est le rôle de `qcmgood`, que le même niveau de sévérité fixe à 1
+        jusqu'au niveau 4 : `var.prep` place alors la bonne réponse **en tête**
+        avant de tronquer. Sans cette garantie l'exercice devient infaisable —
+        et c'est ce qui arrivait, la bonne réponse étant mélangée au tas puis
+        coupée avec lui.
+        """
+        for graine in (1, 7, 42, 1234):
+            r = load_and_render(REPRESENTATION1_DEF, seed=graine)
+            a = r.answers[0]
+            assert a.expected in a.options.get("choices", []), graine
 
     def test_expected_matches_one_choice(self):
         r = load_and_render(REPRESENTATION1_DEF, seed=42)
