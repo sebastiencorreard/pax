@@ -8,20 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-Full-stack application split into three main layers:
+Three layers. The **backend** (`backend/`) checks and renders: `check.py`
+verifies answers symbolically through SymPy and Maxima, `render.py` turns an
+OEF file into HTML. The **frontend** (`frontend/`) is a SPA.
 
-**Backend** (`backend/`) — Python 3.10 + FastAPI (async)
-- Entry point: `main.py` mounts 5 routers: `auth`, `exercises`, `sheets`, `render`, `check`
-- `api/routes/` — HTTP handlers; `models/` — SQLAlchemy ORM; `core/` + `services/` — business logic
-- Answer checking (`check.py`) uses SymPy + Maxima CAS for symbolic verification
-- `render.py` translates OEF exercise files into HTML for display
-- Database: PostgreSQL via asyncpg + Alembic migrations; cache/queue: Redis + Celery
-
-**Frontend** (`frontend/`) — Nuxt 3 (SSR disabled, SPA mode) + Vue 3 + Tailwind CSS
-- API base defaults to `http://localhost:8001`, override via `NUXT_PUBLIC_API_BASE`
-- Auth state managed by Pinia store (`stores/`); KaTeX for LaTeX rendering; i18n defaults to French
-
-**Exercise resources** (`ressources/`) — Content library organized by level (`H4/`) then domain (`algebra/`, `chemistry/`, `logic/`, etc.)
+**Exercise resources** (`ressources/`) — content library organized by level (`H4/`) then domain (`algebra/`, `chemistry/`, `logic/`, etc.)
 - Each exercise set lives in its own subdirectory and is OEF-compatible
 - `.js.el` files: structured data (molecules, atoms) using WIMSchem coordinate/bond encoding
 - `.txt` files: exercise definitions with premises, choices, and the correct answer marked `*`
@@ -114,55 +105,16 @@ d'ici là, c'est qu'un changement n'aggrave aucun des trois compteurs.
 
 ## Dependencies
 
-### Applying an upgrade — rebuild, never restart
+**Applying an upgrade — rebuild, never restart.** A `restart` reuses the
+container's own packages, and both stacks hide a stale install in a way that
+makes a verification look green when it tested nothing. Backend:
+`docker compose build backend`. Frontend: `docker compose down frontend &&
+docker compose up -d frontend` — `/app/node_modules` is an anonymous volume,
+which only `down` drops.
 
-A `restart` reuses the container's own packages. Both stacks hide a stale
-install in a way that makes a verification look green when it tested nothing:
-
-```bash
-# Backend — after editing backend/requirements.txt
-docker compose build backend && docker compose up -d backend
-docker compose exec -T backend pytest tests/ -q
-```
-`pip install -r requirements.txt` inside a live container keeps whatever is
-already installed, so a dependency that is *used but not declared* stays
-invisible. That is how `email-validator` — pulled implicitly by FastAPI 0.111,
-no longer by 0.141 — only surfaced on a full image rebuild, as an ImportError
-on the `auth` router at startup.
-
-```bash
-# Frontend
-cd frontend && npm install <pkg>@<version> && cd ..
-docker compose build frontend
-docker compose down frontend && docker compose up -d frontend   # `restart` is NOT enough
-```
-`/app/node_modules` is an **anonymous volume** (`docker-compose.override.yml`),
-so a `restart` keeps the image's original packages and host-side `npm install`
-never reaches the running app. Only `down` drops the volume.
-
-For a non-trivial upgrade, add the corpus regression (backend) and
-`cd frontend && npx playwright test`. The e2e suite currently yields **17
-pre-existing failures** — it describes an `/exercise` page that has since been
-replaced — so judge the *delta*, not the total. Its accounts (`eleve@pax.fr` /
-`eleve1234`, `prof@pax.fr` / `prof1234`) must exist in the DB.
-
-### Automated checks
-
-`.github/dependabot.yml` (weekly PRs) and `.github/workflows/dependencies.yml`
-(`pip-audit` + `npm audit`) — **both inert until `.github/` reaches the default
-branch**: Dependabot reads its config there, and scheduled workflows only run
-from it. Same check locally, GitHub-free: `./scripts/check-deps.sh [backend|frontend]`,
-exit 1 on a blocking advisory.
-
-Backend minor/patch updates are **grouped into one PR** on purpose: FastAPI pins
-starlette and pydantic follows FastAPI, so split PRs could never be green.
-`nuxt` / `pinia` / `@vueuse` majors are ignored — migrations, not upgrades.
-
-`PYSEC-2026-1325` (`ecdsa`, Minerva timing attack on P-256) is ignored in both,
-with its rationale: upstream considers side channels out of scope, so it will
-never close, and it is unreachable while JWTs are HS256 (`config.py:algorithm`,
-`core/security.py` restricting `algorithms` on decode). **Re-enable it if the
-project ever moves to ES256.**
+The full procedure — commands, the traps behind them, and the automated checks
+(dependabot, `pip-audit`, `npm audit`, and the advisory deliberately ignored) —
+is in the `dependances` skill.
 
 ## Exercise ID System
 
@@ -190,29 +142,6 @@ Backend settings are Pydantic-based (`backend/config.py`), sourced from `.env`:
 - Redis: `redis://localhost:6379/0`
 - Keycloak: `http://localhost:8180`, realm `pax` (auth not yet wired in Phase 1)
 - Maxima binary: `/usr/bin/maxima`, 3 s timeout
-
-## Database Tables
-
-| Table | Purpose |
-|---|---|
-| `users` | Accounts (teacher / student / admin) |
-| `exercises` | Imported OEF exercises (PK = path slug) |
-| `sheets` | Exercise sheets created by teachers |
-| `sheet_exercises` | Join: exercises on a sheet |
-| `homework_assignments` | Sheets assigned to students |
-| `homework_pools` | Groups of exercises for random selection |
-| `homework_pool_exercises` | Join: exercises in a pool |
-| `grades` | Student grades |
-| `attempts` | Student answer attempts |
-| `academies` | School districts |
-| `etablissements` | Schools |
-
-## Migrations
-
-Three migrations in `backend/migrations/versions/`:
-1. `abbbce7c5e1f` — init users table
-2. `bff6ef39b9f5` — add exercises, sheets, attempts tables
-3. `c1a2b3d4e5f6` — change `exercises.id` from integer to path slug (VARCHAR)
 
 ## Exercise Resource Format
 
