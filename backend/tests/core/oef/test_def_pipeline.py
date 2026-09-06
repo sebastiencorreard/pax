@@ -516,13 +516,15 @@ class TestRepresentation1:
 
     def test_choices_are_dedup_labels(self):
         r = load_and_render(REPRESENTATION1_DEF, seed=42)
-        # L'exercice écrit quatre graphiques ; WIMS n'en montre que trois.
-        # `qcmpresent` vient du niveau de sévérité — `!item $qcmlevel of
-        # 3,3,4,5,5,6,7,8,8` — et le niveau par défaut est 1. Le test attendait
-        # les quatre : il décrivait PAX, pas WIMS.
+        # L'exercice écrit quatre graphiques ; WIMS n'en montre que
+        # `qcmpresent`, que le niveau de sévérité fixe (`!item $qcmlevel of
+        # 3,3,4,5,5,6,7,8,8`). Le test attendait quatre en dur : il décrivait
+        # PAX, pas WIMS. On l'accroche au réglage plutôt qu'à un nombre, pour
+        # qu'un changement de niveau par défaut ne le fasse pas tomber.
         choices = r.answers[0].options.get("choices", [])
         graph_labels = [c for c in choices if c.startswith("Graphique ")]
-        assert len(graph_labels) == 3
+        montrees = int(r.severite["qcmpresent"])
+        assert len(graph_labels) == min(4, montrees)
         assert choices[-1] == "Je ne sais pas"
 
     def test_the_right_answer_is_always_offered(self):

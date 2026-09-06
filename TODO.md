@@ -406,12 +406,43 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   ne servait pas ; le consommateur est dans le moteur C, invisible à cette
   recherche. **Deux mesures sur WIMS l'ont établi** — cf. `check_numeric`.
 
-- [ ] **Quel niveau par défaut ?** Les mesures placent le WIMS de référence au
-  **niveau 3** (`precweight=0,7`, `freepower=2`), là où PAX prend le niveau 1
-  de `oef/default`. Tant que la feuille n'expose pas `qcmlevel`, PAX note donc
-  plus généreusement : une réponse approchée vaut 0,5 chez nous contre 0,7 chez
-  WIMS, mais sans l'exposant qui rabat l'ensemble. À trancher avec le niveau
-  que les feuilles emploieront réellement.
+- [x] **Le niveau 3 est le défaut de PAX** (2026-09-06). Trois mesures sur le
+  WIMS de référence l'établissent, et la troisième — une réponse juste et une
+  fausse — a confirmé la prédiction du modèle avant d'être faite :
+
+  | copie | prédit | WIMS |
+  |---|---|---|
+  | deux approchées | 0,7² = 4,9 | 4,9/10 |
+  | une juste, une approchée | 0,85² = 7,2 | 7,2/10 |
+  | une juste, une fausse | 0,5² = 2,5 | 2,5/10 |
+
+  `oef/default` donne 1, mais c'est le défaut du *menu* de création d'une
+  feuille, non celui des feuilles réelles. Effet sur le corpus : 142 palettes
+  reprennent une proposition (3 → 4), et les notes partielles sont rabattues
+  par l'exposant.
+
+## 6. Réglages du niveau de sévérité — les exposer
+
+- [ ] **Reprendre le dispositif de WIMS, dans sa forme.** Les dix réglages y
+  sont accessibles de deux façons, et les deux méritent d'exister ici :
+
+  - un **curseur unique**, `qcmlevel` de 1 à 9, qui les déduit tous
+    (`oef/exo.init`, branche non experte). C'est ce que l'enseignant règle en
+    posant l'exercice sur une feuille, et c'est ce qu'il faut d'abord ;
+  - un **mode expert** (`intro_expert=yes`) où chacun se pose isolément —
+    `intro_qcmpresent` borné entre 2 et 8, `intro_sol`, `intro_feed`,
+    `intro_sepow`, `intro_expow`, `intro_precw`, et les cases `introcheck` pour
+    `qcmgood` et `penalty`.
+
+  Le moteur est prêt : `DefEngine.severite()` lit `qcmlevel` puis laisse chaque
+  réglage être écrasé isolément, exactement comme les `!default` d'`exo.init`.
+  Il ne manque que le porteur — la feuille — et l'écran qui va avec. Même
+  chantier que la surcharge des `confparm` (cf. I.2) : les deux réglages vivent
+  au même endroit chez WIMS et devraient y vivre ici.
+
+  WIMS montre par ailleurs à l'enseignant un tableau des neuf niveaux
+  (`oef/helpseverity`) : neuf colonnes, dix lignes. Il vaut d'être repris, car
+  un curseur de 1 à 9 sans ce tableau ne dit rien de ce qu'il commande.
 
 - [ ] **`penalty` et `scorepower` restent sans consommateur identifié.** Le
   `oef_penalty` d'`answer.phtml` est déclenché par `$toolate` — une réponse

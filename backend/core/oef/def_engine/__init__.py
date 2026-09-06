@@ -4802,7 +4802,7 @@ class DefEngine(_SlibMixin):
             except (TypeError, ValueError):
                 return None
 
-        niveau = int(_nombre("qcmlevel") or 1)
+        niveau = int(_nombre("qcmlevel") or _NIVEAU_DEFAUT)
         niveau = min(max(niveau, 1), 9)
         out: dict[str, float] = {"qcmlevel": float(niveau)}
         for cle, paliers in _SEVERITE.items():
@@ -6920,6 +6920,21 @@ _SEVERITE: dict[str, tuple[float, ...]] = {
     # Crédit d'une réponse juste « à la précision près ».
     "precweight": (0.9, 0.8, 0.7, 0.55, 0.4, 0.25, 0.1, 0, 0),
 }
+
+# Le niveau que PAX applique faute de mieux.
+#
+# `oef/default` donne 1, mais c'est le défaut du *menu* de création d'une
+# feuille, pas celui des feuilles réelles. Trois mesures faites sur un WIMS de
+# référence (`OEFevalwimsfctref/valtrigo1`, cf. `check_numeric`) le placent au
+# **niveau 3** :
+#
+#     deux réponses approchées    4,9/10 = 0,7²
+#     une juste, une approchée    7,2/10 = 0,85²
+#     une juste, une fausse       2,5/10 = 0,5²
+#
+# C'est donc le niveau 3 que PAX prend, jusqu'à ce que la feuille porte le
+# réglage — il vit là chez WIMS, et n'a rien à faire dans le moteur.
+_NIVEAU_DEFAUT = 3
 
 
 def _uniques(items: list[str]) -> list[str]:
