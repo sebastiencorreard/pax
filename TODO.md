@@ -371,8 +371,15 @@ ce que la source d'`anstype/` a appris :
   WIMS rendrait. L'import (`scripts/import_exercises.py`) et le corpus de test
   lisent le `.def` eux aussi : l'import y gagne 51 titres (mojibake) et 87
   langues (`moles.nl` était étiqueté `fr`), et ses mots-clés — stockés
-  jusqu'ici **lettre par lettre** (`{l,i,t,e,r,a,l,…}`) — une vraie liste. Une
-  réimportation est nécessaire pour que la base en profite.
+  jusqu'ici **lettre par lettre** (`{l,i,t,e,r,a,l,…}`) — une vraie liste.
+  **La base en profite depuis le 2026-09-06** : l'import, jusque-là purement
+  additif, actualise désormais les lignes existantes (`rafraichir`), et n'efface
+  jamais un champ que le `.def` ne porte pas. 869 lignes corrigées — 800 listes
+  de mots-clés, 86 langues (42 exercices catalans étiquetés `fr`, 20 portant la
+  chaîne littérale `\lang`), 55 titres (traductions et mojibake `cp1252`).
+  Effet de bord vu au passage : le corpus compte 42 exercices en `ca` et 82 en
+  `it`, deux langues à virgule décimale absentes de `COMMA_DECIMAL_LANGS`
+  (`core/oef/i18n.py`) — cf. §3 f) ci-dessous.
 - [x] **Doublons de découpage** : sept copies locales de « couper au
   séparateur hors parenthèses » et deux de « ôter les parenthèses
   englobantes » (`checkers`, `pari_prog`, `presentation`, `cas`, `slib`,
@@ -389,6 +396,17 @@ ce que la source d'`anstype/` a appris :
   modélisées : PAX n'a pas de graine de session.
 - Les commentaires HTML des énoncés traversent tels quels — WIMS les laisse
   aussi, mais son `answer.phtml` en retire certains marqueurs.
+
+### f) Catalan et italien : la virgule décimale leur manque
+
+- [ ] `COMMA_DECIMAL_LANGS` (`core/oef/i18n.py`) ne contient que `fr` et `nl`,
+  alors que le corpus porte **42 exercices en `ca`** (`oefdevfact.ca`) et **82
+  en `it`**, deux langues qui écrivent `3,14`. Ces exercices affichent donc
+  leurs décimales à l'anglaise, et un élève qui saisit `3,14` n'est pas lu
+  comme WIMS le lirait. Le point d'extension est prévu pour ce cas — ajouter
+  les deux codes ne change rien d'autre — mais il demande d'abord de vérifier
+  contre le WIMS de référence, comme la sévérité l'a été : un module catalan
+  peut très bien avoir été écrit avec des points.
 
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 

@@ -36,7 +36,12 @@ Services:
 
 On first start, `entrypoint.sh` runs automatically:
 1. `alembic upgrade head` — applies all migrations
-2. `python scripts/import_exercises.py` — imports all renderable OEF exercises from every level dir (`H3`, `H4`, … any `<uppercase letter><digit>` name) plus `tool`/`Lang`; pass `--level H4` to restrict to one
+2. `python scripts/import_exercises.py` — imports all renderable OEF exercises from every level dir (`H3`, `H4`, … any `<uppercase letter><digit>` name) plus `tool`/`Lang`; pass `--level H4` to restrict to one.
+   It is **idempotent**: an exercise already in the DB has its title, language
+   and keywords re-read from the `.def` and updated when they differ — a fix to
+   `extract_meta` therefore reaches the 4278 existing rows on the next start.
+   A field the `.def` does not carry never erases what the DB holds. `--dry-run`
+   lists what would change without writing
 3. `uvicorn main:app` — starts the API
 
 **Create a user** (run after `docker compose up`):

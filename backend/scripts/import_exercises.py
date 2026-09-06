@@ -93,6 +93,60 @@ def extract_meta(oef_path: str) -> dict:
     return meta
 
 
+_LANGUES = {
+    "french": "fr",
+    "dutch": "nl",
+    "english": "en",
+    "german": "de",
+    "spanish": "es",
+}
+
+
+def normalize_lang(brut: str | None) -> str | None:
+    """Code ISO de la langue lue dans le `.def`, ou ``None`` si absente.
+
+    Rendre ``None`` plutôt qu'un défaut permet à `rafraichir` de distinguer
+    « le `.def` ne dit rien » de « le `.def` dit *fr* » : le premier cas ne
+    doit jamais écraser ce que la base porte déjà.
+    """
+    if not brut:
+        return None
+    brut = str(brut).strip().lower()
+    if not brut:
+        return None
+    return str(_LANGUES.get(brut, brut))[:5]
+
+
+def rafraichir(
+    exercise: Exercise,
+    title: str | None,
+    lang: str | None,
+    keywords: list[str] | None,
+    dry_run: bool,
+) -> list[str]:
+    """Aligne une ligne existante sur son `.def` ; rend les champs changés.
+
+    L'import est relancé à chaque démarrage (`entrypoint.sh`) : sans cette
+    passe il n'était qu'additif, et une correction d'`extract_meta` ne
+    touchait jamais les 4277 lignes déjà là. C'est ainsi que des mots-clés
+    découpés lettre par lettre et des langues fausses ont survécu au
+    changement de source (le `.def` au lieu du `.oef`).
+
+    **Rien n'est effacé** : un champ que le `.def` ne renseigne pas laisse en
+    place ce que la base porte. Seule une valeur lue écrase une valeur lue.
+    """
+    champs = []
+    for nom, valeur in (("title", title), ("lang", lang), ("keywords", keywords)):
+        if valeur is None:
+            continue
+        if getattr(exercise, nom) == valeur:
+            continue
+        champs.append(nom)
+        if not dry_run:
+            setattr(exercise, nom, valeur)
+    return champs
+
+
 async def import_exercises(
     level: str, domains: list[str], resources_root: str, dry_run: bool
 ):
@@ -125,28 +179,31 @@ async def import_exercises(
     print(f"Fichiers trouvés : {len(oef_files)}")
 
     ok = 0
-    skip_exists = 0
-
-    _lang_map = {
-        "french": "fr",
-        "dutch": "nl",
-        "english": "en",
-        "german": "de",
-        "spanish": "es",
-    }
+    maj = 0
+    inchange = 0
 
     async with async_session() as db:
         for domain, path in oef_files:
-            # Vérifie si déjà en base
-            res = await db.execute(select(Exercise).where(Exercise.oef_path == path))
-            if res.scalar_one_or_none():
-                skip_exists += 1
-                continue
-
             meta = extract_meta(path)
-            raw_lang = meta.get("language", "fr").lower()
-            lang = str(_lang_map.get(raw_lang, raw_lang))[:5]
-            title = meta.get("title", None)
+            title = meta.get("title") or None
+            lang = normalize_lang(meta.get("language"))
+            keywords = meta.get("keywords") or None
+
+            res = await db.execute(select(Exercise).where(Exercise.oef_path == path))
+            existant = res.scalar_one_or_none()
+
+            if existant is not None:
+                champs = rafraichir(existant, title, lang, keywords, dry_run)
+                if not champs:
+                    inchange += 1
+                    continue
+                maj += 1
+                if dry_run:
+                    print(f"  DRY-RUN MAJ : [{domain}] {existant.id} ({', '.join(champs)})")
+                else:
+                    await db.commit()
+                    print(f"  ~ [{domain}] {existant.id} ({', '.join(champs)})")
+                continue
 
             if dry_run:
                 print(f"  DRY-RUN OK : [{domain}] {title or os.path.basename(path)}")
@@ -159,8 +216,8 @@ async def import_exercises(
                 title=title,
                 level=level,
                 domain=domain,
-                lang=lang,
-                keywords=meta.get("keywords", None),
+                lang=lang or "fr",
+                keywords=keywords,
             )
             db.add(exercise)
             await db.commit()
@@ -168,7 +225,9 @@ async def import_exercises(
             print(f"  + [{domain}] {title or os.path.basename(path)}")
 
     await engine.dispose()
-    print(f"\nRésultat : {ok} importés, {skip_exists} déjà en base")
+    print(
+        f"\nRésultat : {ok} importés, {maj} mis à jour, {inchange} déjà à jour"
+    )
 
 
 async def import_levels(
