@@ -1356,6 +1356,7 @@ class DefEngine(_SlibMixin):
             total_steps=type_meta.get("total_steps"),
             type_meta=type_meta,
             css=css,
+            severite=self.severite(),
         )
 
     # ── Instruction execution ─────────────────────────────────────────────────
@@ -4787,6 +4788,28 @@ class DefEngine(_SlibMixin):
                 out.append(f"\\({seg.strip()}\\)")
         return "".join(out)
 
+    def severite(self) -> dict[str, float]:
+        """Les dix réglages du niveau de sévérité, pour cet exercice.
+
+        `qcmlevel` fait foi, et chaque réglage peut être écrasé isolément — c'est
+        exactement ce que fait `oef/exo.init` avec ses `!default`. Le niveau par
+        défaut est 1, celui de WIMS (`oef/default`).
+        """
+        def _nombre(nom: str) -> float | None:
+            brut = self._subst(str(self.ctx.get(nom, ""))).strip()
+            try:
+                return float(brut)
+            except (TypeError, ValueError):
+                return None
+
+        niveau = int(_nombre("qcmlevel") or 1)
+        niveau = min(max(niveau, 1), 9)
+        out: dict[str, float] = {"qcmlevel": float(niveau)}
+        for cle, paliers in _SEVERITE.items():
+            pose = _nombre(cle)
+            out[cle] = paliers[niveau - 1] if pose is None else pose
+        return out
+
     def _prepare_choices(self, df: "DefFile") -> None:
         """Compose la liste déroulante de chaque `\\choice`, façon `oef/var.prep`.
 
@@ -4822,22 +4845,9 @@ class DefEngine(_SlibMixin):
         # a, plus l'exercice est facile. `qcmgood` dit si la bonne réponse est
         # **garantie** parmi elles. PAX n'a pas encore ce curseur côté feuille :
         # il prend le défaut de WIMS, le niveau 1, et le `.def` peut l'écraser.
-        _PRESENT = (3, 3, 4, 5, 5, 6, 7, 8, 8)
-        _GOOD = (1, 1, 1, 1, 0, 0, 0, 0, 0)
-
-        def _entier_ctx(nom: str) -> int | None:
-            brut = self._subst(str(self.ctx.get(nom, ""))).strip()
-            try:
-                return int(float(brut))
-            except (TypeError, ValueError):
-                return None
-
-        niveau = _entier_ctx("qcmlevel") or 1
-        niveau = min(max(niveau, 1), 9)
-        qcmpresent = _entier_ctx("qcmpresent") or _PRESENT[niveau - 1]
-        qcmgood_defaut = _entier_ctx("qcmgood")
-        if qcmgood_defaut is None:
-            qcmgood_defaut = _GOOD[niveau - 1]
+        sev = self.severite()
+        qcmpresent = int(sev["qcmpresent"])
+        qcmgood_defaut = int(sev["qcmgood"])
 
         for cm in df.choice_meta:
             n = cm.get("n")
@@ -6880,6 +6890,36 @@ def _jsxgraph_value_dim(value: str) -> int:
 # Les identifiants d'une expression arithmétique — cf. `_eval_arith`, qui s'en
 # sert pour ne convertir du contexte que ce qu'il va lire.
 _IDENT_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+# ── Les neuf niveaux de sévérité de WIMS (`oef/exo.init`) ────────────────────
+#
+# L'enseignant qui pose un exercice sur une feuille choisit un `qcmlevel` de 1 à
+# 9 ; ce seul curseur commande dix réglages. Les voici, ligne par ligne, dans
+# l'ordre des niveaux. Le défaut de WIMS est le niveau 1 (`oef/default` :
+# `default_choice=1,1,1,4,1,1,1`, deuxième valeur).
+_SEVERITE: dict[str, tuple[float, ...]] = {
+    # Combien de propositions une palette montre.
+    "qcmpresent": (3, 3, 4, 5, 5, 6, 7, 8, 8),
+    # La bonne réponse est-elle garantie parmi elles ?
+    "qcmgood": (1, 1, 1, 1, 0, 0, 0, 0, 0),
+    # Une réponse fausse coûte-t-elle des points ?
+    "penalty": (0, 0, 0, 0, 0, 1, 1, 1, 1),
+    # Montre-t-on la bonne réponse après coup ?
+    "givegood": (1, 1, 1, 1, 1, 1, 0, 0, 0),
+    # Montre-t-on le corrigé ?
+    "givesol": (1, 1, 1, 0, 0, 0, 0, 0, 0),
+    # Montre-t-on le commentaire de correction ?
+    "givefeed": (1, 1, 1, 1, 1, 1, 1, 1, 1),
+    # Montre-t-on l'indication ?
+    "givehint": (1, 1, 1, 1, 1, 0, 0, 0, 0),
+    # Exposant appliqué à la note finale.
+    "scorepower": (1, 1, 1, 1.1, 1.3, 1.5, 1.7, 2, 2.6),
+    # Exposant de la pénalité : `((n-j)/n)^freepower` pour j essais faux.
+    "freepower": (1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5),
+    # Crédit d'une réponse juste « à la précision près ».
+    "precweight": (0.9, 0.8, 0.7, 0.55, 0.4, 0.25, 0.1, 0, 0),
+}
 
 
 def _uniques(items: list[str]) -> list[str]:

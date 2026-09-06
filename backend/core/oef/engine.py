@@ -44,6 +44,10 @@ class ExerciseRender:
     total_steps: int | None = None
     type_meta: dict = field(default_factory=dict)
     css: str | None = None
+    # Les dix réglages du niveau de sévérité de WIMS (`qcmlevel`) : combien de
+    # propositions montrer, faut-il donner le corrigé, quel crédit pour une
+    # réponse juste à la précision près… Voir `DefEngine.severite`.
+    severite: dict = field(default_factory=dict)
 
 
 def find_def_path(oef_path: str) -> str | None:

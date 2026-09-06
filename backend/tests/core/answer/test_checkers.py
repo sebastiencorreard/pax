@@ -351,10 +351,25 @@ class TestWimsPrecision:
         assert r.correct and r.score == 1.0
 
     def test_poor_precision_gives_partial_credit(self):
-        """0.333 pour 1/3 au défaut 10000 : juste « à la précision près » → 0.5."""
+        """0.333 pour 1/3 au défaut 10000 : juste « à la précision près ».
+
+        Le crédit vaut `precweight`, que le niveau de sévérité fixe — 0,9 au
+        niveau 1, celui de WIMS par défaut. PAX le figeait à 0,5, une valeur
+        qui ne venait de nulle part.
+        """
         r = check_answer("numeric", "0.333", "1/3")
         assert not r.correct
-        assert r.score == pytest.approx(0.5)
+        assert r.score == pytest.approx(0.9)
+
+    def test_partial_credit_follows_the_severity_level(self):
+        """Plus le niveau monte, moins l'à-peu-près rapporte — jusqu'à rien.
+
+        `precweight = 0.9,0.8,0.7,0.55,0.4,0.25,0.1,0,0` (`oef/exo.init`).
+        """
+        for poids in (0.9, 0.55, 0.1, 0.0):
+            r = check_answer("numeric", "0.333", "1/3", {"precweight": poids})
+            assert not r.correct
+            assert r.score == pytest.approx(poids)
 
     def test_loose_precision_accepts_rounded_reply(self):
         """`\\precision{100}` : 0.333 pour 1/3 devient pleinement juste."""

@@ -181,6 +181,16 @@ async def check_exercise(
         and (visible_input_names is None or a.input_name in visible_input_names)
     ]
 
+    # Le crédit d'une réponse juste « à la précision près » dépend du niveau de
+    # sévérité de l'exercice, non de la réponse : on le pose ici, à la
+    # correction, plutôt que de l'estamper sur chacune au rendu — il n'a rien à
+    # faire dans un instantané de rendu, et l'y mettre faisait bouger 3978
+    # snapshots pour une valeur qui ne décrit pas le champ.
+    _precweight = (rendered.severite or {}).get("precweight")
+    if _precweight is not None:
+        for a in active_ans_defs:
+            a.options.setdefault("precweight", _precweight)
+
     # ── Dispatch vers la bonne stratégie ─────────────────────────────────────
     feedback_html: str | None = None
 
@@ -371,7 +381,33 @@ async def check_exercise(
         await db.refresh(attempt)
         attempt_id = str(attempt.id)
 
+    # ── Portes du niveau de sévérité ──────────────────────────────────────
+    #
+    # `qcmlevel` commande ce que l'élève voit après avoir répondu
+    # (`oef/exo.init`, et les gardes de `oef/answer.phtml`) :
+    #
+    #     givesol  = 1,1,1,0,0,0,0,0,0   le corrigé
+    #     givefeed = 1,1,1,1,1,1,1,1,1   le commentaire de correction
+    #     givegood = 1,1,1,1,1,1,0,0,0   la bonne réponse elle-même
+    #
+    # Au niveau 1 — le défaut de WIMS, et donc de PAX — les trois sont
+    # ouvertes : rien ne change pour un exercice qui ne règle rien. Un `.def`
+    # ou, demain, une feuille qui monte le niveau les referme.
+    #
+    # WIMS module en plus ces portes selon le nombre d'essais déjà faits sur la
+    # même graine (`seedcnt`, `seedrepeat`) — PAX ne tient pas ce compte, et
+    # s'en tient donc au tout ou rien.
+    sev = rendered.severite or {}
     solution_html = rendered.solution_html.strip() or None
+    if sev.get("givesol", 1) < 1:
+        solution_html = None
+    if sev.get("givefeed", 1) < 1:
+        feedback_html = None
+    if sev.get("givegood", 1) < 1:
+        # La note reste, l'attendu disparaît : l'élève sait qu'il s'est trompé
+        # sans qu'on lui donne la réponse.
+        for res in results:
+            res.expected = None
 
     return CheckResponse(
         exercise_id=exercise_id,

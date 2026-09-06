@@ -124,7 +124,13 @@ async def render_exercise(
             )
             for a in rendered.answers
         ],
-        hint_html=rendered.hint_html,
+        # `givehint = 1,1,1,1,1,0,0,0,0` : au delà du niveau 5, WIMS ne
+        # donne plus l'indication. Au niveau 1 — le défaut — elle reste.
+        hint_html=(
+            rendered.hint_html
+            if (rendered.severite or {}).get("givehint", 1) >= 1
+            else ""
+        ),
         seed=rendered.seed,
         condition=rendered.condition,
         exercise_type=rendered.exercise_type,

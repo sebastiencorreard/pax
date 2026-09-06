@@ -381,11 +381,38 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   apparaît alors — l'échappatoire est implémentée mais aucun exercice du
   corpus ne l'atteint au niveau 1.
 
+- [x] **Les dix réglages du niveau sont posés** (2026-09-06). `severite()` rend
+  le vecteur complet, `qcmlevel` faisant foi et chaque réglage restant
+  écrasable isolément — comme les `!default` d'`exo.init`. Sept sont consommés
+  par le moteur d'exercice :
+
+  | réglage | effet | où |
+  |---|---|---|
+  | `qcmpresent` | taille de la palette | `_prepare_choices` |
+  | `qcmgood` | bonne réponse garantie | idem |
+  | `precweight` | crédit d'une réponse juste à la précision près | `check_numeric` |
+  | `givesol` | le corrigé est-il rendu | route de correction |
+  | `givefeed` | le commentaire est-il rendu | idem |
+  | `givegood` | l'attendu est-il révélé | idem |
+  | `givehint` | l'indication est-elle servie | route de rendu |
+
+  `precweight` remplace un 0,5 figé qui ne venait de nulle part : au niveau 1
+  une réponse juste à la précision près vaut **0,9**. À vérifier contre WIMS,
+  comme la notation par étapes l'a été.
+
+- [ ] **`penalty`, `scorepower` et `freepower` n'ont pas de consommateur.**
+  Relevé sur tout l'arbre WIMS : `exo.init` les calcule, et **rien dans
+  `scripts/oef/` ne les lit**. Le seul `oef_penalty` d'`answer.phtml` est
+  déclenché par `$toolate` — une réponse hors délai — non par ce réglage.
+  `scorepower` et `freepower` ne servent qu'aux modules `deduc` et `dialog`,
+  pour leur compte. Ces trois-là se règlent au niveau de la **feuille**, pas de
+  l'exercice : les implémenter dans le moteur serait inventer, pas porter.
+  `helppenality` en donne la formule pour le jour où la feuille existera :
+  `((n-j)/n)^freepower`, pour `j` essais faux sur `n` propositions.
+
 - [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez
   WIMS, et c'est le pendant naturel de la surcharge des `confparm` (cf. I.2).
-  Les huit autres réglages qu'il commande — `penalty`, `givegood`, `givesol`,
-  `givehint`, `scorepower`, `freepower`, `precweight` — restent à instruire :
-  PAX montre aujourd'hui le corrigé et le retour sans condition.
+  Aujourd'hui PAX prend le niveau 1 pour tout le monde.
 
 - [ ] **Une limite assumée.** `choicegood` est une liste chez WIMS ; PAX garde
   la bonne réponse **entière**, parce que plusieurs exercices y écrivent une

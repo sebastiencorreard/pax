@@ -468,6 +468,7 @@ def check_numeric(
     precision: float = WIMS_DEFAULT_PRECISION,
     comma_is_decimal: bool = True,
     absolute: bool = False,
+    precweight: float = 0.9,
 ) -> CheckResult:
     """
     Compare deux nombres avec la sémantique de précision WIMS (``anstype/numeric``).
@@ -479,7 +480,9 @@ def check_numeric(
 
     - à ``precision`` : réponse exacte → correct, score 1.0 ;
     - sinon à ``sqrt(precision)`` (comparaison relâchée) → « bonne à la précision
-      près » : score partiel 0.5, ``correct=False`` (``precgood`` de WIMS).
+      près » : ``correct=False`` et score partiel ``precweight`` (``precgood``
+      de WIMS). Ce crédit **dépend du niveau de sévérité** — 0,9 au niveau 1,
+      0 aux niveaux 8 et 9 (`oef/exo.init`) — là où PAX le figeait à 0,5.
 
     Avec l'option ``absolute``, WIMS compare la différence absolue :
     ``precision*|test-good| < 1`` (correct) ou ``< 10`` (partiel).
@@ -500,14 +503,14 @@ def check_numeric(
         if precision * diff < 1:
             return CheckResult(correct=True, score=1.0, method="numeric")
         if precision * diff < 10:
-            return CheckResult(correct=False, score=0.5, method="numeric",
+            return CheckResult(correct=False, score=precweight, method="numeric",
                                detail=_POOR_PRECISION_MSG)
         return CheckResult(correct=False, score=0.0, method="numeric")
 
     if _wims_num_equal(r, e, precision):
         return CheckResult(correct=True, score=1.0, method="numeric")
     if _wims_num_equal(r, e, math.sqrt(precision)):
-        return CheckResult(correct=False, score=0.5, method="numeric",
+        return CheckResult(correct=False, score=precweight, method="numeric",
                            detail=_POOR_PRECISION_MSG)
     return CheckResult(correct=False, score=0.0, method="numeric")
 
@@ -3672,6 +3675,13 @@ def check_answer(
     if precision <= 0:
         precision = WIMS_DEFAULT_PRECISION
     comma_is_decimal = uses_comma_decimal(lang)
+    # Crédit d'une réponse juste « à la précision près ». Il vient du niveau de
+    # sévérité (`precweight`, 0,9 au niveau 1) que le moteur pose dans les
+    # options ; 0,9 à défaut, comme WIMS sans réglage.
+    try:
+        precweight = float(options.get("precweight", 0.9))
+    except (TypeError, ValueError):
+        precweight = 0.9
     # Option WIMS `absolute` : comparaison en écart absolu (anstype/numeric).
     absolute = "absolute" in str(options.get("option", "")).lower()
     # `\computeanswer{no}` (défaut OEF) : une réponse numérique doit être un
@@ -3797,7 +3807,7 @@ def check_answer(
                     correct=False, score=0.0, method="numeric",
                     status="invalid_format", detail=_COMPUTE_MSG,
                 )
-            return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
+            return check_numeric(reply, expected, precision, comma_is_decimal, absolute, precweight)
         case "numexp":
             noreduction = "noreduction" in opt_str
             return check_numexp(reply, expected, precision, comma_is_decimal, noreduction)
@@ -3911,7 +3921,7 @@ def check_answer(
             except ValueError:
                 _val = None
             if _val is not None and math.isfinite(_val):
-                return check_numeric(reply, expected, precision, comma_is_decimal, absolute)
+                return check_numeric(reply, expected, precision, comma_is_decimal, absolute, precweight)
             # Faute de quoi WIMS regarde la longueur des variables et part sur
             # `function` (≤ 3 caractères) ou `atext`. `check_default` couvre les
             # deux : comparaison algébrique, puis textuelle.
