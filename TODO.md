@@ -176,19 +176,30 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   L'étiquette suit : elle n'annonce plus un total qu'on sait faux (« Étape 2 / 1 »
   s'affichait dès la première étape franchie), seulement « Étape 2 ».
 
+- [x] **La propriété manquante est posée** (2026-09-06).
+  `test_score_depends_on_the_answer` soumet quatre copies — la meilleure
+  dérivable, une absurde, une vide, et une de forme décimale — et exige que la
+  note **bouge**. Elle comble le trou entre les deux autres tests, qui
+  l'éprouvaient par le haut et par le bas sans jamais vérifier qu'elle dépend
+  de la réponse. Trois exercices sur 4271 y tombent : les `oefstatistiques`
+  ci-dessous.
+
+  Quatre autres y tombaient au premier jet, et **aucun n'était en faute** ; ils
+  ont servi à régler le test. `oefpytha/rugby` accorde 1 point sur 11 à toute
+  réponse écrite sans point ni barre de fraction, `quizz/0412` demande un
+  nombre égal à 9/10 *écrit autrement* — deux conditions opposées — et
+  `oefpenney/partita` note 1/200001, ses conditions obligatoires pesant 100000
+  chacune. D'où la quatrième copie, et un seuil exprimé sur la note **telle que
+  l'élève la voit** : sur dix, au dixième.
+
 - [ ] **`histocap`, `histogramme`, `moustache` : le score ignore la réponse.**
   0,9388 pour la bonne réponse, pour `__FAUX__` et pour une réponse vide — 46
   conditions sur 49. Ces trois-là ne sont **pas** réparés, et le plus gênant
   est ailleurs :
 
-  **aucun des deux tests ne sait voir ce défaut.** `test_correct_answer` les
-  saute (leur champ de figure n'a pas d'attendu, et on ne devine pas un
-  diagramme dessiné) ; `test_wrong_answer` n'exige que « score < 1 », et 0,9388
-  y satisfait. Un exercice dont la note est constante mais inférieure à 1 passe
-  donc les deux. Il manque une propriété : *une réponse absurde doit noter
-  strictement moins qu'une bonne réponse* — indécidable ici, faute de bonne
-  réponse connue. À défaut : *deux réponses différentes ne doivent pas toujours
-  donner la même note*.
+  ils sont désormais **vus** par `test_score_depends_on_the_answer`, et
+  consignés dans `XFAIL_CONSTANT_SCORE`. Reste à les réparer : leur `:test` ne
+  regarde pas le tracé de l'élève.
 
 - [x] **`$[…]` rendait du symbolique là où WIMS rend `NaN`** (`OEFequdrt`, 4) —
   corrigé le 2026-09-05. Le `:test` demandait `NaN notin $val19`, où

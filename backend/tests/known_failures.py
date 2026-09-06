@@ -382,3 +382,31 @@ XFAIL_WRONG_SCORE: set[str] = {
 # Les trois qui y figuraient avant acceptaient une réponse « fausse » de 999
 # supérieure à la bonne — sous la tolérance relative de `\precision`, donc à bon
 # droit. C'est le générateur du test qui avait été corrigé, pas le moteur.
+
+
+# test_score_depends_on_the_answer : la note est la même pour toutes les copies
+# soumises. L'exercice ne note donc rien — il attribue une constante.
+#
+# Ce test comble le trou entre les deux autres, qui éprouvent la note par le
+# haut (une bonne réponse vaut 1) et par le bas (une absurdité vaut moins de 1)
+# sans jamais vérifier qu'elle *bouge*. Sur 4271 exercices, trois y tombent :
+# les `oefstatistiques` déjà connus, dont le `:test` ne regarde pas le tracé de
+# l'élève.
+#
+# Quatre autres y tombaient au premier jet, et **aucun n'était en faute** — ils
+# ont servi à régler le test plutôt qu'à allonger cette liste :
+#
+#   oefpytha/rugby (fr, it)   accorde 1 point sur 11 à toute réponse écrite
+#                             sans point ni barre de fraction ; les copies
+#                             synthétiques le satisfaisaient toutes
+#   quizz/0412                demande un nombre égal à 9/10 **écrit autrement** :
+#                             ses deux conditions s'opposent, et `9/10` comme
+#                             `__FAUX__` valent 0,5 pour des raisons contraires
+#   oefpenney.it/partita      constante nulle, désormais exclue comme légitime
+#
+# D'où la quatrième copie, de forme différente (cf. `_copie_de_forme_differente`).
+XFAIL_CONSTANT_SCORE: set[str] = {
+    "H4~stat~oefstatistiques.fr~src~histocap",
+    "H4~stat~oefstatistiques.fr~src~histogramme",
+    "H4~stat~oefstatistiques.fr~src~moustache",
+}

@@ -10,7 +10,11 @@ import re
 import sys
 import pytest
 from tests import corpus
-from tests.known_failures import XFAIL_CORRECT_SCORE, XFAIL_WRONG_SCORE
+from tests.known_failures import (
+    XFAIL_CONSTANT_SCORE,
+    XFAIL_CORRECT_SCORE,
+    XFAIL_WRONG_SCORE,
+)
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from core.oef.engine import load_and_render
@@ -393,6 +397,87 @@ def test_correct_answer_scores_1(exercise):
     score = _check_all(render, correct_replies)
     assert score == pytest.approx(1.0, abs=1e-9), \
         f"{ex_id}: score={score} avec la bonne réponse {correct_replies}"
+
+
+def _copie_de_forme_differente(actifs) -> dict:
+    """Une copie qui ne partage pas la *forme* des trois autres.
+
+    Sans elle, le test criait au loup sur des exercices qui notent très bien.
+    `oefpytha/rugby` accorde 1 point sur 11 à toute réponse écrite sans point
+    ni barre de fraction : les trois copies — attendu vide, `__FAUX__`, vide —
+    le satisfont toutes, d'où une note constante qui n'a rien d'anormal. Et
+    `quizz/0412` demande un nombre égal à 9/10 **écrit autrement** : ses deux
+    conditions s'opposent, si bien que `9/10` et `__FAUX__` valent 0,5 chacun
+    pour des raisons contraires.
+
+    On soumet donc la forme décimale de l'attendu quand il est rationnel — ce
+    qui casse les deux collisions : `rugby` tombe à 0, `0412` monte à 1.
+    """
+    from fractions import Fraction  # noqa: PLC0415
+
+    out: dict[str, str] = {}
+    for a in actifs:
+        try:
+            out[a.input_name] = str(float(Fraction((a.expected or "").strip())))
+        except (ValueError, ZeroDivisionError, TypeError):
+            out[a.input_name] = "0.5"
+    return out
+
+
+def test_score_depends_on_the_answer(exercise):
+    """Deux copies différentes ne peuvent pas valoir exactement la même note.
+
+    Les deux autres tests éprouvent la note **par le haut** (une bonne réponse
+    vaut 1) et **par le bas** (une réponse absurde vaut moins de 1). Entre les
+    deux, il restait un trou par lequel un exercice pouvait passer sans rien
+    noter du tout : une note constante mais inférieure à 1.
+
+    `oefstatistiques/histocap` y logeait depuis toujours — 0,9388 pour la bonne
+    réponse, pour `__FAUX__` et pour une copie vide, indifféremment. Aucun des
+    deux autres tests ne pouvait le voir : le premier le sautait, faute de
+    vérité de référence pour un diagramme dessiné, et le second se contentait
+    de constater que 0,9388 < 1.
+
+    **Deux constantes restent légitimes** et ne sont donc pas signalées : 0,
+    quand aucune de nos copies n'est juste — ce qui arrive pour un champ dont
+    la bonne réponse n'est pas dérivable — et 1, dont
+    `test_wrong_answer_scores_less_than_1` a déjà la charge.
+    """
+    ex_id, path = exercise
+    if ex_id in XFAIL_CONSTANT_SCORE:
+        pytest.xfail(f"{ex_id}: la note ne dépend pas de la réponse (bug préexistant)")
+    render = load_and_render(path, seed=SEED)
+    actifs = _champs_actifs(render)
+    if not actifs:
+        pytest.skip("aucun champ actif")
+
+    copies = [
+        {a.input_name: _meilleure_reponse(a) for a in render.answers},
+        {a.input_name: "__FAUX__" for a in actifs},
+        {a.input_name: "" for a in actifs},
+        _copie_de_forme_differente(actifs),
+    ]
+    # Sur un exercice dont aucun champ n'a d'attendu, la « meilleure » copie est
+    # vide : les trois se confondent alors, et il n'y a rien à comparer.
+    if len({tuple(sorted(c.items())) for c in copies}) < 2:
+        pytest.skip("les copies soumises ne diffèrent pas")
+
+    # On juge sur la note **telle que l'élève la voit** : sur dix, au dixième,
+    # comme WIMS l'affiche. `oefpenney/partita` note 1/200001 — ses conditions
+    # obligatoires pèsent 100000 chacune, l'idiome WIMS pour « sans cela, rien
+    # ne compte ». Cette note vaut zéro pour qui la lit, et une constante nulle
+    # est légitime : aucune de nos copies synthétiques n'est juste.
+    notes = [round(_check_all(render, c) * 10, 1) for c in copies]
+    if max(notes) - min(notes) > 1e-9:
+        return
+    constante = notes[0]
+    if constante <= 0 or constante >= 10:
+        return
+    raise AssertionError(
+        f"{ex_id}: la note vaut {constante}/10 pour les quatre copies — bonne "
+        f"réponse, réponse absurde, copie vide et forme décimale. Elle ne "
+        f"dépend donc pas de ce que l'élève écrit."
+    )
 
 
 def test_wrong_answer_scores_less_than_1(exercise):
