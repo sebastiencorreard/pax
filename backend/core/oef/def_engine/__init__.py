@@ -695,9 +695,12 @@ class DefEngine(_SlibMixin):
     # **classe** à dessein — les tests du pipeline construisent un moteur sans
     # passer par `__init__`, et un attribut d'instance les ferait tomber.
     _strict_arith: bool = False
+    # Les palettes des `\choice`, composées par `_prepare_choices`.
+    _choice_lists: dict[str, list[str]] = {}
 
     def __init__(self, seed: int, def_path: str | None = None):
         self.seed = seed
+        self._choice_lists = {}
         self.rng = random.Random(seed)
         # Échéance du budget temps (posée par render()) ; None = pas de limite.
         self._deadline: float | None = None
@@ -983,6 +986,15 @@ class DefEngine(_SlibMixin):
                 if key in rm:
                     self.ctx[f"reply{key}{n}"] = rm[key]
 
+        # Idem pour les `\choice` — le même pré-semage, pour les mêmes raisons.
+        for cm in df.choice_meta:
+            n = cm.get("n")
+            if n is None:
+                continue
+            for key in ("name", "good", "bad", "option", "weight"):
+                if key in cm:
+                    self.ctx[f"choice{key}{n}"] = cm[key]
+
         # Budget temps : abandonne le calcul des variables s'il s'emballe
         # (boucle non terminante d'un slib incomplet). On poursuit le rendu avec
         # l'état partiel plutôt que de bloquer plusieurs minutes.
@@ -1008,6 +1020,11 @@ class DefEngine(_SlibMixin):
         # Done after var_instructions so the expected (`$replygood{n}`, which
         # may reference val vars computed above) is resolvable.
         self._apply_prev_replies()
+
+        # Les listes déroulantes des `\choice`, composées **avant** le rendu :
+        # `\embed{c1}` les affiche, et leurs options se lisent dans les `valN`
+        # que les instructions ci-dessus viennent de calculer.
+        self._prepare_choices(df)
 
         # Render statement HTML
         stmt = df.statement.strip()
@@ -4766,6 +4783,76 @@ class DefEngine(_SlibMixin):
                 out.append(f"\\({seg.strip()}\\)")
         return "".join(out)
 
+    def _prepare_choices(self, df: "DefFile") -> None:
+        """Compose la liste déroulante de chaque `\\choice`, façon `oef/var.prep`.
+
+        `\\choice{titre}{bonne}{mauvaises}` est une construction OEF distincte de
+        `\\answer` : elle produit un **menu déroulant**, et 346 exercices du
+        corpus en posent au moins un. PAX les ignorait — `\\embed{c1}` rendait
+        un champ de saisie libre que rien ne notait, et l'élève devait deviner
+        la phrase attendue au lieu de la choisir.
+
+        La composition suit `var.prep` pas à pas :
+
+            cbad = !listcomplement $cgood in !listuniq $(choicebad$i)
+            shf  = !shuffle $cgood,$cbad
+            cli  = !item 1 to $qcmpresent of $shf
+            choicelist$i = !sort nocase list $cli     (ou !shuffle si `shuffle`)
+            choicegood$i = !listintersect $cgood and $cli
+
+        Deux détails valent d'être notés. Les mauvaises réponses sont purgées
+        de celles qui figurent aussi parmi les bonnes — `OEFpythagore2` liste
+        « est rectangle, n'est pas rectangle » comme mauvaises alors que la
+        première est la bonne. Et la liste finale est **triée**, non mélangée,
+        sauf mention `shuffle` : l'ordre ne doit pas trahir la réponse.
+        """
+        try:
+            qcmpresent = int(float(self._subst(self.ctx.get("qcmpresent", "")) or 0))
+        except (TypeError, ValueError):
+            qcmpresent = 0
+        if qcmpresent <= 0:
+            # **On ne tronque pas.** WIMS déduit `qcmpresent` du `qcmlevel`,
+            # un réglage de sévérité que l'enseignant choisit sur la feuille
+            # et que PAX n'a pas. Lui donner d'office le premier palier (3)
+            # retirait une option écrite par l'auteur : `representation1`
+            # propose quatre graphiques, il n'en restait que trois — et la
+            # bonne réponse pouvait être celle qui manquait.
+            qcmpresent = 0
+
+        for cm in df.choice_meta:
+            n = cm.get("n")
+            if n is None:
+                continue
+            # La bonne réponse reste **entière**. `choicegood` est une liste
+            # WIMS, mais plusieurs exercices y écrivent une seule option qui
+            # contient une virgule — « le preterit, le participe passé »
+            # (`oefanglais/Verbesirrgulie4`), « les communes de France,les
+            # grandes villes de France » (`oefstatproba/bergamo1`). La découper
+            # en fabriquait deux, dont aucune n'était la réponse attendue.
+            bons = [self._subst(cm.get("good", "")).strip()]
+            bons = [x for x in bons if x]
+            mauvais = [
+                x for x in _uniques(wl.cutitems(self._subst(cm.get("bad", "")).strip()))
+                if x not in bons
+            ]
+            if not bons and not mauvais:
+                continue
+            rng = random.Random(f"{self.seed}_choice{n}")
+            melange = bons + mauvais
+            rng.shuffle(melange)
+            cli = melange[: max(qcmpresent, len(bons))] if qcmpresent else melange
+            option = self._subst(cm.get("option", "")).lower()
+            if "shuffle" in option.split():
+                rng.shuffle(cli)
+            else:
+                cli = sorted(cli, key=str.casefold)
+            # La liste voyage **en Python**, pas en chaîne : la rejoindre par
+            # des virgules puis la recouper perdrait les options qui en
+            # contiennent une (cf. ci-dessus).
+            self._choice_lists[str(n)] = cli
+            self.ctx[f"choicelist{n}"] = ",".join(cli)
+            self.ctx[f"choiceitems{n}"] = str(len(cli))
+
     def _render_embed(self, args: str) -> str:
         """Render an !read oef/embed.phtml marker as an input span."""
         args = self._subst(args).strip()
@@ -4810,6 +4897,26 @@ class DefEngine(_SlibMixin):
         # instead of `reply1,30`; collapse internal whitespace so the ref
         # matches the answer's input_name.
         ref = re.sub(r"\s+", "", ref)
+
+        # `\embed{c<n>}` désigne un `\choice`, non une réponse : un menu
+        # déroulant dont les options ont été composées par `_prepare_choices`.
+        # WIMS nomme le champ `choice$i` (`oef/formc.phtml`), et c'est ce nom
+        # que la notation attend.
+        mc = re.fullmatch(r"c(\d+)", ref)
+        if mc and f"choicelist{mc.group(1)}" in self.ctx:
+            import html as _html  # noqa: PLC0415
+
+            nc = mc.group(1)
+            etiquette = _html.escape(
+                self._subst(self.ctx.get(f"choicename{nc}", "")).strip()
+            )
+            # Sans cet enregistrement, le filtre par étape écarte le
+            # champ : il ne garde que ce que `_render_embed` a posé.
+            self._touched_replies.add(f"c{nc}")
+            return (
+                f'<span class="oef-menu" name="c{nc}" '
+                f'data-label="{etiquette}"></span>'
+            )
 
         # Normalise reply ref: r1 → reply1, r\1 → reply1 (loop var refs),
         # reply\h → reply1 (same loop-var substitution, just with the
@@ -6111,19 +6218,27 @@ class DefEngine(_SlibMixin):
                 # Seul un exercice qui n'a que des choix les expose en `reply`.
                 nom_champ = f"reply{n}" if not df.reply_meta else f"c{n}"
                 correct = self._subst(cm.get("good", ""))
-                wrong_raw = self._subst(cm.get("bad", ""))
-                wrong = [w.strip() for w in wrong_raw.split(",") if w.strip()]
-                seen_set: set[str] = set()
-                choices: list[str] = []
-                for c in [correct] + wrong:
-                    if c not in seen_set:
-                        seen_set.add(c)
-                        choices.append(c)
+                # La palette vient de `_prepare_choices`, qui suit
+                # `oef/var.prep` : mauvaises réponses purgées de celles qui
+                # figurent aussi parmi les bonnes, liste tronquée à
+                # `qcmpresent`, puis **triée** — mélangée seulement si
+                # l'auteur a écrit `shuffle`. L'ancien calcul mélangeait
+                # toujours, ce qui contredisait WIMS et rendait l'ordre
+                # imprévisible d'un rendu à l'autre.
+                choices = list(self._choice_lists.get(str(n), []))
+                seen_set = set(choices)
+                # `oef/formc.phtml` tranche entre deux présentations :
+                #
+                #     !if $choicecnt<=1 and $replycnt<1  → boutons radio
+                #     !else                               → menu déroulant
+                #
+                # PAX ne connaissait que la première.
+                # `OEFpythagore2/enchainement` pose deux choix **et** une
+                # réponse : ses phrases à choisir manquaient de la phrase,
+                # là où WIMS y glisse deux menus.
+                en_menu = len(df.choice_meta) > 1 or bool(df.reply_meta)
                 jnsp = "Je ne sais pas"
-                rng = random.Random(f"{self.seed}_{n}")
-                rng.shuffle(choices)
-                # WIMS always presents "I don't know" as the last option, so
-                # append it *after* shuffling the real choices.
+                # « Je ne sais pas » vient toujours en dernier (`formc.phtml`).
                 if jnsp not in seen_set:
                     choices.append(jnsp)
                 # Close WIMS inline math `\(…)` → KaTeX `\(…\)` so the frontend
@@ -6137,15 +6252,22 @@ class DefEngine(_SlibMixin):
                 # inline the buttons are shown without it (e.g. ineqequi4's
                 # "Intru"). Leave the label empty so the frontend falls back to
                 # its neutral "choose an answer" prompt instead of surfacing it.
+                # Le titre n'est un intitulé visible que dans un menu ; en
+                # boutons radio WIMS ne le montre pas.
+                titre = self._subst(cm.get("name", "")).strip() if en_menu else ""
+                try:
+                    poids_c = float(self._subst(cm.get("weight", "1")) or 1)
+                except (TypeError, ValueError):
+                    poids_c = 1.0
                 answers.append(
                     AnswerDef(
-                        label="",
+                        label=titre,
                         expected=_close_inline_math(correct, self.lang),
-                        answer_type="radio",
+                        answer_type="menu" if en_menu else "radio",
                         options={"choices": choices},
-                        weight=1.0,
+                        weight=poids_c,
                         input_name=nom_champ,
-                        logical_name=nom_champ,
+                        logical_name=titre or nom_champ,
                     )
                 )
             if not df.reply_meta:
@@ -6714,6 +6836,18 @@ def _jsxgraph_value_dim(value: str) -> int:
 # Les identifiants d'une expression arithmétique — cf. `_eval_arith`, qui s'en
 # sert pour ne convertir du contexte que ce qu'il va lire.
 _IDENT_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+def _uniques(items: list[str]) -> list[str]:
+    """`!listuniq` : les doublons partent, l'ordre d'apparition reste."""
+    vus: set[str] = set()
+    out: list[str] = []
+    for x in items:
+        x = x.strip()
+        if x and x not in vus:
+            vus.add(x)
+            out.append(x)
+    return out
 
 
 def _find_matching_bracket(s: str, start: int, open_c: str, close_c: str) -> int:

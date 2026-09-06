@@ -353,6 +353,29 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   n'est pas connu d'avance (`histocap`), et le cas d'un exercice interrompu par
   une erreur dès la première étape.
 
+## 5. `\choice` — les menus déroulants d'OEF
+
+- [x] **Rendus et notés** (2026-09-06). `\choice{titre}{bonne}{mauvaises}` est
+  une construction distincte de `\answer` : elle produit un menu déroulant, et
+  346 exercices en posent au moins un. `\embed{c1}` rendait un champ de saisie
+  libre où l'élève devait deviner la phrase attendue au lieu de la choisir.
+
+  La palette suit `oef/var.prep` : mauvaises réponses purgées de celles qui
+  figurent aussi parmi les bonnes, puis **tri** — mélange seulement si l'auteur
+  écrit `shuffle`. Le type suit `oef/formc.phtml` : boutons radio quand
+  l'exercice n'a qu'un choix et aucune réponse, menu déroulant sinon.
+
+- [ ] **Deux limites assumées.**
+  - `choicegood` est une liste chez WIMS ; PAX garde la bonne réponse
+    **entière**, parce que plusieurs exercices y écrivent une seule option qui
+    contient une virgule (`oefanglais/Verbesirrgulie4`,
+    `oefstatproba/bergamo1`). Un choix à plusieurs bonnes réponses serait donc
+    mal traité — aucun n'a été rencontré.
+  - `qcmpresent` n'est pas appliqué : PAX montre toutes les options. C'est un
+    réglage de sévérité que l'enseignant choisit sur la feuille chez WIMS, et
+    que PAX n'a pas. Le tronquer d'office retirait une option écrite par
+    l'auteur.
+
 # II. Fonctionnalités PAX
 
 ## 1. Feuilles ?
