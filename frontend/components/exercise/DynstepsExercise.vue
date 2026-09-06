@@ -209,13 +209,24 @@ const isAnalyzeWhole = computed(() =>
 // out a Thales ratio as 4 fields reply10..reply13 inside one step). We must
 // dedup by step number so the denominator stays at total_steps and the
 // percentage caps at 100 %.
-const correctStepsCount = computed(() => {
-  const byStep = new Map<number, boolean>()
+// Le crédit d'une étape est la **part** de ses champs justes, non un tout ou
+// rien. `oefdevfact/deve7` le montre bien : sa deuxième étape demande de
+// simplifier trois termes, l'élève en réussit deux, et l'étape entière était
+// comptée pour zéro. Score PAX 33 % (une étape sur trois) là où WIMS en donne
+// six sur dix — soit (1 + 2/3 + 0)/3, l'étape non atteinte comptant zéro.
+const creditDesEtapes = computed(() => {
+  const parEtape = new Map<number, { justes: number, total: number }>()
   for (const entry of stepsHistory.value) {
-    const prev = byStep.get(entry.step)
-    byStep.set(entry.step, prev === undefined ? entry.correct : prev && entry.correct)
+    const acc = parEtape.get(entry.step) ?? { justes: 0, total: 0 }
+    acc.total += 1
+    if (entry.correct) acc.justes += 1
+    parEtape.set(entry.step, acc)
   }
-  return Array.from(byStep.values()).filter(Boolean).length
+  let somme = 0
+  for (const { justes, total } of parEtape.values()) {
+    somme += total > 0 ? justes / total : 0
+  }
+  return somme
 })
 
 const totalStepsForScore = computed(() => {
@@ -224,7 +235,7 @@ const totalStepsForScore = computed(() => {
   return new Set(stepsHistory.value.map(s => s.step)).size || 1
 })
 
-const scoreRatio = computed(() => correctStepsCount.value / totalStepsForScore.value)
+const scoreRatio = computed(() => creditDesEtapes.value / totalStepsForScore.value)
 const scorePct = computed(() => Math.round(scoreRatio.value * 100))
 
 const allFilled = computed(() => {
@@ -441,8 +452,8 @@ async function submit() {
 
     // Only finalize score and show results at the end or if course stopped
     if (finDuParcours || courseStopped.value) {
-      // Use the same dedup-by-step ratio as the displayed bilan (correctStepsCount
-      // counts each step at most once, even when it has multiple input fields).
+      // Même ratio que le bilan affiché : chaque étape pèse au plus 1, à
+      // proportion de ses champs justes (cf. `creditDesEtapes`).
       const score = scoreRatio.value
 
       if (score === 1) {

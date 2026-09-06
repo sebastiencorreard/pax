@@ -323,6 +323,26 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`/`\while`, alias `r1`/`reply1`/`rep1`, `\feedback` + `sc_reply`/`m_reply`, bonnes réponses multiples, `case` avec `|`, `correspond`+`split`, virgule décimale, `\hint`/`\help`/`\solution`, `\css`.
 
+## 4. Notation des exercices à étapes — vérifier contre WIMS
+
+- [x] **Le crédit d'une étape est proportionnel** (2026-09-06). Une étape dont
+  deux champs sur trois sont justes ne vaut plus zéro. `oefdevfact/deve7`
+  notait 33 % (une étape sur trois) là où WIMS en donne six sur dix ; il donne
+  maintenant **56 %**, soit (1 + 2/3 + 0)/3 — l'étape non atteinte comptant
+  pour zéro.
+
+  L'écart résiduel avec WIMS s'explique par l'affichage : WIMS note sur dix et
+  arrondit, 5,6 devenant « 6 ». **C'est une inférence, pas une certitude** :
+  nous n'avons pas la formule de WIMS sous les yeux, seulement une concordance
+  à l'arrondi près, sur un cas. À confirmer sur d'autres exercices à étapes —
+  les cinq URL représentatives sont dans l'historique de session.
+
+- [ ] **Vérifier la notation sur les autres formes.** `deve7` est un `course`
+  à trois étapes. Restent à éprouver contre WIMS : un `course` long
+  (`quizz/course04_1step`, 15 étapes), un `dynsteps` dont le nombre d'étapes
+  n'est pas connu d'avance (`histocap`), et le cas d'un exercice interrompu par
+  une erreur dès la première étape.
+
 # II. Fonctionnalités PAX
 
 ## 1. Feuilles ?
