@@ -143,9 +143,12 @@ async def list_modules(
 
     # Group by module directory
     modules: dict[str, dict] = {}
-    # Per-module cache of Exauthors / Exkeywords dicts (loaded once per module)
+    # Per-module cache of Exauthors (loaded once per module). Exercise keywords
+    # are *not* read from disk: `exercises.keywords` already holds the union of
+    # the `.def` and of the module's `Exkeywords`, built once at import time
+    # (see `scripts/import_exercises.py`). Reading the column instead of the
+    # file is what lets a search filter in SQL rather than in the browser.
     _ex_authors: dict[str, dict[str, str]] = {}
-    _ex_keywords: dict[str, dict[str, str]] = {}
 
     for ex in exercises:
         mod_name = _module_from_path(ex.oef_path)
@@ -169,7 +172,6 @@ async def list_modules(
                 "exercises": [],
             }
             _ex_authors[mod_name] = _parse_exfile(os.path.join(mod_dir, "Exauthors"))
-            _ex_keywords[mod_name] = _parse_exfile(os.path.join(mod_dir, "Exkeywords"))
 
         stem = os.path.splitext(os.path.basename(ex.oef_path))[0]
         modules[mod_name]["exercises"].append(
@@ -178,7 +180,7 @@ async def list_modules(
                 "title": html.unescape(ex.title or os.path.basename(ex.oef_path)),
                 "has_def": find_def_path(ex.oef_path) is not None,
                 "author": _format_author(_ex_authors[mod_name].get(stem, "")),
-                "keywords": _split_csv(_ex_keywords[mod_name].get(stem, "")),
+                "keywords": list(ex.keywords or []),
             }
         )
 

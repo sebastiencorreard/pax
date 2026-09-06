@@ -48,6 +48,47 @@ from core.oef.def_parser import parse as parse_def
 from core.oef.engine import find_def_path
 
 
+def _mots_cles(brut: str) -> list[str]:
+    """Découpe une valeur `keywords=` WIMS — une liste séparée par des virgules.
+
+    Le `#` de tête est un marqueur d'auteur (`#quizz`), pas un mot-clé : deux
+    fichiers du corpus en portent un, jamais ailleurs qu'en première position.
+    """
+    return [m.strip().lstrip("#").strip() for m in brut.split(",") if m.strip(" #")]
+
+
+def _mots_cles_du_module(oef_path: str) -> list[str]:
+    """Les mots-clés que le fichier `Exkeywords` du module donne à cet exercice.
+
+    WIMS tient deux listes qui ne disent pas la même chose, et il faut les deux.
+    Le `.def` porte, pour un quizz, la ligne d'agrégation que l'auteur met en fin
+    de `.oef` — la somme des mots-clés de ses dix questions —, mais le
+    compilateur `.oef` → `.def` la tronque à 128 caractères (`algorithmics`
+    devient `algorith`). `Exkeywords`, lui, ne retient que la *première*
+    `\\keywords{}` du fichier : propre, mais réduit à la première question, et
+    cinq exercices du corpus n'y figurent pas du tout.
+
+    Ni l'une ni l'autre n'est complète ; leur union l'est. Pour une recherche,
+    c'est le bon compromis : un élève qui cherche « thales » doit trouver le
+    quizz qui peut l'interroger dessus.
+    """
+    module_dir = os.path.dirname(os.path.dirname(oef_path))
+    stem = os.path.splitext(os.path.basename(oef_path))[0]
+    try:
+        with open(os.path.join(module_dir, "Exkeywords"), encoding="iso-8859-1") as f:
+            lignes = f.readlines()
+    except OSError:
+        return []
+    for ligne in lignes:
+        ligne = ligne.strip()
+        if not ligne or ligne.startswith("#"):
+            continue
+        nom, _, valeur = ligne.partition(":")
+        if nom.strip() == stem:
+            return _mots_cles(valeur)
+    return []
+
+
 def extract_meta(oef_path: str) -> dict:
     """Titre, langue et mots-clés d'un exercice — lus dans son `.def`.
 
@@ -87,9 +128,11 @@ def extract_meta(oef_path: str) -> dict:
         lang = module_dir.rsplit(".", 1)[-1] if "." in module_dir else ""
     if lang:
         meta["language"] = lang
-    brut = str(df.meta.get("keywords") or "").strip()
-    if brut:
-        meta["keywords"] = [k.strip() for k in brut.split(",") if k.strip()]
+    mots = _mots_cles(str(df.meta.get("keywords") or "")) + _mots_cles_du_module(oef_path)
+    if mots:
+        # `dict.fromkeys` déduplique en gardant l'ordre : ceux du `.def`
+        # d'abord, ceux qu'`Exkeywords` ajoute ensuite.
+        meta["keywords"] = list(dict.fromkeys(mots))
     return meta
 
 

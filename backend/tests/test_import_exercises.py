@@ -23,6 +23,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import settings  # noqa: E402
 from models.exercise import Exercise  # noqa: E402
 from scripts.import_exercises import (  # noqa: E402
+    _mots_cles,
+    _mots_cles_du_module,
     extract_meta,
     normalize_lang,
     rafraichir,
@@ -106,3 +108,61 @@ class TestExtractMeta:
 
     def test_un_oef_sans_def_ne_rend_rien(self):
         assert extract_meta("/ressources/nexiste/pas.oef") == {}
+
+
+class TestMotsCles:
+    def test_le_croisillon_de_tete_n_est_pas_un_mot_cle(self):
+        """`#quizz` est un marqueur d'auteur : deux fichiers du corpus en
+        portent un, jamais ailleurs qu'en première position."""
+        assert _mots_cles("#quizz,fraction") == ["quizz", "fraction"]
+
+    def test_les_blancs_et_les_vides_sont_ecartes(self):
+        assert _mots_cles(" a , ,b,, ") == ["a", "b"]
+
+    def test_une_valeur_absente_rend_une_liste_vide(self):
+        assert _mots_cles("") == []
+
+
+class TestUnionDesDeuxSources:
+    """La colonne doit couvrir le `.def` *et* le fichier `Exkeywords`.
+
+    Ces deux listes divergent sur 48 exercices : le `.def` d'un quizz porte la
+    ligne d'agrégation que le compilateur WIMS a tronquée à 128 caractères,
+    `Exkeywords` ne retient que la première question, et cinq exercices n'y
+    figurent pas. Depuis que la recherche lit la base et non le disque
+    (`api/routes/exercises.py`), un mot-clé perdu ici est un exercice
+    introuvable.
+    """
+
+    def _oef(self, relatif: str) -> str:
+        chemin = os.path.join(settings.resources_root.rstrip("/"), relatif)
+        if not os.path.exists(chemin):
+            pytest.skip(f"corpus absent : {relatif}")
+        return chemin
+
+    def test_le_fichier_du_module_est_lu(self):
+        chemin = self._oef("H3/algebra/oefqcm3.fr/src/csga.oef")
+        assert _mots_cles_du_module(chemin) == ["quizz", "fraction"]
+
+    def test_un_exercice_absent_du_fichier_ne_rend_rien(self):
+        """`Exkeywords` est incomplet : 5 exercices du corpus n'y sont pas."""
+        chemin = self._oef("H3/math/quizz.fr/src/course03_1.oef")
+        assert _mots_cles_du_module(chemin) == []
+
+    def test_un_module_sans_fichier_ne_leve_pas(self):
+        assert _mots_cles_du_module("/ressources/nexiste/pas/src/x.oef") == []
+
+    def test_l_union_couvre_les_deux_sources_sans_doublon(self):
+        """csga : `thales` ne vient que du `.def`, et `fraction` figure dans
+        les deux — il ne doit apparaître qu'une fois."""
+        mots = extract_meta(self._oef("H3/algebra/oefqcm3.fr/src/csga.oef"))["keywords"]
+        assert "thales" in mots          # apporté par le `.def`
+        assert "quizz" in mots           # présent des deux côtés, dépouillé du `#`
+        assert mots.count("fraction") == 1
+        assert "#quizz" not in mots
+
+    def test_l_ordre_place_le_def_avant_le_fichier(self):
+        """Un ordre stable évite de faire bouger la base à chaque import."""
+        chemin = self._oef("H3/algebra/oefqcm3.fr/src/csga.oef")
+        assert extract_meta(chemin)["keywords"] == extract_meta(chemin)["keywords"]
+        assert extract_meta(chemin)["keywords"][0] == "quizz"

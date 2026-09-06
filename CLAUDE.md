@@ -41,7 +41,15 @@ On first start, `entrypoint.sh` runs automatically:
    and keywords re-read from the `.def` and updated when they differ — a fix to
    `extract_meta` therefore reaches the 4278 existing rows on the next start.
    A field the `.def` does not carry never erases what the DB holds. `--dry-run`
-   lists what would change without writing
+   lists what would change without writing.
+   Keywords are the **union** of the `.def`'s `keywords=` and of the module's
+   `Exkeywords` file — the two disagree on 48 exercises and neither is complete
+   on its own (a quizz's `.def` carries the author's aggregate line, truncated
+   to 128 chars by the WIMS compiler; `Exkeywords` keeps only the first
+   question, and 5 exercises are missing from it). Since the union is built at
+   import time, `exercises.keywords` is the **single source** the API reads —
+   `/api/exercises/modules` no longer opens `Exkeywords`, and a GIN index
+   (`ix_exercises_keywords`) serves `keywords && ARRAY[…]` in SQL
 3. `uvicorn main:app` — starts the API
 
 **Create a user** (run after `docker compose up`):
