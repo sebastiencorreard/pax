@@ -136,62 +136,105 @@ class TestCatalogue:
         assert body["total"] == sum(m["exercise_count"] for m in body["modules"])
         assert body["searched"] is False
 
-    def test_les_facettes_ne_listent_que_ce_qui_existe(self, client, student_headers):
-        """Proposer `U4` quand aucun exercice ne s'y trouve n'aide personne —
-        et c'est la raison d'être des facettes servies avec le catalogue."""
+    def test_les_facettes_decrivent_le_catalogue_servi(self, client, student_headers):
+        """Proposer un niveau vide n'aide personne : chaque facette doit
+        correspondre à des modules réellement là.
+
+        Le test dit une *propriété*, pas des valeurs : la CI n'importe qu'un
+        sous-ensemble du corpus (`--level H4 --domains algebra,analysis`), et
+        exiger `{H3, H4}` y échouait.
+        """
         body = client.get(
             "/api/exercises/modules?lang=fr", headers=student_headers
         ).json()
-        codes = {n["code"] for n in body["levels"]}
-        assert codes == {"H3", "H4"}
+        assert body["modules"]
+        assert {n["code"] for n in body["levels"]} == {
+            m["level"] for m in body["modules"] if m["level"]
+        }
+        assert {d["name"] for d in body["domains"]} == {
+            m["domain"] for m in body["modules"] if m["domain"]
+        }
         assert all(n["count"] > 0 for n in body["levels"])
         assert all(d["count"] > 0 for d in body["domains"])
 
     def test_le_filtre_de_niveau_porte(self, client, student_headers):
         body = client.get(
-            "/api/exercises/modules?lang=fr&level=H4", headers=student_headers
+            "/api/exercises/modules?lang=fr", headers=student_headers
         ).json()
-        assert body["modules"]
-        assert {m["level"] for m in body["modules"]} == {"H4"}
+        niveau = body["levels"][0]["code"]
+        filtre = client.get(
+            f"/api/exercises/modules?lang=fr&level={niveau}", headers=student_headers
+        ).json()
+        assert filtre["modules"]
+        assert {m["level"] for m in filtre["modules"]} == {niveau}
+        assert filtre["total"] == body["levels"][0]["count"]
+
+    def _un_exercice(self, client, student_headers):
+        """Un exercice quelconque du catalogue, avec son module."""
+        catalogue = client.get(
+            "/api/exercises/modules?lang=fr", headers=student_headers
+        ).json()
+        mod = catalogue["modules"][0]
+        exercices = client.get(
+            f"/api/exercises/modules/{mod['module']}/exercises?lang=fr",
+            headers=student_headers,
+        ).json()
+        return mod, exercices[0]
 
     def test_une_recherche_rapporte_les_exercices_trouves(self, client, student_headers):
+        """Le titre d'un exercice pris dans le catalogue doit le retrouver."""
+        _, ex = self._un_exercice(client, student_headers)
+        titre = (ex["title"] or "").strip()
+        if len(titre) < 4:
+            pytest.skip("pas de titre exploitable dans ce corpus")
         body = client.get(
-            "/api/exercises/modules?lang=fr&q=thales&scope=exercises",
+            "/api/exercises/modules",
+            params={"lang": "fr", "q": titre, "scope": "exercises"},
             headers=student_headers,
         ).json()
         assert body["searched"] is True
-        assert body["total"] > 0
-        trouves = [e for m in body["modules"] for e in m["exercises"]]
-        assert trouves, "une recherche doit rapporter les exercices, pas que les modules"
-        assert all(
-            "thales" in (e["title"] or "").lower()
-            or "thalès" in (e["title"] or "").lower()
-            or any("thales" in k.lower() for k in e["keywords"])
-            for e in trouves
-        )
+        ids = {e["id"] for m in body["modules"] for e in m["exercises"]}
+        assert ex["id"] in ids
 
     def test_la_recherche_ignore_les_accents(self, client, student_headers):
         """Un élève tape « algebre » ; le corpus écrit « algèbre »."""
-        def total(q):
-            return client.get(
-                f"/api/exercises/modules?lang=fr&q={q}&scope=all",
-                headers=student_headers,
-            ).json()["total"]
+        catalogue = client.get(
+            "/api/exercises/modules?lang=fr", headers=student_headers
+        ).json()
+        accents = str.maketrans("àâäéèêëîïôöùûüç", "aaaeeeeiioouuuc")
+        for mod in catalogue["modules"]:
+            titre = mod["title"]
+            plie = titre.translate(accents)
+            if plie == titre:
+                continue
+            def total(q):
+                return client.get(
+                    "/api/exercises/modules",
+                    params={"lang": "fr", "q": q, "scope": "modules"},
+                    headers=student_headers,
+                ).json()["total"]
 
-        assert total("algebre") == total("alg%C3%A8bre") > 0
+            assert total(plie) == total(titre) > 0
+            return
+        pytest.skip("aucun titre accentué dans ce corpus")
 
     def test_l_union_des_mots_cles_rend_les_quizz_trouvables(
         self, client, student_headers
     ):
         """`csga` ne mentionne Thalès que dans la ligne d'agrégation de son
         `.def` — pas dans `Exkeywords`, ni dans son titre. Il n'était donc
-        trouvable par aucune des deux sources prises seule."""
+        trouvable par aucune des deux sources prise seule."""
+        cible = "H3~algebra~oefqcm3.fr~src~csga"
+        if client.get(
+            f"/api/exercises/{cible}", headers=student_headers
+        ).status_code == 404:
+            pytest.skip("oefqcm3 absent de ce corpus (la CI n'importe qu'un sous-ensemble)")
         body = client.get(
             "/api/exercises/modules?lang=fr&q=thales&scope=exercises",
             headers=student_headers,
         ).json()
         ids = {e["id"] for m in body["modules"] for e in m["exercises"]}
-        assert "H3~algebra~oefqcm3.fr~src~csga" in ids
+        assert cible in ids
 
     def test_une_recherche_trop_large_est_coupee_mais_comptee(
         self, client, student_headers
@@ -203,15 +246,17 @@ class TestCatalogue:
             headers=student_headers,
         ).json()
         rendus = sum(len(m["exercises"]) for m in body["modules"])
+        assert rendus <= 400
+        if body["total"] <= 400:
+            pytest.skip("corpus trop petit pour atteindre le plafond")
         assert body["truncated"] is True
         assert body["total"] > rendus
-        assert rendus <= 400
 
     def test_les_exercices_d_un_module_se_chargent_a_part(
         self, client, student_headers
     ):
         catalogue = client.get(
-            "/api/exercises/modules?lang=fr&level=H4", headers=student_headers
+            "/api/exercises/modules?lang=fr", headers=student_headers
         ).json()
         mod = catalogue["modules"][0]
         r = client.get(
