@@ -183,13 +183,11 @@ async def check_exercise(
 
     # Le crédit d'une réponse juste « à la précision près » dépend du niveau de
     # sévérité de l'exercice, non de la réponse : on le pose ici, à la
-    # correction, plutôt que de l'estamper sur chacune au rendu — il n'a rien à
-    # faire dans un instantané de rendu, et l'y mettre faisait bouger 3978
-    # snapshots pour une valeur qui ne décrit pas le champ.
-    _precweight = (rendered.severite or {}).get("precweight")
-    if _precweight is not None:
+    # correction, plutôt que de l'estamper sur chacune au rendu.
+    _sev = rendered.severite or {}
+    if _sev.get("precweight") is not None:
         for a in active_ans_defs:
-            a.options.setdefault("precweight", _precweight)
+            a.options.setdefault("precweight", _sev["precweight"])
 
     # ── Dispatch vers la bonne stratégie ─────────────────────────────────────
     feedback_html: str | None = None
@@ -397,7 +395,17 @@ async def check_exercise(
     # WIMS module en plus ces portes selon le nombre d'essais déjà faits sur la
     # même graine (`seedcnt`, `seedrepeat`) — PAX ne tient pas ce compte, et
     # s'en tient donc au tout ou rien.
-    sev = rendered.severite or {}
+    sev = _sev
+    # `freepower` : la note de l'exercice est élevée à cette puissance
+    # (`oef/exo.init`, 1 au niveau 1, 2 au niveau 3…). Établi par deux mesures
+    # sur WIMS — `valtrigo1` donne 4,9/10 pour deux réponses approchées et
+    # 7,2/10 pour une juste et une approchée, ce que 0,7^2 et 0,85^2 rendent
+    # exactement. Une note partielle est donc plus sévèrement pénalisée que la
+    # moyenne ne le laisserait croire ; à 1, l'exposant ne fait rien.
+    _freepower = float(sev.get("freepower", 1) or 1)
+    if _freepower != 1 and 0 < global_score < 1:
+        global_score = global_score ** _freepower
+
     solution_html = rendered.solution_html.strip() or None
     if sev.get("givesol", 1) < 1:
         solution_html = None

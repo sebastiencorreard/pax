@@ -400,15 +400,25 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   une réponse juste à la précision près vaut **0,9**. À vérifier contre WIMS,
   comme la notation par étapes l'a été.
 
-- [ ] **`penalty`, `scorepower` et `freepower` n'ont pas de consommateur.**
-  Relevé sur tout l'arbre WIMS : `exo.init` les calcule, et **rien dans
-  `scripts/oef/` ne les lit**. Le seul `oef_penalty` d'`answer.phtml` est
-  déclenché par `$toolate` — une réponse hors délai — non par ce réglage.
-  `scorepower` et `freepower` ne servent qu'aux modules `deduc` et `dialog`,
-  pour leur compte. Ces trois-là se règlent au niveau de la **feuille**, pas de
-  l'exercice : les implémenter dans le moteur serait inventer, pas porter.
-  `helppenality` en donne la formule pour le jour où la feuille existera :
-  `((n-j)/n)^freepower`, pour `j` essais faux sur `n` propositions.
+- [x] **`freepower` est l'exposant de la note** — corrigé le 2026-09-06, après
+  avoir écrit l'inverse le matin même. La recherche par `grep` ne trouvait
+  aucun lecteur de `freepower` dans `scripts/oef/` et j'en avais conclu qu'il
+  ne servait pas ; le consommateur est dans le moteur C, invisible à cette
+  recherche. **Deux mesures sur WIMS l'ont établi** — cf. `check_numeric`.
+
+- [ ] **Quel niveau par défaut ?** Les mesures placent le WIMS de référence au
+  **niveau 3** (`precweight=0,7`, `freepower=2`), là où PAX prend le niveau 1
+  de `oef/default`. Tant que la feuille n'expose pas `qcmlevel`, PAX note donc
+  plus généreusement : une réponse approchée vaut 0,5 chez nous contre 0,7 chez
+  WIMS, mais sans l'exposant qui rabat l'ensemble. À trancher avec le niveau
+  que les feuilles emploieront réellement.
+
+- [ ] **`penalty` et `scorepower` restent sans consommateur identifié.** Le
+  `oef_penalty` d'`answer.phtml` est déclenché par `$toolate` — une réponse
+  hors délai — non par ce réglage. `scorepower` ne sert qu'aux modules `deduc`
+  et `dialog`. Mais la leçon de `freepower` vaut ici : **l'absence dans les
+  scripts ne prouve rien**, le moteur C peut les lire. À vérifier par la mesure
+  plutôt que par la lecture.
 
 - [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez
   WIMS, et c'est le pendant naturel de la surcharge des `confparm` (cf. I.2).

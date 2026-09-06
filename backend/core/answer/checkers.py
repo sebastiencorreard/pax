@@ -468,7 +468,7 @@ def check_numeric(
     precision: float = WIMS_DEFAULT_PRECISION,
     comma_is_decimal: bool = True,
     absolute: bool = False,
-    precweight: float = 0.9,
+    precweight: float = 0.5,
 ) -> CheckResult:
     """
     Compare deux nombres avec la sémantique de précision WIMS (``anstype/numeric``).
@@ -480,9 +480,23 @@ def check_numeric(
 
     - à ``precision`` : réponse exacte → correct, score 1.0 ;
     - sinon à ``sqrt(precision)`` (comparaison relâchée) → « bonne à la précision
-      près » : ``correct=False`` et score partiel ``precweight`` (``precgood``
-      de WIMS). Ce crédit **dépend du niveau de sévérité** — 0,9 au niveau 1,
-      0 aux niveaux 8 et 9 (`oef/exo.init`) — là où PAX le figeait à 0,5.
+      près » : ``correct=False`` et score partiel **0,5** (``precgood`` de
+      WIMS).
+
+    Ce 0,5 est celui de ``oef/screply.proc`` :
+
+        !if $(precreply$i)=yes and $(diareply$i)=bad
+          !default m_sc_reply$i=0.5
+
+    et c'est la seule valeur de crédit partiel qui figure dans les scripts OEF.
+    On a cru un temps que le crédit venait de ``precweight``, le réglage du
+    niveau de sévérité qui vaut 0,9 au niveau 1. **Une mesure sur WIMS l'a
+    démenti** : `OEFevalwimsfctref/valtrigo1`, deux réponses approchées, donne
+    4,9/10 — soit ~0,49 par réponse, et non 0,9. ``precweight`` sert ailleurs,
+    dans l'ajustement de poids d'``ans.proc``.
+
+    L'écart résiduel entre 0,49 et 0,50 n'est pas expliqué ; il est trop faible
+    pour venir du crédit lui-même.
 
     Avec l'option ``absolute``, WIMS compare la différence absolue :
     ``precision*|test-good| < 1`` (correct) ou ``< 10`` (partiel).
@@ -3675,13 +3689,13 @@ def check_answer(
     if precision <= 0:
         precision = WIMS_DEFAULT_PRECISION
     comma_is_decimal = uses_comma_decimal(lang)
-    # Crédit d'une réponse juste « à la précision près ». Il vient du niveau de
-    # sévérité (`precweight`, 0,9 au niveau 1) que le moteur pose dans les
-    # options ; 0,9 à défaut, comme WIMS sans réglage.
+    # Crédit d'une réponse juste « à la précision près » : `precweight`, que le
+    # niveau de sévérité fixe. Le moteur le pose dans les options à la
+    # correction ; à défaut 0,5, la valeur historique de PAX.
     try:
-        precweight = float(options.get("precweight", 0.9))
+        precweight = float(options.get("precweight", 0.5))
     except (TypeError, ValueError):
-        precweight = 0.9
+        precweight = 0.5
     # Option WIMS `absolute` : comparaison en écart absolu (anstype/numeric).
     absolute = "absolute" in str(options.get("option", "")).lower()
     # `\computeanswer{no}` (défaut OEF) : une réponse numérique doit être un
