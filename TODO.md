@@ -331,11 +331,21 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   maintenant **56 %**, soit (1 + 2/3 + 0)/3 — l'étape non atteinte comptant
   pour zéro.
 
-  L'écart résiduel avec WIMS s'explique par l'affichage : WIMS note sur dix et
-  arrondit, 5,6 devenant « 6 ». **C'est une inférence, pas une certitude** :
-  nous n'avons pas la formule de WIMS sous les yeux, seulement une concordance
-  à l'arrondi près, sur un cas. À confirmer sur d'autres exercices à étapes —
-  les cinq URL représentatives sont dans l'historique de session.
+  **Le modèle est confirmé, sur deux mesures WIMS indépendantes.** Un second
+  essai — une seule réponse juste sur trois à la deuxième étape — donne 4/10
+  chez WIMS, là où la formule prédit (1 + 1/3 + 0)/3 = 44,4 %. Un modèle qui
+  compterait les *réponses* aurait donné 5 justes sur 8, soit 62,5 %, affiché
+  « 6 » : les deux modèles étaient indiscernables sur le premier cas, celui-ci
+  les sépare.
+
+  | copie | PAX | WIMS |
+  |---|---|---|
+  | 2 réponses justes sur 3 à l'étape 2 | 56 % | 6/10 |
+  | 1 réponse juste sur 3 à l'étape 2 | 44 % | 4/10 |
+
+  Les deux mesures fixent aussi l'arrondi : 5,56 → « 6 » et 4,44 → « 4 » ne
+  s'accordent qu'avec un arrondi au plus proche. Une troncature aurait donné
+  « 5 » dans le premier cas.
 
 - [ ] **Vérifier la notation sur les autres formes.** `deve7` est un `course`
   à trois étapes. Restent à éprouver contre WIMS : un `course` long
