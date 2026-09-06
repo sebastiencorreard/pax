@@ -517,8 +517,11 @@ ce que la source d'`anstype/` a appris :
   quand `$penalty>0` ; ligne 469 : `freegot = condgot+freegot+gotadjust+
   precweight*precgood` ; ligne 476 : `allgot = (allgot/alltot)^freepower*
   alltot` ; ligne 485 : `score = min(10, rint(100*(score_got/score_should)
-  ^scorepower)/10)`. PAX applique les quatre dans `api/routes/check.py`
-  (pénalité restreinte aux champs `c<n>` des `\choice`). La leçon de
+  ^scorepower)/10)` — mais `exo.init` :67 ne pose `scorepower` qu'au-delà
+  d'un exercice par travail (`$qnum>1`), sinon 1. PAX applique les trois
+  premiers dans `api/routes/check.py` (pénalité restreinte aux champs `c<n>`
+  des `\choice`) ; `scorepower` attend les feuilles, où un travail pourra
+  grouper plusieurs questions. La leçon de
   `freepower` tenait : le consommateur n'était pas là où on le cherchait.
 
 - [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez

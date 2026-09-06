@@ -416,13 +416,16 @@ async def check_exercise(
     if _freepower != 1 and 0 < global_score < 1:
         global_score = global_score ** _freepower
     # `scorepower` : `oef/var.proc` l'applique au ratio **cumulé** d'une série,
-    # `score = rint(100*(score_got/score_should)^scorepower)/10`. PAX corrige
-    # un exercice à la fois, et la série se réduit donc à lui : même formule,
-    # sur la même note. Vaut 1 jusqu'au niveau 3 — inerte aujourd'hui, mais
-    # présent, contrairement à ce qu'une recherche dans les scripts avait
-    # d'abord conclu.
+    # `score = rint(100*(score_got/score_should)^scorepower)/10`. Mais
+    # `oef/exo.init` :67 ne le pose qu'au-delà d'un exercice par travail
+    # (`!if $qnum>1 … !else scorepower=1`). PAX corrige un exercice à la
+    # fois — `qnum` vaut 1 — et l'exposant ne s'applique donc pas ; il
+    # reviendra avec les feuilles, quand un travail groupera plusieurs
+    # questions. Lu tout de même, pour que la lecture du réglage soit en place.
     _scorepower = float(sev.get("scorepower", 1) or 1)
-    if _scorepower != 1 and 0 < global_score < 1:
+    _qnum = 1
+
+    if _qnum > 1 and _scorepower != 1 and 0 < global_score < 1:
         global_score = global_score ** _scorepower
 
     solution_html = rendered.solution_html.strip() or None
