@@ -163,7 +163,15 @@ qu'on rejoue. Chiffres du **2026-09-05**, corpus de 4278 exercices, cache vidé.
   dont la réponse porte un `has_next_step`. Le front ne s'en sert que pour
   *ajouter* une étape que l'estimation avait manquée — jamais pour en retirer —
   et `null` (l'exercice n'a pas de `\nextstep`) laisse le comportement d'avant
-  intact : **79 exercices débloqués, 432 inchangés**.
+  intact.
+
+  **Chiffre rectifié le 2026-09-06 : 13 exercices débloqués, non 79.** Le
+  premier relevé comptait tous ceux dont `has_next_step` répondait « oui », y
+  compris les 66 où il répondait oui *à tort* — le piège de l'étape annoncée
+  identique à l'étape en cours, corrigé depuis. Treize, c'est la mesure faite
+  une fois ce piège écarté : `OEFpythagore2/{enchainement,rectangle,rectangle2}`
+  en fr et nl, `oefstatistiques/{histocap,histogramme,moustache}`, et quelques
+  autres.
 
   L'étiquette suit : elle n'annonce plus un total qu'on sait faux (« Étape 2 / 1 »
   s'affichait dès la première étape franchie), seulement « Étape 2 ».
