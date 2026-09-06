@@ -108,24 +108,43 @@ est réel :
 
 | commande | état au 2026-09-02 |
 |---|---|
-| `npm run lint` | 572 problèmes — 57 erreurs, 515 avertissements, dont **485 corrigeables par `lint:fix`** |
+| `npm run lint` | 564 problèmes — 55 erreurs, 509 avertissements, dont **477 corrigeables par `lint:fix`** |
 | `npm run typecheck` | 69 erreurs, concentrées sur `DrawAnswer.vue` (28) et `utils/figureColors.ts` (13) |
-| `npm run test:e2e` | 18 passent, 2 ignorés, **17 échecs** (37 tests) |
+| `npm run test:e2e` | **36 passent, 2 ignorés, 0 échec** (38 tests, ~1 min) |
 
 Résorber l'arriéré est un chantier à part : `lint:fix` touche des centaines de
 fichiers pour un gain cosmétique, et mérite sa propre relecture. Ce qui compte
 d'ici là, c'est qu'un changement n'aggrave aucun des trois compteurs.
 
-**La ligne e2e a été remesurée le 2026-09-06** : elle annonçait « 0 échec » sur
-20 tests, il y en a 37 et 17 échouent — l'écart ne vient pas d'une régression
-mais de tests qui n'ont pas suivi l'interface. Trois familles : `auth.spec.ts`
-cherche dans la barre de navigation un `span` portant le nom de l'utilisateur,
-qui n'y est plus ; `exercise-player.spec.ts` clique `a[href^="/exercise/"]` sur
-`/exercise` alors que les modules y sont repliés et n'exposent aucun lien ;
-`exercise-list.spec.ts` en dépend pareillement. Le helper
-`navigateToFirstExercise` explique à lui seul une douzaine d'échecs. **Mesurer
-la ligne de base avant de juger un delta** : celle écrite ici m'a fait croire un
-moment que j'avais cassé quelque chose.
+**La suite e2e a été remise d'aplomb le 2026-09-06.** Elle annonçait ici « 0
+échec » sur 20 tests ; il y en avait 37, dont **17 échouaient** depuis un moment
+— non par régression, mais parce que les tests n'avaient pas suivi l'interface.
+Ce qu'ils affirmaient et qui n'existait plus :
+
+- le rôle (`student`) dans la barre du haut — elle affiche le nom complet, et
+  c'est un `<header>`, non un `<nav>` ;
+- un enseignant redirigé vers `/exercise` après connexion — il atterrit sur `/` ;
+- des `a[href^="/exercise/"]` présents au chargement de `/exercise` — les
+  modules y sont repliés, et leurs exercices ne sont même plus chargés ;
+- une navigation au clic sur un exercice — au-dessus de 1024 px la liste
+  l'affiche en prévisualisation, sans naviguer ;
+- le numéro de tirage (`seed`), visible en mode de mise au point seulement ;
+- le compteur d'étoiles sur la page d'un exercice — il vit dans la barre du
+  tableau de bord, et cette page utilise le layout `default`.
+
+Deux vrais défauts sont ressortis de l'exercice et ont été corrigés dans
+l'application, pas dans les tests : les boutons *Déconnexion* et *Changer de
+langue* n'avaient pour nom accessible que leur glyphe (`⎋`, `🇫🇷`) faute
+d'`aria-label`, et la page d'un exercice ouverte en direct n'offrait aucun
+retour vers la liste — la clé `exercise.back` traînait, orpheline, dans les
+trois locales.
+
+Le piège à retenir : `waitForURL('**/exercise**')` est satisfait par
+`/auth/login?redirect=/exercise`, l'URL sur laquelle on retombe quand la
+connexion échoue — un login raté y passait pour un succès.
+
+**Mesurer la ligne de base avant de juger un delta** : celle écrite ici m'a fait
+croire un moment que j'avais cassé quelque chose.
 
 ## Dependencies
 

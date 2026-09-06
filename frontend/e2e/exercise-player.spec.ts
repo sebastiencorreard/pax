@@ -2,11 +2,28 @@ import { test, expect } from '@playwright/test'
 
 test.use({ storageState: 'e2e/.auth/student.json' })
 
+/**
+ * Ouvre le premier exercice du catalogue dans le lecteur.
+ *
+ * Deux choses ont changé sous ce helper, et il attendait toujours l'ancienne
+ * page. Les modules de `/exercise` sont repliés : aucun `a[href^="/exercise/"]`
+ * n'existe tant qu'on n'en a pas ouvert un (leurs exercices ne sont même plus
+ * chargés). Et au-dessus de 1024 px, cliquer un exercice l'affiche dans le
+ * panneau de prévisualisation *sans naviguer*. On récupère donc l'adresse du
+ * premier exercice, puis on l'ouvre directement — ce que ces tests veulent
+ * éprouver, c'est le lecteur, pas le chemin pour y arriver.
+ */
 async function navigateToFirstExercise(page: import('@playwright/test').Page) {
   await page.goto('/exercise')
   await page.waitForSelector('.animate-pulse', { state: 'detached', timeout: 15_000 })
-  const firstLink = page.locator('a[href^="/exercise/"]').first()
-  await firstLink.click()
+
+  const modules = page.getByRole('button').filter({ has: page.locator('.font-medium') })
+  await modules.first().click()
+  const premier = page.locator('a[href^="/exercise/"]').first()
+  await expect(premier).toBeVisible({ timeout: 10_000 })
+
+  const href = await premier.getAttribute('href')
+  await page.goto(href!)
   await page.waitForLoadState('networkidle')
   // Wait for the exercise player to finish loading
   await page.waitForSelector('.animate-pulse', { state: 'detached', timeout: 20_000 })
@@ -18,9 +35,6 @@ test.describe('exercise player', () => {
 
     // Header should have the exercise title area
     await expect(page.locator('h2')).toBeVisible()
-
-    // Seed label should be visible
-    await expect(page.locator('text=seed')).toBeVisible()
 
     // Statement area should be rendered
     await expect(page.locator('.oef-statement')).toBeVisible()
@@ -145,23 +159,22 @@ test.describe('exercise player', () => {
     await expect(page.locator('.oef-statement')).toBeVisible()
   })
 
-  test('"Nouvel énoncé" button loads a different seed', async ({ page }) => {
+  test('"Nouvel énoncé" button re-draws the statement', async ({ page }) => {
     await navigateToFirstExercise(page)
 
-    const seedText = page.locator('span', { hasText: /seed\s*:\s*\d+/ })
-    await expect(seedText).toBeVisible()
+    // Le numéro de tirage ne s'affiche qu'en mode de mise au point — un `ref`
+    // en mémoire qu'aucun bouton n'expose sur cette page. On éprouve donc
+    // l'effet du bouton plutôt que son affichage : l'énoncé est retiré.
+    const enonce = page.locator('.oef-statement')
+    const avant = await enonce.textContent()
 
-    const firstSeed = await seedText.textContent()
-
-    await page.getByRole('button', { name: 'Nouvel énoncé' }).click()
-    await page.waitForSelector('.animate-pulse', { state: 'detached', timeout: 20_000 })
-
-    // Seed should (very likely) change — if it happens to be the same, retry once
-    const secondSeed = await seedText.textContent()
-    // We just verify a seed is shown after reload
-    await expect(seedText).toBeVisible()
-    // Seeds can theoretically collide, so we just verify the reload completed cleanly
-    expect(secondSeed).toBeTruthy()
+    for (let essai = 0; essai < 3; essai++) {
+      await page.getByRole('button', { name: /Nouvel énoncé/ }).click()
+      await page.waitForLoadState('networkidle')
+      await expect(enonce).toBeVisible({ timeout: 15_000 })
+      if ((await enonce.textContent()) !== avant) return
+    }
+    test.skip(true, "cet exercice ne varie pas d'un tirage à l'autre")
   })
 
   test('back link navigates to exercise list', async ({ page }) => {
@@ -173,11 +186,13 @@ test.describe('exercise player', () => {
     await expect(page.locator('h1')).toContainText('Exercices')
   })
 
-  test('coins counter is visible', async ({ page }) => {
-    await navigateToFirstExercise(page)
-
-    // The coins display (⭐ N) should appear in the exercise header
-    await expect(page.locator('span[title]')).toBeVisible()
+  test('coins counter is visible on the exercise list', async ({ page }) => {
+    // Le compteur (⭐ N) vit dans la barre du tableau de bord. La page d'un
+    // exercice ouverte en direct utilise le layout `default`, qui ne la porte
+    // pas : c'est sur la liste qu'il faut le chercher.
+    await page.goto('/exercise')
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('banner').getByTitle(/Pièces/)).toBeVisible()
   })
 
   test('hint button toggles the hint panel', async ({ page }) => {

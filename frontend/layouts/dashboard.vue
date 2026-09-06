@@ -41,10 +41,12 @@
         <!-- Langue -->
 
         <div ref="langPicker" class="relative">
-          <button type="button"
-                  @click="langOpen = !langOpen"
-                  :title="$t('lang.choose')"
-                  class="text-base leading-none p-1 rounded hover:bg-black/5 dark:hover:bg-white/5">
+          <button
+            type="button"
+            :title="$t('lang.choose')"
+            :aria-label="$t('lang.choose')"
+            class="text-base leading-none p-1 rounded hover:bg-black/5 dark:hover:bg-white/5"
+            @click="langOpen = !langOpen">
             {{ flagFor(String(locale)) }}
           </button>
           <div v-if="langOpen"
@@ -72,11 +74,13 @@
         <span class="text-sm hidden sm:block" style="color:var(--color-text-muted)">
           {{ auth.fullName }}
         </span>
-        <button type="button"
-                @click="auth.logout(); navigateTo('/auth/login')"
-                :title="$t('auth.logout')"
-                class="text-xl leading-none w-9 h-9 flex items-center justify-center rounded border hover:bg-black/5 dark:hover:bg-white/5"
-                style="border-color:var(--color-border);color:var(--color-text-muted)">
+        <button
+          type="button"
+          :title="$t('auth.logout')"
+          :aria-label="$t('auth.logout')"
+          class="text-xl leading-none w-9 h-9 flex items-center justify-center rounded border hover:bg-black/5 dark:hover:bg-white/5"
+          style="border-color:var(--color-border);color:var(--color-text-muted)"
+          @click="auth.logout(); navigateTo('/auth/login')">
           ⎋
         </button>
       </header>

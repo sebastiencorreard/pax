@@ -34,7 +34,7 @@ test.describe('login page', () => {
     await submitBtn.click()
 
     // Button should eventually be gone or page redirected after successful login
-    await page.waitForURL('**/exercise**', { timeout: 15_000 })
+    await page.waitForURL(/\/exercise(\?|$)/, { timeout: 15_000 })
   })
 
   test('logs in as student and shows username in nav', async ({ page }) => {
@@ -45,11 +45,14 @@ test.describe('login page', () => {
     await page.locator('input[type="password"]').fill('eleve1234')
     await page.locator('button[type="submit"]').click()
 
-    await page.waitForURL('**/exercise**', { timeout: 15_000 })
+    await page.waitForURL(/\/exercise(\?|$)/, { timeout: 15_000 })
 
-    const nav = page.locator('nav')
-    // Role badge should be visible for logged-in user
-    await expect(nav.locator('span', { hasText: 'student' })).toBeVisible({ timeout: 5_000 })
+    // La barre du haut affiche le nom complet, non le rôle — celui-ci n'y
+    // figure plus. C'est un `<header>` (banner), pas un `<nav>` : le seul
+    // `<nav>` de la page est la liste de liens de la barre latérale.
+    await expect(
+      page.getByRole('banner').getByText('Eleve Test'),
+    ).toBeVisible({ timeout: 5_000 })
   })
 
   test('logout returns to login page', async ({ page }) => {
@@ -59,7 +62,7 @@ test.describe('login page', () => {
     await page.locator('input[type="email"]').fill('eleve@pax.fr')
     await page.locator('input[type="password"]').fill('eleve1234')
     await page.locator('button[type="submit"]').click()
-    await page.waitForURL('**/exercise**', { timeout: 15_000 })
+    await page.waitForURL(/\/exercise(\?|$)/, { timeout: 15_000 })
 
     // Click logout
     await page.getByRole('button', { name: 'Déconnexion' }).click()
@@ -76,9 +79,12 @@ test.describe('login page', () => {
     await page.locator('input[type="password"]').fill('prof1234')
     await page.locator('button[type="submit"]').click()
 
-    await page.waitForURL('**/exercise**', { timeout: 15_000 })
+    // Un enseignant atterrit sur son tableau de bord (`/`), un élève sur
+    // `/exercise` : n'attendre que d'avoir quitté la page de connexion.
+    await page.waitForURL((url) => !url.pathname.startsWith('/auth/'), { timeout: 15_000 })
 
-    const nav = page.locator('nav')
-    await expect(nav.locator('span', { hasText: 'teacher' })).toBeVisible({ timeout: 5_000 })
+    await expect(
+      page.getByRole('banner').getByText('Prof Test'),
+    ).toBeVisible({ timeout: 5_000 })
   })
 })
