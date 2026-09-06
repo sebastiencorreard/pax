@@ -6134,13 +6134,30 @@ class DefEngine(_SlibMixin):
 
         return _DOLLAR_VAR_RE.sub(repl, expr)
 
-    def _expected_as_fraction(self, raw_good: str) -> str | None:
+    def _expected_as_fraction(self, raw_good: str, valeur: str = "") -> str | None:
         """If the replygood evaluates to an exact non-integer rational, return
         it as ``"p/q"``; else None. Traces `$var` references back through their
         raw assignments (via `_rational_expand`) so a fraction floated by an
         intermediate `$[…]` — e.g. `replygood=$[$val9]`, `val9=$[$(val8[2])]`,
         `val8[2]=3/4` (1022) — is recovered. Used for numeric answer expected
-        so auto-fill inserts the fraction (`3/4`) not the decimal (`0.75`)."""
+        so auto-fill inserts the fraction (`3/4`) not the decimal (`0.75`).
+
+        ``valeur`` est l'attendu **tel que le moteur l'a calculé**, et la
+        reconstruction n'est retenue que si elle lui est égale.
+
+        Cette vérification n'est pas une précaution de principe. Remonter aux
+        affectations brutes rejoue un calcul que le moteur a déjà fait, et les
+        deux peuvent diverger : dans `quizz/course12_2step`, l'attendu vaut
+        `-0.5` (`val8=$[1/$(tmp0)*(-1)]`, le coefficient directeur d'une droite
+        décroissante) tandis que la reconstruction rendait `1/2`. Le signe
+        perdu ne se voyait pas seulement à l'écran : `expected` sert à
+        **corriger**, si bien qu'un élève répondant `-1/2` était compté faux et
+        que `1/2` aurait été accepté. Le corrigé, lui, affichait bien `-0.5` —
+        l'exercice se contredisait.
+
+        En cas de désaccord on garde le décimal : il vient du calcul, donc il
+        est juste, quand la fraction n'est qu'une commodité d'affichage.
+        """
         from fractions import Fraction  # noqa: PLC0415
 
         m = re.fullmatch(r"\s*\$\[(.+)\]\s*", raw_good, re.DOTALL)
@@ -6168,13 +6185,20 @@ class DefEngine(_SlibMixin):
         # est une mise à l'échelle décimale, quoi que la réduction en fasse.
         if _DIVISION_DECIMALE_RE.search(expr):
             return None
-        if (
+        if not (
             isinstance(res, Fraction)
             and res.denominator != 1
             and res.denominator % 10 != 0
         ):
-            return f"{res.numerator}/{res.denominator}"
-        return None
+            return None
+        # La reconstruction doit retomber sur ce que le moteur a calculé.
+        try:
+            calcule = float(str(valeur).strip().replace(",", "."))
+        except (TypeError, ValueError):
+            return None
+        if abs(float(res) - calcule) > 1e-9 * max(1.0, abs(calcule)):
+            return None
+        return f"{res.numerator}/{res.denominator}"
 
     # Answer types whose `expected` is one of the *displayed* choices (compared
     # as text by check_radio / check_clickfill), so it must be closed in lockstep
@@ -6734,7 +6758,7 @@ class DefEngine(_SlibMixin):
             # ne s'évalue pas laisse `_expected_as_fraction` rendre None.
             if (ans_type in ("numeric", "numexp", "default", "auto")
                     and "analyze_var" not in options):
-                _frac = self._expected_as_fraction(rm.get("good", ""))
+                _frac = self._expected_as_fraction(rm.get("good", ""), expected)
                 if _frac is not None:
                     expected = _frac
 

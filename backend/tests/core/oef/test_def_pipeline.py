@@ -1671,6 +1671,53 @@ class TestEvalueTable:
             assert 0 <= int(self._ev("randint(6)", seed=seed)) < 6
 
 
+class TestFractionAttendueVerifiee:
+    """La fraction montrée à l'élève doit valoir ce que le moteur a calculé.
+
+    `_expected_as_fraction` remonte aux affectations brutes pour rendre `3/4`
+    plutôt que `0.75`. Mais remonter, c'est rejouer un calcul déjà fait — et
+    dans un `course`, chaque question réassigne les mêmes `valN` : la
+    reconstruction repartait du RHS d'une *autre* question. Sur le seul
+    sous-arbre `H3/math` et huit graines, 93 reconstructions contredisaient la
+    valeur calculée — `3/2` quand elle vaut `10.47`, `9/5` quand elle vaut
+    `-4.33`.
+
+    Ce n'était pas qu'un défaut d'affichage : `expected` sert à **corriger**.
+    Sur `quizz/course12_2step` (graine 1465921361), le coefficient directeur
+    d'une droite décroissante vaut `-0.5` et l'attendu devenait `1/2` : un
+    élève répondant `-1/2` était compté faux, `1/2` aurait été accepté, et le
+    corrigé affichait pourtant « le coefficient directeur se calcule -0.5 ».
+    """
+
+    def test_l_attendu_garde_le_signe_du_calcul(self):
+        from core.oef.engine import load_and_render
+        r = load_and_render(
+            "/ressources/H3/math/quizz.fr/src/course12_2step.oef", seed=1465921361
+        )
+        attendus = {a.input_name: a.expected for a in r.answers}
+        assert abs(float(attendus["reply1"]) + 0.5) < 1e-9
+        assert attendus["reply16"] == "1"
+
+    def test_une_reconstruction_qui_contredit_le_calcul_est_ecartee(self):
+        from core.oef.def_engine import DefEngine
+        moteur = DefEngine.__new__(DefEngine)
+        moteur.raw_assigns = {}
+        moteur.ctx = {}
+        # `$[1/2]` reconstruit bien 1/2 — tant que le calcul dit la même chose.
+        assert moteur._expected_as_fraction("$[1/2]", "0.5") == "1/2"
+        assert moteur._expected_as_fraction("$[1/2]", "-0.5") is None
+        assert moteur._expected_as_fraction("$[3/2]", "10.47") is None
+
+    def test_sans_valeur_a_confronter_on_garde_le_decimal(self):
+        """Le décimal vient du calcul : c'est lui qui fait foi."""
+        from core.oef.def_engine import DefEngine
+        moteur = DefEngine.__new__(DefEngine)
+        moteur.raw_assigns = {}
+        moteur.ctx = {}
+        assert moteur._expected_as_fraction("$[3/4]", "") is None
+        assert moteur._expected_as_fraction("$[3/4]", "0.75") == "3/4"
+
+
 class TestChoiceAnswers:
     """Un `\\choice{}` porte sa propre réponse, dans un champ `c<N>`.
 
