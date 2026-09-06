@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import re
 
+from .wims_lists import split_top_level
+
 
 # Decimal dot between two digits (a number like 1.21 / 0.3). Used to localise
 # displayed numbers to the exercise language's separator.
@@ -57,30 +59,8 @@ def _matrix_close(s: str, start: int, close: str) -> int:
     return -1
 
 
-def _split_top_level(s: str, sep: str) -> list[str]:
-    """Split ``s`` on ``sep`` only at bracket depth 0."""
-    parts: list[str] = []
-    paren = brak = brace = 0
-    start = 0
-    for i, ch in enumerate(s):
-        if ch == "(":
-            paren += 1
-        elif ch == ")":
-            paren -= 1
-        elif ch == "[":
-            brak += 1
-        elif ch == "]":
-            brak -= 1
-        elif ch == "{":
-            brace += 1
-        elif ch == "}":
-            brace -= 1
-        elif ch == sep and paren == 0 and brak == 0 and brace == 0:
-            parts.append(s[start:i])
-            start = i + 1
-    parts.append(s[start:])
-    return parts
-
+# Découpage à profondeur zéro : une seule version, celle de `wims_lists`.
+_split_top_level = split_top_level
 
 def _maybe_pmatrix(span: str) -> str:
     """Turn a *standalone* ``[a,b;c,d]`` bracket into a LaTeX ``pmatrix``.

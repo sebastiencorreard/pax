@@ -44,26 +44,53 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import select
 from config import settings
 from models.exercise import Exercise, path_to_id
-from core.oef.parser import parse, get_directives_compat
+from core.oef.def_parser import parse as parse_def
+from core.oef.engine import find_def_path
 
 
 def extract_meta(oef_path: str) -> dict:
-    """Extrait title, language du fichier OEF."""
+    """Titre, langue et mots-clés d'un exercice — lus dans son `.def`.
+
+    PAX ne rend que des `.def` : c'est donc là que doit se lire ce qu'on montre
+    de l'exercice, et non dans le `.oef` d'origine, qu'un parseur OEF entier
+    était maintenu pour le seul bénéfice de cette fonction. Le `.def` porte
+    `!set title=`, `language=` et `keywords=`, que `def_parser` extrait déjà ;
+    la langue se lit sinon dans le suffixe du répertoire du module (`.fr`),
+    comme le moteur le fait.
+
+    **Les mots-clés arrivent en liste.** La colonne est un tableau, et lui
+    passer la chaîne `literal_calculation` telle quelle la faisait éclater en
+    caractères — `{l,i,t,e,r,a,l,_,…}` en base, et une recherche par mot-clé
+    qui ne trouvait que des lettres.
+    """
+    def_path = find_def_path(oef_path)
+    if not def_path:
+        return {}
     try:
-        with open(oef_path, "rb") as f:
-            raw = f.read()
         try:
-            content = raw.decode("utf-8")
+            with open(def_path, encoding="utf-8") as f:
+                content = f.read()
         except UnicodeDecodeError:
-            content = raw.decode("iso-8859-1")
-        directives = get_directives_compat(parse(content))
-        meta = {}
-        for d in directives:
-            if d.name in ("title", "language", "author", "keywords"):
-                meta[d.name] = d.content.strip()
-        return meta
+            with open(def_path, encoding="cp1252") as f:
+                content = f.read()
+        df = parse_def(content)
     except Exception:
         return {}
+
+    meta: dict = {}
+    if df.title:
+        meta["title"] = df.title.strip()
+    lang = str(df.meta.get("language") or "").strip()
+    if not lang:
+        # `modules/<niveau>/<domaine>/<module>.<lang>/def/<ex>.def`
+        module_dir = os.path.basename(os.path.dirname(os.path.dirname(def_path)))
+        lang = module_dir.rsplit(".", 1)[-1] if "." in module_dir else ""
+    if lang:
+        meta["language"] = lang
+    brut = str(df.meta.get("keywords") or "").strip()
+    if brut:
+        meta["keywords"] = [k.strip() for k in brut.split(",") if k.strip()]
+    return meta
 
 
 async def import_exercises(
@@ -89,7 +116,10 @@ async def import_exercises(
         for root, _, files in os.walk(domain_path):
             for f in sorted(files):
                 if f.endswith(".oef"):
-                    oef_files.append((domain, os.path.join(root, f)))
+                    chemin = os.path.join(root, f)
+                    # PAX ne rend que des `.def` : sans lui, rien à importer.
+                    if find_def_path(chemin):
+                        oef_files.append((domain, chemin))
     oef_files.sort(key=lambda x: x[1])
 
     print(f"Fichiers trouvés : {len(oef_files)}")

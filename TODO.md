@@ -334,6 +334,62 @@ PAX rabat les trois sur `check_algexp` (SymPy) + pré-checks de forme :
 
 Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`/`\while`, alias `r1`/`reply1`/`rep1`, `\feedback` + `sc_reply`/`m_reply`, bonnes réponses multiples, `case` avec `|`, `correspond`+`split`, virgule décimale, `\hint`/`\help`/`\solution`, `\css`.
 
+### e) Audit de fidélité du 2026-09-06 (réf. `docs/wims-reference/introProgOEF.pdf` §1.3 + `anstype/*`)
+
+Les 28 exemples chiffrés du manuel ont été rejoués tels quels contre
+`check_answer` : **25/28 au départ, 28/28 à l'arrivée**. Les trois écarts, et
+ce que la source d'`anstype/` a appris :
+
+- [x] **`case` mettait tout en minuscules** — sa docstring l'avouait « faute
+  d'un cas du corpus ». `anstype/case` compare par `!if $dd=$g` : `Dollar` est
+  faux pour `dollar`, c'est `nocase` qui l'accepte (§1.3.3).
+- [x] **`algexp` acceptait `(x+1)(x-1)` pour `x^2-1`** — l'équivalence
+  rationnelle seule ne suffit pas. `anstype/algexp` exige `ratsimp(good-dd)=0`
+  **et** `$t2 isitemof $t1`, la forme *imprimée* par Maxima : elle replie les
+  coefficients (`(24+4)*x-53` = `28*x-53`) mais ne développe pas un produit.
+  Refusé désormais en `badform`, comme pour `numexp`.
+- [x] **`function` était une comparaison symbolique** : `5*x+0.000001` ne
+  valait pas `5*x` (§1.3.5.1). `anstype/function` échantillonne dans
+  `\range` (`leftrange`/`rightrange`, défaut `-5,5`) et juge l'écart moyen à
+  `1/precision` (juste) puis `1/sqrt(precision)` (juste à `precweight` près) ;
+  une variable hors de celles de l'attendu — `5*t` pour `5*x` — est refusée.
+  Après la fonction, `\answer{}{\g,x,t}` liste les **variables** permises,
+  pas des alternatives : `function` sort du découpage en `|`/`,`. **Hypothèse
+  consignée** : `$testnum`, le nombre de points, n'est défini nulle part dans
+  l'arbre WIMS que nous avons ; PAX en tire 20 d'une graine fixe.
+- [x] **Tailles par défaut des champs** : sans second argument à `\embed`,
+  PAX rendait 10 partout. Chaque `anstype/<type>.input` borne `inputsize` et
+  pose son défaut (`numeric` 20, `algexp`/`atext`/`case` 40, `numexp` 20,
+  `reorder` 10…) — repris dans `_TAILLE_DEFAUT`. C'est la seule source de
+  diff sur les snapshots de cette passe : 3978 fichiers, largeur seule.
+- [x] **`scorepower` et `penalty` ont bien un consommateur** — cf. §6 ci-dessous.
+- [x] **Un seul moteur de rendu.** Le couple `core/oef/parser.py` +
+  `evaluator.py` (Lark, 1927 lignes, plus `strategies/condition.py` et leurs
+  tests) ne servait plus qu'au repli de `load_and_render` quand un `.oef`
+  n'avait pas de `.def` — et **4277/4277** en ont un. Supprimé ; un `.oef`
+  orphelin lève `FileNotFoundError` au lieu de rendre autre chose que ce que
+  WIMS rendrait. L'import (`scripts/import_exercises.py`) et le corpus de test
+  lisent le `.def` eux aussi : l'import y gagne 51 titres (mojibake) et 87
+  langues (`moles.nl` était étiqueté `fr`), et ses mots-clés — stockés
+  jusqu'ici **lettre par lettre** (`{l,i,t,e,r,a,l,…}`) — une vraie liste. Une
+  réimportation est nécessaire pour que la base en profite.
+- [x] **Doublons de découpage** : sept copies locales de « couper au
+  séparateur hors parenthèses » et deux de « ôter les parenthèses
+  englobantes » (`checkers`, `pari_prog`, `presentation`, `cas`, `slib`,
+  `_cmd_declosing`) rabattues sur `wims_lists.split_top_level`,
+  `split_top_level_args` et `declosing`, bâtis sur `strparstr` — la primitive
+  de `liblines.c` déjà portée.
+
+**Divergences qui restent, connues et assumées** :
+
+- `\choice` : PAX note par `choiceweight` là où `var.proc` compte `qcmgot` en
+  boucle ; identique sur une bonne réponse par menu, à vérifier si un menu
+  porte plusieurs bonnes réponses (cf. la « limite assumée » de §6).
+- Les gardes d'affichage sur `seedcnt` (rejouer le même tirage) ne sont pas
+  modélisées : PAX n'a pas de graine de session.
+- Les commentaires HTML des énoncés traversent tels quels — WIMS les laisse
+  aussi, mais son `answer.phtml` en retire certains marqueurs.
+
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 
 - [x] **Le crédit d'une étape est proportionnel** (2026-09-06). Une étape dont
@@ -455,16 +511,19 @@ Conforme (vérifié) : opérateurs compare.c, indices négatifs/tranches, `\for`
   (`oef/helpseverity`) : neuf colonnes, dix lignes. Il vaut d'être repris, car
   un curseur de 1 à 9 sans ce tableau ne dit rien de ce qu'il commande.
 
-- [ ] **`penalty` et `scorepower` restent sans consommateur identifié.** Le
-  `oef_penalty` d'`answer.phtml` est déclenché par `$toolate` — une réponse
-  hors délai — non par ce réglage. `scorepower` ne sert qu'aux modules `deduc`
-  et `dialog`. Mais la leçon de `freepower` vaut ici : **l'absence dans les
-  scripts ne prouve rien**, le moteur C peut les lire. À vérifier par la mesure
-  plutôt que par la lecture.
+- [x] **`penalty` et `scorepower` ont un consommateur : `oef/var.proc`**, le
+  script qui calcule la note, et non `answer.phtml`. Ligne 431 : chaque menu
+  `\choice` faux (et différent de « je ne sais pas ») retire `cc/(n-cc)`
+  quand `$penalty>0` ; ligne 469 : `freegot = condgot+freegot+gotadjust+
+  precweight*precgood` ; ligne 476 : `allgot = (allgot/alltot)^freepower*
+  alltot` ; ligne 485 : `score = min(10, rint(100*(score_got/score_should)
+  ^scorepower)/10)`. PAX applique les quatre dans `api/routes/check.py`
+  (pénalité restreinte aux champs `c<n>` des `\choice`). La leçon de
+  `freepower` tenait : le consommateur n'était pas là où on le cherchait.
 
 - [ ] **Exposer `qcmlevel` sur la feuille d'exercice.** C'est là qu'il vit chez
   WIMS, et c'est le pendant naturel de la surcharge des `confparm` (cf. I.2).
-  Aujourd'hui PAX prend le niveau 1 pour tout le monde.
+  Aujourd'hui PAX prend le niveau 3 pour tout le monde (`_NIVEAU_DEFAUT`).
 
 - [ ] **Une limite assumée.** `choicegood` est une liste chez WIMS ; PAX garde
   la bonne réponse **entière**, parce que plusieurs exercices y écrivent une

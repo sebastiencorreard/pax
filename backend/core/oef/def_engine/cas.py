@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import math
 import re
+
+from .wims_lists import split_top_level_args
 from typing import Any
 
 
@@ -144,27 +146,8 @@ _MAXIMA_TO_SYMPY: dict[str, str] = {
 }
 
 
-def _split_top_level_args(arg_str: str) -> list[str]:
-    """Split a comma-separated argument list at top-level commas only."""
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in arg_str:
-        if ch in "([{":
-            depth += 1
-            current.append(ch)
-        elif ch in ")]}":
-            depth -= 1
-            current.append(ch)
-        elif ch == "," and depth == 0:
-            parts.append("".join(current).strip())
-            current = []
-        else:
-            current.append(ch)
-    if current:
-        parts.append("".join(current).strip())
-    return parts
-
+# Arguments séparés par des virgules, à profondeur zéro : `wims_lists`.
+_split_top_level_args = split_top_level_args
 
 def _sympify_arg(s: str):
     """sympify a Maxima/Pari arg, normalising `^` → `**` and supporting implicit mult."""

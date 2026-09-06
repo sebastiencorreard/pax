@@ -2907,29 +2907,8 @@ class DefEngine(_SlibMixin):
         return acc
 
     def _cmd_declosing(self, args: str) -> str:
-        """!declosing text — remove outer parentheses/brackets/braces.
-
-        Uniquement si toute la chaîne est enclose dans UNE paire équilibrée : le
-        premier crochet ouvrant doit s'apparier au dernier caractère. Sinon
-        `[a,b],[c,d]` verrait ses deux listes fusionnées à tort (dataproc)."""
-        s = self._subst(args).strip()
-        pairs = [("(", ")"), ("[", "]"), ("{", "}")]
-        for open_, close_ in pairs:
-            if s.startswith(open_) and s.endswith(close_):
-                depth = 0
-                for j, ch in enumerate(s):
-                    if ch == open_:
-                        depth += 1
-                    elif ch == close_:
-                        depth -= 1
-                        if depth == 0:
-                            # Le 1er ouvrant se ferme ailleurs qu'à la fin → pas
-                            # d'enclosure unique (ex. `[a],[b]`).
-                            if j != len(s) - 1:
-                                return s
-                            break
-                return s[1:-1].strip()
-        return s
+        """!declosing text — retire une paire englobante équilibrée (`wims_lists`)."""
+        return wl.declosing(self._subst(args))
 
     def _cmd_getopt(self, args: str) -> str:
         r"""`!getopt <nom> in <options>` — la valeur d'une option `nom=valeur`.
@@ -5371,6 +5350,12 @@ class DefEngine(_SlibMixin):
                 size = int(round(float(self._eval_arith(size_raw))))
             except (ValueError, TypeError):
                 size = 10
+            if not index_donne:
+                # Sans second argument à l'`\embed`, la largeur vient du type :
+                # chaque `anstype/<type>.input` de WIMS borne `inputsize` et
+                # pose son défaut (`!bound inputsize between integer 1 and 100
+                # default 20` pour `numeric`). PAX mettait 10 partout.
+                size = _TAILLE_DEFAUT.get(reply_type, 30)
             span = (
                 f'<span class="oef-input" name="{ref}" '
                 f'data-size="{size}"{extra}></span>'
@@ -6217,6 +6202,17 @@ class DefEngine(_SlibMixin):
             if a.answer_type in self._CHOICE_EXPECTED_TYPES and a.expected:
                 a.expected = _close_inline_math(a.expected, self.lang)
 
+    def _wims_range(self, df: DefFile) -> tuple[float, float]:
+        """`\\range{a,b}` → `(a, b)`, défaut `(-5, 5)` comme `oef/var.prep`."""
+        out = []
+        for cle, defaut in (("leftrange", -5.0), ("rightrange", 5.0)):
+            raw = self._subst(str(self.ctx.get(cle) or df.meta.get(cle) or "")).strip()
+            try:
+                out.append(float(raw) if raw else defaut)
+            except ValueError:
+                out.append(defaut)
+        return (out[0], out[1])
+
     def _wims_precision(self, df: DefFile) -> float:
         """Précision numérique WIMS (`\\precision{M}`) de l'exercice.
 
@@ -6248,6 +6244,7 @@ class DefEngine(_SlibMixin):
     def _extract_answers_raw(self, df: DefFile) -> list[AnswerDef]:
         answers: list[AnswerDef] = []
         wims_prec = self._wims_precision(df)
+        plage_exo = self._wims_range(df)
         compute_answer = self._subst(str(df.meta.get("computeanswer", ""))).strip().lower()
 
         # When replycnt=0 but choicecnt>0, synthesise implicit radio replies from
@@ -6377,6 +6374,15 @@ class DefEngine(_SlibMixin):
             # numexp, units, fset). Jusqu'ici figée à 1e-4 côté checker ; on
             # transmet désormais `\precision{M}` (cf. _wims_precision).
             options["precision"] = wims_prec
+            # `\range{a,b}` — l'intervalle où `function` compare numériquement
+            # (`leftrange`/`rightrange`, défaut `-5,5` dans `oef/var.prep`).
+            # Lu par le parseur depuis toujours, jamais transmis jusqu'ici.
+            # Seul `function` s'en sert : le poser partout ne ferait que
+            # bouger 3978 snapshots pour rien.
+            if ans_type.lower() == "function":
+                # En liste : les options traversent le JSON des snapshots, et
+                # un tuple n'en revient pas égal à lui-même.
+                options["range"] = list(plage_exo)
             # `\computeanswer{no}` (défaut) : réponse numérique = valeur, pas un
             # calcul. Transmis au checker numeric.
             if compute_answer:
@@ -6935,6 +6941,18 @@ _SEVERITE: dict[str, tuple[float, ...]] = {
 # C'est donc le niveau 3 que PAX prend, jusqu'à ce que la feuille porte le
 # réglage — il vit là chez WIMS, et n'a rien à faire dans le moteur.
 _NIVEAU_DEFAUT = 3
+
+# Largeur par défaut du champ de saisie de chaque type, en caractères, relevée
+# dans les `anstype/<type>.input` de WIMS (`!bound inputsize … default N`).
+# `default` — le type des réponses non typées — vaut 30 ; c'est aussi le repli
+# pour un type qui n'y figurerait pas.
+_TAILLE_DEFAUT: dict[str, int] = {
+    "algexp": 40, "aset": 30, "atext": 40, "case": 40, "chembrut": 40,
+    "chemformula": 40, "chset": 18, "complex": 20, "default": 30, "equation": 40,
+    "formal": 40, "fset": 30, "function": 40, "litexp": 40, "nocase": 40,
+    "numeric": 20, "numexp": 20, "range": 20, "raw": 40, "reorder": 10,
+    "set": 30, "sigunits": 25, "units": 25, "vector": 30, "wlist": 40,
+}
 
 
 def _uniques(items: list[str]) -> list[str]:

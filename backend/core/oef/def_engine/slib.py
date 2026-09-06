@@ -473,13 +473,9 @@ class _SlibMixin:
         self.rng.shuffle(shuffled)
         return sep.join(shuffled[:n])
 
-    @staticmethod
-    def _declose(s: str) -> str:
-        """Strip one outer matching bracket pair: ``[python,[c]]`` → ``python,[c]``."""
-        s = s.strip()
-        if len(s) >= 2 and s[0] in "([{" and s[-1] in ")]}":
-            return s[1:-1]
-        return s
+    # `!declosing` : la version équilibrée de `wims_lists` — celle-ci acceptait
+    # une paire dépareillée (`(a]`) et ne vérifiait pas l'équilibrage.
+    _declose = staticmethod(wl.declosing)
 
     # Le service que `jmolshow` désigne pour résoudre un identifiant chimique
     # (nom courant, SMILES, InChI) en un modèle 3D. Ce n'est pas PAX qui

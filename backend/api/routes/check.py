@@ -10,10 +10,8 @@ from models.attempt import Attempt
 from models.user import User
 from api.deps import get_current_user
 from core.oef.engine import load_and_render, find_def_path
-from core.oef.evaluator import OEFEvaluator
 from core.answer.schemas import AnswerResult
 from core.answer.strategies.standard import run_standard
-from core.answer.strategies.condition import run_condition
 from core.answer.strategies.analyze import run_analyze, run_feedback
 from core.oef.def_engine.analyze import etape_suivante_existe
 from core.chrono import module_scoredelay, read_started_at, score_factor
@@ -203,14 +201,6 @@ async def check_exercise(
     ):
         global_score, results = run_analyze(rendered, active_ans_defs, replies_by_name, body.seed)
         feedback_html = run_feedback(rendered, active_ans_defs, replies_by_name, results, body.seed)
-
-    elif rendered.condition:
-        evaluator = OEFEvaluator(seed=body.seed)
-        evaluator.ctx.update(rendered.ev_ctx)
-        global_score, results = run_condition(
-            rendered.condition["expr"], active_ans_defs, replies_by_name, evaluator,
-            rendered.lang,
-        )
 
     else:
         global_score, results = run_standard(active_ans_defs, replies_by_name, rendered.lang)
@@ -402,9 +392,38 @@ async def check_exercise(
     # 7,2/10 pour une juste et une approchée, ce que 0,7^2 et 0,85^2 rendent
     # exactement. Une note partielle est donc plus sévèrement pénalisée que la
     # moyenne ne le laisserait croire ; à 1, l'exposant ne fait rien.
+    # `penalty` : la correction du hasard des QCM. Dans la boucle des `\choice`
+    # d'`oef/var.proc`, une mauvaise réponse — hors « Je ne sais pas » — retire
+    # `cc/(n−cc)` à `qcmgot`, où `cc` est le nombre de bonnes propositions et
+    # `n` leur total : sur un choix à quatre options dont une bonne, se tromper
+    # coûte un tiers de point. Ne s'applique qu'aux `\choice` (`c<n>`), pas aux
+    # `\answer` de type `radio`. Vaut 0 jusqu'au niveau 5 — inerte aujourd'hui.
+    if float(sev.get("penalty", 0) or 0) > 0 and active_ans_defs:
+        total_w = sum(a.weight for a in active_ans_defs) or 1.0
+        for a, res in zip(active_ans_defs, results):
+            if not _re.fullmatch(r"c\d+", a.input_name) or res.correct:
+                continue
+            if (res.reply or "").strip() == "Je ne sais pas":
+                continue
+            propositions = [c for c in (a.options.get("choices") or [])
+                            if c != "Je ne sais pas"]
+            n = len(propositions)
+            cc = min(len([x for x in (a.expected or "").split(",") if x.strip()]), n - 1)
+            if n - cc > 0:
+                global_score = max(0.0, global_score - (cc / (n - cc)) * a.weight / total_w)
+
     _freepower = float(sev.get("freepower", 1) or 1)
     if _freepower != 1 and 0 < global_score < 1:
         global_score = global_score ** _freepower
+    # `scorepower` : `oef/var.proc` l'applique au ratio **cumulé** d'une série,
+    # `score = rint(100*(score_got/score_should)^scorepower)/10`. PAX corrige
+    # un exercice à la fois, et la série se réduit donc à lui : même formule,
+    # sur la même note. Vaut 1 jusqu'au niveau 3 — inerte aujourd'hui, mais
+    # présent, contrairement à ce qu'une recherche dans les scripts avait
+    # d'abord conclu.
+    _scorepower = float(sev.get("scorepower", 1) or 1)
+    if _scorepower != 1 and 0 < global_score < 1:
+        global_score = global_score ** _scorepower
 
     solution_html = rendered.solution_html.strip() or None
     if sev.get("givesol", 1) < 1:

@@ -30,7 +30,14 @@ def oef_paths() -> list[str]:
     racine = settings.resources_root.rstrip("/")
     sous_arbre = os.environ.get("PAX_TEST_CORPUS", "").strip("/")
     motif = f"{racine}/{sous_arbre}/**/*.oef" if sous_arbre else f"{racine}/**/*.oef"
-    return sorted(glob.glob(motif, recursive=True))
+    # PAX ne rend que des `.def` : un `.oef` sans `.def` n'est pas un exercice
+    # PAX, et le seul du corpus (`oefpression/mathml`) est un fichier de
+    # démonstration hors `src/`. Le parseur OEF qui le rendait a été retiré.
+    return sorted(
+        c for c in glob.glob(motif, recursive=True)
+        if os.path.exists(os.path.join(os.path.dirname(os.path.dirname(c)), "def",
+                                       os.path.basename(c)[:-4] + ".def"))
+    )
 
 
 def exercises() -> list[tuple[str, str]]:

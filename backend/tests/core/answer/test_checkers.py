@@ -1245,3 +1245,49 @@ class TestCasePonctuation:
         assert check_answer("case", "un  deux", "un deux").correct
         assert check_answer("case", "un, deux", "un deux").correct
         assert check_answer("case", " un deux ", "un.deux").correct
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Les exemples du manuel WIMS (`docs/wims-reference/introProgOEF.pdf`, §1.3),
+# éprouvés tels quels. Trois d'entre eux divergeaient le 2026-09-06 ; les
+# sources d'`anstype/` en ont donné la cause, et ces tests les gardent.
+# ─────────────────────────────────────────────────────────────────────────────
+class TestManuelWims:
+    def test_case_est_sensible_a_la_casse(self):
+        """§1.3.3 : `case` refuse `Dollar` pour `dollar` — c'est `nocase` qui l'accepte.
+
+        `anstype/case` compare par `!if $dd=$g`. PAX mettait tout en minuscules,
+        un écart que sa docstring avouait « faute d'un cas du corpus »."""
+        assert not check_answer("case", "Dollar", "dollar").correct
+        assert check_answer("nocase", "Dollar", "dollar").correct
+        assert check_answer("case", "le dollar", "dollar | le dollar").correct
+        assert not check_answer("case", "dollars", "dollar | le dollar").correct
+
+    def test_algexp_replie_les_coefficients_mais_ne_developpe_pas(self):
+        """§1.3.5.2 : `(24+4)*x-53` vaut `28*x-53`, `(x+1)(x-1)` ne vaut pas `x^2-1`.
+
+        `anstype/algexp` exige `ratsimp(good-dd)=0` **et** `$t2 isitemof $t1` —
+        la forme imprimée par Maxima, qui replie les coefficients sans
+        développer un produit. PAX n'avait que le premier critère."""
+        assert check_answer("algexp", "(24+4)*x-53", "28*x-53").correct
+        assert check_answer("algexp", "x-y*y", "-y^2+x").correct
+        r = check_answer("algexp", "(x+1)(x-1)", "x^2-1")
+        assert not r.correct and r.status == "invalid_format"
+        assert not check_answer("algexp", "sin(x)^2+cos(x)^2", "1").correct
+
+    def test_function_compare_numeriquement_sur_range(self):
+        """§1.3.5.1 : `5x`, `5*x+0.000001` valent `5*x` ; `5*t` est refusé.
+
+        `anstype/function` tire des points dans `\\range` et compare l'écart
+        moyen à `1/precision`. La comparaison symbolique qui en tenait lieu ne
+        pouvait pas accepter la perturbation en 1e-6."""
+        assert check_answer("function", "5x", "5*x", {"precision": 10000.0}).correct
+        assert check_answer("function", "5*x+0.000001", "5*x", {"precision": 10000.0}).correct
+        r = check_answer("function", "5*t", "5*x", {"precision": 10000.0})
+        assert not r.correct and r.status == "invalid_format"
+
+    def test_function_ne_decoupe_pas_ses_variables_en_alternatives(self):
+        """`\\answer{y=}{\\g,x,t}` : après la fonction viennent les variables
+        autorisées, non des réponses acceptables. `x` ne doit pas valoir `2*x`."""
+        assert not check_answer("function", "x", "2*x,x,t", {"precision": 10000.0}).correct
+        assert check_answer("function", "2*x+0*t", "2*x,x,t", {"precision": 10000.0}).correct

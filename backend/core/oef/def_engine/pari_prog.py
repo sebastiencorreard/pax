@@ -35,6 +35,8 @@ from __future__ import annotations
 import ast
 import math
 import re
+
+from .wims_lists import split_top_level
 from typing import Any
 
 
@@ -608,24 +610,8 @@ def _unstash(src: str, cache: dict[str, str]) -> str:
     return src
 
 
-def _split_top_level(src: str, sep: str) -> list[str]:
-    """Découpe aux occurrences de ``sep`` situées à profondeur 0."""
-    parts: list[str] = []
-    depth = 0
-    current: list[str] = []
-    for ch in src:
-        if ch in "([{":
-            depth += 1
-        elif ch in ")]}":
-            depth -= 1
-        if ch == sep and depth == 0:
-            parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    parts.append("".join(current))
-    return parts
-
+# Découpage à profondeur zéro : une seule version, celle de `wims_lists`.
+_split_top_level = split_top_level
 
 def _decoupe_instructions(src: str) -> list[str]:
     """Découpe une suite d'instructions GP.

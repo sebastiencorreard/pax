@@ -20,5 +20,4 @@ def test_le_moteur_s_importe_depuis_l_api():
     """L'ordre d'import de l'API : les routes d'abord, le moteur ensuite."""
     importlib.import_module("api.routes.render")
     importlib.import_module("core.oef.engine")
-    importlib.import_module("core.oef.evaluator")
     importlib.import_module("core.oef.def_engine")

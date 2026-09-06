@@ -12,7 +12,10 @@ parce qu'il dit pourquoi les retouches locales ne pouvaient pas converger.*
 
 Le moteur PAX comptait **11 fonctions de découpage nommées** et
 **26 `re.split` ad hoc** rien que dans `def_engine/__init__.py`, plus des
-variantes dans `compare.py`, `slib.py`, `engine.py` et `evaluator.py`. Chaque
+variantes dans `compare.py`, `slib.py`, `engine.py` et `evaluator.py` (ce
+dernier supprimé depuis, avec tout le pipeline OEF de repli — audit du
+2026-09-06 ; les copies locales de « couper hors parenthèses » restantes
+sont rabattues sur `wims_lists.split_top_level`/`declosing`). Chaque
 bug corrigé cette session (`isitemof`, `positionof`, `randitem`,
 `distribute`, `listuniq`, `itemcnt`, colonnes de matrices…) a ajouté sa
 protection de crochets ou son cas spécial, sans faire converger l'ensemble.

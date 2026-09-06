@@ -13,6 +13,8 @@ import re
 import sys
 import unicodedata
 
+from core.oef.def_engine import wims_lists as wl
+
 _log = logging.getLogger("pax.answer")
 _logged_unhandled_types: set[str] = set()
 
@@ -1907,6 +1909,20 @@ def check_algexp(
 
         if rational_only:
             correct = sympy.cancel(r_expr - e_expr) == 0
+            # `anstype/algexp` ne s'arrête pas à `ratsimp(good-dd)=0` : il exige
+            # aussi `$t2 isitemof $t1`, où `t1` et `t2` sont ce que Maxima
+            # **imprime** de l'attendu et de la réponse — leur forme après sa
+            # simplification automatique, qui replie les coefficients
+            # (`(24+4)*x` → `28*x`) et ordonne les termes (`x-y*y` → `x-y^2`)
+            # mais ne développe pas un produit. Le manuel (§1.3.5.2) en donne
+            # la conséquence : `(x+1)(x-1)` est refusé pour `x^2-1`. La
+            # simplification automatique de sympy fait les mêmes replis, et
+            # l'égalité structurelle des deux arbres joue le rôle du `isitemof`.
+            if correct and r_expr != e_expr:
+                return CheckResult(
+                    correct=False, score=0.0, method="algexp_badform",
+                    status="invalid_format", detail=_REWRITE_MSG,
+                )
         else:
             correct = sympy.simplify(sympy.expand(r_expr) - sympy.expand(e_expr)) == 0
 
@@ -1922,6 +1938,85 @@ def check_algexp(
 # ------------------------------------------------------------------ #
 # Équation — équivalence à facteur multiplicatif près                  #
 # ------------------------------------------------------------------ #
+
+
+def check_function(
+    reply: str, expected: str, precision: float, comma_is_decimal: bool = True,
+    plage: tuple[float, float] | None = None, precweight: float = 0.5,
+) -> CheckResult:
+    """Type ``function`` — comparaison **numérique** sur ``\\range``.
+
+    Port de `anstype/function`. L'attendu est `fonction, var1, var2…` : le
+    premier item est la fonction, les suivants les variables autorisées en
+    plus des siennes. Une variable de la réponse qui n'y figure pas est une
+    `bad_variable` (`5*t` refusé pour `5*x`). Puis, sur des points tirés dans
+    `[leftrange, rightrange]` — `\\range`, défaut `[-5,5]` — l'écart moyen
+    `|reply − good|` décide :
+
+        < 1/precision        → juste
+        < 1/sqrt(precision)  → juste « à la précision près » (`precgood`)
+
+    C'est pourquoi `5*x+0.000001` vaut `5*x` (§1.3.5.1) : la comparaison
+    symbolique, qui tenait lieu de `function` jusqu'ici, ne pouvait pas le voir.
+
+    Le nombre de points, `$testnum`, n'est défini nulle part dans l'arbre WIMS
+    que nous avons ; vingt points tirés d'une graine fixe donnent une mesure
+    stable et suffisamment serrée. C'est une hypothèse, consignée comme telle.
+    """
+    import sympy
+    from sympy.parsing.sympy_parser import (
+        parse_expr, standard_transformations, implicit_multiplication_application,
+    )
+    transformations = standard_transformations + (implicit_multiplication_application,)
+    items = [x.strip() for x in _split_top_level(expected, ",") if x.strip()]
+    if not items:
+        return CheckResult(correct=False, score=0.0, method="function")
+    good_src, extra_vars = items[0], items[1:]
+    try:
+        loc = _safe_locals()
+        good = parse_expr(_normalize_expr(good_src, comma_is_decimal),
+                          transformations=transformations, local_dict=loc)
+        rep = parse_expr(_normalize_expr(reply, comma_is_decimal),
+                         transformations=transformations, local_dict=loc)
+    except Exception:
+        return CheckResult(correct=False, score=0.0, method="function",
+                           detail="Expression non reconnue")
+    # `2*x+1, 4` parse en tuple, `{1,2}` en ensemble : ni l'un ni l'autre n'est
+    # une fonction à échantillonner. WIMS les enverrait à Maxima, qui bute
+    # aussi ; on refuse sans juger.
+    if not isinstance(good, sympy.Expr) or not isinstance(rep, sympy.Expr):
+        return CheckResult(correct=False, score=0.0, method="function",
+                           status="invalid_format", detail="Expression non reconnue")
+    constantes = {"e", "E", "pi", "Pi", "PI"}
+    permises = ({str(v) for v in good.free_symbols} | {v for v in extra_vars}) - constantes
+    inconnues = {str(v) for v in rep.free_symbols} - permises - constantes
+    if inconnues:
+        return CheckResult(correct=False, score=0.0, method="function",
+                           status="invalid_format",
+                           detail=f"Variable inconnue : {', '.join(sorted(inconnues))}")
+    gauche, droite = plage if plage else (-5.0, 5.0)
+    symboles = {v: sympy.Symbol(v) for v in sorted(permises)}
+    import random as _random
+    rng = _random.Random(20260906)
+    ecart = 0.0
+    n_points = 20
+    for _ in range(n_points):
+        point = {sym: rng.uniform(gauche, droite) for sym in symboles.values()}
+        try:
+            g = complex(good.subs(point).evalf())
+            r = complex(rep.subs(point).evalf())
+        except Exception:
+            return CheckResult(correct=False, score=0.0, method="function")
+        if not (math.isfinite(g.real) and math.isfinite(r.real)):
+            return CheckResult(correct=False, score=0.0, method="function")
+        ecart += abs(r - g)
+    ecart /= n_points
+    if ecart < 1 / precision:
+        return CheckResult(correct=True, score=1.0, method="function")
+    if ecart < 1 / math.sqrt(precision):
+        return CheckResult(correct=False, score=precweight, method="function",
+                           detail=_POOR_PRECISION_MSG)
+    return CheckResult(correct=False, score=0.0, method="function")
 
 
 def _equation_sides(s: str, comma_is_decimal: bool):
@@ -2733,24 +2828,8 @@ def check_correspond(reply: str, expected: str, partial: bool = False) -> CheckR
     return CheckResult(correct=False, score=0.0, method="correspond")
 
 
-def _split_top_level(s: str, sep: str) -> list[str]:
-    """Split `s` on single-char `sep`, only at bracket depth 0."""
-    parts: list[str] = []
-    depth = 0
-    cur: list[str] = []
-    for ch in s:
-        if ch in "([{":
-            depth += 1
-        elif ch in ")]}":
-            depth = max(0, depth - 1)
-        if ch == sep and depth == 0:
-            parts.append("".join(cur))
-            cur = []
-        else:
-            cur.append(ch)
-    parts.append("".join(cur))
-    return parts
-
+# Découpage à profondeur zéro : une seule version, celle de `wims_lists`.
+_split_top_level = wl.split_top_level
 
 def _product_multiset(s: str) -> tuple[str, ...]:
     """Factors of a product ``a*b*c`` as an order-independent sorted multiset,
@@ -2806,13 +2885,14 @@ def _case_normalize(s: str) -> str:
     """`translate badchars → espaces`, `singlespace`, `trim` — la préparation
     que `anstype/case` applique à la réponse **comme** à l'attendu.
 
-    La casse est ignorée en plus, comme elle l'était déjà. WIMS, lui, compare
-    par `!if $dd=$g`, donc en tenant compte de la casse : c'est un écart connu,
-    laissé tel quel faute d'un cas du corpus qui le tranche — le corriger
-    rendrait PAX **plus strict**, ce qu'aucune mesure ne réclame aujourd'hui.
+    **La casse compte.** WIMS compare par `!if $dd=$g`, et c'est tout le sens
+    du type : `case` est sensible à la casse, `nocase` ne l'est pas. Le manuel
+    (§1.3.3) le dit en toutes lettres — « chaque mot de la réponse doit être
+    exactement le même » — et l'exemple du dollar refuse `Dollar`. PAX mettait
+    tout en minuscules, un écart que sa propre docstring avouait.
     """
     s = _CASE_PUNCT.sub(" ", s)
-    return re.sub(r"\s+", " ", s).strip().lower()
+    return re.sub(r"\s+", " ", s).strip()
 
 
 def check_case(reply: str, expected: str) -> CheckResult:
@@ -3539,14 +3619,8 @@ def _est_nombre(texte: str) -> bool:
     return bool(texte) and not (set(texte) - set("0123456789e.-+"))
 
 
-def _declose(texte: str) -> str:
-    """`!declosing` — retire une paire de crochets ou de parenthèses."""
-    t = (texte or "").strip()
-    for o, f in (("[", "]"), ("(", ")"), ("{", "}")):
-        if t.startswith(o) and t.endswith(f):
-            return t[1:-1].strip()
-    return t
-
+# `!declosing` : la version équilibrée de `wims_lists`, seule juste sur `[a],[b]`.
+_declose = wl.declosing
 
 def check_jmolclick(reply: str, expected: str) -> CheckResult:
     """Type WIMS `jmolclick` : les atomes qu'on clique sur une molécule.
@@ -3715,7 +3789,10 @@ def check_answer(
     # Multi-good: if expected lists several acceptable answers, treat as
     # alternatives and accept the reply if it matches any of them. Skip for
     # types where comma is part of the answer syntax (sets, radio/case lists).
-    if answer_type.lower() in ("algexp", "litexp", "formal", "function", "default", "auto", "numeric", "numexp"):
+    # `function` est exclu : chez WIMS sa virgule sépare la fonction de la liste
+    # des variables autorisées (`\g,x,t`, §1.3.5.1), non des alternatives — le
+    # découper ici aurait accepté `x` comme réponse.
+    if answer_type.lower() in ("algexp", "litexp", "formal", "default", "auto", "numeric", "numexp"):
         alternatives = _split_top_level_alternatives(expected)
         if len(alternatives) > 1:
             last: CheckResult | None = None
@@ -3849,7 +3926,8 @@ def check_answer(
         case "formal":
             return check_algexp(reply, expected, comma_is_decimal)
         case "function":
-            return check_algexp(reply, expected, comma_is_decimal)
+            return check_function(reply, expected, precision, comma_is_decimal,
+                                  options.get("range"), precweight)
         case "fset":
             return check_fset(reply, expected, precision, comma_is_decimal)
         case "aset":

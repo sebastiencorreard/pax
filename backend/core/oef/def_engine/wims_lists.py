@@ -321,3 +321,62 @@ def cutrows(s: str) -> list[str]:
     """Lignes de matrice : `rows2lines` puis découpage en lignes."""
     converted, _ = rows2lines(s)
     return cutlines(converted)
+
+
+# ── Découpage à profondeur zéro, et `!declosing` ─────────────────────────────
+#
+# Ces deux primitives existaient en **sept** exemplaires dans le moteur et les
+# checkers — trois `_split_top_level`, un `_split_top_level_args`, trois
+# `declosing` — et pas tous du même avis. Les découpeurs divergeaient sur une
+# parenthèse fermante orpheline ; les `declosing`, sur une paire non
+# équilibrée : `[a],[b]` était mutilé en `a],[b` par l'un, `(a]` accepté par
+# l'autre, quand seul celui du moteur vérifiait que le premier ouvrant se ferme
+# bien au dernier caractère. Une seule version, ici, et la bonne.
+
+
+def split_top_level(s: str, sep: str) -> list[str]:
+    """Découpe `s` aux `sep` situés hors de toute paire `()`, `[]`, `{}`.
+
+    Construit sur `strparstr`, donc avec le repli de WIMS sur un ouvrant non
+    apparié : la protection est abandonnée et la recherche redevient naïve.
+    Aucun `strip` — ce que le C ne fait pas, on ne le fait pas non plus.
+    """
+    parts: list[str] = []
+    start = 0
+    n = len(s)
+    while True:
+        i = strparstr(s, sep, start)
+        if i >= n:
+            parts.append(s[start:])
+            return parts
+        parts.append(s[start:i])
+        start = i + len(sep)
+
+
+def split_top_level_args(s: str) -> list[str]:
+    """Une liste d'arguments séparés par des virgules, chacun élagué."""
+    return [p.strip() for p in split_top_level(s, ",")]
+
+
+def declosing(s: str) -> str:
+    """`!declosing` — retire **une** paire englobante de `()`, `[]` ou `{}`.
+
+    Uniquement si toute la chaîne est enclose dans une paire équilibrée : le
+    premier ouvrant doit s'apparier au dernier caractère. Sinon `[a,b],[c,d]`
+    verrait ses deux listes fusionnées à tort (dataproc).
+    """
+    s = (s or "").strip()
+    for open_, close_ in (("(", ")"), ("[", "]"), ("{", "}")):
+        if s.startswith(open_) and s.endswith(close_):
+            depth = 0
+            for j, ch in enumerate(s):
+                if ch == open_:
+                    depth += 1
+                elif ch == close_:
+                    depth -= 1
+                    if depth == 0:
+                        if j != len(s) - 1:
+                            return s
+                        break
+            return s[1:-1].strip()
+    return s
