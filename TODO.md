@@ -408,6 +408,32 @@ ce que la source d'`anstype/` a appris :
   contre le WIMS de référence, comme la sévérité l'a été : un module catalan
   peut très bien avoir été écrit avec des points.
 
+### g) Le point aveugle des tests : un attendu faux passe inaperçu
+
+- [x] **Une sonde le cherche désormais** (`backend/scripts/sonde_attendus.py`,
+  2026-09-07). `test_exercises_check` vérifie que l'attendu est *accepté* par
+  le correcteur — ce qui reste vrai quand l'attendu lui-même est faux. C'est
+  ainsi que `quizz/course12_2step` a pu attendre `1/2` pour un coefficient
+  directeur valant `-1/2` pendant que les 21 017 tests passaient au vert : seul
+  un signalement d'usage l'a révélé.
+
+  La sonde confronte l'attendu à la seule autre source de vérité de
+  l'exercice — son corrigé, déclenché en soumettant une réponse fausse. Elle
+  est validée : sur le moteur d'avant le correctif, elle retrouve bien
+  `course12_2step`.
+
+  Premier passage sur le corpus, 3 graines : **990 attendus confrontés, 6
+  signalements, tous faux positifs** — un corrigé qui pose l'équation sans la
+  résoudre (`1125`), qui ne cite que des valeurs approchées (`1211`), ou qui
+  donne un terme intermédiaire négatif (`pdtreel5`). Aucun défaut restant sur
+  ce critère.
+
+- [ ] **Élargir la couverture.** 990 attendus sur ~21 000 : la sonde n'examine
+  que les réponses numériques d'exercices dont le `:feedback` affiche des
+  nombres. Les autres familles restent sans second témoin. Pistes : les
+  exercices dont le corrigé énonce la réponse en toutes lettres, et les types
+  non numériques.
+
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 
 - [x] **Le crédit d'une étape est proportionnel** (2026-09-06). Une étape dont
