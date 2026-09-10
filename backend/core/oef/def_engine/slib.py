@@ -263,6 +263,17 @@ class _SlibMixin:
         # Aucun des deux n'attend d'être porté : le premier est mort-né, le
         # second dit déjà la vérité. (`oef/togetfile.proc` complétait la liste
         # tant que Jmol manquait ; il est porté, plus haut.)
+
+        # Un script lu **depuis une slib**. `slib/circuits/drawcomp` charge ses
+        # définitions de composants par `!read data/circuits/compdata`,
+        # `slib/utilities/tooltip` son rendu par `!read oef/special/tooltip.phtml` :
+        # WIMS résout ces chemins sous `scripts/`, comme les slibs elles-mêmes.
+        # Les ignorer laissait `comp_motor` & co. indéfinis, et les schémas
+        # d'`oefelec` vides. Borné aux lectures faites par une slib : celles
+        # d'un `.def` (`my_var.proc`, `methods.$lang`…) sont à instruire à part
+        # (TODO I.3 h).
+        if getattr(self, "_profondeur_slib", 0) > 0:
+            self._run_slib(path, proc_args)
         return
 
     def _proc_togetfile(self, args: str) -> None:
@@ -895,11 +906,16 @@ class _SlibMixin:
         self.ctx["wims_read_parm"] = params
 
         lines = _merge_continuations(text.split("\n"))
+        # Profondeur d'exécution de slibs : `_cmd_readproc` en a besoin pour
+        # savoir qu'une lecture vient d'une slib (voir la fin de ce dernier).
+        # `getattr` : les tests construisent des moteurs sans `__init__`.
+        self._profondeur_slib = getattr(self, "_profondeur_slib", 0) + 1
         try:
             self._run_script_lines(lines)
         except _SlibExit:
             pass
         finally:
+            self._profondeur_slib -= 1
             self.ctx["wims_read_parm"] = saved_parm
 
     def _compute_weighted_median(self, args: str) -> str:

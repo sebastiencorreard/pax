@@ -1,0 +1,45 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+!exit
+
+:proc
+!reset slib_out
+slib_points=$slib_graphviz_out
+
+slib_points=!nonempty lines $slib_points
+slib_identify=!line 1 of $slib_points
+slib_correct=!line 2 of $slib_points
+!if $(slib_correct[2])=$empty
+  !!identify has given no answer
+  !reset slib_correct
+!endif
+slib_cnt=!linecnt $slib_points
+!for slib_j =2 to $slib_cnt
+  slib_l=!line $slib_j of $slib_points
+  !if graph isin $slib_l
+    !distribute words $slib_l into slib_b,slib_coeff,slib_xrange,slib_yrange
+    !default slib_correct=$[round($slib_xrange*101)],$[round($slib_yrange*101)]
+    slib_out=$slib_correct
+    slib_correct_x=$[$(slib_correct[1])/$slib_xrange]
+    slib_correct_y=$[$(slib_correct[2])/$slib_yrange]
+  !endif
+  !!!default slib_yrange=$slib_xrange
+  !if node isin $slib_l
+    !distribute words $slib_l into slib_b,slib_no,slib_x,slib_y,slib_width,slib_height
+    slib_text=!words 7 to -5 of $slib_l
+    !if $slib_text=$empty or $slib_text issametext ""
+      slib_text=$slib_no
+    !endif
+    slib_x=$[$slib_correct_x*$slib_coeff*($slib_x-$slib_width/2)]
+    slib_y=$[$slib_correct_y*$slib_coeff*($slib_yrange-$slib_y-$slib_height/2)]
+    slib_out=!append line $slib_x,$slib_y,$slib_text to $slib_out
+    !reset slib_x, slib_y
+  !endif
+!next
+
+slib_out=$slib_out\
+$slib_graphviz_out

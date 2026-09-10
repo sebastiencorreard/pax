@@ -1,0 +1,38 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example= [1,2;x^2,y;e_1,e_2],lbrace,rbrack\
+[1,2;x^2,y;e_1,e_2],lbrace,rbrack,html\
+[1,2;x^2,y;e_1,e_2],,,html\
+[1,2;x^2,y;e_1,e_2],.,.,html\
+[1,2;x^2,y;e_1,e_2],lbrace,none,html\
+
+!exit
+
+:proc
+
+!distribute items $wims_read_parm into slib_data,slib_opt1,slib_opt2,slib_opt3
+slib_opt1=!replace internal none by . in $slib_opt1
+slib_opt2=!replace internal none by . in $slib_opt2
+!default slib_opt1=(
+!default slib_opt2=)
+
+slib_data=!declosing $slib_data
+slib_data=!replace internal , by & in $slib_data
+
+!if $slib_opt1 notwordof ( ) .
+  slib_opt1= \$slib_opt1
+!endif
+!if $slib_opt2 notwordof ( ) .
+  slib_opt2= \$slib_opt2
+!endif
+
+slib_data=!replace internal ; by $\\$ $\
+$ in $slib_data
+slib_out=\left $slib_opt1 \begin{matrix}$slib_data\end{matrix}\right $slib_opt2
+!if $slib_opt3=html
+  slib_out=\($slib_out\)
+!endif

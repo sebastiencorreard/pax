@@ -1,0 +1,33 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=3\
+,n\
+n,m\
+n,k
+slib_author=Gang, XIAO
+slib_example= 10,7,2
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_n,slib_m,slib_k
+!bound slib_n between integer 1 and 100 default 0
+!bound slib_m between integer 1 and $slib_n default $slib_n
+!bound slib_k between integer 1 and $slib_n default $slib_n
+!if $slib_n=0
+  !reset slib_out
+  !exit
+!endif
+slib_sh=!shuffle $slib_n-1
+slib_sh=!item 1 to $slib_m-1 of $slib_sh
+slib_sh2=$slib_k
+!for slib_i=1 to $slib_m-1
+  slib_l=!item $slib_i of $slib_sh
+  !if $slib_l>=$slib_k
+    !advance slib_l
+  !endif
+  slib_sh2=$slib_sh2,$slib_l
+!next slib_i
+
+slib_out=!shuffle $slib_sh2

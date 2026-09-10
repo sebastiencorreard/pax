@@ -1,0 +1,152 @@
+!if $wims_read_parm!=slib_header
+!goto proc
+!endif
+slib_author=Bernadette, Perrin-Riou
+
+slib_wims_version=4.01
+!exit
+
+:proc
+
+slib_def=$wims_read_parm
+slib_def=!rows2lines $slib_def
+slib_def=!replace internal $	$ by $\
+$ in $slib_def
+
+slib_word=!column 1 of $slib_def
+slib_word=!singlespace $slib_word
+!!slib_word=!replace internal - by Z in $slib_word
+slib_word=!replace internal , by $\
+$ in $slib_word
+slib_word=!deaccent $slib_word
+slib_word=!lowercase $slib_word
+!if $slib_word issametext $empty
+ slib_out=
+ !goto end
+!endif
+slib_alphabet=a,b,c,d,e,f,g,h,i,j,k,k,l,l,m,n,o,p,q,r,s,t,u,u,v,w,w,x,y,z
+slib_crossword=crossword
+slib_number_test=!text select 0123456789 in $slib_word
+slib_alpha_test=!text select abcdefghijklmnopqrstuvwxyz in $slib_word
+
+!if $slib_number_test!=$empty
+  !if $slib_alpha_test=$empty
+    slib_number_test=1
+    !for slib_c=0 to 9
+      slib_word=!replace internal $slib_c by $(slib_alphabet[$slib_c+1]) in $slib_word
+    !next
+  !else
+   slib_out=
+   !goto end
+  !endif
+!endif
+slib_word_cnt=!linecnt $slib_word
+!if slib_word_cnt=0
+  slib_out=
+  !goto end
+!endif
+!if $slib_word_cnt >20
+  slib_word_cnt=!shuffle $slib_word_cnt
+  slib_word=!line $slib_word_cnt of $slib_word
+  slib_word_cnt=20
+!endif
+
+slib_test_char=!lines2words $slib_word
+!! let the empty character at the end of the line
+slib_test_char=!text expand $slib_test_char using 10
+slib_test_char=!words2items $slib_test_char
+slib_pb=!listintersect -,_ and $slib_test_char
+!if $slib_pb!=$empty
+  slib_test_char=!listcomplement $slib_test_char in $slib_alphabet
+  slib_test_char_cnt=!itemcnt $slib_test_char
+  !if $slib_test_char_cnt >=1
+    slib_word=!replace internal $(slib_pb[1]) by $(slib_test_char[1]) in $slib_word
+    !if $slib_test_char_cnt >=2 and $(slib_pb[2]) notsametext
+      slib_word=!replace internal $(slib_pb[2]) by $(slib_test_char[2]) in $slib_word
+    !endif
+  !endif
+!endif
+
+!set slib_file=!randint 1000
+!set slib_file=cw_$wims_nowseconds$slib_file
+!if $slib_word issametext $empty
+  slib_out=
+  !exit
+!endif
+!readproc oef/togetfile.proc $slib_file new\
+$slib_word
+
+!set sess=!replace internal . by , in $session
+!set slib_file=$wims_home/sessions/$(sess[1])/getfile/$slib_file
+slib_cw=!exec $slib_crossword $slib_file
+
+!!!cleanup
+slib_test=0
+slib_i=1
+slib_cw=!replace internal $ $ by $\
+$ in $slib_cw
+
+!for slib_u=1 to  $slib_word_cnt
+   slib_line=!line $slib_u of $slib_cw
+   slib_line=!nonempty items $slib_line
+   !if $slib_line!=$empty
+     !goto continue1
+   !endif
+!next
+
+:continue1
+slib_cw=!line $slib_u to -1 of $slib_cw
+
+slib_test=0
+slib_i=1
+
+!for slib_v=1 to  $slib_word_cnt
+   slib_line=!line -$slib_v of $slib_cw
+   slib_line=!nonempty items $slib_line
+   !if $slib_line!=$empty
+     !goto continue2
+   !endif
+!next
+:continue2
+
+slib_cw=!line 1 to -$slib_u of $slib_cw
+
+!for slib_v=1 to  $slib_word_cnt
+   slib_line=!column $slib_v of $slib_cw
+   slib_line=!nonempty items $slib_line
+   !if $slib_line!=$empty
+     !goto continue3
+   !endif
+!next
+:continue3
+slib_cw=!column $slib_v to -1 of $slib_cw
+!for slib_v=1 to  $slib_word_cnt
+   slib_line=!column -$slib_v of $slib_cw
+   slib_line=!nonempty items $slib_line
+   !if $slib_line!=$empty
+     !goto continue4
+   !endif
+!next
+:continue4
+slib_cw=!column 1 to -$slib_v of $slib_cw
+
+
+!if $slib_number_test=1
+   !for slib_c=0 to 9
+      slib_cw=!replace internal $(slib_alphabet[$slib_c+1]) by $slib_c in $slib_cw
+    !next
+!endif
+slib_out=!replace internal ,$ $ by , in $slib_cw
+
+!if $slib_pb!=$empty
+  !if $slib_test_char_cnt >=1
+    slib_out=!replace internal $(slib_test_char[1]) by $(slib_pb[1]) in $slib_out
+    !if $slib_test_char_cnt >=2 and $(slib_pb[2]) notsametext
+      slib_out=!replace internal $(slib_test_char[2]) by $(slib_pb[2]) in $slib_out
+    !endif
+  !endif
+!endif
+
+slib_out=[$slib_out],[$slib_def]
+
+:end

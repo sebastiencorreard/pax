@@ -1,0 +1,151 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=[1,2,3;2,4,5;3,6,7],[[A,B,C],[a,b,c,d,e,f]],middle point\
+[1,2,3;2,4,5;3,6,7],[[A,B,C],[a,b,c,d,e]],middle point html
+
+!exit
+
+:proc
+
+!reset slib_segments slib_texts slib_circles slib_disks
+!distribute item $wims_read_parm into slib_G,slib_text
+slib_doption=!item 3 to -1 of $wims_read_parm
+slib_option=$slib_doption
+!default slib_color1=blue
+!default slib_color2=lightgreen
+!default slib_color3=lightyellow
+slib_text=!declosing $slib_text
+!if [ isin $slib_text
+  !distribute item $slib_text into slib_textp, slib_textm
+!else
+  slib_textp=$slib_text
+!endif
+slib_textp=!declosing $slib_textp
+slib_textm=!declosing $slib_textm
+slib_G=!declosing $slib_G
+slib_G=!translate internal ; to $\
+$ in $slib_G
+slib_col=!column 1 of $slib_G
+slib_NG=!linecnt $slib_G
+slib_n=!lines2items $slib_G
+slib_n=!listuniq $slib_n
+## slib_n=!item -1 of $slib_n
+slib_complement=!listcomplement $slib_col in $slib_n
+!for slib_i in $slib_complement
+  slib_G=!append line $slib_i to $slib_G
+!next slib_i
+!read slib/data/columnsort 1,numeric, $slib_G
+slib_G=$slib_out
+slib_n=!linecnt $slib_G
+slib_A1=0
+slib_height1=1
+slib_sizey=1
+slib_cnt1=0
+slib_cnt=1
+slib_width1=15
+slib_Sizey=0
+slib_position=$empty
+
+slib_milieu=0,-1
+!for slib_k=1 to $slib_n
+  slib_L=!line $slib_k of $slib_G
+  slib_i=!item 1 of $slib_L
+  slib_position_prov=$(slib_A$slib_i),$[-$(slib_height$slib_i)]
+  slib_position=!append line $slib_position_prov to $slib_position
+  slib_a=!item 2 to -1 of $slib_L
+  slib_ss=!itemcnt $slib_L
+  !for slib_b in $slib_a
+    slib_j=!positionof $slib_b in $slib_a
+    !if $slib_b <> 0 and $slib_b<>$empty
+      slib_jj=$[$slib_cnt+1]
+      #sa hauteur
+      slib_height$slib_jj=$[$(slib_height$slib_i)+1]
+      #la hauteur de l'arbre
+      slib_sizey=$[max($slib_sizey, $(slib_height$slib_jj))]
+      # Ne sert à rien ?
+      slib_cnt$(slib_height$slib_jj)=$[$(slib_cnt$(slib_height$slib_jj))+1]
+      #nombre de sommets
+      slib_cnt=$[$slib_cnt +1]
+      #position
+      slib_test=$[($slib_ss)%2]
+      !ifval $slib_test=1
+        slib_A$slib_jj=$[$(slib_A$slib_i)+($slib_j-($slib_ss)/2)*$(slib_width$slib_i)]
+      !else
+        slib_A$slib_jj=$[$(slib_A$slib_i)+($slib_j-($slib_ss)/2-1)*$(slib_width$slib_i)]
+      !endif
+      #calcul de la largeur donnée au sommet $slib_jj pour ses fils éventuels
+      slib_width$slib_jj=$[$(slib_width$slib_i)/($slib_ss-0.5)]
+      slib_milieu_prov=$[($(slib_A$slib_i)+2*$(slib_A$slib_jj))/3],$[-($(slib_height$slib_i)+2*$(slib_height$slib_jj))/3]
+      slib_milieu=!append line $slib_milieu_prov to $slib_milieu
+    !endif
+  !next slib_b
+!next slib_k
+slib_s=!line -1 of $slib_position
+slib_s=!item 1 of $slib_s
+
+#Trace du dessin
+slib_dessin=xrange $[-($slib_s)-5], $[$slib_s+5]\
+yrange $[-($slib_sizey)-0.5],-0.5\
+linewidth 2
+slib_cnt=!linecnt $slib_G
+!for slib_k=1 to $slib_cnt
+  slib_u=!line $slib_k of $slib_G
+  slib_i=!item 1 of $slib_u
+  slib_u=!item 2 to -1 of $slib_u
+  slib_position_prov=!line $slib_k of $slib_position
+  !for slib_j in $slib_u
+    !if $slib_j notsametext sentinelle
+      #trace de la droite
+      slib_position_prov1=!line $slib_j of $slib_position
+      slib_segments=!append item $slib_position_prov,$slib_position_prov1 to $slib_segments
+      #on coupe les segments au milieu pour mettre un cercle et éventuellement du texte
+
+      !if middle iswordof $slib_doption
+        slib_milieu_prov=!line $slib_j of $slib_milieu
+        slib_disks=!append line disk $slib_milieu_prov,30,white to $slib_disk
+        slib_circles=!append line fcircle $slib_milieu_prov, 30,$slib_color3 to $slib_circles
+        !if $slib_textm <> $empty
+          slib_textk=!item $slib_j of $slib_textm
+          slib_milieu_prov1=!item 1 of $slib_milieu_prov
+          slib_milieu_prov2=!item 2 of $slib_milieu_prov
+          slib_milieu_prov=$[$slib_milieu_prov1-0.9], $[$slib_milieu_prov2+0.1]
+          slib_texts=!append line text black,$slib_milieu_prov, large,$slib_textk to $slib_texts
+        !endif
+      !endif
+    !endif
+  !next slib_j
+  !if point iswordof $slib_doption
+    slib_disks=!append line disk $slib_position_prov,30,white to $slib_disks
+    slib_circles=!append line fcircle $slib_position_prov,30,$slib_color2 to $slib_circles
+  !endif
+  !if $(slib_textp[$slib_k]) <> $empty
+    slib_position_prov1=!item 1 of $slib_position_prov
+    slib_position_prov2=!item 2 of $slib_position_prov
+    slib_position_prov=$[$slib_position_prov1-0.9], $[$slib_position_prov2+0.1]
+    slib_texts=!append line text black,$slib_position_prov, large,$(slib_textp[$slib_k]) to $slib_texts
+  !endif
+!next slib_k
+slib_dessin=xrange $[-($slib_s)-5], $[$slib_s+5]\
+yrange $[-($slib_sizey)-0.5],-0.5\
+linewidth 2\
+segments $slib_color1, $slib_segments\
+$slib_disks\
+$slib_circles\
+$slib_texts
+
+slib_out=$slib_dessin
+!if url iswordof $slib_doption or html iswordof $slib_doption
+  insdraw_size=300,300
+  !insdraw $slib_out
+  slib_out=$ins_url
+  !if html iswordof $slib_doption
+    slib_out=<img src="$ins_url" alt="">
+  !else
+    slib_out=$slib_out,[$slib_G],[$slib_position],[$slib_milieu],$insdraw_size
+  !endif
+!else
+   slib_out=[$slib_dessin],[$slib_G],[$slib_position],[$slib_milieu]
+!endif

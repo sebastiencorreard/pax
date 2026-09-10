@@ -1,0 +1,75 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Fabrice, Guerimand
+slib_example=400,-10,10,0.1,blue,red,6\
+600,-5,5,0.1,blue,red,6,html\
+1000,-10,10,0.1,blue,red,6,html\
+1000,-10,10,0.1,blue,red,6,html canvasdraw\
+600,0,10,0.1,blue,red,3,html\
+600,0,5,0.1,blue,red,3,html\
+600,0,5,0.1,blue,red,3,html canvasdraw
+!exit
+
+
+:proc
+slib_input=$wims_read_parm
+
+!distribute items $slib_input into xsize,xmin,xmax,xgd,colora,colorg,marge,slib_option
+slib_out=$slib_input
+
+!bound xsize between 200 and 1500 default 600
+!bound marge between 20 and 100 default 40
+!bound xmin between -50 and 50 default -5
+!bound xmax between -50 and 50 default 5
+!if $xmin>$xmax
+  tmp=$xmin
+  xmin=$xmax
+  xmax=$tmp
+!endif
+!bound xgd within 1,0.1,0.01 default 1
+!default colora=black
+!default colorg=grey
+
+ex=$[($xsize-2*$marge)/($xmax-$xmin)]
+minx=$[$xmin-$marge/$ex]
+maxx=$[$xmax+$marge/$ex]
+delet=$[4/$ex]
+
+slib_out=range $minx,$maxx,-3,3\
+linewidth 2\
+arrow $minx,0,$maxx,0,$marge/2,$colora\
+linewidth 3\
+parallel $xmin,-1,$xmin,1,1,0,$[$xmax-$xmin+1],$colorg
+!for k=0 to $[$xmax-$xmin]
+  tmp=text $colora,$[$xmin+$k-$delet],-1.5,medium,$[$xmin+$k]
+  slib_out=!append line $tmp to $slib_out
+!next k
+!if $xgd<=0.1
+  tmp=linewidth 2\
+    parallel $xmin,-0.6,$xmin,0.6,0.1,0,$[($xmax-$xmin+1)*10],$colorg
+  slib_out=!append line $tmp to $slib_out
+!endif
+!if $xgd<=0.01
+  tmp=linewidth 1\
+    parallel $xmin,-0.2,$xmin,0.2,0.01,0,$[($xmax-$xmin+1)*100],$colorg
+ slib_out=!append line $tmp to $slib_out
+!endif
+
+!if url iswordof $slib_option or html iswordof $slib_option
+  insdraw_size=$xsize,100
+  !if canvasdraw isin $slib_option
+    slib_out=!exec canvasdraw\
+size $insdraw_size\
+$slib_out
+  !else
+    !insdraw $slib_out
+    slib_out=$ins_url
+    !if html iswordof $slib_option
+      slib_out=<img src="$ins_url" alt="">
+    !else
+      slib_out=$slib_out,$insdraw_size
+    !endif
+  !endif
+!endif

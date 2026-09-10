@@ -1,0 +1,87 @@
+!if $wims_read_parm!=slib_header
+!goto proc
+!endif
+
+slib_author=Olivier, Bado; Bernadette, Perrin-Riou
+slib_wims_version=4.09a
+!exit
+
+:proc
+slib_out=
+
+!reset slib_text,slib_color,slib_width,slib_height,slib_option,bubbleOpts,slib_stylesheet,slib_tripos,slib_hw,slib_speaker
+!distribute items $wims_read_parm into slib_text,slib_color,slib_width,slib_height,slib_option,slib_speaker
+
+slib_width=$[$slib_width]
+slib_height=$[$slib_height]
+!if $slib_width>0
+  slib_width=width:$(slib_width)px;
+!else
+  !reset slib_width
+!endif
+!if $slib_height>0
+  slib_height=height:$(slib_height)px;
+!else
+  !reset slib_height
+!endif
+!if $slib_width$slib_height!=$empty
+  slib_hw=style="$slib_width$slib_height"
+!endif
+
+!default slib_color=antiquewhite
+slib_tripos=!getopt triangle in $slib_option
+!default slib_tripos=btm-left
+slib_num=!getopt number in $slib_option
+!default slib_num=!randint 1,1000
+slib_text=!declosing $slib_text
+slib_speaker=!declosing $slib_speaker
+
+!if rectangle notwordof $slib_option
+  bubbleOpts=$bubbleOpts round
+  !if btm-right iswordof $slib_tripos
+    slib_tripos=btm-right-in
+ !endif
+!endif
+
+!if border iswordof $slib_option
+  bubbleOpts=$bubbleOpts border
+!endif
+
+!if thought iswordof $slib_option
+  bubbleOpts=$bubbleOpts thought
+!else
+  bubbleOpts=$bubbleOpts triangle
+!endif
+
+!if noshadow notwordof $slib_option
+  bubbleOpts=$bubbleOpts shadow
+!endif
+
+slib_stylesheet = <style>\
+#bubble_$slib_num{background-color: $slib_color;}\
+#bubble_$slib_num.thought:before, #bubble_$slib_num.thought:after{background-color: $slib_color;}\
+#bubble_$slib_num.triangle:not(.btm-left):after{border-top-color:   $slib_color;}\
+#bubble_$slib_num.triangle.left-in:after{       border-right-color: $slib_color;}\
+#bubble_$slib_num.triangle.btm-left:after{      border-left-color:  $slib_color;}\
+#bubble_$slib_num.triangle.btm-left-in:after{   border-left-color:  $slib_color;}\
+#bubble_$slib_num.triangle.btm-right-in:after{  border-right-color: $slib_color;}\
+#bubble_$slib_num.triangle.btm-right:after{     border-right-color: $slib_color;}\
+#bubble_$slib_num.triangle.right-in:after{      border-left-color:  $slib_color;}\
+</style>
+
+slib_out=$slib_stylesheet\
+<div id="bubble_$slib_num" class="talk-bubble inline $slib_tripos $bubbleOpts" $slib_hw>\
+  <div class="talktext">\
+    <p>$slib_text</p>\
+  </div>\
+ </div>
+
+!if left- isin $slib_tripos and -left notin $slib_tripos
+  slib_out = <div class="inline"><span class="bubble_speaker $slib_tripos">$slib_speaker</span>$slib_out</div>
+!else
+  !if right- isin $slib_tripos and -right notin $slib_tripos
+    slib_out = <div class="inline">$slib_out <span class="bubble_speaker $slib_tripos">$slib_speaker</span></div>
+  !else
+    slib_out = <div class="inline" style="position:relative;margin-bottom:1.5em;">$slib_out<span class="bubble_speaker $slib_tripos" style="position:absolute;bottom:-1em;">$slib_speaker</span></div>
+  !endif
+!endif

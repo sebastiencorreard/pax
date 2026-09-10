@@ -1,0 +1,31 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_matrix,slib_r,slib_c,slib_t
+slib_matrix=!declosing $slib_matrix
+
+slib_matrix1=!replace internal ; by $\
+$ in $slib_matrix
+slib_cnt=!itemcnt $(slib_matrix[;1])
+!if $slib_r > $slib_cnt
+  !for slib_u=1 to $[$slib_r-$slib_cnt]
+    slib_matrix1=!append line vvvVVV to $slib_matrix1
+  !next
+!endif
+slib_row=$(slib_matrix[$slib_r;])
+slib_row_cnt=!itemcnt $slib_row
+!if $slib_c > $slib_row_cnt
+  slib_compl=!makelist vvvVVV for x = 1 to $[$slib_c-$slib_row_cnt]
+  slib_row=$slib_row,$slib_compl
+!endif
+
+slib_row=!replace internal item number $slib_c by $slib_t in $slib_row
+slib_matrix1=!replace internal line number $slib_r by $slib_row in $slib_matrix1
+slib_matrix1=!replace internal vvvVVV by in $slib_matrix1
+slib_out=!lines2rows $slib_matrix1

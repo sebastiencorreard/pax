@@ -650,3 +650,20 @@ _IMPORT_2026_09_10_CONSTANT_SCORE: set[str] = {
     "H5~analysis~oefratexp.fr~src~frequence",
 }
 XFAIL_CONSTANT_SCORE |= _IMPORT_2026_09_10_CONSTANT_SCORE
+
+
+# `intnum` (intégrale numérique PARI) n'est pas émulé. `slib/function/integrate`
+# rend un `intnum(x=a,b,f)` que WIMS fait calculer à PARI ; PAX laisse
+# l'expression telle quelle, et la bonne réponse, soumise, vaut 0.
+#
+# Ces quatre exercices passaient ce test avant le portage des slibs, mais à
+# vide : `slib/function/bounds` rendait `items,items`, l'attendu valait ce même
+# texte, et le test soumettait l'attendu. Les slibs portées ont rendu l'attendu
+# juste, jusqu'à `intnum` exclu (TODO I.3 h).
+_INTNUM_NON_EMULE: set[str] = {
+    "H6~analysis~oefintegrale.fr~src~aire1",
+    "H6~analysis~oefintegrale.fr~src~aire2",
+    "H6~analysis~oefintegrale.fr~src~aire3",
+    "H6~analysis~oefintegrale.fr~src~aire4",
+}
+XFAIL_CORRECT_SCORE |= _INTNUM_NON_EMULE

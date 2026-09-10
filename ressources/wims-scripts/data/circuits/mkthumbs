@@ -1,0 +1,85 @@
+#! /bin/sh
+#
+# Generate thumbnail pictures
+
+cd `dirname $0`
+home=`pwd`
+whome=../../../..
+
+flydraw=$whome/other/bin/flydraw
+slib_textsize=tiny
+index=.index
+
+list=`ls [1-9]*/*.data | sed 's/\.data$//'`
+
+for circ in $list; do
+ if [ ! -s $circ.gif ] || [ $circ.data -nt $circ.gif ] || [ mkthumbs -nt $circ.gif ]; then
+  echo "Generating $circ.gif"
+  range=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>2 {exit};
+	rec==2 {if(substr($0,1,1)==":") print substr($0,2); else print};' $circ.data`
+  pairs=`echo "$range" | tr '()[]' '@@@@' | cut -s -d@ -f2 | tr ',' ' '`
+  if [ -z "$pairs" ]; then
+   pairs=`echo "$range" | cut -s -d, -f4 | tr ',' ' '`
+  fi
+  pos1=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>3 {exit};
+	rec==3 {if(substr($0,1,1)==":") print substr($0,2); else print};' $circ.data`
+  pos=`echo "$pos1" |\
+    awk -F, 'NF>3 {print "point "$1","$2",grey";
+    	if(NF>5) print "linewidth 1";
+    	for(i=6;i<=NF;i++) {
+		if($i>=1 || $i<=-1) {
+			if($5==0) printf("line %g,%g,%g,%g,grey\n",
+					$1+$i,$2,$1,$2);
+			else printf("line %g,%g,%g,%g,grey\n",
+					$1,$2+$i,$1,$2);
+		}
+	}
+    	if(NF>5) print "linewidth 7";
+    }'`
+  pairing=
+  for p in $pairs; do
+    pair1=`echo "$pos1" | awk -F, 'FNR == '$p' {
+ 	if($5==0) {x1=$1+1;x2=$1+2;y1=y2=$2;}
+	else {x1=x2=$1;y1=$2-1;y2=$2-2;};
+	printf "line %d,%d,%d,%d,grey\n",
+		x1,y1,x2,y2;
+	exit;
+    }'`
+    pairing="$pairing$pair1
+"
+  done
+  wire=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>4 {exit};
+	rec==4 {if(substr($0,1,1)==":") print substr($0,2); else print};' $circ.data |\
+    sed 's/_color_/black/g'`
+  dots=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>5 {exit};
+	rec==5 {if(substr($0,1,1)==":") print substr($0,2); else print};' $circ.data`
+  xrange=`echo $range | cut -d, -f1`
+  yrange=`echo $range | cut -d, -f2`
+  xsize=`expr 4 \* $xrange`
+  ysize=`expr 4 \* $yrange`
+  [ -n "$dots" ] && dots="points black,$dots"
+  $flydraw <<@
+new $xsize,$ysize
+xrange 0,$xrange
+yrange 0,$yrange
+fill 1,1,white
+linewidth 7
+$pos
+linewidth 1
+$pairing
+$wire
+linewidth 4
+$dots
+output $circ.gif
+@
+ fi
+done
+

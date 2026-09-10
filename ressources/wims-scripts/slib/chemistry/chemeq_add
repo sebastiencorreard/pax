@@ -1,0 +1,32 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Georges, Khaznadar
+slib_license=GPL
+
+slib_example= 1/2,Cr2O7^2- + 14H^+ + 6e^- -> 2 Cr^3+ + 7H2O,-3,Fe^3+ + e^- -> Fe^2+
+slib_require=chemeq
+!exit
+
+:proc
+
+slib_n=!itemcnt $wims_read_parm
+slib_eq=H -> H
+chemeq_option=m
+
+!for slib_i=1 to $slib_n step 2
+  slib_coeff=!item $slib_i of $wims_read_parm
+  slib_reac=!item $slib_i+1 of $wims_read_parm
+  !if $slib_coeff > 0
+    slib_op=#
+  !else
+    slib_op=~
+    slib_coeff=!eval - $slib_coeff
+  !endif
+  slib_expression=$slib_eq $slib_op $slib_coeff * $slib_reac
+  slib_eq=!exec chemeq $slib_expression
+!next slib_i
+
+slib_out=$slib_eq
+!reset chemeq_option

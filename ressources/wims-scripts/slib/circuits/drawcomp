@@ -1,0 +1,149 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+slib_example=5/br2out,,,acsrc,diode,cap,res
+
+!exit
+
+:proc
+!distribute items $wims_read_parm into \
+	slib_type,slib_dotwidth,slib_color,slib_textsize
+slib_c=!char 1 of $slib_type
+!if $slib_c isin 123456789
+  slib_prefix=data/circuits
+!else
+  slib_prefix=
+!endif
+slib_out=
+!default slib_x0=0
+!default slib_y0=0
+!default slib_dotwidth=6
+!default slib_color=black
+!default slib_textsize=medium
+slib_comp=!item 5 to -1 of $wims_read_parm
+!if / notin $slib_type
+  !exit
+!endif
+slib_rec=$slib_prefix/$slib_type.data
+slib_t=!recordcnt $slib_rec
+!if $slib_t<2
+  !exit
+!endif
+slib_xyr=!record 2 of $slib_rec
+slib_n1=!item 3 of $slib_xyr
+slib_n2=!itemcnt $slib_comp
+slib_n=$[min($slib_n1,$slib_n2)]
+slib_pairs=!item 4 of $slib_xyr
+slib_pairs=!declosing $slib_pairs
+
+slib_out=trange 0,1
+slib_cdata=!record 3 of $slib_rec
+
+!read data/circuits/compdata
+
+slib_paired=-1
+!for slib_i=1 to $slib_n
+  slib_l=!item $slib_i of $slib_comp
+  slib_name=!word 1 of $slib_l
+  !if $slib_name!=
+    slib_text=!word 2 to -1 of $slib_l
+    slib_text=!translate internal @ to $ $ in $slib_text
+    slib_tlen=!charcnt $slib_text
+    !if " notin $slib_text
+      slib_text="$slib_text"
+    !endif
+    slib_ct=!line $slib_i of $slib_cdata
+    !if $slib_name=color
+      !default slib_text=grey
+    !endif
+    !distribute item $slib_ct into \
+      slib_x,slib_y,slib_xt,slib_yt,slib_orient,slib_e1,slib_e2
+    !if R isin $slib_name
+      slib_t=-1
+    !else
+      slib_t=1
+    !endif
+    slib_name=!text delete R in $slib_name
+    slib_cmd=$slib_name
+    !if $slib_orient=1 and $slib_name notwordof $comp_norotate
+      slib_matrix=0,-($slib_t),$slib_t,0
+    !else
+      slib_matrix=$slib_t,0,0,$slib_t
+    !endif
+    slib_extender=
+    slib_ee=!nonempty items $slib_e1,$slib_e2
+    !if $slib_ee!= \
+	    ($(comp_$slib_cmd)!= or $slib_cmd=wire) and \
+	      $slib_cmd notwordof none num
+      !if $slib_orient=1
+        slib_extender=$\
+affine 0,-1,1,0,$slib_x,$slib_y
+      !else
+        slib_extender=$\
+affine 1,0,0,1,$slib_x,$slib_y
+      !endif
+      !for slib_e in $slib_ee
+        !if $slib_e<-1
+          slib_extender=$slib_extender\
+disk $slib_e,0,$slib_dotwidth,_color_\
+segment $slib_e,0,-1,0,_color_
+        !endif
+        !if $slib_e>1
+          slib_extender=$slib_extender\
+disk $slib_e,0,$slib_dotwidth,_color_\
+segment $slib_e,0,1,0,_color_
+        !endif
+      !next slib_e
+    !endif
+    !if $slib_i isitemof $slib_pairs
+      !if $slib_orient=0
+        slib_mat2=1,0,0,1
+      !else
+        slib_mat2=0,1,-1,0
+      !endif
+      !if $slib_name=wire
+        slib_paired=$[$slib_i+1]
+        slib_out=$slib_out\
+affine $slib_mat2,$slib_x,$slib_y\
+parallel -1,0,0.5,0,3.5,0,2,_color_$slib_extender
+        !goto loopend
+      !else
+        slib_out=$slib_out\
+affine $slib_mat2,$slib_x,$slib_y\
+segment 1,0,2,0,_color_
+      !endif
+    !endif
+    !if $slib_i=$slib_paired
+      !if $slib_orient=0
+        slib_x=$[$slib_x-1.5]
+        slib_xt=$[$slib_xt-1.5]
+      !else
+        slib_y=$[$slib_y+1.5]
+        slib_yt=$[$slib_yt+1.5]
+      !endif
+    !endif
+    slib_out=$slib_out\
+    affine $slib_matrix,$slib_x,$slib_y\
+    $(comp_$slib_cmd)$slib_extender
+    !if $slib_tlen>0 and $slib_name notwordof $comp_notext
+      !ifval $slib_tlen=1 and $slib_cmd iswordof src
+        slib_xt=$[$slib_x-0.15]
+        slib_yt=$[$slib_y+0.4]
+      !endif
+      !if $slib_name iswordof voltmeterN ammeterN lampN
+        slib_xt=$[$slib_x+0.30]
+        slib_yt=$[$slib_y+0.30]
+      !endif
+      slib_out=$slib_out\
+killaffine\
+text _color_,$slib_xt,$slib_yt,$slib_textsize,$slib_text
+    !endif
+  !endif
+  :loopend
+!next slib_i
+
+slib_out=!replace internal _color_ by $slib_color in $slib_out\
+killaffine

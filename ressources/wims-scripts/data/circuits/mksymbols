@@ -1,0 +1,85 @@
+#! /bin/sh
+#
+# Generate component symbol images for drag-and-drop uses.
+#
+# For the time being the only available size factor is 20.
+
+cd `dirname $0`
+home=`pwd`
+whome=../../../..
+
+flydraw=$whome/other/bin/flydraw
+datafile=compdata
+outdir=$whome/public_html/gifs/symbols/20
+
+header="new 41,41
+xrange -1,1.05
+yrange -1.05,1
+trange 0,1
+fill 0,0,white
+transparent white
+linewidth 1
+"
+
+if [ ! -s $datafile.for_sh ] || [ $datafile -nt $datafile.for_sh ] || [ mksymbols -nt $datafile ]; then
+ awk 'BEGIN {b=0};
+   /=/ {b=1};
+   {if(match($0,/\\$/) || b==0) print; else {print $0"\""; b=0}};' $datafile |\
+   sed 's/=/="/;s/\\//;s/_color_/black/g;s/\$slib_dotwidth/8/g;s/\$slib_textsize/large/g' >$datafile.for_sh
+ . ./$datafile.for_sh
+fi
+
+complist=`echo $comp_all | tr ',' ' '`
+## doesnot work : copy the list in compdata in the corresponding line below
+##compnorotate=`echo $comp_norotate | tr ' ' '|'`
+
+
+mkdir -p $outdir
+for c in $complist; do
+ rm -f $outdir/$c-h.gif $outdir/$c-v.gif $outdir/${c}R-h.gif $outdir/${c}R-v.gif
+ export comp_$c
+ draw=`sh -c "echo \"\\$comp_$c\""`
+ $flydraw <<@
+$header
+$draw
+output $outdir/$c-h.gif
+@
+ case $c in
+  acsrc|ammeter|ammeterN|lamp|lampN|meter|motor|num|voltmeter|voltmeterN)
+   ln -s $c-h.gif $outdir/$c-v.gif
+   ln -s $c-h.gif $outdir/${c}R-h.gif
+   ln -s $c-h.gif $outdir/${c}R-v.gif
+   ;;
+  cap|lamp|res|term2|wire)
+   $flydraw <<@
+$header
+affine 0,-1,1,0,0,0
+$draw
+output $outdir/$c-v.gif
+@
+   ln -s $c-h.gif $outdir/${c}R-h.gif
+   ln -s $c-v.gif $outdir/${c}R-v.gif
+   ;;
+  *)
+   $flydraw <<@
+$header
+affine 0,-1,1,0,0,0
+$draw
+output $outdir/$c-v.gif
+@
+   $flydraw <<@
+$header
+affine -1,0,0,-1,0,0
+$draw
+output $outdir/${c}R-h.gif
+@
+   $flydraw <<@
+$header
+affine 0,1,-1,0,0,0
+$draw
+output $outdir/${c}R-v.gif
+@
+  ;;
+ esac
+done
+

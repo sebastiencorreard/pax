@@ -1,0 +1,215 @@
+#! /bin/sh
+#
+# Regeneration of index files.
+
+if [ -z "$1" ]; then
+ cat <<@
+This script transforms a ps circuit file produced by xcircuit to
+the WIMS data file.
+
+Usage: ./ps2data inputfile
+
+Note. In the ps file, a acsource or npn symbol means a component to be
+filled. The text string XXX means the annotation of the
+nearest component. Use the tap to delimite the drawing zone
+which must start by the center (0,0) and goes up and left.
+The first component of a pair should be drawn in red.
+
+Each grid in xcircuit is equivant to 0.5 in WIMS data file.
+
+Texts with negative coordinates will be ignored, except if it
+starts with the string "DESC: ". In which case the rest of
+the string will be come the description.
+
+Fixed wires must be put on width 3. Component-dependent dynamic wires
+should have width < 3, with no turns and no ending dots, and should
+go (overlay) into the component.
+
+The only allowed components are dot, acsource, npn, pnp.
+
+@
+exit
+fi
+
+if [ -n "$w_module" ]; then
+ echo "This script is to be used manually. It should not be run by WIMS."
+ exit
+fi
+
+inp=$1
+[ -f "$inp" ] || inp=$1.ps
+[ -f "$inp" ] || exit
+
+current=`pwd`
+cd `dirname $0`
+homedir=`pwd`
+tmpdir=/tmp
+cd $current
+
+# Translation size factor
+sf=64
+
+header=$tmpdir/circ-header.ps1
+tail=$tmpdir/circ-tail.ps1
+
+rm -f $tmpdir/circ-* $2
+
+awk	'BEGIN {a=0};
+	a==1 && length==0 {a++; next};
+	a==2 && /^pgsave/ {a++;};
+	/^%%Page: 1/ {a=1};
+	a<2 {print >"'$header'"};
+	a==2 && NF>0 {if($NF ~ /dot|polygon|label|acsource|tap|npn|pnp|scb|sce/) print;
+		else printf "%s ",$0};
+	a>2 {print >"'$tail'"};
+	' $inp |\
+awk	'BEGIN {xrange=yrange=ccnt=tcnt=ext=0;sf='$sf';
+		pcnt=0; ppcnt=0; pairer=0; wiring=""; dots=""; pairlist="";
+	};
+	END {
+		for(i=0;i<ccnt;i++) for(j=i+1;j<ccnt;j++) {
+			if(x[i]>x[j] || (x[i]==x[j] && y[i]<y[j])) {
+				t=x[i]; x[i]=x[j]; x[j]=t;
+				t=y[i]; y[i]=y[j]; y[j]=t;
+				t=o[i]; o[i]=o[j]; o[j]=t;
+			}
+		}
+		for(p=0;p<pcnt;p++) {
+			for(i=0;i<ccnt-1;i++) {
+				if(op[p]==1 && x[i]==xp[p] && y[i]==yp[p]+96) break;
+				if(op[p]==0 && x[i]==xp[p]-96 && y[i]==yp[p]) break;
+			}
+			if(i>=ccnt-1) continue;
+			if(op[p]==1) {
+				if(x[i+1]!=xp[p] || y[i+1]!=yp[p]-96) continue;
+			}
+			else {
+				for(j=i+1;j<ccnt && (x[j]!=xp[p]+96 || y[j]!=yp[p]);j++);
+				if(j>=ccnt) continue;
+				if(j>i+1) {
+					xm=x[j];ym=y[j];om=o[j];
+					for(k=i+1;k<j;k++) {
+						x[k+1]=x[k];
+						y[k+1]=y[k];
+						o[k+1]=o[k];
+					}
+					x[i+1]=xm; y[i+1]=ym; o[i+1]=om;
+				}
+			}
+			pair[ppcnt]=i; ppcnt++;
+		}
+		pairlist=""; if(ppcnt>0) {
+			pp="";
+			for(i=0;i<ppcnt;i++) pp=pp sprintf(",%d",pair[i]+1);
+			pairlist=sprintf("(%s)",substr(pp,2));
+
+		}
+		printf "%d\n",ccnt >"/dev/stderr";
+		print "\nGenerated from xcircuit ps file.\n"
+		printf ":%s\n\n", desc;
+		printf ":%d,%d,%d,%s\n",xrange/sf,yrange/sf,ccnt,pairlist;
+		for(i=0;i<ccnt;i++) xtt[i]=ytt[i]=-sf;
+		printf ":";
+		for(i=0;i<tcnt;i++) {
+			dist=160; meet=-1;
+			for(j=0;j<ccnt;j++) {
+				d=sqrt((xt[i]+50-x[j])*(xt[i]+50-x[j])+(yt[i]-15-y[j])*(yt[i]-15-y[j]));
+				if(d<dist) {dist=d; meet=j;}
+			}
+			if(meet>=0) {
+				xtt[meet]=xt[i];
+				ytt[meet]=yt[i];
+			}
+		}
+		for(i=0;i<ccnt;i++) {
+			printf("%g,%g,%g,%g,%d",
+				x[i]/sf,y[i]/sf,xtt[i]/sf,ytt[i]/sf,o[i]);
+			for(j=0;j<ext;j++) {
+				if(o[i]!=oe[j]) continue;
+				if(o[i]==0) {
+					if(ye1[j]!=y[i]) continue;
+					e1=xe1[j]-x[i]; if(e1<0) e1=-e1;
+					e2=xe2[j]-x[i]; if(e2<0) e2=-e2;
+					if(e1>e2) {ee=e1; e1=e2; e2=ee;}
+					if(e1>=sf) continue;
+					if(xe1[j]<x[i]) e2=-e2;
+					printf(",%g",e2/sf);
+				}
+				if(o[i]==1) {
+					if(xe1[j]!=x[i]) continue;
+					e1=ye1[j]-y[i]; if(e1<0) e1=-e1;
+					e2=ye2[j]-y[i]; if(e2<0) e2=-e2;
+					if(e1>e2) {ee=e1; e1=e2; e2=ee;}
+					if(e1>=sf) continue;
+					if(ye1[j]<y[i]) e2=-e2;
+					printf(",%g",e2/sf);
+				}
+			}
+			printf("\n");
+		}
+		printf "\n:%s\n",wiring;
+		printf ":%s\n",substr(dots,2);
+	};
+	$NF == "scb" && $1 == 1 && $2 == 0 && $3 == 0 {pairer=1; next};
+	$NF=="polygon" && $2==3 {
+		if($(NF-1)==2) {
+			if(pairer==1) {
+				xp[pcnt]=($3+$5)/2;
+				yp[pcnt]=($4+$6)/2;
+				if($4==$6) op[pcnt]=0; else op[pcnt]=1;
+				pcnt++;
+			}
+			else wiring=wiring sprintf("segment %g,%g,%g,%g,_color_\n",
+				$3/sf,$4/sf,$5/sf,$6/sf);
+			}
+		else {wiring=wiring "polyline _color_";
+			for(i=3;i<=NF-2;i++) wiring=wiring sprintf(",%g",$i/sf);
+			wiring=wiring "\n";
+		}
+	next};
+	$NF=="polygon" && $2<3 && $(NF-1)==2 {
+		oe[ext]=-1;
+		if($3==$5) oe[ext]=1;
+		else if($4==$6) oe[ext]=0;
+		xe1[ext]=$3;xe2[ext]=$5;
+		ye1[ext]=$4;ye2[ext]=$6;
+	ext++; next};
+	$NF == "sce" {pairer=0; next;};
+	$NF ~ /acsource|npn|pnp/ {
+		if(($2%180)==90) r=0; else r=1;
+		x[ccnt]=$3; y[ccnt]=$4; o[ccnt]=r;
+		ccnt++;
+	next};
+	$NF=="label" && $1 ~ /^\(DESC:/ {
+		l=length($0); desc=""; aa=0;
+		for(i=7; i<l; i++) {
+			c=substr($0,i,1);
+			if(aa==0 && c==" ") continue;
+			aa++;
+			if(c==")") break;
+			if(c=="\\") {i++; c=substr($0,i,1);}
+			desc=desc c;
+		}
+	next};
+	$NF=="label" && ($(NF-1) < 0 || $(NF-2) < 0) {next};
+	$NF=="label" && $1=="(XXX)" {
+		xt[tcnt]=$(NF-2); yt[tcnt]=$(NF-1)+32;
+	tcnt++; next};
+	$NF=="label" && /^\(/ {
+		l=length($0); text="";
+		for(i=2; i<l; i++) {
+			c=substr($0,i,1);
+			if(c==")") break;
+			if(c=="\\") {i++; c=substr($0,i,1);}
+			text=text c;
+		}
+		wiring=wiring sprintf("text _color_,%g,%g,$slib_textsize,%s\n",
+			$(NF-2)/sf,($(NF-1)+32)/sf,text);
+	}
+	$NF=="tap" {if(xrange<$(NF-2)) xrange=$(NF-2);
+		if(yrange<$(NF-1)) yrange=$(NF-1); next};
+	$NF=="dot" {
+		dots=dots sprintf(",%g,%g",$3/sf,$4/sf);
+	next};'
+
+

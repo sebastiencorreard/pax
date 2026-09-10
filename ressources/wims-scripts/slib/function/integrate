@@ -1,0 +1,38 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+slib_example=sin(x),x,0,5,numeric\
+sin(x),x,0,5\
+sqrt(sin(x+4)^2 + cos(x+0.5)^2),x,0,5,numeric\
+sin(x),x
+
+slib_require=maxima, pari
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_fn,slib_var,slib_x1,slib_x2,slib_opt
+slib_fn=!rawmath $slib_fn
+slib_var=!varlist $slib_var
+slib_var=!item 1 of $slib_var
+!default slib_var=x
+slib_out=
+!if $slib_x1=$slib_empty or $slib_x2=$slib_empty
+  slib_out=!exec maxima integrate($slib_fn,$slib_var);
+  !exit
+!endif
+slib_test=$[($slib_x1)+($slib_x2)]
+!if numeric notin $slib_opt
+  slib_out=!exec maxima integrate($slib_fn,$slib_var,$slib_x1,$slib_x2);
+!endif
+!if ($slib_out=$empty or integrate isin $slib_out or i isvarof $slib_out) \
+  and NaN notin $slib_test
+   !!no more a true option (it was not documented), default is fast !
+    !!!if fast isin $slib_opt
+  slib_out=!exec pari intnum($slib_var=$slib_x1,$slib_x2,$slib_fn)
+  !!!else
+  !! slib_out=!exec pari intnum($slib_var=$slib_x1,$slib_x2,$slib_fn)
+  !!!endif
+!endif

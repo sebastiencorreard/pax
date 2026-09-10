@@ -1,0 +1,46 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=3\
+,[data]\
+5,n\
+0.5,p
+
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example=[0,1,2,3],3,7/15\
+[2,4,5],20,0.7
+slib_require=pari
+!exit
+
+:proc
+
+!distribute item $wims_read_parm into slib_data,slib_n,slib_p
+
+!default slib_n= 5
+!default slib_p=0.5
+
+!if $slib_p>=1 or $slib_p<=0
+  slib_out=0
+  !exit
+!endif
+slib_out=
+slib_data=!declosing $slib_data
+slib_cnt= !itemcnt $slib_data
+slib_data1=!values rint(x) for x in $slib_data
+slib_n=$[rint($slib_n)]
+slib_p=$[$slib_p]
+slib_p1=$[1-$slib_p ]
+slib_out=!exec pari {slib_data=[$slib_data1];\
+print(vector($slib_cnt,i,binomial($slib_n,slib_data[i])\
+*$slib_p^(slib_data[i])*$slib_p1^($slib_n-slib_data[i])));}
+
+slib_out=!trim $slib_out
+!for slib_i=1 to $slib_cnt
+  slib_tmp=!item $slib_i of $slib_data
+  !if $[rint($slib_tmp)-$slib_tmp]<>0
+    slib_out=!replace internal item number $slib_i by 0 in $slib_out
+  !endif
+!next slib_i
+slib_out=!trim $slib_out

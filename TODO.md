@@ -459,8 +459,65 @@ Mesuré **au rendu** sur les 9 698 exercices (graine 42, sans cache —
 suit ne touchait le corpus d'avant l'import. Le moteur ne lève rien dans aucun
 de ces cas, d'où la mesure plutôt que la lecture des sources.
 
-- [ ] **29 slibs WIMS absentes de `ressources/wims-scripts/`.** `_run_slib` ne
-  les trouve pas et rend la main sans rien produire. Les plus appelées :
+- [x] **Les 29 slibs portées** (2026-09-10) — copiées dans
+  `ressources/wims-scripts/` avec ce qu'elles lisent : `slib/circuits/drawcomp`,
+  `slib/data/columnsort`, `oef/special/tooltip.phtml`, et les 81 fichiers de
+  `data/circuits/` (lus par `!record`, que le premier relevé ne suivait pas).
+  Copier ne suffisait pas : cinq défauts du moteur les empêchaient de rendre,
+  corrigés d'après la source WIMS (`tests/core/oef/test_commandes_slibs.py`) :
+  - `!sort` ne posait pas `wims_sort_order` (`calc.c:133`) et ignorait
+    `nocase` — `columnsort` rendait vide, `drawtree` un arbre sans sommet ;
+  - `!text delete|drop|remove` manquait (`text_remove`) — `drawcomp` ne
+    tirait pas le nom de ses composants ;
+  - `!default` substituait sa valeur sans l'évaluer (`exec_default`) —
+    `balloon` posait le texte `!randint 1,1000` dans son CSS ;
+  - `!slashsubst` manquait (`lines.c:806`) — l'infobulle de `tooltip`
+    affichait `UNKNOWN_CMD:slashsubst` ;
+  - un `!read` fait **depuis une slib** était ignoré s'il ne visait pas
+    `slib/` — `drawcomp` ne chargeait pas `data/circuits/compdata`. Il se
+    résout désormais comme une slib, et seulement pour les slibs.
+  Trois autres sont apparus en vérifiant les sorties — une sortie non vide ne
+  prouvait pas une sortie juste :
+  - `!lines2rows` / `!rows2lines` joignaient et découpaient par
+    **tabulations**, une paire producteur/consommateur restée hors de
+    `wims_lists` après la refonte du découpage. `!row`, lui, ne coupe pas sur
+    une tabulation : `columnsort` rendait sa table sans la trier ;
+  - `!sort` sur une liste vide triait le mot `items` ;
+  - `!makelist` / `!values` arrondissaient leurs bornes et ignoraient `step`
+    (`cutfor`), et `!values` substituait sa variable en texte — `-1*x^2` en
+    `x=-2` valait 4. `slib/function/bounds` rendait donc `items,items`, et
+    l'attendu d'`oefintegrale/aire1` à `aire4` était faux ; le test « la bonne
+    réponse donne 1 » passait quand même, puisqu'il soumettait ce même texte.
+  Sur les 203 exercices qui les appellent, plus aucun `UNKNOWN_CMD` visible.
+- [ ] **Ce que le portage des slibs ne règle pas.**
+  - `chemistry/chemeq_el` et `chemeq_rev` (12 appels, `redox.fr`, `piles.fr`) :
+    le port Python de `chemeq` rend `""` sur `,équation` et sur
+    `H -> H ~ équation` ; `chemeq_tex`, déjà vendorisée, aussi. À étendre
+    (`def_engine/chemeq.py`) d'après `wims/src/Misc/chemeq`.
+  - `graph/graphviz` et `draw/graphvizpoints` (10 appels, `oeflceb`,
+    `oefadsubrel`) : `!exec graphviz` suppose le binaire `dot`, absent de
+    l'image. Ajouter `graphviz` au Dockerfile, ou dessiner le graphe dans le
+    navigateur.
+  - `text/crossword` (5 appels, `oefvocmarine`, `oefsolaire`) : `!exec
+    crossword` est un binaire WIMS (`wims/src/Misc/crossword/crossword.c`,
+    1 128 lignes) ; la grille sort vide.
+  - `geo3D/threeD` (`OEFvocSolides/pave`) produit une applet Java, qu'aucun
+    navigateur n'exécute plus.
+  - `intnum` (intégrale numérique PARI) n'est pas émulé : `function/integrate`
+    rend un `intnum(x=a,b,f)` que PARI devrait calculer. Les attendus
+    d'`oefintegrale/aire1` à `aire4` restent donc des expressions, et la bonne
+    réponse vaut 0 (en `xfail`, `known_failures.py`). À ajouter à
+    `_call_pari`.
+  - `utilities/tooltip` rend l'infobulle en CSS pur (`wims_tooltip`) : vérifier
+    que le front porte ces classes.
+  - L'idiome du `$` nu. WIMS efface un `$` suivi d'un blanc (`substit`,
+    `evalue.c:57`) ; PAX le garde, et il reste dans le TeX de `text/matrixtex`
+    comme dans les commandes de `circuits/draw`. Une règle posée dans `_subst`
+    a cassé 10 tests : PAX substitue à d'autres moments que WIMS, et parfois
+    deux fois — la correction se fera là où l'idiome est lu, pas en bloc.
+- [ ] ~~**29 slibs WIMS absentes de `ressources/wims-scripts/`.**~~ Relevé
+  d'origine, conservé pour mémoire : `_run_slib` ne les trouvait pas et
+  rendait la main sans rien produire. Les plus appelées :
   `function/integrate` (78 rendus), `text/balloon` (70), `circuits/draw` (46),
   `draw/drtgraduee` (26), `stat/multinomial` (26), `data/randline` (21),
   `chemistry/chemeq_add|el|components|rev` (31 à elles quatre),
@@ -495,7 +552,8 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   `equation2`, `mynumexp`, `geogebra111`, `geogebra2`, `jmolstr`. Absents de
   `_WIMS_KNOWN_TYPES` comme de `_MODULE_ANSTYPES`, ils sont ramenés à
   `default` sans que le garde-fou de I.3 c les voie.
-- [ ] **16 exercices plantent sur `re.PatternError: bad escape`** :
+- [x] **16 exercices plantaient sur `re.PatternError: bad escape`** — corrigé
+  le 2026-09-10 par un remplacement par fonction :
   `_eval_loop_expr` (sous `!makelist`) passe la valeur, qui contient du LaTeX
   (`\infty`, `\sqrt`…), comme *chaîne de remplacement* à `re.sub`. Un
   remplacement par fonction suffit. `oefgraphprob/matrice` et `stable` lèvent
@@ -508,6 +566,12 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   sur un poste, si bien que son snapshot a fait tomber la CI ; il a été retiré.
   `Infra-rouge1` et `3` tiennent en 6,2 s, à la merci d'un runner plus lent.
   Relever le budget est une décision de produit : un élève attendrait autant.
+- [ ] **Comprendre pourquoi ces cinq exercices sont si lents — c'est anormal.**
+  Sur 9 698 exercices, 9 693 rendent en moins de 4 s ; `coefracine2|3`
+  (28 s), `Infra-rouge5` (9 s), `Infra-rouge1|3` (6,2 s) sont hors de toute
+  proportion. Chercher le motif qui coûte (boucle, lecture de données, appel
+  CAS répété) avant de toucher au budget : c'est plus probablement un défaut
+  du moteur qu'une exigence des exercices.
 
 ## 4. Notation des exercices à étapes — vérifier contre WIMS
 

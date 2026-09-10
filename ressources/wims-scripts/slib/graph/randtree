@@ -1,0 +1,144 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=5,3,3,,perfect middle\
+5,3,3,,perfect middle html\
+12,2,4,[A,B,C,D],point html\
+70,2,10,,point html
+
+!exit
+
+:proc
+!reset slib_segments slib_dessin
+!distribute item $wims_read_parm into slib_N,slib_s,slib_h,slib_text
+slib_option = !item 5 to -1 of $wims_read_parm
+!default slib_s=5
+!default slib_h=8
+!default slib_color1=blue
+!default slib_color2=green
+!default slib_color3=yellow
+slib_text=!declosing $slib_text
+slib_G = 1
+slib_cnt = 1
+slib_n = $[2*$slib_N]
+slib_A1 =0
+slib_height1=1
+slib_sizey=1
+slib_cnt1=0
+slib_width1=15
+slib_Sizey=$[$slib_h+1]
+slib_height=5
+slib_choix1=!values 1 for x=1 to $[$slib_s+3]
+slib_choix0=!values 0 for x=1 to $[$slib_s-3]
+slib_noeud= !random 0,1 repeat $n
+#permet d'assurer que l'arbre ne part pas avec une seule branche (inutile dans le cas parfait)
+slib_noeud=1,$slib_noeud
+slib_choix=$slib_choix1, $slib_choix0
+slib_position=$empty
+slib_milieu=0,-1
+!for slib_k=1 to $slib_n
+  slib_L=!line $slib_k of $slib_G
+  !if $slib_L<>$empty
+    slib_i=!item 1 of $slib_L
+    slib_position_prov=$(slib_A$slib_i),$[-$(slib_height$slib_i)]
+    slib_position=!append line $slib_position_prov to $slib_position
+    !if $slib_cnt > $[$slib_N] or $slib_sizey > $slib_Sizey
+
+    !else
+      #choix des fils (position et nombre : la position est-elle intéressante pour un arbre non binaire ? )
+      slib_c=!item $slib_k of $slib_noeud
+      !if perfect iswordof of $slib_option or $slib_c=1
+        slib_a=!item 1 to $slib_s of $slib_choix1
+      !else
+        slib_a=!shuffle $slib_choix
+        slib_a=!item 1 to $slib_s of $slib_a
+      !endif
+      slib_Li=
+      !for slib_j=1 to $slib_s
+        slib_b=!item $slib_j of $slib_a
+        !if $slib_b <> 0
+          #creation d'un fils
+          slib_jj=$[$slib_cnt+1]
+          #sa hauteur
+          slib_height$slib_jj= $[$(slib_height$slib_i)+1]
+          #la hauteur de l'arbre
+          slib_sizey=$[max($slib_sizey, $(slib_height$slib_jj))]
+          # Ne sert à rien ?
+          slib_cnt$(slib_height$slib_jj)=$[$(slib_cnt$(slib_height$slib_jj))+1]
+          #on rajoute une ligne pour le fils
+          slib_G=!append line $slib_jj to $slib_G
+          #nombre de sommets
+          slib_cnt=$[$slib_cnt +1]
+        !else
+          slib_jj=sentinelle
+        !endif
+        #on rajoute le fils sur la ligne du père, rien s'il n'y a rien à cette position
+        slib_Li=!append item $slib_jj to $slib_Li
+        #le calcul suivant sert pour le dessin. Faut-il le mettre ici ?
+        !if $slib_b <> 0
+          #position
+          slib_A$slib_jj=$[$(slib_A$slib_i)+($slib_j-($slib_s+1)/2)*$(slib_width$slib_i)]
+          #calcul de la largeur donnée au sommet $slib_jj pour ses fils éventuels
+          slib_width$slib_jj=$[$(slib_width$slib_i)/min($slib_s,$slib_s+1)]
+          slib_milieu_prov=$[($(slib_A$slib_i)+2*$(slib_A$slib_jj))/3],$[-($(slib_height$slib_i) +2*$(slib_height$slib_jj))/3]
+          slib_milieu=!append line $slib_milieu_prov to $slib_milieu
+        !endif
+      !next slib_j
+      #on met la ligne $slib_k définitive
+      slib_G=!replace line number $slib_k by $slib_L,$slib_Li in $slib_G
+    !endif
+  !endif
+!next slib_k
+
+#Trace du dessin
+!set slib_xrange=$[-$slib_s*$slib_width1/2],$[$slib_s*$slib_width1/2]
+!set slib_yrange=$[-$slib_sizey-0.5],-0.5
+slib_cnt=!linecnt $slib_G
+!for slib_k=1 to $slib_cnt
+  slib_u=!line $slib_k of $slib_G
+  slib_i=!item 1 of $slib_u
+  slib_position_prov=!line $slib_k of $slib_position
+  !for slib_j in $slib_u
+    !if $slib_j notsametext sentinelle
+      #trace de la droite
+      slib_position_prov1=!line $slib_j of $slib_position
+      slib_segments=!append item $slib_position_prov,$slib_position_prov1 to $slib_segments
+      #on coupe les segments au milieu pour mettre un cercle et éventuellement du texte
+      !if middle iswordof $slib_option
+        slib_milieu_prov=!line $slib_j of $slib_milieu
+        slib_dessin = !append line disk $slib_milieu_prov,30,white\
+circle $slib_milieu_prov, 30,$slib_color3 to $slib_dessin
+      !endif
+    !endif
+  !next slib_j
+  !if point iswordof $slib_option
+    slib_dessin =!append line disk $slib_position_prov,30,white\
+      circle $slib_position_prov,30,$slib_color2 to $slib_dessin
+  !endif
+  !if $slib_text <> $empty
+    slib_textk=!item $slib_k of $slib_text
+    slib_dessin =!append line text black,$slib_position_prov, medium,$slib_textk to $slib_dessin
+  !endif
+!next slib_k
+slib_dessin=xrange $slib_xrange\
+yrange $slib_yrange\
+linewidth 2\
+segments $slib_color1,$slib_segments\
+$slib_dessin
+slib_out=$slib_dessin
+!if url iswordof $slib_option or html iswordof $slib_option
+  !set slib_tmp=400
+  !set insdraw_size=$slib_tmp,$[($(slib_yrange[2])-($(slib_yrange[1])))/($(slib_xrange[2])-($(slib_xrange[1])))*$slib_tmp*$slib_height]
+  !set insdraw_size=$[min(1500,($(slib_xrange[2])-($(slib_xrange[1])))/($(slib_yrange[2])-($(slib_yrange[1])))*$slib_tmp)],$slib_tmp
+!insdraw $slib_out
+  slib_out=$ins_url
+  !if html iswordof $slib_option
+    slib_out=<img src="$ins_url" alt="">
+  !else
+    slib_out=$slib_out,[$slib_G],[$slib_position],[$slib_milieu],$insdraw_size
+  !endif
+!else
+  slib_out=[$slib_dessin],[$slib_G],[$slib_position],[$slib_milieu]
+!endif

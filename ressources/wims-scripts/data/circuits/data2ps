@@ -1,0 +1,143 @@
+#! /bin/sh
+#
+# Regeneration of index files.
+
+if [ -z "$1" ]; then
+ cat <<@
+This script transforms a WIMS circuit data file into a ps file
+recognizable by xcircuit. You can then modify the latter and
+transform back using ps2data.
+
+Usage: ./data2ps inputfile
+
+@
+exit
+fi
+
+if [ -n "$w_module" ]; then
+ echo "This script is to be used manually. It should not be run by WIMS."
+ exit
+fi
+
+inp=$1
+[ -f "$inp" ] || inp=$1.data
+[ -f "$inp" ] || exit
+
+current=`pwd`
+cd `dirname $0`
+homedir=`pwd`
+header=$homedir/circ-header.ps1
+tail=$homedir/circ-tail.ps1
+cd $current
+
+# Translation size factor
+sf=64
+
+desc=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>1 {exit};
+	rec==1 {if(substr($0,1,1)==":") print substr($0,2); else print};' $inp`
+range=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>2 {exit};
+	rec==2 {if(substr($0,1,1)==":") print substr($0,2); else print};' $inp`
+pos=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>3 {exit};
+	rec==3 {if(substr($0,1,1)==":") print substr($0,2); else print};' $inp`
+wire=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>4 {exit};
+	rec==4 {if(substr($0,1,1)==":") print substr($0,2); else print};' $inp`
+dots=`awk 'BEGIN {rec=0};
+	/^:/ {rec++};
+	rec>5 {exit};
+	rec==5 {if(substr($0,1,1)==":") print substr($0,2); else print};' $inp`
+pairs=`echo "$range" | tr '()[]' '@@@@' | cut -s -d@ -f2 | tr ',' ' '`
+if [ -z "$pairs" ]; then
+ pairs=`echo "$range" | cut -s -d, -f4 | tr ',' ' '`
+fi
+
+cat $header
+echo
+echo "(DESC: $desc) {/Helvetica cf} 2 16 0 1.00 0 -160 label"
+echo "$range" |\
+awk -F, '{
+	texthd="{/Helvetica cf} 2 16 0 1.00"; sf='$sf';
+	for(i=0;i<=$2/2;i++) {
+		printf "0.8 0.8 0.8 scb\n1 1.00 0 %d %d %d 2 polygon\nsce\n",
+			i*2*sf, $1*sf, i*2*sf;
+		printf "1.00 0 0 %d tap\n",i*2*sf;
+		printf "(%d) %s -64 %d label\n",i*2,texthd,i*2*sf-16;
+	}
+	if($2%2 == 1) {
+		printf "1.00 0 0 %d tap\n",$2*sf;
+		printf "(%d) %s -64 %d label\n",$2,texthd,$2*sf-16;
+	}
+	printf "0.8 0.8 0.8 scb\n1 1.00 0 0 0 %d 2 polygon\nsce\n", $2*sf;
+	for(i=1;i<=$1/2;i++) {
+		printf "0.8 0.8 0.8 scb\n1 1.00 %d 0 %d %d 2 polygon\nsce\n",
+			i*2*sf, i*2*sf, $2*sf;
+		printf "1.00 270 %d 0 tap\n",i*2*sf;
+		printf "(%d) %s %d -48 label\n",i*2,texthd,i*2*sf-16;
+	}
+	if($1%2 == 1) {
+		printf "1.00 270 %d 0 tap\n",$1*sf;
+		printf "(%d) %s %d -48 label\n",$1,texthd,$1*sf-16;
+	}
+exit}'
+echo "$pos" |\
+awk -F, '{sf='$sf';
+	texthd="{/Helvetica cf} 2 16 0 1.00";
+	printf "1.00 %d %d %d acsource\n",(1-$5)*270,$1*sf,$2*sf;
+	if($3>=0 && $4>=0) printf "(XXX) %s %d %d label\n",
+		texthd,int($3*4)*sf/4,int($4*4)*sf/4-32;
+	for(i=6;i<=NF;i++) {
+		if($i>-1 && $i<1) continue;
+		if($i<0) t=-0.25; else t=0.25;
+		if($5==0) printf("1 1.50 %d %d %d %d 2 polygon\n",
+				int(($1+$i)*4)*sf/4, int($2*4)*sf/4,
+				int(($1+t)*4)*sf/4, int($2*4)*sf/4);
+		else printf("1 1.50 %d %d %d %d 2 polygon\n",
+				int($1*4)*sf/4, int(($2+$i)*4)*sf/4,
+				int($1*4)*sf/4, int(($2+t)*4)*sf/4);
+	}
+}'
+echo "$dots" |\
+awk -F, '{sf='$sf';
+	for(i=2;i<=NF;i+=2) printf "1.00 0 %d %d dot\n",$(i-1)*sf,$i*sf;
+}'
+echo "$wire" | awk '$1=="polyline" {print}' | sed 's/polyline//;s/_color_//' |\
+awk -F, '{sf='$sf';
+	printf "1 3.00 ";
+	for(i=2;i<=NF;i++) printf "%d ",$i*sf;
+	printf "%d polygon\n",(i-1)/2;
+}'
+echo "$wire" | awk '$1=="polyline" {print}' | sed 's/polyline//;s/_color_//' |\
+awk -F, '{sf='$sf';
+	printf "1 3.00 %d %d %d %d 2 polygon\n",
+		$1*sf,$2*sf,$3*sf,$4*sf;
+}'
+echo "$wire" | awk '$1=="parallel" {print}' | sed 's/parallel//;s/_color_//' |\
+awk -F, '{sf='$sf';
+	for(i=0;i<$7;i++) {
+		printf "1 3.00 %d %d %d %d 2 polygon\n",
+			($1+i*$5)*sf,($2+i*$6)*sf,
+			($3+i*$5)*sf,($4+i*$6)*sf;
+	}
+}'
+echo "$wire" | awk '$1 == "text" || $1 == "string" {print}' |\
+awk -F, 'BEGIN {texthd="{/Helvetica cf} 2 16 0 1.00"; sf='$sf'};
+	{printf "(%s) %s %d %d label\n",$5,texthd,$2*sf,$3*sf-32}'
+for p in $pairs; do
+ echo "$pos" | awk -F, 'FNR == '$p' {
+ 	sf='$sf';
+ 	if($5==0) {x1=$1+1;x2=$1+2;y1=y2=$2;}
+	else {x1=x2=$1;y1=$2-1;y2=$2-2;};
+	printf "1.0 0.0 0.0 scb\n1 3.00 %d %d %d %d 2 polygon\nsce\n",
+		x1*sf,y1*sf,x2*sf,y2*sf;
+	exit;
+ }'
+done
+cat $tail
+

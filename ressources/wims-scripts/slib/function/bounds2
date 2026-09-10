@@ -1,0 +1,58 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=x^2+sin(x*y)+exp(y^2),[x,y],0,3,-3,2,50
+
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_fn,slib_var,slib_x1,slib_x2,slib_y1,slib_y2,slib_steps
+slib_fn=!rawmath $slib_fn
+slib_var=!declosing $slib_var
+slib_var1=!item 1 of $slib_var
+slib_var2=!item 2 of $slib_var
+!default slib_var1=x
+!default slib_var2=y
+slib_x1=$[$slib_x1]
+!if $slib_x1=$empty or $slib_x1 isitemof NaN,Inf
+  slib_x1=0
+!endif
+slib_x2=$[$slib_x2]
+!if $slib_x2=$empty or $slib_x2 isitemof NaN,Inf
+	slib_x2=1
+!endif
+slib_y1=$[$slib_y1]
+!if $slib_y1=$empty or $slib_y1 isitemof NaN,Inf
+  slib_y1=0
+!endif
+slib_y2=$[$slib_y2]
+!if $slib_y2=$empty or $slib_y2 isitemof NaN,Inf
+ slib_x2=1
+!endif
+!bound slib_steps between integer 1 and 1000 default 50
+!bound slib_steps2 between integer 1 and 1000 default 50
+slib_step=$[($slib_x2-($slib_x1))/$slib_steps]
+slib_step2=$[($slib_y2-($slib_y1))/$slib_steps]
+slib_min=$empty
+slib_max=$empty
+
+!for slib_i=0 to $slib_steps
+	slib_fxn=!mathsubst $slib_var1= $[$slib_x1+$slib_i*$slib_step] in $slib_fn
+	slib_fxn=!replace item NaN by $ in $slib_fxn
+	slib_vals=!values $slib_fxn for $slib_var2=$slib_y1 to $slib_y2 step $slib_step
+	slib_vals=!replace item NaN by $ in $slib_vals
+	slib_vals=!nonempty items $slib_vals
+	!if $slib_i>1
+	  slib_vals=!sort numeric items $slib_min,$slib_vals,$slib_max
+	!else
+		slib_vals=!sort numeric items $slib_vals
+	!endif
+	slib_vals=!trim $slib_vals
+	slib_min=!item 1 of $slib_vals
+	slib_max=!item -1 of $slib_vals
+!next slib_i
+
+slib_out=$slib_min,$slib_max

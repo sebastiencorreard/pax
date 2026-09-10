@@ -1,0 +1,66 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Gang, XIAO
+
+!exit
+
+:proc
+slib_ltest=!linecnt $wims_read_parm
+!if $slib_ltest>1
+  slib_inp=!lines2rows $wims_read_parm
+  slib_type=lines
+!else
+  slib_inp=$wims_read_parm
+  slib_type=rows
+!endif
+slib_n=!item 1 of $slib_inp
+slib_option=!item 2 of $slib_inp
+slib_data=!item 3 to -1 of $slib_inp
+slib_r1=!row 1 of $slib_data
+slib_N=!itemcnt $slib_r1
+!bound $slib_n between integer 1 and $slib_N default 1
+slib_key=!column $slib_n of $slib_data
+slib_tt=0
+!if reverse iswordof $slib_option
+  slib_tt=$[$slib_tt+1]
+!endif
+!if numeric iswordof $slib_option
+  slib_tt=$[$slib_tt+2]
+!endif
+!if nocase iswordof $slib_option
+  slib_tt=$[$slib_tt+4]
+!endif
+
+!goto sort$slib_tt
+
+:sort0
+slib_out=!sort items $slib_key
+!goto send
+:sort1
+slib_out=!sort reverse items $slib_key
+!goto send
+:sort2
+slib_out=!sort numeric items $slib_key
+!goto send
+:sort3
+slib_out=!sort reverse numeric items $slib_key
+!goto send
+:sort4
+slib_out=!sort nocase items $slib_key
+!goto send
+:sort5
+slib_out=!sort reverse nocase items $slib_key
+!goto send
+:sort6
+slib_out=!sort numeric nocase items $slib_key
+!goto send
+:sort7
+slib_out=!sort numeric nocase reverse items $slib_key
+
+:send
+slib_out=!row $wims_sort_order of $slib_data
+!if $slib_type=lines
+  slib_out=!rows2lines $slib_out
+!endif

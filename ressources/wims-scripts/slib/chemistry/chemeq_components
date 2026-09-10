@@ -1,0 +1,92 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_author=Georges, Khaznadar
+slib_license=GPL
+
+slib_example= MnO4^- + 5 e^- + 8H^+ -> Mn^2+ + 4H2O \
+MnO4^- + 5 e^- + 8H^+ -> Mn^2+ + 4H2O, htmlbuttons 3 \
+MnO4^- + 5 e^- + 8H^+ -> Mn^2+ + 4H2O, htmlbuttons 3,,[extra,redox_extra] \
+MnO4^- + 5 e^- + 8H^+ -> Mn^2+ + 4H2O, htmlbuttons 2, shuffle,[extra]
+slib_require=chemeq
+!exit
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! TODO : find a way to accept the experimental "tex" feature
+!! this example should work but it does not:
+!! MnO4^- + 5 e^- + 8H^+ -> Mn^2+ + 4H2O, htmlbuttons 2, tex
+!! it should make nice graphic buttons with TeX rendered formulas
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+:proc
+
+!distribute items $wims_read_parm into slib_chem, slib_html, slib_opt, slib_add
+
+slib_add=!declosing $slib_add
+
+!if htmlbuttons isin $slib_html
+  !distribute words $slib_html into slib_html slib_n
+!endif
+
+!if shuffle isin $slib_opt
+  slib_shuffle=shuffle
+!else
+  slib_shuffle=
+!endif
+
+!if tex isin $slib_opt
+  slib_tex=tex
+!else
+  slib_tex=
+!endif
+
+chemeq_option=C
+slib_c=!exec chemeq $slib_chem
+!reset chemeq_option
+
+slib_c=!replace |[^,;]* by $empty in $slib_c
+slib_c=!replace [0-9]\+[ ] by $empty in $slib_c
+
+slib_add=!replace redox_extra by H^+_aq,OH^-_aq,H2O,e^- in $slib_add
+
+!if $slib_tex=tex
+  slib_c=!replace ; by , in $slib_c
+  slib_c1=
+  !for slib_component in $slib_c
+     chemeq_option=l
+     slib_component_tex=!exec chemeq $slib_component
+     slib_c1=!append item $slib_component_tex to $slib_c1
+  !next
+  slib_c=$slib_c1
+!endif
+
+slib_add=!replace extra by +,-> in $slib_add
+
+!if $slib_add != $empty
+  slib_c=$slib_c, $slib_add
+!endif
+
+
+!if $slib_html=htmlbuttons
+  slib_c=!replace ; by , in $slib_c
+  slib_c=!listuniq $slib_c
+  !if $slib_shuffle=shuffle
+    slib_c=!shuffle $slib_c
+  !endif
+  slib_buttons=
+  !if $slib_tex=tex
+    !!!!!!!!!!!!!! this feature should work but it does not !!!!!!!!!!!!!!!!!!
+    !for slib_component in $slib_c
+      slib_buttons=$slib_buttons<input type="button" value="\
+!instex $slib_component\
+" onclick="appendToInput($slib_n,' $slib_component ')">
+    !next slib_component
+  !else
+    !for slib_component in $slib_c
+      slib_buttons=$slib_buttons<input type="button" value="$slib_component" onclick="appendToInput($slib_n,' $slib_component ')">
+    !next slib_component
+  !endif
+  slib_out=$slib_buttons
+!else
+  slib_out=$slib_c
+!endif

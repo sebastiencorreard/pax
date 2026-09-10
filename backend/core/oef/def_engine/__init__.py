@@ -1970,14 +1970,48 @@ class DefEngine(_SlibMixin):
         """
         return _wims_compare(condition, numeric=(kind == "ifval"), subst=self._subst)
 
-    def _eval_loop_expr(self, expr: str, var: str, val: str) -> str:
-        """Evaluate a loop body expression, substituting the loop variable."""
+    def _eval_loop_expr(self, expr: str, var: str, val: str, numerique: bool = False) -> str:
+        """Evaluate a loop body expression, substituting the loop variable.
+
+        La valeur est insérée par une **fonction** de remplacement. Passée en
+        chaîne à `re.sub`, une valeur contenant du LaTeX (`\\infty`, `\\sqrt`)
+        y était lue comme un échappement : 16 exercices levaient
+        `re.PatternError: bad escape`.
+
+        `numerique` (pour `!values`) met la valeur entre parenthèses. WIMS
+        évalue l'expression avec la variable valant le **nombre**
+        (`eval_setval`, `calc.c:_values`) ; la substitution textuelle faisait
+        de `-1*x^2` en `x=-2` un `-1*-2**2`, que Python lit `-1*-(2**2)` = 4,
+        au lieu de -4.
+        """
         # Substitute bare loop variable (e.g. 'x' in 'reply x')
         # We use a regex to match the variable name as a whole word
-        res = re.sub(rf"\b{re.escape(var)}\b", val, expr)
+        motif = rf"\b{re.escape(var)}\b"
+        res = re.sub(motif, lambda _m: val, expr)
         # Also handle standard substitution (for other variables)
         res = self._subst(res.replace("\\", "$"))
-        
+
+        # En mode numérique, le calcul se tente sur la valeur **parenthésée**
+        # (`(2)` → 2, `-1*(-2)**2` → -4). S'il échoue — une expression que
+        # Python ne sait pas lire —, on retombe sur la substitution textuelle
+        # sans parenthèses, comme avant : `-6/5` reste `-6/5`, pas `-(6)/(5)`.
+        if numerique and res != expr:
+            essai = self._subst(re.sub(motif, lambda _m: f"({val})", expr).replace("\\", "$"))
+            try:
+                ns = dict(_MATH_NS)
+                for k, v in self.ctx.items():
+                    try: ns[k] = float(v)
+                    except: ns[k] = v
+                nombre = eval(essai.replace("^", "**"), ns)
+                if isinstance(nombre, bool):
+                    raise TypeError
+                if isinstance(nombre, float):
+                    return format_wims_float(nombre)
+                if isinstance(nombre, int):
+                    return str(nombre)
+            except Exception:
+                pass
+
         # If it looks like arithmetic, try to eval it
         if any(c in res for c in "+-*/^"):
             try:
@@ -2242,15 +2276,18 @@ class DefEngine(_SlibMixin):
             s = self._subst(args)
             return "\n".join(s.split())
 
+        # `rows2lines` / `lines2rows` (`liblines.c`) : `;` de profondeur zéro
+        # ↔ `\n`. Ce couple joignait par **tabulations** et découpait dessus —
+        # une paire producteur/consommateur que la refonte du découpage
+        # (`docs/refactor-item-splitting.md`) n'avait pas atteinte, faute de
+        # passer par `wims_lists`. `!row`, lui, suit WIMS et ne coupe pas sur
+        # une tabulation : `slib/data/columnsort`, qui enchaîne `!lines2rows`
+        # et `!row $wims_sort_order of …`, rendait sa table sans la trier.
         if cmd in ("rows2lines",):
-            s = self._subst(args)
-            if "\n" not in s and ";" in s:
-                return "\n".join(x.strip() for x in s.split(";"))
-            return "\n".join(x.strip() for x in s.split("\t") if x.strip())
+            return wl.rows2lines(self._subst(args))[0]
 
         if cmd in ("lines2rows",):
-            s = self._subst(args)
-            return "\t".join(x.strip() for x in s.splitlines() if x.strip())
+            return wl.lines2rows(self._subst(args))
 
         # ── String normalisation ──────────────────────────────────────────────
         if cmd in ("singlespace",):
@@ -2384,6 +2421,9 @@ class DefEngine(_SlibMixin):
             self._cmd_readproc(args)
             html = self.ctx.pop("_proc_html", "")
             return html if cmd == "read" else ""
+
+        if cmd == "slashsubst":
+            return self._cmd_slashsubst(args)
 
         return f"UNKNOWN_CMD:{cmd}"
 
@@ -2799,12 +2839,17 @@ class DefEngine(_SlibMixin):
         url = flydraw_to_url(largeur, hauteur, script, base_dir=mod_dir)
         return f'<img src="{url}" alt="">'
 
-    def _cmd_makelist(self, args: str) -> str:
-        """!makelist expr for var=start to end — or — for var in list."""
+    def _cmd_makelist(self, args: str, numerique: bool = False) -> str:
+        """!makelist expr for var=start to end [step s] — or — for var in list.
+
+        Les bornes suivent `cutfor` (`evalue.c`) : `var=a to b` ou
+        `var from a to b`, un `step` facultatif, des **réels**. `numerique`
+        sert `!values` (voir `_eval_loop_expr`).
+        """
         # "for var in list" form: iterate over a comma/tab-separated list
         in_m = re.match(r"(.*?)\s+for\s+(\w+)\s+in\s+(.*)", args, re.I | re.DOTALL)
         range_m = re.match(
-            r"(.*?)\s+for\s+(\w+)\s*=\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
+            r"(.*?)\s+for\s+(\w+)\s*(?:=|\s+from\s+)\s*(.+?)\s+to\s+(.+)", args, re.I | re.DOTALL
         )
         if in_m:
             expr = in_m.group(1).strip()
@@ -2821,16 +2866,28 @@ class DefEngine(_SlibMixin):
             expr = range_m.group(1).strip()
             var = range_m.group(2)
             start_s = range_m.group(3).strip()
-            end_s = range_m.group(4).strip()
+            fin_m = re.match(r"(.+?)(?:\s+step\s+(.+))?$", range_m.group(4).strip(), re.I | re.DOTALL)
+            end_s, step_s = fin_m.group(1), fin_m.group(2)
+            # `_values` (`calc.c`) : bornes et pas réels, un pas nul vaut 1, et
+            # la boucle `v*step <= stop*step` s'arrête à `MAX_VALUE_LIST`
+            # (2048, `wims.h`) — ce qui borne aussi une valeur amont cassée.
+            # Arrondir les bornes et ignorer `step` rendait vide
+            # `!values … for x=-2 to 1 step 0.03` (`slib/function/bounds`).
             try:
-                start = int(round(float(self._eval_arith(self._subst(start_s)))))
-                end = int(round(float(self._eval_arith(self._subst(end_s)))))
+                start = float(self._eval_arith(self._subst(start_s)))
+                end = float(self._eval_arith(self._subst(end_s)))
+                step = float(self._eval_arith(self._subst(step_s))) if step_s else 1.0
             except (ValueError, TypeError):
                 return ""
-            # Cap dur : une borne géante (valeur amont cassée d'un slib) ferait
-            # une liste énorme et un rendu de plusieurs secondes.
-            end = min(end, start + 100000)
-            items = [str(i) for i in range(start, end + 1)]
+            if any(x != x or x in (float("inf"), float("-inf")) for x in (start, end, step)):
+                return ""
+            if step == 0:
+                step = 1.0
+            items = []
+            v = start
+            while len(items) < 2048 and v * step <= end * step:
+                items.append(format_wims_float(v))
+                v += step
         else:
             return ""
 
@@ -2838,7 +2895,10 @@ class DefEngine(_SlibMixin):
         results = []
         for val_str in items:
             self.ctx[var] = val_str
-            parts = [self._eval_loop_expr(p.strip(), var, val_str) for p in expr.split(",")]
+            parts = [
+                self._eval_loop_expr(p.strip(), var, val_str, numerique)
+                for p in expr.split(",")
+            ]
             results.append(",".join(parts))
         if saved is not None:
             self.ctx[var] = saved
@@ -2915,9 +2975,10 @@ class DefEngine(_SlibMixin):
         # Strip optional modifiers: numeric, alphabetic, alpha, reverse, down
         numeric = False
         reverse = False
+        nocase = False
         rest = args
         while True:
-            m = re.match(r"(numeric|alphabetic|alpha|reverse|down)\s+(.*)", rest, re.I | re.DOTALL)
+            m = re.match(r"(numeric|alphabetic|alpha|reverse|down|nocase)\s+(.*)", rest, re.I | re.DOTALL)
             if not m:
                 break
             modifier = m.group(1).lower()
@@ -2926,11 +2987,19 @@ class DefEngine(_SlibMixin):
                 numeric = True
             if modifier in ("reverse", "down"):
                 reverse = True
+            if modifier == "nocase":
+                nocase = True
 
         # `of` optionnel après le type (`!sort numeric item of $v`, slib/stat/freq).
-        m = re.match(r"(items?|rows?|lines?|words?|list)(?:\s+of)?\s+(.*)", rest, re.I | re.DOTALL)
+        # La liste peut être vide (`!sort numeric items $vide`) : le type seul
+        # doit donc être accepté. Sans cela, le mot `items` devenait la liste à
+        # trier, et `slib/function/bounds` rendait `items,items` en guise de
+        # bornes — l'attendu d'`oefintegrale/aire1` à `aire4` en portait.
+        m = re.match(
+            r"(items?|rows?|lines?|words?|list)(?:\s+of)?(?:\s+(.*)|\s*$)", rest, re.I | re.DOTALL
+        )
         if m:
-            kind, val = m.group(1).lower(), self._subst(m.group(2))
+            kind, val = m.group(1).lower(), self._subst(m.group(2) or "")
         else:
             kind, val = "items", self._subst(rest)
 
@@ -2946,22 +3015,32 @@ class DefEngine(_SlibMixin):
         else:
             sep, items = ",", [x for x in wl.cutitems(val) if x]
 
+        # `wims_sort_order` : le rang d'origine (compté depuis 1) de chaque
+        # item, dans l'ordre trié (`calc.c:133`). `slib/data/columnsort` trie
+        # une colonne puis relit la table dans cet ordre
+        # (`!row $wims_sort_order of …`) : sans la variable il rendait vide, et
+        # `slib/graph/drawtree`, qui s'en sert, un arbre sans un sommet.
+        rangs = list(enumerate(items, 1))
         if numeric:
             def _num_key(s: str) -> float:
                 try:
                     return float(self._eval_arith(s))
                 except Exception:
                     return 0.0
-            items.sort(key=_num_key, reverse=reverse)
+            rangs.sort(key=lambda t: _num_key(t[1]), reverse=reverse)
+        elif nocase:
+            rangs.sort(key=lambda t: t[1].lower(), reverse=reverse)
         else:
-            items.sort(reverse=reverse)
+            rangs.sort(key=lambda t: t[1], reverse=reverse)
+        items = [s for _, s in rangs]
+        self.ctx["wims_sort_order"] = ",".join(str(i) for i, _ in rangs)
 
         out = sep.join(items)
         return wl.lines2rows(out) if back_to_rows else out
 
     def _cmd_values(self, args: str) -> str:
-        """!values V for var=start to end — list of values."""
-        return self._cmd_makelist(args).replace("\t", ",")
+        """!values V for var=start to end [step s] — valeurs numériques de V."""
+        return self._cmd_makelist(args, numerique=True)
 
     def _list_items(self, value: str) -> list[str]:
         """Items d'une liste WIMS, pour les commandes ensemblistes.
@@ -3334,13 +3413,68 @@ class DefEngine(_SlibMixin):
             self.ctx[var] = default_s if default_s is not None else allowed[0]
 
     def _cmd_default(self, args: str) -> None:
-        """!default VAR=VALUE — set VAR to VALUE only if VAR is currently empty/unset."""
-        m = re.match(r"(\w+)\s*=\s*(.*)", args, re.DOTALL)
+        """!default VAR=VALUE — un `!set`, si VAR est vide.
+
+        `exec_default` (`exec.c:1071`) teste la variable puis appelle
+        `exec_set` : la valeur est **évaluée** comme celle d'un `!set`, et
+        seulement quand elle servira — un `!randint` ne tire donc rien pour une
+        variable déjà posée. La substituer sans l'évaluer laissait
+        `!default slib_num=!randint 1,1000` (`slib/text/balloon`) poser le
+        texte `!randint 1,1000`, qui finissait dans le CSS de la bulle.
+        """
+        m = re.match(r"([^=\s]+)\s*=\s*(.*)", args, re.DOTALL)
         if not m:
             return
-        var, value = m.group(1).strip(), self._subst(m.group(2).strip())
-        if not self.ctx.get(var, "").strip():
-            self.ctx[var] = value
+        var = self._subst(m.group(1).strip())
+        if str(self.ctx.get(var, "")).strip():
+            return
+        self.ctx[var] = self._eval_value(m.group(2).strip())
+
+    def _cmd_slashsubst(self, args: str) -> str:
+        """``!slashsubst TEXTE`` — `\\nom` devient `$m_nom` si `m_nom` existe.
+
+        Port de `slashsubst` (`lines.c:806`), dont le préfixe
+        `mathfont_prefix` vaut `m_` (`var.c:368`) : les symboles mathématiques
+        (`\\times` → `$m_times`). `\\nom[…]` devient `$(m_nom[…])`. Un nom
+        inconnu, vide ou de plus de 100 caractères reste tel quel. Le texte
+        n'est pas substitué ici : WIMS ne fait que préparer les `$`.
+
+        `slib/utilities/tooltip` y passe ses paramètres ; sans la commande,
+        l'infobulle affichait `UNKNOWN_CMD:slashsubst`.
+        """
+        s = args
+        sortie: list[str] = []
+        i = 0
+        while i < len(s):
+            if s[i] != "\\":
+                sortie.append(s[i])
+                i += 1
+                continue
+            j = i + 1
+            while j < len(s) and (s[j].isalnum() or s[j] == "_"):
+                j += 1
+            nom = s[i + 1 : j]
+            if not nom or len(nom) > 100 or f"m_{nom}" not in self.ctx:
+                sortie.append(s[i])
+                i += 1
+                continue
+            if j < len(s) and s[j] == "[":
+                profondeur, k = 0, j
+                while k < len(s):
+                    if s[k] == "[":
+                        profondeur += 1
+                    elif s[k] == "]":
+                        profondeur -= 1
+                        if profondeur == 0:
+                            break
+                    k += 1
+                if k < len(s):
+                    sortie.append(f"$(m_{nom}{s[j:k + 1]})")
+                    i = k + 1
+                    continue
+            sortie.append(f"$m_{nom}")
+            i = j
+        return "".join(sortie)
 
     def _cmd_advance(self, args: str) -> None:
         """``!advance VAR`` / ``!increase VAR`` — ajoute 1 à un compteur.
@@ -3907,6 +4041,16 @@ class DefEngine(_SlibMixin):
             charset = set(m.group(1).strip())
             text = m.group(2).strip()
             return "".join(c for c in text if c in charset)
+
+        # delete|drop|remove CHARS in STRING — les trois noms désignent
+        # `text_remove` (`Lib/text.c`) : ôter de STRING tout caractère présent
+        # dans CHARS. `slib/circuits/drawcomp` en tire le nom d'un composant de
+        # sa variante retournée (`resR` → `res`) ; sans elle, le nom gardait
+        # le texte de la commande et les schémas d'`oefelec` sortaient vides.
+        m = re.match(r"(?:delete|drop|remove)\s+(.*?)\s+in\s+(.*)", s, re.I | re.DOTALL)
+        if m:
+            charset = set(m.group(1).rstrip())
+            return "".join(c for c in m.group(2).lstrip() if c not in charset)
 
         # copy STRING mask MASK
         m = re.match(r"copy\s+(.*?)\s+mask\s+(\S+)", s, re.I | re.DOTALL)

@@ -371,3 +371,34 @@ sont lues désormais, `!set` l'emportant.
 — cf. `core/oef/def_engine/chemeq.py`, dont les sorties sont confrontées au
 binaire du dépôt. `!while` l'est également, ainsi que `units-filter` (arrondi),
 `!increase`, `!varlist`, `!getdef` et le `!read` des slib.
+
+### Les slibs de H1, H2, H5 et H6 (2026-09-10)
+
+L'import de ces niveaux a réclamé 29 slibs absentes de `wims-scripts/`. Elles
+sont vendorisées avec ce qu'elles lisent : `slib/circuits/drawcomp`,
+`slib/data/columnsort`, `oef/special/tooltip.phtml`, et les fichiers de
+`data/circuits/` — lus par `!record`, qu'un relevé des seuls `!read` ne voit
+pas. Mesuré au rendu sur les 203 exercices qui les appellent
+(`backend/scripts/sonde_manques.py`).
+
+Copier ne suffisait pas : ces commandes du moteur ont dû suivre la source WIMS
+(`tests/core/oef/test_commandes_slibs.py`).
+
+| Commande | Défaut | Slib qui en dépendait |
+|---|---|---|
+| `!sort` | ni `wims_sort_order` (`calc.c:133`) ni `nocase` ; une liste vide triait le mot `items` | `data/columnsort`, `graph/drawtree`, `function/bounds` |
+| `!text delete`, `drop`, `remove` | absent (`text_remove`) | `circuits/drawcomp` |
+| `!default` | valeur substituée, jamais évaluée (`exec_default`) | `text/balloon` |
+| `!slashsubst` | absent (`lines.c:806`) | `utilities/tooltip` |
+| `!read` fait par une slib | ignoré s'il ne visait pas `slib/` | `circuits/drawcomp`, `utilities/tooltip` |
+| `!lines2rows`, `!rows2lines` | joints et découpés par tabulation, non par `;` | `data/columnsort` |
+| `!makelist`, `!values` | bornes arrondies, `step` ignoré (`cutfor`), variable substituée en texte | `function/bounds` |
+
+Vérifier le contenu, pas seulement l'existence d'une sortie : `balloon`,
+`drawtree` et `bounds` rendaient quelque chose, et c'était faux.
+
+Restent sans rendu correct : `chemistry/chemeq_el` et `chemeq_rev` (le port de
+`chemeq` rend `""` sur `,équation` et sur `H -> H ~ équation`),
+`graph/graphviz` et `draw/graphvizpoints` (binaire `dot` absent de l'image),
+`text/crossword` (binaire `crossword`), `geo3D/threeD` (applet Java). Détail et
+pistes : TODO I.3 h.

@@ -1,0 +1,52 @@
+!!no more used
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+slib_title=
+
+slib_author=Bernadette, Perrin-Riou
+slib_example=v 0 0 0;v 1 0 0;v 1 1 0;v 0 1 0;v 0 0 1;v 1 0 1;v 1 1 1;v 0 1 1;f 1 2 3 4;f 5 6 7 8;l 1 5;l 2 6;l 3 7;l 4 8\
+
+!exit
+
+:proc
+
+!default slib_cnt=0
+slib_cnt= $[$slib_cnt +1]
+slib_data = !item 1 of $wims_read_parm
+slib_option= !item -1 of $wims_read_parm
+slib_data=!replace internal ; by $\
+$ in $slib_data
+!for slib_a in scale,width,height,rotinx,rotiny
+  slib_$slib_a=!getopt $slib_a in $slib_option
+!next slib_a
+
+!default slib_scale=0.8
+!default slib_width=300
+!default slib_height=300
+
+slib_data=!translate $	$ to $\
+$ in $slib_data
+slib_data_cnt=!linecnt $slib_data
+!if $slib_data_cnt=1
+  !!should be an address
+  slib_out=$slib_data
+  !goto end
+!endif
+slib_fichier=fichier.$slib_cnt
+slib_fichier=$wims_nowseconds.$slib_cnt
+
+!readproc oef/togetfile.proc $slib_fichier new\
+$slib_data
+slib_out=$wims_ref_name?session=$session&+cmd=getfile&+special_parm=$slib_fichier
+:end
+slib_out=<object type="application/x-java-applet;jpi-version=1.4" \
+ classid="java:ThreeD.class" width="$(slib_width)px" height="$(slib_height)px">\
+<param name="java_codebase" value="java/ThreeD">\
+<param name="java_code" value="ThreeD.class">\
+<param name="java_archive" value="ThreeD.jar">\
+<param name="model" value="$slib_out">\
+<param name="scale" value="$slib_scale">\
+<param name="rotinx" value="$slib_rotinx">\
+<param name="rotiny" value="$slib_rotiny">\
+</object>

@@ -1,0 +1,68 @@
+!if $wims_read_parm=help
+  !read help/$lang/special/tooltip.phtml
+  !exit
+!endif
+
+!set parms=$wims_read_parm
+!if $parms issametext
+  !set special_out= <script src="scripts/js/wz_tooltip.js"></script>
+   $special_out
+  !exit
+!endif
+!set parms=!slashsubst $parms
+!set parmscnt=!itemcnt $parms
+!set parm1=!item 1 of $parms
+!set text=!item 3 to -1 of $parms
+!reset special_out
+!if $text=$empty
+  !set text=!item 2 of $parms
+!else
+  !set option=!item 2 of $parms
+!endif
+!if nojs iswordof $option
+  !set option=!replace internal nojs by in $option
+  !set special_out=
+!endif
+!set option=!trim $option
+!set option=!declosing $option
+!if $parm1 = $empty
+  !set special_out=$text
+  !goto end
+!else
+  !set text=!replace internal &#59; by ; in $text
+  !set text=!replace internal &#44; by , in $text
+  !set text=!replace internal $\
+$ by $ in $text
+  !if DURATION notin $option
+    !set option_=!lowercase $option
+    !!for small compatibility : use the old tooltip without option if no DURATION
+    !! the new option will be the css option (very small use with the old tooltip)
+    !if option!=$empty and $option=$option_
+      !set class=!getopt class in $option
+      !set style=!getopt style in $option
+      !if $style!=$empty
+      !set style=$ style="$style"
+      !endif
+    !endif
+    !set test_div=!detag $text
+    !if $test_div=$text
+      !set div0=span
+    !else
+      !set div0=div
+    !endif
+    !set special_out=$special_out\
+      <$div0 class="wims_tooltip">$parm1\
+        <$div0 class="wims_tooltiptext $class" $style>$text</$div0>\
+      </$div0>
+  !else
+    !set text=!replace internal ' by \' in $text
+    !set text=!replace internal " by in $text
+    !set text=!replace internal $\
+$ by $ in $text
+    !set special_out=<script src="scripts/js/wz_tooltip.js"></script>
+    !set special_out=$special_out\
+    <span class="<tooltip"><a onmouseover="Tip('$text', $option)" onmouseout="UnTip()">$parm1</a></span>
+  !endif
+!endif
+:end
+$special_out

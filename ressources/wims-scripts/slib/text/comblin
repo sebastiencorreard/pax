@@ -1,0 +1,60 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+slib_require=pari
+slib_example=[1,0,5,-6],[v_1,v_2,v_3,v_4]\
+[-1.1,0,2.3,-6],[v_1,v_2,v_3,v_4]\
+[-1/6,0,2/7,-6],[v_1,v_2,v_3,v_4]
+!exit
+
+:proc
+slib_data=$wims_read_parm
+!if [ isin $slib_data
+  slib_data=!items2lines $slib_data
+  slib_1=!line 1 of $slib_data
+  slib_1=!declosing $slib_1
+  slib_2=!line 2 of $slib_data
+  slib_2=!declosing $slib_2
+  slib_data=$slib_1\
+$slib_2
+!endif
+slib_data=!translate internal ; to $\
+$ in $slib_data
+
+!distribute items sliba,slibb,slibc,slibd,slibe,slibf,slibg,slibh,slibi,slibj,slibk,slibl,slibm,slibn,slibo,slibp,slibq,slibr,slibs,slibt,slibu,slibv,slibw,slibx,sliby,slibz into slib_N1,slib_N2,slib_N3,slib_N4,slib_N5,slib_N6,slib_N7,slib_N8,slib_N9,slib_N10,slib_N11,slib_N12,slib_N13,slib_N14,slib_N15,slib_N16,slib_N17,slib_N18,slib_N19,slib_N20,slib_N21,slib_N22,slib_N23,slib_N24,slib_N25
+!distribute line $slib_data into slib_liste, slib_text
+slib_cnt1=!itemcnt $slib_liste
+slib_cnt2=!itemcnt $slib_text
+!if $slib_cnt1<=$slib_cnt2
+  slib_cnt=$slib_cnt1
+!else
+  slib_cnt=$slib_cnt2
+!endif
+!if $slib_cnt>25
+  slib_cnt=25
+!endif
+!reset slib_a
+!for slib_i=1 to $slib_cnt
+  slib_A=!item $slib_i of $slib_liste
+  !if $slib_A!=0
+    slib_tmp=!exec pari ($slib_A)*$(slib_N$[$slib_cnt1+1-$slib_i])
+    slib_ch=!char 1 of $slib_tmp
+    !if $slib_ch=- or $slib_i=1
+      slib_a=$slib_a$slib_tmp
+    !else
+      slib_a=$slib_a+$slib_tmp
+    !endif
+  !endif
+!next slib_i
+slib_a=!replace internal * by $ $ in $slib_a
+
+!for slib_i=1 to $slib_cnt1
+  slib_A=!item $slib_i of $slib_text
+  slib_a=!replace internal $(slib_N$[$slib_cnt1+1-$slib_i]) by $slib_A in $slib_a
+!next slib_i
+slib_out =$slib_a
+
+slib_out= !trim $slib_out
+slib_out=!line -1 of $slib_out

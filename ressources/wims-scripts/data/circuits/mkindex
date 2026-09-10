@@ -1,0 +1,28 @@
+#! /bin/sh
+#
+# Regeneration of index files.
+
+cd `dirname $0`
+home=`pwd`
+
+dirs=`ls -d [1-9]* | sort -n`
+echo dirs = $dirs >.def
+rm -f .index
+
+for d in $dirs; do
+ cd $d
+ rm -f .index
+ list=`ls *.data | sed 's/\.data$//'`
+ for f in $list; do
+  desc=`awk -F: 'BEGIN {a=0;t=""};
+	NF>1 {a++;t=$2};
+	NF==1 {t=$1};
+	a==1 && length(t)>0 {out=out" "t;t=""};
+	a>1 {print out; exit};' $f.data |\
+    sed 's/,/\&#44;/g'`
+  echo ":$d,$f,$desc" >>.index
+ done
+ cd $home
+ sort <$d/.index >>.index
+done
+

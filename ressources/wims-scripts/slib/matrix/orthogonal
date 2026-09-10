@@ -1,0 +1,33 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+slib_example= 4,3,3
+slib_require=pari
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_size,slib_range,slib_n, slib_ring
+!default slib_ring=Q
+!bound slib_size between integer 2 and 20 default 2
+!bound slib_n between integer 1 and $slib_size default 2
+!bound slib_range between integer 1 and 1000000
+!default slib_range=4
+
+
+!if $slib_ring=Q
+!readproc slib/matrix/givenrank $slib_n,$slib_size,$slib_n,$slib_range
+!!slib_matrix=!translate internal ; to $\
+$ in $slib_out
+
+slib_matrix=$slib_out
+slib_out=!exec pari {slib_A=matid($slib_size);slib_n=$slib_n; \
+slib_M= Mat([$slib_matrix]);\\
+for(slib_j=1 , slib_n,slib_vv=slib_M[slib_j,]; slib_A=slib_A*(matid($slib_size)-2/norml2(slib_vv)*slib_vv~*slib_vv));\
+print(slib_A)}
+
+slib_out= !trim $slib_out
+slib_out=!line -1 of $slib_out
+
+!endif

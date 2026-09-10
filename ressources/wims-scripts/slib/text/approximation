@@ -1,0 +1,22 @@
+!if $wims_read_parm!=slib_header
+ !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+slib_example=234765\
+0.006543\
+45.987543,5,10
+slib_require=pari
+
+!exit
+
+:proc
+!distribute items $wims_read_parm into slib_r,slib_app,slib_tol
+!default slib_app=3
+!default slib_tol=1
+slib_r_approx=!exec pari (f(r,n)= l=if(r != 0, floor(log(abs(r))/log(10)),1) ; s =round(10^(-l+n-1)*r) ; [l,s]) ; \
+   f($slib_r,$slib_app)
+slib_r_app=$[$(slib_r_approx[2])*10^(-$slib_app+1+$(slib_r_approx[1]))]
+slib_out=!exec pari slib_err=$slib_tol*10^(-$slib_app+1+$(slib_r_approx[1])) ; 1.*[$slib_r_app-slib_err,$slib_r_app+slib_err]
+
+slib_out=$slib_out,$slib_r_app

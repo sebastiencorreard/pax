@@ -1,0 +1,75 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_author=Bernadette, Perrin-Riou
+
+slib_example=[0,1,0;0,1,1;0,0,0]\
+[u,v,0;0,w,x;0,y,0],[a,b,c],edge\
+[0,T,0;0,1,0;0,1,0],[a,b,c],,rankdir="RL"\
+[0,1,0;0,1,1;0,0,0],no_label_node,html
+slib_require=graphviz
+!exit
+
+:proc
+
+slib_labelnode=0
+!reset slib_options slib_Node slib_output slib_l
+
+!distribute item $wims_read_parm into slib_A,slib_Node,slib_output,slib_options
+slib_A=!declosing $slib_A
+slib_Node=!declosing $slib_Node
+!if no_label_node isin $slib_Node
+  slib_Node=
+  slib_label_node=0
+!endif
+
+slib_options=!declosing $slib_options
+!default slib_options=rankdir="LR"; node [fontsize=10,width=".2", height=".2", margin=0 shape=box];
+
+slib_sA=!rows2lines $slib_A
+slib_r=!linecnt $slib_sA
+slib_A=!lines2rows $slib_A
+
+!default slib_orient=1
+slib_graphv=
+
+!if $slib_orient=1
+   graphviz_dot=dot
+   slib_graph=digraph
+   slib_arrow=->
+!else
+  graphviz_dot=neato
+  slib_graph=graph
+  slib_arrow=--
+!endif
+slib_rA=!rows2lines $slib_A
+!for slib_i = 1 to $slib_r
+  !for slib_j = 1 to $slib_i
+    !if $(slib_A[$slib_i;$slib_j]) != 0
+      !if edge iswordof $slib_output
+        slib_l=[label="$(slib_A[$slib_i;$slib_j])"]
+      !endif
+      slib_graphv=!append line $slib_i $slib_arrow $slib_j [color="blue"] $slib_l ; to $slib_graphv
+    !endif
+    !if $slib_orient=1
+      !if $slib_i != $slib_j and $(slib_A[$slib_j;$slib_i]) != 0
+        !if edge iswordof $slib_output
+          slib_l=[label="$(slib_A[$slib_j;$slib_i])"]
+        !endif
+        slib_graphv=!append line $slib_j $slib_arrow $slib_i [color="blue"] $slib_l ; to $slib_graphv
+      !endif
+    !endif
+  !next
+  !if $(slib_Node[$slib_i])!= or $slib_label_node=0
+    slib_graphv=!append line $slib_i [label="$(slib_Node[$slib_i])"] [color="blue"] ; to $slib_graphv
+  !endif
+!next
+
+slib_out=$slib_graph bar {$slib_options $slib_graphv}
+
+slib_graphviz_out=!exec graphviz $slib_out
+slib_out=!line 1 of $slib_graphviz_out
+!if url notin $slib_output or html isin $slib_output
+  slib_out=<img src="$slib_out" alt="">
+!endif

@@ -1,0 +1,38 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=2\
+  2,m\
+  2*m,N\
+  R, K
+
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example= 5, 100\
+7,10,Q
+slib_require=pari
+!exit
+
+:proc
+!distribute item $wims_read_parm into slib_mm,slib_NN,slib_K
+
+!default slib_mm=2
+!default slib_NN=$[2*$slib_mm]
+!default slib_K= R
+
+!if $slib_mm = 1
+  slib_out =1
+!else
+  slib_cc = !values 1/$slib_mm for x = 1 to $[$slib_mm-1]
+
+  !readproc slib/stat/multinomial 1, $[$slib_NN-$slib_mm], $slib_cc
+  slib_vv= $slib_out
+
+  !if $slib_K issametext Q
+    slib_out=!exec pari slib_a=Vec([$slib_vv]);vector($slib_mm, x,(slib_a[x]+1)/$slib_NN)
+  !else
+    slib_out=!values (x+1)/$slib_NN for x in $slib_vv
+  !endif
+!endif
+slib_out =!trim $slib_out

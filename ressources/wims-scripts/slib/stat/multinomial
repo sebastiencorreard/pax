@@ -1,0 +1,47 @@
+!if $wims_read_parm!=slib_header
+  !goto proc
+!endif
+
+slib_parms=3\
+ 1,m\
+  ,n\
+ ,[p1,p2, .. pj]
+slib_author=Sophie, Lemaire; Bernadette, Perrin-Riou
+
+slib_example=3,6,[1/3,1/3]
+!exit
+
+:proc
+
+!distribute item $wims_read_parm into slib_M, slib_nn
+slib_q=!item 3 to -1 of $wims_read_parm
+!default slib_M=1
+
+slib_q=!declosing $slib_q
+slib_t=!itemcnt $slib_q
+
+slib_s=!sum x for x in $slib_q
+!if $slib_s>1
+  !exit
+!endif
+!if $slib_s>0 and $slib_s<1
+  slib_q=$slib_q, $[1-$slib_s]
+  !advance slib_t
+!endif
+slib_mult=
+!for slib_r=1 to $slib_M
+  slib_s=1
+  slib_N=$slib_nn
+  slib_V=
+  !for slib_i=1 to $[$slib_t-1]
+    slib_j=!item $slib_i of $slib_q
+    !readproc slib/stat/binomial 1,$slib_N, $[$slib_j/$slib_s]
+    slib_V=!append item $slib_out to $slib_V
+    !distribute item $[$slib_s-$slib_j], $[$slib_N-$slib_out] into slib_s,slib_N
+  !next slib_i
+  slib_V=!append item $slib_N to $slib_V
+  slib_mult=!append line $slib_V to $slib_mult
+!next slib_r
+
+slib_out=!nonempty line $slib_mult
+slib_out=!trim $slib_out
