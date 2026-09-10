@@ -503,9 +503,14 @@ def check_numeric(
     Avec l'option ``absolute``, WIMS compare la différence absolue :
     ``precision*|test-good| < 1`` (correct) ou ``< 10`` (partiel).
     """
+    # `test=$[$(reply$i)]` : WIMS évalue la réponse, fonctions comprises. Lue
+    # par `_parse_number`, qui s'arrête à l'arithmétique, `-3*exp(6)+4*exp(8)`
+    # n'était « pas un nombre » — `oefinteg1/Calculintgral3` refusait jusqu'à
+    # son propre attendu. Le refus d'une expression sous `\computeanswer{no}`
+    # se décide en amont, dans `check_answer`.
     try:
-        r = _parse_number(reply.strip(), comma_is_decimal)
-        e = _parse_number(expected.strip(), comma_is_decimal)
+        r = _eval_scalar(reply.strip(), comma_is_decimal)
+        e = _eval_scalar(expected.strip(), comma_is_decimal)
     except (ValueError, ZeroDivisionError, SyntaxError):
         return CheckResult(
             correct=False,
@@ -4034,6 +4039,13 @@ def check_answer(
             except ValueError:
                 _val = None
             if _val is not None and math.isfinite(_val):
+                # `!changeto` passe la main à `anstype/numeric` entier, garde
+                # de `\computeanswer{no}` compris.
+                if not compute_ok and _wims_has_compound_arith(reply, comma_is_decimal):
+                    return CheckResult(
+                        correct=False, score=0.0, method="numeric",
+                        status="invalid_format", detail=_COMPUTE_MSG,
+                    )
                 return check_numeric(reply, expected, precision, comma_is_decimal, absolute, precweight)
             # Faute de quoi WIMS regarde la longueur des variables et part sur
             # `function` (≤ 3 caractères) ou `atext`. `check_default` couvre les

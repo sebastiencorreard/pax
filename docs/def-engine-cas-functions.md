@@ -12,7 +12,8 @@ Inventaire des fonctions appelées via `!exec maxima` et `!exec pari` dans les 2
 | `args` | 48 | ✅ | `expr.args` en SymPy — formaté `[a,b,c]` ; atome → `[]` |
 | `factor` | 19 | ✅ | `sympy.factor` |
 | `diff` | 18 | ✅ | `sympy.diff(expr, x[, order])` |
-| `subst` | 6 | ✅ | `expr.subs(var, val)` (Maxima ordre `subst(val, var, expr)`) |
+| `subst` | 6 + 20 `.def` | ✅ | `expr.subs(var, val)` (Maxima ordre `subst(val, var, expr)`) ; la forme à équation `subst(x=a, expr)` est réécrite en `_subst_eq(x, a, expr)` par `_reecrire_subst_equation`, à toute profondeur (`subst(x=b,F)-subst(x=a,F)`) |
+| `integrate` | via `slib/function/integrate` | ✅ | `sympy.integrate(f, x)` ; à bornes, `integrate(f, x, a, b)` → `sympy.integrate(f, (x, a, b))`. Une intégrale que SymPy ne sait pas calculer repart telle quelle, et la slib passe à `intnum` (non émulé) |
 | `ordergreat` | 4 | ✅ | ordonnancement de variables — ignoré (retourne `""`) |
 | `cardinality` | 4 | ✅ | `len({…})` après dédoublonnage |
 | `setdifference` | 4 | ✅ | `FiniteSet(A) - FiniteSet(B)` — retourne `{a,b,…}` ou `{}` |
@@ -20,6 +21,18 @@ Inventaire des fonctions appelées via `!exec maxima` et `!exec pari` dans les 2
 | `coeff` | 1 | ✅ | `sympy.Poly(expr, x).nth(n)` |
 | `limit` | 1 | ✅ | `sympy.limit(expr, x, val)` |
 | `ev` | 1 | ✅ | alias de `subst` (`ev(expr, var=val)` → `expr.subs(var, val)`) |
+
+**Noms réservés.** WIMS envoie à Maxima un en-tête (`src/Interfaces/maxima.c`)
+qui pose `e:%e; pi:%pi; Pi:%pi; PI:%pi; I:%i; i:%i`. `_sympify_arg` lit donc
+`e` comme `sympy.E` — lu comme un symbole, `e^(-x-3)` s'intégrait en
+`Piecewise(… /log(e) …)`. `inf`/`minf`, eux, restent des **symboles** : le
+simplificateur de Maxima ne fait pas d'arithmétique sur l'infini
+(`fullratsimp(-inf-(-inf))` vaut 0, et `inequations/ineqlin1` en dépend) ; seules
+les bornes de `limit` et d'`integrate` les lisent comme `±∞` (`_borne`), et un
+infini calculé s'écrit `inf`/`minf` en sortie (`limpolfrac` teste
+`!if $val12=minf`). Un **symbole
+libre** seul (`vide`) est rendu tel quel, comme Maxima l'évalue, et non découpé
+en `v*i*d*e` par la multiplication implicite.
 
 ## Fonctions PARI (`!exec pari`)
 

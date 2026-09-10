@@ -122,7 +122,17 @@ def _candidats(ans):
     # soit 15³ » —, et la soumettre telle quelle revenait à taper la consigne
     # au lieu de la réponse, comme les bornes d'un `range` ou le `#N` d'un
     # `sigunits`.
-    if ans.answer_type == "numexp" and re.search(r"[+\-*/^()]", brut):
+    # Même chose pour `default`/`auto` hors `\computeanswer{yes}` : un attendu
+    # qui s'évalue en nombre les envoie à `anstype/numeric`, garde compris, et
+    # `etendue3` range `6-0` là où l'élève tape `6`.
+    calcul_refuse = (
+        ans.answer_type == "numexp"
+        or (
+            ans.answer_type in ("default", "auto", "numeric")
+            and str((ans.options or {}).get("computeanswer", "")).lower() != "yes"
+        )
+    )
+    if calcul_refuse and re.search(r"[+\-*/^()]", brut):
         from core.answer.checkers import _eval_scalar  # noqa: PLC0415
         from core.oef.numfmt import format_wims_float  # noqa: PLC0415
         try:
@@ -284,7 +294,8 @@ def _wrong_answer(expected: str) -> str:
     try:
         n = float(expected.replace(',', '.'))
         return str(int(n) * 3 + 7)
-    except (ValueError, AttributeError):
+    # `float` lit aussi `-inf` — l'attendu de `limpolfrac`, que `int` refuse.
+    except (ValueError, AttributeError, OverflowError):
         return "__FAUX__"
 
 

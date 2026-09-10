@@ -503,11 +503,13 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
     1 128 lignes) ; la grille sort vide.
   - `geo3D/threeD` (`OEFvocSolides/pave`) produit une applet Java, qu'aucun
     navigateur n'exécute plus.
-  - `intnum` (intégrale numérique PARI) n'est pas émulé : `function/integrate`
-    rend un `intnum(x=a,b,f)` que PARI devrait calculer. Les attendus
-    d'`oefintegrale/aire1` à `aire4` restent donc des expressions, et la bonne
-    réponse vaut 0 (en `xfail`, `known_failures.py`). À ajouter à
-    `_call_pari`.
+  - ~~`intnum` non émulé~~ — la vraie cause était en amont :
+    `integrate(f, x, a, b)`, l'intégrale **définie** de Maxima, repartait
+    telle quelle (SymPy veut `integrate(f, (x, a, b))`), si bien que
+    `function/integrate` se rabattait sur `intnum`. Corrigé dans
+    `_call_maxima` : `aire1` à `aire3` rendent `21` et `111/4`, et se notent.
+    `aire4` a suivi une fois `e` lu comme la constante (voir plus bas).
+    `intnum` lui-même reste non émulé.
   - `utilities/tooltip` rend l'infobulle en CSS pur (`wims_tooltip`) : vérifier
     que le front porte ces classes.
   - L'idiome du `$` nu. WIMS efface un `$` suivi d'un blanc (`substit`,
@@ -536,13 +538,58 @@ de ces cas, d'où la mesure plutôt que la lecture des sources.
   connaît pas. Deux corrections, indépendantes du port des slibs : vider
   `slib_out` quand la slib manque, et traiter `!changeto` comme la fin du
   script courant.
-- [ ] **Programmes `!exec` non gérés**, qui rendent `""` : `float_calc`
-  (72 rendus, `oefnumeration.fr`), `lceb` (10, `oeflceb.fr`), `graphviz` (6, et
-  2 en H4), `moneyprint` (3).
-- [ ] **Synonymes de commandes WIMS** (`wims/src/calc.c`) : `items` (= `item`),
-  `itemcount` (= `itemcnt`), `position` (= `positionof`), `listunique`
-  (= `listuniq`) ; et `evalsubst`, fonction à part (`calc_evalsubst`), dont
-  `UNKNOWN_CMD:evalsubst` s'affiche dans 3 énoncés de `derivzoom.fr`.
+- [x] **Programmes `!exec` portés** (2026-09-10, `def_engine/programmes.py`) :
+  `moneyprint` (`moneyprint.c`, arrondi d'une liste), `float_calc` (le sous-
+  ensemble de `bc` des changements de base d'`oefnumeration.fr`), `lceb`
+  (`lceb_dynopt.c`, bizarreries du C comprises, plafonné pour tenir le budget
+  de rendu — moins de 0,05 s sur `oeflceb.fr`).
+- [ ] **`graphviz`** reste non géré (6 rendus, et 2 en H4) : il suppose le
+  binaire `dot` (voir plus bas).
+- [x] **Synonymes de commandes WIMS** (`wims/src/calc.c`), ramenés à leur
+  commande à l'entrée de `_eval_cmd` : `items`, `itemcount`, `position`,
+  `listunique` ; et `evalsubst` (`mathsubst` puis `evalue`). `derivzoom.fr`
+  n'affiche plus `UNKNOWN_CMD:evalsubst`, et son attendu
+  `y=a*b*e*l*s**2*t*u*unknown_cmd*v…` est redevenu une droite.
+- [x] **L'intégrale définie de Maxima** (`integrate(f, x, a, b)`) : SymPy
+  voulait `integrate(f, (x, a, b))`. Faute de quoi `function/integrate` se
+  rabattait sur `intnum`, non émulé — les attendus d'`oefintegrale` (3),
+  `oefprobtes` (5) et `oefintts` restaient des `intnum(…)`.
+- [x] **Trois attendus faux qui passaient à vide** (2026-09-10) — le test « la
+  bonne réponse donne 1 » soumet l'attendu, fût-il du texte :
+  - `e` est la constante d'Euler pour Maxima (l'en-tête de
+    `src/Interfaces/maxima.c` pose `e:%e`) ; SymPy le lisait comme un
+    symbole, et `e^(-x-3)` s'intégrait en `Piecewise(… /log(e) …)`
+    (`patternPrimitives/primExpo`, `primPuissEnt`, `oefintegrale/aire4`) ;
+  - `subst(x=a, F)`, la forme à équation de Maxima (20 `.def`), repartait
+    telle quelle : `oefinteg1/Calculintgral3` attendait la chaîne
+    `subst(x=-3,…)-subst(x=-4,…);` ;
+  - dans la foulée, l'infini `inf` des bornes de `limit`/`integrate`
+    (`oefprobtes/loiexpo1`, espérance lue `…f*i*n…` ; `limpolfrac`, qui attend
+    `minf` en sortie) — mais **symbole** partout ailleurs, comme chez Maxima :
+    le poser en `sympy.oo` partout a cassé 7 inéquations de H4, dont le
+    `:postdef` calcule `fullratsimp(-inf-(-inf))` et attend 0 — et le symbole
+    libre, que Maxima rend tel quel (`vide` d'`OEFexpalgTS/eqexpo1` sortait
+    `d*e*i*v`) ;
+- [x] **`fullratsimp` d'une équation**, simplifiée membre à membre
+  (`OEFequdrt/point4`, `oefderivee1S`, `OEFbarypdtsc`, `OEFgeospace`) ;
+  - rendu juste, `Calculintgral3` refusait encore son attendu : `check_numeric`
+    lisait la réponse par `_parse_number`, sans fonctions, là
+    qu'`anstype/numeric` fait `$[…]`. Il passe par `_eval_scalar`, et le détour
+    `default` → `numeric` applique désormais le garde de
+    `\computeanswer{no}`, comme le `!changeto` de WIMS.
+- [ ] **Des nombres à espace lus comme des produits.** `oefsolaire/kepler3a`
+  tire `384 000` d'un `!item`, puis évalue `$[(4*pi^2*(1000*384 000)^3)/…]` :
+  l'attendu sort non évalué, `384 0` y compris, et `check_numeric` — qui lit
+  désormais les expressions — le prend pour `384*0`. La bonne réponse « passe »
+  donc à vide ; `OEFevalwimsnumber/oefecrit103` (`1 0`) de même. Tous deux
+  restent en `xfail`. Voir comment `evalue.c` traite l'espace dans un nombre.
+- [ ] **`\(…\)` dans une liste de réponses** : `OEFgeospace/interobjplan` range
+  `droite \($val56)` dans les éléments d'un appariement, sans `!texmath` ; le
+  `sqrt(15)` y reste en clair. Masqué jusqu'ici par un `UNKNOWN_CMD` qui coupait
+  le rendu plus tôt ; en `xfail` de structure.
+- [ ] **`default` exige une forme sur un attendu numérique** : `2*e` y est
+  jugé développé, si bien que `2*exp(1)` est refusé (`polexpand`) avant
+  l'aiguillage vers `numeric`, que WIMS fait en premier.
 - [ ] **Procédures de module jamais exécutées** : `_cmd_readproc` ignore tout
   fichier qu'il ne connaît pas. `!read my_var.proc` (depuis le `var.proc` de
   `oefvocmarine`, `OEFCalcLimLnExp`, `OEFexpalgTS`… 151 rendus),

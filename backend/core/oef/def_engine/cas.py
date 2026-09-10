@@ -149,6 +149,61 @@ _MAXIMA_TO_SYMPY: dict[str, str] = {
 # Arguments séparés par des virgules, à profondeur zéro : `wims_lists`.
 _split_top_level_args = split_top_level_args
 
+_SUBST_RE = re.compile(r"\bsubst\s*\(")
+
+
+def _reecrire_subst_equation(s: str) -> str:
+    """`subst(x=a, expr)` → `_subst_eq(x, a, expr)`, à toute profondeur.
+
+    C'est la forme à équation de Maxima, celle qu'emploient les 20 `.def` qui
+    évaluent une primitive entre deux bornes (`subst(x=b,F)-subst(x=a,F)`).
+    Python ne peut pas la lire : `x=-3` y serait un argument nommé suivi d'un
+    positionnel. L'appel repartait donc tel quel, et
+    `oefinteg1/Calculintgral3` proposait en attendu la chaîne
+    `subst(x=-3,…)-subst(x=-4,…);`. La forme à trois arguments
+    `subst(nouveau, ancien, expr)` reste à `_call_maxima`.
+    """
+    morceaux: list[str] = []
+    i = 0
+    while (m := _SUBST_RE.search(s, i)) is not None:
+        debut = m.end()
+        profondeur, j = 1, debut
+        while j < len(s) and profondeur:
+            if s[j] == "(":
+                profondeur += 1
+            elif s[j] == ")":
+                profondeur -= 1
+            j += 1
+        if profondeur:
+            break
+        interieur = s[debut:j - 1]
+        args = _split_top_level_args(interieur)
+        eq = re.fullmatch(r"([A-Za-z_]\w*)\s*=(?!=)(.+)", args[0], re.DOTALL) if len(args) == 2 else None
+        if eq:
+            morceaux.append(
+                f"{s[i:m.start()]}_subst_eq({eq.group(1)},{eq.group(2)},"
+                f"{_reecrire_subst_equation(args[1])})"
+            )
+        else:
+            morceaux.append(f"{s[i:m.start()]}subst({_reecrire_subst_equation(interieur)})")
+        i = j
+    morceaux.append(s[i:])
+    return "".join(morceaux)
+
+
+def _borne(s: str):
+    """Une borne de `limit` ou d'`integrate` : `inf`/`minf` y sont ±∞.
+
+    `oefprobtes/loiexpo1` intègre jusqu'à `inf`, `limpolfrac` passe à la limite
+    en `minf` ; hors de ces bornes, Maxima garde ces noms pour des symboles.
+    """
+    import sympy  # noqa: PLC0415
+
+    return _sympify_arg(s).subs(
+        {sympy.Symbol("inf"): sympy.oo, sympy.Symbol("minf"): -sympy.oo}
+    )
+
+
 def _sympify_arg(s: str):
     """sympify a Maxima/Pari arg, normalising `^` → `**` and supporting implicit mult."""
     import sympy  # noqa: PLC0415
@@ -177,9 +232,26 @@ def _sympify_arg(s: str):
     def _hipow(e, v):
         return sympy.degree(e, v)
 
+    # `e` est la constante d'Euler : l'en-tête que WIMS envoie à Maxima pose
+    # `e:%e` (`src/Interfaces/maxima.c`). Lu comme un symbole, `e^(-x-3)`
+    # s'intégrait en `Piecewise((e**(-x-3)/log(e), …))`, attendu que la
+    # correction soumettait tel quel — `patternPrimitives/primExpo` et
+    # `oefinteg1/Calculintgral3` passaient ainsi à vide.
+    def _subst_eq(v, a, e):
+        return e.subs(v, a)
+
     return parse_expr(
-        s.replace("^", "**"), transformations=transformations,
+        _reecrire_subst_equation(s).replace("^", "**"), transformations=transformations,
         local_dict={
+            "_subst_eq": _subst_eq,
+            "e": sympy.E,
+            # `inf` et `minf` restent des **symboles** : le simplificateur de
+            # Maxima les traite comme tels (`inf-inf` vaut 0), et le `:postdef`
+            # d'`inequations/ineqlin1` compte là-dessus pour comparer une
+            # borne `-inf` à la réponse. Seules les bornes de `limit` et
+            # d'`integrate` les lisent comme l'infini (`_borne`). Déclarés ici
+            # pour que la multiplication implicite n'en fasse pas `i*n*f`.
+            "inf": sympy.Symbol("inf"), "minf": sympy.Symbol("minf"),
             "Pi": sympy.pi,
             "GCD": sympy.gcd, "LCM": sympy.lcm, "Mod": sympy.Mod,
             "coeff": _coeff, "hipow": _hipow,
@@ -200,6 +272,14 @@ def _maxima_num_str(result) -> str:
         return format_wims_float(float(result))
     if isinstance(result, sympy.Integer):
         return str(int(result))
+    # Les infinis s'écrivent à la Maxima : `limpolfrac` teste
+    # `!if $val12=minf` sur la sortie de `limit(…, x, inf)`.
+    if result == sympy.oo:
+        return "inf"
+    if result == -sympy.oo:
+        return "minf"
+    if result == sympy.zoo:
+        return "infinity"
     return str(result)
 
 
@@ -270,6 +350,14 @@ def _call_maxima(expr: str) -> str:
 
     clean = expr.strip().rstrip(";").strip()
 
+    # Un symbole non lié s'évalue en lui-même chez Maxima : `vide` rend `vide`.
+    # La multiplication implicite de SymPy en faisait `d*e*i*v` —
+    # `OEFexpalgTS/eqexpo1` teste ensuite `issametext vide`, qui échouait.
+    # Les constantes de l'en-tête WIMS (`e:%e`, `pi:%pi`…) suivent la voie
+    # normale.
+    if re.fullmatch(r"[A-Za-z_]\w*", clean) and clean not in ("e", "pi", "Pi", "PI", "i", "I"):
+        return clean
+
     m = re.match(r"^(\w+)\s*\((.+)\)$", clean, re.DOTALL)
     if m:
         func_name = m.group(1).lower()
@@ -283,6 +371,24 @@ def _call_maxima(expr: str) -> str:
                 return clean
 
         try:
+            if func_name == "integrate" and len(args) == 4:
+                # `integrate(f, x, a, b)` — l'intégrale **définie** de Maxima.
+                # SymPy lit ces quatre arguments comme une intégration multiple
+                # (par x, puis par a, puis par b) et échoue : la forme à bornes
+                # s'y écrit `integrate(f, (x, a, b))`. L'appel repartait donc
+                # tel quel, `slib/function/integrate` se rabattait sur
+                # `!exec pari intnum(…)`, que PAX n'émule pas, et l'attendu
+                # d'`oefintegrale/aire1` à `aire4` restait un `intnum(…)`.
+                # Une intégrale que SymPy ne sait pas calculer rend l'appel
+                # intact, comme la forme nominale de Maxima : la slib y lit
+                # `integrate` et passe à PARI, comme chez WIMS.
+                e = _sympify_arg(args[0])
+                var = _sympify_arg(args[1])
+                bornes = (var, _borne(args[2]), _borne(args[3]))
+                res = sympy.integrate(e, bornes)
+                if res.has(sympy.Integral):
+                    return clean
+                return str(res)
             if func_name == "diff" and len(args) >= 2:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
@@ -322,8 +428,8 @@ def _call_maxima(expr: str) -> str:
             if func_name == "limit" and len(args) >= 3:
                 e = _sympify_arg(args[0])
                 var = _sympify_arg(args[1])
-                val = _sympify_arg(args[2])
-                return str(sympy.limit(e, var, val))
+                val = _borne(args[2])
+                return _maxima_num_str(sympy.limit(e, var, val))
             if func_name == "is" and len(args) == 1:
                 # is(A=B) — checks equality of two expressions or sets.
                 # Split the single argument on the first top-level '='.
@@ -425,6 +531,15 @@ def _call_maxima(expr: str) -> str:
         if sympy_func_name:
             try:
                 sympy_func = getattr(sympy, sympy_func_name)
+                # Maxima simplifie une **équation** membre à membre :
+                # `fullratsimp(y-4-sqrt(16-1)=0)` rend `y-sqrt(15)-4=0`. SymPy
+                # ne sait pas lire le `=`, et l'appel repartait tel quel dans
+                # le TeX d'`OEFgeospace/interobjplan`.
+                membres = _split_top_level_equals(arg_str)
+                if membres is not None:
+                    return " = ".join(
+                        _maxima_num_str(sympy_func(_sympify_arg(m))) for m in membres
+                    )
                 result = sympy_func(_sympify_arg(arg_str))
                 return _maxima_num_str(result)
             except Exception:

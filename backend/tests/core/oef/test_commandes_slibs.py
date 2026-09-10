@@ -148,3 +148,18 @@ class TestListesEtRangees:
         e = moteur()
         assert e._eval_cmd("lines2rows", "1,a\n2,b") == "1,a;2,b"
         assert e._eval_cmd("rows2lines", "1,a;2,b") == "1,a\n2,b"
+
+
+class TestIntegraleDefinie:
+    """`integrate(f, x, a, b)`, que `slib/function/integrate` demande à Maxima."""
+
+    def test_valeur_exacte_d_une_integrale_definie(self):
+        from core.oef.def_engine.cas import _call_maxima
+
+        # ∫_{-2}^{1} (-x² + 2x + 9) dx = -3 - 3 + 27 = 21
+        assert _call_maxima("integrate(-1*x^2 + 2*x +9,x,-2,1);") == "21"
+
+    def test_l_integrale_sans_bornes_ne_change_pas(self):
+        from core.oef.def_engine.cas import _call_maxima
+
+        assert "integrate" not in _call_maxima("integrate(6*x^2,x)")

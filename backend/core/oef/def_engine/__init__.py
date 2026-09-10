@@ -794,6 +794,15 @@ def load_and_render(
     return engine.render(def_file)
 
 
+# Synonymes de `calc_list` (`calc.c`) : deux noms, une seule fonction C.
+_SYNONYMES_CALC = {
+    "items": "item",
+    "itemcount": "itemcnt",
+    "position": "positionof",
+    "listunique": "listuniq",
+}
+
+
 # ── Engine ────────────────────────────────────────────────────────────────────
 
 
@@ -2036,6 +2045,10 @@ class DefEngine(_SlibMixin):
     def _eval_cmd(self, cmd: str, args: str) -> str:
         """Evaluate a WIMS !cmd and return the result as a string."""
         args = args.strip()
+        # Les synonymes de la table `calc_list` (`calc.c`) : même fonction C
+        # sous deux noms. Les modules importés de H1, H2, H5 et H6 emploient les
+        # seconds, qui tombaient sur `UNKNOWN_CMD`.
+        cmd = _SYNONYMES_CALC.get(cmd, cmd)
 
         # Modificateur WIMS `… repeat N` : exécute la commande N fois et joint
         # les résultats par des virgules. Utilisé par les tirages aléatoires
@@ -2425,6 +2438,13 @@ class DefEngine(_SlibMixin):
         if cmd == "slashsubst":
             return self._cmd_slashsubst(args)
 
+        if cmd == "evalsubst":
+            # `calc_evalsubst` : `calc_mathsubst`, puis `calc_evalue` sur son
+            # résultat. `derivzoom.fr` l'emploie pour évaluer une fonction en un
+            # point (`!evalsubst x=$val8 in $val10`) et affichait
+            # `UNKNOWN_CMD:evalsubst` dans l'énoncé.
+            return self._eval_cmd("evalue", self._eval_cmd("mathsubst", args))
+
         return f"UNKNOWN_CMD:{cmd}"
 
     def _cmd_randint(self, args: str) -> str:
@@ -2787,12 +2807,20 @@ class DefEngine(_SlibMixin):
             return "-1"
 
         m = re.match(
-            r"(maxima|pari|units-filter|chemeq|canvasdraw)\b\s*(.*)", args, re.DOTALL | re.I
+            r"(maxima|pari|units-filter|chemeq|canvasdraw|moneyprint|float_calc|lceb)\b\s*(.*)",
+            args, re.DOTALL | re.I,
         )
         if not m:
             return ""
         engine = m.group(1).lower()
         expr = m.group(2).strip()
+        # `moneyprint`, `float_calc` et `lceb` : trois binaires de WIMS portés
+        # en Python (`def_engine/programmes.py`), que les modules de H1, H2,
+        # H5 et H6 appellent et qui rendaient `""`.
+        if engine in ("moneyprint", "float_calc", "lceb"):
+            from . import programmes  # noqa: PLC0415
+
+            return getattr(programmes, engine)(expr)
         if engine == "maxima":
             return _call_maxima(expr)
         if engine == "pari":

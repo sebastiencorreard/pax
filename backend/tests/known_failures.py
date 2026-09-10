@@ -423,30 +423,28 @@ XFAIL_CONSTANT_SCORE: set[str] = {
 #
 # Ils vivent à part des listes ci-dessus pour ne pas se confondre avec des
 # bugs diagnostiqués.
+#
+# 61 en sont sortis le même soir, rejoués par `pytest --runxfail` et retenus
+# seulement quand leur attendu avait une **valeur** plausible : slibs portées,
+# synonymes de `calc.c`, intégrale définie, `e` et `inf` de Maxima,
+# `subst(x=a,F)`, `check_numeric` qui évalue comme `$[…]`. Deux « verts » y sont
+# restés, parce qu'ils passent à vide : `kepler3a` et `oefecrit103`, dont
+# l'attendu garde un nombre à espace (`384 0`) lu comme un produit nul.
+#
+# `interobjplan` y est entré à l'inverse : le rendu va désormais assez loin
+# pour atteindre un `\(…\)` rangé dans une liste d'appariement sans `!texmath`,
+# dont le `sqrt(15)` reste en clair (TODO I.3 h).
 _IMPORT_2026_09_10_RENDER_STRUCTURE: set[str] = {
+    "H5~geometry~OEFgeospace.fr~src~interobjplan",
     "H1~geometry~OEFtriang5.fr~src~demo1",
     "H1~geometry~OEFtriang5.fr~src~demo2",
     "H5~algebra~oefgeoesp.fr~src~align",
     "H5~analysis~OEFevalwimsder1.fr~src~tangente2",
     "H5~analysis~oefintts.fr~src~aire2",
     "H6~algebra~algpptylnexp.fr~src~lnsuitegeo",
-    "H6~analysis~oeftablevar.fr~src~ant",
-    "H6~analysis~oeftablevar.fr~src~antdonne",
-    "H6~analysis~oeftablevar.fr~src~image",
-    "H6~analysis~oeftablevar.fr~src~image3",
-    "H6~analysis~oeftablevar.fr~src~imagerestr",
-    "H6~analysis~oeftablevar.fr~src~intinj",
-    "H6~analysis~oeftablevar.fr~src~intmax",
-    "H6~analysis~oeftablevar.fr~src~intmax2",
-    "H6~analysis~oeftablevar.fr~src~intminmax",
-    "H6~analysis~oeftablevar.fr~src~intnoninj",
-    "H6~analysis~oeftablevar.fr~src~minmax",
-    "H6~analysis~oeftablevar.fr~src~minmax3",
-    "H6~analysis~oeftablevar.fr~src~minmaxrestr",
     "H6~chemistry~piles.fr~src~piles2",
     "H6~probability~oefgraphprob.fr~src~matrice",
     "H6~probability~oefgraphprob.fr~src~stable",
-    "H6~set~oefset.fr~src~traduction3",
 }
 XFAIL_RENDER_STRUCTURE |= _IMPORT_2026_09_10_RENDER_STRUCTURE
 
@@ -471,7 +469,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H2~algebra~oefpourcentage.fr~src~concessionnaire",
     "H2~algebra~oefpriorite.fr~src~n1prob2",
     "H2~algebra~oefrationnel.fr~src~n2s1e07",
-    "H2~algebra~oefrationnel.fr~src~n2s2e08",
     "H2~algebra~tableur.fr~src~plage2",
     "H2~analysis~OEFevalwimsprop.fr~src~calcechelle4",
     "H2~astronomy~oefsolaire.fr~src~kepler3a",
@@ -479,7 +476,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H5~algebra~OEFpctprem.fr~src~taux3",
     "H5~algebra~oefcomplexes.fr~src~bidevel2",
     "H5~algebra~oefmatrice.fr~src~puissance_matrice",
-    "H5~analysis~derivzoom.fr~src~nbrederivzoom",
     "H5~analysis~foncpluvares.fr~src~contrainte",
     "H5~analysis~oefderivee1S.fr~src~bicarre",
     "H5~analysis~oefderivee1S.fr~src~eqtgte1",
@@ -488,7 +484,6 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H5~analysis~oefderivee1S.fr~src~tgte2pts",
     "H5~analysis~oefderivee1S.fr~src~tgte2ptstep",
     "H5~analysis~oefderivee1S.fr~src~tgtedir",
-    "H5~analysis~oefintts.fr~src~ipp",
     "H5~analysis~oefparabole.fr~src~fuseerep",
     "H5~analysis~oefpercent2.fr~src~comployer2",
     "H5~analysis~oefratexp.fr~src~cube",
@@ -502,57 +497,31 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H5~geometry~OEFbarypdtsc.fr~src~objeqesp",
     "H5~geometry~OEFbarypdtsc.fr~src~objeqplan",
     "H5~geometry~oeftrigo.fr~src~planim",
-    "H5~physics~mvt-solid.fr~src~mv1",
     "H5~probability~oefprobava.fr~src~bernoulli2",
     "H5~probability~oefprobava.fr~src~bernoulli3",
     "H6~algebra~cplxmodarg.fr~src~argument",
-    "H6~algebra~oefcomplex.cn~src~eqmod",
     "H6~algebra~oefcomplex.cn~src~quadpoly",
     "H6~algebra~oefcomplex.en~src~quadpoly",
     "H6~algebra~oefcomplex.fr~src~quadpoly",
-    "H6~algebra~oefcomplex.nl~src~eqmod",
     "H6~algebra~oefcomplex.nl~src~quadpoly",
     "H6~algebra~oefpoly.cn~src~quadpoly",
     "H6~algebra~oefpoly.en~src~quadpoly",
     "H6~algebra~oefpoly.fr~src~quadpoly",
-    "H6~algebra~synComplexesTS.fr~src~formetrigorem",
     "H6~analysis~OEFcontinueTS.fr~src~contdef1",
     "H6~analysis~OEFcontinueTS.fr~src~contdef2",
     "H6~analysis~OEFderivee.fr~src~tan3e",
     "H6~analysis~OEFderivee.fr~src~tan4e",
     "H6~analysis~oefacos.cn~src~acoscoslin",
-    "H6~analysis~oefacos.en~src~acoscoslin",
-    "H6~analysis~oefacos.fr~src~acoscoslin",
     "H6~analysis~oefderiv.en~src~signenombre",
     "H6~analysis~oefderiv.fr~src~signenombre",
     "H6~analysis~oefexpalog10.fr~src~equpuis1",
     "H6~analysis~oefexpalog10.fr~src~expaequ6",
     "H6~analysis~oefexpalog10.fr~src~expaequ7",
-    "H6~analysis~oefinteg1.cn~src~Aire2courbes",
-    "H6~analysis~oefinteg1.cn~src~Aireetintgrale",
-    "H6~analysis~oefinteg1.cn~src~Calculintgral3",
-    "H6~analysis~oefinteg1.cn~src~CalculintgralI",
-    "H6~analysis~oefinteg1.cn~src~CalculintgralI2",
     "H6~analysis~oefinteg1.cn~src~Integraletrigo",
-    "H6~analysis~oefinteg1.fr~src~Aire2courbes",
-    "H6~analysis~oefinteg1.fr~src~Aireetintgrale",
-    "H6~analysis~oefinteg1.fr~src~Calculintgral3",
-    "H6~analysis~oefinteg1.fr~src~CalculintgralI",
-    "H6~analysis~oefinteg1.fr~src~CalculintgralI2",
     "H6~analysis~oefinteg1.fr~src~Intgraletrigo",
-    "H6~analysis~oefintegrale.fr~src~integrale",
-    "H6~analysis~oefintegrale.fr~src~integrale0",
-    "H6~analysis~oefintegrale.fr~src~moyenne",
     "H6~analysis~oefintegrale.fr~src~prim2int",
-    "H6~analysis~oefintegrale.fr~src~prim2int2",
-    "H6~analysis~oefintegrale.fr~src~prim2int3",
     "H6~analysis~oefinv.en~src~prsurj",
     "H6~analysis~oefinv.fr~src~prsurj",
-    "H6~analysis~oeftablvar.fr~src~log2",
-    "H6~analysis~patternPrimitives.fr~src~primExpo",
-    "H6~analysis~patternPrimitives.fr~src~primPuissEnt",
-    "H6~analysis~patternPrimitives.fr~src~primPuissances",
-    "H6~analysis~patternPrimitives.fr~src~primTrigo",
     "H6~arithmetic~OEFaridivTS.fr~src~diveucl4",
     "H6~arithmetic~OEFaridivTS.fr~src~fracint",
     "H6~arithmetic~OEFarithmTS.fr~src~bezout4",
@@ -566,20 +535,7 @@ _IMPORT_2026_09_10_CORRECT_SCORE: set[str] = {
     "H6~physics~oefchute.fr~src~mvtparabolique",
     "H6~probability~OEFprobaTS.fr~src~calcden1b",
     "H6~probability~OEFprobaTS.fr~src~calcden2",
-    "H6~probability~OEFprobaTS.fr~src~noireblanc",
-    "H6~probability~OEFprobaTS.fr~src~pieces",
-    "H6~probability~OEFprobaTS.fr~src~redblue",
-    "H6~probability~oefprobacondit.fr~src~depouillement1",
-    "H6~probability~oefprobacondit.fr~src~depouillement2",
-    "H6~probability~oefprobacondit.fr~src~phenotype",
     "H6~probability~oefprobacondit.fr~src~probacondit1",
-    "H6~probability~oefprobatree.fr~src~binarytree",
-    "H6~probability~oefprobatree.fr~src~chemin",
-    "H6~probability~oefprobatree.fr~src~potpourri2x2",
-    "H6~probability~oefprobtes.fr~src~densite",
-    "H6~probability~oefprobtes.fr~src~loiexpo1",
-    "H6~probability~oefprobtes.fr~src~loiexpo2",
-    "H6~probability~oefprobtes.fr~src~poids_tailles_normale",
 }
 XFAIL_CORRECT_SCORE |= _IMPORT_2026_09_10_CORRECT_SCORE
 
@@ -588,9 +544,6 @@ _IMPORT_2026_09_10_WRONG_SCORE: set[str] = {
     "H1~algebra~oefratio.fr~src~ratio3",
     "H1~algebra~oefratio.fr~src~utilratio2",
     "H1~algebra~oefratio.fr~src~utilratio3",
-    "H2~number~oeflceb.fr~src~graphe0",
-    "H2~number~oeflceb.fr~src~graphe1",
-    "H2~number~oeflceb.fr~src~graphe2",
     "H5~algebra~oeffonctaffine.fr~src~extrapol1",
     "H5~algebra~oeffonctaffine.fr~src~meilleurtarif",
     "H5~algebra~oeffonctaffine.fr~src~vedette1",
@@ -629,8 +582,6 @@ _IMPORT_2026_09_10_WRONG_SCORE: set[str] = {
     "H6~analysis~oeflimite.fr~src~formules2",
     "H6~analysis~oeflimite.fr~src~simples",
     "H6~analysis~oeflimite.fr~src~simplessansln",
-    "H6~arithmetic~oefnumeration.fr~src~mult",
-    "H6~arithmetic~oefnumeration.fr~src~tablemult",
 }
 XFAIL_WRONG_SCORE |= _IMPORT_2026_09_10_WRONG_SCORE
 
@@ -650,20 +601,3 @@ _IMPORT_2026_09_10_CONSTANT_SCORE: set[str] = {
     "H5~analysis~oefratexp.fr~src~frequence",
 }
 XFAIL_CONSTANT_SCORE |= _IMPORT_2026_09_10_CONSTANT_SCORE
-
-
-# `intnum` (intégrale numérique PARI) n'est pas émulé. `slib/function/integrate`
-# rend un `intnum(x=a,b,f)` que WIMS fait calculer à PARI ; PAX laisse
-# l'expression telle quelle, et la bonne réponse, soumise, vaut 0.
-#
-# Ces quatre exercices passaient ce test avant le portage des slibs, mais à
-# vide : `slib/function/bounds` rendait `items,items`, l'attendu valait ce même
-# texte, et le test soumettait l'attendu. Les slibs portées ont rendu l'attendu
-# juste, jusqu'à `intnum` exclu (TODO I.3 h).
-_INTNUM_NON_EMULE: set[str] = {
-    "H6~analysis~oefintegrale.fr~src~aire1",
-    "H6~analysis~oefintegrale.fr~src~aire2",
-    "H6~analysis~oefintegrale.fr~src~aire3",
-    "H6~analysis~oefintegrale.fr~src~aire4",
-}
-XFAIL_CORRECT_SCORE |= _INTNUM_NON_EMULE
